@@ -127,11 +127,16 @@ section
 variables {R₂ : Type*} [comm_ring R₂] [module R₂ M] (F : bilin_form R₂ M) (f : M → M)
 
 instance to_module : module R₂ (bilin_form R₂ M) :=
-{ smul := λ c B, { bilin := λ x y, c * B x y,
-                    bilin_add_left := λ x y z, by {unfold coe_fn has_coe_to_fun.coe bilin, rw [bilin_add_left, left_distrib]},
-                    bilin_smul_left := λ a x y, by {unfold coe_fn has_coe_to_fun.coe bilin, rw [bilin_smul_left, ←mul_assoc, mul_comm c, mul_assoc]},
-                    bilin_add_right := λ x y z, by {unfold coe_fn has_coe_to_fun.coe bilin, rw [bilin_add_right, left_distrib]},
-                    bilin_smul_right := λ a x y, by {unfold coe_fn has_coe_to_fun.coe bilin, rw [bilin_smul_right, ←mul_assoc, mul_comm c, mul_assoc]} },
+{ smul := λ c B,
+  { bilin := λ x y, c * B x y,
+    bilin_add_left := λ x y z,
+      by {unfold coe_fn has_coe_to_fun.coe bilin, rw [bilin_add_left, left_distrib]},
+    bilin_smul_left := λ a x y, by {unfold coe_fn has_coe_to_fun.coe bilin,
+      rw [bilin_smul_left, ←mul_assoc, mul_comm c, mul_assoc]},
+    bilin_add_right := λ x y z, by {unfold coe_fn has_coe_to_fun.coe bilin,
+      rw [bilin_add_right, left_distrib]},
+    bilin_smul_right := λ a x y, by {unfold coe_fn has_coe_to_fun.coe bilin,
+      rw [bilin_smul_right, ←mul_assoc, mul_comm c, mul_assoc]} },
   smul_add := λ c B D, by {ext, unfold coe_fn has_coe_to_fun.coe bilin, rw left_distrib},
   add_smul := λ c B D, by {ext, unfold coe_fn has_coe_to_fun.coe bilin, rw right_distrib},
   mul_smul := λ a c D, by {ext, unfold coe_fn has_coe_to_fun.coe bilin, rw mul_assoc},
@@ -160,7 +165,7 @@ lemma coe_fn_to_linear_map (x : M) : ⇑(F.to_linear_map x) = F x := rfl
 lemma map_sum_left {α} (B : bilin_form R₂ M) (t : finset α) (g : α → M) (w : M) :
   B (t.sum g) w = t.sum (λ i, B (g i) w) :=
 show B.to_linear_map (t.sum g) w = t.sum (λ i, B (g i) w),
-by { rw [B.to_linear_map.map_sum, linear_map.coe_fn_sum, finset.sum_apply], norm_cast }
+by { rw [B.to_linear_map.map_sum, linear_map.coe_fn_sum, finset.sum_apply], refl }
 
 lemma map_sum_right {α} (B : bilin_form R₂ M) (t : finset α) (g : α → M) (v : M) :
   B v (t.sum g) = t.sum (λ i, B v (g i)) :=
@@ -204,6 +209,36 @@ B.comp linear_map.id f
   B.comp_right f v w = B v (f w) := rfl
 
 end comp
+
+section lin_mul_lin
+
+variables {R₂ : Type*} [comm_ring R₂] [module R₂ M] {N : Type w} [add_comm_group N] [module R₂ N]
+
+/-- `lin_mul_lin f g` is the bilinear form mapping `x` and `y` to `f x * g y` -/
+def lin_mul_lin (f g : M →ₗ[R₂] R₂) : bilin_form R₂ M :=
+{ bilin := λ x y, f x * g y,
+  bilin_add_left := λ x y z, by simp [add_mul],
+  bilin_smul_left := λ x y z, by simp [mul_assoc],
+  bilin_add_right := λ x y z, by simp [mul_add],
+  bilin_smul_right := λ x y z, by simp [mul_left_comm] }
+
+variables {f g : M →ₗ[R₂] R₂}
+
+@[simp] lemma lin_mul_lin_apply (x y) : lin_mul_lin f g x y = f x * g y := rfl
+
+@[simp] lemma lin_mul_lin_comp (l r : N →ₗ[R₂] M) :
+  (lin_mul_lin f g).comp l r = lin_mul_lin (f.comp l) (g.comp r) :=
+rfl
+
+@[simp] lemma lin_mul_lin_comp_left (l : M →ₗ[R₂] M) :
+  (lin_mul_lin f g).comp_left l = lin_mul_lin (f.comp l) g :=
+rfl
+
+@[simp] lemma lin_mul_lin_comp_right (r : M →ₗ[R₂] M) :
+  (lin_mul_lin f g).comp_right r = lin_mul_lin f (g.comp r) :=
+rfl
+
+end lin_mul_lin
 
 /-- The proposition that two elements of a bilinear form space are orthogonal -/
 def is_ortho (B : bilin_form R M) (x y : M) : Prop :=
@@ -548,7 +583,7 @@ end
 variables [decidable_eq n]
 
 /-- Given a pair of square matrices `J`, `J₂` defining bilinear forms on the free module, there
-is a natural embedding from the corresponding submodule of pair-skew-adjoint endomorphisms into the
+is a natural embedding from the corresponding submodule of pair-self-adjoint endomorphisms into the
 module of matrices. -/
 def pair_self_adjoint_matrices_linear_embedding :
   bilin_form.is_pair_self_adjoint_submodule J.to_bilin_form J₂.to_bilin_form →ₗ[R] matrix n n R :=

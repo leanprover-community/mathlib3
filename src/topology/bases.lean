@@ -57,7 +57,7 @@ lemma is_topological_basis_of_open_of_nhds {s : set (set α)}
     h_nhds x (t₁ ∩ t₂) ⟨xt₁, xt₂⟩
       (is_open_inter (h_open _ ht₁) (h_open _ ht₂)),
   eq_univ_iff_forall.2 $ assume a,
-    let ⟨u, h₁, h₂, _⟩ := h_nhds a univ trivial (is_open_univ) in
+    let ⟨u, h₁, h₂, _⟩ := h_nhds a univ trivial is_open_univ in
     ⟨u, h₁, h₂⟩,
   le_antisymm
     (le_generate_from h_open)

@@ -102,7 +102,8 @@ begin
     {exact or.inr (ih h)}}
 end
 
-theorem exists_of_mem_map {f : α → β} {b : β} {l : list α} (h : b ∈ map f l) : ∃ a, a ∈ l ∧ f a = b :=
+theorem exists_of_mem_map {f : α → β} {b : β} {l : list α} (h : b ∈ map f l) :
+  ∃ a, a ∈ l ∧ f a = b :=
 begin
   induction l with c l' ih,
   {cases h},
@@ -307,7 +308,8 @@ show l = [] ↔ l ⊆ [], from ⟨λ e, e ▸ subset.refl _, eq_nil_of_subset_ni
 theorem map_subset {l₁ l₂ : list α} (f : α → β) (H : l₁ ⊆ l₂) : map f l₁ ⊆ map f l₂ :=
 λ x, by simp only [mem_map, not_and, exists_imp_distrib, and_imp]; exact λ a h e, ⟨a, H h, e⟩
 
-theorem map_subset_iff {l₁ l₂ : list α} (f : α → β) (h : injective f) : map f l₁ ⊆ map f l₂ ↔ l₁ ⊆ l₂ :=
+theorem map_subset_iff {l₁ l₂ : list α} (f : α → β) (h : injective f) :
+  map f l₁ ⊆ map f l₂ ↔ l₁ ⊆ l₂ :=
 begin
   refine ⟨_, map_subset f⟩, intros h2 x hx,
   rcases mem_map.1 (h2 (mem_map_of_mem f hx)) with ⟨x', hx', hxx'⟩,
@@ -348,8 +350,10 @@ begin
     { rintro (⟨a', rfl, rfl⟩ | ⟨a', H, rfl⟩), {refl}, {rw [← append_assoc, ← H], refl} } },
   case cons : a as ih {
     cases c,
-    { simp only [cons_append, nil_append, false_and, exists_false, false_or, exists_eq_left'], exact eq_comm },
-    { simp only [cons_append, @eq_comm _ a, ih, and_assoc, and_or_distrib_left, exists_and_distrib_left] } }
+    { simp only [cons_append, nil_append, false_and, exists_false, false_or, exists_eq_left'],
+      exact eq_comm },
+    { simp only [cons_append, @eq_comm _ a, ih, and_assoc, and_or_distrib_left,
+        exists_and_distrib_left] } }
 end
 
 @[simp] theorem split_at_eq_take_drop : ∀ (n : ℕ) (l : list α), split_at n l = (take n l, drop n l)

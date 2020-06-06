@@ -128,8 +128,8 @@ to_real_hom.map_sum _ _
   ↑(s.prod f) = s.prod (λa, (f a : ℝ)) :=
 to_real_hom.map_prod _ _
 
-@[norm_cast] lemma smul_coe (r : ℝ≥0) (n : ℕ) : ↑(add_monoid.smul n r) = add_monoid.smul n (r:ℝ) :=
-to_real_hom.to_add_monoid_hom.map_smul _ _
+@[norm_cast] lemma nsmul_coe (r : ℝ≥0) (n : ℕ) : ↑(n •ℕ r) = n •ℕ (r:ℝ) :=
+to_real_hom.to_add_monoid_hom.map_nsmul _ _
 
 @[simp, norm_cast] protected lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℝ≥0) : ℝ) = n :=
 to_real_hom.map_nat_cast n
@@ -179,8 +179,10 @@ instance : semilattice_sup_bot ℝ≥0 :=
 { .. nnreal.order_bot, .. nnreal.distrib_lattice }
 
 instance : linear_ordered_semiring ℝ≥0 :=
-{ add_left_cancel            := assume a b c h, nnreal.eq $ @add_left_cancel ℝ _ a b c (nnreal.eq_iff.2 h),
-  add_right_cancel           := assume a b c h, nnreal.eq $ @add_right_cancel ℝ _ a b c (nnreal.eq_iff.2 h),
+{ add_left_cancel            := assume a b c h, nnreal.eq $
+    @add_left_cancel ℝ _ a b c (nnreal.eq_iff.2 h),
+  add_right_cancel           := assume a b c h, nnreal.eq $
+    @add_right_cancel ℝ _ a b c (nnreal.eq_iff.2 h),
   le_of_add_le_add_left      := assume a b c, @le_of_add_le_add_left ℝ _ a b c,
   mul_lt_mul_of_pos_left     := assume a b c, @mul_lt_mul_of_pos_left ℝ _ a b c,
   mul_lt_mul_of_pos_right    := assume a b c, @mul_lt_mul_of_pos_right ℝ _ a b c,
@@ -251,7 +253,7 @@ instance : conditionally_complete_linear_order_bot ℝ≥0 :=
 instance : archimedean nnreal :=
 ⟨ assume x y pos_y,
   let ⟨n, hr⟩ := archimedean.arch (x:ℝ) (pos_y : (0 : ℝ) < y) in
-  ⟨n, show (x:ℝ) ≤ (add_monoid.smul n y : nnreal), by simp [*, smul_coe]⟩ ⟩
+  ⟨n, show (x:ℝ) ≤ (n •ℕ y : nnreal), by simp [*, nsmul_coe]⟩ ⟩
 
 lemma le_of_forall_epsilon_le {a b : nnreal} (h : ∀ε, ε > 0 → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ assume x hxb,
@@ -413,8 +415,8 @@ end
 
 @[simp] lemma sub_le_iff_le_add {r p q : nnreal} : r - p ≤ q ↔ r ≤ q + p :=
 match le_total p r with
-| or.inl h :=
-  by rw [← nnreal.coe_le_coe, ← nnreal.coe_le_coe, nnreal.coe_sub h, nnreal.coe_add, sub_le_iff_le_add]
+| or.inl h := by rw [← nnreal.coe_le_coe, ← nnreal.coe_le_coe, nnreal.coe_sub h, nnreal.coe_add,
+    sub_le_iff_le_add]
 | or.inr h :=
   have r ≤ p + q, from le_add_right h,
   by simpa [nnreal.coe_le_coe, nnreal.coe_le_coe, sub_eq_zero h, add_comm]

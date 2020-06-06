@@ -4,76 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Simon Hudon, Mario Carneiro
 -/
 import algebra.group.to_additive
+import algebra.group.defs
 import tactic.simpa
 import logic.function.basic
 import tactic.protected
 
-set_option default_priority 100
-set_option old_structure_cmd true
-
 universe u
-
-/- Additive "sister" structures.
-   Example, add_semigroup mirrors semigroup.
-   These structures exist just to help automation.
-   In an alternative design, we could have the binary operation as an
-   extra argument for semigroup, monoid, group, etc. However, the lemmas
-   would be hard to index since they would not contain any constant.
-   For example, mul_assoc would be
-
-   lemma mul_assoc {α : Type u} {op : α → α → α} [semigroup α op] :
-                   ∀ a b c : α, op (op a b) c = op a (op b c) :=
-    semigroup.mul_assoc
-
-   The simplifier cannot effectively use this lemma since the pattern for
-   the left-hand-side would be
-
-        ?op (?op ?a ?b) ?c
-
-   Remark: we use a tactic for transporting theorems from the multiplicative fragment
-   to the additive one.
--/
-
-@[protect_proj, ancestor has_mul] class semigroup (α : Type u) extends has_mul α :=
-(mul_assoc : ∀ a b c : α, a * b * c = a * (b * c))
-@[protect_proj, ancestor has_add] class add_semigroup (α : Type u) extends has_add α :=
-(add_assoc : ∀ a b c : α, a + b + c = a + (b + c))
-attribute [to_additive add_semigroup] semigroup
-
-section semigroup
-variables {α : Type u} [semigroup α]
-
-@[no_rsimp, to_additive]
-lemma mul_assoc : ∀ a b c : α, a * b * c = a * (b * c) :=
-semigroup.mul_assoc
-
-attribute [no_rsimp] add_assoc -- TODO(Mario): find out why this isn't copying
-
-@[to_additive add_semigroup_to_is_eq_associative]
-instance semigroup_to_is_associative : is_associative α (*) :=
-⟨mul_assoc⟩
-
-end semigroup
-
-@[protect_proj, ancestor semigroup]
-class comm_semigroup (α : Type u) extends semigroup α :=
-(mul_comm : ∀ a b : α, a * b = b * a)
-@[protect_proj, ancestor add_semigroup]
-class add_comm_semigroup (α : Type u) extends add_semigroup α :=
-(add_comm : ∀ a b : α, a + b = b + a)
-attribute [to_additive add_comm_semigroup] comm_semigroup
 
 section comm_semigroup
 variables {G : Type u} [comm_semigroup G]
-
-@[no_rsimp, to_additive]
-lemma mul_comm : ∀ a b : G, a * b = b * a :=
-comm_semigroup.mul_comm
-attribute [no_rsimp] add_comm
-
-@[to_additive add_comm_semigroup_to_is_eq_commutative]
-instance comm_semigroup_to_is_commutative : is_commutative G (*) :=
-⟨mul_comm⟩
 
 @[no_rsimp, to_additive]
 lemma mul_left_comm : ∀ a b c : G, a * (b * c) = b * (a * c) :=
@@ -90,104 +29,7 @@ by simp only [mul_left_comm, mul_assoc]
 
 end comm_semigroup
 
-local attribute [simp] mul_assoc
-
-@[protect_proj, ancestor semigroup]
-class left_cancel_semigroup (α : Type u) extends semigroup α :=
-(mul_left_cancel : ∀ a b c : α, a * b = a * c → b = c)
-@[protect_proj, ancestor add_semigroup]
-class add_left_cancel_semigroup (α : Type u) extends add_semigroup α :=
-(add_left_cancel : ∀ a b c : α, a + b = a + c → b = c)
-attribute [to_additive add_left_cancel_semigroup] left_cancel_semigroup
-
-section left_cancel_semigroup
-variables {α : Type u} [left_cancel_semigroup α] {a b c : α}
-
-@[to_additive]
-lemma mul_left_cancel : a * b = a * c → b = c :=
-left_cancel_semigroup.mul_left_cancel a b c
-
-def eq_of_add_eq_add_left := @add_left_cancel
-
-@[to_additive]
-lemma mul_left_cancel_iff : a * b = a * c ↔ b = c :=
-⟨mul_left_cancel, congr_arg _⟩
-
-@[to_additive]
-theorem mul_right_injective (a : α) : function.injective ((*) a) :=
-λ b c, mul_left_cancel
-
-@[simp, to_additive]
-theorem mul_right_inj (a : α) {b c : α} : a * b = a * c ↔ b = c :=
-⟨mul_left_cancel, congr_arg _⟩
-
-end left_cancel_semigroup
-
-@[protect_proj,ancestor semigroup]
-class right_cancel_semigroup (α : Type u) extends semigroup α :=
-(mul_right_cancel : ∀ a b c : α, a * b = c * b → a = c)
-@[protect_proj, ancestor add_semigroup]
-class add_right_cancel_semigroup (α : Type u) extends add_semigroup α :=
-(add_right_cancel : ∀ a b c : α, a + b = c + b → a = c)
-attribute [to_additive add_right_cancel_semigroup] right_cancel_semigroup
-
-section right_cancel_semigroup
-variables {α : Type u} [right_cancel_semigroup α] {a b c : α}
-
-@[to_additive]
-lemma mul_right_cancel : a * b = c * b → a = c :=
-right_cancel_semigroup.mul_right_cancel a b c
-
-def eq_of_add_eq_add_right := @add_right_cancel
-
-@[to_additive]
-lemma mul_right_cancel_iff : b * a = c * a ↔ b = c :=
-⟨mul_right_cancel, congr_arg _⟩
-
-@[to_additive]
-theorem mul_left_injective (a : α) : function.injective (λ x, x * a) :=
-λ b c, mul_right_cancel
-
-@[simp, to_additive]
-theorem mul_left_inj (a : α) {b c : α} : b * a = c * a ↔ b = c :=
-⟨mul_right_cancel, congr_arg _⟩
-
-end right_cancel_semigroup
-
-@[ancestor semigroup has_one]
-class monoid (M : Type u) extends semigroup M, has_one M :=
-(one_mul : ∀ a : M, 1 * a = a) (mul_one : ∀ a : M, a * 1 = a)
-@[ancestor add_semigroup has_zero]
-class add_monoid (M : Type u) extends add_semigroup M, has_zero M :=
-(zero_add : ∀ a : M, 0 + a = a) (add_zero : ∀ a : M, a + 0 = a)
-attribute [to_additive add_monoid] monoid
-
-section monoid
-variables {M : Type u} [monoid M]
-
-@[ematch, simp, to_additive]
-lemma one_mul : ∀ a : M, 1 * a = a :=
-monoid.one_mul
-
-@[ematch, simp, to_additive]
-lemma mul_one : ∀ a : M, a * 1 = a :=
-monoid.mul_one
-
-attribute [ematch] add_zero zero_add -- TODO(Mario): Make to_additive transfer this
-
-@[to_additive add_monoid_to_is_left_id]
-instance monoid_to_is_left_id : is_left_id M (*) 1 :=
-⟨ monoid.one_mul ⟩
-
-@[to_additive add_monoid_to_is_right_id]
-instance monoid_to_is_right_id : is_right_id M (*) 1 :=
-⟨ monoid.mul_one ⟩
-
-@[to_additive]
-lemma left_inv_eq_right_inv {a b c : M} (hba : b * a = 1) (hac : a * c = 1) : b = c :=
-by rw [←one_mul c, ←hba, mul_assoc, hac, mul_one b]
-
-end monoid
+local attribute [simp] mul_assoc sub_eq_add_neg
 
 section add_monoid
 variables {M : Type u} [add_monoid M] {a b c : M}
@@ -198,12 +40,6 @@ by rw [bit1, bit0_zero, zero_add]
 
 end add_monoid
 
-@[protect_proj, ancestor monoid comm_semigroup]
-class comm_monoid (M : Type u) extends monoid M, comm_semigroup M
-@[protect_proj, ancestor add_monoid add_comm_semigroup]
-class add_comm_monoid (M : Type u) extends add_monoid M, add_comm_semigroup M
-attribute [to_additive add_comm_monoid] comm_monoid
-
 section comm_monoid
 variables {M : Type u} [comm_monoid M] {x y z : M}
 
@@ -212,65 +48,21 @@ left_inv_eq_right_inv (trans (mul_comm _ _) hy) hz
 
 end comm_monoid
 
-/-- An algebraic class missing in core: an additive monoid in which addition is left-cancellative.
-Main examples are `ℕ` and groups. This is the right typeclass for many sum lemmas, as having a zero
-is useful to define the sum over the empty set, so `add_left_cancel_semigroup` is not enough. -/
-@[protect_proj]
-class add_left_cancel_monoid (M : Type u) extends add_left_cancel_semigroup M, add_monoid M
-
-section add_left_cancel_monoid
-variables {M : Type u} [add_left_cancel_monoid M]
-
-end add_left_cancel_monoid
-
-@[protect_proj, ancestor monoid has_inv]
-class group (α : Type u) extends monoid α, has_inv α :=
-(mul_left_inv : ∀ a : α, a⁻¹ * a = 1)
-@[protect_proj, ancestor add_monoid has_neg]
-class add_group (α : Type u) extends add_monoid α, has_neg α :=
-(add_left_neg : ∀ a : α, -a + a = 0)
-attribute [to_additive add_group] group
-
 section group
 variables {G : Type u} [group G] {a b c : G}
 
 @[simp, to_additive]
-lemma mul_left_inv : ∀ a : G, a⁻¹ * a = 1 :=
-group.mul_left_inv
-
-@[to_additive] def inv_mul_self := @mul_left_inv
-
-@[simp, to_additive]
-lemma inv_mul_cancel_left (a b : G) : a⁻¹ * (a * b) = b :=
-by rw [← mul_assoc, mul_left_inv, one_mul]
-
-@[simp, to_additive]
 lemma inv_mul_cancel_right (a b : G) : a * b⁻¹ * b = a :=
-by simp
-
-@[simp, to_additive]
-lemma inv_eq_of_mul_eq_one (h : a * b = 1) : a⁻¹ = b :=
-by rw [← mul_one a⁻¹, ←h, ←mul_assoc, mul_left_inv, one_mul]
+by simp [mul_assoc]
 
 @[simp, to_additive neg_zero]
 lemma one_inv : 1⁻¹ = (1 : G) :=
 inv_eq_of_mul_eq_one (one_mul 1)
 
-@[simp, to_additive]
-lemma inv_inv (a : G) : (a⁻¹)⁻¹ = a :=
-inv_eq_of_mul_eq_one (mul_left_inv a)
-
 @[to_additive]
 theorem left_inverse_inv (G) [group G] :
   function.left_inverse (λ a : G, a⁻¹) (λ a, a⁻¹) :=
 inv_inv
-
-@[simp, to_additive]
-lemma mul_right_inv (a : G) : a * a⁻¹ = 1 :=
-have a⁻¹⁻¹ * a⁻¹ = 1, by rw mul_left_inv,
-by rwa [inv_inv] at this
-
-@[to_additive] def mul_inv_self := @mul_right_inv
 
 @[to_additive]
 lemma inv_inj (h : a⁻¹ = b⁻¹) : a = b :=
@@ -285,31 +77,9 @@ theorem inv_inj' : a⁻¹ = b⁻¹ ↔ a = b :=
 theorem eq_of_inv_eq_inv : a⁻¹ = b⁻¹ → a = b :=
 inv_inj'.1
 
-@[to_additive add_group.add_left_cancel]
-lemma group.mul_left_cancel (h : a * b = a * c) : b = c :=
-have a⁻¹ * (a * b) = b, by simp,
-begin simp [h] at this, rw this end
-
-@[to_additive add_group.add_right_cancel]
-lemma group.mul_right_cancel (h : a * b = c * b) : a = c :=
-have a * b * b⁻¹ = a, by simp,
-begin simp [h] at this, rw this end
-
-@[to_additive add_group.to_left_cancel_add_semigroup]
-instance group.to_left_cancel_semigroup : left_cancel_semigroup G :=
-{ mul_left_cancel := @group.mul_left_cancel G _, ..‹group G› }
-
-@[to_additive add_group.to_right_cancel_add_semigroup]
-instance group.to_right_cancel_semigroup : right_cancel_semigroup G :=
-{ mul_right_cancel := @group.mul_right_cancel G _, ..‹group G› }
-
 @[simp, to_additive]
 lemma mul_inv_cancel_left (a b : G) : a * (a⁻¹ * b) = b :=
 by rw [← mul_assoc, mul_right_inv, one_mul]
-
-@[simp, to_additive]
-lemma mul_inv_cancel_right (a b : G) : a * b * b⁻¹ = a :=
-by rw [mul_assoc, mul_right_inv, mul_one]
 
 @[to_additive]
 theorem mul_left_surjective (a : G) : function.surjective ((*) a) :=
@@ -321,7 +91,7 @@ theorem mul_right_surjective (a : G) : function.surjective (λ x, x * a) :=
 
 @[simp, to_additive neg_add_rev]
 lemma mul_inv_rev (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹ :=
-inv_eq_of_mul_eq_one begin rw [mul_assoc, ← mul_assoc b, mul_right_inv, one_mul, mul_right_inv] end
+inv_eq_of_mul_eq_one $ by simp
 
 @[to_additive]
 lemma eq_inv_of_eq_inv (h : a = b⁻¹) : b = a⁻¹ :=
@@ -448,16 +218,6 @@ end group
 section add_group
 variables {G : Type u} [add_group G] {a b c d : G}
 
-@[reducible] protected def algebra.sub (a b : G) : G :=
-a + -b
-
-instance add_group_has_sub : has_sub G :=
-⟨algebra.sub⟩
-
-local attribute [simp]
-lemma sub_eq_add_neg (a b : G) : a - b = a + -b :=
-rfl
-
 @[simp] lemma sub_self (a : G) : a - a = 0 :=
 add_right_neg a
 
@@ -498,7 +258,8 @@ end
 by rw [sub_eq_add_neg, neg_neg]
 
 @[simp] lemma neg_sub (a b : G) : -(a - b) = b - a :=
-neg_eq_of_add_eq_zero (by rw [sub_eq_add_neg, sub_eq_add_neg, add_assoc, neg_add_cancel_left, add_right_neg])
+neg_eq_of_add_eq_zero (by rw [sub_eq_add_neg, sub_eq_add_neg, add_assoc, neg_add_cancel_left,
+  add_right_neg])
 
 local attribute [simp] add_assoc
 
@@ -522,9 +283,6 @@ by simp [h.symm]
 
 lemma add_eq_of_eq_sub (h : a = c - b) : a + b = c :=
 by simp [h]
-
-instance add_group.to_add_left_cancel_monoid : add_left_cancel_monoid G :=
-{ ..‹add_group G›, .. add_group.to_left_cancel_add_semigroup }
 
 @[simp] lemma sub_right_inj : a - b = a - c ↔ b = c :=
 (add_right_inj _).trans neg_inj'
@@ -571,12 +329,6 @@ theorem left_inverse_neg_add_add_right (c : G) :
 assume x, neg_add_cancel_left c x
 
 end add_group
-
-@[protect_proj, ancestor group comm_monoid]
-class comm_group (G : Type u) extends group G, comm_monoid G
-@[protect_proj, ancestor add_group add_comm_monoid]
-class add_comm_group (G : Type u) extends add_group G, add_comm_monoid G
-attribute [to_additive add_comm_group] comm_group
 
 section comm_group
 variables {G : Type u} [comm_group G]

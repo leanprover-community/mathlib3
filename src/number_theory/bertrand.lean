@@ -2,8 +2,9 @@ import data.subtype
 import data.nat.prime
 import data.nat.choose
 import data.nat.multiplicity
-import ring_theory.multiplicity
+import data.padics
 import tactic
+import ring_theory.multiplicity
 
 open_locale big_operators
 
@@ -17,18 +18,24 @@ private def α (n : nat) (pos : 0 < n) (p : nat) (is_prime : nat.prime p) : nat 
     exact (multiplicity.finite_iff_dom.1 fin),
   end
 
+/-
+
 def primes_le (n : nat) : finset {m : nat // m ≤ n ∧ nat.prime m} :=
 begin
-  let e := finset.attach (finset.filter nat.prime (finset.range (n + 1))),
-  simp only [finset.mem_filter, finset.mem_range] at e,
-  --rw @nat.le_pred_of_lt (n + 1) at e,
-  sorry,
+  have r : finset {m : nat // m ≤ n ∧ nat.prime m} = finset {m : nat // m < n + 1 ∧ nat.prime m},
+  { congr, ext,
+    split,
+    { rintros ⟨x_le_n, x_prime⟩,
+      exact ⟨nat.lt_succ_iff.mpr x_le_n, x_prime⟩, },
+    { rintros ⟨x_lt_sn, x_prime⟩,
+      exact ⟨nat.lt_succ_iff.mp x_lt_sn, x_prime ⟩, }, },
+  simpa only [r, finset.mem_filter, finset.mem_range] using (finset.filter nat.prime (finset.range (n + 1))).attach,
 end
+
 
 lemma primes_le_is_all (n : nat) (i : nat) (is_le : i ≤ n) (is_prime : nat.prime i)
   : { subtype . val := i, property := and.intro is_le is_prime } ∈ primes_le n :=
 begin
-sorry
 end
 
 lemma alpha_eq (n : nat) (n_pos : 0 < n) :
@@ -339,5 +346,7 @@ interval_cases n,
 { use 5, norm_num },
 end
 
+
+-/
 
 -/

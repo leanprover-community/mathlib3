@@ -227,6 +227,7 @@ end
 section
 open_locale big_operators
 open finset
+
 /--
 If a finset has cardinality larger than the dimension of the space,
 then there is a nontrivial linear relation amongst its elements.
@@ -243,26 +244,20 @@ begin
   -- and finally clean up the mess caused by the extension.
   refine ⟨f, _, _⟩,
   { dsimp [f],
-    convert sum using 1,
-    fapply sum_bij_ne_zero,
-    { intros, exact ⟨a, H⟩, },
-    { intros, dsimp,
-      rw [dif_pos h₁] at h₂,
-      by_contradiction w,
-      rw [if_neg w] at h₂,
-      simpa using h₂, },
+    rw ← sum,
+    fapply sum_bij_ne_zero (λ v hvt _, (⟨v, hvt⟩ : {v // v ∈ t})),
+    { intros v hvt H, dsimp,
+      rw [dif_pos hvt] at H,
+      contrapose! H,
+      rw [if_neg H, zero_smul], },
     { intros _ _ _ _ _ _, exact subtype.mk.inj, },
-    { intros, dsimp,
+    { intros b hbs hb,
       use b,
-      have h₁ : ↑b ∈ t := by simp,
-      use h₁,
-      rw [dif_pos h₁, if_pos],
-      { fsplit; simp; assumption, },
-      { simpa, } },
-    { intros a h₁, dsimp, rw [dif_pos h₁], intro h₂,
-      split_ifs with h₃,
-      { refl, },
-      { rw [if_neg h₃, zero_smul, eq_self_iff_true, not_true] at h₂, contradiction, }, }, },
+      simpa only [hbs, exists_prop, dif_pos, mk_coe, and_true, if_true, finset.coe_mem,
+        eq_self_iff_true, exists_prop_of_true, ne.def] using hb, },
+    { intros a h₁, dsimp, rw [dif_pos h₁],
+      intro h₂, rw [if_pos], contrapose! h₂,
+      rw [if_neg h₂, zero_smul], }, },
   { refine ⟨z, z.2, _⟩, dsimp only [f], erw [dif_pos z.2, if_pos]; rwa [subtype.coe_eta] },
 end
 
@@ -311,14 +306,10 @@ begin
       rw mem_erase at x₁_mem,
       simp only [x₁_mem, sub_add_cancel, function.embedding.coe_fn_mk], },
     { dsimp only [f],
-      split_ifs with hx₁ hx₀,
-      { simp only [ne.def, neg_eq_zero],
-        simp only [add_left_eq_self] at hx₁, subst hx₁,
-        simp only [exists_prop, mem_erase, function.embedding.coe_fn_mk,
-          finset.mem_map, ne.def, sub_eq_zero] at x₁_mem,
-        rcases x₁_mem with ⟨x₁_mem_w, ⟨x₁_mem_h_left_left, x₁_mem_h_left_right⟩, x₁_mem_h_right⟩,
-        contradiction, },
-      { simpa using nz, } } },
+      rwa [if_neg, add_sub_cancel],
+      rw [add_left_eq_self], rintro rfl,
+      simpa only [sub_eq_zero, exists_prop, finset.mem_map, embedding.coe_fn_mk, eq_self_iff_true,
+        mem_erase, not_true, exists_eq_right, ne.def, false_and] using x₁_mem, } },
 end
 
 lemma exists_pos_of_sum_zero_of_exists_nonzero {K : Type*} [linear_ordered_field K]
@@ -349,7 +340,9 @@ begin
   obtain ⟨f, sum, total, nonzero⟩ := exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card h,
   exact ⟨f, sum, total, exists_pos_of_sum_zero_of_exists_nonzero f total nonzero⟩,
 end
+
 end
+
 end
 
 /-- If a submodule has maximal dimension in a finite dimensional space, then it is equal to the

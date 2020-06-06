@@ -302,8 +302,8 @@ infix ` •ℤ `:70 := gsmul
 theorem gpow_of_nat (a : G) (n : ℕ) : a ^ of_nat n = a ^ n := rfl
 theorem gsmul_of_nat (a : A) (n : ℕ) : of_nat n •ℤ a = n •ℕ a := rfl
 
-@[simp] theorem gpow_neg_succ (a : G) (n : ℕ) : a ^ -[1+n] = (a ^ n.succ)⁻¹ := rfl
-@[simp] theorem gsmul_neg_succ (a : A) (n : ℕ) : -[1+n] •ℤ a = - (n.succ •ℕ a) := rfl
+@[simp] theorem gpow_neg_succ_of_nat (a : G) (n : ℕ) : a ^ -[1+n] = (a ^ n.succ)⁻¹ := rfl
+@[simp] theorem gsmul_neg_succ_of_nat (a : A) (n : ℕ) : -[1+n] •ℤ a = - (n.succ •ℕ a) := rfl
 
 local attribute [ematch] le_of_lt
 open nat
@@ -412,7 +412,7 @@ f.to_multiplicative.map_gpow a n
 
 theorem commute.mul_gpow {a b : G} (h : commute a b) : ∀ n : ℤ, (a * b) ^ n = a ^ n * b ^ n
 | (n : ℕ) := h.mul_pow n
-| -[1+n] := by { simp only [gpow_neg_succ, h.mul_pow, mul_inv_rev],
+| -[1+n] := by { simp only [gpow_neg_succ_of_nat, h.mul_pow, mul_inv_rev],
                  exact (h.pow_pow n.succ n.succ).inv_inv.symm.eq }
 
 end group
@@ -807,7 +807,7 @@ variables [monoid M] [group G] [ring R]
 @[simp] lemma units_gpow_right {a : M} {x y : units M} (h : semiconj_by a x y) :
   ∀ m : ℤ, semiconj_by a (↑(x^m)) (↑(y^m))
 | (n : ℕ) := by simp only [gpow_coe_nat, units.coe_pow, h, pow_right]
-| -[1+n] := by simp only [gpow_neg_succ, units.coe_pow, units_inv_right, h, pow_right]
+| -[1+n] := by simp only [gpow_neg_succ_of_nat, units.coe_pow, units_inv_right, h, pow_right]
 
 @[simp] lemma gpow_right {a x y : G} (h : semiconj_by a x y) : ∀ m : ℤ, semiconj_by a (x^m) (y^m)
 | (n : ℕ) := h.pow_right n

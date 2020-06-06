@@ -68,7 +68,7 @@ def fpow (a : G₀) : ℤ → G₀
 
 theorem fpow_of_nat (a : G₀) (n : ℕ) : a ^ of_nat n = a ^ n := rfl
 
-@[simp] theorem fpow_neg_succ (a : G₀) (n : ℕ) : a ^ -[1+n] = (a ^ n.succ)⁻¹ := rfl
+@[simp] theorem fpow_neg_succ_of_nat (a : G₀) (n : ℕ) : a ^ -[1+n] = (a ^ n.succ)⁻¹ := rfl
 
 local attribute [ematch] le_of_lt
 
@@ -146,7 +146,7 @@ by rw [mul_comm, fpow_mul]
 @[simp] lemma units.coe_fpow (u : units G₀) :
   ∀ (n : ℤ), ((u ^ n : units G₀) : G₀) = u ^ n
 | (n : ℕ) := u.coe_pow n
-| -[1+k] := by rw [gpow_neg_succ, fpow_neg_succ, units.inv_eq_inv, u.coe_pow]
+| -[1+k] := by rw [gpow_neg_succ_of_nat, fpow_neg_succ_of_nat, units.inv_eq_inv, u.coe_pow]
 
 lemma fpow_ne_zero_of_ne_zero {a : G₀} (ha : a ≠ 0) : ∀ (z : ℤ), a ^ z ≠ 0
 | (of_nat n) := pow_ne_zero' _ ha
@@ -158,7 +158,7 @@ by rw [sub_eq_add_neg, fpow_add ha, fpow_neg]; refl
 lemma commute.mul_fpow {a b : G₀} (h : commute a b) :
   ∀ (i : ℤ), (a * b) ^ i = (a ^ i) * (b ^ i)
 | (n : ℕ) := h.mul_pow n
-| -[1+n]  := by simp_rw [fpow_neg_succ, h.mul_pow, (h.pow_pow _ _).eq, mul_inv_rev']
+| -[1+n]  := by simp_rw [fpow_neg_succ_of_nat, h.mul_pow, (h.pow_pow _ _).eq, mul_inv_rev']
 
 lemma mul_fpow {G₀ : Type*} [comm_group_with_zero G₀] (a b : G₀) (m : ℤ):
   (a * b) ^ m = (a ^ m) * (b ^ m) :=

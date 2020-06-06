@@ -233,7 +233,7 @@ begin
   congr',
   ext v,
   cases (add_torsor.nonempty V1 : nonempty P1) with p,
-  apply vadd_right_cancel V2 (f p),
+  apply vadd_right_cancel (f p),
   erw [← f_add, ← g_add]
 end
 

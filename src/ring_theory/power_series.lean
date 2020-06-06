@@ -37,7 +37,7 @@ then formal power series in one variable form an integral domain.
 The `order` of a formal power series `φ` is the multiplicity of the variable `X` in `φ`.
 
 If the coefficients form an integral domain, then `order` is a valuation
-(`order_mul`, `order_add_ge`).
+(`order_mul`, `le_order_add`).
 
 ## Implementation notes
 
@@ -1296,8 +1296,8 @@ multiplicity.zero _
 
 /-- The order of a formal power series is at least `n` if
 the `i`th coefficient is `0` for all `i < n`.-/
-lemma order_ge_nat (φ : power_series α) (n : ℕ) (h : ∀ i < n, coeff α i φ = 0) :
-  order φ ≥ n :=
+lemma nat_le_order (φ : power_series α) (n : ℕ) (h : ∀ i < n, coeff α i φ = 0) :
+  ↑n ≤ order φ :=
 begin
   by_contra H, rw not_le at H,
   have : (order φ).dom := enat.dom_of_le_some (le_of_lt H),
@@ -1307,13 +1307,13 @@ end
 
 /-- The order of a formal power series is at least `n` if
 the `i`th coefficient is `0` for all `i < n`.-/
-lemma order_ge (φ : power_series α) (n : enat) (h : ∀ i : ℕ, ↑i < n → coeff α i φ = 0) :
-  order φ ≥ n :=
+lemma le_order (φ : power_series α) (n : enat) (h : ∀ i : ℕ, ↑i < n → coeff α i φ = 0) :
+  n ≤ order φ :=
 begin
   induction n using enat.cases_on,
   { show _ ≤ _, rw [top_le_iff, order_eq_top],
     ext i, exact h _ (enat.coe_lt_top i) },
-  { apply order_ge_nat, simpa only [enat.coe_lt_coe] using h }
+  { apply nat_le_order, simpa only [enat.coe_lt_coe] using h }
 end
 
 /-- The order of a formal power series is exactly `n` if the `n`th coefficient is nonzero,
@@ -1346,8 +1346,8 @@ end
 
 /-- The order of the sum of two formal power series
  is at least the minimum of their orders.-/
-lemma order_add_ge (φ ψ : power_series α) :
-  order (φ + ψ) ≥ min (order φ) (order ψ) :=
+lemma le_order_add (φ ψ : power_series α) :
+  min (order φ) (order ψ) ≤ order (φ + ψ) :=
 multiplicity.min_le_multiplicity_add
 
 private lemma order_add_of_order_eq.aux (φ ψ : power_series α)
@@ -1369,7 +1369,7 @@ end
 lemma order_add_of_order_eq (φ ψ : power_series α) (h : order φ ≠ order ψ) :
   order (φ + ψ) = order φ ⊓ order ψ :=
 begin
-  refine le_antisymm _ (order_add_ge _ _),
+  refine le_antisymm _ (le_order_add _ _),
   by_cases H₁ : order φ < order ψ,
   { apply order_add_of_order_eq.aux _ _ h H₁ },
   by_cases H₂ : order ψ < order φ,
@@ -1380,9 +1380,9 @@ end
 /-- The order of the product of two formal power series
  is at least the sum of their orders.-/
 lemma order_mul_ge (φ ψ : power_series α) :
-  order (φ * ψ) ≥ order φ + order ψ :=
+  order φ + order ψ ≤ order (φ * ψ) :=
 begin
-  apply order_ge,
+  apply le_order,
   intros n hn, rw [coeff_mul, finset.sum_eq_zero],
   rintros ⟨i,j⟩ hij,
   by_cases hi : ↑i < order φ,

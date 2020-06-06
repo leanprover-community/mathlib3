@@ -128,6 +128,18 @@ lemma nonempty_of_mem_partition {c : set (set α)} (hc : is_partition c) {s} (h 
   s.nonempty :=
 set.ne_empty_iff_nonempty.1 $ λ hs0, hc.1 $ hs0 ▸ h
 
+lemma is_partition_classes (r : setoid α) : is_partition r.classes :=
+⟨empty_not_mem_classes, classes_eqv_classes⟩
+
+lemma is_partition.pairwise_disjoint {c : set (set α)} (hc : is_partition c) : 
+  c.pairwise_disjoint :=
+eqv_classes_disjoint hc.2
+
+lemma is_partition.sUnion_eq_univ {c : set (set α)} (hc : is_partition c) : 
+  ⋃₀ c = set.univ :=
+set.eq_univ_of_forall $ λ x, set.mem_sUnion.2 $
+  let ⟨t, ht⟩ := hc.2 x in ⟨t, by clear_aux_decl; finish⟩
+
 /-- All elements of a partition of α are the equivalence class of some y ∈ α. -/
 lemma exists_of_mem_partition {c : set (set α)} (hc : is_partition c) {s} (hs : s ∈ c) :
   ∃ y, s = {x | (mk_classes c hc.2).rel x y} :=

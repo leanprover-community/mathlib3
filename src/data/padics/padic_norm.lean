@@ -121,7 +121,7 @@ def padic_val_nat (p : nat) (n : nat) : ℕ :=
 /--
 `padic_val_rat` is defined as an `int.to_nat` cast; this lemma ensures that the cast is well-behaved.
 -/
-lemma zero_le_padic_val_rat (p n : nat) : 0 ≤ padic_val_rat p n :=
+lemma zero_le_padic_val_rat_of_nat (p n : nat) : 0 ≤ padic_val_rat p n :=
 begin
   unfold padic_val_rat,
   split_ifs,
@@ -135,7 +135,7 @@ end
 lemma padic_val_rat_of_nat (p n : nat) : padic_val_rat p n = ↑(padic_val_nat p n) :=
 begin
   unfold padic_val_nat,
-  rw int.to_nat_of_nonneg (zero_le_padic_val_rat p n),
+  rw int.to_nat_of_nonneg (zero_le_padic_val_rat_of_nat p n),
 end
 
 /--

@@ -61,7 +61,7 @@ else let exact_conts := next_continuants 1 fr⁻¹ pred_conts conts in
 
 variable [floor_ring K]
 
-/-- Just a computational lemmas we need for the next main proof -/
+/-- Just a computational lemma we need for the next main proof. -/
 protected lemma comp_exact_value_correctness_of_stream_eq_some_aux_comp {a : K} (b c : K)
   (fract_a_ne_zero : fract a ≠ 0) :
   ((⌊a⌋ : K) * b + c) / (fract a) + b = (b * a + c) / fract a :=

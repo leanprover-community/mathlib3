@@ -573,98 +573,6 @@ subset.antisymm
 
 end is_subgroup
 
-/-The normal closure of a set s is the subgroup closure of all the conjugates of
-elements of s. It is the smallest normal subgroup containing s. -/
-
-namespace group
-variables {s : set G} [group G]
-
-/-- Given an element a, conjugates a is the set of conjugates. -/
-def conjugates (a : G) : set G := {b | is_conj a b}
-
-lemma mem_conjugates_self {a : G} : a ∈ conjugates a := is_conj_refl _
-
-/-- Given a set s, conjugates_of_set s is the set of all conjugates of
-the elements of s. -/
-def conjugates_of_set (s : set G) : set G := ⋃ a ∈ s, conjugates a
-
-lemma mem_conjugates_of_set_iff {x : G} : x ∈ conjugates_of_set s ↔ ∃ a ∈ s, is_conj a x :=
-set.mem_bUnion_iff
-
-theorem subset_conjugates_of_set : s ⊆ conjugates_of_set s :=
-λ (x : G) (h : x ∈ s), mem_conjugates_of_set_iff.2 ⟨x, h, is_conj_refl _⟩
-
-theorem conjugates_of_set_mono {s t : set G} (h : s ⊆ t) :
-  conjugates_of_set s ⊆ conjugates_of_set t :=
-set.bUnion_subset_bUnion_left h
-
-lemma conjugates_subset {t : set G} [normal_subgroup t] {a : G} (h : a ∈ t) : conjugates a ⊆ t :=
-λ x ⟨c,w⟩,
-begin
-  have H := normal_subgroup.normal a h c,
-  rwa ←w,
-end
-
-theorem conjugates_of_set_subset {s t : set G} [normal_subgroup t] (h : s ⊆ t) :
-  conjugates_of_set s ⊆ t :=
-set.bUnion_subset (λ x H, conjugates_subset (h H))
-
-/-- The set of conjugates of s is closed under conjugation. -/
-lemma conj_mem_conjugates_of_set {x c : G} :
-  x ∈ conjugates_of_set s → (c * x * c⁻¹ ∈ conjugates_of_set s) :=
-λ H,
-begin
-  rcases (mem_conjugates_of_set_iff.1 H) with ⟨a,h₁,h₂⟩,
-  exact mem_conjugates_of_set_iff.2 ⟨a, h₁, is_conj_trans h₂ ⟨c,rfl⟩⟩,
-end
-
-/-- The normal closure of a set s is the subgroup closure of all the conjugates of
-elements of s. It is the smallest normal subgroup containing s. -/
-def normal_closure (s : set G) : set G := closure (conjugates_of_set s)
-
-theorem conjugates_of_set_subset_normal_closure : conjugates_of_set s ⊆ normal_closure s :=
-subset_closure
-
-theorem subset_normal_closure : s ⊆ normal_closure s :=
-set.subset.trans subset_conjugates_of_set conjugates_of_set_subset_normal_closure
-
-/-- The normal closure of a set is a subgroup. -/
-instance normal_closure.is_subgroup (s : set G) : is_subgroup (normal_closure s) :=
-closure.is_subgroup (conjugates_of_set s)
-
-/-- The normal closure of s is a normal subgroup. -/
-instance normal_closure.is_normal : normal_subgroup (normal_closure s) :=
-⟨ λ n h g,
-begin
-  induction h with x hx x hx ihx x y hx hy ihx ihy,
-  {exact (conjugates_of_set_subset_normal_closure (conj_mem_conjugates_of_set hx))},
-  {simpa using (normal_closure.is_subgroup s).one_mem},
-  {rw ←conj_inv,
-   exact (is_subgroup.inv_mem ihx)},
-  {rw ←conj_mul,
-   exact (is_submonoid.mul_mem ihx ihy)},
-end ⟩
-
-/-- The normal closure of s is the smallest normal subgroup containing s. -/
-theorem normal_closure_subset {s t : set G} [normal_subgroup t] (h : s ⊆ t) :
-  normal_closure s ⊆ t :=
-λ a w,
-begin
-  induction w with x hx x hx ihx x y hx hy ihx ihy,
-  {exact (conjugates_of_set_subset h $ hx)},
-  {exact is_submonoid.one_mem},
-  {exact is_subgroup.inv_mem ihx},
-  {exact is_submonoid.mul_mem ihx ihy}
-end
-
-lemma normal_closure_subset_iff {s t : set G} [normal_subgroup t] : s ⊆ t ↔ normal_closure s ⊆ t :=
-⟨normal_closure_subset, set.subset.trans (subset_normal_closure)⟩
-
-theorem normal_closure_mono {s t : set G} : s ⊆ t → normal_closure s ⊆ normal_closure t :=
-λ h, normal_closure_subset (set.subset.trans h (subset_normal_closure))
-
-end group
-
 section simple_group
 
 class simple_group (G : Type*) [group G] : Prop :=
@@ -711,16 +619,27 @@ lemma simple_group_of_surjective [group G] [group H] [simple_group G] (f : G →
 
 end simple_group
 
+namespace subgroup
+
 /-- Create a bundled subgroup from a set `s` and `[is_subroup s]`. -/
 @[to_additive "Create a bundled additive subgroup from a set `s` and `[is_add_subgroup s]`."]
-def subgroup.of [group G] (s : set G) [h : is_subgroup s] : subgroup G :=
+def of [group G] (s : set G) [h : is_subgroup s] : subgroup G :=
 { carrier := s,
   one_mem' := h.1.1,
   mul_mem' := h.1.2,
   inv_mem' := h.2 }
 
 @[to_additive]
-instance subgroup.is_subgroup [group G] (K : subgroup G) : is_subgroup (K : set G) :=
+instance is_subgroup [group G] (K : subgroup G) : is_subgroup (K : set G) :=
 { one_mem := K.one_mem',
   mul_mem := K.mul_mem',
   inv_mem := K.inv_mem' }
+
+@[to_additive normal.normal_add_subgroup, instance] lemma normal.normal_subgroup [group G]
+  (H : subgroup G) [NH : H.normal] : normal_subgroup (H : set G) := ⟨NH⟩
+
+@[instance] lemma normal_closure.normal [group G] (s : set G) :
+  normal_subgroup (normal_closure s : set G) :=
+@normal.normal_subgroup _ _ (normal_closure s) _
+
+end subgroup

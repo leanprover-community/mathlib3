@@ -763,7 +763,7 @@ theorem subset_normal_closure : s ⊆ normal_closure s :=
 set.subset.trans subset_conjugates_of_set conjugates_of_set_subset_normal_closure
 
 /-- The normal closure of `s` is a normal subgroup. -/
-@[instance] lemma normal_closure_normal : (normal_closure s).normal :=
+instance normal_closure_normal : (normal_closure s).normal :=
 λ n h g,
 begin
   refine subgroup.closure_induction h (λ x hx, _) _ (λ x y ihx ihy, _) (λ x ihx, _),
@@ -774,6 +774,8 @@ begin
   { rw ← conj_inv,
     exact inv_mem _ ihx }
 end
+
+lemma normal_closure_normal' : (normal_closure s).normal := by apply_instance
 
 /-- The normal closure of `s` is the smallest normal subgroup containing `s`. -/
 theorem normal_closure_le_normal {N : subgroup G} (hN : N.normal)

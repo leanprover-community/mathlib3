@@ -213,12 +213,6 @@ lemma mul_right_eq_self : a * b = a ↔ b = 1 :=
 @[to_additive]
 lemma inv_involutive : function.involutive (has_inv.inv : G → G) := inv_inv
 
-@[to_additive]
-lemma injective_mul {a : G} : function.injective ((*) a) :=
-assume a₁ a₂ h,
-have a⁻¹ * a * a₁ = a⁻¹ * a * a₂, by rw [mul_assoc, mul_assoc, h],
-by rwa [inv_mul_self, one_mul, one_mul] at this
-
 end group
 
 section add_group

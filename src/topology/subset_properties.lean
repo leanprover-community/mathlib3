@@ -992,6 +992,8 @@ subset_connected_component
 class preconnected_space (α : Type u) [topological_space α] : Prop :=
 (is_preconnected_univ : is_preconnected (univ : set α))
 
+export preconnected_space (is_preconnected_univ)
+
 section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- A connected space is a nonempty one where there is no non-trivial open partition. -/

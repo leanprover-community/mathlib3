@@ -102,7 +102,7 @@ theorem mul : primrec (unpaired (*)) :=
 
 theorem pow : primrec (unpaired (^)) :=
 (prec (const 1) (mul.comp (pair (right.comp right) left))).of_eq $
-λ p, by simp; induction p.unpair.2; simp [*, pow_succ]
+λ p, by simp; induction p.unpair.2; simp [*, nat.pow_succ]
 
 end primrec
 

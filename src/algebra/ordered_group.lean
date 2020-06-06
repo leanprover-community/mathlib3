@@ -368,8 +368,17 @@ iff.intro
   (assume h, le_antisymm h (zero_le a))
   (assume h, h ▸ le_refl a)
 
-protected lemma zero_lt_iff_ne_zero : 0 < a ↔ a ≠ 0 :=
+lemma zero_lt_iff_ne_zero : 0 < a ↔ a ≠ 0 :=
 iff.intro ne_of_gt $ assume hne, lt_of_le_of_ne (zero_le _) hne.symm
+
+@[nolint ge_or_gt]
+lemma exists_pos_add_of_lt (h : a < b) : ∃ c > 0, a + c = b :=
+begin
+  obtain ⟨c, hc⟩ := le_iff_exists_add.1 (le_of_lt h),
+  refine ⟨c, zero_lt_iff_ne_zero.2 _, hc.symm⟩,
+  rintro rfl,
+  simpa [hc, lt_irrefl] using h
+end
 
 lemma le_add_left (h : a ≤ c) : a ≤ b + c :=
 calc a = 0 + a : by simp

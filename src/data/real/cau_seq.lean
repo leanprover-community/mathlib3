@@ -83,7 +83,7 @@ abs_sub_le_iff.2 ⟨sub_abv_le_abv_sub abv _ _,
 
 lemma abv_pow {β : Type*} [domain β] (abv : β → α) [is_absolute_value abv]
   (a : β) (n : ℕ) : abv (a ^ n) = abv a ^ n :=
-by induction n; simp [abv_mul abv, _root_.pow_succ, abv_one abv, *]
+by induction n; simp [abv_mul abv, pow_succ, abv_one abv, *]
 
 end is_absolute_value
 

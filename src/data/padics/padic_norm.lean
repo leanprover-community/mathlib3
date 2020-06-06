@@ -141,7 +141,7 @@ end
 /--
 A simplification of `padic_val_nat` when one input is prime, by analogy with `padic_val_rat_def`.
 -/
-def padic_val_nat_def {p : ℕ} [hp : fact p.prime] {n : ℕ} (hn : n ≠ 0) :
+lemma padic_val_nat_def {p : ℕ} [hp : fact p.prime] {n : ℕ} (hn : n ≠ 0) :
   padic_val_nat p n =
   (multiplicity p n).get (multiplicity.finite_nat_iff.2 ⟨nat.prime.ne_one hp, bot_lt_iff_ne_bot.mpr hn⟩) :=
 begin

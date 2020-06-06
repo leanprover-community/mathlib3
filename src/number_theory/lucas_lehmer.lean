@@ -106,9 +106,7 @@ lemma s_zmod_eq_s (p' : ℕ) (i : ℕ) : s_zmod (p'+2) i = (s i : zmod (2^(p'+2)
 begin
   induction i with i ih,
   { dsimp [s, s_zmod], norm_num, },
-  { dsimp [s, s_zmod],
-    push_cast,
-    rw ih, },
+  { push_cast [s, s_zmod, ih] },
 end
 
 -- These next two don't make good `norm_cast` lemmas.

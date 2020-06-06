@@ -67,7 +67,7 @@ end
 end
 
 section zero_ne_one
-variables (R : Type u) {A : Type v} [nonzero_comm_ring R] [comm_ring A] [algebra R A]
+variables (R : Type u) {A : Type v} [comm_ring R] [nonzero R] [comm_ring A] [algebra R A]
 
 /-- An integral element of an algebra is algebraic.-/
 lemma is_integral.is_algebraic {x : A} (h : is_integral R x) : is_algebraic R x :=

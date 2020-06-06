@@ -2,16 +2,18 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau
-
-Fixed point construction on complete lattices.
 -/
 import order.complete_lattice
+import dynamics.fixed_points
+
+/-!
+# Fixed point construction on complete lattices
+-/
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-/-- The set of fixed points of a self-map -/
-def fixed_points (f : α → α) : set α := { x | f x = x }
+open function (fixed_points)
 
 section fixedpoint
 variables [complete_lattice α] {f : α → α}

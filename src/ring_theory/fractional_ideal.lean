@@ -60,14 +60,14 @@ a field.
 fractional ideal, fractional ideals, invertible ideal
 -/
 
-open localization
+open localization_map
 
 namespace ring
 
 section defs
 
 variables {R : Type*} [integral_domain R] {S : submonoid R} {P : Type*} [comm_ring P]
-  (f : localization S P)
+  (f : localization_map S P)
 
 /-- A submodule `I` is a fractional ideal if `a I ⊆ R` for some `a ≠ 0`. -/
 def is_fractional (I : submodule R f.codomain) :=
@@ -90,7 +90,7 @@ open set
 open submodule
 
 variables {R : Type*} [integral_domain R] {S : submonoid R} {P : Type*} [comm_ring P]
-  {f : localization S P}
+  {f : localization_map S P}
 
 instance : has_mem P (fractional_ideal f) := ⟨λ x I, x ∈ I.1⟩
 
@@ -355,13 +355,11 @@ open_locale classical
 
 variables {K : Type*} [field K] {g : fraction_map R K}
 
-instance : zero_ne_one_class (fractional_ideal g) :=
+instance : nonzero (fractional_ideal g) :=
 { zero_ne_one := λ h,
   have this : (1 : K) ∈ (0 : fractional_ideal g) :=
     by rw ←g.to_map.map_one; convert coe_mem_one _,
-  one_ne_zero (mem_zero_iff.mp this),
-  ..fractional_ideal.has_one,
-  ..fractional_ideal.has_zero }
+  one_ne_zero (mem_zero_iff.mp this) }
 
 lemma fractional_div_of_nonzero {I J : fractional_ideal g} (h : J ≠ 0) :
   is_fractional g (I.1 / J.1) :=
@@ -404,7 +402,7 @@ by { rw inv_nonzero h, refl }
 
 @[simp] lemma div_one {I : fractional_ideal g} : I / 1 = I :=
 begin
-  rw [div_nonzero (@one_ne_zero (fractional_ideal g) _)],
+  rw [div_nonzero (@one_ne_zero (fractional_ideal g) _ _ _)],
   ext,
   split; intro h,
   { convert mem_div_iff_forall_mul_mem.mp h 1
@@ -418,7 +416,7 @@ begin
 end
 
 lemma ne_zero_of_mul_eq_one (I J : fractional_ideal g) (h : I * J = 1) : I ≠ 0 :=
-λ hI, @zero_ne_one (fractional_ideal g) _ (by { convert h, simp [hI], })
+λ hI, @zero_ne_one (fractional_ideal g) _ _ _ (by { convert h, simp [hI], })
 
 /-- `I⁻¹` is the inverse of `I` if `I` has an inverse. -/
 theorem right_inverse_eq (I J : fractional_ideal g) (h : I * J = 1) :

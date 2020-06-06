@@ -115,11 +115,8 @@ instance : semiring ℤ√d           := by apply_instance
 instance : ring ℤ√d               := by apply_instance
 instance : distrib ℤ√d            := by apply_instance
 
-instance : zero_ne_one_class ℤ√d :=
-{ zero := 0, one := 1, zero_ne_one := dec_trivial }
-
-instance : nonzero_comm_ring ℤ√d :=
-{ ..zsqrtd.comm_ring, ..zsqrtd.zero_ne_one_class }
+instance : nonzero ℤ√d :=
+{ zero_ne_one := dec_trivial }
 
 @[simp] theorem coe_nat_re (n : ℕ) : (n : ℤ√d).re = n :=
 by induction n; simp *

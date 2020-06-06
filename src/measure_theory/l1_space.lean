@@ -17,9 +17,9 @@ of being almost everywhere equal is defined as a subspace of the space `L⁰`. S
 
 ## Notation
 
-* `α →₁ β` is the type of `L¹` space, where `α` is a `measure_space` and `β` is a `normed_group` with
-  a `second_countable_topology`. `f : α →ₘ β` is a "function" in `L¹`. In comments, `[f]` is also used
-  to denote an `L¹` function.
+* `α →₁ β` is the type of `L¹` space, where `α` is a `measure_space` and `β` is a `normed_group`
+  with a `second_countable_topology`. `f : α →ₘ β` is a "function" in `L¹`. In comments, `[f]` is
+  also used to denote an `L¹` function.
 
   `₁` can be typed as `\1`.
 
@@ -386,7 +386,8 @@ begin
     end
 end
 
-lemma integrable_smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) : integrable (λa, c • f a) ↔ integrable f :=
+lemma integrable_smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) :
+  integrable (λa, c • f a) ↔ integrable f :=
 begin
   split,
   { assume h,
@@ -593,7 +594,8 @@ lemma of_fun_sub (f g : α → β) (hfm hfi hgm hgi) :
     = of_fun f hfm hfi - of_fun g hgm hgi :=
 rfl
 
-lemma norm_of_fun (f : α → β) (hfm hfi) : ∥of_fun f hfm hfi∥ = ennreal.to_real (∫⁻ a, edist (f a) 0) :=
+lemma norm_of_fun (f : α → β) (hfm hfi) :
+  ∥of_fun f hfm hfi∥ = ennreal.to_real (∫⁻ a, edist (f a) 0) :=
 rfl
 
 lemma norm_of_fun_eq_lintegral_norm (f : α → β) (hfm hfi) :
@@ -643,13 +645,15 @@ lemma neg_to_fun (f : α →₁ β) : ∀ₘ a, (-f).to_fun a = -f.to_fun a := a
 lemma sub_to_fun (f g : α →₁ β) : ∀ₘ a, (f - g).to_fun a = f.to_fun a - g.to_fun a :=
 ae_eq_fun.sub_to_fun _ _
 
-lemma dist_to_fun (f g : α →₁ β) : dist f g = ennreal.to_real (∫⁻ x, edist (f.to_fun x) (g.to_fun x)) :=
+lemma dist_to_fun (f g : α →₁ β) :
+  dist f g = ennreal.to_real (∫⁻ x, edist (f.to_fun x) (g.to_fun x)) :=
 by { simp only [dist_eq, edist_to_fun] }
 
 lemma norm_eq_nnnorm_to_fun (f : α →₁ β) : ∥f∥ = ennreal.to_real (∫⁻ a, nnnorm (f.to_fun a)) :=
 by { rw [lintegral_nnnorm_eq_lintegral_edist, ← edist_zero_to_fun], refl }
 
-lemma norm_eq_norm_to_fun (f : α →₁ β) : ∥f∥ = ennreal.to_real (∫⁻ a, ennreal.of_real ∥f.to_fun a∥) :=
+lemma norm_eq_norm_to_fun (f : α →₁ β) :
+  ∥f∥ = ennreal.to_real (∫⁻ a, ennreal.of_real ∥f.to_fun a∥) :=
 by { rw norm_eq_nnnorm_to_fun, congr, funext, rw of_real_norm_eq_coe_nnnorm }
 
 lemma lintegral_edist_to_fun_lt_top (f g : α →₁ β) : (∫⁻ a, edist (f.to_fun a) (g.to_fun a)) < ⊤ :=

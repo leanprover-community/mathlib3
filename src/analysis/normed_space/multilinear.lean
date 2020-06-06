@@ -57,6 +57,8 @@ noncomputable theory
 open_locale classical
 open finset
 
+local attribute [instance, priority 1001]
+add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_semimodule
 
 universes u v w w₁ w₂ wG
 variables {𝕜 : Type u} {ι : Type v} {n : ℕ}
@@ -207,7 +209,7 @@ begin
   ... ≤ C * univ.sum (λ (i : ι), ∥m₁ - m₂∥ * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1)) :
     mul_le_mul_of_nonneg_left (sum_le_sum (λi hi, A i)) hC
   ... = C * (fintype.card ι) * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1) * ∥m₁ - m₂∥ :
-    by { rw [sum_const, card_univ, add_monoid.smul_eq_mul], ring }
+    by { rw [sum_const, card_univ, nsmul_eq_mul], ring }
 end
 
 /-- If a multilinear map satisfies an inequality `∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)`, then it is
@@ -541,14 +543,6 @@ lemma multilinear_map.mk_continuous_norm_le (f : multilinear_map 𝕜 E₁ E₂)
 continuous_multilinear_map.op_norm_le_bound _ hC (λm, H m)
 
 namespace continuous_multilinear_map
-
-/- The next two instances are not found automatically. Register them explicitly.
-TODO: understand why, and fix. -/
-instance : normed_group (continuous_multilinear_map 𝕜 (λ (i : ι), 𝕜) E₂) :=
-  @continuous_multilinear_map.to_normed_group 𝕜 ι (λ (i : ι), 𝕜) E₂ _ _ _ _ _ _ _
-
-instance : normed_space 𝕜 (continuous_multilinear_map 𝕜 (λ (i : ι), 𝕜) E₂) :=
-  @continuous_multilinear_map.to_normed_space 𝕜 ι (λ (i : ι), 𝕜) E₂ _ _ _ _ _ _ _
 
 /-- Given a continuous multilinear map `f` on `n` variables (parameterized by `fin n`) and a subset
 `s` of `k` of these variables, one gets a new continuous multilinear map on `fin k` by varying

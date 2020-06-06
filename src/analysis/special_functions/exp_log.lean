@@ -207,6 +207,9 @@ by { rw [log, dif_pos hx], exact classical.some_spec (exists_exp_eq_of_pos ((abs
 lemma exp_log (hx : 0 < x) : exp (log x) = x :=
 by { rw exp_log_eq_abs (ne_of_gt hx), exact abs_of_pos hx }
 
+lemma exp_log_of_neg (hx : x < 0) : exp (log x) = -x :=
+by { rw exp_log_eq_abs (ne_of_lt hx), exact abs_of_neg hx }
+
 @[simp] lemma log_exp (x : ℝ) : log (exp x) = x :=
 exp_injective $ exp_log (exp_pos x)
 

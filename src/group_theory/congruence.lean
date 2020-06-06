@@ -3,7 +3,7 @@ Copyright (c) 2019 Amelia Livingston. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
-import data.setoid
+import data.setoid.basic
 import algebra.pi_instances
 
 /-!
@@ -213,6 +213,13 @@ induced by a function that is constant on `c`'s equivalence classes."]
 protected def lift_on {β} {c : con M} (q : c.quotient) (f : M → β)
   (h : ∀ a b, c a b → f a = f b) : β := quotient.lift_on' q f h
 
+/-- The binary function on the quotient by a congruence relation `c` induced by a binary function
+    that is constant on `c`'s equivalence classes. -/
+@[elab_as_eliminator, to_additive "The binary function on the quotient by a congruence relation `c`
+induced by a binary function that is constant on `c`'s equivalence classes."]
+protected def lift_on₂ {β} {c : con M} (q r : c.quotient) (f : M → M → β)
+  (h : ∀ a₁ a₂ b₁ b₂, c a₁ b₁ → c a₂ b₂ → f a₁ a₂ = f b₁ b₂) : β := quotient.lift_on₂' q r f h
+
 variables {c}
 
 /-- The inductive principle used to prove propositions about the elements of a quotient by a
@@ -282,7 +289,7 @@ protected def congr {c d : con M} (h : c = d) :  c.quotient ≃* d.quotient :=
     `x` is related to `y` by `d` if `x` is related to `y` by `c`. -/
 @[to_additive "For additive congruence relations `c, d` on a type `M` with an addition, `c ≤ d` iff
 `∀ x y ∈ M`, `x` is related to `y` by `d` if `x` is related to `y` by `c`."]
-instance : has_le (con M) := ⟨λ c d, c.to_setoid ≤ d.to_setoid⟩
+instance : has_le (con M) := ⟨λ c d, ∀ ⦃x y⦄, c x y → d x y⟩
 
 /-- Definition of `≤` for congruence relations. -/
 @[to_additive "Definition of `≤` for additive congruence relations."]
@@ -804,7 +811,7 @@ noncomputable def quotient_ker_equiv_range (f : M →* P) : (ker f).quotient ≃
 { map_mul' := monoid_hom.map_mul _,
   ..@equiv.of_bijective _ _
       ((@mul_equiv.to_monoid_hom (ker_lift f).mrange _ _ _
-        $ mul_equiv.submonoid_congr ker_lift_range_eq).comp (ker_lift f).range_restrict) $
+        $ mul_equiv.submonoid_congr ker_lift_range_eq).comp (ker_lift f).mrange_restrict) $
       (equiv.bijective _).comp
         ⟨λ x y h, injective_ker_lift f $ by rcases x; rcases y; injections,
          λ ⟨w, z, hzm, hz⟩, ⟨z, by rcases hz; rcases _x; refl⟩⟩ }
@@ -830,6 +837,6 @@ def quotient_quotient_equiv_quotient (c d : con M) (h : c ≤ d) :
   (ker (c.map d h)).quotient ≃* d.quotient :=
 { map_mul' := λ x y, con.induction_on₂ x y $ λ w z, con.induction_on₂ w z $ λ a b,
     show _ = d.mk' a * d.mk' b, by rw ←d.mk'.map_mul; refl,
-  ..quotient_quotient_equiv_quotient _ _ h }
+  ..quotient_quotient_equiv_quotient c.to_setoid d.to_setoid h }
 
 end con

@@ -61,7 +61,8 @@ end
 @[simp, priority 900] lemma forall₂_nil_right_iff {l} : forall₂ r l nil ↔ l = nil :=
 ⟨λ H, by cases H; refl, by rintro rfl; exact forall₂.nil⟩
 
-lemma forall₂_cons_left_iff {a l u} : forall₂ r (a::l) u ↔ (∃b u', r a b ∧ forall₂ r l u' ∧ u = b :: u') :=
+lemma forall₂_cons_left_iff {a l u} :
+  forall₂ r (a::l) u ↔ (∃b u', r a b ∧ forall₂ r l u' ∧ u = b :: u') :=
 iff.intro
   (assume h, match u, h with (b :: u'), forall₂.cons h₁ h₂ := ⟨b, u', h₁, h₂, rfl⟩ end)
   (assume h, match u, h with _, ⟨b, u', h₁, h₂, rfl⟩ := forall₂.cons h₁ h₂ end)
@@ -74,7 +75,8 @@ iff.intro
 
 lemma forall₂_and_left {r : α → β → Prop} {p : α → Prop} :
   ∀l u, forall₂ (λa b, p a ∧ r a b) l u ↔ (∀a∈l, p a) ∧ forall₂ r l u
-| []     u := by simp only [forall₂_nil_left_iff, forall_prop_of_false (not_mem_nil _), imp_true_iff, true_and]
+| []     u := by simp only [forall₂_nil_left_iff, forall_prop_of_false (not_mem_nil _),
+    imp_true_iff, true_and]
 | (a::l) u := by simp only [forall₂_and_left l, forall₂_cons_left_iff, forall_mem_cons,
     and_assoc, and_comm, and.left_comm, exists_and_distrib_left.symm]
 
@@ -136,12 +138,14 @@ theorem forall₂_drop {R : α → β → Prop} :
 
 theorem forall₂_take_append {R : α → β → Prop} (l : list α) (l₁ : list β) (l₂ : list β)
   (h : forall₂ R l (l₁ ++ l₂)) : forall₂ R (list.take (length l₁) l) l₁ :=
-have h': forall₂ R (take (length l₁) l) (take (length l₁) (l₁ ++ l₂)), from forall₂_take (length l₁) h,
+have h': forall₂ R (take (length l₁) l) (take (length l₁) (l₁ ++ l₂)),
+from forall₂_take (length l₁) h,
 by rwa [take_left] at h'
 
 theorem forall₂_drop_append {R : α → β → Prop} (l : list α) (l₁ : list β) (l₂ : list β)
   (h : forall₂ R l (l₁ ++ l₂)) : forall₂ R (list.drop (length l₁) l) l₂ :=
-have h': forall₂ R (drop (length l₁) l) (drop (length l₁) (l₁ ++ l₂)), from forall₂_drop (length l₁) h,
+have h': forall₂ R (drop (length l₁) l) (drop (length l₁) (l₁ ++ l₂)),
+from forall₂_drop (length l₁) h,
 by rwa [drop_left] at h'
 
 lemma rel_mem (hr : bi_unique r) : (r ⇒ forall₂ r ⇒ iff) (∈) (∈)
@@ -179,7 +183,8 @@ lemma rel_filter {p : α → Prop} {q : β → Prop} [decidable_pred p] [decidab
   begin
     by_cases p a,
     { have : q b, { rwa [← hpq h₁] },
-      simp only [filter_cons_of_pos _ h, filter_cons_of_pos _ this, forall₂_cons, h₁, rel_filter h₂, and_true], },
+      simp only [filter_cons_of_pos _ h, filter_cons_of_pos _ this, forall₂_cons, h₁, rel_filter h₂,
+        and_true], },
     { have : ¬ q b, { rwa [← hpq h₁] },
       simp only [filter_cons_of_neg _ h, filter_cons_of_neg _ this, rel_filter h₂], },
   end

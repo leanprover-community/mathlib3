@@ -692,7 +692,7 @@ lemma monotone_lintegral (α : Type*) [measure_space α] :
 
 lemma lintegral_eq_nnreal (f : α → ennreal) :
   (∫⁻ a, f a) =
-    (⨆ (s : α →ₛ nnreal) (hf : f ≥ s.map (coe : nnreal → ennreal)),
+    (⨆ (s : α →ₛ nnreal) (hf : ⇑(s.map (coe : nnreal → ennreal)) ≤ f),
       (s.map (coe : nnreal → ennreal)).integral) :=
 begin
   let c : nnreal → ennreal := coe,

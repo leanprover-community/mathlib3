@@ -152,8 +152,6 @@ end
 
 end padic_val_rat
 
-/-
-
 section padic_val_rat
 open multiplicity
 variables (p : ℕ) [p_prime : fact p.prime]
@@ -523,5 +521,3 @@ end
 
 end padic_norm
 end padic_norm
-
--/

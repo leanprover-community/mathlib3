@@ -312,18 +312,6 @@ begin
         mem_erase, not_true, exists_eq_right, ne.def, false_and] using x₁_mem, } },
 end
 
-lemma exists_pos_of_sum_zero_of_exists_nonzero {K : Type*} [linear_ordered_field K]
-  {F : Type*} {t : finset F}
-  (f : F → K) (h₁ : ∑ e in t, f e = 0) (h₂ : ∃ x ∈ t, f x ≠ 0) :
-  ∃ x ∈ t, 0 < f x :=
-begin
-  contrapose! h₁,
-  obtain ⟨x, m, x_nz⟩ : ∃ x ∈ t, f x ≠ 0 := h₂,
-  apply ne_of_lt,
-  calc ∑ e in t, f e < ∑ e in t, 0 : by { apply sum_lt_sum h₁ ⟨x, m, lt_of_le_of_ne (h₁ x m) x_nz⟩ }
-                 ... = 0           : by rw [finset.sum_const, nsmul_zero],
-end
-
 section
 variables {L : Type*} [linear_ordered_field L]
 variables {W : Type v} [add_comm_group W] [vector_space L W]

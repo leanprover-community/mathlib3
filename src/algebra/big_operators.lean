@@ -1187,6 +1187,18 @@ begin
       apply le_trans (h0 a (mem_insert_self a s)) (h1 a (mem_insert_self a s)) }
 end
 
+-- this doesn't need the ring structure.
+lemma finset.exists_pos_of_sum_zero_of_exists_nonzero (f : α → β)
+  (h₁ : ∑ e in s, f e = 0) (h₂ : ∃ x ∈ s, f x ≠ 0) :
+  ∃ x ∈ s, 0 < f x :=
+begin
+  contrapose! h₁,
+  obtain ⟨x, m, x_nz⟩ : ∃ x ∈ s, f x ≠ 0 := h₂,
+  apply ne_of_lt,
+  calc ∑ e in s, f e < ∑ e in s, 0 : by { apply sum_lt_sum h₁ ⟨x, m, lt_of_le_of_ne (h₁ x m) x_nz⟩ }
+                 ... = 0           : by rw [finset.sum_const, nsmul_zero],
+end
+
 end linear_ordered_comm_ring
 
 section canonically_ordered_comm_semiring

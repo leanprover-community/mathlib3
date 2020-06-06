@@ -15,6 +15,9 @@ universes u v w u₁
 -- ### FOR_MATHLIB
 -- everything in this file should move to other files
 
+-- TODO: This should be fixed in mathlib
+local notation `aeval` := mv_polynomial.aeval _ _
+
 namespace mv_polynomial
 
 variables {σ : Type*} {R : Type*} [comm_semiring R]
@@ -71,7 +74,7 @@ lemma comp_aeval {σ : Type*}
   {R : Type*} {A : Type*} {B : Type*}
    [comm_ring R] [comm_ring A] [algebra R A] [comm_ring B] [algebra R B]
   (f : σ → A) (φ : A →ₐ[R] B) :
-  φ.comp (aeval R A f) = (aeval R B (λ i, φ (f i))) :=
+  φ.comp (aeval f) = (aeval (λ i, φ (f i))) :=
 begin
   apply mv_polynomial.alg_hom_ext,
   intros i,
@@ -158,14 +161,14 @@ begin
   { intros q n h, rw [eval₂_mul, eval₂_mul, ring_hom.map_mul, eval₂_X, eval₂_X, h] }
 end
 
-lemma aeval_eq_eval₂_hom {σ : Type*} {R : Type*} {A : Type*}
-   [comm_ring R] [comm_ring A] [algebra R A] (f : σ → A) :
-  (aeval R A f : mv_polynomial σ R →+* A) = eval₂_hom (algebra_map R A) f :=
-rfl
+-- lemma aeval_eq_eval₂_hom {σ : Type*} {R : Type*} {A : Type*}
+--    [comm_ring R] [comm_ring A] [algebra R A] (f : σ → A) :
+--   (aeval f : mv_polynomial σ R →+* A) = eval₂_hom (algebra_map R A) f :=
+-- rfl
 
 lemma aeval_eq_eval₂_hom' {σ : Type*} {R : Type*} {A : Type*}
    [comm_ring R] [comm_ring A] [algebra R A] (f : σ → A) (p : mv_polynomial σ R) :
-  aeval R A f p = eval₂_hom (algebra_map R A) f p :=
+  aeval f p = eval₂_hom (algebra_map R A) f p :=
 rfl
 
 @[simp] lemma eval₂_hom_C {σ : Type*} {R : Type*} {A : Type*} [comm_ring R] [comm_ring A]
@@ -195,7 +198,7 @@ by { rw ← comp_eval₂_hom, refl }
 @[simp] lemma map_aeval {σ : Type*} {R : Type*} {A : Type*} {B : Type*}
   [comm_ring R] [comm_ring A] [algebra R A] [comm_ring B]
   (g : σ → A) (φ : A →+* B) (p : mv_polynomial σ R) :
-  φ (aeval R A g p) = (eval₂_hom (φ.comp (algebra_map R A)) (λ i, φ (g i)) p) :=
+  φ (aeval g p) = (eval₂_hom (φ.comp (algebra_map R A)) (λ i, φ (g i)) p) :=
 by { rw ← comp_eval₂_hom, refl }
 
 @[simp] lemma eval_map {σ : Type*} {R : Type*} {A : Type*} [comm_ring R] [comm_ring A]
@@ -326,10 +329,10 @@ variables {σ : Type*} {τ : Type*} {υ : Type*} {R : Type*} [comm_ring R]
 /-- This is an example of a map of algebraic varieties over `R` for dummies. -/
 noncomputable def comap (f : mv_polynomial σ R →ₐ[R] mv_polynomial τ R) :
   (τ → R) → (σ → R) :=
-λ x i, aeval _ _ x (f (X i))
+λ x i, aeval x (f (X i))
 
 @[simp] lemma comap_apply (f : mv_polynomial σ R →ₐ[R] mv_polynomial τ R) (x : τ → R) (i : σ) :
-  comap f x i = aeval _ _ x (f (X i)) := rfl
+  comap f x i = aeval x (f (X i)) := rfl
 
 @[simp] lemma comap_id_apply (x : σ → R) : comap (alg_hom.id R (mv_polynomial σ R)) x = x :=
 by { funext i, simp only [comap, alg_hom.id_apply, id.def, aeval_X], }
@@ -346,10 +349,10 @@ lemma comap_comp_apply (f : mv_polynomial σ R →ₐ[R] mv_polynomial τ R)
   comap (g.comp f) x = (comap f) (comap g x) :=
 begin
   funext i,
-  transitivity (aeval _ _ x (aeval _ _ (λ i, g (X i)) (f (X i)))),
+  transitivity (aeval x (aeval (λ i, g (X i)) (f (X i)))),
   { apply eval₂_hom_congr rfl rfl,
     rw alg_hom.comp_apply,
-    suffices : g = aeval _ _ (λ i, g (X i)), { rw ← this, },
+    suffices : g = aeval (λ i, g (X i)), { rw ← this, },
     apply mv_polynomial.alg_hom_ext R _ g,
     intro, rw [aeval_X], },
   { simp only [comap, aeval_eq_eval₂_hom', map_eval₂_hom, alg_hom.comp_apply],
@@ -383,11 +386,11 @@ noncomputable def comap_equiv (f : mv_polynomial σ R ≃ₐ[R] mv_polynomial τ
   ((comap_equiv f).symm : (σ → R) → (τ → R)) = comap f.symm := rfl
 
 lemma equiv_of_family_aux (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-  (h : ∀ i, aeval _ _ g (f i) = X i) (φ : mv_polynomial σ R) :
-  (aeval _ _ g) (aeval _ _ f φ) = φ :=
+  (h : ∀ i, aeval g (f i) = X i) (φ : mv_polynomial σ R) :
+  (aeval g) (aeval f φ) = φ :=
 begin
   rw ← alg_hom.comp_apply,
-  suffices : (aeval _ _ g).comp (aeval _ _ f) = alg_hom.id _ _,
+  suffices : (aeval g).comp (aeval f) = alg_hom.id _ _,
   { rw [this, alg_hom.id_apply], },
   apply mv_polynomial.alg_hom_ext R _ _ (alg_hom.id _ _),
   intro i,
@@ -395,31 +398,71 @@ begin
 end
 
 noncomputable def equiv_of_family (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-  (hfg : ∀ i, aeval _ _ g (f i) = X i) (hgf : ∀ i, aeval _ _ f (g i) = X i) :
+  (hfg : ∀ i, aeval g (f i) = X i) (hgf : ∀ i, aeval f (g i) = X i) :
   mv_polynomial σ R ≃ₐ[R] mv_polynomial τ R :=
-{ to_fun    := aeval _ _ f,
-  inv_fun   := aeval _ _ g,
+{ to_fun    := aeval f,
+  inv_fun   := aeval g,
   left_inv  := equiv_of_family_aux f g hfg,
   right_inv := equiv_of_family_aux g f hgf,
-  .. aeval _ _ f}
+  .. aeval f}
 
 @[simp] lemma equiv_of_family_coe (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-  (hfg : ∀ i, aeval _ _ g (f i) = X i) (hgf : ∀ i, aeval _ _ f (g i) = X i) :
-  (equiv_of_family f g hfg hgf : mv_polynomial σ R →ₐ[R] mv_polynomial τ R) = aeval _ _ f := rfl
+  (hfg : ∀ i, aeval g (f i) = X i) (hgf : ∀ i, aeval f (g i) = X i) :
+  (equiv_of_family f g hfg hgf : mv_polynomial σ R →ₐ[R] mv_polynomial τ R) = aeval f := rfl
 
 @[simp] lemma equiv_of_family_symm_coe (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-  (hfg : ∀ i, aeval _ _ g (f i) = X i) (hgf : ∀ i, aeval _ _ f (g i) = X i) :
-  ((equiv_of_family f g hfg hgf).symm : mv_polynomial τ R →ₐ[R] mv_polynomial σ R) = aeval _ _ g := rfl
+  (hfg : ∀ i, aeval g (f i) = X i) (hgf : ∀ i, aeval f (g i) = X i) :
+  ((equiv_of_family f g hfg hgf).symm : mv_polynomial τ R →ₐ[R] mv_polynomial σ R) = aeval g := rfl
 
 @[simp] lemma equiv_of_family_apply (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-  (hfg : ∀ i, aeval _ _ g (f i) = X i) (hgf : ∀ i, aeval _ _ f (g i) = X i)
+  (hfg : ∀ i, aeval g (f i) = X i) (hgf : ∀ i, aeval f (g i) = X i)
   (φ : mv_polynomial σ R) :
-  equiv_of_family f g hfg hgf φ = aeval _ _ f φ := rfl
+  equiv_of_family f g hfg hgf φ = aeval f φ := rfl
 
 @[simp] lemma equiv_of_family_symm_apply (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-  (hfg : ∀ i, aeval _ _ g (f i) = X i) (hgf : ∀ i, aeval _ _ f (g i) = X i)
+  (hfg : ∀ i, aeval g (f i) = X i) (hgf : ∀ i, aeval f (g i) = X i)
   (φ : mv_polynomial τ R) :
-  (equiv_of_family f g hfg hgf).symm φ = aeval _ _ g φ := rfl
+  (equiv_of_family f g hfg hgf).symm φ = aeval g φ := rfl
+
+-- I think this stuff should move back to the witt_vector file
+namespace witt_structure_machine
+variable {idx : Type*}
+variables (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
+variables (hfg : ∀ i, aeval g (f i) = X i) (hgf : ∀ i, aeval f (g i) = X i)
+
+noncomputable def structure_polynomial (Φ : mv_polynomial idx R) (t : τ) :
+  mv_polynomial (idx × τ) R :=
+aeval (λ s : σ, (aeval (λ i, (rename_hom (λ t', (i,t')) (f s)))) Φ) (g t)
+
+include hfg
+
+theorem structure_polynomial_prop (Φ : mv_polynomial idx R) (s : σ) :
+  aeval (structure_polynomial f g Φ) (f s) = aeval (λ b, (rename_hom (λ i, (b,i)) (f s))) Φ :=
+calc aeval (structure_polynomial f g Φ) (f s) =
+      aeval (λ s', aeval (λ b, (rename_hom (prod.mk b)) (f s')) Φ) (aeval g (f s)) :
+      by { conv_rhs { rw [aeval_eq_eval₂_hom', map_aeval] },
+           apply eval₂_hom_congr _ rfl rfl,
+           ext1 r, symmetry, apply eval₂_hom_C, }
+... = aeval (λ i, (rename_hom (λ t', (i,t')) (f s))) Φ : by rw [hfg, aeval_X]
+
+include hgf
+
+theorem exists_unique (Φ : mv_polynomial idx R) :
+  ∃! (φ : τ → mv_polynomial (idx × τ) R),
+    ∀ (s : σ), aeval φ (f s) = aeval (λ i, (rename_hom (λ t', (i,t')) (f s))) Φ :=
+begin
+  refine ⟨structure_polynomial f g Φ, structure_polynomial_prop _ _ hfg _, _⟩,
+  { intros φ H,
+    funext t,
+    calc φ t = aeval φ (aeval (f) (g t)) : by rw [hgf, aeval_X]
+         ... = structure_polynomial f g Φ t : _,
+    rw [aeval_eq_eval₂_hom', map_aeval],
+    apply eval₂_hom_congr _ _ rfl,
+    { ext1 r, exact eval₂_C _ _ r, },
+    { funext k, exact H k } }
+end
+
+end witt_structure_machine
 
 end mv_polynomial
 

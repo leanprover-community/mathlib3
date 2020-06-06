@@ -150,7 +150,12 @@ lemma padic_val_nat_def {p : ℕ} [hp : fact p.prime] {n : ℕ} (hn : n ≠ 0) :
   (multiplicity p n).get (multiplicity.finite_nat_iff.2 ⟨nat.prime.ne_one hp, bot_lt_iff_ne_bot.mpr hn⟩) :=
 begin
   have n_nonzero : (n : ℚ) ≠ 0, by simpa only [cast_eq_zero, ne.def],
-  simpa [int.coe_nat_multiplicity p n, rat.coe_nat_denom n, eq.symm (padic_val_rat_of_nat p n)]
+  -- Infinite loop with @simp padic_val_rat_of_nat unless we restrict the available lemmas here,
+  -- hence the very long list
+  simpa only
+    [ int.coe_nat_multiplicity p n, rat.coe_nat_denom n, (padic_val_rat_of_nat p n).symm,
+      int.coe_nat_zero, int.coe_nat_inj', sub_zero, get_one_right, int.coe_nat_succ, zero_add,
+      rat.coe_nat_num ]
     using padic_val_rat_def p n_nonzero,
 end
 

@@ -119,13 +119,13 @@ section padic_val_nat
 /--
 A convenience function for the case of `padic_val_rat` when both inputs are natural numbers.
 -/
-def padic_val_nat (p : nat) (n : nat) : ℕ :=
+def padic_val_nat (p : ℕ) (n : ℕ) : ℕ :=
 int.to_nat (padic_val_rat p n)
 
 /--
 `padic_val_nat` is defined as an `int.to_nat` cast; this lemma ensures that the cast is well-behaved.
 -/
-lemma zero_le_padic_val_rat_of_nat (p n : nat) : 0 ≤ padic_val_rat p n :=
+lemma zero_le_padic_val_rat_of_nat (p n : ℕ) : 0 ≤ padic_val_rat p n :=
 begin
   unfold padic_val_rat,
   split_ifs,
@@ -136,7 +136,7 @@ end
 /--
 `padic_val_rat` coincides with `padic_val_nat`.
 -/
-@[simp, norm_cast] lemma padic_val_rat_of_nat (p n : nat) : ↑(padic_val_nat p n) = padic_val_rat p n :=
+@[simp, norm_cast] lemma padic_val_rat_of_nat (p n : ℕ) : ↑(padic_val_nat p n) = padic_val_rat p n :=
 begin
   unfold padic_val_nat,
   rw int.to_nat_of_nonneg (zero_le_padic_val_rat_of_nat p n),

@@ -46,8 +46,8 @@ We define the following operations:
 * `tail` : the tail of an `n+1` tuple, i.e., its last `n` entries;
 * `cons` : adding an element at the beginning of an `n`-tuple, to get an `n+1`-tuple;
 * `init` : the beginning of an `n+1` tuple, i.e., its first `n` entries;
-* `snoc` : adding an element at the end of an `n`-tuple, to get an `n+1`-tuple. The name `snoc` comes
-  from `cons` (i.e., adding an element to the left of a tuple) read in reverse order.
+* `snoc` : adding an element at the end of an `n`-tuple, to get an `n+1`-tuple. The name `snoc`
+  comes from `cons` (i.e., adding an element to the left of a tuple) read in reverse order.
 * `find p` : returns the first index `n` where `p n` is satisfied, and `none` if it is never
   satisfied.
 
@@ -316,7 +316,8 @@ begin
     simpa [lt_irrefl, nat.lt_succ_self, eq.symm] using h
 end
 
-@[simp] lemma succ_above_descend : ∀(p i : fin (n+1)) (h : i ≠ p), p.succ_above (p.pred_above i h) = i
+@[simp] lemma succ_above_descend :
+  ∀(p i : fin (n+1)) (h : i ≠ p), p.succ_above (p.pred_above i h) = i
 | ⟨p, hp⟩ ⟨0,   hi⟩ h := fin.eq_of_veq $ by simp [succ_above, pred_above]; split_ifs; simp * at *
 | ⟨p, hp⟩ ⟨i+1, hi⟩ h := fin.eq_of_veq
   begin
@@ -469,7 +470,8 @@ begin
       rw [update_noteq h', update_noteq this, cons_succ] } }
 end
 
-/-- Adding an element at the beginning of a tuple and then updating it amounts to adding it directly. -/
+/-- Adding an element at the beginning of a tuple and then updating it amounts to adding it
+directly. -/
 lemma update_cons_zero : update (cons x p) 0 z = cons z p :=
 begin
   ext j,
@@ -524,8 +526,8 @@ by { ext j, simp [tail] }
 end tuple
 
 section tuple_right
-/-! In the previous section, we have discussed inserting or removing elements on the left of a tuple.
-In this section, we do the same on the right. A difference is that `fin (n+1)` is constructed
+/-! In the previous section, we have discussed inserting or removing elements on the left of a
+tuple. In this section, we do the same on the right. A difference is that `fin (n+1)` is constructed
 inductively from `fin n` starting from the left, not from the right. This implies that Lean needs
 more help to realize that elements belong to the right types, i.e., we need to insert casts at
 several places. -/
@@ -593,7 +595,8 @@ begin
     simp [ne.symm (cast_succ_ne_last i)] }
 end
 
-/-- Adding an element at the beginning of a tuple and then updating it amounts to adding it directly. -/
+/-- Adding an element at the beginning of a tuple and then updating it amounts to adding it
+directly. -/
 lemma update_snoc_last : update (snoc p x) (last n) z = snoc p z :=
 begin
   ext j,

@@ -15,6 +15,8 @@ notation `ℂ` := complex
 
 namespace complex
 
+noncomputable instance : decidable_eq ℂ := classical.dec_eq _
+
 @[simp] theorem eta : ∀ z : ℂ, complex.mk z.re z.im = z
 | ⟨a, b⟩ := rfl
 

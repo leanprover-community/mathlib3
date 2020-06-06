@@ -742,18 +742,18 @@ lemma sum_update_of_mem [add_comm_monoid β] [decidable_eq α] {s : finset α} {
 by { rw [update_eq_piecewise, sum_piecewise], simp [h] }
 attribute [to_additive] prod_update_of_mem
 
-lemma sum_smul' [add_comm_monoid β] (s : finset α) (n : ℕ) (f : α → β) :
-  (∑ x in s, add_monoid.smul n (f x)) = add_monoid.smul n ((∑ x in s, f x)) :=
+lemma sum_nsmul [add_comm_monoid β] (s : finset α) (n : ℕ) (f : α → β) :
+  (∑ x in s, n •ℕ (f x)) = n •ℕ ((∑ x in s, f x)) :=
 @prod_pow _ (multiplicative β) _ _ _ _
-attribute [to_additive sum_smul'] prod_pow
+attribute [to_additive sum_nsmul] prod_pow
 
 @[simp] lemma sum_const [add_comm_monoid β] (b : β) :
-  (∑ x in s, b) = add_monoid.smul s.card b :=
+  (∑ x in s, b) = s.card •ℕ b :=
 @prod_const _ (multiplicative β) _ _ _
 attribute [to_additive] prod_const
 
 lemma sum_comp [add_comm_monoid β] [decidable_eq γ] {s : finset α} (f : γ → β) (g : α → γ) :
-  ∑ a in s, f (g a) = ∑ b in s.image g, add_monoid.smul (s.filter (λ a, g a = b)).card (f b) :=
+  ∑ a in s, f (g a) = ∑ b in s.image g, (s.filter (λ a, g a = b)).card •ℕ (f b) :=
 @prod_comp _ (multiplicative β) _ _ _ _ _ _
 attribute [to_additive "The sum of the composition of functions `f` and `g`, is the sum
 over `b ∈ s.image g` of `f b` times of the cardinality of the fibre of `b`"] prod_comp
@@ -761,7 +761,7 @@ over `b ∈ s.image g` of `f b` times of the cardinality of the fibre of `b`"] p
 lemma sum_const_nat {m : ℕ} {f : α → ℕ} (h₁ : ∀x ∈ s, f x = m) :
   (∑ x in s, f x) = card s * m :=
 begin
-  rw [← nat.smul_eq_mul, ← sum_const],
+  rw [← nat.nsmul_eq_mul, ← sum_const],
   apply sum_congr rfl h₁
 end
 
@@ -1012,6 +1012,9 @@ begin
   rw [prod_insert ha, mul_eq_zero_iff_eq_zero_or_eq_zero, bex_def, exists_mem_insert, ih, ← bex_def]
 end
 
+theorem prod_ne_zero_iff : (∏ x in s, f x) ≠ 0 ↔ (∀ a ∈ s, f a ≠ 0) :=
+by { rw [ne, prod_eq_zero_iff], push_neg }
+
 end integral_domain
 
 section ordered_add_comm_monoid
@@ -1235,7 +1238,7 @@ calc (∑ i in range n, i) * 2 = (∑ i in range n, i) + (∑ i in range n, (n -
 ... = ∑ i in range n, (i + (n - 1 - i)) : sum_add_distrib.symm
 ... = ∑ i in range n, (n - 1) : sum_congr rfl $ λ i hi, nat.add_sub_cancel' $
   nat.le_pred_of_lt $ mem_range.1 hi
-... = n * (n - 1) : by rw [sum_const, card_range, nat.smul_eq_mul]
+... = n * (n - 1) : by rw [sum_const, card_range, nat.nsmul_eq_mul]
 
 /-- Gauss' summation formula -/
 lemma sum_range_id (n : ℕ) : (∑ i in range n, i) = (n * (n - 1)) / 2 :=
@@ -1256,10 +1259,12 @@ variables [group α] [group β]
 theorem is_group_anti_hom.map_prod (f : α → β) [is_group_anti_hom f] (l : list α) :
   f (prod l) = prod (map f (reverse l)) :=
 by induction l with hd tl ih; [exact is_group_anti_hom.map_one f,
-  simp only [prod_cons, is_group_anti_hom.map_mul f, ih, reverse_cons, map_append, prod_append, map_singleton, prod_cons, prod_nil, mul_one]]
+  simp only [prod_cons, is_group_anti_hom.map_mul f, ih, reverse_cons, map_append, prod_append,
+    map_singleton, prod_cons, prod_nil, mul_one]]
 
 theorem inv_prod : ∀ l : list α, (prod l)⁻¹ = prod (map (λ x, x⁻¹) (reverse l)) :=
-λ l, @is_group_anti_hom.map_prod _ _ _ _ _ inv_is_group_anti_hom l -- TODO there is probably a cleaner proof of this
+-- TODO there is probably a cleaner proof of this
+λ l, @is_group_anti_hom.map_prod _ _ _ _ _ inv_is_group_anti_hom l
 
 end group
 
@@ -1284,15 +1289,15 @@ multiset.induction_on s rfl
       ... = card (a :: s) :
       begin
         by_cases a ∈ s.to_finset,
-        { have : (to_finset s).sum (λx, ite (x = a) 1 0) = ({a} : finset α).sum (λx, ite (x = a) 1 0),
-          { apply (finset.sum_subset _ _).symm,
-            { intros _ H, rwa mem_singleton.1 H },
-            { exact λ _ _ H, if_neg (mt finset.mem_singleton.2 H) } },
-          rw [to_finset_cons, finset.insert_eq_of_mem h, finset.sum_add_distrib, ih, this, finset.sum_singleton, if_pos rfl, add_comm, card_cons] },
+        { have : ∑ x in s.to_finset, ite (x = a) 1 0 = ∑ x in {a}, ite (x = a) 1 0,
+          { rw [finset.sum_ite_eq', if_pos h, finset.sum_singleton, if_pos rfl], },
+          rw [to_finset_cons, finset.insert_eq_of_mem h, finset.sum_add_distrib, ih, this,
+            finset.sum_singleton, if_pos rfl, add_comm, card_cons] },
         { have ha : a ∉ s, by rwa mem_to_finset at h,
           have : (to_finset s).sum (λx, ite (x = a) 1 0) = (to_finset s).sum (λx, 0), from
             finset.sum_congr rfl (λ x hx, if_neg $ by rintro rfl; cc),
-          rw [to_finset_cons, finset.sum_insert h, if_pos rfl, finset.sum_add_distrib, this, finset.sum_const_zero, ih, count_eq_zero_of_not_mem ha, zero_add, add_comm, card_cons] }
+          rw [to_finset_cons, finset.sum_insert h, if_pos rfl, finset.sum_add_distrib, this,
+            finset.sum_const_zero, ih, count_eq_zero_of_not_mem ha, zero_add, add_comm, card_cons] }
       end)
 
 end multiset

@@ -25,6 +25,15 @@ instance [inhabited α] : inhabited (vector α n) :=
 theorem to_list_injective : function.injective (@to_list α n) :=
 subtype.val_injective
 
+@[simp] theorem cons_val (a : α) : ∀ (v : vector α n), (a :: v).val = a :: v.val
+| ⟨_, _⟩ := rfl
+
+@[simp] theorem cons_head (a : α) : ∀ (v : vector α n), (a :: v).head = a
+| ⟨_, _⟩ := rfl
+
+@[simp] theorem cons_tail (a : α) : ∀ (v : vector α n), (a :: v).tail = v
+| ⟨_, _⟩ := rfl
+
 @[simp] theorem to_list_of_fn : ∀ {n} (f : fin n → α), to_list (of_fn f) = list.of_fn f
 | 0     f := rfl
 | (n+1) f := by rw [of_fn, list.of_fn_succ, to_list_cons, to_list_of_fn]
@@ -59,6 +68,9 @@ end
 @[simp] theorem nth_tail : ∀ (v : vector α n.succ) (i : fin n),
   nth (tail v) i = nth v i.succ
 | ⟨a::l, e⟩ ⟨i, h⟩ := by simp [nth_eq_nth_le]; refl
+
+@[simp] theorem tail_val : ∀ (v : vector α n.succ), v.tail.val = v.val.tail
+| ⟨a::l, e⟩ := rfl
 
 @[simp] theorem tail_of_fn {n : ℕ} (f : fin n.succ → α) :
   tail (of_fn f) = of_fn (λ i, f i.succ) :=

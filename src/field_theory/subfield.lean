@@ -15,7 +15,7 @@ end prio
 
 instance is_subfield.field [is_subfield S] : field S :=
 { inv := λ x, ⟨x⁻¹, is_subfield.inv_mem x.2⟩,
-  zero_ne_one := λ h : 0 = 1, (@zero_ne_one F _) (subtype.ext.1 h),
+  zero_ne_one := λ h, zero_ne_one (subtype.ext.1 h),
   mul_inv_cancel := λ a ha, subtype.ext.2 (mul_inv_cancel
     (λ h, ha $ subtype.ext.2 h)),
   inv_zero := subtype.ext.2 inv_zero,

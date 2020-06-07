@@ -270,37 +270,52 @@ lemma exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card
   [finite_dimensional K V] {t : finset V} (h : findim K V + 1 < t.card) :
   ∃ f : V → K, ∑ e in t, f e • e = 0 ∧ ∑ e in t, f e = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
 begin
-  -- pick an element x₀ ∈ t,
+  -- Pick an element x₀ ∈ t,
   have card_pos : 0 < t.card := lt_trans (nat.succ_pos _) h,
   obtain ⟨x₀, m⟩ := (finset.card_pos.1 card_pos).bex,
-  -- apply the previous lemma to the other xᵢ - x₀,
+  -- and apply the previous lemma to the {xᵢ - x₀}
   let shift : V ↪ V := ⟨λ x, x - x₀, add_left_injective (-x₀)⟩,
   let t' := (t.erase x₀).map shift,
   have h' : findim K V < t'.card,
   { simp only [t', card_map, finset.card_erase_of_mem m],
     exact nat.lt_pred_iff.mpr h, },
-  -- to obtain a function `g`
+  -- to obtain a function `g`.
   obtain ⟨g, gsum, x₁, x₁_mem, nz⟩ := exists_nontrivial_relation_of_dim_lt_card h',
-  -- and then obtain `f` by translating back by `x₀`,
+  -- Then obtain `f` by translating back by `x₀`,
   -- and setting the value of `f` at `x₀` to ensure `∑ e in t, f e = 0`.
   let f : V → K := λ z, if z = x₀ then - ∑ z in (t.erase x₀), g (z - x₀) else g (z - x₀),
   refine ⟨f, _ ,_ ,_⟩,
-  { simp [f],
+  -- After this, it's a matter of verifiying the properties,
+  -- based on the corresponding properties for `g`.
+  { show ∑ (e : V) in t, f e • e = 0,
+    -- We prove this by splitting off the `x₀` term of the sum,
+    -- which is itself a sum over `t.erase x₀`,
+    -- combining the two sums, and
+    -- observing that after reindexing we have exactly
+    -- ∑ (x : V) in t', g x • x = 0.
+    simp [f],
     conv_lhs { apply_congr, skip, rw [ite_smul], },
     rw [finset.sum_ite],
     conv { congr, congr, apply_congr, simp [filter_eq', m], },
     conv { congr, congr, skip, apply_congr, simp [filter_ne'], },
     rw [sum_singleton, neg_smul, add_comm, ←sub_eq_add_neg, sum_smul, ←sum_sub_distrib],
     simp [←smul_sub],
+    -- At the end we have to reindex the sum, so we use `change` to
+    -- express the summand using `shift`.
     change (∑ (x : V) in t.erase x₀, (λ e, g e • e) (shift x)) = 0,
     rw ←sum_map _ shift,
     exact gsum, },
-  { rw [← insert_erase m, sum_insert (not_mem_erase x₀ t)],
+  { show ∑ (e : V) in t, f e = 0,
+    -- Again we split off the `x₀` term,
+    -- observing that it exactly cancels the other terms.
+    rw [← insert_erase m, sum_insert (not_mem_erase x₀ t)],
     dsimp [f],
     rw [if_pos rfl],
     conv_lhs { congr, skip, apply_congr, skip, rw if_neg (show x ≠ x₀, from (mem_erase.mp H).1), },
     exact neg_add_self _, },
-  { refine ⟨x₁ + x₀, _, _⟩,
+  { show ∃ (x : V) (H : x ∈ t), f x ≠ 0,
+    -- We can use x₁ + x₀.
+    refine ⟨x₁ + x₀, _, _⟩,
     { rw finset.mem_map at x₁_mem,
       rcases x₁_mem with ⟨x₁, x₁_mem, rfl⟩,
       rw mem_erase at x₁_mem,

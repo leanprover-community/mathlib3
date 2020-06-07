@@ -187,7 +187,7 @@ A more explicit formulation of Carathéodory's convexity theorem,
 writing an element of a convex hull as the center of mass
 of an explicit `finset` with cardinality at most `dim + 1`.
 -/
-theorem eq_center_mass_card_dim_succ_of_mem_convex_hull (s : set E) (x : E) (h : x ∈ convex_hull s) :
+theorem eq_center_mass_card_le_dim_succ_of_mem_convex_hull (s : set E) (x : E) (h : x ∈ convex_hull s) :
   ∃ (t : finset E) (w : ↑t ⊆ s) (b : t.card ≤ findim ℝ E + 1)
     (f : E → ℝ), (∀ y ∈ t, 0 ≤ f y) ∧ t.sum f = 1 ∧ t.center_mass f id = x :=
 begin

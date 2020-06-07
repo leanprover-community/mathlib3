@@ -45,9 +45,9 @@ Given two successive continuants (at positions `n + 1` and `n`) of a continued f
 `generalized_continued_fraction.of v` and the fractional part at `int_fract_pair.stream n`,
 this function returns the exact value approximated by the continued fraction, that is `v`.
 
-For example, let `(v : ℚ) := 3.4`. We have:
-  `gcf.int_fract_pair.stream v 0 = some ⟨3, 0.4⟩`, and
-  `gcf.int_fract_pair.stream v 1 = some ⟨2, 0.5⟩`,
+For example, let `(v : ℚ) := 3.4`. We have
+- `gcf.int_fract_pair.stream v 0 = some ⟨3, 0.4⟩`, and
+- `gcf.int_fract_pair.stream v 1 = some ⟨2, 0.5⟩`.
 
 Now `(gcf.of v).convergents 1 = 3 + 1/2`, and our fractional term (the residual) at position `2` is
 `0.5`. We hence have `v = 3 + 1/(2 + 0.5) = 3 + 1/2.5 = 3.4`.

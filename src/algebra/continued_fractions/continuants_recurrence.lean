@@ -11,8 +11,8 @@ import algebra.continued_fractions.translations
 
 Given a generalized continued fraction `g`, for all `n ≥ 1`, we prove that the `continuants`
 function indeed satisfies the following recurrences:
-
-  `Aₙ = bₙ * Aₙ₋₁ + aₙ * Aₙ₋₂`, and `Bₙ = bₙ * Bₙ₋₁ + aₙ * Bₙ₋₂`.
+- `Aₙ = bₙ * Aₙ₋₁ + aₙ * Aₙ₋₂`, and
+- `Bₙ = bₙ * Bₙ₋₁ + aₙ * Bₙ₋₂`.
 -/
 
 namespace generalized_continued_fraction

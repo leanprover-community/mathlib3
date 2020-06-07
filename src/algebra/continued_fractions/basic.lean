@@ -266,9 +266,8 @@ variables {K : Type*} [division_ring K]
 
 /-
 We start with the definition of the recurrence relation. Given a gcf `g`, for all `n ≥ 1`, we define
-
-  `A₋₁ = 1,  A₀ = h,  Aₙ = bₙ-₁ * Aₙ₋₁ + aₙ-₁ * Aₙ₋₂`, and
-  `B₋₁ = 0,  B₀ = 1,  Bₙ = bₙ-₁ * Bₙ₋₁ + aₙ-₁ * Bₙ₋₂`.
+- `A₋₁ = 1,  A₀ = h,  Aₙ = bₙ-₁ * Aₙ₋₁ + aₙ-₁ * Aₙ₋₂`, and
+- `B₋₁ = 0,  B₀ = 1,  Bₙ = bₙ-₁ * Bₙ₋₁ + aₙ-₁ * Bₙ₋₂`.
 
 `Aₙ, `Bₙ` are called the *nth continuants*, Aₙ the *nth numerator*, and `Bₙ` the
 *nth denominator* of `g`. The *nth convergent* of `g` is given by `Aₙ / Bₙ`.

@@ -24,11 +24,13 @@ case of a continuous map `f` we also prove that `f` admits a point `x` such that
 only if `τ(f)=m/n`.
 
 Maps of this type naturally appear as lifts of orientation preserving circle homeomorphisms. More
-precisely, let `f` is an orientation preserving homeomorphism of the circle $S^1=ℝ/ℤ$, and
+precisely, let `f` be an orientation preserving homeomorphism of the circle $S^1=ℝ/ℤ$, and
+consider a real number `a` such that
 `⟦a⟧ = f 0`, where `⟦⟧` means the natural projection `ℝ → ℝ/ℤ`. Then there exists a unique
 continuous function `F : ℝ → ℝ` such that `F 0 = a` and `⟦F x⟧ = f ⟦x⟧` for all `x` (this fact is
 not formalized yet). This function is strictly monotone, continuous, and satisfies
 `F (x + 1) = F x + 1`. The number `⟦τ F⟧ : ℝ / ℤ` is called the *rotation number* of `f`.
+It does not depend on the choice of `a`.
 
 We chose to define translation number for a wider class of maps `f : ℝ → ℝ` for two reasons:
 
@@ -152,7 +154,7 @@ by rw [← units_coe, ← coe_pow, ← units.coe_pow, translate_pow, units_coe]
 /-!
 ### Commutativity with integer translations
 
-In this section we prove that `f` commutes with translation by an integer number. First we formulate
+In this section we prove that `f` commutes with translations by an integer number. First we formulate
 these statements (for a natural or an integer number, addition on the left or on the right, addition
 or subtraction) using `function.commute`, then reformulate as `simp` lemmas `map_int_add` etc.
 -/
@@ -205,7 +207,7 @@ by conv_rhs { rw [← fract_add_floor x, f.map_add_int, add_sub_comm, sub_self, 
 ### Pointwise order on circle maps
 -/
 
-/-- Circle maps form a lattice with respect to the pointwise -/
+/-- Monotone circle maps form a lattice with respect to the pointwise order -/
 noncomputable instance : lattice circle_deg1_lift :=
 { sup := λ f g,
   { to_fun := λ x, max (f x) (g x),
@@ -384,7 +386,7 @@ lemma transnum_aux_seq_def : f.transnum_aux_seq = λ n : ℕ, (f^(2^n)) 0 / 2^n 
 
 lemma translation_number_eq_of_tendsto_aux {τ' : ℝ}
   (h : tendsto f.transnum_aux_seq at_top (𝓝 τ')) :
-  τ  f = τ' :=
+  τ f = τ' :=
 lim_eq (map_ne_bot at_top_ne_bot) h
 
 lemma translation_number_eq_of_tendsto₀ {τ' : ℝ}
@@ -585,6 +587,8 @@ begin
   exact nat.cast_ne_zero.2 (ne_of_gt hn)
 end
 
+/-- If a predicate depends only on `f x - x` and holds for all `0 ≤ x ≤ 1`,
+then it holds for all `x`. -/
 lemma forall_map_sub_of_Icc (P : ℝ → Prop)
   (h : ∀ x ∈ Icc (0:ℝ) 1, P (f x - x)) (x : ℝ) : P (f x - x) :=
 f.map_fract_sub_fract_eq x ▸ h _ ⟨fract_nonneg _, le_of_lt (fract_lt_one _)⟩
@@ -650,5 +654,3 @@ begin
 end
 
 end circle_deg1_lift
-
-#lint

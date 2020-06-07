@@ -120,11 +120,11 @@ begin
     clear hn,
     induction n with n ih,
     { simp },
-    { rw [_root_.pow_succ, ← one_mul (1 : α)],
+    { rw [pow_succ, ← one_mul (1 : α)],
       refine mul_le_mul (le_of_lt hx1) ih (abv_pow abv x n ▸ abv_nonneg _ _) (by norm_num) } },
   { assume n hn,
     refine div_le_div_of_le_of_pos (sub_le_sub_left _ _) (sub_pos.2 hx1),
-    rw [← one_mul (_ ^ n), _root_.pow_succ],
+    rw [← one_mul (_ ^ n), pow_succ],
     exact mul_le_mul_of_nonneg_right (le_of_lt hx1) (pow_nonneg (abv_nonneg _ _) _) }
 end
 

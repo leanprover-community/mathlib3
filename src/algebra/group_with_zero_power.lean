@@ -143,7 +143,7 @@ theorem fpow_mul (a : G₀) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
 theorem fpow_mul' (a : G₀) (m n : ℤ) : a ^ (m * n) = (a ^ n) ^ m :=
 by rw [mul_comm, fpow_mul]
 
-@[simp] lemma units.coe_fpow (u : units G₀) :
+@[simp, norm_cast] lemma units.coe_gpow' (u : units G₀) :
   ∀ (n : ℤ), ((u ^ n : units G₀) : G₀) = u ^ n
 | (n : ℕ) := u.coe_pow n
 | -[1+k] := by rw [gpow_neg_succ_of_nat, fpow_neg_succ_of_nat, units.inv_eq_inv, u.coe_pow]

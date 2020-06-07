@@ -1149,6 +1149,18 @@ begin
   exact sum_lt_sum (λ i hi, le_of_lt (Hlt i hi)) ⟨i, hi, Hlt i hi⟩
 end
 
+-- this doesn't need the ring structure.
+lemma exists_pos_of_sum_zero_of_exists_nonzero (f : α → β)
+  (h₁ : ∑ e in s, f e = 0) (h₂ : ∃ x ∈ s, f x ≠ 0) :
+  ∃ x ∈ s, 0 < f x :=
+begin
+  contrapose! h₁,
+  obtain ⟨x, m, x_nz⟩ : ∃ x ∈ s, f x ≠ 0 := h₂,
+  apply ne_of_lt,
+  calc ∑ e in s, f e < ∑ e in s, 0 : by { apply sum_lt_sum h₁ ⟨x, m, lt_of_le_of_ne (h₁ x m) x_nz⟩ }
+                 ... = 0           : by rw [finset.sum_const, nsmul_zero],
+end
+
 end decidable_linear_ordered_cancel_comm_monoid
 
 section linear_ordered_comm_ring
@@ -1185,18 +1197,6 @@ begin
       apply ih (λ x H, h0 _ _) (λ x H, h1 _ _); exact (mem_insert_of_mem H),
       apply prod_nonneg (λ x H, h0 x (mem_insert_of_mem H)),
       apply le_trans (h0 a (mem_insert_self a s)) (h1 a (mem_insert_self a s)) }
-end
-
--- this doesn't need the ring structure.
-lemma exists_pos_of_sum_zero_of_exists_nonzero (f : α → β)
-  (h₁ : ∑ e in s, f e = 0) (h₂ : ∃ x ∈ s, f x ≠ 0) :
-  ∃ x ∈ s, 0 < f x :=
-begin
-  contrapose! h₁,
-  obtain ⟨x, m, x_nz⟩ : ∃ x ∈ s, f x ≠ 0 := h₂,
-  apply ne_of_lt,
-  calc ∑ e in s, f e < ∑ e in s, 0 : by { apply sum_lt_sum h₁ ⟨x, m, lt_of_le_of_ne (h₁ x m) x_nz⟩ }
-                 ... = 0           : by rw [finset.sum_const, nsmul_zero],
 end
 
 end linear_ordered_comm_ring

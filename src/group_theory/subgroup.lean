@@ -891,17 +891,6 @@ lemma mem_ker {f : G →* N} {x : G} : x ∈ f.ker ↔ f x = 1 := subgroup.mem_b
 @[to_additive]
 lemma comap_ker (g : N →* P) (f : G →* N) : g.ker.comap f = (g.comp f).ker := rfl
 
-@[to_additive]
-lemma normal.comap {H : subgroup N} (hH : H.normal) (f : G →* N) :
-  normal (H.comap f) :=
-⟨λ _, by simp [mem_comap, hH.conj_mem] {contextual := tt}⟩
-
-@[instance, priority 100, to_additive] lemma normal_comap {H : subgroup N}
-  [nH : H.normal] (f : G →* N) : normal (H.comap f) := nH.comap
-
-@[instance, priority 100, to_additive]
-lemma normal_ker (f : G →* N) : f.ker.normal := normal.comap bot_normal _
-
 /-- The subgroup of elements `x : G` such that `f x = g x` -/
 @[to_additive "The additive subgroup of elements `x : G` such that `f x = g x`"]
 def eq_locus (f g : G →* N) : subgroup G :=
@@ -941,6 +930,20 @@ le_antisymm
   ((closure_le _).2 $ set.image_subset _ subset_closure)
 
 end monoid_hom
+
+variables {N : Type*} [group N]
+
+@[to_additive]
+lemma subgroup.normal.comap {H : subgroup N} (hH : H.normal) (f : G →* N) :
+  (H.comap f).normal :=
+⟨λ _, by simp [subgroup.mem_comap, hH.conj_mem] {contextual := tt}⟩
+
+@[instance, priority 100, to_additive] lemma subgroup.normal_comap {H : subgroup N}
+  [nH : H.normal] (f : G →* N) :  (H.comap f).normal := nH.comap _
+
+@[instance, priority 100, to_additive]
+lemma monoid_hom.normal_ker (f : G →* N) : f.ker.normal :=
+by rw [monoid_hom.ker]; apply_instance
 
 namespace subgroup
 

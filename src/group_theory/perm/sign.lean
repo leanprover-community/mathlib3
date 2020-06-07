@@ -118,7 +118,7 @@ lemma pow_apply_eq_self_of_apply_eq_self {f : perm α} {x : α} (hfx : f x = x) 
 lemma gpow_apply_eq_self_of_apply_eq_self {f : perm α} {x : α} (hfx : f x = x) :
   ∀ n : ℤ, (f ^ n) x = x
 | (n : ℕ) := pow_apply_eq_self_of_apply_eq_self hfx n
-| -[1+ n] := by rw [gpow_neg_succ, inv_eq_iff_eq, pow_apply_eq_self_of_apply_eq_self hfx]
+| -[1+ n] := by rw [gpow_neg_succ_of_nat, inv_eq_iff_eq, pow_apply_eq_self_of_apply_eq_self hfx]
 
 lemma pow_apply_eq_of_apply_apply_eq_self {f : perm α} {x : α} (hffx : f (f x) = x) :
   ∀ n : ℕ, (f ^ n) x = x ∨ (f ^ n) x = f x
@@ -131,7 +131,7 @@ lemma gpow_apply_eq_of_apply_apply_eq_self {f : perm α} {x : α} (hffx : f (f x
   ∀ i : ℤ, (f ^ i) x = x ∨ (f ^ i) x = f x
 | (n : ℕ) := pow_apply_eq_of_apply_apply_eq_self hffx n
 | -[1+ n] :=
-  by rw [gpow_neg_succ, inv_eq_iff_eq, ← injective.eq_iff f.injective, ← mul_apply, ← pow_succ,
+  by rw [gpow_neg_succ_of_nat, inv_eq_iff_eq, ← injective.eq_iff f.injective, ← mul_apply, ← pow_succ,
     eq_comm, inv_eq_iff_eq, ← mul_apply, ← pow_succ', @eq_comm _ x, or.comm];
   exact pow_apply_eq_of_apply_apply_eq_self hffx _
 
@@ -631,7 +631,7 @@ lemma is_cycle_swap_mul_aux₂ : ∀ (n : ℤ) {b x : α} {f : perm α}
       simp [inv_eq_iff_eq, eq_inv_iff_eq] at *; cc,
   let ⟨i, hi⟩ := is_cycle_swap_mul_aux₁ n hb
     (show (f⁻¹ ^ n) (f⁻¹ x) = f⁻¹ b, by
-      rw [← gpow_coe_nat, ← h, ← mul_apply, ← mul_apply, ← mul_apply, gpow_neg_succ, ← inv_pow, pow_succ', mul_assoc,
+      rw [← gpow_coe_nat, ← h, ← mul_apply, ← mul_apply, ← mul_apply, gpow_neg_succ_of_nat, ← inv_pow, pow_succ', mul_assoc,
         mul_assoc, inv_mul_self, mul_one, gpow_coe_nat, ← pow_succ', ← pow_succ]) in
   have h : (swap x (f⁻¹ x) * f⁻¹) (f x) = f⁻¹ x, by rw [mul_apply, inv_apply_self, swap_apply_left],
   ⟨-i, by rw [← add_sub_cancel i 1, neg_sub, sub_eq_add_neg, gpow_add, gpow_one, gpow_neg, ← inv_gpow,

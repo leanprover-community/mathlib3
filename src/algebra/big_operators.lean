@@ -1149,7 +1149,6 @@ begin
   exact sum_lt_sum (λ i hi, le_of_lt (Hlt i hi)) ⟨i, hi, Hlt i hi⟩
 end
 
--- this doesn't need the ring structure.
 lemma exists_pos_of_sum_zero_of_exists_nonzero (f : α → β)
   (h₁ : ∑ e in s, f e = 0) (h₂ : ∃ x ∈ s, f x ≠ 0) :
   ∃ x ∈ s, 0 < f x :=

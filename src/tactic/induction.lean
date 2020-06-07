@@ -6,6 +6,7 @@ Author: Jannis Limperg
 
 import control.basic data.sum data.list.defs tactic.basic
 import tactic.type_based_naming
+import tactic.linarith
 
 /--
 After elaboration, Lean does not have non-dependent function types with
@@ -553,6 +554,12 @@ meta def get_app_fn_const_normalizing : expr → tactic name := λ e, do
   | _ := fail! "expected a constant (possibly applied to some arguments), but got:\n{e}"
   end
 
+meta def get_inductive_name (type : expr) : tactic name := do
+  n ← get_app_fn_const_normalizing type,
+  env ← get_env,
+  guard (env.is_inductive n) <|> fail! "Expected {n} to be an inductive type.",
+  pure n
+
 /--
 `fuzzy_type_match t s` is true iff `t` and `s` are definitionally equal.
 -/
@@ -845,8 +852,13 @@ meta def constructor_intros (einfo : eliminee_info) (iinfo : inductive_info)
 -- the later simplification steps.
 meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr)
   : tactic (expr × ℕ × ℕ) := do
+  -- TODO why do we sometimes get metas in index_args????
+  -- TODO debug
+  trace! "index_args: {index_args}",
   let ⟨locals, nonlocals⟩ :=
     index_args.partition (λ arg : expr, arg.is_local_constant),
+  -- TODO debug
+  trace! "locals: {locals.map expr.to_raw_fmt}\nnonlocals: {nonlocals.map expr.to_raw_fmt}",
 
   -- If there aren't any complex index arguments, we don't need to do anything.
   (_ :: _) ← pure nonlocals | pure (eliminee, 0, 0),
@@ -859,11 +871,12 @@ meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr
 
   -- Introduce variables and equations for the complex index arguments
   index_var_equations ← nonlocals.mmap $ λ arg, do {
+    -- TODO better name
     arg_name ← get_unused_name `index,
     eq_name ← get_unused_name $ arg_name ++ "eq",
     tgt ← target,
     ⟨tgt', _⟩ ← solve_aux tgt (generalize arg arg_name >> target)
-      <|> fail "TODO",
+      <|> fail! "Unable to generalize this index in the type of {eliminee}: {arg}. Please generalize it manually.",
     tgt' ← to_expr ``(Π x, x == %%arg → %%(tgt'.binding_body.lift_vars 0 1)),
     t ← assert eq_name tgt',
     swap,
@@ -898,7 +911,7 @@ meta def replace' (h : expr) (x : expr) (t : option expr := none) : tactic expr 
   pure h'
 
 meta inductive simplification_result
-| simplified (next_equations : list expr)
+| simplified (next_equations : list name)
 | not_simplified
 | goal_solved
 
@@ -911,7 +924,7 @@ do {
   p ← to_expr ``(@eq_of_heq %%lhs_type %%lhs %%rhs %%equ),
   t ← to_expr ``(@eq %%lhs_type %%lhs %%rhs),
   equ ← replace' equ p (some t),
-  pure $ simplified [equ]
+  pure $ simplified [equ.local_pp_name]
 } <|>
 pure not_simplified
 
@@ -928,10 +941,54 @@ meta def simplify_var_equation (equ type lhs rhs : expr)
   : tactic simplification_result :=
 do {
   guard $ lhs.is_local ∨ rhs.is_local,
+  -- TODO this `subst` may change the unique names of any hypotheses depending
+  -- on the substituted expressions.
   subst equ,
   pure $ simplified []
 } <|>
 pure not_simplified
+
+def le_preorder : preorder nat := by apply_instance
+
+meta def get_sizeof (type : expr) : tactic (name × pexpr) := do
+  n ← get_inductive_name type,
+  let sizeof_name := n ++ `sizeof,
+  sizeof_const ← resolve_name $ sizeof_name,
+  pure (sizeof_name, sizeof_const)
+
+meta def simplify_cyclic_equation_aux (equ type lhs rhs : expr) : tactic unit :=
+solve1 $ do
+  (sizeof_name, sizeof) ← get_sizeof type,
+  hyp_type ← to_expr ``(@eq ℕ (%%sizeof %%lhs) (%%sizeof %%rhs)),
+  hyp_body ← to_expr ``(@congr_arg %%type ℕ %%lhs %%rhs %%sizeof %%equ),
+  hyp_name ← mk_fresh_name,
+  h ← note hyp_name hyp_type hyp_body,
+  interactive.simp none tt [simp_arg_type.expr sizeof] []
+    (interactive.loc.ns [hyp_name]),
+  `[linarith]
+
+meta def simplify_cyclic_equation (equ type lhs rhs : expr)
+  : tactic simplification_result :=
+do {
+  simplify_cyclic_equation_aux equ type lhs rhs <|> do {
+    equ_symm ← to_expr ``(eq.symm %%equ),
+    simplify_cyclic_equation_aux equ_symm type rhs lhs
+  },
+  pure goal_solved
+} <|>
+pure not_simplified
+
+meta def dedup_single (hyp : expr) : tactic expr := do
+  ctx ← local_context,
+  let old_name := hyp.local_pp_name,
+  let dup := ctx.any (λ h, h ≠ hyp ∧ h.local_pp_name = old_name),
+  tt ← pure dup | pure hyp,
+  new_name ← get_unused_name old_name,
+  n ← revert_after hyp,
+  revert hyp,
+  hyp ← intro new_name,
+  intron n,
+  pure hyp
 
 meta def decompose_and : expr → tactic (list expr) := λ h, do
   t ← infer_type h,
@@ -939,17 +996,18 @@ meta def decompose_and : expr → tactic (list expr) := λ h, do
   | `(%%P ∧ %%Q) := do
     h₁ ← to_expr ``(@and.elim_left %%P %%Q %%h),
     h₂ ← to_expr ``(@and.elim_right %%P %%Q %%h),
-    h₁_name ← get_unused_name $ h.local_pp_name ++ "1",
-    h₂_name ← get_unused_name $ h.local_pp_name ++ "2",
-    h₁ ← note h₁_name P h₁,
-    h₂ ← note h₂_name Q h₂,
+    let h_name := h.local_pp_name,
+    h₁ ← note h_name P h₁,
+    h₂ ← note h_name Q h₂,
     clear h,
-    hs ← decompose_and h₂,
-    pure $ h₁ :: hs
+    h₂ ← dedup_single h₂,
+    h₁ ← dedup_single h₁,
+    hs₁ ← decompose_and h₁,
+    hs₂ ← decompose_and h₂,
+    pure $ hs₁ ++ hs₂
   | _ := pure [h]
   end
 
--- TODO This doesn't handle the case "n = nat.succ n". Conor calls this a cycle.
 meta def simplify_constructor_equation (equ type lhs rhs : expr)
   : tactic simplification_result :=
 do {
@@ -960,13 +1018,14 @@ do {
   guard $ env.is_constructor g,
   if f ≠ g
     then do
-      cases equ,
+      solve1 $ cases equ,
       pure goal_solved
     else do
       inj ← resolve_name (f ++ "inj"),
       p ← to_expr ``(%%inj %%equ),
       equ ← replace' equ p,
-      simplified <$> decompose_and equ
+      equs ← decompose_and equ,
+      pure $ simplified $ equs.map (λ h, h.local_pp_name)
 } <|>
 pure not_simplified
 
@@ -985,9 +1044,11 @@ meta def simplify_homogeneous_index_equation (equ type lhs rhs : expr)
     [ simplify_defeq_equation equ type lhs rhs
     , simplify_var_equation equ type lhs rhs
     , simplify_constructor_equation equ type lhs rhs
+    , simplify_cyclic_equation equ type lhs rhs
     ]
 
-meta def simplify_index_equation_once (equ : expr) : tactic simplification_result := do
+meta def simplify_index_equation_once (equ : name) : tactic simplification_result := do
+  equ ← get_local equ,
   t ← infer_type equ,
   match t with
   | `(@eq %%type %%lhs %%rhs) :=
@@ -997,7 +1058,7 @@ meta def simplify_index_equation_once (equ : expr) : tactic simplification_resul
   | _ := fail! "Expected {equ} to be an equation, but its type is\n{t}."
   end
 
-meta def simplify_index_equations : list expr → tactic bool
+meta def simplify_index_equations : list name → tactic bool
 | [] := pure ff
 | (h :: hs) := do
   res ← simplify_index_equation_once h,
@@ -1006,6 +1067,23 @@ meta def simplify_index_equations : list expr → tactic bool
   | not_simplified := simplify_index_equations hs
   | goal_solved := pure tt
   end
+
+namespace interactive
+
+open lean.parser
+
+meta def simplify_index_equations (eqs : interactive.parse (many ident))
+  : tactic unit := do
+  tactic.simplify_index_equations eqs,
+  pure ()
+
+end interactive
+
+-- TODO debug
+example {x y : ℕ} {xs ys} (h₁ : xs = ys) (h₂ : x :: y :: xs = ys) : false :=
+begin
+  simplify_index_equations h₁ h₂,
+end
 
 meta def ih_apps_aux : expr → list expr → ℕ → expr → tactic (expr × list expr)
 | res cnsts 0       _ := pure (res, cnsts.reverse)
@@ -1109,16 +1187,12 @@ focus1 $ do
   einfo ← get_eliminee_info eliminee_name,
   let eliminee := einfo.eexpr,
   let eliminee_type := einfo.type,
-  let eliminee_args := einfo.args.values,
+  let eliminee_args := einfo.args.values.reverse,
   env ← get_env,
 
   -- Find the name of the inductive type
-  iname ← do {
-    iname ← get_app_fn_const_normalizing eliminee_type,
-    guard (env.is_inductive iname),
-    pure iname }
-  <|> fail format!
-    "The type of {eliminee_name} should be an inductive type, but it is {eliminee_type}.",
+  iname ← get_inductive_name eliminee_type <|> fail!
+    "The type of {eliminee_name} should be an inductive type, but it is\n{eliminee_type}",
 
   iinfo ← get_inductive_info env iname,
   let rec_name := iname ++ "rec_on",
@@ -1183,7 +1257,7 @@ focus1 $ do
 
       -- Simplify the index equations. Stop after this step if the goal has been
       -- solved by the simplification.
-      ff ← simplify_index_equations index_equations | pure none,
+      ff ← simplify_index_equations (index_equations.map expr.local_pp_name) | pure none,
 
       -- The previous step may have changed the unique names of the induction
       -- hypotheses, so we have to locate them again. Their pretty names should

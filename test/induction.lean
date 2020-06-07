@@ -1,5 +1,7 @@
 import tactic.induction tactic.linarith
 
+universes u v w
+
 inductive le : ℕ → ℕ → Type
 | zero {n} : le 0 n
 | succ {n m} : le n m → le (n + 1) (m + 1)
@@ -30,9 +32,26 @@ def append {α} : List α → List α → List α
 
 end List
 
-inductive Vec (α : Sort*) : ℕ → Sort*
+inductive Vec (α : Sort u) : ℕ → Sort (max 1 u)
 | nil : Vec 0
 | cons {n} : α → Vec n → Vec (n + 1)
+
+namespace Vec
+
+inductive eq {α} : ∀ n m, Vec α n → Vec α m → Prop
+| nil : eq 0 0 nil nil
+| cons {n m} {xs : Vec α n} {ys : Vec α m} {x y : α} :
+  x = y →
+  eq n m xs ys →
+  eq (n + 1) (m + 1) (cons x xs) (cons y ys)
+
+inductive is_prefix {α} : ∀ n m, Vec α n → Vec α m → Prop
+| nil {n xs} : is_prefix 0 n nil xs
+| cons {n m x xs ys} :
+  is_prefix n m xs ys →
+  is_prefix (n + 1) (m + 1) (cons x xs) (cons x ys)
+
+end Vec
 
 inductive Two : Type | zero | one
 
@@ -80,11 +99,44 @@ begin
   }
 end
 
--- A simple induction with complex arguments.
+example {α n m} {xs : Vec α n} {ys : Vec α m} (h : Vec.eq n m xs ys) : n = m :=
+begin
+  induction' h,
+  case nil {
+    reflexivity
+  },
+  case cons {
+    exact congr_arg nat.succ ih,
+  }
+end
+
+-- A simple induction with complex index arguments.
 example {k} (h : lt (k + 1) k) : false :=
 begin
   induction' h,
   { exact ih }
+end
+
+-- A more complex induction with complex index arguments. Note the dependencies
+-- between index arguments.
+example {α : Sort u} {x y n m} {xs : Vec α n} {ys : Vec α m}
+  : Vec.eq (n + 1) (m + 1) (Vec.cons x xs) (Vec.cons y ys)
+  → Vec.eq n m xs ys :=
+begin
+  generalize eq₁ : Vec.cons x xs = j, -- The `Vec.cons x xs` is generalised.
+  revert j,
+  generalize eq₂ : n + 1 = j',        -- The `n + 1` is not generalised.
+  intros j j_eq,
+  subst j_eq,
+  intro h,
+  refine
+    (λ (i₁ i₂ : ℕ) (i₃ : Vec α i₁) (i₄ : Vec α i₂)
+      (i₁_eq : i₁ = n + 1) (i₂_eq : i₂ = m + 1) (i₃_eq : i₃ == Vec.cons x xs)
+      (i₄_eq : i₄ == Vec.cons y ys) (h' : Vec.eq i₁ i₂ i₃ i₄),
+      (_ : Vec.eq n m xs ys))
+    (n + 1) (m + 1) (Vec.cons x xs) (Vec.cons y ys) rfl rfl heq.rfl heq.rfl h,
+  -- This is the state I want after generalising `n + 1`, `m + 1`, `Vec.cons x xs` and `Vec.cons y ys`.
+  cases h; assumption
 end
 
 -- This example tests type-based naming.
@@ -379,6 +431,14 @@ inductive big_step : stmt × state → state → Prop
 
 infix ` ⟹ `:110 := big_step
 
+open big_step
+
+meta def not_big_step_while_true' : ∀ {S s t}, (while (λ_, true) S, s) ⟹ t → false
+| S s u (@while_true b _ _ t _ hcond hbody hrest) := not_big_step_while_true' hrest
+| _ _ _ (while_false hcond) := hcond trivial
+
+#print not_big_step_while_true'._main
+
 lemma not_big_step_while_true {S s t} :
   ¬ (while (λ_, true) S, s) ⟹ t :=
 begin
@@ -430,8 +490,6 @@ inductive curried_big_step : stmt → state → state → Prop
 | while_false {b : state → Prop} {S s} (hcond : ¬ b s) :
   curried_big_step (while b S) s s
 
-set_option trace.check true
-
 lemma not_curried_big_step_while_true {S s t} :
   ¬ curried_big_step (while (λ_, true) S) s t :=
 begin
@@ -477,6 +535,45 @@ lemma small_step_if_equal_states {S T s t s' t'}
     (hstep : small_step (S, s) (T, t)) (hs : s' = s) (ht : t' = t) :
   small_step (S, s') (T, t') :=
 begin
+  revert hstep,
+  generalize eq₁ : (S, s) = i,
+  generalize eq₂ : (T, t) = j,
+  have eq₁₁ : S = i.1,
+  { rw [←eq₁] },
+  have eq₁₂ : s = i.2,
+  { rw [←eq₁] },
+  have eq₂₁ : T = j.1,
+  { rw [←eq₂] },
+  have eq₂₂ : t = j.2,
+  { rw [←eq₂] },
+  subst eq₁₁,
+  subst eq₁₂,
+  subst eq₂₁,
+  subst eq₂₂,
+  clear eq₁,
+  clear eq₂,
+  intro hstep,
+  induction' hstep; dsimp at *,
+  { rw [hs, ht],
+    exact small_step.assign,
+  },
+  {
+    apply small_step.seq_step,
+    exact ih hs ht,
+  },
+  { rw [hs, ht]
+  , exact small_step.seq_skip,
+  },
+  { rw [hs, ht],
+    exact small_step.ite_true hcond,
+  },
+  { rw [hs, ht],
+    exact small_step.ite_false hcond,
+  },
+  { rw [hs, ht],
+    exact small_step.while,
+  }
+
   -- revert hstep,
   -- generalize eq₁ : (S, s) = index₁,
   -- generalize eq₂ : (T, t) = index₂,
@@ -518,7 +615,6 @@ begin
   -- { rw [hs, ht],
   --   exact small_step.while,
   -- }
-  sorry
 end
 
 /- `cases` is better behaved. -/

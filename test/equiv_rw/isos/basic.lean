@@ -13,13 +13,18 @@ universes u
 
 open category_theory
 
--- TODO eventually, we should move this lemma (and its analogues for all concrete categories)
+-- TODO eventually, we should move this lemma
 -- to the files where those categories are set up.
 -- While `equiv_rw` is being actively developed, I'd prefer not to do that, so as not to
 -- make all the concrete categories dependent on `equiv_rw`.
 -- (We probably should write a command that synthesizes all the apparatus of a concrete category!)
+section
+local attribute [instance] concrete_category.has_coe_to_sort
+
 @[functoriality]
-lemma coe_as_forget_obj (R : Ring.{u}) : (R : Type u) = (forget Ring.{u}).obj R := rfl
+lemma coe_as_forget_obj {C : Type (u+1)} [large_category C] [concrete_category C] (X : C) :
+  (X : Type u) = (forget C).obj X := rfl
+end
 
 set_option trace.equiv_rw_type true
 

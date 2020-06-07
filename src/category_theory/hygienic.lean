@@ -28,6 +28,14 @@ instance subsingleton_hygienic (p : C → Prop) : subsingleton (hygienic.{v} p) 
 def hygienic_not (p : C → Prop) [hygienic.{v} p] : hygienic.{v} (λ X, ¬ p X) :=
 { map := λ X Y i h w, h (hygienic.map.{v} i.symm w) }
 
+def hygienic_and (p q : C → Prop) [hygienic.{v} p] [hygienic.{v} q] :
+  hygienic.{v} (λ X, p X ∧ q X) :=
+{ map := λ X Y i h, ⟨hygienic.map.{v} i h.1, hygienic.map.{v} i h.2⟩ }
+
+def hygienic_or (p q : C → Prop) [hygienic.{v} p] [hygienic.{v} q] :
+  hygienic.{v} (λ X, p X ∨ q X) :=
+{ map := λ X Y i, or.imp (λ h, hygienic.map.{v} i h) (λ h, hygienic.map.{v} i h) }
+
 end
 
 section

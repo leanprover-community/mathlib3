@@ -121,6 +121,33 @@ lemma iso_functorial.map_iso_comp (F : C → D) [iso_functorial.{v₁ v₂} F]
   iso_functorial.map_iso F (f ≪≫ g) = iso_functorial.map_iso F f ≪≫ iso_functorial.map_iso F g :=
 by tidy
 
+instance (F : C ⥤ D) : iso_functorial.{v₁ v₂} (F.obj) :=
+{ map := λ X Y i, F.map (i.hom), }
+
+section
+variables {E : Type u₃} [category.{v₃} E]
+
+/--
+The composite of two `iso_functorial` functions is `iso_functorial`.
+As with `continuous`, when using `apply` with this construction it is important
+to be aware of the possibility of matching with `F` an identity function.
+-/
+def iso_functorial.comp (F : C → D) [iso_functorial.{v₁ v₂} F] (G : D → E) [iso_functorial.{v₂ v₃} G] :
+  iso_functorial.{v₁ v₃} (λ X, G (F X)) :=
+{ map := λ X Y i, iso_functorial.map.{v₂ v₃} G (iso_functorial.map_iso F i) }
+
+end
+
+section
+
+lemma iso_functorial.map_comp_apply (F : C → Type u₂) [iso_functorial.{v₁ u₂} F]
+  {X Y Z : C} (i : X ≅ Y) (j : Y ≅ Z) (x : F X) :
+  (iso_functorial.map.{v₁ u₂} F j : F Y → F Z) ((iso_functorial.map.{v₁ u₂} F i : F X → F Y) x) =
+    (iso_functorial.map.{v₁ u₂} F (i ≪≫ j) : F X → F Z) x :=
+(congr_arg (λ f, (f : F X → F Z) x) (iso_functorial.map_comp.{v₁ u₂} F i j)).symm
+
+end
+
 namespace functor
 
 /--

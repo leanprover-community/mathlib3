@@ -374,7 +374,7 @@ theorem nsmul_eq_mul' [semiring R] (a : R) (n : ℕ) : n •ℕ a = a * n :=
 by induction n with n ih; [rw [zero_nsmul, nat.cast_zero, mul_zero],
   rw [succ_nsmul', ih, nat.cast_succ, mul_add, mul_one]]
 
-theorem nsmul_eq_mul [semiring R] (n : ℕ) (a : R) : n •ℕ a = n * a :=
+@[simp] theorem nsmul_eq_mul [semiring R] (n : ℕ) (a : R) : n •ℕ a = n * a :=
 by rw [nsmul_eq_mul', nat.mul_cast_comm]
 
 theorem mul_nsmul_left [semiring R] (a b : R) (n : ℕ) : n •ℕ (a * b) = a * (n •ℕ b) :=

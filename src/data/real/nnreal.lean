@@ -253,7 +253,7 @@ instance : conditionally_complete_linear_order_bot ℝ≥0 :=
 instance : archimedean nnreal :=
 ⟨ assume x y pos_y,
   let ⟨n, hr⟩ := archimedean.arch (x:ℝ) (pos_y : (0 : ℝ) < y) in
-  ⟨n, show (x:ℝ) ≤ (n •ℕ y : nnreal), by simp [*, nsmul_coe]⟩ ⟩
+  ⟨n, show (x:ℝ) ≤ (n •ℕ y : nnreal), by simp [*, -nsmul_eq_mul, nsmul_coe]⟩ ⟩
 
 lemma le_of_forall_epsilon_le {a b : nnreal} (h : ∀ε, ε > 0 → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ assume x hxb,

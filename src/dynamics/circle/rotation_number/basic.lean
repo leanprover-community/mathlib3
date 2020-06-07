@@ -248,7 +248,8 @@ lemma pow_monotone (n : ℕ) : monotone (λ f : circle_deg1_lift, f^n) :=
 We prove the estimates `f 0 + ⌊g 0⌋ ≤ f (g 0) ≤ f 0 + ⌈g 0⌉` and some corollaries with added/removed
 floors and ceils.
 
-We also prove that for two semiconjugate maps 
+We also prove that for two semiconjugate maps `g₁`, `g₂`, the distance between `g₁ 0` and `g₂ 0`
+is less than two.
 -/
 
 lemma map_le_of_map_zero (x : ℝ) : f x ≤ f 0 + ⌈x⌉ :=

@@ -65,7 +65,7 @@ meta def generalizes'_aux₂ : expr → list (name × expr × expr) → tactic e
     (e.abstract cnst).lift_vars 0 1,
   generalizes'_aux₂ e cs
 
-meta def generalizes' (xs : list (name × name × expr)) : tactic unit := focus1 $ do
+meta def generalizes' (xs : list (name × name × expr)) : tactic (list expr) := focus1 $ do
   tgt ← target,
   let xs_rev := xs.reverse,
   (result_type, cnsts) ← generalizes'_aux₁ tgt []
@@ -82,8 +82,7 @@ meta def generalizes' (xs : list (name × name × expr)) : tactic unit := focus1
     pure [x, (const `heq.refl [u]) x_type x]
   },
   exact $ h.mk_app apps.join,
-  intron $ xs.length * 2,
-  pure ()
+  intron' $ xs.length * 2
 
 
 namespace interactive
@@ -113,7 +112,8 @@ meta def generalizes (args : parse generalizes_args_parser) : tactic unit := do
     arg ← to_expr arg,
     pure (arg_name, hyp_name, arg)
   },
-  generalizes' args
+  generalizes' args,
+  pure ()
 
 end interactive
 end tactic

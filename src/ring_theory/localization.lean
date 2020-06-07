@@ -551,9 +551,8 @@ noncomputable def to_field [comm_ring K] (φ : fraction_map A K) : field K :=
   inv_zero := dif_pos rfl, ..φ.to_integral_domain }
 
 /-- The cast from `int` to `rat` as a `fraction_map`. -/
-def int.cast_rat_fraction_map : fraction_map ℤ ℚ :=
-{
-  map_units' := λ x, is_unit_iff_ne_zero.mpr (begin
+def int.fraction_map : fraction_map ℤ ℚ :=
+{ map_units' := λ x, is_unit_iff_ne_zero.mpr (begin
     intro, cases x,
     rw [submonoid.mem_carrier, mem_non_zero_divisors_iff_ne_zero] at x_property,
     change (x_val : ℚ) = 0 at a,
@@ -577,6 +576,5 @@ def int.cast_rat_fraction_map : fraction_map ℤ ℚ :=
           (by rw (show (a_w.val : ℤ) = 0, from a); exact mul_zero 1)),
     exact (int.eq_of_mul_eq_mul_right this) a_h,}
    end,
-   ..int.cast_ring_hom ℚ
-  }
+   ..int.cast_ring_hom ℚ }
 end fraction_map

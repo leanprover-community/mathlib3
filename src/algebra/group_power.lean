@@ -412,8 +412,7 @@ f.to_multiplicative.map_gpow a n
 
 theorem commute.mul_gpow {a b : G} (h : commute a b) : ∀ n : ℤ, (a * b) ^ n = a ^ n * b ^ n
 | (n : ℕ) := h.mul_pow n
-| -[1+n] := by { simp only [gpow_neg_succ_of_nat, h.mul_pow, mul_inv_rev],
-                 exact (h.pow_pow n.succ n.succ).inv_inv.symm.eq }
+| -[1+n] := by simp [h.mul_pow, (h.pow_pow n.succ n.succ).inv_inv.symm.eq]
 
 end group
 
@@ -797,7 +796,7 @@ monoid_hom.ext $ λ n, by rw [mnat_monoid_hom_eq f, mnat_monoid_hom_eq g, h]
 /-!
 ### Commutativity (again)
 
-Facts about `semiconj_by` and `commute` that require 
+Facts about `semiconj_by` and `commute` that require `gpow` or `gsmul`.
 -/
 
 namespace semiconj_by

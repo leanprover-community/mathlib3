@@ -159,7 +159,7 @@ end monoid
   @has_pow.pow _ _ monoid.has_pow p q = p ^ q :=
 by induction q with q ih; [refl, rw [nat.pow_succ, pow_succ, mul_comm, ih]]
 
-@[simp] theorem nat.nsmul_eq_mul (m n : ℕ) : m •ℕ n = m * n :=
+theorem nat.nsmul_eq_mul (m n : ℕ) : m •ℕ n = m * n :=
 by induction m with m ih; [rw [zero_nsmul, zero_mul],
   rw [succ_nsmul', ih, nat.succ_mul]]
 
@@ -433,7 +433,7 @@ by { dsimp [bit1], rw [add_mul, bit0_mul, one_mul], }
 lemma mul_bit1 [ring R] {n r : R} : r * bit1 n = gsmul 2 (r * n) + r :=
 by { dsimp [bit1], rw [mul_add, mul_bit0, mul_one], }
 
-theorem gsmul_eq_mul [ring R] (a : R) : ∀ n, n •ℤ a = n * a
+@[simp] theorem gsmul_eq_mul [ring R] (a : R) : ∀ n, n •ℤ a = n * a
 | (n : ℕ) := nsmul_eq_mul _ _
 | -[1+ n] := show -(_ •ℕ _)=-_*_, by rw [neg_mul_eq_neg_mul_symm, nsmul_eq_mul, nat.cast_succ]
 

@@ -166,15 +166,23 @@ semiconj_by.add_left
 
 variables [semiring A] {a b : A} (hab : commute a b) (m n : ℕ)
 
-@[simp] theorem nsmul_right : commute a (n •ℕ b) := hab.nsmul_right n
-@[simp] theorem nsmul_left : commute (n •ℕ a) b := hab.nsmul_left n
-@[simp] theorem nsmul_nsmul : commute (m •ℕ a) (n •ℕ b) := hab.nsmul_nsmul m n
+theorem nsmul_right : commute a (n •ℕ b) := hab.nsmul_right n
+@[simp] theorem coe_nat_mul_right : commute a (n * b) := hab.coe_nat_mul_right n
+theorem nsmul_left : commute (n •ℕ a) b := hab.nsmul_left n
+@[simp] theorem coe_nat_mul_left : commute ((n : A) * a) b := hab.coe_nat_mul_left n
+theorem nsmul_nsmul : commute (m •ℕ a) (n •ℕ b) := hab.nsmul_nsmul m n
+@[simp] theorem coe_nat_mul_coe_nat_mul : commute ((m : A) * a) (n * b) :=
+  hab.coe_nat_mul_coe_nat_mul m n
 
 variable (a)
 
-@[simp] theorem self_nsmul : commute a (n •ℕ a) := (commute.refl a).nsmul_right n
-@[simp] theorem nsmul_self : commute (n •ℕ a) a := (commute.refl a).nsmul_left n
-@[simp] theorem self_nsmul_nsmul : commute (m •ℕ a) (n •ℕ a) := (commute.refl a).nsmul_nsmul m n
+theorem self_nsmul : commute a (n •ℕ a) := (commute.refl a).nsmul_right n
+@[simp] theorem self_coe_nat_mul : commute a (n * a) := (commute.refl a).coe_nat_mul_right n
+theorem nsmul_self : commute (n •ℕ a) a := (commute.refl a).nsmul_left n
+@[simp] theorem coe_nat_mul_self : commute ((n : A) * a) a := (commute.refl a).coe_nat_mul_left n
+theorem self_nsmul_nsmul : commute (m •ℕ a) (n •ℕ a) := (commute.refl a).nsmul_nsmul m n
+@[simp] theorem coe_nat_mul_self_self : commute ((m : A) * a) (n * a) :=
+  (commute.refl a).coe_nat_mul_coe_nat_mul m n
 
 @[simp] theorem cast_nat_right : commute a (n : A) := semiconj_by.cast_nat_right a n
 @[simp] theorem cast_nat_left : commute (n : A) a := semiconj_by.cast_nat_left n a
@@ -199,13 +207,21 @@ theorem neg_left : commute a b → commute (- a) b := semiconj_by.neg_left
 
 variables (hab : commute a b) (m n : ℤ)
 
-@[simp] theorem gsmul_right : commute a (m •ℤ b) := hab.gsmul_right m
-@[simp] theorem gsmul_left : commute (m •ℤ a) b := hab.gsmul_left m
-@[simp] theorem gsmul_gsmul : commute (m •ℤ a) (n •ℤ b) := hab.gsmul_gsmul m n
+theorem gsmul_right : commute a (m •ℤ b) := hab.gsmul_right m
+@[simp] theorem coe_int_mul_right : commute a (m * b) := hab.coe_int_mul_right m
+theorem gsmul_left : commute (m •ℤ a) b := hab.gsmul_left m
+@[simp] theorem coe_int_mul_left : commute ((m : R) * a) b := hab.coe_int_mul_left m
+theorem gsmul_gsmul : commute (m •ℤ a) (n •ℤ b) := hab.gsmul_gsmul m n
+@[simp] theorem coe_int_mul_coe_int_mul : commute ((m : R) * a) (n * b) :=
+  hab.coe_int_mul_coe_int_mul m n
 
-@[simp] theorem self_gsmul : commute a (n •ℤ a) := (commute.refl a).gsmul_right n
-@[simp] theorem gsmul_self : commute (n •ℤ a) a := (commute.refl a).gsmul_left n
-@[simp] theorem self_gsmul_gsmul : commute (m •ℤ a) (n •ℤ a) := (commute.refl a).gsmul_gsmul m n
+theorem self_gsmul : commute a (n •ℤ a) := (commute.refl a).gsmul_right n
+@[simp] theorem self_coe_int_mul : commute a (n * a) := (commute.refl a).coe_int_mul_right n
+theorem gsmul_self : commute (n •ℤ a) a := (commute.refl a).gsmul_left n
+@[simp] theorem coe_int_mul_self : commute ((n : R) * a) a := (commute.refl a).coe_int_mul_left n
+theorem self_gsmul_gsmul : commute (m •ℤ a) (n •ℤ a) := (commute.refl a).gsmul_gsmul m n
+@[simp] theorem coe_int_mul_self_self : commute ((m : R) * a) (n * a) :=
+  (commute.refl a).coe_int_mul_coe_int_mul m n
 
 variable (a)
 
@@ -353,6 +369,7 @@ instance centralizer.is_add_submonoid : is_add_submonoid (centralizer a) :=
 { zero_mem := commute.zero_right a,
   add_mem := λ _ _, commute.add_right }
 
+/-- The centralizer of an element `a` in a (semi)ring, as an `add_submonoid`. -/
 def centralizer.add_submonoid : add_submonoid A :=
 { carrier := centralizer a,
   zero_mem' := commute.zero_right a,
@@ -361,6 +378,7 @@ def centralizer.add_submonoid : add_submonoid A :=
 instance set.centralizer.is_add_submonoid : is_add_submonoid s.centralizer :=
 by rw s.centralizer_eq; apply_instance
 
+/-- The centralizer of a subset `s` in a (semi)ring, as an `add_submonoid`. -/
 def set.centralizer.add_submonoid : add_submonoid A :=
 { carrier := s.centralizer,
   zero_mem' := λ _ _, commute.zero_right _,

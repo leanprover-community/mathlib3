@@ -172,16 +172,25 @@ by simp only [semiconj_by, mul_zero, zero_mul]
 variables [semiring R] {a b x y : R} (h : semiconj_by a x y)
 include h
 
-@[simp] lemma nsmul_right : ∀ n, semiconj_by a (n •ℕ x) (n •ℕ y)
+lemma nsmul_right : ∀ n, semiconj_by a (n •ℕ x) (n •ℕ y)
 | 0 := zero_right a
 | (n+1) := by simp only [succ_nsmul]; exact h.add_right (nsmul_right n)
 
-@[simp] lemma nsmul_left : ∀ n, semiconj_by (n •ℕ a) x y
+@[simp] lemma coe_nat_mul_right (n : ℕ) : semiconj_by a (n * x) (n * y) :=
+by simp [← nsmul_eq_mul, nsmul_right h]
+
+lemma nsmul_left : ∀ n, semiconj_by (n •ℕ a) x y
 | 0 := zero_left x y
 | (n+1) := by simp only [succ_nsmul]; exact h.add_left (nsmul_left n)
 
+@[simp] lemma coe_nat_mul_left (n : ℕ) : semiconj_by ((n : R) * a) x y :=
+by simp [← nsmul_eq_mul, nsmul_left h]
+
 lemma nsmul_nsmul (m n : ℕ) : semiconj_by (m •ℕ a) (n •ℕ x) (n •ℕ y) :=
 (h.nsmul_left m).nsmul_right n
+
+lemma coe_nat_mul_coe_nat_mul (m n : ℕ) : semiconj_by ((m : R) * a) (n * x) (n * y) :=
+(h.coe_nat_mul_left m).coe_nat_mul_right n
 
 omit h
 
@@ -223,16 +232,26 @@ h.add_right h'.neg_right
   semiconj_by (a - b) x y :=
 ha.add_left hb.neg_left
 
-@[simp] lemma gsmul_right (h : semiconj_by a x y) : ∀ m, semiconj_by a (m •ℤ x) (m •ℤ y)
+lemma gsmul_right (h : semiconj_by a x y) : ∀ m, semiconj_by a (m •ℤ x) (m •ℤ y)
 | (n : ℕ) := h.nsmul_right n
 | -[1+n] := (h.nsmul_right n.succ).neg_right
 
-@[simp] lemma gsmul_left (h : semiconj_by a x y) : ∀ m, semiconj_by (m •ℤ a) x y
+@[simp] lemma coe_int_mul_right (h : semiconj_by a x y) (m : ℤ) : semiconj_by a (m * x) (m * y) :=
+by simp [gsmul_right h, ← gsmul_eq_mul]
+
+lemma gsmul_left (h : semiconj_by a x y) : ∀ m, semiconj_by (m •ℤ a) x y
 | (n : ℕ) := h.nsmul_left n
 | -[1+n] := (h.nsmul_left n.succ).neg_left
 
+@[simp] lemma coe_int_mul_left (h : semiconj_by a x y) (m : ℤ) : semiconj_by ((m : R) * a) x y :=
+by simp [gsmul_left h, ← gsmul_eq_mul]
+
 lemma gsmul_gsmul (h : semiconj_by a x y) (m n : ℤ) : semiconj_by (m •ℤ a) (n •ℤ x) (n •ℤ y) :=
 (h.gsmul_left m).gsmul_right n
+
+lemma coe_int_mul_coe_int_mul (h : semiconj_by a x y) (m n : ℤ) :
+  semiconj_by ((m : R) * a) (n * x) (n * y) :=
+(h.coe_int_mul_left m).coe_int_mul_right n
 
 end ring
 

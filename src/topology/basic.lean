@@ -596,14 +596,23 @@ begin
 end
 
 section lim
-variables [nonempty α]
 
-/-- If `f` is a filter, then `lim f` is a limit of the filter, if it exists. -/
-noncomputable def lim (f : filter α) : α := epsilon $ λa, f ≤ 𝓝 a
+/-- If `f` is a filter, then `Lim f` is a limit of the filter, if it exists. -/
+noncomputable def Lim [nonempty α] (f : filter α) : α := epsilon $ λa, f ≤ 𝓝 a
 
-lemma lim_spec {f : filter α} (h : ∃a, f ≤ 𝓝 a) : f ≤ 𝓝 (lim f) := epsilon_spec h
+/-- If `f` is a filter in `β` and `g : β → α` is a function, then `lim f` is a limit of `g` at `f`,
+if it exists. -/
+noncomputable def lim [nonempty α] (f : filter β) (g : β → α) : α :=
+Lim (f.map g)
+
+lemma Lim_spec {ha : nonempty α} {f : filter α} (h : ∃a, f ≤ 𝓝 a) : f ≤ 𝓝 (Lim f) :=
+epsilon_spec h
+
+lemma lim_spec {ha : nonempty α} {f : filter β} {g : β → α} (h : ∃ a, tendsto g f (𝓝 a)) :
+  tendsto g f (𝓝 $ lim f g) :=
+Lim_spec h
+
 end lim
-
 
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 section locally_finite

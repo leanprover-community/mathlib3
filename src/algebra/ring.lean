@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston
 -/
 import algebra.group.hom
 import algebra.group.units
+import tactic.alias
 import tactic.norm_cast
 import tactic.split_ifs
 
@@ -12,13 +13,15 @@ import tactic.split_ifs
 # Properties and homomorphisms of semirings and rings
 
 This file proves simple properties of semirings, rings and domains and their unit groups. It also
-defines homomorphisms of semirings and rings, both unbundled (e.g. `is_semiring_hom f`)
-and bundled (e.g. `ring_hom a β`, a.k.a. `α →+* β`). The unbundled ones are deprecated
-and the plan is to slowly remove them from mathlib.
+defines bundled homomorphisms of semirings and rings. As with monoid and groups, we use the same
+structure `ring_hom a β`, a.k.a. `α →+* β`, for both homomorphism types.
+
+The unbundled homomorphisms are defined in `deprecated/ring`. They are deprecated and the plan is to
+slowly remove them from mathlib.
 
 ## Main definitions
 
-is_semiring_hom (deprecated), is_ring_hom (deprecated), ring_hom, nonzero, domain, integral_domain
+ring_hom, nonzero, domain, integral_domain
 
 ## Notations
 
@@ -41,8 +44,8 @@ to use this method than to use type class inference.
 
 ## Tags
 
-is_ring_hom, is_semiring_hom, ring_hom, semiring_hom, semiring, comm_semiring, ring, comm_ring,
-domain, integral_domain, nonzero, units
+`ring_hom`, `semiring_hom`, `semiring`, `comm_semiring`, `ring`, `comm_ring`, `domain`, `integral_domain`, `nonzero`,
+`units`
 -/
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -62,12 +65,12 @@ class distrib (α : Type u) extends has_mul α, has_add α :=
 lemma left_distrib [distrib α] (a b c : α) : a * (b + c) = a * b + a * c :=
 distrib.left_distrib a b c
 
-def mul_add := @left_distrib
+alias left_distrib ← mul_add
 
 lemma right_distrib [distrib α] (a b c : α) : (a + b) * c = a * c + b * c :=
 distrib.right_distrib a b c
 
-def add_mul := @right_distrib
+alias right_distrib ← add_mul
 
 @[protect_proj, ancestor has_mul has_zero]
 class mul_zero_class (α : Type u) extends has_mul α, has_zero α :=
@@ -80,7 +83,8 @@ mul_zero_class.zero_mul a
 @[ematch, simp] lemma mul_zero [mul_zero_class α] (a : α) : a * 0 = 0 :=
 mul_zero_class.mul_zero a
 
-/-- Predicate typeclass for expressing that a (semi)ring or similar algebraic structure is nonzero. -/
+/-- Predicate typeclass for expressing that a (semi)ring or similar algebraic structure
+is nonzero. -/
 @[protect_proj] class nonzero (α : Type u) [has_zero α] [has_one α] : Prop :=
 (zero_ne_one : 0 ≠ (1:α))
 
@@ -92,7 +96,9 @@ nonzero.zero_ne_one
 lemma one_ne_zero [has_zero α] [has_one α] [nonzero α] : (1:α) ≠ 0 :=
 zero_ne_one.symm
 
-/- semiring -/
+/-!
+### Semirings
+-/
 
 @[protect_proj, ancestor add_comm_monoid monoid distrib mul_zero_class]
 class semiring (α : Type u) extends add_comm_monoid α, monoid α, distrib α, mul_zero_class α
@@ -410,7 +416,9 @@ lemma ring_hom.map_dvd (f : α →+* β) {a b : α} : a ∣ b → f a ∣ f b :=
 
 end comm_semiring
 
-/- ring -/
+/-!
+### Rings
+-/
 
 @[protect_proj, ancestor add_comm_group monoid distrib]
 class ring (α : Type u) extends add_comm_group α, monoid α, distrib α
@@ -467,14 +475,14 @@ calc
    a * (b - c) = a * b + a * -c : left_distrib a b (-c)
            ... = a * b - a * c  : by simp [sub_eq_add_neg]
 
-def mul_sub := @mul_sub_left_distrib
+alias mul_sub_left_distrib ← mul_sub
 
 lemma mul_sub_right_distrib (a b c : α) : (a - b) * c = a * c - b * c :=
 calc
   (a - b) * c = a * c  + -b * c : right_distrib a (-b) c
           ... = a * c - b * c   : by simp [sub_eq_add_neg]
 
-def sub_mul := @mul_sub_right_distrib
+alias mul_sub_right_distrib ← sub_mul
 
 /-- An element of a ring multiplied by the additive inverse of one is the element's additive
   inverse. -/

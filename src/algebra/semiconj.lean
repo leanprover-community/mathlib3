@@ -111,10 +111,6 @@ units.ext h
 | (n : ℕ) := by simp only [gpow_coe_nat, units.coe_pow, h, pow_right]
 | -[1+n] := by simp only [gpow_neg_succ_of_nat, units.coe_pow, units_inv_right, h, pow_right]
 
-/-- `a` semiconjugates `x` to `a * x * a⁻¹`. -/
-lemma units_conj_mk (a : units M) (x : M) : semiconj_by ↑a x (a * x * ↑a⁻¹) :=
-by unfold semiconj_by; rw [units.inv_mul_cancel_right]
-
 end monoid
 
 section group
@@ -251,3 +247,19 @@ finv_symm_left_iff.2 h
 end division_ring
 
 end semiconj_by
+
+namespace units
+
+variables {M : Type u} [monoid M]
+
+/-- `a` semiconjugates `x` to `a * x * a⁻¹`. -/
+lemma mk_semiconj_by (a : units M) (x : M) : semiconj_by ↑a x (a * x * ↑a⁻¹) :=
+by unfold semiconj_by; rw [units.inv_mul_cancel_right]
+
+lemma conj_pow (u : units M) (x : M) (n : ℕ) : (↑u * x * ↑(u⁻¹))^n = u * x^n * ↑(u⁻¹) :=
+(divp_eq_iff_mul_eq.2 ((u.mk_semiconj_by x).pow_right n).eq.symm).symm
+
+lemma conj_pow' (u : units M) (x : M) (n : ℕ) : (↑(u⁻¹) * x * u)^n = ↑(u⁻¹) * x^n * u:=
+(u⁻¹).conj_pow x n
+
+end units

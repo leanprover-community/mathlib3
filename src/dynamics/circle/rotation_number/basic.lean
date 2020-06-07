@@ -1,32 +1,53 @@
+/-
+Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Yury G. Kudryashov
+-/
 import analysis.specific_limits
 import dynamics.fixed_points
 import order.iterate
 import algebra.iterate_hom
 
+/-!
+# Rotation number of a degree one circle self-map
+
+Let `f : ℝ → ℝ` be a monotone map such that `f (x + 1) = f x + 1` for all `x`. Then the limit
+$$
+  \tau(f)=\lim_{n\to\infty}{f^n(x)-x}{n}
+$$
+exists and does not depend on `x`. This number is called the *translation number* of `f`.
+Different authors use different notation for this number: `τ`, `ρ`, `rot`, etc
+
+In this file we define a structure `circle_deg1_lift` for bundled maps with these properties, define
+translation number of `f : circle_deg1_lift`, prove some estimates relating `f^n(x)-x` to `τ(f)`. In
+case of a continuous map `f` we also prove that `f` admits a point `x` such that `f^n(x)=x+m` if and
+only if `τ(f)=m/n`.
+
+Maps of this type naturally appear as lifts of orientation preserving circle homeomorphisms. More
+precisely, let `f` is an orientation preserving homeomorphism of the circle $S^1=ℝ/ℤ$, and
+`⟦a⟧ = f 0`, where `⟦⟧` means the natural projection `ℝ → ℝ/ℤ`. Then there exists a unique
+continuous function `F : ℝ → ℝ` such that `F 0 = a` and `⟦F x⟧ = f ⟦x⟧` for all `x` (this fact is
+not formalized yet). This function is strictly monotone, continuous, and satisfies
+`F (x + 1) = F x + 1`. The number `⟦τ F⟧ : ℝ / ℤ` is called the *rotation number* of `f`.
+
+We chose to define translation number for a wider class of maps `f : ℝ → ℝ` for two reasons:
+
+* non-strictly monotone circle self-maps with discontinuities naturally appear as Poincaré maps
+  for some flows on the two-torus (e.g., one can take a constant flow and glue in a few Cherry
+  cells);
+* definition and some basic properties still work for this class.
+
+## Notation
+
+We use a local notation `τ` for the translation number of `f : circle_deg1_lift`.
+
+## Tags
+
+circle homeomorphism, rotation number
+-/
+
 open filter set
 open_locale topological_space classical
-
--- TODO: move to a new `algebra.conj`
-def {u} units.conj_hom (M : Type u) [monoid M] : units M →* mul_aut M :=
-{ to_fun := λ u,
-  { to_fun := λ x, ↑u * x * ↑(u⁻¹),
-    inv_fun := λ x, ↑(u⁻¹) * x * u,
-    left_inv := λ x, by simp  [mul_assoc],
-    right_inv := λ x, by simp [mul_assoc],
-    map_mul' := λ x y, by simp [mul_assoc] },
-  map_one' := by { ext, simp },
-  map_mul' := λ u₁ u₂, by { ext x, simp [mul_assoc] } }
-
--- TODO: add `mul_equiv.map_pow` to `group_power`
--- TODO: move to `group_power`
-@[simp] lemma units.conj_pow {M : Type*} [monoid M] (u : units M) (x : M) (n : ℕ) :
-  (u * x * ↑(u⁻¹) : M)^n = u * x^n * ↑(u⁻¹) :=
-((units.conj_hom M u).to_monoid_hom.map_pow x n).symm
-
--- TODO: move to `group_power`
-@[simp] lemma units.conj_pow' {M : Type*} [monoid M] (u : units M) (x : M) (n : ℕ) :
-  (↑(u⁻¹) * x * u : M)^n = ↑(u⁻¹) * x^n * u :=
-(u⁻¹).conj_pow x n
 
 /-!
 ### Definition and monoid structure
@@ -73,6 +94,8 @@ instance : monoid circle_deg1_lift :=
   one_mul := λ f, coe_inj $ function.comp.left_id f,
   mul_assoc := λ f₁ f₂ f₃, coe_inj rfl }
 
+instance : inhabited circle_deg1_lift := ⟨1⟩
+
 @[simp] lemma coe_mul : ⇑(f * g) = f ∘ g := rfl
 
 lemma mul_apply (x) : (f * g) x = f (g x) := rfl
@@ -100,6 +123,9 @@ ext_iff
 ### Translate by a constant
 -/
 
+/-- The map `y ↦ x + y` as a `circle_deg1_lift`. More precisely, we define a homomorphism from
+`multiplicative ℝ` to `units circle_deg1_lift`, so the translation by `x` is
+`translation (multiplicative.of_add x)`. -/
 def translate : multiplicative ℝ →* units circle_deg1_lift :=
 by refine (units.map _).comp (to_units $ multiplicative ℝ).to_monoid_hom; exact
 { to_fun := λ x, ⟨λ y, x.to_add + y, λ y₁ y₂ h, add_le_add_left h _, λ y, (add_assoc _ _ _).symm⟩,
@@ -340,92 +366,97 @@ end
 -/
 noncomputable theory
 
-def rotnum_aux_seq (n : ℕ) : ℝ := (f^(2^n)) 0 / 2^n
+/-- An auxiliary sequence used to define the translation number. -/
+def transnum_aux_seq (n : ℕ) : ℝ := (f^(2^n)) 0 / 2^n
 
+/-- The translation number of a `circle_deg1_lift`, $τ(f)=\lim_{n→∞}\frac{f^n(x)-x}{n}$. We use
+an auxiliary sequence `\frac{f^{2^n}(0)}{2^n}` to define `τ(f)` because some proofs are simpler
+this way. -/
 def translation_number : ℝ :=
-lim ((at_top : filter ℕ).map f.rotnum_aux_seq)
+lim ((at_top : filter ℕ).map f.transnum_aux_seq)
 
-lemma rotnum_aux_seq_def : f.rotnum_aux_seq = λ n : ℕ, (f^(2^n)) 0 / 2^n := rfl
+-- TODO: choose two different symbols for `circle_deg1_lift.translation_number` and the future
+-- `circle_mono_homeo.rotation_number`, then make them `localized notation`s
+local notation `τ` := translation_number
 
-lemma translation_number_eq_of_tendsto_aux {τ : ℝ}
-  (h : tendsto f.rotnum_aux_seq at_top (𝓝 τ)) :
-  translation_number f = τ :=
+lemma transnum_aux_seq_def : f.transnum_aux_seq = λ n : ℕ, (f^(2^n)) 0 / 2^n := rfl
+
+lemma translation_number_eq_of_tendsto_aux {τ' : ℝ}
+  (h : tendsto f.transnum_aux_seq at_top (𝓝 τ')) :
+  τ  f = τ' :=
 lim_eq (map_ne_bot at_top_ne_bot) h
 
-lemma translation_number_eq_of_tendsto₀ {τ : ℝ}
-  (h : tendsto (λ n:ℕ, f^[n] 0 / n) at_top (𝓝 τ)) :
-  translation_number f = τ :=
+lemma translation_number_eq_of_tendsto₀ {τ' : ℝ}
+  (h : tendsto (λ n:ℕ, f^[n] 0 / n) at_top (𝓝 τ')) :
+  τ f = τ' :=
 f.translation_number_eq_of_tendsto_aux $
-by simpa [(∘), rotnum_aux_seq_def, coe_pow]
+by simpa [(∘), transnum_aux_seq_def, coe_pow]
 using h.comp (nat.tendsto_pow_at_top_at_top_of_one_lt one_lt_two)
 
-lemma translation_number_eq_of_tendsto₀' {τ : ℝ}
-  (h : tendsto (λ n:ℕ, f^[n + 1] 0 / (n + 1)) at_top (𝓝 τ)) :
-  translation_number f = τ :=
+lemma translation_number_eq_of_tendsto₀' {τ' : ℝ}
+  (h : tendsto (λ n:ℕ, f^[n + 1] 0 / (n + 1)) at_top (𝓝 τ')) :
+  τ f = τ' :=
 f.translation_number_eq_of_tendsto₀ $ (tendsto_add_at_top_iff_nat 1).1 h
 
-lemma rotnum_aux_seq_zero : f.rotnum_aux_seq 0 = f 0 := by simp [rotnum_aux_seq]
+lemma transnum_aux_seq_zero : f.transnum_aux_seq 0 = f 0 := by simp [transnum_aux_seq]
 
-lemma rotnum_aux_seq_dist_lt (n : ℕ) :
-  dist (f.rotnum_aux_seq n) (f.rotnum_aux_seq (n+1)) < (1 / 2) / (2^n) :=
+lemma transnum_aux_seq_dist_lt (n : ℕ) :
+  dist (f.transnum_aux_seq n) (f.transnum_aux_seq (n+1)) < (1 / 2) / (2^n) :=
 begin
   have : 0 < (2^(n+1):ℝ) := pow_pos zero_lt_two _,
   rw [div_div_eq_div_mul, ← pow_succ, ← abs_of_pos this],
   replace := abs_pos_iff.2 (ne_of_gt this),
   convert (div_lt_div_right this).2 ((f^(2^n)).dist_map_map_zero_lt (f^(2^n))),
-  simp_rw [rotnum_aux_seq, real.dist_eq],
+  simp_rw [transnum_aux_seq, real.dist_eq],
   rw [← abs_div, sub_div, pow_succ, ← two_mul, mul_div_mul_left _ _ (@two_ne_zero ℝ _),
     nat.pow_succ, pow_mul, pow_two, mul_apply]
 end
 
-lemma tendsto_translation_number_aux :
-  tendsto f.rotnum_aux_seq at_top (𝓝 f.translation_number) :=
+lemma tendsto_translation_number_aux : tendsto f.transnum_aux_seq at_top (𝓝 $ τ f) :=
 le_nhds_lim_of_cauchy $ cauchy_seq_of_le_geometric_two 1
-  (λ n, le_of_lt $ f.rotnum_aux_seq_dist_lt n)
+  (λ n, le_of_lt $ f.transnum_aux_seq_dist_lt n)
 
-lemma dist_map_zero_translation_number_le :
-  dist (f 0) f.translation_number ≤ 1 :=
-f.rotnum_aux_seq_zero ▸ dist_le_of_le_geometric_two_of_tendsto₀ 1
-  (λ n, le_of_lt $ f.rotnum_aux_seq_dist_lt n) f.tendsto_translation_number_aux
+lemma dist_map_zero_translation_number_le : dist (f 0) (τ f) ≤ 1 :=
+f.transnum_aux_seq_zero ▸ dist_le_of_le_geometric_two_of_tendsto₀ 1
+  (λ n, le_of_lt $ f.transnum_aux_seq_dist_lt n) f.tendsto_translation_number_aux
 
 lemma tendsto_translation_number_of_dist_bounded_aux (x : ℕ → ℝ) (C : ℝ)
   (H : ∀ n : ℕ, dist ((f^n) 0) (x n) ≤ C) :
-  tendsto (λ n : ℕ, x (2^n) / (2^n)) at_top (𝓝 f.translation_number) :=
+  tendsto (λ n : ℕ, x (2^n) / (2^n)) at_top (𝓝 $ τ f) :=
 begin
   refine f.tendsto_translation_number_aux.congr_dist (squeeze_zero (λ _, dist_nonneg) _ _),
   { exact λ n, C / 2^n },
   { intro n,
     have : 0 < (2^n:ℝ) := pow_pos zero_lt_two _,
     convert (div_le_div_right this).2 (H (2^n)),
-    rw [rotnum_aux_seq, real.dist_eq, ← sub_div, abs_div, abs_of_pos this, real.dist_eq] },
+    rw [transnum_aux_seq, real.dist_eq, ← sub_div, abs_div, abs_of_pos this, real.dist_eq] },
   { exact mul_zero C ▸ tendsto_const_nhds.mul (tendsto_inv_at_top_zero.comp $
       tendsto_pow_at_top_at_top_of_one_lt one_lt_two) }
 end
 
 lemma translation_number_eq_of_dist_bounded {f g : circle_deg1_lift} (C : ℝ)
   (H : ∀ n : ℕ, dist ((f^n) 0) ((g^n) 0) ≤ C) :
-  f.translation_number = g.translation_number :=
+  τ f = τ g :=
 eq.symm $ g.translation_number_eq_of_tendsto_aux $
   f.tendsto_translation_number_of_dist_bounded_aux _ C H
 
-@[simp] lemma translation_number_map_id : translation_number 1 = 0 :=
+@[simp] lemma translation_number_map_id : τ 1 = 0 :=
 translation_number_eq_of_tendsto₀ _ $ by simp [tendsto_const_nhds]
 
 lemma translation_number_eq_of_semiconj_by {f g₁ g₂ : circle_deg1_lift} (H : semiconj_by f g₁ g₂) :
-  g₁.translation_number = g₂.translation_number :=
+  τ g₁ = τ g₂ :=
 translation_number_eq_of_dist_bounded 2 $ λ n, le_of_lt $
   dist_map_zero_lt_of_semiconj_by $ H.pow_right n
 
 lemma translation_number_eq_of_semiconj {f g₁ g₂ : circle_deg1_lift}
   (H : function.semiconj f g₁ g₂) :
-  g₁.translation_number = g₂.translation_number :=
+  τ g₁ = τ g₂ :=
 translation_number_eq_of_semiconj_by $ semiconj_by_iff_semiconj.2 H
 
 lemma translation_number_mul_of_commute {f g : circle_deg1_lift} (h : commute f g) :
-  (f * g).translation_number = f.translation_number + g.translation_number :=
+  τ (f * g) = τ f + τ g :=
 begin
-  have : tendsto (λ n : ℕ, ((λ k, (f^k) 0 + (g^k) 0) (2^n)) / (2^n)) at_top
-    (𝓝 $ f.translation_number + g.translation_number) :=
+  have : tendsto (λ n : ℕ, ((λ k, (f^k) 0 + (g^k) 0) (2^n)) / (2^n)) at_top (𝓝 $ τ f + τ g) :=
     ((f.tendsto_translation_number_aux.add g.tendsto_translation_number_aux).congr $
       λ n, (add_div ((f^(2^n)) 0) ((g^(2^n)) 0) ((2:ℝ)^n)).symm),
   refine tendsto_nhds_unique at_top_ne_bot
@@ -436,17 +467,17 @@ begin
 end
 
 @[simp] lemma translation_number_pow :
-  ∀ n : ℕ, (f^n).translation_number = n * f.translation_number
+  ∀ n : ℕ, τ (f^n) = n * τ f
 | 0 := by simp
 | (n+1) := by rw [pow_succ', translation_number_mul_of_commute (commute.pow_self f n),
   translation_number_pow n, nat.cast_add_one, add_mul, one_mul]
 
-lemma translation_number_conj_eq (f : units circle_deg1_lift) (g : circle_deg1_lift) :
-  (↑f * g * ↑(f⁻¹)).translation_number = g.translation_number :=
-(translation_number_eq_of_semiconj_by (semiconj_by.units_conj_mk _ _)).symm
+@[simp] lemma translation_number_conj_eq (f : units circle_deg1_lift) (g : circle_deg1_lift) :
+  τ (↑f * g * ↑(f⁻¹)) = τ g :=
+(translation_number_eq_of_semiconj_by (f.mk_semiconj_by g)).symm
 
-lemma translation_number_conj_eq' (f : units circle_deg1_lift) (g : circle_deg1_lift) :
-  (↑(f⁻¹) * g * f).translation_number = g.translation_number :=
+@[simp] lemma translation_number_conj_eq' (f : units circle_deg1_lift) (g : circle_deg1_lift) :
+  τ (↑(f⁻¹) * g * f) = τ g :=
 translation_number_conj_eq f⁻¹ g
 
 lemma dist_pow_map_zero_mul_translation_number_le (n:ℕ) :
@@ -454,7 +485,7 @@ lemma dist_pow_map_zero_mul_translation_number_le (n:ℕ) :
 f.translation_number_pow n ▸ (f^n).dist_map_zero_translation_number_le
 
 lemma tendsto_translation_number₀' :
-  tendsto (λ n:ℕ, (f^(n+1)) 0 / (n+1)) at_top (𝓝 f.translation_number) :=
+  tendsto (λ n:ℕ, (f^(n+1)) 0 / (n+1)) at_top (𝓝 $ τ f) :=
 begin
   refine (tendsto_iff_dist_tendsto_zero.2 $ squeeze_zero (λ _, dist_nonneg) (λ n, _)
     ((tendsto_const_div_at_top_nhds_0_nat 1).comp (tendsto_add_at_top_nat 1))),
@@ -466,98 +497,87 @@ begin
 end
 
 lemma tendsto_translation_number₀ :
-  tendsto (λ n:ℕ, ((f^n) 0) / n) at_top (𝓝 f.translation_number) :=
+  tendsto (λ n:ℕ, ((f^n) 0) / n) at_top (𝓝 $ τ f) :=
 (tendsto_add_at_top_iff_nat 1).1 f.tendsto_translation_number₀'
 
 /-- For any `x : ℝ` the sequence $\frac{f^n(x)-x}{n}$ tends to the translation number of `f`.
 In particular, this limit does not depend on `x`. -/
 lemma tendsto_translation_number (x : ℝ) :
-  tendsto (λ n:ℕ, ((f^n) x - x) / n) at_top (𝓝 f.translation_number) :=
+  tendsto (λ n:ℕ, ((f^n) x - x) / n) at_top (𝓝 $ τ f) :=
 begin
   rw [← translation_number_conj_eq' (translate $ multiplicative.of_add x)],
   convert tendsto_translation_number₀ _,
   ext n,
-  simp [sub_eq_neg_add]
+  simp [sub_eq_neg_add, units.conj_pow']
 end
 
 lemma tendsto_translation_number' (x : ℝ) :
-  tendsto (λ n:ℕ, ((f^(n+1)) x - x) / (n+1)) at_top (𝓝 f.translation_number) :=
+  tendsto (λ n:ℕ, ((f^(n+1)) x - x) / (n+1)) at_top (𝓝 $ τ f) :=
 (tendsto_add_at_top_iff_nat 1).2 (f.tendsto_translation_number x)
 
-lemma translation_number_mono : monotone translation_number :=
+lemma translation_number_mono : monotone τ :=
 λ f g h, le_of_tendsto_of_tendsto' at_top_ne_bot f.tendsto_translation_number₀
   g.tendsto_translation_number₀ $ λ n, div_le_div_of_le_of_nonneg (pow_mono h n 0) n.cast_nonneg
 
 lemma translation_number_translate (x : ℝ) :
-  translation_number (translate $ multiplicative.of_add x) = x :=
+  τ (translate $ multiplicative.of_add x) = x :=
 translation_number_eq_of_tendsto₀' _ $
   by simp [nat.cast_add_one_ne_zero, mul_div_cancel_left, tendsto_const_nhds]
 
-lemma translation_number_le_of_le_add {z : ℝ} (hz : ∀ x, f x ≤ x + z) :
-  translation_number f ≤ z :=
+lemma translation_number_le_of_le_add {z : ℝ} (hz : ∀ x, f x ≤ x + z) : τ f ≤ z :=
 translation_number_translate z ▸ translation_number_mono
   (λ x, trans_rel_left _ (hz x) (add_comm _ _))
 
-lemma le_translation_number_of_add_le {z : ℝ} (hz : ∀ x, x + z ≤ f x) :
-  z ≤ translation_number f :=
+lemma le_translation_number_of_add_le {z : ℝ} (hz : ∀ x, x + z ≤ f x) : z ≤ τ f :=
 translation_number_translate z ▸ translation_number_mono
   (λ x, trans_rel_right _ (add_comm _ _) (hz x))
 
-lemma translation_number_le_of_le_add_int {x : ℝ} {m : ℤ} (h : f x ≤ x + m) :
-  translation_number f ≤ m :=
+lemma translation_number_le_of_le_add_int {x : ℝ} {m : ℤ} (h : f x ≤ x + m) : τ f ≤ m :=
 le_of_tendsto' at_top_ne_bot (f.tendsto_translation_number' x) $ λ n,
 div_le_of_le_mul n.cast_add_one_pos $ sub_le_iff_le_add'.2 $
 (coe_pow f (n + 1)).symm ▸ f.iterate_le_of_map_le_add_int h (n + 1)
 
-lemma translation_number_le_of_le_add_nat {x : ℝ} {m : ℕ} (h : f x ≤ x + m) :
-  translation_number f ≤ m :=
+lemma translation_number_le_of_le_add_nat {x : ℝ} {m : ℕ} (h : f x ≤ x + m) : τ f ≤ m :=
 @translation_number_le_of_le_add_int f x m h
 
-lemma le_translation_number_of_add_int_le {x : ℝ} {m : ℤ} (h : x + m ≤ f x) :
-  ↑m ≤ translation_number f :=
+lemma le_translation_number_of_add_int_le {x : ℝ} {m : ℤ} (h : x + m ≤ f x) : ↑m ≤ τ f :=
 ge_of_tendsto' at_top_ne_bot (f.tendsto_translation_number' x) $ λ n,
 le_div_of_mul_le n.cast_add_one_pos $ le_sub_iff_add_le'.2 $
 by simp only [coe_pow, mul_comm (m:ℝ), ← nat.cast_add_one, f.le_iterate_of_add_int_le_map h]
 
-lemma le_translation_number_of_add_nat_le {x : ℝ} {m : ℕ} (h : x + m ≤ f x) :
-  ↑m ≤ translation_number f :=
+lemma le_translation_number_of_add_nat_le {x : ℝ} {m : ℕ} (h : x + m ≤ f x) : ↑m ≤ τ f :=
 @le_translation_number_of_add_int_le f x m h
 
-/-- If `f x - x` is an integer number `m` for some point `x`, then `translation_number f = m`.
+/-- If `f x - x` is an integer number `m` for some point `x`, then `τ f = m`.
 On the circle this means that a map with a fixed point has rotation number zero. -/
-lemma translation_number_of_eq_add_int {x : ℝ} {m : ℤ} (h : f x = x + m) :
-  f.translation_number = m :=
+lemma translation_number_of_eq_add_int {x : ℝ} {m : ℤ} (h : f x = x + m) : τ f = m :=
 le_antisymm (translation_number_le_of_le_add_int f $ le_of_eq h)
   (le_translation_number_of_add_int_le f $ le_of_eq h.symm)
 
-lemma floor_sub_le_translation_number (x : ℝ) : ↑⌊f x - x⌋ ≤ translation_number f :=
+lemma floor_sub_le_translation_number (x : ℝ) : ↑⌊f x - x⌋ ≤ τ f :=
 le_translation_number_of_add_int_le f $ le_sub_iff_add_le'.1 (floor_le $ f x - x)
 
-lemma translation_number_le_ceil_sub (x : ℝ) : translation_number f ≤ ⌈f x - x⌉ :=
+lemma translation_number_le_ceil_sub (x : ℝ) : τ f ≤ ⌈f x - x⌉ :=
 translation_number_le_of_le_add_int f $ sub_le_iff_le_add'.1 (le_ceil $ f x - x)
 
-lemma map_lt_of_translation_number_lt_int {n : ℤ} (h : translation_number f < n) (x : ℝ) :
-  f x < x + n :=
+lemma map_lt_of_translation_number_lt_int {n : ℤ} (h : τ f < n) (x : ℝ) : f x < x + n :=
 not_le.1 $ mt f.le_translation_number_of_add_int_le $ not_le.2 h
 
-lemma map_lt_of_translation_number_lt_nat {n : ℕ} (h : translation_number f < n) (x : ℝ) :
-  f x < x + n :=
+lemma map_lt_of_translation_number_lt_nat {n : ℕ} (h : τ f < n) (x : ℝ) : f x < x + n :=
 @map_lt_of_translation_number_lt_int f n h x
 
-lemma lt_map_of_int_lt_translation_number {n : ℤ} (h : ↑n < translation_number f) (x : ℝ) :
-  x + n < f x :=
+lemma lt_map_of_int_lt_translation_number {n : ℤ} (h : ↑n < τ f) (x : ℝ) : x + n < f x :=
 not_le.1 $ mt f.translation_number_le_of_le_add_int $ not_le.2 h
 
-lemma lt_map_of_nat_lt_translation_number {n : ℕ} (h : ↑n < translation_number f) (x : ℝ) :
-  x + n < f x :=
+lemma lt_map_of_nat_lt_translation_number {n : ℕ} (h : ↑n < τ f) (x : ℝ) : x + n < f x :=
 @lt_map_of_int_lt_translation_number f n h x
 
 /-- If `f^n x - x`, `n > 0`, is an integer number `m` for some point `x`, then
-`translation_number f = m / n`. On the circle this means that a map with a periodic orbit has
+`τ f = m / n`. On the circle this means that a map with a periodic orbit has
 a rational rotation number. -/
 lemma translation_number_of_map_pow_eq_add_int {x : ℝ} {n : ℕ} {m : ℤ}
   (h : (f^n) x = x + m) (hn : 0 < n) :
-  f.translation_number = m / n :=
+  τ f = m / n :=
 begin
   have := (f^n).translation_number_of_eq_add_int h,
   rwa [translation_number_pow, mul_comm, ← eq_div_iff] at this,
@@ -569,7 +589,7 @@ lemma forall_map_sub_of_Icc (P : ℝ → Prop)
 f.map_fract_sub_fract_eq x ▸ h _ ⟨fract_nonneg _, le_of_lt (fract_lt_one _)⟩
 
 lemma translation_number_lt_of_forall_lt_add (hf : continuous f) {z : ℝ}
-  (hz : ∀ x, f x < x + z) : f.translation_number < z :=
+  (hz : ∀ x, f x < x + z) : τ f < z :=
 begin
   obtain ⟨x, xmem, hx⟩ : ∃ x ∈ Icc (0:ℝ) 1, ∀ y ∈ Icc (0:ℝ) 1, f y - y ≤ f x - x,
     from compact_Icc.exists_forall_ge (nonempty_Icc.2 zero_le_one)
@@ -581,7 +601,7 @@ begin
 end
 
 lemma lt_translation_number_of_forall_add_lt (hf : continuous f) {z : ℝ}
-  (hz : ∀ x, x + z < f x) : z < f.translation_number :=
+  (hz : ∀ x, x + z < f x) : z < τ f :=
 begin
   obtain ⟨x, xmem, hx⟩ : ∃ x ∈ Icc (0:ℝ) 1, ∀ y ∈ Icc (0:ℝ) 1, f x - x ≤ f y - y,
     from compact_Icc.exists_forall_le (nonempty_Icc.2 zero_le_one)
@@ -593,15 +613,15 @@ begin
 end
 
 /-- If `f` is a continuous monotone map `ℝ → ℝ`, `f (x + 1) = f x + 1`, then there exists `x`
-such that `f x = x + translation_number f`. -/
+such that `f x = x + τ f`. -/
 lemma exists_eq_add_translation_number (hf : continuous f) :
-  ∃ x, f x = x + translation_number f :=
+  ∃ x, f x = x + τ f :=
 begin
   obtain ⟨a, ha⟩ : ∃ x, f x ≤ x + f.translation_number,
   { by_contradiction H,
     push_neg at H,
     exact lt_irrefl _ (f.lt_translation_number_of_forall_add_lt hf H) },
-  obtain ⟨b, hb⟩ : ∃ x, x + f.translation_number ≤ f x,
+  obtain ⟨b, hb⟩ : ∃ x, x + τ f ≤ f x,
   { by_contradiction H,
     push_neg at H,
     exact lt_irrefl _ (f.translation_number_lt_of_forall_lt_add hf H) },
@@ -609,7 +629,7 @@ begin
 end
 
 lemma translation_number_eq_int_iff (hf : continuous f) {m : ℤ} :
-  f.translation_number = m ↔ ∃ x, f x = x + m :=
+  τ f = m ↔ ∃ x, f x = x + m :=
 begin
   refine ⟨λ h, h ▸ f.exists_eq_add_translation_number hf, _⟩,
   rintros ⟨x, hx⟩,
@@ -622,10 +642,12 @@ by { rw coe_pow, exact hf.iterate n }
 
 lemma translation_number_eq_rat_iff (hf : continuous f) {m : ℤ}
   {n : ℕ} (hn : 0 < n) :
-  f.translation_number = m / n ↔ ∃ x, (f^n) x = x + m :=
+  τ f = m / n ↔ ∃ x, (f^n) x = x + m :=
 begin
   rw [eq_div_iff, mul_comm, ← translation_number_pow]; [skip, exact ne_of_gt (nat.cast_pos.2 hn)],
   exact (f^n).translation_number_eq_int_iff (f.continuous_pow hf n)
 end
 
 end circle_deg1_lift
+
+#lint

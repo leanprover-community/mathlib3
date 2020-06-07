@@ -44,8 +44,8 @@ to use this method than to use type class inference.
 
 ## Tags
 
-ring_hom, semiring_hom, semiring, comm_semiring, ring, comm_ring, domain, integral_domain, nonzero,
-units
+`ring_hom`, `semiring_hom`, `semiring`, `comm_semiring`, `ring`, `comm_ring`, `domain`, `integral_domain`, `nonzero`,
+`units`
 -/
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}

@@ -187,7 +187,8 @@ A more explicit formulation of Carathéodory's convexity theorem,
 writing an element of a convex hull as the center of mass
 of an explicit `finset` with cardinality at most `dim + 1`.
 -/
-theorem eq_center_mass_card_le_dim_succ_of_mem_convex_hull (s : set E) (x : E) (h : x ∈ convex_hull s) :
+theorem eq_center_mass_card_le_dim_succ_of_mem_convex_hull
+  {s : set E} {x : E} (h : x ∈ convex_hull s) :
   ∃ (t : finset E) (w : ↑t ⊆ s) (b : t.card ≤ findim ℝ E + 1)
     (f : E → ℝ), (∀ y ∈ t, 0 ≤ f y) ∧ t.sum f = 1 ∧ t.center_mass f id = x :=
 begin
@@ -197,4 +198,27 @@ begin
   refine ⟨t, w, b, _⟩,
   rw finset.convex_hull_eq at m,
   simpa only [exists_prop] using m,
+end
+
+/--
+A slight variation of `eq_center_mass_card_le_dim_succ_of_mem_convex_hull`,
+asserting that the coefficients can be taken to be strictly positive.
+-/
+theorem eq_int_center_mass_card_le_dim_succ_of_mem_convex_hull
+  {s : set E} {x : E} (h : x ∈ convex_hull s) :
+  ∃ (t : finset E) (w : ↑t ⊆ s) (b : t.card ≤ findim ℝ E + 1)
+    (f : E → ℝ), (∀ y ∈ t, 0 < f y) ∧ t.sum f = 1 ∧ t.center_mass f id = x :=
+begin
+  obtain ⟨t, w, b, f, ⟨pos, sum, center⟩⟩ := eq_center_mass_card_le_dim_succ_of_mem_convex_hull h,
+  let t' := t.filter (λ z, 0 < f z),
+  have t'sum : t'.sum f = 1,
+  { sorry, },
+  refine ⟨t', _, _, f, ⟨_, _, _⟩⟩,
+  { exact subset.trans (filter_subset t) w, },
+  { exact le_trans (card_le_of_subset (filter_subset t)) b, },
+  { exact λ y H, (mem_filter.mp H).right, },
+  { exact t'sum, },
+  { convert center using 1,
+    simp only [center_mass, t'sum, sum, inv_one', one_smul, id.def],
+    sorry, },
 end

@@ -24,8 +24,8 @@ This file defines only a few operations (`mul_left`, `inv_right`, etc).  Other o
 Most of the proofs come from the properties of `semiconj_by`.
 -/
 
-/-- Two elements commute iff `a * b = b * a`. -/
-@[to_additive add_commute]
+/-- Two elements commute if `a * b = b * a`. -/
+@[to_additive add_commute "Two elements additively commute if `a + b = b + a`"]
 def commute {S : Type*} [has_mul S] (a b : S) : Prop := semiconj_by a b b
 
 namespace commute

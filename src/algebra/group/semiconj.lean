@@ -30,7 +30,7 @@ operations (`pow_right`, field inverse etc) are in the files that define corresp
 universes u v
 
 /-- `x` is semiconjugate to `y` by `a`, if `a * x = y * a`. -/
-@[to_additive add_semiconj_by]
+@[to_additive add_semiconj_by "`x` is additive semiconjugate to `y` by `a` if `a + x = y + a`"]
 def semiconj_by {M : Type u} [has_mul M] (a x y : M) : Prop := a * x = y * a
 
 namespace semiconj_by

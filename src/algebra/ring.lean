@@ -1005,10 +1005,10 @@ semiconj_by.add_left
 
 variables [ring R] {a b c : R}
 
-theorem commute.neg_right : commute a b → commute a (- b) := semiconj_by.neg_right
+theorem neg_right : commute a b → commute a (- b) := semiconj_by.neg_right
 @[simp] theorem neg_right_iff : commute a (-b) ↔ commute a b := semiconj_by.neg_right_iff
 
-theorem commute.neg_left : commute a b → commute (- a) b := semiconj_by.neg_left
+theorem neg_left : commute a b → commute (- a) b := semiconj_by.neg_left
 @[simp] theorem neg_left_iff : commute (-a) b ↔ commute a b := semiconj_by.neg_left_iff
 
 @[simp] theorem neg_one_right (a : R) : commute a (-1) := semiconj_by.neg_one_right a

@@ -92,7 +92,7 @@ begin
     have : int_fract_pair.of v = ifp_zero, by
     { have : int_fract_pair.stream v 0 = some (int_fract_pair.of v), from rfl,
       simpa only [this] using stream_zero_eq },
-    cases this with refl,
+    cases this,
     cases decidable.em (fract v = 0) with fract_eq_zero fract_ne_zero,
     -- fract v = 0; we must then have `v = ⌊v⌋`
     { suffices : v = ⌊v⌋, by simpa [continuants_aux, fract_eq_zero, gcf.comp_exact_value],
@@ -120,7 +120,7 @@ begin
         ∃ ifp_n, int_fract_pair.stream v n = some ifp_n ∧ ifp_n.fr⁻¹ = ⌊ifp_n.fr⁻¹⌋, from
           int_fract_pair.obtain_succ_nth_stream_of_fr_zero succ_nth_stream_eq ifp_succ_n_fr_eq_zero,
       have : ifp_n' = ifp_n, by injection (eq.trans (nth_stream_eq').symm nth_stream_eq),
-      cases this with refl,
+      cases this,
       have s_nth_eq : g.s.nth n = some ⟨1, ⌊ifp_n.fr⁻¹⌋⟩, from
         gcf.nth_of_eq_some_of_nth_int_fract_pair_stream_fr_ne_zero nth_stream_eq nth_fract_ne_zero,
       rw [←ifp_n_fract_inv_eq_floor] at s_nth_eq,
@@ -139,7 +139,7 @@ begin
         ∧ int_fract_pair.of ifp_n.fr⁻¹ = ifp_succ_n, from
           int_fract_pair.succ_nth_stream_eq_some_iff.elim_left succ_nth_stream_eq,
       have : ifp_n' = ifp_n, by injection (eq.trans (nth_stream_eq').symm nth_stream_eq),
-      cases this with refl,
+      cases this,
       -- get the correspondence between ifp_n and g.s.nth n
       have s_nth_eq : g.s.nth n = some ⟨1, (⌊ifp_n.fr⁻¹⌋ : K)⟩, from
         gcf.nth_of_eq_some_of_nth_int_fract_pair_stream_fr_ne_zero nth_stream_eq ifp_n_fract_ne_zero,

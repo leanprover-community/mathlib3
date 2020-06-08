@@ -10,11 +10,18 @@ import algebra.group_ring_action
 
 ## Main definitions
 
-* `mul_action_hom M X Y`, the type of equivariant functions from `X` to `Y`, notated `X →[M] Y`.
+* `mul_action_hom M X Y`, the type of equivariant functions from `X` to `Y`.
 * `distrib_mul_action_hom M A B`, the type of equivariant additive monoid homomorphisms
-  from `A` to `B`, notated `A →+[M] B`.
+  from `A` to `B`.
 * `mul_semiring_action_hom M R S`, the type of equivariant ring homomorphisms
-  from `R` to `S`, notated `R →+*[M] S`.
+  from `R` to `S`.
+
+## Notations
+
+* `X →[M] Y` is `mul_action_hom M X Y`.
+* `A →+[M] B` is `distrib_mul_action_hom M X Y`.
+* `R →+*[M] S` is `mul_semiring_action_hom M X Y`.
+
 -/
 
 universes u v w u₁
@@ -43,7 +50,7 @@ structure mul_action_hom :=
 (to_fun : X → Y)
 (map_smul' : ∀ (m : M) (x : X), to_fun (m • x) = m • to_fun x)
 
-notation β ` →[`:25 α:25 `] `:0 γ:0 := mul_action_hom α β γ
+notation X ` →[`:25 M:25 `] `:0 Y:0 := mul_action_hom M X Y
 
 namespace mul_action_hom
 
@@ -52,7 +59,7 @@ instance : has_coe_to_fun (X →[M] Y) :=
 
 variables {M X Y}
 
-theorem map_smul (f : X →[M] Y) (m : M) (x : X) : f (m • x) = m • f x :=
+@[simp] lemma map_smul (f : X →[M] Y) (m : M) (x : X) : f (m • x) = m • f x :=
 f.map_smul' m x
 
 @[ext] theorem ext : ∀ {f g : X →[M] Y}, (∀ x, f x = g x) → f = g
@@ -61,13 +68,13 @@ f.map_smul' m x
 theorem ext_iff {f g : X →[M] Y} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ H x, by rw H, ext⟩
 
-variables (M X)
+variables (M) {X}
 
 /-- The identity map is equivariant. -/
 protected def id : X →[M] X :=
 ⟨id, λ _ _, rfl⟩
 
-@[simp] lemma id_apply (x : X) : mul_action_hom.id M X x = x := rfl
+@[simp] lemma id_apply (x : X) : mul_action_hom.id M x = x := rfl
 
 variables {M X Y Z}
 
@@ -79,10 +86,10 @@ g (f (m • x)) = g (m • f x) : by rw f.map_smul
 
 @[simp] lemma comp_apply (g : Y →[M] Z) (f : X →[M] Y) (x : X) : g.comp f x = g (f x) := rfl
 
-@[simp] lemma id_comp (f : X →[M] Y) : (mul_action_hom.id M Y).comp f = f :=
+@[simp] lemma id_comp (f : X →[M] Y) : (mul_action_hom.id M).comp f = f :=
 ext $ λ x, by rw [comp_apply, id_apply]
 
-@[simp] lemma comp_id (f : X →[M] Y) : f.comp (mul_action_hom.id M X) = f :=
+@[simp] lemma comp_id (f : X →[M] Y) : f.comp (mul_action_hom.id M) = f :=
 ext $ λ x, by rw [comp_apply, id_apply]
 
 local attribute [instance] mul_action.regular
@@ -107,7 +114,7 @@ add_decl_doc distrib_mul_action_hom.to_add_monoid_hom
 /-- Reinterpret an equivariant additive monoid homomorphism as an equivariant function. -/
 add_decl_doc distrib_mul_action_hom.to_mul_action_hom
 
-notation β ` →+[`:25 α:25 `] `:0 γ:0 := distrib_mul_action_hom α β γ
+notation A ` →+[`:25 M:25 `] `:0 B:0 := distrib_mul_action_hom M A B
 
 namespace distrib_mul_action_hom
 
@@ -131,28 +138,28 @@ variables {M A B}
 theorem ext_iff {f g : A →+[M] B} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ H x, by rw H, ext⟩
 
-theorem map_zero (f : A →+[M] B) : f 0 = 0 :=
+@[simp] lemma map_zero (f : A →+[M] B) : f 0 = 0 :=
 f.map_zero'
 
-theorem map_add (f : A →+[M] B) (x y : A) : f (x + y) = f x + f y :=
+@[simp] lemma map_add (f : A →+[M] B) (x y : A) : f (x + y) = f x + f y :=
 f.map_add' x y
 
-theorem map_neg (f : A' →+[M] B') (x : A') : f (-x) = -f x :=
+@[simp] lemma map_neg (f : A' →+[M] B') (x : A') : f (-x) = -f x :=
 (f : A' →+ B').map_neg x
 
-theorem map_sub (f : A' →+[M] B') (x y : A') : f (x - y) = f x - f y :=
+@[simp] lemma map_sub (f : A' →+[M] B') (x y : A') : f (x - y) = f x - f y :=
 (f : A' →+ B').map_sub x y
 
-theorem map_smul (f : A →+[M] B) (m : M) (x : A) : f (m • x) = m • f x :=
+@[simp] lemma map_smul (f : A →+[M] B) (m : M) (x : A) : f (m • x) = m • f x :=
 f.map_smul' m x
 
-variables (M A)
+variables (M) {A}
 
 /-- The identity map is equivariant. -/
 protected def id : A →+[M] A :=
 ⟨id, λ _ _, rfl, rfl, λ _ _, rfl⟩
 
-@[simp] lemma id_apply (x : A) : distrib_mul_action_hom.id M A x = x := rfl
+@[simp] lemma id_apply (x : A) : distrib_mul_action_hom.id M x = x := rfl
 
 variables {M A B C}
 
@@ -163,10 +170,10 @@ def comp (g : B →+[M] C) (f : A →+[M] B) : A →+[M] C :=
 
 @[simp] lemma comp_apply (g : B →+[M] C) (f : A →+[M] B) (x : A) : g.comp f x = g (f x) := rfl
 
-@[simp] lemma id_comp (f : A →+[M] B) : (distrib_mul_action_hom.id M B).comp f = f :=
+@[simp] lemma id_comp (f : A →+[M] B) : (distrib_mul_action_hom.id M).comp f = f :=
 ext $ λ x, by rw [comp_apply, id_apply]
 
-@[simp] lemma comp_id (f : A →+[M] B) : f.comp (distrib_mul_action_hom.id M A) = f :=
+@[simp] lemma comp_id (f : A →+[M] B) : f.comp (distrib_mul_action_hom.id M) = f :=
 ext $ λ x, by rw [comp_apply, id_apply]
 
 end distrib_mul_action_hom
@@ -181,7 +188,7 @@ add_decl_doc mul_semiring_action_hom.to_ring_hom
 /-- Reinterpret an equivariant ring homomorphism as an equivariant additive monoid homomorphism. -/
 add_decl_doc mul_semiring_action_hom.to_distrib_mul_action_hom
 
-notation β ` →+*[`:25 α:25 `] `:0 γ:0 := mul_semiring_action_hom α β γ
+notation R ` →+*[`:25 M:25 `] `:0 S:0 := mul_semiring_action_hom M R S
 
 namespace mul_semiring_action_hom
 
@@ -205,34 +212,34 @@ variables {M R S}
 theorem ext_iff {f g : R →+*[M] S} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ H x, by rw H, ext⟩
 
-theorem map_zero (f : R →+*[M] S) : f 0 = 0 :=
+@[simp] lemma map_zero (f : R →+*[M] S) : f 0 = 0 :=
 f.map_zero'
 
-theorem map_add (f : R →+*[M] S) (x y : R) : f (x + y) = f x + f y :=
+@[simp] lemma map_add (f : R →+*[M] S) (x y : R) : f (x + y) = f x + f y :=
 f.map_add' x y
 
-theorem map_neg (f : R' →+*[M] S') (x : R') : f (-x) = -f x :=
+@[simp] lemma map_neg (f : R' →+*[M] S') (x : R') : f (-x) = -f x :=
 (f : R' →+* S').map_neg x
 
-theorem map_sub (f : R' →+*[M] S') (x y : R') : f (x - y) = f x - f y :=
+@[simp] lemma map_sub (f : R' →+*[M] S') (x y : R') : f (x - y) = f x - f y :=
 (f : R' →+* S').map_sub x y
 
-theorem map_one (f : R →+*[M] S) : f 1 = 1 :=
+@[simp] lemma map_one (f : R →+*[M] S) : f 1 = 1 :=
 f.map_one'
 
-theorem map_mul (f : R →+*[M] S) (x y : R) : f (x * y) = f x * f y :=
+@[simp] lemma map_mul (f : R →+*[M] S) (x y : R) : f (x * y) = f x * f y :=
 f.map_mul' x y
 
-theorem map_smul (f : R →+*[M] S) (m : M) (x : R) : f (m • x) = m • f x :=
+@[simp] lemma map_smul (f : R →+*[M] S) (m : M) (x : R) : f (m • x) = m • f x :=
 f.map_smul' m x
 
-variables (M R)
+variables (M) {R}
 
 /-- The identity map is equivariant. -/
 protected def id : R →+*[M] R :=
 ⟨id, λ _ _, rfl, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩
 
-@[simp] lemma id_apply (x : R) : mul_semiring_action_hom.id M R x = x := rfl
+@[simp] lemma id_apply (x : R) : mul_semiring_action_hom.id M x = x := rfl
 
 variables {M R S T}
 
@@ -243,10 +250,10 @@ def comp (g : S →+*[M] T) (f : R →+*[M] S) : R →+*[M] T :=
 
 @[simp] lemma comp_apply (g : S →+*[M] T) (f : R →+*[M] S) (x : R) : g.comp f x = g (f x) := rfl
 
-@[simp] lemma id_comp (f : R →+*[M] S) : (mul_semiring_action_hom.id M S).comp f = f :=
+@[simp] lemma id_comp (f : R →+*[M] S) : (mul_semiring_action_hom.id M).comp f = f :=
 ext $ λ x, by rw [comp_apply, id_apply]
 
-@[simp] lemma comp_id (f : R →+*[M] S) : f.comp (mul_semiring_action_hom.id M R) = f :=
+@[simp] lemma comp_id (f : R →+*[M] S) : f.comp (mul_semiring_action_hom.id M) = f :=
 ext $ λ x, by rw [comp_apply, id_apply]
 
 end mul_semiring_action_hom

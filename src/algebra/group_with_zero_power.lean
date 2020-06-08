@@ -43,7 +43,7 @@ have h2 : a ^ (m - n) * a ^ n = a ^ m, by rw [←pow_add, h1],
 eq_mul_inv_of_mul_eq' (pow_ne_zero' _ ha) h2
 
 theorem pow_inv_comm' (a : G₀) (m n : ℕ) : (a⁻¹) ^ m * a ^ n = a ^ n * (a⁻¹) ^ m :=
-by rw inv_pow'; exact inv_comm_of_comm' (pow_mul_comm _ _ _)
+(commute.refl a).inv_left'.pow_pow m n
 
 end nat_pow
 
@@ -117,8 +117,25 @@ end
 theorem fpow_one_add {a : G₀} (h : a ≠ 0) (i : ℤ) : a ^ (1 + i) = a * a ^ i :=
 by rw [fpow_add h, fpow_one]
 
-theorem fpow_mul_comm (a : G₀) (h : a ≠ 0) (i j : ℤ) : a ^ i * a ^ j = a ^ j * a ^ i :=
-by rw [← fpow_add h, ← fpow_add h, add_comm]
+theorem semiconj_by.fpow_right {a x y : G₀} (h : semiconj_by a x y) :
+  ∀ m : ℤ, semiconj_by a (x^m) (y^m)
+| (n : ℕ) := h.pow_right n
+| -[1+n]  := (h.pow_right (n + 1)).inv_right'
+
+theorem commute.fpow_right {a b : G₀} (h : commute a b) : ∀ m : ℤ, commute a (b^m) :=
+h.fpow_right
+
+theorem commute.fpow_left {a b : G₀} (h : commute a b) (m : ℤ) : commute (a^m) b :=
+(h.symm.fpow_right m).symm
+
+theorem commute.fpow_fpow {a b : G₀} (h : commute a b) (m n : ℤ) : commute (a^m) (b^n) :=
+(h.fpow_left m).fpow_right n
+
+theorem commute.fpow_self (a : G₀) (n : ℤ) : commute (a^n) a := (commute.refl a).fpow_left n
+
+theorem commute.self_fpow (a : G₀) (n : ℤ) : commute a (a^n) := (commute.refl a).fpow_right n
+
+theorem commute.fpow_fpow_self (a : G₀) (m n : ℤ) : commute (a^m) (a^n) := (commute.refl a).fpow_fpow m n
 
 theorem fpow_mul (a : G₀) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
 | (m : ℕ) (n : ℕ) := pow_mul _ _ _
@@ -144,12 +161,14 @@ lemma fpow_ne_zero_of_ne_zero {a : G₀} (ha : a ≠ 0) : ∀ (z : ℤ), a ^ z �
 lemma fpow_sub {a : G₀} (ha : a ≠ 0) (z1 z2 : ℤ) : a ^ (z1 - z2) = a ^ z1 / a ^ z2 :=
 by rw [sub_eq_add_neg, fpow_add ha, fpow_neg]; refl
 
-lemma mul_fpow {G₀ : Type*} [comm_group_with_zero G₀] (a b : G₀) :
+lemma commute.mul_fpow {a b : G₀} (h : commute a b) :
   ∀ (i : ℤ), (a * b) ^ i = (a ^ i) * (b ^ i)
-| (int.of_nat n) := mul_pow a b n
-| -[1+n] :=
-  by rw [fpow_neg_succ_of_nat, fpow_neg_succ_of_nat, fpow_neg_succ_of_nat,
-      mul_pow, mul_inv'']
+| (n : ℕ) := h.mul_pow n
+| -[1+n]  := by simp [h.mul_pow, (h.pow_pow _ _).eq, mul_inv_rev']
+
+lemma mul_fpow {G₀ : Type*} [comm_group_with_zero G₀] (a b : G₀) (m : ℤ):
+  (a * b) ^ m = (a ^ m) * (b ^ m) :=
+(commute.all a b).mul_fpow m
 
 lemma fpow_eq_zero {x : G₀} {n : ℤ} (h : x ^ n = 0) : x = 0 :=
 classical.by_contradiction $ λ hx, fpow_ne_zero_of_ne_zero hx n h

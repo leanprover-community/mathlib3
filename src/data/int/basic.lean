@@ -1227,8 +1227,11 @@ def cast_ring_hom (α : Type*) [ring α] : ℤ →+* α := ⟨coe, cast_one, cas
 
 @[simp] lemma coe_cast_ring_hom [ring α] : ⇑(cast_ring_hom α) = coe := rfl
 
-theorem mul_cast_comm [ring α] (a : α) (n : ℤ) : a * n = n * a :=
-by cases n; simp [nat.mul_cast_comm, left_distrib, right_distrib, *]
+lemma cast_commute [ring α] (m : ℤ) (x : α) : commute ↑m x :=
+int.cases_on m (λ n, n.cast_commute x) (λ n, ((n+1).cast_commute x).neg_left)
+
+lemma commute_cast [ring α] (x : α) (m : ℤ) : commute x m :=
+(m.cast_commute x).symm
 
 @[simp, norm_cast]
 theorem coe_nat_bit0 (n : ℕ) : (↑(bit0 n) : ℤ) = bit0 ↑n := by {unfold bit0, simp}

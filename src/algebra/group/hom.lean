@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Kevin Buzzard, Scott Morrison, Johan Commelin, Chris Hughes,
   Johannes Hölzl, Yury Kudryashov
 -/
-import algebra.group.basic
+import algebra.group.commute
 import tactic.ext
 
 /-!
@@ -294,3 +294,17 @@ namespace add_monoid_hom
   f (g - h) = (f g) - (f h) := f.map_add_neg g h
 
 end add_monoid_hom
+
+section commute
+
+variables [monoid M] [monoid N] {a x y : M}
+
+@[simp, to_additive]
+protected lemma semiconj_by.map (h : semiconj_by a x y) (f : M →* N) :
+  semiconj_by (f a) (f x) (f y) :=
+by simpa only [semiconj_by, f.map_mul] using congr_arg f h
+
+@[simp, to_additive]
+protected lemma commute.map (h : commute x y) (f : M →* N) : commute (f x) (f y) := h.map f
+
+end commute

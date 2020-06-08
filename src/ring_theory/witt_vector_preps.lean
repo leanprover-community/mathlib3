@@ -454,7 +454,7 @@ begin
   refine ⟨structure_polynomial f g Φ, structure_polynomial_prop _ _ hfg _, _⟩,
   { intros φ H,
     funext t,
-    calc φ t = aeval φ (aeval (f) (g t)) : by rw [hgf, aeval_X]
+    calc φ t = aeval φ (aeval (f) (g t))    : by rw [hgf, aeval_X]
          ... = structure_polynomial f g Φ t : _,
     rw [aeval_eq_eval₂_hom', map_aeval],
     apply eval₂_hom_congr _ _ rfl,

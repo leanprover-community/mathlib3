@@ -6,7 +6,7 @@ Authors: Bhavik Mehta, Edward Ayers, Thomas Read
 
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.constructions.preserve_binary_products
-import category_theory.limits.shapes.closed_monoidal
+import category_theory.closed.monoidal
 import category_theory.monoidal.of_has_finite_products
 import category_theory.adjunction
 import category_theory.epi_mono
@@ -14,9 +14,8 @@ import category_theory.epi_mono
 /-!
 # Cartesian closed categories
 
-Given a category with finite products,
-the cartesian monoidal structure is provided by the local instance
-`monoidal_of_has_finite_products`.
+Given a category with finite products, the cartesian monoidal structure is provided by the local
+instance `monoidal_of_has_finite_products`.
 
 We define exponentiable objects to be closed objects with respect to this monoidal structure,
 i.e. `(X × -)` is a left adjoint.
@@ -24,8 +23,7 @@ i.e. `(X × -)` is a left adjoint.
 We say a category is cartesian closed if every object is exponentiable
 (equivalently, that the category equipped with the cartesian monoidal structure is closed monoidal).
 
-Show that exponential forms a difunctor.
-Define the exponential comparison morphisms.
+Show that exponential forms a difunctor and define the exponential comparison morphisms.
 
 ## TODO
 Some of the results here are true more generally for closed objects and
@@ -35,7 +33,7 @@ universes v u u₂
 
 namespace category_theory
 
-open limits category
+open category_theory category_theory.category category_theory.limits
 
 local attribute [instance] monoidal_of_has_finite_products
 

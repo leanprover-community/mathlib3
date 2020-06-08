@@ -605,11 +605,11 @@ if it exists. -/
 noncomputable def lim [nonempty α] (f : filter β) (g : β → α) : α :=
 Lim (f.map g)
 
-lemma Lim_spec {ha : nonempty α} {f : filter α} (h : ∃a, f ≤ 𝓝 a) : f ≤ 𝓝 (Lim f) :=
+lemma Lim_spec {f : filter α} (h : ∃a, f ≤ 𝓝 a) : f ≤ 𝓝 (@Lim _ _ (nonempty_of_exists h) f) :=
 epsilon_spec h
 
-lemma lim_spec {ha : nonempty α} {f : filter β} {g : β → α} (h : ∃ a, tendsto g f (𝓝 a)) :
-  tendsto g f (𝓝 $ lim f g) :=
+lemma lim_spec {f : filter β} {g : β → α} (h : ∃ a, tendsto g f (𝓝 a)) :
+  tendsto g f (𝓝 $ @lim _ _ _ (nonempty_of_exists h) f g) :=
 Lim_spec h
 
 end lim

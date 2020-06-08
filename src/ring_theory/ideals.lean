@@ -150,67 +150,9 @@ begin
     exact SC JS ((eq_top_iff_one _).2 J0) }
 end
 
-def is_coprime (x y : α) : Prop :=
-span ({x, y} : set α) = ⊤
-
 theorem mem_span_pair {x y z : α} :
   z ∈ span ({x, y} : set α) ↔ ∃ a b, a * x + b * y = z :=
 by simp [mem_span_insert, mem_span_singleton', @eq_comm _ _ z]
-
-theorem is_coprime_def {x y : α} :
-  is_coprime x y ↔ ∀ z, ∃ a b, a * x + b * y = z :=
-by simp [is_coprime, submodule.eq_top_iff', mem_span_pair]
-
-theorem is_coprime_self {x : α} :
-  is_coprime x x ↔ is_unit x :=
-by rw [← span_singleton_eq_top]; simp [is_coprime]
-
-/-- This is `is_coprime_def` but specialized to `1`. -/
-lemma is_coprime_def' {α : Type u} [comm_ring α] {x y : α} :
-  is_coprime x y ↔ ∃ (a b : α), a * x + b * y = 1 :=
-⟨λ h, is_coprime_def.1 h 1,
-λ ⟨a, b, h⟩, is_coprime_def.2 $ λ z,
-⟨z * a, z * b, by rw [mul_assoc, mul_assoc, ← mul_add, h, mul_one]⟩⟩
-
-theorem mul_dvd_of_coprime {α : Type u} [comm_ring α] {x y z : α} (H : is_coprime x y)
-  (H1 : x ∣ z) (H2 : y ∣ z) : x * y ∣ z :=
-begin
-  obtain ⟨a, b, h⟩ := is_coprime_def.1 H 1,
-  rw [← mul_one z, ← h, mul_add],
-  apply dvd_add,
-  { rw [mul_comm z, mul_assoc],
-    exact dvd_mul_of_dvd_right (mul_dvd_mul_left _ H2) _ },
-  { rw [mul_comm b, ← mul_assoc],
-    exact dvd_mul_of_dvd_left (mul_dvd_mul_right H1 _) _ }
-end
-
-theorem is_coprime_prod_of_pairwise_coprime {α : Type u} [comm_ring α]
-  {I : Type v} {s : I → α} (hs : pairwise (is_coprime on s)) {t : finset I} {x : I} :
-  x ∉ t → is_coprime (s x) (∏ y in t, s y) :=
-finset.induction_on t (λ _, is_coprime_def'.2 ⟨0, 1, by rw [zero_mul, zero_add, one_mul]; refl⟩)
-(λ a r har ih hxar,
-have hxa : x ≠ a, from mt (λ h, (h ▸ finset.mem_insert_self x r : x ∈ insert a r)) hxar,
-have hxr : x ∉ r, from mt finset.mem_insert_of_mem hxar,
-let ⟨ia, ib, hiaib⟩ := is_coprime_def'.1 (ih hxr) in
-let ⟨c, d, hcd⟩ := is_coprime_def'.1 (hs _ _ hxa) in
-is_coprime_def'.2 ⟨ia * s x * c + ia * d * s a + ib * (∏ y in r, s y) * c, ib * d,
-calc  (ia * s x * c + ia * d * s a + ib * (∏ y in r, s y) * c) * s x +
-        ib * d * (∏ y in insert a r, s y)
-    = (ia * s x * c + ia * d * s a + ib * (∏ y in r, s y) * c) * s x +
-        ib * d * (s a * (∏ y in r, s y)) : by rw finset.prod_insert har
-... = (ia * s x + ib * (∏ y in r, s y)) * (c * s x + d * s a) : by ring
-... = 1 : by rw [hiaib, hcd, mul_one]⟩)
-
-theorem finset.prod_dvd_of_coprime {α : Type u} [comm_ring α] {I : Type v}
-  {s : I → α} {z : α} (Hs : pairwise (is_coprime on s)) (Hs1 : ∀ i, s i ∣ z) {t : finset I} :
-  ∏ x in t, s x ∣ z :=
-finset.induction_on t (one_dvd z) (λ a r har ih, by { rw finset.prod_insert har,
-exact mul_dvd_of_coprime (is_coprime_prod_of_pairwise_coprime Hs har) (Hs1 a) ih })
-
-theorem fintype.prod_dvd_of_coprime {α : Type u} [comm_ring α] {I : Type v} [fintype I]
-  {s : I → α} {z : α} (Hs : pairwise (is_coprime on s)) (Hs1 : ∀ i, s i ∣ z) :
-  ∏ x, s x ∣ z :=
-finset.prod_dvd_of_coprime Hs Hs1
 
 lemma span_singleton_lt_span_singleton [integral_domain β] {x y : β} :
   span ({x} : set β) < span ({y} : set β) ↔ y ≠ 0 ∧ ∃ d : β, ¬ is_unit d ∧ x = y * d :=

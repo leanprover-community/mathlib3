@@ -199,5 +199,12 @@ propagate_tags $ do
   intron $ args.length * 2,
   pure ()
 
+add_tactic_doc
+{ name       := "generalizes",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.generalizes],
+  tags       := ["context management"],
+  inherit_description_from := `tactic.interactive.generalizes }
+
 end interactive
 end tactic

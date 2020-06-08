@@ -433,12 +433,6 @@ infix ` ⟹ `:110 := big_step
 
 open big_step
 
-meta def not_big_step_while_true' : ∀ {S s t}, (while (λ_, true) S, s) ⟹ t → false
-| S s u (@while_true b _ _ t _ hcond hbody hrest) := not_big_step_while_true' hrest
-| _ _ _ (while_false hcond) := hcond trivial
-
-#print not_big_step_while_true'._main
-
 lemma not_big_step_while_true {S s t} :
   ¬ (while (λ_, true) S, s) ⟹ t :=
 begin

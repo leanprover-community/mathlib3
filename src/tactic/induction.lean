@@ -5,8 +5,7 @@ Author: Jannis Limperg
 -/
 
 import control.basic data.sum data.list.defs tactic.basic
-import tactic.type_based_naming
-import tactic.linarith
+import tactic.generalizes tactic.linarith tactic.type_based_naming
 
 /--
 After elaboration, Lean does not have non-dependent function types with
@@ -852,13 +851,8 @@ meta def constructor_intros (einfo : eliminee_info) (iinfo : inductive_info)
 -- the later simplification steps.
 meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr)
   : tactic (expr × ℕ × ℕ) := do
-  -- TODO why do we sometimes get metas in index_args????
-  -- TODO debug
-  trace! "index_args: {index_args}",
   let ⟨locals, nonlocals⟩ :=
     index_args.partition (λ arg : expr, arg.is_local_constant),
-  -- TODO debug
-  trace! "locals: {locals.map expr.to_raw_fmt}\nnonlocals: {nonlocals.map expr.to_raw_fmt}",
 
   -- If there aren't any complex index arguments, we don't need to do anything.
   (_ :: _) ← pure nonlocals | pure (eliminee, 0, 0),
@@ -869,29 +863,19 @@ meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr
   -- Revert any hypotheses depending on one of the complex index arguments
   (num_reverted_args : ℕ) ← list.sum <$> nonlocals.mmap revert_kdependencies,
 
-  -- Introduce variables and equations for the complex index arguments
-  index_var_equations ← nonlocals.mmap $ λ arg, do {
-    -- TODO better name
+  -- Generate fresh names for the index variables and equations
+  generalizes_args ← nonlocals.mmap $ λ arg, do {
+    -- TODO better names
     arg_name ← get_unused_name `index,
     eq_name ← get_unused_name $ arg_name ++ "eq",
-    tgt ← target,
-    ⟨tgt', _⟩ ← solve_aux tgt (generalize arg arg_name >> target)
-      <|> fail! "Unable to generalize this index in the type of {eliminee}: {arg}. Please generalize it manually.",
-    tgt' ← to_expr ``(Π x, x == %%arg → %%(tgt'.binding_body.lift_vars 0 1)),
-    t ← assert eq_name tgt',
-    swap,
-    interactive.exact ``(%%t %%arg heq.rfl),
-    arg_var ← intro arg_name,
-    arg_var_eq ← intro eq_name,
-    -- arg_var_eqs ← decompose_structure_equality arg_var_eq,
-    -- TODO remove
-    let arg_var_eqs := [arg_var_eq],
-    pure arg_var_eqs
+    pure (arg_name, some eq_name, arg)
   },
 
-  let num_index_vars := index_var_equations.length,
-  let index_var_equations := index_var_equations.join,
-  let num_index_var_equations := index_var_equations.length,
+  -- Generalise the complex index arguments
+  index_vars_eqs ← generalizes_intro generalizes_args,
+
+  let num_index_vars := nonlocals.length,
+  let num_index_var_equations := num_index_vars,
 
   -- Re-introduce the indices' dependencies
   intron num_reverted_args,
@@ -901,6 +885,9 @@ meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr
   eliminee ← intro1,
 
   -- Re-revert the index equations
+  let index_var_equations :=
+    index_vars_eqs.foldr_with_index
+      (λ i x xs, if i % 2 = 0 then xs else x :: xs) [],
   revert_lst index_var_equations,
 
   pure (eliminee, num_index_vars, num_index_var_equations)
@@ -941,8 +928,6 @@ meta def simplify_var_equation (equ type lhs rhs : expr)
   : tactic simplification_result :=
 do {
   guard $ lhs.is_local ∨ rhs.is_local,
-  -- TODO this `subst` may change the unique names of any hypotheses depending
-  -- on the substituted expressions.
   subst equ,
   pure $ simplified []
 } <|>
@@ -1085,10 +1070,20 @@ begin
   simplify_index_equations h₁ h₂,
 end
 
+-- TODO spaghetti much
 meta def ih_apps_aux : expr → list expr → ℕ → expr → tactic (expr × list expr)
 | res cnsts 0       _ := pure (res, cnsts.reverse)
 | res cnsts (n + 1) (pi pp_name binfo type e) := do
   match type with
+  | (app (app (app (const `eq [u]) type') lhs) rhs) := do
+    rhs_eq_lhs ← succeeds $ unify lhs rhs,
+    if rhs_eq_lhs
+      then do
+        let arg := (const `eq.refl [u]) type' lhs,
+        ih_apps_aux (app res arg) cnsts n e
+      else do
+        c ← mk_local' pp_name binfo type,
+        ih_apps_aux (app res c) (c :: cnsts) n e
   | (app (app (app (app (const `heq [u]) lhs_type) lhs) rhs_type) rhs) := do
     types_eq ← succeeds $ is_def_eq lhs_type rhs_type,
     if ¬ types_eq
@@ -1107,7 +1102,7 @@ meta def ih_apps_aux : expr → list expr → ℕ → expr → tactic (expr × l
             let arg := (const `heq.refl [u]) lhs_type lhs,
             ih_apps_aux (app res arg) cnsts n e
   | _ := fail!
-    "internal error in ih_apps_aux:\nexpected a heterogeneous equation, but got\n{type}"
+    "internal error in ih_apps_aux:\nexpected an equation, but got\n{type}"
   end
 | _   _     _       e := fail!
   "internal error in ih_apps_aux:\nexpected a pi type, but got\n{e}"

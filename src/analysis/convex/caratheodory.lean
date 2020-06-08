@@ -204,7 +204,7 @@ end
 A slight variation of `eq_center_mass_card_le_dim_succ_of_mem_convex_hull`,
 asserting that the coefficients can be taken to be strictly positive.
 -/
-theorem eq_int_center_mass_card_le_dim_succ_of_mem_convex_hull
+theorem eq_pos_center_mass_card_le_dim_succ_of_mem_convex_hull
   {s : set E} {x : E} (h : x ∈ convex_hull s) :
   ∃ (t : finset E) (w : ↑t ⊆ s) (b : t.card ≤ findim ℝ E + 1)
     (f : E → ℝ), (∀ y ∈ t, 0 < f y) ∧ t.sum f = 1 ∧ t.center_mass f id = x :=

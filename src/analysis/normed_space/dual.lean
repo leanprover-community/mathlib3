@@ -11,7 +11,9 @@ section top_dual
 variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
 variables (E : Type*) [normed_group E] [normed_space 𝕜 E]
 
-@[derive [normed_group, normed_space 𝕜]] abbreviation top_dual := E →L[𝕜] 𝕜
+@[derive [normed_group, normed_space 𝕜]] def top_dual := E →L[𝕜] 𝕜
+
+instance : has_coe_to_fun (top_dual 𝕜 E) := ⟨_, λ f, f.to_fun⟩
 
 def inclusion_in_double_dual (x : E) : (top_dual 𝕜 (top_dual 𝕜 E)) :=
 linear_map.mk_continuous

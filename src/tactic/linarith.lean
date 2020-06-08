@@ -5,7 +5,7 @@ Author: Robert Y. Lewis
 -/
 import tactic.ring
 import data.tree
-import data.multiset
+
 /-!
 # `linarith`
 
@@ -271,82 +271,59 @@ get_var_list >>= list.mmap' monad.elim_var
 
 end fm_elim
 
-/- inductive ringexp
-| atom : ℕ → ringexp
-| coeff : ℤ → ringexp → ringexp
-| sum : ringexp → ringexp → ringexp
-| prod : ringexp → ringexp → ringexp  -/
+/-!
+`linarith` computes the linear form of its input expressions,
+assuming (without justification) that the type of these expressions
+is a commutative semiring.
 
-namespace ringexp
+It identifies atoms up to ring-equivalence: that is, `(y*3)*x` will be identified `3*(x*y)`,
+where the monomial `x*y` is the linear atom.
 
-/- instance : has_add ringexp := ⟨sum⟩
-instance : has_mul ringexp := ⟨prod⟩
+* Variables are represented by natural numbers.
+* Monomials are represented by `monom := rb_map ℕ ℕ`. The monomial `1` is represented by the empty map.
+* Linear combinations of monomials are represented by `sum := rb_map monom ℤ`.
 
-def lt : ringexp → ringexp → bool
-| (atom n1) (atom n2) := n1 < n2
-| (atom _) _ := tt
-| (coeff z1 r1) (coeff z2 r2) := (lt r1 r2) || (z1 < z2)
-| (coeff _ _) _ := tt
-| (sum r1 r1') (sum r2 r2') :=
+All input expressions are converted to `sum`s, preserving the map from expressions to variables.
+We then discard the monomial information, mapping each distinct monomial to a natural number.
+The resulting `rb_map ℕ ℤ` represents the ring-normalized linear form of the expression.
+-/
 
-def normalize : ringexp → ringexp
-|  -/
-
+/-- Variables (represented by natural numbers) map to their power. -/
 @[reducible] meta def monom := rb_map ℕ ℕ
 
-meta def monom.has_mul : has_mul monom :=
-⟨λ a b, a.add b⟩
-
-local attribute [instance] monom.has_mul
-
+/-- Compare monomials by first comparing their keys and then their powers. -/
 @[reducible] meta def monom.lt : monom → monom → Prop :=
 λ a b, (a.keys < b.keys) || ((a.keys = b.keys) && (a.values < b.values))
 
-meta instance : has_lt monom := ⟨monom.lt⟩
-meta instance m_dec_lt : decidable_rel ((<) : monom → monom → Prop) :=
-show decidable_rel monom.lt, by apply_instance
+/-- The `has_lt` instance for `monom` is only needed locally. -/
+local attribute [instance]
+meta def monom_has_lt : has_lt monom := ⟨monom.lt⟩
 
+/-- Linear combinations of monomials are represented by mapping monomials to coefficients. -/
 @[reducible] meta def sum := rb_map monom ℤ
 
+/-- `sum.scale_by_monom s m` multiplies every monomial in `s` by `m`. -/
 meta def sum.scale_by_monom (s : sum) (m : monom) : sum :=
-s.fold mk_rb_map $ λ m' coeff sm, sm.insert (m*m') coeff
+s.fold mk_rb_map $ λ m' coeff sm, sm.insert (m.add m') coeff
 
+/-- `sum.mul s1 s2` distributes the multiplication of two sums.` -/
 meta def sum.mul (s1 s2 : sum) : sum :=
 s1.fold mk_rb_map $ λ mn coeff sm, sm.add $ (s2.scale_by_monom mn).scale coeff
 
-/- meta def abc : monom := rb_map.of_list [(0, 1), (1, 1), (2, 1)]
-meta def abc2 : sum := mk_rb_map.insert abc 2
-
-#eval to_string $ abc2.add $ abc2.scale (-1) -/
-
+/-- `sum_of_monom m` lifts `m` to a sum with coefficient `1`. -/
 meta def sum_of_monom (m : monom) : sum :=
 mk_rb_map.insert m 1
 
-meta def one : monom := mk_rb_map--.insert 0 1
+/-- The unit monomial `one` is represented by the empty rb map. -/
+meta def one : monom := mk_rb_map
 
+/-- A scalar `z` is represented by a `sum` with coefficient `z` and monomial `one` -/
 meta def scalar (z : ℤ) : sum :=
 mk_rb_map.insert one z
 
+/-- A single variable `n` is represented by a sum with coefficient `1` and monomial `n`. -/
 meta def var (n : ℕ) : sum :=
 mk_rb_map.insert (mk_rb_map.insert n 1) 1
-
-/- #check multiset.partial_order
-#check quotient.decidable_rel
-
-#check list.subperm
-
-example {α} [has_lt α] [decidable_rel ((<) : α → α → Prop)] : decidable_rel (@multiset.le α)  :=
-λ m1 m2, quotient.rec_on m1 (quotient.rec_on m2 (λ a b, show decidable (b.subperm a), begin  unfold list.subperm, apply_instance end ) (by intros; refl)) _
-
-#check multiset.lattice
-example : decidable_rel ((<) : monom → monom → Prop) := by apply_instance -/
-
---example : has_lt (multiset ℕ) := infer_instance
-
-
-
-
-end ringexp
 
 section parse
 
@@ -368,16 +345,14 @@ meta def list.mfind {α} (tac : α → tactic unit) : list α → tactic α
 meta def rb_map.find_defeq (red : transparency) {v} (m : expr_map v) (e : expr) : tactic v :=
 prod.snd <$> list.mfind (λ p, is_def_eq e p.1 red) m.to_list
 
-open ringexp
+/--
+`map_of_expr red map e` computes the linear form of `e`.
 
+`map` is a lookup map from atomic expressions to variable numbers.
+If a new atomic expression is encountered, it is added to the map with a new number.
+-/
 meta def map_of_expr (red : transparency) : expr_map ℕ → expr → tactic (expr_map ℕ × sum)
 | m e@`(%%e1 * %%e2) :=
-/-    (do (m', comp1) ← map_of_expr m e1,
-      (m', comp2) ← map_of_expr m' e2,
-      mp ← map_of_expr_mul_aux comp1 comp2,
-      return (m', mp)) <|>
-   (do k ← rb_map.find_defeq red m e, return (m, mk_rb_map.insert k 1)) <|>
-   (let n := m.size + 1 in return (m.insert e n, mk_rb_map.insert n 1)) -/
    do (m', comp1) ← map_of_expr m e1,
       (m', comp2) ← map_of_expr m' e2,
       return (m', comp1.mul comp2)
@@ -399,47 +374,20 @@ meta def map_of_expr (red : transparency) : expr_map ℕ → expr → tactic (ex
     (let n := m.size + 1 in return (m.insert e n, var n))
   end
 
-meta def sum_to_lf (s : linarith.ringexp.sum) (m : rb_map monom ℕ) : rb_map monom ℕ × rb_map ℕ ℤ :=
+/--
+`sum_to_lf s map` eliminates the monomial level of the `sum` `s`.
+
+`map` is a lookup map from monomials to variable numbers.
+The output `rb_map ℕ ℤ` has the same structure as `sum`,
+but each monomial key is replaced with its index according to `map`.
+If any new monomials are encountered, they are assigned variable numbers and `map` is updated.
+ -/
+meta def sum_to_lf (s : sum) (m : rb_map monom ℕ) : rb_map monom ℕ × rb_map ℕ ℤ :=
 s.fold (m, mk_rb_map) $ λ mn coeff ⟨map, out⟩,
   match map.find mn with
   | some n := ⟨map, out.insert n coeff⟩
   | none := let n := map.size in ⟨map.insert mn n, out.insert n coeff⟩
   end
---rb_map.of_list $ s.values.enum.map $ λ ⟨p1, p2⟩, ⟨p1 + 1, p2⟩
-
-
--- meta def map_of_expr (red : transparency) (m : expr_map ℕ) (e : expr) : tactic (ℕ × rb_map ℕ ℤ)
-
-/- /--
-Turns an expression into a map from `ℕ` to `ℤ`, for use in a `comp` object.
-The `expr_map` `ℕ` argument identifies which expressions have already been assigned numbers.
-Returns a new map.
--/
-meta def map_of_expr (red : transparency) : expr_map ℕ → expr → tactic (expr_map ℕ × rb_map ℕ ℤ)
-| m e@`(%%e1 * %%e2) :=
-   (do (m', comp1) ← map_of_expr m e1,
-      (m', comp2) ← map_of_expr m' e2,
-      mp ← map_of_expr_mul_aux comp1 comp2,
-      return (m', mp)) <|>
-   (do k ← rb_map.find_defeq red m e, return (m, mk_rb_map.insert k 1)) <|>
-   (let n := m.size + 1 in return (m.insert e n, mk_rb_map.insert n 1))
-| m `(%%e1 + %%e2) :=
-   do (m', comp1) ← map_of_expr m e1,
-      (m', comp2) ← map_of_expr m' e2,
-      return (m', comp1.add comp2)
-| m `(%%e1 - %%e2) :=
-   do (m', comp1) ← map_of_expr m e1,
-      (m', comp2) ← map_of_expr m' e2,
-      return (m', comp1.add (comp2.scale (-1)))
-| m `(-%%e) := do (m', comp) ← map_of_expr m e, return (m', comp.scale (-1))
-| m e :=
-  match e.to_int with
-  | some 0 := return ⟨m, mk_rb_map⟩
-  | some z := return ⟨m, mk_rb_map.insert 0 z⟩
-  | none :=
-    (do k ← rb_map.find_defeq red m e, return (m, mk_rb_map.insert k 1)) <|>
-    (let n := m.size + 1 in return (m.insert e n, mk_rb_map.insert n 1))
-  end -/
 
 meta def parse_into_comp_and_expr : expr → option (ineq × expr)
 | `(%%e < 0) := (ineq.lt, e)
@@ -452,7 +400,7 @@ meta def to_comp (red : transparency) (e : expr) (m : expr_map ℕ) (mm : rb_map
 do (iq, e) ← parse_into_comp_and_expr e,
    (m', comp') ← map_of_expr red m e,
    let ⟨nm, mm'⟩ := sum_to_lf comp' mm,
-   return ⟨⟨iq, mm'⟩,m',nm⟩ --⟨⟨iq, nm⟩, m', mm'⟩
+   return ⟨⟨iq, mm'⟩,m',nm⟩
 
 meta def to_comp_fold (red : transparency) : expr_map ℕ → list expr → rb_map monom ℕ →
       tactic (list (option comp) × expr_map ℕ × rb_map monom ℕ )

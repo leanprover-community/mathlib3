@@ -227,7 +227,7 @@ begin
 end
 
 /-- Pythagorean theorem, vector inner product form. -/
-lemma norm_add_square_eq_norm_square_add_norm_square (x y : α) (h : inner x y = 0) :
+lemma norm_add_square_eq_norm_square_add_norm_square {x y : α} (h : inner x y = 0) :
   ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
 (norm_add_square_eq_norm_square_add_norm_square_iff_inner_eq_zero x y).2 h
 
@@ -243,7 +243,7 @@ end
 
 /-- Pythagorean theorem, subtracting vectors, vector inner product
 form. -/
-lemma norm_sub_square_eq_norm_square_add_norm_square (x y : α) (h : inner x y = 0) :
+lemma norm_sub_square_eq_norm_square_add_norm_square {x y : α} (h : inner x y = 0) :
   ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
 (norm_sub_square_eq_norm_square_add_norm_square_iff_inner_eq_zero x y).2 h
 

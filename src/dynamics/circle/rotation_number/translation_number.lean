@@ -9,7 +9,7 @@ import order.iterate
 import algebra.iterate_hom
 
 /-!
-# Rotation number of a degree one circle self-map
+# Translation number of a monotone real map that commutes with `x ↦ x + 1`
 
 Let `f : ℝ → ℝ` be a monotone map such that `f (x + 1) = f x + 1` for all `x`. Then the limit
 $$

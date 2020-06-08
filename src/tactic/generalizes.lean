@@ -120,6 +120,7 @@ with_desc "id : expr = id" $ do
   (arg, arg_name) ←
     match arg with
     | (app (app (macro _ [const `eq _ ]) e) (local_const x _ _ _)) := pure (e, x)
+    | (app (app (macro _ [const `heq _ ]) e) (local_const x _ _ _)) := pure (e, x)
     | _ := failure
     end,
   pure $ (arg_name, hyp_name, arg)

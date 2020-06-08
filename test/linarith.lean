@@ -4,6 +4,11 @@ example (e b c a v0 v1 : ℚ) (h1 : v0 = 5*a) (h2 : v1 = 3*b) (h3 : v0 + v1 + c 
   v0 + 5 + (v1 - 3) + (c - 2) = 10 :=
 by linarith
 
+
+-- example (u v r s t : ℚ) (h : 0 < u*(t*v + t*r + s)) : 0 < (t*(r + v) + s)*3*u :=
+-- by linarith
+
+
 example (ε : ℚ) (h1 : ε > 0) : ε / 2 + ε / 3 + ε / 7 < ε :=
  by linarith
 

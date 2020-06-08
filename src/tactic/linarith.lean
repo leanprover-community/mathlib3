@@ -5,7 +5,7 @@ Author: Robert Y. Lewis
 -/
 import tactic.ring
 import data.tree
-
+import data.multiset
 /-!
 # `linarith`
 
@@ -189,7 +189,7 @@ meta instance pcomp.to_format : has_to_format pcomp :=
 ⟨λ p, to_fmt p.c.coeffs ++ to_string p.c.str ++ "0"⟩
 
 meta instance comp.to_format : has_to_format comp :=
-⟨λ p, to_fmt p.coeffs⟩
+⟨λ p, to_fmt p.coeffs ++ to_string p.str ++ "0"⟩
 
 end datatypes
 
@@ -271,6 +271,83 @@ get_var_list >>= list.mmap' monad.elim_var
 
 end fm_elim
 
+/- inductive ringexp
+| atom : ℕ → ringexp
+| coeff : ℤ → ringexp → ringexp
+| sum : ringexp → ringexp → ringexp
+| prod : ringexp → ringexp → ringexp  -/
+
+namespace ringexp
+
+/- instance : has_add ringexp := ⟨sum⟩
+instance : has_mul ringexp := ⟨prod⟩
+
+def lt : ringexp → ringexp → bool
+| (atom n1) (atom n2) := n1 < n2
+| (atom _) _ := tt
+| (coeff z1 r1) (coeff z2 r2) := (lt r1 r2) || (z1 < z2)
+| (coeff _ _) _ := tt
+| (sum r1 r1') (sum r2 r2') :=
+
+def normalize : ringexp → ringexp
+|  -/
+
+@[reducible] meta def monom := rb_map ℕ ℕ
+
+meta def monom.has_mul : has_mul monom :=
+⟨λ a b, a.add b⟩
+
+local attribute [instance] monom.has_mul
+
+@[reducible] meta def monom.lt : monom → monom → Prop :=
+λ a b, (a.keys < b.keys) || ((a.keys = b.keys) && (a.values < b.values))
+
+meta instance : has_lt monom := ⟨monom.lt⟩
+meta instance m_dec_lt : decidable_rel ((<) : monom → monom → Prop) :=
+show decidable_rel monom.lt, by apply_instance
+
+@[reducible] meta def sum := rb_map monom ℤ
+
+meta def sum.scale_by_monom (s : sum) (m : monom) : sum :=
+s.fold mk_rb_map $ λ m' coeff sm, sm.insert (m*m') coeff
+
+meta def sum.mul (s1 s2 : sum) : sum :=
+s1.fold mk_rb_map $ λ mn coeff sm, sm.add $ (s2.scale_by_monom mn).scale coeff
+
+/- meta def abc : monom := rb_map.of_list [(0, 1), (1, 1), (2, 1)]
+meta def abc2 : sum := mk_rb_map.insert abc 2
+
+#eval to_string $ abc2.add $ abc2.scale (-1) -/
+
+meta def sum_of_monom (m : monom) : sum :=
+mk_rb_map.insert m 1
+
+meta def one : monom := mk_rb_map--.insert 0 1
+
+meta def scalar (z : ℤ) : sum :=
+mk_rb_map.insert one z
+
+meta def var (n : ℕ) : sum :=
+mk_rb_map.insert (mk_rb_map.insert n 1) 1
+
+/- #check multiset.partial_order
+#check quotient.decidable_rel
+
+#check list.subperm
+
+example {α} [has_lt α] [decidable_rel ((<) : α → α → Prop)] : decidable_rel (@multiset.le α)  :=
+λ m1 m2, quotient.rec_on m1 (quotient.rec_on m2 (λ a b, show decidable (b.subperm a), begin  unfold list.subperm, apply_instance end ) (by intros; refl)) _
+
+#check multiset.lattice
+example : decidable_rel ((<) : monom → monom → Prop) := by apply_instance -/
+
+--example : has_lt (multiset ℕ) := infer_instance
+
+
+
+
+end ringexp
+
 section parse
 
 open ineq tactic
@@ -291,7 +368,49 @@ meta def list.mfind {α} (tac : α → tactic unit) : list α → tactic α
 meta def rb_map.find_defeq (red : transparency) {v} (m : expr_map v) (e : expr) : tactic v :=
 prod.snd <$> list.mfind (λ p, is_def_eq e p.1 red) m.to_list
 
-/--
+open ringexp
+
+meta def map_of_expr (red : transparency) : expr_map ℕ → expr → tactic (expr_map ℕ × sum)
+| m e@`(%%e1 * %%e2) :=
+/-    (do (m', comp1) ← map_of_expr m e1,
+      (m', comp2) ← map_of_expr m' e2,
+      mp ← map_of_expr_mul_aux comp1 comp2,
+      return (m', mp)) <|>
+   (do k ← rb_map.find_defeq red m e, return (m, mk_rb_map.insert k 1)) <|>
+   (let n := m.size + 1 in return (m.insert e n, mk_rb_map.insert n 1)) -/
+   do (m', comp1) ← map_of_expr m e1,
+      (m', comp2) ← map_of_expr m' e2,
+      return (m', comp1.mul comp2)
+| m `(%%e1 + %%e2) :=
+   do (m', comp1) ← map_of_expr m e1,
+      (m', comp2) ← map_of_expr m' e2,
+      return (m', comp1.add comp2)
+| m `(%%e1 - %%e2) :=
+   do (m', comp1) ← map_of_expr m e1,
+      (m', comp2) ← map_of_expr m' e2,
+      return (m', comp1.add (comp2.scale (-1)))
+| m `(-%%e) := do (m', comp) ← map_of_expr m e, return (m', comp.scale (-1))
+| m e :=
+  match e.to_int with
+  | some 0 := return ⟨m, mk_rb_map⟩
+  | some z := return ⟨m, scalar z⟩
+  | none :=
+    (do k ← rb_map.find_defeq red m e, return (m, var k)) <|>
+    (let n := m.size + 1 in return (m.insert e n, var n))
+  end
+
+meta def sum_to_lf (s : linarith.ringexp.sum) (m : rb_map monom ℕ) : rb_map monom ℕ × rb_map ℕ ℤ :=
+s.fold (m, mk_rb_map) $ λ mn coeff ⟨map, out⟩,
+  match map.find mn with
+  | some n := ⟨map, out.insert n coeff⟩
+  | none := let n := map.size in ⟨map.insert mn n, out.insert n coeff⟩
+  end
+--rb_map.of_list $ s.values.enum.map $ λ ⟨p1, p2⟩, ⟨p1 + 1, p2⟩
+
+
+-- meta def map_of_expr (red : transparency) (m : expr_map ℕ) (e : expr) : tactic (ℕ × rb_map ℕ ℤ)
+
+/- /--
 Turns an expression into a map from `ℕ` to `ℤ`, for use in a `comp` object.
 The `expr_map` `ℕ` argument identifies which expressions have already been assigned numbers.
 Returns a new map.
@@ -320,7 +439,7 @@ meta def map_of_expr (red : transparency) : expr_map ℕ → expr → tactic (ex
   | none :=
     (do k ← rb_map.find_defeq red m e, return (m, mk_rb_map.insert k 1)) <|>
     (let n := m.size + 1 in return (m.insert e n, mk_rb_map.insert n 1))
-  end
+  end -/
 
 meta def parse_into_comp_and_expr : expr → option (ineq × expr)
 | `(%%e < 0) := (ineq.lt, e)
@@ -328,20 +447,22 @@ meta def parse_into_comp_and_expr : expr → option (ineq × expr)
 | `(%%e = 0) := (ineq.eq, e)
 | _ := none
 
-meta def to_comp (red : transparency) (e : expr) (m : expr_map ℕ) : tactic (comp × expr_map ℕ) :=
+meta def to_comp (red : transparency) (e : expr) (m : expr_map ℕ) (mm : rb_map monom ℕ) :
+  tactic (comp × expr_map ℕ × rb_map monom ℕ) :=
 do (iq, e) ← parse_into_comp_and_expr e,
    (m', comp') ← map_of_expr red m e,
-   return ⟨⟨iq, comp'⟩, m'⟩
+   let ⟨nm, mm'⟩ := sum_to_lf comp' mm,
+   return ⟨⟨iq, mm'⟩,m',nm⟩ --⟨⟨iq, nm⟩, m', mm'⟩
 
-meta def to_comp_fold (red : transparency) : expr_map ℕ → list expr →
-      tactic (list (option comp) × expr_map ℕ)
-| m [] := return ([], m)
-| m (h::t) :=
-  (do (c, m') ← to_comp red h m,
-      (l, mp) ← to_comp_fold m' t,
-      return (c::l, mp)) <|>
-  (do (l, mp) ← to_comp_fold m t,
-      return (none::l, mp))
+meta def to_comp_fold (red : transparency) : expr_map ℕ → list expr → rb_map monom ℕ →
+      tactic (list (option comp) × expr_map ℕ × rb_map monom ℕ )
+| m [] mm := return ([], m, mm)
+| m (h::t) mm :=
+  (do (c, m', mm') ← to_comp red h m mm,
+      (l, mp, mm') ← to_comp_fold m' t mm',
+      return (c::l, mp, mm')) <|>
+  (do (l, mp, mm') ← to_comp_fold m t mm,
+      return (none::l, mp, mm'))
 
 /--
 Takes a list of proofs of props of the form `t {<, ≤, =} 0`, and creates a
@@ -350,9 +471,12 @@ Takes a list of proofs of props of the form `t {<, ≤, =} 0`, and creates a
 meta def mk_linarith_structure (red : transparency) (l : list expr) :
   tactic (linarith_structure × rb_map ℕ (expr × expr)) :=
 do pftps ← l.mmap infer_type,
-  (l', map) ← to_comp_fold red mk_rb_map pftps,
+  (l', _, map) ← to_comp_fold red mk_rb_map pftps mk_rb_map,
+  -- trace "map:", trace map,
+  -- trace "l':", trace l',
   let lz := list.enum $ ((l.zip pftps).zip l').filter_map (λ ⟨a, b⟩, prod.mk a <$> b),
   let prmap := rb_map.of_list $ lz.map (λ ⟨n, x⟩, (n, x.1)),
+  --trace "prmap:", trace prmap,
   let vars : rb_set ℕ := rb_map.set_of_list $ list.range map.size.succ,
   let pc : rb_set pcomp := rb_map.set_of_list $
     lz.map (λ ⟨n, x⟩, ⟨x.2, comp_source.assump n⟩),

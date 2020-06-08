@@ -102,10 +102,6 @@ units.ext h
   semiconj_by (a : M) x y ↔ semiconj_by a x y :=
 ⟨units_of_coe, units_coe⟩
 
-/-- `a` semiconjugates `x` to `a * x * a⁻¹`. -/
-@[to_additive] lemma units_conj_mk (a : units M) (x : M) : semiconj_by ↑a x (a * x * ↑a⁻¹) :=
-by unfold semiconj_by; rw [units.inv_mul_cancel_right]
-
 end monoid
 
 section group
@@ -138,3 +134,9 @@ by unfold semiconj_by; rw [mul_assoc, inv_mul_self, mul_one]
 end group
 
 end semiconj_by
+
+/-- `a` semiconjugates `x` to `a * x * a⁻¹`. -/
+@[to_additive]
+lemma units.mk_semiconj_by {M : Type u} [monoid M] (u : units M) (x : M) :
+  semiconj_by ↑u x (u * x * ↑u⁻¹) :=
+by unfold semiconj_by; rw [units.inv_mul_cancel_right]

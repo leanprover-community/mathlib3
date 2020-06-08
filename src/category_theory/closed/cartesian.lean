@@ -46,7 +46,8 @@ closed X
 
 /--
 If `X` and `Y` are exponentiable then `X ⨯ Y` is.
-This isn't an instance because it's not usually how we want to construct exponentials
+This isn't an instance because it's not usually how we want to construct exponentials, we'll usually
+prove all objects are exponential uniformly.
 -/
 def binary_product_exponentiable {C : Type u} [category.{v} C] [has_finite_products.{v} C] {X Y : C}
   (hX : exponentiable X) (hY : exponentiable Y) : exponentiable (X ⨯ Y) :=
@@ -56,6 +57,18 @@ def binary_product_exponentiable {C : Type u} [category.{v} C] [has_finite_produ
     haveI := hY.is_adj,
     exact adjunction.left_adjoint_of_nat_iso (monoidal_category.tensor_left_tensor _ _).symm
   end }
+
+/--
+The terminal object is always exponentiable.
+This isn't an instance because most of the time we'll prove cartesian closed for all objects
+at once, rather than just for this one.
+-/
+def terminal_exponentiable {C : Type u} [category.{v} C] [has_finite_products.{v} C] : exponentiable ⊤_C :=
+{ is_adj :=
+  { right := 𝟭 C,
+    adj := adjunction.mk_of_hom_equiv
+    { hom_equiv := λ X _, have unitor : _, from prod.left_unitor X,
+        ⟨λ a, unitor.inv ≫ a, λ a, unitor.hom ≫ a, by tidy, by tidy⟩ } } }
 
 /--
 A category `C` is cartesian closed if it has finite products and every object is exponentiable.
@@ -200,20 +213,6 @@ lemma curry_injective : function.injective (curry : (A ⨯ Y ⟶ X) → (Y ⟶ A
 lemma uncurry_injective : function.injective (uncurry : (Y ⟶ A ⟹ X) → (A ⨯ Y ⟶ X)) :=
 (closed.is_adj.adj.hom_equiv _ _).symm.injective
 
-section terminal
-
-/--
-The terminal object is always exponentiable.
-This isn't an instance because most of the time we'll prove cartesian closed for all objects
-at once, rather than just for this one.
--/
-def terminal_exponentiable : exponentiable ⊤_C :=
-{ is_adj :=
-  { right := 𝟭 C,
-    adj := adjunction.mk_of_hom_equiv
-    { hom_equiv := λ X _, have unitor : _, from prod.left_unitor X,
-        ⟨λ a, unitor.inv ≫ a, λ a, unitor.hom ≫ a, by tidy, by tidy⟩ } } }
-
 /--
 Show that the exponential of the terminal object is isomorphic to itself, i.e. `X^1 ≅ X`.
 
@@ -228,11 +227,8 @@ yoneda.ext (⊤_ C ⟹ X) X
   (λ Z W f g, by rw [uncurry_natural_left, prod_left_unitor_inv_naturality_assoc f] )
 
 /-- The internal element which points at the given morphism. -/
-@[reducible]
-def point_at_hom (f : A ⟶ Y) : ⊤_C ⟶ (A ⟹ Y) :=
+def internalize_hom (f : A ⟶ Y) : ⊤_C ⟶ (A ⟹ Y) :=
 curry (limits.prod.fst ≫ f)
-
-end terminal
 
 section pre
 

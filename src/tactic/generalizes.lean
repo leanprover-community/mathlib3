@@ -150,8 +150,8 @@ you can use `generalizes [n'_eq : nat.succ n = n', f'_eq : fin.succ f = f']` to 
     ⊢ P n' f'
 
 The expressions must be given in dependency order, so
-`[f'_eq : fin.succ f = f', n'_eq : n + 1 = n']` would fail since the type of
-`fin.succ f` is `n + 1`.
+`[f'_eq : fin.succ f = f', n'_eq : nat.succ n = n']` would fail since the type of
+`fin.succ f` is `nat.succ n`.
 
 After generalization, the target type may no longer type check. `generalizes`
 will then raise an error.

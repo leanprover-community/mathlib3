@@ -395,6 +395,10 @@ def map_equiv (g : f.codomain ≃ₐ[R] f'.codomain) :
   left_inv := λ I, by { rw [←map_comp, alg_equiv.symm_comp, map_id] },
   right_inv := λ I, by { rw [←map_comp, alg_equiv.comp_symm, map_id] } }
 
+@[simp] lemma coe_fun_map_equiv (g : f.codomain ≃ₐ[R] f'.codomain) :
+  ⇑(map_equiv g) = map g :=
+rfl
+
 @[simp] lemma map_equiv_apply (g : f.codomain ≃ₐ[R] f'.codomain) (I : fractional_ideal f) :
   map_equiv g I = map ↑g I := rfl
 
@@ -404,7 +408,7 @@ ring_equiv.ext (λ x, by simp)
 
 /-- `canonical_equiv f f'` is the canonical equivalence between the fractional
 ideals in `f.codomain` and in `f'.codomain` -/
-noncomputable def canonical_equiv (f f' : localization_map S P) :
+noncomputable def canonical_equiv (f : localization_map S P) (f' : localization_map S P') :
   fractional_ideal f ≃+* fractional_ideal f' :=
 map_equiv
   { commutes' := λ r, ring_equiv_of_ring_equiv_eq _ _ _,

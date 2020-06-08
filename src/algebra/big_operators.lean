@@ -1306,7 +1306,7 @@ namespace with_top
 open finset
 open_locale classical
 
-/-- sum of finite numbers is still finite -/
+/-- A sum of finite numbers is still finite -/
 lemma sum_lt_top [ordered_add_comm_monoid β] {s : finset α} {f : α → with_top β} :
   (∀a∈s, f a < ⊤) → (∑ x in s, f x) < ⊤ :=
 finset.induction_on s (by { intro h, rw sum_empty, exact coe_lt_top _ })
@@ -1317,9 +1317,19 @@ finset.induction_on s (by { intro h, rw sum_empty, exact coe_lt_top _ })
     { apply ih, intros a ha, apply h, apply mem_insert_of_mem ha }
   end)
 
-/-- sum of finite numbers is still finite -/
+/-- A sum of finite numbers is still finite -/
 lemma sum_lt_top_iff [canonically_ordered_add_monoid β] {s : finset α} {f : α → with_top β} :
   (∑ x in s, f x) < ⊤ ↔ (∀a∈s, f a < ⊤) :=
 iff.intro (λh a ha, lt_of_le_of_lt (single_le_sum (λa ha, zero_le _) ha) h) sum_lt_top
+
+/-- A sum of numbers is infinite iff one of them is infinite -/
+lemma sum_eq_top_iff [canonically_ordered_add_monoid β] {s : finset α} {f : α → with_top β} :
+  (∑ x in s, f x) = ⊤ ↔ (∃a∈s, f a = ⊤) :=
+begin
+  rw ← not_iff_not,
+  push_neg,
+  simp only [← lt_top_iff_ne_top],
+  exact sum_lt_top_iff
+end
 
 end with_top

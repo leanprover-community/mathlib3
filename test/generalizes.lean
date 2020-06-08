@@ -10,10 +10,15 @@ universes u
 
 lemma example_from_docs (P : ∀ n, fin n → Prop) (n : ℕ) (f : fin n)
   (p : ∀ n xs, P n xs) : P (nat.succ n) (fin.succ f) :=
-  -- TODO: `generalizes` fails if we write `n + 1` instead of `nat.succ n`,
-  -- even with transparency `all`. I don't understand why.
 begin
-  generalizes [n'_eq : (nat.succ n) = n', f'_eq : fin.succ f = f'],
+  -- TODO: `generalizes` fails if we write `n + 1` instead of `nat.succ n`,
+  -- even though these are defeq at transparency semireducible.
+  (do n ← tactic.get_local `n,
+      h₁ ← tactic.to_expr ``(%%n + 1),
+      h₂ ← tactic.to_expr ``(nat.succ %%n),
+      tactic.is_def_eq h₁ h₂ semireducible ff
+  ),
+  generalizes [n'_eq : (nat.succ n) = n', f'_eq : fin.succ f == f'],
   exact p n' f'
 end
 

@@ -97,7 +97,7 @@ have cauchy_seq (λ n, f^[n] x),
 from cauchy_seq_of_edist_le_geometric K (edist x (f x)) (ennreal.coe_lt_one_iff.2 hf.1)
   (ne_of_lt hx) (hf.to_lipschitz_with.edist_iterate_succ_le_geometric x),
 let ⟨y, hy⟩ := cauchy_seq_tendsto_of_complete this in
-⟨y, is_fixed_pt_of_tendsto_iterate hf.2.continuous.continuous_at ⟨x, hy⟩, hy,
+⟨y, is_fixed_pt_of_tendsto_iterate hy hf.2.continuous.continuous_at, hy,
   edist_le_of_edist_le_geometric_of_tendsto K (edist x (f x))
     (hf.to_lipschitz_with.edist_iterate_succ_le_geometric x) hy⟩
 

@@ -24,16 +24,15 @@ variables {α : Type*} [topological_space α] [t2_space α] {f : α → α}
 open function filter
 open_locale topological_space
 
-/-- If the iterates `f^[n] x₀` converge to `x` and `f` is continuous at `x`,
-then `x` is a fixed point for `f`. -/
-lemma is_fixed_pt_of_tendsto_iterate {x : α} (hf : continuous_at f x)
-  (hx : ∃ x₀ : α, tendsto (λ n, f^[n] x₀) at_top (𝓝 x)) :
-  is_fixed_pt f x :=
+/-- If the iterates `f^[n] x` converge to `y` and `f` is continuous at `y`,
+then `y` is a fixed point for `f`. -/
+lemma is_fixed_pt_of_tendsto_iterate {x y : α} (hy : tendsto (λ n, f^[n] x) at_top (𝓝 y))
+  (hf : continuous_at f y) :
+  is_fixed_pt f y :=
 begin
-  rcases hx with ⟨x₀, hx⟩,
-  refine tendsto_nhds_unique at_top_ne_bot ((tendsto_add_at_top_iff_nat 1).1 _) hx,
+  refine tendsto_nhds_unique at_top_ne_bot ((tendsto_add_at_top_iff_nat 1).1 _) hy,
   simp only [iterate_succ' f],
-  exact tendsto.comp hf hx
+  exact hf.tendsto.comp hy
 end
 
 /-- The set of fixed points of a continuous map is a closed set. -/

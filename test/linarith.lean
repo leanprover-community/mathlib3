@@ -27,8 +27,6 @@ begin
   linarith
 end
 
-#exit
-
 example (ε : ℚ) (h1 : ε > 0) : ε / 2 + ε / 3 + ε / 7 < ε :=
  by linarith
 

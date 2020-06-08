@@ -853,9 +853,11 @@ instance angle.is_add_group_hom : @is_add_group_hom ℝ angle _ _ (coe : ℝ →
 @[simp] lemma coe_add (x y : ℝ) : ↑(x + y : ℝ) = (↑x + ↑y : angle) := rfl
 @[simp] lemma coe_neg (x : ℝ) : ↑(-x : ℝ) = -(↑x : angle) := rfl
 @[simp] lemma coe_sub (x y : ℝ) : ↑(x - y : ℝ) = (↑x - ↑y : angle) := rfl
-@[simp] lemma coe_nat_mul_eq_nsmul (x : ℝ) (n : ℕ) : ↑((n : ℝ) * x) = n •ℕ (↑x : angle) :=
+@[simp, norm_cast] lemma coe_nat_mul_eq_nsmul (x : ℝ) (n : ℕ) :
+  ↑((n : ℝ) * x) = n •ℕ (↑x : angle) :=
 by simpa using add_monoid_hom.map_nsmul ⟨coe, coe_zero, coe_add⟩ _ _
-@[simp] lemma coe_int_mul_eq_gsmul (x : ℝ) (n : ℤ) : ↑((n : ℝ) * x : ℝ) = n •ℤ (↑x : angle) :=
+@[simp, norm_casr] lemma coe_int_mul_eq_gsmul (x : ℝ) (n : ℤ) :
+  ↑((n : ℝ) * x : ℝ) = n •ℤ (↑x : angle) :=
 by simpa using add_monoid_hom.map_gsmul ⟨coe, coe_zero, coe_add⟩ _ _
 
 @[simp] lemma coe_two_pi : ↑(2 * π : ℝ) = (0 : angle) :=

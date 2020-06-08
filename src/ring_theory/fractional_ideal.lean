@@ -146,7 +146,7 @@ lemma mem_zero_iff {x : P} : x ∈ (0 : fractional_ideal f) ↔ x = 0 :=
 @[simp] lemma coe_zero : ↑(0 : fractional_ideal f) = (⊥ : submodule R f.codomain) :=
 submodule.ext $ λ _, mem_zero_iff
 
-lemma nonzero_iff_coe_nonzero {I : fractional_ideal f} :
+lemma coe_ne_bot_iff_nonzero {I : fractional_ideal f} :
   ↑I ≠ (⊥ : submodule R f.codomain) ↔ I ≠ 0 :=
 ⟨ λ h h', h (by simp [h']),
   λ h h', h (ext (by simp [h'])) ⟩
@@ -471,7 +471,7 @@ lemma inv_nonzero {I : fractional_ideal g} (h : I ≠ 0) :
   I⁻¹ = ⟨(1 : fractional_ideal g) / I, fractional_div_of_nonzero h⟩ :=
 div_nonzero h
 
-lemma val_inv_of_nonzero {I : fractional_ideal g} (h : I ≠ 0) :
+lemma coe_inv_of_nonzero {I : fractional_ideal g} (h : I ≠ 0) :
   (↑(I⁻¹) : submodule R g.codomain) = (1 : ideal R) / I :=
 by { rw inv_nonzero h, refl }
 

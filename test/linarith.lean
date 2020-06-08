@@ -22,6 +22,13 @@ begin
   linarith
 end
 
+example (A B : ℚ) (h : 0 < A * B) : 0 < A/8*B :=
+begin
+  linarith
+end
+
+#exit
+
 example (ε : ℚ) (h1 : ε > 0) : ε / 2 + ε / 3 + ε / 7 < ε :=
  by linarith
 

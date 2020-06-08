@@ -628,12 +628,8 @@ meta def find_cancel_factor : expr → ℕ × tree ℕ
   let (v1, t1) := find_cancel_factor e1, (v2, t2) := find_cancel_factor e2, lcm := v1.lcm v2 in
   (lcm, tree.node lcm t1 t2)
 | `(%%e1 * %%e2) :=
-  match is_numeric e1, is_numeric e2 with
-  | none, none := (1, tree.node 1 tree.nil tree.nil)
-  | _, _ :=
-    let (v1, t1) := find_cancel_factor e1, (v2, t2) := find_cancel_factor e2, pd := v1*v2 in
-    (pd, tree.node pd t1 t2)
-  end
+  let (v1, t1) := find_cancel_factor e1, (v2, t2) := find_cancel_factor e2, pd := v1*v2 in
+  (pd, tree.node pd t1 t2)
 | `(%%e1 / %%e2) :=
   match is_numeric e2 with
   | some q := let (v1, t1) := find_cancel_factor e1, n := v1.lcm q.num.nat_abs in

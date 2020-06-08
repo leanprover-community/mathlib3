@@ -131,7 +131,7 @@ Index 0 is reserved for constants, i.e. `coeffs.find 0` is the coefficient of 1.
 The represented term is `coeffs.keys.sum (λ i, coeffs.find i * Var[i])`.
 str determines the direction of the comparison -- is it < 0, ≤ 0, or = 0?
 -/
-@[derive _root_.inhabited]
+@[derive inhabited]
 meta structure comp :=
 (str : ineq)
 (coeffs : rb_map ℕ int)
@@ -420,11 +420,8 @@ meta def mk_linarith_structure (red : transparency) (l : list expr) :
   tactic (linarith_structure × rb_map ℕ (expr × expr)) :=
 do pftps ← l.mmap infer_type,
   (l', _, map) ← to_comp_fold red mk_rb_map pftps mk_rb_map,
-  -- trace "map:", trace map,
-  -- trace "l':", trace l',
   let lz := list.enum $ ((l.zip pftps).zip l').filter_map (λ ⟨a, b⟩, prod.mk a <$> b),
   let prmap := rb_map.of_list $ lz.map (λ ⟨n, x⟩, (n, x.1)),
-  --trace "prmap:", trace prmap,
   let vars : rb_set ℕ := rb_map.set_of_list $ list.range map.size.succ,
   let pc : rb_set pcomp := rb_map.set_of_list $
     lz.map (λ ⟨n, x⟩, ⟨x.2, comp_source.assump n⟩),

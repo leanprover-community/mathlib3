@@ -11,6 +11,7 @@ import ring_theory.algebra_operations
 
 universes u v w x
 
+open_locale big_operators
 
 namespace submodule
 
@@ -178,7 +179,7 @@ begin
     refine ⟨λ j, if H : j ∈ s ∧ j ≠ i then g j H.1 H.2 else 1, λ j, _, λ j, _⟩,
     { split_ifs with h, { apply hg1 }, rw sub_self, exact (f i).zero_mem },
     { intros hjs hji, rw dif_pos, { apply hg2 }, exact ⟨hjs, hji⟩ } },
-  rcases this with ⟨g, hgi, hgj⟩, use (s.erase i).prod g, split,
+  rcases this with ⟨g, hgi, hgj⟩, use (∏ x in s.erase i, g x), split,
   { rw [← quotient.eq, quotient.mk_one, quotient.mk_prod],
     apply finset.prod_eq_one, intros, rw [← quotient.mk_one, quotient.eq], apply hgi },
   intros j hjs hji, rw [← quotient.eq_zero_iff_mem, quotient.mk_prod],

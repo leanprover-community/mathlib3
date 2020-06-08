@@ -28,6 +28,7 @@ The proof of quadratic reciprocity implemented uses Gauss' lemma and Eisenstein'
 -/
 
 open function finset nat finite_field zmod
+open_locale big_operators
 
 namespace zmod
 
@@ -117,9 +118,9 @@ end
 @[simp] lemma wilsons_lemma : (nat.fact (p - 1) : zmod p) = -1 :=
 begin
   refine
-  calc (nat.fact (p - 1) : zmod p) = (Ico 1 (succ (p - 1))).prod (λ (x : ℕ), x) :
+  calc (nat.fact (p - 1) : zmod p) = (∏ x in Ico 1 (succ (p - 1)), x) :
     by rw [← finset.prod_Ico_id_eq_fact, prod_nat_cast]
-                               ... = finset.univ.prod (λ x : units (zmod p), x) : _
+                               ... = (∏ x : units (zmod p), x) : _
                                ... = -1 :
     by rw [prod_hom _ (coe : units (zmod p) → zmod p),
            prod_univ_units_id_eq_neg_one, units.coe_neg, units.coe_one],
@@ -142,7 +143,7 @@ begin
     { simp only [val_cast_of_lt hb.right, units.coe_mk0], } }
 end
 
-@[simp] lemma prod_Ico_one_prime : (Ico 1 p).prod (λ x, (x : zmod p)) = -1 :=
+@[simp] lemma prod_Ico_one_prime : (∏ x in Ico 1 p, (x : zmod p)) = -1 :=
 begin
   conv in (Ico 1 p) { rw [← succ_sub_one p, succ_sub (nat.prime.pos ‹p.prime›)] },
   rw [← prod_nat_cast, finset.prod_Ico_id_eq_fact, wilsons_lemma]
@@ -195,12 +196,12 @@ private lemma gauss_lemma_aux₁ (p : ℕ) [hp : fact p.prime] [hp2 : fact (p % 
   (-1)^((Ico 1 (p / 2).succ).filter
     (λ x : ℕ, ¬(a * x : zmod p).val ≤ p / 2)).card * (p / 2).fact :=
 calc (a ^ (p / 2) * (p / 2).fact : zmod p) =
-    (Ico 1 (p / 2).succ).prod (λ x, a * x) :
+    (∏ x in Ico 1 (p / 2).succ, a * x) :
   by rw [prod_mul_distrib, ← prod_nat_cast, ← prod_nat_cast, prod_Ico_id_eq_fact,
       prod_const, Ico.card, succ_sub_one]; simp
-... = (Ico 1 (p / 2).succ).prod (λ x, (a * x : zmod p).val) : by simp
-... = (Ico 1 (p / 2).succ).prod
-    (λ x, (if (a * x : zmod p).val ≤ p / 2 then 1 else -1) *
+... = (∏ x in Ico 1 (p / 2).succ, (a * x : zmod p).val) : by simp
+... = (∏ x in Ico 1 (p / 2).succ,
+    (if (a * x : zmod p).val ≤ p / 2 then 1 else -1) *
       (a * x : zmod p).val_min_abs.nat_abs) :
   prod_congr rfl $ λ _ _, begin
     simp only [cast_nat_abs_val_min_abs],
@@ -208,11 +209,11 @@ calc (a ^ (p / 2) * (p / 2).fact : zmod p) =
   end
 ... = (-1)^((Ico 1 (p / 2).succ).filter
       (λ x : ℕ, ¬(a * x : zmod p).val ≤ p / 2)).card *
-    (Ico 1 (p / 2).succ).prod (λ x, (a * x : zmod p).val_min_abs.nat_abs) :
-  have (Ico 1 (p / 2).succ).prod
-        (λ x, if (a * x : zmod p).val ≤ p / 2 then (1 : zmod p) else -1) =
-      ((Ico 1 (p / 2).succ).filter
-        (λ x : ℕ, ¬(a * x : zmod p).val ≤ p / 2)).prod (λ _, -1),
+    (∏ x in Ico 1 (p / 2).succ, (a * x : zmod p).val_min_abs.nat_abs) :
+  have (∏ x in Ico 1 (p / 2).succ,
+        if (a * x : zmod p).val ≤ p / 2 then (1 : zmod p) else -1) =
+      (∏ x in (Ico 1 (p / 2).succ).filter
+        (λ x : ℕ, ¬(a * x : zmod p).val ≤ p / 2), -1),
     from prod_bij_ne_one (λ x _ _, x)
       (λ x, by split_ifs; simp * at * {contextual := tt})
       (λ _ _ _ _ _ _, id)

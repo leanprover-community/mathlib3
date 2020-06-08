@@ -1,10 +1,6 @@
 import .all
 run_cmd tactic.skip
 
--- algebra/archimedean.lean
-apply_nolint archimedean doc_blame
-apply_nolint archimedean.floor_ring doc_blame
-
 -- algebra/associated.lean
 apply_nolint associated.setoid doc_blame
 apply_nolint associates doc_blame
@@ -12,20 +8,7 @@ apply_nolint associates.mk doc_blame
 apply_nolint associates.prime doc_blame
 
 -- algebra/category/Group/basic.lean
-apply_nolint AddCommGroup doc_blame
 apply_nolint AddCommGroup.of doc_blame
-apply_nolint AddGroup doc_blame
-apply_nolint AddGroup.of doc_blame
-
--- algebra/category/Mon/basic.lean
-apply_nolint AddCommMon doc_blame
-apply_nolint AddCommMon.of doc_blame
-apply_nolint AddMon doc_blame
-apply_nolint AddMon.of doc_blame
-
--- algebra/commute.lean
-apply_nolint centralizer.add_submonoid doc_blame
-apply_nolint set.centralizer.add_submonoid doc_blame
 
 -- algebra/direct_limit.lean
 apply_nolint add_comm_group.direct_limit has_inhabited_instance
@@ -50,7 +33,6 @@ apply_nolint euclidean_domain.lcm doc_blame
 apply_nolint euclidean_domain.xgcd_aux doc_blame
 
 -- algebra/field.lean
-apply_nolint algebra.div doc_blame
 apply_nolint division_ring doc_blame
 apply_nolint field doc_blame
 
@@ -59,36 +41,8 @@ apply_nolint associates.out doc_blame
 apply_nolint associates_int_equiv_nat doc_blame
 apply_nolint normalize doc_blame
 
--- algebra/group/conj.lean
-apply_nolint is_conj doc_blame
-
 -- algebra/group/defs.lean
-apply_nolint add_comm_group doc_blame
-apply_nolint add_comm_monoid doc_blame
-apply_nolint add_comm_semigroup doc_blame
-apply_nolint add_group doc_blame
-apply_nolint add_left_cancel_semigroup doc_blame
-apply_nolint add_monoid doc_blame
-apply_nolint add_right_cancel_semigroup doc_blame
-apply_nolint add_semigroup doc_blame
 apply_nolint algebra.sub doc_blame
-apply_nolint comm_group doc_blame
-apply_nolint comm_monoid doc_blame
-apply_nolint comm_semigroup doc_blame
-apply_nolint group doc_blame
-apply_nolint left_cancel_semigroup doc_blame
-apply_nolint monoid doc_blame
-apply_nolint right_cancel_semigroup doc_blame
-apply_nolint semigroup doc_blame
-
--- algebra/group/hom.lean
-apply_nolint add_monoid_hom.add doc_blame
-apply_nolint add_monoid_hom.comp doc_blame
-apply_nolint add_monoid_hom.id doc_blame
-apply_nolint add_monoid_hom.mk' doc_blame
-apply_nolint add_monoid_hom.neg doc_blame
-apply_nolint add_monoid_hom.zero doc_blame
-apply_nolint monoid_hom.one doc_blame
 
 -- algebra/group/to_additive.lean
 apply_nolint to_additive.attr doc_blame
@@ -2776,23 +2730,14 @@ apply_nolint continuous_map.induced doc_blame
 -- topology/homeomorph.lean
 apply_nolint homeomorph has_inhabited_instance
 
--- topology/instances/ennreal.lean
-apply_nolint ennreal.tendsto_at_top ge_or_gt
-apply_nolint infi_real_pos_eq_infi_nnreal_pos ge_or_gt
-
 -- topology/maps.lean
 apply_nolint inducing doc_blame
 apply_nolint is_closed_map doc_blame
 
 -- topology/metric_space/basic.lean
-apply_nolint cauchy_seq_bdd ge_or_gt
-apply_nolint lebesgue_number_lemma_of_metric ge_or_gt
-apply_nolint lebesgue_number_lemma_of_metric_sUnion ge_or_gt
 apply_nolint metric.cauchy_iff ge_or_gt
 apply_nolint metric.is_open_iff ge_or_gt
-apply_nolint metric.mem_closure_range_iff ge_or_gt
 apply_nolint metric.mem_nhds_iff ge_or_gt
-apply_nolint metric.mem_of_closed' ge_or_gt
 apply_nolint metric.tendsto_nhds ge_or_gt
 apply_nolint metric_space.induced doc_blame
 apply_nolint metric_space.replace_uniformity doc_blame

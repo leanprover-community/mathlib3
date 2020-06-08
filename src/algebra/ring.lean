@@ -1,7 +1,8 @@
 /-
 Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston
+Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston, Yury Kudryashov,
+Neil Strickland
 -/
 import algebra.group.hom
 import algebra.group.units
@@ -44,11 +45,11 @@ to use this method than to use type class inference.
 
 ## Tags
 
-`ring_hom`, `semiring_hom`, `semiring`, `comm_semiring`, `ring`, `comm_ring`, `domain`, `integral_domain`, `nonzero`,
-`units`
+`ring_hom`, `semiring_hom`, `semiring`, `comm_semiring`, `ring`, `comm_ring`, `domain`,
+`integral_domain`, `nonzero`, `units`
 -/
-universes u v w
-variables {α : Type u} {β : Type v} {γ : Type w}
+universes u v w x
+variables {α : Type u} {β : Type v} {γ : Type w} {R : Type x}
 
 set_option default_priority 100 -- see Note [default priority]
 set_option old_structure_cmd true
@@ -677,6 +678,27 @@ begin
   rw [this, sub_add, ← sub_mul, sub_self]
 end
 
+lemma dvd_mul_sub_mul {α : Type*} [comm_ring α]
+  {k a b x y : α} (hab : k ∣ a - b) (hxy : k ∣ x - y) :
+  k ∣ a * x - b * y :=
+begin
+  convert dvd_add (dvd_mul_of_dvd_right hxy a) (dvd_mul_of_dvd_left hab y),
+  rw [mul_sub_left_distrib, mul_sub_right_distrib],
+  simp only [sub_eq_add_neg, add_assoc, neg_add_cancel_left],
+end
+
+lemma dvd_iff_dvd_of_dvd_sub {R : Type*} [comm_ring R] {a b c : R}
+  (h : a ∣ (b - c)) : (a ∣ b ↔ a ∣ c) :=
+begin
+  split,
+  { intro h',
+    convert dvd_sub h' h,
+    exact eq.symm (sub_sub_self b c) },
+  { intro h',
+    convert dvd_add h h',
+    exact eq_add_of_sub_eq rfl }
+end
+
 end comm_ring
 
 lemma succ_ne_self [ring α] [nonzero α] (a : α) : a + 1 ≠ a :=
@@ -938,3 +960,82 @@ whose data is definitionally equal to the existing data. -/
 def is_integral_domain.to_integral_domain (R : Type u) [ring R] (h : is_integral_domain R) :
   integral_domain R :=
 { .. (‹_› : ring R), .. (‹_› : is_integral_domain R) }
+
+namespace semiconj_by
+
+@[simp] lemma add_right [distrib R] {a x y x' y' : R}
+  (h : semiconj_by a x y) (h' : semiconj_by a x' y') :
+  semiconj_by a (x + x') (y + y') :=
+by simp only [semiconj_by, left_distrib, right_distrib, h.eq, h'.eq]
+
+@[simp] lemma add_left [distrib R] {a b x y : R}
+  (ha : semiconj_by a x y) (hb : semiconj_by b x y) :
+  semiconj_by (a + b) x y :=
+by simp only [semiconj_by, left_distrib, right_distrib, ha.eq, hb.eq]
+
+@[simp] lemma zero_right [mul_zero_class R] (a : R) :
+  semiconj_by a 0 0 :=
+by simp only [semiconj_by, mul_zero, zero_mul]
+
+@[simp] lemma zero_left [mul_zero_class R] (x y : R) :
+  semiconj_by 0 x y :=
+by simp only [semiconj_by, mul_zero, zero_mul]
+
+variables [ring R] {a b x y x' y' : R}
+
+lemma neg_right (h : semiconj_by a x y) : semiconj_by a (-x) (-y) :=
+by simp only [semiconj_by, h.eq, neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm]
+
+@[simp] lemma neg_right_iff : semiconj_by a (-x) (-y) ↔ semiconj_by a x y :=
+⟨λ h, neg_neg x ▸ neg_neg y ▸ h.neg_right, semiconj_by.neg_right⟩
+
+lemma neg_left (h : semiconj_by a x y) : semiconj_by (-a) x y :=
+by simp only [semiconj_by, h.eq, neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm]
+
+@[simp] lemma neg_left_iff : semiconj_by (-a) x y ↔ semiconj_by a x y :=
+⟨λ h, neg_neg a ▸ h.neg_left, semiconj_by.neg_left⟩
+
+@[simp] lemma neg_one_right (a : R) : semiconj_by a (-1) (-1) :=
+(one_right a).neg_right
+
+@[simp] lemma neg_one_left (x : R) : semiconj_by (-1) x x :=
+(semiconj_by.one_left x).neg_left
+
+@[simp] lemma sub_right (h : semiconj_by a x y) (h' : semiconj_by a x' y') :
+  semiconj_by a (x - x') (y - y') :=
+h.add_right h'.neg_right
+
+@[simp] lemma sub_left (ha : semiconj_by a x y) (hb : semiconj_by b x y) :
+  semiconj_by (a - b) x y :=
+ha.add_left hb.neg_left
+
+end semiconj_by
+
+namespace commute
+
+@[simp] theorem add_right [distrib R] {a b c : R} :
+  commute a b → commute a c → commute a (b + c) :=
+semiconj_by.add_right
+
+@[simp] theorem add_left [distrib R] {a b c : R} :
+  commute a c → commute b c → commute (a + b) c :=
+semiconj_by.add_left
+
+@[simp] theorem zero_right [mul_zero_class R] (a : R) :commute a 0 := semiconj_by.zero_right a
+@[simp] theorem zero_left [mul_zero_class R] (a : R) : commute 0 a := semiconj_by.zero_left a a
+
+variables [ring R] {a b c : R}
+
+theorem neg_right : commute a b → commute a (- b) := semiconj_by.neg_right
+@[simp] theorem neg_right_iff : commute a (-b) ↔ commute a b := semiconj_by.neg_right_iff
+
+theorem neg_left : commute a b → commute (- a) b := semiconj_by.neg_left
+@[simp] theorem neg_left_iff : commute (-a) b ↔ commute a b := semiconj_by.neg_left_iff
+
+@[simp] theorem neg_one_right (a : R) : commute a (-1) := semiconj_by.neg_one_right a
+@[simp] theorem neg_one_left (a : R): commute (-1) a := semiconj_by.neg_one_left a
+
+@[simp] theorem sub_right : commute a b → commute a c → commute a (b - c) := semiconj_by.sub_right
+@[simp] theorem sub_left : commute a c → commute b c → commute (a - b) c := semiconj_by.sub_left
+
+end commute

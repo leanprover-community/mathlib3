@@ -3,7 +3,7 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import algebra.group.units
+import algebra.group.commute
 import algebra.ring
 import tactic.push_neg
 
@@ -293,15 +293,6 @@ begin
   simp [mul_assoc, hx, hy]
 end
 
-theorem inv_comm_of_comm' {a b : G₀} (H : a * b = b * a) : a⁻¹ * b = b * a⁻¹ :=
-begin
-  have : a⁻¹ * (b * a) * a⁻¹ = a⁻¹ * (a * b) * a⁻¹ :=
-    congr_arg (λ x:G₀, a⁻¹ * x * a⁻¹) H.symm,
-  classical,
-  by_cases h : a = 0, { rw [h, inv_zero, zero_mul, mul_zero] },
-  rwa [inv_mul_cancel_assoc_right _ _ h, mul_assoc, mul_inv_cancel_assoc_left _ _ h] at this,
-end
-
 @[simp] lemma div_self' {a : G₀} (h : a ≠ 0) : a / a = 1 := mul_inv_cancel' _ h
 
 @[simp] lemma div_one' (a : G₀) : a / 1 = a :=
@@ -554,3 +545,64 @@ lemma div_div_cancel' (ha : a ≠ 0) : a / (a / b) = b :=
 by rw [div_eq_mul_inv, inv_div, mul_div_cancel''' _ ha]
 
 end comm_group_with_zero
+
+namespace semiconj_by
+
+variables {G₀ : Type*} [group_with_zero G₀] {a x y x' y' : G₀}
+
+@[simp] lemma inv_symm_left_iff' : semiconj_by a⁻¹ x y ↔ semiconj_by a y x :=
+classical.by_cases
+  (λ ha : a = 0, by simp only [ha, inv_zero, semiconj_by.zero_left])
+  (λ ha, @units_inv_symm_left_iff _ _ (units.mk0 a ha) _ _)
+
+lemma inv_symm_left' (h : semiconj_by a x y) : semiconj_by a⁻¹ y x :=
+semiconj_by.inv_symm_left_iff'.2 h
+
+lemma inv_right' (h : semiconj_by a x y) : semiconj_by a x⁻¹ y⁻¹ :=
+begin
+  classical,
+  by_cases ha : a = 0,
+  { simp only [ha, zero_left] },
+  by_cases hx : x = 0,
+  { subst x,
+    simp only [semiconj_by, mul_zero, @eq_comm _ _ (y * a), mul_eq_zero_iff'] at h,
+    simp [h.resolve_right ha] },
+  { have := mul_ne_zero'' ha hx,
+    rw [h.eq, mul_ne_zero_iff] at this,
+    exact @units_inv_right _ _ _ (units.mk0 x hx) (units.mk0 y this.1) h },
+end
+
+@[simp] lemma inv_right_iff' : semiconj_by a x⁻¹ y⁻¹ ↔ semiconj_by a x y :=
+⟨λ h, inv_inv' x ▸ inv_inv' y ▸ h.inv_right', inv_right'⟩
+
+lemma div_right (h : semiconj_by a x y) (h' : semiconj_by a x' y') :
+  semiconj_by a (x / x') (y / y') :=
+h.mul_right h'.inv_right'
+
+end semiconj_by
+
+namespace commute
+
+variables {G₀ : Type*} [group_with_zero G₀] {a b c : G₀}
+
+@[simp] theorem inv_left_iff' : commute a⁻¹ b ↔ commute a b :=
+semiconj_by.inv_symm_left_iff'
+
+theorem inv_left' (h : commute a b) : commute a⁻¹ b := inv_left_iff'.2 h
+
+@[simp] theorem inv_right_iff' : commute a b⁻¹ ↔ commute a b :=
+semiconj_by.inv_right_iff'
+
+theorem inv_right' (h : commute a b) : commute a b⁻¹ := inv_right_iff'.2 h
+
+theorem inv_inv' (h : commute a b) : commute a⁻¹ b⁻¹ := h.inv_left'.inv_right'
+
+@[simp] theorem div_right (hab : commute a b) (hac : commute a c) :
+  commute a (b / c) :=
+hab.div_right hac
+
+@[simp] theorem div_left (hac : commute a c) (hbc : commute b c) :
+  commute (a / b) c :=
+hac.mul_left hbc.inv_left'
+
+end commute

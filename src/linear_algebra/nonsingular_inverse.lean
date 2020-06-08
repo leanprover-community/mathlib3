@@ -46,7 +46,7 @@ matrix inverse, cramer, cramer's rule, adjugate
 namespace matrix
 universes u v
 variables {n : Type u} [fintype n] [decidable_eq n] {α : Type v}
-open_locale matrix
+open_locale matrix big_operators
 open equiv equiv.perm finset
 
 
@@ -117,8 +117,8 @@ def cramer_map (i : n) : α := (A.update_column i b).det
 lemma cramer_map_is_linear (i : n) : is_linear_map α (λ b, cramer_map A b i) :=
 begin
   have : Π {f : n → n} {i : n} (x : n → α),
-    finset.prod univ (λ (i' : n), (update_column A i x)ᵀ (f i') i')
-    = finset.prod univ (λ (i' : n), if i' = i then x (f i') else A i' (f i')),
+    (∏ i' : n, (update_column A i x)ᵀ (f i') i')
+    = (∏ i' : n, if i' = i then x (f i') else A i' (f i')),
   { intros, congr, ext i', rw [transpose_val, update_column_val] },
   split,
   { intros x y,
@@ -234,7 +234,7 @@ begin
     rw [update_column_val, update_row_val],
     finish },
   { -- Otherwise, we need to show that there is a `0` somewhere in the product.
-    have : univ.prod (λ (j' : n), update_row A j (λ (i' : n), ite (i = i') 1 0) (σ j') j') = 0,
+    have : (∏ j' : n, update_row A j (λ (i' : n), ite (i = i') 1 0) (σ j') j') = 0,
     { apply prod_eq_zero (mem_univ j),
       rw [update_row_self],
       exact if_neg h },

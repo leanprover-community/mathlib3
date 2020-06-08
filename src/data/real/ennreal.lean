@@ -212,7 +212,7 @@ by simpa only [lt_top_iff_ne_top] using pow_ne_top
 of_nnreal_hom.map_sum f s
 
 @[simp, norm_cast] lemma coe_finset_prod {s : finset α} {f : α → nnreal} :
-  ↑(s.prod f) = (s.prod (λa, f a) : ennreal) :=
+  ↑(∏ a in s, f a) = ((∏ a in s, f a) : ennreal) :=
 of_nnreal_hom.map_prod f s
 
 section order

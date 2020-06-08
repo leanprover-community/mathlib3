@@ -219,7 +219,7 @@ class add_left_cancel_monoid (M : Type u) extends add_left_cancel_semigroup M, a
 @[protect_proj, ancestor monoid has_inv]
 class group (α : Type u) extends monoid α, has_inv α :=
 (mul_left_inv : ∀ a : α, a⁻¹ * a = 1)
-/-- An `add_group` is an `add_monoid` with an unary `-` satisfying `-a + a = 0`. -/
+/-- An `add_group` is an `add_monoid` with a unary `-` satisfying `-a + a = 0`. -/
 @[protect_proj, ancestor add_monoid has_neg]
 class add_group (α : Type u) extends add_monoid α, has_neg α :=
 (add_left_neg : ∀ a : α, -a + a = 0)

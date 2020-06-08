@@ -24,7 +24,7 @@ noncomputable theory
 
 universes u v w u₁ v₁
 
-open_locale tensor_product
+open_locale tensor_product big_operators
 
 section prio
 -- We set this priority to 0 later in this file
@@ -304,7 +304,7 @@ variables [algebra R A] [algebra R B]
 variables (φ : A →ₐ[R] B)
 
 lemma map_prod {ι : Type*} (f : ι → A) (s : finset ι) :
-  φ (s.prod f) = s.prod (λx, φ (f x)) :=
+  φ (∏ x in s, f x) = ∏ x in s, φ (f x) :=
 φ.to_ring_hom.map_prod f s
 
 end comm_semiring

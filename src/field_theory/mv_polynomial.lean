@@ -12,7 +12,7 @@ noncomputable theory
 
 open_locale classical
 
-open set linear_map submodule
+open set linear_map submodule big_operators
 
 namespace mv_polynomial
 universes u v
@@ -109,7 +109,7 @@ variables {α : Type*} {σ : Type*}
 variables [field α] [fintype α] [fintype σ]
 
 def indicator (a : σ → α) : mv_polynomial σ α :=
-finset.univ.prod (λn, 1 - (X n - C (a n))^(fintype.card α - 1))
+∏ n, 1 - (X n - C (a n))^(fintype.card α - 1)
 
 lemma eval_indicator_apply_eq_one (a : σ → α) :
   eval a (indicator a) = 1 :=

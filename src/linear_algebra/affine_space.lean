@@ -177,7 +177,7 @@ end
 /-- The weighted sum is independent of the base point when the sum of
 the weights is 0. -/
 lemma weighted_vsub_of_point_eq_of_sum_eq_zero (w : ι → k) (p : ι → P) (h : ∑ i, w i = 0)
-    (b1 b2 : P) : weighted_vsub_of_point V w p b1 = weighted_vsub_of_point V w p b2 :=
+    (b₁ b₂ : P) : weighted_vsub_of_point V w p b₁ = weighted_vsub_of_point V w p b₂ :=
 begin
   apply eq_of_sub_eq_zero,
   erw ←finset.sum_sub_distrib,
@@ -193,7 +193,7 @@ end
 /-- The weighted sum, added to the base point, is independent of the
 base point when the sum of the weights is 1. -/
 lemma weighted_vsub_of_point_vadd_eq_of_sum_eq_one (w : ι → k) (p : ι → P) (h : ∑ i, w i = 1)
-    (b1 b2 : P) : weighted_vsub_of_point V w p b1 +ᵥ b1 = weighted_vsub_of_point V w p b2 +ᵥ b2 :=
+    (b₁ b₂ : P) : weighted_vsub_of_point V w p b₁ +ᵥ b₁ = weighted_vsub_of_point V w p b₂ +ᵥ b₂ :=
 begin
   erw [←vsub_eq_zero_iff_eq V, vadd_vsub_assoc, vsub_vadd_eq_vsub_sub, ←add_sub_assoc, add_comm,
        add_sub_assoc, ←finset.sum_sub_distrib],

@@ -484,7 +484,8 @@ end
 @[simp] theorem flatten_think (c : computation (wseq α)) : flatten c.think = think (flatten c) :=
 seq.destruct_eq_cons $ by simp [flatten, think]
 
-@[simp] theorem destruct_flatten (c : computation (wseq α)) : destruct (flatten c) = c >>= destruct :=
+@[simp]
+theorem destruct_flatten (c : computation (wseq α)) : destruct (flatten c) = c >>= destruct :=
 begin
   refine computation.eq_of_bisim (λc1 c2, c1 = c2 ∨
     ∃ c, c1 = destruct (flatten c) ∧ c2 = computation.bind c destruct) _ (or.inr ⟨c, rfl, rfl⟩),
@@ -631,14 +632,17 @@ begin
   contradiction
 end⟩
 
-theorem nth_terminates_le {s : wseq α} {m n} (h : m ≤ n) : terminates (nth s n) → terminates (nth s m) :=
+theorem nth_terminates_le {s : wseq α} {m n} (h : m ≤ n) :
+  terminates (nth s n) → terminates (nth s m) :=
 by induction h with m' h IH; [exact id,
   exact λ T, IH (@head_terminates_of_head_tail_terminates _ _ T)]
 
-theorem head_terminates_of_nth_terminates {s : wseq α} {n} : terminates (nth s n) → terminates (head s) :=
+theorem head_terminates_of_nth_terminates {s : wseq α} {n} :
+  terminates (nth s n) → terminates (head s) :=
 nth_terminates_le (nat.zero_le n)
 
-theorem destruct_terminates_of_nth_terminates {s : wseq α} {n} (T : terminates (nth s n)) : terminates (destruct s) :=
+theorem destruct_terminates_of_nth_terminates {s : wseq α} {n} (T : terminates (nth s n)) :
+  terminates (destruct s) :=
 (head_terminates_iff _).1 $ head_terminates_of_nth_terminates T
 
 theorem mem_rec_on {C : wseq α → Prop} {a s} (M : a ∈ s)

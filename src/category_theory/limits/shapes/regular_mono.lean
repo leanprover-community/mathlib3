@@ -45,6 +45,14 @@ attribute [reassoc] regular_mono.w
 instance regular_mono.mono (f : X ⟶ Y) [regular_mono f] : mono f :=
 mono_of_is_limit_parallel_pair regular_mono.is_limit
 
+instance equalizer_regular (g h : X ⟶ Y) [has_limit (parallel_pair g h)] :
+  regular_mono (equalizer.ι g h) :=
+{ Z := Y,
+  left := g,
+  right := h,
+  w := equalizer.condition g h,
+  is_limit := fork.is_limit.mk _ (λ s, limit.lift _ s) (by simp) (λ s m w, by { ext1, simp [←w] }) }
+
 /-- Every split monomorphism is a regular monomorphism. -/
 @[priority 100]
 instance regular_mono.of_split_mono (f : X ⟶ Y) [split_mono f] : regular_mono f :=
@@ -60,6 +68,10 @@ def regular_mono.lift' {W : C} (f : X ⟶ Y) [regular_mono f] (k : W ⟶ Y)
   (h : k ≫ (regular_mono.left : Y ⟶ @regular_mono.Z _ _ _ _ f _) = k ≫ regular_mono.right) :
   {l : W ⟶ X // l ≫ f = k} :=
 fork.is_limit.lift' regular_mono.is_limit _ h
+
+/-- A regular monomorphism is an isomorphism if it is an epimorphism. -/
+def is_iso_of_regular_mono_of_epi (f : X ⟶ Y) [regular_mono f] [e : epi f] : is_iso f :=
+@is_iso_limit_cone_parallel_pair_of_epi _ _ _ _ _ _ _ regular_mono.is_limit e
 
 section
 variables [has_zero_morphisms.{v₁} C]
@@ -99,6 +111,14 @@ attribute [reassoc] regular_epi.w
 instance regular_epi.epi (f : X ⟶ Y) [regular_epi f] : epi f :=
 epi_of_is_colimit_parallel_pair regular_epi.is_colimit
 
+instance coequalizer_regular (g h : X ⟶ Y) [has_colimit (parallel_pair g h)] :
+  regular_epi (coequalizer.π g h) :=
+{ W := X,
+  left := g,
+  right := h,
+  w := coequalizer.condition g h,
+  is_colimit := cofork.is_colimit.mk _ (λ s, colimit.desc _ s) (by simp) (λ s m w, by { ext1, simp [←w] }) }
+
 /-- Every split epimorphism is a regular epimorphism. -/
 @[priority 100]
 instance regular_epi.of_split_epi (f : X ⟶ Y) [split_epi f] : regular_epi f :=
@@ -114,6 +134,10 @@ def regular_epi.desc' {W : C} (f : X ⟶ Y) [regular_epi f] (k : X ⟶ W)
   (h : (regular_epi.left : regular_epi.W f ⟶ X) ≫ k = regular_epi.right ≫ k) :
   {l : Y ⟶ W // f ≫ l = k} :=
 cofork.is_colimit.desc' (regular_epi.is_colimit) _ h
+
+/-- A regular epimorphism is an isomorphism if it is a monomorphism. -/
+def is_iso_of_regular_epi_of_mono (f : X ⟶ Y) [regular_epi f] [m : mono f] : is_iso f :=
+@is_iso_limit_cocone_parallel_pair_of_epi _ _ _ _ _ _ _ regular_epi.is_colimit m
 
 @[priority 100]
 instance strong_epi_of_regular_epi (f : X ⟶ Y) [regular_epi f] : strong_epi f :=

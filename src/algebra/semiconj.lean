@@ -29,8 +29,6 @@ rather than just `rw [h.pow_right 5]`.
 
 universes u v
 
-open_locale smul
-
 /-- `x` is semiconjugate to `y` by `a`, if `a * x = y * a`. -/
 def semiconj_by {M : Type u} [has_mul M] (a x y : M) : Prop := a * x = y * a
 
@@ -111,11 +109,7 @@ units.ext h
 @[simp] lemma units_gpow_right {a : M} {x y : units M} (h : semiconj_by a x y) :
   ∀ m : ℤ, semiconj_by a (↑(x^m)) (↑(y^m))
 | (n : ℕ) := by simp only [gpow_coe_nat, units.coe_pow, h, pow_right]
-| -[1+n] := by simp only [gpow_neg_succ, units.coe_pow, units_inv_right, h, pow_right]
-
-/-- `a` semiconjugates `x` to `a * x * a⁻¹`. -/
-lemma units_conj_mk (a : units M) (x : M) : semiconj_by ↑a x (a * x * ↑a⁻¹) :=
-by unfold semiconj_by; rw [units.inv_mul_cancel_right]
+| -[1+n] := by simp only [gpow_neg_succ_of_nat, units.coe_pow, units_inv_right, h, pow_right]
 
 end monoid
 
@@ -174,24 +168,24 @@ by simp only [semiconj_by, mul_zero, zero_mul]
 variables [semiring R] {a b x y : R} (h : semiconj_by a x y)
 include h
 
-@[simp] lemma smul_right : ∀ n, semiconj_by a (n •ℕ x) (n •ℕ y)
+@[simp] lemma nsmul_right : ∀ n, semiconj_by a (n •ℕ x) (n •ℕ y)
 | 0 := zero_right a
-| (n+1) := by simp only [succ_smul]; exact h.add_right (smul_right n)
+| (n+1) := by simp only [succ_nsmul]; exact h.add_right (nsmul_right n)
 
-@[simp] lemma smul_left : ∀ n, semiconj_by (n •ℕ a) x y
+@[simp] lemma nsmul_left : ∀ n, semiconj_by (n •ℕ a) x y
 | 0 := zero_left x y
-| (n+1) := by simp only [succ_smul]; exact h.add_left (smul_left n)
+| (n+1) := by simp only [succ_nsmul]; exact h.add_left (nsmul_left n)
 
-lemma smul_smul (m n : ℕ) : semiconj_by (m •ℕ a) (n •ℕ x) (n •ℕ y) :=
-(h.smul_left m).smul_right n
+lemma nsmul_nsmul (m n : ℕ) : semiconj_by (m •ℕ a) (n •ℕ x) (n •ℕ y) :=
+(h.nsmul_left m).nsmul_right n
 
 omit h
 
 lemma cast_nat_right (a : R) (n : ℕ) : semiconj_by a n n :=
-by rw [← add_monoid.smul_one n]; exact (one_right a).smul_right n
+by rw [← nsmul_one n]; exact (one_right a).nsmul_right n
 
 lemma cast_nat_left (n : ℕ) (x : R) : semiconj_by (n : R) x x :=
-by rw [← add_monoid.smul_one n]; exact (one_left x).smul_left n
+by rw [← nsmul_one n]; exact (one_left x).nsmul_left n
 
 end semiring
 
@@ -226,12 +220,12 @@ h.add_right h'.neg_right
 ha.add_left hb.neg_left
 
 @[simp] lemma gsmul_right (h : semiconj_by a x y) : ∀ m, semiconj_by a (m •ℤ x) (m •ℤ y)
-| (n : ℕ) := h.smul_right n
-| -[1+n] := (h.smul_right n.succ).neg_right
+| (n : ℕ) := h.nsmul_right n
+| -[1+n] := (h.nsmul_right n.succ).neg_right
 
 @[simp] lemma gsmul_left (h : semiconj_by a x y) : ∀ m, semiconj_by (m •ℤ a) x y
-| (n : ℕ) := h.smul_left n
-| -[1+n] := (h.smul_left n.succ).neg_left
+| (n : ℕ) := h.nsmul_left n
+| -[1+n] := (h.nsmul_left n.succ).neg_left
 
 lemma gsmul_gsmul (h : semiconj_by a x y) (m n : ℤ) : semiconj_by (m •ℤ a) (n •ℤ x) (n •ℤ y) :=
 (h.gsmul_left m).gsmul_right n
@@ -253,3 +247,19 @@ finv_symm_left_iff.2 h
 end division_ring
 
 end semiconj_by
+
+namespace units
+
+variables {M : Type u} [monoid M]
+
+/-- `a` semiconjugates `x` to `a * x * a⁻¹`. -/
+lemma mk_semiconj_by (a : units M) (x : M) : semiconj_by ↑a x (a * x * ↑a⁻¹) :=
+by unfold semiconj_by; rw [units.inv_mul_cancel_right]
+
+lemma conj_pow (u : units M) (x : M) (n : ℕ) : (↑u * x * ↑(u⁻¹))^n = u * x^n * ↑(u⁻¹) :=
+(divp_eq_iff_mul_eq.2 ((u.mk_semiconj_by x).pow_right n).eq.symm).symm
+
+lemma conj_pow' (u : units M) (x : M) (n : ℕ) : (↑(u⁻¹) * x * u)^n = ↑(u⁻¹) * x^n * u:=
+(u⁻¹).conj_pow x n
+
+end units

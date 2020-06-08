@@ -38,11 +38,11 @@ section prio
 set_option default_priority 10 -- see Note [default priority]
 
 /-- A type `M` is a “monoid with zero” if it is a monoid with zero element. -/
-class monoid_with_zero (G₀ : Type*) extends monoid G₀, mul_zero_class G₀.
+@[protect_proj] class monoid_with_zero (G₀ : Type*) extends monoid G₀, mul_zero_class G₀.
 
 /-- A type `M` is a commutative “monoid with zero”
 if it is a commutative monoid with zero element. -/
-class comm_monoid_with_zero (G₀ : Type*) extends comm_monoid G₀, monoid_with_zero G₀.
+@[protect_proj] class comm_monoid_with_zero (G₀ : Type*) extends comm_monoid G₀, monoid_with_zero G₀.
 
 /-- A type `G₀` is a “group with zero” if it is a monoid with zero element (distinct from `1`)
 such that every nonzero element is invertible.
@@ -50,10 +50,13 @@ The type is required to come with an “inverse” function, and the inverse of 
 
 Examples include division rings and the ordered monoids that are the
 target of valuations in general valuation theory.-/
-class group_with_zero (G₀ : Type*)
-  extends monoid_with_zero G₀, has_inv G₀, zero_ne_one_class G₀ :=
+class group_with_zero (G₀ : Type*) extends monoid_with_zero G₀, has_inv G₀ :=
 (inv_zero : (0 : G₀)⁻¹ = 0)
 (mul_inv_cancel : ∀ a:G₀, a ≠ 0 → a * a⁻¹ = 1)
+(zero_ne_one : (0 : G₀) ≠ 1)
+
+instance group_with_zero.to_nonzero (G₀ : Type*) [group_with_zero G₀] : nonzero G₀ :=
+⟨group_with_zero.zero_ne_one⟩
 
 /-- A type `G₀` is a commutative “group with zero”
 if it is a commutative monoid with zero element (distinct from `1`)
@@ -107,7 +110,7 @@ calc (a * b⁻¹) * b = a * (b⁻¹ * b) : mul_assoc _ _ _
 calc a⁻¹ * (a * b) = (a⁻¹ * a) * b : (mul_assoc _ _ _).symm
                ... = b             : by simp [h]
 
-@[simp] lemma inv_inv'' (a : G₀) : a⁻¹⁻¹ = a :=
+@[simp] lemma inv_inv' (a : G₀) : a⁻¹⁻¹ = a :=
 begin
   classical,
   by_cases h : a = 0, { simp [h] },
@@ -156,7 +159,7 @@ mul_self_mul_inv a
 mul_inv_mul_self a
 
 lemma inv_involutive' : function.involutive (has_inv.inv : G₀ → G₀) :=
-inv_inv''
+inv_inv'
 
 lemma ne_zero_of_mul_right_eq_one' (a b : G₀) (h : a * b = 1) : a ≠ 0 :=
 assume a_eq_0, zero_ne_one (by simpa [a_eq_0] using h : (0:G₀) = 1)
@@ -186,7 +189,7 @@ inv_involutive'.injective
 ⟨assume H, inv_injective' H, congr_arg _⟩
 
 lemma inv_eq_iff {g h : G₀} : g⁻¹ = h ↔ h⁻¹ = g :=
-by rw [← inv_inj'', eq_comm, inv_inv'']
+by rw [← inv_inj'', eq_comm, inv_inv']
 
 @[simp] lemma coe_unit_mul_inv' (a : units G₀) : (a : G₀) * a⁻¹ = 1 :=
 mul_inv_cancel' _ $ ne_zero_of_mul_right_eq_one' _ (a⁻¹ : units G₀) $ by simp
@@ -358,7 +361,7 @@ have a ≠ 0, from
 by rw [← h, mul_div_assoc'', div_self' this, mul_one]
 
 @[simp] lemma one_div_div' (a b : G₀) : 1 / (a / b) = b / a :=
-by rw [one_div, div_eq_mul_inv, mul_inv_rev', inv_inv'', div_eq_mul_inv]
+by rw [one_div, div_eq_mul_inv, mul_inv_rev', inv_inv', div_eq_mul_inv]
 
 @[simp] lemma one_div_one_div' (a : G₀) : 1 / (1 / a) = a :=
 by simp
@@ -387,7 +390,7 @@ congr_arg _ $ units.inv_eq_inv _
 divp_eq_div _ _
 
 lemma inv_div : (a / b)⁻¹ = b / a :=
-(mul_inv_rev' _ _).trans (by rw inv_inv''; refl)
+(mul_inv_rev' _ _).trans (by rw inv_inv'; refl)
 
 lemma inv_div_left : a⁻¹ / b = (b * a)⁻¹ :=
 (mul_inv_rev' _ _).symm
@@ -406,7 +409,7 @@ lemma div_left_inj' (hc : c ≠ 0) : a / c = b / c ↔ a = b :=
 by rw [← divp_mk0 _ hc, ← divp_mk0 _ hc, divp_left_inj]
 
 lemma mul_left_inj' (hc : c ≠ 0) : a * c = b * c ↔ a = b :=
-by rw [← inv_inv'' c, ← div_eq_mul_inv, ← div_eq_mul_inv, div_left_inj' (inv_ne_zero' hc)]
+by rw [← inv_inv' c, ← div_eq_mul_inv, ← div_eq_mul_inv, div_left_inj' (inv_ne_zero' hc)]
 
 lemma div_eq_iff_mul_eq (hb : b ≠ 0) : a / b = c ↔ c * b = a :=
 ⟨λ h, by rw [← h, div_mul_cancel' _ hb],

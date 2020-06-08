@@ -102,7 +102,7 @@ theorem mul : primrec (unpaired (*)) :=
 
 theorem pow : primrec (unpaired (^)) :=
 (prec (const 1) (mul.comp (pair (right.comp right) left))).of_eq $
-λ p, by simp; induction p.unpair.2; simp [*, pow_succ]
+λ p, by simp; induction p.unpair.2; simp [*, nat.pow_succ]
 
 end primrec
 
@@ -497,7 +497,7 @@ theorem nat_iterate {f : α → ℕ} {g : α → β} {h : α → β → β}
   (hf : primrec f) (hg : primrec g) (hh : primrec₂ h) :
   primrec (λ a, (h a)^[f a] (g a)) :=
 (nat_elim' hf hg (hh.comp₂ primrec₂.left $ snd.comp₂ primrec₂.right)).of_eq $
-λ a, by induction f a; simp [*, -nat.iterate_succ, nat.iterate_succ']
+λ a, by induction f a; simp [*, function.iterate_succ']
 
 theorem option_cases {o : α → option β} {f : α → σ} {g : α → β → σ}
   (ho : primrec o) (hf : primrec f) (hg : primrec₂ g) :
@@ -760,7 +760,7 @@ private lemma list_foldl'
 by letI := prim H; exact
 let G (a : α) (IH : σ × list β) : σ × list β :=
   list.cases_on IH.2 IH (λ b l, (h a (IH.1, b), l)) in
-let F (a : α) (n : ℕ) := nat.iterate (G a) n (g a, f a) in
+let F (a : α) (n : ℕ) := (G a)^[n] (g a, f a) in
 have primrec (λ a, (F a (encode (f a))).1), from
 fst.comp $ nat_iterate (encode_iff.2 hf) (pair hg hf) $
   list_cases' H (snd.comp snd) snd $ to₂ $ pair

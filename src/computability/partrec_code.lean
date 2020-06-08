@@ -506,7 +506,7 @@ by simp! [(<*>)]
 theorem const_prim : primrec code.const :=
 (primrec.id.nat_iterate (primrec.const zero)
   (comp_prim.comp (primrec.const succ) primrec.snd).to₂).of_eq $
-λ n, by simp; induction n; simp [*, code.const, nat.iterate_succ']
+λ n, by simp; induction n; simp [*, code.const, function.iterate_succ']
 
 theorem curry_prim : primrec₂ curry :=
 comp_prim.comp primrec.fst $

@@ -37,7 +37,7 @@ then formal power series in one variable form an integral domain.
 The `order` of a formal power series `φ` is the multiplicity of the variable `X` in `φ`.
 
 If the coefficients form an integral domain, then `order` is a valuation
-(`order_mul`, `order_add_ge`).
+(`order_mul`, `le_order_add`).
 
 ## Implementation notes
 
@@ -617,12 +617,11 @@ end
 
 end comm_ring
 
-section nonzero_comm_ring
-variables [nonzero_comm_ring α]
+section nonzero
+variables [semiring α] [nonzero α]
 
-instance : nonzero_comm_ring (mv_power_series σ α) :=
-{ zero_ne_one := assume h, zero_ne_one $ show (0:α) = 1, from congr_arg (constant_coeff σ α) h,
-  .. mv_power_series.comm_ring }
+instance : nonzero (mv_power_series σ α) :=
+{ zero_ne_one := assume h, zero_ne_one $ show (0:α) = 1, from congr_arg (constant_coeff σ α) h }
 
 lemma X_inj {s t : σ} : (X s : mv_power_series σ α) = X t ↔ s = t :=
 ⟨begin
@@ -633,7 +632,7 @@ lemma X_inj {s t : σ} : (X s : mv_power_series σ α) = X t ↔ s = t :=
   { exfalso, exact one_ne_zero h }
 end, congr_arg X⟩
 
-end nonzero_comm_ring
+end nonzero
 
 section local_ring
 variables {β : Type*} [local_ring α] [local_ring β] (f : α →+* β) [is_local_ring_hom f]
@@ -684,7 +683,7 @@ lemma inv_eq_zero {φ : mv_power_series σ α} :
 @[simp] lemma inv_of_unit_eq' (φ : mv_power_series σ α) (u : units α) (h : constant_coeff σ α φ = u) :
   inv_of_unit φ u = φ⁻¹ :=
 begin
-  rw ← inv_of_unit_eq φ (h.symm ▸ u.ne_zero),
+  rw ← inv_of_unit_eq φ (h.symm ▸ u.coe_ne_zero),
   congr' 1, rw [units.ext_iff], exact h.symm,
 end
 
@@ -768,7 +767,7 @@ instance [semiring α]        : semiring        (power_series α) := by delta po
 instance [comm_semiring α]   : comm_semiring   (power_series α) := by delta power_series; apply_instance
 instance [ring α]            : ring            (power_series α) := by delta power_series; apply_instance
 instance [comm_ring α]       : comm_ring       (power_series α) := by delta power_series; apply_instance
-instance [nonzero_comm_ring α] : nonzero_comm_ring (power_series α) := by delta power_series; apply_instance
+instance [semiring α] [nonzero α] : nonzero (power_series α) := by delta power_series; apply_instance
 instance [semiring α]        : semimodule α    (power_series α) := by delta power_series; apply_instance
 instance [ring α]            : module α        (power_series α) := by delta power_series; apply_instance
 instance [comm_ring α]       : algebra α       (power_series α) := by delta power_series; apply_instance
@@ -1140,7 +1139,8 @@ end
 
 instance : integral_domain (power_series α) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero,
-  .. power_series.nonzero_comm_ring }
+  .. power_series.comm_ring,
+  .. power_series.nonzero }
 
 /-- The ideal spanned by the variable in the power series ring
  over an integral domain is a prime ideal.-/
@@ -1296,8 +1296,8 @@ multiplicity.zero _
 
 /-- The order of a formal power series is at least `n` if
 the `i`th coefficient is `0` for all `i < n`.-/
-lemma order_ge_nat (φ : power_series α) (n : ℕ) (h : ∀ i < n, coeff α i φ = 0) :
-  order φ ≥ n :=
+lemma nat_le_order (φ : power_series α) (n : ℕ) (h : ∀ i < n, coeff α i φ = 0) :
+  ↑n ≤ order φ :=
 begin
   by_contra H, rw not_le at H,
   have : (order φ).dom := enat.dom_of_le_some (le_of_lt H),
@@ -1307,13 +1307,13 @@ end
 
 /-- The order of a formal power series is at least `n` if
 the `i`th coefficient is `0` for all `i < n`.-/
-lemma order_ge (φ : power_series α) (n : enat) (h : ∀ i : ℕ, ↑i < n → coeff α i φ = 0) :
-  order φ ≥ n :=
+lemma le_order (φ : power_series α) (n : enat) (h : ∀ i : ℕ, ↑i < n → coeff α i φ = 0) :
+  n ≤ order φ :=
 begin
   induction n using enat.cases_on,
   { show _ ≤ _, rw [top_le_iff, order_eq_top],
     ext i, exact h _ (enat.coe_lt_top i) },
-  { apply order_ge_nat, simpa only [enat.coe_lt_coe] using h }
+  { apply nat_le_order, simpa only [enat.coe_lt_coe] using h }
 end
 
 /-- The order of a formal power series is exactly `n` if the `n`th coefficient is nonzero,
@@ -1346,8 +1346,8 @@ end
 
 /-- The order of the sum of two formal power series
  is at least the minimum of their orders.-/
-lemma order_add_ge (φ ψ : power_series α) :
-  order (φ + ψ) ≥ min (order φ) (order ψ) :=
+lemma le_order_add (φ ψ : power_series α) :
+  min (order φ) (order ψ) ≤ order (φ + ψ) :=
 multiplicity.min_le_multiplicity_add
 
 private lemma order_add_of_order_eq.aux (φ ψ : power_series α)
@@ -1369,7 +1369,7 @@ end
 lemma order_add_of_order_eq (φ ψ : power_series α) (h : order φ ≠ order ψ) :
   order (φ + ψ) = order φ ⊓ order ψ :=
 begin
-  refine le_antisymm _ (order_add_ge _ _),
+  refine le_antisymm _ (le_order_add _ _),
   by_cases H₁ : order φ < order ψ,
   { apply order_add_of_order_eq.aux _ _ h H₁ },
   by_cases H₂ : order ψ < order φ,
@@ -1380,9 +1380,9 @@ end
 /-- The order of the product of two formal power series
  is at least the sum of their orders.-/
 lemma order_mul_ge (φ ψ : power_series α) :
-  order (φ * ψ) ≥ order φ + order ψ :=
+  order φ + order ψ ≤ order (φ * ψ) :=
 begin
-  apply order_ge,
+  apply le_order,
   intros n hn, rw [coeff_mul, finset.sum_eq_zero],
   rintros ⟨i,j⟩ hij,
   by_cases hi : ↑i < order φ,
@@ -1414,7 +1414,7 @@ by rw [order_monomial, if_neg h]
 end order_basic
 
 section order_zero_ne_one
-variables [nonzero_comm_ring α]
+variables [comm_semiring α] [nonzero α]
 
 /-- The order of the formal power series `1` is `0`.-/
 @[simp] lemma order_one : order (1 : power_series α) = 0 :=

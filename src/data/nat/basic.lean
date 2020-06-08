@@ -20,6 +20,8 @@ and extra recursors:
 
 universes u v
 
+attribute [protected] nat.pow_zero nat.pow_succ
+
 instance : canonically_ordered_comm_semiring ℕ :=
 { le_iff_exists_add := assume a b,
   ⟨assume h, let ⟨c, hc⟩ := nat.le.dest h in ⟨c, hc.symm⟩,
@@ -894,7 +896,7 @@ attribute [simp] nat.pow_zero nat.pow_one
 | (k+1) := show 1^k * 1 = 1, by rw [mul_one, one_pow]
 
 theorem pow_add (a m n : ℕ) : a^(m + n) = a^m * a^n :=
-by induction n; simp [*, pow_succ, mul_assoc]
+by induction n; simp [*, nat.pow_succ, mul_assoc]
 
 theorem pow_two (a : ℕ) : a ^ 2 = a * a := show (1 * a) * a = _, by rw one_mul
 
@@ -1007,65 +1009,6 @@ by unfold bodd div2; cases bodd_div2 n; refl
 
 @[simp] lemma div2_bit0 (n) : div2 (bit0 n) = n := div2_bit ff n
 @[simp] lemma div2_bit1 (n) : div2 (bit1 n) = n := div2_bit tt n
-
-/- iterate -/
-
-section
-variables {α : Sort*} (op : α → α)
-
-@[simp] theorem iterate_zero : op^[0] = id := rfl
-
-theorem iterate_zero_apply (x : α) : op^[0] x = x := rfl
-
-@[simp] theorem iterate_succ (n : ℕ) : op^[succ n] = (op^[n]) ∘ op := rfl
-
-theorem iterate_succ_apply (n : ℕ) (x : α) : op^[succ n] x = (op^[n]) (op x) := rfl
-
-theorem iterate_add : ∀ (m n : ℕ), op^[m + n] = (op^[m]) ∘ (op^[n])
-| m 0 := rfl
-| m (succ n) := by rw [iterate_succ, iterate_succ, iterate_add]
-
-theorem iterate_add_apply (m n : ℕ) (x : α) : op^[m + n] x = (op^[m] (op^[n] x)) :=
-by rw iterate_add
-
-@[simp] theorem iterate_one : op^[1] = op := funext $ λ a, rfl
-
-theorem iterate_succ' (n : ℕ) : op^[succ n] = op ∘ (op^[n]) :=
-by rw [← one_add, iterate_add, iterate_one]
-
-theorem iterate_succ_apply' (n : ℕ) (x : α) : op^[succ n] x = op (op^[n] x) :=
-by rw [iterate_succ']
-
-lemma iterate_mul (m : ℕ) : ∀ n, op^[m * n] = (op^[m]^[n])
-| 0 := by { ext a, simp only [mul_zero, iterate_zero] }
-| (n + 1) := by { ext x, simp only [mul_add, mul_one, iterate_one, iterate_add, iterate_mul n] }
-
-@[elab_as_eliminator]
-theorem iterate_ind {α : Type u} (f : α → α) {p : (α → α) → Prop} (hf : p f) (hid : p id)
-  (hcomp : ∀ ⦃f g⦄, p f → p g → p (f ∘ g)) :
-  ∀ n, p (f^[n])
-| 0 := hid
-| (n+1) := hcomp (iterate_ind n) hf
-
-theorem iterate₀ {α : Type u} {op : α → α} {x : α} (H : op x = x) {n : ℕ} :
-  op^[n] x = x :=
-by induction n; [simp only [iterate_zero_apply], simp only [iterate_succ_apply', H, *]]
-
-theorem iterate₁ {α : Type u} {β : Type v} {op : α → α} {op' : β → β} {op'' : α → β}
-  (H : ∀ x, op' (op'' x) = op'' (op x)) {n : ℕ} {x : α} :
-  op'^[n] (op'' x) = op'' (op^[n] x) :=
-by induction n; [simp only [iterate_zero_apply], simp only [iterate_succ_apply', H, *]]
-
-theorem iterate₂ {α : Type u} {op : α → α} {op' : α → α → α}
-  (H : ∀ x y, op (op' x y) = op' (op x) (op y)) {n : ℕ} {x y : α} :
-  op^[n] (op' x y) = op' (op^[n] x) (op^[n] y) :=
-by induction n; [simp only [iterate_zero_apply], simp only [iterate_succ_apply', H, *]]
-
-theorem iterate_cancel {α : Type u} {op op' : α → α} (H : ∀ x, op (op' x) = x) {n : ℕ} {x : α} :
-  op^[n] (op'^[n] x) = x :=
-by induction n; [refl, rwa [iterate_succ_apply, iterate_succ_apply', H]]
-
-end
 
 /- size and shift -/
 
@@ -1600,72 +1543,3 @@ by { rw [subsingleton.elim mn (le_trans (le_succ m) smn), decreasing_induction_t
          decreasing_induction_succ'] }
 
 end nat
-
-namespace function
-
-theorem injective.iterate {α : Type u} {op : α → α} (Hinj : injective op) :
-  ∀ n, injective (op^[n]) :=
-nat.iterate_ind op Hinj injective_id $ λ _ _, injective.comp
-
-theorem surjective.iterate {α : Type u} {op : α → α} (Hinj : surjective op) :
-  ∀ n, surjective (op^[n]) :=
-nat.iterate_ind op Hinj surjective_id $ λ _ _, surjective.comp
-
-theorem bijective.iterate {α : Type u} {op : α → α} (Hinj : bijective op) :
-  ∀ n, bijective (op^[n]) :=
-nat.iterate_ind op Hinj bijective_id $ λ _ _, bijective.comp
-
-end function
-
-namespace monoid_hom
-
-variables {M : Type*} {G : Type*} [monoid M] [group G]
-
-@[simp, to_additive]
-theorem iterate_map_one (f : M →* M) (n : ℕ) : f^[n] 1 = 1 :=
-nat.iterate₀ f.map_one
-
-@[simp, to_additive]
-theorem iterate_map_mul (f : M →* M) (n : ℕ) (x y) :
-  f^[n] (x * y) = (f^[n] x) * (f^[n] y) :=
-nat.iterate₂ f.map_mul
-
-@[simp, to_additive]
-theorem iterate_map_inv (f : G →* G) (n : ℕ) (x) :
-  f^[n] (x⁻¹) = (f^[n] x)⁻¹ :=
-nat.iterate₁ f.map_inv
-
-@[simp]
-theorem iterate_map_sub {A : Type*} [add_group A] (f : A →+ A) (n : ℕ) (x y) :
-  f^[n] (x - y) = (f^[n] x) - (f^[n] y) :=
-nat.iterate₂ f.map_sub
-
-end monoid_hom
-
-namespace ring_hom
-
-variables {R : Type*} [semiring R] {S : Type*} [ring S]
-
-@[simp] theorem iterate_map_one (f : R →+* R) (n : ℕ) : f^[n] 1 = 1 :=
-nat.iterate₀ f.map_one
-
-@[simp] theorem iterate_map_zero (f : R →+* R) (n : ℕ) : f^[n] 0 = 0 :=
-nat.iterate₀ f.map_zero
-
-@[simp] theorem iterate_map_mul (f : R →+* R) (n : ℕ) (x y) :
-  f^[n] (x * y) = (f^[n] x) * (f^[n] y) :=
-nat.iterate₂ f.map_mul
-
-@[simp] theorem iterate_map_add (f : R →+* R) (n : ℕ) (x y) :
-  f^[n] (x + y) = (f^[n] x) + (f^[n] y) :=
-nat.iterate₂ f.map_add
-
-@[simp] theorem iterate_map_neg (f : S →+* S) (n : ℕ) (x) :
-  f^[n] (-x) = -(f^[n] x) :=
-nat.iterate₁ f.map_neg
-
-@[simp] theorem iterate_map_sub (f : S →+* S) (n : ℕ) (x y) :
-  f^[n] (x - y) = (f^[n] x) - (f^[n] y) :=
-nat.iterate₂ f.map_sub
-
-end ring_hom

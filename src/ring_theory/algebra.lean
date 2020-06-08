@@ -129,9 +129,6 @@ section ring
 
 variables [comm_ring R] [ring A] [algebra R A]
 
-@[priority 200] -- see Note [lower instance priority]
-instance to_module : module R A := { .. algebra.to_semimodule }
-
 /-- Creating an algebra from a subring. This is the dual of ring extension. -/
 instance of_subring (S : set R) [is_subring S] : algebra S R :=
 ring_hom.to_algebra ⟨coe, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩
@@ -402,6 +399,9 @@ instance : inhabited (A₁ ≃ₐ[R] A₁) := ⟨1⟩
 @[refl]
 def refl : A₁ ≃ₐ[R] A₁ := 1
 
+@[simp] lemma coe_refl : (@refl R A₁ _ _ _ : A₁ →ₐ[R] A₁) = alg_hom.id R A₁ :=
+alg_hom.ext (λ x, rfl)
+
 /-- Algebra equivalences are symmetric. -/
 @[symm]
 def symm (e : A₁ ≃ₐ[R] A₂) : A₂ ≃ₐ[R] A₁ :=
@@ -420,6 +420,14 @@ def trans (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) : A₁ ≃�
 
 @[simp] lemma symm_apply_apply (e : A₁ ≃ₐ[R] A₂) : ∀ x, e.symm (e x) = x :=
   e.to_equiv.symm_apply_apply
+
+@[simp] lemma comp_symm (e : A₁ ≃ₐ[R] A₂) :
+  alg_hom.comp (e : A₁ →ₐ[R] A₂) ↑e.symm = alg_hom.id R A₂ :=
+by { ext, simp }
+
+@[simp] lemma symm_comp (e : A₁ ≃ₐ[R] A₂) :
+  alg_hom.comp ↑e.symm (e : A₁ →ₐ[R] A₂) = alg_hom.id R A₁ :=
+by { ext, simp }
 
 end alg_equiv
 
@@ -750,7 +758,7 @@ instance (R : Type*) (S : Type*) (E : Type*) [I : inhabited E] :
   inhabited (module.restrict_scalars R S E) := I
 
 instance (R : Type*) (S : Type*) (E : Type*) [I : add_comm_group E] :
-   add_comm_group (module.restrict_scalars R S E) := I
+  add_comm_group (module.restrict_scalars R S E) := I
 
 instance : module R (module.restrict_scalars R S E) :=
 (module.restrict_scalars' R S E : module R E)

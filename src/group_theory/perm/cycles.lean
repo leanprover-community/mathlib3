@@ -83,8 +83,8 @@ end
 @[simp] lemma cycle_of_gpow_apply_self [fintype α] (f : perm α) (x : α) :
   ∀ n : ℤ, (cycle_of f x ^ n) x = (f ^ n) x
 | (n : ℕ) := cycle_of_pow_apply_self f x n
-| -[1+ n] := by rw [gpow_neg_succ, ← inv_pow, cycle_of_inv,
-  gpow_neg_succ, ← inv_pow, cycle_of_pow_apply_self]
+| -[1+ n] := by rw [gpow_neg_succ_of_nat, ← inv_pow, cycle_of_inv,
+  gpow_neg_succ_of_nat, ← inv_pow, cycle_of_pow_apply_self]
 
 lemma cycle_of_apply_of_same_cycle [fintype α] {f : perm α} {x y : α} (h : same_cycle f x y) :
   cycle_of f x y = f y := dif_pos h

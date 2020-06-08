@@ -2328,7 +2328,7 @@ irreducible_of_prime (prime_of_degree_eq_one hp1)
 
 theorem pairwise_coprime_X_sub {α : Type u} [field α] {I : Type v}
   {s : I → α} (H : function.injective s) :
-  ideal.pairwise_coprime (λ i : I, polynomial.X - polynomial.C (s i)) :=
+  pairwise (ideal.is_coprime on (λ i : I, polynomial.X - polynomial.C (s i))) :=
 λ i j hij, have h : s j - s i ≠ 0, from sub_ne_zero_of_ne $ function.injective.ne H hij.symm,
 ideal.is_coprime_def'.2  ⟨polynomial.C (s j - s i)⁻¹, -polynomial.C (s j - s i)⁻¹,
 by rw [neg_mul_eq_neg_mul_symm, ← sub_eq_add_neg, ← mul_sub, sub_sub_sub_cancel_left,

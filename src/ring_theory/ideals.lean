@@ -6,12 +6,13 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 import algebra.associated
 import linear_algebra.basic
 import order.zorn
+import data.set.disjointed
 
 universes u v
 variables {α : Type u} {β : Type v} {a b : α}
 open set function
 
-open_locale classical
+open_locale classical big_operators
 
 namespace ideal
 variables [comm_ring α] (I : ideal α)
@@ -164,10 +165,7 @@ theorem is_coprime_self {x : α} :
   is_coprime x x ↔ is_unit x :=
 by rw [← span_singleton_eq_top]; simp [is_coprime]
 
-/- an indexed set of elements that are pairwise coprime -/
-def pairwise_coprime {α : Type u} [comm_ring α] {I : Type v} (s : I → α) : Prop :=
-∀ i j : I, i ≠ j → is_coprime (s i) (s j)
-
+/-- This is `is_coprime_def` but specialized to `1`. -/
 lemma is_coprime_def' {α : Type u} [comm_ring α] {x y : α} :
   is_coprime x y ↔ ∃ (a b : α), a * x + b * y = 1 :=
 ⟨λ h, is_coprime_def.1 h 1,
@@ -187,33 +185,31 @@ begin
 end
 
 theorem is_coprime_prod_of_pairwise_coprime {α : Type u} [comm_ring α]
-  {I : Type v} {s : I → α} (hs : pairwise_coprime s) {t : finset I} {x : I} :
-  x ∉ t → is_coprime (s x) (t.prod s) :=
-finset.induction_on t (λ _, is_coprime_def'.2 ⟨0,1,by rw [zero_mul, zero_add, one_mul]; refl⟩)
+  {I : Type v} {s : I → α} (hs : pairwise (is_coprime on s)) {t : finset I} {x : I} :
+  x ∉ t → is_coprime (s x) (∏ y in t, s y) :=
+finset.induction_on t (λ _, is_coprime_def'.2 ⟨0, 1, by rw [zero_mul, zero_add, one_mul]; refl⟩)
 (λ a r har ih hxar,
-  have hxa : x ≠ a, from mt (λ h, (h ▸ finset.mem_insert_self x r : x ∈ insert a r)) hxar,
-  have hxr : x ∉ r, from mt finset.mem_insert_of_mem hxar,
-  let ⟨ia,ib,hiaib⟩ := is_coprime_def'.1 (ih hxr) in
-  let ⟨c, d,hcd⟩ := is_coprime_def'.1 (hs _ _ hxa) in
-  is_coprime_def'.2 ⟨ia * s x * c + ia * d *s a + ib * r.prod s * c, ib * d,
-  calc  (ia * s x * c + ia * d * s a + ib * r.prod s * c) * s x + ib * d * (insert a r).prod s
-      = (ia * s x * c + ia * d * s a + ib * r.prod s * c) * s x + ib * d * (s a * r.prod s) : by rw finset.prod_insert har
-  ... = (ia * s x + ib * r.prod s) * (c * s x + d * s a) : by ring
-  ... = 1 : by rw [hiaib, hcd, mul_one]
-  ⟩)
+have hxa : x ≠ a, from mt (λ h, (h ▸ finset.mem_insert_self x r : x ∈ insert a r)) hxar,
+have hxr : x ∉ r, from mt finset.mem_insert_of_mem hxar,
+let ⟨ia, ib, hiaib⟩ := is_coprime_def'.1 (ih hxr) in
+let ⟨c, d, hcd⟩ := is_coprime_def'.1 (hs _ _ hxa) in
+is_coprime_def'.2 ⟨ia * s x * c + ia * d * s a + ib * (∏ y in r, s y) * c, ib * d,
+calc  (ia * s x * c + ia * d * s a + ib * (∏ y in r, s y) * c) * s x +
+        ib * d * (∏ y in insert a r, s y)
+    = (ia * s x * c + ia * d * s a + ib * (∏ y in r, s y) * c) * s x +
+        ib * d * (s a * (∏ y in r, s y)) : by rw finset.prod_insert har
+... = (ia * s x + ib * (∏ y in r, s y)) * (c * s x + d * s a) : by ring
+... = 1 : by rw [hiaib, hcd, mul_one]⟩)
 
 theorem finset.prod_dvd_of_coprime {α : Type u} [comm_ring α] {I : Type v}
-  {s : I → α} {z : α} (Hs : pairwise_coprime s) (Hs1 : ∀ i, s i ∣ z) {t : finset I} :
-  t.prod s ∣ z :=
-by haveI := classical.dec_eq I; exact
-finset.induction_on t (one_dvd z) (
-  λ a r har ih, by { rw finset.prod_insert har;
-  exact mul_dvd_of_coprime (is_coprime_prod_of_pairwise_coprime Hs har) (Hs1 a) ih}
-)
+  {s : I → α} {z : α} (Hs : pairwise (is_coprime on s)) (Hs1 : ∀ i, s i ∣ z) {t : finset I} :
+  ∏ x in t, s x ∣ z :=
+finset.induction_on t (one_dvd z) (λ a r har ih, by { rw finset.prod_insert har,
+exact mul_dvd_of_coprime (is_coprime_prod_of_pairwise_coprime Hs har) (Hs1 a) ih })
 
 theorem fintype.prod_dvd_of_coprime {α : Type u} [comm_ring α] {I : Type v} [fintype I]
-  {s : I → α} {z : α} (Hs : pairwise_coprime s) (Hs1 : ∀ i, s i ∣ z) :
-  finset.univ.prod s ∣ z :=
+  {s : I → α} {z : α} (Hs : pairwise (is_coprime on s)) (Hs1 : ∀ i, s i ∣ z) :
+  ∏ x, s x ∣ z :=
 finset.prod_dvd_of_coprime Hs Hs1
 
 lemma span_singleton_lt_span_singleton [integral_domain β] {x y : β} :

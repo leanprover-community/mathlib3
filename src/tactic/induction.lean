@@ -951,6 +951,8 @@ solve1 $ do
   interactive.simp none tt [simp_arg_type.expr sizeof] []
     (interactive.loc.ns [hyp_name]),
   `[linarith]
+  -- TODO the blanket 'linarith' here is a bit heavy. We could probably use
+  -- something more targeted.
 
 meta def simplify_cyclic_equation (equ type lhs rhs : expr)
   : tactic simplification_result :=
@@ -1058,17 +1060,10 @@ namespace interactive
 open lean.parser
 
 meta def simplify_index_equations (eqs : interactive.parse (many ident))
-  : tactic unit := do
-  tactic.simplify_index_equations eqs,
-  pure ()
+  : tactic unit :=
+tactic.simplify_index_equations eqs *> skip
 
 end interactive
-
--- TODO debug
-example {x y : ℕ} {xs ys} (h₁ : xs = ys) (h₂ : x :: y :: xs = ys) : false :=
-begin
-  simplify_index_equations h₁ h₂,
-end
 
 -- TODO spaghetti much
 meta def ih_apps_aux : expr → list expr → ℕ → expr → tactic (expr × list expr)
@@ -1137,7 +1132,8 @@ meta def simplify_ih (num_generalized : ℕ) (num_index_vars : ℕ) (ih : expr)
   -- TODO implement a more efficient 'lambdas'
   let new_ih := apps.lambdas (generalized_arg_locals ++ cnsts),
   -- Sanity check to catch any errors in constructing new_ih.
-  type_check new_ih,
+  type_check new_ih <|> fail!
+    "internal error in simplify_ih: constructed term does not type check:\n{new_ih}",
   replace' ih new_ih
 
 /--
@@ -1209,14 +1205,14 @@ focus1 $ do
     revert_all_except_locals (eliminee :: fix_exprs),
   let generalized_names := name_set.of_list generalized_names,
 
+  -- NOTE: The previous step may have changed the unique names of all hyps in
+  -- the context.
+
   -- Record the current case tag and the unique names of all hypotheses in the
   -- context. These will be used later to identify the new hypotheses we
   -- introduced.
   in_tag ← get_main_tag,
   old_hyps ← hyp_unique_names,
-
-  -- NOTE: The previous step may have changed the unique names of all hyps in
-  -- the context.
 
   -- Apply the recursor
   interactive.apply ``(%%rec_const %%eliminee),
@@ -1252,7 +1248,8 @@ focus1 $ do
 
       -- Simplify the index equations. Stop after this step if the goal has been
       -- solved by the simplification.
-      ff ← simplify_index_equations (index_equations.map expr.local_pp_name) | pure none,
+      ff ← simplify_index_equations (index_equations.map expr.local_pp_name)
+        | pure none,
 
       -- The previous step may have changed the unique names of the induction
       -- hypotheses, so we have to locate them again. Their pretty names should

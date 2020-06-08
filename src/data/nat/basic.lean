@@ -20,10 +20,7 @@ and extra recursors:
 
 universes u v
 
-run_cmd do env ← tactic.get_env,
-  tactic.set_env $
-  [``nat.pow_zero,
-   ``nat.pow_succ].foldl environment.mk_protected env
+attribute [protected] nat.pow_zero nat.pow_succ
 
 instance : canonically_ordered_comm_semiring ℕ :=
 { le_iff_exists_add := assume a b,

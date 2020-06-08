@@ -5,6 +5,7 @@ Authors: Heather Macbeth
 -/
 import analysis.normed_space.hahn_banach
 
+noncomputable theory
 
 section top_dual
 variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]

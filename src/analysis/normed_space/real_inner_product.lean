@@ -218,6 +218,35 @@ begin
   ring
 end
 
+/-- Pythagorean theorem, if-and-only-if vector inner product form. -/
+lemma norm_add_square_eq_norm_square_add_norm_square_iff_inner_eq_zero (x y : α) :
+  ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ ↔ inner x y = 0 :=
+begin
+  rw [norm_add_mul_self, add_right_cancel_iff, add_right_eq_self, mul_eq_zero],
+  norm_num
+end
+
+/-- Pythagorean theorem, vector inner product form. -/
+lemma norm_add_square_eq_norm_square_add_norm_square (x y : α) (h : inner x y = 0) :
+  ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
+(norm_add_square_eq_norm_square_add_norm_square_iff_inner_eq_zero x y).2 h
+
+/-- Pythagorean theorem, subtracting vectors, if-and-only-if vector
+inner product form. -/
+lemma norm_sub_square_eq_norm_square_add_norm_square_iff_inner_eq_zero (x y : α) :
+  ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ ↔ inner x y = 0 :=
+begin
+  rw [norm_sub_mul_self, add_right_cancel_iff, sub_eq_add_neg, add_right_eq_self, neg_eq_zero,
+      mul_eq_zero],
+  norm_num
+end
+
+/-- Pythagorean theorem, subtracting vectors, vector inner product
+form. -/
+lemma norm_sub_square_eq_norm_square_add_norm_square (x y : α) (h : inner x y = 0) :
+  ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
+(norm_sub_square_eq_norm_square_add_norm_square_iff_inner_eq_zero x y).2 h
+
 /-- An inner product space forms a normed group w.r.t. its associated norm. -/
 @[priority 100] -- see Note [lower instance priority]
 instance inner_product_space_is_normed_group : normed_group α :=

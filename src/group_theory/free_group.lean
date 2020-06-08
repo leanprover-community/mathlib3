@@ -378,8 +378,9 @@ by cases H with _ _ _ b; cases b; simp [to_group.aux]
 /-- If `β` is a group, then any function from `α` to `β`
 extends uniquely to a group homomorphism from
 the free group over `α` to `β` -/
-def to_group : free_group α → β :=
-quot.lift (to_group.aux f) $ λ L₁ L₂ H, red.step.to_group H
+def to_group : free_group α →* β :=
+monoid_hom.mk' (quot.lift (to_group.aux f) $ λ L₁ L₂ H, red.step.to_group H)
+  (by rintros ⟨L₁⟩ ⟨L₂⟩; simp [to_group.aux])
 
 variable {f}
 
@@ -389,9 +390,6 @@ rfl
 
 @[simp] lemma to_group.of {x} : to_group f (of x) = f x :=
 one_mul _
-
-instance to_group.is_group_hom : is_group_hom (to_group f) :=
-{ map_mul := by rintros ⟨L₁⟩ ⟨L₂⟩; simp }
 
 @[simp] lemma to_group.mul : to_group f (x * y) = to_group f x * to_group f y :=
 is_mul_hom.map_mul _ _ _
@@ -502,8 +500,8 @@ variables [group α] (x y : free_group α)
 extends uniquely to a homomorphism from the
 free group over `α` to `α`. This is the multiplicative
 version of `sum`. -/
-def prod : α :=
-to_group id x
+def prod : free_group α →* α :=
+to_group id
 
 variables {x y}
 
@@ -513,9 +511,6 @@ rfl
 
 @[simp] lemma prod.of {x : α} : prod (of x) = x :=
 to_group.of
-
-instance prod.is_group_hom : is_group_hom (@prod α _) :=
-to_group.is_group_hom
 
 @[simp] lemma prod.mul : prod (x * y) = prod x * prod y :=
 to_group.mul

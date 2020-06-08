@@ -335,4 +335,45 @@ begin
     simp [this] }
 end
 
+lemma alternating_sum_eq_finset_sum {G : Type*} [add_comm_group G] :
+  ∀ (L : list G), alternating_sum L = ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) •ℤ L.nth_le i i.2
+| [] := by { rw [alternating_sum, finset.sum_eq_zero], rintro ⟨i, ⟨⟩⟩ }
+| (g :: []) :=
+begin
+  show g = ∑ i : fin 1, (-1 : ℤ) ^ (i : ℕ) •ℤ [g].nth_le i i.2,
+  rw [fin.sum_univ_succ], simp,
+end
+| (g :: h :: L) :=
+calc g - h + L.alternating_sum
+    = g - h + ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) •ℤ L.nth_le i i.2 :
+      congr_arg _ (alternating_sum_eq_finset_sum _)
+... = ∑ i : fin (L.length + 2), (-1 : ℤ) ^ (i : ℕ) •ℤ list.nth_le (g :: h :: L) i _ :
+begin
+  rw [fin.sum_univ_succ, fin.sum_univ_succ, sub_eq_add_neg, add_assoc],
+  unfold_coes,
+  simp [nat.succ_eq_add_one, pow_add],
+  refl,
+end
+
+@[to_additive]
+lemma alternating_prod_eq_finset_prod {G : Type*} [comm_group G] :
+  ∀ (L : list G), alternating_prod L = ∏ i : fin L.length, (L.nth_le i i.2) ^ ((-1 : ℤ) ^ (i : ℕ))
+| [] := by { rw [alternating_prod, finset.prod_eq_one], rintro ⟨i, ⟨⟩⟩ }
+| (g :: []) :=
+begin
+  show g = ∏ i : fin 1, [g].nth_le i i.2 ^ (-1 : ℤ) ^ (i : ℕ),
+  rw [fin.prod_univ_succ], simp,
+end
+| (g :: h :: L) :=
+calc g * h⁻¹ * L.alternating_prod
+    = g * h⁻¹ * ∏ i : fin L.length, L.nth_le i i.2 ^ (-1 : ℤ) ^ (i : ℕ) :
+      congr_arg _ (alternating_prod_eq_finset_prod _)
+... = ∏ i : fin (L.length + 2), list.nth_le (g :: h :: L) i _ ^ (-1 : ℤ) ^ (i : ℕ) :
+begin
+  rw [fin.prod_univ_succ, fin.prod_univ_succ, mul_assoc],
+  unfold_coes,
+  simp [nat.succ_eq_add_one, pow_add],
+  refl,
+end
+
 end list

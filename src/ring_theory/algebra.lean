@@ -5,7 +5,6 @@ Authors: Kenny Lau, Yury Kudryashov
 -/
 import data.matrix.basic
 import linear_algebra.tensor_product
-import algebra.commute
 import data.equiv.ring
 
 /-!
@@ -399,6 +398,9 @@ instance : inhabited (A₁ ≃ₐ[R] A₁) := ⟨1⟩
 @[refl]
 def refl : A₁ ≃ₐ[R] A₁ := 1
 
+@[simp] lemma coe_refl : (@refl R A₁ _ _ _ : A₁ →ₐ[R] A₁) = alg_hom.id R A₁ :=
+alg_hom.ext (λ x, rfl)
+
 /-- Algebra equivalences are symmetric. -/
 @[symm]
 def symm (e : A₁ ≃ₐ[R] A₂) : A₂ ≃ₐ[R] A₁ :=
@@ -417,6 +419,14 @@ def trans (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) : A₁ ≃�
 
 @[simp] lemma symm_apply_apply (e : A₁ ≃ₐ[R] A₂) : ∀ x, e.symm (e x) = x :=
   e.to_equiv.symm_apply_apply
+
+@[simp] lemma comp_symm (e : A₁ ≃ₐ[R] A₂) :
+  alg_hom.comp (e : A₁ →ₐ[R] A₂) ↑e.symm = alg_hom.id R A₂ :=
+by { ext, simp }
+
+@[simp] lemma symm_comp (e : A₁ ≃ₐ[R] A₂) :
+  alg_hom.comp ↑e.symm (e : A₁ →ₐ[R] A₂) = alg_hom.id R A₁ :=
+by { ext, simp }
 
 end alg_equiv
 
@@ -485,8 +495,7 @@ end alg_hom
 namespace rat
 
 instance algebra_rat {α} [division_ring α] [char_zero α] : algebra ℚ α :=
-(rat.cast_hom α).to_algebra' $
-λ r x, (commute.cast_int_left x r.1).div_left (commute.cast_nat_left x r.2)
+(rat.cast_hom α).to_algebra' $ λ r x, r.cast_commute x
 
 end rat
 
@@ -680,7 +689,7 @@ def alg_hom_int
 
 /-- CRing ⥤ ℤ-Alg -/
 instance algebra_int : algebra ℤ R :=
-{ commutes' := λ x y, commute.cast_int_left _ _,
+{ commutes' := int.cast_commute,
   smul_def' := λ _ _, gsmul_eq_mul _ _,
   .. int.cast_ring_hom R }
 

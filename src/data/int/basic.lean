@@ -1115,7 +1115,7 @@ end classical
 
 /- cast (injection into groups with one) -/
 
-@[simp] theorem nat_cast_eq_coe_nat : ∀ n,
+@[simp, push_cast] theorem nat_cast_eq_coe_nat : ∀ n,
   @coe ℕ ℤ (@coe_to_lift _ _ nat.cast_coe) n =
   @coe ℕ ℤ (@coe_to_lift _ _ (@coe_base _ _ int.has_coe)) n
 | 0     := rfl

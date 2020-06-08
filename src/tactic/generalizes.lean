@@ -6,6 +6,39 @@ Author: Jannis Limperg
 
 import tactic.core
 
+/-!
+# The `generalizes` tactic
+
+This module defines the `tactic.generalizes'` tactic and its interactive version
+`tactic.interactive.generalizes`. These work like `generalize`, but they can
+generalize over multiple expressions at once. This is particularly handy when
+there are dependencies between the expressions, in which case `generalize` will
+usually fail but `generalizes` may succeed.
+
+## Implementation notes
+
+To generalize the target `T` over expressions `a₁ : T₁, ..., aₙ : Tₙ`, we first
+create the new target type
+
+    T' = ∀ (j₁ : T₁) (j₁_eq : j₁ == a₁) ..., T''
+
+where `T''` is `T` with any occurrences of the `aᵢ` replaced by the
+corresponding `jᵢ`. Creating this expression is a bit difficult because we must
+be careful when there are dependencies between the `aᵢ`. Suppose that `a₁ : T₁`
+and `a₂ : P a₁`. Then we want to end up with the target
+
+    T' = ∀ (j₁ : T₁) (j₁_eq : j₁ == a₁) (j₂ : P j₁) (j₂_eq : @heq (P j₁) j₂ (P a₁) a₂), ...
+
+Note the type of the heterogeneous equation `j₂_eq`: When abstracting over `a₁`,
+we want to replace `a₁` by `j₁` in the left-hand side to get the correct type
+for `j₂`, but not in the right-hand side. This construction is performed by
+`generalizes'_aux₁` and `generalizes'_aux₂`.
+
+Having constructed `T'`, we can `assert` it and use it to construct a proof of
+the original target by instantiating the binders with `a₁`, `heq.refl a₁`, `a₂`,
+`heq.refl a₂` etc. This leaves us with a generalized goal.
+-/
+
 universes u v w
 
 namespace tactic

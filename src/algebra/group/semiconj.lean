@@ -124,6 +124,7 @@ inv_symm_left_iff.2
 @[to_additive] lemma inv_inv_symm (h : semiconj_by a x y) : semiconj_by a⁻¹ y⁻¹ x⁻¹ :=
 h.inv_right.inv_symm_left
 
+-- this is not a simp lemma because it can be deduced from other simp lemmas
 @[to_additive] lemma inv_inv_symm_iff : semiconj_by a⁻¹ y⁻¹ x⁻¹ ↔ semiconj_by a x y :=
 inv_right_iff.trans inv_symm_left_iff
 

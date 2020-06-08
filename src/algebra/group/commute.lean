@@ -8,7 +8,7 @@ import algebra.group.semiconj
 /-!
 # Commuting pairs of elements in monoids
 
-We define the predicate `commute a b = a * b = b * a` and provide some operations on terms `(h :
+We define the predicate `commute a b := a * b = b * a` and provide some operations on terms `(h :
 commute a b)`. E.g., if `a`, `b`, and c are elements of a semiring, and that `hb : commute a b` and
 `hc : commute a c`.  Then `hb.pow_left 5` proves `commute (a ^ 5) b` and `(hb.pow_right 2).add_right
 (hb.mul_right hc)` proves `commute a (b ^ 2 + b * c)`.

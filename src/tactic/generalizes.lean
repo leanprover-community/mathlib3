@@ -70,7 +70,7 @@ private meta def generalizes'_aux₁ (md : transparency) (unify : bool)
   generalizes'_aux₁ e (c :: cnsts) xs
 
 /--
-`generalizes'_aux₂` takes as input the expression `e` produced by
+`generalizes'_aux₂ md []` takes as input the expression `e` produced by
 `generalizes'_aux₁` and a list containing, for each argument to be generalized:
 
 - a name for the generalisation equation;
@@ -79,21 +79,34 @@ private meta def generalizes'_aux₁ (md : transparency) (unify : bool)
 
 From this information, it generates a type of the form
 
-    ∀ (j₁ : T₁) (j₁_eq : j₁ == a₁) (j₂ : T₂) (j₂_eq : j₂ == a₂), e
+    ∀ (j₁ : T₁) (j₁_eq : j₁ = a₁) (j₂ : T₂) (j₂_eq : j₂ == a₂), e
 
 where the `aᵢ` are the arguments and the `jᵢ` correspond to the local constants.
+
+It also returns, for each argument, whether the equation associated with this
+argument is homogeneous (`tt`) or heterogeneous (`ff`).
+
+The transparency `md` is used when determining whether the types of an argument
+and its associated constant are definitionally equal (and thus whether to
+generate a homogeneous or a heterogeneous equation).
 -/
-private meta def generalizes'_aux₂ : expr → list (name × expr × expr) → tactic expr
-| e [] := pure e
-| e ((eq_name, cnst, arg) :: cs) := do
+private meta def generalizes'_aux₂ (md : transparency)
+  : list bool → expr → list (name × expr × expr) → tactic (expr × list bool)
+| acc e [] := pure (e, acc.reverse)
+| acc e ((eq_name, cnst, arg) :: cs) := do
   cnst_type ← infer_type cnst,
   arg_type ← infer_type arg,
   sort u ← infer_type arg_type,
+  homogeneous ← succeeds $ is_def_eq cnst_type arg_type,
+  let eq_type :=
+    if homogeneous
+      then ((const `eq [u]) cnst_type (var 0) arg)
+      else ((const `heq [u]) cnst_type (var 0) arg_type arg),
   let e :=
     pi cnst.local_pp_name binder_info.default cnst_type $
-    pi eq_name binder_info.default ((const `heq [u]) cnst_type (var 0) arg_type arg) $
+    pi eq_name binder_info.default eq_type $
     (e.abstract cnst).lift_vars 0 1,
-  generalizes'_aux₂ e cs
+  generalizes'_aux₂ (homogeneous :: acc) e cs
 
 /--
 Generalizes the target over each of the expressions in `args`. Given
@@ -126,16 +139,24 @@ focus1 $ do
   let args' :=
     @list.map₂ (name × name × expr) expr _
       (λ ⟨x_name, eq_name, x⟩ cnst, (eq_name, cnst, x)) args_rev cnsts,
-  tgt ← generalizes'_aux₂ tgt args',
+  ⟨tgt, eq_types⟩ ← generalizes'_aux₂ md [] tgt args',
+  let eq_types := eq_types.reverse,
   type_check tgt <|> fail!
     "generalizes: unable to generalize the target because the generalized target type does not type check:\n{tgt}",
   n ← mk_fresh_name,
   h ← assert n tgt,
   swap,
-  apps ← args.mmap $ λ ⟨_, _, x⟩, do {
+  let args' :=
+    @list.map₂ (name × name × expr) bool _
+      (λ ⟨_, _, x⟩ homogeneous, (x, homogeneous)) args eq_types,
+  apps ← args'.mmap $ λ ⟨x, homogeneous⟩, do {
     x_type ← infer_type x,
     sort u ← infer_type x_type,
-    pure [x, (const `heq.refl [u]) x_type x]
+    let eq_proof :=
+      if homogeneous
+        then (const `eq.refl [u]) x_type x
+        else (const `heq.refl [u]) x_type x,
+    pure [x, eq_proof]
   },
   exact $ h.mk_app apps.join
 
@@ -152,7 +173,7 @@ with_desc "id : expr = id" $ do
   arg ← lean.parser.pexpr 0,
   (arg, arg_name) ←
     match arg with
-    | (app (app (macro _ [const `eq _ ]) e) (local_const x _ _ _)) := pure (e, x)
+    | (app (app (macro _ [const `eq _ ])  e) (local_const x _ _ _)) := pure (e, x)
     | (app (app (macro _ [const `heq _ ]) e) (local_const x _ _ _)) := pure (e, x)
     | _ := failure
     end,
@@ -171,20 +192,21 @@ Generalizes the target over multiple expressions. For example, given the goal
     f : fin n
     ⊢ P (nat.succ n) (fin.succ f)
 
-you can use `generalizes [n'_eq : nat.succ n = n', f'_eq : fin.succ f = f']` to get
+you can use `generalizes [n'_eq : nat.succ n = n', f'_eq : fin.succ f == f']` to
+get
 
     P : ∀ n, fin n → Prop
     n : ℕ
     f : fin n
     n' : ℕ
-    n'_eq : n' == nat.succ n
+    n'_eq : n' = nat.succ n
     f' : fin n'
     f'_eq : f' == fin.succ f
     ⊢ P n' f'
 
 The expressions must be given in dependency order, so
-`[f'_eq : fin.succ f = f', n'_eq : nat.succ n = n']` would fail since the type of
-`fin.succ f` is `nat.succ n`.
+`[f'_eq : fin.succ f == f', n'_eq : nat.succ n = n']` would fail since the type
+of `fin.succ f` is `nat.succ n`.
 
 After generalization, the target type may no longer type check. `generalizes`
 will then raise an error.

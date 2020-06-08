@@ -341,7 +341,7 @@ variables {P' : Type*} [comm_ring P'] {f' : localization_map S P'}
 variables {P'' : Type*} [comm_ring P''] {f'' : localization_map S P''}
 
 lemma fractional_map (g : f.codomain →ₐ[R] f'.codomain) (I : fractional_ideal f) :
-is_fractional f' (submodule.map g.to_linear_map I.1) :=
+  is_fractional f' (submodule.map g.to_linear_map I.1) :=
 begin
   rcases I with ⟨I, a, a_nonzero, hI⟩,
   use [a, a_nonzero],

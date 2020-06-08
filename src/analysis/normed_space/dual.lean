@@ -15,6 +15,8 @@ variables (E : Type*) [normed_group E] [normed_space 𝕜 E]
 
 instance : has_coe_to_fun (top_dual 𝕜 E) := ⟨_, λ f, f.to_fun⟩
 
+instance : inhabited (top_dual 𝕜 E) := ⟨0⟩
+
 def inclusion_in_double_dual (x : E) : (top_dual 𝕜 (top_dual 𝕜 E)) :=
 linear_map.mk_continuous
   { to_fun := λ f, f x,

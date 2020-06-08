@@ -51,11 +51,15 @@ variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 noncomputable theory
 open_locale classical
 
+/-- Temporary (this probably exists elsewhere).  Given an element `x` of a normed
+    space `E` over `𝕜`, the natural map from `𝕜` to scalar multiples of `x`.-/
 def span_map (x : E) : 𝕜 →ₗ[𝕜] E :=
 { to_fun := λ (c : 𝕜), c • x,
   add    := λ a b, add_smul a b x,
   smul   := λ a b, mul_smul a b x }
 
+/-- Temporary (this probably exists elsewhere).  The span of an element `x` of
+    a normed space `E`.-/
 def span (x : E) : subspace 𝕜 E := (span_map 𝕜 x).range
 
 lemma mem_span_self (x : E) : x ∈ span 𝕜 x :=
@@ -64,6 +68,9 @@ begin
   use 1, exact one_smul 𝕜 x,
 end
 
+/-- Temporary (this probably exists elsewhere).  Given a nonzero element `x` of
+    a normed space `E` over `𝕜`, the natural map from `𝕜` to the span of `x`,
+    with invertibility check to consider it as an isomorphism.-/
 def span_equiv (x : E) (h : x ≠ 0) : 𝕜 ≃ₗ[𝕜] (span 𝕜 x) :=
 linear_equiv.of_injective (span_map 𝕜 x)
 begin
@@ -80,6 +87,8 @@ end
 lemma span_equiv_eval (x : E) (h : x ≠ 0) : (span_equiv 𝕜 x h).to_fun
   = span_equiv 𝕜 x h := rfl
 
+/-- Temporary (this probably exists elsewhere).  Given a nonzero element `x` of
+    a normed space `E` over `𝕜`, the natural map from the span of `x` to `𝕜`.-/
 abbreviation coord (x : E) (h : x ≠ 0) : (span 𝕜 x) ≃ₗ[𝕜] 𝕜 :=
 (span_equiv 𝕜 x h).symm
 
@@ -110,6 +119,9 @@ begin
   simp, exact le_of_eq (coord_isometry 𝕜 x h y),
 end
 
+/-- Temporary (this probably exists elsewhere).  Given a nonzero element `x` of
+    a normed space `E` over `𝕜`, the natural map from the span of `x` to `𝕜`,
+    with boundedness check to consider it as a continuous linear map. -/
 def coord_bdd (x : E) (h : x ≠ 0) : span 𝕜 x →L[𝕜] 𝕜 :=
 linear_map.mk_continuous
 (coord 𝕜 x h)

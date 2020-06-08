@@ -11,12 +11,14 @@ section top_dual
 variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
 variables (E : Type*) [normed_group E] [normed_space 𝕜 E]
 
+/- The topological dual of a normed space `E`. -/
 @[derive [normed_group, normed_space 𝕜]] def top_dual := E →L[𝕜] 𝕜
 
 instance : has_coe_to_fun (top_dual 𝕜 E) := ⟨_, λ f, f.to_fun⟩
 
 instance : inhabited (top_dual 𝕜 E) := ⟨0⟩
 
+/- The inclusion of a normed space in its double (topological) dual. -/
 def inclusion_in_double_dual (x : E) : (top_dual 𝕜 (top_dual 𝕜 E)) :=
 linear_map.mk_continuous
   { to_fun := λ f, f x,
@@ -34,6 +36,8 @@ begin
   intros f, rw mul_comm, exact f.le_op_norm x,
 end
 
+/- The inclusion of a normed space in its double (topological) dual, considered
+   as a bounded linear map. -/
 def inclusion_in_double_dual_map : E →L[𝕜] (top_dual 𝕜 (top_dual 𝕜 E)) :=
 linear_map.mk_continuous
   { to_fun := λ (x : E), (inclusion_in_double_dual 𝕜 E) x,

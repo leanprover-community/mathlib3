@@ -55,14 +55,14 @@ lemma finset.prod_nonneg_of_card_nonpos_even
   {f : α → β} [decidable_pred (λ x, f x ≤ 0)]
   {s : finset α} (h0 : (s.filter (λ x, f x ≤ 0)).card.even) :
   0 ≤ ∏ x in s, f x :=
-calc 0 ≤ (∏ x in s, (if f x ≤ 0 then (-1:β) else 1) * f x) :
+calc 0 ≤ (∏ x in s, ((if f x ≤ 0 then (-1:β) else 1) * f x)) :
   finset.prod_nonneg (λ x _, by
     { split_ifs with hx hx, by simp [hx], simp at hx ⊢, exact le_of_lt hx })
 ... = _ : by rw [finset.prod_mul_distrib, finset.prod_ite, finset.prod_const_one,
   mul_one, finset.prod_const, neg_one_pow_eq_pow_mod_two, nat.even_iff.1 h0, pow_zero, one_mul]
 
 lemma int_prod_range_nonneg (m : ℤ) (n : ℕ) (hn : n.even) :
-  0 ≤ (∏ k in finset.range n, m - k) :=
+  0 ≤ ∏ k in finset.range n, (m - k) :=
 begin
   cases (le_or_lt ↑n m) with hnm hmn,
   { exact finset.prod_nonneg (λ k hk, sub_nonneg.2 (le_trans

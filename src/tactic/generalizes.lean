@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jannis Limperg
 -/
 
-import tactic.basic
+import tactic.core
 
 universes u v w
 
@@ -20,11 +20,6 @@ begin
       tactic.trace x),
   exact ()
 end
-
-meta def kreplace (e old new : expr) (md := semireducible) (unify := tt)
-  : tactic expr := do
-  e ← kabstract e old md unify,
-  pure $ e.instantiate_var new
 
 -- Input must be in reverse dependency order!
 -- Output constants are also in reverse dependency order.

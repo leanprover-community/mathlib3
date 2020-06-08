@@ -151,9 +151,9 @@ begin
 end
 
 /-- Adding two weighted sums. -/
-lemma weighted_vsub_of_point_add (w1 w2 : ι → k) (p : ι → P) (b : P) :
-  weighted_vsub_of_point V w1 p b + weighted_vsub_of_point V w2 p b =
-    weighted_vsub_of_point V (w1 + w2) p b :=
+lemma weighted_vsub_of_point_add (w₁ w₂ : ι → k) (p : ι → P) (b : P) :
+  weighted_vsub_of_point V w₁ p b + weighted_vsub_of_point V w₂ p b =
+    weighted_vsub_of_point V (w₁ + w₂) p b :=
 begin
   erw ←finset.sum_add_distrib,
   congr,
@@ -163,9 +163,9 @@ begin
 end
 
 /-- Subtracting two weighted sums. -/
-lemma weighted_vsub_of_point_sub (w1 w2 : ι → k) (p : ι → P) (b : P) :
-  weighted_vsub_of_point V w1 p b - weighted_vsub_of_point V w2 p b =
-    weighted_vsub_of_point V (w1 - w2) p b :=
+lemma weighted_vsub_of_point_sub (w₁ w₂ : ι → k) (p : ι → P) (b : P) :
+  weighted_vsub_of_point V w₁ p b - weighted_vsub_of_point V w₂ p b =
+    weighted_vsub_of_point V (w₁ - w₂) p b :=
 begin
   erw ←finset.sum_sub_distrib,
   congr,
@@ -236,14 +236,14 @@ lemma weighted_vsub_neg (w : ι → k) (p : ι → P) :
 weighted_vsub_of_point_neg V w p _
 
 /-- Adding two weighted sums. -/
-lemma weighted_vsub_add (w1 w2 : ι → k) (p : ι → P) :
-  weighted_vsub V w1 p + weighted_vsub V w2 p = weighted_vsub V (w1 + w2) p :=
-weighted_vsub_of_point_add V w1 w2 p _
+lemma weighted_vsub_add (w₁ w₂ : ι → k) (p : ι → P) :
+  weighted_vsub V w₁ p + weighted_vsub V w₂ p = weighted_vsub V (w₁ + w₂) p :=
+weighted_vsub_of_point_add V w₁ w₂ p _
 
 /-- Subtracting two weighted sums. -/
-lemma weighted_vsub_sub (w1 w2 : ι → k) (p : ι → P) :
-  weighted_vsub V w1 p - weighted_vsub V w2 p = weighted_vsub V (w1 - w2) p :=
-weighted_vsub_of_point_sub V w1 w2 p _
+lemma weighted_vsub_sub (w₁ w₂ : ι → k) (p : ι → P) :
+  weighted_vsub V w₁ p - weighted_vsub V w₂ p = weighted_vsub V (w₁ - w₂) p :=
+weighted_vsub_of_point_sub V w₁ w₂ p _
 
 /-- A weighted sum of the results of subtracting a default base point
 from the given points, added to that base point.  This is intended to
@@ -261,20 +261,20 @@ lemma affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one (w : ι �
 weighted_vsub_of_point_vadd_eq_of_sum_eq_one V w p h _ _
 
 /-- Adding a `weighted_vsub` to an `affine_combination`. -/
-lemma weighted_vsub_vadd_affine_combination (w1 w2 : ι → k) (p : ι → P) :
-  weighted_vsub V w1 p +ᵥ affine_combination V w2 p = affine_combination V (w1 + w2) p :=
+lemma weighted_vsub_vadd_affine_combination (w₁ w₂ : ι → k) (p : ι → P) :
+  weighted_vsub V w₁ p +ᵥ affine_combination V w₂ p = affine_combination V (w₁ + w₂) p :=
 begin
   erw vadd_assoc,
   congr,
-  exact weighted_vsub_add V w1 w2 p
+  exact weighted_vsub_add V w₁ w₂ p
 end
 
 /-- Subtracting two `affine_combination`s. -/
-lemma affine_combination_vsub (w1 w2 : ι → k) (p : ι → P) :
-  affine_combination V w1 p -ᵥ affine_combination V w2 p = weighted_vsub V (w1 - w2) p :=
+lemma affine_combination_vsub (w₁ w₂ : ι → k) (p : ι → P) :
+  affine_combination V w₁ p -ᵥ affine_combination V w₂ p = weighted_vsub V (w₁ - w₂) p :=
 begin
   erw vadd_vsub_vadd_cancel_right,
-  exact weighted_vsub_sub V w1 w2 p
+  exact weighted_vsub_sub V w₁ w₂ p
 end
 
 end combination

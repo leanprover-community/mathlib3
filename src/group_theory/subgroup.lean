@@ -287,7 +287,7 @@ def subtype : H →* G := ⟨coe, rfl, λ _ _, rfl⟩
 
 @[simp, to_additive] theorem coe_subtype : ⇑H.subtype = coe := rfl
 
-@[simp] lemma coe_pow (x : H) (n : ℕ) : ((x ^ n : H) : G) = x ^ n :=
+@[simp, norm_cast] lemma coe_pow (x : H) (n : ℕ) : ((x ^ n : H) : G) = x ^ n :=
 coe_subtype H ▸ monoid_hom.map_pow _ _ _
 @[simp] lemma coe_gpow (x : H) (n : ℤ) : ((x ^ n : H) : G) = x ^ n :=
 coe_subtype H ▸ monoid_hom.map_gpow _ _ _

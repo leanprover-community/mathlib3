@@ -33,18 +33,13 @@ def conjugate_exponent (p : ℝ) : ℝ := p/(p-1)
 lemma is_conjugate_exponent_iff {p q : ℝ} (h : 1 < p) :
   p.is_conjugate_exponent q ↔ q = p/(p-1) :=
 begin
-  have A : 1/p + 1/q = 1 ↔ q = 1/(1-1/p) := calc
-    1/p + 1/q = 1 ↔ 1/q = 1-1/p : eq_sub_iff_add_eq'.symm
-    ... ↔ q = 1/(1-1/p) : by { simp only [one_div_eq_inv], rw inv_eq_iff, exact eq_comm },
-  have B : p ≠ 0 := ne_of_gt (lt_trans zero_lt_one h),
   split,
-  { assume H,
-    rw A.1 H.inv_add_inv_conj,
-    field_simp [B] },
-  { assume H,
-    refine ⟨h, _⟩,
+  { rintros ⟨H, H'⟩,
+    rw [eq_sub_iff_add_eq'.symm, one_div_eq_inv, inv_eq_iff] at H',
+    field_simp [ne_of_gt (lt_trans zero_lt_one h), ← H'] },
+  { refine λ H, ⟨h, _⟩,
     rw H,
-    field_simp [B] }
+    field_simp [ne_of_gt (lt_trans zero_lt_one h)] }
 end
 
 lemma is_conjugate_exponent_conjugate_exponent {p : ℝ} (h : 1 < p) :

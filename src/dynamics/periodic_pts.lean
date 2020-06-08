@@ -9,6 +9,7 @@ Note that we do not require `0 < n` in this definition. Many theorems about peri
 need this assumption. -/
 def is_periodic_pt (f : α → α) (n : ℕ) (x : α) := is_fixed_pt (f^[n]) x
 
+/-- A fixed point of `f` is a periodic point of `f` of any prescribed period. -/
 lemma is_fixed_pt.is_periodic_pt (hf : is_fixed_pt f x) (n : ℕ) : is_periodic_pt f n x :=
 hf.iterate n
 

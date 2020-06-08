@@ -62,7 +62,7 @@ private meta def generalizes'_aux₂ : expr → list (name × expr × expr) → 
     (e.abstract cnst).lift_vars 0 1,
   generalizes'_aux₂ e cs
 
-/-
+/--
 Generalizes the target over each of the expressions in `args`. Given
 `args = [(a₁, h₁, arg₁), ...]`, this changes the target to
 

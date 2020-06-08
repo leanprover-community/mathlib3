@@ -623,7 +623,7 @@ end subgroup
 
 namespace add_subgroup
 
-/-- "An add_subgroup is normal if whenever `n ∈ H`, then `g + n - g ∈ H` for every `g : G` -/
+/-- An add_subgroup is normal if whenever `n ∈ H`, then `g + n - g ∈ H` for every `g : G` -/
 structure normal (H : add_subgroup A) : Prop :=
 (conj_mem [] : ∀ n, n ∈ H → ∀ g : A, g + n - g ∈ H)
 

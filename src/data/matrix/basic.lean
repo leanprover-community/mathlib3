@@ -102,7 +102,7 @@ diagonal_val_ne'
 end one
 end diagonal
 
-@[simp] lemma bit0_apply_apply [decidable_eq n] [has_add α] (M : matrix n n α) (i : n) (j : n) :
+@[simp] lemma bit0_apply_apply [has_add α] (M : matrix n n α) (i : n) (j : n) :
   (bit0 M) i j = bit0 (M i j) := rfl
 
 @[simp] lemma bit1_apply_apply [decidable_eq n] [semiring α] (M : matrix n n α) (i : n) (j : n) :

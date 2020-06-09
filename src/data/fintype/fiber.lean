@@ -6,7 +6,7 @@ Author: Johan Commelin, Scott Morrison
 import data.fintype.basic
 
 /-!
-# The fibre over a point, when the domain is a fintype.
+# The fiber over a point, when the domain is a fintype.
 
 We define the fiber of a function `f : α → β` over a point `b : β`, when we have `fintype α`,
 as a `finset α`, and prove some basic properties.

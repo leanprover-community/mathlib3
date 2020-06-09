@@ -223,7 +223,7 @@ begin
         { apply mul_pos; exact_mod_cast hx }, },
       have hzx : z*z + x*x = (z * x + 1) * k,
       { rw [← sub_eq_zero, ← h_root],
-        simp, ring, },
+        ring, },
       rw hzx at hpos,
       replace hpos : z * x + 1 > 0 := pos_of_mul_pos_right hpos (int.coe_zero_le k),
       replace hpos : z * x ≥ 0 := int.le_of_lt_add_one hpos,

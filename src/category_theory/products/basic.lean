@@ -3,17 +3,14 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison
 -/
-import category_theory.equivalence
 import category_theory.eq_to_hom
-import tactic.interactive
 
 namespace category_theory
 
 universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
+variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]
 
 /--
 `prod C D` gives the cartesian product of two categories.
@@ -27,8 +24,8 @@ instance prod : category.{max v₁ v₂} (C × D) :=
 @[simp] lemma prod_id (X : C) (Y : D) : 𝟙 (X, Y) = (𝟙 X, 𝟙 Y) := rfl
 @[simp] lemma prod_comp {P Q R : C} {S T U : D} (f : (P, S) ⟶ (Q, T)) (g : (Q, T) ⟶ (R, U)) :
   f ≫ g = (f.1 ≫ g.1, f.2 ≫ g.2) := rfl
-@[simp] lemma prod_id_fst (X : prod C D) : _root_.prod.fst (𝟙 X) = 𝟙 X.fst := rfl
-@[simp] lemma prod_id_snd (X : prod C D) : _root_.prod.snd (𝟙 X) = 𝟙 X.snd := rfl
+@[simp] lemma prod_id_fst (X : prod C D) : prod.fst (𝟙 X) = 𝟙 X.fst := rfl
+@[simp] lemma prod_id_snd (X : prod C D) : prod.snd (𝟙 X) = 𝟙 X.snd := rfl
 @[simp] lemma prod_comp_fst {X Y Z : prod C D} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g).1 = f.1 ≫ g.1 := rfl
 @[simp] lemma prod_comp_snd {X Y Z : prod C D} (f : X ⟶ Y) (g : Y ⟶ Z) :
@@ -36,31 +33,34 @@ instance prod : category.{max v₁ v₂} (C × D) :=
 end
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₁) [𝒟 : category.{v₁} D]
-include 𝒞 𝒟
+variables (C : Type u₁) [category.{v₁} C] (D : Type u₁) [category.{v₁} D]
 /--
-`prod.category.uniform C D` is an additional instance specialised so both factors have the same universe levels. This helps typeclass resolution.
+`prod.category.uniform C D` is an additional instance specialised so both factors have the same
+universe levels. This helps typeclass resolution.
 -/
 instance uniform_prod : category (C × D) := category_theory.prod C D
 end
 
--- Next we define the natural functors into and out of product categories. For now this doesn't address the universal properties.
+-- Next we define the natural functors into and out of product categories. For now this doesn't
+-- address the universal properties.
 namespace prod
 
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
-
-/-- `inl C Z` is the functor `X ↦ (X, Z)`. -/
--- Here and below we specify explicitly the projections to generate `@[simp]` lemmas for, 
--- as the default behaviour of `@[simps]` will generate projections all the way down to components of pairs.
-@[simps obj map] def inl (Z : D) : C ⥤ C × D :=
+/-- `sectl C Z` is the functor `C ⥤ C × D` given by `X ↦ (X, Z)`. -/
+-- Here and below we specify explicitly the projections to generate `@[simp]` lemmas for,
+-- as the default behaviour of `@[simps]` will generate projections all the way down to components
+-- of pairs.
+@[simps obj map] def sectl
+  (C : Type u₁) [category.{v₁} C] {D : Type u₂} [category.{v₂} D] (Z : D) : C ⥤ C × D :=
 { obj := λ X, (X, Z),
   map := λ X Y f, (f, 𝟙 Z) }
 
-/-- `inr D Z` is the functor `X ↦ (Z, X)`. -/
-@[simps obj map] def inr (Z : C) : D ⥤ C × D :=
+/-- `sectr Z D` is the functor `D ⥤ C × D` given by `Y ↦ (Z, Y)` . -/
+@[simps obj map] def sectr
+  {C : Type u₁} [category.{v₁} C] (Z : C) (D : Type u₂) [category.{v₂} D] : D ⥤ C × D :=
 { obj := λ X, (Z, X),
   map := λ X Y f, (𝟙 Z, f) }
+
+variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]
 
 /-- `fst` is the functor `(X, Y) ↦ X`. -/
 @[simps obj map] def fst : C × D ⥤ C :=
@@ -91,8 +91,7 @@ instance swap_is_equivalence : is_equivalence (swap C D) :=
 end prod
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
+variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]
 
 @[simps] def evaluation : C ⥤ (C ⥤ D) ⥤ D :=
 { obj := λ X,
@@ -115,11 +114,10 @@ include 𝒞 𝒟
 
 end
 
-variables {A : Type u₁} [𝒜 : category.{v₁} A]
-          {B : Type u₂} [ℬ : category.{v₂} B]
-          {C : Type u₃} [𝒞 : category.{v₃} C]
-          {D : Type u₄} [𝒟 : category.{v₄} D]
-include 𝒜 ℬ 𝒞 𝒟
+variables {A : Type u₁} [category.{v₁} A]
+          {B : Type u₂} [category.{v₂} B]
+          {C : Type u₃} [category.{v₃} C]
+          {D : Type u₄} [category.{v₄} D]
 
 namespace functor
 /-- The cartesian product of two functors. -/

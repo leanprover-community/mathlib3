@@ -371,11 +371,8 @@ meta structure context :=
 /--
 The `ring_exp_m` monad is used instead of `tactic` to store the context.
 -/
+@[derive [monad, alternative]]
 meta def ring_exp_m (α : Type) : Type := reader_t context (state_t (list atom) tactic) α
-
--- Basic operations on `ring_exp_m`:
-meta instance : monad ring_exp_m := by { dunfold ring_exp_m, apply_instance }
-meta instance : alternative ring_exp_m := by { dunfold ring_exp_m, apply_instance }
 
 /--
 Access the instance cache.
@@ -629,7 +626,7 @@ with the proof of `expr.of_rat p + expr.of_rat q = expr.of_rat (p + q)`.
 meta def add_coeff (p_p q_p : expr) (p q : coeff) : ring_exp_m (ex prod) := do
   ctx ← get_context,
   pq_o ← mk_add [p_p, q_p],
-  (pq_p, pq_pf) ← lift $ norm_num pq_o,
+  (pq_p, pq_pf) ← lift $ norm_num.derive' pq_o,
   pure $ ex.coeff ⟨pq_o, pq_p, pq_pf⟩ ⟨p.1 + q.1⟩
 
 lemma mul_coeff_pf_one_mul (q : α) : 1 * q = q := one_mul q
@@ -656,7 +653,7 @@ match p.1, q.1 with -- Special case to speed up multiplication with 1.
 | _, _ := do
   ctx ← get_context,
   pq' ← mk_mul [p_p, q_p],
-  (pq_p, pq_pf) ← lift $ norm_num pq',
+  (pq_p, pq_pf) ← lift $ norm_num.derive' pq',
   pure $ ex.coeff ⟨pq_p, pq_p, pq_pf⟩ ⟨p.1 * q.1⟩
 end
 
@@ -680,7 +677,7 @@ A potential extension to the tactic would also do this for the base of exponents
 e.g. to show `2^n * 2^n = 4^n`.
 -/
 meta inductive overlap : Type
-| none {} : overlap
+| none : overlap
 | nonzero : ex prod → overlap
 | zero : ex sum → overlap
 
@@ -969,6 +966,18 @@ lemma pow_e_pf_exp {pps p : α} {ps qs psqs : ℕ} :
   ... = p ^ psqs : by rw [psqs_pf]
 
 /--
+Compute the exponentiation of two coefficients.
+
+The returned value is of the form `ex.coeff _ (p ^ q)`,
+with the proof of `expr.of_rat p ^ expr.of_rat q = expr.of_rat (p ^ q)`.
+-/
+meta def pow_coeff (p_p q_p : expr) (p q : coeff) : ring_exp_m (ex prod) := do
+  ctx ← get_context,
+  pq' ← mk_pow [p_p, q_p],
+  (pq_p, pq_pf) ← lift $ norm_num.derive' pq',
+  pure $ ex.coeff ⟨pq_p, pq_p, pq_pf⟩ ⟨p.1 * q.1⟩
+
+/--
 Exponentiate two expressions.
 
 * `(p ^ ps) ^ qs = p ^ (ps * qs)`
@@ -985,6 +994,9 @@ meta def pow_e : ex exp → ex prod → ring_exp_m (ex exp)
 
 lemma pow_pp_pf_one {ps : α} {qs : ℕ} : ps = 1 → ps ^ qs = 1 :=
 λ ps_pf, by rw [ps_pf, _root_.one_pow]
+
+lemma pow_pf_c_c {ps ps' pq : α} {qs qs' : ℕ} :
+  ps = ps' → qs = qs' → ps' ^ qs' = pq → ps ^ qs = pq := by cc
 
 lemma pow_pp_pf_c {ps ps' pqs : α} {qs qs' : ℕ} :
   ps = ps' → qs = qs' → ps' ^ qs' = pqs → ps ^ qs = pqs * 1 :=
@@ -1010,6 +1022,13 @@ meta def pow_pp : ex prod → ex prod → ring_exp_m (ex prod)
   o_o ← pow_orig ps qs,
   pf ← mk_proof ``pow_pp_pf_one [ps.orig, qs.orig] [ps.info],
   pure $ o.set_info o_o pf
+| ps@(ex.coeff ps_i x) qs@(ex.coeff qs_i y) := do
+  pq ← pow_coeff ps.pretty qs.pretty x y,
+  pq_o ← pow_orig ps qs,
+  pf ← mk_proof_or_refl pq.pretty ``pow_pf_c_c
+    [ps.orig, ps.pretty, pq.pretty, qs.orig, qs.pretty]
+    [ps.info, qs.info, pq.info],
+  pure $ pq.set_info pq_o pf
 | ps@(ex.coeff ps_i x) qs := do
   ps'' ← pure ps >>= prod_to_sum >>= ex_sum_b,
   pqs ← ex_exp ps'' qs,
@@ -1482,3 +1501,21 @@ add_tactic_doc
   tags        := ["arithmetic", "simplification", "decision procedure"] }
 
 end tactic.interactive
+
+namespace conv.interactive
+open conv interactive
+open tactic tactic.interactive (ring_exp_eq)
+open tactic.ring_exp (normalize)
+
+local postfix `?`:9001 := optional
+
+/--
+Normalises expressions in commutative (semi-)rings inside of a `conv` block using the tactic `ring_exp`.
+-/
+meta def ring_exp (red : parse (lean.parser.tk "!")?) : conv unit :=
+let transp := if red.is_some then semireducible else reducible in
+discharge_eq_lhs (ring_exp_eq red)
+<|> replace_lhs (normalize transp)
+<|> fail "ring_exp failed to simplify"
+
+end conv.interactive

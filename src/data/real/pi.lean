@@ -3,8 +3,7 @@ Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-
-import analysis.complex.exponential
+import analysis.special_functions.trigonometric
 
 namespace real
 variable (x : ℝ)
@@ -20,11 +19,11 @@ lemma sqrt_two_add_series_zero : sqrt_two_add_series x 0 = x := by simp
 lemma sqrt_two_add_series_one : sqrt_two_add_series 0 1 = sqrt 2 := by simp
 lemma sqrt_two_add_series_two : sqrt_two_add_series 0 2 = sqrt (2 + sqrt 2) := by simp
 
-lemma sqrt_two_add_series_zero_nonneg : ∀(n : ℕ), sqrt_two_add_series 0 n ≥ 0
+lemma sqrt_two_add_series_zero_nonneg : ∀(n : ℕ), 0 ≤ sqrt_two_add_series 0 n
 | 0     := le_refl 0
 | (n+1) := sqrt_nonneg _
 
-lemma sqrt_two_add_series_nonneg {x : ℝ} (h : 0 ≤ x) : ∀(n : ℕ), sqrt_two_add_series x n ≥ 0
+lemma sqrt_two_add_series_nonneg {x : ℝ} (h : 0 ≤ x) : ∀(n : ℕ), 0 ≤ sqrt_two_add_series x n
 | 0     := h
 | (n+1) := sqrt_nonneg _
 
@@ -52,32 +51,6 @@ lemma sqrt_two_add_series_monotone_left {x y : ℝ} (h : x ≤ y) :
     rw [sqrt_two_add_series, sqrt_two_add_series],
     apply sqrt_le_sqrt, apply add_le_add_left, apply sqrt_two_add_series_monotone_left
   end
-
-lemma sqrt_two_add_series_step_up {a b n : ℕ} {z : ℝ} (c d : ℕ)
-  (hz : sqrt_two_add_series (c/d) n ≤ z) (hb : b ≠ 0) (hd : d ≠ 0)
-  (h : (2 * b + a) * d ^ 2 ≤ c ^ 2 * b) : sqrt_two_add_series (a/b) (n+1) ≤ z :=
-begin
-  refine le_trans _ hz, rw [sqrt_two_add_series_succ], apply sqrt_two_add_series_monotone_left,
-  rwa [sqrt_le_left, div_pow, add_div_eq_mul_add_div, div_le_iff, mul_comm (_/_), ←mul_div_assoc,
-      le_div_iff, ←nat.cast_pow, ←nat.cast_pow, ←@nat.cast_one ℝ, ←nat.cast_bit0, ←nat.cast_mul,
-      ←nat.cast_mul, ←nat.cast_add, ←nat.cast_mul, nat.cast_le, mul_comm b],
-  apply pow_pos, iterate 2 {apply nat.cast_pos.2, apply nat.pos_of_ne_zero, assumption},
-  exact nat.cast_ne_zero.2 hb,
-  exact div_nonneg (nat.cast_nonneg _) (nat.cast_pos.2 $ nat.pos_of_ne_zero hd)
-end
-
-lemma sqrt_two_add_series_step_down {c d n : ℕ} {z : ℝ} (a b : ℕ)
-  (hz : z ≤ sqrt_two_add_series (a/b) n) (hb : b ≠ 0) (hd : d ≠ 0)
-  (h : a ^ 2 * d ≤ (2 * d + c) * b ^ 2) : z ≤ sqrt_two_add_series (c/d) (n+1) :=
-begin
-  apply le_trans hz, rw [sqrt_two_add_series_succ], apply sqrt_two_add_series_monotone_left,
-  apply le_sqrt_of_sqr_le,
-  rwa [div_pow, add_div_eq_mul_add_div, div_le_iff, mul_comm (_/_), ←mul_div_assoc,
-      le_div_iff, ←nat.cast_pow, ←nat.cast_pow, ←@nat.cast_one ℝ, ←nat.cast_bit0, ←nat.cast_mul,
-      ←nat.cast_mul, ←nat.cast_add, ←nat.cast_mul, nat.cast_le, mul_comm (b ^ 2)],
-  swap, apply pow_pos, iterate 2 {apply nat.cast_pos.2, apply nat.pos_of_ne_zero, assumption},
-  exact nat.cast_ne_zero.2 hd,
-end
 
 @[simp] lemma cos_pi_over_two_pow : ∀(n : ℕ), cos (pi / 2 ^ (n+1)) = sqrt_two_add_series 0 n / 2
 | 0     := by simp
@@ -149,9 +122,9 @@ by { transitivity cos (pi / 2 ^ 5), congr, norm_num, simp }
 lemma sin_pi_div_thirty_two : sin (pi / 32) = sqrt (2 - sqrt (2 + sqrt (2 + sqrt 2))) / 2 :=
 by { transitivity sin (pi / 2 ^ 5), congr, norm_num, simp }
 
-lemma pi_gt_sqrt_two_add_series (n : ℕ) : pi > 2 ^ (n+1) * sqrt (2 - sqrt_two_add_series 0 n) :=
+lemma pi_gt_sqrt_two_add_series (n : ℕ) : 2 ^ (n+1) * sqrt (2 - sqrt_two_add_series 0 n) < pi :=
 begin
-  have : pi > sqrt (2 - sqrt_two_add_series 0 n) / 2 * 2 ^ (n+2),
+  have : sqrt (2 - sqrt_two_add_series 0 n) / 2 * 2 ^ (n+2) < pi,
   { apply mul_lt_of_lt_div, apply pow_pos, norm_num,
     rw [←sin_pi_over_two_pow_succ], apply sin_lt, apply div_pos pi_pos, apply pow_pos, norm_num },
   apply lt_of_le_of_lt (le_of_eq _) this,
@@ -187,42 +160,100 @@ begin
   apply pow_ne_zero, norm_num, norm_num
 end
 
-lemma pi_gt_three : pi > 3 :=
+/-- From an upper bound on `sqrt_two_add_series 0 n = 2 cos (pi / 2 ^ (n+1))` of the form 
+`sqrt_two_add_series 0 n ≤ 2 - (a / 2 ^ (n + 1)) ^ 2)`, one can deduce the lower bound `a < pi`
+thanks to basic trigonometric inequalities as expressed in `pi_gt_sqrt_two_add_series`. -/
+theorem pi_lower_bound_start (n : ℕ) {a}
+  (h : sqrt_two_add_series ((0:ℕ) / (1:ℕ)) n ≤ 2 - (a / 2 ^ (n + 1)) ^ 2) : a < pi :=
 begin
-  refine lt_of_le_of_lt _ (pi_gt_sqrt_two_add_series 1), rw [mul_comm],
-  apply le_mul_of_div_le, norm_num, apply le_sqrt_of_sqr_le, rw [le_sub],
-  rw show (0:ℝ) = (0:ℕ)/(1:ℕ), by rw [nat.cast_zero, zero_div],
-  apply sqrt_two_add_series_step_up 23 16,
-  all_goals {norm_num}
+  refine lt_of_le_of_lt _ (pi_gt_sqrt_two_add_series n), rw [mul_comm],
+  refine le_mul_of_div_le (pow_pos (by norm_num) _) (le_sqrt_of_sqr_le _),
+  rwa [le_sub, show (0:ℝ) = (0:ℕ)/(1:ℕ), by rw [nat.cast_zero, zero_div]],
 end
 
-lemma pi_gt_314 : pi > 3.14 :=
+lemma sqrt_two_add_series_step_up (c d : ℕ) {a b n : ℕ} {z : ℝ}
+  (hz : sqrt_two_add_series (c/d) n ≤ z) (hb : 0 < b) (hd : 0 < d)
+  (h : (2 * b + a) * d ^ 2 ≤ c ^ 2 * b) : sqrt_two_add_series (a/b) (n+1) ≤ z :=
 begin
-  refine lt_of_le_of_lt _ (pi_gt_sqrt_two_add_series 4), rw [mul_comm],
-  apply le_mul_of_div_le, norm_num, apply le_sqrt_of_sqr_le,
-  rw [le_sub, show (0:ℝ) = (0:ℕ)/(1:ℕ), by rw [nat.cast_zero, zero_div]],
-  apply sqrt_two_add_series_step_up 99 70,
-  apply sqrt_two_add_series_step_up 874 473,
-  apply sqrt_two_add_series_step_up 1940 989,
-  apply sqrt_two_add_series_step_up 1447 727,
-  all_goals {norm_num}
+  refine le_trans _ hz, rw sqrt_two_add_series_succ, apply sqrt_two_add_series_monotone_left,
+  have hb' : 0 < (b:ℝ) := nat.cast_pos.2 hb,
+  have hd' : 0 < (d:ℝ) := nat.cast_pos.2 hd,
+  rw [sqrt_le_left (div_nonneg (nat.cast_nonneg _) hd'), div_pow,
+    add_div_eq_mul_add_div _ _ (ne_of_gt hb'), div_le_div_iff hb' (pow_pos hd' _)],
+  exact_mod_cast h
 end
 
-lemma pi_lt_315 : pi < 3.15 :=
+/-- Create a proof of `a < pi` for a fixed rational number `a`, given a witness, which is a
+sequence of rational numbers `sqrt 2 < r 1 < r 2 < ... < r n < 2` satisfying the property that
+`sqrt (2 + r i) ≤ r(i+1)`, where `r 0 = 0` and `sqrt (2 - r n) ≥ a/2^(n+1)`. -/
+meta def pi_lower_bound (l : list ℚ) : tactic unit :=
+do let n := l.length,
+  tactic.apply `(@pi_lower_bound_start %%(reflect n)),
+  l.mmap' (λ r, do
+    let a := r.num.to_nat, let b := r.denom,
+    (() <$ tactic.apply `(@sqrt_two_add_series_step_up %%(reflect a) %%(reflect b)));
+    [tactic.skip, `[norm_num1], `[norm_num1], `[norm_num1]]),
+  `[simp only [sqrt_two_add_series, nat.cast_bit0, nat.cast_bit1, nat.cast_one, nat.cast_zero]],
+  `[norm_num1]
+
+/-- From a lower bound on `sqrt_two_add_series 0 n = 2 cos (pi / 2 ^ (n+1))` of the form
+`2 - ((a - 1 / 4 ^ n) / 2 ^ (n + 1)) ^ 2 ≤ sqrt_two_add_series 0 n`, one can deduce the upper bound
+`pi < a` thanks to basic trigonometric formulas as expressed in `pi_lt_sqrt_two_add_series`. -/
+theorem pi_upper_bound_start (n : ℕ) {a}
+  (h : 2 - ((a - 1 / 4 ^ n) / 2 ^ (n + 1)) ^ 2 ≤ sqrt_two_add_series ((0:ℕ) / (1:ℕ)) n)
+  (h₂ : 1 / 4 ^ n ≤ a) : pi < a :=
 begin
-  refine lt_of_lt_of_le (pi_lt_sqrt_two_add_series 4) _,
-  apply add_le_of_le_sub_right, rw [mul_comm], apply mul_le_of_le_div, apply pow_pos, norm_num,
-  rw [sqrt_le_left, sub_le, show (0:ℝ) = (0:ℕ)/(1:ℕ), by rw [nat.cast_zero, zero_div]],
-  apply sqrt_two_add_series_step_down 140 99,
-  apply sqrt_two_add_series_step_down 279 151,
-  apply sqrt_two_add_series_step_down 51 26,
-  apply sqrt_two_add_series_step_down 412 207,
-  all_goals {norm_num}
+  refine lt_of_lt_of_le (pi_lt_sqrt_two_add_series n) _,
+  rw [← le_sub_iff_add_le, ← le_div_iff', sqrt_le_left, sub_le],
+  { rwa [nat.cast_zero, zero_div] at h },
+  { exact div_nonneg (sub_nonneg.2 h₂) (pow_pos two_pos _) },
+  { exact pow_pos two_pos _ }
 end
 
-/- A computation of the first 7 digits of pi is given here:
-  <https://gist.github.com/fpvandoorn/5b405988bc2e61953d56e3597db16ecf>
-  This is not included in mathlib, because of slow compilation time.
-  -/
+lemma sqrt_two_add_series_step_down (a b : ℕ) {c d n : ℕ} {z : ℝ}
+  (hz : z ≤ sqrt_two_add_series (a/b) n) (hb : 0 < b) (hd : 0 < d)
+  (h : a ^ 2 * d ≤ (2 * d + c) * b ^ 2) : z ≤ sqrt_two_add_series (c/d) (n+1) :=
+begin
+  apply le_trans hz, rw sqrt_two_add_series_succ, apply sqrt_two_add_series_monotone_left,
+  apply le_sqrt_of_sqr_le,
+  have hb' : 0 < (b:ℝ) := nat.cast_pos.2 hb,
+  have hd' : 0 < (d:ℝ) := nat.cast_pos.2 hd,
+  rw [div_pow, add_div_eq_mul_add_div _ _ (ne_of_gt hd'), div_le_div_iff (pow_pos hb' _) hd'],
+  exact_mod_cast h
+end
+
+/-- Create a proof of `pi < a` for a fixed rational number `a`, given a witness, which is a
+sequence of rational numbers `sqrt 2 < r 1 < r 2 < ... < r n < 2` satisfying the property that
+`sqrt (2 + r i) ≥ r(i+1)`, where `r 0 = 0` and `sqrt (2 - r n) ≥ (a - 1/4^n) / 2^(n+1)`. -/
+meta def pi_upper_bound (l : list ℚ) : tactic unit :=
+do let n := l.length,
+  (() <$ tactic.apply `(@pi_upper_bound_start %%(reflect n))); [pure (), `[norm_num1]],
+  l.mmap' (λ r, do
+    let a := r.num.to_nat, let b := r.denom,
+    (() <$ tactic.apply `(@sqrt_two_add_series_step_down %%(reflect a) %%(reflect b)));
+    [pure (), `[norm_num1], `[norm_num1], `[norm_num1]]),
+  `[simp only [sqrt_two_add_series, nat.cast_bit0, nat.cast_bit1, nat.cast_one, nat.cast_zero]],
+  `[norm_num]
+
+lemma pi_gt_three : 3 < pi := by pi_lower_bound [23/16]
+
+lemma pi_gt_314 : 3.14 < pi := by pi_lower_bound [99/70, 874/473, 1940/989, 1447/727]
+
+lemma pi_lt_315 : pi < 3.15 := by pi_upper_bound [140/99, 279/151, 51/26, 412/207]
+
+lemma pi_gt_31415 : 3.1415 < pi := by pi_lower_bound [
+  11482/8119, 5401/2923, 2348/1197, 11367/5711, 25705/12868, 23235/11621]
+
+lemma pi_lt_31416 : pi < 3.1416 := by pi_upper_bound [
+  4756/3363, 101211/54775, 505534/257719, 83289/41846,
+  411278/205887, 438142/219137, 451504/225769, 265603/132804, 849938/424971]
+
+lemma pi_gt_3141592 : 3.141592 < pi := by pi_lower_bound [
+  11482/8119, 7792/4217, 54055/27557, 949247/476920, 3310126/1657059,
+  2635492/1318143, 1580265/790192, 1221775/610899, 3612247/1806132, 849943/424972]
+
+lemma pi_lt_3141593 : pi < 3.141593 := by pi_upper_bound [
+  27720/19601, 56935/30813, 49359/25163, 258754/130003, 113599/56868, 1101994/551163,
+  8671537/4336095, 3877807/1938940, 52483813/26242030, 56946167/28473117, 23798415/11899211]
 
 end real

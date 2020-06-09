@@ -5,8 +5,7 @@ Author: Mario Carneiro
 
 Additional equiv and encodable instances for lists, finsets, and fintypes.
 -/
-import data.equiv.denumerable data.nat.pairing order.order_iso
-  data.array.lemmas data.fintype.basic
+import data.equiv.denumerable
 
 open nat list
 
@@ -124,7 +123,8 @@ finset.univ.sort (encodable.encode' α ⁻¹'o (≤))
 theorem mem_sorted_univ {α} [fintype α] [encodable α] (x : α) : x ∈ sorted_univ α :=
 (finset.mem_sort _).2 (finset.mem_univ _)
 
-theorem length_sorted_univ {α} [fintype α] [encodable α] : (sorted_univ α).length = fintype.card α :=
+theorem length_sorted_univ {α} [fintype α] [encodable α] :
+  (sorted_univ α).length = fintype.card α :=
 finset.length_sort _
 
 theorem sorted_univ_nodup {α} [fintype α] [encodable α] : (sorted_univ α).nodup :=

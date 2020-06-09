@@ -3,7 +3,6 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-
 import analysis.calculus.mean_value
 import tactic.monotonicity
 
@@ -21,7 +20,6 @@ the right endpoint of an interval, are given in
 of the one-dimensional derivative `deriv ℝ f`.
 -/
 
-set_option class.instance_max_depth 40
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
           {F : Type*} [normed_group F] [normed_space ℝ F]
@@ -46,6 +44,7 @@ begin
   by_cases hx : x ∉ closure s,
   { rw ← closure_closure at hx, exact has_fderiv_within_at_of_not_mem_closure hx },
   push_neg at hx,
+  rw [has_fderiv_within_at, has_fderiv_at_filter, asymptotics.is_o_iff],
   /- One needs to show that `∥f y - f x∥ ≤ ε ∥y - x∥` for `y` close to `x` in `closure s`, where
   `ε` is an arbitrary positive constant. By continuity of the functions, it suffices to prove this
   for nearby points inside `s`. In a neighborhood of `x`, the derivative of `f` is arbitrarily small
@@ -67,7 +66,7 @@ begin
   { rintros ⟨u, v⟩ ⟨u_in, v_in⟩,
     have conv : convex (B ∩ s) := (convex_ball _ _).inter s_conv,
     have diff : differentiable_on ℝ f (B ∩ s) := f_diff.mono (inter_subset_right _ _),
-    refine conv.norm_image_sub_le_of_norm_deriv_le diff (λz z_in, _) u_in v_in,
+    refine conv.norm_image_sub_le_of_norm_fderiv_within_le diff (λz z_in, _) u_in v_in,
     convert le_of_lt (hδ _ z_in.2 z_in.1),
     have op : is_open (B ∩ s) := is_open_inter is_open_ball s_open,
     rw differentiable_at.fderiv_within _ (op.unique_diff_on z z_in),
@@ -166,7 +165,7 @@ end
 
 /-- If a function is differentiable on the left of a point `a : ℝ`, continuous at `a`, and
 its derivative also converges at `a`, then `f` is differentiable on the left at `a`. -/
-lemma has_fderiv_at_interval_right_endpoint_of_tendsto_deriv {s : set ℝ} {e : E} {a : ℝ} {f : ℝ → E}
+lemma has_deriv_at_interval_right_endpoint_of_tendsto_deriv {s : set ℝ} {e : E} {a : ℝ} {f : ℝ → E}
   (f_diff : differentiable_on ℝ f s) (f_lim : continuous_within_at f s a)
   (hs : s ∈ nhds_within a (Iio a))
   (f_lim' : tendsto (λx, deriv f x) (nhds_within a (Iio a)) (𝓝 e)) :
@@ -199,4 +198,36 @@ begin
   { rw [has_deriv_within_at_iff_has_fderiv_within_at, ← t_closure],
     exact has_fderiv_at_boundary_of_tendsto_fderiv t_diff t_conv t_open t_cont t_diff' },
   exact this.nhds_within (mem_nhds_within_Iic_iff_exists_Icc_subset.2 ⟨b, ba, subset.refl _⟩)
+end
+
+/-- If a real function `f` has a derivative `g` everywhere but at a point, and `f` and `g` are
+continuous at this point, then `g` is also the derivative of `f` at this point. -/
+lemma has_deriv_at_of_has_deriv_at_of_ne {f g : ℝ → E} {x : ℝ}
+  (f_diff : ∀ y ≠ x, has_deriv_at f (g y) y)
+  (hf : continuous_at f x) (hg : continuous_at g x) :
+  has_deriv_at f (g x) x :=
+begin
+  have A : has_deriv_within_at f (g x) (Ici x) x,
+  { have diff : differentiable_on ℝ f (Ioi x) :=
+      λy hy, (f_diff y (ne_of_gt hy)).differentiable_at.differentiable_within_at,
+    -- next line is the nontrivial bit of this proof, appealing to differentiability
+    -- extension results.
+    apply has_deriv_at_interval_left_endpoint_of_tendsto_deriv diff hf.continuous_within_at
+      self_mem_nhds_within,
+    have : tendsto g (nhds_within x (Ioi x)) (𝓝 (g x)) := tendsto_inf_left hg,
+    apply this.congr' _,
+    apply mem_sets_of_superset self_mem_nhds_within (λy hy, _),
+    exact (f_diff y (ne_of_gt hy)).deriv.symm },
+  have B : has_deriv_within_at f (g x) (Iic x) x,
+  { have diff : differentiable_on ℝ f (Iio x) :=
+      λy hy, (f_diff y (ne_of_lt hy)).differentiable_at.differentiable_within_at,
+    -- next line is the nontrivial bit of this proof, appealing to differentiability
+    -- extension results.
+    apply has_deriv_at_interval_right_endpoint_of_tendsto_deriv diff hf.continuous_within_at
+      self_mem_nhds_within,
+    have : tendsto g (nhds_within x (Iio x)) (𝓝 (g x)) := tendsto_inf_left hg,
+    apply this.congr' _,
+    apply mem_sets_of_superset self_mem_nhds_within (λy hy, _),
+    exact (f_diff y (ne_of_lt hy)).deriv.symm },
+  simpa using B.union A
 end

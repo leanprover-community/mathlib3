@@ -3,11 +3,10 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.limits.shapes.terminal
 import category_theory.limits.shapes.binary_products
+import category_theory.limits.shapes.images
 import category_theory.epi_mono
 import category_theory.punit
-import category_theory.pempty
 
 /-!
 # Zero morphisms and zero objects
@@ -31,8 +30,7 @@ open category_theory
 
 namespace category_theory.limits
 
-variables (C : Type u) [𝒞 : category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C]
 
 /-- A category "has zero morphisms" if there is a designated "zero morphism" in each morphism space,
 and compositions of zero morphisms with anything give the zero morphism. -/
@@ -47,15 +45,11 @@ attribute [simp] has_zero_morphisms.comp_zero
 restate_axiom has_zero_morphisms.zero_comp'
 attribute [simp, reassoc] has_zero_morphisms.zero_comp
 
-section
-omit 𝒞
-
 instance has_zero_morphisms_pempty : has_zero_morphisms.{v} pempty.{v+1} :=
 { has_zero := by tidy }
 
 instance has_zero_morphisms_punit : has_zero_morphisms.{v} punit.{v+1} :=
 { has_zero := λ X Y, { zero := punit.star, } }
-end
 
 namespace has_zero_morphisms
 variables {C}
@@ -98,18 +92,22 @@ open has_zero_morphisms
 section
 variables {C} [has_zero_morphisms.{v} C]
 
-lemma zero_of_comp_mono {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [mono g] (h : f ≫ g = 0) : f = 0 :=
-by { rw [←zero_comp.{v} C X g, cancel_mono] at h, exact h }
+lemma zero_of_comp_mono {X Y Z : C} {f : X ⟶ Y} (g : Y ⟶ Z) [mono g] (h : f ≫ g = 0) : f = 0 :=
+by { rw [←zero_comp.{v} X g, cancel_mono] at h, exact h }
 
-lemma zero_of_comp_epi {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [epi f] (h : f ≫ g = 0) : g = 0 :=
-by { rw [←comp_zero.{v} C f Z, cancel_epi] at h, exact h }
+lemma zero_of_epi_comp {X Y Z : C} (f : X ⟶ Y) {g : Y ⟶ Z} [epi f] (h : f ≫ g = 0) : g = 0 :=
+by { rw [←comp_zero.{v} f Z, cancel_epi] at h, exact h }
 
+lemma eq_zero_of_image_eq_zero {X Y : C} {f : X ⟶ Y} [has_image f] (w : image.ι f = 0) : f = 0 :=
+by rw [←image.fac f, w, has_zero_morphisms.comp_zero]
+
+lemma nonzero_image_of_nonzero {X Y : C} {f : X ⟶ Y} [has_image f] (w : f ≠ 0) : image.ι f ≠ 0 :=
+λ h, w (eq_zero_of_image_eq_zero h)
 end
 
 section
 universes v' u'
-variables (D : Type u') [𝒟 : category.{v'} D]
-include 𝒟
+variables (D : Type u') [category.{v'} D]
 
 variables [has_zero_morphisms.{v} C] [has_zero_morphisms.{v'} D]
 
@@ -132,14 +130,10 @@ class has_zero_object :=
 (unique_to : Π X : C, unique (zero ⟶ X))
 (unique_from : Π X : C, unique (X ⟶ zero))
 
-section
-omit 𝒞
-
 instance has_zero_object_punit : has_zero_object.{v} punit.{v+1} :=
 { zero := punit.star,
   unique_to := by tidy,
   unique_from := by tidy, }
-end
 
 variables {C}
 
@@ -152,10 +146,24 @@ Construct a `has_zero C` for a category with a zero object.
 This can not be a global instance as it will trigger for every `has_zero C` typeclass search.
 -/
 protected def has_zero : has_zero C :=
-{ zero := has_zero_object.zero.{v} C }
+{ zero := has_zero_object.zero.{v} }
 
 local attribute [instance] has_zero_object.has_zero
 local attribute [instance] has_zero_object.unique_to has_zero_object.unique_from
+
+@[ext]
+lemma to_zero_ext {X : C} (f g : X ⟶ 0) : f = g :=
+by rw [(has_zero_object.unique_from.{v} X).uniq f, (has_zero_object.unique_from.{v} X).uniq g]
+
+@[ext]
+lemma from_zero_ext {X : C} (f g : 0 ⟶ X) : f = g :=
+by rw [(has_zero_object.unique_to.{v} X).uniq f, (has_zero_object.unique_to.{v} X).uniq g]
+
+instance {X : C} (f : 0 ⟶ X) : mono f :=
+{ right_cancellation := λ Z g h w, by ext, }
+
+instance {X : C} (f : X ⟶ 0) : epi f :=
+{ left_cancellation := λ Z g h w, by ext, }
 
 /-- A category with a zero object has zero morphisms.
 
@@ -175,20 +183,13 @@ section
 variable [has_zero_morphisms.{v} C]
 
 /--  An arrow ending in the zero object is zero -/
-@[ext]
+-- This can't be a `simp` lemma because the left hand side would be a metavariable.
 lemma zero_of_to_zero {X : C} (f : X ⟶ 0) : f = 0 :=
-begin
-  rw (has_zero_object.unique_from.{v} X).uniq f,
-  rw (has_zero_object.unique_from.{v} X).uniq (0 : X ⟶ 0)
-end
+by ext
 
 /-- An arrow starting at the zero object is zero -/
-@[ext]
 lemma zero_of_from_zero {X : C} (f : 0 ⟶ X) : f = 0 :=
-begin
-  rw (has_zero_object.unique_to.{v} X).uniq f,
-  rw (has_zero_object.unique_to.{v} X).uniq (0 : 0 ⟶ X)
-end
+by ext
 
 end
 

@@ -1,4 +1,11 @@
-import algebra.group.type_tags algebra.group.is_unit
+/-
+Copyright (c) 2019 Yury Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Yury Kudryashov
+-/
+import algebra.group.type_tags
+import algebra.group.units_hom
+import algebra.ring
 
 /-!
 # Unbundled monoid and group homomorphisms (deprecated)
@@ -22,9 +29,10 @@ as `map_mul`; a separate constructor `monoid_hom.mk'` will construct
 group homs (i.e. monoid homs between groups) given only a proof
 that multiplication is preserved,
 
-Throughout the `monoid_hom` section implicit `{}` brackets are often used instead of type class `[]` brackets.
-This is done when the instances can be inferred because they are implicit arguments to the type `monoid_hom`.
-When they can be inferred from the type it is faster to use this method than to use type class inference.
+Throughout the `monoid_hom` section implicit `{}` brackets are often used instead of type class `[]`
+brackets.  This is done when the instances can be inferred because they are implicit arguments to
+the type `monoid_hom`.  When they can be inferred from the type it is faster to use this method than
+to use type class inference.
 
 ## Tags
 
@@ -46,12 +54,12 @@ variables {α : Type u} {β : Type v}
 
 /-- Predicate for maps which preserve an addition. -/
 class is_add_hom {α β : Type*} [has_add α] [has_add β] (f : α → β) : Prop :=
-(map_add : ∀ x y, f (x + y) = f x + f y)
+(map_add [] : ∀ x y, f (x + y) = f x + f y)
 
 /-- Predicate for maps which preserve a multiplication. -/
 @[to_additive]
 class is_mul_hom {α β : Type*} [has_mul α] [has_mul β] (f : α → β) : Prop :=
-(map_mul : ∀ x y, f (x * y) = f x * f y)
+(map_mul [] : ∀ x y, f (x * y) = f x * f y)
 
 namespace is_mul_hom
 variables [has_mul α] [has_mul β] {γ : Type*} [has_mul γ]
@@ -87,12 +95,12 @@ section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- Predicate for add_monoid homomorphisms (deprecated -- use the bundled `monoid_hom` version). -/
 class is_add_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) extends is_add_hom f : Prop :=
-(map_zero : f 0 = 0)
+(map_zero [] : f 0 = 0)
 
 /-- Predicate for monoid homomorphisms (deprecated -- use the bundled `monoid_hom` version). -/
 @[to_additive is_add_monoid_hom]
 class is_monoid_hom [monoid α] [monoid β] (f : α → β) extends is_mul_hom f : Prop :=
-(map_one : f 1 = 1)
+(map_one [] : f 1 = 1)
 end prio
 
 namespace monoid_hom

@@ -2,15 +2,14 @@
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
-
-Pi instances for algebraic structures.
 -/
-import order.basic
-import algebra.group.prod
 import algebra.module
-import data.finset
 import ring_theory.subring
-import tactic.pi_instances
+import ring_theory.prod
+
+/-!
+# Pi instances for algebraic structures
+-/
 
 namespace pi
 universes u v w
@@ -64,46 +63,51 @@ instance semiring           [∀ i, semiring           $ f i] : semiring        
 instance ring               [∀ i, ring               $ f i] : ring               (Π i : I, f i) := by pi_instance
 instance comm_ring          [∀ i, comm_ring          $ f i] : comm_ring          (Π i : I, f i) := by pi_instance
 
-instance mul_action     (α) {m : monoid α}                                      [∀ i, mul_action α $ f i]     : mul_action α (Π i : I, f i) :=
+instance mul_action (α) {m : monoid α} [∀ i, mul_action α $ f i] :
+  @mul_action α (Π i : I, f i) m :=
 { smul := λ c f i, c • f i,
   mul_smul := λ r s f, funext $ λ i, mul_smul _ _ _,
   one_smul := λ f, funext $ λ i, one_smul α _ }
 
-instance distrib_mul_action (α) {m : monoid α}         [∀ i, add_monoid $ f i]      [∀ i, distrib_mul_action α $ f i] : distrib_mul_action α (Π i : I, f i) :=
+instance distrib_mul_action (α) {m : monoid α} {n : ∀ i, add_monoid $ f i} [∀ i, distrib_mul_action α $ f i] :
+  @distrib_mul_action α (Π i : I, f i) m (@pi.add_monoid I f n) :=
 { smul_zero := λ c, funext $ λ i, smul_zero _,
   smul_add := λ c f g, funext $ λ i, smul_add _ _ _,
   ..pi.mul_action _ }
 
 variables (I f)
 
-instance semimodule     (α) {r : semiring α}       [∀ i, add_comm_monoid $ f i] [∀ i, semimodule α $ f i]     : semimodule α (Π i : I, f i) :=
+instance semimodule (α) {r : semiring α} {m : ∀ i, add_comm_monoid $ f i} [∀ i, semimodule α $ f i] :
+  @semimodule α (Π i : I, f i) r (@pi.add_comm_monoid I f m) :=
 { add_smul := λ c f g, funext $ λ i, add_smul _ _ _,
   zero_smul := λ f, funext $ λ i, zero_smul α _,
   ..pi.distrib_mul_action _ }
 
 variables {I f}
 
-instance module         (α) {r : ring α}           [∀ i, add_comm_group $ f i]  [∀ i, module α $ f i]         : module α (Π i : I, f i)       := {..pi.semimodule I f α}
-
-instance left_cancel_semigroup [∀ i, left_cancel_semigroup $ f i] : left_cancel_semigroup (Π i : I, f i) :=
+instance left_cancel_semigroup [∀ i, left_cancel_semigroup $ f i] :
+  left_cancel_semigroup (Π i : I, f i) :=
 by pi_instance
 
-instance add_left_cancel_semigroup [∀ i, add_left_cancel_semigroup $ f i] : add_left_cancel_semigroup (Π i : I, f i) :=
+instance add_left_cancel_semigroup [∀ i, add_left_cancel_semigroup $ f i] :
+  add_left_cancel_semigroup (Π i : I, f i) :=
 by pi_instance
 
-instance right_cancel_semigroup [∀ i, right_cancel_semigroup $ f i] : right_cancel_semigroup (Π i : I, f i) :=
+instance right_cancel_semigroup [∀ i, right_cancel_semigroup $ f i] :
+  right_cancel_semigroup (Π i : I, f i) :=
 by pi_instance
 
-instance add_right_cancel_semigroup [∀ i, add_right_cancel_semigroup $ f i] : add_right_cancel_semigroup (Π i : I, f i) :=
+instance add_right_cancel_semigroup [∀ i, add_right_cancel_semigroup $ f i] :
+  add_right_cancel_semigroup (Π i : I, f i) :=
 by pi_instance
 
-instance ordered_cancel_comm_monoid [∀ i, ordered_cancel_comm_monoid $ f i] : ordered_cancel_comm_monoid (Π i : I, f i) :=
+instance ordered_cancel_comm_monoid [∀ i, ordered_cancel_add_comm_monoid $ f i] :
+  ordered_cancel_add_comm_monoid (Π i : I, f i) :=
 by pi_instance
 
-instance ordered_comm_group [∀ i, ordered_comm_group $ f i] : ordered_comm_group (Π i : I, f i) :=
-{ add_lt_add_left := λ a b hab c, ⟨λ i, add_le_add_left (hab.1 i) (c i),
-    λ h, hab.2 $ λ i, le_of_add_le_add_left (h i)⟩,
-  add_le_add_left := λ x y hxy c i, add_le_add_left (hxy i) _,
+instance ordered_add_comm_group [∀ i, ordered_add_comm_group $ f i] :
+  ordered_add_comm_group (Π i : I, f i) :=
+{ add_le_add_left := λ x y hxy c i, add_le_add_left (hxy i) _,
   ..pi.add_comm_group,
   ..pi.partial_order }
 
@@ -154,7 +158,168 @@ instance is_ring_hom_pi
   is_ring_hom (λ x b, f b x) :=
 (show γ →+* Π a, β a, from pi.ring_hom (λ a, ring_hom.of (f a))).is_ring_hom
 
+-- Note that we only define `single` here for dependent functions with additive fibres.
+section
+variables [decidable_eq I]
+variables [Π i, has_zero (f i)]
+
+/-- The function supported at `i`, with value `x` there. -/
+def single (i : I) (x : f i) : Π i, f i :=
+λ i', if h : i' = i then (by { subst h, exact x }) else 0
+
+@[simp]
+lemma single_eq_same (i : I) (x : f i) : single i x i = x :=
+begin
+  dsimp [single],
+  split_ifs,
+  { refl, },
+  { exfalso, exact h rfl, }
+end
+@[simp]
+lemma single_eq_of_ne {i i' : I} (h : i' ≠ i) (x : f i) : single i x i' = 0 :=
+begin
+  dsimp [single],
+  split_ifs with h',
+  { exfalso, exact h h', },
+  { refl, }
+end
+
+end
+
 end pi
+
+section
+universes u v
+variable {I : Type u}     -- The indexing type
+variable (f : I → Type v) -- The family of types already equipped with instances
+variables [Π i, monoid (f i)]
+
+/-- Evaluation of functions into an indexed collection of monoids at a point is a monoid
+homomorphism. -/
+@[to_additive "Evaluation of functions into an indexed collection of additive monoids at a point
+is an additive monoid homomorphism."]
+def monoid_hom.apply (i : I) : (Π i, f i) →* f i :=
+{ to_fun := λ g, g i,
+  map_one' := rfl,
+  map_mul' := λ x y, rfl, }
+
+@[simp, to_additive]
+lemma monoid_hom.apply_apply (i : I) (g : Π i, f i) : (monoid_hom.apply f i) g = g i := rfl
+end
+
+section
+universes u v
+variable {I : Type u}     -- The indexing type
+variable (f : I → Type v) -- The family of types already equipped with instances
+variables [Π i, semiring (f i)]
+
+/-- Evaluation of functions into an indexed collection of monoids at a point is a monoid homomorphism. -/
+def ring_hom.apply (i : I) : (Π i, f i) →+* f i :=
+{ ..(monoid_hom.apply f i),
+  ..(add_monoid_hom.apply f i) }
+
+@[simp]
+lemma ring_hom.apply_apply (i : I) (g : Π i, f i) : (ring_hom.apply f i) g = g i := rfl
+end
+
+section
+variables {I : Type*} (Z : I → Type*)
+variables [Π i, comm_monoid (Z i)]
+
+@[simp, to_additive]
+lemma finset.prod_apply {γ : Type*} {s : finset γ} (h : γ → (Π i, Z i)) (i : I) :
+  (s.prod h) i = s.prod (λ g, h g i) :=
+begin
+  classical,
+  induction s using finset.induction_on with b s nmem ih,
+  { simp only [finset.prod_empty], refl },
+  { simp only [nmem, finset.prod_insert, not_false_iff],
+    rw pi.mul_apply (h b) _ i,
+    rw ih, }
+end
+end
+
+section
+-- As we only defined `single` into `add_monoid`, we only prove the `finset.sum` version here.
+variables {I : Type*} [decidable_eq I] {Z : I → Type*}
+variables [Π i, add_comm_monoid (Z i)]
+
+lemma finset.univ_sum_single [fintype I] (f : Π i, Z i) :
+  finset.univ.sum (λ i, pi.single i (f i)) = f :=
+begin
+  ext a,
+  rw [finset.sum_apply, finset.sum_eq_single a],
+  { simp, },
+  { intros b _ h, simp [h.symm], },
+  { intro h, exfalso, simpa using h, },
+end
+end
+
+section
+open pi
+
+variables {I : Type*} [decidable_eq I]
+variable (f : I → Type*)
+
+section
+variables [Π i, add_monoid (f i)]
+
+/-- The additive monoid homomorphism including a single additive monoid
+into a dependent family of additive monoids, as functions supported at a point. -/
+def add_monoid_hom.single (i : I) : f i →+ Π i, f i :=
+{ to_fun := λ x, single i x,
+  map_zero' :=
+  begin
+    ext i', by_cases h : i' = i,
+    { subst h, simp only [single_eq_same], refl, },
+    { simp only [h, single_eq_of_ne, ne.def, not_false_iff], refl, },
+  end,
+  map_add' := λ x y,
+  begin
+    ext i', by_cases h : i' = i,
+    -- FIXME in the next two `simp only`s,
+    -- it would be really nice to not have to provide the arguments to `add_apply`.
+    { subst h, simp only [single_eq_same, add_apply (single i' x) (single i' y) i'], },
+    { simp only [h, add_zero, single_eq_of_ne, add_apply (single i x) (single i y) i', ne.def, not_false_iff], },
+  end, }
+
+@[simp]
+lemma add_monoid_hom.single_apply {i : I} (x : f i) : (add_monoid_hom.single f i) x = single i x := rfl
+end
+
+section
+variables {f}
+variables [Π i, add_comm_monoid (f i)]
+
+@[ext]
+lemma add_monoid_hom.functions_ext [fintype I] (G : Type*) [add_comm_monoid G] (g h : (Π i, f i) →+ G)
+  (w : ∀ (i : I) (x : f i), g (single i x) = h (single i x)) : g = h :=
+begin
+  ext k,
+  rw [←finset.univ_sum_single k, add_monoid_hom.map_sum, add_monoid_hom.map_sum],
+  apply finset.sum_congr rfl,
+  intros,
+  apply w,
+end
+end
+
+section
+variables {f}
+variables [Π i, semiring (f i)]
+
+-- it is somewhat unfortunate that we can't easily use `add_monoid_hom.functions_ext` here
+@[ext]
+lemma ring_hom.functions_ext [fintype I] (G : Type*) [semiring G] (g h : (Π i, f i) →+* G)
+  (w : ∀ (i : I) (x : f i), g (single i x) = h (single i x)) : g = h :=
+begin
+  ext k,
+  rw [←finset.univ_sum_single k, ring_hom.map_sum, ring_hom.map_sum],
+  apply finset.sum_congr rfl,
+  intros,
+  apply w,
+end
+end
+end
 
 namespace prod
 
@@ -186,32 +351,15 @@ lemma snd_prod [comm_monoid α] [comm_monoid β] {t : finset γ} {f : γ → α 
   (t.prod f).2 = t.prod (λc, (f c).2) :=
 (monoid_hom.snd α β).map_prod f t
 
-instance [semiring α] [semiring β] : semiring (α × β) :=
-{ zero_mul := λ a, mk.inj_iff.mpr ⟨zero_mul _, zero_mul _⟩,
-  mul_zero := λ a, mk.inj_iff.mpr ⟨mul_zero _, mul_zero _⟩,
-  left_distrib := λ a b c, mk.inj_iff.mpr ⟨left_distrib _ _ _, left_distrib _ _ _⟩,
-  right_distrib := λ a b c, mk.inj_iff.mpr ⟨right_distrib _ _ _, right_distrib _ _ _⟩,
-  ..prod.add_comm_monoid, ..prod.monoid }
-
-instance [ring α] [ring β] : ring (α × β) :=
-{ ..prod.add_comm_group, ..prod.semiring }
-
-instance [comm_ring α] [comm_ring β] : comm_ring (α × β) :=
-{ ..prod.ring, ..prod.comm_monoid }
-
-instance [nonzero_comm_ring α] [comm_ring β] : nonzero_comm_ring (α × β) :=
-{ zero_ne_one := mt (congr_arg prod.fst) zero_ne_one,
-  ..prod.comm_ring }
-
 instance fst.is_semiring_hom [semiring α] [semiring β] : is_semiring_hom (prod.fst : α × β → α) :=
-by refine_struct {..}; simp
+(ring_hom.fst α β).is_semiring_hom
 instance snd.is_semiring_hom [semiring α] [semiring β] : is_semiring_hom (prod.snd : α × β → β) :=
-by refine_struct {..}; simp
+(ring_hom.snd α β).is_semiring_hom
 
 instance fst.is_ring_hom [ring α] [ring β] : is_ring_hom (prod.fst : α × β → α) :=
-by refine_struct {..}; simp
+(ring_hom.fst α β).is_ring_hom
 instance snd.is_ring_hom [ring α] [ring β] : is_ring_hom (prod.snd : α × β → β) :=
-by refine_struct {..}; simp
+(ring_hom.snd α β).is_ring_hom
 
 /-- Left injection function for the inner product
 From a vector space (and also group and module) perspective the product is the same as the sum of
@@ -265,9 +413,6 @@ instance {r : semiring α} [add_comm_monoid β] [add_comm_monoid γ]
   zero_smul := assume ⟨b, c⟩, mk.inj_iff.mpr ⟨zero_smul _ _, zero_smul _ _⟩,
   smul_zero := assume a, mk.inj_iff.mpr ⟨smul_zero _, smul_zero _⟩,
   .. prod.has_scalar }
-
-instance {r : ring α} [add_comm_group β] [add_comm_group γ]
-  [module α β] [module α γ] : module α (β × γ) := {}
 
 section substructures
 variables (s : set α) (t : set β)

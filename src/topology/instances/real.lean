@@ -21,8 +21,9 @@ generalizations:
 * Archimedean fields
 
 -/
-import topology.metric_space.basic topology.algebra.uniform_group
-       topology.algebra.ring tactic.linarith
+import topology.metric_space.basic
+import topology.algebra.uniform_group
+import topology.algebra.ring
 
 noncomputable theory
 open classical set filter topological_space metric
@@ -37,7 +38,7 @@ metric_space.induced coe rat.cast_injective real.metric_space
 
 theorem rat.dist_eq (x y : ℚ) : dist x y = abs (x - y) := rfl
 
-@[elim_cast, simp] lemma rat.dist_cast (x y : ℚ) : dist (x : ℝ) y = dist x y := rfl
+@[norm_cast, simp] lemma rat.dist_cast (x y : ℚ) : dist (x : ℝ) y = dist x y := rfl
 
 section low_prio
 -- we want to ignore this instance for the next declaration
@@ -58,9 +59,9 @@ end low_prio
 
 theorem int.dist_eq (x y : ℤ) : dist x y = abs (x - y) := rfl
 
-@[elim_cast, simp] theorem int.dist_cast_real (x y : ℤ) : dist (x : ℝ) y = dist x y := rfl
+@[norm_cast, simp] theorem int.dist_cast_real (x y : ℤ) : dist (x : ℝ) y = dist x y := rfl
 
-@[elim_cast, simp] theorem int.dist_cast_rat (x y : ℤ) : dist (x : ℚ) y = dist x y :=
+@[norm_cast, simp] theorem int.dist_cast_rat (x y : ℤ) : dist (x : ℚ) y = dist x y :=
 by rw [← int.dist_cast_real, ← rat.dist_cast]; congr' 1; norm_cast
 
 theorem uniform_continuous_of_rat : uniform_continuous (coe : ℚ → ℝ) :=
@@ -243,7 +244,7 @@ metric.totally_bounded_iff.2 $ λ ε ε0, begin
     { have := lt_floor_add_one ((x - a) / ε),
       rwa [div_lt_iff' ε0, mul_add, mul_one] at this },
     { have := floor_le ((x - a) / ε),
-      rwa [ge, sub_nonneg, ← le_sub_iff_add_le', ← le_div_iff' ε0] } }
+      rwa [sub_nonneg, ← le_sub_iff_add_le', ← le_div_iff' ε0] } }
 end
 
 lemma real.totally_bounded_ball (x ε : ℝ) : totally_bounded (ball x ε) :=

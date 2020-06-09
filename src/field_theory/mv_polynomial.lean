@@ -6,12 +6,14 @@ Author: Johannes Hölzl
 Multivariate functions of the form `α^n → α` are isomorphic to multivariate polynomials in
 `n` variables.
 -/
-import linear_algebra.finsupp_vector_space field_theory.finite data.mv_polynomial
+import linear_algebra.finsupp_vector_space
+import field_theory.finite
 noncomputable theory
 
 open_locale classical
 
 open set linear_map submodule
+open_locale big_operators
 
 namespace mv_polynomial
 universes u v
@@ -108,7 +110,7 @@ variables {α : Type*} {σ : Type*}
 variables [field α] [fintype α] [fintype σ]
 
 def indicator (a : σ → α) : mv_polynomial σ α :=
-finset.univ.prod (λn, 1 - (X n - C (a n))^(fintype.card α - 1))
+∏ n, (1 - (X n - C (a n))^(fintype.card α - 1))
 
 lemma eval_indicator_apply_eq_one (a : σ → α) :
   eval a (indicator a) = 1 :=
@@ -135,19 +137,18 @@ begin
 end
 
 lemma degrees_indicator (c : σ → α) :
-  degrees (indicator c) ≤ finset.univ.sum (λs:σ, add_monoid.smul (fintype.card α - 1) {s}) :=
+  degrees (indicator c) ≤ finset.univ.sum (λs:σ, (fintype.card α - 1) •ℕ {s}) :=
 begin
   rw [indicator],
   refine le_trans (degrees_prod _ _) (finset.sum_le_sum $ assume s hs, _),
   refine le_trans (degrees_sub _ _) _,
   rw [degrees_one, ← bot_eq_zero, bot_sup_eq],
-  refine le_trans (degrees_pow _ _) (add_monoid.smul_le_smul_of_le_right _ _),
+  refine le_trans (degrees_pow _ _) (nsmul_le_nsmul_of_le_right _ _),
   refine le_trans (degrees_sub _ _) _,
   rw [degrees_C, ← bot_eq_zero, sup_bot_eq],
   exact degrees_X _
 end
 
-set_option class.instance_max_depth 50
 lemma indicator_mem_restrict_degree (c : σ → α) :
   indicator c ∈ restrict_degree σ α (fintype.card α - 1) :=
 begin
@@ -155,8 +156,8 @@ begin
   assume n,
   refine le_trans (multiset.count_le_of_le _ $ degrees_indicator _) (le_of_eq _),
   rw [← finset.univ.sum_hom (multiset.count n)],
-  simp only [is_add_monoid_hom.map_smul (multiset.count n), multiset.singleton_eq_singleton,
-    add_monoid.smul_eq_mul, nat.cast_id],
+  simp only [is_add_monoid_hom.map_nsmul (multiset.count n), multiset.singleton_eq_singleton,
+    nsmul_eq_mul, nat.cast_id],
   transitivity,
   refine finset.sum_eq_single n _ _,
   { assume b hb ne, rw [multiset.count_cons_of_ne ne.symm, multiset.count_zero, mul_zero] },
@@ -207,7 +208,6 @@ noncomputable instance decidable_restrict_degree (m : ℕ) :
   decidable_pred (λn, n ∈ {n : σ →₀ ℕ | ∀i, n i ≤ m }) :=
 by simp only [set.mem_set_of_eq]; apply_instance
 
-set_option class.instance_max_depth 60
 lemma dim_R : vector_space.dim α (R σ α) = fintype.card (σ → α) :=
 calc vector_space.dim α (R σ α) =
   vector_space.dim α (↥{s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card α - 1} →₀ α) :

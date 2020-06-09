@@ -6,9 +6,8 @@ Author: Sébastien Gouëzel
 Construction of a good coupling between nonempty compact metric spaces, minimizing
 their Hausdorff distance. This construction is instrumental to study the Gromov-Hausdorff
 distance between nonempty compact metric spaces -/
-
-import topology.bounded_continuous_function topology.metric_space.gluing
-topology.metric_space.hausdorff_distance
+import topology.metric_space.gluing
+import topology.metric_space.hausdorff_distance
 
 noncomputable theory
 open_locale classical
@@ -18,7 +17,6 @@ universes u v w
 open classical set function topological_space filter metric quotient
 open bounded_continuous_function
 open sum (inl inr)
-set_option class.instance_max_depth 50
 
 local attribute [instance] metric_space_sum
 
@@ -144,7 +142,7 @@ calc
   f (x, y) - f(z, t) ≤ f (x, t) + f (t, y) - f (z, t) : add_le_add_right (candidates_triangle fA) _
   ... ≤ (f (x, z) + f (z, t) + f(t, y)) - f (z, t) :
     add_le_add_right (add_le_add_right (candidates_triangle fA) _ ) _
-  ... = f (x, z) + f (t, y) : by simp [sub_eq_add_neg]
+  ... = f (x, z) + f (t, y) : by simp [sub_eq_add_neg, add_assoc]
   ... ≤ max_var α β * dist x z + max_var α β * dist t y :
     add_le_add (candidates_dist_bound fA) (candidates_dist_bound fA)
   ... ≤ max_var α β * max (dist x z) (dist t y) + max_var α β * max (dist x z) (dist t y) :
@@ -269,7 +267,7 @@ begin
   rcases (real.bounded_iff_bdd_below_bdd_above.1 bounded_range).2 with ⟨Cf, hCf⟩,
   refine ⟨Cf + C, forall_range_iff.2 (λx, _)⟩,
   calc infi (λy:β, f (inl x, inr y) + C) ≤ f (inl x, inr (default β)) + C :
-    cinfi_le (HD_below_aux1 C)
+    cinfi_le (HD_below_aux1 C) (default β)
     ... ≤ Cf + C : add_le_add ((λx, hCf (mem_range_self x)) _) (le_refl _)
 end
 
@@ -282,7 +280,7 @@ begin
   rcases (real.bounded_iff_bdd_below_bdd_above.1 bounded_range).2 with ⟨Cf, hCf⟩,
   refine ⟨Cf + C, forall_range_iff.2 (λy, _)⟩,
   calc infi (λx:α, f (inl x, inr y) + C) ≤ f (inl (default α), inr y) + C :
-    cinfi_le (HD_below_aux2 C)
+    cinfi_le (HD_below_aux2 C) (default α)
   ... ≤ Cf + C : add_le_add ((λx, hCf (mem_range_self x)) _) (le_refl _)
 end
 
@@ -292,7 +290,7 @@ lemma HD_candidates_b_dist_le : HD (candidates_b_dist α β) ≤ diam (univ : se
 begin
   refine max_le (csupr_le (λx, _)) (csupr_le (λy, _)),
   { have A : infi (λy:β, candidates_b_dist α β (inl x, inr y)) ≤ candidates_b_dist α β (inl x, inr (default β)) :=
-      cinfi_le (by simpa using HD_below_aux1 0),
+      cinfi_le (by simpa using HD_below_aux1 0) (default β),
     have B : dist (inl x) (inr (default β)) ≤ diam (univ : set α) + 1 + diam (univ : set β) := calc
       dist (inl x) (inr (default β)) = dist x (default α) + 1 + dist (default β) (default β) : rfl
       ... ≤ diam (univ : set α) + 1 + diam (univ : set β) :
@@ -303,7 +301,7 @@ begin
       end,
     exact le_trans A B },
   { have A : infi (λx:α, candidates_b_dist α β (inl x, inr y)) ≤ candidates_b_dist α β (inl (default α), inr y) :=
-      cinfi_le (by simpa using HD_below_aux2 0),
+      cinfi_le (by simpa using HD_below_aux2 0) (default α),
     have B : dist (inl (default α)) (inr y) ≤ diam (univ : set α) + 1 + diam (univ : set β) := calc
       dist (inl (default α)) (inr y) = dist (default α) (default α) + 1 + dist (default β) y : rfl
       ... ≤ diam (univ : set α) + 1 + diam (univ : set β) :
@@ -394,7 +392,8 @@ lipschitz_with.continuous (lipschitz_with.of_le_add HD_lipschitz_aux3)
 end constructions --section
 
 section consequences
-variables (α : Type u) (β : Type v) [metric_space α] [compact_space α] [nonempty α] [metric_space β] [compact_space β] [nonempty β]
+variables (α : Type u) (β : Type v) [metric_space α] [compact_space α] [nonempty α] [metric_space β]
+  [compact_space β] [nonempty β]
 
 /- Now that we have proved that the set of candidates is compact, and that HD is continuous,
 we can finally select a candidate minimizing HD. This will be the candidate realizing the

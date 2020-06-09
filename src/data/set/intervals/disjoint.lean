@@ -3,9 +3,10 @@ Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Yury Kudryashov
 -/
-import data.set.intervals.basic data.set.lattice
+import data.set.lattice
 
-/-! # Extra lemmas about intervals
+/-!
+# Extra lemmas about intervals
 
 This file contains lemmas about intervals that cannot be included into `data.set.intervals.basic`
 because this would create an `import` cycle. Namely, lemmas in this file can use definitions

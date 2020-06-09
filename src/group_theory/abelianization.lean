@@ -7,7 +7,6 @@ The functor Grp → Ab which is the left adjoint
 of the forgetful functor Ab → Grp.
 
 -/
-
 import group_theory.quotient_group
 
 universes u v

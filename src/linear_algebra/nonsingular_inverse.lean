@@ -1,13 +1,9 @@
 /-
-  Copyright (c) 2019 Tim Baanen. All rights reserved.
-  Released under Apache 2.0 license as described in the file LICENSE.
-  Author: Tim Baanen.
-
-  Inverses for nonsingular square matrices.
+Copyright (c) 2019 Tim Baanen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Tim Baanen.
 -/
 import algebra.associated
-import algebra.big_operators
-import data.matrix.basic
 import linear_algebra.determinant
 import tactic.linarith
 import tactic.ring_exp
@@ -50,11 +46,9 @@ matrix inverse, cramer, cramer's rule, adjugate
 namespace matrix
 universes u v
 variables {n : Type u} [fintype n] [decidable_eq n] {α : Type v}
-open_locale matrix
+open_locale matrix big_operators
 open equiv equiv.perm finset
 
--- Increase max depth to allow inference of `mul_action α (matrix n n α)`.
-set_option class.instance_max_depth 60
 
 section update
 
@@ -123,8 +117,8 @@ def cramer_map (i : n) : α := (A.update_column i b).det
 lemma cramer_map_is_linear (i : n) : is_linear_map α (λ b, cramer_map A b i) :=
 begin
   have : Π {f : n → n} {i : n} (x : n → α),
-    finset.prod univ (λ (i' : n), (update_column A i x)ᵀ (f i') i')
-    = finset.prod univ (λ (i' : n), if i' = i then x (f i') else A i' (f i')),
+    (∏ i' : n, (update_column A i x)ᵀ (f i') i')
+    = (∏ i' : n, if i' = i then x (f i') else A i' (f i')),
   { intros, congr, ext i', rw [transpose_val, update_column_val] },
   split,
   { intros x y,
@@ -200,7 +194,8 @@ calc s.sum (λ x, cramer α A (λ j, f j x) i)
 end cramer
 
 section adjugate
-/-! ### `adjugate` section
+/-!
+### `adjugate` section
 
 Define the `adjugate` matrix and a few equations.
 These will hold for any matrix over a commutative ring,
@@ -239,7 +234,7 @@ begin
     rw [update_column_val, update_row_val],
     finish },
   { -- Otherwise, we need to show that there is a `0` somewhere in the product.
-    have : univ.prod (λ (j' : n), update_row A j (λ (i' : n), ite (i = i') 1 0) (σ j') j') = 0,
+    have : (∏ j' : n, update_row A j (λ (i' : n), ite (i = i') 1 0) (σ j') j') = 0,
     { apply prod_eq_zero (mem_univ j),
       rw [update_row_self],
       exact if_neg h },
@@ -299,7 +294,7 @@ begin
   have univ_eq_i := univ_eq_singleton_of_card_one i h,
   have univ_eq_j := univ_eq_singleton_of_card_one j h,
   have i_eq_j : i = j := singleton_inj.mp (by rw [←univ_eq_i, univ_eq_j]),
-  have perm_eq : (univ : finset (perm n)) = finset.singleton 1 :=
+  have perm_eq : (univ : finset (perm n)) = {1} :=
     univ_eq_singleton_of_card_one (1 : perm n) (by simp [card_univ, fintype.card_perm, h]),
   simp [adjugate_val, det, univ_eq_i, perm_eq, i_eq_j]
 end
@@ -352,7 +347,8 @@ end
 end adjugate
 
 section inv
-/-! ### `inv` section
+/-!
+### `inv` section
 
 Defines the matrix `nonsing_inv A` and proves it is the inverse matrix
 of a square matrix `A` as long as `det A` has a multiplicative inverse.

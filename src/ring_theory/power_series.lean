@@ -3,10 +3,9 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Kenny Lau
 -/
-
-import data.finsupp order.complete_lattice algebra.ordered_group data.mv_polynomial
-import algebra.order_functions
+import data.mv_polynomial
 import ring_theory.ideal_operations
+import tactic.linarith
 
 /-!
 # Formal power series
@@ -38,7 +37,7 @@ then formal power series in one variable form an integral domain.
 The `order` of a formal power series `φ` is the multiplicity of the variable `X` in `φ`.
 
 If the coefficients form an integral domain, then `order` is a valuation
-(`order_mul`, `order_add_ge`).
+(`order_mul`, `le_order_add`).
 
 ## Implementation notes
 
@@ -134,7 +133,7 @@ instance : has_one (mv_power_series σ α) := ⟨monomial α (0 : σ →₀ ℕ)
 lemma coeff_one :
   coeff α n (1 : mv_power_series σ α) = if n = 0 then 1 else 0 := rfl
 
-@[simp, priority 1100] lemma coeff_zero_one : coeff α (0 : σ →₀ ℕ) 1 = 1 :=
+lemma coeff_zero_one : coeff α (0 : σ →₀ ℕ) 1 = 1 :=
 coeff_monomial' 0 1
 
 instance : has_mul (mv_power_series σ α) :=
@@ -202,7 +201,7 @@ begin
   { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, exact ⟨(k, l+j), (l, j)⟩ },
   { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H,
     simp only [finset.mem_sigma, mem_antidiagonal_support] at H ⊢, finish },
-  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, rw mul_assoc },
+  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, simp only [mul_assoc] },
   { rintros ⟨⟨a,b⟩, ⟨c,d⟩⟩ ⟨⟨i,j⟩, ⟨k,l⟩⟩ H₁ H₂,
     simp only [finset.mem_sigma, mem_antidiagonal_support,
       and_imp, prod.mk.inj_iff, add_comm, heq_iff_eq] at H₁ H₂ ⊢,
@@ -277,12 +276,11 @@ variables {σ} {α}
 
 @[simp] lemma monomial_zero_eq_C : monomial α (0 : σ →₀ ℕ) = C σ α := rfl
 
-@[simp] lemma monomial_zero_eq_C_apply (a : α) : monomial α (0 : σ →₀ ℕ) a = C σ α a := rfl
+lemma monomial_zero_eq_C_apply (a : α) : monomial α (0 : σ →₀ ℕ) a = C σ α a := rfl
 
 lemma coeff_C (n : σ →₀ ℕ) (a : α) :
   coeff α n (C σ α a) = if n = 0 then a else 0 := rfl
 
-@[simp, priority 1100]
 lemma coeff_zero_C (a : α) : coeff α (0 : σ →₀ℕ) (C σ α a) = a :=
 coeff_monomial' 0 a
 
@@ -294,13 +292,12 @@ lemma coeff_X (n : σ →₀ ℕ) (s : σ) :
 
 lemma coeff_index_single_X (s t : σ) :
   coeff α (single t 1) (X s : mv_power_series σ α) = if t = s then 1 else 0 :=
-by { simp only [coeff_X, single_right_inj one_ne_zero], split_ifs; refl }
+by { simp only [coeff_X, single_left_inj one_ne_zero], split_ifs; refl }
 
 @[simp] lemma coeff_index_single_self_X (s : σ) :
   coeff α (single s 1) (X s : mv_power_series σ α) = 1 :=
 if_pos rfl
 
-@[simp, priority 1100]
 lemma coeff_zero_X (s : σ) : coeff α (0 : σ →₀ ℕ) (X s : mv_power_series σ α) = 0 :=
 by { rw [coeff_X, if_neg], intro h, exact one_ne_zero (single_eq_zero.mp h.symm) }
 
@@ -341,7 +338,7 @@ begin
   obtain ⟨rfl, rfl⟩ : i = 0 ∧ j = 0,
   { rw finsupp.mem_antidiagonal_support at hij,
     simpa using hij },
-  simp,
+  simp [coeff_zero_X]
 end
 
 variables (σ) (α)
@@ -357,7 +354,7 @@ variables {σ} {α}
 
 @[simp] lemma coeff_zero_eq_constant_coeff :
   coeff α (0 : σ →₀ ℕ) = constant_coeff σ α := rfl
-@[simp] lemma coeff_zero_eq_constant_coeff_apply (φ : mv_power_series σ α) :
+lemma coeff_zero_eq_constant_coeff_apply (φ : mv_power_series σ α) :
   coeff α (0 : σ →₀ ℕ) φ = constant_coeff σ α φ := rfl
 
 @[simp] lemma constant_coeff_C (a : α) : constant_coeff σ α (C σ α a) = a := rfl
@@ -389,10 +386,9 @@ instance [ring α] : module α (mv_power_series σ α) :=
 { ..mv_power_series.semimodule }
 
 instance [comm_ring α] : algebra α (mv_power_series σ α) :=
-{ to_fun := C σ α,
-  commutes' := λ _ _, mul_comm _ _,
+{ commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c p, rfl,
-  .. mv_power_series.module }
+  .. C σ α, .. mv_power_series.module }
 
 section map
 variables {β : Type*} {γ : Type*} [semiring α] [semiring β] [semiring γ]
@@ -517,9 +513,7 @@ begin
     { rw [h, coeff_mul, finset.sum_eq_zero],
       { rintros ⟨i,j⟩ hij, rw finsupp.mem_antidiagonal_support at hij,
         rw coeff_X_pow, split_ifs with hi,
-        { exfalso, apply H, rw [← hij, hi], ext t,
-          simp only [nat.add_sub_cancel_left, add_comm,
-            finsupp.add_apply, add_right_inj, finsupp.nat_sub_apply] },
+        { exfalso, apply H, rw [← hij, hi], ext, simp, cc },
         { exact zero_mul _ } },
       { classical, contrapose! H, ext t,
         by_cases hst : s = t,
@@ -615,20 +609,19 @@ begin
   { have H : (0:α) ≠ 1 := ‹is_local_ring α›.1, contrapose! H,
     simpa using congr_arg (constant_coeff σ α) H },
   { intro φ, rcases ‹is_local_ring α›.2 (constant_coeff σ α φ) with ⟨u,h⟩|⟨u,h⟩; [left, right];
-    { refine is_unit_of_mul_one _ _ (mul_inv_of_unit _ u _),
-      simpa using h } }
+    { refine is_unit_of_mul_eq_one _ _ (mul_inv_of_unit _ u _),
+      simpa using h.symm } }
 end
 
 -- TODO(jmc): once adic topology lands, show that this is complete
 
 end comm_ring
 
-section nonzero_comm_ring
-variables [nonzero_comm_ring α]
+section nonzero
+variables [semiring α] [nonzero α]
 
-instance : nonzero_comm_ring (mv_power_series σ α) :=
-{ zero_ne_one := assume h, zero_ne_one $ show (0:α) = 1, from congr_arg (constant_coeff σ α) h,
-  .. mv_power_series.comm_ring }
+instance : nonzero (mv_power_series σ α) :=
+{ zero_ne_one := assume h, zero_ne_one $ show (0:α) = 1, from congr_arg (constant_coeff σ α) h }
 
 lemma X_inj {s t : σ} : (X s : mv_power_series σ α) = X t ↔ s = t :=
 ⟨begin
@@ -639,7 +632,7 @@ lemma X_inj {s t : σ} : (X s : mv_power_series σ α) = X t ↔ s = t :=
   { exfalso, exact one_ne_zero h }
 end, congr_arg X⟩
 
-end nonzero_comm_ring
+end nonzero
 
 section local_ring
 variables {β : Type*} [local_ring α] [local_ring β] (f : α →+* β) [is_local_ring_hom f]
@@ -653,9 +646,9 @@ instance map.is_local_ring_hom : is_local_ring_hom (map σ f) :=
   replace h := congr_arg (constant_coeff σ β) h,
   rw constant_coeff_map at h,
   have : is_unit (constant_coeff σ β ↑ψ) := @is_unit_constant_coeff σ β _ (↑ψ) (is_unit_unit ψ),
-  rw ← h at this,
+  rw h at this,
   rcases is_unit_of_map_unit f _ this with ⟨c, hc⟩,
-  exact is_unit_of_mul_one φ (inv_of_unit φ c) (mul_inv_of_unit φ c hc)
+  exact is_unit_of_mul_eq_one φ (inv_of_unit φ c) (mul_inv_of_unit φ c hc.symm)
 end⟩
 
 end local_ring
@@ -690,7 +683,7 @@ lemma inv_eq_zero {φ : mv_power_series σ α} :
 @[simp] lemma inv_of_unit_eq' (φ : mv_power_series σ α) (u : units α) (h : constant_coeff σ α φ = u) :
   inv_of_unit φ u = φ⁻¹ :=
 begin
-  rw ← inv_of_unit_eq φ (h.symm ▸ u.ne_zero),
+  rw ← inv_of_unit_eq φ (h.symm ▸ u.coe_ne_zero),
   congr' 1, rw [units.ext_iff], exact h.symm,
 end
 
@@ -714,10 +707,10 @@ variables {σ : Type*} {α : Type*} [comm_semiring α]
 instance coe_to_mv_power_series : has_coe (mv_polynomial σ α) (mv_power_series σ α) :=
 ⟨λ φ n, coeff n φ⟩
 
-@[simp, elim_cast] lemma coeff_coe (φ : mv_polynomial σ α) (n : σ →₀ ℕ) :
+@[simp, norm_cast] lemma coeff_coe (φ : mv_polynomial σ α) (n : σ →₀ ℕ) :
 mv_power_series.coeff α n ↑φ = coeff n φ := rfl
 
-@[simp, elim_cast] lemma coe_monomial (n : σ →₀ ℕ) (a : α) :
+@[simp, norm_cast] lemma coe_monomial (n : σ →₀ ℕ) (a : α) :
   (monomial n a : mv_power_series σ α) = mv_power_series.monomial α n a :=
 mv_power_series.ext $ λ m,
 begin
@@ -725,24 +718,24 @@ begin
   split_ifs with h₁ h₂; refl <|> subst m; contradiction
 end
 
-@[simp, elim_cast] lemma coe_zero : ((0 : mv_polynomial σ α) : mv_power_series σ α) = 0 := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : mv_polynomial σ α) : mv_power_series σ α) = 0 := rfl
 
-@[simp, elim_cast] lemma coe_one : ((1 : mv_polynomial σ α) : mv_power_series σ α) = 1 :=
+@[simp, norm_cast] lemma coe_one : ((1 : mv_polynomial σ α) : mv_power_series σ α) = 1 :=
 coe_monomial _ _
 
-@[simp, elim_cast] lemma coe_add (φ ψ : mv_polynomial σ α) :
+@[simp, norm_cast] lemma coe_add (φ ψ : mv_polynomial σ α) :
   ((φ + ψ : mv_polynomial σ α) : mv_power_series σ α) = φ + ψ := rfl
 
-@[simp, elim_cast] lemma coe_mul (φ ψ : mv_polynomial σ α) :
+@[simp, norm_cast] lemma coe_mul (φ ψ : mv_polynomial σ α) :
   ((φ * ψ : mv_polynomial σ α) : mv_power_series σ α) = φ * ψ :=
 mv_power_series.ext $ λ n,
 by simp only [coeff_coe, mv_power_series.coeff_mul, coeff_mul]
 
-@[simp, elim_cast] lemma coe_C (a : α) :
+@[simp, norm_cast] lemma coe_C (a : α) :
   ((C a : mv_polynomial σ α) : mv_power_series σ α) = mv_power_series.C σ α a :=
 coe_monomial _ _
 
-@[simp, elim_cast] lemma coe_X (s : σ) :
+@[simp, norm_cast] lemma coe_X (s : σ) :
   ((X s : mv_polynomial σ α) : mv_power_series σ α) = mv_power_series.X s :=
 coe_monomial _ _
 
@@ -774,7 +767,7 @@ instance [semiring α]        : semiring        (power_series α) := by delta po
 instance [comm_semiring α]   : comm_semiring   (power_series α) := by delta power_series; apply_instance
 instance [ring α]            : ring            (power_series α) := by delta power_series; apply_instance
 instance [comm_ring α]       : comm_ring       (power_series α) := by delta power_series; apply_instance
-instance [nonzero_comm_ring α] : nonzero_comm_ring (power_series α) := by delta power_series; apply_instance
+instance [semiring α] [nonzero α] : nonzero (power_series α) := by delta power_series; apply_instance
 instance [semiring α]        : semimodule α    (power_series α) := by delta power_series; apply_instance
 instance [ring α]            : module α        (power_series α) := by delta power_series; apply_instance
 instance [comm_ring α]       : algebra α       (power_series α) := by delta power_series; apply_instance
@@ -805,7 +798,7 @@ lemma ext_iff {φ ψ : power_series α} : φ = ψ ↔ (∀ n, coeff α n φ = co
 ⟨λ h n, congr_arg (coeff α n) h, ext⟩
 
 /-- Constructor for formal power series.-/
-def mk (f : ℕ → α) : power_series α := λ s, f (s ())
+def mk {α} (f : ℕ → α) : power_series α := λ s, f (s ())
 
 @[simp] lemma coeff_mk (n : ℕ) (f : ℕ → α) : coeff α n (mk f) = f n :=
 congr_arg f finsupp.single_eq_same
@@ -852,21 +845,21 @@ begin
   rw [constant_coeff, ← mv_power_series.coeff_zero_eq_constant_coeff, coeff_def], refl
 end
 
-@[simp] lemma coeff_zero_eq_constant_coeff_apply (φ : power_series α) :
+lemma coeff_zero_eq_constant_coeff_apply (φ : power_series α) :
   coeff α 0 φ = constant_coeff α φ :=
 by rw [coeff_zero_eq_constant_coeff]; refl
 
 @[simp] lemma monomial_zero_eq_C : monomial α 0 = C α :=
 by rw [monomial, finsupp.single_zero, mv_power_series.monomial_zero_eq_C, C]
 
-@[simp] lemma monomial_zero_eq_C_apply (a : α) : monomial α 0 a = C α a :=
-by rw [monomial_zero_eq_C]; refl
+lemma monomial_zero_eq_C_apply (a : α) : monomial α 0 a = C α a :=
+by simp
 
 lemma coeff_C (n : ℕ) (a : α) :
   coeff α n (C α a : power_series α) = if n = 0 then a else 0 :=
 by rw [← monomial_zero_eq_C_apply, coeff_monomial]
 
-@[simp] lemma coeff_zero_C (a : α) : coeff α 0 (C α a) = a :=
+lemma coeff_zero_C (a : α) : coeff α 0 (C α a) = a :=
 by rw [← monomial_zero_eq_C_apply, coeff_monomial' 0 a]
 
 lemma X_eq : (X : power_series α) = monomial α 1 1 := rfl
@@ -875,7 +868,7 @@ lemma coeff_X (n : ℕ) :
   coeff α n (X : power_series α) = if n = 1 then 1 else 0 :=
 by rw [X_eq, coeff_monomial]
 
-@[simp] lemma coeff_zero_X : coeff α 0 (X : power_series α) = 0 :=
+lemma coeff_zero_X : coeff α 0 (X : power_series α) = 0 :=
 by rw [coeff, finsupp.single_zero, X, mv_power_series.coeff_zero_X]
 
 @[simp] lemma coeff_one_X : coeff α 1 (X : power_series α) = 1 :=
@@ -898,7 +891,7 @@ calc coeff α n (1 : power_series α) = _ : mv_power_series.coeff_one _
     ... = if n = 0 then 1 else 0 :
 by { simp only [finsupp.single_eq_zero], split_ifs; refl }
 
-@[simp] lemma coeff_zero_one : coeff α 0 (1 : power_series α) = 1 :=
+lemma coeff_zero_one : coeff α 0 (1 : power_series α) = 1 :=
 coeff_zero_C 1
 
 lemma coeff_mul (n : ℕ) (φ ψ : power_series α) :
@@ -935,15 +928,6 @@ begin
   { intro h, exfalso, apply h, simp },
 end
 
-@[simp] lemma coeff_zero_mul_X (φ : power_series α) :
-  coeff α 0 (φ * X) = 0 :=
-begin
-  rw [coeff_mul _ φ, finset.sum_eq_zero],
-  rintro ⟨i,j⟩ hij,
-  obtain ⟨rfl, rfl⟩ : i = 0 ∧ j = 0, { simpa using hij },
-  simp,
-end
-
 @[simp] lemma constant_coeff_C (a : α) : constant_coeff α (C α a) = a := rfl
 @[simp] lemma constant_coeff_comp_C :
   (constant_coeff α).comp (C α) = ring_hom.id α := rfl
@@ -951,6 +935,8 @@ end
 @[simp] lemma constant_coeff_zero : constant_coeff α 0 = 0 := rfl
 @[simp] lemma constant_coeff_one : constant_coeff α 1 = 1 := rfl
 @[simp] lemma constant_coeff_X : constant_coeff α X = 0 := mv_power_series.coeff_zero_X _
+
+lemma coeff_zero_mul_X (φ : power_series α) : coeff α 0 (φ * X) = 0 := by simp
 
 /-- If a formal power series is invertible, then so is its constant coefficient.-/
 lemma is_unit_constant_coeff (φ : power_series α) (h : is_unit φ) :
@@ -1147,13 +1133,14 @@ begin
       { have : m + n < i + j := add_lt_add_of_lt_of_le this hj,
         exfalso, exact ne_of_lt this hij.symm },
       contrapose! hne, have : i = m := le_antisymm hne hi, subst i, clear hi hne,
-      simpa [ne.def, prod.mk.inj_iff] using (add_left_inj m).mp hij },
+      simpa [ne.def, prod.mk.inj_iff] using (add_right_inj m).mp hij },
     { contrapose!, intro h, rw finset.nat.mem_antidiagonal }
 end
 
 instance : integral_domain (power_series α) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero,
-  .. power_series.nonzero_comm_ring }
+  .. power_series.comm_ring,
+  .. power_series.nonzero }
 
 /-- The ideal spanned by the variable in the power series ring
  over an integral domain is a prime ideal.-/
@@ -1309,8 +1296,8 @@ multiplicity.zero _
 
 /-- The order of a formal power series is at least `n` if
 the `i`th coefficient is `0` for all `i < n`.-/
-lemma order_ge_nat (φ : power_series α) (n : ℕ) (h : ∀ i < n, coeff α i φ = 0) :
-  order φ ≥ n :=
+lemma nat_le_order (φ : power_series α) (n : ℕ) (h : ∀ i < n, coeff α i φ = 0) :
+  ↑n ≤ order φ :=
 begin
   by_contra H, rw not_le at H,
   have : (order φ).dom := enat.dom_of_le_some (le_of_lt H),
@@ -1320,13 +1307,13 @@ end
 
 /-- The order of a formal power series is at least `n` if
 the `i`th coefficient is `0` for all `i < n`.-/
-lemma order_ge (φ : power_series α) (n : enat) (h : ∀ i : ℕ, ↑i < n → coeff α i φ = 0) :
-  order φ ≥ n :=
+lemma le_order (φ : power_series α) (n : enat) (h : ∀ i : ℕ, ↑i < n → coeff α i φ = 0) :
+  n ≤ order φ :=
 begin
   induction n using enat.cases_on,
   { show _ ≤ _, rw [top_le_iff, order_eq_top],
     ext i, exact h _ (enat.coe_lt_top i) },
-  { apply order_ge_nat, simpa only [enat.coe_lt_coe] using h }
+  { apply nat_le_order, simpa only [enat.coe_lt_coe] using h }
 end
 
 /-- The order of a formal power series is exactly `n` if the `n`th coefficient is nonzero,
@@ -1359,8 +1346,8 @@ end
 
 /-- The order of the sum of two formal power series
  is at least the minimum of their orders.-/
-lemma order_add_ge (φ ψ : power_series α) :
-  order (φ + ψ) ≥ min (order φ) (order ψ) :=
+lemma le_order_add (φ ψ : power_series α) :
+  min (order φ) (order ψ) ≤ order (φ + ψ) :=
 multiplicity.min_le_multiplicity_add
 
 private lemma order_add_of_order_eq.aux (φ ψ : power_series α)
@@ -1382,7 +1369,7 @@ end
 lemma order_add_of_order_eq (φ ψ : power_series α) (h : order φ ≠ order ψ) :
   order (φ + ψ) = order φ ⊓ order ψ :=
 begin
-  refine le_antisymm _ (order_add_ge _ _),
+  refine le_antisymm _ (le_order_add _ _),
   by_cases H₁ : order φ < order ψ,
   { apply order_add_of_order_eq.aux _ _ h H₁ },
   by_cases H₂ : order ψ < order φ,
@@ -1393,9 +1380,9 @@ end
 /-- The order of the product of two formal power series
  is at least the sum of their orders.-/
 lemma order_mul_ge (φ ψ : power_series α) :
-  order (φ * ψ) ≥ order φ + order ψ :=
+  order φ + order ψ ≤ order (φ * ψ) :=
 begin
-  apply order_ge,
+  apply le_order,
   intros n hn, rw [coeff_mul, finset.sum_eq_zero],
   rintros ⟨i,j⟩ hij,
   by_cases hi : ↑i < order φ,
@@ -1427,7 +1414,7 @@ by rw [order_monomial, if_neg h]
 end order_basic
 
 section order_zero_ne_one
-variables [nonzero_comm_ring α]
+variables [comm_semiring α] [nonzero α]
 
 /-- The order of the formal power series `1` is `0`.-/
 @[simp] lemma order_one : order (1 : power_series α) = 0 :=
@@ -1464,11 +1451,11 @@ variables {σ : Type*} {α : Type*} [comm_semiring α]
 instance coe_to_power_series : has_coe (polynomial α) (power_series α) :=
 ⟨λ φ, power_series.mk $ λ n, coeff φ n⟩
 
-@[simp, elim_cast] lemma coeff_coe (φ : polynomial α) (n) :
+@[simp, norm_cast] lemma coeff_coe (φ : polynomial α) (n) :
   power_series.coeff α n φ = coeff φ n :=
 congr_arg (coeff φ) (finsupp.single_eq_same)
 
-@[simp, elim_cast] lemma coe_monomial (n : ℕ) (a : α) :
+@[simp, norm_cast] lemma coe_monomial (n : ℕ) (a : α) :
   (monomial n a : power_series α) = power_series.monomial α n a :=
 power_series.ext $ λ m,
 begin
@@ -1477,30 +1464,30 @@ begin
   convert finsupp.single_apply,
 end
 
-@[simp, elim_cast] lemma coe_zero : ((0 : polynomial α) : power_series α) = 0 := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : polynomial α) : power_series α) = 0 := rfl
 
-@[simp, elim_cast] lemma coe_one : ((1 : polynomial α) : power_series α) = 1 :=
+@[simp, norm_cast] lemma coe_one : ((1 : polynomial α) : power_series α) = 1 :=
 begin
   have := coe_monomial 0 (1:α),
   rwa power_series.monomial_zero_eq_C_apply at this,
 end
 
-@[simp, elim_cast] lemma coe_add (φ ψ : polynomial α) :
+@[simp, norm_cast] lemma coe_add (φ ψ : polynomial α) :
   ((φ + ψ : polynomial α) : power_series α) = φ + ψ := rfl
 
-@[simp, elim_cast] lemma coe_mul (φ ψ : polynomial α) :
+@[simp, norm_cast] lemma coe_mul (φ ψ : polynomial α) :
   ((φ * ψ : polynomial α) : power_series α) = φ * ψ :=
 power_series.ext $ λ n,
 by simp only [coeff_coe, power_series.coeff_mul, coeff_mul]
 
-@[simp, elim_cast] lemma coe_C (a : α) :
+@[simp, norm_cast] lemma coe_C (a : α) :
   ((C a : polynomial α) : power_series α) = power_series.C α a :=
 begin
   have := coe_monomial 0 a,
   rwa power_series.monomial_zero_eq_C_apply at this,
 end
 
-@[simp, elim_cast] lemma coe_X :
+@[simp, norm_cast] lemma coe_X :
   ((X : polynomial α) : power_series α) = power_series.X :=
 coe_monomial _ _
 

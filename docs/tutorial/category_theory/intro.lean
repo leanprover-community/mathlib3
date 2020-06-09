@@ -109,10 +109,10 @@ Note in particular the order! The "maps on the right" convention was chosen; `g 
 
 open category_theory.category
 
-example : 𝟙 X ≫ g = g := id_comp C g
-example : g ≫ 𝟙 Y = g := comp_id C g
-example : (f ≫ g) ≫ h = f ≫ (g ≫ h) := assoc C f g h
-example : (f ≫ g) ≫ h = f ≫ g ≫ h := assoc C f g h -- note \gg is right associative
+example : 𝟙 X ≫ g = g := id_comp g
+example : g ≫ 𝟙 Y = g := comp_id g
+example : (f ≫ g) ≫ h = f ≫ (g ≫ h) := assoc f g h
+example : (f ≫ g) ≫ h = f ≫ g ≫ h := assoc f g h -- note \gg is right associative
 
 -- All four examples above can also be proved with `simp`.
 
@@ -136,7 +136,8 @@ functor.
 
 section functor
 
-universes v₁ v₂ v₃ u₁ u₂ u₃  -- recall we put morphism universes (`vᵢ`) before object universes (`uᵢ`)
+-- recall we put morphism universes (`vᵢ`) before object universes (`uᵢ`)
+universes v₁ v₂ v₃ u₁ u₂ u₃
 
 variables (C : Type u₁) [𝒞 : category.{v₁} C]
 variables (D : Type u₂) [𝒟 : category.{v₂} D]

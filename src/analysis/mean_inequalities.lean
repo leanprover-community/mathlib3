@@ -3,8 +3,8 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.calculus.mean_value data.nat.parity analysis.complex.exponential
-  analysis.convex.specific_functions
+import analysis.convex.specific_functions
+import analysis.special_functions.pow
 
 /-!
 # Mean value inequalities
@@ -30,7 +30,7 @@ and `n=3`.
 universes u v
 
 open real finset
-open_locale classical nnreal
+open_locale classical nnreal big_operators
 
 variables {ι : Type u} (s : finset ι)
 
@@ -38,11 +38,11 @@ variables {ι : Type u} (s : finset ι)
 for functions on `finset`s. -/
 theorem real.am_gm_weighted (w z : ι → ℝ)
   (hw : ∀ i ∈ s, 0 ≤ w i) (hw' : s.sum w = 1) (hz : ∀ i ∈ s, 0 ≤ z i) :
-  s.prod (λ i, (z i) ^ (w i)) ≤ s.sum (λ i, w i * z i) :=
+  (∏ i in s, (z i) ^ (w i)) ≤ s.sum (λ i, w i * z i) :=
 begin
   let s' := s.filter (λ i, w i ≠ 0),
   rw [← sum_filter_ne_zero] at hw',
-  suffices : s'.prod (λ i, (z i) ^ (w i)) ≤ s'.sum (λ i, w i * z i),
+  suffices : (∏ i in s', (z i) ^ (w i)) ≤ s'.sum (λ i, w i * z i),
   { have A : ∀ i ∈ s, i ∉ s' → w i = 0,
     { intros i hi hi',
       simpa only [hi, mem_filter, ne.def, true_and, not_not] using hi' },
@@ -69,7 +69,7 @@ begin
 end
 
 theorem nnreal.am_gm_weighted (w z : ι → ℝ≥0) (hw' : s.sum w = 1) :
-  s.prod (λ i, (z i) ^ (w i:ℝ)) ≤ s.sum (λ i, w i * z i) :=
+  (∏ i in s, (z i) ^ (w i:ℝ)) ≤ s.sum (λ i, w i * z i) :=
 begin
   rw [← nnreal.coe_le_coe, nnreal.coe_prod, nnreal.coe_sum],
   refine real.am_gm_weighted _ _ _ (λ i _, (w i).coe_nonneg) _ (λ i _, (z i).coe_nonneg),

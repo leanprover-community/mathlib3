@@ -6,6 +6,7 @@ Authors: Kenny Lau
 Opposites.
 -/
 import data.opposite
+import algebra.field
 
 namespace opposite
 universes u
@@ -33,6 +34,15 @@ instance [add_comm_semigroup α] : add_comm_semigroup (opposite α) :=
 
 instance [has_zero α] : has_zero (opposite α) :=
 { zero := op 0 }
+
+section
+local attribute [reducible] opposite
+@[simp] lemma unop_eq_zero_iff [has_zero α] (a : αᵒᵖ) : a.unop = (0 : α) ↔ a = (0 : αᵒᵖ) :=
+iff.refl _
+
+@[simp] lemma op_eq_zero_iff [has_zero α] (a : α) : op a = (0 : αᵒᵖ) ↔ a = (0 : α) :=
+iff.refl _
+end
 
 instance [add_monoid α] : add_monoid (opposite α) :=
 { zero_add := λ x, unop_inj $ zero_add $ unop x,
@@ -74,6 +84,15 @@ instance [comm_semigroup α] : comm_semigroup (opposite α) :=
 instance [has_one α] : has_one (opposite α) :=
 { one := op 1 }
 
+section
+local attribute [reducible] opposite
+@[simp] lemma unop_eq_one_iff [has_one α] (a : αᵒᵖ) : a.unop = 1 ↔ a = 1 :=
+iff.refl _
+
+@[simp] lemma op_eq_one_iff [has_one α] (a : α) : op a = 1 ↔ a = 1 :=
+iff.refl _
+end
+
 instance [monoid α] : monoid (opposite α) :=
 { one_mul := λ x, unop_inj $ mul_one $ unop x,
   mul_one := λ x, unop_inj $ one_mul $ unop x,
@@ -108,20 +127,19 @@ instance [ring α] : ring (opposite α) :=
 instance [comm_ring α] : comm_ring (opposite α) :=
 { .. opposite.ring α, .. opposite.comm_semigroup α }
 
-instance [zero_ne_one_class α] : zero_ne_one_class (opposite α) :=
-{ zero_ne_one := λ h, zero_ne_one $ op_inj h,
-  .. opposite.has_zero α, .. opposite.has_one α }
+instance [has_zero α] [has_one α] [nonzero α] : nonzero (opposite α) :=
+{ zero_ne_one := λ h : op (0 : α) = op 1, zero_ne_one (op_inj h) }
 
 instance [integral_domain α] : integral_domain (opposite α) :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := λ x y (H : op _ = op (0:α)),
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ x y (H : op (_ * _) = op (0:α)),
     or.cases_on (eq_zero_or_eq_zero_of_mul_eq_zero $ op_inj H)
       (λ hy, or.inr $ unop_inj $ hy) (λ hx, or.inl $ unop_inj $ hx),
-  .. opposite.comm_ring α, .. opposite.zero_ne_one_class α }
+  .. opposite.comm_ring α, .. opposite.nonzero α }
 
 instance [field α] : field (opposite α) :=
 { mul_inv_cancel := λ x hx, unop_inj $ inv_mul_cancel $ λ hx', hx $ unop_inj hx',
   inv_zero := unop_inj inv_zero,
-  .. opposite.comm_ring α, .. opposite.zero_ne_one_class α, .. opposite.has_inv α }
+  .. opposite.comm_ring α, .. opposite.nonzero α, .. opposite.has_inv α }
 
 @[simp] lemma op_zero [has_zero α] : op (0 : α) = 0 := rfl
 @[simp] lemma unop_zero [has_zero α] : unop (0 : αᵒᵖ) = 0 := rfl

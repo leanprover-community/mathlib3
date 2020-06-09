@@ -1,3 +1,2 @@
-import order.basic order.lattice order.bounded_lattice
-       order.boolean_algebra order.complete_lattice
-       order.bounds
+import order.boolean_algebra
+import order.complete_lattice

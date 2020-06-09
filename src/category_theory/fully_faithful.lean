@@ -3,14 +3,14 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import logic.function category_theory.isomorphism
+import logic.function.basic
+import category_theory.natural_isomorphism
 
 universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 
 /--
 A functor `F : C ⥤ D` is full if for each `X Y : C`, `F.map` is surjective.
@@ -26,7 +26,7 @@ attribute [simp] full.witness
 
 /-- A functor `F : C ⥤ D` is faithful if for each `X Y : C`, `F.map` is injective.-/
 class faithful (F : C ⥤ D) : Prop :=
-(injectivity' : ∀ {X Y : C}, function.injective (@functor.map _ _ _ _ F X Y) . obviously)
+(injectivity' [] : ∀ {X Y : C}, function.injective (@functor.map _ _ _ _ F X Y) . obviously)
 
 restate_axiom faithful.injectivity'
 
@@ -78,17 +78,15 @@ end category_theory
 
 namespace category_theory
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
-include 𝒞
+variables {C : Type u₁} [category.{v₁} C]
 
 instance full.id : full (𝟭 C) :=
 { preimage := λ _ _ f, f }
 
 instance faithful.id : faithful (𝟭 C) := by obviously
 
-variables {D : Type u₂} [𝒟 : category.{v₂} D] {E : Type u₃} [ℰ : category.{v₃} E]
-include 𝒟 ℰ
-variables (F : C ⥤ D) (G : D ⥤ E)
+variables {D : Type u₂} [category.{v₂} D] {E : Type u₃} [category.{v₃} E]
+variables (F F' : C ⥤ D) (G : D ⥤ E)
 
 instance faithful.comp [faithful F] [faithful G] : faithful (F ⋙ G) :=
 { injectivity' := λ _ _ _ _ p, F.injectivity (G.injectivity p) }
@@ -96,8 +94,23 @@ instance faithful.comp [faithful F] [faithful G] : faithful (F ⋙ G) :=
 lemma faithful.of_comp [faithful $ F ⋙ G] : faithful F :=
 { injectivity' := λ X Y, (F ⋙ G).injectivity.of_comp }
 
+section
+variables {F F'}
+
+lemma faithful.of_iso [faithful F] (α : F ≅ F') : faithful F' :=
+{ injectivity' := λ X Y f f' h, F.injectivity
+  (by rw [←nat_iso.naturality_1 α.symm, h, nat_iso.naturality_1 α.symm]) }
+end
+
 variables {F G}
 
+lemma faithful.of_comp_iso {H : C ⥤ E} [ℋ : faithful H] (h : F ⋙ G ≅ H) : faithful F :=
+@faithful.of_comp _ _ _ _ _ _ F G (faithful.of_iso h.symm)
+
+alias faithful.of_comp_iso ← category_theory.iso.faithful_of_comp
+
+-- We could prove this from `faithful.of_comp_iso` using `eq_to_iso`,
+-- but that would introduce a cyclic import.
 lemma faithful.of_comp_eq {H : C ⥤ E} [ℋ : faithful H] (h : F ⋙ G = H) : faithful F :=
 @faithful.of_comp _ _ _ _ _ _ F G (h.symm ▸ ℋ)
 
@@ -133,6 +146,10 @@ protected def faithful.div (F : C ⥤ E) (G : D ⥤ E) [faithful G]
       exact h_map.symm
   end }
 
+-- This follows immediately from `functor.hext` (`functor.hext h_obj @h_map`),
+-- but importing `category_theory.eq_to_hom` causes an import loop:
+-- category_theory.eq_to_hom → category_theory.opposites →
+-- category_theory.equivalence → category_theory.fully_faithful
 lemma faithful.div_comp (F : C ⥤ E) [faithful F] (G : D ⥤ E) [faithful G]
   (obj : C → D) (h_obj : ∀ X, G.obj (obj X) = F.obj X)
   (map : Π {X Y}, (X ⟶ Y) → (obj X ⟶ obj Y))

@@ -357,22 +357,21 @@ begin
     apply mul_right_cancel' hyn,
     apply mul_right_cancel' hxyn,
     apply mul_right_cancel' hxyn,
-    rw [mul_sub_right_distrib, mul_sub_right_distrib, mul_sub_right_distrib,
-        mul_sub_right_distrib,
-        (show real.sin (angle x (x - y)) * real.sin (angle y (y - x)) *
+    have H1 : real.sin (angle x (x - y)) * real.sin (angle y (y - x)) *
                 ∥x∥ * ∥y∥ * ∥x - y∥ * ∥x - y∥ =
               (real.sin (angle x (x - y)) * (∥x∥ * ∥x - y∥)) *
-                (real.sin (angle y (y - x)) * (∥y∥ * ∥x - y∥)), by ring),
-        sin_angle_mul_norm_mul_norm, norm_sub_rev x y, sin_angle_mul_norm_mul_norm,
-        norm_sub_rev y x, inner_sub_left, inner_sub_left, inner_sub_right, inner_sub_right,
-        inner_sub_right, inner_sub_right, inner_comm y x,
-        (show inner x x * (inner x x - inner x y - (inner x y - inner y y)) -
+                (real.sin (angle y (y - x)) * (∥y∥ * ∥x - y∥)), { ring },
+    have H2 : inner x x * (inner x x - inner x y - (inner x y - inner y y)) -
                 (inner x x - inner x y) * (inner x x - inner x y) =
-              inner x x * inner y y - inner x y * inner x y, by ring),
-        (show inner y y * (inner y y - inner x y - (inner x y - inner x x)) -
+              inner x x * inner y y - inner x y * inner x y, { ring },
+    have H3 : inner y y * (inner y y - inner x y - (inner x y - inner x x)) -
                 (inner y y - inner x y) * (inner y y - inner x y) =
-              inner x x * inner y y - inner x y * inner x y, by ring),
-        real.mul_self_sqrt (sub_nonneg_of_le (inner_mul_inner_self_le x y)),
+              inner x x * inner y y - inner x y * inner x y, { ring },
+    rw [mul_sub_right_distrib, mul_sub_right_distrib, mul_sub_right_distrib,
+        mul_sub_right_distrib, H1, sin_angle_mul_norm_mul_norm, norm_sub_rev x y,
+        sin_angle_mul_norm_mul_norm, norm_sub_rev y x, inner_sub_left, inner_sub_left,
+        inner_sub_right, inner_sub_right, inner_sub_right, inner_sub_right, inner_comm y x, H2,
+        H3, real.mul_self_sqrt (sub_nonneg_of_le (inner_mul_inner_self_le x y)),
         inner_self_eq_norm_square, inner_self_eq_norm_square,
         inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two],
     field_simp [hxn, hyn, hxyn],
@@ -395,24 +394,24 @@ begin
     apply mul_right_cancel' hyn,
     apply mul_right_cancel' hxyn,
     apply mul_right_cancel' hxyn,
-    rw [right_distrib, right_distrib, right_distrib, right_distrib,
-        (show real.sin (angle x (x - y)) * (inner y (y - x) / (∥y∥ * ∥y - x∥)) * ∥x∥ * ∥y∥ * ∥x - y∥ =
+    have H1 : real.sin (angle x (x - y)) * (inner y (y - x) / (∥y∥ * ∥y - x∥)) * ∥x∥ * ∥y∥ * ∥x - y∥ =
                 real.sin (angle x (x - y)) * (∥x∥ * ∥x - y∥) *
-                  (inner y (y - x) / (∥y∥ * ∥y - x∥)) * ∥y∥, by ring),
-        sin_angle_mul_norm_mul_norm, norm_sub_rev x y,
-        (show inner x (x - y) / (∥x∥ * ∥y - x∥) * real.sin (angle y (y - x)) * ∥x∥ * ∥y∥ * ∥y - x∥ =
+                  (inner y (y - x) / (∥y∥ * ∥y - x∥)) * ∥y∥, { ring },
+    have H2 : inner x (x - y) / (∥x∥ * ∥y - x∥) * real.sin (angle y (y - x)) * ∥x∥ * ∥y∥ * ∥y - x∥ =
                 inner x (x - y) / (∥x∥ * ∥y - x∥) *
-                  (real.sin (angle y (y - x)) * (∥y∥ * ∥y - x∥)) * ∥x∥, by ring),
-        sin_angle_mul_norm_mul_norm, norm_sub_rev y x, mul_assoc (real.sin (angle x y)),
-        sin_angle_mul_norm_mul_norm, inner_sub_left, inner_sub_left, inner_sub_right,
-        inner_sub_right, inner_sub_right, inner_sub_right, inner_comm y x,
-        (show inner x x * (inner x x - inner x y - (inner x y - inner y y)) -
+                  (real.sin (angle y (y - x)) * (∥y∥ * ∥y - x∥)) * ∥x∥, { ring },
+    have H3 : inner x x * (inner x x - inner x y - (inner x y - inner y y)) -
                 (inner x x - inner x y) * (inner x x - inner x y) =
-              inner x x * inner y y - inner x y * inner x y, by ring),
-        (show inner y y * (inner y y - inner x y - (inner x y - inner x x)) -
+              inner x x * inner y y - inner x y * inner x y, { ring },
+    have H4 : inner y y * (inner y y - inner x y - (inner x y - inner x x)) -
                 (inner y y - inner x y) * (inner y y - inner x y) =
-              inner x x * inner y y - inner x y * inner x y, by ring),
-        inner_self_eq_norm_square, inner_self_eq_norm_square,
+              inner x x * inner y y - inner x y * inner x y, { ring },
+    rw [right_distrib, right_distrib, right_distrib, right_distrib, H1,
+        sin_angle_mul_norm_mul_norm, norm_sub_rev x y, H2, sin_angle_mul_norm_mul_norm,
+        norm_sub_rev y x, mul_assoc (real.sin (angle x y)), sin_angle_mul_norm_mul_norm,
+        inner_sub_left, inner_sub_left, inner_sub_right, inner_sub_right, inner_sub_right,
+        inner_sub_right, inner_comm y x, H3, H4, inner_self_eq_norm_square,
+        inner_self_eq_norm_square,
         inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two],
     field_simp [hxn, hyn, hxyn],
     ring }

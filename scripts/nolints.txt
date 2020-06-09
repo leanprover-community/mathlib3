@@ -71,14 +71,6 @@ apply_nolint gt_iff_lt ge_or_gt
 apply_nolint discrete_linear_ordered_field doc_blame
 apply_nolint linear_ordered_field doc_blame
 
--- algebra/ordered_group.lean
-apply_nolint abs doc_blame
-apply_nolint decidable_linear_ordered_add_comm_group doc_blame
-apply_nolint decidable_linear_ordered_cancel_add_comm_monoid doc_blame
-apply_nolint dist_bdd_within_interval unused_arguments
-apply_nolint ordered_add_comm_group doc_blame
-apply_nolint ordered_cancel_add_comm_monoid doc_blame
-
 -- algebra/pointwise.lean
 apply_nolint set.add_comm_monoid doc_blame
 apply_nolint set.comm_monoid doc_blame

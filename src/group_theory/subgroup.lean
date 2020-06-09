@@ -208,12 +208,15 @@ theorem mul_mem {x y : G} : x ∈ H → y ∈ H → x * y ∈ H := λ hx hy, H.m
 @[to_additive "An `add_subgroup` is closed under inverse."]
 theorem inv_mem {x : G} : x ∈ H → x⁻¹ ∈ H := λ hx, H.inv_mem' hx
 
+@[simp, to_additive] theorem inv_mem_iff {x : G} : x⁻¹ ∈ H ↔ x ∈ H :=
+⟨λ h, inv_inv x ▸ H.inv_mem h, H.inv_mem⟩
+
 @[to_additive]
-lemma mul_mem_cancel_left {x y : G} (h : x ∈ H) : y * x ∈ H ↔ y ∈ H :=
+lemma mul_mem_cancel_right {x y : G} (h : x ∈ H) : y * x ∈ H ↔ y ∈ H :=
 ⟨λ hba, by simpa using H.mul_mem hba (H.inv_mem h), λ hb, H.mul_mem hb h⟩
 
 @[to_additive]
-lemma mul_mem_cancel_right {x y : G} (h : x ∈ H) : x * y ∈ H ↔ y ∈ H :=
+lemma mul_mem_cancel_left {x y : G} (h : x ∈ H) : x * y ∈ H ↔ y ∈ H :=
 ⟨λ hab, by simpa using H.mul_mem (H.inv_mem h) hab, H.mul_mem h⟩
 
 /-- Product of a list of elements in a subgroup is in the subgroup. -/
@@ -664,7 +667,7 @@ variable {H}
   g ∈ normalizer H ↔ ∀ n, n ∈ H ↔ g * n * g⁻¹ ∈ H := iff.rfl
 
 @[to_additive] lemma le_normalizer : H ≤ normalizer H :=
-λ x xH n, by rw [H.mul_mem_cancel_left (H.inv_mem xH), H.mul_mem_cancel_right xH]
+λ x xH n, by rw [H.mul_mem_cancel_right (H.inv_mem xH), H.mul_mem_cancel_left xH]
 
 @[instance, priority 100, to_additive]
 lemma normal_in_normalizer : (H.comap H.normalizer.subtype).normal :=

@@ -155,11 +155,11 @@ lemma inv_mem_iff : a⁻¹ ∈ s ↔ a ∈ s :=
 ⟨λ h, by simpa using inv_mem h, inv_mem⟩
 
 @[to_additive]
-lemma mul_mem_cancel_left (h : a ∈ s) : b * a ∈ s ↔ b ∈ s :=
+lemma mul_mem_cancel_right (h : a ∈ s) : b * a ∈ s ↔ b ∈ s :=
 ⟨λ hba, by simpa using mul_mem hba (inv_mem h), λ hb, mul_mem hb h⟩
 
 @[to_additive]
-lemma mul_mem_cancel_right (h : a ∈ s) : a * b ∈ s ↔ b ∈ s :=
+lemma mul_mem_cancel_left (h : a ∈ s) : a * b ∈ s ↔ b ∈ s :=
 ⟨λ hab, by simpa using mul_mem (inv_mem h) hab, mul_mem h⟩
 
 end is_subgroup
@@ -280,8 +280,8 @@ instance normalizer_is_subgroup (s : set G) : is_subgroup (normalizer s) :=
 
 @[to_additive subset_add_normalizer]
 lemma subset_normalizer (s : set G) [is_subgroup s] : s ⊆ normalizer s :=
-λ g hg n, by rw [is_subgroup.mul_mem_cancel_left _ ((is_subgroup.inv_mem_iff _).2 hg),
-  is_subgroup.mul_mem_cancel_right _ hg]
+λ g hg n, by rw [is_subgroup.mul_mem_cancel_right _ ((is_subgroup.inv_mem_iff _).2 hg),
+  is_subgroup.mul_mem_cancel_left _ hg]
 
 /-- Every subgroup is a normal subgroup of its normalizer -/
 @[to_additive add_normal_in_add_normalizer]

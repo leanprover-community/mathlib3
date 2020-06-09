@@ -182,7 +182,7 @@ lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : set G} [is_subgro
 (mem_fixed_points' _).2 $ λ y, quotient.induction_on' y $ λ y hy, quotient_group.eq.2
   (let ⟨⟨b, hb₁⟩, hb₂⟩ := hy in
   have hb₂ : (b * x)⁻¹ * y ∈ H := quotient_group.eq.1 hb₂,
-  (inv_mem_iff H).1 $ (hx _).2 $ (mul_mem_cancel_right H (inv_mem hb₁)).1
+  (inv_mem_iff H).1 $ (hx _).2 $ (mul_mem_cancel_left H (inv_mem hb₁)).1
   $ by rw hx at hb₂;
     simpa [mul_inv_rev, mul_assoc] using hb₂)⟩
 

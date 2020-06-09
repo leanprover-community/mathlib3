@@ -5,6 +5,8 @@ Authors: Yury Kudryashov
 -/
 import analysis.convex.specific_functions
 import analysis.special_functions.pow
+import data.real.conjugate_exponents
+import tactic.nth_rewrite
 
 /-!
 # Mean value inequalities
@@ -37,12 +39,12 @@ variables {ι : Type u} (s : finset ι)
 /-- Geometric mean is less than or equal to the arithmetic mean, weighted version
 for functions on `finset`s. -/
 theorem real.am_gm_weighted (w z : ι → ℝ)
-  (hw : ∀ i ∈ s, 0 ≤ w i) (hw' : s.sum w = 1) (hz : ∀ i ∈ s, 0 ≤ z i) :
-  (∏ i in s, (z i) ^ (w i)) ≤ s.sum (λ i, w i * z i) :=
+  (hw : ∀ i ∈ s, 0 ≤ w i) (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) :
+  (∏ i in s, (z i) ^ (w i)) ≤ ∑ i in s, w i * z i :=
 begin
   let s' := s.filter (λ i, w i ≠ 0),
   rw [← sum_filter_ne_zero] at hw',
-  suffices : (∏ i in s', (z i) ^ (w i)) ≤ s'.sum (λ i, w i * z i),
+  suffices : (∏ i in s', (z i) ^ (w i)) ≤ ∑ i in s', w i * z i,
   { have A : ∀ i ∈ s, i ∉ s' → w i = 0,
     { intros i hi hi',
       simpa only [hi, mem_filter, ne.def, true_and, not_not] using hi' },
@@ -68,8 +70,8 @@ begin
     { exact sum_congr rfl (λ i hi, congr_arg _ (exp_log $ hz i hi).symm) } }
 end
 
-theorem nnreal.am_gm_weighted (w z : ι → ℝ≥0) (hw' : s.sum w = 1) :
-  (∏ i in s, (z i) ^ (w i:ℝ)) ≤ s.sum (λ i, w i * z i) :=
+theorem nnreal.am_gm_weighted (w z : ι → ℝ≥0) (hw' : ∑ i in s, w i = 1) :
+  (∏ i in s, (z i) ^ (w i:ℝ)) ≤ ∑ i in s, w i * z i :=
 begin
   rw [← nnreal.coe_le_coe, nnreal.coe_prod, nnreal.coe_sum],
   refine real.am_gm_weighted _ _ _ (λ i _, (w i).coe_nonneg) _ (λ i _, (z i).coe_nonneg),
@@ -103,34 +105,30 @@ begin
   exact this hw
 end
 
-/-- Young's inequality, `ℝ≥0` version -/
-theorem nnreal.young_inequality (a b : ℝ≥0) {p q : ℝ≥0} (hp : 1 < p) (hq : 1 < q)
-  (hpq : 1/p + 1/q = 1) : a * b ≤ a^(p:ℝ) / p + b^(q:ℝ) / q :=
-begin
-  have := nnreal.am_gm2_weighted (1/p) (1/q) (a^(p:ℝ)) (b^(q:ℝ)) hpq,
-  simp only [← nnreal.rpow_mul, one_div_eq_inv, nnreal.coe_div, nnreal.coe_one] at this,
-  rw [mul_inv_cancel, mul_inv_cancel, nnreal.rpow_one, nnreal.rpow_one] at this,
-  { ring at ⊢ this,
-    convert this;
-    { rw [nnreal.div_def, nnreal.div_def], ring } },
-  { exact ne_of_gt (lt_trans zero_lt_one hq) },
-  { exact ne_of_gt (lt_trans zero_lt_one hp) }
-end
-
 /-- Young's inequality, `ℝ` version -/
-theorem real.young_inequality {a b : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b)
-  {p q : ℝ} (hp : 1 < p) (hq : 1 < q) (hpq : 1/p + 1/q = 1) :
-  a * b ≤ a^p / p + b^q / q :=
-@nnreal.young_inequality ⟨a, ha⟩ ⟨b, hb⟩ ⟨p, le_trans zero_le_one (le_of_lt hp)⟩
-  ⟨q, le_trans zero_le_one (le_of_lt hq)⟩ hp hq (nnreal.coe_eq.1 hpq)
+theorem real.young_inequality (a b : ℝ) {p q : ℝ} (hpq : p.is_conjugate_exponent q) :
+  a * b ≤ (abs a)^p / p + (abs b)^q / q :=
+calc a * b ≤ abs (a * b) : le_abs_self (a * b)
+... = abs a * abs b : abs_mul a b
+... ≤ (abs a)^p / p + (abs b)^q / q :
+  by simpa [← rpow_mul (abs_nonneg _), hpq.ne_zero, hpq.symm.ne_zero, div_eq_inv_mul]
+  using real.am_gm2_weighted (le_of_lt hpq.one_div_pos) (le_of_lt hpq.symm.one_div_pos)
+    (rpow_nonneg_of_nonneg (abs_nonneg a) p) (rpow_nonneg_of_nonneg (abs_nonneg b) q)
+    hpq.inv_add_inv_conj
+
+/-- Young's inequality, `ℝ≥0` version -/
+theorem nnreal.young_inequality (a b : ℝ≥0) {p q : ℝ≥0} (hp : 1 < p) (hpq : 1 / p + 1 / q = 1) :
+  a * b ≤ a^(p:ℝ) / p + b^(q:ℝ) / q :=
+by simpa only [abs_of_nonneg (nnreal.coe_nonneg _)]
+  using real.young_inequality a b ⟨hp, nnreal.coe_eq.2 hpq⟩
 
 theorem real.pow_am_le_am_pow (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
-  (hw' : s.sum w = 1) (hz : ∀ i ∈ s, 0 ≤ z i) (n : ℕ) :
-  (s.sum (λ i, w i * z i)) ^ n ≤ s.sum (λ i, w i * z i ^ n) :=
+  (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) (n : ℕ) :
+  (∑ i in s, w i * z i) ^ n ≤ ∑ i in s, w i * z i ^ n :=
 (convex_on_pow n).map_sum_le hw hw' hz
 
-theorem nnreal.pow_am_le_am_pow (w z : ι → ℝ≥0) (hw' : s.sum w = 1) (n : ℕ) :
-  (s.sum (λ i, w i * z i)) ^ n ≤ s.sum (λ i, w i * z i ^ n) :=
+theorem nnreal.pow_am_le_am_pow (w z : ι → ℝ≥0) (hw' : ∑ i in s, w i = 1) (n : ℕ) :
+  (∑ i in s, w i * z i) ^ n ≤ ∑ i in s, w i * z i ^ n :=
 begin
   rw [← nnreal.coe_le_coe],
   push_cast,
@@ -139,11 +137,120 @@ begin
 end
 
 theorem real.pow_am_le_am_pow_of_even (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
-  (hw' : s.sum w = 1) {n : ℕ} (hn : n.even) :
-  (s.sum (λ i, w i * z i)) ^ n ≤ s.sum (λ i, w i * z i ^ n) :=
+  (hw' : ∑ i in s, w i = 1) {n : ℕ} (hn : n.even) :
+  (∑ i in s, w i * z i) ^ n ≤ ∑ i in s, w i * z i ^ n :=
 (convex_on_pow_of_even hn).map_sum_le hw hw' (λ _ _, trivial)
 
 theorem real.fpow_am_le_am_fpow (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
-  (hw' : s.sum w = 1) (hz : ∀ i ∈ s, 0 < z i) (m : ℤ) :
-  (s.sum (λ i, w i * z i)) ^ m ≤ s.sum (λ i, w i * z i ^ m) :=
+  (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 < z i) (m : ℤ) :
+  (∑ i in s, w i * z i) ^ m ≤ ∑ i in s, w i * z i ^ m :=
 (convex_on_fpow m).map_sum_le hw hw' hz
+
+namespace finset
+
+variables {p q : ℝ}
+
+theorem sum_mul_le_one_of_lp_le_one_of_lq_le_one {f g : ι → ℝ} (hpq : is_conjugate_exponent p q)
+  (hf : ∑ i in s, (abs $ f i)^p ≤ 1) (hg : ∑ i in s, (abs $ g i)^q ≤ 1) :
+  ∑ i in s, f i * g i ≤ 1 :=
+calc ∑ i in s, f i * g i ≤ ∑ i in s, ((abs $ f i)^p / p + (abs $ g i)^q / q) :
+  sum_le_sum $ λ i hi, real.young_inequality (f i) (g i) hpq
+... = (∑ i in s, ((abs $ f i)^p)) / p + (∑ i in s, (abs $ g i)^q) / q :
+  by simp only [sum_add_distrib, sum_div]
+... ≤ 1 / p + 1 / q : add_le_add (div_le_div_of_le_of_nonneg hf (le_of_lt hpq.pos))
+  (div_le_div_of_le_of_nonneg hg (le_of_lt hpq.symm.pos))
+... = 1 : hpq.inv_add_inv_conj
+
+section nnreal
+
+variables {f g : ι → ℝ≥0}
+
+theorem lq_norm_conj_eq_one_nnreal (hf : ∑ i in s, (f i)^p ≠ 0) (hpq : is_conjugate_exponent p q) :
+  ∑ i in s, ((f i) ^ (p - 1) / (∑ i in s, (f i) ^ p) ^ (1 / q)) ^ q = 1 :=
+by simp only [nnreal.div_rpow, ← nnreal.rpow_mul, mul_div_assoc', hpq.sub_one_mul_conj,
+  one_div_mul_cancel hpq.symm.ne_zero, nnreal.rpow_one, ← nnreal.sum_div, nnreal.div_self hf]
+
+variables (f g)
+
+theorem sum_mul_le_lp_mul_lq_nnreal (hpq : is_conjugate_exponent p q) :
+  ∑ i in s, f i * g i ≤ (∑ i in s, (f i)^p) ^ (1 / p) * (∑ i in s, (g i)^q) ^ (1 / q) :=
+begin
+  -- First consider the cases `f = 0` and `g = 0`.
+  have : ∀ (f g : ι → ℝ≥0) {p q : ℝ}, ((∑ i in s, (f i)^p) = 0) → is_conjugate_exponent p q →
+    ∑ i in s, f i * g i ≤ (∑ i in s, (f i)^p) ^ (1 / p) * (∑ i in s, (g i)^q) ^ (1 / q),
+  { intros f g p q hf hpq,
+    replace hf : ∀ i ∈ s, f i = 0, by simpa [hpq.ne_zero] using hf,
+    rw [sum_eq_zero, sum_eq_zero, nnreal.zero_rpow hpq.one_div_ne_zero, zero_mul];
+    { intros i hi, simp [hf i hi, hpq.ne_zero] } },
+  by_cases hf : ∑ i in s, (f i)^p = 0, { exact this f g hf hpq },
+  by_cases hg : ∑ i in s, (g i)^q = 0, { simpa only [mul_comm] using this g f hg hpq.symm },
+  clear this,
+  -- Now we divide each vector by its norm and apply `sum_mul_le_one_of_lp_le_one_of_lq_le_one`
+  have : ∀ {f : ι → ℝ≥0} {p q : ℝ}, is_conjugate_exponent p q → ∑ i in s, (f i)^p ≠ 0 →
+    ∑ i in s, (abs (↑(f i / (∑ i in s, (f i)^p)^(1/p)) : ℝ))^p ≤ 1,
+  { refine λ f p q hpq hf, le_of_eq _,
+    simp only [abs_of_nonneg (nnreal.coe_nonneg _)],
+    norm_cast,
+    simp_rw [nnreal.div_rpow, ← nnreal.sum_div, ← nnreal.rpow_mul, one_div_mul_cancel hpq.ne_zero,
+      nnreal.rpow_one, nnreal.div_self hf] },
+  have := s.sum_mul_le_one_of_lp_le_one_of_lq_le_one hpq (this hpq hf) (this hpq.symm hg),
+  norm_cast at this,
+  simp only [div_mul_div', ← nnreal.sum_div] at this,
+  rwa [nnreal.div_le_iff, one_mul] at this,
+  apply nnreal.mul_ne_zero'; exact mt nnreal.rpow_eq_zero_iff.1 (mt and.left ‹_›)
+end
+
+theorem is_greatest_lp_nnreal (f : ι → ℝ≥0) (hpq : is_conjugate_exponent p q) :
+  is_greatest ((λ g : ι → ℝ≥0, ∑ i in s, f i * g i) ''
+    {g | ∑ i in s, (g i)^q ≤ 1}) ((∑ i in s, (f i)^p) ^ (1 / p)) :=
+begin
+  split,
+  { use λ i, ((f i) ^ (p - 1) / (∑ i in s, (f i) ^ p) ^ (1 / q)),
+    by_cases hf : ∑ i in s, (f i)^p = 0,
+    { simp [hf, hpq.ne_zero, hpq.symm.ne_zero] },
+    { use le_of_eq (s.lq_norm_conj_eq_one_nnreal hf hpq),
+      have : ∀ y : ℝ≥0, y * y ^ (p - 1) = y ^ p,
+      { have A : p = 1 + (p-1) := eq_add_of_sub_eq' rfl,
+        have B : 1 + (p-1) ≠ 0 := A ▸ hpq.ne_zero,
+        intro y,
+        simpa using (y.rpow_add' B).symm },
+      simp only [← mul_div_assoc'', ← nnreal.rpow_mul, ← nnreal.sum_div, this],
+      generalize H : ∑ i in s, (f i)^p = r, rw H at hf,
+      rw [nnreal.div_eq_iff, ← nnreal.rpow_add', hpq.inv_add_inv_conj, nnreal.rpow_one],
+      { rw hpq.inv_add_inv_conj, exact one_ne_zero },
+      { simp [hf] } } },
+  { rintros _ ⟨g, hg, rfl⟩,
+    apply le_trans (s.sum_mul_le_lp_mul_lq_nnreal f g hpq),
+    simpa only [mul_one] using canonically_ordered_semiring.mul_le_mul (le_refl _)
+      (nnreal.rpow_le_one hg (le_of_lt hpq.symm.one_div_pos)) }
+end
+
+theorem minkowskii_nnreal (hp : 1 < p) :
+  (∑ i in s, (f i + g i) ^ p) ^ (1 / p) ≤
+    (∑ i in s, (f i) ^ p) ^ (1 / p) + (∑ i in s, (g i) ^ p) ^ (1 / p) :=
+begin
+  have hpq := is_conjugate_exponent_conjugate_exponent hp,
+  have := s.is_greatest_lp_nnreal (f + g) hpq,
+  simp only [pi.add_apply, add_mul, sum_add_distrib] at this,
+  rcases this.1 with ⟨φ, hφ, H⟩,
+  rw ← H,
+  exact add_le_add ((s.is_greatest_lp_nnreal f hpq).2 ⟨φ, hφ, rfl⟩)
+    ((s.is_greatest_lp_nnreal g hpq).2 ⟨φ, hφ, rfl⟩)
+end
+
+end nnreal
+
+variables (f g : ι → ℝ)  
+
+theorem sum_mul_le_lp_mul_lq (hpq : is_conjugate_exponent p q) :
+  ∑ i in s, f i * g i ≤ (∑ i in s, (abs $ f i)^p) ^ (1 / p) * (∑ i in s, (abs $ g i)^q) ^ (1 / q) :=
+begin
+  have := nnreal.coe_le_coe.2 (@sum_mul_le_lp_mul_lq_nnreal ι s p q
+    (λ i, ⟨abs (f i), abs_nonneg (f i)⟩) (λ i, ⟨abs (g i), abs_nonneg (g i)⟩) hpq),
+  push_cast at this,
+  refine le_trans (sum_le_sum $ λ i hi, _) this,
+  rw [← abs_mul],
+  apply le_abs_self
+end
+
+end finset

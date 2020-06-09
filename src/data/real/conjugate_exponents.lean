@@ -30,22 +30,6 @@ structure is_conjugate_exponent (p q : ℝ) : Prop :=
 /-- The conjugate exponent of `p` is `q = p/(p-1)`, so that `1/p + 1/q = 1`. -/
 def conjugate_exponent (p : ℝ) : ℝ := p/(p-1)
 
-lemma is_conjugate_exponent_iff {p q : ℝ} (h : 1 < p) :
-  p.is_conjugate_exponent q ↔ q = p/(p-1) :=
-begin
-  split,
-  { rintros ⟨H, H'⟩,
-    rw [eq_sub_iff_add_eq'.symm, one_div_eq_inv, inv_eq_iff] at H',
-    field_simp [ne_of_gt (lt_trans zero_lt_one h), ← H'] },
-  { refine λ H, ⟨h, _⟩,
-    rw H,
-    field_simp [ne_of_gt (lt_trans zero_lt_one h)] }
-end
-
-lemma is_conjugate_exponent_conjugate_exponent {p : ℝ} (h : 1 < p) :
-  p.is_conjugate_exponent (conjugate_exponent p) :=
-(is_conjugate_exponent_iff h).2 rfl
-
 namespace is_conjugate_exponent
 
 variables {p q : ℝ} (h : p.is_conjugate_exponent q)
@@ -61,8 +45,11 @@ lt_trans zero_lt_one h.one_lt
 lemma ne_zero : p ≠ 0 :=
 ne_of_gt h.pos
 
+lemma sub_one_pos : 0 < p - 1 :=
+sub_pos.2 h.one_lt
+
 lemma sub_one_ne_zero : p - 1 ≠ 0 :=
-sub_ne_zero_of_ne (ne_of_gt h.one_lt)
+ne_of_gt h.sub_one_pos
 
 lemma one_div_pos : 0 < 1/p :=
 one_div_pos_of_pos h.pos
@@ -71,13 +58,27 @@ lemma one_div_ne_zero : 1/p ≠ 0 :=
 ne_of_gt (h.one_div_pos)
 
 lemma conj_eq : q = p/(p-1) :=
-(is_conjugate_exponent_iff h.one_lt).1 h
+begin
+  have := h.inv_add_inv_conj,
+  rw [← eq_sub_iff_add_eq', one_div_eq_inv, inv_eq_iff] at this,
+  field_simp [← this, h.ne_zero]
+end
+
+lemma sub_one_mul_conj : (p - 1) * q = p :=
+mul_comm q (p - 1) ▸ (eq_div_iff h.sub_one_ne_zero).1 h.conj_eq
 
 @[symm] protected lemma symm : q.is_conjugate_exponent p :=
-{ one_lt :=
-    by { rw [h.conj_eq], exact one_lt_div_of_lt _ (sub_pos_of_lt h.one_lt) (sub_one_lt p) },
+{ one_lt := by { rw [h.conj_eq], exact one_lt_div_of_lt _ h.sub_one_pos (sub_one_lt p) },
   inv_add_inv_conj := by simpa [add_comm] using h.inv_add_inv_conj }
 
 end is_conjugate_exponent
+
+lemma is_conjugate_exponent_iff {p q : ℝ} (h : 1 < p) :
+  p.is_conjugate_exponent q ↔ q = p/(p-1) :=
+⟨λ H, H.conj_eq, λ H, ⟨h, by field_simp [H, ne_of_gt (lt_trans zero_lt_one h)]⟩⟩
+
+lemma is_conjugate_exponent_conjugate_exponent {p : ℝ} (h : 1 < p) :
+  p.is_conjugate_exponent (conjugate_exponent p) :=
+(is_conjugate_exponent_iff h).2 rfl
 
 end real

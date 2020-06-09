@@ -3,8 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Bhavik Mehta, Patrick Stevens
 -/
-import algebra.commute
 import tactic.linarith
+import algebra.big_operators
 
 open nat
 

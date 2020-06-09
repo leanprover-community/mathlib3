@@ -5,7 +5,6 @@ Authors: Kenny Lau, Yury Kudryashov
 -/
 import data.matrix.basic
 import linear_algebra.tensor_product
-import algebra.commute
 import data.equiv.ring
 
 /-!
@@ -24,7 +23,7 @@ noncomputable theory
 
 universes u v w u₁ v₁
 
-open_locale tensor_product
+open_locale tensor_product big_operators
 
 section prio
 -- We set this priority to 0 later in this file
@@ -214,8 +213,10 @@ instance coe_add_monoid_hom : has_coe (A →ₐ[R] B) (A →+ B) := ⟨λ f, ↑
 
 @[simp, norm_cast] lemma coe_to_ring_hom (f : A →ₐ[R] B) : ⇑(f : A →+* B) = f := rfl
 
+-- as `simp` can already prove this lemma, it is not tagged with the `simp` attribute.
 @[norm_cast] lemma coe_to_monoid_hom (f : A →ₐ[R] B) : ⇑(f : A →* B) = f := rfl
 
+-- as `simp` can already prove this lemma, it is not tagged with the `simp` attribute.
 @[norm_cast] lemma coe_to_add_monoid_hom (f : A →ₐ[R] B) : ⇑(f : A →+ B) = f := rfl
 
 variables (φ : A →ₐ[R] B)
@@ -304,7 +305,7 @@ variables [algebra R A] [algebra R B]
 variables (φ : A →ₐ[R] B)
 
 lemma map_prod {ι : Type*} (f : ι → A) (s : finset ι) :
-  φ (s.prod f) = s.prod (λx, φ (f x)) :=
+  φ (∏ x in s, f x) = ∏ x in s, φ (f x) :=
 φ.to_ring_hom.map_prod f s
 
 end comm_semiring
@@ -496,8 +497,7 @@ end alg_hom
 namespace rat
 
 instance algebra_rat {α} [division_ring α] [char_zero α] : algebra ℚ α :=
-(rat.cast_hom α).to_algebra' $
-λ r x, (commute.cast_int_left x r.1).div_left (commute.cast_nat_left x r.2)
+(rat.cast_hom α).to_algebra' $ λ r x, r.cast_commute x
 
 end rat
 
@@ -691,7 +691,7 @@ def alg_hom_int
 
 /-- CRing ⥤ ℤ-Alg -/
 instance algebra_int : algebra ℤ R :=
-{ commutes' := λ x y, commute.cast_int_left _ _,
+{ commutes' := int.cast_commute,
   smul_def' := λ _ _, gsmul_eq_mul _ _,
   .. int.cast_ring_hom R }
 

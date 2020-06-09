@@ -29,13 +29,19 @@ open category_theory
 @[to_additive AddGroup]
 def Group : Type (u+1) := bundled group
 
+/-- The category of additive groups and group morphisms -/
+add_decl_doc AddGroup
+
 namespace Group
 
 @[to_additive]
 instance : bundled_hom.parent_projection group.to_monoid := ⟨⟩
 
-/-- Construct a bundled Group from the underlying type and typeclass. -/
+/-- Construct a bundled `Group` from the underlying type and typeclass. -/
 @[to_additive] def of (X : Type u) [group X] : Group := bundled.of X
+
+/-- Construct a bundled `AddGroup` from the underlying type and typeclass. -/
+add_decl_doc AddGroup.of
 
 local attribute [reducible] Group
 
@@ -76,10 +82,12 @@ instance has_forget_to_Mon : has_forget₂ Group Mon := bundled_hom.forget₂ _ 
 
 end Group
 
-
 /-- The category of commutative groups and group morphisms. -/
 @[to_additive AddCommGroup]
 def CommGroup : Type (u+1) := bundled comm_group
+
+/-- The category of additive commutative groups and group morphisms. -/
+add_decl_doc AddCommGroup
 
 /-- `Ab` is an abbreviation for `AddCommGroup`, for the sake of mathematicians' sanity. -/
 abbreviation Ab := AddCommGroup
@@ -148,9 +156,7 @@ namespace AddCommGroup
 -- TODO allow other universe levels
 -- this will require writing a `ulift_instances.lean` file
 def as_hom {G : AddCommGroup.{0}} (g : G) : (AddCommGroup.of ℤ) ⟶ G :=
-{ to_fun := λ i : ℤ, i • g,
-  map_zero' := rfl,
-  map_add' := λ a b, gpow_add g a b }
+gmultiples_hom G g
 
 @[simp]
 lemma as_hom_apply {G : AddCommGroup.{0}} (g : G) (i : ℤ) : (as_hom g) i = i • g := rfl
@@ -161,12 +167,7 @@ lemma as_hom_injective {G : AddCommGroup.{0}} : function.injective (@as_hom G) :
 @[ext]
 lemma int_hom_ext
   {G : AddCommGroup.{0}} (f g : (AddCommGroup.of ℤ) ⟶ G) (w : f (1 : ℤ) = g (1 : ℤ)) : f = g :=
-begin
-  ext,
-  change ℤ at x,
-  rw ←gsmul_int_one x,
-  rw [add_monoid_hom.map_gsmul, add_monoid_hom.map_gsmul, w],
-end
+add_monoid_hom.ext_int w
 
 -- TODO: this argument should be generalised to the situation where
 -- the forgetful functor is representable.
@@ -176,8 +177,7 @@ begin
   have t0 : as_hom g₁ ≫ f = as_hom g₂ ≫ f :=
   begin
     ext,
-    dsimp [as_hom],
-    simpa using h,
+    simpa [as_hom_apply] using h,
   end,
   have t1 : as_hom g₁ = as_hom g₂ := (cancel_mono _).1 t0,
   apply as_hom_injective t1,
@@ -188,21 +188,26 @@ end AddCommGroup
 variables {X Y : Type u}
 
 /-- Build an isomorphism in the category `Group` from a `mul_equiv` between `group`s. -/
-@[to_additive add_equiv.to_AddGroup_iso "Build an isomorphism in the category `AddGroup` from
-an `add_equiv` between `add_group`s."]
+@[to_additive add_equiv.to_AddGroup_iso]
 def mul_equiv.to_Group_iso [group X] [group Y] (e : X ≃* Y) : Group.of X ≅ Group.of Y :=
 { hom := e.to_monoid_hom,
   inv := e.symm.to_monoid_hom }
 
+/-- Build an isomorphism in the category `AddGroup` from an `add_equiv` between `add_group`s. -/
+add_decl_doc add_equiv.to_AddGroup_iso
+
 attribute [simps] mul_equiv.to_Group_iso add_equiv.to_AddGroup_iso
 
 /-- Build an isomorphism in the category `CommGroup` from a `mul_equiv` between `comm_group`s. -/
-@[to_additive add_equiv.to_AddCommGroup_iso "Build an isomorphism in the category `AddCommGroup`
-from a `add_equiv` between `add_comm_group`s."]
+@[to_additive add_equiv.to_AddCommGroup_iso]
 def mul_equiv.to_CommGroup_iso [comm_group X] [comm_group Y] (e : X ≃* Y) :
   CommGroup.of X ≅ CommGroup.of Y :=
 { hom := e.to_monoid_hom,
   inv := e.symm.to_monoid_hom }
+
+/-- Build an isomorphism in the category `AddCommGroup` from a `add_equiv` between
+`add_comm_group`s. -/
+add_decl_doc add_equiv.to_AddCommGroup_iso
 
 attribute [simps] mul_equiv.to_CommGroup_iso add_equiv.to_AddCommGroup_iso
 

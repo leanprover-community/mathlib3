@@ -9,7 +9,7 @@ import data.real.basic
 
 noncomputable theory
 
-open_locale classical
+open_locale classical big_operators
 
 /-- Nonnegative real numbers. -/
 def nnreal := {r : ℝ // 0 ≤ r}
@@ -456,6 +456,10 @@ section inv
 
 lemma div_def {r p : nnreal} : r / p = r * p⁻¹ := rfl
 
+lemma sum_div {ι} (s : finset ι) (f : ι → ℝ≥0) (b : ℝ≥0) :
+  (∑ i in s, f i) / b = ∑ i in s, (f i / b) :=
+by simp only [nnreal.div_def, finset.sum_mul]
+
 @[simp] lemma inv_zero : (0 : nnreal)⁻¹ = 0 := nnreal.eq inv_zero
 
 @[simp] lemma inv_eq_zero {r : nnreal} : (r : nnreal)⁻¹ = 0 ↔ r = 0 :=
@@ -514,6 +518,9 @@ by rw [← @mul_le_mul_left _ _ a _ r this, ← mul_assoc, mul_inv_cancel hr, on
 
 lemma le_div_iff_mul_le {a b r : ℝ≥0} (hr : r ≠ 0) : a ≤ b / r ↔ a * r ≤ b :=
 by rw [div_def, mul_comm, ← mul_le_iff_le_inv hr, mul_comm]
+
+lemma div_le_iff {a b r : ℝ≥0} (hr : r ≠ 0) : a / r ≤ b ↔ a ≤ b * r :=
+@div_le_iff ℝ _ a r b $ zero_lt_iff_ne_zero.2 hr
 
 lemma le_of_forall_lt_one_mul_lt {x y : ℝ≥0} (h : ∀a<1, a * x ≤ y) : x ≤ y :=
 le_of_forall_ge_of_dense $ assume a ha,

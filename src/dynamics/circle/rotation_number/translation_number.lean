@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Yury G. Kudryashov
 -/
 import analysis.specific_limits
-import dynamics.fixed_points
 import order.iterate
 import algebra.iterate_hom
 
@@ -376,7 +375,7 @@ def transnum_aux_seq (n : ℕ) : ℝ := (f^(2^n)) 0 / 2^n
 an auxiliary sequence `\frac{f^{2^n}(0)}{2^n}` to define `τ(f)` because some proofs are simpler
 this way. -/
 def translation_number : ℝ :=
-lim ((at_top : filter ℕ).map f.transnum_aux_seq)
+lim at_top f.transnum_aux_seq
 
 -- TODO: choose two different symbols for `circle_deg1_lift.translation_number` and the future
 -- `circle_mono_homeo.rotation_number`, then make them `localized notation`s
@@ -387,7 +386,7 @@ lemma transnum_aux_seq_def : f.transnum_aux_seq = λ n : ℕ, (f^(2^n)) 0 / 2^n 
 lemma translation_number_eq_of_tendsto_aux {τ' : ℝ}
   (h : tendsto f.transnum_aux_seq at_top (𝓝 τ')) :
   τ f = τ' :=
-lim_eq (map_ne_bot at_top_ne_bot) h
+h.lim_eq at_top_ne_bot
 
 lemma translation_number_eq_of_tendsto₀ {τ' : ℝ}
   (h : tendsto (λ n:ℕ, f^[n] 0 / n) at_top (𝓝 τ')) :
@@ -416,8 +415,7 @@ begin
 end
 
 lemma tendsto_translation_number_aux : tendsto f.transnum_aux_seq at_top (𝓝 $ τ f) :=
-le_nhds_lim_of_cauchy $ cauchy_seq_of_le_geometric_two 1
-  (λ n, le_of_lt $ f.transnum_aux_seq_dist_lt n)
+(cauchy_seq_of_le_geometric_two 1 (λ n, le_of_lt $ f.transnum_aux_seq_dist_lt n)).tendsto_lim
 
 lemma dist_map_zero_translation_number_le : dist (f 0) (τ f) ≤ 1 :=
 f.transnum_aux_seq_zero ▸ dist_le_of_le_geometric_two_of_tendsto₀ 1

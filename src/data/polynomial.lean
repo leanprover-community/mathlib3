@@ -41,6 +41,7 @@ instance : inhabited (polynomial R) := finsupp.inhabited
 instance : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
 instance : has_scalar R (polynomial R) := add_monoid_algebra.has_scalar
 instance : semimodule R (polynomial R) := add_monoid_algebra.semimodule
+instance : algebra R (polynomial R) := add_monoid_algebra.algebra
 
 /-- The coercion turning a `polynomial` into the function which reports the coefficient of a given
 monomial `X^n` -/
@@ -56,7 +57,9 @@ local attribute [instance] coeff_coe_to_fun
 def monomial (n : ℕ) (a : R) : polynomial R := finsupp.single n a
 
 /-- `C a` is the constant polynomial `a`. -/
-def C (a : R) : polynomial R := monomial 0 a
+def C : R →ₐ[R] polynomial R := algebra.of_id R (polynomial R)
+
+lemma C_def (a : R) : C a = single 0 a := rfl
 
 /-- `X` is the polynomial variable (aka indeterminant). -/
 def X : polynomial R := monomial 1 1
@@ -124,22 +127,21 @@ finsupp.induction p
   (assume n a p _ _ hp, suffices M (C a * X^n + p), by { convert this, exact single_eq_C_mul_X },
     h_add _ _ this hp)
 
-@[simp] lemma C_0 : C (0 : R) = 0 := single_zero
+lemma C_0 : C (0 : R) = 0 := single_zero
 
-@[simp] lemma C_1 : C (1 : R) = 1 := rfl
+lemma C_1 : C (1 : R) = 1 := rfl
 
-@[simp] lemma C_mul : C (a * b) = C a * C b :=
-(@single_mul_single _ _ _ _ 0 0 a b).symm
+lemma C_mul : C (a * b) = C a * C b := C.map_mul a b
 
-@[simp] lemma C_add : C (a + b) = C a + C b := finsupp.single_add
+lemma C_add : C (a + b) = C a + C b := C.map_add a b
 
 instance C.is_semiring_hom : is_semiring_hom (C : R → polynomial R) :=
-⟨C_0, C_1, λ _ _, C_add, λ _ _, C_mul⟩
+C.to_ring_hom.is_semiring_hom
 
-@[simp] lemma C_pow : C (a ^ n) = C a ^ n := is_semiring_hom.map_pow _ _ _
+lemma C_pow : C (a ^ n) = C a ^ n := C.map_pow a n
 
-lemma nat_cast_eq_C (n : ℕ) : (n : polynomial R) = C n :=
-((ring_hom.of C).map_nat_cast n).symm
+lemma nat_cast_eq_C (n : ℕ) : (n : polynomial R) = C (n : R) :=
+(C.to_ring_hom.map_nat_cast n).symm
 
 section coeff
 
@@ -161,7 +163,7 @@ instance coeff.is_add_monoid_hom {n : ℕ} : is_add_monoid_hom (λ p : polynomia
   map_zero := coeff_zero _ }
 
 lemma coeff_C : coeff (C a) n = ite (n = 0) a 0 :=
-by simp [coeff, eq_comm, C, monomial, single]; congr
+by simp [coeff, eq_comm, C_def, monomial, single]; congr
 
 @[simp] lemma coeff_C_zero : coeff (C a) 0 = a := coeff_single
 
@@ -181,7 +183,7 @@ lemma coeff_sum [comm_semiring S] (n : ℕ) (f : ℕ → R → polynomial S) :
 @[simp] lemma coeff_C_mul (p : polynomial R) : coeff (C a * p) n = a * coeff p n :=
 begin
   conv in (a * _) { rw [← @sum_single _ _ _ p, coeff_sum] },
-  rw [mul_def, C, sum_single_index],
+  rw [mul_def, C_def, sum_single_index],
   { simp [coeff_single, finsupp.mul_sum, coeff_sum],
     apply sum_congr rfl,
     assume i hi, by_cases i = n; simp [h] },
@@ -1339,7 +1341,7 @@ instance : comm_ring (polynomial R) := add_monoid_algebra.comm_ring
 instance : module R (polynomial R) := add_monoid_algebra.module
 
 variable (R)
-def lcoeff (n : ℕ) : polynomial R →ₗ R :=
+def lcoeff (n : ℕ) : polynomial R →ₗ[R] R :=
 { to_fun := λ f, coeff f n,
   add := λ f g, coeff_add f g n,
   smul := λ r p, coeff_smul p r n }
@@ -1347,14 +1349,14 @@ variable {R}
 
 @[simp] lemma lcoeff_apply (n : ℕ) (f : polynomial R) : lcoeff R n f = coeff f n := rfl
 
-instance C.is_ring_hom : is_ring_hom (@C R _) := by apply is_ring_hom.of_semiring
+instance : is_ring_hom (C : R → polynomial R) := (C : R →ₐ[R] polynomial R).to_ring_hom.is_ring_hom
 
-lemma int_cast_eq_C (n : ℤ) : (n : polynomial R) = C n :=
-((ring_hom.of C).map_int_cast n).symm
+lemma int_cast_eq_C (n : ℤ) : (n : polynomial R) = C ↑n :=
+((C : R →ₐ[R] _).to_ring_hom.map_int_cast n).symm
 
-@[simp] lemma C_neg : C (-a) = -C a := is_ring_hom.map_neg C
+lemma C_neg : C (-a) = -C a := alg_hom.map_neg C a
 
-@[simp] lemma C_sub : C (a - b) = C a - C b := is_ring_hom.map_sub C
+lemma C_sub : C (a - b) = C a - C b := alg_hom.map_sub C a b
 
 instance eval₂.is_ring_hom {S} [comm_ring S]
   (f : R → S) [is_ring_hom f] {x : S} : is_ring_hom (eval₂ f x) :=
@@ -2403,9 +2405,8 @@ suffices derivative (C a * X^0) = C (a * 0:R) * X ^ 0,
 derivative_monomial a 0
 
 @[simp] lemma derivative_X : derivative (X : polynomial R) = 1 :=
-suffices derivative (C (1:R) * X^1) = C (1 * (1:ℕ)) * X ^ 0,
-  by simpa only [mul_one, one_mul, C_1, pow_one, nat.cast_one, pow_zero],
-derivative_monomial 1 1
+by simpa only [mul_one, one_mul, C_1, pow_one, nat.cast_one, pow_zero]
+  using derivative_monomial (1:R) 1
 
 @[simp] lemma derivative_one : derivative (1 : polynomial R) = 0 :=
 derivative_C

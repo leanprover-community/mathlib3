@@ -1311,6 +1311,18 @@ lemma image_const {s : finset α} (h : s.nonempty) (b : β) : s.image (λa, b) =
 ext.2 $ assume b', by simp only [mem_image, exists_prop, exists_and_distrib_right,
   h.bex, true_and, mem_singleton, eq_comm]
 
+/--
+Because `finset.image` requires a `decidable_eq` instances for the target type,
+we can only construct a `functor finset` when working classically.
+-/
+instance [Π P, decidable P] : functor finset :=
+{ map := λ α β f s, s.image f, }
+
+instance [Π P, decidable P] : is_lawful_functor finset :=
+{ id_map := λ α x, image_id,
+  comp_map := λ α β γ f g s, image_image.symm, }
+
+
 /-- Given a finset `s` and a predicate `p`, `s.subtype p` is the finset of `subtype p` whose
 elements belong to `s`.  -/
 protected def subtype {α} (p : α → Prop) [decidable_pred p] (s : finset α) : finset (subtype p) :=

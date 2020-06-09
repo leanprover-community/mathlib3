@@ -20,8 +20,7 @@ instance equiv_functor_unique : equiv_functor unique :=
 instance equiv_functor_perm : equiv_functor perm :=
 { map := λ α β e p, (e.symm.trans p).trans e }
 
-instance equiv_functor_multiset : equiv_functor multiset :=
-{ map := λ α β e s, s.map e, }
-
+-- There is a classical instance of `is_lawful_functor finset` available,
+-- but we provide this computable alternative separately.
 instance equiv_functor_finset : equiv_functor finset :=
 { map := λ α β e s, s.map e.to_embedding, }

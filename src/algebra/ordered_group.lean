@@ -786,12 +786,12 @@ lemma strict_mono.mul_monotone' (hf : strict_mono f) (hg : monotone g) :
   strict_mono (λ x, f x * g x) :=
 λ x y h, mul_lt_mul_of_lt_of_le (hf h) (hg $ le_of_lt h)
 
-@[to_additive]
+@[to_additive strict_mono.add_const]
 lemma strict_mono.mul_const' (hf : strict_mono f) (c : α) :
   strict_mono (λ x, f x * c) :=
 hf.mul_monotone' monotone_const
 
-@[to_additive]
+@[to_additive strict_mono.const_add]
 lemma strict_mono.const_mul' (hf : strict_mono f) (c : α) :
   strict_mono (λ x, c * f x) :=
 monotone_const.mul_strict_mono' hf

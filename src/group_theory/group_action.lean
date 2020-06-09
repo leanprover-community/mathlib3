@@ -202,7 +202,7 @@ open quotient_group
 /-- Orbit-stabilizer theorem. -/
 noncomputable def orbit_equiv_quotient_stabilizer (b : β) :
   orbit α b ≃ quotient (stabilizer α b) :=
-equiv.symm (@equiv.of_bijective _ _
+equiv.symm (equiv.of_bijective
   (λ x : quotient (stabilizer α b), quotient.lift_on' x
     (λ x, (⟨x • b, mem_orbit _ _⟩ : orbit α b))
     (λ g h (H : _ = _), subtype.eq $ (mul_action.bijective (g⁻¹)).1

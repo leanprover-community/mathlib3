@@ -360,7 +360,7 @@ begin
   refine quot.induction_on (succ (quot.mk setoid.r α)) (λ β h, _),
   cases h.left with f,
   have : ¬ surjective f := λ hn,
-    ne_of_lt h (quotient.sound ⟨equiv.of_bijective ⟨f.inj, hn⟩⟩),
+    ne_of_lt h (quotient.sound ⟨equiv.of_bijective f ⟨f.inj, hn⟩⟩),
   cases classical.not_forall.1 this with b nex,
   refine ⟨⟨sum.rec (by exact f) _, _⟩⟩,
   { exact λ _, b },

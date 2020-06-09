@@ -164,7 +164,7 @@ private meta def incorrect_type_class_argument (d : declaration) : tactic (optio
 /-- A linter object for `incorrect_type_class_argument`. -/
 @[linter] meta def linter.incorrect_type_class_argument : linter :=
 { test := incorrect_type_class_argument,
-  auto_decls := tt,
+  auto_decls := ff,
   no_errors_found := "All declarations have correct type-class arguments",
   errors_found := "INCORRECT TYPE-CLASS ARGUMENTS.
 Some declarations have non-classes between [square brackets]" }

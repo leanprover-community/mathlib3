@@ -417,46 +417,47 @@ instance : module k (affine_map k V1 P1 V2 V2) :=
 
 variable (V1)
 
-/-- `dilation V c r` is the dilation about `c` with scale factor `r`. -/
-def dilation (c : P1) (r : k) : affine_map k V1 P1 V1 P1 :=
+/-- `homothety V c r` is the homothety about `c` with scale factor `r`. -/
+def homothety (c : P1) (r : k) : affine_map k V1 P1 V1 P1 :=
 r • (id k V1 P1 -ᵥ const k V1 P1 V1 c : affine_map k V1 P1 V1 V1) +ᵥ const k V1 P1 V1 c
 
-lemma dilation_def (c : P1) (r : k) :
-  dilation V1 c r = r • (id k V1 P1 -ᵥ const k V1 P1 V1 c : affine_map k V1 P1 V1 V1) +ᵥ
+lemma homothety_def (c : P1) (r : k) :
+  homothety V1 c r = r • (id k V1 P1 -ᵥ const k V1 P1 V1 c : affine_map k V1 P1 V1 V1) +ᵥ
     const k V1 P1 V1 c :=
 rfl
 
-lemma dilation_apply (c : P1) (r : k) (p : P1)  : dilation V1 c r p = r • (p -ᵥ c : V1) +ᵥ c := rfl
+lemma homothety_apply (c : P1) (r : k) (p : P1)  :
+  homothety V1 c r p = r • (p -ᵥ c : V1) +ᵥ c := rfl
 
-@[simp] lemma dilation_one (c : P1) : dilation V1 c (1:k) = id k V1 P1 :=
-by { ext p, simp [dilation_apply] }
+@[simp] lemma homothety_one (c : P1) : homothety V1 c (1:k) = id k V1 P1 :=
+by { ext p, simp [homothety_apply] }
 
-lemma dilation_mul (c : P1) (r₁ r₂ : k) :
-  dilation V1 c (r₁ * r₂) = (dilation V1 c r₁).comp (dilation V1 c r₂) :=
-by { ext p, simp [dilation_apply, mul_smul] }
+lemma homothety_mul (c : P1) (r₁ r₂ : k) :
+  homothety V1 c (r₁ * r₂) = (homothety V1 c r₁).comp (homothety V1 c r₂) :=
+by { ext p, simp [homothety_apply, mul_smul] }
 
-@[simp] lemma dilation_zero (c : P1) : dilation V1 c (0:k) = const k V1 P1 V1 c :=
-by { ext p, simp [dilation_apply] }
+@[simp] lemma homothety_zero (c : P1) : homothety V1 c (0:k) = const k V1 P1 V1 c :=
+by { ext p, simp [homothety_apply] }
 
-@[simp] lemma dilation_add (c : P1) (r₁ r₂ : k) :
-  dilation V1 c (r₁ + r₂) =
-    r₁ • (id k V1 P1 -ᵥ const k V1 P1 V1 c : affine_map k V1 P1 V1 V1) +ᵥ dilation V1 c r₂ :=
-by simp only [dilation_def, add_smul, add_action.vadd_assoc]
+@[simp] lemma homothety_add (c : P1) (r₁ r₂ : k) :
+  homothety V1 c (r₁ + r₂) =
+    r₁ • (id k V1 P1 -ᵥ const k V1 P1 V1 c : affine_map k V1 P1 V1 V1) +ᵥ homothety V1 c r₂ :=
+by simp only [homothety_def, add_smul, add_action.vadd_assoc]
 
-/-- `dilation` as a multiplicative monoid homomorphism. -/
-def dilation_hom (c : P1) : k →* affine_map k V1 P1 V1 P1 :=
-⟨dilation V1 c, dilation_one V1 c, dilation_mul V1 c⟩
+/-- `homothety` as a multiplicative monoid homomorphism. -/
+def homothety_hom (c : P1) : k →* affine_map k V1 P1 V1 P1 :=
+⟨homothety V1 c, homothety_one V1 c, homothety_mul V1 c⟩
 
-@[simp] lemma coe_dilation_hom (c : P1) : ⇑(dilation_hom V1 c : k →* _) = dilation V1 c := rfl
+@[simp] lemma coe_homothety_hom (c : P1) : ⇑(homothety_hom V1 c : k →* _) = homothety V1 c := rfl
 
-/-- `dilation` as an affine map. -/
-def dilation_affine (c : P1) :
+/-- `homothety` as an affine map. -/
+def homothety_affine (c : P1) :
   affine_map k k k (affine_map k V1 P1 V1 V1) (affine_map k V1 P1 V1 P1) :=
-⟨dilation V1 c, (linear_map.lsmul k _).flip (id k V1 P1 -ᵥ const k V1 P1 V1 c),
-  function.swap (dilation_add V1 c)⟩
+⟨homothety V1 c, (linear_map.lsmul k _).flip (id k V1 P1 -ᵥ const k V1 P1 V1 c),
+  function.swap (homothety_add V1 c)⟩
 
-@[simp] lemma coe_dilation_affine (c : P1) :
-  ⇑(dilation_affine V1 c : affine_map k k k _ _) = dilation V1 c :=
+@[simp] lemma coe_homothety_affine (c : P1) :
+  ⇑(homothety_affine V1 c : affine_map k k k _ _) = homothety V1 c :=
 rfl
 
 end affine_map

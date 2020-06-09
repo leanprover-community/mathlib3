@@ -26,11 +26,8 @@ variables [division_ring α] {a b : α}
 instance division_ring.to_nonzero : nonzero α :=
 ⟨division_ring.zero_ne_one⟩
 
-protected definition algebra.div (a b : α) : α :=
-a * b⁻¹
-
 instance division_ring_has_div : has_div α :=
-⟨algebra.div⟩
+⟨λ a b, a * b⁻¹⟩
 
 lemma division_def (a b : α) : a / b = a * b⁻¹ :=
 rfl

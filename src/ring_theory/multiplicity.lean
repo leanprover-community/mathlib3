@@ -10,6 +10,7 @@ import algebra.big_operators
 variables {α : Type*}
 
 open nat roption
+open_locale big_operators
 
 theorem nat.find_le {p q : ℕ → Prop} [decidable_pred p] [decidable_pred q]
     (h : ∀ n, q n → p n) (hp : ∃ n, p n) (hq : ∃ n, q n) :
@@ -340,7 +341,7 @@ else begin
 end
 
 lemma finset.prod {β : Type*} {p : α} (hp : prime p) (s : finset β) (f : β → α) :
-  multiplicity p (s.prod f) = s.sum (λ x, multiplicity p (f x)) :=
+  multiplicity p (∏ x in s, f x) = s.sum (λ x, multiplicity p (f x)) :=
 begin
   classical,
   induction s using finset.induction with a s has ih h,

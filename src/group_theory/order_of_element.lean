@@ -328,7 +328,7 @@ if hx : ∃ (x : α), x ∈ H ∧ x ≠ (1 : α) then
       have hk₂ : g ^ ((nat.find hex : ℤ) * (k / nat.find hex)) ∈ H,
         by rw gpow_mul; exact is_subgroup.gpow_mem (nat.find_spec hex).2,
       have hk₃ : g ^ (k % nat.find hex) ∈ H,
-        from (is_subgroup.mul_mem_cancel_left H hk₂).1 $
+        from (is_subgroup.mul_mem_cancel_right H hk₂).1 $
           by rw [← gpow_add, int.mod_add_div, hk]; exact hx,
       have hk₄ : k % nat.find hex = (k % nat.find hex).nat_abs,
         by rw int.nat_abs_of_nonneg (int.mod_nonneg _

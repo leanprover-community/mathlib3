@@ -18,7 +18,7 @@ instance : group (quotient N) :=
 { one := (1 : G),
   mul := quotient.map₂' (*)
   (λ a₁ b₁ hab₁ a₂ b₂ hab₂,
-    ((is_subgroup.mul_mem_cancel_left N (is_subgroup.inv_mem hab₂)).1
+    ((is_subgroup.mul_mem_cancel_right N (is_subgroup.inv_mem hab₂)).1
         (by rw [mul_inv_rev, mul_inv_rev, ← mul_assoc (a₂⁻¹ * a₁⁻¹),
           mul_assoc _ b₂, ← mul_assoc b₂, mul_inv_self, one_mul, mul_assoc (a₂⁻¹)];
           exact normal_subgroup.normal _ hab₁ _))),

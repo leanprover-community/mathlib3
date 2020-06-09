@@ -37,7 +37,8 @@ When `R` is an integral domain, we define `fraction_map R K` as an abbreviation 
 `localization (non_zero_divisors R) K`, the natural map to `R`'s field of fractions.
 
 We show that a `comm_ring` `K` which is the localization of an integral domain `R` at `R \ {0}`
-is a field.
+is a field. We use this to show the field of fractions as a quotient type, `fraction_ring`, is
+a field.
 
 ## Implementation notes
 
@@ -63,6 +64,10 @@ which are about the `localization_map.mk'` induced by any localization map.
 
 We use a copy of the localization map `f`'s codomain `S` carrying the data of `f` so that the
 `R`-algebra instance on `S` can 'know' the map needed to induce the `R`-algebra structure.
+
+The proof that "a `comm_ring` `K` which is the localization of an integral domain `R` at `R \ {0}`
+is a field" is a `def` rather than an `instance`, so if you want to reason about a field of
+fractions `K`, assume `[field K]` instead of just `[comm_ring K]`.
 
 ## Tags
 localization, ring localization, commutative ring localization, characteristic predicate,
@@ -630,14 +635,25 @@ def non_zero_divisors : submonoid R :=
     have z * x₁ * x₂ = 0, by rwa mul_assoc,
     hx₁ z $ hx₂ (z * x₁) this }
 
-lemma eq_zero_of_ne_zero_of_mul_eq_zero {A : Type*} [integral_domain A]
+variables {A : Type*} [integral_domain A]
+
+lemma eq_zero_of_ne_zero_of_mul_eq_zero
   {x y : A} (hnx : x ≠ 0) (hxy : y * x = 0) :
   y = 0 := or.resolve_right (eq_zero_or_eq_zero_of_mul_eq_zero hxy) hnx
 
-lemma mem_non_zero_divisors_iff_ne_zero {A : Type*} [integral_domain A] {x : A} :
+lemma mem_non_zero_divisors_iff_ne_zero {x : A} :
   x ∈ non_zero_divisors A ↔ x ≠ 0 :=
 ⟨λ hm hz, zero_ne_one (hm 1 $ by rw [hz, one_mul]).symm,
  λ hnx z, eq_zero_of_ne_zero_of_mul_eq_zero hnx⟩
+
+lemma map_ne_zero_of_mem_non_zero_divisors {B : Type*} [ring B] {g : A →+* B}
+  (hg : injective g) {x : non_zero_divisors A} : g x ≠ 0 :=
+λ h0, mem_non_zero_divisors_iff_ne_zero.1 x.2 $ g.injective_iff.1 hg x h0
+
+lemma map_mem_non_zero_divisors {B : Type*} [integral_domain B] {g : A →+* B}
+  (hg : injective g) {x : non_zero_divisors A} : g x ∈ non_zero_divisors B :=
+λ z hz, eq_zero_of_ne_zero_of_mul_eq_zero
+  (map_ne_zero_of_mem_non_zero_divisors hg) hz
 
 variables (K : Type*)
 
@@ -662,8 +678,6 @@ end
 protected theorem injective [comm_ring K] (φ : fraction_map R K) :
   injective φ.to_map :=
 φ.to_map.injective_iff.2 (λ _ h, φ.to_map_eq_zero_iff.mpr h)
-
-variables {A : Type*} [integral_domain A]
 
 local attribute [instance] classical.dec_eq
 
@@ -707,4 +721,89 @@ noncomputable def to_field [comm_ring K] (φ : fraction_map A K) : field K :=
   mul_inv_cancel := φ.mul_inv_cancel,
   inv_zero := dif_pos rfl, ..φ.to_integral_domain }
 
+variables {B : Type*} [integral_domain B] [field K] {L : Type*} [field L]
+  (f : fraction_map A K) {g : A →+* L}
+
+lemma mk'_eq_div {r s} : f.mk' r s = f.to_map r / f.to_map s :=
+f.mk'_eq_iff_eq_mul.2 $ (div_mul_cancel _
+    (map_ne_zero_of_mem_non_zero_divisors f.injective)).symm
+
+lemma map_units_of_inj (hg : injective g)
+  (y : non_zero_divisors A) : is_unit (g y) :=
+is_unit.mk0 (g y) $ map_ne_zero_of_mem_non_zero_divisors hg
+
+/-- Given an integral domain `A`, a localization map to its fields of fractions
+`f : A →+* K`, and an injective ring hom `g : A →+* L` where `L` is a field, we get a
+field hom sending `z : K` to `g x * (g y)⁻¹`, where `(x, y) : A × (non_zero_divisors A)` are
+such that `z = f x * (f y)⁻¹`. -/
+noncomputable def lift (hg : injective g) : K →+* L :=
+f.lift $ map_units_of_inj hg
+
+/-- Given an integral domain `A`, a localization map to its fields of fractions
+`f : A →+* K`, and an injective ring hom `g : A →+* L` where `L` is a field,
+field hom induced from `K` to `L` maps `f x / f y` to `g x / g y` for all
+`x : A, y ∈ non_zero_divisors A`. -/
+@[simp] lemma lift_mk' (hg : injective g) (x y) :
+  f.lift hg (f.mk' x y) = g x / g y :=
+begin
+  erw f.lift_mk' (map_units_of_inj hg),
+  erw submonoid.localization_map.mul_inv_left
+  (λ y : non_zero_divisors A, show is_unit (g.to_monoid_hom y), from
+    map_units_of_inj hg y),
+  exact (mul_div_cancel' _ (map_ne_zero_of_mem_non_zero_divisors hg)).symm,
+end
+
+/-- Given integral domains `A, B` and localization maps to their fields of fractions
+`f : A →+* K, g : B →+* L` and an injective ring hom `j : A →+* B`, we get a field hom
+sending `z : K` to `g (j x) * (g (j y))⁻¹`, where `(x, y) : A × (non_zero_divisors A)` are
+such that `z = f x * (f y)⁻¹`. -/
+noncomputable def map (g : fraction_map B L) {j : A →+* B} (hj : injective j) :
+  K →+* L :=
+f.map (λ y, mem_non_zero_divisors_iff_ne_zero.2 $
+  map_ne_zero_of_mem_non_zero_divisors hj) g
+
+/-- Given integral domains `A, B` and localization maps to their fields of fractions
+`f : A →+* K, g : B →+* L`, an isomorphism `j : A ≃+* B` induces an isomorphism of
+fields of fractions `K ≃+* L`. -/
+noncomputable def field_equiv_of_ring_equiv (g : fraction_map B L) (h : A ≃+* B) :
+  K ≃+* L :=
+f.ring_equiv_of_ring_equiv g h
+begin
+  ext b,
+  show b ∈ h.to_equiv '' _ ↔ _,
+  erw [h.to_equiv.image_eq_preimage, set.preimage, set.mem_set_of_eq,
+       mem_non_zero_divisors_iff_ne_zero, mem_non_zero_divisors_iff_ne_zero],
+  exact h.symm.map_ne_zero_iff
+end
+
 end fraction_map
+
+variables (A)
+
+/-- The fraction field of an integral domain as a quotient type. -/
+@[reducible] def fraction_ring := localization (non_zero_divisors A)
+
+/-- Natural hom sending `x : A`, `A` an integral domain, to the equivalence class of
+`(x, 1)` in the field of fractions of `A`. -/
+def of : fraction_map A (localization (non_zero_divisors A)) :=
+localization.of (non_zero_divisors A)
+
+namespace fraction_ring
+
+variables {A}
+
+noncomputable instance : field (fraction_ring A) :=
+(of A).to_field
+
+@[simp] lemma mk_eq_div {r s} : (localization.mk r s : fraction_ring A) =
+  ((of A).to_map r / (of A).to_map s : fraction_ring A) :=
+by erw [localization.mk_eq_mk', (of A).mk'_eq_div]
+
+/-- Given an integral domain `A` and a localization map to a field of fractions
+`f : A →+* K`, we get an isomorphism between the field of fractions of `A` as a quotient
+type and `K`. -/
+noncomputable def field_equiv_of_quotient {K : Type*} [field K] (f : fraction_map A K) :
+  fraction_ring A ≃+* K :=
+localization.ring_equiv_of_quotient f
+
+end fraction_ring

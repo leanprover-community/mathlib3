@@ -241,8 +241,8 @@ by simp [to_finset]
 @[simp] theorem mem_to_finset_val {s : set α} [fintype s] {a : α} : a ∈ s.to_finset.1 ↔ a ∈ s :=
 mem_to_finset
 
--- We include an arbitrary `fintype H` instance here,
--- as there are several possible ways to construct one.
+-- We use an arbitrary `[fintype s]` instance here,
+-- not necessarily coming from a `[fintype α]`.
 @[simp]
 lemma to_finset_card {α : Type*} (s : set α) [fintype s] :
   s.to_finset.card = fintype.card s :=

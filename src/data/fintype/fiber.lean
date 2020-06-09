@@ -6,32 +6,26 @@ Author: Johan Commelin, Scott Morrison
 import data.fintype.basic
 
 /-!
-# The fiber over a point, when the domain is a fintype.
+# The fiber over a point.
 
-We define the fiber of a function `f : α → β` over a point `b : β`, when we have `fintype α`,
-as a `finset α`, and prove some basic properties.
+We define the fiber of a function `f : α → β` over a point `b : β`,
+as a `set α`, and prove some basic properties.
 -/
 
 open function
 
-namespace fintype
 /--
-The fiber of function `f : α → β` over a point `b : β` is a `finset α` when we have `fintype α`.
+The fiber of function `f : α → β` over a point `b : β`.
 -/
-def fiber {α : Type*} [fintype α] {β : Type*} [decidable_eq β] (f : α → β) (b : β) : finset α :=
-set.to_finset { a | f a = b }
+def fiber {α β : Type*} (f : α → β) (b : β) : set α :=
+{ a | f a = b }
 
 @[simp]
-lemma mem_fiber {α : Type*} [fintype α] {β : Type*} [decidable_eq β] (f : α → β) (b : β) (a : α) :
-  a ∈ fintype.fiber f b ↔ f a = b :=
+lemma mem_fiber {α β : Type*} (f : α → β) (b : β) (a : α) :
+  a ∈ fiber f b ↔ f a = b :=
 by simp [fiber]
 
-@[simp]
-lemma card_fiber {α : Type*} [fintype α] {β : Type*} [decidable_eq β] (f : α → β) (b : β) :
-  finset.card (fiber f b) = fintype.card { a | f a = b } :=
-set.to_finset_card { a | f a = b }
-
-lemma fibers_disjoint {α : Type*} [fintype α] [decidable_eq α] {β : Type*} [decidable_eq β] (f : α → β) (b₁ b₂ : β) (h : b₁ ≠ b₂) :
+lemma fibers_disjoint {α β : Type*} (f : α → β) (b₁ b₂ : β) (h : b₁ ≠ b₂) :
   disjoint (fiber f b₁) (fiber f b₂) :=
 begin
   dsimp [disjoint],
@@ -41,8 +35,8 @@ begin
 end
 
 @[simp]
-lemma fiber_prod_fst {α : Type*} [fintype α] [decidable_eq α] {β : Type*} [fintype β] (a : α) :
-  fiber (prod.fst : α × β → α) a = (@finset.univ β _).map (embedding.inr a β) :=
+lemma fiber_prod_fst {α β : Type*} (a : α) :
+  fiber (prod.fst : α × β → α) a = (@set.univ β).image (embedding.sectr a β) :=
 begin
   ext p,
   simp,
@@ -52,8 +46,8 @@ begin
 end
 
 @[simp]
-lemma fiber_prod_snd {α : Type*} [fintype α] {β : Type*} [fintype β] [decidable_eq β] (b : β) :
-  fiber (prod.snd : α × β → β) b = (@finset.univ α _).map (embedding.inl α b) :=
+lemma fiber_prod_snd {α β : Type*} (b : β) :
+  fiber (prod.snd : α × β → β) b = (@set.univ α).image (embedding.sectl α b) :=
 begin
   ext p,
   simp,
@@ -61,5 +55,3 @@ begin
   { rintros rfl, exact ⟨p.1, (by { ext; refl })⟩ },
   { rintros ⟨b, rfl⟩, refl, }
 end
-
-end fintype

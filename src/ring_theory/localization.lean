@@ -728,7 +728,7 @@ lemma mk'_eq_div {r s} : f.mk' r s = f.to_map r / f.to_map s :=
 f.mk'_eq_iff_eq_mul.2 $ (div_mul_cancel _
     (map_ne_zero_of_mem_non_zero_divisors f.injective)).symm
 
-lemma map_units_of_inj (hg : injective g)
+lemma is_unit_map_of_injective (hg : injective g)
   (y : non_zero_divisors A) : is_unit (g y) :=
 is_unit.mk0 (g y) $ map_ne_zero_of_mem_non_zero_divisors hg
 
@@ -737,7 +737,7 @@ is_unit.mk0 (g y) $ map_ne_zero_of_mem_non_zero_divisors hg
 field hom sending `z : K` to `g x * (g y)⁻¹`, where `(x, y) : A × (non_zero_divisors A)` are
 such that `z = f x * (f y)⁻¹`. -/
 noncomputable def lift (hg : injective g) : K →+* L :=
-f.lift $ map_units_of_inj hg
+f.lift $ is_unit_map_of_injective hg
 
 /-- Given an integral domain `A`, a localization map to its fields of fractions
 `f : A →+* K`, and an injective ring hom `g : A →+* L` where `L` is a field,
@@ -746,10 +746,10 @@ field hom induced from `K` to `L` maps `f x / f y` to `g x / g y` for all
 @[simp] lemma lift_mk' (hg : injective g) (x y) :
   f.lift hg (f.mk' x y) = g x / g y :=
 begin
-  erw f.lift_mk' (map_units_of_inj hg),
+  erw f.lift_mk' (is_unit_map_of_injective hg),
   erw submonoid.localization_map.mul_inv_left
   (λ y : non_zero_divisors A, show is_unit (g.to_monoid_hom y), from
-    map_units_of_inj hg y),
+    is_unit_map_of_injective hg y),
   exact (mul_div_cancel' _ (map_ne_zero_of_mem_non_zero_divisors hg)).symm,
 end
 

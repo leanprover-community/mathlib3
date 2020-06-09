@@ -1073,6 +1073,9 @@ end ordered_add_comm_monoid
 section canonically_ordered_add_monoid
 variables [canonically_ordered_add_monoid β]
 
+@[simp] lemma sum_eq_zero_iff : ∑ x in s, f x = 0 ↔ ∀ x ∈ s, f x = 0 :=
+sum_eq_zero_iff_of_nonneg $ λ x hx, zero_le (f x)
+
 lemma sum_le_sum_of_subset (h : s₁ ⊆ s₂) : (∑ x in s₁, f x) ≤ (∑ x in s₂, f x) :=
 sum_le_sum_of_subset_of_nonneg h $ assume x h₁ h₂, zero_le _
 

@@ -688,3 +688,27 @@ lemma is_lub.of_image [preorder α] [preorder β] {f : α → β} (hf : ∀ {x y
   {s : set α} {x : α} (hx : is_lub (f '' s) (f x)) :
   is_lub s x :=
 @is_glb.of_image (order_dual α) (order_dual β) _ _ f (λ x y, hf) _ _ hx
+
+lemma is_lub_range_add_le [ordered_add_comm_monoid α] {f g : ι → α} {a b c : α}
+  (ha : a ∈ upper_bounds (range f)) (hb : b ∈ upper_bounds (range g))
+  (hc : is_lub (range $ λ i, f i + g i) c) :
+  c ≤ a + b :=
+(is_lub_le_iff hc).2 $ λ y ⟨i, hi⟩, hi ▸ add_le_add' (ha ⟨i, rfl⟩) (hb ⟨i, rfl⟩)
+
+lemma is_lub_image_add_le [ordered_add_comm_monoid α] {f g : β → α} {a b c : α} {s : set β}
+  (ha : a ∈ upper_bounds (f '' s)) (hb : b ∈ upper_bounds (g '' s))
+  (hc : is_lub ((λ i, f i + g i) '' s) c) :
+  c ≤ a + b :=
+(is_lub_le_iff hc).2 $ λ y ⟨i, hi, hy⟩, hy ▸ add_le_add' (ha ⟨i, hi, rfl⟩) (hb ⟨i, hi, rfl⟩)
+
+lemma le_is_glb_range_add [ordered_add_comm_monoid α] {f g : ι → α} {a b c : α}
+  (ha : a ∈ lower_bounds (range f)) (hb : b ∈ lower_bounds (range g))
+  (hc : is_glb (range $ λ i, f i + g i) c) :
+  a + b ≤ c :=
+@is_lub_range_add_le (order_dual α) _ _ _ _ _ _ _ ha hb hc
+
+lemma le_is_glb_image_add [ordered_add_comm_monoid α] {f g : β → α} {a b c : α} {s : set β}
+  (ha : a ∈ lower_bounds (f '' s)) (hb : b ∈ lower_bounds (g '' s))
+  (hc : is_glb ((λ i, f i + g i) '' s) c) :
+  a + b ≤ c :=
+@is_lub_image_add_le (order_dual α) _ _ _ _ _ _ _ _ ha hb hc

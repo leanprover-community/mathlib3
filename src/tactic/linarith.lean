@@ -98,6 +98,71 @@ by rw [←h3, mul_assoc, mul_div_comm, h2, ←mul_assoc, h1, mul_comm, one_mul]
 
 end lemmas
 
+-- we assume, but do not enforce, that linexps are sorted in decreasing order of the first arg
+@[reducible]
+def linexp := list (ℕ × ℤ)
+end linarith
+meta def native.rb_map.to_linexp (m : rb_map ℕ ℤ) : linarith.linexp :=
+m.to_list
+namespace linarith
+meta def l : linexp := native.rb_map.to_linexp $ rb_map.of_list [(4, 3), (2, -1), (5, 10)]
+
+namespace linexp
+
+meta def add : linexp → linexp → linexp
+| [] a := a
+| a [] := a
+| (a@(n1,z1)::t1) (b@(n2,z2)::t2) :=
+  match cmp n1 n2 with
+  | ordering.lt := b::add (a::t1) t2
+  | ordering.gt := a::add t1 (b::t2)
+  | ordering.eq := let sum := z1 + z2 in if sum = 0 then add t1 t2 else (n1, sum)::add t1 t2
+  end
+
+def scale (c : ℤ) (l : linexp) : linexp :=
+if c = 0 then []
+else l.map $ λ ⟨n, z⟩, (n, z*c)
+
+def get (n : ℕ) : linexp → option ℤ
+| [] := none
+| ((a, b)::t) := match cmp a n with
+  | ordering.lt := none
+  | ordering.gt := get t
+  | ordering.eq := some b
+  end
+
+def contains (n : ℕ) : linexp → bool := option.is_some ∘ get n
+
+
+def zfind (n : ℕ) (l : linexp) : ℤ :=
+match l.get n with
+| none := 0
+| some v := v
+end
+
+def lt : linexp → linexp → bool
+| [] [] := ff
+| [] _ := tt
+| _ [] := ff
+| ((n1,z1)::t1) ((n2,z2)::t2) := match cmp n1 n2 with
+  | ordering.lt := tt
+  | ordering.gt := ff
+  | ordering.eq := match cmp z1 z2 with
+    | ordering.lt := tt
+    | ordering.gt := ff
+    | ordering.eq := lt t1 t2
+    end
+  end
+
+instance : has_lt linexp := ⟨↑lt⟩
+meta instance : decidable_rel ((<) : linexp → linexp → Prop) :=
+λ a b, match lt a b with
+| tt := decidable.is_true undefined
+| ff := decidable.is_false undefined
+end
+
+end linexp
+
 section datatypes
 
 @[derive decidable_eq, derive inhabited]
@@ -134,7 +199,7 @@ str determines the direction of the comparison -- is it < 0, ≤ 0, or = 0?
 @[derive inhabited]
 meta structure comp :=
 (str : ineq)
-(coeffs : rb_map ℕ int)
+(coeffs : linexp)
 
 meta inductive comp_source
 | assump : ℕ → comp_source
@@ -163,7 +228,7 @@ list.lex (prod.lex (<) (<)) m1.to_list m2.to_list
 
 -- make more efficient
 meta def comp.lt (c1 c2 : comp) : bool :=
-(c1.str.is_lt c2.str) || (c1.str = c2.str) && map_lt c1.coeffs c2.coeffs
+(c1.str.is_lt c2.str) || (c1.str = c2.str) && (c1.coeffs < c2.coeffs)
 
 meta instance comp.has_lt : has_lt comp := ⟨λ a b, comp.lt a b⟩
 meta instance pcomp.has_lt : has_lt pcomp := ⟨λ p1 p2, p1.c < p2.c⟩
@@ -174,7 +239,7 @@ meta def comp.coeff_of (c : comp) (a : ℕ) : ℤ :=
 c.coeffs.zfind a
 
 meta def comp.scale (c : comp) (n : ℕ) : comp :=
-{ c with coeffs := c.coeffs.map ((*) (n : ℤ)) }
+{ c with coeffs := c.coeffs.scale n }
 
 meta def comp.add (c1 c2 : comp) : comp :=
 ⟨c1.str.max c2.str, c1.coeffs.add c2.coeffs⟩
@@ -400,7 +465,7 @@ meta def to_comp (red : transparency) (e : expr) (m : expr_map ℕ) (mm : rb_map
 do (iq, e) ← parse_into_comp_and_expr e,
    (m', comp') ← map_of_expr red m e,
    let ⟨nm, mm'⟩ := sum_to_lf comp' mm,
-   return ⟨⟨iq, mm'⟩,m',nm⟩
+   return ⟨⟨iq, mm'.to_linexp⟩,m',nm⟩
 
 meta def to_comp_fold (red : transparency) : expr_map ℕ → list expr → rb_map monom ℕ →
       tactic (list (option comp) × expr_map ℕ × rb_map monom ℕ )

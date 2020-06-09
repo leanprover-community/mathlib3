@@ -1,5 +1,9 @@
 import tactic.linarith
 
+/- example (a b c : ℚ) (h : a < 2*b) (h2 : b < 3*c) : a < 6*c :=
+by linarith -/
+
+
 example (e b c a v0 v1 : ℚ) (h1 : v0 = 5*a) (h2 : v1 = 3*b) (h3 : v0 + v1 + c = 10) :
   v0 + 5 + (v1 - 3) + (c - 2) = 10 :=
 by linarith

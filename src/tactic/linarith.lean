@@ -185,9 +185,12 @@ def lt : linexp → linexp → bool
 end linexp
 
 -- these instances are local to this file so that they don't accidentally leak to other uses of `list (ℕ × ℤ)`.
+
+/-- A local `has_lt` instance, implemented by `linarith.linexp.lt`. -/
 local attribute [instance]
 def linexp.has_lt : has_lt linexp := ⟨↑linexp.lt⟩
 
+/-- A local decidability instance. -/
 local attribute [instance]
 def linexp.lt_decidable : decidable_rel ((<) : linexp → linexp → Prop) :=
 λ a b, decidable_of_bool (linexp.lt a b) $ iff.refl _

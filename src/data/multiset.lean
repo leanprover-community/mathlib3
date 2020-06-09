@@ -672,13 +672,6 @@ le_induction_on h $ λ l₁ l₂ h, (h.map f).subperm
 @[simp] theorem map_subset_map {f : α → β} {s t : multiset α} (H : s ⊆ t) : map f s ⊆ map f t :=
 λ b m, let ⟨a, h, e⟩ := mem_map.1 m in mem_map.2 ⟨a, H h, e⟩
 
-instance : functor multiset :=
-{ map := λ α β f s, s.map f, }
-
-instance : is_lawful_functor multiset :=
-{ id_map := λ α x, map_id x,
-  comp_map := λ α β γ f g s, (map_map g f s).symm, }
-
 /- fold -/
 
 /-- `foldl f H b s` is the lift of the list operation `foldl f b l`,

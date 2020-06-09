@@ -198,6 +198,8 @@ lemma prod.lift_snd {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ 
   prod.lift f g ≫ prod.snd = g :=
 limit.lift_π _ _
 
+/- The redundant simp lemma linter says that simp can prove the reassoc version of this lemma. -/
+@[reassoc, simp]
 lemma prod.lift_comp_comp {V W X Y : C} [has_limit (pair X Y)] (f : V ⟶ W) (g : W ⟶ X) (h : W ⟶ Y) :
   prod.lift (f ≫ g) (f ≫ h) = f ≫ prod.lift g h :=
 by tidy
@@ -212,6 +214,8 @@ lemma coprod.inr_desc {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g : Y 
   coprod.inr ≫ coprod.desc f g = g :=
 colimit.ι_desc _ _
 
+/- The redundant simp lemma linter says that simp can prove the reassoc version of this lemma. -/
+@[reassoc, simp]
 lemma coprod.desc_comp_comp {V W X Y : C} [has_colimit (pair X Y)] (f : V ⟶ W) (g : X ⟶ V)
   (h : Y ⟶ V) : coprod.desc (g ≫ f) (h ≫ f) = coprod.desc g h ≫ f :=
 by tidy

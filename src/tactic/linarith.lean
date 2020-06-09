@@ -119,6 +119,10 @@ m.to_list
 namespace linarith
 namespace linexp
 
+/--
+Add two `linexp`s together componentwise.
+Preserves sorting and uniqueness of the first argument.
+-/
 def add : linexp → linexp → linexp
 | [] a := a
 | a [] := a
@@ -129,10 +133,16 @@ def add : linexp → linexp → linexp
   | ordering.eq := let sum := z1 + z2 in if sum = 0 then add t1 t2 else (n1, sum)::add t1 t2
   end
 
+/-- `l.scale c` scales the values in `l` by `c` without modifying the order or keys. -/
 def scale (c : ℤ) (l : linexp) : linexp :=
 if c = 0 then []
 else l.map $ λ ⟨n, z⟩, (n, z*c)
 
+/--
+`l.get n` returns the value in `l` associated with key `n`, if it exists, and `none` otherwise.
+This function assumes that `l` is sorted in decreasing order of the first argument,
+that is, it will return `none` as soon as it finds a key smaller than `n`.
+-/
 def get (n : ℕ) : linexp → option ℤ
 | [] := none
 | ((a, b)::t) := match cmp a n with
@@ -141,15 +151,23 @@ def get (n : ℕ) : linexp → option ℤ
   | ordering.eq := some b
   end
 
+/--
+`l.contains n` is true iff `n` is the first element of a pair in `l`.
+-/
 def contains (n : ℕ) : linexp → bool := option.is_some ∘ get n
 
-
+/--
+`l.zfind n` returns the value associated with key `n` if there is one, and 0 otherwise.
+-/
 def zfind (n : ℕ) (l : linexp) : ℤ :=
 match l.get n with
 | none := 0
 | some v := v
 end
 
+/--
+Defines a lex ordering on `linexp`. This function is performance critical.
+-/
 def lt : linexp → linexp → bool
 | [] [] := ff
 | [] _ := tt
@@ -164,14 +182,15 @@ def lt : linexp → linexp → bool
     end
   end
 
-instance : has_lt linexp := ⟨↑lt⟩
-meta instance : decidable_rel ((<) : linexp → linexp → Prop) :=
-λ a b, match lt a b with
-| tt := decidable.is_true undefined
-| ff := decidable.is_false undefined
-end
-
 end linexp
+
+-- these instances are local to this file so that they don't accidentally leak to other uses of `list (ℕ × ℤ)`.
+local attribute [instance]
+def linexp.has_lt : has_lt linexp := ⟨↑linexp.lt⟩
+
+local attribute [instance]
+def linexp.lt_decidable : decidable_rel ((<) : linexp → linexp → Prop) :=
+λ a b, decidable_of_bool (linexp.lt a b) $ iff.refl _
 
 section datatypes
 

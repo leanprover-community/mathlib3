@@ -843,6 +843,12 @@ def subtype_equiv_of_subtype {p : β → Prop} (e : α ≃ β) :
   {a : α // p (e a)} ≃ {b : β // p b} :=
 subtype_congr e $ by simp
 
+/-- If `α ≃ β`, then for any predicate `p : α → Prop` the subtype `{a // p a}` is equivalent
+to the subtype `{b // p (e.symm b)}`. This version is used by `equiv_rw`. -/
+def subtype_equiv_of_subtype' {p : α → Prop} (e : α ≃ β) :
+  {a : α // p a} ≃ {b : β // p (e.symm b)} :=
+e.symm.subtype_equiv_of_subtype.symm
+
 /-- If two predicates are equal, then the corresponding subtypes are equivalent. -/
 def subtype_congr_prop {α : Type*} {p q : α → Prop} (h : p = q) : subtype p ≃ subtype q :=
 subtype_congr (equiv.refl α) (assume a, h ▸ iff.rfl)

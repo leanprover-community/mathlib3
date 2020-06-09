@@ -80,7 +80,7 @@ protected noncomputable def of_surjective {α β} (f : β → α) (hf : surjecti
 /-- Convert a surjective `embedding` to an `equiv` -/
 protected noncomputable def equiv_of_surjective {α β} (f : α ↪ β) (hf : surjective f) :
   α ≃ β :=
-equiv.of_bijective ⟨f.inj, hf⟩
+equiv.of_bijective f ⟨f.inj, hf⟩
 
 protected def of_not_nonempty {α β} (hα : ¬ nonempty α) : α ↪ β :=
 ⟨λa, (hα ⟨a⟩).elim, assume a, (hα ⟨a⟩).elim⟩

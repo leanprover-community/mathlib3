@@ -567,12 +567,11 @@ calc sign f = sign (@subtype_perm _ f (λ x, f x ≠ x) (by simp)) :
   eq.symm (sign_subtype_perm _ _ (λ _, id))
 ... = sign (@subtype_perm _ g (λ x, g x ≠ x) (by simp)) :
   sign_eq_sign_of_equiv _ _
-    (equiv.of_bijective
-      (show function.bijective (λ x : {x // f x ≠ x},
+    (equiv.of_bijective (λ x : {x // f x ≠ x},
         (⟨i x.1 x.2, have f (f x) ≠ f x, from mt (λ h, f.injective h) x.2,
-          by rw [← h _ x.2 this]; exact mt (hi _ _ this x.2) x.2⟩ : {y // g y ≠ y})),
-        from ⟨λ ⟨x, hx⟩ ⟨y, hy⟩ h, subtype.eq (hi _ _ _ _ (subtype.mk.inj h)),
-          λ ⟨y, hy⟩, let ⟨x, hfx, hx⟩ := hg y hy in ⟨⟨x, hfx⟩, subtype.eq hx⟩⟩))
+          by rw [← h _ x.2 this]; exact mt (hi _ _ this x.2) x.2⟩ : {y // g y ≠ y}))
+        ⟨λ ⟨x, hx⟩ ⟨y, hy⟩ h, subtype.eq (hi _ _ _ _ (subtype.mk.inj h)),
+          λ ⟨y, hy⟩, let ⟨x, hfx, hx⟩ := hg y hy in ⟨⟨x, hfx⟩, subtype.eq hx⟩⟩)
       (λ ⟨x, _⟩, subtype.eq (h x _ _))
 ... = sign g : sign_subtype_perm _ _ (λ _, id)
 

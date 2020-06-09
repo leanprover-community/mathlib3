@@ -775,6 +775,31 @@ begin
        mem_non_zero_divisors_iff_ne_zero, mem_non_zero_divisors_iff_ne_zero],
   exact h.symm.map_ne_zero_iff
 end
+/-- The cast from `int` to `rat` as a `fraction_map`. -/
+def int.fraction_map : fraction_map ℤ ℚ :=
+{ to_fun := coe,
+  map_units' :=
+  begin
+    rintro ⟨x, hx⟩,
+    rw [submonoid.mem_carrier, mem_non_zero_divisors_iff_ne_zero] at hx,
+    simpa only [is_unit_iff_ne_zero, int.cast_eq_zero, ne.def, subtype.coe_mk] using hx,
+  end,
+  surj' :=
+  begin
+    rintro ⟨n, d, hd, h⟩,
+    refine ⟨⟨n, ⟨d, _⟩⟩, rat.mul_denom_eq_num⟩,
+    rwa [submonoid.mem_carrier, mem_non_zero_divisors_iff_ne_zero, int.coe_nat_ne_zero_iff_pos]
+  end,
+  eq_iff_exists' :=
+  begin
+    intros x y,
+    rw [int.cast_inj],
+    refine ⟨by { rintro rfl, use 1 }, _⟩,
+    rintro ⟨⟨c, hc⟩, h⟩,
+    apply int.eq_of_mul_eq_mul_right _ h,
+    rwa [submonoid.mem_carrier, mem_non_zero_divisors_iff_ne_zero] at hc,
+  end,
+  ..int.cast_ring_hom ℚ }
 
 end fraction_map
 

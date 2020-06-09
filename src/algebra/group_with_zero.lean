@@ -3,7 +3,7 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import algebra.group.units
+import algebra.group.commute
 import algebra.ring
 import tactic.push_neg
 
@@ -110,7 +110,7 @@ calc (a * b⁻¹) * b = a * (b⁻¹ * b) : mul_assoc _ _ _
 calc a⁻¹ * (a * b) = (a⁻¹ * a) * b : (mul_assoc _ _ _).symm
                ... = b             : by simp [h]
 
-@[simp] lemma inv_inv'' (a : G₀) : a⁻¹⁻¹ = a :=
+@[simp] lemma inv_inv' (a : G₀) : a⁻¹⁻¹ = a :=
 begin
   classical,
   by_cases h : a = 0, { simp [h] },
@@ -159,7 +159,7 @@ mul_self_mul_inv a
 mul_inv_mul_self a
 
 lemma inv_involutive' : function.involutive (has_inv.inv : G₀ → G₀) :=
-inv_inv''
+inv_inv'
 
 lemma ne_zero_of_mul_right_eq_one' (a b : G₀) (h : a * b = 1) : a ≠ 0 :=
 assume a_eq_0, zero_ne_one (by simpa [a_eq_0] using h : (0:G₀) = 1)
@@ -189,7 +189,7 @@ inv_involutive'.injective
 ⟨assume H, inv_injective' H, congr_arg _⟩
 
 lemma inv_eq_iff {g h : G₀} : g⁻¹ = h ↔ h⁻¹ = g :=
-by rw [← inv_inj'', eq_comm, inv_inv'']
+by rw [← inv_inj'', eq_comm, inv_inv']
 
 @[simp] lemma coe_unit_mul_inv' (a : units G₀) : (a : G₀) * a⁻¹ = 1 :=
 mul_inv_cancel' _ $ ne_zero_of_mul_right_eq_one' _ (a⁻¹ : units G₀) $ by simp
@@ -293,15 +293,6 @@ begin
   simp [mul_assoc, hx, hy]
 end
 
-theorem inv_comm_of_comm' {a b : G₀} (H : a * b = b * a) : a⁻¹ * b = b * a⁻¹ :=
-begin
-  have : a⁻¹ * (b * a) * a⁻¹ = a⁻¹ * (a * b) * a⁻¹ :=
-    congr_arg (λ x:G₀, a⁻¹ * x * a⁻¹) H.symm,
-  classical,
-  by_cases h : a = 0, { rw [h, inv_zero, zero_mul, mul_zero] },
-  rwa [inv_mul_cancel_assoc_right _ _ h, mul_assoc, mul_inv_cancel_assoc_left _ _ h] at this,
-end
-
 @[simp] lemma div_self' {a : G₀} (h : a ≠ 0) : a / a = 1 := mul_inv_cancel' _ h
 
 @[simp] lemma div_one' (a : G₀) : a / 1 = a :=
@@ -361,7 +352,7 @@ have a ≠ 0, from
 by rw [← h, mul_div_assoc'', div_self' this, mul_one]
 
 @[simp] lemma one_div_div' (a b : G₀) : 1 / (a / b) = b / a :=
-by rw [one_div, div_eq_mul_inv, mul_inv_rev', inv_inv'', div_eq_mul_inv]
+by rw [one_div, div_eq_mul_inv, mul_inv_rev', inv_inv', div_eq_mul_inv]
 
 @[simp] lemma one_div_one_div' (a : G₀) : 1 / (1 / a) = a :=
 by simp
@@ -390,7 +381,7 @@ congr_arg _ $ units.inv_eq_inv _
 divp_eq_div _ _
 
 lemma inv_div : (a / b)⁻¹ = b / a :=
-(mul_inv_rev' _ _).trans (by rw inv_inv''; refl)
+(mul_inv_rev' _ _).trans (by rw inv_inv'; refl)
 
 lemma inv_div_left : a⁻¹ / b = (b * a)⁻¹ :=
 (mul_inv_rev' _ _).symm
@@ -409,7 +400,7 @@ lemma div_left_inj' (hc : c ≠ 0) : a / c = b / c ↔ a = b :=
 by rw [← divp_mk0 _ hc, ← divp_mk0 _ hc, divp_left_inj]
 
 lemma mul_left_inj' (hc : c ≠ 0) : a * c = b * c ↔ a = b :=
-by rw [← inv_inv'' c, ← div_eq_mul_inv, ← div_eq_mul_inv, div_left_inj' (inv_ne_zero' hc)]
+by rw [← inv_inv' c, ← div_eq_mul_inv, ← div_eq_mul_inv, div_left_inj' (inv_ne_zero' hc)]
 
 lemma div_eq_iff_mul_eq (hb : b ≠ 0) : a / b = c ↔ c * b = a :=
 ⟨λ h, by rw [← h, div_mul_cancel' _ hb],
@@ -554,3 +545,64 @@ lemma div_div_cancel' (ha : a ≠ 0) : a / (a / b) = b :=
 by rw [div_eq_mul_inv, inv_div, mul_div_cancel''' _ ha]
 
 end comm_group_with_zero
+
+namespace semiconj_by
+
+variables {G₀ : Type*} [group_with_zero G₀] {a x y x' y' : G₀}
+
+@[simp] lemma inv_symm_left_iff' : semiconj_by a⁻¹ x y ↔ semiconj_by a y x :=
+classical.by_cases
+  (λ ha : a = 0, by simp only [ha, inv_zero, semiconj_by.zero_left])
+  (λ ha, @units_inv_symm_left_iff _ _ (units.mk0 a ha) _ _)
+
+lemma inv_symm_left' (h : semiconj_by a x y) : semiconj_by a⁻¹ y x :=
+semiconj_by.inv_symm_left_iff'.2 h
+
+lemma inv_right' (h : semiconj_by a x y) : semiconj_by a x⁻¹ y⁻¹ :=
+begin
+  classical,
+  by_cases ha : a = 0,
+  { simp only [ha, zero_left] },
+  by_cases hx : x = 0,
+  { subst x,
+    simp only [semiconj_by, mul_zero, @eq_comm _ _ (y * a), mul_eq_zero_iff'] at h,
+    simp [h.resolve_right ha] },
+  { have := mul_ne_zero'' ha hx,
+    rw [h.eq, mul_ne_zero_iff] at this,
+    exact @units_inv_right _ _ _ (units.mk0 x hx) (units.mk0 y this.1) h },
+end
+
+@[simp] lemma inv_right_iff' : semiconj_by a x⁻¹ y⁻¹ ↔ semiconj_by a x y :=
+⟨λ h, inv_inv' x ▸ inv_inv' y ▸ h.inv_right', inv_right'⟩
+
+lemma div_right (h : semiconj_by a x y) (h' : semiconj_by a x' y') :
+  semiconj_by a (x / x') (y / y') :=
+h.mul_right h'.inv_right'
+
+end semiconj_by
+
+namespace commute
+
+variables {G₀ : Type*} [group_with_zero G₀] {a b c : G₀}
+
+@[simp] theorem inv_left_iff' : commute a⁻¹ b ↔ commute a b :=
+semiconj_by.inv_symm_left_iff'
+
+theorem inv_left' (h : commute a b) : commute a⁻¹ b := inv_left_iff'.2 h
+
+@[simp] theorem inv_right_iff' : commute a b⁻¹ ↔ commute a b :=
+semiconj_by.inv_right_iff'
+
+theorem inv_right' (h : commute a b) : commute a b⁻¹ := inv_right_iff'.2 h
+
+theorem inv_inv' (h : commute a b) : commute a⁻¹ b⁻¹ := h.inv_left'.inv_right'
+
+@[simp] theorem div_right (hab : commute a b) (hac : commute a c) :
+  commute a (b / c) :=
+hab.div_right hac
+
+@[simp] theorem div_left (hac : commute a c) (hbc : commute b c) :
+  commute (a / b) c :=
+hac.mul_left hbc.inv_left'
+
+end commute

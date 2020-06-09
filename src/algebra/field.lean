@@ -26,11 +26,8 @@ variables [division_ring α] {a b : α}
 instance division_ring.to_nonzero : nonzero α :=
 ⟨division_ring.zero_ne_one⟩
 
-protected definition algebra.div (a b : α) : α :=
-a * b⁻¹
-
 instance division_ring_has_div : has_div α :=
-⟨algebra.div⟩
+⟨λ a b, a * b⁻¹⟩
 
 lemma division_def (a b : α) : a / b = a * b⁻¹ :=
 rfl
@@ -171,9 +168,6 @@ match classical.em (a = 0) with
 | or.inl h := by simp [h]
 | or.inr h := eq.symm (eq_one_div_of_mul_eq_one_left (mul_one_div_cancel h))
 end
-
-lemma inv_inv' (a : α) : a⁻¹⁻¹ = a :=
-by rw [inv_eq_one_div, inv_eq_one_div, one_div_one_div]
 
 lemma eq_of_one_div_eq_one_div (h : 1 / a = 1 / b) : a = b :=
 by rw [← one_div_one_div a, h,one_div_one_div]

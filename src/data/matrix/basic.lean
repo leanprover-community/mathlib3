@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Ellen Arlt. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
+Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin, Scott Morrison, Yakov Pechersky
 -/
 import algebra.pi_instances
 /-!
@@ -100,7 +100,31 @@ theorem one_val_ne' {i j} : j ≠ i → (1 : matrix n n α) i j = 0 :=
 diagonal_val_ne'
 
 end one
+
 end diagonal
+
+section numeral
+
+@[simp] lemma bit0_val [has_add α] (M : matrix n n α) (i : n) (j : n) :
+  (bit0 M) i j = bit0 (M i j) := rfl
+
+variables [decidable_eq n] [add_monoid α] [has_one α]
+
+lemma bit1_val (M : matrix n n α) (i : n) (j : n) :
+  (bit1 M) i j = if i = j then bit1 (M i j) else bit0 (M i j) :=
+by dsimp [bit1]; by_cases i = j; simp [h]
+
+@[simp]
+lemma bit1_val_eq (M : matrix n n α) (i : n) :
+  (bit1 M) i i = bit1 (M i i) :=
+by simp [bit1_val]
+
+@[simp]
+lemma bit1_val_ne (M : matrix n n α) {i j : n} (h : i ≠ j) :
+  (bit1 M) i j = bit0 (M i j) :=
+by simp [bit1_val, h]
+
+end numeral
 
 @[simp] theorem diagonal_add [decidable_eq n] [add_monoid α] (d₁ d₂ : n → α) :
   diagonal d₁ + diagonal d₂ = diagonal (λ i, d₁ i + d₂ i) :=

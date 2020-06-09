@@ -41,6 +41,15 @@ is_right_adjoint.left R
 def right_adjoint (L : C ⥤ D) [is_left_adjoint L] : D ⥤ C :=
 is_left_adjoint.right L
 
+/-- The adjunction associated to a functor known to be a left adjoint. -/
+def adjunction.of_left_adjoint (left : C ⥤ D) [is_left_adjoint left] :
+  adjunction left (right_adjoint left) :=
+is_left_adjoint.adj
+/-- The adjunction associated to a functor known to be a right adjoint. -/
+def adjunction.of_right_adjoint (right : C ⥤ D) [is_right_adjoint right] :
+  adjunction (left_adjoint right) right :=
+is_right_adjoint.adj
+
 namespace adjunction
 
 restate_axiom hom_equiv_unit'

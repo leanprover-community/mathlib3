@@ -60,25 +60,9 @@ variables [monoid M]
 @[simp] lemma pow_right {a x y : M} (h : semiconj_by a x y) (n : ℕ) : semiconj_by a (x^n) (y^n) :=
 nat.rec_on n (one_right a) $ λ n ihn, h.mul_right ihn
 
-variables [semiring R] {a b x y : R} (h : semiconj_by a x y)
-include h
-
-@[simp] lemma nsmul_right : ∀ n, semiconj_by a (n •ℕ x) (n •ℕ y)
-| 0 := zero_right a
-| (n+1) := h.add_right (nsmul_right n)
-
-@[simp] lemma nsmul_left : ∀ n, semiconj_by (n •ℕ a) x y
-| 0 := zero_left x y
-| (n+1) := h.add_left (nsmul_left n)
-
-lemma nsmul_nsmul (m n : ℕ) : semiconj_by (m •ℕ a) (n •ℕ x) (n •ℕ y) :=
-(h.nsmul_left m).nsmul_right n
-
 end semiconj_by
 
 namespace commute
-
-section monoid
 
 variables [monoid M] {a b : M}
 
@@ -91,20 +75,6 @@ variables [monoid M] {a b : M}
 @[simp] theorem pow_self (a : M) (n : ℕ) : commute (a ^ n) a := (commute.refl a).pow_left n
 @[simp] theorem pow_pow_self (a : M) (m n : ℕ) : commute (a ^ m) (a ^ n) :=
 (commute.refl a).pow_pow m n
-
-end monoid
-
-variables [semiring R] {a b : R}
-
-@[simp] theorem nsmul_right (h : commute a b) (n : ℕ) : commute a (n •ℕ b) := h.nsmul_right n
-@[simp] theorem nsmul_left (h : commute a b) (n : ℕ) : commute (n •ℕ a) b := h.nsmul_left n
-@[simp] theorem nsmul_nsmul (h : commute a b) (m n : ℕ) : commute (m •ℕ a) (n •ℕ b) :=
-h.nsmul_nsmul m n
-
-@[simp] theorem self_nsmul (a : R) (n : ℕ) : commute a (n •ℕ a) := (commute.refl a).nsmul_right n
-@[simp] theorem nsmul_self (a : R) (n : ℕ) : commute (n •ℕ a) a := (commute.refl a).nsmul_left n
-@[simp] theorem self_nsmul_nsmul (a : R) (m n : ℕ) : commute (m •ℕ a) (n •ℕ a) :=
-(commute.refl a).nsmul_nsmul m n
 
 end commute
 
@@ -226,7 +196,7 @@ end monoid
   @has_pow.pow _ _ monoid.has_pow p q = p ^ q :=
 by induction q with q ih; [refl, rw [nat.pow_succ, pow_succ', ih]]
 
-@[simp] theorem nat.nsmul_eq_mul (m n : ℕ) : m •ℕ n = m * n :=
+theorem nat.nsmul_eq_mul (m n : ℕ) : m •ℕ n = m * n :=
 by induction m with m ih; [rw [zero_nsmul, zero_mul],
   rw [succ_nsmul', ih, nat.succ_mul]]
 
@@ -443,7 +413,7 @@ theorem nsmul_eq_mul' [semiring R] (a : R) (n : ℕ) : n •ℕ a = a * n :=
 by induction n with n ih; [rw [zero_nsmul, nat.cast_zero, mul_zero],
   rw [succ_nsmul', ih, nat.cast_succ, mul_add, mul_one]]
 
-theorem nsmul_eq_mul [semiring R] (n : ℕ) (a : R) : n •ℕ a = n * a :=
+@[simp] theorem nsmul_eq_mul [semiring R] (n : ℕ) (a : R) : n •ℕ a = n * a :=
 by rw [nsmul_eq_mul', (n.cast_commute a).eq]
 
 theorem mul_nsmul_left [semiring R] (a b : R) (n : ℕ) : n •ℕ (a * b) = a * (n •ℕ b) :=
@@ -502,7 +472,7 @@ by { dsimp [bit1], rw [add_mul, bit0_mul, one_mul], }
 lemma mul_bit1 [ring R] {n r : R} : r * bit1 n = gsmul 2 (r * n) + r :=
 by { dsimp [bit1], rw [mul_add, mul_bit0, mul_one], }
 
-theorem gsmul_eq_mul [ring R] (a : R) : ∀ n, n •ℤ a = n * a
+@[simp] theorem gsmul_eq_mul [ring R] (a : R) : ∀ n, n •ℤ a = n * a
 | (n : ℕ) := nsmul_eq_mul _ _
 | -[1+ n] := show -(_ •ℕ _)=-_*_, by rw [neg_mul_eq_neg_mul_symm, nsmul_eq_mul, nat.cast_succ]
 
@@ -796,10 +766,27 @@ monoid_hom.ext $ λ n, by rw [mnat_monoid_hom_eq f, mnat_monoid_hom_eq g, h]
 /-!
 ### Commutativity (again)
 
-Facts about `semiconj_by` and `commute` that require `gpow` or `gsmul`.
+Facts about `semiconj_by` and `commute` that require `gpow` or `gsmul`, or the fact that integer
+multiplication equals semiring multiplication.
 -/
 
 namespace semiconj_by
+
+section
+
+variables [semiring R] {a x y : R}
+
+@[simp] lemma cast_nat_mul_right (h : semiconj_by a x y) (n : ℕ) : semiconj_by a ((n : R) * x) (n * y) :=
+semiconj_by.mul_right (nat.commute_cast _ _) h
+
+@[simp] lemma cast_nat_mul_left (h : semiconj_by a x y) (n : ℕ) : semiconj_by ((n : R) * a) x y :=
+semiconj_by.mul_left (nat.cast_commute _ _) h
+
+@[simp] lemma cast_nat_mul_cast_nat_mul (h : semiconj_by a x y) (m n : ℕ) :
+  semiconj_by ((m : R) * a) (n * x) (n * y) :=
+(h.cast_nat_mul_left m).cast_nat_mul_right n
+
+end
 
 variables [monoid M] [group G] [ring R]
 
@@ -814,20 +801,45 @@ variables [monoid M] [group G] [ring R]
 
 variables {a b x y x' y' : R}
 
-@[simp] lemma gsmul_right (h : semiconj_by a x y) : ∀ m, semiconj_by a (m •ℤ x) (m •ℤ y)
-| (n : ℕ) := h.nsmul_right n
-| -[1+n] := (h.nsmul_right n.succ).neg_right
+@[simp] lemma cast_int_mul_right (h : semiconj_by a x y) (m : ℤ) :
+  semiconj_by a ((m : ℤ) * x) (m * y) :=
+semiconj_by.mul_right (int.commute_cast _ _) h
 
-@[simp] lemma gsmul_left (h : semiconj_by a x y) : ∀ m, semiconj_by (m •ℤ a) x y
-| (n : ℕ) := h.nsmul_left n
-| -[1+n] := (h.nsmul_left n.succ).neg_left
+@[simp] lemma cast_int_mul_left (h : semiconj_by a x y) (m : ℤ) : semiconj_by ((m : R) * a) x y :=
+semiconj_by.mul_left (int.cast_commute _ _) h
 
-lemma gsmul_gsmul (h : semiconj_by a x y) (m n : ℤ) : semiconj_by (m •ℤ a) (n •ℤ x) (n •ℤ y) :=
-(h.gsmul_left m).gsmul_right n
+@[simp] lemma cast_int_mul_cast_int_mul (h : semiconj_by a x y) (m n : ℤ) :
+  semiconj_by ((m : R) * a) (n * x) (n * y) :=
+(h.cast_int_mul_left m).cast_int_mul_right n
 
 end semiconj_by
 
 namespace commute
+
+section
+
+variables [semiring R] {a b : R}
+
+@[simp] theorem cast_nat_mul_right (h : commute a b) (n : ℕ) : commute a ((n : R) * b) :=
+h.cast_nat_mul_right n
+
+@[simp] theorem cast_nat_mul_left (h : commute a b) (n : ℕ) : commute ((n : R) * a) b :=
+h.cast_nat_mul_left n
+
+@[simp] theorem cast_nat_mul_cast_nat_mul (h : commute a b) (m n : ℕ) :
+  commute ((m : R) * a) (n * b) :=
+h.cast_nat_mul_cast_nat_mul m n
+
+@[simp] theorem self_cast_nat_mul (n : ℕ) : commute a (n * a) :=
+(commute.refl a).cast_nat_mul_right n
+
+@[simp] theorem cast_nat_mul_self (n : ℕ) : commute ((n : R) * a) a :=
+(commute.refl a).cast_nat_mul_left n
+
+@[simp] theorem self_cast_nat_mul_cast_nat_mul (m n : ℕ) : commute ((m : R) * a) (n * a) :=
+(commute.refl a).cast_nat_mul_cast_nat_mul m n
+
+end
 
 variables [monoid M] [group G] [ring R]
 
@@ -861,16 +873,23 @@ end
 
 variables {a b : R}
 
-@[simp] lemma gsmul_right (h : commute a b) (m : ℤ) : commute a (m •ℤ b) := h.gsmul_right m
-@[simp] lemma gsmul_left (h : commute a b) (m : ℤ) : commute (m •ℤ a) b := h.gsmul_left m
-lemma gsmul_gsmul (h : commute a b) (m n : ℤ) : commute (m •ℤ a) (n •ℤ b) :=
-h.gsmul_gsmul m n
+@[simp] lemma cast_int_mul_right (h : commute a b) (m : ℤ) : commute a (m * b) :=
+h.cast_int_mul_right m
+
+@[simp] lemma cast_int_mul_left (h : commute a b) (m : ℤ) : commute ((m : R) * a) b :=
+h.cast_int_mul_left m
+
+lemma cast_int_mul_cast_int_mul (h : commute a b) (m n : ℤ) : commute ((m : R) * a) (n * b) :=
+h.cast_int_mul_cast_int_mul m n
 
 variables (a) (m n : ℤ)
 
-@[simp] theorem self_gsmul : commute a (n •ℤ a) := (commute.refl a).gsmul_right n
-@[simp] theorem gsmul_self : commute (n •ℤ a) a := (commute.refl a).gsmul_left n
-@[simp] theorem self_gsmul_gsmul : commute (m •ℤ a) (n •ℤ a) := (commute.refl a).gsmul_gsmul m n
+@[simp] theorem self_cast_int_mul : commute a (n * a) := (commute.refl a).cast_int_mul_right n
+
+@[simp] theorem cast_int_mul_self : commute ((n : R) * a) a := (commute.refl a).cast_int_mul_left n
+
+theorem self_cast_int_mul_cast_int_mul : commute ((m : R) * a) (n * a) :=
+(commute.refl a).cast_int_mul_cast_int_mul m n
 
 end commute
 

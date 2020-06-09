@@ -17,6 +17,14 @@ def equiv.finset {α : Type*} {β : Type*} (e : α ≃ β) :
   left_inv := λ s, by simp [finset.map_map, finset.map_refl],
   right_inv := λ s, by simp [finset.map_map, finset.map_refl] }
 
+noncomputable def equiv.finsupp {α : Type*} {β : Type*} {A : Type*} [add_comm_monoid A] (e : α ≃ β) :
+  (α →₀ A) ≃ (β →₀ A) :=
+{ to_fun := finsupp.emb_domain e.to_embedding,
+  inv_fun := finsupp.emb_domain e.symm.to_embedding,
+  left_inv := λ f, by { sorry },
+  right_inv := λ f, by { sorry } }
+
+
 namespace mv_polynomial
 variables {σ : Type*} {τ : Type*} {R : Type*} {S : Type*}
 
@@ -104,7 +112,7 @@ begin
   rw [elementary_symmetric, F.map_sum],
   let e' : {s : finset σ // s.card = n} ≃ {s : finset τ // s.card = n} :=
     e.finset.subtype_congr
-      (by { intro, simp only [equiv.finset, equiv.coe_fn_mk, finset.card_map]}),
+      (by { intro, simp only [equiv.finset, equiv.coe_fn_mk, finset.card_map] }),
   rw ← finset.sum_equiv e'.symm,
   apply fintype.sum_congr,
   intro s,
@@ -187,12 +195,17 @@ section
 -/
 variables (σ R) [fintype σ] [fintype τ] [comm_semiring R] [comm_semiring S]
 
+def complete_homogeneous.support_fintype (n : ℕ) :
+  fintype {d : σ →₀ ℕ // d.sum (λ _, id) = n} :=
+set.finite.fintype _
+
+local attribute [instance] complete_homogeneous.support_fintype
+
 /-- `complete_homogeneous σ R n` is the `n`th complete homogeneous symmetric polynomial
 with variables indexed by `σ` and coefficients in `R`.
 It is defined as the sum of all monomials of degree `n`. -/
 noncomputable def complete_homogeneous (n : ℕ) : mv_polynomial σ R :=
-(multiset.powerset_len n finset.univ)
--- ∑ d : { d : σ →₀ ℕ // d.sum (λ _, id) = n }, monomial d 1
+∑ d : {d : σ →₀ ℕ // d.sum (λ _, id) = n}, monomial d 1
 
 variables {σ R}
 
@@ -204,7 +217,7 @@ begin
   rw [complete_homogeneous, F.map_sum],
   apply fintype.sum_congr,
   intro,
-  rw [F.map_pow, ring_hom.coe_of, map_X],
+  rw [ring_hom.coe_of, map_monomial, f.map_one],
 end
 
 lemma rename_complete_homogeneous (n : ℕ) (e : σ ≃ τ) :
@@ -213,11 +226,20 @@ begin
   let F : mv_polynomial σ R →+* mv_polynomial τ R := ring_hom.of (rename e),
   show F (complete_homogeneous σ R n) = complete_homogeneous τ R n,
   rw [complete_homogeneous, F.map_sum],
-  rw ← finset.sum_equiv e.symm,
+  let e' : {d : σ →₀ ℕ // d.sum (λ _, id) = n} ≃ {d : τ →₀ ℕ // d.sum (λ _, id) = n} :=
+    e.finsupp.subtype_congr
+      (by { intro d,
+            dsimp [equiv.finsupp, finsupp.sum, finsupp.support_emb_domain],
+            rw [finset.sum_map],
+            show (d.support.sum d = n) ↔ ∑ (x : σ) in d.support, (finsupp.emb_domain e.to_embedding d) (e.to_embedding x) = n,
+            simp only [finsupp.emb_domain_apply], }),
+  rw ← finset.sum_equiv e'.symm,
   apply fintype.sum_congr,
-  intro s,
-  show F (X ((e.symm) s) ^ n) = X s ^ n,
-  rw [F.map_pow, ring_hom.coe_of, rename_X, equiv.apply_symm_apply],
+  intro d,
+  show F (monomial (e'.symm d) 1) = monomial d 1,
+  rw [ring_hom.coe_of, rename_monomial],
+  congr,
+  rw [finsupp.map_domain, finsupp.sum],
 end
 
 lemma complete_homogeneous_is_symmetric (n : ℕ) :

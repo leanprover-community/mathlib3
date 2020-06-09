@@ -244,6 +244,9 @@ mem_to_finset
 @[simp] theorem coe_to_finset (s : set α) [fintype s] : (↑s.to_finset : set α) = s :=
 set.ext $ λ _, mem_to_finset
 
+@[simp] theorem to_finset_inj {s t : set α} [fintype s] [fintype t] : s.to_finset = t.to_finset ↔ s = t :=
+⟨λ h, by rw [← s.coe_to_finset, h, t.coe_to_finset], λ h, by simp [h]; congr⟩ 
+
 end set
 
 lemma finset.card_univ [fintype α] : (finset.univ : finset α).card = fintype.card α :=

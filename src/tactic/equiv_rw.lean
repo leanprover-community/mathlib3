@@ -172,7 +172,8 @@ do
   -- Check that we actually used the equivalence `eq`
   -- (`equiv_rw_type_core` will always find `equiv.refl`, but hopefully only after all other possibilities)
   new_eqv ← instantiate_mvars new_eqv,
-  guard (eqv.occurs new_eqv) <|> (do
+  -- We previously had `guard (eqv.occurs new_eqv)` here, but `kdepends_on` is more reliable.
+  kdepends_on new_eqv eqv >>= guardb <|> (do
     eqv_pp ← pp eqv,
     ty_pp ← pp ty,
     fail format!"Could not construct an equivalence from {eqv_pp} of the form: {ty_pp} ≃ _"),

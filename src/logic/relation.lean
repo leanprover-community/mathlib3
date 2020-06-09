@@ -89,7 +89,8 @@ lemma refl_gen.to_refl_trans_gen : ∀{a b}, refl_gen r a b → refl_trans_gen r
 
 namespace refl_trans_gen
 
-@[trans] lemma trans (hab : refl_trans_gen r a b) (hbc : refl_trans_gen r b c) : refl_trans_gen r a c :=
+@[trans]
+lemma trans (hab : refl_trans_gen r a b) (hbc : refl_trans_gen r b c) : refl_trans_gen r a c :=
 begin
   induction hbc,
   case refl_trans_gen.refl { assumption },
@@ -130,8 +131,8 @@ begin
   case refl_trans_gen.tail : b c hab hbc ih {
     apply ih,
     show P b _, from head hbc _ refl,
-    show ∀a a', r a a' → refl_trans_gen r a' b → P a' _ → P a _, from assume a a' hab hbc, head hab _
-  }
+    show ∀a a', r a a' → refl_trans_gen r a' b → P a' _ → P a _,
+      from assume a a' hab hbc, head hab _ }
 end
 
 @[elab_as_eliminator]
@@ -140,7 +141,8 @@ lemma trans_induction_on
   {a b : α} (h : refl_trans_gen r a b)
   (ih₁ : ∀a, @P a a refl)
   (ih₂ : ∀{a b} (h : r a b), P (single h))
-  (ih₃ : ∀{a b c} (h₁ : refl_trans_gen r a b) (h₂ : refl_trans_gen r b c), P h₁ → P h₂ → P (h₁.trans h₂)) :
+  (ih₃ : ∀{a b c} (h₁ : refl_trans_gen r a b) (h₂ : refl_trans_gen r b c),
+    P h₁ → P h₂ → P (h₁.trans h₂)) :
   P h :=
 begin
   induction h,
@@ -335,7 +337,8 @@ assume a b c ⟨x, hax, hbx⟩ ⟨y, hby, hcy⟩,
 let ⟨z, hxz, hyz⟩ := h b x y hbx hby in
 ⟨z, ht hax hxz, ht hcy hyz⟩
 
-lemma equivalence_join (hr : reflexive r)  (ht : transitive r) (h : ∀a b c, r a b → r a c → join r b c) :
+lemma equivalence_join (hr : reflexive r) (ht : transitive r)
+  (h : ∀a b c, r a b → r a c → join r b c) :
   equivalence (join r) :=
 ⟨reflexive_join hr, symmetric_join, transitive_join ht h⟩
 
@@ -348,8 +351,9 @@ lemma join_of_equivalence {r' : α → α → Prop} (hr : equivalence r)
   (h : ∀a b, r' a b → r a b) : join r' a b → r a b
 | ⟨c, hac, hbc⟩ := hr.2.2 (h _ _ hac) (hr.2.1 $ h _ _ hbc)
 
-lemma refl_trans_gen_of_transitive_reflexive {r' : α → α → Prop} (hr : reflexive r) (ht : transitive r)
-  (h : ∀a b, r' a b → r a b) (h' : refl_trans_gen r' a b) : r a b :=
+lemma refl_trans_gen_of_transitive_reflexive {r' : α → α → Prop} (hr : reflexive r)
+  (ht : transitive r) (h : ∀a b, r' a b → r a b) (h' : refl_trans_gen r' a b) :
+  r a b :=
 begin
   induction h' with b c hab hbc ih,
   { exact hr _ },

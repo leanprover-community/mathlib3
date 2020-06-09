@@ -157,14 +157,6 @@ jobs:
           ~/.elan/bin/lean --version
           echo "::add-path::$HOME/.elan/bin"
 
-      - name: install Python
-        uses: actions/setup-python@v1
-        with:
-          python-version: 3.8
-
-      - name: install Python dependencies
-        run: python -m pip install --upgrade pip requests
-
       - name: tests
         run: |
           set -o pipefail
@@ -175,9 +167,21 @@ jobs:
           lean --recursive --export=mathlib.txt src/
           leanchecker mathlib.txt
 
+      - name: install Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+
+      - name: install Python dependencies
+        run: python -m pip install --upgrade pip requests markdown2 toml
+
+      - name: setup doc-gen
+        run: |
+          git clone https://github.com/leanprover-community/doc-gen.git
+
       - name: generate docs
         run:
-          ./scripts/deploy_docs.sh
+          ./scripts/deploy_docs.sh "." "doc-gen" ".."
         env:
           DEPLOY_GITHUB_TOKEN: ${{ secrets.DEPLOY_GITHUB_TOKEN }}
           github_repo: ${{ github.repository }}

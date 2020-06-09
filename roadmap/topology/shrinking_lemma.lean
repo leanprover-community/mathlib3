@@ -21,8 +21,9 @@ open set
 
 universes u v
 
-/-- A point-finite open cover of a closed subset of a normal space can be "shrunk" to a new open cover
- so that the closure of each new open set is contained in the corresponding original open set. -/
+/-- A point-finite open cover of a closed subset of a normal space can be "shrunk" to a new open
+cover so that the closure of each new open set is contained in the corresponding original open
+set. -/
 lemma shrinking_lemma {X : Type u} [topological_space X] [normal_space X]
   {s : set X} (hs : is_closed s) {α : Type v} (u : α → set X) (uo : ∀ a, is_open (u a))
   (uf : ∀ x, finite {a | x ∈ u a}) (su : s ⊆ Union u) :

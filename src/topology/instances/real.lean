@@ -244,7 +244,7 @@ metric.totally_bounded_iff.2 $ λ ε ε0, begin
     { have := lt_floor_add_one ((x - a) / ε),
       rwa [div_lt_iff' ε0, mul_add, mul_one] at this },
     { have := floor_le ((x - a) / ε),
-      rwa [ge, sub_nonneg, ← le_sub_iff_add_le', ← le_div_iff' ε0] } }
+      rwa [sub_nonneg, ← le_sub_iff_add_le', ← le_div_iff' ε0] } }
 end
 
 lemma real.totally_bounded_ball (x ε : ℝ) : totally_bounded (ball x ε) :=

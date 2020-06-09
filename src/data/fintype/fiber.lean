@@ -42,7 +42,7 @@ end
 
 @[simp]
 lemma fiber_prod_fst {α : Type*} [fintype α] [decidable_eq α] {β : Type*} [fintype β] (a : α) :
-  fiber (λ p : α × β, p.1) a = (@finset.univ β _).map (embedding.inr a β) :=
+  fiber (prod.fst : α × β → α) a = (@finset.univ β _).map (embedding.inr a β) :=
 begin
   ext p,
   simp,
@@ -53,7 +53,7 @@ end
 
 @[simp]
 lemma fiber_prod_snd {α : Type*} [fintype α] {β : Type*} [fintype β] [decidable_eq β] (b : β) :
-  fiber (λ p : α × β, p.2) b = (@finset.univ α _).map (embedding.inl α b) :=
+  fiber (prod.snd : α × β → β) b = (@finset.univ α _).map (embedding.inl α b) :=
 begin
   ext p,
   simp,

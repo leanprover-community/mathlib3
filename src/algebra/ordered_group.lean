@@ -1468,7 +1468,7 @@ end ordered_add_comm_group
 TODO:
 The `add_lt_add_left` field of `ordered_add_comm_group` is redundant,
 and it is no longer in core so we can remove it now.
-This alternative constructor is the best we could do.
+This alternative constructor is a workaround until someone fixes this.
 -/
 
 /-- Alternative constructor for ordered commutative groups,

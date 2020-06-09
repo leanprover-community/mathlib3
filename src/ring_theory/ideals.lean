@@ -11,7 +11,7 @@ universes u v
 variables {α : Type u} {β : Type v} {a b : α}
 open set function
 
-open_locale classical
+open_locale classical big_operators
 
 namespace ideal
 variables [comm_ring α] (I : ideal α)
@@ -229,7 +229,7 @@ def map_mk (I J : ideal α) : ideal I.quotient :=
 (mk_hom I).map_pow a n
 
 lemma mk_prod {ι} (I : ideal α) (s : finset ι) (f : ι → α) :
-  mk I (s.prod f) = s.prod (λ i, mk I (f i)) :=
+  mk I (∏ i in s, f i) = ∏ i in s, mk I (f i) :=
 (mk_hom I).map_prod f s
 
 lemma mk_sum {ι} (I : ideal α) (s : finset ι) (f : ι → α) :

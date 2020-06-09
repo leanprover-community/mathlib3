@@ -36,7 +36,7 @@ seems impossible to use.
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical big_operators
 
 open finset finsupp
 
@@ -385,7 +385,7 @@ variable {ι : Type ui}
 
 lemma prod_single [comm_semiring k] [comm_monoid G]
   {s : finset ι} {a : ι → G} {b : ι → k} :
-  s.prod (λi, single (a i) (b i)) = single (s.prod a) (s.prod b) :=
+  (∏ i in s, single (a i) (b i)) = single (∏ i in s, a i) (∏ i in s, b i) :=
 finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
   single_mul_single, prod_insert has, prod_insert has]
 
@@ -645,7 +645,7 @@ variable {ι : Type ui}
 
 lemma prod_single [comm_semiring k] [add_comm_monoid G]
   {s : finset ι} {a : ι → G} {b : ι → k} :
-  s.prod (λi, single (a i) (b i)) = single (s.sum a) (s.prod b) :=
+  (∏ i in s, single (a i) (b i)) = single (s.sum a) (∏ i in s, b i) :=
 finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
   single_mul_single, sum_insert has, prod_insert has]
 

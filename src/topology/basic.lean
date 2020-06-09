@@ -664,6 +664,10 @@ def continuous (f : α → β) := ∀s, is_open s → is_open (f ⁻¹' s)
 if `f x` tends to `f x₀` when `x` tends to `x₀`. -/
 def continuous_at (f : α → β) (x : α) := tendsto f (𝓝 x) (𝓝 (f x))
 
+lemma continuous_at.tendsto {f : α → β} {x : α} (h : continuous_at f x) :
+  tendsto f (𝓝 x) (𝓝 (f x)) :=
+h
+
 lemma continuous_at.preimage_mem_nhds {f : α → β} {x : α} {t : set β} (h : continuous_at f x)
   (ht : t ∈ 𝓝 (f x)) : f ⁻¹' t ∈ 𝓝 x :=
 h ht

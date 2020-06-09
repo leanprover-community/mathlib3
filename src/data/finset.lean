@@ -1161,7 +1161,7 @@ theorem map_to_finset [decidable_eq α] [decidable_eq β] {s : multiset α} :
   s.to_finset.map f = (s.map f).to_finset :=
 ext.2 $ λ _, by simp only [mem_map, multiset.mem_map, exists_prop, multiset.mem_to_finset]
 
-theorem map_refl : s.map (embedding.refl _) = s :=
+@[simp] theorem map_refl : s.map (embedding.refl _) = s :=
 ext.2 $ λ _, by simpa only [mem_map, exists_prop] using exists_eq_right
 
 theorem map_map {g : β ↪ γ} : (s.map f).map g = s.map (f.trans g) :=

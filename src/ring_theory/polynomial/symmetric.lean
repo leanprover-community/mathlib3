@@ -17,13 +17,17 @@ def equiv.finset {α : Type*} {β : Type*} (e : α ≃ β) :
   left_inv := λ s, by simp [finset.map_map, finset.map_refl],
   right_inv := λ s, by simp [finset.map_map, finset.map_refl] }
 
+-- move this
 noncomputable def equiv.finsupp {α : Type*} {β : Type*} {A : Type*} [add_comm_monoid A] (e : α ≃ β) :
   (α →₀ A) ≃ (β →₀ A) :=
 { to_fun := finsupp.emb_domain e.to_embedding,
   inv_fun := finsupp.emb_domain e.symm.to_embedding,
-  left_inv := λ f, by { sorry },
-  right_inv := λ f, by { sorry } }
-
+  left_inv := λ f, by { ext a,
+    erw [← e.symm_apply_apply a, finsupp.emb_domain_apply,
+        finsupp.emb_domain_apply, e.symm_apply_apply], },
+  right_inv := λ f, by { ext b,
+    erw [← e.apply_symm_apply b, finsupp.emb_domain_apply,
+        finsupp.emb_domain_apply, e.apply_symm_apply] } }
 
 namespace mv_polynomial
 variables {σ : Type*} {τ : Type*} {R : Type*} {S : Type*}
@@ -197,7 +201,10 @@ variables (σ R) [fintype σ] [fintype τ] [comm_semiring R] [comm_semiring S]
 
 def complete_homogeneous.support_fintype (n : ℕ) :
   fintype {d : σ →₀ ℕ // d.sum (λ _, id) = n} :=
-set.finite.fintype _
+set.finite.fintype $
+begin
+  sorry
+end
 
 local attribute [instance] complete_homogeneous.support_fintype
 
@@ -239,7 +246,15 @@ begin
   show F (monomial (e'.symm d) 1) = monomial d 1,
   rw [ring_hom.coe_of, rename_monomial],
   congr,
-  rw [finsupp.map_domain, finsupp.sum],
+  ext i,
+  simp only [finsupp.map_domain, finsupp.sum_apply, finsupp.single_apply],
+  rw [finsupp.sum, finset.sum_eq_single (e.symm i)],
+  { simpa only [e', equiv.finsupp, equiv.subtype_congr, if_true, equiv.coe_fn_symm_mk,
+      eq_self_iff_true, equiv.apply_symm_apply, subtype.coe_mk]
+      using finsupp.emb_domain_apply e.symm.to_embedding _ _ },
+  { rintro j h hj, rw if_neg, rintro rfl, simpa using hj },
+  { simp only [finsupp.not_mem_support_iff, imp_self, if_true,
+      eq_self_iff_true, equiv.apply_symm_apply], }
 end
 
 lemma complete_homogeneous_is_symmetric (n : ℕ) :

@@ -113,6 +113,9 @@ instance decidable_eq_mv_polynomial [decidable_eq σ] [decidable_eq α] :
   decidable_eq (mv_polynomial σ α) := finsupp.decidable_eq
 instance : comm_semiring (mv_polynomial σ α) := add_monoid_algebra.comm_semiring
 instance : inhabited (mv_polynomial σ α) := ⟨0⟩
+instance : has_scalar α (mv_polynomial σ α) := add_monoid_algebra.has_scalar
+instance : semimodule α (mv_polynomial σ α) := add_monoid_algebra.semimodule
+instance : algebra α (mv_polynomial σ α) := add_monoid_algebra.algebra
 
 /-- the coercion turning an `mv_polynomial` into the function which reports the coefficient of a given monomial -/
 def coeff_coe_to_fun : has_coe_to_fun (mv_polynomial σ α) :=
@@ -893,8 +896,6 @@ variable [comm_ring α]
 variables {p q : mv_polynomial σ α}
 
 instance : comm_ring (mv_polynomial σ α) := add_monoid_algebra.comm_ring
-instance : has_scalar α (mv_polynomial σ α) := finsupp.has_scalar
-instance : module α (mv_polynomial σ α) := finsupp.module (σ →₀ ℕ) α
 
 instance C.is_ring_hom : is_ring_hom (C : α → mv_polynomial σ α) :=
 by apply is_ring_hom.of_semiring
@@ -1031,11 +1032,6 @@ end total_degree
 section aeval
 
 /-- The algebra of multivariate polynomials. -/
--- FIXME this causes a deterministic timeout with `-T50000` (but `-T60000` seems okay)
-instance mv_polynomial (R : Type u) [comm_ring R] (σ : Type v) : algebra R (mv_polynomial σ R) :=
-{ commutes' := λ _ _, mul_comm _ _,
-  smul_def' := λ c p, (mv_polynomial.C_mul' c p).symm,
-  .. ring_hom.of mv_polynomial.C, .. mv_polynomial.module }
 
 variables (R : Type u) (A : Type v) (f : σ → A)
 variables [comm_ring R] [comm_ring A] [algebra R A]

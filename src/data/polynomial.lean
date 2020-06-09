@@ -1338,7 +1338,6 @@ end comm_semiring
 section comm_ring
 variables [comm_ring R] {p q : polynomial R}
 instance : comm_ring (polynomial R) := add_monoid_algebra.comm_ring
-instance : module R (polynomial R) := add_monoid_algebra.module
 
 variable (R)
 def lcoeff (n : ℕ) : polynomial R →ₗ[R] R :=
@@ -2154,7 +2153,6 @@ end integral_domain
 
 section field
 variables [field R] {p q : polynomial R}
-instance : vector_space R (polynomial R) := finsupp.vector_space _ _
 
 lemma is_unit_iff_degree_eq_zero : is_unit p ↔ degree p = 0 :=
 ⟨degree_eq_zero_of_is_unit,

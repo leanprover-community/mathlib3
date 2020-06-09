@@ -232,9 +232,6 @@ finsupp.has_scalar
 instance [semiring k] : semimodule k (monoid_algebra k G) :=
 finsupp.semimodule G k
 
-instance [ring k] : module k (monoid_algebra k G) :=
-finsupp.module G k
-
 lemma single_one_comm [comm_semiring k] [monoid G] (r : k) (f : monoid_algebra k G) :
   single 1 r * f = f * single 1 r :=
 by { ext, rw [single_one_mul_apply, mul_single_one_apply, mul_comm] }
@@ -581,9 +578,6 @@ finsupp.has_scalar
 
 instance [semiring k] : semimodule k (add_monoid_algebra k G) :=
 finsupp.semimodule G k
-
-instance [ring k] : module k (add_monoid_algebra k G) :=
-finsupp.module G k
 
 instance [comm_semiring k] [add_monoid G] : algebra k (add_monoid_algebra k G) :=
 { to_fun := single 0,

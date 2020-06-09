@@ -19,9 +19,6 @@ namespace mv_polynomial
 universes u v
 variables {σ : Type u} {α : Type v}
 
-instance [field α] : vector_space α (mv_polynomial σ α) :=
-finsupp.vector_space _ _
-
 section
 variables (σ α) [field α] (m : ℕ)
 def restrict_total_degree : submodule α (mv_polynomial σ α) :=

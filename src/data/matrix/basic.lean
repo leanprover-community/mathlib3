@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Ellen Arlt. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
+Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin, Scott Morrison, Yakov Pechersky
 -/
 import algebra.pi_instances
 /-!
@@ -101,6 +101,13 @@ diagonal_val_ne'
 
 end one
 end diagonal
+
+@[simp] lemma bit0_apply_apply [has_add α] (M : matrix n n α) (i : n) (j : n) :
+  (bit0 M) i j = bit0 (M i j) := rfl
+
+@[simp] lemma bit1_apply_apply [decidable_eq n] [semiring α] (M : matrix n n α) (i : n) (j : n) :
+  (bit1 M) i j = if i = j then bit1 (M i j) else bit0 (M i j) :=
+by dsimp [bit1]; by_cases i = j; simp [h]
 
 @[simp] theorem diagonal_add [decidable_eq n] [add_monoid α] (d₁ d₂ : n → α) :
   diagonal d₁ + diagonal d₂ = diagonal (λ i, d₁ i + d₂ i) :=
@@ -305,8 +312,6 @@ instance [decidable_eq n] [ring α] : ring (matrix n n α) :=
 instance [semiring α] : has_scalar α (matrix m n α) := pi.has_scalar
 instance {β : Type w} [semiring α] [add_comm_monoid β] [semimodule α β] :
   semimodule α (matrix m n β) := pi.semimodule _ _ _
-instance {β : Type w} [ring α] [add_comm_group β] [module α β] :
-  module α (matrix m n β) := { .. matrix.semimodule }
 
 @[simp] lemma smul_val [semiring α] (a : α) (A : matrix m n α) (i : m) (j : n) : (a • A) i j = a * A i j := rfl
 

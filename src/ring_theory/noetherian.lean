@@ -73,17 +73,17 @@ begin
   have : ∃ r : R, r - 1 ∈ I ∧ N ≤ (I • span R s).comap (linear_map.lsmul R M r) ∧ s ⊆ N,
   { refine ⟨1, _, _, _⟩,
     { rw sub_self, exact I.zero_mem },
-    { rw [hs], intros n hn, rw [mem_coe, mem_comap], change (1:R) • n ∈ I • N, rw one_smul, exact hin hn },
+    { rw [hs], intros n hn, rw [mem_comap], change (1:R) • n ∈ I • N, rw one_smul, exact hin hn },
     { rw [← span_le, hs], exact le_refl N } },
   clear hin hs, revert this,
   refine set.finite.dinduction_on hfs (λ H, _) (λ i s his hfs ih H, _),
   { rcases H with ⟨r, hr1, hrn, hs⟩, refine ⟨r, hr1, λ n hn, _⟩, specialize hrn hn,
-    rwa [mem_coe, mem_comap, span_empty, smul_bot, mem_bot] at hrn },
+    rwa [mem_comap, span_empty, smul_bot, mem_bot] at hrn },
   apply ih, rcases H with ⟨r, hr1, hrn, hs⟩,
   rw [← set.singleton_union, span_union, smul_sup] at hrn,
   rw [set.insert_subset] at hs,
   have : ∃ c : R, c - 1 ∈ I ∧ c • i ∈ I • span R s,
-  { specialize hrn hs.1, rw [mem_coe, mem_comap, mem_sup] at hrn,
+  { specialize hrn hs.1, rw [mem_comap, mem_sup] at hrn,
     rcases hrn with ⟨y, hy, z, hz, hyz⟩, change y + z = r • i at hyz,
     rw mem_smul_span_singleton at hy, rcases hy with ⟨c, hci, rfl⟩,
     use r-c, split,
@@ -92,7 +92,7 @@ begin
   rcases this with ⟨c, hc1, hci⟩, refine ⟨c * r, _, _, hs.2⟩,
   { rw [← ideal.quotient.eq, ideal.quotient.mk_one] at hr1 hc1 ⊢,
     rw [ideal.quotient.mk_mul, hc1, hr1, mul_one] },
-  { intros n hn, specialize hrn hn, rw [mem_coe, mem_comap, mem_sup] at hrn,
+  { intros n hn, specialize hrn hn, rw [mem_comap, mem_sup] at hrn,
     rcases hrn with ⟨y, hy, z, hz, hyz⟩, change y + z = r • n at hyz,
     rw mem_smul_span_singleton at hy, rcases hy with ⟨d, hdi, rfl⟩,
     change _ • _ ∈ I • span R s,
@@ -280,6 +280,7 @@ end
 
 open is_noetherian submodule function
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem is_noetherian_iff_well_founded
   {R M} [ring R] [add_comm_group M] [module R M] :
   is_noetherian R M ↔ well_founded ((>) : submodule R M → submodule R M → Prop) :=
@@ -332,11 +333,12 @@ theorem is_noetherian_iff_well_founded
       rw [← hs₂, sup_assoc, ← submodule.span_union], simp }
   end⟩
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma well_founded_submodule_gt (R M) [ring R] [add_comm_group M] [module R M] :
   ∀ [is_noetherian R M], well_founded ((>) : submodule R M → submodule R M → Prop) :=
 is_noetherian_iff_well_founded.mp
 
-lemma finite_of_linear_independent {R M} [nonzero_comm_ring R] [add_comm_group M] [module R M]
+lemma finite_of_linear_independent {R M} [comm_ring R] [nonzero R] [add_comm_group M] [module R M]
   [is_noetherian R M] {s : set M} (hs : linear_independent R (subtype.val : s → M)) : s.finite :=
 begin
   refine classical.by_contradiction (λ hf, order_embedding.well_founded_iff_no_descending_seq.1
@@ -347,7 +349,7 @@ begin
   have : ∀ a b : ℕ, a ≤ b ↔
     span R ((subtype.val ∘ f) '' {m | m ≤ a}) ≤ span R ((subtype.val ∘ f) '' {m | m ≤ b}),
   { assume a b,
-    rw [span_le_span_iff (@zero_ne_one R _) hs (this a) (this b),
+    rw [span_le_span_iff zero_ne_one hs (this a) (this b),
       set.image_subset_image_iff (subtype.val_injective.comp f.inj),
       set.subset_def],
     exact ⟨λ hab x (hxa : x ≤ a), le_trans hxa hab, λ hx, hx a (le_refl a)⟩ },
@@ -400,7 +402,7 @@ begin
   haveI := classical.dec_eq R,
   letI : is_noetherian R R := by apply_instance,
   have : ∀ x ∈ s, x ∈ N, from λ x hx, hs ▸ submodule.subset_span hx,
-  refine @@is_noetherian_of_surjective ((↑s : set M) → R) _ _ _ (pi.module _)
+  refine @@is_noetherian_of_surjective ((↑s : set M) → R) _ _ _ (pi.semimodule _ _ _)
     _ _ _ is_noetherian_pi,
   { fapply linear_map.mk,
     { exact λ f, ⟨s.attach.sum (λ i, f i • i.1), N.sum_mem (λ c _, N.smul_mem _ $ this _ c.2)⟩ },

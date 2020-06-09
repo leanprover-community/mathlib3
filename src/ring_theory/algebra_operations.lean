@@ -126,6 +126,27 @@ begin
   exact mul_mem_mul hi hj
 end
 
+lemma map_mul {A'} [ring A'] [algebra R A'] (f : A →ₐ[R] A') :
+  map f.to_linear_map (M * N) = map f.to_linear_map M * map f.to_linear_map N :=
+calc map f.to_linear_map (M * N)
+    = ⨆ (i : M), (N.map (lmul R A i)).map f.to_linear_map : map_supr _ _
+... = map f.to_linear_map M * map f.to_linear_map N  :
+  begin
+    apply congr_arg Sup,
+    ext S,
+    split; rintros ⟨y, hy⟩,
+    { use [f y, mem_map.mpr ⟨y.1, y.2, rfl⟩],
+      refine trans _ hy,
+      ext,
+      simp },
+    { obtain ⟨y', hy', fy_eq⟩ := mem_map.mp y.2,
+      use [y', hy'],
+      refine trans _ hy,
+      rw f.to_linear_map_apply at fy_eq,
+      ext,
+      simp [fy_eq] }
+  end
+
 variables {M N P}
 
 instance : semiring (submodule R A) :=
@@ -136,7 +157,7 @@ instance : semiring (submodule R A) :=
   mul_zero      := mul_bot,
   left_distrib  := mul_sup,
   right_distrib := sup_mul,
-  ..submodule.add_comm_monoid,
+  ..submodule.add_comm_monoid_submodule,
   ..submodule.has_one,
   ..submodule.has_mul }
 

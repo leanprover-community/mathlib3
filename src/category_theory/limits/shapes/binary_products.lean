@@ -16,9 +16,12 @@ We define `prod X Y` and `coprod X Y` as limits and colimits of such functors.
 
 Typeclasses `has_binary_products` and `has_binary_coproducts` assert the existence
 of (co)limits shaped as walking pairs.
+
+We include lemmas for simplifying equations involving projections and coprojections, and define
+braiding and associating isomorphisms, and the product comparison morphism.
 -/
 
-universes v u
+universes v u u₂
 
 open category_theory
 
@@ -357,9 +360,9 @@ def has_binary_coproducts_of_has_colimit_pair [Π {X Y : C}, has_colimit (pair X
 section
 
 variables {C} [has_binary_products.{v} C]
+variables {D : Type u₂} [category.{v} D] [has_binary_products.{v} D]
 
-local attribute [tidy] tactic.case_bash
-
+-- FIXME deterministic timeout with `-T50000`
 /-- The binary product functor. -/
 @[simps]
 def prod_functor : C ⥤ C ⥤ C :=
@@ -406,7 +409,7 @@ nat_iso.of_components (prod.associator _ _) (by tidy)
 lemma prod.pentagon (W X Y Z : C) :
   prod.map ((prod.associator W X Y).hom) (𝟙 Z) ≫
       (prod.associator W (X ⨯ Y) Z).hom ≫ prod.map (𝟙 W) ((prod.associator X Y Z).hom) =
-    (prod.associator (W ⨯ X) Y Z).hom ≫ (prod.associator W X (Y⨯Z)).hom :=
+    (prod.associator (W ⨯ X) Y Z).hom ≫ (prod.associator W X (Y ⨯ Z)).hom :=
 by tidy
 
 @[reassoc]
@@ -414,6 +417,24 @@ lemma prod.associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X�
   prod.map (prod.map f₁ f₂) f₃ ≫ (prod.associator Y₁ Y₂ Y₃).hom =
     (prod.associator X₁ X₂ X₃).hom ≫ prod.map f₁ (prod.map f₂ f₃) :=
 by tidy
+
+/--
+The product comparison morphism.
+
+In `category_theory/limits/preserves` we show this is always an iso iff F preserves binary products.
+-/
+def prod_comparison (F : C ⥤ D) (A B : C) : F.obj (A ⨯ B) ⟶ F.obj A ⨯ F.obj B :=
+prod.lift (F.map prod.fst) (F.map prod.snd)
+
+/-- Naturality of the prod_comparison morphism in both arguments. -/
+@[reassoc] lemma prod_comparison_natural (F : C ⥤ D) {A A' B B' : C} (f : A ⟶ A') (g : B ⟶ B') :
+  F.map (prod.map f g) ≫ prod_comparison F A' B' = prod_comparison F A B ≫ prod.map (F.map f) (F.map g) :=
+begin
+  rw [prod_comparison, prod_comparison, prod.lift_map],
+  apply prod.hom_ext,
+  { simp only [← F.map_comp, category.assoc, prod.lift_fst, prod.map_fst, category.comp_id] },
+  { simp only [← F.map_comp, category.assoc, prod.lift_snd, prod.map_snd, prod.lift_snd_assoc] },
+end
 
 variables [has_terminal.{v} C]
 
@@ -459,8 +480,6 @@ end
 section
 variables {C} [has_binary_coproducts.{v} C]
 
-local attribute [tidy] tactic.case_bash
-
 /-- The braiding isomorphism which swaps a binary coproduct. -/
 @[simps] def coprod.braiding (P Q : C) : P ⨿ Q ≅ Q ⨿ P :=
 { hom := coprod.desc coprod.inr coprod.inl,
@@ -489,8 +508,8 @@ by simp
 
 lemma coprod.pentagon (W X Y Z : C) :
   coprod.map ((coprod.associator W X Y).hom) (𝟙 Z) ≫
-      (coprod.associator W (X⨿Y) Z).hom ≫ coprod.map (𝟙 W) ((coprod.associator X Y Z).hom) =
-    (coprod.associator (W⨿X) Y Z).hom ≫ (coprod.associator W X (Y⨿Z)).hom :=
+      (coprod.associator W (X ⨿ Y) Z).hom ≫ coprod.map (𝟙 W) ((coprod.associator X Y Z).hom) =
+    (coprod.associator (W ⨿ X) Y Z).hom ≫ (coprod.associator W X (Y ⨿ Z)).hom :=
 by tidy
 
 lemma coprod.associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (f₃ : X₃ ⟶ Y₃) :

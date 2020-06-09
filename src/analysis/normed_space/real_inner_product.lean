@@ -5,6 +5,7 @@ Authors: Zhouhang Zhou
 -/
 import algebra.quadratic_discriminant
 import analysis.special_functions.pow
+import tactic.apply_fun
 import tactic.monotonicity
 
 
@@ -43,6 +44,7 @@ The Coq code is available at the following address: <http://www.lri.fr/~sboldo/e
 noncomputable theory
 
 open real set
+open_locale big_operators
 open_locale topological_space
 
 universes u v w
@@ -62,7 +64,7 @@ set_option default_priority 100 -- see Note [default priority]
 An inner product space is a real vector space with an additional operation called inner product.
 Inner product spaces over complex vector space will be defined in another file.
 -/
-class inner_product_space (α : Type*) extends add_comm_group α, module ℝ α, has_inner α :=
+class inner_product_space (α : Type*) extends add_comm_group α, semimodule ℝ α, has_inner α :=
 (comm      : ∀ x y, inner x y = inner y x)
 (nonneg    : ∀ x, 0 ≤ inner x x)
 (definite  : ∀ x, inner x x = 0 → x = 0)
@@ -96,8 +98,12 @@ by { rw [← zero_smul ℝ (0:α), inner_smul_left, zero_mul] }
 @[simp] lemma inner_zero_right {x : α} : inner x 0 = 0 :=
 by { rw [inner_comm, inner_zero_left] }
 
-lemma inner_self_eq_zero (x : α) : inner x x = 0 ↔ x = 0 :=
+@[simp] lemma inner_self_eq_zero {x : α} : inner x x = 0 ↔ x = 0 :=
 iff.intro (inner_product_space.definite _) (by { rintro rfl, exact inner_zero_left })
+
+@[simp] lemma inner_self_nonpos {x : α} : inner x x ≤ 0 ↔ x = 0 :=
+⟨λ h, inner_self_eq_zero.1 (le_antisymm h inner_self_nonneg),
+  λ h, h.symm ▸ le_of_eq inner_zero_left⟩
 
 @[simp] lemma inner_neg_left {x y : α} : inner (-x) y = -inner x y :=
 by { rw [← neg_one_smul ℝ x, inner_smul_left], simp }
@@ -154,7 +160,8 @@ instance inner_product_space_has_norm : has_norm α := ⟨λx, sqrt (inner x x)�
 
 lemma norm_eq_sqrt_inner {x : α} : ∥x∥ = sqrt (inner x x) := rfl
 
-lemma inner_self_eq_norm_square (x : α) : inner x x = ∥x∥ * ∥x∥ := (mul_self_sqrt inner_self_nonneg).symm
+lemma inner_self_eq_norm_square (x : α) : inner x x = ∥x∥ * ∥x∥ :=
+(mul_self_sqrt inner_self_nonneg).symm
 
 /-- Expand the square -/
 lemma norm_add_pow_two {x y : α} : ∥x + y∥^2 = ∥x∥^2 + 2 * inner x y + ∥y∥^2 :=
@@ -187,12 +194,65 @@ lemma parallelogram_law_with_norm {x y : α} :
   ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
 by { simp only [(inner_self_eq_norm_square _).symm], exact parallelogram_law }
 
+/-- The inner product, in terms of the norm. -/
+lemma inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two (x y : α) :
+  inner x y = (∥x + y∥ * ∥x + y∥ - ∥x∥ * ∥x∥ - ∥y∥ * ∥y∥) / 2 :=
+begin
+  rw norm_add_mul_self,
+  ring
+end
+
+/-- The inner product, in terms of the norm. -/
+lemma inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two (x y : α) :
+  inner x y = (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ - ∥x - y∥ * ∥x - y∥) / 2 :=
+begin
+  rw norm_sub_mul_self,
+  ring
+end
+
+/-- The inner product, in terms of the norm. -/
+lemma inner_eq_norm_add_mul_self_sub_norm_sub_mul_self_div_four (x y : α) :
+  inner x y = (∥x + y∥ * ∥x + y∥ - ∥x - y∥ * ∥x - y∥) / 4 :=
+begin
+  rw [norm_add_mul_self, norm_sub_mul_self],
+  ring
+end
+
+/-- Pythagorean theorem, if-and-only-if vector inner product form. -/
+lemma norm_add_square_eq_norm_square_add_norm_square_iff_inner_eq_zero (x y : α) :
+  ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ ↔ inner x y = 0 :=
+begin
+  rw [norm_add_mul_self, add_right_cancel_iff, add_right_eq_self, mul_eq_zero],
+  norm_num
+end
+
+/-- Pythagorean theorem, vector inner product form. -/
+lemma norm_add_square_eq_norm_square_add_norm_square {x y : α} (h : inner x y = 0) :
+  ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
+(norm_add_square_eq_norm_square_add_norm_square_iff_inner_eq_zero x y).2 h
+
+/-- Pythagorean theorem, subtracting vectors, if-and-only-if vector
+inner product form. -/
+lemma norm_sub_square_eq_norm_square_add_norm_square_iff_inner_eq_zero (x y : α) :
+  ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ ↔ inner x y = 0 :=
+begin
+  rw [norm_sub_mul_self, add_right_cancel_iff, sub_eq_add_neg, add_right_eq_self, neg_eq_zero,
+      mul_eq_zero],
+  norm_num
+end
+
+/-- Pythagorean theorem, subtracting vectors, vector inner product
+form. -/
+lemma norm_sub_square_eq_norm_square_add_norm_square {x y : α} (h : inner x y = 0) :
+  ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
+(norm_sub_square_eq_norm_square_add_norm_square_iff_inner_eq_zero x y).2 h
+
 /-- An inner product space forms a normed group w.r.t. its associated norm. -/
 @[priority 100] -- see Note [lower instance priority]
 instance inner_product_space_is_normed_group : normed_group α :=
 normed_group.of_core α
 { norm_eq_zero_iff := assume x, iff.intro
-    (λ h : sqrt (inner x x) = 0, (inner_self_eq_zero x).1 $ (sqrt_eq_zero inner_self_nonneg).1 h )
+    (λ h : sqrt (inner x x) = 0, inner_self_eq_zero.1 $ (sqrt_eq_zero inner_self_nonneg).1 h )
     (by {rintro rfl, show sqrt (inner (0:α) 0) = 0, simp }),
   triangle := assume x y,
   begin
@@ -219,7 +279,218 @@ instance inner_product_space_is_normed_space : normed_space ℝ α :=
     exact mul_nonneg (abs_nonneg _) (sqrt_nonneg _)
   end }
 
+/-- The inner product of two vectors, divided by the product of their
+norms, has absolute value at most 1. -/
+lemma abs_inner_div_norm_mul_norm_le_one (x y : α) : abs (inner x y / (∥x∥ * ∥y∥)) ≤ 1 :=
+begin
+  rw abs_div,
+  by_cases h : 0 = abs (∥x∥ * ∥y∥),
+  { rw [←h, div_zero],
+    norm_num },
+  { apply div_le_of_le_mul (lt_of_le_of_ne (ge_iff_le.mp (abs_nonneg (∥x∥ * ∥y∥))) h),
+    convert abs_inner_le_norm x y using 1,
+    rw [abs_mul, abs_of_nonneg (norm_nonneg x), abs_of_nonneg (norm_nonneg y), mul_one] }
+end
+
+/-- The inner product of a vector with a multiple of itself. -/
+lemma inner_smul_self_left (x : α) (r : ℝ) : inner (r • x) x = r * (∥x∥ * ∥x∥) :=
+by rw [inner_smul_left, ←inner_self_eq_norm_square]
+
+/-- The inner product of a vector with a multiple of itself. -/
+lemma inner_smul_self_right (x : α) (r : ℝ) : inner x (r • x) = r * (∥x∥ * ∥x∥) :=
+by rw [inner_smul_right, ←inner_self_eq_norm_square]
+
+/-- The inner product of a nonzero vector with a nonzero multiple of
+itself, divided by the product of their norms, has absolute value
+1. -/
+lemma abs_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul
+  {x : α} {r : ℝ} (hx : x ≠ 0) (hr : r ≠ 0) : abs (inner x (r • x) / (∥x∥ * ∥r • x∥)) = 1 :=
+begin
+  rw [inner_smul_self_right, norm_smul, real.norm_eq_abs, ←mul_assoc ∥x∥, mul_comm _ (abs r),
+      mul_assoc, abs_div, abs_mul r, abs_mul (abs r), abs_abs, div_self],
+  exact mul_ne_zero (λ h, hr (eq_zero_of_abs_eq_zero h))
+    (λ h, hx (norm_eq_zero.1 (eq_zero_of_mul_self_eq_zero (eq_zero_of_abs_eq_zero h))))
+end
+
+/-- The inner product of a nonzero vector with a positive multiple of
+itself, divided by the product of their norms, has value 1. -/
+lemma inner_div_norm_mul_norm_eq_one_of_ne_zero_of_pos_mul
+  {x : α} {r : ℝ} (hx : x ≠ 0) (hr : 0 < r) : inner x (r • x) / (∥x∥ * ∥r • x∥) = 1 :=
+begin
+  rw [inner_smul_self_right, norm_smul, real.norm_eq_abs, ←mul_assoc ∥x∥, mul_comm _ (abs r),
+      mul_assoc, abs_of_nonneg (le_of_lt hr), div_self],
+  exact mul_ne_zero (ne_of_gt hr)
+    (λ h, hx (norm_eq_zero.1 (eq_zero_of_mul_self_eq_zero h)))
+end
+
+/-- The inner product of a nonzero vector with a negative multiple of
+itself, divided by the product of their norms, has value -1. -/
+lemma inner_div_norm_mul_norm_eq_neg_one_of_ne_zero_of_neg_mul
+  {x : α} {r : ℝ} (hx : x ≠ 0) (hr : r < 0) : inner x (r • x) / (∥x∥ * ∥r • x∥) = -1 :=
+begin
+  rw [inner_smul_self_right, norm_smul, real.norm_eq_abs, ←mul_assoc ∥x∥, mul_comm _ (abs r),
+      mul_assoc, abs_of_neg hr, ←neg_mul_eq_neg_mul, div_neg_eq_neg_div, div_self],
+  exact mul_ne_zero (ne_of_lt hr)
+    (λ h, hx (norm_eq_zero.1 (eq_zero_of_mul_self_eq_zero h)))
+end
+
+/-- The inner product of two vectors, divided by the product of their
+norms, has absolute value 1 if and only if they are nonzero and one is
+a multiple of the other. One form of equality case for Cauchy-Schwarz. -/
+lemma abs_inner_div_norm_mul_norm_eq_one_iff (x y : α) :
+  abs (inner x y / (∥x∥ * ∥y∥)) = 1 ↔ (x ≠ 0 ∧ ∃ (r : ℝ), r ≠ 0 ∧ y = r • x) :=
+begin
+  split,
+  { intro h,
+    have hx0 : x ≠ 0,
+    { intro hx0,
+      rw [hx0, inner_zero_left, zero_div] at h,
+      norm_num at h,
+      exact h },
+    refine and.intro hx0 _,
+    set r := inner x y / (∥x∥ * ∥x∥) with hr,
+    use r,
+    set t := y - r • x with ht,
+    have ht0 : inner x t = 0,
+    { rw [ht, inner_sub_right, inner_smul_right, hr, ←inner_self_eq_norm_square,
+          div_mul_cancel _ (λ h, hx0 (inner_self_eq_zero.1 h)), sub_self] },
+    rw [←sub_add_cancel y (r • x), ←ht, inner_add_right, ht0, zero_add, inner_smul_right,
+        inner_self_eq_norm_square, ←mul_assoc, mul_comm,
+        mul_div_mul_left _ _ (λ h, hx0 (norm_eq_zero.1 h)), abs_div, abs_mul,
+        abs_of_nonneg (norm_nonneg _), abs_of_nonneg (norm_nonneg _), ←real.norm_eq_abs,
+        ←norm_smul] at h,
+    have hr0 : r ≠ 0,
+    { intro hr0,
+      rw [hr0, zero_smul, norm_zero, zero_div] at h,
+      norm_num at h },
+    refine and.intro hr0 _,
+    have h2 : ∥r • x∥ ^ 2 = ∥t + r • x∥ ^ 2,
+    { congr' 1,
+      refine eq_of_div_eq_one _ _ h,
+      intro h0,
+      rw [h0, div_zero] at h,
+      norm_num at h },
+    rw [pow_two, pow_two, ←inner_self_eq_norm_square, ←inner_self_eq_norm_square,
+        inner_add_add_self] at h2,
+    conv_rhs at h2 {
+      congr,
+      congr,
+      skip,
+      rw [inner_smul_right, inner_comm, ht0, mul_zero, mul_zero]
+    },
+    symmetry' at h2,
+    rw [add_zero, add_left_eq_self, inner_self_eq_zero] at h2,
+    rw h2 at ht,
+    exact eq_of_sub_eq_zero ht.symm },
+  { intro h,
+    rcases h with ⟨hx, ⟨r, ⟨hr, hy⟩⟩⟩,
+    rw hy,
+    exact abs_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul hx hr }
+end
+
+/-- The inner product of two vectors, divided by the product of their
+norms, has value 1 if and only if they are nonzero and one is
+a positive multiple of the other. -/
+lemma inner_div_norm_mul_norm_eq_one_iff (x y : α) :
+  inner x y / (∥x∥ * ∥y∥) = 1 ↔ (x ≠ 0 ∧ ∃ (r : ℝ), 0 < r ∧ y = r • x) :=
+begin
+  split,
+  { intro h,
+    have ha := h,
+    apply_fun abs at ha,
+    norm_num at ha,
+    rcases (abs_inner_div_norm_mul_norm_eq_one_iff x y).1 ha with ⟨hx, ⟨r, ⟨hr, hy⟩⟩⟩,
+    use [hx, r],
+    refine and.intro _ hy,
+    by_contradiction hrneg,
+    rw hy at h,
+    rw inner_div_norm_mul_norm_eq_neg_one_of_ne_zero_of_neg_mul hx
+      (lt_of_le_of_ne' (le_of_not_lt hrneg) hr) at h,
+    norm_num at h },
+  { intro h,
+    rcases h with ⟨hx, ⟨r, ⟨hr, hy⟩⟩⟩,
+    rw hy,
+    exact inner_div_norm_mul_norm_eq_one_of_ne_zero_of_pos_mul hx hr }
+end
+
+/-- The inner product of two vectors, divided by the product of their
+norms, has value -1 if and only if they are nonzero and one is
+a negative multiple of the other. -/
+lemma inner_div_norm_mul_norm_eq_neg_one_iff (x y : α) :
+  inner x y / (∥x∥ * ∥y∥) = -1 ↔ (x ≠ 0 ∧ ∃ (r : ℝ), r < 0 ∧ y = r • x) :=
+begin
+  split,
+  { intro h,
+    have ha := h,
+    apply_fun abs at ha,
+    norm_num at ha,
+    rcases (abs_inner_div_norm_mul_norm_eq_one_iff x y).1 ha with ⟨hx, ⟨r, ⟨hr, hy⟩⟩⟩,
+    use [hx, r],
+    refine and.intro _ hy,
+    by_contradiction hrpos,
+    rw hy at h,
+    rw inner_div_norm_mul_norm_eq_one_of_ne_zero_of_pos_mul hx
+      (lt_of_le_of_ne' (le_of_not_lt hrpos) hr.symm) at h,
+    norm_num at h },
+  { intro h,
+    rcases h with ⟨hx, ⟨r, ⟨hr, hy⟩⟩⟩,
+    rw hy,
+    exact inner_div_norm_mul_norm_eq_neg_one_of_ne_zero_of_neg_mul hx hr }
+end
+
 end norm
+
+-- TODO [Lean 3.15]: drop some of these `show`s
+/-- If `ι` is a finite type and each space `f i`, `i : ι`, is an inner product space,
+then `Π i, f i` is an inner product space as well. This is not an instance to avoid conflict
+with the default instance for the norm on `Π i, f i`. -/
+def pi.inner_product_space (ι : Type*) [fintype ι] (f : ι → Type*) [Π i, inner_product_space (f i)] :
+  inner_product_space (Π i, f i) :=
+{ inner := λ x y, ∑ i, inner (x i) (y i),
+  comm := λ x y, finset.sum_congr rfl $ λ i hi, inner_comm (x i) (y i),
+  nonneg := λ x, show (0:ℝ) ≤ ∑ i, inner (x i) (x i),
+    from finset.sum_nonneg (λ i hi, inner_self_nonneg),
+  definite := λ x h, begin
+    have : ∀ i ∈ (finset.univ : finset ι), 0 ≤ inner (x i) (x i) := λ i hi, inner_self_nonneg,
+    simpa [inner, finset.sum_eq_zero_iff_of_nonneg this, function.funext_iff] using h,
+  end,
+  add_left := λ x y z,
+    show ∑ i, inner (x i + y i) (z i) = ∑ i, inner (x i) (z i) + ∑ i, inner (y i) (z i),
+    by simp only [inner_add_left, finset.sum_add_distrib],
+  smul_left := λ x y r,
+    show ∑ (i : ι), inner (r • x i) (y i) = r * ∑ i, inner (x i) (y i),
+    by simp only [finset.mul_sum, inner_smul_left] }
+
+/-- The set of real numbers is an inner product space. While the norm given by this definition
+is equal to the default norm `∥x∥ = abs x`, it is not definitionally equal, so we don't turn this
+definition into an instance.
+
+TODO: do the same trick as with `metric_space` and `emetric_space`? -/
+def real.inner_product_space : inner_product_space ℝ :=
+{ inner := (*),
+  comm := mul_comm,
+  nonneg := mul_self_nonneg,
+  definite := λ x, mul_self_eq_zero.1,
+  add_left := add_mul,
+  smul_left := λ _ _ _, mul_assoc _ _ _ }
+
+section instances
+/-- The standard Euclidean space, functions on a finite type. For an `n`-dimensional space
+use `euclidean_space (fin n)`.  -/
+@[derive add_comm_group, nolint unused_arguments]
+def euclidean_space (n : Type*) [fintype n] : Type* := n → ℝ
+
+variables {n : Type*} [fintype n]
+
+instance : inhabited (euclidean_space n) := ⟨0⟩
+
+local attribute [instance] real.inner_product_space
+
+instance : inner_product_space (euclidean_space n) := pi.inner_product_space n (λ _, ℝ)
+
+lemma euclidean_space.inner_def (x y : euclidean_space n) : inner x y = ∑ i, x i * y i := rfl
+
+end instances
 
 section orthogonal
 

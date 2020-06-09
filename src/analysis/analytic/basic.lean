@@ -69,7 +69,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 {G : Type*} [normed_group G] [normed_space 𝕜 G]
 
-open_locale topological_space classical
+open_locale topological_space classical big_operators
 open filter
 
 /-! ### The radius of a formal multilinear series -/
@@ -333,7 +333,7 @@ begin
   apply norm_sub_le_of_geometric_bound_of_has_sum ha _ (hf.has_sum this),
   assume n,
   calc ∥(p n) (λ (i : fin n), y)∥
-    ≤ ∥p n∥ * (finset.univ.prod (λ i : fin n, ∥y∥)) : continuous_multilinear_map.le_op_norm _ _
+    ≤ ∥p n∥ * (∏ i : fin n, ∥y∥) : continuous_multilinear_map.le_op_norm _ _
     ... = nnnorm (p n) * (nnnorm y)^n : by simp
     ... ≤ nnnorm (p n) * r' ^ n :
       mul_le_mul_of_nonneg_left (pow_le_pow_of_le_left (nnreal.coe_nonneg _) (le_of_lt yr') _)
@@ -431,7 +431,7 @@ lemma formal_multilinear_series.has_fpower_series_on_ball [complete_space F]
     refine (summable_of_norm_bounded (λ n, (C : ℝ) * a ^ n)
       ((summable_geometric_of_lt_1 a.2 ha).mul_left _) (λ n, _)).has_sum,
     calc ∥(p n) (λ (i : fin n), y)∥
-      ≤ ∥p n∥ * (finset.univ.prod (λ i : fin n, ∥y∥)) : continuous_multilinear_map.le_op_norm _ _
+      ≤ ∥p n∥ * (∏ i : fin n, ∥y∥) : continuous_multilinear_map.le_op_norm _ _
       ... = nnnorm (p n) * (nnnorm y)^n : by simp
       ... ≤ C * a ^ n : by exact_mod_cast hC n
   end }
@@ -601,6 +601,7 @@ begin
   ext p, rcases p with ⟨_, ⟨_, _⟩⟩, refl,
 end
 
+-- FIXME this causes a deterministic timeout with `-T50000`
 /-- The radius of convergence of `p.change_origin x` is at least `p.radius - ∥x∥`. In other words,
 `p.change_origin x` is well defined on the largest ball contained in the original ball of
 convergence.-/
@@ -620,7 +621,7 @@ begin
   have A_nonneg : ∀ i, 0 ≤ A i,
   { rintros ⟨k, n, s, hs⟩,
     change 0 ≤ ∥(p n).restr s hs x∥ * (r : ℝ) ^ k,
-    refine mul_nonneg' (norm_nonneg _) (pow_nonneg (nnreal.coe_nonneg _) _) },
+    refine mul_nonneg (norm_nonneg _) (pow_nonneg (nnreal.coe_nonneg _) _) },
   have tsum_nonneg : 0 ≤ tsum A := tsum_nonneg A_nonneg,
   apply le_radius_of_bound _ (nnreal.of_real (tsum A)) (λ k, _),
   rw [← nnreal.coe_le_coe, nnreal.coe_mul, nnreal.coe_pow, coe_nnnorm,

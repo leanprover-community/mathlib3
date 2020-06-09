@@ -13,32 +13,24 @@ set_option old_structure_cmd true
 universe u
 variables {α : Type u}
 
-@[ancestor ring has_inv zero_ne_one_class]
-class division_ring (α : Type u) extends ring α, has_inv α, zero_ne_one_class α :=
+@[protect_proj, ancestor ring has_inv]
+class division_ring (α : Type u) extends ring α, has_inv α :=
 (mul_inv_cancel : ∀ {a : α}, a ≠ 0 → a * a⁻¹ = 1)
 (inv_mul_cancel : ∀ {a : α}, a ≠ 0 → a⁻¹ * a = 1)
 (inv_zero : (0 : α)⁻¹ = 0)
+(zero_ne_one : (0 : α) ≠ 1)
 
 section division_ring
 variables [division_ring α] {a b : α}
 
-protected definition algebra.div (a b : α) : α :=
-a * b⁻¹
+instance division_ring.to_nonzero : nonzero α :=
+⟨division_ring.zero_ne_one⟩
 
 instance division_ring_has_div : has_div α :=
-⟨algebra.div⟩
+⟨λ a b, a * b⁻¹⟩
 
 lemma division_def (a b : α) : a / b = a * b⁻¹ :=
 rfl
-
-@[simp] lemma inv_zero : 0⁻¹ = (0:α) :=
-division_ring.inv_zero
-
-@[simp] lemma div_zero (a : α) : a / 0 = (0:α) :=
-calc
-  a / 0 = (a:α) * 0⁻¹ : by rw division_def
-    ... = a * 0       : by rw inv_zero
-    ... = (0:α)       : by rw mul_zero
 
 @[simp] lemma mul_inv_cancel (h : a ≠ 0) : a * a⁻¹ = 1 :=
 division_ring.mul_inv_cancel h
@@ -177,9 +169,6 @@ match classical.em (a = 0) with
 | or.inr h := eq.symm (eq_one_div_of_mul_eq_one_left (mul_one_div_cancel h))
 end
 
-lemma inv_inv' (a : α) : a⁻¹⁻¹ = a :=
-by rw [inv_eq_one_div, inv_eq_one_div, one_div_one_div]
-
 lemma eq_of_one_div_eq_one_div (h : 1 / a = 1 / b) : a = b :=
 by rw [← one_div_one_div a, h,one_div_one_div]
 
@@ -292,10 +281,11 @@ instance division_ring.to_domain : domain α :=
 
 end division_ring
 
-@[ancestor division_ring comm_ring]
-class field (α : Type u) extends comm_ring α, has_inv α, zero_ne_one_class α :=
+@[protect_proj, ancestor division_ring comm_ring]
+class field (α : Type u) extends comm_ring α, has_inv α :=
 (mul_inv_cancel : ∀ {a : α}, a ≠ 0 → a * a⁻¹ = 1)
 (inv_zero : (0 : α)⁻¹ = 0)
+(zero_ne_one : (0 : α) ≠ 1)
 
 section field
 

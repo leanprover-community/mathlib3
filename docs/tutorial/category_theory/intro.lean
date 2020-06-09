@@ -136,7 +136,8 @@ functor.
 
 section functor
 
-universes v₁ v₂ v₃ u₁ u₂ u₃  -- recall we put morphism universes (`vᵢ`) before object universes (`uᵢ`)
+-- recall we put morphism universes (`vᵢ`) before object universes (`uᵢ`)
+universes v₁ v₂ v₃ u₁ u₂ u₃
 
 variables (C : Type u₁) [𝒞 : category.{v₁} C]
 variables (D : Type u₂) [𝒟 : category.{v₂} D]

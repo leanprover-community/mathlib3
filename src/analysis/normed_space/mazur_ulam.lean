@@ -5,19 +5,27 @@ Author: Yury Kudryashov
 -/
 import analysis.normed_space.point_reflection
 import topology.instances.real_vector_space
+import analysis.normed_space.add_torsor
+import linear_algebra.affine_space
 
 /-!
 # Mazur-Ulam Theorem
 
 Mazur-Ulam theorem states that an isometric bijection between two normed spaces over `ℝ` is affine.
-Since `mathlib` has no notion of an affine map (yet?), we formalize it in two definitions:
+We formalize it in two definitions:
 
 * `isometric.to_real_linear_equiv_of_map_zero` : given `E ≃ᵢ F` sending `0` to `0`,
   returns `E ≃L[ℝ] F` with the same `to_fun` and `inv_fun`;
 * `isometric.to_real_linear_equiv` : given `f : E ≃ᵢ F`,
   returns `g : E ≃L[ℝ] F` with `g x = f x - f 0`.
+* `isometric.to_affine_map` : given `PE ≃ᵢ PF`, returns `g : affine_map ℝ E PE F PF` with the same
+  `to_fun`.
 
 The formalization is based on [Jussi Väisälä, *A Proof of the Mazur-Ulam Theorem*][Vaisala_2003].
+
+## TODO
+
+Once we have affine equivalences, upgrade `isometric.to_affine_map` to `isometric.to_affine_equiv`.
 
 ## Tags
 
@@ -120,5 +128,18 @@ def to_real_linear_equiv (f : E ≃ᵢ F) : E ≃L[ℝ] F :=
 
 @[simp] lemma to_real_linear_equiv_symm_apply (f : E ≃ᵢ F) (y : F) :
   (f.to_real_linear_equiv.symm : F → E) y = f.symm (y + f 0) := rfl
+
+variables (E F) {PE : Type*} {PF : Type*} [metric_space PE] [normed_add_torsor E PE]
+  [metric_space PF] [normed_add_torsor F PF]
+
+/-- Convert an isometric equivalence between two affine spaces to an `affine_map`. -/
+def to_affine_map (f : PE ≃ᵢ PF) : affine_map ℝ E PE F PF :=
+affine_map.mk' f
+ (((vadd_const E (classical.choice $ add_torsor.nonempty E : PE)).trans $ f.trans
+    (vadd_const F (f $ classical.choice $ add_torsor.nonempty E : PF)).symm).to_real_linear_equiv)
+ (classical.choice $ add_torsor.nonempty E) $ λ p',
+ by simp
+
+@[simp] lemma coe_to_affine_map (f : PE ≃ᵢ PF) : ⇑(f.to_affine_map E F) = f := rfl
 
 end isometric

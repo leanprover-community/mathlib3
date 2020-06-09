@@ -50,6 +50,16 @@ by rw [inter_comm, univ_inter]
   {δ : α → Sort*} (f g : Πi, δ i) : univ.piecewise f g = f :=
 by { ext i, simp [piecewise] }
 
+lemma univ_map_equiv_to_embedding {α β : Type*} [fintype α] [fintype β] (e : α ≃ β) :
+  univ.map e.to_embedding = univ :=
+begin
+  apply eq_univ_iff_forall.mpr,
+  intro b,
+  rw [mem_map],
+  use e.symm b,
+  simp,
+end
+
 end finset
 
 open finset function
@@ -71,7 +81,7 @@ decidable_of_iff (∃ a ∈ @univ α _, p a) (by simp)
 
 instance decidable_eq_equiv_fintype [decidable_eq β] [fintype α] :
   decidable_eq (α ≃ β) :=
-λ a b, decidable_of_iff (a.1 = b.1) ⟨λ h, equiv.ext _ _ (congr_fun h), congr_arg _⟩
+λ a b, decidable_of_iff (a.1 = b.1) ⟨λ h, equiv.ext (congr_fun h), congr_arg _⟩
 
 instance decidable_injective_fintype [decidable_eq α] [decidable_eq β] [fintype α] :
   decidable_pred (injective : (α → β) → Prop) := λ x, by unfold injective; apply_instance
@@ -233,6 +243,9 @@ mem_to_finset
 
 @[simp] theorem coe_to_finset (s : set α) [fintype s] : (↑s.to_finset : set α) = s :=
 set.ext $ λ _, mem_to_finset
+
+@[simp] theorem to_finset_inj {s t : set α} [fintype s] [fintype t] : s.to_finset = t.to_finset ↔ s = t :=
+⟨λ h, by rw [← s.coe_to_finset, h, t.coe_to_finset], λ h, by simp [h]; congr⟩ 
 
 end set
 
@@ -519,6 +532,24 @@ instance Prop.fintype : fintype Prop :=
 def set_fintype {α} [fintype α] (s : set α) [decidable_pred s] : fintype s :=
 fintype.subtype (univ.filter (∈ s)) (by simp)
 
+namespace function.embedding
+
+/-- An embedding from a `fintype` to itself can be promoted to an equivalence. -/
+noncomputable def equiv_of_fintype_self_embedding {α : Type*} [fintype α] (e : α ↪ α) : α ≃ α :=
+equiv.of_bijective (fintype.injective_iff_bijective.1 e.2)
+
+@[simp]
+lemma equiv_of_fintype_self_embedding_to_embedding {α : Type*} [fintype α] (e : α ↪ α) :
+  e.equiv_of_fintype_self_embedding.to_embedding = e :=
+by { ext, refl, }
+
+end function.embedding
+
+@[simp]
+lemma finset.univ_map_embedding {α : Type*} [fintype α] (e : α ↪ α) :
+  univ.map e = univ :=
+by rw [← e.equiv_of_fintype_self_embedding_to_embedding, univ_map_equiv_to_embedding]
+
 namespace fintype
 
 variables [fintype α] [decidable_eq α] {δ : α → Type*}
@@ -633,6 +664,25 @@ instance pfun_fintype (p : Prop) [decidable p] (α : p → Type*)
 if hp : p then fintype.of_equiv (α hp) ⟨λ a _, a, λ f, f hp, λ _, rfl, λ _, rfl⟩
           else ⟨singleton (λ h, (hp h).elim), by simp [hp, function.funext_iff]⟩
 
+lemma mem_image_univ_iff_mem_range
+  {α β : Type*} [fintype α] [decidable_eq β] {f : α → β} {b : β} :
+  b ∈ univ.image f ↔ b ∈ set.range f :=
+by simp
+
+lemma card_lt_card_of_injective_of_not_mem
+  {α β : Type*} [fintype α] [fintype β] (f : α → β) (h : function.injective f)
+  {b : β} (w : b ∉ set.range f) : fintype.card α < fintype.card β :=
+begin
+  classical,
+  calc
+    fintype.card α = (univ : finset α).card : rfl
+  ... = (image f univ).card : (card_image_of_injective univ h).symm
+  ... < (insert b (image f univ)).card :
+          card_lt_card (ssubset_insert (mt mem_image_univ_iff_mem_range.mp w))
+  ... ≤ (univ : finset β).card : card_le_of_subset (subset_univ _)
+  ... = fintype.card β : rfl
+end
+
 def quotient.fin_choice_aux {ι : Type*} [decidable_eq ι]
   {α : ι → Type*} [S : ∀ i, setoid (α i)] :
   ∀ (l : list ι), (∀ i ∈ l, quotient (S i)) → @quotient (Π i ∈ l, α i) (by apply_instance)
@@ -711,7 +761,7 @@ begin
 end
 
 lemma mem_perms_of_list_of_mem : ∀ {l : list α} {f : perm α} (h : ∀ x, f x ≠ x → x ∈ l), f ∈ perms_of_list l
-| []     f h := list.mem_singleton.2 $ equiv.ext _ _$ λ x, by simp [imp_false, *] at *
+| []     f h := list.mem_singleton.2 $ equiv.ext $ λ x, by simp [imp_false, *] at *
 | (a::l) f h :=
 if hfa : f a = a
 then

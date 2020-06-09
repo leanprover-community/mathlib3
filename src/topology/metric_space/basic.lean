@@ -177,7 +177,8 @@ by simpa only [not_le] using not_congr dist_le_zero
 @[simp] theorem abs_dist {a b : α} : abs (dist a b) = dist a b :=
 abs_of_nonneg dist_nonneg
 
-theorem eq_of_forall_dist_le {x y : α} (h : ∀ε, ε > 0 → dist x y ≤ ε) : x = y :=
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem eq_of_forall_dist_le {x y : α} (h : ∀ ε > 0, dist x y ≤ ε) : x = y :=
 eq_of_dist_eq_zero (eq_of_le_of_forall_le_of_dense dist_nonneg h)
 
 /-- Distance as a nonnegative real number. -/
@@ -278,13 +279,13 @@ by rw [← ball_union_sphere, set.union_diff_cancel_right sphere_disjoint_ball.s
 @[simp] theorem closed_ball_diff_ball : closed_ball x ε \ ball x ε = sphere x ε :=
 by rw [← ball_union_sphere, set.union_diff_cancel_left sphere_disjoint_ball.symm]
 
-theorem pos_of_mem_ball (hy : y ∈ ball x ε) : ε > 0 :=
+theorem pos_of_mem_ball (hy : y ∈ ball x ε) : 0 < ε :=
 lt_of_le_of_lt dist_nonneg hy
 
-theorem mem_ball_self (h : ε > 0) : x ∈ ball x ε :=
+theorem mem_ball_self (h : 0 < ε) : x ∈ ball x ε :=
 show dist x x < ε, by rw dist_self; assumption
 
-theorem mem_closed_ball_self (h : ε ≥ 0) : x ∈ closed_ball x ε :=
+theorem mem_closed_ball_self (h : 0 ≤ ε) : x ∈ closed_ball x ε :=
 show dist x x ≤ ε, by rw dist_self; assumption
 
 theorem mem_ball_comm : x ∈ ball y ε ↔ y ∈ ball x ε :=
@@ -312,6 +313,7 @@ lt_of_le_of_lt (dist_triangle z x y) (add_lt_add_of_lt_of_le zx h)
 theorem ball_half_subset (y) (h : y ∈ ball x (ε / 2)) : ball y (ε / 2) ⊆ ball x ε :=
 ball_subset $ by rw sub_self_div_two; exact le_of_lt h
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem exists_ball_subset_ball (h : y ∈ ball x ε) : ∃ ε' > 0, ball y ε' ⊆ ball x ε :=
 ⟨_, sub_pos.2 h, ball_subset $ by rw sub_sub_self⟩
 
@@ -393,6 +395,7 @@ theorem uniformity_basis_dist_le :
   (𝓤 α).has_basis (λ ε : ℝ, 0 < ε) (λ ε, {p:α×α | dist p.1 p.2 ≤ ε}) :=
 metric.mk_uniformity_basis_le (λ _, id) (λ ε ε₀, ⟨ε, ε₀, le_refl ε⟩)
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem mem_uniformity_dist {s : set (α×α)} :
   s ∈ 𝓤 α ↔ (∃ε>0, ∀{a b:α}, dist a b < ε → (a, b) ∈ s) :=
 uniformity_basis_dist.mem_uniformity_iff
@@ -402,11 +405,13 @@ theorem dist_mem_uniformity {ε:ℝ} (ε0 : 0 < ε) :
   {p:α×α | dist p.1 p.2 < ε} ∈ 𝓤 α :=
 mem_uniformity_dist.2 ⟨ε, ε0, λ a b, id⟩
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem uniform_continuous_iff [metric_space β] {f : α → β} :
   uniform_continuous f ↔ ∀ ε > 0, ∃ δ > 0,
     ∀{a b:α}, dist a b < δ → dist (f a) (f b) < ε :=
 uniformity_basis_dist.uniform_continuous_iff uniformity_basis_dist
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem uniform_embedding_iff [metric_space β] {f : α → β} :
   uniform_embedding f ↔ function.injective f ∧ uniform_continuous f ∧
     ∀ δ > 0, ∃ ε > 0, ∀ {a b : α}, dist (f a) (f b) < ε → dist a b < δ :=
@@ -419,6 +424,7 @@ uniform_embedding_def'.trans $ and_congr iff.rfl $ and_congr iff.rfl
 
 /-- A map between metric spaces is a uniform embedding if and only if the distance between `f x`
 and `f y` is controlled in terms of the distance between `x` and `y` and conversely. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem uniform_embedding_iff' [metric_space β] {f : α → β} :
   uniform_embedding f ↔
   (∀ ε > 0, ∃ δ > 0, ∀ {a b : α}, dist a b < δ → dist (f a) (f b) < ε) ∧
@@ -439,6 +445,7 @@ begin
     simpa using this }
 end
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem totally_bounded_iff {s : set α} :
   totally_bounded s ↔ ∀ ε > 0, ∃t : set α, finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
 ⟨λ H ε ε0, H _ (dist_mem_uniformity ε0),
@@ -448,6 +455,7 @@ theorem totally_bounded_iff {s : set α} :
 
 /-- A metric space space is totally bounded if one can reconstruct up to any ε>0 any element of the
 space from finitely many data. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma totally_bounded_of_finite_discretization {α : Type u} [metric_space α] {s : set α}
   (H : ∀ε > (0 : ℝ), ∃ (β : Type u) [fintype β] (F : s → β),
     ∀x y, F x = F y → dist (x:α) y < ε) :
@@ -615,6 +623,7 @@ theorem continuous_iff' [topological_space β] {f : β → α} :
   continuous f ↔ ∀a (ε > 0), ∀ᶠ x in 𝓝 a, dist (f x) (f a) < ε :=
 continuous_iff_continuous_at.trans $ forall_congr $ λ b, tendsto_nhds
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem tendsto_at_top [nonempty β] [semilattice_sup β] {u : β → α} {a : α} :
   tendsto u at_top (𝓝 a) ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) a < ε :=
 (at_top_basis.tendsto_iff nhds_basis_ball).trans $
@@ -831,11 +840,13 @@ variables [nonempty β] [semilattice_sup β]
 
 /-- In a metric space, Cauchy sequences are characterized by the fact that, eventually,
 the distance between its elements is arbitrarily small -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem metric.cauchy_seq_iff {u : β → α} :
   cauchy_seq u ↔ ∀ε>0, ∃N, ∀m n≥N, dist (u m) (u n) < ε :=
 uniformity_basis_dist.cauchy_seq_iff
 
 /-- A variation around the metric characterization of Cauchy sequences -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem metric.cauchy_seq_iff' {u : β → α} :
   cauchy_seq u ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) (u N) < ε :=
 uniformity_basis_dist.cauchy_seq_iff'
@@ -853,6 +864,7 @@ metric.cauchy_seq_iff.2 $ λ ε ε0,
                     ... < ε : (hN _ (le_refl N))
 
 /-- A Cauchy sequence on the natural numbers is bounded. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem cauchy_seq_bdd {u : ℕ → α} (hu : cauchy_seq u) :
   ∃ R > 0, ∀ m n, dist (u m) (u n) < R :=
 begin
@@ -1066,6 +1078,7 @@ theorem mem_closure_iff {α : Type u} [metric_space α] {s : set α} {a : α} :
 (mem_closure_iff_nhds_basis nhds_basis_ball).trans $
   by simp only [mem_ball, dist_comm]
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma mem_closure_range_iff {α : Type u} [metric_space α] {e : β → α} {a : α} :
   a ∈ closure (range e) ↔ ∀ε>0, ∃ k : β, dist a (e k) < ε :=
 by simp only [mem_closure_iff, exists_range_iff]
@@ -1075,6 +1088,7 @@ lemma mem_closure_range_iff_nat {α : Type u} [metric_space α] {e : β → α} 
 (mem_closure_iff_nhds_basis nhds_basis_ball_inv_nat_succ).trans $
   by simp only [mem_ball, dist_comm, exists_range_iff, forall_const]
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem mem_of_closed' {α : Type u} [metric_space α] {s : set α} (hs : is_closed s)
   {a : α} : a ∈ s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
 by simpa only [closure_eq_of_is_closed hs] using @mem_closure_iff _ _ s a
@@ -1283,7 +1297,8 @@ namespace metric
 section second_countable
 open topological_space
 
-/-- A metric space is second countable if, for every ε > 0, there is a countable set which is ε-dense. -/
+/-- A metric space is second countable if, for every `ε > 0`, there is a countable set which is
+`ε`-dense. -/
 lemma second_countable_of_almost_dense_set
   (H : ∀ε > (0 : ℝ), ∃ s : set α, countable s ∧ (∀x, ∃y ∈ s, dist x y ≤ ε)) :
   second_countable_topology α :=
@@ -1306,8 +1321,9 @@ begin
   exact emetric.second_countable_of_separable α
 end
 
-/-- A metric space space is second countable if one can reconstruct up to any ε>0 any element of the
-space from countably many data. -/
+/-- A metric space space is second countable if one can reconstruct up to any `ε>0` any element of
+the space from countably many data. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma second_countable_of_countable_discretization {α : Type u} [metric_space α]
   (H : ∀ε > (0 : ℝ), ∃ (β : Type u) [encodable β] (F : α → β), ∀x y, F x = F y → dist x y ≤ ε) :
   second_countable_topology α :=
@@ -1328,6 +1344,7 @@ end
 end second_countable
 end metric
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma lebesgue_number_lemma_of_metric
   {s : set α} {ι} {c : ι → set α} (hs : compact s)
   (hc₁ : ∀ i, is_open (c i)) (hc₂ : s ⊆ ⋃ i, c i) :
@@ -1337,6 +1354,7 @@ let ⟨n, en, hn⟩ := lebesgue_number_lemma hs hc₁ hc₂,
 ⟨δ, δ0, assume x hx, let ⟨i, hi⟩ := hn x hx in
  ⟨i, assume y hy, hi (hδ (mem_ball'.mp hy))⟩⟩
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma lebesgue_number_lemma_of_metric_sUnion
   {s : set α} {c : set (set α)} (hs : compact s)
   (hc₁ : ∀ t ∈ c, is_open t) (hc₂ : s ⊆ ⋃₀ c) :
@@ -1597,14 +1615,14 @@ begin
 end
 
 /-- The diameter of a closed ball of radius `r` is at most `2 r`. -/
-lemma diam_closed_ball {r : ℝ} (h : r ≥ 0) : diam (closed_ball x r) ≤ 2 * r :=
+lemma diam_closed_ball {r : ℝ} (h : 0 ≤ r) : diam (closed_ball x r) ≤ 2 * r :=
 diam_le_of_forall_dist_le (mul_nonneg (le_of_lt two_pos) h) $ λa ha b hb, calc
   dist a b ≤ dist a x + dist b x : dist_triangle_right _ _ _
   ... ≤ r + r : add_le_add ha hb
   ... = 2 * r : by simp [mul_two, mul_comm]
 
 /-- The diameter of a ball of radius `r` is at most `2 r`. -/
-lemma diam_ball {r : ℝ} (h : r ≥ 0) : diam (ball x r) ≤ 2 * r :=
+lemma diam_ball {r : ℝ} (h : 0 ≤ r) : diam (ball x r) ≤ 2 * r :=
 le_trans (diam_mono ball_subset_closed_ball bounded_closed_ball) (diam_closed_ball h)
 
 end diam

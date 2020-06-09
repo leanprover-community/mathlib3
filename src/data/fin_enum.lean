@@ -34,12 +34,14 @@ def of_equiv (α) {β} [fin_enum α] (h : β ≃ α) : fin_enum β :=
   dec_eq := equiv.decidable_eq_of_equiv (h.trans (equiv _)) }
 
 /-- create a `fin_enum` instance from an exhaustive list without duplicates -/
-def of_nodup_list [decidable_eq α] (xs : list α) (h : ∀ x : α, x ∈ xs) (h' : list.nodup xs) : fin_enum α :=
+def of_nodup_list [decidable_eq α] (xs : list α) (h : ∀ x : α, x ∈ xs) (h' : list.nodup xs) :
+  fin_enum α :=
 { card := xs.length,
   equiv := ⟨λ x, ⟨xs.index_of x,by rw [list.index_of_lt_length]; apply h⟩,
            λ ⟨i,h⟩, xs.nth_le _ h,
            λ x, by simp [of_nodup_list._match_1],
-           λ ⟨i,h⟩, by simp [of_nodup_list._match_1,*]; rw list.nth_le_index_of; apply list.nodup_erase_dup ⟩ }
+           λ ⟨i,h⟩, by simp [of_nodup_list._match_1,*]; rw list.nth_le_index_of;
+             apply list.nodup_erase_dup ⟩ }
 
 /-- create a `fin_enum` instance from an exhaustive list; duplicates are removed -/
 def of_list [decidable_eq α] (xs : list α) (h : ∀ x : α, x ∈ xs) : fin_enum α :=
@@ -62,7 +64,8 @@ def of_surjective {β} (f : β → α) [decidable_eq α] [fin_enum β] (h : surj
 of_list ((to_list β).map f) (by intro; simp; exact h _)
 
 /-- create a `fin_enum` instance using an injection -/
-noncomputable def of_injective {α β} (f : α → β) [decidable_eq α] [fin_enum β] (h : injective f) : fin_enum α :=
+noncomputable def of_injective {α β} (f : α → β) [decidable_eq α] [fin_enum β] (h : injective f) :
+  fin_enum α :=
 of_list ((to_list β).filter_map (partial_inv f))
 begin
   intro x,
@@ -100,7 +103,8 @@ def finset.enum [decidable_eq α] : list α → list (finset α)
   do r ← finset.enum xs,
      [r,{x} ∪ r]
 
-@[simp] lemma finset.mem_enum [decidable_eq α] (s : finset α) (xs : list α) : s ∈ finset.enum xs ↔ ∀ x ∈ s, x ∈ xs :=
+@[simp]lemma finset.mem_enum [decidable_eq α] (s : finset α) (xs : list α) :
+  s ∈ finset.enum xs ↔ ∀ x ∈ s, x ∈ xs :=
 begin
   induction xs generalizing s; simp [*,finset.enum],
   { simp [finset.eq_empty_iff_forall_not_mem,(∉)], refl },
@@ -116,7 +120,8 @@ begin
     existsi h,
     by_cases xs_hd ∈ s,
     { have : {xs_hd} ⊆ s, simp only [has_subset.subset, *, forall_eq, mem_singleton],
-      simp only [union_sdiff_of_subset this, or_true, finset.union_sdiff_of_subset, eq_self_iff_true], },
+      simp only [union_sdiff_of_subset this, or_true, finset.union_sdiff_of_subset,
+        eq_self_iff_true], },
     { left, symmetry, simp only [sdiff_eq_self],
       intro a, simp only [and_imp, mem_inter, mem_singleton, not_mem_empty],
       intros h₀ h₁, subst a, apply h h₀, } }
@@ -126,7 +131,8 @@ instance finset.fin_enum [fin_enum α] : fin_enum (finset α) :=
 of_list (finset.enum (to_list α)) (by intro; simp)
 
 instance subtype.fin_enum [fin_enum α] (p : α → Prop) [decidable_pred p] : fin_enum {x // p x} :=
-of_list ((to_list α).filter_map $ λ x, if h : p x then some ⟨_,h⟩ else none) (by rintro ⟨x,h⟩; simp; existsi x; simp *)
+of_list ((to_list α).filter_map $ λ x, if h : p x then some ⟨_,h⟩ else none)
+  (by rintro ⟨x,h⟩; simp; existsi x; simp *)
 
 instance (β : α → Type*)
   [fin_enum α] [∀ a, fin_enum (β a)] : fin_enum (sigma β) :=
@@ -175,12 +181,14 @@ def pi.tail {α : Type*} {β : α → Type*} {x : α} {xs : list α}
 | a h := f a (list.mem_cons_of_mem _ h)
 
 /-- `pi xs f` creates the list of functions `g` such that, for `x ∈ xs`, `g x ∈ f x` -/
-def pi {α : Type*} {β : α → Type*} [decidable_eq α] : Π xs : list α, (Π a, list (β a)) → list (Π a, a ∈ xs → β a)
+def pi {α : Type*} {β : α → Type*} [decidable_eq α] : Π xs : list α, (Π a, list (β a)) →
+  list (Π a, a ∈ xs → β a)
 | [] fs := [λ x h, h.elim]
 | (x :: xs) fs :=
   fin_enum.pi.cons x xs <$> fs x <*> pi xs fs
 
-lemma mem_pi  {α : Type*} {β : α → Type*} [fin_enum α] [∀a, fin_enum (β a)] (xs : list α) (f : Π a, a ∈ xs → β a) :
+lemma mem_pi  {α : Type*} {β : α → Type*} [fin_enum α] [∀a, fin_enum (β a)] (xs : list α)
+  (f : Π a, a ∈ xs → β a) :
   f ∈ pi xs (λ x, to_list (β x)) :=
 begin
   induction xs; simp [pi,-list.map_eq_map] with monad_norm functor_norm,
@@ -196,7 +204,8 @@ end
 def pi.enum  {α : Type*} (β : α → Type*) [fin_enum α] [∀a, fin_enum (β a)] : list (Π a, β a) :=
 (pi (to_list α) (λ x, to_list (β x))).map (λ f x, f x (mem_to_list _))
 
-lemma pi.mem_enum  {α : Type*} {β : α → Type*} [fin_enum α] [∀a, fin_enum (β a)] (f : Π a, β a) : f ∈ pi.enum β :=
+lemma pi.mem_enum  {α : Type*} {β : α → Type*} [fin_enum α] [∀a, fin_enum (β a)] (f : Π a, β a) :
+  f ∈ pi.enum β :=
 by simp [pi.enum]; refine ⟨λ a h, f a, mem_pi _ _, rfl⟩
 
 instance pi.fin_enum {α : Type*} {β : α → Type*}

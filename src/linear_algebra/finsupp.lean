@@ -183,7 +183,7 @@ begin
   suffices : ((submodule.subtype _).comp (restrict_dom M R (⋃ i, s i))).range ≤ ⨆ i, supported M R (s i),
   { rwa [linear_map.range_comp, range_restrict_dom, map_top, range_subtype] at this },
   rw [range_le_iff_comap, eq_top_iff],
-  rintro l ⟨⟩, rw mem_coe,
+  rintro l ⟨⟩,
   apply finsupp.induction l, {exact zero_mem _},
   refine λ x a l hl a0, add_mem _ _,
   haveI := classical.dec_pred (λ x, ∃ i, x ∈ s i),
@@ -207,15 +207,14 @@ begin
   exact λ l, set.subset_Inter
 end
 
-section
-def supported_equiv_finsupp (s : set α) :
-  (supported M R s) ≃ₗ[R] (s →₀ M) :=
-(restrict_support_equiv s).to_linear_equiv
+def supported_equiv_finsupp (s : set α) : (supported M R s) ≃ₗ[R] (s →₀ M) :=
 begin
-  show is_linear_map R ((lsubtype_domain s : (α →₀ M) →ₗ[R] (s →₀ M)).comp
-      (submodule.subtype (supported M R s))),
+  let F : (supported M R s) ≃ (s →₀ M) := restrict_support_equiv s M,
+  refine F.to_linear_equiv _,
+  have : (F : (supported M R s) → (↥s →₀ M)) = ((lsubtype_domain s : (α →₀ M) →ₗ[R] (s →₀ M)).comp
+    (submodule.subtype (supported M R s))) := rfl,
+  rw this,
   exact linear_map.is_linear _
-end
 end
 
 def lsum (f : α → R →ₗ[R] M) : (α →₀ R) →ₗ[R] M :=

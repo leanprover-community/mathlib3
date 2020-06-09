@@ -64,7 +64,7 @@ begin
   rw [alg_hom.map_add, alg_hom.map_mul, hfx, zero_mul, add_zero],
   have : degree (p %ₘ f) ≤ degree f := degree_mod_by_monic_le p hfm,
   generalize_hyp : p %ₘ f = q at this ⊢,
-  rw [← sum_C_mul_X_eq q, aeval_def, eval₂_sum, finsupp.sum, mem_coe],
+  rw [← sum_C_mul_X_eq q, aeval_def, eval₂_sum, finsupp.sum],
   refine sum_mem _ (λ k hkq, _),
   rw [eval₂_mul, eval₂_C, eval₂_pow, eval₂_X, ← algebra.smul_def],
   refine smul_mem _ _ (subset_span _),
@@ -80,6 +80,7 @@ theorem fg_adjoin_of_finite {s : set A} (hfs : s.finite)
 set.finite.induction_on hfs (λ _, ⟨{1}, le_antisymm
   (span_le.2 $ finset.singleton_subset_set_iff.2 $ is_submonoid.one_mem)
   begin
+    rw submodule.le_def,
     change ring.closure _ ⊆ _,
     simp only [set.union_empty, finset.coe_singleton, span_singleton_eq_range,
       algebra.smul_def, mul_one],
@@ -153,7 +154,7 @@ begin
   let S₀ : set R := ring.closure ↑S₀',
   refine is_integral_of_subring (ring.closure ↑S₀') _,
   letI : algebra S₀ (algebra.comap S₀ R A) := algebra.comap.algebra _ _ _,
-  letI hmod : module S₀ (algebra.comap S₀ R A) := algebra.to_module,
+  letI hmod : module S₀ (algebra.comap S₀ R A) := by apply_instance,
   have : (span S₀ (insert 1 (↑y:set A) : set (algebra.comap S₀ R A)) : submodule S₀ (algebra.comap S₀ R A)) =
       (algebra.adjoin S₀ ((↑y : set A) : set (algebra.comap S₀ R A)) : subalgebra S₀ (algebra.comap S₀ R A)),
   { apply le_antisymm,

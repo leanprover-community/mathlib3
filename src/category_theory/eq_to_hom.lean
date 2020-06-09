@@ -56,6 +56,18 @@ begin
   simpa using h_map X Y f
 end
 
+/-- Proving equality between functors using heterogeneous equality. -/
+lemma hext {F G : C ⥤ D} (h_obj : ∀ X, F.obj X = G.obj X)
+  (h_map : ∀ X Y (f : X ⟶ Y), F.map f == G.map f) : F = G :=
+begin
+  cases F with F_obj _ _ _, cases G with G_obj _ _ _,
+  have : F_obj = G_obj, by ext X; apply h_obj,
+  subst this,
+  congr,
+  funext X Y f,
+  exact eq_of_heq (h_map X Y f)
+end
+
 -- Using equalities between functors.
 
 lemma congr_obj {F G : C ⥤ D} (h : F = G) (X) : F.obj X = G.obj X :=

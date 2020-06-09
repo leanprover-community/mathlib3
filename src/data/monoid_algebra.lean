@@ -36,7 +36,7 @@ seems impossible to use.
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical big_operators
 
 open finset finsupp
 
@@ -126,25 +126,25 @@ protected lemma mul_zero (f : monoid_algebra k G) : f * 0 = 0 :=
 by simp only [mul_def, sum_zero_index, sum_zero]
 
 protected lemma left_distrib (a b c : monoid_algebra k G) : a * (b + c) = a * b + a * c :=
-by simp only [mul_def, sum_add_index, mul_add, _root_.mul_zero, single_zero, single_add,
+by simp only [mul_def, sum_add_index, mul_add, mul_zero, single_zero, single_add,
   eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add]
 
 protected lemma right_distrib (a b c : monoid_algebra k G) : (a + b) * c = a * c + b * c :=
-by simp only [mul_def, sum_add_index, add_mul, _root_.mul_zero, _root_.zero_mul, single_zero,
+by simp only [mul_def, sum_add_index, add_mul, mul_zero, _root_.zero_mul, single_zero,
   single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero, sum_add]
 
 instance : semiring (monoid_algebra k G) :=
 { one       := 1,
   mul       := (*),
-  one_mul   := assume f, by simp only [mul_def, one_def, sum_single_index, _root_.zero_mul,
+  one_mul   := assume f, by simp only [mul_def, one_def, sum_single_index, zero_mul,
     single_zero, sum_zero, zero_add, one_mul, sum_single],
-  mul_one   := assume f, by simp only [mul_def, one_def, sum_single_index, _root_.mul_zero,
+  mul_one   := assume f, by simp only [mul_def, one_def, sum_single_index, mul_zero,
     single_zero, sum_zero, add_zero, mul_one, sum_single],
   zero_mul  := monoid_algebra.zero_mul,
   mul_zero  := monoid_algebra.mul_zero,
   mul_assoc := assume f g h, by simp only [mul_def, sum_sum_index, sum_zero_index, sum_add_index,
     sum_single_index, single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff,
-    add_mul, mul_add, add_assoc, mul_assoc, _root_.zero_mul, _root_.mul_zero, sum_zero, sum_add],
+    add_mul, mul_add, add_assoc, mul_assoc, zero_mul, mul_zero, sum_zero, sum_add],
   left_distrib  := monoid_algebra.left_distrib,
   right_distrib := monoid_algebra.right_distrib,
   .. finsupp.add_comm_monoid }
@@ -169,8 +169,8 @@ calc f (single a b) = b • f (single a 1) : by rw [← hf, smul_single, smul_eq
 
 @[simp] lemma single_mul_single {a₁ a₂ : G} {b₁ b₂ : k} :
   (single a₁ b₁ : monoid_algebra k G) * single a₂ b₂ = single (a₁ * a₂) (b₁ * b₂) :=
-(sum_single_index (by simp only [_root_.zero_mul, single_zero, sum_zero])).trans
-  (sum_single_index (by rw [_root_.mul_zero, single_zero]))
+(sum_single_index (by simp only [zero_mul, single_zero, sum_zero])).trans
+  (sum_single_index (by rw [mul_zero, single_zero]))
 
 @[simp] lemma single_pow {a : G} {b : k} :
   ∀ n : ℕ, (single a b : monoid_algebra k G)^n = single (a^n) (b ^ n)
@@ -245,6 +245,10 @@ finsupp.semimodule G k
 
 instance [ring k] : module k (monoid_algebra k G) :=
 finsupp.module G k
+
+lemma single_one_comm [comm_semiring k] [monoid G] (r : k) (f : monoid_algebra k G) :
+  single 1 r * f = f * single 1 r :=
+by { ext, rw [single_one_mul_apply, mul_single_one_apply, mul_comm] }
 
 instance [comm_semiring k] [monoid G] : algebra k (monoid_algebra k G) :=
 { to_fun    := single 1,
@@ -353,13 +357,65 @@ end map_ring
 
 -- TODO we should prove here that G and k commute;
 -- presumably a `linear_mul_action` typeclass is in order
+-- TODO we should prove here that G and k commute;
+-- presumably a `linear_mul_action` typeclass is in order
+section
+
+variables (k)
+/-- When `V` is a `k[G]`-module, multiplication by a group element `g` is a `k`-linear map. -/
+def group_smul.linear_map [group G] [comm_ring k]
+  (V : Type u₃) [add_comm_group V] [module (monoid_algebra k G) V] (g : G) :
+  (module.restrict_scalars k (monoid_algebra k G) V) →ₗ[k]
+  (module.restrict_scalars k (monoid_algebra k G) V) :=
+{ to_fun := λ v, (single g (1 : k) • v : V),
+  add := λ x y, smul_add (single g (1 : k)) x y,
+  smul := λ c x,
+  by simp only [module.restrict_scalars_smul_def, coe_algebra_map, ←mul_smul, single_one_comm], }.
+
+@[simp]
+lemma group_smul.linear_map_apply [group G] [comm_ring k]
+  (V : Type u₃) [add_comm_group V] [module (monoid_algebra k G) V] (g : G) (v : V) :
+  (group_smul.linear_map k V g) v = (single g (1 : k) • v : V) :=
+rfl
+
+section
+variables {k}
+variables [group G] [comm_ring k]
+  {V : Type u₃} {gV : add_comm_group V} {mV : module (monoid_algebra k G) V}
+  {W : Type u₃} {gW : add_comm_group W} {mW : module (monoid_algebra k G) W}
+  (f : (module.restrict_scalars k (monoid_algebra k G) V) →ₗ[k]
+       (module.restrict_scalars k (monoid_algebra k G) W))
+  (h : ∀ (g : G) (v : V), f (single g (1 : k) • v : V) = (single g (1 : k) • (f v) : W))
+include h
+
+/-- Build a `k[G]`-linear map from a `k`-linear map and evidence that it is `G`-equivariant. -/
+def equivariant_of_linear_of_comm : V →ₗ[monoid_algebra k G] W :=
+{ to_fun := f,
+  add := λ v v', by simp,
+  smul := λ c v,
+  begin
+  apply finsupp.induction c,
+  { simp, },
+  { intros g r c' nm nz w,
+    rw [add_smul, linear_map.map_add, w, add_smul, add_left_inj,
+      single_eq_algebra_map_mul_of, ←smul_smul, ←smul_smul],
+    erw [f.map_smul, h g v],
+    refl, }
+  end, }
+
+@[simp]
+lemma equivariant_of_linear_of_comm_apply (v : V) : (equivariant_of_linear_of_comm f h) v = f v :=
+rfl
+
+end
+end
 
 universe ui
 variable {ι : Type ui}
 
 lemma prod_single [comm_semiring k] [comm_monoid G]
   {s : finset ι} {a : ι → G} {b : ι → k} :
-  s.prod (λi, single (a i) (b i)) = single (s.prod a) (s.prod b) :=
+  (∏ i in s, single (a i) (b i)) = single (∏ i in s, a i) (∏ i in s, b i) :=
 finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
   single_mul_single, prod_insert has, prod_insert has]
 
@@ -621,7 +677,7 @@ variable {ι : Type ui}
 
 lemma prod_single [comm_semiring k] [add_comm_monoid G]
   {s : finset ι} {a : ι → G} {b : ι → k} :
-  s.prod (λi, single (a i) (b i)) = single (s.sum a) (s.prod b) :=
+  (∏ i in s, single (a i) (b i)) = single (s.sum a) (s.prod b) :=
 @monoid_algebra.prod_single k (multiplicative G) _ _ _ _ _ _
 
 end add_monoid_algebra

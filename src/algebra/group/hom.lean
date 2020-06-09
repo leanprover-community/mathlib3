@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Kevin Buzzard, Scott Morrison, Johan Commelin, Chris Hughes,
   Johannes Hölzl, Yury Kudryashov
 -/
-import algebra.group.basic
+import algebra.group.commute
 import tactic.ext
 
 /-!
@@ -96,13 +96,19 @@ attribute [ext] _root_.add_monoid_hom.ext
 lemma ext_iff {f g : M →* N} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
-/-- If f is a monoid homomorphism then f 1 = 1. -/
+/-- If `f` is a monoid homomorphism then `f 1 = 1`. -/
 @[simp, to_additive]
 lemma map_one (f : M →* N) : f 1 = 1 := f.map_one'
 
-/-- If f is a monoid homomorphism then f (a * b) = f a * f b. -/
+/-- If `f` is an additive monoid homomorphism then `f 0 = 0`. -/
+add_decl_doc add_monoid_hom.map_zero
+
+/-- If `f` is a monoid homomorphism then `f (a * b) = f a * f b`. -/
 @[simp, to_additive]
 lemma map_mul (f : M →* N) (a b : M) : f (a * b) = f a * f b := f.map_mul' a b
+
+/-- If `f` is an additive monoid homomorphism then `f (a + b) = f a + f b`. -/
+add_decl_doc add_monoid_hom.map_add
 
 @[to_additive]
 lemma map_mul_eq_one (f : M →* N) {a b : M} (h : a * b = 1) : f a * f b = 1 :=
@@ -134,17 +140,23 @@ def id (M : Type*) [monoid M] : M →* M :=
   map_one' := rfl,
   map_mul' := λ _ _, rfl }
 
+/-- The identity map from an additive monoid to itself. -/
+add_decl_doc add_monoid_hom.id
+
 @[simp, to_additive] lemma id_apply {M : Type*} [monoid M] (x : M) :
   id M x = x := rfl
 
 include mM mN mP
 
-/-- Composition of monoid morphisms is a monoid morphism. -/
+/-- Composition of monoid morphisms as a monoid morphism. -/
 @[to_additive]
 def comp (hnp : N →* P) (hmn : M →* N) : M →* P :=
 { to_fun := hnp ∘ hmn,
   map_one' := by simp,
   map_mul' := by simp }
+
+/-- Composition of additive monoid morphisms as an additive monoid morphism. -/
+add_decl_doc add_monoid_hom.comp
 
 @[simp, to_additive] lemma comp_apply (g : N →* P) (f : M →* N) (x : M) :
   g.comp f x = g (f x) := rfl
@@ -170,14 +182,12 @@ omit mP
 
 variables [mM] [mN]
 
+/-- `1` is the monoid homomorphism sending all elements to `1`. -/
 @[to_additive]
-protected def one : M →* N :=
-{ to_fun := λ _, 1,
-  map_one' := rfl,
-  map_mul' := λ _ _, (one_mul 1).symm }
+instance : has_one (M →* N) := ⟨⟨λ _, 1, rfl, λ _ _, (one_mul 1).symm⟩⟩
 
-@[to_additive]
-instance : has_one (M →* N) := ⟨monoid_hom.one⟩
+/-- `0` is the additive monoid homomorphism sending all elements to `0`. -/
+add_decl_doc add_monoid_hom.has_zero
 
 @[simp, to_additive] lemma one_apply (x : M) : (1 : M →* N) x = 1 := rfl
 
@@ -186,16 +196,19 @@ instance : inhabited (M →* N) := ⟨1⟩
 
 omit mM mN
 
-/-- The product of two monoid morphisms is a monoid morphism if the target is commutative. -/
+/-- Given two monoid morphisms `f`, `g` to a commutative monoid, `f * g` is the monoid morphism
+sending `x` to `f x * g x`. -/
 @[to_additive]
-protected def mul {M N} {mM : monoid M} [comm_monoid N] (f g : M →* N) : M →* N :=
-{ to_fun := λ m, f m * g m,
-  map_one' := show f 1 * g 1 = 1, by simp,
-  map_mul' := begin intros, show f (x * y) * g (x * y) = f x * g x * (f y * g y),
-    rw [f.map_mul, g.map_mul, ←mul_assoc, ←mul_assoc, mul_right_comm (f x)], end }
+instance {M N} {mM : monoid M} [comm_monoid N] : has_mul (M →* N) :=
+⟨λ f g,
+  { to_fun := λ m, f m * g m,
+    map_one' := show f 1 * g 1 = 1, by simp,
+    map_mul' := begin intros, show f (x * y) * g (x * y) = f x * g x * (f y * g y),
+      rw [f.map_mul, g.map_mul, ←mul_assoc, ←mul_assoc, mul_right_comm (f x)], end }⟩
 
-@[to_additive]
-instance {M N} {mM : monoid M} [comm_monoid N] : has_mul (M →* N) := ⟨monoid_hom.mul⟩
+/-- Given two additive monoid morphisms `f`, `g` to an additive commutative monoid, `f + g` is the
+additive monoid morphism sending `x` to `f x + g x`. -/
+add_decl_doc add_monoid_hom.has_add
 
 @[simp, to_additive] lemma mul_apply {M N} {mM : monoid M} {mN : comm_monoid N}
   (f g : M →* N) (x : M) :
@@ -224,10 +237,18 @@ def flip {mM : monoid M} {mN : monoid N} {mP : comm_monoid P} (f : M →* N →*
   f.flip y x = f x y :=
 rfl
 
+/-- If two homomorphism from a group to a monoid are equal at `x`, then they are equal at `x⁻¹`. -/
+@[to_additive "If two homomorphism from an additive group to an additive monoid are equal at `x`,
+then they are equal at `-x`." ]
+lemma eq_on_inv {G} [group G] [monoid M] {f g : G →* M} {x : G} (h : f x = g x) :
+  f x⁻¹ = g x⁻¹ :=
+left_inv_eq_right_inv (f.map_mul_eq_one $ inv_mul_self x) $
+  h.symm ▸ g.map_mul_eq_one $ mul_inv_self x
+
 /-- Group homomorphisms preserve inverse. -/
 @[simp, to_additive]
 theorem map_inv {G H} [group G] [group H] (f : G →* H) (g : G) : f g⁻¹ = (f g)⁻¹ :=
-eq_inv_of_mul_eq_one $ by rw [←f.map_mul, inv_mul_self, f.map_one]
+eq_inv_of_mul_eq_one $ f.map_mul_eq_one $ inv_mul_self g
 
 /-- Group homomorphisms preserve division. -/
 @[simp, to_additive]
@@ -251,27 +272,38 @@ def mk' (f : M → G) (map_mul : ∀ a b : M, f (a * b) = f a * f b) : M →* G 
   map_mul' := map_mul,
   map_one' := mul_self_iff_eq_one.1 $ by rw [←map_mul, mul_one] }
 
+/-- Makes an additive group homomomorphism from a proof that the map preserves multiplication. -/
+add_decl_doc add_monoid_hom.mk'
+
+@[simp, to_additive]
+lemma coe_mk' {f : M → G} (map_mul : ∀ a b : M, f (a * b) = f a * f b) :
+  ⇑(mk' f map_mul) = f := rfl
+
 omit mM
 
-/-- The inverse of a monoid homomorphism is a monoid homomorphism if the target is
-    a commutative group.-/
+/-- If `f` is a monoid homomorphism to a commutative group, then `f⁻¹` is the homomorphism sending
+`x` to `(f x)⁻¹`. -/
 @[to_additive]
-protected def inv {M G} {mM : monoid M} [comm_group G] (f : M →* G) : M →* G :=
-mk' (λ g, (f g)⁻¹) $ λ a b, by rw [←mul_inv, f.map_mul]
+instance {M G} [monoid M] [comm_group G] : has_inv (M →* G) :=
+⟨λ f, mk' (λ g, (f g)⁻¹) $ λ a b, by rw [←mul_inv, f.map_mul]⟩
 
-@[to_additive]
-instance {M G} [monoid M] [comm_group G] : has_inv (M →* G) := ⟨monoid_hom.inv⟩
+/-- If `f` is an additive monoid homomorphism to an additive commutative group, then `-f` is the
+homomorphism sending `x` to `-(f x)`. -/
+add_decl_doc add_monoid_hom.has_neg
 
 @[simp, to_additive] lemma inv_apply {M G} {mM : monoid M} {gG : comm_group G}
   (f : M →* G) (x : M) :
   f⁻¹ x = (f x)⁻¹ := rfl
 
-/-- (M →* G) is a comm_group if G is a comm_group -/
+/-- If `G` is a commutative group, then `M →* G` a commutative group too. -/
 @[to_additive add_comm_group]
 instance {M G} [monoid M] [comm_group G] : comm_group (M →* G) :=
 { inv := has_inv.inv,
   mul_left_inv := by intros; ext; apply mul_left_inv,
   ..monoid_hom.comm_monoid }
+
+/-- If `G` is an additive commutative group, then `M →+ G` an additive commutative group too. -/
+add_decl_doc add_monoid_hom.add_comm_group
 
 end monoid_hom
 
@@ -282,3 +314,17 @@ namespace add_monoid_hom
   f (g - h) = (f g) - (f h) := f.map_add_neg g h
 
 end add_monoid_hom
+
+section commute
+
+variables [monoid M] [monoid N] {a x y : M}
+
+@[simp, to_additive]
+protected lemma semiconj_by.map (h : semiconj_by a x y) (f : M →* N) :
+  semiconj_by (f a) (f x) (f y) :=
+by simpa only [semiconj_by, f.map_mul] using congr_arg f h
+
+@[simp, to_additive]
+protected lemma commute.map (h : commute x y) (f : M →* N) : commute (f x) (f y) := h.map f
+
+end commute

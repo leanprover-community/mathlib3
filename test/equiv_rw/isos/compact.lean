@@ -87,7 +87,7 @@ instance iso_functorial_set (F : C → Type w) [iso_functorial.{v w} F] :
 def hygienic_mem (F : C → Type w) [iso_functorial.{v w} F]
   (L : Π X, F X) [flat_section'.{u v w} L]
   (U : Π X, set (F X)) [flat_section'.{u v w} U] :
-  hygienic.{v} (λ X, L X ∈ U X) :=
+  hygienic.{v} (λ X, set.mem (L X) (U X)) :=
 { map := λ X Y i h,
   begin
     rw [←flat_section'.transport L i, ←flat_section'.transport U i],
@@ -191,10 +191,13 @@ begin
       { apply @hygienic_relative.of_hygienic_elements _ _ _ _ _ _,
         apply @hygienic_and _ _ _ _ _ _,
         { dsimp only with functoriality,
-          dsimp,
-          -- goes bad here...
+          -- These next two need to be run atomically:
           dsimp [(∈)],
-          apply @hygienic_mem _ _ _ _ _ _ _ _, },
+          apply @hygienic_mem _ _ _ _ _ _ _ _,
+          { dsimp only with functoriality, apply_instance, },
+          { dsimp only with functoriality, sorry, },
+          { dsimp only with functoriality, sorry, },
+        },
         { apply @hygienic_not _ _ _ _,
           sorry, }, }, }, }
 end

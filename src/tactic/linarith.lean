@@ -98,18 +98,28 @@ by rw [←h3, mul_assoc, mul_div_comm, h2, ←mul_assoc, h1, mul_comm, one_mul]
 
 end lemmas
 
--- we assume, but do not enforce, that linexps are sorted in decreasing order of the first arg
+/--
+A linear expression is a list of pairs of variable indices and coefficients.
+
+Some functions on `linexp` assume that `n : ℕ` occurs at most once as the first element of a pair,
+and that the list is sorted in decreasing order of the first argument.
+This is not enforced by the type but the operations here preserve it.
+-/
 @[reducible]
 def linexp := list (ℕ × ℤ)
 end linarith
+
+/--
+A map `ℕ → ℤ` is converted to `list (ℕ × ℤ)` in the obvious way.
+This list  is sorted in decreasing order of the first argument.
+-/
 meta def native.rb_map.to_linexp (m : rb_map ℕ ℤ) : linarith.linexp :=
 m.to_list
-namespace linarith
-meta def l : linexp := native.rb_map.to_linexp $ rb_map.of_list [(4, 3), (2, -1), (5, 10)]
 
+namespace linarith
 namespace linexp
 
-meta def add : linexp → linexp → linexp
+def add : linexp → linexp → linexp
 | [] a := a
 | a [] := a
 | (a@(n1,z1)::t1) (b@(n2,z2)::t2) :=

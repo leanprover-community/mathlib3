@@ -23,8 +23,6 @@ This file contains these definitions, and basic facts on inclusion, intersection
 intervals (where the precise statements may depend on the properties of the order, in particular
 for some statements it should be `linear_order` or `densely_ordered`).
 
-This file also contains statements on lower and upper bounds of intervals.
-
 TODO: This is just the beginning; a lot of rules are missing
 -/
 
@@ -633,61 +631,6 @@ set.ext $ by simp [Ico, Iio, iff_def, lt_min_iff] {contextual:=tt}
 
 end decidable_linear_order
 
-section ordered_add_comm_group
-
-variables {α : Type u} [ordered_add_comm_group α]
-
-lemma image_add_left_Icc (a b c : α) : ((+) a) '' Icc b c = Icc (a + b) (a + c) :=
-begin
-  ext x,
-  split,
-  { rintros ⟨x, hx, rfl⟩,
-    exact ⟨add_le_add_left hx.1 a, add_le_add_left hx.2 a⟩},
-  { intro hx,
-    refine ⟨-a + x, _, add_neg_cancel_left _ _⟩,
-    exact ⟨le_neg_add_iff_add_le.2 hx.1, neg_add_le_iff_le_add.2 hx.2⟩ }
-end
-
-lemma image_add_right_Icc (a b c : α) : (λ x, x + c) '' Icc a b = Icc (a + c) (b + c) :=
-by convert image_add_left_Icc c a b using 1; simp only [add_comm _ c]
-
-lemma image_neg_Iio (r : α) : image (λz, -z) (Iio r) = Ioi (-r) :=
-begin
-  ext z,
-  apply iff.intro,
-  { intros hz,
-    apply exists.elim hz,
-    intros z' hz',
-    rw [←hz'.2],
-    simp only [mem_Ioi, neg_lt_neg_iff],
-    exact hz'.1 },
-  { intros hz,
-    simp only [mem_image, mem_Iio],
-    use -z,
-    simp [hz],
-    exact neg_lt.1 hz }
-end
-
-lemma image_neg_Iic (r : α)  : image (λz, -z) (Iic r) = Ici (-r) :=
-begin
-  apply set.ext,
-  intros z,
-  apply iff.intro,
-  { intros hz,
-    apply exists.elim hz,
-    intros z' hz',
-    rw [←hz'.2],
-    simp only [neg_le_neg_iff, mem_Ici],
-    exact hz'.1 },
-  { intros hz,
-    simp only [mem_image, mem_Iic],
-    use -z,
-    simp [hz],
-    exact neg_le.1 hz }
-end
-
-end ordered_add_comm_group
-
 section decidable_linear_ordered_add_comm_group
 
 variables {α : Type u} [decidable_linear_ordered_add_comm_group α]
@@ -702,41 +645,5 @@ begin
 end
 
 end decidable_linear_ordered_add_comm_group
-
-section linear_ordered_field
-
-variables {α : Type u} [linear_ordered_field α]
-
-lemma image_mul_right_Icc' (a b : α) {c : α} (h : 0 < c) :
-  (λ x, x * c) '' Icc a b = Icc (a * c) (b * c) :=
-begin
-  ext x,
-  split,
-  { rintros ⟨x, hx, rfl⟩,
-    exact ⟨mul_le_mul_of_nonneg_right hx.1 (le_of_lt h),
-      mul_le_mul_of_nonneg_right hx.2 (le_of_lt h)⟩ },
-  { intro hx,
-    refine ⟨x / c, _, div_mul_cancel x (ne_of_gt h)⟩,
-    exact ⟨le_div_of_mul_le h hx.1, div_le_of_le_mul h (mul_comm b c ▸ hx.2)⟩ }
-end
-
-lemma image_mul_right_Icc {a b c : α} (hab : a ≤ b) (hc : 0 ≤ c) :
-  (λ x, x * c) '' Icc a b = Icc (a * c) (b * c) :=
-begin
-  cases eq_or_lt_of_le hc,
-  { subst c,
-    simp [(nonempty_Icc.2 hab).image_const] },
-  exact image_mul_right_Icc' a b ‹0 < c›
-end
-
-lemma image_mul_left_Icc' {a : α} (h : 0 < a) (b c : α) :
-  ((*) a) '' Icc b c = Icc (a * b) (a * c) :=
-by { convert image_mul_right_Icc' b c h using 1; simp only [mul_comm _ a] }
-
-lemma image_mul_left_Icc {a b c : α} (ha : 0 ≤ a) (hbc : b ≤ c) :
-  ((*) a) '' Icc b c = Icc (a * b) (a * c) :=
-by { convert image_mul_right_Icc hbc ha using 1; simp only [mul_comm _ a] }
-
-end linear_ordered_field
 
 end set

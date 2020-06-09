@@ -194,14 +194,6 @@ by rw [mul_eq_one_iff_eq_inv, inv_inv]
 theorem inv_mul_eq_one : a⁻¹ * b = 1 ↔ a = b :=
 by rw [mul_eq_one_iff_eq_inv, inv_inj']
 
-@[to_additive]
-theorem inv_comm_of_comm (H : a * b = b * a) : a⁻¹ * b = b * a⁻¹ :=
-begin
-  have : a⁻¹ * (b * a) * a⁻¹ = a⁻¹ * (a * b) * a⁻¹ :=
-    congr_arg (λ x:G, a⁻¹ * x * a⁻¹) H.symm,
-  rwa [inv_mul_cancel_left, mul_assoc, mul_inv_cancel_right] at this
-end
-
 @[simp, to_additive]
 lemma mul_left_eq_self : a * b = b ↔ a = 1 :=
 ⟨λ h, @mul_right_cancel _ _ a b 1 (by simp [h]), λ h, by simp [h]⟩

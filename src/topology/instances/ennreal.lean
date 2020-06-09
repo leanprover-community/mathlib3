@@ -202,6 +202,7 @@ protected theorem tendsto_nhds {f : filter α} {u : α → ennreal} {a : ennreal
   tendsto u f (𝓝 a) ↔ ∀ ε > 0, ∀ᶠ x in f, (u x) ∈ Icc (a - ε) (a + ε) :=
 by simp only [nhds_of_ne_top ha, tendsto_infi, tendsto_principal, mem_Icc]
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 protected lemma tendsto_at_top [nonempty β] [semilattice_sup β] {f : β → ennreal} {a : ennreal}
   (ha : a ≠ ⊤) : tendsto f at_top (𝓝 a) ↔ ∀ε>0, ∃N, ∀n≥N, (f n) ∈ Icc (a - ε) (a + ε) :=
 by simp only [ennreal.tendsto_nhds ha, mem_at_top_sets, mem_set_of_eq, filter.eventually]
@@ -626,7 +627,7 @@ lemma has_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} (hf : ∀i, 0 ≤ f i)
   end⟩
 
 lemma infi_real_pos_eq_infi_nnreal_pos {α : Type*} [complete_lattice α] {f : ℝ → α} :
-  (⨅(n:ℝ) (h : n > 0), f n) = (⨅(n:nnreal) (h : n > 0), f n) :=
+  (⨅(n:ℝ) (h : 0 < n), f n) = (⨅(n:nnreal) (h : 0 < n), f n) :=
 le_antisymm
   (le_infi $ assume n, le_infi $ assume hn, infi_le_of_le n $ infi_le _ (nnreal.coe_pos.2 hn))
   (le_infi $ assume r, le_infi $ assume hr, infi_le_of_le ⟨r, le_of_lt hr⟩ $ infi_le _ hr)

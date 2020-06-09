@@ -864,6 +864,7 @@ metric.cauchy_seq_iff.2 $ λ ε ε0,
                     ... < ε : (hN _ (le_refl N))
 
 /-- A Cauchy sequence on the natural numbers is bounded. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem cauchy_seq_bdd {u : ℕ → α} (hu : cauchy_seq u) :
   ∃ R > 0, ∀ m n, dist (u m) (u n) < R :=
 begin
@@ -1077,6 +1078,7 @@ theorem mem_closure_iff {α : Type u} [metric_space α] {s : set α} {a : α} :
 (mem_closure_iff_nhds_basis nhds_basis_ball).trans $
   by simp only [mem_ball, dist_comm]
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma mem_closure_range_iff {α : Type u} [metric_space α] {e : β → α} {a : α} :
   a ∈ closure (range e) ↔ ∀ε>0, ∃ k : β, dist a (e k) < ε :=
 by simp only [mem_closure_iff, exists_range_iff]
@@ -1086,6 +1088,7 @@ lemma mem_closure_range_iff_nat {α : Type u} [metric_space α] {e : β → α} 
 (mem_closure_iff_nhds_basis nhds_basis_ball_inv_nat_succ).trans $
   by simp only [mem_ball, dist_comm, exists_range_iff, forall_const]
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem mem_of_closed' {α : Type u} [metric_space α] {s : set α} (hs : is_closed s)
   {a : α} : a ∈ s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
 by simpa only [closure_eq_of_is_closed hs] using @mem_closure_iff _ _ s a
@@ -1294,7 +1297,8 @@ namespace metric
 section second_countable
 open topological_space
 
-/-- A metric space is second countable if, for every ε > 0, there is a countable set which is ε-dense. -/
+/-- A metric space is second countable if, for every `ε > 0`, there is a countable set which is
+`ε`-dense. -/
 lemma second_countable_of_almost_dense_set
   (H : ∀ε > (0 : ℝ), ∃ s : set α, countable s ∧ (∀x, ∃y ∈ s, dist x y ≤ ε)) :
   second_countable_topology α :=
@@ -1317,8 +1321,9 @@ begin
   exact emetric.second_countable_of_separable α
 end
 
-/-- A metric space space is second countable if one can reconstruct up to any ε>0 any element of the
-space from countably many data. -/
+/-- A metric space space is second countable if one can reconstruct up to any `ε>0` any element of
+the space from countably many data. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma second_countable_of_countable_discretization {α : Type u} [metric_space α]
   (H : ∀ε > (0 : ℝ), ∃ (β : Type u) [encodable β] (F : α → β), ∀x y, F x = F y → dist x y ≤ ε) :
   second_countable_topology α :=
@@ -1339,6 +1344,7 @@ end
 end second_countable
 end metric
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma lebesgue_number_lemma_of_metric
   {s : set α} {ι} {c : ι → set α} (hs : compact s)
   (hc₁ : ∀ i, is_open (c i)) (hc₂ : s ⊆ ⋃ i, c i) :
@@ -1348,6 +1354,7 @@ let ⟨n, en, hn⟩ := lebesgue_number_lemma hs hc₁ hc₂,
 ⟨δ, δ0, assume x hx, let ⟨i, hi⟩ := hn x hx in
  ⟨i, assume y hy, hi (hδ (mem_ball'.mp hy))⟩⟩
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma lebesgue_number_lemma_of_metric_sUnion
   {s : set α} {c : set (set α)} (hs : compact s)
   (hc₁ : ∀ t ∈ c, is_open t) (hc₂ : s ⊆ ⋃₀ c) :

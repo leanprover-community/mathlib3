@@ -190,7 +190,7 @@ structure affine_map (k : Type*) (V1 : Type*) (P1 : Type*) (V2 : Type*) (P2 : Ty
     [add_comm_group V2] [module k V2] [affine_space k V2 P2] :=
 (to_fun : P1 → P2)
 (linear : linear_map k V1 V2)
-(map_vadd' : ∀ (p : P1) (v : V1), to_fun (v +ᵥ p) =  linear.to_fun v +ᵥ to_fun p)
+(map_vadd' : ∀ (p : P1) (v : V1), to_fun (v +ᵥ p) =  linear v +ᵥ to_fun p)
 
 namespace affine_map
 
@@ -233,9 +233,22 @@ begin
   congr',
   ext v,
   cases (add_torsor.nonempty V1 : nonempty P1) with p,
-  apply vadd_right_cancel V2 (f p),
+  apply vadd_right_cancel (f p),
   erw [← f_add, ← g_add]
 end
+
+/-- Construct an affine map by verifying the relation between the map and its linear part at one
+base point. Namely, this function takes a map `f : P₁ → P₂`, a linear map `f' : V₁ →ₗ[k] V₂`, and
+a point `p` such that for any other point `p'` we have `f p' = f' (p' -ᵥ p) +ᵥ f p`. -/
+def mk' (f : P1 → P2) (f' : V1 →ₗ[k] V2) (p : P1) (h : ∀ p' : P1, f p' = f' (p' -ᵥ p) +ᵥ f p) :
+  affine_map k V1 P1 V2 P2 :=
+{ to_fun := f,
+  linear := f',
+  map_vadd' := λ p' v, by rw [h, h p', vadd_vsub_assoc, f'.map_add, add_action.vadd_assoc] }
+
+@[simp] lemma coe_mk' (f : P1 → P2) (f' : V1 →ₗ[k] V2) (p h) : ⇑(mk' f f' p h) = f := rfl
+
+@[simp] lemma mk'_linear (f : P1 → P2) (f' : V1 →ₗ[k] V2) (p h) : (mk' f f' p h).linear = f' := rfl
 
 variables (k V1 P1)
 

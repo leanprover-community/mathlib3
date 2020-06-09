@@ -619,7 +619,7 @@ end casts
 lemma inv_def' {q : ℚ} : q⁻¹ = (q.denom : ℚ) / q.num :=
 by { conv_lhs { rw ←(@num_denom q) }, cases q, simp [div_num_denom] }
 
-@[simp] lemma mul_own_denom_eq_num {q : ℚ} : q * q.denom = q.num :=
+@[simp] lemma mul_denom_eq_num {q : ℚ} : q * q.denom = q.num :=
 begin
   suffices : mk (q.num) ↑(q.denom) * mk ↑(q.denom) 1 = mk (q.num) 1, by
   { conv { for q [1] { rw ←(@num_denom q) }}, rwa [coe_int_eq_mk, coe_nat_eq_mk] },

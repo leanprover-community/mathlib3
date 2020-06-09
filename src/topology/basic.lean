@@ -596,14 +596,31 @@ begin
 end
 
 section lim
-variables [nonempty α]
 
-/-- If `f` is a filter, then `lim f` is a limit of the filter, if it exists. -/
-noncomputable def lim (f : filter α) : α := epsilon $ λa, f ≤ 𝓝 a
+/-- If `f` is a filter, then `Lim f` is a limit of the filter, if it exists. -/
+noncomputable def Lim [nonempty α] (f : filter α) : α := epsilon $ λa, f ≤ 𝓝 a
 
-lemma lim_spec {f : filter α} (h : ∃a, f ≤ 𝓝 a) : f ≤ 𝓝 (lim f) := epsilon_spec h
+/-- If `f` is a filter in `β` and `g : β → α` is a function, then `lim f` is a limit of `g` at `f`,
+if it exists. -/
+noncomputable def lim [nonempty α] (f : filter β) (g : β → α) : α :=
+Lim (f.map g)
+
+/-- If a filter `f` is majorated by some `𝓝 a`, then it is majorated by `𝓝 (Lim f)`. We formulate
+this lemma with a `[nonempty α]` argument of `Lim` derived from `h` to make it useful for types
+without a `[nonempty α]` instance. Because of the built-in proof irrelevance, Lean will unify
+this instance with any other instance. -/
+lemma Lim_spec {f : filter α} (h : ∃a, f ≤ 𝓝 a) : f ≤ 𝓝 (@Lim _ _ (nonempty_of_exists h) f) :=
+epsilon_spec h
+
+/-- If `g` tends to some `𝓝 a` along `f`, then it tends to `𝓝 (lim f g)`. We formulate
+this lemma with a `[nonempty α]` argument of `lim` derived from `h` to make it useful for types
+without a `[nonempty α]` instance. Because of the built-in proof irrelevance, Lean will unify
+this instance with any other instance. -/
+lemma lim_spec {f : filter β} {g : β → α} (h : ∃ a, tendsto g f (𝓝 a)) :
+  tendsto g f (𝓝 $ @lim _ _ _ (nonempty_of_exists h) f g) :=
+Lim_spec h
+
 end lim
-
 
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 section locally_finite

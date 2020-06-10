@@ -319,7 +319,7 @@ section finite_dimensional
 
 variables {R : Type v} [field R]
 
-instance finite_dimensional_matrix : finite_dimensional R (matrix m n R) :=
+instance : finite_dimensional R (matrix m n R) :=
 linear_equiv.finite_dimensional (linear_equiv.uncurry R m n).symm
 
 /-- The dimension of a finite dimensional matrix is the product of the number of rows and columns-/

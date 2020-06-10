@@ -149,7 +149,7 @@ div_self (nonzero_of_invertible a)
 
 /-- `b / a` is the inverse of `a / b` -/
 def invertible_div (a b : α) [invertible a] [invertible b] : invertible (a / b) :=
-⟨ b / a, by simp [←mul_div_assoc], by simp [←mul_div_assoc] ⟩
+⟨b / a, by simp [←mul_div_assoc], by simp [←mul_div_assoc]⟩
 
 @[simp] lemma inv_of_div (a b : α) [invertible a] [invertible b] [invertible (a / b)] :
   ⅟(a / b) = b / a :=

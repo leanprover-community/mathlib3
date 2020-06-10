@@ -122,7 +122,7 @@ begin
   classical,
   by_cases h : a = 0, { simp [h] },
   calc a⁻¹⁻¹ = a * (a⁻¹ * a⁻¹⁻¹) : by simp [h]
-        ... = a                 : by simp [inv_ne_zero h]
+         ... = a                 : by simp [inv_ne_zero h]
 end
 
 /-- Multiplying `a` by itself and then by its inverse results in `a`
@@ -427,7 +427,7 @@ variables {G₀ : Type*} [comm_group_with_zero G₀] {a b c : G₀}
 lemma mul_inv'' : (a * b)⁻¹ = a⁻¹ * b⁻¹ :=
 by rw [mul_inv_rev', mul_comm]
 
-lemma one_div_mul_one_div (a b : G₀) : (1 / a) * (1 / b) =  1 / (a * b) :=
+lemma one_div_mul_one_div (a b : G₀) : (1 / a) * (1 / b) = 1 / (a * b) :=
 by rw [one_div_mul_one_div_rev, mul_comm b]
 
 lemma div_mul_right {a : G₀} (b : G₀) (ha : a ≠ 0) : a / (a * b) = 1 / b :=
@@ -497,7 +497,7 @@ assume ha : a = 0, begin rw [ha, div_zero] at h, contradiction end
 lemma eq_zero_of_one_div_eq_zero {a : G₀} (h : 1 / a = 0) : a = 0 :=
 classical.by_cases
   (assume ha, ha)
-  (assume ha, false.elim ((one_div_ne_zero ha) h))
+  (assume ha, ((one_div_ne_zero ha) h).elim)
 
 lemma div_helper {a : G₀} (b : G₀) (h : a ≠ 0) : (1 / (a * b)) * a = 1 / b :=
 by rw [div_mul_eq_mul_div, one_mul, div_mul_right _ h]

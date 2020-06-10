@@ -75,7 +75,7 @@ end
 @[simp, to_additive] theorem fin.prod_univ_zero [comm_monoid β] (f : fin 0 → β) : univ.prod f = 1 := rfl
 
 theorem fin.sum_univ_succ [add_comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
-  univ.sum f = f 0 + univ.sum (λ i:fin n, f i.succ) :=
+  ∑ i, f i = f 0 + ∑ i : fin n, f i.succ :=
 by apply @fin.prod_univ_succ (multiplicative β)
 
 attribute [to_additive] fin.prod_univ_succ
@@ -89,13 +89,13 @@ begin
 end
 
 theorem fin.sum_univ_cast_succ [add_comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
-  univ.sum f = univ.sum (λ i:fin n, f i.cast_succ) + f (fin.last n) :=
+  ∑ i, f i = ∑ i : fin n, f i.cast_succ + f (fin.last n) :=
 by apply @fin.prod_univ_cast_succ (multiplicative β)
 attribute [to_additive] fin.prod_univ_cast_succ
 
 @[simp] theorem fintype.card_sigma {α : Type*} (β : α → Type*)
   [fintype α] [∀ a, fintype (β a)] :
-  fintype.card (sigma β) = univ.sum (λ a, fintype.card (β a)) :=
+  fintype.card (sigma β) = ∑ a, fintype.card (β a) :=
 card_sigma _ _
 
 -- FIXME ouch, this should be in the main file.
@@ -164,8 +164,8 @@ prod_bij (λ x _ a, x a (mem_univ _))
 lemma finset.prod_univ_sum [decidable_eq α] [fintype α] [comm_semiring β] {δ : α → Type u_1}
   [Π (a : α), decidable_eq (δ a)] {t : Π (a : α), finset (δ a)}
   {f : Π (a : α), δ a → β} :
-  univ.prod (λ a, (t a).sum (λ b, f a b)) =
-  (fintype.pi_finset t).sum (λ p, univ.prod (λ x, f x (p x))) :=
+  univ.prod (λ a, ∑ b in t a, f a b) =
+  ∑ p in fintype.pi_finset t, univ.prod (λ x, f x (p x)) :=
 by simp only [finset.prod_attach_univ, prod_sum, finset.sum_univ_pi]
 
 /-- Summing `a^s.card * b^(n-s.card)` over all finite subsets `s` of a fintype of cardinality `n`
@@ -174,12 +174,12 @@ gives `(a + b)^n`. The "good" proof involves expanding along all coordinates usi
 a proof reducing to the usual binomial theorem to have a result over semirings. -/
 lemma fintype.sum_pow_mul_eq_add_pow
   (α : Type*) [fintype α] {R : Type*} [comm_semiring R] (a b : R) :
-  finset.univ.sum (λ (s : finset α), a ^ s.card * b ^ (fintype.card α - s.card)) =
+  ∑ s : finset α, a ^ s.card * b ^ (fintype.card α - s.card) =
   (a + b) ^ (fintype.card α) :=
 finset.sum_pow_mul_eq_add_pow _ _ _
 
 lemma fin.sum_pow_mul_eq_add_pow {n : ℕ} {R : Type*} [comm_semiring R] (a b : R) :
-  finset.univ.sum (λ (s : finset (fin n)), a ^ s.card * b ^ (n - s.card)) =
+  ∑ s : finset (fin n), a ^ s.card * b ^ (n - s.card) =
   (a + b) ^ n :=
 by simpa using fintype.sum_pow_mul_eq_add_pow (fin n) a b
 
@@ -298,7 +298,7 @@ end
 -- `to_additive` does not work on `prod_take_of_fn` because of `0 : ℕ` in the proof. Copy-paste the
 -- proof instead...
 lemma sum_take_of_fn [add_comm_monoid α] {n : ℕ} (f : fin n → α) (i : ℕ) :
-  ((of_fn f).take i).sum = (finset.univ.filter (λ (j : fin n), j.val < i)).sum f :=
+  ((of_fn f).take i).sum = ∑ j in finset.univ.filter (λ (j : fin n), j.val < i), f j :=
 begin
   have A : ∀ (j : fin n), ¬ (j.val < 0) := λ j, not_lt_bot,
   induction i with i IH, { simp [A] },

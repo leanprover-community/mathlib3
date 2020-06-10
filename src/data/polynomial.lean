@@ -28,6 +28,7 @@ The embedding from `R` is called `C`. -/
 def polynomial (R : Type*) [comm_semiring R] := add_monoid_algebra R ℕ
 
 open finsupp finset add_monoid_algebra
+open_locale big_operators
 
 namespace polynomial
 universes u v w x y z
@@ -205,17 +206,16 @@ coeff_single
 by simpa only [C_1, one_mul] using coeff_C_mul_X (1:R) k n
 
 lemma coeff_mul (p q : polynomial R) (n : ℕ) :
-  coeff (p * q) n = (nat.antidiagonal n).sum (λ x, coeff p x.1 * coeff q x.2) :=
+  coeff (p * q) n = ∑ x in nat.antidiagonal n, coeff p x.1 * coeff q x.2 :=
 have hite : ∀ a : ℕ × ℕ, ite (a.1 + a.2 = n) (coeff p (a.fst) * coeff q (a.snd)) 0 ≠ 0
     → a.1 + a.2 = n, from λ a ha, by_contradiction
   (λ h, absurd (eq.refl (0 : R)) (by rwa if_neg h at ha)),
-calc coeff (p * q) n = p.support.sum (λ a, q.support.sum
-    (λ b, ite (a + b = n) (coeff p a * coeff q b) 0)) :
+calc coeff (p * q) n = ∑ a in p.support, ∑ b in q.support,
+    ite (a + b = n) (coeff p a * coeff q b) 0 :
   by simp only [mul_def, coeff_sum, coeff_single]; refl
-... = (p.support.product q.support).sum
-    (λ v : ℕ × ℕ, ite (v.1 + v.2 = n) (coeff p v.1 * coeff q v.2) 0) :
+... = ∑ v in p.support.product q.support, ite (v.1 + v.2 = n) (coeff p v.1 * coeff q v.2) 0 :
   by rw sum_product
-... = (nat.antidiagonal n).sum (λ x, coeff p x.1 * coeff q x.2) :
+... = ∑ x in nat.antidiagonal n, coeff p x.1 * coeff q x.2 :
 begin
   refine sum_bij_ne_zero (λ x _ _, x)
   (λ x _ hx, nat.mem_antidiagonal.2 (hite x hx)) (λ _ _ _ _ _ _ h, h)
@@ -552,7 +552,7 @@ end
 
 -- TODO find a home (this file)
 @[simp] lemma finset_sum_coeff (s : finset ι) (f : ι → polynomial R) (n : ℕ) :
-  coeff (s.sum f) n = s.sum (λ b, coeff (f b) n) :=
+  coeff (∑ b in s, f b) n = ∑ b in s, coeff (f b) n :=
 (s.sum_hom (λ q : polynomial R, q.coeff n)).symm
 
 -- We need the explicit `decidable` argument here because an exotic one shows up in a moment!
@@ -565,7 +565,7 @@ begin
 end
 
 lemma as_sum (p : polynomial R) :
-  p = (range (p.nat_degree + 1)).sum (λ i, C (p.coeff i) * X^i) :=
+  p = ∑ i in range (p.nat_degree + 1), C (p.coeff i) * X^i :=
 begin
   ext n,
   simp only [add_comm, coeff_X_pow, coeff_C_mul, finset.mem_range,
@@ -573,7 +573,7 @@ begin
 end
 
 lemma monic.as_sum {p : polynomial R} (hp : p.monic) :
-  p = X^(p.nat_degree) + ((finset.range p.nat_degree).sum $ λ i, C (p.coeff i) * X^i) :=
+  p = X^(p.nat_degree) + (∑ i in finset.range p.nat_degree, C (p.coeff i) * X^i) :=
 begin
   conv_lhs { rw [p.as_sum, finset.sum_range_succ] },
   suffices : C (p.coeff p.nat_degree) = 1,
@@ -740,10 +740,10 @@ lt_of_le_of_ne (degree_erase_le _ _) $
   (degree_eq_nat_degree hp).symm ▸ (by convert λ h, not_mem_erase _ _ (mem_of_max h))
 
 lemma degree_sum_le (s : finset ι) (f : ι → polynomial R) :
-  degree (s.sum f) ≤ s.sup (λ b, degree (f b)) :=
+  degree (∑ i in s, f i) ≤ s.sup (λ b, degree (f b)) :=
 finset.induction_on s (by simp only [sum_empty, sup_empty, degree_zero, le_refl]) $
   assume a s has ih,
-  calc degree ((insert a s).sum f) ≤ max (degree (f a)) (degree (s.sum f)) :
+  calc degree (∑ i in insert a s, f i) ≤ max (degree (f a)) (degree (∑ i in s, f i)) :
     by rw sum_insert has; exact degree_add_le _ _
   ... ≤ _ : by rw [sup_insert, with_bot.sup_eq_max]; exact max_le_max (le_refl _) ih
 
@@ -815,8 +815,8 @@ by simp only [leading_coeff, this, nat_degree_eq_of_degree_eq h, coeff_add]
 @[simp] lemma coeff_mul_degree_add_degree (p q : polynomial R) :
   coeff (p * q) (nat_degree p + nat_degree q) = leading_coeff p * leading_coeff q :=
 calc coeff (p * q) (nat_degree p + nat_degree q) =
-    (nat.antidiagonal (nat_degree p + nat_degree q)).sum
-    (λ x, coeff p x.1 * coeff q x.2) : coeff_mul _ _ _
+    ∑ x in nat.antidiagonal (nat_degree p + nat_degree q),
+    coeff p x.1 * coeff q x.2 : coeff_mul _ _ _
 ... = coeff p (nat_degree p) * coeff q (nat_degree q) :
   begin
     refine finset.sum_eq_single (nat_degree p, nat_degree q) _ _,
@@ -2434,7 +2434,7 @@ instance : is_add_monoid_hom (derivative : polynomial R → polynomial R) :=
 (derivative_hom R).is_add_monoid_hom
 
 @[simp] lemma derivative_sum {s : finset ι} {f : ι → polynomial R} :
-  derivative (s.sum f) = s.sum (λb, derivative (f b)) :=
+  derivative (∑ b in s, f b) = ∑ b in s, derivative (f b) :=
 (derivative_hom R).map_sum f s
 
 @[simp] lemma derivative_mul {f g : polynomial R} :

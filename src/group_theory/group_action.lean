@@ -9,6 +9,8 @@ import group_theory.coset
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
+open_locale big_operators
+
 /-- Typeclass for types with a scalar multiplication operation, denoted `•` (`\bu`) -/
 class has_scalar (α : Type u) (γ : Type v) := (smul : α → γ → γ)
 
@@ -297,7 +299,7 @@ lemma multiset.smul_sum {r : α} {s : multiset β} :
 (const_smul_hom β r).map_multiset_sum s
 
 lemma finset.smul_sum {r : α} {f : γ → β} {s : finset γ} :
-  r • s.sum f = s.sum (λ x, r • f x) :=
+  r • ∑ x in s, f x = ∑ x in s, r • f x :=
 (const_smul_hom β r).map_sum f s
 
 end

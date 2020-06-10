@@ -121,7 +121,7 @@ to_real_hom.map_multiset_sum s
 to_real_hom.map_multiset_prod s
 
 @[norm_cast] lemma coe_sum {α} {s : finset α} {f : α → ℝ≥0} :
-  ↑(s.sum f) = s.sum (λa, (f a : ℝ)) :=
+  ↑(∑ a in s, f a) = ∑ a in s, (f a : ℝ) :=
 to_real_hom.map_sum _ _
 
 @[norm_cast] lemma coe_prod {α} {s : finset α} {f : α → ℝ≥0} :

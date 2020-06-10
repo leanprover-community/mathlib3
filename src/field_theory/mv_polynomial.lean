@@ -13,6 +13,7 @@ noncomputable theory
 open_locale classical
 
 open set linear_map submodule
+open_locale big_operators
 
 namespace mv_polynomial
 universes u v
@@ -109,7 +110,7 @@ variables {α : Type*} {σ : Type*}
 variables [field α] [fintype α] [fintype σ]
 
 def indicator (a : σ → α) : mv_polynomial σ α :=
-finset.univ.prod (λn, 1 - (X n - C (a n))^(fintype.card α - 1))
+∏ n, (1 - (X n - C (a n))^(fintype.card α - 1))
 
 lemma eval_indicator_apply_eq_one (a : σ → α) :
   eval a (indicator a) = 1 :=
@@ -136,7 +137,7 @@ begin
 end
 
 lemma degrees_indicator (c : σ → α) :
-  degrees (indicator c) ≤ finset.univ.sum (λs:σ, (fintype.card α - 1) •ℕ {s}) :=
+  degrees (indicator c) ≤ ∑ s : σ, (fintype.card α - 1) •ℕ {s} :=
 begin
   rw [indicator],
   refine le_trans (degrees_prod _ _) (finset.sum_le_sum $ assume s hs, _),
@@ -181,7 +182,7 @@ end
 lemma map_restrict_dom_evalₗ : (restrict_degree σ α (fintype.card α - 1)).map (evalₗ α σ) = ⊤ :=
 begin
   refine top_unique (submodule.le_def'.2 $ assume e _, mem_map.2 _),
-  refine ⟨finset.univ.sum (λn:σ → α, e n • indicator n), _, _⟩,
+  refine ⟨∑ n : σ → α, e n • indicator n, _, _⟩,
   { exact sum_mem _ (assume c _, smul_mem _ _ (indicator_mem_restrict_degree _)) },
   { ext n,
     simp only [linear_map.map_sum, @pi.finset_sum_apply (σ → α) (λ_, α) _ _ _ _ _,

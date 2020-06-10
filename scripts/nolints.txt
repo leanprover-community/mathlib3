@@ -1,10 +1,6 @@
 import .all
 run_cmd tactic.skip
 
--- algebra/archimedean.lean
-apply_nolint archimedean doc_blame
-apply_nolint archimedean.floor_ring doc_blame
-
 -- algebra/associated.lean
 apply_nolint associated.setoid doc_blame
 apply_nolint associates doc_blame
@@ -12,20 +8,7 @@ apply_nolint associates.mk doc_blame
 apply_nolint associates.prime doc_blame
 
 -- algebra/category/Group/basic.lean
-apply_nolint AddCommGroup doc_blame
 apply_nolint AddCommGroup.of doc_blame
-apply_nolint AddGroup doc_blame
-apply_nolint AddGroup.of doc_blame
-
--- algebra/category/Mon/basic.lean
-apply_nolint AddCommMon doc_blame
-apply_nolint AddCommMon.of doc_blame
-apply_nolint AddMon doc_blame
-apply_nolint AddMon.of doc_blame
-
--- algebra/commute.lean
-apply_nolint centralizer.add_submonoid doc_blame
-apply_nolint set.centralizer.add_submonoid doc_blame
 
 -- algebra/direct_limit.lean
 apply_nolint add_comm_group.direct_limit has_inhabited_instance
@@ -50,7 +33,6 @@ apply_nolint euclidean_domain.lcm doc_blame
 apply_nolint euclidean_domain.xgcd_aux doc_blame
 
 -- algebra/field.lean
-apply_nolint algebra.div doc_blame
 apply_nolint division_ring doc_blame
 apply_nolint field doc_blame
 
@@ -59,36 +41,8 @@ apply_nolint associates.out doc_blame
 apply_nolint associates_int_equiv_nat doc_blame
 apply_nolint normalize doc_blame
 
--- algebra/group/conj.lean
-apply_nolint is_conj doc_blame
-
 -- algebra/group/defs.lean
-apply_nolint add_comm_group doc_blame
-apply_nolint add_comm_monoid doc_blame
-apply_nolint add_comm_semigroup doc_blame
-apply_nolint add_group doc_blame
-apply_nolint add_left_cancel_semigroup doc_blame
-apply_nolint add_monoid doc_blame
-apply_nolint add_right_cancel_semigroup doc_blame
-apply_nolint add_semigroup doc_blame
 apply_nolint algebra.sub doc_blame
-apply_nolint comm_group doc_blame
-apply_nolint comm_monoid doc_blame
-apply_nolint comm_semigroup doc_blame
-apply_nolint group doc_blame
-apply_nolint left_cancel_semigroup doc_blame
-apply_nolint monoid doc_blame
-apply_nolint right_cancel_semigroup doc_blame
-apply_nolint semigroup doc_blame
-
--- algebra/group/hom.lean
-apply_nolint add_monoid_hom.add doc_blame
-apply_nolint add_monoid_hom.comp doc_blame
-apply_nolint add_monoid_hom.id doc_blame
-apply_nolint add_monoid_hom.mk' doc_blame
-apply_nolint add_monoid_hom.neg doc_blame
-apply_nolint add_monoid_hom.zero doc_blame
-apply_nolint monoid_hom.one doc_blame
 
 -- algebra/group/to_additive.lean
 apply_nolint to_additive.attr doc_blame
@@ -117,14 +71,6 @@ apply_nolint gt_iff_lt ge_or_gt
 apply_nolint discrete_linear_ordered_field doc_blame
 apply_nolint linear_ordered_field doc_blame
 
--- algebra/ordered_group.lean
-apply_nolint abs doc_blame
-apply_nolint decidable_linear_ordered_add_comm_group doc_blame
-apply_nolint decidable_linear_ordered_cancel_add_comm_monoid doc_blame
-apply_nolint dist_bdd_within_interval unused_arguments
-apply_nolint ordered_add_comm_group doc_blame
-apply_nolint ordered_cancel_add_comm_monoid doc_blame
-
 -- algebra/pointwise.lean
 apply_nolint set.add_comm_monoid doc_blame
 apply_nolint set.comm_monoid doc_blame
@@ -144,7 +90,6 @@ apply_nolint set.pointwise_one doc_blame
 apply_nolint set.pointwise_zero doc_blame
 
 -- algebra/ring.lean
-apply_nolint add_mul def_lemma doc_blame
 apply_nolint comm_ring doc_blame
 apply_nolint comm_semiring doc_blame
 apply_nolint distrib doc_blame
@@ -152,8 +97,6 @@ apply_nolint dvd.trans def_lemma doc_blame
 apply_nolint dvd_of_mul_left_eq def_lemma doc_blame
 apply_nolint dvd_of_mul_right_eq def_lemma doc_blame
 apply_nolint integral_domain doc_blame
-apply_nolint mul_add def_lemma doc_blame
-apply_nolint mul_sub def_lemma doc_blame
 apply_nolint mul_zero_class doc_blame
 apply_nolint no_zero_divisors doc_blame
 apply_nolint ring doc_blame
@@ -161,7 +104,6 @@ apply_nolint ring_hom has_inhabited_instance
 apply_nolint ring_hom.to_add_monoid_hom doc_blame
 apply_nolint ring_hom.to_monoid_hom doc_blame
 apply_nolint semiring doc_blame
-apply_nolint sub_mul def_lemma doc_blame
 
 -- algebraic_geometry/presheafed_space.lean
 apply_nolint algebraic_geometry.PresheafedSpace has_inhabited_instance
@@ -760,91 +702,7 @@ apply_nolint dlist.list_equiv_dlist doc_blame
 
 -- data/equiv/basic.lean
 apply_nolint equiv has_inhabited_instance
-apply_nolint equiv.Pi_congr_right doc_blame
-apply_nolint equiv.Pi_curry doc_blame
-apply_nolint equiv.Prop_equiv_bool doc_blame
-apply_nolint equiv.arrow_congr doc_blame
-apply_nolint equiv.arrow_prod_equiv_prod_arrow doc_blame
-apply_nolint equiv.arrow_punit_equiv_punit doc_blame
-apply_nolint equiv.bool_equiv_punit_sum_punit doc_blame
-apply_nolint equiv.bool_prod_equiv_sum doc_blame
-apply_nolint equiv.cast doc_blame
-apply_nolint equiv.decidable_eq doc_blame
-apply_nolint equiv.decidable_eq_of_equiv doc_blame
-apply_nolint equiv.empty_arrow_equiv_punit doc_blame
-apply_nolint equiv.empty_equiv_pempty doc_blame
-apply_nolint equiv.empty_of_not_nonempty doc_blame
-apply_nolint equiv.empty_sum doc_blame
-apply_nolint equiv.equiv_congr doc_blame
-apply_nolint equiv.equiv_empty doc_blame
-apply_nolint equiv.equiv_pempty doc_blame
-apply_nolint equiv.false_arrow_equiv_punit doc_blame
-apply_nolint equiv.false_equiv_empty doc_blame
-apply_nolint equiv.false_equiv_pempty doc_blame
-apply_nolint equiv.fin_equiv_subtype doc_blame
-apply_nolint equiv.inhabited_of_equiv doc_blame
-apply_nolint equiv.int_equiv_nat_sum_nat doc_blame
-apply_nolint equiv.list_equiv_of_equiv doc_blame
-apply_nolint equiv.nat_equiv_nat_sum_punit doc_blame
-apply_nolint equiv.nat_sum_punit_equiv_nat doc_blame
-apply_nolint equiv.of_bijective doc_blame
-apply_nolint equiv.option_equiv_sum_punit doc_blame
-apply_nolint equiv.pempty_arrow_equiv_punit doc_blame
-apply_nolint equiv.pempty_equiv_pempty doc_blame
-apply_nolint equiv.pempty_of_not_nonempty doc_blame
-apply_nolint equiv.pempty_sum doc_blame
-apply_nolint equiv.perm_congr doc_blame
-apply_nolint equiv.pi_equiv_subtype_sigma doc_blame
-apply_nolint equiv.plift doc_blame
-apply_nolint equiv.prod_sum_distrib doc_blame
-apply_nolint equiv.prop_equiv_punit doc_blame
-apply_nolint equiv.psigma_equiv_sigma doc_blame
-apply_nolint equiv.punit_arrow_equiv doc_blame
-apply_nolint equiv.punit_equiv_punit doc_blame
-apply_nolint equiv.refl doc_blame
-apply_nolint equiv.set.congr doc_blame
-apply_nolint equiv.set.empty doc_blame
-apply_nolint equiv.set.image doc_blame
-apply_nolint equiv.set.image_of_inj_on doc_blame
-apply_nolint equiv.set.insert doc_blame
-apply_nolint equiv.set.of_eq doc_blame
-apply_nolint equiv.set.pempty doc_blame
-apply_nolint equiv.set.prod doc_blame
-apply_nolint equiv.set.range doc_blame
-apply_nolint equiv.set.sep doc_blame
-apply_nolint equiv.set.singleton doc_blame
-apply_nolint equiv.set.sum_compl doc_blame
-apply_nolint equiv.set.union doc_blame
-apply_nolint equiv.set.union' doc_blame
-apply_nolint equiv.set.union_sum_inter doc_blame
-apply_nolint equiv.set.univ doc_blame
-apply_nolint equiv.set_congr doc_blame
-apply_nolint equiv.sigma_congr_left doc_blame
-apply_nolint equiv.sigma_congr_right doc_blame
-apply_nolint equiv.sigma_prod_distrib doc_blame
-apply_nolint equiv.sigma_subtype_preimage_equiv doc_blame
-apply_nolint equiv.sigma_subtype_preimage_equiv_subtype doc_blame
-apply_nolint equiv.subtype_congr doc_blame
-apply_nolint equiv.subtype_congr_prop doc_blame
-apply_nolint equiv.subtype_congr_right doc_blame
-apply_nolint equiv.subtype_equiv_of_subtype' doc_blame
-apply_nolint equiv.subtype_pi_equiv_pi doc_blame
 apply_nolint equiv.subtype_quotient_equiv_quotient_subtype doc_blame
-apply_nolint equiv.subtype_subtype_equiv_subtype_exists doc_blame
-apply_nolint equiv.subtype_subtype_equiv_subtype_inter doc_blame
-apply_nolint equiv.sum_arrow_equiv_prod_arrow doc_blame
-apply_nolint equiv.sum_equiv_sigma_bool doc_blame
-apply_nolint equiv.sum_prod_distrib doc_blame
-apply_nolint equiv.swap_core doc_blame
-apply_nolint equiv.symm doc_blame
-apply_nolint equiv.trans doc_blame
-apply_nolint equiv.true_equiv_punit doc_blame
-apply_nolint equiv.ulift doc_blame
-apply_nolint equiv.unique_congr doc_blame
-apply_nolint equiv.unique_of_equiv doc_blame
-apply_nolint equiv_of_unique_of_unique doc_blame
-apply_nolint equiv_punit_of_unique doc_blame
-apply_nolint unique_unique_equiv doc_blame
 
 -- data/equiv/denumerable.lean
 apply_nolint denumerable.equiv₂ doc_blame
@@ -1504,7 +1362,6 @@ apply_nolint set.fintype_subset doc_blame
 apply_nolint set.Union_eq_sigma_of_disjoint doc_blame
 apply_nolint set.bUnion_eq_sigma_of_disjoint doc_blame
 apply_nolint set.seq doc_blame
-apply_nolint set.sigma_to_Union doc_blame
 
 -- data/string/basic.lean
 apply_nolint string.ltb doc_blame
@@ -2780,23 +2637,14 @@ apply_nolint continuous_map.induced doc_blame
 -- topology/homeomorph.lean
 apply_nolint homeomorph has_inhabited_instance
 
--- topology/instances/ennreal.lean
-apply_nolint ennreal.tendsto_at_top ge_or_gt
-apply_nolint infi_real_pos_eq_infi_nnreal_pos ge_or_gt
-
 -- topology/maps.lean
 apply_nolint inducing doc_blame
 apply_nolint is_closed_map doc_blame
 
 -- topology/metric_space/basic.lean
-apply_nolint cauchy_seq_bdd ge_or_gt
-apply_nolint lebesgue_number_lemma_of_metric ge_or_gt
-apply_nolint lebesgue_number_lemma_of_metric_sUnion ge_or_gt
 apply_nolint metric.cauchy_iff ge_or_gt
 apply_nolint metric.is_open_iff ge_or_gt
-apply_nolint metric.mem_closure_range_iff ge_or_gt
 apply_nolint metric.mem_nhds_iff ge_or_gt
-apply_nolint metric.mem_of_closed' ge_or_gt
 apply_nolint metric.tendsto_nhds ge_or_gt
 apply_nolint metric_space.induced doc_blame
 apply_nolint metric_space.replace_uniformity doc_blame

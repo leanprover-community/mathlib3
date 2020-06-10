@@ -425,7 +425,7 @@ In most of this section, the domain `β` is assumed to be an `add_monoid`.
 -- [to_additive sum] for finsupp.prod doesn't work, the equation lemmas are not generated
 /-- `sum f g` is the sum of `g a (f a)` over the support of `f`. -/
 def sum [has_zero β] [add_comm_monoid γ] (f : α →₀ β) (g : α → β → γ) : γ :=
-f.support.sum (λa, g a (f a))
+∑ a in f.support, g a (f a)
 
 /-- `prod f g` is the product of `g a (f a)` over the support of `f`. -/
 @[to_additive]
@@ -633,7 +633,7 @@ multiset.induction_on s single_zero $ λ a s ih,
 by rw [multiset.sum_cons, single_add, ih, multiset.map_cons, multiset.sum_cons]
 
 lemma single_finset_sum [add_comm_monoid β] (s : finset γ) (f : γ → β) (a : α) :
-  single a (s.sum f) = s.sum (λb, single a (f b)) :=
+  single a (∑ b in s, f b) = ∑ b in s, single a (f b) :=
 begin
   transitivity,
   apply single_multiset_sum,
@@ -704,7 +704,7 @@ by rw [sub_eq_add_neg, ←sum_neg, ←sum_add]; refl
 @[simp] lemma sum_single [add_comm_monoid β] (f : α →₀ β) :
   f.sum single = f :=
 have ∀a:α, f.sum (λa' b, ite (a' = a) b 0) =
-    ({a} : finset α).sum (λa', ite (a' = a) (f a') 0),
+    ∑ a' in {a}, ite (a' = a) (f a') 0,
 begin
   intro a,
   by_cases h : a ∈ f.support,
@@ -712,7 +712,7 @@ begin
       { simpa only [finset.subset_iff, mem_singleton, forall_eq] },
     refine (finset.sum_subset this (λ _ _ H, _)).symm,
     exact if_neg (mt mem_singleton.2 H) },
-  { transitivity (f.support.sum (λa, (0 : β))),
+  { transitivity (∑ a in f.support, (0 : β)),
     { refine (finset.sum_congr rfl $ λ a' ha', if_neg _),
       rintro rfl, exact h ha' },
     { rw [sum_const_zero, sum_singleton, if_pos rfl, not_mem_support_iff.1 h] } }
@@ -762,7 +762,7 @@ calc (f - g).sum h = (f + - g).sum h : rfl
 lemma prod_finset_sum_index [add_comm_monoid β] [comm_monoid γ]
   {s : finset ι} {g : ι → α →₀ β}
   {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
-  s.prod (λi, (g i).prod h) = (s.sum g).prod h :=
+  s.prod (λi, (g i).prod h) = (∑ i in s, g i).prod h :=
 finset.induction_on s rfl $ λ a s has ih,
 by rw [prod_insert has, ih, sum_insert has, prod_add_index h_zero h_add]
 
@@ -804,7 +804,7 @@ lemma map_range_multiset_sum (m : multiset (α →₀ β₁)) :
 (m.sum_hom (map_range f hf.map_zero)).symm
 
 lemma map_range_finset_sum {ι : Type*} (s : finset ι) (g : ι → (α →₀ β₁))  :
-  map_range f hf.map_zero (s.sum g) = s.sum (λx, map_range f hf.map_zero (g x)) :=
+  map_range f hf.map_zero (∑ x in s, g x) = ∑ x in s, map_range f hf.map_zero (g x) :=
 by rw [finset.sum.equations._eqn_1, map_range_multiset_sum, multiset.map_map]; refl
 
 end map_range
@@ -866,7 +866,7 @@ lemma map_domain_add {f : α → α₂} : map_domain f (v₁ + v₂) = map_domai
 sum_add_index (λ _, single_zero) (λ _ _ _, single_add)
 
 lemma map_domain_finset_sum {f : α → α₂} {s : finset ι} {v : ι → α →₀ β} :
-  map_domain f (s.sum v) = s.sum (λi, map_domain f (v i)) :=
+  map_domain f (∑ i in s, v i) = ∑ i in s, map_domain f (v i) :=
 eq.symm $ sum_finset_sum_index (λ _, single_zero) (λ _ _ _, single_add)
 
 lemma map_domain_sum [has_zero β₁] {f : α → α₂} {s : α →₀ β₁} {v : α → β₁ → α →₀ β} :
@@ -1107,7 +1107,7 @@ section comm_monoid
 variables [add_comm_monoid β]
 
 lemma subtype_domain_sum {s : finset γ} {h : γ → α →₀ β} :
-  (s.sum h).subtype_domain p = s.sum (λc, (h c).subtype_domain p) :=
+  (∑ c in s, h c).subtype_domain p = ∑ c in s, (h c).subtype_domain p :=
 eq.symm (s.sum_hom _)
 
 lemma subtype_domain_finsupp_sum {s : γ →₀ δ} {h : γ → δ → α →₀ β} :
@@ -1115,7 +1115,7 @@ lemma subtype_domain_finsupp_sum {s : γ →₀ δ} {h : γ → δ → α →₀
 subtype_domain_sum
 
 lemma filter_sum (s : finset γ) (f : γ → α →₀ β) :
-  (s.sum f).filter p = s.sum (λa, filter p (f a)) :=
+  (∑ a in s, f a).filter p = ∑ a in s, filter p (f a) :=
 (s.sum_hom (filter p)).symm
 
 end comm_monoid
@@ -1570,7 +1570,7 @@ by simp only [finset.ext, split_support, split, comap_domain, mem_image,
   mem_preimage, sigma.forall, mem_sigma]; tauto
 
 lemma sigma_sum [add_comm_monoid γ] (f : (Σ (i : ι), αs i) → β → γ) :
-  l.sum f = (split_support l).sum (λ (i : ι), (split l i).sum (λ (a : αs i) b, f ⟨i, a⟩ b)) :=
+  l.sum f = ∑ i in split_support l, (split l i).sum (λ (a : αs i) b, f ⟨i, a⟩ b) :=
 by simp only [sum, sigma_support, sum_sigma, split_apply]
 
 end sigma

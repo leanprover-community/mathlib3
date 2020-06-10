@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
+Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Yakov Pechersky
 -/
 import algebra.pi_instances
 import data.finsupp
@@ -52,6 +52,7 @@ linear algebra, vector space, module
 -/
 
 open function
+open_locale big_operators
 
 reserve infix ` ≃ₗ `:25
 
@@ -74,11 +75,11 @@ open_locale classical
 
 /-- decomposing `x : ι → R` as a sum along the canonical basis -/
 lemma pi_eq_sum_univ {ι : Type u} [fintype ι] {R : Type v} [semiring R] (x : ι → R) :
-  x = finset.sum finset.univ (λi:ι, x i • (λj, if i = j then 1 else 0)) :=
+  x = ∑ i, x i • (λj, if i = j then 1 else 0) :=
 begin
   ext k,
   rw pi.finset_sum_apply,
-  have : finset.sum finset.univ (λ (x_1 : ι), x x_1 * ite (k = x_1) 1 0) = x k,
+  have : ∑ i, x i * ite (k = i) 1 0 = x k,
     by { have := finset.sum_mul_boole finset.univ x k, rwa if_pos (finset.mem_univ _) at this },
   rw ← this,
   apply finset.sum_congr rfl (λl hl, _),
@@ -153,7 +154,7 @@ instance linear_map_apply_is_add_monoid_hom (a : M) :
   map_zero := rfl }
 
 lemma sum_apply (t : finset ι) (f : ι → M →ₗ[R] M₂) (b : M) :
-  t.sum f b = t.sum (λd, f d b) :=
+  (∑ d in t, f d) b = ∑ d in t, f d b :=
 (t.sum_hom (λ g : M →ₗ[R] M₂, g b)).symm
 
 /-- `λb, f b • x` is a linear map. -/
@@ -176,7 +177,7 @@ ext $ assume c, by rw [comp_apply, zero_apply, zero_apply, f.map_zero]
 rfl
 
 @[norm_cast] lemma coe_fn_sum {ι : Type*} (t : finset ι) (f : ι → M →ₗ[R] M₂) :
-  ⇑(t.sum f) = t.sum (λ i, (f i : M → M₂)) :=
+  ⇑(∑ i in t, f i) = ∑ i in t, (f i : M → M₂) :=
 add_monoid_hom.map_sum ⟨@to_fun R M M₂ _ _ _ _ _, rfl, λ x y, rfl⟩ _ _
 
 instance : monoid (M →ₗ[R] M) :=
@@ -188,7 +189,7 @@ open_locale classical
 /-- A linear map `f` applied to `x : ι → R` can be computed using the image under `f` of elements
 of the canonical basis. -/
 lemma pi_apply_eq_sum_univ [fintype ι] (f : (ι → R) →ₗ[R] M) (x : ι → R) :
-  f x = finset.sum finset.univ (λi:ι, x i • (f (λj, if i = j then 1 else 0))) :=
+  f x = ∑ i, x i • (f (λj, if i = j then 1 else 0)) :=
 begin
   conv_lhs { rw [pi_eq_sum_univ x, f.map_sum] },
   apply finset.sum_congr rfl (λl hl, _),
@@ -1641,6 +1642,24 @@ rfl
 
 end prod
 
+section uncurry
+
+variables (V V₂ R)
+
+/-- Linear equivalence between a curried and uncurried function.
+  Differs from `tensor_product.curry`. -/
+protected def uncurry :
+  (V → V₂ → R) ≃ₗ[R] (V × V₂ → R) :=
+{ add := λ _ _, by { ext z, cases z, refl },
+  smul := λ _ _, by { ext z, cases z, refl },
+  .. equiv.arrow_arrow_equiv_prod_arrow _ _ _}
+
+@[simp] lemma coe_uncurry : ⇑(linear_equiv.uncurry R V V₂) = uncurry := rfl
+
+@[simp] lemma coe_uncurry_symm : ⇑(linear_equiv.uncurry R V V₂).symm = curry := rfl
+
+end uncurry
+
 section
 variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
 variables (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M) (e : M ≃ₗ[R] M₂)
@@ -2131,7 +2150,7 @@ submodule.le_def'.2
 begin
   assume b hb,
   simp only [mem_infi, mem_ker, proj_apply] at hb,
-  rw ← show I.sum (λi, std_basis R φ i (b i)) = b,
+  rw ← show ∑ i in I, std_basis R φ i (b i) = b,
   { ext i,
     rw [pi.finset_sum_apply, ← std_basis_same R φ i (b i)],
     refine finset.sum_eq_single i (assume j hjI ne, std_basis_ne _ _ _ _ ne.symm _) _,

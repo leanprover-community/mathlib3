@@ -20,10 +20,7 @@ and extra recursors:
 
 universes u v
 
-run_cmd do env ← tactic.get_env,
-  tactic.set_env $
-  [``nat.pow_zero,
-   ``nat.pow_succ].foldl environment.mk_protected env
+attribute [protected] nat.pow_zero nat.pow_succ
 
 instance : canonically_ordered_comm_semiring ℕ :=
 { le_iff_exists_add := assume a b,
@@ -410,6 +407,10 @@ protected lemma div_le_self' (m n : ℕ) : m / n ≤ m :=
   (λ n0, nat.div_le_of_le_mul' $ calc
       m = 1 * m : (one_mul _).symm
     ... ≤ n * m : mul_le_mul_right _ n0)
+
+/-- A version of `nat.div_lt_self` using successors, rather than additional hypotheses. -/
+lemma div_lt_self' (n b : ℕ) : (n+1)/(b+2) < n+1 :=
+nat.div_lt_self (nat.succ_pos n) (nat.succ_lt_succ (nat.succ_pos _))
 
 theorem le_div_iff_mul_le' {x y : ℕ} {k : ℕ} (k0 : 0 < k) : x ≤ y / k ↔ x * k ≤ y :=
 begin

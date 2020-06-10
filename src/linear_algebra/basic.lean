@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
+Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Yakov Pechersky
 -/
 import algebra.pi_instances
 import data.finsupp
@@ -1640,6 +1640,19 @@ lemma prod_symm : (e₁.prod e₂).symm = e₁.symm.prod e₂.symm := rfl
 rfl
 
 end prod
+
+section curry
+
+variables (V V₂ R)
+
+/-- Linear equivalence between an uncurried and curried function. -/
+protected def curry :
+  (V → V₂ → R) ≃ₗ[R] (V × V₂ → R) :=
+{ add := λ _ _, by ext z; cases z; refl,
+  smul := λ _ _, by ext z; cases z; refl,
+  .. equiv.arrow_arrow_equiv_prod_arrow _ _ _}
+
+end curry
 
 section
 variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}

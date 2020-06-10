@@ -31,7 +31,7 @@ variables {α : Type*}
 def of_equiv (α) {β} [fin_enum α] (h : β ≃ α) : fin_enum β :=
 { card := card α,
   equiv := h.trans (equiv α),
-  dec_eq := equiv.decidable_eq_of_equiv (h.trans (equiv _)) }
+  dec_eq := (h.trans (equiv _)).decidable_eq }
 
 /-- create a `fin_enum` instance from an exhaustive list without duplicates -/
 def of_nodup_list [decidable_eq α] (xs : list α) (h : ∀ x : α, x ∈ xs) (h' : list.nodup xs) :

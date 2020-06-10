@@ -11,7 +11,7 @@ import measure_theory.measurable_space
 noncomputable theory
 
 open set finset function filter encodable
-open_locale classical
+open_locale classical big_operators
 
 namespace measure_theory
 
@@ -300,7 +300,7 @@ theorem of_function_le {α : Type*} (m : set α → ennreal) (m_empty s) :
   outer_measure.of_function m m_empty s ≤ m s :=
 let f : ℕ → set α := λi, nat.rec_on i s (λn s, ∅) in
 infi_le_of_le f $ infi_le_of_le (subset_Union f 0) $ le_of_eq $
-calc (∑'i, m (f i)) = ({0} : finset ℕ).sum (λi, m (f i)) :
+calc (∑'i, m (f i)) = ∑ i in {0}, m (f i) :
     tsum_eq_sum $ by intro i; cases i; simp [m_empty]
   ... = m s : by simp; refl
 
@@ -359,7 +359,7 @@ private lemma C_inter (h₁ : C s₁) (h₂ : C s₂) : C (s₁ ∩ s₂) :=
 by rw [← C_compl_iff, compl_inter]; from C_union _ (C_compl _ h₁) (C_compl _ h₂)
 
 private lemma C_sum {s : ℕ → set α} (h : ∀i, C (s i)) (hd : pairwise (disjoint on s)) {t : set α} :
-  ∀ {n}, (finset.range n).sum (λi, m (t ∩ s i)) = m (t ∩ ⋃i<n, s i)
+  ∀ {n}, ∑ i in finset.range n, m (t ∩ s i) = m (t ∩ ⋃i<n, s i)
 | 0            := by simp [nat.not_lt_zero, m.empty]
 | (nat.succ n) := begin
   simp [Union_lt_succ, range_succ],

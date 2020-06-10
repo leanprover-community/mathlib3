@@ -128,7 +128,7 @@ by rw [angle_comm, angle_self_neg_of_nonzero hx]
 begin
   unfold angle,
   rw [inner_smul_right, norm_smul, real.norm_eq_abs, abs_of_nonneg (le_of_lt hr), ←mul_assoc,
-      mul_comm _ r, mul_assoc, mul_div_mul_left' _ _ (ne_of_gt hr)]
+      mul_comm _ r, mul_assoc, mul_div_mul_left _ _ (ne_of_gt hr)]
 end
 
 /-- The angle between a positive multiple of a vector and a vector. -/

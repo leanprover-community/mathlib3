@@ -247,9 +247,9 @@ lemma inverse_approx_map_maps_to (hf : approximates_linear_on f (f' : E →L[�
   maps_to g (closed_ball b ε) (closed_ball b ε) :=
 begin
   cases hc with hE hc,
-  { exactI λ x hx, mem_preimage.2 (subsingleton.elim x (g x) ▸ hx) },
+  { exactI λ x hx, subsingleton.elim x (g x) ▸ hx },
   assume x hx,
-  simp only [subset_def, mem_closed_ball, mem_preimage] at hx hy ⊢,
+  simp only [mem_closed_ball] at hx hy ⊢,
   rw [dist_comm] at hy,
   calc dist (inverse_approx_map f f' y x) b ≤
     dist (inverse_approx_map f f' y x) (inverse_approx_map f f' y b) +

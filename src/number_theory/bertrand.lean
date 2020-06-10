@@ -1,4 +1,3 @@
-import data.subtype
 import data.nat.prime
 import data.nat.choose
 import data.nat.multiplicity
@@ -8,17 +7,67 @@ import ring_theory.multiplicity
 
 open_locale big_operators
 
-private def α (n : nat) (pos : 0 < n) (p : nat) (is_prime : nat.prime p) : nat :=
-  (multiplicity p (nat.choose (2 * n) n)).get $
-  begin
-    have not_one : p ≠ 1 := nat.prime.ne_one is_prime,
-    have pos : 0 < nat.choose (2 * n) n := nat.choose_pos (by linarith),
-    have fin : multiplicity.finite p (nat.choose (2 * n) n) :=
-      (@multiplicity.finite_nat_iff p (nat.choose (2 * n) n)).2 ⟨not_one, pos⟩,
-    exact (multiplicity.finite_iff_dom.1 fin),
-  end
+lemma prod_multiplicity_one (m : nat) (m_big : 1 < m) :
+  ∏ p in finset.filter nat.prime (finset.range m), p ^ padic_val_rat.padic_val_nat p 1 = 1 :=
+begin
+  have all_one : ∀ p, p ^ padic_val_rat.padic_val_nat p 1 = 1,
+    { intros p,
+      unfold padic_val_rat.padic_val_nat,
+      simp only [nat.cast_one, padic_val_rat.one],
+      refl },
+  calc
+    ∏ p in finset.filter nat.prime (finset.range m), p ^ padic_val_rat.padic_val_nat p 1
+      = ∏ p in finset.filter nat.prime (finset.range m), 1 :
+      begin
+        apply finset.prod_bij (λ a _, a) (λ _ ha, ha),
+        exact λ a _, all_one a,
+        exact λ _ _ _ _ pr, pr,
+        exact (λ b pr, ⟨b, ⟨pr, by cc⟩⟩),
+      end
+    ... = 1 : finset.prod_const_one,
+end
+
+lemma prod_multiplicity : ∀ (n : nat) (s : n ≠ 0) (m : nat) (pr : n < m),
+  ∏ p in finset.filter nat.prime (finset.range m), pow p (padic_val_rat.padic_val_nat p n) = n
+| n := λ nonzero m pr,
+begin
+  cases lt_trichotomy n 1,
+  { have u : n = 0, by linarith,
+    cc },
+  cases h with n_eq_one one_lt_n,
+  { subst n_eq_one, exact prod_multiplicity_one m pr, },
+
+  have r : nat.prime (nat.min_fac n), exact @nat.min_fac_prime n (by linarith),
+  have s : (nat.min_fac n) ∣ n, exact nat.min_fac_dvd n,
+
+  have nonzero' : n / nat.min_fac n ≠ 0,
+    { intros quot_zero,
+      have n_smaller : n < nat.min_fac n, exact (nat.div_eq_zero_iff (nat.prime.pos r)).1 quot_zero,
+      have n_bigger : n.min_fac ≤ n, exact nat.le_of_dvd (by linarith) s,
+      linarith, },
+  have less : n / nat.min_fac n < n, exact nat.div_lt_self (by linarith) (nat.prime.one_lt r),
+
+  have rec :
+    ∏ p in finset.filter nat.prime (finset.range m), p ^ padic_val_rat.padic_val_nat p (n / n.min_fac)
+    = n / nat.min_fac n,
+    exact prod_multiplicity (n / nat.min_fac n) nonzero' m (by linarith),
+
+  have blah : ∀ p ∈ finset.filter nat.prime (finset.range m), p ^ padic_val_rat.padic_val_nat p (n / n.min_fac) =
+    if p ∣ n then p ^ ((padic_val_rat.padic_val_nat p n) - 1) else p ^ padic_val_rat.padic_val_nat p n,
+    by sorry,
+
+  let e :=
+    @finset.prod_bij _ _ _ _
+      (finset.filter nat.prime (finset.range m)) (finset.filter nat.prime (finset.range m))
+      (λ a, a ^ padic_val_rat.padic_val_nat a (n / n.min_fac))
+      (λ a, ite (a ∣ n) (a ^ ((padic_val_rat.padic_val_nat a n) - 1)) (a ^ (padic_val_rat.padic_val_nat a n)))
+      (λ a _, a) (λ _ ha, ha) blah,
+end
 
 /-
+
+private def α (n : nat) (pos : 0 < n) (p : nat) (is_prime : nat.prime p) : nat :=
+padic_val_rat.padic_val_nat p (nat.choose (2 * n) n)
 
 def primes_le (n : nat) : finset {m : nat // m ≤ n ∧ nat.prime m} :=
 begin
@@ -44,6 +93,9 @@ begin
 sorry
 end
 
+lemma central_binom_nonzero (n : ℕ) : nat.choose (2 * n) n ≠ 0 :=
+ne_of_gt (nat.choose_pos (by linarith))
+
 lemma claim_1
   (p : nat)
   (is_prime : nat.prime p)
@@ -53,6 +105,7 @@ lemma claim_1
   :=
 begin
   unfold α,
+  rw @padic_val_rat.padic_val_nat_def p is_prime (nat.choose (2 * n) n) (central_binom_nonzero n),
   simp only [@nat.prime.multiplicity_choose p (2 * n) n _ is_prime (by linarith) (le_refl (2 * n))],
   have r : 2 * n - n = n, by
     calc 2 * n - n = n + n - n: by rw two_mul n
@@ -99,6 +152,7 @@ lemma claim_2
   :=
 begin
   unfold α,
+  rw @padic_val_rat.padic_val_nat_def p is_prime (nat.choose (2 * n) n) (central_binom_nonzero n),
   simp only [@nat.prime.multiplicity_choose p (2 * n) n _ is_prime (by linarith) (le_refl (2 * n))],
   have r : 2 * n - n = n, by
     calc 2 * n - n = n + n - n: by rw two_mul n
@@ -248,7 +302,9 @@ begin
   rw [mult_in_two_n, mult_in_n] at mult_fact_two_n,
   have mult_choose_zero : multiplicity p (nat.choose (2 * n) n) = 0,
     by exact collapse_enat (multiplicity p (nat.choose (2 * n) n)) mult_fact_two_n,
-  unfold α, simp [mult_choose_zero],
+  unfold α,
+  rw @padic_val_rat.padic_val_nat_def p is_prime (nat.choose (2 * n) n) (central_binom_nonzero n),
+  simp [mult_choose_zero],
 end
 
 /--
@@ -257,7 +313,8 @@ end
 lemma mean_le_biggest {A B : Type*} [decidable_eq A] [ordered_semiring B]
   (f : A → B) {m : B} (s : finset A) (bound : ∀ x ∈ s, f x ≤ m) : ∑ i in s, f i ≤ s.card * m :=
 begin
-  rw [← add_monoid.smul_eq_mul, ← finset.sum_const],
+  rw ← @smul_eq_mul B _ s.card m,
+  rw ← @finset.sum_const _ _ s _ m,
   apply finset.sum_le_sum bound,
 end
 
@@ -345,8 +402,5 @@ interval_cases n,
 { use 3, norm_num },
 { use 5, norm_num },
 end
-
-
--/
 
 -/

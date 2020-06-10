@@ -260,7 +260,7 @@ by simp only [algebra.smul_def, map_mul, commutes]
 φ.to_ring_hom.map_pow x n
 
 lemma map_sum {ι : Type*} (f : ι → A) (s : finset ι) :
-  φ (s.sum f) = s.sum (λx, φ (f x)) :=
+  φ (∑ x in s, f x) = ∑ x in s, φ (f x) :=
 φ.to_ring_hom.map_sum f s
 
 section

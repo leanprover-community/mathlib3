@@ -63,7 +63,7 @@ linearly dependent, linear dependence, linearly independent, linear independence
 noncomputable theory
 
 open function set submodule
-open_locale classical
+open_locale classical big_operators
 
 variables {ι : Type*} {ι' : Type*} {R : Type*} {K : Type*}
           {M : Type*} {M' : Type*} {V : Type*} {V' : Type*}
@@ -84,17 +84,17 @@ theorem linear_independent_iff : linear_independent R v ↔
 by simp [linear_independent, linear_map.ker_eq_bot']
 
 theorem linear_independent_iff' : linear_independent R v ↔
-  ∀ s : finset ι, ∀ g : ι → R, s.sum (λ i, g i • v i) = 0 → ∀ i ∈ s, g i = 0 :=
+  ∀ s : finset ι, ∀ g : ι → R, ∑ i in s, g i • v i = 0 → ∀ i ∈ s, g i = 0 :=
 linear_independent_iff.trans
-⟨λ hf s g hg i his, have h : _ := hf (s.sum $ λ i, finsupp.single i (g i)) $
+⟨λ hf s g hg i his, have h : _ := hf (∑ i in s, finsupp.single i (g i)) $
       by simpa only [linear_map.map_sum, finsupp.total_single] using hg, calc
     g i = (finsupp.lapply i : (ι →₀ R) →ₗ[R] R) (finsupp.single i (g i)) :
       by rw [finsupp.lapply_apply, finsupp.single_eq_same]
-    ... = s.sum (λ j, (finsupp.lapply i : (ι →₀ R) →ₗ[R] R) (finsupp.single j (g j))) :
+    ... = ∑ j in s, (finsupp.lapply i : (ι →₀ R) →ₗ[R] R) (finsupp.single j (g j)) :
       eq.symm $ finset.sum_eq_single i
         (λ j hjs hji, by rw [finsupp.lapply_apply, finsupp.single_eq_of_ne hji])
         (λ hnis, hnis.elim his)
-    ... = s.sum (λ j, finsupp.single j (g j)) i : (finsupp.lapply i : (ι →₀ R) →ₗ[R] R).map_sum.symm
+    ... = (∑ j in s, finsupp.single j (g j)) i : (finsupp.lapply i : (ι →₀ R) →ₗ[R] R).map_sum.symm
     ... = 0 : finsupp.ext_iff.1 h i,
 λ hf l hl, finsupp.ext $ λ i, classical.by_contradiction $ λ hni, hni $ hf _ _ hl _ $
   finsupp.mem_support_iff.2 hni⟩
@@ -646,20 +646,20 @@ have h1 : ∀ i ∈ s, (g i • i : G → L) = g i • a, from λ i his, funext 
   eq_of_sub_eq_zero $ ih (λ j, g j * j x - g j * a x)
     (funext $ λ y : G, calc
     -- After that, it's just a chase scene.
-          s.sum (λ i, ((g i * i x - g i * a x) • i : G → L)) y
-        = s.sum (λ i, (g i * i x - g i * a x) * i y) : pi.finset_sum_apply _ _ _
-    ... = s.sum (λ i, g i * i x * i y - g i * a x * i y) : finset.sum_congr rfl
+          (∑ i in s, ((g i * i x - g i * a x) • i : G → L)) y
+        = ∑ i in s, (g i * i x - g i * a x) * i y : pi.finset_sum_apply _ _ _
+    ... = ∑ i in s, g i * i x * i y - g i * a x * i y : finset.sum_congr rfl
       (λ _ _, sub_mul _ _ _)
-    ... = s.sum (λ i, g i * i x * i y) - s.sum (λ i, g i * a x * i y) : finset.sum_sub_distrib
-    ... = (g a * a x * a y + s.sum (λ i, g i * i x * i y))
-          - (g a * a x * a y + s.sum (λ i, g i * a x * i y)) : by rw add_sub_add_left_eq_sub
-    ... = (insert a s).sum (λ i, g i * i x * i y) - (insert a s).sum (λ i, g i * a x * i y) :
+    ... = ∑ i in s, g i * i x * i y - ∑ i in s, g i * a x * i y : finset.sum_sub_distrib
+    ... = (g a * a x * a y + ∑ i in s, g i * i x * i y)
+          - (g a * a x * a y + ∑ i in s, g i * a x * i y) : by rw add_sub_add_left_eq_sub
+    ... = ∑ i in insert a s, g i * i x * i y - ∑ i in insert a s, g i * a x * i y :
       by rw [finset.sum_insert has, finset.sum_insert has]
-    ... = (insert a s).sum (λ i, g i * i (x * y)) - (insert a s).sum (λ i, a x * (g i * i y)) :
+    ... = ∑ i in insert a s, g i * i (x * y) - ∑ i in insert a s, a x * (g i * i y) :
       congr (congr_arg has_sub.sub (finset.sum_congr rfl $ λ i _, by rw [i.map_mul, mul_assoc]))
         (finset.sum_congr rfl $ λ _ _, by rw [mul_assoc, mul_left_comm])
-    ... = (insert a s).sum (λ i, (g i • i : G → L)) (x * y)
-          - a x * (insert a s).sum (λ i, (g i • i : G → L)) y :
+    ... = (∑ i in insert a s, (g i • i : G → L)) (x * y)
+          - a x * (∑ i in insert a s, (g i • i : G → L)) y :
       by rw [pi.finset_sum_apply, pi.finset_sum_apply, finset.mul_sum]; refl
     ... = 0 - a x * 0 : by rw hg; refl
     ... = 0 : by rw [mul_zero, sub_zero])
@@ -680,7 +680,7 @@ have h3 : ∀ i ∈ s, g i = 0, from λ i his, let ⟨y, hy⟩ := h2 i his in
 have h4 : g a = 0, from calc
   g a = g a * 1 : (mul_one _).symm
   ... = (g a • a : G → L) 1 : by rw ← a.map_one; refl
-  ... = (insert a s).sum (λ i, (g i • i : G → L)) 1 : begin
+  ... = (∑ i in insert a s, (g i • i : G → L)) 1 : begin
       rw finset.sum_eq_single a,
       { intros i his hia, rw finset.mem_insert at his, rw [h3 i (his.resolve_left hia), zero_smul] },
       { intros haas, exfalso, apply haas, exact finset.mem_insert_self a s }
@@ -941,11 +941,11 @@ calc card M = card (ι → R)    : card_congr (equiv_fun_basis h).to_equiv
 /-- Given a basis `v` indexed by `ι`, the canonical linear equivalence between `ι → R` and `M` maps
 a function `x : ι → R` to the linear combination `∑_i x i • v i`. -/
 @[simp] lemma equiv_fun_basis_symm_apply (x : ι → R) :
-  (equiv_fun_basis h).symm x = finset.sum finset.univ (λi, x i • v i) :=
+  (equiv_fun_basis h).symm x = ∑ i, x i • v i :=
 begin
   change finsupp.sum
       ((finsupp.equiv_fun_on_fintype.symm : (ι → R) ≃ (ι →₀ R)) x) (λ (i : ι) (a : R), a • v i)
-    = finset.sum finset.univ (λi, x i • v i),
+    = ∑ i, x i • v i,
   dsimp [finsupp.equiv_fun_on_fintype, finsupp.sum],
   rw finset.sum_filter,
   refine finset.sum_congr rfl (λi hi, _),

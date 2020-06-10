@@ -7,6 +7,8 @@ import algebra.module
 import ring_theory.subring
 import ring_theory.prod
 
+open_locale big_operators
+
 /-!
 # Pi instances for algebraic structures
 -/
@@ -245,7 +247,7 @@ variables {I : Type*} [decidable_eq I] {Z : I → Type*}
 variables [Π i, add_comm_monoid (Z i)]
 
 lemma finset.univ_sum_single [fintype I] (f : Π i, Z i) :
-  finset.univ.sum (λ i, pi.single i (f i)) = f :=
+  ∑ i, pi.single i (f i) = f :=
 begin
   ext a,
   rw [finset.sum_apply, finset.sum_eq_single a],

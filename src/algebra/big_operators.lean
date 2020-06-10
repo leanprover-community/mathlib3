@@ -832,9 +832,9 @@ multiset.card_sigma _ _
 lemma card_bind [decidable_eq β] {s : finset α} {t : α → finset β}
   (h : ∀ x ∈ s, ∀ y ∈ s, x ≠ y → disjoint (t x) (t y)) :
   (s.bind t).card = ∑ u in s, card (t u) :=
-calc (s.bind t).card = (s.bind t).sum (λ _, 1) : by simp
-... = s.sum (λ a, (t a).sum (λ _, 1)) : finset.sum_bind h
-... = s.sum (λ u, card (t u)) : by simp
+calc (s.bind t).card = ∑ i in s.bind t, 1 : by simp
+... = ∑ a in s, ∑ i in t a, 1 : finset.sum_bind h
+... = ∑ u in s, card (t u) : by simp
 
 lemma card_bind_le [decidable_eq β] {s : finset α} {t : α → finset β} :
   (s.bind t).card ≤ ∑ a in s, (t a).card :=
@@ -843,7 +843,7 @@ finset.induction_on s (by simp)
   (λ a s has ih,
     calc ((insert a s).bind t).card ≤ (t a).card + (s.bind t).card :
     by rw bind_insert; exact finset.card_union_le _ _
-    ... ≤ (insert a s).sum (λ a, card (t a)) :
+    ... ≤ ∑ a in insert a s, card (t a) :
     by rw sum_insert has; exact add_le_add_left ih _)
 
 theorem card_eq_sum_card_image [decidable_eq β] (f : α → β) (s : finset α) :
@@ -854,7 +854,7 @@ calc s.card = ((s.image f).bind (λ a, s.filter (λ x, f x = a))).card :
     ⟨λ hs, mem_bind.2 ⟨f x, mem_image_of_mem _ hs,
       mem_filter.2 ⟨hs, rfl⟩⟩,
     λ h, let ⟨a, ha₁, ha₂⟩ := mem_bind.1 h in by convert filter_subset s ha₂⟩)
-... = (s.image f).sum (λ a, (s.filter (λ x, f x = a)).card) :
+... = ∑ a in s.image f, (s.filter (λ x, f x = a)).card :
   card_bind (by simp [disjoint_left, finset.ext] {contextual := tt})
 
 lemma gsmul_sum [add_comm_group β] {f : α → β} {s : finset α} (z : ℤ) :
@@ -1063,7 +1063,7 @@ lemma sum_eq_zero_iff_of_nonpos : (∀x∈s, f x ≤ 0) → ((∑ x in s, f x) =
 @sum_eq_zero_iff_of_nonneg _ (order_dual β) _ _ _
 
 lemma single_le_sum (hf : ∀x∈s, 0 ≤ f x) {a} (h : a ∈ s) : f a ≤ (∑ x in s, f x) :=
-have ({a} : finset α).sum f ≤ (∑ x in s, f x),
+have ∑ x in {a}, f x ≤ (∑ x in s, f x),
   from sum_le_sum_of_subset_of_nonneg
   (λ x e, (mem_singleton.1 e).symm ▸ h) (λ x h _, hf x h),
 by rwa sum_singleton at this
@@ -1082,7 +1082,7 @@ lemma sum_mono_set (f : α → β) : monotone (λ s, ∑ x in s, f x) :=
 lemma sum_le_sum_of_ne_zero (h : ∀x∈s₁, f x ≠ 0 → x ∈ s₂) :
   (∑ x in s₁, f x) ≤ (∑ x in s₂, f x) :=
 by classical;
-calc (∑ x in s₁, f x) = (s₁.filter (λx, f x = 0)).sum f + (s₁.filter (λx, f x ≠ 0)).sum f :
+calc (∑ x in s₁, f x) = ∑ x in s₁.filter (λx, f x = 0), f x + ∑ x in s₁.filter (λx, f x ≠ 0), f x :
     by rw [←sum_union, filter_union_filter_neg_eq];
        exact disjoint_filter.2 (assume _ _ h n_h, n_h h)
   ... ≤ (∑ x in s₂, f x) : add_le_of_nonpos_of_le'
@@ -1120,7 +1120,7 @@ calc (∑ x in s₁, f x) < (∑ x in insert i s₁, f x) :
 begin
   simp only [mem_sdiff] at hi,
   rw sum_insert hi.2,
-  exact lt_add_of_pos_left (finset.sum s₁ f) hpos,
+  exact lt_add_of_pos_left (∑ x in s₁, f x) hpos,
 end
 ... ≤ (∑ x in s₂, f x) :
 begin
@@ -1140,7 +1140,7 @@ section decidable_linear_ordered_cancel_comm_monoid
 
 variables [decidable_linear_ordered_cancel_add_comm_monoid β]
 
-theorem exists_le_of_sum_le (hs : s.nonempty) (Hle : (∑ x in s, f x) ≤ s.sum g) :
+theorem exists_le_of_sum_le (hs : s.nonempty) (Hle : (∑ x in s, f x) ≤ ∑ x in s, g x) :
   ∃ i ∈ s, f i ≤ g i :=
 begin
   classical,
@@ -1283,7 +1283,7 @@ variables [decidable_eq α]
 multiset.induction_on s rfl
   (assume a s ih,
     calc (∑ x in to_finset (a :: s), count x (a :: s)) =
-      (to_finset (a :: s)).sum (λx, (if x = a then 1 else 0) + count x s) :
+      ∑ x in to_finset (a :: s), ((if x = a then 1 else 0) + count x s) :
         finset.sum_congr rfl $ λ _ _, by split_ifs;
         [simp only [h, count_cons_self, nat.one_add], simp only [count_cons_of_ne h, zero_add]]
       ... = card (a :: s) :
@@ -1294,7 +1294,7 @@ multiset.induction_on s rfl
           rw [to_finset_cons, finset.insert_eq_of_mem h, finset.sum_add_distrib, ih, this,
             finset.sum_singleton, if_pos rfl, add_comm, card_cons] },
         { have ha : a ∉ s, by rwa mem_to_finset at h,
-          have : (to_finset s).sum (λx, ite (x = a) 1 0) = (to_finset s).sum (λx, 0), from
+          have : ∑ x in to_finset s, ite (x = a) 1 0 = ∑ x in to_finset s, 0, from
             finset.sum_congr rfl (λ x hx, if_neg $ by rintro rfl; cc),
           rw [to_finset_cons, finset.sum_insert h, if_pos rfl, finset.sum_add_distrib, this,
             finset.sum_const_zero, ih, count_eq_zero_of_not_mem ha, zero_add, add_comm, card_cons] }

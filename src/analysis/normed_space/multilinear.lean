@@ -54,7 +54,7 @@ approach, it turns out that direct proofs are easier and more efficient.
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical big_operators
 open finset
 
 local attribute [instance, priority 1001]
@@ -145,10 +145,10 @@ where the other terms in the sum are the same products where `1` is replaced by 
 lemma norm_image_sub_le_of_bound' {C : ℝ} (hC : 0 ≤ C)
   (H : ∀ m, ∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)) (m₁ m₂ : Πi, E₁ i) :
   ∥f m₁ - f m₂∥ ≤
-  C * univ.sum (λi, univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥)) :=
+  C * ∑ i, univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥) :=
 begin
   have A : ∀(s : finset ι), ∥f m₁ - f (s.piecewise m₂ m₁)∥
-    ≤ C * s.sum (λi, univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥)),
+    ≤ C * ∑ i in s, univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥),
   { refine finset.induction (by simp) _,
     assume i s his Hrec,
     have I : ∥f (s.piecewise m₂ m₁) - f ((insert i s).piecewise m₂ m₁)∥
@@ -170,10 +170,10 @@ begin
     calc ∥f m₁ - f ((insert i s).piecewise m₂ m₁)∥ ≤
       ∥f m₁ - f (s.piecewise m₂ m₁)∥ + ∥f (s.piecewise m₂ m₁) - f ((insert i s).piecewise m₂ m₁)∥ :
         by { rw [← dist_eq_norm, ← dist_eq_norm, ← dist_eq_norm], exact dist_triangle _ _ _ }
-      ... ≤ C * s.sum (λi, univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥))
+      ... ≤ C * ∑ i in s, univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥)
             + C * univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥) :
         add_le_add Hrec I
-      ... = C * (insert i s).sum (λi, univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥)) :
+      ... = C * ∑ i in insert i s, univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥) :
         by simp [his, add_comm, left_distrib] },
   convert A univ,
   simp
@@ -204,9 +204,9 @@ begin
       by { rw prod_update_of_mem (finset.mem_univ _), simp [card_univ_diff] } },
   calc
   ∥f m₁ - f m₂∥
-  ≤ C * univ.sum (λi, univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥)) :
+  ≤ C * ∑ i, univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥) :
     f.norm_image_sub_le_of_bound' hC H m₁ m₂
-  ... ≤ C * univ.sum (λ (i : ι), ∥m₁ - m₂∥ * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1)) :
+  ... ≤ C * ∑ i, ∥m₁ - m₂∥ * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1) :
     mul_le_mul_of_nonneg_left (sum_le_sum (λi hi, A i)) hC
   ... = C * (fintype.card ι) * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1) * ∥m₁ - m₂∥ :
     by { rw [sum_const, card_univ, nsmul_eq_mul], ring }
@@ -403,7 +403,7 @@ For a less precise but more usable version, see `norm_image_sub_le_of_bound`. Th
 where the other terms in the sum are the same products where `1` is replaced by any `i`.-/
 lemma norm_image_sub_le_of_bound' (m₁ m₂ : Πi, E₁ i) :
   ∥f m₁ - f m₂∥ ≤
-  ∥f∥ * univ.sum (λi, univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥)) :=
+  ∥f∥ * ∑ i, univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥) :=
 f.to_multilinear_map.norm_image_sub_le_of_bound' (norm_nonneg _) f.le_op_norm _ _
 
 /-- The difference `f m₁ - f m₂` is controlled in terms of `∥f∥` and `∥m₁ - m₂∥`, less precise

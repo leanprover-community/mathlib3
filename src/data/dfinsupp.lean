@@ -13,6 +13,8 @@ For a non-dependent version see `data/finsupp.lean`.
 
 universes u u₁ u₂ v v₁ v₂ v₃ w x y l
 
+open_locale big_operators
+
 variables (ι : Type u) (β : ι → Type v)
 
 namespace dfinsupp
@@ -625,7 +627,7 @@ variables {γ : Type w}
 /-- `sum f g` is the sum of `g i (f i)` over the support of `f`. -/
 def sum [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)] [add_comm_monoid γ]
   (f : Π₀ i, β i) (g : Π i, β i → γ) : γ :=
-f.support.sum (λi, g i (f i))
+∑ i in f.support, g i (f i)
 
 /-- `prod f g` is the product of `g i (f i)` over the support of `f`. -/
 @[to_additive]

@@ -197,7 +197,7 @@ begin
     existsi λ i, φ i (finset.mem_univ i),
     exact ⟨λ i, (hφ i _).1, λ i j hij, (hφ i _).2 j (finset.mem_univ j) hij.symm⟩ },
   rcases this with ⟨φ, hφ1, hφ2⟩,
-  use finset.univ.sum (λ i, g i * φ i),
+  use ∑ i, g i * φ i,
   intros i,
   rw [← quotient.eq, quotient.mk_sum],
   refine eq.trans (finset.sum_eq_single i _ _) _,

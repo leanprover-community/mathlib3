@@ -182,7 +182,7 @@ begin
   { intros h l hl₁ hl₂,
     have h_bij : bij_on subtype.val (subtype.val ⁻¹' ↑l.support : set s) ↑l.support,
     { apply bij_on.mk,
-      { unfold maps_to },
+      { apply maps_to_preimage },
       { apply subtype.val_injective.inj_on },
       intros i hi,
       rw [image_preimage_eq_inter_range, subtype.range_val],
@@ -240,7 +240,7 @@ begin
   intros l hl₁ hl₂,
   have h_bij : bij_on v (v ⁻¹' ↑l.support) ↑l.support,
   { apply bij_on.mk,
-    { unfold maps_to },
+    { apply maps_to_preimage },
     { apply (linear_independent.injective zero_eq_one hv).inj_on },
     intros x hx,
     rcases mem_range.1 (((finsupp.mem_supported _ _).1 hl₁ : ↑(l.support) ⊆ range v) hx)

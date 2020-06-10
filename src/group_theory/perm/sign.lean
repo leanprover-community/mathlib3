@@ -499,7 +499,7 @@ lemma sign_symm_trans_trans [decidable_eq β] [fintype β] (f : perm α)
 sign_aux3_symm_trans_trans f e mem_univ mem_univ
 
 lemma sign_prod_list_swap {l : list (perm α)}
-  (hl : ∀ g ∈ l, is_swap g) : sign l.prod = -1 ^ l.length :=
+  (hl : ∀ g ∈ l, is_swap g) : sign l.prod = (-1) ^ l.length :=
 have h₁ : l.map sign = list.repeat (-1) l.length :=
   list.eq_repeat.2 ⟨by simp, λ u hu,
   let ⟨g, hg⟩ := list.mem_map.1 hu in
@@ -673,12 +673,12 @@ show (swap x y).support.card = finset.card ⟨x::y::0, by simp [hxy]⟩,
 from congr_arg card $ by rw [support_swap hxy]; simp [*, finset.ext]; cc
 
 lemma sign_cycle [fintype α] : ∀ {f : perm α} (hf : is_cycle f),
-  sign f = -(-1 ^ f.support.card)
+  sign f = -(-1) ^ f.support.card
 | f := λ hf,
 let ⟨x, hx⟩ := hf in
 calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
   by rw [← mul_assoc, mul_def, mul_def, swap_swap, trans_refl]
-... = -(-1 ^ f.support.card) :
+... = -(-1) ^ f.support.card :
   if h1 : f (f x) = x
   then
     have h : swap x (f x) * f = 1,
@@ -686,8 +686,8 @@ calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
         rw eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1,
         simp [mul_def, one_def]
       end,
-    by rw [sign_mul, sign_swap hx.1.symm, h, sign_one, eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1,
-        card_support_swap hx.1.symm]; refl
+    by rw [sign_mul, sign_swap hx.1.symm, h, sign_one,
+        eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1, card_support_swap hx.1.symm]; refl
   else
     have h : card (support (swap x (f x) * f)) + 1 = card (support f),
       by rw [← insert_erase (mem_support.2 hx.1), support_swap_mul_eq h1,

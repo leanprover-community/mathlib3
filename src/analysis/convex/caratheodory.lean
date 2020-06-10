@@ -77,7 +77,7 @@ begin
     ... = ∑ e in t, (f e - f i₀ / g i₀ * g e) • e : rfl
     ... = t.center_mass f id : _,
     simp only [sub_smul, mul_smul, sum_sub_distrib, ← smul_sum, gcombo, smul_zero,
-      sub_zero, center_mass, fsum, inv_one', one_smul, id.def], },
+      sub_zero, center_mass, fsum, inv_one, one_smul, id.def], },
 end
 
 /--
@@ -228,7 +228,7 @@ begin
   { exact t'sum, },
   { convert center using 1,
     symmetry,
-    simp only [center_mass, t'sum, sum, inv_one', one_smul, id.def],
+    simp only [center_mass, t'sum, sum, inv_one, one_smul, id.def],
     fapply sum_bij_ne_zero (λ z h w, z),
     { intros z m nz,
       have nz' : f z ≠ 0,

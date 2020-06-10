@@ -648,7 +648,7 @@ have h1 : ∀ i ∈ s, (g i • i : G → L) = g i • a, from λ i his, funext 
     -- After that, it's just a chase scene.
           (∑ i in s, ((g i * i x - g i * a x) • i : G → L)) y
         = ∑ i in s, (g i * i x - g i * a x) * i y : pi.finset_sum_apply _ _ _
-    ... = ∑ i in s, g i * i x * i y - g i * a x * i y : finset.sum_congr rfl
+    ... = ∑ i in s, (g i * i x * i y - g i * a x * i y) : finset.sum_congr rfl
       (λ _ _, sub_mul _ _ _)
     ... = ∑ i in s, g i * i x * i y - ∑ i in s, g i * a x * i y : finset.sum_sub_distrib
     ... = (g a * a x * a y + ∑ i in s, g i * i x * i y)

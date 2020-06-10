@@ -232,7 +232,7 @@ theorem bijective_quotient_inf_to_pi_quotient [fintype ι] {f : ι → ideal R}
 noncomputable def quotient_inf_ring_equiv_pi_quotient [fintype ι] (f : ι → ideal R)
   (hf : ∀ i j, i ≠ j → f i ⊔ f j = ⊤) :
   (⨅ i, f i).quotient ≃+* Π i, (f i).quotient :=
-{ .. equiv.of_bijective (bijective_quotient_inf_to_pi_quotient hf),
+{ .. equiv.of_bijective _ (bijective_quotient_inf_to_pi_quotient hf),
   .. quotient_inf_to_pi_quotient f }
 
 end chinese_remainder

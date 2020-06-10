@@ -318,7 +318,7 @@ begin
         { simp [*, (continuants_aux_eq_continuants_aux_squash_gcf_of_le $ le_refl $ n' + 1).symm,
             (continuants_aux_eq_continuants_aux_squash_gcf_of_le n'.le_succ).symm] },
         symmetry,
-        simpa only [eq1, eq2, eq3, eq4, mul_div_cancel'' _  b_ne_zero] },
+        simpa only [eq1, eq2, eq3, eq4, mul_div_cancel _  b_ne_zero] },
       field_simp [b_ne_zero],
       congr' 1; ring } }
 end

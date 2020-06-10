@@ -146,7 +146,7 @@ div_mul_cancel' a (nonzero_of_invertible b)
 mul_div_cancel'' a (nonzero_of_invertible b)
 
 @[simp] lemma div_self_of_invertible (a : α) [invertible a] : a / a = 1 :=
-div_self' (nonzero_of_invertible a)
+div_self (nonzero_of_invertible a)
 
 /-- `b / a` is the inverse of `a / b` -/
 def invertible_div (a b : α) [invertible a] [invertible b] : invertible (a / b) :=

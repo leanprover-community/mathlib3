@@ -50,8 +50,6 @@ lemma mul_one_div_cancel (h : a ≠ 0) : a * (1 / a) = 1 := by simp [h]
 
 lemma one_div_mul_cancel (h : a ≠ 0) : (1 / a) * a = 1 := by simp [h]
 
-@[simp] lemma div_self (h : a ≠ 0) : a / a = 1 := by simp [h]
-
 lemma one_div_one : 1 / 1 = (1:α) :=
 div_self (ne.symm zero_ne_one)
 
@@ -83,10 +81,6 @@ calc 1⁻¹ = 1 * 1⁻¹ : by rw [one_mul]
      ... = (1:α)   : by simp
 
 local attribute [simp] one_inv_eq
-
-lemma div_one (a : α) : a / 1 = a := by simp
-
-lemma zero_div (a : α) : 0 / a = 0 := by simp
 
 -- note: integral domain has a "mul_ne_zero". a commutative division ring is an integral
 -- domain, but let's not define that class for now.
@@ -176,9 +170,6 @@ lemma div_helper (b : α) (h : a ≠ 0) : (1 / (a * b)) * a = 1 / b :=
 by simp only [division_def, mul_inv', one_mul, mul_assoc, inv_mul_cancel h, mul_one]
 
 lemma mul_div_cancel (a : α) {b : α} (hb : b ≠ 0) : a * b / b = a :=
-by simp [hb]
-
-lemma div_mul_cancel (a : α) {b : α} (hb : b ≠ 0) : a / b * b = a :=
 by simp [hb]
 
 @[field_simps] lemma div_div_eq_mul_div (a b c : α) : a / (b / c) = (a * c) / b :=

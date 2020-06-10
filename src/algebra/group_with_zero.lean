@@ -295,19 +295,18 @@ begin
   simp [mul_assoc, hx, hy]
 end
 
-@[simp] lemma div_self' {a : G₀} (h : a ≠ 0) : a / a = 1 := mul_inv_cancel h
+@[simp] lemma div_self {a : G₀} (h : a ≠ 0) : a / a = 1 := mul_inv_cancel h
 
-@[simp] lemma div_one' (a : G₀) : a / 1 = a :=
-show a * 1⁻¹ = a, by rw [inv_one', mul_one]
+@[simp] lemma div_one (a : G₀) : a / 1 = a := by simp [div_eq_mul_inv]
 
 lemma one_div (a : G₀) : 1 / a = a⁻¹ := one_mul _
 
-@[simp] lemma zero_div' (a : G₀) : 0 / a = 0 := zero_mul _
+@[simp] lemma zero_div (a : G₀) : 0 / a = 0 := zero_mul _
 
 @[simp] lemma div_zero (a : G₀) : a / 0 = 0 :=
 show a * 0⁻¹ = 0, by rw [inv_zero, mul_zero]
 
-@[simp] lemma div_mul_cancel' (a : G₀) {b : G₀} (h : b ≠ 0) : a / b * b = a :=
+@[simp] lemma div_mul_cancel (a : G₀) {b : G₀} (h : b ≠ 0) : a / b * b = a :=
 inv_mul_cancel_assoc_left a b h
 
 @[simp] lemma mul_div_cancel'' (a : G₀) {b : G₀} (h : b ≠ 0) : a * b / b = a :=
@@ -328,7 +327,7 @@ lemma one_div_mul_cancel' {a : G₀} (h : a ≠ 0) : (1 / a) * a = 1 :=
 by simp [h]
 
 lemma one_div_one' : 1 / 1 = (1:G₀) :=
-div_self' (ne.symm zero_ne_one)
+div_self (ne.symm zero_ne_one)
 
 lemma one_div_ne_zero' {a : G₀} (h : a ≠ 0) : 1 / a ≠ 0 :=
 assume : 1 / a = 0,
@@ -351,7 +350,7 @@ have a ≠ 0, from
   assume : a = 0,
   have 0 = (1:G₀), by rwa [this, mul_zero] at h,
     absurd this zero_ne_one,
-by rw [← h, mul_div_assoc'', div_self' this, mul_one]
+by rw [← h, mul_div_assoc'', div_self this, mul_one]
 
 @[simp] lemma one_div_div' (a b : G₀) : 1 / (a / b) = b / a :=
 by rw [one_div, div_eq_mul_inv, mul_inv_rev', inv_inv', div_eq_mul_inv]
@@ -392,7 +391,7 @@ lemma div_ne_zero (ha : a ≠ 0) (hb : b ≠ 0) : a / b ≠ 0 :=
 mul_ne_zero'' ha (inv_ne_zero' hb)
 
 lemma div_ne_zero_iff (hb : b ≠ 0) : a / b ≠ 0 ↔ a ≠ 0 :=
-⟨mt (λ h, by rw [h, zero_div']), λ ha, div_ne_zero ha hb⟩
+⟨mt (λ h, by rw [h, zero_div]), λ ha, div_ne_zero ha hb⟩
 
 lemma div_eq_zero_iff (hb : b ≠ 0) : a / b = 0 ↔ a = 0 :=
 by haveI := classical.prop_decidable; exact
@@ -405,7 +404,7 @@ lemma mul_left_inj' (hc : c ≠ 0) : a * c = b * c ↔ a = b :=
 by rw [← inv_inv' c, ← div_eq_mul_inv, ← div_eq_mul_inv, div_left_inj' (inv_ne_zero' hc)]
 
 lemma div_eq_iff_mul_eq (hb : b ≠ 0) : a / b = c ↔ c * b = a :=
-⟨λ h, by rw [← h, div_mul_cancel' _ hb],
+⟨λ h, by rw [← h, div_mul_cancel _ hb],
  λ h, by rw [← h, mul_div_cancel'' _ hb]⟩
 
 end group_with_zero
@@ -432,7 +431,7 @@ lemma mul_div_cancel_left' {a : G₀} (b : G₀) (ha : a ≠ 0) : a * b / a = b 
 by rw [mul_comm a, (mul_div_cancel'' _ ha)]
 
 lemma mul_div_cancel''' (a : G₀) {b : G₀} (hb : b ≠ 0) : b * (a / b) = a :=
-by rw [mul_comm, (div_mul_cancel' _ hb)]
+by rw [mul_comm, (div_mul_cancel _ hb)]
 
 local attribute [simp] mul_assoc mul_comm mul_left_comm
 
@@ -442,7 +441,7 @@ by { simp [div_eq_mul_inv], rw [mul_inv_rev', mul_comm d⁻¹] }
 
 lemma mul_div_mul_left' (a b : G₀) {c : G₀} (hc : c ≠ 0) :
       (c * a) / (c * b) = a / b :=
-by rw [← div_mul_div', div_self' hc, one_mul]
+by rw [← div_mul_div', div_self hc, one_mul]
 
 lemma mul_div_mul_right' (a b : G₀) {c : G₀} (hc : c ≠ 0) :
       (a * c) / (b * c) = a / b :=
@@ -454,12 +453,12 @@ by simp [div_eq_mul_inv]
 lemma div_mul_eq_mul_div_comm' (a b c : G₀) :
       (b / c) * a = b * (a / c) :=
 by rw [div_mul_eq_mul_div', ← one_mul c, ← div_mul_div',
-       div_one', one_mul]
+       div_one, one_mul]
 
 lemma mul_eq_mul_of_div_eq_div' (a : G₀) {b : G₀} (c : G₀) {d : G₀} (hb : b ≠ 0)
       (hd : d ≠ 0) (h : a / b = c / d) : a * d = c * b :=
-by rw [← mul_one (a*d), mul_assoc, mul_comm d, ← mul_assoc, ← div_self' hb,
-       ← div_mul_eq_mul_div_comm', h, div_mul_eq_mul_div', div_mul_cancel' _ hd]
+by rw [← mul_one (a*d), mul_assoc, mul_comm d, ← mul_assoc, ← div_self hb,
+       ← div_mul_eq_mul_div_comm', h, div_mul_eq_mul_div', div_mul_cancel _ hd]
 
 lemma div_div_eq_mul_div' (a b c : G₀) :
       a / (b / c) = (a * c) / b :=
@@ -486,10 +485,10 @@ begin
 end
 
 lemma eq_of_mul_eq_mul_of_nonzero_left' {a b c : G₀} (h : a ≠ 0) (h₂ : a * b = a * c) : b = c :=
-by rw [← one_mul b, ← div_self' h, div_mul_eq_mul_div', h₂, mul_div_cancel_left' _ h]
+by rw [← one_mul b, ← div_self h, div_mul_eq_mul_div', h₂, mul_div_cancel_left' _ h]
 
 lemma eq_of_mul_eq_mul_of_nonzero_right' {a b c : G₀} (h : c ≠ 0) (h2 : a * c = b * c) : a = b :=
-by rw [← mul_one a, ← div_self' h, ← mul_div_assoc'', h2, mul_div_cancel'' _ h]
+by rw [← mul_one a, ← div_self h, ← mul_div_assoc'', h2, mul_div_cancel'' _ h]
 
 lemma ne_zero_of_one_div_ne_zero' {a : G₀} (h : 1 / a ≠ 0) : a ≠ 0 :=
 assume ha : a = 0, begin rw [ha, div_zero] at h, contradiction end
@@ -525,17 +524,17 @@ lemma div_right_comm' (a : G₀) : (a / b) / c = (a / c) / b :=
 by rw [div_div_eq_div_mul', div_div_eq_div_mul', mul_comm]
 
 lemma div_div_div_cancel_right' (a : G₀) (hc : c ≠ 0) : (a / c) / (b / c) = a / b :=
-by rw [div_div_eq_mul_div', div_mul_cancel' _ hc]
+by rw [div_div_eq_mul_div', div_mul_cancel _ hc]
 
 lemma div_mul_div_cancel' (a : G₀) (hc : c ≠ 0) : (a / c) * (c / b) = a / b :=
-by rw [← mul_div_assoc'', div_mul_cancel' _ hc]
+by rw [← mul_div_assoc'', div_mul_cancel _ hc]
 
 @[field_simps] lemma div_eq_div_iff (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = c * b :=
 calc a / b = c / d ↔ a / b * (b * d) = c / d * (b * d) :
 by rw [mul_left_inj' (mul_ne_zero'' hb hd)]
                ... ↔ a * d = c * b :
-by rw [← mul_assoc, div_mul_cancel' _ hb,
-      ← mul_assoc, mul_right_comm, div_mul_cancel' _ hd]
+by rw [← mul_assoc, div_mul_cancel _ hb,
+      ← mul_assoc, mul_right_comm, div_mul_cancel _ hd]
 
 @[field_simps] lemma div_eq_iff (hb : b ≠ 0) : a / b = c ↔ a = c * b :=
 by simpa using @div_eq_div_iff _ _ a b c 1 hb one_ne_zero

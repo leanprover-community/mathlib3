@@ -323,7 +323,7 @@ instance : finite_dimensional R (matrix m n R) :=
 linear_equiv.finite_dimensional (linear_equiv.uncurry R m n).symm
 
 /-- The dimension of a finite dimensional matrix is the product of the number of rows and columns-/
-@[simp] lemma matrix_dim_fin :
+@[simp] lemma findim_matrix :
   finite_dimensional.findim R (matrix m n R) = fintype.card m * fintype.card n :=
 by rw [@linear_equiv.findim_eq R (matrix m n R) _ _ _ _ _ _ (linear_equiv.uncurry R m n),
        finite_dimensional.findim_fintype_fun_eq_card, fintype.card_prod]

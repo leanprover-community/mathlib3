@@ -1648,8 +1648,8 @@ variables (V V₂ R)
 /-- Linear equivalence between an uncurried and curried function. -/
 protected def curry :
   (V → V₂ → R) ≃ₗ[R] (V × V₂ → R) :=
-{ add := λ _ _, by ext z; cases z; refl,
-  smul := λ _ _, by ext z; cases z; refl,
+{ add := λ _ _, by { ext z, cases z, refl },
+  smul := λ _ _, by { ext z, cases z, refl },
   .. equiv.arrow_arrow_equiv_prod_arrow _ _ _}
 
 end curry

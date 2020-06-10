@@ -1645,9 +1645,9 @@ section curry
 
 variables (V V₂ R)
 
-/-- Linear equivalence between an uncurried and curried function.
+/-- Linear equivalence between a curried and uncurried function.
   Differs from `tensor_product.curry`. -/
-protected def curry :
+protected def uncurry :
   (V → V₂ → R) ≃ₗ[R] (V × V₂ → R) :=
 { add := λ _ _, by { ext z, cases z, refl },
   smul := λ _ _, by { ext z, cases z, refl },

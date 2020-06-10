@@ -320,12 +320,12 @@ section finite_dimensional
 variables {R : Type v} [field R]
 
 instance finite_dimensional_matrix : finite_dimensional R (matrix m n R) :=
-linear_equiv.finite_dimensional (linear_equiv.curry R m n).symm
+linear_equiv.finite_dimensional (linear_equiv.uncurry R m n).symm
 
-/-- The dimmension of a finite dimensional matrix is the product of the number or rows and columns-/
+/-- The dimension of a finite dimensional matrix is the product of the number of rows and columns-/
 @[simp] lemma matrix_dim_fin :
   finite_dimensional.findim R (matrix m n R) = fintype.card m * fintype.card n :=
-by rw [@linear_equiv.findim_eq R (matrix m n R) _ _ _ _ _ _ (linear_equiv.curry R m n),
+by rw [@linear_equiv.findim_eq R (matrix m n R) _ _ _ _ _ _ (linear_equiv.uncurry R m n),
        finite_dimensional.findim_fintype_fun_eq_card, fintype.card_prod]
 
 end finite_dimensional

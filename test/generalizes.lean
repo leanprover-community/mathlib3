@@ -75,7 +75,7 @@ end
 -- expressions.
 lemma test₂ {α n} {x : α} {xs} : fancy_unit (n + 1) (cons x xs) :=
 begin
-  generalizes [(n + 1 = n'), eq_xs' : cons x xs = xs'],
+  generalizes [n + 1 = n', eq_xs' : cons x xs = xs'],
   guard_hyp n' := ℕ,
   success_if_fail { guard_hyp eq_n' := n' = n + 1 },
   guard_hyp xs' := Vec α n',

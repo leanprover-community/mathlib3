@@ -8,7 +8,6 @@ A typeclass for the two-sided multiplicative inverse.
 
 import algebra.char_zero
 import algebra.char_p
-import tactic.norm_cast
 
 /-!
 # Invertible elements
@@ -140,21 +139,21 @@ inv_mul_cancel (nonzero_of_invertible a)
 mul_inv_cancel (nonzero_of_invertible a)
 
 @[simp] lemma div_mul_cancel_of_invertible (a b : α) [invertible b] : a / b * b = a :=
-div_mul_cancel' a (nonzero_of_invertible b)
+div_mul_cancel a (nonzero_of_invertible b)
 
 @[simp] lemma mul_div_cancel_of_invertible (a b : α) [invertible b] : a * b / b = a :=
-mul_div_cancel'' a (nonzero_of_invertible b)
+mul_div_cancel a (nonzero_of_invertible b)
 
 @[simp] lemma div_self_of_invertible (a : α) [invertible a] : a / a = 1 :=
 div_self (nonzero_of_invertible a)
 
 /-- `b / a` is the inverse of `a / b` -/
 def invertible_div (a b : α) [invertible a] [invertible b] : invertible (a / b) :=
-⟨ b / a, by simp [←mul_div_assoc''], by simp [←mul_div_assoc''] ⟩
+⟨ b / a, by simp [←mul_div_assoc], by simp [←mul_div_assoc] ⟩
 
 @[simp] lemma inv_of_div (a b : α) [invertible a] [invertible b] [invertible (a / b)] :
   ⅟(a / b) = b / a :=
-inv_of_eq_right_inv (by simp [←mul_div_assoc''])
+inv_of_eq_right_inv (by simp [←mul_div_assoc])
 
 /-- `a` is the inverse of `a⁻¹` -/
 def invertible_inv {a : α} [invertible a] : invertible (a⁻¹) :=

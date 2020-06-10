@@ -23,7 +23,7 @@ variables {G₀ : Type*} [group_with_zero G₀]
 section nat_pow
 
 @[simp, field_simps] theorem inv_pow' (a : G₀) (n : ℕ) : (a⁻¹) ^ n = (a ^ n)⁻¹ :=
-by induction n with n ih; [exact inv_one'.symm,
+by induction n with n ih; [exact inv_one.symm,
   rw [pow_succ', pow_succ, ih, mul_inv_rev']]
 
 theorem pow_eq_zero' {g : G₀} {n : ℕ} (H : g ^ n = 0) : g = 0 :=
@@ -78,7 +78,7 @@ local attribute [ematch] le_of_lt
 
 @[simp] theorem one_fpow : ∀ (n : ℤ), (1 : G₀) ^ n = 1
 | (n : ℕ) := one_pow _
-| -[1+ n] := show _⁻¹=(1:G₀), by rw [one_pow, inv_one']
+| -[1+ n] := show _⁻¹=(1:G₀), by rw [one_pow, inv_one]
 
 lemma zero_fpow : ∀ z : ℤ, z ≠ 0 → (0 : G₀) ^ z = 0
 | (of_nat n) h := zero_pow' _ $ by rintro rfl; exact h rfl
@@ -86,7 +86,7 @@ lemma zero_fpow : ∀ z : ℤ, z ≠ 0 → (0 : G₀) ^ z = 0
 
 @[simp] theorem fpow_neg (a : G₀) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
 | (n+1:ℕ) := rfl
-| 0       := inv_one'.symm
+| 0       := inv_one.symm
 | -[1+ n] := (inv_inv' _).symm
 
 theorem fpow_neg_one (x : G₀) : x ^ (-1:ℤ) = x⁻¹ := congr_arg has_inv.inv $ pow_one x
@@ -156,7 +156,7 @@ by rw [mul_comm, fpow_mul]
 
 lemma fpow_ne_zero_of_ne_zero {a : G₀} (ha : a ≠ 0) : ∀ (z : ℤ), a ^ z ≠ 0
 | (of_nat n) := pow_ne_zero' _ ha
-| -[1+n]     := inv_ne_zero' $ pow_ne_zero' _ ha
+| -[1+n]     := inv_ne_zero $ pow_ne_zero' _ ha
 
 lemma fpow_sub {a : G₀} (ha : a ≠ 0) (z1 z2 : ℤ) : a ^ (z1 - z2) = a ^ z1 / a ^ z2 :=
 by rw [sub_eq_add_neg, fpow_add ha, fpow_neg]; refl

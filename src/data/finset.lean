@@ -1161,7 +1161,7 @@ theorem map_to_finset [decidable_eq α] [decidable_eq β] {s : multiset α} :
   s.to_finset.map f = (s.map f).to_finset :=
 ext.2 $ λ _, by simp only [mem_map, multiset.mem_map, exists_prop, multiset.mem_to_finset]
 
-theorem map_refl : s.map (embedding.refl _) = s :=
+@[simp] theorem map_refl : s.map (embedding.refl _) = s :=
 ext.2 $ λ _, by simpa only [mem_map, exists_prop] using exists_eq_right
 
 theorem map_map {g : β ↪ γ} : (s.map f).map g = s.map (f.trans g) :=
@@ -1310,6 +1310,18 @@ eq_of_veq $ (multiset.erase_dup_eq_self.2 (s.map f).2).symm
 lemma image_const {s : finset α} (h : s.nonempty) (b : β) : s.image (λa, b) = singleton b :=
 ext.2 $ assume b', by simp only [mem_image, exists_prop, exists_and_distrib_right,
   h.bex, true_and, mem_singleton, eq_comm]
+
+/--
+Because `finset.image` requires a `decidable_eq` instances for the target type,
+we can only construct a `functor finset` when working classically.
+-/
+instance [Π P, decidable P] : functor finset :=
+{ map := λ α β f s, s.image f, }
+
+instance [Π P, decidable P] : is_lawful_functor finset :=
+{ id_map := λ α x, image_id,
+  comp_map := λ α β γ f g s, image_image.symm, }
+
 
 /-- Given a finset `s` and a predicate `p`, `s.subtype p` is the finset of `subtype p` whose
 elements belong to `s`.  -/

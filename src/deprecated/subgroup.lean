@@ -13,12 +13,6 @@ variables {G : Type*} {H : Type*} {A : Type*} {a a₁ a₂ b c: G}
 section group
 variables [group G] [add_group A]
 
-@[to_additive]
-lemma injective_mul {a : G} : injective ((*) a) :=
-assume a₁ a₂ h,
-have a⁻¹ * a * a₁ = a⁻¹ * a * a₂, by rw [mul_assoc, mul_assoc, h],
-by rwa [inv_mul_self, one_mul, one_mul] at this
-
 section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- `s` is an additive subgroup: a set containing 0 and closed under addition and negation. -/
@@ -585,25 +579,6 @@ elements of s. It is the smallest normal subgroup containing s. -/
 namespace group
 variables {s : set G} [group G]
 
-/-- Given an element a, conjugates a is the set of conjugates. -/
-def conjugates (a : G) : set G := {b | is_conj a b}
-
-lemma mem_conjugates_self {a : G} : a ∈ conjugates a := is_conj_refl _
-
-/-- Given a set s, conjugates_of_set s is the set of all conjugates of
-the elements of s. -/
-def conjugates_of_set (s : set G) : set G := ⋃ a ∈ s, conjugates a
-
-lemma mem_conjugates_of_set_iff {x : G} : x ∈ conjugates_of_set s ↔ ∃ a ∈ s, is_conj a x :=
-set.mem_bUnion_iff
-
-theorem subset_conjugates_of_set : s ⊆ conjugates_of_set s :=
-λ (x : G) (h : x ∈ s), mem_conjugates_of_set_iff.2 ⟨x, h, is_conj_refl _⟩
-
-theorem conjugates_of_set_mono {s t : set G} (h : s ⊆ t) :
-  conjugates_of_set s ⊆ conjugates_of_set t :=
-set.bUnion_subset_bUnion_left h
-
 lemma conjugates_subset {t : set G} [normal_subgroup t] {a : G} (h : a ∈ t) : conjugates a ⊆ t :=
 λ x ⟨c,w⟩,
 begin
@@ -611,18 +586,9 @@ begin
   rwa ←w,
 end
 
-theorem conjugates_of_set_subset {s t : set G} [normal_subgroup t] (h : s ⊆ t) :
+theorem conjugates_of_set_subset' {s t : set G} [normal_subgroup t] (h : s ⊆ t) :
   conjugates_of_set s ⊆ t :=
 set.bUnion_subset (λ x H, conjugates_subset (h H))
-
-/-- The set of conjugates of s is closed under conjugation. -/
-lemma conj_mem_conjugates_of_set {x c : G} :
-  x ∈ conjugates_of_set s → (c * x * c⁻¹ ∈ conjugates_of_set s) :=
-λ H,
-begin
-  rcases (mem_conjugates_of_set_iff.1 H) with ⟨a,h₁,h₂⟩,
-  exact mem_conjugates_of_set_iff.2 ⟨a, h₁, is_conj_trans h₂ ⟨c,rfl⟩⟩,
-end
 
 /-- The normal closure of a set s is the subgroup closure of all the conjugates of
 elements of s. It is the smallest normal subgroup containing s. -/
@@ -657,7 +623,7 @@ theorem normal_closure_subset {s t : set G} [normal_subgroup t] (h : s ⊆ t) :
 λ a w,
 begin
   induction w with x hx x hx ihx x y hx hy ihx ihy,
-  {exact (conjugates_of_set_subset h $ hx)},
+  {exact (conjugates_of_set_subset' h $ hx)},
   {exact is_submonoid.one_mem},
   {exact is_subgroup.inv_mem ihx},
   {exact is_submonoid.mul_mem ihx ihy}

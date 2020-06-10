@@ -94,7 +94,7 @@ lemma support_infi [has_zero A] [conditionally_complete_lattice A] [nonempty ι]
 @support_supr _ _ (order_dual A) ⟨(0:A)⟩ _ _ f
 
 lemma support_sum [add_comm_monoid A] (s : finset α) (f : α → β → A) :
-  support (λ x, s.sum (λ i, f i x)) ⊆ ⋃ i ∈ s, support (f i) :=
+  support (λ x, ∑ i in s, f i x) ⊆ ⋃ i ∈ s, support (f i) :=
 begin
   intros x hx,
   classical,

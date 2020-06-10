@@ -187,7 +187,7 @@ tsum (λn:ℕ, p n (λ(i : fin n), x))
 /-- Given a formal multilinear series `p` and a vector `x`, then `p.partial_sum n x` is the sum
 `Σ pₖ xᵏ` for `k ∈ {0,..., n-1}`. -/
 def partial_sum (p : formal_multilinear_series 𝕜 E F) (n : ℕ) (x : E) : F :=
-(finset.range n).sum (λ k, p k (λ(i : fin k), x))
+∑ k in finset.range n, p k (λ(i : fin k), x)
 
 /-- The partial sums of a formal multilinear series are continuous. -/
 lemma partial_sum_continuous (p : formal_multilinear_series 𝕜 E F) (n : ℕ) :
@@ -520,9 +520,8 @@ begin
       refine ennreal.tsum_le_tsum (λ n, _),
       rw [tsum_fintype, ← ennreal.coe_finset_sum, ennreal.coe_le_coe],
       apply le_of_eq,
-      calc finset.univ.sum (λ (s : finset (fin n)), Bnnnorm ⟨n, s⟩)
-      = finset.univ.sum (λ (s : finset (fin n)),
-      nnnorm (p n) * ((nnnorm x) ^ (n - s.card) * r ^ s.card)) :
+      calc ∑ s : finset (fin n), Bnnnorm ⟨n, s⟩
+      = ∑ s : finset (fin n), nnnorm (p n) * ((nnnorm x) ^ (n - s.card) * r ^ s.card) :
         by simp [← mul_assoc]
       ... = nnnorm (p n) * (nnnorm x + r) ^ n :
       by { rw [add_comm, ← finset.mul_sum, ← fin.sum_pow_mul_eq_add_pow], congr, ext s, ring }
@@ -693,8 +692,8 @@ begin
   have has_sum_B : has_sum B (p.sum (x + y)),
   { have K1 : ∀ n, has_sum (λ (s : finset (fin n)), B ⟨n, s⟩) (p n (λ (i : fin n), x + y)),
     { assume n,
-      have : (p n) (λ (i : fin n), y + x) = finset.univ.sum
-        (λ (s : finset (fin n)), p n (finset.piecewise s (λ (i : fin n), y) (λ (i : fin n), x))) :=
+      have : (p n) (λ (i : fin n), y + x) = ∑ s : finset (fin n),
+        p n (finset.piecewise s (λ (i : fin n), y) (λ (i : fin n), x)) :=
         (p n).map_add_univ (λ i, y) (λ i, x),
       simp [add_comm y x] at this,
       rw this,

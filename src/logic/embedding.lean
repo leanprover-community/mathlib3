@@ -80,7 +80,7 @@ protected noncomputable def of_surjective {α β} (f : β → α) (hf : surjecti
 /-- Convert a surjective `embedding` to an `equiv` -/
 protected noncomputable def equiv_of_surjective {α β} (f : α ↪ β) (hf : surjective f) :
   α ≃ β :=
-equiv.of_bijective ⟨f.inj, hf⟩
+equiv.of_bijective f ⟨f.inj, hf⟩
 
 protected def of_not_nonempty {α β} (hα : ¬ nonempty α) : α ↪ β :=
 ⟨λa, (hα ⟨a⟩).elim, assume a, (hα ⟨a⟩).elim⟩
@@ -195,6 +195,18 @@ protected def image {α β} (f : α ↪ β) : set α ↪ set β :=
 
 end embedding
 end function
+
+namespace equiv
+
+@[simp]
+lemma refl_to_embedding {α : Type*} :
+  (equiv.refl α).to_embedding = function.embedding.refl α := rfl
+
+@[simp]
+lemma trans_to_embedding {α β γ : Type*} (e : α ≃ β) (f : β ≃ γ) :
+  (e.trans f).to_embedding = e.to_embedding.trans f.to_embedding := rfl
+
+end equiv
 
 namespace set
 

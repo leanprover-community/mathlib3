@@ -936,7 +936,7 @@ variables [normed_group α]
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma cauchy_seq_finset_iff_vanishing_norm {f : ι → α} :
-  cauchy_seq (λ s : finset ι, ∑ i in s, f i) ↔ ∀ε > 0, ∃s:finset ι, ∀t, disjoint t s → ∥ ∑ i in t, f i ∥ < ε :=
+  cauchy_seq (λ s : finset ι, ∑ i in s, f i) ↔ ∀ε > (0 : ℝ), ∃s:finset ι, ∀t, disjoint t s → ∥ ∑ i in t, f i ∥ < ε :=
 begin
   simp only [cauchy_seq_finset_iff_vanishing, metric.mem_nhds_iff, exists_imp_distrib],
   split,
@@ -950,7 +950,7 @@ end
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma summable_iff_vanishing_norm [complete_space α] {f : ι → α} :
-  summable f ↔ ∀ε > 0, ∃s:finset ι, ∀t, disjoint t s → ∥ ∑ i in t, f i ∥ < ε :=
+  summable f ↔ ∀ε > (0 : ℝ), ∃s:finset ι, ∀t, disjoint t s → ∥ ∑ i in t, f i ∥ < ε :=
 by rw [summable_iff_cauchy_seq_finset, cauchy_seq_finset_iff_vanishing_norm]
 
 lemma cauchy_seq_finset_of_norm_bounded {f : ι → α} (g : ι → ℝ) (hg : summable g)

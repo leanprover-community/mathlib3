@@ -164,6 +164,16 @@ lemma to_monoid_hom_apply {M N} [monoid M] [monoid N] (e : M ≃* N) (x : M) :
   e.to_monoid_hom x = e x :=
 rfl
 
+@[simp, to_additive]
+lemma to_monoid_hom_comp_symm_to_monoid_hom {M N} [monoid M] [monoid N] (h : M ≃* N) :
+  h.to_monoid_hom.comp h.symm.to_monoid_hom = monoid_hom.id _ :=
+by { ext, exact h.apply_symm_apply x }
+
+@[simp, to_additive]
+lemma symm_to_monoid_hom_comp_to_monoid_hom {M N} [monoid M] [monoid N] (h : M ≃* N) :
+  h.symm.to_monoid_hom.comp h.to_monoid_hom = monoid_hom.id _ :=
+by { ext, exact h.symm_apply_apply x }
+
 /-- A multiplicative equivalence of groups preserves inversion. -/
 @[simp, to_additive]
 lemma map_inv [group G] [group H] (h : G ≃* H) (x : G) : h x⁻¹ = (h x)⁻¹ :=
@@ -322,6 +332,12 @@ def map_equiv (h : M ≃* N) : units M ≃* units N :=
   left_inv := λ u, ext $ h.left_inv u,
   right_inv := λ u, ext $ h.right_inv u,
   .. map h.to_monoid_hom }
+
+@[simp] lemma map_equiv_apply (h : M ≃* N) (x : units M) :
+  map_equiv h x = map h.to_monoid_hom x := rfl
+
+@[simp] lemma map_equiv_symm (h : M ≃* N) :
+  (map_equiv h).symm = map_equiv h.symm := rfl
 
 end units
 

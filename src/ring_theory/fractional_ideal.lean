@@ -108,6 +108,9 @@ instance : has_mem P (fractional_ideal f) := ⟨λ x I, x ∈ (I : submodule R f
 lemma ext {I J : fractional_ideal f} : (I : submodule R f.codomain) = J → I = J :=
 subtype.ext_iff_val.mpr
 
+lemma ext_iff {I J : fractional_ideal f} : (∀ x, (x ∈ I ↔ x ∈ J)) ↔ I = J :=
+⟨ λ h, ext (submodule.ext h), λ h x, h ▸ iff.rfl ⟩
+
 lemma fractional_of_subset_one (I : submodule R f.codomain)
   (h : I ≤ (submodule.span R {1})) :
   is_fractional f I :=
@@ -411,6 +414,10 @@ ext (submodule.map_sup _ _ _)
   (I * J).map g = I.map g * J.map g :=
 ext (submodule.map_mul _ _ _)
 
+@[simp] lemma mem_map {I : fractional_ideal f} {g : f.codomain →ₐ[R] f'.codomain} {x} :
+  x ∈ I.map g ↔ ∃ y ∈ I, g y = x :=
+⟨λ ⟨y, mem, eq⟩, ⟨y, mem, eq⟩, λ ⟨y, mem, eq⟩, ⟨y, mem, eq⟩⟩
+
 /-- If `g` is an equivalence, `map g` is an isomorphism -/
 def map_equiv (g : f.codomain ≃ₐ[R] f'.codomain) :
   fractional_ideal f ≃+* fractional_ideal f' :=
@@ -428,18 +435,40 @@ rfl
 @[simp] lemma map_equiv_apply (g : f.codomain ≃ₐ[R] f'.codomain) (I : fractional_ideal f) :
   map_equiv g I = map ↑g I := rfl
 
+@[simp] lemma map_equiv_symm (g : f.codomain ≃ₐ[R] f'.codomain) :
+  (map_equiv g).symm = map_equiv g.symm := rfl
+
 @[simp] lemma map_equiv_refl :
   map_equiv alg_equiv.refl = ring_equiv.refl (fractional_ideal f) :=
 ring_equiv.ext (λ x, by simp)
 
 /-- `canonical_equiv f f'` is the canonical equivalence between the fractional
 ideals in `f.codomain` and in `f'.codomain` -/
+@[irreducible]
 noncomputable def canonical_equiv (f : localization_map S P) (f' : localization_map S P') :
   fractional_ideal f ≃+* fractional_ideal f' :=
 map_equiv
   { commutes' := λ r, ring_equiv_of_ring_equiv_eq _ _ _,
     ..ring_equiv_of_ring_equiv f f' (ring_equiv.refl R)
       (by rw [ring_equiv.to_monoid_hom_refl, submonoid.map_id]) }
+
+@[simp] lemma mem_canonical_equiv_apply {I : fractional_ideal f} {x : f'.codomain} :
+  x ∈ canonical_equiv f f' I ↔
+    ∃ y ∈ I, @localization_map.map _ _ _ _ _ _ _ f (ring_hom.id _) _ (λ ⟨y, hy⟩, hy) _ _ f' y = x :=
+begin
+  rw [canonical_equiv, map_equiv_apply, mem_map],
+  exact iff.rfl
+end
+
+@[simp] lemma canonical_equiv_symm (f : localization_map S P) (f' : localization_map S P') :
+  (canonical_equiv f f').symm = canonical_equiv f' f :=
+ring_equiv.ext $ λ I, fractional_ideal.ext_iff.mp $ λ x,
+by { erw [mem_canonical_equiv_apply, canonical_equiv, map_equiv_symm, map_equiv, mem_map],
+     exact iff.rfl }
+
+@[simp] lemma canonical_equiv_flip (f : localization_map S P) (f' : localization_map S P') (I) :
+  canonical_equiv f f' (canonical_equiv f' f I) = I :=
+by rw [←canonical_equiv_symm, ring_equiv.symm_apply_apply]
 
 end semiring
 
@@ -580,6 +609,10 @@ def span_singleton (x : f.codomain) : fractional_ideal f :=
 @[simp] lemma coe_span_singleton (x : f.codomain) :
   (span_singleton x : submodule R f.codomain) = span R {x} := rfl
 
+@[simp] lemma mem_span_singleton {x y : f.codomain} :
+  x ∈ span_singleton y ↔ ∃ (z : R), z • y = x :=
+submodule.mem_span_singleton
+
 lemma eq_span_singleton_of_principal (I : fractional_ideal f) [is_principal I.1] :
   I = span_singleton (generator I.1) :=
 ext (span_singleton_generator I.1).symm
@@ -620,12 +653,35 @@ begin
   refine mem_coe.trans (iff.trans _ mem_span_singleton.symm),
   split,
   { rintros ⟨y', hy', rfl⟩,
-    obtain ⟨x', rfl⟩ := mem_span_singleton.mp hy',
+    obtain ⟨x', rfl⟩ := submodule.mem_span_singleton.mp hy',
     use x',
     rw [smul_eq_mul, f.to_map.map_mul],
     refl },
   { rintros ⟨y', rfl⟩,
-    exact ⟨y' * x, mem_span_singleton.mpr ⟨y', rfl⟩, f.to_map.map_mul _ _⟩ }
+    exact ⟨y' * x, submodule.mem_span_singleton.mpr ⟨y', rfl⟩, f.to_map.map_mul _ _⟩ }
+end
+
+@[simp]
+lemma canonical_equiv_span_singleton (f : localization_map S P) {P'} [comm_ring P']
+  (f' : localization_map S P') (x : f.codomain) :
+  canonical_equiv f f' (span_singleton x) =
+    span_singleton (f.map (show ∀ (y : S), ring_hom.id _ y.1 ∈ S, from λ y, y.2) f' x) :=
+begin
+  apply ext_iff.mp,
+  intro y,
+  split; intro h,
+  { apply mem_span_singleton.mpr,
+    obtain ⟨x', hx', rfl⟩ := mem_canonical_equiv_apply.mp h,
+    obtain ⟨z, rfl⟩ := mem_span_singleton.mp hx',
+    use z,
+    rw localization_map.map_smul,
+    refl },
+  { apply mem_canonical_equiv_apply.mpr,
+    obtain ⟨z, rfl⟩ := mem_span_singleton.mp h,
+    use f.to_map z * x,
+    use mem_span_singleton.mpr ⟨z, rfl⟩,
+    rw [ring_hom.map_mul, localization_map.map_eq],
+    refl }
 end
 
 lemma mem_singleton_mul {x y : f.codomain} {I : fractional_ideal f} :

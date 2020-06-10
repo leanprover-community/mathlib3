@@ -528,6 +528,9 @@ lemma comap_comap (K : subgroup P) (g : N →* P) (f : G →* N) :
   (K.comap g).comap f = K.comap (g.comp f) :=
 rfl
 
+@[simp, to_additive]
+lemma comap_id (K : subgroup P) : K.comap (monoid_hom.id _) = K := ext (λ x, by simp)
+
 /-- The image of a subgroup along a monoid homomorphism is a subgroup. -/
 @[to_additive "The image of an `add_subgroup` along an `add_monoid` homomorphism
 is an `add_subgroup`."]

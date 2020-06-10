@@ -1641,7 +1641,7 @@ rfl
 
 end prod
 
-section curry
+section uncurry
 
 variables (V V₂ R)
 
@@ -1657,7 +1657,7 @@ protected def uncurry :
 
 @[simp] lemma coe_curry_symm (x) : (linear_equiv.uncurry R V V₂).symm x = curry x := rfl
 
-end curry
+end uncurry
 
 section
 variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}

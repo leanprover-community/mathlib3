@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Joseph Myers.
+Authors: Joseph Myers, Yury Kudryashov.
 -/
-import algebra.group.hom
+import algebra.group.prod
 import algebra.group.type_tags
 import data.equiv.basic
 
@@ -241,6 +241,32 @@ by rw [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_sub_cancel']
 end comm
 
 end add_torsor
+
+namespace prod
+
+variables {G : Type*} {P : Type*} {G' : Type*} {P' : Type*} [add_group G] [add_group G']
+  [add_torsor G P] [add_torsor G' P']
+
+instance : add_torsor (G × G') (P × P') :=
+{ vadd := λ v p, (v.1 +ᵥ p.1, v.2 +ᵥ p.2),
+  zero_vadd' := λ p, by simp,
+  vadd_assoc' := by simp [add_action.vadd_assoc],
+  vsub := λ p₁ p₂, (p₁.1 -ᵥ p₂.1, p₁.2 -ᵥ p₂.2),
+  nonempty := @prod.nonempty _ _ (add_torsor.nonempty G) (add_torsor.nonempty G'),
+  vsub_vadd' := λ p₁ p₂, show (p₁.1 -ᵥ p₂.1 +ᵥ p₂.1, _) = p₁, by simp,
+  vadd_vsub' := λ v p, show (v.1 +ᵥ p.1 -ᵥ p.1, v.2 +ᵥ p.2 -ᵥ p.2)  =v, by simp }
+
+@[simp] lemma fst_vadd (v : G × G') (p : P × P') : (v +ᵥ p).1 = v.1 +ᵥ p.1 := rfl
+@[simp] lemma snd_vadd (v : G × G') (p : P × P') : (v +ᵥ p).2 = v.2 +ᵥ p.2 := rfl
+@[simp] lemma mk_vadd_mk (v : G) (v' : G') (p : P) (p' : P') :
+  (v, v') +ᵥ (p, p') = (v +ᵥ p, v' +ᵥ p') := rfl
+
+@[simp] lemma fst_vsub (p₁ p₂ : P × P') : (p₁ -ᵥ p₂ : G × G').1 = p₁.1 -ᵥ p₂.1 := rfl
+@[simp] lemma snd_vsub (p₁ p₂ : P × P') : (p₁ -ᵥ p₂ : G × G').2 = p₁.2 -ᵥ p₂.2 := rfl
+@[simp] lemma mk_vsub_mk (p₁ p₂ : P) (p₁' p₂' : P') :
+  ((p₁, p₁') -ᵥ (p₂, p₂') : G × G') = (p₁ -ᵥ p₂, p₁' -ᵥ p₂') := rfl
+
+end prod
 
 namespace equiv
 

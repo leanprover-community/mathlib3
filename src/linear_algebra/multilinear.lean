@@ -49,6 +49,7 @@ advantage of avoiding subtype inclusion issues. This is the definition we use, b
 -/
 
 open function fin set
+open_locale big_operators
 
 universes u v v' v₁ v₂ v₃ w u'
 variables {R : Type u} {ι : Type u'} {n : ℕ}
@@ -118,7 +119,7 @@ by refine {zero := 0, add := (+), ..};
    intros; ext; simp [add_comm, add_left_comm]
 
 @[simp] lemma sum_apply {α : Type*} (f : α → multilinear_map R M₁ M₂)
-  (m : Πi, M₁ i) : ∀ {s : finset α}, (s.sum f) m = s.sum (λ a, f a m) :=
+  (m : Πi, M₁ i) : ∀ {s : finset α}, (∑ a in s, f a) m = ∑ a in s, f a m :=
 begin
   classical,
   apply finset.induction,
@@ -202,7 +203,7 @@ the image under a multilinear map `f` is the sum of `f (s.piecewise m m')` along
 `map_add_univ`, although it can be useful in its own right as it does not require the index set `ι`
 to be finite.-/
 lemma map_piecewise_add (m m' : Πi, M₁ i) (t : finset ι) :
-  f (t.piecewise (m + m') m') = t.powerset.sum (λs, f (s.piecewise m m')) :=
+  f (t.piecewise (m + m') m') = ∑ s in t.powerset, f (s.piecewise m m') :=
 begin
   revert m',
   refine finset.induction_on t (by simp) _,
@@ -234,7 +235,7 @@ end
 /-- Additivity of a multilinear map along all coordinates at the same time,
 writing `f (m + m')` as the sum  of `f (s.piecewise m m')` over all sets `s`. -/
 lemma map_add_univ [fintype ι] (m m' : Πi, M₁ i) :
-  f (m + m') = (finset.univ : finset (finset ι)).sum (λs, f (s.piecewise m m')) :=
+  f (m + m') = ∑ s : finset ι, f (s.piecewise m m') :=
 by simpa using f.map_piecewise_add m m' finset.univ
 
 section apply_sum
@@ -249,15 +250,15 @@ open fintype finset
 `r n ∈ Aₙ`. This follows from multilinearity by expanding successively with respect to each
 coordinate. Here, we give an auxiliary statement tailored for an inductive proof. Use instead
 `map_sum_finset`. -/
-lemma map_sum_finset_aux {n : ℕ} (h : finset.univ.sum (λ i, (A i).card) = n) :
-  f (λ i, (A i).sum (g i)) = (pi_finset A).sum (λ r, f (λ i, g i (r i))) :=
+lemma map_sum_finset_aux {n : ℕ} (h : ∑ i, (A i).card = n) :
+  f (λ i, ∑ j in A i, g i j) = ∑ r in pi_finset A, f (λ i, g i (r i)) :=
 begin
   unfreezeI,
   induction n using nat.strong_induction_on with n IH generalizing A,
   -- If one of the sets is empty, then all the sums are zero
   by_cases Ai_empty : ∃ i, A i = ∅,
   { rcases Ai_empty with ⟨i, hi⟩,
-    have : (A i).sum (λ j, g i j) = 0, by convert sum_empty,
+    have : ∑ j in A i, g i j = 0, by convert sum_empty,
     rw f.map_coord_zero i this,
     have : pi_finset A = ∅,
     { apply finset.eq_empty_of_forall_not_mem (λ r hr, _),
@@ -273,7 +274,7 @@ begin
       have : finset.card (A i) ≠ 0, by simp [finset.card_eq_zero, Ai_empty i],
       have : finset.card (A i) ≤ 1 := Ai_singleton i,
       omega },
-    have : ∀ (r : Π i, α i), r ∈ pi_finset A → f (λ i, g i (r i)) = f (λ i, (A i).sum (λ j, g i j)),
+    have : ∀ (r : Π i, α i), r ∈ pi_finset A → f (λ i, g i (r i)) = f (λ i, ∑ j in A i, g i j),
     { assume r hr,
       unfold_coes,
       congr,
@@ -308,8 +309,8 @@ begin
     { rw hi, simp only [C, hj₂, finset.singleton_subset_iff, update_same] },
     { simp only [hi, C, update_noteq, ne.def, not_false_iff, finset.subset.refl] } },
   -- split the sum at `i₀` as the sum over `B i₀` plus the sum over `C i₀`, to use additivity.
-  have A_eq_BC : (λ i, (A i).sum (g i)) =
-    function.update (λ i, (A i).sum (g i)) i₀ ((B i₀).sum (g i₀) + (C i₀).sum (g i₀)),
+  have A_eq_BC : (λ i, ∑ j in A i, g i j) =
+    function.update (λ i, ∑ j in A i, g i j) i₀ (∑ j in B i₀, g i₀ j + ∑ j in C i₀, g i₀ j),
   { ext i,
     by_cases hi : i = i₀,
     { rw [hi],
@@ -327,21 +328,21 @@ begin
       simp only [mem_sdiff, eq_self_iff_true, not_true, not_false_iff, finset.mem_singleton,
                  update_same, and_false] },
     { simp [hi] } },
-  have Beq : function.update (λ i, (A i).sum (g i)) i₀ ((B i₀).sum (g i₀)) =
-    (λ i, finset.sum (B i) (g i)),
+  have Beq : function.update (λ i, ∑ j in A i, g i j) i₀ (∑ j in B i₀, g i₀ j) =
+    (λ i, ∑ j in B i, g i j),
   { ext i,
     by_cases hi : i = i₀,
     { rw hi, simp only [update_same] },
     { simp only [hi, B, update_noteq, ne.def, not_false_iff] } },
-  have Ceq : function.update (λ i, (A i).sum (g i)) i₀ ((C i₀).sum (g i₀)) =
-    (λ i, finset.sum (C i) (g i)),
+  have Ceq : function.update (λ i, ∑ j in A i, g i j) i₀ (∑ j in C i₀, g i₀ j) =
+    (λ i, ∑ j in C i, g i j),
   { ext i,
     by_cases hi : i = i₀,
     { rw hi, simp only [update_same] },
     { simp only [hi, C, update_noteq, ne.def, not_false_iff] } },
   -- Express the inductive assumption for `B`
-  have Brec : f (λ i, finset.sum (B i) (g i)) = (pi_finset B).sum (λ r, f (λ i, g i (r i))),
-  { have : finset.univ.sum (λ i, finset.card (B i)) < finset.univ.sum (λ i, finset.card (A i)),
+  have Brec : f (λ i, ∑ j in B i, g i j) = ∑ r in pi_finset B, f (λ i, g i (r i)),
+  { have : ∑ i, finset.card (B i) < ∑ i, finset.card (A i),
     { refine finset.sum_lt_sum (λ i hi, finset.card_le_of_subset (B_subset_A i))
         ⟨i₀, finset.mem_univ _, _⟩,
       have : {j₂} ⊆ A i₀, by simp [hj₂],
@@ -350,8 +351,8 @@ begin
     rw h at this,
     exact IH _ this B rfl },
   -- Express the inductive assumption for `C`
-  have Crec : f (λ i, finset.sum (C i) (g i)) = (pi_finset C).sum (λ r, f (λ i, g i (r i))),
-  { have : finset.univ.sum (λ i, finset.card (C i)) < finset.univ.sum (λ i, finset.card (A i)) :=
+  have Crec : f (λ i, ∑ j in C i, g i j) = ∑ r in pi_finset C, f (λ i, g i (r i)),
+  { have : ∑ i, finset.card (C i) < ∑ i, finset.card (A i) :=
       finset.sum_lt_sum (λ i hi, finset.card_le_of_subset (C_subset_A i))
         ⟨i₀, finset.mem_univ _, by simp [C, hi₀]⟩,
     rw h at this,
@@ -388,14 +389,14 @@ end
 `r n ∈ Aₙ`. This follows from multilinearity by expanding successively with respect to each
 coordinate. -/
 lemma map_sum_finset :
-  f (λ i, (A i).sum (g i)) = (pi_finset A).sum (λ r, f (λ i, g i (r i))) :=
+  f (λ i, ∑ j in A i, g i j) = ∑ r in pi_finset A, f (λ i, g i (r i)) :=
 f.map_sum_finset_aux _ _ rfl
 
 /-- If `f` is multilinear, then `f (Σ_{j₁} g₁ j₁, ..., Σ_{jₙ} gₙ jₙ)` is the sum of
 `f (g₁ (r 1), ..., gₙ (r n))` where `r` ranges over all functions `r`. This follows from
 multilinearity by expanding successively with respect to each coordinate. -/
 lemma map_sum [∀ i, fintype (α i)] :
-  f (λ i, finset.univ.sum (g i)) = finset.univ.sum (λ (r : Π i, α i), f (λ i, g i (r i))) :=
+  f (λ i, ∑ j, g i j) = ∑ r : Π i, α i, f (λ i, g i (r i)) :=
 f.map_sum_finset g (λ i, finset.univ)
 
 end apply_sum

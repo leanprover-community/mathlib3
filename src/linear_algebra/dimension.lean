@@ -340,6 +340,14 @@ lemma exists_mem_ne_zero_of_dim_pos {s : submodule K V} (h : vector_space.dim K 
   ∃ b : V, b ∈ s ∧ b ≠ 0 :=
 exists_mem_ne_zero_of_ne_bot $ assume eq, by rw [(>), eq, dim_bot] at h; exact lt_irrefl _ h
 
+lemma exists_mem_ne_zero_of_dim_pos' (h : vector_space.dim K V > 0) :
+  ∃ b : V, b ≠ 0 :=
+begin
+  have h' : vector_space.dim K (⊤ : subspace K V) > 0 := by {simp, exact h},
+  cases exists_mem_ne_zero_of_dim_pos h' with b hb,
+  use b, exact hb.2,
+end
+
 lemma exists_is_basis_fintype (h : dim K V < cardinal.omega) :
   ∃ s : (set V), (is_basis K (subtype.val : s → V)) ∧ nonempty (fintype s) :=
 begin

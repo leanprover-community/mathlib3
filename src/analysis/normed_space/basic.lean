@@ -610,6 +610,8 @@ begin
   exact (tendsto_inv hx)
 end
 
+namespace real
+
 instance : normed_field ℝ :=
 { norm := λ x, abs x,
   dist_eq := assume x y, rfl,
@@ -617,6 +619,9 @@ instance : normed_field ℝ :=
 
 instance : nondiscrete_normed_field ℝ :=
 { non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
+
+end real
+
 end normed_field
 
 /-- If a function converges to a nonzero value, its inverse converges to the inverse of this value.
@@ -901,7 +906,7 @@ end prio
 normed_algebra.norm_algebra_map_eq _
 
 @[priority 100]
-instance to_normed_space (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
+instance normed_algebra.to_normed_space (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
   [h : normed_algebra 𝕜 𝕜'] : normed_space 𝕜 𝕜' :=
 { norm_smul_le := λ s x, calc
     ∥s • x∥ = ∥((algebra_map 𝕜 𝕜') s) * x∥ : by { rw h.smul_def', refl }

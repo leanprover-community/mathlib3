@@ -2436,8 +2436,7 @@ the increasing bijection `mono_of_fin s h`. For a statement assuming only that `
 lemma mono_of_fin_unique {s : finset α} {k : ℕ} (h : s.card = k) {f : fin k → α}
   (hbij : set.bij_on f set.univ ↑s) (hmono : strict_mono f) : f = s.mono_of_fin h :=
 begin
-  ext i,
-  rcases i with ⟨i, hi⟩,
+  ext ⟨i, hi⟩,
   induction i using nat.strong_induction_on with i IH,
   rcases lt_trichotomy (f ⟨i, hi⟩) (mono_of_fin s h ⟨i, hi⟩) with H|H|H,
   { have A : f ⟨i, hi⟩ ∈ ↑s := hbij.maps_to (set.mem_univ _),

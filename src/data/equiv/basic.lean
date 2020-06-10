@@ -335,7 +335,7 @@ def arrow_punit_equiv_punit (α : Sort*) : (α → punit.{v}) ≃ punit.{w} :=
   λ f, by { funext x, cases f x, refl }, λ u, by { cases u, reflexivity }⟩
 
 def punit_arrow_equiv (α : Sort*) : (punit.{u} → α) ≃ α :=
-⟨λ f, f punit.star, λ a u, a, λ f, by { funext x, cases x, refl }, λ u, rfl⟩
+⟨λ f, f punit.star, λ a u, a, λ f, by { ext ⟨⟩, refl }, λ u, rfl⟩
 
 def empty_arrow_equiv_punit (α : Sort*) : (empty → α) ≃ punit.{u} :=
 ⟨λ f, punit.star, λ u e, e.rec _, λ f, funext $ λ x, x.rec _, λ u, by { cases u, refl }⟩
@@ -684,7 +684,7 @@ open sum
 def sum_arrow_equiv_prod_arrow (α β γ : Type*) : ((α ⊕ β) → γ) ≃ (α → γ) × (β → γ) :=
 ⟨λ f, (f ∘ inl, f ∘ inr),
  λ p, sum.elim p.1 p.2,
- λ f, by { funext s, cases s; refl },
+ λ f, by { ext ⟨⟩; refl },
  λ p, by { cases p, refl }⟩
 
 def sum_prod_distrib (α β γ : Sort*) : (α ⊕ β) × γ ≃ (α × γ) ⊕ (β × γ) :=

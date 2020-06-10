@@ -510,7 +510,7 @@ begin
     λ ⟨n, s⟩, nnnorm (p n) * (nnnorm x) ^ (n - s.card) * r ^ s.card,
   have : ((λ ⟨n, s⟩, ∥p n∥ * ∥x∥ ^ (n - s.card) * r ^ s.card) :
     (Σ (n : ℕ), finset (fin n)) → ℝ) = (λ b, (Bnnnorm b : ℝ)),
-    by { ext b, rcases b with ⟨n, s⟩, simp [Bnnnorm, nnreal.coe_pow, coe_nnnorm] },
+    by { ext ⟨n, s⟩, simp [Bnnnorm, nnreal.coe_pow, coe_nnnorm] },
   rw [this, nnreal.summable_coe, ← ennreal.tsum_coe_ne_top_iff_summable],
   apply ne_of_lt,
   calc (∑' b, ↑(Bnnnorm b))
@@ -560,8 +560,7 @@ begin
       right_inv := λ ⟨k, n, s, hs⟩, by { induction hs, refl } },
   rw ← e.summable_iff,
   convert SAnorm,
-  ext i,
-  rcases i with ⟨n, s⟩,
+  ext ⟨n, s⟩,
   refl
 end
 
@@ -592,12 +591,12 @@ begin
   { convert summable.summable_comp_of_injective (p.change_origin_summable_aux2 hr)
       (change_origin_summable_aux_j_inj k),
     -- again, cleanup that could be done by `tidy`:
-    ext p, rcases p with ⟨_, ⟨_, _⟩⟩, refl },
+    ext ⟨_, ⟨_, _⟩⟩, refl },
   have : (r : ℝ)^k ≠ 0, by simp [pow_ne_zero, nnreal.coe_eq_zero, ne_of_gt rpos],
   apply (summable_mul_right_iff this).2,
   convert S,
   -- again, cleanup that could be done by `tidy`:
-  ext p, rcases p with ⟨_, ⟨_, _⟩⟩, refl,
+  ext ⟨_, ⟨_, _⟩⟩, refl,
 end
 
 -- FIXME this causes a deterministic timeout with `-T50000`
@@ -714,7 +713,7 @@ begin
       inv_fun := λ ⟨k, n, s, hs⟩, ⟨n, s⟩,
       left_inv := λ ⟨n, s⟩, rfl,
       right_inv := λ ⟨k, n, s, hs⟩, by { induction hs, refl } },
-    have : A ∘ e = B, by { ext x, cases x, refl },
+    have : A ∘ e = B, by { ext ⟨⟩, refl },
     rw ← e.has_sum_iff,
     convert has_sum_B },
   -- Summing `A ⟨k, c⟩` with fixed `k` and varying `c` is exactly the `k`-th term in the series

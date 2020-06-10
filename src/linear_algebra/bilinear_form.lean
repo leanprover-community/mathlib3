@@ -32,6 +32,8 @@ the notation B x y to refer to the function field, ie. B x y = B.bilin x y.
 Bilinear form,
 -/
 
+open_locale big_operators
+
 universes u v w
 
 /-- A bilinear form over a module  -/
@@ -163,12 +165,12 @@ def bilin_linear_map_equiv : (bilin_form R₂ M) ≃ₗ[R₂] (M →ₗ[R₂] M 
 lemma coe_fn_to_linear_map (x : M) : ⇑(F.to_linear_map x) = F x := rfl
 
 lemma map_sum_left {α} (B : bilin_form R₂ M) (t : finset α) (g : α → M) (w : M) :
-  B (t.sum g) w = t.sum (λ i, B (g i) w) :=
-show B.to_linear_map (t.sum g) w = t.sum (λ i, B (g i) w),
-by { rw [B.to_linear_map.map_sum, linear_map.coe_fn_sum, finset.sum_apply], refl }
+  B (∑ i in t, g i) w = ∑ i in t, B (g i) w :=
+show B.to_linear_map (∑ i in t, g i) w = ∑ i in t, B.to_linear_map (g i) w,
+by rw [B.to_linear_map.map_sum, linear_map.coe_fn_sum, finset.sum_apply]
 
 lemma map_sum_right {α} (B : bilin_form R₂ M) (t : finset α) (g : α → M) (v : M) :
-  B v (t.sum g) = t.sum (λ i, B v (g i)) :=
+  B v (∑ i in t, g i) = ∑ i in t, B v (g i) :=
 (B.to_linear_map v).map_sum
 
 end
@@ -330,10 +332,10 @@ begin
   ext i j,
   simp only [to_matrix_apply, comp_apply, mul_val, sum_mul],
   have sum_smul_eq : Π (f : (o → R) →ₗ[R] (n → R)) (i : o),
-    f (λ n, ite (n = i) 1 0) = univ.sum (λ k, f.to_matrix k i • λ n, ite (n = k) (1 : R) 0),
+    f (λ n, ite (n = i) 1 0) = ∑ k, f.to_matrix k i • λ n, ite (n = k) (1 : R) 0,
   { intros f i,
     ext j,
-    change f (λ n, ite (n = i) 1 0) j = univ.sum (λ k n, f.to_matrix k i * ite (n = k) (1 : R) 0) j,
+    change f (λ n, ite (n = i) 1 0) j = (∑ k, λ n, f.to_matrix k i * ite (n = k) (1 : R) 0) j,
     simp [linear_map.to_matrix, linear_map.to_matrixₗ, eq_comm] },
   simp_rw [sum_smul_eq, map_sum_right, map_sum_left, smul_right, mul_comm, smul_left],
   refl

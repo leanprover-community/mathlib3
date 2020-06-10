@@ -10,7 +10,7 @@ import data.set.intervals
 noncomputable theory
 open classical set
 
-open_locale classical
+open_locale classical big_operators
 variables {α : Type*} {β : Type*}
 
 /-- The extended nonnegative real numbers. This is usually denoted [0, ∞],
@@ -206,11 +206,11 @@ lemma pow_lt_top : a < ∞ → ∀ n:ℕ, a^n < ∞ :=
 by simpa only [lt_top_iff_ne_top] using pow_ne_top
 
 @[simp, norm_cast] lemma coe_finset_sum {s : finset α} {f : α → nnreal} :
-  ↑(s.sum f) = (s.sum (λa, f a) : ennreal) :=
+  ↑(∑ a in s, f a) = (∑ a in s, f a : ennreal) :=
 of_nnreal_hom.map_sum f s
 
 @[simp, norm_cast] lemma coe_finset_prod {s : finset α} {f : α → nnreal} :
-  ↑(s.prod f) = (s.prod (λa, f a) : ennreal) :=
+  ↑(∏ a in s, f a) = ((∏ a in s, f a) : ennreal) :=
 of_nnreal_hom.map_prod f s
 
 section order
@@ -602,18 +602,18 @@ open finset
 
 /-- sum of finte numbers is still finite -/
 lemma sum_lt_top {s : finset α} {f : α → ennreal} :
-  (∀a∈s, f a < ⊤) → s.sum f < ⊤ :=
+  (∀a∈s, f a < ⊤) → ∑ a in s, f a < ⊤ :=
 with_top.sum_lt_top
 
 /-- sum of finte numbers is still finite -/
 lemma sum_lt_top_iff {s : finset α} {f : α → ennreal} :
-  s.sum f < ⊤ ↔ (∀a∈s, f a < ⊤) :=
+  ∑ a in s, f a < ⊤ ↔ (∀a∈s, f a < ⊤) :=
 with_top.sum_lt_top_iff
 
 /-- seeing `ennreal` as `nnreal` does not change their sum, unless one of the `ennreal` is
 infinity -/
 lemma to_nnreal_sum {s : finset α} {f : α → ennreal} (hf : ∀a∈s, f a < ⊤) :
-  ennreal.to_nnreal (s.sum f) = s.sum (λa, ennreal.to_nnreal (f a)) :=
+  ennreal.to_nnreal (∑ a in s, f a) = ∑ a in s, ennreal.to_nnreal (f a) :=
 begin
   rw [← coe_eq_coe, coe_to_nnreal, coe_finset_sum, sum_congr],
   { refl },
@@ -623,7 +623,7 @@ end
 
 /-- seeing `ennreal` as `real` does not change their sum, unless one of the `ennreal` is infinity -/
 lemma to_real_sum {s : finset α} {f : α → ennreal} (hf : ∀a∈s, f a < ⊤) :
-  ennreal.to_real (s.sum f) = s.sum (λa, ennreal.to_real (f a)) :=
+  ennreal.to_real (∑ a in s, f a) = ∑ a in s, ennreal.to_real (f a) :=
 by { rw [ennreal.to_real, to_nnreal_sum hf, nnreal.coe_sum], refl }
 
 end sum
@@ -1150,9 +1150,9 @@ calc (⨅a, f a + g a) ≤ (⨅ a a', f a + g a') :
 
 lemma infi_sum {f : ι → α → ennreal} {s : finset α} [nonempty ι]
   (h : ∀(t : finset α) (i j : ι), ∃k, ∀a∈t, f k a ≤ f i a ∧ f k a ≤ f j a) :
-  (⨅i, s.sum (f i)) = s.sum (λa, ⨅i, f i a) :=
+  (⨅i, ∑ a in s, f i a) = ∑ a in s, ⨅i, f i a :=
 finset.induction_on s (by simp) $ assume a s ha ih,
-  have ∀ (i j : ι), ∃ (k : ι), f k a + s.sum (f k) ≤ f i a + s.sum (f j),
+  have ∀ (i j : ι), ∃ (k : ι), f k a + ∑ b in s, f k b ≤ f i a + ∑ b in s, f j b,
     from assume i j,
     let ⟨k, hk⟩ := h (insert a s) i j in
     ⟨k, add_le_add' (hk a (finset.mem_insert_self _ _)).left $ finset.sum_le_sum $

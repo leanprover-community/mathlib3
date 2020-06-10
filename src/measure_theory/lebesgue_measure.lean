@@ -10,6 +10,7 @@ import measure_theory.borel_space
 noncomputable theory
 open classical set filter
 open nnreal (of_real)
+open_locale big_operators
 
 namespace measure_theory
 
@@ -97,7 +98,7 @@ lemma lebesgue_length_subadditive {a b : ℝ} {c d : ℕ → ℝ}
 begin
   suffices : ∀ (s:finset ℕ) b
     (cv : Icc a b ⊆ ⋃ i ∈ (↑s:set ℕ), Ioo (c i) (d i)),
-    (of_real (b - a) : ennreal) ≤ s.sum (λ i, of_real (d i - c i)),
+    (of_real (b - a) : ennreal) ≤ ∑ i in s, of_real (d i - c i),
   { rcases compact_Icc.elim_finite_subcover_image (λ (i : ℕ) (_ : i ∈ univ),
       @is_open_Ioo _ _ _ _ (c i) (d i)) (by simpa using ss) with ⟨s, su, hf, hs⟩,
     have e : (⋃ i ∈ (↑hf.to_finset:set ℕ),

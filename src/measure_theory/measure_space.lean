@@ -23,7 +23,7 @@ a complete measure.
 noncomputable theory
 
 open classical set filter finset function
-open_locale classical topological_space
+open_locale classical topological_space big_operators
 
 universes u v w x
 
@@ -369,7 +369,7 @@ begin
     ennreal.tsum_eq_supr_nat],
   refine supr_le (λ n, _),
   cases n, {apply zero_le _},
-  suffices : (finset.range n.succ).sum (λ i, μ (disjointed s i)) = μ (s n),
+  suffices : ∑ i in finset.range n.succ, μ (disjointed s i) = μ (s n),
   { rw this, exact le_supr _ n },
   rw [← Union_disjointed_of_mono hs, measure_Union, tsum_eq_sum],
   { apply sum_congr rfl, intros i hi,
@@ -849,11 +849,11 @@ measure_sUnion
 
 lemma volume_bUnion_finset {β} {s : finset β} {f : β → set α}
   (hd : pairwise_on ↑s (disjoint on f)) (hm : ∀b∈s, is_measurable (f b)) :
-  volume (⋃b∈s, f b) = s.sum (λp, volume (f p)) :=
-show volume (⋃b∈(↑s : set β), f b) = s.sum (λp, volume (f p)),
+  volume (⋃b∈s, f b) = ∑ p in s, volume (f p) :=
+show volume (⋃b∈(↑s : set β), f b) = ∑ p in s, volume (f p),
 begin
   rw [volume_bUnion s.countable_to_set hd hm, tsum_eq_sum],
-  { show s.attach.sum (λb:(↑s : set β), volume (f b)) = s.sum (λb, volume (f b)),
+  { show ∑ b in s.attach, volume (f b) = ∑ b in s, volume (f b),
     exact @finset.sum_attach _ _ s _ (λb, volume (f b)) },
   simp
 end
@@ -865,7 +865,7 @@ measure_diff
 variable {ι : Type*}
 
 lemma sum_volume_le_volume_univ {s : finset ι} {t : ι → set α} (h : ∀ i ∈ s, is_measurable (t i))
-  (H : pairwise_on ↑s (disjoint on t)) : s.sum (λ i, volume (t i)) ≤ volume (univ : set α) :=
+  (H : pairwise_on ↑s (disjoint on t)) : ∑ i in s, volume (t i) ≤ volume (univ : set α) :=
 volume_bUnion_finset H h ▸ volume_mono (subset_univ _)
 
 lemma tsum_volume_le_volume_univ {s : ι → set α} (hs : ∀ i, is_measurable (s i))
@@ -888,9 +888,9 @@ begin
 end
 
 /-- Pigeonhole principle for measure spaces: if `s` is a `finset` and
-`s.sum (λ i, μ (t i)) > μ univ`, then one of the intersections `t i ∩ t j` is not empty. -/
+`∑ i in s, μ (t i) > μ univ`, then one of the intersections `t i ∩ t j` is not empty. -/
 lemma exists_nonempty_inter_of_volume_univ_lt_sum_volume {s : finset ι} {t : ι → set α}
-  (h : ∀ i ∈ s, is_measurable (t i)) (H : volume (univ : set α) < s.sum (λ i, volume (t i))) :
+  (h : ∀ i ∈ s, is_measurable (t i)) (H : volume (univ : set α) < ∑ i in s, volume (t i)) :
   ∃ (i ∈ s) (j ∈ s) (h : i ≠ j), (t i ∩ t j).nonempty :=
 begin
   contrapose! H,

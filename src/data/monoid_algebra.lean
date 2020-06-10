@@ -36,7 +36,7 @@ seems impossible to use.
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical big_operators
 
 open finset finsupp
 
@@ -83,16 +83,16 @@ end
 
 lemma mul_apply_antidiagonal (f g : monoid_algebra k G) (x : G) (s : finset (G × G))
   (hs : ∀ {p : G × G}, p ∈ s ↔ p.1 * p.2 = x) :
-  (f * g) x = s.sum (λ p, f p.1 * g p.2) :=
+  (f * g) x = ∑ p in s, (f p.1 * g p.2) :=
 let F : G × G → k := λ p, if p.1 * p.2 = x then f p.1 * g p.2 else 0 in
-calc (f * g) x = (f.support.sum $ λ a₁, g.support.sum $ λ a₂, F (a₁, a₂)) :
+calc (f * g) x = (∑ a₁ in f.support, ∑ a₂ in g.support, F (a₁, a₂)) :
   mul_apply f g x
-... = (f.support.product g.support).sum F : finset.sum_product.symm
-... = ((f.support.product g.support).filter (λ p : G × G, p.1 * p.2 = x)).sum (λ p, f p.1 * g p.2) :
+... = ∑ p in f.support.product g.support, F p : finset.sum_product.symm
+... = ∑ p in (f.support.product g.support).filter (λ p : G × G, p.1 * p.2 = x), f p.1 * g p.2 :
   (finset.sum_filter _ _).symm
-... = (s.filter (λ p : G × G, p.1 ∈ f.support ∧ p.2 ∈ g.support)).sum (λ p, f p.1 * g p.2) :
+... = ∑ p in s.filter (λ p : G × G, p.1 ∈ f.support ∧ p.2 ∈ g.support), f p.1 * g p.2 :
   sum_congr (by { ext, simp [hs, and_comm] }) (λ _ _, rfl)
-... = s.sum (λ p, f p.1 * g p.2) : sum_subset (filter_subset _) $ λ p hps hp,
+... = ∑ p in s, f p.1 * g p.2 : sum_subset (filter_subset _) $ λ p hps hp,
   begin
     simp only [mem_filter, mem_support_iff, not_and, not_not] at hp ⊢,
     by_cases h1 : f p.1 = 0,
@@ -385,7 +385,7 @@ variable {ι : Type ui}
 
 lemma prod_single [comm_semiring k] [comm_monoid G]
   {s : finset ι} {a : ι → G} {b : ι → k} :
-  s.prod (λi, single (a i) (b i)) = single (s.prod a) (s.prod b) :=
+  (∏ i in s, single (a i) (b i)) = single (∏ i in s, a i) (∏ i in s, b i) :=
 finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
   single_mul_single, prod_insert has, prod_insert has]
 
@@ -645,7 +645,7 @@ variable {ι : Type ui}
 
 lemma prod_single [comm_semiring k] [add_comm_monoid G]
   {s : finset ι} {a : ι → G} {b : ι → k} :
-  s.prod (λi, single (a i) (b i)) = single (s.sum a) (s.prod b) :=
+  (∏ i in s, single (a i) (b i)) = single (s.sum a) (∏ i in s, b i) :=
 finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
   single_mul_single, sum_insert has, prod_insert has]
 

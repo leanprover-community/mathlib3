@@ -186,27 +186,32 @@ meta def generalizes_intro (args : list (name × option name × expr))
   let binder_nos := args.map (λ ⟨_, hyp, _⟩, 1 + if hyp.is_some then 1 else 0),
   intron' binder_nos.sum
 
-
 namespace interactive
 
 open interactive
 open lean.parser
 
+private meta def generalizes_arg_parser_eq : pexpr → lean.parser (pexpr × name)
+| (app (app (macro _ [const `eq _ ])  e) (local_const x _ _ _)) := pure (e, x)
+| (app (app (macro _ [const `heq _ ]) e) (local_const x _ _ _)) := pure (e, x)
+| _ := failure
+
 private meta def generalizes_arg_parser : lean.parser (name × option name × pexpr) :=
-with_desc "id : expr = id" $ do
-  hyp_name ← optional (ident <* tk ":"),
-  arg ← lean.parser.pexpr 0,
-  (arg, arg_name) ←
-    match arg with
-    | (app (app (macro _ [const `eq _ ])  e) (local_const x _ _ _)) := pure (e, x)
-    | (app (app (macro _ [const `heq _ ]) e) (local_const x _ _ _)) := pure (e, x)
+with_desc "(id :)? expr = id" $ do
+  lhs ← lean.parser.pexpr 0,
+  (tk ":" >> match lhs with
+    | local_const hyp_name _ _ _ := do
+      (arg, arg_name) ← lean.parser.pexpr 0 >>= generalizes_arg_parser_eq,
+      pure (arg_name, some hyp_name, arg)
     | _ := failure
-    end,
-  pure $ (arg_name, hyp_name, arg)
+    end) <|>
+  (do
+    (arg, arg_name) ← generalizes_arg_parser_eq lhs,
+    pure (arg_name, none, arg))
 
 private meta def generalizes_args_parser
   : lean.parser (list (name × option name × pexpr)) :=
-with_desc "[id : expr = id, ...]" $
+with_desc "[(id :)? expr = id, ...]" $
   tk "[" *> sep_by (tk ",") generalizes_arg_parser <* tk "]"
 
 /--

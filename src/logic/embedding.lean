@@ -196,6 +196,18 @@ protected def image {α β} (f : α ↪ β) : set α ↪ set β :=
 end embedding
 end function
 
+namespace equiv
+
+@[simp]
+lemma refl_to_embedding {α : Type*} :
+  (equiv.refl α).to_embedding = function.embedding.refl α := rfl
+
+@[simp]
+lemma trans_to_embedding {α β γ : Type*} (e : α ≃ β) (f : β ≃ γ) :
+  (e.trans f).to_embedding = e.to_embedding.trans f.to_embedding := rfl
+
+end equiv
+
 namespace set
 
 /-- The injection map is an embedding between subsets. -/

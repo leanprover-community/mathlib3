@@ -33,6 +33,7 @@ universes u v
 
 open real finset
 open_locale classical nnreal big_operators
+noncomputable theory
 
 variables {ι : Type u} (s : finset ι)
 
@@ -105,22 +106,26 @@ begin
   exact this hw
 end
 
-/-- Young's inequality, `ℝ` version -/
+/-- Young's inequality, a version for nonnegative real numbers. -/
+theorem real.young_inequality_of_nonneg {a b p q : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b)
+  (hpq : p.is_conjugate_exponent q) :
+  a * b ≤ a^p / p + b^q / q :=
+by simpa [← rpow_mul, ha, hb, hpq.ne_zero, hpq.symm.ne_zero, div_eq_inv_mul]
+  using real.am_gm2_weighted (le_of_lt hpq.one_div_pos) (le_of_lt hpq.symm.one_div_pos)
+    (rpow_nonneg_of_nonneg ha p) (rpow_nonneg_of_nonneg hb q) hpq.inv_add_inv_conj
+
+/-- Young's inequality, a version for arbitrary real numbers. -/
 theorem real.young_inequality (a b : ℝ) {p q : ℝ} (hpq : p.is_conjugate_exponent q) :
   a * b ≤ (abs a)^p / p + (abs b)^q / q :=
-calc a * b ≤ abs (a * b) : le_abs_self (a * b)
-... = abs a * abs b : abs_mul a b
-... ≤ (abs a)^p / p + (abs b)^q / q :
-  by simpa [← rpow_mul (abs_nonneg _), hpq.ne_zero, hpq.symm.ne_zero, div_eq_inv_mul]
-  using real.am_gm2_weighted (le_of_lt hpq.one_div_pos) (le_of_lt hpq.symm.one_div_pos)
-    (rpow_nonneg_of_nonneg (abs_nonneg a) p) (rpow_nonneg_of_nonneg (abs_nonneg b) q)
-    hpq.inv_add_inv_conj
+calc a * b ≤ abs (a * b)                   : le_abs_self (a * b)
+       ... = abs a * abs b                 : abs_mul a b
+       ... ≤ (abs a)^p / p + (abs b)^q / q :
+  real.young_inequality_of_nonneg (abs_nonneg a) (abs_nonneg b) hpq
 
 /-- Young's inequality, `ℝ≥0` version -/
 theorem nnreal.young_inequality (a b : ℝ≥0) {p q : ℝ≥0} (hp : 1 < p) (hpq : 1 / p + 1 / q = 1) :
   a * b ≤ a^(p:ℝ) / p + b^(q:ℝ) / q :=
-by simpa only [abs_of_nonneg (nnreal.coe_nonneg _)]
-  using real.young_inequality a b ⟨hp, nnreal.coe_eq.2 hpq⟩
+real.young_inequality_of_nonneg a.coe_nonneg b.coe_nonneg ⟨hp, nnreal.coe_eq.2 hpq⟩
 
 theorem real.pow_am_le_am_pow (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
   (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) (n : ℕ) :
@@ -150,20 +155,23 @@ namespace finset
 
 variables {p q : ℝ}
 
-theorem sum_mul_le_one_of_lp_le_one_of_lq_le_one {f g : ι → ℝ} (hpq : is_conjugate_exponent p q)
-  (hf : ∑ i in s, (abs $ f i)^p ≤ 1) (hg : ∑ i in s, (abs $ g i)^q ≤ 1) :
-  ∑ i in s, f i * g i ≤ 1 :=
-calc ∑ i in s, f i * g i ≤ ∑ i in s, ((abs $ f i)^p / p + (abs $ g i)^q / q) :
-  sum_le_sum $ λ i hi, real.young_inequality (f i) (g i) hpq
-... = (∑ i in s, ((abs $ f i)^p)) / p + (∑ i in s, (abs $ g i)^q) / q :
-  by simp only [sum_add_distrib, sum_div]
-... ≤ 1 / p + 1 / q : add_le_add (div_le_div_of_le_of_nonneg hf (le_of_lt hpq.pos))
-  (div_le_div_of_le_of_nonneg hg (le_of_lt hpq.symm.pos))
-... = 1 : hpq.inv_add_inv_conj
+variables {f g : ι → ℝ}
 
-section nnreal
+/-- `L^p` seminorm given by the `L^p` norm of the restriction of `f` to `s : finset ι`. -/
+def lp_seminorm (s : finset ι) (p : ℝ) (f : ι → ℝ) : ℝ :=
+(∑ i in s, (abs $ f i) ^ p) ^ (1 / p)
 
-variables {f g : ι → ℝ≥0}
+def holder_dual (f : ι → ℝ) (p : ℝ) (i : ι) : ℝ := (abs $ f i) ^ p / f i
+
+lemma inner_self_holder_dual : ∑ i in s, f i * holder_dual f p i = ∑ i in s, (abs $ f i) ^ p :=
+sum_congr rfl $ λ i hi, by simp only [holder_dual, mul_div_cancel']
+
+
+lemma lq_norm_holder_dual (hpq : is_conjugate_exponent p q) (h : ∑ i in s, (abs $ f i)^p ≠ 0) :
+  ∑ i in s, (
+
+lemma inner_self_holder_dual (hpq : is_conjugate_exponent p q) :
+  ∑ i, f i * (holder_dual s f p i) = (∑ i 
 
 theorem lq_norm_conj_eq_one_nnreal (hf : ∑ i in s, (f i)^p ≠ 0) (hpq : is_conjugate_exponent p q) :
   ∑ i in s, ((f i) ^ (p - 1) / (∑ i in s, (f i) ^ p) ^ (1 / q)) ^ q = 1 :=
@@ -171,6 +179,18 @@ by simp only [nnreal.div_rpow, ← nnreal.rpow_mul, mul_div_assoc', hpq.sub_one_
   one_div_mul_cancel hpq.symm.ne_zero, nnreal.rpow_one, ← nnreal.sum_div, nnreal.div_self hf]
 
 variables (f g)
+
+/-- An auxiliary lemma for Hölder inequality. -/
+theorem sum_mul_le_one_of_lp_le_one_of_lq_le_one (hpq : is_conjugate_exponent p q)
+  (hf : ∑ i in s, (f i)^p ≤ 1) (hg : ∑ i in s, (g i)^q ≤ 1) :
+  ∑ i in s, f i * g i ≤ 1 :=
+-- calc ∑ i in s, f i * g i ≤ ∑ i in s, ((f i)^p / ⟨p, hpq.nonneg⟩ + (g i)^q / ⟨q, hpq.symm.nonneg⟩) :
+  -- sum_le_sum $ λ i hi, nnreal.young_inequality hpq.1 (nnreal.eq hpq.2) (f i) (g i)
+-- ... = (∑ i in s, ((abs $ f i)^p)) / p + (∑ i in s, (abs $ g i)^q) / q :
+  -- by simp only [sum_add_distrib, sum_div]
+-- ... ≤ 1 / p + 1 / q : add_le_add (div_le_div_of_le_of_nonneg hf (le_of_lt hpq.pos))
+  -- (div_le_div_of_le_of_nonneg hg (le_of_lt hpq.symm.pos))
+-- ... = 1 : hpq.inv_add_inv_conj
 
 theorem sum_mul_le_lp_mul_lq_nnreal (hpq : is_conjugate_exponent p q) :
   ∑ i in s, f i * g i ≤ (∑ i in s, (f i)^p) ^ (1 / p) * (∑ i in s, (g i)^q) ^ (1 / q) :=

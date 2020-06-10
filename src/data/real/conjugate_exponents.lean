@@ -42,6 +42,8 @@ ones. -/
 lemma pos : 0 < p :=
 lt_trans zero_lt_one h.one_lt
 
+lemma nonneg : 0 ≤ p := le_of_lt h.pos
+
 lemma ne_zero : p ≠ 0 :=
 ne_of_gt h.pos
 
@@ -63,6 +65,8 @@ begin
   rw [← eq_sub_iff_add_eq', one_div_eq_inv, inv_eq_iff] at this,
   field_simp [← this, h.ne_zero]
 end
+
+lemma conjugate_eq : conjugate_exponent p = q := h.conj_eq.symm
 
 lemma sub_one_mul_conj : (p - 1) * q = p :=
 mul_comm q (p - 1) ▸ (eq_div_iff h.sub_one_ne_zero).1 h.conj_eq

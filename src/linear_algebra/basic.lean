@@ -1653,6 +1653,10 @@ protected def uncurry :
   smul := λ _ _, by { ext z, cases z, refl },
   .. equiv.arrow_arrow_equiv_prod_arrow _ _ _}
 
+@[simp] lemma coe_uncurry (x) : linear_equiv.uncurry R V V₂ x = uncurry x := rfl
+
+@[simp] lemma coe_curry_symm (x) : (linear_equiv.uncurry R V V₂).symm x = curry x := rfl
+
 end curry
 
 section

@@ -6,7 +6,6 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 import algebra.associated
 import linear_algebra.basic
 import order.zorn
-import data.set.disjointed
 
 universes u v
 variables {α : Type u} {β : Type v} {a b : α}

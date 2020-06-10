@@ -6,6 +6,7 @@ Authors: Kenny Lau, Ken Lee, Chris Hughes
 
 import algebra.big_operators
 import data.fintype.basic
+import data.int.gcd
 import data.set.disjointed
 
 /-!
@@ -14,7 +15,8 @@ import data.set.disjointed
 ## Main definitions
 
 * `is_coprime x y`: that `x` and `y` are coprime, defined to be the existence of `a` and `b` such
-that `a * x + b * y = 1`.
+that `a * x + b * y = 1`. Note that elements with no common divisors are not necessarily coprime,
+e.g., the multivariate polynomials `x₁` and `x₂` are not coprime.
 
 -/
 
@@ -25,16 +27,69 @@ universes u v
 variables {R : Type u} [comm_semiring R] (x y z : R)
 
 /-- The proposition that `x` and `y` are coprime, defined to be the existence of `a` and `b` such
-that `a * x + b * y = 1`. -/
+that `a * x + b * y = 1`. Note that elements with no common divisors are not necessarily coprime,
+e.g., the multivariate polynomials `x₁` and `x₂` are not coprime. -/
 @[simp] def is_coprime : Prop :=
 ∃ a b, a * x + b * y = 1
 
+theorem nat.is_coprime_iff_coprime {m n : ℕ} : is_coprime (m : ℤ) n ↔ nat.coprime m n :=
+⟨λ ⟨a, b, H⟩, nat.eq_one_of_dvd_one $ int.coe_nat_dvd.1 $ by { rw [int.coe_nat_one, ← H],
+  exact dvd_add (dvd_mul_of_dvd_right (int.coe_nat_dvd.2 $ nat.gcd_dvd_left m n) _)
+    (dvd_mul_of_dvd_right (int.coe_nat_dvd.2 $ nat.gcd_dvd_right m n) _) },
+λ H, ⟨nat.gcd_a m n, nat.gcd_b m n, by rw [mul_comm _ (m : ℤ), mul_comm _ (n : ℤ),
+    ← nat.gcd_eq_gcd_ab, show _ = _, from H, int.coe_nat_one]⟩⟩
+
 variables {x y z}
 
-theorem is_coprime_self :
-  is_coprime x x ↔ is_unit x :=
+theorem is_coprime.symm (H : is_coprime x y) : is_coprime y x :=
+let ⟨a, b, H⟩ := H in ⟨b, a, by rw [add_comm, H]⟩
+
+theorem is_coprime_comm : is_coprime x y ↔ is_coprime y x :=
+⟨is_coprime.symm, is_coprime.symm⟩
+
+theorem is_coprime_self : is_coprime x x ↔ is_unit x :=
 ⟨λ ⟨a, b, h⟩, is_unit_of_mul_eq_one x (a + b) $ by rwa [mul_comm, add_mul],
 λ h, let ⟨b, hb⟩ := is_unit_iff_exists_inv'.1 h in ⟨b, 0, by rwa [zero_mul, add_zero]⟩⟩
+
+theorem is_coprime_zero_left : is_coprime 0 x ↔ is_unit x :=
+⟨λ ⟨a, b, H⟩, is_unit_of_mul_eq_one x b $ by rwa [mul_zero, zero_add, mul_comm] at H,
+λ H, let ⟨b, hb⟩ := is_unit_iff_exists_inv'.1 H in ⟨1, b, by rwa [one_mul, zero_add]⟩⟩
+
+theorem is_coprime_zero_right : is_coprime x 0 ↔ is_unit x :=
+is_coprime_comm.trans is_coprime_zero_left
+
+theorem is_coprime_one_left : is_coprime 1 x :=
+⟨1, 0, by rw [one_mul, zero_mul, add_zero]⟩
+
+theorem is_coprime_one_right : is_coprime x 1 :=
+⟨0, 1, by rw [one_mul, zero_mul, zero_add]⟩
+
+theorem is_coprime.dvd_of_dvd_mul_right (H1 : is_coprime x z) (H2 : x ∣ y * z) : x ∣ y :=
+let ⟨a, b, H⟩ := H1 in by { rw [← mul_one y, ← H, mul_add, ← mul_assoc, mul_left_comm],
+exact dvd_add (dvd_mul_left _ _) (dvd_mul_of_dvd_right H2 _) }
+
+theorem is_coprime.dvd_of_dvd_mul_left (H1 : is_coprime x y) (H2 : x ∣ y * z) : x ∣ z :=
+let ⟨a, b, H⟩ := H1 in by { rw [← one_mul z, ← H, add_mul, mul_right_comm, mul_assoc b],
+exact dvd_add (dvd_mul_left _ _) (dvd_mul_of_dvd_right H2 _) }
+
+theorem is_coprime.mul_left (H1 : is_coprime x z) (H2 : is_coprime y z) : is_coprime (x * y) z :=
+let ⟨a, b, h1⟩ := H1, ⟨c, d, h2⟩ := H2 in
+⟨a * c, a * x * d + b * c * y + b * d * z,
+calc  a * c * (x * y) + (a * x * d + b * c * y + b * d * z) * z
+    = (a * x + b * z) * (c * y + d * z) : by ring
+... = 1 : by rw [h1, h2, mul_one]⟩
+
+theorem is_coprime.mul_right (H1 : is_coprime x y) (H2 : is_coprime x z) : is_coprime x (y * z) :=
+by { rw is_coprime_comm at H1 H2 ⊢, exact H1.mul_left H2 }
+
+variables {I : Type v} {s : I → R} {t : finset I}
+
+theorem is_coprime.prod_left : (∀ i ∈ t, is_coprime (s i) x) → is_coprime (∏ i in t, s i) x :=
+finset.induction_on t (λ _, is_coprime_one_left) $ λ b t hbt ih H,
+by { rw finset.prod_insert hbt, rw finset.forall_mem_insert at H, exact H.1.mul_left (ih H.2) }
+
+theorem is_coprime.prod_right : (∀ i ∈ t, is_coprime x (s i)) → is_coprime x (∏ i in t, s i) :=
+by simpa only [is_coprime_comm] using is_coprime.prod_left
 
 theorem is_coprime.mul_dvd (H : is_coprime x y) (H1 : x ∣ z) (H2 : y ∣ z) : x * y ∣ z :=
 begin
@@ -47,28 +102,63 @@ begin
     exact dvd_mul_of_dvd_left (mul_dvd_mul_right H1 _) _ }
 end
 
-variables {I : Type v} {s : I → R}
-
-theorem is_coprime_prod_of_pairwise_coprime (hs : pairwise (is_coprime on s)) {t : finset I}
-  {x : I} : x ∉ t → is_coprime (s x) (∏ y in t, s y) :=
-finset.induction_on t (λ _, ⟨0, 1, by { rw [zero_mul, zero_add, one_mul], refl }⟩)
-(λ a r har ih hxar,
-have hxa : x ≠ a, from mt (λ h, (h ▸ finset.mem_insert_self x r : x ∈ insert a r)) hxar,
-have hxr : x ∉ r, from mt finset.mem_insert_of_mem hxar,
-let ⟨ia, ib, hiaib⟩ := ih hxr, ⟨c, d, hcd⟩ := hs _ _ hxa in
-⟨ia * s x * c + ia * d * s a + ib * (∏ y in r, s y) * c, ib * d,
-calc  (ia * s x * c + ia * d * s a + ib * (∏ y in r, s y) * c) * s x +
-        ib * d * (∏ y in insert a r, s y)
-    = (ia * s x * c + ia * d * s a + ib * (∏ y in r, s y) * c) * s x +
-        ib * d * (s a * (∏ y in r, s y)) : by rw finset.prod_insert har
-... = (ia * s x + ib * (∏ y in r, s y)) * (c * s x + d * s a) : by ring
-... = 1 : by rw [hiaib, hcd, mul_one]⟩)
-
-theorem finset.prod_dvd_of_coprime (Hs : pairwise (is_coprime on s)) (Hs1 : ∀ i, s i ∣ z)
-  {t : finset I} : ∏ x in t, s x ∣ z :=
+theorem finset.prod_dvd_of_coprime (Hs : pairwise (is_coprime on s)) (Hs1 : ∀ i, s i ∣ z) :
+  ∏ x in t, s x ∣ z :=
 finset.induction_on t (one_dvd z) (λ a r har ih, by { rw finset.prod_insert har,
-exact (is_coprime_prod_of_pairwise_coprime Hs har).mul_dvd (Hs1 a) ih })
+exact (is_coprime.prod_right $ λ i hir, Hs a i $ λ hai, har $ hai.symm ▸ hir).mul_dvd (Hs1 a) ih })
 
 theorem fintype.prod_dvd_of_coprime [fintype I] (Hs : pairwise (is_coprime on s))
   (Hs1 : ∀ i, s i ∣ z) : ∏ x, s x ∣ z :=
 finset.prod_dvd_of_coprime Hs Hs1
+
+theorem is_coprime.of_mul_left_left (H : is_coprime (x * y) z) : is_coprime x z :=
+let ⟨a, b, h⟩ := H in ⟨a * y, b, by rwa [mul_right_comm, mul_assoc]⟩
+
+theorem is_coprime.of_mul_left_right (H : is_coprime (x * y) z) : is_coprime y z :=
+by { rw mul_comm at H, exact H.of_mul_left_left }
+
+theorem is_coprime.of_mul_right_left (H : is_coprime x (y * z)) : is_coprime x y :=
+by { rw is_coprime_comm at H ⊢, exact H.of_mul_left_left }
+
+theorem is_coprime.of_mul_right_right (H : is_coprime x (y * z)) : is_coprime x z :=
+by { rw mul_comm at H, exact H.of_mul_right_left }
+
+theorem is_coprime.mul_left_iff : is_coprime (x * y) z ↔ is_coprime x z ∧ is_coprime y z :=
+⟨λ H, ⟨H.of_mul_left_left, H.of_mul_left_right⟩, λ ⟨H1, H2⟩, H1.mul_left H2⟩
+
+theorem is_coprime.mul_right_iff : is_coprime x (y * z) ↔ is_coprime x y ∧ is_coprime x z :=
+by rw [is_coprime_comm, is_coprime.mul_left_iff, is_coprime_comm, @is_coprime_comm _ _ z]
+
+theorem is_coprime.prod_left_iff : is_coprime (∏ i in t, s i) x ↔ ∀ i ∈ t, is_coprime (s i) x :=
+finset.induction_on t (iff_of_true is_coprime_one_left $ λ _, false.elim) $ λ b t hbt ih,
+by rw [finset.prod_insert hbt, is_coprime.mul_left_iff, ih, finset.forall_mem_insert]
+
+theorem is_coprime.prod_right_iff : is_coprime x (∏ i in t, s i) ↔ ∀ i ∈ t, is_coprime x (s i) :=
+by simpa only [is_coprime_comm] using is_coprime.prod_left_iff
+
+theorem is_coprime.of_prod_left (H1 : is_coprime (∏ i in t, s i) x) (i : I) (hit : i ∈ t) :
+  is_coprime (s i) x :=
+is_coprime.prod_left_iff.1 H1 i hit
+
+theorem is_coprime.of_prod_right (H1 : is_coprime x (∏ i in t, s i)) (i : I) (hit : i ∈ t) :
+  is_coprime x (s i) :=
+is_coprime.prod_right_iff.1 H1 i hit
+
+variables {m n : ℕ}
+
+theorem is_coprime.pow_left (H : is_coprime x y) : is_coprime (x ^ m) y :=
+by { rw [← finset.card_range m, ← finset.prod_const], exact is_coprime.prod_left (λ _ _, H) }
+
+theorem is_coprime.pow_right (H : is_coprime x y) : is_coprime x (y ^ n) :=
+by { rw [← finset.card_range n, ← finset.prod_const], exact is_coprime.prod_right (λ _ _, H) }
+
+theorem is_coprime.pow (H : is_coprime x y) : is_coprime (x ^ m) (y ^ n) :=
+H.pow_left.pow_right
+
+theorem is_coprime.is_unit_of_dvd (H : is_coprime x y) (d : x ∣ y) : is_unit x :=
+let ⟨k, hk⟩ := d in is_coprime_self.1 $ is_coprime.of_mul_right_left $
+show is_coprime x (x * k), from hk ▸ H
+
+theorem is_coprime.map (H : is_coprime x y) {S : Type v} [comm_semiring S] (f : R →+* S) :
+  is_coprime (f x) (f y) :=
+let ⟨a, b, h⟩ := H in ⟨f a, f b, by rw [← f.map_mul, ← f.map_mul, ← f.map_add, h, f.map_one]⟩

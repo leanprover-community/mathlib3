@@ -168,7 +168,7 @@ theorem left_inverse_symm (f : equiv α β) : left_inverse f.symm f := f.left_in
 
 theorem right_inverse_symm (f : equiv α β) : function.right_inverse f.symm f := f.right_inv
 
-/-- If `α` is equivalent to `β` and `γ` is equivalent to `δ`, then type of equivalences `α ≃ γ`
+/-- If `α` is equivalent to `β` and `γ` is equivalent to `δ`, then the type of equivalences `α ≃ γ`
 is equivalent to the type of equivalences `β ≃ δ`. -/
 def equiv_congr {δ} (ab : α ≃ β) (cd : γ ≃ δ) : (α ≃ γ) ≃ (β ≃ δ) :=
 ⟨ λac, (ab.symm.trans ac).trans cd, λbd, ab.trans $ bd.trans $ cd.symm,
@@ -506,7 +506,7 @@ def sum_empty (α : Type*) : α ⊕ empty ≃ α :=
 
 @[simp] lemma sum_empty_apply_inl {α} (a) : sum_empty α (sum.inl a) = a := rfl
 
-/-- Sum of `empty` with any `Sort*` is equivalent to the right summand. -/
+/-- The sum of `empty` with any `Sort*` is equivalent to the right summand. -/
 def empty_sum (α : Sort*) : empty ⊕ α ≃ α :=
 (sum_comm _ _).trans $ sum_empty _
 
@@ -521,7 +521,7 @@ def sum_pempty (α : Type*) : α ⊕ pempty ≃ α :=
 
 @[simp] lemma sum_pempty_apply_inl {α} (a) : sum_pempty α (sum.inl a) = a := rfl
 
-/-- Sum of `pempty` with any `Sort*` is equivalent to the right summand. -/
+/-- The sum of `pempty` with any `Sort*` is equivalent to the right summand. -/
 def pempty_sum (α : Sort*) : pempty ⊕ α ≃ α :=
 (sum_comm _ _).trans $ sum_pempty _
 
@@ -675,7 +675,7 @@ def Pi_curry {α} {β : α → Sort*} (γ : Π a, β a → Sort*) :
 end
 
 section
-/-- `psigma`-type is equivalent to the corresponding `sigma`-type. -/
+/-- A `psigma`-type is equivalent to the corresponding `sigma`-type. -/
 def psigma_equiv_sigma {α} (β : α → Sort*) : (Σ' i, β i) ≃ Σ i, β i :=
 ⟨λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
 

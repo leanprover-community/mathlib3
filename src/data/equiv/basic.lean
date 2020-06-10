@@ -764,7 +764,7 @@ calc α × (β ⊕ γ) ≃ (β ⊕ γ) × α       : prod_comm _ _
 @[simp] theorem prod_sum_distrib_apply_right {α β γ} (a : α) (c : γ) :
    prod_sum_distrib α β γ (a, sum.inr c) = sum.inr (a, c) := rfl
 
-/-- Product of an indexed sum of types (formally, a `sigma`-type `Σ i, α i`) by a type `β` is
+/-- The product of an indexed sum of types (formally, a `sigma`-type `Σ i, α i`) by a type `β` is
 equivalent to the sum of products `Σ i, (α i × β)`. -/
 def sigma_prod_distrib {ι : Type*} (α : ι → Type*) (β : Type*) :
   ((Σ i, α i) × β) ≃ (Σ i, (α i × β)) :=
@@ -773,7 +773,7 @@ def sigma_prod_distrib {ι : Type*} (α : ι → Type*) (β : Type*) :
  λ p, by { rcases p with ⟨⟨_, _⟩, _⟩, refl },
  λ p, by { rcases p with ⟨_, ⟨_, _⟩⟩, refl }⟩
 
-/-- Product `bool × α` is equivalent to `α ⊕ α`. -/
+/-- The product `bool × α` is equivalent to `α ⊕ α`. -/
 def bool_prod_equiv_sum (α : Type u) : bool × α ≃ α ⊕ α :=
 calc bool × α ≃ (unit ⊕ unit) × α       : prod_congr bool_equiv_punit_sum_punit (equiv.refl _)
       ...     ≃ (unit × α) ⊕ (unit × α) : sum_prod_distrib _ _ _
@@ -857,7 +857,7 @@ subtype_congr (equiv.refl α) (assume a, h ▸ iff.rfl)
 def set_congr {α : Type*} {s t : set α} (h : s = t) : s ≃ t :=
 subtype_congr_prop h
 
-/-- Subtype of a subtype is equivalent to the subtype of elements satisfying both predicates. This
+/-- A subtype of a subtype is equivalent to the subtype of elements satisfying both predicates. This
 version allows the “inner” predicate to depend on `h : p a`. -/
 def subtype_subtype_equiv_subtype_exists {α : Type u} (p : α → Prop) (q : subtype p → Prop) :
   subtype q ≃ {a : α // ∃h:p a, q ⟨a, h⟩ } :=
@@ -865,7 +865,7 @@ def subtype_subtype_equiv_subtype_exists {α : Type u} (p : α → Prop) (q : su
   λ⟨a, ha⟩, ⟨⟨a, ha.cases_on $ assume h _, h⟩, by { cases ha, exact ha_h }⟩,
   assume ⟨⟨a, ha⟩, h⟩, rfl, assume ⟨a, h₁, h₂⟩, rfl⟩
 
-/-- Subtype of a subtype is equivalent to the subtype of elements satisfying both predicates. -/
+/-- A subtype of a subtype is equivalent to the subtype of elements satisfying both predicates. -/
 def subtype_subtype_equiv_subtype_inter {α : Type u} (p q : α → Prop) :
   {x : subtype p // q x.1} ≃ subtype (λ x, p x ∧ q x) :=
 (subtype_subtype_equiv_subtype_exists p _).trans $
@@ -1073,7 +1073,7 @@ calc  (s ∪ t : set α) ⊕ (s ∩ t : set α)
   end
 ... ≃ s ⊕ t : by { rw (_ : t \ s ∪ s ∩ t = t), rw [union_comm, inter_comm, inter_union_diff] }
 
-/-- Set product of two sets is equivalent to the type product of their coercions to types. -/
+/-- The set product of two sets is equivalent to the type product of their coercions to types. -/
 protected def prod {α β} (s : set α) (t : set β) :
   s.prod t ≃ s × t :=
 @subtype_prod_equiv_prod α β s t

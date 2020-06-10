@@ -128,16 +128,16 @@ lemma nonzero_of_invertible (a : α) [invertible a] : a ≠ 0 :=
 
 /-- `a⁻¹` is an inverse of `a` if `a ≠ 0` -/
 def invertible_of_nonzero {a : α} (h : a ≠ 0) : invertible a :=
-⟨ a⁻¹, inv_mul_cancel' _ h, mul_inv_cancel' _ h ⟩
+⟨ a⁻¹, inv_mul_cancel h, mul_inv_cancel h ⟩
 
 @[simp] lemma inv_of_eq_inv (a : α) [invertible a] : ⅟a = a⁻¹ :=
-inv_of_eq_right_inv (mul_inv_cancel' _ (nonzero_of_invertible a))
+inv_of_eq_right_inv (mul_inv_cancel (nonzero_of_invertible a))
 
 @[simp] lemma inv_mul_cancel_of_invertible (a : α) [invertible a] : a⁻¹ * a = 1 :=
-inv_mul_cancel' _ (nonzero_of_invertible a)
+inv_mul_cancel (nonzero_of_invertible a)
 
 @[simp] lemma mul_inv_cancel_of_invertible (a : α) [invertible a] : a * a⁻¹ = 1 :=
-mul_inv_cancel' _ (nonzero_of_invertible a)
+mul_inv_cancel (nonzero_of_invertible a)
 
 @[simp] lemma div_mul_cancel_of_invertible (a b : α) [invertible b] : a / b * b = a :=
 div_mul_cancel' a (nonzero_of_invertible b)

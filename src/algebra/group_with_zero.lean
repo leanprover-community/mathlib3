@@ -73,13 +73,15 @@ end prio
 lemma div_eq_mul_inv {G₀ : Type*} [group_with_zero G₀] {a b : G₀} :
   a / b = a * b⁻¹ := rfl
 
+alias div_eq_mul_inv ← division_def
+
 section group_with_zero
 variables {G₀ : Type*} [group_with_zero G₀]
 
 @[simp] lemma inv_zero : (0 : G₀)⁻¹ = 0 :=
 group_with_zero.inv_zero
 
-@[simp] lemma mul_inv_cancel' (a : G₀) (h : a ≠ 0) : a * a⁻¹ = 1 :=
+@[simp] lemma mul_inv_cancel {a : G₀} (h : a ≠ 0) : a * a⁻¹ = 1 :=
 group_with_zero.mul_inv_cancel a h
 
 @[simp] lemma mul_inv_cancel_assoc_left (a b : G₀) (h : b ≠ 0) :
@@ -93,9 +95,9 @@ calc a * (a⁻¹ * b) = (a * a⁻¹) * b : (mul_assoc _ _ _).symm
                ... = b             : by simp [h]
 
 lemma inv_ne_zero' {a : G₀} (h : a ≠ 0) : a⁻¹ ≠ 0 :=
-assume a_eq_0, by simpa [a_eq_0] using mul_inv_cancel' a h
+assume a_eq_0, by simpa [a_eq_0] using mul_inv_cancel h
 
-@[simp] lemma inv_mul_cancel' (a : G₀) (h : a ≠ 0) : a⁻¹ * a = 1 :=
+@[simp] lemma inv_mul_cancel {a : G₀} (h : a ≠ 0) : a⁻¹ * a = 1 :=
 calc a⁻¹ * a = (a⁻¹ * a) * a⁻¹ * a⁻¹⁻¹ : by simp [inv_ne_zero' h]
          ... = a⁻¹ * a⁻¹⁻¹             : by simp [h]
          ... = 1                       : by simp [inv_ne_zero' h]
@@ -125,7 +127,7 @@ begin
   classical,
   by_cases h : a = 0,
   { rw [h, inv_zero, mul_zero] },
-  { rw [mul_assoc, mul_inv_cancel' a h, mul_one] }
+  { rw [mul_assoc, mul_inv_cancel h, mul_one] }
 end
 
 /-- Multiplying `a` by its inverse and then by itself results in `a`
@@ -135,7 +137,7 @@ begin
   classical,
   by_cases h : a = 0,
   { rw [h, inv_zero, mul_zero] },
-  { rw [mul_inv_cancel' a h, one_mul] }
+  { rw [mul_inv_cancel h, one_mul] }
 end
 
 /-- Multiplying `a⁻¹` by `a` twice results in `a` (whether or not `a`
@@ -145,7 +147,7 @@ begin
   classical,
   by_cases h : a = 0,
   { rw [h, inv_zero, mul_zero] },
-  { rw [inv_mul_cancel' a h, one_mul] }
+  { rw [inv_mul_cancel h, one_mul] }
 end
 
 /-- Multiplying `a` by itself and then dividing by itself results in
@@ -192,10 +194,10 @@ lemma inv_eq_iff {g h : G₀} : g⁻¹ = h ↔ h⁻¹ = g :=
 by rw [← inv_inj'', eq_comm, inv_inv']
 
 @[simp] lemma coe_unit_mul_inv' (a : units G₀) : (a : G₀) * a⁻¹ = 1 :=
-mul_inv_cancel' _ $ ne_zero_of_mul_right_eq_one' _ (a⁻¹ : units G₀) $ by simp
+mul_inv_cancel $ ne_zero_of_mul_right_eq_one' _ (a⁻¹ : units G₀) $ by simp
 
 @[simp] lemma coe_unit_inv_mul' (a : units G₀) : (a⁻¹ : G₀) * a = 1 :=
-inv_mul_cancel' _ $ ne_zero_of_mul_right_eq_one' _ (a⁻¹ : units G₀) $ by simp
+inv_mul_cancel $ ne_zero_of_mul_right_eq_one' _ (a⁻¹ : units G₀) $ by simp
 
 @[simp] lemma unit_ne_zero (a : units G₀) : (a : G₀) ≠ 0 :=
 assume a_eq_0, zero_ne_one $
@@ -213,12 +215,12 @@ variables {a b : G₀}
   or the `/ₚ` operation, it is possible to write a division
   as a partial function with three arguments. -/
 def mk0 (a : G₀) (ha : a ≠ 0) : units G₀ :=
-⟨a, a⁻¹, mul_inv_cancel' _ ha, inv_mul_cancel' _ ha⟩
+⟨a, a⁻¹, mul_inv_cancel ha, inv_mul_cancel ha⟩
 
 @[simp] lemma coe_mk0 {a : G₀} (h : a ≠ 0) : (mk0 a h : G₀) = a := rfl
 
 @[simp] theorem inv_eq_inv (u : units G₀) : (↑u⁻¹ : G₀) = u⁻¹ :=
-(mul_right_inj u).1 $ by { rw [units.mul_inv, mul_inv_cancel'], apply unit_ne_zero }
+(mul_right_inj u).1 $ by { rw [units.mul_inv, mul_inv_cancel], apply unit_ne_zero }
 
 @[simp] lemma mk0_coe (u : units G₀) (h : (u : G₀) ≠ 0) : mk0 (u : G₀) h = u :=
 units.ext rfl
@@ -293,7 +295,7 @@ begin
   simp [mul_assoc, hx, hy]
 end
 
-@[simp] lemma div_self' {a : G₀} (h : a ≠ 0) : a / a = 1 := mul_inv_cancel' _ h
+@[simp] lemma div_self' {a : G₀} (h : a ≠ 0) : a / a = 1 := mul_inv_cancel h
 
 @[simp] lemma div_one' (a : G₀) : a / 1 = a :=
 show a * 1⁻¹ = a, by rw [inv_one', mul_one]
@@ -419,7 +421,7 @@ by rw [one_div_mul_one_div_rev, mul_comm b]
 
 lemma div_mul_right' {a : G₀} (b : G₀) (ha : a ≠ 0) : a / (a * b) = 1 / b :=
 eq.symm (calc
-    1 / b = a * ((1 / a) * (1 / b)) : by rw [← mul_assoc, one_div a, mul_inv_cancel' a ha, one_mul]
+    1 / b = a * ((1 / a) * (1 / b)) : by rw [← mul_assoc, one_div a, mul_inv_cancel ha, one_mul]
       ... = a * (1 / (b * a))       : by rw one_div_mul_one_div_rev
       ... = a * (a * b)⁻¹           : by rw [← one_div, mul_comm a b])
 

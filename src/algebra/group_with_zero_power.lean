@@ -100,10 +100,10 @@ lemma fpow_add_one {a : G₀} (ha : a ≠ 0) : ∀ n : ℤ, a ^ (n + 1) = a ^ n 
 | -[1+0]     := by simp [int.neg_succ_of_nat_eq, ha]
 | -[1+(n+1)] := by rw [int.neg_succ_of_nat_eq, fpow_neg, neg_add, neg_add_cancel_right, fpow_neg,
   ← int.coe_nat_succ, fpow_coe_nat, fpow_coe_nat, pow_succ _ (n + 1), mul_inv_rev', mul_assoc,
-  inv_mul_cancel' a ha, mul_one]
+  inv_mul_cancel ha, mul_one]
 
 lemma fpow_sub_one {a : G₀} (ha : a ≠ 0) (n : ℤ) : a ^ (n - 1) = a ^ n * a⁻¹ :=
-calc a ^ (n - 1) = a ^ (n - 1) * a * a⁻¹ : by rw [mul_assoc, mul_inv_cancel' a ha, mul_one]
+calc a ^ (n - 1) = a ^ (n - 1) * a * a⁻¹ : by rw [mul_assoc, mul_inv_cancel ha, mul_one]
              ... = a^n * a⁻¹             : by rw [← fpow_add_one ha, sub_add_cancel]
 
 lemma fpow_add {a : G₀} (ha : a ≠ 0) (m n : ℤ) : a ^ (m + n) = a ^ m * a ^ n :=
@@ -180,7 +180,7 @@ theorem fpow_neg_mul_fpow_self (n : ℤ) {x : G₀} (h : x ≠ 0) :
   x ^ (-n) * x ^ n = 1 :=
 begin
   rw [fpow_neg],
-  exact inv_mul_cancel' _ (fpow_ne_zero n h)
+  exact inv_mul_cancel (fpow_ne_zero n h)
 end
 
 theorem one_div_pow {a : G₀} (n : ℕ) :

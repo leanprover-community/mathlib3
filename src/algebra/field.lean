@@ -29,26 +29,16 @@ instance division_ring.to_nonzero : nonzero α :=
 instance division_ring_has_div : has_div α :=
 ⟨λ a b, a * b⁻¹⟩
 
-lemma division_def (a b : α) : a / b = a * b⁻¹ :=
-rfl
-
-@[simp] lemma mul_inv_cancel (h : a ≠ 0) : a * a⁻¹ = 1 :=
-division_ring.mul_inv_cancel h
-
-@[simp] lemma inv_mul_cancel (h : a ≠ 0) : a⁻¹ * a = 1 :=
-division_ring.inv_mul_cancel h
+/-- Every division ring is a `group_with_zero`. -/
+@[priority 100] -- see Note [lower instance priority]
+instance division_ring.to_group_with_zero :
+  group_with_zero α :=
+{ .. ‹division_ring α›,
+  .. (infer_instance : semiring α) }
 
 @[simp] lemma one_div_eq_inv (a : α) : 1 / a = a⁻¹ := one_mul a⁻¹
 
 @[field_simps] lemma inv_eq_one_div (a : α) : a⁻¹ = 1 / a := by simp
-
-/-- Every division ring is a `group_with_zero`. -/
-@[priority 10] -- see Note [lower instance priority]
-instance division_ring.to_group_with_zero :
-  group_with_zero α :=
-{ mul_inv_cancel := λ _, mul_inv_cancel,
-  .. ‹division_ring α›,
-  .. (by apply_instance : semiring α) }
 
 local attribute [simp]
   division_def mul_comm mul_assoc

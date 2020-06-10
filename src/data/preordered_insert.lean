@@ -2,6 +2,13 @@ import data.list.sort
 
 namespace list
 
+lemma sorted_append {α : Type*} {r : α → α → Prop} {l₁ l₂ : list α} : sorted r (l₁++l₂) ↔
+  sorted r l₁ ∧ sorted r l₂ ∧ ∀ x ∈ l₁, ∀ y ∈ l₂, r x y :=
+pairwise_append
+
+lemma mem_take_while {α : Type*} {p : α → Prop} [decidable_pred p] {L : list α} {a : α}
+   (h : a ∈ L.take_while p) : p a := sorry
+
 section sort
 
 /-!
@@ -20,46 +27,48 @@ It is useful to have `preorder_sort` when working with partial ordered data.
 section preorder_sort
 
 parameters {α : Type*} (r : α → α → Prop) [decidable_rel r]
-local infix ` ≺  ` : 50 := r
+local infix ` ≺ ` : 50 := r
 
 /--
-`preordered_insert (≺) a l` inserts `a` into `l` so that `a` appears after any smaller elements.
+`preordered_insert (≺) a l` inserts `a` into `l` so that `a` appears before any smaller elements.
 -/
-@[simp] def preordered_insert (a : α) : list α → list α
-| []       := [a]
-| (b :: l) := if ∃ m ∈ b :: l, m ≺ a then b :: preordered_insert l else a :: b :: l
+def preordered_insert (a : α) (L : list α) : list α :=
+L.take_while (λ x, ¬ x ≺ a) ++ [a] ++ L.drop_while (λ x, ¬ x ≺ a)
+
+@[simp] def preorder_sort' : list α → list α
+| []       := []
+| (b :: l) := preordered_insert b (preorder_sort' l)
 
 /--
 When `≺` is a transitive and irreflexive relation (e.g. `<` in any preorder)
-`preorder_sort (≺) l` returns a list which is `sorted (λ x y, ¬(y ≺ x)`,
+`preorder_sort (≺) l` returns a list which is `sorted (λ x y, ¬(y ≺ x))`,
 that is, no strictly larger element comes before a smaller element.
 -/
-@[simp] def preorder_sort : list α → list α
-| []       := []
-| (b :: l) := preordered_insert b (preorder_sort l)
+@[simp] def preorder_sort (L : list α) : list α :=
+(preorder_sort' L).reverse
 
 @[simp] lemma preordered_insert_nil (a : α) : [].preordered_insert r a = [a] := rfl
 
-theorem preordered_insert_length :
-  Π (L : list α) (a : α), (L.preordered_insert r a).length = L.length + 1
-| [] a := rfl
-| (hd :: tl) a := by { dsimp [preordered_insert], split_ifs; simp [preordered_insert_length], }
+theorem preordered_insert_length (L : list α) (a : α) :
+  (L.preordered_insert r a).length = L.length + 1 :=
+begin
+  dsimp [preordered_insert],
+  simp only [cons_append, length, append_assoc, nil_append, length_append],
+  rw [←add_assoc, ←length_append, take_while_append_drop],
+end
 
 section correctness
 open perm
 
-theorem perm_preordered_insert (a) : ∀ l : list α, preordered_insert a l ~ a :: l
-| []       := perm.refl _
-| (b :: l) :=
-  begin
-    simp only [preordered_insert],
-    split_ifs,
-    { transitivity,
-      { apply perm.cons,
-        apply perm_preordered_insert, },
-      { apply perm.swap, }, },
-    { refl, },
-  end
+theorem perm_preordered_insert (a) (L : list α) : preordered_insert a L ~ a :: L :=
+begin
+  dsimp [preordered_insert],
+  calc take_while (λ (x : α), ¬r x a) L ++ [a] ++ drop_while (λ (x : α), ¬r x a) L
+        ~ [a] ++ take_while (λ (x : α), ¬r x a) L ++ drop_while (λ (x : α), ¬r x a) L :
+            (perm_append_right_iff _).2 perm_append_comm
+    ... ~ [a] ++ L : by rw [append_assoc, take_while_append_drop]
+    ... ~ a :: L : by simp,
+end
 
 theorem preordered_insert_count [decidable_eq α] (L : list α) (a b : α) :
   count a (L.preordered_insert r b) = count a L + if (a = b) then 1 else 0 :=
@@ -68,40 +77,34 @@ begin
   split_ifs; simp only [nat.succ_eq_add_one, add_zero],
 end
 
-theorem perm_preorder_sort : ∀ l : list α, preorder_sort l ~ l
-| []       := perm.nil
-| (b :: l) := by simpa [preorder_sort] using
-  (perm_preordered_insert _ _ _).trans ((perm_preorder_sort l).cons b)
+theorem perm_preorder_sort (L : list α) : preorder_sort L ~ L :=
+begin
+  dsimp [preorder_sort],
+  calc _ ~ preorder_sort' (≺) L : reverse_perm _
+     ... ~ L : _,
+  induction L with hd tl ih,
+  { simp, },
+  { simp [list.preordered_insert], sorry, }
+end
 
 section asymm_and_trans
 variables [is_asymm α r] [is_trans α r]
 
 theorem sorted_preordered_insert (a : α) :
-  ∀ l, sorted (λ x y, ¬(y ≺ x)) l → sorted (λ x y, ¬(y ≺ x)) (preordered_insert a l)
+  ∀ l, sorted (λ x y, ¬(x ≺ y)) l → sorted (λ x y, ¬(x ≺ y)) (preordered_insert a l)
 | []       h := sorted_singleton a
 | (b :: l) h :=
   begin
     simp only [preordered_insert],
-    split_ifs with w,
-    { apply sorted_cons.2,
-      split,
-      { intros c h',
-        rw perm.mem_iff (perm_preordered_insert _ _ _) at h',
-        rcases h' with ⟨rfl|h'⟩,
-        { obtain ⟨c, m, w⟩ := w,
-          rcases m with ⟨rfl|m⟩,
-          { exact asymm w, },
-          { exact λ w', rel_of_sorted_cons h c m (trans w w') }, },
-        { apply rel_of_sorted_cons h _ h', }, },
-      { exact sorted_preordered_insert _ (sorted_of_sorted_cons h), }, },
-    { simp at w,
-      apply sorted_cons.2,
-      split,
-      { intros c h',
-        rcases h' with ⟨rfl|h'⟩,
-        { exact w.1, },
-        { exact w.2 _ h', }, },
-      { exact h, }, },
+    apply sorted_append.2,
+    refine ⟨_,_,_⟩,
+    { apply sorted_append.2,
+      refine ⟨_,_,_⟩,
+      { sorry, },
+      { simp, },
+      { rintros x m y ⟨w|w'⟩, apply mem_take_while m, rcases H, }, },
+    { sorry, },
+    { intros x mx y my, sorry, },
   end
 
 theorem sorted_preorder_sort : ∀ l, sorted (λ x y, ¬(y ≺ x)) (preorder_sort l)

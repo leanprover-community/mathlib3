@@ -112,13 +112,6 @@ begin
   split_ifs; simp only [nat.succ_eq_add_one, add_zero],
 end
 
-theorem ordered_insert_count [decidable_eq α] (L : list α) (a b : α) :
-  count a (L.ordered_insert r b) = count a L + if (a = b) then 1 else 0 :=
-begin
-  rw [perm_count (L.perm_ordered_insert r b), count_cons],
-  split_ifs; simp only [nat.succ_eq_add_one, add_zero],
-end
-
 theorem perm_insertion_sort : ∀ l : list α, insertion_sort l ~ l
 | []       := perm.nil
 | (b :: l) := by simpa [insertion_sort] using

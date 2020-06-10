@@ -2,8 +2,15 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
+-/
+import order.filter.lift
+import topology.separation
+/-!
+# Uniform spaces
 
-Theory of uniform spaces.
+## Main definitions
+
+* `uniform_space X` is a uniform space structure on a type `X`
 
 Uniform spaces are a generalization of metric spaces and topological groups. Many concepts directly
 generalize to uniform spaces, e.g.
@@ -19,13 +26,17 @@ space. This filter is reflexive, symmetric and transitive. So a set (i.e. a rela
 represents a 'distance': it is reflexive, symmetric and the uniformity contains a set for which the
 `triangular` rule holds.
 
-The formalization is mostly based on the books:
+## Notations
+
+Localized in `uniformity`, we have the notation `𝓤 X` for the uniformity on a uniform space `X`.
+
+## References
+
+The formalization uses the books:
   N. Bourbaki: General Topology
   I. M. James: Topologies and Uniformities
-A major difference is that this formalization is heavily based on the filter library.
+But is makes a more systematic use of the filter library.
 -/
-import order.filter.lift
-import topology.separation
 
 open set filter classical
 open_locale classical topological_space
@@ -34,6 +45,9 @@ set_option eqn_compiler.zeta true
 
 universes u
 section
+/-!
+# Relations, seen as `set (α × α)`
+-/
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ι : Sort*}
 
 /-- The identity relation, or the graph of the identity function -/
@@ -47,25 +61,27 @@ by simp [subset_def]; exact forall_congr (λ a, by simp)
 /-- The composition of relations -/
 def comp_rel {α : Type u} (r₁ r₂ : set (α×α)) := {p : α × α | ∃z:α, (p.1, z) ∈ r₁ ∧ (z, p.2) ∈ r₂}
 
+localized "infix ` ○ `:55 := comp_rel" in uniformity
+
 @[simp] theorem mem_comp_rel {r₁ r₂ : set (α×α)}
-  {x y : α} : (x, y) ∈ comp_rel r₁ r₂ ↔ ∃ z, (x, z) ∈ r₁ ∧ (z, y) ∈ r₂ := iff.rfl
+  {x y : α} : (x, y) ∈ r₁ ○ r₂ ↔ ∃ z, (x, z) ∈ r₁ ∧ (z, y) ∈ r₂ := iff.rfl
 
 @[simp] theorem swap_id_rel : prod.swap '' id_rel = @id_rel α :=
 set.ext $ assume ⟨a, b⟩, by simp [image_swap_eq_preimage_swap]; exact eq_comm
 
 theorem monotone_comp_rel [preorder β] {f g : β → set (α×α)}
-  (hf : monotone f) (hg : monotone g) : monotone (λx, comp_rel (f x) (g x)) :=
+  (hf : monotone f) (hg : monotone g) : monotone (λx, (f x) ○ (g x)) :=
 assume a b h p ⟨z, h₁, h₂⟩, ⟨z, hf h h₁, hg h h₂⟩
 
 lemma prod_mk_mem_comp_rel {a b c : α} {s t : set (α×α)} (h₁ : (a, c) ∈ s) (h₂ : (c, b) ∈ t) :
-  (a, b) ∈ comp_rel s t :=
+  (a, b) ∈ s ○ t :=
 ⟨c, h₁, h₂⟩
 
-@[simp] lemma id_comp_rel {r : set (α×α)} : comp_rel id_rel r = r :=
+@[simp] lemma id_comp_rel {r : set (α×α)} : id_rel ○ r = r :=
 set.ext $ assume ⟨a, b⟩, by simp
 
 lemma comp_rel_assoc {r s t : set (α×α)} :
-  comp_rel (comp_rel r s) t = comp_rel r (comp_rel s t) :=
+  (r ○ s) ○ t = r ○ (s ○ t) :=
 by ext p; cases p; simp only [mem_comp_rel]; tauto
 
 /-- This core description of a uniform space is outside of the type class hierarchy. It is useful
@@ -74,14 +90,14 @@ structure uniform_space.core (α : Type u) :=
 (uniformity : filter (α × α))
 (refl       : principal id_rel ≤ uniformity)
 (symm       : tendsto prod.swap uniformity uniformity)
-(comp       : uniformity.lift' (λs, comp_rel s s) ≤ uniformity)
+(comp       : uniformity.lift' (λs, s ○ s) ≤ uniformity)
 
 /-- An alternative constructor for `uniform_space.core`. This version unfolds various
 `filter`-related definitions. -/
 def uniform_space.core.mk' {α : Type u} (U : filter (α × α))
   (refl : ∀ (r ∈ U) x, (x, x) ∈ r)
   (symm : ∀ r ∈ U, {p | prod.swap p ∈ r} ∈ U)
-  (comp : ∀ r ∈ U, ∃ t ∈ U, comp_rel t t ⊆ r) : uniform_space.core α :=
+  (comp : ∀ r ∈ U, ∃ t ∈ U, t ○ t ⊆ r) : uniform_space.core α :=
 ⟨U, λ r ru, id_rel_subset.2 (refl _ ru), symm,
   begin
     intros r ru,
@@ -177,15 +193,15 @@ refl_le_uniformity h rfl
 lemma symm_le_uniformity : map (@prod.swap α α) (𝓤 _) ≤ (𝓤 _) :=
 (@uniform_space.to_core α _).symm
 
-lemma comp_le_uniformity : (𝓤 α).lift' (λs:set (α×α), comp_rel s s) ≤ 𝓤 α :=
+lemma comp_le_uniformity : (𝓤 α).lift' (λs:set (α×α), s ○ s) ≤ 𝓤 α :=
 (@uniform_space.to_core α _).comp
 
 lemma tendsto_swap_uniformity : tendsto (@prod.swap α α) (𝓤 α) (𝓤 α) :=
 symm_le_uniformity
 
 lemma comp_mem_uniformity_sets {s : set (α × α)} (hs : s ∈ 𝓤 α) :
-  ∃ t ∈ 𝓤 α, comp_rel t t ⊆ s :=
-have s ∈ (𝓤 α).lift' (λt:set (α×α), comp_rel t t),
+  ∃ t ∈ 𝓤 α, t ○ t ⊆ s :=
+have s ∈ (𝓤 α).lift' (λt:set (α×α), t ○ t),
   from comp_le_uniformity hs,
 (mem_lift'_sets $ monotone_comp_rel monotone_id monotone_id).mp this
 
@@ -219,7 +235,7 @@ have preimage prod.swap s ∈ 𝓤 α, from symm_le_uniformity hs,
 ⟨s ∩ preimage prod.swap s, inter_mem_sets hs this, assume a b ⟨h₁, h₂⟩, ⟨h₂, h₁⟩, inter_subset_left _ _⟩
 
 lemma comp_symm_of_uniformity {s : set (α × α)} (hs : s ∈ 𝓤 α) :
-  ∃ t ∈ 𝓤 α, (∀{a b}, (a, b) ∈ t → (b, a) ∈ t) ∧ comp_rel t t ⊆ s :=
+  ∃ t ∈ 𝓤 α, (∀{a b}, (a, b) ∈ t → (b, a) ∈ t) ∧ t ○ t ⊆ s :=
 let ⟨t, ht₁, ht₂⟩ := comp_mem_uniformity_sets hs in
 let ⟨t', ht', ht'₁, ht'₂⟩ := symm_of_uniformity ht₁ in
 ⟨t', ht', ht'₁, subset.trans (monotone_comp_rel monotone_id monotone_id ht'₂) ht₂⟩
@@ -239,9 +255,9 @@ calc (𝓤 α).lift g ≤ (filter.map (@prod.swap α α) $ 𝓤 α).lift g :
     by rw [map_lift_eq2 hg, image_swap_eq_preimage_swap]; exact h
 
 lemma uniformity_lift_le_comp {f : set (α×α) → filter β} (h : monotone f) :
-  (𝓤 α).lift (λs, f (comp_rel s s)) ≤ (𝓤 α).lift f :=
-calc (𝓤 α).lift (λs, f (comp_rel s s)) =
-    ((𝓤 α).lift' (λs:set (α×α), comp_rel s s)).lift f :
+  (𝓤 α).lift (λs, f (s ○ s)) ≤ (𝓤 α).lift f :=
+calc (𝓤 α).lift (λs, f (s ○ s)) =
+    ((𝓤 α).lift' (λs:set (α×α), s ○ s)).lift f :
   begin
     rw [lift_lift'_assoc],
     exact monotone_comp_rel monotone_id monotone_id,
@@ -250,18 +266,18 @@ calc (𝓤 α).lift (λs, f (comp_rel s s)) =
   ... ≤ (𝓤 α).lift f : lift_mono comp_le_uniformity (le_refl _)
 
 lemma comp_le_uniformity3 :
-  (𝓤 α).lift' (λs:set (α×α), comp_rel s (comp_rel s s)) ≤ (𝓤 α) :=
-calc (𝓤 α).lift' (λd, comp_rel d (comp_rel d d)) =
-  (𝓤 α).lift (λs, (𝓤 α).lift' (λt:set(α×α), comp_rel s (comp_rel t t))) :
+  (𝓤 α).lift' (λs:set (α×α), s ○ (s ○ s)) ≤ (𝓤 α) :=
+calc (𝓤 α).lift' (λd, d ○ (d ○ d)) =
+  (𝓤 α).lift (λs, (𝓤 α).lift' (λt:set(α×α), s ○ (t ○ t))) :
   begin
     rw [lift_lift'_same_eq_lift'],
     exact (assume x, monotone_comp_rel monotone_const $ monotone_comp_rel monotone_id monotone_id),
     exact (assume x, monotone_comp_rel monotone_id monotone_const),
   end
-  ... ≤ (𝓤 α).lift (λs, (𝓤 α).lift' (λt:set(α×α), comp_rel s t)) :
-    lift_mono' $ assume s hs, @uniformity_lift_le_comp α _ _ (principal ∘ comp_rel s) $
+  ... ≤ (𝓤 α).lift (λs, (𝓤 α).lift' (λt:set(α×α), s ○ t)) :
+    lift_mono' $ assume s hs, @uniformity_lift_le_comp α _ _ (principal ∘ (○) s) $
       monotone_principal.comp (monotone_comp_rel monotone_const monotone_id)
-  ... = (𝓤 α).lift' (λs:set(α×α), comp_rel s s) :
+  ... = (𝓤 α).lift' (λs:set(α×α), s ○ s) :
     lift_lift'_same_eq_lift'
       (assume s, monotone_comp_rel monotone_const monotone_id)
       (assume s, monotone_comp_rel monotone_id monotone_const)
@@ -288,7 +304,7 @@ lemma mem_nhds_uniformity_iff_right {x : α} {s : set α} :
       by filter_upwards [ht] assume ⟨a, b'⟩ hp'' (hab : a = b),
       have hp : (x', b) ∈ t, from hax' ▸ hp',
       have (b, b') ∈ t, from hab ▸ hp'',
-      have (x', b') ∈ comp_rel t t, from ⟨b, hp, this⟩,
+      have (x', b') ∈ t ○ t, from ⟨b, hp, this⟩,
       show b' ∈ s,
         from tr this rfl,
     hs⟩⟩
@@ -397,7 +413,7 @@ match this with
 end
 
 lemma closure_eq_inter_uniformity {t : set (α×α)} :
-  closure t = (⋂ d ∈ 𝓤 α, comp_rel d (comp_rel t d)) :=
+  closure t = (⋂ d ∈ 𝓤 α, d ○ (t ○ d)) :=
 set.ext $ assume ⟨a, b⟩,
 calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ principal t ≠ ⊥) : by simp [closure_eq_nhds]
   ... ↔ (((@prod.swap α α) <$> 𝓤 α).lift'
@@ -418,7 +434,7 @@ calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ principal t ≠ ⊥) : by simp [c
     rw [lift'_inf_principal_eq, lift'_ne_bot_iff],
     exact monotone_inter (monotone_prod monotone_preimage monotone_preimage) monotone_const
   end
-  ... ↔ (∀ s ∈ 𝓤 α, (a, b) ∈ comp_rel s (comp_rel t s)) :
+  ... ↔ (∀ s ∈ 𝓤 α, (a, b) ∈ s ○ (t ○ s)) :
     forall_congr $ assume s, forall_congr $ assume hs,
     ⟨assume ⟨⟨x, y⟩, ⟨⟨hx, hy⟩, hxyt⟩⟩, ⟨x, hx, y, hxyt, hy⟩,
       assume ⟨x, hx, y, hxyt, hy⟩, ⟨⟨x, y⟩, ⟨⟨hx, hy⟩, hxyt⟩⟩⟩
@@ -427,7 +443,7 @@ calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ principal t ≠ ⊥) : by simp [c
 lemma uniformity_eq_uniformity_closure : 𝓤 α = (𝓤 α).lift' closure :=
 le_antisymm
   (le_infi $ assume s, le_infi $ assume hs, by simp; filter_upwards [hs] subset_closure)
-  (calc (𝓤 α).lift' closure ≤ (𝓤 α).lift' (λd, comp_rel d (comp_rel d d)) :
+  (calc (𝓤 α).lift' closure ≤ (𝓤 α).lift' (λd, d ○ (d ○ d)) :
       lift'_mono' (by intros s hs; rw [closure_eq_inter_uniformity]; exact bInter_subset_of_mem hs)
     ... ≤ (𝓤 α) : comp_le_uniformity3)
 
@@ -855,9 +871,9 @@ uniform_space.core.mk'
        mem_map_sets_iff.2 ⟨tβ, htβ, subset_union_right _ _⟩⟩, _⟩,
     rintros ⟨_, _⟩ ⟨z, ⟨⟨a, b⟩, hab, ⟨⟩⟩ | ⟨⟨a, b⟩, hab, ⟨⟩⟩,
                        ⟨⟨_, c⟩, hbc, ⟨⟩⟩ | ⟨⟨_, c⟩, hbc, ⟨⟩⟩⟩,
-    { have A : (a, c) ∈ comp_rel tα tα := ⟨b, hab, hbc⟩,
+    { have A : (a, c) ∈ tα ○ tα := ⟨b, hab, hbc⟩,
       exact Htα A },
-    { have A : (a, c) ∈ comp_rel tβ tβ := ⟨b, hab, hbc⟩,
+    { have A : (a, c) ∈ tβ ○ tβ := ⟨b, hab, hbc⟩,
       exact Htβ A }
   end)
 
@@ -920,7 +936,7 @@ lemma lebesgue_number_lemma {α : Type u} [uniform_space α] {s : set α} {ι} {
   (hs : compact s) (hc₁ : ∀ i, is_open (c i)) (hc₂ : s ⊆ ⋃ i, c i) :
   ∃ n ∈ 𝓤 α, ∀ x ∈ s, ∃ i, {y | (x, y) ∈ n} ⊆ c i :=
 begin
-  let u := λ n, {x | ∃ i (m ∈ 𝓤 α), {y | (x, y) ∈ comp_rel m n} ⊆ c i},
+  let u := λ n, {x | ∃ i (m ∈ 𝓤 α), {y | (x, y) ∈ m ○ n} ⊆ c i},
   have hu₁ : ∀ n ∈ 𝓤 α, is_open (u n),
   { refine λ n hn, is_open_uniformity.2 _,
     rintro x ⟨i, m, hm, h⟩,

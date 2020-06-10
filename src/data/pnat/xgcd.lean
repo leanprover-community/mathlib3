@@ -18,11 +18,8 @@ and that d is the gcd of a and b.
 This story is closely related to the structure of SL₂(ℕ) (as a
 free monoid on two generators) and the theory of continued fractions.
 -/
-
-import tactic.basic
-
-import data.pnat.basic
-import tactic.ring tactic.abel
+import tactic.ring
+import tactic.abel
 
 namespace pnat
 open nat pnat
@@ -32,7 +29,7 @@ open nat pnat
  [[w, x], [y, z]] = [[wp + 1, x], [y, zp + 1]]
  together with the vector [a, b] = [ap + 1, bp + 1].
 -/
-
+@[derive inhabited]
 structure xgcd_type :=
 (wp x y zp ap bp : ℕ)
 
@@ -321,7 +318,7 @@ begin
   split; ring,
 end
 
-theorem gcd_eq : gcd_d a b  = gcd a b :=
+theorem gcd_eq : gcd_d a b = gcd a b :=
 begin
   rcases gcd_props a b with ⟨h₀, h₁, h₂, h₃, h₄, h₅, h₆⟩,
   apply dvd_antisymm,

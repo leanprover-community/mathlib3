@@ -3,9 +3,7 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro, Neil Strickland
 -/
-import tactic.basic
-
-import data.nat.basic data.nat.prime algebra.group_power
+import data.nat.prime
 
 /-- `ℕ+` is the type of positive natural numbers. It is defined as a subtype,
   and the VM representation of `ℕ+` is the same as `ℕ` because the proof
@@ -68,6 +66,16 @@ instance : decidable_eq ℕ+ := λ (a b : ℕ+), by apply_instance
 instance : decidable_linear_order ℕ+ :=
 subtype.decidable_linear_order _
 
+@[simp] lemma mk_le_mk (n k : ℕ) (hn : 0 < n) (hk : 0 < k) :
+  (⟨n, hn⟩ : ℕ+) ≤ ⟨k, hk⟩ ↔ n ≤ k := iff.rfl
+
+@[simp] lemma mk_lt_mk (n k : ℕ) (hn : 0 < n) (hk : 0 < k) :
+  (⟨n, hn⟩ : ℕ+) < ⟨k, hk⟩ ↔ n < k := iff.rfl
+
+@[simp, norm_cast] lemma coe_le_coe (n k : ℕ+) : (n:ℕ) ≤ k ↔ n ≤ k := iff.rfl
+
+@[simp, norm_cast] lemma coe_lt_coe (n k : ℕ+) : (n:ℕ) < k ↔ n < k := iff.rfl
+
 @[simp] theorem pos (n : ℕ+) : 0 < (n : ℕ) := n.2
 
 theorem eq {m n : ℕ+} : (m : ℕ) = n → m = n := subtype.eq
@@ -86,19 +94,19 @@ instance : add_left_cancel_semigroup ℕ+ :=
 { add_left_cancel := λ a b c h, by {
     replace h := congr_arg (coe : ℕ+ → ℕ) h,
     rw [add_coe, add_coe] at h,
-    exact eq ((add_left_inj (a : ℕ)).mp h)},
+    exact eq ((add_right_inj (a : ℕ)).mp h)},
   .. (pnat.add_comm_semigroup) }
 
 instance : add_right_cancel_semigroup ℕ+ :=
 { add_right_cancel := λ a b c h, by {
     replace h := congr_arg (coe : ℕ+ → ℕ) h,
     rw [add_coe, add_coe] at h,
-    exact eq ((add_right_inj (b : ℕ)).mp h)},
+    exact eq ((add_left_inj (b : ℕ)).mp h)},
   .. (pnat.add_comm_semigroup) }
 
 @[simp] theorem ne_zero (n : ℕ+) : (n : ℕ) ≠ 0 := ne_of_gt n.2
 
-@[simp] theorem to_pnat'_coe {n : ℕ} : 0 < n → (n.to_pnat' : ℕ) = n := succ_pred_eq_of_pos
+theorem to_pnat'_coe {n : ℕ} : 0 < n → (n.to_pnat' : ℕ) = n := succ_pred_eq_of_pos
 
 @[simp] theorem coe_to_pnat' (n : ℕ+) : (n : ℕ).to_pnat' = n := eq (to_pnat'_coe n.pos)
 
@@ -110,6 +118,44 @@ instance : comm_monoid ℕ+ :=
   mul_one   := λ a, subtype.eq (mul_one _),
   mul_comm  := λ a b, subtype.eq (mul_comm _ _) }
 
+theorem lt_add_one_iff : ∀ {a b : ℕ+}, a < b + 1 ↔ a ≤ b :=
+λ a b, nat.lt_add_one_iff
+
+theorem add_one_le_iff : ∀ {a b : ℕ+}, a + 1 ≤ b ↔ a < b :=
+λ a b, nat.add_one_le_iff
+
+@[simp] lemma one_le (n : ℕ+) : (1 : ℕ+) ≤ n := n.2
+
+instance : order_bot ℕ+ :=
+{ bot := 1,
+  bot_le := λ a, a.property,
+  ..(by apply_instance : partial_order ℕ+) }
+
+@[simp] lemma bot_eq_zero : (⊥ : ℕ+) = 1 := rfl
+
+instance : inhabited ℕ+ := ⟨1⟩
+
+-- Some lemmas that rewrite `pnat.mk n h`, for `n` an explicit numeral, into explicit numerals.
+@[simp] lemma mk_one {h} : (⟨1, h⟩ : ℕ+) = (1 : ℕ+) := rfl
+@[simp] lemma mk_bit0 (n) {h} : (⟨bit0 n, h⟩ : ℕ+) = (bit0 ⟨n, pos_of_bit0_pos h⟩ : ℕ+) := rfl
+@[simp] lemma mk_bit1 (n) {h} {k} : (⟨bit1 n, h⟩ : ℕ+) = (bit1 ⟨n, k⟩ : ℕ+) := rfl
+
+-- Some lemmas that rewrite inequalities between explicit numerals in `pnat`
+-- into the corresponding inequalities in `nat`.
+-- TODO: perhaps this should not be attempted by `simp`,
+-- and instead we should expect `norm_num` to take care of these directly?
+-- TODO: these lemmas are perhaps incomplete:
+-- * 1 is not represented as a bit0 or bit1
+-- * strict inequalities?
+@[simp] lemma bit0_le_bit0 (n m : ℕ+) : (bit0 n) ≤ (bit0 m) ↔ (bit0 (n : ℕ)) ≤ (bit0 (m : ℕ)) :=
+iff.rfl
+@[simp] lemma bit0_le_bit1 (n m : ℕ+) : (bit0 n) ≤ (bit1 m) ↔ (bit0 (n : ℕ)) ≤ (bit1 (m : ℕ)) :=
+iff.rfl
+@[simp] lemma bit1_le_bit0 (n m : ℕ+) : (bit1 n) ≤ (bit0 m) ↔ (bit1 (n : ℕ)) ≤ (bit0 (m : ℕ)) :=
+iff.rfl
+@[simp] lemma bit1_le_bit1 (n m : ℕ+) : (bit1 n) ≤ (bit1 m) ↔ (bit1 (n : ℕ)) ≤ (bit1 (m : ℕ)) :=
+iff.rfl
+
 @[simp] theorem one_coe : ((1 : ℕ+) : ℕ) = 1 := rfl
 @[simp] theorem mul_coe (m n : ℕ+) : ((m * n : ℕ+) : ℕ) = m * n := rfl
 instance coe_mul_hom : is_monoid_hom (coe : ℕ+ → ℕ) :=
@@ -120,18 +166,18 @@ instance coe_mul_hom : is_monoid_hom (coe : ℕ+ → ℕ) :=
 
 @[simp] theorem pow_coe (m : ℕ+) (n : ℕ) : ((m ^ n : ℕ+) : ℕ) = (m : ℕ) ^ n :=
 by induction n with n ih;
- [refl, rw [nat.pow_succ, _root_.pow_succ, mul_coe, mul_comm, ih]]
+ [refl, rw [nat.pow_succ, pow_succ, mul_coe, mul_comm, ih]]
 
 instance : left_cancel_semigroup ℕ+ :=
 { mul_left_cancel := λ a b c h, by {
    replace h := congr_arg (coe : ℕ+ → ℕ) h,
-   exact eq ((nat.mul_left_inj a.pos).mp h)},
+   exact eq ((nat.mul_right_inj a.pos).mp h)},
   .. (pnat.comm_monoid) }
 
 instance : right_cancel_semigroup ℕ+ :=
 { mul_right_cancel := λ a b c h, by {
    replace h := congr_arg (coe : ℕ+ → ℕ) h,
-   exact eq ((nat.mul_right_inj b.pos).mp h)},
+   exact eq ((nat.mul_left_inj b.pos).mp h)},
   .. (pnat.comm_monoid) }
 
 instance : distrib ℕ+ :=
@@ -263,8 +309,8 @@ theorem dvd_refl (m : ℕ+) : m ∣ m := dvd_intro 1 (mul_one m)
 theorem dvd_antisymm {m n : ℕ+} : m ∣ n → n ∣ m → m = n :=
 λ hmn hnm, subtype.eq (nat.dvd_antisymm hmn hnm)
 
-theorem dvd_trans {k m n : ℕ+} : k ∣ m → m ∣ n → k ∣ n :=
-@_root_.dvd_trans ℕ _ (k : ℕ) (m : ℕ) (n : ℕ)
+protected theorem dvd_trans {k m n : ℕ+} : k ∣ m → m ∣ n → k ∣ n :=
+@dvd_trans ℕ _ (k : ℕ) (m : ℕ) (n : ℕ)
 
 theorem one_dvd (n : ℕ+) : 1 ∣ n := dvd_intro n (one_mul n)
 

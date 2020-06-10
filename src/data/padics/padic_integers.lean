@@ -3,8 +3,8 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Mario Carneiro
 -/
-
-import data.padics.padic_numbers ring_theory.ideals data.int.modeq
+import data.int.modeq
+import data.padics.padic_numbers
 
 /-!
 # p-adic integers
@@ -31,7 +31,7 @@ Coercions into ℤ_p are set up to work with the `norm_cast` tactic.
 
 * [F. Q. Gouêva, *p-adic numbers*][gouvea1997]
 * [R. Y. Lewis, *A formal proof of Hensel's lemma over the p-adic integers*][lewis2019]
-* https://en.wikipedia.org/wiki/P-adic_number
+* <https://en.wikipedia.org/wiki/P-adic_number>
 
 ## Tags
 
@@ -43,77 +43,80 @@ noncomputable theory
 open_locale classical
 
 /-- The p-adic integers ℤ_p are the p-adic numbers with norm ≤ 1. -/
-def padic_int (p : ℕ) [p.prime] := {x : ℚ_[p] // ∥x∥ ≤ 1}
+def padic_int (p : ℕ) [fact p.prime] := {x : ℚ_[p] // ∥x∥ ≤ 1}
 notation `ℤ_[`p`]` := padic_int p
 
 namespace padic_int
-variables {p : ℕ} [nat.prime p]
-
-/-- Addition on ℤ_p is inherited from ℚ_p. -/
-def add : ℤ_[p] → ℤ_[p] → ℤ_[p]
-| ⟨x, hx⟩ ⟨y, hy⟩ := ⟨x+y,
-    le_trans (padic_norm_e.nonarchimedean _ _) (max_le_iff.2 ⟨hx,hy⟩)⟩
-
-/-- Multiplication on ℤ_p is inherited from ℚ_p. -/
-def mul : ℤ_[p] → ℤ_[p] → ℤ_[p]
-| ⟨x, hx⟩ ⟨y, hy⟩ := ⟨x*y,
-    begin rw padic_norm_e.mul, apply mul_le_one; {assumption <|> apply norm_nonneg} end⟩
-
-/-- Negation on ℤ_p is inherited from ℚ_p. -/
-def neg : ℤ_[p] → ℤ_[p]
-| ⟨x, hx⟩ := ⟨-x, by simpa⟩
-
-instance : ring ℤ_[p] :=
-begin
-  refine { add := add,
-           mul := mul,
-           neg := neg,
-           zero := ⟨0, by simp [zero_le_one]⟩,
-           one := ⟨1, by simp⟩,
-           .. };
-  {repeat {rintro ⟨_, _⟩}, simp [mul_assoc, left_distrib, right_distrib, add, mul, neg]}
-end
-
-lemma zero_def : ∀ x : ℤ_[p], x = 0 ↔ x.val = 0
-| ⟨x, _⟩ := ⟨subtype.mk.inj, λ h, by simp at h; simp only [h]; refl⟩
-
-@[simp] lemma add_def : ∀ (x y : ℤ_[p]), (x+y).val = x.val + y.val
-| ⟨x, hx⟩ ⟨y, hy⟩ := rfl
-
-@[simp] lemma mul_def : ∀ (x y : ℤ_[p]), (x*y).val = x.val * y.val
-| ⟨x, hx⟩ ⟨y, hy⟩ := rfl
-
-@[simp] lemma mk_zero {h} : (⟨0, h⟩ : ℤ_[p]) = (0 : ℤ_[p]) := rfl
+variables {p : ℕ} [fact p.prime]
 
 instance : has_coe ℤ_[p] ℚ_[p] := ⟨subtype.val⟩
 
-@[simp] lemma val_eq_coe (z : ℤ_[p]) : z.val = ↑z := rfl
+@[ext] lemma ext {x y : ℤ_[p]} : (x : ℚ_[p]) = y → x = y := subtype.ext.2
 
-@[simp, move_cast] lemma coe_add : ∀ (z1 z2 : ℤ_[p]), (↑(z1 + z2) : ℚ_[p]) = ↑z1 + ↑z2
+/-- Addition on ℤ_p is inherited from ℚ_p. -/
+instance : has_add ℤ_[p] :=
+⟨λ ⟨x, hx⟩ ⟨y, hy⟩, ⟨x+y,
+    le_trans (padic_norm_e.nonarchimedean _ _) (max_le_iff.2 ⟨hx,hy⟩)⟩⟩
+
+/-- Multiplication on ℤ_p is inherited from ℚ_p. -/
+instance : has_mul ℤ_[p] :=
+⟨λ ⟨x, hx⟩ ⟨y, hy⟩, ⟨x*y,
+    begin rw padic_norm_e.mul, apply mul_le_one; {assumption <|> apply norm_nonneg} end⟩⟩
+
+/-- Negation on ℤ_p is inherited from ℚ_p. -/
+instance : has_neg ℤ_[p] :=
+⟨λ ⟨x, hx⟩, ⟨-x, by simpa⟩⟩
+
+/-- Zero on ℤ_p is inherited from ℚ_p. -/
+instance : has_zero ℤ_[p] :=
+⟨⟨0, by norm_num⟩⟩
+
+instance : inhabited ℤ_[p] := ⟨0⟩
+
+/-- One on ℤ_p is inherited from ℚ_p. -/
+instance : has_one ℤ_[p] :=
+⟨⟨1, by norm_num⟩⟩
+
+@[simp] lemma mk_zero {h} : (⟨0, h⟩ : ℤ_[p]) = (0 : ℤ_[p]) := rfl
+
+@[simp] lemma val_eq_coe (z : ℤ_[p]) : z.val = z := rfl
+
+@[simp, norm_cast] lemma coe_add : ∀ (z1 z2 : ℤ_[p]), ((z1 + z2 : ℤ_[p]) : ℚ_[p]) = z1 + z2
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
-@[simp, move_cast] lemma coe_mul : ∀ (z1 z2 : ℤ_[p]), (↑(z1 * z2) : ℚ_[p]) = ↑z1 * ↑z2
+@[simp, norm_cast] lemma coe_mul : ∀ (z1 z2 : ℤ_[p]), ((z1 * z2 : ℤ_[p]) : ℚ_[p]) = z1 * z2
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
-@[simp, move_cast] lemma coe_neg : ∀ (z1 : ℤ_[p]), (↑(-z1) : ℚ_[p]) = -↑z1
+@[simp, norm_cast] lemma coe_neg : ∀ (z1 : ℤ_[p]), ((-z1 : ℤ_[p]) : ℚ_[p]) = -z1
 | ⟨_, _⟩ := rfl
 
-@[simp, move_cast] lemma coe_sub : ∀ (z1 z2 : ℤ_[p]), (↑(z1 - z2) : ℚ_[p]) = ↑z1 - ↑z2
-| ⟨_, _⟩ ⟨_, _⟩ := rfl
+@[simp, norm_cast] lemma coe_one : ((1 : ℤ_[p]) : ℚ_[p]) = 1 := rfl
 
-@[simp, squash_cast] lemma coe_one : (↑(1 : ℤ_[p]) : ℚ_[p]) = 1 := rfl
-
-@[simp, squash_cast] lemma coe_coe : ∀ n : ℕ, (↑(↑n : ℤ_[p]) : ℚ_[p]) = (↑n : ℚ_[p])
+@[simp, norm_cast] lemma coe_coe : ∀ n : ℕ, ((n : ℤ_[p]) : ℚ_[p]) = n
 | 0 := rfl
 | (k+1) := by simp [coe_coe]
 
-@[simp, squash_cast] lemma coe_zero : (↑(0 : ℤ_[p]) : ℚ_[p]) = 0 := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : ℤ_[p]) : ℚ_[p]) = 0 := rfl
 
-@[simp, move_cast] lemma cast_pow (x : ℤ_[p]) : ∀ (n : ℕ), (↑(x^n) : ℚ_[p]) = (↑x : ℚ_[p])^n
+instance : ring ℤ_[p] :=
+begin
+  refine { add := (+),
+           mul := (*),
+           neg := has_neg.neg,
+           zero := 0,
+           one := 1,
+           .. };
+  intros; ext; simp; ring
+end
+
+@[simp, norm_cast] lemma coe_sub : ∀ (z1 z2 : ℤ_[p]), (↑(z1 - z2) : ℚ_[p]) = ↑z1 - ↑z2
+| ⟨_, _⟩ ⟨_, _⟩ := rfl
+
+@[simp, norm_cast] lemma cast_pow (x : ℤ_[p]) : ∀ (n : ℕ), (↑(x^n) : ℚ_[p]) = (↑x : ℚ_[p])^n
 | 0 := by simp
 | (k+1) := by simp [monoid.pow, pow]; congr; apply cast_pow
 
-lemma mk_coe : ∀ (k : ℤ_[p]), (⟨↑k, k.2⟩ : ℤ_[p]) = k
+@[simp] lemma mk_coe : ∀ (k : ℤ_[p]), (⟨k, k.2⟩ : ℤ_[p]) = k
 | ⟨_, _⟩ := rfl
 
 /-- The inverse of a p-adic integer with norm equal to 1 is also a p-adic integer. Otherwise, the
@@ -124,13 +127,13 @@ def inv : ℤ_[p] → ℤ_[p]
 end padic_int
 
 section instances
-variables {p : ℕ} [nat.prime p]
-
-@[reducible] def padic_norm_z (z : ℤ_[p]) : ℝ := ∥z.val∥
+variables {p : ℕ} [fact p.prime]
 
 instance : metric_space ℤ_[p] := subtype.metric_space
 
-instance : has_norm ℤ_[p] := ⟨padic_norm_z⟩
+instance : has_norm ℤ_[p] := ⟨λ z, ∥(z : ℚ_[p])∥⟩
+
+lemma padic_norm_z {z : ℤ_[p]} : ∥z∥ = ∥(z : ℚ_[p])∥ := rfl
 
 instance : normed_ring ℤ_[p] :=
 { dist_eq := λ ⟨_, _⟩ ⟨_, _⟩, rfl,
@@ -138,9 +141,9 @@ instance : normed_ring ℤ_[p] :=
 
 instance padic_norm_z.is_absolute_value : is_absolute_value (λ z : ℤ_[p], ∥z∥) :=
 { abv_nonneg := norm_nonneg,
-  abv_eq_zero := λ ⟨_, _⟩, by simp [norm_eq_zero, padic_int.zero_def],
-  abv_add := λ ⟨_,_⟩ ⟨_, _⟩, norm_triangle _ _,
-  abv_mul := λ _ _, by unfold norm; simp [padic_norm_z] }
+  abv_eq_zero := λ ⟨_, _⟩, by simp [norm_eq_zero],
+  abv_add := λ ⟨_,_⟩ ⟨_, _⟩, norm_add_le _ _,
+  abv_mul := λ _ _, by simp [padic_norm_z] }
 
 protected lemma padic_int.pmul_comm : ∀ z1 z2 : ℤ_[p], z1*z2 = z2*z1
 | ⟨q1, h1⟩ ⟨q2, h2⟩ := show (⟨q1*q2, _⟩ : ℤ_[p]) = ⟨q2*q1, _⟩, by simp [mul_comm]
@@ -169,7 +172,7 @@ end instances
 
 namespace padic_norm_z
 
-variables {p : ℕ} [nat.prime p]
+variables {p : ℕ} [fact p.prime]
 
 lemma le_one : ∀ z : ℤ_[p], ∥z∥ ≤ 1
 | ⟨_, h⟩ := h
@@ -177,7 +180,7 @@ lemma le_one : ∀ z : ℤ_[p], ∥z∥ ≤ 1
 @[simp] lemma one : ∥(1 : ℤ_[p])∥ = 1 := by simp [norm, padic_norm_z]
 
 @[simp] lemma mul (z1 z2 : ℤ_[p]) : ∥z1 * z2∥ = ∥z1∥ * ∥z2∥ :=
-by unfold norm; simp [padic_norm_z]
+by simp [padic_norm_z]
 
 @[simp] lemma pow (z : ℤ_[p]) : ∀ n : ℕ, ∥z^n∥ = ∥z∥^n
 | 0 := by simp
@@ -189,7 +192,7 @@ theorem nonarchimedean : ∀ (q r : ℤ_[p]), ∥q + r∥ ≤ max (∥q∥) (∥
 theorem add_eq_max_of_ne : ∀ {q r : ℤ_[p]}, ∥q∥ ≠ ∥r∥ → ∥q+r∥ = max (∥q∥) (∥r∥)
 | ⟨_, _⟩ ⟨_, _⟩ := padic_norm_e.add_eq_max_of_ne
 
-@[simp] lemma norm_one : ∥(1 : ℤ_[p])∥ = 1 := norm_one
+lemma norm_one : ∥(1 : ℤ_[p])∥ = 1 := normed_field.norm_one
 
 lemma eq_of_norm_add_lt_right {z1 z2 : ℤ_[p]}
   (h : ∥z1 + z2∥ < ∥z2∥) : ∥z1∥ = ∥z2∥ :=
@@ -202,7 +205,7 @@ by_contradiction $ λ hne,
   not_lt_of_ge (by rw padic_norm_z.add_eq_max_of_ne hne; apply le_max_left) h
 
 @[simp] lemma padic_norm_e_of_padic_int (z : ℤ_[p]) : ∥(↑z : ℚ_[p])∥ = ∥z∥ :=
-by simp [norm, padic_norm_z]
+by simp [padic_norm_z]
 
 @[simp] lemma padic_norm_z_eq_padic_norm_e {q : ℚ_[p]} (hq : ∥q∥ ≤ 1) :
   @norm ℤ_[p] _ ⟨q, hq⟩ = ∥q∥ := rfl
@@ -222,14 +225,14 @@ else mul_lt_one (lt_of_le_of_ne hbz (ne.symm hb')) (lt_of_le_of_ne ha ha') hb
 
 namespace padic_int
 
-variables {p : ℕ} [nat.prime p]
+variables {p : ℕ} [fact p.prime]
 
 local attribute [reducible] padic_int
 
 lemma mul_inv : ∀ {z : ℤ_[p]}, ∥z∥ = 1 → z * z.inv = 1
 | ⟨k, _⟩ h :=
   begin
-    have hk : k ≠ 0, from λ h', @zero_ne_one ℚ_[p] _ (by simpa [h'] using h),
+    have hk : k ≠ 0, from λ h', @zero_ne_one ℚ_[p] _ _ _ (by simpa [h'] using h),
     unfold padic_int.inv, split_ifs,
     { change (⟨k * (1/k), _⟩ : ℤ_[p]) = 1,
       simp [hk], refl },
@@ -272,10 +275,17 @@ instance complete : cau_seq.is_complete ℤ_[p] norm :=
   ⟨ ⟨_, hqn⟩,
     λ ε, by simpa [norm, padic_norm_z] using cau_seq.equiv_lim (cau_seq_to_rat_cau_seq f) ε⟩⟩
 
+instance is_ring_hom_coe : is_ring_hom (coe : ℤ_[p] → ℚ_[p]) :=
+{ map_one := rfl,
+  map_mul := coe_mul,
+  map_add := coe_add }
+
+instance : algebra ℤ_[p] ℚ_[p] := (ring_hom.of coe).to_algebra
+
 end padic_int
 
 namespace padic_norm_z
-variables {p : ℕ} [nat.prime p]
+variables {p : ℕ} [fact p.prime]
 
 lemma padic_val_of_cong_pow_p {z1 z2 : ℤ} {n : ℕ} (hz : z1 ≡ z2 [ZMOD ↑(p^n)]) :
       ∥(z1 - z2 : ℚ_[p])∥ ≤ ↑(↑p ^ (-n : ℤ) : ℚ) :=

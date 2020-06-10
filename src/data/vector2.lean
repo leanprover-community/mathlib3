@@ -5,7 +5,11 @@ Authors: Mario Carneiro
 
 Additional theorems about the `vector` type.
 -/
-import data.vector data.list.basic category.traversable.basic data.set.basic tactic.tauto
+import tactic.tauto
+import data.vector
+import data.list.nodup
+import data.list.of_fn
+import control.applicative
 
 universes u
 variables {n : ℕ}
@@ -20,6 +24,15 @@ instance [inhabited α] : inhabited (vector α n) :=
 
 theorem to_list_injective : function.injective (@to_list α n) :=
 subtype.val_injective
+
+@[simp] theorem cons_val (a : α) : ∀ (v : vector α n), (a :: v).val = a :: v.val
+| ⟨_, _⟩ := rfl
+
+@[simp] theorem cons_head (a : α) : ∀ (v : vector α n), (a :: v).head = a
+| ⟨_, _⟩ := rfl
+
+@[simp] theorem cons_tail (a : α) : ∀ (v : vector α n), (a :: v).tail = v
+| ⟨_, _⟩ := rfl
 
 @[simp] theorem to_list_of_fn : ∀ {n} (f : fin n → α), to_list (of_fn f) = list.of_fn f
 | 0     f := rfl
@@ -55,6 +68,9 @@ end
 @[simp] theorem nth_tail : ∀ (v : vector α n.succ) (i : fin n),
   nth (tail v) i = nth v i.succ
 | ⟨a::l, e⟩ ⟨i, h⟩ := by simp [nth_eq_nth_le]; refl
+
+@[simp] theorem tail_val : ∀ (v : vector α n.succ), v.tail.val = v.val.tail
+| ⟨a::l, e⟩ := rfl
 
 @[simp] theorem tail_of_fn {n : ℕ} (f : fin n.succ → α) :
   tail (of_fn f) = of_fn (λ i, f i.succ) :=
@@ -115,7 +131,6 @@ def mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
   ∀ {n}, vector α n → m (vector β n)
 | _ ⟨[], rfl⟩   := pure nil
 | _ ⟨a::l, rfl⟩ := do h' ← f a, t' ← mmap ⟨l, rfl⟩, pure (h' :: t')
-using_well_founded wf_tacs
 
 @[simp] theorem mmap_nil {m} [monad m] {α β} (f : α → m β) :
   mmap f nil = pure nil := rfl
@@ -125,7 +140,7 @@ using_well_founded wf_tacs
   do h' ← f a, t' ← mmap f v, pure (h' :: t')
 | _ ⟨l, rfl⟩ := rfl
 
-@[extensionality] theorem ext : ∀ {v w : vector α n}
+@[ext] theorem ext : ∀ {v w : vector α n}
   (h : ∀ m : fin n, vector.nth v m = vector.nth w m), v = w
 | ⟨v, hv⟩ ⟨w, hw⟩ h := subtype.eq (list.ext_le (by rw [hv, hw])
   (λ m hm hn, h ⟨m, hv ▸ hm⟩))

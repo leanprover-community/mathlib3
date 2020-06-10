@@ -2,16 +2,20 @@
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Sébastien Gouëzel
+-/
+import topology.uniform_space.completion
+import topology.metric_space.isometry
 
-The completion of a metric space.
+/-!
+# The completion of a metric space
 
 Completion of uniform spaces are already defined in `topology.uniform_space.completion`. We show
 here that the uniform space completion of a metric space inherits a metric space structure,
 by extending the distance to the completion and checking that it is indeed a distance, and that
 it defines the same uniformity as the already defined uniform structure on the completion
 -/
-import topology.uniform_space.completion topology.metric_space.isometry
-open lattice set filter uniform_space uniform_space.completion
+
+open set filter uniform_space uniform_space.completion
 noncomputable theory
 
 universes u
@@ -57,7 +61,7 @@ end
 protected lemma completion.dist_triangle (x y z : completion α) : dist x z ≤ dist x y + dist y z :=
 begin
   apply induction_on₃ x y z,
-  { refine is_closed_le _ (continuous_add _ _),
+  { refine is_closed_le _ (continuous.add _ _),
     { have : continuous (λp : completion α × completion α × completion α, (p.1, p.2.2)) :=
         continuous.prod_mk continuous_fst (continuous.comp continuous_snd continuous_snd),
       exact (completion.uniform_continuous_dist.continuous.comp this : _) },
@@ -75,6 +79,7 @@ end
 
 /-- Elements of the uniformity (defined generally for completions) can be characterized in terms
 of the distance. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 protected lemma completion.mem_uniformity_dist (s : set (completion α × completion α)) :
   s ∈ uniformity (completion α) ↔ (∃ε>0, ∀{a b}, dist a b < ε → (a, b) ∈ s) :=
 begin
@@ -146,6 +151,7 @@ end
 
 /- Reformulate `completion.mem_uniformity_dist` in terms that are suitable for the definition
 of the metric space structure. -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 protected lemma completion.uniformity_dist' :
   uniformity (completion α) = (⨅ε:{ε:ℝ // ε>0}, principal {p | dist p.1 p.2 < ε.val}) :=
 begin
@@ -156,6 +162,7 @@ begin
   { exact ⟨⟨1, zero_lt_one⟩⟩ }
 end
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 protected lemma completion.uniformity_dist :
   uniformity (completion α) = (⨅ ε>0, principal {p | dist p.1 p.2 < ε}) :=
 by simpa [infi_subtype] using @completion.uniformity_dist' α _

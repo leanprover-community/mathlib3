@@ -26,11 +26,11 @@ lt_of_mul_lt_mul_right h3 nhc
 
 @[mono]
 lemma mul_mono_nonpos {x y z : α} [linear_ordered_ring α]
-  [decidable_rel ((≤) : α → α → Prop)]
   (h' : 0 ≥ z)
   (h : y ≤ x)
 : x * z ≤ y * z :=
 begin
+  classical,
   by_contradiction h'',
   revert h,
   apply not_le_of_lt,
@@ -46,7 +46,7 @@ lemma nat.sub_mono_left_strict {x y z : ℕ}
 begin
   have : z ≤ y,
   { transitivity, assumption, apply le_of_lt h, },
-  apply @lt_of_add_lt_add_left _ _ z,
+  apply @nat.lt_of_add_lt_add_left z,
   rw [nat.add_sub_of_le,nat.add_sub_of_le];
     solve_by_elim
 end
@@ -59,7 +59,7 @@ lemma nat.sub_mono_right_strict {x y z : ℕ}
 begin
   have h'' : y ≤ z,
   { transitivity, apply le_of_lt h, assumption },
-  apply @lt_of_add_lt_add_right _ _ _ x,
+  apply @nat.lt_of_add_lt_add_right _ x,
   rw [nat.sub_add_cancel h'],
   apply @lt_of_le_of_lt _ _ _ (z - y + y),
   rw [nat.sub_add_cancel h''],

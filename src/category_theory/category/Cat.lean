@@ -3,7 +3,6 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-
 import category_theory.concrete_category
 
 /-!
@@ -30,10 +29,11 @@ namespace Cat
 
 instance str (C : Cat.{v u}) : category.{v u} C.α := C.str
 
-def of (C : Type u) [category.{v} C] : Cat.{v u} := mk_ob C
+/-- Construct a bundled `Cat` from the underlying type and the typeclass. -/
+def of (C : Type u) [category.{v} C] : Cat.{v u} := bundled.of C
 
 /-- Category structure on `Cat` -/
-instance category : category.{(max u v)+1 (max v (u+1))} Cat.{v u} :=
+instance category : large_category.{max v u} Cat.{v u} :=
 { hom := λ C D, C.α ⥤ D.α,
   id := λ C, 𝟭 C.α,
   comp := λ C D E F G, F ⋙ G,

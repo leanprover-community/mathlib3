@@ -96,6 +96,10 @@ example (x y : ℚ) (h : 6 + ((x + 4) * x + (6 + 3 * y) * y) = 3) (h' : (x + 4) 
   (h'' : (6 + 3 * y) * y ≥ 0)  : false :=
 by linarith
 
+example (x y : ℚ)
+  (h : 6 + ((x + 4) * x + (6 + 3 * y) * y) = 3 ∧ (x + 4) * x ≥ 0 ∧ (6 + 3 * y) * y ≥ 0) : false :=
+by linarith
+
 example (x y : ℕ) (h : 6 + ((x + 4) * x + (6 + 3 * y) * y) = 3) : false :=
 by linarith
 

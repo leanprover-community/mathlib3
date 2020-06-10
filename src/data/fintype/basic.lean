@@ -241,11 +241,18 @@ by simp [to_finset]
 @[simp] theorem mem_to_finset_val {s : set α} [fintype s] {a : α} : a ∈ s.to_finset.1 ↔ a ∈ s :=
 mem_to_finset
 
+-- We use an arbitrary `[fintype s]` instance here,
+-- not necessarily coming from a `[fintype α]`.
+@[simp]
+lemma to_finset_card {α : Type*} (s : set α) [fintype s] :
+  s.to_finset.card = fintype.card s :=
+multiset.card_map subtype.val finset.univ.val
+
 @[simp] theorem coe_to_finset (s : set α) [fintype s] : (↑s.to_finset : set α) = s :=
 set.ext $ λ _, mem_to_finset
 
 @[simp] theorem to_finset_inj {s t : set α} [fintype s] [fintype t] : s.to_finset = t.to_finset ↔ s = t :=
-⟨λ h, by rw [← s.coe_to_finset, h, t.coe_to_finset], λ h, by simp [h]; congr⟩ 
+⟨λ h, by rw [← s.coe_to_finset, h, t.coe_to_finset], λ h, by simp [h]; congr⟩
 
 end set
 

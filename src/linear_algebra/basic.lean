@@ -1650,8 +1650,8 @@ variables (V V₂ R)
   Differs from `tensor_product.curry`. -/
 protected def uncurry :
   (V → V₂ → R) ≃ₗ[R] (V × V₂ → R) :=
-{ add := λ _ _, by { ext z, cases z, refl },
-  smul := λ _ _, by { ext z, cases z, refl },
+{ add := λ _ _, by { ext ⟨⟩, refl },
+  smul := λ _ _, by { ext ⟨⟩, refl },
   .. equiv.arrow_arrow_equiv_prod_arrow _ _ _}
 
 @[simp] lemma coe_uncurry : ⇑(linear_equiv.uncurry R V V₂) = uncurry := rfl

@@ -92,6 +92,9 @@ protected lemma surjective (e : R ≃+* S) : function.surjective e := e.to_equiv
 @[simp] lemma apply_symm_apply (e : R ≃+* S) : ∀ x, e (e.symm x) = x := e.to_equiv.apply_symm_apply
 @[simp] lemma symm_apply_apply (e : R ≃+* S) : ∀ x, e.symm (e x) = x := e.to_equiv.symm_apply_apply
 
+@[simp] lemma trans_apply {T} [ring T] (e : R ≃+* S) (e' : S ≃+* T) (x) :
+  e.trans e' x = e' (e x) := rfl
+
 lemma image_eq_preimage (e : R ≃+* S) (s : set R) : e '' s = e.symm ⁻¹' s :=
 e.to_equiv.image_eq_preimage s
 

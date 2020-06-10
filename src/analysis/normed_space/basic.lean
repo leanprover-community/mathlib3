@@ -914,6 +914,10 @@ instance normed_algebra.to_normed_space (𝕜 : Type*) (𝕜' : Type*) [normed_f
     ... = ∥s∥ * ∥x∥ : by rw norm_algebra_map_eq,
   ..h }
 
+instance normed_algebra.id (𝕜 : Type*) [normed_field 𝕜] : normed_algebra 𝕜 𝕜 :=
+{ norm_algebra_map_eq := by simp,
+.. algebra.id 𝕜}
+
 end normed_algebra
 
 section restrict_scalars

@@ -5,21 +5,31 @@ Authors: Heather Macbeth
 -/
 import analysis.normed_space.hahn_banach
 
+/-!
+# The topological dual of a normed space
+
+In this file we define the topological dual of a normed space, and the bounded linear map from
+a normed space into its double dual.
+
+We also prove that, for base field the real numbers, this map is an isometry.  (TODO:  the same for the
+complex numbers.)
+-/
+
 noncomputable theory
 
-section top_dual
+section general
 variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
 variables (E : Type*) [normed_group E] [normed_space 𝕜 E]
 
 /-- The topological dual of a normed space `E`. -/
-@[derive [normed_group, normed_space 𝕜]] def top_dual := E →L[𝕜] 𝕜
+@[derive [normed_group, normed_space 𝕜]] def dual := E →L[𝕜] 𝕜
 
-instance : has_coe_to_fun (top_dual 𝕜 E) := ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (dual 𝕜 E) := ⟨_, λ f, f.to_fun⟩
 
-instance : inhabited (top_dual 𝕜 E) := ⟨0⟩
+instance : inhabited (dual 𝕜 E) := ⟨0⟩
 
 /-- The inclusion of a normed space in its double (topological) dual. -/
-def inclusion_in_double_dual (x : E) : (top_dual 𝕜 (top_dual 𝕜 E)) :=
+def inclusion_in_double_dual (x : E) : (dual 𝕜 (dual 𝕜 E)) :=
 linear_map.mk_continuous
   { to_fun := λ f, f x,
     add    := by simp,
@@ -27,7 +37,7 @@ linear_map.mk_continuous
   ∥x∥
   (λ f, by { rw mul_comm, exact f.le_op_norm x } )
 
-@[simp] lemma dual_def (x : E) (f : top_dual 𝕜 E) :
+@[simp] lemma dual_def (x : E) (f : dual 𝕜 E) :
   ((inclusion_in_double_dual 𝕜 E) x) f = f x := rfl
 
 lemma double_dual_bound (x : E) : ∥(inclusion_in_double_dual 𝕜 E) x∥ ≤ ∥x∥ :=
@@ -38,7 +48,7 @@ end
 
 /-- The inclusion of a normed space in its double (topological) dual, considered
    as a bounded linear map. -/
-def inclusion_in_double_dual_map : E →L[𝕜] (top_dual 𝕜 (top_dual 𝕜 E)) :=
+def inclusion_in_double_dual_map : E →L[𝕜] (dual 𝕜 (dual 𝕜 E)) :=
 linear_map.mk_continuous
   { to_fun := λ (x : E), (inclusion_in_double_dual 𝕜 E) x,
     add    := λ x y, by { ext, simp },
@@ -46,11 +56,12 @@ linear_map.mk_continuous
   1
   (λ x, by { simp, apply double_dual_bound } )
 
-end top_dual
+end general
 
-section top_dual_real
+section real
 variables (E : Type*) [normed_group E] [normed_space ℝ E]
 
+/-- The inclusion of a real normed space in its double dual is an isometry onto its image.-/
 lemma inclusion_in_double_dual_isometry (x : E) (h : vector_space.dim ℝ E > 0) :
   ∥inclusion_in_double_dual_map ℝ E x∥ = ∥x∥ :=
 begin
@@ -65,4 +76,6 @@ begin
   ... = c : by rw [ hf.1, mul_one ],
 end
 
-end top_dual_real
+-- TODO: This is also true over ℂ.
+
+end real

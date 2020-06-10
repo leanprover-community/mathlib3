@@ -686,7 +686,6 @@ end
 variable (𝕜)
 
 /-- A linear equivalence which is a homothety is a continuous linear equivalence. -/
--- TODO: make this just from a linear map f?
 def of_homothety (f : E ≃ₗ[𝕜] F) (a : ℝ) (ha : 0 < a) (hf : ∀x, ∥f x∥ = a * ∥x∥) : E ≃L[𝕜] F :=
 { to_linear_equiv := f,
   continuous_to_fun := f.to_linear_map.continuous_of_bound a (λ x, le_of_eq (hf x)),

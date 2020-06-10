@@ -12,9 +12,11 @@ import analysis.convex.cone
 In this file we prove a version of Hahn-Banach theorem for continuous linear
 functions on normed spaces.
 
+We also prove a standard corollary, needed for the isometric inclusion in the double dual.
+
 ## TODO
 
-Prove some corollaries
+Prove more corollaries
 
 -/
 
@@ -66,7 +68,8 @@ begin
   rw norm_smul, simp, rw coord_norm, rw mul_inv_cancel hx,
 end
 
--- First phrasing, requiring `x ≠ 0`.
+/-- Corollary of Hahn-Banach.  Given a nonzero element `x` of a normed space, there exists an
+    element of the dual space, of norm 1, whose value on `x` is `∥x∥`. -/
 theorem exists_dual_vector (x : E) (h : x ≠ 0) : ∃ d : E →L[ℝ] ℝ, ∥d∥ = 1 ∧ d x = ∥x∥ :=
 begin
   cases exists_extension_norm_eq (submodule.span ℝ {x}) (coord ℝ x h) with g hg,
@@ -79,8 +82,8 @@ begin
     rw ← hg.1, simp }
 end
 
-/- Second phrasing, requiring only that `E` be nontrivial, and choosing g of norm 1
-   arbitrarily when `x = 0`. -/
+/-- Variant of the above theorem, eliminating the hypothesis that `x` be nonzero, and choosing
+    the dual element arbitrarily when `x = 0`. -/
 theorem exists_dual_vector' (h : vector_space.dim ℝ E > 0) (x : E) : ∃ g : E →L[ℝ] ℝ,
   ∥g∥ = 1 ∧ g x = ∥x∥ :=
 begin
@@ -89,5 +92,7 @@ begin
     cases exists_dual_vector y hy with g hg, use g, refine ⟨hg.left, _⟩, rw hx, simp },
   { exact exists_dual_vector x hx }
 end
+
+-- TODO: These corollaries are also true over ℂ.
 
 end dual_vector

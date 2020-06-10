@@ -233,7 +233,7 @@ lemma mk_prod {ι} (I : ideal α) (s : finset ι) (f : ι → α) :
 (mk_hom I).map_prod f s
 
 lemma mk_sum {ι} (I : ideal α) (s : finset ι) (f : ι → α) :
-  mk I (s.sum f) = s.sum (λ i, mk I (f i)) :=
+  mk I (∑ i in s, f i) = ∑ i in s, mk I (f i) :=
 (mk_hom I).map_sum f s
 
 lemma eq_zero_iff_mem {I : ideal α} : mk I a = 0 ↔ a ∈ I :=

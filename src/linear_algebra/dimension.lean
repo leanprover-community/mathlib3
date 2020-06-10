@@ -29,7 +29,7 @@ variables {K : Type u} {V V₂ V₃ V₄ : Type v}
 variables {ι : Type w} {ι' : Type w'} {η : Type u''} {φ : η → Type u'}
 -- TODO: relax these universe constraints
 
-open_locale classical
+open_locale classical big_operators
 
 section vector_space
 variables [field K] [add_comm_group V] [vector_space K V]
@@ -374,7 +374,7 @@ calc rank (f + g) ≤ dim K (f.range ⊔ g.range : submodule K V₂) :
 by rw [rank, linear_map.range_zero, dim_bot]
 
 lemma rank_finset_sum_le {η} (s : finset η) (f : η → V →ₗ[K] V₂) :
-  rank (s.sum f) ≤ s.sum (λ d, rank (f d)) :=
+  rank (∑ d in s, f d) ≤ ∑ d in s, rank (f d) :=
 @finset.sum_hom_rel _ _ _ _ _ (λa b, rank a ≤ b) f (λ d, rank (f d)) s (le_of_eq rank_zero)
       (λ i g c h, le_trans (rank_add_le _ _) (add_le_add_left' h))
 

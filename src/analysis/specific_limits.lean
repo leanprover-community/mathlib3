@@ -485,7 +485,7 @@ end
 /-- If `∥f n∥ ≤ C * r ^ n` for all `n : ℕ` and some `r < 1`, then the partial sums of `f` form a
 Cauchy sequence. This lemma does not assume `0 ≤ r` or `0 ≤ C`. -/
 lemma cauchy_seq_finset_of_geometric_bound (hr : r < 1) (hf : ∀n, ∥f n∥ ≤ C * r^n) :
-  cauchy_seq (λ s : finset (ℕ), s.sum f) :=
+  cauchy_seq (λ s : finset (ℕ), ∑ x in s, f x) :=
 cauchy_seq_finset_of_norm_bounded _
   (aux_has_sum_of_le_geometric hr (dist_partial_sum_le_of_le_geometric hf)).summable hf
 
@@ -494,7 +494,7 @@ distance `C * r ^ n / (1 - r)` of the sum of the series. This lemma does not ass
 `0 ≤ C`. -/
 lemma norm_sub_le_of_geometric_bound_of_has_sum (hr : r < 1) (hf : ∀n, ∥f n∥ ≤ C * r^n)
   {a : α} (ha : has_sum f a) (n : ℕ) :
-  ∥(finset.range n).sum f - a∥ ≤ (C * r ^ n) / (1 - r) :=
+  ∥(∑ x in finset.range n, f x) - a∥ ≤ (C * r ^ n) / (1 - r) :=
 begin
   rw ← dist_eq_norm,
   apply dist_le_of_le_geometric_of_tendsto r C hr (dist_partial_sum_le_of_le_geometric hf),

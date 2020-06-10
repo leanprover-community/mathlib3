@@ -129,11 +129,11 @@ real.young_inequality_of_nonneg a.coe_nonneg b.coe_nonneg ⟨hp, nnreal.coe_eq.2
 
 theorem real.pow_am_le_am_pow (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
   (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) (n : ℕ) :
-  (∑ i in s, w i * z i) ^ n ≤ ∑ i in s, w i * z i ^ n :=
+  (∑ i in s, w i * z i) ^ n ≤ ∑ i in s, (w i * z i ^ n) :=
 (convex_on_pow n).map_sum_le hw hw' hz
 
 theorem nnreal.pow_am_le_am_pow (w z : ι → ℝ≥0) (hw' : ∑ i in s, w i = 1) (n : ℕ) :
-  (∑ i in s, w i * z i) ^ n ≤ ∑ i in s, w i * z i ^ n :=
+  (∑ i in s, w i * z i) ^ n ≤ ∑ i in s, (w i * z i ^ n) :=
 begin
   rw [← nnreal.coe_le_coe],
   push_cast,
@@ -143,12 +143,12 @@ end
 
 theorem real.pow_am_le_am_pow_of_even (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
   (hw' : ∑ i in s, w i = 1) {n : ℕ} (hn : n.even) :
-  (∑ i in s, w i * z i) ^ n ≤ ∑ i in s, w i * z i ^ n :=
+  (∑ i in s, w i * z i) ^ n ≤ ∑ i in s, (w i * z i ^ n) :=
 (convex_on_pow_of_even hn).map_sum_le hw hw' (λ _ _, trivial)
 
 theorem real.fpow_am_le_am_fpow (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
   (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 < z i) (m : ℤ) :
-  (∑ i in s, w i * z i) ^ m ≤ ∑ i in s, w i * z i ^ m :=
+  (∑ i in s, w i * z i) ^ m ≤ ∑ i in s, (w i * z i ^ m) :=
 (convex_on_fpow m).map_sum_le hw hw' hz
 
 namespace finset

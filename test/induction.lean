@@ -123,20 +123,9 @@ example {α : Sort u} {x y n m} {xs : Vec α n} {ys : Vec α m}
   : Vec.eq (n + 1) (m + 1) (Vec.cons x xs) (Vec.cons y ys)
   → Vec.eq n m xs ys :=
 begin
-  generalize eq₁ : Vec.cons x xs = j, -- The `Vec.cons x xs` is generalised.
-  revert j,
-  generalize eq₂ : n + 1 = j',        -- The `n + 1` is not generalised.
-  intros j j_eq,
-  subst j_eq,
   intro h,
-  refine
-    (λ (i₁ i₂ : ℕ) (i₃ : Vec α i₁) (i₄ : Vec α i₂)
-      (i₁_eq : i₁ = n + 1) (i₂_eq : i₂ = m + 1) (i₃_eq : i₃ == Vec.cons x xs)
-      (i₄_eq : i₄ == Vec.cons y ys) (h' : Vec.eq i₁ i₂ i₃ i₄),
-      (_ : Vec.eq n m xs ys))
-    (n + 1) (m + 1) (Vec.cons x xs) (Vec.cons y ys) rfl rfl heq.rfl heq.rfl h,
-  -- This is the state I want after generalising `n + 1`, `m + 1`, `Vec.cons x xs` and `Vec.cons y ys`.
-  cases h; assumption
+  induction' h,
+  exact h
 end
 
 -- This example tests type-based naming.
@@ -524,39 +513,19 @@ inductive small_step : stmt × state → stmt × state → Prop
 are left alone. `cases` does the right thing but gives no induction
 hypothesis. -/
 
--- TODO tuple equation simplification
 lemma small_step_if_equal_states {S T s t s' t'}
     (hstep : small_step (S, s) (T, t)) (hs : s' = s) (ht : t' = t) :
   small_step (S, s') (T, t') :=
 begin
-  revert hstep,
-  generalize eq₁ : (S, s) = i,
-  generalize eq₂ : (T, t) = j,
-  have eq₁₁ : S = i.1,
-  { rw [←eq₁] },
-  have eq₁₂ : s = i.2,
-  { rw [←eq₁] },
-  have eq₂₁ : T = j.1,
-  { rw [←eq₂] },
-  have eq₂₂ : t = j.2,
-  { rw [←eq₂] },
-  subst eq₁₁,
-  subst eq₁₂,
-  subst eq₂₁,
-  subst eq₂₂,
-  clear eq₁,
-  clear eq₂,
-  intro hstep,
   induction' hstep; dsimp at *,
   { rw [hs, ht],
     exact small_step.assign,
   },
-  {
-    apply small_step.seq_step,
+  { apply small_step.seq_step,
     exact ih hs ht,
   },
-  { rw [hs, ht]
-  , exact small_step.seq_skip,
+  { rw [hs, ht],
+    exact small_step.seq_skip,
   },
   { rw [hs, ht],
     exact small_step.ite_true hcond,
@@ -567,48 +536,6 @@ begin
   { rw [hs, ht],
     exact small_step.while,
   }
-
-  -- revert hstep,
-  -- generalize eq₁ : (S, s) = index₁,
-  -- generalize eq₂ : (T, t) = index₂,
-  -- intro hstep,
-  -- revert S T s t s' t' hs ht,
-  -- induction hstep; clear index₁ index₂; intros S T s t s' t' hs ht eq₁ eq₂,
-  -- case seq_step : S_ S'_ T_ s t hS {
-  --   clear index₁ index₂,
-  --   injection eq₁,
-  --   clear eq₁,
-  --   subst h_1,
-  --   subst h_2,
-  --   injection eq₂,
-  --   clear eq₂,
-  --   subst h_1,
-  --   subst h_2,
-  -- },
-
-  -- induction' hstep,
-  -- { rw [hs, ht],
-  --   exact small_step.assign,
-  -- },
-  -- {
-  --   -- TODO is this the correct IH?
-  --   -- TODO naming
-  --   -- TODO the index equations in the IH could be simplified further
-  --   rw [hs, ht],
-  --   exact small_step.seq_step hstep
-  -- },
-  -- { rw [hs, ht]
-  -- , exact small_step.seq_skip,
-  -- },
-  -- { rw [hs, ht],
-  --   exact small_step.ite_true hcond,
-  -- },
-  -- { rw [hs, ht],
-  --   exact small_step.ite_false hcond,
-  -- },
-  -- { rw [hs, ht],
-  --   exact small_step.while,
-  -- }
 end
 
 /- `cases` is better behaved. -/

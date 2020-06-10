@@ -383,6 +383,15 @@ occs.foldl_with_index
   (λ i occ_map occs, occs.fold occ_map (λ var occ_map, occ_map.insert var i))
   (mk_rb_multimap ℕ ℕ)
 
+meta def match_eq : expr → option (level × expr × expr × expr)
+| (app (app (app (const `eq [u]) type) lhs) rhs) := some (u, type, lhs, rhs)
+| _ := none
+
+meta def match_heq : expr → option (level × expr × expr × expr × expr)
+| (app (app (app (app (const `heq [u]) lhs_type) lhs) rhs_type) rhs) :=
+  some (u, lhs_type, lhs, rhs_type, rhs)
+| _ := none
+
 end expr
 
 
@@ -847,6 +856,77 @@ meta def constructor_intros (einfo : eliminee_info) (iinfo : inductive_info)
   args ← constructor_argument_intros einfo iinfo cinfo reserved_names,
   ih_intros iinfo args reserved_names
 
+meta def match_structure_equation (t : expr)
+  : tactic (option (list level × list expr × list name × level × expr × expr × expr)) :=
+try_core $ do
+  ⟨u, type, lhs, rhs⟩ ← t.match_eq,
+  ⟨const struct struct_levels, params⟩ ← decompose_app_normalizing type,
+  env ← get_env,
+  fields ← env.structure_fields struct,
+  let fields := fields.map (λ n, struct ++ n),
+  [constructor] ← pure $ env.constructors_of struct,
+  c ← get_app_fn_const_normalizing rhs,
+  guard $ c = constructor,
+  pure (struct_levels, params, fields, u, type, lhs, rhs)
+
+meta def decompose_structure_equation_once (h : expr)
+  (struct_levels : list level) (params : list expr) (fields : list name)
+  (u : level) (type lhs rhs : expr)
+  : tactic (list (expr × expr)) :=
+fields.mmap (λ f, do
+    let proj := (const f struct_levels).mk_app params,
+    let lhs' := proj lhs,
+    let rhs' := proj rhs,
+    rhs' ← whnf rhs', -- TODO we really just want to reduce the projection here
+    lhs'_type ← infer_type lhs',
+    rhs'_type ← infer_type rhs',
+    sort u' ← infer_type lhs'_type,
+    type_eq ← succeeds $ is_def_eq lhs'_type rhs'_type,
+    if type_eq
+      then do
+        let eq_type := (const `eq [u]) lhs'_type lhs' rhs',
+        let eq_prf := (const `congr_arg [u, u']) type lhs'_type lhs rhs proj h,
+        pure (eq_prf, eq_type)
+      else do
+        let eq_type := (const `heq [u]) lhs'_type lhs' rhs'_type rhs',
+        eq_prf ← to_expr ``(@congr_arg_heq %%type _ %%proj %%lhs %%rhs %%h) ff,
+        instantiate_mvars eq_prf,
+        pure (eq_prf, eq_type)
+  )
+
+meta def decompose_structure_equation
+  : expr → expr → tactic (list (expr × expr)) :=
+λ e e_type, do
+  some ⟨struct_levels, params, fields, u, type, lhs, rhs⟩ ←
+    match_structure_equation e_type
+    | pure [(e, e_type)],
+  children ←
+    decompose_structure_equation_once e struct_levels params fields u type lhs rhs,
+  list.join <$> children.mmap (λ ⟨e, e_type⟩, decompose_structure_equation e e_type)
+
+meta def decompose_structure_equation_hyp (h : expr) : tactic unit := do
+  h_type ← infer_type h,
+  some _ ← match_structure_equation h_type | pure (),
+  hs ← decompose_structure_equation h h_type,
+  hs.mmap' $ λ ⟨i, i_type⟩, do
+    n ← mk_fresh_name,
+    h ← assertv n i_type i,
+    subst_core h <|> clear h
+    -- TODO we can check more specifically whether h has the right shape
+    -- for substitution
+
+namespace interactive
+
+open interactive
+open lean.parser
+
+meta def decompose_structure_equation (h : parse ident) : tactic unit := do
+  h ← get_local h,
+  decompose_structure_equation_hyp h,
+  pure ()
+
+end interactive
+
 -- TODO Generate heterogeneous equations only if necessary. This will simplify
 -- the later simplification steps.
 meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr)
@@ -874,8 +954,23 @@ meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr
   -- Generalise the complex index arguments
   index_vars_eqs ← generalizes_intro generalizes_args,
 
+  -- Every second hypothesis introduced by `generalizes` is an index equation.
+  -- (The other introduced hypotheses are the index variables.)
+  let index_var_equations :=
+    index_vars_eqs.foldr_with_index
+      (λ i x xs, if i % 2 = 0 then xs else x :: xs) [],
+
   let num_index_vars := nonlocals.length,
   let num_index_var_equations := num_index_vars,
+
+  -- Decompose the index equations equating elements of structures.
+  -- NOTE: Each step in the following loop may change the unique names of
+  -- hypotheses in the context, so we go by pretty names. We made sure above
+  -- that these are unique.
+  index_var_equations.mmap' $ λ eq, do {
+    eq ← get_local eq.local_pp_name,
+    decompose_structure_equation_hyp eq
+  },
 
   -- Re-introduce the indices' dependencies
   intron num_reverted_args,
@@ -885,9 +980,7 @@ meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr
   eliminee ← intro1,
 
   -- Re-revert the index equations
-  let index_var_equations :=
-    index_vars_eqs.foldr_with_index
-      (λ i x xs, if i % 2 = 0 then xs else x :: xs) [],
+  index_var_equations ← index_var_equations.mmap (λ h, get_local h.local_pp_name),
   revert_lst index_var_equations,
 
   pure (eliminee, num_index_vars, num_index_var_equations)
@@ -1230,12 +1323,11 @@ focus1 $ do
       clear eliminee,
 
       -- Clear the index args (unless other stuff in the goal depends on them)
-      eliminee_args.mmap' (try ∘ clear),
-
       -- TODO is this the right thing to do? I don't think this necessarily
       -- preserves provability: The args we clear could contain interesting
       -- information, even if nothing else depends on them. Is there a way to
       -- avoid this, i.e. clean up even more conservatively?
+      eliminee_args.mmap' (try ∘ clear),
 
       -- Introduce the constructor arguments
       ihs ← constructor_intros einfo iinfo cinfo generalized_names,

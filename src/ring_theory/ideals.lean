@@ -149,20 +149,9 @@ begin
     exact SC JS ((eq_top_iff_one _).2 J0) }
 end
 
-def is_coprime (x y : α) : Prop :=
-span ({x, y} : set α) = ⊤
-
 theorem mem_span_pair {x y z : α} :
   z ∈ span ({x, y} : set α) ↔ ∃ a b, a * x + b * y = z :=
 by simp [mem_span_insert, mem_span_singleton', @eq_comm _ _ z]
-
-theorem is_coprime_def {x y : α} :
-  is_coprime x y ↔ ∀ z, ∃ a b, a * x + b * y = z :=
-by simp [is_coprime, submodule.eq_top_iff', mem_span_pair]
-
-theorem is_coprime_self {x : α} :
-  is_coprime x x ↔ is_unit x :=
-by rw [← span_singleton_eq_top]; simp [is_coprime]
 
 lemma span_singleton_lt_span_singleton [integral_domain β] {x y : β} :
   span ({x} : set β) < span ({y} : set β) ↔ y ≠ 0 ∧ ∃ d : β, ¬ is_unit d ∧ x = y * d :=
@@ -233,7 +222,7 @@ lemma mk_prod {ι} (I : ideal α) (s : finset ι) (f : ι → α) :
 (mk_hom I).map_prod f s
 
 lemma mk_sum {ι} (I : ideal α) (s : finset ι) (f : ι → α) :
-  mk I (s.sum f) = s.sum (λ i, mk I (f i)) :=
+  mk I (∑ i in s, f i) = ∑ i in s, mk I (f i) :=
 (mk_hom I).map_sum f s
 
 lemma eq_zero_iff_mem {I : ideal α} : mk I a = 0 ↔ a ∈ I :=

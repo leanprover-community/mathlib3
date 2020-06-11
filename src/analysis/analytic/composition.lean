@@ -506,7 +506,7 @@ def comp_change_of_variables (N : ℕ) (i : Σ n, (fin n) → ℕ) (hi : i ∈ c
 begin
   rcases i with ⟨n, f⟩,
   rw mem_comp_partial_sum_source_iff at hi,
-  refine ⟨finset.univ.sum f, of_fn (λ a, f a), λ i hi', _, by simp [sum_of_fn]⟩,
+  refine ⟨∑ j, f j, of_fn (λ a, f a), λ i hi', _, by simp [sum_of_fn]⟩,
   obtain ⟨j, rfl⟩ : ∃ (j : fin n), f j = i, by rwa [mem_of_fn, set.mem_range] at hi',
   exact (hi.2 j).1
 end

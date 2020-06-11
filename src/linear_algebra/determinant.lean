@@ -11,7 +11,7 @@ universes u v
 open equiv equiv.perm finset function
 
 namespace matrix
-open_locale matrix
+open_locale matrix big_operators
 
 variables {n : Type u} [fintype n] [decidable_eq n] {R : Type v} [comm_ring R]
 
@@ -19,9 +19,9 @@ local notation `ε` σ:max := ((sign σ : ℤ ) : R)
 
 /-- The determinant of a matrix given by the Leibniz formula. -/
 definition det (M : matrix n n R) : R :=
-univ.sum (λ (σ : perm n), ε σ * univ.prod (λ i, M (σ i) i))
+∑ σ : perm n, ε σ * ∏ i, M (σ i) i
 
-@[simp] lemma det_diagonal {d : n → R} : det (diagonal d) = univ.prod d :=
+@[simp] lemma det_diagonal {d : n → R} : det (diagonal d) = ∏ i, d i :=
 begin
   refine (finset.sum_eq_single 1 _ _).trans _,
   { intros σ h1 h2,
@@ -49,7 +49,7 @@ begin
 end
 
 lemma det_mul_aux {M N : matrix n n R} {p : n → n} (H : ¬bijective p) :
-  univ.sum (λ σ : perm n, (ε σ) * (univ.prod (λ x, M (σ x) (p x) * N (p x) x))) = 0 :=
+  ∑ σ : perm n, (ε σ) * ∏ x, (M (σ x) (p x) * N (p x) x) = 0 :=
 begin
   obtain ⟨i, j, hpij, hij⟩ : ∃ i j, p i = p j ∧ i ≠ j,
   { rw [← fintype.injective_iff_bijective, injective] at H,
@@ -59,7 +59,7 @@ begin
     (λ σ _, σ * swap i j)
     (λ σ _,
       have ∀ a, p (swap i j a) = p a := λ a, by simp only [swap_apply_def]; split_ifs; cc,
-      have univ.prod (λ x, M (σ x) (p x)) = univ.prod (λ x, M ((σ * swap i j) x) (p x)),
+      have ∏ x, M (σ x) (p x) = ∏ x, M ((σ * swap i j) x) (p x),
         from prod_bij (λ a _, swap i j a) (λ _ _, mem_univ _) (by simp [this])
           (λ _ _ _ _ h, (swap i j).injective h)
           (λ b _, ⟨swap i j b, mem_univ _, by simp⟩),
@@ -70,28 +70,23 @@ begin
 end
 
 @[simp] lemma det_mul (M N : matrix n n R) : det (M ⬝ N) = det M * det N :=
-calc det (M ⬝ N) = univ.sum (λ p : n → n, univ.sum
-    (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (p i) * N (p i) i))) :
+calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) (p i) * N (p i) i) :
   by simp only [det, mul_val, prod_univ_sum, mul_sum,
     fintype.pi_finset_univ]; rw [finset.sum_comm]
-... = ((@univ (n → n) _).filter bijective).sum (λ p : n → n, univ.sum
-    (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (p i) * N (p i) i))) :
+... = ∑ p in (@univ (n → n) _).filter bijective, ∑ σ : perm n,
+    ε σ * ∏ i, (M (σ i) (p i) * N (p i) i) :
   eq.symm $ sum_subset (filter_subset _)
     (λ f _ hbij, det_mul_aux $ by simpa using hbij)
-... = (@univ (perm n) _).sum (λ τ, univ.sum
-    (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (τ i) * N (τ i) i))) :
+... = ∑ τ : perm n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) (τ i) * N (τ i) i) :
   sum_bij (λ p h, equiv.of_bijective p (mem_filter.1 h).2) (λ _ _, mem_univ _)
     (λ _ _, rfl) (λ _ _ _ _ h, by injection h)
     (λ b _, ⟨b, mem_filter.2 ⟨mem_univ _, b.bijective⟩, coe_fn_injective rfl⟩)
-... = univ.sum (λ σ : perm n, univ.sum (λ τ : perm n,
-    (univ.prod (λ i, N (σ i) i) * ε τ) * univ.prod (λ j, M (τ j) (σ j)))) :
+... = ∑ σ : perm n, ∑ τ : perm n, (∏ i, N (σ i) i) * ε τ * (∏ j, M (τ j) (σ j)) :
   by simp [mul_sum, det, mul_comm, mul_left_comm, prod_mul_distrib, mul_assoc]
-... = univ.sum (λ σ : perm n, univ.sum (λ τ : perm n,
-    (univ.prod (λ i, N (σ i) i) * (ε σ * ε τ)) *
-    univ.prod (λ i, M (τ i) i))) :
+... = ∑ σ : perm n, ∑ τ : perm n, (((∏ i, N (σ i) i) * (ε σ * ε τ)) * ∏ i, M (τ i) i) :
   sum_congr rfl (λ σ _, sum_bij (λ τ _, τ * σ⁻¹) (λ _ _, mem_univ _)
     (λ τ _,
-      have univ.prod (λ j, M (τ j) (σ j)) = univ.prod (λ j, M ((τ * σ⁻¹) j) j),
+      have ∏ j, M (τ j) (σ j) = ∏ j, M ((τ * σ⁻¹) j) j,
         by rw ← finset.prod_equiv σ⁻¹; simp [mul_apply],
       have h : ε σ * ε (τ * σ⁻¹) = ε τ :=
         calc ε σ * ε (τ * σ⁻¹) = ε ((τ * σ⁻¹) * σ) :
@@ -203,7 +198,7 @@ begin
   intros σ _,
   erw [filter_or, filter_eq', filter_eq', if_pos (mem_univ σ), if_pos (mem_univ (swap i j * σ)),
     sum_union (this σ), sum_singleton, sum_singleton],
-  convert add_right_neg (↑↑(sign σ) * finset.prod univ (λ (i : n), M (σ i) i)),
+  convert add_right_neg (↑↑(sign σ) * ∏ i, M (σ i) i),
   rw [neg_mul_eq_neg_mul],
   congr,
   { rw [sign_mul, sign_swap i_ne_j], norm_num },

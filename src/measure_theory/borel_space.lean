@@ -34,7 +34,7 @@ import analysis.normed_space.basic
 noncomputable theory
 
 open classical set
-open_locale classical
+open_locale classical big_operators
 
 universes u v w x y
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x} {ι : Sort y} {s t u : set α}
@@ -348,7 +348,7 @@ continuous_mul.measurable2
 @[to_additive]
 lemma finset.measurable_prod {ι : Type*} [comm_monoid α] [topological_monoid α]
   [second_countable_topology α] {f : ι → δ → α} (s : finset ι) (hf : ∀i, measurable (f i)) :
-  measurable (λa, s.prod (λi, f i a)) :=
+  measurable (λa, ∏ i in s, f i a) :=
 finset.induction_on s
   (by simp only [finset.prod_empty, measurable_const])
   (assume i s his ih, by simpa [his] using (hf i).mul ih)

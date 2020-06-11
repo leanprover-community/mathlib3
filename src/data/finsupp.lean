@@ -1751,4 +1751,32 @@ lemma swap_mem_antidiagonal_support {n : σ →₀ ℕ} {f} (hf : f ∈ (antidia
   f.swap ∈ (antidiagonal n).support :=
 by simpa only [mem_antidiagonal_support, add_comm, prod.swap] using hf
 
+lemma finite_le_nat (n : σ →₀ ℕ) : set.finite {m | m ≤ n} :=
+begin
+  let I := {i // i ∈ n.support},
+  let k : ℕ := ∑ i in n.support, n i,
+  let f : (σ →₀ ℕ) → (I → fin (k + 1)) := λ m i, m i,
+  have hf : ∀ m ≤ n, ∀ i, (f m i : ℕ) = m i,
+  { intros m hm i,
+    apply fin.coe_coe_of_lt,
+    calc m i ≤ n i   : hm i
+         ... < k + 1 : nat.lt_succ_iff.mpr (single_le_sum (λ _ _, nat.zero_le _) i.2) },
+  have f_im : set.finite (f '' {m | m ≤ n}) := set.finite.of_fintype _,
+  suffices f_inj : set.inj_on f {m | m ≤ n},
+  { exact set.finite_of_finite_image f_inj f_im },
+  intros m₁ m₂ h₁ h₂ h,
+  ext i,
+  by_cases hi : i ∈ n.support,
+  { replace h := congr_fun h ⟨i, hi⟩,
+    rwa [fin.ext_iff, ← fin.coe_eq_val, ← fin.coe_eq_val, hf m₁ h₁, hf m₂ h₂] at h },
+  { rw not_mem_support_iff at hi,
+    specialize h₁ i,
+    specialize h₂ i,
+    rw [hi, nat.le_zero_iff] at h₁ h₂,
+    rw [h₁, h₂] }
+end
+
+lemma finite_lt_nat (n : σ →₀ ℕ) : set.finite {m | m < n} :=
+set.finite_subset (finite_le_nat n) $ λ m, le_of_lt
+
 end finsupp

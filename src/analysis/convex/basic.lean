@@ -576,7 +576,7 @@ lemma finset.center_mass_segment'
 begin
   rw [s.center_mass_eq_of_sum_1 _ hws, t.center_mass_eq_of_sum_1 _ hwt,
     smul_sum, smul_sum, ← finset.sum_sum_elim, finset.center_mass_eq_of_sum_1],
-  { congr, ext i, cases i; simp only [sum.elim_inl, sum.elim_inr, mul_smul] },
+  { congr, ext ⟨⟩; simp only [sum.elim_inl, sum.elim_inr, mul_smul] },
   { rw [sum_sum_elim, ← mul_sum, ← mul_sum, hws, hwt, mul_one, mul_one, hab] }
 end
 

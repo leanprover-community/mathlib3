@@ -3,14 +3,13 @@ Copyright (c) 2020 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.equiv.mul_add
+import data.equiv.mul_add logic.function.basic group_theory.subgroup
 /-!
 # Semidirect product
 
 This file defines semidirect products of groups, and the canonical maps in and out of the
 semidirect product. The semidirect product of `N` and `G` given a hom `φ` from
 `φ` from `G` to the automorphism group of `N` is the product of sets with the group
-operation
 `⟨n₁, g₁⟩ * ⟨n₂, g₂⟩ = ⟨n₁ * φ g₁ n₂, g₁ * g₂⟩`
 
 ## Key definitions
@@ -83,6 +82,12 @@ def inl : N →* N ⋊[φ] G :=
 @[simp] lemma left_inl (n : N) : (inl n : N ⋊[φ] G).left = n := rfl
 @[simp] lemma right_inl (n : N) : (inl n : N ⋊[φ] G).right = 1 := rfl
 
+lemma inl_injective : function.injective (inl : N → N ⋊[φ] G) :=
+function.injective_iff_has_left_inverse.2 ⟨left, left_inl⟩
+
+@[simp] lemma inl_inj {n₁ n₂ : N} : (inl n₁ : N ⋊[φ] G) = inl n₂ ↔ n₁ = n₂ :=
+inl_injective.eq_iff
+
 /-- The canonical map `G →* N ⋊[φ] G` sending `g` to `⟨1, g⟩` -/
 def inr : G →* N ⋊[φ] G :=
 { to_fun := λ g, ⟨1, g⟩,
@@ -91,6 +96,12 @@ def inr : G →* N ⋊[φ] G :=
 
 @[simp] lemma left_inr (g : G) : (inr g : N ⋊[φ] G).left = 1 := rfl
 @[simp] lemma right_inr (g : G) : (inr g : N ⋊[φ] G).right = g := rfl
+
+lemma inr_injective : function.injective (inr : G → N ⋊[φ] G) :=
+function.injective_iff_has_left_inverse.2 ⟨right, right_inr⟩
+
+@[simp] lemma inr_inj {g₁ g₂ : G} : (inr g₁ : N ⋊[φ] G) = inr g₂ ↔ g₁ = g₂ :=
+inr_injective.eq_iff
 
 lemma inl_aut (g : G) (n : N) : (inl (φ g n) : N ⋊[φ] G) = inr g * inl n * inr g⁻¹ :=
 by ext; simp
@@ -103,6 +114,28 @@ def right_hom : N ⋊[φ] G →* G :=
 { to_fun := semidirect_product.right,
   map_one' := rfl,
   map_mul' := λ _ _, rfl }
+
+@[simp] lemma right_hom_eq_right : (right_hom :  N ⋊[φ] G → G) = right := rfl
+
+@[simp] lemma right_hom_comp_inl : (right_hom : N ⋊[φ] G →* G).comp inl = 1 :=
+by ext; simp [right_hom]
+
+@[simp] lemma right_hom_comp_inr : (right_hom : N ⋊[φ] G →* G).comp inr = monoid_hom.id _ :=
+by ext; simp [right_hom]
+
+@[simp] lemma right_hom_inl (n : N) : right_hom (inl n : N ⋊[φ] G) = 1 :=
+by simp [right_hom]
+
+@[simp] lemma right_hom_inr (g : G) : right_hom (inr g : N ⋊[φ] G) = g :=
+by simp [right_hom]
+
+lemma right_hom_surjective : function.surjective (right_hom : N ⋊[φ] G → G) :=
+function.surjective_iff_has_right_inverse.2 ⟨inr, right_hom_inr⟩
+
+lemma range_inl_eq_ker_right_hom : (inl : N →* N ⋊[φ] G).range = right_hom.ker :=
+le_antisymm
+  (λ _, by simp [monoid_hom.mem_ker, eq_comm] {contextual := tt})
+  (λ x hx, ⟨x.left, by ext; simp [*, monoid_hom.mem_ker] at *⟩)
 
 section lift
 variables (f₁ : N →* H) (f₂ : G →* H)

@@ -107,17 +107,25 @@ do let n := src.mk_string "_to_additive",
 @[derive has_reflect, derive inhabited]
 structure value_type := (tgt : name) (doc : option string)
 
-/-- Dictionary of words used by `to_additive.guess_name` to autogenerate
-names. -/
-meta def tokens_dict : native.rb_map string string :=
-native.rb_map.of_list $
-[("mul", "add"), ("one", "zero"), ("inv", "neg"), ("prod", "sum")]
+/-- Dictionary used by `to_additive.guess_name` to autogenerate names. -/
+meta def tr : list string → list string
+| ("one" :: "le" :: s) := "nonneg" :: tr s
+| ("one" :: "lt" :: s) := "pos"    :: tr s
+| ("le" :: "one" :: s) := "nonpos" :: tr s
+| ("lt" :: "one" :: s) := "neg"    :: tr s
+| ("mul" :: s)         := "add"    :: tr s
+| ("inv" :: s)         := "neg"    :: tr s
+| ("div" :: s)         := "sub"    :: tr s
+| ("one" :: s)         := "zero"   :: tr s
+| ("prod" :: s)        := "sum"    :: tr s
+| (x :: s)             := (x :: tr s)
+| []                   := []
 
 /-- Autogenerate target name for `to_additive`. -/
 meta def guess_name : string → string :=
-string.map_tokens '_' $
 string.map_tokens ''' $
-λ s, (tokens_dict.find s).get_or_else s
+λ s, string.intercalate (string.singleton '_') $
+tr (s.split_on '_')
 
 meta def target_name (src tgt : name) (dict : name_map name) : tactic name :=
 (if tgt.get_prefix ≠ name.anonymous -- `tgt` is a full name

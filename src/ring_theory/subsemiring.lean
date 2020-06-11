@@ -15,6 +15,8 @@ We define bundled subsemirings and some standard constructions: `complete_lattic
 `subtype` and `inclusion` ring homomorphisms, subsemiring kernel and range of a `ring_hom` etc.
 -/
 
+open_locale big_operators
+
 universes u v w
 
 variables {R : Type u} {S : Type v} {T : Type w} [semiring R] [semiring S] [semiring T]
@@ -136,7 +138,7 @@ s.to_submonoid.prod_mem h
 is in the `add_subsemiring`. -/
 lemma sum_mem {R : Type*} [semiring R] (s : subsemiring R)
   {ι : Type*} {t : finset ι} {f : ι → R} (h : ∀c ∈ t, f c ∈ s) :
-  t.sum f ∈ s :=
+  ∑ i in t, f i ∈ s :=
 s.to_add_submonoid.sum_mem h
 
 lemma pow_mem {x : R} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := s.to_submonoid.pow_mem hx n

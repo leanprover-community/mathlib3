@@ -160,7 +160,7 @@ jobs:
       - name: tests
         run: |
           set -o pipefail
-          lean --make docs archive roadmap test | cat
+          lean -T100000 --make docs archive roadmap test | cat
 
       - name: leanchecker
         run: |

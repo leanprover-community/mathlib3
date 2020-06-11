@@ -341,7 +341,7 @@ else begin
 end
 
 lemma finset.prod {β : Type*} {p : α} (hp : prime p) (s : finset β) (f : β → α) :
-  multiplicity p (∏ x in s, f x) = s.sum (λ x, multiplicity p (f x)) :=
+  multiplicity p (∏ x in s, f x) = ∑ x in s, multiplicity p (f x) :=
 begin
   classical,
   induction s using finset.induction with a s has ih h,

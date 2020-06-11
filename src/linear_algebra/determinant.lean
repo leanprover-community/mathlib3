@@ -80,7 +80,7 @@ calc det (M ⬝ N) = univ.sum (λ p : n → n, univ.sum
     (λ f _ hbij, det_mul_aux $ by simpa using hbij)
 ... = (@univ (perm n) _).sum (λ τ, univ.sum
     (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (τ i) * N (τ i) i))) :
-  sum_bij (λ p h, equiv.of_bijective (mem_filter.1 h).2) (λ _ _, mem_univ _)
+  sum_bij (λ p h, equiv.of_bijective p (mem_filter.1 h).2) (λ _ _, mem_univ _)
     (λ _ _, rfl) (λ _ _ _ _ h, by injection h)
     (λ b _, ⟨b, mem_filter.2 ⟨mem_univ _, b.bijective⟩, coe_fn_injective rfl⟩)
 ... = univ.sum (λ σ : perm n, univ.sum (λ τ : perm n,

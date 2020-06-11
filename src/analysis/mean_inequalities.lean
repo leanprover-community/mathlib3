@@ -122,7 +122,7 @@ theorem young_inequality_of_nonneg {a b p q : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b)
   (hpq : p.is_conjugate_exponent q) :
   a * b ≤ a^p / p + b^q / q :=
 by simpa [← rpow_mul, ha, hb, hpq.ne_zero, hpq.symm.ne_zero, div_eq_inv_mul]
-  using real.am_gm2_weighted (le_of_lt hpq.one_div_pos) (le_of_lt hpq.symm.one_div_pos)
+  using real.am_gm2_weighted hpq.one_div_nonneg hpq.symm.one_div_nonneg
     (rpow_nonneg_of_nonneg ha p) (rpow_nonneg_of_nonneg hb q) hpq.inv_add_inv_conj
 
 /-- Young's inequality, a version for arbitrary real numbers. -/

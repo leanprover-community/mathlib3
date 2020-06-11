@@ -71,6 +71,9 @@ lemma conjugate_eq : conjugate_exponent p = q := h.conj_eq.symm
 lemma sub_one_mul_conj : (p - 1) * q = p :=
 mul_comm q (p - 1) ▸ (eq_div_iff h.sub_one_ne_zero).1 h.conj_eq
 
+lemma mul_eq_add : p * q = p + q :=
+by simpa only [sub_mul, sub_eq_iff_eq_add, one_mul] using h.sub_one_mul_conj
+
 @[symm] protected lemma symm : q.is_conjugate_exponent p :=
 { one_lt := by { rw [h.conj_eq], exact one_lt_div_of_lt _ h.sub_one_pos (sub_one_lt p) },
   inv_add_inv_conj := by simpa [add_comm] using h.inv_add_inv_conj }

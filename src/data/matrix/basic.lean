@@ -59,6 +59,8 @@ instance [add_comm_group α] : add_comm_group (matrix m n α) := pi.add_comm_gro
 section diagonal
 variables [decidable_eq n]
 
+/-- `diagonal d` is the square matrix such that `(diagonal d) i i = d i` and `(diagonal d) i j = 0`
+if `i ≠ j`. -/
 def diagonal [has_zero α] (d : n → α) : matrix n n α := λ i j, if i = j then d i else 0
 
 @[simp] theorem diagonal_val_eq [has_zero α] {d : n → α} (i : n) : (diagonal d) i i = d i :=

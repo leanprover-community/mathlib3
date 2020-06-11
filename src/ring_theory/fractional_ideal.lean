@@ -523,6 +523,10 @@ noncomputable instance fractional_ideal_has_div :
 
 noncomputable instance : has_inv (fractional_ideal g) := ⟨λ I, 1 / I⟩
 
+lemma div_zero {I : fractional_ideal g} :
+  (I / 0) = 0 :=
+dif_pos rfl
+
 lemma div_nonzero {I J : fractional_ideal g} (h : J ≠ 0) :
   (I / J) = ⟨I.1 / J.1, fractional_div_of_nonzero h⟩ :=
 dif_neg h
@@ -530,6 +534,15 @@ dif_neg h
 lemma inv_nonzero {I : fractional_ideal g} (h : I ≠ 0) :
   I⁻¹ = ⟨(1 : fractional_ideal g) / I, fractional_div_of_nonzero h⟩ :=
 div_nonzero h
+
+lemma mem_div_iff_of_nonzero {I J : fractional_ideal g} (h : J ≠ 0) {x} :
+  x ∈ I / J ↔ ∀ y ∈ J, x * y ∈ I :=
+by { rw div_nonzero h, exact submodule.mem_div_iff_forall_mul_mem }
+
+lemma le_div_iff_of_nonzero {I J J' : fractional_ideal g} (hK : J' ≠ 0) :
+  I ≤ J / J' ↔ ∀ (x ∈ I) (y ∈ J'), x * y ∈ J :=
+⟨ λ h x hx, (mem_div_iff_of_nonzero hK).mp (h hx),
+  λ h x hx, (mem_div_iff_of_nonzero hK).mpr (h x hx) ⟩
 
 lemma coe_inv_of_nonzero {I : fractional_ideal g} (h : I ≠ 0) :
   (↑(I⁻¹) : submodule R₁ g.codomain) = (1 : ideal R₁) / I :=
@@ -561,15 +574,14 @@ begin
   suffices h' : I * (1 / I) = 1,
   { exact (congr_arg units.inv $
       @units.ext _ _ (units.mk_of_mul_eq_one _ _ h) (units.mk_of_mul_eq_one _ _ h') rfl) },
-  rw [div_nonzero hI],
   apply le_antisymm,
   { apply mul_le.mpr _,
     intros x hx y hy,
     rw [mul_comm],
-    exact mem_div_iff_forall_mul_mem.mp hy x hx },
+    exact (mem_div_iff_of_nonzero hI).mp hy x hx },
   rw [←h],
   apply mul_left_mono I,
-  apply submodule.le_div_iff.mpr _,
+  apply (le_div_iff_of_nonzero hI).mpr _,
   intros y hy x hx,
   rw [mul_comm],
   exact mul_mem_mul hx hy
@@ -738,10 +750,8 @@ lemma invertible_iff_generator_nonzero (I : fractional_ideal g)
 begin
   split,
   { intros hI hg,
-    apply @zero_ne_one (fractional_ideal g),
-    convert hI,
-    rw [eq_span_singleton_of_principal I, hg, span_singleton_zero, semiring.zero_mul],
-    refl },
+    apply ne_zero_of_mul_eq_one _ _ hI,
+    rw [eq_span_singleton_of_principal I, hg, span_singleton_zero] },
   { intro hg,
     apply invertible_of_principal,
     rw [eq_span_singleton_of_principal I],

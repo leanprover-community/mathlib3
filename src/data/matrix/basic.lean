@@ -82,6 +82,10 @@ begin
   { simp [h, transpose, diagonal_val_ne' h] }
 end
 
+@[simp] theorem diagonal_add [add_monoid α] (d₁ d₂ : n → α) :
+  diagonal d₁ + diagonal d₂ = diagonal (λ i, d₁ i + d₂ i) :=
+by ext i j; by_cases h : i = j; simp [h]
+
 section one
 variables [has_zero α] [has_one α]
 
@@ -110,7 +114,7 @@ variables [add_monoid α] [has_one α]
 
 lemma bit1_val (M : matrix n n α) (i : n) (j : n) :
   (bit1 M) i j = if i = j then bit1 (M i j) else bit0 (M i j) :=
-by dsimp [bit1]; by_cases i = j; simp [h]
+by dsimp [bit1]; by_cases h : i = j; simp [h]
 
 @[simp]
 lemma bit1_val_eq (M : matrix n n α) (i : n) :
@@ -125,10 +129,6 @@ by simp [bit1_val, h]
 end numeral
 
 end diagonal
-
-@[simp] theorem diagonal_add [decidable_eq n] [add_monoid α] (d₁ d₂ : n → α) :
-  diagonal d₁ + diagonal d₂ = diagonal (λ i, d₁ i + d₂ i) :=
-by ext i j; by_cases i = j; simp [h]
 
 section dot_product
 

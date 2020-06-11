@@ -10,6 +10,7 @@ import data.equiv.mul_add
 This file defines semidirect products of groups, and the canonical maps in and out of the
 semidirect product. The semidirect product of `N` and `G` given a hom `φ` from
 `φ` from `G` to the automorphism group of `N` is the product of sets with the group
+operation
 `⟨n₁, g₁⟩ * ⟨n₂, g₂⟩ = ⟨n₁ * φ g₁ n₂, g₁ * g₂⟩`
 
 ## Key definitions

@@ -23,10 +23,10 @@ import set_theory.ordinal
 
 noncomputable theory
 
-universes u u' u'' v v' w w'
+universes u u' u'' v' w w'
 
-variables {K : Type u} {V V₂ V₃ V₄ : Type v}
-variables {ι : Type w} {ι' : Type w'} {η : Type u''} {φ : η → Type u'}
+variables {K : Type u} {V V₂ V₃ V₄ : Type u'}
+variables {ι : Type w} {ι' : Type w'} {η : Type u''} {φ : η → Type*}
 -- TODO: relax these universe constraints
 
 open_locale classical big_operators
@@ -87,18 +87,18 @@ theorem mk_eq_mk_of_basis {v : ι → V} {v' : ι' → V}
   (hv : is_basis K v) (hv' : is_basis K v') :
   cardinal.lift.{w w'} (cardinal.mk ι) = cardinal.lift.{w' w} (cardinal.mk ι') :=
 begin
-  rw ←cardinal.lift_inj.{(max w w') v},
+  rw ←cardinal.lift_inj.{(max w w') u'},
   rw [cardinal.lift_lift, cardinal.lift_lift],
   apply le_antisymm,
-  { convert cardinal.lift_le.{v (max w w')}.2 (hv.le_span zero_ne_one hv'.2),
-    { rw cardinal.lift_max.{w v w'},
+  { convert cardinal.lift_le.{u' (max w w')}.2 (hv.le_span zero_ne_one hv'.2),
+    { rw cardinal.lift_max.{w u' w'},
       apply (cardinal.mk_range_eq_of_inj (hv.injective zero_ne_one)).symm, },
-    { rw cardinal.lift_max.{w' v w},
+    { rw cardinal.lift_max.{w' u' w},
       apply (cardinal.mk_range_eq_of_inj (hv'.injective zero_ne_one)).symm, }, },
-  { convert cardinal.lift_le.{v (max w w')}.2 (hv'.le_span zero_ne_one hv.2),
-    { rw cardinal.lift_max.{w' v w},
+  { convert cardinal.lift_le.{u' (max w w')}.2 (hv'.le_span zero_ne_one hv.2),
+    { rw cardinal.lift_max.{w' u' w},
       apply (cardinal.mk_range_eq_of_inj (hv'.injective zero_ne_one)).symm, },
-    { rw cardinal.lift_max.{w v w'},
+    { rw cardinal.lift_max.{w u' w'},
       apply (cardinal.mk_range_eq_of_inj (hv.injective zero_ne_one)).symm, }, }
 end
 
@@ -114,7 +114,7 @@ begin
 end
 
 theorem is_basis.mk_eq_dim {v : ι → V} (h : is_basis K v) :
-  cardinal.lift.{w v} (cardinal.mk ι) = cardinal.lift.{v w} (dim K V) :=
+  cardinal.lift.{w u'} (cardinal.mk ι) = cardinal.lift.{u' w} (dim K V) :=
 by rw [←h.mk_range_eq_dim, cardinal.mk_range_eq_of_inj (h.injective zero_ne_one)]
 
 variables [add_comm_group V₂] [vector_space K V₂]
@@ -148,12 +148,12 @@ lemma dim_span_set {s : set V} (hs : linear_independent K (λ x, x : s → V)) :
 by rw [← @set_of_mem_eq _ s, ← subtype.val_range]; exact dim_span hs
 
 lemma cardinal_le_dim_of_linear_independent
-  {ι : Type v} {v : ι → V} (hv : linear_independent K v) :
-  (cardinal.mk ι) ≤ (dim.{u v} K V) :=
+  {ι : Type u'} {v : ι → V} (hv : linear_independent K v) :
+  (cardinal.mk ι) ≤ (dim.{u u'} K V) :=
 begin
   obtain ⟨ι', v', is⟩ := exists_sum_is_basis hv,
   simpa using le_trans
-    (cardinal.lift_mk_le.{v v v}.2 ⟨@function.embedding.inl ι ι'⟩)
+    (cardinal.lift_mk_le.{u' u' u'}.2 ⟨@function.embedding.inl ι ι'⟩)
     (le_of_eq is.mk_eq_dim),
 end
 
@@ -336,8 +336,8 @@ lemma dim_fun {V η : Type u} [fintype η] [add_comm_group V] [vector_space K V]
 by rw [dim_pi, cardinal.sum_const, cardinal.fintype_card]
 
 lemma dim_fun_eq_lift_mul :
-  vector_space.dim K (η → V) = (fintype.card η : cardinal.{max u'' v}) *
-    cardinal.lift.{v u''} (vector_space.dim K V) :=
+  vector_space.dim K (η → V) = (fintype.card η : cardinal.{max u'' u'}) *
+    cardinal.lift.{u' u''} (vector_space.dim K V) :=
 by rw [dim_pi, cardinal.sum_const_eq_lift_mul, cardinal.fintype_card, cardinal.lift_nat_cast]
 
 lemma dim_fun' : vector_space.dim K (η → K) = fintype.card η :=
@@ -423,7 +423,7 @@ open vector_space
 
 /-- Version of linear_equiv.dim_eq without universe constraints. -/
 theorem linear_equiv.dim_eq_lift (f : V ≃ₗ[K] E) :
-  cardinal.lift.{v v'} (dim K V) = cardinal.lift.{v' v} (dim K E) :=
+  cardinal.lift.{u' v'} (dim K V) = cardinal.lift.{v' u'} (dim K E) :=
 begin
   cases exists_is_basis K V with b hb,
   rw [← cardinal.lift_inj.1 hb.mk_eq_dim, ← (f.is_basis hb).mk_eq_dim, cardinal.lift_mk],

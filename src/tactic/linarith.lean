@@ -383,6 +383,7 @@ meta def monad.elim_var (a : ℕ) : linarith_monad unit :=
 do vs ← get_vars,
    when (vs.contains a) $
 do comps ← get_comps,
+   _ ← return $ trace_val comps.size,
    step,
    steps ← get_steps,
    let cs' := comps.fold mk_rb_set (λ p s, s.union (elim_with_set a p comps steps)),

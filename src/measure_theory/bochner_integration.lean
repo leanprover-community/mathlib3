@@ -514,17 +514,7 @@ protected def semimodule : semimodule 𝕜 (α →₁ₛ β) :=
   add_smul  := λx y f, simple_func.eq (by { simp only [coe_smul], exact add_smul _ _ _ }),
   zero_smul := λf, simple_func.eq (by { simp only [coe_smul], exact zero_smul _ _ }) }
 
-/-- Not declared as an instance as `α →₁ₛ β` will only be useful in the construction of the bochner
-  integral. -/
-protected def module : module 𝕜 (α →₁ₛ β) :=
-{ .. simple_func.semimodule }
-
-/-- Not declared as an instance as `α →₁ₛ β` will only be useful in the construction of the bochner
-  integral. -/
-protected def vector_space : vector_space 𝕜 (α →₁ₛ β) :=
-{ .. simple_func.semimodule }
-
-local attribute [instance] simple_func.vector_space simple_func.normed_group
+local attribute [instance] simple_func.normed_group simple_func.semimodule
 
 /-- Not declared as an instance as `α →₁ₛ β` will only be useful in the construction of the bochner
   integral. -/

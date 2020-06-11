@@ -232,12 +232,6 @@ instance [semiring K] [add_comm_monoid β] [semimodule K β] : semimodule K (α 
   add_smul := λ r s f, ext (λa, add_smul _ _ _),
   zero_smul := λ f, ext (λa, zero_smul _ _) }
 
-instance [ring K] [add_comm_group β] [module K β] : module K (α →ₛ β) :=
-{ .. simple_func.semimodule }
-
-instance [field K] [add_comm_group β] [module K β] : vector_space K (α →ₛ β) :=
-{ .. simple_func.module }
-
 lemma smul_apply [has_scalar K β] (k : K) (f : α →ₛ β) (a : α) : (k • f) a = k • f a := rfl
 
 lemma smul_eq_map [has_scalar K β] (k : K) (f : α →ₛ β) : k • f = f.map (λb, k • b) := rfl

@@ -64,6 +64,8 @@ instance : group (N ⋊[φ] G) :=
   mul_one := mul_one_aux,
   mul_left_inv := mul_left_inv_aux }
 
+instance : inhabited (N ⋊[φ] G) := ⟨1⟩
+
 @[simp] lemma one_left : (1 : N ⋊[φ] G).left = 1 := rfl
 @[simp] lemma one_right : (1 : N ⋊[φ] G).right = 1 := rfl
 @[simp] lemma inv_left (a : N ⋊[φ] G) : (a⁻¹).left = φ a.right⁻¹ a.left⁻¹ := rfl

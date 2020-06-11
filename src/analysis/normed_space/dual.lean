@@ -11,8 +11,8 @@ import analysis.normed_space.hahn_banach
 In this file we define the topological dual of a normed space, and the bounded linear map from
 a normed space into its double dual.
 
-We also prove that, for base field the real numbers, this map is an isometry.  (TODO:  the same for the
-complex numbers.)
+We also prove that, for base field the real numbers, this map is an isometry.  (TODO:  the same for
+the complex numbers.)
 -/
 
 noncomputable theory

@@ -212,15 +212,12 @@ f.mk_continuous a (λ x, le_of_eq (hf x))
 variable (𝕜)
 
 lemma span_singleton_homothety (x : E) (c : 𝕜) : ∥linear_map.span_singleton 𝕜 E x c∥ = ∥x∥ * ∥c∥ :=
-calc ∥linear_map.span_singleton 𝕜 E x c∥ = ∥c∥ * ∥x∥ : norm_smul _ _
-  ... = ∥x∥ * ∥c∥ : mul_comm _ _
+by {rw mul_comm, exact norm_smul _ _}
 
 /-- Given an element `x` of a normed space `E` over a field `𝕜`, the natural continuous
     linear map from `E` to the span of `x`.-/
 def span_singleton (x : E) : 𝕜 →L[𝕜] E :=
 of_homothety (linear_map.span_singleton 𝕜 E x) ∥x∥ (span_singleton_homothety 𝕜 x)
-
-lemma span_singleton_one (x : E) : span_singleton 𝕜 x 1 = x := by apply one_smul
 
 end
 
@@ -362,14 +359,13 @@ lemma homothety_norm (hE : 0 < vector_space.dim 𝕜 E) (f : E →L[𝕜] F) {a 
   ∥f∥ = a :=
 begin
   refine le_antisymm_iff.mpr ⟨_, _⟩,
-  { apply continuous_linear_map.op_norm_le_bound f ha,
-    apply λ y, le_of_eq (hf y) },
+  { exact continuous_linear_map.op_norm_le_bound f ha (λ y, le_of_eq (hf y)) },
   { rw continuous_linear_map.norm_def,
     apply real.lb_le_Inf _ continuous_linear_map.bounds_nonempty,
-    intros c h, simp at h, cases h,
     cases exists_mem_ne_zero_of_dim_pos' hE with x hx,
+    intros c h, rw mem_set_of_eq at h,
     apply (mul_le_mul_right (norm_pos_iff.mpr hx)).mp,
-    rw ← hf x, exact h_right x }
+    rw ← hf x, exact h.2 x }
 end
 
 lemma span_singleton_norm (x : E) : ∥span_singleton 𝕜 x∥ = ∥x∥ :=
@@ -694,9 +690,7 @@ def of_homothety (f : E ≃ₗ[𝕜] F) (a : ℝ) (ha : 0 < a) (hf : ∀x, ∥f 
 
 lemma span_nonzero_singleton_homothety (x : E) (h : x ≠ 0) (c : 𝕜) :
   ∥linear_equiv.span_nonzero_singleton 𝕜 E x h c∥ = ∥x∥ * ∥c∥ :=
-begin
-  rw ← continuous_linear_map.span_singleton_homothety, refl,
-end
+continuous_linear_map.span_singleton_homothety _ _ _
 
 /-- Given a nonzero element `x` of a normed space `E` over a field `𝕜`, the natural
     continuous linear equivalence from `E` to the span of `x`.-/
@@ -706,14 +700,6 @@ of_homothety 𝕜
   ∥x∥
   (norm_pos_iff.mpr h)
   (span_nonzero_singleton_homothety 𝕜 x h)
-
-lemma span_nonzero_singleton_one (x : E) (h : x ≠ 0) : span_nonzero_singleton 𝕜 x h 1
-  = (⟨x, submodule.mem_span_singleton_self x⟩ : submodule.span 𝕜 ({x} : set E)) :=
-begin
-  apply submodule.coe_eq_coe.mp, simp,
-  have : ↑(span_nonzero_singleton 𝕜 x h 1) = continuous_linear_map.span_singleton 𝕜 x 1 := rfl,
-  rw this, rw continuous_linear_map.span_singleton_one,
-end
 
 /-- Given a nonzero element `x` of a normed space `E` over a field `𝕜`, the natural continuous
     linear map from the span of `x` to `𝕜`.-/
@@ -732,13 +718,6 @@ begin
   { intros y,
     have : (coord 𝕜 x h) y = (span_nonzero_singleton 𝕜 x h).symm y := rfl,
     rw this, apply homothety_inverse, exact hx, exact span_nonzero_singleton_homothety 𝕜 x h, }
-end
-
-lemma coord_self (x : E) (h : x ≠ 0) : (coord 𝕜 x h) ⟨x, submodule.mem_span_singleton_self x⟩ = 1 :=
-begin
-  rw ← (span_nonzero_singleton_one 𝕜 x h),
-  have : (coord 𝕜 x h) = (span_nonzero_singleton 𝕜 x h).symm := rfl,
-  rw this, simp,
 end
 
 end continuous_linear_equiv

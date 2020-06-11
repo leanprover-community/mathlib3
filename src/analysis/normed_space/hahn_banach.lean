@@ -51,22 +51,17 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E]
 open continuous_linear_equiv
 open_locale classical
 
-lemma coord_self' (x : E) (h : x ≠ 0) : (∥x∥ • (coord ℝ x h)) ⟨x, submodule.mem_span_singleton_self x⟩ = ∥x∥ :=
+lemma coord_self' (x : E) (h : x ≠ 0) : (∥x∥ • (coord ℝ x h))
+  ⟨x, submodule.mem_span_singleton_self x⟩ = ∥x∥ :=
 begin
   calc (∥x∥ • (coord ℝ x h)) ⟨x, submodule.mem_span_singleton_self x⟩
-      = ∥x∥ • (coord ℝ x h) ⟨x, submodule.mem_span_singleton_self x⟩ : rfl
-  ... = ∥x∥ • 1 : by rw coord_self ℝ x h
+      = ∥x∥ • (linear_equiv.coord ℝ E x h) ⟨x, submodule.mem_span_singleton_self x⟩ : rfl
+  ... = ∥x∥ • 1 : by rw linear_equiv.coord_self ℝ E x h
   ... = ∥x∥ : mul_one _,
 end
 
 lemma coord_norm' (x : E) (h : x ≠ 0) : ∥∥x∥ • coord ℝ x h∥ = 1 :=
-begin
-  have hx : ∥x∥ ≠ 0 := mt norm_eq_zero.mp h,
-  calc ∥∥x∥ • coord ℝ x h∥ = ∥x∥ * ∥coord ℝ x h∥ : _
-  ... = ∥x∥ * ∥x∥⁻¹ : _
-  ... = 1 : _,
-  rw norm_smul, simp, rw coord_norm, rw mul_inv_cancel hx,
-end
+by rw [norm_smul, norm_norm, coord_norm, mul_inv_cancel (mt norm_eq_zero.mp h)]
 
 /-- Corollary of Hahn-Banach.  Given a nonzero element `x` of a normed space, there exists an
     element of the dual space, of norm 1, whose value on `x` is `∥x∥`. -/

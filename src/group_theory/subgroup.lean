@@ -246,7 +246,7 @@ lemma gpow_mem {x : G} (hx : x ∈ K) : ∀ n : ℤ, x ^ n ∈ K
 | -[1+ n]        := K.inv_mem $ K.pow_mem hx n.succ
 
 /-- Construct a subgroup from a nonempty set that is closed under division. -/
-@[to_additive of_sub "Construct a subgroup from a nonempty set that is closed under subtraction"]
+@[to_additive "Construct a subgroup from a nonempty set that is closed under subtraction"]
 def of_div (s : set G) (hsn : s.nonempty) (hs : ∀ x y ∈ s, x * y⁻¹ ∈ s) : subgroup G :=
 have one_mem : (1 : G) ∈ s, from let ⟨x, hx⟩ := hsn in by simpa using hs x x hx hx,
 have inv_mem : ∀ x, x ∈ s → x⁻¹ ∈ s, from λ x hx, by simpa using hs 1 x one_mem hx,

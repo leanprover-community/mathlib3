@@ -209,11 +209,16 @@ section
 -/
 variables (σ R) [fintype σ] [fintype τ] [comm_semiring R] [comm_semiring S]
 
-def complete_homogeneous.support_fintype (n : ℕ) :
-  fintype {d : σ →₀ ℕ // d.sum (λ _, id) = n} :=
+noncomputable def complete_homogeneous.support_fintype (n : ℕ) :
+  fintype {d : σ →₀ ℕ // ∑ i, d i = n} :=
 set.finite.fintype $
 begin
-  sorry
+  let f : σ →₀ ℕ := finsupp.equiv_fun_on_fintype.symm (λ _, n),
+  apply set.finite_subset (finsupp.finite_le_nat f),
+  intros d hd i,
+  calc d i ≤ ∑ i, d i : finset.single_le_sum (λ _ _, nat.zero_le _) (finset.mem_univ _)
+       ... = n        : hd
+       ... = f i      : rfl
 end
 
 local attribute [instance] complete_homogeneous.support_fintype
@@ -222,19 +227,16 @@ local attribute [instance] complete_homogeneous.support_fintype
 with variables indexed by `σ` and coefficients in `R`.
 It is defined as the sum of all monomials of degree `n`. -/
 noncomputable def complete_homogeneous (n : ℕ) : mv_polynomial σ R :=
-∑ d : {d : σ →₀ ℕ // d.sum (λ _, id) = n}, monomial d 1
+∑ d : {d : σ →₀ ℕ // ∑ i, d i = n}, monomial d 1
 
 @[simp] lemma complete_homogeneous_zero :
   complete_homogeneous σ R 0 = 1 :=
 begin
-  letI : unique {d : σ →₀ ℕ // d.sum (λ _, id) = 0} :=
-  { default := ⟨0, by simp only [finsupp.sum, id.def, finsupp.zero_apply, finset.sum_const_zero]⟩,
+  letI : unique {d : σ →₀ ℕ // ∑ i, d i = 0} :=
+  { default := ⟨0, by simp only [finsupp.zero_apply, finset.sum_const_zero]⟩,
     uniq := by { rintro ⟨d, hd⟩, rw subtype.ext, ext i,
-                 rw [finsupp.sum, finset.sum_eq_zero_iff] at hd,
-                 classical,
-                 by_cases hi : i ∈ d.support,
-                 { exact hd i hi },
-                 { rwa finsupp.not_mem_support_iff at hi } } },
+                 rw [finset.sum_eq_zero_iff] at hd,
+                 exact hd _ (finset.mem_univ _) } },
   simp only [complete_homogeneous, univ_unique, finset.sum_singleton],
   refl
 end
@@ -258,12 +260,11 @@ begin
   let F : mv_polynomial σ R →+* mv_polynomial τ R := ring_hom.of (rename e),
   show F (complete_homogeneous σ R n) = complete_homogeneous τ R n,
   rw [complete_homogeneous, F.map_sum],
-  let e' : {d : σ →₀ ℕ // d.sum (λ _, id) = n} ≃ {d : τ →₀ ℕ // d.sum (λ _, id) = n} :=
+  let e' : {d : σ →₀ ℕ // ∑ i, d i = n} ≃ {d : τ →₀ ℕ // ∑ i, d i = n} :=
     e.finsupp.subtype_congr
       (by { intro d,
-            dsimp [equiv.finsupp, finsupp.sum, finsupp.support_emb_domain],
-            rw [finset.sum_map],
-            show (d.support.sum d = n) ↔ ∑ (x : σ) in d.support, (finsupp.emb_domain e.to_embedding d) (e.to_embedding x) = n,
+            rw ← finset.sum_equiv e,
+            show (∑ i, d i = n) ↔ (∑ i, (d.emb_domain e.to_embedding) (e.to_embedding i)) = n,
             simp only [finsupp.emb_domain_apply], }),
   rw ← finset.sum_equiv e'.symm,
   apply fintype.sum_congr,

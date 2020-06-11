@@ -103,10 +103,10 @@ end one
 
 section numeral
 
-@[simp] lemma bit0_val [has_add α] (M : matrix n n α) (i : n) (j : n) :
+@[simp] lemma bit0_val [has_add α] (M : matrix m m α) (i : m) (j : m) :
   (bit0 M) i j = bit0 (M i j) := rfl
 
-variables [decidable_eq n] [add_monoid α] [has_one α]
+variables [add_monoid α] [has_one α]
 
 lemma bit1_val (M : matrix n n α) (i : n) (j : n) :
   (bit1 M) i j = if i = j then bit1 (M i j) else bit0 (M i j) :=

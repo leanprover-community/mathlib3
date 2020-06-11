@@ -23,7 +23,16 @@ meta def nat.to_pexpr : ℕ → pexpr
 | 1 := ``(1)
 | n := if n % 2 = 0 then ``(bit0 %%(nat.to_pexpr (n/2))) else ``(bit1 %%(nat.to_pexpr (n/2)))
 
+
 open native
+
+meta def native.rb_set.of_list {α} [has_lt α] [decidable_rel ((<) : α → α → Prop)] : list α → rb_set α
+| [] := mk_rb_set
+| (h::t) := (native.rb_set.of_list t).insert h
+
+meta def native.rb_set.sdiff {α} (s1 s2 : rb_set α) : rb_set α :=
+s2.fold s1 $ λ v s, s.erase v
+
 namespace linarith
 
 section lemmas
@@ -182,6 +191,9 @@ def lt : linexp → linexp → bool
     end
   end
 
+def vars (l : linexp) : list ℕ :=
+l.map prod.fst
+
 end linexp
 
 -- these instances are local to this file so that they don't accidentally leak to other uses of `list (ℕ × ℤ)`.
@@ -229,9 +241,12 @@ The represented term is `coeffs.keys.sum (λ i, coeffs.find i * Var[i])`.
 str determines the direction of the comparison -- is it < 0, ≤ 0, or = 0?
 -/
 @[derive inhabited]
-meta structure comp :=
+structure comp :=
 (str : ineq)
 (coeffs : linexp)
+
+def comp.vars : comp → list ℕ :=
+linexp.vars ∘ comp.coeffs
 
 inductive comp_source
 | assump : ℕ → comp_source
@@ -251,23 +266,28 @@ def comp_source.to_string : comp_source → string
 meta instance comp_source.has_to_format : has_to_format comp_source :=
 ⟨λ a, comp_source.to_string a⟩
 
-meta structure comp_source_wh :=
-(cs : comp_source)
-(history : rb_set ℕ)
-
-meta def comp_source_wh.scale (n : ℕ)  (source : comp_source_wh) : comp_source_wh :=
+/- meta def comp_source_wh.scale (n : ℕ)  (source : comp_source_wh) : comp_source_wh :=
 { source with cs := source.cs.scale n }
 
 meta def comp_source_wh.add (c1 c2 : comp_source_wh) : comp_source_wh :=
-let c := c1.cs.add c2.cs in
-⟨c, c1.history.union (c2.history)⟩
+let c := c1.cs.add c2.cs,
+    history := c1.history.union (c2.history),
+    effective := c1.effective.union (c2.effective) in
+⟨c, history, effective, _⟩
 
 meta def comp_source_wh.assump (n : ℕ) : comp_source_wh :=
-⟨comp_source.assump n, mk_rb_set.insert n⟩
+⟨comp_source.assump n, mk_rb_set.insert n⟩ -/
 
 meta structure pcomp :=
 (c : comp)
-(src : comp_source_wh)
+(src : comp_source)
+(history : rb_set ℕ)
+(effective : rb_set ℕ)
+(implicit : rb_set ℕ)
+(vars : rb_set ℕ)
+
+meta def pcomp.is_minimal (c : pcomp) (elimed_ge : ℕ) : bool :=
+c.history.size ≤ 1 + ((c.implicit.filter ((≥ elimed_ge))).union c.effective).size
 
 meta def map_lt (m1 m2 : rb_map ℕ int) : bool :=
 list.lex (prod.lex (<) (<)) m1.to_list m2.to_list
@@ -291,10 +311,30 @@ meta def comp.add (c1 c2 : comp) : comp :=
 ⟨c1.str.max c2.str, c1.coeffs.add c2.coeffs⟩
 
 meta def pcomp.scale (c : pcomp) (n : ℕ) : pcomp :=
-⟨c.c.scale n, c.src.scale n⟩
+{c with c := c.c.scale n, src := c.src.scale n}
 
-meta def pcomp.add (c1 c2 : pcomp) : pcomp :=
-⟨c1.c.add c2.c, c1.src.add c2.src⟩
+meta def pcomp.add (c1 c2 : pcomp) (elim_var : ℕ) : pcomp :=
+let c := c1.c.add c2.c,
+    src := c1.src.add c2.src,
+    history := c1.history.union c2.history,
+    vars := native.rb_set.of_list c.vars,
+    effective_union := c1.effective.union c2.effective,
+    elim_var_present : bool := c1.vars.contains elim_var ∨ c2.vars.contains elim_var,
+    effective := if elim_var_present then effective_union.insert elim_var else effective_union,
+    implicit := (c1.vars.union c2.vars).sdiff (vars.union effective) in
+/-     old_var_union := c1.vars.union c2.vars,
+    new_implicit_elims := (old_var_union.sdiff vars).erase elim_var,
+    implicit_inter := c1.implicit.intersect c2.implicit, in -/
+⟨c, src, history, effective, implicit, vars⟩
+--⟨c1.c.add c2.c, c1.src.add c2.src⟩
+
+meta def pcomp.assump (c : comp) (n : ℕ) : pcomp :=
+{ c := c,
+  src := comp_source.assump n,
+  history := mk_rb_set.insert n,
+  effective := mk_rb_set,
+  implicit := mk_rb_set,
+  vars := native.rb_set.of_list c.vars }
 
 meta instance pcomp.to_format : has_to_format pcomp :=
 ⟨λ p, to_fmt p.c.coeffs ++ to_string p.c.str ++ "0"⟩
@@ -308,19 +348,19 @@ section fm_elim
 
 /-- If `c1` and `c2` both contain variable `a` with opposite coefficients,
 produces `v1`, `v2`, and `c` such that `a` has been cancelled in `c := v1*c1 + v2*c2`. -/
-meta def elim_var (c1 c2 : comp) (a : ℕ) : option (ℕ × ℕ × comp) :=
+meta def elim_var (c1 c2 : comp) (a : ℕ) : option (ℕ × ℕ) := -- × comp) :=
 let v1 := c1.coeff_of a,
     v2 := c2.coeff_of a in
 if v1 * v2 < 0 then
   let vlcm :=  nat.lcm v1.nat_abs v2.nat_abs,
       v1' := vlcm / v1.nat_abs,
       v2' := vlcm / v2.nat_abs in
-  some ⟨v1', v2', comp.add (c1.scale v1') (c2.scale v2')⟩
+  some ⟨v1', v2'⟩ --, comp.add (c1.scale v1') (c2.scale v2')⟩
 else none
 
 meta def pelim_var (p1 p2 : pcomp) (a : ℕ) : option pcomp :=
-do (n1, n2, c) ← elim_var p1.c p2.c a,
-   return ⟨c, (p1.src.scale n1).add (p2.src.scale n2)⟩
+do (n1, n2) ← elim_var p1.c p2.c a,
+   return $ (p1.scale n1).add (p2.scale n2) a--⟨c, (p1.src.scale n1).add (p2.src.scale n2)⟩
 
 meta def comp.is_contr (c : comp) : bool := c.coeffs.empty ∧ c.str = ineq.lt
 
@@ -330,7 +370,8 @@ meta def elim_with_set (a : ℕ) (p : pcomp) (comps : rb_set pcomp) (steps : ℕ
 if ¬ p.c.coeffs.contains a then mk_rb_set.insert p else
 comps.fold mk_rb_set $ λ pc s,
 match pelim_var p pc a with
-| some pc@⟨_, ⟨_, hist⟩⟩ := if hist.size > steps + 1 then s else s.insert pc
+| some pc := if pc.is_minimal a then s.insert pc else s
+--@⟨_, ⟨_, hist⟩⟩ := if hist.size > steps + 1 then trace_val s else s.insert pc
 | none := s
 end
 
@@ -383,7 +424,7 @@ meta def monad.elim_var (a : ℕ) : linarith_monad unit :=
 do vs ← get_vars,
    when (vs.contains a) $
 do comps ← get_comps,
-   _ ← return $ trace_val comps.size,
+   --_ ← return $ trace_val comps.size,
    step,
    steps ← get_steps,
    let cs' := comps.fold mk_rb_set (λ p s, s.union (elim_with_set a p comps steps)),
@@ -547,7 +588,7 @@ do pftps ← l.mmap infer_type,
   let prmap := rb_map.of_list $ lz.map (λ ⟨n, x⟩, (n, x.1)),
   let vars : rb_set ℕ := rb_map.set_of_list $ list.range map.size.succ,
   let pc : rb_set pcomp := rb_map.set_of_list $
-    lz.map (λ ⟨n, x⟩, ⟨x.2, comp_source_wh.assump n⟩),
+    lz.map (λ ⟨n, x⟩, pcomp.assump x.2 n),--⟨x.2, comp_source.assump n⟩),
   return ({vars := vars, comps := pc}, prmap)
 
 meta def linarith_monad.run (red : transparency) {α} (tac : linarith_monad α) (l : list expr) :
@@ -684,7 +725,7 @@ meta def prove_false_by_linarith1 (cfg : linarith_config) : list expr → tactic
      hz ← ineq_pf_tp h >>= mk_neg_one_lt_zero_pf,
      (sum.inl contr, inputs) ← elim_all_vars.run cfg.transparency (hz::l')
        | fail "linarith failed to find a contradiction",
-     let coeffs := inputs.keys.map (λ k, (contr.src.cs.flatten.ifind k)),
+     let coeffs := inputs.keys.map (λ k, (contr.src.flatten.ifind k)),
      let pfs : list expr := inputs.keys.map (λ k, (inputs.ifind k).1),
      let zip := (coeffs.zip pfs).filter (λ pr, pr.1 ≠ 0),
      let (coeffs, pfs) := zip.unzip,

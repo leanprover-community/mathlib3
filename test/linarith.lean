@@ -1,5 +1,6 @@
 import tactic.linarith
 
+set_option profiler true
 lemma test6 (u v x y A B : ℚ)
 
 (a : 0 < A)
@@ -99,8 +100,6 @@ lemma test6 (u v x y A B : ℚ)
   linarith
  end
 
-
-#exit
 example (e b c a v0 v1 : ℚ) (h1 : v0 = 5*a) (h2 : v1 = 3*b) (h3 : v0 + v1 + c = 10) :
   v0 + 5 + (v1 - 3) + (c - 2) = 10 :=
 by linarith
@@ -269,7 +268,7 @@ by linarith only [hx]
 example (x y : ℚ) (h : x < y) : x ≠ y := by linarith
 
 example (x y : ℚ) (h : x < y) : ¬ x = y := by linarith
-
+#exit
 set_option profiler true
 lemma test6 (u v x y A B : ℚ)
 

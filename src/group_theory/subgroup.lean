@@ -74,6 +74,8 @@ membership of a subgroup's underlying set.
 subgroup, subgroups
 -/
 
+open_locale big_operators
+
 variables {G : Type*} [group G]
 variables {A : Type*} [add_group A]
 
@@ -236,7 +238,7 @@ lemma multiset_prod_mem {G} [comm_group G] (K : subgroup G) (g : multiset G) :
 is in the `add_subgroup`."]
 lemma prod_mem {G : Type*} [comm_group G] (K : subgroup G)
   {ι : Type*} {t : finset ι} {f : ι → G} (h : ∀ c ∈ t, f c ∈ K) :
-  t.prod f ∈ K :=
+  ∏ c in t, f c ∈ K :=
 K.to_submonoid.prod_mem h
 
 lemma pow_mem {x : G} (hx : x ∈ K) : ∀ n : ℕ, x ^ n ∈ K := K.to_submonoid.pow_mem hx

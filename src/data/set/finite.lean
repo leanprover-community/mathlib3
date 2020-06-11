@@ -14,6 +14,7 @@ basic facts about finite sets.
 -/
 
 open set function
+open_locale big_operators
 
 universes u v w x
 variables {α : Type u} {β : Type v} {ι : Sort w} {γ : Type x}
@@ -525,11 +526,11 @@ end preimage
 @[to_additive]
 lemma prod_preimage [comm_monoid β] (f : α → γ) (s : finset γ)
   (hf : set.bij_on f (f ⁻¹' ↑s) ↑s) (g : γ → β) :
-  (preimage s hf.inj_on).prod (g ∘ f) = s.prod g :=
+  ∏ x in preimage s hf.inj_on, g (f x) = ∏ x in s, g x :=
 by classical;
 calc
-  (preimage s hf.inj_on).prod (g ∘ f)
-      = (image f (preimage s hf.inj_on)).prod g :
+  ∏ x in preimage s hf.inj_on, g (f x)
+      = ∏ x in image f (preimage s hf.inj_on), g x :
           begin
             rw prod_image,
             intros x hx y hy hxy,
@@ -538,7 +539,7 @@ calc
                           rw [set.mem_preimage, mem_coe] },
                     assumption },
           end
-  ... = s.prod g : by rw [image_preimage]
+  ... = ∏ x in s, g x : by rw [image_preimage]
 
 /-- A finset is bounded above. -/
 lemma bdd_above [semilattice_sup α] [nonempty α] (s : finset α) : bdd_above (↑s : set α) :=

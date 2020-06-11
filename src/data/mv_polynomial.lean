@@ -280,7 +280,7 @@ instance coeff.is_add_monoid_hom (m : σ →₀ ℕ) :
   map_zero := coeff_zero m }
 
 lemma coeff_sum {X : Type*} (s : finset X) (f : X → mv_polynomial σ α) (m : σ →₀ ℕ) :
-  coeff m (s.sum f) = s.sum (λ x, coeff m (f x)) :=
+  coeff m (∑ x in s, f x) = ∑ x in s, coeff m (f x) :=
 (s.sum_hom _).symm
 
 lemma monic_monomial_eq (m) : monomial m (1:α) = (m.prod $ λn e, X n ^ e : mv_polynomial σ α) :=
@@ -400,10 +400,10 @@ end coeff
 section as_sum
 
 @[simp]
-lemma support_sum_monomial_coeff (p : mv_polynomial σ α) : p.support.sum (λ v, monomial v (coeff v p)) = p :=
+lemma support_sum_monomial_coeff (p : mv_polynomial σ α) : ∑ v in p.support, monomial v (coeff v p) = p :=
 finsupp.sum_single p
 
-lemma as_sum (p : mv_polynomial σ α) : p = p.support.sum (λ v, monomial v (coeff v p)) :=
+lemma as_sum (p : mv_polynomial σ α) : p = ∑ v in p.support, monomial v (coeff v p) :=
 (support_sum_monomial_coeff p).symm
 
 end as_sum
@@ -511,11 +511,11 @@ end
 variables [is_semiring_hom f]
 
 @[simp] lemma eval₂_prod (s : finset γ) (p : γ → mv_polynomial σ α) :
-  eval₂ f g (s.prod p) = s.prod (λ x, eval₂ f g $ p x) :=
+  eval₂ f g (∏ x in s, p x) = ∏ x in s, eval₂ f g (p x) :=
 (s.prod_hom _).symm
 
 @[simp] lemma eval₂_sum (s : finset γ) (p : γ → mv_polynomial σ α) :
-  eval₂ f g (s.sum p) = s.sum (λ x, eval₂ f g $ p x) :=
+  eval₂ f g (∑ x in s, p x) = ∑ x in s, eval₂ f g (p x) :=
 (s.sum_hom _).symm
 
 attribute [to_additive] eval₂_prod
@@ -705,7 +705,7 @@ begin
 end
 
 lemma degrees_sum {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ α) :
-  (s.sum f).degrees ≤ s.sup (λi, (f i).degrees) :=
+  (∑ i in s, f i).degrees ≤ s.sup (λi, (f i).degrees) :=
 begin
   refine s.induction _ _,
   { simp only [finset.sum_empty, finset.sup_empty, degrees_zero], exact le_refl _ },
@@ -725,7 +725,7 @@ begin
 end
 
 lemma degrees_prod {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ α) :
-  (s.prod f).degrees ≤ s.sum (λi, (f i).degrees) :=
+  (∏ i in s, f i).degrees ≤ ∑ i in s, (f i).degrees :=
 begin
   refine s.induction _ _,
   { simp only [finset.prod_empty, finset.sum_empty, degrees_one] },

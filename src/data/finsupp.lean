@@ -430,7 +430,7 @@ def sum [has_zero β] [add_comm_monoid γ] (f : α →₀ β) (g : α → β →
 /-- `prod f g` is the product of `g a (f a)` over the support of `f`. -/
 @[to_additive]
 def prod [has_zero β] [comm_monoid γ] (f : α →₀ β) (g : α → β → γ) : γ :=
-f.support.prod (λa, g a (f a))
+∏ a in f.support, g a (f a)
 
 @[to_additive]
 lemma prod_map_range_index [has_zero β₁] [has_zero β₂] [comm_monoid γ]
@@ -723,18 +723,18 @@ ext $ assume a, by simp only [sum_apply, single_apply, this, sum_singleton, if_p
 lemma prod_add_index [add_comm_monoid β] [comm_monoid γ] {f g : α →₀ β}
   {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   (f + g).prod h = f.prod h * g.prod h :=
-have f_eq : (f.support ∪ g.support).prod (λa, h a (f a)) = f.prod h,
+have f_eq : ∏ a in f.support ∪ g.support, h a (f a) = f.prod h,
   from (finset.prod_subset (finset.subset_union_left _ _) $
     by intros _ _ H; rw [not_mem_support_iff.1 H, h_zero]).symm,
-have g_eq : (f.support ∪ g.support).prod (λa, h a (g a)) = g.prod h,
+have g_eq : ∏ a in f.support ∪ g.support, h a (g a) = g.prod h,
   from (finset.prod_subset (finset.subset_union_right _ _) $
     by intros _ _ H; rw [not_mem_support_iff.1 H, h_zero]).symm,
-calc (f + g).support.prod (λa, h a ((f + g) a)) =
-      (f.support ∪ g.support).prod (λa, h a ((f + g) a)) :
+calc ∏ a in (f + g).support, h a ((f + g) a) =
+      ∏ a in f.support ∪ g.support, h a ((f + g) a) :
     finset.prod_subset support_add $
       by intros _ _ H; rw [not_mem_support_iff.1 H, h_zero]
-  ... = (f.support ∪ g.support).prod (λa, h a (f a)) *
-      (f.support ∪ g.support).prod (λa, h a (g a)) :
+  ... = (∏ a in f.support ∪ g.support, h a (f a)) *
+      (∏ a in f.support ∪ g.support, h a (g a)) :
     by simp only [add_apply, h_add, finset.prod_mul_distrib]
   ... = _ : by rw [f_eq, g_eq]
 
@@ -762,7 +762,7 @@ calc (f - g).sum h = (f + - g).sum h : rfl
 lemma prod_finset_sum_index [add_comm_monoid β] [comm_monoid γ]
   {s : finset ι} {g : ι → α →₀ β}
   {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
-  s.prod (λi, (g i).prod h) = (∑ i in s, g i).prod h :=
+  ∏ i in s, (g i).prod h = (∑ i in s, g i).prod h :=
 finset.induction_on s rfl $ λ a s has ih,
 by rw [prod_insert has, ih, sum_insert has, prod_add_index h_zero h_add]
 
@@ -1249,7 +1249,7 @@ multiset.induction_on s false.elim
   end
 
 lemma mem_support_finset_sum [add_comm_monoid β]
-  {s : finset γ} {h : γ → α →₀ β} (a : α) (ha : a ∈ (s.sum h).support) : ∃c∈s, a ∈ (h c).support :=
+  {s : finset γ} {h : γ → α →₀ β} (a : α) (ha : a ∈ (∑ c in s, h c).support) : ∃c∈s, a ∈ (h c).support :=
 let ⟨f, hf, hfa⟩ := mem_support_multiset_sum a ha in
 let ⟨c, hc, eq⟩ := multiset.mem_map.1 hf in
 ⟨c, hc, eq.symm ▸ hfa⟩

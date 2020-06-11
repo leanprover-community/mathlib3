@@ -150,6 +150,14 @@ def sum_congr {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : α �
 @[simp] theorem sum_congr_apply_inr {α β γ δ}
   (e₁ : α ↪ β) (e₂ : γ ↪ δ) (b) : sum_congr e₁ e₂ (inr b) = inr (e₂ b) := rfl
 
+/-- The embedding of `α` into the sum `α ⊕ β`. -/
+def inl {α β : Type*} : α ↪ α ⊕ β :=
+⟨sum.inl, λ a b, sum.inl.inj⟩
+
+/-- The embedding of `β` into the sum `α ⊕ β`. -/
+def inr {α β : Type*} : β ↪ α ⊕ β :=
+⟨sum.inr, λ a b, sum.inr.inj⟩
+
 end sum
 
 section sigma

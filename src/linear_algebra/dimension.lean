@@ -147,6 +147,26 @@ lemma dim_span_set {s : set V} (hs : linear_independent K (λ x, x : s → V)) :
   dim K ↥(span K s) = cardinal.mk s :=
 by rw [← @set_of_mem_eq _ s, ← subtype.val_range]; exact dim_span hs
 
+lemma cardinal_le_dim_of_linear_independent
+  {ι : Type v} {v : ι → V} (hv : linear_independent K v) :
+  (cardinal.mk ι) ≤ (dim.{u v} K V) :=
+begin
+  obtain ⟨ι', v', is⟩ := exists_sum_is_basis hv,
+  simpa using le_trans
+    (cardinal.lift_mk_le.{v v v}.2 ⟨@function.embedding.inl ι ι'⟩)
+    (le_of_eq is.mk_eq_dim),
+end
+
+lemma cardinal_le_dim_of_linear_independent'
+  {s : set V} (hs : linear_independent K (λ x, x : s → V)) :
+  cardinal.mk s ≤ dim K V :=
+begin
+  -- extend s to a basis
+  obtain ⟨b, ss, h⟩ := exists_subset_is_basis hs,
+  rw [←h.mk_range_eq_dim, range_coe_subtype],
+  apply cardinal.mk_le_of_injective (inclusion_injective ss),
+end
+
 lemma dim_span_le (s : set V) : dim K (span K s) ≤ cardinal.mk s :=
 begin
   classical,

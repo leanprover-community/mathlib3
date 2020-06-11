@@ -8,7 +8,7 @@ Continuous linear functions -- functions between normed vector spaces which are 
 import analysis.normed_space.multilinear
 
 noncomputable theory
-open_locale classical filter
+open_locale classical filter big_operators
 
 open filter (tendsto)
 open metric
@@ -189,12 +189,12 @@ begin
   apply continuous_multilinear_map.op_norm_le_bound _ _ (λ m, _),
   { apply_rules [mul_nonneg, pow_nonneg, norm_nonneg, norm_nonneg] },
   calc ∥f (g ∘ m)∥ ≤
-    ∥f∥ * finset.univ.prod (λ (i : ι), ∥g (m i)∥) : f.le_op_norm _
-    ... ≤ ∥f∥ * finset.univ.prod (λ (i : ι), ∥g∥ * ∥m i∥) : begin
+    ∥f∥ * ∏ i, ∥g (m i)∥ : f.le_op_norm _
+    ... ≤ ∥f∥ * ∏ i, (∥g∥ * ∥m i∥) : begin
       apply mul_le_mul_of_nonneg_left _ (norm_nonneg _),
       exact finset.prod_le_prod (λ i hi, norm_nonneg _) (λ i hi, g.le_op_norm _)
     end
-    ... = ∥g∥ ^ fintype.card ι * ∥f∥ * finset.univ.prod (λ (i : ι), ∥m i∥) :
+    ... = ∥g∥ ^ fintype.card ι * ∥f∥ * ∏ i, ∥m i∥ :
       by { simp [finset.prod_mul_distrib, finset.card_univ], ring }
 end
 
@@ -343,9 +343,9 @@ lemma is_bounded_bilinear_map_comp_multilinear {ι : Type*} {E : ι → Type*}
     apply continuous_multilinear_map.op_norm_le_bound _ _ (λm, _),
     { apply_rules [mul_nonneg, zero_le_one, norm_nonneg, norm_nonneg] },
     calc ∥g (f m)∥ ≤ ∥g∥ * ∥f m∥ : g.le_op_norm _
-    ... ≤ ∥g∥ * (∥f∥ * finset.univ.prod (λ (i : ι), ∥m i∥)) :
+    ... ≤ ∥g∥ * (∥f∥ * ∏ i, ∥m i∥) :
       mul_le_mul_of_nonneg_left (f.le_op_norm _) (norm_nonneg _)
-    ... = 1 * ∥g∥ * ∥f∥ * finset.univ.prod (λ (i : ι), ∥m i∥) : by ring
+    ... = 1 * ∥g∥ * ∥f∥ * ∏ i, ∥m i∥ : by ring
     end⟩ }
 
 /-- Definition of the derivative of a bilinear map `f`, given at a point `p` by

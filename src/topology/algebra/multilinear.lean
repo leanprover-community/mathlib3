@@ -231,13 +231,13 @@ variables [comm_ring R]
 (f : continuous_multilinear_map R M₁ M₂)
 
 lemma map_piecewise_smul (c : ι → R) (m : Πi, M₁ i) (s : finset ι) :
-  f (s.piecewise (λ i, c i • m i) m) = s.prod c • f m :=
+  f (s.piecewise (λ i, c i • m i) m) = (∏ i in s, c i) • f m :=
 f.to_multilinear_map.map_piecewise_smul _ _ _
 
 /-- Multiplicativity of a continuous multilinear map along all coordinates at the same time,
-writing `f (λ i, c i • m i)` as `univ.prod c • f m`. -/
+writing `f (λ i, c i • m i)` as `(∏ i, c i) • f m`. -/
 lemma map_smul_univ [fintype ι] (c : ι → R) (m : Πi, M₁ i) :
-  f (λ i, c i • m i) = finset.univ.prod c • f m :=
+  f (λ i, c i • m i) = (∏ i, c i) • f m :=
 f.to_multilinear_map.map_smul_univ _ _
 
 variables [topological_space R] [topological_semimodule R M₂]

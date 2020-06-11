@@ -21,7 +21,7 @@ coordinate. Here, `M₁ i` and `M₂` are modules over a ring `R`, and `ι` is a
 * `f.map_smul` is the multiplicativity of the multilinear map `f` along each coordinate.
 * `f.map_add` is the additivity of the multilinear map `f` along each coordinate.
 * `f.map_smul_univ` expresses the multiplicativity of `f` over all coordinates at the same time,
-  writing `f (λi, c i • m i)` as `univ.prod c • f m`.
+  writing `f (λi, c i • m i)` as `(∏ i, c i) • f m`.
 * `f.map_add_univ` expresses the additivity of `f` over all coordinates at the same time, writing
   `f (m + m')` as the sum over all subsets `s` of `ι` of `f (s.piecewise m m')`.
 * `f.map_sum` expresses `f (Σ_{j₁} g₁ j₁, ..., Σ_{jₙ} gₙ jₙ)` as the sum of
@@ -410,11 +410,11 @@ variables [comm_semiring R] [∀i, add_comm_monoid (M₁ i)] [∀i, add_comm_mon
 (f f' : multilinear_map R M₁ M₂)
 
 /-- If one multiplies by `c i` the coordinates in a finset `s`, then the image under a multilinear
-map is multiplied by `s.prod c`. This is mainly an auxiliary statement to prove the result when
+map is multiplied by `∏ i in s, c i`. This is mainly an auxiliary statement to prove the result when
 `s = univ`, given in `map_smul_univ`, although it can be useful in its own right as it does not
 require the index set `ι` to be finite. -/
 lemma map_piecewise_smul (c : ι → R) (m : Πi, M₁ i) (s : finset ι) :
-  f (s.piecewise (λi, c i • m i) m) = s.prod c • f m :=
+  f (s.piecewise (λi, c i • m i) m) = (∏ i in s, c i) • f m :=
 begin
   refine s.induction_on (by simp) _,
   assume j s j_not_mem_s Hrec,
@@ -429,9 +429,9 @@ begin
 end
 
 /-- Multiplicativity of a multilinear map along all coordinates at the same time,
-writing `f (λi, c i • m i)` as `univ.prod c • f m`. -/
+writing `f (λi, c i • m i)` as `(∏ i, c i) • f m`. -/
 lemma map_smul_univ [fintype ι] (c : ι → R) (m : Πi, M₁ i) :
-  f (λi, c i • m i) = finset.univ.prod c • f m :=
+  f (λi, c i • m i) = (∏ i, c i) • f m :=
 by simpa using map_piecewise_smul f c m finset.univ
 
 instance : has_scalar R (multilinear_map R M₁ M₂) := ⟨λ c f,
@@ -444,7 +444,7 @@ variables (R ι)
 /-- The canonical multilinear map on `R^ι` when `ι` is finite, associating to `m` the product of
 all the `m i` (multiplied by a fixed reference element `z` in the target module) -/
 protected def mk_pi_ring [fintype ι] (z : M₂) : multilinear_map R (λ(i : ι), R) M₂ :=
-{ to_fun    := λm, finset.univ.prod m • z,
+{ to_fun := λm, (∏ i, m i) • z,
   map_add'  := λ m i x y, by simp [finset.prod_update_of_mem, add_mul, add_smul],
   map_smul' := λ m i c x, by { rw [smul_eq_mul],
     simp [finset.prod_update_of_mem, smul_smul, mul_assoc] } }
@@ -452,7 +452,7 @@ protected def mk_pi_ring [fintype ι] (z : M₂) : multilinear_map R (λ(i : ι)
 variables {R ι}
 
 @[simp] lemma mk_pi_ring_apply [fintype ι] (z : M₂) (m : ι → R) :
-  (multilinear_map.mk_pi_ring R ι z : (ι → R) → M₂) m = finset.univ.prod m • z := rfl
+  (multilinear_map.mk_pi_ring R ι z : (ι → R) → M₂) m = (∏ i, m i) • z := rfl
 
 lemma mk_pi_ring_apply_one_eq_self [fintype ι]  (f : multilinear_map R (λ(i : ι), R) M₂) :
   multilinear_map.mk_pi_ring R ι (f (λi, 1)) = f :=

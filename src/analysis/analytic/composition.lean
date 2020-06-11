@@ -382,15 +382,13 @@ begin
   { rintros ⟨n, c⟩,
     rw [← ennreal.coe_pow, ← ennreal.coe_mul, ennreal.coe_le_coe],
     calc nnnorm (q.comp_along_composition p c) * r ^ n
-    ≤ (nnnorm (q c.length) *
-        (finset.univ : finset (fin (c.length))).prod (λ i, nnnorm (p (c.blocks_fun i)))) * r ^ n :
+    ≤ (nnnorm (q c.length) * ∏ i, nnnorm (p (c.blocks_fun i))) * r ^ n :
       mul_le_mul_of_nonneg_right (q.comp_along_composition_nnnorm p c) (bot_le)
     ... = (nnnorm (q c.length) * (min rq 1)^n) *
-      ((finset.univ : finset (fin (c.length))).prod (λ i, nnnorm (p (c.blocks_fun i))) * (min rp 1) ^ n)
-      * r0 ^ n : by { dsimp [r], ring_exp }
+      ((∏ i, nnnorm (p (c.blocks_fun i))) * (min rp 1) ^ n) *
+      r0 ^ n : by { dsimp [r], ring_exp }
     ... ≤ (nnnorm (q c.length) * (min rq 1) ^ c.length) *
-      ((finset.univ : finset (fin c.length)).prod
-        (λ i, nnnorm (p (c.blocks_fun i)) * (min rp 1) ^ (c.blocks_fun i))) * r0 ^ n :
+      (∏ i, nnnorm (p (c.blocks_fun i)) * (min rp 1) ^ (c.blocks_fun i)) * r0 ^ n :
       begin
         apply_rules [mul_le_mul, bot_le, le_refl, pow_le_pow_of_le_one, min_le_right, c.length_le],
         apply le_of_eq,
@@ -398,7 +396,7 @@ begin
         congr' 1,
         conv_lhs { rw [← c.sum_blocks_fun, ← finset.prod_pow_eq_pow_sum] },
       end
-    ... ≤ Cq * ((finset.univ : finset (fin c.length)).prod (λ i, Cp)) * r0 ^ n :
+    ... ≤ Cq * (∏ i : fin c.length, Cp) * r0 ^ n :
       begin
         apply_rules [mul_le_mul, bot_le, le_trans _ (hCq c.length), le_refl, finset.prod_le_prod'],
         { assume i hi,

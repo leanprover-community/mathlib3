@@ -74,6 +74,8 @@ membership of a subgroup's underlying set.
 subgroup, subgroups
 -/
 
+open_locale big_operators
+
 variables {G : Type*} [group G]
 variables {A : Type*} [add_group A]
 
@@ -236,7 +238,7 @@ lemma multiset_prod_mem {G} [comm_group G] (K : subgroup G) (g : multiset G) :
 is in the `add_subgroup`."]
 lemma prod_mem {G : Type*} [comm_group G] (K : subgroup G)
   {ι : Type*} {t : finset ι} {f : ι → G} (h : ∀ c ∈ t, f c ∈ K) :
-  t.prod f ∈ K :=
+  ∏ c in t, f c ∈ K :=
 K.to_submonoid.prod_mem h
 
 lemma pow_mem {x : G} (hx : x ∈ K) : ∀ n : ℕ, x ^ n ∈ K := K.to_submonoid.pow_mem hx
@@ -246,7 +248,7 @@ lemma gpow_mem {x : G} (hx : x ∈ K) : ∀ n : ℤ, x ^ n ∈ K
 | -[1+ n]        := K.inv_mem $ K.pow_mem hx n.succ
 
 /-- Construct a subgroup from a nonempty set that is closed under division. -/
-@[to_additive of_sub "Construct a subgroup from a nonempty set that is closed under subtraction"]
+@[to_additive "Construct a subgroup from a nonempty set that is closed under subtraction"]
 def of_div (s : set G) (hsn : s.nonempty) (hs : ∀ x y ∈ s, x * y⁻¹ ∈ s) : subgroup G :=
 have one_mem : (1 : G) ∈ s, from let ⟨x, hx⟩ := hsn in by simpa using hs x x hx hx,
 have inv_mem : ∀ x, x ∈ s → x⁻¹ ∈ s, from λ x hx, by simpa using hs 1 x one_mem hx,

@@ -101,8 +101,6 @@ diagonal_val_ne'
 
 end one
 
-end diagonal
-
 section numeral
 
 @[simp] lemma bit0_val [has_add α] (M : matrix n n α) (i : n) (j : n) :
@@ -125,6 +123,8 @@ lemma bit1_val_ne (M : matrix n n α) {i j : n} (h : i ≠ j) :
 by simp [bit1_val, h]
 
 end numeral
+
+end diagonal
 
 @[simp] theorem diagonal_add [decidable_eq n] [add_monoid α] (d₁ d₂ : n → α) :
   diagonal d₁ + diagonal d₂ = diagonal (λ i, d₁ i + d₂ i) :=

@@ -53,7 +53,7 @@ linear_map.mk_continuous
     add    := λ x y, by { ext, simp },
     smul   := λ (c : 𝕜) x, by { ext, simp } }
   1
-  (λ x, by { simp, apply double_dual_bound } )
+  (λ x, by { convert double_dual_bound _ _ _, simp } )
 
 end general
 

@@ -9,6 +9,8 @@ import group_theory.coset
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
+open_locale big_operators
+
 /-- Typeclass for types with a scalar multiplication operation, denoted `•` (`\bu`) -/
 class has_scalar (α : Type u) (γ : Type v) := (smul : α → γ → γ)
 
@@ -202,7 +204,7 @@ open quotient_group
 /-- Orbit-stabilizer theorem. -/
 noncomputable def orbit_equiv_quotient_stabilizer (b : β) :
   orbit α b ≃ quotient (stabilizer α b) :=
-equiv.symm (@equiv.of_bijective _ _
+equiv.symm (equiv.of_bijective
   (λ x : quotient (stabilizer α b), quotient.lift_on' x
     (λ x, (⟨x • b, mem_orbit _ _⟩ : orbit α b))
     (λ g h (H : _ = _), subtype.eq $ (mul_action.bijective (g⁻¹)).1
@@ -297,7 +299,7 @@ lemma multiset.smul_sum {r : α} {s : multiset β} :
 (const_smul_hom β r).map_multiset_sum s
 
 lemma finset.smul_sum {r : α} {f : γ → β} {s : finset γ} :
-  r • s.sum f = s.sum (λ x, r • f x) :=
+  r • ∑ x in s, f x = ∑ x in s, r • f x :=
 (const_smul_hom β r).map_sum f s
 
 end

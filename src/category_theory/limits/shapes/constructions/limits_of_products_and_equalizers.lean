@@ -82,8 +82,7 @@ local attribute [semireducible] op unop opposite
   begin
     refine (fork.of_ι _ _).π,
     { exact pi.lift c.app },
-    { ext f,
-      rcases f with ⟨⟨A,B⟩,f⟩,
+    { ext ⟨⟨A,B⟩,f⟩,
       dsimp,
       simp only [limit.lift_π, limit.lift_π_assoc, fan.mk_π_app, category.assoc],
       rw ←(c.naturality f),

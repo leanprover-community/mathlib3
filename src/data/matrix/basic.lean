@@ -291,14 +291,14 @@ lemma is_add_monoid_hom_mul_right (M : matrix m n α) :
 { to_is_add_hom := ⟨λ _ _, matrix.add_mul _ _ _⟩, map_zero := matrix.zero_mul _ }
 
 protected lemma sum_mul {β : Type*} (s : finset β) (f : β → matrix l m α)
-  (M : matrix m n α) : s.sum f ⬝ M = s.sum (λ a, f a ⬝ M) :=
+  (M : matrix m n α) : (∑ a in s, f a) ⬝ M = ∑ a in s, f a ⬝ M :=
 (@finset.sum_hom _ _ _ _ _ s f (λ x, x ⬝ M)
 /- This line does not type-check without `id` and `: _`. Lean did not recognize that two different
   `add_monoid` instances were def-eq -/
   (id (@is_add_monoid_hom_mul_right l _ _ _ _ _ _ _ M) : _)).symm
 
 protected lemma mul_sum {β : Type*} (s : finset β) (f : β → matrix m n α)
-  (M : matrix l m α) :  M ⬝ s.sum f = s.sum (λ a, M ⬝ f a) :=
+  (M : matrix l m α) :  M ⬝ ∑ a in s, f a = ∑ a in s, M ⬝ f a :=
 (@finset.sum_hom _ _ _ _ _ s f (λ x, M ⬝ x)
 /- This line does not type-check without `id` and `: _`. Lean did not recognize that two different
   `add_monoid` instances were def-eq -/

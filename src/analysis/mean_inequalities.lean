@@ -37,12 +37,12 @@ variables {ι : Type u} (s : finset ι)
 /-- Geometric mean is less than or equal to the arithmetic mean, weighted version
 for functions on `finset`s. -/
 theorem real.am_gm_weighted (w z : ι → ℝ)
-  (hw : ∀ i ∈ s, 0 ≤ w i) (hw' : s.sum w = 1) (hz : ∀ i ∈ s, 0 ≤ z i) :
-  (∏ i in s, (z i) ^ (w i)) ≤ s.sum (λ i, w i * z i) :=
+  (hw : ∀ i ∈ s, 0 ≤ w i) (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) :
+  (∏ i in s, (z i) ^ (w i)) ≤ ∑ i in s, w i * z i :=
 begin
   let s' := s.filter (λ i, w i ≠ 0),
   rw [← sum_filter_ne_zero] at hw',
-  suffices : (∏ i in s', (z i) ^ (w i)) ≤ s'.sum (λ i, w i * z i),
+  suffices : (∏ i in s', (z i) ^ (w i)) ≤ ∑ i in s', w i * z i,
   { have A : ∀ i ∈ s, i ∉ s' → w i = 0,
     { intros i hi hi',
       simpa only [hi, mem_filter, ne.def, true_and, not_not] using hi' },
@@ -68,8 +68,8 @@ begin
     { exact sum_congr rfl (λ i hi, congr_arg _ (exp_log $ hz i hi).symm) } }
 end
 
-theorem nnreal.am_gm_weighted (w z : ι → ℝ≥0) (hw' : s.sum w = 1) :
-  (∏ i in s, (z i) ^ (w i:ℝ)) ≤ s.sum (λ i, w i * z i) :=
+theorem nnreal.am_gm_weighted (w z : ι → ℝ≥0) (hw' : ∑ i in s, w i = 1) :
+  (∏ i in s, (z i) ^ (w i:ℝ)) ≤ ∑ i in s, w i * z i :=
 begin
   rw [← nnreal.coe_le_coe, nnreal.coe_prod, nnreal.coe_sum],
   refine real.am_gm_weighted _ _ _ (λ i _, (w i).coe_nonneg) _ (λ i _, (z i).coe_nonneg),
@@ -125,12 +125,12 @@ theorem real.young_inequality {a b : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b)
   ⟨q, le_trans zero_le_one (le_of_lt hq)⟩ hp hq (nnreal.coe_eq.1 hpq)
 
 theorem real.pow_am_le_am_pow (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
-  (hw' : s.sum w = 1) (hz : ∀ i ∈ s, 0 ≤ z i) (n : ℕ) :
-  (s.sum (λ i, w i * z i)) ^ n ≤ s.sum (λ i, w i * z i ^ n) :=
+  (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) (n : ℕ) :
+  (∑ i in s, w i * z i) ^ n ≤ ∑ i in s, (w i * z i ^ n) :=
 (convex_on_pow n).map_sum_le hw hw' hz
 
-theorem nnreal.pow_am_le_am_pow (w z : ι → ℝ≥0) (hw' : s.sum w = 1) (n : ℕ) :
-  (s.sum (λ i, w i * z i)) ^ n ≤ s.sum (λ i, w i * z i ^ n) :=
+theorem nnreal.pow_am_le_am_pow (w z : ι → ℝ≥0) (hw' : ∑ i in s, w i = 1) (n : ℕ) :
+  (∑ i in s, w i * z i) ^ n ≤ ∑ i in s, (w i * z i ^ n) :=
 begin
   rw [← nnreal.coe_le_coe],
   push_cast,
@@ -139,11 +139,11 @@ begin
 end
 
 theorem real.pow_am_le_am_pow_of_even (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
-  (hw' : s.sum w = 1) {n : ℕ} (hn : n.even) :
-  (s.sum (λ i, w i * z i)) ^ n ≤ s.sum (λ i, w i * z i ^ n) :=
+  (hw' : ∑ i in s, w i = 1) {n : ℕ} (hn : n.even) :
+  (∑ i in s, w i * z i) ^ n ≤ ∑ i in s, (w i * z i ^ n) :=
 (convex_on_pow_of_even hn).map_sum_le hw hw' (λ _ _, trivial)
 
 theorem real.fpow_am_le_am_fpow (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
-  (hw' : s.sum w = 1) (hz : ∀ i ∈ s, 0 < z i) (m : ℤ) :
-  (s.sum (λ i, w i * z i)) ^ m ≤ s.sum (λ i, w i * z i ^ m) :=
+  (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 < z i) (m : ℤ) :
+  (∑ i in s, w i * z i) ^ m ≤ ∑ i in s, (w i * z i ^ m) :=
 (convex_on_fpow m).map_sum_le hw hw' hz

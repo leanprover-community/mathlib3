@@ -360,7 +360,7 @@ begin
   refine quot.induction_on (succ (quot.mk setoid.r α)) (λ β h, _),
   cases h.left with f,
   have : ¬ surjective f := λ hn,
-    ne_of_lt h (quotient.sound ⟨equiv.of_bijective ⟨f.inj, hn⟩⟩),
+    ne_of_lt h (quotient.sound ⟨equiv.of_bijective f ⟨f.inj, hn⟩⟩),
   cases classical.not_forall.1 this with b nex,
   refine ⟨⟨sum.rec (by exact f) _, _⟩⟩,
   { exact λ _, b },
@@ -912,11 +912,13 @@ by rw [fintype_card, nat_cast_inj, fintype.card_coe]
 lemma finset_card_lt_omega (s : finset α) : mk (↑s : set α) < omega :=
 by { rw [lt_omega_iff_fintype], exact ⟨finset.subtype.fintype s⟩ }
 
-theorem mk_union_add_mk_inter {α : Type u} {S T : set α} : mk (S ∪ T : set α) + mk (S ∩ T : set α) = mk S + mk T :=
+theorem mk_union_add_mk_inter {α : Type u} {S T : set α} :
+  mk (S ∪ T : set α) + mk (S ∩ T : set α) = mk S + mk T :=
 quot.sound ⟨equiv.set.union_sum_inter S T⟩
 
-theorem mk_union_of_disjoint {α : Type u} {S T : set α} (H : disjoint S T) : mk (S ∪ T : set α) = mk S + mk T :=
-quot.sound ⟨equiv.set.union (disjoint_iff.1 H)⟩
+theorem mk_union_of_disjoint {α : Type u} {S T : set α} (H : disjoint S T) :
+  mk (S ∪ T : set α) = mk S + mk T :=
+quot.sound ⟨equiv.set.union H⟩
 
 lemma mk_sum_compl {α} (s : set α) : #s + #(-s : set α) = #α :=
 quotient.sound ⟨equiv.set.sum_compl s⟩
@@ -942,9 +944,9 @@ lemma mk_image_eq_of_inj_on {α β : Type u} (f : α → β) (s : set α) (h : i
   mk (f '' s) = mk s :=
 quotient.sound ⟨(equiv.set.image_of_inj_on f s h).symm⟩
 
-lemma mk_subtype_of_equiv {α β : Type u} (p : α → Prop) (e : α ≃ β) :
-  mk {a : α // p a} = mk {b : β // p (e.symm b)} :=
-quotient.sound ⟨equiv.subtype_equiv_of_subtype' e⟩
+lemma mk_subtype_of_equiv {α β : Type u} (p : β → Prop) (e : α ≃ β) :
+  mk {a : α // p (e a)} = mk {b : β // p b} :=
+quotient.sound ⟨equiv.subtype_equiv_of_subtype e⟩
 
 lemma mk_sep (s : set α) (t : α → Prop) : mk ({ x ∈ s | t x } : set α) = mk { x : s | t x.1 } :=
 quotient.sound ⟨equiv.set.sep s t⟩

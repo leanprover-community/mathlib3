@@ -95,6 +95,7 @@ noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
 open set function finsupp add_monoid_algebra
+open_locale big_operators
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
@@ -326,7 +327,7 @@ begin
 end
 
 lemma coeff_mul (p q : mv_polynomial σ α) (n : σ →₀ ℕ) :
-  coeff n (p * q) = finset.sum (antidiagonal n).support (λ x, coeff x.1 p * coeff x.2 q) :=
+  coeff n (p * q) = ∑ x in (antidiagonal n).support, coeff x.1 p * coeff x.2 q :=
 begin
   rw mul_def,
   have := @finset.sum_sigma (σ →₀ ℕ) α _ _ p.support (λ _, q.support)
@@ -877,7 +878,7 @@ end
 
 lemma total_degree_finset_prod {ι : Type*}
   (s : finset ι) (f : ι → mv_polynomial σ α) :
-  (s.prod f).total_degree ≤ s.sum (λi, (f i).total_degree) :=
+  (s.prod f).total_degree ≤ ∑ i in s, (f i).total_degree :=
 begin
   refine le_trans (total_degree_multiset_prod _) _,
   rw [multiset.map_map],

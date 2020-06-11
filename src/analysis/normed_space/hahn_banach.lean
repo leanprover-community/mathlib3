@@ -82,7 +82,8 @@ theorem exists_dual_vector' (h : vector_space.dim ℝ E > 0) (x : E) : ∃ g : E
 begin
   by_cases hx : x = 0,
   { cases exists_mem_ne_zero_of_dim_pos' h with y hy,
-    cases exists_dual_vector y hy with g hg, use g, refine ⟨hg.left, _⟩, simp [hx] },
+    cases exists_dual_vector y hy with g hg,
+    use g, refine ⟨hg.left, _⟩, simp [hx] },
   { exact exists_dual_vector x hx }
 end
 

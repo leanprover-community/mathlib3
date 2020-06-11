@@ -1052,8 +1052,8 @@ variables (R) (M)
 def span_singleton (x : M) : R →ₗ[R] M := linear_map.id.smul_right x
 
 /-- The range of `span_singleton x` is the span of `x`.-/
-lemma span_singleton_eq_range (x : M) : (span_singleton R M x).range = span R {x} :=
-submodule.ext $ λ y, iff.trans mem_range mem_span_singleton.symm
+lemma span_singleton_eq_range (x : M) : span R {x} = (span_singleton R M x).range :=
+submodule.ext $ λ y, by {refine iff.trans _ mem_range.symm, exact mem_span_singleton }
 
 lemma span_singleton_one (x : M) : span_singleton R M x 1 = x := one_smul _ _
 
@@ -1862,7 +1862,7 @@ linear_equiv.trans
         tauto },
       { rw [mem_ker, submodule.mem_bot], intros h, rw h, simp }
     end )
-  (of_eq (span_singleton K M x).range (submodule.span K {x}) (span_singleton_eq_range K M x))
+  (of_eq (span_singleton K M x).range (submodule.span K {x}) (span_singleton_eq_range K M x).symm)
 
 lemma span_nonzero_singleton_one (x : M) (h : x ≠ 0) : span_nonzero_singleton K M x h 1
   = (⟨x, submodule.mem_span_singleton_self x⟩ : submodule.span K ({x} : set M)) :=

@@ -1805,7 +1805,6 @@ apply_nolint submodule.annihilator doc_blame
 apply_nolint submodule.colon doc_blame
 
 -- ring_theory/ideals.lean
-apply_nolint ideal.is_coprime doc_blame
 apply_nolint ideal.is_maximal doc_blame
 apply_nolint ideal.is_prime doc_blame
 apply_nolint ideal.quotient doc_blame has_inhabited_instance

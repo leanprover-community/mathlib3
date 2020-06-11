@@ -260,7 +260,7 @@ meta def comp_source_wh.scale (n : ℕ)  (source : comp_source_wh) : comp_source
 
 meta def comp_source_wh.add (c1 c2 : comp_source_wh) : comp_source_wh :=
 let c := c1.cs.add c2.cs in
-⟨c, c.flatten.map (λ _, ())⟩
+⟨c, c1.history.union (c2.history)⟩
 
 meta def comp_source_wh.assump (n : ℕ) : comp_source_wh :=
 ⟨comp_source.assump n, mk_rb_set.insert n⟩
@@ -326,11 +326,11 @@ meta def comp.is_contr (c : comp) : bool := c.coeffs.empty ∧ c.str = ineq.lt
 
 meta def pcomp.is_contr (p : pcomp) : bool := p.c.is_contr
 
-meta def elim_with_set (a : ℕ) (p : pcomp) (comps : rb_set pcomp) : rb_set pcomp :=
+meta def elim_with_set (a : ℕ) (p : pcomp) (comps : rb_set pcomp) (steps : ℕ) : rb_set pcomp :=
 if ¬ p.c.coeffs.contains a then mk_rb_set.insert p else
 comps.fold mk_rb_set $ λ pc s,
 match pelim_var p pc a with
-| some pc := s.insert pc
+| some pc@⟨_, ⟨_, hist⟩⟩ := if hist.size > steps + 1 then s else s.insert pc
 | none := s
 end
 
@@ -347,6 +347,7 @@ TODO: is it more efficient to store comps as a list, to avoid comparisons?
 meta structure linarith_structure :=
 (vars : rb_set ℕ)
 (comps : rb_set pcomp)
+(steps : ℕ := 0)
 
 @[reducible, derive [monad, monad_except pcomp]] meta def linarith_monad :=
 state_t linarith_structure (except_t pcomp id)
@@ -360,21 +361,31 @@ rb_set.to_list <$> get_vars
 meta def get_comps : linarith_monad (rb_set pcomp) :=
 linarith_structure.comps <$> get
 
+meta def get_steps : linarith_monad ℕ :=
+linarith_structure.steps <$> get
+
+meta def step : linarith_monad unit :=
+do ls ← get,
+   put { ls with steps := ls.steps + 1 }
+
 meta def validate : linarith_monad unit :=
-do ⟨_, comps⟩ ← get,
+do ⟨_, comps, _⟩ ← get,
 match comps.to_list.find (λ p : pcomp, p.is_contr) with
 | none := return ()
 | some c := throw c
 end
 
 meta def update (vars : rb_set ℕ) (comps : rb_set pcomp) : linarith_monad unit :=
-state_t.put ⟨vars, comps⟩ >> validate
+do s ← get_steps,
+state_t.put ⟨vars, comps, s⟩ >> validate
 
 meta def monad.elim_var (a : ℕ) : linarith_monad unit :=
 do vs ← get_vars,
    when (vs.contains a) $
 do comps ← get_comps,
-   let cs' := comps.fold mk_rb_set (λ p s, s.union (elim_with_set a p comps)),
+   step,
+   steps ← get_steps,
+   let cs' := comps.fold mk_rb_set (λ p s, s.union (elim_with_set a p comps steps)),
    update (vs.erase a) cs'
 
 meta def elim_all_vars : linarith_monad unit :=
@@ -536,7 +547,7 @@ do pftps ← l.mmap infer_type,
   let vars : rb_set ℕ := rb_map.set_of_list $ list.range map.size.succ,
   let pc : rb_set pcomp := rb_map.set_of_list $
     lz.map (λ ⟨n, x⟩, ⟨x.2, comp_source_wh.assump n⟩),
-  return (⟨vars, pc⟩, prmap)
+  return ({vars := vars, comps := pc}, prmap)
 
 meta def linarith_monad.run (red : transparency) {α} (tac : linarith_monad α) (l : list expr) :
   tactic ((pcomp ⊕ α) × rb_map ℕ (expr × expr)) :=

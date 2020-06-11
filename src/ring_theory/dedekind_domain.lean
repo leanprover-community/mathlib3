@@ -85,4 +85,27 @@ map_equiv _ (canonical_equiv g g') (λ I,
       hy' ▸ ⟨g'.map g inj_id y, fractional_ideal.ext_iff.mp
         (λ y', (canonical_equiv_span_singleton g' g y).symm ▸ iff.rfl)⟩⟩)
 
+open submodule submodule.is_principal
+
+#check span_singleton_generator
+
+def principal_ideal_domain.picard_group_trivial {R} [principal_ideal_domain R] :
+  picard_group R ≃* unit :=
+show quotient_group.quotient (to_principal_ideal (of R)).range ≃* unit,
+from have (to_principal_ideal (of R)).range = ⊤ :=
+  subgroup.ext (λ I, ⟨
+    λ h, ⟨⟩,
+    λ h, ⟨ units.mk0
+        (generator (I.1 : submodule R (of R).codomain))
+        ((invertible_iff_generator_nonzero ↑I).mp (mul_inv_cancel_iff.mpr ⟨I.2, I.3⟩)),
+      units.ext (fractional_ideal.ext (span_singleton_generator I.1.1)) ⟩⟩),
+by { convert @quotient_group.quotient_top (units (fractional_ideal (of R))) _; assumption }
+
+/-- Condition (DD3) of being a Dedekind domain: all nonzero fractional ideals are invertible. -/
+def DD3 (R) [integral_domain R] : Prop :=
+∀ {I : fractional_ideal (of R)}, I ≠ 0 → I * I⁻¹ = 1
+
+lemma DD3_of_principal_ideal_domain {R} [principal_ideal_domain R] : DD3 R :=
+λ I hI, fractional_ideal.invertible_of_principal I hI
+
 end ring

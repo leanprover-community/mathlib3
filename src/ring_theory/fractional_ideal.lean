@@ -613,8 +613,12 @@ def span_singleton (x : f.codomain) : fractional_ideal f :=
   x ∈ span_singleton y ↔ ∃ (z : R), z • y = x :=
 submodule.mem_span_singleton
 
-lemma eq_span_singleton_of_principal (I : fractional_ideal f) [is_principal I.1] :
-  I = span_singleton (generator I.1) :=
+lemma mem_span_singleton_self (x : f.codomain) :
+  x ∈ span_singleton x :=
+mem_span_singleton.mpr ⟨1, one_smul _ _⟩
+
+lemma eq_span_singleton_of_principal (I : fractional_ideal f) [is_principal (I : submodule R f.codomain)] :
+  I = span_singleton (generator (I : submodule R f.codomain)) :=
 ext (span_singleton_generator I.1).symm
 
 lemma is_principal_iff (I : fractional_ideal f) :
@@ -704,8 +708,8 @@ begin
 end
 
 lemma mul_generator_self_inv (I : fractional_ideal g)
-  [submodule.is_principal I.1] (h : I ≠ 0) :
-  I * span_singleton (generator I.1)⁻¹ = 1 :=
+  [submodule.is_principal (I : submodule R₁ g.codomain)] (h : I ≠ 0) :
+  I * span_singleton (generator (I : submodule R₁ g.codomain))⁻¹ = 1 :=
 begin
   -- Rewrite only the `I` that appears alone.
   conv_lhs { congr, rw eq_span_singleton_of_principal I },
@@ -721,11 +725,30 @@ lemma span_singleton_inv {x : g.codomain} (h : x ≠ 0) :
 (right_inverse_eq _ _ (by simp [h])).symm
 
 lemma invertible_of_principal (I : fractional_ideal g)
-  [submodule.is_principal I.1] (h : I ≠ 0) :
+  [submodule.is_principal (I : submodule R₁ g.codomain)] (h : I ≠ 0) :
   I * I⁻¹ = 1 :=
-mul_inv_cancel_iff.mpr ⟨span_singleton (generator ↑I)⁻¹, mul_generator_self_inv I h⟩
+mul_inv_cancel_iff.mpr ⟨span_singleton (generator (I : submodule R₁ g.codomain))⁻¹, mul_generator_self_inv I h⟩
 
-lemma inv_principal (I : fractional_ideal g) [submodule.is_principal I.1] (h : I ≠ 0) :
+lemma invertible_iff_generator_nonzero (I : fractional_ideal g)
+  [submodule.is_principal (I : submodule R₁ g.codomain)] :
+  I * I⁻¹ = 1 ↔ generator (I : submodule R₁ g.codomain) ≠ 0 :=
+begin
+  split,
+  { intros hI hg,
+    apply @zero_ne_one (fractional_ideal g),
+    convert hI,
+    rw [eq_span_singleton_of_principal I, hg, span_singleton_zero, semiring.zero_mul],
+    refl },
+  { intro hg,
+    apply invertible_of_principal,
+    rw [eq_span_singleton_of_principal I],
+    intro hI,
+    have := mem_span_singleton_self (generator (I : submodule R₁ g.codomain)),
+    rw [hI, mem_zero_iff] at this,
+    contradiction }
+end
+
+lemma inv_principal (I : fractional_ideal g) [submodule.is_principal (I : submodule R₁ g.codomain)] (h : I ≠ 0) :
   submodule.is_principal (I⁻¹).1 :=
 I⁻¹.is_principal_iff.mpr ⟨_, (right_inverse_eq _ _ (mul_generator_self_inv I h)).symm⟩
 

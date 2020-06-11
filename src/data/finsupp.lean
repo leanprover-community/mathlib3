@@ -1751,6 +1751,9 @@ lemma swap_mem_antidiagonal_support {n : σ →₀ ℕ} {f} (hf : f ∈ (antidia
   f.swap ∈ (antidiagonal n).support :=
 by simpa only [mem_antidiagonal_support, add_comm, prod.swap] using hf
 
+/-- Let `n : σ →₀ ℕ` be a finitely supported function.
+The set of `m : σ →₀ ℕ` that are coordinatewise less than or equal to `n`,
+is a finite set. -/
 lemma finite_le_nat (n : σ →₀ ℕ) : set.finite {m | m ≤ n} :=
 begin
   let I := {i // i ∈ n.support},
@@ -1776,6 +1779,9 @@ begin
     rw [h₁, h₂] }
 end
 
+/-- Let `n : σ →₀ ℕ` be a finitely supported function.
+The set of `m : σ →₀ ℕ` that are coordinatewise less than or equal to `n`,
+but not equal to `n` everywhere, is a finite set. -/
 lemma finite_lt_nat (n : σ →₀ ℕ) : set.finite {m | m < n} :=
 set.finite_subset (finite_le_nat n) $ λ m, le_of_lt
 

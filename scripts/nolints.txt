@@ -918,7 +918,6 @@ apply_nolint list.tfae doc_blame
 -- data/matrix/basic.lean
 apply_nolint matrix doc_blame
 apply_nolint matrix.col doc_blame
-apply_nolint matrix.diagonal doc_blame
 apply_nolint matrix.minor doc_blame
 apply_nolint matrix.mul doc_blame
 apply_nolint matrix.mul_vec doc_blame

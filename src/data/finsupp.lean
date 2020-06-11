@@ -519,8 +519,10 @@ instance : add_monoid (α →₀ β) :=
   zero_add  := assume ⟨s, f, hf⟩, ext $ assume a, zero_add _,
   add_zero  := assume ⟨s, f, hf⟩, ext $ assume a, add_zero _ }
 
-instance (a : α) : is_add_monoid_hom (λ g : α →₀ β, g a) :=
-{ map_add := λ _ _, add_apply, map_zero := zero_apply }
+/-- Evaluation of a function `f : α →₀ β` at a point as an additive monoid homomorphism. -/
+def eval_add_hom (a : α) : (α →₀ β) →+ β := ⟨λ g, g a, zero_apply, λ _ _, add_apply⟩
+
+@[simp] lemma eval_add_hom_apply (a : α) (g : α →₀ β) : eval_add_hom a g = g a := rfl
 
 lemma single_add_erase {a : α} {f : α →₀ β} : single a (f a) + f.erase a = f :=
 ext $ λ a',
@@ -670,7 +672,7 @@ instance [add_comm_group β] : add_comm_group (α →₀ β) :=
 @[simp] lemma sum_apply [has_zero β₁] [add_comm_monoid β]
   {f : α₁ →₀ β₁} {g : α₁ → β₁ → α →₀ β} {a₂ : α} :
   (f.sum g) a₂ = f.sum (λa₁ b, g a₁ b a₂) :=
-(f.support.sum_hom (λf : α →₀ β, f a₂)).symm
+(eval_add_hom a₂ : (α →₀ β) →+ _).map_sum _ _
 
 lemma support_sum [has_zero β₁] [add_comm_monoid β]
   {f : α₁ →₀ β₁} {g : α₁ → β₁ → (α →₀ β)} :
@@ -1406,13 +1408,25 @@ instance [semiring γ] [add_comm_monoid β] [semimodule γ β] : semimodule γ (
   zero_smul := λ x, ext $ λ _, zero_smul _ _,
   smul_zero := λ x, ext $ λ _, smul_zero _ }
 
-instance [ring γ] [add_comm_group β] [module γ β] : module γ (α →₀ β) :=
-{ ..finsupp.semimodule α β }
+variables {α β} (γ)
 
-instance [field γ] [add_comm_group β] [vector_space γ β] : vector_space γ (α →₀ β) :=
-{ ..finsupp.module α β }
+/-- Evaluation at point as a linear map. This version assumes that the codomain is a semimodule
+over some semiring. See also `leval`. -/
+def leval' [semiring γ] [add_comm_monoid β] [semimodule γ β] (a : α) :
+  (α →₀ β) →ₗ[γ] β :=
+⟨λ g, g a, λ _ _, add_apply, λ _ _, rfl⟩
 
-variables {α β}
+@[simp] lemma coe_leval' [semiring γ] [add_comm_monoid β] [semimodule γ β] (a : α) (g : α →₀ β) :
+  leval' γ a g = g a :=
+rfl
+
+variable {γ}
+
+/-- Evaluation at point as a linear map. This version assumes that the codomain is a semiring. -/
+def leval [semiring β] (a : α) : (α →₀ β) →ₗ[β] β := leval' β a
+
+@[simp] lemma coe_leval [semiring β] (a : α) (g : α →₀ β) : leval a g = g a := rfl
+
 lemma support_smul {R:semiring γ} [add_comm_monoid β] [semimodule γ β] {b : γ} {g : α →₀ β} :
   (b • g).support ⊆ g.support :=
 λ a, by simp only [smul_apply', mem_support_iff, ne.def]; exact mt (λ h, h.symm ▸ smul_zero _)

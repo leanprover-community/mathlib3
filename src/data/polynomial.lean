@@ -2371,6 +2371,14 @@ prime_of_associated normalize_associated this
 lemma irreducible_of_degree_eq_one (hp1 : degree p = 1) : irreducible p :=
 irreducible_of_prime (prime_of_degree_eq_one hp1)
 
+theorem pairwise_coprime_X_sub {α : Type u} [field α] {I : Type v}
+  {s : I → α} (H : function.injective s) :
+  pairwise (is_coprime on (λ i : I, polynomial.X - polynomial.C (s i))) :=
+λ i j hij, have h : s j - s i ≠ 0, from sub_ne_zero_of_ne $ function.injective.ne H hij.symm,
+⟨polynomial.C (s j - s i)⁻¹, -polynomial.C (s j - s i)⁻¹,
+by rw [neg_mul_eq_neg_mul_symm, ← sub_eq_add_neg, ← mul_sub, sub_sub_sub_cancel_left,
+    ← polynomial.C_sub, ← polynomial.C_mul, inv_mul_cancel h, polynomial.C_1]⟩
+
 end field
 
 section derivative
@@ -2482,7 +2490,7 @@ then `f / (X - a)` is coprime with `X - a`.
 Note that we do not assume `f a = 0`, because `f / (X - a) = (f - f a) / (X - a)`. -/
 lemma is_coprime_of_is_root_of_eval_derivative_ne_zero {K : Type*} [field K]
   (f : polynomial K) (a : K) (hf' : f.derivative.eval a ≠ 0) :
-  ideal.is_coprime (X - C a : polynomial K) (f /ₘ (X - C a)) :=
+  is_coprime (X - C a : polynomial K) (f /ₘ (X - C a)) :=
 begin
   refine or.resolve_left (dvd_or_coprime (X - C a) (f /ₘ (X - C a))
     (irreducible_of_degree_eq_one (polynomial.degree_X_sub_C a))) _,

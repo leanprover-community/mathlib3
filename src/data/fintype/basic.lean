@@ -147,12 +147,11 @@ the cardinality of `s` is `k`. We use this instead of a map `fin s.card → α` 
 casting issues in further uses of this function. -/
 noncomputable def mono_equiv_of_fin (α) [fintype α] [decidable_linear_order α] {k : ℕ}
   (h : fintype.card α = k) : fin k ≃ α :=
-have A : bijective (mono_of_fin univ h) := begin
+equiv.of_bijective (mono_of_fin univ h) begin
   apply set.bijective_iff_bij_on_univ.2,
   rw ← @coe_univ α _,
   exact mono_of_fin_bij_on (univ : finset α) h
-end,
-equiv.of_bijective A
+end
 
 instance (α : Type*) : subsingleton (fintype α) :=
 ⟨λ ⟨s₁, h₁⟩ ⟨s₂, h₂⟩, by congr; simp [finset.ext, h₁, h₂]⟩
@@ -543,7 +542,7 @@ namespace function.embedding
 
 /-- An embedding from a `fintype` to itself can be promoted to an equivalence. -/
 noncomputable def equiv_of_fintype_self_embedding {α : Type*} [fintype α] (e : α ↪ α) : α ≃ α :=
-equiv.of_bijective (fintype.injective_iff_bijective.1 e.2)
+equiv.of_bijective e (fintype.injective_iff_bijective.1 e.2)
 
 @[simp]
 lemma equiv_of_fintype_self_embedding_to_embedding {α : Type*} [fintype α] (e : α ↪ α) :

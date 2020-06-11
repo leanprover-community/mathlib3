@@ -287,6 +287,8 @@ instance : add_comm_group (affine_map k V1 P1 V2 V2) :=
 @[simp]
 lemma add_linear (f g : affine_map k V1 P1 V2 V2) : (f + g).linear = f.linear + g.linear := rfl
 
+/-- The space of affine maps from `P1` to `P2` is an affine space over the space of affine spaces
+from `P1` to the vector `V2` corresponding to `P2`. -/
 instance : affine_space k (affine_map k V1 P1 V2 V2) (affine_map k V1 P1 V2 P2) :=
 { vadd := λ f g, ⟨λ p, f p +ᵥ g p, f.linear + g.linear, λ p v,
     by simp [add_action.vadd_assoc, add_right_comm]⟩,

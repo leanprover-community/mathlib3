@@ -425,12 +425,12 @@ In most of this section, the domain `β` is assumed to be an `add_monoid`.
 -- [to_additive sum] for finsupp.prod doesn't work, the equation lemmas are not generated
 /-- `sum f g` is the sum of `g a (f a)` over the support of `f`. -/
 def sum [has_zero β] [add_comm_monoid γ] (f : α →₀ β) (g : α → β → γ) : γ :=
-f.support.sum (λa, g a (f a))
+∑ a in f.support, g a (f a)
 
 /-- `prod f g` is the product of `g a (f a)` over the support of `f`. -/
 @[to_additive]
 def prod [has_zero β] [comm_monoid γ] (f : α →₀ β) (g : α → β → γ) : γ :=
-f.support.prod (λa, g a (f a))
+∏ a in f.support, g a (f a)
 
 @[to_additive]
 lemma prod_map_range_index [has_zero β₁] [has_zero β₂] [comm_monoid γ]
@@ -519,8 +519,10 @@ instance : add_monoid (α →₀ β) :=
   zero_add  := assume ⟨s, f, hf⟩, ext $ assume a, zero_add _,
   add_zero  := assume ⟨s, f, hf⟩, ext $ assume a, add_zero _ }
 
-instance (a : α) : is_add_monoid_hom (λ g : α →₀ β, g a) :=
-{ map_add := λ _ _, add_apply, map_zero := zero_apply }
+/-- Evaluation of a function `f : α →₀ β` at a point as an additive monoid homomorphism. -/
+def eval_add_hom (a : α) : (α →₀ β) →+ β := ⟨λ g, g a, zero_apply, λ _ _, add_apply⟩
+
+@[simp] lemma eval_add_hom_apply (a : α) (g : α →₀ β) : eval_add_hom a g = g a := rfl
 
 lemma single_add_erase {a : α} {f : α →₀ β} : single a (f a) + f.erase a = f :=
 ext $ λ a',
@@ -633,7 +635,7 @@ multiset.induction_on s single_zero $ λ a s ih,
 by rw [multiset.sum_cons, single_add, ih, multiset.map_cons, multiset.sum_cons]
 
 lemma single_finset_sum [add_comm_monoid β] (s : finset γ) (f : γ → β) (a : α) :
-  single a (s.sum f) = s.sum (λb, single a (f b)) :=
+  single a (∑ b in s, f b) = ∑ b in s, single a (f b) :=
 begin
   transitivity,
   apply single_multiset_sum,
@@ -670,7 +672,7 @@ instance [add_comm_group β] : add_comm_group (α →₀ β) :=
 @[simp] lemma sum_apply [has_zero β₁] [add_comm_monoid β]
   {f : α₁ →₀ β₁} {g : α₁ → β₁ → α →₀ β} {a₂ : α} :
   (f.sum g) a₂ = f.sum (λa₁ b, g a₁ b a₂) :=
-(f.support.sum_hom (λf : α →₀ β, f a₂)).symm
+(eval_add_hom a₂ : (α →₀ β) →+ _).map_sum _ _
 
 lemma support_sum [has_zero β₁] [add_comm_monoid β]
   {f : α₁ →₀ β₁} {g : α₁ → β₁ → (α →₀ β)} :
@@ -704,7 +706,7 @@ by rw [sub_eq_add_neg, ←sum_neg, ←sum_add]; refl
 @[simp] lemma sum_single [add_comm_monoid β] (f : α →₀ β) :
   f.sum single = f :=
 have ∀a:α, f.sum (λa' b, ite (a' = a) b 0) =
-    ({a} : finset α).sum (λa', ite (a' = a) (f a') 0),
+    ∑ a' in {a}, ite (a' = a) (f a') 0,
 begin
   intro a,
   by_cases h : a ∈ f.support,
@@ -712,7 +714,7 @@ begin
       { simpa only [finset.subset_iff, mem_singleton, forall_eq] },
     refine (finset.sum_subset this (λ _ _ H, _)).symm,
     exact if_neg (mt mem_singleton.2 H) },
-  { transitivity (f.support.sum (λa, (0 : β))),
+  { transitivity (∑ a in f.support, (0 : β)),
     { refine (finset.sum_congr rfl $ λ a' ha', if_neg _),
       rintro rfl, exact h ha' },
     { rw [sum_const_zero, sum_singleton, if_pos rfl, not_mem_support_iff.1 h] } }
@@ -723,18 +725,18 @@ ext $ assume a, by simp only [sum_apply, single_apply, this, sum_singleton, if_p
 lemma prod_add_index [add_comm_monoid β] [comm_monoid γ] {f g : α →₀ β}
   {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   (f + g).prod h = f.prod h * g.prod h :=
-have f_eq : (f.support ∪ g.support).prod (λa, h a (f a)) = f.prod h,
+have f_eq : ∏ a in f.support ∪ g.support, h a (f a) = f.prod h,
   from (finset.prod_subset (finset.subset_union_left _ _) $
     by intros _ _ H; rw [not_mem_support_iff.1 H, h_zero]).symm,
-have g_eq : (f.support ∪ g.support).prod (λa, h a (g a)) = g.prod h,
+have g_eq : ∏ a in f.support ∪ g.support, h a (g a) = g.prod h,
   from (finset.prod_subset (finset.subset_union_right _ _) $
     by intros _ _ H; rw [not_mem_support_iff.1 H, h_zero]).symm,
-calc (f + g).support.prod (λa, h a ((f + g) a)) =
-      (f.support ∪ g.support).prod (λa, h a ((f + g) a)) :
+calc ∏ a in (f + g).support, h a ((f + g) a) =
+      ∏ a in f.support ∪ g.support, h a ((f + g) a) :
     finset.prod_subset support_add $
       by intros _ _ H; rw [not_mem_support_iff.1 H, h_zero]
-  ... = (f.support ∪ g.support).prod (λa, h a (f a)) *
-      (f.support ∪ g.support).prod (λa, h a (g a)) :
+  ... = (∏ a in f.support ∪ g.support, h a (f a)) *
+      (∏ a in f.support ∪ g.support, h a (g a)) :
     by simp only [add_apply, h_add, finset.prod_mul_distrib]
   ... = _ : by rw [f_eq, g_eq]
 
@@ -762,7 +764,7 @@ calc (f - g).sum h = (f + - g).sum h : rfl
 lemma prod_finset_sum_index [add_comm_monoid β] [comm_monoid γ]
   {s : finset ι} {g : ι → α →₀ β}
   {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
-  s.prod (λi, (g i).prod h) = (s.sum g).prod h :=
+  ∏ i in s, (g i).prod h = (∑ i in s, g i).prod h :=
 finset.induction_on s rfl $ λ a s has ih,
 by rw [prod_insert has, ih, sum_insert has, prod_add_index h_zero h_add]
 
@@ -804,7 +806,7 @@ lemma map_range_multiset_sum (m : multiset (α →₀ β₁)) :
 (m.sum_hom (map_range f hf.map_zero)).symm
 
 lemma map_range_finset_sum {ι : Type*} (s : finset ι) (g : ι → (α →₀ β₁))  :
-  map_range f hf.map_zero (s.sum g) = s.sum (λx, map_range f hf.map_zero (g x)) :=
+  map_range f hf.map_zero (∑ x in s, g x) = ∑ x in s, map_range f hf.map_zero (g x) :=
 by rw [finset.sum.equations._eqn_1, map_range_multiset_sum, multiset.map_map]; refl
 
 end map_range
@@ -866,7 +868,7 @@ lemma map_domain_add {f : α → α₂} : map_domain f (v₁ + v₂) = map_domai
 sum_add_index (λ _, single_zero) (λ _ _ _, single_add)
 
 lemma map_domain_finset_sum {f : α → α₂} {s : finset ι} {v : ι → α →₀ β} :
-  map_domain f (s.sum v) = s.sum (λi, map_domain f (v i)) :=
+  map_domain f (∑ i in s, v i) = ∑ i in s, map_domain f (v i) :=
 eq.symm $ sum_finset_sum_index (λ _, single_zero) (λ _ _ _, single_add)
 
 lemma map_domain_sum [has_zero β₁] {f : α → α₂} {s : α →₀ β₁} {v : α → β₁ → α →₀ β} :
@@ -1107,7 +1109,7 @@ section comm_monoid
 variables [add_comm_monoid β]
 
 lemma subtype_domain_sum {s : finset γ} {h : γ → α →₀ β} :
-  (s.sum h).subtype_domain p = s.sum (λc, (h c).subtype_domain p) :=
+  (∑ c in s, h c).subtype_domain p = ∑ c in s, (h c).subtype_domain p :=
 eq.symm (s.sum_hom _)
 
 lemma subtype_domain_finsupp_sum {s : γ →₀ δ} {h : γ → δ → α →₀ β} :
@@ -1115,7 +1117,7 @@ lemma subtype_domain_finsupp_sum {s : γ →₀ δ} {h : γ → δ → α →₀
 subtype_domain_sum
 
 lemma filter_sum (s : finset γ) (f : γ → α →₀ β) :
-  (s.sum f).filter p = s.sum (λa, filter p (f a)) :=
+  (∑ a in s, f a).filter p = ∑ a in s, filter p (f a) :=
 (s.sum_hom (filter p)).symm
 
 end comm_monoid
@@ -1249,7 +1251,7 @@ multiset.induction_on s false.elim
   end
 
 lemma mem_support_finset_sum [add_comm_monoid β]
-  {s : finset γ} {h : γ → α →₀ β} (a : α) (ha : a ∈ (s.sum h).support) : ∃c∈s, a ∈ (h c).support :=
+  {s : finset γ} {h : γ → α →₀ β} (a : α) (ha : a ∈ (∑ c in s, h c).support) : ∃c∈s, a ∈ (h c).support :=
 let ⟨f, hf, hfa⟩ := mem_support_multiset_sum a ha in
 let ⟨c, hc, eq⟩ := multiset.mem_map.1 hf in
 ⟨c, hc, eq.symm ▸ hfa⟩
@@ -1406,13 +1408,25 @@ instance [semiring γ] [add_comm_monoid β] [semimodule γ β] : semimodule γ (
   zero_smul := λ x, ext $ λ _, zero_smul _ _,
   smul_zero := λ x, ext $ λ _, smul_zero _ }
 
-instance [ring γ] [add_comm_group β] [module γ β] : module γ (α →₀ β) :=
-{ ..finsupp.semimodule α β }
+variables {α β} (γ)
 
-instance [field γ] [add_comm_group β] [vector_space γ β] : vector_space γ (α →₀ β) :=
-{ ..finsupp.module α β }
+/-- Evaluation at point as a linear map. This version assumes that the codomain is a semimodule
+over some semiring. See also `leval`. -/
+def leval' [semiring γ] [add_comm_monoid β] [semimodule γ β] (a : α) :
+  (α →₀ β) →ₗ[γ] β :=
+⟨λ g, g a, λ _ _, add_apply, λ _ _, rfl⟩
 
-variables {α β}
+@[simp] lemma coe_leval' [semiring γ] [add_comm_monoid β] [semimodule γ β] (a : α) (g : α →₀ β) :
+  leval' γ a g = g a :=
+rfl
+
+variable {γ}
+
+/-- Evaluation at point as a linear map. This version assumes that the codomain is a semiring. -/
+def leval [semiring β] (a : α) : (α →₀ β) →ₗ[β] β := leval' β a
+
+@[simp] lemma coe_leval [semiring β] (a : α) (g : α →₀ β) : leval a g = g a := rfl
+
 lemma support_smul {R:semiring γ} [add_comm_monoid β] [semimodule γ β] {b : γ} {g : α →₀ β} :
   (b • g).support ⊆ g.support :=
 λ a, by simp only [smul_apply', mem_support_iff, ne.def]; exact mt (λ h, h.symm ▸ smul_zero _)
@@ -1570,7 +1584,7 @@ by simp only [finset.ext, split_support, split, comap_domain, mem_image,
   mem_preimage, sigma.forall, mem_sigma]; tauto
 
 lemma sigma_sum [add_comm_monoid γ] (f : (Σ (i : ι), αs i) → β → γ) :
-  l.sum f = (split_support l).sum (λ (i : ι), (split l i).sum (λ (a : αs i) b, f ⟨i, a⟩ b)) :=
+  l.sum f = ∑ i in split_support l, (split l i).sum (λ (a : αs i) b, f ⟨i, a⟩ b) :=
 by simp only [sum, sigma_support, sum_sigma, split_apply]
 
 end sigma

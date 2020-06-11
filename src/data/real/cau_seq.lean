@@ -24,6 +24,8 @@ This is a concrete implementation that is useful for simplicity and computabilit
 sequence, cauchy, abs val, absolute value
 -/
 
+open_locale big_operators
+
 /-- A function f is an absolute value if it is nonnegative, zero only at 0, additive, and
 multiplicative. -/
 class is_absolute_value {α} [discrete_linear_ordered_field α]
@@ -212,7 +214,7 @@ theorem cauchy₃ (f : cau_seq β abv) {ε:α} : ε > 0 →
 theorem bounded (f : cau_seq β abv) : ∃ r, ∀ i, abv (f i) < r :=
 begin
   cases f.cauchy zero_lt_one with i h,
-  let R := (finset.range (i+1)).sum (λ j, abv (f j)),
+  let R := ∑ j in finset.range (i+1), abv (f j),
   have : ∀ j ≤ i, abv (f j) ≤ R,
   { intros j ij, change (λ j, abv (f j)) j ≤ R,
     apply finset.single_le_sum,

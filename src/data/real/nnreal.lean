@@ -9,7 +9,7 @@ import data.real.basic
 
 noncomputable theory
 
-open_locale classical
+open_locale classical big_operators
 
 /-- Nonnegative real numbers. -/
 def nnreal := {r : ℝ // 0 ≤ r}
@@ -53,7 +53,6 @@ instance : has_add ℝ≥0   := ⟨λa b, ⟨a + b, add_nonneg a.2 b.2⟩⟩
 instance : has_sub ℝ≥0   := ⟨λa b, nnreal.of_real (a - b)⟩
 instance : has_mul ℝ≥0   := ⟨λa b, ⟨a * b, mul_nonneg a.2 b.2⟩⟩
 instance : has_inv ℝ≥0   := ⟨λa, ⟨(a.1)⁻¹, inv_nonneg.2 a.2⟩⟩
-instance : has_div ℝ≥0   := ⟨λa b, ⟨a.1 / b.1, div_nonneg' a.2 b.2⟩⟩
 instance : has_le ℝ≥0    := ⟨λ r s, (r:ℝ) ≤ s⟩
 instance : has_bot ℝ≥0   := ⟨0⟩
 instance : inhabited ℝ≥0 := ⟨0⟩
@@ -64,7 +63,6 @@ subtype.ext.symm
 @[simp, norm_cast] protected lemma coe_one  : ((1 : ℝ≥0) : ℝ) = 1 := rfl
 @[simp, norm_cast] protected lemma coe_add (r₁ r₂ : ℝ≥0) : ((r₁ + r₂ : ℝ≥0) : ℝ) = r₁ + r₂ := rfl
 @[simp, norm_cast] protected lemma coe_mul (r₁ r₂ : ℝ≥0) : ((r₁ * r₂ : ℝ≥0) : ℝ) = r₁ * r₂ := rfl
-@[simp, norm_cast] protected lemma coe_div (r₁ r₂ : ℝ≥0) : ((r₁ / r₂ : ℝ≥0) : ℝ) = r₁ / r₂ := rfl
 @[simp, norm_cast] protected lemma coe_inv (r : ℝ≥0) : ((r⁻¹ : ℝ≥0) : ℝ) = r⁻¹ := rfl
 @[simp, norm_cast] protected lemma coe_bit0 (r : ℝ≥0) : ((bit0 r : ℝ≥0) : ℝ) = bit0 r := rfl
 @[simp, norm_cast] protected lemma coe_bit1 (r : ℝ≥0) : ((bit1 r : ℝ≥0) : ℝ) = bit1 r := rfl
@@ -74,7 +72,6 @@ subtype.ext.symm
 max_eq_left $ le_sub.2 $ by simp [show (r₂ : ℝ) ≤ r₁, from h]
 
 -- TODO: setup semifield!
-@[simp] protected lemma zero_div (r : ℝ≥0) : 0 / r = 0 := nnreal.eq (zero_div _)
 @[simp] protected lemma coe_eq_zero (r : ℝ≥0) : ↑r = (0 : ℝ) ↔ r = 0 := by norm_cast
 lemma coe_ne_zero {r : ℝ≥0} : (r : ℝ) ≠ 0 ↔ r ≠ 0 := by norm_cast
 
@@ -101,6 +98,7 @@ instance : comm_group_with_zero ℝ≥0 :=
   .. (_ : comm_semiring ℝ≥0),
   .. (_ : semiring ℝ≥0) }
 
+@[simp, norm_cast] protected lemma coe_div (r₁ r₂ : ℝ≥0) : ((r₁ / r₂ : ℝ≥0) : ℝ) = r₁ / r₂ := rfl
 @[norm_cast] lemma coe_pow (r : ℝ≥0) (n : ℕ) : ((r^n : ℝ≥0) : ℝ) = r^n :=
 to_real_hom.map_pow r n
 
@@ -121,11 +119,11 @@ to_real_hom.map_multiset_sum s
 to_real_hom.map_multiset_prod s
 
 @[norm_cast] lemma coe_sum {α} {s : finset α} {f : α → ℝ≥0} :
-  ↑(s.sum f) = s.sum (λa, (f a : ℝ)) :=
+  ↑(∑ a in s, f a) = ∑ a in s, (f a : ℝ) :=
 to_real_hom.map_sum _ _
 
 @[norm_cast] lemma coe_prod {α} {s : finset α} {f : α → ℝ≥0} :
-  ↑(s.prod f) = s.prod (λa, (f a : ℝ)) :=
+  ↑(∏ a in s, f a) = ∏ a in s, (f a : ℝ) :=
 to_real_hom.map_prod _ _
 
 @[norm_cast] lemma nsmul_coe (r : ℝ≥0) (n : ℕ) : ↑(n •ℕ r) = n •ℕ (r:ℝ) :=
@@ -253,7 +251,7 @@ instance : conditionally_complete_linear_order_bot ℝ≥0 :=
 instance : archimedean nnreal :=
 ⟨ assume x y pos_y,
   let ⟨n, hr⟩ := archimedean.arch (x:ℝ) (pos_y : (0 : ℝ) < y) in
-  ⟨n, show (x:ℝ) ≤ (n •ℕ y : nnreal), by simp [*, nsmul_coe]⟩ ⟩
+  ⟨n, show (x:ℝ) ≤ (n •ℕ y : nnreal), by simp [*, -nsmul_eq_mul, nsmul_coe]⟩ ⟩
 
 lemma le_of_forall_epsilon_le {a b : nnreal} (h : ∀ε, ε > 0 → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ assume x hxb,
@@ -456,6 +454,10 @@ section inv
 
 lemma div_def {r p : nnreal} : r / p = r * p⁻¹ := rfl
 
+lemma sum_div {ι} (s : finset ι) (f : ι → ℝ≥0) (b : ℝ≥0) :
+  (∑ i in s, f i) / b = ∑ i in s, (f i / b) :=
+by simp only [nnreal.div_def, finset.sum_mul]
+
 @[simp] lemma inv_zero : (0 : nnreal)⁻¹ = 0 := nnreal.eq inv_zero
 
 @[simp] lemma inv_eq_zero {r : nnreal} : (r : nnreal)⁻¹ = 0 ↔ r = 0 :=
@@ -514,6 +516,9 @@ by rw [← @mul_le_mul_left _ _ a _ r this, ← mul_assoc, mul_inv_cancel hr, on
 
 lemma le_div_iff_mul_le {a b r : ℝ≥0} (hr : r ≠ 0) : a ≤ b / r ↔ a * r ≤ b :=
 by rw [div_def, mul_comm, ← mul_le_iff_le_inv hr, mul_comm]
+
+lemma div_le_iff {a b r : ℝ≥0} (hr : r ≠ 0) : a / r ≤ b ↔ a ≤ b * r :=
+@div_le_iff ℝ _ a r b $ zero_lt_iff_ne_zero.2 hr
 
 lemma le_of_forall_lt_one_mul_lt {x y : ℝ≥0} (h : ∀a<1, a * x ≤ y) : x ≤ y :=
 le_of_forall_ge_of_dense $ assume a ha,

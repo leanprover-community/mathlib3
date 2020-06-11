@@ -213,8 +213,10 @@ instance coe_add_monoid_hom : has_coe (A →ₐ[R] B) (A →+ B) := ⟨λ f, ↑
 
 @[simp, norm_cast] lemma coe_to_ring_hom (f : A →ₐ[R] B) : ⇑(f : A →+* B) = f := rfl
 
+-- as `simp` can already prove this lemma, it is not tagged with the `simp` attribute.
 @[norm_cast] lemma coe_to_monoid_hom (f : A →ₐ[R] B) : ⇑(f : A →* B) = f := rfl
 
+-- as `simp` can already prove this lemma, it is not tagged with the `simp` attribute.
 @[norm_cast] lemma coe_to_add_monoid_hom (f : A →ₐ[R] B) : ⇑(f : A →+ B) = f := rfl
 
 variables (φ : A →ₐ[R] B)
@@ -260,7 +262,7 @@ by simp only [algebra.smul_def, map_mul, commutes]
 φ.to_ring_hom.map_pow x n
 
 lemma map_sum {ι : Type*} (f : ι → A) (s : finset ι) :
-  φ (s.sum f) = s.sum (λx, φ (f x)) :=
+  φ (∑ x in s, f x) = ∑ x in s, φ (f x) :=
 φ.to_ring_hom.map_sum f s
 
 section

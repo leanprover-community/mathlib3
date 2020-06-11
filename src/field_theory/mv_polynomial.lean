@@ -19,9 +19,6 @@ namespace mv_polynomial
 universes u v
 variables {σ : Type u} {α : Type v}
 
-instance [field α] : vector_space α (mv_polynomial σ α) :=
-finsupp.vector_space _ _
-
 section
 variables (σ α) [field α] (m : ℕ)
 def restrict_total_degree : submodule α (mv_polynomial σ α) :=
@@ -137,7 +134,7 @@ begin
 end
 
 lemma degrees_indicator (c : σ → α) :
-  degrees (indicator c) ≤ finset.univ.sum (λs:σ, (fintype.card α - 1) •ℕ {s}) :=
+  degrees (indicator c) ≤ ∑ s : σ, (fintype.card α - 1) •ℕ {s} :=
 begin
   rw [indicator],
   refine le_trans (degrees_prod _ _) (finset.sum_le_sum $ assume s hs, _),
@@ -182,7 +179,7 @@ end
 lemma map_restrict_dom_evalₗ : (restrict_degree σ α (fintype.card α - 1)).map (evalₗ α σ) = ⊤ :=
 begin
   refine top_unique (submodule.le_def'.2 $ assume e _, mem_map.2 _),
-  refine ⟨finset.univ.sum (λn:σ → α, e n • indicator n), _, _⟩,
+  refine ⟨∑ n : σ → α, e n • indicator n, _, _⟩,
   { exact sum_mem _ (assume c _, smul_mem _ _ (indicator_mem_restrict_degree _)) },
   { ext n,
     simp only [linear_map.map_sum, @pi.finset_sum_apply (σ → α) (λ_, α) _ _ _ _ _,

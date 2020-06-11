@@ -32,6 +32,7 @@ especially when defining iterated derivatives.
 -/
 
 open function fin set
+open_locale big_operators
 
 universes u v w w₁ w₂ w₃ w₄
 variables {R : Type u} {ι : Type v} {n : ℕ}
@@ -104,7 +105,7 @@ instance add_comm_monoid : add_comm_monoid (continuous_multilinear_map R M₁ M�
 by refine {zero := 0, add := (+), ..}; intros; ext; simp [add_comm, add_left_comm]
 
 @[simp] lemma sum_apply {α : Type*} (f : α → continuous_multilinear_map R M₁ M₂)
-  (m : Πi, M₁ i) : ∀ {s : finset α}, (s.sum f) m = s.sum (λ a, f a m) :=
+  (m : Πi, M₁ i) : ∀ {s : finset α}, (∑ a in s, f a) m = ∑ a in s, f a m :=
 begin
   classical,
   apply finset.induction,
@@ -159,13 +160,13 @@ lemma cons_smul
 f.to_multilinear_map.cons_smul m c x
 
 lemma map_piecewise_add (m m' : Πi, M₁ i) (t : finset ι) :
-  f (t.piecewise (m + m') m') = t.powerset.sum (λ s, f (s.piecewise m m')) :=
+  f (t.piecewise (m + m') m') = ∑ s in t.powerset, f (s.piecewise m m') :=
 f.to_multilinear_map.map_piecewise_add _ _ _
 
 /-- Additivity of a continuous multilinear map along all coordinates at the same time,
 writing `f (m + m')` as the sum  of `f (s.piecewise m m')` over all sets `s`. -/
 lemma map_add_univ [fintype ι] (m m' : Πi, M₁ i) :
-  f (m + m') = (finset.univ : finset (finset ι)).sum (λ s, f (s.piecewise m m')) :=
+  f (m + m') = ∑ s : finset ι, f (s.piecewise m m') :=
 f.to_multilinear_map.map_add_univ _ _
 
 section apply_sum
@@ -179,14 +180,14 @@ of `f (g₁ (r 1), ..., gₙ (r n))` where `r` ranges over all functions with `r
 `r n ∈ Aₙ`. This follows from multilinearity by expanding successively with respect to each
 coordinate. -/
 lemma map_sum_finset  :
-  f (λ i, (A i).sum (g i)) = (pi_finset A).sum (λ r, f (λ i, g i (r i))) :=
+  f (λ i, ∑ j in A i, g i j) = ∑ r in pi_finset A, f (λ i, g i (r i)) :=
 f.to_multilinear_map.map_sum_finset _ _
 
 /-- If `f` is continuous multilinear, then `f (Σ_{j₁} g₁ j₁, ..., Σ_{jₙ} gₙ jₙ)` is the sum of
 `f (g₁ (r 1), ..., gₙ (r n))` where `r` ranges over all functions `r`. This follows from
 multilinearity by expanding successively with respect to each coordinate. -/
 lemma map_sum [∀ i, fintype (α i)] :
-  f (λ i, finset.univ.sum (g i)) = finset.univ.sum (λ (r : Π i, α i), f (λ i, g i (r i))) :=
+  f (λ i, ∑ j, g i j) = ∑ r : Π i, α i, f (λ i, g i (r i)) :=
 f.to_multilinear_map.map_sum _
 
 end apply_sum
@@ -230,13 +231,13 @@ variables [comm_ring R]
 (f : continuous_multilinear_map R M₁ M₂)
 
 lemma map_piecewise_smul (c : ι → R) (m : Πi, M₁ i) (s : finset ι) :
-  f (s.piecewise (λ i, c i • m i) m) = s.prod c • f m :=
+  f (s.piecewise (λ i, c i • m i) m) = (∏ i in s, c i) • f m :=
 f.to_multilinear_map.map_piecewise_smul _ _ _
 
 /-- Multiplicativity of a continuous multilinear map along all coordinates at the same time,
-writing `f (λ i, c i • m i)` as `univ.prod c • f m`. -/
+writing `f (λ i, c i • m i)` as `(∏ i, c i) • f m`. -/
 lemma map_smul_univ [fintype ι] (c : ι → R) (m : Πi, M₁ i) :
-  f (λ i, c i • m i) = finset.univ.prod c • f m :=
+  f (λ i, c i • m i) = (∏ i, c i) • f m :=
 f.to_multilinear_map.map_smul_univ _ _
 
 variables [topological_space R] [topological_semimodule R M₂]

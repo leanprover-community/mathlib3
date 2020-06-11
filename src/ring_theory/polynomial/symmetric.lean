@@ -92,6 +92,16 @@ noncomputable def elementary_symmetric (n : ℕ) : mv_polynomial σ R :=
 ∑ t : {s : finset σ // s.card = n},
   ∏ i in (t : finset σ), X i
 
+@[simp] lemma elementary_symmetric_zero :
+  elementary_symmetric σ R 0 = 1 :=
+begin
+  letI : unique ({s : finset σ // s.card = 0}) :=
+  { default := ⟨∅, finset.card_empty⟩,
+    uniq := by { rintro ⟨s, hs⟩, rw subtype.ext, rwa finset.card_eq_zero at hs, } },
+  simp only [elementary_symmetric, univ_unique, finset.sum_singleton],
+  exact finset.prod_empty,
+end
+
 variables {σ R}
 
 lemma map_elementary_symmetric (n : ℕ) (f : R →+* S) :
@@ -214,6 +224,21 @@ It is defined as the sum of all monomials of degree `n`. -/
 noncomputable def complete_homogeneous (n : ℕ) : mv_polynomial σ R :=
 ∑ d : {d : σ →₀ ℕ // d.sum (λ _, id) = n}, monomial d 1
 
+@[simp] lemma complete_homogeneous_zero :
+  complete_homogeneous σ R 0 = 1 :=
+begin
+  letI : unique {d : σ →₀ ℕ // d.sum (λ _, id) = 0} :=
+  { default := ⟨0, by simp only [finsupp.sum, id.def, finsupp.zero_apply, finset.sum_const_zero]⟩,
+    uniq := by { rintro ⟨d, hd⟩, rw subtype.ext, ext i,
+                 rw [finsupp.sum, finset.sum_eq_zero_iff] at hd,
+                 classical,
+                 by_cases hi : i ∈ d.support,
+                 { exact hd i hi },
+                 { rwa finsupp.not_mem_support_iff at hi } } },
+  simp only [complete_homogeneous, univ_unique, finset.sum_singleton],
+  refl
+end
+
 variables {σ R}
 
 lemma map_complete_homogeneous (n : ℕ) (f : R →+* S) :
@@ -260,6 +285,34 @@ end
 lemma complete_homogeneous_is_symmetric (n : ℕ) :
   is_symmetric (complete_homogeneous σ R n) :=
 rename_complete_homogeneous n
+
+end
+
+section
+variables (σ R) [fintype σ] [comm_ring R]
+
+lemma alternating_sum_elementary_symmetric_mul_complete_homogeneous (n : ℕ) :
+  ∑ ij in (finset.nat.antidiagonal n),
+    C (-1)^ij.1 * elementary_symmetric σ R ij.1 * complete_homogeneous σ R ij.2 = 0 :=
+begin
+  rw mv_polynomial.ext_iff,
+  intro d,
+  rw [coeff_sum, coeff_zero],
+  conv_lhs { apply_congr, skip, rw [mul_assoc, ← C_pow, coeff_C_mul, coeff_mul, finset.mul_sum] },
+  rw finset.sum_comm,
+  let L := d.antidiagonal.support.filter (λ p : (σ →₀ ℕ) × (σ →₀ ℕ), p.1.sum (λ _, id) % 2 = 0),
+  let R := d.antidiagonal.support.filter (λ p : (σ →₀ ℕ) × (σ →₀ ℕ), p.1.sum (λ _, id) % 2 = 1),
+  classical,
+  have hLR : d.antidiagonal.support = L ∪ R,
+  { ext p,
+    simp only [finsupp.mem_antidiagonal_support, finset.mem_union, finset.mem_filter],
+    have := nat.mod_two_eq_zero_or_one (p.1.sum (λ _, id)),
+    rw classical.or_iff_not_imp_left at this,
+    tauto },
+  have LR_disjoint : disjoint L R,
+  { rw finset.disjoint_filter, intros p hp h0, rw h0, exact zero_ne_one },
+  rw [hLR, finset.sum_union LR_disjoint],
+end
 
 end
 

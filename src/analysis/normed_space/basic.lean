@@ -504,7 +504,7 @@ instance normed_field.is_monoid_hom_norm [normed_field α] : is_monoid_hom (norm
 is_monoid_hom.map_pow norm a
 
 @[simp] lemma norm_prod {β : Type*} [normed_field α] (s : finset β) (f : β → α) :
-  ∥s.prod f∥ = s.prod (λb, ∥f b∥) :=
+  ∥∏ b in s, f b∥ = ∏ b in s, ∥f b∥ :=
 eq.symm (s.prod_hom norm)
 
 @[simp] lemma norm_div {α : Type*} [normed_field α] (a b : α) : ∥a/b∥ = ∥a∥/∥b∥ :=

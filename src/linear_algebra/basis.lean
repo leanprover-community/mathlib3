@@ -65,10 +65,10 @@ noncomputable theory
 open function set submodule
 open_locale classical big_operators
 
-universes v
+universe u
 
 variables {ι : Type*} {ι' : Type*} {R : Type*} {K : Type*}
-          {M : Type*} {M' : Type*} {V : Type v} {V' : Type*}
+          {M : Type*} {M' : Type*} {V : Type u} {V' : Type*}
 
 section module
 variables {v : ι → M}
@@ -1066,7 +1066,7 @@ let ⟨b, hb₀, hx, hb₂, hb₃⟩ := exists_linear_independent hs (@subset_un
   by simp; exact eq_top_iff.2 hb₂⟩
 
 lemma exists_sum_is_basis (hs : linear_independent K v) :
-  ∃ (ι' : Type v) (v' : ι' → V), is_basis K (sum.elim v v') :=
+  ∃ (ι' : Type u) (v' : ι' → V), is_basis K (sum.elim v v') :=
 begin
   -- This is a hack: we jump through hoops to reuse `exists_subset_is_basis`.
   let s := set.range v,

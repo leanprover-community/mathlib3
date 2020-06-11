@@ -314,8 +314,14 @@ show a * 0⁻¹ = 0, by rw [inv_zero, mul_zero]
 @[simp] lemma div_mul_cancel (a : G₀) {b : G₀} (h : b ≠ 0) : a / b * b = a :=
 inv_mul_cancel_assoc_left a b h
 
+lemma div_mul_cancel_of_imp {a b : G₀} (h : b = 0 → a = 0) : a / b * b = a :=
+classical.by_cases (λ hb : b = 0, by simp [*]) (div_mul_cancel a)
+
 @[simp] lemma mul_div_cancel (a : G₀) {b : G₀} (h : b ≠ 0) : a * b / b = a :=
 mul_inv_cancel_assoc_left a b h
+
+lemma mul_div_cancel_of_imp {a b : G₀} (h : b = 0 → a = 0) : a * b / b = a :=
+classical.by_cases (λ hb : b = 0, by simp [*]) (mul_div_cancel a)
 
 lemma mul_div_assoc {a b c : G₀} : a * b / c = a * (b / c) :=
 mul_assoc _ _ _
@@ -433,8 +439,14 @@ by rw [one_div_mul_one_div_rev, mul_comm b]
 lemma div_mul_right {a : G₀} (b : G₀) (ha : a ≠ 0) : a / (a * b) = 1 / b :=
 by rw [mul_comm, div_mul_left ha]
 
+lemma mul_div_cancel_left_of_imp {a b : G₀} (h : a = 0 → b = 0) : a * b / a = b :=
+by rw [mul_comm, mul_div_cancel_of_imp h]
+
 lemma mul_div_cancel_left {a : G₀} (b : G₀) (ha : a ≠ 0) : a * b / a = b :=
-by rw [mul_comm a, (mul_div_cancel _ ha)]
+mul_div_cancel_left_of_imp $ λ h, (ha h).elim
+
+lemma mul_div_cancel_of_imp' {a b : G₀} (h : b = 0 → a = 0) : b * (a / b) = a :=
+by rw [mul_comm, div_mul_cancel_of_imp h]
 
 lemma mul_div_cancel' (a : G₀) {b : G₀} (hb : b ≠ 0) : b * (a / b) = a :=
 by rw [mul_comm, (div_mul_cancel _ hb)]

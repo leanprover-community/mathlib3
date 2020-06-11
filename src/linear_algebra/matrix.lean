@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl, Casper Putz
+Author: Johannes Hölzl, Casper Putz, Yakov Pechersky
 -/
-import linear_algebra.dimension
+import linear_algebra.finite_dimensional
 
 /-!
 # Linear maps and matrices
@@ -315,6 +315,24 @@ begin
 end
 
 end vector_space
+
+section finite_dimensional
+
+variables {R : Type v} [field R]
+
+instance : finite_dimensional R (matrix m n R) :=
+linear_equiv.finite_dimensional (linear_equiv.uncurry R m n).symm
+
+/-- 
+The dimension of the space of finite dimensional matrices 
+is the product of the number of rows and columns.
+-/
+@[simp] lemma findim_matrix :
+  finite_dimensional.findim R (matrix m n R) = fintype.card m * fintype.card n :=
+by rw [@linear_equiv.findim_eq R (matrix m n R) _ _ _ _ _ _ (linear_equiv.uncurry R m n),
+       finite_dimensional.findim_fintype_fun_eq_card, fintype.card_prod]
+
+end finite_dimensional
 
 end matrix
 

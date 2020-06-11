@@ -918,7 +918,6 @@ apply_nolint list.tfae doc_blame
 -- data/matrix/basic.lean
 apply_nolint matrix doc_blame
 apply_nolint matrix.col doc_blame
-apply_nolint matrix.diagonal doc_blame
 apply_nolint matrix.minor doc_blame
 apply_nolint matrix.mul doc_blame
 apply_nolint matrix.mul_vec doc_blame
@@ -1805,7 +1804,6 @@ apply_nolint submodule.annihilator doc_blame
 apply_nolint submodule.colon doc_blame
 
 -- ring_theory/ideals.lean
-apply_nolint ideal.is_coprime doc_blame
 apply_nolint ideal.is_maximal doc_blame
 apply_nolint ideal.is_prime doc_blame
 apply_nolint ideal.quotient doc_blame has_inhabited_instance

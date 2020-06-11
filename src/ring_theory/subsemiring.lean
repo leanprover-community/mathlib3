@@ -131,7 +131,7 @@ s.to_add_submonoid.multiset_sum_mem m
     subsemiring. -/
 lemma prod_mem {R : Type*} [comm_semiring R] (s : subsemiring R)
   {ι : Type*} {t : finset ι} {f : ι → R} (h : ∀c ∈ t, f c ∈ s) :
-  t.prod f ∈ s :=
+  ∏ i in t, f i ∈ s :=
 s.to_submonoid.prod_mem h
 
 /-- Sum of elements in an `add_subsemiring` of an `add_comm_monoid` indexed by a `finset`

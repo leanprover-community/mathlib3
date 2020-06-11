@@ -17,6 +17,8 @@ the complex numbers.)
 
 noncomputable theory
 
+namespace normed_space
+
 section general
 variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
 variables (E : Type*) [normed_group E] [normed_space 𝕜 E]
@@ -27,7 +29,7 @@ variables (E : Type*) [normed_group E] [normed_space 𝕜 E]
 instance : inhabited (dual 𝕜 E) := ⟨0⟩
 
 /-- The inclusion of a normed space in its double (topological) dual. -/
-def inclusion_in_double_dual (x : E) : (dual 𝕜 (dual 𝕜 E)) :=
+def inclusion_in_double_dual' (x : E) : (dual 𝕜 (dual 𝕜 E)) :=
 linear_map.mk_continuous
   { to_fun := λ f, f x,
     add    := by simp,
@@ -36,9 +38,9 @@ linear_map.mk_continuous
   (λ f, by { rw mul_comm, exact f.le_op_norm x } )
 
 @[simp] lemma dual_def (x : E) (f : dual 𝕜 E) :
-  ((inclusion_in_double_dual 𝕜 E) x) f = f x := rfl
+  ((inclusion_in_double_dual' 𝕜 E) x) f = f x := rfl
 
-lemma double_dual_bound (x : E) : ∥(inclusion_in_double_dual 𝕜 E) x∥ ≤ ∥x∥ :=
+lemma double_dual_bound (x : E) : ∥(inclusion_in_double_dual' 𝕜 E) x∥ ≤ ∥x∥ :=
 begin
   apply continuous_linear_map.op_norm_le_bound,
   { simp },
@@ -47,9 +49,9 @@ end
 
 /-- The inclusion of a normed space in its double (topological) dual, considered
    as a bounded linear map. -/
-def inclusion_in_double_dual_map : E →L[𝕜] (dual 𝕜 (dual 𝕜 E)) :=
+def inclusion_in_double_dual : E →L[𝕜] (dual 𝕜 (dual 𝕜 E)) :=
 linear_map.mk_continuous
-  { to_fun := λ (x : E), (inclusion_in_double_dual 𝕜 E) x,
+  { to_fun := λ (x : E), (inclusion_in_double_dual' 𝕜 E) x,
     add    := λ x y, by { ext, simp },
     smul   := λ (c : 𝕜) x, by { ext, simp } }
   1
@@ -62,12 +64,12 @@ variables (E : Type*) [normed_group E] [normed_space ℝ E]
 
 /-- The inclusion of a real normed space in its double dual is an isometry onto its image.-/
 lemma inclusion_in_double_dual_isometry (x : E) (h : vector_space.dim ℝ E > 0) :
-  ∥inclusion_in_double_dual_map ℝ E x∥ = ∥x∥ :=
+  ∥inclusion_in_double_dual ℝ E x∥ = ∥x∥ :=
 begin
   refine le_antisymm_iff.mpr ⟨double_dual_bound ℝ E x, _⟩,
   rw continuous_linear_map.norm_def,
   apply real.lb_le_Inf _ continuous_linear_map.bounds_nonempty,
-  intros c, simp, intros h₁ h₂,
+  intros c, simp only [and_imp, set.mem_set_of_eq], intros h₁ h₂,
   cases exists_dual_vector' h x with f hf,
   calc ∥x∥ = f x : hf.2.symm
   ... ≤ ∥f x∥ : le_max_left (f x) (-f x)
@@ -78,3 +80,5 @@ end
 -- TODO: This is also true over ℂ.
 
 end real
+
+end normed_space

@@ -1049,13 +1049,13 @@ variables (R) (M)
 
 /-- Given an element `x` of a module `M` over `R`, the natural map from
     `R` to scalar multiples of `x`.-/
-def span_singleton (x : M) : R →ₗ[R] M := linear_map.id.smul_right x
+def to_span_singleton (x : M) : R →ₗ[R] M := linear_map.id.smul_right x
 
-/-- The range of `span_singleton x` is the span of `x`.-/
-lemma span_singleton_eq_range (x : M) : span R {x} = (span_singleton R M x).range :=
+/-- The range of `to_span_singleton x` is the span of `x`.-/
+lemma span_singleton_eq_range (x : M) : span R {x} = (to_span_singleton R M x).range :=
 submodule.ext $ λ y, by {refine iff.trans _ mem_range.symm, exact mem_span_singleton }
 
-lemma span_singleton_one (x : M) : span_singleton R M x 1 = x := one_smul _ _
+lemma to_span_singleton_one (x : M) : to_span_singleton R M x 1 = x := one_smul _ _
 
 end
 
@@ -1849,37 +1849,37 @@ open_locale classical
 /-- Given a nonzero element `x` of a vector space `M` over a field `K`, the natural
     map from `K` to the span of `x`, with invertibility check to consider it as an
     isomorphism.-/
-def span_nonzero_singleton (x : M) (h : x ≠ 0) : K ≃ₗ[K] (submodule.span K ({x} : set M)) :=
+def to_span_nonzero_singleton (x : M) (h : x ≠ 0) : K ≃ₗ[K] (submodule.span K ({x} : set M)) :=
 linear_equiv.trans
-  ( linear_equiv.of_injective (span_singleton K M x)
+  ( linear_equiv.of_injective (to_span_singleton K M x)
     begin
       ext c, split,
       { intros hc, rw submodule.mem_bot, rw mem_ker at hc, by_contra hc',
         have : x = 0,
           calc x = c⁻¹ • (c • x) : by rw [← mul_smul, inv_mul_cancel hc', one_smul]
-          ... = c⁻¹ • ((span_singleton K M x) c) : rfl
+          ... = c⁻¹ • ((to_span_singleton K M x) c) : rfl
           ... = 0 : by rw [hc, smul_zero],
         tauto },
       { rw [mem_ker, submodule.mem_bot], intros h, rw h, simp }
     end )
-  (of_eq (span_singleton K M x).range (submodule.span K {x}) (span_singleton_eq_range K M x).symm)
+  (of_eq (to_span_singleton K M x).range (submodule.span K {x}) (span_singleton_eq_range K M x).symm)
 
-lemma span_nonzero_singleton_one (x : M) (h : x ≠ 0) : span_nonzero_singleton K M x h 1
+lemma to_span_nonzero_singleton_one (x : M) (h : x ≠ 0) : to_span_nonzero_singleton K M x h 1
   = (⟨x, submodule.mem_span_singleton_self x⟩ : submodule.span K ({x} : set M)) :=
 begin
   apply submodule.coe_eq_coe.mp,
-  have : ↑(span_nonzero_singleton K M x h 1) = span_singleton K M x 1 := rfl,
-  rw [this, span_singleton_one, submodule.coe_mk],
+  have : ↑(to_span_nonzero_singleton K M x h 1) = to_span_singleton K M x 1 := rfl,
+  rw [this, to_span_singleton_one, submodule.coe_mk],
 end
 
 /-- Given a nonzero element `x` of a vector space `M` over a field `K`, the natural map
     from the span of `x` to `K`.-/
 abbreviation coord (x : M) (h : x ≠ 0) : (submodule.span K ({x} : set M)) ≃ₗ[K] K :=
-(span_nonzero_singleton K M x h).symm
+(to_span_nonzero_singleton K M x h).symm
 
 lemma coord_self (x : M) (h : x ≠ 0) : (coord K M x h) ( ⟨x, submodule.mem_span_singleton_self x⟩ :
   submodule.span K ({x} : set M)) = 1 :=
-by rw [← span_nonzero_singleton_one K M x h, symm_apply_apply]
+by rw [← to_span_nonzero_singleton_one K M x h, symm_apply_apply]
 
 end
 

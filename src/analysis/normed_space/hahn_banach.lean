@@ -53,12 +53,10 @@ open_locale classical
 
 lemma coord_self' (x : E) (h : x ≠ 0) : (∥x∥ • (coord ℝ x h))
   ⟨x, submodule.mem_span_singleton_self x⟩ = ∥x∥ :=
-begin
-  calc (∥x∥ • (coord ℝ x h)) ⟨x, submodule.mem_span_singleton_self x⟩
-      = ∥x∥ • (linear_equiv.coord ℝ E x h) ⟨x, submodule.mem_span_singleton_self x⟩ : rfl
-  ... = ∥x∥ • 1 : by rw linear_equiv.coord_self ℝ E x h
-  ... = ∥x∥ : mul_one _,
-end
+calc (∥x∥ • (coord ℝ x h)) ⟨x, submodule.mem_span_singleton_self x⟩
+    = ∥x∥ • (linear_equiv.coord ℝ E x h) ⟨x, submodule.mem_span_singleton_self x⟩ : rfl
+... = ∥x∥ • 1 : by rw linear_equiv.coord_self ℝ E x h
+... = ∥x∥ : mul_one _
 
 lemma coord_norm' (x : E) (h : x ≠ 0) : ∥∥x∥ • coord ℝ x h∥ = 1 :=
 by rw [norm_smul, norm_norm, coord_norm, mul_inv_cancel (mt norm_eq_zero.mp h)]
@@ -82,9 +80,9 @@ end
 theorem exists_dual_vector' (h : vector_space.dim ℝ E > 0) (x : E) : ∃ g : E →L[ℝ] ℝ,
   ∥g∥ = 1 ∧ g x = ∥x∥ :=
 begin
-  cases dec_em (x = 0) with hx hx,
+  by_cases hx : x = 0,
   { cases exists_mem_ne_zero_of_dim_pos' h with y hy,
-    cases exists_dual_vector y hy with g hg, use g, refine ⟨hg.left, _⟩, rw hx, simp },
+    cases exists_dual_vector y hy with g hg, use g, refine ⟨hg.left, _⟩, simp [hx] },
   { exact exists_dual_vector x hx }
 end
 

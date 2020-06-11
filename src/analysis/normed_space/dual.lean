@@ -42,8 +42,9 @@ linear_map.mk_continuous
 
 lemma double_dual_bound (x : E) : ∥(inclusion_in_double_dual 𝕜 E) x∥ ≤ ∥x∥ :=
 begin
-  apply continuous_linear_map.op_norm_le_bound, simp,
-  intros f, rw mul_comm, exact f.le_op_norm x,
+  apply continuous_linear_map.op_norm_le_bound, 
+  { simp },
+  { intros f, rw mul_comm, exact f.le_op_norm x, }
 end
 
 /-- The inclusion of a normed space in its double (topological) dual, considered

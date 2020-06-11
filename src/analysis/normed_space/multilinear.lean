@@ -489,13 +489,13 @@ begin
   -- Next, we show that this `F` is multilinear,
   let Fmult : multilinear_map 𝕜 E₁ E₂ :=
   { to_fun := F,
-    add := λ v i x y, begin
+    map_add' := λ v i x y, begin
       have A := hF (function.update v i (x + y)),
       have B := (hF (function.update v i x)).add (hF (function.update v i y)),
       simp at A B,
       exact tendsto_nhds_unique filter.at_top_ne_bot A B
     end,
-    smul := λ v i c x, begin
+    map_smul' := λ v i c x, begin
       have A := hF (function.update v i (c • x)),
       have B := filter.tendsto.smul (@tendsto_const_nhds _ ℕ _ c _) (hF (function.update v i x)),
       simp at A B,
@@ -594,8 +594,8 @@ ones. We register this bijection as a linear equivalence in
 protected def pi_field_equiv_aux : E₂ ≃ₗ[𝕜] (continuous_multilinear_map 𝕜 (λ(i : ι), 𝕜) E₂) :=
 { to_fun    := λ z, continuous_multilinear_map.mk_pi_field 𝕜 ι z,
   inv_fun   := λ f, f (λi, 1),
-  add       := λ z z', by { ext m, simp [smul_add] },
-  smul      := λ c z, by { ext m, simp [smul_smul, mul_comm] },
+  map_add'  := λ z z', by { ext m, simp [smul_add] },
+  map_smul' := λ c z, by { ext m, simp [smul_smul, mul_comm] },
   left_inv  := λ z, by simp,
   right_inv := λ f, f.mk_pi_ring_apply_one_eq_self }
 
@@ -696,10 +696,12 @@ def continuous_multilinear_map.curry_left
   (f : continuous_multilinear_map 𝕜 E E₂) :
   E 0 →L[𝕜] (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) E₂) :=
 linear_map.mk_continuous
-{ -- define a linear map into `n` continuous multilinear maps from an `n+1` continuous multilinear map
-  to_fun := λx, (f.to_multilinear_map.curry_left x).mk_continuous (∥f∥ * ∥x∥) (f.norm_map_cons_le x),
-  add    := λx y, by { ext m, exact f.cons_add m x y },
-  smul   := λc x, by { ext m, exact f.cons_smul m c x } }
+{ -- define a linear map into `n` continuous multilinear maps from an `n+1` continuous multilinear
+  -- map
+  to_fun    := λx, (f.to_multilinear_map.curry_left x).mk_continuous
+    (∥f∥ * ∥x∥) (f.norm_map_cons_le x),
+  map_add'  := λx y, by { ext m, exact f.cons_add m x y },
+  map_smul' := λc x, by { ext m, exact f.cons_smul m c x } }
   -- then register its continuity thanks to its boundedness properties.
 (∥f∥) (λx, multilinear_map.mk_continuous_norm_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _)
 
@@ -757,8 +759,8 @@ def continuous_multilinear_curry_left_equiv_aux :
   (E 0 →L[𝕜] (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) E₂)) ≃ₗ[𝕜]
   (continuous_multilinear_map 𝕜 E E₂) :=
 { to_fun    := continuous_linear_map.uncurry_left,
-  add       := λf₁ f₂, by { ext m, refl },
-  smul      := λc f, by { ext m, refl },
+  map_add'  := λf₁ f₂, by { ext m, refl },
+  map_smul' := λc f, by { ext m, refl },
   inv_fun   := continuous_multilinear_map.curry_left,
   left_inv  := continuous_linear_map.curry_uncurry_left,
   right_inv := continuous_multilinear_map.uncurry_curry_left }
@@ -807,9 +809,9 @@ def continuous_multilinear_map.uncurry_right
   (f : continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂)) :
   continuous_multilinear_map 𝕜 E E₂ :=
 let f' : multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →ₗ[𝕜] E₂) :=
-{ to_fun := λ m, (f m).to_linear_map,
-  add    := λ m i x y, by { simp, refl },
-  smul   := λ m i c x, by { simp, refl } } in
+{ to_fun    := λ m, (f m).to_linear_map,
+  map_add'  := λ m i x y, by { simp, refl },
+  map_smul' := λ m i c x, by { simp, refl } } in
 (@multilinear_map.uncurry_right 𝕜 n E E₂ _ _ _ _ _ f').mk_continuous
   (∥f∥) (λm, f.norm_map_init_le m)
 
@@ -824,10 +826,10 @@ def continuous_multilinear_map.curry_right
   (f : continuous_multilinear_map 𝕜 E E₂) :
   continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂) :=
 let f' : multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂) :=
-{ to_fun := λm, (f.to_multilinear_map.curry_right m).mk_continuous
+{ to_fun    := λm, (f.to_multilinear_map.curry_right m).mk_continuous
     (∥f∥ * univ.prod (λ(i : fin n), ∥m i∥)) $ λx, f.norm_map_snoc_le m x,
-  add  := λ m i x y, by { simp, refl },
-  smul := λ m i c x, by { simp, refl } } in
+  map_add'  := λ m i x y, by { simp, refl },
+  map_smul' := λ m i c x, by { simp, refl } } in
 f'.mk_continuous (∥f∥) (λm, linear_map.mk_continuous_norm_le _
   (mul_nonneg (norm_nonneg _) (prod_nonneg (λj hj, norm_nonneg _))) _)
 
@@ -885,8 +887,8 @@ def continuous_multilinear_curry_right_equiv_aux :
   (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂)) ≃ₗ[𝕜]
   (continuous_multilinear_map 𝕜 E E₂) :=
 { to_fun    := continuous_multilinear_map.uncurry_right,
-  add       := λf₁ f₂, by { ext m, refl },
-  smul      := λc f, by { ext m, refl },
+  map_add'  := λf₁ f₂, by { ext m, refl },
+  map_smul' := λc f, by { ext m, refl },
   inv_fun   := continuous_multilinear_map.curry_right,
   left_inv  := continuous_multilinear_map.curry_uncurry_right,
   right_inv := continuous_multilinear_map.uncurry_curry_right }
@@ -949,10 +951,10 @@ variables (𝕜 G)
 variables taking the (unique) value `x` -/
 def continuous_multilinear_map.curry0 (x : E₂) :
   continuous_multilinear_map 𝕜 (λ (i : fin 0), G) E₂ :=
-{ to_fun := λm, x,
-  add    := λ m i, fin.elim0 i,
-  smul   := λ m i, fin.elim0 i,
-  cont   := continuous_const }
+{ to_fun    := λm, x,
+  map_add'  := λ m i, fin.elim0 i,
+  map_smul' := λ m i, fin.elim0 i,
+  cont      := continuous_const }
 
 variable {G}
 @[simp] lemma continuous_multilinear_map.curry0_apply (x : E₂) (m : (fin 0) → G) :
@@ -1013,8 +1015,8 @@ def continuous_multilinear_curry_fin0_aux :
   (continuous_multilinear_map 𝕜 (λ (i : fin 0), G) E₂) ≃ₗ[𝕜] E₂ :=
 { to_fun    := λf, continuous_multilinear_map.uncurry0 f,
   inv_fun   := λf, continuous_multilinear_map.curry0 𝕜 G f,
-  add       := λf g, rfl,
-  smul      := λc f, rfl,
+  map_add'  := λf g, rfl,
+  map_smul' := λc f, rfl,
   left_inv  := continuous_multilinear_map.uncurry0_curry0,
   right_inv := continuous_multilinear_map.curry0_uncurry0 𝕜 G }
 

@@ -78,10 +78,6 @@ matrix.eval.map_zero
 @[simp] lemma to_lin_neg (M : matrix m n R) : (-M).to_lin = -M.to_lin :=
 @linear_map.map_neg _ _ ((n → R) →ₗ[R] m → R) _ _ _ _ _ matrix.eval M
 
-instance to_lin.is_linear_map :
-  @is_linear_map R (matrix m n R) ((n → R) →ₗ[R] (m → R)) _ _ _ _ _ to_lin :=
-matrix.eval.is_linear
-
 instance to_lin.is_add_monoid_hom :
   @is_add_monoid_hom (matrix m n R) ((n → R) →ₗ[R] (m → R)) _ _ to_lin :=
 { map_zero := to_lin_zero, map_add := to_lin_add }
@@ -136,12 +132,12 @@ begin
   rw [@std_basis_eq_single R _ _ _ 1] at he,
   cases (set.mem_range.mp he) with i h,
   ext j,
-  change ∑ k, (f.to_fun (λ l, ite (k = l) 1 0)) j * (e k) = _,
+  change ∑ k, (f (λ l, ite (k = l) 1 0)) j * (e k) = _,
   rw [←h],
   conv_lhs { congr, skip, funext,
-    rw [mul_comm, ←smul_eq_mul, ←pi.smul_apply, ←linear_map.smul],
+    rw [mul_comm, ←smul_eq_mul, ←pi.smul_apply, ←linear_map.map_smul],
     rw [show _ = ite (i = k) (1:R) 0, by convert single_apply],
-    rw [show f.to_fun (ite (i = k) (1:R) 0 • (λ l, ite (k = l) 1 0)) = ite (i = k) (f.to_fun _) 0,
+    rw [show f (ite (i = k) (1:R) 0 • (λ l, ite (k = l) 1 0)) = ite (i = k) (f _) 0,
       { split_ifs, { rw [one_smul] }, { rw [zero_smul], exact linear_map.map_zero f } }] },
   convert finset.sum_eq_single i _ _,
   { rw [if_pos rfl], convert rfl, ext, congr },
@@ -170,8 +166,8 @@ def linear_equiv_matrix' : ((n → R) →ₗ[R] (m → R)) ≃ₗ[R] matrix m n 
   inv_fun := to_lin,
   right_inv := λ _, to_lin_to_matrix,
   left_inv := λ _, to_matrix_to_lin,
-  add := to_matrixₗ.add,
-  smul := to_matrixₗ.smul }
+  map_add' := to_matrixₗ.map_add,
+  map_smul' := to_matrixₗ.map_smul }
 
 /-- Given a basis of two modules M₁ and M₂ over a commutative ring R, we get a linear equivalence
 between linear maps M₁ →ₗ M₂ and matrices over R indexed by the bases. -/
@@ -202,10 +198,10 @@ variables {R : Type v} {M : Type w} [ring R] [add_comm_group M] [module R M]
 The diagonal of a square matrix.
 -/
 def diag (n : Type u) (R : Type v) (M : Type w)
-  [ring R] [add_comm_group M] [module R M] [fintype n] : (matrix n n M) →ₗ[R] n → M := {
-  to_fun := λ A i, A i i,
-  add    := by { intros, ext, refl, },
-  smul   := by { intros, ext, refl, } }
+  [ring R] [add_comm_group M] [module R M] [fintype n] : (matrix n n M) →ₗ[R] n → M :=
+{ to_fun    := λ A i, A i i,
+  map_add'  := by { intros, ext, refl, },
+  map_smul' := by { intros, ext, refl, } }
 
 @[simp] lemma diag_apply (A : matrix n n M) (i : n) : diag n R M A i = A i i := rfl
 
@@ -218,10 +214,10 @@ def diag (n : Type u) (R : Type v) (M : Type w)
 The trace of a square matrix.
 -/
 def trace (n : Type u) (R : Type v) (M : Type w)
-  [ring R] [add_comm_group M] [module R M] [fintype n] : (matrix n n M) →ₗ[R] M := {
-  to_fun := λ A, ∑ i, diag n R M A i,
-  add    := by { intros, apply finset.sum_add_distrib, },
-  smul   := by { intros, simp [finset.smul_sum], } }
+  [ring R] [add_comm_group M] [module R M] [fintype n] : (matrix n n M) →ₗ[R] M :=
+{ to_fun    := λ A, ∑ i, diag n R M A i,
+  map_add'  := by { intros, apply finset.sum_add_distrib, },
+  map_smul' := by { intros, simp [finset.smul_sum], } }
 
 @[simp] lemma trace_diag (A : matrix n n M) : trace n R M A = ∑ i, diag n R M A i := rfl
 
@@ -352,7 +348,7 @@ def linear_equiv.alg_conj {R : Type v} [comm_ring R] {M₁ M₂ : Type*}
   [add_comm_group M₁] [module R M₁] [add_comm_group M₂] [module R M₂] (e : M₁ ≃ₗ[R] M₂) :
   module.End R M₁ ≃ₐ[R] module.End R M₂ :=
 { map_mul'  := λ f g, by apply e.arrow_congr_comp,
-  map_add'  := e.conj.add,
+  map_add'  := e.conj.map_add,
   commutes' := λ r, by { change e.conj (r • linear_map.id) = r • linear_map.id,
                          rw [linear_equiv.map_smul, linear_equiv.conj_id], },
   ..e.conj }

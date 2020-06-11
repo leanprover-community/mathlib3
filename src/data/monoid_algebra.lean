@@ -337,9 +337,9 @@ def group_smul.linear_map [group G] [comm_ring k]
   (V : Type u₃) [add_comm_group V] [module (monoid_algebra k G) V] (g : G) :
   (module.restrict_scalars k (monoid_algebra k G) V) →ₗ[k]
   (module.restrict_scalars k (monoid_algebra k G) V) :=
-{ to_fun := λ v, (single g (1 : k) • v : V),
-  add := λ x y, smul_add (single g (1 : k)) x y,
-  smul := λ c x,
+{ to_fun    := λ v, (single g (1 : k) • v : V),
+  map_add'  := λ x y, smul_add (single g (1 : k)) x y,
+  map_smul' := λ c x,
   by simp only [module.restrict_scalars_smul_def, coe_algebra_map, ←mul_smul, single_one_comm], }.
 
 @[simp]
@@ -361,8 +361,8 @@ include h
 /-- Build a `k[G]`-linear map from a `k`-linear map and evidence that it is `G`-equivariant. -/
 def equivariant_of_linear_of_comm : V →ₗ[monoid_algebra k G] W :=
 { to_fun := f,
-  add := λ v v', by simp,
-  smul := λ c v,
+  map_add' := λ v v', by simp,
+  map_smul' := λ c v,
   begin
   apply finsupp.induction c,
   { simp, },

@@ -143,9 +143,11 @@ multilinear map, called `q.comp_along_composition p c` below. -/
 def comp_along_composition_multilinear {n : ℕ}
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
   (c : composition n) : multilinear_map 𝕜 (λ i : fin n, E) G :=
-{ to_fun := λ v, q c.length (p.apply_composition c v),
-  add    := λ v i x y, by simp only [apply_composition_update, continuous_multilinear_map.map_add],
-  smul   := λ v i c x, by simp only [apply_composition_update, continuous_multilinear_map.map_smul] }
+{ to_fun    := λ v, q c.length (p.apply_composition c v),
+  map_add'  := λ v i x y, by simp only [apply_composition_update,
+    continuous_multilinear_map.map_add],
+  map_smul' := λ v i c x, by simp only [apply_composition_update,
+    continuous_multilinear_map.map_smul] }
 
 /-- The norm of `q.comp_along_composition_multilinear p c` is controlled by the product of
 the norms of the relevant bits of `q` and `p`. -/

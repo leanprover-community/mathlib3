@@ -38,7 +38,7 @@ lemma is_linear_map.with_bound
 /-- A continuous linear map satisfies `is_bounded_linear_map` -/
 lemma continuous_linear_map.is_bounded_linear_map (f : E →L[𝕜] F) : is_bounded_linear_map 𝕜 f :=
 { bound := f.bound,
-  ..f.to_linear_map }
+  ..f.to_linear_map.is_linear }
 
 namespace is_bounded_linear_map
 
@@ -165,8 +165,8 @@ lemma is_bounded_linear_map_prod_multilinear
   {E : ι → Type*} [∀i, normed_group (E i)] [∀i, normed_space 𝕜 (E i)] :
   is_bounded_linear_map 𝕜
   (λ p : (continuous_multilinear_map 𝕜 E F) × (continuous_multilinear_map 𝕜 E G), p.1.prod p.2) :=
-{ add := λ p₁ p₂, by { ext1 m, refl },
-  smul := λ c p, by { ext1 m, refl },
+{ map_add := λ p₁ p₂, by { ext1 m, refl },
+  map_smul := λ c p, by { ext1 m, refl },
   bound := ⟨1, zero_lt_one, λ p, begin
     rw one_mul,
     apply continuous_multilinear_map.op_norm_le_bound _ (norm_nonneg _) (λ m, _),
@@ -244,9 +244,9 @@ calc f (x, y - z) = f (x, y + (-1 : 𝕜) • z) : by simp [sub_eq_add_neg]
 
 lemma is_bounded_bilinear_map.is_bounded_linear_map_left (h : is_bounded_bilinear_map 𝕜 f) (y : F) :
   is_bounded_linear_map 𝕜 (λ x, f (x, y)) :=
-{ add   := λ x x', h.add_left _ _ _,
-  smul  := λ c x, h.smul_left _ _ _,
-  bound := begin
+{ map_add  := λ x x', h.add_left _ _ _,
+  map_smul := λ c x, h.smul_left _ _ _,
+  bound    := begin
     rcases h.bound with ⟨C, C_pos, hC⟩,
     refine ⟨C * (∥y∥ + 1), mul_pos C_pos (lt_of_lt_of_le (zero_lt_one) (by simp)), λ x, _⟩,
     have : ∥y∥ ≤ ∥y∥ + 1, by simp [zero_le_one],
@@ -258,9 +258,9 @@ lemma is_bounded_bilinear_map.is_bounded_linear_map_left (h : is_bounded_bilinea
 
 lemma is_bounded_bilinear_map.is_bounded_linear_map_right (h : is_bounded_bilinear_map 𝕜 f) (x : E) :
   is_bounded_linear_map 𝕜 (λ y, f (x, y)) :=
-{ add   := λ y y', h.add_right _ _ _,
-  smul  := λ c y, h.smul_right _ _ _,
-  bound := begin
+{ map_add  := λ y y', h.add_right _ _ _,
+  map_smul := λ c y, h.smul_right _ _ _,
+  bound    := begin
     rcases h.bound with ⟨C, C_pos, hC⟩,
     refine ⟨C * (∥x∥ + 1), mul_pos C_pos (lt_of_lt_of_le (zero_lt_one) (by simp)), λ y, _⟩,
     have : ∥x∥ ≤ ∥x∥ + 1, by simp [zero_le_one],
@@ -357,12 +357,12 @@ is indeed the derivative of `f` is proved in `is_bounded_bilinear_map.has_fderiv
 def is_bounded_bilinear_map.linear_deriv (h : is_bounded_bilinear_map 𝕜 f) (p : E × F) :
   (E × F) →ₗ[𝕜] G :=
 { to_fun := λq, f (p.1, q.2) + f (q.1, p.2),
-  add := λq₁ q₂, begin
+  map_add' := λq₁ q₂, begin
     change f (p.1, q₁.2 + q₂.2) + f (q₁.1 + q₂.1, p.2) =
       f (p.1, q₁.2) + f (q₁.1, p.2) + (f (p.1, q₂.2) + f (q₂.1, p.2)),
     simp [h.add_left, h.add_right], abel
   end,
-  smul := λc q, begin
+  map_smul' := λc q, begin
     change f (p.1, c • q.2) + f (c • q.1, p.2) = c • (f (p.1, q.2) + f (q.1, p.2)),
     simp [h.smul_left, h.smul_right, smul_add]
   end }

@@ -765,8 +765,8 @@ variables (α β)
 /-- The uniform and dense embedding of L1 simple functions into L1 functions. -/
 def coe_to_l1 : (α →₁ₛ β) →L[𝕜] (α →₁ β) :=
 { to_fun := (coe : (α →₁ₛ β) → (α →₁ β)),
-  add := λf g, rfl,
-  smul := λk f, rfl,
+  map_add' := λf g, rfl,
+  map_smul' := λk f, rfl,
   cont := l1.simple_func.uniform_continuous.continuous, }
 
 variables {α β 𝕜}

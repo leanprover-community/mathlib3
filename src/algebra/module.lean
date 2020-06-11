@@ -274,7 +274,7 @@ variables (f g : M →ₗ[R] M₂)
 
 @[simp] lemma to_fun_eq_coe : f.to_fun = ⇑f := rfl
 
-theorem is_linear : is_linear_map R f := {..f}
+theorem is_linear : is_linear_map R f := ⟨f.2, f.3⟩
 
 variables {f g}
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
@@ -379,10 +379,6 @@ include M M₂ lin
 
 lemma map_zero : f (0 : M) = (0 : M₂) := (lin.mk' f).map_zero
 
-lemma map_add : ∀ x y, f (x + y) = f x + f y := lin.add
-
-lemma map_smul (c : R) (x : M) : f (c • x) = c • f x := (lin.mk' f).map_smul c x
-
 end add_comm_monoid
 
 section add_comm_group
@@ -410,6 +406,8 @@ end is_linear_map
 abbreviation module.End (R : Type u) (M : Type v)
   [semiring R] [add_comm_monoid M] [semimodule R M] := M →ₗ[R] M
 
+set_option old_structure_cmd true
+
 /-- A submodule of a module is one which is closed under vector operations.
   This is a sufficient condition for the subset of vectors in the submodule
   to themselves form a module. -/
@@ -435,19 +433,21 @@ protected theorem «exists» {q : p → Prop} : (∃ x, q x) ↔ (∃ x ∈ p, q
 
 protected theorem «forall» {q : p → Prop} : (∀ x, q x) ↔ (∀ x ∈ p, q ⟨x, ‹_›⟩) := set_coe.forall
 
+theorem ext' : injective (coe : submodule R M → set M) :=
+λ p q h, by cases p; cases q; congr'
+
+@[simp, norm_cast] theorem coe_set_eq : (p : set M) = q ↔ p = q := ext'.eq_iff
+
+theorem ext'_iff : p = q ↔ (p : set M) = q := coe_set_eq.symm
+
+@[ext] theorem ext (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := ext' $ set.ext h
+
 theorem to_add_submonoid_injective :
   injective (to_add_submonoid : submodule R M → add_submonoid M) :=
-λ p q h, by cases p; cases q; congr'
+λ p q h, ext'_iff.2 $ add_submonoid.ext'_iff.1 h
 
 @[simp] theorem to_add_submonoid_eq : p.to_add_submonoid = q.to_add_submonoid ↔ p = q :=
 to_add_submonoid_injective.eq_iff
-
-theorem ext' : injective (coe : submodule R M → set M) :=
-λ p q h, to_add_submonoid_injective $ add_submonoid.ext' h
-
-@[simp, norm_cast] theorem coe_set_eq : (p : set M) = q ↔ p = q:= ext'.eq_iff
-
-@[ext] theorem ext (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := ext' $ set.ext h
 
 end submodule
 
@@ -544,15 +544,8 @@ instance : has_neg p := ⟨λx, ⟨-x.1, neg_mem _ x.2⟩⟩
 
 @[simp, norm_cast] lemma coe_neg (x : p) : ((-x : p) : M) = -x := rfl
 
-
-
 instance : add_comm_group p :=
-{ add := (+), zero := 0, neg := has_neg.neg, ..}
-
-instance submodule_is_add_subgroup : is_add_subgroup (p : set M) :=
-{ zero_mem := p.zero,
-  add_mem  := p.add,
-  neg_mem  := λ _, p.neg_mem }
+{ add := (+), zero := 0, neg := has_neg.neg, ..p.to_add_subgroup.to_add_comm_group }
 
 @[simp, norm_cast] lemma coe_sub (x y : p) : (↑(x - y) : M) = ↑x - ↑y := rfl
 

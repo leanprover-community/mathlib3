@@ -1343,8 +1343,8 @@ instance : module R (polynomial R) := add_monoid_algebra.module
 variable (R)
 def lcoeff (n : ℕ) : polynomial R →ₗ[R] R :=
 { to_fun := λ f, coeff f n,
-  add := λ f g, coeff_add f g n,
-  smul := λ r p, coeff_smul p r n }
+  map_add' := λ f g, coeff_add f g n,
+  map_smul' := λ r p, coeff_smul p r n }
 variable {R}
 
 @[simp] lemma lcoeff_apply (n : ℕ) (f : polynomial R) : lcoeff R n f = coeff f n := rfl
@@ -2473,9 +2473,9 @@ by { ext, simp only [coeff_derivative, mul_assoc, coeff_smul], }
 
 /-- The formal derivative of polynomials, as linear homomorphism. -/
 def derivative_lhom (R : Type*) [comm_ring R] : polynomial R →ₗ[R] polynomial R :=
-{ to_fun := derivative,
-  add    := λ p q, derivative_add,
-  smul   := λ r p, derivative_smul r p }
+{ to_fun    := derivative,
+  map_add'  := λ p q, derivative_add,
+  map_smul' := λ r p, derivative_smul r p }
 
 /-- If `f` is a polynomial over a field, and `a : K` satisfies `f' a ≠ 0`,
 then `f / (X - a)` is coprime with `X - a`.

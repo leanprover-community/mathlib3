@@ -426,7 +426,7 @@ begin
     rw [←dim_top, this, dim_bot] }
 end
 
-lemma dim_pos_iff_exists_ne_zero : vector_space.dim K V > 0 ↔ ∃ x : V, x ≠ 0 :=
+lemma dim_pos_iff_exists_ne_zero : 0 < vector_space.dim K V  ↔ ∃ x : V, x ≠ 0 :=
 begin
   rw ←not_iff_not,
   simpa using dim_zero_iff_forall_zero

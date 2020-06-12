@@ -610,7 +610,7 @@ begin
   exact (tendsto_inv hx)
 end
 
-namespace real
+end normed_field
 
 instance : normed_field ℝ :=
 { norm := λ x, abs x,
@@ -619,10 +619,6 @@ instance : normed_field ℝ :=
 
 instance : nondiscrete_normed_field ℝ :=
 { non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
-
-end real
-
-end normed_field
 
 /-- If a function converges to a nonzero value, its inverse converges to the inverse of this value.
 We use the name `tendsto.inv'` as `tendsto.inv` is already used in multiplicative topological

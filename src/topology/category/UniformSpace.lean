@@ -3,9 +3,6 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Patrick Massot, Scott Morrison
 -/
-
-import category_theory.concrete_category.unbundled_hom
-import category_theory.full_subcategory
 import category_theory.monad.limits
 import topology.uniform_space.completion
 import topology.category.Top.basic
@@ -23,7 +20,7 @@ universes u
 
 open category_theory
 
-/-- A (bundled) uniform spaces. -/
+/-- A (bundled) uniform space. -/
 @[reducible] def UniformSpace : Type (u+1) := bundled uniform_space
 
 namespace UniformSpace
@@ -33,7 +30,7 @@ instance (x : UniformSpace) : uniform_space x := x.str
 /-- Construct a bundled `UniformSpace` from the underlying type and the typeclass. -/
 def of (α : Type u) [uniform_space α] : UniformSpace := ⟨α⟩
 
-/-- The category instance on `UniformSpace`. -/
+/-- The information required to build morphisms for `UniformSpace`. -/
 instance concrete_category_uniform_continuous : unbundled_hom @uniform_continuous :=
 ⟨@uniform_continuous_id, @uniform_continuous.comp⟩
 
@@ -80,6 +77,10 @@ instance (X : CpltSepUniformSpace) : separated ((to_UniformSpace X).α) := CpltS
 def of (X : Type u) [uniform_space X] [complete_space X] [separated X] : CpltSepUniformSpace := ⟨X⟩
 
 /-- The category instance on `CpltSepUniformSpace`. -/
+instance category : category CpltSepUniformSpace :=
+induced_category.category to_UniformSpace
+
+/-- The concrete category instance on `CpltSepUniformSpace`. -/
 instance concrete_category : concrete_category CpltSepUniformSpace :=
 induced_category.concrete_category to_UniformSpace
 
@@ -97,15 +98,8 @@ open CpltSepUniformSpace
 noncomputable def completion_functor : UniformSpace ⥤ CpltSepUniformSpace :=
 { obj := λ X, CpltSepUniformSpace.of (completion X),
   map := λ X Y f, ⟨completion.map f.1, completion.uniform_continuous_map⟩,
-  map_comp' := λ X Y Z f g,
-  begin
-  apply subtype.eq,
-  dsimp,
-  rw ←completion.map_comp,
-  refl,
-  exact g.property,
-  exact f.property
-  end }.
+  map_id' := λ X, subtype.eq completion.map_id,
+  map_comp' := λ X Y Z f g, subtype.eq (completion.map_comp g.property f.property).symm, }.
 
 /-- The inclusion of any uniform spaces into its completion. -/
 def completion_hom (X : UniformSpace) :
@@ -142,8 +136,7 @@ adjunction.mk_of_hom_equiv
     right_inv := λ f,
     begin
       apply subtype.eq, funext x, cases f,
-      change completion.extension f_val _ = f_val x,
-      erw completion.extension_coe, assumption
+      exact @completion.extension_coe _ _ _ _ _ (CpltSepUniformSpace.separated _) f_property _
     end },
   hom_equiv_naturality_left_symm' := λ X X' Y f g,
   begin

@@ -2,10 +2,12 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
-
-Quotients -- extends the core library
 -/
 import logic.relator
+
+/-!
+# Quotients -- extends the core library
+-/
 
 variables {α : Sort*} {β : Sort*}
 
@@ -22,6 +24,8 @@ end setoid
 namespace quot
 variables {ra : α → α → Prop} {rb : β → β → Prop} {φ : quot ra → quot rb → Sort*}
 local notation `⟦`:max a `⟧` := quot.mk _ a
+
+instance [inhabited α] : inhabited (quot ra) := ⟨⟦default _⟧⟩
 
 protected def hrec_on₂ (qa : quot ra) (qb : quot rb) (f : ∀ a b, φ ⟦a⟧ ⟦b⟧)
   (ca : ∀ {b a₁ a₂}, ra a₁ a₂ → f a₁ b == f a₂ b)
@@ -49,6 +53,8 @@ namespace quotient
 variables [sa : setoid α] [sb : setoid β]
 variables {φ : quotient sa → quotient sb → Sort*}
 
+instance [inhabited α] : inhabited (quotient sa) := ⟨⟦default _⟧⟩
+
 protected def hrec_on₂ (qa : quotient sa) (qb : quotient sb) (f : ∀ a b, φ ⟦a⟧ ⟦b⟧)
   (c : ∀ a₁ b₁ a₂ b₂, a₁ ≈ a₂ → b₁ ≈ b₂ → f a₁ b₁ == f a₂ b₂) : φ qa qb :=
 quot.hrec_on₂ qa qb f
@@ -69,6 +75,13 @@ protected def map₂ (f : α → β → γ) (h : ((≈) ⇒ (≈) ⇒ (≈)) f f
   quotient sa → quotient sb → quotient sc :=
 quotient.lift₂ (λ x y, ⟦f x y⟧) (λ x₁ y₁ x₂ y₂ h₁ h₂, quot.sound $ h h₁ h₂)
 
+/-- A version of `quotient.map₂` using curly braces and unification. -/
+protected def map₂' {α : Sort*} {β : Sort*} {γ : Sort*}
+  {sa : setoid α} {sb : setoid β} {sc : setoid γ}
+  (f : α → β → γ) (h : ((≈) ⇒ (≈) ⇒ (≈)) f f) :
+  quotient sa → quotient sb → quotient sc :=
+quotient.map₂ f h
+
 end quotient
 
 @[simp] theorem quotient.eq [r : setoid α] {x y : α} : ⟦x⟧ = ⟦y⟧ ↔ x ≈ y :=
@@ -78,11 +91,13 @@ theorem forall_quotient_iff {α : Type*} [r : setoid α] {p : quotient r → Pro
   (∀a:quotient r, p a) ↔ (∀a:α, p ⟦a⟧) :=
 ⟨assume h x, h _, assume h a, a.induction_on h⟩
 
-@[simp] lemma quotient.lift_beta [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b) (x : α) :
-quotient.lift f h (quotient.mk x) = f x := rfl
+@[simp] lemma quotient.lift_beta [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b)
+  (x : α) :
+  quotient.lift f h (quotient.mk x) = f x := rfl
 
-@[simp] lemma quotient.lift_on_beta [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b) (x : α) :
-quotient.lift_on (quotient.mk x) f h = f x := rfl
+@[simp] lemma quotient.lift_on_beta [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b)
+  (x : α) :
+  quotient.lift_on (quotient.mk x) f h = f x := rfl
 
 /-- Choose an element of the equivalence class using the axiom of choice.
   Sound but noncomputable. -/
@@ -138,6 +153,8 @@ namespace trunc
 /-- Constructor for `trunc α` -/
 def mk (a : α) : trunc α := quot.mk _ a
 
+instance [inhabited α] : inhabited (trunc α) := ⟨mk (default _)⟩
+
 /-- Any constant function lifts to a function out of the truncation -/
 def lift (f : α → β) (c : ∀ a b : α, f a = f b) : trunc α → β :=
 quot.lift f (λ a b _, c a b)
@@ -157,8 +174,8 @@ protected theorem induction_on {β : trunc α → Prop} (q : trunc α)
 theorem exists_rep (q : trunc α) : ∃ a : α, mk a = q := quot.exists_rep q
 
 attribute [elab_as_eliminator]
-protected theorem induction_on₂
-   {C : trunc α → trunc β → Prop} (q₁ : trunc α) (q₂ : trunc β) (h : ∀ a b, C (mk a) (mk b)) : C q₁ q₂ :=
+protected theorem induction_on₂ {C : trunc α → trunc β → Prop} (q₁ : trunc α) (q₂ : trunc β)
+  (h : ∀ a b, C (mk a) (mk b)) : C q₁ q₂ :=
 trunc.induction_on q₁ $ λ a₁, trunc.induction_on q₂ (h a₁)
 
 protected theorem eq (a b : trunc α) : a = b :=
@@ -260,7 +277,8 @@ quotient.exact
 lemma sound' {a b : α} : @setoid.r _ s₁ a b → @quotient.mk' α s₁ a = quotient.mk' b :=
 quotient.sound
 
-@[simp] protected lemma eq' {a b : α} : @quotient.mk' α s₁ a = quotient.mk' b ↔ @setoid.r _ s₁ a b :=
+@[simp]
+protected lemma eq' {a b : α} : @quotient.mk' α s₁ a = quotient.mk' b ↔ @setoid.r _ s₁ a b :=
 quotient.eq
 
 noncomputable def out' (a : quotient s₁) : α := quotient.out a

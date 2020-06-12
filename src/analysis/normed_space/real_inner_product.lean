@@ -3,9 +3,9 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-
-import analysis.convex algebra.quadratic_discriminant analysis.complex.exponential
-       analysis.specific_limits
+import algebra.quadratic_discriminant
+import analysis.special_functions.pow
+import tactic.apply_fun
 import tactic.monotonicity
 
 
@@ -38,33 +38,41 @@ inner product space, norm, orthogonal projection
 *  [Clément & Martin, *The Lax-Milgram Theorem. A detailed proof to be formalized in Coq*]
 *  [Clément & Martin, *A Coq formal proof of the Lax–Milgram theorem*]
 
-The Coq code is available at the following address: http://www.lri.fr/~sboldo/elfic/index.html
+The Coq code is available at the following address: <http://www.lri.fr/~sboldo/elfic/index.html>
 -/
 
 noncomputable theory
 
-open real set lattice
+open real set
+open_locale big_operators
+open_locale topological_space
 
 universes u v w
 
 variables {α : Type u} {F : Type v} {G : Type w}
 
+
 class has_inner (α : Type*) := (inner : α → α → ℝ)
 
 export has_inner (inner)
 
+section prio
+
+set_option default_priority 100 -- see Note [default priority]
+-- see Note[vector space definition] for why we extend `module`.
 /--
 An inner product space is a real vector space with an additional operation called inner product.
 Inner product spaces over complex vector space will be defined in another file.
 -/
-class inner_product_space (α : Type*) extends add_comm_group α, vector_space ℝ α, has_inner α :=
+class inner_product_space (α : Type*) extends add_comm_group α, semimodule ℝ α, has_inner α :=
 (comm      : ∀ x y, inner x y = inner y x)
 (nonneg    : ∀ x, 0 ≤ inner x x)
 (definite  : ∀ x, inner x x = 0 → x = 0)
 (add_left  : ∀ x y z, inner (x + y) z = inner x z + inner y z)
 (smul_left : ∀ x y r, inner (r • x) y = r * inner x y)
+end prio
 
-variable [inner_product_space α]
+variables [inner_product_space α]
 
 section basic_properties
 
@@ -90,8 +98,12 @@ by { rw [← zero_smul ℝ (0:α), inner_smul_left, zero_mul] }
 @[simp] lemma inner_zero_right {x : α} : inner x 0 = 0 :=
 by { rw [inner_comm, inner_zero_left] }
 
-lemma inner_self_eq_zero (x : α) : inner x x = 0 ↔ x = 0 :=
+@[simp] lemma inner_self_eq_zero {x : α} : inner x x = 0 ↔ x = 0 :=
 iff.intro (inner_product_space.definite _) (by { rintro rfl, exact inner_zero_left })
+
+@[simp] lemma inner_self_nonpos {x : α} : inner x x ≤ 0 ↔ x = 0 :=
+⟨λ h, inner_self_eq_zero.1 (le_antisymm h inner_self_nonneg),
+  λ h, h.symm ▸ le_of_eq inner_zero_left⟩
 
 @[simp] lemma inner_neg_left {x y : α} : inner (-x) y = -inner x y :=
 by { rw [← neg_one_smul ℝ x, inner_smul_left], simp }
@@ -109,16 +121,19 @@ by { simp [sub_eq_add_neg, inner_add_right] }
 
 /-- Expand `inner (x + y) (x + y)` -/
 lemma inner_add_add_self {x y : α} : inner (x + y) (x + y) = inner x x + 2 * inner x y + inner y y :=
-by { simpa [inner_add_left, inner_add_right, two_mul] using inner_comm _ _ }
+by simpa [inner_add_left, inner_add_right, two_mul, add_assoc] using inner_comm _ _
 
 /-- Expand `inner (x - y) (x - y)` -/
 lemma inner_sub_sub_self {x y : α} : inner (x - y) (x - y) = inner x x - 2 * inner x y + inner y y :=
-by { simp only [inner_sub_left, inner_sub_right, two_mul], simpa using inner_comm _ _ }
+begin
+  simp only [inner_sub_left, inner_sub_right, two_mul],
+  simpa [sub_eq_add_neg, add_comm, add_left_comm] using inner_comm _ _
+end
 
 /-- Parallelogram law -/
 lemma parallelogram_law {x y : α} :
   inner (x + y) (x + y) + inner (x - y) (x - y) = 2 * (inner x x + inner y y) :=
-by { simp [inner_add_add_self, inner_sub_sub_self, two_mul] }
+by simp [inner_add_add_self, inner_sub_sub_self, two_mul, sub_eq_add_neg, add_comm, add_left_comm]
 
 /-- Cauchy–Schwarz inequality -/
 lemma inner_mul_inner_self_le (x y : α) : inner x y * inner x y ≤ inner x x * inner y y :=
@@ -140,11 +155,13 @@ end basic_properties
 section norm
 
 /-- An inner product naturally induces a norm. -/
+@[priority 100] -- see Note [lower instance priority]
 instance inner_product_space_has_norm : has_norm α := ⟨λx, sqrt (inner x x)⟩
 
 lemma norm_eq_sqrt_inner {x : α} : ∥x∥ = sqrt (inner x x) := rfl
 
-lemma inner_self_eq_norm_square (x : α) : inner x x = ∥x∥ * ∥x∥ := (mul_self_sqrt inner_self_nonneg).symm
+lemma inner_self_eq_norm_square (x : α) : inner x x = ∥x∥ * ∥x∥ :=
+(mul_self_sqrt inner_self_nonneg).symm
 
 /-- Expand the square -/
 lemma norm_add_pow_two {x y : α} : ∥x + y∥^2 = ∥x∥^2 + 2 * inner x y + ∥y∥^2 :=
@@ -177,11 +194,65 @@ lemma parallelogram_law_with_norm {x y : α} :
   ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
 by { simp only [(inner_self_eq_norm_square _).symm], exact parallelogram_law }
 
+/-- The inner product, in terms of the norm. -/
+lemma inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two (x y : α) :
+  inner x y = (∥x + y∥ * ∥x + y∥ - ∥x∥ * ∥x∥ - ∥y∥ * ∥y∥) / 2 :=
+begin
+  rw norm_add_mul_self,
+  ring
+end
+
+/-- The inner product, in terms of the norm. -/
+lemma inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two (x y : α) :
+  inner x y = (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ - ∥x - y∥ * ∥x - y∥) / 2 :=
+begin
+  rw norm_sub_mul_self,
+  ring
+end
+
+/-- The inner product, in terms of the norm. -/
+lemma inner_eq_norm_add_mul_self_sub_norm_sub_mul_self_div_four (x y : α) :
+  inner x y = (∥x + y∥ * ∥x + y∥ - ∥x - y∥ * ∥x - y∥) / 4 :=
+begin
+  rw [norm_add_mul_self, norm_sub_mul_self],
+  ring
+end
+
+/-- Pythagorean theorem, if-and-only-if vector inner product form. -/
+lemma norm_add_square_eq_norm_square_add_norm_square_iff_inner_eq_zero (x y : α) :
+  ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ ↔ inner x y = 0 :=
+begin
+  rw [norm_add_mul_self, add_right_cancel_iff, add_right_eq_self, mul_eq_zero],
+  norm_num
+end
+
+/-- Pythagorean theorem, vector inner product form. -/
+lemma norm_add_square_eq_norm_square_add_norm_square {x y : α} (h : inner x y = 0) :
+  ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
+(norm_add_square_eq_norm_square_add_norm_square_iff_inner_eq_zero x y).2 h
+
+/-- Pythagorean theorem, subtracting vectors, if-and-only-if vector
+inner product form. -/
+lemma norm_sub_square_eq_norm_square_add_norm_square_iff_inner_eq_zero (x y : α) :
+  ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ ↔ inner x y = 0 :=
+begin
+  rw [norm_sub_mul_self, add_right_cancel_iff, sub_eq_add_neg, add_right_eq_self, neg_eq_zero,
+      mul_eq_zero],
+  norm_num
+end
+
+/-- Pythagorean theorem, subtracting vectors, vector inner product
+form. -/
+lemma norm_sub_square_eq_norm_square_add_norm_square {x y : α} (h : inner x y = 0) :
+  ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
+(norm_sub_square_eq_norm_square_add_norm_square_iff_inner_eq_zero x y).2 h
+
 /-- An inner product space forms a normed group w.r.t. its associated norm. -/
+@[priority 100] -- see Note [lower instance priority]
 instance inner_product_space_is_normed_group : normed_group α :=
 normed_group.of_core α
 { norm_eq_zero_iff := assume x, iff.intro
-    (λ h : sqrt (inner x x) = 0, (inner_self_eq_zero x).1 $ (sqrt_eq_zero inner_self_nonneg).1 h )
+    (λ h : sqrt (inner x x) = 0, inner_self_eq_zero.1 $ (sqrt_eq_zero inner_self_nonneg).1 h )
     (by {rintro rfl, show sqrt (inner (0:α) 0) = 0, simp }),
   triangle := assume x y,
   begin
@@ -197,7 +268,7 @@ normed_group.of_core α
 
 /-- An inner product space forms a normed space over reals w.r.t. its associated norm. -/
 instance inner_product_space_is_normed_space : normed_space ℝ α :=
-{ norm_smul := assume r x,
+{ norm_smul_le := assume r x, le_of_eq $
   begin
     rw [norm_eq_sqrt_inner, sqrt_eq_iff_mul_self_eq,
         inner_smul_left, inner_smul_right, inner_self_eq_norm_square],
@@ -208,7 +279,218 @@ instance inner_product_space_is_normed_space : normed_space ℝ α :=
     exact mul_nonneg (abs_nonneg _) (sqrt_nonneg _)
   end }
 
+/-- The inner product of two vectors, divided by the product of their
+norms, has absolute value at most 1. -/
+lemma abs_inner_div_norm_mul_norm_le_one (x y : α) : abs (inner x y / (∥x∥ * ∥y∥)) ≤ 1 :=
+begin
+  rw abs_div,
+  by_cases h : 0 = abs (∥x∥ * ∥y∥),
+  { rw [←h, div_zero],
+    norm_num },
+  { apply div_le_of_le_mul (lt_of_le_of_ne (ge_iff_le.mp (abs_nonneg (∥x∥ * ∥y∥))) h),
+    convert abs_inner_le_norm x y using 1,
+    rw [abs_mul, abs_of_nonneg (norm_nonneg x), abs_of_nonneg (norm_nonneg y), mul_one] }
+end
+
+/-- The inner product of a vector with a multiple of itself. -/
+lemma inner_smul_self_left (x : α) (r : ℝ) : inner (r • x) x = r * (∥x∥ * ∥x∥) :=
+by rw [inner_smul_left, ←inner_self_eq_norm_square]
+
+/-- The inner product of a vector with a multiple of itself. -/
+lemma inner_smul_self_right (x : α) (r : ℝ) : inner x (r • x) = r * (∥x∥ * ∥x∥) :=
+by rw [inner_smul_right, ←inner_self_eq_norm_square]
+
+/-- The inner product of a nonzero vector with a nonzero multiple of
+itself, divided by the product of their norms, has absolute value
+1. -/
+lemma abs_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul
+  {x : α} {r : ℝ} (hx : x ≠ 0) (hr : r ≠ 0) : abs (inner x (r • x) / (∥x∥ * ∥r • x∥)) = 1 :=
+begin
+  rw [inner_smul_self_right, norm_smul, real.norm_eq_abs, ←mul_assoc ∥x∥, mul_comm _ (abs r),
+      mul_assoc, abs_div, abs_mul r, abs_mul (abs r), abs_abs, div_self],
+  exact mul_ne_zero (λ h, hr (eq_zero_of_abs_eq_zero h))
+    (λ h, hx (norm_eq_zero.1 (eq_zero_of_mul_self_eq_zero (eq_zero_of_abs_eq_zero h))))
+end
+
+/-- The inner product of a nonzero vector with a positive multiple of
+itself, divided by the product of their norms, has value 1. -/
+lemma inner_div_norm_mul_norm_eq_one_of_ne_zero_of_pos_mul
+  {x : α} {r : ℝ} (hx : x ≠ 0) (hr : 0 < r) : inner x (r • x) / (∥x∥ * ∥r • x∥) = 1 :=
+begin
+  rw [inner_smul_self_right, norm_smul, real.norm_eq_abs, ←mul_assoc ∥x∥, mul_comm _ (abs r),
+      mul_assoc, abs_of_nonneg (le_of_lt hr), div_self],
+  exact mul_ne_zero (ne_of_gt hr)
+    (λ h, hx (norm_eq_zero.1 (eq_zero_of_mul_self_eq_zero h)))
+end
+
+/-- The inner product of a nonzero vector with a negative multiple of
+itself, divided by the product of their norms, has value -1. -/
+lemma inner_div_norm_mul_norm_eq_neg_one_of_ne_zero_of_neg_mul
+  {x : α} {r : ℝ} (hx : x ≠ 0) (hr : r < 0) : inner x (r • x) / (∥x∥ * ∥r • x∥) = -1 :=
+begin
+  rw [inner_smul_self_right, norm_smul, real.norm_eq_abs, ←mul_assoc ∥x∥, mul_comm _ (abs r),
+      mul_assoc, abs_of_neg hr, ←neg_mul_eq_neg_mul, div_neg_eq_neg_div, div_self],
+  exact mul_ne_zero (ne_of_lt hr)
+    (λ h, hx (norm_eq_zero.1 (eq_zero_of_mul_self_eq_zero h)))
+end
+
+/-- The inner product of two vectors, divided by the product of their
+norms, has absolute value 1 if and only if they are nonzero and one is
+a multiple of the other. One form of equality case for Cauchy-Schwarz. -/
+lemma abs_inner_div_norm_mul_norm_eq_one_iff (x y : α) :
+  abs (inner x y / (∥x∥ * ∥y∥)) = 1 ↔ (x ≠ 0 ∧ ∃ (r : ℝ), r ≠ 0 ∧ y = r • x) :=
+begin
+  split,
+  { intro h,
+    have hx0 : x ≠ 0,
+    { intro hx0,
+      rw [hx0, inner_zero_left, zero_div] at h,
+      norm_num at h,
+      exact h },
+    refine and.intro hx0 _,
+    set r := inner x y / (∥x∥ * ∥x∥) with hr,
+    use r,
+    set t := y - r • x with ht,
+    have ht0 : inner x t = 0,
+    { rw [ht, inner_sub_right, inner_smul_right, hr, ←inner_self_eq_norm_square,
+          div_mul_cancel _ (λ h, hx0 (inner_self_eq_zero.1 h)), sub_self] },
+    rw [←sub_add_cancel y (r • x), ←ht, inner_add_right, ht0, zero_add, inner_smul_right,
+        inner_self_eq_norm_square, ←mul_assoc, mul_comm,
+        mul_div_mul_left _ _ (λ h, hx0 (norm_eq_zero.1 h)), abs_div, abs_mul,
+        abs_of_nonneg (norm_nonneg _), abs_of_nonneg (norm_nonneg _), ←real.norm_eq_abs,
+        ←norm_smul] at h,
+    have hr0 : r ≠ 0,
+    { intro hr0,
+      rw [hr0, zero_smul, norm_zero, zero_div] at h,
+      norm_num at h },
+    refine and.intro hr0 _,
+    have h2 : ∥r • x∥ ^ 2 = ∥t + r • x∥ ^ 2,
+    { congr' 1,
+      refine eq_of_div_eq_one _ _ h,
+      intro h0,
+      rw [h0, div_zero] at h,
+      norm_num at h },
+    rw [pow_two, pow_two, ←inner_self_eq_norm_square, ←inner_self_eq_norm_square,
+        inner_add_add_self] at h2,
+    conv_rhs at h2 {
+      congr,
+      congr,
+      skip,
+      rw [inner_smul_right, inner_comm, ht0, mul_zero, mul_zero]
+    },
+    symmetry' at h2,
+    rw [add_zero, add_left_eq_self, inner_self_eq_zero] at h2,
+    rw h2 at ht,
+    exact eq_of_sub_eq_zero ht.symm },
+  { intro h,
+    rcases h with ⟨hx, ⟨r, ⟨hr, hy⟩⟩⟩,
+    rw hy,
+    exact abs_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul hx hr }
+end
+
+/-- The inner product of two vectors, divided by the product of their
+norms, has value 1 if and only if they are nonzero and one is
+a positive multiple of the other. -/
+lemma inner_div_norm_mul_norm_eq_one_iff (x y : α) :
+  inner x y / (∥x∥ * ∥y∥) = 1 ↔ (x ≠ 0 ∧ ∃ (r : ℝ), 0 < r ∧ y = r • x) :=
+begin
+  split,
+  { intro h,
+    have ha := h,
+    apply_fun abs at ha,
+    norm_num at ha,
+    rcases (abs_inner_div_norm_mul_norm_eq_one_iff x y).1 ha with ⟨hx, ⟨r, ⟨hr, hy⟩⟩⟩,
+    use [hx, r],
+    refine and.intro _ hy,
+    by_contradiction hrneg,
+    rw hy at h,
+    rw inner_div_norm_mul_norm_eq_neg_one_of_ne_zero_of_neg_mul hx
+      (lt_of_le_of_ne' (le_of_not_lt hrneg) hr) at h,
+    norm_num at h },
+  { intro h,
+    rcases h with ⟨hx, ⟨r, ⟨hr, hy⟩⟩⟩,
+    rw hy,
+    exact inner_div_norm_mul_norm_eq_one_of_ne_zero_of_pos_mul hx hr }
+end
+
+/-- The inner product of two vectors, divided by the product of their
+norms, has value -1 if and only if they are nonzero and one is
+a negative multiple of the other. -/
+lemma inner_div_norm_mul_norm_eq_neg_one_iff (x y : α) :
+  inner x y / (∥x∥ * ∥y∥) = -1 ↔ (x ≠ 0 ∧ ∃ (r : ℝ), r < 0 ∧ y = r • x) :=
+begin
+  split,
+  { intro h,
+    have ha := h,
+    apply_fun abs at ha,
+    norm_num at ha,
+    rcases (abs_inner_div_norm_mul_norm_eq_one_iff x y).1 ha with ⟨hx, ⟨r, ⟨hr, hy⟩⟩⟩,
+    use [hx, r],
+    refine and.intro _ hy,
+    by_contradiction hrpos,
+    rw hy at h,
+    rw inner_div_norm_mul_norm_eq_one_of_ne_zero_of_pos_mul hx
+      (lt_of_le_of_ne' (le_of_not_lt hrpos) hr.symm) at h,
+    norm_num at h },
+  { intro h,
+    rcases h with ⟨hx, ⟨r, ⟨hr, hy⟩⟩⟩,
+    rw hy,
+    exact inner_div_norm_mul_norm_eq_neg_one_of_ne_zero_of_neg_mul hx hr }
+end
+
 end norm
+
+-- TODO [Lean 3.15]: drop some of these `show`s
+/-- If `ι` is a finite type and each space `f i`, `i : ι`, is an inner product space,
+then `Π i, f i` is an inner product space as well. This is not an instance to avoid conflict
+with the default instance for the norm on `Π i, f i`. -/
+def pi.inner_product_space (ι : Type*) [fintype ι] (f : ι → Type*) [Π i, inner_product_space (f i)] :
+  inner_product_space (Π i, f i) :=
+{ inner := λ x y, ∑ i, inner (x i) (y i),
+  comm := λ x y, finset.sum_congr rfl $ λ i hi, inner_comm (x i) (y i),
+  nonneg := λ x, show (0:ℝ) ≤ ∑ i, inner (x i) (x i),
+    from finset.sum_nonneg (λ i hi, inner_self_nonneg),
+  definite := λ x h, begin
+    have : ∀ i ∈ (finset.univ : finset ι), 0 ≤ inner (x i) (x i) := λ i hi, inner_self_nonneg,
+    simpa [inner, finset.sum_eq_zero_iff_of_nonneg this, function.funext_iff] using h,
+  end,
+  add_left := λ x y z,
+    show ∑ i, inner (x i + y i) (z i) = ∑ i, inner (x i) (z i) + ∑ i, inner (y i) (z i),
+    by simp only [inner_add_left, finset.sum_add_distrib],
+  smul_left := λ x y r,
+    show ∑ (i : ι), inner (r • x i) (y i) = r * ∑ i, inner (x i) (y i),
+    by simp only [finset.mul_sum, inner_smul_left] }
+
+/-- The set of real numbers is an inner product space. While the norm given by this definition
+is equal to the default norm `∥x∥ = abs x`, it is not definitionally equal, so we don't turn this
+definition into an instance.
+
+TODO: do the same trick as with `metric_space` and `emetric_space`? -/
+def real.inner_product_space : inner_product_space ℝ :=
+{ inner := (*),
+  comm := mul_comm,
+  nonneg := mul_self_nonneg,
+  definite := λ x, mul_self_eq_zero.1,
+  add_left := add_mul,
+  smul_left := λ _ _ _, mul_assoc _ _ _ }
+
+section instances
+/-- The standard Euclidean space, functions on a finite type. For an `n`-dimensional space
+use `euclidean_space (fin n)`.  -/
+@[derive add_comm_group, nolint unused_arguments]
+def euclidean_space (n : Type*) [fintype n] : Type* := n → ℝ
+
+variables {n : Type*} [fintype n]
+
+instance : inhabited (euclidean_space n) := ⟨0⟩
+
+local attribute [instance] real.inner_product_space
+
+instance : inner_product_space (euclidean_space n) := pi.inner_product_space n (λ _, ℝ)
+
+lemma euclidean_space.inner_def (x y : euclidean_space n) : inner x y = ∑ i, x i * y i := rfl
+
+end instances
 
 section orthogonal
 
@@ -219,36 +501,37 @@ Existence of minimizers
 Let `u` be a point in an inner product space, and let `K` be a nonempty complete convex subset.
 Then there exists a unique `v` in `K` that minimizes the distance `∥u - v∥` to `u`.
  -/
-theorem exists_norm_eq_infi_of_complete_convex {K : set α} (ne : nonempty K) (h₁ : is_complete K)
+-- FIXME this monolithic proof causes a deterministic timeout with `-T50000`
+-- It should be broken in a sequence of more manageable pieces,
+-- perhaps with individual statements for the three steps below.
+theorem exists_norm_eq_infi_of_complete_convex {K : set α} (ne : K.nonempty) (h₁ : is_complete K)
   (h₂ : convex K) : ∀ u : α, ∃ v ∈ K, ∥u - v∥ = ⨅ w : K, ∥u - w∥ := assume u,
 begin
   let δ := ⨅ w : K, ∥u - w∥,
-  have zero_le_δ : 0 ≤ δ,
-    apply le_cinfi, intro, exact norm_nonneg _,
+  letI : nonempty K := ne.to_subtype,
+  have zero_le_δ : 0 ≤ δ := le_cinfi (λ _, norm_nonneg _),
   have δ_le : ∀ w : K, δ ≤ ∥u - w∥,
-    assume w, apply cinfi_le, use (0:ℝ), rintros _ ⟨_, rfl⟩, exact norm_nonneg _,
+    from cinfi_le ⟨0, forall_range_iff.2 $ λ _, norm_nonneg _⟩,
   have δ_le' : ∀ w ∈ K, δ ≤ ∥u - w∥ := assume w hw, δ_le ⟨w, hw⟩,
   -- Step 1: since `δ` is the infimum, can find a sequence `w : ℕ → K` in `K`
   -- such that `∥u - w n∥ < δ + 1 / (n + 1)` (which implies `∥u - w n∥ --> δ`);
   -- maybe this should be a separate lemma
   have exists_seq : ∃ w : ℕ → K, ∀ n, ∥u - w n∥ < δ + 1 / (n + 1),
-    have hδ : ∀n:ℕ, δ < δ + 1 / (n + 1), from
+  { have hδ : ∀n:ℕ, δ < δ + 1 / (n + 1), from
       λ n, lt_add_of_le_of_pos (le_refl _) nat.one_div_pos_of_nat,
-    have h := λ n, exists_lt_of_cinfi_lt ne (hδ n),
+    have h := λ n, exists_lt_of_cinfi_lt (hδ n),
     let w : ℕ → K := λ n, classical.some (h n),
-    exact ⟨w, λ n, classical.some_spec (h n)⟩,
+    exact ⟨w, λ n, classical.some_spec (h n)⟩ },
   rcases exists_seq with ⟨w, hw⟩,
-  have norm_tendsto : tendsto (λ n, ∥u - w n∥) at_top (nhds δ),
-    have h : tendsto (λ n:ℕ, δ) at_top (nhds δ),
-      exact tendsto_const_nhds,
-    have h' : tendsto (λ n:ℕ, δ + 1 / (n + 1)) at_top (nhds δ),
-      convert tendsto_add h tendsto_one_div_add_at_top_nhds_0_nat, simp only [add_zero],
+  have norm_tendsto : tendsto (λ n, ∥u - w n∥) at_top (𝓝 δ),
+  { have h : tendsto (λ n:ℕ, δ) at_top (𝓝 δ) := tendsto_const_nhds,
+    have h' : tendsto (λ n:ℕ, δ + 1 / (n + 1)) at_top (𝓝 δ),
+    { convert h.add tendsto_one_div_add_at_top_nhds_0_nat, simp only [add_zero] },
     exact tendsto_of_tendsto_of_tendsto_of_le_of_le h h'
-      (by { rw mem_at_top_sets, use 0, assume n hn, exact δ_le _ })
-      (by { rw mem_at_top_sets, use 0, assume n hn, exact le_of_lt (hw _) }),
+      (λ x, δ_le _) (λ x, le_of_lt (hw _)) },
   -- Step 2: Prove that the sequence `w : ℕ → K` is a Cauchy sequence
   have seq_is_cauchy : cauchy_seq (λ n, ((w n):α)),
-    rw cauchy_seq_iff_le_tendsto_0, -- splits into three goals
+  { rw cauchy_seq_iff_le_tendsto_0, -- splits into three goals
     let b := λ n:ℕ, (8 * δ * (1/(n+1)) + 4 * (1/(n+1)) * (1/(n+1))),
     use (λn, sqrt (b n)),
     split,
@@ -271,7 +554,8 @@ begin
         by { rw [norm_smul], refl }
       ... = ∥a + b∥ * ∥a + b∥ + ∥a - b∥ * ∥a - b∥ :
       begin
-        rw [smul_sub, smul_smul, mul_one_div_cancel two_ne_zero, ← one_add_one_eq_two, add_smul],
+        rw [smul_sub, smul_smul, mul_one_div_cancel (two_ne_zero : (2 : ℝ) ≠ 0),
+            ← one_add_one_eq_two, add_smul],
         simp only [one_smul],
         have eq₁ : wp - wq = a - b, show wp - wq = (u - wq) - (u - wp), abel,
         have eq₂ : u + u - (wq + wp) = a + b, show u + u - (wq + wp) = (u - wq) + (u - wp), abel,
@@ -279,13 +563,13 @@ begin
       end
       ... = 2 * (∥a∥ * ∥a∥ + ∥b∥ * ∥b∥) : parallelogram_law_with_norm,
     have eq : δ ≤ ∥u - half • (wq + wp)∥,
-      rw smul_add,
+    { rw smul_add,
       apply δ_le', apply h₂,
         repeat {exact subtype.mem _},
         repeat {exact le_of_lt one_half_pos},
-        exact add_halves 1,
+        exact add_halves 1 },
     have eq₁ : 4 * δ * δ ≤ 4 * ∥u - half • (wq + wp)∥ * ∥u - half • (wq + wp)∥,
-      mono, mono, norm_num, apply mul_nonneg, norm_num, exact norm_nonneg _,
+    {  mono, mono, norm_num, apply mul_nonneg, norm_num, exact norm_nonneg _ },
     have eq₂ : ∥a∥ * ∥a∥ ≤ (δ + div) * (δ + div) :=
       mul_self_le_mul_self (norm_nonneg _)
         (le_trans (le_of_lt $ hw q) (add_le_add_left (nat.one_div_le_one_div hq) _)),
@@ -304,38 +588,39 @@ begin
       ... = 8 * δ * div + 4 * div * div : by ring,
     exact add_nonneg (mul_nonneg (mul_nonneg (by norm_num) zero_le_δ) (le_of_lt nat.one_div_pos_of_nat))
       (mul_nonneg (mul_nonneg (by norm_num) (le_of_lt nat.one_div_pos_of_nat)) (le_of_lt nat.one_div_pos_of_nat)),
-    -- third goal : `tendsto (λ (n : ℕ), sqrt (b n)) at_top (nhds 0)`
+    -- third goal : `tendsto (λ (n : ℕ), sqrt (b n)) at_top (𝓝 0)`
     apply tendsto.comp,
     { convert continuous_sqrt.continuous_at, exact sqrt_zero.symm },
-    have eq₁ : tendsto (λ (n : ℕ), 8 * δ * (1 / (n + 1))) at_top (nhds (0:ℝ)),
-      convert tendsto_mul (@tendsto_const_nhds _ _ _ (8 * δ) _) tendsto_one_div_add_at_top_nhds_0_nat,
-      simp only [mul_zero],
-    have : tendsto (λ (n : ℕ), (4:ℝ) * (1 / (n + 1))) at_top (nhds (0:ℝ)),
-      convert tendsto_mul (@tendsto_const_nhds _ _ _ (4:ℝ) _) tendsto_one_div_add_at_top_nhds_0_nat,
-      simp only [mul_zero],
-    have eq₂ : tendsto (λ (n : ℕ), (4:ℝ) * (1 / (n + 1)) * (1 / (n + 1))) at_top (nhds (0:ℝ)),
-      convert tendsto_mul this tendsto_one_div_add_at_top_nhds_0_nat,
-      simp only [mul_zero],
-    convert tendsto_add eq₁ eq₂, simp only [add_zero],
+    have eq₁ : tendsto (λ (n : ℕ), 8 * δ * (1 / (n + 1))) at_top (𝓝 (0:ℝ)),
+    { convert (@tendsto_const_nhds _ _ _ (8 * δ) _).mul tendsto_one_div_add_at_top_nhds_0_nat,
+      simp only [mul_zero] },
+    have : tendsto (λ (n : ℕ), (4:ℝ) * (1 / (n + 1))) at_top (𝓝 (0:ℝ)),
+    { convert (@tendsto_const_nhds _ _ _ (4:ℝ) _).mul tendsto_one_div_add_at_top_nhds_0_nat,
+      simp only [mul_zero] },
+    have eq₂ : tendsto (λ (n : ℕ), (4:ℝ) * (1 / (n + 1)) * (1 / (n + 1))) at_top (𝓝 (0:ℝ)),
+    { convert this.mul tendsto_one_div_add_at_top_nhds_0_nat,
+      simp only [mul_zero] },
+    convert eq₁.add eq₂, simp only [add_zero] },
   -- Step 3: By completeness of `K`, let `w : ℕ → K` converge to some `v : K`.
   -- Prove that it satisfies all requirements.
   rcases cauchy_seq_tendsto_of_is_complete h₁ (λ n, _) seq_is_cauchy with ⟨v, hv, w_tendsto⟩,
   use v, use hv,
   have h_cont : continuous (λ v, ∥u - v∥) :=
-    continuous.comp continuous_norm (continuous_sub continuous_const continuous_id),
-  have : tendsto (λ n, ∥u - w n∥) at_top (nhds ∥u - v∥),
+    continuous.comp continuous_norm (continuous.sub continuous_const continuous_id),
+  have : tendsto (λ n, ∥u - w n∥) at_top (𝓝 ∥u - v∥),
     convert (tendsto.comp h_cont.continuous_at w_tendsto),
   exact tendsto_nhds_unique at_top_ne_bot this norm_tendsto,
   exact subtype.mem _
 end
 
 /-- Characterization of minimizers in the above theorem -/
-theorem norm_eq_infi_iff_inner_le_zero {K : set α} (ne : nonempty K) (h : convex K) {u : α} {v : α}
+theorem norm_eq_infi_iff_inner_le_zero {K : set α} (h : convex K) {u : α} {v : α}
   (hv : v ∈ K) : ∥u - v∥ = (⨅ w : K, ∥u - w∥) ↔ ∀ w ∈ K, inner (u - v) (w - v) ≤ 0 :=
 iff.intro
 begin
   assume eq w hw,
   let δ := ⨅ w : K, ∥u - w∥, let p := inner (u - v) (w - v), let q := ∥w - v∥^2,
+  letI : nonempty K := ⟨⟨v, hv⟩⟩,
   have zero_le_δ : 0 ≤ δ,
     apply le_cinfi, intro, exact norm_nonneg _,
   have δ_le : ∀ w : K, δ ≤ ∥u - w∥,
@@ -348,15 +633,15 @@ begin
       ∥u - v∥^2 ≤ ∥u - (θ•w + (1-θ)•v)∥^2 :
       begin
         simp only [pow_two], apply mul_self_le_mul_self (norm_nonneg _),
-        rw eq, apply δ_le',
-        apply (convex_iff K).1 h hw hv,
-        repeat { exact subtype.mem _ },
-        exact le_of_lt hθ₁, exact hθ₂,
+        rw [eq], apply δ_le',
+        apply h hw hv,
+        exacts [le_of_lt hθ₁, sub_nonneg.2 hθ₂, add_sub_cancel'_right _ _],
       end
       ... = ∥(u - v) - θ • (w - v)∥^2 :
       begin
         have : u - (θ•w + (1-θ)•v) = (u - v) - θ • (w - v),
-          rw [smul_sub, sub_smul, one_smul], simp,
+        { rw [smul_sub, sub_smul, one_smul],
+          simp only [sub_eq_add_neg, add_comm, add_left_comm, add_assoc, neg_add_rev] },
         rw this
       end
       ... = ∥u - v∥^2 - 2 * θ * inner (u - v) (w - v) + θ*θ*∥w - v∥^2 :
@@ -393,6 +678,7 @@ begin
 end
 begin
   assume h,
+  letI : nonempty K := ⟨⟨v, hv⟩⟩,
   apply le_antisymm,
   { apply le_cinfi, assume w,
     apply nonneg_le_nonneg_of_squares_le (norm_nonneg _),
@@ -414,9 +700,9 @@ Let `u` be a point in an inner product space, and let `K` be a nonempty complete
 Then there exists a unique `v` in `K` that minimizes the distance `∥u - v∥` to `u`.
 This point `v` is usually called the orthogonal projection of `u` onto `K`.
 -/
-theorem exists_norm_eq_infi_of_complete_subspace (K : subspace ℝ α) (ne : nonempty K)
+theorem exists_norm_eq_infi_of_complete_subspace (K : subspace ℝ α)
   (h : is_complete (↑K : set α)) : ∀ u : α, ∃ v ∈ K, ∥u - v∥ = ⨅ w : (↑K : set α), ∥u - w∥ :=
-exists_norm_eq_infi_of_complete_convex ne h (convex_submodule _)
+exists_norm_eq_infi_of_complete_convex ⟨0, K.zero_mem⟩ h K.convex
 
 /--
 Characterization of minimizers in the above theorem.
@@ -424,13 +710,13 @@ Let `u` be a point in an inner product space, and let `K` be a nonempty subspace
 Then point `v` minimizes the distance `∥u - v∥` if and only if
 for all `w ∈ K`, `inner (u - v) w = 0` (i.e., `u - v` is orthogonal to the subspace `K`)
 -/
-theorem norm_eq_infi_iff_inner_eq_zero (K : subspace ℝ α) (ne : nonempty K) {u : α} {v : α}
+theorem norm_eq_infi_iff_inner_eq_zero (K : subspace ℝ α) {u : α} {v : α}
   (hv : v ∈ K) : ∥u - v∥ = (⨅ w : (↑K : set α), ∥u - w∥) ↔ ∀ w ∈ K, inner (u - v) w = 0 :=
 iff.intro
 begin
   assume h,
   have h : ∀ w ∈ K, inner (u - v) (w - v) ≤ 0,
-    rw norm_eq_infi_iff_inner_le_zero at h, exact h, exact ne, exact convex_submodule _, exact hv,
+  { rwa [norm_eq_infi_iff_inner_le_zero] at h, exacts [K.convex, hv] },
   assume w hw,
   have le : inner (u - v) w ≤ 0,
     let w' := w + v,
@@ -456,7 +742,7 @@ begin
     have h₁ := h w' this,
     exact le_of_eq h₁,
   rwa norm_eq_infi_iff_inner_le_zero,
-    exact ne, exact convex_submodule _, exact hv
+  exacts [submodule.convex _, hv]
 end
 
 end orthogonal

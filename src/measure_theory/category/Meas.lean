@@ -2,7 +2,6 @@
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-
 import topology.category.Top.basic
 import measure_theory.giry_monad
 import category_theory.monad.algebra
@@ -88,8 +87,8 @@ end Meas
 
 instance Top.has_forget_to_Meas : has_forget₂ Top.{u} Meas.{u} :=
 bundled_hom.mk_has_forget₂
-  @measure_theory.borel
-  (λ X Y f, ⟨f.1, measure_theory.measurable_of_continuous f.2⟩)
+  borel
+  (λ X Y f, ⟨f.1, f.2.borel_measurable⟩)
   (by intros; refl)
 
 /-- The Borel functor, the canonical embedding of topological spaces into measurable spaces. -/

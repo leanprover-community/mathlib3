@@ -2,19 +2,31 @@
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Kenny Lau
-
-Equivalences between finite numbers.
 -/
-import data.fin data.equiv.basic
+import data.fin
+import data.equiv.basic
+
+/-!
+# Equivalences for `fin n`
+-/
+
+universe variables u
 
 variables {m n : ℕ}
 
+/-- Equivalence between `fin 0` and `empty`. -/
 def fin_zero_equiv : fin 0 ≃ empty :=
 ⟨fin_zero_elim, empty.elim, assume a, fin_zero_elim a, assume a, empty.elim a⟩
 
+/-- Equivalence between `fin 0` and `pempty`. -/
+def fin_zero_equiv' : fin 0 ≃ pempty.{u} :=
+equiv.equiv_pempty fin.elim0
+
+/-- Equivalence between `fin 1` and `punit`. -/
 def fin_one_equiv : fin 1 ≃ punit :=
 ⟨λ_, (), λ_, 0, fin.cases rfl (λa, fin_zero_elim a), assume ⟨⟩, rfl⟩
 
+/-- Equivalence between `fin 2` and `bool`. -/
 def fin_two_equiv : fin 2 ≃ bool :=
 ⟨@fin.cases 1 (λ_, bool) ff (λ_, tt),
   λb, cond b 1 0,
@@ -25,6 +37,14 @@ def fin_two_equiv : fin 2 ≃ bool :=
   end,
   assume b, match b with tt := rfl | ff := rfl end⟩
 
+/-- Equivalence between `fin n.succ` and `option (fin n)` -/
+def fin_succ_equiv (n : ℕ) : fin n.succ ≃ option (fin n) :=
+⟨λ x, fin.cases none some x, λ x, option.rec_on x 0 fin.succ,
+  λ x, fin.cases rfl (λ i, show (option.rec_on (fin.cases none some (fin.succ i) : option (fin n))
+    0 fin.succ : fin n.succ) = _, by rw fin.cases_succ) x,
+  by rintro ⟨none | x⟩; [refl, exact fin.cases_succ _]⟩
+
+/-- Equivalence between `fin m ⊕ fin n` and `fin (m + n)` -/
 def sum_fin_sum_equiv : fin m ⊕ fin n ≃ fin (m + n) :=
 { to_fun := λ x, sum.rec_on x
     (λ y, ⟨y.1, nat.lt_of_lt_of_le y.2 $ nat.le_add_right m n⟩)
@@ -46,6 +66,7 @@ def sum_fin_sum_equiv : fin m ⊕ fin n ≃ fin (m + n) :=
     { dsimp, rw [dif_neg H], simp [fin.ext_iff, nat.add_sub_of_le (le_of_not_gt H)] }
   end }
 
+/-- Equivalence between `fin m × fin n` and `fin (m * n)` -/
 def fin_prod_fin_equiv : fin m × fin n ≃ fin (m * n) :=
 { to_fun := λ x, ⟨x.2.1 + n * x.1.1,
     calc x.2.1 + n * x.1.1 + 1
@@ -71,8 +92,10 @@ def fin_prod_fin_equiv : fin m × fin n ≃ fin (m * n) :=
         ... = y.1 : nat.mod_eq_of_lt y.2),
   right_inv := λ x, fin.eq_of_veq $ nat.mod_add_div _ _ }
 
+/-- `fin 0` is a subsingleton. -/
 instance subsingleton_fin_zero : subsingleton (fin 0) :=
 fin_zero_equiv.subsingleton
 
+/-- `fin 1` is a subsingleton. -/
 instance subsingleton_fin_one : subsingleton (fin 1) :=
 fin_one_equiv.subsingleton

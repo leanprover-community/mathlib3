@@ -3,7 +3,6 @@ Copyright (c) 2019 Patrick MAssot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-
 import topology.uniform_space.absolute_value
 import topology.instances.real
 import topology.uniform_space.completion
@@ -50,7 +49,7 @@ does use ℝ).
 real numbers, completion, uniform spaces
 -/
 
-open set function lattice filter cau_seq uniform_space
+open set function filter cau_seq uniform_space
 
 /-- The metric space uniform structure on ℚ (which presupposes the existence
 of real numbers) agrees with the one coming directly from (abs : ℚ → ℚ). -/
@@ -91,11 +90,12 @@ namespace compare_reals
 instead of the metric space one. We proved in rat.uniform_space_eq that they are equal,
 but they are not definitionaly equal, so it would confuse the type class system (and probably
 also human readers). -/
-@[derive comm_ring] def Q := ℚ
+@[derive comm_ring, derive inhabited] def Q := ℚ
 
 instance : uniform_space Q := is_absolute_value.uniform_space (abs : ℚ → ℚ)
 
 /-- Real numbers constructed as in Bourbaki. -/
+@[derive inhabited]
 def Bourbakiℝ : Type := completion Q
 
 instance bourbaki.uniform_space: uniform_space Bourbakiℝ := completion.uniform_space Q

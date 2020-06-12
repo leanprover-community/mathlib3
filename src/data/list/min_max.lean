@@ -25,15 +25,15 @@ variables {α : Type*} {β : Type*} [decidable_linear_order β]
 def argmax₂ (f : α → β) (a : option α) (b : α) : option α :=
 option.cases_on a (some b) (λ c, if f b ≤ f c then some c else some b)
 
-/-- `argmax f l` returns `some a`, where `a` of `l` that maximises `f a`. If there are `a b` such that
-  `f a = f b`, it returns whichever of `a` or `b` comes first in the list.
-  `argmax f []` = none` -/
+/-- `argmax f l` returns `some a`, where `a` of `l` that maximises `f a`. If there are `a b` such
+that `f a = f b`, it returns whichever of `a` or `b` comes first in the list.
+`argmax f []` = none` -/
 def argmax (f : α → β) (l : list α) : option α :=
 l.foldl (argmax₂ f) none
 
-/-- `argmin f l` returns `some a`, where `a` of `l` that minimises `f a`. If there are `a b` such that
-  `f a = f b`, it returns whichever of `a` or `b` comes first in the list.
-  `argmin f []` = none` -/
+/-- `argmin f l` returns `some a`, where `a` of `l` that minimises `f a`. If there are `a b` such
+that `f a = f b`, it returns whichever of `a` or `b` comes first in the list.
+`argmin f []` = none` -/
 def argmin (f : α → β) (l : list α) :=
 @argmax _ (order_dual β) _ f l
 
@@ -241,14 +241,14 @@ begin
   cases h : argmax id l,
   { rw [if_neg], refl, exact not_le_of_gt (with_bot.bot_lt_some _) },
   change (coe : α → with_bot α) with some,
-  simp, congr
+  simp
 end
 
 theorem minimum_concat (a : α) (l : list α) : minimum (l ++ [a]) = min (minimum l) a :=
 by simp only [min_comm _ (a : with_top α)]; exact @maximum_concat (order_dual α) _ _ _
 
 theorem maximum_cons (a : α) (l : list α) : maximum (a :: l) = max a (maximum l) :=
-list.reverse_rec_on l (by simp [@max_eq_left (with_bot α) _ _ _ lattice.bot_le])
+list.reverse_rec_on l (by simp [@max_eq_left (with_bot α) _ _ _ bot_le])
   (λ tl hd ih, by rw [← cons_append, maximum_concat, ih, maximum_concat, max_assoc])
 
 theorem minimum_cons (a : α) (l : list α) : minimum (a :: l) = min a (minimum l) :=

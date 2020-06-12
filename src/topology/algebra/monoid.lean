@@ -8,11 +8,11 @@ Theory of topological monoids.
 TODO: generalize `topological_monoid` and `topological_add_monoid` to semigroups, or add a type class
 `topological_operator α (*)`.
 -/
-import topology.constructions
+import topology.continuous_on
 import algebra.pi_instances
 
-open classical set lattice filter topological_space
-open_locale classical
+open classical set filter topological_space
+open_locale classical topological_space big_operators
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -35,54 +35,65 @@ section
 variables [topological_space α] [monoid α] [topological_monoid α]
 
 @[to_additive]
-lemma continuous_mul' : continuous (λp:α×α, p.1 * p.2) :=
-topological_monoid.continuous_mul α
+lemma continuous_mul : continuous (λp:α×α, p.1 * p.2) :=
+topological_monoid.continuous_mul
 
 @[to_additive]
-lemma continuous_mul [topological_space β] {f : β → α} {g : β → α}
+lemma continuous.mul [topological_space β] {f : β → α} {g : β → α}
   (hf : continuous f) (hg : continuous g) :
   continuous (λx, f x * g x) :=
-continuous_mul'.comp (hf.prod_mk hg)
+continuous_mul.comp (hf.prod_mk hg)
 
 @[to_additive]
 lemma continuous_mul_left (a : α) : continuous (λ b:α, a * b) :=
-continuous_mul continuous_const continuous_id
+continuous_const.mul continuous_id
 
 @[to_additive]
 lemma continuous_mul_right (a : α) : continuous (λ b:α, b * a) :=
-continuous_mul continuous_id continuous_const
+continuous_id.mul continuous_const
 
 @[to_additive]
 lemma continuous_on.mul [topological_space β] {f : β → α} {g : β → α} {s : set β}
   (hf : continuous_on f s) (hg : continuous_on g s) :
   continuous_on (λx, f x * g x) s :=
-(continuous_mul'.comp_continuous_on (hf.prod hg) : _)
+(continuous_mul.comp_continuous_on (hf.prod hg) : _)
 
 -- @[to_additive continuous_smul]
 lemma continuous_pow : ∀ n : ℕ, continuous (λ a : α, a ^ n)
 | 0 := by simpa using continuous_const
-| (k+1) := show continuous (λ (a : α), a * a ^ k), from continuous_mul continuous_id (continuous_pow _)
+| (k+1) := show continuous (λ (a : α), a * a ^ k), from continuous_id.mul (continuous_pow _)
 
 @[to_additive]
-lemma tendsto_mul' {a b : α} : tendsto (λp:α×α, p.fst * p.snd) (nhds (a, b)) (nhds (a * b)) :=
-continuous_iff_continuous_at.mp (topological_monoid.continuous_mul α) (a, b)
+lemma tendsto_mul {a b : α} : tendsto (λp:α×α, p.fst * p.snd) (𝓝 (a, b)) (𝓝 (a * b)) :=
+continuous_iff_continuous_at.mp topological_monoid.continuous_mul (a, b)
 
 @[to_additive]
-lemma tendsto_mul {f : β → α} {g : β → α} {x : filter β} {a b : α}
-  (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) :
-  tendsto (λx, f x * g x) x (nhds (a * b)) :=
-tendsto.comp (by rw [←nhds_prod_eq]; exact tendsto_mul') (hf.prod_mk hg)
+lemma filter.tendsto.mul {f : β → α} {g : β → α} {x : filter β} {a b : α}
+  (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) :
+  tendsto (λx, f x * g x) x (𝓝 (a * b)) :=
+tendsto_mul.comp (hf.prod_mk_nhds hg)
+
+@[to_additive]
+lemma continuous_at.mul [topological_space β] {f : β → α} {g : β → α} {x : β}
+  (hf : continuous_at f x) (hg : continuous_at g x) :
+  continuous_at (λx, f x * g x) x :=
+hf.mul hg
+
+@[to_additive]
+lemma continuous_within_at.mul [topological_space β] {f : β → α} {g : β → α} {s : set β} {x : β}
+  (hf : continuous_within_at f s x) (hg : continuous_within_at g s x) :
+  continuous_within_at (λx, f x * g x) s x :=
+hf.mul hg
 
 @[to_additive]
 lemma tendsto_list_prod {f : γ → β → α} {x : filter β} {a : γ → α} :
-  ∀l:list γ, (∀c∈l, tendsto (f c) x (nhds (a c))) →
-    tendsto (λb, (l.map (λc, f c b)).prod) x (nhds ((l.map a).prod))
+  ∀l:list γ, (∀c∈l, tendsto (f c) x (𝓝 (a c))) →
+    tendsto (λb, (l.map (λc, f c b)).prod) x (𝓝 ((l.map a).prod))
 | []       _ := by simp [tendsto_const_nhds]
 | (f :: l) h :=
   begin
-    simp,
-    exact tendsto_mul
-      (h f (list.mem_cons_self _ _))
+    simp only [list.map_cons, list.prod_cons],
+    exact (h f (list.mem_cons_self _ _)).mul
       (tendsto_list_prod l (assume c hc, h c (list.mem_cons_of_mem _ hc)))
   end
 
@@ -95,9 +106,8 @@ continuous_iff_continuous_at.2 $ assume x, tendsto_list_prod l $ assume c hc,
 
 @[to_additive topological_add_monoid]
 instance [topological_space β] [monoid β] [topological_monoid β] : topological_monoid (α × β) :=
-⟨continuous.prod_mk
-  (continuous_mul (continuous_fst.comp continuous_fst) (continuous_fst.comp continuous_snd))
-  (continuous_mul (continuous_snd.comp continuous_fst) (continuous_snd.comp continuous_snd)) ⟩
+⟨((continuous_fst.comp continuous_fst).mul (continuous_fst.comp continuous_snd)).prod_mk
+ ((continuous_snd.comp continuous_fst).mul (continuous_snd.comp continuous_snd))⟩
 
 attribute [instance] prod.topological_add_monoid
 
@@ -108,20 +118,20 @@ variables [topological_space α] [comm_monoid α]
 
 @[to_additive]
 lemma is_submonoid.mem_nhds_one (β : set α) [is_submonoid β] (oβ : is_open β) :
-  β ∈ nhds (1 : α) :=
-mem_nhds_sets_iff.2 ⟨β, (by refl), oβ, is_submonoid.one_mem _⟩
+  β ∈ 𝓝 (1 : α) :=
+mem_nhds_sets_iff.2 ⟨β, (by refl), oβ, is_submonoid.one_mem⟩
 
 variable [topological_monoid α]
 
 @[to_additive]
 lemma tendsto_multiset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : multiset γ) :
-  (∀c∈s, tendsto (f c) x (nhds (a c))) →
-    tendsto (λb, (s.map (λc, f c b)).prod) x (nhds ((s.map a).prod)) :=
+  (∀c∈s, tendsto (f c) x (𝓝 (a c))) →
+    tendsto (λb, (s.map (λc, f c b)).prod) x (𝓝 ((s.map a).prod)) :=
 by { rcases s with ⟨l⟩, simp, exact tendsto_list_prod l }
 
 @[to_additive]
 lemma tendsto_finset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : finset γ) :
-  (∀c∈s, tendsto (f c) x (nhds (a c))) → tendsto (λb, s.prod (λc, f c b)) x (nhds (s.prod a)) :=
+  (∀c∈s, tendsto (f c) x (𝓝 (a c))) → tendsto (λb, ∏ c in s, f c b) x (𝓝 (∏ c in s, a c)) :=
 tendsto_multiset_prod _
 
 @[to_additive]
@@ -131,7 +141,7 @@ by { rcases s with ⟨l⟩, simp, exact continuous_list_prod l }
 
 @[to_additive]
 lemma continuous_finset_prod [topological_space β] {f : γ → β → α} (s : finset γ) :
-  (∀c∈s, continuous (f c)) → continuous (λa, s.prod (λc, f c a)) :=
+  (∀c∈s, continuous (f c)) → continuous (λa, ∏ c in s, f c a) :=
 continuous_multiset_prod _
 
 end

@@ -4,6 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Premetric spaces.
 
 Author: Sébastien Gouëzel
+-/
+import topology.metric_space.basic
+
+/-!
+# Premetric spaces
 
 Metric spaces are often defined as quotients of spaces endowed with a "distance"
 function satisfying the triangular inequality, but for which `dist x y = 0` does
@@ -12,16 +17,18 @@ not imply x = y. We call such a space a premetric space.
 is canonically a metric space.
 -/
 
-import topology.metric_space.basic tactic.linarith
 noncomputable theory
 
 universes u v
 variables {α : Type u}
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 class premetric_space (α : Type u) extends has_dist α : Type u :=
 (dist_self : ∀ x : α, dist x x = 0)
 (dist_comm : ∀ x y : α, dist x y = dist y x)
 (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)
+end prio
 
 namespace premetric
 section

@@ -7,7 +7,6 @@ The functor Grp → Ab which is the left adjoint
 of the forgetful functor Ab → Grp.
 
 -/
-
 import group_theory.quotient_group
 
 universes u v
@@ -31,6 +30,8 @@ instance : comm_group (abelianization α) :=
 { mul_comm := λ x y, quotient.induction_on₂ x y $ λ a b, quotient.sound
     (group.subset_normal_closure ⟨b⁻¹,a⁻¹, by simp [mul_inv_rev, inv_inv, mul_assoc]⟩),
 .. quotient_group.group _}
+
+instance : inhabited (abelianization α) := ⟨1⟩
 
 variable {α}
 

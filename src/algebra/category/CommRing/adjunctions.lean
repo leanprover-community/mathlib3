@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl
 -/
 import algebra.category.CommRing.basic
-import category_theory.adjunction.basic
 import data.mv_polynomial
 
 /-!
@@ -47,6 +46,7 @@ The free-forgetful adjunction for commutative rings.
 def adj : free ⊣ forget CommRing :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X R, hom_equiv,
-  hom_equiv_naturality_left_symm' := by {intros, ext, dsimp, apply eval₂_cast_comp} }
+  hom_equiv_naturality_left_symm' :=
+    by intros; ext; apply eval₂_cast_comp f ⇑(int.cast_ring_hom ↥Y) g x }
 
 end CommRing

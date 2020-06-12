@@ -248,7 +248,7 @@ variables (r : setoid α) (f : α → β)
     bijects with f's image. -/
 noncomputable def quotient_ker_equiv_range :
   quotient (ker f) ≃ set.range f :=
-@equiv.of_bijective _ (set.range f) (@quotient.lift _ (set.range f) (ker f)
+equiv.of_bijective (@quotient.lift _ (set.range f) (ker f)
   (λ x, ⟨f x, set.mem_range_self x⟩) $ λ _ _ h, subtype.eq' h)
   ⟨λ x y h, injective_ker_lift f $ by rcases x; rcases y; injections,
    λ ⟨w, z, hz⟩, ⟨@quotient.mk _ (ker f) z, by rw quotient.lift_beta; exact subtype.ext.2 hz⟩⟩

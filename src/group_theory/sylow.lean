@@ -12,6 +12,7 @@ import data.list.rotate
 
 open equiv fintype finset mul_action function
 open equiv.perm is_subgroup list quotient_group
+open_locale big_operators
 universes u v w
 variables {G : Type u} {α : Type v} {β : Type w} [group G]
 
@@ -36,8 +37,8 @@ lemma card_modeq_card_fixed_points [fintype α] [fintype G] [fintype (fixed_poin
   (p : ℕ) {n : ℕ} [hp : fact p.prime] (h : card G = p ^ n) : card α ≡ card (fixed_points G α) [MOD p] :=
 calc card α = card (Σ y : quotient (orbit_rel G α), {x // quotient.mk' x = y}) :
   card_congr (sigma_preimage_equiv (@quotient.mk' _ (orbit_rel G α))).symm
-... = univ.sum (λ a : quotient (orbit_rel G α), card {x // quotient.mk' x = a}) : card_sigma _
-... ≡ (@univ (fixed_points G α) _).sum (λ _, 1) [MOD p] :
+... = ∑ a : quotient (orbit_rel G α), card {x // quotient.mk' x = a} : card_sigma _
+... ≡ ∑ a : fixed_points G α, 1 [MOD p] :
 begin
   rw [← zmod.eq_iff_modeq_nat p, sum_nat_cast, sum_nat_cast],
   refine eq.symm (sum_bij_ne_zero (λ a _ _, quotient.mk' a.1)
@@ -182,7 +183,7 @@ lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : set G} [is_subgro
 (mem_fixed_points' _).2 $ λ y, quotient.induction_on' y $ λ y hy, quotient_group.eq.2
   (let ⟨⟨b, hb₁⟩, hb₂⟩ := hy in
   have hb₂ : (b * x)⁻¹ * y ∈ H := quotient_group.eq.1 hb₂,
-  (inv_mem_iff H).1 $ (hx _).2 $ (mul_mem_cancel_right H (inv_mem hb₁)).1
+  (inv_mem_iff H).1 $ (hx _).2 $ (mul_mem_cancel_left H (inv_mem hb₁)).1
   $ by rw hx at hb₂;
     simpa [mul_inv_rev, mul_assoc] using hb₂)⟩
 

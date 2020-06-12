@@ -235,6 +235,13 @@ lemma log_mul (hx : x ≠ 0) (hy : y ≠ 0) : log (x * y) = log x + log y :=
 exp_injective $
 by rw [exp_log_eq_abs (mul_ne_zero hx hy), exp_add, exp_log_eq_abs hx, exp_log_eq_abs hy, abs_mul]
 
+@[simp] lemma log_inv (x : ℝ) : log (x⁻¹) = -log x :=
+begin
+  by_cases hx : x = 0, { simp [hx] },
+  apply eq_neg_of_add_eq_zero,
+  rw [← log_mul (inv_ne_zero hx) hx, inv_mul_cancel hx, log_one]
+end
+
 lemma log_le_log (h : 0 < x) (h₁ : 0 < y) : real.log x ≤ real.log y ↔ x ≤ y :=
 ⟨λ h₂, by rwa [←real.exp_le_exp, real.exp_log h, real.exp_log h₁] at h₂, λ h₂,
 (real.exp_le_exp).1 $ by rwa [real.exp_log h₁, real.exp_log h]⟩

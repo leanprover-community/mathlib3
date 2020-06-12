@@ -207,13 +207,19 @@ class comm_monoid (M : Type u) extends monoid M, comm_semigroup M
 class add_comm_monoid (M : Type u) extends add_monoid M, add_comm_semigroup M
 attribute [to_additive add_comm_monoid] comm_monoid
 
+/-- A monoid in which multiplication is left-cancellative. -/
+@[protect_proj, ancestor left_cancel_semigroup monoid]
+class left_cancel_monoid (M : Type u) extends left_cancel_semigroup M, monoid M
+
 /-- An additive monoid in which addition is left-cancellative.
 Main examples are `ℕ` and groups. This is the right typeclass for many sum lemmas, as having a zero
 is useful to define the sum over the empty set, so `add_left_cancel_semigroup` is not enough. -/
-@[protect_proj]
+@[protect_proj, ancestor add_left_cancel_semigroup add_monoid]
 class add_left_cancel_monoid (M : Type u) extends add_left_cancel_semigroup M, add_monoid M
 -- TODO: I found 1 (one) lemma assuming `[add_left_cancel_monoid]`.
--- Should we port more lemmas to this typeclass? Should we add a multiplicative version?
+-- Should we port more lemmas to this typeclass?
+
+attribute [to_additive add_left_cancel_monoid] left_cancel_monoid
 
 /-- A `group` is a `monoid` with an operation `⁻¹` satisfying `a⁻¹ * a = 1`. -/
 @[protect_proj, ancestor monoid has_inv]

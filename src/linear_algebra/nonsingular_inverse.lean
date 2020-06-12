@@ -180,15 +180,15 @@ end
 
 /-- Use linearity of `cramer` to take it out of a summation. -/
 lemma sum_cramer {β} (s : finset β) (f : β → n → α) :
-  s.sum (λ x, cramer α A (f x)) = cramer α A (s.sum f) :=
+  ∑ x in s, cramer α A (f x) = cramer α A (∑ x in s, f x) :=
 (linear_map.map_sum (cramer α A)).symm
 
 /-- Use linearity of `cramer` and vector evaluation to take `cramer A _ i` out of a summation. -/
 lemma sum_cramer_apply {β} (s : finset β) (f : n → β → α) (i : n) :
-s.sum (λ x, cramer α A (λ j, f j x) i) = cramer α A (λ (j : n), s.sum (f j)) i :=
-calc s.sum (λ x, cramer α A (λ j, f j x) i)
-    = s.sum (λ x, cramer α A (λ j, f j x)) i : (pi.finset_sum_apply i s _).symm
-... = cramer α A (λ (j : n), s.sum (f j)) i :
+∑ x in s, cramer α A (λ j, f j x) i = cramer α A (λ (j : n), ∑ x in s, f j x) i :=
+calc ∑ x in s, cramer α A (λ j, f j x) i
+    = (∑ x in s, cramer α A (λ j, f j x)) i : (pi.finset_sum_apply i s _).symm
+... = cramer α A (λ (j : n), ∑ x in s, f j x) i :
   by { rw [sum_cramer, cramer_apply], congr, ext j, apply pi.finset_sum_apply }
 
 end cramer
@@ -249,7 +249,7 @@ end
 lemma mul_adjugate_val (A : matrix n n α) (i j k) :
   A i k * adjugate A k j = cramer α A (λ j, if k = j then A i k else 0) j :=
 begin
-  erw [←smul_eq_mul, ←pi.smul_apply, ←linear_map.smul],
+  erw [←smul_eq_mul, ←pi.smul_apply, ←linear_map.map_smul],
   congr, ext,
   rw [pi.smul_apply, smul_eq_mul, mul_boole],
 end
@@ -259,10 +259,10 @@ begin
   ext i j,
   rw [mul_val, smul_val, one_val, mul_boole],
   calc
-    univ.sum (λ (k : n), A i k * adjugate A k j)
-        = univ.sum (λ (k : n), cramer α A (λ j, if k = j then A i k else 0) j)
+    ∑ k : n, A i k * adjugate A k j
+        = ∑ k : n, cramer α A (λ j, if k = j then A i k else 0) j
       : by {congr, ext k, apply mul_adjugate_val A i j k}
-    ... = cramer α A (λ j, univ.sum (λ (k : n), if k = j then A i k else 0)) j
+    ... = cramer α A (λ j, ∑ k : n, if k = j then A i k else 0) j
       : sum_cramer_apply A univ (λ (j k : n), if k = j then A i k else 0) j
     ... = cramer α A (A i) j : by { rw [cramer_apply], congr, ext,
       rw [sum_ite_eq' univ x (A i), if_pos (mem_univ _)] }

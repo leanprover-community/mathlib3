@@ -61,7 +61,7 @@ def span_points (s : set P) : set P :=
 
 /-- A point in a set is in its affine span. -/
 lemma mem_span_points (p : P) (s : set P) : p ∈ s → p ∈ span_points k V s
-| hp := ⟨p, hp, 0, submodule.zero _, (zero_vadd V p).symm⟩
+| hp := ⟨p, hp, 0, submodule.zero_mem _, (zero_vadd V p).symm⟩
 
 /-- The set of points in the affine span of a nonempty set of points
 is nonempty. -/
@@ -76,7 +76,7 @@ lemma vadd_mem_span_points_of_mem_span_points_of_mem_vector_span {s : set P} {p 
 begin
   rcases hp with ⟨p2, ⟨hp2, ⟨v2, ⟨hv2, hv2p⟩⟩⟩⟩,
   rw [hv2p, vadd_assoc],
-  use [p2, hp2, v + v2, (vector_span k V s).add hv hv2, rfl]
+  use [p2, hp2, v + v2, (vector_span k V s).add_mem hv hv2, rfl]
 end
 
 /-- Subtracting two points in the affine span produces a vector in the
@@ -89,10 +89,10 @@ begin
   rcases hp2 with ⟨p2a, ⟨hp2a, ⟨v2, ⟨hv2, hv2p⟩⟩⟩⟩,
   rw [hv1p, hv2p, vsub_vadd_eq_vsub_sub V (v1 +ᵥ p1a), vadd_vsub_assoc, add_comm, add_sub_assoc],
   have hv1v2 : v1 - v2 ∈ vector_span k V s,
-  { apply (vector_span k V s).add hv1,
+  { apply (vector_span k V s).add_mem hv1,
     rw ←neg_one_smul k v2,
-    exact (vector_span k V s).smul (-1 : k) hv2 },
-  refine (vector_span k V s).add _ hv1v2,
+    exact (vector_span k V s).smul_mem (-1 : k) hv2 },
+  refine (vector_span k V s).add_mem _ hv1v2,
   unfold vector_span,
   change p1a -ᵥ p2a ∈ submodule.span k (vsub_set V s),
   have hp1p2 : p1a -ᵥ p2a ∈ vsub_set V s, { use [p1a, hp1a, p2a, hp2a] },

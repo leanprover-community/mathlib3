@@ -295,8 +295,8 @@ tensor_product.induction_on _ _ x (smul_zero _).symm
 variable (f)
 def lift : M ⊗ N →ₗ P :=
 { to_fun := lift_aux f,
-  add := lift_aux.add,
-  smul := lift_aux.smul }
+  map_add' := lift_aux.add,
+  map_smul' := lift_aux.smul }
 variable {f}
 
 @[simp] lemma lift.tmul (x y) : lift f (x ⊗ₜ y) = f x y :=

@@ -14,6 +14,7 @@ basic facts about finite sets.
 -/
 
 open set function
+open_locale big_operators
 
 universes u v w x
 variables {α : Type u} {β : Type v} {ι : Sort w} {γ : Type x}
@@ -358,6 +359,10 @@ set.finite_mem_finset s
 @[simp] lemma coe_bind {f : α → finset β} : ↑(s.bind f) = (⋃x ∈ (↑s : set α), ↑(f x) : set β) :=
 by simp [set.ext_iff]
 
+@[simp] lemma finite_to_set_to_finset {α : Type*} (s : finset α) :
+  (finite_to_set s).to_finset = s :=
+by { ext, rw [set.finite.mem_to_finset, mem_coe] }
+
 end finset
 
 namespace set
@@ -428,8 +433,7 @@ lemma eq_of_subset_of_card_le {s t : set α} [fintype s] [fintype t]
 
 lemma card_range_of_injective [fintype α] {f : α → β} (hf : injective f)
   [fintype (range f)] : fintype.card (range f) = fintype.card α :=
-eq.symm $ fintype.card_congr (@equiv.of_bijective  _ _ (λ a : α, show range f, from ⟨f a, a, rfl⟩)
-  ⟨λ x y h, hf $ subtype.mk.inj h, λ b, let ⟨a, ha⟩ := b.2 in ⟨a, by simp *⟩⟩)
+eq.symm $ fintype.card_congr $ equiv.set.range f hf
 
 lemma finite.exists_maximal_wrt [partial_order β] (f : α → β) (s : set α) (h : set.finite s) :
   s.nonempty → ∃a∈s, ∀a'∈s, f a ≤ f a' → f a = f a' :=
@@ -456,11 +460,7 @@ section
 
 local attribute [instance, priority 1] classical.prop_decidable
 
-lemma to_finset_card {α : Type*} [fintype α] (H : set α) :
-  H.to_finset.card = fintype.card H :=
-multiset.card_map subtype.val finset.univ.val
-
-lemma to_finset_inter {α : Type*} [fintype α] (s t : set α) [decidable_eq α] :
+lemma to_finset_inter {α : Type*} [fintype α] (s t : set α) :
   (s ∩ t).to_finset = s.to_finset ∩ t.to_finset :=
 by ext; simp
 
@@ -529,11 +529,11 @@ end preimage
 @[to_additive]
 lemma prod_preimage [comm_monoid β] (f : α → γ) (s : finset γ)
   (hf : set.bij_on f (f ⁻¹' ↑s) ↑s) (g : γ → β) :
-  (preimage s hf.inj_on).prod (g ∘ f) = s.prod g :=
+  ∏ x in preimage s hf.inj_on, g (f x) = ∏ x in s, g x :=
 by classical;
 calc
-  (preimage s hf.inj_on).prod (g ∘ f)
-      = (image f (preimage s hf.inj_on)).prod g :
+  ∏ x in preimage s hf.inj_on, g (f x)
+      = ∏ x in image f (preimage s hf.inj_on), g x :
           begin
             rw prod_image,
             intros x hx y hy hxy,
@@ -542,7 +542,7 @@ calc
                           rw [set.mem_preimage, mem_coe] },
                     assumption },
           end
-  ... = s.prod g : by rw [image_preimage]
+  ... = ∏ x in s, g x : by rw [image_preimage]
 
 /-- A finset is bounded above. -/
 lemma bdd_above [semilattice_sup α] [nonempty α] (s : finset α) : bdd_above (↑s : set α) :=

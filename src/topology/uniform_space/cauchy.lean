@@ -246,9 +246,14 @@ lemma cauchy_seq_tendsto_of_is_complete [semilattice_sup β] {K : set α} (h₁ 
 h₁ _ h₃ $ le_principal_iff.2 $ mem_map_sets_iff.2 ⟨univ, univ_mem_sets,
   by { simp only [image_univ], rintros _ ⟨n, rfl⟩, exact h₂ n }⟩
 
-theorem le_nhds_lim_of_cauchy {α} [uniform_space α] [complete_space α]
-  [nonempty α] {f : filter α} (hf : cauchy f) : f ≤ 𝓝 (lim f) :=
-lim_spec (complete_space.complete hf)
+theorem cauchy.le_nhds_Lim [complete_space α] [nonempty α] {f : filter α} (hf : cauchy f) :
+  f ≤ 𝓝 (Lim f) :=
+Lim_spec (complete_space.complete hf)
+
+theorem cauchy_seq.tendsto_lim [semilattice_sup β] [complete_space α] [nonempty α] {u : β → α}
+  (h : cauchy_seq u) :
+  tendsto u at_top (𝓝 $ lim at_top u) :=
+h.le_nhds_Lim
 
 lemma is_complete_of_is_closed [complete_space α] {s : set α}
   (h : is_closed s) : is_complete s :=

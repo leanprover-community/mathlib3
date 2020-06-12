@@ -285,7 +285,7 @@ protected def preimage (f : α ≃ β) (s : β → β → Prop) : f ⁻¹'o s �
 
 /-- A surjective order embedding is an order isomorphism. -/
 noncomputable def of_surjective (f : r ≼o s) (H : surjective f) : r ≃o s :=
-⟨equiv.of_bijective ⟨f.inj, H⟩, by simp [f.ord']⟩
+⟨equiv.of_bijective f ⟨f.inj, H⟩, by simp [f.ord']⟩
 
 @[simp] theorem of_surjective_coe (f : r ≼o s) (H) : (of_surjective f H : α → β) = f :=
 rfl

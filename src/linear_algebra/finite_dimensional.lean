@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes
+Authors: Chris Hughes, Yakov Pechersky
 -/
 import linear_algebra.dimension
 import ring_theory.principal_ideal_domain
@@ -111,6 +111,19 @@ begin
   cases exists_is_basis K V with s hs,
   exact ⟨s, hs, finite_of_linear_independent hs.1⟩
 end
+
+/-- In a finite dimensional space, there exists a finite basis. Provides the basis as a finset.
+This is in contrast to `exists_is_basis_finite`, which provides a set and a `set.finite`.
+-/
+lemma finite_dimensional.exists_is_basis_finset [finite_dimensional K V] :
+  ∃ b : finset V, is_basis K (subtype.val : (↑b : set V) → V) :=
+begin
+  obtain ⟨s, s_basis, s_finite⟩ := finite_dimensional.exists_is_basis_finite K V,
+  refine ⟨s_finite.to_finset, _⟩,
+  rw set.finite.coe_to_finset,
+  exact s_basis,
+end
+
 variables {K V}
 
 /-- A vector space is finite-dimensional if and only if it is finitely generated. As the
@@ -195,6 +208,13 @@ begin
     by { simp, exact C },
   exact (lift_inj.mp this).symm
 end
+
+/-- If a vector space is finite-dimensional, then the cardinality of any basis is equal to its
+`findim`. This lemma uses finsets instead of indexed types. -/
+lemma finite_dimensional.findim_eq_card_basis'' [finite_dimensional K V] {b : finset V}
+  (h : is_basis K (subtype.val : (↑b : set V) -> V)) :
+  findim K V = finset.card b :=
+by { rw [finite_dimensional.findim_eq_card_basis h, fintype.subtype_card], intros x, refl }
 
 /-- If a submodule has maximal dimension in a finite dimensional space, then it is equal to the
 whole space. -/

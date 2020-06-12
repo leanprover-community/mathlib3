@@ -430,7 +430,7 @@ def sum [has_zero β] [add_comm_monoid γ] (f : α →₀ β) (g : α → β →
 /-- `prod f g` is the product of `g a (f a)` over the support of `f`. -/
 @[to_additive]
 def prod [has_zero β] [comm_monoid γ] (f : α →₀ β) (g : α → β → γ) : γ :=
-f.support.prod (λa, g a (f a))
+∏ a in f.support, g a (f a)
 
 @[to_additive]
 lemma prod_map_range_index [has_zero β₁] [has_zero β₂] [comm_monoid γ]
@@ -519,8 +519,10 @@ instance : add_monoid (α →₀ β) :=
   zero_add  := assume ⟨s, f, hf⟩, ext $ assume a, zero_add _,
   add_zero  := assume ⟨s, f, hf⟩, ext $ assume a, add_zero _ }
 
-instance (a : α) : is_add_monoid_hom (λ g : α →₀ β, g a) :=
-{ map_add := λ _ _, add_apply, map_zero := zero_apply }
+/-- Evaluation of a function `f : α →₀ β` at a point as an additive monoid homomorphism. -/
+def eval_add_hom (a : α) : (α →₀ β) →+ β := ⟨λ g, g a, zero_apply, λ _ _, add_apply⟩
+
+@[simp] lemma eval_add_hom_apply (a : α) (g : α →₀ β) : eval_add_hom a g = g a := rfl
 
 lemma single_add_erase {a : α} {f : α →₀ β} : single a (f a) + f.erase a = f :=
 ext $ λ a',
@@ -670,7 +672,7 @@ instance [add_comm_group β] : add_comm_group (α →₀ β) :=
 @[simp] lemma sum_apply [has_zero β₁] [add_comm_monoid β]
   {f : α₁ →₀ β₁} {g : α₁ → β₁ → α →₀ β} {a₂ : α} :
   (f.sum g) a₂ = f.sum (λa₁ b, g a₁ b a₂) :=
-(f.support.sum_hom (λf : α →₀ β, f a₂)).symm
+(eval_add_hom a₂ : (α →₀ β) →+ _).map_sum _ _
 
 lemma support_sum [has_zero β₁] [add_comm_monoid β]
   {f : α₁ →₀ β₁} {g : α₁ → β₁ → (α →₀ β)} :
@@ -723,18 +725,18 @@ ext $ assume a, by simp only [sum_apply, single_apply, this, sum_singleton, if_p
 lemma prod_add_index [add_comm_monoid β] [comm_monoid γ] {f g : α →₀ β}
   {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   (f + g).prod h = f.prod h * g.prod h :=
-have f_eq : (f.support ∪ g.support).prod (λa, h a (f a)) = f.prod h,
+have f_eq : ∏ a in f.support ∪ g.support, h a (f a) = f.prod h,
   from (finset.prod_subset (finset.subset_union_left _ _) $
     by intros _ _ H; rw [not_mem_support_iff.1 H, h_zero]).symm,
-have g_eq : (f.support ∪ g.support).prod (λa, h a (g a)) = g.prod h,
+have g_eq : ∏ a in f.support ∪ g.support, h a (g a) = g.prod h,
   from (finset.prod_subset (finset.subset_union_right _ _) $
     by intros _ _ H; rw [not_mem_support_iff.1 H, h_zero]).symm,
-calc (f + g).support.prod (λa, h a ((f + g) a)) =
-      (f.support ∪ g.support).prod (λa, h a ((f + g) a)) :
+calc ∏ a in (f + g).support, h a ((f + g) a) =
+      ∏ a in f.support ∪ g.support, h a ((f + g) a) :
     finset.prod_subset support_add $
       by intros _ _ H; rw [not_mem_support_iff.1 H, h_zero]
-  ... = (f.support ∪ g.support).prod (λa, h a (f a)) *
-      (f.support ∪ g.support).prod (λa, h a (g a)) :
+  ... = (∏ a in f.support ∪ g.support, h a (f a)) *
+      (∏ a in f.support ∪ g.support, h a (g a)) :
     by simp only [add_apply, h_add, finset.prod_mul_distrib]
   ... = _ : by rw [f_eq, g_eq]
 
@@ -762,7 +764,7 @@ calc (f - g).sum h = (f + - g).sum h : rfl
 lemma prod_finset_sum_index [add_comm_monoid β] [comm_monoid γ]
   {s : finset ι} {g : ι → α →₀ β}
   {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
-  s.prod (λi, (g i).prod h) = (∑ i in s, g i).prod h :=
+  ∏ i in s, (g i).prod h = (∑ i in s, g i).prod h :=
 finset.induction_on s rfl $ λ a s has ih,
 by rw [prod_insert has, ih, sum_insert has, prod_add_index h_zero h_add]
 
@@ -1249,7 +1251,7 @@ multiset.induction_on s false.elim
   end
 
 lemma mem_support_finset_sum [add_comm_monoid β]
-  {s : finset γ} {h : γ → α →₀ β} (a : α) (ha : a ∈ (s.sum h).support) : ∃c∈s, a ∈ (h c).support :=
+  {s : finset γ} {h : γ → α →₀ β} (a : α) (ha : a ∈ (∑ c in s, h c).support) : ∃c∈s, a ∈ (h c).support :=
 let ⟨f, hf, hfa⟩ := mem_support_multiset_sum a ha in
 let ⟨c, hc, eq⟩ := multiset.mem_map.1 hf in
 ⟨c, hc, eq.symm ▸ hfa⟩
@@ -1406,13 +1408,25 @@ instance [semiring γ] [add_comm_monoid β] [semimodule γ β] : semimodule γ (
   zero_smul := λ x, ext $ λ _, zero_smul _ _,
   smul_zero := λ x, ext $ λ _, smul_zero _ }
 
-instance [ring γ] [add_comm_group β] [module γ β] : module γ (α →₀ β) :=
-{ ..finsupp.semimodule α β }
+variables {α β} (γ)
 
-instance [field γ] [add_comm_group β] [vector_space γ β] : vector_space γ (α →₀ β) :=
-{ ..finsupp.module α β }
+/-- Evaluation at point as a linear map. This version assumes that the codomain is a semimodule
+over some semiring. See also `leval`. -/
+def leval' [semiring γ] [add_comm_monoid β] [semimodule γ β] (a : α) :
+  (α →₀ β) →ₗ[γ] β :=
+⟨λ g, g a, λ _ _, add_apply, λ _ _, rfl⟩
 
-variables {α β}
+@[simp] lemma coe_leval' [semiring γ] [add_comm_monoid β] [semimodule γ β] (a : α) (g : α →₀ β) :
+  leval' γ a g = g a :=
+rfl
+
+variable {γ}
+
+/-- Evaluation at point as a linear map. This version assumes that the codomain is a semiring. -/
+def leval [semiring β] (a : α) : (α →₀ β) →ₗ[β] β := leval' β a
+
+@[simp] lemma coe_leval [semiring β] (a : α) (g : α →₀ β) : leval a g = g a := rfl
+
 lemma support_smul {R:semiring γ} [add_comm_monoid β] [semimodule γ β] {b : γ} {g : α →₀ β} :
   (b • g).support ⊆ g.support :=
 λ a, by simp only [smul_apply', mem_support_iff, ne.def]; exact mt (λ h, h.symm ▸ smul_zero _)
@@ -1750,5 +1764,39 @@ by rw [← multiset.to_finsupp_singleton]; refl
 lemma swap_mem_antidiagonal_support {n : σ →₀ ℕ} {f} (hf : f ∈ (antidiagonal n).support) :
   f.swap ∈ (antidiagonal n).support :=
 by simpa only [mem_antidiagonal_support, add_comm, prod.swap] using hf
+
+/-- Let `n : σ →₀ ℕ` be a finitely supported function.
+The set of `m : σ →₀ ℕ` that are coordinatewise less than or equal to `n`,
+is a finite set. -/
+lemma finite_le_nat (n : σ →₀ ℕ) : set.finite {m | m ≤ n} :=
+begin
+  let I := {i // i ∈ n.support},
+  let k : ℕ := ∑ i in n.support, n i,
+  let f : (σ →₀ ℕ) → (I → fin (k + 1)) := λ m i, m i,
+  have hf : ∀ m ≤ n, ∀ i, (f m i : ℕ) = m i,
+  { intros m hm i,
+    apply fin.coe_coe_of_lt,
+    calc m i ≤ n i   : hm i
+         ... < k + 1 : nat.lt_succ_iff.mpr (single_le_sum (λ _ _, nat.zero_le _) i.2) },
+  have f_im : set.finite (f '' {m | m ≤ n}) := set.finite.of_fintype _,
+  suffices f_inj : set.inj_on f {m | m ≤ n},
+  { exact set.finite_of_finite_image f_inj f_im },
+  intros m₁ m₂ h₁ h₂ h,
+  ext i,
+  by_cases hi : i ∈ n.support,
+  { replace h := congr_fun h ⟨i, hi⟩,
+    rwa [fin.ext_iff, ← fin.coe_eq_val, ← fin.coe_eq_val, hf m₁ h₁, hf m₂ h₂] at h },
+  { rw not_mem_support_iff at hi,
+    specialize h₁ i,
+    specialize h₂ i,
+    rw [hi, nat.le_zero_iff] at h₁ h₂,
+    rw [h₁, h₂] }
+end
+
+/-- Let `n : σ →₀ ℕ` be a finitely supported function.
+The set of `m : σ →₀ ℕ` that are coordinatewise less than or equal to `n`,
+but not equal to `n` everywhere, is a finite set. -/
+lemma finite_lt_nat (n : σ →₀ ℕ) : set.finite {m | m < n} :=
+set.finite_subset (finite_le_nat n) $ λ m, le_of_lt
 
 end finsupp

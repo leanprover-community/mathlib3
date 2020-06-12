@@ -8,6 +8,7 @@ import algebra.big_operators
 
 universes u v
 open equiv function fintype finset
+open_locale big_operators
 variables {α : Type u} {β : Type v}
 
 namespace equiv.perm
@@ -271,7 +272,7 @@ lemma mem_fin_pairs_lt {n : ℕ} {a : Σ a : fin n, fin n} :
 by simp [fin_pairs_lt, fin.lt_def]
 
 def sign_aux {n : ℕ} (a : perm (fin n)) : units ℤ :=
-(fin_pairs_lt n).prod (λ x, if a x.1 ≤ a x.2 then -1 else 1)
+∏ x in fin_pairs_lt n, if a x.1 ≤ a x.2 then -1 else 1
 
 @[simp] lemma sign_aux_one (n : ℕ) : sign_aux (1 : perm (fin n)) = 1 :=
 begin
@@ -367,9 +368,8 @@ private lemma sign_aux_swap_zero_one {n : ℕ} (hn : 2 ≤ n) :
 let zero : fin n := ⟨0, lt_of_lt_of_le dec_trivial hn⟩ in
 let one : fin n := ⟨1, lt_of_lt_of_le dec_trivial hn⟩ in
 have hzo : zero < one := dec_trivial,
-show _ = ({(⟨one, zero⟩ : Σ a : fin n, fin n)} : finset _).prod
-  (λ x : Σ a : fin n, fin n, if (equiv.swap zero one) x.1
-  ≤ swap zero one x.2 then (-1 : units ℤ) else 1),
+show _ = ∏ x : Σ a : fin n, fin n in {(⟨one, zero⟩ : Σ a : fin n, fin n)},
+  if (equiv.swap zero one) x.1 ≤ swap zero one x.2 then (-1 : units ℤ) else 1,
 begin
   refine eq.symm (prod_subset (λ ⟨x₁, x₂⟩, by simp [mem_fin_pairs_lt, hzo] {contextual := tt})
     (λ a ha₁ ha₂, _)),

@@ -14,6 +14,7 @@ basic facts about finite sets.
 -/
 
 open set function
+open_locale big_operators
 
 universes u v w x
 variables {α : Type u} {β : Type v} {ι : Sort w} {γ : Type x}
@@ -358,6 +359,10 @@ set.finite_mem_finset s
 @[simp] lemma coe_bind {f : α → finset β} : ↑(s.bind f) = (⋃x ∈ (↑s : set α), ↑(f x) : set β) :=
 by simp [set.ext_iff]
 
+@[simp] lemma finite_to_set_to_finset {α : Type*} (s : finset α) :
+  (finite_to_set s).to_finset = s :=
+by { ext, rw [set.finite.mem_to_finset, mem_coe] }
+
 end finset
 
 namespace set
@@ -451,6 +456,11 @@ begin
     { exact ih c hcs hbc } }
 end
 
+lemma finite.card_to_finset {s : set α} [fintype s] (h : s.finite) :
+  h.to_finset.card = fintype.card s :=
+by { rw [← finset.card_attach, finset.attach_eq_univ, ← fintype.card], congr' 2, funext,
+     rw set.finite.mem_to_finset }
+
 section
 
 local attribute [instance, priority 1] classical.prop_decidable
@@ -524,11 +534,11 @@ end preimage
 @[to_additive]
 lemma prod_preimage [comm_monoid β] (f : α → γ) (s : finset γ)
   (hf : set.bij_on f (f ⁻¹' ↑s) ↑s) (g : γ → β) :
-  (preimage s hf.inj_on).prod (g ∘ f) = s.prod g :=
+  ∏ x in preimage s hf.inj_on, g (f x) = ∏ x in s, g x :=
 by classical;
 calc
-  (preimage s hf.inj_on).prod (g ∘ f)
-      = (image f (preimage s hf.inj_on)).prod g :
+  ∏ x in preimage s hf.inj_on, g (f x)
+      = ∏ x in image f (preimage s hf.inj_on), g x :
           begin
             rw prod_image,
             intros x hx y hy hxy,
@@ -537,7 +547,7 @@ calc
                           rw [set.mem_preimage, mem_coe] },
                     assumption },
           end
-  ... = s.prod g : by rw [image_preimage]
+  ... = ∏ x in s, g x : by rw [image_preimage]
 
 /-- A finset is bounded above. -/
 lemma bdd_above [semilattice_sup α] [nonempty α] (s : finset α) : bdd_above (↑s : set α) :=

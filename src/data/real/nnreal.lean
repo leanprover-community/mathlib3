@@ -123,7 +123,7 @@ to_real_hom.map_multiset_prod s
 to_real_hom.map_sum _ _
 
 @[norm_cast] lemma coe_prod {α} {s : finset α} {f : α → ℝ≥0} :
-  ↑(s.prod f) = s.prod (λa, (f a : ℝ)) :=
+  ↑(∏ a in s, f a) = ∏ a in s, (f a : ℝ) :=
 to_real_hom.map_prod _ _
 
 @[norm_cast] lemma nsmul_coe (r : ℝ≥0) (n : ℕ) : ↑(n •ℕ r) = n •ℕ (r:ℝ) :=
@@ -487,14 +487,14 @@ by rw [mul_comm, inv_mul_cancel h]
 @[simp] lemma div_self {r : ℝ≥0} (h : r ≠ 0) : r / r = 1 :=
 mul_inv_cancel h
 
-@[simp] lemma div_mul_cancel {r p : ℝ≥0} (h : p ≠ 0) : r / p * p = r :=
-by rw [div_def, mul_assoc, inv_mul_cancel h, mul_one]
+lemma div_self_le (r : ℝ≥0) : r / r ≤ 1 :=
+if h : r = 0 then by simp [h] else by rw [div_self h]
 
 @[simp] lemma mul_div_cancel {r p : ℝ≥0} (h : p ≠ 0) : r * p / p = r :=
 by rw [div_def, mul_assoc, mul_inv_cancel h, mul_one]
 
 @[simp] lemma mul_div_cancel' {r p : ℝ≥0} (h : r ≠ 0) : r * (p / r) = p :=
-by rw [mul_comm, div_mul_cancel h]
+by rw [mul_comm, div_mul_cancel _ h]
 
 @[simp] lemma inv_inv {r : ℝ≥0} : r⁻¹⁻¹ = r := nnreal.eq (inv_inv' _)
 

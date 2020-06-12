@@ -189,6 +189,12 @@ end coeff
 
 end semiring
 
+section ring
+variables [ring R]
+
+instance : ring (polynomial R) := add_monoid_algebra.ring
+end ring
+
 section comm_semiring
 variables [comm_semiring R] {p q r : polynomial R}
 

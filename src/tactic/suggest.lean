@@ -186,10 +186,9 @@ meta def tactic_statement (g : expr) : tactic string :=
 do g ← instantiate_mvars g,
    g ← head_beta g,
    r ← pp (replace_mvars g),
-   goals ← get_goals >>= (λ gs, gs.mmap (λ g, do t ← infer_type g, pp t)),
    if g.has_meta_var
-   then return (sformat!"Try this: refine {r} -- {goals}")
-   else return (sformat!"Try this: exact {r} -- {goals}")
+   then return (sformat!"Try this: refine {r}")
+   else return (sformat!"Try this: exact {r}")
 
 /-- An `application` records the result of a successful application of a library lemma. -/
 meta structure application :=

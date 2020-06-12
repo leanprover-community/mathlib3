@@ -399,6 +399,11 @@ matches the goal, and then discharge any new goals using `solve_by_elim`.
 If it succeeds, it prints a trace message `exact ...` which can replace the invocation
 of `library_search`.
 
+By default `library_search` only unfolds `reducible` definitions
+when attempting to match lemmas against the goal.
+Previously, it would unfold most definitions, sometimes giving surprising answers, or slow answers.
+The old behaviour is still available via `library_search!`.
+
 You can add additional lemmas to be used along with local hypotheses
 after the application of a library lemma,
 using the same syntax as for `solve_by_elim`, e.g.
@@ -408,15 +413,18 @@ begin
   library_search [add_lt_add], -- Says: `exact max_eq_left_of_lt (add_lt_add h₁ h₂)`
 end
 ```
-You can also use `suggest with attr` to include all lemmas with the attribute `attr`.
+You can also use `library_search with attr` to include all lemmas with the attribute `attr`.
 -/
-meta def library_search (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
+meta def library_search (semireducible : parse $ optional (tk "!"))
+  (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
   (opt : opt := { }) : tactic unit :=
 do asms ← mk_assumption_set ff hs attr_names,
    tactic.library_search
-     {backtrack_all_goals := tt,
-      lemma_thunks := return asms,
-      ..opt} >>=
+     { backtrack_all_goals := tt,
+       lemma_thunks := return asms,
+       apply := λ e, tactic.apply e { md := if semireducible.is_some then
+         tactic.transparency.semireducible else tactic.transparency.reducible },
+       ..opt } >>=
    if is_trace_enabled_for `silence_library_search then
      (λ _, skip)
    else

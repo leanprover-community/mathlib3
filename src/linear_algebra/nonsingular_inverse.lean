@@ -249,7 +249,7 @@ end
 lemma mul_adjugate_val (A : matrix n n α) (i j k) :
   A i k * adjugate A k j = cramer α A (λ j, if k = j then A i k else 0) j :=
 begin
-  erw [←smul_eq_mul, ←pi.smul_apply, ←linear_map.smul],
+  erw [←smul_eq_mul, ←pi.smul_apply, ←linear_map.map_smul],
   congr, ext,
   rw [pi.smul_apply, smul_eq_mul, mul_boole],
 end

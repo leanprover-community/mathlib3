@@ -113,7 +113,7 @@ begin
       from riesz_lemma h hf this,
     have : x₀ ≠ 0,
     { assume h,
-      have : x₀ ∈ f.ker, by { rw h, exact (linear_map.ker f).zero },
+      have : x₀ ∈ f.ker, by { rw h, exact (linear_map.ker f).zero_mem },
       exact x₀ker this },
     have rx₀_ne_zero : r * ∥x₀∥ ≠ 0, by { simp [norm_eq_zero, this], norm_num },
     have : ∀x, ∥f x∥ ≤ (((r * ∥x₀∥)⁻¹) * ∥f x₀∥) * ∥x∥,
@@ -407,13 +407,13 @@ begin
   -- Next, we show that this `G` is linear,
   let Glin : E →ₗ[𝕜] F :=
   { to_fun := G,
-    add := λ v w, begin
+    map_add' := λ v w, begin
       have A := hG (v + w),
       have B := (hG v).add (hG w),
       simp only [map_add] at A B,
       exact tendsto_nhds_unique filter.at_top_ne_bot A B,
     end,
-    smul := λ c v, begin
+    map_smul' := λ c v, begin
       have A := hG (c • v),
       have B := filter.tendsto.smul (@tendsto_const_nhds _ ℕ _ c _) (hG v),
       simp only [map_smul] at A B,
@@ -468,14 +468,14 @@ have cont : _ := (uniform_continuous_uniformly_extend h_e h_dense f.uniform_cont
 /- extension of `f` agrees with `f` on the domain of the embedding `e` -/
 have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
 { to_fun := (h_e.dense_inducing h_dense).extend f,
-  add :=
+  map_add' :=
   begin
     refine is_closed_property2 h_dense (is_closed_eq _ _) _,
     { exact cont.comp (continuous_fst.add continuous_snd) },
     { exact (cont.comp continuous_fst).add (cont.comp continuous_snd) },
     { assume x y, rw ← e.map_add, simp only [eq], exact f.map_add _ _  },
   end,
-  smul := λk,
+  map_smul' := λk,
   begin
     refine is_closed_property h_dense (is_closed_eq _ _) _,
     { exact cont.comp (continuous_const.smul continuous_id)  },

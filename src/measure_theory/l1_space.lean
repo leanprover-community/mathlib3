@@ -553,10 +553,6 @@ instance : semimodule 𝕜 (α →₁ β) :=
   add_smul  := λx y f, l1.eq (by { simp only [coe_smul], exact add_smul _ _ _ }),
   zero_smul := λf, l1.eq (by { simp only [coe_smul], exact zero_smul _ _ }) }
 
-instance : module 𝕜 (α →₁ β) := { .. l1.semimodule }
-
-instance : vector_space 𝕜 (α →₁ β) := { .. l1.semimodule }
-
 instance : normed_space 𝕜 (α →₁ β) :=
 ⟨ begin
     rintros x ⟨f, hf⟩,

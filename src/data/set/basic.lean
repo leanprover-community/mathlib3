@@ -1725,6 +1725,9 @@ def inclusion {s t : set α} (h : s ⊆ t) : s → t :=
   (x : s) : inclusion htu (inclusion hst x) = inclusion (set.subset.trans hst htu) x :=
 by cases x; refl
 
+@[simp] lemma coe_inclusion {s t : set α} (h : s ⊆ t) (x : s) :
+  (inclusion h x : α) = (x : α) := rfl
+
 lemma inclusion_injective {s t : set α} (h : s ⊆ t) :
   function.injective (inclusion h)
 | ⟨_, _⟩ ⟨_, _⟩ := subtype.ext.2 ∘ subtype.ext.1

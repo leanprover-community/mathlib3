@@ -189,7 +189,7 @@ lemma le_iff {I J : fractional_ideal f} : I ≤ J ↔ (∀ x ∈ I, x ∈ J) := 
 lemma zero_le (I : fractional_ideal f) : 0 ≤ I :=
 begin
   intros x hx,
-  convert submodule.zero _,
+  convert submodule.zero_mem _,
   simpa using hx
 end
 

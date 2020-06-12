@@ -377,28 +377,6 @@ instance : mul_action 𝕜 (α →ₘ γ) := by apply_instance
 
 end semimodule
 
-section module
-
-variables {𝕜 : Type*} [ring 𝕜] [topological_space 𝕜]
-variables {γ : Type*} [topological_space γ] [second_countable_topology γ] [measurable_space γ]
-  [borel_space γ] [add_comm_group γ] [topological_add_group γ] [module 𝕜 γ]
-  [topological_semimodule 𝕜 γ]
-
-instance : module 𝕜 (α →ₘ γ) := { .. ae_eq_fun.semimodule }
-
-end module
-
-section vector_space
-
-variables {𝕜 : Type*} [field 𝕜] [topological_space 𝕜]
-variables {γ : Type*} [topological_space γ] [second_countable_topology γ] [measurable_space γ]
-  [borel_space γ] [add_comm_group γ] [topological_add_group γ] [vector_space 𝕜 γ]
-  [topological_semimodule 𝕜 γ]
-
-instance : vector_space 𝕜 (α →ₘ γ) := { .. ae_eq_fun.semimodule }
-
-end vector_space
-
 /- TODO : Prove that `L⁰` is a complete space if the codomain is complete. -/
 /- TODO : Multiplicative structure of `L⁰` if useful -/
 

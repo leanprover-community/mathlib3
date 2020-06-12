@@ -238,6 +238,7 @@ ring_hom.coe_add_monoid_hom_inj.comp coe_ring_hom_inj
 theorem ext ⦃φ₁ φ₂ : A →ₐ[R] B⦄ (H : ∀ x, φ₁ x = φ₂ x) : φ₁ = φ₂ :=
 coe_fn_inj $ funext H
 
+@[simp]
 theorem commutes (r : R) : φ (algebra_map R A r) = algebra_map R B r := φ.commutes' r
 
 theorem comp_algebra_map : φ.to_ring_hom.comp (algebra_map R A) = algebra_map R B :=
@@ -356,6 +357,15 @@ variables [comm_semiring R] [semiring A₁] [semiring A₂] [semiring A₃]
 variables [algebra R A₁] [algebra R A₂] [algebra R A₃]
 
 instance : has_coe_to_fun (A₁ ≃ₐ[R] A₂) := ⟨_, alg_equiv.to_fun⟩
+
+@[ext]
+lemma ext {f g : A₁ ≃ₐ[R] A₂} (h : ∀ a, f a = g a) : f = g :=
+begin
+  have h₁ : f.to_equiv = g.to_equiv := equiv.ext h,
+  cases f, cases g, congr,
+  { exact (funext h) },
+  { exact congr_arg equiv.inv_fun h₁ }
+end
 
 instance has_coe_to_ring_equiv : has_coe (A₁ ≃ₐ[R] A₂) (A₁ ≃+* A₂) := ⟨alg_equiv.to_ring_equiv⟩
 

@@ -412,6 +412,14 @@ by rw [rank, rank, linear_map.range_comp]; exact dim_map_le _ _
 
 end rank
 
+lemma eq_zero_of_dim_zero (h : vector_space.dim K V = 0) (x : V) : x = 0 :=
+begin
+  cases exists_is_basis K V with w hw,
+  have card_mk_range := hw.mk_range_eq_dim,
+  rw [h, cardinal.mk_emptyc_iff, set.range_coe_subtype] at card_mk_range,
+  simpa [card_mk_range] using hw.mem_span x
+end
+
 end vector_space
 
 section unconstrained_universes

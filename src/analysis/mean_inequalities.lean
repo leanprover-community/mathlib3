@@ -302,9 +302,9 @@ begin
         dsimp only [w, z],
         rw [mul_rpow, mul_left_comm, ← rpow_mul _ _ p, div_mul_cancel _ hpq.ne_zero, div_rpow,
           div_mul_div, mul_comm (G ^ q), mul_div_mul_right],
-        nth_rewrite 1 [← mul_one ((f i) ^ p)],
-        exact canonically_ordered_semiring.mul_le_mul (le_refl _) (div_self_le _),
-        simpa [hpq.symm.ne_zero] using hG
+        { nth_rewrite 1 [← mul_one ((f i) ^ p)],
+          exact canonically_ordered_semiring.mul_le_mul (le_refl _) (div_self_le _) },
+        { simpa [hpq.symm.ne_zero] using hG }
       end }
 end
 
@@ -401,6 +401,6 @@ theorem Lp_add_le_of_nonneg (hp : 1 ≤ p) (hf : ∀ i ∈ s, 0 ≤ f i) (hg : �
   (∑ i in s, (f i + g i) ^ p) ^ (1 / p) ≤
     (∑ i in s, (f i) ^ p) ^ (1 / p) + (∑ i in s, (g i) ^ p) ^ (1 / p) :=
 by convert Lp_add_le s f g hp using 2 ; [skip, congr' 1, congr' 1];
- apply sum_congr rfl; intros i hi; simp only [abs_of_nonneg, hf i hi, hg i hi, add_nonneg]
+  apply sum_congr rfl; intros i hi; simp only [abs_of_nonneg, hf i hi, hg i hi, add_nonneg]
 
 end real

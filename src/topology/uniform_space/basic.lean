@@ -649,6 +649,10 @@ def uniform_continuous [uniform_space β] (f : α → β) :=
 tendsto (λx:α×α, (f x.1, f x.2)) (𝓤 α) (𝓤 β)
 
 theorem uniform_continuous_def [uniform_space β] {f : α → β} :
+  uniform_continuous f ↔ ∀ r ∈ 𝓤 β, { x : α × α | (f x.1, f x.2) ∈ r} ∈ 𝓤 α :=
+iff.rfl
+
+theorem uniform_continuous_iff_eventually [uniform_space β] {f : α → β} :
   uniform_continuous f ↔ ∀ r ∈ 𝓤 β, ∀ᶠ (x : α × α) in 𝓤 α, (f x.1, f x.2) ∈ r :=
 iff.rfl
 
@@ -1201,4 +1205,3 @@ lemma uniform.tendsto_congr {α β} [uniform_space β] {f g : α → β} {l : fi
   (hfg : tendsto (λ x, (f x, g x)) l (𝓤 β)) :
   tendsto f l (𝓝 b) ↔ tendsto g l (𝓝 b) :=
 ⟨λ h, h.congr_uniformity hfg, λ h, h.congr_uniformity hfg.uniformity_symm⟩
-#lint

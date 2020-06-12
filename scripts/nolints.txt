@@ -658,19 +658,6 @@ apply_nolint equiv.vector_equiv_fin doc_blame
 -- data/buffer/basic.lean
 apply_nolint buffer.list_equiv_buffer doc_blame
 
--- data/complex/basic.lean
-apply_nolint complex doc_blame
-apply_nolint complex.I doc_blame
-apply_nolint complex.abs doc_blame
-apply_nolint complex.cau_seq_abs doc_blame
-apply_nolint complex.cau_seq_conj doc_blame
-apply_nolint complex.cau_seq_im doc_blame
-apply_nolint complex.cau_seq_re doc_blame
-apply_nolint complex.conj doc_blame
-apply_nolint complex.lim_aux doc_blame
-apply_nolint complex.norm_sq doc_blame
-apply_nolint complex.real_prod_equiv doc_blame
-
 -- data/complex/exponential.lean
 apply_nolint abv_sum_le_sum_abv unused_arguments
 apply_nolint complex.cos doc_blame

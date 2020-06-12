@@ -146,6 +146,11 @@ lemma of_finite_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K 
   finite_dimensional K V :=
 iff_fg.2 $ ⟨finset.univ.image b, by {convert h.2, simp} ⟩
 
+/-- If a vector space has a finite basis, then it is finite-dimensional, finset style. -/
+lemma of_finite_basis' {b : finset V} (h : is_basis K (subtype.val : (↑b : set V) -> V)) :
+  finite_dimensional K V :=
+iff_fg.2 $ ⟨b, by {convert h.2, simp} ⟩
+
 /-- A subspace of a finite-dimensional space is also finite-dimensional. -/
 instance finite_dimensional_submodule [finite_dimensional K V] (S : submodule K V) :
   finite_dimensional K S :=

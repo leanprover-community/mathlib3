@@ -1,6 +1,16 @@
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
+
 import linear_algebra.tensor_product
 import ring_theory.algebra
 import tactic
+
+/-!
+The tensor product of R-algebras.
+-/
 
 namespace tensor_product.algebra
 

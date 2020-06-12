@@ -8,21 +8,30 @@ import linear_algebra.tensor_product
 import ring_theory.algebra
 import tactic
 
+universes u v₁ v₂
+
+
 /-!
 The tensor product of R-algebras.
 -/
 
 namespace tensor_product.algebra
 
-universes u v₁ v₂
+open_locale tensor_product
+open tensor_product
+
+section ring
 
 variables {R : Type u} [comm_ring R]
 variables {A : Type v₁} [ring A] [algebra R A]
 variables {B : Type v₂} [ring B] [algebra R B]
 
-open_locale tensor_product
-open tensor_product
-
+/--
+(Implementation detail)
+The multiplication map on `A ⊗[R] B`,
+for a fixed pure tensor in the first argument,
+as an `R`-linear map.
+-/
 def mul_aux (a₁ : A) (b₁ : B) : (A ⊗[R] B) →ₗ[R] (A ⊗[R] B) :=
 begin
   -- Why doesn't `apply tensor_product.lift` work?
@@ -47,6 +56,11 @@ lemma mul_aux_apply (a₁ a₂ : A) (b₁ b₂ : B) :
   (mul_aux a₁ b₁) (a₂ ⊗ₜ[R] b₂) = (a₁ * a₂) ⊗ₜ[R] (b₁ * b₂) :=
 rfl
 
+/--
+(Implementation detail)
+The multiplication map on `A ⊗[R] B`,
+as an `R`-bilinear map.
+-/
 def mul : (A ⊗[R] B) →ₗ[R] (A ⊗[R] B) →ₗ[R] (A ⊗[R] B) :=
 begin
   apply @tensor_product.lift R _ A B ((A ⊗[R] B) →ₗ[R] (A ⊗[R] B)) _ _ _ _ _ _ _,
@@ -136,6 +150,9 @@ lemma mul_tmul (a₁ a₂ : A) (b₁ b₂ : B) :
   (a₁ ⊗ₜ[R] b₁) * (a₂ ⊗ₜ[R] b₂) = (a₁ * a₂) ⊗ₜ[R] (b₁ * b₂) :=
 rfl
 
+/--
+The algebra map `R →+* (A ⊗[R] B)` giving `A ⊗[R] B` the structure of an `R`-algebra.
+-/
 def algebra_map : R →+* (A ⊗[R] B) :=
 { to_fun := λ r, algebra_map R A r ⊗ₜ[R] 1,
   map_one' := by { simp, refl },
@@ -162,5 +179,32 @@ instance : algebra R (A ⊗[R] B) :=
   end,
   .. algebra_map,
   .. (by apply_instance : ring (A ⊗[R] B)) }.
+
+end ring
+
+section comm_ring
+
+variables {R : Type u} [comm_ring R]
+variables {A : Type v₁} [comm_ring A] [algebra R A]
+variables {B : Type v₂} [comm_ring B] [algebra R B]
+
+instance : comm_ring (A ⊗[R] B) :=
+{ mul_comm := λ x y,
+  begin
+    apply tensor_product.induction_on A B x,
+    { simp, },
+    { intros a₁ b₁,
+      apply tensor_product.induction_on A B y,
+      { simp, },
+      { intros a₂ b₂,
+        simp [mul_comm], },
+      { intros a₂ b₂ ha hb,
+        simp [mul_add, add_mul, ha, hb], }, },
+    { intros x₁ x₂ h₁ h₂,
+      simp [mul_add, add_mul, h₁, h₂], },
+  end
+  .. (by apply_instance : ring (A ⊗[R] B)) }.
+
+end comm_ring
 
 end tensor_product.algebra

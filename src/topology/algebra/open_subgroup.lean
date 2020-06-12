@@ -23,6 +23,12 @@ structure open_add_subgroup  (G : Type*) [add_group G] [topological_space G]
 structure open_subgroup (G : Type*) [group G] [topological_space G] extends subgroup G :=
 (is_open' : is_open carrier)
 
+/-- Reinterpret an `open_subgroup` as a `subgroup`. -/
+add_decl_doc open_subgroup.to_subgroup
+
+/-- Reinterpret an `open_add_subgroup` as an `add_subgroup`. -/
+add_decl_doc open_add_subgroup.to_add_subgroup
+
 -- Tell Lean that `open_add_subgroup` is a namespace
 namespace open_add_subgroup
 end open_add_subgroup

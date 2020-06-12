@@ -415,6 +415,9 @@ structure submodule (R : Type u) (M : Type v) [semiring R]
   [add_comm_monoid M] [semimodule R M] extends add_submonoid M : Type v :=
 (smul_mem' : ∀ (c:R) {x}, x ∈ carrier → c • x ∈ carrier)
 
+/-- Reinterpret a `submodule` as an `add_submonoid`. -/
+add_decl_doc submodule.to_add_submonoid
+
 namespace submodule
 
 variables [semiring R] [add_comm_monoid M] [semimodule R M]

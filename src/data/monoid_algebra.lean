@@ -232,9 +232,6 @@ finsupp.has_scalar
 instance [semiring k] : semimodule k (monoid_algebra k G) :=
 finsupp.semimodule G k
 
-instance [ring k] : module k (monoid_algebra k G) :=
-finsupp.module G k
-
 lemma single_one_comm [comm_semiring k] [monoid G] (r : k) (f : monoid_algebra k G) :
   single 1 r * f = f * single 1 r :=
 by { ext, rw [single_one_mul_apply, mul_single_one_apply, mul_comm] }
@@ -337,9 +334,9 @@ def group_smul.linear_map [group G] [comm_ring k]
   (V : Type u₃) [add_comm_group V] [module (monoid_algebra k G) V] (g : G) :
   (module.restrict_scalars k (monoid_algebra k G) V) →ₗ[k]
   (module.restrict_scalars k (monoid_algebra k G) V) :=
-{ to_fun := λ v, (single g (1 : k) • v : V),
-  add := λ x y, smul_add (single g (1 : k)) x y,
-  smul := λ c x,
+{ to_fun    := λ v, (single g (1 : k) • v : V),
+  map_add'  := λ x y, smul_add (single g (1 : k)) x y,
+  map_smul' := λ c x,
   by simp only [module.restrict_scalars_smul_def, coe_algebra_map, ←mul_smul, single_one_comm], }.
 
 @[simp]
@@ -361,8 +358,8 @@ include h
 /-- Build a `k[G]`-linear map from a `k`-linear map and evidence that it is `G`-equivariant. -/
 def equivariant_of_linear_of_comm : V →ₗ[monoid_algebra k G] W :=
 { to_fun := f,
-  add := λ v v', by simp,
-  smul := λ c v,
+  map_add' := λ v v', by simp,
+  map_smul' := λ c v,
   begin
   apply finsupp.induction c,
   { simp, },
@@ -582,9 +579,6 @@ finsupp.has_scalar
 instance [semiring k] : semimodule k (add_monoid_algebra k G) :=
 finsupp.semimodule G k
 
-instance [ring k] : module k (add_monoid_algebra k G) :=
-finsupp.module G k
-
 instance [comm_semiring k] [add_monoid G] : algebra k (add_monoid_algebra k G) :=
 { to_fun := single 0,
   map_one' := rfl,
@@ -645,7 +639,7 @@ variable {ι : Type ui}
 
 lemma prod_single [comm_semiring k] [add_comm_monoid G]
   {s : finset ι} {a : ι → G} {b : ι → k} :
-  (∏ i in s, single (a i) (b i)) = single (s.sum a) (∏ i in s, b i) :=
+  (∏ i in s, single (a i) (b i)) = single (∑ i in s, a i) (∏ i in s, b i) :=
 finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
   single_mul_single, sum_insert has, prod_insert has]
 

@@ -382,13 +382,10 @@ instance : semimodule α (mv_power_series σ α) :=
 
 end semiring
 
-instance [ring α] : module α (mv_power_series σ α) :=
-{ ..mv_power_series.semimodule }
-
 instance [comm_ring α] : algebra α (mv_power_series σ α) :=
 { commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c p, rfl,
-  .. C σ α, .. mv_power_series.module }
+  .. C σ α, .. mv_power_series.semimodule }
 
 section map
 variables {β : Type*} {γ : Type*} [semiring α] [semiring β] [semiring γ]
@@ -758,19 +755,23 @@ namespace power_series
 open finsupp (single)
 variable {α : Type*}
 
-instance [inhabited α]       : inhabited       (power_series α) := by delta power_series; apply_instance
-instance [add_monoid α]      : add_monoid      (power_series α) := by delta power_series; apply_instance
-instance [add_group α]       : add_group       (power_series α) := by delta power_series; apply_instance
-instance [add_comm_monoid α] : add_comm_monoid (power_series α) := by delta power_series; apply_instance
-instance [add_comm_group α]  : add_comm_group  (power_series α) := by delta power_series; apply_instance
-instance [semiring α]        : semiring        (power_series α) := by delta power_series; apply_instance
-instance [comm_semiring α]   : comm_semiring   (power_series α) := by delta power_series; apply_instance
-instance [ring α]            : ring            (power_series α) := by delta power_series; apply_instance
-instance [comm_ring α]       : comm_ring       (power_series α) := by delta power_series; apply_instance
-instance [semiring α] [nonzero α] : nonzero (power_series α) := by delta power_series; apply_instance
-instance [semiring α]        : semimodule α    (power_series α) := by delta power_series; apply_instance
-instance [ring α]            : module α        (power_series α) := by delta power_series; apply_instance
-instance [comm_ring α]       : algebra α       (power_series α) := by delta power_series; apply_instance
+section
+local attribute [reducible] power_series
+
+instance [inhabited α]       : inhabited       (power_series α) := by apply_instance
+instance [add_monoid α]      : add_monoid      (power_series α) := by apply_instance
+instance [add_group α]       : add_group       (power_series α) := by apply_instance
+instance [add_comm_monoid α] : add_comm_monoid (power_series α) := by apply_instance
+instance [add_comm_group α]  : add_comm_group  (power_series α) := by apply_instance
+instance [semiring α]        : semiring        (power_series α) := by apply_instance
+instance [comm_semiring α]   : comm_semiring   (power_series α) := by apply_instance
+instance [ring α]            : ring            (power_series α) := by apply_instance
+instance [comm_ring α]       : comm_ring       (power_series α) := by apply_instance
+instance [semiring α] [nonzero α] : nonzero    (power_series α) := by apply_instance
+instance [semiring α]        : semimodule α    (power_series α) := by apply_instance
+instance [comm_ring α]       : algebra α       (power_series α) := by apply_instance
+
+end
 
 section add_monoid
 variables (α) [add_monoid α]

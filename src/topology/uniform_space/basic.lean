@@ -54,11 +54,11 @@ In general we have `mem_ball_comp (h : y ∈ ball x V) (h' : z ∈ ball y W) : z
 Note that this discussion does not depend on any axiom imposed on the uniformity filter,
 it is simply captured by the definition of composition.
 
-The uniform space axioms ask the filter `𝓤 X` satisfy:
+The uniform space axioms ask the filter `𝓤 X` to satisfy:
 * every `V ∈ 𝓤 X` contains the diagonal `id_rel = { p | p.1 = p.2}`. This abstracts the fact
   that `dist x x ≤ r` for every non-negative radius `r` in the metric space case, and also that
-  `x - x` belongs to very neighborhood of zero in the toplogical group case.
-* `V ∈ 𝓤 X → prod.swap '' V ∈ 𝓤 X`. This this tightly related the fact that `dist x y = dist y x`
+  `x - x` belongs to every neighborhood of zero in the toplogical group case.
+* `V ∈ 𝓤 X → prod.swap '' V ∈ 𝓤 X`. This is tightly related the fact that `dist x y = dist y x`
   in a metric space, and to continuity of negation in the topological group case.
 * `∀ V ∈ 𝓤 X, ∃ W ∈ 𝓤 X, W ○ W ⊆ V`. In the metric space case, it corresponds
   to the possibility of cuting a radius in half and the triangle inequality.
@@ -380,7 +380,7 @@ calc (𝓤 α).lift' (λd, d ○ (d ○ d)) =
 ### Balls in uniform spaces
 -/
 
-/-- The ball around `(x : β)` with respect `(V : set (β × β))`. Intended to be
+/-- The ball around `(x : β)` with respect to `(V : set (β × β))`. Intended to be
 used for `V ∈ 𝓤 β`, but this is not needed for the definition. Recovers the
 notions of metric space ball when `V = {p | dist p.1 p.2 < r }`.  -/
 def uniform_space.ball (x : β) (V : set (β × β)) : set β := (prod.mk x) ⁻¹' V

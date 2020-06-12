@@ -30,7 +30,7 @@ Those examples are generalizations in two different directions of the elementary
 group structure on `ℝ` and its metric space structure.
 
 Each uniform structure on `X` induces a topology on `X` characterized by:
-`nhds_eq_comap_uniformity : ∀ {x : X}, 𝓝 x = comap (prod.mk x) (𝓤 X)`
+> `nhds_eq_comap_uniformity : ∀ {x : X}, 𝓝 x = comap (prod.mk x) (𝓤 X)`
 where `prod.mk x : X → X × X := (λ y, (x, y))` is the partial evaluation of the product
 constructor.
 

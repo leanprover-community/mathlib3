@@ -10,7 +10,7 @@ by show_term { ariadne }
 example {a b c d : ℕ} (h₁ : a < c) (h₂ : b < d) : max (c + d) (a + b) = (c + d) :=
 -- by exact max_eq_left_of_lt (add_lt_add h₁ h₂)
 -- by suggest
-by ariadne
+by show_term { ariadne }
 
 #print plift.up.inj
 #print let_eq

@@ -468,7 +468,7 @@ let ⟨K, K0, HK⟩ := abv_pos_of_not_lim_zero hf,
 
 /-- Given a Cauchy sequence `f` with nonzero limit, create a Cauchy sequence with values equal to
 the inverses of the values of `f`. -/
-def inv (f : cau_seq β abv) (hf : ¬ lim_zero f) : cau_seq β abv := ⟨λ n, (f n)⁻¹, inv_aux hf⟩
+def inv (f : cau_seq β abv) (hf : ¬ lim_zero f) : cau_seq β abv := ⟨_, inv_aux hf⟩
 
 @[simp] theorem inv_apply {f : cau_seq β abv} (hf i) : inv f hf i = (f i)⁻¹ := rfl
 

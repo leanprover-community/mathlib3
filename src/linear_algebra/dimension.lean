@@ -429,7 +429,6 @@ end
 lemma dim_pos_iff_exists_ne_zero : vector_space.dim K V > 0 ↔ ∃ x : V, x ≠ 0 :=
 begin
   rw ←not_iff_not,
-  push_neg,
   simpa using dim_zero_iff_forall_zero
 end
 

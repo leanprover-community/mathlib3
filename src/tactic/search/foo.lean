@@ -123,6 +123,7 @@ namespace ariadne
 
 meta structure thread :=
 (num_goals : ℕ)
+(goals_pp_length : ℕ)
 (local_solutions : ℕ) -- the total number of subgoals we have solved using `solve_by_elim`
 (tried_solve_by_elim : bool)
 (library_steps : ℕ)
@@ -131,6 +132,7 @@ meta structure thread :=
 
 meta instance : inhabited thread := ⟨
 { num_goals := 1,
+  goals_pp_length := 0, -- nonsense?
   local_solutions := 0,
   tried_solve_by_elim := ff,
   library_steps := 0,
@@ -149,6 +151,7 @@ meta def thread.score (D : thread) :=
   -- to discharge some subgoals using local hypotheses.
   -(D.local_solutions : ℤ),
   D.num_goals,
+  D.goals_pp_length,
   -- if D.library_allowed then 0 else 1,
   D.library_steps,
   D.queued_tactics.length
@@ -195,8 +198,10 @@ meta def run_queued_tactic : search_tactic thread ℕ :=
   match r with
   | some n := do
       ng ← num_goals,
+      goals ← get_goals >>= (λ gs, gs.mmap (λ g, do t ← infer_type g, pp ← pp t, return pp.to_string)),
       let D₁ : thread :=
       { num_goals := ng,
+        goals_pp_length := (goals.map string.length).sum,
         tried_solve_by_elim := tt,
         local_solutions := D.local_solutions + n,
         library_steps := D.library_steps + 1,
@@ -225,11 +230,13 @@ meta def run_queued_tactics : search_tactic thread ℕ :=
   r ← D.queued_tactics.successes (λ t, do
     r ← t,
     ng ← num_goals,
+    goals ← get_goals >>= (λ gs, gs.mmap (λ g, do t ← infer_type g, pp ← pp t, return pp.to_string)),
     s ← get_state,
     return ({ search_state .
       state := s,
       data := { thread .
         num_goals := ng,
+        goals_pp_length := (goals.map string.length).sum,
         tried_solve_by_elim := tt,
         local_solutions := D.local_solutions + r,
         library_steps := D.library_steps + 1,

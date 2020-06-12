@@ -28,7 +28,6 @@ theorem not_or_eq : (¬ (p ∨ q)) = (¬ p ∧ ¬ q) := propext not_or_distrib
 theorem not_forall_eq : (¬ ∀ x, s x) = (∃ x, ¬ s x) := propext not_forall
 theorem not_exists_eq : (¬ ∃ x, s x) = (∀ x, ¬ s x) := propext not_exists
 theorem not_implies_eq : (¬ (p → q)) = (p ∧ ¬ q) := propext not_imp
-theorem not_iff_eq : (¬ (p ↔ q)) = (¬ p ↔ q) := propext not_iff
 
 theorem classical.implies_iff_not_or : (p → q) ↔ (¬ p ∨ q) := imp_iff_not_or
 
@@ -56,8 +55,6 @@ do e ← whnf_reducible e,
                             return (some (`(¬ %%a ∨ ¬ %%b), pr))
       | `(%%a ∨ %%b)  := do pr ← mk_app ``not_or_eq [a, b],
                             return (some (`(¬ %%a ∧ ¬ %%b), pr))
-      | `(%%a ↔ %%b)  := do pr ← mk_app ``not_iff_eq [a, b],
-                            return (some (`(¬ %%a ↔ ¬ %%b), pr))
       | `(%%a ≤ %%b)  := do e ← to_expr ``(%%b < %%a),
                             pr ← mk_app ``not_le_eq [a, b],
                             return (some (e, pr))

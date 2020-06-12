@@ -8,34 +8,103 @@ import topology.separation
 /-!
 # Uniform spaces
 
-## Main definitions
-
-* `uniform_space X` is a uniform space structure on a type `X`
-
 Uniform spaces are a generalization of metric spaces and topological groups. Many concepts directly
 generalize to uniform spaces, e.g.
 
-* completeness
-* extension of uniform continuous functions to complete spaces
-* uniform contiunuity & embedding
-* totally bounded
-* totally bounded ∧ complete → compact
+* uniform continuity (in this file)
+* completeness (in `cauchy.lean`)
+* extension of uniform continuous functions to complete spaces (in `uniform_embedding.lean`)
+* totally bounded sets (in `cauchy.lean`)
+* totally bounded complete sets are compact (in `cauchy.lean`)
 
-The central concept of uniform spaces is its uniformity: a filter relating two elements of the
-space. This filter is reflexive, symmetric and transitive. So a set (i.e. a relation) in this filter
-represents a 'distance': it is reflexive, symmetric and the uniformity contains a set for which the
-`triangular` rule holds.
+A uniform structure on a type `X` is a filter `𝓤 X` on `X × X` satisfying some conditions
+which makes it reasonable to say that `∀ᶠ (p : X × X) in 𝓤 X, ...` means
+"for all p.1 and p.2 in X close enough, ...". Elements of this filter are called entourages
+of `X`. The two main examples are:
+
+* If `X` is a metric space, `V ∈ 𝓤 X ↔ ∃ ε > 0, { p | dist p.1 p.2 < ε } ⊆ V`
+* If `G` is an additive topological group, `V ∈ 𝓤 G ↔ ∃ U ∈ 𝓝 (0 : G), {p | p.2 - p.1 ∈ U} ⊆ V`
+
+Those examples are generalizations in two different directions of the elementary example where
+`X = ℝ` and `V ∈ 𝓤 ℝ ↔ ∃ ε > 0, { p | |p.2 - p.1| < ε } ⊆ V` which features both the topological
+group structure on `ℝ` and its metric space structure.
+
+Each uniform structure on `X` induces a topology on `X` characterized by:
+`nhds_eq_comap_uniformity : ∀ {x : X}, 𝓝 x = comap (prod.mk x) (𝓤 X)`
+where `prod.mk x : X → X × X := (λ y, (x, y))` is the partial evaluation of the product
+constructor.
+
+The dictionary with metric spaces includes:
+* an upper bound for `dist x y` translates into `(x, y) ∈ V` for some `V ∈ 𝓤 X`
+* a ball `ball x r` roughly corresponds to `uniform_space.ball x V := {y | (x, y) ∈ V}`
+  for some `V ∈ 𝓤 X`, but the later is more general (it includes in
+  particular both open and closed balls for suitable `V`).
+  In particular we have:
+  `is_open_iff_ball_subset {s : set X} : is_open s ↔ ∀ x ∈ s, ∃ V ∈ 𝓤 X, ball x V ⊆ s`
+
+The triangle inequality is abstracted through the notation of relation composition in `X`.
+First note that the triangle inequality in a metric space is equivalent to
+`∀ (x y z : X) (r r' : ℝ), dist x y ≤ r → dist y z ≤ r' → dist x z ≤ r + r'`.
+Then, for any `V` and `W` with type `set (X × X)`, the composition `V ○ W : set (X × X)` is
+defined as `{ p : X × X | ∃ z, (p.1, z) ∈ V ∧ (z, p.2) ∈ W }`.
+In the metric space case, if `V = { p | dist p.1 p.2 ≤ r }` and `W = { p | dist p.1 p.2 ≤ r' }`
+then the triangle inequality, as reformulated above, says `V ○ W` is contained in
+`{p | dist p.1 p.2 ≤ r + r'}` which is the entourage associated to the radius `r + r'`.
+In general we have `mem_ball_comp (h : y ∈ ball x V) (h' : z ∈ ball y W) : z ∈ ball x (V ○ W)`.
+Note that this discussion does not depend on any axiom imposed on the uniformity filter,
+it is simply captured by the definition of composition.
+
+The uniform space axioms ask the filter `𝓤 X` satisfy:
+* every `V ∈ 𝓤 X` contains the diagonal `id_rel = { p | p.1 = p.2}`. This abstracts the fact
+  that `dist x x ≤ r` for every non-negative radius `r` in the metric space case, and also that
+  `x - x` belongs to very neighborhood of zero in the toplogical group case.
+* `V ∈ 𝓤 X → prod.swap '' V ∈ 𝓤 X`. This this tightly related the fact that `dist x y = dist y x`
+  in a metric space, and to continuity of negation in the topological group case.
+* `∀ V ∈ 𝓤 X, ∃ W ∈ 𝓤 X, W ○ W ⊆ V`. In the metric space case, it corresponds
+  to the possibility of cuting a radius in half and the triangle inequality.
+  In the topological group case, it comes from continuity of addition at `(0, 0)`.
+
+These three axioms are stated more abstractly in the definition below, in terms of
+filters operations, without directly manipulating entourages.
+
+## Main definitions
+
+* `uniform_space X` is a uniform space structure on a type `X`
+* `uniform_continuous f` is a predicate saying a function `f : α → β` between uniform spaces
+  is uniformly continuous : `∀ r ∈ 𝓤 β, ∀ᶠ (x : α × α) in 𝓤 α, (f x.1, f x.2) ∈ r`
+
+In this file we also define a complete lattice structure on the type `uniform_space X`
+of uniform structures on `X`, as well as the uniform structure pull back operation
+`uniform_space.comap` coming from filters pull-back.
+Like distance functions, uniform structure cannot be pushed foward in general.
 
 ## Notations
 
-Localized in `uniformity`, we have the notation `𝓤 X` for the uniformity on a uniform space `X`.
+Localized in `uniformity`, we have the notation `𝓤 X` for the uniformity on a uniform space `X`,
+and `○` for composition of relations, seen as terms with type `set (X × X)`.
+
+## Implementation notes
+
+There is already a theory of relations in `data/rel.lean` where the main definition is
+`def rel (α β : Type*) := α → β → Prop`.
+The relations used in the current file involve only one type, but this is not the reason why
+we don't reuse `data/rel.lean`. We use `set (α × α)`
+instead `rel α α` because we really need sets to use the filter library, and elements
+of filters on `α × α` have type `set (α × α)`.
+
+The structure `uniform_space X` bundles a uniform structure on `X`, a topology on `X` and
+an assumption saying those are compatible. This deos not mathematically reasonable at first,
+but is an instance of the forgetful inheritance pattern, see the explanation in
+[Competing inheritance paths in dependent type theory: a case study in functional analysis](https://hal.inria.fr/hal-02463336).
 
 ## References
 
 The formalization uses the books:
-  N. Bourbaki: General Topology
-  I. M. James: Topologies and Uniformities
-But is makes a more systematic use of the filter library.
+
+* [N. Bourbaki, *General Topology*][bourbaki1966]
+* [I. M. James, *Topologies and Uniformities*][james1999]
+
+But it makes a more systematic use of the filter library.
 -/
 
 open set filter classical
@@ -44,7 +113,7 @@ open_locale classical topological_space
 set_option eqn_compiler.zeta true
 
 universes u
-section
+
 /-!
 # Relations, seen as `set (α × α)`
 -/
@@ -84,6 +153,22 @@ lemma comp_rel_assoc {r s t : set (α×α)} :
   (r ○ s) ○ t = r ○ (s ○ t) :=
 by ext p; cases p; simp only [mem_comp_rel]; tauto
 
+/-- The relation is invariant under swapping factors. -/
+def symmetric_rel (V : set (α × α)) : Prop := prod.swap ⁻¹' V = V
+
+/-- The maximal symmetric relation contained in a given relation. -/
+def symmetrize_rel (V : set (α × α)) := V ∩ prod.swap ⁻¹' V
+
+lemma symmetric_symmetrize_rel (V : set (α × α)) : symmetric_rel (symmetrize_rel V) :=
+by simp [symmetric_rel, symmetrize_rel, preimage_inter, inter_comm, ← preimage_comp]
+
+lemma symmetrize_rel_subset_self (V : set (α × α)) : symmetrize_rel V ⊆ V :=
+sep_subset _ _
+
+@[mono]
+lemma symmetrize_mono {V W: set (α × α)} (h : V ⊆ W) : symmetrize_rel V ⊆ symmetrize_rel W :=
+inter_subset_inter h $ preimage_mono h
+
 /-- This core description of a uniform space is outside of the type class hierarchy. It is useful
   for constructions of uniform spaces, when the topology is derived from the uniform space. -/
 structure uniform_space.core (α : Type u) :=
@@ -96,7 +181,7 @@ structure uniform_space.core (α : Type u) :=
 `filter`-related definitions. -/
 def uniform_space.core.mk' {α : Type u} (U : filter (α × α))
   (refl : ∀ (r ∈ U) x, (x, x) ∈ r)
-  (symm : ∀ r ∈ U, {p | prod.swap p ∈ r} ∈ U)
+  (symm : ∀ r ∈ U, prod.swap ⁻¹' r ∈ U)
   (comp : ∀ r ∈ U, ∃ t ∈ U, t ○ t ⊆ r) : uniform_space.core α :=
 ⟨U, λ r ru, id_rel_subset.2 (refl _ ru), symm,
   begin
@@ -132,6 +217,7 @@ class uniform_space (α : Type u) extends topological_space α, uniform_space.co
 (is_open_uniformity : ∀s, is_open s ↔ (∀x∈s, { p : α × α | p.1 = x → p.2 ∈ s } ∈ uniformity))
 end prio
 
+/-- Alternative constructor for `uniform_space α` when a topology is already given. -/
 @[pattern] def uniform_space.mk' {α} (t : topological_space α)
   (c : uniform_space.core α)
   (is_open_uniformity : ∀s:set α, t.is_open s ↔
@@ -247,6 +333,13 @@ from map_le_iff_le_comap.1 tendsto_swap_uniformity
 lemma uniformity_eq_symm : 𝓤 α = (@prod.swap α α) <$> 𝓤 α :=
 le_antisymm uniformity_le_symm symm_le_uniformity
 
+lemma symmetrize_mem_uniformity {V : set (α × α)} (h : V ∈ 𝓤 α) : symmetrize_rel V ∈ 𝓤 α :=
+begin
+  apply (𝓤 α).inter_sets h,
+  rw [← image_swap_eq_preimage_swap, uniformity_eq_symm],
+  exact image_mem_map h,
+end
+
 theorem uniformity_lift_le_swap {g : set (α×α) → filter β} {f : filter β} (hg : monotone g)
   (h : (𝓤 α).lift (λs, g (preimage prod.swap s)) ≤ f) : (𝓤 α).lift g ≤ f :=
 calc (𝓤 α).lift g ≤ (filter.map (@prod.swap α α) $ 𝓤 α).lift g :
@@ -283,10 +376,40 @@ calc (𝓤 α).lift' (λd, d ○ (d ○ d)) =
       (assume s, monotone_comp_rel monotone_id monotone_const)
   ... ≤ (𝓤 α) : comp_le_uniformity
 
-lemma filter.has_basis.mem_uniformity_iff {p : β → Prop} {s : β → set (α×α)}
-  (h : (𝓤 α).has_basis p s) {t : set (α × α)} :
-  t ∈ 𝓤 α ↔ ∃ i (hi : p i), ∀ a b, (a, b) ∈ s i → (a, b) ∈ t :=
-h.mem_iff.trans $ by simp only [prod.forall, subset_def]
+/-!
+### Balls in uniform spaces
+-/
+
+/-- The ball around `(x : β)` with respect `(V : set (β × β))`. Intended to be
+used for `V ∈ 𝓤 β`, but this is not needed for the definition. Recovers the
+notions of metric space ball when `V = {p | dist p.1 p.2 < r }`.  -/
+def uniform_space.ball (x : β) (V : set (β × β)) : set β := (prod.mk x) ⁻¹' V
+
+open uniform_space (ball)
+
+/-- The triangle inequality for `uniform_space.ball` -/
+lemma mem_ball_comp {V W : set (β × β)} {x y z} (h : y ∈ ball x V) (h' : z ∈ ball y W) :
+  z ∈ ball x (V ○ W) :=
+prod_mk_mem_comp_rel h h'
+
+lemma ball_subset_of_comp_subset {V W : set (β × β)} {x y} (h : x ∈ ball y W) (h' : W ○ W ⊆ V) :
+  ball x W ⊆ ball y V :=
+λ z z_in, h' (mem_ball_comp h z_in)
+
+lemma ball_mono {V W : set (β × β)} (h : V ⊆ W) (x : β) : ball x V ⊆ ball x W :=
+by tauto
+
+lemma mem_ball_symmetry {V : set (β × β)} (hV : symmetric_rel V) {x y} :
+  x ∈ ball y V ↔ y ∈ ball x V :=
+show (x, y) ∈ prod.swap ⁻¹' V ↔ (x, y) ∈ V, by { unfold symmetric_rel at hV, rw hV }
+
+lemma ball_eq_of_symmetry {V : set (β × β)} (hV : symmetric_rel V) {x} :
+  ball x V = {y | (y, x) ∈ V} :=
+by { ext y, rw mem_ball_symmetry hV, exact iff.rfl }
+
+/-!
+### Neighborhoods in uniform spaces
+-/
 
 lemma mem_nhds_uniformity_iff_right {x : α} {s : set α} :
   s ∈ 𝓝 x ↔ {p : α × α | p.1 = x → p.2 ∈ s} ∈ 𝓤 α :=
@@ -318,6 +441,12 @@ by ext s; rw [mem_nhds_uniformity_iff_right, mem_comap_sets]; from iff.intro
   (assume hs, ⟨_, hs, assume x hx, hx rfl⟩)
   (assume ⟨t, h, ht⟩, (𝓤 α).sets_of_superset h $
     assume ⟨p₁, p₂⟩ hp (h : p₁ = x), ht $ by simp [h.symm, hp])
+
+lemma is_open_iff_ball_subset {s : set α} : is_open s ↔ ∀ x ∈ s, ∃ V ∈ 𝓤 α, ball x V ⊆ s :=
+begin
+  simp_rw [is_open_iff_mem_nhds, nhds_eq_comap_uniformity],
+  exact iff.rfl,
+end
 
 lemma nhds_basis_uniformity' {p : β → Prop} {s : β → set (α × α)} (h : (𝓤 α).has_basis p s) {x : α} :
   (𝓝 x).has_basis p (λ i, {y | (x, y) ∈ s i}) :=
@@ -412,6 +541,10 @@ match this with
     Union_subset $ assume p, Union_subset $ assume hp, (ht p hp).left⟩
 end
 
+/-!
+### Closure and interior in uniform spaces
+-/
+
 lemma closure_eq_inter_uniformity {t : set (α×α)} :
   closure t = (⋂ d ∈ 𝓤 α, d ○ (t ○ d)) :=
 set.ext $ assume ⟨a, b⟩,
@@ -473,6 +606,40 @@ have ∃ t ∈ 𝓤 α, closure t ⊆ s,
 let ⟨t, ht, hst⟩ := this in
 ⟨closure t, (𝓤 α).sets_of_superset ht subset_closure, is_closed_closure, hst⟩
 
+/-!
+### Uniformity bases
+-/
+
+lemma filter.has_basis.mem_uniformity_iff {p : β → Prop} {s : β → set (α×α)}
+  (h : (𝓤 α).has_basis p s) {t : set (α × α)} :
+  t ∈ 𝓤 α ↔ ∃ i (hi : p i), ∀ a b, (a, b) ∈ s i → (a, b) ∈ t :=
+h.mem_iff.trans $ by simp only [prod.forall, subset_def]
+
+/-- Symmetric entourages form a basis of `𝓤 α` -/
+lemma uniform_space.has_basis_symmetric : (𝓤 α).has_basis (λ s : set (α × α), s ∈ 𝓤 α ∧ symmetric_rel s) id :=
+⟨λ t, ⟨λ t_in, ⟨symmetrize_rel t,
+           ⟨⟨symmetrize_mem_uniformity t_in, symmetric_symmetrize_rel t⟩,
+            symmetrize_rel_subset_self _⟩⟩,
+       λ ⟨s, ⟨s_in, h⟩, hst⟩, mem_sets_of_superset s_in hst⟩⟩
+
+lemma uniform_space.has_seq_basis (h : is_countably_generated $ 𝓤 α) :
+∃ V : ℕ → set (α × α), has_antimono_basis (𝓤 α) (λ _, true) V ∧ ∀ n, symmetric_rel (V n) :=
+begin
+  rcases h.has_antimono_basis with ⟨U, hbasis, hdec, monotrue⟩, clear monotrue,
+  simp only [forall_prop_of_true] at hdec,
+  use λ n, symmetrize_rel (U n),
+  refine ⟨⟨⟨_⟩, by intros ; mono, by tauto⟩, λ n, symmetric_symmetrize_rel _⟩,
+  intros t,
+  rw hbasis.mem_iff,
+  split,
+  { rintro ⟨i, _, hi⟩,
+    exact ⟨i, trivial, subset.trans (inter_subset_left _ _) hi⟩ },
+  { rintro ⟨i, _, hi⟩,
+    rcases hbasis.mem_iff.mp (symmetrize_mem_uniformity $ hbasis.mem_of_mem trivial) with ⟨j, _, hj⟩,
+    use j,
+    tauto }
+end
+
 /-! ### Uniform continuity -/
 
 /-- A function `f : α → β` is *uniformly continuous* if `(f x, f y)` tends to the diagonal
@@ -482,8 +649,7 @@ def uniform_continuous [uniform_space β] (f : α → β) :=
 tendsto (λx:α×α, (f x.1, f x.2)) (𝓤 α) (𝓤 β)
 
 theorem uniform_continuous_def [uniform_space β] {f : α → β} :
-  uniform_continuous f ↔ ∀ r ∈ 𝓤 β,
-    {x : α × α | (f x.1, f x.2) ∈ r} ∈ 𝓤 α :=
+  uniform_continuous f ↔ ∀ r ∈ 𝓤 β, ∀ᶠ (x : α × α) in 𝓤 α, (f x.1, f x.2) ∈ r :=
 iff.rfl
 
 lemma uniform_continuous_of_const [uniform_space β] {c : α → β} (h : ∀a b, c a = c b) :
@@ -509,12 +675,10 @@ lemma filter.has_basis.uniform_continuous_iff [uniform_space β] {p : γ → Pro
 (ha.tendsto_iff hb).trans $ by simp only [prod.forall]
 
 end uniform_space
-end
 
 open_locale uniformity
 
 section constructions
-variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ι : Sort*}
 
 instance : partial_order (uniform_space α) :=
 { le          := λt s, t.uniformity ≤ s.uniformity,
@@ -823,6 +987,7 @@ variables {δ' : Type*} [uniform_space α] [uniform_space β] [uniform_space γ]
 
 local notation f `∘₂` g := function.bicompr f g
 
+/-- Uniform continuity for functions of two variables. -/
 def uniform_continuous₂ (f : α → β → γ) := uniform_continuous (uncurry f)
 
 lemma uniform_continuous₂_def (f : α → β → γ) :
@@ -981,7 +1146,7 @@ with primes.
 
 namespace uniform
 
-variables {α : Type*} {β : Type*} [uniform_space α]
+variables [uniform_space α]
 
 theorem tendsto_nhds_right {f : filter β} {u : β → α} {a : α} :
   tendsto u f (𝓝 a) ↔ tendsto (λ x, (a, u x)) f (𝓤 α)  :=
@@ -1036,3 +1201,4 @@ lemma uniform.tendsto_congr {α β} [uniform_space β] {f g : α → β} {l : fi
   (hfg : tendsto (λ x, (f x, g x)) l (𝓤 β)) :
   tendsto f l (𝓝 b) ↔ tendsto g l (𝓝 b) :=
 ⟨λ h, h.congr_uniformity hfg, λ h, h.congr_uniformity hfg.uniformity_symm⟩
+#lint

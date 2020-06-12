@@ -207,4 +207,18 @@ instance : comm_ring (A ⊗[R] B) :=
 
 end comm_ring
 
+/--
+Verify that typeclass search finds the ring structure on `ring (A ⊗[ℤ] B)`
+when `A` and `B` are merely rings, by treating both as `ℤ`-algebras.
+-/
+example {A : Type v₁} [ring A] {B : Type v₂} [ring B] : ring (A ⊗[ℤ] B) :=
+by apply_instance
+
+/--
+Verify that typeclass search finds the comm_ring structure on `ring (A ⊗[ℤ] B)`
+when `A` and `B` are merely comm_rings, by treating both as `ℤ`-algebras.
+-/
+example {A : Type v₁} [comm_ring A] {B : Type v₂} [comm_ring B] : comm_ring (A ⊗[ℤ] B) :=
+by apply_instance
+
 end tensor_product.algebra

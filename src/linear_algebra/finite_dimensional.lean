@@ -214,9 +214,9 @@ begin
   exact (lift_inj.mp this).symm
 end
 
-/-- If a vector space is finite-dimensional, then the cardinality of any basis is equal to its
-`findim`. This lemma uses finsets instead of indexed types. -/
-lemma finite_dimensional.findim_eq_card_basis'' [finite_dimensional K V] {b : finset V}
+/-- If a vector space has a finite basis, then its dimension is equal to the cardinality of the
+basis. This lemma uses a `finset` instead of indexed types. -/
+lemma finite_dimensional.findim_eq_card_basis'' {b : finset V}
   (h : is_basis K (subtype.val : (↑b : set V) -> V)) :
   findim K V = finset.card b :=
 by { rw [finite_dimensional.findim_eq_card_basis h, fintype.subtype_card], intros x, refl }

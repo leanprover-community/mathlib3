@@ -420,7 +420,7 @@ begin
   library_search [add_lt_add], -- Says: `exact max_eq_left_of_lt (add_lt_add h₁ h₂)`
 end
 ```
-You can also use `suggest with attr` to include all lemmas with the attribute `attr`.
+You can also use `library_search with attr` to include all lemmas with the attribute `attr`.
 -/
 meta def library_search (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
   (opt : opt := { }) : tactic unit :=

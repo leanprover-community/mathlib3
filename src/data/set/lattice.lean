@@ -112,6 +112,12 @@ theorem subset_Inter {t : set β} {s : ι → set β} (h : ∀ i, t ⊆ s i) : t
 
 theorem subset_Union : ∀ (s : ι → set β) (i : ι), s i ⊆ (⋃ i, s i) := le_supr
 
+-- This rather trivial consequence is convenient with `apply`,
+-- and has `i` explicit for this use case.
+theorem subset_subset_Union
+  {A : set β} {s : ι → set β} (i : ι) (h : A ⊆ s i) : A ⊆ ⋃ (i : ι), s i :=
+subset.trans h (subset_Union s i)
+
 theorem Inter_subset : ∀ (s : ι → set β) (i : ι), (⋂ i, s i) ⊆ s i := infi_le
 
 lemma Inter_subset_of_subset {s : ι → set α} {t : set α} (i : ι)

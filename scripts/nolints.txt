@@ -1817,7 +1817,6 @@ apply_nolint local_of_nonunits_ideal doc_blame
 apply_nolint local_of_unique_max_ideal doc_blame
 apply_nolint local_of_unit_or_unit_one_sub doc_blame
 apply_nolint local_ring doc_blame
-apply_nolint local_ring.nonunits_ideal doc_blame
 apply_nolint local_ring.residue_field doc_blame has_inhabited_instance
 apply_nolint local_ring.residue_field.map doc_blame
 
@@ -2586,7 +2585,6 @@ apply_nolint homeomorph.mul_right doc_blame
 apply_nolint homeomorph.neg doc_blame
 
 -- topology/algebra/open_subgroup.lean
-apply_nolint open_add_subgroup doc_blame
 apply_nolint open_add_subgroup.sum doc_blame
 apply_nolint open_subgroup.prod doc_blame
 

@@ -42,7 +42,7 @@ The dictionary with metric spaces includes:
   In particular we have:
   `is_open_iff_ball_subset {s : set X} : is_open s ↔ ∀ x ∈ s, ∃ V ∈ 𝓤 X, ball x V ⊆ s`
 
-The triangle inequality is abstracted through the notation of relation composition in `X`.
+The triangle inequality is abstracted to a statement involving the composition of relations in `X`.
 First note that the triangle inequality in a metric space is equivalent to
 `∀ (x y z : X) (r r' : ℝ), dist x y ≤ r → dist y z ≤ r' → dist x z ≤ r + r'`.
 Then, for any `V` and `W` with type `set (X × X)`, the composition `V ○ W : set (X × X)` is
@@ -54,18 +54,18 @@ In general we have `mem_ball_comp (h : y ∈ ball x V) (h' : z ∈ ball y W) : z
 Note that this discussion does not depend on any axiom imposed on the uniformity filter,
 it is simply captured by the definition of composition.
 
-The uniform space axioms ask the filter `𝓤 X` to satisfy:
-* every `V ∈ 𝓤 X` contains the diagonal `id_rel = { p | p.1 = p.2}`. This abstracts the fact
-  that `dist x x ≤ r` for every non-negative radius `r` in the metric space case, and also that
-  `x - x` belongs to every neighborhood of zero in the toplogical group case.
+The uniform space axioms ask the filter `𝓤 X` to satisfy the following:
+* every `V ∈ 𝓤 X` contains the diagonal `id_rel = { p | p.1 = p.2 }`. This abstracts the fact
+  that `dist x x ≤ r` for every non-negative radius `r` in the metric space case and also that
+  `x - x` belongs to every neighborhood of zero in the topological group case.
 * `V ∈ 𝓤 X → prod.swap '' V ∈ 𝓤 X`. This is tightly related the fact that `dist x y = dist y x`
   in a metric space, and to continuity of negation in the topological group case.
 * `∀ V ∈ 𝓤 X, ∃ W ∈ 𝓤 X, W ○ W ⊆ V`. In the metric space case, it corresponds
-  to the possibility of cuting a radius in half and the triangle inequality.
+  to cutting the radius of a ball in half and applying the triangle inequality.
   In the topological group case, it comes from continuity of addition at `(0, 0)`.
 
 These three axioms are stated more abstractly in the definition below, in terms of
-filters operations, without directly manipulating entourages.
+operations on filters, without directly manipulating entourages.
 
 ## Main definitions
 
@@ -74,9 +74,9 @@ filters operations, without directly manipulating entourages.
   is uniformly continuous : `∀ r ∈ 𝓤 β, ∀ᶠ (x : α × α) in 𝓤 α, (f x.1, f x.2) ∈ r`
 
 In this file we also define a complete lattice structure on the type `uniform_space X`
-of uniform structures on `X`, as well as the uniform structure pull back operation
-`uniform_space.comap` coming from filters pull-back.
-Like distance functions, uniform structure cannot be pushed foward in general.
+of uniform structures on `X`, as well as the pullback (`uniform_space.comap`) of uniform structures
+coming from the pullback of filters.
+Like distance functions, uniform structures cannot be pushed forward in general.
 
 ## Notations
 
@@ -89,12 +89,12 @@ There is already a theory of relations in `data/rel.lean` where the main definit
 `def rel (α β : Type*) := α → β → Prop`.
 The relations used in the current file involve only one type, but this is not the reason why
 we don't reuse `data/rel.lean`. We use `set (α × α)`
-instead `rel α α` because we really need sets to use the filter library, and elements
+instead of `rel α α` because we really need sets to use the filter library, and elements
 of filters on `α × α` have type `set (α × α)`.
 
 The structure `uniform_space X` bundles a uniform structure on `X`, a topology on `X` and
-an assumption saying those are compatible. This deos not mathematically reasonable at first,
-but is an instance of the forgetful inheritance pattern, see the explanation in
+an assumption saying those are compatible. This may not seem mathematically reasonable at first,
+but is in fact an instance of the forgetful inheritance pattern. See the explanation in
 [Competing inheritance paths in dependent type theory: a case study in functional analysis](https://hal.inria.fr/hal-02463336).
 
 ## References
@@ -115,7 +115,7 @@ set_option eqn_compiler.zeta true
 universes u
 
 /-!
-# Relations, seen as `set (α × α)`
+### Relations, seen as `set (α × α)`
 -/
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ι : Sort*}
 

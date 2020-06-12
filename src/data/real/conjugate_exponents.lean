@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sébastien Gouëzel
+Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 import data.real.basic
 
@@ -55,6 +55,9 @@ ne_of_gt h.sub_one_pos
 
 lemma one_div_pos : 0 < 1/p :=
 one_div_pos_of_pos h.pos
+
+lemma one_div_nonneg : 0 ≤ 1/p :=
+le_of_lt h.one_div_pos
 
 lemma one_div_ne_zero : 1/p ≠ 0 :=
 ne_of_gt (h.one_div_pos)

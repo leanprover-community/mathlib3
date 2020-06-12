@@ -338,16 +338,15 @@ lemma of.zero_exact_aux2 {x : free_comm_ring Σ i, G i} {s t} (hxs : is_supporte
   lift (λ ix : t, f ix.1.1 k (hk ix ix.2) ix.1.2) (restriction t x) :=
 begin
   refine ring.in_closure.rec_on hxs _ _ _ _,
-  { rw [restriction_one, lift_one, is_ring_hom.map_one (f j k hjk), restriction_one, lift_one] },
-  { rw [restriction_neg, restriction_one, lift_neg, lift_one,
-      is_ring_hom.map_neg (f j k hjk), is_ring_hom.map_one (f j k hjk),
-      restriction_neg, restriction_one, lift_neg, lift_one] },
+  { simp only [ring_hom.map_one, is_ring_hom.map_one (f j k hjk)] },
+  { simp only [ring_hom.map_neg, ring_hom.map_one,
+      is_ring_hom.map_neg (f j k hjk), is_ring_hom.map_one (f j k hjk)] },
   { rintros _ ⟨p, hps, rfl⟩ n ih,
-    rw [restriction_mul, lift_mul, is_ring_hom.map_mul (f j k hjk), ih, restriction_mul, lift_mul,
+    simp only [ring_hom.map_mul, is_ring_hom.map_mul (f j k hjk), ih,
         restriction_of, dif_pos hps, lift_of, restriction_of, dif_pos (hst hps), lift_of],
     dsimp only, rw directed_system.map_map f, refl },
   { rintros x y ihx ihy,
-    rw [restriction_add, lift_add, is_ring_hom.map_add (f j k hjk), ihx, ihy, restriction_add, lift_add] }
+    simp only [ring_hom.map_add, is_ring_hom.map_add (f j k hjk), ihx, ihy] }
 end
 variables {G f}
 
@@ -360,20 +359,22 @@ begin
     { refine ⟨j, {⟨i, x⟩, ⟨j, f i j hij x⟩}, _,
         is_supported_sub (is_supported_of.2 $ or.inr rfl) (is_supported_of.2 $ or.inl rfl), _⟩,
       { rintros k (rfl | ⟨rfl | _⟩), exact hij, refl },
-      { rw [restriction_sub, lift_sub, restriction_of, dif_pos, restriction_of, dif_pos, lift_of, lift_of],
+      { rw [ring_hom.map_sub, ring_hom.map_sub, restriction_of, dif_pos, restriction_of, dif_pos,
+            lift_of, lift_of],
         dsimp only, rw directed_system.map_map f, exact sub_self _,
         exacts [or.inr rfl, or.inl rfl] } },
     { refine ⟨i, {⟨i, 1⟩}, _, is_supported_sub (is_supported_of.2 rfl) is_supported_one, _⟩,
       { rintros k (rfl|h), refl },
-      { rw [restriction_sub, lift_sub, restriction_of, dif_pos, restriction_one, lift_of, lift_one],
+      { rw [ring_hom.map_sub, ring_hom.map_sub, restriction_of, dif_pos,
+            ring_hom.map_one, lift_of, ring_hom.map_one],
         dsimp only, rw [is_ring_hom.map_one (f i i _), sub_self], exacts [_inst_7 i i _, rfl] } },
     { refine ⟨i, {⟨i, x+y⟩, ⟨i, x⟩, ⟨i, y⟩}, _,
         is_supported_sub (is_supported_of.2 $ or.inl rfl)
           (is_supported_add (is_supported_of.2 $ or.inr $ or.inl rfl)
             (is_supported_of.2 $ or.inr $ or.inr rfl)), _⟩,
       { rintros k (rfl | ⟨rfl | ⟨rfl | hk⟩⟩); refl },
-      { rw [restriction_sub, restriction_add, restriction_of, restriction_of, restriction_of,
-          dif_pos, dif_pos, dif_pos, lift_sub, lift_add, lift_of, lift_of, lift_of],
+      { rw [ring_hom.map_sub, ring_hom.map_add, restriction_of, restriction_of, restriction_of,
+          dif_pos, dif_pos, dif_pos, ring_hom.map_sub, ring_hom.map_add, lift_of, lift_of, lift_of],
         dsimp only, rw is_ring_hom.map_add (f i i _), exact sub_self _,
         exacts [or.inl rfl, by apply_instance, or.inr (or.inr rfl), or.inr (or.inl rfl)] } },
     { refine ⟨i, {⟨i, x*y⟩, ⟨i, x⟩, ⟨i, y⟩}, _,
@@ -381,21 +382,21 @@ begin
           (is_supported_mul (is_supported_of.2 $ or.inr $ or.inl rfl)
             (is_supported_of.2 $ or.inr $ or.inr rfl)), _⟩,
       { rintros k (rfl | ⟨rfl | ⟨rfl | hk⟩⟩); refl },
-      { rw [restriction_sub, restriction_mul, restriction_of, restriction_of, restriction_of,
-          dif_pos, dif_pos, dif_pos, lift_sub, lift_mul, lift_of, lift_of, lift_of],
+      { rw [ring_hom.map_sub, ring_hom.map_mul, restriction_of, restriction_of, restriction_of,
+          dif_pos, dif_pos, dif_pos, ring_hom.map_sub, ring_hom.map_mul, lift_of, lift_of, lift_of],
         dsimp only, rw is_ring_hom.map_mul (f i i _),
         exacts [sub_self _, or.inl rfl, by apply_instance, or.inr (or.inr rfl),
           or.inr (or.inl rfl)] } } },
   { refine nonempty.elim (by apply_instance) (assume ind : ι, _),
     refine ⟨ind, ∅, λ _, false.elim, is_supported_zero, _⟩,
-    rw [restriction_zero, lift_zero] },
+    simp only [ring_hom.map_zero] },
   { rintros x y ⟨i, s, hi, hxs, ihs⟩ ⟨j, t, hj, hyt, iht⟩,
     rcases directed_order.directed i j with ⟨k, hik, hjk⟩,
     have : ∀ z : Σ i, G i, z ∈ s ∪ t → z.1 ≤ k,
     { rintros z (hz | hz), exact le_trans (hi z hz) hik, exact le_trans (hj z hz) hjk },
     refine ⟨k, s ∪ t, this, is_supported_add (is_supported_upwards hxs $ set.subset_union_left s t)
       (is_supported_upwards hyt $ set.subset_union_right s t), _⟩,
-    { rw [restriction_add, lift_add,
+    { rw [ring_hom.map_add, ring_hom.map_add,
         ← of.zero_exact_aux2 G f hxs hi this hik (set.subset_union_left s t),
         ← of.zero_exact_aux2 G f hyt hj this hjk (set.subset_union_right s t),
         ihs, is_ring_hom.map_zero (f i k hik), iht, is_ring_hom.map_zero (f j k hjk), zero_add] } },
@@ -407,7 +408,7 @@ begin
     { rintros z (hz | hz), exact le_trans (hi z.1 $ finset.mem_image.2 ⟨z, hz, rfl⟩) hik, exact le_trans (hj z hz) hjk },
     refine ⟨k, ↑s ∪ t, this, is_supported_mul (is_supported_upwards hxs $ set.subset_union_left ↑s t)
       (is_supported_upwards hyt $ set.subset_union_right ↑s t), _⟩,
-    rw [restriction_mul, lift_mul,
+    rw [ring_hom.map_mul, ring_hom.map_mul,
         ← of.zero_exact_aux2 G f hyt hj this hjk (set.subset_union_right ↑s t),
         iht, is_ring_hom.map_zero (f j k hjk), mul_zero] }
 end
@@ -442,49 +443,27 @@ open free_comm_ring
 variables (G f)
 /-- The universal property of the direct limit: maps from the components to another ring
 that respect the directed system structure (i.e. make some diagram commute) give rise
-to a unique map out of the direct limit.
-
-We don't use this function as the canonical form because Lean 3 fails to automatically coerce
-it to a function; use `lift` instead. -/
-def lift_hom : direct_limit G f →+* P :=
-ideal.quotient.lift _ (free_comm_ring.lift_hom $ λ x, g x.1 x.2) begin
+to a unique map out of the direct limit. -/
+def lift : direct_limit G f →+* P :=
+ideal.quotient.lift _ (free_comm_ring.lift $ λ x, g x.1 x.2) begin
   suffices : ideal.span _ ≤
-    ideal.comap (free_comm_ring.lift_hom (λ (x : Σ (i : ι), G i), g (x.fst) (x.snd))) ⊥,
+    ideal.comap (free_comm_ring.lift (λ (x : Σ (i : ι), G i), g (x.fst) (x.snd))) ⊥,
   { intros x hx, exact (mem_bot P).1 (this hx) },
   rw ideal.span_le, intros x hx,
   rw [mem_coe, ideal.mem_comap, mem_bot],
   rcases hx with ⟨i, j, hij, x, rfl⟩ | ⟨i, rfl⟩ | ⟨i, x, y, rfl⟩ | ⟨i, x, y, rfl⟩;
-  simp only [coe_lift_hom, lift_sub, lift_of, Hg, lift_one, lift_add, lift_mul,
+  simp [ring_hom.map_sub, lift_of, Hg, ring_hom.map_one, ring_hom.map_add, ring_hom.map_mul,
       is_ring_hom.map_one (g i), is_ring_hom.map_add (g i), is_ring_hom.map_mul (g i), sub_self]
 end
-
-/-- The universal property of the direct limit: maps from the components to another ring
-that respect the directed system structure (i.e. make some diagram commute) give rise
-to a unique map out of the direct limit. -/
-def lift : direct_limit G f → P := lift_hom G f P g Hg
-
-instance lift_is_ring_hom : is_ring_hom (lift G f P g Hg) := (lift_hom G f P g Hg).is_ring_hom
 
 variables {G f}
 omit Hg
 
 @[simp] lemma lift_of (i x) : lift G f P g Hg (of G f i x) = g i x := free_comm_ring.lift_of _ _
-@[simp] lemma lift_zero : lift G f P g Hg 0 = 0 := (lift_hom G f P g Hg).map_zero
-@[simp] lemma lift_one : lift G f P g Hg 1 = 1 := (lift_hom G f P g Hg).map_one
-@[simp] lemma lift_add (x y) : lift G f P g Hg (x + y) = lift G f P g Hg x + lift G f P g Hg y :=
-(lift_hom G f P g Hg).map_add x y
-@[simp] lemma lift_neg (x) : lift G f P g Hg (-x) = -lift G f P g Hg x :=
-(lift_hom G f P g Hg).map_neg x
-@[simp] lemma lift_sub (x y) : lift G f P g Hg (x - y) = lift G f P g Hg x - lift G f P g Hg y :=
-(lift_hom G f P g Hg).map_sub x y
-@[simp] lemma lift_mul (x y) : lift G f P g Hg (x * y) = lift G f P g Hg x * lift G f P g Hg y :=
-(lift_hom G f P g Hg).map_mul x y
-@[simp] lemma lift_pow (x) (n : ℕ) : lift G f P g Hg (x ^ n) = lift G f P g Hg x ^ n :=
-(lift_hom G f P g Hg).map_pow x n
 
 local attribute [instance, priority 100] is_ring_hom.comp
 theorem lift_unique (F : direct_limit G f → P) [is_ring_hom F] (x) :
-  F x = lift G f P (λ i x, F $ of G f i x) (λ i j hij x, by rw [of_f]) x :=
+  F x = lift G f P (λ i x, F $ of G f i x) (λ i j hij x, by simp only [of_f]) x :=
 direct_limit.induction_on x $ λ i x, by rw lift_of
 
 end direct_limit

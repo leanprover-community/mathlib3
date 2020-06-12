@@ -2,6 +2,14 @@ import tactic.basic
 import data.priority_queue
 import order.lexicographic
 
+namespace list
+
+-- variables {m : Type* → Type*} [monad m] [alternative m]
+meta def successes {α β : Type*} (L : list α) (f : α → tactic β) : tactic (list β) :=
+tactic.try_all (L.map f)
+
+end list
+
 open tactic
 
 meta structure search_state (α : Type) :=
@@ -63,7 +71,7 @@ meta def run_queue_until (t : search_tactic α β) (P : α → β → bool) :
   β → priority_queue (search_state α) → tactic (β × search_state α)
 | b Q := do
   trace format!"global: {b}",
-  trace format!"queue: {(Q.1.map (search_state.data))}",
+  trace format!"queue: {(Q.1.take 3).map search_state.data}",
   some S ← pure (priority_queue.peek Q) | fail "Exhausted all search states.",
   if P S.data b then return (b, S) else
     do
@@ -206,6 +214,29 @@ meta def run_queued_tactic : search_tactic thread ℕ :=
       return (b, [{ data := D', .. S }])
   end
 
+/--
+If there tactics queued in the `queued_tactics` field of the `thread`,
+run them all at once.
+-/
+meta def run_queued_tactics : search_tactic thread ℕ :=
+λ b S, do
+  let D := S.data,
+  guardb $ D.tried_solve_by_elim,
+  r ← D.queued_tactics.successes (λ t, do
+    r ← t,
+    ng ← num_goals,
+    s ← get_state,
+    return ({ search_state .
+      state := s,
+      data := { thread .
+        num_goals := ng,
+        tried_solve_by_elim := tt,
+        local_solutions := D.local_solutions + r,
+        library_steps := D.library_steps + 1,
+        library_allowed := tt,
+        queued_tactics := [], }, })),
+    return (b+1, r)
+
 section
 open tactic.suggest
 
@@ -224,7 +255,7 @@ meta def collect_library_lemmas : search_tactic thread ℕ :=
   t ← infer_type g,
   defs ← suggest.library_defs (head_symbol t),
   let D' : thread :=
-  { queued_tactics := defs.map (λ d, suggest.apply_declaration ff { } d),
+  { queued_tactics := defs.map (λ d, suggest.apply_declaration ff { apply := λ e, tactic.apply e { md := tactic.transparency.reducible } } d),
     library_allowed := ff,
     .. S.data },
   return (b+1, [{ data := D', .. S }])
@@ -232,7 +263,7 @@ meta def collect_library_lemmas : search_tactic thread ℕ :=
 end
 
 meta def search_tactics : search_tactic thread ℕ :=
-solve_terminal_goals + run_queued_tactic + collect_library_lemmas
+solve_terminal_goals + run_queued_tactics + collect_library_lemmas
 
 end ariadne
 

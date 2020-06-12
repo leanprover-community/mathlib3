@@ -101,7 +101,7 @@ it matches the head symbol `hs` for the current goal.
 -- It turns out `apply` is so fast, it's better to just try them all.
 meta def process_declaration (hs : name) (d : declaration) : option decl_data :=
 let n := d.to_name in
-if !d.is_trusted || n.is_internal || (`inj).is_suffix_of n then
+if !d.is_trusted || n.is_internal || "inj".is_suffix_of n.to_string /- (`inj).is_suffix_of n -/ then
   none
 else
   (λ m, ⟨d, n, m, n.length⟩) <$> match_head_symbol hs d.type

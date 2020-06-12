@@ -87,7 +87,7 @@ satisfies the triangle inequality $\|a+b\|_p\le \|a\|_p+\|b\|_p$.
 We deduce this inequality from Hölder's inequality. Namely, Hölder inequality implies that $\|a\|_p$
 is the maximum of the inner product $\sum_{i\in s}a_ib_i$ over `b` such that $\|b\|_q\le 1$. Now
 Minkowski's inequality follows from the fact that the maximum value of the sum of two functions is
-less than or equal to than the sum of the maximum values of the summands.
+less than or equal to the sum of the maximum values of the summands.
 
 ## TODO
 
@@ -110,7 +110,7 @@ variables {ι : Type u} (s : finset ι)
 
 namespace real
 
-/-- AM-GM inequality: geometric mean is less than or equal to the arithmetic mean, weighted version
+/-- AM-GM inequality: the geometric mean is less than or equal to the arithmetic mean, weighted version
 for real-valued nonnegative functions. -/
 theorem geom_mean_le_arith_mean_weighted (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
   (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) :
@@ -172,14 +172,14 @@ end real
 
 namespace nnreal
 
-/-- Geometric mean is less than or equal to the arithmetic mean, weighted version
+/-- The geometric mean is less than or equal to the arithmetic mean, weighted version
 for `nnreal`-valued functions. -/
 theorem geom_mean_le_arith_mean_weighted (w z : ι → ℝ≥0) (hw' : ∑ i in s, w i = 1) :
   (∏ i in s, (z i) ^ (w i:ℝ)) ≤ ∑ i in s, w i * z i :=
 by exact_mod_cast real.geom_mean_le_arith_mean_weighted _ _ _ (λ i _, (w i).coe_nonneg)
   (by assumption_mod_cast) (λ i _, (z i).coe_nonneg)
 
-/-- Geometric mean is less than or equal to the arithmetic mean, weighted version
+/-- The geometric mean is less than or equal to the arithmetic mean, weighted version
 for two `nnreal` numbers. -/
 theorem geom_mean_le_arith_mean2_weighted (w₁ w₂ p₁ p₂ : ℝ≥0) :
   w₁ + w₂ = 1 → p₁ ^ (w₁:ℝ) * p₂ ^ (w₂:ℝ) ≤ w₁ * p₁ + w₂ * p₂ :=
@@ -203,7 +203,7 @@ theorem pow_arith_mean_le_arith_mean_pow (w z : ι → ℝ≥0) (hw' : ∑ i in 
 by exact_mod_cast real.pow_arith_mean_le_arith_mean_pow s _ _ (λ i _, (w i).coe_nonneg)
   (by exact_mod_cast hw') (λ i _, (z i).coe_nonneg) n
 
-/-- Weighted generalized mean inequality, version sums over finite sets, with `ℝ≥0`-valued
+/-- Weighted generalized mean inequality, version for sums over finite sets, with `ℝ≥0`-valued
 functions and real exponents. -/
 theorem rpow_arith_mean_le_arith_mean_rpow (w z : ι → ℝ≥0) (hw' : ∑ i in s, w i = 1) {p : ℝ}
   (hp : 1 ≤ p) :
@@ -211,7 +211,7 @@ theorem rpow_arith_mean_le_arith_mean_rpow (w z : ι → ℝ≥0) (hw' : ∑ i i
 by exact_mod_cast real.rpow_arith_mean_le_arith_mean_rpow s _ _ (λ i _, (w i).coe_nonneg)
   (by exact_mod_cast hw') (λ i _, (z i).coe_nonneg) hp
 
-/-- Weighted generalized mean inequality, version sums over finite sets, with `ℝ≥0`-valued
+/-- Weighted generalized mean inequality, version for sums over finite sets, with `ℝ≥0`-valued
 functions and real exponents. -/
 theorem arith_mean_le_rpow_mean (w z : ι → ℝ≥0) (hw' : ∑ i in s, w i = 1) {p : ℝ}
   (hp : 1 ≤ p) :

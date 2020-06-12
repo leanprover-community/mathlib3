@@ -253,7 +253,7 @@ begin
       (nnreal.rpow_le_one hg (le_of_lt hpq.symm.one_div_pos)) }
 end
 
-theorem minkowskii (f g : ι → ℝ≥0) {p : ℝ} (hp : 1 ≤ p) :
+theorem Lp_add_le (f g : ι → ℝ≥0) {p : ℝ} (hp : 1 ≤ p) :
   (∑ i in s, (f i + g i) ^ p) ^ (1 / p) ≤
     (∑ i in s, (f i) ^ p) ^ (1 / p) + (∑ i in s, (g i) ^ p) ^ (1 / p) :=
 begin
@@ -284,11 +284,11 @@ begin
   simp only [← abs_mul, le_abs_self]
 end
 
-theorem minkowskii (hp : 1 ≤ p) :
+theorem Lp_add_le (hp : 1 ≤ p) :
   (∑ i in s, (abs $ f i + g i) ^ p) ^ (1 / p) ≤
     (∑ i in s, (abs $ f i) ^ p) ^ (1 / p) + (∑ i in s, (abs $ g i) ^ p) ^ (1 / p) :=
 begin
-  have := nnreal.coe_le_coe.2 (nnreal.minkowskii s (λ i, ⟨_, abs_nonneg (f i)⟩)
+  have := nnreal.coe_le_coe.2 (nnreal.Lp_add_le s (λ i, ⟨_, abs_nonneg (f i)⟩)
     (λ i, ⟨_, abs_nonneg (g i)⟩) hp),
   push_cast at this,
   refine le_trans (rpow_le_rpow _ (sum_le_sum $ λ i hi, _) _) this;
@@ -304,10 +304,10 @@ theorem inner_le_Lp_mul_Lq_of_nonneg (hpq : is_conjugate_exponent p q)
 by convert inner_le_Lp_mul_Lq s f g hpq using 3; apply sum_congr rfl; intros i hi;
   simp only [abs_of_nonneg, hf i hi, hg i hi]
 
-theorem minkowskii_of_nonneg (hp : 1 ≤ p) (hf : ∀ i ∈ s, 0 ≤ f i) (hg : ∀ i ∈ s, 0 ≤ g i) :
+theorem Lp_add_le_of_nonneg (hp : 1 ≤ p) (hf : ∀ i ∈ s, 0 ≤ f i) (hg : ∀ i ∈ s, 0 ≤ g i) :
   (∑ i in s, (f i + g i) ^ p) ^ (1 / p) ≤
     (∑ i in s, (f i) ^ p) ^ (1 / p) + (∑ i in s, (g i) ^ p) ^ (1 / p) :=
-by convert minkowskii s f g hp using 2 ; [skip, congr' 1, congr' 1];
+by convert Lp_add_le s f g hp using 2 ; [skip, congr' 1, congr' 1];
  apply sum_congr rfl; intros i hi; simp only [abs_of_nonneg, hf i hi, hg i hi, add_nonneg]
 
 end real

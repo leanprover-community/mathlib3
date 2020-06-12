@@ -3,6 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import algebra.category.CommRing.basic
 import algebra.category.Module.basic
 import ring_theory.algebra
 
@@ -34,6 +35,11 @@ instance : category (Algebra.{u} R) :=
 instance : concrete_category (Algebra.{u} R) :=
 { forget := { obj := λ R, R, map := λ R S f, (f : R → S) },
   forget_faithful := { } }
+
+instance has_forget_to_Ring : has_forget₂ (Algebra R) Ring :=
+{ forget₂ :=
+  { obj := λ A, Ring.of A,
+    map := λ A₁ A₂ f, alg_hom.to_ring_hom f, } }
 
 instance has_forget_to_Module : has_forget₂ (Algebra R) (Module R) :=
 { forget₂ :=

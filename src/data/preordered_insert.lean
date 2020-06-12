@@ -1,5 +1,16 @@
 import data.list.sort
 
+
+instance is_total_not_lt {α : Type*} [preorder α] : is_total α (λ x y, ¬(x < y)) :=
+{ total := λ x y,
+  begin
+    classical, by_contradiction,
+    rw not_or_distrib at a,
+    simp at a,
+    exact lt_irrefl x (lt_trans a.1 a.2),
+  end }
+
+
 namespace list
 
 lemma sorted_append {α : Type*} {r : α → α → Prop} {l₁ l₂ : list α} : sorted r (l₁++l₂) ↔

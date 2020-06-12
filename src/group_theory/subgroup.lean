@@ -147,7 +147,7 @@ instance : has_mem G (subgroup G) := ⟨λ m K, m ∈ (K : set G)⟩
 instance : has_coe_to_sort (subgroup G) := ⟨_, λ G, (G : Type*)⟩
 
 @[simp, norm_cast, to_additive]
-lemma mem_coe {K : subgroup G} [g : G] : g ∈ (K : set G) ↔ g ∈ K := iff.rfl
+lemma mem_coe {K : subgroup G} {g : G} : g ∈ (K : set G) ↔ g ∈ K := iff.rfl
 
 @[simp, norm_cast, to_additive]
 lemma coe_coe (K : subgroup G) : ↥(K : set G) = K := rfl

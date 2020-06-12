@@ -351,9 +351,8 @@ def associated : quadratic_form R₁ M →ₗ[R₁] bilin_form R₁ M :=
     bilin_smul_left := λ x y z, by rw [← mul_left_comm, polar_smul_left],
     bilin_add_right := λ x y z, by rw [← mul_add, polar_add_right],
     bilin_smul_right := λ x y z, by rw [← mul_left_comm, polar_smul_right] },
-  add := λ Q Q', by { ext, simp [bilin_form.add_apply, polar_add, mul_add] },
-  smul := λ a Q, by { ext, simp [bilin_form.smul_apply, polar_smul, mul_left_comm] },
-}
+  map_add' := λ Q Q', by { ext, simp [bilin_form.add_apply, polar_add, mul_add] },
+  map_smul' := λ a Q, by { ext, simp [bilin_form.smul_apply, polar_smul, mul_left_comm] } }
 
 variables {Q : quadratic_form R₁ M}
 

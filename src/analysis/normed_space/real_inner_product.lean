@@ -702,7 +702,7 @@ This point `v` is usually called the orthogonal projection of `u` onto `K`.
 -/
 theorem exists_norm_eq_infi_of_complete_subspace (K : subspace ℝ α)
   (h : is_complete (↑K : set α)) : ∀ u : α, ∃ v ∈ K, ∥u - v∥ = ⨅ w : (↑K : set α), ∥u - w∥ :=
-exists_norm_eq_infi_of_complete_convex ⟨0, K.zero⟩ h K.convex
+exists_norm_eq_infi_of_complete_convex ⟨0, K.zero_mem⟩ h K.convex
 
 /--
 Characterization of minimizers in the above theorem.

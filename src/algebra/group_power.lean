@@ -295,6 +295,9 @@ open nat
 | 0       := one_inv.symm
 | -[1+ n] := (inv_inv _).symm
 
+lemma mul_gpow_neg_one (a b : G) : (a*b)^(-(1:ℤ)) = b^(-(1:ℤ))*a^(-(1:ℤ)) :=
+by simp only [mul_inv_rev, gpow_one, gpow_neg]
+
 @[simp] theorem neg_gsmul : ∀ (a : A) (n : ℤ), -n •ℤ a = -(n •ℤ a) :=
 @gpow_neg (multiplicative A) _
 
@@ -331,6 +334,12 @@ begin
   { simp only [← add_assoc, gpow_add_one, ihn, mul_assoc] },
   { rw [gpow_sub_one, ← mul_assoc, ← ihn, ← gpow_sub_one, add_sub_assoc] }
 end
+
+lemma mul_self_gpow (b : G) (m : ℤ) : b*b^m = b^(m+1) :=
+by { conv_lhs {congr, rw ← gpow_one b }, rw [← gpow_add, add_comm] }
+
+lemma mul_gpow_self (b : G) (m : ℤ) : b^m*b = b^(m+1) :=
+by { conv_lhs {congr, skip, rw ← gpow_one b }, rw [← gpow_add, add_comm] }
 
 theorem add_gsmul : ∀ (a : A) (i j : ℤ), (i + j) •ℤ a = i •ℤ a + j •ℤ a :=
 @gpow_add (multiplicative A) _

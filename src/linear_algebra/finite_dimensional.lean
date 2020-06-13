@@ -201,20 +201,15 @@ lemma cardinal_mk_le_findim_of_linear_independent
   [finite_dimensional K V] {ι : Type v} {b : ι → V} (h : linear_independent K b) :
   cardinal.mk ι ≤ findim K V :=
 begin
-  have := cardinal_le_dim_of_linear_independent h,
-  rw ←findim_eq_dim K V at this,
-  exact this,
+  convert cardinal_le_dim_of_linear_independent h,
+  rw ←findim_eq_dim K V
 end
 
 -- Note here we've restrictied the universe levels of `ι` and `V` to be the same, for convenience.
 lemma fintype_card_le_findim_of_linear_independent
   [finite_dimensional K V] {ι : Type v} [fintype ι] {b : ι → V} (h : linear_independent K b) :
   fintype.card ι ≤ findim K V :=
-begin
-  have t := cardinal_mk_le_findim_of_linear_independent h,
-  rw fintype_card at t,
-  simpa using t,
-end
+by simpa [fintype_card] using cardinal_mk_le_findim_of_linear_independent h
 
 lemma finset_card_le_findim_of_linear_independent [finite_dimensional K V] {b : finset V}
   (h : linear_independent K (λ x, x : (↑b : set V) → V)) :

@@ -200,7 +200,7 @@ begin
 end
 
 /-- If a sequence `v` of real numbers satisfies `k*v n < v (n+1)` with `1 < k`,
-then it goes to +∞ -/
+then it goes to +∞. -/
 lemma tendsto_at_top_of_geom_lt {v : ℕ → ℝ} {k : ℝ} (h₀ : 0 < v 0) (hk : 1 < k)
   (hu : ∀ n, k*v n < v (n+1)) : tendsto v at_top at_top :=
 begin

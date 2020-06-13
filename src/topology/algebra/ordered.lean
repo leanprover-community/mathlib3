@@ -708,7 +708,7 @@ end
 
 lemma not_tendsto_nhds_of_tendsto_at_top [no_top_order α] [no_bot_order α]
   {F : filter β} (hF : F ≠ ⊥) {f : β → α} (hf : tendsto f F at_top) (x : α) :
-¬ tendsto f F (𝓝 x) :=
+  ¬ tendsto f F (𝓝 x) :=
 begin
   intros h,
   rw tendsto at *,
@@ -719,12 +719,12 @@ end
 
 lemma not_tendsto_at_top_of_tendsto_nhds  [no_top_order α] [no_bot_order α]
   {F : filter β} (hF : F ≠ ⊥) {f : β → α} {x : α} (hf : tendsto f F (𝓝 x)) :
-¬  tendsto f F at_top :=
+  ¬  tendsto f F at_top :=
 λ h', not_tendsto_nhds_of_tendsto_at_top hF h' x hf
 
 lemma not_tendsto_nhds_of_tendsto_at_bot [no_top_order α] [no_bot_order α]
   {F : filter β} (hF : F ≠ ⊥) {f : β → α} (hf : tendsto f F at_bot) (x : α) :
-¬ tendsto f F (𝓝 x) :=
+  ¬ tendsto f F (𝓝 x) :=
 begin
   intros h,
   rw tendsto at *,
@@ -735,7 +735,7 @@ end
 
 lemma not_tendsto_at_bot_of_tendsto_nhds  [no_top_order α] [no_bot_order α]
   {F : filter β} (hF : F ≠ ⊥) {f : β → α} {x : α} (hf : tendsto f F (𝓝 x)) :
-¬  tendsto f F at_bot :=
+  ¬  tendsto f F at_bot :=
 λ h', not_tendsto_nhds_of_tendsto_at_bot hF h' x hf
 
 /-!

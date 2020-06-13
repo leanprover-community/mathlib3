@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2017 Patrick Massot. All rights reserved.
+Copyright (c) 2020 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
@@ -9,14 +9,14 @@ import analysis.specific_limits
 /-!
 # Hofer's lemma
 
-This is an elementary lemma about complete metric space. It is motivated by
+This is an elementary lemma about complete metric spaces. It is motivated by an
 application to the bubbling-off analysis for holomorphic curves in symplectic topology.
 We are *very* far away from having these applications, but the proof here is a nice
 example of a proof needing to construct a sequence by induction in the middle of the proof.
 
 ## References:
 
-* H. Hofer and C. Viterbo, *The weinstein conjecture in the presence of holomorphic spheres*
+* H. Hofer and C. Viterbo, *The Weinstein conjecture in the presence of holomorphic spheres*
 -/
 
 open_locale classical topological_space big_operators
@@ -27,10 +27,10 @@ local notation `d` := dist
 lemma hofer {X: Type*} [metric_space X] [complete_space X]
   (x : X) (ε : ℝ) (ε_pos : 0 < ε)
   {ϕ : X → ℝ} (cont : continuous ϕ) (nonneg : ∀ y, 0 ≤ ϕ y) :
-∃ (ε' > 0) (x' : X), ε' ≤ ε ∧
-                   d x' x ≤ 2*ε ∧
-                   ε * ϕ(x) ≤ ε' * ϕ x' ∧
-                   ∀ y, d x' y ≤ ε' → ϕ y ≤ 2*ϕ x' :=
+  ∃ (ε' > 0) (x' : X), ε' ≤ ε ∧
+                       d x' x ≤ 2*ε ∧
+                       ε * ϕ(x) ≤ ε' * ϕ x' ∧
+                       ∀ y, d x' y ≤ ε' → ϕ y ≤ 2*ϕ x' :=
 begin
   by_contradiction H,
   have reformulation : ∀ x' (k : ℕ), ε * ϕ x ≤ ε / 2 ^ k * ϕ x' ↔ 2^k * ϕ x ≤ ϕ x',
@@ -77,10 +77,12 @@ begin
       calc
       d (u 0) (u (n + 1))
           ≤ ∑ i in r, d (u i) (u $ i+1) : dist_le_range_sum_dist u (n + 1)
-      ... ≤ ∑ i in r, ε/2^i             : sum_le_sum (λ i i_in, (IH i $ nat.lt_succ_iff.mp $ finset.mem_range.mp i_in).1)
+      ... ≤ ∑ i in r, ε/2^i             : sum_le_sum (λ i i_in, (IH i $ nat.lt_succ_iff.mp $
+                                                                  finset.mem_range.mp i_in).1)
       ... = ∑ i in r, (1/2)^i*ε         : by {congr, ext i, field_simp }
       ... = (∑ i in r, (1/2)^i)*ε       : finset.sum_map_mul_right
-      ... ≤ 2*ε                         : mul_le_mul_of_nonneg_right (sum_geometric_two_le _) (le_of_lt ε_pos), },
+      ... ≤ 2*ε                         : mul_le_mul_of_nonneg_right (sum_geometric_two_le _)
+                                            (le_of_lt ε_pos), },
     have B : 2^(n+1) * ϕ x ≤ ϕ (u (n + 1)),
     { apply le_of_lt,
       exact geom_lt (by norm_num) (λ  m hm, (IH _ hm).2), },

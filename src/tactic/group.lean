@@ -33,7 +33,7 @@ by rw [mul_assoc, ← gpow_add] ; refl
 
 namespace tactic
 open tactic.simp_arg_type tactic.interactive interactive
-
+/-- Auxilliary tactic for the `group` tactic. Calls the simplifier only. -/
 meta def aux_group₁ (locat : loc) : tactic unit :=
   simp_core {} skip tt [
   expr ``(mul_one),
@@ -57,7 +57,7 @@ meta def aux_group₁ (locat : loc) : tactic unit :=
   symm_expr ``(gpow_add_one),
   symm_expr ``(gpow_one_add),
   symm_expr ``(gpow_add),
-  expr ``(mul_gpow_neg_one ),
+  expr ``(mul_gpow_neg_one),
   expr ``(gpow_zero),
   expr ``(mul_gpow),
   symm_expr ``(mul_assoc),
@@ -67,6 +67,7 @@ meta def aux_group₁ (locat : loc) : tactic unit :=
   expr ``(gpow_trick_sub)]
   [] locat
 
+/-- Auxilliary tactic for the `group` tactic. Calls `ring` to normalize exponents. -/
 meta def aux_group₂ (locat : loc) : tactic unit :=
 ring none tactic.ring.normalize_mode.raw locat
 end tactic
@@ -74,13 +75,6 @@ end tactic
 namespace tactic.interactive
 setup_tactic_parser
 open tactic
-
-meta def group (locat : parse location) : tactic unit :=
-do when locat.include_goal `[rw ← mul_inv_eq_one],
-   repeat (aux_group₁ locat ; aux_group₂ locat),
-   try (aux_group₁ locat),
-   repeat (aux_group₂ locat ; aux_group₁ locat)
-end tactic.interactive
 
 /--
 Tactic for normalizing expressions in multiplicative groups, without assuming
@@ -97,9 +91,15 @@ begin
 end
 ```
 -/
+meta def group (locat : parse location) : tactic unit :=
+do when locat.include_goal `[rw ← mul_inv_eq_one],
+   repeat (aux_group₁ locat ; aux_group₂ locat),
+   try (aux_group₁ locat),
+   repeat (aux_group₂ locat ; aux_group₁ locat)
+end tactic.interactive
+
 add_tactic_doc
 { name := "group",
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.group],
-  tags := ["decision procedure", "simplification"]
-}
+  tags := ["decision procedure", "simplification"] }

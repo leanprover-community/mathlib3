@@ -699,7 +699,7 @@ iff.intro
     by rwa [trans_to_equiv, symm_to_equiv, equiv.symm_trans] at this)
   (λh, h.comp e.measurable)
 
-/-- If `α ≃ β` and `γ ≃ δ` then `α × γ ≃ β × δ` as measurable spaces. -/
+/-- Products of equivalent measurable spaces are equivalent. -/
 def prod_congr [measurable_space α] [measurable_space β] [measurable_space γ] [measurable_space δ]
   (ab : measurable_equiv α β) (cd : measurable_equiv γ δ) :
   measurable_equiv (α × γ) (β × δ) :=
@@ -711,13 +711,13 @@ def prod_congr [measurable_space α] [measurable_space β] [measurable_space γ]
     (ab.measurable_inv_fun.comp (measurable.fst measurable_id))
     (cd.measurable_inv_fun.comp (measurable.snd measurable_id)) }
 
-/-- `α × β ≃ β × α` as measurable spaces. -/
+/-- Products of measurable spaces are symmetric. -/
 def prod_comm [measurable_space α] [measurable_space β] : measurable_equiv (α × β) (β × α) :=
 { to_equiv := equiv.prod_comm α β,
   measurable_to_fun  := measurable.prod_mk (measurable.snd measurable_id) (measurable.fst measurable_id),
   measurable_inv_fun := measurable.prod_mk (measurable.snd measurable_id) (measurable.fst measurable_id) }
 
-/-- `α ⊕ β ≃ β ⊕ α` as measurable spaces. -/
+/-- Sums of measurable spaces are symmetric. -/
 def sum_congr [measurable_space α] [measurable_space β] [measurable_space γ] [measurable_space δ]
   (ab : measurable_equiv α β) (cd : measurable_equiv γ δ) :
   measurable_equiv (α ⊕ γ) (β ⊕ δ) :=
@@ -733,7 +733,7 @@ def sum_congr [measurable_space α] [measurable_space β] [measurable_space γ] 
       refine measurable_sum (measurable_inl.comp abm) (measurable_inr.comp cdm)
     end }
 
-/-- `set.prod s t ≃ (s × t)` as a `measurable_equiv`. -/
+/-- `set.prod s t ≃ (s × t)` as measurable spaces. -/
 def set.prod [measurable_space α] [measurable_space β] (s : set α) (t : set β) :
   measurable_equiv (s.prod t) (s × t) :=
 { to_equiv := equiv.set.prod s t,
@@ -744,20 +744,20 @@ def set.prod [measurable_space α] [measurable_space β] (s : set α) (t : set �
     measurable_id.fst.subtype_coe
     measurable_id.snd.subtype_coe }
 
-/-- `univ α ≃ α` as a `measurable_equiv`. -/
+/-- `univ α ≃ α` as measurable spaces. -/
 def set.univ (α : Type*) [measurable_space α] : measurable_equiv (univ : set α) α :=
 { to_equiv := equiv.set.univ α,
   measurable_to_fun := measurable_id.subtype_coe,
   measurable_inv_fun := measurable_id.subtype_mk }
 
-/-- `{a} ≃ unit` as a `measurable_equiv`. -/
+/-- `{a} ≃ unit` as measurable spaces. -/
 def set.singleton [measurable_space α] (a:α) : measurable_equiv ({a} : set α) unit :=
 { to_equiv := equiv.set.singleton a,
   measurable_to_fun := measurable_const,
   measurable_inv_fun := measurable_const }
 
-/-- `s ≃ f '' s` as measurable spaces, if `f` is an injective measurable function that sends
-  measurable sets to measurable sets. -/
+/-- A set is equivalent to its image under a function `f` as measurable spaces,
+  if `f` is an injective measurable function that sends measurable sets to measurable sets. -/
 noncomputable def set.image [measurable_space α] [measurable_space β]
   (f : α → β) (s : set α)
   (hf : function.injective f)
@@ -777,8 +777,8 @@ noncomputable def set.image [measurable_space α] [measurable_space β]
       exact (measurable.subtype_coe measurable_id) (f '' u) (hfi u hu)
     end }
 
-/-- `α ≃ range f` as measurable spaces, if `f` is an injective measurable function that sends
-  measurable sets to measurable sets. -/
+/-- The domain if `f` is equivalent to its range as measurable spaces,
+  if `f` is an injective measurable function that sends measurable sets to measurable sets. -/
 noncomputable def set.range [measurable_space α] [measurable_space β]
   (f : α → β) (hf : function.injective f) (hfm : measurable f)
   (hfi : ∀s, is_measurable s → is_measurable (f '' s)) :
@@ -823,7 +823,7 @@ def set.range_inr [measurable_space α] [measurable_space β] :
     end,
   measurable_inv_fun := measurable.subtype_mk measurable_inr }
 
-/-- `(α ⊕ β) × γ ≃ (α × γ) ⊕ (β × γ)` as measurable spaces. -/
+/-- Products distribute over sums (on the right) as measurable spaces. -/
 def sum_prod_distrib (α β γ) [measurable_space α] [measurable_space β] [measurable_space γ] :
   measurable_equiv ((α ⊕ β) × γ) ((α × γ) ⊕ (β × γ)) :=
 { to_equiv := equiv.sum_prod_distrib α β γ,
@@ -853,12 +853,12 @@ def sum_prod_distrib (α β γ) [measurable_space α] [measurable_space β] [mea
       ((measurable_inl.comp (measurable.fst measurable_id)).prod_mk (measurable.snd measurable_id))
       ((measurable_inr.comp (measurable.fst measurable_id)).prod_mk (measurable.snd measurable_id)) }
 
-/-- `α × (β ⊕ γ) ≃ (α × β) ⊕ (α × γ)` as measurable spaces. -/
+/-- Products distribute over sums (on the left) as measurable spaces. -/
 def prod_sum_distrib (α β γ) [measurable_space α] [measurable_space β] [measurable_space γ] :
   measurable_equiv (α × (β ⊕ γ)) ((α × β) ⊕ (α × γ)) :=
 prod_comm.trans $ (sum_prod_distrib _ _ _).trans $ sum_congr prod_comm prod_comm
 
-/-- `(α ⊕ β) × (γ ⊕ δ) ≃ ((α × γ) ⊕ (α × δ)) ⊕ ((β × γ) ⊕ (β × δ))` as measurable spaces. -/
+/-- Products distribute over sums as measurable spaces. -/
 def sum_prod_sum (α β γ δ)
   [measurable_space α] [measurable_space β] [measurable_space γ] [measurable_space δ] :
   measurable_equiv ((α ⊕ β) × (γ ⊕ δ)) (((α × γ) ⊕ (α × δ)) ⊕ ((β × γ) ⊕ (β × δ))) :=

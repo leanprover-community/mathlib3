@@ -28,7 +28,7 @@ functions, for instance.
 ## Implementation notes
 
 We only deal with the `L^p` distance on a product of finitely many metric spaces, which may be
-different one from the other. A closely related construction is the `L^p` norm on the space of
+distinct. A closely related construction is the `L^p` norm on the space of
 functions from a measure space to a normed space, where the norm is
 $$
 \left(\int ∥f (x)∥^p dμ\right)^{1/p}.
@@ -41,7 +41,7 @@ hence it is worth devoting a file to this specific case which is particularly we
 The general case is not yet formalized in mathlib.
 
 To prove that the topology (and the uniform structure) on a finite product with the `L^p` distance
-are the same as that coming from the `L^∞` distance, we could argue that the `L^p` and `L^∞` norms
+are the same as those coming from the `L^∞` distance, we could argue that the `L^p` and `L^∞` norms
 are equivalent on `ℝ^n` for abstract (norm equivalence) reasons. Instead, we give a more explicit
 (easy) proof which provides a comparison between these two norms with explicit constants.
 -/

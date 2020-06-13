@@ -216,6 +216,7 @@ lemma compact.tendsto_subseq {s : set α} {u : ℕ → α} (hs : compact s) (hu 
 ∃ (x ∈ s) (φ : ℕ → ℕ), strict_mono φ ∧ tendsto (u ∘ φ) at_top (𝓝 x) :=
 hs.seq_compact hu
 
+@[priority 100] -- see Note [lower instance priority]
 instance first_countable_topology.seq_compact_of_compact [compact_space α] : seq_compact_space α :=
 ⟨compact_univ.seq_compact⟩
 

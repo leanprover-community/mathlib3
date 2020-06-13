@@ -390,6 +390,7 @@ mt (congr_arg (%2)) (by rw [add_comm, add_mul_mod_self_left, mul_mod_right]; exa
 protected def strong_rec' {p : ℕ → Sort u} (H : ∀ n, (∀ m, m < n → p m) → p n) : ∀ (n : ℕ), p n
 | n := H n (λ m hm, strong_rec' m)
 
+/-- Recursion principle based on `<` applied to some natural number. -/
 def strong_rec_on' {P : ℕ → Sort*} (n : ℕ) (h : ∀ n, (∀ m, m < n → P m) → P n) : P n :=
 nat.strong_rec' h n
 

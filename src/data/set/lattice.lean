@@ -273,8 +273,7 @@ begin
   exact ⟨c, c_in, hc ha⟩
 end
 
-theorem bUnion_mono {γ : Type*} {s : set α} {t t' : α → set β}
-  (h : ∀ x ∈ s, t x ⊆ t' x) :
+theorem bUnion_mono {s : set α} {t t' : α → set β} (h : ∀ x ∈ s, t x ⊆ t' x) :
   (⋃ x ∈ s, t x) ⊆ (⋃ x ∈ s, t' x) :=
 bUnion_subset_bUnion (λ x x_in, ⟨x, x_in, h x x_in⟩)
 

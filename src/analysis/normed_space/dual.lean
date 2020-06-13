@@ -63,8 +63,7 @@ section real
 variables (E : Type*) [normed_group E] [normed_space ℝ E]
 
 /-- The inclusion of a real normed space in its double dual is an isometry onto its image.-/
-lemma inclusion_in_double_dual_isometry (x : E) :
-  ∥inclusion_in_double_dual ℝ E x∥ = ∥x∥ :=
+lemma inclusion_in_double_dual_isometry (x : E) : ∥inclusion_in_double_dual ℝ E x∥ = ∥x∥ :=
 begin
   by_cases h : vector_space.dim ℝ E = 0,
   { rw dim_zero_iff_forall_zero.mp h x, simp },

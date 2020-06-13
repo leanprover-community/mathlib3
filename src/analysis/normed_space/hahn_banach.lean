@@ -63,25 +63,23 @@ by rw [norm_smul, norm_norm, coord_norm, mul_inv_cancel (mt norm_eq_zero.mp h)]
 
 /-- Corollary of Hahn-Banach.  Given a nonzero element `x` of a normed space, there exists an
     element of the dual space, of norm 1, whose value on `x` is `∥x∥`. -/
-theorem exists_dual_vector (x : E) (h : x ≠ 0) : ∃ d : E →L[ℝ] ℝ, ∥d∥ = 1 ∧ d x = ∥x∥ :=
+theorem exists_dual_vector (x : E) (h : x ≠ 0) : ∃ g : E →L[ℝ] ℝ, ∥g∥ = 1 ∧ g x = ∥x∥ :=
 begin
-  cases exists_extension_norm_eq (submodule.span ℝ {x}) (coord ℝ x h) with g hg,
-  use ∥x∥ • g, split,
-  { rw ← (coord_norm' x h), rw norm_smul, rw norm_smul, rw ← hg.2 },
-  { calc (∥x∥ • g) x = ∥x∥ • (g x) : rfl
-    ... = ∥x∥ • coord ℝ x h (⟨x, submodule.mem_span_singleton_self x⟩ : submodule.span ℝ {x}) : _
-    ... = (∥x∥ • coord ℝ x h) ⟨x, submodule.mem_span_singleton_self x⟩ : rfl
-    ... = ∥x∥ : by rw coord_self',
-    rw ← hg.1, simp }
+  cases exists_extension_norm_eq (submodule.span ℝ {x}) (∥x∥ • coord ℝ x h) with g hg,
+  use g, split,
+  { rw [hg.2, coord_norm'] },
+  { calc g x = g (⟨x, submodule.mem_span_singleton_self x⟩ : submodule.span ℝ {x}) : by simp
+  ... = (∥x∥ • coord ℝ x h) (⟨x, submodule.mem_span_singleton_self x⟩ : submodule.span ℝ {x}) : by rw ← hg.1
+  ... = ∥x∥ : by rw coord_self' }
 end
 
 /-- Variant of the above theorem, eliminating the hypothesis that `x` be nonzero, and choosing
     the dual element arbitrarily when `x = 0`. -/
-theorem exists_dual_vector' (h : vector_space.dim ℝ E > 0) (x : E) : ∃ g : E →L[ℝ] ℝ,
+theorem exists_dual_vector' (h : 0 < vector_space.dim ℝ E) (x : E) : ∃ g : E →L[ℝ] ℝ,
   ∥g∥ = 1 ∧ g x = ∥x∥ :=
 begin
   by_cases hx : x = 0,
-  { cases exists_mem_ne_zero_of_dim_pos' h with y hy,
+  { cases dim_pos_iff_exists_ne_zero.mp h with y hy,
     cases exists_dual_vector y hy with g hg,
     use g, refine ⟨hg.left, _⟩, simp [hx] },
   { exact exists_dual_vector x hx }

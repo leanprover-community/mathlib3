@@ -41,6 +41,23 @@ begin
   { apply list.sorted_repeat }
 end
 
+-- move this
+namespace multiset
+lemma countp_map {α : Type*} {β : Type*}
+  (f : α → β) (s : multiset α) (p : β → Prop) [decidable_pred p] :
+  countp p (map f s) = (s.filter (λ a, p (f a))).card :=
+begin
+  apply multiset.induction_on s,
+  { simp only [countp_zero, filter_zero, card_zero, map_zero] },
+  { intros a t IH,
+    by_cases h : p (f a),
+    { simp only [IH, h, card_cons, countp_cons_of_pos, filter_cons_of_pos, map_cons] },
+    { simp only [IH, h, countp_cons_of_neg, filter_cons_of_neg, not_false_iff, map_cons] } }
+end
+
+end multiset
+
+-- move this
 namespace finsupp
 noncomputable theory
 open_locale classical
@@ -377,12 +394,12 @@ end signature
 
 /-- The signature associated with `d : σ →₀ ℕ` is the sorted list of function values of `d`. -/
 def to_signature (d : σ →₀ ℕ) : signature (card σ) :=
-{ coeffs := multiset.sort (≥) (multiset.map d (elems σ).1),
+{ coeffs := multiset.sort (≥) (multiset.map d (finset.univ : finset σ).1),
   sorted := multiset.sort_sorted _ _,
   length := by { simp only [multiset.length_sort, multiset.card_map], refl } }
 
 lemma coeffs_to_signature (d : σ →₀ ℕ) :
-  (to_signature d).coeffs = multiset.sort (≥) (multiset.map d (elems σ).1) := rfl
+  (to_signature d).coeffs = multiset.sort (≥) (multiset.map d (finset.univ).1) := rfl
 
 @[simp] lemma sum_coeffs_to_signature (d : σ →₀ ℕ) :
   (to_signature d).coeffs.sum = ∑ i, d i :=
@@ -404,10 +421,13 @@ end
 lemma count_zero_coeffs_to_signature (d : σ →₀ ℕ) :
   multiset.count 0 (to_signature d).coeffs = fintype.card σ - d.support.card :=
 begin
-  apply finsupp.induction d,
-  { simp only [to_signature_zero, finset.card_empty, nat.sub_zero, list.count_repeat,
-     finsupp.support_zero, signature.coeffs_zero, multiset.coe_count] },
-  { intros i k d hi hk IH, sorry }
+  classical,
+  rw [multiset.count, coeffs_to_signature, multiset.sort_eq, multiset.countp_map],
+  show finset.card (finset.filter _ _) = _,
+  rw [← finset.card_univ, ← finset.card_sdiff (finset.subset_univ d.support)],
+  congr' 1,
+  ext i,
+  simp only [eq_comm, finsupp.mem_support_iff, finset.mem_sdiff, finset.mem_filter, classical.not_not]
 end
 
 lemma count_coeffs_to_signature_single (i : σ) (n k : ℕ) :
@@ -429,11 +449,14 @@ begin
   { subst hn,
     rw [count_zero_coeffs_to_signature, finsupp.support_single_ne_zero hk, finset.card_singleton] },
   { subst hnk,
-    rw [coeffs_to_signature, multiset.sort_eq],
-    rw [multiset.count, multiset.countp_eq_card_filter],
-    rw [multiset.card_eq_one],
-    use n,
-   sorry },
+    rw [coeffs_to_signature, multiset.sort_eq, multiset.count, multiset.countp_map],
+    show finset.card (finset.filter _ _) = 1,
+    convert finset.card_singleton i,
+    ext j,
+    simp only [true_and, finset.mem_univ, finset.mem_singleton, finset.mem_filter, finsupp.single_apply],
+    split_ifs with h,
+    { simp only [h, eq_self_iff_true] },
+    { simp only [h, hn, eq_comm] } },
   { apply multiset.count_eq_zero_of_not_mem,
     rw [coeffs_to_signature, multiset.sort_eq],
     contrapose! hn,

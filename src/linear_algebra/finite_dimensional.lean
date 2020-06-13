@@ -293,13 +293,13 @@ begin
     -- combining the two sums, and
     -- observing that after reindexing we have exactly
     -- ∑ (x : V) in t', g x • x = 0.
-    simp [f],
+    simp only [f],
     conv_lhs { apply_congr, skip, rw [ite_smul], },
     rw [finset.sum_ite],
     conv { congr, congr, apply_congr, simp [filter_eq', m], },
     conv { congr, congr, skip, apply_congr, simp [filter_ne'], },
     rw [sum_singleton, neg_smul, add_comm, ←sub_eq_add_neg, sum_smul, ←sum_sub_distrib],
-    simp [←smul_sub],
+    simp only [←smul_sub],
     -- At the end we have to reindex the sum, so we use `change` to
     -- express the summand using `shift`.
     change (∑ (x : V) in t.erase x₀, (λ e, g e • e) (shift x)) = 0,

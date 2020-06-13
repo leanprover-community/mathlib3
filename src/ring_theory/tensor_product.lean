@@ -209,6 +209,30 @@ begin
   simp [H],
 end
 
+/-- The algebra morphism `A →ₐ[R] A ⊗[R] B` sending `a` to `a ⊗ₜ 1`. -/
+def include_left : A →ₐ[R] A ⊗[R] B :=
+{ to_fun := λ a, a ⊗ₜ 1,
+  map_zero' := by simp,
+  map_add' := by simp [add_tmul],
+  map_one' := rfl,
+  map_mul' := by simp,
+  commutes' := by simp, }
+
+/-- The algebra morphism `B →ₐ[R] A ⊗[R] B` sending `b` to `1 ⊗ₜ b`. -/
+def include_right : B →ₐ[R] A ⊗[R] B :=
+{ to_fun := λ b, 1 ⊗ₜ b,
+  map_zero' := by simp,
+  map_add' := by simp [tmul_add],
+  map_one' := rfl,
+  map_mul' := by simp,
+  commutes' := λ r,
+  begin
+    simp only [algebra_map_apply],
+    transitivity r • ((1 : A) ⊗ₜ[R] (1 : B)),
+    { rw [←tmul_smul, algebra.smul_def], simp, },
+    { simp [algebra.smul_def], },
+  end, }
+
 end ring
 
 section comm_ring
@@ -237,14 +261,14 @@ instance : comm_ring (A ⊗[R] B) :=
 end comm_ring
 
 /--
-Verify that typeclass search finds the ring structure on `ring (A ⊗[ℤ] B)`
+Verify that typeclass search finds the ring structure on `A ⊗[ℤ] B`
 when `A` and `B` are merely rings, by treating both as `ℤ`-algebras.
 -/
 example {A : Type v₁} [ring A] {B : Type v₂} [ring B] : ring (A ⊗[ℤ] B) :=
 by apply_instance
 
 /--
-Verify that typeclass search finds the comm_ring structure on `ring (A ⊗[ℤ] B)`
+Verify that typeclass search finds the comm_ring structure on `A ⊗[ℤ] B`
 when `A` and `B` are merely comm_rings, by treating both as `ℤ`-algebras.
 -/
 example {A : Type v₁} [comm_ring A] {B : Type v₂} [comm_ring B] : comm_ring (A ⊗[ℤ] B) :=

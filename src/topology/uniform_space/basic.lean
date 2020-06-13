@@ -157,7 +157,7 @@ by ext p; cases p; simp only [mem_comp_rel]; tauto
 def symmetric_rel (V : set (α × α)) : Prop := prod.swap ⁻¹' V = V
 
 /-- The maximal symmetric relation contained in a given relation. -/
-def symmetrize_rel (V : set (α × α)) := V ∩ prod.swap ⁻¹' V
+def symmetrize_rel (V : set (α × α)) : set (α × α) := V ∩ prod.swap ⁻¹' V
 
 lemma symmetric_symmetrize_rel (V : set (α × α)) : symmetric_rel (symmetrize_rel V) :=
 by simp [symmetric_rel, symmetrize_rel, preimage_inter, inter_comm, ← preimage_comp]
@@ -616,14 +616,15 @@ lemma filter.has_basis.mem_uniformity_iff {p : β → Prop} {s : β → set (α�
 h.mem_iff.trans $ by simp only [prod.forall, subset_def]
 
 /-- Symmetric entourages form a basis of `𝓤 α` -/
-lemma uniform_space.has_basis_symmetric : (𝓤 α).has_basis (λ s : set (α × α), s ∈ 𝓤 α ∧ symmetric_rel s) id :=
+lemma uniform_space.has_basis_symmetric :
+  (𝓤 α).has_basis (λ s : set (α × α), s ∈ 𝓤 α ∧ symmetric_rel s) id :=
 ⟨λ t, ⟨λ t_in, ⟨symmetrize_rel t,
            ⟨⟨symmetrize_mem_uniformity t_in, symmetric_symmetrize_rel t⟩,
             symmetrize_rel_subset_self _⟩⟩,
        λ ⟨s, ⟨s_in, h⟩, hst⟩, mem_sets_of_superset s_in hst⟩⟩
 
 lemma uniform_space.has_seq_basis (h : is_countably_generated $ 𝓤 α) :
-∃ V : ℕ → set (α × α), has_antimono_basis (𝓤 α) (λ _, true) V ∧ ∀ n, symmetric_rel (V n) :=
+  ∃ V : ℕ → set (α × α), has_antimono_basis (𝓤 α) (λ _, true) V ∧ ∀ n, symmetric_rel (V n) :=
 begin
   rcases h.has_antimono_basis with ⟨U, hbasis, hdec, monotrue⟩, clear monotrue,
   simp only [forall_prop_of_true] at hdec,
@@ -635,7 +636,8 @@ begin
   { rintro ⟨i, _, hi⟩,
     exact ⟨i, trivial, subset.trans (inter_subset_left _ _) hi⟩ },
   { rintro ⟨i, _, hi⟩,
-    rcases hbasis.mem_iff.mp (symmetrize_mem_uniformity $ hbasis.mem_of_mem trivial) with ⟨j, _, hj⟩,
+    rcases hbasis.mem_iff.mp (symmetrize_mem_uniformity $ hbasis.mem_of_mem trivial)
+      with ⟨j, _, hj⟩,
     use j,
     tauto }
 end

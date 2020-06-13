@@ -7,7 +7,7 @@ import order.zorn
 import order.copy
 import data.set.finite
 
-/-! 
+/-!
 # Theory of filters on sets
 
 ## Main definitions
@@ -485,6 +485,20 @@ begin
   { rintros S ⟨U, U_in, V, V_in, hUV⟩,
     cases h U_in V_in with a ha,
     use [a, hUV ha] }
+end
+
+lemma inf_eq_bot_iff {f g : filter α} :
+  f ⊓ g = ⊥ ↔ ∃ U V, (U ∈ f) ∧ (V ∈ g) ∧ U ∩ V = ∅ :=
+begin
+  rw ← not_iff_not,
+  simp only [not_exists],
+  convert inf_ne_bot_iff,
+  rw forall_congr,
+  intro U,
+  rw forall_congr,
+  intro V,
+  rw ← ne_empty_iff_nonempty,
+  tauto,
 end
 
 lemma eq_Inf_of_mem_sets_iff_exists_mem {S : set (filter α)} {l : filter α}
@@ -1938,6 +1952,15 @@ def at_bot [preorder α] : filter α := ⨅ a, principal {b | b ≤ a}
 
 lemma mem_at_top [preorder α] (a : α) : {b : α | a ≤ b} ∈ @at_top α _ :=
 mem_infi_sets a $ subset.refl _
+
+lemma Ioi_mem_at_top [preorder α] [no_top_order α] (x : α) : Ioi x ∈ (at_top : filter α) :=
+let ⟨z, hz⟩ := no_top x in mem_sets_of_superset (mem_at_top z) $ λ y h,  lt_of_lt_of_le hz h
+
+lemma mem_at_bot [preorder α] (a : α) : {b : α | b ≤ a} ∈ @at_bot α _ :=
+mem_infi_sets a $ subset.refl _
+
+lemma Iio_mem_at_bot [preorder α] [no_bot_order α] (x : α) : Iio x ∈ (at_bot : filter α) :=
+let ⟨z, hz⟩ := no_bot x in mem_sets_of_superset (mem_at_bot z) $ λ y h, lt_of_le_of_lt h hz
 
 @[simp] lemma at_top_ne_bot [nonempty α] [semilattice_sup α] : (at_top : filter α) ≠ ⊥ :=
 infi_ne_bot_of_directed (by apply_instance)

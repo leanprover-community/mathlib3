@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl, Casper Putz, Yakov Pechersky
+Author: Johannes Hölzl, Casper Putz
 -/
 import linear_algebra.finite_dimensional
 
@@ -319,8 +319,8 @@ variables {R : Type v} [field R]
 instance : finite_dimensional R (matrix m n R) :=
 linear_equiv.finite_dimensional (linear_equiv.uncurry R m n).symm
 
-/-- 
-The dimension of the space of finite dimensional matrices 
+/--
+The dimension of the space of finite dimensional matrices
 is the product of the number of rows and columns.
 -/
 @[simp] lemma findim_matrix :

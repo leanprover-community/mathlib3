@@ -360,7 +360,7 @@ lemma metric.compact_iff_seq_compact : compact s ↔ seq_compact s :=
 uniform_space.compact_iff_seq_compact emetric.uniformity_has_countable_basis
 
 /-- A version of Bolzano-Weistrass: in a proper metric space (eg. $ℝ^n$),
-every bounded sequence has a convering subsequence. This version assumes only
+every bounded sequence has a converging subsequence. This version assumes only
 that the sequence is frequently in some bounded set. -/
 lemma tendsto_subseq_of_bounded' [proper_space β] (hs : bounded s)
   {u : ℕ → β} (hu : ∃ᶠ n in at_top, u n ∈ s) :
@@ -378,7 +378,7 @@ begin
 end
 
 /-- A version of Bolzano-Weistrass: in a proper metric space (eg. $ℝ^n$),
-every bounded sequence has a convering subsequence. -/
+every bounded sequence has a converging subsequence. -/
 lemma tendsto_subseq_of_bounded [proper_space β] (hs : bounded s)
   {u : ℕ → β} (hu : ∀ n, u n ∈ s) :
 ∃ b ∈ closure s, ∃ φ : ℕ → ℕ, strict_mono φ ∧ tendsto (u ∘ φ) at_top (𝓝 b) :=

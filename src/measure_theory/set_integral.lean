@@ -3,7 +3,6 @@ Copyright (c) 2020 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-
 import measure_theory.bochner_integration
 import measure_theory.indicator_function
 import measure_theory.lebesgue_measure
@@ -24,7 +23,7 @@ Integrate a function over a subset of a measure space.
 
 noncomputable theory
 open set filter topological_space measure_theory measure_theory.simple_func
-open_locale classical topological_space interval
+open_locale classical topological_space interval big_operators
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -309,11 +308,11 @@ end
 -- by proving an encodable version of `filter.is_countably_generated_at_top_finset_nat `
 lemma integral_on_Union (s : ℕ → set α) (f : α → β) (hm : ∀i, is_measurable (s i))
   (hd : ∀ i j, i ≠ j → s i ∩ s j = ∅) (hfm : measurable_on (Union s) f) (hfi : integrable_on (Union s) f) :
-  (∫ a in (Union s), f a) = ∑i, ∫ a in s i, f a :=
-suffices h : tendsto (λn:finset ℕ, n.sum (λ i, ∫ a in s i, f a)) at_top (𝓝 $ (∫ a in (Union s), f a)),
+  (∫ a in (Union s), f a) = ∑'i, ∫ a in s i, f a :=
+suffices h : tendsto (λn:finset ℕ, ∑ i in n, ∫ a in s i, f a) at_top (𝓝 $ (∫ a in (Union s), f a)),
   by { rwa tsum_eq_has_sum },
 begin
-  have : (λn:finset ℕ, n.sum (λ i, ∫ a in s i, f a)) = λn:finset ℕ, ∫ a in (⋃i∈n, s i), f a,
+  have : (λn:finset ℕ, ∑ i in n, ∫ a in s i, f a) = λn:finset ℕ, ∫ a in (⋃i∈n, s i), f a,
   { funext,
     rw [← integral_finset_sum, indicator_finset_bUnion],
     { assume i hi j hj hij, exact hd i j hij },

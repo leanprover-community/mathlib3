@@ -3,10 +3,12 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad
 -/
-import order.galois_connection order.zorn order.copy
+import order.zorn
+import order.copy
 import data.set.finite
 
-/-! # Theory of filters on sets
+/-! 
+# Theory of filters on sets
 
 ## Main definitions
 
@@ -584,7 +586,7 @@ instance : bounded_distrib_lattice (filter α) :=
 /- the complementary version with ⨆i, f ⊓ g i does not hold! -/
 lemma infi_sup_eq {f : filter α} {g : ι → filter α} : (⨅ x, f ⊔ g x) = f ⊔ infi g :=
 begin
-  refine le_antisymm _ (le_infi $ assume i, sup_le_sup (le_refl f) $ infi_le _ _),
+  refine le_antisymm _ (le_infi $ assume i, sup_le_sup_left (infi_le _ _) _),
   rintros t ⟨h₁, h₂⟩,
   rw [infi_sets_eq_finite] at h₂,
   simp only [mem_Union, (finset.inf_eq_infi _ _).symm] at h₂,
@@ -701,19 +703,20 @@ empty_in_sets_eq_bot.symm.trans $ mem_principal_sets.trans subset_empty_iff
 lemma principal_ne_bot_iff {s : set α} : principal s ≠ ⊥ ↔ s.nonempty :=
 (not_congr principal_eq_bot_iff).trans ne_empty_iff_nonempty
 
+lemma is_compl_principal (s : set α) : is_compl (principal s) (principal (-s)) :=
+⟨by simp only [inf_principal, inter_compl_self, principal_empty, le_refl],
+  by simp only [sup_principal, union_compl_self, principal_univ, le_refl]⟩
+
 lemma inf_principal_eq_bot {f : filter α} {s : set α} (hs : -s ∈ f) : f ⊓ principal s = ⊥ :=
 empty_in_sets_eq_bot.mp ⟨_, hs, s, mem_principal_self s, assume x ⟨h₁, h₂⟩, h₁ h₂⟩
 
 theorem mem_inf_principal (f : filter α) (s t : set α) :
   s ∈ f ⊓ principal t ↔ {x | x ∈ t → x ∈ s} ∈ f :=
 begin
-  simp only [mem_inf_sets, mem_principal_sets, exists_prop], split,
-  { rintros ⟨u, ul, v, tsubv, uvinter⟩,
-    apply filter.mem_sets_of_superset ul,
-    intros x xu xt, exact uvinter ⟨xu, tsubv xt⟩ },
-  intro h, refine ⟨_, h, t, set.subset.refl t, _⟩,
-  rintros x ⟨hx, xt⟩,
-  exact hx xt
+  simp only [← le_principal_iff, (is_compl_principal s).le_left_iff, disjoint, inf_assoc,
+    inf_principal, imp_iff_not_or],
+  rw [← disjoint, ← (is_compl_principal (t ∩ -s)).le_right_iff, compl_inter, compl_compl],
+  refl
 end
 
 @[simp] lemma infi_principal_finset {ι : Type w} (s : finset ι) (f : ι → set α) :
@@ -1408,7 +1411,7 @@ protected lemma push_pull (f : α → β) (F : filter α) (G : filter β) :
 begin
   apply le_antisymm,
   { calc map f (F ⊓ comap f G) ≤ map f F ⊓ (map f $ comap f G) : map_inf_le
-      ... ≤ map f F ⊓ G : inf_le_inf_right (map f F) map_comap_le },
+      ... ≤ map f F ⊓ G : inf_le_inf_left (map f F) map_comap_le },
   { rintros U ⟨V, V_in, W, ⟨Z, Z_in, hZ⟩, h⟩,
     rw ← image_subset_iff at h,
     use [f '' V, image_mem_map V_in, Z, Z_in],
@@ -1611,6 +1614,12 @@ lemma tendsto.eventually {f : α → β} {l₁ : filter α} {l₂ : filter β} {
   ∀ᶠ x in l₁, p (f x) :=
 hf h
 
+lemma eventually_eq_of_left_inv_of_right_inv {f : α → β} {g₁ g₂ : β → α} {fa : filter α}
+  {fb : filter β} (hleft : ∀ᶠ x in fa, g₁ (f x) = x) (hright : ∀ᶠ y in fb, f (g₂ y) = y)
+  (htendsto : tendsto g₂ fb fa) :
+  ∀ᶠ y in fb, g₁ y = g₂ y :=
+(htendsto.eventually hleft).mp $ hright.mono $ λ y hr hl, (congr_arg g₁ hr.symm).trans hl
+
 lemma tendsto_iff_comap {f : α → β} {l₁ : filter α} {l₂ : filter β} :
   tendsto f l₁ l₂ ↔ l₁ ≤ l₂.comap f :=
 map_le_iff_le_comap
@@ -1790,6 +1799,11 @@ begin
     ⟨prod.fst ⁻¹' t₁, ⟨t₁, ht₁, subset.refl _⟩, prod.snd ⁻¹' t₂, ⟨t₂, ht₂, subset.refl _⟩, h⟩
 end
 
+lemma eventually_prod_iff {p : α × β → Prop} {f : filter α} {g : filter β} :
+  (∀ᶠ x in f ×ᶠ g, p x) ↔ ∃ (pa : α → Prop) (ha : ∀ᶠ x in f, pa x)
+    (pb : β → Prop) (hb : ∀ᶠ y in g, pb y), ∀ {x}, pa x → ∀ {y}, pb y → p (x, y) :=
+by simpa only [set.prod_subset_iff] using @mem_prod_iff α β p f g
+
 lemma tendsto_fst {f : filter α} {g : filter β} : tendsto prod.fst (f ×ᶠ g) f :=
 tendsto_inf_left tendsto_comap
 
@@ -1812,6 +1826,14 @@ lemma eventually.prod_mk {la : filter α} {pa : α → Prop} (ha : ∀ᶠ x in l
   {lb : filter β} {pb : β → Prop} (hb : ∀ᶠ y in lb, pb y) :
   ∀ᶠ p in la ×ᶠ lb, pa (p : α × β).1 ∧ pb p.2 :=
 (ha.prod_inl lb).and (hb.prod_inr la)
+
+lemma eventually.curry {la : filter α} {lb : filter β} {p : α × β → Prop}
+  (h : ∀ᶠ x in la.prod lb, p x) :
+  ∀ᶠ x in la, ∀ᶠ y in lb, p (x, y) :=
+begin
+  rcases eventually_prod_iff.1 h with ⟨pa, ha, pb, hb, h⟩,
+  exact ha.mono (λ a ha, hb.mono $ λ b hb, h ha hb)
+end
 
 lemma prod_infi_left {f : ι → filter α} {g : filter β} (i : ι) :
   (⨅i, f i) ×ᶠ g = (⨅i, (f i) ×ᶠ g) :=
@@ -2161,7 +2183,8 @@ by rw [prod_map_map_eq, prod_at_top_at_top_eq, prod.map_def]
 /-- A function `f` maps upwards closed sets (at_top sets) to upwards closed sets when it is a
 Galois insertion. The Galois "insertion" and "connection" is weakened to only require it to be an
 insertion and a connetion above `b'`. -/
-lemma map_at_top_eq_of_gc [semilattice_sup α] [semilattice_sup β] {f : α → β} (g : β → α) (b' : β)(hf : monotone f) (gc : ∀a, ∀b≥b', f a ≤ b ↔ a ≤ g b) (hgi : ∀b≥b', b ≤ f (g b)) :
+lemma map_at_top_eq_of_gc [semilattice_sup α] [semilattice_sup β] {f : α → β} (g : β → α) (b' : β)
+  (hf : monotone f) (gc : ∀a, ∀b≥b', f a ≤ b ↔ a ≤ g b) (hgi : ∀b≥b', b ≤ f (g b)) :
   map f at_top = at_top :=
 begin
   rw [@map_at_top_eq α _ ⟨g b'⟩],

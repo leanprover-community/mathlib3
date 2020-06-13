@@ -2,11 +2,13 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
-
-Theory of Cauchy filters in uniform spaces. Complete uniform spaces. Totally bounded subsets.
 -/
-import topology.uniform_space.basic topology.bases data.set.intervals
-
+import topology.uniform_space.basic
+import topology.bases
+import data.set.intervals
+/-!
+# Theory of Cauchy filters in uniform spaces. Complete uniform spaces. Totally bounded subsets.
+-/
 universes u v
 
 open filter topological_space set classical
@@ -97,8 +99,7 @@ end
 
 lemma le_nhds_iff_adhp_of_cauchy {f : filter α} {x : α} (hf : cauchy f) :
   f ≤ 𝓝 x ↔ f ⊓ 𝓝 x ≠ ⊥ :=
-⟨assume h, (inf_of_le_left h).symm ▸ hf.left,
-le_nhds_of_cauchy_adhp hf⟩
+⟨assume h, left_eq_inf.2 h ▸ hf.left, le_nhds_of_cauchy_adhp hf⟩
 
 lemma cauchy_map [uniform_space β] {f : filter α} {m : α → β}
   (hm : uniform_continuous m) (hf : cauchy f) : cauchy (map m f) :=
@@ -143,7 +144,7 @@ begin
   rw ← bot_lt_iff_ne_bot,
   have : ⊥ < map (λ i, u (f i)) p ⊓ 𝓝 a,
     by { rw [bot_lt_iff_ne_bot, inf_of_le_left ha], exact map_ne_bot hp },
-  exact lt_of_lt_of_le this (inf_le_inf (map_mono hf) (le_refl _))
+  exact lt_of_lt_of_le this (inf_le_inf_right _ (map_mono hf))
 end
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
@@ -245,9 +246,14 @@ lemma cauchy_seq_tendsto_of_is_complete [semilattice_sup β] {K : set α} (h₁ 
 h₁ _ h₃ $ le_principal_iff.2 $ mem_map_sets_iff.2 ⟨univ, univ_mem_sets,
   by { simp only [image_univ], rintros _ ⟨n, rfl⟩, exact h₂ n }⟩
 
-theorem le_nhds_lim_of_cauchy {α} [uniform_space α] [complete_space α]
-  [nonempty α] {f : filter α} (hf : cauchy f) : f ≤ 𝓝 (lim f) :=
-lim_spec (complete_space.complete hf)
+theorem cauchy.le_nhds_Lim [complete_space α] [nonempty α] {f : filter α} (hf : cauchy f) :
+  f ≤ 𝓝 (Lim f) :=
+Lim_spec (complete_space.complete hf)
+
+theorem cauchy_seq.tendsto_lim [semilattice_sup β] [complete_space α] [nonempty α] {u : β → α}
+  (h : cauchy_seq u) :
+  tendsto u at_top (𝓝 $ lim at_top u) :=
+h.le_nhds_Lim
 
 lemma is_complete_of_is_closed [complete_space α] {s : set α}
   (h : is_closed s) : is_complete s :=
@@ -398,12 +404,13 @@ lemma compact_of_totally_bounded_is_closed [complete_space α] {s : set α}
   (ht : totally_bounded s) (hc : is_closed s) : compact s :=
 (@compact_iff_totally_bounded_complete α _ s).2 ⟨ht, is_complete_of_is_closed hc⟩
 
-/-! ### Sequentially complete space
+/-!
+### Sequentially complete space
 
 In this section we prove that a uniform space is complete provided that it is sequentially complete
 (i.e., any Cauchy sequence converges) and its uniformity filter admits a countable generating set.
-In particular, this applies to (e)metric spaces, see the files `topology/metric_space/emetric_space` and
-`topology/metric_space/basic`.
+In particular, this applies to (e)metric spaces, see the files `topology/metric_space/emetric_space`
+and `topology/metric_space/basic`.
 
 More precisely, we assume that there is a sequence of entourages `U_n` such that any other
 entourage includes one of `U_n`. Then any Cauchy filter `f` generates a decreasing sequence of

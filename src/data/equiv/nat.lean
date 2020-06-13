@@ -6,7 +6,8 @@ Author: Mario Carneiro
 Additional facts about equiv and encodable using the
 pairing function on nat.
 -/
-import data.equiv.basic data.nat.pairing data.pnat.basic
+import data.nat.pairing
+import data.pnat.basic
 
 open nat
 

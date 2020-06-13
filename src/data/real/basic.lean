@@ -6,8 +6,9 @@ Authors: Mario Carneiro, Floris van Doorn
 The (classical) real numbers ℝ. This is a direct construction
 from Cauchy sequences.
 -/
-import order.conditionally_complete_lattice data.real.cau_seq_completion
-  algebra.archimedean order.bounds
+import order.conditionally_complete_lattice
+import data.real.cau_seq_completion
+import algebra.archimedean
 
 def real := @cau_seq.completion.Cauchy ℚ _ _ _ abs _
 notation `ℝ` := real
@@ -140,7 +141,7 @@ noncomputable instance : decidable_linear_ordered_add_comm_group ℝ := by apply
 noncomputable instance field : field ℝ := by apply_instance
 noncomputable instance : division_ring ℝ           := by apply_instance
 noncomputable instance : integral_domain ℝ         := by apply_instance
-noncomputable instance : nonzero_comm_ring ℝ       := by apply_instance
+instance : nonzero ℝ                               := by apply_instance
 noncomputable instance : decidable_linear_order ℝ  := by apply_instance
 noncomputable instance : distrib_lattice ℝ := by apply_instance
 noncomputable instance : lattice ℝ         := by apply_instance
@@ -148,6 +149,9 @@ noncomputable instance : semilattice_inf ℝ := by apply_instance
 noncomputable instance : semilattice_sup ℝ := by apply_instance
 noncomputable instance : has_inf ℝ         := by apply_instance
 noncomputable instance : has_sup ℝ         := by apply_instance
+noncomputable instance decidable_lt (a b : ℝ) : decidable (a < b) := by apply_instance
+noncomputable instance decidable_le (a b : ℝ) : decidable (a ≤ b) := by apply_instance
+noncomputable instance decidable_eq (a b : ℝ) : decidable (a = b) := by apply_instance
 
 lemma le_of_forall_epsilon_le {a b : real} (h : ∀ε, ε > 0 → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ assume x hxb,
@@ -593,7 +597,7 @@ lt_iff_lt_of_le_iff_le (iff.trans
 @[simp] theorem sqrt_mul' (x) {y : ℝ} (hy : 0 ≤ y) : sqrt (x * y) = sqrt x * sqrt y :=
 begin
   cases le_total 0 x with hx hx,
-  { refine (mul_self_inj_of_nonneg _ (mul_nonneg _ _)).1 _; try {apply sqrt_nonneg},
+  { refine iff.mp (mul_self_inj_of_nonneg _ (mul_nonneg _ _)) _; try {apply sqrt_nonneg},
     rw [mul_self_sqrt (mul_nonneg hx hy), mul_assoc,
         mul_left_comm (sqrt y), mul_self_sqrt hy, ← mul_assoc, mul_self_sqrt hx] },
   { rw [sqrt_eq_zero'.2 (mul_nonpos_of_nonpos_of_nonneg hx hy),

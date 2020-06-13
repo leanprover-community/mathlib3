@@ -3,8 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl, Mario Carneiro
 -/
-
-import data.set.countable data.quot logic.function set_theory.schroeder_bernstein
+import data.set.countable
+import set_theory.schroeder_bernstein
 import data.fintype.card
 
 /-!
@@ -77,7 +77,7 @@ theorem mk_le_of_injective {α β : Type u} {f : α → β} (hf : injective f) :
 ⟨⟨f, hf⟩⟩
 
 theorem mk_le_of_surjective {α β : Type u} {f : α → β} (hf : surjective f) : mk β ≤ mk α :=
-⟨embedding.of_surjective hf⟩
+⟨embedding.of_surjective f hf⟩
 
 theorem le_mk_iff_exists_set {c : cardinal} {α : Type u} :
   c ≤ mk α ↔ ∃ p : set α, mk p = c :=
@@ -110,9 +110,8 @@ not_iff_comm.1
 
 instance : has_one cardinal.{u} := ⟨⟦punit⟧⟩
 
-instance : zero_ne_one_class cardinal.{u} :=
-{ zero := 0, one := 1, zero_ne_one :=
-  ne.symm $ ne_zero_iff_nonempty.2 ⟨punit.star⟩ }
+instance : nonzero cardinal.{u} :=
+{ zero_ne_one := ne.symm $ ne_zero_iff_nonempty.2 ⟨punit.star⟩ }
 
 theorem le_one_iff_subsingleton {α : Type u} : mk α ≤ 1 ↔ subsingleton α :=
 ⟨λ ⟨f⟩, ⟨λ a b, f.inj (subsingleton.elim _ _)⟩,
@@ -361,7 +360,7 @@ begin
   refine quot.induction_on (succ (quot.mk setoid.r α)) (λ β h, _),
   cases h.left with f,
   have : ¬ surjective f := λ hn,
-    ne_of_lt h (quotient.sound ⟨equiv.of_bijective ⟨f.inj, hn⟩⟩),
+    ne_of_lt h (quotient.sound ⟨equiv.of_bijective f ⟨f.inj, hn⟩⟩),
   cases classical.not_forall.1 this with b nex,
   refine ⟨⟨sum.rec (by exact f) _, _⟩⟩,
   { exact λ _, b },
@@ -795,7 +794,7 @@ lt_of_not_ge $ λ ⟨F⟩, begin
     simp only [- not_exists, not_exists.symm, classical.not_forall.symm],
     refine λ h, not_le_of_lt (H i) _,
     rw [← mk_out (f i), ← mk_out (g i)],
-    exact ⟨embedding.of_surjective h⟩ },
+    exact ⟨embedding.of_surjective _ h⟩ },
   exact (let ⟨⟨i, a⟩, h⟩ := sG C in hc i a (congr_fun h _))
 end
 
@@ -862,7 +861,7 @@ mk_le_of_surjective surjective_onto_image
 
 theorem mk_image_le_lift {α : Type u} {β : Type v} {f : α → β} {s : set α} :
   lift.{v u} (mk (f '' s)) ≤ lift.{u v} (mk s) :=
-lift_mk_le.{v u 0}.mpr ⟨embedding.of_surjective surjective_onto_image⟩
+lift_mk_le.{v u 0}.mpr ⟨embedding.of_surjective _ surjective_onto_image⟩
 
 theorem mk_range_le {α β : Type u} {f : α → β} : mk (range f) ≤ mk α :=
 mk_le_of_surjective surjective_onto_range
@@ -913,20 +912,22 @@ by rw [fintype_card, nat_cast_inj, fintype.card_coe]
 lemma finset_card_lt_omega (s : finset α) : mk (↑s : set α) < omega :=
 by { rw [lt_omega_iff_fintype], exact ⟨finset.subtype.fintype s⟩ }
 
-theorem mk_union_add_mk_inter {α : Type u} {S T : set α} : mk (S ∪ T : set α) + mk (S ∩ T : set α) = mk S + mk T :=
+theorem mk_union_add_mk_inter {α : Type u} {S T : set α} :
+  mk (S ∪ T : set α) + mk (S ∩ T : set α) = mk S + mk T :=
 quot.sound ⟨equiv.set.union_sum_inter S T⟩
 
-theorem mk_union_of_disjoint {α : Type u} {S T : set α} (H : disjoint S T) : mk (S ∪ T : set α) = mk S + mk T :=
-quot.sound ⟨equiv.set.union (disjoint_iff.1 H)⟩
+theorem mk_union_of_disjoint {α : Type u} {S T : set α} (H : disjoint S T) :
+  mk (S ∪ T : set α) = mk S + mk T :=
+quot.sound ⟨equiv.set.union H⟩
 
 lemma mk_sum_compl {α} (s : set α) : #s + #(-s : set α) = #α :=
 quotient.sound ⟨equiv.set.sum_compl s⟩
 
 lemma mk_le_mk_of_subset {α} {s t : set α} (h : s ⊆ t) : mk s ≤ mk t :=
-⟨ set.embedding_of_subset h ⟩
+⟨set.embedding_of_subset s t h⟩
 
 lemma mk_subtype_mono {p q : α → Prop} (h : ∀x, p x → q x) : mk {x // p x} ≤ mk {x // q x} :=
-⟨embedding_of_subset h⟩
+⟨embedding_of_subset _ _ h⟩
 
 lemma mk_set_le (s : set α) : mk s ≤ mk α :=
 mk_subtype_le s
@@ -943,9 +944,9 @@ lemma mk_image_eq_of_inj_on {α β : Type u} (f : α → β) (s : set α) (h : i
   mk (f '' s) = mk s :=
 quotient.sound ⟨(equiv.set.image_of_inj_on f s h).symm⟩
 
-lemma mk_subtype_of_equiv {α β : Type u} (p : α → Prop) (e : α ≃ β) :
-  mk {a : α // p a} = mk {b : β // p (e.symm b)} :=
-quotient.sound ⟨equiv.subtype_equiv_of_subtype' e⟩
+lemma mk_subtype_of_equiv {α β : Type u} (p : β → Prop) (e : α ≃ β) :
+  mk {a : α // p (e a)} = mk {b : β // p b} :=
+quotient.sound ⟨equiv.subtype_equiv_of_subtype e⟩
 
 lemma mk_sep (s : set α) (t : α → Prop) : mk ({ x ∈ s | t x } : set α) = mk { x : s | t x.1 } :=
 quotient.sound ⟨equiv.set.sep s t⟩
@@ -954,7 +955,7 @@ lemma mk_preimage_of_injective_lift {α : Type u} {β : Type v} (f : α → β) 
   (h : injective f) : lift.{u v} (mk (f ⁻¹' s)) ≤ lift.{v u} (mk s) :=
 begin
   rw lift_mk_le.{u v 0}, use subtype.coind (λ x, f x.1) (λ x, x.2),
-  apply subtype.coind_injective, exact injective_comp h subtype.val_injective
+  apply subtype.coind_injective, exact h.comp subtype.val_injective
 end
 
 lemma mk_preimage_of_subset_range_lift {α : Type u} {β : Type v} (f : α → β) (s : set β)

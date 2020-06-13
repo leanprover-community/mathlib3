@@ -3,12 +3,10 @@ Copyright (c) 2019 Robert A. Spencer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert A. Spencer, Markus Himmel
 -/
-import algebra.module
-import algebra.punit_instances
 import algebra.category.Group.basic
 import category_theory.concrete_category
-import category_theory.limits.shapes.zero
 import category_theory.limits.shapes.kernels
+import category_theory.preadditive
 import linear_algebra.basic
 
 open category_theory
@@ -83,9 +81,6 @@ variables {R} {M N U : Module R}
 @[simp] lemma coe_comp (f : M ⟶ N) (g : N ⟶ U) :
   ((f ≫ g) : M → U) = g ∘ f := rfl
 
-instance hom_is_module_hom (f : M ⟶ N) :
-  is_linear_map R (f : M → N) := linear_map.is_linear _
-
 end Module
 
 variables {R}
@@ -110,8 +105,8 @@ def to_linear_equiv {X Y : Module.{u} R} (i : X ≅ Y) : X ≃ₗ[R] Y :=
   inv_fun   := i.inv,
   left_inv  := by tidy,
   right_inv := by tidy,
-  add       := by tidy,
-  smul      := by tidy, }.
+  map_add'  := by tidy,
+  map_smul' := by tidy, }.
 
 end category_theory.iso
 
@@ -124,15 +119,15 @@ def linear_equiv_iso_Group_iso {X Y : Type u} [add_comm_group X] [add_comm_group
 
 namespace Module
 
-section zero_morphisms
+section preadditive
 
-instance : has_zero_morphisms.{u} (Module R) :=
-{ has_zero := λ M N, ⟨0⟩,
-  comp_zero' := λ M N f Z, by ext; erw linear_map.zero_apply,
-  zero_comp' := λ M N Z f, by ext; erw [linear_map.comp_apply, linear_map.zero_apply,
-    linear_map.zero_apply, linear_map.map_zero] }
+instance : preadditive.{u} (Module.{u} R) :=
+{ add_comp' := λ P Q R f f' g,
+    show (f + f') ≫ g = f ≫ g + f' ≫ g, by { ext, simp },
+  comp_add' := λ P Q R f g g',
+    show f ≫ (g + g') = f ≫ g + f ≫ g', by { ext, simp } }
 
-end zero_morphisms
+end preadditive
 
 section kernel
 variables {R} {M N : Module R} (f : M ⟶ N)

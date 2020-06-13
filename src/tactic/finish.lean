@@ -3,8 +3,7 @@ Copyright (c) 2017 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Jesse Michael Han
 -/
-
-import logic.basic tactic.core tactic.hint
+import tactic.hint
 
 /-!
 # The `finish` family of tactics
@@ -381,7 +380,7 @@ do match s with
        (mcond (cont case_option.force >> return tt) (cont case_option.at_most_one) skip) <|>
        -- otherwise, try the second
        (swap >> cont case_option.force >> cont case_option.at_most_one)
-   | case_option.accept := focus [cont case_option.accept, cont case_option.accept]
+   | case_option.accept := focus' [cont case_option.accept, cont case_option.accept]
    end
 
 -- three possible outcomes:

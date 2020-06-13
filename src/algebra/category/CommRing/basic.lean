@@ -3,11 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl, Yury Kudryashov
 -/
-
 import algebra.category.Group
-import category_theory.fully_faithful
-import algebra.ring
-import data.int.basic
 import data.equiv.ring
 
 /-!

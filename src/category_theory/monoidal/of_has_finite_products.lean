@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Simon Hudon
 -/
 import category_theory.monoidal.category
-import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.binary_products
-import category_theory.limits.shapes.terminal
 import category_theory.limits.types
 
 /-!
@@ -32,8 +30,7 @@ universes v u
 namespace category_theory
 open category_theory.limits
 
-variables (C : Type u) [𝒞 : category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C]
 
 section
 local attribute [tidy] tactic.case_bash

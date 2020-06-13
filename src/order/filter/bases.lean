@@ -3,10 +3,11 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Yury Kudryashov, Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
+import order.filter.basic
+import data.set.countable
 
-import order.filter.basic data.set.countable
-
-/-! # Filter bases
+/-!
+# Filter bases
 
 A filter basis `B : filter_basis α` on a type `α` is a nonempty collection of sets of `α`
 such that the intersection of two elements of this collection contains some element of
@@ -342,6 +343,19 @@ lemma has_basis.prod_self (hl : l.has_basis p s) :
   { rintros ⟨i, hi, H⟩,
     exact ⟨s i, hl.mem_of_mem hi, s i, hl.mem_of_mem hi, H⟩ }
 end⟩
+
+lemma has_basis.exists_iff (hl : l.has_basis p s) {P : set α → Prop}
+  (mono : ∀ ⦃s t⦄, s ⊆ t → P t → P s) :
+  (∃ s ∈ l, P s) ↔ ∃ (i) (hi : p i), P (s i) :=
+⟨λ ⟨s, hs, hP⟩, let ⟨i, hi, his⟩ := hl.mem_iff.1 hs in ⟨i, hi, mono his hP⟩,
+  λ ⟨i, hi, hP⟩, ⟨s i, hl.mem_of_mem hi, hP⟩⟩
+
+lemma has_basis.forall_iff (hl : l.has_basis p s) {P : set α → Prop}
+  (mono : ∀ ⦃s t⦄, s ⊆ t → P s → P t) :
+  (∀ s ∈ l, P s) ↔ ∀ i, p i → P (s i) :=
+⟨λ H i hi, H (s i) $ hl.mem_of_mem hi,
+  λ H s hs, let ⟨i, hi, his⟩ := hl.mem_iff.1 hs in mono his (H i hi)⟩
+
 variables [preorder ι] (l p s)
 
 /-- `is_antimono_basis p s` means the image of `s` bounded by `p` is a filter basis
@@ -357,6 +371,7 @@ structure has_antimono_basis [preorder ι] (l : filter α) (p : ι → Prop) (s 
   extends has_basis l p s : Prop :=
 (decreasing : ∀ {i j}, p i → p j → i ≤ j → s j ⊆ s i)
 (mono : monotone p)
+
 end same_type
 
 section two_types
@@ -482,8 +497,9 @@ lemma eq_generate {f : filter α} (h : is_countably_generated f) :
 (classical.some_spec h).2
 
 /-- A countable filter basis for a countably generated filter. -/
-def countable_filter_basis {l : filter α} (h : is_countably_generated l) : countable_filter_basis α :=
-{ countable := countable_image _ (countable_set_of_finite_subset h.countable_generating_set),
+def countable_filter_basis {l : filter α} (h : is_countably_generated l) :
+  countable_filter_basis α :=
+{ countable := (countable_set_of_finite_subset h.countable_generating_set).image _,
   ..filter_basis.of_sets (h.generating_set) }
 
 lemma filter_basis_filter {l : filter α} (h : is_countably_generated l) :

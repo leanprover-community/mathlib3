@@ -3,9 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Markus Himmel
 -/
-import data.fintype.basic
 import category_theory.epi_mono
-import category_theory.limits.limits
 import category_theory.limits.shapes.finite_limits
 
 /-!
@@ -105,8 +103,7 @@ lemma walking_parallel_pair_hom_id (X : walking_parallel_pair.{v}) :
   walking_parallel_pair_hom.id X = 𝟙 X :=
 rfl
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 variables {X Y : C}
 
 /-- `parallel_pair f g` is the diagram in `C` consisting of the two morphisms `f` and `g` with
@@ -213,6 +210,15 @@ abbreviation fork.ι (t : fork f g) := t.π.app zero
     `t.ι.app zero : X ⟶ t.X` and `t.ι.app one : Y ⟶ t.X`. Of these, only the second one is
     interesting, and we give it the shorter name `cofork.π t`. -/
 abbreviation cofork.π (t : cofork f g) := t.ι.app one
+
+@[simp] lemma fork.ι_of_ι {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) :
+  fork.ι (fork.of_ι ι w) = ι := rfl
+@[simp] lemma cofork.π_of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) :
+  cofork.π (cofork.of_π π w) = π := rfl
+
+lemma fork.ι_eq_app_zero (t : fork f g) : fork.ι t = t.π.app zero := rfl
+lemma cofork.π_eq_app_one (t : cofork f g) : cofork.π t = t.ι.app one := rfl
+
 lemma fork.condition (t : fork f g) : (fork.ι t) ≫ f = (fork.ι t) ≫ g :=
 begin
   erw [t.w left, ← t.w right], refl
@@ -521,7 +527,7 @@ cofork.is_colimit.mk _
 /-- Every coequalizer of `(f, g)`, where `f = g`, is an isomorphism. -/
 def is_iso_colimit_cocone_parallel_pair_of_eq (h₀ : f = g) {c : cocone (parallel_pair f g)}
   (h : is_colimit c) : is_iso (c.ι.app one) :=
-is_iso.of_iso $ is_colimit.cone_point_unique_up_to_iso (is_colimit_id_cofork h₀) h
+is_iso.of_iso $ is_colimit.cocone_point_unique_up_to_iso (is_colimit_id_cofork h₀) h
 
 /-- The coequalizer of `(f, g)`, where `f = g`, is an isomorphism. -/
 def coequalizer.π_of_eq [has_colimit (parallel_pair f g)] (h : f = g) :

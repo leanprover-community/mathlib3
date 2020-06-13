@@ -5,11 +5,12 @@ Author: Johannes Hölzl, Yury Kudryashov
 
 Extended non-negative reals
 -/
-import data.real.nnreal order.bounds data.set.intervals tactic.norm_num
+import data.real.nnreal
+import data.set.intervals
 noncomputable theory
 open classical set
 
-open_locale classical
+open_locale classical big_operators
 variables {α : Type*} {β : Type*}
 
 /-- The extended nonnegative real numbers. This is usually denoted [0, ∞],
@@ -143,11 +144,14 @@ lemma two_ne_top : (2:ennreal) ≠ ∞ := coe_two ▸ coe_ne_top
 @[simp] lemma add_top : a + ∞ = ∞ := with_top.add_top
 @[simp] lemma top_add : ∞ + a = ∞ := with_top.top_add
 
-instance : is_semiring_hom (coe : nnreal → ennreal) :=
-by refine_struct {..}; simp
+/-- Coercion `ℝ≥0 → ennreal` as a `ring_hom`. -/
+def of_nnreal_hom : nnreal →+* ennreal :=
+⟨coe, coe_one, λ _ _, coe_mul, coe_zero, λ _ _, coe_add⟩
+
+@[simp] lemma coe_of_nnreal_hom : ⇑of_nnreal_hom = coe := rfl
 
 @[simp, norm_cast] lemma coe_pow (n : ℕ) : (↑(r^n) : ennreal) = r^n :=
-is_monoid_hom.map_pow coe r n
+of_nnreal_hom.map_pow r n
 
 lemma add_eq_top : a + b = ∞ ↔ a = ∞ ∨ b = ∞ := with_top.add_eq_top _ _
 lemma add_lt_top : a + b < ∞ ↔ a < ∞ ∧ b < ∞ := with_top.add_lt_top _ _
@@ -202,12 +206,12 @@ lemma pow_lt_top : a < ∞ → ∀ n:ℕ, a^n < ∞ :=
 by simpa only [lt_top_iff_ne_top] using pow_ne_top
 
 @[simp, norm_cast] lemma coe_finset_sum {s : finset α} {f : α → nnreal} :
-  ↑(s.sum f) = (s.sum (λa, f a) : ennreal) :=
-(s.sum_hom coe).symm
+  ↑(∑ a in s, f a) = (∑ a in s, f a : ennreal) :=
+of_nnreal_hom.map_sum f s
 
 @[simp, norm_cast] lemma coe_finset_prod {s : finset α} {f : α → nnreal} :
-  ↑(s.prod f) = (s.prod (λa, f a) : ennreal) :=
-(s.prod_hom coe).symm
+  ↑(∏ a in s, f a) = ((∏ a in s, f a) : ennreal) :=
+of_nnreal_hom.map_prod f s
 
 section order
 
@@ -274,8 +278,8 @@ lemma le_of_forall_epsilon_le : ∀{a b : ennreal}, (∀ε:nnreal, 0 < ε → b 
   have (⊤:ennreal) ≤ ↑a + ↑(1:nnreal), from h 1 zero_lt_one coe_lt_top,
   by rw [← coe_add] at this; exact (not_top_le_coe this).elim
 | (some a) (some b) h :=
-    by simp only [none_eq_top, some_eq_coe, coe_add.symm, coe_le_coe, coe_lt_top, true_implies_iff] at *;
-      exact nnreal.le_of_forall_epsilon_le h
+    by simp only [none_eq_top, some_eq_coe, coe_add.symm, coe_le_coe, coe_lt_top, true_implies_iff]
+      at *; exact nnreal.le_of_forall_epsilon_le h
 
 lemma lt_iff_exists_rat_btwn :
   a < b ↔ (∃q:ℚ, 0 ≤ q ∧ a < nnreal.of_real q ∧ (nnreal.of_real q:ennreal) < b) :=
@@ -465,11 +469,11 @@ Inf_le_Inf $ assume e (h : b ≤ e + d),
 @[simp] lemma add_sub_self' (h : a < ∞) : (a + b) - a = b :=
 by rw [add_comm, add_sub_self h]
 
-lemma add_left_inj (h : a < ∞) : a + b = a + c ↔ b = c :=
+lemma add_right_inj (h : a < ∞) : a + b = a + c ↔ b = c :=
 ⟨λ e, by simpa [h] using congr_arg (λ x, x - a) e, congr_arg _⟩
 
-lemma add_right_inj (h : a < ∞) : b + a = c + a ↔ b = c :=
-by rw [add_comm, add_comm c, add_left_inj h]
+lemma add_left_inj (h : a < ∞) : b + a = c + a ↔ b = c :=
+by rw [add_comm, add_comm c, add_right_inj h]
 
 @[simp] lemma sub_add_cancel_of_le : ∀{a b : ennreal}, b ≤ a → (a - b) + b = a :=
 begin
@@ -523,7 +527,8 @@ end
 by simpa [-ennreal.sub_le_iff_le_add] using @ennreal.sub_le_iff_le_add a b 0
 
 @[simp] lemma zero_lt_sub_iff_lt : 0 < a - b ↔ b < a :=
-by simpa [ennreal.bot_lt_iff_ne_bot, -sub_eq_zero_iff_le] using not_iff_not.2 (@sub_eq_zero_iff_le a b)
+by simpa [ennreal.bot_lt_iff_ne_bot, -sub_eq_zero_iff_le]
+  using not_iff_not.2 (@sub_eq_zero_iff_le a b)
 
 lemma lt_sub_iff_add_lt : a < b - c ↔ a + c < b :=
 begin
@@ -548,10 +553,10 @@ calc a ≤ a - b + b : le_sub_add_self
 ... = a - b + (b - c) + c : (add_assoc _ _ _).symm
 
 lemma sub_sub_cancel (h : a < ∞) (h2 : b ≤ a) : a - (a - b) = b :=
-by rw [← add_right_inj (lt_of_le_of_lt (sub_le_self _ _) h),
+by rw [← add_left_inj (lt_of_le_of_lt (sub_le_self _ _) h),
   sub_add_cancel_of_le (sub_le_self _ _), add_sub_cancel_of_le h2]
 
-lemma sub_left_inj {a b c : ennreal} (ha : a < ⊤) (hb : b ≤ a) (hc : c ≤ a) :
+lemma sub_right_inj {a b c : ennreal} (ha : a < ⊤) (hb : b ≤ a) (hc : c ≤ a) :
   a - b = a - c ↔ b = c :=
 iff.intro
   begin
@@ -597,17 +602,18 @@ open finset
 
 /-- sum of finte numbers is still finite -/
 lemma sum_lt_top {s : finset α} {f : α → ennreal} :
-  (∀a∈s, f a < ⊤) → s.sum f < ⊤ :=
+  (∀a∈s, f a < ⊤) → ∑ a in s, f a < ⊤ :=
 with_top.sum_lt_top
 
 /-- sum of finte numbers is still finite -/
 lemma sum_lt_top_iff {s : finset α} {f : α → ennreal} :
-  s.sum f < ⊤ ↔ (∀a∈s, f a < ⊤) :=
+  ∑ a in s, f a < ⊤ ↔ (∀a∈s, f a < ⊤) :=
 with_top.sum_lt_top_iff
 
-/-- seeing `ennreal` as `nnreal` does not change their sum, unless one of the `ennreal` is infinity -/
+/-- seeing `ennreal` as `nnreal` does not change their sum, unless one of the `ennreal` is
+infinity -/
 lemma to_nnreal_sum {s : finset α} {f : α → ennreal} (hf : ∀a∈s, f a < ⊤) :
-  ennreal.to_nnreal (s.sum f) = s.sum (λa, ennreal.to_nnreal (f a)) :=
+  ennreal.to_nnreal (∑ a in s, f a) = ∑ a in s, ennreal.to_nnreal (f a) :=
 begin
   rw [← coe_eq_coe, coe_to_nnreal, coe_finset_sum, sum_congr],
   { refl },
@@ -617,7 +623,7 @@ end
 
 /-- seeing `ennreal` as `real` does not change their sum, unless one of the `ennreal` is infinity -/
 lemma to_real_sum {s : finset α} {f : α → ennreal} (hf : ∀a∈s, f a < ⊤) :
-  ennreal.to_real (s.sum f) = s.sum (λa, ennreal.to_real (f a)) :=
+  ennreal.to_real (∑ a in s, f a) = ∑ a in s, ennreal.to_real (f a) :=
 by { rw [ennreal.to_real, to_nnreal_sum hf, nnreal.coe_sum], refl }
 
 end sum
@@ -663,7 +669,7 @@ by rw [bit0, add_eq_top, or_self]
 @[simp] lemma bit1_inj : bit1 a = bit1 b ↔ a = b :=
 ⟨λh, begin
   unfold bit1 at h,
-  rwa [add_right_inj, bit0_inj] at h,
+  rwa [add_left_inj, bit0_inj] at h,
   simp [lt_top_iff_ne_top]
 end,
 λh, congr_arg _ h⟩
@@ -836,6 +842,10 @@ begin
   exact (div_le_iff_le_mul (or.inl h0) (or.inl hinf)).2 h
 end
 
+protected lemma div_lt_iff (h0 : b ≠ 0 ∨ c ≠ 0) (ht : b ≠ ⊤ ∨ c ≠ ⊤) :
+  c / b < a ↔ c < a * b :=
+lt_iff_lt_of_le_iff_le $ le_div_iff_mul_le h0 ht
+
 lemma mul_lt_of_lt_div (h : a < b / c) : a * c < b :=
 by { contrapose! h, exact ennreal.div_le_of_le_mul h }
 
@@ -937,6 +947,14 @@ lemma exists_inv_nat_lt {a : ennreal} (h : a ≠ 0) :
   ∃n:ℕ, (n:ennreal)⁻¹ < a :=
 @inv_inv a ▸ by simp only [inv_lt_inv, ennreal.exists_nat_gt (inv_ne_top.2 h)]
 
+lemma exists_nat_mul_gt (ha : a ≠ 0) (hb : b ≠ ⊤) :
+  ∃ n : ℕ, b < n * a :=
+begin
+  have : b / a ≠ ⊤, from mul_ne_top hb (inv_ne_top.2 ha),
+  refine (ennreal.exists_nat_gt this).imp (λ n hn, _),
+  rwa [← ennreal.div_lt_iff (or.inl ha) (or.inr hb)]
+end
+
 end inv
 
 section real
@@ -991,10 +1009,12 @@ lemma to_real_pos_iff : 0 < a.to_real ↔ (0 < a ∧ a ≠ ∞):=
 lemma of_real_le_of_real {p q : ℝ} (h : p ≤ q) : ennreal.of_real p ≤ ennreal.of_real q :=
 by simp [ennreal.of_real, nnreal.of_real_le_of_real h]
 
-@[simp] lemma of_real_le_of_real_iff {p q : ℝ} (h : 0 ≤ q) : ennreal.of_real p ≤ ennreal.of_real q ↔ p ≤ q :=
+@[simp] lemma of_real_le_of_real_iff {p q : ℝ} (h : 0 ≤ q) :
+  ennreal.of_real p ≤ ennreal.of_real q ↔ p ≤ q :=
 by rw [ennreal.of_real, ennreal.of_real, coe_le_coe, nnreal.of_real_le_of_real_iff h]
 
-@[simp] lemma of_real_lt_of_real_iff {p q : ℝ} (h : 0 < q) : ennreal.of_real p < ennreal.of_real q ↔ p < q :=
+@[simp] lemma of_real_lt_of_real_iff {p q : ℝ} (h : 0 < q) :
+  ennreal.of_real p < ennreal.of_real q ↔ p < q :=
 by rw [ennreal.of_real, ennreal.of_real, coe_lt_coe, nnreal.of_real_lt_of_real_iff h]
 
 lemma of_real_lt_of_real_iff_of_nonneg {p q : ℝ} (hp : 0 ≤ p) :
@@ -1130,9 +1150,9 @@ calc (⨅a, f a + g a) ≤ (⨅ a a', f a + g a') :
 
 lemma infi_sum {f : ι → α → ennreal} {s : finset α} [nonempty ι]
   (h : ∀(t : finset α) (i j : ι), ∃k, ∀a∈t, f k a ≤ f i a ∧ f k a ≤ f j a) :
-  (⨅i, s.sum (f i)) = s.sum (λa, ⨅i, f i a) :=
+  (⨅i, ∑ a in s, f i a) = ∑ a in s, ⨅i, f i a :=
 finset.induction_on s (by simp) $ assume a s ha ih,
-  have ∀ (i j : ι), ∃ (k : ι), f k a + s.sum (f k) ≤ f i a + s.sum (f j),
+  have ∀ (i j : ι), ∃ (k : ι), f k a + ∑ b in s, f k b ≤ f i a + ∑ b in s, f j b,
     from assume i j,
     let ⟨k, hk⟩ := h (insert a s) i j in
     ⟨k, add_le_add' (hk a (finset.mem_insert_self _ _)).left $ finset.sum_le_sum $

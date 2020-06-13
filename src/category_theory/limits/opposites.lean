@@ -3,7 +3,8 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Floris van Doorn
 -/
-import category_theory.limits.limits category_theory.discrete_category
+import category_theory.limits.limits
+import category_theory.discrete_category
 
 universes v u
 
@@ -13,8 +14,7 @@ open opposite
 
 namespace category_theory.limits
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 variables {J : Type v} [small_category J]
 variable (F : J ⥤ Cᵒᵖ)
 

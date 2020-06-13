@@ -3,7 +3,6 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl
 -/
-import category_theory.functor_category
 import category_theory.fully_faithful
 import data.equiv.basic
 
@@ -64,8 +63,7 @@ example [is_iso ↾f] : ↾f ≫ inv ↾f = 𝟙 α := by simp
 end
 
 namespace functor
-variables {J : Type u} [𝒥 : category.{v} J]
-include 𝒥
+variables {J : Type u} [category.{v} J]
 
 /--
 The sections of a functor `J ⥤ Type` are
@@ -79,8 +77,7 @@ def sections (F : J ⥤ Type w) : set (Π j, F.obj j) :=
 end functor
 
 namespace functor_to_types
-variables {C : Type u} [𝒞 : category.{v} C] (F G H : C ⥤ Type w) {X Y Z : C}
-include 𝒞
+variables {C : Type u} [category.{v} C] (F G H : C ⥤ Type w) {X Y Z : C}
 variables (σ : F ⟶ G) (τ : G ⟶ H)
 
 @[simp] lemma map_comp_apply (f : X ⟶ Y) (g : Y ⟶ Z) (a : F.obj X) : (F.map (f ≫ g)) a = (F.map g) ((F.map f) a) :=
@@ -122,7 +119,7 @@ def ulift_functor : Type u ⥤ Type (max u v) :=
 @[simp] lemma ulift_functor_map {X Y : Type u} (f : X ⟶ Y) (x : ulift.{v} X) :
   ulift_functor.map f x = ulift.up (f x.down) := rfl
 
-instance ulift_functor_full : full ulift_functor :=
+instance ulift_functor_full : full.{u} ulift_functor :=
 { preimage := λ X Y f x, (f (ulift.up x)).down }
 instance ulift_functor_faithful : faithful ulift_functor :=
 { injectivity' := λ X Y f g p, funext $ λ x,

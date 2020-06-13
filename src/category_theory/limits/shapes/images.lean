@@ -5,7 +5,6 @@ Authors: Scott Morrison, Markus Himmel
 -/
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.shapes.strong_epi
-import category_theory.comma
 
 /-!
 # Categorical images
@@ -57,8 +56,7 @@ open category_theory.limits.walking_parallel_pair
 
 namespace category_theory.limits
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 variables {X Y : C} (f : X ⟶ Y)
 
@@ -255,6 +253,11 @@ begin
      ... = 𝟙 (image f) ≫ h : by rw [←category.assoc, t]
      ... = h                : by rw [category.id_comp]
 end⟩
+
+lemma epi_of_epi_image {X Y : C} (f : X ⟶ Y) [has_image f]
+  [epi (image.ι f)] [epi (factor_thru_image f)] : epi f :=
+by { rw [←image.fac f], apply epi_comp, }
+
 end
 
 section
@@ -310,8 +313,7 @@ end category_theory.limits
 
 namespace category_theory.limits
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 section
 

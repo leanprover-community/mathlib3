@@ -3,7 +3,8 @@ Copyright (c) Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.calculus.deriv analysis.normed_space.finite_dimension
+import analysis.calculus.deriv
+import analysis.normed_space.finite_dimension
 
 /-!
 # Normed space structure on `ℂ`.
@@ -32,7 +33,6 @@ complex derivative.
 -/
 noncomputable theory
 
-set_option class.instance_max_depth 40
 
 namespace complex
 
@@ -82,8 +82,8 @@ attribute [instance, priority 900] complex.normed_space.restrict_scalars_real
 /-- Linear map version of the real part function, from `ℂ` to `ℝ`. -/
 def linear_map.re : ℂ →ₗ[ℝ] ℝ :=
 { to_fun := λx, x.re,
-  add := by simp,
-  smul := λc x, by { change ((c : ℂ) * x).re = c * x.re, simp } }
+  map_add' := by simp,
+  map_smul' := λc x, by { change ((c : ℂ) * x).re = c * x.re, simp } }
 
 @[simp] lemma linear_map.re_apply (z : ℂ) : linear_map.re z = z.re := rfl
 
@@ -112,8 +112,8 @@ end
 /-- Linear map version of the imaginary part function, from `ℂ` to `ℝ`. -/
 def linear_map.im : ℂ →ₗ[ℝ] ℝ :=
 { to_fun := λx, x.im,
-  add := by simp,
-  smul := λc x, by { change ((c : ℂ) * x).im = c * x.im, simp } }
+  map_add' := by simp,
+  map_smul' := λc x, by { change ((c : ℂ) * x).im = c * x.im, simp } }
 
 @[simp] lemma linear_map.im_apply (z : ℂ) : linear_map.im z = z.im := rfl
 
@@ -143,8 +143,8 @@ end
 /-- Linear map version of the canonical embedding of `ℝ` in `ℂ`. -/
 def linear_map.of_real : ℝ →ₗ[ℝ] ℂ :=
 { to_fun := λx, of_real x,
-  add := by simp,
-  smul := λc x, by { simp, refl } }
+  map_add' := by simp,
+  map_smul' := λc x, by { simp, refl } }
 
 @[simp] lemma linear_map.of_real_apply (x : ℝ) : linear_map.of_real x = x := rfl
 

@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.category.Group
-import category_theory.limits.shapes.images
-import group_theory.subgroup
-import algebra.group_power
 
 /-!
 # The category of commutative additive groups has images.

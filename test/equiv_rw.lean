@@ -4,10 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import tactic.equiv_rw
-import category.equiv_functor.instances -- these make equiv_rw more powerful!
+import control.equiv_functor.instances -- these make equiv_rw more powerful!
 
 -- Uncomment this line to observe the steps of constructing appropriate equivalences.
 -- set_option trace.equiv_rw_type true
+
+import tactic.equiv_rw
+
+-- This fails if we use `occurs` rather than `kdepends_on` in `equiv_rw_type`.
+instance : equiv_functor set :=
+{ map := λ α β e s, by { equiv_rw e.symm, assumption, } }
 
 -- Rewriting a hypothesis along an equivalence.
 example {α β : Type} (e : α ≃ β)
@@ -203,7 +209,8 @@ begin
 end
 
 -- rewriting in the argument of a dependent function can't be done in one step
-example {α β γ : Type} (e : α ≃ β) (P : α → Type*) (h : Π a : α, (P a) × (option α)) (b : β) : option β :=
+example {α β γ : Type} (e : α ≃ β) (P : α → Type*) (h : Π a : α, (P a) × (option α)) (b : β) :
+  option β :=
 begin
   equiv_rw e at h,
   have t := h b,

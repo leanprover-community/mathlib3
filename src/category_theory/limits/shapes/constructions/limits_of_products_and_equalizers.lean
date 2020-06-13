@@ -3,10 +3,7 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Scott Morrison
 -/
-
-import category_theory.limits.shapes.products
 import category_theory.limits.shapes.equalizers
-import category_theory.limits.shapes.finite_limits
 import category_theory.limits.shapes.finite_products
 
 /-!
@@ -24,8 +21,7 @@ open opposite
 namespace category_theory.limits
 
 universes v u
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 variables {J : Type v} [small_category J]
 
@@ -77,6 +73,8 @@ the original diagram `F`. -/
       simpa only [limit.lift_π, fan.mk_π_app, category.assoc, category.id_comp] using t,
     end }, }.
 
+local attribute [semireducible] op unop opposite
+
 /-- The morphism from cones over the original diagram `F` to cones over the walking pair diagram
 `diagram F`. -/
 @[simp] def cones_inv : F.cones ⟶ (diagram F).cones :=
@@ -84,8 +82,7 @@ the original diagram `F`. -/
   begin
     refine (fork.of_ι _ _).π,
     { exact pi.lift c.app },
-    { ext f,
-      rcases f with ⟨⟨A,B⟩,f⟩,
+    { ext ⟨⟨A,B⟩,f⟩,
       dsimp,
       simp only [limit.lift_π, limit.lift_π_assoc, fan.mk_π_app, category.assoc],
       rw ←(c.naturality f),

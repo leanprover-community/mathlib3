@@ -8,13 +8,11 @@ Operator norm on the space of continuous linear maps
 Define the operator norm on the space of continuous linear maps between normed spaces, and prove
 its basic properties. In particular, show that this space is itself a normed space.
 -/
-
-import topology.metric_space.lipschitz analysis.normed_space.riesz_lemma
+import analysis.normed_space.riesz_lemma
 import analysis.asymptotics
 noncomputable theory
 open_locale classical
 
-set_option class.instance_max_depth 70
 
 variables {𝕜 : Type*} {E : Type*} {F : Type*} {G : Type*}
 [normed_group E] [normed_group F] [normed_group G]
@@ -58,6 +56,13 @@ The fact that the norm of the continuous linear map is then controlled is given 
 def linear_map.mk_continuous (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) : E →L[𝕜] F :=
 ⟨f, linear_map.continuous_of_bound f C h⟩
 
+/-- Reinterpret a linear map `𝕜 →ₗ[𝕜] E` as a continuous linear map. This construction
+is generalized to the case of any finite dimensional domain
+in `linear_map.to_continuous_linear_map`. -/
+def linear_map.to_continuous_linear_map₁ (f : 𝕜 →ₗ[𝕜] E) : 𝕜 →L[𝕜] E :=
+f.mk_continuous (∥f 1∥) $ λ x, le_of_eq $
+by { conv_lhs { rw ← mul_one x }, rw [← smul_eq_mul, f.map_smul, norm_smul, mul_comm] }
+
 /-- Construct a continuous linear map from a linear map and the existence of a bound on this linear
 map. If you have an explicit bound, use `linear_map.mk_continuous` instead, as a norm estimate will
 follow automatically in `linear_map.mk_continuous_norm_le`. -/
@@ -75,6 +80,14 @@ def linear_map.mk_continuous_of_exists_bound (h : ∃C, ∀x, ∥f x∥ ≤ C * 
 
 @[simp] lemma linear_map.mk_continuous_of_exists_bound_apply (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
   f.mk_continuous_of_exists_bound h x = f x := rfl
+
+@[simp] lemma linear_map.to_continuous_linear_map₁_coe (f : 𝕜 →ₗ[𝕜] E) :
+  (f.to_continuous_linear_map₁ : 𝕜 →ₗ[𝕜] E) = f :=
+rfl
+
+@[simp] lemma linear_map.to_continuous_linear_map₁_apply (f : 𝕜 →ₗ[𝕜] E) (x) :
+  f.to_continuous_linear_map₁ x = f x :=
+rfl
 
 lemma linear_map.continuous_iff_is_closed_ker {f : E →ₗ[𝕜] 𝕜} :
   continuous f ↔ is_closed (f.ker : set E) :=
@@ -100,14 +113,14 @@ begin
       from riesz_lemma h hf this,
     have : x₀ ≠ 0,
     { assume h,
-      have : x₀ ∈ f.ker, by { rw h, exact (linear_map.ker f).zero },
+      have : x₀ ∈ f.ker, by { rw h, exact (linear_map.ker f).zero_mem },
       exact x₀ker this },
     have rx₀_ne_zero : r * ∥x₀∥ ≠ 0, by { simp [norm_eq_zero, this], norm_num },
     have : ∀x, ∥f x∥ ≤ (((r * ∥x₀∥)⁻¹) * ∥f x₀∥) * ∥x∥,
     { assume x,
       by_cases hx : f x = 0,
       { rw [hx, norm_zero],
-        apply_rules [mul_nonneg', norm_nonneg, inv_nonneg.2, norm_nonneg] },
+        apply_rules [mul_nonneg, norm_nonneg, inv_nonneg.2, norm_nonneg] },
       { let y := x₀ - (f x₀ * (f x)⁻¹ ) • x,
         have fy_zero : f y = 0, by calc
           f y = f x₀ - (f x₀ * (f x)⁻¹ ) * f x : by simp [y]
@@ -122,7 +135,7 @@ begin
           ∥f x∥ = (r * ∥x₀∥)⁻¹ * (r * ∥x₀∥) * ∥f x∥ : by rwa [inv_mul_cancel, one_mul]
           ... ≤ (r * ∥x₀∥)⁻¹ * (∥f x₀∥ * ∥f x∥⁻¹ * ∥x∥) * ∥f x∥ : begin
             apply mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left A _) (norm_nonneg _),
-            exact inv_nonneg.2 (mul_nonneg' (by norm_num) (norm_nonneg _))
+            exact inv_nonneg.2 (mul_nonneg (by norm_num) (norm_nonneg _))
           end
           ... = (∥f x∥ ⁻¹ * ∥f x∥) * (((r * ∥x₀∥)⁻¹) * ∥f x₀∥) * ∥x∥ : by ring
           ... = (((r * ∥x₀∥)⁻¹) * ∥f x₀∥) * ∥x∥ :
@@ -179,7 +192,7 @@ open asymptotics filter
 theorem is_O_id (l : filter E) : is_O f (λ x, x) l :=
 let ⟨M, hMp, hM⟩ := f.bound in is_O_of_le' l hM
 
-theorem is_O_comp {E : Type*} (g : F →L[𝕜] G) (f : E → F) (l : filter E) :
+theorem is_O_comp {α : Type*} (g : F →L[𝕜] G) (f : α → F) (l : filter α) :
   is_O (λ x', g (f x')) f l :=
 (g.is_O_id ⊤).comp_tendsto le_top
 
@@ -192,11 +205,12 @@ end
 section op_norm
 open set real
 
-set_option class.instance_max_depth 100
 
 /-- The operator norm of a continuous linear map is the inf of all its bounds. -/
-def op_norm := Inf { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ }
+def op_norm := Inf {c | 0 ≤ c ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥}
 instance has_op_norm : has_norm (E →L[𝕜] F) := ⟨op_norm⟩
+
+lemma norm_def : ∥f∥ = Inf {c | 0 ≤ c ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥} := rfl
 
 -- So that invocations of `real.Inf_le` make sense: we show that the set of
 -- bounds is nonempty and bounded below.
@@ -265,40 +279,30 @@ by rw op_norm_zero_iff
 
 /-- The norm of the identity is at most `1`. It is in fact `1`, except when the space is trivial
 where it is `0`. It means that one can not do better than an inequality in general. -/
-lemma norm_id_le : ∥(id : E →L[𝕜] E)∥ ≤ 1 :=
+lemma norm_id_le : ∥id 𝕜 E∥ ≤ 1 :=
 op_norm_le_bound _ zero_le_one (λx, by simp)
 
 /-- If a space is non-trivial, then the norm of the identity equals `1`. -/
-lemma norm_id (h : ∃ x : E, x ≠ 0) : ∥(id : E →L[𝕜] E)∥ = 1 :=
+lemma norm_id (h : ∃ x : E, x ≠ 0) : ∥id 𝕜 E∥ = 1 :=
 le_antisymm norm_id_le $ let ⟨x, hx⟩ := h in
-have _ := ratio_le_op_norm (id : E →L[𝕜] E) x,
+have _ := (id 𝕜 E).ratio_le_op_norm x,
 by rwa [id_apply, div_self (ne_of_gt $ norm_pos_iff.2 hx)] at this
 
-/-- The operator norm is homogeneous. -/
-lemma op_norm_smul : ∥c • f∥ = ∥c∥ * ∥f∥ :=
-le_antisymm
-  ((c • f).op_norm_le_bound
-    (mul_nonneg (norm_nonneg _) (op_norm_nonneg _)) (λ _,
-    begin
-      erw [norm_smul, mul_assoc],
-      exact mul_le_mul_of_nonneg_left (le_op_norm _ _) (norm_nonneg _)
-    end))
-  (lb_le_Inf _ bounds_nonempty (λ _ ⟨hn, hc⟩,
-    (or.elim (lt_or_eq_of_le (norm_nonneg c))
-      (λ hlt,
-        begin
-          rw mul_comm,
-          exact mul_le_of_le_div hlt (Inf_le _ bounds_bdd_below
-          ⟨div_nonneg hn hlt, λ _,
-          (by { rw div_mul_eq_mul_div, exact le_div_of_mul_le hlt
-          (by { rw [ mul_comm, ←norm_smul ], exact hc _ }) })⟩)
-        end)
-      (λ heq, by { rw [←heq, zero_mul], exact hn }))))
+@[simp] lemma norm_id_field : ∥id 𝕜 𝕜∥ = 1 :=
+norm_id ⟨1, one_ne_zero⟩
 
-lemma op_norm_neg : ∥-f∥ = ∥f∥ := calc
-  ∥-f∥ = ∥(-1:𝕜) • f∥ : by rw neg_one_smul
-  ... = ∥(-1:𝕜)∥ * ∥f∥ : by rw op_norm_smul
-  ... = ∥f∥ : by simp
+@[simp] lemma norm_id_field' : ∥(1 : 𝕜 →L[𝕜] 𝕜)∥ = 1 :=
+norm_id_field
+
+lemma op_norm_smul_le : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
+((c • f).op_norm_le_bound
+  (mul_nonneg (norm_nonneg _) (op_norm_nonneg _)) (λ _,
+  begin
+    erw [norm_smul, mul_assoc],
+    exact mul_le_mul_of_nonneg_left (le_op_norm _ _) (norm_nonneg _)
+  end))
+
+lemma op_norm_neg : ∥-f∥ = ∥f∥ := by { rw norm_def, apply congr_arg, ext, simp }
 
 /-- Continuous linear maps themselves form a normed space with respect to
     the operator norm. -/
@@ -306,7 +310,7 @@ instance to_normed_group : normed_group (E →L[𝕜] F) :=
 normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
 
 instance to_normed_space : normed_space 𝕜 (E →L[𝕜] F) :=
-⟨op_norm_smul⟩
+⟨op_norm_smul_le⟩
 
 /-- The operator norm is submultiplicative. -/
 lemma op_norm_comp_le (f : E →L[𝕜] F) : ∥h.comp f∥ ≤ ∥h∥ * ∥f∥ :=
@@ -403,13 +407,13 @@ begin
   -- Next, we show that this `G` is linear,
   let Glin : E →ₗ[𝕜] F :=
   { to_fun := G,
-    add := λ v w, begin
+    map_add' := λ v w, begin
       have A := hG (v + w),
       have B := (hG v).add (hG w),
       simp only [map_add] at A B,
       exact tendsto_nhds_unique filter.at_top_ne_bot A B,
     end,
-    smul := λ c v, begin
+    map_smul' := λ c v, begin
       have A := hG (c • v),
       have B := filter.tendsto.smul (@tendsto_const_nhds _ ℕ _ c _) (hG v),
       simp only [map_smul] at A B,
@@ -464,14 +468,14 @@ have cont : _ := (uniform_continuous_uniformly_extend h_e h_dense f.uniform_cont
 /- extension of `f` agrees with `f` on the domain of the embedding `e` -/
 have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
 { to_fun := (h_e.dense_inducing h_dense).extend f,
-  add :=
+  map_add' :=
   begin
     refine is_closed_property2 h_dense (is_closed_eq _ _) _,
     { exact cont.comp (continuous_fst.add continuous_snd) },
     { exact (cont.comp continuous_fst).add (cont.comp continuous_snd) },
     { assume x y, rw ← e.map_add, simp only [eq], exact f.map_add _ _  },
   end,
-  smul := λk,
+  map_smul' := λk,
   begin
     refine is_closed_property h_dense (is_closed_eq _ _) _,
     { exact cont.comp (continuous_const.smul continuous_id)  },
@@ -586,6 +590,22 @@ protected lemma lipschitz : lipschitz_with (nnnorm (e : E →L[𝕜] F)) e :=
 
 protected lemma antilipschitz : antilipschitz_with (nnnorm (e.symm : F →L[𝕜] E)) e :=
 e.symm.lipschitz.to_right_inverse e.left_inv
+
+theorem is_O_comp {α : Type*} (f : α → E) (l : filter α) :
+  asymptotics.is_O (λ x', e (f x')) f l :=
+(e : E →L[𝕜] F).is_O_comp f l
+
+theorem is_O_sub (l : filter E) (x : E) :
+  asymptotics.is_O (λ x', e (x' - x)) (λ x', x' - x) l :=
+(e : E →L[𝕜] F).is_O_sub l x
+
+theorem is_O_comp_rev {α : Type*} (f : α → E) (l : filter α) :
+  asymptotics.is_O f (λ x', e (f x')) l :=
+(e.symm.is_O_comp _ l).congr_left $ λ _, e.symm_apply_apply _
+
+theorem is_O_sub_rev (l : filter E) (x : E) :
+  asymptotics.is_O (λ x', x' - x) (λ x', e (x' - x)) l :=
+e.is_O_comp_rev _ _
 
 /-- A continuous linear equiv is a uniform embedding. -/
 lemma uniform_embedding : uniform_embedding e :=

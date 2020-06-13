@@ -5,8 +5,8 @@ Authors: Mario Carneiro, Chris Hughes
 
 Adjoining roots of polynomials
 -/
-
-import data.polynomial ring_theory.principal_ideal_domain
+import data.polynomial
+import ring_theory.principal_ideal_domain
 
 /-!
 # Adjoining roots of polynomials
@@ -30,6 +30,7 @@ The main definitions are in the `adjoin_root` namespace.
 
 -/
 noncomputable theory
+open_locale big_operators
 
 universes u v w
 
@@ -69,8 +70,6 @@ instance adjoin_root.has_coe_t : has_coe_t R (adjoin_root f) := ⟨of f⟩
 @[simp] lemma mk_self : mk f f = 0 :=
 quotient.sound' (mem_span_singleton.2 $ by simp)
 
-instance : is_ring_hom (coe : R → adjoin_root f) := (of f).is_ring_hom
-
 @[simp] lemma mk_C (x : R) : mk f (C x) = x := rfl
 
 @[simp] lemma eval₂_root (f : polynomial R) : f.eval₂ (of f) (root f) = 0 :=
@@ -79,7 +78,7 @@ quotient.induction_on' (root f)
     show finsupp.sum f (λ (e : ℕ) (a : R), mk f (C a) * mk f g ^ e) = 0,
     by simp only [hg, ((mk f).map_pow _ _).symm, ((mk f).map_mul _ _).symm];
       rw [finsupp.sum, ← (mk f).map_sum,
-        show finset.sum _ _ = _, from sum_C_mul_X_eq _, mk_self])
+        show ∑ i in _, _ = _, from sum_C_mul_X_eq _, mk_self])
   (show (root f) = mk f X, from rfl)
 
 lemma is_root_root (f : polynomial R) : is_root (f.map (of f)) (root f) :=

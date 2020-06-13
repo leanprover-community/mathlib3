@@ -23,13 +23,13 @@ import set_theory.ordinal
 
 noncomputable theory
 
-universes u u' u'' v v' w w'
+universes u u' u'' v' w w'
 
-variables {K : Type u} {V V₂ V₃ V₄ : Type v}
-variables {ι : Type w} {ι' : Type w'} {η : Type u''} {φ : η → Type u'}
+variables {K : Type u} {V V₂ V₃ V₄ : Type u'}
+variables {ι : Type w} {ι' : Type w'} {η : Type u''} {φ : η → Type*}
 -- TODO: relax these universe constraints
 
-open_locale classical
+open_locale classical big_operators
 
 section vector_space
 variables [field K] [add_comm_group V] [vector_space K V]
@@ -48,13 +48,12 @@ variables {K V}
 open vector_space
 
 section
-set_option class.instance_max_depth 50
 theorem is_basis.le_span (zero_ne_one : (0 : K) ≠ 1) {v : ι → V} {J : set V} (hv : is_basis K v)
    (hJ : span K J = ⊤) : cardinal.mk (range v) ≤ cardinal.mk J :=
 begin
   cases le_or_lt cardinal.omega (cardinal.mk J) with oJ oJ,
   { have := cardinal.mk_range_eq_of_inj  (linear_independent.injective zero_ne_one hv.1),
-    let S : J → set ι := λ j, (is_basis.repr hv j).support.to_set,
+    let S : J → set ι := λ j, ↑(is_basis.repr hv j).support,
     let S' : J → set V := λ j, v '' S j,
     have hs : range v ⊆ ⋃ j, S' j,
     { intros b hb,
@@ -63,25 +62,22 @@ begin
         span_le.2 (λ j hj x hx, ⟨_, ⟨⟨j, hj⟩, rfl⟩, hx⟩),
       rw hJ at this,
       replace : hv.repr (v i) ∈ (finsupp.supported K K (⋃ j, S j)) := this trivial,
-      rw [hv.repr_eq_single, finsupp.mem_supported, finsupp.support_single_ne_zero zero_ne_one.symm] at this,
-      rw ← hi,
-      apply mem_Union.2,
-      rcases mem_Union.1 (this (mem_singleton _)) with ⟨j, hj⟩,
-      use j,
-      rw mem_image,
-      use i,
-      exact ⟨hj, rfl⟩ },
+      rw [hv.repr_eq_single, finsupp.mem_supported,
+        finsupp.support_single_ne_zero zero_ne_one.symm] at this,
+      subst b,
+      rcases mem_Union.1 (this (finset.mem_singleton_self _)) with ⟨j, hj⟩,
+      exact mem_Union.2 ⟨j, (mem_image _ _ _).2 ⟨i, hj, rfl⟩⟩ },
     refine le_of_not_lt (λ IJ, _),
     suffices : cardinal.mk (⋃ j, S' j) < cardinal.mk (range v),
-    { exact not_le_of_lt this ⟨set.embedding_of_subset hs⟩ },
+    { exact not_le_of_lt this ⟨set.embedding_of_subset _ _ hs⟩ },
     refine lt_of_le_of_lt (le_trans cardinal.mk_Union_le_sum_mk
       (cardinal.sum_le_sum _ (λ _, cardinal.omega) _)) _,
     { exact λ j, le_of_lt (cardinal.lt_omega_iff_finite.2 $ finite_image _ (finset.finite_to_set _)) },
     { rwa [cardinal.sum_const, cardinal.mul_eq_max oJ (le_refl _), max_eq_left oJ] } },
   { rcases exists_finite_card_le_of_finite_of_linear_independent_of_span
       (cardinal.lt_omega_iff_finite.1 oJ) hv.1.to_subtype_range _ with ⟨fI, hi⟩,
-    { rwa [← cardinal.nat_cast_le, cardinal.finset_card, finset.coe_to_finset,
-        cardinal.finset_card, finset.coe_to_finset] at hi, },
+    { rwa [← cardinal.nat_cast_le, cardinal.finset_card, set.finite.coe_to_finset,
+        cardinal.finset_card, set.finite.coe_to_finset] at hi, },
     { rw hJ, apply set.subset_univ } },
 end
 end
@@ -91,18 +87,18 @@ theorem mk_eq_mk_of_basis {v : ι → V} {v' : ι' → V}
   (hv : is_basis K v) (hv' : is_basis K v') :
   cardinal.lift.{w w'} (cardinal.mk ι) = cardinal.lift.{w' w} (cardinal.mk ι') :=
 begin
-  rw ←cardinal.lift_inj.{(max w w') v},
+  rw ←cardinal.lift_inj.{(max w w') u'},
   rw [cardinal.lift_lift, cardinal.lift_lift],
   apply le_antisymm,
-  { convert cardinal.lift_le.{v (max w w')}.2 (hv.le_span zero_ne_one hv'.2),
-    { rw cardinal.lift_max.{w v w'},
+  { convert cardinal.lift_le.{u' (max w w')}.2 (hv.le_span zero_ne_one hv'.2),
+    { rw cardinal.lift_max.{w u' w'},
       apply (cardinal.mk_range_eq_of_inj (hv.injective zero_ne_one)).symm, },
-    { rw cardinal.lift_max.{w' v w},
+    { rw cardinal.lift_max.{w' u' w},
       apply (cardinal.mk_range_eq_of_inj (hv'.injective zero_ne_one)).symm, }, },
-  { convert cardinal.lift_le.{v (max w w')}.2 (hv'.le_span zero_ne_one hv.2),
-    { rw cardinal.lift_max.{w' v w},
+  { convert cardinal.lift_le.{u' (max w w')}.2 (hv'.le_span zero_ne_one hv.2),
+    { rw cardinal.lift_max.{w' u' w},
       apply (cardinal.mk_range_eq_of_inj (hv'.injective zero_ne_one)).symm, },
-    { rw cardinal.lift_max.{w v w'},
+    { rw cardinal.lift_max.{w u' w'},
       apply (cardinal.mk_range_eq_of_inj (hv.injective zero_ne_one)).symm, }, }
 end
 
@@ -118,7 +114,7 @@ begin
 end
 
 theorem is_basis.mk_eq_dim {v : ι → V} (h : is_basis K v) :
-  cardinal.lift.{w v} (cardinal.mk ι) = cardinal.lift.{v w} (dim K V) :=
+  cardinal.lift.{w u'} (cardinal.mk ι) = cardinal.lift.{u' w} (dim K V) :=
 by rw [←h.mk_range_eq_dim, cardinal.mk_range_eq_of_inj (h.injective zero_ne_one)]
 
 variables [add_comm_group V₂] [vector_space K V₂]
@@ -151,11 +147,31 @@ lemma dim_span_set {s : set V} (hs : linear_independent K (λ x, x : s → V)) :
   dim K ↥(span K s) = cardinal.mk s :=
 by rw [← @set_of_mem_eq _ s, ← subtype.val_range]; exact dim_span hs
 
+lemma cardinal_le_dim_of_linear_independent
+  {ι : Type u'} {v : ι → V} (hv : linear_independent K v) :
+  (cardinal.mk ι) ≤ (dim.{u u'} K V) :=
+begin
+  obtain ⟨ι', v', is⟩ := exists_sum_is_basis hv,
+  simpa using le_trans
+    (cardinal.lift_mk_le.{u' u' u'}.2 ⟨@function.embedding.inl ι ι'⟩)
+    (le_of_eq is.mk_eq_dim),
+end
+
+lemma cardinal_le_dim_of_linear_independent'
+  {s : set V} (hs : linear_independent K (λ x, x : s → V)) :
+  cardinal.mk s ≤ dim K V :=
+begin
+  -- extend s to a basis
+  obtain ⟨b, ss, h⟩ := exists_subset_is_basis hs,
+  rw [←h.mk_range_eq_dim, range_coe_subtype],
+  apply cardinal.mk_le_of_injective (inclusion_injective ss),
+end
+
 lemma dim_span_le (s : set V) : dim K (span K s) ≤ cardinal.mk s :=
 begin
   classical,
   rcases
-    exists_linear_independent linear_independent_empty (set.empty_subset s)
+    exists_linear_independent (linear_independent_empty K V) (set.empty_subset s)
     with ⟨b, hb, _, hsb, hlib⟩,
   have hsab : span K s = span K b,
     from span_eq_of_le _ hsb (span_le.2 (λ x hx, subset_span (hb hx))),
@@ -239,7 +255,6 @@ dim_le_injective (of_le h) $ assume ⟨x, hx⟩ ⟨y, hy⟩ eq,
 section
 variables [add_comm_group V₃] [vector_space K V₃]
 variables [add_comm_group V₄] [vector_space K V₄]
-set_option class.instance_max_depth 70
 open linear_map
 
 /-- This is mostly an auxiliary lemma for `dim_sup_add_dim_inf_eq`. -/
@@ -259,7 +274,7 @@ begin
   conv {to_rhs, rw [← dim_prod, dim_eq_surjective _ hf] },
   congr' 1,
   apply linear_equiv.dim_eq,
-  fapply linear_equiv.of_bijective,
+  refine linear_equiv.of_bijective _ _ _,
   { refine cod_restrict _ (prod cd (- ce)) _,
     { assume c,
       simp only [add_eq_zero_iff_eq_neg, prod_apply, mem_ker,
@@ -281,7 +296,7 @@ lemma dim_sup_add_dim_inf_eq (s t : submodule K V) :
   dim K (s ⊔ t : submodule K V) + dim K (s ⊓ t : submodule K V) = dim K s + dim K t :=
 dim_add_dim_split (of_le le_sup_left) (of_le le_sup_right) (of_le inf_le_left) (of_le inf_le_right)
   begin
-    rw [← map_le_map_iff (ker_subtype $ s ⊔ t), map_sup, map_top,
+    rw [← map_le_map_iff' (ker_subtype $ s ⊔ t), map_sup, map_top,
       ← linear_map.range_comp, ← linear_map.range_comp, subtype_comp_of_le, subtype_comp_of_le,
       range_subtype, range_subtype, range_subtype],
     exact le_refl _
@@ -321,8 +336,8 @@ lemma dim_fun {V η : Type u} [fintype η] [add_comm_group V] [vector_space K V]
 by rw [dim_pi, cardinal.sum_const, cardinal.fintype_card]
 
 lemma dim_fun_eq_lift_mul :
-  vector_space.dim K (η → V) = (fintype.card η : cardinal.{max u'' v}) *
-    cardinal.lift.{v u''} (vector_space.dim K V) :=
+  vector_space.dim K (η → V) = (fintype.card η : cardinal.{max u'' u'}) *
+    cardinal.lift.{u' u''} (vector_space.dim K V) :=
 by rw [dim_pi, cardinal.sum_const_eq_lift_mul, cardinal.fintype_card, cardinal.lift_nat_cast]
 
 lemma dim_fun' : vector_space.dim K (η → K) = fintype.card η :=
@@ -379,7 +394,7 @@ calc rank (f + g) ≤ dim K (f.range ⊔ g.range : submodule K V₂) :
 by rw [rank, linear_map.range_zero, dim_bot]
 
 lemma rank_finset_sum_le {η} (s : finset η) (f : η → V →ₗ[K] V₂) :
-  rank (s.sum f) ≤ s.sum (λ d, rank (f d)) :=
+  rank (∑ d in s, f d) ≤ ∑ d in s, rank (f d) :=
 @finset.sum_hom_rel _ _ _ _ _ (λa b, rank a ≤ b) f (λ d, rank (f d)) s (le_of_eq rank_zero)
       (λ i g c h, le_trans (rank_add_le _ _) (add_le_add_left' h))
 
@@ -408,7 +423,7 @@ open vector_space
 
 /-- Version of linear_equiv.dim_eq without universe constraints. -/
 theorem linear_equiv.dim_eq_lift (f : V ≃ₗ[K] E) :
-  cardinal.lift.{v v'} (dim K V) = cardinal.lift.{v' v} (dim K E) :=
+  cardinal.lift.{u' v'} (dim K V) = cardinal.lift.{v' u'} (dim K E) :=
 begin
   cases exists_is_basis K V with b hb,
   rw [← cardinal.lift_inj.1 hb.mk_eq_dim, ← (f.is_basis hb).mk_eq_dim, cardinal.lift_mk],

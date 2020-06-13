@@ -3,8 +3,10 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
-import tactic.basic
-import data.list.basic data.stream data.lazy_list data.seq.computation logic.basic
+import data.list.basic
+import data.stream
+import data.lazy_list
+import data.seq.computation
 
 universes u v w
 
@@ -48,8 +50,7 @@ def terminated_at (s : seq α) (n : ℕ) : Prop := s.nth n = none
 
 /-- It is decidable whether a sequence terminates at a given position. -/
 instance terminated_at_decidable (s : seq α) (n : ℕ) : decidable (s.terminated_at n) :=
-if p : s.nth n = none then is_true p
-else is_false (assume h, by contradiction)
+decidable_of_iff' (s.nth n).is_none $ by unfold terminated_at; cases s.nth n; simp
 
 /-- A sequence terminates if there is some position `n` at which it has terminated. -/
 def terminates (s : seq α) : Prop := ∃ (n : ℕ), s.terminated_at n
@@ -515,7 +516,7 @@ theorem map_comp (f : α → β) (g : β → γ) : ∀ (s : seq α), map (g ∘ 
   apply subtype.eq; dsimp [map],
   rw stream.map_map,
   apply congr_arg (λ f : _ → option γ, stream.map f s),
-  funext x, cases x with x; refl
+  ext ⟨⟩; refl
 end
 
 @[simp] theorem map_append (f : α → β) (s t) : map f (append s t) = append (map f s) (map f t) :=
@@ -593,7 +594,7 @@ end
   of_list (a :: l) = cons a (of_list l) :=
 begin
   apply subtype.eq, simp [of_list, cons],
-  funext n, cases n; simp [list.nth, stream.cons]
+  ext ⟨⟩; simp [list.nth, stream.cons]
 end
 
 @[simp] theorem of_stream_cons (a : α) (s) :

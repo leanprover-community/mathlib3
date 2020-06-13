@@ -3,7 +3,7 @@ Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Simon Hudon
 -/
-import category.traversable.basic
+import control.traversable.basic
 import tactic.simpa
 
 open interactive interactive.types lean.parser
@@ -24,19 +24,6 @@ meta def pos.move_left (p : pos) (n : ℕ) : pos :=
 { line := p.line, column := p.column - n }
 
 namespace tactic
-
-/--
-  `erase_simp_args hs s` removes from `s` each name `n` such that `const n` is an element of `hs`
--/
-meta def erase_simp_args (hs : list simp_arg_type) (s : name_set) : tactic name_set :=
-do
-  -- TODO: when Lean 3.4 support is dropped, use `decode_simp_arg_list_with_symm` on the next line:
-  (hs, _, _) ← decode_simp_arg_list hs,
-  pure $ hs.foldr (λ (h : pexpr) (s : name_set),
-    match h.get_app_fn h with
-    | (expr.const n _) := s.erase n
-    | _ := s
-    end) s
 
 open list
 
@@ -167,7 +154,6 @@ do v ← target >>= mk_meta_var,
    let vs := g.list_constant,
    vs ← vs.mfilter is_simp_lemma,
    vs ← vs.mmap strip_prefix,
-   vs ← erase_simp_args args vs,
    vs ← vs.to_list.mmap name.to_simp_args,
    with_local_goals' [v] (filter_simp_set tac args vs)
      >>= mk_suggestion,

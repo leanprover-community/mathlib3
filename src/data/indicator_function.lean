@@ -3,8 +3,9 @@ Copyright (c) 2020 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-
-import group_theory.group_action algebra.pi_instances data.set.disjointed data.support
+import algebra.pi_instances
+import data.set.disjointed
+import data.support
 
 /-!
 # Indicator function
@@ -24,7 +25,7 @@ indicator, characteristic
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical big_operators
 
 namespace set
 
@@ -138,7 +139,7 @@ begin
 end
 
 lemma indicator_finset_sum {β} [add_comm_monoid β] {ι : Type*} (I : finset ι) (s : set α) (f : ι → α → β) :
-  indicator s (I.sum f) = I.sum (λ i, indicator s (f i)) :=
+  indicator s (∑ i in I, f i) = ∑ i in I, indicator s (f i) :=
 begin
   convert (finset.sum_hom _ _).symm,
   split,
@@ -147,7 +148,7 @@ end
 
 lemma indicator_finset_bUnion {β} [add_comm_monoid β] {ι} (I : finset ι)
   (s : ι → set α) {f : α → β} : (∀ (i ∈ I) (j ∈ I), i ≠ j → s i ∩ s j = ∅) →
-  indicator (⋃ i ∈ I, s i) f = λ a, I.sum (λ i, indicator (s i) f a) :=
+  indicator (⋃ i ∈ I, s i) f = λ a, ∑ i in I, indicator (s i) f a :=
 begin
   refine finset.induction_on I _ _,
   assume h,

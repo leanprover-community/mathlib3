@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import tactic.chain
-import tactic.doc_commands
 import data.quot
 
 namespace tactic

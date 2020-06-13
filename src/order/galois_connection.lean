@@ -5,7 +5,8 @@ Author: Johannes Hölzl
 
 Galois connections - order theoretic adjoints.
 -/
-import order.complete_lattice order.bounds order.order_iso
+import order.complete_lattice
+import order.order_iso
 open function set
 
 universes u v w x
@@ -19,7 +20,7 @@ def galois_connection [preorder α] [preorder β] (l : α → β) (u : β → α
 /-- Makes a Galois connection from an order-preserving bijection. -/
 theorem order_iso.to_galois_connection [preorder α] [preorder β] (oi : @order_iso α β (≤) (≤)) :
   galois_connection oi oi.symm :=
-λ b g, by rw [order_iso.ord' oi, order_iso.apply_symm_apply]
+λ b g, by rw [oi.ord, order_iso.apply_symm_apply]
 
 namespace galois_connection
 
@@ -81,6 +82,16 @@ funext (assume x, le_antisymm (gc.monotone_u (gc.l_u_le _)) (gc.le_u_l _))
 
 lemma l_u_l_eq_l : l ∘ u ∘ l = l :=
 funext (assume x, le_antisymm (gc.l_u_le _) (gc.monotone_l (gc.le_u_l _)))
+
+lemma l_unique {l' : α → β} {u' : β → α} (gc' : galois_connection l' u')
+  (hu : ∀ b, u b = u' b) {a : α} : l a = l' a :=
+le_antisymm (gc.l_le $ (hu (l' a)).symm ▸ gc'.le_u_l _)
+  (gc'.l_le $ hu (l a) ▸ gc.le_u_l _)
+
+lemma u_unique {l' : α → β} {u' : β → α} (gc' : galois_connection l' u')
+  (hl : ∀ a, l a = l' a) {b : β} : u b = u' b :=
+le_antisymm (gc'.le_u $ hl (u b) ▸ gc.l_u_le _)
+  (gc.le_u $ (hl (u' b)).symm ▸ gc'.l_u_le _)
 
 end partial_order
 

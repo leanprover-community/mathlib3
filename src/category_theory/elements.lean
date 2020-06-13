@@ -3,10 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.equivalence
 import category_theory.comma
-import category_theory.punit
-import category_theory.eq_to_hom
 import category_theory.groupoid
 
 /-!
@@ -46,6 +43,19 @@ instance category_of_elements (F : C ⥤ Type w) : category F.elements :=
 { hom := λ p q, { f : p.1 ⟶ q.1 // (F.map f) p.2 = q.2 },
   id := λ p, ⟨𝟙 p.1, by obviously⟩,
   comp := λ p q r f g, ⟨f.val ≫ g.val, by obviously⟩ }
+
+namespace category_of_elements
+
+@[ext]
+lemma ext (F : C ⥤ Type w) {x y : F.elements} (f g : x ⟶ y) (w : f.val = g.val) : f = g :=
+subtype.eq' w
+
+@[simp] lemma comp_val {F : C ⥤ Type w} {p q r : F.elements} {f : p ⟶ q} {g : q ⟶ r} :
+  (f ≫ g).val = f.val ≫ g.val := rfl
+
+@[simp] lemma id_val {F : C ⥤ Type w} {p : F.elements} : (𝟙 p : p ⟶ p).val = 𝟙 p.1 := rfl
+
+end category_of_elements
 
 omit 𝒞 -- We'll assume C has a groupoid structure, so temporarily forget its category structure
 -- to avoid conflicts.

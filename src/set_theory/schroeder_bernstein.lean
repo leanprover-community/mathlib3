@@ -5,7 +5,8 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 The Schröder-Bernstein theorem, and well ordering of cardinals.
 -/
-import order.fixed_points data.set.lattice logic.function logic.embedding order.zorn
+import order.fixed_points
+import order.zorn
 
 open set classical
 open_locale classical
@@ -85,7 +86,7 @@ have injective h,
 theorem antisymm : (α ↪ β) → (β ↪ α) → nonempty (α ≃ β)
 | ⟨e₁, h₁⟩ ⟨e₂, h₂⟩ :=
   let ⟨f, hf⟩ := schroeder_bernstein h₁ h₂ in
-  ⟨equiv.of_bijective hf⟩
+  ⟨equiv.of_bijective f hf⟩
 
 end antisymm
 

@@ -5,10 +5,9 @@ Authors: Kenny Lau
 
 Multiplication and division of submodules of an algebra.
 -/
-
-import ring_theory.algebra ring_theory.ideals algebra.pointwise
-import tactic.chain
-import tactic.monotonicity.basic
+import ring_theory.algebra
+import ring_theory.ideals
+import algebra.pointwise
 
 universes u v
 
@@ -44,10 +43,8 @@ end
 theorem one_le : (1 : submodule R A) ≤ P ↔ (1 : A) ∈ P :=
 by simpa only [one_eq_span, span_le, set.singleton_subset_iff]
 
-set_option class.instance_max_depth 50
 instance : has_mul (submodule R A) :=
 ⟨λ M N, ⨆ s : M, N.map $ algebra.lmul R A s.1⟩
-set_option class.instance_max_depth 32
 
 theorem mul_mem_mul (hm : m ∈ M) (hn : n ∈ N) : m * n ∈ M * N :=
 (le_supr _ ⟨m, hm⟩ : _ ≤ M * N) ⟨n, hn, rfl⟩
@@ -80,7 +77,6 @@ end
 variables {R}
 
 variables (M N P Q)
-set_option class.instance_max_depth 50
 protected theorem mul_assoc : (M * N) * P = M * (N * P) :=
 le_antisymm (mul_le.2 $ λ mn hmn p hp, suffices M * N ≤ (M * (N * P)).comap ((algebra.lmul R A).flip p), from this hmn,
   mul_le.2 $ λ m hm n hn, show m * n * p ∈ M * (N * P), from
@@ -88,7 +84,6 @@ le_antisymm (mul_le.2 $ λ mn hmn p hp, suffices M * N ≤ (M * (N * P)).comap (
 (mul_le.2 $ λ m hm np hnp, suffices N * P ≤ (M * N * P).comap (algebra.lmul R A m), from this hnp,
   mul_le.2 $ λ n hn p hp, show m * (n * p) ∈ M * N * P, from
   mul_assoc m n p ▸ mul_mem_mul (mul_mem_mul hm hn) hp)
-set_option class.instance_max_depth 32
 
 @[simp] theorem mul_bot : M * ⊥ = ⊥ :=
 eq_bot_iff.2 $ mul_le.2 $ λ m hm n hn, by rw [submodule.mem_bot] at hn ⊢; rw [hn, mul_zero]
@@ -131,6 +126,27 @@ begin
   exact mul_mem_mul hi hj
 end
 
+lemma map_mul {A'} [ring A'] [algebra R A'] (f : A →ₐ[R] A') :
+  map f.to_linear_map (M * N) = map f.to_linear_map M * map f.to_linear_map N :=
+calc map f.to_linear_map (M * N)
+    = ⨆ (i : M), (N.map (lmul R A i)).map f.to_linear_map : map_supr _ _
+... = map f.to_linear_map M * map f.to_linear_map N  :
+  begin
+    apply congr_arg Sup,
+    ext S,
+    split; rintros ⟨y, hy⟩,
+    { use [f y, mem_map.mpr ⟨y.1, y.2, rfl⟩],
+      refine trans _ hy,
+      ext,
+      simp },
+    { obtain ⟨y', hy', fy_eq⟩ := mem_map.mp y.2,
+      use [y', hy'],
+      refine trans _ hy,
+      rw f.to_linear_map_apply at fy_eq,
+      ext,
+      simp [fy_eq] }
+  end
+
 variables {M N P}
 
 instance : semiring (submodule R A) :=
@@ -141,7 +157,7 @@ instance : semiring (submodule R A) :=
   mul_zero      := mul_bot,
   left_distrib  := mul_sup,
   right_distrib := sup_mul,
-  ..submodule.add_comm_monoid,
+  ..submodule.add_comm_monoid_submodule,
   ..submodule.has_one,
   ..submodule.has_mul }
 
@@ -196,7 +212,6 @@ instance semimodule_set : semimodule (set A) (submodule R A) :=
   zero_smul := λ P, show span R ∅ * P = ⊥, by erw [span_empty, bot_mul],
   smul_zero := λ _, mul_bot _ }
 
-set_option class.instance_max_depth 45
 
 variables {R A}
 
@@ -235,10 +250,11 @@ This is the general form of the ideal quotient, traditionally written $I : J$.
 -/
 instance : has_div (submodule R A) :=
 ⟨ λ I J, {
-  carrier := { x | ∀ y ∈ J, x * y ∈ I },
-  zero    := λ y hy, by { rw zero_mul, apply submodule.zero },
-  add     := λ a b ha hb y hy, by { rw add_mul, exact submodule.add _ (ha _ hy) (hb _ hy) },
-  smul    := λ r x hx y hy, by { rw algebra.smul_mul_assoc, exact submodule.smul _ _ (hx _ hy) } } ⟩
+  carrier   := { x | ∀ y ∈ J, x * y ∈ I },
+  zero_mem' := λ y hy, by { rw zero_mul, apply submodule.zero_mem },
+  add_mem'  := λ a b ha hb y hy, by { rw add_mul, exact submodule.add_mem _ (ha _ hy) (hb _ hy) },
+  smul_mem' := λ r x hx y hy, by { rw algebra.smul_mul_assoc,
+    exact submodule.smul_mem _ _ (hx _ hy) } } ⟩
 
 lemma mem_div_iff_forall_mul_mem {x : A} {I J : submodule R A} :
   x ∈ I / J ↔ ∀ y ∈ J, x * y ∈ I :=

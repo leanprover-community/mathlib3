@@ -3,8 +3,9 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-
-import analysis.calculus.extend_deriv analysis.calculus.iterated_deriv analysis.complex.exponential
+import analysis.calculus.extend_deriv
+import analysis.calculus.iterated_deriv
+import analysis.special_functions.exp_log
 
 /-!
 # Smoothness of specific functions
@@ -33,7 +34,7 @@ derivatives for `x > 0`. The `n`-th derivative is of the form `P_aux n (x) exp(-
 where `P_aux n` is computed inductively. -/
 noncomputable def P_aux : ℕ → polynomial ℝ
 | 0 := 1
-| (n+1) := X^2 * (P_aux n).derivative  + (1 - C (2 * n) * X) * (P_aux n)
+| (n+1) := X^2 * (P_aux n).derivative  + (1 - C ↑(2 * n) * X) * (P_aux n)
 
 /-- Formula for the `n`-th derivative of `exp_neg_inv_glue`, as an auxiliary function `f_aux`. -/
 def f_aux (n : ℕ) (x : ℝ) : ℝ :=

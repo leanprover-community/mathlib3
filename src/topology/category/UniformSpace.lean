@@ -3,9 +3,6 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Patrick Massot, Scott Morrison
 -/
-
-import category_theory.concrete_category.unbundled_hom
-import category_theory.full_subcategory
 import category_theory.monad.limits
 import topology.uniform_space.completion
 import topology.category.Top.basic
@@ -139,8 +136,7 @@ adjunction.mk_of_hom_equiv
     right_inv := λ f,
     begin
       apply subtype.eq, funext x, cases f,
-      change completion.extension f_val _ = f_val x,
-      erw completion.extension_coe, assumption
+      exact @completion.extension_coe _ _ _ _ _ (CpltSepUniformSpace.separated _) f_property _
     end },
   hom_equiv_naturality_left_symm' := λ X X' Y f g,
   begin

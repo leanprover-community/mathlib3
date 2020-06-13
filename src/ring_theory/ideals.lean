@@ -3,13 +3,15 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 -/
-import algebra.associated linear_algebra.basic order.zorn
+import algebra.associated
+import linear_algebra.basic
+import order.zorn
 
 universes u v
 variables {α : Type u} {β : Type v} {a b : α}
 open set function
 
-open_locale classical
+open_locale classical big_operators
 
 namespace ideal
 variables [comm_ring α] (I : ideal α)
@@ -58,7 +60,7 @@ lemma mem_span_singleton' {x y : α} :
 
 lemma mem_span_singleton {x y : α} :
   x ∈ span ({y} : set α) ↔ y ∣ x :=
-mem_span_singleton'.trans $ exists_congr $ λ _, by rw [eq_comm, mul_comm]; refl
+mem_span_singleton'.trans $ exists_congr $ λ _, by rw [eq_comm, mul_comm]
 
 lemma span_singleton_le_span_singleton {x y : α} :
   span ({x} : set α) ≤ span ({y} : set α) ↔ y ∣ x :=
@@ -147,25 +149,9 @@ begin
     exact SC JS ((eq_top_iff_one _).2 J0) }
 end
 
-def is_coprime (x y : α) : Prop :=
-span ({x, y} : set α) = ⊤
-
 theorem mem_span_pair {x y z : α} :
-  z ∈ span (insert y {x} : set α) ↔ ∃ a b, a * x + b * y = z :=
-begin
-  simp only [mem_span_insert, mem_span_singleton', exists_prop],
-  split,
-  { rintros ⟨a, b, ⟨c, hc⟩, h⟩, exact ⟨c, a, by cc⟩ },
-  { rintro ⟨b, c, e⟩, exact ⟨c, b * x, ⟨b, rfl⟩, by cc⟩ }
-end
-
-theorem is_coprime_def {x y : α} :
-  is_coprime x y ↔ ∀ z, ∃ a b, a * x + b * y = z :=
-by simp [is_coprime, submodule.eq_top_iff', mem_span_pair]
-
-theorem is_coprime_self {x : α} :
-  is_coprime x x ↔ is_unit x :=
-by rw [← span_singleton_eq_top]; simp [is_coprime]
+  z ∈ span ({x, y} : set α) ↔ ∃ a b, a * x + b * y = z :=
+by simp [mem_span_insert, mem_span_singleton', @eq_comm _ _ z]
 
 lemma span_singleton_lt_span_singleton [integral_domain β] {x y : β} :
   span ({x} : set β) < span ({y} : set β) ↔ y ≠ 0 ∧ ∃ d : β, ¬ is_unit d ∧ x = y * d :=
@@ -214,12 +200,14 @@ instance (I : ideal α) : comm_ring I.quotient :=
 /-- `ideal.quotient.mk` as a `ring_hom` -/
 def mk_hom (I : ideal α) : α →+* I.quotient := ⟨mk I, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩
 
+lemma mk_eq_mk_hom (I : ideal α) (x : α) : ideal.quotient.mk I x = ideal.quotient.mk_hom I x := rfl
+
 def map_mk (I J : ideal α) : ideal I.quotient :=
 { carrier := mk I '' J,
-  zero := ⟨0, J.zero_mem, rfl⟩,
-  add := by rintro _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩;
+  zero_mem' := ⟨0, J.zero_mem, rfl⟩,
+  add_mem' := by rintro _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩;
     exact ⟨x + y, J.add_mem hx hy, rfl⟩,
-  smul := by rintro ⟨c⟩ _ ⟨x, hx, rfl⟩;
+  smul_mem' := by rintro ⟨c⟩ _ ⟨x, hx, rfl⟩;
     exact ⟨c * x, J.mul_mem_left hx, rfl⟩ }
 
 @[simp] lemma mk_zero (I : ideal α) : mk I 0 = 0 := rfl
@@ -230,11 +218,11 @@ def map_mk (I J : ideal α) : ideal I.quotient :=
 (mk_hom I).map_pow a n
 
 lemma mk_prod {ι} (I : ideal α) (s : finset ι) (f : ι → α) :
-  mk I (s.prod f) = s.prod (λ i, mk I (f i)) :=
+  mk I (∏ i in s, f i) = ∏ i in s, mk I (f i) :=
 (mk_hom I).map_prod f s
 
 lemma mk_sum {ι} (I : ideal α) (s : finset ι) (f : ι → α) :
-  mk I (s.sum f) = s.sum (λ i, mk I (f i)) :=
+  mk I (∑ i in s, f i) = ∑ i in s, mk I (f i) :=
 (mk_hom I).map_sum f s
 
 lemma eq_zero_iff_mem {I : ideal α} : mk I a = 0 ↔ a ∈ I :=
@@ -246,8 +234,8 @@ eq_comm.trans $ eq_zero_iff_mem.trans (eq_top_iff_one _).symm
 theorem zero_ne_one_iff {I : ideal α} : (0 : I.quotient) ≠ 1 ↔ I ≠ ⊤ :=
 not_congr zero_eq_one_iff
 
-protected def nonzero_comm_ring {I : ideal α} (hI : I ≠ ⊤) : nonzero_comm_ring I.quotient :=
-{ zero_ne_one := zero_ne_one_iff.2 hI, ..quotient.comm_ring I }
+protected theorem nonzero {I : ideal α} (hI : I ≠ ⊤) : nonzero I.quotient :=
+{ zero_ne_one := zero_ne_one_iff.2 hI }
 
 instance (I : ideal α) [hI : I.is_prime] : integral_domain I.quotient :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b,
@@ -255,7 +243,8 @@ instance (I : ideal α) [hI : I.is_prime] : integral_domain I.quotient :=
       (hI.mem_or_mem (eq_zero_iff_mem.1 hab)).elim
         (or.inl ∘ eq_zero_iff_mem.2)
         (or.inr ∘ eq_zero_iff_mem.2),
-  ..quotient.nonzero_comm_ring hI.1 }
+  ..quotient.nonzero hI.1,
+  ..quotient.comm_ring I }
 
 lemma exists_inv {I : ideal α} [hI : I.is_maximal] :
  ∀ {a : I.quotient}, a ≠ 0 → ∃ b : I.quotient, a * b = 1 :=
@@ -293,6 +282,15 @@ def lift (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0
   lift S f H (mk S a) = f a := rfl
 
 end quotient
+
+section lattice
+variables {R : Type u} [comm_ring R]
+
+theorem mem_Inf {s : set (ideal R)} {x : R} :
+  x ∈ Inf s ↔ ∀ ⦃I⦄, I ∈ s → x ∈ I :=
+⟨λ hx I his, hx I ⟨I, infi_pos his⟩, λ H I ⟨J, hij⟩, hij ▸ λ S ⟨hj, hS⟩, hS ▸ H hj⟩
+
+end lattice
 
 /-- All ideals in a field are trivial. -/
 lemma eq_bot_or_top {K : Type u} [field K] (I : ideal K) :
@@ -348,7 +346,7 @@ end
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
-class local_ring (α : Type u) extends nonzero_comm_ring α :=
+class local_ring (α : Type u) extends comm_ring α, nonzero α :=
 (is_local : ∀ (a : α), (is_unit a) ∨ (is_unit (1 - a)))
 end prio
 
@@ -379,7 +377,7 @@ begin
     rw ← mul_assoc, simp },
   rw show (↑u⁻¹ * y) = (1 - ↑u⁻¹ * x),
   { rw eq_sub_iff_add_eq,
-    replace hu := congr_arg (λ z, (↑u⁻¹ : α) * z) hu,
+    replace hu := congr_arg (λ z, (↑u⁻¹ : α) * z) hu.symm,
     simpa [mul_add, add_comm] using hu },
   apply is_unit_one_sub_self_of_mem_nonunits,
   exact mul_mem_nonunits_right hx
@@ -387,11 +385,12 @@ end
 
 variable (α)
 
+/-- The ideal of elements that are not units. -/
 def nonunits_ideal : ideal α :=
 { carrier := nonunits α,
-  zero := zero_mem_nonunits.2 $ zero_ne_one,
-  add := λ x y hx hy, nonunits_add hx hy,
-  smul := λ a x, mul_mem_nonunits_right }
+  zero_mem' := zero_mem_nonunits.2 $ zero_ne_one,
+  add_mem' := λ x y hx hy, nonunits_add hx hy,
+  smul_mem' := λ a x, mul_mem_nonunits_right }
 
 instance nonunits_ideal.is_maximal : (nonunits_ideal α).is_maximal :=
 begin
@@ -477,10 +476,14 @@ variables [local_ring α] [local_ring β]
 variable (α)
 def residue_field := (nonunits_ideal α).quotient
 
-namespace residue_field
-
-noncomputable instance : field (residue_field α) :=
+noncomputable instance residue_field.field : field (residue_field α) :=
 ideal.quotient.field (nonunits_ideal α)
+
+/-- The quotient map from a local ring to it's residue field. -/
+def residue : α →+* (residue_field α) :=
+ideal.quotient.mk_hom _
+
+namespace residue_field
 
 variables {α β}
 noncomputable def map (f : α →+* β) [is_local_ring_hom f] :

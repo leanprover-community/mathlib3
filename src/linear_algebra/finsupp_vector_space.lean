@@ -5,7 +5,8 @@ Author: Johannes Hölzl
 
 Linear structures on function with finite support `ι →₀ β`.
 -/
-import data.finsupp data.mv_polynomial linear_algebra.dimension
+import data.mv_polynomial
+import linear_algebra.dimension
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
@@ -95,7 +96,6 @@ variables [add_comm_group V'] [vector_space K V']
 
 open vector_space
 
-set_option class.instance_max_depth 70
 
 lemma equiv_of_dim_eq_lift_dim
   (h : cardinal.lift.{v w} (dim K V) = cardinal.lift.{w v} (dim K V')) :
@@ -157,8 +157,6 @@ section vector_space
 universes u
 
 open vector_space
-set_option class.instance_max_depth 50
-local attribute [instance] submodule.module
 
 variables {K V : Type u} [field K] [add_comm_group V] [vector_space K V]
 

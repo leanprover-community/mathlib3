@@ -3,10 +3,8 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Mario Carneiro, Scott Morrison, Floris van Doorn
 -/
-import category_theory.whiskering
-import category_theory.yoneda
 import category_theory.limits.cones
-import category_theory.eq_to_hom
+import category_theory.adjunction.basic
 
 open category_theory category_theory.category category_theory.functor opposite
 
@@ -16,8 +14,7 @@ universes v u u' u'' w -- declare the `v`'s first; see `category_theory.category
 
 -- See the notes at the top of cones.lean, explaining why we can't allow `J : Prop` here.
 variables {J K : Type v} [small_category J] [small_category K]
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 variables {F : J ⥤ C}
 
@@ -177,6 +174,17 @@ def iso_unique_cone_morphism {t : cone F} :
   { lift := λ s, (h s).default.hom,
     uniq' := λ s f w, congr_arg cone_morphism.hom ((h s).uniq ⟨f, w⟩) } }
 
+/--
+Given two functors which have equivalent categories of cones, we can transport a limiting cone across
+the equivalence.
+-/
+def of_cone_equiv {D : Type u'} [category.{v} D] {G : K ⥤ D}
+  (h : cone G ⥤ cone F) [is_right_adjoint h] {c : cone G} (t : is_limit c) :
+  is_limit (h.obj c) :=
+mk_cone_morphism
+  (λ s, (adjunction.of_right_adjoint h).hom_equiv s c (t.lift_cone_morphism _))
+  (λ s m, (adjunction.eq_hom_equiv_apply _ _ _).2 t.uniq_cone_morphism )
+
 namespace of_nat_iso
 variables {X : C} (h : yoneda.obj X ≅ F.cones)
 
@@ -308,7 +316,7 @@ def unique_up_to_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) : s 
 
 /-- Colimits of `F` are unique up to isomorphism. -/
 -- We may later want to prove the coherence of these isomorphisms.
-def cone_point_unique_up_to_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) : s.X ≅ t.X :=
+def cocone_point_unique_up_to_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) : s.X ≅ t.X :=
 (cocones.forget F).map_iso (unique_up_to_iso P Q)
 
 /-- Transport evidence that a cocone is a colimit cocone across an isomorphism of cocones. -/
@@ -386,6 +394,17 @@ def iso_unique_cocone_morphism {t : cocone F} :
   inv := λ h,
   { desc := λ s, (h s).default.hom,
     uniq' := λ s f w, congr_arg cocone_morphism.hom ((h s).uniq ⟨f, w⟩) } }
+
+/--
+Given two functors which have equivalent categories of cocones, we can transport a limiting cocone
+across the equivalence.
+-/
+def of_cocone_equiv {D : Type u'} [category.{v} D] {G : K ⥤ D}
+  (h : cocone G ⥤ cocone F) [is_left_adjoint h] {c : cocone G} (t : is_colimit c) :
+  is_colimit (h.obj c) :=
+mk_cocone_morphism
+  (λ s, ((adjunction.of_left_adjoint h).hom_equiv c s).symm (t.desc_cocone_morphism _))
+  (λ s m, (adjunction.hom_equiv_apply_eq _ _ _).1 t.uniq_cocone_morphism)
 
 namespace of_nat_iso
 variables {X : C} (h : coyoneda.obj (op X) ≅ F.cocones)
@@ -627,8 +646,7 @@ by ext j; erw [assoc, limit.pre_π, limit.pre_π, limit.pre_π]; refl
 end pre
 
 section post
-variables {D : Type u'} [𝒟 : category.{v} D]
-include 𝒟
+variables {D : Type u'} [category.{v} D]
 
 variables (F) [has_limit F] (G : C ⥤ D) [has_limit (F ⋙ G)]
 
@@ -949,8 +967,7 @@ end
 end pre
 
 section post
-variables {D : Type u'} [𝒟 : category.{v} D]
-include 𝒟
+variables {D : Type u'} [category.{v} D]
 
 variables (F) [has_colimit F] (G : C ⥤ D) [has_colimit (F ⋙ G)]
 

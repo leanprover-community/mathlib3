@@ -33,6 +33,8 @@ universes u
 
 open list
 
+open_locale big_operators
+
 /-- `holor_index ds` is the type of valid index tuples to identify an entry of a holor of dimensions `ds` -/
 def holor_index (ds : list ℕ) : Type := { is : list ℕ // forall₂ (<) is ds}
 
@@ -103,9 +105,7 @@ instance [add_comm_group α] : add_comm_group (holor α ds) := by pi_instance
 instance [has_mul α] : has_scalar α (holor α ds) :=
   ⟨λ a x, λ t, a * x t⟩
 
-instance [ring α] : module α (holor α ds) := pi.module α
-
-instance [field α] : vector_space α (holor α ds) := ⟨⟩
+instance [semiring α] : semimodule α (holor α ds) := pi.semimodule _ _ _
 
 /-- The tensor product of two holors. -/
 def mul [s : has_mul α] (x : holor α ds₁) (y : holor α ds₂) : holor α (ds₁ ++ ds₂) :=
@@ -205,7 +205,7 @@ lemma slice_zero [has_zero α] (i : ℕ) (hid : i < d)  :
 
 lemma slice_sum [add_comm_monoid α] {β : Type}
   (i : ℕ) (hid : i < d) (s : finset β) (f : β → holor α (d :: ds)) :
-  finset.sum s (λ x, slice (f x) i hid) = slice (finset.sum s f) i hid :=
+  ∑ x in s, slice (f x) i hid = slice (∑ x in s, f x) i hid :=
 begin
   letI := classical.dec_eq β,
   refine finset.induction_on s _ _,
@@ -216,8 +216,8 @@ end
 
 /-- The original holor can be recovered from its slices by multiplying with unit vectors and summing up. -/
 @[simp] lemma sum_unit_vec_mul_slice [ring α] (x : holor α (d :: ds)) :
-  (finset.range d).attach.sum
-    (λ i, unit_vec d i.1 ⊗ slice x i.1 (nat.succ_le_of_lt (finset.mem_range.1 i.2))) = x :=
+  ∑ i in (finset.range d).attach,
+    unit_vec d i.1 ⊗ slice x i.1 (nat.succ_le_of_lt (finset.mem_range.1 i.2)) = x :=
 begin
   apply slice_eq _ _ _,
   ext i hid,
@@ -291,7 +291,7 @@ begin
 end
 
 lemma cprank_max_sum [ring α] {β} {n : ℕ} (s : finset β) (f : β → holor α ds) :
-  (∀ x ∈ s, cprank_max n (f x)) → cprank_max (s.card * n) (finset.sum s f) :=
+  (∀ x ∈ s, cprank_max n (f x)) → cprank_max (s.card * n) (∑ x in s, f x) :=
 by letI := classical.dec_eq β;
 exact finset.induction_on s
   (by simp [cprank_max.zero])
@@ -300,7 +300,7 @@ exact finset.induction_on s
     simp only [finset.sum_insert h_x_notin_s,finset.card_insert_of_not_mem h_x_notin_s],
     rw nat.right_distrib,
     simp only [nat.one_mul, nat.add_comm],
-    have ih' : cprank_max (finset.card s * n) (finset.sum s f),
+    have ih' : cprank_max (finset.card s * n) (∑ x in s, f x),
     {
       apply ih,
       assume (x : β) (h_x_in_s: x ∈ s),
@@ -319,12 +319,10 @@ have h_summands : Π (i : {x // x ∈ finset.range d}),
 have h_dds_prod : (list.cons d ds).prod = finset.card (finset.range d) * prod ds,
   by simp [finset.card_range],
 have cprank_max (finset.card (finset.attach (finset.range d)) * prod ds)
-  (finset.sum (finset.attach (finset.range d))
-  (λ (i : {x // x ∈ finset.range d}), unit_vec d (i.val)⊗slice x (i.val) (mem_range.1 i.2))),
+  (∑ i in finset.attach (finset.range d), unit_vec d (i.val)⊗slice x (i.val) (mem_range.1 i.2)),
   from cprank_max_sum (finset.range d).attach _ (λ i _, h_summands i),
 have h_cprank_max_sum : cprank_max (finset.card (finset.range d) * prod ds)
-  (finset.sum (finset.attach (finset.range d))
-  (λ (i : {x // x ∈ finset.range d}), unit_vec d (i.val)⊗slice x (i.val) (mem_range.1 i.2))),
+  (∑ i in finset.attach (finset.range d), unit_vec d (i.val)⊗slice x (i.val) (mem_range.1 i.2)),
   by rwa [finset.card_attach] at this,
 begin
   rw [←sum_unit_vec_mul_slice x],

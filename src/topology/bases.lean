@@ -5,8 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Bases of topologies. Countability axioms.
 -/
-
-import topology.constructions order.filter.bases
+import topology.constructions
 
 open set filter classical
 open_locale topological_space
@@ -51,14 +50,14 @@ let b' := (λf, ⋂₀ f) '' {f:set (set α) | finite f ∧ f ⊆ s ∧ (⋂₀ 
   this ▸ hs⟩
 
 lemma is_topological_basis_of_open_of_nhds {s : set (set α)}
-  (h_open : ∀ u ∈ s, _root_.is_open u)
-  (h_nhds : ∀(a:α) (u : set α), a ∈ u → _root_.is_open u → ∃v ∈ s, a ∈ v ∧ v ⊆ u) :
+  (h_open : ∀ u ∈ s, is_open u)
+  (h_nhds : ∀(a:α) (u : set α), a ∈ u → is_open u → ∃v ∈ s, a ∈ v ∧ v ⊆ u) :
   is_topological_basis s :=
 ⟨assume t₁ ht₁ t₂ ht₂ x ⟨xt₁, xt₂⟩,
     h_nhds x (t₁ ∩ t₂) ⟨xt₁, xt₂⟩
-      (is_open_inter _ _ _ (h_open _ ht₁) (h_open _ ht₂)),
+      (is_open_inter (h_open _ ht₁) (h_open _ ht₂)),
   eq_univ_iff_forall.2 $ assume a,
-    let ⟨u, h₁, h₂, _⟩ := h_nhds a univ trivial (is_open_univ _) in
+    let ⟨u, h₁, h₂, _⟩ := h_nhds a univ trivial is_open_univ in
     ⟨u, h₁, h₂⟩,
   le_antisymm
     (le_generate_from h_open)
@@ -83,17 +82,17 @@ begin
 end
 
 lemma is_open_of_is_topological_basis {s : set α} {b : set (set α)}
-  (hb : is_topological_basis b) (hs : s ∈ b) : _root_.is_open s :=
+  (hb : is_topological_basis b) (hs : s ∈ b) : is_open s :=
 is_open_iff_mem_nhds.2 $ λ a as,
 (mem_nhds_of_is_topological_basis hb).2 ⟨s, hs, as, subset.refl _⟩
 
 lemma mem_basis_subset_of_mem_open {b : set (set α)}
   (hb : is_topological_basis b) {a:α} {u : set α} (au : a ∈ u)
-  (ou : _root_.is_open u) : ∃v ∈ b, a ∈ v ∧ v ⊆ u :=
+  (ou : is_open u) : ∃v ∈ b, a ∈ v ∧ v ⊆ u :=
 (mem_nhds_of_is_topological_basis hb).1 $ mem_nhds_sets ou au
 
 lemma sUnion_basis_of_is_open {B : set (set α)}
-  (hB : is_topological_basis B) {u : set α} (ou : _root_.is_open u) :
+  (hB : is_topological_basis B) {u : set α} (ou : is_open u) :
   ∃ S ⊆ B, u = ⋃₀ S :=
 ⟨{s ∈ B | s ⊆ u}, λ s h, h.1, set.ext $ λ a,
   ⟨λ ha, let ⟨b, hb, ab, bu⟩ := mem_basis_subset_of_mem_open hB ha ou in
@@ -101,7 +100,7 @@ lemma sUnion_basis_of_is_open {B : set (set α)}
    λ ⟨b, ⟨hb, bu⟩, ab⟩, bu ab⟩⟩
 
 lemma Union_basis_of_is_open {B : set (set α)}
-  (hB : is_topological_basis B) {u : set α} (ou : _root_.is_open u) :
+  (hB : is_topological_basis B) {u : set α} (ou : is_open u) :
   ∃ (β : Type u) (f : β → set α), u = (⋃ i, f i) ∧ ∀ i, f i ∈ B :=
 let ⟨S, sb, su⟩ := sUnion_basis_of_is_open hB ou in
 ⟨S, subtype.val, su.trans set.sUnion_eq_Union, λ ⟨b, h⟩, sb h⟩
@@ -128,7 +127,7 @@ let ⟨b, hb, eq⟩ := second_countable_topology.is_open_generated_countable α 
 ⟨begin
    intros,
    rw [eq, nhds_generate_from],
-   exact is_countably_generated_binfi_principal (countable_subset (assume x ⟨_, hx⟩, hx) hb),
+   exact is_countably_generated_binfi_principal (hb.mono (assume x, and.right)),
  end⟩
 
 lemma second_countable_topology_induced (β)
@@ -136,7 +135,7 @@ lemma second_countable_topology_induced (β)
   @second_countable_topology α (t.induced f) :=
 begin
   rcases second_countable_topology.is_open_generated_countable β with ⟨b, hb, eq⟩,
-  refine { is_open_generated_countable := ⟨preimage f '' b, countable_image _ hb, _⟩ },
+  refine { is_open_generated_countable := ⟨preimage f '' b, hb.image _, _⟩ },
   rw [eq, induced_generate_from_eq]
 end
 
@@ -149,9 +148,8 @@ lemma is_open_generated_countable_inter [second_countable_topology α] :
 let ⟨b, hb₁, hb₂⟩ := second_countable_topology.is_open_generated_countable α in
 let b' := (λs, ⋂₀ s) '' {s:set (set α) | finite s ∧ s ⊆ b ∧ (⋂₀ s).nonempty} in
 ⟨b',
-  countable_image _ $ countable_subset
-    (by simp only [(and_assoc _ _).symm]; exact inter_subset_left _ _)
-    (countable_set_of_finite_subset hb₁),
+  ((countable_set_of_finite_subset hb₁).mono
+    (by { simp only [← and_assoc], apply inter_subset_left })).image _,
   assume ⟨s, ⟨_, _, hn⟩, hp⟩, absurd hn (not_nonempty_iff_eq_empty.2 hp),
   is_topological_basis_of_subbasis hb₂⟩
 
@@ -163,7 +161,7 @@ instance {β : Type*} [topological_space β]
   ⟨{g | ∃u∈a, ∃v∈b, g = set.prod u v},
     have {g | ∃u∈a, ∃v∈b, g = set.prod u v} = (⋃u∈a, ⋃v∈b, {set.prod u v}),
       by apply set.ext; simp,
-    by rw [this]; exact (countable_bUnion ha₁ $ assume u hu, countable_bUnion hb₁ $ by simp),
+    by rw [this]; exact (ha₁.bUnion $ assume u hu, hb₁.bUnion $ by simp),
     by rw [ha₅, hb₅, prod_generate_from_generate_from_eq ha₄ hb₄]⟩⟩
 
 instance second_countable_topology_fintype {ι : Type*} {π : ι → Type*}
@@ -175,7 +173,7 @@ let ⟨g, hg⟩ := classical.axiom_of_choice this in
 have t = (λa, generate_from (g a)), from funext $ assume a, (hg a).2.2.2.2,
 begin
   constructor,
-  refine ⟨pi univ '' pi univ g, countable_image _ _, _⟩,
+  refine ⟨pi univ '' pi univ g, countable.image _ _, _⟩,
   { suffices : countable {f : Πa, set (π a) | ∀a, f a ∈ g a}, { simpa [pi] },
     exact countable_pi (assume i, (hg i).1), },
   rw [this, pi_generate_from_eq_fintype],
@@ -194,7 +192,7 @@ have ∀s∈b, set.nonempty s,
 have ∃f:∀s∈b, α, ∀s h, f s h ∈ s, by simpa only [skolem, set.nonempty] using this,
 let ⟨f, hf⟩ := this in
 ⟨⟨(⋃s∈b, ⋃h:s∈b, {f s h}),
-  countable_bUnion hb₁ (λ _ _, countable_Union_Prop $ λ _, countable_singleton _),
+  hb₁.bUnion (λ _ _, countable_Union_Prop $ λ _, countable_singleton _),
   set.ext $ assume a,
   have a ∈ (⋃₀ b), by rw [hb₄]; exact trivial,
   let ⟨t, ht₁, ht₂⟩ := this in
@@ -218,13 +216,13 @@ let ⟨f, hf⟩ := this in
 variables {α}
 
 lemma is_open_Union_countable [second_countable_topology α]
-  {ι} (s : ι → set α) (H : ∀ i, _root_.is_open (s i)) :
+  {ι} (s : ι → set α) (H : ∀ i, is_open (s i)) :
   ∃ T : set ι, countable T ∧ (⋃ i ∈ T, s i) = ⋃ i, s i :=
 let ⟨B, cB, _, bB⟩ := is_open_generated_countable_inter α in
 begin
   let B' := {b ∈ B | ∃ i, b ⊆ s i},
   choose f hf using λ b:B', b.2.2,
-  haveI : encodable B' := (countable_subset (sep_subset _ _) cB).to_encodable,
+  haveI : encodable B' := (cB.mono (sep_subset _ _)).to_encodable,
   refine ⟨_, countable_range f,
     subset.antisymm (bUnion_subset_Union _ _) (sUnion_subset _)⟩,
   rintro _ ⟨i, rfl⟩ x xs,
@@ -233,10 +231,10 @@ begin
 end
 
 lemma is_open_sUnion_countable [second_countable_topology α]
-  (S : set (set α)) (H : ∀ s ∈ S, _root_.is_open s) :
+  (S : set (set α)) (H : ∀ s ∈ S, is_open s) :
   ∃ T : set (set α), countable T ∧ T ⊆ S ∧ ⋃₀ T = ⋃₀ S :=
 let ⟨T, cT, hT⟩ := is_open_Union_countable (λ s:S, s.1) (λ s, H s.1 s.2) in
-⟨subtype.val '' T, countable_image _ cT,
+⟨subtype.val '' T, cT.image _,
   image_subset_iff.2 $ λ ⟨x, xs⟩ xt, xs,
   by rwa [sUnion_image, sUnion_eq_Union]⟩
 

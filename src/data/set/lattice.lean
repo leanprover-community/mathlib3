@@ -5,9 +5,9 @@ Authors: Jeremy Avigad, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 
 -- QUESTION: can make the first argument in ∀ x ∈ a, ... implicit?
 -/
-import logic.basic data.set.basic data.equiv.basic
-import order.complete_boolean_algebra category.basic
-import tactic.finish data.sigma.basic order.galois_connection
+import order.complete_boolean_algebra
+import data.sigma.basic
+import order.galois_connection
 
 open function tactic set auto
 
@@ -111,6 +111,12 @@ theorem subset_Inter {t : set β} {s : ι → set β} (h : ∀ i, t ⊆ s i) : t
 @le_infi (set β) _ set.lattice_set _ _ h
 
 theorem subset_Union : ∀ (s : ι → set β) (i : ι), s i ⊆ (⋃ i, s i) := le_supr
+
+-- This rather trivial consequence is convenient with `apply`,
+-- and has `i` explicit for this use case.
+theorem subset_subset_Union
+  {A : set β} {s : ι → set β} (i : ι) (h : A ⊆ s i) : A ⊆ ⋃ (i : ι), s i :=
+subset.trans h (subset_Union s i)
 
 theorem Inter_subset : ∀ (s : ι → set β) (i : ι), (⋂ i, s i) ⊆ s i := infi_le
 
@@ -734,19 +740,6 @@ instance : monad set :=
   seq        := λ(α β : Type u), set.seq,
   map        := λ(α β : Type u), set.image }
 
-instance : is_lawful_monad set :=
-{ pure_bind             := assume α β x f, by simp,
-  bind_assoc            := assume α β γ s f g, set.ext $ assume a,
-    by simp [exists_and_distrib_right.symm, -exists_and_distrib_right,
-             exists_and_distrib_left.symm, -exists_and_distrib_left, and_assoc];
-       exact exists_swap,
-  id_map                := assume α, id_map,
-  bind_pure_comp_eq_map := assume α β f s, set.ext $ by simp [set.image, eq_comm],
-  bind_map_eq_seq       := assume α β s t, by simp [seq_def] }
-
-instance : is_comm_applicative (set : Type u → Type u) :=
-⟨ assume α β s t, prod_image_seq_comm s t ⟩
-
 section monad
 variables {α' β' : Type u} {s : set α'} {f : α' → set β'} {g : set (α' → β')}
 
@@ -760,6 +753,19 @@ variables {α' β' : Type u} {s : set α'} {f : α' → set β'} {g : set (α' �
 
 end monad
 
+instance : is_lawful_monad set :=
+{ pure_bind             := assume α β x f, by simp,
+  bind_assoc            := assume α β γ s f g, set.ext $ assume a,
+    by simp [exists_and_distrib_right.symm, -exists_and_distrib_right,
+             exists_and_distrib_left.symm, -exists_and_distrib_left, and_assoc];
+       exact exists_swap,
+  id_map                := assume α, id_map,
+  bind_pure_comp_eq_map := assume α β f s, set.ext $ by simp [set.image, eq_comm],
+  bind_map_eq_seq       := assume α β s t, by simp [seq_def] }
+
+instance : is_comm_applicative (set : Type u → Type u) :=
+⟨ assume α β s t, prod_image_seq_comm s t ⟩
+
 section pi
 
 lemma pi_def {α : Type*} {π : α → Type*} (i : set α) (s : Πa, set (π a)) :
@@ -771,45 +777,6 @@ end pi
 end set
 
 /- disjoint sets -/
-
-section disjoint
-variable [semilattice_inf_bot α]
-
-/-- Two elements of a lattice are disjoint if their inf is the bottom element.
-  (This generalizes disjoint sets, viewed as members of the subset lattice.) -/
-def disjoint (a b : α) : Prop := a ⊓ b ≤ ⊥
-
-theorem disjoint.eq_bot {a b : α} (h : disjoint a b) : a ⊓ b = ⊥ :=
-eq_bot_iff.2 h
-
-theorem disjoint_iff {a b : α} : disjoint a b ↔ a ⊓ b = ⊥ :=
-eq_bot_iff.symm
-
-theorem disjoint.comm {a b : α} : disjoint a b ↔ disjoint b a :=
-by rw [disjoint, disjoint, inf_comm]
-
-theorem disjoint.symm {a b : α} : disjoint a b → disjoint b a :=
-disjoint.comm.1
-
-@[simp] theorem disjoint_bot_left {a : α} : disjoint ⊥ a := disjoint_iff.2 bot_inf_eq
-@[simp] theorem disjoint_bot_right {a : α} : disjoint a ⊥ := disjoint_iff.2 inf_bot_eq
-
-theorem disjoint.mono {a b c d : α} (h₁ : a ≤ b) (h₂ : c ≤ d) :
-  disjoint b d → disjoint a c := le_trans (inf_le_inf h₁ h₂)
-
-theorem disjoint.mono_left {a b c : α} (h : a ≤ b) : disjoint b c → disjoint a c :=
-disjoint.mono h (le_refl _)
-
-theorem disjoint.mono_right {a b c : α} (h : b ≤ c) : disjoint a c → disjoint a b :=
-disjoint.mono (le_refl _) h
-
-@[simp] lemma disjoint_self {a : α} : disjoint a a ↔ a = ⊥ :=
-by simp [disjoint]
-
-lemma disjoint.ne {a b : α} (ha : a ≠ ⊥) (hab : disjoint a b) : a ≠ b :=
-by { intro h, rw [←h, disjoint_self] at hab, exact ha hab }
-
-end disjoint
 
 namespace set
 
@@ -865,6 +832,8 @@ end set
 namespace set
 variables (t : α → set β)
 
+/-- If `t` is an indexed family of sets, then there is a natural map from `Σ i, t i` to `⋃ i, t i`
+sending `⟨i, x⟩` to `x`. -/
 def sigma_to_Union (x : Σi, t i) : (⋃i, t i) := ⟨x.2, mem_Union.2 ⟨x.1, x.2.2⟩⟩
 
 lemma surjective_sigma_to_Union : surjective (sigma_to_Union t)
@@ -885,7 +854,7 @@ lemma bijective_sigma_to_Union (h : ∀i j, i ≠ j → disjoint (t i) (t j)) :
 
 noncomputable def Union_eq_sigma_of_disjoint {t : α → set β}
   (h : ∀i j, i ≠ j → disjoint (t i) (t j)) : (⋃i, t i) ≃ (Σi, t i) :=
-(equiv.of_bijective $ bijective_sigma_to_Union t h).symm
+(equiv.of_bijective _ $ bijective_sigma_to_Union t h).symm
 
 noncomputable def bUnion_eq_sigma_of_disjoint {s : set α} {t : α → set β}
   (h : pairwise_on s (disjoint on t)) : (⋃i∈s, t i) ≃ (Σi:s, t i.val) :=

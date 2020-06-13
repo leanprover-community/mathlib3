@@ -3,8 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Jeremy Avigad
 -/
-
-import order.filter order.filter.bases
+import order.filter
+import order.filter.bases
 
 /-!
 # Basic theory of topological spaces.
@@ -23,7 +23,7 @@ partially defined functions.
 ## Implementation notes
 
 Topology in mathlib heavily uses filters (even more than in Bourbaki). See explanations in
-`docs/theories/topology.md`.
+<https://leanprover-community.github.io/theories/topology.html>.
 
 ## References
 
@@ -41,8 +41,8 @@ open_locale classical
 universes u v w
 
 /-- A topology on `α`. -/
-structure topological_space (α : Type u) :=
-(is_open       : set α → Prop)
+@[protect_proj] structure topological_space (α : Type u) :=
+(is_open        : set α → Prop)
 (is_open_univ   : is_open univ)
 (is_open_inter  : ∀s t, is_open s → is_open t → is_open (s ∩ t))
 (is_open_sUnion : ∀s, (∀t∈s, is_open t) → is_open (⋃₀ s))
@@ -546,12 +546,12 @@ calc is_closed s ↔ closure s = s : by rw [closure_eq_iff_is_closed]
 lemma closure_inter_open {s t : set α} (h : is_open s) : s ∩ closure t ⊆ closure (s ∩ t) :=
 assume a ⟨hs, ht⟩,
 have s ∈ 𝓝 a, from mem_nhds_sets h hs,
-have 𝓝 a ⊓ principal s = 𝓝 a, from inf_of_le_left $ by rwa le_principal_iff,
+have 𝓝 a ⊓ principal s = 𝓝 a, by rwa [inf_eq_left, le_principal_iff],
 have 𝓝 a ⊓ principal (s ∩ t) ≠ ⊥,
   from calc 𝓝 a ⊓ principal (s ∩ t) = 𝓝 a ⊓ (principal s ⊓ principal t) : by rw inf_principal
     ... = 𝓝 a ⊓ principal t : by rw [←inf_assoc, this]
     ... ≠ ⊥ : by rw [closure_eq_nhds] at ht; assumption,
-by rw [closure_eq_nhds]; assumption
+by rwa [closure_eq_nhds]
 
 lemma closure_diff {s t : set α} : closure s - closure t ⊆ closure (s - t) :=
 calc closure s \ closure t = (- closure t) ∩ closure s : by simp only [diff_eq, inter_comm]
@@ -562,17 +562,18 @@ calc closure s \ closure t = (- closure t) ∩ closure s : by simp only [diff_eq
 lemma mem_of_closed_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
   (hb : b ≠ ⊥) (hf : tendsto f b (𝓝 a)) (hs : is_closed s) (h : f ⁻¹' s ∈ b) : a ∈ s :=
 have b.map f ≤ 𝓝 a ⊓ principal s,
-  from le_trans (le_inf (le_refl _) (le_principal_iff.mpr h)) (inf_le_inf hf (le_refl _)),
+  from le_trans (le_inf (le_refl _) (le_principal_iff.mpr h)) (inf_le_inf_right _ hf),
 is_closed_iff_nhds.mp hs a $ ne_bot_of_le_ne_bot (map_ne_bot hb) this
 
 lemma mem_of_closed_of_tendsto' {f : β → α} {x : filter β} {a : α} {s : set α}
   (hf : tendsto f x (𝓝 a)) (hs : is_closed s) (h : x ⊓ principal (f ⁻¹' s) ≠ ⊥) : a ∈ s :=
 is_closed_iff_nhds.mp hs _ $ ne_bot_of_le_ne_bot (@map_ne_bot _ _ _ f h) $
   le_inf (le_trans (map_mono $ inf_le_left) hf) $
-    le_trans (map_mono $ inf_le_right_of_le $ by simp only [comap_principal, le_principal_iff]; exact subset.refl _) (@map_comap_le _ _ _ f)
+    le_trans (map_mono $ inf_le_right_of_le $
+      by simp only [comap_principal, le_principal_iff]; exact subset.refl _) (@map_comap_le _ _ _ f)
 
 lemma mem_closure_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
-  (hb : b ≠ ⊥) (hf : tendsto f b (𝓝 a)) (h : f ⁻¹' s ∈ b) : a ∈ closure s :=
+  (hb : b ≠ ⊥) (hf : tendsto f b (𝓝 a)) (h : ∀ᶠ x in b, f x ∈ s) : a ∈ closure s :=
 mem_of_closed_of_tendsto hb hf (is_closed_closure) $
   filter.mem_sets_of_superset h (preimage_mono subset_closure)
 
@@ -595,14 +596,31 @@ begin
 end
 
 section lim
-variables [nonempty α]
 
-/-- If `f` is a filter, then `lim f` is a limit of the filter, if it exists. -/
-noncomputable def lim (f : filter α) : α := epsilon $ λa, f ≤ 𝓝 a
+/-- If `f` is a filter, then `Lim f` is a limit of the filter, if it exists. -/
+noncomputable def Lim [nonempty α] (f : filter α) : α := epsilon $ λa, f ≤ 𝓝 a
 
-lemma lim_spec {f : filter α} (h : ∃a, f ≤ 𝓝 a) : f ≤ 𝓝 (lim f) := epsilon_spec h
+/-- If `f` is a filter in `β` and `g : β → α` is a function, then `lim f` is a limit of `g` at `f`,
+if it exists. -/
+noncomputable def lim [nonempty α] (f : filter β) (g : β → α) : α :=
+Lim (f.map g)
+
+/-- If a filter `f` is majorated by some `𝓝 a`, then it is majorated by `𝓝 (Lim f)`. We formulate
+this lemma with a `[nonempty α]` argument of `Lim` derived from `h` to make it useful for types
+without a `[nonempty α]` instance. Because of the built-in proof irrelevance, Lean will unify
+this instance with any other instance. -/
+lemma Lim_spec {f : filter α} (h : ∃a, f ≤ 𝓝 a) : f ≤ 𝓝 (@Lim _ _ (nonempty_of_exists h) f) :=
+epsilon_spec h
+
+/-- If `g` tends to some `𝓝 a` along `f`, then it tends to `𝓝 (lim f g)`. We formulate
+this lemma with a `[nonempty α]` argument of `lim` derived from `h` to make it useful for types
+without a `[nonempty α]` instance. Because of the built-in proof irrelevance, Lean will unify
+this instance with any other instance. -/
+lemma lim_spec {f : filter β} {g : β → α} (h : ∃ a, tendsto g f (𝓝 a)) :
+  tendsto g f (𝓝 $ @lim _ _ _ (nonempty_of_exists h) f g) :=
+Lim_spec h
+
 end lim
-
 
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 section locally_finite
@@ -663,9 +681,17 @@ def continuous (f : α → β) := ∀s, is_open s → is_open (f ⁻¹' s)
 if `f x` tends to `f x₀` when `x` tends to `x₀`. -/
 def continuous_at (f : α → β) (x : α) := tendsto f (𝓝 x) (𝓝 (f x))
 
+lemma continuous_at.tendsto {f : α → β} {x : α} (h : continuous_at f x) :
+  tendsto f (𝓝 x) (𝓝 (f x)) :=
+h
+
 lemma continuous_at.preimage_mem_nhds {f : α → β} {x : α} {t : set β} (h : continuous_at f x)
   (ht : t ∈ 𝓝 (f x)) : f ⁻¹' t ∈ 𝓝 x :=
 h ht
+
+lemma preimage_interior_subset_interior_preimage {f : α → β} {s : set β}
+  (hf : continuous f) : f⁻¹' (interior s) ⊆ interior (f⁻¹' s) :=
+interior_maximal (preimage_mono interior_subset) (hf _ is_open_interior)
 
 lemma continuous_id : continuous (id : α → α) :=
 assume s h, h
@@ -673,6 +699,9 @@ assume s h, h
 lemma continuous.comp {g : β → γ} {f : α → β} (hg : continuous g) (hf : continuous f) :
   continuous (g ∘ f) :=
 assume s h, hf _ (hg s h)
+
+lemma continuous.iterate {f : α → α} (h : continuous f) (n : ℕ) : continuous (f^[n]) :=
+nat.rec_on n continuous_id (λ n ihn, ihn.comp h)
 
 lemma continuous_at.comp {g : β → γ} {f : α → β} {x : α}
   (hg : continuous_at g (f x)) (hf : continuous_at f x) :
@@ -705,6 +734,12 @@ continuous_const.continuous_at
 
 lemma continuous_at_id {x : α} : continuous_at id x :=
 continuous_id.continuous_at
+
+lemma continuous_at.iterate {f : α → α} {x : α} (hf : continuous_at f x) (hx : f x = x) (n : ℕ) :
+  continuous_at (f^[n]) x :=
+nat.rec_on n continuous_at_id $ λ n ihn,
+show continuous_at (f^[n] ∘ f) x,
+from continuous_at.comp (hx.symm ▸ ihn) hf
 
 lemma continuous_iff_is_closed {f : α → β} :
   continuous f ↔ (∀s, is_closed s → is_closed (f ⁻¹' s)) :=

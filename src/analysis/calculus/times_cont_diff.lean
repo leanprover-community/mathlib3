@@ -3,8 +3,7 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-
-import analysis.calculus.fderiv analysis.normed_space.multilinear
+import analysis.calculus.fderiv
 
 /-!
 # Higher differentiability
@@ -139,6 +138,9 @@ open_locale classical
 
 universes u v w
 
+local attribute [instance, priority 1001]
+normed_group.to_add_comm_group normed_space.to_semimodule add_comm_group.to_add_comm_monoid
+
 open set fin
 open_locale topological_space
 
@@ -149,7 +151,6 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {s s₁ t u : set E} {f f₁ : E → F} {g : F → G} {x : E} {c : F}
 {b : E × F → G}
 
-set_option class.instance_max_depth 370
 
 /-- A formal multilinear series over a field `𝕜`, from `E` to `F`, is given by a family of
 multilinear maps from `E^n` to `F` for all `n`. -/
@@ -193,6 +194,13 @@ def unshift (q : formal_multilinear_series 𝕜 E (E →L[𝕜] F)) (z : F) :
   formal_multilinear_series 𝕜 E F
 | 0       := (continuous_multilinear_curry_fin0 𝕜 E F).symm z
 | (n + 1) := (continuous_multilinear_curry_right_equiv 𝕜 (λ (i : fin (n + 1)), E) F) (q n)
+
+/-- Convenience congruence lemma stating in a dependent setting that, if the arguments to a formal
+multilinear series are equal, then the values are also equal. -/
+lemma congr (p : formal_multilinear_series 𝕜 E F) {m n : ℕ} {v : fin m → E} {w : fin n → E}
+  (h1 : m = n) (h2 : ∀ (i : ℕ) (him : i < m) (hin : i < n), v ⟨i, him⟩ = w ⟨i, hin⟩) :
+  p m v = p n w :=
+by { cases h1, congr, ext ⟨i, hi⟩, exact h2 i hi hi }
 
 end formal_multilinear_series
 
@@ -1183,7 +1191,7 @@ lemma iterated_fderiv_within_zero_fun {n : ℕ} :
   iterated_fderiv 𝕜 n (λ x : E, (0 : F)) = 0 :=
 begin
   induction n with n IH,
-  { ext m, simp, refl },
+  { ext m, simp },
   { ext x m,
     rw [iterated_fderiv_succ_apply_left, IH],
     change (fderiv 𝕜 (λ (x : E), (0 : (E [×n]→L[𝕜] F))) x : E → (E [×n]→L[𝕜] F)) (m 0) (tail m) = _,

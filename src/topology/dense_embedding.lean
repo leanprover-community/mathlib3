@@ -159,11 +159,11 @@ variables [topological_space γ]
   continuous extension, then `g` is the unique such extension. In general,
   `g` might not be continuous or even extend `f`. -/
 def extend (di : dense_inducing i) (f : α → γ) (b : β) : γ :=
-@lim _ _ ⟨f (dense_range.inhabited di.dense b).default⟩ (map f (comap i (𝓝 b)))
+@@lim _ ⟨f (di.dense.inhabited b).default⟩ (comap i (𝓝 b)) f
 
-lemma extend_eq [t2_space γ] {b : β} {c : γ} {f : α → γ} (hf : map f (comap i (𝓝 b)) ≤ 𝓝 c) :
+lemma extend_eq [t2_space γ] {b : β} {c : γ} {f : α → γ} (hf : tendsto f (comap i (𝓝 b)) (𝓝 c)) :
   di.extend f b = c :=
-@lim_eq _ _ (id _) _ _ _ (by simp; exact comap_nhds_ne_bot di) hf
+hf.lim_eq di.comap_nhds_ne_bot
 
 lemma extend_e_eq [t2_space γ] {f : α → γ} (a : α) (hf : continuous_at f a) :
   di.extend f (i a) = f a :=
@@ -194,7 +194,7 @@ have h₂ : t ⊆ di.extend f ⁻¹' closure (f '' (i ⁻¹' t)), from
       ... ≤ map f (comap i (𝓝 b')) ⊓ map f (comap i (principal t)) :
         le_inf (map_mono $ comap_mono $ inf_le_left) (map_mono $ comap_mono $ inf_le_right)
       ... ≤ map f (comap i (𝓝 b')) ⊓ principal (f '' (i ⁻¹' t)) : by simp [le_refl]
-      ... ≤ _ : inf_le_inf ((ht₁ hb').left) (le_refl _),
+      ... ≤ _ : inf_le_inf_right _ (ht₁ hb').left,
   show di.extend f b' ∈ closure (f '' (i ⁻¹' t)),
   begin
     rw [closure_eq_nhds],

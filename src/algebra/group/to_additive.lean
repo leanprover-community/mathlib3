@@ -273,7 +273,7 @@ add_tactic_doc
 { name                     := "to_additive",
   category                 := doc_category.attr,
   decl_names               := [`to_additive.attr],
-  tags                     := ["transport"] }
+  tags                     := ["transport", "environment", "lemma derivation"] }
 
 end to_additive
 

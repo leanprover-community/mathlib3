@@ -11,8 +11,6 @@ git rev-parse --verify --quiet refs/remotes/$remote_name/$branch_name && exit 0
 
 # Exit if there are no changes relative to master
 git diff-index --quiet refs/remotes/$remote_name/master -- scripts/nolints.txt && exit 0
-# Exit if staging exists and there are no changes relative to staging
-git rev-parse --verify --quiet refs/remotes/$remote_name/staging && git diff-index --quiet refs/remotes/$remote_name/staging -- scripts/nolints.txt && exit 0
 
 pr_title='chore(scripts): update nolints.txt'
 pr_body='I am happy to remove some nolints for you!'

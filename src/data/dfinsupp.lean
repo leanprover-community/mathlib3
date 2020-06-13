@@ -13,6 +13,8 @@ For a non-dependent version see `data/finsupp.lean`.
 
 universes u u₁ u₂ v v₁ v₂ v₃ w x y l
 
+open_locale big_operators
+
 variables (ι : Type u) (β : ι → Type v)
 
 namespace dfinsupp
@@ -625,13 +627,13 @@ variables {γ : Type w}
 /-- `sum f g` is the sum of `g i (f i)` over the support of `f`. -/
 def sum [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)] [add_comm_monoid γ]
   (f : Π₀ i, β i) (g : Π i, β i → γ) : γ :=
-f.support.sum (λi, g i (f i))
+∑ i in f.support, g i (f i)
 
 /-- `prod f g` is the product of `g i (f i)` over the support of `f`. -/
 @[to_additive]
 def prod [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)] [comm_monoid γ]
   (f : Π₀ i, β i) (g : Π i, β i → γ) : γ :=
-f.support.prod (λi, g i (f i))
+∏ i in f.support, g i (f i)
 
 @[to_additive]
 lemma prod_map_range_index {β₁ : ι → Type v₁} {β₂ : ι → Type v₂}
@@ -713,18 +715,18 @@ lemma prod_add_index [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable 
   [comm_monoid γ] {f g : Π₀ i, β i}
   {h : Π i, β i → γ} (h_zero : ∀i, h i 0 = 1) (h_add : ∀i b₁ b₂, h i (b₁ + b₂) = h i b₁ * h i b₂) :
   (f + g).prod h = f.prod h * g.prod h :=
-have f_eq : (f.support ∪ g.support).prod (λi, h i (f i)) = f.prod h,
+have f_eq : ∏ i in f.support ∪ g.support, h i (f i) = f.prod h,
   from (finset.prod_subset (finset.subset_union_left _ _) $
     by simp [mem_support_iff, h_zero] {contextual := tt}).symm,
-have g_eq : (f.support ∪ g.support).prod (λi, h i (g i)) = g.prod h,
+have g_eq : ∏ i in f.support ∪ g.support, h i (g i) = g.prod h,
   from (finset.prod_subset (finset.subset_union_right _ _) $
     by simp [mem_support_iff, h_zero] {contextual := tt}).symm,
-calc (f + g).support.prod (λi, h i ((f + g) i)) =
-      (f.support ∪ g.support).prod (λi, h i ((f + g) i)) :
+calc ∏ i in (f + g).support, h i ((f + g) i) =
+      ∏ i in f.support ∪ g.support, h i ((f + g) i) :
     finset.prod_subset support_add $
       by simp [mem_support_iff, h_zero] {contextual := tt}
-  ... = (f.support ∪ g.support).prod (λi, h i (f i)) *
-      (f.support ∪ g.support).prod (λi, h i (g i)) :
+  ... = (∏ i in f.support ∪ g.support, h i (f i)) *
+      (∏ i in f.support ∪ g.support, h i (g i)) :
     by simp [h_add, finset.prod_mul_distrib]
   ... = _ : by rw [f_eq, g_eq]
 
@@ -755,7 +757,7 @@ lemma prod_finset_sum_index {γ : Type w} {α : Type x}
   [comm_monoid γ]
   {s : finset α} {g : α → Π₀ i, β i}
   {h : Π i, β i → γ} (h_zero : ∀i, h i 0 = 1) (h_add : ∀i b₁ b₂, h i (b₁ + b₂) = h i b₁ * h i b₂) :
-  s.prod (λi, (g i).prod h) = (s.sum g).prod h :=
+  ∏ i in s, (g i).prod h = (∑ i in s, g i).prod h :=
 begin
   classical,
   exact finset.induction_on s
@@ -797,7 +799,7 @@ finset.prod_bij (λp _, p.val)
 omit dec
 lemma subtype_domain_sum [Π i, add_comm_monoid (β i)]
   {s : finset γ} {h : γ → Π₀ i, β i} {p : ι → Prop} [decidable_pred p] :
-  (s.sum h).subtype_domain p = s.sum (λc, (h c).subtype_domain p) :=
+  (∑ c in s, h c).subtype_domain p = ∑ c in s, (h c).subtype_domain p :=
 eq.symm (s.sum_hom _)
 
 lemma subtype_domain_finsupp_sum {δ : γ → Type x} [decidable_eq γ]

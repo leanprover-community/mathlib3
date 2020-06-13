@@ -2,12 +2,16 @@
 Copyright (c) 2017 Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Mario Carneiro
-
-The complex numbers, modelled as R^2 in the obvious way.
 -/
 import data.real.basic
 import deprecated.field
+/-!
+# The complex numbers
 
+The complex numbers are modelled as ℝ^2 in the obvious way.
+-/
+
+/-- Complex numbers consist of two `real`s, a real part `re` and an imaginary part `im`. -/
 structure complex : Type :=
 (re : ℝ) (im : ℝ)
 
@@ -51,6 +55,7 @@ instance : has_one ℂ := ⟨(1 : ℝ)⟩
 @[simp] lemma one_im : (1 : ℂ).im = 0 := rfl
 @[simp, norm_cast] lemma of_real_one : ((1 : ℝ) : ℂ) = 1 := rfl
 
+/-- the imaginary unit -/
 def I : ℂ := ⟨0, 1⟩
 
 @[simp] lemma I_re : I.re = 0 := rfl
@@ -90,6 +95,7 @@ ext_iff.2 $ by simp
 @[simp] lemma re_add_im (z : ℂ) : (z.re : ℂ) + z.im * I = z :=
 ext_iff.2 $ by simp
 
+/-- The complex numbers are equivalent to `ℝ × ℝ` -/
 def real_prod_equiv : ℂ ≃ (ℝ × ℝ) :=
 { to_fun := λ z, ⟨z.re, z.im⟩,
   inv_fun := λ p, ⟨p.1, p.2⟩,
@@ -100,6 +106,7 @@ def real_prod_equiv : ℂ ≃ (ℝ × ℝ) :=
 theorem real_prod_equiv_symm_re (x y : ℝ) : (real_prod_equiv.symm (x, y)).re = x := rfl
 theorem real_prod_equiv_symm_im (x y : ℝ) : (real_prod_equiv.symm (x, y)).im = y := rfl
 
+/-- the complex conjugate -/
 def conj (z : ℂ) : ℂ := ⟨z.re, -z.im⟩
 
 @[simp] lemma conj_re (z : ℂ) : (conj z).re = z.re := rfl
@@ -141,7 +148,8 @@ lemma eq_conj_iff_real {z : ℂ} : conj z = z ↔ ∃ r : ℝ, z = r :=
 lemma eq_conj_iff_re {z : ℂ} : conj z = z ↔ (z.re : ℂ) = z :=
 eq_conj_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simp, λ h, ⟨_, h.symm⟩⟩
 
-def norm_sq (z : ℂ) : ℝ := z.re * z.re + z.im * z.im
+/-- the norm squared function -/
+@[pp_nodot] def norm_sq (z : ℂ) : ℝ := z.re * z.re + z.im * z.im
 
 @[simp] lemma norm_sq_of_real (r : ℝ) : norm_sq r = r * r :=
 by simp [norm_sq]
@@ -329,7 +337,8 @@ by rw [← of_real_rat_cast, of_real_re]
 @[simp, norm_cast] lemma rat_cast_im (q : ℚ) : (q : ℂ).im = 0 :=
 by rw [← of_real_rat_cast, of_real_im]
 
-noncomputable def abs (z : ℂ) : ℝ := (norm_sq z).sqrt
+/-- the complex absolute value function, defined as the square root of the norm squared. -/
+@[pp_nodot] noncomputable def abs (z : ℂ) : ℝ := (norm_sq z).sqrt
 
 local notation `abs'` := _root_.abs
 
@@ -439,9 +448,11 @@ theorem is_cau_seq_im (f : cau_seq ℂ abs) : is_cau_seq abs' (λ n, (f n).im) :
 λ ε ε0, (f.cauchy ε0).imp $ λ i H j ij,
 lt_of_le_of_lt (by simpa using abs_im_le_abs (f j - f i)) (H _ ij)
 
+/-- The real part of a complex Cauchy sequence is a real Cauchy sequence. -/
 noncomputable def cau_seq_re (f : cau_seq ℂ abs) : cau_seq ℝ abs' :=
 ⟨_, is_cau_seq_re f⟩
 
+/-- The imaginary part of a complex Cauchy sequence is a real Cauchy sequence. -/
 noncomputable def cau_seq_im (f : cau_seq ℂ abs) : cau_seq ℝ abs' :=
 ⟨_, is_cau_seq_im f⟩
 
@@ -450,6 +461,7 @@ lemma is_cau_seq_abs {f : ℕ → ℂ} (hf : is_cau_seq abs f) :
 λ ε ε0, let ⟨i, hi⟩ := hf ε ε0 in
 ⟨i, λ j hj, lt_of_le_of_lt (abs_abs_sub_le_abs_sub _ _) (hi j hj)⟩
 
+/-- the limit of a Cauchy sequence of complex numbers -/
 noncomputable def lim_aux (f : cau_seq ℂ abs) : ℂ :=
 ⟨cau_seq.lim (cau_seq_re f), cau_seq.lim (cau_seq_im f)⟩
 
@@ -487,12 +499,15 @@ lemma is_cau_seq_conj (f : cau_seq ℂ abs) : is_cau_seq abs (λ n, conj (f n)) 
 λ ε ε0, let ⟨i, hi⟩ := f.2 ε ε0 in
 ⟨i, λ j hj, by rw [← conj_sub, abs_conj]; exact hi j hj⟩
 
-noncomputable def cau_seq_conj (f : cau_seq ℂ abs) : cau_seq ℂ abs := ⟨_, is_cau_seq_conj f⟩
+/-- The complex conjugation of a complex Cauchy sequence is a Cauchy sequence. -/
+noncomputable def cau_seq_conj (f : cau_seq ℂ abs) : cau_seq ℂ abs :=
+⟨_, is_cau_seq_conj f⟩
 
 lemma lim_conj (f : cau_seq ℂ abs) : lim (cau_seq_conj f) = conj (lim f) :=
 complex.ext (by simp [cau_seq_conj, (lim_re _).symm, cau_seq_re])
   (by simp [cau_seq_conj, (lim_im _).symm, cau_seq_im, (lim_neg _).symm]; refl)
 
+/-- The absolute value of a complex Cauchy sequence is a real Cauchy sequence. -/
 noncomputable def cau_seq_abs (f : cau_seq ℂ abs) : cau_seq ℝ abs' :=
 ⟨_, is_cau_seq_abs f.2⟩
 

@@ -386,7 +386,7 @@ The resulting `rb_map ℕ ℤ` represents the ring-normalized linear form of the
 -/
 
 /-- Variables (represented by natural numbers) map to their power. -/
-@[reducible] meta def monom := rb_map ℕ ℕ
+@[reducible] meta def monom : Type := rb_map ℕ ℕ
 
 /-- Compare monomials by first comparing their keys and then their powers. -/
 @[reducible] meta def monom.lt : monom → monom → Prop :=
@@ -397,7 +397,7 @@ local attribute [instance]
 meta def monom_has_lt : has_lt monom := ⟨monom.lt⟩
 
 /-- Linear combinations of monomials are represented by mapping monomials to coefficients. -/
-@[reducible] meta def sum := rb_map monom ℤ
+@[reducible] meta def sum : Type := rb_map monom ℤ
 
 /-- `sum.scale_by_monom s m` multiplies every monomial in `s` by `m`. -/
 meta def sum.scale_by_monom (s : sum) (m : monom) : sum :=

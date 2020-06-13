@@ -86,7 +86,7 @@ have injective h,
 theorem antisymm : (α ↪ β) → (β ↪ α) → nonempty (α ≃ β)
 | ⟨e₁, h₁⟩ ⟨e₂, h₂⟩ :=
   let ⟨f, hf⟩ := schroeder_bernstein h₁ h₂ in
-  ⟨equiv.of_bijective hf⟩
+  ⟨equiv.of_bijective f hf⟩
 
 end antisymm
 

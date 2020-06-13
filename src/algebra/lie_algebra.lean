@@ -354,14 +354,14 @@ lemma endo_algebra_bracket (M : Type v) [add_comm_group M] [module R M] (f g : m
 /--
 The adjoint action of a Lie algebra on itself.
 -/
-def Ad : L →ₗ⁅R⁆ module.End R L := {
-  to_fun  := λ x, {
-    to_fun := has_bracket.bracket x,
-    add    := by { intros, apply lie_add, },
-    smul   := by { intros, apply lie_smul, } },
-  add     := by { intros, ext, simp, },
-  smul    := by { intros, ext, simp, },
-  map_lie := by {
+def Ad : L →ₗ⁅R⁆ module.End R L :=
+{ to_fun    := λ x,
+  { to_fun    := has_bracket.bracket x,
+    map_add'  := by { intros, apply lie_add, },
+    map_smul' := by { intros, apply lie_smul, } },
+  map_add'  := by { intros, ext, simp, },
+  map_smul' := by { intros, ext, simp, },
+  map_lie   := by {
     intros x y, ext z,
     rw endo_algebra_bracket,
     suffices : ⁅⁅x, y⁆, z⁆ = ⁅x, ⁅y, z⁆⁆ + ⁅⁅x, z⁆, y⁆, by simpa [sub_eq_add_neg],

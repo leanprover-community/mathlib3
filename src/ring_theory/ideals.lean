@@ -204,10 +204,10 @@ lemma mk_eq_mk_hom (I : ideal α) (x : α) : ideal.quotient.mk I x = ideal.quoti
 
 def map_mk (I J : ideal α) : ideal I.quotient :=
 { carrier := mk I '' J,
-  zero := ⟨0, J.zero_mem, rfl⟩,
-  add := by rintro _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩;
+  zero_mem' := ⟨0, J.zero_mem, rfl⟩,
+  add_mem' := by rintro _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩;
     exact ⟨x + y, J.add_mem hx hy, rfl⟩,
-  smul := by rintro ⟨c⟩ _ ⟨x, hx, rfl⟩;
+  smul_mem' := by rintro ⟨c⟩ _ ⟨x, hx, rfl⟩;
     exact ⟨c * x, J.mul_mem_left hx, rfl⟩ }
 
 @[simp] lemma mk_zero (I : ideal α) : mk I 0 = 0 := rfl
@@ -385,11 +385,12 @@ end
 
 variable (α)
 
+/-- The ideal of elements that are not units. -/
 def nonunits_ideal : ideal α :=
 { carrier := nonunits α,
-  zero := zero_mem_nonunits.2 $ zero_ne_one,
-  add := λ x y hx hy, nonunits_add hx hy,
-  smul := λ a x, mul_mem_nonunits_right }
+  zero_mem' := zero_mem_nonunits.2 $ zero_ne_one,
+  add_mem' := λ x y hx hy, nonunits_add hx hy,
+  smul_mem' := λ a x, mul_mem_nonunits_right }
 
 instance nonunits_ideal.is_maximal : (nonunits_ideal α).is_maximal :=
 begin

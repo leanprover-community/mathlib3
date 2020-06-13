@@ -505,6 +505,8 @@ finset.subtype.fintype s
 @[simp] lemma fintype.card_coe (s : finset α) :
   fintype.card (↑s : set α) = s.card := card_attach
 
+lemma finset.attach_eq_univ {s : finset α} : s.attach = finset.univ := rfl
+
 lemma finset.card_le_one_iff {s : finset α} :
   s.card ≤ 1 ↔ ∀ {x y}, x ∈ s → y ∈ s → x = y :=
 begin

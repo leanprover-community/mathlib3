@@ -201,20 +201,15 @@ lemma cardinal_mk_le_findim_of_linear_independent
   [finite_dimensional K V] {ι : Type v} {b : ι → V} (h : linear_independent K b) :
   cardinal.mk ι ≤ findim K V :=
 begin
-  have := cardinal_le_dim_of_linear_independent h,
-  rw ←findim_eq_dim K V at this,
-  exact this,
+  convert cardinal_le_dim_of_linear_independent h,
+  rw ←findim_eq_dim K V
 end
 
 -- Note here we've restrictied the universe levels of `ι` and `V` to be the same, for convenience.
 lemma fintype_card_le_findim_of_linear_independent
   [finite_dimensional K V] {ι : Type v} [fintype ι] {b : ι → V} (h : linear_independent K b) :
   fintype.card ι ≤ findim K V :=
-begin
-  have t := cardinal_mk_le_findim_of_linear_independent h,
-  rw fintype_card at t,
-  simpa using t,
-end
+by simpa [fintype_card] using cardinal_mk_le_findim_of_linear_independent h
 
 lemma finset_card_le_findim_of_linear_independent [finite_dimensional K V] {b : finset V}
   (h : linear_independent K (λ x, x : (↑b : set V) → V)) :
@@ -293,13 +288,13 @@ begin
     -- combining the two sums, and
     -- observing that after reindexing we have exactly
     -- ∑ (x : V) in t', g x • x = 0.
-    simp [f],
+    simp only [f],
     conv_lhs { apply_congr, skip, rw [ite_smul], },
     rw [finset.sum_ite],
     conv { congr, congr, apply_congr, simp [filter_eq', m], },
     conv { congr, congr, skip, apply_congr, simp [filter_ne'], },
     rw [sum_singleton, neg_smul, add_comm, ←sub_eq_add_neg, sum_smul, ←sum_sub_distrib],
-    simp [←smul_sub],
+    simp only [←smul_sub],
     -- At the end we have to reindex the sum, so we use `change` to
     -- express the summand using `shift`.
     change (∑ (x : V) in t.erase x₀, (λ e, g e • e) (shift x)) = 0,
@@ -518,3 +513,40 @@ theorem findim_range_add_findim_ker [finite_dimensional K V] (f : V →ₗ[K] V�
 by { rw [← f.quot_ker_equiv_range.findim_eq], exact submodule.findim_quotient_add_findim _ }
 
 end linear_map
+
+section zero_dim
+
+open vector_space finite_dimensional
+
+lemma finite_dimensional_of_dim_eq_zero (h : vector_space.dim K V = 0) : finite_dimensional K V :=
+by rw [finite_dimensional_iff_dim_lt_omega, h]; exact cardinal.omega_pos
+
+lemma findim_eq_zero_of_dim_eq_zero [finite_dimensional K V] (h : vector_space.dim K V = 0) :
+  findim K V = 0 :=
+begin
+  convert findim_eq_dim K V,
+  rw h, norm_cast
+end
+
+variables (K V)
+
+lemma finite_dimensional_bot : finite_dimensional K (⊥ : submodule K V) :=
+finite_dimensional_of_dim_eq_zero $ by simp
+
+lemma findim_bot : findim K (⊥ : submodule K V) = 0 :=
+begin
+  haveI := finite_dimensional_bot K V,
+  convert findim_eq_dim K (⊥ : submodule K V),
+  rw dim_bot, norm_cast
+end
+
+variables {K V}
+
+lemma bot_eq_top_of_dim_eq_zero (h : vector_space.dim K V = 0) : (⊥ : submodule K V) = ⊤ :=
+begin
+  haveI := finite_dimensional_of_dim_eq_zero h,
+  apply eq_top_of_findim_eq,
+  rw [findim_bot, findim_eq_zero_of_dim_eq_zero h]
+end
+
+end zero_dim

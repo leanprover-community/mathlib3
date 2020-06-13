@@ -152,7 +152,6 @@ attribute [ex] add_lt_add
 
 example {a b c d: nat} (h₁ : a < c) (h₂ : b < d) : max (c + d) (a + b) = (c + d) :=
 begin
-  -- suggest with ex,
   library_search with ex, -- Says: `exact max_eq_left_of_lt (add_lt_add h₁ h₂)`
 end
 

@@ -106,12 +106,12 @@ and that the list is sorted in decreasing order of the first argument.
 This is not enforced by the type but the operations here preserve it.
 -/
 @[reducible]
-def linexp := list (ℕ × ℤ)
+def linexp : Type := list (ℕ × ℤ)
 end linarith
 
 /--
 A map `ℕ → ℤ` is converted to `list (ℕ × ℤ)` in the obvious way.
-This list  is sorted in decreasing order of the first argument.
+This list is sorted in decreasing order of the first argument.
 -/
 meta def native.rb_map.to_linexp (m : rb_map ℕ ℤ) : linarith.linexp :=
 m.to_list
@@ -229,11 +229,11 @@ The represented term is `coeffs.keys.sum (λ i, coeffs.find i * Var[i])`.
 str determines the direction of the comparison -- is it < 0, ≤ 0, or = 0?
 -/
 @[derive inhabited]
-meta structure comp :=
+meta structure comp : Type :=
 (str : ineq)
 (coeffs : linexp)
 
-meta inductive comp_source
+meta inductive comp_source : Type
 | assump : ℕ → comp_source
 | add : comp_source → comp_source → comp_source
 | scale : ℕ → comp_source → comp_source

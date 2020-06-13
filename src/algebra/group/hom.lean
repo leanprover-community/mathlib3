@@ -191,9 +191,6 @@ add_decl_doc add_monoid_hom.has_zero
 
 @[simp, to_additive] lemma one_apply (x : M) : (1 : M →* N) x = 1 := rfl
 
-@[simp, to_additive]
-lemma one_apply (m : M) : (1 : M →* N) m = (1 : N) := rfl
-
 include mP
 variables [mP]
 

@@ -6,6 +6,7 @@ Authors: Kevin Kappelmann
 import algebra.continued_fractions.computation.translations
 import algebra.continued_fractions.terminated_stable
 import algebra.continued_fractions.continuants_recurrence
+import order.filter.basic
 /-!
 # Correctness of Terminating Continued Fraction Computations (`gcf.of`)
 
@@ -14,18 +15,18 @@ import algebra.continued_fractions.continuants_recurrence
 Let us write `gcf` for `generalized_continued_fraction`. We show the correctness of the
 algorithm computing continued fractions (`gcf.of`) in case of termination in the following sense:
 
-At every step `n : ℕ`, we can obtain the value `v` by adding a specific residual term to the
-convergent `(gcf.of v).convergents n`. The residual term will be zero exactly when the continued
-fraction terminated; otherwise, the residual term will be given by the fractional part stored in
-`gcf.int_fract_pair.stream v n`.
+At every step `n : ℕ`, we can obtain the value `v` by adding a specific residual term to the last
+denimonator of the fraction described by `(gcf.of v).convergents' n`. The residual term will be zero
+exactly when the continued fraction terminated; otherwise, the residual term will be given by the
+fractional part stored in `gcf.int_fract_pair.stream v n`.
 
-For an example, refer to `gcf.comp_exact_value` and for more information
-about the computation process, refer to `algebra.continued_fraction.computation.basic`.
+For an example, refer to `gcf.comp_exact_value_correctness_of_stream_eq_some` and for more
+information about the computation process, refer to `algebra.continued_fraction.computation.basic`.
 
 ## Main definitions
 
-- `gcf.comp_exact_value` returns the exact value approximated by the continued fraction `gcf.of v`
-  by adding a residual term as described in the summary.
+- `gcf.comp_exact_value` can be used to compute the exact value approximated by the continued
+  fraction `gcf.of v` by adding a residual term as described in the summary.
 
 ## Main Theorems
 
@@ -41,22 +42,18 @@ open generalized_continued_fraction as gcf
 variables {K : Type*} [discrete_linear_ordered_field K] {v : K} {n : ℕ}
 
 /--
-Given two successive continuants (at positions `n + 1` and `n`) of a continued fraction
-`generalized_continued_fraction.of v` and the fractional part at `int_fract_pair.stream n`,
-this function returns the exact value approximated by the continued fraction, that is `v`.
+Given two continants `pconts` and `conts` and a value `fr`, this function returns
+- `conts.a / conts.b` if `fr = 0`
+- `exact_conts.a / exact_conts.b` where `exact_conts = next_continuants 1 fr⁻¹ pconts conts` otherwise.
 
-For example, let `(v : ℚ) := 3.4`. We have
-- `gcf.int_fract_pair.stream v 0 = some ⟨3, 0.4⟩`, and
-- `gcf.int_fract_pair.stream v 1 = some ⟨2, 0.5⟩`.
-
-Now `(gcf.of v).convergents 1 = 3 + 1/2`, and our fractional term (the residual) at position `2` is
-`0.5`. We hence have `v = 3 + 1/(2 + 0.5) = 3 + 1/2.5 = 3.4`.
+This function can be used to compute the exact value approxmated by a continued fraction `gcf.of v`
+as described in lemma `comp_exact_value_correctness_of_stream_eq_some`.
 -/
-protected def comp_exact_value (pred_conts conts : gcf.pair K) (fr : K) : K :=
+protected def comp_exact_value (pconts conts : gcf.pair K) (fr : K) : K :=
 -- if the fractional part is zero, we exactly approximated the value by the last continuants
 if fr = 0 then conts.a / conts.b
 -- otherwise, we have to include the fractional part in a final continuants step.
-else let exact_conts := next_continuants 1 fr⁻¹ pred_conts conts in
+else let exact_conts := next_continuants 1 fr⁻¹ pconts conts in
   exact_conts.a / exact_conts.b
 
 variable [floor_ring K]
@@ -65,19 +62,25 @@ variable [floor_ring K]
 protected lemma comp_exact_value_correctness_of_stream_eq_some_aux_comp {a : K} (b c : K)
   (fract_a_ne_zero : fract a ≠ 0) :
   ((⌊a⌋ : K) * b + c) / (fract a) + b = (b * a + c) / fract a :=
-begin
-  have : ((⌊a⌋ : K) * b + c) / (fract a) + b = ((b * (fract a) + b * ⌊a⌋ + c) / fract a), by
-  { field_simp [fract_a_ne_zero], ac_refl },
-  simpa [←left_distrib] using this
-end
+by { field_simp [fract_a_ne_zero], rw [fract], ring }
 
 open generalized_continued_fraction as gcf
 
 /--
-Shows the correctness of `comp_exact_value` in case the continued fraction did not terminate.
-That is, at every step of the computation of a continued fraction `gcf.of v`, we obtain the value
-`v` if we compute the continuant at position `n` and add the residual term given by the fractional
-part stored in `int_fract_pair.stream v n`.
+Shows the correctness of `comp_exact_value` in case the continued fraction `gcf.of v` did not
+terminate at position `n`. That is, we obtain the value `v` if we pass the two successive
+(auxiliary) continuants at positions `n` and `n + 1` as well as the fractional part at
+`int_fract_pair.stream n` to `comp_exact_value`.
+
+The correctness might be seen more readily if one uses `convergents'` to evaluate the continued
+fraction. Here is an example to illustrate the idea:
+
+Let `(v : ℚ) := 3.4`. We have
+- `gcf.int_fract_pair.stream v 0 = some ⟨3, 0.4⟩`, and
+- `gcf.int_fract_pair.stream v 1 = some ⟨2, 0.5⟩`.
+Now `(gcf.of v).convergents' 1 = 3 + 1/2`, and our fractional term at position `2` is `0.5`. We hence
+have `v = 3 + 1/(2 + 0.5) = 3 + 1/2.5 = 3.4`. This computation corresponds exactly to the one using
+the recurrence equation in `comp_exact_value`.
 -/
 lemma comp_exact_value_correctness_of_stream_eq_some :
   ∀ {ifp_n : int_fract_pair K}, int_fract_pair.stream v n = some ifp_n →
@@ -109,8 +112,8 @@ begin
         int_fract_pair.succ_nth_stream_eq_some_iff.elim_left succ_nth_stream_eq,
     -- introduce some notation
     let conts := g.continuants_aux (n + 2),
-    set pred_conts := g.continuants_aux (n + 1) with pred_conts_eq,
-    set ppred_conts := g.continuants_aux n with ppred_conts_eq,
+    set pconts := g.continuants_aux (n + 1) with pconts_eq,
+    set ppconts := g.continuants_aux n with ppconts_eq,
     cases decidable.em (ifp_succ_n.fr = 0) with ifp_succ_n_fr_eq_zero ifp_succ_n_fr_ne_zero,
     -- ifp_succ_n.fr = 0
     { suffices : v = conts.a / conts.b, by
@@ -124,14 +127,14 @@ begin
       have s_nth_eq : g.s.nth n = some ⟨1, ⌊ifp_n.fr⁻¹⌋⟩, from
         gcf.nth_of_eq_some_of_nth_int_fract_pair_stream_fr_ne_zero nth_stream_eq nth_fract_ne_zero,
       rw [←ifp_n_fract_inv_eq_floor] at s_nth_eq,
-      suffices : v = gcf.comp_exact_value ppred_conts pred_conts ifp_n.fr, by
+      suffices : v = gcf.comp_exact_value ppconts pconts ifp_n.fr, by
         simpa [conts, continuants_aux, s_nth_eq,gcf.comp_exact_value, nth_fract_ne_zero] using this,
       exact (IH nth_stream_eq) },
     -- ifp_succ_n.fr ≠ 0
     { -- use the IH to show that the following equality suffices
-      suffices : gcf.comp_exact_value ppred_conts pred_conts ifp_n.fr
-               = gcf.comp_exact_value pred_conts conts ifp_succ_n.fr, by
-      { have : v = gcf.comp_exact_value ppred_conts pred_conts ifp_n.fr, from IH nth_stream_eq,
+      suffices : gcf.comp_exact_value ppconts pconts ifp_n.fr
+               = gcf.comp_exact_value pconts conts ifp_succ_n.fr, by
+      { have : v = gcf.comp_exact_value ppconts pconts ifp_n.fr, from IH nth_stream_eq,
         conv_lhs { rw this }, assumption },
       -- get the correspondence between ifp_n and ifp_succ_n
       obtain ⟨ifp_n', nth_stream_eq', ifp_n_fract_ne_zero, ⟨refl⟩⟩ :
@@ -145,9 +148,9 @@ begin
         gcf.nth_of_eq_some_of_nth_int_fract_pair_stream_fr_ne_zero nth_stream_eq ifp_n_fract_ne_zero,
       -- the claim now follows by unfolding the definitions and tedious calculations
       -- some shorthand notation
-      let ppA := ppred_conts.a, let ppB := ppred_conts.b,
-      let pA := pred_conts.a, let pB := pred_conts.b,
-      have : gcf.comp_exact_value ppred_conts pred_conts ifp_n.fr
+      let ppA := ppconts.a, let ppB := ppconts.b,
+      let pA := pconts.a, let pB := pconts.b,
+      have : gcf.comp_exact_value ppconts pconts ifp_n.fr
           = (ppA + ifp_n.fr⁻¹ * pA) / (ppB + ifp_n.fr⁻¹ * pB), by
         -- unfold comp_exact_value and the convergent computation once
         { field_simp [ifp_n_fract_ne_zero, gcf.comp_exact_value, next_continuants, next_numerator,
@@ -162,7 +165,7 @@ begin
       have : fract (1 / ifp_n.fr) ≠ 0, by simpa using ifp_succ_n_fr_ne_zero,
       -- now unfold the recurrence one step and simplify both sides to arrive at the conclusion
       field_simp [conts, gcf.comp_exact_value,
-        (gcf.continuants_aux_recurrence s_nth_eq ppred_conts_eq pred_conts_eq), next_continuants,
+        (gcf.continuants_aux_recurrence s_nth_eq ppconts_eq pconts_eq), next_continuants,
         next_numerator, next_denominator, this, tmp_calc, tmp_calc'],
       ac_refl } }
 end
@@ -198,20 +201,32 @@ begin
       (comp_exact_value_correctness_of_stream_eq_some nth_stream_eq) } }
 end
 
-/-- If `generalized_continued_fraction.of v` terminated at step `n`, then the `n`th convergent is
-exactly `v`. -/
+/-- If `gcf.of v` terminated at step `n`, then the `n`th convergent is exactly `v`. -/
 theorem of_correctness_of_terminated_at (terminated_at_n : (gcf.of v).terminated_at n) :
   v = (gcf.of v).convergents n :=
 have int_fract_pair.stream v (n + 1) = none, from
   gcf.of_terminated_at_n_iff_succ_nth_int_fract_pair_stream_eq_none.elim_left terminated_at_n,
 comp_exact_value_correctness_of_stream_eq_none this
 
-/-- If `generalized_continued_fraction.of v` terminates, then its convergent will eventually be
-exactly `v`. -/
+/-- If `gcf.of v` terminates, then there is `n : ℕ` such that the `n`th convergent is exactly `v`. -/
 lemma of_correctness_of_terminates (terminates : (gcf.of v).terminates) :
   ∃ (n : ℕ), v = (gcf.of v).convergents n :=
 exists.elim terminates
 ( assume n terminated_at_n,
   exists.intro n (of_correctness_of_terminated_at terminated_at_n) )
+
+open filter
+
+/-- If `gcf.of v` terminates, then its convergents will eventually always be `v`. -/
+lemma of_correctness_at_top_of_terminates (terminates : (gcf.of v).terminates) :
+  ∀ᶠ n in at_top, v = (gcf.of v).convergents n :=
+begin
+  rw eventually_at_top,
+  obtain ⟨n, terminated_at_n⟩ : ∃ n, (gcf.of v).terminated_at n, from terminates,
+  use n,
+  assume m m_geq_n,
+  rw (gcf.convergents_stable_of_terminated m_geq_n terminated_at_n),
+  exact of_correctness_of_terminated_at terminated_at_n
+end
 
 end generalized_continued_fraction

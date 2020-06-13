@@ -457,12 +457,18 @@ lemma mrange_top_of_surjective {N} [monoid N] (f : M →* N) (hf : function.surj
   f.mrange = (⊤ : submonoid N) :=
 mrange_top_iff_surjective.2 hf
 
+/-- The submonoid of elements `x : M` such that `f x = g x` -/
+@[to_additive "The additive submonoid of elements `x : M` such that `f x = g x`"]
+def eq_mlocus (f g : M →* N) : submonoid M :=
+{ carrier := {x | f x = g x},
+  one_mem' := by rw [set.mem_set_of_eq, f.map_one, g.map_one],
+  mul_mem' := λ x y (hx : _ = _) (hy : _ = _), by simp [*] }
+
 /-- If two monoid homomorphisms are equal on a set, then they are equal on its submonoid closure. -/
 @[to_additive]
 lemma eq_on_mclosure {f g : M →* N} {s : set M} (h : set.eq_on f g s) :
   set.eq_on f g (closure s) :=
-λ x hx, closure_induction hx h (f.map_one.trans g.map_one.symm) $
-λ x y hx hy, by rw [f.map_mul, g.map_mul, hx, hy]
+show closure s ≤ f.eq_mlocus g, from closure_le.2 h
 
 @[to_additive]
 lemma eq_of_eq_on_mtop {f g : M →* N} (h : set.eq_on f g (⊤ : submonoid M)) :
@@ -506,5 +512,10 @@ def of_mdense (f : M → N) (hs : closure s = ⊤) (h1 : f 1 = 1)
 Then `add_monoid_hom.of_mdense` defines an additive monoid homomorphism from `M` asking for a proof
 of `f (x + y) = f x + f y` only for `y ∈ s`. -/
 add_decl_doc add_monoid_hom.of_mdense
+
+@[simp, to_additive] lemma coe_of_mdense (f : M → N) (hs : closure s = ⊤) (h1 hmul) :
+  ⇑(of_mdense f hs h1 hmul) = f := rfl
+
+attribute [norm_cast] coe_of_mdense add_monoid_hom.coe_of_mdense
 
 end monoid_hom

@@ -194,7 +194,7 @@ version of a declaration, it can be useful to apply the attribute manually:
 attribute [to_additive foo_add_bar] foo_bar
 ```
 
-Since this will allow future uses of `to_additive` to recognize that
+This will allow future uses of `to_additive` to recognize that
 `foo_bar` should be replaced with `foo_add_bar`.
 
 ### Handling of hidden definitions

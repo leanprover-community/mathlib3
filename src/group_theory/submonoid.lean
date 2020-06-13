@@ -29,6 +29,8 @@ membership of a submonoid's underlying set.
 submonoid, submonoids
 -/
 
+open_locale big_operators
+
 variables {M : Type*} [monoid M] {s : set M}
 variables {A : Type*} [add_monoid A] {t : set A}
 
@@ -184,7 +186,7 @@ end
 is in the `add_submonoid`."]
 lemma prod_mem {M : Type*} [comm_monoid M] (S : submonoid M)
   {ι : Type*} {t : finset ι} {f : ι → M} (h : ∀c ∈ t, f c ∈ S) :
-  t.prod f ∈ S :=
+  ∏ c in t, f c ∈ S :=
 S.multiset_prod_mem (t.1.map f) $ λ x hx, let ⟨i, hi, hix⟩ := multiset.mem_map.1 hx in hix ▸ h i hi
 
 lemma pow_mem {x : M} (hx : x ∈ S) : ∀ n:ℕ, x^n ∈ S
@@ -509,6 +511,9 @@ lemma comap_infi {ι : Sort*} (f : M →* N) (s : ι → submonoid N) :
 
 @[simp, to_additive] lemma comap_top (f : M →* N) : (⊤ : submonoid N).comap f = ⊤ :=
 (gc_map_comap f).u_top
+
+@[simp, to_additive] lemma map_id (S : submonoid M) : S.map (monoid_hom.id M) = S :=
+ext (λ x, ⟨λ ⟨_, h, rfl⟩, h, λ h, ⟨_, h, rfl⟩⟩)
 
 /-- Given `submonoid`s `s`, `t` of monoids `M`, `N` respectively, `s × t` as a submonoid
 of `M × N`. -/

@@ -504,7 +504,7 @@ by apply s.cases_on; intro; simp
 | ⟨f, al⟩ := begin
   apply subtype.eq; simp [map, function.comp],
   have e : (@option.rec α (λ_, option α) none some) = id,
-  { funext x, cases x; refl },
+  { ext ⟨⟩; refl },
   simp [e, stream.map_id]
 end
 
@@ -514,7 +514,7 @@ theorem map_comp (f : α → β) (g : β → γ) :
   apply subtype.eq; dsimp [map],
   rw stream.map_map,
   apply congr_arg (λ f : _ → option γ, stream.map f s),
-  funext x, cases x with x; refl
+  ext ⟨⟩; refl
 end
 
 @[simp] theorem ret_bind (a) (f : α → computation β) :

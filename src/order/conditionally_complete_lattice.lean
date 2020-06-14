@@ -2,7 +2,6 @@
 Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
-Adapted from the corresponding theory for complete lattices.
 -/
 import data.nat.enat
 
@@ -286,7 +285,7 @@ lemma csupr_le [nonempty ι] {f : ι → α} {c : α} (H : ∀x, f x ≤ c) : su
 cSup_le (range_nonempty f) (by rwa forall_range_iff)
 
 /--The indexed supremum of a function is bounded below by the value taken at one point-/
-lemma le_csupr {f : ι → α} (H : bdd_above (range f)) {c : ι} : f c ≤ supr f :=
+lemma le_csupr {f : ι → α} (H : bdd_above (range f)) (c : ι) : f c ≤ supr f :=
 le_cSup H (mem_range_self _)
 
 /--The indexed infimum of two functions are comparable if the functions are pointwise comparable-/
@@ -309,7 +308,7 @@ lemma le_cinfi [nonempty ι] {f : ι → α} {c : α} (H : ∀x, c ≤ f x) : c 
 le_cInf (range_nonempty f) (by rwa forall_range_iff)
 
 /--The indexed infimum of a function is bounded above by the value taken at one point-/
-lemma cinfi_le {f : ι → α} (H : bdd_below (range f)) {c : ι} : infi f ≤ f c :=
+lemma cinfi_le {f : ι → α} (H : bdd_below (range f)) (c : ι) : infi f ≤ f c :=
 cInf_le H (mem_range_self _)
 
 @[simp] theorem cinfi_const [hι : nonempty ι] {a : α} : (⨅ b:ι, a) = a :=
@@ -586,7 +585,8 @@ end order_dual
 
 section with_top_bot
 
-/-! ### Complete lattice structure on `with_top (with_bot α)`
+/-!
+### Complete lattice structure on `with_top (with_bot α)`
 
 If `α` is a `conditionally_complete_lattice`, then we show that `with_top α` and `with_bot α`
 also inherit the structure of conditionally complete lattices. Furthermore, we show

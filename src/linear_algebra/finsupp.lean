@@ -112,7 +112,7 @@ by haveI := classical.dec_pred (λ (x : α), x ∈ s);
 
 lemma single_mem_supported {s : set α} {a : α} (b : M) (h : a ∈ s) :
   single a b ∈ supported M R s :=
-set.subset.trans support_single_subset (set.singleton_subset_iff.2 h)
+set.subset.trans support_single_subset (finset.singleton_subset_set_iff.2 h)
 
 lemma supported_eq_span_single (s : set α) :
   supported R R s = span R ((λ i, single i 1) '' s) :=
@@ -132,8 +132,8 @@ variables (M R)
 def restrict_dom (s : set α) : (α →₀ M) →ₗ supported M R s :=
 linear_map.cod_restrict _
   { to_fun := filter (∈ s),
-    add := λ l₁ l₂, filter_add,
-    smul := λ a l, filter_smul }
+    map_add' := λ l₁ l₂, filter_add,
+    map_smul' := λ a l, filter_smul }
   (λ l, (mem_supported' _ _).2 $ λ x, filter_apply_neg (∈ s) l)
 
 variables {M R}
@@ -183,7 +183,7 @@ begin
   suffices : ((submodule.subtype _).comp (restrict_dom M R (⋃ i, s i))).range ≤ ⨆ i, supported M R (s i),
   { rwa [linear_map.range_comp, range_restrict_dom, map_top, range_subtype] at this },
   rw [range_le_iff_comap, eq_top_iff],
-  rintro l ⟨⟩, rw mem_coe,
+  rintro l ⟨⟩,
   apply finsupp.induction l, {exact zero_mem _},
   refine λ x a l hl a0, add_mem _ _,
   haveI := classical.dec_pred (λ x, ∃ i, x ∈ s i),
@@ -207,15 +207,14 @@ begin
   exact λ l, set.subset_Inter
 end
 
-section
-def supported_equiv_finsupp (s : set α) :
-  (supported M R s) ≃ₗ[R] (s →₀ M) :=
-(restrict_support_equiv s).to_linear_equiv
+def supported_equiv_finsupp (s : set α) : (supported M R s) ≃ₗ[R] (s →₀ M) :=
 begin
-  show is_linear_map R ((lsubtype_domain s : (α →₀ M) →ₗ[R] (s →₀ M)).comp
-      (submodule.subtype (supported M R s))),
+  let F : (supported M R s) ≃ (s →₀ M) := restrict_support_equiv s M,
+  refine F.to_linear_equiv _,
+  have : (F : (supported M R s) → (↥s →₀ M)) = ((lsubtype_domain s : (α →₀ M) →ₗ[R] (s →₀ M)).comp
+    (submodule.subtype (supported M R s))) := rfl,
+  rw this,
   exact linear_map.is_linear _
-end
 end
 
 def lsum (f : α → R →ₗ[R] M) : (α →₀ R) →ₗ[R] M :=
@@ -322,7 +321,7 @@ begin
     rw finsupp.total_apply,
     unfold finsupp.sum,
     apply sum_mem (span R (range v)),
-    exact λ i hi, submodule.smul _ _ (subset_span (mem_range_self i)) },
+    exact λ i hi, submodule.smul_mem _ _ (subset_span (mem_range_self i)) },
   { apply span_le.2,
     intros x hx,
     rcases hx with ⟨i, hi⟩,
@@ -393,7 +392,7 @@ begin
 end
 
 lemma total_comap_domain
- (f : α → α') (l : α' →₀ R) (hf : set.inj_on f (f ⁻¹' l.support.to_set)) :
+ (f : α → α') (l : α' →₀ R) (hf : set.inj_on f (f ⁻¹' ↑l.support)) :
  finsupp.total α M R v (finsupp.comap_domain f l hf) = (l.support.preimage hf).sum (λ i, (l (f i)) • (v i)) :=
 by rw finsupp.total_apply; refl
 
@@ -447,7 +446,7 @@ begin
   simp only [mem_supr, supr_le_iff],
   assume N hN,
   rw [finsupp.total_apply, finsupp.sum, ← submodule.mem_coe],
-  apply is_add_submonoid.finset_sum_mem,
+  apply N.sum_mem,
   assume x hx,
   apply submodule.smul_mem,
   let i : ι := g ⟨x, hx⟩,

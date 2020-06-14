@@ -3,7 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import logic.function
+import logic.function.basic
 import category_theory.natural_isomorphism
 
 universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -146,6 +146,10 @@ protected def faithful.div (F : C ⥤ E) (G : D ⥤ E) [faithful G]
       exact h_map.symm
   end }
 
+-- This follows immediately from `functor.hext` (`functor.hext h_obj @h_map`),
+-- but importing `category_theory.eq_to_hom` causes an import loop:
+-- category_theory.eq_to_hom → category_theory.opposites →
+-- category_theory.equivalence → category_theory.fully_faithful
 lemma faithful.div_comp (F : C ⥤ E) [faithful F] (G : D ⥤ E) [faithful G]
   (obj : C → D) (h_obj : ∀ X, G.obj (obj X) = F.obj X)
   (map : Π {X Y}, (X ⟶ Y) → (obj X ⟶ obj Y))

@@ -7,7 +7,8 @@ import order.zorn
 import order.copy
 import data.set.finite
 
-/-! # Theory of filters on sets
+/-! 
+# Theory of filters on sets
 
 ## Main definitions
 
@@ -1613,6 +1614,12 @@ lemma tendsto.eventually {f : α → β} {l₁ : filter α} {l₂ : filter β} {
   ∀ᶠ x in l₁, p (f x) :=
 hf h
 
+lemma eventually_eq_of_left_inv_of_right_inv {f : α → β} {g₁ g₂ : β → α} {fa : filter α}
+  {fb : filter β} (hleft : ∀ᶠ x in fa, g₁ (f x) = x) (hright : ∀ᶠ y in fb, f (g₂ y) = y)
+  (htendsto : tendsto g₂ fb fa) :
+  ∀ᶠ y in fb, g₁ y = g₂ y :=
+(htendsto.eventually hleft).mp $ hright.mono $ λ y hr hl, (congr_arg g₁ hr.symm).trans hl
+
 lemma tendsto_iff_comap {f : α → β} {l₁ : filter α} {l₂ : filter β} :
   tendsto f l₁ l₂ ↔ l₁ ≤ l₂.comap f :=
 map_le_iff_le_comap
@@ -1792,6 +1799,11 @@ begin
     ⟨prod.fst ⁻¹' t₁, ⟨t₁, ht₁, subset.refl _⟩, prod.snd ⁻¹' t₂, ⟨t₂, ht₂, subset.refl _⟩, h⟩
 end
 
+lemma eventually_prod_iff {p : α × β → Prop} {f : filter α} {g : filter β} :
+  (∀ᶠ x in f ×ᶠ g, p x) ↔ ∃ (pa : α → Prop) (ha : ∀ᶠ x in f, pa x)
+    (pb : β → Prop) (hb : ∀ᶠ y in g, pb y), ∀ {x}, pa x → ∀ {y}, pb y → p (x, y) :=
+by simpa only [set.prod_subset_iff] using @mem_prod_iff α β p f g
+
 lemma tendsto_fst {f : filter α} {g : filter β} : tendsto prod.fst (f ×ᶠ g) f :=
 tendsto_inf_left tendsto_comap
 
@@ -1814,6 +1826,14 @@ lemma eventually.prod_mk {la : filter α} {pa : α → Prop} (ha : ∀ᶠ x in l
   {lb : filter β} {pb : β → Prop} (hb : ∀ᶠ y in lb, pb y) :
   ∀ᶠ p in la ×ᶠ lb, pa (p : α × β).1 ∧ pb p.2 :=
 (ha.prod_inl lb).and (hb.prod_inr la)
+
+lemma eventually.curry {la : filter α} {lb : filter β} {p : α × β → Prop}
+  (h : ∀ᶠ x in la.prod lb, p x) :
+  ∀ᶠ x in la, ∀ᶠ y in lb, p (x, y) :=
+begin
+  rcases eventually_prod_iff.1 h with ⟨pa, ha, pb, hb, h⟩,
+  exact ha.mono (λ a ha, hb.mono $ λ b hb, h ha hb)
+end
 
 lemma prod_infi_left {f : ι → filter α} {g : filter β} (i : ι) :
   (⨅i, f i) ×ᶠ g = (⨅i, (f i) ×ᶠ g) :=

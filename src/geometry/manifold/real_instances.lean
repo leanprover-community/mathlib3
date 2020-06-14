@@ -14,10 +14,10 @@ or with boundary or with corners. As a concrete example, we construct explicitly
 boundary structure on the real interval `[x, y]`.
 
 More specifically, we introduce
-* `euclidean_space n` for a model vector space of dimension `n`.
-* `model_with_corners ℝ (euclidean_space n) (euclidean_half_space n)` for the model space used
+* `euclidean_space2 n` for a model vector space of dimension `n`.
+* `model_with_corners ℝ (euclidean_space2 n) (euclidean_half_space n)` for the model space used
 to define `n`-dimensional real manifolds with boundary
-* `model_with_corners ℝ (euclidean_space n) (euclidean_quadrant n)` for the model space used
+* `model_with_corners ℝ (euclidean_space2 n) (euclidean_quadrant n)` for the model space used
 to define `n`-dimensional real manifolds with corners
 
 ## Implementation notes
@@ -34,38 +34,38 @@ The space `ℝ^n`. Note that the name is slightly misleading, as we only need a 
 structure on `ℝ^n`, but the one we use here is the sup norm and not the euclidean one -- this is not
 a problem for the manifold applications, but should probably be refactored at some point.
 -/
-def euclidean_space (n : ℕ) : Type := (fin n → ℝ)
+def euclidean_space2 (n : ℕ) : Type := (fin n → ℝ)
 
 /--
 The half-space in `ℝ^n`, used to model manifolds with boundary. We only define it when
 `1 ≤ n`, as the definition only makes sense in this case.
 -/
 def euclidean_half_space (n : ℕ) [has_zero (fin n)] : Type :=
-{x : euclidean_space n // 0 ≤ x 0}
+{x : euclidean_space2 n // 0 ≤ x 0}
 
 /--
 The quadrant in `ℝ^n`, used to model manifolds with corners, made of all vectors with nonnegative
 coordinates.
 -/
-def euclidean_quadrant (n : ℕ) : Type := {x : euclidean_space n // ∀i:fin n, 0 ≤ x i}
+def euclidean_quadrant (n : ℕ) : Type := {x : euclidean_space2 n // ∀i:fin n, 0 ≤ x i}
 
 section
 /- Register class instances for euclidean space and half-space and quadrant -/
-local attribute [reducible] euclidean_space euclidean_half_space euclidean_quadrant
+local attribute [reducible] euclidean_space2 euclidean_half_space euclidean_quadrant
 variable {n : ℕ}
 
  -- short-circuit type class inference
-instance : vector_space ℝ (euclidean_space n) := by apply_instance
-instance : normed_group (euclidean_space n) := by apply_instance
-instance : normed_space ℝ (euclidean_space n) := by apply_instance
+instance : vector_space ℝ (euclidean_space2 n) := by apply_instance
+instance : normed_group (euclidean_space2 n) := by apply_instance
+instance : normed_space ℝ (euclidean_space2 n) := by apply_instance
 instance [has_zero (fin n)] : topological_space (euclidean_half_space n) := by apply_instance
 instance : topological_space (euclidean_quadrant n) := by apply_instance
-instance : finite_dimensional ℝ (euclidean_space n) := by apply_instance
-instance : inhabited (euclidean_space n) := ⟨0⟩
+instance : finite_dimensional ℝ (euclidean_space2 n) := by apply_instance
+instance : inhabited (euclidean_space2 n) := ⟨0⟩
 instance [has_zero (fin n)] : inhabited (euclidean_half_space n) := ⟨⟨0, by simp⟩⟩
 instance : inhabited (euclidean_quadrant n) := ⟨⟨0, λ i, by simp⟩⟩
 
-@[simp] lemma findim_euclidean_space : finite_dimensional.findim ℝ (euclidean_space n) = n :=
+@[simp] lemma findim_euclidean_space : finite_dimensional.findim ℝ (euclidean_space2 n) = n :=
 by simp
 
 lemma range_half_space (n : ℕ) [has_zero (fin n)] :
@@ -79,11 +79,11 @@ by simp
 end
 
 /--
-Definition of the model with corners `(euclidean_space n, euclidean_half_space n)`, used as a
+Definition of the model with corners `(euclidean_space2 n, euclidean_half_space n)`, used as a
 model for manifolds with boundary.
 -/
 def model_with_corners_euclidean_half_space (n : ℕ) [has_zero (fin n)] :
-  model_with_corners ℝ (euclidean_space n) (euclidean_half_space n) :=
+  model_with_corners ℝ (euclidean_space2 n) (euclidean_half_space n) :=
 { to_fun      := λx, x.val,
   inv_fun     := λx, ⟨λi, if h : i = 0 then max (x i) 0 else x i, by simp [le_refl]⟩,
   source      := univ,
@@ -108,10 +108,10 @@ def model_with_corners_euclidean_half_space (n : ℕ) [has_zero (fin n)] :
     `unique_diff_on_convex`: it suffices to check that it is convex and with nonempty interior. -/
     rw range_half_space,
     apply unique_diff_on_convex,
-    show convex {y : euclidean_space n | 0 ≤ y 0},
+    show convex {y : euclidean_space2 n | 0 ≤ y 0},
     { assume x y hx hy a b ha hb hab,
-      simpa using add_le_add (mul_nonneg' ha hx) (mul_nonneg' hb hy) },
-    show (interior {y : euclidean_space n | 0 ≤ y 0}).nonempty,
+      simpa using add_le_add (mul_nonneg ha hx) (mul_nonneg hb hy) },
+    show (interior {y : euclidean_space2 n | 0 ≤ y 0}).nonempty,
     { use (λi, 1),
       rw mem_interior,
       refine ⟨(pi (univ : set (fin n)) (λi, (Ioi 0 : set ℝ))), _,
@@ -137,10 +137,10 @@ def model_with_corners_euclidean_half_space (n : ℕ) [has_zero (fin n)] :
   end }
 
 /--
-Definition of the model with corners `(euclidean_space n, euclidean_quadrant n)`, used as a
+Definition of the model with corners `(euclidean_space2 n, euclidean_quadrant n)`, used as a
 model for manifolds with corners -/
 def model_with_corners_euclidean_quadrant (n : ℕ) :
-  model_with_corners ℝ (euclidean_space n) (euclidean_quadrant n) :=
+  model_with_corners ℝ (euclidean_space2 n) (euclidean_quadrant n) :=
 { to_fun      := λx, x.val,
   inv_fun     := λx, ⟨λi, max (x i) 0, λi, by simp [le_refl]⟩,
   source      := univ,
@@ -163,10 +163,10 @@ def model_with_corners_euclidean_quadrant (n : ℕ) :
     `unique_diff_on_convex`: it suffices to check that it is convex and with nonempty interior. -/
     rw range_quadrant,
     apply unique_diff_on_convex,
-    show convex {y : euclidean_space n | ∀ (i : fin n), 0 ≤ y i},
+    show convex {y : euclidean_space2 n | ∀ (i : fin n), 0 ≤ y i},
     { assume x y hx hy a b ha hb hab i,
-      simpa using add_le_add (mul_nonneg' ha (hx i)) (mul_nonneg' hb (hy i)) },
-    show (interior {y : euclidean_space n | ∀ (i : fin n), 0 ≤ y i}).nonempty,
+      simpa using add_le_add (mul_nonneg ha (hx i)) (mul_nonneg hb (hy i)) },
+    show (interior {y : euclidean_space2 n | ∀ (i : fin n), 0 ≤ y i}).nonempty,
     { use (λi, 1),
       rw mem_interior,
       refine ⟨(pi (univ : set (fin n)) (λi, (Ioi 0 : set ℝ))), _,
@@ -216,7 +216,7 @@ def Icc_left_chart (x y : ℝ) [fact (x < y)] :
   open_target := begin
     have : is_open {z : ℝ | z < y - x} := is_open_Iio,
     have : is_open {z : fin 1 → ℝ | z 0 < y - x} :=
-      (continuous_apply 0) _ this,
+      @continuous_apply (fin 1) (λ _, ℝ) _ 0 _ this,
     exact continuous_subtype_val _ this
   end,
   continuous_to_fun := begin
@@ -265,7 +265,7 @@ def Icc_right_chart (x y : ℝ) [fact (x < y)] :
   open_target := begin
     have : is_open {z : ℝ | z < y - x} := is_open_Iio,
     have : is_open {z : fin 1 → ℝ | z 0 < y - x} :=
-      (continuous_apply 0) _ this,
+      @continuous_apply (fin 1) (λ _, ℝ) _ 0 _ this,
     exact continuous_subtype_val _ this
   end,
   continuous_to_fun := begin
@@ -319,20 +319,9 @@ begin
     either the left chart or the right chart, leaving 4 possibilities that we handle successively.
     -/
     rcases he with rfl | rfl; rcases he' with rfl | rfl,
-    { -- `e = right chart`, `e' = right chart`
+    { -- `e = left chart`, `e' = left chart`
       refine ((mem_groupoid_of_pregroupoid _ _).mpr _).1,
       exact symm_trans_mem_times_cont_diff_groupoid _ _ _ },
-    { -- `e = right chart`, `e' = left chart`
-      apply M.congr_mono _ (subset_univ _),
-      assume z hz,
-      simp [-mem_range, range_half_space, model_with_corners_euclidean_half_space,
-            local_equiv.trans_source, Icc_left_chart, Icc_right_chart] at hz,
-      have A : 0 ≤ z 0 := hz.2,
-      have B : x ≤ y - z 0, by { have := hz.1.1.1, linarith },
-      ext i,
-      rw subsingleton.elim i 0,
-      simp [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B,
-        sub_right_comm y] },
     { -- `e = left chart`, `e' = right chart`
       apply M.congr_mono _ (subset_univ _),
       assume z hz,
@@ -344,7 +333,18 @@ begin
       rw subsingleton.elim i 0,
       simp [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B,
         sub_add_eq_sub_sub_swap] },
-    { -- `e = left chart`, `e' = left chart`
+    { -- `e = right chart`, `e' = left chart`
+      apply M.congr_mono _ (subset_univ _),
+      assume z hz,
+      simp [-mem_range, range_half_space, model_with_corners_euclidean_half_space,
+            local_equiv.trans_source, Icc_left_chart, Icc_right_chart] at hz,
+      have A : 0 ≤ z 0 := hz.2,
+      have B : x ≤ y - z 0, by { have := hz.1.1.1, linarith },
+      ext i,
+      rw subsingleton.elim i 0,
+      simp [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B,
+        sub_right_comm y] },
+    { -- `e = right chart`, `e' = right chart`
       refine ((mem_groupoid_of_pregroupoid _ _).mpr _).1,
       exact symm_trans_mem_times_cont_diff_groupoid _ _ _ }
   end,

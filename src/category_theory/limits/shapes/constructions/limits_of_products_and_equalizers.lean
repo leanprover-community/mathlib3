@@ -73,6 +73,8 @@ the original diagram `F`. -/
       simpa only [limit.lift_π, fan.mk_π_app, category.assoc, category.id_comp] using t,
     end }, }.
 
+local attribute [semireducible] op unop opposite
+
 /-- The morphism from cones over the original diagram `F` to cones over the walking pair diagram
 `diagram F`. -/
 @[simp] def cones_inv : F.cones ⟶ (diagram F).cones :=
@@ -80,8 +82,7 @@ the original diagram `F`. -/
   begin
     refine (fork.of_ι _ _).π,
     { exact pi.lift c.app },
-    { ext f,
-      rcases f with ⟨⟨A,B⟩,f⟩,
+    { ext ⟨⟨A,B⟩,f⟩,
       dsimp,
       simp only [limit.lift_π, limit.lift_π_assoc, fan.mk_π_app, category.assoc],
       rw ←(c.naturality f),

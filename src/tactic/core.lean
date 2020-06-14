@@ -67,6 +67,15 @@ meta def mfoldl {α : Type} {m} [monad m] (f : α → expr → m α) : α → ex
 | x e := prod.snd <$> (state_t.run (e.traverse $ λ e',
     (get >>= monad_lift ∘ flip f e' >>= put) $> e') x : m _)
 
+/-- `kreplace e old new` replaces all occurrences of the expression `old` in `e`
+with `new`. The occurrences of `old` in `e` are determined using keyed matching
+with transparency `md`; see `kabstract` for details. If `unify` is true,
+we may assign metavariables in `e` as we match subterms of `e` against `old`. -/
+meta def kreplace (e old new : expr) (md := semireducible) (unify := tt)
+  : tactic expr := do
+  e ← kabstract e old md unify,
+  pure $ e.instantiate_var new
+
 end expr
 
 namespace interaction_monad
@@ -221,7 +230,8 @@ meta def mk_user_fresh_name : tactic name :=
 do nm ← mk_fresh_name,
    return $ `user__ ++ nm.pop_prefix.sanitize_name ++ `user__
 
-/-- `has_attribute' attr_name decl_name` checks whether `decl_name` has attribute `attr_name`. -/
+/-- `has_attribute' attr_name decl_name` checks
+whether `decl_name` exists and has attribute `attr_name`. -/
 meta def has_attribute' (attr_name decl_name : name) : tactic bool :=
 succeeds (has_attribute attr_name decl_name)
 
@@ -433,8 +443,11 @@ In contrast to `generalize` it already introduces the generalized variable. -/
 meta def generalize' (e : expr) (n : name) : tactic expr :=
 (generalize e n >> intro1) <|> note n none e
 
-/-! ### Various tactics related to local definitions (local constants of the form `x : α := t`)
-We call `t` the value of `x`. -/
+/-!
+### Various tactics related to local definitions (local constants of the form `x : α := t`)
+
+We call `t` the value of `x`.
+-/
 
 /-- `local_def_value e` returns the value of the expression `e`, assuming that `e` has been defined
   locally using a `let` expression. Otherwise it fails. -/
@@ -528,6 +541,26 @@ meta def mk_app (c : instance_cache) (n : name) (l : list expr) : tactic (instan
 do d ← get_decl n,
    (c, l) ← append_typeclasses d.type.binding_body c l,
    return (c, (expr.const n [c.univ]).mk_app (c.α :: l))
+
+/-- `c.of_nat n` creates the `c.α`-valued numeral expression corresponding to `n`. -/
+protected meta def of_nat (c : instance_cache) (n : ℕ) : tactic (instance_cache × expr) :=
+if n = 0 then c.mk_app ``has_zero.zero [] else do
+  (c, ai) ← c.get ``has_add,
+  (c, oi) ← c.get ``has_one,
+  (c, one) ← c.mk_app ``has_one.one [],
+  return (c, n.binary_rec one $ λ b n e,
+    if n = 0 then one else
+    cond b
+      ((expr.const ``bit1 [c.univ]).mk_app [c.α, oi, ai, e])
+      ((expr.const ``bit0 [c.univ]).mk_app [c.α, ai, e]))
+
+/-- `c.of_int n` creates the `c.α`-valued numeral expression corresponding to `n`.
+The output is either a numeral or the negation of a numeral. -/
+protected meta def of_int (c : instance_cache) : ℤ → tactic (instance_cache × expr)
+| (n : ℕ) := c.of_nat n
+| -[1+ n] := do
+  (c, e) ← c.of_nat (n+1),
+  c.mk_app ``has_neg.neg [e]
 
 end instance_cache
 
@@ -662,7 +695,7 @@ do gs ← get_goals,
 or until it fails. Always succeeds. -/
 meta def iterate_at_most_on_all_goals : nat → tactic unit → tactic unit
 | 0        tac := trace "maximal iterations reached"
-| (succ n) tac := tactic.all_goals $ (do tac, iterate_at_most_on_all_goals n tac) <|> skip
+| (succ n) tac := tactic.all_goals' $ (do tac, iterate_at_most_on_all_goals n tac) <|> skip
 
 /-- `iterate_at_most_on_subgoals n t`: repeat the tactic `t` at most `n` times on the first
 goal and on all subgoals thus produced, or until it fails. Fails iff `t` fails on
@@ -692,7 +725,11 @@ meta def build_list_expr_for_apply : list pexpr → tactic (list expr)
   <|> return (a::tail)
 
 /--`apply_rules hs n`: apply the list of rules `hs` (given as pexpr) and `assumption` on the
-first goal and the resulting subgoals, iteratively, at most `n` times -/
+first goal and the resulting subgoals, iteratively, at most `n` times.
+
+Unlike `solve_by_elim`, `apply_rules` does not do any backtracking, and just greedily applies
+a lemma from the list until it can't.
+ -/
 meta def apply_rules (hs : list pexpr) (n : nat) : tactic unit :=
 do l ← build_list_expr_for_apply hs,
    iterate_at_most_on_subgoals n (assumption <|> apply_list_expr l)
@@ -870,24 +907,17 @@ meta def triv' : tactic unit := do c ← mk_const `trivial, exact c reducible
 
 variable {α : Type}
 
-private meta def iterate_aux (t : tactic α) : list α → tactic (list α)
-| L := (do r ← t, iterate_aux (r :: L)) <|> return L
-
-/-- Apply a tactic as many times as possible, collecting the results in a list. -/
-meta def iterate' (t : tactic α) : tactic (list α) :=
-list.reverse <$> iterate_aux t []
-
 /-- Apply a tactic as many times as possible, collecting the results in a list.
 Fail if the tactic does not succeed at least once. -/
-meta def iterate1 (t : tactic α) : tactic (α × list α) :=
+meta def iterate1 (t : tactic α) : tactic (list α) :=
 do r ← decorate_ex "iterate1 failed: tactic did not succeed" t,
-   L ← iterate' t,
-   return (r, L)
+   L ← iterate t,
+   return (r :: L)
 
 /-- Introduces one or more variables and returns the new local constants.
 Fails if `intro` cannot be applied. -/
 meta def intros1 : tactic (list expr) :=
-iterate1 intro1 >>= λ p, return (p.1 :: p.2)
+iterate1 intro1
 
 /-- Run a tactic "under binders", by running `intros` before, and `revert` afterwards. -/
 meta def under_binders {α : Type} (t : tactic α) : tactic α :=
@@ -1060,7 +1090,7 @@ target >>= instantiate_mvars >>= change
 Instantiates metavariables in all goals.
 -/
 meta def instantiate_mvars_in_goals : tactic unit :=
-all_goals $ instantiate_mvars_in_target
+all_goals' $ instantiate_mvars_in_target
 
 /-- This makes sure that the execution of the tactic does not change the tactic state.
 This can be helpful while using rewrite, apply, or expr munging.
@@ -1079,6 +1109,10 @@ meta def mk_meta_pis : expr → tactic (list expr × expr)
   (ps, r) ← mk_meta_pis (expr.instantiate_var b p),
   return ((p :: ps), r)
 | e := return ([], e)
+
+/-- Protect the declaration `n` -/
+meta def mk_protected (n : name) : tactic unit :=
+do env ← get_env, set_env (env.mk_protected n)
 
 end tactic
 
@@ -1546,7 +1580,7 @@ by tactic.use ``(42)
 See the doc string for `tactic.interactive.use` for more information.
  -/
 protected meta def use (l : list pexpr) : tactic unit :=
-focus1 $ seq (l.mmap' $ λ h, use_aux h <|> fail format!"failed to instantiate goal with {h}")
+focus1 $ seq' (l.mmap' $ λ h, use_aux h <|> fail format!"failed to instantiate goal with {h}")
               instantiate_mvars_in_target
 
 /-- `clear_aux_decl_aux l` clears all expressions in `l` that represent aux decls from the

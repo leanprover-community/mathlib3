@@ -40,14 +40,7 @@ then the identities from `E` to `E'` and from `E'`to `E` are continuous thanks t
 universes u v w x
 
 open set finite_dimensional
-open_locale classical
-
--- To get a reasonable compile time for `continuous_equiv_fun_basis`, typeclass inference needs
--- to be guided.
-local attribute [instance, priority 10000] pi.module normed_space.to_module
-  submodule.add_comm_group submodule.module
-  linear_map.finite_dimensional_range Pi.complete nondiscrete_normed_field.to_normed_field
-
+open_locale classical big_operators
 
 /-- A linear map on `ι → 𝕜` (where `ι` is a fintype) is continuous -/
 lemma linear_map.continuous_on_pi {ι : Type w} [fintype ι] {𝕜 : Type u} [normed_field 𝕜]
@@ -57,7 +50,7 @@ begin
   -- for the proof, write `f` in the standard basis, and use that each coordinate is a continuous
   -- function.
   have : (f : (ι → 𝕜) → E) =
-         (λx, finset.sum finset.univ (λi:ι, x i • (f (λj, if i = j then 1 else 0)))),
+         (λx, ∑ i : ι, x i • (f (λj, if i = j then 1 else 0))),
     by { ext x, exact f.pi_apply_eq_sum_univ x },
   rw this,
   refine continuous_finset_sum _ (λi hi, _),
@@ -77,14 +70,14 @@ variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
 /-- In finite dimension over a complete field, the canonical identification (in terms of a basis)
 with `𝕜^n` together with its sup norm is continuous. This is the nontrivial part in the fact that
 all norms are equivalent in finite dimension.
-Do not use this statement as its formulation is awkward (in terms of the dimension `n`, as the proof
-is done by induction over `n`) and it is superceded by the fact that every linear map on a
-finite-dimensional space is continuous, in `linear_map.continuous_of_finite_dimensional`. -/
-lemma continuous_equiv_fun_basis {n : ℕ} {ι : Type v} [fintype ι] (ξ : ι → E)
-  (hn : fintype.card ι = n) (hξ : is_basis 𝕜 ξ) : continuous (equiv_fun_basis hξ) :=
+
+This statement is superceded by the fact that every linear map on a finite-dimensional space is
+continuous, in `linear_map.continuous_of_finite_dimensional`. -/
+lemma continuous_equiv_fun_basis {ι : Type v} [fintype ι] (ξ : ι → E) (hξ : is_basis 𝕜 ξ) :
+  continuous (equiv_fun_basis hξ) :=
 begin
   unfreezeI,
-  induction n with n IH generalizing ι E,
+  induction hn : fintype.card ι with n IH generalizing ι E,
   { apply linear_map.continuous_of_bound _ 0 (λx, _),
     have : equiv_fun_basis hξ x = 0,
       by { ext i, exact (fintype.card_eq_zero_iff.1 hn i).elim },
@@ -101,7 +94,7 @@ begin
       have U : uniform_embedding (equiv_fun_basis b_basis).symm.to_equiv,
       { have : fintype.card b = n,
           by { rw ← s_dim, exact (findim_eq_card_basis b_basis).symm },
-        have : continuous (equiv_fun_basis b_basis) := IH (subtype.val : b → s) this b_basis,
+        have : continuous (equiv_fun_basis b_basis) := IH (subtype.val : b → s) b_basis this,
         exact (equiv_fun_basis b_basis).symm.uniform_embedding (linear_map.continuous_on_pi _) this },
       have : is_complete (s : set E),
         from complete_space_coe_iff_is_complete.1 ((complete_space_congr U).1 (by apply_instance)),
@@ -139,7 +132,7 @@ begin
       exact ⟨∥f'∥, norm_nonneg _, λx, continuous_linear_map.le_op_norm f' x⟩ },
     -- fourth step: combine the bound on each coefficient to get a global bound and the continuity
     choose C0 hC0 using this,
-    let C := finset.sum finset.univ C0,
+    let C := ∑ i, C0 i,
     have C_nonneg : 0 ≤ C := finset.sum_nonneg (λi hi, (hC0 i).1),
     have C0_le : ∀i, C0 i ≤ C :=
       λi, finset.single_le_sum (λj hj, (hC0 j).1) (finset.mem_univ _),
@@ -158,7 +151,7 @@ begin
   rcases exists_is_basis_finite 𝕜 E with ⟨b, b_basis, b_finite⟩,
   letI : fintype b := finite.fintype b_finite,
   have A : continuous (equiv_fun_basis b_basis) :=
-    continuous_equiv_fun_basis _ rfl b_basis,
+    continuous_equiv_fun_basis _ b_basis,
   have B : continuous (f.comp ((equiv_fun_basis b_basis).symm : (b → 𝕜) →ₗ[𝕜] E)) :=
     linear_map.continuous_on_pi _,
   have : continuous ((f.comp ((equiv_fun_basis b_basis).symm : (b → 𝕜) →ₗ[𝕜] E))
@@ -202,19 +195,18 @@ variables {𝕜 E}
 /-- A finite-dimensional subspace is complete. -/
 lemma submodule.complete_of_finite_dimensional (s : submodule 𝕜 E) [finite_dimensional 𝕜 s] :
   is_complete (s : set E) :=
-begin
-  haveI : complete_space s := finite_dimensional.complete 𝕜 s,
-  have : is_complete (range (subtype.val : s → E)),
-  { rw [← image_univ, is_complete_image_iff],
-    { exact complete_univ },
-    { exact isometry_subtype_val.uniform_embedding } },
-  rwa subtype.val_range at this
-end
+complete_space_coe_iff_is_complete.1 (finite_dimensional.complete 𝕜 s)
 
 /-- A finite-dimensional subspace is closed. -/
 lemma submodule.closed_of_finite_dimensional (s : submodule 𝕜 E) [finite_dimensional 𝕜 s] :
   is_closed (s : set E) :=
 is_closed_of_is_complete s.complete_of_finite_dimensional
+
+lemma continuous_linear_map.exists_right_inverse_of_surjective [finite_dimensional 𝕜 F]
+  (f : E →L[𝕜] F) (hf : f.range = ⊤) :
+  ∃ g : F →L[𝕜] E, f.comp g = continuous_linear_map.id 𝕜 F :=
+let ⟨g, hg⟩ := (f : E →ₗ[𝕜] F).exists_right_inverse_of_surjective hf in
+⟨g.to_continuous_linear_map, continuous_linear_map.ext $ linear_map.ext_iff.1 hg⟩
 
 end complete_field
 

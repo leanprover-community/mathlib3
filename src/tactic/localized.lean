@@ -49,7 +49,10 @@ meta def localized_attr : user_attribute (rb_lmap name string) unit := {
 /-- Get all commands in the given notation namespace and return them as a list of strings -/
 meta def get_localized (ns : list name) : tactic (list string) :=
 do m ← localized_attr.get_cache,
-   return (ns.bind $ λ nm, m.find nm)
+   ns.mfoldl (λ l nm, match m.find nm with
+   | [] := fail format!"locale {nm} does not exist"
+   | new_l := return $ l.append new_l
+   end) []
 
 /-- Execute all commands in the given notation namespace -/
 @[user_command] meta def open_locale_cmd (_ : parse $ tk "open_locale") : parser unit :=
@@ -130,8 +133,12 @@ add_tactic_doc
 meta def print_localized_commands (ns : list name) : tactic unit :=
 do cmds ← get_localized ns, cmds.mmap' trace
 
--- you can run `open_locale classical` to get the decidability of all propositions.
+-- you can run `open_locale classical` to get the decidability of all propositions, and downgrade
+-- the priority of decidability instances that make Lean run through all the algebraic hierarchy
+-- whenever it wants to solve a decidability question
 localized "attribute [instance, priority 9] classical.prop_decidable" in classical
+localized "attribute [instance, priority 8] eq.decidable decidable_eq_of_decidable_le" in classical
+
 
 localized "postfix `?`:9001 := optional" in parser
 localized "postfix *:9001 := lean.parser.many" in parser

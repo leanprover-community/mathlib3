@@ -135,7 +135,7 @@ begin
     -- First, we check it belongs to `t0`.
     have : y ∈ t0 := mem_Inter.2 (λk, mem_closure_of_tendsto (by simp) y_lim
     begin
-      simp only [exists_prop, set.mem_Union, filter.mem_at_top_sets, set.mem_preimage, set.preimage_Union],
+      simp only [exists_prop, set.mem_Union, filter.eventually_at_top, set.mem_preimage, set.preimage_Union],
       exact ⟨k, λ m hm, ⟨n+m, zero_add k ▸ add_le_add (zero_le n) hm, (z m).2⟩⟩
     end),
     use this,
@@ -405,7 +405,7 @@ by { rw dist_comm,
 
 lemma lipschitz_inf_dist :
   lipschitz_with 2 (λ p : α × (nonempty_compacts α), inf_dist p.1 p.2.val) :=
-@lipschitz_with.uncurry' _ _ _ _ _ _ (λ (x : α) (s : nonempty_compacts α), inf_dist x s.val) 1 1
+@lipschitz_with.uncurry _ _ _ _ _ _ (λ (x : α) (s : nonempty_compacts α), inf_dist x s.val) 1 1
   (λ s, lipschitz_inf_dist_pt s.val) lipschitz_inf_dist_set
 
 lemma uniform_continuous_inf_dist_Hausdorff_dist :

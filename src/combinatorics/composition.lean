@@ -83,7 +83,7 @@ Composition, partition
 -/
 
 open list
-open_locale classical
+open_locale classical big_operators
 
 variable {n : ℕ}
 
@@ -132,7 +132,7 @@ def blocks_fun : fin c.length → ℕ := λ i, nth_le c.blocks i.1 i.2
 lemma of_fn_blocks_fun : of_fn c.blocks_fun = c.blocks :=
 of_fn_nth_le _
 
-lemma sum_blocks_fun : finset.univ.sum c.blocks_fun = n :=
+lemma sum_blocks_fun : ∑ i, c.blocks_fun i = n :=
 by conv_rhs { rw [← c.blocks_sum, ← of_fn_blocks_fun, sum_of_fn] }
 
 @[simp] lemma one_le_blocks {i : ℕ} (h : i ∈ c.blocks) : 1 ≤ i :=
@@ -662,7 +662,7 @@ def composition_as_set_equiv (n : ℕ) : composition_as_set n ≃ finset (fin (n
     ext i,
     have : 1 + i.val ≠ n,
       by { apply ne_of_lt, have := i.2, omega },
-    simp only [fin.ext_iff, this, exists_prop, fin.val_zero, false_or, add_left_inj, add_comm,
+    simp only [fin.ext_iff, this, exists_prop, fin.val_zero, false_or, add_right_inj, add_comm,
       set.mem_to_finset, true_or, add_eq_zero_iff, or_true, one_ne_zero, set.mem_set_of_eq,
       fin.last_val, false_and],
     split,

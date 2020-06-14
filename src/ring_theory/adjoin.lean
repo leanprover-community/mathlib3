@@ -49,9 +49,9 @@ theorem adjoin_eq_span : (adjoin R s : submodule R A) = span R (monoid.closure s
 begin
   apply le_antisymm,
   { intros r hr, rcases ring.exists_list_of_mem_closure hr with ⟨L, HL, rfl⟩, clear hr,
-    induction L with hd tl ih, { rw mem_coe, exact zero_mem _ },
+    induction L with hd tl ih, { exact zero_mem _ },
     rw list.forall_mem_cons at HL,
-    rw [list.map_cons, list.sum_cons, mem_coe],
+    rw [list.map_cons, list.sum_cons],
     refine submodule.add_mem _ _ (ih HL.2),
     replace HL := HL.1, clear ih tl,
     suffices : ∃ z r (hr : r ∈ monoid.closure s), has_scalar.smul.{u v} z r = list.prod hd,
@@ -88,7 +88,7 @@ le_antisymm
     (λ p q hp hq, by rw alg_hom.map_add; exact is_add_submonoid.add_mem hp hq)
     (λ n r ih, by { rw [pow_succ', ← ring.mul_assoc, alg_hom.map_mul,
       polynomial.aeval_def _ polynomial.X, polynomial.eval₂_X],
-      exact is_submonoid.mul_mem ih (subset_adjoin $ or.inl rfl) }))
+      exact is_submonoid.mul_mem ih (subset_adjoin rfl) }))
 
 theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t) : submodule R A) =
   (adjoin R s) * (adjoin R t) :=
@@ -133,7 +133,7 @@ begin
     rw [← hq', ← set.image_id q, finsupp.mem_span_iff_total (adjoin R s)] at hr,
     rcases hr with ⟨l, hlq, rfl⟩,
     have := @finsupp.total_apply A A (adjoin R s),
-    rw [this, finsupp.sum, mem_coe],
+    rw [this, finsupp.sum],
     refine sum_mem _ _,
     intros z hz, change (l z).1 * _ ∈ _,
     have : (l z).1 ∈ (adjoin R s : submodule R A) := (l z).2,
@@ -154,12 +154,14 @@ namespace subalgebra
 variables {R : Type u} {A : Type v}
 variables [comm_ring R] [comm_ring A] [algebra R A]
 
+/-- A subalgebra `S` is finitely generated if there exists `t : finset A` such that
+`algebra.adjoin R t = S`. -/
 def fg (S : subalgebra R A) : Prop :=
 ∃ t : finset A, algebra.adjoin R ↑t = S
 
 theorem fg_def {S : subalgebra R A} : S.fg ↔ ∃ t : set A, set.finite t ∧ algebra.adjoin R t = S :=
 ⟨λ ⟨t, ht⟩, ⟨↑t, set.finite_mem_finset t, ht⟩,
-λ ⟨t, ht1, ht2⟩, ⟨ht1.to_finset, by rwa finset.coe_to_finset⟩⟩
+λ ⟨t, ht1, ht2⟩, ⟨ht1.to_finset, by rwa set.finite.coe_to_finset⟩⟩
 
 theorem fg_bot : (⊥ : subalgebra R A).fg :=
 ⟨∅, algebra.adjoin_empty R A⟩

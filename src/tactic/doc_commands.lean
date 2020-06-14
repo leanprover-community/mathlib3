@@ -40,8 +40,8 @@ nspace <.> ("_" ++ to_string id.hash)
 
 open tactic
 
-/-- 
-`copy_doc_string fr to` copies the docstring from the declaration named `fr` 
+/--
+`copy_doc_string fr to` copies the docstring from the declaration named `fr`
 to each declaration named in the list `to`. -/
 meta def tactic.copy_doc_string (fr : name) (to : list name) : tactic unit :=
 do fr_ds ← doc_string fr,
@@ -87,10 +87,6 @@ meta def tactic.add_library_note (note_name note : string) : tactic unit :=
 do let decl_name := note_name.mk_hashed_name `library_note,
    add_decl $ mk_reflected_definition decl_name (note_name, note),
    library_note_attr.set decl_name () tt none
-
-/-- `tactic.eval_pexpr e α` evaluates the pre-expression `e` to a VM object of type `α`. -/
-meta def tactic.eval_pexpr (α) [reflected α] (e : pexpr) : tactic α :=
-to_expr ``(%%e : %%(reflect α)) ff ff >>= eval_expr α
 
 open tactic
 
@@ -368,7 +364,7 @@ add_tactic_doc
 `conv {...}` allows the user to perform targeted rewriting on a goal or hypothesis,
 by focusing on particular subexpressions.
 
-See <https://leanprover-community.github.io/mathlib_docs/conv.html> for more details.
+See <https://leanprover-community.github.io/extras/conv.html> for more details.
 
 Inside `conv` blocks, mathlib currently additionally provides
 * `erw`,
@@ -427,6 +423,33 @@ add_tactic_doc
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.simp],
   tags := ["core", "simplification"] }
+
+/--
+Accepts terms with the type `component tactic_state string` or `html empty` and
+renders them interactively.
+Requires a compatible version of the vscode extension to view the resulting widget.
+
+### Example:
+
+```lean
+/-- A simple counter that can be incremented or decremented with some buttons. -/
+meta def counter_widget {π α : Type} : component π α :=
+component.ignore_props $ component.mk_simple int int 0 (λ _ x y, (x + y, none)) (λ _ s,
+  h "div" [] [
+    button "+" (1 : int),
+    html.of_string $ to_string $ s,
+    button "-" (-1)
+  ]
+)
+
+#html counter_widget
+```
+-/
+add_tactic_doc
+{ name := "#html",
+  category := doc_category.cmd,
+  decl_names := [`show_widget_cmd],
+  tags := ["core", "widgets"] }
 
 /--
 The `add_decl_doc` command is used to add a doc string to an existing declaration.

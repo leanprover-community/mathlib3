@@ -190,7 +190,7 @@ begin
   simp only [nat.pow_two] at hk,
   apply constant_descent_vieta_jumping a b hk (λ x, k * x) (λ x, x*x - k) (λ x y, false);
   clear hk a b,
-  { -- We will now show that the fibres of the solution set are described by a quadratic equation.
+  { -- We will now show that the fibers of the solution set are described by a quadratic equation.
     intros x y, dsimp only,
     rw [← int.coe_nat_inj', ← sub_eq_zero],
     apply eq_iff_eq_cancel_right.2,
@@ -223,7 +223,7 @@ begin
         { apply mul_pos; exact_mod_cast hx }, },
       have hzx : z*z + x*x = (z * x + 1) * k,
       { rw [← sub_eq_zero, ← h_root],
-        simp, ring, },
+        ring, },
       rw hzx at hpos,
       replace hpos : z * x + 1 > 0 := pos_of_mul_pos_right hpos (int.coe_zero_le k),
       replace hpos : z * x ≥ 0 := int.le_of_lt_add_one hpos,
@@ -249,7 +249,7 @@ begin
   simp only [nat.pow_two] at hk,
   apply constant_descent_vieta_jumping a b hk (λ x, k * x) (λ x, x*x + 1) (λ x y, x ≤ 1);
   clear hk a b,
-  { -- We will now show that the fibres of the solution set are described by a quadratic equation.
+  { -- We will now show that the fibers of the solution set are described by a quadratic equation.
     intros x y, dsimp only,
     rw [← int.coe_nat_inj', ← sub_eq_zero],
     apply eq_iff_eq_cancel_right.2,

@@ -2,13 +2,17 @@
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Kenny Lau, Joey van Langen, Casper Putz
-
-Characteristic of semirings.
 -/
 
 import data.fintype.basic
 import data.nat.choose
+import data.int.modeq
 import algebra.module
+import algebra.iterate_hom
+
+/-!
+# Characteristic of semirings
+-/
 
 universes u v
 
@@ -30,6 +34,11 @@ begin
   { lift a to ℕ using (le_of_lt h) with b,
     rw [int.cast_coe_nat, char_p.cast_eq_zero_iff R p, int.coe_nat_dvd] }
 end
+
+lemma char_p.int_coe_eq_int_coe_iff (R : Type*) [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
+  (a : R) = (b : R) ↔ a ≡ b [ZMOD p] :=
+by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,
+       char_p.int_cast_eq_zero_iff R p, int.modeq.modeq_iff_dvd]
 
 theorem char_p.eq (α : Type u) [semiring α] {p q : ℕ} (c1 : char_p α p) (c2 : char_p α q) : p = q :=
 nat.dvd_antisymm
@@ -73,15 +82,32 @@ theorem add_pow_char (α : Type u) [comm_ring α] {p : ℕ} (hp : nat.prime p)
   [char_p α p] (x y : α) : (x + y)^p = x^p + y^p :=
 begin
   rw [add_pow, finset.sum_range_succ, nat.sub_self, pow_zero, nat.choose_self],
-  rw [nat.cast_one, mul_one, mul_one, add_left_inj],
+  rw [nat.cast_one, mul_one, mul_one, add_right_inj],
   transitivity,
   { refine finset.sum_eq_single 0 _ _,
     { intros b h1 h2,
-      have := nat.prime.dvd_choose (nat.pos_of_ne_zero h2) (finset.mem_range.1 h1) hp,
+      have := nat.prime.dvd_choose_self (nat.pos_of_ne_zero h2) (finset.mem_range.1 h1) hp,
       rw [← nat.div_mul_cancel this, nat.cast_mul, char_p.cast_eq_zero α p],
       simp only [mul_zero] },
     { intro H, exfalso, apply H, exact finset.mem_range.2 hp.pos } },
   rw [pow_zero, nat.sub_zero, one_mul, nat.choose_zero_right, nat.cast_one, mul_one]
+end
+
+lemma eq_iff_modeq_int (R : Type*) [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
+  (a : R) = b ↔ a ≡ b [ZMOD p] :=
+by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,
+       char_p.int_cast_eq_zero_iff R p, int.modeq.modeq_iff_dvd]
+
+lemma char_p.neg_one_ne_one (R : Type*) [ring R] (p : ℕ) [char_p R p] [fact (2 < p)] :
+  (-1 : R) ≠ (1 : R) :=
+begin
+  suffices : (2 : R) ≠ 0,
+  { symmetry, rw [ne.def, ← sub_eq_zero, sub_neg_eq_add], exact this },
+  assume h,
+  rw [show (2 : R) = (2 : ℕ), by norm_cast] at h,
+  have := (char_p.cast_eq_zero_iff R p 2).mp h,
+  have := nat.le_of_dvd dec_trivial this,
+  rw fact at *, linarith,
 end
 
 section frobenius
@@ -116,7 +142,7 @@ g.map_pow x p
 
 theorem monoid_hom.map_iterate_frobenius (n : ℕ) :
   f (frobenius R p^[n] x) = (frobenius S p^[n] (f x)) :=
-(nat.iterate₁ $ λ x, (f.map_frobenius p x).symm).symm
+function.semiconj.iterate_right (f.map_frobenius p) n x
 
 theorem ring_hom.map_iterate_frobenius (n : ℕ) :
   g (frobenius R p^[n] x) = (frobenius S p^[n] (g x)) :=
@@ -232,10 +258,10 @@ calc r = 1 * r       : by rw one_mul
 
 end prio
 
-lemma false_of_nonzero_of_char_one [nonzero_comm_ring R] [char_p R 1] : false :=
+lemma false_of_nonzero_of_char_one [semiring R] [nonzero R] [char_p R 1] : false :=
 zero_ne_one $ show (0:R) = 1, from subsingleton.elim 0 1
 
-lemma ring_char_ne_one [nonzero_semiring R] : ring_char R ≠ 1 :=
+lemma ring_char_ne_one [semiring R] [nonzero R] : ring_char R ≠ 1 :=
 by { intros h, apply @zero_ne_one R, symmetry, rw [←nat.cast_one, ring_char.spec, h], }
 
 end char_one

@@ -1,4 +1,5 @@
 import tactic.lint
+import algebra.ring
 
 def foo1 (n m : ℕ) : ℕ := n + 1
 def foo2 (n m : ℕ) : m = m := by refl
@@ -94,7 +95,7 @@ def foo_has_mul {α} [has_mul α] : has_mul α := infer_instance
 local attribute [instance, priority 1] foo_has_mul
 run_cmd do
   d ← get_decl `has_mul,
-  some s ← fails_quickly 500 d,
+  some s ← fails_quickly 100 d,
   guard $ s = "type-class inference timed out"
 local attribute [instance, priority 10000] foo_has_mul
 run_cmd do

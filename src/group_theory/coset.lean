@@ -3,7 +3,7 @@ Copyright (c) 2018 Mitchell Rowett. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mitchell Rowett, Scott Morrison
 -/
-import group_theory.subgroup
+import deprecated.subgroup
 open set function
 
 variable {α : Type*}
@@ -117,11 +117,11 @@ variables [group α] (s : set α) [is_subgroup s]
 
 @[to_additive left_add_coset_mem_left_add_coset]
 lemma left_coset_mem_left_coset {a : α} (ha : a ∈ s) : a *l s = s :=
-set.ext $ by simp [mem_left_coset_iff, mul_mem_cancel_right s (inv_mem ha)]
+set.ext $ by simp [mem_left_coset_iff, mul_mem_cancel_left s (inv_mem ha)]
 
 @[to_additive right_add_coset_mem_right_add_coset]
 lemma right_coset_mem_right_coset {a : α} (ha : a ∈ s) : s *r a = s :=
-set.ext $ assume b, by simp [mem_right_coset_iff, mul_mem_cancel_left s (inv_mem ha)]
+set.ext $ assume b, by simp [mem_right_coset_iff, mul_mem_cancel_right s (inv_mem ha)]
 
 @[to_additive normal_of_eq_add_cosets]
 theorem normal_of_eq_cosets [normal_subgroup s] (g : α) : g *l s = s *r g :=

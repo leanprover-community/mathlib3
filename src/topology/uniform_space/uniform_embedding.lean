@@ -51,7 +51,7 @@ lemma uniform_embedding_set_inclusion {s t : set α} (hst : s ⊆ t) :
 
 lemma uniform_embedding.comp {g : β → γ} (hg : uniform_embedding g)
   {f : α → β} (hf : uniform_embedding f) : uniform_embedding (g ∘ f) :=
-{ inj := function.injective_comp hg.inj hf.inj,
+{ inj := hg.inj.comp hf.inj,
   ..hg.to_uniform_inducing.comp hf.to_uniform_inducing }
 
 theorem uniform_embedding_def {f : α → β} :
@@ -378,8 +378,9 @@ begin
     rw [uniformly_extend_of_ind _ _ h_f, ← de.nhds_eq_comap],
     exact h_f.continuous.tendsto _ },
   { simp only [dense_inducing.extend, dif_neg ha],
-    exact (@lim_spec _ _ (id _) _ $ uniformly_extend_exists h_e h_dense h_f _) }
+    exact lim_spec (uniformly_extend_exists h_e h_dense h_f _) }
 end
+
 
 lemma uniform_continuous_uniformly_extend [cγ : complete_space γ] : uniform_continuous ψ :=
 assume d hd,

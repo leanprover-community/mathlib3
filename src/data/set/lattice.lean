@@ -112,6 +112,12 @@ theorem subset_Inter {t : set β} {s : ι → set β} (h : ∀ i, t ⊆ s i) : t
 
 theorem subset_Union : ∀ (s : ι → set β) (i : ι), s i ⊆ (⋃ i, s i) := le_supr
 
+-- This rather trivial consequence is convenient with `apply`,
+-- and has `i` explicit for this use case.
+theorem subset_subset_Union
+  {A : set β} {s : ι → set β} (i : ι) (h : A ⊆ s i) : A ⊆ ⋃ (i : ι), s i :=
+subset.trans h (subset_Union s i)
+
 theorem Inter_subset : ∀ (s : ι → set β) (i : ι), (⋂ i, s i) ⊆ s i := infi_le
 
 lemma Inter_subset_of_subset {s : ι → set α} {t : set α} (i : ι)
@@ -734,19 +740,6 @@ instance : monad set :=
   seq        := λ(α β : Type u), set.seq,
   map        := λ(α β : Type u), set.image }
 
-instance : is_lawful_monad set :=
-{ pure_bind             := assume α β x f, by simp,
-  bind_assoc            := assume α β γ s f g, set.ext $ assume a,
-    by simp [exists_and_distrib_right.symm, -exists_and_distrib_right,
-             exists_and_distrib_left.symm, -exists_and_distrib_left, and_assoc];
-       exact exists_swap,
-  id_map                := assume α, id_map,
-  bind_pure_comp_eq_map := assume α β f s, set.ext $ by simp [set.image, eq_comm],
-  bind_map_eq_seq       := assume α β s t, by simp [seq_def] }
-
-instance : is_comm_applicative (set : Type u → Type u) :=
-⟨ assume α β s t, prod_image_seq_comm s t ⟩
-
 section monad
 variables {α' β' : Type u} {s : set α'} {f : α' → set β'} {g : set (α' → β')}
 
@@ -759,6 +752,19 @@ variables {α' β' : Type u} {s : set α'} {f : α' → set β'} {g : set (α' �
 @[simp] lemma pure_def (a : α) : (pure a : set α) = {a} := rfl
 
 end monad
+
+instance : is_lawful_monad set :=
+{ pure_bind             := assume α β x f, by simp,
+  bind_assoc            := assume α β γ s f g, set.ext $ assume a,
+    by simp [exists_and_distrib_right.symm, -exists_and_distrib_right,
+             exists_and_distrib_left.symm, -exists_and_distrib_left, and_assoc];
+       exact exists_swap,
+  id_map                := assume α, id_map,
+  bind_pure_comp_eq_map := assume α β f s, set.ext $ by simp [set.image, eq_comm],
+  bind_map_eq_seq       := assume α β s t, by simp [seq_def] }
+
+instance : is_comm_applicative (set : Type u → Type u) :=
+⟨ assume α β s t, prod_image_seq_comm s t ⟩
 
 section pi
 
@@ -826,6 +832,8 @@ end set
 namespace set
 variables (t : α → set β)
 
+/-- If `t` is an indexed family of sets, then there is a natural map from `Σ i, t i` to `⋃ i, t i`
+sending `⟨i, x⟩` to `x`. -/
 def sigma_to_Union (x : Σi, t i) : (⋃i, t i) := ⟨x.2, mem_Union.2 ⟨x.1, x.2.2⟩⟩
 
 lemma surjective_sigma_to_Union : surjective (sigma_to_Union t)
@@ -846,7 +854,7 @@ lemma bijective_sigma_to_Union (h : ∀i j, i ≠ j → disjoint (t i) (t j)) :
 
 noncomputable def Union_eq_sigma_of_disjoint {t : α → set β}
   (h : ∀i j, i ≠ j → disjoint (t i) (t j)) : (⋃i, t i) ≃ (Σi, t i) :=
-(equiv.of_bijective $ bijective_sigma_to_Union t h).symm
+(equiv.of_bijective _ $ bijective_sigma_to_Union t h).symm
 
 noncomputable def bUnion_eq_sigma_of_disjoint {s : set α} {t : α → set β}
   (h : pairwise_on s (disjoint on t)) : (⋃i∈s, t i) ≃ (Σi:s, t i.val) :=

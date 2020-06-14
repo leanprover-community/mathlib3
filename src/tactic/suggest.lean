@@ -24,18 +24,30 @@ namespace suggest
 
 open solve_by_elim
 
-/-- compute the head symbol of an expression, but normalise `>` to `<` and `≥` to `≤` -/
+/-- Map a name (typically a head symbol) to a "canonical" definitional synonym.
+Given a name `n`, we want a name `n'` such that a sufficiently applied
+expression with head symbol `n` is always definitionally equal to an expression
+with head symbol `n'`.
+Thus, we can search through all lemmas with a result type of `n'`
+to solve a goal with head symbol `n`.
+
+For example, `>` is mapped to `<` because `a > b` is definitionally equal to `b < a`,
+and `not` is mapped to `false` because `¬ a` is definitionally equal to `p → false`
+The default is that the original argument is returned, so `<` is just mapped to `<`.
+-/
+-- TODO this is a hack; if you suspect more cases here would help, please report them
+meta def normalize_synonym : name → name
+| `gt := `has_lt.lt
+| `ge := `has_le.le
+| `not := `false
+| n   := n
+
+/-- compute the head symbol of an expression, but normalise synonyms -/
 -- We may want to tweak this further?
 meta def head_symbol : expr → name
 | (expr.pi _ _ _ t) := head_symbol t
 | (expr.app f _) := head_symbol f
-| (expr.const n _) :=
-  -- TODO this is a hack; if you suspect more cases here would help, please report them
-  match n with
-  | `gt := `has_lt.lt
-  | `ge := `has_le.le
-  | _   := n
-  end
+| (expr.const n _) := normalize_synonym n
 | _ := `_
 
 /--
@@ -58,17 +70,6 @@ def head_symbol_match.to_string : head_symbol_match → string
 | mpr  := "iff.mpr"
 | both := "iff.mp and iff.mpr"
 
-/--
-When we are determining if a given declaration is potentially relevant for the current goal,
-we compute `unfold_head_symbol` on the head symbol of the declaration, producing a list of names.
-We consider the declaration potentially relevant if the head symbol of the goal appears in this
-list.
--/
--- This is a hack.
-meta def unfold_head_symbol : name → list name
-| `false := [`not, `false]
-| n      := [n]
-
 /-- Determine if, and in which way, a given expression matches the specified head symbol. -/
 meta def match_head_symbol (hs : name) : expr → option head_symbol_match
 | (expr.pi _ _ _ t) := match_head_symbol t
@@ -81,7 +82,7 @@ meta def match_head_symbol (hs : name) : expr → option head_symbol_match
                        | _ := none
                        end
 | (expr.app f _)    := match_head_symbol f
-| (expr.const n _)  := if list.mem hs (unfold_head_symbol n) then some ex else none
+| (expr.const n _)  := if hs = normalize_synonym n then some ex else none
 | _ := if hs = `_ then some ex else none
 
 /-- A package of `declaration` metadata, including the way in which its type matches the head symbol
@@ -121,7 +122,7 @@ and there are any goals remaining.
 -- and then if `close_goals = tt`, require that `solve_by_elim { all_goals := tt }` succeeds
 -- on the remaining goals.
 meta def apply_and_solve (close_goals : bool) (opt : opt := { }) (e : expr) : tactic unit :=
-apply e >>
+opt.apply e >>
 -- Phase 1
 -- Run `solve_by_elim` on each "safe" goal separately, not worrying about failures.
 -- (We only attempt the "safe" goals in this way in Phase 1. In Phase 2 we will do
@@ -398,6 +399,11 @@ matches the goal, and then discharge any new goals using `solve_by_elim`.
 If it succeeds, it prints a trace message `exact ...` which can replace the invocation
 of `library_search`.
 
+By default `library_search` only unfolds `reducible` definitions
+when attempting to match lemmas against the goal.
+Previously, it would unfold most definitions, sometimes giving surprising answers, or slow answers.
+The old behaviour is still available via `library_search!`.
+
 You can add additional lemmas to be used along with local hypotheses
 after the application of a library lemma,
 using the same syntax as for `solve_by_elim`, e.g.
@@ -407,15 +413,18 @@ begin
   library_search [add_lt_add], -- Says: `exact max_eq_left_of_lt (add_lt_add h₁ h₂)`
 end
 ```
-You can also use `suggest with attr` to include all lemmas with the attribute `attr`.
+You can also use `library_search with attr` to include all lemmas with the attribute `attr`.
 -/
-meta def library_search (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
+meta def library_search (semireducible : parse $ optional (tk "!"))
+  (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
   (opt : opt := { }) : tactic unit :=
 do asms ← mk_assumption_set ff hs attr_names,
    tactic.library_search
-     {backtrack_all_goals := tt,
-      lemma_thunks := return asms,
-      ..opt} >>=
+     { backtrack_all_goals := tt,
+       lemma_thunks := return asms,
+       apply := λ e, tactic.apply e { md := if semireducible.is_some then
+         tactic.transparency.semireducible else tactic.transparency.reducible },
+       ..opt } >>=
    if is_trace_enabled_for `silence_library_search then
      (λ _, skip)
    else

@@ -789,7 +789,7 @@ lemma cos_inj_of_nonneg_of_le_pi {x y : ℝ} (hx₁ : 0 ≤ x) (hx₂ : x ≤ π
   (hxy : cos x = cos y) : x = y :=
 begin
   rw [← sin_pi_div_two_sub, ← sin_pi_div_two_sub] at hxy,
-  refine (sub_left_inj).1 (sin_inj_of_le_of_le_pi_div_two _ _ _ _ hxy);
+  refine (sub_right_inj).1 (sin_inj_of_le_of_le_pi_div_two _ _ _ _ hxy);
   linarith
 end
 
@@ -853,11 +853,12 @@ instance angle.is_add_group_hom : @is_add_group_hom ℝ angle _ _ (coe : ℝ →
 @[simp] lemma coe_add (x y : ℝ) : ↑(x + y : ℝ) = (↑x + ↑y : angle) := rfl
 @[simp] lemma coe_neg (x : ℝ) : ↑(-x : ℝ) = -(↑x : angle) := rfl
 @[simp] lemma coe_sub (x y : ℝ) : ↑(x - y : ℝ) = (↑x - ↑y : angle) := rfl
-@[simp] lemma coe_smul (x : ℝ) (n : ℕ) :
-  ↑(add_monoid.smul n x : ℝ) = add_monoid.smul n (↑x : angle) :=
-add_monoid_hom.map_smul ⟨coe, coe_zero, coe_add⟩ _ _
-@[simp] lemma coe_gsmul (x : ℝ) (n : ℤ) : ↑(gsmul n x : ℝ) = gsmul n (↑x : angle) :=
-add_monoid_hom.map_gsmul ⟨coe, coe_zero, coe_add⟩ _ _
+@[simp, norm_cast] lemma coe_nat_mul_eq_nsmul (x : ℝ) (n : ℕ) :
+  ↑((n : ℝ) * x) = n •ℕ (↑x : angle) :=
+by simpa using add_monoid_hom.map_nsmul ⟨coe, coe_zero, coe_add⟩ _ _
+@[simp, norm_cast] lemma coe_int_mul_eq_gsmul (x : ℝ) (n : ℤ) :
+  ↑((n : ℝ) * x : ℝ) = n •ℤ (↑x : angle) :=
+by simpa using add_monoid_hom.map_gsmul ⟨coe, coe_zero, coe_add⟩ _ _
 
 @[simp] lemma coe_two_pi : ↑(2 * π : ℝ) = (0 : angle) :=
 quotient.sound' ⟨-1, by dsimp only; rw [neg_one_gsmul, add_zero]⟩
@@ -875,11 +876,11 @@ begin
     { right,
       rw [eq_div_iff_mul_eq _ _ (@two_ne_zero ℝ _), ← sub_eq_iff_eq_add] at hn,
       rw [← hn, coe_sub, eq_neg_iff_add_eq_zero, sub_add_cancel, mul_assoc,
-          ← gsmul_eq_mul, coe_gsmul, mul_comm, coe_two_pi, gsmul_zero] },
+          coe_int_mul_eq_gsmul, mul_comm, coe_two_pi, gsmul_zero] },
     { left,
       rw [eq_div_iff_mul_eq _ _ (@two_ne_zero ℝ _), eq_sub_iff_add_eq] at hn,
       rw [← hn, coe_add, mul_assoc,
-          ← gsmul_eq_mul, coe_gsmul, mul_comm, coe_two_pi, gsmul_zero, zero_add] } },
+          coe_int_mul_eq_gsmul, mul_comm, coe_two_pi, gsmul_zero, zero_add] } },
   { rw [angle_eq_iff_two_pi_dvd_sub, ← coe_neg, angle_eq_iff_two_pi_dvd_sub],
     rintro (⟨k, H⟩ | ⟨k, H⟩),
     rw [← sub_eq_zero_iff_eq, cos_sub_cos, H, mul_assoc 2 π k, mul_div_cancel_left _ (@two_ne_zero ℝ _),
@@ -893,7 +894,7 @@ begin
   split,
   { intro Hsin, rw [← cos_pi_div_two_sub, ← cos_pi_div_two_sub] at Hsin,
     cases cos_eq_iff_eq_or_eq_neg.mp Hsin with h h,
-    { left, rw coe_sub at h, exact sub_left_inj.1 h },
+    { left, rw coe_sub at h, exact sub_right_inj.1 h },
       right, rw [coe_sub, coe_sub, eq_neg_iff_add_eq_zero, add_sub,
       sub_add_eq_add_sub, ← coe_add, add_halves, sub_sub, sub_eq_zero] at h,
     exact h.symm },
@@ -1137,7 +1138,7 @@ have h₂ : (x / sqrt (1 + x ^ 2)) ^ 2 < 1,
 by rw [arctan, cos_arcsin (le_of_lt (neg_one_lt_div_sqrt_one_add _)) (le_of_lt (div_sqrt_one_add_lt_one _)),
     one_div_eq_inv, ← sqrt_inv, sqrt_inj (sub_nonneg.2 (le_of_lt h₂)) (inv_nonneg.2 (le_of_lt h₁)),
     div_pow, pow_two (sqrt _), mul_self_sqrt (le_of_lt h₁),
-    ← domain.mul_left_inj (ne.symm (ne_of_lt h₁)), mul_sub,
+    ← domain.mul_right_inj (ne.symm (ne_of_lt h₁)), mul_sub,
     mul_div_cancel' _ (ne.symm (ne_of_lt h₁)), mul_inv_cancel (ne.symm (ne_of_lt h₁))];
   simp
 
@@ -1160,7 +1161,7 @@ lt_of_le_of_ne (neg_pi_div_two_le_arcsin _)
         (le_of_lt (div_sqrt_one_add_lt_one _)), ← arctan, ← h, sin_neg, sin_pi_div_two])
 
 lemma tan_surjective : function.surjective tan :=
-function.surjective_of_has_right_inverse ⟨_, tan_arctan⟩
+function.right_inverse.surjective tan_arctan
 
 lemma arctan_tan {x : ℝ} (hx₁ : -(π / 2) < x) (hx₂ : x < π / 2) : arctan (tan x) = x :=
 tan_inj_of_lt_of_lt_pi_div_two (neg_pi_div_two_lt_arctan _)

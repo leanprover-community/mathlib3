@@ -650,7 +650,7 @@ rfl
 end affine_map
 
 namespace affine_map
-variables (k : Type*) (V : Type*) {P : Type*} [comm_ring k] [add_comm_group V] [module k V]
+variables {k : Type*} (V : Type*) (P : Type*) [comm_ring k] [add_comm_group V] [module k V]
 variables [affine_space k V P] {ι : Type*} [fintype ι]
 
 /-- A weighted sum, as an affine map on the points involved. -/

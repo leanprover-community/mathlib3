@@ -115,7 +115,7 @@ instance is_noetherian_ring : is_noetherian_ring R :=
 begin
   rcases (principal s).principal with ⟨a, rfl⟩,
   rw [← finset.coe_singleton],
-  exact ⟨{a}, submodule.ext' rfl⟩
+  exact ⟨{a}, submodule.coe_injective rfl⟩
 end⟩
 
 section

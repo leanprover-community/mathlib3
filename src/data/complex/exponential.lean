@@ -546,7 +546,7 @@ lemma cosh_sub : cosh (x - y) = cosh x * cosh y - sinh x * sinh y :=
 by simp [sub_eq_add_neg, cosh_add, sinh_neg, cosh_neg]
 
 lemma sinh_conj : sinh (conj x) = conj (sinh x) :=
-by rw [sinh, ← conj_neg, exp_conj, exp_conj, ← conj_sub, sinh, conj_div, conj_two]
+by rw [sinh, ← conj_neg, exp_conj, exp_conj, ← conj_sub, sinh, conj_div, conj_bit0, conj_one]
 
 @[simp] lemma of_real_sinh_of_real_re (x : ℝ) : ((sinh x).re : ℂ) = sinh x :=
 eq_conj_iff_re.1 $ by rw [← sinh_conj, conj_of_real]
@@ -560,7 +560,7 @@ by rw [← of_real_sinh_of_real_re, of_real_im]
 lemma sinh_of_real_re (x : ℝ) : (sinh x).re = real.sinh x := rfl
 
 lemma cosh_conj : cosh (conj x) = conj (cosh x) :=
-by rw [cosh, ← conj_neg, exp_conj, exp_conj, ← conj_add, cosh, conj_div, conj_two]
+by rw [cosh, ← conj_neg, exp_conj, exp_conj, ← conj_add, cosh, conj_div, conj_bit0, conj_one]
 
 @[simp] lemma of_real_cosh_of_real_re (x : ℝ) : ((cosh x).re : ℂ) = cosh x :=
 eq_conj_iff_re.1 $ by rw [← cosh_conj, conj_of_real]

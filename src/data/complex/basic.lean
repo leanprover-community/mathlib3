@@ -133,7 +133,9 @@ def conj (z : ℂ) : ℂ := ⟨z.re, -z.im⟩
 @[simp] lemma conj_zero : conj 0 = 0 := ext_iff.2 $ by simp [conj]
 @[simp] lemma conj_one : conj 1 = 1 := ext_iff.2 $ by simp
 @[simp] lemma conj_I : conj I = -I := ext_iff.2 $ by simp
-@[simp] lemma conj_two : conj 2 = 2 := ext_iff.2 $ by simp
+
+@[simp] lemma conj_bit0 (z : ℂ) : conj (bit0 z) = bit0 (conj z) := ext_iff.2 $ by simp [bit0]
+@[simp] lemma conj_bit1 (z : ℂ) : conj (bit1 z) = bit1 (conj z) := ext_iff.2 $ by simp [bit0]
 
 @[simp] lemma conj_add (z w : ℂ) : conj (z + w) = conj z + conj w :=
 ext_iff.2 $ by simp [add_comm]

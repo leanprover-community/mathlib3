@@ -1,4 +1,5 @@
-import tactic.rewrite_all
+import tactic.nth_rewrite
+import tactic.rewrite_search.core.common
 
 universe u
 

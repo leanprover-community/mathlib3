@@ -1,8 +1,24 @@
-import tactic.rewrite_all
-
+import tactic.nth_rewrite
 import tactic.rewrite_search.core.data
 
 universe u
+
+namespace tactic.rewrite_search
+
+@[derive decidable_eq, derive inhabited]
+inductive side
+| L
+| R
+
+def side.other : side → side
+| side.L := side.R
+| side.R := side.L
+
+def side.to_string : side → string
+| side.L := "L"
+| side.R := "R"
+
+instance : has_to_string side := ⟨side.to_string⟩
 
 meta inductive how
 | rewrite (rule_index : ℕ) (location : ℕ) (addr : option (list side))
@@ -20,8 +36,6 @@ meta structure rewrite :=
 (e   : expr)
 (prf : tactic expr) -- we defer constructing the proofs until they are needed
 (how : how)
-
-namespace tactic.rewrite_search
 
 meta structure core_cfg :=
 (max_iterations     : ℕ := 500)

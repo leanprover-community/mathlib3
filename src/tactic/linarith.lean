@@ -930,9 +930,17 @@ do l' ← replace_nat_pfs l,
 end normalize
 
 /-- Collects all terms of the form `a ^ 2` in the expression -/
-meta def find_squares : expr_set → expr → tactic expr_set
-| s `(%%a ^ 2) := do s ← find_squares s a, return (s.insert a)
+meta def find_squares : rb_set (expr × bool) → expr → tactic (rb_set (expr × bool))
+| s `(%%a ^ 2) := do s ← find_squares s a, return (s.insert (a, tt))
+| s e@`(%%e1 * %%e2) := if e1 = e2 then do s ← find_squares s e1, return (s.insert (e1, ff)) else e.mfoldl find_squares s
 | s e := e.mfoldl find_squares s
+
+lemma mul_zero_eq {α} {R : α → α → Prop} [semiring α] {a b : α} (_ : R a 0) (h : b = 0) : a * b = 0 :=
+by simp [h]
+
+lemma zero_mul_eq {α} {R : α → α → Prop} [semiring α] {a b : α} (h : a = 0) (_ : R b 0) : a * b = 0 :=
+by simp [h]
+
 
 end linarith
 
@@ -1057,6 +1065,11 @@ add_tactic_doc
   decl_names := [`tactic.interactive.linarith],
   tags       := ["arithmetic", "decision procedure", "finishing"] }
 
+local attribute [instance, reducible]
+def bool.has_lt : has_lt bool := ⟨λ a b, a = ff ∧ b = tt⟩
+
+
+
 /--
 An extension of `linarith` with some preprocessing to allow it to solve some nonlinear arithmetic
 problems. (Based on Coq's `nlinarith` tactic.) See `linarith` for the available syntax of options,
@@ -1082,32 +1095,33 @@ meta def tactic.interactive.nlinarith (red : parse ((tk "!")?))
       t ← infer_type h,
       s ← find_squares s t,
       return (s, match t with
-        | `(%%a ≤ 0) := (ff, h) :: l
-        | `(%%a < 0) := (tt, h) :: l
+        | `(%%a ≤ 0) := (ineq.le, h) :: l
+        | `(%%a < 0) := (ineq.lt, h) :: l
+        | `(%%a = 0) := (ineq.eq, h) :: l
         | _ := l end))
-    (mk_expr_set, []) ls : tactic (expr_set × list (bool × expr))),
+    (mk_rb_set, []) ls : tactic (rb_set (expr × bool) × list (ineq × expr))),
   s ← target >>= find_squares s,
-  (hyps, ge0) ← s.fold (return (hyps, ge0)) (λ e tac, do
+  (hyps, ge0) ← s.fold (return (hyps, ge0)) (λ ⟨e, is_sq⟩ tac, do
     (hyps, ge0) ← tac,
     (do
       t ← infer_type e,
       when cfg.restrict_type.is_some
         (is_def_eq `(some %%t : option Type) cfg.restrict_type_reflect),
-      p ← mk_app ``pow_two_nonneg [e],
+      p ← mk_app (if is_sq then ``pow_two_nonneg else ``mul_self_nonneg) [e],
+      p ← infer_type p >>= rearr_comp p <|> return p,
       t ← infer_type p,
       h ← assertv `h t p,
-      return (hyps.map (λ l, pexpr.of_expr h :: l), (ff, h) :: ge0)) <|>
+      return (hyps.map (λ l, pexpr.of_expr h :: l), (ineq.le, h) :: ge0)) <|>
     return (hyps, ge0)),
   ge0.mmap' (λ ⟨posa, a⟩, ge0.mmap' $ λ ⟨posb, b⟩, do
-    p ← (
-      if posa then
-        if posb then mk_app ``mul_pos_of_neg_of_neg [a, b]
-        else do
-          a ← mk_app ``le_of_lt [a],
-          mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
-      else do
-        b ← if posb then mk_app ``le_of_lt [b] else return b,
-        mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]),
+    p ←  match posa, posb with
+      | ineq.eq, _ := mk_app ``zero_mul_eq [a, b]
+      | _, ineq.eq := mk_app ``mul_zero_eq [a, b]
+      | ineq.lt, ineq.lt := mk_app ``mul_pos_of_neg_of_neg [a, b]
+      | ineq.lt, ineq.le := do a ← mk_app ``le_of_lt [a], mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
+      | ineq.le, ineq.lt := do b ← mk_app ``le_of_lt [b], mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
+      | ineq.le, ineq.le := mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
+      end,
     t ← infer_type p,
     assertv `h t p),
   tactic.interactive.linarith red restr hyps cfg

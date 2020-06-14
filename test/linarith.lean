@@ -290,3 +290,30 @@ example (u v x y A B : ℚ)
   intros,
   linarith
  end
+
+example (A B : ℚ) : (0 < A) → (1 ≤ B) → (0 < A / 8 * B) :=
+begin
+  intros, nlinarith
+end
+
+example (x y : ℚ) : 0 ≤ x ^2 + y ^2 :=
+by nlinarith
+
+example (x y : ℚ) : 0 ≤ x*x + y*y :=
+by nlinarith
+
+example (x y : ℚ) : x = 0 → y = 0 → x*x + y*y = 0 :=
+by intros; nlinarith
+
+/- lemma norm_eq_zero_iff {x y : ℚ} : x * x + y * y = 0 ↔ x = 0 ∧ y = 0 :=
+begin
+  split,
+  { intro h, split; sorry }, -- should be solved after refactor
+  { rintro ⟨⟩, nlinarith }
+end -/
+
+-- should be solved after refactor
+/- lemma norm_nonpos_right {x y : ℚ} (h1 : x * x + y * y ≤ 0) : y = 0 :=
+by nlinarith
+lemma norm_nonpos_left (x y : ℚ) (h1 : x * x + y * y ≤ 0) : x = 0 :=
+by nlinarith -/

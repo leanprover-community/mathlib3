@@ -173,15 +173,7 @@ def lt : linexp → linexp → bool
 | [] [] := ff
 | [] _ := tt
 | _ [] := ff
-| ((n1,z1)::t1) ((n2,z2)::t2) := match cmp n1 n2 with
-  | ordering.lt := tt
-  | ordering.gt := ff
-  | ordering.eq := match cmp z1 z2 with
-    | ordering.lt := tt
-    | ordering.gt := ff
-    | ordering.eq := lt t1 t2
-    end
-  end
+| ((n1,z1)::t1) ((n2,z2)::t2) := n1 < n2 ∨ (n1 = n2 ∧ (z1 < z2 ∨ lt t1 t2))
 
 end linexp
 

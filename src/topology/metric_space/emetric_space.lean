@@ -494,12 +494,12 @@ instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π 
     end,
   to_uniform_space := Pi.uniform_space _,
   uniformity_edist := begin
-    simp only [Pi.uniformity, emetric_space.uniformity_edist, comap_infi, gt_iff_lt, preimage_set_of_eq,
-          comap_principal],
+    simp only [Pi.uniformity, emetric_space.uniformity_edist, comap_infi, gt_iff_lt,
+      preimage_set_of_eq, comap_principal],
     rw infi_comm, congr, funext ε,
     rw infi_comm, congr, funext εpos,
     change 0 < ε at εpos,
-    simp [ext_iff, εpos]
+    simp [set.ext_iff, εpos]
   end }
 
 end pi

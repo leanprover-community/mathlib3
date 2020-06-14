@@ -126,7 +126,7 @@ end
 
 lemma to_finset_insert [decidable_eq α] {a : α} {s : set α} (hs : finite s) :
   (finite_insert a hs).to_finset = insert a hs.to_finset :=
-finset.ext.mpr $ by simp
+finset.ext $ by simp
 
 @[elab_as_eliminator]
 theorem finite.induction_on {C : set α → Prop} {s : set α} (h : finite s)

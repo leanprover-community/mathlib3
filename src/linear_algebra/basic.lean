@@ -380,7 +380,7 @@ open set
 
 instance : partial_order (submodule R M) :=
 { le := λ p p', ∀ ⦃x⦄, x ∈ p → x ∈ p',
-  ..partial_order.lift (coe : submodule R M → set M) ext' (by apply_instance) }
+  ..partial_order.lift (coe : submodule R M → set M) ext' }
 
 variables {p p'}
 

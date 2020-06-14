@@ -206,7 +206,7 @@ lemma uniform_space.core_eq : ∀{u₁ u₂ : uniform_space.core α}, u₁.unifo
 
 section prio
 
-/-- Suppose that one can put on a type two mathematical data, a rich one `R` and a por one `P`, and
+/-- Suppose that one can put on a type two mathematical data, a rich one `R` and a poor one `P`, and
 that one can deduce the poor structure from the rich structure through a map `F` (called a
 forgetful functor) (think `R = metric_space` and `P = topological_space`). A possible
 implementation would be to have a type class `rich` containing a field `R`, a type class `poor`

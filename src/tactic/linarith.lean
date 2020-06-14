@@ -131,7 +131,7 @@ Index 0 is reserved for constants, i.e. `coeffs.find 0` is the coefficient of 1.
 The represented term is `coeffs.keys.sum (λ i, coeffs.find i * Var[i])`.
 str determines the direction of the comparison -- is it < 0, ≤ 0, or = 0?
 -/
-@[derive _root_.inhabited]
+@[derive inhabited]
 meta structure comp :=
 (str : ineq)
 (coeffs : rb_map ℕ int)
@@ -189,7 +189,7 @@ meta instance pcomp.to_format : has_to_format pcomp :=
 ⟨λ p, to_fmt p.c.coeffs ++ to_string p.c.str ++ "0"⟩
 
 meta instance comp.to_format : has_to_format comp :=
-⟨λ p, to_fmt p.coeffs⟩
+⟨λ p, to_fmt p.coeffs ++ to_string p.str ++ "0"⟩
 
 end datatypes
 
@@ -271,6 +271,60 @@ get_var_list >>= list.mmap' monad.elim_var
 
 end fm_elim
 
+/-!
+`linarith` computes the linear form of its input expressions,
+assuming (without justification) that the type of these expressions
+is a commutative semiring.
+
+It identifies atoms up to ring-equivalence: that is, `(y*3)*x` will be identified `3*(x*y)`,
+where the monomial `x*y` is the linear atom.
+
+* Variables are represented by natural numbers.
+* Monomials are represented by `monom := rb_map ℕ ℕ`. The monomial `1` is represented by the empty map.
+* Linear combinations of monomials are represented by `sum := rb_map monom ℤ`.
+
+All input expressions are converted to `sum`s, preserving the map from expressions to variables.
+We then discard the monomial information, mapping each distinct monomial to a natural number.
+The resulting `rb_map ℕ ℤ` represents the ring-normalized linear form of the expression.
+-/
+
+/-- Variables (represented by natural numbers) map to their power. -/
+@[reducible] meta def monom : Type := rb_map ℕ ℕ
+
+/-- Compare monomials by first comparing their keys and then their powers. -/
+@[reducible] meta def monom.lt : monom → monom → Prop :=
+λ a b, (a.keys < b.keys) || ((a.keys = b.keys) && (a.values < b.values))
+
+/-- The `has_lt` instance for `monom` is only needed locally. -/
+local attribute [instance]
+meta def monom_has_lt : has_lt monom := ⟨monom.lt⟩
+
+/-- Linear combinations of monomials are represented by mapping monomials to coefficients. -/
+@[reducible] meta def sum : Type := rb_map monom ℤ
+
+/-- `sum.scale_by_monom s m` multiplies every monomial in `s` by `m`. -/
+meta def sum.scale_by_monom (s : sum) (m : monom) : sum :=
+s.fold mk_rb_map $ λ m' coeff sm, sm.insert (m.add m') coeff
+
+/-- `sum.mul s1 s2` distributes the multiplication of two sums.` -/
+meta def sum.mul (s1 s2 : sum) : sum :=
+s1.fold mk_rb_map $ λ mn coeff sm, sm.add $ (s2.scale_by_monom mn).scale coeff
+
+/-- `sum_of_monom m` lifts `m` to a sum with coefficient `1`. -/
+meta def sum_of_monom (m : monom) : sum :=
+mk_rb_map.insert m 1
+
+/-- The unit monomial `one` is represented by the empty rb map. -/
+meta def one : monom := mk_rb_map
+
+/-- A scalar `z` is represented by a `sum` with coefficient `z` and monomial `one` -/
+meta def scalar (z : ℤ) : sum :=
+mk_rb_map.insert one z
+
+/-- A single variable `n` is represented by a sum with coefficient `1` and monomial `n`. -/
+meta def var (n : ℕ) : sum :=
+mk_rb_map.insert (mk_rb_map.insert n 1) 1
+
 section parse
 
 open ineq tactic
@@ -292,18 +346,16 @@ meta def rb_map.find_defeq (red : transparency) {v} (m : expr_map v) (e : expr) 
 prod.snd <$> list.mfind (λ p, is_def_eq e p.1 red) m.to_list
 
 /--
-Turns an expression into a map from `ℕ` to `ℤ`, for use in a `comp` object.
-The `expr_map` `ℕ` argument identifies which expressions have already been assigned numbers.
-Returns a new map.
+`map_of_expr red map e` computes the linear form of `e`.
+
+`map` is a lookup map from atomic expressions to variable numbers.
+If a new atomic expression is encountered, it is added to the map with a new number.
 -/
-meta def map_of_expr (red : transparency) : expr_map ℕ → expr → tactic (expr_map ℕ × rb_map ℕ ℤ)
+meta def map_of_expr (red : transparency) : expr_map ℕ → expr → tactic (expr_map ℕ × sum)
 | m e@`(%%e1 * %%e2) :=
-   (do (m', comp1) ← map_of_expr m e1,
+   do (m', comp1) ← map_of_expr m e1,
       (m', comp2) ← map_of_expr m' e2,
-      mp ← map_of_expr_mul_aux comp1 comp2,
-      return (m', mp)) <|>
-   (do k ← rb_map.find_defeq red m e, return (m, mk_rb_map.insert k 1)) <|>
-   (let n := m.size + 1 in return (m.insert e n, mk_rb_map.insert n 1))
+      return (m', comp1.mul comp2)
 | m `(%%e1 + %%e2) :=
    do (m', comp1) ← map_of_expr m e1,
       (m', comp2) ← map_of_expr m' e2,
@@ -316,10 +368,25 @@ meta def map_of_expr (red : transparency) : expr_map ℕ → expr → tactic (ex
 | m e :=
   match e.to_int with
   | some 0 := return ⟨m, mk_rb_map⟩
-  | some z := return ⟨m, mk_rb_map.insert 0 z⟩
+  | some z := return ⟨m, scalar z⟩
   | none :=
-    (do k ← rb_map.find_defeq red m e, return (m, mk_rb_map.insert k 1)) <|>
-    (let n := m.size + 1 in return (m.insert e n, mk_rb_map.insert n 1))
+    (do k ← rb_map.find_defeq red m e, return (m, var k)) <|>
+    (let n := m.size + 1 in return (m.insert e n, var n))
+  end
+
+/--
+`sum_to_lf s map` eliminates the monomial level of the `sum` `s`.
+
+`map` is a lookup map from monomials to variable numbers.
+The output `rb_map ℕ ℤ` has the same structure as `sum`,
+but each monomial key is replaced with its index according to `map`.
+If any new monomials are encountered, they are assigned variable numbers and `map` is updated.
+ -/
+meta def sum_to_lf (s : sum) (m : rb_map monom ℕ) : rb_map monom ℕ × rb_map ℕ ℤ :=
+s.fold (m, mk_rb_map) $ λ mn coeff ⟨map, out⟩,
+  match map.find mn with
+  | some n := ⟨map, out.insert n coeff⟩
+  | none := let n := map.size in ⟨map.insert mn n, out.insert n coeff⟩
   end
 
 meta def parse_into_comp_and_expr : expr → option (ineq × expr)
@@ -328,20 +395,22 @@ meta def parse_into_comp_and_expr : expr → option (ineq × expr)
 | `(%%e = 0) := (ineq.eq, e)
 | _ := none
 
-meta def to_comp (red : transparency) (e : expr) (m : expr_map ℕ) : tactic (comp × expr_map ℕ) :=
+meta def to_comp (red : transparency) (e : expr) (m : expr_map ℕ) (mm : rb_map monom ℕ) :
+  tactic (comp × expr_map ℕ × rb_map monom ℕ) :=
 do (iq, e) ← parse_into_comp_and_expr e,
    (m', comp') ← map_of_expr red m e,
-   return ⟨⟨iq, comp'⟩, m'⟩
+   let ⟨nm, mm'⟩ := sum_to_lf comp' mm,
+   return ⟨⟨iq, mm'⟩,m',nm⟩
 
-meta def to_comp_fold (red : transparency) : expr_map ℕ → list expr →
-      tactic (list (option comp) × expr_map ℕ)
-| m [] := return ([], m)
-| m (h::t) :=
-  (do (c, m') ← to_comp red h m,
-      (l, mp) ← to_comp_fold m' t,
-      return (c::l, mp)) <|>
-  (do (l, mp) ← to_comp_fold m t,
-      return (none::l, mp))
+meta def to_comp_fold (red : transparency) : expr_map ℕ → list expr → rb_map monom ℕ →
+      tactic (list (option comp) × expr_map ℕ × rb_map monom ℕ )
+| m [] mm := return ([], m, mm)
+| m (h::t) mm :=
+  (do (c, m', mm') ← to_comp red h m mm,
+      (l, mp, mm') ← to_comp_fold m' t mm',
+      return (c::l, mp, mm')) <|>
+  (do (l, mp, mm') ← to_comp_fold m t mm,
+      return (none::l, mp, mm'))
 
 /--
 Takes a list of proofs of props of the form `t {<, ≤, =} 0`, and creates a
@@ -350,7 +419,7 @@ Takes a list of proofs of props of the form `t {<, ≤, =} 0`, and creates a
 meta def mk_linarith_structure (red : transparency) (l : list expr) :
   tactic (linarith_structure × rb_map ℕ (expr × expr)) :=
 do pftps ← l.mmap infer_type,
-  (l', map) ← to_comp_fold red mk_rb_map pftps,
+  (l', _, map) ← to_comp_fold red mk_rb_map pftps mk_rb_map,
   let lz := list.enum $ ((l.zip pftps).zip l').filter_map (λ ⟨a, b⟩, prod.mk a <$> b),
   let prmap := rb_map.of_list $ lz.map (λ ⟨n, x⟩, (n, x.1)),
   let vars : rb_set ℕ := rb_map.set_of_list $ list.range map.size.succ,
@@ -556,12 +625,8 @@ meta def find_cancel_factor : expr → ℕ × tree ℕ
   let (v1, t1) := find_cancel_factor e1, (v2, t2) := find_cancel_factor e2, lcm := v1.lcm v2 in
   (lcm, tree.node lcm t1 t2)
 | `(%%e1 * %%e2) :=
-  match is_numeric e1, is_numeric e2 with
-  | none, none := (1, tree.node 1 tree.nil tree.nil)
-  | _, _ :=
-    let (v1, t1) := find_cancel_factor e1, (v2, t2) := find_cancel_factor e2, pd := v1*v2 in
-    (pd, tree.node pd t1 t2)
-  end
+  let (v1, t1) := find_cancel_factor e1, (v2, t2) := find_cancel_factor e2, pd := v1*v2 in
+  (pd, tree.node pd t1 t2)
 | `(%%e1 / %%e2) :=
   match is_numeric e2 with
   | some q := let (v1, t1) := find_cancel_factor e1, n := v1.lcm q.num.nat_abs in

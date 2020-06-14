@@ -312,7 +312,7 @@ lemma coe_subset_coe {H K : subgroup G} : (H : set G) ⊆ K ↔ H ≤ K := iff.r
 @[to_additive]
 instance : partial_order (subgroup G) :=
 { le := (≤),
-  .. partial_order.lift (coe : subgroup G → set G) (λ a b, ext') infer_instance }
+  .. partial_order.lift (coe : subgroup G → set G) (λ a b, ext') }
 
 /-- The subgroup `G` of the group `G`. -/
 @[to_additive "The `add_subgroup G` of the `add_group G`."]

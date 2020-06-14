@@ -118,7 +118,7 @@ end
 @[to_additive]
 instance : partial_order (open_subgroup G) :=
 { le := λ U V, ∀ ⦃x⦄, x ∈ U → x ∈ V,
-  .. partial_order.lift (coe : open_subgroup G → set G) ext' infer_instance }
+  .. partial_order.lift (coe : open_subgroup G → set G) ext' }
 
 @[to_additive]
 instance : semilattice_inf_top (open_subgroup G) :=

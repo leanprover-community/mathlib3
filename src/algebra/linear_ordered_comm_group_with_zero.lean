@@ -5,7 +5,7 @@ Authors: Kenny Lau, Johan Commelin, Patrick Massot
 -/
 
 import algebra.ordered_group
-import data.real.nnreal
+import algebra.group_with_zero
 
 /-!
 # Linearly ordered commutative groups with a zero element adjoined
@@ -19,8 +19,6 @@ by taking a linearly ordered commutative group Γ and formally adjoining a zero 
 The disadvantage is that a type such as `nnreal` is not of that form,
 whereas it is a very common target for valuations.
 The solutions is to use a typeclass, and that is exactly what we do in this file.
-
-We show that both `with_zero Γ` and `nnreal` are instances of `linear_ordered_comm_group_with_zero`.
 -/
 
 set_option old_structure_cmd true
@@ -31,22 +29,6 @@ class linear_ordered_comm_group_with_zero (α : Type*)
   extends linear_order α, comm_group_with_zero α :=
 (mul_le_mul_left : ∀ {a b : α}, a ≤ b → ∀ c : α, c * a ≤ c * b)
 (zero_le_one : (0:α) ≤ 1)
-
-namespace linear_ordered_comm_group_with_zero
-variables (α : Type*) [linear_ordered_comm_group_with_zero α]
-
-/--The units of a linearly ordered commutative group are linearly ordered.-/
-instance units.linear_order : linear_order (units α) :=
-linear_order.lift (coe : units α → α) units.ext
-
-/--The units of a linearly ordered commutative group with zero
-form a ordered commutative group.-/
-instance units.linear_ordered_comm_group : ordered_comm_group (units α) :=
-{ mul_le_mul_left := λ a b h c, mul_le_mul_left h _,
-  .. units.linear_order α,
-  .. (infer_instance : comm_group (units α)) }
-
-end linear_ordered_comm_group_with_zero
 
 variables {α : Type*} [linear_ordered_comm_group_with_zero α]
 variables {a b c d x y z : α}

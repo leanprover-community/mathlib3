@@ -24,15 +24,15 @@ namespace complex
 noncomputable instance : decidable_eq ℂ := classical.dec_eq _
 
 /-- The equivalence between the complex numbers and `ℝ × ℝ`. -/
-def real_prod_equiv : ℂ ≃ (ℝ × ℝ) :=
+def equiv_real_prod : ℂ ≃ (ℝ × ℝ) :=
 { to_fun := λ z, ⟨z.re, z.im⟩,
   inv_fun := λ p, ⟨p.1, p.2⟩,
   left_inv := λ ⟨x, y⟩, rfl,
   right_inv := λ ⟨x, y⟩, rfl }
 
-@[simp] theorem real_prod_equiv_apply (z : ℂ) : real_prod_equiv z = (z.re, z.im) := rfl
-theorem real_prod_equiv_symm_re (x y : ℝ) : (real_prod_equiv.symm (x, y)).re = x := rfl
-theorem real_prod_equiv_symm_im (x y : ℝ) : (real_prod_equiv.symm (x, y)).im = y := rfl
+@[simp] theorem equiv_real_prod_apply (z : ℂ) : equiv_real_prod z = (z.re, z.im) := rfl
+theorem equiv_real_prod_symm_re (x y : ℝ) : (equiv_real_prod.symm (x, y)).re = x := rfl
+theorem equiv_real_prod_symm_im (x y : ℝ) : (equiv_real_prod.symm (x, y)).im = y := rfl
 
 @[simp] theorem eta : ∀ z : ℂ, complex.mk z.re z.im = z
 | ⟨a, b⟩ := rfl

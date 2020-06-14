@@ -21,7 +21,7 @@ namespace tactic.rewrite_search.tracer
 open unit
 
 meta def unit_tracer : tracer_constructor unit := λ α β γ,
-tracer.mk α β γ unit.init unit.publish_vertex unit.publish_edge unit.publish_visited unit.publish_finished unit.dump unit.pause
+tracer.mk unit.init unit.publish_vertex unit.publish_edge unit.publish_visited unit.publish_finished unit.dump unit.pause
 
 meta def no {δ : Type} (_ : tracer_constructor δ) : tracer_constructor unit := unit_tracer
 

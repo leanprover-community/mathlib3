@@ -10,8 +10,8 @@ namespace tactic.rewrite_search
 variables {α β γ δ : Type} (i : inst α β γ δ) (g : search_state α β γ δ) (m : metric α β γ δ)
 
 private meta def chop : list char → list string → list string
-| [] l := l
-| (c :: rest) l := chop rest $ list.join $ l.map $ string.split_on c
+| [] L := L
+| (c :: rest) L := chop rest $ list.join $ L.map (λ l, l.split_on c)
 
 meta def tokenise_expr (e : expr) : tactic (string × list string) := do
   pp ← to_string <$> tactic.pp e,

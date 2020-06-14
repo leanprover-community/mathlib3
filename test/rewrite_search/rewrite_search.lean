@@ -2,6 +2,7 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Keeley Hoek, Scott Morrison
 import tactic.rewrite_search
+import data.rat.basic
 
 open tactic.rewrite_search.strategy
 open tactic.rewrite_search.metric
@@ -111,13 +112,13 @@ attribute [search] cat.li cat.a
 private example (C : cat) (X Y Z : C.O) (f : C.H X Y) (g : C.H Y X) (w : C.c g f = C.i Y) (h k : C.H Y Z) (p : C.c f h = C.c f k) : h = k :=
 begin
 -- rewrite_search_using `search {trace := tt, trace_rules:=tt}, -- not quite there, we haven't activated intense search
-perform_nth_rewrite 0 [← @cat.li C Y Z h],
-perform_nth_rewrite 0 [← w],
-perform_nth_rewrite 0 [C.a],
-perform_nth_rewrite 0 [p],
-perform_nth_rewrite 0 [← C.a],
-perform_nth_rewrite 0 [w],
-perform_nth_rewrite 0 [@cat.li C Y Z k],
+nth_rewrite 0 [← @cat.li C Y Z h],
+nth_rewrite 0 [← w],
+nth_rewrite 0 [C.a],
+nth_rewrite 0 [p],
+nth_rewrite 0 [← C.a],
+nth_rewrite 0 [w],
+nth_rewrite 0 [@cat.li C Y Z k],
 -- PROJECT automate this!
 -- rw [← C.li Y Z h],
 -- rw [← C.li Y Z k],

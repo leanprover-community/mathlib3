@@ -1,14 +1,14 @@
 import tactic.nth_rewrite
-
 import tactic.rewrite_search.core.common
 
 open tactic
+open tactic.nth_rewrite.congr
 
 namespace tactic.rewrite_search
 
 meta def rewrite_progress := mllist tactic rewrite
 
-meta def progress_init (rs : list (expr × bool)) (exp : expr) (cfg : rewrite_all.cfg) : rewrite_progress :=
+meta def progress_init (rs : list (expr × bool)) (exp : expr) (cfg : nth_rewrite.cfg) : rewrite_progress :=
 (all_rewrites_lazy_of_list rs exp cfg)
   .map $ λ t, ⟨t.1.exp, t.1.proof, how.rewrite t.2.1 t.2.2 t.1.addr⟩
 
@@ -30,7 +30,7 @@ meta def simp_rewrite (exp : expr) : tactic rewrite := do
 --   return $ some ⟨dsimp_exp, ???, how.defeq⟩
 
 meta def discover_more_rewrites
-  (rs : list (expr × bool)) (exp : expr) (cfg : rewrite_all.cfg) (_ : side)
+  (rs : list (expr × bool)) (exp : expr) (cfg : nth_rewrite.cfg) (_ : side)
   (prog : option rewrite_progress) :
   tactic (option rewrite_progress × list rewrite) :=
 do

@@ -160,7 +160,7 @@ meta inductive status
 @[derive has_reflect]
 inductive init_result (ε : Type u)
 | success : ε → init_result
-| failure : string → init_result
+| failure [] : string → init_result
 
 meta def init_fn (ε : Type u) := tactic (init_result ε)
 
@@ -204,7 +204,7 @@ def statistics.init : statistics := ⟨0⟩
 meta structure search_state (α β γ δ : Type) :=
 (tr           : tracer α β γ δ)
 (conf         : core_cfg)
-(rwall_conf   : rewrite_all.cfg)
+(rwall_conf   : nth_rewrite.cfg)
 (rs           : list (expr × bool))
 (strat_state  : α)
 (metric_state : β)

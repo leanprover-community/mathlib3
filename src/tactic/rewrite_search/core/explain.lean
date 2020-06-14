@@ -1,7 +1,5 @@
-import .types
-
--- Required for us to emit more compact `conv` invocations
-import tactic.converter.interactive
+import tactic.rewrite_search.core.types
+import tactic.converter.interactive -- Required for us to emit more compact `conv` invocations
 
 open interactive interactive.types expr tactic
 
@@ -33,7 +31,7 @@ meta def using_location.explain_rewrites (rs : list (expr × bool)) (s : side) (
 namespace using_conv
 
 inductive app_addr
-| node (children : sided_pair (option app_addr)) : app_addr
+| node (children : dir_pair (option app_addr)) : app_addr
 | rw : list ℕ → app_addr
 
 open app_addr
@@ -52,12 +50,12 @@ inductive splice_result
 
 open splice_result
 
-def splice_result.pack (s : side) : splice_result → sided_pair (option app_addr) → splice_result
+def splice_result.pack (s : expr_lens.dir) : splice_result → dir_pair (option app_addr) → splice_result
 | (new addr) c := new $ app_addr.node $ c.set s (some addr)
 | sr _ := sr
 
 -- TODO? prove well founded
-private meta def splice_in_aux (new_rws : list ℕ) : option app_addr → list side → splice_result
+private meta def splice_in_aux (new_rws : list ℕ) : option app_addr → list expr_lens.dir → splice_result
 | (some $ node _) [] := contained
 | (some $ node c) (s :: rest) := (splice_in_aux (c.get s) rest).pack s c
 | (some $ rw _) (_ :: _) := obstructed
@@ -65,18 +63,20 @@ private meta def splice_in_aux (new_rws : list ℕ) : option app_addr → list s
 | none [] := new $ rw new_rws
 | none l := splice_in_aux (some $ node ⟨none, none⟩) l
 
-private meta def to_congr_form : list side → tactic (list side)
-| [] := return []
-| (side.L :: (side.R :: rest)) := do
-  r ← to_congr_form rest,
-  return (side.L :: r)
-| (side.R :: rest) := do
-  r ← to_congr_form rest,
-  return (side.R :: r)
-| [side.L] := fail "app list ends in side.L!"
-| (side.L :: (side.L :: _)) := fail "app list has repeated side.L!"
+open expr_lens
 
-meta def splice_in (a : option app_addr) (rws : list ℕ) (s : list side) : tactic splice_result :=
+private meta def to_congr_form : list expr_lens.dir → tactic (list expr_lens.dir)
+| [] := return []
+| (dir.F :: (dir.A :: rest)) := do
+  r ← to_congr_form rest,
+  return (dir.F :: r)
+| (dir.A :: rest) := do
+  r ← to_congr_form rest,
+  return (dir.A :: r)
+| [dir.F] := fail "app list ends in side.L!"
+| (dir.F :: (dir.F :: _)) := fail "app list has repeated side.L!"
+
+meta def splice_in (a : option app_addr) (rws : list ℕ) (s : list expr_lens.dir) : tactic splice_result :=
   splice_in_aux rws a <$> to_congr_form s
 
 meta def build_rw_tactic (rs : list (expr × bool)) (hs : list ℕ) : tactic string := do

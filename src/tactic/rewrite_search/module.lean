@@ -27,7 +27,7 @@ structure collect_cfg :=
 -- invocation synatx. The data in this structure is extracted and transformed
 -- into the internal representation of the settings and modules by
 -- `try_mk_search_instance`.
-meta structure config (α β γ δ : Type) extends collect_cfg, tactic.rewrite_all.cfg :=
+meta structure config (α β γ δ : Type) extends collect_cfg, tactic.nth_rewrite.cfg :=
 (max_iterations  : ℕ := 500)
 (optimal         : bool := tt)
 (exhaustive      : bool := ff)
@@ -56,14 +56,14 @@ meta def mk_fallback_config (orig : config α β γ δ)
             strategy := by pick_default_strategy}
 
 meta def mk_initial_search_state (conf : core_cfg)
-  (rw_cfg : tactic.rewrite_all.cfg) (rs : list (expr × bool))
+  (rw_cfg : tactic.nth_rewrite.cfg) (rs : list (expr × bool))
   (s : strategy α β γ δ) (m : metric α β γ δ) (tr : tracer α β γ δ)
   (strat_state : α) (metric_state : β) (tr_state : δ)
   : search_state α β γ δ :=
 ⟨tr, conf, rw_cfg, rs, strat_state, metric_state, table.create, table.create, table.create, none, tr_state, statistics.init⟩
 
 meta def setup_instance (conf : core_cfg)
-  (rw_cfg : tactic.rewrite_all.cfg) (rs : list (expr × bool))
+  (rw_cfg : tactic.nth_rewrite.cfg) (rs : list (expr × bool))
   (s : strategy α β γ δ) (m : metric α β γ δ) (tr : tracer α β γ δ)
   (s_state : α) (m_state : β) (tr_state : δ)
   (eqn : sided_pair expr) : tactic (inst α β γ δ) :=

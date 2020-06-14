@@ -146,6 +146,10 @@ protected def faithful.div (F : C ⥤ E) (G : D ⥤ E) [faithful G]
       exact h_map.symm
   end }
 
+-- This follows immediately from `functor.hext` (`functor.hext h_obj @h_map`),
+-- but importing `category_theory.eq_to_hom` causes an import loop:
+-- category_theory.eq_to_hom → category_theory.opposites →
+-- category_theory.equivalence → category_theory.fully_faithful
 lemma faithful.div_comp (F : C ⥤ E) [faithful F] (G : D ⥤ E) [faithful G]
   (obj : C → D) (h_obj : ∀ X, G.obj (obj X) = F.obj X)
   (map : Π {X Y}, (X ⟶ Y) → (obj X ⟶ obj Y))

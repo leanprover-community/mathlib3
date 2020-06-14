@@ -80,7 +80,7 @@ protected noncomputable def of_surjective {α β} (f : β → α) (hf : surjecti
 /-- Convert a surjective `embedding` to an `equiv` -/
 protected noncomputable def equiv_of_surjective {α β} (f : α ↪ β) (hf : surjective f) :
   α ≃ β :=
-equiv.of_bijective ⟨f.inj, hf⟩
+equiv.of_bijective f ⟨f.inj, hf⟩
 
 protected def of_not_nonempty {α β} (hα : ¬ nonempty α) : α ↪ β :=
 ⟨λa, (hα ⟨a⟩).elim, assume a, (hα ⟨a⟩).elim⟩
@@ -150,6 +150,14 @@ def sum_congr {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : α �
 @[simp] theorem sum_congr_apply_inr {α β γ δ}
   (e₁ : α ↪ β) (e₂ : γ ↪ δ) (b) : sum_congr e₁ e₂ (inr b) = inr (e₂ b) := rfl
 
+/-- The embedding of `α` into the sum `α ⊕ β`. -/
+def inl {α β : Type*} : α ↪ α ⊕ β :=
+⟨sum.inl, λ a b, sum.inl.inj⟩
+
+/-- The embedding of `β` into the sum `α ⊕ β`. -/
+def inr {α β : Type*} : β ↪ α ⊕ β :=
+⟨sum.inr, λ a b, sum.inr.inj⟩
+
 end sum
 
 section sigma
@@ -196,6 +204,18 @@ protected def image {α β} (f : α ↪ β) : set α ↪ set β :=
 end embedding
 end function
 
+namespace equiv
+
+@[simp]
+lemma refl_to_embedding {α : Type*} :
+  (equiv.refl α).to_embedding = function.embedding.refl α := rfl
+
+@[simp]
+lemma trans_to_embedding {α β γ : Type*} (e : α ≃ β) (f : β ≃ γ) :
+  (e.trans f).to_embedding = e.to_embedding.trans f.to_embedding := rfl
+
+end equiv
+
 namespace set
 
 /-- The injection map is an embedding between subsets. -/
@@ -209,3 +229,35 @@ def embedding_of_subset {α} (s t : set α) (h : s ⊆ t) : s ↪ t :=
   (embedding_of_subset s t h x : α) = x := rfl
 
 end set
+
+/--
+The embedding of a left cancellative semigroup into itself
+by left multiplication by a fixed element.
+ -/
+@[to_additive
+  "The embedding of a left cancellative additive semigroup into itself
+   by left translation by a fixed element."]
+def mul_left_embedding {G : Type u} [left_cancel_semigroup G] (g : G) : G ↪ G :=
+{ to_fun := λ h, g * h,
+  inj' := λ h h', (mul_right_inj g).mp, }
+
+@[simp]
+lemma mul_left_embedding_apply {G : Type u} [left_cancel_semigroup G] (g h : G) :
+  mul_left_embedding g h = g * h :=
+rfl
+
+/--
+The embedding of a right cancellative semigroup into itself
+by right multiplication by a fixed element.
+ -/
+@[to_additive
+  "The embedding of a right cancellative additive semigroup into itself
+   by right translation by a fixed element."]
+def mul_right_embedding {G : Type u} [right_cancel_semigroup G] (g : G) : G ↪ G :=
+{ to_fun := λ h, h * g,
+  inj' := λ h h', (mul_left_inj g).mp, }
+
+@[simp]
+lemma mul_right_embedding_apply {G : Type u} [right_cancel_semigroup G] (g h : G) :
+  mul_right_embedding g h = h * g :=
+rfl

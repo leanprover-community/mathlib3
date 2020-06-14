@@ -8,6 +8,7 @@ import algebra.big_operators
 
 universes u v
 open equiv function fintype finset
+open_locale big_operators
 variables {α : Type u} {β : Type v}
 
 namespace equiv.perm
@@ -118,7 +119,7 @@ lemma pow_apply_eq_self_of_apply_eq_self {f : perm α} {x : α} (hfx : f x = x) 
 lemma gpow_apply_eq_self_of_apply_eq_self {f : perm α} {x : α} (hfx : f x = x) :
   ∀ n : ℤ, (f ^ n) x = x
 | (n : ℕ) := pow_apply_eq_self_of_apply_eq_self hfx n
-| -[1+ n] := by rw [gpow_neg_succ, inv_eq_iff_eq, pow_apply_eq_self_of_apply_eq_self hfx]
+| -[1+ n] := by rw [gpow_neg_succ_of_nat, inv_eq_iff_eq, pow_apply_eq_self_of_apply_eq_self hfx]
 
 lemma pow_apply_eq_of_apply_apply_eq_self {f : perm α} {x : α} (hffx : f (f x) = x) :
   ∀ n : ℕ, (f ^ n) x = x ∨ (f ^ n) x = f x
@@ -131,7 +132,7 @@ lemma gpow_apply_eq_of_apply_apply_eq_self {f : perm α} {x : α} (hffx : f (f x
   ∀ i : ℤ, (f ^ i) x = x ∨ (f ^ i) x = f x
 | (n : ℕ) := pow_apply_eq_of_apply_apply_eq_self hffx n
 | -[1+ n] :=
-  by rw [gpow_neg_succ, inv_eq_iff_eq, ← injective.eq_iff f.injective, ← mul_apply, ← pow_succ,
+  by rw [gpow_neg_succ_of_nat, inv_eq_iff_eq, ← injective.eq_iff f.injective, ← mul_apply, ← pow_succ,
     eq_comm, inv_eq_iff_eq, ← mul_apply, ← pow_succ', @eq_comm _ x, or.comm];
   exact pow_apply_eq_of_apply_apply_eq_self hffx _
 
@@ -271,7 +272,7 @@ lemma mem_fin_pairs_lt {n : ℕ} {a : Σ a : fin n, fin n} :
 by simp [fin_pairs_lt, fin.lt_def]
 
 def sign_aux {n : ℕ} (a : perm (fin n)) : units ℤ :=
-(fin_pairs_lt n).prod (λ x, if a x.1 ≤ a x.2 then -1 else 1)
+∏ x in fin_pairs_lt n, if a x.1 ≤ a x.2 then -1 else 1
 
 @[simp] lemma sign_aux_one (n : ℕ) : sign_aux (1 : perm (fin n)) = 1 :=
 begin
@@ -367,9 +368,8 @@ private lemma sign_aux_swap_zero_one {n : ℕ} (hn : 2 ≤ n) :
 let zero : fin n := ⟨0, lt_of_lt_of_le dec_trivial hn⟩ in
 let one : fin n := ⟨1, lt_of_lt_of_le dec_trivial hn⟩ in
 have hzo : zero < one := dec_trivial,
-show _ = ({(⟨one, zero⟩ : Σ a : fin n, fin n)} : finset _).prod
-  (λ x : Σ a : fin n, fin n, if (equiv.swap zero one) x.1
-  ≤ swap zero one x.2 then (-1 : units ℤ) else 1),
+show _ = ∏ x : Σ a : fin n, fin n in {(⟨one, zero⟩ : Σ a : fin n, fin n)},
+  if (equiv.swap zero one) x.1 ≤ swap zero one x.2 then (-1 : units ℤ) else 1,
 begin
   refine eq.symm (prod_subset (λ ⟨x₁, x₂⟩, by simp [mem_fin_pairs_lt, hzo] {contextual := tt})
     (λ a ha₁ ha₂, _)),
@@ -499,7 +499,7 @@ lemma sign_symm_trans_trans [decidable_eq β] [fintype β] (f : perm α)
 sign_aux3_symm_trans_trans f e mem_univ mem_univ
 
 lemma sign_prod_list_swap {l : list (perm α)}
-  (hl : ∀ g ∈ l, is_swap g) : sign l.prod = -1 ^ l.length :=
+  (hl : ∀ g ∈ l, is_swap g) : sign l.prod = (-1) ^ l.length :=
 have h₁ : l.map sign = list.repeat (-1) l.length :=
   list.eq_repeat.2 ⟨by simp, λ u hu,
   let ⟨g, hg⟩ := list.mem_map.1 hu in
@@ -567,12 +567,11 @@ calc sign f = sign (@subtype_perm _ f (λ x, f x ≠ x) (by simp)) :
   eq.symm (sign_subtype_perm _ _ (λ _, id))
 ... = sign (@subtype_perm _ g (λ x, g x ≠ x) (by simp)) :
   sign_eq_sign_of_equiv _ _
-    (equiv.of_bijective
-      (show function.bijective (λ x : {x // f x ≠ x},
+    (equiv.of_bijective (λ x : {x // f x ≠ x},
         (⟨i x.1 x.2, have f (f x) ≠ f x, from mt (λ h, f.injective h) x.2,
-          by rw [← h _ x.2 this]; exact mt (hi _ _ this x.2) x.2⟩ : {y // g y ≠ y})),
-        from ⟨λ ⟨x, hx⟩ ⟨y, hy⟩ h, subtype.eq (hi _ _ _ _ (subtype.mk.inj h)),
-          λ ⟨y, hy⟩, let ⟨x, hfx, hx⟩ := hg y hy in ⟨⟨x, hfx⟩, subtype.eq hx⟩⟩))
+          by rw [← h _ x.2 this]; exact mt (hi _ _ this x.2) x.2⟩ : {y // g y ≠ y}))
+        ⟨λ ⟨x, hx⟩ ⟨y, hy⟩ h, subtype.eq (hi _ _ _ _ (subtype.mk.inj h)),
+          λ ⟨y, hy⟩, let ⟨x, hfx, hx⟩ := hg y hy in ⟨⟨x, hfx⟩, subtype.eq hx⟩⟩)
       (λ ⟨x, _⟩, subtype.eq (h x _ _))
 ... = sign g : sign_subtype_perm _ _ (λ _, id)
 
@@ -631,7 +630,7 @@ lemma is_cycle_swap_mul_aux₂ : ∀ (n : ℤ) {b x : α} {f : perm α}
       simp [inv_eq_iff_eq, eq_inv_iff_eq] at *; cc,
   let ⟨i, hi⟩ := is_cycle_swap_mul_aux₁ n hb
     (show (f⁻¹ ^ n) (f⁻¹ x) = f⁻¹ b, by
-      rw [← gpow_coe_nat, ← h, ← mul_apply, ← mul_apply, ← mul_apply, gpow_neg_succ, ← inv_pow, pow_succ', mul_assoc,
+      rw [← gpow_coe_nat, ← h, ← mul_apply, ← mul_apply, ← mul_apply, gpow_neg_succ_of_nat, ← inv_pow, pow_succ', mul_assoc,
         mul_assoc, inv_mul_self, mul_one, gpow_coe_nat, ← pow_succ', ← pow_succ]) in
   have h : (swap x (f⁻¹ x) * f⁻¹) (f x) = f⁻¹ x, by rw [mul_apply, inv_apply_self, swap_apply_left],
   ⟨-i, by rw [← add_sub_cancel i 1, neg_sub, sub_eq_add_neg, gpow_add, gpow_one, gpow_neg, ← inv_gpow,
@@ -674,12 +673,12 @@ show (swap x y).support.card = finset.card ⟨x::y::0, by simp [hxy]⟩,
 from congr_arg card $ by rw [support_swap hxy]; simp [*, finset.ext]; cc
 
 lemma sign_cycle [fintype α] : ∀ {f : perm α} (hf : is_cycle f),
-  sign f = -(-1 ^ f.support.card)
+  sign f = -(-1) ^ f.support.card
 | f := λ hf,
 let ⟨x, hx⟩ := hf in
 calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
   by rw [← mul_assoc, mul_def, mul_def, swap_swap, trans_refl]
-... = -(-1 ^ f.support.card) :
+... = -(-1) ^ f.support.card :
   if h1 : f (f x) = x
   then
     have h : swap x (f x) * f = 1,
@@ -687,8 +686,8 @@ calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
         rw eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1,
         simp [mul_def, one_def]
       end,
-    by rw [sign_mul, sign_swap hx.1.symm, h, sign_one, eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1,
-        card_support_swap hx.1.symm]; refl
+    by rw [sign_mul, sign_swap hx.1.symm, h, sign_one,
+        eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1, card_support_swap hx.1.symm]; refl
   else
     have h : card (support (swap x (f x) * f)) + 1 = card (support f),
       by rw [← insert_erase (mem_support.2 hx.1), support_swap_mul_eq h1,

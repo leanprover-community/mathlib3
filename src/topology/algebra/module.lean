@@ -31,7 +31,7 @@ The solution is to extend `topological_module` instead.
 -/
 
 open filter
-open_locale topological_space
+open_locale topological_space big_operators
 
 universes u v w u'
 
@@ -266,7 +266,7 @@ by { refine {zero := 0, add := (+), ..}; intros; ext;
   apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm] }
 
 lemma sum_apply {ι : Type*} (t : finset ι) (f : ι → M →L[R] M₂) (b : M) :
-  t.sum f b = t.sum (λd, f d b) :=
+  (∑ d in t, f d) b = ∑ d in t, f d b :=
 begin
   haveI : is_add_monoid_hom (λ (g : M →L[R] M₂), g b) :=
     { map_add := λ f g, continuous_linear_map.add_apply f g b, map_zero := by simp },

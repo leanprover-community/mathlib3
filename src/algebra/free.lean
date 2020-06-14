@@ -227,7 +227,8 @@ instance : is_lawful_traversable free_magma.{u} :=
     (λ x, by simp only [traverse_pure] with functor_norm)
     (λ x y ih1 ih2, by simp only [traverse_mul] with functor_norm; rw [ih1, ih2]),
   traverse_eq_map_id := λ α β f x, free_magma.rec_on'' x (λ _, rfl)
-    (λ x y ih1 ih2, by rw [traverse_mul, ih1, ih2, map_mul', mul_map_seq]; refl) }
+    (λ x y ih1 ih2, by rw [traverse_mul, ih1, ih2, map_mul', mul_map_seq]; refl),
+  .. free_magma.is_lawful_monad }
 
 end category
 
@@ -552,7 +553,8 @@ instance : is_lawful_traversable free_semigroup.{u} :=
     (λ x, by simp only [traverse_pure] with functor_norm)
     (λ x y ih1 ih2, by resetI; simp only [traverse_mul] with functor_norm; rw [ih1, ih2]),
   traverse_eq_map_id := λ α β f x, free_semigroup.rec_on x (λ _, rfl)
-    (λ x y ih1 ih2, by rw [traverse_mul, ih1, ih2, map_mul', mul_map_seq]; refl) }
+    (λ x y ih1 ih2, by rw [traverse_mul, ih1, ih2, map_mul', mul_map_seq]; refl),
+  .. free_semigroup.is_lawful_monad }
 
 end category
 

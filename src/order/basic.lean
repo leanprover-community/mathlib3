@@ -337,8 +337,7 @@ theorem strict_mono.order_dual [has_lt α] [has_lt β] {f : α → β} (hf : str
 λ x y hxy, hf hxy
 
 /-- Transfer a `preorder` on `β` to a `preorder` on `α` using a function `f : α → β`. -/
-def preorder.lift {α β} (f : α → β) (i : preorder β) : preorder α :=
-by exactI
+def preorder.lift {α β} [preorder β] (f : α → β) : preorder α :=
 { le := λx y, f x ≤ f y,
   le_refl := λ a, le_refl _,
   le_trans := λ a b c, le_trans,
@@ -347,41 +346,38 @@ by exactI
 
 /-- Transfer a `partial_order` on `β` to a `partial_order` on `α` using an injective
 function `f : α → β`. -/
-def partial_order.lift {α β} (f : α → β) (inj : injective f) (i : partial_order β) :
+def partial_order.lift {α β} [partial_order β] (f : α → β) (inj : injective f) :
   partial_order α :=
-by exactI
-{ le_antisymm := λ a b h₁ h₂, inj (le_antisymm h₁ h₂), .. preorder.lift f (by apply_instance) }
+{ le_antisymm := λ a b h₁ h₂, inj (le_antisymm h₁ h₂), .. preorder.lift f }
 
 /-- Transfer a `linear_order` on `β` to a `linear_order` on `α` using an injective
 function `f : α → β`. -/
-def linear_order.lift {α β} (f : α → β) (inj : injective f) (i : linear_order β) :
+def linear_order.lift {α β} [linear_order β] (f : α → β) (inj : injective f) :
   linear_order α :=
-by exactI
-{ le_total := λx y, le_total (f x) (f y), .. partial_order.lift f inj (by apply_instance) }
+{ le_total := λx y, le_total (f x) (f y), .. partial_order.lift f inj }
 
 /-- Transfer a `decidable_linear_order` on `β` to a `decidable_linear_order` on `α` using
 an injective function `f : α → β`. -/
-def decidable_linear_order.lift {α β} (f : α → β) (inj : injective f)
-  (i : decidable_linear_order β) : decidable_linear_order α :=
-by exactI
+def decidable_linear_order.lift {α β} [decidable_linear_order β] (f : α → β) (inj : injective f) :
+  decidable_linear_order α :=
 { decidable_le := λ x y, show decidable (f x ≤ f y), by apply_instance,
   decidable_lt := λ x y, show decidable (f x < f y), by apply_instance,
   decidable_eq := λ x y, decidable_of_iff _ ⟨@inj x y, congr_arg f⟩,
-  .. linear_order.lift f inj (by apply_instance) }
+  .. linear_order.lift f inj }
 
-instance subtype.preorder {α} [i : preorder α] (p : α → Prop) : preorder (subtype p) :=
-preorder.lift subtype.val i
+instance subtype.preorder {α} [preorder α] (p : α → Prop) : preorder (subtype p) :=
+preorder.lift subtype.val
 
-instance subtype.partial_order {α} [i : partial_order α] (p : α → Prop) :
+instance subtype.partial_order {α} [partial_order α] (p : α → Prop) :
   partial_order (subtype p) :=
-partial_order.lift subtype.val subtype.val_injective i
+partial_order.lift subtype.val subtype.val_injective
 
-instance subtype.linear_order {α} [i : linear_order α] (p : α → Prop) : linear_order (subtype p) :=
-linear_order.lift subtype.val subtype.val_injective i
+instance subtype.linear_order {α} [linear_order α] (p : α → Prop) : linear_order (subtype p) :=
+linear_order.lift subtype.val subtype.val_injective
 
-instance subtype.decidable_linear_order {α} [i : decidable_linear_order α] (p : α → Prop) :
+instance subtype.decidable_linear_order {α} [decidable_linear_order α] (p : α → Prop) :
   decidable_linear_order (subtype p) :=
-decidable_linear_order.lift subtype.val subtype.val_injective i
+decidable_linear_order.lift subtype.val subtype.val_injective
 
 instance prod.has_le (α : Type u) (β : Type v) [has_le α] [has_le β] : has_le (α × β) :=
 ⟨λp q, p.1 ≤ q.1 ∧ p.2 ≤ q.2⟩

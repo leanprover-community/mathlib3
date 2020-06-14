@@ -30,6 +30,7 @@ The main definitions are in the `adjoin_root` namespace.
 
 -/
 noncomputable theory
+open_locale big_operators
 
 universes u v w
 
@@ -77,7 +78,7 @@ quotient.induction_on' (root f)
     show finsupp.sum f (λ (e : ℕ) (a : R), mk f (C a) * mk f g ^ e) = 0,
     by simp only [hg, ((mk f).map_pow _ _).symm, ((mk f).map_mul _ _).symm];
       rw [finsupp.sum, ← (mk f).map_sum,
-        show finset.sum _ _ = _, from sum_C_mul_X_eq _, mk_self])
+        show ∑ i in _, _ = _, from sum_C_mul_X_eq _, mk_self])
   (show (root f) = mk f X, from rfl)
 
 lemma is_root_root (f : polynomial R) : is_root (f.map (of f)) (root f) :=

@@ -52,11 +52,17 @@ open category_theory
 @[to_additive AddMon]
 def Mon : Type (u+1) := bundled monoid
 
+/-- The category of additive monoids and monoid morphisms. -/
+add_decl_doc AddMon
+
 namespace Mon
 
-/-- Construct a bundled Mon from the underlying type and typeclass. -/
+/-- Construct a bundled `Mon` from the underlying type and typeclass. -/
 @[to_additive]
 def of (M : Type u) [monoid M] : Mon := bundled.of M
+
+/-- Construct a bundled Mon from the underlying type and typeclass. -/
+add_decl_doc AddMon.of
 
 @[to_additive]
 instance : inhabited Mon :=
@@ -88,14 +94,20 @@ end Mon
 @[to_additive AddCommMon]
 def CommMon : Type (u+1) := bundled comm_monoid
 
+/-- The category of additive commutative monoids and monoid morphisms. -/
+add_decl_doc AddCommMon
+
 namespace CommMon
 
 @[to_additive]
 instance : bundled_hom.parent_projection comm_monoid.to_monoid := ⟨⟩
 
-/-- Construct a bundled CommMon from the underlying type and typeclass. -/
+/-- Construct a bundled `CommMon` from the underlying type and typeclass. -/
 @[to_additive]
 def of (M : Type u) [comm_monoid M] : CommMon := bundled.of M
+
+/-- Construct a bundled `AddCommMon` from the underlying type and typeclass. -/
+add_decl_doc AddCommMon.of
 
 @[to_additive]
 instance : inhabited CommMon :=

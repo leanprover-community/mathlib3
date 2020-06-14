@@ -83,7 +83,7 @@ mk' (λ f, f ≫ g) $ λ f f', by simp
   (f - f') ≫ g = f ≫ g - f' ≫ g :=
 map_sub (right_comp P g) f f'
 
-/- The redundant simp lemma linter says that simp can prove the reassoc version of this lemma. -/
+-- The redundant simp lemma linter says that simp can prove the reassoc version of this lemma.
 @[reassoc, simp] lemma comp_sub {P Q R : C} (f : P ⟶ Q) (g g' : Q ⟶ R) :
   f ≫ (g - g') = f ≫ g - f ≫ g' :=
 map_sub (left_comp R f) g g'
@@ -118,6 +118,10 @@ lemma mono_iff_cancel_zero {Q R : C} (f : Q ⟶ R) :
   mono f ↔ ∀ (P : C) (g : P ⟶ Q), g ≫ f = 0 → g = 0 :=
 ⟨λ m P g, by exactI zero_of_comp_mono _, mono_of_cancel_zero f⟩
 
+lemma mono_of_kernel_zero {X Y : C} {f : X ⟶ Y} [has_limit (parallel_pair f 0)]
+  (w : kernel.ι f = 0) : mono f :=
+mono_of_cancel_zero f (λ P g h, by rw [←kernel.lift_ι f g h, w, has_zero_morphisms.comp_zero])
+
 lemma epi_of_cancel_zero {P Q : C} (f : P ⟶ Q) (h : ∀ {R : C} (g : Q ⟶ R), f ≫ g = 0 → g = 0) :
   epi f :=
 ⟨λ R g g' hg, sub_eq_zero.1 $ h _ $ (map_sub (left_comp R f) g g').trans $ sub_eq_zero.2 hg⟩
@@ -125,6 +129,10 @@ lemma epi_of_cancel_zero {P Q : C} (f : P ⟶ Q) (h : ∀ {R : C} (g : Q ⟶ R),
 lemma epi_iff_cancel_zero {P Q : C} (f : P ⟶ Q) :
   epi f ↔ ∀ (R : C) (g : Q ⟶ R), f ≫ g = 0 → g = 0 :=
 ⟨λ e R g, by exactI zero_of_epi_comp _, epi_of_cancel_zero f⟩
+
+lemma epi_of_cokernel_zero {X Y : C} (f : X ⟶ Y) [has_colimit (parallel_pair f 0 )]
+  (w : cokernel.π f = 0) : epi f :=
+epi_of_cancel_zero f (λ P g h, by rw [←cokernel.π_desc f g h, w, has_zero_morphisms.zero_comp])
 
 end preadditive
 
@@ -135,7 +143,7 @@ section
 variables {X Y : C} (f : X ⟶ Y) (g : X ⟶ Y)
 
 /-- A kernel of `f - g` is an equalizer of `f` and `g`. -/
-def has_limit_parallel_pair [has_limit (parallel_pair (f - g) 0)] :
+def has_limit_parallel_pair [has_kernel (f - g)] :
   has_limit (parallel_pair f g) :=
 { cone := fork.of_ι (kernel.ι (f - g)) (sub_eq_zero.1 $
     by { rw ←comp_sub, exact kernel.condition _ }),
@@ -159,7 +167,7 @@ section
 variables {X Y : C} (f : X ⟶ Y) (g : X ⟶ Y)
 
 /-- A cokernel of `f - g` is a coequalizer of `f` and `g`. -/
-def has_colimit_parallel_pair [has_colimit (parallel_pair (f - g) 0)] :
+def has_colimit_parallel_pair [has_cokernel (f - g)] :
   has_colimit (parallel_pair f g) :=
 { cocone := cofork.of_π (cokernel.π (f - g)) (sub_eq_zero.1 $
     by { rw ←sub_comp, exact cokernel.condition _ }),

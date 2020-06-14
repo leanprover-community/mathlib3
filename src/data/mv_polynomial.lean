@@ -95,6 +95,7 @@ noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
 open set function finsupp add_monoid_algebra
+open_locale big_operators
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
@@ -113,6 +114,9 @@ instance decidable_eq_mv_polynomial [decidable_eq σ] [decidable_eq α] :
   decidable_eq (mv_polynomial σ α) := finsupp.decidable_eq
 instance : comm_semiring (mv_polynomial σ α) := add_monoid_algebra.comm_semiring
 instance : inhabited (mv_polynomial σ α) := ⟨0⟩
+instance : has_scalar α (mv_polynomial σ α) := add_monoid_algebra.has_scalar
+instance : semimodule α (mv_polynomial σ α) := add_monoid_algebra.semimodule
+instance : algebra α (mv_polynomial σ α) := add_monoid_algebra.algebra
 
 /-- the coercion turning an `mv_polynomial` into the function which reports the coefficient of a given monomial -/
 def coeff_coe_to_fun : has_coe_to_fun (mv_polynomial σ α) :=
@@ -148,6 +152,14 @@ instance : is_semiring_hom (C : α → mv_polynomial σ α) :=
   map_one := C_1,
   map_add := λ a a', C_add,
   map_mul := λ a a', C_mul }
+
+lemma C_injective (σ : Type*) (R : Type*) [comm_ring R] :
+  function.injective (C : R → mv_polynomial σ R) :=
+finsupp.injective_single _
+
+@[simp] lemma C_inj {σ : Type*} (R : Type*) [comm_ring R] (r s : R) :
+  (C r : mv_polynomial σ R) = C s ↔ r = s :=
+(C_injective σ R).eq_iff
 
 lemma C_eq_coe_nat (n : ℕ) : (C ↑n : mv_polynomial σ α) = n :=
 by induction n; simp [nat.succ_eq_add_one, *]
@@ -253,8 +265,8 @@ lemma ext (p q : mv_polynomial σ α) :
   (∀ m, coeff m p = coeff m q) → p = q := ext
 
 lemma ext_iff (p q : mv_polynomial σ α) :
-  (∀ m, coeff m p = coeff m q) ↔ p = q :=
-⟨ext p q, λ h m, by rw h⟩
+  p = q ↔ (∀ m, coeff m p = coeff m q) :=
+⟨ λ h m, by rw h, ext p q⟩
 
 @[simp] lemma coeff_add (m : σ →₀ ℕ) (p q : mv_polynomial σ α) :
   coeff m (p + q) = coeff m p + coeff m q := add_apply
@@ -271,7 +283,7 @@ instance coeff.is_add_monoid_hom (m : σ →₀ ℕ) :
   map_zero := coeff_zero m }
 
 lemma coeff_sum {X : Type*} (s : finset X) (f : X → mv_polynomial σ α) (m : σ →₀ ℕ) :
-  coeff m (s.sum f) = s.sum (λ x, coeff m (f x)) :=
+  coeff m (∑ x in s, f x) = ∑ x in s, coeff m (f x) :=
 (s.sum_hom _).symm
 
 lemma monic_monomial_eq (m) : monomial m (1:α) = (m.prod $ λn e, X n ^ e : mv_polynomial σ α) :=
@@ -318,7 +330,7 @@ begin
 end
 
 lemma coeff_mul (p q : mv_polynomial σ α) (n : σ →₀ ℕ) :
-  coeff n (p * q) = finset.sum (antidiagonal n).support (λ x, coeff x.1 p * coeff x.2 q) :=
+  coeff n (p * q) = ∑ x in (antidiagonal n).support, coeff x.1 p * coeff x.2 q :=
 begin
   rw mul_def,
   have := @finset.sum_sigma (σ →₀ ℕ) α _ _ p.support (λ _, q.support)
@@ -391,10 +403,10 @@ end coeff
 section as_sum
 
 @[simp]
-lemma support_sum_monomial_coeff (p : mv_polynomial σ α) : p.support.sum (λ v, monomial v (coeff v p)) = p :=
+lemma support_sum_monomial_coeff (p : mv_polynomial σ α) : ∑ v in p.support, monomial v (coeff v p) = p :=
 finsupp.sum_single p
 
-lemma as_sum (p : mv_polynomial σ α) : p = p.support.sum (λ v, monomial v (coeff v p)) :=
+lemma as_sum (p : mv_polynomial σ α) : p = ∑ v in p.support, monomial v (coeff v p) :=
 (support_sum_monomial_coeff p).symm
 
 end as_sum
@@ -502,11 +514,11 @@ end
 variables [is_semiring_hom f]
 
 @[simp] lemma eval₂_prod (s : finset γ) (p : γ → mv_polynomial σ α) :
-  eval₂ f g (s.prod p) = s.prod (λ x, eval₂ f g $ p x) :=
+  eval₂ f g (∏ x in s, p x) = ∏ x in s, eval₂ f g (p x) :=
 (s.prod_hom _).symm
 
 @[simp] lemma eval₂_sum (s : finset γ) (p : γ → mv_polynomial σ α) :
-  eval₂ f g (s.sum p) = s.sum (λ x, eval₂ f g $ p x) :=
+  eval₂ f g (∑ x in s, p x) = ∑ x in s, eval₂ f g (p x) :=
 (s.sum_hom _).symm
 
 attribute [to_additive] eval₂_prod
@@ -641,12 +653,11 @@ end
 
 lemma map_injective (hf : function.injective f) :
   function.injective (map f : mv_polynomial σ α → mv_polynomial σ β) :=
-λ p q h, ext _ _ $ λ m, hf $
 begin
-  rw ← ext_iff at h,
-  specialize h m,
-  rw [coeff_map, coeff_map] at h,
-  exact h
+  intros p q h,
+  simp only [ext_iff, coeff_map] at h ⊢,
+  intro m,
+  exact hf (h m),
 end
 
 end map
@@ -697,7 +708,7 @@ begin
 end
 
 lemma degrees_sum {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ α) :
-  (s.sum f).degrees ≤ s.sup (λi, (f i).degrees) :=
+  (∑ i in s, f i).degrees ≤ s.sup (λi, (f i).degrees) :=
 begin
   refine s.induction _ _,
   { simp only [finset.sum_empty, finset.sup_empty, degrees_zero], exact le_refl _ },
@@ -717,7 +728,7 @@ begin
 end
 
 lemma degrees_prod {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ α) :
-  (s.prod f).degrees ≤ s.sum (λi, (f i).degrees) :=
+  (∏ i in s, f i).degrees ≤ ∑ i in s, (f i).degrees :=
 begin
   refine s.induction _ _,
   { simp only [finset.prod_empty, finset.sum_empty, degrees_one] },
@@ -870,7 +881,7 @@ end
 
 lemma total_degree_finset_prod {ι : Type*}
   (s : finset ι) (f : ι → mv_polynomial σ α) :
-  (s.prod f).total_degree ≤ s.sum (λi, (f i).total_degree) :=
+  (s.prod f).total_degree ≤ ∑ i in s, (f i).total_degree :=
 begin
   refine le_trans (total_degree_multiset_prod _) _,
   rw [multiset.map_map],
@@ -886,8 +897,6 @@ variable [comm_ring α]
 variables {p q : mv_polynomial σ α}
 
 instance : comm_ring (mv_polynomial σ α) := add_monoid_algebra.comm_ring
-instance : has_scalar α (mv_polynomial σ α) := finsupp.has_scalar
-instance : module α (mv_polynomial σ α) := finsupp.module (σ →₀ ℕ) α
 
 instance C.is_ring_hom : is_ring_hom (C : α → mv_polynomial σ α) :=
 by apply is_ring_hom.of_semiring
@@ -1024,11 +1033,6 @@ end total_degree
 section aeval
 
 /-- The algebra of multivariate polynomials. -/
--- FIXME this causes a deterministic timeout with `-T50000` (but `-T60000` seems okay)
-instance mv_polynomial (R : Type u) [comm_ring R] (σ : Type v) : algebra R (mv_polynomial σ R) :=
-{ commutes' := λ _ _, mul_comm _ _,
-  smul_def' := λ c p, (mv_polynomial.C_mul' c p).symm,
-  .. ring_hom.of mv_polynomial.C, .. mv_polynomial.module }
 
 variables (R : Type u) (A : Type v) (f : σ → A)
 variables [comm_ring R] [comm_ring A] [algebra R A]

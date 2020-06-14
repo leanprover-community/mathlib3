@@ -147,12 +147,11 @@ the cardinality of `s` is `k`. We use this instead of a map `fin s.card → α` 
 casting issues in further uses of this function. -/
 noncomputable def mono_equiv_of_fin (α) [fintype α] [decidable_linear_order α] {k : ℕ}
   (h : fintype.card α = k) : fin k ≃ α :=
-have A : bijective (mono_of_fin univ h) := begin
+equiv.of_bijective (mono_of_fin univ h) begin
   apply set.bijective_iff_bij_on_univ.2,
   rw ← @coe_univ α _,
   exact mono_of_fin_bij_on (univ : finset α) h
-end,
-equiv.of_bijective A
+end
 
 instance (α : Type*) : subsingleton (fintype α) :=
 ⟨λ ⟨s₁, h₁⟩ ⟨s₂, h₂⟩, by congr; simp [finset.ext, h₁, h₂]⟩
@@ -241,8 +240,18 @@ by simp [to_finset]
 @[simp] theorem mem_to_finset_val {s : set α} [fintype s] {a : α} : a ∈ s.to_finset.1 ↔ a ∈ s :=
 mem_to_finset
 
+-- We use an arbitrary `[fintype s]` instance here,
+-- not necessarily coming from a `[fintype α]`.
+@[simp]
+lemma to_finset_card {α : Type*} (s : set α) [fintype s] :
+  s.to_finset.card = fintype.card s :=
+multiset.card_map subtype.val finset.univ.val
+
 @[simp] theorem coe_to_finset (s : set α) [fintype s] : (↑s.to_finset : set α) = s :=
 set.ext $ λ _, mem_to_finset
+
+@[simp] theorem to_finset_inj {s t : set α} [fintype s] [fintype t] : s.to_finset = t.to_finset ↔ s = t :=
+⟨λ h, by rw [← s.coe_to_finset, h, t.coe_to_finset], λ h, by simp [h]; congr⟩
 
 end set
 
@@ -496,6 +505,8 @@ finset.subtype.fintype s
 @[simp] lemma fintype.card_coe (s : finset α) :
   fintype.card (↑s : set α) = s.card := card_attach
 
+lemma finset.attach_eq_univ {s : finset α} : s.attach = finset.univ := rfl
+
 lemma finset.card_le_one_iff {s : finset α} :
   s.card ≤ 1 ↔ ∀ {x y}, x ∈ s → y ∈ s → x = y :=
 begin
@@ -533,7 +544,7 @@ namespace function.embedding
 
 /-- An embedding from a `fintype` to itself can be promoted to an equivalence. -/
 noncomputable def equiv_of_fintype_self_embedding {α : Type*} [fintype α] (e : α ↪ α) : α ≃ α :=
-equiv.of_bijective (fintype.injective_iff_bijective.1 e.2)
+equiv.of_bijective e (fintype.injective_iff_bijective.1 e.2)
 
 @[simp]
 lemma equiv_of_fintype_self_embedding_to_embedding {α : Type*} [fintype α] (e : α ↪ α) :

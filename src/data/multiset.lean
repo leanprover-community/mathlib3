@@ -3024,6 +3024,8 @@ namespace multiset
 instance : functor multiset :=
 { map := @map }
 
+@[simp] lemma fmap_def {α' β'} {s : multiset α'} (f : α' → β') : f <$> s = s.map f := rfl
+
 instance : is_lawful_functor multiset :=
 by refine { .. }; intros; simp
 
@@ -3057,10 +3059,12 @@ instance : monad multiset :=
   bind := @bind,
   .. multiset.functor }
 
+@[simp] lemma pure_def {α} : (pure : α → multiset α) = (λ x, x::0) := rfl
+@[simp] lemma bind_def {α β} : (>>=) = @bind α β := rfl
+
 instance : is_lawful_monad multiset :=
-{ bind_pure_comp_eq_map := λ α β f s, multiset.induction_on s rfl $ λ a s ih,
-    by rw [bind_cons, map_cons, bind_zero, add_zero],
-  pure_bind := λ α β x f, by simp only [cons_bind, zero_bind, add_zero],
+{ bind_pure_comp_eq_map := λ α β f s, multiset.induction_on s rfl $ λ a s ih, by simp,
+  pure_bind := λ α β x f, by simp,
   bind_assoc := @bind_assoc }
 
 open functor
@@ -3079,9 +3083,7 @@ by funext; simp [functor.map]
 
 lemma id_traverse {α : Type*} (x : multiset α) :
   traverse id.mk x = x :=
-quotient.induction_on x
-(by { intro, rw [traverse,quotient.lift_beta,function.comp],
-      simp, congr })
+quotient.induction_on x begin intro, simp [traverse], refl end
 
 lemma comp_traverse {G H : Type* → Type*}
                [applicative G] [applicative H]

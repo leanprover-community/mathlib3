@@ -32,6 +32,8 @@ the notation B x y to refer to the function field, ie. B x y = B.bilin x y.
 Bilinear form,
 -/
 
+open_locale big_operators
+
 universes u v w
 
 /-- A bilinear form over a module  -/
@@ -153,8 +155,8 @@ linear_map.mk₂ R₂ F.1 (bilin_add_left F) (bilin_smul_left F) (bilin_add_righ
 /-- Bilinear forms are equivalent to maps with two arguments that is linear in both. -/
 def bilin_linear_map_equiv : (bilin_form R₂ M) ≃ₗ[R₂] (M →ₗ[R₂] M →ₗ[R₂] R₂) :=
 { to_fun := to_linear_map,
-  add := λ B D, rfl,
-  smul := λ a B, rfl,
+  map_add' := λ B D, rfl,
+  map_smul' := λ a B, rfl,
   inv_fun := linear_map.to_bilin,
   left_inv := λ B, by {ext, refl},
   right_inv := λ B, by {ext, refl} }
@@ -163,12 +165,12 @@ def bilin_linear_map_equiv : (bilin_form R₂ M) ≃ₗ[R₂] (M →ₗ[R₂] M 
 lemma coe_fn_to_linear_map (x : M) : ⇑(F.to_linear_map x) = F x := rfl
 
 lemma map_sum_left {α} (B : bilin_form R₂ M) (t : finset α) (g : α → M) (w : M) :
-  B (t.sum g) w = t.sum (λ i, B (g i) w) :=
-show B.to_linear_map (t.sum g) w = t.sum (λ i, B (g i) w),
-by { rw [B.to_linear_map.map_sum, linear_map.coe_fn_sum, finset.sum_apply], refl }
+  B (∑ i in t, g i) w = ∑ i in t, B (g i) w :=
+show B.to_linear_map (∑ i in t, g i) w = ∑ i in t, B.to_linear_map (g i) w,
+by rw [B.to_linear_map.map_sum, linear_map.coe_fn_sum, finset.sum_apply]
 
 lemma map_sum_right {α} (B : bilin_form R₂ M) (t : finset α) (g : α → M) (v : M) :
-  B v (t.sum g) = t.sum (λ i, B v (g i)) :=
+  B v (∑ i in t, g i) = ∑ i in t, B v (g i) :=
 (B.to_linear_map v).map_sum
 
 end
@@ -209,6 +211,36 @@ B.comp linear_map.id f
   B.comp_right f v w = B v (f w) := rfl
 
 end comp
+
+section lin_mul_lin
+
+variables {R₂ : Type*} [comm_ring R₂] [module R₂ M] {N : Type w} [add_comm_group N] [module R₂ N]
+
+/-- `lin_mul_lin f g` is the bilinear form mapping `x` and `y` to `f x * g y` -/
+def lin_mul_lin (f g : M →ₗ[R₂] R₂) : bilin_form R₂ M :=
+{ bilin := λ x y, f x * g y,
+  bilin_add_left := λ x y z, by simp [add_mul],
+  bilin_smul_left := λ x y z, by simp [mul_assoc],
+  bilin_add_right := λ x y z, by simp [mul_add],
+  bilin_smul_right := λ x y z, by simp [mul_left_comm] }
+
+variables {f g : M →ₗ[R₂] R₂}
+
+@[simp] lemma lin_mul_lin_apply (x y) : lin_mul_lin f g x y = f x * g y := rfl
+
+@[simp] lemma lin_mul_lin_comp (l r : N →ₗ[R₂] M) :
+  (lin_mul_lin f g).comp l r = lin_mul_lin (f.comp l) (g.comp r) :=
+rfl
+
+@[simp] lemma lin_mul_lin_comp_left (l : M →ₗ[R₂] M) :
+  (lin_mul_lin f g).comp_left l = lin_mul_lin (f.comp l) g :=
+rfl
+
+@[simp] lemma lin_mul_lin_comp_right (r : M →ₗ[R₂] M) :
+  (lin_mul_lin f g).comp_right r = lin_mul_lin f (g.comp r) :=
+rfl
+
+end lin_mul_lin
 
 /-- The proposition that two elements of a bilinear form space are orthogonal -/
 def is_ortho (B : bilin_form R M) (x y : M) : Prop :=
@@ -264,8 +296,8 @@ def matrix.to_bilin_formₗ : matrix n n R →ₗ[R] bilin_form R (n → R) :=
     bilin_smul_left := λ a x y, by simp,
     bilin_add_right := λ x y z, by simp [matrix.mul_add],
     bilin_smul_right := λ a x y, by simp },
-  add := λ f g, by { ext, simp [add_apply, matrix.mul_add, matrix.add_mul] },
-  smul := λ f g, by { ext, simp [smul_apply] } }
+  map_add' := λ f g, by { ext, simp [add_apply, matrix.mul_add, matrix.add_mul] },
+  map_smul' := λ f g, by { ext, simp [smul_apply] } }
 
 /-- The map from `matrix n n R` to bilinear forms on `n → R`. -/
 def matrix.to_bilin_form : matrix n n R → bilin_form R (n → R) :=
@@ -279,8 +311,8 @@ variables [decidable_eq n] [decidable_eq o]
 /-- The linear map from bilinear forms on `n → R` to `matrix n n R`. -/
 def bilin_form.to_matrixₗ : bilin_form R (n → R) →ₗ[R] matrix n n R :=
 { to_fun := λ B i j, B (λ n, if n = i then 1 else 0) (λ n, if n = j then 1 else 0),
-  add := λ f g, rfl,
-  smul := λ f g, rfl }
+  map_add' := λ f g, rfl,
+  map_smul' := λ f g, rfl }
 
 /-- The map from bilinear forms on `n → R` to `matrix n n R`. -/
 def bilin_form.to_matrix : bilin_form R (n → R) → matrix n n R :=
@@ -300,10 +332,10 @@ begin
   ext i j,
   simp only [to_matrix_apply, comp_apply, mul_val, sum_mul],
   have sum_smul_eq : Π (f : (o → R) →ₗ[R] (n → R)) (i : o),
-    f (λ n, ite (n = i) 1 0) = univ.sum (λ k, f.to_matrix k i • λ n, ite (n = k) (1 : R) 0),
+    f (λ n, ite (n = i) 1 0) = ∑ k, f.to_matrix k i • λ n, ite (n = k) (1 : R) 0,
   { intros f i,
     ext j,
-    change f (λ n, ite (n = i) 1 0) j = univ.sum (λ k n, f.to_matrix k i * ite (n = k) (1 : R) 0) j,
+    change f (λ n, ite (n = i) 1 0) j = (∑ k, λ n, f.to_matrix k i * ite (n = k) (1 : R) 0) j,
     simp [linear_map.to_matrix, linear_map.to_matrixₗ, eq_comm] },
   simp_rw [sum_smul_eq, map_sum_right, map_sum_left, smul_right, mul_comm, smul_left],
   refl
@@ -481,10 +513,10 @@ def is_pair_self_adjoint (f : module.End R M) := is_adjoint_pair B B' f f
 
 /-- The set of pair-self-adjoint endomorphisms are a submodule of the type of all endomorphisms. -/
 def is_pair_self_adjoint_submodule : submodule R (module.End R M) :=
-{ carrier := { f | is_pair_self_adjoint B B' f },
-  zero    := is_adjoint_pair_zero,
-  add     := λ f g hf hg, hf.add hg,
-  smul    := λ c f h, h.smul c, }
+{ carrier   := { f | is_pair_self_adjoint B B' f },
+  zero_mem' := is_adjoint_pair_zero,
+  add_mem'  := λ f g hf hg, hf.add hg,
+  smul_mem' := λ c f h, h.smul c, }
 
 /-- An endomorphism of a module is self-adjoint with respect to a bilinear form if it serves as an
 adjoint for itself. -/

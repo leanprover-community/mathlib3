@@ -29,22 +29,33 @@ Usage information is contained in the doc string of `to_additive.attr`.
 namespace to_additive
 open tactic exceptional
 
+section performance_hack -- see Note [user attribute parameters]
+
+local attribute [semireducible] reflected
+
+local attribute [instance, priority 9000]
+private meta def hacky_name_reflect : has_reflect name :=
+λ n, `(id %%(expr.const n []) : name)
+
 /-- An auxiliary attribute used to store the names of the additive versions of declarations
 that have been processed by `to_additive`. -/
 @[user_attribute]
-meta def aux_attr : user_attribute (name_map name) name :=
+private meta def aux_attr : user_attribute (name_map name) name :=
 { name      := `to_additive_aux,
   descr     := "Auxiliary attribute for `to_additive`. DON'T USE IT",
   cache_cfg := ⟨λ ns,
                 ns.mfoldl
-                  (λ dict n',
+                  (λ dict n', do
                    let n := match n' with
                             | name.mk_string s pre := if s = "_to_additive" then pre else n'
                             | _ := n'
-                            end
-                   in dict.insert n <$> aux_attr.get_param n')
+                            end,
+                    param ← aux_attr.get_param_untyped n',
+                    pure $ dict.insert n param.app_arg.const_name)
                   mk_name_map, []⟩,
   parser    := lean.parser.ident }
+
+end performance_hack
 
 /-- A command that can be used to have future uses of `to_additive` change the `src` namespace
 to the `tgt` namespace.

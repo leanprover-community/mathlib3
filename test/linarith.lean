@@ -183,6 +183,16 @@ example (u v x y A B : ℚ)
  u * y + v * x + u * v < 3 * A * B :=
  by nlinarith
 
+example (u v x y A B : ℚ) : (0 < A) → (A ≤ 1) → (1 ≤ B)
+→ (x ≤ B) → ( y ≤ B)
+→ (0 ≤ u ) → (0 ≤ v )
+→ (u < A) → ( v < A)
+→ (u * y + v * x + u * v < 3 * A * B) :=
+begin
+  intros,
+  nlinarith
+end
+
 example (u v x y A B : ℚ)
 (a : 0 < A)
 (a_1 : 0 <= 1 - A)

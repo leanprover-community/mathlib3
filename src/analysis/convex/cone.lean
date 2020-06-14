@@ -153,7 +153,7 @@ instance : complete_lattice (convex_cone E) :=
   Sup_le       := λ s p hs x hx, mem_Inf.1 hx p hs,
   le_Inf       := λ s a ha x hx, mem_Inf.2 $ λ t ht, ha t ht hx,
   Inf_le       := λ s a ha x hx, mem_Inf.1 hx _ ha,
-  .. partial_order.lift (coe : convex_cone E → set E) (λ a b, ext') (by apply_instance) }
+  .. partial_order.lift (coe : convex_cone E → set E) (λ a b, ext') }
 
 instance : inhabited (convex_cone E) := ⟨⊥⟩
 

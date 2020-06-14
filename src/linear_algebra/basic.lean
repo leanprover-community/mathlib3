@@ -380,7 +380,7 @@ open set
 
 instance : partial_order (submodule R M) :=
 { le := λ p p', ∀ ⦃x⦄, x ∈ p → x ∈ p',
-  ..partial_order.lift (coe : submodule R M → set M) ext' (by apply_instance) }
+  ..partial_order.lift (coe : submodule R M → set M) ext' }
 
 variables {p p'}
 
@@ -744,6 +744,8 @@ mem_sup.trans $ by simp only [submodule.exists, coe_mk]
 
 end
 
+lemma mem_span_singleton_self (x : M) : x ∈ span R ({x} : set M) := subset_span (mem_def.mpr rfl)
+
 lemma mem_span_singleton {y : M} : x ∈ span R ({y} : set M) ↔ ∃ a:R, a • y = x :=
 ⟨λ h, begin
   apply span_induction h,
@@ -1035,6 +1037,21 @@ end
 /-- Restrict the codomain of a linear map `f` to `f.range`. -/
 @[reducible] def range_restrict (f : M →ₗ[R] M₂) : M →ₗ[R] f.range :=
 f.cod_restrict f.range f.mem_range_self
+
+section
+variables (R) (M)
+
+/-- Given an element `x` of a module `M` over `R`, the natural map from
+    `R` to scalar multiples of `x`.-/
+def to_span_singleton (x : M) : R →ₗ[R] M := linear_map.id.smul_right x
+
+/-- The range of `to_span_singleton x` is the span of `x`.-/
+lemma span_singleton_eq_range (x : M) : span R {x} = (to_span_singleton R M x).range :=
+submodule.ext $ λ y, by {refine iff.trans _ mem_range.symm, exact mem_span_singleton }
+
+lemma to_span_singleton_one (x : M) : to_span_singleton R M x 1 = x := one_smul _ _
+
+end
 
 /-- The kernel of a linear map `f : M → M₂` is defined to be `comap f ⊥`. This is equivalent to the
 set of `x : M` such that `f x = 0`. The kernel is a submodule of `M`. -/
@@ -1823,12 +1840,54 @@ end comm_ring
 section field
 variables [field K] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
 variables [module K M] [module K M₂] [module K M₃]
-variable (M)
+variables (K) (M)
 open linear_map
 
 /-- Multiplying by a nonzero element `a` of the field `K` is a linear equivalence. -/
 def smul_of_ne_zero (a : K) (ha : a ≠ 0) : M ≃ₗ[K] M :=
 smul_of_unit $ units.mk0 a ha
+
+section
+
+noncomputable theory
+open_locale classical
+
+/-- Given a nonzero element `x` of a vector space `M` over a field `K`, the natural
+    map from `K` to the span of `x`, with invertibility check to consider it as an
+    isomorphism.-/
+def to_span_nonzero_singleton (x : M) (h : x ≠ 0) : K ≃ₗ[K] (submodule.span K ({x} : set M)) :=
+linear_equiv.trans
+  ( linear_equiv.of_injective (to_span_singleton K M x)
+    begin
+      ext c, split,
+      { intros hc, rw submodule.mem_bot, rw mem_ker at hc, by_contra hc',
+        have : x = 0,
+          calc x = c⁻¹ • (c • x) : by rw [← mul_smul, inv_mul_cancel hc', one_smul]
+          ... = c⁻¹ • ((to_span_singleton K M x) c) : rfl
+          ... = 0 : by rw [hc, smul_zero],
+        tauto },
+      { rw [mem_ker, submodule.mem_bot], intros h, rw h, simp }
+    end )
+  (of_eq (to_span_singleton K M x).range (submodule.span K {x}) (span_singleton_eq_range K M x).symm)
+
+lemma to_span_nonzero_singleton_one (x : M) (h : x ≠ 0) : to_span_nonzero_singleton K M x h 1
+  = (⟨x, submodule.mem_span_singleton_self x⟩ : submodule.span K ({x} : set M)) :=
+begin
+  apply submodule.coe_eq_coe.mp,
+  have : ↑(to_span_nonzero_singleton K M x h 1) = to_span_singleton K M x 1 := rfl,
+  rw [this, to_span_singleton_one, submodule.coe_mk],
+end
+
+/-- Given a nonzero element `x` of a vector space `M` over a field `K`, the natural map
+    from the span of `x` to `K`.-/
+abbreviation coord (x : M) (h : x ≠ 0) : (submodule.span K ({x} : set M)) ≃ₗ[K] K :=
+(to_span_nonzero_singleton K M x h).symm
+
+lemma coord_self (x : M) (h : x ≠ 0) : (coord K M x h) ( ⟨x, submodule.mem_span_singleton_self x⟩ :
+  submodule.span K ({x} : set M)) = 1 :=
+by rw [← to_span_nonzero_singleton_one K M x h, symm_apply_apply]
+
+end
 
 end field
 

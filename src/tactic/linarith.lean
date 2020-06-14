@@ -1068,8 +1068,6 @@ add_tactic_doc
 local attribute [instance, reducible]
 def bool.has_lt : has_lt bool := ⟨λ a b, a = ff ∧ b = tt⟩
 
-
-
 /--
 An extension of `linarith` with some preprocessing to allow it to solve some nonlinear arithmetic
 problems. (Based on Coq's `nlinarith` tactic.) See `linarith` for the available syntax of options,
@@ -1113,7 +1111,7 @@ meta def tactic.interactive.nlinarith (red : parse ((tk "!")?))
       h ← assertv `h t p,
       return (hyps.map (λ l, pexpr.of_expr h :: l), (ineq.le, h) :: ge0)) <|>
     return (hyps, ge0)),
-  ge0.mmap' (λ ⟨posa, a⟩, ge0.mmap' $ λ ⟨posb, b⟩, do
+  ge0.mmap'_diag (λ ⟨posa, a⟩ ⟨posb, b⟩, do
     p ←  match posa, posb with
       | ineq.eq, _ := mk_app ``zero_mul_eq [a, b]
       | _, ineq.eq := mk_app ``mul_zero_eq [a, b]
@@ -1123,7 +1121,7 @@ meta def tactic.interactive.nlinarith (red : parse ((tk "!")?))
       | ineq.le, ineq.le := mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
       end,
     t ← infer_type p,
-    assertv `h t p),
+    assertv `h t p, skip),
   tactic.interactive.linarith red restr hyps cfg
 
 add_hint_tactic "nlinarith"

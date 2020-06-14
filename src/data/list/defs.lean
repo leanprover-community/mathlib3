@@ -524,6 +524,19 @@ def mmap_filter {m : Type → Type v} [monad m] {α β} (f : α → m (option β
 | (h :: t) := do b ← f h, t' ← t.mmap_filter, return $
   match b with none := t' | (some x) := x::t' end
 
+/--
+`mmap'_diag f l` calls `f` on all elements in the "upper diagonal" of `l × l`.
+That is, for each `e ∈ l`, it will run `f e e` and then `f e e'`
+for each `e'` that appears after `e` in `l`.
+
+Example: suppose `l = [1, 2, 3]`. `mmap'_diag f l` will evaluate, in this order,
+`f 1 1`, `f 1 2`, `f 1 3`, `f 2 2`, `f 2 3`, `f 3 3`.
+-/
+def mmap'_diag {m} [monad m] {α} (f : α → α → m unit) : list α → m unit
+| [] := return ()
+| (h::t) := f h h >> t.mmap' (f h) >> t.mmap'_diag
+
+
 protected def traverse {F : Type u → Type v} [applicative F] {α β : Type*} (f : α → F β) :
   list α → F (list β)
 | [] := pure []

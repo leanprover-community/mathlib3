@@ -232,8 +232,8 @@ by refine_struct {..}; simp
 /-- The coercion `ℝ → ℂ` as a `ring_hom`. -/
 def of_real : ℝ →+* ℂ := ⟨coe, of_real_one, of_real_mul, of_real_zero, of_real_add⟩
 
-instance of_real.is_ring_hom : is_ring_hom (coe : ℝ → ℂ) :=
-by refine_struct {..}; simp
+instance coe.is_ring_hom : is_ring_hom (coe : ℝ → ℂ) :=
+of_real.is_ring_hom
 
 @[simp] lemma of_real_eq_coe (r : ℝ) : of_real r = r := rfl
 

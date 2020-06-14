@@ -8,6 +8,7 @@ Operator norm on the space of continuous linear maps
 Define the operator norm on the space of continuous linear maps between normed spaces, and prove
 its basic properties. In particular, show that this space is itself a normed space.
 -/
+import linear_algebra.finite_dimensional
 import analysis.normed_space.riesz_lemma
 import analysis.asymptotics
 noncomputable theory
@@ -200,6 +201,24 @@ theorem is_O_sub (f : E →L[𝕜] F) (l : filter E) (x : E) :
   is_O (λ x', f (x' - x)) (λ x', x' - x) l :=
 f.is_O_comp _ l
 
+/-- A linear map which is a homothety is a continuous linear map.
+    Since the field `𝕜` need not have `ℝ` as a subfield, this theorem is not directly deducible from
+    the corresponding theorem about isometries plus a theorem about scalar multiplication.  Likewise
+    for the other theorems about homotheties in this file.
+ -/
+def of_homothety (f : E →ₗ[𝕜] F) (a : ℝ) (hf : ∀x, ∥f x∥ = a * ∥x∥) : E →L[𝕜] F :=
+f.mk_continuous a (λ x, le_of_eq (hf x))
+
+variable (𝕜)
+
+lemma to_span_singleton_homothety (x : E) (c : 𝕜) : ∥linear_map.to_span_singleton 𝕜 E x c∥ = ∥x∥ * ∥c∥ :=
+by {rw mul_comm, exact norm_smul _ _}
+
+/-- Given an element `x` of a normed space `E` over a field `𝕜`, the natural continuous
+    linear map from `E` to the span of `x`.-/
+def to_span_singleton (x : E) : 𝕜 →L[𝕜] E :=
+of_homothety (linear_map.to_span_singleton 𝕜 E x) ∥x∥ (to_span_singleton_homothety 𝕜 x)
+
 end
 
 section op_norm
@@ -334,6 +353,25 @@ begin
     rwa [dist_eq_norm, dist_eq_norm, f.map_zero, sub_zero, sub_zero] at this },
   { assume H x y,
     rw [dist_eq_norm, dist_eq_norm, ← f.map_sub, H] }
+end
+
+lemma homothety_norm (hE : 0 < vector_space.dim 𝕜 E) (f : E →L[𝕜] F) {a : ℝ} (ha : 0 ≤ a) (hf : ∀x, ∥f x∥ = a * ∥x∥) :
+  ∥f∥ = a :=
+begin
+  refine le_antisymm_iff.mpr ⟨_, _⟩,
+  { exact continuous_linear_map.op_norm_le_bound f ha (λ y, le_of_eq (hf y)) },
+  { rw continuous_linear_map.norm_def,
+    apply real.lb_le_Inf _ continuous_linear_map.bounds_nonempty,
+    cases dim_pos_iff_exists_ne_zero.mp hE with x hx,
+    intros c h, rw mem_set_of_eq at h,
+    apply (mul_le_mul_right (norm_pos_iff.mpr hx)).mp,
+    rw ← hf x, exact h.2 x }
+end
+
+lemma to_span_singleton_norm (x : E) : ∥to_span_singleton 𝕜 x∥ = ∥x∥ :=
+begin
+  refine homothety_norm _ _ (norm_nonneg x) (to_span_singleton_homothety 𝕜 x),
+  rw dim_of_field, exact cardinal.zero_lt_one,
 end
 
 variable (f)
@@ -630,6 +668,57 @@ lemma subsingleton_or_norm_symm_pos : subsingleton E ∨ 0 < ∥(e.symm : F →L
 
 lemma subsingleton_or_nnnorm_symm_pos : subsingleton E ∨ 0 < (nnnorm $ (e.symm : F →L[𝕜] E)) :=
 subsingleton_or_norm_symm_pos e
+
+lemma homothety_inverse (a : ℝ) (ha : 0 < a) (f : E ≃ₗ[𝕜] F) :
+  (∀ (x : E), ∥f x∥ = a * ∥x∥) → (∀ (y : F), ∥f.symm y∥ = a⁻¹ * ∥y∥) :=
+begin
+  intros hf y,
+  calc ∥(f.symm) y∥ = a⁻¹ * (a * ∥ (f.symm) y∥) : _
+  ... =  a⁻¹ * ∥f ((f.symm) y)∥ : by rw hf
+  ... = a⁻¹ * ∥y∥ : by simp,
+  rw [← mul_assoc, inv_mul_cancel (ne_of_lt ha).symm, one_mul],
+end
+
+variable (𝕜)
+
+/-- A linear equivalence which is a homothety is a continuous linear equivalence. -/
+def of_homothety (f : E ≃ₗ[𝕜] F) (a : ℝ) (ha : 0 < a) (hf : ∀x, ∥f x∥ = a * ∥x∥) : E ≃L[𝕜] F :=
+{ to_linear_equiv := f,
+  continuous_to_fun := f.to_linear_map.continuous_of_bound a (λ x, le_of_eq (hf x)),
+  continuous_inv_fun := f.symm.to_linear_map.continuous_of_bound a⁻¹
+    (λ x, le_of_eq (homothety_inverse a ha f hf x)) }
+
+lemma to_span_nonzero_singleton_homothety (x : E) (h : x ≠ 0) (c : 𝕜) :
+  ∥linear_equiv.to_span_nonzero_singleton 𝕜 E x h c∥ = ∥x∥ * ∥c∥ :=
+continuous_linear_map.to_span_singleton_homothety _ _ _
+
+/-- Given a nonzero element `x` of a normed space `E` over a field `𝕜`, the natural
+    continuous linear equivalence from `E` to the span of `x`.-/
+def to_span_nonzero_singleton (x : E) (h : x ≠ 0) : 𝕜 ≃L[𝕜] (submodule.span 𝕜 ({x} : set E)) :=
+of_homothety 𝕜
+  (linear_equiv.to_span_nonzero_singleton 𝕜 E x h)
+  ∥x∥
+  (norm_pos_iff.mpr h)
+  (to_span_nonzero_singleton_homothety 𝕜 x h)
+
+/-- Given a nonzero element `x` of a normed space `E` over a field `𝕜`, the natural continuous
+    linear map from the span of `x` to `𝕜`.-/
+abbreviation coord (x : E) (h : x ≠ 0) : (submodule.span 𝕜 ({x} : set E)) →L[𝕜] 𝕜 :=
+  (to_span_nonzero_singleton 𝕜 x h).symm
+
+lemma coord_norm (x : E) (h : x ≠ 0) : ∥coord 𝕜 x h∥ = ∥x∥⁻¹ :=
+begin
+  have hx : 0 < ∥x∥ := (norm_pos_iff.mpr h),
+  refine continuous_linear_map.homothety_norm _ _ (le_of_lt (inv_pos.mpr hx)) _,
+  { rw ← finite_dimensional.findim_eq_dim,
+    rw ← linear_equiv.findim_eq (linear_equiv.to_span_nonzero_singleton 𝕜 E x h),
+    rw finite_dimensional.findim_of_field,
+    have : 0 = ((0:nat) : cardinal) := rfl,
+    rw this, apply cardinal.nat_cast_lt.mpr, norm_num },
+  { intros y,
+    have : (coord 𝕜 x h) y = (to_span_nonzero_singleton 𝕜 x h).symm y := rfl,
+    rw this, apply homothety_inverse, exact hx, exact to_span_nonzero_singleton_homothety 𝕜 x h, }
+end
 
 end continuous_linear_equiv
 

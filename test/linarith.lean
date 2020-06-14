@@ -170,8 +170,20 @@ example (x y : ℚ) (h : x < y) : x ≠ y := by linarith
 
 example (x y : ℚ) (h : x < y) : ¬ x = y := by linarith
 
-lemma test6 (u v x y A B : ℚ)
+example (u v x y A B : ℚ)
+(a : 0 < A)
+(a_1 : 0 <= 1 - A)
+(a_2 : 0 <= B - 1)
+(a_3 : 0 <= B - x)
+(a_4 : 0 <= B - y)
+(a_5 : 0 <= u)
+(a_6 : 0 <= v)
+(a_7 : 0 < A - u)
+(a_8 : 0 < A - v) :
+ u * y + v * x + u * v < 3 * A * B :=
+ by nlinarith
 
+example (u v x y A B : ℚ)
 (a : 0 < A)
 (a_1 : 0 <= 1 - A)
 (a_2 : 0 <= B - 1)

@@ -148,8 +148,7 @@ meta def proceed_fields (env : environment) (src tgt : name) (prio : ℕ) : comm
 let aux := proceed_fields_aux src tgt prio in
 do
 aux (λ n, pure $ list.map name.to_string $ (env.structure_fields n).get_or_else []) >>
-aux (λ n, (list.map (λ (x : name), "to_" ++ x.to_string) <$>
-                            (ancestor_attr.get_param n <|> pure []))) >>
+aux (λ n, (list.map (λ (x : name), "to_" ++ x.to_string) <$> get_tagged_ancestors n)) >>
 aux (λ n, (env.constructors_of n).mmap $
           λ cs, match cs with
                 | (name.mk_string s pre) :=

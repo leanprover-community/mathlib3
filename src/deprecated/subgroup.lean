@@ -382,7 +382,7 @@ begin
 end
 
 @[to_additive]
-lemma trivial_ker_of_inj (f : G → H) [is_group_hom f] (h : function.injective f) :
+lemma trivial_ker_of_injective (f : G → H) [is_group_hom f] (h : function.injective f) :
   ker f = trivial G :=
 set.ext $ assume x, iff.intro
   (assume hx,

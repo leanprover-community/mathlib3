@@ -30,7 +30,7 @@ iff.intro
 
 end finset
 
-lemma conj_inj [group α] {x : α} : function.injective (λ (g : α), x * g * x⁻¹) :=
+lemma conj_injective [group α] {x : α} : function.injective (λ (g : α), x * g * x⁻¹) :=
 λ a b h, by simpa [mul_left_inj, mul_right_inj] using h
 
 lemma mem_normalizer_fintype [group α] {s : set α} [fintype s] {x : α}

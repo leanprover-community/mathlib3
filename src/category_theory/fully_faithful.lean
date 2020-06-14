@@ -26,14 +26,14 @@ attribute [simp] full.witness
 
 /-- A functor `F : C ⥤ D` is faithful if for each `X Y : C`, `F.map` is injective.-/
 class faithful (F : C ⥤ D) : Prop :=
-(injectivity' [] : ∀ {X Y : C}, function.injective (@functor.map _ _ _ _ F X Y) . obviously)
+(map_injective' [] : ∀ {X Y : C}, function.injective (@functor.map _ _ _ _ F X Y) . obviously)
 
-restate_axiom faithful.injectivity'
+restate_axiom faithful.map_injective'
 
 namespace functor
-lemma injectivity (F : C ⥤ D) [faithful F] {X Y : C} :
+lemma map_injective (F : C ⥤ D) [faithful F] {X Y : C} :
   function.injective $ @functor.map _ _ _ _ F X Y :=
-faithful.injectivity F
+faithful.map_injective F
 
 /-- The specified preimage of a morphism under a full functor. -/
 def preimage (F : C ⥤ D) [full F] {X Y : C} (f : F.obj X ⟶ F.obj Y) : X ⟶ Y :=
@@ -46,20 +46,20 @@ end functor
 variables {F : C ⥤ D} [full F] [faithful F] {X Y Z : C}
 
 @[simp] lemma preimage_id : F.preimage (𝟙 (F.obj X)) = 𝟙 X :=
-F.injectivity (by simp)
+F.map_injective (by simp)
 @[simp] lemma preimage_comp (f : F.obj X ⟶ F.obj Y) (g : F.obj Y ⟶ F.obj Z) :
   F.preimage (f ≫ g) = F.preimage f ≫ F.preimage g :=
-F.injectivity (by simp)
+F.map_injective (by simp)
 @[simp] lemma preimage_map (f : X ⟶ Y) :
   F.preimage (F.map f) = f :=
-F.injectivity (by simp)
+F.map_injective (by simp)
 
 /-- If `F : C ⥤ D` is fully faithful, every isomorphism `F.obj X ≅ F.obj Y` has a preimage. -/
 def preimage_iso (f : (F.obj X) ≅ (F.obj Y)) : X ≅ Y :=
 { hom := F.preimage f.hom,
   inv := F.preimage f.inv,
-  hom_inv_id' := F.injectivity (by simp),
-  inv_hom_id' := F.injectivity (by simp), }
+  hom_inv_id' := F.map_injective (by simp),
+  inv_hom_id' := F.map_injective (by simp), }
 
 @[simp] lemma preimage_iso_hom (f : (F.obj X) ≅ (F.obj Y)) :
   (preimage_iso f).hom = F.preimage f.hom := rfl
@@ -71,8 +71,8 @@ by tidy
 variables (F)
 def is_iso_of_fully_faithful (f : X ⟶ Y) [is_iso (F.map f)] : is_iso f :=
 { inv := F.preimage (inv (F.map f)),
-  hom_inv_id' := F.injectivity (by simp),
-  inv_hom_id' := F.injectivity (by simp) }
+  hom_inv_id' := F.map_injective (by simp),
+  inv_hom_id' := F.map_injective (by simp) }
 
 end category_theory
 
@@ -89,16 +89,16 @@ variables {D : Type u₂} [category.{v₂} D] {E : Type u₃} [category.{v₃} E
 variables (F F' : C ⥤ D) (G : D ⥤ E)
 
 instance faithful.comp [faithful F] [faithful G] : faithful (F ⋙ G) :=
-{ injectivity' := λ _ _ _ _ p, F.injectivity (G.injectivity p) }
+{ map_injective' := λ _ _ _ _ p, F.map_injective (G.map_injective p) }
 
 lemma faithful.of_comp [faithful $ F ⋙ G] : faithful F :=
-{ injectivity' := λ X Y, (F ⋙ G).injectivity.of_comp }
+{ map_injective' := λ X Y, (F ⋙ G).map_injective.of_comp }
 
 section
 variables {F F'}
 
 lemma faithful.of_iso [faithful F] (α : F ≅ F') : faithful F' :=
-{ injectivity' := λ X Y f f' h, F.injectivity
+{ map_injective' := λ X Y f f' h, F.map_injective
   (by rw [←nat_iso.naturality_1 α.symm, h, nat_iso.naturality_1 α.symm]) }
 end
 
@@ -129,7 +129,7 @@ protected def faithful.div (F : C ⥤ E) (G : D ⥤ E) [faithful G]
   map_id' :=
   begin
     assume X,
-    apply G.injectivity,
+    apply G.map_injective,
     apply eq_of_heq,
     transitivity F.map (𝟙 X), from h_map,
     rw [F.map_id, G.map_id, h_obj X]
@@ -137,7 +137,7 @@ protected def faithful.div (F : C ⥤ E) (G : D ⥤ E) [faithful G]
   map_comp' :=
   begin
     assume X Y Z f g,
-    apply G.injectivity,
+    apply G.map_injective,
     apply eq_of_heq,
     transitivity F.map (f ≫ g), from h_map,
     rw [F.map_comp, G.map_comp],

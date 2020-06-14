@@ -86,7 +86,7 @@ begin
   apply add_lt_add_left, rw mul_lt_mul_left h1, exact ih (λ k hk, hn _ $ succ_lt_succ hk) fn gn
 end
 
-lemma injective_cantor_function (h1 : 0 < c) (h2 : c < 1 / 2) :
+lemma cantor_function_injective (h1 : 0 < c) (h2 : c < 1 / 2) :
   function.injective (cantor_function c) :=
 begin
   intros f g hfg, classical, by_contra h, revert hfg,

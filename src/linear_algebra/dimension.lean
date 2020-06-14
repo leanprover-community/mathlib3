@@ -232,24 +232,24 @@ begin
   rwa [range_subtype, linear_map.range_eq_top]
 end
 
-lemma dim_eq_surjective (f : V →ₗ[K] V₂) (h : surjective f) : dim K V = dim K V₂ + dim K f.ker :=
+lemma dim_eq_of_surjective (f : V →ₗ[K] V₂) (h : surjective f) : dim K V = dim K V₂ + dim K f.ker :=
 by rw [← dim_range_add_dim_ker f, ← dim_range_of_surjective f h]
 
-lemma dim_le_surjective (f : V →ₗ[K] V₂) (h : surjective f) : dim K V₂ ≤ dim K V :=
+lemma dim_le_of_surjective (f : V →ₗ[K] V₂) (h : surjective f) : dim K V₂ ≤ dim K V :=
 by rw [dim_eq_surjective f h]; refine le_add_right (le_refl _)
 
-lemma dim_eq_injective (f : V →ₗ[K] V₂) (h : injective f) : dim K V = dim K f.range :=
+lemma dim_eq_of_injective (f : V →ₗ[K] V₂) (h : injective f) : dim K V = dim K f.range :=
 by rw [← dim_range_add_dim_ker f, linear_map.ker_eq_bot.2 h]; simp [dim_bot]
 
 lemma dim_submodule_le (s : submodule K V) : dim K s ≤ dim K V :=
 by { rw ← dim_quotient_add_dim s, exact cardinal.le_add_left _ _ }
 
-lemma dim_le_injective (f : V →ₗ[K] V₂) (h : injective f) :
+lemma dim_le_of_injective (f : V →ₗ[K] V₂) (h : injective f) :
   dim K V ≤ dim K V₂ :=
-by { rw [dim_eq_injective f h], exact dim_submodule_le _ }
+by { rw [dim_eq_of_injective f h], exact dim_submodule_le _ }
 
 lemma dim_le_of_submodule (s t : submodule K V) (h : s ≤ t) : dim K s ≤ dim K t :=
-dim_le_injective (of_le h) $ assume ⟨x, hx⟩ ⟨y, hy⟩ eq,
+dim_le_of_injective (of_le h) $ assume ⟨x, hx⟩ ⟨y, hy⟩ eq,
   subtype.eq $ show x = y, from subtype.ext.1 eq
 
 section

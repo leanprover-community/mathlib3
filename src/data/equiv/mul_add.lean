@@ -336,7 +336,7 @@ by { ext y, rw [symm_apply_eq, point_reflection_involutive x y] }
 
 /-- `x` is the only fixed point of `point_reflection x`. This lemma requires
 `x + x = y + y ↔ x = y`. There is no typeclass to use here, so we add it as an explicit argument. -/
-lemma point_reflection_fixed_iff_of_bit0_inj {x y : A} (h : function.injective (bit0 : A → A)) :
+lemma point_reflection_fixed_iff_of_bit0_injective {x y : A} (h : function.injective (bit0 : A → A)) :
   point_reflection x y = y ↔ y = x :=
 sub_eq_iff_eq_add.trans $ h.eq_iff.trans eq_comm
 

@@ -176,7 +176,7 @@ To prove this, we need to know that the coprojections into the coproduct are mon
 which follows from the fact we have zero morphisms and decidable equality for the grading.
 -/
 instance : faithful.{v} (total.{v u} β C) :=
-{ injectivity' := λ X Y f g w,
+{ map_injective' := λ X Y f g w,
   begin
     classical,
     ext i,

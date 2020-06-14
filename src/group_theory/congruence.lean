@@ -782,7 +782,7 @@ lift_range $ λ _ _, id
 /-- A monoid homomorphism `f` induces an injective homomorphism on the quotient by `f`'s kernel. -/
 @[to_additive "An `add_monoid` homomorphism `f` induces an injective homomorphism on the quotient
 by `f`'s kernel."]
-lemma injective_ker_lift (f : M →* P) : injective (ker_lift f) :=
+lemma ker_lift_injective (f : M →* P) : injective (ker_lift f) :=
 λ x y, quotient.induction_on₂' x y $ λ _ _, (ker f).eq.2
 
 /-- Given congruence relations `c, d` on a monoid such that `d` contains `c`, `d`'s quotient

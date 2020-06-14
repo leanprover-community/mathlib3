@@ -1355,7 +1355,7 @@ ring_hom.ext f.eq_int_cast
 (f.comp (int.cast_ring_hom α)).eq_int_cast n
 
 lemma ext_int {R : Type*} [semiring R] (f g : ℤ →+* R) : f = g :=
-coe_add_monoid_hom_inj $ add_monoid_hom.ext_int $ f.map_one.trans g.map_one.symm
+coe_add_monoid_hom_injective $ add_monoid_hom.ext_int $ f.map_one.trans g.map_one.symm
 
 instance int.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℤ →+* R) :=
 ⟨ring_hom.ext_int⟩

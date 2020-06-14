@@ -79,7 +79,7 @@ by consing the the inverse of the product of `v`. -/
 def mk_vector_prod_eq_one (n : ℕ) (v : vector G n) : vector G (n+1) :=
 v.to_list.prod⁻¹ :: v
 
-lemma mk_vector_prod_eq_one_inj (n : ℕ) : injective (@mk_vector_prod_eq_one G _ n) :=
+lemma mk_vector_prod_eq_one_injective (n : ℕ) : injective (@mk_vector_prod_eq_one G _ n) :=
 λ ⟨v, _⟩ ⟨w, _⟩ h, subtype.eq (show v = w, by injection h with h; injection h)
 
 /-- The type of vectors with terms from `G`, length `n`, and product equal to `1:G`. -/

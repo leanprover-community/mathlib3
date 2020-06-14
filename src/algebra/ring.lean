@@ -242,10 +242,10 @@ coe_inj (funext h)
 theorem ext_iff {f g : α →+* β} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
-theorem coe_add_monoid_hom_inj : function.injective (coe : (α →+* β) → (α →+ β)) :=
+theorem coe_add_monoid_hom_injective : function.injective (coe : (α →+* β) → (α →+ β)) :=
 λ f g h, coe_inj $ show ((f : α →+ β) : α → β) = (g : α →+ β), from congr_arg coe_fn h
 
-theorem coe_monoid_hom_inj : function.injective (coe : (α →+* β) → (α →* β)) :=
+theorem coe_monoid_hom_injective : function.injective (coe : (α →+* β) → (α →* β)) :=
 λ f g h, coe_inj $ show ((f : α →* β) : α → β) = (g : α →* β), from congr_arg coe_fn h
 
 /-- Ring homomorphisms map zero to zero. -/

@@ -32,11 +32,11 @@ by cases x; [contradiction, rw get_or_else_some]
 theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a = b :=
 option.some.inj $ ha.symm.trans hb
 
-theorem injective_some (α : Type*) : function.injective (@some α) :=
+theorem some_injective (α : Type*) : function.injective (@some α) :=
 λ _ _, some_inj.mp
 
 /-- `option.map f` is injective if `f` is injective. -/
-theorem injective_map {f : α → β} (Hf : function.injective f) : function.injective (option.map f)
+theorem map_injective {f : α → β} (Hf : function.injective f) : function.injective (option.map f)
 | none      none      H := rfl
 | (some a₁) (some a₂) H := by rw Hf (option.some.inj H)
 

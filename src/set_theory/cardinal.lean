@@ -880,7 +880,7 @@ mk_le_of_surjective surjective_onto_range
 lemma mk_range_eq (f : α → β) (h : injective f) : mk (range f) = mk α :=
 quotient.sound ⟨(equiv.set.range f h).symm⟩
 
-lemma mk_range_eq_of_inj {α : Type u} {β : Type v} {f : α → β} (hf : injective f) :
+lemma mk_range_eq_of_injective {α : Type u} {β : Type v} {f : α → β} (hf : injective f) :
   lift.{v u} (mk (range f)) = lift.{u v} (mk α) :=
 begin
   have := (@lift_mk_eq.{v u max u v} (range f) α).2 ⟨(equiv.set.range f hf).symm⟩,
@@ -897,7 +897,7 @@ theorem mk_image_eq {α β : Type u} {f : α → β} {s : set α} (hf : injectiv
 quotient.sound ⟨(equiv.set.image f s hf).symm⟩
 
 theorem mk_Union_le_sum_mk {α ι : Type u} {f : ι → set α} : mk (⋃ i, f i) ≤ sum (λ i, mk (f i)) :=
-calc mk (⋃ i, f i) ≤ mk (Σ i, f i) : mk_le_of_surjective (set.surjective_sigma_to_Union f)
+calc mk (⋃ i, f i) ≤ mk (Σ i, f i) : mk_le_of_surjective (set.sigma_to_Union_surjective f)
   ... = sum (λ i, mk (f i)) : (sum_mk _).symm
 
 theorem mk_Union_eq_sum_mk {α ι : Type u} {f : ι → set α} (h : ∀i j, i ≠ j → disjoint (f i) (f j)) :

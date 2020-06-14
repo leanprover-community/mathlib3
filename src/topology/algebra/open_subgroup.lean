@@ -58,11 +58,11 @@ lemma mem_coe_subgroup : g ∈ (U : subgroup G) ↔ g ∈ U := iff.rfl
 attribute [norm_cast] mem_coe mem_coe_opens mem_coe_subgroup open_add_subgroup.mem_coe
   open_add_subgroup.mem_coe_opens open_add_subgroup.mem_coe_add_subgroup
 
-@[to_additive] lemma ext' : injective (coe : open_subgroup G → set G) :=
+@[to_additive] lemma coe_injective : injective (coe : open_subgroup G → set G) :=
 λ U V h, by cases U; cases V; congr; assumption
 
 @[ext, to_additive]
-lemma ext (h : ∀ x, x ∈ U ↔ x ∈ V) : (U = V) := ext' $ set.ext h
+lemma ext (h : ∀ x, x ∈ U ↔ x ∈ V) : (U = V) := coe_injective $ set.ext h
 
 @[to_additive]
 lemma ext_iff : (U = V) ↔ (∀ x, x ∈ U ↔ x ∈ V) := ⟨λ h x, h ▸ iff.rfl, ext⟩

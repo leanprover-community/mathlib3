@@ -570,7 +570,8 @@ def change_origin_summable_aux_j (k : ℕ) :
     → (Σ (k : ℕ) (n : ℕ), {s : finset (fin n) // finset.card s = k}) :=
 λ ⟨n, s, hs⟩, ⟨k, n, s, hs⟩
 
-lemma change_origin_summable_aux_j_inj (k : ℕ) : function.injective (change_origin_summable_aux_j k) :=
+lemma change_origin_summable_aux_j_injective (k : ℕ) :
+  function.injective (change_origin_summable_aux_j k) :=
 begin
   rintros ⟨_, ⟨_, _⟩⟩ ⟨_, ⟨_, _⟩⟩ a,
   simp only [change_origin_summable_aux_j, true_and, eq_self_iff_true, heq_iff_eq, sigma.mk.inj_iff] at a,

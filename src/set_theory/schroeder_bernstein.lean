@@ -20,7 +20,7 @@ section antisymm
 variables {α : Type u} {β : Type v}
 
 theorem schroeder_bernstein {f : α → β} {g : β → α}
-  (hf : injective f) (hg : injective g) : ∃h:α→β, bijective h :=
+  (hf : function.injective f) (hg : function.injective g) : ∃h:α→β, bijective h :=
 let s : set α := lfp $ λs, - (g '' - (f '' s)) in
 have hs : s = - (g '' - (f '' s)),
   from lfp_eq $ assume s t h,
@@ -28,7 +28,7 @@ have hs : s = - (g '' - (f '' s)),
     compl_subset_compl.mpr $ image_subset _ h,
 
 have hns : - s = g '' - (f '' s),
-  from compl_inj $ by simp [hs.symm],
+  from compl_injective $ by simp [hs.symm],
 
 let g' := λa, @inv_fun β ⟨f a⟩ α g a in
 have g'g : g' ∘ g = id,
@@ -61,7 +61,7 @@ have split : ∀x∈s, ∀y∉s, h x = h y → false,
       ... = _ : by simp [g'g],
   have y' ∈ f '' s, from this ▸ mem_image_of_mem _ hx,
   hy' this,
-have injective h,
+have function.injective h,
   from assume x y eq,
   by_cases
     (assume hx : x ∈ s, by_cases
@@ -81,7 +81,7 @@ have injective h,
           ... = g y' : by rw [this]
           ... = y : eqy)),
 
-⟨h, ‹injective h›, ‹surjective h›⟩
+⟨h, ‹function.injective h›, ‹function.surjective h›⟩
 
 theorem antisymm : (α ↪ β) → (β ↪ α) → nonempty (α ≃ β)
 | ⟨e₁, h₁⟩ ⟨e₂, h₂⟩ :=
@@ -96,7 +96,7 @@ parameters {ι : Type u} {β : ι → Type v}
 @[reducible] private def sets := {s : set (∀ i, β i) |
   ∀ (x ∈ s) (y ∈ s) i, (x : ∀ i, β i) i = y i → x = y}
 
-theorem injective_min (I : nonempty ι) : ∃ i, nonempty (∀ j, β i ↪ β j) :=
+theorem min_injective (I : nonempty ι) : ∃ i, nonempty (∀ j, β i ↪ β j) :=
 let ⟨s, hs, ms⟩ := show ∃s∈sets, ∀a∈sets, s ⊆ a → a = s, from
   zorn.zorn_subset sets (λ c hc hcc, ⟨⋃₀ c,
     λ x ⟨p, hpc, hxp⟩ y ⟨q, hqc, hyq⟩ i hi,
@@ -123,7 +123,7 @@ let ⟨f, hf⟩ := axiom_of_choice e in
 end wo
 
 theorem total {α : Type u} {β : Type v} : nonempty (α ↪ β) ∨ nonempty (β ↪ α) :=
-match @injective_min bool (λ b, cond b (ulift α) (ulift.{(max u v) v} β)) ⟨tt⟩ with
+match @min_injective bool (λ b, cond b (ulift α) (ulift.{(max u v) v} β)) ⟨tt⟩ with
 | ⟨tt, ⟨h⟩⟩ := let ⟨f, hf⟩ := h ff in or.inl ⟨embedding.congr equiv.ulift equiv.ulift ⟨f, hf⟩⟩
 | ⟨ff, ⟨h⟩⟩ := let ⟨f, hf⟩ := h tt in or.inr ⟨embedding.congr equiv.ulift equiv.ulift ⟨f, hf⟩⟩
 end

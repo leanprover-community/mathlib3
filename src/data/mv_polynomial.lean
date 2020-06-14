@@ -1149,13 +1149,13 @@ begin
   exact assume a b c, pow_add _ _ _
 end
 
-lemma injective_rename (f : β → γ) (hf : function.injective f) :
+lemma rename_injective (f : β → γ) (hf : function.injective f) :
   function.injective (rename f : mv_polynomial β α → mv_polynomial γ α) :=
 have (rename f : mv_polynomial β α → mv_polynomial γ α) =
   finsupp.map_domain (finsupp.map_domain f) := funext (rename_eq f),
 begin
   rw this,
-  exact finsupp.injective_map_domain (finsupp.injective_map_domain hf)
+  exact finsupp.map_domain_injective (finsupp.map_domain_injective hf)
 end
 
 lemma total_degree_rename_le (f : β → γ) (p : mv_polynomial β α) :

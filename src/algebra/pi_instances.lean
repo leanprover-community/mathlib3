@@ -372,10 +372,10 @@ def inl [has_zero β] (a : α) : α × β := (a, 0)
 /-- Right injection function for the inner product -/
 def inr [has_zero α] (b : β) : α × β := (0, b)
 
-lemma injective_inl [has_zero β] : function.injective (inl : α → α × β) :=
+lemma inl_injective [has_zero β] : function.injective (inl : α → α × β) :=
 assume x y h, (prod.mk.inj_iff.mp h).1
 
-lemma injective_inr [has_zero α] : function.injective (inr : β → α × β) :=
+lemma inr_injective [has_zero α] : function.injective (inr : β → α × β) :=
 assume x y h, (prod.mk.inj_iff.mp h).2
 
 @[simp] lemma inl_eq_inl [has_zero β] {a₁ a₂ : α} : (inl a₁ : α × β) = inl a₂ ↔ a₁ = a₂ :=

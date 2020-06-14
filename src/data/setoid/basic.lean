@@ -231,7 +231,7 @@ end
 
 /-- Given a map f from α to β, the natural map from the quotient of α by the kernel of f is
     injective. -/
-lemma injective_ker_lift (f : α → β) : injective (@quotient.lift _ _ (ker f) f (λ _ _ h, h)) :=
+lemma ker_lift_injective (f : α → β) : injective (@quotient.lift _ _ (ker f) f (λ _ _ h, h)) :=
 λ x y, quotient.induction_on₂' x y $ λ a b h, quotient.sound' h
 
 /-- Given a map f from α to β, the kernel of f is the unique equivalence relation on α whose
@@ -250,7 +250,7 @@ noncomputable def quotient_ker_equiv_range :
   quotient (ker f) ≃ set.range f :=
 equiv.of_bijective (@quotient.lift _ (set.range f) (ker f)
   (λ x, ⟨f x, set.mem_range_self x⟩) $ λ _ _ h, subtype.eq' h)
-  ⟨λ x y h, injective_ker_lift f $ by rcases x; rcases y; injections,
+  ⟨λ x y h, ker_lift_injective f $ by rcases x; rcases y; injections,
    λ ⟨w, z, hz⟩, ⟨@quotient.mk _ (ker f) z, by rw quotient.lift_beta; exact subtype.ext.2 hz⟩⟩
 
 /-- The quotient of α by the kernel of a surjective function f bijects with f's codomain. -/

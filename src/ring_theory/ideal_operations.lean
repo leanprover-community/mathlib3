@@ -772,7 +772,7 @@ by rw [ker, ideal.mem_comap, submodule.mem_bot]
 
 lemma ker_eq : ((ker f) : set R) = is_add_group_hom.ker f := rfl
 
-lemma inj_iff_ker_eq_bot : function.injective f ↔ ker f = ⊥ :=
+lemma injective_iff_ker_eq_bot : function.injective f ↔ ker f = ⊥ :=
 by rw [submodule.ext'_iff, ker_eq]; exact is_add_group_hom.inj_iff_trivial_ker f
 
 lemma ker_eq_bot_iff_eq_zero : ker f = ⊥ ↔ ∀ x, f x = 0 → x = 0 :=

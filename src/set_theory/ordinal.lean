@@ -71,7 +71,7 @@ theorem unique_of_extensional [is_extensional β s] :
   well_founded r → subsingleton (r ≼i s) | ⟨h⟩ :=
 ⟨λ f g, begin
   suffices : (f : α → β) = g, { cases f, cases g,
-    congr, exact order_embedding.coe_fn_injective this },
+    congr, exact order_embedding.coe_fn_inj this },
   funext a, have := h a, induction this with a H IH,
   refine @is_extensional.ext _ s _ _ _ (λ x, ⟨λ h, _, λ h, _⟩),
   { rcases f.init_iff.1 h with ⟨y, rfl, h'⟩,
@@ -221,7 +221,7 @@ instance [is_well_order β s] : subsingleton (r ≺i s) :=
   { refine @is_extensional.ext _ s _ _ _ (λ x, _),
     simp only [f.down, g.down, ef, coe_fn_to_order_embedding] },
   cases f, cases g,
-  have := order_embedding.coe_fn_injective ef; congr'
+  have := order_embedding.coe_fn_inj ef; congr'
 end⟩
 
 theorem top_eq [is_well_order γ t]
@@ -518,12 +518,12 @@ theorem typein_surj (r : α → α → Prop) [is_well_order α r]
   {o} (h : o < type r) : ∃ a, typein r a = o :=
 induction_on o (λ β s _ ⟨f⟩, by exactI ⟨f.top, typein_top _⟩) h
 
-lemma injective_typein (r : α → α → Prop) [is_well_order α r] : injective (typein r) :=
+lemma typein_injective (r : α → α → Prop) [is_well_order α r] : injective (typein r) :=
 injective_of_increasing r (<) (typein r) (λ x y, (typein_lt_typein r).2)
 
 theorem typein_inj (r : α → α → Prop) [is_well_order α r]
   {a b} : typein r a = typein r b ↔ a = b :=
-injective.eq_iff (injective_typein r)
+injective.eq_iff (typein_injective r)
 
 /-- `enum r o h` is the `o`-th element of `α` ordered by `r`.
   That is, `enum` maps an initial segment of the ordinals, those

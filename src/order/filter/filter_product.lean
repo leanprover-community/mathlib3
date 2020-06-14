@@ -248,7 +248,7 @@ protected def linear_order [linear_order β] (U : is_ultrafilter φ) : linear_or
       (λ h, or.inr (sets_of_superset _ h hS))
   ..filter_product.partial_order }
 
-theorem of_inj (NT : φ ≠ ⊥) : function.injective (@of _ β φ) :=
+theorem of_injective (NT : φ ≠ ⊥) : function.injective (@of _ β φ) :=
 begin
   intros r s rs, classical, by_contra N,
   rw [of, of, of_seq, quotient.eq', bigly_equal] at rs,
@@ -278,8 +278,8 @@ theorem of_seq_fun₂ (f g₁ g₂ : α → β) (h : β → β → β) (H : ∀*
 
 @[simp] lemma of_eq_coe (x : β) : of x = (x : β*) := rfl
 
-@[simp] lemma coe_injective (x y : β) (NT : φ ≠ ⊥) : (x : β*) = y ↔ x = y :=
-⟨λ h, of_inj NT h, λ h, by rw h⟩
+@[simp] lemma coe_inj (x y : β) (NT : φ ≠ ⊥) : (x : β*) = y ↔ x = y :=
+⟨λ h, of_injective NT h, λ h, by rw h⟩
 
 lemma of_eq (x y : β) (NT : φ ≠ ⊥) : x = y ↔ of x = (of y : β*) :=
 by simp [NT]

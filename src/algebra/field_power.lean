@@ -126,7 +126,7 @@ end
   x ^ m ≤ x ^ n ↔ m ≤ n :=
 (fpow_strict_mono hx).le_iff_le
 
-lemma injective_fpow {x : K} (h₀ : 0 < x) (h₁ : x ≠ 1) :
+lemma fpow_injective {x : K} (h₀ : 0 < x) (h₁ : x ≠ 1) :
   function.injective ((^) x : ℤ → K) :=
 begin
   intros m n h,
@@ -141,7 +141,7 @@ end
 
 @[simp] lemma fpow_inj {x : K} (h₀ : 0 < x) (h₁ : x ≠ 1) {m n : ℤ} :
   x ^ m = x ^ n ↔ m = n :=
-(injective_fpow h₀ h₁).eq_iff
+(fpow_injective h₀ h₁).eq_iff
 
 end ordered
 

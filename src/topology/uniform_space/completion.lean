@@ -283,7 +283,7 @@ end
 section
 local attribute [instance] uniform_space.separation_setoid
 
-lemma injective_separated_pure_cauchy {α : Type*} [uniform_space α] [s : separated α] :
+lemma separated_pure_cauchy_injective {α : Type*} [uniform_space α] [s : separated α] :
   function.injective (λa:α, ⟦pure_cauchy a⟧) | a b h :=
 separated_def.1 s _ _ $ assume s hs,
 let ⟨t, ht, hts⟩ :=

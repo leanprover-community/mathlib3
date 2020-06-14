@@ -243,7 +243,7 @@ lemma mem_mk_point_of_direction (p : P) (direction : submodule k V) :
 
 /-- Constructing an affine subspace from a point in a subspace and
 that subspace's direction yields the original subspace. -/
-@[simp] lemma mk_of_point_of_direction_eq (s : affine_subspace k V P) {p : P} (hp : p ∈ s) :
+@[simp] lemma mk_of_point_of_direction_eq {s : affine_subspace k V P} {p : P} (hp : p ∈ s) :
   mk_of_point_of_direction p s.direction = s :=
 ext' rfl ⟨p, set.mem_inter (mem_mk_point_of_direction _ _) hp⟩
 

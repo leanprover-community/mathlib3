@@ -108,13 +108,10 @@ attribute [class] inner_product_space.core
 
 namespace inner_product_space.of_core
 
-local attribute [class] inner_product_space.core
-
 variables [add_comm_group F] [semimodule ℝ F] [c : inner_product_space.core F]
 include c
 
 /-- Inner product constructed from an `inner_product_space.core` structure -/
-@[nolint incorrect_type_class_argument]
 def to_has_inner : has_inner F :=
 { inner := c.inner }
 
@@ -136,7 +133,6 @@ by { rw [inner_comm, inner_smul_left, inner_comm] }
 
 /-- Norm constructed from an `inner_product_space.core` structure, defined to be the square root
 of the scalar product. -/
-@[nolint incorrect_type_class_argument]
 def to_has_norm : has_norm F :=
 { norm := λ x, sqrt (inner x x) }
 

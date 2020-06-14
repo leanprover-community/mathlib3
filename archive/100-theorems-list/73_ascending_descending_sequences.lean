@@ -1,5 +1,25 @@
-import data.finset
+/-
+Copyright (c) 2020 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 import data.fintype.basic
+
+/-!
+# Erdos-Szekeres theorem
+
+This file proves Theorem 73 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/),
+also known as the Erdos-Szekeres theorem.
+
+We use the proof outlined at
+https://en.wikipedia.org/wiki/Erdos-Szekeres_theorem#Pigeonhole_principle
+
+## Tags
+
+sequences, increasing, decreasing, Ramsey, Erdos, Szekeres, Erdos-Szekeres, Erdős–Szekeres,
+Erdős-Szekeres
+-/
+
 
 variables {α : Type*} [linear_order α] {β : Type*}
 

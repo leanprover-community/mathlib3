@@ -154,6 +154,99 @@ set.mem_univ p
 
 instance : inhabited (affine_subspace k V P) := ⟨univ k V P⟩
 
+variables {k V P}
+
+/-- Two affine subspaces are equal if they have the same points. -/
+@[ext] lemma ext {s1 s2 : affine_subspace k V P} (h : (s1 : set P) = s2) : s1 = s2 :=
+begin
+  cases s1,
+  cases s2,
+  change s1_carrier = s2_carrier at h,
+  congr,
+  { exact h },
+  { ext v,
+    split,
+    { intro hv,
+      have hm := s1_nonempty.some_mem,
+      have hvp := s1_add s1_nonempty.some v hm hv,
+      conv_rhs at hm {
+        rw h
+      },
+      conv_rhs at hvp {
+        rw h
+      },
+      rw ←vadd_vsub V v s1_nonempty.some,
+      exact s2_sub _ _ hvp hm },
+    { intro hv,
+      have hm := s2_nonempty.some_mem,
+      have hvp := s2_add s2_nonempty.some v hm hv,
+      conv_rhs at hm {
+        rw ←h
+      },
+      conv_rhs at hvp {
+        rw ←h
+      },
+      rw ←vadd_vsub V v s2_nonempty.some,
+      exact s1_sub _ _ hvp hm } }
+end
+
+/-- Two affine subspaces with the same direction and nonempty
+intersection are equal. -/
+lemma ext' {s1 s2 : affine_subspace k V P} (hd : s1.direction = s2.direction)
+    (hn : ((s1 : set P) ∩ s2).nonempty) : s1 = s2 :=
+begin
+  ext p,
+  have hq1 := set.mem_of_mem_inter_left hn.some_mem,
+  have hq2 := set.mem_of_mem_inter_right hn.some_mem,
+  split,
+  { intro hp,
+    rw ←vsub_vadd V p hn.some,
+    refine s2.add _ _ hq2 _,
+    rw ←hd,
+    exact s1.sub _ _ hp hq1 },
+  { intro hp,
+    rw ←vsub_vadd V p hn.some,
+    refine s1.add _ _ hq1 _,
+    rw hd,
+    exact s2.sub _ _ hp hq2 }
+end
+
+/-- Construct an affine subspace from a point and a direction. -/
+def mk_of_point_of_direction (p : P) (direction : submodule k V) : affine_subspace k V P :=
+{ carrier := {q | ∃ v ∈ direction, q = v +ᵥ p},
+  direction := direction,
+  nonempty := ⟨p, ⟨0, ⟨direction.zero_mem, (add_action.zero_vadd _ _).symm⟩⟩⟩,
+  add := λ p2 v hp2 hv, begin
+    rcases hp2 with ⟨v2, hv2, hp2⟩,
+    use [v + v2, direction.add_mem hv hv2],
+    rw [←add_action.vadd_assoc, hp2]
+  end,
+  sub := λ p1 p2 hp1 hp2, begin
+    rcases hp1 with ⟨v1, hv1, hp1⟩,
+    rcases hp2 with ⟨v2, hv2, hp2⟩,
+    rw [hp1, hp2, vadd_vsub_vadd_cancel_right],
+    exact direction.sub_mem hv1 hv2
+  end
+}
+
+/-- The direction of an affine space constructed from a point and a
+direction. -/
+@[simp] lemma direction_mk_of_point_of_direction (p : P) (direction : submodule k V) :
+  (mk_of_point_of_direction p direction).direction = direction :=
+rfl
+
+/-- An affine space constructed from a point and a direction contains
+that point. -/
+lemma mem_mk_point_of_direction (p : P) (direction : submodule k V) :
+  p ∈ mk_of_point_of_direction p direction :=
+⟨0, ⟨direction.zero_mem, (add_action.zero_vadd _ _).symm⟩⟩
+
+/-- Constructing an affine subspace from a point in a subspace and
+that subspace's direction yields the original subspace. -/
+@[simp] lemma mk_of_point_of_direction_eq (s : affine_subspace k V P) {p : P} (hp : p ∈ s) :
+  mk_of_point_of_direction p s.direction = s :=
+ext' rfl ⟨p, set.mem_inter (mem_mk_point_of_direction _ _) hp⟩
+
 end affine_subspace
 
 section affine_span

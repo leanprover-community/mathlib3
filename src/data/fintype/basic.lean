@@ -37,10 +37,10 @@ by ext; simp
 theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 
 theorem eq_univ_iff_forall {s : finset α} : s = univ ↔ ∀ x, x ∈ s :=
-by simp [ext]
+by simp [ext_iff]
 
 @[simp] lemma univ_inter [decidable_eq α] (s : finset α) :
-  univ ∩ s = s := ext' $ λ a, by simp
+  univ ∩ s = s := ext $ λ a, by simp
 
 @[simp] lemma inter_univ [decidable_eq α] (s : finset α) :
   s ∩ univ = s :=

@@ -185,17 +185,6 @@ def lt : linexp → linexp → bool
 
 end linexp
 
--- these instances are local to this file so that they don't accidentally leak to other uses of `list (ℕ × ℤ)`.
-
-/-- A local `has_lt` instance, implemented by `linarith.linexp.lt`. -/
-local attribute [instance]
-def linexp.has_lt : has_lt linexp := ⟨↑linexp.lt⟩
-
-/-- A local decidability instance. -/
-local attribute [instance]
-def linexp.lt_decidable : decidable_rel ((<) : linexp → linexp → Prop) :=
-λ a b, decidable_of_bool (linexp.lt a b) $ iff.refl _
-
 section datatypes
 
 @[derive decidable_eq, derive inhabited]
@@ -256,17 +245,10 @@ meta structure pcomp :=
 (c : comp)
 (src : comp_source)
 
-meta def map_lt (m1 m2 : rb_map ℕ int) : bool :=
-list.lex (prod.lex (<) (<)) m1.to_list m2.to_list
-
--- make more efficient
 meta def comp.lt (c1 c2 : comp) : bool :=
-(c1.str.is_lt c2.str) || (c1.str = c2.str) && (c1.coeffs < c2.coeffs)
+(c1.str.is_lt c2.str) || (c1.str = c2.str) && (c1.coeffs.lt c2.coeffs)
 
-meta instance comp.has_lt : has_lt comp := ⟨λ a b, comp.lt a b⟩
-meta instance pcomp.has_lt : has_lt pcomp := ⟨λ p1 p2, p1.c < p2.c⟩
- -- short-circuit type class inference
-meta instance pcomp.has_lt_dec : decidable_rel ((<) : pcomp → pcomp → Prop) := by apply_instance
+meta instance pcomp.has_lt : has_lt pcomp := ⟨λ p1 p2, p1.c.lt p2.c⟩
 
 meta def comp.coeff_of (c : comp) (a : ℕ) : ℤ :=
 c.coeffs.zfind a

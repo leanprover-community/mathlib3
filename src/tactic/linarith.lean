@@ -146,11 +146,10 @@ that is, it will return `none` as soon as it finds a key smaller than `n`.
 -/
 def get (n : ℕ) : linexp → option ℤ
 | [] := none
-| ((a, b)::t) := match cmp a n with
-  | ordering.lt := none
-  | ordering.gt := get t
-  | ordering.eq := some b
-  end
+| ((a, b)::t) :=
+  if a < n then none
+  else if a = n then some b
+  else get t
 
 /--
 `l.contains n` is true iff `n` is the first element of a pair in `l`.

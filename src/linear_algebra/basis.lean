@@ -1138,8 +1138,7 @@ assume t, finset.induction_on t
           hsu, by simp [eq, hb₂t', hb₁t, hb₁s']⟩)),
 begin
   have eq : t.filter (λx, x ∈ s) ∪ t.filter (λx, x ∉ s) = t,
-  { apply finset.ext.mpr,
-    intro x,
+  { ext1 x,
     by_cases x ∈ s; simp * },
   apply exists.elim (this (t.filter (λx, x ∉ s)) (t.filter (λx, x ∈ s))
     (by simp [set.subset_def]) (by simp [set.ext_iff] {contextual := tt}) (by rwa [eq])),

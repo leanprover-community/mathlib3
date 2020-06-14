@@ -191,7 +191,7 @@ end
 lemma support_swap_mul_eq [fintype α] {f : perm α} {x : α}
   (hffx : f (f x) ≠ x) : (swap x (f x) * f).support = f.support.erase x :=
 have hfx : f x ≠ x, from λ hfx, by simpa [hfx] using hffx,
-finset.ext.2 $ λ y,
+finset.ext $ λ y,
 ⟨λ hy, have hy' : (swap x (f x) * f) y ≠ y, from mem_support.1 hy,
     mem_erase.2 ⟨λ hyx, by simp [hyx, mul_apply, *] at *,
     mem_support.2 $ λ hfy,
@@ -666,11 +666,11 @@ lemma is_cycle_swap_mul {f : perm α} (hf : is_cycle f) {x : α}
   is_cycle_swap_mul_aux₂ (i - 1) hy hi⟩
 
 @[simp] lemma support_swap [fintype α] {x y : α} (hxy : x ≠ y) : (swap x y).support = {x, y} :=
-finset.ext.2 $ λ a, by simp [swap_apply_def]; split_ifs; cc
+finset.ext $ λ a, by simp [swap_apply_def]; split_ifs; cc
 
 lemma card_support_swap [fintype α] {x y : α} (hxy : x ≠ y) : (swap x y).support.card = 2 :=
 show (swap x y).support.card = finset.card ⟨x::y::0, by simp [hxy]⟩,
-from congr_arg card $ by rw [support_swap hxy]; simp [*, finset.ext]; cc
+from congr_arg card $ by rw [support_swap hxy]; simp [*, finset.ext_iff]; cc
 
 lemma sign_cycle [fintype α] : ∀ {f : perm α} (hf : is_cycle f),
   sign f = -(-1) ^ f.support.card

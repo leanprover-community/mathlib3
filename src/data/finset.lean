@@ -1,13 +1,15 @@
 /-
 Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
-
-Finite sets.
+Authors: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 -/
 import data.multiset
 import tactic.monotonicity
 import tactic.apply
+
+/-!
+# Finite sets
+-/
 
 open multiset subtype nat
 
@@ -49,7 +51,7 @@ multiset.decidable_mem _ _
 /-- Convert a finset to a set in the natural way. -/
 instance : has_lift (finset α) (set α) := ⟨λ s, {x | x ∈ s}⟩
 
-@[simp] lemma mem_coe {a : α} {s : finset α} : a ∈ (↑s : set α) ↔ a ∈ s := iff.rfl
+@[simp, norm_cast] lemma mem_coe {a : α} {s : finset α} : a ∈ (↑s : set α) ↔ a ∈ s := iff.rfl
 
 @[simp] lemma set_of_mem {α} {s : finset α} : {a | a ∈ s} = ↑s := rfl
 
@@ -63,15 +65,15 @@ instance decidable_mem' [decidable_eq α] (a : α) (s : finset α) :
   decidable (a ∈ (↑s : set α)) := s.decidable_mem _
 
 /-! ### extensionality -/
-theorem ext {s₁ s₂ : finset α} : s₁ = s₂ ↔ ∀ a, a ∈ s₁ ↔ a ∈ s₂ :=
+theorem ext_iff {s₁ s₂ : finset α} : s₁ = s₂ ↔ ∀ a, a ∈ s₁ ↔ a ∈ s₂ :=
 val_inj.symm.trans $ nodup_ext s₁.2 s₂.2
 
 @[ext]
-theorem ext' {s₁ s₂ : finset α} : (∀ a, a ∈ s₁ ↔ a ∈ s₂) → s₁ = s₂ :=
-ext.2
+theorem ext {s₁ s₂ : finset α} : (∀ a, a ∈ s₁ ↔ a ∈ s₂) → s₁ = s₂ :=
+ext_iff.2
 
-@[simp] theorem coe_inj {s₁ s₂ : finset α} : (↑s₁ : set α) = ↑s₂ ↔ s₁ = s₂ :=
-set.ext_iff.trans ext.symm
+@[simp, norm_cast] theorem coe_inj {s₁ s₂ : finset α} : (↑s₁ : set α) = ↑s₂ ↔ s₁ = s₂ :=
+set.ext_iff.trans ext_iff.symm
 
 lemma coe_injective {α} : function.injective (coe : finset α → set α) :=
 λ s t, coe_inj.1
@@ -125,6 +127,9 @@ show (↑s₁ : set α) ⊂ ↑s₂ ↔ s₁ ⊆ s₂ ∧ ¬s₂ ⊆ s₁,
 
 @[simp] theorem val_lt_iff {s₁ s₂ : finset α} : s₁.1 < s₂.1 ↔ s₁ ⊂ s₂ :=
 and_congr val_le_iff $ not_congr val_le_iff
+
+theorem ssubset_iff_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁ ⊂ s₂ ↔ ∃ x ∈ s₂, x ∉ s₁ :=
+set.ssubset_iff_of_subset h
 
 /-! ### Nonempty -/
 
@@ -288,9 +293,9 @@ insert_subset.2 ⟨mem_insert_self _ _, subset.trans h (subset_insert _ _)⟩
 
 lemma ssubset_iff {s t : finset α} : s ⊂ t ↔ (∃a, a ∉ s ∧ insert a s ⊆ t) :=
 iff.intro
-  (assume ⟨h₁, h₂⟩,
-    have ∃a ∈ t, a ∉ s, by simpa only [finset.subset_iff, classical.not_forall] using h₂,
-    let ⟨a, hat, has⟩ := this in ⟨a, has, insert_subset.mpr ⟨hat, h₁⟩⟩)
+  (assume H,
+    have ∃a ∈ t, a ∉ s := set.exists_of_ssubset H,
+    let ⟨a, hat, has⟩ := this in ⟨a, has, insert_subset.mpr ⟨hat, H.1⟩⟩)
   (assume ⟨a, hat, has⟩,
     let ⟨h₁, h₂⟩ := insert_subset.mp has in
     ⟨h₂, assume h, hat $ h h₁⟩)
@@ -1095,7 +1100,7 @@ finset.eq_of_veq erase_dup_cons
 
 @[simp] lemma to_finset_add (s t : multiset α) :
   to_finset (s + t) = to_finset s ∪ to_finset t :=
-finset.ext' $ by simp
+finset.ext $ by simp
 
 @[simp] lemma to_finset_nsmul (s : multiset α) :
   ∀(n : ℕ) (hn : n ≠ 0), (n •ℕ s).to_finset = s.to_finset
@@ -1109,7 +1114,7 @@ finset.ext' $ by simp
 
 @[simp] lemma to_finset_inter (s t : multiset α) :
   to_finset (s ∩ t) = to_finset s ∩ to_finset t :=
-finset.ext' $ by simp
+finset.ext $ by simp
 
 theorem to_finset_eq_empty {m : multiset α} : m.to_finset = ∅ ↔ m = 0 :=
 finset.val_inj.symm.trans multiset.erase_dup_eq_zero
@@ -1517,7 +1522,7 @@ by haveI := classical.prop_decidable; exact
 calc s.card = s.attach.card : card_attach.symm
 ... = (s.attach.image (λ (a : {a // a ∈ s}), f a.1 a.2)).card :
   eq.symm (card_image_of_injective _ (λ a b h, subtype.eq (h₂ _ _ _ _ h)))
-... = t.card : congr_arg card (finset.ext.2 $ λ b,
+... = t.card : congr_arg card (finset.ext $ λ b,
     ⟨λ h, let ⟨a, ha₁, ha₂⟩ := mem_image.1 h in ha₂ ▸ h₁ _ _,
       λ h, let ⟨a, ha₁, ha₂⟩ := h₃ b h in mem_image.2 ⟨⟨a, ha₁⟩, by simp [ha₂]⟩⟩)
 

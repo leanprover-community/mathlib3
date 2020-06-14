@@ -65,7 +65,7 @@ calc ∑ m in (range n.succ).filter (∣ n), φ m
 ... = ((filter (∣ n) (range n.succ)).bind (λ d, (range n).filter (λ m, gcd n m = d))).card :
   (card_bind (by intros; apply disjoint_filter.2; cc)).symm
 ... = (range n).card :
-  congr_arg card (finset.ext.2 (λ m, ⟨by finish,
+  congr_arg card (finset.ext (λ m, ⟨by finish,
     λ hm, have h : m < n, from mem_range.1 hm,
       mem_bind.2 ⟨gcd n m, mem_filter.2 ⟨mem_range.2 (lt_succ_of_le (le_of_dvd (lt_of_le_of_lt (nat.zero_le _) h)
         (gcd_dvd_left _ _))), gcd_dvd_left _ _⟩, mem_filter.2 ⟨hm, rfl⟩⟩⟩))

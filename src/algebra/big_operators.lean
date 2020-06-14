@@ -850,12 +850,12 @@ theorem card_eq_sum_card_image [decidable_eq β] (f : α → β) (s : finset α)
   s.card = ∑ a in s.image f, (s.filter (λ x, f x = a)).card :=
 by letI := classical.dec_eq α; exact
 calc s.card = ((s.image f).bind (λ a, s.filter (λ x, f x = a))).card :
-  congr_arg _ (finset.ext.2 $ λ x,
+  congr_arg _ (finset.ext $ λ x,
     ⟨λ hs, mem_bind.2 ⟨f x, mem_image_of_mem _ hs,
       mem_filter.2 ⟨hs, rfl⟩⟩,
     λ h, let ⟨a, ha₁, ha₂⟩ := mem_bind.1 h in by convert filter_subset s ha₂⟩)
 ... = ∑ a in s.image f, (s.filter (λ x, f x = a)).card :
-  card_bind (by simp [disjoint_left, finset.ext] {contextual := tt})
+  card_bind (by simp [disjoint_left, finset.ext_iff] {contextual := tt})
 
 lemma gsmul_sum [add_comm_group β] {f : α → β} {s : finset α} (z : ℤ) :
   gsmul z (∑ a in s, f a) = ∑ a in s, gsmul z (f a) :=
@@ -972,7 +972,7 @@ calc ∏ a in s, (f a + g a)
         _ _ _
         (λ b hb, ⟨b, by cases b; finish⟩));
     intros; simp * at *; simp * at * },
-  { finish [function.funext_iff, finset.ext, subset_iff] },
+  { finish [function.funext_iff, finset.ext_iff, subset_iff] },
   { assume f hf,
     exact ⟨s.filter (λ a : α, ∃ h : a ∈ s, f a h),
       by simp, by funext; intros; simp *⟩ }

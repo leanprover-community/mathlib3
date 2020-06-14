@@ -6,6 +6,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 import algebra.group
 import deprecated.group
 import data.nat.basic
+import order.rel_classes
 
 /-!
 # Basic properties of lists
@@ -1891,6 +1892,26 @@ nat.le.intro (head_add_tail_sum L)
 lemma tail_sum (L : list ℕ) : L.tail.sum = L.sum - L.head :=
 by rw [← head_add_tail_sum L, add_comm, nat.add_sub_cancel]
 
+section
+variables {G : Type*} [comm_group G]
+
+attribute [to_additive] alternating_prod
+
+@[simp, to_additive] lemma alternating_prod_nil :
+  alternating_prod ([] : list G) = 1 := rfl
+
+@[simp, to_additive] lemma alternating_prod_singleton (g : G) :
+  alternating_prod [g] = g := rfl
+
+@[simp, to_additive alternating_sum_cons_cons']
+lemma alternating_prod_cons_cons (g h : G) (l : list G) :
+  alternating_prod (g :: h :: l) = g * h⁻¹ * alternating_prod l := rfl
+
+lemma alternating_sum_cons_cons {G : Type*} [add_comm_group G] (g h : G) (l : list G) :
+  alternating_sum (g :: h :: l) = g - h + alternating_sum l := rfl
+
+end
+
 /-! ### join -/
 
 attribute [simp] join
@@ -2839,7 +2860,7 @@ end
 @[simp] theorem length_sublists' : ∀ l : list α, length (sublists' l) = 2 ^ length l
 | []     := rfl
 | (a::l) := by simp only [sublists'_cons, length_append, length_sublists' l, length_map,
-    length, pow_succ, mul_succ, mul_zero, zero_add]
+    length, nat.pow_succ, mul_succ, mul_zero, zero_add]
 
 @[simp] theorem sublists_nil : sublists (@nil α) = [[]] := rfl
 

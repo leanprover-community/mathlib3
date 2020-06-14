@@ -3,7 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl, Casper Putz
 -/
-import linear_algebra.dimension
+import linear_algebra.finite_dimensional
 
 /-!
 # Linear maps and matrices
@@ -30,6 +30,7 @@ linear_map, matrix, linear_equiv, diagonal
 noncomputable theory
 
 open set submodule
+open_locale big_operators
 
 universes u v w
 variables {l m n : Type u} [fintype l] [fintype m] [fintype n]
@@ -46,19 +47,19 @@ def eval : (matrix m n R) →ₗ[R] ((n → R) →ₗ[R] (m → R)) :=
 begin
   refine linear_map.mk₂ R mul_vec _ _ _ _,
   { assume M N v, funext x,
-    change finset.univ.sum (λy:n, (M x y + N x y) * v y) = _,
+    change ∑ y : n, (M x y + N x y) * v y = _,
     simp only [_root_.add_mul, finset.sum_add_distrib],
     refl },
   { assume c M v, funext x,
-    change finset.univ.sum (λy:n, (c * M x y) * v y) = _,
+    change ∑ y : n, (c * M x y) * v y = _,
     simp only [_root_.mul_assoc, finset.mul_sum.symm],
     refl },
   { assume M v w, funext x,
-    change finset.univ.sum (λy:n, M x y * (v y + w y)) = _,
+    change ∑ y : n, M x y * (v y + w y) = _,
     simp [_root_.mul_add, finset.sum_add_distrib],
     refl },
   { assume c M v, funext x,
-    change finset.univ.sum (λy:n, M x y * (c * v y)) = _,
+    change ∑ y : n, M x y * (c * v y) = _,
     rw [show (λy:n, M x y * (c * v y)) = (λy:n, c * (M x y * v y)), { funext n, ac_refl },
       ← finset.mul_sum],
     refl }
@@ -76,10 +77,6 @@ matrix.eval.map_zero
 
 @[simp] lemma to_lin_neg (M : matrix m n R) : (-M).to_lin = -M.to_lin :=
 @linear_map.map_neg _ _ ((n → R) →ₗ[R] m → R) _ _ _ _ _ matrix.eval M
-
-instance to_lin.is_linear_map :
-  @is_linear_map R (matrix m n R) ((n → R) →ₗ[R] (m → R)) _ _ _ _ _ to_lin :=
-matrix.eval.is_linear
 
 instance to_lin.is_add_monoid_hom :
   @is_add_monoid_hom (matrix m n R) ((n → R) →ₗ[R] (m → R)) _ _ to_lin :=
@@ -135,12 +132,12 @@ begin
   rw [@std_basis_eq_single R _ _ _ 1] at he,
   cases (set.mem_range.mp he) with i h,
   ext j,
-  change finset.univ.sum (λ k, (f.to_fun (λ l, ite (k = l) 1 0)) j * (e k)) = _,
+  change ∑ k, (f (λ l, ite (k = l) 1 0)) j * (e k) = _,
   rw [←h],
   conv_lhs { congr, skip, funext,
-    rw [mul_comm, ←smul_eq_mul, ←pi.smul_apply, ←linear_map.smul],
+    rw [mul_comm, ←smul_eq_mul, ←pi.smul_apply, ←linear_map.map_smul],
     rw [show _ = ite (i = k) (1:R) 0, by convert single_apply],
-    rw [show f.to_fun (ite (i = k) (1:R) 0 • (λ l, ite (k = l) 1 0)) = ite (i = k) (f.to_fun _) 0,
+    rw [show f (ite (i = k) (1:R) 0 • (λ l, ite (k = l) 1 0)) = ite (i = k) (f _) 0,
       { split_ifs, { rw [one_smul] }, { rw [zero_smul], exact linear_map.map_zero f } }] },
   convert finset.sum_eq_single i _ _,
   { rw [if_pos rfl], convert rfl, ext, congr },
@@ -152,10 +149,10 @@ end
 lemma to_lin_to_matrix {M : matrix m n R} : to_matrix (to_lin M) = M :=
 begin
   ext,
-  change finset.univ.sum (λ y, M i y * ite (j = y) 1 0) = M i j,
+  change ∑ y, M i y * ite (j = y) 1 0 = M i j,
   have h1 : (λ y, M i y * ite (j = y) 1 0) = (λ y, ite (j = y) (M i y) 0),
     { ext, split_ifs, exact mul_one _, exact ring.mul_zero _ },
-  have h2 : finset.univ.sum (λ y, ite (j = y) (M i y) 0) = ({j} : finset n).sum (λ y, ite (j = y) (M i y) 0),
+  have h2 : ∑ y, ite (j = y) (M i y) 0 = ∑ y in {j}, ite (j = y) (M i y) 0,
     { refine (finset.sum_subset _ _).symm,
       { intros _ H, rwa finset.mem_singleton.1 H, exact finset.mem_univ _ },
       { exact λ _ _ H, if_neg (mt (finset.mem_singleton.2 ∘ eq.symm) H) } },
@@ -169,8 +166,8 @@ def linear_equiv_matrix' : ((n → R) →ₗ[R] (m → R)) ≃ₗ[R] matrix m n 
   inv_fun := to_lin,
   right_inv := λ _, to_lin_to_matrix,
   left_inv := λ _, to_matrix_to_lin,
-  add := to_matrixₗ.add,
-  smul := to_matrixₗ.smul }
+  map_add' := to_matrixₗ.map_add,
+  map_smul' := to_matrixₗ.map_smul }
 
 /-- Given a basis of two modules M₁ and M₂ over a commutative ring R, we get a linear equivalence
 between linear maps M₁ →ₗ M₂ and matrices over R indexed by the bases. -/
@@ -201,10 +198,10 @@ variables {R : Type v} {M : Type w} [ring R] [add_comm_group M] [module R M]
 The diagonal of a square matrix.
 -/
 def diag (n : Type u) (R : Type v) (M : Type w)
-  [ring R] [add_comm_group M] [module R M] [fintype n] : (matrix n n M) →ₗ[R] n → M := {
-  to_fun := λ A i, A i i,
-  add    := by { intros, ext, refl, },
-  smul   := by { intros, ext, refl, } }
+  [ring R] [add_comm_group M] [module R M] [fintype n] : (matrix n n M) →ₗ[R] n → M :=
+{ to_fun    := λ A i, A i i,
+  map_add'  := by { intros, ext, refl, },
+  map_smul' := by { intros, ext, refl, } }
 
 @[simp] lemma diag_apply (A : matrix n n M) (i : n) : diag n R M A i = A i i := rfl
 
@@ -217,17 +214,17 @@ def diag (n : Type u) (R : Type v) (M : Type w)
 The trace of a square matrix.
 -/
 def trace (n : Type u) (R : Type v) (M : Type w)
-  [ring R] [add_comm_group M] [module R M] [fintype n] : (matrix n n M) →ₗ[R] M := {
-  to_fun := finset.univ.sum ∘ (diag n R M),
-  add    := by { intros, apply finset.sum_add_distrib, },
-  smul   := by { intros, simp [finset.smul_sum], } }
+  [ring R] [add_comm_group M] [module R M] [fintype n] : (matrix n n M) →ₗ[R] M :=
+{ to_fun    := λ A, ∑ i, diag n R M A i,
+  map_add'  := by { intros, apply finset.sum_add_distrib, },
+  map_smul' := by { intros, simp [finset.smul_sum], } }
 
-@[simp] lemma trace_diag (A : matrix n n M) : trace n R M A = finset.univ.sum (diag n R M A) := rfl
+@[simp] lemma trace_diag (A : matrix n n M) : trace n R M A = ∑ i, diag n R M A i := rfl
 
 @[simp] lemma trace_one [decidable_eq n] :
   trace n R R 1 = fintype.card n :=
-have h : trace n R R 1 = finset.univ.sum (diag n R R 1) := rfl,
-by rw [h, diag_one, finset.sum_const, nsmul_one]; refl
+have h : trace n R R 1 = ∑ i, diag n R R 1 i := rfl,
+by simp_rw [h, diag_one, finset.sum_const, nsmul_one]; refl
 
 @[simp] lemma trace_transpose (A : matrix n n M) : trace n R M Aᵀ = trace n R M A := rfl
 
@@ -315,6 +312,24 @@ end
 
 end vector_space
 
+section finite_dimensional
+
+variables {R : Type v} [field R]
+
+instance : finite_dimensional R (matrix m n R) :=
+linear_equiv.finite_dimensional (linear_equiv.uncurry R m n).symm
+
+/--
+The dimension of the space of finite dimensional matrices
+is the product of the number of rows and columns.
+-/
+@[simp] lemma findim_matrix :
+  finite_dimensional.findim R (matrix m n R) = fintype.card m * fintype.card n :=
+by rw [@linear_equiv.findim_eq R (matrix m n R) _ _ _ _ _ _ (linear_equiv.uncurry R m n),
+       finite_dimensional.findim_fintype_fun_eq_card, fintype.card_prod]
+
+end finite_dimensional
+
 end matrix
 
 /-- The natural equivalence between linear endomorphisms of finite free modules and square matrices
@@ -333,7 +348,7 @@ def linear_equiv.alg_conj {R : Type v} [comm_ring R] {M₁ M₂ : Type*}
   [add_comm_group M₁] [module R M₁] [add_comm_group M₂] [module R M₂] (e : M₁ ≃ₗ[R] M₂) :
   module.End R M₁ ≃ₐ[R] module.End R M₂ :=
 { map_mul'  := λ f g, by apply e.arrow_congr_comp,
-  map_add'  := e.conj.add,
+  map_add'  := e.conj.map_add,
   commutes' := λ r, by { change e.conj (r • linear_map.id) = r • linear_map.id,
                          rw [linear_equiv.map_smul, linear_equiv.conj_id], },
   ..e.conj }

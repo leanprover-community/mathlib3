@@ -32,7 +32,7 @@ by simp [cantor_function_aux, h]
 
 lemma cantor_function_aux_succ (f : ℕ → bool) :
   (λ n, cantor_function_aux c f (n + 1)) = λ n, c * cantor_function_aux c (λ n, f (n + 1)) n :=
-by { ext n, cases h : f (n + 1); simp [h, _root_.pow_succ] }
+by { ext n, cases h : f (n + 1); simp [h, pow_succ] }
 
 lemma summable_cantor_function (f : ℕ → bool) (h1 : 0 ≤ c) (h2 : c < 1) :
   summable (cantor_function_aux c f) :=

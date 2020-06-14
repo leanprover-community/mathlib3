@@ -114,6 +114,53 @@ by rw [padic_val_rat, dif_pos]; simp *; refl
 
 end padic_val_rat
 
+section padic_val_nat
+
+/--
+A convenience function for the case of `padic_val_rat` when both inputs are natural numbers.
+-/
+def padic_val_nat (p : ℕ) (n : ℕ) : ℕ :=
+int.to_nat (padic_val_rat p n)
+
+/--
+`padic_val_nat` is defined as an `int.to_nat` cast; this lemma ensures that the cast is well-behaved.
+-/
+lemma zero_le_padic_val_rat_of_nat (p n : ℕ) : 0 ≤ padic_val_rat p n :=
+begin
+  unfold padic_val_rat,
+  split_ifs,
+  { simp, },
+  { trivial, },
+end
+
+/--
+`padic_val_rat` coincides with `padic_val_nat`.
+-/
+@[simp, norm_cast] lemma padic_val_rat_of_nat (p n : ℕ) : ↑(padic_val_nat p n) = padic_val_rat p n :=
+begin
+  unfold padic_val_nat,
+  rw int.to_nat_of_nonneg (zero_le_padic_val_rat_of_nat p n),
+end
+
+/--
+A simplification of `padic_val_nat` when one input is prime, by analogy with `padic_val_rat_def`.
+-/
+lemma padic_val_nat_def {p : ℕ} [hp : fact p.prime] {n : ℕ} (hn : n ≠ 0) :
+  padic_val_nat p n =
+  (multiplicity p n).get (multiplicity.finite_nat_iff.2 ⟨nat.prime.ne_one hp, bot_lt_iff_ne_bot.mpr hn⟩) :=
+begin
+  have n_nonzero : (n : ℚ) ≠ 0, by simpa only [cast_eq_zero, ne.def],
+  -- Infinite loop with @simp padic_val_rat_of_nat unless we restrict the available lemmas here,
+  -- hence the very long list
+  simpa only
+    [ int.coe_nat_multiplicity p n, rat.coe_nat_denom n, (padic_val_rat_of_nat p n).symm,
+      int.coe_nat_zero, int.coe_nat_inj', sub_zero, get_one_right, int.coe_nat_succ, zero_add,
+      rat.coe_nat_num ]
+    using padic_val_rat_def p n_nonzero,
+end
+
+end padic_val_nat
+
 section padic_val_rat
 open multiplicity
 variables (p : ℕ) [p_prime : fact p.prime]
@@ -162,7 +209,7 @@ A rewrite lemma for `padic_val_rat p (q^k) with condition `q ≠ 0`.
 protected lemma pow {q : ℚ} (hq : q ≠ 0) {k : ℕ} :
     padic_val_rat p (q ^ k) = k * padic_val_rat p q :=
 by induction k; simp [*, padic_val_rat.mul _ hq (pow_ne_zero _ hq),
-  _root_.pow_succ, add_mul, add_comm]
+  pow_succ, add_mul, add_comm]
 
 /--
 A rewrite lemma for `padic_val_rat p (q⁻¹)` with condition `q ≠ 0`.

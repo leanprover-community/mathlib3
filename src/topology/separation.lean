@@ -133,17 +133,42 @@ lemma tendsto_nhds_unique [t2_space α] {f : β → α} {l : filter β} {a b : �
 eq_of_nhds_ne_bot $ ne_bot_of_le_ne_bot (map_ne_bot hl) $ le_inf ha hb
 
 section lim
-variables [nonempty α] [t2_space α] {f : filter α}
+variables [t2_space α] {f : filter α}
 
-lemma lim_eq {a : α} (hf : f ≠ ⊥) (h : f ≤ 𝓝 a) : lim f = a :=
-eq_of_nhds_ne_bot $ ne_bot_of_le_ne_bot hf $ le_inf (lim_spec ⟨_, h⟩) h
+/-!
+### Properties of `Lim` and `lim`
 
-@[simp] lemma lim_nhds_eq {a : α} : lim (𝓝 a) = a :=
-lim_eq nhds_ne_bot (le_refl _)
+In this section we use explicit `nonempty α` instances for `Lim` and `lim`. This way the lemmas
+are useful without a `nonempty α` instance.
+-/
 
-@[simp] lemma lim_nhds_eq_of_closure {a : α} {s : set α} (h : a ∈ closure s) :
-  lim (𝓝 a ⊓ principal s) = a :=
-lim_eq begin rw [closure_eq_nhds] at h, exact h end inf_le_left
+lemma Lim_eq {a : α} (hf : f ≠ ⊥) (h : f ≤ 𝓝 a) :
+  @Lim _ _ ⟨a⟩ f = a :=
+tendsto_nhds_unique hf (Lim_spec ⟨a, h⟩) h
+
+lemma filter.tendsto.lim_eq {a : α} {f : filter β} {g : β → α} (h : tendsto g f (𝓝 a))
+  (hf : f ≠ ⊥) :
+  @lim _ _ _ ⟨a⟩ f g = a :=
+Lim_eq (map_ne_bot hf) h
+
+lemma continuous.lim_eq [topological_space β] {f : β → α} (h : continuous f) (a : β) :
+  @lim _ _ _ ⟨f a⟩ (𝓝 a) f = f a :=
+(h.tendsto a).lim_eq nhds_ne_bot
+
+@[simp] lemma Lim_nhds (a : α) : @Lim _ _ ⟨a⟩ (𝓝 a) = a :=
+Lim_eq nhds_ne_bot (le_refl _)
+
+@[simp] lemma lim_nhds_id (a : α) : @lim _ _ _ ⟨a⟩ (𝓝 a) id = a :=
+Lim_nhds a
+
+@[simp] lemma Lim_nhds_within {a : α} {s : set α} (h : a ∈ closure s) :
+  @Lim _ _ ⟨a⟩ (nhds_within a s) = a :=
+Lim_eq begin rw [closure_eq_nhds] at h, exact h end inf_le_left
+
+@[simp] lemma lim_nhds_within_id {a : α} {s : set α} (h : a ∈ closure s) :
+  @lim _ _ _ ⟨a⟩ (nhds_within a s) id = a :=
+Lim_nhds_within h
+
 end lim
 
 @[priority 100] -- see Note [lower instance priority]

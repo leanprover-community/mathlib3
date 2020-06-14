@@ -52,8 +52,7 @@ variables [has_mul R] [has_add R] [has_mul S] [has_add S] [has_mul S'] [has_add 
 
 instance : has_coe_to_fun (R ≃+* S) := ⟨_, ring_equiv.to_fun⟩
 
-@[simp]
-lemma to_fun_eq_coe (f : R ≃+* S) : f.to_fun = f := rfl
+@[simp] lemma to_fun_eq_coe_fun (f : R ≃+* S) : f.to_fun = f := rfl
 
 instance has_coe_to_mul_equiv : has_coe (R ≃+* S) (R ≃* S) := ⟨ring_equiv.to_mul_equiv⟩
 
@@ -69,6 +68,12 @@ variable (R)
 
 /-- The identity map is a ring isomorphism. -/
 @[refl] protected def refl : R ≃+* R := { .. mul_equiv.refl R, .. add_equiv.refl R }
+
+@[simp] lemma refl_apply (x : R) : ring_equiv.refl R x = x := rfl
+
+@[simp] lemma coe_add_equiv_refl : (ring_equiv.refl R : R ≃+ R) = add_equiv.refl R := rfl
+
+@[simp] lemma coe_mul_equiv_refl : (ring_equiv.refl R : R ≃* R) = mul_equiv.refl R := rfl
 
 variables {R}
 
@@ -168,6 +173,15 @@ def of (e : R ≃ S) [is_semiring_hom e] : R ≃+* S :=
 { .. e, .. monoid_hom.of e, .. add_monoid_hom.of e }
 
 instance (e : R ≃+* S) : is_semiring_hom e := e.to_ring_hom.is_semiring_hom
+
+@[simp]
+lemma to_ring_hom_refl : (ring_equiv.refl R).to_ring_hom = ring_hom.id R := rfl
+
+@[simp]
+lemma to_monoid_hom_refl : (ring_equiv.refl R).to_monoid_hom = monoid_hom.id R := rfl
+
+@[simp]
+lemma to_add_monoid_hom_refl : (ring_equiv.refl R).to_add_monoid_hom = add_monoid_hom.id R := rfl
 
 @[simp]
 lemma to_ring_hom_apply_symm_to_ring_hom_apply {R S} [semiring R] [semiring S] (e : R ≃+* S) :

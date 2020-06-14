@@ -12,7 +12,7 @@ import topology.continuous_on
 import algebra.pi_instances
 
 open classical set filter topological_space
-open_locale classical topological_space
+open_locale classical topological_space big_operators
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -131,7 +131,7 @@ by { rcases s with ⟨l⟩, simp, exact tendsto_list_prod l }
 
 @[to_additive]
 lemma tendsto_finset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : finset γ) :
-  (∀c∈s, tendsto (f c) x (𝓝 (a c))) → tendsto (λb, s.prod (λc, f c b)) x (𝓝 (s.prod a)) :=
+  (∀c∈s, tendsto (f c) x (𝓝 (a c))) → tendsto (λb, ∏ c in s, f c b) x (𝓝 (∏ c in s, a c)) :=
 tendsto_multiset_prod _
 
 @[to_additive]
@@ -141,7 +141,7 @@ by { rcases s with ⟨l⟩, simp, exact continuous_list_prod l }
 
 @[to_additive]
 lemma continuous_finset_prod [topological_space β] {f : γ → β → α} (s : finset γ) :
-  (∀c∈s, continuous (f c)) → continuous (λa, s.prod (λc, f c a)) :=
+  (∀c∈s, continuous (f c)) → continuous (λa, ∏ c in s, f c a) :=
 continuous_multiset_prod _
 
 end

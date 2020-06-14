@@ -7,6 +7,8 @@ import algebra.module
 import ring_theory.subring
 import ring_theory.prod
 
+open_locale big_operators
+
 /-!
 # Pi instances for algebraic structures
 -/
@@ -135,7 +137,7 @@ quotient.induction_on s $ assume l, begin simp [list_prod_apply a l] end
 
 @[to_additive]
 lemma finset_prod_apply {α : Type*} {β : α → Type*} {γ} [∀a, comm_monoid (β a)] (a : α)
-  (s : finset γ) (g : γ → Πa, β a) : s.prod g a = s.prod (λc, g c a) :=
+  (s : finset γ) (g : γ → Πa, β a) : (∏ c in s, g c) a = ∏ c in s, g c a :=
 show (s.val.map g).prod a = (s.val.map (λc, g c a)).prod,
   by rw [multiset_prod_apply, multiset.map_map]
 
@@ -228,7 +230,7 @@ variables [Π i, comm_monoid (Z i)]
 
 @[simp, to_additive]
 lemma finset.prod_apply {γ : Type*} {s : finset γ} (h : γ → (Π i, Z i)) (i : I) :
-  (s.prod h) i = s.prod (λ g, h g i) :=
+  (∏ g in s, h g) i = ∏ g in s, h g i :=
 begin
   classical,
   induction s using finset.induction_on with b s nmem ih,
@@ -245,7 +247,7 @@ variables {I : Type*} [decidable_eq I] {Z : I → Type*}
 variables [Π i, add_comm_monoid (Z i)]
 
 lemma finset.univ_sum_single [fintype I] (f : Π i, Z i) :
-  finset.univ.sum (λ i, pi.single i (f i)) = f :=
+  ∑ i, pi.single i (f i) = f :=
 begin
   ext a,
   rw [finset.sum_apply, finset.sum_eq_single a],
@@ -343,12 +345,12 @@ fst.is_group_hom fst.is_add_group_hom snd.is_group_hom snd.is_add_group_hom
 
 @[to_additive]
 lemma fst_prod [comm_monoid α] [comm_monoid β] {t : finset γ} {f : γ → α × β} :
-  (t.prod f).1 = t.prod (λc, (f c).1) :=
+  (∏ c in t, f c).1 = ∏ c in t, (f c).1 :=
 (monoid_hom.fst α β).map_prod f t
 
 @[to_additive]
 lemma snd_prod [comm_monoid α] [comm_monoid β] {t : finset γ} {f : γ → α × β} :
-  (t.prod f).2 = t.prod (λc, (f c).2) :=
+  (∏ c in t, f c).2 = ∏ c in t, (f c).2 :=
 (monoid_hom.snd α β).map_prod f t
 
 instance fst.is_semiring_hom [semiring α] [semiring β] : is_semiring_hom (prod.fst : α × β → α) :=
@@ -441,7 +443,7 @@ namespace finset
 
 @[to_additive prod_mk_sum]
 lemma prod_mk_prod {α β γ : Type*} [comm_monoid α] [comm_monoid β] (s : finset γ)
-  (f : γ → α) (g : γ → β) : (s.prod f, s.prod g) = s.prod (λ x, (f x, g x)) :=
+  (f : γ → α) (g : γ → β) : (∏ x in s, f x, ∏ x in s, g x) = ∏ x in s, (f x, g x) :=
 by haveI := classical.dec_eq γ; exact
 finset.induction_on s rfl (by simp [prod.ext_iff] {contextual := tt})
 

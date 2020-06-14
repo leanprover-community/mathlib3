@@ -1074,10 +1074,11 @@ problems. (Based on Coq's `nlinarith` tactic.) See `linarith` for the available 
 which are inherited by `nlinarith`; that is, `nlinarith!` and `nlinarith only [h1, h2]` all work as
 in `linarith`. The preprocessing is as follows:
 
-* For every subterm `a ^ 2` in a hypothesis or the goal, the assumption `0 ≤ a ^ 2` is added to
-  the context.
-* For every pair of hypotheses `0 ≤ a`, `0 ≤ b` in the context, the assumption `0 ≤ a * b` is added
-  to the context (non-recursively).
+* For every subterm `a ^ 2` or `a * a` in a hypothesis or the goal,
+  the assumption `0 ≤ a ^ 2` or `0 ≤ a * a` is added to the context.
+* For every pair of hypotheses `a1 R1 b1`, `a2 R2 b2` in the context, `R1, R2 ∈ {<, ≤, =}`,
+  the assumption `0 R' (b1 - a1) * (b2 - a2)` is added to the context (non-recursively),
+  where `R ∈ {<, ≤, =}` is the appropriate comparison derived from `R1, R2`.
 -/
 meta def tactic.interactive.nlinarith (red : parse ((tk "!")?))
   (restr : parse ((tk "only")?)) (hyps : parse pexpr_list?)

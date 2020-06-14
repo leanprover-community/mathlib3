@@ -74,7 +74,7 @@ begin
   rw [← cardinal.lift_inj, cardinal.lift_mul, ← hbs.mk_eq_dim,
       ← (is_basis_single _ (λa:ι, hbs)).mk_eq_dim, ← cardinal.sum_mk,
       ← cardinal.lift_mul, cardinal.lift_inj],
-  { simp only [cardinal.mk_image_eq (injective_single.{u u} _), cardinal.sum_const] }
+  { simp only [cardinal.mk_image_eq (single_injective.{u u} _), cardinal.sum_const] }
 end
 
 end dim
@@ -144,7 +144,7 @@ begin
   rcases cardinal.lt_omega.1 hV₁ with ⟨d₁, eq₁⟩,
   rcases cardinal.lt_omega.1 hk with ⟨d₂, eq₂⟩,
   have : 0 = d₂,
-  { have := dim_eq_surjective f (linear_map.range_eq_top.1 hf),
+  { have := dim_eq_of_surjective f (linear_map.range_eq_top.1 hf),
     rw [heq, eq₁, eq₂, ← nat.cast_add, cardinal.nat_cast_inj] at this,
     exact nat.add_left_cancel this },
   refine eq_bot_iff_dim_eq_zero _ _,

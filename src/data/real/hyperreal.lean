@@ -29,7 +29,7 @@ hyperfilter_ne_bot ∘ eq.symm
 
 @[simp, norm_cast]
 lemma coe_eq_coe (x y : ℝ) : (x : ℝ*) = y ↔ x = y :=
-filter_product.coe_injective _ _ (by simp)
+filter_product.coe_inj _ _ (by simp)
 
 @[simp, norm_cast]
 lemma cast_div (x y : ℝ) : ((x / y : ℝ) : ℝ*) = x / y :=

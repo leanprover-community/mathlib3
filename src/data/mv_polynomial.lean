@@ -155,7 +155,7 @@ instance : is_semiring_hom (C : α → mv_polynomial σ α) :=
 
 lemma C_injective (σ : Type*) (R : Type*) [comm_ring R] :
   function.injective (C : R → mv_polynomial σ R) :=
-finsupp.injective_single _
+finsupp.single_injective _
 
 @[simp] lemma C_inj {σ : Type*} (R : Type*) [comm_ring R] (r s : R) :
   (C r : mv_polynomial σ R) = C s ↔ r = s :=

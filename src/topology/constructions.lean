@@ -661,7 +661,7 @@ begin
   by_cases h : i = j,
   { subst j,
     convert hs,
-    exact set.preimage_image_eq _ injective_sigma_mk },
+    exact set.preimage_image_eq _ sigma_mk_injective },
   { convert is_open_empty,
     apply set.eq_empty_of_subset_empty,
     rintro x ⟨y, _, hy⟩,

@@ -107,7 +107,7 @@ begin
   apply le_antisymm,
   { dsimp [real], apply le_trans mk_quotient_le, apply le_trans (mk_subtype_le _),
     rw [←power_def, mk_nat, mk_rat, power_self_eq (le_refl _)] },
-  { convert mk_le_of_injective (injective_cantor_function _ _),
+  { convert mk_le_of_injective (cantor_function_injective _ _),
     rw [←power_def, mk_bool, mk_nat], exact 1 / 3, norm_num, norm_num }
 end
 

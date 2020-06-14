@@ -142,7 +142,7 @@ show a⁻¹ * b ∈ ker φ, by rw [mem_ker φ,
 noncomputable def quotient_ker_equiv_range : (quotient (ker φ)) ≃ set.range φ :=
 equiv.of_bijective (λ x, ⟨lift (ker φ) φ
   (by simp [mem_ker]) x, by exact quotient.induction_on' x (λ x, ⟨x, rfl⟩)⟩)
-⟨λ a b h, injective_ker_lift _ (subtype.mk.inj h),
+⟨λ a b h, ker_lift_injective _ (subtype.mk.inj h),
   λ ⟨x, y, hy⟩, ⟨mk y, subtype.eq hy⟩⟩
 
 noncomputable def quotient_ker_equiv_of_surjective (hφ : function.surjective φ) :

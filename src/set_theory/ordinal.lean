@@ -2797,7 +2797,7 @@ def aleph_idx.order_iso : @order_iso cardinal.{u} ordinal.{u} (<) (<) :=
   refine ordinal.induction_on o _ this, introsI α r _ h,
   let s := sup.{u u} (λ a:α, inv_fun aleph_idx (ordinal.typein r a)),
   apply not_le_of_gt (lt_succ_self s),
-  have I : injective aleph_idx := aleph_idx.initial_seg.to_embedding.inj,
+  have I : injective aleph_idx := aleph_idx.initial_seg.to_embedding.injective,
   simpa only [typein_enum, left_inverse_inv_fun I (succ s)] using
     le_sup.{u u} (λ a, inv_fun aleph_idx (ordinal.typein r a))
       (ordinal.enum r _ (h (succ s))),

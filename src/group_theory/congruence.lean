@@ -813,7 +813,7 @@ noncomputable def quotient_ker_equiv_range (f : M →* P) : (ker f).quotient ≃
       ((@mul_equiv.to_monoid_hom (ker_lift f).mrange _ _ _
         $ mul_equiv.submonoid_congr ker_lift_range_eq).comp (ker_lift f).mrange_restrict) $
       (equiv.bijective _).comp
-        ⟨λ x y h, injective_ker_lift f $ by rcases x; rcases y; injections,
+        ⟨λ x y h, ker_lift_injective f $ by rcases x; rcases y; injections,
          λ ⟨w, z, hzm, hz⟩, ⟨z, by rcases hz; rcases _x; refl⟩⟩ }
 
 /-- The first isomorphism theorem for monoids in the case of a surjective homomorphism. -/
@@ -823,7 +823,7 @@ noncomputable def quotient_ker_equiv_of_surjective (f : M →* P) (hf : surjecti
   (ker f).quotient ≃* P :=
 { map_mul' := monoid_hom.map_mul _,
   ..equiv.of_bijective (ker_lift f)
-      ⟨injective_ker_lift f, lift_surjective_of_surjective (le_refl _) hf⟩ }
+      ⟨ker_lift_injective f, lift_surjective_of_surjective (le_refl _) hf⟩ }
 
 /-- The second isomorphism theorem for monoids. -/
 @[to_additive "The second isomorphism theorem for `add_monoid`s."]

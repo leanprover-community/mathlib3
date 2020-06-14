@@ -383,7 +383,7 @@ begin
   obtain ⟨t, q, rfl⟩ := exists_finset_rename q,
   have : p.rename (subtype.map id (finset.subset_union_left s t) : {x // x ∈ s} → {x // x ∈ s ∪ t}) *
     q.rename (subtype.map id (finset.subset_union_right s t)) = 0,
-  { apply injective_rename _ subtype.val_injective, simpa using h },
+  { apply rename_injective _ subtype.val_injective, simpa using h },
   letI := mv_polynomial.integral_domain_fintype R {x // x ∈ (s ∪ t)},
   rw mul_eq_zero at this,
   cases this; [left, right],

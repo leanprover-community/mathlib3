@@ -63,7 +63,7 @@ is_add_group_hom.map_neg _ x
 is_add_group_hom.map_sub _ x y
 
 theorem mk_injective (s : finset ι) : function.injective (mk β s) :=
-dfinsupp.mk_inj s
+dfinsupp.mk_injective s
 
 theorem of_injective (i : ι) : function.injective (of β i) :=
 λ x y H, congr_fun (mk_injective _ H) ⟨i, by simp⟩

@@ -280,7 +280,7 @@ begin
   refine ⟨v.support.map f, λa₂,
     if h : a₂ ∈ v.support.map f then v (v.support.choose (λa₁, f a₁ = a₂) _) else 0, _⟩,
   { rcases finset.mem_map.1 h with ⟨a, ha, rfl⟩,
-    exact exists_unique.intro a ⟨ha, rfl⟩ (assume b ⟨_, hb⟩, f.inj hb) },
+    exact exists_unique.intro a ⟨ha, rfl⟩ (assume b ⟨_, hb⟩, f.injective hb) },
   { assume a₂,
     split_ifs,
     { simp only [h, true_iff, ne.def],
@@ -349,7 +349,7 @@ begin
     { simp only [eq.symm h_cases, hc₂, single_eq_same] },
     { rw [single_apply, single_apply, if_neg, if_neg h_cases],
       by_contra hfd,
-      exact h_cases (f.inj (hc₂.trans hfd)) } },
+      exact h_cases (f.injective (hc₂.trans hfd)) } },
   { exact hc₂ }
 end
 
@@ -893,7 +893,7 @@ begin
   ext a,
   by_cases a ∈ set.range f,
   { rcases h with ⟨a, rfl⟩,
-    rw [map_domain_apply f.inj, emb_domain_apply] },
+    rw [map_domain_apply f.injective, emb_domain_apply] },
   { rw [map_domain_notin_range, emb_domain_notin_range]; assumption }
 end
 

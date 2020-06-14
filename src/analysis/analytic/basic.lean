@@ -590,7 +590,7 @@ begin
   have S : @summable ℝ _ _ _ ((λ ⟨n, s, hs⟩, ∥(p n).restr s hs x∥ * (r : ℝ) ^ k) :
     (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}) → ℝ),
   { convert summable.summable_comp_of_injective (p.change_origin_summable_aux2 hr)
-      (change_origin_summable_aux_j_inj k),
+      (change_origin_summable_aux_j_injective k),
     -- again, cleanup that could be done by `tidy`:
     ext ⟨_, ⟨_, _⟩⟩, refl },
   have : (r : ℝ)^k ≠ 0, by simp [pow_ne_zero, nnreal.coe_eq_zero, ne_of_gt rpos],
@@ -641,7 +641,7 @@ begin
     (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}) → ℝ) :
       by { rw tsum_mul_right, convert p.change_origin_summable_aux3 k h, tidy }
   ... = tsum (A ∘ change_origin_summable_aux_j k) : by { congr, tidy }
-  ... ≤ tsum A : tsum_comp_le_tsum_of_inj SA A_nonneg (change_origin_summable_aux_j_inj k)
+  ... ≤ tsum A : tsum_comp_le_tsum_of_inj SA A_nonneg (change_origin_summable_aux_j_injective k)
 end
 
 -- From this point on, assume that the space is complete, to make sure that series that converge

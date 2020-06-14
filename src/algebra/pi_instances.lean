@@ -379,10 +379,10 @@ lemma inr_injective [has_zero α] : function.injective (inr : β → α × β) :
 assume x y h, (prod.mk.inj_iff.mp h).2
 
 @[simp] lemma inl_eq_inl [has_zero β] {a₁ a₂ : α} : (inl a₁ : α × β) = inl a₂ ↔ a₁ = a₂ :=
-iff.intro (assume h, injective_inl h) (assume h, h ▸ rfl)
+iff.intro (assume h, inl_injective h) (assume h, h ▸ rfl)
 
 @[simp] lemma inr_eq_inr [has_zero α] {b₁ b₂ : β} : (inr b₁ : α × β) = inr b₂ ↔ b₁ = b₂ :=
-iff.intro (assume h, injective_inr h) (assume h, h ▸ rfl)
+iff.intro (assume h, inr_injective h) (assume h, h ▸ rfl)
 
 @[simp] lemma inl_eq_inr [has_zero α] [has_zero β] {a : α} {b : β} :
   inl a = inr b ↔ a = 0 ∧ b = 0 :=

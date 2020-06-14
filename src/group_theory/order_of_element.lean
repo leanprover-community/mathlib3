@@ -39,9 +39,9 @@ by haveI := classical.prop_decidable;
 haveI := set.fintype_image s (λ n, x * n * x⁻¹); exact
 λ n, ⟨h n, λ h₁,
 have heq : (λ n, x * n * x⁻¹) '' s = s := set.eq_of_subset_of_card_le
-  (λ n ⟨y, hy⟩, hy.2 ▸ h y hy.1) (by rw set.card_image_of_injective s conj_inj),
+  (λ n ⟨y, hy⟩, hy.2 ▸ h y hy.1) (by rw set.card_image_of_injective s conj_injective),
 have x * n * x⁻¹ ∈ (λ n, x * n * x⁻¹) '' s := heq.symm ▸ h₁,
-let ⟨y, hy⟩ := this in conj_inj hy.2 ▸ hy.1⟩
+let ⟨y, hy⟩ := this in conj_injective hy.2 ▸ hy.1⟩
 
 section order_of
 variable [group α]

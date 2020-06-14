@@ -149,7 +149,7 @@ lemma uniform_inducing_pure_cauchy : uniform_inducing (pure_cauchy : α → Cauc
       ... = 𝓤 α : by simp [this]⟩
 
 lemma uniform_embedding_pure_cauchy : uniform_embedding (pure_cauchy : α → Cauchy α) :=
-{ inj := assume a₁ a₂ h, pure_inj $ subtype.ext.1 h,
+{ inj := assume a₁ a₂ h, pure_injective $ subtype.ext.1 h,
   ..uniform_inducing_pure_cauchy }
 
 lemma pure_cauchy_dense : ∀x, x ∈ closure (range pure_cauchy) :=
@@ -391,7 +391,7 @@ cpkg.continuous_coe
 
 lemma uniform_embedding_coe [separated α] : uniform_embedding  (coe : α → completion α) :=
 { comap_uniformity := comap_coe_eq_uniformity α,
-  inj := injective_separated_pure_cauchy }
+  inj := separated_pure_cauchy_injective }
 
 variable {α}
 
@@ -400,7 +400,7 @@ lemma dense_inducing_coe : dense_inducing (coe : α → completion α) :=
   ..(uniform_inducing_coe α).inducing }
 
 lemma dense_embedding_coe [separated α]: dense_embedding (coe : α → completion α) :=
-{ inj := injective_separated_pure_cauchy,
+{ inj := separated_pure_cauchy_injective,
   ..dense_inducing_coe }
 
 lemma dense₂ : dense_range (λx:α × β, ((x.1 : completion α), (x.2 : completion β))) :=

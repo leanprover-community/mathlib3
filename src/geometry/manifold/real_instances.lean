@@ -54,7 +54,7 @@ coordinates.
 def euclidean_quadrant (n : ℕ) : Type := {x : euclidean_space (fin n) // ∀i:fin n, 0 ≤ x i}
 
 section
-/- Register class instances for euclidean space and half-space and quadrant, that can not be noticed
+/- Register class instances for euclidean half-space and quadrant, that can not be noticed
 without the following reducibility attribute (which is only set in this section). -/
 local attribute [reducible] euclidean_half_space euclidean_quadrant
 variable {n : ℕ}

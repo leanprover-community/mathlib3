@@ -114,65 +114,40 @@ sum added to the base point is independent of the choice of base
 point. -/
 def weighted_vsub_of_point (w : ι → k) (p : ι → P) (b : P) : V := ∑ i, w i • (p i -ᵥ b)
 
+/-- `weighted_vsub_of_point` as a linear map on the weights. -/
+def weighted_vsub_of_point_linear (p : ι → P) (b : P) : (ι → k) →ₗ[k] V :=
+∑ i, (linear_map.proj i : (ι → k) →ₗ[k] k).smul_right (p i -ᵥ b)
+
+@[simp] lemma weighted_vsub_of_point_linear_apply (w : ι → k) (p : ι → P) (b : P) :
+  weighted_vsub_of_point_linear V p b w = weighted_vsub_of_point V w p b :=
+by simp [weighted_vsub_of_point_linear, linear_map.sum_apply, weighted_vsub_of_point]
+
 /-- The weighted sum when the weights are 0. -/
 @[simp] lemma weighted_vsub_of_point_zero (p : ι → P) (b : P) :
   weighted_vsub_of_point V (0 : ι → k) p b = 0 :=
-begin
-  unfold weighted_vsub_of_point,
-  conv_lhs {
-    congr,
-    skip,
-    funext,
-    erw zero_smul
-  },
-  exact finset.sum_const_zero
-end
+by rw [← weighted_vsub_of_point_linear_apply, linear_map.map_zero]
 
 /-- The weighted sum, multiplied by a constant. -/
 lemma weighted_vsub_of_point_smul (r : k) (w : ι → k) (p : ι → P) (b : P) :
   r • weighted_vsub_of_point V w p b = weighted_vsub_of_point V (r • w) p b :=
-begin
-  erw finset.smul_sum,
-  congr,
-  ext,
-  rw ←mul_smul,
-  refl
-end
+by simp only [← weighted_vsub_of_point_linear_apply, linear_map.map_smul]
 
 /-- The weighted sum, negated. -/
 lemma weighted_vsub_of_point_neg (w : ι → k) (p : ι → P) (b : P) :
   -weighted_vsub_of_point V w p b = weighted_vsub_of_point V (-w) p b :=
-begin
-  erw ←finset.sum_neg_distrib,
-  congr,
-  ext,
-  rw ←neg_smul,
-  refl
-end
+by simp only [← weighted_vsub_of_point_linear_apply, linear_map.map_neg]
 
 /-- Adding two weighted sums. -/
 lemma weighted_vsub_of_point_add (w₁ w₂ : ι → k) (p : ι → P) (b : P) :
   weighted_vsub_of_point V w₁ p b + weighted_vsub_of_point V w₂ p b =
     weighted_vsub_of_point V (w₁ + w₂) p b :=
-begin
-  erw ←finset.sum_add_distrib,
-  congr,
-  ext,
-  rw ←add_smul,
-  refl
-end
+by simp only [← weighted_vsub_of_point_linear_apply, linear_map.map_add]
 
 /-- Subtracting two weighted sums. -/
 lemma weighted_vsub_of_point_sub (w₁ w₂ : ι → k) (p : ι → P) (b : P) :
   weighted_vsub_of_point V w₁ p b - weighted_vsub_of_point V w₂ p b =
     weighted_vsub_of_point V (w₁ - w₂) p b :=
-begin
-  erw ←finset.sum_sub_distrib,
-  congr,
-  ext,
-  rw ←sub_smul,
-  refl
-end
+by simp only [← weighted_vsub_of_point_linear_apply, linear_map.map_sub]
 
 /-- A weighted sum, as a linear map on the weights. -/
 def linear_map.weighted_vsub_of_point (p : ι → P) (b : P) : (ι → k) →ₗ[k] V :=
@@ -653,36 +628,15 @@ namespace affine_map
 variables {k : Type*} (V : Type*) (P : Type*) [comm_ring k] [add_comm_group V] [module k V]
 variables [affine_space k V P] {ι : Type*} [fintype ι]
 
+-- TODO: define `affine_map.proj`, `affine_map.fst`, `affine_map.snd`
 /-- A weighted sum, as an affine map on the points involved. -/
 def weighted_vsub_of_point (w : ι → k) : affine_map k ((ι → V) × V) ((ι → P) × P) V V :=
 { to_fun := λ p, weighted_vsub_of_point _ w p.fst p.snd,
-  linear :=
-  { to_fun := λ v, ∑ i, w i • (v.fst i - v.snd),
-    map_add' := λ x y, begin
-      rw ←finset.sum_add_distrib,
-      congr,
-      ext,
-      rw ←smul_add,
-      congr,
-      unfold prod.fst prod.snd,
-      rw [sub_add_eq_sub_sub, sub_add_eq_add_sub, ←add_sub_assoc, sub_right_comm],
-      refl
-    end,
-    map_smul' := λ c x, begin
-      rw finset.smul_sum,
-      congr,
-      ext i,
-      unfold prod.fst prod.snd,
-      rw [smul_smul, pi.smul_apply, smul_sub, smul_smul, smul_smul, mul_comm c _, smul_sub]
-    end },
-  map_vadd' := λ p v, begin
-    rw [prod.fst_vadd, prod.snd_vadd, linear_map.coe_mk, vadd_eq_add],
-    unfold weighted_vsub_of_point,
-    rw ←finset.sum_add_distrib,
-    congr,
-    ext i,
-    rw [←smul_add, pi.vadd_apply, vadd_vsub_assoc, vsub_vadd_eq_vsub_sub, ←add_sub_assoc,
-        sub_add_eq_add_sub]
+  linear := ∑ i, w i • ((linear_map.proj i).comp (linear_map.fst _ _ _) - linear_map.snd _ _ _),
+  map_vadd' := begin
+    rintros ⟨p, b⟩ ⟨v, b'⟩,
+    simp [linear_map.sum_apply, weighted_vsub_of_point, vsub_vadd_eq_vsub_sub, vadd_vsub_assoc,
+      add_sub, ← sub_add_eq_add_sub, smul_add, finset.sum_add_distrib]
   end }
 
 end affine_map

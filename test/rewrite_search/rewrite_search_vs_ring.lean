@@ -13,6 +13,9 @@ attribute [search] left_distrib right_distrib
 
 constants a b c d e : ℚ
 
+lemma test2 (a b : ℝ) : (a + b)*(a - b) = a^2 - b^2 :=
+by rewrite_search {explain := tt, trace_summary := tt, metric := edit_distance}
+
 lemma test3 : (a * (b + c)) * d = a * (b * d) + a * (c * d) :=
 by rewrite_search {explain := tt, trace_summary := tt, metric := edit_distance}
 

@@ -367,7 +367,7 @@ lemma closure_Union {ι} (s : ι → set M) : closure (⋃ i, s i) = ⨆ i, clos
 
 variables {N : Type*} [monoid N] {P : Type*} [monoid P]
 
-/-- Thef preimage of a submonoid along a monoid homomorphism is a submonoid. -/
+/-- The preimage of a submonoid along a monoid homomorphism is a submonoid. -/
 @[to_additive "The preimage of an `add_submonoid` along an `add_monoid` homomorphism is an
 `add_submonoid`."]
 def comap (f : M →* N) (S : submonoid N) : submonoid M :=

@@ -197,8 +197,8 @@ lemma top_prod_top : (⊤ : submonoid M).prod (⊤ : submonoid N) = ⊤ :=
 @[to_additive] lemma bot_prod_bot : (⊥ : submonoid M).prod (⊥ : submonoid N) = ⊥ :=
 ext' $ by simp [coe_prod, prod.one_eq_mk]
 
-/-- Product of submonoids is isomorphic to their product as monoids. -/
-@[to_additive prod_equiv "Product of additive submonoids is isomorphic to their product
+/-- The product of submonoids is isomorphic to their product as monoids. -/
+@[to_additive prod_equiv "The product of additive submonoids is isomorphic to their product
 as additive monoids"]
 def prod_equiv (s : submonoid M) (t : submonoid N) : s.prod t ≃* s × t :=
 { map_mul' := λ x y, rfl, .. equiv.set.prod ↑s ↑t }
@@ -225,7 +225,7 @@ def cod_mrestrict (f : M →* N) (S : submonoid N) (h : ∀ x, f x ∈ S) : M �
   map_one' := subtype.eq f.map_one,
   map_mul' := λ x y, subtype.eq (f.map_mul x y) }
 
-/-- Restriction of a monoid hom to its range iterpreted as a submonoid. -/
+/-- Restriction of a monoid hom to its range interpreted as a submonoid. -/
 @[to_additive "Restriction of an `add_monoid` hom to its range interpreted as a submonoid."]
 def mrange_restrict {N} [monoid N] (f : M →* N) : M →* f.mrange :=
 f.cod_mrestrict f.mrange $ λ x, ⟨x, submonoid.mem_top x, rfl⟩
@@ -377,7 +377,7 @@ namespace mul_equiv
 
 variables {S T : submonoid M}
 
-/-- Makes the identity isomorphism from a proof two submonoids of a multiplicative
+/-- Makes the identity isomorphism from a proof that two submonoids of a multiplicative
     monoid are equal. -/
 @[to_additive add_submonoid_congr "Makes the identity additive isomorphism from a proof two
 submonoids of an additive monoid are equal."]

@@ -16,7 +16,7 @@ Let us write `gcf` for `generalized_continued_fraction`. We show the correctness
 algorithm computing continued fractions (`gcf.of`) in case of termination in the following sense:
 
 At every step `n : ℕ`, we can obtain the value `v` by adding a specific residual term to the last
-denimonator of the fraction described by `(gcf.of v).convergents' n`. The residual term will be zero
+denominator of the fraction described by `(gcf.of v).convergents' n`. The residual term will be zero
 exactly when the continued fraction terminated; otherwise, the residual term will be given by the
 fractional part stored in `gcf.int_fract_pair.stream v n`.
 
@@ -42,7 +42,7 @@ open generalized_continued_fraction as gcf
 variables {K : Type*} [discrete_linear_ordered_field K] {v : K} {n : ℕ}
 
 /--
-Given two continants `pconts` and `conts` and a value `fr`, this function returns
+Given two continuants `pconts` and `conts` and a value `fr`, this function returns
 - `conts.a / conts.b` if `fr = 0`
 - `exact_conts.a / exact_conts.b` where `exact_conts = next_continuants 1 fr⁻¹ pconts conts` otherwise.
 

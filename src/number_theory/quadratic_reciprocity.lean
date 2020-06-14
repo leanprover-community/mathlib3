@@ -281,7 +281,7 @@ lemma div_eq_filter_card {a b c : ℕ} (hb0 : 0 < b) (hc : a / b ≤ c) : a / b 
   ((Ico 1 c.succ).filter (λ x, x * b ≤ a)).card :=
 calc a / b = (Ico 1 (a / b).succ).card : by simp
 ... = ((Ico 1 c.succ).filter (λ x, x * b ≤ a)).card :
-  congr_arg _$ finset.ext $ λ x,
+  congr_arg _ $ finset.ext $ λ x,
     have x * b ≤ a → x ≤ c,
       from λ h, le_trans (by rwa [le_div_iff_mul_le _ _ hb0]) hc,
     by simp [lt_succ_iff, le_div_iff_mul_le _ _ hb0]; tauto

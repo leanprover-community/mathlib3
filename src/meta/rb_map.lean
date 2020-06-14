@@ -35,6 +35,16 @@ s.fold (pure s) (λ a m,
 meta def union {key} (s t : rb_set key) : rb_set key :=
 s.fold t (λ a t, t.insert a)
 
+/--
+`of_list_core empty l` turns a list of keys into an `rb_set`.
+It takes a user_provided `rb_set` to use for the base case.
+This can be used to pre-seed the set with additional elements,
+and/or to use a custom comparison operator.
+-/
+meta def of_list_core {key} (base : native.rb_set key) : list key → native.rb_map key unit
+| []      := base
+| (x::xs) := native.rb_set.insert (of_list_core xs) x
+
 end rb_set
 
 namespace rb_map

@@ -86,12 +86,12 @@ begin
     rwa [← e, mem_decode2.1 (option.get_mem (H m hm))] at this },
   { intros b h,
     refine ⟨encode b, _, _⟩,
-    { convert h, simp [ext_iff, encodek2] },
+    { convert h, simp [set.ext_iff, encodek2] },
     { exact option.get_of_mem _ (encodek2 _) } },
   { intros n h,
     transitivity, swap,
     rw [show decode2 β n = _, from option.get_mem (H n h)],
-    congr, simp [ext_iff, -option.some_get] }
+    congr, simp [set.ext_iff, -option.some_get] }
 end
 
 protected theorem Union (m : outer_measure α)

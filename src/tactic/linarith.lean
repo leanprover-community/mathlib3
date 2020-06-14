@@ -98,6 +98,87 @@ by rw [←h3, mul_assoc, mul_div_comm, h2, ←mul_assoc, h1, mul_comm, one_mul]
 
 end lemmas
 
+/--
+A linear expression is a list of pairs of variable indices and coefficients.
+
+Some functions on `linexp` assume that `n : ℕ` occurs at most once as the first element of a pair,
+and that the list is sorted in decreasing order of the first argument.
+This is not enforced by the type but the operations here preserve it.
+-/
+@[reducible]
+def linexp : Type := list (ℕ × ℤ)
+end linarith
+
+/--
+A map `ℕ → ℤ` is converted to `list (ℕ × ℤ)` in the obvious way.
+This list is sorted in decreasing order of the first argument.
+-/
+meta def native.rb_map.to_linexp (m : rb_map ℕ ℤ) : linarith.linexp :=
+m.to_list
+
+namespace linarith
+namespace linexp
+
+/--
+Add two `linexp`s together componentwise.
+Preserves sorting and uniqueness of the first argument.
+-/
+meta def add : linexp → linexp → linexp
+| [] a := a
+| a [] := a
+| (a@(n1,z1)::t1) (b@(n2,z2)::t2) :=
+  if n1 < n2 then b::add (a::t1) t2
+  else if n2 < n1 then a::add t1 (b::t2)
+  else let sum := z1 + z2 in if sum = 0 then add t1 t2 else (n1, sum)::add t1 t2
+
+/-- `l.scale c` scales the values in `l` by `c` without modifying the order or keys. -/
+def scale (c : ℤ) (l : linexp) : linexp :=
+if c = 0 then []
+else if c = 1 then l
+else l.map $ λ ⟨n, z⟩, (n, z*c)
+
+/--
+`l.get n` returns the value in `l` associated with key `n`, if it exists, and `none` otherwise.
+This function assumes that `l` is sorted in decreasing order of the first argument,
+that is, it will return `none` as soon as it finds a key smaller than `n`.
+-/
+def get (n : ℕ) : linexp → option ℤ
+| [] := none
+| ((a, b)::t) :=
+  if a < n then none
+  else if a = n then some b
+  else get t
+
+/--
+`l.contains n` is true iff `n` is the first element of a pair in `l`.
+-/
+def contains (n : ℕ) : linexp → bool := option.is_some ∘ get n
+
+/--
+`l.zfind n` returns the value associated with key `n` if there is one, and 0 otherwise.
+-/
+def zfind (n : ℕ) (l : linexp) : ℤ :=
+match l.get n with
+| none := 0
+| some v := v
+end
+
+/--
+Defines a lex ordering on `linexp`. This function is performance critical.
+-/
+def cmp : linexp → linexp → ordering
+| [] [] := ordering.eq
+| [] _ := ordering.lt
+| _ [] := ordering.gt
+| ((n1,z1)::t1) ((n2,z2)::t2) :=
+  if n1 < n2 then ordering.lt
+  else if n2 < n1 then ordering.gt
+  else if z1 < z2 then ordering.lt
+  else if z2 < z1 then ordering.gt
+  else cmp t1 t2
+
+end linexp
+
 section datatypes
 
 @[derive decidable_eq, derive inhabited]
@@ -111,11 +192,14 @@ def ineq.max : ineq → ineq → ineq
 | le a := a
 | lt a := lt
 
-def ineq.is_lt : ineq → ineq → bool
-| eq le := tt
-| eq lt := tt
-| le lt := tt
-| _ _ := ff
+/-- `ineq` is ordered `eq < le < lt`. -/
+def ineq.cmp : ineq → ineq → ordering
+| eq eq := ordering.eq
+| eq _ := ordering.lt
+| le le := ordering.eq
+| le lt := ordering.lt
+| lt lt := ordering.eq
+| _ _ := ordering.gt
 
 def ineq.to_string : ineq → string
 | eq := "="
@@ -128,15 +212,15 @@ instance : has_to_string ineq := ⟨ineq.to_string⟩
 The main datatype for FM elimination.
 Variables are represented by natural numbers, each of which has an integer coefficient.
 Index 0 is reserved for constants, i.e. `coeffs.find 0` is the coefficient of 1.
-The represented term is `coeffs.keys.sum (λ i, coeffs.find i * Var[i])`.
+The represented term is `coeffs.sum (λ ⟨k, v⟩, v * Var[k])`.
 str determines the direction of the comparison -- is it < 0, ≤ 0, or = 0?
 -/
 @[derive inhabited]
-meta structure comp :=
+meta structure comp : Type :=
 (str : ineq)
-(coeffs : rb_map ℕ int)
+(coeffs : linexp)
 
-meta inductive comp_source
+meta inductive comp_source : Type
 | assump : ℕ → comp_source
 | add : comp_source → comp_source → comp_source
 | scale : ℕ → comp_source → comp_source
@@ -158,23 +242,27 @@ meta structure pcomp :=
 (c : comp)
 (src : comp_source)
 
-meta def map_lt (m1 m2 : rb_map ℕ int) : bool :=
-list.lex (prod.lex (<) (<)) m1.to_list m2.to_list
+/-- `comp` has a lex order. First the `ineq`s are compared, then the `coeff`s. -/
+meta def comp.cmp : comp → comp → ordering
+| ⟨str1, coeffs1⟩ ⟨str2, coeffs2⟩ :=
+  match str1.cmp str2 with
+  | ordering.lt := ordering.lt
+  | ordering.gt := ordering.gt
+  | ordering.eq := coeffs1.cmp coeffs2
+  end
 
--- make more efficient
-meta def comp.lt (c1 c2 : comp) : bool :=
-(c1.str.is_lt c2.str) || (c1.str = c2.str) && map_lt c1.coeffs c2.coeffs
-
-meta instance comp.has_lt : has_lt comp := ⟨λ a b, comp.lt a b⟩
-meta instance pcomp.has_lt : has_lt pcomp := ⟨λ p1 p2, p1.c < p2.c⟩
- -- short-circuit type class inference
-meta instance pcomp.has_lt_dec : decidable_rel ((<) : pcomp → pcomp → Prop) := by apply_instance
+/--
+The `comp_source` field is ignored when comparing `pcomp`s. Two `pcomp`s proving the same
+comparison, with different sources, are considered equivalent.
+-/
+meta def pcomp.cmp (p1 p2 : pcomp) : ordering :=
+p1.c.cmp p2.c
 
 meta def comp.coeff_of (c : comp) (a : ℕ) : ℤ :=
 c.coeffs.zfind a
 
 meta def comp.scale (c : comp) (n : ℕ) : comp :=
-{ c with coeffs := c.coeffs.map ((*) (n : ℤ)) }
+{ c with coeffs := c.coeffs.scale n }
 
 meta def comp.add (c1 c2 : comp) : comp :=
 ⟨c1.str.max c2.str, c1.coeffs.add c2.coeffs⟩
@@ -190,6 +278,10 @@ meta instance pcomp.to_format : has_to_format pcomp :=
 
 meta instance comp.to_format : has_to_format comp :=
 ⟨λ p, to_fmt p.coeffs ++ to_string p.str ++ "0"⟩
+
+/-- Creates an empty set of `pcomp`s, sorted using `pcomp.cmp`. -/
+meta def mk_pcomp_set : rb_set pcomp :=
+rb_map.mk_core unit pcomp.cmp
 
 end datatypes
 
@@ -216,8 +308,8 @@ meta def comp.is_contr (c : comp) : bool := c.coeffs.empty ∧ c.str = ineq.lt
 meta def pcomp.is_contr (p : pcomp) : bool := p.c.is_contr
 
 meta def elim_with_set (a : ℕ) (p : pcomp) (comps : rb_set pcomp) : rb_set pcomp :=
-if ¬ p.c.coeffs.contains a then mk_rb_set.insert p else
-comps.fold mk_rb_set $ λ pc s,
+if ¬ p.c.coeffs.contains a then mk_pcomp_set.insert p else
+comps.fold mk_pcomp_set $ λ pc s,
 match pelim_var p pc a with
 | some pc := s.insert pc
 | none := s
@@ -263,7 +355,7 @@ meta def monad.elim_var (a : ℕ) : linarith_monad unit :=
 do vs ← get_vars,
    when (vs.contains a) $
 do comps ← get_comps,
-   let cs' := comps.fold mk_rb_set (λ p s, s.union (elim_with_set a p comps)),
+   let cs' := comps.fold mk_pcomp_set (λ p s, s.union (elim_with_set a p comps)),
    update (vs.erase a) cs'
 
 meta def elim_all_vars : linarith_monad unit :=
@@ -400,7 +492,7 @@ meta def to_comp (red : transparency) (e : expr) (m : expr_map ℕ) (mm : rb_map
 do (iq, e) ← parse_into_comp_and_expr e,
    (m', comp') ← map_of_expr red m e,
    let ⟨nm, mm'⟩ := sum_to_lf comp' mm,
-   return ⟨⟨iq, mm'⟩,m',nm⟩
+   return ⟨⟨iq, mm'.to_linexp⟩,m',nm⟩
 
 meta def to_comp_fold (red : transparency) : expr_map ℕ → list expr → rb_map monom ℕ →
       tactic (list (option comp) × expr_map ℕ × rb_map monom ℕ )
@@ -422,9 +514,9 @@ do pftps ← l.mmap infer_type,
   (l', _, map) ← to_comp_fold red mk_rb_map pftps mk_rb_map,
   let lz := list.enum $ ((l.zip pftps).zip l').filter_map (λ ⟨a, b⟩, prod.mk a <$> b),
   let prmap := rb_map.of_list $ lz.map (λ ⟨n, x⟩, (n, x.1)),
-  let vars : rb_set ℕ := rb_map.set_of_list $ list.range map.size.succ,
-  let pc : rb_set pcomp := rb_map.set_of_list $
-    lz.map (λ ⟨n, x⟩, ⟨x.2, comp_source.assump n⟩),
+  let vars : rb_set ℕ := rb_map.set_of_list $ list.range map.size,
+  let pc : rb_set pcomp :=
+    rb_set.of_list_core mk_pcomp_set $ lz.map (λ ⟨n, x⟩, ⟨x.2, comp_source.assump n⟩),
   return (⟨vars, pc⟩, prmap)
 
 meta def linarith_monad.run (red : transparency) {α} (tac : linarith_monad α) (l : list expr) :

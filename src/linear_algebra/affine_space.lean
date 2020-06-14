@@ -149,12 +149,6 @@ lemma weighted_vsub_of_point_sub (w₁ w₂ : ι → k) (p : ι → P) (b : P) :
     weighted_vsub_of_point V (w₁ - w₂) p b :=
 by simp only [← weighted_vsub_of_point_linear_apply, linear_map.map_sub]
 
-/-- A weighted sum, as a linear map on the weights. -/
-def linear_map.weighted_vsub_of_point (p : ι → P) (b : P) : (ι → k) →ₗ[k] V :=
-{ to_fun := λ w, weighted_vsub_of_point V w p b,
-  map_add' := λ x y, (weighted_vsub_of_point_add V _ _ _ _).symm,
-  map_smul' := λ c x, (weighted_vsub_of_point_smul V _ _ _ _).symm }
-
 /-- The weighted sum is independent of the base point when the sum of
 the weights is 0. -/
 lemma weighted_vsub_of_point_eq_of_sum_eq_zero (w : ι → k) (p : ι → P) (h : ∑ i, w i = 0)

@@ -133,6 +133,7 @@ def conj (z : ℂ) : ℂ := ⟨z.re, -z.im⟩
 @[simp] lemma conj_zero : conj 0 = 0 := ext_iff.2 $ by simp [conj]
 @[simp] lemma conj_one : conj 1 = 1 := ext_iff.2 $ by simp
 @[simp] lemma conj_I : conj I = -I := ext_iff.2 $ by simp
+@[simp] lemma conj_two : conj 2 = 2 := ext_iff.2 $ by simp
 
 @[simp] lemma conj_add (z w : ℂ) : conj (z + w) = conj z + conj w :=
 ext_iff.2 $ by simp [add_comm]
@@ -252,8 +253,6 @@ by simp [sub_eq_add_neg]
 
 lemma conj_pow (z : ℂ) (n : ℕ) : conj (z ^ n) = conj z ^ n :=
 by induction n; simp [*, conj_mul, pow_succ]
-
-@[simp] lemma conj_two : conj (2 : ℂ) = 2 := by apply complex.ext; simp
 
 lemma norm_sq_sub (z w : ℂ) : norm_sq (z - w) =
   norm_sq z + norm_sq w - 2 * (z * conj w).re :=

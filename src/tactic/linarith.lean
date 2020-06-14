@@ -23,6 +23,11 @@ meta def nat.to_pexpr : ℕ → pexpr
 | 1 := ``(1)
 | n := if n % 2 = 0 then ``(bit0 %%(nat.to_pexpr (n/2))) else ``(bit1 %%(nat.to_pexpr (n/2)))
 
+meta def native.rb_set.of_list_core {key} (empty : native.rb_set key) : list key → native.rb_map key unit
+| []      := empty
+| (x::xs) := native.rb_set.insert (native.rb_set.of_list_core xs) x
+
+
 open native
 namespace linarith
 
@@ -127,11 +132,9 @@ meta def add : linexp → linexp → linexp
 | [] a := a
 | a [] := a
 | (a@(n1,z1)::t1) (b@(n2,z2)::t2) :=
-  match cmp n1 n2 with
-  | ordering.lt := b::add (a::t1) t2
-  | ordering.gt := a::add t1 (b::t2)
-  | ordering.eq := let sum := z1 + z2 in if sum = 0 then add t1 t2 else (n1, sum)::add t1 t2
-  end
+  if n1 < n2 then b::add (a::t1) t2
+  else if n2 < n1 then a::add t1 (b::t2)
+  else let sum := z1 + z2 in if sum = 0 then add t1 t2 else (n1, sum)::add t1 t2
 
 /-- `l.scale c` scales the values in `l` by `c` without modifying the order or keys. -/
 def scale (c : ℤ) (l : linexp) : linexp :=
@@ -168,11 +171,16 @@ end
 /--
 Defines a lex ordering on `linexp`. This function is performance critical.
 -/
-def lt : linexp → linexp → bool
-| [] [] := ff
-| [] _ := tt
-| _ [] := ff
-| ((n1,z1)::t1) ((n2,z2)::t2) := n1 < n2 ∨ (n1 = n2 ∧ (z1 < z2 ∨ lt t1 t2))
+def cmp : linexp → linexp → ordering
+| [] [] := ordering.eq
+| [] _ := ordering.lt
+| _ [] := ordering.gt
+| ((n1,z1)::t1) ((n2,z2)::t2) :=
+  if n1 < n2 then ordering.lt
+  else if n2 < n1 then ordering.gt
+  else if z1 < z2 then ordering.lt
+  else if z2 < z1 then ordering.gt
+  else cmp t1 t2
 
 end linexp
 
@@ -189,11 +197,14 @@ def ineq.max : ineq → ineq → ineq
 | le a := a
 | lt a := lt
 
-def ineq.is_lt : ineq → ineq → bool
-| eq le := tt
-| eq lt := tt
-| le lt := tt
-| _ _ := ff
+/-- `ineq` is ordered `eq < le < lt`. -/
+def ineq.cmp : ineq → ineq → ordering
+| eq eq := ordering.eq
+| eq _ := ordering.lt
+| le le := ordering.eq
+| le lt := ordering.lt
+| lt lt := ordering.eq
+| _ _ := ordering.gt
 
 def ineq.to_string : ineq → string
 | eq := "="
@@ -236,10 +247,21 @@ meta structure pcomp :=
 (c : comp)
 (src : comp_source)
 
-meta def comp.lt (c1 c2 : comp) : bool :=
-(c1.str.is_lt c2.str) || (c1.str = c2.str) && (c1.coeffs.lt c2.coeffs)
+/-- `comp` has a lex order. First the `ineq`s are compared, then the `coeff`s. -/
+meta def comp.cmp : comp → comp → ordering
+| ⟨str1, coeffs1⟩ ⟨str2, coeffs2⟩ :=
+  match str1.cmp str2 with
+  | ordering.lt := ordering.lt
+  | ordering.gt := ordering.gt
+  | ordering.eq := coeffs1.cmp coeffs2
+  end
 
-meta instance pcomp.has_lt : has_lt pcomp := ⟨λ p1 p2, p1.c.lt p2.c⟩
+/--
+The `comp_source` field is ignored when comparing `pcomp`s. Two `pcomp`s proving the same
+comparison, with different sources, are considered equivalent.
+-/
+meta def pcomp.cmp (p1 p2 : pcomp) : ordering :=
+p1.c.cmp p2.c
 
 meta def comp.coeff_of (c : comp) (a : ℕ) : ℤ :=
 c.coeffs.zfind a
@@ -261,6 +283,10 @@ meta instance pcomp.to_format : has_to_format pcomp :=
 
 meta instance comp.to_format : has_to_format comp :=
 ⟨λ p, to_fmt p.coeffs ++ to_string p.str ++ "0"⟩
+
+/-- Creates an empty set of `pcomp`s, sorted using `pcomp.cmp`. -/
+meta def mk_pcomp_set : rb_set pcomp :=
+rb_map.mk_core unit pcomp.cmp
 
 end datatypes
 
@@ -287,8 +313,8 @@ meta def comp.is_contr (c : comp) : bool := c.coeffs.empty ∧ c.str = ineq.lt
 meta def pcomp.is_contr (p : pcomp) : bool := p.c.is_contr
 
 meta def elim_with_set (a : ℕ) (p : pcomp) (comps : rb_set pcomp) : rb_set pcomp :=
-if ¬ p.c.coeffs.contains a then mk_rb_set.insert p else
-comps.fold mk_rb_set $ λ pc s,
+if ¬ p.c.coeffs.contains a then mk_pcomp_set.insert p else
+comps.fold mk_pcomp_set $ λ pc s,
 match pelim_var p pc a with
 | some pc := s.insert pc
 | none := s
@@ -334,7 +360,7 @@ meta def monad.elim_var (a : ℕ) : linarith_monad unit :=
 do vs ← get_vars,
    when (vs.contains a) $
 do comps ← get_comps,
-   let cs' := comps.fold mk_rb_set (λ p s, s.union (elim_with_set a p comps)),
+   let cs' := comps.fold mk_pcomp_set (λ p s, s.union (elim_with_set a p comps)),
    update (vs.erase a) cs'
 
 meta def elim_all_vars : linarith_monad unit :=
@@ -493,9 +519,9 @@ do pftps ← l.mmap infer_type,
   (l', _, map) ← to_comp_fold red mk_rb_map pftps mk_rb_map,
   let lz := list.enum $ ((l.zip pftps).zip l').filter_map (λ ⟨a, b⟩, prod.mk a <$> b),
   let prmap := rb_map.of_list $ lz.map (λ ⟨n, x⟩, (n, x.1)),
-  let vars : rb_set ℕ := rb_map.set_of_list $ list.range map.size.succ,
-  let pc : rb_set pcomp := rb_map.set_of_list $
-    lz.map (λ ⟨n, x⟩, ⟨x.2, comp_source.assump n⟩),
+  let vars : rb_set ℕ := rb_map.set_of_list $ list.range map.size,
+  let pc : rb_set pcomp :=
+    rb_set.of_list_core mk_pcomp_set $ lz.map (λ ⟨n, x⟩, ⟨x.2, comp_source.assump n⟩),
   return (⟨vars, pc⟩, prmap)
 
 meta def linarith_monad.run (red : transparency) {α} (tac : linarith_monad α) (l : list expr) :

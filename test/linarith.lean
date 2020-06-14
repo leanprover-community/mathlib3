@@ -170,7 +170,6 @@ example (x y : ℚ) (h : x < y) : x ≠ y := by linarith
 
 example (x y : ℚ) (h : x < y) : ¬ x = y := by linarith
 
-<<<<<<< HEAD
 example (u v x y A B : ℚ)
 (a : 0 < A)
 (a_1 : 0 <= 1 - A)
@@ -195,10 +194,6 @@ begin
 end
 
 example (u v x y A B : ℚ)
-=======
-lemma test6 (u v x y A B : ℚ)
-
->>>>>>> blessed/master
 (a : 0 < A)
 (a_1 : 0 <= 1 - A)
 (a_2 : 0 <= B - 1)

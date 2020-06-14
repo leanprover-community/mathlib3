@@ -81,7 +81,7 @@ begin
       ... ≤ ∑ i in r, ε/2^i             : sum_le_sum (λ i i_in, (IH i $ nat.lt_succ_iff.mp $
                                                                   finset.mem_range.mp i_in).1)
       ... = ∑ i in r, (1/2)^i*ε         : by {congr, ext i, field_simp }
-      ... = (∑ i in r, (1/2)^i)*ε       : finset.sum_map_mul_right
+      ... = (∑ i in r, (1/2)^i)*ε       : finset.sum_mul.symm
       ... ≤ 2*ε                         : mul_le_mul_of_nonneg_right (sum_geometric_two_le _)
                                             (le_of_lt ε_pos), },
     have B : 2^(n+1) * ϕ x ≤ ϕ (u (n + 1)),

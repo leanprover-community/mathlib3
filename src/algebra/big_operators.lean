@@ -896,14 +896,6 @@ lemma sum_boole_mul [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   (∑ x in s, (ite (a = x) 1 0) * f x) = ite (a ∈ s) (f a) 0 :=
 by simp
 
-lemma sum_map_mul_right {b : β} {s : finset α} {f : α → β} :
-  ∑ a in s, f a * b = (∑ a in s, f a) * b :=
-multiset.sum_map_mul_right
-
-lemma sum_map_mul_left {b : β} {s : finset α} {f : α → β} :
-  ∑ a in s, b*f a = b * (∑ a in s, f a) :=
-multiset.sum_map_mul_left
-
 end semiring
 
 lemma sum_div [division_ring β] {s : finset α} {f : α → β} {b : β} :

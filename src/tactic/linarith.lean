@@ -1073,10 +1073,6 @@ add_tactic_doc
   decl_names := [`tactic.interactive.linarith],
   tags       := ["arithmetic", "decision procedure", "finishing"] }
 
-/-- Locally give a `has_lt` instance on `bool`, for `rb_set` purposes. -/
-local attribute [instance, reducible]
-def bool.has_lt : has_lt bool := ⟨λ a b, a = ff ∧ b = tt⟩
-
 /--
 An extension of `linarith` with some preprocessing to allow it to solve some nonlinear arithmetic
 problems. (Based on Coq's `nlinarith` tactic.) See `linarith` for the available syntax of options,

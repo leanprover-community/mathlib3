@@ -9,9 +9,9 @@ import measure_theory.outer_measure
 
 Given a measurable space `α`, a measure on `α` is a function that sends measurable sets to the
 extended nonnegative reals that satisfies the following conditions:
-(1) `μ ∅ = 0`;
-(2) `μ` is countably additive. This means that the measure of a countable union of pairwise disjoint
-  sets is equal to the measure of the individual sets.
+1. `μ ∅ = 0`;
+2. `μ` is countably additive. This means that the measure of a countable union of pairwise disjoint
+   sets is equal to the measure of the individual sets.
 
 Every measure can be canonically extended to an outer measure, so that it assigns values to
 all subsets, not just the measurable subsets. On the other hand, a measure that is countably
@@ -37,7 +37,7 @@ on the null sets.
 
 ## Implementation notes
 
-For `μ : measure α`, the `μ s` is the value of the *outer measure* applied to `s`.
+Given `μ : measure α`, `μ s` is the value of the *outer measure* applied to `s`.
 This conveniently allows us to apply the measure to sets without proving that they are measurable.
 We get countable subadditivity for all sets, but only countable additivity for measurable sets.
 
@@ -180,7 +180,7 @@ end of_measurable
 namespace outer_measure
 variables {α : Type*} [measurable_space α] (m : outer_measure α)
 
-/-- Given an outer measure `m` we can forget it's value on non-measurable sets, and then consider
+/-- Given an outer measure `m` we can forget its value on non-measurable sets, and then consider
   `m.trim`, the unique maximal outer measure less than that function. -/
 def trim : outer_measure α :=
 outer_measure' (λ s _, m s) m.empty
@@ -681,9 +681,9 @@ le_trans
 /-- Counting measure on any measurable space. -/
 def count : measure α := sum dirac
 
-/-- A measure is complete if every null set is also measurable measurable.
+/-- A measure is complete if every null set is also measurable.
   A null set is a subset of a measurable set with measure `0`.
-  Since every measure is defined as an special case of an outer measure, we can more simply state
+  Since every measure is defined as a special case of an outer measure, we can more simply state
   that a set `s` is null if `μ s = 0`. -/
 @[class] def is_complete {α} {_:measurable_space α} (μ : measure α) : Prop :=
 ∀ s, μ s = 0 → is_measurable s

@@ -11,14 +11,12 @@ import measure_theory.measurable_space
 /-!
 # Outer Measures
 
-This file defines outer measures
-
 An outer measure is a function `μ : set α → ennreal`, from the powerset of a type to the extended
 nonnegative real numbers that satisfies the following conditions:
-(1) `μ ∅ = 0`;
-(2) `μ` is monotone;
-(3) `μ` is countably subadditive. This means that the outer measure of a countable union is at most
-  the sum of the outer measure on the individual sets.
+1. `μ ∅ = 0`;
+2. `μ` is monotone;
+3. `μ` is countably subadditive. This means that the outer measure of a countable union is at most
+   the sum of the outer measure on the individual sets.
 
 Note that we do not need `α` to be measurable to define an outer measure.
 

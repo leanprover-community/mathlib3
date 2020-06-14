@@ -15,20 +15,21 @@ or with boundary or with corners. As a concrete example, we construct explicitly
 boundary structure on the real interval `[x, y]`.
 
 More specifically, we introduce
-* `model_with_corners ℝ (euclidean_space n) (euclidean_half_space n)` for the model space used
-to define `n`-dimensional real manifolds with boundary
-* `model_with_corners ℝ (euclidean_space n) (euclidean_quadrant n)` for the model space used
-to define `n`-dimensional real manifolds with corners
+* `model_with_corners ℝ (euclidean_space (fin n)) (euclidean_half_space n)` for the model space used
+  to define `n`-dimensional real manifolds with boundary
+* `model_with_corners ℝ (euclidean_space (fin n)) (euclidean_quadrant n)` for the model space used
+  to define `n`-dimensional real manifolds with corners
 
 ## Notations
 
-In the locale `manifold`, we introduce the notations `𝓡 n` for the identity model with corners on
-`euclidean_space (fin n)`, and `𝓡∂ n` for
-`model_with_corners ℝ (euclidean_space n) (euclidean_half_space n)`. In this way, if a manifold
-`M` is boundaryless, smooth and modelled on `euclidean_space (fin m)`, and `N` is smooth with
-boundary modelled on `euclidean_half_space n`, and `f : M → N` is a smooth map, then the derivative
-of `f` can be written as `mfderiv (𝓡 m) (𝓡∂ n) f` (as to why the model with corners can not be
-implicit, see the discussion in `smooth_manifold_with_corners.lean`).
+In the locale `manifold`, we introduce the notations
+* `𝓡 n` for the identity model with corners on `euclidean_space (fin n)`
+* `𝓡∂ n` for `model_with_corners ℝ (euclidean_space (fin n)) (euclidean_half_space n)`.
+
+For instance, if a manifold `M` is boundaryless, smooth and modelled on `euclidean_space (fin m)`,
+and `N` is smooth with boundary modelled on `euclidean_half_space n`, and `f : M → N` is a smooth
+map, then the derivative of `f` can be written simply as `mfderiv (𝓡 m) (𝓡∂ n) f` (as to why the
+model with corners can not be implicit, see the discussion in `smooth_manifold_with_corners.lean`).
 
 ## Implementation notes
 

@@ -206,8 +206,8 @@ lemma uniform_space.core_eq : ∀{u₁ u₂ : uniform_space.core α}, u₁.unifo
 
 section prio
 
-/-- Suppose that one can put on a type two mathematical data, a rich one `R` and a poor one `P`, and
-that one can deduce the poor structure from the rich structure through a map `F` (called a
+/-- Suppose that one can put two mathematical structures on a type, a rich one `R` and a poor one 
+`P`, and that one can deduce the poor structure from the rich structure through a map `F` (called a
 forgetful functor) (think `R = metric_space` and `P = topological_space`). A possible
 implementation would be to have a type class `rich` containing a field `R`, a type class `poor`
 containing a field `P`, and an instance from `rich` to `poor`. However, this creates diamond
@@ -244,7 +244,7 @@ topology in the uniform space structure, and a uniform structure in the metric s
 Note also that, when `P` is a proposition, there is no such issue as any two proofs of `P` are
 definitionally equivalent in Lean.
 
-To avoid boilerplate, there are some designs that can help fill automatically the poor fields when
+To avoid boilerplate, there are some designs that can automatically fill the poor fields when
 creating a rich structure if one doesn't want to do something special about them. For instance,
 in the definition of metric spaces, default tactics fill the uniform space fields if they are
 not given explicitly. One can also have a helper function creating the rich structure from a

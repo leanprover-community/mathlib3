@@ -939,9 +939,13 @@ meta def find_squares : rb_set (expr × bool) → expr → tactic (rb_set (expr 
 | s e@`(%%e1 * %%e2) := if e1 = e2 then do s ← find_squares s e1, return (s.insert (e1, ff)) else e.mfoldl find_squares s
 | s e := e.mfoldl find_squares s
 
+-- used in the `nlinarith` normalization steps. The `_` argument is for uniformity.
+@[nolint unused_arguments]
 lemma mul_zero_eq {α} {R : α → α → Prop} [semiring α] {a b : α} (_ : R a 0) (h : b = 0) : a * b = 0 :=
 by simp [h]
 
+-- used in the `nlinarith` normalization steps. The `_` argument is for uniformity.
+@[nolint unused_arguments]
 lemma zero_mul_eq {α} {R : α → α → Prop} [semiring α] {a b : α} (h : a = 0) (_ : R b 0) : a * b = 0 :=
 by simp [h]
 
@@ -1069,6 +1073,7 @@ add_tactic_doc
   decl_names := [`tactic.interactive.linarith],
   tags       := ["arithmetic", "decision procedure", "finishing"] }
 
+/-- Locally give a `has_lt` instance on `bool`, for `rb_set` purposes. -/
 local attribute [instance, reducible]
 def bool.has_lt : has_lt bool := ⟨λ a b, a = ff ∧ b = tt⟩
 

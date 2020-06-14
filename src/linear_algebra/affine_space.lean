@@ -174,6 +174,12 @@ begin
   refl
 end
 
+/-- A weighted sum, as a linear map on the weights. -/
+def linear_map.weighted_vsub_of_point (p : ι → P) (b : P) : (ι → k) →ₗ[k] V :=
+{ to_fun := λ w, weighted_vsub_of_point V w p b,
+  map_add' := λ x y, (weighted_vsub_of_point_add V _ _ _ _).symm,
+  map_smul' := λ c x, (weighted_vsub_of_point_smul V _ _ _ _).symm }
+
 /-- The weighted sum is independent of the base point when the sum of
 the weights is 0. -/
 lemma weighted_vsub_of_point_eq_of_sum_eq_zero (w : ι → k) (p : ι → P) (h : ∑ i, w i = 0)
@@ -640,6 +646,44 @@ def homothety_affine (c : P1) :
 @[simp] lemma coe_homothety_affine (c : P1) :
   ⇑(homothety_affine V1 c : affine_map k k k _ _) = homothety V1 c :=
 rfl
+
+end affine_map
+
+namespace affine_map
+variables (k : Type*) (V : Type*) {P : Type*} [comm_ring k] [add_comm_group V] [module k V]
+variables [affine_space k V P] {ι : Type*} [fintype ι]
+
+/-- A weighted sum, as an affine map on the points involved. -/
+def weighted_vsub_of_point (w : ι → k) : affine_map k ((ι → V) × V) ((ι → P) × P) V V :=
+{ to_fun := λ p, weighted_vsub_of_point _ w p.fst p.snd,
+  linear :=
+  { to_fun := λ v, ∑ i, w i • (v.fst i - v.snd),
+    map_add' := λ x y, begin
+      rw ←finset.sum_add_distrib,
+      congr,
+      ext,
+      rw ←smul_add,
+      congr,
+      unfold prod.fst prod.snd,
+      rw [sub_add_eq_sub_sub, sub_add_eq_add_sub, ←add_sub_assoc, sub_right_comm],
+      refl
+    end,
+    map_smul' := λ c x, begin
+      rw finset.smul_sum,
+      congr,
+      ext i,
+      unfold prod.fst prod.snd,
+      rw [smul_smul, pi.smul_apply, smul_sub, smul_smul, smul_smul, mul_comm c _, smul_sub]
+    end },
+  map_vadd' := λ p v, begin
+    rw [prod.fst_vadd, prod.snd_vadd, linear_map.coe_mk, vadd_eq_add],
+    unfold weighted_vsub_of_point,
+    rw ←finset.sum_add_distrib,
+    congr,
+    ext i,
+    rw [←smul_add, pi.vadd_apply, vadd_vsub_assoc, vsub_vadd_eq_vsub_sub, ←add_sub_assoc,
+        sub_add_eq_add_sub]
+  end }
 
 end affine_map
 

@@ -23,11 +23,6 @@ meta def nat.to_pexpr : ℕ → pexpr
 | 1 := ``(1)
 | n := if n % 2 = 0 then ``(bit0 %%(nat.to_pexpr (n/2))) else ``(bit1 %%(nat.to_pexpr (n/2)))
 
-meta def native.rb_set.of_list_core {key} (empty : native.rb_set key) : list key → native.rb_map key unit
-| []      := empty
-| (x::xs) := native.rb_set.insert (native.rb_set.of_list_core xs) x
-
-
 open native
 namespace linarith
 

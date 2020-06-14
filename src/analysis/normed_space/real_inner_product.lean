@@ -58,6 +58,10 @@ export has_inner (inner)
 section prio
 
 set_option default_priority 100 -- see Note [default priority]
+
+-- the norm is embedded in the inner product space structure
+-- to avoid definitional equality issues. See Note [forgetful inheritance].
+
 /--
 An inner product space is a real vector space with an additional operation called inner product.
 Inner product spaces over complex vector space will be defined in another file.

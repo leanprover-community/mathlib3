@@ -123,7 +123,7 @@ namespace linexp
 Add two `linexp`s together componentwise.
 Preserves sorting and uniqueness of the first argument.
 -/
-def add : linexp → linexp → linexp
+meta def add : linexp → linexp → linexp
 | [] a := a
 | a [] := a
 | (a@(n1,z1)::t1) (b@(n2,z2)::t2) :=
@@ -136,6 +136,7 @@ def add : linexp → linexp → linexp
 /-- `l.scale c` scales the values in `l` by `c` without modifying the order or keys. -/
 def scale (c : ℤ) (l : linexp) : linexp :=
 if c = 0 then []
+else if c = 1 then l
 else l.map $ λ ⟨n, z⟩, (n, z*c)
 
 /--

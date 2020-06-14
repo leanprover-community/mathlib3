@@ -284,7 +284,7 @@ begin
   by_cases eq : f a = g a,
   { dsimp only [pair_apply], rw eq },
   { have : volume ((pair f g) ⁻¹' {(f a, g a)}) = 0,
-    { refine volume_mono_null (assume a' ha', _) h,
+    { refine measure_mono_null (assume a' ha', _) h,
       simp only [set.mem_preimage, mem_singleton_iff, pair_apply, prod.mk.inj_iff] at ha',
       show f a' ≠ g a',
       rwa [ha'.1, ha'.2] },

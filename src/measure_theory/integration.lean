@@ -387,7 +387,7 @@ lemma volume_bUnion_preimage (s : finset β) (f : α →ₛ β) :
   volume (⋃b ∈ s, f ⁻¹' {b}) = ∑ b in s, volume (f ⁻¹' {b}) :=
 begin
   /- Taking advantage of the fact that `f ⁻¹' {b}` are disjoint for `b ∈ s`. -/
-  rw [volume_bUnion_finset],
+  rw [measure_bUnion_finset],
   { simp only [pairwise_on, (on), finset.mem_coe, ne.def],
     rintros _ _ _ _ ne _ ⟨h₁, h₂⟩,
     simp only [mem_singleton_iff, mem_preimage] at h₁ h₂,
@@ -509,7 +509,7 @@ calc (restrict (const α c) s).integral = c * volume ((const α c) ⁻¹' {c} �
       { assume empty,
         have : (@const α ennreal _ c) ⁻¹' {c} ∩ s = ∅,
         { ext a, exfalso, exact h ⟨a⟩ },
-        simp only [this, volume_empty, mul_zero] } }
+        simp only [this, measure_empty, mul_zero] } }
   end
   ... = c * volume s : by rw [this, univ_inter]
 
@@ -541,7 +541,7 @@ begin
   by_cases eq : f a = g a,
   { dsimp only [pair_apply], rw eq },
   { have : volume ((pair f g) ⁻¹' {(f a, g a)}) = 0,
-    { refine volume_mono_null (assume a' ha', _) h,
+    { refine measure_mono_null (assume a' ha', _) h,
       simp at ha',
       show f a' ≠ g a',
       rwa [ha'.1, ha'.2] },
@@ -600,9 +600,9 @@ begin
       rw [coe_map, @preimage_comp _ _ _ f g, preimage_subset_preimage_iff],
       { simp only [set.mem_preimage, set.mem_singleton, set.singleton_subset_iff] },
       { rw set.singleton_subset_iff, rw mem_range at b_mem, exact b_mem },
-    exact lt_of_le_of_lt (volume_mono this) (h (g b) gb0) },
+    exact lt_of_le_of_lt (measure_mono this) (h (g b) gb0) },
   { rw ← preimage_eq_empty_iff at b_mem,
-    rw [b_mem, volume_empty],
+    rw [b_mem, measure_empty],
     exact with_top.zero_lt_top }
 end
 
@@ -613,9 +613,9 @@ begin
   rw [pair_preimage_singleton],
   rw [ne.def, prod.eq_iff_fst_eq_snd_eq, not_and_distrib] at hbc,
   refine or.elim hbc (λ h : b≠0, _) (λ h : c≠0, _),
-  { calc _ ≤ volume (f ⁻¹' {b}) : volume_mono (set.inter_subset_left _ _)
+  { calc _ ≤ volume (f ⁻¹' {b}) : measure_mono (set.inter_subset_left _ _)
       ... < ⊤ : hf _ h },
-  { calc _ ≤ volume (g ⁻¹' {c}) : volume_mono (set.inter_subset_right _ _)
+  { calc _ ≤ volume (g ⁻¹' {c}) : measure_mono (set.inter_subset_right _ _)
       ... < ⊤ : hg _ h },
 end
 
@@ -625,7 +625,7 @@ begin
   rw integral, apply sum_lt_top,
   intros a ha,
   have : f ⁻¹' {⊤} = -{a : α | f a < ⊤}, { ext, simp },
-  have vol_top : volume (f ⁻¹' {⊤}) = 0, { rw [this, volume, ← measure.mem_a_e_iff], exact h₁ },
+  have vol_top : volume (f ⁻¹' {⊤}) = 0, { rw [this, ← measure.mem_a_e_iff], exact h₁ },
   by_cases hat : a = ⊤,
   { rw [hat, vol_top, mul_zero], exact with_top.zero_lt_top },
   { by_cases haz : a = 0,
@@ -647,7 +647,7 @@ begin
     rcases h with ⟨h, h'⟩,
     refine or.elim h (λh, by contradiction) (λh, h) },
   { rw ← preimage_eq_empty_iff at b_mem,
-    rw [b_mem, volume_empty],
+    rw [b_mem, measure_empty],
     exact with_top.zero_lt_top }
 end
 
@@ -787,7 +787,7 @@ begin
     ... ≤ ∑ r in (rs.map c).range, (⨆n, r * volume ((rs.map c) ⁻¹' {r} ∩ {a | r ≤ f n a})) :
       le_of_eq (finset.sum_congr rfl $ assume x hx,
         begin
-          rw [volume, measure_Union_eq_supr_nat _ (mono x), ennreal.mul_supr],
+          rw [measure_Union_eq_supr_nat _ (mono x), ennreal.mul_supr],
           { assume i,
             refine ((rs.map c).preimage_measurable _).inter _,
             exact (hf i).preimage is_measurable_Ici }
@@ -797,7 +797,7 @@ begin
         refine le_of_eq _,
         rw [ennreal.finset_sum_supr_nat],
         assume p i j h,
-        exact canonically_ordered_semiring.mul_le_mul (le_refl _) (volume_mono $ mono p h)
+        exact canonically_ordered_semiring.mul_le_mul (le_refl _) (measure_mono $ mono p h)
       end
     ... ≤ (⨆n:ℕ, ((rs.map c).restrict {a | (rs.map c) a ≤ f n a}).integral) :
     begin
@@ -922,7 +922,7 @@ lemma lintegral_le_lintegral_ae {f g : α → ennreal} (h : ∀ₘ a, f a ≤ g 
   (∫⁻ a, f a) ≤ (∫⁻ a, g a) :=
 begin
   rcases exists_is_measurable_superset_of_measure_eq_zero h with ⟨t, hts, ht, ht0⟩,
-  have : - t ∈ (@measure_space.μ α _).a_e,
+  have : - t ∈ (@volume α _).a_e,
   { rw [measure.mem_a_e_iff, compl_compl, ht0] },
   refine (supr_le $ assume s, supr_le $ assume hfs,
     le_supr_of_le (s.restrict (- t)) $ le_supr_of_le _ _),
@@ -1245,11 +1245,11 @@ end lintegral
 namespace measure
 
 def integral [measurable_space α] (m : measure α) (f : α → ennreal) : ennreal :=
-@lintegral α { μ := m } f
+@lintegral α { volume := m } f
 
 variables [measurable_space α] {m : measure α}
 
-@[simp] lemma integral_zero : m.integral (λa, 0) = 0 := @lintegral_zero α { μ := m }
+@[simp] lemma integral_zero : m.integral (λa, 0) = 0 := @lintegral_zero α { volume := m }
 
 lemma integral_map [measurable_space β] {f : β → ennreal} {g : α → β}
   (hf : measurable f) (hg : measurable g) : (map g m).integral f = m.integral (f ∘ g) :=
@@ -1264,10 +1264,10 @@ begin
 end
 
 lemma integral_dirac (a : α) {f : α → ennreal} (hf : measurable f) : (dirac a).integral f = f a :=
-have ∀f:α →ₛ ennreal, @simple_func.integral α {μ := dirac a} f = f a,
+have ∀f:α →ₛ ennreal, @simple_func.integral α {volume := dirac a} f = f a,
 begin
   assume f,
-  have : ∀r, @volume α { μ := dirac a } (⇑f ⁻¹' {r}) = ⨆ h : f a = r, 1,
+  have : ∀r, @volume α { volume := dirac a } (⇑f ⁻¹' {r}) = ⨆ h : f a = r, 1,
   { assume r,
     transitivity,
     apply dirac_apply,

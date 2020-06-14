@@ -400,8 +400,16 @@ end
 
 lemma measure_sUnion {S : set (set α)} (hs : countable S)
   (hd : pairwise_on S disjoint) (h : ∀s∈S, is_measurable s) :
-  μ (⋃₀ S) = ∑'s:S, μ s.1 :=
+  μ (⋃₀ S) = ∑' s:S, μ s.1 :=
 by rw [sUnion_eq_bUnion, measure_bUnion hs hd h]
+
+lemma measure_bUnion_finset {ι} {s : finset ι} {f : ι → set α}
+  (hd : pairwise_on ↑s (disjoint on f)) (hm : ∀b∈s, is_measurable (f b)) :
+  μ (⋃b∈s, f b) = ∑ p in s, μ (f p) :=
+begin
+  rw [← finset.sum_attach, finset.attach_eq_univ, ← tsum_fintype],
+  exact measure_bUnion s.countable_to_set hd hm
+end
 
 lemma measure_diff {s₁ s₂ : set α} (h : s₂ ⊆ s₁)
   (h₁ : is_measurable s₁) (h₂ : is_measurable s₂)
@@ -857,76 +865,21 @@ set_option default_priority 100 -- see Note [default priority]
 /-- A measure space is a measurable space equipped with a
   measure, referred to as `volume`. -/
 class measure_space (α : Type*) extends measurable_space α :=
-(μ : measure α)
+(volume : measure α)
 end prio
 
+export measure_space (volume)
+
+/-- `volume` is the canonical  measure on `α`. -/
+add_decl_doc volume
+
 section measure_space
-variables {α : Type*} [measure_space α] {s₁ s₂ : set α}
-open measure_space
-
-/-- `volume s` is the measure of `s : set α` with respect to the canonical measure on `α`. -/
-def volume : set α → ennreal := @μ α _
-
-@[simp] lemma volume_empty : volume (∅ : set α) = 0 := μ.empty
-
-lemma volume_mono : s₁ ⊆ s₂ → volume s₁ ≤ volume s₂ := measure_mono
-
-lemma volume_mono_null : s₁ ⊆ s₂ → volume s₂ = 0 → volume s₁ = 0 :=
-measure_mono_null
-
-theorem volume_Union_le {β} [encodable β] :
-  ∀ (s : β → set α), volume (⋃i, s i) ≤ (∑'i, volume (s i)) :=
-measure_Union_le
-
-lemma volume_Union_null {β} [encodable β] {s : β → set α} :
-  (∀ i, volume (s i) = 0) → volume (⋃i, s i) = 0 :=
-measure_Union_null
-
-theorem volume_union_le : ∀ (s₁ s₂ : set α), volume (s₁ ∪ s₂) ≤ volume s₁ + volume s₂ :=
-measure_union_le
-
-lemma volume_union_null : volume s₁ = 0 → volume s₂ = 0 → volume (s₁ ∪ s₂) = 0 :=
-measure_union_null
-
-lemma volume_Union {β} [encodable β] {f : β → set α} :
-  pairwise (disjoint on f) → (∀i, is_measurable (f i)) →
-  volume (⋃i, f i) = (∑'i, volume (f i)) :=
-measure_Union
-
-lemma volume_union : disjoint s₁ s₂ → is_measurable s₁ → is_measurable s₂ →
-  volume (s₁ ∪ s₂) = volume s₁ + volume s₂ :=
-measure_union
-
-lemma volume_bUnion {β} {s : set β} {f : β → set α} : countable s →
-  pairwise_on s (disjoint on f) → (∀b∈s, is_measurable (f b)) →
-  volume (⋃b∈s, f b) = ∑'p:s, volume (f p.1) :=
-measure_bUnion
-
-lemma volume_sUnion {S : set (set α)} : countable S →
-  pairwise_on S disjoint → (∀s∈S, is_measurable s) →
-  volume (⋃₀ S) = ∑'s:S, volume s.1 :=
-measure_sUnion
-
-lemma volume_bUnion_finset {β} {s : finset β} {f : β → set α}
-  (hd : pairwise_on ↑s (disjoint on f)) (hm : ∀b∈s, is_measurable (f b)) :
-  volume (⋃b∈s, f b) = ∑ p in s, volume (f p) :=
-show volume (⋃b∈(↑s : set β), f b) = ∑ p in s, volume (f p),
-begin
-  rw [volume_bUnion s.countable_to_set hd hm, tsum_eq_sum],
-  { show ∑ b in s.attach, volume (f b) = ∑ b in s, volume (f b),
-    exact @finset.sum_attach _ _ s _ (λb, volume (f b)) },
-  simp
-end
-
-lemma volume_diff : s₂ ⊆ s₁ → is_measurable s₁ → is_measurable s₂ →
-  volume s₂ < ⊤ → volume (s₁ \ s₂) = volume s₁ - volume s₂ :=
-measure_diff
-
-variable {ι : Type*}
+variables {α : Type*} {ι : Type*} [measure_space α] {s₁ s₂ : set α}
 
 lemma sum_volume_le_volume_univ {s : finset ι} {t : ι → set α} (h : ∀ i ∈ s, is_measurable (t i))
-  (H : pairwise_on ↑s (disjoint on t)) : ∑ i in s, volume (t i) ≤ volume (univ : set α) :=
-volume_bUnion_finset H h ▸ volume_mono (subset_univ _)
+  (H : pairwise_on ↑s (disjoint on t)) :
+  ∑ i in s, volume (t i) ≤ volume (univ : set α) :=
+by { rw ← measure_bUnion_finset H h, exact measure_mono (subset_univ _) }
 
 lemma tsum_volume_le_volume_univ {s : ι → set α} (hs : ∀ i, is_measurable (s i))
   (H : pairwise (disjoint on s)) :
@@ -958,14 +911,13 @@ begin
   exact λ i hi j hj hij x hx, H i hi j hj hij ⟨x, hx⟩
 end
 
-
 /-- `∀ₘ a:α, p a` states that the property `p` is almost everywhere true in the measure space
 associated with `α`. This means that the measure of the complementary of `p` is `0`.
 
 In a probability measure, the measure of `p` is `1`, when `p` is measurable.
 -/
 def all_ae (p : α → Prop) : Prop :=
-∀ᶠ a in μ.a_e, p a
+∀ᶠ a in volume.a_e, p a
 
 notation `∀ₘ` binders `, ` r:(scoped P, all_ae P) := r
 

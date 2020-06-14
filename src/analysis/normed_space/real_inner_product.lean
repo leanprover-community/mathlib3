@@ -604,7 +604,7 @@ instance pi_Lp.inner_product_space
     show ∑ (i : ι), inner (r • x i) (y i) = r * ∑ i, inner (x i) (y i),
     by simp only [finset.mul_sum, inner_smul_left] }
 
-/-- The set of real numbers is an inner product space. -/
+/-- The type of real numbers is an inner product space. -/
 instance real.inner_product_space : inner_product_space ℝ :=
 { inner := (*),
   norm_eq_sqrt_inner := λ x, by simp [inner, norm_eq_abs, sqrt_mul_self_eq_abs],

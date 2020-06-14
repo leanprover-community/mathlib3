@@ -185,7 +185,7 @@ by_cases
     tendsto.congr' (univ_mem_sets' $ by simp *) this)
 
 lemma geom_lt {u : ℕ → ℝ} {k : ℝ} (hk : 0 < k) {n : ℕ} (h : ∀ m ≤ n, k*u m < u (m + 1)) :
-k^(n + 1) *u 0 < u (n + 1) :=
+  k^(n + 1) *u 0 < u (n + 1) :=
 begin
  induction n with n ih,
  { simpa using h 0 (le_refl _) },

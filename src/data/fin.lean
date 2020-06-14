@@ -164,7 +164,7 @@ protected lemma heq_ext_iff {k l : ℕ} (h : k = l) {i : fin k} {j : fin l} :
 by { induction h, simp [fin.ext_iff] }
 
 instance {n : ℕ} : decidable_linear_order (fin n) :=
-decidable_linear_order.lift fin.val (@fin.eq_of_veq _) (by apply_instance)
+decidable_linear_order.lift fin.val (@fin.eq_of_veq _)
 
 lemma exists_iff {p : fin n → Prop} : (∃ i, p i) ↔ ∃ i h, p ⟨i, h⟩ :=
 ⟨λ h, exists.elim h (λ ⟨i, hi⟩ hpi, ⟨i, hi, hpi⟩),

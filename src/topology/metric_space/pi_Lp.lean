@@ -24,6 +24,26 @@ to make sure that it is always available to typeclass inference to construct the
 We ensure that the topology and uniform structure on `pi_Lp p hp α` are (defeq to) the product
 topology and product uniformity, to be able to use freely continuity statements for the coordinate
 functions, for instance.
+
+## Implementation notes
+
+We only deal with the `L^p` distance on a product of finitely many metric spaces, which may be
+distinct. A closely related construction is the `L^p` norm on the space of
+functions from a measure space to a normed space, where the norm is
+$$
+\left(\int ∥f (x)∥^p dμ\right)^{1/p}.
+$$
+However, the topology induced by this construction is not the product topology, this only
+defines a seminorm (as almost everywhere zero functions have zero `L^p` norm), and some functions
+have infinite `L^p` norm. All these subtleties are not present in the case of finitely many
+metric spaces (which corresponds to the basis which is a finite space with the counting measure),
+hence it is worth devoting a file to this specific case which is particularly well behaved.
+The general case is not yet formalized in mathlib.
+
+To prove that the topology (and the uniform structure) on a finite product with the `L^p` distance
+are the same as those coming from the `L^∞` distance, we could argue that the `L^p` and `L^∞` norms
+are equivalent on `ℝ^n` for abstract (norm equivalence) reasons. Instead, we give a more explicit
+(easy) proof which provides a comparison between these two norms with explicit constants.
 -/
 
 open real set filter

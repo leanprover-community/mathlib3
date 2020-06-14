@@ -44,15 +44,6 @@ apply_nolint normalize doc_blame
 -- algebra/group/defs.lean
 apply_nolint algebra.sub doc_blame
 
--- algebra/group/to_additive.lean
-apply_nolint to_additive.attr doc_blame
-apply_nolint to_additive.aux_attr doc_blame
-apply_nolint to_additive.map_namespace doc_blame
-apply_nolint to_additive.parser doc_blame
-apply_nolint to_additive.proceed_fields doc_blame
-apply_nolint to_additive.target_name doc_blame
-apply_nolint to_additive.value_type doc_blame
-
 -- algebra/group/with_one.lean
 apply_nolint with_one doc_blame
 apply_nolint with_one.map doc_blame
@@ -657,25 +648,6 @@ apply_nolint equiv.vector_equiv_fin doc_blame
 
 -- data/buffer/basic.lean
 apply_nolint buffer.list_equiv_buffer doc_blame
-
--- data/complex/exponential.lean
-apply_nolint abv_sum_le_sum_abv unused_arguments
-apply_nolint complex.cos doc_blame
-apply_nolint complex.cosh doc_blame
-apply_nolint complex.exp doc_blame
-apply_nolint complex.exp' doc_blame
-apply_nolint complex.sin doc_blame
-apply_nolint complex.sinh doc_blame
-apply_nolint complex.tan doc_blame
-apply_nolint complex.tanh doc_blame
-apply_nolint is_cau_series_of_abv_le_cau unused_arguments
-apply_nolint real.cos doc_blame
-apply_nolint real.cosh doc_blame
-apply_nolint real.exp doc_blame
-apply_nolint real.sin doc_blame
-apply_nolint real.sinh doc_blame
-apply_nolint real.tan doc_blame
-apply_nolint real.tanh doc_blame
 
 -- data/dfinsupp.lean
 apply_nolint dfinsupp.pre doc_blame
@@ -2663,10 +2635,6 @@ apply_nolint topological_fiber_bundle_core.base has_inhabited_instance
 apply_nolint topological_fiber_bundle_core.fiber has_inhabited_instance
 apply_nolint topological_fiber_bundle_core.index has_inhabited_instance
 apply_nolint topological_fiber_bundle_core.total_space has_inhabited_instance
-
--- topology/uniform_space/basic.lean
-apply_nolint uniform_continuous₂ doc_blame
-apply_nolint uniform_space.mk' doc_blame
 
 -- topology/uniform_space/completion.lean
 apply_nolint Cauchy.extend doc_blame

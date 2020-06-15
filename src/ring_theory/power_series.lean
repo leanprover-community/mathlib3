@@ -62,7 +62,7 @@ Occasionally this leads to proofs that are uglier than expected.
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical big_operators
 
 /-- Multivariate formal power series, where `σ` is the index set of the variables
 and `α` is the coefficient ring.-/
@@ -137,10 +137,10 @@ lemma coeff_zero_one : coeff α (0 : σ →₀ ℕ) 1 = 1 :=
 coeff_monomial' 0 1
 
 instance : has_mul (mv_power_series σ α) :=
-⟨λ φ ψ n, (finsupp.antidiagonal n).support.sum (λ p, φ p.1 * ψ p.2)⟩
+⟨λ φ ψ n, ∑ p in (finsupp.antidiagonal n).support, φ p.1 * ψ p.2⟩
 
 lemma coeff_mul : coeff α n (φ * ψ) =
-  (finsupp.antidiagonal n).support.sum (λ p, coeff α p.1 φ * coeff α p.2 ψ) := rfl
+  ∑ p in (finsupp.antidiagonal n).support, coeff α p.1 φ * coeff α p.2 ψ := rfl
 
 protected lemma zero_mul : (0 : mv_power_series σ α) * φ = 0 :=
 ext $ λ n, by simp [coeff_mul]
@@ -382,13 +382,10 @@ instance : semimodule α (mv_power_series σ α) :=
 
 end semiring
 
-instance [ring α] : module α (mv_power_series σ α) :=
-{ ..mv_power_series.semimodule }
-
 instance [comm_ring α] : algebra α (mv_power_series σ α) :=
 { commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c p, rfl,
-  .. C σ α, .. mv_power_series.module }
+  .. C σ α, .. mv_power_series.semimodule }
 
 section map
 variables {β : Type*} {γ : Type*} [semiring α] [semiring β] [semiring γ]
@@ -545,16 +542,16 @@ well-founded recursion on the coeffients of the inverse.
  an inverse of the constant coefficient `inv_of_unit`.-/
 protected noncomputable def inv.aux (a : α) (φ : mv_power_series σ α) : mv_power_series σ α
 | n := if n = 0 then a else
-- a * n.antidiagonal.support.sum (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)),
-    if h : x.2 < n then coeff α x.1 φ * inv.aux x.2 else 0)
+- a * ∑ x in n.antidiagonal.support,
+    if h : x.2 < n then coeff α x.1 φ * inv.aux x.2 else 0
 using_well_founded
 { rel_tac := λ _ _, `[exact ⟨_, finsupp.lt_wf σ⟩],
   dec_tac := tactic.assumption }
 
 lemma coeff_inv_aux (n : σ →₀ ℕ) (a : α) (φ : mv_power_series σ α) :
   coeff α n (inv.aux a φ) = if n = 0 then a else
-  - a * n.antidiagonal.support.sum (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)),
-    if x.2 < n then coeff α x.1 φ * coeff α x.2 (inv.aux a φ) else 0) :=
+  - a * ∑ x in n.antidiagonal.support,
+    if x.2 < n then coeff α x.1 φ * coeff α x.2 (inv.aux a φ) else 0 :=
 show inv.aux a φ n = _, by { rw inv.aux, refl }
 
 /-- A multivariate formal power series is invertible if the constant coefficient is invertible.-/
@@ -563,8 +560,8 @@ inv.aux (↑u⁻¹) φ
 
 lemma coeff_inv_of_unit (n : σ →₀ ℕ) (φ : mv_power_series σ α) (u : units α) :
   coeff α n (inv_of_unit φ u) = if n = 0 then ↑u⁻¹ else
-  - ↑u⁻¹ * n.antidiagonal.support.sum (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)),
-    if x.2 < n then coeff α x.1 φ * coeff α x.2 (inv_of_unit φ u) else 0) :=
+  - ↑u⁻¹ * ∑ x in n.antidiagonal.support,
+    if x.2 < n then coeff α x.1 φ * coeff α x.2 (inv_of_unit φ u) else 0 :=
 coeff_inv_aux n (↑u⁻¹) φ
 
 @[simp] lemma constant_coeff_inv_of_unit (φ : mv_power_series σ α) (u : units α) :
@@ -663,8 +660,8 @@ instance : has_inv (mv_power_series σ α) := ⟨mv_power_series.inv⟩
 
 lemma coeff_inv (n : σ →₀ ℕ) (φ : mv_power_series σ α) :
   coeff α n (φ⁻¹) = if n = 0 then (constant_coeff σ α φ)⁻¹ else
-  - (constant_coeff σ α φ)⁻¹ * n.antidiagonal.support.sum (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)),
-    if x.2 < n then coeff α x.1 φ * coeff α x.2 (φ⁻¹) else 0) :=
+  - (constant_coeff σ α φ)⁻¹ * ∑ x in n.antidiagonal.support,
+    if x.2 < n then coeff α x.1 φ * coeff α x.2 (φ⁻¹) else 0 :=
 coeff_inv_aux n _ φ
 
 @[simp] lemma constant_coeff_inv (φ : mv_power_series σ α) :
@@ -758,19 +755,23 @@ namespace power_series
 open finsupp (single)
 variable {α : Type*}
 
-instance [inhabited α]       : inhabited       (power_series α) := by delta power_series; apply_instance
-instance [add_monoid α]      : add_monoid      (power_series α) := by delta power_series; apply_instance
-instance [add_group α]       : add_group       (power_series α) := by delta power_series; apply_instance
-instance [add_comm_monoid α] : add_comm_monoid (power_series α) := by delta power_series; apply_instance
-instance [add_comm_group α]  : add_comm_group  (power_series α) := by delta power_series; apply_instance
-instance [semiring α]        : semiring        (power_series α) := by delta power_series; apply_instance
-instance [comm_semiring α]   : comm_semiring   (power_series α) := by delta power_series; apply_instance
-instance [ring α]            : ring            (power_series α) := by delta power_series; apply_instance
-instance [comm_ring α]       : comm_ring       (power_series α) := by delta power_series; apply_instance
-instance [semiring α] [nonzero α] : nonzero (power_series α) := by delta power_series; apply_instance
-instance [semiring α]        : semimodule α    (power_series α) := by delta power_series; apply_instance
-instance [ring α]            : module α        (power_series α) := by delta power_series; apply_instance
-instance [comm_ring α]       : algebra α       (power_series α) := by delta power_series; apply_instance
+section
+local attribute [reducible] power_series
+
+instance [inhabited α]       : inhabited       (power_series α) := by apply_instance
+instance [add_monoid α]      : add_monoid      (power_series α) := by apply_instance
+instance [add_group α]       : add_group       (power_series α) := by apply_instance
+instance [add_comm_monoid α] : add_comm_monoid (power_series α) := by apply_instance
+instance [add_comm_group α]  : add_comm_group  (power_series α) := by apply_instance
+instance [semiring α]        : semiring        (power_series α) := by apply_instance
+instance [comm_semiring α]   : comm_semiring   (power_series α) := by apply_instance
+instance [ring α]            : ring            (power_series α) := by apply_instance
+instance [comm_ring α]       : comm_ring       (power_series α) := by apply_instance
+instance [semiring α] [nonzero α] : nonzero    (power_series α) := by apply_instance
+instance [semiring α]        : semimodule α    (power_series α) := by apply_instance
+instance [comm_ring α]       : algebra α       (power_series α) := by apply_instance
+
+end
 
 section add_monoid
 variables (α) [add_monoid α]
@@ -895,7 +896,7 @@ lemma coeff_zero_one : coeff α 0 (1 : power_series α) = 1 :=
 coeff_zero_C 1
 
 lemma coeff_mul (n : ℕ) (φ ψ : power_series α) :
-  coeff α n (φ * ψ) = (finset.nat.antidiagonal n).sum (λ p, coeff α p.1 φ * coeff α p.2 ψ) :=
+  coeff α n (φ * ψ) = ∑ p in finset.nat.antidiagonal n, coeff α p.1 φ * coeff α p.2 ψ :=
 begin
   symmetry,
   apply finset.sum_bij (λ (p : ℕ × ℕ) h, (single () p.1, single () p.2)),
@@ -1055,8 +1056,8 @@ mv_power_series.inv.aux
 
 lemma coeff_inv_aux (n : ℕ) (a : α) (φ : power_series α) :
   coeff α n (inv.aux a φ) = if n = 0 then a else
-  - a * (finset.nat.antidiagonal n).sum (λ (x : ℕ × ℕ),
-    if x.2 < n then coeff α x.1 φ * coeff α x.2 (inv.aux a φ) else 0) :=
+  - a * ∑ x in finset.nat.antidiagonal n,
+    if x.2 < n then coeff α x.1 φ * coeff α x.2 (inv.aux a φ) else 0 :=
 begin
   rw [coeff, inv.aux, mv_power_series.coeff_inv_aux],
   simp only [finsupp.single_eq_zero],
@@ -1091,8 +1092,8 @@ mv_power_series.inv_of_unit φ u
 
 lemma coeff_inv_of_unit (n : ℕ) (φ : power_series α) (u : units α) :
   coeff α n (inv_of_unit φ u) = if n = 0 then ↑u⁻¹ else
-  - ↑u⁻¹ * (finset.nat.antidiagonal n).sum (λ (x : ℕ × ℕ),
-    if x.2 < n then coeff α x.1 φ * coeff α x.2 (inv_of_unit φ u) else 0) :=
+  - ↑u⁻¹ * ∑ x in finset.nat.antidiagonal n,
+    if x.2 < n then coeff α x.1 φ * coeff α x.2 (inv_of_unit φ u) else 0 :=
 coeff_inv_aux n ↑u⁻¹ φ
 
 @[simp] lemma constant_coeff_inv_of_unit (φ : power_series α) (u : units α) :
@@ -1196,8 +1197,8 @@ lemma inv_eq_inv_aux (φ : power_series α) :
 
 lemma coeff_inv (n) (φ : power_series α) :
   coeff α n (φ⁻¹) = if n = 0 then (constant_coeff α φ)⁻¹ else
-  - (constant_coeff α φ)⁻¹ * (finset.nat.antidiagonal n).sum (λ (x : ℕ × ℕ),
-    if x.2 < n then coeff α x.1 φ * coeff α x.2 (φ⁻¹) else 0) :=
+  - (constant_coeff α φ)⁻¹ * ∑ x in finset.nat.antidiagonal n,
+    if x.2 < n then coeff α x.1 φ * coeff α x.2 (φ⁻¹) else 0 :=
 by rw [inv_eq_inv_aux, coeff_inv_aux n (constant_coeff α φ)⁻¹ φ]
 
 @[simp] lemma constant_coeff_inv (φ : power_series α) :

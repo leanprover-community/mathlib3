@@ -5,7 +5,7 @@ Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl, Yury Kudr
 -/
 import analysis.specific_limits
 import data.setoid.basic
-import dynamics.fixed_points
+import dynamics.fixed_points.topology
 
 /-!
 # Contracting maps
@@ -31,18 +31,6 @@ open_locale nnreal topological_space classical
 open filter function
 
 variables {α : Type*}
-
-/-- If the iterates `f^[n] x₀` converge to `x` and `f` is continuous at `x`,
-then `x` is a fixed point for `f`. -/
-lemma is_fixed_pt_of_tendsto_iterate [topological_space α] [t2_space α] {f : α → α} {x : α}
-  (hf : continuous_at f x) (hx : ∃ x₀ : α, tendsto (λ n, f^[n] x₀) at_top (𝓝 x)) :
-  is_fixed_pt f x :=
-begin
-  rcases hx with ⟨x₀, hx⟩,
-  refine tendsto_nhds_unique at_top_ne_bot ((tendsto_add_at_top_iff_nat 1).1 _) hx,
-  simp only [iterate_succ' f],
-  exact tendsto.comp hf hx
-end
 
 /-- A map is said to be `contracting_with K`, if `K < 1` and `f` is `lipschitz_with K`. -/
 def contracting_with [emetric_space α] (K : ℝ≥0) (f : α → α) :=
@@ -109,7 +97,7 @@ have cauchy_seq (λ n, f^[n] x),
 from cauchy_seq_of_edist_le_geometric K (edist x (f x)) (ennreal.coe_lt_one_iff.2 hf.1)
   (ne_of_lt hx) (hf.to_lipschitz_with.edist_iterate_succ_le_geometric x),
 let ⟨y, hy⟩ := cauchy_seq_tendsto_of_complete this in
-⟨y, is_fixed_pt_of_tendsto_iterate hf.2.continuous.continuous_at ⟨x, hy⟩, hy,
+⟨y, is_fixed_pt_of_tendsto_iterate hy hf.2.continuous.continuous_at, hy,
   edist_le_of_edist_le_geometric_of_tendsto K (edist x (f x))
     (hf.to_lipschitz_with.edist_iterate_succ_le_geometric x) hy⟩
 

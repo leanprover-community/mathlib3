@@ -55,6 +55,7 @@ open_locale classical topological_space
 
 namespace measure_theory
 open set filter topological_space ennreal emetric
+open_locale big_operators
 
 universes u v w
 variables {α : Type u} [measure_space α]
@@ -170,7 +171,7 @@ calc
 lemma integrable_finset_sum {ι} [measurable_space β] [borel_space β]
   [second_countable_topology β] (s : finset ι) {f : ι → α → β}
   (hfm : ∀ i, measurable (f i)) (hfi : ∀ i, integrable (f i)) :
-  integrable (λ a, s.sum (λ i, f i a)) :=
+  integrable (λ a, ∑ i in s, f i a) :=
 begin
   refine finset.induction_on s _ _,
   { simp only [finset.sum_empty, integrable_zero] },
@@ -551,10 +552,6 @@ instance : semimodule 𝕜 (α →₁ β) :=
   smul_zero := λx, l1.eq (by { simp only [coe_zero, coe_smul], exact smul_zero _ }),
   add_smul  := λx y f, l1.eq (by { simp only [coe_smul], exact add_smul _ _ _ }),
   zero_smul := λf, l1.eq (by { simp only [coe_smul], exact zero_smul _ _ }) }
-
-instance : module 𝕜 (α →₁ β) := { .. l1.semimodule }
-
-instance : vector_space 𝕜 (α →₁ β) := { .. l1.semimodule }
 
 instance : normed_space 𝕜 (α →₁ β) :=
 ⟨ begin

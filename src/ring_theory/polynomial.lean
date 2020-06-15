@@ -170,9 +170,9 @@ open polynomial
 /-- Transport an ideal of `R[X]` to an `R`-submodule of `R[X]`. -/
 def of_polynomial (I : ideal (polynomial R)) : submodule R (polynomial R) :=
 { carrier := I.carrier,
-  zero := I.zero_mem,
-  add := λ _ _, I.add_mem,
-  smul := λ c x H, by rw [← C_mul']; exact submodule.smul_mem _ _ H }
+  zero_mem' := I.zero_mem,
+  add_mem' := λ _ _, I.add_mem,
+  smul_mem' := λ c x H, by rw [← C_mul']; exact submodule.smul_mem _ _ H }
 
 variables {I : ideal (polynomial R)}
 theorem mem_of_polynomial (x) : x ∈ I.of_polynomial ↔ x ∈ I := iff.rfl

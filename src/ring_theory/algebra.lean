@@ -5,7 +5,6 @@ Authors: Kenny Lau, Yury Kudryashov
 -/
 import data.matrix.basic
 import linear_algebra.tensor_product
-import algebra.commute
 import data.equiv.ring
 
 /-!
@@ -24,7 +23,7 @@ noncomputable theory
 
 universes u v w u₁ v₁
 
-open_locale tensor_product
+open_locale tensor_product big_operators
 
 section prio
 -- We set this priority to 0 later in this file
@@ -214,8 +213,10 @@ instance coe_add_monoid_hom : has_coe (A →ₐ[R] B) (A →+ B) := ⟨λ f, ↑
 
 @[simp, norm_cast] lemma coe_to_ring_hom (f : A →ₐ[R] B) : ⇑(f : A →+* B) = f := rfl
 
+-- as `simp` can already prove this lemma, it is not tagged with the `simp` attribute.
 @[norm_cast] lemma coe_to_monoid_hom (f : A →ₐ[R] B) : ⇑(f : A →* B) = f := rfl
 
+-- as `simp` can already prove this lemma, it is not tagged with the `simp` attribute.
 @[norm_cast] lemma coe_to_add_monoid_hom (f : A →ₐ[R] B) : ⇑(f : A →+ B) = f := rfl
 
 variables (φ : A →ₐ[R] B)
@@ -261,7 +262,7 @@ by simp only [algebra.smul_def, map_mul, commutes]
 φ.to_ring_hom.map_pow x n
 
 lemma map_sum {ι : Type*} (f : ι → A) (s : finset ι) :
-  φ (s.sum f) = s.sum (λx, φ (f x)) :=
+  φ (∑ x in s, f x) = ∑ x in s, φ (f x) :=
 φ.to_ring_hom.map_sum f s
 
 section
@@ -304,7 +305,7 @@ variables [algebra R A] [algebra R B]
 variables (φ : A →ₐ[R] B)
 
 lemma map_prod {ι : Type*} (f : ι → A) (s : finset ι) :
-  φ (s.prod f) = s.prod (λx, φ (f x)) :=
+  φ (∏ x in s, f x) = ∏ x in s, φ (f x) :=
 φ.to_ring_hom.map_prod f s
 
 end comm_semiring
@@ -321,8 +322,8 @@ variables [algebra R A] [algebra R B] [algebra R C] (φ : A →ₐ[R] B)
 /-- R-Alg ⥤ R-Mod -/
 def to_linear_map : A →ₗ B :=
 { to_fun := φ,
-  add := φ.map_add,
-  smul := φ.map_smul }
+  map_add' := φ.map_add,
+  map_smul' := φ.map_smul }
 
 @[simp] lemma to_linear_map_apply (p : A) : φ.to_linear_map p = φ p := rfl
 
@@ -399,6 +400,9 @@ instance : inhabited (A₁ ≃ₐ[R] A₁) := ⟨1⟩
 @[refl]
 def refl : A₁ ≃ₐ[R] A₁ := 1
 
+@[simp] lemma coe_refl : (@refl R A₁ _ _ _ : A₁ →ₐ[R] A₁) = alg_hom.id R A₁ :=
+alg_hom.ext (λ x, rfl)
+
 /-- Algebra equivalences are symmetric. -/
 @[symm]
 def symm (e : A₁ ≃ₐ[R] A₂) : A₂ ≃ₐ[R] A₁ :=
@@ -417,6 +421,14 @@ def trans (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) : A₁ ≃�
 
 @[simp] lemma symm_apply_apply (e : A₁ ≃ₐ[R] A₂) : ∀ x, e.symm (e x) = x :=
   e.to_equiv.symm_apply_apply
+
+@[simp] lemma comp_symm (e : A₁ ≃ₐ[R] A₂) :
+  alg_hom.comp (e : A₁ →ₐ[R] A₂) ↑e.symm = alg_hom.id R A₂ :=
+by { ext, simp }
+
+@[simp] lemma symm_comp (e : A₁ ≃ₐ[R] A₂) :
+  alg_hom.comp ↑e.symm (e : A₁ →ₐ[R] A₂) = alg_hom.id R A₁ :=
+by { ext, simp }
 
 end alg_equiv
 
@@ -485,8 +497,7 @@ end alg_hom
 namespace rat
 
 instance algebra_rat {α} [division_ring α] [char_zero α] : algebra ℚ α :=
-(rat.cast_hom α).to_algebra' $
-λ r x, (commute.cast_int_left x r.1).div_left (commute.cast_nat_left x r.2)
+(rat.cast_hom α).to_algebra' $ λ r x, r.cast_commute x
 
 end rat
 
@@ -547,9 +558,9 @@ by refine_struct { to_fun := subtype.val }; intros; refl
 /-- Convert a `subalgebra` to `submodule` -/
 def to_submodule : submodule R A :=
 { carrier := S,
-  zero := (0:S).2,
-  add := λ x y hx hy, (⟨x, hx⟩ + ⟨y, hy⟩ : S).2,
-  smul := λ c x hx, (algebra.smul_def c x).symm ▸
+  zero_mem' := (0:S).2,
+  add_mem' := λ x y hx hy, (⟨x, hx⟩ + ⟨y, hy⟩ : S).2,
+  smul_mem' := λ c x hx, (algebra.smul_def c x).symm ▸
     (⟨algebra_map R A c, S.range_le ⟨c, rfl⟩⟩ * ⟨x, hx⟩:S).2 }
 
 instance coe_to_submodule : has_coe (subalgebra R A) (submodule R A) :=
@@ -680,7 +691,7 @@ def alg_hom_int
 
 /-- CRing ⥤ ℤ-Alg -/
 instance algebra_int : algebra ℤ R :=
-{ commutes' := λ x y, commute.cast_int_left _ _,
+{ commutes' := int.cast_commute,
   smul_def' := λ _ _, gsmul_eq_mul _ _,
   .. int.cast_ring_hom R }
 
@@ -699,17 +710,13 @@ section span_int
 open submodule
 
 lemma span_int_eq_add_group_closure (s : set R) :
-  ↑(span ℤ s) = add_group.closure s :=
-set.subset.antisymm (λ x hx, span_induction hx
-  (λ _, add_group.mem_closure)
-  is_add_submonoid.zero_mem
-  (λ a b ha hb, is_add_submonoid.add_mem ha hb)
-  (λ n a ha, by { exact is_add_subgroup.gsmul_mem ha }))
-  (add_group.closure_subset subset_span)
+  (span ℤ s).to_add_subgroup = add_subgroup.closure s :=
+eq.symm $ add_subgroup.closure_eq_of_le _ subset_span $ λ x hx, span_induction hx
+  (λ x hx, add_subgroup.subset_closure hx) (add_subgroup.zero_mem _)
+  (λ _ _, add_subgroup.add_mem _) (λ _ _ _, add_subgroup.gsmul_mem _ ‹_› _)
 
-@[simp] lemma span_int_eq (s : set R) [is_add_subgroup s] :
-  (↑(span ℤ s) : set R) = s :=
-by rw [span_int_eq_add_group_closure, add_group.closure_add_subgroup]
+@[simp] lemma span_int_eq (s : add_subgroup R) : (span ℤ (s : set R)).to_add_subgroup = s :=
+by rw [span_int_eq_add_group_closure, s.closure_eq]
 
 end span_int
 
@@ -770,8 +777,8 @@ def algebra.restrict_scalars_equiv :
   inv_fun := λ s, s,
   left_inv := λ s, rfl,
   right_inv := λ s, rfl,
-  add := λ x y, rfl,
-  smul := λ c x, (algebra.smul_def' _ _).symm, }
+  map_add' := λ x y, rfl,
+  map_smul' := λ c x, (algebra.smul_def' _ _).symm, }
 
 @[simp]
 lemma algebra.restrict_scalars_equiv_apply (s : S) :
@@ -791,9 +798,9 @@ corresponding to `V`, an `S`-submodule of the original `S`-module.
 @[simps]
 def submodule.restrict_scalars (V : submodule S E) : submodule R (restrict_scalars R S E) :=
 { carrier := V.carrier,
-  zero := V.zero,
-  smul := λ c e h, V.smul _ h,
-  add := λ x y hx hy, V.add hx hy, }
+  zero_mem' := V.zero_mem,
+  smul_mem' := λ c e h, V.smul_mem _ h,
+  add_mem' := λ x y hx hy, V.add_mem hx hy, }
 
 @[simp]
 lemma submodule.restrict_scalars_mem (V : submodule S E) (e : E) :
@@ -814,8 +821,8 @@ rfl
 def linear_map.restrict_scalars (f : E →ₗ[S] F) :
   (restrict_scalars R S E) →ₗ[R] (restrict_scalars R S F) :=
 { to_fun := f.to_fun,
-  add := λx y, f.map_add x y,
-  smul := λc x, f.map_smul (algebra_map R S c) x }
+  map_add' := λx y, f.map_add x y,
+  map_smul' := λc x, f.map_smul (algebra_map R S c) x }
 
 @[simp, norm_cast squash] lemma linear_map.coe_restrict_scalars_eq_coe (f : E →ₗ[S] F) :
   (f.restrict_scalars R : E → F) = f := rfl
@@ -824,6 +831,16 @@ def linear_map.restrict_scalars (f : E →ₗ[S] F) :
 lemma restrict_scalars_ker (f : E →ₗ[S] F) :
   (f.restrict_scalars R).ker = submodule.restrict_scalars R f.ker :=
 rfl
+
+variables (𝕜 : Type*) [field 𝕜] (𝕜' : Type*) [field 𝕜'] [algebra 𝕜 𝕜']
+variables (W : Type*) [add_comm_group W] [vector_space 𝕜' W]
+
+/--
+`V.restrict_scalars 𝕜` is the `𝕜`-subspace of the `𝕜`-vector space given by restriction of scalars,
+corresponding to `V`, a `𝕜'`-subspace of the original `𝕜'`-vector space.
+-/
+def subspace.restrict_scalars (V : subspace 𝕜' W) : subspace 𝕜 (restrict_scalars 𝕜 𝕜' W) :=
+{ ..submodule.restrict_scalars 𝕜 (V : submodule 𝕜' W) }
 
 end restrict_scalars
 
@@ -846,8 +863,8 @@ For `r : R`, and `f : V →ₗ[S] W` (where `S` is an `R`-algebra) we define
 def linear_map_algebra_has_scalar : has_scalar R (V →ₗ[S] W) :=
 { smul := λ r f,
   { to_fun := λ v, f ((algebra_map R S r) • v),
-    add := λ x y, by simp [smul_add],
-    smul := λ s v, by simp [smul_smul, algebra.commutes], } }
+    map_add' := λ x y, by simp [smul_add],
+    map_smul' := λ s v, by simp [smul_smul, algebra.commutes], } }
 
 local attribute [instance] linear_map_algebra_has_scalar
 

@@ -8,6 +8,7 @@ import algebra.big_operators
 
 universes u v
 open equiv function fintype finset
+open_locale big_operators
 variables {α : Type u} {β : Type v}
 
 namespace equiv.perm
@@ -190,7 +191,7 @@ end
 lemma support_swap_mul_eq [fintype α] {f : perm α} {x : α}
   (hffx : f (f x) ≠ x) : (swap x (f x) * f).support = f.support.erase x :=
 have hfx : f x ≠ x, from λ hfx, by simpa [hfx] using hffx,
-finset.ext.2 $ λ y,
+finset.ext $ λ y,
 ⟨λ hy, have hy' : (swap x (f x) * f) y ≠ y, from mem_support.1 hy,
     mem_erase.2 ⟨λ hyx, by simp [hyx, mul_apply, *] at *,
     mem_support.2 $ λ hfy,
@@ -271,7 +272,7 @@ lemma mem_fin_pairs_lt {n : ℕ} {a : Σ a : fin n, fin n} :
 by simp [fin_pairs_lt, fin.lt_def]
 
 def sign_aux {n : ℕ} (a : perm (fin n)) : units ℤ :=
-(fin_pairs_lt n).prod (λ x, if a x.1 ≤ a x.2 then -1 else 1)
+∏ x in fin_pairs_lt n, if a x.1 ≤ a x.2 then -1 else 1
 
 @[simp] lemma sign_aux_one (n : ℕ) : sign_aux (1 : perm (fin n)) = 1 :=
 begin
@@ -367,9 +368,8 @@ private lemma sign_aux_swap_zero_one {n : ℕ} (hn : 2 ≤ n) :
 let zero : fin n := ⟨0, lt_of_lt_of_le dec_trivial hn⟩ in
 let one : fin n := ⟨1, lt_of_lt_of_le dec_trivial hn⟩ in
 have hzo : zero < one := dec_trivial,
-show _ = ({(⟨one, zero⟩ : Σ a : fin n, fin n)} : finset _).prod
-  (λ x : Σ a : fin n, fin n, if (equiv.swap zero one) x.1
-  ≤ swap zero one x.2 then (-1 : units ℤ) else 1),
+show _ = ∏ x : Σ a : fin n, fin n in {(⟨one, zero⟩ : Σ a : fin n, fin n)},
+  if (equiv.swap zero one) x.1 ≤ swap zero one x.2 then (-1 : units ℤ) else 1,
 begin
   refine eq.symm (prod_subset (λ ⟨x₁, x₂⟩, by simp [mem_fin_pairs_lt, hzo] {contextual := tt})
     (λ a ha₁ ha₂, _)),
@@ -499,7 +499,7 @@ lemma sign_symm_trans_trans [decidable_eq β] [fintype β] (f : perm α)
 sign_aux3_symm_trans_trans f e mem_univ mem_univ
 
 lemma sign_prod_list_swap {l : list (perm α)}
-  (hl : ∀ g ∈ l, is_swap g) : sign l.prod = -1 ^ l.length :=
+  (hl : ∀ g ∈ l, is_swap g) : sign l.prod = (-1) ^ l.length :=
 have h₁ : l.map sign = list.repeat (-1) l.length :=
   list.eq_repeat.2 ⟨by simp, λ u hu,
   let ⟨g, hg⟩ := list.mem_map.1 hu in
@@ -567,12 +567,11 @@ calc sign f = sign (@subtype_perm _ f (λ x, f x ≠ x) (by simp)) :
   eq.symm (sign_subtype_perm _ _ (λ _, id))
 ... = sign (@subtype_perm _ g (λ x, g x ≠ x) (by simp)) :
   sign_eq_sign_of_equiv _ _
-    (equiv.of_bijective
-      (show function.bijective (λ x : {x // f x ≠ x},
+    (equiv.of_bijective (λ x : {x // f x ≠ x},
         (⟨i x.1 x.2, have f (f x) ≠ f x, from mt (λ h, f.injective h) x.2,
-          by rw [← h _ x.2 this]; exact mt (hi _ _ this x.2) x.2⟩ : {y // g y ≠ y})),
-        from ⟨λ ⟨x, hx⟩ ⟨y, hy⟩ h, subtype.eq (hi _ _ _ _ (subtype.mk.inj h)),
-          λ ⟨y, hy⟩, let ⟨x, hfx, hx⟩ := hg y hy in ⟨⟨x, hfx⟩, subtype.eq hx⟩⟩))
+          by rw [← h _ x.2 this]; exact mt (hi _ _ this x.2) x.2⟩ : {y // g y ≠ y}))
+        ⟨λ ⟨x, hx⟩ ⟨y, hy⟩ h, subtype.eq (hi _ _ _ _ (subtype.mk.inj h)),
+          λ ⟨y, hy⟩, let ⟨x, hfx, hx⟩ := hg y hy in ⟨⟨x, hfx⟩, subtype.eq hx⟩⟩)
       (λ ⟨x, _⟩, subtype.eq (h x _ _))
 ... = sign g : sign_subtype_perm _ _ (λ _, id)
 
@@ -667,19 +666,19 @@ lemma is_cycle_swap_mul {f : perm α} (hf : is_cycle f) {x : α}
   is_cycle_swap_mul_aux₂ (i - 1) hy hi⟩
 
 @[simp] lemma support_swap [fintype α] {x y : α} (hxy : x ≠ y) : (swap x y).support = {x, y} :=
-finset.ext.2 $ λ a, by simp [swap_apply_def]; split_ifs; cc
+finset.ext $ λ a, by simp [swap_apply_def]; split_ifs; cc
 
 lemma card_support_swap [fintype α] {x y : α} (hxy : x ≠ y) : (swap x y).support.card = 2 :=
 show (swap x y).support.card = finset.card ⟨x::y::0, by simp [hxy]⟩,
-from congr_arg card $ by rw [support_swap hxy]; simp [*, finset.ext]; cc
+from congr_arg card $ by rw [support_swap hxy]; simp [*, finset.ext_iff]; cc
 
 lemma sign_cycle [fintype α] : ∀ {f : perm α} (hf : is_cycle f),
-  sign f = -(-1 ^ f.support.card)
+  sign f = -(-1) ^ f.support.card
 | f := λ hf,
 let ⟨x, hx⟩ := hf in
 calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
   by rw [← mul_assoc, mul_def, mul_def, swap_swap, trans_refl]
-... = -(-1 ^ f.support.card) :
+... = -(-1) ^ f.support.card :
   if h1 : f (f x) = x
   then
     have h : swap x (f x) * f = 1,
@@ -687,8 +686,8 @@ calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
         rw eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1,
         simp [mul_def, one_def]
       end,
-    by rw [sign_mul, sign_swap hx.1.symm, h, sign_one, eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1,
-        card_support_swap hx.1.symm]; refl
+    by rw [sign_mul, sign_swap hx.1.symm, h, sign_one,
+        eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1, card_support_swap hx.1.symm]; refl
   else
     have h : card (support (swap x (f x) * f)) + 1 = card (support f),
       by rw [← insert_erase (mem_support.2 hx.1), support_swap_mul_eq h1,

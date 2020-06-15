@@ -205,6 +205,9 @@ not_subset.1 h.2
 lemma ssubset_iff_subset_ne {s t : set α} : s ⊂ t ↔ s ⊆ t ∧ s ≠ t :=
 by split; simp [set.ssubset_def, ne.def, set.subset.antisymm_iff] {contextual := tt}
 
+lemma ssubset_iff_of_subset {s t : set α} (h : s ⊆ t) : s ⊂ t ↔ ∃ x ∈ t, x ∉ s :=
+⟨exists_of_ssubset, λ ⟨x, hxt, hxs⟩, ⟨h, λ h, hxs $ h hxt⟩⟩
+
 theorem not_mem_empty (x : α) : ¬ (x ∈ (∅ : set α)) :=
 assume h : x ∈ ∅, h
 
@@ -1724,6 +1727,9 @@ def inclusion {s t : set α} (h : s ⊆ t) : s → t :=
 @[simp] lemma inclusion_inclusion {s t u : set α} (hst : s ⊆ t) (htu : t ⊆ u)
   (x : s) : inclusion htu (inclusion hst x) = inclusion (set.subset.trans hst htu) x :=
 by cases x; refl
+
+@[simp] lemma coe_inclusion {s t : set α} (h : s ⊆ t) (x : s) :
+  (inclusion h x : α) = (x : α) := rfl
 
 lemma inclusion_injective {s t : set α} (h : s ⊆ t) :
   function.injective (inclusion h)

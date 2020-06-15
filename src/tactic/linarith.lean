@@ -340,7 +340,21 @@ meta def comp.add (c1 c2 : comp) : comp :=
 meta def pcomp.scale (c : pcomp) (n : ℕ) : pcomp :=
 {c with c := c.c.scale n, src := c.src.scale n}
 
--- TODO: describe history computation
+/--
+`pcomp.add c1 c2 elim_var` creates the result of summing the linear comparisons `c1` and `c2`,
+during the process of eliminating the variable `elim_var`.
+The computation assumes, but does not enforce, that `elim_var` does not appear in the sum.
+
+Computing the sum of the two comparisons is easy; the complicated details lie in tracking the
+additional fields of `pcomp`.
+
+* The historical set `pcomp.history` of `c1 + c2` is the union of the two historical sets.
+* We recompute the variables that appear in `c1 + c2` from the newly created `linexp`,
+  since some may have been implicitly eliminated.
+* The effectively eliminated variables of `c1 + c2` are the union of the two effective sets.
+* The implicitly eliminated variables of `c1 + c2` are those that appear in at least one of
+  `c1.vars` and `c2.vars` but not in `(c1 + c2).vars`, excluding `elim_var`.
+-/
 meta def pcomp.add (c1 c2 : pcomp) (elim_var : ℕ) : pcomp :=
 let c := c1.c.add c2.c,
     src := c1.src.add c2.src,

@@ -385,7 +385,6 @@ The state for the elimination monad.
 meta structure linarith_structure :=
 (vars : rb_set ℕ)
 (comps : rb_set pcomp)
-(steps : ℕ := 0)
 
 @[reducible, derive [monad, monad_except pcomp]] meta def linarith_monad :=
 state_t linarith_structure (except_t pcomp id)
@@ -399,32 +398,20 @@ rb_set.to_list <$> get_vars
 meta def get_comps : linarith_monad (rb_set pcomp) :=
 linarith_structure.comps <$> get
 
-/-- Returns the number of elimination steps that have been performed. -/
-meta def get_steps : linarith_monad ℕ :=
-linarith_structure.steps <$> get
-
-/-- Increment the counter that tracks the number of elimination steps performed. -/
-meta def step : linarith_monad unit :=
-do ls ← get,
-   put { ls with steps := ls.steps + 1 }
-
 meta def validate : linarith_monad unit :=
-do ⟨_, comps, _⟩ ← get,
+do ⟨_, comps⟩ ← get,
 match comps.to_list.find (λ p : pcomp, p.is_contr) with
 | none := return ()
 | some c := throw c
 end
 
 meta def update (vars : rb_set ℕ) (comps : rb_set pcomp) : linarith_monad unit :=
-do s ← get_steps,
-state_t.put ⟨vars, comps, s⟩ >> validate
+state_t.put ⟨vars, comps⟩ >> validate
 
 meta def monad.elim_var (a : ℕ) : linarith_monad unit :=
 do vs ← get_vars,
    when (vs.contains a) $
 do comps ← get_comps,
-   step,
-   steps ← get_steps,
    let cs' := comps.fold mk_pcomp_set (λ p s, s.union (elim_with_set a p comps)),
    update (vs.erase a) cs'
 

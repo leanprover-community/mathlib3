@@ -253,18 +253,12 @@ def comp_source.to_string : comp_source → string
 meta instance comp_source.has_to_format : has_to_format comp_source :=
 ⟨λ a, comp_source.to_string a⟩
 
-/- meta def comp_source_wh.scale (n : ℕ)  (source : comp_source_wh) : comp_source_wh :=
-{ source with cs := source.cs.scale n }
+/--
+A `pcomp` stores a linear comparison `Σ cᵢ*xᵢ R 0`,
+along with information about how this comparison was derived.
 
-meta def comp_source_wh.add (c1 c2 : comp_source_wh) : comp_source_wh :=
-let c := c1.cs.add c2.cs,
-    history := c1.history.union (c2.history),
-    effective := c1.effective.union (c2.effective) in
-⟨c, history, effective, _⟩
-
-meta def comp_source_wh.assump (n : ℕ) : comp_source_wh :=
-⟨comp_source.assump n, mk_rb_set.insert n⟩ -/
-
+TODO: describe different fields
+-/
 meta structure pcomp :=
 (c : comp)
 (src : comp_source)
@@ -273,6 +267,21 @@ meta structure pcomp :=
 (implicit : rb_set ℕ)
 (vars : rb_set ℕ)
 
+/--
+Any comparison whose history is not minimal is redundant,
+and need not be included in the new set of comparisons.
+
+This test is an underapproximation to minimality. It gives sufficient but not necessary conditions.
+If `c.is_minimal` holds, then the history of `c` is minimal,
+but `c.is_minimal` may be false for some `c` with minimal history.
+TODO: rename this predicate.
+
+See http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.51.493&rep=rep1&type=pdf p.13
+(Theorem 7)
+
+`elimed_ge : ℕ` is a natural number such that all variables with index ≥ `elimed_ge` have been
+removed from the system.
+-/
 meta def pcomp.is_minimal (c : pcomp) (elimed_ge : ℕ) : bool :=
 c.history.size ≤ 1 + ((c.implicit.filter ((≥ elimed_ge))).union c.effective).size
 
@@ -304,6 +313,7 @@ meta def comp.add (c1 c2 : comp) : comp :=
 meta def pcomp.scale (c : pcomp) (n : ℕ) : pcomp :=
 {c with c := c.c.scale n, src := c.src.scale n}
 
+-- TODO: describe history computation
 meta def pcomp.add (c1 c2 : pcomp) (elim_var : ℕ) : pcomp :=
 let c := c1.c.add c2.c,
     src := c1.src.add c2.src,
@@ -313,11 +323,7 @@ let c := c1.c.add c2.c,
     elim_var_present : bool := c1.vars.contains elim_var ∨ c2.vars.contains elim_var,
     effective := if elim_var_present then effective_union.insert elim_var else effective_union,
     implicit := (c1.vars.union c2.vars).sdiff (vars.union effective) in
-/-     old_var_union := c1.vars.union c2.vars,
-    new_implicit_elims := (old_var_union.sdiff vars).erase elim_var,
-    implicit_inter := c1.implicit.intersect c2.implicit, in -/
 ⟨c, src, history, effective, implicit, vars⟩
---⟨c1.c.add c2.c, c1.src.add c2.src⟩
 
 meta def pcomp.assump (c : comp) (n : ℕ) : pcomp :=
 { c := c,
@@ -350,12 +356,12 @@ if v1 * v2 < 0 then
   let vlcm :=  nat.lcm v1.nat_abs v2.nat_abs,
       v1' := vlcm / v1.nat_abs,
       v2' := vlcm / v2.nat_abs in
-  some ⟨v1', v2'⟩ --, comp.add (c1.scale v1') (c2.scale v2')⟩
+  some ⟨v1', v2'⟩
 else none
 
 meta def pelim_var (p1 p2 : pcomp) (a : ℕ) : option pcomp :=
 do (n1, n2) ← elim_var p1.c p2.c a,
-   return $ (p1.scale n1).add (p2.scale n2) a--⟨c, (p1.src.scale n1).add (p2.src.scale n2)⟩
+   return $ (p1.scale n1).add (p2.scale n2) a
 
 meta def comp.is_contr (c : comp) : bool := c.coeffs.empty ∧ c.str = ineq.lt
 
@@ -366,7 +372,6 @@ if ¬ p.c.coeffs.contains a then mk_pcomp_set.insert p else
 comps.fold mk_pcomp_set $ λ pc s,
 match pelim_var p pc a with
 | some pc := if pc.is_minimal a then s.insert pc else s
---@⟨_, ⟨_, hist⟩⟩ := if hist.size > steps + 1 then trace_val s else s.insert pc
 | none := s
 end
 
@@ -374,11 +379,7 @@ end
 The state for the elimination monad.
 * `vars`: the set of variables present in `comps`
 * `comps`: a set of comparisons
-* `inputs`: a set of pairs of exprs `(t, pf)`, where `t` is a term and `pf` is a proof that
-  `t {<, ≤, =} 0`, indexed by `ℕ`.
-* `has_false`: stores a `pcomp` of `0 < 0` if one has been found
-
-TODO: is it more efficient to store comps as a list, to avoid comparisons?
+* `steps`: the number of variable eliminations that have already been performed.
 -/
 meta structure linarith_structure :=
 (vars : rb_set ℕ)
@@ -397,9 +398,11 @@ rb_set.to_list <$> get_vars
 meta def get_comps : linarith_monad (rb_set pcomp) :=
 linarith_structure.comps <$> get
 
+/-- Returns the number of elimination steps that have been performed. -/
 meta def get_steps : linarith_monad ℕ :=
 linarith_structure.steps <$> get
 
+/-- Increment the counter that tracks the number of elimination steps performed. -/
 meta def step : linarith_monad unit :=
 do ls ← get,
    put { ls with steps := ls.steps + 1 }
@@ -419,7 +422,6 @@ meta def monad.elim_var (a : ℕ) : linarith_monad unit :=
 do vs ← get_vars,
    when (vs.contains a) $
 do comps ← get_comps,
-   --_ ← return $ trace_val comps.size,
    step,
    steps ← get_steps,
    let cs' := comps.fold mk_pcomp_set (λ p s, s.union (elim_with_set a p comps steps)),

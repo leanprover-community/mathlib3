@@ -6,21 +6,29 @@ Authors: Sébastien Gouëzel
 import topology.local_homeomorph
 
 /-!
-# Manifolds
+# Charted spaces
 
-A manifold is a topological space M locally modelled on a model space H, i.e., the manifold is
-covered by open subsets on which there are local homeomorphisms (the charts) going to H. If the
-changes of charts satisfy some additional property (for instance if they are smooth), then M
-inherits additional structure (it makes sense to talk about smooth manifolds). There are therefore
-two different ingredients in a manifold:
+A smooth manifold is a topological space `M` locally modelled on a euclidean space (or a euclidean
+half-space for manifolds with boundaries, or an infinite dimensional vector space for more general
+notions of manifolds), i.e., the manifold is covered by open subsets on which there are local
+homeomorphisms (the charts) going to `H`, and the changes of charts should be smooth maps.
+
+In this file, we introduce a general framework describing these notions, where the model space is an
+arbitrary topological space. We avoid the word *manifold*, which should be reserved for the
+situation where there are also notions of smoothness and dimension, and use the terminology
+"charted space" instead.
+
+If the changes of charts satisfy some additional property (for instance if they are smooth), then
+`M` inherits additional structure (it makes sense to talk about smooth manifolds). There are
+therefore two different ingredients in a charted space:
 * the set of charts, which is data
 * the fact that changes of charts belong to some group (in fact groupoid), which is additional Prop.
 
-We separate these two parts in the definition: the manifold structure is just the set of charts, and
-then the different smoothness requirements (smooth manifold, orientable manifold, contact manifold,
-and so on) are additional properties of these charts. These properties are formalized through the
-notion of structure groupoid, i.e., a set of local homeomorphisms stable under composition and
-inverse, to which the change of coordinates should belong.
+We separate these two parts in the definition: the charted space structure is just the set of
+charts, and then the different smoothness requirements (smooth manifold, orientable manifold,
+contact manifold, and so on) are additional properties of these charts. These properties are
+formalized through the notion of structure groupoid, i.e., a set of local homeomorphisms stable
+under composition and inverse, to which the change of coordinates should belong.
 
 ## Main definitions
 * `structure_groupoid H`   : a subset of local homeomorphisms of `H` stable under composition,
@@ -32,36 +40,36 @@ inverse, to which the change of coordinates should belong.
                              smooth maps)
 * `continuous_groupoid H`  : the groupoid of all local homeomorphisms of `H`
 
-* `manifold H M`           : manifold structure on `M` modelled on `H`, given by an atlas of local
-                             homeomorphisms from `M` to `H` whose sources cover `M`. This is a type
-                             class.
-* `has_groupoid M G`       : when `G` is a structure groupoid on `H` and `M` is a manifold modelled
-                             on `H`, require that all coordinate changes belong to `G`. This is
-                             a type class
-* `atlas H M`              : when `M` is a manifold modelled on `H`, the atlas of this manifold
-                             structure, i.e., the set of charts
-* `structomorph G M M'`    : the set of diffeomorphisms between the manifolds `M` and `M'` for the
-                             groupoid `G`. We avoid the word diffeomorphisms, keeping it for the
+* `charted_space H M`      : charted space structure on `M` modelled on `H`, given by an atlas of
+                             local homeomorphisms from `M` to `H` whose sources cover `M`. This is
+                             a type class.
+* `has_groupoid M G`       : when `G` is a structure groupoid on `H` and `M` is a charted space
+                             modelled on `H`, require that all coordinate changes belong to `G`.
+                             This is a type class
+* `atlas H M`              : when `M` is a charted space modelled on `H`, the atlas of this charted
+                             space structure, i.e., the set of charts
+* `structomorph G M M'`    : the set of diffeomorphisms between the charted spaces `M` and `M'` for
+                             the groupoid `G`. We avoid the word diffeomorphisms, keeping it for the
                              smooth category.
 
 As a basic example, we give the instance
-`instance manifold_model_space (H : Type*) [topological_space H] : manifold H H`
-saying that a topological space is a manifold over itself, with the identity as unique chart. This
-manifold structure is compatible with any groupoid.
+`instance charted_space_model_space (H : Type*) [topological_space H] : charted_space H H`
+saying that a topological space is a charted space over itself, with the identity as unique chart.
+This charted space structure is compatible with any groupoid.
 
 ## Implementation notes
 
-The atlas in a manifold is *not* a maximal atlas in general: the notion of maximality depends on the
-groupoid one considers, and changing groupoids changes the maximal atlas. With the current
+The atlas in a charted space is *not* a maximal atlas in general: the notion of maximality depends
+on the groupoid one considers, and changing groupoids changes the maximal atlas. With the current
 formalization, it makes sense first to choose the atlas, and then to ask whether this precise atlas
 defines a smooth manifold, an orientable manifold, and so on. A consequence is that structomorphisms
-between M and M' do *not* induce a bijection between the atlases of M and M': the definition is only
-that, read in charts, the structomorphism locally belongs to the groupoid under consideration.
-(This is equivalent to inducing a bijection between elements of the maximal atlas). A consequence
-is that the invariance under structomorphisms of properties defined in terms of the atlas is not
-obvious in general, and could require some work in theory (amounting to the fact that these
-properties only depend on the maximal atlas, for instance). In practice, this does not create any
-real difficulty.
+between `M` and `M'` do *not* induce a bijection between the atlases of `M` and `M'`: the
+definition is only that, read in charts, the structomorphism locally belongs to the groupoid under
+consideration. (This is equivalent to inducing a bijection between elements of the maximal atlas).
+A consequence is that the invariance under structomorphisms of properties defined in terms of the
+atlas is not obvious in general, and could require some work in theory (amounting to the fact
+that these properties only depend on the maximal atlas, for instance). In practice, this does not
+create any real difficulty.
 
 We use the letter `H` for the model space thinking of the case of manifolds with boundary, where the
 model space is a half space.
@@ -71,12 +79,12 @@ sometimes as spaces with an atlas from which a topology is deduced. We use the f
 otherwise, there would be an instance from manifolds to topological spaces, which means that any
 instance search for topological spaces would try to find manifold structures involving a yet
 unknown model space, leading to problems. However, we also introduce the latter approach,
-through a structure `manifold_core` making it possible to construct a topology out of a set of local
-equivs with compatibility conditions (but we do not register it as an instance).
+through a structure `charted_space_core` making it possible to construct a topology out of a set of
+local equivs with compatibility conditions (but we do not register it as an instance).
 
-In the definition of a manifold, the model space is written as an explicit parameter as there can be
-several model spaces for a given topological space. For instance, a complex manifold (modelled over
-ℂ^n) will also be seen sometimes as a real manifold modelled over ℝ^(2n).
+In the definition of a charted space, the model space is written as an explicit parameter as there
+can be several model spaces for a given topological space. For instance, a complex manifold
+(modelled over `ℂ^n`) will also be seen sometimes as a real manifold modelled over `ℝ^(2n)`.
 -/
 
 noncomputable theory
@@ -93,19 +101,21 @@ local infixr  ` ≫ₕ `:100 := local_homeomorph.trans
 
 open set local_homeomorph
 
+/-! ### Structure groupoids-/
+
 section groupoid
 
 /- One could add to the definition of a structure groupoid the fact that the restriction of an
 element of the groupoid to any open set still belongs to the groupoid.
 (This is in Kobayashi-Nomizu.)
-I am not sure I want this, for instance on H × E where E is a vector space, and the groupoid is made
-of functions respecting the fibers and linear in the fibers (so that a manifold over this groupoid
-is naturally a vector bundle) I prefer that the members of the groupoid are always defined on
-sets of the form s × E
+I am not sure I want this, for instance on `H × E` where `E` is a vector space, and the groupoid is
+made of functions respecting the fibers and linear in the fibers (so that a charted space over this
+groupoid is naturally a vector bundle) I prefer that the members of the groupoid are always
+defined on sets of the form `s × E`.
 
 The only nontrivial requirement is locality: if a local homeomorphism belongs to the groupoid
 around each point in its domain of definition, then it belongs to the groupoid. Without this
-requirement, the composition of diffeomorphisms does not have to be a diffeomorphism. Note that
+requirement, the composition of structomorphisms does not have to be a structomorphism. Note that
 this implies that a local homeomorphism with empty source belongs to any structure groupoid, as
 it trivially satisfies this condition.
 
@@ -279,7 +289,7 @@ begin
   exact PG.congr e.open_source he'.eq_on.symm he,
 end
 
-/-- The pregroupoid of all local maps on a topological space H -/
+/-- The pregroupoid of all local maps on a topological space `H` -/
 @[reducible] def continuous_pregroupoid (H : Type*) [topological_space H] : pregroupoid H :=
 { property := λf s, true,
   comp     := λf g u v hf hg hu hv huv, trivial,
@@ -290,7 +300,7 @@ end
 instance (H : Type*) [topological_space H] : inhabited (pregroupoid H) :=
 ⟨continuous_pregroupoid H⟩
 
-/-- The groupoid of all local homeomorphisms on a topological space H -/
+/-- The groupoid of all local homeomorphisms on a topological space `H` -/
 def continuous_groupoid (H : Type*) [topological_space H] : structure_groupoid H :=
 pregroupoid.groupoid (continuous_pregroupoid H)
 
@@ -302,52 +312,55 @@ instance : order_top (structure_groupoid H) :=
 
 end groupoid
 
-/-- A manifold is a topological space endowed with an atlas, i.e., a set of local homeomorphisms
-taking value in a model space `H`, called charts, such that the domains of the charts cover the whole
-space. We express the covering property by chosing for each x a member `chart_at x` of the atlas
-containing `x` in its source: in the smooth case, this is convenient to construct the tangent bundle
-in an efficient way.
+/-! ### Charted spaces -/
+/-- A charted space is a topological space endowed with an atlas, i.e., a set of local
+homeomorphisms taking value in a model space `H`, called charts, such that the domains of the charts
+cover the whole space. We express the covering property by chosing for each `x` a member
+`chart_at x` of the atlas containing `x` in its source: in the smooth case, this is convenient to
+construct the tangent bundle in an efficient way.
 The model space is written as an explicit parameter as there can be several model spaces for a
 given topological space. For instance, a complex manifold (modelled over `ℂ^n`) will also be seen
 sometimes as a real manifold over `ℝ^(2n)`.
 -/
-class manifold (H : Type*) [topological_space H] (M : Type*) [topological_space M] :=
+class charted_space (H : Type*) [topological_space H] (M : Type*) [topological_space M] :=
 (atlas []         : set (local_homeomorph M H))
 (chart_at []      : M → local_homeomorph M H)
 (mem_chart_source [] : ∀x, x ∈ (chart_at x).source)
 (chart_mem_atlas [] : ∀x, chart_at x ∈ atlas)
 
-export manifold
+export charted_space
 attribute [simp] mem_chart_source chart_mem_atlas
 
-section manifold
+section charted_space
 
-/-- Any space is a manifold modelled over itself, by just using the identity chart -/
-instance manifold_model_space (H : Type*) [topological_space H] : manifold H H :=
+/-- Any space is a charted_space modelled over itself, by just using the identity chart -/
+instance manifold_model_space (H : Type*) [topological_space H] : charted_space H H :=
 { atlas            := {local_homeomorph.refl H},
   chart_at         := λx, local_homeomorph.refl H,
   mem_chart_source := λx, mem_univ x,
   chart_mem_atlas  := λx, mem_singleton _ }
 
-/-- In the trivial manifold structure of a space modelled over itself through the identity, the
+/-- In the trivial charted_space structure of a space modelled over itself through the identity, the
 atlas members are just the identity -/
 @[simp] lemma model_space_atlas {H : Type*} [topological_space H] {e : local_homeomorph H H} :
   e ∈ atlas H H ↔ e = local_homeomorph.refl H :=
-by simp [atlas, manifold.atlas]
+by simp [atlas, charted_space.atlas]
 
 /-- In the model space, chart_at is always the identity -/
 @[simp] lemma chart_at_model_space_eq {H : Type*} [topological_space H] {x : H} :
   chart_at H x = local_homeomorph.refl H :=
 by simpa using chart_mem_atlas H x
 
-end manifold
+end charted_space
 
-/-- Sometimes, one may want to construct a manifold structure on a space which does not yet have
-a topological structure, where the topology would come from the charts. For this, one needs charts
-that are only local equivs, and continuity properties for their composition.
-This is formalised in `manifold_core`. -/
+/-! ### Constructing a topology from an atlas -/
+
+/-- Sometimes, one may want to construct a charted space structure on a space which does not yet
+have a topological structure, where the topology would come from the charts. For this, one needs
+charts that are only local equivs, and continuity properties for their composition.
+This is formalised in `charted_space_core`. -/
 @[nolint has_inhabited_instance]
-structure manifold_core (H : Type*) [topological_space H] (M : Type*) :=
+structure charted_space_core (H : Type*) [topological_space H] (M : Type*) :=
 (atlas            : set (local_equiv M H))
 (chart_at         : M → local_equiv M H)
 (mem_chart_source : ∀x, x ∈ (chart_at x).source)
@@ -356,9 +369,9 @@ structure manifold_core (H : Type*) [topological_space H] (M : Type*) :=
 (continuous_to_fun : ∀e e' : local_equiv M H, e ∈ atlas → e' ∈ atlas →
                        continuous_on (e.symm.trans e') (e.symm.trans e').source)
 
-namespace manifold_core
+namespace charted_space_core
 
-variables [topological_space H] (c : manifold_core H M) {e : local_equiv M H}
+variables [topological_space H] (c : charted_space_core H M) {e : local_equiv M H}
 
 /-- Topology generated by a set of charts on a Type. -/
 protected def to_topological_space : topological_space M :=
@@ -381,8 +394,9 @@ begin
   simpa [local_equiv.trans_source, E] using c.open_source e e he he
 end
 
-/-- An element of the atlas in a manifold without topology becomes a local homeomorphism for the
-topology constructed from this atlas. The `local_homeomorph` version is given in this definition. -/
+/-- An element of the atlas in a charted space without topology becomes a local homeomorphism
+for the topology constructed from this atlas. The `local_homeomorph` version is given in this
+definition. -/
 def local_homeomorph (e : local_equiv M H) (he : e ∈ c.atlas) :
   @local_homeomorph M H c.to_topological_space _ :=
 { open_source := by convert c.open_source' he,
@@ -414,9 +428,9 @@ def local_homeomorph (e : local_equiv M H) (he : e ∈ c.atlas) :
   end,
   ..e }
 
-/-- Given a manifold without topology, endow it with a genuine manifold structure with respect to
-the topology constructed from the atlas. -/
-def to_manifold : @manifold H _ M c.to_topological_space :=
+/-- Given a charted space without topology, endow it with a genuine charted space structure with
+respect to the topology constructed from the atlas. -/
+def to_charted_space : @charted_space H _ M c.to_topological_space :=
 { atlas := ⋃ (e : local_equiv M H) (he : e ∈ c.atlas), {c.local_homeomorph e he},
   chart_at := λx, c.local_homeomorph (c.chart_at x) (c.chart_mem_atlas x),
   mem_chart_source := λx, c.mem_chart_source x,
@@ -425,14 +439,18 @@ def to_manifold : @manifold H _ M c.to_topological_space :=
     exact ⟨c.chart_at x, c.chart_mem_atlas x, rfl⟩,
   end }
 
-end manifold_core
+end charted_space_core
+
+
+/-! ### Charted space with a given structure groupoid -/
 
 section has_groupoid
-variables [topological_space H] [topological_space M] [manifold H M]
+variables [topological_space H] [topological_space M] [charted_space H M]
 
-/-- A manifold has an atlas in a groupoid G if the change of coordinates belong to the groupoid -/
+/-- A charted space has an atlas in a groupoid `G` if the change of coordinates belong to the
+groupoid -/
 class has_groupoid {H : Type*} [topological_space H] (M : Type*) [topological_space M]
-  [manifold H M] (G : structure_groupoid H) : Prop :=
+  [charted_space H M] (G : structure_groupoid H) : Prop :=
 (compatible [] : ∀{e e' : local_homeomorph M H}, e ∈ atlas H M → e' ∈ atlas H M → e.symm ≫ₕ e' ∈ G)
 
 lemma has_groupoid_of_le {G₁ G₂ : structure_groupoid H} (h : has_groupoid M G₁) (hle : G₁ ≤ G₂) :
@@ -445,7 +463,7 @@ lemma has_groupoid_of_pregroupoid (PG : pregroupoid H)
   has_groupoid M (PG.groupoid) :=
 ⟨assume e e' he he', (mem_groupoid_of_pregroupoid PG _).mpr ⟨h he he', h he' he⟩⟩
 
-/-- The trivial manifold structure on the model space is compatible with any groupoid -/
+/-- The trivial charted space structure on the model space is compatible with any groupoid -/
 instance has_groupoid_model_space (H : Type*) [topological_space H] (G : structure_groupoid H) :
   has_groupoid H G :=
 { compatible := λe e' he he', begin
@@ -455,7 +473,7 @@ instance has_groupoid_model_space (H : Type*) [topological_space H] (G : structu
     simp [he, he', structure_groupoid.id_mem]
   end }
 
-/-- Any manifold structure is compatible with the groupoid of all local homeomorphisms -/
+/-- Any charted space structure is compatible with the groupoid of all local homeomorphisms -/
 instance has_groupoid_continuous_groupoid : has_groupoid M (continuous_groupoid H) :=
 ⟨begin
   assume e e' he he',
@@ -463,21 +481,23 @@ instance has_groupoid_continuous_groupoid : has_groupoid M (continuous_groupoid 
   simp only [and_self]
 end⟩
 
-/-- A G-diffeomorphism between two manifolds is a homeomorphism which, when read in the charts,
-belongs to G. We avoid the word diffeomorph as it is too related to the smooth category, and use
-structomorph instead. -/
+/-! ### Structomorphisms -/
+
+/-- A `G`-diffeomorphism between two charted spaces is a homeomorphism which, when read in the
+charts, belongs to `G`. We avoid the word diffeomorph as it is too related to the smooth category,
+and use structomorph instead. -/
 @[nolint has_inhabited_instance]
 structure structomorph (G : structure_groupoid H) (M : Type*) (M' : Type*)
-  [topological_space M] [topological_space M'] [manifold H M] [manifold H M']
+  [topological_space M] [topological_space M'] [charted_space H M] [charted_space H M']
   extends homeomorph M M' :=
 (mem_groupoid : ∀c : local_homeomorph M H, ∀c' : local_homeomorph M' H,
   c ∈ atlas H M → c' ∈ atlas H M' → c.symm ≫ₕ to_homeomorph.to_local_homeomorph ≫ₕ c' ∈ G)
 
 variables [topological_space M'] [topological_space M'']
-{G : structure_groupoid H} [manifold H M'] [manifold H M'']
+{G : structure_groupoid H} [charted_space H M'] [charted_space H M'']
 
-/-- The identity is a diffeomorphism of any manifold, for any groupoid. -/
-def structomorph.refl (M : Type*) [topological_space M] [manifold H M]
+/-- The identity is a diffeomorphism of any charted space, for any groupoid. -/
+def structomorph.refl (M : Type*) [topological_space M] [charted_space H M]
   [has_groupoid M G] : structomorph G M M :=
 { mem_groupoid := λc c' hc hc', begin
     change (local_homeomorph.symm c) ≫ₕ (local_homeomorph.refl M) ≫ₕ c' ∈ G,

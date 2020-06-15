@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.calculus.times_cont_diff
-import geometry.manifold.manifold
+import geometry.manifold.charted_space
 
 /-!
 # Smooth manifolds (possibly with boundary or corners)
@@ -15,9 +15,9 @@ We define a model with corners as a map `I : H → E` embedding nicely the topol
 the vector space `E` (or more precisely as a structure containing all the relevant properties).
 Given such a model with corners `I` on `(E, H)`, we define the groupoid of local
 homeomorphisms of `H` which are smooth when read in `E` (for any regularity `n : with_top ℕ`).
-With this groupoid at hand and the general machinery of manifolds, we thus get the notion of `C^n`
-manifold with respect to any model with corners `I` on `(E, H)`. We also introduce a specific type
-class for `C^∞` manifolds as these are the most commonly used.
+With this groupoid at hand and the general machinery of charted spaces, we thus get the notion
+of `C^n` manifold with respect to any model with corners `I` on `(E, H)`. We also introduce a
+specific type class for `C^∞` manifolds as these are the most commonly used.
 
 ## Main definitions
 
@@ -31,7 +31,7 @@ class for `C^∞` manifolds as these are the most commonly used.
   when `I` is a model with corners on `(𝕜, E, H)`, this is the groupoid of local homeos of `H`
   which are of class `C^n` over the normed field `𝕜`, when read in `E`.
 * `smooth_manifold_with_corners I M` :
-  a type class saying that the manifold `M`, modelled on the space `H`, has `C^∞` changes of
+  a type class saying that the charted space `M`, modelled on the space `H`, has `C^∞` changes of
   coordinates with respect to the model with corners `I` on `(𝕜, E, H)`. This type class is just
   a shortcut for `has_groupoid M (times_cont_diff_groupoid ⊤ I)`.
 * `ext_chart_at I x`:
@@ -41,31 +41,34 @@ class for `C^∞` manifolds as these are the most commonly used.
   we register them as local equivs. `ext_chart_at I x` is the canonical such local equiv around `x`.
 
 As specific examples of models with corners, we define (in the file `real_instances.lean`)
-* `euclidean_space n` for a model vector space of dimension `n`.
-* `model_with_corners ℝ (euclidean_space n) (euclidean_half_space n)` for the model space used
-to define `n`-dimensional real manifolds with boundary and
-* `model_with_corners ℝ (euclidean_space n) (euclidean_quadrant n)` for the model space used
-to define `n`-dimensional real manifolds with corners
+* ``model_with_corners_self ℝ (euclidean_space (fin n))` for the model space used to define
+  `n`-dimensional real manifolds without boundary (with notation `𝓡 n` in the locale `manifold`)
+* `model_with_corners ℝ (euclidean_space (fin n)) (euclidean_half_space n)` for the model space
+  used to define `n`-dimensional real manifolds with boundary (with notation `𝓡∂ n` in the locale
+  `manifold`)
+* `model_with_corners ℝ (euclidean_space (fin n)) (euclidean_quadrant n)` for the model space used
+  to define `n`-dimensional real manifolds with corners
 
 With these definitions at hand, to invoke an `n`-dimensional real manifold without boundary,
 one could use
 
-  `variables {n : ℕ} {M : Type*} [topological_space M] [manifold (euclidean_space n)]
-   [smooth_manifold_with_corners (model_with_corners_self ℝ (euclidean_space n)) M]`.
+  `variables {n : ℕ} {M : Type*} [topological_space M] [charted_space (euclidean_space (fin n)) M]
+   [smooth_manifold_with_corners (𝓡 n) M]`.
 
 However, this is not the recommended way: a theorem proved using this assumption would not apply
 for instance to the tangent space of such a manifold, which is modelled on
-`(euclidean_space n) × (euclidean_space n)` and not on `euclidean_space (2 * n)`! In the same way,
-it would not apply to product manifolds, modelled on `(euclidean_space n) × (euclidean_space m)`.
+`(euclidean_space (fin n)) × (euclidean_space (fin n))` and not on `euclidean_space (fin (2 * n))`!
+In the same way, it would not apply to product manifolds, modelled on
+`(euclidean_space (fin n)) × (euclidean_space (fin m))`.
 The right invocation does not focus on one specific construction, but on all constructions sharing
 the right properties, like
 
   `variables {E : Type*} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
   {I : model_with_corners ℝ E E} [I.boundaryless]
-  {M : Type*} [topological_space M] [manifold E M] [smooth_manifold_with_corners I M]`
+  {M : Type*} [topological_space M] [charted_space E M] [smooth_manifold_with_corners I M]`
 
 Here, `I.boundaryless` is a typeclass property ensuring that there is no boundary (this is for
-instance the case for model_with_corners_self, or products of these). Note that one could consider
+instance the case for `model_with_corners_self`, or products of these). Note that one could consider
 as a natural assumption to only use the trivial model with corners `model_with_corners_self ℝ E`,
 but again in product manifolds the natural model with corners will not be this one but the product
 one (and they are not defeq as `(λp : E × F, (p.1, p.2))` is not defeq to the identity). So, it is
@@ -82,7 +85,7 @@ example) is not directly a subtype of itself: the inclusion of `univ : set E` in
 show up in the definition, instead of `id`.
 
 A good abstraction covering both cases it to have a vector
-space `E` (with basic example the Euclidean space), a model space H``  (with basic example the upper
+space `E` (with basic example the Euclidean space), a model space `H` (with basic example the upper
 half space), and an embedding of `H` into `E` (which can be the identity for `H = E`, or
 `subtype.val` for manifolds with corners). We say that the pair `(E, H)` with their embedding is a
 model with corners, and we encompass all the relevant properties (in particular the fact that the

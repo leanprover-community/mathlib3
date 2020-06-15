@@ -37,7 +37,7 @@ Let `f` be a map between smooth manifolds. The following definitions follow the 
   within `s` at `x`.
 * `mdifferentiable_on I I' f s` : Prop expressing that `f` is differentiable on the set `s`.
 * `mdifferentiable I I' f` : Prop expressing that `f` is differentiable everywhere.
-* `bundle_mfderiv I I' f` : the derivative of `f`, as a map from the tangent bundle of `M` to the
+* `tangent_map I I' f` : the derivative of `f`, as a map from the tangent bundle of `M` to the
   tangent bundle of `M'`.
 
 We also establish results on the differential of the identity, constant functions, charts, extended
@@ -231,13 +231,12 @@ if h : mdifferentiable_at I I' f x then
   ((ext_chart_at I x) x) : _)
 else 0
 
-
 /-- The derivative within a set, as a map between the tangent bundles -/
-def bundle_mfderiv_within (f : M → M') (s : set M) : tangent_bundle I M → tangent_bundle I' M' :=
+def tangent_map_within (f : M → M') (s : set M) : tangent_bundle I M → tangent_bundle I' M' :=
 λp, ⟨f p.1, (mfderiv_within I I' f s p.1 : tangent_space I p.1 → tangent_space I' (f p.1)) p.2⟩
 
 /-- The derivative, as a map between the tangent bundles -/
-def bundle_mfderiv (f : M → M') : tangent_bundle I M → tangent_bundle I' M' :=
+def tangent_map (f : M → M') : tangent_bundle I M → tangent_bundle I' M' :=
 λp, ⟨f p.1, (mfderiv I I' f p.1 : tangent_space I p.1 → tangent_space I' (f p.1)) p.2⟩
 
 end derivatives_definitions
@@ -564,35 +563,35 @@ lemma mdifferentiable.continuous (h : mdifferentiable I I' f) : continuous f :=
 continuous_iff_continuous_at.2 $ λx, (h x).continuous_at
 
 include Is I's
-lemma bundle_mfderiv_within_subset {p : tangent_bundle I M}
+lemma tangent_map_within_subset {p : tangent_bundle I M}
   (st : s ⊆ t) (hs : unique_mdiff_within_at I s p.1) (h : mdifferentiable_within_at I I' f t p.1) :
-  bundle_mfderiv_within I I' f s p = bundle_mfderiv_within I I' f t p :=
-by { simp [bundle_mfderiv_within], rw mfderiv_within_subset st hs h }
+  tangent_map_within I I' f s p = tangent_map_within I I' f t p :=
+by { simp [tangent_map_within], rw mfderiv_within_subset st hs h }
 
-lemma bundle_mfderiv_within_univ :
-  bundle_mfderiv_within I I' f univ = bundle_mfderiv I I' f :=
-by { ext p : 1, simp [bundle_mfderiv_within, bundle_mfderiv] }
+lemma tangent_map_within_univ :
+  tangent_map_within I I' f univ = tangent_map I I' f :=
+by { ext p : 1, simp [tangent_map_within, tangent_map] }
 
-lemma bundle_mfderiv_within_eq_bundle_mfderiv {p : tangent_bundle I M}
+lemma tangent_map_within_eq_tangent_map {p : tangent_bundle I M}
   (hs : unique_mdiff_within_at I s p.1) (h : mdifferentiable_at I I' f p.1) :
-  bundle_mfderiv_within I I' f s p = bundle_mfderiv I I' f p :=
+  tangent_map_within I I' f s p = tangent_map I I' f p :=
 begin
   rw ← mdifferentiable_within_at_univ at h,
-  rw ← bundle_mfderiv_within_univ,
-  exact bundle_mfderiv_within_subset (subset_univ _) hs h,
+  rw ← tangent_map_within_univ,
+  exact tangent_map_within_subset (subset_univ _) hs h,
 end
 
-@[simp] lemma bundle_mfderiv_within_tangent_bundle_proj {p : tangent_bundle I M} :
-  tangent_bundle.proj I' M' (bundle_mfderiv_within I I' f s p) = f (tangent_bundle.proj I M p) := rfl
+@[simp] lemma tangent_map_within_tangent_bundle_proj {p : tangent_bundle I M} :
+  tangent_bundle.proj I' M' (tangent_map_within I I' f s p) = f (tangent_bundle.proj I M p) := rfl
 
-@[simp] lemma bundle_mfderiv_within_proj {p : tangent_bundle I M} :
-  (bundle_mfderiv_within I I' f s p).1 = f p.1 := rfl
+@[simp] lemma tangent_map_within_proj {p : tangent_bundle I M} :
+  (tangent_map_within I I' f s p).1 = f p.1 := rfl
 
-@[simp] lemma bundle_mfderiv_tangent_bundle_proj {p : tangent_bundle I M} :
-  tangent_bundle.proj I' M' (bundle_mfderiv I I' f p) = f (tangent_bundle.proj I M p) := rfl
+@[simp] lemma tangent_map_tangent_bundle_proj {p : tangent_bundle I M} :
+  tangent_bundle.proj I' M' (tangent_map I I' f p) = f (tangent_bundle.proj I M p) := rfl
 
-@[simp] lemma bundle_mfderiv_proj {p : tangent_bundle I M} :
-  (bundle_mfderiv I I' f p).1 = f p.1 := rfl
+@[simp] lemma tangent_map_proj {p : tangent_bundle I M} :
+  (tangent_map I I' f p).1 = f p.1 := rfl
 
 omit Is I's
 
@@ -801,30 +800,30 @@ lemma mdifferentiable.comp
   (hg : mdifferentiable I' I'' g) (hf : mdifferentiable I I' f) : mdifferentiable I I'' (g ∘ f) :=
 λx, mdifferentiable_at.comp x (hg (f x)) (hf x)
 
-lemma bundle_mfderiv_within_comp_at (p : tangent_bundle I M)
+lemma tangent_map_within_comp_at (p : tangent_bundle I M)
   (hg : mdifferentiable_within_at I' I'' g u (f p.1)) (hf : mdifferentiable_within_at I I' f s p.1)
   (h : s ⊆ f ⁻¹' u)  (hps : unique_mdiff_within_at I s p.1) :
-  bundle_mfderiv_within I I'' (g ∘ f) s p =
-  bundle_mfderiv_within I' I'' g u (bundle_mfderiv_within I I' f s p) :=
+  tangent_map_within I I'' (g ∘ f) s p =
+  tangent_map_within I' I'' g u (tangent_map_within I I' f s p) :=
 begin
-  simp [bundle_mfderiv_within],
+  simp [tangent_map_within],
   rw mfderiv_within_comp p.1 hg hf h hps,
   refl
 end
 
-lemma bundle_mfderiv_comp_at (p : tangent_bundle I M)
+lemma tangent_map_comp_at (p : tangent_bundle I M)
   (hg : mdifferentiable_at I' I'' g (f p.1)) (hf : mdifferentiable_at I I' f p.1) :
-  bundle_mfderiv I I'' (g ∘ f) p = bundle_mfderiv I' I'' g (bundle_mfderiv I I' f p) :=
+  tangent_map I I'' (g ∘ f) p = tangent_map I' I'' g (tangent_map I I' f p) :=
 begin
   rcases p with ⟨x, v⟩,
-  simp [bundle_mfderiv],
+  simp [tangent_map],
   rw mfderiv_comp x hg hf,
   refl
 end
 
-lemma bundle_mfderiv_comp (hg : mdifferentiable I' I'' g) (hf : mdifferentiable I I' f) :
-  bundle_mfderiv I I'' (g ∘ f) = (bundle_mfderiv I' I'' g) ∘ (bundle_mfderiv I I' f) :=
-by { ext p : 1, exact bundle_mfderiv_comp_at _ (hg _) (hf _) }
+lemma tangent_map_comp (hg : mdifferentiable I' I'' g) (hf : mdifferentiable I I' f) :
+  tangent_map I I'' (g ∘ f) = (tangent_map I' I'' g) ∘ (tangent_map I I' f) :=
+by { ext p : 1, exact tangent_map_comp_at _ (hg _) (hf _) }
 
 end derivatives_properties
 
@@ -1035,10 +1034,10 @@ lemma mdifferentiable_chart (x : M) : (chart_at H x).mdifferentiable I I :=
 mdifferentiable_of_mem_atlas _ (chart_mem_atlas _ _)
 
 /-- The derivative of the chart at a base point is the chart of the tangent bundle. -/
-lemma bundle_mfderiv_chart {p q : tangent_bundle I M} (h : q.1 ∈ (chart_at H p.1).source) :
-  bundle_mfderiv I I (chart_at H p.1) q = (chart_at (H × E) p : tangent_bundle I M → H × E) q :=
+lemma tangent_map_chart {p q : tangent_bundle I M} (h : q.1 ∈ (chart_at H p.1).source) :
+  tangent_map I I (chart_at H p.1) q = (chart_at (H × E) p : tangent_bundle I M → H × E) q :=
 begin
-  dsimp [bundle_mfderiv],
+  dsimp [tangent_map],
   rw mdifferentiable_at.mfderiv,
   { refl },
   { exact mdifferentiable_at_atlas _ (chart_mem_atlas _ _) h }
@@ -1046,12 +1045,12 @@ end
 
 /-- The derivative of the inverse of the chart at a base point is the inverse of the chart of the
 tangent bundle. -/
-lemma bundle_mfderiv_chart_symm {p : tangent_bundle I M} {q : H × E}
+lemma tangent_map_chart_symm {p : tangent_bundle I M} {q : H × E}
   (h : q.1 ∈ (chart_at H p.1).target) :
-  bundle_mfderiv I I (chart_at H p.1).symm q =
+  tangent_map I I (chart_at H p.1).symm q =
   ((chart_at (H × E) p).symm : H × E → tangent_bundle I M) q :=
 begin
-  dsimp only [bundle_mfderiv],
+  dsimp only [tangent_map],
   rw mdifferentiable_at.mfderiv (mdifferentiable_at_atlas_symm _ (chart_mem_atlas _ _) h),
   -- a trivial instance is needed after the rewrite, handle it right now.
   rotate, { apply_instance },

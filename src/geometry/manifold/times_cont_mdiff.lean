@@ -20,9 +20,9 @@ Let `M ` and `M'` be two smooth manifolds, with respect to model with corners `I
 * `times_cont_mdiff_on I I' n f s` states that the function `f` is `Cⁿ` on the set `s`
 * `times_cont_mdiff I I' n f` states that the function `f` is `Cⁿ`.
 * `times_cont_mdiff_on.comp` gives the invariance of the `Cⁿ` property under composition
-* `times_cont_mdiff_on.times_cont_mdiff_on_bundle_mfderiv_within` states that the bundled derivative
+* `times_cont_mdiff_on.times_cont_mdiff_on_tangent_map_within` states that the bundled derivative
   of a `Cⁿ` function in a domain is `Cᵐ` when `m + 1 ≤ n`.
-* `times_cont_mdiff.times_cont_mdiff_bundle_mfderiv` states that the bundled derivative
+* `times_cont_mdiff.times_cont_mdiff_tangent_map` states that the bundled derivative
   of a `Cⁿ` function is `Cᵐ` when `m + 1 ≤ n`.
 -/
 
@@ -289,7 +289,32 @@ lemma times_cont_mdiff_on_atlas_symm (h : e ∈ atlas H M) (n : with_top ℕ) :
   times_cont_mdiff_on I I n e.symm e.target :=
 (times_cont_mdiff_on_atlas_symm_aux 𝕜 h).of_le le_top
 
+/-- A function is `C^n` if and only if it is `C^n` in any chart. -/
+
 end atlas
+
+/-! ### The identity is smooth -/
+
+section id
+
+include Is
+
+lemma times_cont_mdiff_on_id (n : with_top ℕ) :
+  times_cont_mdiff I I n (id : M → M) :=
+begin
+  refine ⟨continuous_id, λ x y, _⟩,
+  simp [ext_chart_at],
+
+end
+
+end id
+
+#exit
+
+/-! ### Equivalence with the basic definition for functions between vector spaces -/
+
+
+
 
 /-! ### The bundled derivative of a smooth function is smooth -/
 
@@ -298,21 +323,21 @@ section bundle_derivative
 /-- If a function is `C^n` with `1 ≤ n` on a domain with unique derivatives, then its bundled
 derivative is continuous. In this auxiliary lemma, we prove this fact when the source and target
 space are model spaces in models with corners. The general fact is proved in
-`times_cont_mdiff_on.continuous_on_bundle_mfderiv_within`-/
-lemma times_cont_mdiff_on.continuous_on_bundle_mfderiv_within_aux
+`times_cont_mdiff_on.continuous_on_tangent_map_within`-/
+lemma times_cont_mdiff_on.continuous_on_tangent_map_within_aux
   {f : H → H'} {s : set H}
   (hf : times_cont_mdiff_on I I' n f s) (hn : 1 ≤ n) (hs : unique_mdiff_on I s) :
-  continuous_on (bundle_mfderiv_within I I' f s) ((tangent_bundle.proj I H) ⁻¹' s) :=
+  continuous_on (tangent_map_within I I' f s) ((tangent_bundle.proj I H) ⁻¹' s) :=
 begin
   suffices h : continuous_on (λ (p : H × E), (f p.fst,
     (fderiv_within 𝕜 (written_in_ext_chart_at I I' p.fst f) (I.symm ⁻¹' s ∩ range I)
       ((ext_chart_at I p.fst) p.fst) : E →L[𝕜] E') p.snd)) (prod.fst ⁻¹' s),
   { have : ∀ (p : tangent_bundle I H), p ∈ tangent_bundle.proj I H ⁻¹' s →
-      bundle_mfderiv_within I I' f s p =
+      tangent_map_within I I' f s p =
       (f p.fst, ((fderiv_within 𝕜 (written_in_ext_chart_at I I' p.fst f)
       (I.symm ⁻¹' s ∩ range I) ((ext_chart_at I p.fst) p.fst)) : E →L[𝕜] E') p.snd),
     { rintros ⟨x, v⟩ hx,
-      dsimp [bundle_mfderiv_within],
+      dsimp [tangent_map_within],
       ext, { refl },
       dsimp,
       apply congr_fun,
@@ -353,11 +378,11 @@ end
 /-- If a function is `C^n` on a domain with unique derivatives, then its bundled derivative is
 `C^m` when `m+1 ≤ n`. In this auxiliary lemma, we prove this fact when the source and target space
 are model spaces in models with corners. The general fact is proved in
-`times_cont_mdiff_on.times_cont_mdiff_on_bundle_mfderiv_within` -/
-lemma times_cont_mdiff_on.times_cont_mdiff_on_bundle_mfderiv_within_aux
+`times_cont_mdiff_on.times_cont_mdiff_on_tangent_map_within` -/
+lemma times_cont_mdiff_on.times_cont_mdiff_on_tangent_map_within_aux
   {f : H → H'} {s : set H}
   (hf : times_cont_mdiff_on I I' n f s) (hmn : m + 1 ≤ n) (hs : unique_mdiff_on I s) :
-  times_cont_mdiff_on I.tangent I'.tangent m (bundle_mfderiv_within I I' f s)
+  times_cont_mdiff_on I.tangent I'.tangent m (tangent_map_within I I' f s)
     ((tangent_bundle.proj I H) ⁻¹' s) :=
 begin
   have m_le_n : m ≤ n,
@@ -374,13 +399,13 @@ begin
       using hs (I.symm y) hy.2 },
   have U : unique_diff_on 𝕜 (set.prod (range I ∩ I.symm ⁻¹' s) (univ : set E)) :=
     U'.prod unique_diff_on_univ,
-  refine ⟨hf.continuous_on_bundle_mfderiv_within_aux one_le_n hs, λp q, _⟩,
+  refine ⟨hf.continuous_on_tangent_map_within_aux one_le_n hs, λp q, _⟩,
   have A : (λ (p : E × E), (I.symm p.1, p.2)) ⁻¹' (tangent_bundle.proj I H ⁻¹' s)
            = set.prod (I.symm ⁻¹' s) univ,
     by { ext p, simp [tangent_bundle.proj] },
   -- unfold the definitions to reduce to a statement on vector spaces
   suffices h : times_cont_diff_on 𝕜 m
-    ((λ (p : H' × E'), (I' p.1, p.2)) ∘ bundle_mfderiv_within I I' f s ∘
+    ((λ (p : H' × E'), (I' p.1, p.2)) ∘ tangent_map_within I I' f s ∘
         λ (p : E × E), (I.symm p.1, p.2))
     (set.prod (range I ∩ I.symm ⁻¹' s) univ),
   by simp [ext_chart_at, @local_equiv.refl_symm (H × E),
@@ -421,9 +446,9 @@ include Is I's
 
 /-- If a function is `C^n` on a domain with unique derivatives, then its bundled derivative
 is `C^m` when `m+1 ≤ n`. -/
-theorem times_cont_mdiff_on.times_cont_mdiff_on_bundle_mfderiv_within
+theorem times_cont_mdiff_on.times_cont_mdiff_on_tangent_map_within
   (hf : times_cont_mdiff_on I I' n f s) (hmn : m + 1 ≤ n) (hs : unique_mdiff_on I s) :
-  times_cont_mdiff_on I.tangent I'.tangent m (bundle_mfderiv_within I I' f s)
+  times_cont_mdiff_on I.tangent I'.tangent m (tangent_map_within I I' f s)
   ((tangent_bundle.proj I M) ⁻¹' s) :=
 begin
   /- The strategy of the proof is to avoid unfolding the definitions, and reduce by functoriality
@@ -458,15 +483,15 @@ begin
   let l  := chart_at H p.1,
   let Dl := chart_at (H × E) p,
   let r  := chart_at H' (f p.1),
-  let Dr := chart_at (H' × E') (bundle_mfderiv_within I I' f s p),
-  let il := chart_at (H × E) (bundle_mfderiv I I l p),
-  let ir := chart_at (H' × E') (bundle_mfderiv I I' (r ∘ f) p),
+  let Dr := chart_at (H' × E') (tangent_map_within I I' f s p),
+  let il := chart_at (H × E) (tangent_map I I l p),
+  let ir := chart_at (H' × E') (tangent_map I I' (r ∘ f) p),
   let s' := f ⁻¹' r.source ∩ s ∩ l.source,
   let s'_lift := (tangent_bundle.proj I M)⁻¹' s',
   let s'l := l.target ∩ l.symm ⁻¹' s',
   let s'l_lift := (tangent_bundle.proj I H) ⁻¹' s'l,
   rcases continuous_on_iff'.1 hf.1 r.source r.open_source with ⟨o, o_open, ho⟩,
-  suffices h : times_cont_mdiff_on I.tangent I'.tangent m (bundle_mfderiv_within I I' f s) s'_lift,
+  suffices h : times_cont_mdiff_on I.tangent I'.tangent m (tangent_map_within I I' f s) s'_lift,
   { refine ⟨(tangent_bundle.proj I M)⁻¹' (o ∩ l.source), _, _, _⟩,
     show is_open ((tangent_bundle.proj I M)⁻¹' (o ∩ l.source)), from
       tangent_bundle_proj_continuous _ _ _ (is_open_inter o_open l.open_source),
@@ -508,15 +533,15 @@ begin
   { apply times_cont_mdiff_on.comp diff_rf diff_l (λx hx, _),
     simp [s'l] at hx, simp [hx] },
   have diff_rfl_lift : times_cont_mdiff_on I.tangent I'.tangent m
-      (bundle_mfderiv_within I I' (r ∘ f ∘ l.symm) s'l) s'l_lift :=
-    diff_rfl.times_cont_mdiff_on_bundle_mfderiv_within_aux hmn U'l,
+      (tangent_map_within I I' (r ∘ f ∘ l.symm) s'l) s'l_lift :=
+    diff_rfl.times_cont_mdiff_on_tangent_map_within_aux hmn U'l,
   have diff_irrfl_lift : times_cont_mdiff_on I.tangent I'.tangent m
-      (ir ∘ (bundle_mfderiv_within I I' (r ∘ f ∘ l.symm) s'l)) s'l_lift,
+      (ir ∘ (tangent_map_within I I' (r ∘ f ∘ l.symm) s'l)) s'l_lift,
   { have A : times_cont_mdiff_on I'.tangent I'.tangent m ir ir.source :=
       times_cont_mdiff_on_atlas _ (chart_mem_atlas _ _) _,
     refine times_cont_mdiff_on.comp A diff_rfl_lift (λp hp, by simp [ir]) },
   have diff_Drirrfl_lift : times_cont_mdiff_on I.tangent I'.tangent m
-    (Dr.symm ∘ (ir ∘ (bundle_mfderiv_within I I' (r ∘ f ∘ l.symm) s'l))) s'l_lift,
+    (Dr.symm ∘ (ir ∘ (tangent_map_within I I' (r ∘ f ∘ l.symm) s'l))) s'l_lift,
   { have A : times_cont_mdiff_on I'.tangent I'.tangent m Dr.symm Dr.target :=
       times_cont_mdiff_on_atlas_symm _ (chart_mem_atlas _ _) _,
     apply times_cont_mdiff_on.comp A diff_irrfl_lift (λp hp, _),
@@ -524,7 +549,7 @@ begin
     simp [ir, local_equiv.trans_target, @local_equiv.refl_coe (H' × E'), hp] },
   -- conclusion of this step: the composition of all the maps above is smooth
   have diff_DrirrflilDl : times_cont_mdiff_on I.tangent I'.tangent m
-    (Dr.symm ∘ (ir ∘ (bundle_mfderiv_within I I' (r ∘ f ∘ l.symm) s'l)) ∘
+    (Dr.symm ∘ (ir ∘ (tangent_map_within I I' (r ∘ f ∘ l.symm) s'l)) ∘
       (il.symm ∘ Dl)) s'_lift,
   { have A : times_cont_mdiff_on I.tangent I.tangent m Dl Dl.source :=
       times_cont_mdiff_on_atlas _ (chart_mem_atlas _ _) _,
@@ -541,8 +566,8 @@ begin
     simp [il, s'l_lift, hp, @local_equiv.refl_symm (H × E), tangent_bundle.proj] },
   /- Third step: check that the composition of all the maps indeed coincides with the derivative we
   are looking for -/
-  have eq_comp : ∀q ∈ s'_lift, bundle_mfderiv_within I I' f s q =
-      (Dr.symm ∘ ir ∘ (bundle_mfderiv_within I I' (r ∘ f ∘ l.symm) s'l) ∘
+  have eq_comp : ∀q ∈ s'_lift, tangent_map_within I I' f s q =
+      (Dr.symm ∘ ir ∘ (tangent_map_within I I' (r ∘ f ∘ l.symm) s'l) ∘
       (il.symm ∘ Dl)) q,
   { assume q hq,
     simp [s'_lift, tangent_bundle.proj] at hq,
@@ -550,46 +575,46 @@ begin
       by { apply U', simp [hq, s'] },
     have U'lq : unique_mdiff_within_at I s'l (Dl q).1,
       by { apply U'l, simp [hq, s'l] },
-    have A : bundle_mfderiv_within I I' ((r ∘ f) ∘ l.symm) s'l (Dl q) =
-      bundle_mfderiv_within I I' (r ∘ f) s'
-        (bundle_mfderiv_within I I l.symm s'l (Dl q)),
-    { refine bundle_mfderiv_within_comp_at (Dl q) _ _ (λp hp, _) U'lq,
+    have A : tangent_map_within I I' ((r ∘ f) ∘ l.symm) s'l (Dl q) =
+      tangent_map_within I I' (r ∘ f) s'
+        (tangent_map_within I I l.symm s'l (Dl q)),
+    { refine tangent_map_within_comp_at (Dl q) _ _ (λp hp, _) U'lq,
       { apply diff_rf.mdifferentiable_within_at one_le_n,
         simp [hq] },
       { apply diff_l.mdifferentiable_within_at one_le_n,
         simp [s'l, hq] },
       { simp at hp, simp [hp] } },
-    have B : bundle_mfderiv_within I I l.symm s'l (Dl q) = q,
-    { have : bundle_mfderiv_within I I l.symm s'l (Dl q) =
-             bundle_mfderiv I I l.symm (Dl q),
-      { refine bundle_mfderiv_within_eq_bundle_mfderiv U'lq _,
+    have B : tangent_map_within I I l.symm s'l (Dl q) = q,
+    { have : tangent_map_within I I l.symm s'l (Dl q) =
+             tangent_map I I l.symm (Dl q),
+      { refine tangent_map_within_eq_tangent_map U'lq _,
         refine mdifferentiable_at_atlas_symm _ (chart_mem_atlas _ _) _,
         simp [hq] },
-      rw [this, bundle_mfderiv_chart_symm, local_homeomorph.left_inv];
+      rw [this, tangent_map_chart_symm, local_homeomorph.left_inv];
       simp [hq] },
-    have C : bundle_mfderiv_within I I' (r ∘ f) s' q
-      = bundle_mfderiv_within I' I' r r.source (bundle_mfderiv_within I I' f s' q),
-    { refine bundle_mfderiv_within_comp_at q _ _ (λr hr, _) U'q,
+    have C : tangent_map_within I I' (r ∘ f) s' q
+      = tangent_map_within I' I' r r.source (tangent_map_within I I' f s' q),
+    { refine tangent_map_within_comp_at q _ _ (λr hr, _) U'q,
       { apply diff_r.mdifferentiable_within_at one_le_n,
         simp [hq] },
       { apply diff_f.mdifferentiable_within_at one_le_n,
         simp [hq] },
       { simp [s'] at hr, simp [hr] } },
-    have D : Dr.symm (bundle_mfderiv_within I' I' r r.source (bundle_mfderiv_within I I' f s' q))
-      = bundle_mfderiv_within I I' f s' q,
-    { have A : bundle_mfderiv_within I' I' r r.source (bundle_mfderiv_within I I' f s' q) =
-             bundle_mfderiv I' I' r (bundle_mfderiv_within I I' f s' q),
-      { apply bundle_mfderiv_within_eq_bundle_mfderiv,
+    have D : Dr.symm (tangent_map_within I' I' r r.source (tangent_map_within I I' f s' q))
+      = tangent_map_within I I' f s' q,
+    { have A : tangent_map_within I' I' r r.source (tangent_map_within I I' f s' q) =
+             tangent_map I' I' r (tangent_map_within I I' f s' q),
+      { apply tangent_map_within_eq_tangent_map,
         { apply is_open.unique_mdiff_within_at _ r.open_source, simp [hq] },
         { refine mdifferentiable_at_atlas _ (chart_mem_atlas _ _) _,
           simp [hq] } },
-      have : f p.1 = (bundle_mfderiv_within I I' f s p).1 := rfl,
+      have : f p.1 = (tangent_map_within I I' f s p).1 := rfl,
       rw [A],
       dsimp [r, Dr],
-      rw [this, bundle_mfderiv_chart, local_homeomorph.left_inv];
+      rw [this, tangent_map_chart, local_homeomorph.left_inv];
       simp [hq] },
-    have M : bundle_mfderiv_within I I' f s' q = bundle_mfderiv_within I I' f s q,
-    { apply bundle_mfderiv_within_subset _ U'q _,
+    have M : tangent_map_within I I' f s' q = tangent_map_within I I' f s q,
+    { apply tangent_map_within_subset _ U'q _,
       { assume r hr, simp [s'] at hr, simp [hr] },
       { apply hf.mdifferentiable_within_at one_le_n, simp [hq] } },
     simp [il, ir, @local_equiv.refl_coe (H' × E'),
@@ -599,35 +624,35 @@ end
 
 /-- If a function is `C^n` on a domain with unique derivatives, with `1 ≤ n`, then its bundled
 derivative is continuous there. -/
-theorem times_cont_mdiff_on.continuous_on_bundle_mfderiv_within
+theorem times_cont_mdiff_on.continuous_on_tangent_map_within
   (hf : times_cont_mdiff_on I I' n f s) (hmn : 1 ≤ n) (hs : unique_mdiff_on I s) :
-  continuous_on (bundle_mfderiv_within I I' f s) ((tangent_bundle.proj I M) ⁻¹' s) :=
+  continuous_on (tangent_map_within I I' f s) ((tangent_bundle.proj I M) ⁻¹' s) :=
 begin
-  have : times_cont_mdiff_on I.tangent I'.tangent 0 (bundle_mfderiv_within I I' f s)
+  have : times_cont_mdiff_on I.tangent I'.tangent 0 (tangent_map_within I I' f s)
          ((tangent_bundle.proj I M) ⁻¹' s) :=
-    hf.times_cont_mdiff_on_bundle_mfderiv_within hmn hs,
+    hf.times_cont_mdiff_on_tangent_map_within hmn hs,
   exact this.continuous_on
 end
 
 /-- If a function is `C^n`, then its bundled derivative is `C^m` when `m+1 ≤ n`. -/
-theorem times_cont_mdiff.times_cont_mdiff_bundle_mfderiv
+theorem times_cont_mdiff.times_cont_mdiff_tangent_map
   (hf : times_cont_mdiff I I' n f) (hmn : m + 1 ≤ n) :
-  times_cont_mdiff I.tangent I'.tangent m (bundle_mfderiv I I' f) :=
+  times_cont_mdiff I.tangent I'.tangent m (tangent_map I I' f) :=
 begin
   rw ← times_cont_mdiff_on_univ at hf ⊢,
-  convert hf.times_cont_mdiff_on_bundle_mfderiv_within hmn unique_mdiff_on_univ,
-  rw bundle_mfderiv_within_univ
+  convert hf.times_cont_mdiff_on_tangent_map_within hmn unique_mdiff_on_univ,
+  rw tangent_map_within_univ
 end
 
 /-- If a function is `C^n`, with `1 ≤ n`, then its bundled derivative is continuous. -/
-theorem times_cont_mdiff.continuous_bundle_mfderiv
+theorem times_cont_mdiff.continuous_tangent_map
   (hf : times_cont_mdiff I I' n f) (hmn : 1 ≤ n) :
-  continuous (bundle_mfderiv I I' f) :=
+  continuous (tangent_map I I' f) :=
 begin
   rw ← times_cont_mdiff_on_univ at hf,
   rw continuous_iff_continuous_on_univ,
-  convert hf.continuous_on_bundle_mfderiv_within hmn unique_mdiff_on_univ,
-  rw bundle_mfderiv_within_univ
+  convert hf.continuous_on_tangent_map_within hmn unique_mdiff_on_univ,
+  rw tangent_map_within_univ
 end
 
 end bundle_derivative

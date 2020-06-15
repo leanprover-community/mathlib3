@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Scott Morrison
 -/
 import algebra.module
+import data.fintype.card
 
 /-!
 
@@ -431,6 +432,20 @@ def sum [has_zero β] [add_comm_monoid γ] (f : α →₀ β) (g : α → β →
 @[to_additive]
 def prod [has_zero β] [comm_monoid γ] (f : α →₀ β) (g : α → β → γ) : γ :=
 ∏ a in f.support, g a (f a)
+
+@[to_additive]
+lemma prod_fintype [fintype α] [has_zero β] [comm_monoid γ]
+  (f : α →₀ β) (g : α → β → γ) (h : ∀ i, g i 0 = 1) :
+  f.prod g = ∏ i, g i (f i) :=
+begin
+  classical,
+  rw [finsupp.prod, ← fintype.prod_extend_by_one, finset.prod_congr rfl],
+  intros i hi,
+  split_ifs with hif hif,
+  { refl },
+  { rw finsupp.not_mem_support_iff at hif,
+    rw [hif, h] }
+end
 
 @[to_additive]
 lemma prod_map_range_index [has_zero β₁] [has_zero β₂] [comm_monoid γ]

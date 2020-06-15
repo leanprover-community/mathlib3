@@ -234,7 +234,7 @@ rfl
 
 /-- An affine space constructed from a point and a direction contains
 that point. -/
-lemma mem_mk_point_of_direction (p : P) (direction : submodule k V) :
+lemma mem_mk_of_point_of_direction (p : P) (direction : submodule k V) :
   p ∈ mk_of_point_of_direction p direction :=
 ⟨0, ⟨direction.zero_mem, (add_action.zero_vadd _ _).symm⟩⟩
 

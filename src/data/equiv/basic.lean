@@ -963,15 +963,16 @@ is equivalent to the codomain `Y`. -/
 def subtype_equiv_codomain (f : {x' // x' ≠ x} → Y) : {g : X → Y // g ∘ coe = f} ≃ Y :=
 (subtype_preimage _ f).trans $
 @fun_unique {x' // ¬ x' ≠ x} _ $
-show unique {x' // ¬ x' ≠ x},
-  from (equiv.subtype_congr_right $ λ a, not_not).unique_of_equiv $
-show unique {x' // x' = x}, from
-{ default := ⟨x, rfl⟩, uniq := λ ⟨x', h⟩, subtype.val_injective h }
+show unique {x' // ¬ x' ≠ x}, from @equiv.unique _ _
+  (show unique {x' // x' = x}, from
+    { default := ⟨x, rfl⟩, uniq := λ ⟨x', h⟩, subtype.val_injective h })
+  (subtype_congr_right $ λ a, not_not)
 
 @[simp] lemma coe_subtype_equiv_codomain (f : {x' // x' ≠ x} → Y) :
   (subtype_equiv_codomain f : {g : X → Y // g ∘ coe = f} → Y) = λ g, (g : X → Y) x := rfl
 
-@[simp] lemma subtype_equiv_codomain_apply (f : {x' // x' ≠ x} → Y) (g : {g : X → Y // g ∘ coe = f}) :
+@[simp] lemma subtype_equiv_codomain_apply (f : {x' // x' ≠ x} → Y)
+  (g : {g : X → Y // g ∘ coe = f}) :
   subtype_equiv_codomain f g = (g : X → Y) x := rfl
 
 lemma coe_subtype_equiv_codomain_symm (f : {x' // x' ≠ x} → Y) :

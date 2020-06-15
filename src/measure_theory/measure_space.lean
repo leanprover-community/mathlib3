@@ -733,24 +733,24 @@ def a_e (μ : measure α) : filter α :=
   inter_sets := λ s t hs ht, by simp [compl_inter]; exact measure_union_null hs ht,
   sets_of_superset := λ s t hs hst, measure_mono_null (set.compl_subset_compl.2 hst) hs }
 
-notation `∀ₘ` binders `∂` μ `, ` r:(scoped P, μ.a_e P) := r
+end measure
+
+variables {α : Type*} {β : Type*} [measurable_space α] {μ : measure α}
+
+notation `∀ₘ` binders `∂` μ `, ` r:(scoped P, μ.a_e.eventually P) := r
 
 lemma mem_a_e_iff (s : set α) : s ∈ μ.a_e.sets ↔ μ (- s) = 0 := iff.rfl
 
-lemma all_ae_congr {p q : α → Prop} (h : ∀ₘ a, p a ↔ q a) : (∀ₘ a, p a) ↔ (∀ₘ a, q a) :=
-iff.intro
-  (assume h', by filter_upwards [h, h'] assume a hpq hp, hpq.1 hp)
-  (assume h', by filter_upwards [h, h'] assume a hpq hq, hpq.2 hq)
+lemma a_e_iff {p : α → Prop} : (∀ₘ a ∂ μ, p a) ↔ μ { a | ¬ p a } = 0 := iff.rfl
 
-lemma all_ae_iff {p : α → Prop} : (∀ₘ a, p a) ↔ volume { a | ¬ p a } = 0 := iff.rfl
+lemma measure_zero_iff_a_e_nmem {s : set α} : μ s = 0 ↔ ∀ₘ a ∂ μ, a ∉ s :=
+by simp only [a_e_iff, not_not, set_of_mem_eq]
 
-lemma volume_zero_iff_all_ae_nmem {s : set α} : volume s = 0 ↔ ∀ₘ a, a ∉ s :=
-by simp only [all_ae_iff, not_not, set_of_mem_eq]
+lemma a_e_of_all {p : α → Prop} (μ : measure α) : (∀a, p a) → ∀ₘ a ∂ μ, p a :=
+eventually_of_forall _
 
-lemma all_ae_of_all {p : α → Prop} : (∀a, p a) → ∀ₘ a, p a := univ_mem_sets'
-
-lemma all_ae_all_iff {ι : Type*} [encodable ι] {p : α → ι → Prop} :
-  (∀ₘ a, ∀i, p a i) ↔ (∀i, ∀ₘ a, p a i) :=
+lemma a_e_all_iff {ι : Type*} [encodable ι] {p : α → ι → Prop} :
+  (∀ₘ a ∂ μ, ∀i, p a i) ↔ (∀i, ∀ₘ a ∂ μ, p a i) :=
 begin
   refine iff.intro (assume h i, _) (assume h, _),
   { filter_upwards [h] assume a ha, ha i },
@@ -759,34 +759,15 @@ begin
     filter_upwards [h] assume a, mem_Inter.1 }
 end
 
-@[simp] lemma all_ae_and_iff {p q : α → Prop} : (∀ₘ a, p a ∧ q a) ↔ (∀ₘ a, p a) ∧ ∀ₘ a, q a :=
-eventually_and
+lemma a_e_eq_refl (f : α → β) : ∀ₘ a ∂ μ, f a = f a :=
+a_e_of_all μ $ λ a, rfl
 
-@[simp] lemma all_ae_imp_distrib_left {p : Prop} {q : α → Prop} :
-  (∀ₘ a, p → q a) ↔ (p → ∀ₘ a, q a) :=
-eventually_imp_distrib_left
+lemma a_e_eq_symm {f g : α → β} (h : ∀ₘ a ∂ μ, f a = g a) : (∀ₘ a ∂ μ, g a = f a) :=
+h.mono $ λ a, eq.symm
 
-@[simp] lemma all_ae_or_distrib_left {p : Prop} {q : α → Prop} :
-  (∀ₘ a, p ∨ q a) ↔ (p ∨ ∀ₘ a, q a) :=
-eventually_or_distrib_left
-
-@[simp] lemma all_ae_or_distrib_right {p : α → Prop} {q : Prop} :
-  (∀ₘ a, p a ∨ q) ↔ ((∀ₘ a, p a) ∨ q) :=
-eventually_or_distrib_right
-
-variables {β : Type*}
-
-lemma all_ae_eq_refl (f : α → β) : ∀ₘ a, f a = f a :=
-by { filter_upwards [], assume a, apply eq.refl }
-
-lemma all_ae_eq_symm {f g : α → β} : (∀ₘ a, f a = g a) → (∀ₘ a, g a = f a) :=
-by { assume h, filter_upwards [h], assume a, apply eq.symm }
-
-lemma all_ae_eq_trans {f g h: α → β} (h₁ : ∀ₘ a, f a = g a) (h₂ : ∀ₘ a, g a = h a) :
-  ∀ₘ a, f a = h a :=
+lemma a_e_eq_trans {f g h: α → β} (h₁ : ∀ₘ a ∂ μ, f a = g a) (h₂ : ∀ₘ a ∂ μ, g a = h a) :
+  ∀ₘ a ∂ μ, f a = h a :=
 by { filter_upwards [h₁, h₂], intro a, exact eq.trans }
-
-end measure
 
 end measure_theory
 
@@ -957,64 +938,7 @@ add_decl_doc volume
 section measure_space
 variables {α : Type*} {ι : Type*} [measure_space α] {s₁ s₂ : set α}
 
-/-- `∀ₘ a:α, p a` states that the property `p` is almost everywhere true in the measure space
-associated with `α`. This means that the measure of the complementary of `p` is `0`.
-
-In a probability measure, the measure of `p` is `1`, when `p` is measurable.
--/
-def all_ae (p : α → Prop) : Prop :=
-∀ᶠ a in volume.a_e, p a
-
-notation `∀ₘ` binders `, ` r:(scoped P, all_ae P) := r
-
-lemma all_ae_congr {p q : α → Prop} (h : ∀ₘ a, p a ↔ q a) : (∀ₘ a, p a) ↔ (∀ₘ a, q a) :=
-iff.intro
-  (assume h', by filter_upwards [h, h'] assume a hpq hp, hpq.1 hp)
-  (assume h', by filter_upwards [h, h'] assume a hpq hq, hpq.2 hq)
-
-lemma all_ae_iff {p : α → Prop} : (∀ₘ a, p a) ↔ volume { a | ¬ p a } = 0 := iff.rfl
-
-lemma volume_zero_iff_all_ae_nmem {s : set α} : volume s = 0 ↔ ∀ₘ a, a ∉ s :=
-by simp only [all_ae_iff, not_not, set_of_mem_eq]
-
-lemma all_ae_of_all {p : α → Prop} : (∀a, p a) → ∀ₘ a, p a := univ_mem_sets'
-
-lemma all_ae_all_iff {ι : Type*} [encodable ι] {p : α → ι → Prop} :
-  (∀ₘ a, ∀i, p a i) ↔ (∀i, ∀ₘ a, p a i) :=
-begin
-  refine iff.intro (assume h i, _) (assume h, _),
-  { filter_upwards [h] assume a ha, ha i },
-  { have h := measure_Union_null h,
-    rw [← compl_Inter] at h,
-    filter_upwards [h] assume a, mem_Inter.1 }
-end
-
-@[simp] lemma all_ae_and_iff {p q : α → Prop} : (∀ₘ a, p a ∧ q a) ↔ (∀ₘ a, p a) ∧ ∀ₘ a, q a :=
-eventually_and
-
-@[simp] lemma all_ae_imp_distrib_left {p : Prop} {q : α → Prop} :
-  (∀ₘ a, p → q a) ↔ (p → ∀ₘ a, q a) :=
-eventually_imp_distrib_left
-
-@[simp] lemma all_ae_or_distrib_left {p : Prop} {q : α → Prop} :
-  (∀ₘ a, p ∨ q a) ↔ (p ∨ ∀ₘ a, q a) :=
-eventually_or_distrib_left
-
-@[simp] lemma all_ae_or_distrib_right {p : α → Prop} {q : Prop} :
-  (∀ₘ a, p a ∨ q) ↔ ((∀ₘ a, p a) ∨ q) :=
-eventually_or_distrib_right
-
-variables {β : Type*}
-
-lemma all_ae_eq_refl (f : α → β) : ∀ₘ a, f a = f a :=
-by { filter_upwards [], assume a, apply eq.refl }
-
-lemma all_ae_eq_symm {f g : α → β} : (∀ₘ a, f a = g a) → (∀ₘ a, g a = f a) :=
-by { assume h, filter_upwards [h], assume a, apply eq.symm }
-
-lemma all_ae_eq_trans {f g h: α → β} (h₁ : ∀ₘ a, f a = g a) (h₂ : ∀ₘ a, g a = h a) :
-  ∀ₘ a, f a = h a :=
-by { filter_upwards [h₁, h₂], intro a, exact eq.trans }
+notation `∀ₘ` binders `, ` r:(scoped P, volume.a_e.eventually P) := r
 
 end measure_space
 

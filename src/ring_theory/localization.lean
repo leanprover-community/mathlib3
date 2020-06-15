@@ -1202,4 +1202,7 @@ noncomputable def field_equiv_of_quotient {K : Type*} [field K] (f : fraction_ma
   fraction_ring A ≃+* K :=
 localization.ring_equiv_of_quotient f
 
+instance : algebra A (fraction_ring A) :=
+(of A).to_map.to_algebra
+
 end fraction_ring

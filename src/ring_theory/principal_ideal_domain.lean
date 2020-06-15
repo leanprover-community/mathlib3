@@ -74,7 +74,7 @@ by rw [← @span_singleton_eq_bot R M, span_singleton_generator]
 
 end submodule.is_principal
 
-namespace is_prime
+namespace ideal.is_prime
 open submodule.is_principal ideal
 
 -- TODO -- for a non-ID should prove that if p < q then q maximal; 0 isn't prime in a non-ID
@@ -92,7 +92,7 @@ is_maximal_iff.2 ⟨(ne_top_iff_one S).1 hpi.1, begin
   exact hz.symm ▸ ideal.mul_mem_right _ (generator_mem T)
 end⟩
 
-end is_prime
+end ideal.is_prime
 
 section
 open euclidean_domain

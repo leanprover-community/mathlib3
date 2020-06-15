@@ -391,6 +391,7 @@ protected def strong_rec' {p : ℕ → Sort u} (H : ∀ n, (∀ m, m < n → p m
 | n := H n (λ m hm, strong_rec' m)
 
 /-- Recursion principle based on `<` applied to some natural number. -/
+@[elab_as_eliminator]
 def strong_rec_on' {P : ℕ → Sort*} (n : ℕ) (h : ∀ n, (∀ m, m < n → P m) → P n) : P n :=
 nat.strong_rec' h n
 

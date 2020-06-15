@@ -33,10 +33,10 @@ open set
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
-{M : Type*} [topological_space M] [manifold H M] [Is : smooth_manifold_with_corners I M]
+{M : Type*} [topological_space M] [charted_space H M] [Is : smooth_manifold_with_corners I M]
 {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E' H')
-{M' : Type*} [topological_space M'] [manifold H' M'] [I's : smooth_manifold_with_corners I' M']
+{M' : Type*} [topological_space M'] [charted_space H' M'] [I's : smooth_manifold_with_corners I' M']
 {f f₁ : M → M'} {s s₁ : set M} {x : M}
 {m n : with_top ℕ}
 
@@ -182,7 +182,7 @@ section composition
 
 variables {E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
-{M'' : Type*} [topological_space M''] [manifold H'' M'']
+{M'' : Type*} [topological_space M''] [charted_space H'' M'']
 
 /-- The composition of `C^n` functions on domains is `C^n`. -/
 lemma times_cont_mdiff_on.comp {n : with_top ℕ} {t : set M'} {g : M' → M''}

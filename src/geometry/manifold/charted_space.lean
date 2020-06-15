@@ -88,8 +88,7 @@ can be several model spaces for a given topological space. For instance, a compl
 -/
 
 noncomputable theory
-local attribute [instance, priority 0] classical.decidable_inhabited classical.prop_decidable
-
+open_locale classical
 universes u
 
 variables {H : Type u} {M : Type*} {M' : Type*} {M'' : Type*}
@@ -312,11 +311,42 @@ instance : order_top (structure_groupoid H) :=
 
 end groupoid
 
+namespace structure_groupoid
+
+variables [topological_space H] (G : structure_groupoid H)
+
+structure invariant_prop_set_pt (G : structure_groupoid H) (P : set H → H → Prop) : Prop :=
+(is_local   : ∀ s x u, is_open u → x ∈ u → (P s x ↔ P (s ∩ u) x))
+(invariance : ∀ s x (e : local_homeomorph H H), e ∈ G → P s x →
+              P (e.symm ⁻¹' (s ∩ e.source) ∩ e.target) (e x))
+
+structure invariant_prop_set (G : structure_groupoid H) (P : set H → Prop) : Prop :=
+(is_local   : ∀ s, (∀ x ∈ s, ∃ u, is_open u ∧ x ∈ u ∧ P (s ∩ u)) → P s)
+(invariance : ∀ s (e : local_homeomorph H H), e ∈ G → s ⊆ e.source → P s →
+              P (e.symm ⁻¹' s ∩ e.target))
+
+lemma invariant_prop_set_pt.invariant_prop_set {P : set H → H → Prop}
+  (h : G.invariant_prop_set_pt P) : G.invariant_prop_set (λ s, (∀ x ∈ s, P s x)) :=
+begin
+  split,
+  { assume s hs x hx,
+    rcases hs x hx with ⟨u, ⟨u_open, xu, hu⟩⟩,
+    rw h.is_local s x u u_open xu,
+    exact hu x ⟨hx, xu⟩ },
+  { assume s e eG hs hP x hx,
+    set y := e.symm x with hy,
+    have : P (e.symm ⁻¹' (s ∩ e.to_local_equiv.source) ∩ e.target) (e y) :=
+      h.invariance s y e eG (hP y hx.1),
+    rwa [hy, e.right_inv hx.2, inter_eq_self_of_subset_left hs] at this }
+end
+
+end structure_groupoid
+
 /-! ### Charted spaces -/
 /-- A charted space is a topological space endowed with an atlas, i.e., a set of local
 homeomorphisms taking value in a model space `H`, called charts, such that the domains of the charts
 cover the whole space. We express the covering property by chosing for each `x` a member
-`chart_at x` of the atlas containing `x` in its source: in the smooth case, this is convenient to
+`chart_at H x` of the atlas containing `x` in its source: in the smooth case, this is convenient to
 construct the tangent bundle in an efficient way.
 The model space is written as an explicit parameter as there can be several model spaces for a
 given topological space. For instance, a complex manifold (modelled over `ℂ^n`) will also be seen
@@ -350,6 +380,18 @@ by simp [atlas, charted_space.atlas]
 @[simp] lemma chart_at_model_space_eq {H : Type*} [topological_space H] {x : H} :
   chart_at H x = local_homeomorph.refl H :=
 by simpa using chart_mem_atlas H x
+
+variables [topological_space H] [topological_space M] [charted_space H M]
+
+/-- If one can define a property of pointed sets in the model space, then one define a
+corresponding property in the manifold, using the preferred chart at the point. -/
+def charted_space.of_prop_set_pt (P : set H → H → Prop) (s : set M) (x : M) : Prop :=
+P ((chart_at H x).symm ⁻¹' (s ∩ (chart_at H x).source) ∩ (chart_at H x).target) (chart_at H x x)
+
+/-- If one can define a property of sets in the model space, then one define a
+corresponding property in the manifold, by requiring that it holds for all preferred charts. -/
+def charted_space.of_prop_set (P : set H → Prop) (s : set M) : Prop :=
+∀ x, P ((chart_at H x).symm ⁻¹' (s ∩ (chart_at H x).source) ∩ (chart_at H x).target)
 
 end charted_space
 
@@ -480,6 +522,30 @@ instance has_groupoid_continuous_groupoid : has_groupoid M (continuous_groupoid 
   rw [continuous_groupoid, mem_groupoid_of_pregroupoid],
   simp only [and_self]
 end⟩
+
+section invariant_properties
+
+variables {G : structure_groupoid H} [has_groupoid M G]
+
+/- If a property is invariant under the structure groupoid, then there are several equivalent ways
+to characterize this property in the charted space. -/
+
+lemma glouglou {P : set H → H → Prop} (h : G.invariant_prop_set_pt P) (s : set M) (x : M) :
+  charted_space.of_prop_set_pt P s x ↔
+  ∀ (e : local_homeomorph M H), e ∈ atlas H M → P (e.symm ⁻¹' (s ∩ e.source) ∩ e.target) (e x) :=
+begin
+  refine ⟨λ h' e he, _, λ h', h' _ (chart_mem_atlas H x)⟩,
+  dsimp [charted_space.of_prop_set_pt] at h',
+  have : chart_at H x ∈ atlas H M := (chart_mem_atlas H x),
+  have Z : (chart_at H x).symm ≫ₕ e ∈ G := has_groupoid.compatible G (chart_mem_atlas H x) he,
+  have T := h.invariance _ _ _ Z h',
+  simp at T,
+  apply h.is_local,
+end
+
+end invariant_properties
+
+#exit
 
 /-! ### Structomorphisms -/
 

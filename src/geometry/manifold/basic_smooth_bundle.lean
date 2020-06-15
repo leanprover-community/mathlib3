@@ -92,7 +92,7 @@ in general. -/
 structure basic_smooth_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
-(M : Type*) [topological_space M] [manifold H M] [smooth_manifold_with_corners I M]
+(M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 (F : Type*) [normed_group F] [normed_space 𝕜 F] :=
 (coord_change      : atlas H M → atlas H M → H → F → F)
 (coord_change_self :
@@ -110,7 +110,7 @@ identity. -/
 def trivial_basic_smooth_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
-(M : Type*) [topological_space M] [manifold H M] [smooth_manifold_with_corners I M]
+(M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 (F : Type*) [normed_group F] [normed_space 𝕜 F] : basic_smooth_bundle_core I M F :=
 { coord_change := λ i j x v, v,
   coord_change_self := λ i x hx v, rfl,
@@ -122,7 +122,7 @@ namespace basic_smooth_bundle_core
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
-{M : Type*} [topological_space M] [manifold H M] [smooth_manifold_with_corners I M]
+{M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 (Z : basic_smooth_bundle_core I M F)
 
@@ -191,9 +191,9 @@ begin
   simp [e.map_target] {contextual := tt}
 end
 
-/-- The total space of a basic smooth bundle is endowed with a manifold structure, where the charts
-are in bijection with the charts of the basis. -/
-instance to_manifold : manifold (H × F) Z.to_topological_fiber_bundle_core.total_space :=
+/-- The total space of a basic smooth bundle is endowed with a charted space structure, where the
+charts are in bijection with the charts of the basis. -/
+instance to_charted_space : charted_space (H × F) Z.to_topological_fiber_bundle_core.total_space :=
 { atlas := ⋃(e : local_homeomorph M H) (he : e ∈ atlas H M), {Z.chart he},
   chart_at := λp, Z.chart (chart_mem_atlas H p.1),
   mem_chart_source := λp, by simp [mem_chart_source],
@@ -205,15 +205,15 @@ instance to_manifold : manifold (H × F) Z.to_topological_fiber_bundle_core.tota
 lemma mem_atlas_iff (f : local_homeomorph Z.to_topological_fiber_bundle_core.total_space (H × F)) :
   f ∈ atlas (H × F) Z.to_topological_fiber_bundle_core.total_space ↔
   ∃(e : local_homeomorph M H) (he : e ∈ atlas H M), f = Z.chart he :=
-by simp [atlas, manifold.atlas]
+by simp [atlas, charted_space.atlas]
 
 @[simp] lemma mem_chart_source_iff (p q : Z.to_topological_fiber_bundle_core.total_space) :
   p ∈ (chart_at (H × F) q).source ↔ p.1 ∈ (chart_at H q.1).source :=
-by simp [chart_at, manifold.chart_at]
+by simp [chart_at, charted_space.chart_at]
 
 @[simp] lemma mem_chart_target_iff (p : H × F) (q : Z.to_topological_fiber_bundle_core.total_space) :
   p ∈ (chart_at (H × F) q).target ↔ p.1 ∈ (chart_at H q.1).target :=
-by simp [chart_at, manifold.chart_at]
+by simp [chart_at, charted_space.chart_at]
 
 @[simp] lemma coe_chart_at_fst (p q : Z.to_topological_fiber_bundle_core.total_space) :
   (((chart_at (H × F) q) : _ → H × F) p).1 = (chart_at H q.1 : _ → H) p.1 := rfl
@@ -302,7 +302,7 @@ section tangent_bundle
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
-(M : Type*) [topological_space M] [manifold H M] [smooth_manifold_with_corners I M]
+(M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 
 
 /-- Basic smooth bundle core version of the tangent bundle of a smooth manifold `M` modelled over a
@@ -504,7 +504,7 @@ variable (M)
 local attribute [reducible] tangent_bundle
 
 instance : topological_space (tangent_bundle I M) := by apply_instance
-instance : manifold (H × E) (tangent_bundle I M) := by apply_instance
+instance : charted_space (H × E) (tangent_bundle I M) := by apply_instance
 instance : smooth_manifold_with_corners I.tangent (tangent_bundle I M) := by apply_instance
 
 local attribute [reducible] tangent_space topological_fiber_bundle_core.fiber
@@ -549,16 +549,16 @@ begin
   ext x : 1,
   show (chart_at (H × E) p : tangent_bundle I H → H × E) x = (local_equiv.refl (H × E)) x,
   { cases x,
-    simp [chart_at, manifold.chart_at, basic_smooth_bundle_core.chart,
+    simp [chart_at, charted_space.chart_at, basic_smooth_bundle_core.chart,
           topological_fiber_bundle_core.local_triv, topological_fiber_bundle_core.local_triv',
           basic_smooth_bundle_core.to_topological_fiber_bundle_core, tangent_bundle_core, A] },
   show ∀ x, ((chart_at (H × E) p).to_local_equiv).symm x = (local_equiv.refl (H × E)).symm x,
   { rintros ⟨x_fst, x_snd⟩,
-    simp [chart_at, manifold.chart_at, basic_smooth_bundle_core.chart,
+    simp [chart_at, charted_space.chart_at, basic_smooth_bundle_core.chart,
           topological_fiber_bundle_core.local_triv, topological_fiber_bundle_core.local_triv',
           basic_smooth_bundle_core.to_topological_fiber_bundle_core, tangent_bundle_core, A] },
   show ((chart_at (H × E) p).to_local_equiv).source = (local_equiv.refl (H × E)).source,
-  by simp [chart_at, manifold.chart_at, basic_smooth_bundle_core.chart,
+  by simp [chart_at, charted_space.chart_at, basic_smooth_bundle_core.chart,
            topological_fiber_bundle_core.local_triv, topological_fiber_bundle_core.local_triv',
            basic_smooth_bundle_core.to_topological_fiber_bundle_core, tangent_bundle_core,
            local_equiv.trans_source]

@@ -287,9 +287,9 @@ def Icc_right_chart (x y : ℝ) [fact (x < y)] :
   end }
 
 /--
-Manifold with boundary structure on `[x, y]`, using only two charts.
+Charted space structure on `[x, y]`, using only two charts tkaing values in `euclidean_half_space 1`.
 -/
-instance Icc_manifold (x y : ℝ) [fact (x < y)] : manifold (euclidean_half_space 1) (Icc x y) :=
+instance Icc_manifold (x y : ℝ) [fact (x < y)] : charted_space (euclidean_half_space 1) (Icc x y) :=
 { atlas := {Icc_left_chart x y, Icc_right_chart x y},
   chart_at := λz, if z.val < y then Icc_left_chart x y else Icc_right_chart x y,
   mem_chart_source := λz, begin

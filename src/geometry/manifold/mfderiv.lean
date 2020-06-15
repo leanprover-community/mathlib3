@@ -120,10 +120,10 @@ We use the names `mdifferentiable` and `mfderiv`, where the prefix letter `m` me
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
-{M : Type*} [topological_space M] [manifold H M]
+{M : Type*} [topological_space M] [charted_space H M]
 {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E' H')
-{M' : Type*} [topological_space M'] [manifold H' M']
+{M' : Type*} [topological_space M'] [charted_space H' M']
 
 /-- Predicate ensuring that, at a point and within a set, a function can have at most one
 derivative. This is expressed using the preferred chart at the considered point. -/
@@ -247,13 +247,13 @@ section derivatives_properties
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
-{M : Type*} [topological_space M] [manifold H M] --
+{M : Type*} [topological_space M] [charted_space H M] --
 {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
-{M' : Type*} [topological_space M'] [manifold H' M']
+{M' : Type*} [topological_space M'] [charted_space H' M']
 {E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
-{M'' : Type*} [topological_space M''] [manifold H'' M'']
+{M'' : Type*} [topological_space M''] [charted_space H'' M'']
 {f f₀ f₁ : M → M'}
 {x : M}
 {s t : set M}
@@ -834,7 +834,7 @@ section specific_functions
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
-{M : Type*} [topological_space M] [manifold H M] [smooth_manifold_with_corners I M]
+{M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 {s : set M} {x : M}
 
 section id
@@ -887,7 +887,7 @@ section const
 
 variables {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E' H')
-{M' : Type*} [topological_space M'] [manifold H' M'] [smooth_manifold_with_corners I' M']
+{M' : Type*} [topological_space M'] [charted_space H' M'] [smooth_manifold_with_corners I' M']
 {c : M'}
 
 lemma has_mfderiv_at_const (c : M') (x : M) :
@@ -1054,7 +1054,7 @@ begin
   rw mdifferentiable_at.mfderiv (mdifferentiable_at_atlas_symm _ (chart_mem_atlas _ _) h),
   -- a trivial instance is needed after the rewrite, handle it right now.
   rotate, { apply_instance },
-  dsimp [written_in_ext_chart_at, ext_chart_at, chart_at, manifold.chart_at,
+  dsimp [written_in_ext_chart_at, ext_chart_at, chart_at, charted_space.chart_at,
     basic_smooth_bundle_core.chart, basic_smooth_bundle_core.to_topological_fiber_bundle_core,
     topological_fiber_bundle_core.local_triv, topological_fiber_bundle_core.local_triv',
     tangent_bundle_core],
@@ -1093,7 +1093,8 @@ by simp [unique_mdiff_on, unique_diff_on, unique_mdiff_within_at_iff_unique_diff
   written_in_ext_chart_at (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') x f = f :=
 by { ext y, simp [written_in_ext_chart_at] }
 
-/-- For maps between vector spaces, mdifferentiable_within_at and fdifferentiable_within_at coincide -/
+/-- For maps between vector spaces, `mdifferentiable_within_at` and `fdifferentiable_within_at`
+coincide -/
 theorem mdifferentiable_within_at_iff_differentiable_within_at :
   mdifferentiable_within_at (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') f s x
   ↔ differentiable_within_at 𝕜 f s x :=
@@ -1102,7 +1103,7 @@ begin
   exact ⟨λH, H.2, λH, ⟨H.continuous_within_at, H⟩⟩
 end
 
-/-- For maps between vector spaces, mdifferentiable_at and differentiable_at coincide -/
+/-- For maps between vector spaces, `mdifferentiable_at` and `differentiable_at` coincide -/
 theorem mdifferentiable_at_iff_differentiable_at :
   mdifferentiable_at (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') f x
   ↔ differentiable_at 𝕜 f x :=
@@ -1111,19 +1112,19 @@ begin
   exact ⟨λH, H.2, λH, ⟨H.continuous_at, H⟩⟩
 end
 
-/-- For maps between vector spaces, mdifferentiable_on and differentiable_on coincide -/
+/-- For maps between vector spaces, `mdifferentiable_on` and `differentiable_on` coincide -/
 theorem mdifferentiable_on_iff_differentiable_on :
   mdifferentiable_on (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') f s
   ↔ differentiable_on 𝕜 f s :=
 by simp [mdifferentiable_on, differentiable_on, mdifferentiable_within_at_iff_differentiable_within_at]
 
-/-- For maps between vector spaces, mdifferentiable and differentiable coincide -/
+/-- For maps between vector spaces, `mdifferentiable` and `differentiable` coincide -/
 theorem mdifferentiable_iff_differentiable :
   mdifferentiable (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') f
   ↔ differentiable 𝕜 f :=
 by simp [mdifferentiable, differentiable, mdifferentiable_at_iff_differentiable_at]
 
-/-- For maps between vector spaces, mfderiv_within and fderiv_within coincide -/
+/-- For maps between vector spaces, `mfderiv_within` and `fderiv_within` coincide -/
 theorem mfderiv_within_eq_fderiv_within :
   mfderiv_within (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') f s x
   = fderiv_within 𝕜 f s x :=
@@ -1139,7 +1140,7 @@ begin
     simp [fderiv_within, h] }
 end
 
-/-- For maps between vector spaces, mfderiv and fderiv coincide -/
+/-- For maps between vector spaces, `mfderiv` and `fderiv` coincide -/
 theorem mfderiv_eq_fderiv :
   mfderiv (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') f x = fderiv 𝕜 f x :=
 begin
@@ -1155,13 +1156,13 @@ namespace local_homeomorph.mdifferentiable
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
-{M : Type*} [topological_space M] [manifold H M]
+{M : Type*} [topological_space M] [charted_space H M]
 {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
-{M' : Type*} [topological_space M'] [manifold H' M']
+{M' : Type*} [topological_space M'] [charted_space H' M']
 {E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
-{M'' : Type*} [topological_space M''] [manifold H'' M'']
+{M'' : Type*} [topological_space M''] [charted_space H'' M'']
 {e : local_homeomorph M M'} (he : e.mdifferentiable I I')
 {e' : local_homeomorph M' M''}
 include he
@@ -1250,10 +1251,10 @@ section unique_mdiff
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
-{M : Type*} [topological_space M] [manifold H M] [smooth_manifold_with_corners I M]
+{M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
-{M' : Type*} [topological_space M'] [manifold H' M']
+{M' : Type*} [topological_space M'] [charted_space H' M']
 {s : set M}
 
 /-- If a set has the unique differential property, then its image under a local

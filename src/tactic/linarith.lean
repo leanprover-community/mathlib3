@@ -179,6 +179,7 @@ def cmp : linexp → linexp → ordering
   else if z2 < z1 then ordering.gt
   else cmp t1 t2
 
+/-- `l.vars` returns the list of variables that occur in `l`. -/
 def vars (l : linexp) : list ℕ :=
 l.map prod.fst
 
@@ -225,6 +226,7 @@ structure comp :=
 (str : ineq)
 (coeffs : linexp)
 
+/-- `c.vars` returns the list of variables that appear in the linear expression contained in `c`. -/
 def comp.vars : comp → list ℕ :=
 linexp.vars ∘ comp.coeffs
 
@@ -318,13 +320,19 @@ let c := c1.c.add c2.c,
     implicit := (c1.vars.union c2.vars).sdiff (vars.union effective) in
 ⟨c, src, history, effective, implicit, vars⟩
 
+/--
+`pcomp.assump c n` creates a `pcomp` whose comparison is `c` and whose source is
+`comp_source.assump n`, that is, `c` is derived from the `n`th hypothesis.
+The history is the singleton set `{n}`.
+No variables have been eliminated (effectively or implicitly).
+-/
 meta def pcomp.assump (c : comp) (n : ℕ) : pcomp :=
 { c := c,
   src := comp_source.assump n,
   history := mk_rb_set.insert n,
   effective := mk_rb_set,
   implicit := mk_rb_set,
-  vars := native.rb_set.of_list c.vars }
+  vars := rb_set.of_list c.vars }
 
 meta instance pcomp.to_format : has_to_format pcomp :=
 ⟨λ p, to_fmt p.c.coeffs ++ to_string p.c.str ++ "0"⟩
@@ -360,7 +368,7 @@ meta def comp.is_contr (c : comp) : bool := c.coeffs.empty ∧ c.str = ineq.lt
 
 meta def pcomp.is_contr (p : pcomp) : bool := p.c.is_contr
 
-meta def elim_with_set (a : ℕ) (p : pcomp) (comps : rb_set pcomp) (steps : ℕ) : rb_set pcomp :=
+meta def elim_with_set (a : ℕ) (p : pcomp) (comps : rb_set pcomp) : rb_set pcomp :=
 if ¬ p.c.coeffs.contains a then mk_pcomp_set.insert p else
 comps.fold mk_pcomp_set $ λ pc s,
 match pelim_var p pc a with
@@ -417,7 +425,7 @@ do vs ← get_vars,
 do comps ← get_comps,
    step,
    steps ← get_steps,
-   let cs' := comps.fold mk_pcomp_set (λ p s, s.union (elim_with_set a p comps steps)),
+   let cs' := comps.fold mk_pcomp_set (λ p s, s.union (elim_with_set a p comps)),
    update (vs.erase a) cs'
 
 meta def elim_all_vars : linarith_monad unit :=

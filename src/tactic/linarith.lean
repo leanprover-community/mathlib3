@@ -426,7 +426,6 @@ end
 The state for the elimination monad.
 * `vars`: the set of variables present in `comps`
 * `comps`: a set of comparisons
-* `steps`: the number of variable eliminations that have already been performed.
 -/
 meta structure linarith_structure :=
 (vars : rb_set ℕ)

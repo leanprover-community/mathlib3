@@ -343,7 +343,8 @@ meta def pcomp.scale (c : pcomp) (n : ℕ) : pcomp :=
 /--
 `pcomp.add c1 c2 elim_var` creates the result of summing the linear comparisons `c1` and `c2`,
 during the process of eliminating the variable `elim_var`.
-The computation assumes, but does not enforce, that `elim_var` does not appear in the sum.
+The computation assumes, but does not enforce, that `elim_var` appears in both `c1` and `c2`
+and does not appear in the sum.
 
 Computing the sum of the two comparisons is easy; the complicated details lie in tracking the
 additional fields of `pcomp`.
@@ -351,7 +352,8 @@ additional fields of `pcomp`.
 * The historical set `pcomp.history` of `c1 + c2` is the union of the two historical sets.
 * We recompute the variables that appear in `c1 + c2` from the newly created `linexp`,
   since some may have been implicitly eliminated.
-* The effectively eliminated variables of `c1 + c2` are the union of the two effective sets.
+* The effectively eliminated variables of `c1 + c2` are the union of the two effective sets,
+  with `elim_var` inserted.
 * The implicitly eliminated variables of `c1 + c2` are those that appear in at least one of
   `c1.vars` and `c2.vars` but not in `(c1 + c2).vars`, excluding `elim_var`.
 -/
@@ -360,10 +362,8 @@ let c := c1.c.add c2.c,
     src := c1.src.add c2.src,
     history := c1.history.union c2.history,
     vars := native.rb_set.of_list c.vars,
-    effective_union := c1.effective.union c2.effective,
-    elim_var_present : bool := c1.vars.contains elim_var ∨ c2.vars.contains elim_var,
-    effective := if elim_var_present then effective_union.insert elim_var else effective_union,
-    implicit := (c1.vars.union c2.vars).sdiff (vars.union effective) in
+    effective := (c1.effective.union c2.effective).insert elim_var,
+    implicit := ((c1.vars.union c2.vars).sdiff vars).erase elim_var in
 ⟨c, src, history, effective, implicit, vars⟩
 
 /--

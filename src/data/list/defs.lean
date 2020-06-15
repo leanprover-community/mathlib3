@@ -33,7 +33,8 @@ def split_at : ℕ → list α → list α × list α
 
 
 /-- An auxiliary function for `split_on_p`. -/
-def split_on_p_aux {α : Type u} (P : α → Prop) [decidable_pred P] : list α → (list α → list α) → list (list α)
+def split_on_p_aux {α : Type u} (P : α → Prop) [decidable_pred P] :
+  list α → (list α → list α) → list (list α)
 | [] f       := [f []]
 | (h :: t) f :=
   if P h then f [] :: split_on_p_aux t id
@@ -138,6 +139,18 @@ def prod [has_mul α] [has_one α] : list α → α := foldl (*) 1
 -- Later this will be tagged with `to_additive`, but this can't be done yet because of import
 -- dependencies.
 def sum [has_add α] [has_zero α] : list α → α := foldl (+) 0
+
+/-- The alternating sum of a list. -/
+def alternating_sum {G : Type*} [has_zero G] [has_add G] [has_neg G] : list G → G
+| [] := 0
+| (g :: []) := g
+| (g :: h :: t) := g + -h + alternating_sum t
+
+/-- The alternating product of a list. -/
+def alternating_prod {G : Type*} [has_one G] [has_mul G] [has_inv G] : list G → G
+| [] := 1
+| (g :: []) := g
+| (g :: h :: t) := g * h⁻¹ * alternating_prod t
 
 def partition_map (f : α → β ⊕ γ) : list α → list β × list γ
 | [] := ([],[])
@@ -300,7 +313,8 @@ local infix ` ≺ `:50 := inv_image (prod.lex (<) (<)) meas
 | []      is := H0 is
 | (t::ts) is :=
   have h1 : ⟨ts, t :: is⟩ ≺ ⟨t :: ts, is⟩, from
-    show prod.lex _ _ (succ (length ts + length is), length ts) (succ (length ts) + length is, length (t :: ts)),
+    show prod.lex _ _ (succ (length ts + length is), length ts) (succ (length ts) + length is,
+      length (t :: ts)),
     by rw nat.succ_add; exact prod.lex.right _ (lt_succ_self _),
   have h2 : ⟨is, []⟩ ≺ ⟨t :: ts, is⟩, from prod.lex.left _ _ (nat.lt_add_of_pos_left (succ_pos _)),
   H1 t ts is (permutations_aux.rec ts (t::is)) (permutations_aux.rec is [])

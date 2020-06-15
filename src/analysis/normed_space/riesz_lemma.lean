@@ -28,7 +28,7 @@ begin
   classical,
   obtain ⟨x, hx⟩ : ∃ x : E, x ∉ F := hF,
   let d := metric.inf_dist x F,
-  have hFn : (F : set E).nonempty, from ⟨_, submodule.zero F⟩,
+  have hFn : (F : set E).nonempty, from ⟨_, F.zero_mem⟩,
   have hdp : 0 < d,
     from lt_of_le_of_ne metric.inf_dist_nonneg (λ heq, hx
     ((metric.mem_iff_inf_dist_zero_of_closed hFc hFn).2 heq.symm)),
@@ -40,11 +40,11 @@ begin
     metric.exists_dist_lt_of_inf_dist_lt hdlt hFn,
   have x_ne_y₀ : x - y₀ ∉ F,
   { by_contradiction h,
-    have : (x - y₀) + y₀ ∈ F, from F.add h hy₀F,
+    have : (x - y₀) + y₀ ∈ F, from F.add_mem h hy₀F,
     simp only [neg_add_cancel_right, sub_eq_add_neg] at this,
     exact hx this },
   refine ⟨x - y₀, x_ne_y₀, λy hy, le_of_lt _⟩,
-  have hy₀y : y₀ + y ∈ F, from F.add hy₀F hy,
+  have hy₀y : y₀ + y ∈ F, from F.add_mem hy₀F hy,
   calc
     r * ∥x - y₀∥ ≤ r' * ∥x - y₀∥ : mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _)
     ... < d : by { rw ←dist_eq_norm, exact (lt_div_iff' hlt).1 hxy₀ }

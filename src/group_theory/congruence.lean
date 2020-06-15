@@ -213,6 +213,13 @@ induced by a function that is constant on `c`'s equivalence classes."]
 protected def lift_on {β} {c : con M} (q : c.quotient) (f : M → β)
   (h : ∀ a b, c a b → f a = f b) : β := quotient.lift_on' q f h
 
+/-- The binary function on the quotient by a congruence relation `c` induced by a binary function
+    that is constant on `c`'s equivalence classes. -/
+@[elab_as_eliminator, to_additive "The binary function on the quotient by a congruence relation `c`
+induced by a binary function that is constant on `c`'s equivalence classes."]
+protected def lift_on₂ {β} {c : con M} (q r : c.quotient) (f : M → M → β)
+  (h : ∀ a₁ a₂ b₁ b₂, c a₁ b₁ → c a₂ b₂ → f a₁ a₂ = f b₁ b₂) : β := quotient.lift_on₂' q r f h
+
 variables {c}
 
 /-- The inductive principle used to prove propositions about the elements of a quotient by a
@@ -802,7 +809,7 @@ variables (c)
 @[to_additive "The first isomorphism theorem for `add_monoid`s."]
 noncomputable def quotient_ker_equiv_range (f : M →* P) : (ker f).quotient ≃* f.mrange :=
 { map_mul' := monoid_hom.map_mul _,
-  ..@equiv.of_bijective _ _
+  ..equiv.of_bijective
       ((@mul_equiv.to_monoid_hom (ker_lift f).mrange _ _ _
         $ mul_equiv.submonoid_congr ker_lift_range_eq).comp (ker_lift f).mrange_restrict) $
       (equiv.bijective _).comp
@@ -815,7 +822,7 @@ homomorphism."]
 noncomputable def quotient_ker_equiv_of_surjective (f : M →* P) (hf : surjective f) :
   (ker f).quotient ≃* P :=
 { map_mul' := monoid_hom.map_mul _,
-  ..@equiv.of_bijective _ _ (ker_lift f)
+  ..equiv.of_bijective (ker_lift f)
       ⟨injective_ker_lift f, lift_surjective_of_surjective (le_refl _) hf⟩ }
 
 /-- The second isomorphism theorem for monoids. -/

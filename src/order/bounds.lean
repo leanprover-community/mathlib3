@@ -57,6 +57,30 @@ lemma mem_upper_bounds : a ∈ upper_bounds s ↔ ∀ x ∈ s, x ≤ a := iff.rf
 
 lemma mem_lower_bounds : a ∈ lower_bounds s ↔ ∀ x ∈ s, a ≤ x := iff.rfl
 
+/-- A set `s` is not bounded above if and only if for each `x` there exists `y ∈ s` such that `x`
+is not greater than or equal to `y`. This version only assumes `preorder` structure and uses
+`¬(y ≤ x)`. A version for linear orders is called `not_bdd_above_iff`. -/
+lemma not_bdd_above_iff' : ¬bdd_above s ↔ ∀ x, ∃ y ∈ s, ¬(y ≤ x) :=
+by simp [bdd_above, upper_bounds, set.nonempty]
+
+/-- A set `s` is not bounded below if and only if for each `x` there exists `y ∈ s` such that `x`
+is not less than or equal to `y`. This version only assumes `preorder` structure and uses
+`¬(x ≤ y)`. A version for linear orders is called `not_bdd_below_iff`. -/
+lemma not_bdd_below_iff' : ¬bdd_below s ↔ ∀ x, ∃ y ∈ s, ¬(x ≤ y) :=
+@not_bdd_above_iff' (order_dual α) _ _
+
+/-- A set `s` is not bounded above if and only if for each `x` there exists `y ∈ s` that is greater
+than `x`. A version for preorders is called `not_bdd_above_iff'`. -/
+lemma not_bdd_above_iff {α : Type*} [linear_order α] {s : set α} :
+  ¬bdd_above s ↔ ∀ x, ∃ y ∈ s, x < y :=
+by simp only [not_bdd_above_iff', not_le]
+
+/-- A set `s` is not bounded below if and only if for each `x` there exists `y ∈ s` that is less
+than `x`. A version for preorders is called `not_bdd_below_iff'`. -/
+lemma not_bdd_below_iff {α : Type*} [linear_order α] {s : set α} :
+  ¬bdd_below s ↔ ∀ x, ∃ y ∈ s, y < x :=
+@not_bdd_above_iff (order_dual α) _ _
+
 /-!
 ### Monotonicity
 -/
@@ -102,6 +126,18 @@ set `t`, `s ⊆ t ⊆ p`. -/
 lemma is_glb.of_subset_of_superset {s t p : set α} (hs : is_glb s a) (hp : is_glb p a)
   (hst : s ⊆ t) (htp : t ⊆ p) : is_glb t a :=
 @is_lub.of_subset_of_superset (order_dual α) _ a s t p hs hp hst htp
+
+lemma is_least.mono (ha : is_least s a) (hb : is_least t b) (hst : s ⊆ t) : b ≤ a :=
+hb.2 (hst ha.1)
+
+lemma is_greatest.mono (ha : is_greatest s a) (hb : is_greatest t b) (hst : s ⊆ t) : a ≤ b :=
+hb.2 (hst ha.1)
+
+lemma is_lub.mono (ha : is_lub s a) (hb : is_lub t b) (hst : s ⊆ t) : a ≤ b :=
+hb.mono ha $ upper_bounds_mono_set hst
+
+lemma is_glb.mono (ha : is_glb s a) (hb : is_glb t b) (hst : s ⊆ t) : b ≤ a :=
+hb.mono ha $ lower_bounds_mono_set hst
 
 /-!
 ### Conversions
@@ -463,6 +499,12 @@ not_le_of_lt ha' this
 
 lemma is_glb.nonempty [no_top_order α] (hs : is_glb s a) : s.nonempty :=
 @is_lub.nonempty (order_dual α) _ _ _ _ hs
+
+lemma nonempty_of_not_bdd_above [ha : nonempty α] (h : ¬bdd_above s) : s.nonempty :=
+nonempty.elim ha $ λ x, (not_bdd_above_iff'.1 h x).imp $ λ a ha, ha.fst
+
+lemma nonempty_of_not_bdd_below [ha : nonempty α] (h : ¬bdd_below s) : s.nonempty :=
+@nonempty_of_not_bdd_above (order_dual α) _ _ _ h
 
 /-!
 ### insert

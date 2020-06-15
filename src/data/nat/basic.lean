@@ -20,6 +20,8 @@ and extra recursors:
 
 universes u v
 
+attribute [protected] nat.pow_zero nat.pow_succ
+
 instance : canonically_ordered_comm_semiring ℕ :=
 { le_iff_exists_add := assume a b,
   ⟨assume h, let ⟨c, hc⟩ := nat.le.dest h in ⟨c, hc.symm⟩,
@@ -405,6 +407,10 @@ protected lemma div_le_self' (m n : ℕ) : m / n ≤ m :=
   (λ n0, nat.div_le_of_le_mul' $ calc
       m = 1 * m : (one_mul _).symm
     ... ≤ n * m : mul_le_mul_right _ n0)
+
+/-- A version of `nat.div_lt_self` using successors, rather than additional hypotheses. -/
+lemma div_lt_self' (n b : ℕ) : (n+1)/(b+2) < n+1 :=
+nat.div_lt_self (nat.succ_pos n) (nat.succ_lt_succ (nat.succ_pos _))
 
 theorem le_div_iff_mul_le' {x y : ℕ} {k : ℕ} (k0 : 0 < k) : x ≤ y / k ↔ x * k ≤ y :=
 begin
@@ -894,7 +900,7 @@ attribute [simp] nat.pow_zero nat.pow_one
 | (k+1) := show 1^k * 1 = 1, by rw [mul_one, one_pow]
 
 theorem pow_add (a m n : ℕ) : a^(m + n) = a^m * a^n :=
-by induction n; simp [*, pow_succ, mul_assoc]
+by induction n; simp [*, nat.pow_succ, mul_assoc]
 
 theorem pow_two (a : ℕ) : a ^ 2 = a * a := show (1 * a) * a = _, by rw one_mul
 

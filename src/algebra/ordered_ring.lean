@@ -60,11 +60,11 @@ lemma mul_nonneg (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a * b :=
 have h : 0 * b ≤ a * b, from mul_le_mul_of_nonneg_right ha hb,
 by rwa [zero_mul] at h
 
-lemma mul_nonpos_of_nonneg_of_nonpos (ha : a ≥ 0) (hb : b ≤ 0) : a * b ≤ 0 :=
+lemma mul_nonpos_of_nonneg_of_nonpos (ha : 0 ≤ a) (hb : b ≤ 0) : a * b ≤ 0 :=
 have h : a * b ≤ a * 0, from mul_le_mul_of_nonneg_left hb ha,
 by rwa mul_zero at h
 
-lemma mul_nonpos_of_nonpos_of_nonneg (ha : a ≤ 0) (hb : b ≥ 0) : a * b ≤ 0 :=
+lemma mul_nonpos_of_nonpos_of_nonneg (ha : a ≤ 0) (hb : 0 ≤ b) : a * b ≤ 0 :=
 have h : a * b ≤ 0 * b, from mul_le_mul_of_nonneg_right ha hb,
 by rwa zero_mul at h
 
@@ -73,7 +73,7 @@ calc
   a * b < c * b : mul_lt_mul_of_pos_right hac pos_b
     ... ≤ c * d : mul_le_mul_of_nonneg_left hbd nn_c
 
-lemma mul_lt_mul' (h1 : a ≤ c) (h2 : b < d) (h3 : b ≥ 0) (h4 : c > 0) : a * b < c * d :=
+lemma mul_lt_mul' (h1 : a ≤ c) (h2 : b < d) (h3 : 0 ≤ b) (h4 : 0 < c) : a * b < c * d :=
 calc
    a * b ≤ c * b : mul_le_mul_of_nonneg_right h1 h3
      ... < c * d : mul_lt_mul_of_pos_left h2 h4
@@ -82,11 +82,11 @@ lemma mul_pos (ha : 0 < a) (hb : 0 < b) : 0 < a * b :=
 have h : 0 * b < a * b, from mul_lt_mul_of_pos_right ha hb,
 by rwa zero_mul at h
 
-lemma mul_neg_of_pos_of_neg (ha : a > 0) (hb : b < 0) : a * b < 0 :=
+lemma mul_neg_of_pos_of_neg (ha : 0 < a) (hb : b < 0) : a * b < 0 :=
 have h : a * b < a * 0, from mul_lt_mul_of_pos_left hb ha,
 by rwa mul_zero at h
 
-lemma mul_neg_of_neg_of_pos (ha : a < 0) (hb : b > 0) : a * b < 0 :=
+lemma mul_neg_of_neg_of_pos (ha : a < 0) (hb : 0 < b) : a * b < 0 :=
 have h : a * b < 0 * b, from mul_lt_mul_of_pos_right ha hb,
 by rwa zero_mul at  h
 
@@ -118,34 +118,34 @@ lemma two_pos : 0 < (2:α) := add_pos zero_lt_one zero_lt_one
 @[field_simps] lemma two_ne_zero : (2:α) ≠ 0 :=
 ne.symm (ne_of_lt two_pos)
 
-lemma two_gt_one : 1 < (2:α) :=
+lemma one_lt_two : 1 < (2:α) :=
 calc (2:α) = 1+1 : one_add_one_eq_two
      ...   > 1+0 : add_lt_add_left zero_lt_one _
      ...   = 1   : add_zero 1
 
-lemma two_ge_one : 1 ≤ (2:α) := le_of_lt two_gt_one
+lemma one_le_two : 1 ≤ (2:α) := le_of_lt one_lt_two
 
 lemma four_pos : 0 < (4:α) := add_pos two_pos two_pos
 
-lemma lt_of_mul_lt_mul_left (h : c * a < c * b) (hc : c ≥ 0) : a < b :=
+lemma lt_of_mul_lt_mul_left (h : c * a < c * b) (hc : 0 ≤ c) : a < b :=
 lt_of_not_ge
   (assume h1 : b ≤ a,
    have h2 : c * b ≤ c * a, from mul_le_mul_of_nonneg_left h1 hc,
    not_lt_of_ge h2 h)
 
-lemma lt_of_mul_lt_mul_right (h : a * c < b * c) (hc : c ≥ 0) : a < b :=
+lemma lt_of_mul_lt_mul_right (h : a * c < b * c) (hc : 0 ≤ c) : a < b :=
 lt_of_not_ge
   (assume h1 : b ≤ a,
    have h2 : b * c ≤ a * c, from mul_le_mul_of_nonneg_right h1 hc,
    not_lt_of_ge h2 h)
 
-lemma le_of_mul_le_mul_left (h : c * a ≤ c * b) (hc : c > 0) : a ≤ b :=
+lemma le_of_mul_le_mul_left (h : c * a ≤ c * b) (hc : 0 < c) : a ≤ b :=
 le_of_not_gt
   (assume h1 : b < a,
    have h2 : c * b < c * a, from mul_lt_mul_of_pos_left h1 hc,
    not_le_of_gt h2 h)
 
-lemma le_of_mul_le_mul_right (h : a * c ≤ b * c) (hc : c > 0) : a ≤ b :=
+lemma le_of_mul_le_mul_right (h : a * c ≤ b * c) (hc : 0 < c) : a ≤ b :=
 le_of_not_gt
   (assume h1 : b < a,
    have h2 : b * c < a * c, from mul_lt_mul_of_pos_right h1 hc,
@@ -294,8 +294,6 @@ lt_add_of_le_of_pos (le_refl _) zero_lt_one
 
 lemma lt_one_add (a : α) : a < 1 + a :=
 by { rw [add_comm], apply lt_add_one }
-
-lemma one_lt_two : 1 < (2 : α) := lt_add_one _
 
 lemma one_lt_mul (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=
 (one_mul (1 : α)) ▸ mul_lt_mul' ha hb zero_le_one (lt_of_lt_of_le zero_lt_one ha)
@@ -577,20 +575,20 @@ have h3 : (-c) * b < (-c) * a, from calc
 lt_of_mul_lt_mul_left h3 nhc
 
 
-lemma zero_gt_neg_one : -1 < (0:α) :=
+lemma neg_one_lt_zero : -1 < (0:α) :=
 begin
   have this := neg_lt_neg (@zero_lt_one α _),
   rwa neg_zero at this
 end
 
-lemma le_of_mul_le_of_ge_one {a b c : α} (h : a * c ≤ b) (hb : b ≥ 0) (hc : c ≥ 1) : a ≤ b :=
+lemma le_of_mul_le_of_one_le {a b c : α} (h : a * c ≤ b) (hb : 0 ≤ b) (hc : 1 ≤ c) : a ≤ b :=
 have h' : a * c ≤ b * c, from calc
      a * c ≤ b : h
        ... = b * 1 : by rewrite mul_one
        ... ≤ b * c : mul_le_mul_of_nonneg_left hc hb,
 le_of_mul_le_mul_right h' (lt_of_lt_of_le zero_lt_one hc)
 
-lemma nonneg_le_nonneg_of_squares_le {a b : α} (hb : b ≥ 0) (h : a * a ≤ b * b) : a ≤ b :=
+lemma nonneg_le_nonneg_of_squares_le {a b : α} (hb : 0 ≤ b) (h : a * a ≤ b * b) : a ≤ b :=
 le_of_not_gt (λhab, not_le_of_gt (mul_self_lt_mul_self hb hab) h)
 
 lemma mul_self_le_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a ≤ b ↔ a * a ≤ b * b :=
@@ -601,7 +599,7 @@ iff.trans (lt_iff_not_ge _ _) $ iff.trans (not_iff_not_of_iff $ mul_self_le_mul_
   iff.symm (lt_iff_not_ge _ _)
 
 lemma linear_ordered_ring.eq_zero_or_eq_zero_of_mul_eq_zero
-        {a b : α} (h : a * b = 0) : a = 0 ∨ b = 0 :=
+  {a b : α} (h : a * b = 0) : a = 0 ∨ b = 0 :=
 match lt_trichotomy 0 a with
 | or.inl hlt₁          :=
   match lt_trichotomy 0 b with

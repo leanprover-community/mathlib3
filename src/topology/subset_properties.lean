@@ -10,7 +10,8 @@ import topology.continuous_on
 
 ## Main definitions
 
-`compact`, `is_clopen`, `is_irreducible`, `is_connected`, `is_totally_disconnected`, `is_totally_separated`
+`compact`, `is_clopen`, `is_irreducible`, `is_connected`, `is_totally_disconnected`,
+`is_totally_separated`
 
 TODO: write better docs
 
@@ -830,7 +831,8 @@ lemma is_connected.nonempty {s : set α} (h : is_connected s) :
 lemma is_connected.is_preconnected {s : set α} (h : is_connected s) :
   is_preconnected s := h.2
 
-theorem is_preirreducible.is_preconnected {s : set α} (H : is_preirreducible s) : is_preconnected s :=
+theorem is_preirreducible.is_preconnected {s : set α} (H : is_preirreducible s) :
+  is_preconnected s :=
 λ _ _ hu hv _, H _ _ hu hv
 
 theorem is_irreducible.is_connected {s : set α} (H : is_irreducible s) : is_connected s :=
@@ -989,6 +991,8 @@ subset_connected_component
 /-- A preconnected space is one where there is no non-trivial open partition. -/
 class preconnected_space (α : Type u) [topological_space α] : Prop :=
 (is_preconnected_univ : is_preconnected (univ : set α))
+
+export preconnected_space (is_preconnected_univ)
 
 section prio
 set_option default_priority 100 -- see Note [default priority]

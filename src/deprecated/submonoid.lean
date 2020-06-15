@@ -25,6 +25,8 @@ Unbundled submonoids will slowly be removed from mathlib.
 submonoid, submonoids, is_submonoid
 -/
 
+open_locale big_operators
+
 variables {M : Type*} [monoid M] {s : set M}
 variables {A : Type*} [add_monoid A] {t : set A}
 
@@ -210,7 +212,7 @@ of the submonoid. -/
 @[to_additive "The sum of elements of an `add_submonoid` of an `add_comm_monoid` indexed by
 a `finset` is an element of the `add_submonoid`."]
 lemma finset_prod_mem {M A} [comm_monoid M] (s : set M) [is_submonoid s] (f : A → M) :
-  ∀(t : finset A), (∀b∈t, f b ∈ s) → t.prod f ∈ s
+  ∀(t : finset A), (∀b∈t, f b ∈ s) → ∏ b in t, f b ∈ s
 | ⟨m, hm⟩ hs :=
   begin
     refine multiset_prod_mem s _ _,

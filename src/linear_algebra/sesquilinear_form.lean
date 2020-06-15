@@ -10,7 +10,7 @@ import ring_theory.maps
 # Sesquilinear form
 
 This file defines a sesquilinear form over a module. The definition requires a ring antiautomorphism
-on the scalar ring, which comes from the file ring_theory.involution. Basic ideas such as
+on the scalar ring. Basic ideas such as
 orthogonality are also introduced.
 
 A sesquilinear form on an `R`-module `M`, is a function from `M × M` to `R, that is linear in the
@@ -31,24 +31,22 @@ refer to the function field, ie. `S x y = S.sesq x y`.
 Sesquilinear form,
 -/
 
-open ring_anti_equiv
-
 universes u v
 
 /-- A sesquilinear form over a module  -/
-structure sesq_form (R : Type u) (M : Type v) [ring R] (I : ring_anti_equiv R R) [add_comm_group M]
-  [module R M] :=
+structure sesq_form (R : Type u) (M : Type v) [ring R] (I : R ≃+* Rᵒᵖ)
+  [add_comm_group M] [module R M] :=
 (sesq : M → M → R)
 (sesq_add_left : ∀ (x y z : M), sesq (x + y) z = sesq x z + sesq y z)
 (sesq_smul_left : ∀ (a : R) (x y : M), sesq (a • x) y = a * (sesq x y))
 (sesq_add_right : ∀ (x y z : M), sesq x (y + z) = sesq x y + sesq x z)
-(sesq_smul_right : ∀ (a : R) (x y : M), sesq x (a • y) = (I a) * (sesq x y))
+(sesq_smul_right : ∀ (a : R) (x y : M), sesq x (a • y) = (I a).unop * (sesq x y))
 
 namespace sesq_form
 
 section general_ring
 variables {R : Type u} {M : Type v} [ring R] [add_comm_group M] [module R M]
-  {I : ring_anti_equiv R R} {S : sesq_form R M I}
+variables {I : R ≃+* Rᵒᵖ} {S : sesq_form R M I}
 
 instance : has_coe_to_fun (sesq_form R M I) :=
 ⟨_, λ S, S.sesq⟩
@@ -59,19 +57,19 @@ lemma smul_left (a : R) (x y : M) : S (a • x) y = a * (S x y) := sesq_smul_lef
 
 lemma add_right (x y z : M) : S x (y + z) = S x y + S x z := sesq_add_right S x y z
 
-lemma smul_right (a : R) (x y : M) : S x (a • y) = (I a) * (S x y) := sesq_smul_right S a x y
+lemma smul_right (a : R) (x y : M) : S x (a • y) = (I a).unop * (S x y) := sesq_smul_right S a x y
 
-lemma zero_left (x : M) :
-S 0 x = 0 := by {rw [←@zero_smul R _ _ _ _ (0 : M), smul_left, zero_mul]}
+lemma zero_left (x : M) : S 0 x = 0 :=
+by { rw [←zero_smul R (0 : M), smul_left, zero_mul] }
 
-lemma zero_right (x : M) :
-S x 0 = 0 := by rw [←@zero_smul _ _ _ _ _ (0 : M), smul_right, map_zero, ring.zero_mul]
+lemma zero_right (x : M) : S x 0 = 0 :=
+by { rw [←zero_smul R (0 : M), smul_right], simp }
 
-lemma neg_left (x y : M) :
-S (-x) y = -(S x y) := by rw [←@neg_one_smul R _ _, smul_left, neg_one_mul]
+lemma neg_left (x y : M) : S (-x) y = -(S x y) :=
+by { rw [←@neg_one_smul R _ _, smul_left, neg_one_mul] }
 
-lemma neg_right (x y : M) :
-S x (-y) = -(S x y) := by rw [←@neg_one_smul R _ _, smul_right, map_neg_one, neg_one_mul]
+lemma neg_right (x y : M) : S x (-y) = -(S x y) :=
+by { rw [←@neg_one_smul R _ _, smul_right], simp }
 
 lemma sub_left (x y z : M) :
 S (x - y) z = S x z - S y z := by rw [sub_eq_add_neg, add_left, neg_left]; refl
@@ -95,7 +93,7 @@ instance : add_comm_group (sesq_form R M I) :=
             sesq_add_left := λ x y z, (add_zero 0).symm,
             sesq_smul_left := λ a x y, (mul_zero a).symm,
             sesq_add_right := λ x y z, (zero_add 0).symm,
-            sesq_smul_right := λ a x y, (mul_zero (I a)).symm },
+            sesq_smul_right := λ a x y, (mul_zero (I a).unop).symm },
   zero_add := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw zero_add},
   add_zero := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw add_zero},
   neg := λ S, { sesq := λ x y, - (S.1 x y),
@@ -120,7 +118,7 @@ end general_ring
 section comm_ring
 
 variables {R : Type*} [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
-  {J : ring_anti_equiv R R} (F : sesq_form R M J) (f : M → M)
+  {J : R ≃+* Rᵒᵖ} (F : sesq_form R M J) (f : M → M)
 
 instance to_module : module R (sesq_form R M J) :=
 { smul := λ c S,
@@ -146,7 +144,7 @@ section domain
 
 variables {R : Type*} [domain R]
   {M : Type v} [add_comm_group M] [module R M]
-  {K : ring_anti_equiv R R} {G : sesq_form R M K}
+  {K : R ≃+* Rᵒᵖ} {G : sesq_form R M K}
 
 theorem ortho_smul_left {x y : M} {a : R} (ha : a ≠ 0) :
 (is_ortho G x y) ↔ (is_ortho G (a • x) y) :=
@@ -168,7 +166,11 @@ begin
   { rw [smul_right, H, ring.mul_zero] },
   { rw [smul_right, mul_eq_zero] at H,
     cases H,
-    { rw map_zero_iff at H, trivial },
+    { exfalso,
+      -- `map_eq_zero_iff` doesn't fire here even if marked as a simp lemma, probably bcecause
+      -- different instance paths
+      simp only [opposite.unop_eq_zero_iff] at H,
+      exact ha (K.map_eq_zero_iff.mp H), },
     { exact H }}
 end
 
@@ -180,8 +182,8 @@ namespace refl_sesq_form
 
 open refl_sesq_form sesq_form
 
-variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M] {I : ring_anti_equiv R R}
-  {S : sesq_form R M I}
+variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M]
+variables {I : R ≃+* Rᵒᵖ} {S : sesq_form R M I}
 
 /-- The proposition that a sesquilinear form is reflexive -/
 def is_refl (S : sesq_form R M I) : Prop := ∀ (x y : M), S x y = 0 → S y x = 0
@@ -199,18 +201,18 @@ namespace sym_sesq_form
 
 open sym_sesq_form sesq_form
 
-variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M] {I : ring_anti_equiv R R}
-  {S : sesq_form R M I}
+variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M]
+variables {I : R ≃+* Rᵒᵖ} {S : sesq_form R M I}
 
 /-- The proposition that a sesquilinear form is symmetric -/
-def is_sym (S : sesq_form R M I) : Prop := ∀ (x y : M), I (S x y) = S y x
+def is_sym (S : sesq_form R M I) : Prop := ∀ (x y : M), (I (S x y)).unop = S y x
 
 variable (H : is_sym S)
 include H
 
-lemma sym (x y : M) : I (S x y) = S y x := H x y
+lemma sym (x y : M) : (I (S x y)).unop = S y x := H x y
 
-lemma is_refl : refl_sesq_form.is_refl S := λ x y H1, by rw [←H, map_zero_iff, H1]
+lemma is_refl : refl_sesq_form.is_refl S := λ x y H1, by { rw [←H], simp [H1], }
 
 lemma ortho_sym {x y : M} :
 is_ortho S x y ↔ is_ortho S y x := refl_sesq_form.ortho_sym (is_refl H)
@@ -221,8 +223,8 @@ namespace alt_sesq_form
 
 open alt_sesq_form sesq_form
 
-variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M] {I : ring_anti_equiv R R}
-  {S : sesq_form R M I}
+variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M]
+variables {I : R ≃+* Rᵒᵖ} {S : sesq_form R M I}
 
 /-- The proposition that a sesquilinear form is alternating -/
 def is_alt (S : sesq_form R M I) : Prop := ∀ (x : M), S x x = 0

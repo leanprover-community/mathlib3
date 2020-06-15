@@ -97,20 +97,13 @@ section mmap_with_index'
 variables {m : Type → Type v} [applicative m]
 
 def mmap_with_index'_aux (f : ℕ → α → m unit) : ℕ → list α → m unit
-| _ [] := pure punit.star
+| _ [] := pure ()
 | i (a :: as) := f i a *> mmap_with_index'_aux (i + 1) as
 
 def mmap_with_index' (f : ℕ → α → m unit) (as : list α) : m unit :=
 mmap_with_index'_aux f 0 as
 
 end mmap_with_index'
-
-/-- The list of indices of a list. `index_list l = [0, ..., length l - 1]`. -/
-def index_list : list α → list ℕ := map_with_index (λ i _, i)
-
-/-- `indexed_list [x₀, ..., xₙ] = [(0, x₀), ..., (n, xₙ)]` -/
-def indexed (xs : list α) : list (ℕ × α) :=
-xs.foldr_with_index (λ i a l, (i, a) :: l) []
 
 def to_rbmap : list α → rbmap ℕ α :=
 foldl_with_index (λ i mapp a, mapp.insert i a) (mk_rbmap ℕ α)
@@ -213,15 +206,6 @@ end rb_set
 end native
 
 open native
-
-
-namespace binder_info
-
-def is_implicit : binder_info → bool
-| implicit := tt
-| _ := ff
-
-end binder_info
 
 
 namespace expr
@@ -405,11 +389,13 @@ def get_right {α β} : α ⊕ β → option β
 | (inr b) := some b
 | _ := none
 
-def is_left {α β} (s : α ⊕ β) : bool :=
-s.get_left.is_some
+def is_left {α β} : α ⊕ β → bool
+| (inl _) := tt
+| (inr _) := ff
 
-def is_right {α β} (s : α ⊕ β) : bool :=
-s.get_right.is_some
+def is_right {α β} : α ⊕ β → bool
+| (inl _) := ff
+| (inr _) := tt
 
 end sum
 
@@ -447,7 +433,7 @@ meta def basename : name → name
 
 /-- See [note unnamed constructor arguments]. -/
 meta def likely_generated_name_p : parser unit := do
-  str "a",
+  ch 'a',
   optional (ch '_' *> nat),
   pure ()
 
@@ -927,15 +913,13 @@ meta def decompose_structure_equation (h : parse ident) : tactic unit := do
 
 end interactive
 
--- TODO Generate heterogeneous equations only if necessary. This will simplify
--- the later simplification steps.
 meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr)
-  : tactic (expr × ℕ × ℕ) := do
+  : tactic (expr × ℕ) := do
   let ⟨locals, nonlocals⟩ :=
     index_args.partition (λ arg : expr, arg.is_local_constant),
 
   -- If there aren't any complex index arguments, we don't need to do anything.
-  (_ :: _) ← pure nonlocals | pure (eliminee, 0, 0),
+  (_ :: _) ← pure nonlocals | pure (eliminee, 0),
 
   -- Revert the eliminee (and any hypotheses depending on it).
   num_reverted_eliminee ← revert eliminee,
@@ -956,19 +940,16 @@ meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr
 
   -- Every second hypothesis introduced by `generalizes` is an index equation.
   -- (The other introduced hypotheses are the index variables.)
-  let index_var_equations :=
+  let index_equation_names :=
     index_vars_eqs.foldr_with_index
-      (λ i x xs, if i % 2 = 0 then xs else x :: xs) [],
-
-  let num_index_vars := nonlocals.length,
-  let num_index_var_equations := num_index_vars,
+      (λ i x xs, if i % 2 = 0 then xs else x.local_pp_name :: xs) [],
 
   -- Decompose the index equations equating elements of structures.
   -- NOTE: Each step in the following loop may change the unique names of
   -- hypotheses in the context, so we go by pretty names. We made sure above
   -- that these are unique.
-  index_var_equations.mmap' $ λ eq, do {
-    eq ← get_local eq.local_pp_name,
+  index_equation_names.mmap' $ λ eq, do {
+    eq ← get_local eq,
     decompose_structure_equation_hyp eq
   },
 
@@ -980,10 +961,10 @@ meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr
   eliminee ← intro1,
 
   -- Re-revert the index equations
-  index_var_equations ← index_var_equations.mmap (λ h, get_local h.local_pp_name),
+  index_var_equations ← index_equation_names.mmap get_local,
   revert_lst index_var_equations,
 
-  pure (eliminee, num_index_vars, num_index_var_equations)
+  pure (eliminee, nonlocals.length)
 
 meta def replace' (h : expr) (x : expr) (t : option expr := none) : tactic expr := do
   h' ← note h.local_pp_name t x,
@@ -1288,7 +1269,7 @@ focus1 $ do
   -- (`environment.is_ginductive` doesn't seem to work.)
 
   -- Generalise complex indices
-  (eliminee, num_index_vars, num_index_equations) ←
+  (eliminee, num_index_vars) ←
     generalize_complex_index_args eliminee (eliminee_args.drop iinfo.num_params),
 
   -- Generalise all generalisable hypotheses except those mentioned in a "fixing"
@@ -1336,7 +1317,7 @@ focus1 $ do
       generalized_hyps ← intron' num_generalized,
 
       -- Introduce the index equations
-      index_equations ← intron' num_index_equations,
+      index_equations ← intron' num_index_vars,
 
       -- Simplify the index equations. Stop after this step if the goal has been
       -- solved by the simplification.

@@ -201,8 +201,8 @@ begin
 end
 
 /--
-Another variation on Carathéodory's convexity theorem,
-writing an elements of a convex hull as a center of mass
+A variation on Carathéodory's convexity theorem,
+writing an element of a convex hull as a center of mass
 of an explicit `finset` with cardinality at most `dim + 1`,
 where all coefficients in the center of mass formula
 are strictly positive.

@@ -52,7 +52,7 @@ Proof idea:
 We label each value in the sequence with two numbers specifying the longest increasing
 subsequence ending there, and the longest decreasing subsequence ending there.
 We then show the pair of labels must be unique. Now if there is no increasing sequence longer than
-`r` and no decreasing sequence longer than `s`, then there are fewer than `r * s` possible labels,
+`r` and no decreasing sequence longer than `s`, then there are at most `r * s` possible labels,
 which is a contradiction if there are more than `r * s` elements.
 -/
 theorem erdos_szekeres {r s n : ℕ} {f : fin n → α} (hn : r * s < n) (hf : injective f) :

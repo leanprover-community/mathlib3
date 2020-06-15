@@ -90,7 +90,7 @@ meta def all_rewrites_lazy_of_list
   (cfg : nth_rewrite.cfg := {md := semireducible}) :
   mllist tactic (tracked_rewrite × ℕ × ℕ) :=
 (mllist.of_list rs).enum.bind_ $ λ r,
-   ((all_rewrites_lazy e r.2 cfg).enum).map (λ p, (p.2, p.1, r.1))
+   ((all_rewrites_lazy e r.2 cfg).enum).map (λ p, (p.2, r.1, p.1))
 
 end nth_rewrite.congr
 

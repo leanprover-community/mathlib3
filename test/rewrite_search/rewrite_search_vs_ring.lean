@@ -10,7 +10,7 @@ namespace tactic.rewrite_search.vs_ring
 attribute [search] add_comm add_assoc
 attribute [search] mul_comm mul_assoc mul_one
 attribute [search] left_distrib right_distrib
--- attribute [search] pow_two add_sub_cancel sub_add_cancel mul_sub add_sub
+attribute [search] pow_two add_sub_cancel sub_add_cancel mul_sub add_sub
 constants a b c d e : ℚ
 
 lemma test2  : (a + b)*(a - b) = a^2 - b^2 :=

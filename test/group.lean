@@ -16,7 +16,8 @@ def commutator {G} [group G] : G → G → G := λ g h, g * h * g⁻¹ * h⁻¹
 
 def commutator3 {G} [group G] : G → G → G → G := λ g h k, commutator (commutator g h) k
 
--- The following is known as the Hall-Witt identity, see e.g. https://en.wikipedia.org/wiki/Three_subgroups_lemma#Proof_and_the_Hall%E2%80%93Witt_identity
+-- The following is known as the Hall-Witt identity,
+-- see e.g. https://en.wikipedia.org/wiki/Three_subgroups_lemma#Proof_and_the_Hall%E2%80%93Witt_identity
 example (g h k : G) :
   g * (commutator3 g⁻¹ h k) * g⁻¹ * k * (commutator3 k⁻¹ g h) * k⁻¹ * h * (commutator3 h⁻¹ k g) * h⁻¹ = 1 :=
 by { dsimp [commutator3, commutator], group }
@@ -57,3 +58,9 @@ begin
   rw h,
   group,
 end
+
+-- The next example can be expand to require an arbitrarily high number of alternation
+-- between simp and ring
+
+example (n m : ℤ) (a b : G) : a^n*b^n*a^n*a^n*a^-n*a^-n*b^-n*a^-n = 1 :=
+by group

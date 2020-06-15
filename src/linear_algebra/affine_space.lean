@@ -178,19 +178,15 @@ begin
     { intro hv,
       have hm := s2_nonempty.some_mem,
       have hvp := s2_add s2_nonempty.some v hm hv,
-      conv_rhs at hm {
-        rw ←h
-      },
-      conv_rhs at hvp {
-        rw ←h
-      },
+      conv_rhs at hm { rw ←h },
+      conv_rhs at hvp { rw ←h },
       rw ←vadd_vsub V v s2_nonempty.some,
       exact s1_sub _ _ hvp hm } }
 end
 
 /-- Two affine subspaces with the same direction and nonempty
 intersection are equal. -/
-lemma ext' {s1 s2 : affine_subspace k V P} (hd : s1.direction = s2.direction)
+lemma ext_of_direction_eq {s1 s2 : affine_subspace k V P} (hd : s1.direction = s2.direction)
     (hn : ((s1 : set P) ∩ s2).nonempty) : s1 = s2 :=
 begin
   ext p,
@@ -242,7 +238,7 @@ lemma mem_mk_of_point_of_direction (p : P) (direction : submodule k V) :
 that subspace's direction yields the original subspace. -/
 @[simp] lemma mk_of_point_of_direction_eq {s : affine_subspace k V P} {p : P} (hp : p ∈ s) :
   mk_of_point_of_direction p s.direction = s :=
-ext' rfl ⟨p, set.mem_inter (mem_mk_point_of_direction _ _) hp⟩
+ext_of_direction_eq rfl ⟨p, set.mem_inter (mem_mk_of_point_of_direction _ _) hp⟩
 
 end affine_subspace
 

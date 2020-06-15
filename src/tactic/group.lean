@@ -78,8 +78,10 @@ open tactic
 
 /--
 Tactic for normalizing expressions in multiplicative groups, without assuming
-commutatitvity, using only the group axioms without any information about which group
+commutativity, using only the group axioms without any information about which group
 is manipulated.
+
+(For additive commutative groups, use the `abel` tactic instead.)
 
 Example:
 ```lean

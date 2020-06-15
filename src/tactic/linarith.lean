@@ -26,13 +26,6 @@ meta def nat.to_pexpr : ℕ → pexpr
 
 open native
 
-meta def native.rb_set.of_list {α} [has_lt α] [decidable_rel ((<) : α → α → Prop)] : list α → rb_set α
-| [] := mk_rb_set
-| (h::t) := (native.rb_set.of_list t).insert h
-
-meta def native.rb_set.sdiff {α} (s1 s2 : rb_set α) : rb_set α :=
-s2.fold s1 $ λ v s, s.erase v
-
 namespace linarith
 
 section lemmas

@@ -115,10 +115,10 @@ end
 /-- In a finite dimensional space, there exists a finite basis. Provides the basis as a finset.
 This is in contrast to `exists_is_basis_finite`, which provides a set and a `set.finite`.
 -/
-lemma finite_dimensional.exists_is_basis_finset [finite_dimensional K V] :
+lemma exists_is_basis_finset [finite_dimensional K V] :
   ∃ b : finset V, is_basis K (subtype.val : (↑b : set V) → V) :=
 begin
-  obtain ⟨s, s_basis, s_finite⟩ := finite_dimensional.exists_is_basis_finite K V,
+  obtain ⟨s, s_basis, s_finite⟩ := exists_is_basis_finite K V,
   refine ⟨s_finite.to_finset, _⟩,
   rw set.finite.coe_to_finset,
   exact s_basis,
@@ -147,7 +147,7 @@ lemma of_finite_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K 
 iff_fg.2 $ ⟨finset.univ.image b, by {convert h.2, simp} ⟩
 
 /-- If a vector space has a finite basis, then it is finite-dimensional, finset style. -/
-lemma of_finite_basis' {b : finset V} (h : is_basis K (subtype.val : (↑b : set V) -> V)) :
+lemma of_finset_basis {b : finset V} (h : is_basis K (subtype.val : (↑b : set V) -> V)) :
   finite_dimensional K V :=
 iff_fg.2 $ ⟨b, by {convert h.2, simp} ⟩
 
@@ -216,10 +216,10 @@ end
 
 /-- If a vector space has a finite basis, then its dimension is equal to the cardinality of the
 basis. This lemma uses a `finset` instead of indexed types. -/
-lemma finite_dimensional.findim_eq_card_basis'' {b : finset V}
+lemma findim_eq_card_finset_basis {b : finset V}
   (h : is_basis K (subtype.val : (↑b : set V) -> V)) :
   findim K V = finset.card b :=
-by { rw [finite_dimensional.findim_eq_card_basis h, fintype.subtype_card], intros x, refl }
+by { rw [findim_eq_card_basis h, fintype.subtype_card], intros x, refl }
 
 /-- If a submodule has maximal dimension in a finite dimensional space, then it is equal to the
 whole space. -/

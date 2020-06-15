@@ -128,6 +128,13 @@ begin
   exact h
 end
 
+-- This example requires elimination of cyclic generalised index equations.
+example (n : ℕ) (h : n = n + 3) : false :=
+begin
+  success_if_fail { cases h },
+  induction' h,
+end
+
 -- This example tests type-based naming.
 example (k : ℕ') (i : ℕ') : ℕ :=
 begin

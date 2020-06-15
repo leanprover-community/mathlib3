@@ -1066,6 +1066,8 @@ optional arguments:
   hypotheses.
 * If `exfalso` is false, `linarith` will fail when the goal is neither an inequality nor `false`.
   (True by default.)
+
+A variant, `nlinarith`, does some basic preprocessing to handle some nonlinear goals.
 -/
 add_tactic_doc
 { name       := "linarith",

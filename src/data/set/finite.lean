@@ -396,9 +396,18 @@ let ⟨I, Ifin, hI⟩ := finite_subset_Union tfin h in
         exact H }
     end⟩
 
-instance nat.fintypeIio (n : ℕ) : fintype (Iio n) :=
+instance nat.fintype_Iio (n : ℕ) : fintype (Iio n) :=
 fintype.of_finset (finset.range n) $ by simp
 
+/--
+If `P` is some relation between terms of `γ` and sets in `γ`, 
+such that every finite set `t : set γ` has some `c : γ` related to it, 
+then there is a recursively defined sequence `u` in `γ` 
+so `u n` is related to the image of `{0, 1, ..., n-1}` under `u`.
+
+(We use this later to show sequentially compact sets
+are totally bounded.)
+-/
 lemma seq_of_forall_finite_exists  {γ : Type*}
   {P : γ → set γ → Prop} (h : ∀ t,  finite t → ∃ c, P c t) :
   ∃ u : ℕ → γ, ∀ n, P (u n) (u '' Iio n) :=

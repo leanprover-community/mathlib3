@@ -18,7 +18,7 @@ filters and the topology. In particular, we
 * provide an instance that shows that every first-countable (and in particular metric) space is
   a sequential space.
 * define sequential compactness, prove that compactness implies sequential compactness in first
-  countable spaces, and prove there are equivalent for uniform spaces having a countable uniformity
+  countable spaces, and prove they are equivalent for uniform spaces having a countable uniformity
   basis (in particular metric spaces).
 -/
 

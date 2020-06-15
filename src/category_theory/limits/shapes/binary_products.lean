@@ -448,6 +448,32 @@ begin
   { simp only [← F.map_comp, category.assoc, prod.lift_snd, prod.map_snd, prod.lift_snd_assoc] },
 end
 
+@[reassoc]
+lemma inv_prod_comparison_map_fst (F : C ⥤ D) (A B : C) [is_iso (prod_comparison F A B)] :
+  inv (prod_comparison F A B) ≫ F.map prod.fst = prod.fst :=
+begin
+  erw (as_iso (prod_comparison F A B)).inv_comp_eq,
+  dsimp [as_iso_hom, prod_comparison],
+  rw prod.lift_fst,
+end
+
+@[reassoc]
+lemma inv_prod_comparison_map_snd (F : C ⥤ D) (A B : C) [is_iso (prod_comparison F A B)] :
+  inv (prod_comparison F A B) ≫ F.map prod.snd = prod.snd :=
+begin
+  erw (as_iso (prod_comparison F A B)).inv_comp_eq,
+  dsimp [as_iso_hom, prod_comparison],
+  rw prod.lift_snd,
+end
+
+/-- If the product comparison morphism is an iso, its inverse is natural. -/
+@[reassoc]
+lemma prod_comparison_inv_natural (F : C ⥤ D) {A A' B B' : C} (f : A ⟶ A') (g : B ⟶ B')
+  [is_iso (prod_comparison F A B)] [is_iso (prod_comparison F A' B')] :
+  inv (prod_comparison F A B) ≫ F.map (prod.map f g) = prod.map (F.map f) (F.map g) ≫ inv (prod_comparison F A' B') :=
+by { erw [(as_iso (prod_comparison F A' B')).eq_comp_inv, category.assoc,
+    (as_iso (prod_comparison F A B)).inv_comp_eq, prod_comparison_natural], refl }
+
 variables [has_terminal.{v} C]
 
 /-- The left unitor isomorphism for binary products with the terminal object. -/

@@ -53,6 +53,12 @@ instance : has_lift (finset α) (set α) := ⟨λ s, {x | x ∈ s}⟩
 
 @[simp] lemma set_of_mem {α} {s : finset α} : {a | a ∈ s} = ↑s := rfl
 
+@[simp] lemma coe_mem {s : finset α} (x : (↑s : set α)) : ↑x ∈ s := x.2
+
+@[simp] lemma mk_coe {s : finset α} (x : (↑s : set α)) {h} :
+  (⟨↑x, h⟩ : (↑s : set α)) = x :=
+by { apply subtype.eq, refl, }
+
 instance decidable_mem' [decidable_eq α] (a : α) (s : finset α) :
   decidable (a ∈ (↑s : set α)) := s.decidable_mem _
 
@@ -966,6 +972,14 @@ lemma filter_eq' [decidable_eq β] (s : finset β) (b : β) :
   s.filter (λ a, a = b) = ite (b ∈ s) {b} ∅ :=
 trans (filter_congr (λ _ _, ⟨eq.symm, eq.symm⟩)) (filter_eq s b)
 
+lemma filter_ne [decidable_eq β] (s : finset β) (b : β) :
+  s.filter (λ a, b ≠ a) = s.erase b :=
+by { ext, simp only [mem_filter, mem_erase, ne.def], cc, }
+
+lemma filter_ne' [decidable_eq β] (s : finset β) (b : β) :
+  s.filter (λ a, a ≠ b) = s.erase b :=
+trans (filter_congr (λ _ _, ⟨ne.symm, ne.symm⟩)) (filter_ne s b)
+
 end filter
 
 /-! ### range -/
@@ -1161,7 +1175,7 @@ theorem map_to_finset [decidable_eq α] [decidable_eq β] {s : multiset α} :
   s.to_finset.map f = (s.map f).to_finset :=
 ext.2 $ λ _, by simp only [mem_map, multiset.mem_map, exists_prop, multiset.mem_to_finset]
 
-theorem map_refl : s.map (embedding.refl _) = s :=
+@[simp] theorem map_refl : s.map (embedding.refl _) = s :=
 ext.2 $ λ _, by simpa only [mem_map, exists_prop] using exists_eq_right
 
 theorem map_map {g : β ↪ γ} : (s.map f).map g = s.map (f.trans g) :=
@@ -1310,6 +1324,18 @@ eq_of_veq $ (multiset.erase_dup_eq_self.2 (s.map f).2).symm
 lemma image_const {s : finset α} (h : s.nonempty) (b : β) : s.image (λa, b) = singleton b :=
 ext.2 $ assume b', by simp only [mem_image, exists_prop, exists_and_distrib_right,
   h.bex, true_and, mem_singleton, eq_comm]
+
+/--
+Because `finset.image` requires a `decidable_eq` instances for the target type,
+we can only construct a `functor finset` when working classically.
+-/
+instance [Π P, decidable P] : functor finset :=
+{ map := λ α β f s, s.image f, }
+
+instance [Π P, decidable P] : is_lawful_functor finset :=
+{ id_map := λ α x, image_id,
+  comp_map := λ α β γ f g s, image_image.symm, }
+
 
 /-- Given a finset `s` and a predicate `p`, `s.subtype p` is the finset of `subtype p` whose
 elements belong to `s`.  -/
@@ -2436,8 +2462,7 @@ the increasing bijection `mono_of_fin s h`. For a statement assuming only that `
 lemma mono_of_fin_unique {s : finset α} {k : ℕ} (h : s.card = k) {f : fin k → α}
   (hbij : set.bij_on f set.univ ↑s) (hmono : strict_mono f) : f = s.mono_of_fin h :=
 begin
-  ext i,
-  rcases i with ⟨i, hi⟩,
+  ext ⟨i, hi⟩,
   induction i using nat.strong_induction_on with i IH,
   rcases lt_trichotomy (f ⟨i, hi⟩) (mono_of_fin s h ⟨i, hi⟩) with H|H|H,
   { have A : f ⟨i, hi⟩ ∈ ↑s := hbij.maps_to (set.mem_univ _),

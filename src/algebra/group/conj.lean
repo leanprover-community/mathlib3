@@ -14,6 +14,7 @@ variables {α : Type u} {β : Type v}
 
 variables [group α] [group β]
 
+/-- We say that `a` is conjugate to `b` if for some `c` we have `c * a * c⁻¹ = b`. -/
 def is_conj (a b : α) := ∃ c : α, c * a * c⁻¹ = b
 
 @[refl] lemma is_conj_refl (a : α) : is_conj a a :=

@@ -98,10 +98,10 @@ begin
 end
 
 lemma prod_univ_units_id_eq_neg_one :
-  univ.prod (λ x, x) = (-1 : units K) :=
+  (∏ x : units K, x) = (-1 : units K) :=
 begin
   classical,
-  have : ((@univ (units K) _).erase (-1)).prod (λ x, x) = 1,
+  have : (∏ x in (@univ (units K) _).erase (-1), x) = 1,
   from prod_involution (λ x _, x⁻¹) (by simp)
     (λ a, by simp [units.inv_eq_self_iff] {contextual := tt})
     (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm] {contextual := tt})

@@ -44,8 +44,8 @@ variables (φ : Π i, M i →ₗ[R] N)
 variables (ι N φ)
 def to_module : direct_sum ι M →ₗ[R] N :=
 { to_fun := to_group (λ i, φ i),
-  add := to_group_add _,
-  smul := λ c x, direct_sum.induction_on x
+  map_add' := to_group_add _,
+  map_smul' := λ c x, direct_sum.induction_on x
     (by rw [smul_zero, to_group_zero, smul_zero])
     (λ i x, by rw [← of_smul, to_group_of, to_group_of, (φ i).map_smul c x])
     (λ x y ihx ihy, by rw [smul_add, to_group_add, ihx, ihy, to_group_add, smul_add]) }
@@ -77,8 +77,8 @@ protected def lid (M : Type v) [add_comm_group M] [semimodule R M] :
 variables (ι M)
 def component (i : ι) : direct_sum ι M →ₗ[R] M i :=
 { to_fun := λ f, f i,
-  add := λ _ _, dfinsupp.add_apply,
-  smul := λ _ _, dfinsupp.smul_apply }
+  map_add' := λ _ _, dfinsupp.add_apply,
+  map_smul' := λ _ _, dfinsupp.smul_apply }
 
 variables {ι M}
 @[simp] lemma lof_apply (i : ι) (b : M i) : ((lof R ι M i) b) i = b :=

@@ -28,7 +28,7 @@ giry monad
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical big_operators
 
 open classical set filter
 
@@ -124,9 +124,9 @@ begin
   simp [this],
   transitivity,
   have : ∀(s : ℕ → finset ennreal) (f : ℕ → ennreal → measure α → ennreal)
-    (hf : ∀n r, measurable (f n r)) (hm : monotone (λn μ, (s n).sum (λ r, r * f n r μ))),
-    (⨆n:ℕ, (s n).sum (λr, r * integral m (f n r))) =
-    integral m (λμ, ⨆n:ℕ, (s n).sum (λr, r * f n r μ)),
+    (hf : ∀n r, measurable (f n r)) (hm : monotone (λn μ, ∑ r in s n, r * f n r μ)),
+    (⨆n:ℕ, ∑ r in s n, r * integral m (f n r)) =
+    integral m (λμ, ⨆n:ℕ, ∑ r in s n, r * f n r μ),
   { assume s f hf hm,
     symmetry,
     transitivity,

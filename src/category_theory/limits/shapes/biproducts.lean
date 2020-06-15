@@ -444,9 +444,20 @@ instance biprod.snd_epi {X Y : C} [has_binary_biproduct.{v} X Y] :
   split_epi (biprod.snd : X ⊞ Y ⟶ Y) :=
 { section_ := biprod.lift (biprod.inr ≫ biprod.fst) (𝟙 Y) }
 
+@[simp,reassoc]
+lemma biprod.map_fst {W X Y Z : C} [has_binary_biproduct.{v} W X] [has_binary_biproduct.{v} Y Z]
+  (f : W ⟶ Y) (g : X ⟶ Z) :
+  biprod.map f g ≫ biprod.fst = biprod.fst ≫ f :=
+by simp
+@[simp,reassoc]
+lemma biprod.map_snd {W X Y Z : C} [has_binary_biproduct.{v} W X] [has_binary_biproduct.{v} Y Z]
+  (f : W ⟶ Y) (g : X ⟶ Z) :
+  biprod.map f g ≫ biprod.snd = biprod.snd ≫ g :=
+by simp
+
 -- Because `biprod.map` is defined in terms of `lim` rather than `colim`,
 -- we need to provide additional `simp` lemmas.
-@[simp]
+@[simp,reassoc]
 lemma biprod.inl_map {W X Y Z : C} [has_binary_biproduct.{v} W X] [has_binary_biproduct.{v} Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) :
   biprod.inl ≫ biprod.map f g = f ≫ biprod.inl :=
@@ -454,7 +465,7 @@ begin
   rw biprod.map_eq_map',
   simp,
 end
-@[simp]
+@[simp,reassoc]
 lemma biprod.inr_map {W X Y Z : C} [has_binary_biproduct.{v} W X] [has_binary_biproduct.{v} Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) :
   biprod.inr ≫ biprod.map f g = g ≫ biprod.inr :=

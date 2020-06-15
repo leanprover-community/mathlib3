@@ -153,11 +153,22 @@ end
 section
 variables [preadditive.{v} C] [has_finite_biproducts.{v} C] -- TODO these should add up to `additive`?
 
-def equiv_of_simple_decompositions [preadditive.{v} C] {X : C} (D E : simple_decomposition.{v} X) :
-  Σ e : D.ι ≃ E.ι, Π i, E.summand (e i) ≅ D.summand i :=
+def equiv_of_simple_decompositions' (n : ℕ) {X : C}
+  (D E : simple_decomposition.{v} X) (w : fintype.card D.ι = n) :
+  trunc Σ e : D.ι ≃ E.ι, Π i, E.summand (e i) ≅ D.summand i :=
+begin
+  induction n with n ih generalizing X,
+  { sorry, },
+  -- set e' := ,
+  trunc_cases fintype.equiv_fin D.ι with e₁,
+  rw w at e₁,
+end
+
+def equiv_of_simple_decompositions {X : C} (D E : simple_decomposition.{v} X) :
+  trunc Σ e : D.ι ≃ E.ι, Π i, E.summand (e i) ≅ D.summand i :=
 -- TODO this requires some work
 -- We'll do it by induction, and use Gaussian elimination on 2x2 matrices.
-sorry
+equiv_of_simple_decompositions' (fintype.card D.ι) D E rfl
 
 open_locale classical
 

@@ -710,7 +710,7 @@ lemma not_tendsto_nhds_of_tendsto_at_top [no_top_order α]
   ¬ tendsto f F (𝓝 x) :=
 hf.not_tendsto hF (disjoint_nhds_at_top x).symm
 
-lemma not_tendsto_at_top_of_tendsto_nhds [no_top_order α] [no_bot_order α]
+lemma not_tendsto_at_top_of_tendsto_nhds [no_top_order α]
   {F : filter β} (hF : F ≠ ⊥) {f : β → α} {x : α} (hf : tendsto f F (𝓝 x)) :
   ¬  tendsto f F at_top :=
 hf.not_tendsto hF (disjoint_nhds_at_top x)
@@ -720,7 +720,7 @@ lemma not_tendsto_nhds_of_tendsto_at_bot [no_bot_order α]
   ¬ tendsto f F (𝓝 x) :=
 hf.not_tendsto hF (disjoint_nhds_at_bot x).symm
 
-lemma not_tendsto_at_bot_of_tendsto_nhds [no_top_order α] [no_bot_order α]
+lemma not_tendsto_at_bot_of_tendsto_nhds [no_bot_order α]
   {F : filter β} (hF : F ≠ ⊥) {f : β → α} {x : α} (hf : tendsto f F (𝓝 x)) :
   ¬  tendsto f F at_bot :=
 hf.not_tendsto hF (disjoint_nhds_at_bot x)

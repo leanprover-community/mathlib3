@@ -201,8 +201,14 @@ begin
 end
 
 /--
-A slight variation of `eq_center_mass_card_le_dim_succ_of_mem_convex_hull`,
-asserting that the coefficients can be taken to be strictly positive.
+Another variation on Carathéodory's convexity theorem,
+writing an elements of a convex hull as a center of mass
+of an explicit `finset` with cardinality at most `dim + 1`,
+where all coefficients in the center of mass formula
+are strictly positive.
+
+(This is proved using `eq_center_mass_card_le_dim_succ_of_mem_convex_hull`,
+and discarding any elements of the set with coefficient zero.)
 -/
 theorem eq_pos_center_mass_card_le_dim_succ_of_mem_convex_hull
   {s : set E} {x : E} (h : x ∈ convex_hull s) :

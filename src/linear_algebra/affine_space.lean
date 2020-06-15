@@ -169,9 +169,7 @@ begin
     { intro hv,
       have hm := s1_nonempty.some_mem,
       have hvp := s1_add s1_nonempty.some v hm hv,
-      conv_rhs at hm {
-        rw h
-      },
+      conv_rhs at hm { rw h },
       conv_rhs at hvp {
         rw h
       },

@@ -230,6 +230,7 @@ structure comp :=
 def comp.vars : comp → list ℕ :=
 linexp.vars ∘ comp.coeffs
 
+@[derive inhabited]
 inductive comp_source
 | assump : ℕ → comp_source
 | add : comp_source → comp_source → comp_source
@@ -252,7 +253,28 @@ meta instance comp_source.has_to_format : has_to_format comp_source :=
 A `pcomp` stores a linear comparison `Σ cᵢ*xᵢ R 0`,
 along with information about how this comparison was derived.
 
-TODO: describe different fields
+The original expressions fed into `linarith` are each assigned a unique natural number label.
+The *historical set* `pcomp.history` stores the labels of expressions
+that were used in deriving the current `pcomp`.
+
+Variables are also indexed by natural numbers. The sets `pcomp.effective`, `pcomp.implicit`,
+and `pcomp.vars` contain variable indices.
+
+* `pcomp.vars` contains the variables that appear in `pcomp.c`. We store them in `pcomp` to
+  avoid recomputing the set, which requires folding over a list. (TODO: is this really needed?)
+* `pcomp.effective` contains the variables that have been effectively eliminated from `pcomp`.
+  A variable `n` is said to be *effectively eliminated* in `pcomp` if the elimination of `n`
+  produced at least one of the ancestors of `pcomp`.
+* `pcomp.implicit` contains the variables that have been implicitly eliminated from `pcomp`.
+  A variable `n` is said to be *implicitly eliminated* in `pcomp` if it satisfies the following
+  properties:
+  - There is some `ancestor` of `pcomp` such that `n` appears in `ancestor.vars`.
+  - `n` does not appear in `pcomp.vars`.
+  - `n` was not effectively eliminated.
+
+We track these sets in order to compute whether the history of a `pcomp` is *minimal*.
+Checking this directly is expensive, but effective approximations can be defined in terms of these
+sets. During the variable elimination process, a `pcomp` with non-minimal history can be discarded.
 -/
 meta structure pcomp :=
 (c : comp)
@@ -266,19 +288,29 @@ meta structure pcomp :=
 Any comparison whose history is not minimal is redundant,
 and need not be included in the new set of comparisons.
 
-This test is an underapproximation to minimality. It gives sufficient but not necessary conditions.
-If `c.is_minimal` holds, then the history of `c` is minimal,
-but `c.is_minimal` may be false for some `c` with minimal history.
-TODO: rename this predicate.
-
-See http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.51.493&rep=rep1&type=pdf p.13
-(Theorem 7)
-
 `elimed_ge : ℕ` is a natural number such that all variables with index ≥ `elimed_ge` have been
 removed from the system.
+
+This test is an overapproximation to minimality. It gives necessary but not sufficient conditions.
+If the history of `c` is minimal, then `c.maybe_minimal` is true,
+but `c.maybe_minimal` may also be true for some `c` with minimal history.
+Thus, if `c.maybe_minimal` is false, `c` is known not to be minimal and must be redundant.
+
+See http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.51.493&rep=rep1&type=pdf p.13
+(Theorem 7).
+
+The condition described there considers only implicitly eliminated variables that have been
+officially eliminated from the system. This is not the case for every implicitly eliminated variable.
+Consider eliminating `z` from `{x + y + z < 0, x - y - z < 0}`. The result is the set
+`{2*x < 0}`; `y` is implicitly but not officially eliminated.
+
+This implementation of Fourier-Motzkin elimination processes variables in decreasing order of
+indices. Immediately after a step that eliminates variable `k`, variable `k'` has been eliminated
+iff `k' ≥ k`. Thus we can compute the intersection of officially and implicitly eliminated variables
+by taking the set of implicitly eliminated variables with indices ≥ `elimed_ge`.
 -/
-meta def pcomp.is_minimal (c : pcomp) (elimed_ge : ℕ) : bool :=
-c.history.size ≤ 1 + ((c.implicit.filter ((≥ elimed_ge))).union c.effective).size
+meta def pcomp.maybe_minimal (c : pcomp) (elimed_ge : ℕ) : bool :=
+c.history.size ≤ 1 + ((c.implicit.filter (≥ elimed_ge)).union c.effective).size
 
 /-- `comp` has a lex order. First the `ineq`s are compared, then the `coeff`s. -/
 meta def comp.cmp : comp → comp → ordering
@@ -372,7 +404,7 @@ meta def elim_with_set (a : ℕ) (p : pcomp) (comps : rb_set pcomp) : rb_set pco
 if ¬ p.c.coeffs.contains a then mk_pcomp_set.insert p else
 comps.fold mk_pcomp_set $ λ pc s,
 match pelim_var p pc a with
-| some pc := if pc.is_minimal a then s.insert pc else s
+| some pc := if pc.maybe_minimal a then s.insert pc else s
 | none := s
 end
 

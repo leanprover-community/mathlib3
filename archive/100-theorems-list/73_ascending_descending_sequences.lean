@@ -26,8 +26,10 @@ variables {α : Type*} [linear_order α] {β : Type*}
 open function finset
 open_locale classical
 
-def mono_inc_on [linear_order β] (f : α → β) (t : set α) := ∀ (x ∈ t) (y ∈ t), x < y → f x < f y
-def mono_dec_on [linear_order β] (f : α → β) (t : set α) := ∀ (x ∈ t) (y ∈ t), x < y → f x > f y
+def mono_inc_on [linear_order β] (f : α → β) (t : set α) : Prop :=
+∀ (x ∈ t) (y ∈ t), x < y → f x < f y
+def mono_dec_on [linear_order β] (f : α → β) (t : set α) : Prop :=
+∀ (x ∈ t) (y ∈ t), x < y → f x > f y
 
 lemma nat.succ_injective : injective nat.succ := λ x y, nat.succ_inj
 

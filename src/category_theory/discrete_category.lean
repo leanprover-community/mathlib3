@@ -23,7 +23,7 @@ namespace discrete
 variables {α : Type u₁}
 
 instance [inhabited α] : inhabited (discrete α) :=
-by unfold discrete; apply_instance
+by { dsimp [discrete], apply_instance }
 
 instance [fintype α] : fintype (discrete α) :=
 by { dsimp [discrete], apply_instance }
@@ -39,7 +39,7 @@ variables {C : Type u₂} [category.{v₂} C]
 
 namespace functor
 
-def of_function {I : Type u₁} (F : I → C) : (discrete I) ⥤ C :=
+def of_function {I : Type u₁} (F : I → C) : discrete I ⥤ C :=
 { obj := F,
   map := λ X Y f, begin cases f, cases f, cases f, exact 𝟙 (F X) end }
 
@@ -47,6 +47,11 @@ def of_function {I : Type u₁} (F : I → C) : (discrete I) ⥤ C :=
 lemma of_function_map  {I : Type u₁} (F : I → C) {i : discrete I} (f : i ⟶ i) :
   (of_function F).map f = 𝟙 (F i) :=
 by { cases f, cases f, cases f, refl }
+
+@[simps]
+def of_function_obj_iso {I : Type u₁} (F : discrete I ⥤ C) : functor.of_function (F.obj) ≅ F :=
+{ hom := { app := λ i, 𝟙 _, },
+  inv := { app := λ i, 𝟙 _, }, }
 
 end functor
 

@@ -145,3 +145,11 @@ lemma bxor_iff_ne : ∀ {x y : bool}, bxor x y = tt ↔ x ≠ y := dec_trivial
 lemma bnot_inj : ∀ {a b : bool}, !a = !b → a = b := dec_trivial
 
 end bool
+
+instance : decidable_linear_order bool :=
+begin
+  constructor,
+  show bool → bool → Prop,
+  { exact λ a b, a = ff ∨ b = tt },
+  all_goals {apply_instance <|> exact dec_trivial}
+end

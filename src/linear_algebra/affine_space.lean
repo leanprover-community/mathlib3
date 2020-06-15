@@ -224,8 +224,7 @@ def mk_of_point_of_direction (p : P) (direction : submodule k V) : affine_subspa
     rcases hp2 with ⟨v2, hv2, hp2⟩,
     rw [hp1, hp2, vadd_vsub_vadd_cancel_right],
     exact direction.sub_mem hv1 hv2
-  end
-}
+  end }
 
 /-- The direction of an affine space constructed from a point and a
 direction. -/

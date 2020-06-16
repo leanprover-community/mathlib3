@@ -293,8 +293,11 @@ A `pcomp` represents a contradiction if its `comp` field represents a contradict
 -/
 meta def pcomp.is_contr (p : pcomp) : bool := p.c.is_contr
 
+/--
+`elim_var_with_set a p comps` collects the result of calling `pelim_var p p' a`
+for every `p' ∈ comps`.
+-/
 meta def elim_with_set (a : ℕ) (p : pcomp) (comps : rb_set pcomp) : rb_set pcomp :=
-if ¬ p.c.coeffs.contains a then mk_pcomp_set.insert p else
 comps.fold mk_pcomp_set $ λ pc s,
 match pelim_var p pc a with
 | some pc := s.insert pc
@@ -303,30 +306,40 @@ end
 
 /--
 The state for the elimination monad.
-* `vars`: the set of variables present in `comps`
+* `vars`: the set of variables that have not been officially eliminated
 * `comps`: a set of comparisons
-* `inputs`: a set of pairs of exprs `(t, pf)`, where `t` is a term and `pf` is a proof that
-  `t {<, ≤, =} 0`, indexed by `ℕ`.
-* `has_false`: stores a `pcomp` of `0 < 0` if one has been found
 
-TODO: is it more efficient to store comps as a list, to avoid comparisons?
+The elimination procedure proceeds by eliminating variable `v` from `comps` progressively
+for each `v ∈ vars`.
+
+Note: variables are eliminated in decreasing order. Instead of storing `vars` as an `rb_set`,
+we could store the largest `n : N` that has not yet been eliminated.
+This is not done yet for historical reasons, and is a negligible performance gain.
 -/
 meta structure linarith_structure :=
 (vars : rb_set ℕ)
 (comps : rb_set pcomp)
 
+/--
+The linarith monad extends an exceptional monad with a `linarith_structure` state.
+An exception produces a contradictory `pcomp`.
+-/
 @[reducible, derive [monad, monad_except pcomp]] meta def linarith_monad :=
 state_t linarith_structure (except_t pcomp id)
 
+/-- Return the set of active variables. -/
 meta def get_vars : linarith_monad (rb_set ℕ) :=
 linarith_structure.vars <$> get
 
+/-- Return the list of active variables. -/
 meta def get_var_list : linarith_monad (list ℕ) :=
 rb_set.to_list <$> get_vars
 
+/-- Return the current comparison set. -/
 meta def get_comps : linarith_monad (rb_set pcomp) :=
 linarith_structure.comps <$> get
 
+/-- Throws an exception if a contradictory `pcomp` is contained in the current state. -/
 meta def validate : linarith_monad unit :=
 do ⟨_, comps⟩ ← get,
 match comps.to_list.find (λ p : pcomp, p.is_contr) with
@@ -334,11 +347,22 @@ match comps.to_list.find (λ p : pcomp, p.is_contr) with
 | some c := throw c
 end
 
+/--
+Updates the current state with a new set of variables and comparisons,
+and calls `validate` to check for a contradiction.
+-/
 meta def update (vars : rb_set ℕ) (comps : rb_set pcomp) : linarith_monad unit :=
 state_t.put ⟨vars, comps⟩ >> validate
 
--- returns (pos, neg, not present)
-meta def split_set_by_var_parity (a : ℕ) (comps : rb_set pcomp) :
+/--
+`split_set_by_var_sign a comps` partitions the set `comps` into three parts.
+* `pos` contains the elements of `comps` in which `a` has a positive coefficient.
+* `neg` contains the elements of `comps` in which `a` has a negative coefficient.
+* `not_present` contains the elements of `comps` in which `a` has coefficient 0.
+
+Returns `(pos, neg, not_present)`.
+-/
+meta def split_set_by_var_sign (a : ℕ) (comps : rb_set pcomp) :
   rb_set pcomp × rb_set pcomp × rb_set pcomp :=
 comps.fold ⟨mk_pcomp_set, mk_pcomp_set, mk_pcomp_set⟩ $ λ pc ⟨pos, neg, not_present⟩,
   let n := pc.c.coeff_of a in
@@ -346,13 +370,21 @@ comps.fold ⟨mk_pcomp_set, mk_pcomp_set, mk_pcomp_set⟩ $ λ pc ⟨pos, neg, n
   else if n < 0 then ⟨pos, neg.insert pc, not_present⟩
   else ⟨pos, neg, not_present.insert pc⟩
 
+/--
+`monad.elim_var a` performs one round of Fourier-Motzkin elimination, eliminating the variable `a`
+from the `linarith` state.
+-/
 meta def monad.elim_var (a : ℕ) : linarith_monad unit :=
 do vs ← get_vars,
    when (vs.contains a) $
-do ⟨pos, neg, not_present⟩ ← split_set_by_var_parity a <$> get_comps,
+do ⟨pos, neg, not_present⟩ ← split_set_by_var_sign a <$> get_comps,
    let cs' := pos.fold mk_pcomp_set (λ p s, s.union (elim_with_set a p neg)),
    update (vs.erase a) $ cs'.union not_present
 
+/--
+`elim_all_vars` eliminates all variables from the linarith state, leaving it with a set of
+ground comparisons. If this succeeds without exception, the original `linarith` state is consistent.
+-/
 meta def elim_all_vars : linarith_monad unit :=
 get_var_list >>= list.mmap' monad.elim_var
 

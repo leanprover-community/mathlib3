@@ -17,17 +17,34 @@ A tactic for discharging linear arithmetic goals using Fourier-Motzkin eliminati
 - @TODO: delay proofs of denominator normalization and nat casting until after contradiction is
   found
 -/
-
+-- move to meta/expr.lean
+meta def expr.app_symbol_in (e : expr) (l : list name) : bool :=
+match e.get_app_fn with
+| (expr.const n _) := n ∈ l
+| _ := ff
+end
 meta def nat.to_pexpr : ℕ → pexpr
 | 0 := ``(0)
 | 1 := ``(1)
 | n := if n % 2 = 0 then ``(bit0 %%(nat.to_pexpr (n/2))) else ``(bit1 %%(nat.to_pexpr (n/2)))
 
+def {u} list.mmap_diag {m} [monad m] {α β : Type u} (f : α → α → m β) : list α → m (list β)
+| [] := return []
+| (h::t) := do v ← f h h, l ← t.mmap (f h), t ← t.mmap_diag, return $ (v::l) ++ t
+
 open native
 namespace linarith
 
-section lemmas
+declare_trace linarith
 
+meta def linarith_trace {α} [has_to_tactic_format α] (s : α) :=
+tactic.when_tracing `linarith (tactic.trace s)
+
+meta def linarith_trace_proofs (s : string := "") (l : list expr) : tactic unit :=
+tactic.when_tracing `linarith $ do
+  tactic.trace s, l.mmap tactic.infer_type >>= tactic.trace
+
+section lemmas
 lemma int.coe_nat_bit0 (n : ℕ) : (↑(bit0 n : ℕ) : ℤ) = bit0 (↑n : ℤ) := by simp [bit0]
 lemma int.coe_nat_bit1 (n : ℕ) : (↑(bit1 n : ℕ) : ℤ) = bit1 (↑n : ℤ) := by simp [bit1, bit0]
 lemma int.coe_nat_bit0_mul (n : ℕ) (x : ℕ) : (↑(bit0 n * x) : ℤ) = (↑(bit0 n) : ℤ) * (↑x : ℤ) := by simp
@@ -207,6 +224,8 @@ def ineq.to_string : ineq → string
 | lt := "<"
 
 instance : has_to_string ineq := ⟨ineq.to_string⟩
+
+meta instance : has_to_tactic_format ineq := ⟨λ i, return $ ineq.to_string i⟩
 
 /--
 The main datatype for FM elimination.
@@ -619,6 +638,12 @@ meta structure linarith_config :=
 (exfalso : bool := tt)
 (transparency : transparency := reducible)
 (split_hypotheses : bool := tt)
+(nonlinear_preprocessing : bool := ff)
+
+meta def linarith_config.update_reducibility (cfg : linarith_config) (reduce_semi : bool) :
+  linarith_config :=
+if reduce_semi then { cfg with transparency := semireducible, discharger := `[ring!] }
+else cfg
 
 meta def ineq_pf_tp (pf : expr) : tactic expr :=
 do (_, z) ← infer_type pf >>= get_rel_sides,
@@ -681,7 +706,7 @@ meta def rem_neg (prf : expr) : expr → tactic expr
 | `(_ ≥ _) := to_expr ``(lt_of_not_ge %%prf)
 | e := failed
 
-meta def rearr_comp : expr → expr → tactic expr
+private meta def rearr_comp_aux : expr → expr → tactic expr
 | prf `(%%a ≤ 0) := return prf
 | prf  `(%%a < 0) := return prf
 | prf  `(%%a = 0) := return prf
@@ -697,9 +722,15 @@ meta def rearr_comp : expr → expr → tactic expr
 | prf  `(%%a = %%b) := to_expr ``(sub_eq_zero.mpr %%prf)
 | prf  `(%%a > %%b) := to_expr ``(sub_neg_of_lt %%prf)
 | prf  `(%%a ≥ %%b) := to_expr ``(sub_nonpos.mpr %%prf)
-| prf  `(¬ %%t) := do nprf ← rem_neg prf t, tp ← infer_type nprf, rearr_comp nprf tp
-| prf  _ := fail "couldn't rearrange comp"
+| prf  `(¬ %%t) := do nprf ← rem_neg prf t, tp ← infer_type nprf, rearr_comp_aux nprf tp
+| prf  a := trace a >> fail "couldn't rearrange comp"
 
+/--
+`rearr_comp e` takes a proof `e` of an equality, inequality, or negation thereof,
+and turns it into a proof of a comparison `_ R 0`, where `R ∈ {=, ≤, <}`.
+ -/
+meta def rearr_comp (e : expr) : tactic expr :=
+infer_type e >>= rearr_comp_aux e
 
 meta def is_numeric : expr → option ℚ
 | `(%%e1 + %%e2) := (+) <$> is_numeric e1 <*> is_numeric e2
@@ -775,6 +806,7 @@ meta def expr_contains (n : name) : expr → bool
 lemma sub_into_lt {α} [ordered_semiring α] {a b : α} (he : a = b) (hl : a ≤ 0) : b ≤ 0 :=
 by rwa he at hl
 
+-- used in preprocessing
 meta def norm_hyp_aux (h' lhs : expr) : tactic expr :=
 do (v, lhs') ← kill_factors lhs,
    if v = 1 then return h' else do
@@ -802,6 +834,20 @@ meta def get_contr_lemma_name : expr → option name
 | `(¬ %%a = %%b) := return `not.intro
 | `(¬ %%a ≥ %%b) := return `not.intro
 | `(¬ %%a > %%b) := return `not.intro
+| _ := none
+
+meta def get_contr_lemma_name_and_type : expr → option (name × expr)
+| `(@has_lt.lt %%tp %%_ _ _) := return (`lt_of_not_ge, tp)
+| `(@has_le.le %%tp %%_ _ _) := return (`le_of_not_gt, tp)
+| `(@eq %%tp _ _) := return (``eq_of_not_lt_of_not_gt, tp)
+| `(@ne %%tp _ _) := return (`not.intro, tp)
+| `(@ge %%tp %%_ _ _) := return (`le_of_not_gt, tp)
+| `(@gt %%tp %%_ _ _) := return (`lt_of_not_ge, tp)
+| `(¬ @has_lt.lt %%tp %%_ _ _) := return (`not.intro, tp)
+| `(¬ @has_le.le %%tp %%_ _ _) := return (`not.intro, tp)
+| `(¬ @eq %%tp _ _) := return (``not.intro, tp)
+| `(¬ @ge %%tp %%_ _ _) := return (`not.intro, tp)
+| `(¬ @gt %%tp %%_ _ _) := return (`not.intro, tp)
 | _ := none
 
 /-- Assumes the input `t` is of type `ℕ`. Produces `t'` of type `ℤ` such that `↑t = t'` and
@@ -874,12 +920,36 @@ meta def guard_is_nat_prop : expr → tactic unit
 | `(¬ %%p) := guard_is_nat_prop p
 | _ := failed
 
+/--
+`is_nat_prop tp` is true iff `tp` is an inequality or equality between natural numbers
+or the negation thereof.
+-/
+meta def is_nat_prop : expr → bool
+| `(@eq ℕ %%_ _) := tt
+| `(@has_le.le ℕ %%_ _ _) := tt
+| `(@has_lt.lt ℕ %%_ _ _) := tt
+| `(@ge ℕ %%_ _ _) := tt
+| `(@gt ℕ %%_ _ _) := tt
+| `(¬ %%p) := is_nat_prop p
+| _ := ff
+
 meta def guard_is_strict_int_prop : expr → tactic unit
 | `(%%a < _) := infer_type a >>= unify `(ℤ)
 | `(%%a > _) := infer_type a >>= unify `(ℤ)
 | `(¬ %%a ≤ _) := infer_type a >>= unify `(ℤ)
 | `(¬ %%a ≥ _) := infer_type a >>= unify `(ℤ)
 | _ := failed
+
+/--
+`is_strict_int_prop tp` is true iff `tp` is a strict inequality between integers
+or the negation of a weak inequality between integers.
+-/
+meta def is_strict_int_prop : expr → bool
+| `(@has_lt.lt ℤ %%_ _ _) := tt
+| `(@gt ℤ %%_ _ _) := tt
+| `(¬ @has_le.le ℤ %%_ _ _) := tt
+| `(¬ @ge ℤ %%_ _ _) := tt
+| _ := ff
 
 meta def replace_nat_pfs : list expr → tactic (list expr)
 | [] := return []
@@ -902,9 +972,190 @@ meta def partition_by_type_aux : rb_lmap expr expr → list expr → tactic (rb_
 meta def partition_by_type (l : list expr) : tactic (rb_lmap expr expr) :=
 partition_by_type_aux mk_rb_map l
 
-private meta def try_linarith_on_lists (cfg : linarith_config) (ls : list (list expr)) : tactic unit :=
+meta def try_linarith_on_lists (cfg : linarith_config) (ls : list (list expr)) : tactic unit :=
 (first $ ls.map $ prove_false_by_linarith1 cfg) <|> fail "linarith failed"
 
+/--
+A preprocessor transforms a proof of a proposition into a proof of a different propositon.
+The return type is `list expr`, since some preprocessing steps may create multiple new hypotheses,
+and some may remove a hypothesis from the list.
+A "no-op" preprocessor should return its input as a singleton list.
+-/
+meta def preprocessor : Type := expr → tactic (list expr)
+
+private meta def filter_comparisons_aux : expr → bool
+| `(¬ %%p) := filter_comparisons_aux p
+| tp := tp.app_symbol_in [`has_lt.lt, `has_le.le, `gt, `ge, `eq]
+
+/--
+Removes any expressions that are not proofs of inequalities, equalities, or negations thereof.
+-/
+meta def filter_comparisons : preprocessor := λ h,
+(do tp ← infer_type h,
+   is_prop tp >>= guardb,
+   guardb (filter_comparisons_aux tp),
+   return [h])
+<|> return []
+
+/--
+If `h` is an equality or inequality between natural numbers,
+`nat_to_int h` lifts this inequality to the integers,
+adding the facts that the integers involved are nonnegative.
+ -/
+meta def nat_to_int : preprocessor := λ h,
+do tp ← infer_type h,
+   guardb (is_nat_prop tp) >> mk_int_pfs_of_nat_pf h <|> return [h]
+
+/-- `strengthen_strict_int h` turns a proof `h` of a strict integer inequality `t1 < t2`
+into a proof of `t1 ≤ t2 + 1`. -/
+meta def strengthen_strict_int : preprocessor := λ h,
+do tp ← infer_type h,
+   guardb (is_strict_int_prop tp) >> singleton <$> mk_non_strict_int_pf_of_strict_int_pf h
+     <|> return [h]
+
+/--
+`mk_comp_with_zero h` takes a proof `h` of an equality, inequality, or negation thereof,
+and turns it into a proof of a comparison `_ R 0`, where `R ∈ {=, ≤, <}`.
+ -/
+meta def make_comp_with_zero : preprocessor :=
+λ e, singleton <$> rearr_comp e
+
+/--
+`cancel_denoms pf` assumes `pf` is a proof of `t R 0`. If `t` contains the division symbol `/`,
+it tries to scale `t` to cancel out division by numerals.
+-/
+meta def cancel_denoms : preprocessor := λ pf,
+(do some (_, lhs) ← parse_into_comp_and_expr <$> infer_type pf,
+   guardb $ lhs.contains_constant (= `has_div.div),
+   singleton <$> norm_hyp_aux pf lhs)
+<|> return [pf]
+
+
+meta def global_preprocessor : Type := list expr → tactic (list expr)
+
+meta def preprocessor.globalize (pp : preprocessor) : global_preprocessor := λ l,
+do l' ← list.mfoldl (λ ret e, do l' ← pp e, return (l' ++ ret)) [] l,
+   linarith_trace_proofs "preprocessing produced" l',
+   return l'
+
+/--
+`find_squares m e` collects all terms of the form `a ^ 2` and `a * a` that appear in `e`
+and adds them to the set `m`.
+A pair `(a, tt)` is added to `m` when `a^2` appears in `e`, and `(a, ff)` is added to `m`
+when `a*a` appears in `e`.  -/
+meta def find_squares : rb_set (expr × bool) → expr → tactic (rb_set (expr × bool))
+| s `(%%a ^ 2) := do s ← find_squares s a, return (s.insert (a, tt))
+| s e@`(%%e1 * %%e2) := if e1 = e2 then do s ← find_squares s e1, return (s.insert (e1, ff)) else e.mfoldl find_squares s
+| s e := e.mfoldl find_squares s
+
+-- used in the `nlinarith` normalization steps. The `_` argument is for uniformity.
+@[nolint unused_arguments]
+lemma mul_zero_eq {α} {R : α → α → Prop} [semiring α] {a b : α} (_ : R a 0) (h : b = 0) : a * b = 0 :=
+by simp [h]
+
+-- used in the `nlinarith` normalization steps. The `_` argument is for uniformity.
+@[nolint unused_arguments]
+lemma zero_mul_eq {α} {R : α → α → Prop} [semiring α] {a b : α} (h : a = 0) (_ : R b 0) : a * b = 0 :=
+by simp [h]
+
+meta def nlinarith_extras : global_preprocessor := λ ls,
+do s ← ls.mfoldr (λ h s', infer_type h >>= find_squares s') mk_rb_set,
+   new_es ← s.mfold ([] : list expr) $ λ ⟨e, is_sq⟩ new_es,
+     (do p ← mk_app (if is_sq then ``pow_two_nonneg else ``mul_self_nonneg) [e],
+      return $ p::new_es),
+   new_es ← make_comp_with_zero.globalize new_es,
+   linarith_trace "nlinarith preprocessing found squares",
+   linarith_trace s,
+   linarith_trace_proofs "so we added proofs" new_es,
+   with_comps ← (new_es ++ ls).mmap (λ e, do
+     tp ← infer_type e,
+     return $ (parse_into_comp_and_expr tp).elim (ineq.lt, e) (λ ⟨ine, _⟩, (ine, e))),
+   products ← with_comps.mmap_diag $ λ ⟨posa, a⟩ ⟨posb, b⟩,
+    match posa, posb with
+      | ineq.eq, _ := mk_app ``zero_mul_eq [a, b]
+      | _, ineq.eq := mk_app ``mul_zero_eq [a, b]
+      | ineq.lt, ineq.lt := mk_app ``mul_pos_of_neg_of_neg [a, b]
+      | ineq.lt, ineq.le := do a ← mk_app ``le_of_lt [a], mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
+      | ineq.le, ineq.lt := do b ← mk_app ``le_of_lt [b], mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
+      | ineq.le, ineq.le := mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
+      end,
+    products ← make_comp_with_zero.globalize products,
+    return $ new_es ++ ls ++ products
+/--
+`preprocess pps l` takes a list `l` of proofs of propositions.
+It maps each preprocessor `pp ∈ pps` over this list.
+The preprocessors are run sequentially: each recieves the output of the previous one.
+Note that a preprocessor produces a `list expr` for each input `expr`,
+so the size of the list may change.
+-/
+meta def preprocess (pps : list global_preprocessor) (l : list expr) : tactic (list expr) :=
+pps.mfoldl (λ l' pp, pp l') l
+
+-- return : the type it compares over
+meta def apply_contr_lemma : tactic (option (expr × expr)) :=
+do t ← target,
+   match get_contr_lemma_name_and_type t with
+   | some (nm, tp) := do applyc nm, v ← intro1, return $ some (tp, v)
+   | none := return none
+   end
+
+meta def run_linarith_on_pfs (cfg : linarith_config) (hyps : list expr) (pref_type : option expr) :
+  tactic unit :=
+let preprocessors :=
+  [filter_comparisons, nat_to_int, strengthen_strict_int, make_comp_with_zero, cancel_denoms],
+    preprocessors := preprocessors.map preprocessor.globalize,
+    preprocessors := preprocessors ++ if cfg.nonlinear_preprocessing then [nlinarith_extras] else [] in
+do hyps ← preprocess preprocessors hyps,
+   linarith_trace_proofs ("after preprocessing, linarith has " ++ to_string hyps.length ++ " facts:") hyps,
+   hyp_set ← partition_by_type hyps,
+   linarith_trace "hypotheses appear in the following types:",
+   linarith_trace hyp_set.keys,
+   match pref_type with
+   | some t := prove_false_by_linarith1 cfg (hyp_set.ifind t) <|>
+               try_linarith_on_lists cfg (rb_map.values (hyp_set.erase t))
+   | none := try_linarith_on_lists cfg (rb_map.values hyp_set)
+   end
+
+meta def filter_hyps_to_type (restr_type : expr) : list expr → tactic (list expr)
+| [] := return []
+| (h::t) := do ht ← infer_type h,
+  match get_contr_lemma_name_and_type ht with
+  | some (_, h_type) :=
+    do t ← (filter_hyps_to_type t), unify h_type restr_type >> return (h::t) <|> return t
+  | none := filter_hyps_to_type t
+  end
+
+meta def get_restrict_type (e : expr) : tactic expr :=
+do m ← mk_mvar,
+   unify `(some %%m : option Type) e,
+   instantiate_mvars m
+end normalize
+end linarith
+
+section
+open linarith tactic
+meta def tactic.linarith (reduce_semi : bool) (only_on : bool) (hyps : list pexpr)
+  (cfg : linarith_config := {}) : tactic unit :=
+do t ← target,
+if t.is_eq.is_some then
+  linarith_trace "target is an equality: splitting" >>
+    seq' (applyc ``eq_of_not_lt_of_not_gt) tactic.linarith else
+do when cfg.split_hypotheses (linarith_trace "trying to split hypotheses" >> try auto.split_hyps),
+   pref_type_from_tgt ← apply_contr_lemma,
+   when pref_type_from_tgt.is_none $
+     if cfg.exfalso then linarith_trace "using exfalso" >> exfalso
+     else fail "linarith failed: target is not a valid comparison",
+   let cfg := (cfg.update_reducibility reduce_semi),
+   let (pref_type, new_var) := pref_type_from_tgt.elim (none, none) (λ ⟨a, b⟩, (some a, some b)),
+   hyps ← hyps.mmap i_to_expr,
+   hyps ← if only_on then return (new_var.elim [] (λ e, [e]) ++ hyps) else (++ hyps) <$> local_context,
+   hyps ← (do t ← get_restrict_type cfg.restrict_type_reflect, filter_hyps_to_type t hyps) <|> return hyps,
+   linarith_trace_proofs "linarith is running on the following hypotheses:" hyps,
+   run_linarith_on_pfs cfg hyps pref_type
+end
+
+namespace linarith
+open linarith tactic
 /--
 Takes a list of proofs of propositions.
 Filters out the proofs of linear (in)equalities,
@@ -927,27 +1178,8 @@ do l' ← replace_nat_pfs l,
       try_linarith_on_lists cfg (rb_map.values (ls.erase t))
    end
 
-end normalize
+--end normalize
 
-/--
-`find_squares m e` collects all terms of the form `a ^ 2` and `a * a` that appear in `e`
-and adds them to the set `m`.
-A pair `(a, tt)` is added to `m` when `a^2` appears in `e`, and `(a, ff)` is added to `m`
-when `a*a` appears in `e`.  -/
-meta def find_squares : rb_set (expr × bool) → expr → tactic (rb_set (expr × bool))
-| s `(%%a ^ 2) := do s ← find_squares s a, return (s.insert (a, tt))
-| s e@`(%%e1 * %%e2) := if e1 = e2 then do s ← find_squares s e1, return (s.insert (e1, ff)) else e.mfoldl find_squares s
-| s e := e.mfoldl find_squares s
-
--- used in the `nlinarith` normalization steps. The `_` argument is for uniformity.
-@[nolint unused_arguments]
-lemma mul_zero_eq {α} {R : α → α → Prop} [semiring α] {a b : α} (_ : R a 0) (h : b = 0) : a * b = 0 :=
-by simp [h]
-
--- used in the `nlinarith` normalization steps. The `_` argument is for uniformity.
-@[nolint unused_arguments]
-lemma zero_mul_eq {α} {R : α → α → Prop} [semiring α] {a b : α} (h : a = 0) (_ : R b 0) : a * b = 0 :=
-by simp [h]
 
 
 end linarith
@@ -1008,7 +1240,8 @@ Config options:
 meta def tactic.interactive.linarith (red : parse ((tk "!")?))
   (restr : parse ((tk "only")?)) (hyps : parse pexpr_list?)
   (cfg : linarith_config := {}) : tactic unit :=
-let cfg :=
+tactic.linarith red.is_some restr.is_some (hyps.get_or_else []) cfg
+/- let cfg :=
   if red.is_some then {cfg with transparency := semireducible, discharger := `[ring!]}
   else cfg in
 do t ← target,
@@ -1018,7 +1251,7 @@ do t ← target,
      do t ← intro1, linarith.interactive_aux cfg (some t) restr.is_some hyps
    | none := if cfg.exfalso then exfalso >> linarith.interactive_aux cfg none restr.is_some hyps
              else fail "linarith failed: target type is not an inequality."
-   end
+   end -/
 
 add_hint_tactic "linarith"
 
@@ -1089,7 +1322,9 @@ in `linarith`. The preprocessing is as follows:
 -/
 meta def tactic.interactive.nlinarith (red : parse ((tk "!")?))
   (restr : parse ((tk "only")?)) (hyps : parse pexpr_list?)
-  (cfg : linarith_config := {}) : tactic unit := do
+  (cfg : linarith_config := {}) : tactic unit :=
+tactic.linarith red.is_some restr.is_some (hyps.get_or_else []) {cfg with nonlinear_preprocessing := tt}
+/-   do
   ls ← match hyps with
     | none := if restr.is_some then return [] else local_context
     | some hyps := do
@@ -1130,7 +1365,7 @@ meta def tactic.interactive.nlinarith (red : parse ((tk "!")?))
       end,
     t ← infer_type p,
     assertv `h t p, skip),
-  tactic.interactive.linarith red restr hyps cfg
+  tactic.interactive.linarith red restr hyps cfg -/
 
 add_hint_tactic "nlinarith"
 

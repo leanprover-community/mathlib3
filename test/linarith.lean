@@ -296,6 +296,7 @@ begin
   intros, nlinarith
 end
 
+set_option trace.app_builder true
 example (x y : ℚ) : 0 ≤ x ^2 + y ^2 :=
 by nlinarith
 
@@ -305,15 +306,15 @@ by nlinarith
 example (x y : ℚ) : x = 0 → y = 0 → x*x + y*y = 0 :=
 by intros; nlinarith
 
-/- lemma norm_eq_zero_iff {x y : ℚ} : x * x + y * y = 0 ↔ x = 0 ∧ y = 0 :=
+lemma norm_eq_zero_iff {x y : ℚ} : x * x + y * y = 0 ↔ x = 0 ∧ y = 0 :=
 begin
   split,
-  { intro h, split; sorry }, -- should be solved after refactor
-  { rintro ⟨⟩, nlinarith }
-end -/
+  { intro, split; nlinarith },
+  { intro, nlinarith }
+end
 
--- should be solved after refactor
-/- lemma norm_nonpos_right {x y : ℚ} (h1 : x * x + y * y ≤ 0) : y = 0 :=
+lemma norm_nonpos_right {x y : ℚ} (h1 : x * x + y * y ≤ 0) : y = 0 :=
 by nlinarith
+
 lemma norm_nonpos_left (x y : ℚ) (h1 : x * x + y * y ≤ 0) : x = 0 :=
-by nlinarith -/
+by nlinarith

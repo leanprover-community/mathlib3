@@ -126,7 +126,7 @@ end
 
 lemma to_finset_insert [decidable_eq α] {a : α} {s : set α} (hs : finite s) :
   (finite_insert a hs).to_finset = insert a hs.to_finset :=
-finset.ext.mpr $ by simp
+finset.ext $ by simp
 
 @[elab_as_eliminator]
 theorem finite.induction_on {C : set α → Prop} {s : set α} (h : finite s)
@@ -455,6 +455,11 @@ begin
     { exact (h hbc).elim },
     { exact ih c hcs hbc } }
 end
+
+lemma finite.card_to_finset {s : set α} [fintype s] (h : s.finite) :
+  h.to_finset.card = fintype.card s :=
+by { rw [← finset.card_attach, finset.attach_eq_univ, ← fintype.card], congr' 2, funext,
+     rw set.finite.mem_to_finset }
 
 section
 

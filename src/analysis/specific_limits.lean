@@ -8,6 +8,7 @@ A collection of specific limit computations.
 import analysis.normed_space.basic
 import algebra.geom_sum
 import topology.instances.ennreal
+import tactic.ring_exp
 
 noncomputable theory
 open_locale classical topological_space
@@ -183,6 +184,39 @@ by_cases
         (tendsto_pow_at_top_at_top_of_one_lt $ one_lt_inv (lt_of_le_of_ne h₁ this.symm) h₂),
     tendsto.congr' (univ_mem_sets' $ by simp *) this)
 
+lemma geom_lt {u : ℕ → ℝ} {k : ℝ} (hk : 0 < k) {n : ℕ} (h : ∀ m ≤ n, k*u m < u (m + 1)) :
+  k^(n + 1) *u 0 < u (n + 1) :=
+begin
+ induction n with n ih,
+ { simpa using h 0 (le_refl _) },
+ have : (∀ (m : ℕ), m ≤ n → k * u m < u (m + 1)),
+   intros m hm, apply h, exact nat.le_succ_of_le hm,
+ specialize ih this,
+ change k ^ (n + 2) * u 0 < u (n + 2),
+ replace h : k * u (n + 1) < u (n + 2) := h (n+1) (le_refl _),
+ calc k ^ (n + 2) * u 0 = k*(k ^ (n + 1) * u 0) : by ring_exp
+  ... < k*(u (n + 1)) : mul_lt_mul_of_pos_left ih hk
+  ... < u (n + 2) : h,
+end
+
+/-- If a sequence `v` of real numbers satisfies `k*v n < v (n+1)` with `1 < k`,
+then it goes to +∞. -/
+lemma tendsto_at_top_of_geom_lt {v : ℕ → ℝ} {k : ℝ} (h₀ : 0 < v 0) (hk : 1 < k)
+  (hu : ∀ n, k*v n < v (n+1)) : tendsto v at_top at_top :=
+begin
+  apply tendsto_at_top_mono,
+  show ∀ n, k^n*v 0 ≤ v n,
+  { intro n,
+    induction n with n ih,
+    { simp },
+    calc
+    k ^ (n + 1) * v 0 = k*(k^n*v 0) : by ring_exp
+                  ... ≤ k*v n       : mul_le_mul_of_nonneg_left ih (by linarith)
+                  ... ≤ v (n + 1)   : le_of_lt (hu n) },
+  apply tendsto_at_top_mul_right h₀,
+  exact tendsto_pow_at_top_at_top_of_one_lt hk,
+end
+
 lemma nnreal.tendsto_pow_at_top_nhds_0_of_lt_1 {r : nnreal} (hr : r < 1) :
   tendsto (λ n:ℕ, r^n) at_top (𝓝 0) :=
 nnreal.tendsto_coe.1 $ by simp only [nnreal.coe_pow, nnreal.coe_zero,
@@ -238,6 +272,14 @@ lemma summable_geometric_two : summable (λn:ℕ, ((1:ℝ)/2) ^ n) :=
 
 lemma tsum_geometric_two : (∑'n:ℕ, ((1:ℝ)/2) ^ n) = 2 :=
 tsum_eq_has_sum has_sum_geometric_two
+
+lemma sum_geometric_two_le (n : ℕ) : ∑ (i : ℕ) in range n, (1 / (2 : ℝ)) ^ i ≤ 2 :=
+begin
+  have : ∀ i, 0 ≤ (1 / (2 : ℝ)) ^ i,
+  { intro i, apply pow_nonneg, norm_num },
+  convert sum_le_tsum (range n) (λ i _, this i) summable_geometric_two,
+  exact tsum_geometric_two.symm
+end
 
 lemma has_sum_geometric_two' (a : ℝ) : has_sum (λn:ℕ, (a / 2) / 2 ^ n) a :=
 begin

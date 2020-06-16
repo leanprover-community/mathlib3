@@ -524,7 +524,7 @@ lemma small_step_if_equal_states {S T s t s' t'}
     (hstep : small_step (S, s) (T, t)) (hs : s' = s) (ht : t' = t) :
   small_step (S, s') (T, t') :=
 begin
-  induction' hstep; dsimp at *,
+  induction' hstep,
   { rw [hs, ht],
     exact small_step.assign,
   },

@@ -202,7 +202,21 @@ variables {α : Type} [has_lt α] [decidable_rel ((<) : α → α → Prop)]
 meta def merge (xs ys : rb_set α) : rb_set α :=
 rb_set.fold ys xs (λ a xs, xs.insert a)
 
+meta def merge_many (xs : list (rb_set α)) : rb_set α :=
+xs.foldl merge mk_rb_set
+
 end rb_set
+
+
+namespace name_set
+
+meta def merge (xs ys : name_set) : name_set :=
+name_set.fold ys xs (λ a xs, xs.insert a)
+
+meta def merge_many (xs : list name_set) : name_set :=
+xs.foldl merge mk_name_set
+
+end name_set
 end native
 
 open native
@@ -762,6 +776,7 @@ TODO precond: `fixed` contains only locals
 -/
 -- TODO efficiency: we could put the locals that appear in each hypothesis in a
 -- map to avoid multiple traversals
+-- TODO what happens with local defs?
 meta def revert_all_except_locals (fixed : list expr) : tactic (ℕ × list name) := do
   ctx ← local_context,
   to_revert ← ctx.mfilter $ λ hyp,
@@ -816,7 +831,7 @@ fields.mmap (λ f, do
     let proj := (const f struct_levels).mk_app params,
     let lhs' := proj lhs,
     let rhs' := proj rhs,
-    rhs' ← whnf rhs', -- TODO we really just want to reduce the projection here
+    rhs' ← unfold_proj rhs',
     lhs'_type ← infer_type lhs',
     rhs'_type ← infer_type rhs',
     sort u' ← infer_type lhs'_type,
@@ -834,25 +849,31 @@ fields.mmap (λ f, do
   )
 
 meta def decompose_structure_equation
-  : expr → expr → tactic (list (expr × expr)) :=
+  : expr → expr → tactic (list (expr × expr) × name_set) :=
 λ e e_type, do
   some ⟨struct_levels, params, fields, u, type, lhs, rhs⟩ ←
     match_structure_equation e_type
-    | pure [(e, e_type)],
+    | pure ([(e, e_type)], mk_name_set),
   children ←
     decompose_structure_equation_once e struct_levels params fields u type lhs rhs,
-  list.join <$> children.mmap (λ ⟨e, e_type⟩, decompose_structure_equation e e_type)
+  child_results
+    ← children.mmap (λ ⟨e, e_type⟩, decompose_structure_equation e e_type),
+  let child_equations := (child_results.map prod.fst).join,
+  let child_fields := name_set.merge_many (child_results.map prod.snd),
+  pure (child_equations, child_fields)
 
-meta def decompose_structure_equation_hyp (h : expr) : tactic unit := do
+meta def decompose_structure_equation_hyp (h : expr) : tactic name_set := do
   h_type ← infer_type h,
-  some _ ← match_structure_equation h_type | pure (),
-  hs ← decompose_structure_equation h h_type,
-  hs.mmap' $ λ ⟨i, i_type⟩, do
+  some _ ← match_structure_equation h_type | pure mk_name_set,
+  ⟨hs, fields⟩ ← decompose_structure_equation h h_type,
+  hs.mmap' $ λ ⟨i, i_type⟩, do {
     n ← mk_fresh_name,
     h ← assertv n i_type i,
     subst_core h <|> clear h
     -- TODO we can check more specifically whether h has the right shape
     -- for substitution
+  },
+  pure fields
 
 namespace interactive
 
@@ -867,12 +888,12 @@ meta def decompose_structure_equation (h : parse ident) : tactic unit := do
 end interactive
 
 meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr)
-  : tactic (expr × ℕ) := do
+  : tactic (expr × ℕ × name_set) := do
   let ⟨locals, nonlocals⟩ :=
     index_args.partition (λ arg : expr, arg.is_local_constant),
 
   -- If there aren't any complex index arguments, we don't need to do anything.
-  (_ :: _) ← pure nonlocals | pure (eliminee, 0),
+  (_ :: _) ← pure nonlocals | pure (eliminee, 0, mk_name_set),
 
   -- Revert the eliminee (and any hypotheses depending on it).
   num_reverted_eliminee ← revert eliminee,
@@ -901,10 +922,11 @@ meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr
   -- NOTE: Each step in the following loop may change the unique names of
   -- hypotheses in the context, so we go by pretty names. We made sure above
   -- that these are unique.
-  index_equation_names.mmap' $ λ eq, do {
+  fields ← index_equation_names.mmap $ λ eq, do {
     eq ← get_local eq,
     decompose_structure_equation_hyp eq
   },
+  let fields := name_set.merge_many fields,
 
   -- Re-introduce the indices' dependencies
   intron num_reverted_args,
@@ -917,7 +939,7 @@ meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr
   index_var_equations ← index_equation_names.mmap get_local,
   revert_lst index_var_equations,
 
-  pure (eliminee, nonlocals.length)
+  pure (eliminee, nonlocals.length, fields)
 
 meta def replace' (h : expr) (x : expr) (t : option expr := none) : tactic expr := do
   h' ← note h.local_pp_name t x,
@@ -1198,6 +1220,31 @@ do gs ← get_goals,
           (case_tag.from_tag_hyps (n :: in_tag) (new_hyps.map expr.local_uniq_name)).render
    end
 
+meta def unfold_only (to_unfold : list name) (e : expr) (fail_if_unchanged := tt)
+  : tactic expr :=
+simp_lemmas.dsimplify simp_lemmas.mk to_unfold e
+  { eta := ff, zeta := ff, beta := ff, iota := ff
+  , fail_if_unchanged := fail_if_unchanged }
+
+meta def unfold_only_target (to_unfold : list name) (fail_if_unchanged := tt)
+  : tactic unit := do
+  tgt ← target,
+  tgt ← unfold_only to_unfold tgt fail_if_unchanged,
+  unsafe_change tgt
+
+-- Note: frozen local instances.
+-- Note: changes all unique names.
+meta def unfold_only_everywhere (to_unfold : list name) (fail_if_unchanged := tt)
+  : tactic unit := do
+  n ← revert_all,
+  unfold_only_target to_unfold fail_if_unchanged,
+  intron n
+
+meta def revert_all_except (hyp_unique_names : name_set) : tactic ℕ := do
+  ctx ← revertible_local_context,
+  let ctx := ctx.filter (λ h, ¬ hyp_unique_names.contains h.local_uniq_name),
+  revert_lst ctx
+
 meta def induction'' (eliminee_name : name) (fix : list name) : tactic unit :=
 focus1 $ do
   einfo ← get_eliminee_info eliminee_name,
@@ -1220,7 +1267,7 @@ focus1 $ do
   -- (`environment.is_ginductive` doesn't seem to work.)
 
   -- Generalise complex indices
-  (eliminee, num_index_vars) ←
+  (eliminee, num_index_vars, structure_field_names) ←
     generalize_complex_index_args eliminee (eliminee_args.drop iinfo.num_params),
 
   -- Generalise all generalisable hypotheses except those mentioned in a "fixing"
@@ -1247,7 +1294,7 @@ focus1 $ do
     focus $ iinfo.constructors.map $ λ cinfo, do {
       -- Get the eliminee's arguments. (Some of these may have changed due to
       -- the generalising step above.)
-      -- TODO propagate this information instead of re-parsing the type here
+      -- TODO propagate this information instead of re-parsing the type here?
       eliminee_type ← infer_type eliminee,
       ⟨_, eliminee_args⟩ ← decompose_app_normalizing eliminee_type,
 
@@ -1261,8 +1308,22 @@ focus1 $ do
       -- avoid this, i.e. clean up even more conservatively?
       eliminee_args.mmap' (try ∘ clear),
 
+      -- Unfold structure projections which may have been introduced by the
+      -- structure equation simplification step of generalize_complex_index_args.
+      -- TODO This method reduces every occurrence of the given structure field
+      -- projections, not only those which we actually introduced. This may
+      -- yield some surprising results, but I don't see an easy way to prevent
+      -- it.
+      n ← revert_all_except old_hyps,
+      unfold_only_target structure_field_names.to_list ff,
+      intron n,
+
+      -- NOTE: The previous step invalidates all unique names (except those of
+      -- the old hyps).
+
       -- Introduce the constructor arguments
       ihs ← constructor_intros einfo iinfo cinfo generalized_names,
+      let ihs := ihs.map expr.local_pp_name,
 
       -- Introduce any hypotheses we've previously generalised
       generalized_hyps ← intron' num_generalized,
@@ -1275,14 +1336,11 @@ focus1 $ do
       ff ← simplify_index_equations (index_equations.map expr.local_pp_name)
         | pure none,
 
-      -- The previous step may have changed the unique names of the induction
-      -- hypotheses, so we have to locate them again. Their pretty names should
-      -- be unique in the context, so we can use these.
-      -- TODO verify this
-      ihs ← ihs.mmap (λ h, get_local h.local_pp_name),
-
       -- Simplify the induction hypotheses
-      ihs.mmap' (simplify_ih num_generalized num_index_vars),
+      -- NOTE: The previous step may have changed the unique names of the
+      -- induction hypotheses, so we have to locate them again. Their pretty
+      -- names should be unique in the context, so we can use these.
+      ihs.mmap' (get_local >=> simplify_ih num_generalized num_index_vars),
 
       -- Return the constructor name and the new hypotheses
       new_hyps ← hyps_except old_hyps,

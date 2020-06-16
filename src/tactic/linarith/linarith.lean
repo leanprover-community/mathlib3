@@ -1001,7 +1001,7 @@ do tp ← infer_type h,
 and turns it into a proof of a comparison `_ R 0`, where `R ∈ {=, ≤, <}`.
  -/
 meta def make_comp_with_zero : preprocessor :=
-λ e, singleton <$> rearr_comp e
+λ e, singleton <$> rearr_comp e <|> return []
 
 /--
 `cancel_denoms pf` assumes `pf` is a proof of `t R 0`. If `t` contains the division symbol `/`,

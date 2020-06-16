@@ -795,32 +795,18 @@ meta def kill_factors (e : expr) : tactic (ℕ × expr) :=
 let (n, t) := find_cancel_factor e in
 do e' ← mk_prod_prf n t e, return (n, e')
 
-open expr
-meta def expr_contains (n : name) : expr → bool
-| (const nm _) := nm = n
-| (lam _ _ _ bd) := expr_contains bd
-| (pi _ _ _ bd) := expr_contains bd
-| (app e1 e2) := expr_contains e1 || expr_contains e2
-| _ := ff
 
-lemma sub_into_lt {α} [ordered_semiring α] {a b : α} (he : a = b) (hl : a ≤ 0) : b ≤ 0 :=
-by rwa he at hl
 
--- used in preprocessing
-meta def norm_hyp_aux (h' lhs : expr) : tactic expr :=
+/--
+`normalize_denominators_in_lhs h lhs` assumes that `h` is a proof of `lhs R 0`.
+It creates a proof of `lhs' R 0`, where all numeric division in `lhs` has been cancelled.
+-/
+meta def normalize_denominators_in_lhs (h lhs : expr) : tactic expr :=
 do (v, lhs') ← kill_factors lhs,
-   if v = 1 then return h' else do
-   (ih, h'') ← mk_single_comp_zero_pf v h',
+   if v = 1 then return h else do
+   (ih, h'') ← mk_single_comp_zero_pf v h,
    (_, nep, _) ← infer_type h'' >>= rewrite_core lhs',
    mk_eq_mp nep h''
-
-meta def norm_hyp (h : expr) : tactic expr :=
-do htp ← infer_type h,
-   h' ← rearr_comp h htp,
-   some (c, lhs) ← parse_into_comp_and_expr <$> infer_type h',
-   if expr_contains `has_div.div lhs then
-     norm_hyp_aux h' lhs
-   else return h'
 
 meta def get_contr_lemma_name : expr → option name
 | `(%%a < %%b) := return `lt_of_not_ge
@@ -1027,7 +1013,7 @@ it tries to scale `t` to cancel out division by numerals.
 meta def cancel_denoms : preprocessor := λ pf,
 (do some (_, lhs) ← parse_into_comp_and_expr <$> infer_type pf,
    guardb $ lhs.contains_constant (= `has_div.div),
-   singleton <$> norm_hyp_aux pf lhs)
+   singleton <$> normalize_denominators_in_lhs pf lhs)
 <|> return [pf]
 
 
@@ -1152,72 +1138,10 @@ do when cfg.split_hypotheses (linarith_trace "trying to split hypotheses" >> try
    hyps ← (do t ← get_restrict_type cfg.restrict_type_reflect, filter_hyps_to_type t hyps) <|> return hyps,
    linarith_trace_proofs "linarith is running on the following hypotheses:" hyps,
    run_linarith_on_pfs cfg hyps pref_type
-end
-
-namespace linarith
-open linarith tactic
-/--
-Takes a list of proofs of propositions.
-Filters out the proofs of linear (in)equalities,
-and tries to use them to prove `false`.
-If `pref_type` is given, starts by working over this type.
--/
-meta def prove_false_by_linarith (cfg : linarith_config) (pref_type : option expr) (l : list expr) : tactic unit :=
-do l' ← replace_nat_pfs l,
-   l'' ← replace_strict_int_pfs l',
-   ls ← list.reduce_option <$> l''.mmap (λ h, (do s ← norm_hyp h, return (some s)) <|> return none)
-          >>= partition_by_type,
-   pref_type ← (unify pref_type.iget `(ℕ) >> return (some `(ℤ) : option expr)) <|> return pref_type,
-   match cfg.restrict_type, rb_map.values ls, pref_type with
-   | some rtp, _, _ :=
-      do m ← mk_mvar, unify `(some %%m : option Type) cfg.restrict_type_reflect, m ← instantiate_mvars m,
-         prove_false_by_linarith1 cfg (ls.ifind m)
-   | none, [ls'], _ := prove_false_by_linarith1 cfg ls'
-   | none, ls', none := try_linarith_on_lists cfg ls'
-   | none, _, (some t) := prove_false_by_linarith1 cfg (ls.ifind t) <|>
-      try_linarith_on_lists cfg (rb_map.values (ls.erase t))
-   end
-
---end normalize
-
-
-
-end linarith
-
-section
-open tactic linarith
 
 open lean lean.parser interactive tactic interactive.types
 local postfix `?`:9001 := optional
 local postfix *:9001 := many
-
-meta def linarith.elab_arg_list : option (list pexpr) → tactic (list expr)
-| none := return []
-| (some l) := l.mmap i_to_expr
-
-meta def linarith.preferred_type_of_goal : option expr → tactic (option expr)
-| none := return none
-| (some e) := some <$> ineq_pf_tp e
-
-/--
-`linarith.interactive_aux cfg o_goal restrict_hyps args`:
-* `cfg` is a `linarith_config` object
-* `o_goal : option expr` is the local constant corresponding to the former goal, if there was one
-* `restrict_hyps : bool` is `tt` if `linarith only [...]` was used
-* `args : option (list pexpr)` is the optional list of arguments in `linarith [...]`
--/
-meta def linarith.interactive_aux (cfg : linarith_config) :
-  option expr → bool → option (list pexpr) → tactic unit
-| none tt none := fail "linarith only called with no arguments"
-| none tt (some l) := l.mmap i_to_expr >>= prove_false_by_linarith cfg none
-| (some e) tt l :=
-  do tp ← ineq_pf_tp e,
-     list.cons e <$> linarith.elab_arg_list l >>= prove_false_by_linarith cfg (some tp)
-| oe ff l :=
-  do otp ← linarith.preferred_type_of_goal oe,
-     list.append <$> local_context <*>
-      (list.filter (λ a, bnot $ expr.is_local_constant a) <$> linarith.elab_arg_list l) >>=
-     prove_false_by_linarith cfg otp
 
 /--
 Tries to prove a goal of `false` by linear arithmetic on hypotheses.
@@ -1236,22 +1160,12 @@ Config options:
 * `linarith {restrict_type := T}` will run only on hypotheses that are inequalities over `T`
 * `linarith {discharger := tac}` will use `tac` instead of `ring` for normalization.
   Options: `ring2`, `ring SOP`, `simp`
+* `linarith {split_hypotheses := ff}` will not destruct conjunctions in the context.
 -/
 meta def tactic.interactive.linarith (red : parse ((tk "!")?))
   (restr : parse ((tk "only")?)) (hyps : parse pexpr_list?)
   (cfg : linarith_config := {}) : tactic unit :=
 tactic.linarith red.is_some restr.is_some (hyps.get_or_else []) cfg
-/- let cfg :=
-  if red.is_some then {cfg with transparency := semireducible, discharger := `[ring!]}
-  else cfg in
-do t ← target,
-   when cfg.split_hypotheses (try auto.split_hyps),
-   match get_contr_lemma_name t with
-   | some nm := seq' (applyc nm) $
-     do t ← intro1, linarith.interactive_aux cfg (some t) restr.is_some hyps
-   | none := if cfg.exfalso then exfalso >> linarith.interactive_aux cfg none restr.is_some hyps
-             else fail "linarith failed: target type is not an inequality."
-   end -/
 
 add_hint_tactic "linarith"
 
@@ -1324,48 +1238,6 @@ meta def tactic.interactive.nlinarith (red : parse ((tk "!")?))
   (restr : parse ((tk "only")?)) (hyps : parse pexpr_list?)
   (cfg : linarith_config := {}) : tactic unit :=
 tactic.linarith red.is_some restr.is_some (hyps.get_or_else []) {cfg with nonlinear_preprocessing := tt}
-/-   do
-  ls ← match hyps with
-    | none := if restr.is_some then return [] else local_context
-    | some hyps := do
-      ls ← hyps.mmap i_to_expr,
-      if restr.is_some then return ls else (++ ls) <$> local_context
-    end,
-  (s, ge0) ← (list.mfoldr (λ h ⟨s, l⟩, do
-      h ← infer_type h >>= rearr_comp h <|> return h,
-      t ← infer_type h,
-      s ← find_squares s t,
-      return (s, match t with
-        | `(%%a ≤ 0) := (ineq.le, h) :: l
-        | `(%%a < 0) := (ineq.lt, h) :: l
-        | `(%%a = 0) := (ineq.eq, h) :: l
-        | _ := l end))
-    (mk_rb_set, []) ls : tactic (rb_set (expr × bool) × list (ineq × expr))),
-  s ← target >>= find_squares s,
-  (hyps, ge0) ← s.fold (return (hyps, ge0)) (λ ⟨e, is_sq⟩ tac, do
-    (hyps, ge0) ← tac,
-    (do
-      t ← infer_type e,
-      when cfg.restrict_type.is_some
-        (is_def_eq `(some %%t : option Type) cfg.restrict_type_reflect),
-      p ← mk_app (if is_sq then ``pow_two_nonneg else ``mul_self_nonneg) [e],
-      p ← infer_type p >>= rearr_comp p <|> return p,
-      t ← infer_type p,
-      h ← assertv `h t p,
-      return (hyps.map (λ l, pexpr.of_expr h :: l), (ineq.le, h) :: ge0)) <|>
-    return (hyps, ge0)),
-  ge0.mmap'_diag (λ ⟨posa, a⟩ ⟨posb, b⟩, do
-    p ←  match posa, posb with
-      | ineq.eq, _ := mk_app ``zero_mul_eq [a, b]
-      | _, ineq.eq := mk_app ``mul_zero_eq [a, b]
-      | ineq.lt, ineq.lt := mk_app ``mul_pos_of_neg_of_neg [a, b]
-      | ineq.lt, ineq.le := do a ← mk_app ``le_of_lt [a], mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
-      | ineq.le, ineq.lt := do b ← mk_app ``le_of_lt [b], mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
-      | ineq.le, ineq.le := mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
-      end,
-    t ← infer_type p,
-    assertv `h t p, skip),
-  tactic.interactive.linarith red restr hyps cfg -/
 
 add_hint_tactic "nlinarith"
 

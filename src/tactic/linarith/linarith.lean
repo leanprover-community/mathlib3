@@ -903,15 +903,6 @@ match tp with
 | _ := fail "mk_non_strict_int_pf_of_strict_int_pf failed: proof is not an inequality"
 end
 
-meta def guard_is_nat_prop : expr → tactic unit
-| `(%%a = _) := infer_type a >>= unify `(ℕ)
-| `(%%a ≤ _) := infer_type a >>= unify `(ℕ)
-| `(%%a < _) := infer_type a >>= unify `(ℕ)
-| `(%%a ≥ _) := infer_type a >>= unify `(ℕ)
-| `(%%a > _) := infer_type a >>= unify `(ℕ)
-| `(¬ %%p) := guard_is_nat_prop p
-| _ := failed
-
 /--
 `is_nat_prop tp` is true iff `tp` is an inequality or equality between natural numbers
 or the negation thereof.
@@ -925,13 +916,6 @@ meta def is_nat_prop : expr → bool
 | `(¬ %%p) := is_nat_prop p
 | _ := ff
 
-meta def guard_is_strict_int_prop : expr → tactic unit
-| `(%%a < _) := infer_type a >>= unify `(ℤ)
-| `(%%a > _) := infer_type a >>= unify `(ℤ)
-| `(¬ %%a ≤ _) := infer_type a >>= unify `(ℤ)
-| `(¬ %%a ≥ _) := infer_type a >>= unify `(ℤ)
-| _ := failed
-
 /--
 `is_strict_int_prop tp` is true iff `tp` is a strict inequality between integers
 or the negation of a weak inequality between integers.
@@ -942,20 +926,6 @@ meta def is_strict_int_prop : expr → bool
 | `(¬ @has_le.le ℤ %%_ _ _) := tt
 | `(¬ @ge ℤ %%_ _ _) := tt
 | _ := ff
-
-meta def replace_nat_pfs : list expr → tactic (list expr)
-| [] := return []
-| (h::t) :=
-  (do infer_type h >>= guard_is_nat_prop,
-      ls ← mk_int_pfs_of_nat_pf h,
-      list.append ls <$> replace_nat_pfs t) <|> list.cons h <$> replace_nat_pfs t
-
-meta def replace_strict_int_pfs : list expr → tactic (list expr)
-| [] := return []
-| (h::t) :=
-  (do infer_type h >>= guard_is_strict_int_prop,
-      l ← mk_non_strict_int_pf_of_strict_int_pf h,
-      list.cons l <$> replace_strict_int_pfs t) <|> list.cons h <$> replace_strict_int_pfs t
 
 meta def partition_by_type_aux : rb_lmap expr expr → list expr → tactic (rb_lmap expr expr)
 | m [] := return m
@@ -976,7 +946,7 @@ A "no-op" preprocessor should return its input as a singleton list.
 meta def preprocessor : Type := expr → tactic (list expr)
 
 private meta def filter_comparisons_aux : expr → bool
-| `(¬ %%p) := filter_comparisons_aux p
+| `(¬ %%p) := p.app_symbol_in [`has_lt.lt, `has_le.le, `gt, `ge]
 | tp := tp.app_symbol_in [`has_lt.lt, `has_le.le, `gt, `ge, `eq]
 
 /--

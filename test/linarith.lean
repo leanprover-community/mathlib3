@@ -1,5 +1,20 @@
 import tactic.linarith
 
+example {α : Type} (_inst : Π (a : Prop), decidable a)
+  [linear_ordered_field α]
+  {a b c : α}
+  (ha : a < 0)
+  (hb : ¬b = 0)
+  (hc' : c = 0)
+  (h : (1 - a) * (b * b) ≤ 0)
+  (hc : 0 ≤ 0)
+  (this : -(a * -b * -b + b * -b + 0) = (1 - a) * (b * b))
+  (h : (1 - a) * (b * b) ≤ 0) :
+  0 < 1 - a :=
+begin
+  linarith
+end
+
 
 example (e b c a v0 v1 : ℚ) (h1 : v0 = 5*a) (h2 : v1 = 3*b) (h3 : v0 + v1 + c = 10) :
   v0 + 5 + (v1 - 3) + (c - 2) = 10 :=

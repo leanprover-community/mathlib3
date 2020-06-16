@@ -166,6 +166,11 @@ def find (p : α → Prop) [decidable_pred p] : list α → option α
 | []     := none
 | (a::l) := if p a then some a else find l
 
+/-- `mfind tac l` returns the first element of `l` on which `tac` succeeds, and fails otherwise. -/
+meta def mfind {α} (tac : α → tactic unit) : list α → tactic α
+| [] := tactic.failed
+| (h::t) := tac h >> return h <|> mfind t
+
 def find_indexes_aux (p : α → Prop) [decidable_pred p] : list α → nat → list nat
 | []     n := []
 | (a::l) n := let t := find_indexes_aux l (succ n) in if p a then n :: t else t

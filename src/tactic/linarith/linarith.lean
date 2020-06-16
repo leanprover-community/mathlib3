@@ -265,7 +265,29 @@ of `mk_rb_map` for performance reasons. -/
 meta def mk_pcomp_set : rb_set pcomp :=
 rb_map.mk_core unit pcomp.cmp
 
-section fm_elim
+
+/-!
+### The Fourier-Motzkin elimination procedure
+
+The Fourier-Motzkin procedure is a variable elimination method for linear inequalities.
+<https://en.wikipedia.org/wiki/Fourier%E2%80%93Motzkin_elimination>
+
+Given a set of linear inequalities `comps = {tᵢ Rᵢ 0}`,
+we aim to eliminate a single variable `a` from the set.
+We partition `comps` into `comps_pos`, `comps_neg`, and `comps_zero`,
+where `comps_pos` contains the comparisons `tᵢ Rᵢ 0` in which
+the coefficient of `a` in `tᵢ` is positive, and similar.
+
+For each pair of comparisons `tᵢ Rᵢ 0 ∈ comps_pos`, `tⱼ Rⱼ 0 ∈ comps_neg`,
+we compute coefficients `vᵢ, vⱼ ∈ ℕ` such that `vᵢ*tᵢ + vⱼ*tⱼ` cancels out `a`.
+We collect these sums `vᵢ*tᵢ + vⱼ*tⱼ R' 0` in a set `S` and set `comps' = S ∪ comps_zero`,
+a new set of comparisons in which `a` has been eliminated.
+
+Theorem: `comps` and `comps'` are equisatisfiable.
+
+We recursively eliminate all variables from the system. If we derive an empty clause `0 < 0`,
+we conclude that the original system was unsatisfiable.
+-/
 
 /-- If `c1` and `c2` both contain variable `a` with opposite coefficients,
 produces `v1` and `v2`, such that `a` has been cancelled in `v1*c1 + v2*c2`. -/
@@ -388,9 +410,10 @@ ground comparisons. If this succeeds without exception, the original `linarith` 
 meta def elim_all_vars : linarith_monad unit :=
 get_var_list >>= list.mmap' monad.elim_var
 
-end fm_elim
 
 /-!
+### Parsing input expressions into linear form
+
 `linarith` computes the linear form of its input expressions,
 assuming (without justification) that the type of these expressions
 is a commutative semiring.
@@ -405,6 +428,8 @@ where the monomial `x*y` is the linear atom.
 All input expressions are converted to `sum`s, preserving the map from expressions to variables.
 We then discard the monomial information, mapping each distinct monomial to a natural number.
 The resulting `rb_map ℕ ℤ` represents the ring-normalized linear form of the expression.
+
+This is ultimately converted into a `linexp` in the obvious way.
 -/
 
 /-- Variables (represented by natural numbers) map to their power. -/
@@ -456,10 +481,6 @@ match c1.keys, c2.keys with
 | _, [] := some mk_rb_map
 | _, _ := none
 end
-
-meta def list.mfind {α} (tac : α → tactic unit) : list α → tactic α
-| [] := failed
-| (h::t) := tac h >> return h <|> list.mfind t
 
 meta def rb_map.find_defeq (red : transparency) {v} (m : expr_map v) (e : expr) : tactic v :=
 prod.snd <$> list.mfind (λ p, is_def_eq e p.1 red) m.to_list

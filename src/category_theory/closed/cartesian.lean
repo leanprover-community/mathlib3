@@ -96,7 +96,7 @@ def coev : 𝟭 C ⟶ prod_functor.obj A ⋙ exp A :=
 closed.is_adj.adj.unit
 
 notation A ` ⟹ `:20 B:20 := (exp A).obj B
-notation A ` ^^ `:30 B:30 := (exp A).obj B
+notation B ` ^^ `:30 A:30 := (exp A).obj B
 
 @[simp, reassoc] lemma ev_coev : limits.prod.map (𝟙 A) ((coev A).app B) ≫ (ev A).app (A ⨯ B) = 𝟙 (A ⨯ B) :=
 adjunction.left_triangle_components (exp.adjunction A)

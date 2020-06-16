@@ -727,7 +727,7 @@ def count : measure α := sum dirac
 ∀ s, μ s = 0 → is_measurable s
 
 /-- The "almost everywhere" filter of co-null sets. -/
-def a_e (μ : measure α) : filter α :=
+def ae (μ : measure α) : filter α :=
 { sets := {s | μ (-s) = 0},
   univ_sets := by simp [measure_empty],
   inter_sets := λ s t hs ht, by simp [compl_inter]; exact measure_union_null hs ht,
@@ -737,19 +737,19 @@ end measure
 
 variables {α : Type*} {β : Type*} [measurable_space α] {μ : measure α}
 
-notation `∀ₘ` binders `∂` μ `, ` r:(scoped P, μ.a_e.eventually P) := r
+notation `∀ₘ` binders `∂` μ `, ` r:(scoped P, μ.ae.eventually P) := r
 
-lemma mem_a_e_iff (s : set α) : s ∈ μ.a_e.sets ↔ μ (- s) = 0 := iff.rfl
+lemma mem_ae_iff (s : set α) : s ∈ μ.ae.sets ↔ μ (- s) = 0 := iff.rfl
 
-lemma a_e_iff {p : α → Prop} : (∀ₘ a ∂ μ, p a) ↔ μ { a | ¬ p a } = 0 := iff.rfl
+lemma ae_iff {p : α → Prop} : (∀ₘ a ∂ μ, p a) ↔ μ { a | ¬ p a } = 0 := iff.rfl
 
-lemma measure_zero_iff_a_e_nmem {s : set α} : μ s = 0 ↔ ∀ₘ a ∂ μ, a ∉ s :=
-by simp only [a_e_iff, not_not, set_of_mem_eq]
+lemma measure_zero_iff_ae_nmem {s : set α} : μ s = 0 ↔ ∀ₘ a ∂ μ, a ∉ s :=
+by simp only [ae_iff, not_not, set_of_mem_eq]
 
-lemma a_e_of_all {p : α → Prop} (μ : measure α) : (∀a, p a) → ∀ₘ a ∂ μ, p a :=
+lemma ae_of_all {p : α → Prop} (μ : measure α) : (∀a, p a) → ∀ₘ a ∂ μ, p a :=
 eventually_of_forall _
 
-lemma a_e_all_iff {ι : Type*} [encodable ι] {p : α → ι → Prop} :
+lemma ae_all_iff {ι : Type*} [encodable ι] {p : α → ι → Prop} :
   (∀ₘ a ∂ μ, ∀i, p a i) ↔ (∀i, ∀ₘ a ∂ μ, p a i) :=
 begin
   refine iff.intro (assume h i, _) (assume h, _),
@@ -759,13 +759,13 @@ begin
     filter_upwards [h] assume a, mem_Inter.1 }
 end
 
-lemma a_e_eq_refl (f : α → β) : ∀ₘ a ∂ μ, f a = f a :=
-a_e_of_all μ $ λ a, rfl
+lemma ae_eq_refl (f : α → β) : ∀ₘ a ∂ μ, f a = f a :=
+ae_of_all μ $ λ a, rfl
 
-lemma a_e_eq_symm {f g : α → β} (h : ∀ₘ a ∂ μ, f a = g a) : (∀ₘ a ∂ μ, g a = f a) :=
+lemma ae_eq_symm {f g : α → β} (h : ∀ₘ a ∂ μ, f a = g a) : (∀ₘ a ∂ μ, g a = f a) :=
 h.mono $ λ a, eq.symm
 
-lemma a_e_eq_trans {f g h: α → β} (h₁ : ∀ₘ a ∂ μ, f a = g a) (h₂ : ∀ₘ a ∂ μ, g a = h a) :
+lemma ae_eq_trans {f g h: α → β} (h₁ : ∀ₘ a ∂ μ, f a = g a) (h₂ : ∀ₘ a ∂ μ, g a = h a) :
   ∀ₘ a ∂ μ, f a = h a :=
 by { filter_upwards [h₁, h₂], intro a, exact eq.trans }
 
@@ -938,7 +938,7 @@ add_decl_doc volume
 section measure_space
 variables {α : Type*} {ι : Type*} [measure_space α] {s₁ s₂ : set α}
 
-notation `∀ₘ` binders `, ` r:(scoped P, volume.a_e.eventually P) := r
+notation `∀ₘ` binders `, ` r:(scoped P, volume.ae.eventually P) := r
 
 end measure_space
 

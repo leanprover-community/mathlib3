@@ -664,7 +664,7 @@ lemma dist_to_simple_func (f g : α →₁ₛ β) : dist f g =
   ennreal.to_real (∫⁻ x, edist (f.to_simple_func x) (g.to_simple_func x)) :=
 begin
   rw [dist_eq, l1.dist_to_fun, ennreal.to_real_eq_to_real],
-  { rw lintegral_rw₂, repeat { exact a_e_eq_symm (to_simple_func_eq_to_fun _) } },
+  { rw lintegral_rw₂, repeat { exact ae_eq_symm (to_simple_func_eq_to_fun _) } },
   { exact l1.lintegral_edist_to_fun_lt_top _ _ },
   { exact lintegral_edist_to_simple_func_lt_top _ _ }
 end

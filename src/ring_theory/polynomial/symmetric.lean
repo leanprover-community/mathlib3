@@ -374,6 +374,16 @@ instance (n : ℕ) : partial_order (signature n) :=
     { apply ext, rw le_antisymm h₁₂' h₂₁' }
   end }
 
+lemma lt_wf (n : ℕ) : well_founded (@has_lt.lt (signature n) _) :=
+sorry
+-- subrelation.wf (λ l₁ l₂ h, _) $ inv_image.wf (λ l, l.coeffs.sum) nat.lt_wf
+
+/-
+/-- The order on `σ →₀ ℕ` is well-founded.-/
+lemma lt_wf : well_founded (@has_lt.lt (σ →₀ ℕ) _) :=
+subrelation.wf (sum_id_lt_of_lt) $ inv_image.wf _ nat.lt_wf
+-/
+
 instance (n : ℕ) : has_zero (signature n) :=
 ⟨{ coeffs := list.repeat 0 n, sorted := list.sorted_repeat _ _ _, length := list.length_repeat _ _ }⟩
 
@@ -817,6 +827,31 @@ section
 open monomial_symmetric fintype
 variables [fintype σ] [comm_semiring R]
 
+-- are these even true??
+@[simp] lemma list.nth_le_cons_cast_succ {α : Type*} (a : α) (l : list α) (i : fin l.length) :
+  (a :: l : list α).nth_le i.cast_succ i.cast_succ.2 = l.nth_le i i.2 :=
+sorry
+
+@[simp] lemma list.nth_le_cons_length {α : Type*} (a : α) (l : list α) (h):
+  (a :: l : list α).nth_le l.length h = a :=
+sorry
+
+-- move this
+lemma ugly {σ : Type*} (l : list σ) :
+  multiset.map (λ (i : fin l.length), l.nth_le i i.2) finset.univ.val = (l : multiset σ) :=
+begin
+  induction l with a l ih,
+  { refl },
+  { have h₁ : (finset.image fin.cast_succ (@finset.univ (fin l.length) _)).1 =
+        (@finset.univ (fin l.length) _).1.map fin.cast_succ,
+      from finset.image_val_of_inj_on (by simp),
+    have h₂ : fin.last l.length ∉ finset.image fin.cast_succ finset.univ,
+    { rw [finset.mem_image], simp [fin.cast_succ_ne_last] },
+    rw [fin.univ_cast_succ, finset.insert_val, multiset.ndinsert_of_not_mem h₂,
+      multiset.map_cons, h₁, multiset.map_map],
+    simp [function.comp, list.nth_le_cons_cast_succ, ih] }
+end
+
 lemma to_signature_surjective : function.surjective (@to_signature σ _) :=
 begin
   intro l,
@@ -828,7 +863,29 @@ begin
   apply signature.ext',
   rw [coeffs_to_signature, ← multiset.coe_eq_coe, multiset.sort_eq],
   simp only [d, f, g, list.length, list.nth_le],
-  sorry
+  show multiset.map (g ∘ f ∘ e) finset.univ.val = l.coeffs,
+  rw [← multiset.map_map],
+  have : multiset.map (f ∘ e) finset.univ.val = finset.univ.val,
+  { ext i,
+    rw [multiset.count, multiset.countp_map, multiset.countp_eq_card_filter],
+    show (finset.univ.filter (λ s : σ, i = f (e s))).card = (finset.univ.filter (eq i)).card,
+    have inj : function.injective (fin.cast l.length),
+    { intros x y H, rwa fin.ext_iff at H ⊢, },
+    suffices : finset.univ.filter (λ s : σ, i = f (e s)) =
+      finset.map (function.embedding.trans ⟨fin.cast l.length, inj⟩ e.symm.to_embedding)
+        (finset.univ.filter (eq i)),
+    { rw [this, finset.card_map] },
+    ext x,
+    simp only [true_and, exists_prop, finset.mem_univ, function.embedding.trans_apply,
+      finset.mem_map, function.embedding.coe_fn_mk, finset.mem_filter,
+      equiv.to_embedding_coe_fn, exists_eq_left'],
+    split; rintro rfl,
+    { rw [equiv.symm_apply_eq, fin.ext_iff], refl },
+    { rw [fin.ext_iff, equiv.apply_symm_apply], refl }, },
+  rw this,
+  dsimp [g],
+  clear_except,
+  apply ugly
 end
 
 def to_signature_section : signature (card σ) → (σ →₀ ℕ) :=
@@ -841,6 +898,19 @@ classical.some_spec (classical.axiom_of_choice (to_signature_surjective)) l
 def signature_coefficient (φ : mv_polynomial σ R) (l : signature (card σ)) : R :=
 coeff (to_signature_section l) φ
 
+lemma is_symmetric.coeff_eq_coeff
+  {φ : mv_polynomial σ R} (h : is_symmetric φ)
+  (d₁ d₂ : σ →₀ ℕ) (hd : to_signature d₁ = to_signature d₂) :
+  coeff d₁ φ = coeff d₂ φ :=
+begin
+  sorry
+end
+
+lemma is_symmetric.coeff_to_signature_section
+  {φ : mv_polynomial σ R} (h : is_symmetric φ) (d : σ →₀ ℕ) :
+  coeff d φ = coeff (to_signature_section (to_signature d)) φ :=
+by { apply h.coeff_eq_coeff, rw to_signature_to_signature_section }
+
 lemma sum_signature_coefficient_mul_monomial_symmetric (φ : mv_polynomial σ R) (h : φ.is_symmetric) :
   ∑ l in finset.image (to_signature) φ.support,
     C (signature_coefficient φ l) * monomial_symmetric σ R l = φ :=
@@ -849,25 +919,31 @@ begin
   rw φ.as_sum,
   rw finset.sum_subtype (λ _, iff.rfl),
   swap, { apply_instance },
+  sorry
   -- have := finset.sum_fiberwise φ.support _ (λ d, monomial d (coeff d φ)),
 end
 
+variables (R)
 
--- def signature_coefficient (φ : mv_polynomial σ R) :
---   signature (card σ) →₀ R :=
--- { to_fun := λ l, coeff (to_signature_section l) φ,
---   support := (finset.image (to_signature) φ.support).filter
---                (λ l, coeff (to_signature_section l) φ ≠ 0),
---   mem_support_to_fun :=
---   begin
---     simp only [exists_prop, finsupp.mem_support_iff, finset.mem_image, ne.def, finset.mem_filter],
---     intro l,
---     refine ⟨λ h, h.2, _⟩,
---     intro h,
---     refine ⟨⟨to_signature_section l, h, to_signature_to_signature_section _⟩, h⟩,
---   end }
+def monomial_symmetric_as_polynomial_elementary_symmetric :
+  Π (l : signature (card σ)), mv_polynomial ℕ R
+| l := _
+using_well_founded
+{ rel_tac := λ _ _, `[exact ⟨_, signature.lt_wf (card σ)⟩],
+  dec_tac := tactic.assumption }
 
+end
 
+section
+open fintype monomial_symmetric
+variables [fintype σ] [comm_ring R]
+
+lemma aeval_monomial_symmetric_as_polynomial_elementary_symmetric (l : signature (card σ)) :
+  aeval _ _ (elementary_symmetric σ R) (monomial_symmetric_as_polynomial_elementary_symmetric R l) =
+  monomial_symmetric σ R l :=
+begin
+  sorry
+end
 
 end
 

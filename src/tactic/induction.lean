@@ -210,31 +210,9 @@ open native
 
 namespace expr
 
-meta def local_pp_name_option : expr → option name
-| (local_const _ n _ _) := some n
-| _ := none
-
-meta def local_unique_name_option : expr → option name
-| (local_const n _ _ _) := some n
-| _ := none
-
 meta def local_names_option : expr → option (name × name)
 | (local_const n₁ n₂ _ _) := some (n₁, n₂)
 | _ := none
-
-meta def is_local (e : expr) : bool := e.local_unique_name_option.is_some
-
-meta def free_vars (binder_depth : ℕ) (e : expr) : rbtree ℕ :=
-e.fold (mk_rbtree ℕ) $ λ e depth vars,
-  match e with
-  | var n := if n ≥ binder_depth + depth then vars.insert n else vars
-  | _ := vars
-  end
-
--- TODO unused
-meta def local_to_lambda : expr → expr → expr
-| (local_const _ pp_name binfo type) e := lam pp_name binfo type e
-| _ e := e
 
 /-- Given a closed type of the form `∀ (x : T) ... (z : U), V`, this function
 returns a tuple `(args, n, V)` where
@@ -301,9 +279,9 @@ binders.foldr (λ ⟨name, info, t⟩ acc, pi name info t acc) ret
 /-- Auxiliary function for `decompose_app`. -/
 meta def decompose_app_aux : expr → expr × list expr
 | (app t u) :=
-  let (f , args) := decompose_app_aux t in
-  (f , u :: args)
-| e := (e , [])
+  let (f, args) := decompose_app_aux t in
+  (f, u :: args)
+| e := (e, [])
 
 /-- Decomposes a function application. If `e` is of the form `f x ... z`, the
 result is `(f, [x, ..., z])`. If `e` is not of this form, the result is
@@ -320,8 +298,8 @@ meta def decompose_app_normalizing_aux (md : tactic.transparency)
   match e with
   | (app t u) := do
       (f , args) ← decompose_app_normalizing_aux t,
-      pure (f , u :: args)
-  | _ := pure (e , [])
+      pure (f, u :: args)
+  | _ := pure (e, [])
   end
 
 /-- Decomposes a function application. If `e` is of the form `f x ... z`, the
@@ -336,36 +314,11 @@ meta def decompose_app_normalizing (e : expr) (md := semireducible)
   (f , args) ← decompose_app_normalizing_aux md e,
   pure (f , args.reverse)
 
-/-- Returns the set of variables occurring in `e`. -/
-meta def vars (e : expr) : rb_set ℕ :=
-e.fold mk_rb_set $ λ e _ occs,
-  match e with
-  | var n := occs.insert n
-  | _ := occs
-  end
-
 meta def local_constants (e : expr) : expr_set :=
 e.fold mk_expr_set $ λ e _ occs,
   if e.is_local_constant
     then occs.insert e
     else occs
-
-/-- Given an application `e = f x ... z`, this function returns a map
-associating each de Bruijn index that occurs in `e` with the application
-argument(s) that it occurs in. For instance, if `e = f (#2 + 1) #3 #3` then the
-returned map is
-
-    3 -> 1, 2
-    2 -> 0
-
-Arguments are counted from zero (as shown above).
--/
-meta def application_variable_occurrences (e : expr) : rb_multimap ℕ ℕ :=
-let (_, args) := decompose_app e in
-let occs := args.map vars in
-occs.foldl_with_index
-  (λ i occ_map occs, occs.fold occ_map (λ var occ_map, occ_map.insert var i))
-  (mk_rb_multimap ℕ ℕ)
 
 meta def match_eq : expr → option (level × expr × expr × expr)
 | (app (app (app (const `eq [u]) type) lhs) rhs) := some (u, type, lhs, rhs)
@@ -1001,13 +954,11 @@ pure not_simplified
 meta def simplify_var_equation (equ type lhs rhs : expr)
   : tactic simplification_result :=
 do {
-  guard $ lhs.is_local ∨ rhs.is_local,
+  guard $ lhs.is_local_constant ∨ rhs.is_local_constant,
   subst equ,
   pure $ simplified []
 } <|>
 pure not_simplified
-
-def le_preorder : preorder nat := by apply_instance
 
 meta def get_sizeof (type : expr) : tactic (name × pexpr) := do
   n ← get_inductive_name type,

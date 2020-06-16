@@ -160,7 +160,6 @@ open vector_space
 
 variables {K V : Type u} [field K] [add_comm_group V] [vector_space K V]
 
-set_option pp.universes false
 lemma cardinal_mk_eq_cardinal_mk_field_pow_dim (h : dim K V < cardinal.omega) :
   cardinal.mk V = cardinal.mk K ^ dim K V :=
 begin

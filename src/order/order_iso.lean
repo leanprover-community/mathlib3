@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import logic.embedding
 import data.nat.basic
 import logic.function.iterate
+import order.rel_classes
 
 open function
 
@@ -135,7 +136,7 @@ protected theorem is_well_order : ∀ (f : r ≼o s) [is_well_order β s], is_we
   to show it is an order embedding. -/
 def of_monotone [is_trichotomous α r] [is_asymm β s] (f : α → β) (H : ∀ a b, r a b → s (f a) (f b)) : r ≼o s :=
 begin
-  haveI := @is_irrefl_of_is_asymm β s _,
+  haveI := @is_asymm.is_irrefl β s _,
   refine ⟨⟨f, λ a b e, _⟩, λ a b, ⟨H _ _, λ h, _⟩⟩,
   { refine ((@trichotomous _ r _ a b).resolve_left _).resolve_right _;
     exact λ h, @irrefl _ s _ _ (by simpa [e] using H _ _ h) },

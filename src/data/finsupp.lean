@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Scott Morrison
 -/
 import algebra.module
+import data.fintype.card
 
 /-!
 
@@ -94,7 +95,7 @@ lemma ext_iff {f g : α →₀ β} : f = g ↔ (∀a:α, f a = g a) :=
 ⟨by rintros rfl a; refl, ext⟩
 
 @[simp] lemma support_eq_empty {f : α →₀ β} : f.support = ∅ ↔ f = 0 :=
-⟨assume h, ext $ assume a, by_contradiction $ λ H, (finset.ext.1 h a).1 $
+⟨assume h, ext $ assume a, by_contradiction $ λ H, (finset.ext_iff.1 h a).1 $
   mem_support_iff.2 H, by rintro rfl; refl⟩
 
 instance finsupp.decidable_eq [decidable_eq α] [decidable_eq β] : decidable_eq (α →₀ β) :=
@@ -431,6 +432,20 @@ def sum [has_zero β] [add_comm_monoid γ] (f : α →₀ β) (g : α → β →
 @[to_additive]
 def prod [has_zero β] [comm_monoid γ] (f : α →₀ β) (g : α → β → γ) : γ :=
 ∏ a in f.support, g a (f a)
+
+@[to_additive]
+lemma prod_fintype [fintype α] [has_zero β] [comm_monoid γ]
+  (f : α →₀ β) (g : α → β → γ) (h : ∀ i, g i 0 = 1) :
+  f.prod g = ∏ i, g i (f i) :=
+begin
+  classical,
+  rw [finsupp.prod, ← fintype.prod_extend_by_one, finset.prod_congr rfl],
+  intros i hi,
+  split_ifs with hif hif,
+  { refl },
+  { rw finsupp.not_mem_support_iff at hif,
+    rw [hif, h] }
+end
 
 @[to_additive]
 lemma prod_map_range_index [has_zero β₁] [has_zero β₂] [comm_monoid γ]
@@ -945,7 +960,7 @@ lemma eq_zero_of_comap_domain_eq_zero {α₁ α₂ γ : Type*} [add_comm_monoid 
    comap_domain f l hf.inj_on = 0 → l = 0 :=
 begin
   rw [← support_eq_empty, ← support_eq_empty, comap_domain],
-  simp only [finset.ext, finset.not_mem_empty, iff_false, mem_preimage],
+  simp only [finset.ext_iff, finset.not_mem_empty, iff_false, mem_preimage],
   assume h a ha,
   cases hf.2.2 ha with b hb,
   exact h b (hb.2.symm ▸ ha)
@@ -985,7 +1000,7 @@ if_pos h
 if_neg h
 
 @[simp] lemma support_filter : (f.filter p).support = f.support.filter p :=
-finset.ext.mpr $ assume a, if H : p a
+finset.ext $ assume a, if H : p a
 then by simp only [mem_support_iff, filter_apply_pos _ _ H, mem_filter, H, and_true]
 else by simp only [mem_support_iff, filter_apply_neg _ _ H, mem_filter, H, and_false, ne.def,
   ne_self_iff_false]
@@ -1580,7 +1595,7 @@ def split_comp [has_zero γ] (g : Π i, (αs i →₀ β) → γ)
   end }
 
 lemma sigma_support : l.support = l.split_support.sigma (λ i, (l.split i).support) :=
-by simp only [finset.ext, split_support, split, comap_domain, mem_image,
+by simp only [finset.ext_iff, split_support, split, comap_domain, mem_image,
   mem_preimage, sigma.forall, mem_sigma]; tauto
 
 lemma sigma_sum [add_comm_monoid γ] (f : (Σ (i : ι), αs i) → β → γ) :

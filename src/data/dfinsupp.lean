@@ -498,7 +498,7 @@ lemma mem_support_iff (f : Π₀ i, β i) : ∀i:ι, i ∈ f.support ↔ f i ≠
 f.mem_support_to_fun
 
 @[simp] lemma support_eq_empty {f : Π₀ i, β i} : f.support = ∅ ↔ f = 0 :=
-⟨λ H, ext $ by simpa [finset.ext] using H, by simp {contextual:=tt}⟩
+⟨λ H, ext $ by simpa [finset.ext_iff] using H, by simp {contextual:=tt}⟩
 
 instance decidable_zero : decidable_pred (eq (0 : Π₀ i, β i)) :=
 λ f, decidable_of_iff _ $ support_eq_empty.trans eq_comm

@@ -333,7 +333,7 @@ induction_on₂ s₁ s₂ $ λ _ _, mem_union
 by simp [(∪), union]
 
 theorem keys_union {s₁ s₂ : finmap β} : (s₁ ∪ s₂).keys = s₁.keys ∪ s₂.keys :=
-induction_on₂ s₁ s₂ $ λ s₁ s₂, finset.ext' $ by simp [keys]
+induction_on₂ s₁ s₂ $ λ s₁ s₂, finset.ext $ by simp [keys]
 
 @[simp] theorem lookup_union_left {a} {s₁ s₂ : finmap β} :
   a ∈ s₁ → lookup a (s₁ ∪ s₂) = lookup a s₁ :=

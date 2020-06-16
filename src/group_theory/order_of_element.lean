@@ -161,7 +161,7 @@ lemma sum_card_order_of_eq_card_pow_eq_one {n : ℕ} (hn : 0 < n) :
   = (finset.univ.filter (λ a : α, a ^ n = 1)).card :=
 calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
     = _ : (finset.card_bind (by { intros, apply finset.disjoint_filter.2, cc })).symm
-... = _ : congr_arg finset.card (finset.ext.2 (begin
+... = _ : congr_arg finset.card (finset.ext (begin
   assume a,
   suffices : order_of a ≤ n ∧ order_of a ∣ n ↔ a ^ n = 1,
   { simpa [nat.lt_succ_iff], },
@@ -443,7 +443,7 @@ have h : ∑ m in (range d.succ).filter (∣ d.succ),
             nat.div_div_self hm (succ_pos _)]⟩⟩)),
 have hinsert : insert d.succ ((range d.succ).filter (∣ d.succ))
     = (range d.succ.succ).filter (∣ d.succ),
-  from (finset.ext.2 $ λ x, ⟨λ h, (mem_insert.1 h).elim (λ h, by simp [h, range_succ])
+  from (finset.ext $ λ x, ⟨λ h, (mem_insert.1 h).elim (λ h, by simp [h, range_succ])
     (by clear _let_match; simp [range_succ]; tauto), by clear _let_match; simp [range_succ] {contextual := tt}; tauto⟩),
 have hinsert₁ : d.succ ∉ (range d.succ).filter (∣ d.succ),
   by simp [mem_range, zero_le_one, le_succ],
@@ -471,7 +471,7 @@ let c := fintype.card α in
 have hc0 : 0 < c, from fintype.card_pos_iff.2 ⟨1⟩,
 lt_irrefl c $
   calc c = (univ.filter (λ a : α, a ^ c = 1)).card :
-    congr_arg card $ by simp [finset.ext, c]
+    congr_arg card $ by simp [finset.ext_iff, c]
   ... = ∑ m in (range c.succ).filter (∣ c),
       (univ.filter (λ a : α, order_of a = m)).card :
     (sum_card_order_of_eq_card_pow_eq_one hc0).symm
@@ -479,7 +479,7 @@ lt_irrefl c $
       (univ.filter (λ a : α, order_of a = m)).card :
     eq.symm (sum_subset (erase_subset _ _) (λ m hm₁ hm₂,
       have m = d, by simp at *; cc,
-      by simp [*, finset.ext] at *; exact h0))
+      by simp [*, finset.ext_iff] at *; exact h0))
   ... ≤ ∑ m in ((range c.succ).filter (∣ c)).erase d, φ m :
     sum_le_sum (λ m hm,
       have hmc : m ∣ c, by simp at hm; tauto,

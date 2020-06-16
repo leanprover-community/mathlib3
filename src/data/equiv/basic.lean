@@ -955,6 +955,45 @@ def subtype_prod_equiv_prod {α : Type u} {β : Type v} {p : α → Prop} {q : �
 
 end
 
+section subtype_equiv_codomain
+variables {X : Type*} {Y : Type*} [decidable_eq X] {x : X}
+
+/-- The type of all functions `X → Y` with prescribed values for all `x' ≠ x`
+is equivalent to the codomain `Y`. -/
+def subtype_equiv_codomain (f : {x' // x' ≠ x} → Y) : {g : X → Y // g ∘ coe = f} ≃ Y :=
+(subtype_preimage _ f).trans $
+@fun_unique {x' // ¬ x' ≠ x} _ $
+show unique {x' // ¬ x' ≠ x}, from @equiv.unique _ _
+  (show unique {x' // x' = x}, from
+    { default := ⟨x, rfl⟩, uniq := λ ⟨x', h⟩, subtype.val_injective h })
+  (subtype_congr_right $ λ a, not_not)
+
+@[simp] lemma coe_subtype_equiv_codomain (f : {x' // x' ≠ x} → Y) :
+  (subtype_equiv_codomain f : {g : X → Y // g ∘ coe = f} → Y) = λ g, (g : X → Y) x := rfl
+
+@[simp] lemma subtype_equiv_codomain_apply (f : {x' // x' ≠ x} → Y)
+  (g : {g : X → Y // g ∘ coe = f}) :
+  subtype_equiv_codomain f g = (g : X → Y) x := rfl
+
+lemma coe_subtype_equiv_codomain_symm (f : {x' // x' ≠ x} → Y) :
+  ((subtype_equiv_codomain f).symm : Y → {g : X → Y // g ∘ coe = f}) =
+  λ y, ⟨λ x', if h : x' ≠ x then f ⟨x', h⟩ else y,
+    by { funext x', dsimp, erw [dif_pos x'.2, subtype.coe_eta] }⟩ := rfl
+
+@[simp] lemma subtype_equiv_codomain_symm_apply (f : {x' // x' ≠ x} → Y) (y : Y) (x' : X) :
+  ((subtype_equiv_codomain f).symm y : X → Y) x' = if h : x' ≠ x then f ⟨x', h⟩ else y :=
+rfl
+
+@[simp] lemma subtype_equiv_codomain_symm_apply_eq (f : {x' // x' ≠ x} → Y) (y : Y) :
+  ((subtype_equiv_codomain f).symm y : X → Y) x = y :=
+dif_neg (not_not.mpr rfl)
+
+lemma subtype_equiv_codomain_symm_apply_ne (f : {x' // x' ≠ x} → Y) (y : Y) (x' : X) (h : x' ≠ x) :
+  ((subtype_equiv_codomain f).symm y : X → Y) x' = f ⟨x', h⟩ :=
+dif_pos h
+
+end subtype_equiv_codomain
+
 namespace set
 open set
 

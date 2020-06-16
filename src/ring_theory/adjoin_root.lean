@@ -121,7 +121,8 @@ lemma coe_injective : function.injective (coe : K → adjoin_root f) :=
 variable (f)
 
 lemma mul_div_root_cancel :
-  (X - C (root f)) * (f.map (of f) / (X - C (root f))) = f.map (of f) :=
+  ((X - C (root f)) * (f.map (of f) / (X - C (root f))) : polynomial (adjoin_root f)) =
+    f.map (of f) :=
 mul_div_eq_iff_is_root.2 $ is_root_root _
 
 end adjoin_root

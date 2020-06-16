@@ -220,7 +220,7 @@ have h₁ : (of_nat s n : ℕ) ∉ (range (of_nat s n)).filter s, by simp,
 have h₂ : (range (succ (of_nat s n))).filter s =
     insert (of_nat s n) ((range (of_nat s n)).filter s),
   begin
-    simp only [finset.ext, mem_insert, mem_range, mem_filter],
+    simp only [finset.ext_iff, mem_insert, mem_range, mem_filter],
     assume m,
     exact ⟨λ h, by simp only [h.2, and_true]; exact or.symm
         (lt_or_eq_of_le ((@lt_succ_iff_le _ _ _ ⟨m, h.2⟩ _).1 h.1)),

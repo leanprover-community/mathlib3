@@ -7,7 +7,7 @@ import order.zorn
 import order.copy
 import data.set.finite
 
-/-! 
+/-!
 # Theory of filters on sets
 
 ## Main definitions
@@ -486,6 +486,17 @@ begin
     cases h U_in V_in with a ha,
     use [a, hUV ha] }
 end
+
+lemma inf_eq_bot_iff {f g : filter α} :
+  f ⊓ g = ⊥ ↔ ∃ U V, (U ∈ f) ∧ (V ∈ g) ∧ U ∩ V = ∅ :=
+begin
+  rw ← not_iff_not,
+  simp only [not_exists, not_and, ← ne.def, inf_ne_bot_iff, ne_empty_iff_nonempty]
+end
+
+protected lemma disjoint_iff {f g : filter α} :
+  disjoint f g ↔ ∃ U V, (U ∈ f) ∧ (V ∈ g) ∧ U ∩ V = ∅ :=
+disjoint_iff.trans inf_eq_bot_iff
 
 lemma eq_Inf_of_mem_sets_iff_exists_mem {S : set (filter α)} {l : filter α}
   (h : ∀ {s}, s ∈ l ↔ ∃ f ∈ S, s ∈ f) : l = Inf S :=
@@ -1743,6 +1754,13 @@ tendsto_pure.2 rfl
 lemma tendsto_const_pure {a : filter α} {b : β} : tendsto (λx, b) a (pure b) :=
 tendsto_pure.2 $ univ_mem_sets' $ λ _, rfl
 
+/-- If two filters are disjoint, then a function cannot tend to both of them along a non-trivial
+filter. -/
+lemma tendsto.not_tendsto {f : α → β} {a : filter α} {b₁ b₂ : filter β} (hf : tendsto f a b₁)
+  (ha : a ≠ ⊥) (hb : disjoint b₁ b₂) :
+  ¬ tendsto f a b₂ :=
+λ hf', (tendsto_inf.2 ⟨hf, hf'⟩).ne_bot ha hb.eq_bot
+
 lemma tendsto_if {l₁ : filter α} {l₂ : filter β}
     {f g : α → β} {p : α → Prop} [decidable_pred p]
     (h₀ : tendsto f (l₁ ⊓ principal p) l₂)
@@ -1938,6 +1956,15 @@ def at_bot [preorder α] : filter α := ⨅ a, principal {b | b ≤ a}
 
 lemma mem_at_top [preorder α] (a : α) : {b : α | a ≤ b} ∈ @at_top α _ :=
 mem_infi_sets a $ subset.refl _
+
+lemma Ioi_mem_at_top [preorder α] [no_top_order α] (x : α) : Ioi x ∈ (at_top : filter α) :=
+let ⟨z, hz⟩ := no_top x in mem_sets_of_superset (mem_at_top z) $ λ y h,  lt_of_lt_of_le hz h
+
+lemma mem_at_bot [preorder α] (a : α) : {b : α | b ≤ a} ∈ @at_bot α _ :=
+mem_infi_sets a $ subset.refl _
+
+lemma Iio_mem_at_bot [preorder α] [no_bot_order α] (x : α) : Iio x ∈ (at_bot : filter α) :=
+let ⟨z, hz⟩ := no_bot x in mem_sets_of_superset (mem_at_bot z) $ λ y h, lt_of_le_of_lt h hz
 
 @[simp] lemma at_top_ne_bot [nonempty α] [semilattice_sup α] : (at_top : filter α) ≠ ⊥ :=
 infi_ne_bot_of_directed (by apply_instance)

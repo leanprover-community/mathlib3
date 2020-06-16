@@ -98,6 +98,87 @@ by rw [←h3, mul_assoc, mul_div_comm, h2, ←mul_assoc, h1, mul_comm, one_mul]
 
 end lemmas
 
+/--
+A linear expression is a list of pairs of variable indices and coefficients.
+
+Some functions on `linexp` assume that `n : ℕ` occurs at most once as the first element of a pair,
+and that the list is sorted in decreasing order of the first argument.
+This is not enforced by the type but the operations here preserve it.
+-/
+@[reducible]
+def linexp : Type := list (ℕ × ℤ)
+end linarith
+
+/--
+A map `ℕ → ℤ` is converted to `list (ℕ × ℤ)` in the obvious way.
+This list is sorted in decreasing order of the first argument.
+-/
+meta def native.rb_map.to_linexp (m : rb_map ℕ ℤ) : linarith.linexp :=
+m.to_list
+
+namespace linarith
+namespace linexp
+
+/--
+Add two `linexp`s together componentwise.
+Preserves sorting and uniqueness of the first argument.
+-/
+meta def add : linexp → linexp → linexp
+| [] a := a
+| a [] := a
+| (a@(n1,z1)::t1) (b@(n2,z2)::t2) :=
+  if n1 < n2 then b::add (a::t1) t2
+  else if n2 < n1 then a::add t1 (b::t2)
+  else let sum := z1 + z2 in if sum = 0 then add t1 t2 else (n1, sum)::add t1 t2
+
+/-- `l.scale c` scales the values in `l` by `c` without modifying the order or keys. -/
+def scale (c : ℤ) (l : linexp) : linexp :=
+if c = 0 then []
+else if c = 1 then l
+else l.map $ λ ⟨n, z⟩, (n, z*c)
+
+/--
+`l.get n` returns the value in `l` associated with key `n`, if it exists, and `none` otherwise.
+This function assumes that `l` is sorted in decreasing order of the first argument,
+that is, it will return `none` as soon as it finds a key smaller than `n`.
+-/
+def get (n : ℕ) : linexp → option ℤ
+| [] := none
+| ((a, b)::t) :=
+  if a < n then none
+  else if a = n then some b
+  else get t
+
+/--
+`l.contains n` is true iff `n` is the first element of a pair in `l`.
+-/
+def contains (n : ℕ) : linexp → bool := option.is_some ∘ get n
+
+/--
+`l.zfind n` returns the value associated with key `n` if there is one, and 0 otherwise.
+-/
+def zfind (n : ℕ) (l : linexp) : ℤ :=
+match l.get n with
+| none := 0
+| some v := v
+end
+
+/--
+Defines a lex ordering on `linexp`. This function is performance critical.
+-/
+def cmp : linexp → linexp → ordering
+| [] [] := ordering.eq
+| [] _ := ordering.lt
+| _ [] := ordering.gt
+| ((n1,z1)::t1) ((n2,z2)::t2) :=
+  if n1 < n2 then ordering.lt
+  else if n2 < n1 then ordering.gt
+  else if z1 < z2 then ordering.lt
+  else if z2 < z1 then ordering.gt
+  else cmp t1 t2
+
+end linexp
+
 section datatypes
 
 @[derive decidable_eq, derive inhabited]
@@ -111,11 +192,14 @@ def ineq.max : ineq → ineq → ineq
 | le a := a
 | lt a := lt
 
-def ineq.is_lt : ineq → ineq → bool
-| eq le := tt
-| eq lt := tt
-| le lt := tt
-| _ _ := ff
+/-- `ineq` is ordered `eq < le < lt`. -/
+def ineq.cmp : ineq → ineq → ordering
+| eq eq := ordering.eq
+| eq _ := ordering.lt
+| le le := ordering.eq
+| le lt := ordering.lt
+| lt lt := ordering.eq
+| _ _ := ordering.gt
 
 def ineq.to_string : ineq → string
 | eq := "="
@@ -128,15 +212,15 @@ instance : has_to_string ineq := ⟨ineq.to_string⟩
 The main datatype for FM elimination.
 Variables are represented by natural numbers, each of which has an integer coefficient.
 Index 0 is reserved for constants, i.e. `coeffs.find 0` is the coefficient of 1.
-The represented term is `coeffs.keys.sum (λ i, coeffs.find i * Var[i])`.
+The represented term is `coeffs.sum (λ ⟨k, v⟩, v * Var[k])`.
 str determines the direction of the comparison -- is it < 0, ≤ 0, or = 0?
 -/
 @[derive inhabited]
-meta structure comp :=
+meta structure comp : Type :=
 (str : ineq)
-(coeffs : rb_map ℕ int)
+(coeffs : linexp)
 
-meta inductive comp_source
+meta inductive comp_source : Type
 | assump : ℕ → comp_source
 | add : comp_source → comp_source → comp_source
 | scale : ℕ → comp_source → comp_source
@@ -158,23 +242,27 @@ meta structure pcomp :=
 (c : comp)
 (src : comp_source)
 
-meta def map_lt (m1 m2 : rb_map ℕ int) : bool :=
-list.lex (prod.lex (<) (<)) m1.to_list m2.to_list
+/-- `comp` has a lex order. First the `ineq`s are compared, then the `coeff`s. -/
+meta def comp.cmp : comp → comp → ordering
+| ⟨str1, coeffs1⟩ ⟨str2, coeffs2⟩ :=
+  match str1.cmp str2 with
+  | ordering.lt := ordering.lt
+  | ordering.gt := ordering.gt
+  | ordering.eq := coeffs1.cmp coeffs2
+  end
 
--- make more efficient
-meta def comp.lt (c1 c2 : comp) : bool :=
-(c1.str.is_lt c2.str) || (c1.str = c2.str) && map_lt c1.coeffs c2.coeffs
-
-meta instance comp.has_lt : has_lt comp := ⟨λ a b, comp.lt a b⟩
-meta instance pcomp.has_lt : has_lt pcomp := ⟨λ p1 p2, p1.c < p2.c⟩
- -- short-circuit type class inference
-meta instance pcomp.has_lt_dec : decidable_rel ((<) : pcomp → pcomp → Prop) := by apply_instance
+/--
+The `comp_source` field is ignored when comparing `pcomp`s. Two `pcomp`s proving the same
+comparison, with different sources, are considered equivalent.
+-/
+meta def pcomp.cmp (p1 p2 : pcomp) : ordering :=
+p1.c.cmp p2.c
 
 meta def comp.coeff_of (c : comp) (a : ℕ) : ℤ :=
 c.coeffs.zfind a
 
 meta def comp.scale (c : comp) (n : ℕ) : comp :=
-{ c with coeffs := c.coeffs.map ((*) (n : ℤ)) }
+{ c with coeffs := c.coeffs.scale n }
 
 meta def comp.add (c1 c2 : comp) : comp :=
 ⟨c1.str.max c2.str, c1.coeffs.add c2.coeffs⟩
@@ -190,6 +278,10 @@ meta instance pcomp.to_format : has_to_format pcomp :=
 
 meta instance comp.to_format : has_to_format comp :=
 ⟨λ p, to_fmt p.coeffs ++ to_string p.str ++ "0"⟩
+
+/-- Creates an empty set of `pcomp`s, sorted using `pcomp.cmp`. -/
+meta def mk_pcomp_set : rb_set pcomp :=
+rb_map.mk_core unit pcomp.cmp
 
 end datatypes
 
@@ -216,8 +308,8 @@ meta def comp.is_contr (c : comp) : bool := c.coeffs.empty ∧ c.str = ineq.lt
 meta def pcomp.is_contr (p : pcomp) : bool := p.c.is_contr
 
 meta def elim_with_set (a : ℕ) (p : pcomp) (comps : rb_set pcomp) : rb_set pcomp :=
-if ¬ p.c.coeffs.contains a then mk_rb_set.insert p else
-comps.fold mk_rb_set $ λ pc s,
+if ¬ p.c.coeffs.contains a then mk_pcomp_set.insert p else
+comps.fold mk_pcomp_set $ λ pc s,
 match pelim_var p pc a with
 | some pc := s.insert pc
 | none := s
@@ -263,7 +355,7 @@ meta def monad.elim_var (a : ℕ) : linarith_monad unit :=
 do vs ← get_vars,
    when (vs.contains a) $
 do comps ← get_comps,
-   let cs' := comps.fold mk_rb_set (λ p s, s.union (elim_with_set a p comps)),
+   let cs' := comps.fold mk_pcomp_set (λ p s, s.union (elim_with_set a p comps)),
    update (vs.erase a) cs'
 
 meta def elim_all_vars : linarith_monad unit :=
@@ -400,7 +492,7 @@ meta def to_comp (red : transparency) (e : expr) (m : expr_map ℕ) (mm : rb_map
 do (iq, e) ← parse_into_comp_and_expr e,
    (m', comp') ← map_of_expr red m e,
    let ⟨nm, mm'⟩ := sum_to_lf comp' mm,
-   return ⟨⟨iq, mm'⟩,m',nm⟩
+   return ⟨⟨iq, mm'.to_linexp⟩,m',nm⟩
 
 meta def to_comp_fold (red : transparency) : expr_map ℕ → list expr → rb_map monom ℕ →
       tactic (list (option comp) × expr_map ℕ × rb_map monom ℕ )
@@ -422,9 +514,9 @@ do pftps ← l.mmap infer_type,
   (l', _, map) ← to_comp_fold red mk_rb_map pftps mk_rb_map,
   let lz := list.enum $ ((l.zip pftps).zip l').filter_map (λ ⟨a, b⟩, prod.mk a <$> b),
   let prmap := rb_map.of_list $ lz.map (λ ⟨n, x⟩, (n, x.1)),
-  let vars : rb_set ℕ := rb_map.set_of_list $ list.range map.size.succ,
-  let pc : rb_set pcomp := rb_map.set_of_list $
-    lz.map (λ ⟨n, x⟩, ⟨x.2, comp_source.assump n⟩),
+  let vars : rb_set ℕ := rb_map.set_of_list $ list.range map.size,
+  let pc : rb_set pcomp :=
+    rb_set.of_list_core mk_pcomp_set $ lz.map (λ ⟨n, x⟩, ⟨x.2, comp_source.assump n⟩),
   return (⟨vars, pc⟩, prmap)
 
 meta def linarith_monad.run (red : transparency) {α} (tac : linarith_monad α) (l : list expr) :
@@ -837,6 +929,27 @@ do l' ← replace_nat_pfs l,
 
 end normalize
 
+/--
+`find_squares m e` collects all terms of the form `a ^ 2` and `a * a` that appear in `e`
+and adds them to the set `m`.
+A pair `(a, tt)` is added to `m` when `a^2` appears in `e`, and `(a, ff)` is added to `m`
+when `a*a` appears in `e`.  -/
+meta def find_squares : rb_set (expr × bool) → expr → tactic (rb_set (expr × bool))
+| s `(%%a ^ 2) := do s ← find_squares s a, return (s.insert (a, tt))
+| s e@`(%%e1 * %%e2) := if e1 = e2 then do s ← find_squares s e1, return (s.insert (e1, ff)) else e.mfoldl find_squares s
+| s e := e.mfoldl find_squares s
+
+-- used in the `nlinarith` normalization steps. The `_` argument is for uniformity.
+@[nolint unused_arguments]
+lemma mul_zero_eq {α} {R : α → α → Prop} [semiring α] {a b : α} (_ : R a 0) (h : b = 0) : a * b = 0 :=
+by simp [h]
+
+-- used in the `nlinarith` normalization steps. The `_` argument is for uniformity.
+@[nolint unused_arguments]
+lemma zero_mul_eq {α} {R : α → α → Prop} [semiring α] {a b : α} (h : a = 0) (_ : R b 0) : a * b = 0 :=
+by simp [h]
+
+
 end linarith
 
 section
@@ -953,11 +1066,78 @@ optional arguments:
   hypotheses.
 * If `exfalso` is false, `linarith` will fail when the goal is neither an inequality nor `false`.
   (True by default.)
+
+A variant, `nlinarith`, does some basic preprocessing to handle some nonlinear goals.
 -/
 add_tactic_doc
 { name       := "linarith",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.linarith],
+  tags       := ["arithmetic", "decision procedure", "finishing"] }
+
+/--
+An extension of `linarith` with some preprocessing to allow it to solve some nonlinear arithmetic
+problems. (Based on Coq's `nra` tactic.) See `linarith` for the available syntax of options,
+which are inherited by `nlinarith`; that is, `nlinarith!` and `nlinarith only [h1, h2]` all work as
+in `linarith`. The preprocessing is as follows:
+
+* For every subterm `a ^ 2` or `a * a` in a hypothesis or the goal,
+  the assumption `0 ≤ a ^ 2` or `0 ≤ a * a` is added to the context.
+* For every pair of hypotheses `a1 R1 b1`, `a2 R2 b2` in the context, `R1, R2 ∈ {<, ≤, =}`,
+  the assumption `0 R' (b1 - a1) * (b2 - a2)` is added to the context (non-recursively),
+  where `R ∈ {<, ≤, =}` is the appropriate comparison derived from `R1, R2`.
+-/
+meta def tactic.interactive.nlinarith (red : parse ((tk "!")?))
+  (restr : parse ((tk "only")?)) (hyps : parse pexpr_list?)
+  (cfg : linarith_config := {}) : tactic unit := do
+  ls ← match hyps with
+    | none := if restr.is_some then return [] else local_context
+    | some hyps := do
+      ls ← hyps.mmap i_to_expr,
+      if restr.is_some then return ls else (++ ls) <$> local_context
+    end,
+  (s, ge0) ← (list.mfoldr (λ h ⟨s, l⟩, do
+      h ← infer_type h >>= rearr_comp h <|> return h,
+      t ← infer_type h,
+      s ← find_squares s t,
+      return (s, match t with
+        | `(%%a ≤ 0) := (ineq.le, h) :: l
+        | `(%%a < 0) := (ineq.lt, h) :: l
+        | `(%%a = 0) := (ineq.eq, h) :: l
+        | _ := l end))
+    (mk_rb_set, []) ls : tactic (rb_set (expr × bool) × list (ineq × expr))),
+  s ← target >>= find_squares s,
+  (hyps, ge0) ← s.fold (return (hyps, ge0)) (λ ⟨e, is_sq⟩ tac, do
+    (hyps, ge0) ← tac,
+    (do
+      t ← infer_type e,
+      when cfg.restrict_type.is_some
+        (is_def_eq `(some %%t : option Type) cfg.restrict_type_reflect),
+      p ← mk_app (if is_sq then ``pow_two_nonneg else ``mul_self_nonneg) [e],
+      p ← infer_type p >>= rearr_comp p <|> return p,
+      t ← infer_type p,
+      h ← assertv `h t p,
+      return (hyps.map (λ l, pexpr.of_expr h :: l), (ineq.le, h) :: ge0)) <|>
+    return (hyps, ge0)),
+  ge0.mmap'_diag (λ ⟨posa, a⟩ ⟨posb, b⟩, do
+    p ←  match posa, posb with
+      | ineq.eq, _ := mk_app ``zero_mul_eq [a, b]
+      | _, ineq.eq := mk_app ``mul_zero_eq [a, b]
+      | ineq.lt, ineq.lt := mk_app ``mul_pos_of_neg_of_neg [a, b]
+      | ineq.lt, ineq.le := do a ← mk_app ``le_of_lt [a], mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
+      | ineq.le, ineq.lt := do b ← mk_app ``le_of_lt [b], mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
+      | ineq.le, ineq.le := mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
+      end,
+    t ← infer_type p,
+    assertv `h t p, skip),
+  tactic.interactive.linarith red restr hyps cfg
+
+add_hint_tactic "nlinarith"
+
+add_tactic_doc
+{ name       := "nlinarith",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.nlinarith],
   tags       := ["arithmetic", "decision procedure", "finishing"] }
 
 end

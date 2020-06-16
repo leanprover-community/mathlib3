@@ -430,6 +430,8 @@ We then discard the monomial information, mapping each distinct monomial to a na
 The resulting `rb_map ℕ ℤ` represents the ring-normalized linear form of the expression.
 
 This is ultimately converted into a `linexp` in the obvious way.
+
+#### Parsing datatypes
 -/
 
 /-- Variables (represented by natural numbers) map to their power. -/
@@ -473,23 +475,14 @@ section parse
 
 open ineq tactic
 
-meta def map_of_expr_mul_aux (c1 c2 : rb_map ℕ ℤ) : option (rb_map ℕ ℤ) :=
-match c1.keys, c2.keys with
-| [0], _ := some $ c2.scale (c1.zfind 0)
-| _, [0] := some $ c1.scale (c2.zfind 0)
-| [], _ := some mk_rb_map
-| _, [] := some mk_rb_map
-| _, _ := none
-end
-
-meta def rb_map.find_defeq (red : transparency) {v} (m : expr_map v) (e : expr) : tactic v :=
-prod.snd <$> list.mfind (λ p, is_def_eq e p.1 red) m.to_list
+/-! #### Parsing algorithms -/
 
 /--
 `map_of_expr red map e` computes the linear form of `e`.
 
 `map` is a lookup map from atomic expressions to variable numbers.
 If a new atomic expression is encountered, it is added to the map with a new number.
+It matches atomic expressions up to reducibility given by `red`.
 -/
 meta def map_of_expr (red : transparency) : expr_map ℕ → expr → tactic (expr_map ℕ × sum)
 | m e@`(%%e1 * %%e2) :=
@@ -510,7 +503,7 @@ meta def map_of_expr (red : transparency) : expr_map ℕ → expr → tactic (ex
   | some 0 := return ⟨m, mk_rb_map⟩
   | some z := return ⟨m, scalar z⟩
   | none :=
-    (do k ← rb_map.find_defeq red m e, return (m, var k)) <|>
+    (do k ← m.find_defeq red e, return (m, var k)) <|>
     (let n := m.size + 1 in return (m.insert e n, var n))
   end
 
@@ -529,17 +522,28 @@ s.fold (m, mk_rb_map) $ λ mn coeff ⟨map, out⟩,
   | none := let n := map.size in ⟨map.insert mn n, out.insert n coeff⟩
   end
 
+/--
+`parse_into_comp_and_expr e` checks if `e` is of the form `t < 0`, `t ≤ 0`, or `t = 0`.
+If it is, it returns the comparison along with `t`.
+ -/
 meta def parse_into_comp_and_expr : expr → option (ineq × expr)
 | `(%%e < 0) := (ineq.lt, e)
 | `(%%e ≤ 0) := (ineq.le, e)
 | `(%%e = 0) := (ineq.eq, e)
 | _ := none
 
-meta def to_comp (red : transparency) (e : expr) (m : expr_map ℕ) (mm : rb_map monom ℕ) :
+/--
+`to_comp red e e_map monom_map` converts an expression of the form `t < 0`, `t ≤ 0`, or `t = 0`
+into a `comp` object.
+
+`e_map` maps atomic expressions to indices; `monom_map` maps monomials to indices.
+Both of these are updated during processing and returned.
+-/
+meta def to_comp (red : transparency) (e : expr) (e_map : expr_map ℕ) (monom_map : rb_map monom ℕ) :
   tactic (comp × expr_map ℕ × rb_map monom ℕ) :=
 do (iq, e) ← parse_into_comp_and_expr e,
-   (m', comp') ← map_of_expr red m e,
-   let ⟨nm, mm'⟩ := sum_to_lf comp' mm,
+   (m', comp') ← map_of_expr red e_map e,
+   let ⟨nm, mm'⟩ := sum_to_lf comp' monom_map,
    return ⟨⟨iq, mm'.to_linexp⟩,m',nm⟩
 
 meta def to_comp_fold (red : transparency) : expr_map ℕ → list expr → rb_map monom ℕ →

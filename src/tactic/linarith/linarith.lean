@@ -337,12 +337,21 @@ end
 meta def update (vars : rb_set ℕ) (comps : rb_set pcomp) : linarith_monad unit :=
 state_t.put ⟨vars, comps⟩ >> validate
 
+-- returns (pos, neg, not present)
+meta def split_set_by_var_parity (a : ℕ) (comps : rb_set pcomp) :
+  rb_set pcomp × rb_set pcomp × rb_set pcomp :=
+comps.fold ⟨mk_pcomp_set, mk_pcomp_set, mk_pcomp_set⟩ $ λ pc ⟨pos, neg, not_present⟩,
+  let n := pc.c.coeff_of a in
+  if n > 0 then ⟨pos.insert pc, neg, not_present⟩
+  else if n < 0 then ⟨pos, neg.insert pc, not_present⟩
+  else ⟨pos, neg, not_present.insert pc⟩
+
 meta def monad.elim_var (a : ℕ) : linarith_monad unit :=
 do vs ← get_vars,
    when (vs.contains a) $
-do comps ← get_comps,
-   let cs' := comps.fold mk_pcomp_set (λ p s, s.union (elim_with_set a p comps)),
-   update (vs.erase a) cs'
+do ⟨pos, neg, not_present⟩ ← split_set_by_var_parity a <$> get_comps,
+   let cs' := pos.fold mk_pcomp_set (λ p s, s.union (elim_with_set a p neg)),
+   update (vs.erase a) $ cs'.union not_present
 
 meta def elim_all_vars : linarith_monad unit :=
 get_var_list >>= list.mmap' monad.elim_var

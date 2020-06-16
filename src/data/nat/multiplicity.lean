@@ -33,7 +33,7 @@ lemma multiplicity_eq_card_pow_dvd {m n b : ℕ} (hm1 : m ≠ 1) (hn0 : 0 < n) (
 calc multiplicity m n = ↑(Ico 1 $ ((multiplicity m n).get (finite_nat_iff.2 ⟨hm1, hn0⟩) + 1)).card :
   by simp
 ... = ↑((finset.Ico 1 b).filter (λ i, m ^ i ∣ n)).card : congr_arg coe $ congr_arg card $
-  finset.ext.2 $ λ i,
+  finset.ext $ λ i,
   have hmn : ¬ m ^ n ∣ n,
     from if hm0 : m = 0
     then λ _, by cases n; simp [*, lt_irrefl, nat.pow_succ] at *

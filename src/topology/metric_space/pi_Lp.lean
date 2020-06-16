@@ -85,7 +85,8 @@ antiLipschitz.
 
 We only register this emetric space structure as a temporary instance, as the true instance (to be
 registered later) will have as uniformity exactly the product uniformity, instead of the one coming
-from the edistance (which is equal to it, but not defeq).
+from the edistance (which is equal to it, but not defeq). See Note [forgetful inheritance]
+explaining why having definitionally the right uniformity is often important.
 -/
 
 variables [∀ i, emetric_space (α i)] [fintype ι]

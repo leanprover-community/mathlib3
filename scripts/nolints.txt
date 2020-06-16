@@ -110,9 +110,6 @@ apply_nolint prime_spectrum has_inhabited_instance
 apply_nolint algebraic_geometry.PresheafedSpace.stalk doc_blame
 apply_nolint algebraic_geometry.PresheafedSpace.stalk_map doc_blame
 
--- analysis/normed_space/real_inner_product.lean
-apply_nolint has_inner doc_blame
-
 -- category_theory/adjunction/basic.lean
 apply_nolint category_theory.adjunction has_inhabited_instance
 apply_nolint category_theory.adjunction.adjunction_of_equiv_left doc_blame
@@ -1570,45 +1567,9 @@ apply_nolint measure_theory.simple_func.ite doc_blame
 
 -- measure_theory/measurable_space.lean
 apply_nolint measurable_equiv has_inhabited_instance
-apply_nolint measurable_equiv.cast doc_blame
-apply_nolint measurable_equiv.prod_comm doc_blame
-apply_nolint measurable_equiv.prod_congr doc_blame
-apply_nolint measurable_equiv.prod_sum_distrib doc_blame
-apply_nolint measurable_equiv.refl doc_blame
-apply_nolint measurable_equiv.set.image doc_blame
-apply_nolint measurable_equiv.set.range doc_blame
-apply_nolint measurable_equiv.set.range_inl doc_blame
-apply_nolint measurable_equiv.set.range_inr doc_blame
-apply_nolint measurable_equiv.sum_congr doc_blame
-apply_nolint measurable_equiv.sum_prod_distrib doc_blame
-apply_nolint measurable_equiv.sum_prod_sum doc_blame
-apply_nolint measurable_equiv.symm doc_blame
-apply_nolint measurable_equiv.trans doc_blame
-apply_nolint measurable_space doc_blame
-apply_nolint measurable_space.dynkin_system.generate doc_blame
-apply_nolint measurable_space.dynkin_system.of_measurable_space doc_blame
-apply_nolint measurable_space.dynkin_system.restrict_on doc_blame
-apply_nolint measurable_space.dynkin_system.to_measurable_space doc_blame
-apply_nolint measurable_space.gi_generate_from doc_blame
-apply_nolint measurable_space.mk_of_closure doc_blame
 
 -- measure_theory/measure_space.lean
-apply_nolint completion doc_blame
-apply_nolint is_null_measurable doc_blame
-apply_nolint measure_theory.measure doc_blame
 apply_nolint measure_theory.measure' unused_arguments
-apply_nolint measure_theory.measure.is_complete doc_blame
-apply_nolint measure_theory.measure.map doc_blame
-apply_nolint measure_theory.measure.of_measurable doc_blame
-apply_nolint measure_theory.outer_measure.to_measure doc_blame
-apply_nolint measure_theory.outer_measure.trim doc_blame
-apply_nolint null_measurable doc_blame
-
--- measure_theory/outer_measure.lean
-apply_nolint measure_theory.outer_measure doc_blame
-apply_nolint measure_theory.outer_measure.Inf_gen doc_blame
-apply_nolint measure_theory.outer_measure.map doc_blame
-apply_nolint measure_theory.outer_measure.sum doc_blame
 
 -- measure_theory/probability_mass_function.lean
 apply_nolint pmf.bernoulli doc_blame
@@ -1899,11 +1860,6 @@ apply_nolint tactic.abel.term doc_blame
 apply_nolint tactic.abel.termg doc_blame
 apply_nolint tactic.interactive.abel.mode doc_blame
 
--- tactic/algebra.lean
-apply_nolint tactic.ancestor_attr doc_blame
-apply_nolint tactic.find_ancestors doc_blame
-apply_nolint tactic.get_ancestors doc_blame
-
 -- tactic/alias.lean
 apply_nolint tactic.alias.alias_attr doc_blame
 apply_nolint tactic.alias.alias_direct doc_blame
@@ -2102,7 +2058,6 @@ apply_nolint linarith.add_neg_eq_pfs doc_blame
 apply_nolint linarith.comp.add doc_blame
 apply_nolint linarith.comp.coeff_of doc_blame
 apply_nolint linarith.comp.is_contr doc_blame
-apply_nolint linarith.comp.lt doc_blame
 apply_nolint linarith.comp.scale doc_blame
 apply_nolint linarith.comp_source doc_blame
 apply_nolint linarith.comp_source.flatten doc_blame
@@ -2122,7 +2077,6 @@ apply_nolint linarith.get_vars doc_blame
 apply_nolint linarith.guard_is_nat_prop doc_blame
 apply_nolint linarith.guard_is_strict_int_prop doc_blame
 apply_nolint linarith.ineq doc_blame
-apply_nolint linarith.ineq.is_lt doc_blame
 apply_nolint linarith.ineq.max doc_blame
 apply_nolint linarith.ineq.to_string doc_blame
 apply_nolint linarith.ineq_const_mul_nm doc_blame
@@ -2134,7 +2088,6 @@ apply_nolint linarith.linarith_config doc_blame
 apply_nolint linarith.linarith_monad doc_blame
 apply_nolint linarith.linarith_monad.run doc_blame
 apply_nolint linarith.list.mfind doc_blame
-apply_nolint linarith.map_lt doc_blame
 apply_nolint linarith.map_of_expr_mul_aux doc_blame
 apply_nolint linarith.mk_cast_eq_and_nonneg_prfs doc_blame
 apply_nolint linarith.mk_coe_nat_nonneg_prf doc_blame

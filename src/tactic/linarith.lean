@@ -1168,6 +1168,8 @@ optional arguments:
   hypotheses.
 * If `exfalso` is false, `linarith` will fail when the goal is neither an inequality nor `false`.
   (True by default.)
+
+A variant, `nlinarith`, does some basic preprocessing to handle some nonlinear goals.
 -/
 add_tactic_doc
 { name       := "linarith",
@@ -1177,7 +1179,7 @@ add_tactic_doc
 
 /--
 An extension of `linarith` with some preprocessing to allow it to solve some nonlinear arithmetic
-problems. (Based on Coq's `nlinarith` tactic.) See `linarith` for the available syntax of options,
+problems. (Based on Coq's `nra` tactic.) See `linarith` for the available syntax of options,
 which are inherited by `nlinarith`; that is, `nlinarith!` and `nlinarith only [h1, h2]` all work as
 in `linarith`. The preprocessing is as follows:
 

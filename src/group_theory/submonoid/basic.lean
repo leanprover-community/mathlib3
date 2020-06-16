@@ -6,23 +6,21 @@ Amelia Livingston, Yury Kudryashov
 -/
 import algebra.group.basic
 import data.set.lattice
-import data.equiv.basic
 
 /-!
 # Submonoids
 
-This file defines bundled multiplicative and additive submonoids.
+This file defines bundled multiplicative and additive submonoids. We also define
+a `complete_lattice` structure on `submonoid`s, define the closure of a set as the minimal submonoid
+that includes this set, and prove a few results about extending properties from a dense set (i.e.
+a set with `closure s = ⊤`) to the whole monoid, see `submonoid.dense_induction` and
+`monoid_hom.of_mdense`.
 
 ## Main definitions
 
 * `submonoid M`: a bundled submonoid of a monoid `M`; the underlying set is given in the `carrier`
   field of the structure, and should be accessed through coercion as in `(S : set M)`.
 * `add_submonoid M` : a bundled submonoid of an additive monoid `M`.
-* `submonoid.to_add_submonoid`, `submonoid.of_add_submonoid`, `add_submonoid.to_submonoid`,
-  `add_submonoid.of_submonoid`: convert between multiplicative and additive submonoids of `M`,
-  `multiplicative M`, and `additive M`.
-* `submonoid.add_submonoid_equiv`: equivalence between `submonoid M`
-  and `add_submonoid (additive M)`.
 
 For each of the following definitions in the `submonoid` namespace, there is a corresponding
 definition in the `add_submonoid` namespace.
@@ -32,10 +30,6 @@ definition in the `add_submonoid` namespace.
 * `submonoid.closure` :  monoid closure of a set, i.e., the least submonoid that includes the set.
 * `submonoid.gi` : `closure : set M → submonoid M` and coercion `coe : submonoid M → set M`
   form a `galois_insertion`;
-* `submonoid.comap`: preimage of a submonoid under a monoid homomorphism as a submonoid of the
-  domain;
-* `submonoid.map`: image of a submonoid under a monoid homomorphism as a submonoid of the codomain;
-* `monoid_hom.mrange`: range of a monoid homomorphism as a submonoid of the codomain;
 * `monoid_hom.eq_mlocus`: the submonoid of elements `x : M` such that `f x = g x`;
 * `monoid_hom.of_mdense`:  if a map `f : M → N` between two monoids satisfies `f 1 = 1` and
   `f (x * y) = f x * f y` for `y` from some dense set `s`, then `f` is a monoid homomorphism.
@@ -46,6 +40,8 @@ definition in the `add_submonoid` namespace.
 
 Submonoid inclusion is denoted `≤` rather than `⊆`, although `∈` is defined as
 membership of a submonoid's underlying set.
+
+This file is designed to have very few de
 
 ## Tags
 submonoid, submonoids
@@ -68,42 +64,6 @@ structure add_submonoid (M : Type*) [add_monoid M] :=
 (add_mem' {a b} : a ∈ carrier → b ∈ carrier → a + b ∈ carrier)
 
 attribute [to_additive add_submonoid] submonoid
-
-/-- Map from submonoids of monoid `M` to `add_submonoid`s of `additive M`. -/
-def submonoid.to_add_submonoid {M : Type*} [monoid M] (S : submonoid M) :
-  add_submonoid (additive M) :=
-{ carrier := S.carrier,
-  zero_mem' := S.one_mem',
-  add_mem' := S.mul_mem' }
-
-/-- Map from `add_submonoid`s of `additive M` to submonoids of `M`. -/
-def submonoid.of_add_submonoid {M : Type*} [monoid M] (S : add_submonoid (additive M)) :
-  submonoid M :=
-{ carrier := S.carrier,
-  one_mem' := S.zero_mem',
-  mul_mem' := S.add_mem' }
-
-/-- Map from `add_submonoid`s of `add_monoid M` to submonoids of `multiplicative M`. -/
-def add_submonoid.to_submonoid {M : Type*} [add_monoid M] (S : add_submonoid M) :
-  submonoid (multiplicative M) :=
-{ carrier := S.carrier,
-  one_mem' := S.zero_mem',
-  mul_mem' := S.add_mem' }
-
-/-- Map from submonoids of `multiplicative M` to `add_submonoid`s of `add_monoid M`. -/
-def add_submonoid.of_submonoid {M : Type*} [add_monoid M] (S : submonoid (multiplicative M)) :
-  add_submonoid M :=
-{ carrier := S.carrier,
-  zero_mem' := S.one_mem',
-  add_mem' := S.mul_mem' }
-
-/-- Submonoids of monoid `M` are isomorphic to additive submonoids of `additive M`. -/
-def submonoid.add_submonoid_equiv (M : Type*) [monoid M] :
-  submonoid M ≃ add_submonoid (additive M) :=
-{ to_fun := submonoid.to_add_submonoid,
-  inv_fun := submonoid.of_add_submonoid,
-  left_inv := λ x, by cases x; refl,
-  right_inv := λ x, by cases x; refl }
 
 namespace submonoid
 
@@ -326,12 +286,20 @@ lemma closure_induction {p : M → Prop} {x} (h : x ∈ closure s)
 
 attribute [elab_as_eliminator] submonoid.closure_induction add_submonoid.closure_induction
 
+/-- If `s` is a dense set in a monoid `M`, `submonoid.closure s = ⊤`, then in order to prove that
+some predicate `p` holds for all `x : M` it suffices to verify `p x` for `x ∈ s`, verify `p 1`,
+and verify that `p x` and `p y` imply `p (x * y)`. -/
 @[to_additive]
 lemma dense_induction {p : M → Prop} (x : M) {s : set M} (hs : closure s = ⊤)
   (Hs : ∀ x ∈ s, p x) (H1 : p 1)
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
 have ∀ x ∈ closure s, p x, from λ x hx, closure_induction hx Hs H1 Hmul,
 by simpa [hs] using this x
+
+/-- If `s` is a dense set in an additive monoid `M`, `add_submonoid.closure s = ⊤`, then in order
+to prove that some predicate `p` holds for all `x : M` it suffices to verify `p x` for `x ∈ s`,
+verify `p 0`, and verify that `p x` and `p y` imply `p (x + y)`. -/
+add_decl_doc add_submonoid.dense_induction
 
 attribute [elab_as_eliminator] dense_induction add_submonoid.dense_induction
 
@@ -365,86 +333,6 @@ lemma closure_union (s t : set M) : closure (s ∪ t) = closure s ⊔ closure t 
 lemma closure_Union {ι} (s : ι → set M) : closure (⋃ i, s i) = ⨆ i, closure (s i) :=
 (submonoid.gi M).gc.l_supr
 
-variables {N : Type*} [monoid N] {P : Type*} [monoid P]
-
-/-- The preimage of a submonoid along a monoid homomorphism is a submonoid. -/
-@[to_additive "The preimage of an `add_submonoid` along an `add_monoid` homomorphism is an
-`add_submonoid`."]
-def comap (f : M →* N) (S : submonoid N) : submonoid M :=
-{ carrier := (f ⁻¹' S),
-  one_mem' := show f 1 ∈ S, by rw f.map_one; exact S.one_mem,
-  mul_mem' := λ a b ha hb,
-    show f (a * b) ∈ S, by rw f.map_mul; exact S.mul_mem ha hb }
-
-@[simp, to_additive]
-lemma coe_comap (S : submonoid N) (f : M →* N) : (S.comap f : set M) = f ⁻¹' S := rfl
-
-@[simp, to_additive]
-lemma mem_comap {S : submonoid N} {f : M →* N} {x : M} : x ∈ S.comap f ↔ f x ∈ S := iff.rfl
-
-@[to_additive]
-lemma comap_comap (S : submonoid P) (g : N →* P) (f : M →* N) :
-  (S.comap g).comap f = S.comap (g.comp f) :=
-rfl
-
-/-- The image of a submonoid along a monoid homomorphism is a submonoid. -/
-@[to_additive "The image of an `add_submonoid` along an `add_monoid` homomorphism is
-an `add_submonoid`."]
-def map (f : M →* N) (S : submonoid M) : submonoid N :=
-{ carrier := (f '' S),
-  one_mem' := ⟨1, S.one_mem, f.map_one⟩,
-  mul_mem' := begin rintros _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩, exact ⟨x * y, S.mul_mem hx hy,
-    by rw f.map_mul; refl⟩ end }
-
-@[simp, to_additive]
-lemma coe_map (f : M →* N) (S : submonoid M) :
-  (S.map f : set N) = f '' S := rfl
-
-@[simp, to_additive]
-lemma mem_map {f : M →* N} {S : submonoid M} {y : N} :
-  y ∈ S.map f ↔ ∃ x ∈ S, f x = y :=
-mem_image_iff_bex
-
-@[to_additive]
-lemma map_map (g : N →* P) (f : M →* N) : (S.map f).map g = S.map (g.comp f) :=
-ext' $ image_image _ _ _
-
-@[to_additive]
-lemma map_le_iff_le_comap {f : M →* N} {S : submonoid M} {T : submonoid N} :
-  S.map f ≤ T ↔ S ≤ T.comap f :=
-image_subset_iff
-
-@[to_additive]
-lemma gc_map_comap (f : M →* N) : galois_connection (map f) (comap f) :=
-λ S T, map_le_iff_le_comap
-
-@[to_additive]
-lemma map_sup (S T : submonoid M) (f : M →* N) : (S ⊔ T).map f = S.map f ⊔ T.map f :=
-(gc_map_comap f).l_sup
-
-@[to_additive]
-lemma map_supr {ι : Sort*} (f : M →* N) (s : ι → submonoid M) :
-  (supr s).map f = ⨆ i, (s i).map f :=
-(gc_map_comap f).l_supr
-
-@[to_additive]
-lemma comap_inf (S T : submonoid N) (f : M →* N) : (S ⊓ T).comap f = S.comap f ⊓ T.comap f :=
-(gc_map_comap f).u_inf
-
-@[to_additive]
-lemma comap_infi {ι : Sort*} (f : M →* N) (s : ι → submonoid N) :
-  (infi s).comap f = ⨅ i, (s i).comap f :=
-(gc_map_comap f).u_infi
-
-@[simp, to_additive] lemma map_bot (f : M →* N) : (⊥ : submonoid M).map f = ⊥ :=
-(gc_map_comap f).l_bot
-
-@[simp, to_additive] lemma comap_top (f : M →* N) : (⊤ : submonoid N).comap f = ⊤ :=
-(gc_map_comap f).u_top
-
-@[simp, to_additive] lemma map_id (S : submonoid M) : S.map (monoid_hom.id M) = S :=
-ext (λ x, ⟨λ ⟨_, h, rfl⟩, h, λ h, ⟨_, h, rfl⟩⟩)
-
 end submonoid
 
 namespace monoid_hom
@@ -452,33 +340,6 @@ namespace monoid_hom
 variables {N : Type*} {P : Type*} [monoid N] [monoid P] (S : submonoid M)
 
 open submonoid
-
-/-- The range of a monoid homomorphism is a submonoid. -/
-@[to_additive "The range of an `add_monoid_hom` is an `add_submonoid`."]
-def mrange (f : M →* N) : submonoid N := (⊤ : submonoid M).map f
-
-@[simp, to_additive] lemma coe_mrange (f : M →* N) :
-  (f.mrange : set N) = set.range f :=
-set.image_univ
-
-@[simp, to_additive] lemma mem_mrange {f : M →* N} {y : N} :
-  y ∈ f.mrange ↔ ∃ x, f x = y :=
-by simp [mrange]
-
-@[to_additive]
-lemma map_mrange (g : N →* P) (f : M →* N) : f.mrange.map g = (g.comp f).mrange :=
-(⊤ : submonoid M).map_map g f
-
-@[to_additive]
-lemma mrange_top_iff_surjective {N} [monoid N] {f : M →* N} :
-  f.mrange = (⊤ : submonoid N) ↔ function.surjective f :=
-submonoid.ext'_iff.trans $ iff.trans (by rw [coe_mrange, coe_top]) set.range_iff_surjective
-
-/-- The range of a surjective monoid hom is the whole of the codomain. -/
-@[to_additive "The range of a surjective `add_monoid` hom is the whole of the codomain."]
-lemma mrange_top_of_surjective {N} [monoid N] (f : M →* N) (hf : function.surjective f) :
-  f.mrange = (⊤ : submonoid N) :=
-mrange_top_iff_surjective.2 hf
 
 /-- The submonoid of elements `x : M` such that `f x = g x` -/
 @[to_additive "The additive submonoid of elements `x : M` such that `f x = g x`"]
@@ -502,22 +363,6 @@ ext $ λ x, h trivial
 lemma eq_of_eq_on_mdense {s : set M} (hs : closure s = ⊤) {f g : M →* N} (h : s.eq_on f g) :
   f = g :=
 eq_of_eq_on_mtop $ hs ▸ eq_on_mclosure h
-
-@[to_additive]
-lemma mclosure_preimage_le (f : M →* N) (s : set N) :
-  closure (f ⁻¹' s) ≤ (closure s).comap f :=
-closure_le.2 $ λ x hx, mem_coe.2 $ mem_comap.2 $ subset_closure hx
-
-/-- The image under a monoid hom of the submonoid generated by a set equals the submonoid generated
-    by the image of the set. -/
-@[to_additive "The image under an `add_monoid` hom of the `add_submonoid` generated by a set equals
-the `add_submonoid` generated by the image of the set."]
-lemma map_mclosure (f : M →* N) (s : set M) :
-  (closure s).map f = closure (f '' s) :=
-le_antisymm
-  (map_le_iff_le_comap.2 $ le_trans (closure_mono $ set.subset_preimage_image _ _)
-    (mclosure_preimage_le _ _))
-  (closure_le.2 $ set.image_subset _ subset_closure)
 
 /-- Let `s` be a subset of a monoid `M` such that the closure of `s` is the whole monoid.
 Then `monoid_hom.of_mdense` defines a monoid homomorphism from `M` asking for a proof

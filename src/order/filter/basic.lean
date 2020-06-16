@@ -2043,18 +2043,18 @@ lemma extraction_of_eventually_at_top {P : ℕ → Prop} (h : ∀ᶠ n in at_top
 extraction_of_frequently_at_top (eventually.frequently at_top_ne_bot h)
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-lemma exists_le_of_tendsto_at_top [decidable_linear_order α] [preorder β] {u : α → β}
+lemma exists_le_of_tendsto_at_top [semilattice_sup α] [preorder β] {u : α → β}
   (h : tendsto u at_top at_top) : ∀ a b, ∃ a' ≥ a, b ≤ u a' :=
 begin
   intros a b,
-  rw tendsto_at_top at h,
+  have : ∀ᶠ x in at_top, a ≤ x ∧ b ≤ u x := inter_mem_sets (mem_at_top a) (h $ mem_at_top b),
   haveI : nonempty α := ⟨a⟩,
-  cases mem_at_top_sets.mp (h b) with a' ha',
-  exact ⟨max a a', le_max_left _ _, ha' _ $ le_max_right _ _⟩,
+  rcases this.exists at_top_ne_bot with ⟨a', ha, hb⟩,
+  exact ⟨a', ha, hb⟩
 end
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-lemma exists_lt_of_tendsto_at_top [decidable_linear_order α] [preorder β] [no_top_order β]
+lemma exists_lt_of_tendsto_at_top [semilattice_sup α] [preorder β] [no_top_order β]
   {u : α → β} (h : tendsto u at_top at_top) : ∀ a b, ∃ a' ≥ a, b < u a' :=
 begin
   intros a b,
@@ -2064,9 +2064,10 @@ begin
 end
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-lemma high_scores [decidable_linear_order β] [no_top_order β] {u : ℕ → β}
+lemma high_scores [linear_order β] [no_top_order β] {u : ℕ → β}
   (hu : tendsto u at_top at_top) : ∀ N, ∃ n ≥ N, ∀ k < n, u k < u n :=
 begin
+  letI := classical.DLO β,
   intros N,
   let A := finset.image u (finset.range $ N+1), -- A = {u 0, ..., u N}
   have Ane : A.nonempty,
@@ -2094,12 +2095,12 @@ begin
          ... < u n : hnM },
 end
 
-lemma frequently_high_scores [decidable_linear_order β] [no_top_order β] {u : ℕ → β}
+lemma frequently_high_scores [linear_order β] [no_top_order β] {u : ℕ → β}
   (hu : tendsto u at_top at_top) : ∃ᶠ n in at_top, ∀ k < n, u k < u n :=
 by simpa [frequently_at_top] using high_scores hu
 
 lemma strict_mono_subseq_of_tendsto_at_top
-  {β : Type*} [decidable_linear_order β] [no_top_order β]
+  {β : Type*} [linear_order β] [no_top_order β]
   {u : ℕ → β} (hu : tendsto u at_top at_top) :
   ∃ φ : ℕ → ℕ, strict_mono φ ∧ strict_mono (u ∘ φ) :=
 let ⟨φ, h, h'⟩ := extraction_of_frequently_at_top (frequently_high_scores hu) in

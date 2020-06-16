@@ -1442,6 +1442,8 @@ begin
   rwa closure_eq_of_is_closed (is_closed_le' C) at this
 end
 
+alias bounded_closure_of_bounded ← bounded.closure
+
 /-- The union of two bounded sets is bounded iff each of the sets is bounded -/
 @[simp] lemma bounded_union :
   bounded (s ∪ t) ↔ bounded s ∧ bounded t :=

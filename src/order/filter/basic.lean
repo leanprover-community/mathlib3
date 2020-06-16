@@ -2015,7 +2015,7 @@ lemma tendsto_at_top_mono [preorder β] (l : filter α) :
 λ f₁ f₂ h, tendsto_at_top_mono' l $ univ_mem_sets' h
 
 /-!
-## Sequences
+### Sequences
 -/
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
@@ -2063,6 +2063,10 @@ begin
   exact ⟨a', ha', lt_of_lt_of_le hb' ha''⟩
 end
 
+/--
+If `u` is a sequence which is unbounded above,
+then after any point, it reaches a value strictly greater than all previous values.
+-/
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma high_scores [linear_order β] [no_top_order β] {u : ℕ → β}
   (hu : tendsto u at_top at_top) : ∀ N, ∃ n ≥ N, ∀ k < n, u k < u n :=
@@ -2095,6 +2099,10 @@ begin
          ... < u n : hnM },
 end
 
+/--
+If `u` is a sequence which is unbounded above,
+then it `frequently` reaches a value strictly greater than all previous values.
+-/
 lemma frequently_high_scores [linear_order β] [no_top_order β] {u : ℕ → β}
   (hu : tendsto u at_top at_top) : ∃ᶠ n in at_top, ∀ k < n, u k < u n :=
 by simpa [frequently_at_top] using high_scores hu

@@ -164,9 +164,17 @@ begin
     exact mem_image_of_mem _ hx.2 }
 end
 
-lemma inv_image_eq_source_inter_preimage {s : set β} (h : s ⊆ e.target) :
+lemma image_inter_source_eq (s : set α) :
+  e '' (s ∩ e.source) = e.target ∩ e.symm ⁻¹' (s ∩ e.source) :=
+e.image_eq_target_inter_inv_preimage (inter_subset_right _ _)
+
+lemma symm_image_eq_source_inter_preimage {s : set β} (h : s ⊆ e.target) :
   e.symm '' s = e.source ∩ e ⁻¹' s :=
 e.symm.image_eq_target_inter_inv_preimage h
+
+lemma symm_image_inter_target_eq (s : set β) :
+  e.symm '' (s ∩ e.target) = e.source ∩ e ⁻¹' (s ∩ e.target) :=
+e.symm.image_inter_source_eq _
 
 lemma source_inter_preimage_inv_preimage (s : set α) :
   e.source ∩ e ⁻¹' (e.symm ⁻¹' s) = e.source ∩ s :=
@@ -314,10 +322,7 @@ begin
 end
 
 lemma trans_source'' : (e.trans e').source = e.symm '' (e.target ∩ e'.source) :=
-begin
-  rw [e.trans_source', e.inv_image_eq_source_inter_preimage, inter_comm],
-  exact inter_subset_left _ _,
-end
+by rw [e.trans_source', inter_comm e.target, e.symm_image_inter_target_eq]
 
 lemma image_trans_source : e '' (e.trans e').source = e.target ∩ e'.source :=
 image_source_eq_target (local_equiv.symm (local_equiv.restr (local_equiv.symm e) (e'.source)))

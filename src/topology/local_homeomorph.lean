@@ -133,6 +133,22 @@ lemma eventually_right_inverse' (e : local_homeomorph α β) {x} (hx : x ∈ e.s
   ∀ᶠ y in 𝓝 (e x), e (e.symm y) = y :=
 e.eventually_right_inverse (e.map_source hx)
 
+lemma image_eq_target_inter_inv_preimage {s : set α} (h : s ⊆ e.source) :
+  e '' s = e.target ∩ e.symm ⁻¹' s :=
+e.to_local_equiv.image_eq_target_inter_inv_preimage h
+
+lemma image_inter_source_eq (s : set α) :
+  e '' (s ∩ e.source) = e.target ∩ e.symm ⁻¹' (s ∩ e.source) :=
+e.image_eq_target_inter_inv_preimage (inter_subset_right _ _)
+
+lemma symm_image_eq_source_inter_preimage {s : set β} (h : s ⊆ e.target) :
+  e.symm '' s = e.source ∩ e ⁻¹' s :=
+e.symm.image_eq_target_inter_inv_preimage h
+
+lemma symm_image_inter_target_eq (s : set β) :
+  e.symm '' (s ∩ e.target) = e.source ∩ e ⁻¹' (s ∩ e.target) :=
+e.symm.image_inter_source_eq _
+
 /-- Two local homeomorphisms are equal when they have equal `to_fun`, `inv_fun` and `source`.
 It is not sufficient to have equal `to_fun` and `source`, as this only determines `inv_fun` on
 the target. This would only be true for a weaker notion of equality, arguably the right one,

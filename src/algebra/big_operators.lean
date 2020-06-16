@@ -850,12 +850,12 @@ theorem card_eq_sum_card_image [decidable_eq β] (f : α → β) (s : finset α)
   s.card = ∑ a in s.image f, (s.filter (λ x, f x = a)).card :=
 by letI := classical.dec_eq α; exact
 calc s.card = ((s.image f).bind (λ a, s.filter (λ x, f x = a))).card :
-  congr_arg _ (finset.ext.2 $ λ x,
+  congr_arg _ (finset.ext $ λ x,
     ⟨λ hs, mem_bind.2 ⟨f x, mem_image_of_mem _ hs,
       mem_filter.2 ⟨hs, rfl⟩⟩,
     λ h, let ⟨a, ha₁, ha₂⟩ := mem_bind.1 h in by convert filter_subset s ha₂⟩)
 ... = ∑ a in s.image f, (s.filter (λ x, f x = a)).card :
-  card_bind (by simp [disjoint_left, finset.ext] {contextual := tt})
+  card_bind (by simp [disjoint_left, finset.ext_iff] {contextual := tt})
 
 lemma gsmul_sum [add_comm_group β] {f : α → β} {s : finset α} (z : ℤ) :
   gsmul z (∑ a in s, f a) = ∑ a in s, gsmul z (f a) :=
@@ -972,7 +972,7 @@ calc ∏ a in s, (f a + g a)
         _ _ _
         (λ b hb, ⟨b, by cases b; finish⟩));
     intros; simp * at *; simp * at * },
-  { finish [function.funext_iff, finset.ext, subset_iff] },
+  { finish [function.funext_iff, finset.ext_iff, subset_iff] },
   { assume f hf,
     exact ⟨s.filter (λ a : α, ∃ h : a ∈ s, f a h),
       by simp, by funext; intros; simp *⟩ }
@@ -1320,7 +1320,7 @@ namespace with_top
 open finset
 open_locale classical
 
-/-- sum of finite numbers is still finite -/
+/-- A sum of finite numbers is still finite -/
 lemma sum_lt_top [ordered_add_comm_monoid β] {s : finset α} {f : α → with_top β} :
   (∀a∈s, f a < ⊤) → (∑ x in s, f x) < ⊤ :=
 finset.induction_on s (by { intro h, rw sum_empty, exact coe_lt_top _ })
@@ -1331,9 +1331,19 @@ finset.induction_on s (by { intro h, rw sum_empty, exact coe_lt_top _ })
     { apply ih, intros a ha, apply h, apply mem_insert_of_mem ha }
   end)
 
-/-- sum of finite numbers is still finite -/
+/-- A sum of finite numbers is still finite -/
 lemma sum_lt_top_iff [canonically_ordered_add_monoid β] {s : finset α} {f : α → with_top β} :
   (∑ x in s, f x) < ⊤ ↔ (∀a∈s, f a < ⊤) :=
 iff.intro (λh a ha, lt_of_le_of_lt (single_le_sum (λa ha, zero_le _) ha) h) sum_lt_top
+
+/-- A sum of numbers is infinite iff one of them is infinite -/
+lemma sum_eq_top_iff [canonically_ordered_add_monoid β] {s : finset α} {f : α → with_top β} :
+  (∑ x in s, f x) = ⊤ ↔ (∃a∈s, f a = ⊤) :=
+begin
+  rw ← not_iff_not,
+  push_neg,
+  simp only [← lt_top_iff_ne_top],
+  exact sum_lt_top_iff
+end
 
 end with_top

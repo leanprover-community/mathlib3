@@ -28,9 +28,9 @@ Let `c` be a continued fraction `[h; (a₀, b₀), (a₁, b₁), (a₂, b₂),..
 
 One can compute the convergents of `c` in two ways:
 1. Directly evaluating the fraction described by `c` up to a given `n` (`convergents'`)
-2. Using the recurrence (`convergents`)
-  `A₋₁ = 1,  A₀ = h,  Aₙ = bₙ-₁ * Aₙ₋₁ + aₙ-₁ * Aₙ₋₂`, and
-  `B₋₁ = 0,  B₀ = 1,  Bₙ = bₙ-₁ * Bₙ₋₁ + aₙ-₁ * Bₙ₋₂`.
+2. Using the recurrence (`convergents`):
+  - `A₋₁ = 1,  A₀ = h,  Aₙ = bₙ₋₁ * Aₙ₋₁ + aₙ₋₁ * Aₙ₋₂`, and
+  - `B₋₁ = 0,  B₀ = 1,  Bₙ = bₙ₋₁ * Bₙ₋₁ + aₙ₋₁ * Bₙ₋₂`.
 
 To show the equivalence of the computations in the main theorem of this file
 `convergents_eq_convergents'`, we proceed by induction. The case `n = 0` is trivial.
@@ -177,7 +177,7 @@ begin
       suffices : gp_head.a / (gp_head.b + convergents'_aux s.tail (m + 2))
                = convergents'_aux (squash_seq s (m + 1)) (m + 2), by
         simpa only [convergents'_aux, s_head_eq],
-      have : convergents'_aux s.tail (m + 2) = convergents'_aux (squash_seq s.tail m) (m + 1),by
+      have : convergents'_aux s.tail (m + 2) = convergents'_aux (squash_seq s.tail m) (m + 1), by
       { have : s.tail.nth (m + 1) = some gp_succ_n, by simpa [seq.nth_tail] using s_succ_nth_eq,
         exact (IH _ this) },
       have : (squash_seq s (m + 1)).head = some gp_head, from
@@ -285,13 +285,14 @@ begin
         g.s.ge_stable n'.le_succ s_nth_eq,
       -- Notations
       let g' := squash_gcf g (n' + 1),
-      set predConts := g.continuants_aux (n' + 1) with succ_n'th_conts_aux_eq,
-      set ppredConts := g.continuants_aux n' with n'th_conts_aux_eq,
-      let pA := predConts.a, let pB := predConts.b, let ppA := ppredConts.a, let ppB := ppredConts.b,
-      set predConts' := g'.continuants_aux (n' + 1) with succ_n'th_conts_aux_eq',
-      set ppredConts' := g'.continuants_aux n' with n'th_conts_aux_eq',
-      let pA' := predConts'.a, let pB' := predConts'.b, let ppA' := ppredConts'.a,
-      let ppB' := ppredConts'.b,
+      set pred_conts := g.continuants_aux (n' + 1) with succ_n'th_conts_aux_eq,
+      set ppred_conts := g.continuants_aux n' with n'th_conts_aux_eq,
+      let pA := pred_conts.a, let pB := pred_conts.b,
+      let ppA := ppred_conts.a, let ppB := ppred_conts.b,
+      set pred_conts' := g'.continuants_aux (n' + 1) with succ_n'th_conts_aux_eq',
+      set ppred_conts' := g'.continuants_aux n' with n'th_conts_aux_eq',
+      let pA' := pred_conts'.a, let pB' := pred_conts'.b, let ppA' := ppred_conts'.a,
+      let ppB' := ppred_conts'.b,
       -- first compute the convergent of the squashed gcf
       have : g'.convergents (n' + 1)
            = ((pb + a / b) * pA' + pa * ppA') / ((pb + a / b) * pB' + pa * ppB'),

@@ -215,7 +215,7 @@ begin
   resetI,
   subst p,
   congr,
-  simp [finset.ext]
+  simp [finset.ext_iff]
 end
 
 @[to_additive] lemma finset.prod_fiberwise [fintype β] [decidable_eq β] [comm_monoid γ]
@@ -258,7 +258,7 @@ begin
   rw [← prod_sdiff (subset_univ s),
       ← @prod_image (α₁ ⊕ α₂) _ _ _ _ _ _ sum.inl,
       ← @prod_image (α₁ ⊕ α₂) _ _ _ _ _ _ sum.inr],
-  { congr, rw finset.ext, rintro (a|a);
+  { congr, rw finset.ext_iff, rintro (a|a);
     { simp only [mem_image, exists_eq, mem_sdiff, mem_univ, exists_false,
         exists_prop_of_true, not_false_iff, and_self, not_true, and_false], } },
   all_goals { intros, solve_by_elim [sum.inl.inj, sum.inr.inj], }

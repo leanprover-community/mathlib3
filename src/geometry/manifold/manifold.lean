@@ -133,7 +133,7 @@ variable [topological_space H]
 /-- Partial order on the set of groupoids, given by inclusion of the members of the groupoid -/
 instance structure_groupoid.partial_order : partial_order (structure_groupoid H) :=
 partial_order.lift structure_groupoid.members
-(λa b h, by { cases a, cases b, dsimp at h, induction h, refl }) (by apply_instance)
+(λa b h, by { cases a, cases b, dsimp at h, induction h, refl })
 
 /-- The trivial groupoid, containing only the identity (and maps with empty source, as this is
 necessary from the definition) -/

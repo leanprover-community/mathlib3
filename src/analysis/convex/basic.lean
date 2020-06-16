@@ -209,7 +209,7 @@ lemma convex.is_linear_image (hs : convex s) {f : E → F} (hf : is_linear_map �
   convex (f '' s) :=
 begin
   rintros _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩ a b ha hb hab,
-  exact ⟨a • x + b • y, hs hx hy ha hb hab, by simp only [hf.add,hf.smul]⟩
+  exact ⟨a • x + b • y, hs hx hy ha hb hab, by simp only [hf.map_add,hf.map_smul]⟩
 end
 
 lemma convex.linear_image (hs : convex s) (f : E →ₗ[ℝ] F) : convex (image f s) :=
@@ -220,7 +220,7 @@ lemma convex.is_linear_preimage {s : set F} (hs : convex s) {f : E → F} (hf : 
 begin
   intros x y hx hy a b ha hb hab,
   convert hs hx hy ha hb hab,
-  simp only [mem_preimage, hf.add, hf.smul]
+  simp only [mem_preimage, hf.map_add, hf.map_smul]
 end
 
 lemma convex.linear_preimage {s : set F} (hs : convex s) (f : E →ₗ[ℝ] F) :

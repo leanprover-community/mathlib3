@@ -934,8 +934,8 @@ variables [fintype ι] (h : is_basis R v)
 def equiv_fun_basis  : M ≃ₗ[R] (ι → R) :=
 linear_equiv.trans (module_equiv_finsupp h)
   { to_fun := finsupp.to_fun,
-    add := λ x y, by ext; exact finsupp.add_apply,
-    smul := λ x y, by ext; exact finsupp.smul_apply,
+    map_add' := λ x y, by ext; exact finsupp.add_apply,
+    map_smul' := λ x y, by ext; exact finsupp.smul_apply,
     ..finsupp.equiv_fun_on_fintype }
 
 /-- A module over a finite ring that admits a finite basis is finite. -/
@@ -1138,8 +1138,7 @@ assume t, finset.induction_on t
           hsu, by simp [eq, hb₂t', hb₁t, hb₁s']⟩)),
 begin
   have eq : t.filter (λx, x ∈ s) ∪ t.filter (λx, x ∉ s) = t,
-  { apply finset.ext.mpr,
-    intro x,
+  { ext1 x,
     by_cases x ∈ s; simp * },
   apply exists.elim (this (t.filter (λx, x ∉ s)) (t.filter (λx, x ∈ s))
     (by simp [set.subset_def]) (by simp [set.ext_iff] {contextual := tt}) (by rwa [eq])),

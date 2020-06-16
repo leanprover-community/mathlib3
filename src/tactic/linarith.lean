@@ -18,19 +18,7 @@ A tactic for discharging linear arithmetic goals using Fourier-Motzkin eliminati
   found
 -/
 -- move to meta/expr.lean
-meta def expr.app_symbol_in (e : expr) (l : list name) : bool :=
-match e.get_app_fn with
-| (expr.const n _) := n ∈ l
-| _ := ff
-end
-meta def nat.to_pexpr : ℕ → pexpr
-| 0 := ``(0)
-| 1 := ``(1)
-| n := if n % 2 = 0 then ``(bit0 %%(nat.to_pexpr (n/2))) else ``(bit1 %%(nat.to_pexpr (n/2)))
 
-def {u} list.mmap_diag {m} [monad m] {α β : Type u} (f : α → α → m β) : list α → m (list β)
-| [] := return []
-| (h::t) := do v ← f h h, l ← t.mmap (f h), t ← t.mmap_diag, return $ (v::l) ++ t
 
 open native
 namespace linarith
@@ -794,8 +782,6 @@ where `e'` has no division.
 meta def kill_factors (e : expr) : tactic (ℕ × expr) :=
 let (n, t) := find_cancel_factor e in
 do e' ← mk_prod_prf n t e, return (n, e')
-
-
 
 /--
 `normalize_denominators_in_lhs h lhs` assumes that `h` is a proof of `lhs R 0`.

@@ -8,7 +8,7 @@ import ring_theory.noetherian
 import set_theory.cardinal
 import tactic
 
-/-- A ring `R` is one-dimensional if all nonzero prime ideals are maximal. -/
+/-- A ring `R` is (at most) one-dimensional if all nonzero prime ideals are maximal. -/
 def ring.is_one_dimensional (R : Type*) [comm_ring R] :=
 ∀ p ≠ (⊥ : ideal R), p.is_prime → p.is_maximal
 
@@ -21,7 +21,7 @@ lemma principal_ideal_domain.is_one_dimensional (R : Type*) [principal_ideal_dom
 variables {R K : Type*}
 
 -- TODO: `class is_dedekind_domain`?
-structure is_dedekind_domain [comm_ring R] [comm_ring K] (f : fraction_map R K) :=
+structure is_dedekind_domain [integral_domain R] [comm_ring K] (f : fraction_map R K) :=
 (is_one_dimensional : is_one_dimensional R)
 (is_noetherian_ring : is_noetherian_ring R)
 (is_integrally_closed : integral_closure R f.codomain = ⊥)

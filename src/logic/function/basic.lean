@@ -46,8 +46,8 @@ mt (assume h, hf h)
 
 /-- If the co-domain `β` of an injective function `f : α → β` has decidable equality, then
 the domain `α` also has decidable equality. -/
-def injective.decidable_eq [decidable_eq β] (I : injective f) : decidable_eq α
-| a b := decidable_of_iff _ I.eq_iff
+def injective.decidable_eq [decidable_eq β] (I : injective f) : decidable_eq α :=
+λ a b, decidable_of_iff _ I.eq_iff
 
 lemma injective.of_comp {γ : Sort w} {g : γ → α} (I : injective (f ∘ g)) : injective g :=
 λ x y h, I $ show f (g x) = f (g y), from congr_arg f h

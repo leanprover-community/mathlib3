@@ -433,10 +433,9 @@ begin
   exact supr_le (λ s, sum_measure_le_measure_univ (λ i hi, hs i) (λ i hi j hj hij, H i j hij))
 end
 
--- TODO: should we use an explicit `μ` here?
 /-- Pigeonhole principle for measure spaces: if `∑' i, μ (s i) > μ univ`, then
 one of the intersections `s i ∩ s j` is not empty. -/
-lemma exists_nonempty_inter_of_measureuniv_lt_tsum_measure {s : ι → set α}
+lemma exists_nonempty_inter_of_measure_univ_lt_tsum_measure (μ : measure α) {s : ι → set α}
   (hs : ∀ i, is_measurable (s i)) (H : μ (univ : set α) < ∑' i, μ (s i)) :
   ∃ i j (h : i ≠ j), (s i ∩ s j).nonempty :=
 begin
@@ -447,8 +446,8 @@ end
 
 /-- Pigeonhole principle for measure spaces: if `s` is a `finset` and
 `∑ i in s, μ (t i) > μ univ`, then one of the intersections `t i ∩ t j` is not empty. -/
-lemma exists_nonempty_inter_of_volume_univ_lt_sum_volume {s : finset ι} {t : ι → set α}
-  (h : ∀ i ∈ s, is_measurable (t i)) (H : μ (univ : set α) < ∑ i in s, μ (t i)) :
+lemma exists_nonempty_inter_of_measure_univ_lt_sum_measure (μ : measure α) {s : finset ι}
+  {t : ι → set α} (h : ∀ i ∈ s, is_measurable (t i)) (H : μ (univ : set α) < ∑ i in s, μ (t i)) :
   ∃ (i ∈ s) (j ∈ s) (h : i ≠ j), (t i ∩ t j).nonempty :=
 begin
   contrapose! H,

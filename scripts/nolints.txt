@@ -84,9 +84,6 @@ apply_nolint set.pointwise_zero doc_blame
 apply_nolint comm_ring doc_blame
 apply_nolint comm_semiring doc_blame
 apply_nolint distrib doc_blame
-apply_nolint dvd.trans def_lemma doc_blame
-apply_nolint dvd_of_mul_left_eq def_lemma doc_blame
-apply_nolint dvd_of_mul_right_eq def_lemma doc_blame
 apply_nolint integral_domain doc_blame
 apply_nolint mul_zero_class doc_blame
 apply_nolint no_zero_divisors doc_blame

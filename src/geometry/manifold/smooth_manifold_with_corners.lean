@@ -438,6 +438,13 @@ instance model_space_smooth {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {I : model_with_corners 𝕜 E H} :
   smooth_manifold_with_corners I H := {}
 
+lemma smooth_manifold_with_corners.compatible {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
+  {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+  {e e' : local_homeomorph M H} (he : e ∈ atlas H M) (he' : e' ∈ atlas H M) :
+  e.symm.trans e' ∈ times_cont_diff_groupoid ⊤ I :=
+has_groupoid.compatible _ he he'
 
 section extended_charts
 open_locale topological_space

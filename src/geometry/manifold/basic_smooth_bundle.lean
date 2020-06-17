@@ -186,7 +186,9 @@ begin
     local_homeomorph.trans_to_local_equiv, local_equiv.refl_target,
     local_homeomorph.refl_local_equiv, local_equiv.prod_target, local_equiv.refl_coe,
     local_homeomorph.coe_coe_symm, local_equiv.refl_symm, local_equiv.prod_coe_symm],
-  ext x, split; { assume hx, simp at hx, simp [hx] }
+  ext p,
+  split;
+  simp {contextual := tt}
 end
 
 /-- The total space of a basic smooth bundle is endowed with a charted space structure, where the

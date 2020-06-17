@@ -41,7 +41,7 @@ specific type class for `C^∞` manifolds as these are the most commonly used.
   we register them as local equivs. `ext_chart_at I x` is the canonical such local equiv around `x`.
 
 As specific examples of models with corners, we define (in the file `real_instances.lean`)
-* ``model_with_corners_self ℝ (euclidean_space (fin n))` for the model space used to define
+* `model_with_corners_self ℝ (euclidean_space (fin n))` for the model space used to define
   `n`-dimensional real manifolds without boundary (with notation `𝓡 n` in the locale `manifold`)
 * `model_with_corners ℝ (euclidean_space (fin n)) (euclidean_half_space n)` for the model space
   used to define `n`-dimensional real manifolds with boundary (with notation `𝓡∂ n` in the locale

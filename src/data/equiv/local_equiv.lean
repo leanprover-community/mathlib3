@@ -89,9 +89,6 @@ def equiv.to_local_equiv (e : equiv α β) : local_equiv α β :=
   left_inv'   := λx hx, e.left_inv x,
   right_inv'  := λx hx, e.right_inv x }
 
-open interactive (loc.ns)
-open interactive.types (texpr location)
-
 namespace local_equiv
 
 variables (e : local_equiv α β) (e' : local_equiv β γ)
@@ -193,7 +190,14 @@ e.symm.image_inter_source_eq' _
 
 lemma source_inter_preimage_inv_preimage (s : set α) :
   e.source ∩ e ⁻¹' (e.symm ⁻¹' s) = e.source ∩ s :=
-by { ext x, split; { assume hx, simp at hx, rcases hx, simp * at * } }
+begin
+  ext, split,
+  { rintros ⟨hx, xs⟩,
+    simp only [mem_preimage, hx, e.left_inv, mem_preimage] at xs,
+    exact ⟨hx, xs⟩ },
+  { rintros ⟨hx, xs⟩,
+    simp [hx, xs] }
+end
 
 lemma target_inter_inv_preimage_preimage (s : set β) :
   e.target ∩ e.symm ⁻¹' (e ⁻¹' s) = e.target ∩ s :=

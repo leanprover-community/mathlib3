@@ -1342,9 +1342,7 @@ begin
     local_homeomorph.coe_coe_symm, model_with_corners.to_local_equiv_coe] at ⊢ T,
   convert T using 1,
   rw @preimage_comp _ _ _ _ (chart_at H x).symm,
-  -- set_eq_tac,
   -- it remains to show that `(a ∩ b) ∩ c` = `(b ∩ c) ∩ a`, which finish can do but very slowly
-  -- and set_ext_tac slowly
   ext p,
   split;
   { assume hp, simp at hp, simp [hp] }

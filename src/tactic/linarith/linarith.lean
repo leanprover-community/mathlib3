@@ -161,6 +161,22 @@ meta instance : has_to_format ineq := ⟨λ i, ineq.to_string i⟩
 
 end ineq
 
+/-! #### Configuration object -/
+
+meta structure linarith_config :=
+(discharger : tactic unit := `[ring])
+(restrict_type : option Type := none)
+(restrict_type_reflect : reflected restrict_type . tactic.apply_instance)
+(exfalso : bool := tt)
+(transparency : tactic.transparency := reducible)
+(split_hypotheses : bool := tt)
+(nonlinear_preprocessing : bool := ff)
+
+meta def linarith_config.update_reducibility (cfg : linarith_config) (reduce_semi : bool) :
+  linarith_config :=
+if reduce_semi then { cfg with transparency := semireducible, discharger := `[ring!] }
+else cfg
+
 /-! #### Comparisons with 0 -/
 
 /--
@@ -626,11 +642,19 @@ So we conclude a contradiction `0 < 0`.
 It remains to produce proofs of (1) and (2). (1) is verified by calling the `discharger` tactic
 of the `linarith_config` object, which is typically `ring`. We prove (2) by folding over the
 set of hypotheses.
+
+#### Auxiliary functions for assembling proofs
 -/
 
 section prove
 open ineq tactic
 
+/--
+`get_rel_sides e` returns the left and right hand sides of `e` if `e` is a comparison,
+and fails otherwise.
+This function is more naturally in the `option` monad, but it is convenient to put in `tactic`
+for compositionality.
+ -/
 meta def get_rel_sides : expr → tactic (expr × expr)
 | `(%%a < %%b) := return (a, b)
 | `(%%a ≤ %%b) := return (a, b)
@@ -639,24 +663,38 @@ meta def get_rel_sides : expr → tactic (expr × expr)
 | `(%%a > %%b) := return (a, b)
 | _ := failed
 
+/--
+`mul_expr n e` creates a `pexpr` representing `n*e`.
+When elaborated, the coefficient will be a native numeral of the same type as `e`.
+-/
 meta def mul_expr (n : ℕ) (e : expr) : pexpr :=
 if n = 1 then ``(%%e) else
 ``(%%(nat.to_pexpr n) * %%e)
 
-meta def add_exprs_aux : pexpr → list pexpr → pexpr
+private meta def add_exprs_aux : pexpr → list pexpr → pexpr
 | p [] := p
 | p [a] := ``(%%p + %%a)
 | p (h::t) := add_exprs_aux ``(%%p + %%h) t
 
+/--
+`add_exprs l` creates a `pexpr` representing the sum of the elements of `l`, associated left.
+If `l` is empty, it will be the `pexpr` 0. Otherwise, it does not include 0 in the sum.
+-/
 meta def add_exprs : list pexpr → pexpr
 | [] := ``(0)
 | (h::t) := add_exprs_aux h t
 
-meta def ineq_const_mul_nm : ineq → name
+/-- Finds the name of a multiplicative lemma corresponding to an inequality strength. -/
+meta def ineq.to_const_mul_nm : ineq → name
 | lt := ``mul_neg
 | le := ``mul_nonpos
 | eq := ``mul_eq
 
+/--
+If our goal is to add together two inequalities `t1 R1 0` and `t2 R2 0`,
+`ineq_const_nm R1 R2` produces the strength of the inequality in the sum `R`,
+along with the name of a lemma to apply in order to conclude `t1 + t2 R 0`.
+-/
 meta def ineq_const_nm : ineq → ineq → (name × ineq)
 | eq eq := (``eq_of_eq_of_eq, eq)
 | eq le := (``le_of_eq_of_le, le)
@@ -668,6 +706,12 @@ meta def ineq_const_nm : ineq → ineq → (name × ineq)
 | lt le := (`add_neg_of_neg_of_nonpos, lt)
 | lt lt := (`add_neg, lt)
 
+/--
+`mk_single_comp_zero_pf c h` assumes that `h` is a proof of `t R 0`.
+It produces a pair `(R', h')`, where `h'` is a proof of `c*t R' 0`.
+Typically `R` and `R'` will be the same, except when `c = 0`, in which case `R'` is `=`.
+If `c = 1`, `h'` is the same as `h` -- specifically, it does *not* change the type to `1*t R 0`.
+-/
 meta def mk_single_comp_zero_pf (c : ℕ) (h : expr) : tactic (ineq × expr) :=
 do tp ← infer_type h,
   some (iq, e) ← return $ parse_into_comp_and_expr tp,
@@ -675,14 +719,18 @@ do tp ← infer_type h,
     do e' ← mk_app ``zero_mul [e], return (eq, e')
   else if c = 1 then return (iq, h)
   else
-    do nm ← resolve_name (ineq_const_mul_nm iq),
+    do nm ← resolve_name iq.to_const_mul_nm,
        tp ← (prod.snd <$> (infer_type h >>= get_rel_sides)) >>= infer_type,
        cpos ← to_expr ``((%%c.to_pexpr : %%tp) > 0),
        (_, ex) ← solve_aux cpos `[norm_num, done],
---       e' ← mk_app (ineq_const_mul_nm iq) [h, ex], -- this takes many seconds longer in some examples! why?
        e' ← to_expr ``(%%nm %%h %%ex) ff,
        return (iq, e')
 
+/--
+`mk_lt_zero_pf_aux c pf npf coeff` assumes that `pf` is a proof of `t1 R1 0` and `npf` is a proof
+of `t2 R2 0`. It uses `mk_single_comp_zero_pf` to prove `t1 + coeff*t2 R 0`, and returns `R`
+along with this proof.
+-/
 meta def mk_lt_zero_pf_aux (c : ineq) (pf npf : expr) (coeff : ℕ) : tactic (ineq × expr) :=
 do (iq, h') ← mk_single_comp_zero_pf coeff npf,
    let (nm, niq) := ineq_const_nm c iq,
@@ -691,10 +739,8 @@ do (iq, h') ← mk_single_comp_zero_pf coeff npf,
    return (niq, e')
 
 /--
-Takes a list of coefficients `[c]` and list of expressions, of equal length.
-Each expression is a proof of a prop of the form `t {<, ≤, =} 0`.
-Produces a proof that the sum of `(c*t) {<, ≤, =} 0`,
-where the `comp` is as strong as possible.
+`mk_lt_zero_pf coeffs pfs` takes a list of coefficients and a list of proofs of the form `tᵢ Rᵢ 0`,
+of equal length. It produces a proof that `∑tᵢ R 0`, where `R` is as strong as possible.
 -/
 meta def mk_lt_zero_pf : list ℕ → list expr → tactic expr
 | _ [] := fail "no linear hypotheses found"
@@ -704,37 +750,31 @@ meta def mk_lt_zero_pf : list ℕ → list expr → tactic expr
      prod.snd <$> (ct.zip t).mfoldl (λ pr ce, mk_lt_zero_pf_aux pr.1 pr.2 ce.2 ce.1) (iq, h')
 | _ _ := fail "not enough args to mk_lt_zero_pf"
 
+/-- If `prf` is a proof of `t R s`, `term_of_ineq_prf prf` returns `t`. -/
 meta def term_of_ineq_prf (prf : expr) : tactic expr :=
-do (lhs, _) ← infer_type prf >>= get_rel_sides,
-   return lhs
+prod.fst <$> (infer_type prf >>= get_rel_sides)
 
-meta structure linarith_config :=
-(discharger : tactic unit := `[ring])
-(restrict_type : option Type := none)
-(restrict_type_reflect : reflected restrict_type . apply_instance)
-(exfalso : bool := tt)
-(transparency : transparency := reducible)
-(split_hypotheses : bool := tt)
-(nonlinear_preprocessing : bool := ff)
+/-- If `prf` is a proof of `t R s`, `ineq_prf_tp prf` returns the type of `t`. -/
+meta def ineq_prf_tp (prf : expr) : tactic expr :=
+term_of_ineq_prf prf >>= infer_type
 
-meta def linarith_config.update_reducibility (cfg : linarith_config) (reduce_semi : bool) :
-  linarith_config :=
-if reduce_semi then { cfg with transparency := semireducible, discharger := `[ring!] }
-else cfg
-
-meta def ineq_pf_tp (pf : expr) : tactic expr :=
-do (_, z) ← infer_type pf >>= get_rel_sides,
-   infer_type z
-
+/--
+`mk_neg_one_lt_zero_pf tp` returns a proof of `-1 < 0`,
+where the numerals are natively of type `tp`.
+-/
 meta def mk_neg_one_lt_zero_pf (tp : expr) : tactic expr :=
 to_expr ``((neg_neg_of_pos zero_lt_one : -1 < (0 : %%tp)))
 
 /--
-Assumes `e` is a proof that `t = 0`. Creates a proof that `-t = 0`.
+If `e` is a proof that `t = 0`, `mk_neg_eq_zero_pf e` returns a proof that `-t = 0`.
 -/
 meta def mk_neg_eq_zero_pf (e : expr) : tactic expr :=
 to_expr ``(neg_eq_zero.mpr %%e)
 
+/--
+`add_neg_eq_pfs l` inspects the list of proofs `l` for proofs of the form `t = 0`. For each such
+proof, it adds a proof of `-t = 0` to the list.
+-/
 meta def add_neg_eq_pfs : list expr → tactic (list expr)
 | [] := return []
 | (h::t) :=
@@ -745,29 +785,40 @@ meta def add_neg_eq_pfs : list expr → tactic (list expr)
   end
 
 /--
-Takes a list of proofs of propositions of the form `t {<, ≤, =} 0`,
-and tries to prove the goal `false`.
+`prove_false_by_linarith` is the main workhorse of `linarith`.
+Given a list `l` of proofs of `tᵢ Rᵢ 0` and a proof state with target `false`,
+it tries to derive a contradiction from `l` and use this to close the goal.
 -/
-meta def prove_false_by_linarith1 (cfg : linarith_config) : list expr → tactic unit
+meta def prove_false_by_linarith (cfg : linarith_config) : list expr → tactic unit
 | [] := fail "no args to linarith"
-| l@(h::t) :=
-  do l' ← add_neg_eq_pfs l,
-     hz ← ineq_pf_tp h >>= mk_neg_one_lt_zero_pf,
-     (sum.inl contr, inputs) ← elim_all_vars.run cfg.transparency (hz::l')
-       | fail "linarith failed to find a contradiction",
-     let coeffs := inputs.keys.map (λ k, (contr.src.flatten.ifind k)),
-     let pfs : list expr := inputs.keys.map (λ k, (inputs.ifind k).1),
-     let zip := (coeffs.zip pfs).filter (λ pr, pr.1 ≠ 0),
-     let (coeffs, pfs) := zip.unzip,
-     mls ← zip.mmap (λ pr, do e ← term_of_ineq_prf pr.2, return (mul_expr pr.1 e)),
-     sm ← to_expr $ add_exprs mls,
-     tgt ← to_expr ``(%%sm = 0),
-     (a, b) ← solve_aux tgt (cfg.discharger >> done),
-     pf ← mk_lt_zero_pf coeffs pfs,
-     pftp ← infer_type pf,
-     (_, nep, _) ← rewrite_core b pftp,
-     pf' ← mk_eq_mp nep pf,
-     mk_app `lt_irrefl [pf'] >>= exact
+| l@(h::t) := do
+    -- for the elimination to work properly, we must add a proof of `-1 < 0` to the list,
+    -- along with negated equality proofs.
+    l' ← add_neg_eq_pfs l,
+    hz ← ineq_prf_tp h >>= mk_neg_one_lt_zero_pf,
+    -- perform the elimination and fail if no contradiction is found.
+    (sum.inl contr, inputs) ← elim_all_vars.run cfg.transparency (hz::l')
+      | fail "linarith failed to find a contradiction",
+    -- we construct two lists `coeffs` and `pfs` of equal length,
+    -- filtering out the comparisons that were not used in deriving the contradiction.
+    let coeff_map := contr.src.flatten,
+    let coeffs := inputs.keys.map coeff_map.ifind,
+    let pfs : list expr := inputs.keys.map (λ k, (inputs.ifind k).1),
+    let zip := (coeffs.zip pfs).filter (λ pr, pr.1 ≠ 0),
+    let (coeffs, pfs) := zip.unzip,
+    mls ← zip.mmap (λ pr, do e ← term_of_ineq_prf pr.2, return (mul_expr pr.1 e)),
+    -- `sm` is the sum of input terms, scaled to cancel out all variables.
+    sm ← to_expr $ add_exprs mls,
+    tgt ← to_expr ``(%%sm = 0),
+    -- we prove that `sm = 0`, typically with `ring`.
+    (_, sm_eq_zero) ← solve_aux tgt (cfg.discharger >> done),
+    -- we also prove that `sm < 0`.
+    sm_lt_zero ← mk_lt_zero_pf coeffs pfs,
+    -- this is a contradiction.
+    pftp ← infer_type sm_lt_zero,
+    (_, nep, _) ← rewrite_core sm_eq_zero pftp,
+    pf' ← mk_eq_mp nep sm_lt_zero,
+    mk_app `lt_irrefl [pf'] >>= exact
 
 end prove
 
@@ -926,13 +977,13 @@ meta def is_strict_int_prop : expr → bool
 
 meta def partition_by_type_aux : rb_lmap expr expr → list expr → tactic (rb_lmap expr expr)
 | m [] := return m
-| m (h::t) := do tp ← ineq_pf_tp h, partition_by_type_aux (m.insert tp h) t
+| m (h::t) := do tp ← ineq_prf_tp h, partition_by_type_aux (m.insert tp h) t
 
 meta def partition_by_type (l : list expr) : tactic (rb_lmap expr expr) :=
 partition_by_type_aux mk_rb_map l
 
 meta def try_linarith_on_lists (cfg : linarith_config) (ls : list (list expr)) : tactic unit :=
-(first $ ls.map $ prove_false_by_linarith1 cfg) <|> fail "linarith failed"
+(first $ ls.map $ prove_false_by_linarith cfg) <|> fail "linarith failed"
 
 /--
 A preprocessor transforms a proof of a proposition into a proof of a different propositon.
@@ -1068,10 +1119,8 @@ let preprocessors :=
 do hyps ← preprocess preprocessors hyps,
    linarith_trace_proofs ("after preprocessing, linarith has " ++ to_string hyps.length ++ " facts:") hyps,
    hyp_set ← partition_by_type hyps,
-   linarith_trace "hypotheses appear in the following types:",
-   linarith_trace hyp_set.keys,
    match pref_type with
-   | some t := prove_false_by_linarith1 cfg (hyp_set.ifind t) <|>
+   | some t := prove_false_by_linarith cfg (hyp_set.ifind t) <|>
                try_linarith_on_lists cfg (rb_map.values (hyp_set.erase t))
    | none := try_linarith_on_lists cfg (rb_map.values hyp_set)
    end

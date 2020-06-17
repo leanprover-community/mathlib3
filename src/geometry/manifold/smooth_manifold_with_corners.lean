@@ -414,7 +414,7 @@ lemma symm_trans_mem_times_cont_diff_groupoid (e : local_homeomorph M H) :
 begin
   have : e.symm.trans e ≈ local_homeomorph.of_set e.target e.open_target :=
     local_homeomorph.trans_symm_self _,
-  exact structure_groupoid.eq_on_source _ _ _
+  exact structure_groupoid.eq_on_source _
     (of_set_mem_times_cont_diff_groupoid n I e.open_target) this
 end
 

@@ -31,31 +31,45 @@ formalized through the notion of structure groupoid, i.e., a set of local homeom
 under composition and inverse, to which the change of coordinates should belong.
 
 ## Main definitions
-* `structure_groupoid H`   : a subset of local homeomorphisms of `H` stable under composition,
-                             inverse and restriction (ex: local diffeos)
-* `pregroupoid H`          : a subset of local homeomorphisms of `H` stable under composition and
-                             restriction, but not inverse (ex: smooth maps)
-* `groupoid_of_pregroupoid`: construct a groupoid from a pregroupoid, by requiring that a map and
-                             its inverse both belong to the pregroupoid (ex: construct diffeos from
-                             smooth maps)
-* `continuous_groupoid H`  : the groupoid of all local homeomorphisms of `H`
 
-* `charted_space H M`      : charted space structure on `M` modelled on `H`, given by an atlas of
-                             local homeomorphisms from `M` to `H` whose sources cover `M`. This is
-                             a type class.
-* `has_groupoid M G`       : when `G` is a structure groupoid on `H` and `M` is a charted space
-                             modelled on `H`, require that all coordinate changes belong to `G`.
-                             This is a type class
-* `atlas H M`              : when `M` is a charted space modelled on `H`, the atlas of this charted
-                             space structure, i.e., the set of charts
-* `structomorph G M M'`    : the set of diffeomorphisms between the charted spaces `M` and `M'` for
-                             the groupoid `G`. We avoid the word diffeomorphisms, keeping it for the
-                             smooth category.
+* `structure_groupoid H` : a subset of local homeomorphisms of `H` stable under composition,
+  inverse and restriction (ex: local diffeos).
+* `pregroupoid H` : a subset of local homeomorphisms of `H` stable under composition and
+  restriction, but not inverse (ex: smooth maps)
+* `groupoid_of_pregroupoid` : construct a groupoid from a pregroupoid, by requiring that a map and
+  its inverse both belong to the pregroupoid (ex: construct diffeos from smooth maps)
+* `continuous_groupoid H` : the groupoid of all local homeomorphisms of `H`
+
+* `charted_space H M` : charted space structure on `M` modelled on `H`, given by an atlas of
+  local homeomorphisms from `M` to `H` whose sources cover `M`. This is a type class.
+* `has_groupoid M G` : when `G` is a structure groupoid on `H` and `M` is a charted space
+  modelled on `H`, require that all coordinate changes belong to `G`. This is a type class.
+* `atlas H M` : when `M` is a charted space modelled on `H`, the atlas of this charted
+  space structure, i.e., the set of charts.
+* `G.maximal_atlas M` : when `M` is a charted space modelled on `H` and admitting `G` as a
+  structure groupoid, one can consider all the local homeomorphisms from `M` to `H` such that
+  changing coordinate from any chart to them belongs to `G`. This is a larger atlas, called the
+  maximal atlas (for the groupoid `G`).
+* `structomorph G M M'` : the type of diffeomorphisms between the charted spaces `M` and `M'` for
+  the groupoid `G`. We avoid the word diffeomorphism, keeping it for the smooth category.
 
 As a basic example, we give the instance
 `instance charted_space_model_space (H : Type*) [topological_space H] : charted_space H H`
 saying that a topological space is a charted space over itself, with the identity as unique chart.
 This charted space structure is compatible with any groupoid.
+
+Additional useful definitions:
+* `chart_at H x` is a preferred chart at `x : M` when `M` has a charted space structure modelled on
+  `H`.
+* `G.compatible he he'` states that, for any two charts `e` and `e'` in the atlas, the composition
+  of `e.symm` and `e'` belongs to the groupoid `G` when `M` admits `G` as a structure groupoid.
+* `G.compatible_of_mem_maximal_atlas he he'` states that, for any two charts `e` and `e'` in the
+  maximal atlas associated to the groupoid `G`, the composition of `e.symm` and `e'` belongs to the
+  `G` if `M` admits `G` as a structure groupoid.
+* `charted_space_core.to_charted_space`: consider a space without a topology, but endowed with a set
+  of charts (which are local equivs) for which the change of coordinates are local homeos. Then
+  one can construct a topology on the space for which the charts become local homeos, defining
+  a genuine charted space structure.
 
 ## Implementation notes
 
@@ -85,6 +99,11 @@ local equivs with compatibility conditions (but we do not register it as an inst
 In the definition of a charted space, the model space is written as an explicit parameter as there
 can be several model spaces for a given topological space. For instance, a complex manifold
 (modelled over `ℂ^n`) will also be seen sometimes as a real manifold modelled over `ℝ^(2n)`.
+
+## Notations
+
+In the locale `manifold`, we denote the composition of local homeomorphisms with `≫ₕ`, and the
+composition of local equivs with `≫`.
 -/
 
 noncomputable theory
@@ -93,10 +112,12 @@ universes u
 
 variables {H : Type u} {M : Type*} {M' : Type*} {M'' : Type*}
 
-/- Notational shortcut for the composition of local homeomorphisms, i.e., `local_homeomorph.trans`.
+/- Notational shortcut for the composition of local homeomorphisms and local equivs, i.e.,
+`local_homeomorph.trans` and `local_equiv.trans`.
 Note that, as is usual for equivs, the composition is from left to right, hence the direction of
 the arrow. -/
-local infixr  ` ≫ₕ `:100 := local_homeomorph.trans
+localized "infixr  ` ≫ₕ `:100 := local_homeomorph.trans" in manifold
+localized "infixr  ` ≫ `:100 := local_equiv.trans" in manifold
 
 open set local_homeomorph
 
@@ -122,13 +143,16 @@ There is also a technical point, related to the fact that a local homeomorphism 
 global map which is a homeomorphism when restricted to its source subset (and its values outside
 of the source are not relevant). Therefore, we also require that being a member of the groupoid only
 depends on the values on the source.
+
+We use primes in the structure names as we will reformulate them below (without primes) using a
+`has_mem` instance, writing `e ∈ G` instead of `e ∈ G.members`.
 -/
 /-- A structure groupoid is a set of local homeomorphisms of a topological space stable under
 composition and inverse. They appear in the definition of the smoothness class of a manifold. -/
 structure structure_groupoid (H : Type u) [topological_space H] :=
-(members      : set (local_homeomorph H H))
+(members       : set (local_homeomorph H H))
 (comp'         : ∀e e' : local_homeomorph H H, e ∈ members → e' ∈ members → e ≫ₕ e' ∈ members)
-(symm'          : ∀e : local_homeomorph H H, e ∈ members → e.symm ∈ members)
+(symm'         : ∀e : local_homeomorph H H, e ∈ members → e.symm ∈ members)
 (id_mem'       : local_homeomorph.refl H ∈ members)
 (locality'     : ∀e : local_homeomorph H H, (∀x ∈ e.source, ∃s, is_open s ∧
                   x ∈ s ∧ e.restr s ∈ members) → e ∈ members)
@@ -136,7 +160,7 @@ structure structure_groupoid (H : Type u) [topological_space H] :=
 
 variable [topological_space H]
 
-@[reducible] instance : has_mem (local_homeomorph H H) (structure_groupoid H) :=
+instance : has_mem (local_homeomorph H H) (structure_groupoid H) :=
 ⟨λ(e : local_homeomorph H H) (G : structure_groupoid H), e ∈ G.members⟩
 
 lemma structure_groupoid.comp (G : structure_groupoid H) {e e' : local_homeomorph H H}
@@ -164,6 +188,10 @@ G.eq_on_source' e e' he h
 instance structure_groupoid.partial_order : partial_order (structure_groupoid H) :=
 partial_order.lift structure_groupoid.members
 (λa b h, by { cases a, cases b, dsimp at h, induction h, refl })
+
+lemma structure_groupoid.le_iff {G₁ G₂ : structure_groupoid H} :
+  G₁ ≤ G₂ ↔ ∀ e, e ∈ G₁ → e ∈ G₂ :=
+iff.rfl
 
 /-- The trivial groupoid, containing only the identity (and maps with empty source, as this is
 necessary from the definition) -/
@@ -293,17 +321,15 @@ lemma mem_groupoid_of_pregroupoid (PG : pregroupoid H) (e : local_homeomorph H H
 iff.rfl
 
 lemma groupoid_of_pregroupoid_le (PG₁ PG₂ : pregroupoid H)
-  (h : ∀f s, PG₁.property f s → PG₂.property f s) :
-  PG₁.groupoid ≤ PG₂.groupoid :=
+  (h : ∀f s, PG₁.property f s → PG₂.property f s) : PG₁.groupoid ≤ PG₂.groupoid :=
 begin
-  assume e he,
+  refine structure_groupoid.le_iff.2 (λ e he, _),
   rw mem_groupoid_of_pregroupoid at he ⊢,
   exact ⟨h _ _ he.1, h _ _ he.2⟩
 end
 
 lemma mem_pregroupoid_of_eq_on_source (PG : pregroupoid H) {e e' : local_homeomorph H H}
-  (he' : e ≈ e') (he : PG.property e e.source) :
-  PG.property e' e'.source :=
+  (he' : e ≈ e') (he : PG.property e e.source) : PG.property e' e'.source :=
 begin
   rw ← he'.1,
   exact PG.congr e.open_source he'.eq_on.symm he,
@@ -332,39 +358,6 @@ instance : order_top (structure_groupoid H) :=
 
 end groupoid
 
-namespace structure_groupoid
-
-variables [topological_space H] (G : structure_groupoid H)
-
-structure invariant_prop_set_pt (G : structure_groupoid H) (P : set H → H → Prop) : Prop :=
-(is_local   : ∀ s x u, is_open u → x ∈ u → (P s x ↔ P (s ∩ u) x))
-(invariance : ∀ s x (e : local_homeomorph H H), e ∈ G → P s x →
-                P (e.target ∩ e.symm ⁻¹' (s ∩ e.source)) (e x))
-
-structure invariant_prop_set (G : structure_groupoid H) (P : set H → Prop) : Prop :=
-(is_local   : ∀ s, (∀ x ∈ s, ∃ u, is_open u ∧ x ∈ u ∧ P (s ∩ u)) → P s)
-(mono       : ∀ s u, P s → is_open u → P (s ∩ u))
-(invariance : ∀ s (e : local_homeomorph H H), e ∈ G → P s →
-                P (e.target ∩ e.symm ⁻¹' (s ∩ e.source)))
-
-lemma invariant_prop_set_pt.invariant_prop_set {P : set H → H → Prop}
-  (h : G.invariant_prop_set_pt P) : G.invariant_prop_set (λ s, (∀ x ∈ s, P s x)) :=
-begin
-  split,
-  { assume s hs x hx,
-    rcases hs x hx with ⟨u, ⟨u_open, xu, hu⟩⟩,
-    rw h.is_local s x u u_open xu,
-    exact hu x ⟨hx, xu⟩ },
-  { assume s u hs hu x hx,
-    exact (h.is_local s x u hu hx.2).1 (hs x hx.1) },
-  { assume s e eG hP x hx,
-    set y := e.symm x with hy,
-    have : P (e.target ∩ e.symm ⁻¹' (s ∩ e.source)) (e y) :=
-      h.invariance s y e eG (hP y hx.2.1),
-    rwa [hy, e.right_inv hx.1] at this }
-end
-
-end structure_groupoid
 
 /-! ### Charted spaces -/
 /-- A charted space is a topological space endowed with an atlas, i.e., a set of local
@@ -377,10 +370,10 @@ given topological space. For instance, a complex manifold (modelled over `ℂ^n`
 sometimes as a real manifold over `ℝ^(2n)`.
 -/
 class charted_space (H : Type*) [topological_space H] (M : Type*) [topological_space M] :=
-(atlas []         : set (local_homeomorph M H))
-(chart_at []      : M → local_homeomorph M H)
+(atlas []            : set (local_homeomorph M H))
+(chart_at []         : M → local_homeomorph M H)
 (mem_chart_source [] : ∀x, x ∈ (chart_at x).source)
-(chart_mem_atlas [] : ∀x, chart_at x ∈ atlas)
+(chart_mem_atlas []  : ∀x, chart_at x ∈ atlas)
 
 export charted_space
 attribute [simp] mem_chart_source chart_mem_atlas
@@ -406,16 +399,6 @@ by simp [atlas, charted_space.atlas]
 by simpa using chart_mem_atlas H x
 
 variables [topological_space H] [topological_space M] [charted_space H M]
-
-/-- If one can define a property of pointed sets in the model space, then one define a
-corresponding property in the manifold, using the preferred chart at the point. -/
-def charted_space.lift_prop_set_pt (P : set H → H → Prop) (s : set M) (x : M) : Prop :=
-P ((chart_at H x).target ∩ (chart_at H x).symm ⁻¹' (s ∩ (chart_at H x).source)) (chart_at H x x)
-
-/-- If one can define a property of sets in the model space, then one define a
-corresponding property in the manifold, by requiring that it holds for all preferred charts. -/
-def charted_space.lift_prop_set (P : set H → Prop) (s : set M) : Prop :=
-∀ x, P ((chart_at H x).target ∩ (chart_at H x).symm ⁻¹' (s ∩ (chart_at H x).source))
 
 end charted_space
 
@@ -605,54 +588,6 @@ end
 
 end maximal_atlas
 
-section invariant_properties
-
-variables {G : structure_groupoid H} [has_groupoid M G]
-
-/- If a property of a pointed set is invariant under the structure groupoid, then expressing it in
-the charted space does not depend on the element of the atlas one uses provided it contains the
-point in its source. -/
-lemma structure_groupoid.invariant_prop_set_pt.indep_chart
-  {P : set H → H → Prop} (hG : G.invariant_prop_set_pt P) {e e' : local_homeomorph M H} (x : M)
-  (he : e ∈ atlas H M) (xe : x ∈ e.source) (he' : e' ∈ atlas H M) (xe' : x ∈ e'.source)
-  {s : set M} (h : P (e.target ∩ e.symm ⁻¹' (s ∩ e.source)) (e x)) :
-  P (e'.target ∩ e'.symm ⁻¹' (s ∩ e'.source)) (e' x) :=
-begin
-  set c := e.symm ≫ₕ e' with hc,
-  have cG : c ∈ G := has_groupoid.compatible G he he',
-  suffices A : P ((e'.target ∩ e'.symm ⁻¹' (s ∩ e'.source)) ∩ c.target) (e' x),
-  { apply (hG.is_local _ _ _ c.open_target _).2 A,
-    simp [c, local_equiv.trans_target, xe, xe'] },
-  set t := e.target ∩ e.symm ⁻¹' (s ∩ e.source) with ht,
-  have B : (e'.target ∩ e'.symm ⁻¹' (s ∩ e'.source)) ∩ c.target =
-           c.target ∩ c.symm ⁻¹' (t ∩ c.source),
-  { ext y,
-    simp [c, local_equiv.trans_source, local_equiv.trans_target],
-    split,
-    { assume hy,
-      simp [hy] },
-    { assume hy,
-      simp [hy],
-      simpa [hy] using hy } },
-  have : P (c.target ∩ c.symm ⁻¹' (t ∩ c.source)) (c (e x)) :=
-    hG.invariance _ _ _ cG h,
-  convert this using 1,
-  { exact B },
-  { simp [c, xe, xe'] }
-end
-
-/- If a property of a pointed set is invariant under the structure groupoid, then it is equivalent
-to express it in the charted space using the preferred chart at the point, or any atlas member
-containing the point in its source. -/
-lemma structure_groupoid.invariant_prop_set_pt.lift_prop_set_pt_iff
-  {P : set H → H → Prop} (hG : G.invariant_prop_set_pt P) {e : local_homeomorph M H} (x : M)
-  (he : e ∈ atlas H M) (xe : x ∈ e.source) (s : set M) :
-  charted_space.lift_prop_set_pt P s x ↔ P (e.target ∩ e.symm ⁻¹' (s ∩ e.source)) (e x) :=
-⟨hG.indep_chart x (chart_mem_atlas H x) (mem_chart_source H x) he xe,
-hG.indep_chart x he xe (chart_mem_atlas H x) (mem_chart_source H x)⟩
-
-end invariant_properties
-
 /-! ### Structomorphisms -/
 
 /-- A `G`-diffeomorphism between two charted spaces is a homeomorphism which, when read in the
@@ -684,7 +619,6 @@ def structomorph.symm (e : structomorph G M M') : structomorph G M' M :=
     assume c c' hc hc',
     have : (c'.symm ≫ₕ e.to_homeomorph.to_local_homeomorph ≫ₕ c).symm ∈ G :=
       G.symm (e.mem_groupoid c' c hc' hc),
-    simp at this,
     rwa [trans_symm_eq_symm_trans_symm, trans_symm_eq_symm_trans_symm, symm_symm, trans_assoc]
       at this,
   end,

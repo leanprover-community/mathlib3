@@ -289,6 +289,8 @@ lemma times_cont_mdiff_on_atlas_symm (h : e ∈ atlas H M) (n : with_top ℕ) :
   times_cont_mdiff_on I I n e.symm e.target :=
 (times_cont_mdiff_on_atlas_symm_aux 𝕜 h).of_le le_top
 
+#exit
+
 /-- A function is `C^n` if and only if it is `C^n` in any chart. -/
 
 end atlas

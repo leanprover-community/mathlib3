@@ -502,6 +502,17 @@ lemma prod_target (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
 @[simp] lemma prod_coe_symm (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
   ((e.prod e').symm : β × δ → α × γ) = λp, (e.symm p.1, e'.symm p.2) := rfl
 
+
+@[simp] lemma prod_symm (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
+  (e.prod e').symm = (e.symm.prod e'.symm) :=
+by ext x; simp
+
+@[simp] lemma prod_trans {η : Type*} {ε : Type*} [topological_space η] [topological_space ε]
+  (e : local_homeomorph α β) (f : local_homeomorph β γ)
+  (e' : local_homeomorph δ η) (f' : local_homeomorph η ε) :
+  (e.prod e').trans (f.prod f') = (e.trans f).prod (e'.trans f') :=
+by ext x; simp [ext_iff]; tauto
+
 end prod
 
 section continuity

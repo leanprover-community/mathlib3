@@ -87,21 +87,14 @@ space. To get this property is a motivation for our definition of the tangent sp
 copy of the vector space, instead of more usual definitions such as the space of derivations, or
 the space of equivalence classes of smooth curves in the manifold.
 
-## Notations
-
-For the composition of local homeomorphisms and local equivs, we use respectively ` ≫ₕ` and ` ≫`.
-
 ## Tags
 Derivative, manifold
 -/
 
 noncomputable theory
-open_locale classical topological_space
+open_locale classical topological_space manifold
 
 open set
-
-local infixr  ` ≫ₕ `:100 := local_homeomorph.trans
-local infixr  ` ≫ `:100 := local_equiv.trans
 
 universe u
 

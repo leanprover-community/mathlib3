@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import data.equiv.basic
+import tactic.tauto
 
 /-!
 # Local equivalences
@@ -306,9 +307,7 @@ protected def trans : local_equiv α γ :=
 lemma trans_symm_eq_symm_trans_symm : (e.trans e').symm = e'.symm.trans e.symm :=
 by cases e; cases e'; refl
 
-/- This could be considered as a simp lemma, but there are many situations where it makes something
-simple into something more complicated. -/
-lemma trans_source : (e.trans e').source = e.source ∩ e ⁻¹' e'.source := rfl
+@[simp] lemma trans_source : (e.trans e').source = e.source ∩ e ⁻¹' e'.source := rfl
 
 lemma trans_source' : (e.trans e').source = e.source ∩ e ⁻¹' (e.target ∩ e'.source) :=
 begin
@@ -327,7 +326,7 @@ by rw [e.trans_source', inter_comm e.target, e.symm_image_inter_target_eq]
 lemma image_trans_source : e '' (e.trans e').source = e.target ∩ e'.source :=
 image_source_eq_target (local_equiv.symm (local_equiv.restr (local_equiv.symm e) (e'.source)))
 
-lemma trans_target : (e.trans e').target = e'.target ∩ e'.symm ⁻¹' e.target := rfl
+@[simp] lemma trans_target : (e.trans e').target = e'.target ∩ e'.symm ⁻¹' e.target := rfl
 
 lemma trans_target' : (e.trans e').target = e'.target ∩ e'.symm ⁻¹' (e'.source ∩ e.target) :=
 trans_source' e'.symm e.symm
@@ -490,6 +489,15 @@ def prod (e : local_equiv α β) (e' : local_equiv γ δ) : local_equiv (α × �
 
 @[simp] lemma prod_coe_symm (e : local_equiv α β) (e' : local_equiv γ δ) :
   ((e.prod e').symm : β × δ → α × γ) = (λp, (e.symm p.1, e'.symm p.2)) := rfl
+
+@[simp] lemma prod_symm (e : local_equiv α β) (e' : local_equiv γ δ) :
+  (e.prod e').symm = (e.symm.prod e'.symm) :=
+by ext x; simp
+
+@[simp] lemma prod_trans {η : Type*} {ε : Type*}
+  (e : local_equiv α β) (f : local_equiv β γ) (e' : local_equiv δ η) (f' : local_equiv η ε) :
+  (e.prod e').trans (f.prod f') = (e.trans f).prod (e'.trans f') :=
+by ext x; simp [ext_iff]; tauto
 
 end prod
 

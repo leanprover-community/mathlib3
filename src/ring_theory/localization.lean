@@ -943,11 +943,10 @@ def fraction_map_of_algebraic [algebra A L] (alg : is_algebraic A L)
 
 /-- If the field `L` is a finite extension of the fraction field of the integral domain `A`,
 the integral closure of `A` in `L` has fraction field `L`. -/
-def fraction_map_of_finite_extension [algebra f.codomain L]
-  (finite : finite_dimensional f.codomain L) :
+def fraction_map_of_finite_extension [algebra f.codomain L] [finite_dimensional f.codomain L] :
   fraction_map (integral_closure A (algebra.comap A f.codomain L)) (algebra.comap A f.codomain L) :=
 fraction_map_of_algebraic
-  (f.comap_is_algebraic_iff.mpr (is_algebraic_of_finite finite))
+  (f.comap_is_algebraic_iff.mpr is_algebraic_of_finite)
   (λ x hx, f.to_map_eq_zero_iff.mpr ((algebra_map f.codomain L).map_eq_zero.mp hx))
 
 end integral_closure

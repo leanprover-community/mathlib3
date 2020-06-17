@@ -107,7 +107,7 @@ begin
 end
 
 /-- A field extension is algebraic if it is finite. -/
-lemma is_algebraic_of_finite (finite : finite_dimensional K L) : is_algebraic K L :=
+lemma is_algebraic_of_finite [finite : finite_dimensional K L] : is_algebraic K L :=
 λ x, (is_algebraic_iff_is_integral _).mpr (is_integral_of_noetherian ⊤
   (is_noetherian_of_submodule_of_noetherian _ _ _ finite) x algebra.mem_top)
 

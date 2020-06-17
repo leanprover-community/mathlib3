@@ -89,18 +89,8 @@ def equiv.to_local_equiv (e : equiv α β) : local_equiv α β :=
   left_inv'   := λx hx, e.left_inv x,
   right_inv'  := λx hx, e.right_inv x }
 
-/-- A very basic tactic to prove that two sets are equal, by checking both inclusions and relying
-on the simplifier to simplify the assumption and derive the conclusion. This is domain specific,
-for manifolds, where sets are mostly written as complicated intersections. -/
-meta def tactic.interactive.set_eq_tac : tactic unit :=
-`[ ext,
-  split;
-  { assume hx,
-    try { simp at hx },
-    -- a subtlety is that some assumptions in `hx` might be simplified using other parts of `hx`.
-    -- split the conjunctions to enable the simplifier to do this.
-    try { auto.split_hyps },
-    simp * at * }]
+open interactive (loc.ns)
+open interactive.types (texpr location)
 
 namespace local_equiv
 
@@ -186,7 +176,7 @@ lemma image_inter_source_eq' (s : set α) :
   e '' (s ∩ e.source) = e.target ∩ e.symm ⁻¹' s :=
 begin
   rw e.image_eq_target_inter_inv_preimage (inter_subset_right _ _),
-  set_eq_tac
+  ext x, split; { assume hx, simp at hx, simp [hx] }
 end
 
 lemma symm_image_eq_source_inter_preimage {s : set β} (h : s ⊆ e.target) :
@@ -203,7 +193,7 @@ e.symm.image_inter_source_eq' _
 
 lemma source_inter_preimage_inv_preimage (s : set α) :
   e.source ∩ e ⁻¹' (e.symm ⁻¹' s) = e.source ∩ s :=
-by set_eq_tac
+by { ext x, split; { assume hx, simp at hx, rcases hx, simp * at * } }
 
 lemma target_inter_inv_preimage_preimage (s : set β) :
   e.target ∩ e.symm ⁻¹' (e ⁻¹' s) = e.target ∩ s :=

@@ -1047,12 +1047,10 @@ begin
   rw mdifferentiable_at.mfderiv (mdifferentiable_at_atlas_symm _ (chart_mem_atlas _ _) h),
   -- a trivial instance is needed after the rewrite, handle it right now.
   rotate, { apply_instance },
-  dsimp [written_in_ext_chart_at, ext_chart_at, chart_at, charted_space.chart_at,
+  simp [written_in_ext_chart_at, ext_chart_at, chart_at, charted_space.chart_at,
     basic_smooth_bundle_core.chart, basic_smooth_bundle_core.to_topological_fiber_bundle_core,
     topological_fiber_bundle_core.local_triv, topological_fiber_bundle_core.local_triv',
-    tangent_bundle_core],
-  rw local_homeomorph.right_inv,
-  exact h
+    tangent_bundle_core, h]
 end
 
 end charts
@@ -1344,7 +1342,9 @@ begin
     local_homeomorph.coe_coe_symm, model_with_corners.to_local_equiv_coe] at ⊢ T,
   convert T using 1,
   rw @preimage_comp _ _ _ _ (chart_at H x).symm,
+  -- set_eq_tac,
   -- it remains to show that `(a ∩ b) ∩ c` = `(b ∩ c) ∩ a`, which finish can do but very slowly
+  -- and set_ext_tac slowly
   ext p,
   split;
   { assume hp, simp at hp, simp [hp] }

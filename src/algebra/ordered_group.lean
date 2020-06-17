@@ -838,6 +838,7 @@ class ordered_comm_group (α : Type u) extends comm_group α, partial_order α :
 attribute [to_additive ordered_add_comm_group] ordered_comm_group
 
 /--The units of an ordered commutative monoid form an ordered commutative group. -/
+@[to_additive]
 instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group (units α) :=
 { mul_le_mul_left := λ a b h c, mul_le_mul_left' h,
   .. units.partial_order,

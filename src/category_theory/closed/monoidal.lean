@@ -31,4 +31,21 @@ class monoidal_closed (C : Type u) [category.{v} C] [monoidal_category.{v} C] :=
 
 attribute [instance, priority 100] monoidal_closed.closed
 
+/--
+The unit object is always closed.
+This isn't an instance because most of the time we'll prove closedness for all objects at once,
+rather than just for this one.
+-/
+def unit_closed {C : Type u} [category.{v} C] [monoidal_category.{v} C] : closed (𝟙_ C) :=
+{ is_adj :=
+  { right := 𝟭 C,
+    adj := adjunction.mk_of_hom_equiv
+    { hom_equiv := λ X _,
+      { to_fun := λ a, (left_unitor X).inv ≫ a,
+        inv_fun := λ a, (left_unitor X).hom ≫ a,
+        left_inv := by tidy,
+        right_inv := by tidy },
+      hom_equiv_naturality_left_symm' := λ X' X Y f g,
+      by { dsimp, rw left_unitor_naturality_assoc } } } }
+
 end category_theory

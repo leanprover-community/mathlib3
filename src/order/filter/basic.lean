@@ -861,6 +861,10 @@ begin
   exact hf this
 end
 
+lemma frequently_of_forall {f : filter α} (hf : f ≠ ⊥) {p : α → Prop} (h : ∀ x, p x) :
+  ∃ᶠ x in f, p x :=
+eventually.frequently hf (f.eventually_of_forall h)
+
 lemma frequently.mp {p q : α → Prop} {f : filter α} (h : ∃ᶠ x in f, p x)
   (hpq : ∀ᶠ x in f, p x → q x) :
   ∃ᶠ x in f, q x :=

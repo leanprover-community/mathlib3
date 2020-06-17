@@ -111,6 +111,19 @@ begin
   cases exists_is_basis K V with s hs,
   exact ⟨s, hs, finite_of_linear_independent hs.1⟩
 end
+
+/-- In a finite dimensional space, there exists a finite basis. Provides the basis as a finset.
+This is in contrast to `exists_is_basis_finite`, which provides a set and a `set.finite`.
+-/
+lemma exists_is_basis_finset [finite_dimensional K V] :
+  ∃ b : finset V, is_basis K (subtype.val : (↑b : set V) → V) :=
+begin
+  obtain ⟨s, s_basis, s_finite⟩ := exists_is_basis_finite K V,
+  refine ⟨s_finite.to_finset, _⟩,
+  rw set.finite.coe_to_finset,
+  exact s_basis,
+end
+
 variables {K V}
 
 /-- A vector space is finite-dimensional if and only if it is finitely generated. As the
@@ -132,6 +145,11 @@ end
 lemma of_finite_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K b) :
   finite_dimensional K V :=
 iff_fg.2 $ ⟨finset.univ.image b, by {convert h.2, simp} ⟩
+
+/-- If a vector space has a finite basis, then it is finite-dimensional, finset style. -/
+lemma of_finset_basis {b : finset V} (h : is_basis K (subtype.val : (↑b : set V) -> V)) :
+  finite_dimensional K V :=
+iff_fg.2 $ ⟨b, by {convert h.2, simp} ⟩
 
 /-- A subspace of a finite-dimensional space is also finite-dimensional. -/
 instance finite_dimensional_submodule [finite_dimensional K V] (S : submodule K V) :
@@ -196,7 +214,14 @@ begin
   exact (lift_inj.mp this).symm
 end
 
--- Note here we've restrictied the universe levels of `ι` and `V` to be the same, for convenience.
+/-- If a vector space has a finite basis, then its dimension is equal to the cardinality of the
+basis. This lemma uses a `finset` instead of indexed types. -/
+lemma findim_eq_card_finset_basis {b : finset V}
+  (h : is_basis K (subtype.val : (↑b : set V) -> V)) :
+  findim K V = finset.card b :=
+by { rw [findim_eq_card_basis h, fintype.subtype_card], intros x, refl }
+
+-- Note here we've restricted the universe levels of `ι` and `V` to be the same, for convenience.
 lemma cardinal_mk_le_findim_of_linear_independent
   [finite_dimensional K V] {ι : Type v} {b : ι → V} (h : linear_independent K b) :
   cardinal.mk ι ≤ findim K V :=
@@ -205,7 +230,7 @@ begin
   rw ←findim_eq_dim K V
 end
 
--- Note here we've restrictied the universe levels of `ι` and `V` to be the same, for convenience.
+-- Note here we've restricted the universe levels of `ι` and `V` to be the same, for convenience.
 lemma fintype_card_le_findim_of_linear_independent
   [finite_dimensional K V] {ι : Type v} [fintype ι] {b : ι → V} (h : linear_independent K b) :
   fintype.card ι ≤ findim K V :=

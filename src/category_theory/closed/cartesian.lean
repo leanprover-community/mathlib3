@@ -63,12 +63,9 @@ The terminal object is always exponentiable.
 This isn't an instance because most of the time we'll prove cartesian closed for all objects
 at once, rather than just for this one.
 -/
-def terminal_exponentiable {C : Type u} [category.{v} C] [has_finite_products.{v} C] : exponentiable ⊤_C :=
-{ is_adj :=
-  { right := 𝟭 C,
-    adj := adjunction.mk_of_hom_equiv
-    { hom_equiv := λ X _, have unitor : _, from prod.left_unitor X,
-        ⟨λ a, unitor.inv ≫ a, λ a, unitor.hom ≫ a, by tidy, by tidy⟩ } } }
+def terminal_exponentiable {C : Type u} [category.{v} C] [has_finite_products.{v} C] :
+  exponentiable ⊤_C :=
+unit_closed
 
 /--
 A category `C` is cartesian closed if it has finite products and every object is exponentiable.
@@ -99,7 +96,7 @@ def coev : 𝟭 C ⟶ prod_functor.obj A ⋙ exp A :=
 closed.is_adj.adj.unit
 
 notation A ` ⟹ `:20 B:20 := (exp A).obj B
-notation A ` ^^ `:30 B:30 := (exp A).obj B
+notation B ` ^^ `:30 A:30 := (exp A).obj B
 
 @[simp, reassoc] lemma ev_coev : limits.prod.map (𝟙 A) ((coev A).app B) ≫ (ev A).app (A ⨯ B) = 𝟙 (A ⨯ B) :=
 adjunction.left_triangle_components (exp.adjunction A)
@@ -112,7 +109,7 @@ end exp
 variables {A}
 
 -- Wrap these in a namespace so we don't clash with the core versions.
-namespace is_cartesian_closed
+namespace cartesian_closed
 
 variables [has_finite_products.{v} C] [exponentiable A]
 
@@ -123,9 +120,9 @@ def curry : (A ⨯ Y ⟶ X) → (Y ⟶ A ⟹ X) :=
 def uncurry : (Y ⟶ A ⟹ X) → (A ⨯ Y ⟶ X) :=
 (closed.is_adj.adj.hom_equiv _ _).inv_fun
 
-end is_cartesian_closed
+end cartesian_closed
 
-open is_cartesian_closed
+open cartesian_closed
 
 variables [has_finite_products.{v} C] [exponentiable A]
 

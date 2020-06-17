@@ -233,7 +233,7 @@ instance : measure_space ℝ :=
   trimmed := lebesgue_outer_trim }⟩
 
 @[simp] theorem lebesgue_to_outer_measure :
-  (measure_space.μ : measure ℝ).to_outer_measure = lebesgue_outer := rfl
+  (volume : measure ℝ).to_outer_measure = lebesgue_outer := rfl
 
 end measure_theory
 
@@ -264,7 +264,7 @@ lemma real.volume_lt_top_of_bounded {s : set ℝ} (h : bounded s) : volume s < �
 begin
   rw [real.bounded_iff_bdd_below_bdd_above, bdd_below_bdd_above_iff_subset_interval] at h,
   rcases h with ⟨a, b, h⟩,
-  calc volume s ≤ volume [a, b] : volume_mono h
+  calc volume s ≤ volume [a, b] : measure_mono h
     ... < ⊤ : by { rw real.volume_interval, exact ennreal.coe_lt_top }
 end
 

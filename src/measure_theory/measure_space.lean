@@ -311,7 +311,8 @@ outer_measure'_eq m m0 @mU hs
 end measure
 
 section
-variables {α : Type*} {β : Type*} [measurable_space α] {μ μ₁ μ₂ : measure α} {s s₁ s₂ : set α}
+variables {α : Type*} {β : Type*} {ι : Type*} [measurable_space α] {μ μ₁ μ₂ : measure α}
+  {s s₁ s₂ : set α}
 
 @[simp] lemma to_outer_measure_apply (s) : μ.to_outer_measure s = μ s := rfl
 
@@ -400,8 +401,16 @@ end
 
 lemma measure_sUnion {S : set (set α)} (hs : countable S)
   (hd : pairwise_on S disjoint) (h : ∀s∈S, is_measurable s) :
-  μ (⋃₀ S) = ∑'s:S, μ s.1 :=
+  μ (⋃₀ S) = ∑' s:S, μ s.1 :=
 by rw [sUnion_eq_bUnion, measure_bUnion hs hd h]
+
+lemma measure_bUnion_finset {s : finset ι} {f : ι → set α} (hd : pairwise_on ↑s (disjoint on f))
+  (hm : ∀b∈s, is_measurable (f b)) :
+  μ (⋃b∈s, f b) = ∑ p in s, μ (f p) :=
+begin
+  rw [← finset.sum_attach, finset.attach_eq_univ, ← tsum_fintype],
+  exact measure_bUnion s.countable_to_set hd hm
+end
 
 lemma measure_diff {s₁ s₂ : set α} (h : s₂ ⊆ s₁)
   (h₁ : is_measurable s₁) (h₂ : is_measurable s₂)
@@ -411,26 +420,54 @@ begin
   rw [← measure_union disjoint_diff h₂ (h₁.diff h₂), union_diff_cancel h]
 end
 
+lemma sum_measure_le_measure_univ {s : finset ι} {t : ι → set α} (h : ∀ i ∈ s, is_measurable (t i))
+  (H : pairwise_on ↑s (disjoint on t)) :
+  ∑ i in s, μ (t i) ≤ μ (univ : set α) :=
+by { rw ← measure_bUnion_finset H h, exact measure_mono (subset_univ _) }
+
+lemma tsum_measure_le_measure_univ {s : ι → set α} (hs : ∀ i, is_measurable (s i))
+  (H : pairwise (disjoint on s)) :
+  (∑' i, μ (s i)) ≤ μ (univ : set α) :=
+begin
+  rw [ennreal.tsum_eq_supr_sum],
+  exact supr_le (λ s, sum_measure_le_measure_univ (λ i hi, hs i) (λ i hi j hj hij, H i j hij))
+end
+
+/-- Pigeonhole principle for measure spaces: if `∑' i, μ (s i) > μ univ`, then
+one of the intersections `s i ∩ s j` is not empty. -/
+lemma exists_nonempty_inter_of_measure_univ_lt_tsum_measure (μ : measure α) {s : ι → set α}
+  (hs : ∀ i, is_measurable (s i)) (H : μ (univ : set α) < ∑' i, μ (s i)) :
+  ∃ i j (h : i ≠ j), (s i ∩ s j).nonempty :=
+begin
+  contrapose! H,
+  apply tsum_measure_le_measure_univ hs,
+  exact λ i j hij x hx, H i j hij ⟨x, hx⟩
+end
+
+/-- Pigeonhole principle for measure spaces: if `s` is a `finset` and
+`∑ i in s, μ (t i) > μ univ`, then one of the intersections `t i ∩ t j` is not empty. -/
+lemma exists_nonempty_inter_of_measure_univ_lt_sum_measure (μ : measure α) {s : finset ι}
+  {t : ι → set α} (h : ∀ i ∈ s, is_measurable (t i)) (H : μ (univ : set α) < ∑ i in s, μ (t i)) :
+  ∃ (i ∈ s) (j ∈ s) (h : i ≠ j), (t i ∩ t j).nonempty :=
+begin
+  contrapose! H,
+  apply sum_measure_le_measure_univ h,
+  exact λ i hi j hj hij x hx, H i hi j hj hij ⟨x, hx⟩
+end
+
 lemma measure_Union_eq_supr_nat {s : ℕ → set α} (h : ∀i, is_measurable (s i)) (hs : monotone s) :
   μ (⋃i, s i) = (⨆i, μ (s i)) :=
 begin
-  refine le_antisymm _ (supr_le $ λ i, measure_mono $ subset_Union _ _),
-  rw [← Union_disjointed,
-    measure_Union disjoint_disjointed (is_measurable.disjointed h),
-    ennreal.tsum_eq_supr_nat],
-  refine supr_le (λ n, _),
-  cases n, {apply zero_le _},
-  suffices : ∑ i in finset.range n.succ, μ (disjointed s i) = μ (s n),
-  { rw this, exact le_supr _ n },
-  rw [← Union_disjointed_of_mono hs, measure_Union, tsum_eq_sum],
-  { apply sum_congr rfl, intros i hi,
-    simp [finset.mem_range.1 hi] },
-  { intros i hi, simp [mt finset.mem_range.2 hi] },
-  { rintro i j ij x ⟨⟨_, ⟨_, rfl⟩, h₁⟩, ⟨_, ⟨_, rfl⟩, h₂⟩⟩,
-    exact disjoint_disjointed i j ij ⟨h₁, h₂⟩ },
-  { intro i,
-    by_cases h' : i < n.succ; simp [h', is_measurable.empty],
-    apply is_measurable.disjointed h }
+  have : ∀ t : finset ℕ, ∃ n, t ⊆ finset.range (n + 1),
+    from λ t, (finset.exists_nat_subset_range t).imp (λ n hn, finset.subset.trans hn $
+      finset.range_mono $ (le_add_iff_nonneg_right _).2 (zero_le 1)),
+  rw [← Union_disjointed, measure_Union disjoint_disjointed (is_measurable.disjointed h),
+    ennreal.tsum_eq_supr_sum' _ this],
+  congr' 1, ext1 n,
+  rw [← measure_bUnion_finset (disjoint_disjointed.pairwise_on _)
+    (λ n _, is_measurable.disjointed h n)],
+  convert congr_arg μ (Union_disjointed_of_mono hs n),
+  ext, simp
 end
 
 lemma measure_Inter_eq_infi_nat {s : ℕ → set α}
@@ -689,15 +726,47 @@ def count : measure α := sum dirac
 ∀ s, μ s = 0 → is_measurable s
 
 /-- The "almost everywhere" filter of co-null sets. -/
-def a_e (μ : measure α) : filter α :=
+def ae (μ : measure α) : filter α :=
 { sets := {s | μ (-s) = 0},
   univ_sets := by simp [measure_empty],
   inter_sets := λ s t hs ht, by simp [compl_inter]; exact measure_union_null hs ht,
   sets_of_superset := λ s t hs hst, measure_mono_null (set.compl_subset_compl.2 hst) hs }
 
-lemma mem_a_e_iff (s : set α) : s ∈ μ.a_e.sets ↔ μ (- s) = 0 := iff.rfl
-
 end measure
+
+variables {α : Type*} {β : Type*} [measurable_space α] {μ : measure α}
+
+notation `∀ₘ` binders `∂` μ `, ` r:(scoped P, μ.ae.eventually P) := r
+
+lemma mem_ae_iff (s : set α) : s ∈ μ.ae.sets ↔ μ (- s) = 0 := iff.rfl
+
+lemma ae_iff {p : α → Prop} : (∀ₘ a ∂ μ, p a) ↔ μ { a | ¬ p a } = 0 := iff.rfl
+
+lemma measure_zero_iff_ae_nmem {s : set α} : μ s = 0 ↔ ∀ₘ a ∂ μ, a ∉ s :=
+by simp only [ae_iff, not_not, set_of_mem_eq]
+
+lemma ae_of_all {p : α → Prop} (μ : measure α) : (∀a, p a) → ∀ₘ a ∂ μ, p a :=
+eventually_of_forall _
+
+lemma ae_all_iff {ι : Type*} [encodable ι] {p : α → ι → Prop} :
+  (∀ₘ a ∂ μ, ∀i, p a i) ↔ (∀i, ∀ₘ a ∂ μ, p a i) :=
+begin
+  refine iff.intro (assume h i, _) (assume h, _),
+  { filter_upwards [h] assume a ha, ha i },
+  { have h := measure_Union_null h,
+    rw [← compl_Inter] at h,
+    filter_upwards [h] assume a, mem_Inter.1 }
+end
+
+lemma ae_eq_refl (f : α → β) : ∀ₘ a ∂ μ, f a = f a :=
+ae_of_all μ $ λ a, rfl
+
+lemma ae_eq_symm {f g : α → β} (h : ∀ₘ a ∂ μ, f a = g a) : (∀ₘ a ∂ μ, g a = f a) :=
+h.mono $ λ a, eq.symm
+
+lemma ae_eq_trans {f g h: α → β} (h₁ : ∀ₘ a ∂ μ, f a = g a) (h₂ : ∀ₘ a ∂ μ, g a = h a) :
+  ∀ₘ a ∂ μ, f a = h a :=
+by { filter_upwards [h₁, h₂], intro a, exact eq.trans }
 
 end measure_theory
 
@@ -857,166 +926,18 @@ set_option default_priority 100 -- see Note [default priority]
 /-- A measure space is a measurable space equipped with a
   measure, referred to as `volume`. -/
 class measure_space (α : Type*) extends measurable_space α :=
-(μ : measure α)
+(volume : measure α)
 end prio
 
+export measure_space (volume)
+
+/-- `volume` is the canonical  measure on `α`. -/
+add_decl_doc volume
+
 section measure_space
-variables {α : Type*} [measure_space α] {s₁ s₂ : set α}
-open measure_space
+variables {α : Type*} {ι : Type*} [measure_space α] {s₁ s₂ : set α}
 
-/-- `volume s` is the measure of `s : set α` with respect to the canonical measure on `α`. -/
-def volume : set α → ennreal := @μ α _
-
-@[simp] lemma volume_empty : volume (∅ : set α) = 0 := μ.empty
-
-lemma volume_mono : s₁ ⊆ s₂ → volume s₁ ≤ volume s₂ := measure_mono
-
-lemma volume_mono_null : s₁ ⊆ s₂ → volume s₂ = 0 → volume s₁ = 0 :=
-measure_mono_null
-
-theorem volume_Union_le {β} [encodable β] :
-  ∀ (s : β → set α), volume (⋃i, s i) ≤ (∑'i, volume (s i)) :=
-measure_Union_le
-
-lemma volume_Union_null {β} [encodable β] {s : β → set α} :
-  (∀ i, volume (s i) = 0) → volume (⋃i, s i) = 0 :=
-measure_Union_null
-
-theorem volume_union_le : ∀ (s₁ s₂ : set α), volume (s₁ ∪ s₂) ≤ volume s₁ + volume s₂ :=
-measure_union_le
-
-lemma volume_union_null : volume s₁ = 0 → volume s₂ = 0 → volume (s₁ ∪ s₂) = 0 :=
-measure_union_null
-
-lemma volume_Union {β} [encodable β] {f : β → set α} :
-  pairwise (disjoint on f) → (∀i, is_measurable (f i)) →
-  volume (⋃i, f i) = (∑'i, volume (f i)) :=
-measure_Union
-
-lemma volume_union : disjoint s₁ s₂ → is_measurable s₁ → is_measurable s₂ →
-  volume (s₁ ∪ s₂) = volume s₁ + volume s₂ :=
-measure_union
-
-lemma volume_bUnion {β} {s : set β} {f : β → set α} : countable s →
-  pairwise_on s (disjoint on f) → (∀b∈s, is_measurable (f b)) →
-  volume (⋃b∈s, f b) = ∑'p:s, volume (f p.1) :=
-measure_bUnion
-
-lemma volume_sUnion {S : set (set α)} : countable S →
-  pairwise_on S disjoint → (∀s∈S, is_measurable s) →
-  volume (⋃₀ S) = ∑'s:S, volume s.1 :=
-measure_sUnion
-
-lemma volume_bUnion_finset {β} {s : finset β} {f : β → set α}
-  (hd : pairwise_on ↑s (disjoint on f)) (hm : ∀b∈s, is_measurable (f b)) :
-  volume (⋃b∈s, f b) = ∑ p in s, volume (f p) :=
-show volume (⋃b∈(↑s : set β), f b) = ∑ p in s, volume (f p),
-begin
-  rw [volume_bUnion s.countable_to_set hd hm, tsum_eq_sum],
-  { show ∑ b in s.attach, volume (f b) = ∑ b in s, volume (f b),
-    exact @finset.sum_attach _ _ s _ (λb, volume (f b)) },
-  simp
-end
-
-lemma volume_diff : s₂ ⊆ s₁ → is_measurable s₁ → is_measurable s₂ →
-  volume s₂ < ⊤ → volume (s₁ \ s₂) = volume s₁ - volume s₂ :=
-measure_diff
-
-variable {ι : Type*}
-
-lemma sum_volume_le_volume_univ {s : finset ι} {t : ι → set α} (h : ∀ i ∈ s, is_measurable (t i))
-  (H : pairwise_on ↑s (disjoint on t)) : ∑ i in s, volume (t i) ≤ volume (univ : set α) :=
-volume_bUnion_finset H h ▸ volume_mono (subset_univ _)
-
-lemma tsum_volume_le_volume_univ {s : ι → set α} (hs : ∀ i, is_measurable (s i))
-  (H : pairwise (disjoint on s)) :
-  (∑' i, volume (s i)) ≤ volume (univ : set α) :=
-begin
-  rw [ennreal.tsum_eq_supr_sum],
-  exact supr_le (λ s, sum_volume_le_volume_univ (λ i hi, hs i) (λ i hi j hj hij, H i j hij))
-end
-
-/-- Pigeonhole principle for measure spaces: if `∑' i, μ (s i) > μ univ`, then
-one of the intersections `s i ∩ s j` is not empty. -/
-lemma exists_nonempty_inter_of_volume_univ_lt_tsum_volume {s : ι → set α}
-  (hs : ∀ i, is_measurable (s i)) (H : volume (univ : set α) < ∑' i, volume (s i)) :
-  ∃ i j (h : i ≠ j), (s i ∩ s j).nonempty :=
-begin
-  contrapose! H,
-  apply tsum_volume_le_volume_univ hs,
-  exact λ i j hij x hx, H i j hij ⟨x, hx⟩
-end
-
-/-- Pigeonhole principle for measure spaces: if `s` is a `finset` and
-`∑ i in s, μ (t i) > μ univ`, then one of the intersections `t i ∩ t j` is not empty. -/
-lemma exists_nonempty_inter_of_volume_univ_lt_sum_volume {s : finset ι} {t : ι → set α}
-  (h : ∀ i ∈ s, is_measurable (t i)) (H : volume (univ : set α) < ∑ i in s, volume (t i)) :
-  ∃ (i ∈ s) (j ∈ s) (h : i ≠ j), (t i ∩ t j).nonempty :=
-begin
-  contrapose! H,
-  apply sum_volume_le_volume_univ h,
-  exact λ i hi j hj hij x hx, H i hi j hj hij ⟨x, hx⟩
-end
-
-
-/-- `∀ₘ a:α, p a` states that the property `p` is almost everywhere true in the measure space
-associated with `α`. This means that the measure of the complementary of `p` is `0`.
-
-In a probability measure, the measure of `p` is `1`, when `p` is measurable.
--/
-def all_ae (p : α → Prop) : Prop :=
-∀ᶠ a in μ.a_e, p a
-
-notation `∀ₘ` binders `, ` r:(scoped P, all_ae P) := r
-
-lemma all_ae_congr {p q : α → Prop} (h : ∀ₘ a, p a ↔ q a) : (∀ₘ a, p a) ↔ (∀ₘ a, q a) :=
-iff.intro
-  (assume h', by filter_upwards [h, h'] assume a hpq hp, hpq.1 hp)
-  (assume h', by filter_upwards [h, h'] assume a hpq hq, hpq.2 hq)
-
-lemma all_ae_iff {p : α → Prop} : (∀ₘ a, p a) ↔ volume { a | ¬ p a } = 0 := iff.rfl
-
-lemma volume_zero_iff_all_ae_nmem {s : set α} : volume s = 0 ↔ ∀ₘ a, a ∉ s :=
-by simp only [all_ae_iff, not_not, set_of_mem_eq]
-
-lemma all_ae_of_all {p : α → Prop} : (∀a, p a) → ∀ₘ a, p a := univ_mem_sets'
-
-lemma all_ae_all_iff {ι : Type*} [encodable ι] {p : α → ι → Prop} :
-  (∀ₘ a, ∀i, p a i) ↔ (∀i, ∀ₘ a, p a i) :=
-begin
-  refine iff.intro (assume h i, _) (assume h, _),
-  { filter_upwards [h] assume a ha, ha i },
-  { have h := measure_Union_null h,
-    rw [← compl_Inter] at h,
-    filter_upwards [h] assume a, mem_Inter.1 }
-end
-
-@[simp] lemma all_ae_and_iff {p q : α → Prop} : (∀ₘ a, p a ∧ q a) ↔ (∀ₘ a, p a) ∧ ∀ₘ a, q a :=
-eventually_and
-
-@[simp] lemma all_ae_imp_distrib_left {p : Prop} {q : α → Prop} :
-  (∀ₘ a, p → q a) ↔ (p → ∀ₘ a, q a) :=
-eventually_imp_distrib_left
-
-@[simp] lemma all_ae_or_distrib_left {p : Prop} {q : α → Prop} :
-  (∀ₘ a, p ∨ q a) ↔ (p ∨ ∀ₘ a, q a) :=
-eventually_or_distrib_left
-
-@[simp] lemma all_ae_or_distrib_right {p : α → Prop} {q : Prop} :
-  (∀ₘ a, p a ∨ q) ↔ ((∀ₘ a, p a) ∨ q) :=
-eventually_or_distrib_right
-
-variables {β : Type*}
-
-lemma all_ae_eq_refl (f : α → β) : ∀ₘ a, f a = f a :=
-by { filter_upwards [], assume a, apply eq.refl }
-
-lemma all_ae_eq_symm {f g : α → β} : (∀ₘ a, f a = g a) → (∀ₘ a, g a = f a) :=
-by { assume h, filter_upwards [h], assume a, apply eq.symm }
-
-lemma all_ae_eq_trans {f g h: α → β} (h₁ : ∀ₘ a, f a = g a) (h₂ : ∀ₘ a, g a = h a) :
-  ∀ₘ a, f a = h a :=
-by { filter_upwards [h₁, h₂], intro a, exact eq.trans }
+notation `∀ₘ` binders `, ` r:(scoped P, volume.ae.eventually P) := r
 
 end measure_space
 

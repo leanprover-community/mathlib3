@@ -872,22 +872,6 @@ and turns it into a proof of a comparison `_ R 0`, where `R ∈ {=, ≤, <}`.
 meta def rearr_comp (e : expr) : tactic expr :=
 infer_type e >>= rearr_comp_aux e
 
-
-
-meta def get_contr_lemma_name : expr → option name
-| `(%%a < %%b) := return `lt_of_not_ge
-| `(%%a ≤ %%b) := return `le_of_not_gt
-| `(%%a = %%b) := return ``eq_of_not_lt_of_not_gt
-| `(%%a ≠ %%b) := return `not.intro
-| `(%%a ≥ %%b) := return `le_of_not_gt
-| `(%%a > %%b) := return `lt_of_not_ge
-| `(¬ %%a < %%b) := return `not.intro
-| `(¬ %%a ≤ %%b) := return `not.intro
-| `(¬ %%a = %%b) := return `not.intro
-| `(¬ %%a ≥ %%b) := return `not.intro
-| `(¬ %%a > %%b) := return `not.intro
-| _ := none
-
 meta def get_contr_lemma_name_and_type : expr → option (name × expr)
 | `(@has_lt.lt %%tp %%_ _ _) := return (`lt_of_not_ge, tp)
 | `(@has_le.le %%tp %%_ _ _) := return (`le_of_not_gt, tp)

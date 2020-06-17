@@ -415,7 +415,6 @@ meta def comp.is_contr (c : comp) : bool := c.coeffs.empty ∧ c.str = ineq.lt
 meta def pcomp.is_contr (p : pcomp) : bool := p.c.is_contr
 
 meta def elim_with_set (a : ℕ) (p : pcomp) (comps : rb_set pcomp) : rb_set pcomp :=
-if ¬ p.c.coeffs.contains a then mk_pcomp_set.insert p else
 comps.fold mk_pcomp_set $ λ pc s,
 match pelim_var p pc a with
 | some pc := if pc.maybe_minimal a then s.insert pc else s
@@ -453,12 +452,33 @@ end
 meta def update (vars : rb_set ℕ) (comps : rb_set pcomp) : linarith_monad unit :=
 state_t.put ⟨vars, comps⟩ >> validate
 
+/--
+`split_set_by_var_sign a comps` partitions the set `comps` into three parts.
+* `pos` contains the elements of `comps` in which `a` has a positive coefficient.
+* `neg` contains the elements of `comps` in which `a` has a negative coefficient.
+* `not_present` contains the elements of `comps` in which `a` has coefficient 0.
+
+Returns `(pos, neg, not_present)`.
+-/
+meta def split_set_by_var_sign (a : ℕ) (comps : rb_set pcomp) :
+  rb_set pcomp × rb_set pcomp × rb_set pcomp :=
+comps.fold ⟨mk_pcomp_set, mk_pcomp_set, mk_pcomp_set⟩ $ λ pc ⟨pos, neg, not_present⟩,
+  let n := pc.c.coeff_of a in
+  if n > 0 then ⟨pos.insert pc, neg, not_present⟩
+  else if n < 0 then ⟨pos, neg.insert pc, not_present⟩
+  else ⟨pos, neg, not_present.insert pc⟩
+
+/--
+`monad.elim_var a` performs one round of Fourier-Motzkin elimination, eliminating the variable `a`
+from the `linarith` state.
+-/
 meta def monad.elim_var (a : ℕ) : linarith_monad unit :=
 do vs ← get_vars,
    when (vs.contains a) $
-do comps ← get_comps,
-   let cs' := comps.fold mk_pcomp_set (λ p s, s.union (elim_with_set a p comps)),
+do ⟨pos, neg, not_present⟩ ← split_set_by_var_sign a <$> get_comps,
+   let cs' := pos.fold not_present (λ p s, s.union (elim_with_set a p neg)),
    update (vs.erase a) cs'
+
 
 meta def elim_all_vars : linarith_monad unit :=
 get_var_list >>= list.mmap' monad.elim_var

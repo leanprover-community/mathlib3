@@ -887,16 +887,6 @@ meta def get_contr_lemma_name_and_type : expr → option (name × expr)
 | `(¬ @gt %%tp %%_ _ _) := return (`not.intro, tp)
 | _ := none
 
-/-- Assumes the input `t` is of type `ℕ`. Produces `t'` of type `ℤ` such that `↑t = t'` and
-a proof of equality. -/
-meta def cast_expr (e : expr) : tactic (expr × expr) :=
-do s ← [`int.coe_nat_add, `int.coe_nat_zero, `int.coe_nat_one,
-        ``int.coe_nat_bit0_mul, ``int.coe_nat_bit1_mul, ``int.coe_nat_zero_mul, ``int.coe_nat_one_mul,
-        ``int.coe_nat_mul_bit0, ``int.coe_nat_mul_bit1, ``int.coe_nat_mul_zero, ``int.coe_nat_mul_one,
-        ``int.coe_nat_bit0, ``int.coe_nat_bit1].mfoldl simp_lemmas.add_simp simp_lemmas.mk,
-   ce ← to_expr ``(↑%%e : ℤ),
-   simplify s [] ce {fail_if_unchanged := ff}
-
 meta def is_nat_int_coe : expr → option expr
 | `((↑(%%n : ℕ) : ℤ)) := some n
 | _ := none
@@ -914,29 +904,6 @@ meta def get_nat_comps : expr → list expr
 
 meta def mk_coe_nat_nonneg_prfs (e : expr) : tactic (list expr) :=
 (get_nat_comps e).mmap mk_coe_nat_nonneg_prf
-
-meta def mk_cast_eq_and_nonneg_prfs (pf a b : expr) (ln : name) : tactic (list expr) :=
-do (a', prfa) ← cast_expr a,
-   (b', prfb) ← cast_expr b,
-   la ← mk_coe_nat_nonneg_prfs a',
-   lb ← mk_coe_nat_nonneg_prfs b',
-   pf' ← mk_app ln [pf, prfa, prfb],
-   return $ pf'::(la.append lb)
-
-/- meta def mk_int_pfs_of_nat_pf (pf : expr) : tactic (list expr) :=
-do tp ← infer_type pf,
-match tp with
-| `(%%a = %%b) := mk_cast_eq_and_nonneg_prfs pf a b ``nat_eq_subst
-| `(%%a ≤ %%b) := mk_cast_eq_and_nonneg_prfs pf a b ``nat_le_subst
-| `(%%a < %%b) := mk_cast_eq_and_nonneg_prfs pf a b ``nat_lt_subst
-| `(%%a ≥ %%b) := mk_cast_eq_and_nonneg_prfs pf b a ``nat_le_subst
-| `(%%a > %%b) := mk_cast_eq_and_nonneg_prfs pf b a ``nat_lt_subst
-| `(¬ %%a ≤ %%b) := do pf' ← mk_app ``lt_of_not_ge [pf], mk_cast_eq_and_nonneg_prfs pf' b a ``nat_lt_subst
-| `(¬ %%a < %%b) := do pf' ← mk_app ``le_of_not_gt [pf], mk_cast_eq_and_nonneg_prfs pf' b a ``nat_le_subst
-| `(¬ %%a ≥ %%b) := do pf' ← mk_app ``lt_of_not_ge [pf], mk_cast_eq_and_nonneg_prfs pf' a b ``nat_lt_subst
-| `(¬ %%a > %%b) := do pf' ← mk_app ``le_of_not_gt [pf], mk_cast_eq_and_nonneg_prfs pf' a b ``nat_le_subst
-| _ := fail "mk_int_pfs_of_nat_pf failed: proof is not an inequality"
-end -/
 
 meta def mk_int_pfs_of_nat_pf (pf : expr) : tactic (list expr) :=
 do pf' ← zify_proof pf,

@@ -5,7 +5,7 @@ Author: Robert Y. Lewis
 -/
 import tactic.ring
 import tactic.linarith.lemmas
-import data.tree
+import tactic.cancel_denoms
 
 /-!
 # Linear arithmetic
@@ -786,79 +786,7 @@ and turns it into a proof of a comparison `_ R 0`, where `R ∈ {=, ≤, <}`.
 meta def rearr_comp (e : expr) : tactic expr :=
 infer_type e >>= rearr_comp_aux e
 
-meta def is_numeric : expr → option ℚ
-| `(%%e1 + %%e2) := (+) <$> is_numeric e1 <*> is_numeric e2
-| `(%%e1 - %%e2) := has_sub.sub <$> is_numeric e1 <*> is_numeric e2
-| `(%%e1 * %%e2) := (*) <$> is_numeric e1 <*> is_numeric e2
-| `(%%e1 / %%e2) := (/) <$> is_numeric e1 <*> is_numeric e2
-| `(-%%e) := rat.neg <$> is_numeric e
-| e := e.to_rat
 
-meta def find_cancel_factor : expr → ℕ × tree ℕ
-| `(%%e1 + %%e2) :=
-  let (v1, t1) := find_cancel_factor e1, (v2, t2) := find_cancel_factor e2, lcm := v1.lcm v2 in
-  (lcm, tree.node lcm t1 t2)
-| `(%%e1 - %%e2) :=
-  let (v1, t1) := find_cancel_factor e1, (v2, t2) := find_cancel_factor e2, lcm := v1.lcm v2 in
-  (lcm, tree.node lcm t1 t2)
-| `(%%e1 * %%e2) :=
-  let (v1, t1) := find_cancel_factor e1, (v2, t2) := find_cancel_factor e2, pd := v1*v2 in
-  (pd, tree.node pd t1 t2)
-| `(%%e1 / %%e2) :=
-  match is_numeric e2 with
-  | some q := let (v1, t1) := find_cancel_factor e1, n := v1.lcm q.num.nat_abs in
-    (n, tree.node n t1 (tree.node q.num.nat_abs tree.nil tree.nil))
-  | none := (1, tree.node 1 tree.nil tree.nil)
-  end
-| `(-%%e) := find_cancel_factor e
-| _ := (1, tree.node 1 tree.nil tree.nil)
-
-open tree
-
-meta def mk_prod_prf : ℕ → tree ℕ → expr → tactic expr
-| v (node _ lhs rhs) `(%%e1 + %%e2) :=
-  do v1 ← mk_prod_prf v lhs e1, v2 ← mk_prod_prf v rhs e2, mk_app ``add_subst [v1, v2]
-| v (node _ lhs rhs) `(%%e1 - %%e2) :=
-  do v1 ← mk_prod_prf v lhs e1, v2 ← mk_prod_prf v rhs e2, mk_app ``sub_subst [v1, v2]
-| v (node n lhs@(node ln _ _) rhs) `(%%e1 * %%e2) :=
-  do tp ← infer_type e1, v1 ← mk_prod_prf ln lhs e1, v2 ← mk_prod_prf (v/ln) rhs e2,
-     ln' ← tp.of_nat ln, vln' ← tp.of_nat (v/ln), v' ← tp.of_nat v,
-     ntp ← to_expr ``(%%ln' * %%vln' = %%v'),
-     (_, npf) ← solve_aux ntp `[norm_num, done],
-     mk_app ``mul_subst [v1, v2, npf]
-| v (node n lhs rhs@(node rn _ _)) `(%%e1 / %%e2) :=
-  do tp ← infer_type e1, v1 ← mk_prod_prf (v/rn) lhs e1,
-     rn' ← tp.of_nat rn, vrn' ← tp.of_nat (v/rn), n' ← tp.of_nat n, v' ← tp.of_nat v,
-     ntp ← to_expr ``(%%rn' / %%e2 = 1),
-     (_, npf) ← solve_aux ntp `[norm_num, done],
-     ntp2 ← to_expr ``(%%vrn' * %%n' = %%v'),
-     (_, npf2) ← solve_aux ntp2 `[norm_num, done],
-     mk_app ``div_subst [v1, npf, npf2]
-| v t `(-%%e) := do v' ← mk_prod_prf v t e, mk_app ``neg_subst [v']
-| v _ e :=
-  do tp ← infer_type e,
-     v' ← tp.of_nat v,
-     e' ← to_expr ``(%%v' * %%e),
-     mk_app `eq.refl [e']
-
-/--
-Given `e`, a term with rational division, produces a natural number `n` and a proof of `n*e = e'`,
-where `e'` has no division.
--/
-meta def kill_factors (e : expr) : tactic (ℕ × expr) :=
-let (n, t) := find_cancel_factor e in
-do e' ← mk_prod_prf n t e, return (n, e')
-
-/--
-`normalize_denominators_in_lhs h lhs` assumes that `h` is a proof of `lhs R 0`.
-It creates a proof of `lhs' R 0`, where all numeric division in `lhs` has been cancelled.
--/
-meta def normalize_denominators_in_lhs (h lhs : expr) : tactic expr :=
-do (v, lhs') ← kill_factors lhs,
-   if v = 1 then return h else do
-   (ih, h'') ← mk_single_comp_zero_pf v h,
-   (_, nep, _) ← infer_type h'' >>= rewrite_core lhs',
-   mk_eq_mp nep h''
 
 meta def get_contr_lemma_name : expr → option name
 | `(%%a < %%b) := return `lt_of_not_ge
@@ -1029,6 +957,17 @@ meta def make_comp_with_zero : preprocessor :=
 λ e, singleton <$> rearr_comp e <|> return []
 
 /--
+`normalize_denominators_in_lhs h lhs` assumes that `h` is a proof of `lhs R 0`.
+It creates a proof of `lhs' R 0`, where all numeric division in `lhs` has been cancelled.
+-/
+meta def normalize_denominators_in_lhs (h lhs : expr) : tactic expr :=
+do (v, lhs') ← cancel_factors.kill_factors lhs,
+   if v = 1 then return h else do
+   (ih, h'') ← mk_single_comp_zero_pf v h,
+   (_, nep, _) ← infer_type h'' >>= rewrite_core lhs',
+   mk_eq_mp nep h''
+
+/--
 `cancel_denoms pf` assumes `pf` is a proof of `t R 0`. If `t` contains the division symbol `/`,
 it tries to scale `t` to cancel out division by numerals.
 -/
@@ -1055,16 +994,6 @@ meta def find_squares : rb_set (expr × bool) → expr → tactic (rb_set (expr 
 | s `(%%a ^ 2) := do s ← find_squares s a, return (s.insert (a, tt))
 | s e@`(%%e1 * %%e2) := if e1 = e2 then do s ← find_squares s e1, return (s.insert (e1, ff)) else e.mfoldl find_squares s
 | s e := e.mfoldl find_squares s
-
--- used in the `nlinarith` normalization steps. The `_` argument is for uniformity.
-@[nolint unused_arguments]
-lemma mul_zero_eq {α} {R : α → α → Prop} [semiring α] {a b : α} (_ : R a 0) (h : b = 0) : a * b = 0 :=
-by simp [h]
-
--- used in the `nlinarith` normalization steps. The `_` argument is for uniformity.
-@[nolint unused_arguments]
-lemma zero_mul_eq {α} {R : α → α → Prop} [semiring α] {a b : α} (h : a = 0) (_ : R b 0) : a * b = 0 :=
-by simp [h]
 
 meta def nlinarith_extras : global_preprocessor := λ ls,
 do s ← ls.mfoldr (λ h s', infer_type h >>= find_squares s') mk_rb_set,
@@ -1160,113 +1089,5 @@ do when cfg.split_hypotheses (linarith_trace "trying to split hypotheses" >> try
    hyps ← (do t ← get_restrict_type cfg.restrict_type_reflect, filter_hyps_to_type t hyps) <|> return hyps,
    linarith_trace_proofs "linarith is running on the following hypotheses:" hyps,
    run_linarith_on_pfs cfg hyps pref_type
-
-open lean lean.parser interactive tactic interactive.types
-local postfix `?`:9001 := optional
-local postfix *:9001 := many
-
-/--
-Tries to prove a goal of `false` by linear arithmetic on hypotheses.
-If the goal is a linear (in)equality, tries to prove it by contradiction.
-If the goal is not `false` or an inequality, applies `exfalso` and tries linarith on the
-hypotheses.
-
-* `linarith` will use all relevant hypotheses in the local context.
-* `linarith [t1, t2, t3]` will add proof terms t1, t2, t3 to the local context.
-* `linarith only [h1, h2, h3, t1, t2, t3]` will use only the goal (if relevant), local hypotheses
-  `h1`, `h2`, `h3`, and proofs `t1`, `t2`, `t3`. It will ignore the rest of the local context.
-* `linarith!` will use a stronger reducibility setting to identify atoms.
-
-Config options:
-* `linarith {exfalso := ff}` will fail on a goal that is neither an inequality nor `false`
-* `linarith {restrict_type := T}` will run only on hypotheses that are inequalities over `T`
-* `linarith {discharger := tac}` will use `tac` instead of `ring` for normalization.
-  Options: `ring2`, `ring SOP`, `simp`
-* `linarith {split_hypotheses := ff}` will not destruct conjunctions in the context.
--/
-meta def tactic.interactive.linarith (red : parse ((tk "!")?))
-  (restr : parse ((tk "only")?)) (hyps : parse pexpr_list?)
-  (cfg : linarith_config := {}) : tactic unit :=
-tactic.linarith red.is_some restr.is_some (hyps.get_or_else []) cfg
-
-add_hint_tactic "linarith"
-
-/--
-`linarith` attempts to find a contradiction between hypotheses that are linear (in)equalities.
-Equivalently, it can prove a linear inequality by assuming its negation and proving `false`.
-
-In theory, `linarith` should prove any goal that is true in the theory of linear arithmetic over
-the rationals. While there is some special handling for non-dense orders like `nat` and `int`,
-this tactic is not complete for these theories and will not prove every true goal.
-
-An example:
-```lean
-example (x y z : ℚ) (h1 : 2*x  < 3*y) (h2 : -4*x + 2*z < 0)
-        (h3 : 12*y - 4* z < 0)  : false :=
-by linarith
-```
-
-`linarith` will use all appropriate hypotheses and the negation of the goal, if applicable.
-
-`linarith [t1, t2, t3]` will additionally use proof terms `t1, t2, t3`.
-
-`linarith only [h1, h2, h3, t1, t2, t3]` will use only the goal (if relevant), local hypotheses
-`h1`, `h2`, `h3`, and proofs `t1`, `t2`, `t3`. It will ignore the rest of the local context.
-
-`linarith!` will use a stronger reducibility setting to try to identify atoms. For example,
-```lean
-example (x : ℚ) : id x ≥ x :=
-by linarith
-```
-will fail, because `linarith` will not identify `x` and `id x`. `linarith!` will.
-This can sometimes be expensive.
-
-`linarith {discharger := tac, restrict_type := tp, exfalso := ff}` takes a config object with five
-optional arguments:
-* `discharger` specifies a tactic to be used for reducing an algebraic equation in the
-  proof stage. The default is `ring`. Other options currently include `ring SOP` or `simp` for basic
-  problems.
-* `restrict_type` will only use hypotheses that are inequalities over `tp`. This is useful
-  if you have e.g. both integer and rational valued inequalities in the local context, which can
-  sometimes confuse the tactic.
-* `transparency` controls how hard `linarith` will try to match atoms to each other. By default
-  it will only unfold `reducible` definitions.
-* If `split_hypotheses` is true, `linarith` will split conjunctions in the context into separate
-  hypotheses.
-* If `exfalso` is false, `linarith` will fail when the goal is neither an inequality nor `false`.
-  (True by default.)
-
-A variant, `nlinarith`, does some basic preprocessing to handle some nonlinear goals.
--/
-add_tactic_doc
-{ name       := "linarith",
-  category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.linarith],
-  tags       := ["arithmetic", "decision procedure", "finishing"] }
-
-/--
-An extension of `linarith` with some preprocessing to allow it to solve some nonlinear arithmetic
-problems. (Based on Coq's `nra` tactic.) See `linarith` for the available syntax of options,
-which are inherited by `nlinarith`; that is, `nlinarith!` and `nlinarith only [h1, h2]` all work as
-in `linarith`. The preprocessing is as follows:
-
-* For every subterm `a ^ 2` or `a * a` in a hypothesis or the goal,
-  the assumption `0 ≤ a ^ 2` or `0 ≤ a * a` is added to the context.
-* For every pair of hypotheses `a1 R1 b1`, `a2 R2 b2` in the context, `R1, R2 ∈ {<, ≤, =}`,
-  the assumption `0 R' (b1 - a1) * (b2 - a2)` is added to the context (non-recursively),
-  where `R ∈ {<, ≤, =}` is the appropriate comparison derived from `R1, R2`.
--/
-meta def tactic.interactive.nlinarith (red : parse ((tk "!")?))
-  (restr : parse ((tk "only")?)) (hyps : parse pexpr_list?)
-  (cfg : linarith_config := {}) : tactic unit :=
-tactic.linarith red.is_some restr.is_some (hyps.get_or_else []) {cfg with nonlinear_preprocessing := tt}
-
-add_hint_tactic "nlinarith"
-
-add_tactic_doc
-{ name       := "nlinarith",
-  category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.nlinarith],
-  tags       := ["arithmetic", "decision procedure", "finishing"] }
 
 end

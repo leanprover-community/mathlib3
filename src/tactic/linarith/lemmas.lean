@@ -66,23 +66,15 @@ by simp *
 lemma eq_of_not_lt_of_not_gt {α} [linear_order α] (a b : α) (h1 : ¬ a < b) (h2 : ¬ b < a) : a = b :=
 le_antisymm (le_of_not_gt h2) (le_of_not_gt h1)
 
-lemma add_subst {α} [ring α] {n e1 e2 t1 t2 : α} (h1 : n * e1 = t1) (h2 : n * e2 = t2) :
-      n * (e1 + e2) = t1 + t2 := by simp [left_distrib, *]
 
-lemma sub_subst {α} [ring α] {n e1 e2 t1 t2 : α} (h1 : n * e1 = t1) (h2 : n * e2 = t2) :
-      n * (e1 - e2) = t1 - t2 := by simp [left_distrib, *, sub_eq_add_neg]
+-- used in the `nlinarith` normalization steps. The `_` argument is for uniformity.
+@[nolint unused_arguments]
+lemma mul_zero_eq {α} {R : α → α → Prop} [semiring α] {a b : α} (_ : R a 0) (h : b = 0) : a * b = 0 :=
+by simp [h]
 
-lemma neg_subst {α} [ring α] {n e t : α} (h1 : n * e = t) : n * (-e) = -t := by simp *
-
-private meta def apnn : tactic unit := `[norm_num]
-
-lemma mul_subst {α} [comm_ring α] {n1 n2 k e1 e2 t1 t2 : α} (h1 : n1 * e1 = t1) (h2 : n2 * e2 = t2)
-     (h3 : n1*n2 = k . apnn) : k * (e1 * e2) = t1 * t2 :=
-have h3 : n1 * n2 = k, from h3,
-by rw [←h3, mul_comm n1, mul_assoc n2, ←mul_assoc n1, h1, ←mul_assoc n2, mul_comm n2, mul_assoc, h2] -- OUCH
-
-lemma div_subst {α} [field α] {n1 n2 k e1 e2 t1 : α} (h1 : n1 * e1 = t1) (h2 : n2 / e2 = 1) (h3 : n1*n2 = k) :
-      k * (e1 / e2) = t1 :=
-by rw [←h3, mul_assoc, mul_div_comm, h2, ←mul_assoc, h1, mul_comm, one_mul]
+-- used in the `nlinarith` normalization steps. The `_` argument is for uniformity.
+@[nolint unused_arguments]
+lemma zero_mul_eq {α} {R : α → α → Prop} [semiring α] {a b : α} (h : a = 0) (_ : R b 0) : a * b = 0 :=
+by simp [h]
 
 end linarith

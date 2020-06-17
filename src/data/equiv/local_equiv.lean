@@ -89,12 +89,17 @@ def equiv.to_local_equiv (e : equiv α β) : local_equiv α β :=
   left_inv'   := λx hx, e.left_inv x,
   right_inv'  := λx hx, e.right_inv x }
 
+/-- A very basic tactic to prove that two sets are equal, by checking both inclusions and relying
+on the simplifier to simplify the assumption and derive the conclusion. This is domain specific,
+for manifolds, where sets are mostly written as complicated intersections. -/
 meta def tactic.interactive.set_eq_tac : tactic unit :=
 `[ ext,
   split;
   { assume hx,
     try { simp at hx },
-    try { rcases hx },
+    -- a subtlety is that some assumptions in `hx` might be simplified using other parts of `hx`.
+    -- split the conjunctions to enable the simplifier to do this.
+    try { auto.split_hyps },
     simp * at * }]
 
 namespace local_equiv

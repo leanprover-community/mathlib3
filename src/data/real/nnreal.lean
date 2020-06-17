@@ -5,6 +5,7 @@ Authors: Johan Commelin
 
 Nonnegative real numbers.
 -/
+import algebra.linear_ordered_comm_group_with_zero
 import data.real.basic
 
 noncomputable theory
@@ -195,6 +196,12 @@ instance : canonically_ordered_comm_semiring ℝ≥0 :=
   .. nnreal.linear_ordered_semiring,
   .. nnreal.canonically_ordered_add_monoid,
   .. nnreal.comm_semiring }
+
+instance : linear_ordered_comm_group_with_zero ℝ≥0 :=
+{ mul_le_mul_left := assume a b h c, mul_le_mul (le_refl c) h (zero_le a) (zero_le c),
+  zero_le_one := zero_le 1,
+  .. nnreal.linear_ordered_semiring,
+  .. nnreal.comm_group_with_zero }
 
 instance : densely_ordered ℝ≥0 :=
 ⟨assume a b (h : (a : ℝ) < b), let ⟨c, hac, hcb⟩ := dense h in

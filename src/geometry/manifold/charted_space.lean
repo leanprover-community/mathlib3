@@ -11,7 +11,8 @@ import topology.local_homeomorph
 A smooth manifold is a topological space `M` locally modelled on a euclidean space (or a euclidean
 half-space for manifolds with boundaries, or an infinite dimensional vector space for more general
 notions of manifolds), i.e., the manifold is covered by open subsets on which there are local
-homeomorphisms (the charts) going to `H`, and the changes of charts should be smooth maps.
+homeomorphisms (the charts) going to a model space`H`, and the changes of charts should be smooth
+maps.
 
 In this file, we introduce a general framework describing these notions, where the model space is an
 arbitrary topological space. We avoid the word *manifold*, which should be reserved for the
@@ -34,12 +35,7 @@ under composition and inverse, to which the change of coordinates should belong.
 
 * `structure_groupoid H` : a subset of local homeomorphisms of `H` stable under composition,
   inverse and restriction (ex: local diffeos).
-* `pregroupoid H` : a subset of local homeomorphisms of `H` stable under composition and
-  restriction, but not inverse (ex: smooth maps)
-* `groupoid_of_pregroupoid` : construct a groupoid from a pregroupoid, by requiring that a map and
-  its inverse both belong to the pregroupoid (ex: construct diffeos from smooth maps)
 * `continuous_groupoid H` : the groupoid of all local homeomorphisms of `H`
-
 * `charted_space H M` : charted space structure on `M` modelled on `H`, given by an atlas of
   local homeomorphisms from `M` to `H` whose sources cover `M`. This is a type class.
 * `has_groupoid M G` : when `G` is a structure groupoid on `H` and `M` is a charted space
@@ -59,6 +55,11 @@ saying that a topological space is a charted space over itself, with the identit
 This charted space structure is compatible with any groupoid.
 
 Additional useful definitions:
+
+* `pregroupoid H` : a subset of local mas of `H` stable under composition and
+  restriction, but not inverse (ex: smooth maps)
+* `groupoid_of_pregroupoid` : construct a groupoid from a pregroupoid, by requiring that a map and
+  its inverse both belong to the pregroupoid (ex: construct diffeos from smooth maps)
 * `chart_at H x` is a preferred chart at `x : M` when `M` has a charted space structure modelled on
   `H`.
 * `G.compatible he he'` states that, for any two charts `e` and `e'` in the atlas, the composition
@@ -151,7 +152,7 @@ We use primes in the structure names as we will reformulate them below (without 
 composition and inverse. They appear in the definition of the smoothness class of a manifold. -/
 structure structure_groupoid (H : Type u) [topological_space H] :=
 (members       : set (local_homeomorph H H))
-(comp'         : ∀e e' : local_homeomorph H H, e ∈ members → e' ∈ members → e ≫ₕ e' ∈ members)
+(trans'        : ∀e e' : local_homeomorph H H, e ∈ members → e' ∈ members → e ≫ₕ e' ∈ members)
 (symm'         : ∀e : local_homeomorph H H, e ∈ members → e.symm ∈ members)
 (id_mem'       : local_homeomorph.refl H ∈ members)
 (locality'     : ∀e : local_homeomorph H H, (∀x ∈ e.source, ∃s, is_open s ∧
@@ -163,9 +164,9 @@ variable [topological_space H]
 instance : has_mem (local_homeomorph H H) (structure_groupoid H) :=
 ⟨λ(e : local_homeomorph H H) (G : structure_groupoid H), e ∈ G.members⟩
 
-lemma structure_groupoid.comp (G : structure_groupoid H) {e e' : local_homeomorph H H}
+lemma structure_groupoid.trans (G : structure_groupoid H) {e e' : local_homeomorph H H}
   (he : e ∈ G) (he' : e' ∈ G) : e ≫ₕ e' ∈ G :=
-G.comp' e e' he he'
+G.trans' e e' he he'
 
 lemma structure_groupoid.symm (G : structure_groupoid H) {e : local_homeomorph H H} (he : e ∈ G) :
   e.symm ∈ G :=
@@ -197,7 +198,7 @@ iff.rfl
 necessary from the definition) -/
 def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
 { members := {local_homeomorph.refl H} ∪ {e : local_homeomorph H H | e.source = ∅},
-  comp' := λe e' he he', begin
+  trans' := λe e' he he', begin
     cases he; simp at he he',
     { simpa [he] },
     { have : (e ≫ₕ e').source ⊆ e.source := sep_subset _ _,
@@ -281,7 +282,7 @@ structure pregroupoid (H : Type*) [topological_space H] :=
 from a pregroupoid asserting that this property is stable under composition. -/
 def pregroupoid.groupoid (PG : pregroupoid H) : structure_groupoid H :=
 { members   := {e : local_homeomorph H H | PG.property e e.source ∧ PG.property e.symm e.target},
-  comp'     := λe e' he he', begin
+  trans'     := λe e' he he', begin
     split,
     { apply PG.comp he.1 he'.1 e.open_source e'.open_source,
       apply e.continuous_to_fun.preimage_open_of_open e.open_source e'.open_source },
@@ -575,7 +576,7 @@ begin
   refine ⟨s, hs, xs, _⟩,
   have A : e.symm ≫ₕ f ∈ G := (mem_maximal_atlas_iff.1 he f (chart_mem_atlas _ _)).1,
   have B : f.symm ≫ₕ e' ∈ G := (mem_maximal_atlas_iff.1 he' f (chart_mem_atlas _ _)).2,
-  have C : (e.symm ≫ₕ f) ≫ₕ (f.symm ≫ₕ e') ∈ G := G.comp A B,
+  have C : (e.symm ≫ₕ f) ≫ₕ (f.symm ≫ₕ e') ∈ G := G.trans A B,
   have D : (e.symm ≫ₕ f) ≫ₕ (f.symm ≫ₕ e') ≈ (e.symm ≫ₕ e').restr s := calc
     (e.symm ≫ₕ f) ≫ₕ (f.symm ≫ₕ e') = e.symm ≫ₕ (f ≫ₕ f.symm) ≫ₕ e' : by simp [trans_assoc]
     ... ≈ e.symm ≫ₕ (of_set f.source f.open_source) ≫ₕ e' :
@@ -653,7 +654,7 @@ def structomorph.trans (e : structomorph G M M') (e' : structomorph G M' M'') : 
       { exact hg₂ } },
     refine ⟨s, open_s, this, _⟩,
     let F₁ := (c.symm ≫ₕ f₁ ≫ₕ g) ≫ₕ (g.symm ≫ₕ f₂ ≫ₕ c'),
-    have A : F₁ ∈ G := G.comp (e.mem_groupoid c g hc hg₁) (e'.mem_groupoid g c' hg₁ hc'),
+    have A : F₁ ∈ G := G.trans (e.mem_groupoid c g hc hg₁) (e'.mem_groupoid g c' hg₁ hc'),
     let F₂ := (c.symm ≫ₕ f ≫ₕ c').restr s,
     have : F₁ ≈ F₂ := calc
       F₁ ≈ c.symm ≫ₕ f₁ ≫ₕ (g ≫ₕ g.symm) ≫ₕ f₂ ≫ₕ c' : by simp [F₁, trans_assoc]

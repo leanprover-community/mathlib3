@@ -3,6 +3,8 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
+
+import linear_algebra.finite_dimensional
 import ring_theory.integral_closure
 
 /-!
@@ -104,6 +106,11 @@ begin
   exact is_integral_trans L_alg A_alg,
 end
 
+/-- A field extension is algebraic if it is finite. -/
+lemma is_algebraic_of_finite (finite : finite_dimensional K L) : is_algebraic K L :=
+λ x, (is_algebraic_iff_is_integral _).mpr (is_integral_of_noetherian ⊤
+  (is_noetherian_of_submodule_of_noetherian _ _ _ finite) x algebra.mem_top)
+
 end algebra
 
 variables {R S : Type*} [integral_domain R] [comm_ring S]
@@ -123,4 +130,3 @@ begin
   refine ⟨⟨_, x_integral⟩, ⟨_, y_integral⟩, _, rfl⟩,
   exact λ h, a_nonzero (inj _ (subtype.ext.mp h))
 end
-

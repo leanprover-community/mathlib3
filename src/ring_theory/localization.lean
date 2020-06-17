@@ -906,11 +906,23 @@ begin
     exact f.to_map_eq_zero_iff.mpr h }
 end
 
+/-- A field is algebraic over the ring `A` iff it is algebraic over the field of fractions of `A`. -/
+lemma comap_is_algebraic_iff [algebra f.codomain L] :
+  algebra.is_algebraic A (algebra.comap A f.codomain L) ↔ algebra.is_algebraic f.codomain L :=
+begin
+  split; intros h x; obtain ⟨p, hp, px⟩ := h x,
+  { refine ⟨p.map f.to_map, λ h, hp (polynomial.ext (λ i, _)), _⟩,
+  { have : f.to_map (p.coeff i) = 0 := trans (polynomial.coeff_map _ _).symm (by simp [h]),
+    exact f.to_map_eq_zero_iff.mpr this },
+  { exact trans (polynomial.eval₂_map _ _ _) px } },
+  { exact ⟨to_base_ring p, mt f.to_base_ring_eq_zero_iff.mp hp, to_base_ring_aeval_eq_zero p px⟩ },
+end
+
 end fraction_map
 
 namespace integral_closure
 
-variables {L : Type*} [field L]
+variables {L : Type*} [field K] [field L] {f : fraction_map A K}
 
 open algebra
 
@@ -928,6 +940,15 @@ def fraction_map_of_algebraic [algebra A L] (alg : is_algebraic A L)
   (λ x y, ⟨ λ (h : x.1 = y.1), ⟨1, by simpa using subtype.ext.mpr h⟩,
             λ ⟨c, hc⟩, congr_arg (algebra_map _ L)
               (eq_of_mul_eq_mul_right_of_ne_zero (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc) ⟩)
+
+/-- If the field `L` is a finite extension of the fraction field of the integral domain `A`,
+the integral closure of `A` in `L` has fraction field `L`. -/
+def fraction_map_of_finite_extension [algebra f.codomain L]
+  (finite : finite_dimensional f.codomain L) :
+  fraction_map (integral_closure A (algebra.comap A f.codomain L)) (algebra.comap A f.codomain L) :=
+fraction_map_of_algebraic
+  (f.comap_is_algebraic_iff.mpr (is_algebraic_of_finite finite))
+  (λ x hx, f.to_map_eq_zero_iff.mpr ((algebra_map f.codomain L).map_eq_zero.mp hx))
 
 end integral_closure
 

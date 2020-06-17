@@ -186,9 +186,7 @@ begin
     local_homeomorph.trans_to_local_equiv, local_equiv.refl_target,
     local_homeomorph.refl_local_equiv, local_equiv.prod_target, local_equiv.refl_coe,
     local_homeomorph.coe_coe_symm, local_equiv.refl_symm, local_equiv.prod_coe_symm],
-  ext p,
-  split;
-  simp [e.map_target] {contextual := tt}
+  set_eq_tac,
 end
 
 /-- The total space of a basic smooth bundle is endowed with a charted space structure, where the
@@ -222,6 +220,8 @@ by simp [chart_at, charted_space.chart_at]
   (((chart_at (H × F) q).symm : H × F → Z.to_topological_fiber_bundle_core.total_space) p).1
   = ((chart_at H q.1).symm : H → M) p.1 := rfl
 
+-- set_option profiler true
+
 /-- Smooth manifold structure on the total space of a basic smooth bundle -/
 instance to_smooth_manifold :
   smooth_manifold_with_corners (I.prod (model_with_corners_self 𝕜 F))
@@ -238,15 +238,14 @@ begin
   { assume e e' he he',
     have : J.symm ⁻¹' ((chart Z he).symm.trans (chart Z he')).source ∩ range J =
       (I.symm ⁻¹' (e.symm.trans e').source ∩ range I).prod univ,
-    { have : range (λ (p : H × F), (I (p.fst), id p.snd)) =
-             (range I).prod (range (id : F → F)) := prod_range_range_eq.symm,
-      simp at this,
-      ext p,
-      simp [-mem_range, J, local_equiv.trans_source, chart, model_with_corners.prod,
-            local_equiv.trans_target, this],
-      split,
-      { tauto },
-      { exact λ⟨⟨hx1, hx2⟩, hx3⟩, ⟨⟨⟨hx1, e.map_target hx1⟩, hx2⟩, hx3⟩ } },
+    { ext p,
+      simp [-mem_range, J, chart, model_with_corners.prod],
+      sorry },
+    sorry
+  }
+end
+
+#exit
     rw this,
     -- check separately that the two components of the coordinate change are smooth
     apply times_cont_diff_on.prod,
@@ -275,7 +274,7 @@ begin
       rw model_with_corners.image at this,
       apply times_cont_diff_on.congr this,
       rintros ⟨x, v⟩ hx,
-      simp [local_equiv.trans_source] at hx,
+      simp at hx,
       let f := chart_at H (e.symm (I.symm x)),
       have A : I.symm x ∈ ((e.symm.trans f).trans (f.symm.trans e')).source,
         by simp [local_equiv.trans_source, hx.1.1, hx.1.2, mem_chart_source, f.map_source],
@@ -296,6 +295,8 @@ begin
 end
 
 end basic_smooth_bundle_core
+
+#exit
 
 section tangent_bundle
 

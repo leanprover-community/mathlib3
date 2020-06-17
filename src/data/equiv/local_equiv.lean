@@ -89,6 +89,14 @@ def equiv.to_local_equiv (e : equiv α β) : local_equiv α β :=
   left_inv'   := λx hx, e.left_inv x,
   right_inv'  := λx hx, e.right_inv x }
 
+meta def tactic.interactive.set_eq_tac : tactic unit :=
+`[ ext,
+  split;
+  { assume hx,
+    try { simp at hx },
+    try { rcases hx },
+    simp * at * }]
+
 namespace local_equiv
 
 variables (e : local_equiv α β) (e' : local_equiv β γ)
@@ -169,6 +177,13 @@ lemma image_inter_source_eq (s : set α) :
   e '' (s ∩ e.source) = e.target ∩ e.symm ⁻¹' (s ∩ e.source) :=
 e.image_eq_target_inter_inv_preimage (inter_subset_right _ _)
 
+lemma image_inter_source_eq' (s : set α) :
+  e '' (s ∩ e.source) = e.target ∩ e.symm ⁻¹' s :=
+begin
+  rw e.image_eq_target_inter_inv_preimage (inter_subset_right _ _),
+  set_eq_tac
+end
+
 lemma symm_image_eq_source_inter_preimage {s : set β} (h : s ⊆ e.target) :
   e.symm '' s = e.source ∩ e ⁻¹' s :=
 e.symm.image_eq_target_inter_inv_preimage h
@@ -177,16 +192,13 @@ lemma symm_image_inter_target_eq (s : set β) :
   e.symm '' (s ∩ e.target) = e.source ∩ e ⁻¹' (s ∩ e.target) :=
 e.symm.image_inter_source_eq _
 
+lemma symm_image_inter_target_eq' (s : set β) :
+  e.symm '' (s ∩ e.target) = e.source ∩ e ⁻¹' s :=
+e.symm.image_inter_source_eq' _
+
 lemma source_inter_preimage_inv_preimage (s : set α) :
   e.source ∩ e ⁻¹' (e.symm ⁻¹' s) = e.source ∩ s :=
-begin
-  ext, split,
-  { rintros ⟨hx, xs⟩,
-    simp only [mem_preimage, hx, e.left_inv, mem_preimage] at xs,
-    exact ⟨hx, xs⟩ },
-  { rintros ⟨hx, xs⟩,
-    simp [hx, xs] }
-end
+by set_eq_tac
 
 lemma target_inter_inv_preimage_preimage (s : set β) :
   e.target ∩ e.symm ⁻¹' (e ⁻¹' s) = e.target ∩ s :=

@@ -371,6 +371,15 @@ instance has_coe_to_ring_equiv : has_coe (A₁ ≃ₐ[R] A₂) (A₁ ≃+* A₂)
 
 @[simp, norm_cast] lemma coe_ring_equiv (e : A₁ ≃ₐ[R] A₂) : ((e : A₁ ≃+* A₂) : A₁ → A₂) = e := rfl
 
+lemma coe_ring_equiv_injective : function.injective (λ e : A₁ ≃ₐ[R] A₂, (e : A₁ ≃+* A₂)) :=
+begin
+  intros f g w,
+  ext,
+  replace w : ((f : A₁ ≃+* A₂) : A₁ → A₂) = ((g : A₁ ≃+* A₂) : A₁ → A₂) :=
+    congr_arg (λ e : A₁ ≃+* A₂, (e : A₁ → A₂)) w,
+  exact congr_fun w a,
+end
+
 @[simp] lemma map_add (e : A₁ ≃ₐ[R] A₂) : ∀ x y, e (x + y) = e x + e y := e.to_add_equiv.map_add
 
 @[simp] lemma map_zero (e : A₁ ≃ₐ[R] A₂) : e 0 = 0 := e.to_add_equiv.map_zero

@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2020 TODO. All rights reserved.
+Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: TODO
+Authors: Johannes Hölzl, Jeremy Avigad, Yury Kudryashov, Patrick Massot
 -/
 import order.filter.basic
 
@@ -16,7 +16,7 @@ In this file we define the filters
 Then we prove many lemmas like “if `f → +∞`, then `f ± c → +∞`”.
 -/
 
-variables {α : Type*} {β : Type*} {γ : Type*}
+variables {α β γ : Type*}
 
 open set
 open_locale classical

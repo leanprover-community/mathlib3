@@ -400,8 +400,8 @@ meta def monad.elim_var (a : ℕ) : linarith_monad unit :=
 do vs ← get_vars,
    when (vs.contains a) $
 do ⟨pos, neg, not_present⟩ ← split_set_by_var_sign a <$> get_comps,
-   let cs' := pos.fold mk_pcomp_set (λ p s, s.union (elim_with_set a p neg)),
-   update (vs.erase a) $ cs'.union not_present
+   let cs' := pos.fold not_present (λ p s, s.union (elim_with_set a p neg)),
+   update (vs.erase a) $ cs'
 
 /--
 `elim_all_vars` eliminates all variables from the linarith state, leaving it with a set of

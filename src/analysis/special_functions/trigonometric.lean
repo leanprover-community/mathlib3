@@ -766,23 +766,23 @@ lemma cos_le_cos_of_nonneg_of_le_pi {x y : ℝ} (hx₁ : 0 ≤ x) (hx₂ : x ≤
   (le_of_lt ∘ cos_lt_cos_of_nonneg_of_le_pi hx₁ hx₂ hy₁ hy₂)
   (λ h, h ▸ le_refl _)
 
-lemma sin_lt_sin_of_le_of_le_pi_div_two {x y : ℝ} (hx₁ : -(π / 2) ≤ x) (hx₂ : x ≤ π / 2) (hy₁ : -(π / 2) ≤ y)
+lemma sin_lt_sin_of_le_of_le_pi_div_two {x y : ℝ} (hx₁ : -(π / 2) ≤ x)
   (hy₂ : y ≤ π / 2) (hxy : x < y) : sin x < sin y :=
 by rw [← cos_sub_pi_div_two, ← cos_sub_pi_div_two, ← cos_neg (x - _), ← cos_neg (y - _)];
   apply cos_lt_cos_of_nonneg_of_le_pi; linarith
 
-lemma sin_le_sin_of_le_of_le_pi_div_two {x y : ℝ} (hx₁ : -(π / 2) ≤ x) (hx₂ : x ≤ π / 2) (hy₁ : -(π / 2) ≤ y)
+lemma sin_le_sin_of_le_of_le_pi_div_two {x y : ℝ} (hx₁ : -(π / 2) ≤ x)
   (hy₂ : y ≤ π / 2) (hxy : x ≤ y) : sin x ≤ sin y :=
 (lt_or_eq_of_le hxy).elim
-  (le_of_lt ∘ sin_lt_sin_of_le_of_le_pi_div_two hx₁ hx₂ hy₁ hy₂)
+  (le_of_lt ∘ sin_lt_sin_of_le_of_le_pi_div_two hx₁ hy₂)
   (λ h, h ▸ le_refl _)
 
 lemma sin_inj_of_le_of_le_pi_div_two {x y : ℝ} (hx₁ : -(π / 2) ≤ x) (hx₂ : x ≤ π / 2) (hy₁ : -(π / 2) ≤ y)
   (hy₂ : y ≤ π / 2) (hxy : sin x = sin y) : x = y :=
 match lt_trichotomy x y with
-| or.inl h          := absurd (sin_lt_sin_of_le_of_le_pi_div_two hx₁ hx₂ hy₁ hy₂ h) (by rw hxy; exact lt_irrefl _)
+| or.inl h          := absurd (sin_lt_sin_of_le_of_le_pi_div_two hx₁ hy₂ h) (by rw hxy; exact lt_irrefl _)
 | or.inr (or.inl h) := h
-| or.inr (or.inr h) := absurd (sin_lt_sin_of_le_of_le_pi_div_two hy₁ hy₂ hx₁ hx₂ h) (by rw hxy; exact lt_irrefl _)
+| or.inr (or.inr h) := absurd (sin_lt_sin_of_le_of_le_pi_div_two hy₁ hx₂ h) (by rw hxy; exact lt_irrefl _)
 end
 
 lemma cos_inj_of_nonneg_of_le_pi {x y : ℝ} (hx₁ : 0 ≤ x) (hx₂ : x ≤ π) (hy₁ : 0 ≤ y) (hy₂ : y ≤ π)
@@ -986,8 +986,7 @@ lemma arcsin_nonneg {x : ℝ} (hx : 0 ≤ x) : 0 ≤ arcsin x :=
 if hx₁ : x ≤ 1 then
 not_lt.1 (λ h, not_lt.2 hx begin
   have := sin_lt_sin_of_le_of_le_pi_div_two
-    (neg_pi_div_two_le_arcsin _) (arcsin_le_pi_div_two _)
-    (neg_nonpos.2 (le_of_lt pi_div_two_pos)) (le_of_lt pi_div_two_pos) h,
+    (neg_pi_div_two_le_arcsin _) (le_of_lt pi_div_two_pos) h,
   rw [real.sin_arcsin, sin_zero] at this; linarith
 end)
 else by rw [arcsin, dif_neg]; simp [hx₁]
@@ -1091,8 +1090,7 @@ lemma tan_lt_tan_of_nonneg_of_lt_pi_div_two {x y : ℝ} (hx₁ : 0 ≤ x) (hx₂
 begin
   rw [tan_eq_sin_div_cos, tan_eq_sin_div_cos],
   exact div_lt_div
-    (sin_lt_sin_of_le_of_le_pi_div_two (by linarith) (le_of_lt hx₂)
-      (by linarith) (le_of_lt hy₂) hxy)
+    (sin_lt_sin_of_le_of_le_pi_div_two (by linarith) (le_of_lt hy₂) hxy)
     (cos_le_cos_of_nonneg_of_le_pi hx₁ (by linarith) hy₁ (by linarith) (le_of_lt hxy))
     (sin_nonneg_of_nonneg_of_le_pi hy₁ (by linarith))
     (cos_pos_of_neg_pi_div_two_lt_of_lt_pi_div_two (by linarith) hy₂)

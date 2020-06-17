@@ -499,13 +499,12 @@ lemma prod_target (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
 @[simp] lemma prod_coe (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
   (e.prod e' : α × γ → β × δ) = λp, (e p.1, e' p.2) := rfl
 
-@[simp] lemma prod_coe_symm (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
+lemma prod_coe_symm (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
   ((e.prod e').symm : β × δ → α × γ) = λp, (e.symm p.1, e'.symm p.2) := rfl
-
 
 @[simp] lemma prod_symm (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
   (e.prod e').symm = (e.symm.prod e'.symm) :=
-by ext x; simp
+by ext x; simp [prod_coe_symm]
 
 @[simp] lemma prod_trans {η : Type*} {ε : Type*} [topological_space η] [topological_space ε]
   (e : local_homeomorph α β) (f : local_homeomorph β γ)

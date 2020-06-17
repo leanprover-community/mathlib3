@@ -504,12 +504,12 @@ def prod (e : local_equiv α β) (e' : local_equiv γ δ) : local_equiv (α × �
 @[simp] lemma prod_coe (e : local_equiv α β) (e' : local_equiv γ δ) :
   ((e.prod e') : α × γ → β × δ) = (λp, (e p.1, e' p.2)) := rfl
 
-@[simp] lemma prod_coe_symm (e : local_equiv α β) (e' : local_equiv γ δ) :
+lemma prod_coe_symm (e : local_equiv α β) (e' : local_equiv γ δ) :
   ((e.prod e').symm : β × δ → α × γ) = (λp, (e.symm p.1, e'.symm p.2)) := rfl
 
 @[simp] lemma prod_symm (e : local_equiv α β) (e' : local_equiv γ δ) :
   (e.prod e').symm = (e.symm.prod e'.symm) :=
-by ext x; simp
+by ext x; simp [prod_coe_symm]
 
 @[simp] lemma prod_trans {η : Type*} {ε : Type*}
   (e : local_equiv α β) (f : local_equiv β γ) (e' : local_equiv δ η) (f' : local_equiv η ε) :

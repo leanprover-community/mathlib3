@@ -8,6 +8,8 @@ import data.equiv.ring
 import tactic.ring_exp
 import ring_theory.ideal_operations
 import group_theory.monoid_localization
+import ring_theory.algebraic
+import ring_theory.integral_closure
 
 /-!
 # Localizations of commutative rings
@@ -195,7 +197,6 @@ lemma exists_integer_multiple (a : S) :
   ∃ (b : M), is_integer f (f.to_map b * a) :=
 by { simp_rw mul_comm _ a, apply exists_integer_multiple' }
 
-
 /-- Given `z : S`, `f.to_localization_map.sec z` is defined to be a pair `(x, y) : R × M` such
 that `z * f y = f x` (so this lemma is true by definition). -/
 lemma sec_spec {f : localization_map M S} (z : S) :
@@ -207,6 +208,23 @@ that `z * f y = f x`, so this lemma is just an application of `S`'s commutativit
 lemma sec_spec' {f : localization_map M S} (z : S) :
   f.to_map (f.to_localization_map.sec z).1 = f.to_map (f.to_localization_map.sec z).2 * z :=
 by rw [mul_comm, sec_spec]
+
+open_locale big_operators
+
+/-- We can clear the denominators of a finite set of fractions. -/
+lemma exist_integer_multiples_of_finset (s : finset S) :
+  ∃ (b : M), ∀ a ∈ s, is_integer f (f.to_map b * a) :=
+begin
+  haveI := classical.prop_decidable,
+  use ∏ a in s, (f.to_localization_map.sec a).2,
+  intros a ha,
+  use (∏ x in s.erase a, (f.to_localization_map.sec x).2) * (f.to_localization_map.sec a).1,
+  rw [ring_hom.map_mul, sec_spec', ←mul_assoc, ←f.to_map.map_mul],
+  congr' 2,
+  refine trans _ ((submonoid.subtype M).map_prod _ _).symm,
+  rw [mul_comm, ←finset.prod_insert (s.not_mem_erase a), finset.insert_erase ha],
+  refl,
+end
 
 lemma map_right_cancel {x y} {c : M} (h : f.to_map (c * x) = f.to_map (c * y)) :
   f.to_map x = f.to_map y :=
@@ -624,6 +642,15 @@ iff.rfl
 
 @[simp] lemma lin_coe_apply {x} : f.lin_coe x = f.to_map x := rfl
 
+variables {g : R →+* P}
+variables {T : submonoid P} (hy : ∀ y : M, g y ∈ T) {Q : Type*} [comm_ring Q]
+(k : localization_map T Q)
+
+lemma map_smul (x : f.codomain) (z : R) :
+  f.map hy k (z • x : f.codomain) = @has_scalar.smul P k.codomain _ (g z) (f.map hy k x) :=
+show f.map hy k (f.to_map z * x) = k.to_map (g z) * f.map hy k x,
+by rw [ring_hom.map_mul, map_eq]
+
 end localization_map
 variables (R)
 
@@ -802,6 +829,29 @@ def int.fraction_map : fraction_map ℤ ℚ :=
   ..int.cast_ring_hom ℚ }
 
 end fraction_map
+
+namespace integral_closure
+
+variables {L : Type*} [field L]
+
+open algebra
+
+/-- If the field `L` is an algebraic extension of the integral domain `A`,
+the integral closure of `A` in `L` has fraction field `L`. -/
+def fraction_map_of_algebraic [algebra A L] (alg : is_algebraic A L)
+  (inj : ∀ x, algebra_map A L x = 0 → x = 0) :
+  fraction_map (integral_closure A L) L :=
+(algebra_map (integral_closure A L) L).to_localization_map
+  (λ ⟨⟨y, integral⟩, nonzero⟩,
+    have y ≠ 0 := λ h, mem_non_zero_divisors_iff_ne_zero.mp nonzero (subtype.ext.mpr h),
+    show is_unit y, from ⟨⟨y, y⁻¹, mul_inv_cancel this, inv_mul_cancel this⟩, rfl⟩)
+  (λ z, let ⟨x, y, hy, hxy⟩ := exists_integral_multiple (alg z) inj in
+    ⟨⟨x, ⟨y, mem_non_zero_divisors_iff_ne_zero.mpr hy⟩⟩, hxy⟩)
+  (λ x y, ⟨ λ (h : x.1 = y.1), ⟨1, by simpa using subtype.ext.mpr h⟩,
+            λ ⟨c, hc⟩, congr_arg (algebra_map _ L)
+              (eq_of_mul_eq_mul_right_of_ne_zero (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc) ⟩)
+
+end integral_closure
 
 variables (A)
 

@@ -291,6 +291,9 @@ open is_semiring_hom
 def eval₂ (p : polynomial R) : S :=
 p.sum (λ e a, f a * x ^ e)
 
+@[simp] lemma eval₂_zero : (0 : polynomial R).eval₂ f x = 0 :=
+finsupp.sum_zero_index
+
 variables [is_semiring_hom f]
 
 @[simp] lemma eval₂_C : (C a).eval₂ f x = f a :=
@@ -298,9 +301,6 @@ variables [is_semiring_hom f]
 
 @[simp] lemma eval₂_X : X.eval₂ f x = x :=
 (sum_single_index $ by rw [map_zero f, zero_mul]).trans $ by rw [map_one f, one_mul, pow_one]
-
-@[simp] lemma eval₂_zero : (0 : polynomial R).eval₂ f x = 0 :=
-finsupp.sum_zero_index
 
 @[simp] lemma eval₂_add : (p + q).eval₂ f x = p.eval₂ f x + q.eval₂ f x :=
 finsupp.sum_add_index
@@ -542,7 +542,7 @@ begin
   exact le_refl _
 end
 
-lemma nat_degree_eq_of_degree_eq [comm_semiring S] {q : polynomial S}
+lemma nat_degree_eq_of_degree_eq {q : polynomial S}
   (h : degree p = degree q) : nat_degree p = nat_degree q :=
 by unfold nat_degree; rw h
 

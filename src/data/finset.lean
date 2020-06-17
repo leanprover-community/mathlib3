@@ -298,6 +298,7 @@ by exact_mod_cast @set.ssubset_iff_insert α ↑s ↑t
 lemma ssubset_insert {s : finset α} {a : α} (h : a ∉ s) : s ⊂ insert a s :=
 ssubset_iff.mpr ⟨a, h, subset.refl _⟩
 
+@[elab_as_eliminator]
 protected theorem induction {α : Type*} {p : finset α → Prop} [decidable_eq α]
   (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : ∀ s, p s
 | ⟨s, nd⟩ := multiset.induction_on s (λ _, h₁) (λ a s IH nd, begin

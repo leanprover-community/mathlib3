@@ -129,11 +129,16 @@ inductive ineq
 
 namespace ineq
 
--- TODO: this isn't symmetric??
+/--
+`max R1 R2` computes the strength of the sum of two inequalities. If `t1 R1 0` and `t2 R2 0`,
+then `t1 + t2 (max R1 R2) 0`.
+-/
 def max : ineq → ineq → ineq
-| eq a := a
-| le a := a
 | lt a := lt
+| a lt := lt
+| le a := le
+| a le := le
+| eq eq := eq
 
 /-- `ineq` is ordered `eq < le < lt`. -/
 def cmp : ineq → ineq → ordering

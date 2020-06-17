@@ -835,7 +835,10 @@ meta def prove_false_by_linarith (cfg : linarith_config) : list expr → tactic 
 
 end prove
 
-section normalize
+section preprocessing
+
+/-! ### Preprocessing -/
+
 open tactic
 
 set_option eqn_compiler.max_steps 50000
@@ -944,16 +947,6 @@ meta def is_strict_int_prop : expr → bool
 | `(¬ @ge ℤ %%_ _ _) := tt
 | _ := ff
 
-meta def partition_by_type_aux : rb_lmap expr expr → list expr → tactic (rb_lmap expr expr)
-| m [] := return m
-| m (h::t) := do tp ← ineq_prf_tp h, partition_by_type_aux (m.insert tp h) t
-
-meta def partition_by_type (l : list expr) : tactic (rb_lmap expr expr) :=
-partition_by_type_aux mk_rb_map l
-
-meta def try_linarith_on_lists (cfg : linarith_config) (ls : list (list expr)) : tactic unit :=
-(first $ ls.map $ prove_false_by_linarith cfg) <|> fail "linarith failed to find a contradiction"
-
 /--
 A preprocessor transforms a proof of a proposition into a proof of a different propositon.
 The return type is `list expr`, since some preprocessing steps may create multiple new hypotheses,
@@ -1035,6 +1028,9 @@ do l' ← list.mfoldl (λ ret e, do l' ← pp e, return (l' ++ ret)) [] l,
    linarith_trace_proofs "preprocessing produced" l',
    return l'
 
+meta instance : has_coe preprocessor global_preprocessor :=
+⟨preprocessor.globalize⟩
+
 /--
 `find_squares m e` collects all terms of the form `a ^ 2` and `a * a` that appear in `e`
 and adds them to the set `m`.
@@ -1078,6 +1074,14 @@ so the size of the list may change.
 meta def preprocess (pps : list global_preprocessor) (l : list expr) : tactic (list expr) :=
 pps.mfoldl (λ l' pp, pp l') l
 
+
+end preprocessing
+
+section
+open tactic linarith
+
+/-! ### Control -/
+
 -- return : the type it compares over
 meta def apply_contr_lemma : tactic (option (expr × expr)) :=
 do t ← target,
@@ -1086,16 +1090,30 @@ do t ← target,
    | none := return none
    end
 
+meta def partition_by_type_aux : rb_lmap expr expr → list expr → tactic (rb_lmap expr expr)
+| m [] := return m
+| m (h::t) := do tp ← ineq_prf_tp h, partition_by_type_aux (m.insert tp h) t
+
+meta def partition_by_type (l : list expr) : tactic (rb_lmap expr expr) :=
+partition_by_type_aux mk_rb_map l
+
+
+
+meta def try_linarith_on_lists (cfg : linarith_config) (ls : list (list expr)) : tactic unit :=
+(first $ ls.map $ prove_false_by_linarith cfg) <|> fail "linarith failed to find a contradiction"
+
 meta def run_linarith_on_pfs (cfg : linarith_config) (hyps : list expr) (pref_type : option expr) :
   tactic unit :=
-let preprocessors :=
-  [filter_comparisons, remove_negations, nat_to_int, strengthen_strict_int, make_comp_with_zero, cancel_denoms],
-    preprocessors := preprocessors.map preprocessor.globalize,
-    preprocessors := preprocessors ++ if cfg.nonlinear_preprocessing then [nlinarith_extras] else [] in
+let preprocessors : list global_preprocessor :=
+      [filter_comparisons, remove_negations, nat_to_int, strengthen_strict_int,
+       make_comp_with_zero, cancel_denoms],
+    preprocessors := preprocessors ++
+                      if cfg.nonlinear_preprocessing then [nlinarith_extras] else [] in
 do hyps ← preprocess preprocessors hyps,
-   linarith_trace_proofs ("after preprocessing, linarith has " ++ to_string hyps.length ++ " facts:") hyps,
+   linarith_trace_proofs
+     ("after preprocessing, linarith has " ++ to_string hyps.length ++ " facts:") hyps,
    hyp_set ← partition_by_type hyps,
-   pformat!"hypotheses appear in {hyp_set.size} different types" >>= linarith_trace,
+   linarith_trace format!"hypotheses appear in {hyp_set.size} different types",
    match pref_type with
    | some t := prove_false_by_linarith cfg (hyp_set.ifind t) <|>
                try_linarith_on_lists cfg (rb_map.values (hyp_set.erase t))
@@ -1115,28 +1133,33 @@ meta def get_restrict_type (e : expr) : tactic expr :=
 do m ← mk_mvar,
    unify `(some %%m : option Type) e,
    instantiate_mvars m
-end normalize
+
+end
 end linarith
 
-section
 open linarith tactic
 meta def tactic.linarith (reduce_semi : bool) (only_on : bool) (hyps : list pexpr)
   (cfg : linarith_config := {}) : tactic unit :=
 do t ← target,
+-- if the target is an equality, we run `linarith` twice, to prove ≤ and ≥.
 if t.is_eq.is_some then
   linarith_trace "target is an equality: splitting" >>
     seq' (applyc ``eq_of_not_lt_of_not_gt) tactic.linarith else
 do when cfg.split_hypotheses (linarith_trace "trying to split hypotheses" >> try auto.split_hyps),
-   pref_type_from_tgt ← apply_contr_lemma,
-   when pref_type_from_tgt.is_none $
+/- If we are proving a comparison goal (and not just `false`), we consider the type of the
+   elements in the comparison to be the "preferred" type. That is, if we find comparison
+   hypotheses in multiple types, we will run `linarith` on the goal type first.
+   In this case we also recieve a new variable from moving the goal to a hypothesis.
+   Otherwise, there is no preferred type and no new variable; we simply change the goal to `false`. -/
+   pref_type_and_new_var_from_tgt ← apply_contr_lemma,
+   when pref_type_and_new_var_from_tgt.is_none $
      if cfg.exfalso then linarith_trace "using exfalso" >> exfalso
      else fail "linarith failed: target is not a valid comparison",
-   let cfg := (cfg.update_reducibility reduce_semi),
-   let (pref_type, new_var) := pref_type_from_tgt.elim (none, none) (λ ⟨a, b⟩, (some a, some b)),
+   let cfg := cfg.update_reducibility reduce_semi,
+   let (pref_type, new_var) := pref_type_and_new_var_from_tgt.elim (none, none) (λ ⟨a, b⟩, (some a, some b)),
+   -- set up the list of hypotheses, considering the `only_on` and `restrict_type` options
    hyps ← hyps.mmap i_to_expr,
-   hyps ← if only_on then return (new_var.elim [] (λ e, [e]) ++ hyps) else (++ hyps) <$> local_context,
+   hyps ← if only_on then return (new_var.elim [] singleton ++ hyps) else (++ hyps) <$> local_context,
    hyps ← (do t ← get_restrict_type cfg.restrict_type_reflect, filter_hyps_to_type t hyps) <|> return hyps,
    linarith_trace_proofs "linarith is running on the following hypotheses:" hyps,
    run_linarith_on_pfs cfg hyps pref_type
-
-end

@@ -313,6 +313,22 @@ by rw [← C_1, eval₂_C, map_one f]
 instance eval₂.is_add_monoid_hom : is_add_monoid_hom (eval₂ f x) :=
 { map_zero := eval₂_zero _ _, map_add := λ _ _, eval₂_add _ _ }
 
+lemma eval₂_smul (g : R →+* S) (p : polynomial R) (x : S) {s : R} :
+  eval₂ g x (s • p) = g s * eval₂ g x p :=
+begin
+  simp_rw [eval₂, finsupp.sum, finset.mul_sum],
+  refine trans (finset.sum_subset _ _) (finset.sum_congr rfl _),
+  { intros x hx,
+    rw mem_support_iff at ⊢ hx,
+    intro h,
+    rw [smul_apply, smul_eq_mul, h, mul_zero] at hx,
+    contradiction },
+  { intros i _ hi,
+    rw [not_mem_support_iff.mp hi, g.map_zero, zero_mul] },
+  intros i hi,
+  simp [mul_assoc]
+end
+
 end eval₂
 
 section eval₂

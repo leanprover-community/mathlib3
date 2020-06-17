@@ -138,9 +138,6 @@ example (x y : ℚ)
   (h : 6 + ((x + 4) * x + (6 + 3 * y) * y) = 3 ∧ (x + 4) * x ≥ 0 ∧ (6 + 3 * y) * y ≥ 0) : false :=
 by linarith
 
-example (x y : ℕ) (h : 6 + ((x + 4) * x + (6 + 3 * y) * y) = 3) : false :=
-by linarith
-
 example (a b i : ℕ) (h1 :  ¬ a < i) (h2 : b < i) (h3 : a ≤ b) : false :=
 by linarith
 
@@ -310,7 +307,6 @@ begin
   intros, nlinarith
 end
 
-set_option trace.app_builder true
 example (x y : ℚ) : 0 ≤ x ^2 + y ^2 :=
 by nlinarith
 

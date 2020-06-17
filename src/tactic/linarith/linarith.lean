@@ -7,6 +7,7 @@ Author: Robert Y. Lewis
 import tactic.ring
 import tactic.linarith.lemmas
 import tactic.cancel_denoms
+import tactic.zify
 
 /-!
 # Linear arithmetic
@@ -922,7 +923,7 @@ do (a', prfa) ← cast_expr a,
    pf' ← mk_app ln [pf, prfa, prfb],
    return $ pf'::(la.append lb)
 
-meta def mk_int_pfs_of_nat_pf (pf : expr) : tactic (list expr) :=
+/- meta def mk_int_pfs_of_nat_pf (pf : expr) : tactic (list expr) :=
 do tp ← infer_type pf,
 match tp with
 | `(%%a = %%b) := mk_cast_eq_and_nonneg_prfs pf a b ``nat_eq_subst
@@ -935,7 +936,12 @@ match tp with
 | `(¬ %%a ≥ %%b) := do pf' ← mk_app ``lt_of_not_ge [pf], mk_cast_eq_and_nonneg_prfs pf' a b ``nat_lt_subst
 | `(¬ %%a > %%b) := do pf' ← mk_app ``le_of_not_gt [pf], mk_cast_eq_and_nonneg_prfs pf' a b ``nat_le_subst
 | _ := fail "mk_int_pfs_of_nat_pf failed: proof is not an inequality"
-end
+end -/
+
+meta def mk_int_pfs_of_nat_pf (pf : expr) : tactic (list expr) :=
+do pf' ← zify_proof pf,
+   (a, b) ← infer_type pf' >>= get_rel_sides,
+   list.cons pf' <$> ((++) <$> mk_coe_nat_nonneg_prfs a <*> mk_coe_nat_nonneg_prfs b)
 
 meta def mk_non_strict_int_pf_of_strict_int_pf (pf : expr) : tactic expr :=
 do tp ← infer_type pf,
@@ -979,7 +985,7 @@ meta def partition_by_type (l : list expr) : tactic (rb_lmap expr expr) :=
 partition_by_type_aux mk_rb_map l
 
 meta def try_linarith_on_lists (cfg : linarith_config) (ls : list (list expr)) : tactic unit :=
-(first $ ls.map $ prove_false_by_linarith cfg) <|> fail "linarith failed"
+(first $ ls.map $ prove_false_by_linarith cfg) <|> fail "linarith failed to find a contradiction"
 
 /--
 A preprocessor transforms a proof of a proposition into a proof of a different propositon.
@@ -1002,6 +1008,13 @@ meta def filter_comparisons : preprocessor := λ h,
    guardb (filter_comparisons_aux tp),
    return [h])
 <|> return []
+
+meta def remove_negations : preprocessor := λ h,
+do tp ← infer_type h,
+match tp with
+| `(¬ %%p) := singleton <$> rem_neg h p
+| _ := return [h]
+end
 
 /--
 If `h` is an equality or inequality between natural numbers,
@@ -1109,12 +1122,13 @@ do t ← target,
 meta def run_linarith_on_pfs (cfg : linarith_config) (hyps : list expr) (pref_type : option expr) :
   tactic unit :=
 let preprocessors :=
-  [filter_comparisons, nat_to_int, strengthen_strict_int, make_comp_with_zero, cancel_denoms],
+  [filter_comparisons, remove_negations, nat_to_int, strengthen_strict_int, make_comp_with_zero, cancel_denoms],
     preprocessors := preprocessors.map preprocessor.globalize,
     preprocessors := preprocessors ++ if cfg.nonlinear_preprocessing then [nlinarith_extras] else [] in
 do hyps ← preprocess preprocessors hyps,
    linarith_trace_proofs ("after preprocessing, linarith has " ++ to_string hyps.length ++ " facts:") hyps,
    hyp_set ← partition_by_type hyps,
+   pformat!"hypotheses appear in {hyp_set.size} different types" >>= linarith_trace,
    match pref_type with
    | some t := prove_false_by_linarith cfg (hyp_set.ifind t) <|>
                try_linarith_on_lists cfg (rb_map.values (hyp_set.erase t))

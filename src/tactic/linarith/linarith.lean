@@ -3,6 +3,7 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Robert Y. Lewis
 -/
+
 import tactic.ring
 import tactic.linarith.lemmas
 import tactic.cancel_denoms
@@ -24,9 +25,14 @@ namespace linarith
 
 declare_trace linarith
 
+/-- A shorthand for tracing when the `trace.linarith` option is set to true. -/
 meta def linarith_trace {α} [has_to_tactic_format α] (s : α) :=
 tactic.when_tracing `linarith (tactic.trace s)
 
+/--
+A shorthand for tracing the types of a list of proof terms
+when the `trace.linarith` option is set to true.
+-/
 meta def linarith_trace_proofs (s : string := "") (l : list expr) : tactic unit :=
 tactic.when_tracing `linarith $ do
   tactic.trace s, l.mmap tactic.infer_type >>= tactic.trace
@@ -163,6 +169,7 @@ end ineq
 
 /-! #### Configuration object -/
 
+/-- A configuration object for `linarith`. -/
 meta structure linarith_config :=
 (discharger : tactic unit := `[ring])
 (restrict_type : option Type := none)
@@ -172,6 +179,11 @@ meta structure linarith_config :=
 (split_hypotheses : bool := tt)
 (nonlinear_preprocessing : bool := ff)
 
+/--
+`cfg.update_reducibility reduce_semi` will change the transparency setting of `cfg` to
+`semireducible` if `reduce_semi` is true. In this case, it also sets the discharger to `ring!`,
+since this is typically needed when using stronger unification.
+-/
 meta def linarith_config.update_reducibility (cfg : linarith_config) (reduce_semi : bool) :
   linarith_config :=
 if reduce_semi then { cfg with transparency := semireducible, discharger := `[ring!] }

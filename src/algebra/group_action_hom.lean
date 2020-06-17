@@ -10,11 +10,12 @@ import algebra.group_ring_action
 
 ## Main definitions
 
-* `mul_action_hom M X Y`, the type of equivariant functions from `X` to `Y`.
+* `mul_action_hom M X Y`, the type of equivariant functions from `X` to `Y`, where `M` is a monoid
+  that acts on the types `X` and `Y`.
 * `distrib_mul_action_hom M A B`, the type of equivariant additive monoid homomorphisms
-  from `A` to `B`.
+  from `A` to `B`, where `M` is a monoid that acts on the additive monoids `A` and `B`.
 * `mul_semiring_action_hom M R S`, the type of equivariant ring homomorphisms
-  from `R` to `S`.
+  from `R` to `S`, where `M` is a monoid that acts on the rings `R` and `S`.
 
 ## Notations
 
@@ -24,23 +25,21 @@ import algebra.group_ring_action
 
 -/
 
-universes u v w u₁
-
-variables (M : Type u) [monoid M]
-variables (X : Type v) [mul_action M X]
-variables (Y : Type w) [mul_action M Y]
-variables (Z : Type u₁) [mul_action M Z]
-variables (A : Type v) [add_monoid A] [distrib_mul_action M A]
-variables (A' : Type v) [add_group A'] [distrib_mul_action M A']
-variables (B : Type w) [add_monoid B] [distrib_mul_action M B]
-variables (B' : Type w) [add_group B'] [distrib_mul_action M B']
-variables (C : Type u₁) [add_monoid C] [distrib_mul_action M C]
-variables (R : Type v) [semiring R] [mul_semiring_action M R]
-variables (R' : Type v) [ring R'] [mul_semiring_action M R']
-variables (S : Type w) [semiring S] [mul_semiring_action M S]
-variables (S' : Type w) [ring S'] [mul_semiring_action M S']
-variables (T : Type u₁) [semiring T] [mul_semiring_action M T]
-variables (G : Type u) [group G] (H : set G) [is_subgroup H]
+variables (M : Type*) [monoid M]
+variables (X : Type*) [mul_action M X]
+variables (Y : Type*) [mul_action M Y]
+variables (Z : Type*) [mul_action M Z]
+variables (A : Type*) [add_monoid A] [distrib_mul_action M A]
+variables (A' : Type*) [add_group A'] [distrib_mul_action M A']
+variables (B : Type*) [add_monoid B] [distrib_mul_action M B]
+variables (B' : Type*) [add_group B'] [distrib_mul_action M B']
+variables (C : Type*) [add_monoid C] [distrib_mul_action M C]
+variables (R : Type*) [semiring R] [mul_semiring_action M R]
+variables (R' : Type*) [ring R'] [mul_semiring_action M R']
+variables (S : Type*) [semiring S] [mul_semiring_action M S]
+variables (S' : Type*) [ring S'] [mul_semiring_action M S']
+variables (T : Type*) [semiring T] [mul_semiring_action M T]
+variables (G : Type*) [group G] (H : set G) [is_subgroup H]
 
 set_option old_structure_cmd true
 
@@ -70,7 +69,7 @@ theorem ext_iff {f g : X →[M] Y} : f = g ↔ ∀ x, f x = g x :=
 
 variables (M) {X}
 
-/-- The identity map is equivariant. -/
+/-- The identity map as an equivariant map. -/
 protected def id : X →[M] X :=
 ⟨id, λ _ _, rfl⟩
 
@@ -129,8 +128,8 @@ instance : has_coe_to_fun (A →+[M] B) :=
 
 variables {M A B}
 
-@[simp] lemma coe_fn_coe (f : A →+[M] B) : ((f : A →+ B) : A → B) = f := rfl
-@[simp] lemma coe_fn_coe' (f : A →+[M] B) : ((f : A →[M] B) : A → B) = f := rfl
+@[norm_cast] lemma coe_fn_coe (f : A →+[M] B) : ((f : A →+ B) : A → B) = f := rfl
+@[norm_cast] lemma coe_fn_coe' (f : A →+[M] B) : ((f : A →[M] B) : A → B) = f := rfl
 
 @[ext] theorem ext : ∀ {f g : A →+[M] B}, (∀ x, f x = g x) → f = g
 | ⟨f, _, _, _⟩ ⟨g, _, _, _⟩ H := by { congr' 1, ext x, exact H x }
@@ -155,7 +154,7 @@ f.map_smul' m x
 
 variables (M) {A}
 
-/-- The identity map is equivariant. -/
+/-- The identity map as an equivariant additive monoid homomorphism. -/
 protected def id : A →+[M] A :=
 ⟨id, λ _ _, rfl, rfl, λ _ _, rfl⟩
 
@@ -203,8 +202,8 @@ instance : has_coe_to_fun (R →+*[M] S) :=
 
 variables {M R S}
 
-@[simp] lemma coe_fn_coe (f : R →+*[M] S) : ((f : R →+* S) : R → S) = f := rfl
-@[simp] lemma coe_fn_coe' (f : R →+*[M] S) : ((f : R →+[M] S) : R → S) = f := rfl
+@[norm_cast] lemma coe_fn_coe (f : R →+*[M] S) : ((f : R →+* S) : R → S) = f := rfl
+@[norm_cast] lemma coe_fn_coe' (f : R →+*[M] S) : ((f : R →+[M] S) : R → S) = f := rfl
 
 @[ext] theorem ext : ∀ {f g : R →+*[M] S}, (∀ x, f x = g x) → f = g
 | ⟨f, _, _, _, _, _⟩ ⟨g, _, _, _, _, _⟩ H := by { congr' 1, ext x, exact H x }
@@ -235,7 +234,7 @@ f.map_smul' m x
 
 variables (M) {R}
 
-/-- The identity map is equivariant. -/
+/-- The identity map as an equivariant ring homomorphism. -/
 protected def id : R →+*[M] R :=
 ⟨id, λ _ _, rfl, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩
 

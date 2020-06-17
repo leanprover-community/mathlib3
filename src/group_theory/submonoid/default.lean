@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard,
 Amelia Livingston, Yury Kudryashov
 -/
-import group_theory.submonoid.basic
+import group_theory.submonoid.operations
 import algebra.big_operators
 import algebra.free_monoid
-import algebra.group.prod
-import data.equiv.mul_add
 
 /-!
 # Submonoids
@@ -80,37 +78,6 @@ lemma pow_mem {x : M} (hx : x ∈ S) : ∀ n:ℕ, x^n ∈ S
 | 0 := S.one_mem
 | (n+1) := S.mul_mem hx (pow_mem n)
 
-/-- A submonoid of a monoid inherits a multiplication. -/
-@[to_additive "An `add_submonoid` of an `add_monoid` inherits an addition."]
-instance has_mul : has_mul S := ⟨λ a b, ⟨a.1 * b.1, S.mul_mem a.2 b.2⟩⟩
-
-/-- A submonoid of a monoid inherits a 1. -/
-@[to_additive "An `add_submonoid` of an `add_monoid` inherits a zero."]
-instance has_one : has_one S := ⟨⟨_, S.one_mem⟩⟩
-
-@[simp, to_additive] lemma coe_mul (x y : S) : (↑(x * y) : M) = ↑x * ↑y := rfl
-@[simp, to_additive] lemma coe_one : ((1 : S) : M) = 1 := rfl
-attribute [norm_cast] coe_mul coe_one
-attribute [norm_cast] add_submonoid.coe_add add_submonoid.coe_zero
-
-/-- A submonoid of a monoid inherits a monoid structure. -/
-@[to_additive to_add_monoid "An `add_submonoid` of an `add_monoid` inherits an `add_monoid`
-structure."]
-instance to_monoid {M : Type*} [monoid M] (S : submonoid M) : monoid S :=
-by refine { mul := (*), one := 1, .. }; simp [mul_assoc, ← submonoid.coe_eq_coe]
-
-/-- A submonoid of a `comm_monoid` is a `comm_monoid`. -/
-@[to_additive to_add_comm_monoid "An `add_submonoid` of an `add_comm_monoid` is
-an `add_comm_monoid`."]
-instance to_comm_monoid {M} [comm_monoid M] (S : submonoid M) : comm_monoid S :=
-{ mul_comm := λ _ _, subtype.eq $ mul_comm _ _, ..S.to_monoid}
-
-/-- The natural monoid hom from a submonoid of monoid `M` to `M`. -/
-@[to_additive "The natural monoid hom from an `add_submonoid` of `add_monoid` `M` to `M`."]
-def subtype : S →* M := ⟨coe, rfl, λ _ _, rfl⟩
-
-@[simp, to_additive] theorem coe_subtype : ⇑S.subtype = coe := rfl
-
 open set
 
 @[to_additive]
@@ -149,59 +116,6 @@ lemma coe_Sup_of_directed_on {S : set (submonoid M)} (Sne : S.nonempty) (hS : di
 set.ext $ λ x, by simp [mem_Sup_of_directed_on Sne hS]
 
 variables {N : Type*} [monoid N] {P : Type*} [monoid P]
-
-/-- Given `submonoid`s `s`, `t` of monoids `M`, `N` respectively, `s × t` as a submonoid
-of `M × N`. -/
-@[to_additive prod "Given `add_submonoid`s `s`, `t` of `add_monoid`s `A`, `B` respectively, `s × t`
-as an `add_submonoid` of `A × B`."]
-def prod (s : submonoid M) (t : submonoid N) : submonoid (M × N) :=
-{ carrier := (s : set M).prod t,
-  one_mem' := ⟨s.one_mem, t.one_mem⟩,
-  mul_mem' := λ p q hp hq, ⟨s.mul_mem hp.1 hq.1, t.mul_mem hp.2 hq.2⟩ }
-
-@[to_additive coe_prod]
-lemma coe_prod (s : submonoid M) (t : submonoid N) :
- (s.prod t : set (M × N)) = (s : set M).prod (t : set N) :=
-rfl
-
-@[to_additive mem_prod]
-lemma mem_prod {s : submonoid M} {t : submonoid N} {p : M × N} :
-  p ∈ s.prod t ↔ p.1 ∈ s ∧ p.2 ∈ t := iff.rfl
-
-@[to_additive prod_mono]
-lemma prod_mono : ((≤) ⇒ (≤) ⇒ (≤)) (@prod M _ N _) (@prod M _ N _) :=
-λ s s' hs t t' ht, set.prod_mono hs ht
-
-@[to_additive prod_mono_right]
-lemma prod_mono_right (s : submonoid M) : monotone (λ t : submonoid N, s.prod t) :=
-prod_mono (le_refl s)
-
-@[to_additive prod_mono_left]
-lemma prod_mono_left (t : submonoid N) : monotone (λ s : submonoid M, s.prod t) :=
-λ s₁ s₂ hs, prod_mono hs (le_refl t)
-
-@[to_additive prod_top]
-lemma prod_top (s : submonoid M) :
-  s.prod (⊤ : submonoid N) = s.comap (monoid_hom.fst M N) :=
-ext $ λ x, by simp [mem_prod, monoid_hom.coe_fst]
-
-@[to_additive top_prod]
-lemma top_prod (s : submonoid N) :
-  (⊤ : submonoid M).prod s = s.comap (monoid_hom.snd M N) :=
-ext $ λ x, by simp [mem_prod, monoid_hom.coe_snd]
-
-@[simp, to_additive top_prod_top]
-lemma top_prod_top : (⊤ : submonoid M).prod (⊤ : submonoid N) = ⊤ :=
-(top_prod _).trans $ comap_top _
-
-@[to_additive] lemma bot_prod_bot : (⊥ : submonoid M).prod (⊥ : submonoid N) = ⊥ :=
-ext' $ by simp [coe_prod, prod.one_eq_mk]
-
-/-- The product of submonoids is isomorphic to their product as monoids. -/
-@[to_additive prod_equiv "The product of additive submonoids is isomorphic to their product
-as additive monoids"]
-def prod_equiv (s : submonoid M) (t : submonoid N) : s.prod t ≃* s × t :=
-{ map_mul' := λ x y, rfl, .. equiv.set.prod ↑s ↑t }
 
 end submonoid
 
@@ -287,48 +201,6 @@ begin
   rcases hx with ⟨l, hx⟩,
   exact ⟨list.map coe l, λ y hy, let ⟨z, hz, hy⟩ := list.mem_map.1 hy in hy ▸ z.2, hx⟩
 end
-
-@[to_additive]
-lemma map_inl (s : submonoid M) : s.map (inl M N) = s.prod ⊥ :=
-ext $ λ p, ⟨λ ⟨x, hx, hp⟩, hp ▸ ⟨hx, set.mem_singleton 1⟩,
-  λ ⟨hps, hp1⟩, ⟨p.1, hps, prod.ext rfl $ (set.eq_of_mem_singleton hp1).symm⟩⟩
-
-@[to_additive]
-lemma map_inr (s : submonoid N) : s.map (inr M N) = prod ⊥ s :=
-ext $ λ p, ⟨λ ⟨x, hx, hp⟩, hp ▸ ⟨set.mem_singleton 1, hx⟩,
-  λ ⟨hp1, hps⟩, ⟨p.2, hps, prod.ext (set.eq_of_mem_singleton hp1).symm rfl⟩⟩
-
-@[to_additive]
-lemma range_inl : (inl M N).mrange = prod ⊤ ⊥ := map_inl ⊤
-
-@[to_additive]
-lemma range_inr : (inr M N).mrange = prod ⊥ ⊤ := map_inr ⊤
-
-@[to_additive]
-lemma range_inl' : (inl M N).mrange = comap (snd M N) ⊥ := range_inl.trans (top_prod _)
-
-@[to_additive]
-lemma range_inr' : (inr M N).mrange = comap (fst M N) ⊥ := range_inr.trans (prod_top _)
-
-@[simp, to_additive]
-lemma range_fst : (fst M N).mrange = ⊤ :=
-(fst M N).mrange_top_of_surjective $ @prod.fst_surjective _ _ ⟨1⟩
-
-@[simp, to_additive]
-lemma range_snd : (snd M N).mrange = ⊤ :=
-(snd M N).mrange_top_of_surjective $ @prod.snd_surjective _ _ ⟨1⟩
-
-@[simp, to_additive prod_bot_sup_bot_prod]
-lemma prod_bot_sup_bot_prod (s : submonoid M) (t : submonoid N) :
-  (s.prod ⊥) ⊔ (prod ⊥ t) = s.prod t :=
-le_antisymm (sup_le (prod_mono_right s bot_le) (prod_mono_left t bot_le)) $
-assume p hp, prod.fst_mul_snd p ▸ mul_mem _
-  ((le_sup_left : s.prod ⊥ ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨hp.1, set.mem_singleton 1⟩)
-  ((le_sup_right : prod ⊥ t ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨set.mem_singleton 1, hp.2⟩)
-
-@[simp, to_additive]
-lemma range_inl_sup_range_inr : (inl M N).mrange ⊔ (inr M N).mrange = ⊤ :=
-by simp only [range_inl, range_inr, prod_bot_sup_bot_prod, top_prod_top]
 
 end submonoid
 

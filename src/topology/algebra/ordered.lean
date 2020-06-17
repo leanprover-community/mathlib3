@@ -675,6 +675,56 @@ lemma mem_nhds_iff_exists_Ioo_subset [no_top_order α] [no_bot_order α] {a : α
   s ∈ 𝓝 a ↔ ∃l u, a ∈ Ioo l u ∧ Ioo l u ⊆ s :=
 let ⟨l', hl'⟩ := no_bot a in let ⟨u', hu'⟩ := no_top a in mem_nhds_iff_exists_Ioo_subset' hl' hu'
 
+lemma Iio_mem_nhds {a b : α} (h : a < b) : Iio b ∈ 𝓝 a :=
+mem_nhds_sets is_open_Iio h
+
+lemma Ioi_mem_nhds {a b : α} (h : a < b) : Ioi a ∈ 𝓝 b :=
+mem_nhds_sets is_open_Ioi h
+
+lemma Ioo_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Ioo a b ∈ 𝓝 x :=
+mem_nhds_sets is_open_Ioo ⟨ha, hb⟩
+
+lemma disjoint_nhds_at_top [no_top_order α] (x : α) :
+  disjoint (𝓝 x) at_top :=
+begin
+  rw filter.disjoint_iff,
+  cases no_top x with a ha,
+  use [Iio a, Ici a, Iio_mem_nhds ha, mem_at_top a],
+  rw [inter_comm, Ici_inter_Iio, Ico_self]
+end
+
+@[simp] lemma inf_nhds_at_top [no_top_order α] (x : α) :
+  𝓝 x ⊓ at_top = ⊥ :=
+disjoint_iff.1 (disjoint_nhds_at_top x)
+
+lemma disjoint_nhds_at_bot [no_bot_order α] (x : α) :
+  disjoint (𝓝 x) at_bot :=
+@disjoint_nhds_at_top (order_dual α) _ _ _ _ x
+
+@[simp] lemma inf_nhds_at_bot [no_bot_order α] (x : α) :
+  𝓝 x ⊓ at_bot = ⊥ :=
+@inf_nhds_at_top (order_dual α) _ _ _ _ x
+
+lemma not_tendsto_nhds_of_tendsto_at_top [no_top_order α]
+  {F : filter β} (hF : F ≠ ⊥) {f : β → α} (hf : tendsto f F at_top) (x : α) :
+  ¬ tendsto f F (𝓝 x) :=
+hf.not_tendsto hF (disjoint_nhds_at_top x).symm
+
+lemma not_tendsto_at_top_of_tendsto_nhds [no_top_order α]
+  {F : filter β} (hF : F ≠ ⊥) {f : β → α} {x : α} (hf : tendsto f F (𝓝 x)) :
+  ¬  tendsto f F at_top :=
+hf.not_tendsto hF (disjoint_nhds_at_top x)
+
+lemma not_tendsto_nhds_of_tendsto_at_bot [no_bot_order α]
+  {F : filter β} (hF : F ≠ ⊥) {f : β → α} (hf : tendsto f F at_bot) (x : α) :
+  ¬ tendsto f F (𝓝 x) :=
+hf.not_tendsto hF (disjoint_nhds_at_bot x).symm
+
+lemma not_tendsto_at_bot_of_tendsto_nhds [no_bot_order α]
+  {F : filter β} (hF : F ≠ ⊥) {f : β → α} {x : α} (hf : tendsto f F (𝓝 x)) :
+  ¬  tendsto f F at_bot :=
+hf.not_tendsto hF (disjoint_nhds_at_bot x)
+
 /-!
 ### Neighborhoods to the left and to the right
 

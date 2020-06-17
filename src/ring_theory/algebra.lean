@@ -235,8 +235,11 @@ theorem coe_add_monoid_hom_inj : function.injective (coe : (A →ₐ[R] B)  → 
 ring_hom.coe_add_monoid_hom_inj.comp coe_ring_hom_inj
 
 @[ext]
-theorem ext ⦃φ₁ φ₂ : A →ₐ[R] B⦄ (H : ∀ x, φ₁ x = φ₂ x) : φ₁ = φ₂ :=
+theorem ext {φ₁ φ₂ : A →ₐ[R] B} (H : ∀ x, φ₁ x = φ₂ x) : φ₁ = φ₂ :=
 coe_fn_inj $ funext H
+
+theorem ext_iff {φ₁ φ₂ : A →ₐ[R] B} : φ₁ = φ₂ ↔ ∀ x, φ₁ x = φ₂ x :=
+⟨by { rintro rfl x, refl }, ext⟩
 
 @[simp]
 theorem commutes (r : R) : φ (algebra_map R A r) = algebra_map R B r := φ.commutes' r
@@ -376,6 +379,12 @@ end
 
 instance has_coe_to_ring_equiv : has_coe (A₁ ≃ₐ[R] A₂) (A₁ ≃+* A₂) := ⟨alg_equiv.to_ring_equiv⟩
 
+@[simp] lemma mk_apply {to_fun inv_fun left_inv right_inv map_mul map_add commutes a} :
+  (⟨to_fun, inv_fun, left_inv, right_inv, map_mul, map_add, commutes⟩ : A₁ ≃ₐ[R] A₂) a = to_fun a :=
+rfl
+
+@[simp] lemma to_fun_apply {e : A₁ ≃ₐ[R] A₂} {a : A₁} : e.to_fun a = e a := rfl
+
 @[simp, norm_cast] lemma coe_ring_equiv (e : A₁ ≃ₐ[R] A₂) : ((e : A₁ ≃+* A₂) : A₁ → A₂) = e := rfl
 
 lemma coe_ring_equiv_injective : function.injective (λ e : A₁ ≃ₐ[R] A₂, (e : A₁ ≃+* A₂)) :=
@@ -409,7 +418,7 @@ end
 instance has_coe_to_alg_hom : has_coe (A₁ ≃ₐ[R] A₂) (A₁ →ₐ[R] A₂) :=
   ⟨λ e, { map_one' := e.map_one, map_zero' := e.map_zero, ..e }⟩
 
-@[simp, norm_cast] lemma coe_to_alg_equiv (e : A₁ ≃ₐ[R] A₂) : ((e : A₁ →ₐ[R] A₂) : A₁ → A₂) = e :=
+@[simp, norm_cast] lemma coe_alg_hom (e : A₁ ≃ₐ[R] A₂) : ((e : A₁ →ₐ[R] A₂) : A₁ → A₂) = e :=
   rfl
 
 lemma injective (e : A₁ ≃ₐ[R] A₂) : function.injective e := e.to_equiv.injective
@@ -436,6 +445,8 @@ def symm (e : A₁ ≃ₐ[R] A₂) : A₂ ≃ₐ[R] A₁ :=
                          change _ = e _, rw e.commutes, },
   ..e.to_ring_equiv.symm, }
 
+@[simp] lemma inv_fun_apply {e : A₁ ≃ₐ[R] A₂} {a : A₂} : e.inv_fun a = e.symm a := rfl
+
 /-- Algebra equivalences are transitive. -/
 @[trans]
 def trans (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) : A₁ ≃ₐ[R] A₃ :=
@@ -455,6 +466,13 @@ by { ext, simp }
 @[simp] lemma symm_comp (e : A₁ ≃ₐ[R] A₂) :
   alg_hom.comp ↑e.symm (e : A₁ →ₐ[R] A₂) = alg_hom.id R A₁ :=
 by { ext, simp }
+
+/-- If an algebra morphism has an inverse, it is a algebra isomorphism. -/
+def of_alg_hom (f : A₁ →ₐ[R] A₂) (g : A₂ →ₐ[R] A₁) (h₁ : f.comp g = alg_hom.id R A₂) (h₂ : g.comp f = alg_hom.id R A₁) : A₁ ≃ₐ[R] A₂ :=
+{ inv_fun   := g,
+  left_inv  := alg_hom.ext_iff.1 h₂,
+  right_inv := alg_hom.ext_iff.1 h₁,
+  ..f }
 
 end alg_equiv
 
@@ -857,6 +875,16 @@ def linear_map.restrict_scalars (f : E →ₗ[S] F) :
 lemma restrict_scalars_ker (f : E →ₗ[S] F) :
   (f.restrict_scalars R).ker = submodule.restrict_scalars R f.ker :=
 rfl
+
+variables (𝕜 : Type*) [field 𝕜] (𝕜' : Type*) [field 𝕜'] [algebra 𝕜 𝕜']
+variables (W : Type*) [add_comm_group W] [vector_space 𝕜' W]
+
+/--
+`V.restrict_scalars 𝕜` is the `𝕜`-subspace of the `𝕜`-vector space given by restriction of scalars,
+corresponding to `V`, a `𝕜'`-subspace of the original `𝕜'`-vector space.
+-/
+def subspace.restrict_scalars (V : subspace 𝕜' W) : subspace 𝕜 (restrict_scalars 𝕜 𝕜' W) :=
+{ ..submodule.restrict_scalars 𝕜 (V : submodule 𝕜' W) }
 
 end restrict_scalars
 

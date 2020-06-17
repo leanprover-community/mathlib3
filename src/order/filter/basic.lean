@@ -7,7 +7,7 @@ import order.zorn
 import order.copy
 import data.set.finite
 
-/-! 
+/-!
 # Theory of filters on sets
 
 ## Main definitions
@@ -487,6 +487,17 @@ begin
     use [a, hUV ha] }
 end
 
+lemma inf_eq_bot_iff {f g : filter α} :
+  f ⊓ g = ⊥ ↔ ∃ U V, (U ∈ f) ∧ (V ∈ g) ∧ U ∩ V = ∅ :=
+begin
+  rw ← not_iff_not,
+  simp only [not_exists, not_and, ← ne.def, inf_ne_bot_iff, ne_empty_iff_nonempty]
+end
+
+protected lemma disjoint_iff {f g : filter α} :
+  disjoint f g ↔ ∃ U V, (U ∈ f) ∧ (V ∈ g) ∧ U ∩ V = ∅ :=
+disjoint_iff.trans inf_eq_bot_iff
+
 lemma eq_Inf_of_mem_sets_iff_exists_mem {S : set (filter α)} {l : filter α}
   (h : ∀ {s}, s ∈ l ↔ ∃ f ∈ S, s ∈ f) : l = Inf S :=
 le_antisymm (le_Inf $ λ f hf s hs, h.2 ⟨f, hf, hs⟩)
@@ -849,6 +860,10 @@ begin
   simp only [and_not_self, eventually_false_iff_eq_bot] at this,
   exact hf this
 end
+
+lemma frequently_of_forall {f : filter α} (hf : f ≠ ⊥) {p : α → Prop} (h : ∀ x, p x) :
+  ∃ᶠ x in f, p x :=
+eventually.frequently hf (f.eventually_of_forall h)
 
 lemma frequently.mp {p q : α → Prop} {f : filter α} (h : ∃ᶠ x in f, p x)
   (hpq : ∀ᶠ x in f, p x → q x) :
@@ -1743,6 +1758,13 @@ tendsto_pure.2 rfl
 lemma tendsto_const_pure {a : filter α} {b : β} : tendsto (λx, b) a (pure b) :=
 tendsto_pure.2 $ univ_mem_sets' $ λ _, rfl
 
+/-- If two filters are disjoint, then a function cannot tend to both of them along a non-trivial
+filter. -/
+lemma tendsto.not_tendsto {f : α → β} {a : filter α} {b₁ b₂ : filter β} (hf : tendsto f a b₁)
+  (ha : a ≠ ⊥) (hb : disjoint b₁ b₂) :
+  ¬ tendsto f a b₂ :=
+λ hf', (tendsto_inf.2 ⟨hf, hf'⟩).ne_bot ha hb.eq_bot
+
 lemma tendsto_if {l₁ : filter α} {l₂ : filter β}
     {f g : α → β} {p : α → Prop} [decidable_pred p]
     (h₀ : tendsto f (l₁ ⊓ principal p) l₂)
@@ -1939,6 +1961,15 @@ def at_bot [preorder α] : filter α := ⨅ a, principal {b | b ≤ a}
 lemma mem_at_top [preorder α] (a : α) : {b : α | a ≤ b} ∈ @at_top α _ :=
 mem_infi_sets a $ subset.refl _
 
+lemma Ioi_mem_at_top [preorder α] [no_top_order α] (x : α) : Ioi x ∈ (at_top : filter α) :=
+let ⟨z, hz⟩ := no_top x in mem_sets_of_superset (mem_at_top z) $ λ y h,  lt_of_lt_of_le hz h
+
+lemma mem_at_bot [preorder α] (a : α) : {b : α | b ≤ a} ∈ @at_bot α _ :=
+mem_infi_sets a $ subset.refl _
+
+lemma Iio_mem_at_bot [preorder α] [no_bot_order α] (x : α) : Iio x ∈ (at_bot : filter α) :=
+let ⟨z, hz⟩ := no_bot x in mem_sets_of_superset (mem_at_bot z) $ λ y h, lt_of_le_of_lt h hz
+
 @[simp] lemma at_top_ne_bot [nonempty α] [semilattice_sup α] : (at_top : filter α) ≠ ⊥ :=
 infi_ne_bot_of_directed (by apply_instance)
   (assume a b, ⟨a ⊔ b, by simp only [ge, le_principal_iff, forall_const, set_of_subset_set_of,
@@ -2010,10 +2041,113 @@ lemma tendsto_at_top_mono [preorder β] (l : filter α) :
   monotone (λ f : α → β, tendsto f l at_top) :=
 λ f₁ f₂ h, tendsto_at_top_mono' l $ univ_mem_sets' h
 
+/-!
+### Sequences
+-/
+
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma map_at_top_inf_ne_bot_iff [semilattice_sup α] [nonempty α] {F : filter β} {u : α → β} :
   (map u at_top) ⊓ F ≠ ⊥ ↔ ∀ U ∈ F, ∀ N, ∃ n ≥ N, u n ∈ U :=
 by simp_rw [inf_ne_bot_iff_frequently_right, frequently_map, frequently_at_top] ; trivial
+
+lemma extraction_of_frequently_at_top' {P : ℕ → Prop} (h : ∀ N, ∃ n > N, P n) :
+  ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, P (φ n) :=
+begin
+  choose u hu using h,
+  cases forall_and_distrib.mp hu with hu hu',
+  exact ⟨u ∘ (nat.rec 0 (λ n v, u v)), strict_mono.nat (λ n, hu _), λ n, hu' _⟩,
+end
+
+lemma extraction_of_frequently_at_top {P : ℕ → Prop} (h : ∃ᶠ n in at_top, P n) :
+  ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, P (φ n) :=
+begin
+  rw frequently_at_top' at h,
+  exact extraction_of_frequently_at_top' h,
+end
+
+lemma extraction_of_eventually_at_top {P : ℕ → Prop} (h : ∀ᶠ n in at_top, P n) :
+  ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, P (φ n) :=
+extraction_of_frequently_at_top (eventually.frequently at_top_ne_bot h)
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma exists_le_of_tendsto_at_top [semilattice_sup α] [preorder β] {u : α → β}
+  (h : tendsto u at_top at_top) : ∀ a b, ∃ a' ≥ a, b ≤ u a' :=
+begin
+  intros a b,
+  have : ∀ᶠ x in at_top, a ≤ x ∧ b ≤ u x := inter_mem_sets (mem_at_top a) (h $ mem_at_top b),
+  haveI : nonempty α := ⟨a⟩,
+  rcases this.exists at_top_ne_bot with ⟨a', ha, hb⟩,
+  exact ⟨a', ha, hb⟩
+end
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma exists_lt_of_tendsto_at_top [semilattice_sup α] [preorder β] [no_top_order β]
+  {u : α → β} (h : tendsto u at_top at_top) : ∀ a b, ∃ a' ≥ a, b < u a' :=
+begin
+  intros a b,
+  cases no_top b with b' hb',
+  rcases exists_le_of_tendsto_at_top h a b' with ⟨a', ha', ha''⟩,
+  exact ⟨a', ha', lt_of_lt_of_le hb' ha''⟩
+end
+
+/--
+If `u` is a sequence which is unbounded above,
+then after any point, it reaches a value strictly greater than all previous values.
+-/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma high_scores [linear_order β] [no_top_order β] {u : ℕ → β}
+  (hu : tendsto u at_top at_top) : ∀ N, ∃ n ≥ N, ∀ k < n, u k < u n :=
+begin
+  letI := classical.DLO β,
+  intros N,
+  let A := finset.image u (finset.range $ N+1), -- A = {u 0, ..., u N}
+  have Ane : A.nonempty,
+    from ⟨u 0, finset.mem_image_of_mem _ (finset.mem_range.mpr $ nat.zero_lt_succ _)⟩,
+  let M := finset.max' A Ane,
+  have ex : ∃ n ≥ N, M < u n,
+    from exists_lt_of_tendsto_at_top hu _ _,
+  obtain ⟨n, hnN, hnM, hn_min⟩ : ∃ n, N ≤ n ∧ M < u n ∧ ∀ k, N ≤ k → k < n → u k ≤ M,
+  { use nat.find ex,
+    rw ← and_assoc,
+    split,
+    { simpa using nat.find_spec ex },
+    { intros k hk hk',
+      simpa [hk] using nat.find_min ex hk' } },
+  use [n, hnN],
+  intros k hk,
+  by_cases H : k ≤ N,
+  { have : u k ∈ A,
+      from finset.mem_image_of_mem _ (finset.mem_range.mpr $ nat.lt_succ_of_le H),
+    have : u k ≤ M,
+      from finset.le_max' A Ane (u k) this,
+    exact lt_of_le_of_lt this hnM },
+  { push_neg at H,
+    calc u k ≤ M   : hn_min k (le_of_lt H) hk
+         ... < u n : hnM },
+end
+
+/--
+If `u` is a sequence which is unbounded above,
+then it `frequently` reaches a value strictly greater than all previous values.
+-/
+lemma frequently_high_scores [linear_order β] [no_top_order β] {u : ℕ → β}
+  (hu : tendsto u at_top at_top) : ∃ᶠ n in at_top, ∀ k < n, u k < u n :=
+by simpa [frequently_at_top] using high_scores hu
+
+lemma strict_mono_subseq_of_tendsto_at_top
+  {β : Type*} [linear_order β] [no_top_order β]
+  {u : ℕ → β} (hu : tendsto u at_top at_top) :
+  ∃ φ : ℕ → ℕ, strict_mono φ ∧ strict_mono (u ∘ φ) :=
+let ⟨φ, h, h'⟩ := extraction_of_frequently_at_top (frequently_high_scores hu) in
+⟨φ, h, λ n m hnm, h' m _ (h hnm)⟩
+
+lemma strict_mono_subseq_of_id_le {u : ℕ → ℕ} (hu : ∀ n, n ≤ u n) :
+  ∃ φ : ℕ → ℕ, strict_mono φ ∧ strict_mono (u ∘ φ) :=
+strict_mono_subseq_of_tendsto_at_top (tendsto_at_top_mono _ hu tendsto_id)
+
+lemma strict_mono_tendsto_at_top {φ : ℕ → ℕ} (h : strict_mono φ) :
+  tendsto φ at_top at_top :=
+tendsto_at_top_mono _ h.id_le tendsto_id
 
 section ordered_add_monoid
 

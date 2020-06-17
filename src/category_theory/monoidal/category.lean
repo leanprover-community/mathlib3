@@ -69,8 +69,11 @@ attribute [simp] monoidal_category.tensor_id
 restate_axiom monoidal_category.tensor_comp'
 attribute [simp] monoidal_category.tensor_comp
 restate_axiom monoidal_category.associator_naturality'
+attribute [reassoc] monoidal_category.associator_naturality
 restate_axiom monoidal_category.left_unitor_naturality'
+attribute [reassoc] monoidal_category.left_unitor_naturality
 restate_axiom monoidal_category.right_unitor_naturality'
+attribute [reassoc] monoidal_category.right_unitor_naturality
 restate_axiom monoidal_category.pentagon'
 restate_axiom monoidal_category.triangle'
 attribute [simp] monoidal_category.triangle
@@ -396,6 +399,57 @@ def right_unitor_nat_iso :
 nat_iso.of_components
   (by { intros, apply monoidal_category.right_unitor })
   (by { intros, apply monoidal_category.right_unitor_naturality })
+
+
+
+section
+variables {C}
+
+/-- Tensoring on the left with as fixed object, as a functor. -/
+@[simps]
+def tensor_left (X : C) : C ⥤ C :=
+{ obj := λ Y, X ⊗ Y,
+  map := λ Y Y' f, (𝟙 X) ⊗ f, }
+
+/--
+Tensoring on the left with `X ⊗ Y` is naturally isomorphic to
+tensoring on the left with `Y`, and then again with `X`.
+-/
+def tensor_left_tensor (X Y : C) : tensor_left (X ⊗ Y) ≅ tensor_left Y ⋙ tensor_left X :=
+nat_iso.of_components
+  (associator _ _)
+  (λ Z Z' f, by { dsimp, rw[←tensor_id], apply associator_naturality })
+
+@[simp] lemma tensor_left_tensor_hom_app (X Y Z : C) :
+  (tensor_left_tensor.{v} X Y).hom.app Z = (associator X Y Z).hom :=
+rfl
+@[simp] lemma tensor_left_tensor_inv_app (X Y Z : C) :
+  (tensor_left_tensor.{v} X Y).inv.app Z = (associator X Y Z).inv :=
+rfl
+
+/-- Tensoring on the right with as fixed object, as a functor. -/
+@[simps]
+def tensor_right (X : C) : C ⥤ C :=
+{ obj := λ Y, Y ⊗ X,
+  map := λ Y Y' f, f ⊗ (𝟙 X), }
+
+/--
+Tensoring on the right with `X ⊗ Y` is naturally isomorphic to
+tensoring on the right with `X`, and then again with `Y`.
+-/
+def tensor_right_tensor (X Y : C) : tensor_right (X ⊗ Y) ≅ tensor_right X ⋙ tensor_right Y :=
+nat_iso.of_components
+  (λ Z, (associator.{v} Z X Y).symm)
+  (λ Z Z' f, by { dsimp, rw[←tensor_id], apply associator_inv_naturality })
+
+@[simp] lemma tensor_right_tensor_hom_app (X Y Z : C) :
+  (tensor_right_tensor.{v} X Y).hom.app Z = (associator Z X Y).inv :=
+rfl
+@[simp] lemma tensor_right_tensor_inv_app (X Y Z : C) :
+  (tensor_right_tensor.{v} X Y).inv.app Z = (associator Z X Y).hom :=
+rfl
+
+end
 
 end
 

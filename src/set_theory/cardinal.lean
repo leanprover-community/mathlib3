@@ -853,6 +853,17 @@ theorem mk_subtype_le_of_subset {α : Type u} {p q : α → Prop} (h : ∀ ⦃x�
 @[simp] theorem mk_emptyc (α : Type u) : mk (∅ : set α) = 0 :=
 quotient.sound ⟨equiv.set.pempty α⟩
 
+lemma mk_emptyc_iff {α : Type u} {s : set α} : mk s = 0 ↔ s = ∅ :=
+begin
+  split,
+  { intro h,
+    have h2 : cardinal.mk s = cardinal.mk pempty, by simp [h],
+    refine set.eq_empty_iff_forall_not_mem.mpr (λ _ hx, _),
+    rcases cardinal.eq.mp h2 with ⟨f, _⟩,
+    cases f ⟨_, hx⟩ },
+  { intro, convert mk_emptyc _ }
+end
+
 theorem mk_univ {α : Type u} : mk (@univ α) = mk α :=
 quotient.sound ⟨equiv.set.univ α⟩
 

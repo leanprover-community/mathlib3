@@ -1489,7 +1489,7 @@ variable {n : ℕ }
 lemma has_strict_deriv_at_pow (n : ℕ) (x : 𝕜) :
   has_strict_deriv_at (λx, x^n) ((n : 𝕜) * x^(n-1)) x :=
 begin
-  convert (polynomial.C 1 * (polynomial.X)^n).has_strict_deriv_at x,
+  convert (polynomial.C (1 : 𝕜) * (polynomial.X)^n).has_strict_deriv_at x,
   { simp },
   { rw [polynomial.derivative_monomial], simp }
 end

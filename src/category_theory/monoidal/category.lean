@@ -69,8 +69,11 @@ attribute [simp] monoidal_category.tensor_id
 restate_axiom monoidal_category.tensor_comp'
 attribute [simp] monoidal_category.tensor_comp
 restate_axiom monoidal_category.associator_naturality'
+attribute [reassoc] monoidal_category.associator_naturality
 restate_axiom monoidal_category.left_unitor_naturality'
+attribute [reassoc] monoidal_category.left_unitor_naturality
 restate_axiom monoidal_category.right_unitor_naturality'
+attribute [reassoc] monoidal_category.right_unitor_naturality
 restate_axiom monoidal_category.pentagon'
 restate_axiom monoidal_category.triangle'
 attribute [simp] monoidal_category.triangle

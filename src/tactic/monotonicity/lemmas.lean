@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Simon Hudon
 -/
 import tactic.monotonicity.basic
+import data.set.lattice
 
 variables {α : Type*}
 
@@ -65,3 +66,7 @@ begin
   rw [nat.sub_add_cancel h''],
   apply nat.add_lt_add_left h
 end
+
+open set
+
+attribute [mono] monotone_inter monotone_union bUnion_mono sUnion_mono seq_mono monotone_prod

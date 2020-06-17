@@ -1155,6 +1155,9 @@ end sum
 
 end constructions
 
+-- For a version of the Lebesgue number lemma assuming only a sequentially compact space,
+-- see topology/sequences.lean
+
 lemma lebesgue_number_lemma {α : Type u} [uniform_space α] {s : set α} {ι} {c : ι → set α}
   (hs : compact s) (hc₁ : ∀ i, is_open (c i)) (hc₂ : s ⊆ ⋃ i, c i) :
   ∃ n ∈ 𝓤 α, ∀ x ∈ s, ∃ i, {y | (x, y) ∈ n} ⊆ c i :=

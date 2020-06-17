@@ -483,6 +483,9 @@ open ineq tactic
 `map` is a lookup map from atomic expressions to variable numbers.
 If a new atomic expression is encountered, it is added to the map with a new number.
 It matches atomic expressions up to reducibility given by `red`.
+
+Because it matches up to definitional equality, this function must be in the `tactic` monad,
+and forces some functions that call it into `tactic` as well.
 -/
 meta def map_of_expr (red : transparency) : expr_map ℕ → expr → tactic (expr_map ℕ × sum)
 | m e@`(%%e1 * %%e2) :=
@@ -546,31 +549,49 @@ do (iq, e) ← parse_into_comp_and_expr e,
    let ⟨nm, mm'⟩ := sum_to_lf comp' monom_map,
    return ⟨⟨iq, mm'.to_linexp⟩,m',nm⟩
 
+/--
+`to_comp_fold red e_map exprs monom_map` folds `to_comp` over `exprs`,
+updating `e_map` and `monom_map` as it goes.
+ -/
 meta def to_comp_fold (red : transparency) : expr_map ℕ → list expr → rb_map monom ℕ →
-      tactic (list (option comp) × expr_map ℕ × rb_map monom ℕ )
+      tactic (list comp × expr_map ℕ × rb_map monom ℕ)
 | m [] mm := return ([], m, mm)
 | m (h::t) mm :=
-  (do (c, m', mm') ← to_comp red h m mm,
+  do (c, m', mm') ← to_comp red h m mm,
       (l, mp, mm') ← to_comp_fold m' t mm',
-      return (c::l, mp, mm')) <|>
-  (do (l, mp, mm') ← to_comp_fold m t mm,
-      return (none::l, mp, mm'))
+      return (c::l, mp, mm')
+
+/-! ### Control functions -/
 
 /--
-Takes a list of proofs of props of the form `t {<, ≤, =} 0`, and creates a
-`linarith_structure`.
+`mk_linarith_structure red l` takes a list of proofs of props of the form `t {<, ≤, =} 0`,
+and creates a `linarith_structure`. The transparency setting `red` is used to unify atoms.
+
+Along with a `linarith_structure`, it produces a map `ℕ → (expr × expr)`.
+This map assigns indices to the hypotheses in `l`. It maps a natural number `n` to a pair
+`(prf, tp)`, where `prf` is the `n`th element of `l` and is a proof of the comparison `tp`.
 -/
 meta def mk_linarith_structure (red : transparency) (l : list expr) :
   tactic (linarith_structure × rb_map ℕ (expr × expr)) :=
 do pftps ← l.mmap infer_type,
   (l', _, map) ← to_comp_fold red mk_rb_map pftps mk_rb_map,
-  let lz := list.enum $ ((l.zip pftps).zip l').filter_map (λ ⟨a, b⟩, prod.mk a <$> b),
+  let lz := list.enum $ (l.zip pftps).zip l',
   let prmap := rb_map.of_list $ lz.map (λ ⟨n, x⟩, (n, x.1)),
   let vars : rb_set ℕ := rb_map.set_of_list $ list.range map.size,
   let pc : rb_set pcomp :=
     rb_set.of_list_core mk_pcomp_set $ lz.map (λ ⟨n, x⟩, ⟨x.2, comp_source.assump n⟩),
   return (⟨vars, pc⟩, prmap)
 
+/--
+`linarith_monad.run red tac l` runs the `linarith` process `tac` on input `l`.
+It returns the value produced by `tac` if `tac` does not find a contradiction.
+Otherwise it returns a `pcomp` representing a proof of `0 < 0`.
+
+It also produces a map `ℕ → (expr × expr)`.
+This map assigns indices to the hypotheses in `l`. It maps a natural number `n` to a pair
+`(prf, tp)`, where `prf` is the `n`th element of `l` and is a proof of the comparison `tp`.
+This map is needed to reconstruct the proof of the discovered contradiction.
+ -/
 meta def linarith_monad.run (red : transparency) {α} (tac : linarith_monad α) (l : list expr) :
   tactic ((pcomp ⊕ α) × rb_map ℕ (expr × expr)) :=
 do (struct, inputs) ← mk_linarith_structure red l,

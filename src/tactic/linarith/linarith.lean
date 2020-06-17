@@ -607,6 +607,27 @@ end
 
 end parse
 
+/-!
+### Verification
+
+`linarith_monad.run` is used to search for a way to derive `false` from a set of hypotheses.
+This search is unverified, but it returns a certificate:
+a map `m` from hypothesis indices to natural number coefficients.
+If our set of hypotheses has the form  `{tᵢ Rᵢ 0}`,
+then the elimination process should have guaranteed that
+1.\ `∑ (m i)*tᵢ = 0`,
+with at least one `i` such that `m i > 0` and `Rᵢ` is `<`.
+
+We have also that
+2.\ `∑ (m i)*tᵢ < 0`,
+since for each `i`, `(m i)*tᵢ ≤ 0` and at least one is strictly negative.
+So we conclude a contradiction `0 < 0`.
+
+It remains to produce proofs of (1) and (2). (1) is verified by calling the `discharger` tactic
+of the `linarith_config` object, which is typically `ring`. We prove (2) by folding over the
+set of hypotheses.
+-/
+
 section prove
 open ineq tactic
 
@@ -630,9 +651,6 @@ meta def add_exprs_aux : pexpr → list pexpr → pexpr
 meta def add_exprs : list pexpr → pexpr
 | [] := ``(0)
 | (h::t) := add_exprs_aux h t
-
-meta def find_contr (m : rb_set pcomp) : option pcomp :=
-m.keys.find (λ p, p.c.is_contr)
 
 meta def ineq_const_mul_nm : ineq → name
 | lt := ``mul_neg

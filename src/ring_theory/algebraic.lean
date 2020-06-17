@@ -105,3 +105,22 @@ begin
 end
 
 end algebra
+
+variables {R S : Type*} [integral_domain R] [comm_ring S]
+
+lemma exists_integral_multiple [algebra R S] {z : S} (hz : is_algebraic R z)
+  (inj : ∀ x, algebra_map R S x = 0 → x = 0) :
+  ∃ (x : integral_closure R S) (y ≠ (0 : integral_closure R S)),
+    z * y = x :=
+begin
+  rcases hz with ⟨p, p_nonzero, px⟩,
+  set n := p.nat_degree with n_def,
+  set a := p.leading_coeff with a_def,
+  have a_nonzero : a ≠ 0 := mt polynomial.leading_coeff_eq_zero.mp p_nonzero,
+  have y_integral : is_integral R (algebra_map R S a) := is_integral_algebra_map,
+  have x_integral : is_integral R (z * algebra_map R S a) :=
+    ⟨ p.to_monic, monic_to_monic p_nonzero, to_monic_aeval_eq_zero p_nonzero px inj ⟩,
+  refine ⟨⟨_, x_integral⟩, ⟨_, y_integral⟩, _, rfl⟩,
+  exact λ h, a_nonzero (inj _ (subtype.ext.mp h))
+end
+

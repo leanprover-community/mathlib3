@@ -395,7 +395,7 @@ end datatypes
 section fm_elim
 
 /-- If `c1` and `c2` both contain variable `a` with opposite coefficients,
-produces `v1`, `v2`, and `c` such that `a` has been cancelled in `c := v1*c1 + v2*c2`. -/
+produces `v1`, `v2` such that `a` has been cancelled in `v1*c1 + v2*c2`. -/
 meta def elim_var (c1 c2 : comp) (a : ℕ) : option (ℕ × ℕ) :=
 let v1 := c1.coeff_of a,
     v2 := c2.coeff_of a in

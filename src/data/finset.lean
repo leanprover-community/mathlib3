@@ -101,7 +101,7 @@ ext $ λ a, ⟨@H₁ a, @H₂ a⟩
 
 theorem subset_iff {s₁ s₂ : finset α} : s₁ ⊆ s₂ ↔ ∀ ⦃x⦄, x ∈ s₁ → x ∈ s₂ := iff.rfl
 
-@[simp] theorem coe_subset {s₁ s₂ : finset α} :
+@[simp, norm_cast] theorem coe_subset {s₁ s₂ : finset α} :
   (↑s₁ : set α) ⊆ ↑s₂ ↔ s₁ ⊆ s₂ := iff.rfl
 
 @[simp] theorem val_le_iff {s₁ s₂ : finset α} : s₁.1 ≤ s₂.1 ↔ s₁ ⊆ s₂ := le_iff_subset s₁.2
@@ -121,7 +121,7 @@ le_antisymm_iff
 @[simp] theorem le_iff_subset {s₁ s₂ : finset α} : s₁ ≤ s₂ ↔ s₁ ⊆ s₂ := iff.rfl
 @[simp] theorem lt_iff_ssubset {s₁ s₂ : finset α} : s₁ < s₂ ↔ s₁ ⊂ s₂ := iff.rfl
 
-@[simp] lemma coe_ssubset {s₁ s₂ : finset α} : (↑s₁ : set α) ⊂ ↑s₂ ↔ s₁ ⊂ s₂ :=
+@[simp, norm_cast] lemma coe_ssubset {s₁ s₂ : finset α} : (↑s₁ : set α) ⊂ ↑s₂ ↔ s₁ ⊂ s₂ :=
 show (↑s₁ : set α) ⊂ ↑s₂ ↔ s₁ ⊆ s₂ ∧ ¬s₂ ⊆ s₁,
   by simp only [set.ssubset_def, finset.coe_subset]
 
@@ -138,7 +138,7 @@ in theorem assumptions instead of `∃ x, x ∈ s` or `s ≠ ∅` as it gives ac
 to the dot notation. -/
 protected def nonempty (s : finset α) : Prop := ∃ x:α, x ∈ s
 
-@[norm_cast] lemma coe_nonempty {s : finset α} : (↑s:set α).nonempty ↔ s.nonempty := iff.rfl
+@[simp, norm_cast] lemma coe_nonempty {s : finset α} : (↑s:set α).nonempty ↔ s.nonempty := iff.rfl
 
 lemma nonempty.bex {s : finset α} (h : s.nonempty) : ∃ x:α, x ∈ s := h
 
@@ -258,7 +258,8 @@ mem_ndinsert_of_mem h
 theorem mem_of_mem_insert_of_ne {a b : α} {s : finset α} (h : b ∈ insert a s) : b ≠ a → b ∈ s :=
 (mem_insert.1 h).resolve_left
 
-@[simp] lemma coe_insert (a : α) (s : finset α) : ↑(insert a s) = (insert a ↑s : set α) :=
+@[simp, norm_cast] lemma coe_insert (a : α) (s : finset α) :
+  ↑(insert a s) = (insert a ↑s : set α) :=
 set.ext $ λ x, by simp only [mem_coe, mem_insert, set.mem_insert_iff]
 
 instance : is_lawful_singleton α (finset α) := ⟨λ a, by { ext, simp }⟩
@@ -291,19 +292,14 @@ theorem subset_insert (a : α) (s : finset α) : s ⊆ insert a s :=
 theorem insert_subset_insert (a : α) {s t : finset α} (h : s ⊆ t) : insert a s ⊆ insert a t :=
 insert_subset.2 ⟨mem_insert_self _ _, subset.trans h (subset_insert _ _)⟩
 
-lemma ssubset_iff {s t : finset α} : s ⊂ t ↔ (∃a, a ∉ s ∧ insert a s ⊆ t) :=
-iff.intro
-  (assume H,
-    have ∃a ∈ t, a ∉ s := set.exists_of_ssubset H,
-    let ⟨a, hat, has⟩ := this in ⟨a, has, insert_subset.mpr ⟨hat, H.1⟩⟩)
-  (assume ⟨a, hat, has⟩,
-    let ⟨h₁, h₂⟩ := insert_subset.mp has in
-    ⟨h₂, assume h, hat $ h h₁⟩)
+lemma ssubset_iff {s t : finset α} : s ⊂ t ↔ (∃a ∉ s, insert a s ⊆ t) :=
+by exact_mod_cast @set.ssubset_iff_insert α ↑s ↑t
 
 lemma ssubset_insert {s : finset α} {a : α} (h : a ∉ s) : s ⊂ insert a s :=
 ssubset_iff.mpr ⟨a, h, subset.refl _⟩
 
-@[recursor 6] protected theorem induction {α : Type*} {p : finset α → Prop} [decidable_eq α]
+@[elab_as_eliminator]
+protected theorem induction {α : Type*} {p : finset α → Prop} [decidable_eq α]
   (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : ∀ s, p s
 | ⟨s, nd⟩ := multiset.induction_on s (λ _, h₁) (λ a s IH nd, begin
     cases nodup_cons.1 nd with m nd',
@@ -344,7 +340,7 @@ mem_union.2 $ or.inr h
 theorem not_mem_union {a : α} {s₁ s₂ : finset α} : a ∉ s₁ ∪ s₂ ↔ a ∉ s₁ ∧ a ∉ s₂ :=
 by rw [mem_union, not_or_distrib]
 
-@[simp]
+@[simp, norm_cast]
 lemma coe_union (s₁ s₂ : finset α) : ↑(s₁ ∪ s₂) = (↑s₁ ∪ ↑s₂ : set α) := set.ext $ λ x, mem_union
 
 theorem union_subset {s₁ s₂ s₃ : finset α} (h₁ : s₁ ⊆ s₃) (h₂ : s₂ ⊆ s₃) : s₁ ∪ s₂ ⊆ s₃ :=
@@ -446,7 +442,7 @@ theorem inter_subset_right (s₁ s₂ : finset α) : s₁ ∩ s₂ ⊆ s₂ := �
 theorem subset_inter {s₁ s₂ s₃ : finset α} : s₁ ⊆ s₂ → s₁ ⊆ s₃ → s₁ ⊆ s₂ ∩ s₃ :=
 by simp only [subset_iff, mem_inter] {contextual:=tt}; intros; split; trivial
 
-@[simp]
+@[simp, norm_cast]
 lemma coe_inter (s₁ s₂ : finset α) : ↑(s₁ ∩ s₂) = (↑s₁ ∩ ↑s₂ : set α) := set.ext $ λ _, mem_inter
 
 @[simp] theorem union_inter_cancel_left {s t : finset α} : (s ∪ t) ∩ s = s :=
@@ -597,7 +593,7 @@ val_le_iff.1 $ erase_le_erase _ $ val_le_iff.2 h
 
 theorem erase_subset (a : α) (s : finset α) : erase s a ⊆ s := erase_subset _ _
 
-@[simp] lemma coe_erase (a : α) (s : finset α) : ↑(erase s a) = (↑s \ {a} : set α) :=
+@[simp, norm_cast] lemma coe_erase (a : α) (s : finset α) : ↑(erase s a) = (↑s \ {a} : set α) :=
 set.ext $ λ _, mem_erase.trans $ by rw [and_comm, set.mem_diff, set.mem_singleton_iff]; refl
 
 lemma erase_ssubset {a : α} {s : finset α} (h : a ∈ s) : s.erase a ⊂ s :=
@@ -669,7 +665,7 @@ theorem sdiff_subset_self {s₁ s₂ : finset α} : s₁ \ s₂ ⊆ s₁ :=
 suffices s₁ \ s₂ ⊆ s₁ \ ∅, by simpa [sdiff_empty] using this,
 sdiff_subset_sdiff (subset.refl _) (empty_subset _)
 
-@[simp] lemma coe_sdiff (s₁ s₂ : finset α) : ↑(s₁ \ s₂) = (↑s₁ \ ↑s₂ : set α) :=
+@[simp, norm_cast] lemma coe_sdiff (s₁ s₂ : finset α) : ↑(s₁ \ s₂) = (↑s₁ \ ↑s₂ : set α) :=
 set.ext $ λ _, mem_sdiff
 
 @[simp] theorem union_sdiff_self_eq_union {s t : finset α} : s ∪ (t \ s) = s ∪ t :=
@@ -855,7 +851,7 @@ subset_empty.1 $ filter_subset _
 lemma filter_subset_filter {s t : finset α} (h : s ⊆ t) : s.filter p ⊆ t.filter p :=
 assume a ha, mem_filter.2 ⟨h (mem_filter.1 ha).1, (mem_filter.1 ha).2⟩
 
-@[simp] lemma coe_filter (s : finset α) : ↑(s.filter p) = ({x ∈ ↑s | p x} : set α) :=
+@[simp, norm_cast] lemma coe_filter (s : finset α) : ↑(s.filter p) = ({x ∈ ↑s | p x} : set α) :=
 set.ext $ λ _, mem_filter
 
 theorem filter_singleton (a : α) : filter p (singleton a) = if p a then singleton a else ∅ :=
@@ -1169,7 +1165,7 @@ mem_map_of_inj f.2
 theorem mem_map_of_mem (f : α ↪ β) {a} {s : finset α} : a ∈ s → f a ∈ s.map f :=
 (mem_map' _).2
 
-@[simp] theorem coe_map (f : α ↪ β) (s : finset α) : (↑(s.map f) : set β) = f '' ↑s :=
+@[simp, norm_cast] theorem coe_map (f : α ↪ β) (s : finset α) : (↑(s.map f) : set β) = f '' ↑s :=
 set.ext $ λ x, mem_map.trans set.mem_image_iff_bex.symm
 
 theorem coe_map_subset_range (f : α ↪ β) (s : finset α) : (↑(s.map f) : set β) ⊆ set.range f :=
@@ -1233,7 +1229,7 @@ eq_of_veq $ by rw [map_val, attach_val]; exact attach_map_val _
 end map
 
 lemma range_add_one' (n : ℕ) :
-  range (n + 1) = insert 0 ((range n).map ⟨λi, i + 1, assume i j, nat.succ_inj⟩) :=
+  range (n + 1) = insert 0 ((range n).map ⟨λi, i + 1, assume i j, nat.succ.inj⟩) :=
 by ext (⟨⟩ | ⟨n⟩); simp [nat.succ_eq_add_one, nat.zero_lt_succ n]
 
 /-! ### image -/
@@ -1255,7 +1251,7 @@ by simp only [mem_def, image_val, mem_erase_dup, multiset.mem_map, exists_prop]
 theorem mem_image_of_mem (f : α → β) {a} {s : finset α} (h : a ∈ s) : f a ∈ s.image f :=
 mem_image.2 ⟨_, h, rfl⟩
 
-@[simp] lemma coe_image {f : α → β} : ↑(s.image f) = f '' ↑s :=
+@[simp, norm_cast] lemma coe_image {f : α → β} : ↑(s.image f) = f '' ↑s :=
 set.ext $ λ _, mem_image.trans set.mem_image_iff_bex.symm
 
 lemma nonempty.image (h : s.nonempty) (f : α → β) : (s.image f).nonempty :=
@@ -2058,15 +2054,8 @@ by letI := classical.dec_eq β; from
 
 lemma comp_sup_eq_sup_comp [is_total α (≤)] {γ : Type} [semilattice_sup_bot γ]
   (g : α → γ) (mono_g : monotone g) (bot : g ⊥ = ⊥) : g (s.sup f) = s.sup (g ∘ f) :=
-have A : ∀x y, g (x ⊔ y) = g x ⊔ g y :=
-begin
-  assume x y,
-  cases (@is_total.total _ (≤) _ x y) with h,
-  { simp [sup_of_le_right h, sup_of_le_right (mono_g h)] },
-  { simp [sup_of_le_left h, sup_of_le_left (mono_g h)] }
-end,
 by letI := classical.dec_eq β; from
-finset.induction_on s (by simp [bot]) (by simp [A] {contextual := tt})
+finset.induction_on s (by simp [bot]) (by simp [mono_g.map_sup] {contextual := tt})
 
 theorem subset_range_sup_succ (s : finset ℕ) : s ⊆ range (s.sup id).succ :=
 λ n hn, mem_range.2 $ nat.lt_succ_of_le $ le_sup hn
@@ -2096,13 +2085,7 @@ lemma inf_val : s.inf f = (s.1.map f).inf := rfl
 fold_empty
 
 lemma le_inf_iff {a : α} : a ≤ s.inf f ↔ ∀b ∈ s, a ≤ f b :=
-begin
-  apply iff.trans multiset.le_inf,
-  refine ⟨λ k b hb, k (f b) (multiset.mem_map_of_mem _ hb), λ k b hb, _⟩,
-  rw multiset.mem_map at hb,
-  rcases hb with ⟨a', ha', rfl⟩,
-  apply k a' ha'
-end
+@sup_le_iff (order_dual α) _ _ _ _ _
 
 @[simp] lemma inf_insert [decidable_eq β] {b : β} : (insert b s : finset β).inf f = f b ⊓ s.inf f :=
 fold_insert_idem
@@ -2111,8 +2094,7 @@ fold_insert_idem
 inf_singleton
 
 lemma inf_union [decidable_eq β] : (s₁ ∪ s₂).inf f = s₁.inf f ⊓ s₂.inf f :=
-finset.induction_on s₁ (by rw [empty_union, inf_empty, top_inf_eq]) $ λ a s has ih,
-by rw [insert_union, inf_insert, inf_insert, ih, inf_assoc]
+@sup_union (order_dual α) _ _ _ _ _ _
 
 theorem inf_congr {f g : β → α} (hs : s₁ = s₂) (hfg : ∀a∈s₂, f a = g a) : s₁.inf f = s₂.inf g :=
 by subst hs; exact finset.fold_congr hfg
@@ -2129,28 +2111,17 @@ le_inf (λ b hb, le_trans (inf_le hb) (h b hb))
 lemma inf_mono (h : s₁ ⊆ s₂) : s₂.inf f ≤ s₁.inf f :=
 le_inf $ assume b hb, inf_le (h hb)
 
-lemma lt_inf [is_total α (≤)] {a : α} : (a < ⊤) → (∀b ∈ s, a < f b) → a < s.inf f :=
-by letI := classical.dec_eq β; from
-finset.induction_on s (by simp) (by simp {contextual := tt})
+lemma lt_inf_iff [h : is_total α (≤)] {a : α} (ha : a < ⊤) : a < s.inf f ↔ (∀b ∈ s, a < f b) :=
+@sup_lt_iff (order_dual α) _ _ _ _ (@is_total.swap α _ h) _ ha
 
-lemma comp_inf_eq_inf_comp [is_total α (≤)] {γ : Type} [semilattice_inf_top γ]
+lemma comp_inf_eq_inf_comp [h : is_total α (≤)] {γ : Type} [semilattice_inf_top γ]
   (g : α → γ) (mono_g : monotone g) (top : g ⊤ = ⊤) : g (s.inf f) = s.inf (g ∘ f) :=
-have A : ∀x y, g (x ⊓ y) = g x ⊓ g y :=
-begin
-  assume x y,
-  cases (@is_total.total _ (≤) _ x y) with h,
-  { simp [inf_of_le_left h, inf_of_le_left (mono_g h)] },
-  { simp [inf_of_le_right h, inf_of_le_right (mono_g h)] }
-end,
-by letI := classical.dec_eq β; from
-finset.induction_on s (by simp [top]) (by simp [A] {contextual := tt})
+@comp_sup_eq_sup_comp (order_dual α) _ _ _ _ (@is_total.swap α _ h) _ _ _ mono_g.order_dual top
 
 end inf
 
 lemma inf_eq_infi [complete_lattice β] (s : finset α) (f : α → β) : s.inf f = (⨅a∈s, f a) :=
-le_antisymm
-  (le_infi $ assume a, le_infi $ assume ha, inf_le ha)
-  (finset.le_inf $ assume a ha, infi_le_of_le a $ infi_le _ ha)
+@sup_eq_supr _ (order_dual β) _ _ _
 
 /-! ### max and min of finite sets -/
 section max_min
@@ -2320,12 +2291,7 @@ end
 
 lemma exists_min_image (s : finset β) (f : β → α) (h : s.nonempty) :
   ∃ x ∈ s, ∀ x' ∈ s, f x ≤ f x' :=
-begin
-  letI := classical.DLO α,
-  cases min_of_nonempty (h.image f) with y hy,
-  rcases mem_image.mp (mem_of_min hy) with ⟨x, hx, rfl⟩,
-  exact ⟨x, hx, λ x' hx', min_le_of_mem (mem_image_of_mem f hx') hy⟩
-end
+@exists_max_image (order_dual α) β _ s f h
 
 end exists_max_min
 
@@ -2944,13 +2910,7 @@ end
 
 lemma infi_eq_infi_finset (s : ι → α) :
   (⨅i, s i) = (⨅t:finset (plift ι), ⨅i∈t, s (plift.down i)) :=
-begin
-  classical,
-  exact le_antisymm
-    (le_infi $ assume t, le_infi $ assume b, le_infi $ assume hb, infi_le _ _)
-    (le_infi $ assume b, infi_le_of_le {plift.up b} $ infi_le_of_le (plift.up b) $ infi_le_of_le
-      (by simp) $ le_refl _)
-end
+@supr_eq_supr_finset (order_dual α) _ _ _
 
 end lattice
 

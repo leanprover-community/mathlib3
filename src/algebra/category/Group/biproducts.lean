@@ -140,13 +140,19 @@ open has_limit has_colimit
 
 variables [decidable_eq J] [fintype J]
 
-instance : has_bilimit F :=
+instance (f : J → AddCommGroup.{u}) : has_biproduct f :=
 { bicone :=
-  { X := AddCommGroup.of (Π j, F.obj j),
-    ι := discrete.nat_trans (λ j, add_monoid_hom.single (λ j, F.obj j) j),
-    π := discrete.nat_trans (λ j, add_monoid_hom.apply (λ j, F.obj j) j), },
-  is_limit := limit.is_limit F,
-  is_colimit := colimit.is_colimit F, }.
+  { X := AddCommGroup.of (Π j, f j),
+    ι := λ j, add_monoid_hom.single (λ j, f j) j,
+    π := λ j, add_monoid_hom.apply (λ j, f j) j,
+    ι_π := λ j j',
+    begin
+      ext, split_ifs,
+      { subst h, simp, },
+      { rw [eq_comm] at h, simp [h], },
+    end, },
+  is_limit := limit.is_limit (discrete.functor f),
+  is_colimit := colimit.is_colimit (discrete.functor f), }.
 
 -- We verify that the underlying type of the biproduct we've just defined is definitionally
 -- the dependent function type:

@@ -168,7 +168,41 @@ meta instance : has_to_format ineq := ⟨λ i, ineq.to_string i⟩
 
 end ineq
 
-/-! #### Configuration object -/
+/-! #### Control -/
+
+/--
+A preprocessor transforms a proof of a proposition into a proof of a different propositon.
+The return type is `list expr`, since some preprocessing steps may create multiple new hypotheses,
+and some may remove a hypothesis from the list.
+A "no-op" preprocessor should return its input as a singleton list.
+-/
+meta structure preprocessor : Type :=
+(name : string)
+(transform : expr → tactic (list expr))
+
+/--
+Some preprocessors need to examine the full list of hypotheses instead of working item by item.
+As with `preprocessor`, the input to a `global_preprocessor` is replaced by, not added to, its output.
+-/
+meta structure global_preprocessor : Type :=
+(name : string)
+(transform : list expr → tactic (list expr))
+
+/--
+A `preprocessor` lifts to a `global_preprocessor` by folding it over the input list.
+-/
+meta def preprocessor.globalize (pp : preprocessor) : global_preprocessor :=
+{ name := pp.name,
+  transform := list.mfoldl (λ ret e, do l' ← pp.transform e, return (l' ++ ret)) [] }
+
+meta def global_preprocessor.process (pp : global_preprocessor) (l : list expr) :
+  tactic (list expr) :=
+do l ← pp.transform l,
+   linarith_trace_proofs (to_string format!"Preprocessing: {pp.name}") l,
+   return l
+
+meta instance : has_coe preprocessor global_preprocessor :=
+⟨preprocessor.globalize⟩
 
 /-- A configuration object for `linarith`. -/
 meta structure linarith_config :=
@@ -178,7 +212,7 @@ meta structure linarith_config :=
 (exfalso : bool := tt)
 (transparency : tactic.transparency := reducible)
 (split_hypotheses : bool := tt)
-(nonlinear_preprocessing : bool := ff)
+(preprocessors : option (list global_preprocessor) := none)
 
 /--
 `cfg.update_reducibility reduce_semi` will change the transparency setting of `cfg` to
@@ -814,6 +848,7 @@ meta def prove_false_by_linarith (cfg : linarith_config) : list expr → tactic 
       | fail "linarith failed to find a contradiction",
     -- we construct two lists `coeffs` and `pfs` of equal length,
     -- filtering out the comparisons that were not used in deriving the contradiction.
+    linarith_trace "linarith has found a contradiction",
     let coeff_map := contr.src.flatten,
     let coeffs := inputs.keys.map coeff_map.ifind,
     let pfs : list expr := inputs.keys.map (λ k, (inputs.ifind k).1),
@@ -822,11 +857,14 @@ meta def prove_false_by_linarith (cfg : linarith_config) : list expr → tactic 
     mls ← zip.mmap (λ pr, do e ← term_of_ineq_prf pr.2, return (mul_expr pr.1 e)),
     -- `sm` is the sum of input terms, scaled to cancel out all variables.
     sm ← to_expr $ add_exprs mls,
+    pformat! "The expression\n  {sm}\nshould be both 0 and negative" >>= linarith_trace,
     tgt ← to_expr ``(%%sm = 0),
     -- we prove that `sm = 0`, typically with `ring`.
     (_, sm_eq_zero) ← solve_aux tgt (cfg.discharger >> done),
+    linarith_trace "We have proved that it is zero",
     -- we also prove that `sm < 0`.
     sm_lt_zero ← mk_lt_zero_pf coeffs pfs,
+    linarith_trace "We have proved that it is negative",
     -- this is a contradiction.
     pftp ← infer_type sm_lt_zero,
     (_, nep, _) ← rewrite_core sm_eq_zero pftp,
@@ -947,14 +985,6 @@ meta def is_strict_int_prop : expr → bool
 | `(¬ @ge ℤ %%_ _ _) := tt
 | _ := ff
 
-/--
-A preprocessor transforms a proof of a proposition into a proof of a different propositon.
-The return type is `list expr`, since some preprocessing steps may create multiple new hypotheses,
-and some may remove a hypothesis from the list.
-A "no-op" preprocessor should return its input as a singleton list.
--/
-meta def preprocessor : Type := expr → tactic (list expr)
-
 private meta def filter_comparisons_aux : expr → bool
 | `(¬ %%p) := p.app_symbol_in [`has_lt.lt, `has_le.le, `gt, `ge]
 | tp := tp.app_symbol_in [`has_lt.lt, `has_le.le, `gt, `ge, `eq]
@@ -962,42 +992,51 @@ private meta def filter_comparisons_aux : expr → bool
 /--
 Removes any expressions that are not proofs of inequalities, equalities, or negations thereof.
 -/
-meta def filter_comparisons : preprocessor := λ h,
+meta def filter_comparisons : preprocessor :=
+{ name := "filter terms that are not proofs of comparisons",
+  transform := λ h,
 (do tp ← infer_type h,
    is_prop tp >>= guardb,
    guardb (filter_comparisons_aux tp),
    return [h])
-<|> return []
+<|> return [] }
 
-meta def remove_negations : preprocessor := λ h,
+meta def remove_negations : preprocessor :=
+{ name := "replace negations of comparisons",
+  transform := λ h,
 do tp ← infer_type h,
 match tp with
 | `(¬ %%p) := singleton <$> rem_neg h p
 | _ := return [h]
-end
+end }
 
 /--
 If `h` is an equality or inequality between natural numbers,
 `nat_to_int h` lifts this inequality to the integers,
 adding the facts that the integers involved are nonnegative.
  -/
-meta def nat_to_int : preprocessor := λ h,
+meta def nat_to_int : preprocessor :=
+{ name := "move nats to ints",
+  transform := λ h,
 do tp ← infer_type h,
-   guardb (is_nat_prop tp) >> mk_int_pfs_of_nat_pf h <|> return [h]
+   guardb (is_nat_prop tp) >> mk_int_pfs_of_nat_pf h <|> return [h] }
 
 /-- `strengthen_strict_int h` turns a proof `h` of a strict integer inequality `t1 < t2`
 into a proof of `t1 ≤ t2 + 1`. -/
-meta def strengthen_strict_int : preprocessor := λ h,
+meta def strengthen_strict_int : preprocessor :=
+{ name := "strengthen strict inequalities over int",
+  transform := λ h,
 do tp ← infer_type h,
    guardb (is_strict_int_prop tp) >> singleton <$> mk_non_strict_int_pf_of_strict_int_pf h
-     <|> return [h]
+     <|> return [h] }
 
 /--
 `mk_comp_with_zero h` takes a proof `h` of an equality, inequality, or negation thereof,
 and turns it into a proof of a comparison `_ R 0`, where `R ∈ {=, ≤, <}`.
  -/
 meta def make_comp_with_zero : preprocessor :=
-λ e, singleton <$> rearr_comp e <|> return []
+{ name := "make comparisons with zero",
+  transform := λ e, singleton <$> rearr_comp e <|> return [] }
 
 /--
 `normalize_denominators_in_lhs h lhs` assumes that `h` is a proof of `lhs R 0`.
@@ -1014,22 +1053,13 @@ do (v, lhs') ← cancel_factors.kill_factors lhs,
 `cancel_denoms pf` assumes `pf` is a proof of `t R 0`. If `t` contains the division symbol `/`,
 it tries to scale `t` to cancel out division by numerals.
 -/
-meta def cancel_denoms : preprocessor := λ pf,
+meta def cancel_denoms : preprocessor :=
+{ name := "cancel denominators",
+  transform := λ pf,
 (do some (_, lhs) ← parse_into_comp_and_expr <$> infer_type pf,
    guardb $ lhs.contains_constant (= `has_div.div),
    singleton <$> normalize_denominators_in_lhs pf lhs)
-<|> return [pf]
-
-
-meta def global_preprocessor : Type := list expr → tactic (list expr)
-
-meta def preprocessor.globalize (pp : preprocessor) : global_preprocessor := λ l,
-do l' ← list.mfoldl (λ ret e, do l' ← pp e, return (l' ++ ret)) [] l,
-   linarith_trace_proofs "preprocessing produced" l',
-   return l'
-
-meta instance : has_coe preprocessor global_preprocessor :=
-⟨preprocessor.globalize⟩
+<|> return [pf] }
 
 /--
 `find_squares m e` collects all terms of the form `a ^ 2` and `a * a` that appear in `e`
@@ -1041,12 +1071,14 @@ meta def find_squares : rb_set (expr × bool) → expr → tactic (rb_set (expr 
 | s e@`(%%e1 * %%e2) := if e1 = e2 then do s ← find_squares s e1, return (s.insert (e1, ff)) else e.mfoldl find_squares s
 | s e := e.mfoldl find_squares s
 
-meta def nlinarith_extras : global_preprocessor := λ ls,
+meta def nlinarith_extras : global_preprocessor :=
+{ name := "nonlinear arithmetic extras",
+  transform := λ ls,
 do s ← ls.mfoldr (λ h s', infer_type h >>= find_squares s') mk_rb_set,
    new_es ← s.mfold ([] : list expr) $ λ ⟨e, is_sq⟩ new_es,
      (do p ← mk_app (if is_sq then ``pow_two_nonneg else ``mul_self_nonneg) [e],
       return $ p::new_es),
-   new_es ← make_comp_with_zero.globalize new_es,
+   new_es ← make_comp_with_zero.globalize.transform new_es,
    linarith_trace "nlinarith preprocessing found squares",
    linarith_trace s,
    linarith_trace_proofs "so we added proofs" new_es,
@@ -1062,8 +1094,16 @@ do s ← ls.mfoldr (λ h s', infer_type h >>= find_squares s') mk_rb_set,
       | ineq.le, ineq.lt := do b ← mk_app ``le_of_lt [b], mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
       | ineq.le, ineq.le := mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
       end,
-    products ← make_comp_with_zero.globalize products,
-    return $ new_es ++ ls ++ products
+    products ← make_comp_with_zero.globalize.transform products,
+    return $ new_es ++ ls ++ products }
+
+/--
+The default list of preprocessors, in the order they should typically run.
+-/
+meta def default_preprocessors : list global_preprocessor :=
+[filter_comparisons, remove_negations, nat_to_int, strengthen_strict_int,
+  make_comp_with_zero, cancel_denoms]
+
 /--
 `preprocess pps l` takes a list `l` of proofs of propositions.
 It maps each preprocessor `pp ∈ pps` over this list.
@@ -1072,7 +1112,7 @@ Note that a preprocessor produces a `list expr` for each input `expr`,
 so the size of the list may change.
 -/
 meta def preprocess (pps : list global_preprocessor) (l : list expr) : tactic (list expr) :=
-pps.mfoldl (λ l' pp, pp l') l
+pps.mfoldl (λ l' pp, pp.process l') l
 
 
 end preprocessing
@@ -1104,12 +1144,7 @@ meta def try_linarith_on_lists (cfg : linarith_config) (ls : list (list expr)) :
 
 meta def run_linarith_on_pfs (cfg : linarith_config) (hyps : list expr) (pref_type : option expr) :
   tactic unit :=
-let preprocessors : list global_preprocessor :=
-      [filter_comparisons, remove_negations, nat_to_int, strengthen_strict_int,
-       make_comp_with_zero, cancel_denoms],
-    preprocessors := preprocessors ++
-                      if cfg.nonlinear_preprocessing then [nlinarith_extras] else [] in
-do hyps ← preprocess preprocessors hyps,
+do hyps ← preprocess (cfg.preprocessors.get_or_else default_preprocessors) hyps,
    linarith_trace_proofs
      ("after preprocessing, linarith has " ++ to_string hyps.length ++ " facts:") hyps,
    hyp_set ← partition_by_type hyps,

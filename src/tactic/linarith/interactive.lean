@@ -114,7 +114,8 @@ meta def tactic.interactive.nlinarith (red : parse ((tk "!")?))
   (restr : parse ((tk "only")?)) (hyps : parse pexpr_list?)
   (cfg : linarith_config := {}) : tactic unit :=
 tactic.linarith red.is_some restr.is_some (hyps.get_or_else [])
-  {cfg with nonlinear_preprocessing := tt}
+  { cfg with preprocessors := some $
+      cfg.preprocessors.get_or_else default_preprocessors ++ [nlinarith_extras] }
 
 add_hint_tactic "nlinarith"
 

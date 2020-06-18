@@ -41,12 +41,12 @@ abbreviation counit (e : C ≌ D) : e.inverse ⋙ e.functor ⟶ 𝟭 D := e.coun
 abbreviation unit_inv (e : C ≌ D) : e.functor ⋙ e.inverse ⟶ 𝟭 C := e.unit_iso.inv
 abbreviation counit_inv (e : C ≌ D) : 𝟭 D ⟶ e.inverse ⋙ e.functor := e.counit_iso.inv
 
-@[simp] lemma functor_unit_comp (e : C ≌ D) (X : C) : e.functor.map (e.unit_iso.hom.app X) ≫
-  e.counit_iso.hom.app (e.functor.obj X) = 𝟙 (e.functor.obj X) :=
+@[simp] lemma functor_unit_comp (e : C ≌ D) (X : C) : e.functor.map (e.unit.app X) ≫
+  e.counit.app (e.functor.obj X) = 𝟙 (e.functor.obj X) :=
 e.functor_unit_iso_comp X
 
 @[simp] lemma counit_inv_functor_comp (e : C ≌ D) (X : C) :
-  e.counit_iso.inv.app (e.functor.obj X) ≫ e.functor.map (e.unit_iso.inv.app X) = 𝟙 (e.functor.obj X) :=
+  e.counit_inv.app (e.functor.obj X) ≫ e.functor.map (e.unit_inv.app X) = 𝟙 (e.functor.obj X) :=
 begin
   erw [iso.inv_eq_inv
     (e.functor.map_iso (e.unit_iso.app X) ≪≫ e.counit_iso.app (e.functor.obj X)) (iso.refl _)],
@@ -64,7 +64,7 @@ by { erw [←iso.hom_comp_eq_id (e.functor.map_iso (e.unit_iso.app X)), functor_
 /-- The other triangle equality. The proof follows the following proof in Globular:
   http://globular.science/1905.001 -/
 @[simp] lemma unit_inverse_comp (e : C ≌ D) (Y : D) :
-  e.unit_iso.hom.app (e.inverse.obj Y) ≫ e.inverse.map (e.counit_iso.hom.app Y) = 𝟙 (e.inverse.obj Y) :=
+  e.unit.app (e.inverse.obj Y) ≫ e.inverse.map (e.counit.app Y) = 𝟙 (e.inverse.obj Y) :=
 begin
   rw [←id_comp (e.inverse.map _), ←map_id e.inverse, ←counit_inv_functor_comp, map_comp,
       ←iso.hom_inv_id_assoc (e.unit_iso.app _) (e.inverse.map (e.functor.map _)),
@@ -85,7 +85,7 @@ begin
 end
 
 @[simp] lemma inverse_counit_inv_comp (e : C ≌ D) (Y : D) :
-  e.inverse.map (e.counit_iso.inv.app Y) ≫ e.unit_iso.inv.app (e.inverse.obj Y) = 𝟙 (e.inverse.obj Y) :=
+  e.inverse.map (e.counit_inv.app Y) ≫ e.unit_inv.app (e.inverse.obj Y) = 𝟙 (e.inverse.obj Y) :=
 begin
   erw [iso.inv_eq_inv
     (e.unit_iso.app (e.inverse.obj Y) ≪≫ e.inverse.map_iso (e.counit_iso.app Y)) (iso.refl _)],

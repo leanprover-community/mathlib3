@@ -28,7 +28,7 @@ Such a `binary_bicone` is a biproduct if the cone is a limit cone, and the cocon
 In a preadditive category, we prove the equivalence between three notions:
 * a `binary_bicone` which satisfies `total : fst ≫ inl + snd ≫ inr = 𝟙 X`
 * a `binary_bicone` whose cone is a limit cone,
-* a `binary_bicone` whoce cocone is a colimit cocone.
+* a `binary_bicone` whose cocone is a colimit cocone.
 
 We use the first notion as the definition of a "preadditive biproduct".
 

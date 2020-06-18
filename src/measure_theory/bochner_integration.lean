@@ -284,7 +284,7 @@ begin
   by_cases eq : f a = g a,
   { dsimp only [pair_apply], rw eq },
   { have : volume ((pair f g) ⁻¹' {(f a, g a)}) = 0,
-    { refine volume_mono_null (assume a' ha', _) h,
+    { refine measure_mono_null (assume a' ha', _) h,
       simp only [set.mem_preimage, mem_singleton_iff, pair_apply, prod.mk.inj_iff] at ha',
       show f a' ≠ g a',
       rwa [ha'.1, ha'.2] },
@@ -664,7 +664,7 @@ lemma dist_to_simple_func (f g : α →₁ₛ β) : dist f g =
   ennreal.to_real (∫⁻ x, edist (f.to_simple_func x) (g.to_simple_func x)) :=
 begin
   rw [dist_eq, l1.dist_to_fun, ennreal.to_real_eq_to_real],
-  { rw lintegral_rw₂, repeat { exact all_ae_eq_symm (to_simple_func_eq_to_fun _) } },
+  { rw lintegral_rw₂, repeat { exact ae_eq_symm (to_simple_func_eq_to_fun _) } },
   { exact l1.lintegral_edist_to_fun_lt_top _ _ },
   { exact lintegral_edist_to_simple_func_lt_top _ _ }
 end
@@ -705,7 +705,8 @@ end
 end to_simple_func
 
 section coe_to_l1
-/-! The embedding of integrable simple functions `α →₁ₛ β` into L1 is a uniform and dense embedding. -/
+/-! The embedding of integrable simple functions `α →₁ₛ β` into L1 is a uniform and dense
+embedding. -/
 
 lemma exists_simple_func_near (f : α →₁ β) {ε : ℝ} (ε0 : 0 < ε) :
   ∃ s : α →₁ₛ β, dist f s < ε :=

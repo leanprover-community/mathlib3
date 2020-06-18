@@ -390,6 +390,15 @@ mt (congr_arg (%2)) (by rw [add_comm, add_mul_mod_self_left, mul_mod_right]; exa
 protected def strong_rec' {p : ℕ → Sort u} (H : ∀ n, (∀ m, m < n → p m) → p n) : ∀ (n : ℕ), p n
 | n := H n (λ m hm, strong_rec' m)
 
+/-- Recursion principle based on `<` applied to some natural number. -/
+@[elab_as_eliminator]
+def strong_rec_on' {P : ℕ → Sort*} (n : ℕ) (h : ∀ n, (∀ m, m < n → P m) → P n) : P n :=
+nat.strong_rec' h n
+
+theorem strong_rec_on_beta' {P : ℕ → Sort*} {h} {n : ℕ} :
+  (strong_rec_on' n h : P n) = h n (λ m hmn, (strong_rec_on' m h : P m)) :=
+by { simp only [strong_rec_on'], rw nat.strong_rec' }
+
 attribute [simp] nat.div_self
 
 protected lemma div_le_of_le_mul' {m n : ℕ} {k} (h : m ≤ k * n) : m / k ≤ n :=

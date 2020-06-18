@@ -17,6 +17,11 @@ variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
 /-- A relation `p` holds pairwise if `p i j` for all `i ≠ j`. -/
 def pairwise {α : Type*} (p : α → α → Prop) := ∀i j, i ≠ j → p i j
 
+theorem set.pairwise_on.on_injective {s : set α} {r : α → α → Prop} (hs : pairwise_on s r)
+  {f : β → α} (hf : function.injective f) (hfs : ∀ x, f x ∈ s) :
+  pairwise (r on f) :=
+λ i j hij, hs _ (hfs i) _ (hfs j) (hf.ne hij)
+
 theorem pairwise_on_bool {r} (hr : symmetric r) {a b : α} :
   pairwise (r on (λ c, cond c a b)) ↔ r a b :=
 by simp [pairwise, bool.forall_bool, function.on_fun];
@@ -25,6 +30,9 @@ by simp [pairwise, bool.forall_bool, function.on_fun];
 theorem pairwise_disjoint_on_bool [semilattice_inf_bot α] {a b : α} :
   pairwise (disjoint on (λ c, cond c a b)) ↔ disjoint a b :=
 pairwise_on_bool $ λ _ _, disjoint.symm
+
+theorem pairwise.pairwise_on {p : α → α → Prop} (h : pairwise p) (s : set α) : s.pairwise_on p :=
+λ x hx y hy, h x y
 
 namespace set
 

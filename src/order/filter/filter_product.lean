@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Abhimanyu Pallavi Sudhir
 "Filterproducts" (ultraproducts on general filters), ultraproducts.
 -/
-import order.filter.basic
+import order.filter.ultrafilter
 import algebra.pi_instances
 
 universes u v

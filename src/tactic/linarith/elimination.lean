@@ -153,4 +153,43 @@ ground comparisons. If this succeeds without exception, the original `linarith` 
 meta def elim_all_vars : linarith_monad unit :=
 get_var_list >>= list.mmap' monad.elim_var
 
+
+open tactic
+
+-- TODO: update doc
+/--
+`mk_linarith_structure red l` takes a list of proofs of props of the form `t {<, ≤, =} 0`,
+and creates a `linarith_structure`. The transparency setting `red` is used to unify atoms.
+
+Along with a `linarith_structure`, it produces a map `ℕ → (expr × expr)`.
+This map assigns indices to the hypotheses in `l`. It maps a natural number `n` to a pair
+`(prf, tp)`, where `prf` is the `n`th element of `l` and is a proof of the comparison `tp`.
+-/
+meta def mk_linarith_structure (hyps : list (comp)) (vars : rb_set ℕ) :
+   (linarith_structure) := -- × rb_map ℕ (expr × expr)) :=
+let enum_hyps := hyps.enum,
+    pcomp_list : list pcomp := enum_hyps.map $ λ ⟨n, cmp⟩, ⟨cmp, comp_source.assump n⟩,
+    pcomp_set := rb_set.of_list_core mk_pcomp_set pcomp_list in
+⟨vars, pcomp_set⟩
+
+/- do pftps ← l.mmap infer_type,
+  (l', _, map) ← to_comp_fold red mk_rb_map pftps mk_rb_map,
+  let lz := list.enum $ (l.zip pftps).zip l',
+  let prmap := rb_map.of_list $ lz.map (λ ⟨n, x⟩, (n, x.1)),
+--  let vars : rb_set ℕ := rb_map.set_of_list $ list.range map.size,
+  let pc : rb_set pcomp :=
+    rb_set.of_list_core mk_pcomp_set $ lz.map (λ ⟨n, x⟩, ⟨x.2, comp_source.assump n⟩),
+  return (⟨vars, pc⟩, prmap) -/
+
+meta def pcomp.produce_certificate (p : pcomp) : rb_map ℕ ℕ :=
+p.src.flatten
+
+meta def fourier_motzkin.produce_certificate (hyps : list comp) (vars : rb_set ℕ) :
+  option (rb_map ℕ ℕ) :=
+let state := mk_linarith_structure hyps vars in
+match except_t.run (state_t.run (validate >> elim_all_vars) state) with
+| (except.ok (a, _)) := none
+| (except.error contr) := contr.produce_certificate
+end
+
 end linarith

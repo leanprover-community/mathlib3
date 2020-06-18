@@ -92,7 +92,7 @@ open ineq tactic
 /-! #### Parsing algorithms -/
 
 /--
-`map_of_expr red map e` computes the linear form of `e`.
+`linear_form_of_expr red map e` computes the linear form of `e`.
 
 `map` is a lookup map from atomic expressions to variable numbers.
 If a new atomic expression is encountered, it is added to the map with a new number.
@@ -101,20 +101,20 @@ It matches atomic expressions up to reducibility given by `red`.
 Because it matches up to definitional equality, this function must be in the `tactic` monad,
 and forces some functions that call it into `tactic` as well.
 -/
-meta def map_of_expr (red : transparency) : expr_map ℕ → expr → tactic (expr_map ℕ × sum)
+meta def linear_form_of_expr (red : transparency) : expr_map ℕ → expr → tactic (expr_map ℕ × sum)
 | m e@`(%%e1 * %%e2) :=
-   do (m', comp1) ← map_of_expr m e1,
-      (m', comp2) ← map_of_expr m' e2,
+   do (m', comp1) ← linear_form_of_expr m e1,
+      (m', comp2) ← linear_form_of_expr m' e2,
       return (m', comp1.mul comp2)
 | m `(%%e1 + %%e2) :=
-   do (m', comp1) ← map_of_expr m e1,
-      (m', comp2) ← map_of_expr m' e2,
+   do (m', comp1) ← linear_form_of_expr m e1,
+      (m', comp2) ← linear_form_of_expr m' e2,
       return (m', comp1.add comp2)
 | m `(%%e1 - %%e2) :=
-   do (m', comp1) ← map_of_expr m e1,
-      (m', comp2) ← map_of_expr m' e2,
+   do (m', comp1) ← linear_form_of_expr m e1,
+      (m', comp2) ← linear_form_of_expr m' e2,
       return (m', comp1.add (comp2.scale (-1)))
-| m `(-%%e) := do (m', comp) ← map_of_expr m e, return (m', comp.scale (-1))
+| m `(-%%e) := do (m', comp) ← linear_form_of_expr m e, return (m', comp.scale (-1))
 | m e :=
   match e.to_int with
   | some 0 := return ⟨m, mk_rb_map⟩
@@ -123,6 +123,12 @@ meta def map_of_expr (red : transparency) : expr_map ℕ → expr → tactic (ex
     (do k ← m.find_defeq red e, return (m, var k)) <|>
     (let n := m.size + 1 in return (m.insert e n, var n))
   end
+
+meta def linear_forms_of_exprs (red : transparency) (l : list expr) :
+  tactic (expr_map ℕ × list sum) :=
+l.mfoldl
+  (λ ⟨map, ls⟩ e, do (map, se) ← linear_form_of_expr red map e, return (map, se::ls))
+  (mk_rb_map, [])
 
 /--
 `sum_to_lf s map` eliminates the monomial level of the `sum` `s`.
@@ -149,7 +155,7 @@ Both of these are updated during processing and returned.
 meta def to_comp (red : transparency) (e : expr) (e_map : expr_map ℕ) (monom_map : rb_map monom ℕ) :
   tactic (comp × expr_map ℕ × rb_map monom ℕ) :=
 do (iq, e) ← parse_into_comp_and_expr e,
-   (m', comp') ← map_of_expr red e_map e,
+   (m', comp') ← linear_form_of_expr red e_map e,
    let ⟨nm, mm'⟩ := sum_to_lf comp' monom_map,
    return ⟨⟨iq, mm'.to_linexp⟩,m',nm⟩
 
@@ -165,44 +171,12 @@ meta def to_comp_fold (red : transparency) : expr_map ℕ → list expr → rb_m
       (l, mp, mm') ← to_comp_fold m' t mm',
       return (c::l, mp, mm')
 
-/-! ### Control functions -/
+meta def comps_and_map_of_proofs (red : transparency) (pfs : list expr) :
+  tactic (list comp × rb_set ℕ) :=
+do pftps ← pfs.mmap infer_type,
+   (l, _, map) ← to_comp_fold red mk_rb_map pftps mk_rb_map,
+   return (l, rb_map.set_of_list $ list.range map.size)
 
-/--
-`mk_linarith_structure red l` takes a list of proofs of props of the form `t {<, ≤, =} 0`,
-and creates a `linarith_structure`. The transparency setting `red` is used to unify atoms.
-
-Along with a `linarith_structure`, it produces a map `ℕ → (expr × expr)`.
-This map assigns indices to the hypotheses in `l`. It maps a natural number `n` to a pair
-`(prf, tp)`, where `prf` is the `n`th element of `l` and is a proof of the comparison `tp`.
--/
-meta def mk_linarith_structure (red : transparency) (l : list expr) :
-  tactic (linarith_structure × rb_map ℕ (expr × expr)) :=
-do pftps ← l.mmap infer_type,
-  (l', _, map) ← to_comp_fold red mk_rb_map pftps mk_rb_map,
-  let lz := list.enum $ (l.zip pftps).zip l',
-  let prmap := rb_map.of_list $ lz.map (λ ⟨n, x⟩, (n, x.1)),
-  let vars : rb_set ℕ := rb_map.set_of_list $ list.range map.size,
-  let pc : rb_set pcomp :=
-    rb_set.of_list_core mk_pcomp_set $ lz.map (λ ⟨n, x⟩, ⟨x.2, comp_source.assump n⟩),
-  return (⟨vars, pc⟩, prmap)
-
-/--
-`linarith_monad.run red tac l` runs the `linarith` process `tac` on input `l`.
-It returns the value produced by `tac` if `tac` does not find a contradiction.
-Otherwise it returns a `pcomp` representing a proof of `0 < 0`.
-
-It also produces a map `ℕ → (expr × expr)`.
-This map assigns indices to the hypotheses in `l`. It maps a natural number `n` to a pair
-`(prf, tp)`, where `prf` is the `n`th element of `l` and is a proof of the comparison `tp`.
-This map is needed to reconstruct the proof of the discovered contradiction.
- -/
-meta def linarith_monad.run (red : transparency) {α} (tac : linarith_monad α) (l : list expr) :
-  tactic ((pcomp ⊕ α) × rb_map ℕ (expr × expr)) :=
-do (struct, inputs) ← mk_linarith_structure red l,
-match (state_t.run (validate >> tac) struct).run with
-| (except.ok (a, _)) := return (sum.inr a, inputs)
-| (except.error contr) := return (sum.inl contr, inputs)
-end
 
 end parse
 
@@ -281,17 +255,17 @@ do (iq, h') ← mk_single_comp_zero_pf coeff npf,
    e' ← to_expr ``(%%n %%pf %%h'),
    return (niq, e')
 
+-- TODO: update doc
 /--
 `mk_lt_zero_pf coeffs pfs` takes a list of coefficients and a list of proofs of the form `tᵢ Rᵢ 0`,
 of equal length. It produces a proof that `∑tᵢ R 0`, where `R` is as strong as possible.
 -/
-meta def mk_lt_zero_pf : list ℕ → list expr → tactic expr
-| _ [] := fail "no linear hypotheses found"
-| [c] [h] := prod.snd <$> mk_single_comp_zero_pf c h
-| (c::ct) (h::t) :=
+meta def mk_lt_zero_pf : list (expr × ℕ) → tactic expr
+| [] := fail "no linear hypotheses found"
+| [(h, c)] := prod.snd <$> mk_single_comp_zero_pf c h
+| ((h, c)::t) :=
   do (iq, h') ← mk_single_comp_zero_pf c h,
-     prod.snd <$> (ct.zip t).mfoldl (λ pr ce, mk_lt_zero_pf_aux pr.1 pr.2 ce.2 ce.1) (iq, h')
-| _ _ := fail "not enough args to mk_lt_zero_pf"
+     prod.snd <$> t.mfoldl (λ pr ce, mk_lt_zero_pf_aux pr.1 pr.2 ce.1 ce.2) (iq, h')
 
 /-- If `prf` is a proof of `t R s`, `term_of_ineq_prf prf` returns `t`. -/
 meta def term_of_ineq_prf (prf : expr) : tactic expr :=
@@ -335,7 +309,7 @@ meta def add_neg_eq_pfs : list expr → tactic (list expr)
   end
 
 /-! #### The main method -/
-
+#check list.filter_map
 /--
 `prove_false_by_linarith` is the main workhorse of `linarith`.
 Given a list `l` of proofs of `tᵢ Rᵢ 0` and a proof state with target `false`,
@@ -348,18 +322,17 @@ meta def prove_false_by_linarith (cfg : linarith_config) : list expr → tactic 
     -- along with negated equality proofs.
     l' ← add_neg_eq_pfs l,
     hz ← ineq_prf_tp h >>= mk_neg_one_lt_zero_pf,
+    let inputs := hz::l',
     -- perform the elimination and fail if no contradiction is found.
-    (sum.inl contr, inputs) ← elim_all_vars.run cfg.transparency (hz::l')
+    (comps, vars) ← comps_and_map_of_proofs cfg.transparency inputs,
+    certificate ← fourier_motzkin.produce_certificate comps vars
       | fail "linarith failed to find a contradiction",
     -- we construct two lists `coeffs` and `pfs` of equal length,
     -- filtering out the comparisons that were not used in deriving the contradiction.
     linarith_trace "linarith has found a contradiction",
-    let coeff_map := contr.src.flatten,
-    let coeffs := inputs.keys.map coeff_map.ifind,
-    let pfs : list expr := inputs.keys.map (λ k, (inputs.ifind k).1),
-    let zip := (coeffs.zip pfs).filter (λ pr, pr.1 ≠ 0),
-    let (coeffs, pfs) := zip.unzip,
-    mls ← zip.mmap (λ pr, do e ← term_of_ineq_prf pr.2, return (mul_expr pr.1 e)),
+    let enum_inputs := inputs.enum,
+    let zip : list (expr × ℕ) := enum_inputs.filter_map $ λ ⟨n, e⟩, prod.mk e <$> certificate.find n,
+    mls ← zip.mmap (λ ⟨e, n⟩, do e ← term_of_ineq_prf e, return (mul_expr n e)),
     -- `sm` is the sum of input terms, scaled to cancel out all variables.
     sm ← to_expr $ add_exprs mls,
     pformat! "The expression\n  {sm}\nshould be both 0 and negative" >>= linarith_trace,
@@ -367,7 +340,7 @@ meta def prove_false_by_linarith (cfg : linarith_config) : list expr → tactic 
     sm_eq_zero ← prove_eq_zero_using cfg.discharger sm,
     linarith_trace "We have proved that it is zero",
     -- we also prove that `sm < 0`.
-    sm_lt_zero ← mk_lt_zero_pf coeffs pfs,
+    sm_lt_zero ← mk_lt_zero_pf zip,
     linarith_trace "We have proved that it is negative",
     -- this is a contradiction.
     pftp ← infer_type sm_lt_zero,

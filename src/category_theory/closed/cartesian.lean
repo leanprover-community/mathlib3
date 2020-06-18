@@ -98,7 +98,8 @@ closed.is_adj.adj.unit
 notation A ` ⟹ `:20 B:20 := (exp A).obj B
 notation B ` ^^ `:30 A:30 := (exp A).obj B
 
-@[simp, reassoc] lemma ev_coev : limits.prod.map (𝟙 A) ((coev A).app B) ≫ (ev A).app (A ⨯ B) = 𝟙 (A ⨯ B) :=
+@[simp, reassoc] lemma ev_coev :
+  limits.prod.map (𝟙 A) ((coev A).app B) ≫ (ev A).app (A ⨯ B) = 𝟙 (A ⨯ B) :=
 adjunction.left_triangle_components (exp.adjunction A)
 
 @[simp, reassoc] lemma coev_ev : (coev A).app (A⟹B) ≫ (exp A).map ((ev A).app B) = 𝟙 (A⟹B) :=
@@ -280,15 +281,15 @@ def prod_coprod_distrib [has_binary_coproducts.{v} C] [cartesian_closed C] (X Y 
   hom_inv_id' :=
   begin
     apply coprod.hom_ext,
-    rw [coprod.inl_desc_assoc, comp_id, ← uncurry_natural_left, coprod.inl_desc, uncurry_curry],
-    rw [coprod.inr_desc_assoc, comp_id, ← uncurry_natural_left, coprod.inr_desc, uncurry_curry],
+    rw [coprod.inl_desc_assoc, comp_id, ←uncurry_natural_left, coprod.inl_desc, uncurry_curry],
+    rw [coprod.inr_desc_assoc, comp_id, ←uncurry_natural_left, coprod.inr_desc, uncurry_curry],
   end,
   inv_hom_id' :=
   begin
-    rw [← uncurry_natural_right, ← eq_curry_iff],
+    rw [← uncurry_natural_right, ←eq_curry_iff],
     apply coprod.hom_ext,
-    rw [coprod.inl_desc_assoc, ← curry_natural_right, coprod.inl_desc, ← curry_natural_left, comp_id],
-    rw [coprod.inr_desc_assoc, ← curry_natural_right, coprod.inr_desc, ← curry_natural_left, comp_id],
+    rw [coprod.inl_desc_assoc, ←curry_natural_right, coprod.inl_desc, ←curry_natural_left, comp_id],
+    rw [coprod.inr_desc_assoc, ←curry_natural_right, coprod.inr_desc, ←curry_natural_left, comp_id],
   end }
 
 /--
@@ -324,30 +325,35 @@ def cartesian_closed_of_equiv (e : C ≌ D) [h : cartesian_closed C] : cartesian
     begin
       haveI q : exponentiable (e.inverse.obj X) := infer_instance,
       have : is_left_adjoint (prod_functor.obj (e.inverse.obj X)) := q.is_adj,
-      have: e.functor ⋙ prod_functor.obj X ⋙ e.inverse ≅ prod_functor.obj (e.inverse.obj X),
+      have : e.functor ⋙ prod_functor.obj X ⋙ e.inverse ≅ prod_functor.obj (e.inverse.obj X),
       apply nat_iso.of_components _ _,
       intro Y,
-      apply as_iso (prod_comparison e.inverse X (e.functor.obj Y)) ≪≫ _,
-      refine ⟨limits.prod.map (𝟙 _) (e.unit_inv.app _),
+      { apply as_iso (prod_comparison e.inverse X (e.functor.obj Y)) ≪≫ _,
+        exact ⟨limits.prod.map (𝟙 _) (e.unit_inv.app _),
               limits.prod.map (𝟙 _) (e.unit.app _),
-              by simpa [← prod_map_id_comp, prod_map_id_id],
-              by simpa [← prod_map_id_comp, prod_map_id_id]⟩,
-      intros Y Z g,
-      simp only [prod_comparison, inv_prod_comparison_map_fst, inv_prod_comparison_map_snd,
-                 prod.lift_map, equivalence.unit_inv, functor.comp_map,
-                 prod_functor_obj_map, assoc, comp_id, iso.trans_hom, as_iso_hom],
-      apply prod.hom_ext,
-      rw [assoc, prod.lift_fst, prod.lift_fst, ← functor.map_comp, limits.prod.map_fst, comp_id],
-      rw [assoc, prod.lift_snd, prod.lift_snd, ← functor.map_comp_assoc, limits.prod.map_snd],
-      simp only [equivalence.unit, equivalence.unit_inv, nat_iso.hom_inv_id_app, assoc, equivalence.inv_fun_map, functor.map_comp, comp_id],
-      erw comp_id,
-      haveI : is_left_adjoint (e.functor ⋙ prod_functor.obj X ⋙ e.inverse) := adjunction.left_adjoint_of_nat_iso this.symm,
-      haveI : is_left_adjoint (e.inverse ⋙ e.functor ⋙ prod_functor.obj X ⋙ e.inverse) := adjunction.left_adjoint_of_comp e.inverse _,
-      have : (e.inverse ⋙ e.functor ⋙ prod_functor.obj X ⋙ e.inverse) ⋙ e.functor ≅ prod_functor.obj X,
-        apply iso_whisker_right e.counit_iso (prod_functor.obj X ⋙ e.inverse ⋙ e.functor) ≪≫ _,
-        change prod_functor.obj X ⋙ e.inverse ⋙ e.functor ≅ prod_functor.obj X,
-        apply iso_whisker_left (prod_functor.obj X) e.counit_iso,
-      apply adjunction.left_adjoint_of_nat_iso this,
+              by simpa [←prod_map_id_comp, prod_map_id_id],
+              by simpa [←prod_map_id_comp, prod_map_id_id]⟩, },
+      { intros Y Z g,
+        simp only [prod_comparison, inv_prod_comparison_map_fst, inv_prod_comparison_map_snd,
+                  prod.lift_map, equivalence.unit_inv, functor.comp_map,
+                  prod_functor_obj_map, assoc, comp_id, iso.trans_hom, as_iso_hom],
+        apply prod.hom_ext,
+        { rw [assoc, prod.lift_fst, prod.lift_fst, ←functor.map_comp,
+            limits.prod.map_fst, comp_id], },
+        { rw [assoc, prod.lift_snd, prod.lift_snd, ←functor.map_comp_assoc, limits.prod.map_snd],
+          simp only [equivalence.unit, equivalence.unit_inv, nat_iso.hom_inv_id_app, assoc,
+            equivalence.inv_fun_map, functor.map_comp, comp_id],
+          erw comp_id, }, },
+      { haveI : is_left_adjoint (e.functor ⋙ prod_functor.obj X ⋙ e.inverse) :=
+          adjunction.left_adjoint_of_nat_iso this.symm,
+        haveI : is_left_adjoint (e.inverse ⋙ e.functor ⋙ prod_functor.obj X ⋙ e.inverse) :=
+          adjunction.left_adjoint_of_comp e.inverse _,
+        have : (e.inverse ⋙ e.functor ⋙ prod_functor.obj X ⋙ e.inverse) ⋙ e.functor ≅
+          prod_functor.obj X,
+        { apply iso_whisker_right e.counit_iso (prod_functor.obj X ⋙ e.inverse ⋙ e.functor) ≪≫ _,
+          change prod_functor.obj X ⋙ e.inverse ⋙ e.functor ≅ prod_functor.obj X,
+          apply iso_whisker_left (prod_functor.obj X) e.counit_iso, },
+        apply adjunction.left_adjoint_of_nat_iso this, },
     end } }
 
 variables [cartesian_closed C] [cartesian_closed D]
@@ -374,7 +380,8 @@ end
 
 /-- The exponential comparison map is natural in its right argument. -/
 lemma exp_comparison_natural_right (A B B' : C) (f : B ⟶ B') :
-  exp_comparison F A B ≫ (exp (F.obj A)).map (F.map f) = F.map ((exp A).map f) ≫ exp_comparison F A B' :=
+  exp_comparison F A B ≫ (exp (F.obj A)).map (F.map f) =
+    F.map ((exp A).map f) ≫ exp_comparison F A B' :=
 by
   erw [exp_comparison, ← curry_natural_right, curry_eq_iff, exp_comparison, uncurry_natural_left,
        uncurry_curry, assoc, ← F.map_comp, ← (ev _).naturality, F.map_comp,

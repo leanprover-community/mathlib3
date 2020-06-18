@@ -694,6 +694,18 @@ begin
     intros, rw dif_neg, intro, cc }
 end
 
+@[simp, to_additive]
+lemma prod_dite_eq' [decidable_eq α] (s : finset α) (a : α) (b : Π x : α, x = a → β) :
+  (∏ x in s, (if h : x = a then b x h else 1)) = ite (a ∈ s) (b a rfl) 1 :=
+begin
+  split_ifs with h,
+  { rw [finset.prod_eq_single a, dif_pos rfl],
+    { intros, rw dif_neg, cc },
+    { cc } },
+  { rw finset.prod_eq_one,
+    intros, rw dif_neg, intro, cc }
+end
+
 /-- A product over all subsets of `s ∪ {x}` is obtained by multiplying the product over all subsets
 of `s`, and over all subsets of `s` to which one adds `x`. -/
 @[to_additive]

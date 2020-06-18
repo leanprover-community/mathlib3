@@ -617,7 +617,7 @@ begin
   intro j,
   apply biproduct.hom_ext',
   intro j',
-  simp [sum_comp, comp_sum, biproduct.ι_π, comp_dite, sum_dite_eq],
+  simp [sum_comp, comp_sum, biproduct.ι_π, comp_dite],
 end
 
 /-- If a preadditive category has all products, then it has all preadditive biproducts. -/
@@ -626,7 +626,7 @@ def has_preadditive_biproducts_of_has_products [has_products.{v} C] :
 ⟨λ _ _ _ f, by exactI has_preadditive_biproduct.of_has_product f⟩
 
 /-- If a preadditive category has all coproducts, then it has all preadditive biproducts. -/
-def has_preadditive_binary_biproducts_of_has_binary_coproducts [has_coproducts.{v} C] :
+def has_preadditive_biproducts_of_has_coproducts [has_coproducts.{v} C] :
   has_preadditive_biproducts.{v} C :=
 ⟨λ _ _ _ f, by exactI has_preadditive_biproduct.of_has_coproduct f⟩
 

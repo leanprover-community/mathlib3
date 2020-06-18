@@ -929,6 +929,27 @@ do l' ← replace_nat_pfs l,
 
 end normalize
 
+/--
+`find_squares m e` collects all terms of the form `a ^ 2` and `a * a` that appear in `e`
+and adds them to the set `m`.
+A pair `(a, tt)` is added to `m` when `a^2` appears in `e`, and `(a, ff)` is added to `m`
+when `a*a` appears in `e`.  -/
+meta def find_squares : rb_set (expr × bool) → expr → tactic (rb_set (expr × bool))
+| s `(%%a ^ 2) := do s ← find_squares s a, return (s.insert (a, tt))
+| s e@`(%%e1 * %%e2) := if e1 = e2 then do s ← find_squares s e1, return (s.insert (e1, ff)) else e.mfoldl find_squares s
+| s e := e.mfoldl find_squares s
+
+-- used in the `nlinarith` normalization steps. The `_` argument is for uniformity.
+@[nolint unused_arguments]
+lemma mul_zero_eq {α} {R : α → α → Prop} [semiring α] {a b : α} (_ : R a 0) (h : b = 0) : a * b = 0 :=
+by simp [h]
+
+-- used in the `nlinarith` normalization steps. The `_` argument is for uniformity.
+@[nolint unused_arguments]
+lemma zero_mul_eq {α} {R : α → α → Prop} [semiring α] {a b : α} (h : a = 0) (_ : R b 0) : a * b = 0 :=
+by simp [h]
+
+
 end linarith
 
 section
@@ -1045,11 +1066,78 @@ optional arguments:
   hypotheses.
 * If `exfalso` is false, `linarith` will fail when the goal is neither an inequality nor `false`.
   (True by default.)
+
+A variant, `nlinarith`, does some basic preprocessing to handle some nonlinear goals.
 -/
 add_tactic_doc
 { name       := "linarith",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.linarith],
+  tags       := ["arithmetic", "decision procedure", "finishing"] }
+
+/--
+An extension of `linarith` with some preprocessing to allow it to solve some nonlinear arithmetic
+problems. (Based on Coq's `nra` tactic.) See `linarith` for the available syntax of options,
+which are inherited by `nlinarith`; that is, `nlinarith!` and `nlinarith only [h1, h2]` all work as
+in `linarith`. The preprocessing is as follows:
+
+* For every subterm `a ^ 2` or `a * a` in a hypothesis or the goal,
+  the assumption `0 ≤ a ^ 2` or `0 ≤ a * a` is added to the context.
+* For every pair of hypotheses `a1 R1 b1`, `a2 R2 b2` in the context, `R1, R2 ∈ {<, ≤, =}`,
+  the assumption `0 R' (b1 - a1) * (b2 - a2)` is added to the context (non-recursively),
+  where `R ∈ {<, ≤, =}` is the appropriate comparison derived from `R1, R2`.
+-/
+meta def tactic.interactive.nlinarith (red : parse ((tk "!")?))
+  (restr : parse ((tk "only")?)) (hyps : parse pexpr_list?)
+  (cfg : linarith_config := {}) : tactic unit := do
+  ls ← match hyps with
+    | none := if restr.is_some then return [] else local_context
+    | some hyps := do
+      ls ← hyps.mmap i_to_expr,
+      if restr.is_some then return ls else (++ ls) <$> local_context
+    end,
+  (s, ge0) ← (list.mfoldr (λ h ⟨s, l⟩, do
+      h ← infer_type h >>= rearr_comp h <|> return h,
+      t ← infer_type h,
+      s ← find_squares s t,
+      return (s, match t with
+        | `(%%a ≤ 0) := (ineq.le, h) :: l
+        | `(%%a < 0) := (ineq.lt, h) :: l
+        | `(%%a = 0) := (ineq.eq, h) :: l
+        | _ := l end))
+    (mk_rb_set, []) ls : tactic (rb_set (expr × bool) × list (ineq × expr))),
+  s ← target >>= find_squares s,
+  (hyps, ge0) ← s.fold (return (hyps, ge0)) (λ ⟨e, is_sq⟩ tac, do
+    (hyps, ge0) ← tac,
+    (do
+      t ← infer_type e,
+      when cfg.restrict_type.is_some
+        (is_def_eq `(some %%t : option Type) cfg.restrict_type_reflect),
+      p ← mk_app (if is_sq then ``pow_two_nonneg else ``mul_self_nonneg) [e],
+      p ← infer_type p >>= rearr_comp p <|> return p,
+      t ← infer_type p,
+      h ← assertv `h t p,
+      return (hyps.map (λ l, pexpr.of_expr h :: l), (ineq.le, h) :: ge0)) <|>
+    return (hyps, ge0)),
+  ge0.mmap'_diag (λ ⟨posa, a⟩ ⟨posb, b⟩, do
+    p ←  match posa, posb with
+      | ineq.eq, _ := mk_app ``zero_mul_eq [a, b]
+      | _, ineq.eq := mk_app ``mul_zero_eq [a, b]
+      | ineq.lt, ineq.lt := mk_app ``mul_pos_of_neg_of_neg [a, b]
+      | ineq.lt, ineq.le := do a ← mk_app ``le_of_lt [a], mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
+      | ineq.le, ineq.lt := do b ← mk_app ``le_of_lt [b], mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
+      | ineq.le, ineq.le := mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
+      end,
+    t ← infer_type p,
+    assertv `h t p, skip),
+  tactic.interactive.linarith red restr hyps cfg
+
+add_hint_tactic "nlinarith"
+
+add_tactic_doc
+{ name       := "nlinarith",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.nlinarith],
   tags       := ["arithmetic", "decision procedure", "finishing"] }
 
 end

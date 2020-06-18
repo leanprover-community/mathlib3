@@ -85,10 +85,7 @@ variables (α β)
 
 /-- The equivalence relation of being almost everywhere equal -/
 instance ae_eq_fun.setoid : setoid { f : α → β // measurable f } :=
-⟨ λf g, ∀ₘ a, f.1 a = g.1 a,
-  assume ⟨f, hf⟩, by filter_upwards [] assume a, rfl,
-  assume ⟨f, hf⟩ ⟨g, hg⟩ hfg, by filter_upwards [hfg] assume a, eq.symm,
-  assume ⟨f, hf⟩ ⟨g, hg⟩ ⟨h, hh⟩ hfg hgh, by filter_upwards [hfg, hgh] assume a, eq.trans ⟩
+⟨λf g, ∀ₘ a, f.1 a = g.1 a, λ f, ae_eq_refl f, λ f g, ae_eq_symm, λ f g h, ae_eq_trans⟩
 
 /-- The space of equivalence classes of measurable functions, where two measurable functions are
     equivalent if they agree almost everywhere, i.e., they differ on a set of measure `0`.  -/
@@ -188,7 +185,7 @@ by { rw comp₂_eq_mk_to_fun, apply all_ae_mk_to_fun }
 def lift_pred (p : β → Prop) (f : α →ₘ β) : Prop :=
 quotient.lift_on f (λf, ∀ₘ a, p (f.1 a))
 begin
-  assume f g h, dsimp, refine propext (all_ae_congr _),
+  assume f g h, dsimp, refine propext (eventually_congr _),
   filter_upwards [h], simp {contextual := tt}
 end
 
@@ -276,10 +273,10 @@ comp₂_to_fun _ _ _ _
 instance : add_monoid (α →ₘ γ) :=
 { zero      := 0,
   add       := (+),
-  add_zero  := by rintros ⟨a⟩; exact quotient.sound (all_ae_of_all $ assume a, add_zero _),
-  zero_add  := by rintros ⟨a⟩; exact quotient.sound (all_ae_of_all $ assume a, zero_add _),
+  add_zero  := by rintros ⟨a⟩; exact quotient.sound (ae_of_all _ $ assume a, add_zero _),
+  zero_add  := by rintros ⟨a⟩; exact quotient.sound (ae_of_all _ $ assume a, zero_add _),
   add_assoc :=
-    by rintros ⟨a⟩ ⟨b⟩ ⟨c⟩; exact quotient.sound (all_ae_of_all $ assume a, add_assoc _ _ _) }
+    by rintros ⟨a⟩ ⟨b⟩ ⟨c⟩; exact quotient.sound (ae_of_all _ $ assume a, add_assoc _ _ _) }
 
 end add_monoid
 
@@ -308,7 +305,7 @@ lemma neg_to_fun (f : α →ₘ γ) : ∀ₘ a, (-f).to_fun a = - f.to_fun a := 
 variables [second_countable_topology γ]
 instance : add_group (α →ₘ γ) :=
 { neg          := has_neg.neg,
-  add_left_neg := by rintros ⟨a⟩; exact quotient.sound (all_ae_of_all $ assume a, add_left_neg _),
+  add_left_neg := by rintros ⟨a⟩; exact quotient.sound (ae_of_all _ $ assume a, add_left_neg _),
   .. ae_eq_fun.add_monoid }
 
 @[simp] lemma mk_sub_mk (f g : α → γ) (hf hg) :
@@ -472,7 +469,7 @@ variables {γ : Type*} [metric_space γ] [second_countable_topology γ] [measura
 lemma edist_mk_mk' {f g : α → γ} (hf hg) :
   edist (mk f hf) (mk g hg) = ∫⁻ x, nndist (f x) (g x) :=
 show  (∫⁻ x, edist (f x) (g x)) =  ∫⁻ x, nndist (f x) (g x), from
-lintegral_congr_ae $all_ae_of_all $ assume a, edist_nndist _ _
+lintegral_congr_ae $ ae_of_all _ $ assume a, edist_nndist _ _
 
 lemma edist_to_fun' (f g : α →ₘ γ) : edist f g = ∫⁻ x, nndist (f.to_fun x) (g.to_fun x) :=
 by conv_lhs { rw [self_eq_mk f, self_eq_mk g, edist_mk_mk'] }

@@ -19,18 +19,18 @@ as they are simultaneously limits and colimits.
 We treat first the case of a general category with zero morphisms,
 and subsequently the case of a preadditive category.
 
-In a category with zero morphisms, we module the (binary) biproduct of `P Q : C`
-using a `binary_bicone`, with a cone point `X`,
+In a category with zero morphisms, we model the (binary) biproduct of `P Q : C`
+using a `binary_bicone`, which has a cone point `X`,
 and morphisms `fst : X ⟶ P`, `snd : X ⟶ Q`, `inl : P ⟶ X` and `inr : X ⟶ Q`,
 such that `inl ≫ fst = 𝟙 P`, `inl ≫ snd = 0`, `inr ≫ fst = 0`, and `inr ≫ snd = 𝟙 Q`.
-Such a `bicone` is a biproduct if the cone is a limit cone, and the cocone is a colimit cocone.
+Such a `binary_bicone` is a biproduct if the cone is a limit cone, and the cocone is a colimit cocone.
 
 In a preadditive category, we prove the equivalence between three notions:
-* a `bicone` which satisfies `total : fst ≫ inl + snd ≫ inr = 𝟙 X`
-* a `bicone` whose cone is a limit cone,
-* a `bicone` whoce cocone is a colimit cocone.
+* a `binary_bicone` which satisfies `total : fst ≫ inl + snd ≫ inr = 𝟙 X`
+* a `binary_bicone` whose cone is a limit cone,
+* a `binary_bicone` whose cocone is a colimit cocone.
 
-We use the first notion as the definition.
+We use the first notion as the definition of a "preadditive biproduct".
 
 For biproducts indexed by a `fintype J`, a `bicone` again consists of a cone point `X`
 and morphisms `π j : X ⟶ F j` and `ι j : F j ⟶ X` for each `j`,
@@ -411,7 +411,6 @@ binary_fan.is_limit.hom_ext has_binary_biproduct.is_limit h₀ h₁
   (h₀ : biprod.inl ≫ f = biprod.inl ≫ g) (h₁ : biprod.inr ≫ f = biprod.inr ≫ g) : f = g :=
 binary_cofan.is_colimit.hom_ext has_binary_biproduct.is_colimit h₀ h₁
 
--- TODO this is disgusting
 lemma biprod.map_eq_map' {W X Y Z : C} [has_binary_biproduct.{v} W X] [has_binary_biproduct.{v} Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) : biprod.map f g = biprod.map' f g :=
 begin

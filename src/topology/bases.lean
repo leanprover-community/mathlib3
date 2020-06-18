@@ -116,6 +116,13 @@ class separable_space : Prop :=
 class first_countable_topology : Prop :=
 (nhds_generated_countable : ∀a:α, (𝓝 a).is_countably_generated)
 
+namespace first_countable_topology
+variable {α}
+lemma tendsto_subseq [first_countable_topology α] {u : ℕ → α} {x : α} (hx : map u at_top ⊓ 𝓝 x ≠ ⊥) :
+  ∃ (ψ : ℕ → ℕ), (strict_mono ψ) ∧ (tendsto (u ∘ ψ) at_top (𝓝 x)) :=
+(nhds_generated_countable x).subseq_tendsto hx
+end first_countable_topology
+
 /-- A second-countable space is one with a countable basis. -/
 class second_countable_topology : Prop :=
 (is_open_generated_countable [] : ∃b:set (set α), countable b ∧ t = topological_space.generate_from b)

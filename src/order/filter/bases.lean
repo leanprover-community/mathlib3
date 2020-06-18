@@ -3,7 +3,7 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Yury Kudryashov, Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
-import order.filter.basic
+import order.filter.at_top_bot
 import data.set.countable
 
 /-!
@@ -645,6 +645,25 @@ lemma tendsto_of_seq_tendsto {f : α → β} {k : filter α} {l : filter β}
   (hcb : k.is_countably_generated) :
   (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l :=
 hcb.tendsto_iff_seq_tendsto.2
+
+lemma subseq_tendsto {f : filter α} (hf : is_countably_generated f)
+  {u : ℕ → α}
+  (hx : map u at_top ⊓ f ≠ ⊥) :
+  ∃ (θ : ℕ → ℕ), (strict_mono θ) ∧ (tendsto (u ∘ θ) at_top f) :=
+begin
+  rcases hf.has_antimono_basis with ⟨B, h⟩,
+  have : ∀ N, ∃ n ≥ N, u n ∈ B N,
+    from λ N, filter.map_at_top_inf_ne_bot_iff.mp hx _ (h.to_has_basis.mem_of_mem trivial) N,
+  choose φ hφ using this,
+  cases forall_and_distrib.mp hφ with φ_ge φ_in,
+  have lim_uφ : tendsto (u ∘ φ) at_top f,
+    from h.tendsto φ_in,
+  have lim_φ : tendsto φ at_top at_top,
+    from (tendsto_at_top_mono _ φ_ge tendsto_id),
+  obtain ⟨ψ, hψ, hψφ⟩ : ∃ ψ : ℕ → ℕ, strict_mono ψ ∧ strict_mono (φ ∘ ψ),
+    from strict_mono_subseq_of_tendsto_at_top lim_φ,
+  exact ⟨φ ∘ ψ, hψφ, lim_uφ.comp $ strict_mono_tendsto_at_top hψ⟩,
+end
 
 end is_countably_generated
 

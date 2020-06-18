@@ -333,6 +333,10 @@ class comm_semiring (α : Type u) extends semiring α, comm_monoid α
 section comm_semiring
 variables [comm_semiring α] [comm_semiring β] {a b c : α}
 
+lemma add_mul_self_eq (a b : α) : (a + b) * (a + b) = a*a + 2*a*b + b*b :=
+calc (a + b)*(a + b) = a*a + (1+1)*a*b + b*b : by simp [add_mul, mul_add, mul_comm, add_assoc]
+              ...     = a*a + 2*a*b + b*b    : by rw one_add_one_eq_two
+
 instance comm_semiring_has_dvd : has_dvd α :=
 has_dvd.mk (λ a b, ∃ c, b = a * c)
 
@@ -341,12 +345,12 @@ has_dvd.mk (λ a b, ∃ c, b = a * c)
 theorem dvd.intro (c : α) (h : a * c = b) : a ∣ b :=
 exists.intro c h^.symm
 
-def dvd_of_mul_right_eq := @dvd.intro
+alias dvd.intro ← dvd_of_mul_right_eq
 
 theorem dvd.intro_left (c : α) (h : c * a = b) : a ∣ b :=
 dvd.intro _ (begin rewrite mul_comm at h, apply h end)
 
-def dvd_of_mul_left_eq := @dvd.intro_left
+alias dvd.intro_left ← dvd_of_mul_left_eq
 
 theorem exists_eq_mul_right_of_dvd (h : a ∣ b) : ∃ c, b = a * c := h
 
@@ -370,7 +374,7 @@ match h₁, h₂ with
   ⟨d * e, show c = a * (d * e), by simp [h₃, h₄]⟩
 end
 
-def dvd.trans := @dvd_trans
+alias dvd_trans ← dvd.trans
 
 theorem eq_zero_of_zero_dvd (h : 0 ∣ a) : a = 0 :=
 dvd.elim h (assume c, assume H' : a = 0 * c, eq.trans H' (zero_mul c))
@@ -597,10 +601,6 @@ begin simp [right_distrib, left_distrib, sub_eq_add_neg] end
 
 lemma mul_self_sub_one_eq (a : α) : a * a - 1 = (a + 1) * (a - 1) :=
 begin simp [right_distrib, left_distrib, sub_eq_add_neg], rw [add_left_comm, add_comm (-a), add_left_comm a], simp end
-
-lemma add_mul_self_eq (a b : α) : (a + b) * (a + b) = a*a + 2*a*b + b*b :=
-calc (a + b)*(a + b) = a*a + (1+1)*a*b + b*b : by simp [right_distrib, left_distrib]
-              ...     = a*a + 2*a*b + b*b     : by rw one_add_one_eq_two
 
 theorem dvd_neg_of_dvd (h : a ∣ b) : (a ∣ -b) :=
 dvd.elim h

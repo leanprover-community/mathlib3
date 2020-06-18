@@ -139,6 +139,9 @@ protected theorem iterate [has_lt α] {f : α → α} (hf : strict_mono f) (n : 
   strict_mono (f^[n]) :=
 nat.rec_on n strict_mono_id (λ n ihn, ihn.comp hf)
 
+lemma id_le {φ : ℕ → ℕ} (h : strict_mono φ) : ∀ n, n ≤ φ n :=
+λ n, nat.rec_on n (nat.zero_le _) (λ n hn, nat.succ_le_of_lt (lt_of_le_of_lt hn $ h $ nat.lt_succ_self n))
+
 section
 variables [linear_order α] [preorder β] {f : α → β}
 

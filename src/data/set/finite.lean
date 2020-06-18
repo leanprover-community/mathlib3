@@ -396,6 +396,33 @@ let ⟨I, Ifin, hI⟩ := finite_subset_Union tfin h in
         exact H }
     end⟩
 
+instance nat.fintype_Iio (n : ℕ) : fintype (Iio n) :=
+fintype.of_finset (finset.range n) $ by simp
+
+/--
+If `P` is some relation between terms of `γ` and sets in `γ`, 
+such that every finite set `t : set γ` has some `c : γ` related to it, 
+then there is a recursively defined sequence `u` in `γ` 
+so `u n` is related to the image of `{0, 1, ..., n-1}` under `u`.
+
+(We use this later to show sequentially compact sets
+are totally bounded.)
+-/
+lemma seq_of_forall_finite_exists  {γ : Type*}
+  {P : γ → set γ → Prop} (h : ∀ t,  finite t → ∃ c, P c t) :
+  ∃ u : ℕ → γ, ∀ n, P (u n) (u '' Iio n) :=
+⟨λ n, @nat.strong_rec_on' (λ _, γ) n $ λ n ih, classical.some $ h
+    (range $ λ m : Iio n, ih m.1 m.2)
+    (finite_range _),
+λ n, begin
+  classical,
+  refine nat.strong_rec_on' n (λ n ih, _),
+  rw nat.strong_rec_on_beta', convert classical.some_spec (h _ _),
+  ext x, split,
+  { rintros ⟨m, hmn, rfl⟩, exact ⟨⟨m, hmn⟩, rfl⟩ },
+  { rintros ⟨⟨m, hmn⟩, rfl⟩, exact ⟨m, hmn, rfl⟩ }
+end⟩
+
 lemma finite_range_ite {p : α → Prop} [decidable_pred p] {f g : α → β} (hf : finite (range f))
   (hg : finite (range g)) : finite (range (λ x, if p x then f x else g x)) :=
 finite_subset (finite_union hf hg) range_ite_subset

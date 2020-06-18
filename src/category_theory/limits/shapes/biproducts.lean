@@ -68,7 +68,9 @@ structure bicone (F : J → C) :=
 (X : C)
 (π : Π j, X ⟶ F j)
 (ι : Π j, F j ⟶ X)
-(ι_π : ∀ j j', ι j ≫ π j' = if h : j = j' then eq_to_hom (congr_arg F h) else 0)
+(ι_π' : ∀ j j', ι j ≫ π j' = if h : j = j' then eq_to_hom (congr_arg F h) else 0 . obviously)
+
+restate_axiom bicone.ι_π'
 
 @[simp] lemma bicone_ι_π_self {F : J → C} (B : bicone F) (j : J) : B.ι j ≫ B.π j = 𝟙 (F j) :=
 by simpa using B.ι_π j j

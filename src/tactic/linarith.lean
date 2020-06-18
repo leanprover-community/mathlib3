@@ -1119,7 +1119,7 @@ meta def tactic.interactive.nlinarith (red : parse ((tk "!")?))
       h ← assertv `h t p,
       return (hyps.map (λ l, pexpr.of_expr h :: l), (ineq.le, h) :: ge0)) <|>
     return (hyps, ge0)),
-  ge0.mmap'_diag (λ ⟨posa, a⟩ ⟨posb, b⟩, do
+  ge0.mmap'_diag (λ ⟨posa, a⟩ ⟨posb, b⟩, try $ do
     p ←  match posa, posb with
       | ineq.eq, _ := mk_app ``zero_mul_eq [a, b]
       | _, ineq.eq := mk_app ``mul_zero_eq [a, b]

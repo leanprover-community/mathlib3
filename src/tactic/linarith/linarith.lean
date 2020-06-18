@@ -84,10 +84,10 @@ do (iq, h') ← mk_single_comp_zero_pf coeff npf,
    e' ← to_expr ``(%%n %%pf %%h'),
    return (niq, e')
 
--- TODO: update doc
 /--
-`mk_lt_zero_pf coeffs pfs` takes a list of coefficients and a list of proofs of the form `tᵢ Rᵢ 0`,
-of equal length. It produces a proof that `∑tᵢ R 0`, where `R` is as strong as possible.
+`mk_lt_zero_pf coeffs pfs` takes a list of proofs of the form `tᵢ Rᵢ 0`,
+paired with coefficients `cᵢ`.
+It produces a proof that `∑cᵢ * tᵢ R 0`, where `R` is as strong as possible.
 -/
 meta def mk_lt_zero_pf : list (expr × ℕ) → tactic expr
 | [] := fail "no linear hypotheses found"
@@ -203,7 +203,14 @@ open tactic linarith
 
 /-! ### Control -/
 
--- return : the type it compares over
+/--
+`apply_contr_lemma` inspects the target to see if it can be moved to a hypothesis by negation.
+For example, a goal `⊢ a ≤ b` can become `a > b ⊢ false`.
+If this is the case, it applies the appropriate lemma and introduces the new hypothesis.
+It returns the type of the terms in the comparison (e.g. the type of `a` and `b` above) and the
+newly introduced local constant.
+Otherwise returns `none`.
+-/
 meta def apply_contr_lemma : tactic (option (expr × expr)) :=
 do t ← target,
    match get_contr_lemma_name_and_type t with
@@ -211,18 +218,30 @@ do t ← target,
    | none := return none
    end
 
-meta def partition_by_type_aux : rb_lmap expr expr → list expr → tactic (rb_lmap expr expr)
-| m [] := return m
-| m (h::t) := do tp ← ineq_prf_tp h, partition_by_type_aux (m.insert tp h) t
-
+/--
+`partition_by_type l` takes a list `l` of proofs of comparisons. It sorts these proofs by
+the type of the variables in the comparison, e.g. `(a : ℚ) < 1` and `(b : ℤ) > c` will be separated.
+Returns a map from a type to a list of comparisons over that type.
+-/
 meta def partition_by_type (l : list expr) : tactic (rb_lmap expr expr) :=
-partition_by_type_aux mk_rb_map l
+l.mfoldl (λ m h, do tp ← ineq_prf_tp h, return $ m.insert tp h) mk_rb_map
 
-
-
+/--
+Given a list `ls` of lists of proofs of comparisons, `try_linarith_on_lists cfg ls` will try to
+prove `false` by calling `linarith` on each list in succession. It will stop at the first proof of
+`false`, and fail if no contradiction is found with any list.
+-/
 meta def try_linarith_on_lists (cfg : linarith_config) (ls : list (list expr)) : tactic unit :=
 (first $ ls.map $ prove_false_by_linarith cfg) <|> fail "linarith failed to find a contradiction"
 
+/--
+Given a list `hyps` of proofs of comparisons, `run_linarith_on_pfs cfg hyps pref_type`
+preprocesses `hyps` according to the list of preprocessors in `cfg`.
+It then partitions the resulting list of hypotheses by type, and runs `linarith` on each class
+in the partition.
+
+If `pref_type` is given, it will first use the class of proofs of comparisons over that type.
+-/
 meta def run_linarith_on_pfs (cfg : linarith_config) (hyps : list expr) (pref_type : option expr) :
   tactic unit :=
 do hyps ← preprocess (cfg.preprocessors.get_or_else default_preprocessors) hyps,
@@ -236,15 +255,19 @@ do hyps ← preprocess (cfg.preprocessors.get_or_else default_preprocessors) hyp
    | none := try_linarith_on_lists cfg (rb_map.values hyp_set)
    end
 
-meta def filter_hyps_to_type (restr_type : expr) : list expr → tactic (list expr)
-| [] := return []
-| (h::t) := do ht ← infer_type h,
+/--
+`filter_hyps_to_type restr_type hyps` takes a list of proofs of comparisons `hyps`, and filters it
+to only those that are comparisons over the type `restr_type`.
+-/
+meta def filter_hyps_to_type (restr_type : expr) (hyps : list expr) : tactic (list expr) :=
+hyps.mfilter $ λ h, do
+  ht ← infer_type h,
   match get_contr_lemma_name_and_type ht with
-  | some (_, h_type) :=
-    do t ← (filter_hyps_to_type t), unify h_type restr_type >> return (h::t) <|> return t
-  | none := filter_hyps_to_type t
+  | some (_, htype) := succeeds $ unify htype restr_type
+  | none := return ff
   end
 
+/-- A hack to allow users to write `{restr_type := ℚ}` in configuration structures. -/
 meta def get_restrict_type (e : expr) : tactic expr :=
 do m ← mk_mvar,
    unify `(some %%m : option Type) e,
@@ -254,6 +277,17 @@ end
 end linarith
 
 open linarith tactic
+
+/--
+`linarith reduce_semi only_on hyps cfg` tries to close the goal using linear arithmetic. It fails
+if it does not succeed at doing this.
+
+* If `reduce_semi` is true, it will unfold semireducible definitions when trying to match atomic
+expressions.
+* `hyps` is a list of proofs of comparisons to include in the search.
+* If `only_on` is true, the search will be restricted to `hyps`. Otherwise it will use all
+  comparisons in the local context.
+-/
 meta def tactic.linarith (reduce_semi : bool) (only_on : bool) (hyps : list pexpr)
   (cfg : linarith_config := {}) : tactic unit :=
 do t ← target,

@@ -1,6 +1,7 @@
 import linear_algebra.finite_dimensional
 import order.zorn
 import ring_theory.algebraic
+import ring_theory.fractional_ideal
 import ring_theory.coprime
 import ring_theory.integral_closure
 import ring_theory.localization
@@ -44,7 +45,28 @@ lemma exists_reduced_factors (a b : R) :
   ∃ a' b' c', (∀ {p}, p ∣ a' → p ∣ b' → is_unit p) ∧ a' * c' = a ∧ b' * c' = b :=
 sorry
 
-lemma mul_mem_non_zero_divisors {a b : R} : a * b ∈ non_zero_divisors R ↔ a ∈ non_zero_divisors R ∧ b ∈ non_zero_divisors R := sorry
+lemma mul_mem_non_zero_divisors {a b : R} : a * b ∈ non_zero_divisors R ↔ a ∈ non_zero_divisors R ∧ b ∈ non_zero_divisors R :=
+begin
+split,
+intro h, split,
+      intros x ha,
+      have hab : x*(a*b)=0,
+        calc x*(a*b) = (x*a)*b : by ring
+         ... = 0*b : by rw ha
+        ...  = 0 : by ring,
+apply h, exact hab,
+      intros x hb,
+      have hab : x*(a*b)=0,
+        calc x*(a*b) = (x*b)*a : by ring
+         ... = 0*a : by rw hb
+        ...  = 0 : by ring,
+apply h, exact hab,
+intro h,cases h with ha hb, intros x hx,
+have hab: a*b*x=0, rw [mul_comm], exact hx,
+apply ha,
+have hba: b*x*a=0, rw [mul_comm,← mul_assoc], exact hab,
+apply hb, rw [mul_assoc,hx],
+end
 
 lemma integrally_closed : integral_closure R f.codomain = ⊥ :=
 begin
@@ -92,6 +114,16 @@ instance : integral_domain (integral_closure R S) :=
   eq_zero_or_eq_zero_of_mul_eq_zero := λ ⟨a, ha⟩ ⟨b, hb⟩ h,
     or.imp subtype.ext.mpr subtype.ext.mpr (eq_zero_or_eq_zero_of_mul_eq_zero (subtype.ext.mp h)),
   ..(integral_closure R S).comm_ring R S }
+
+lemma maximal_ideal_invertible_of_dedekind (h: is_dedekind_domain f) (M : ideal R) :
+(hM : ideal.is_maximal M) : is_fractional f M:=
+
+
+lemma fractional_ideal_invertible_of_dedekind (h : is_dedekind_domain f) (I : fractional_ideal f) :
+I * I⁻¹ = 1 :=
+begin
+sorry
+end
 
 /-- If `f : polynomial R` is a polynomial with root `z`, `to_monic f` is
 a monic polynomial with root `leading_coeff f * z` -/

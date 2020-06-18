@@ -393,6 +393,19 @@ mk_cocone_morphism
   (λ s, ((adjunction.of_left_adjoint h).hom_equiv c s).symm (t.desc_cocone_morphism _))
   (λ s m, (adjunction.hom_equiv_apply_eq _ _ _).1 t.uniq_cocone_morphism)
 
+/--
+The cocone points of two colimit cocones for naturally isomorphic functors
+are themselves isomorphic.
+-/
+def cocone_points_iso_of_nat_iso {F G : J ⥤ C} {s : cocone F} {t : cocone G}
+  (P : is_colimit s) (Q : is_colimit t) (w : F ≅ G) : s.X ≅ t.X :=
+begin
+  let s' := (cocones.precompose_equivalence w).inverse.obj s,
+  have P' : is_colimit s' := of_cocone_equiv _ P,
+  change s'.X ≅ t.X,
+  exact cocone_point_unique_up_to_iso P' Q,
+end
+
 section equivalence
 open category_theory.equivalence
 

@@ -518,7 +518,11 @@ instance (f : J → C) [has_preadditive_biproduct.{v} f] : has_biproduct.{v} f :
       intros j m,
       erw [reassoc_of (h j)],
     end,
-    fac' := λ s j, by simp [sum_comp], },
+    fac' := λ s j,
+    begin
+      simp [sum_comp],
+      sorry,
+    end },
   is_colimit :=
   { desc := λ s, ∑ j, has_preadditive_biproduct.bicone.π j ≫ s.ι.app j,
     uniq' := λ s m h,
@@ -528,7 +532,11 @@ instance (f : J → C) [has_preadditive_biproduct.{v} f] : has_biproduct.{v} f :
       intros j m,
       erw [category.assoc, h],
     end,
-    fac' := λ s j, by simp, } }
+    fac' := λ s j,
+    begin
+      simp,
+      sorry,
+    end } }
 
 section
 variables {f : J → C} [has_preadditive_biproduct.{v} f]
@@ -544,7 +552,10 @@ lemma biproduct.desc_eq {T : C} {g : Π j, f j ⟶ T} :
 
 @[simp, reassoc] lemma biproduct.lift_desc {T U : C} {g : Π j, T ⟶ f j} {h : Π j, f j ⟶ U} :
   biproduct.lift g ≫ biproduct.desc h = ∑ j : J, g j ≫ h j :=
-by simp [biproduct.lift_eq, biproduct.desc_eq]
+begin
+  simp [biproduct.lift_eq, biproduct.desc_eq],
+  sorry,
+end
 
 end
 
@@ -556,11 +567,10 @@ def has_preadditive_biproduct.of_has_product (f : J → C) [has_product.{v} f] :
   has_preadditive_biproduct.{v} f :=
 { bicone :=
   { X := pi_obj f,
-    π := category_theory.limits.pi.π f,
-    ι := sorry,
-    -- inl := prod.lift (𝟙 X) 0,
-    -- inr := prod.lift 0 (𝟙 Y),
-    ι_π := sorry, } }
+    π := limits.pi.π f,
+    ι := λ j, pi.lift (λ j', if h : j = j' then eq_to_hom (congr_arg f h) else 0),
+    ι_π := sorry, },
+  total' := sorry, }
 
 /-- In a preadditive category, if the coproduct over `f : J → C` exists, then the preadditive
     biproduct over `f` exists. -/
@@ -568,11 +578,10 @@ def has_preadditive_biproduct.of_has_coproduct (f : J → C) [has_coproduct.{v} 
   has_preadditive_biproduct.{v} f :=
 { bicone :=
   { X := sigma_obj f,
-    π := sorry,
-    -- fst := coprod.desc (𝟙 X) 0,
-    -- snd := coprod.desc 0 (𝟙 Y),
-    ι := category_theory.limits.sigma.ι f,
-    ι_π := sorry, } }
+    π := λ j, sigma.desc (λ j', if h : j' = j then eq_to_hom (congr_arg f h) else 0),
+    ι := limits.sigma.ι f,
+    ι_π := sorry, },
+  total' := sorry, }
 
 end has_product
 
@@ -588,12 +597,28 @@ class has_preadditive_biproducts :=
 attribute [instance, priority 100] has_preadditive_biproducts.has_preadditive_biproduct
 
 @[priority 100]
-instance [has_preadditive_biproducts.{v} C] : has_biproducts.{v} C :=
-⟨λ X Y, by apply_instance⟩
+instance [has_preadditive_biproducts.{v} C] : has_finite_biproducts.{v} C :=
+⟨λ _ _ _, by apply_instance⟩
 
-lemma biproduct.map_eq [has_biproducts.{v} C] {f g : J → C} {h : Π j, f j ⟶ g j} :
-  biproduct.map f g = biprod.fst ≫ f ≫ biprod.inl + biprod.snd ≫ g ≫ biprod.inr :=
-by apply biprod.hom_ext; apply biprod.hom_ext'; simp
+lemma comp_dite {P : Prop} [decidable P]
+  {X Y Z : C} (f : X ⟶ Y) (g₀ : P → (Y ⟶ Z)) (g₁ : ¬P → (Y ⟶ Z)) :
+  (f ≫ if h : P then g₀ h else g₁ h) = (if h : P then f ≫ g₀ h else f ≫ g₁ h) :=
+by { split_ifs; refl }
+
+lemma dite_comp {P : Prop} [decidable P]
+  {X Y Z : C} (f₀ : P → (X ⟶ Y)) (f₁ : ¬P → (X ⟶ Y)) (g : Y ⟶ Z) :
+  (if h : P then f₀ h else f₁ h) ≫ g = (if h : P then f₀ h ≫ g else f₁ h ≫ g) :=
+by { split_ifs; refl }
+
+lemma biproduct.map_eq [has_finite_biproducts.{v} C] {f g : J → C} {h : Π j, f j ⟶ g j} :
+  biproduct.map h = ∑ j : J, biproduct.π f j ≫ h j ≫ biproduct.ι g j :=
+begin
+  apply biproduct.hom_ext,
+  intro j,
+  apply biproduct.hom_ext',
+  intro j',
+  simp [sum_comp, comp_sum, biproduct.ι_π, comp_dite],
+end
 
 /-- If a preadditive category has all products, then it has all preadditive biproducts. -/
 def has_preadditive_biproducts_of_has_products [has_products.{v} C] :

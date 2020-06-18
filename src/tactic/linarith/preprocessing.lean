@@ -81,7 +81,7 @@ corresponding inequality over `ℤ`, using `tactic.zify_proof`, along with proof
 naturals are nonnegative.
 -/
 meta def mk_int_pfs_of_nat_pf (pf : expr) : tactic (list expr) :=
-do pf' ← zify_proof pf,
+do pf' ← zify_proof [] pf,
    (a, b) ← infer_type pf' >>= get_rel_sides,
    list.cons pf' <$> ((++) <$> mk_coe_nat_nonneg_prfs a <*> mk_coe_nat_nonneg_prfs b)
 
@@ -186,7 +186,7 @@ meta def make_comp_with_zero : preprocessor :=
 It creates a proof of `lhs' R 0`, where all numeric division in `lhs` has been cancelled.
 -/
 meta def normalize_denominators_in_lhs (h lhs : expr) : tactic expr :=
-do (v, lhs') ← cancel_factors.kill_factors lhs,
+do (v, lhs') ← cancel_factors.derive lhs,
    if v = 1 then return h else do
    (ih, h'') ← mk_single_comp_zero_pf v h,
    (_, nep, _) ← infer_type h'' >>= rewrite_core lhs',

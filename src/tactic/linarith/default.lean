@@ -1,1 +1,1 @@
-import tactic.linarith.interactive
+import tactic.linarith.frontend

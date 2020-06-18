@@ -1,23 +1,148 @@
 /-
-Copyright (c) 2020 Robert Y. Lewis. All rights reserved.
+Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Robert Y. Lewis
+Author: Robert Y. Lewis
 -/
 
-import tactic.linarith.linarith
+import tactic.linarith.verification
+import tactic.linarith.preprocessing
 
 /-!
 # The `linarith` frontend
 
-This file contains the interactive frontend for `linarith` and the variant `nlinarith`.
+This file contains the user-facing component of `linarith`.
+
+## Main declarations
+
+* `tactic.linarith`
+* `tactic.interactive.linarith`
+* `tactic.interactive.nlinarith`
+
 
 ## Tags
 
 linarith, nlinarith, lra, nra, Fourier Motzkin, linear arithmetic, linear programming
 -/
 
-setup_tactic_parser
+open tactic native
+
+namespace linarith
+
+/-! ### Control -/
+
+/--
+`apply_contr_lemma` inspects the target to see if it can be moved to a hypothesis by negation.
+For example, a goal `⊢ a ≤ b` can become `a > b ⊢ false`.
+If this is the case, it applies the appropriate lemma and introduces the new hypothesis.
+It returns the type of the terms in the comparison (e.g. the type of `a` and `b` above) and the
+newly introduced local constant.
+Otherwise returns `none`.
+-/
+meta def apply_contr_lemma : tactic (option (expr × expr)) :=
+do t ← target,
+   match get_contr_lemma_name_and_type t with
+   | some (nm, tp) := do applyc nm, v ← intro1, return $ some (tp, v)
+   | none := return none
+   end
+
+/--
+`partition_by_type l` takes a list `l` of proofs of comparisons. It sorts these proofs by
+the type of the variables in the comparison, e.g. `(a : ℚ) < 1` and `(b : ℤ) > c` will be separated.
+Returns a map from a type to a list of comparisons over that type.
+-/
+meta def partition_by_type (l : list expr) : tactic (rb_lmap expr expr) :=
+l.mfoldl (λ m h, do tp ← ineq_prf_tp h, return $ m.insert tp h) mk_rb_map
+
+/--
+Given a list `ls` of lists of proofs of comparisons, `try_linarith_on_lists cfg ls` will try to
+prove `false` by calling `linarith` on each list in succession. It will stop at the first proof of
+`false`, and fail if no contradiction is found with any list.
+-/
+meta def try_linarith_on_lists (cfg : linarith_config) (ls : list (list expr)) : tactic expr :=
+(first $ ls.map $ prove_false_by_linarith cfg) <|> fail "linarith failed to find a contradiction"
+
+/--
+Given a list `hyps` of proofs of comparisons, `run_linarith_on_pfs cfg hyps pref_type`
+preprocesses `hyps` according to the list of preprocessors in `cfg`.
+It then partitions the resulting list of hypotheses by type, and runs `linarith` on each class
+in the partition.
+
+If `pref_type` is given, it will first use the class of proofs of comparisons over that type.
+-/
+meta def run_linarith_on_pfs (cfg : linarith_config) (hyps : list expr) (pref_type : option expr) :
+  tactic expr :=
+do hyps ← preprocess (cfg.preprocessors.get_or_else default_preprocessors) hyps,
+   linarith_trace_proofs
+     ("after preprocessing, linarith has " ++ to_string hyps.length ++ " facts:") hyps,
+   hyp_set ← partition_by_type hyps,
+   linarith_trace format!"hypotheses appear in {hyp_set.size} different types",
+   match pref_type with
+   | some t := prove_false_by_linarith cfg (hyp_set.ifind t) <|>
+               try_linarith_on_lists cfg (rb_map.values (hyp_set.erase t))
+   | none := try_linarith_on_lists cfg (rb_map.values hyp_set)
+   end
+
+/--
+`filter_hyps_to_type restr_type hyps` takes a list of proofs of comparisons `hyps`, and filters it
+to only those that are comparisons over the type `restr_type`.
+-/
+meta def filter_hyps_to_type (restr_type : expr) (hyps : list expr) : tactic (list expr) :=
+hyps.mfilter $ λ h, do
+  ht ← infer_type h,
+  match get_contr_lemma_name_and_type ht with
+  | some (_, htype) := succeeds $ unify htype restr_type
+  | none := return ff
+  end
+
+/-- A hack to allow users to write `{restr_type := ℚ}` in configuration structures. -/
+meta def get_restrict_type (e : expr) : tactic expr :=
+do m ← mk_mvar,
+   unify `(some %%m : option Type) e,
+   instantiate_mvars m
+
+end linarith
+
+/-! ### User facing functions -/
+
 open linarith
+
+/--
+`linarith reduce_semi only_on hyps cfg` tries to close the goal using linear arithmetic. It fails
+if it does not succeed at doing this.
+
+* If `reduce_semi` is true, it will unfold semireducible definitions when trying to match atomic
+expressions.
+* `hyps` is a list of proofs of comparisons to include in the search.
+* If `only_on` is true, the search will be restricted to `hyps`. Otherwise it will use all
+  comparisons in the local context.
+-/
+meta def tactic.linarith (reduce_semi : bool) (only_on : bool) (hyps : list pexpr)
+  (cfg : linarith_config := {}) : tactic unit :=
+do t ← target,
+-- if the target is an equality, we run `linarith` twice, to prove ≤ and ≥.
+if t.is_eq.is_some then
+  linarith_trace "target is an equality: splitting" >>
+    seq' (applyc ``eq_of_not_lt_of_not_gt) tactic.linarith else
+do when cfg.split_hypotheses (linarith_trace "trying to split hypotheses" >> try auto.split_hyps),
+/- If we are proving a comparison goal (and not just `false`), we consider the type of the
+   elements in the comparison to be the "preferred" type. That is, if we find comparison
+   hypotheses in multiple types, we will run `linarith` on the goal type first.
+   In this case we also recieve a new variable from moving the goal to a hypothesis.
+   Otherwise, there is no preferred type and no new variable; we simply change the goal to `false`. -/
+   pref_type_and_new_var_from_tgt ← apply_contr_lemma,
+   when pref_type_and_new_var_from_tgt.is_none $
+     if cfg.exfalso then linarith_trace "using exfalso" >> exfalso
+     else fail "linarith failed: target is not a valid comparison",
+   let cfg := cfg.update_reducibility reduce_semi,
+   let (pref_type, new_var) := pref_type_and_new_var_from_tgt.elim (none, none) (λ ⟨a, b⟩, (some a, some b)),
+   -- set up the list of hypotheses, considering the `only_on` and `restrict_type` options
+   hyps ← hyps.mmap i_to_expr,
+   hyps ← if only_on then return (new_var.elim [] singleton ++ hyps) else (++ hyps) <$> local_context,
+   hyps ← (do t ← get_restrict_type cfg.restrict_type_reflect, filter_hyps_to_type t hyps) <|> return hyps,
+   linarith_trace_proofs "linarith is running on the following hypotheses:" hyps,
+   run_linarith_on_pfs cfg hyps pref_type >>= exact
+
+setup_tactic_parser
 
 /--
 Tries to prove a goal of `false` by linear arithmetic on hypotheses.

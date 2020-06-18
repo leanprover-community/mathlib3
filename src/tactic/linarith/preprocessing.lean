@@ -12,6 +12,11 @@ open tactic
 
 set_option eqn_compiler.max_steps 50000
 
+/--
+If `prf` is a proof of `¬ e`, where `e` is a comparison,
+`rem_neg prf e` flips the comparison in `e` and returns a proof.
+For example, if `prf : ¬ a < b`, ``rem_neg prf `(a < b)`` returns a proof of `a ≥ b`.
+-/
 meta def rem_neg (prf : expr) : expr → tactic expr
 | `(_ ≤ _) := to_expr ``(lt_of_not_ge %%prf)
 | `(_ < _) := to_expr ``(le_of_not_gt %%prf)
@@ -45,27 +50,16 @@ and turns it into a proof of a comparison `_ R 0`, where `R ∈ {=, ≤, <}`.
 meta def rearr_comp (e : expr) : tactic expr :=
 infer_type e >>= rearr_comp_aux e
 
-meta def get_contr_lemma_name_and_type : expr → option (name × expr)
-| `(@has_lt.lt %%tp %%_ _ _) := return (`lt_of_not_ge, tp)
-| `(@has_le.le %%tp %%_ _ _) := return (`le_of_not_gt, tp)
-| `(@eq %%tp _ _) := return (``eq_of_not_lt_of_not_gt, tp)
-| `(@ne %%tp _ _) := return (`not.intro, tp)
-| `(@ge %%tp %%_ _ _) := return (`le_of_not_gt, tp)
-| `(@gt %%tp %%_ _ _) := return (`lt_of_not_ge, tp)
-| `(¬ @has_lt.lt %%tp %%_ _ _) := return (`not.intro, tp)
-| `(¬ @has_le.le %%tp %%_ _ _) := return (`not.intro, tp)
-| `(¬ @eq %%tp _ _) := return (``not.intro, tp)
-| `(¬ @ge %%tp %%_ _ _) := return (`not.intro, tp)
-| `(¬ @gt %%tp %%_ _ _) := return (`not.intro, tp)
-| _ := none
-
+/-- If `e` is of the form `((n : ℕ) : ℤ)`, `is_nat_int_coe e` returns `n : ℕ`. -/
 meta def is_nat_int_coe : expr → option expr
 | `((↑(%%n : ℕ) : ℤ)) := some n
 | _ := none
 
+/-- If `e : ℕ`, returns a proof of `0 ≤ (e : ℤ)`. -/
 meta def mk_coe_nat_nonneg_prf (e : expr) : tactic expr :=
 mk_app `int.coe_nat_nonneg [e]
 
+/-- `get_nat_comps e` returns a list of all subexpressions of `e` of the form `((t : ℕ) : ℤ)`. -/
 meta def get_nat_comps : expr → list expr
 | `(%%a + %%b) := (get_nat_comps a).append (get_nat_comps b)
 | `(%%a * %%b) := (get_nat_comps a).append (get_nat_comps b)
@@ -74,14 +68,28 @@ meta def get_nat_comps : expr → list expr
   | none := []
   end
 
+/--
+`mk_coe_nat_nonneg_prfs e` returns a list of proofs of the form `0 ≤ ((t : ℕ) : ℤ)`
+for each subexpression of `e` of the form `((t : ℕ) : ℤ)`.
+-/
 meta def mk_coe_nat_nonneg_prfs (e : expr) : tactic (list expr) :=
 (get_nat_comps e).mmap mk_coe_nat_nonneg_prf
 
+/--
+If `pf` is a proof of a comparison over `ℕ`, `mk_int_pfs_of_nat_pf pf` returns a proof of the
+corresponding inequality over `ℤ`, using `tactic.zify_proof`, along with proofs that the cast
+naturals are nonnegative.
+-/
 meta def mk_int_pfs_of_nat_pf (pf : expr) : tactic (list expr) :=
 do pf' ← zify_proof pf,
    (a, b) ← infer_type pf' >>= get_rel_sides,
    list.cons pf' <$> ((++) <$> mk_coe_nat_nonneg_prfs a <*> mk_coe_nat_nonneg_prfs b)
 
+/--
+If `pf` is a proof of a strict inequality `(a : ℤ) < b`,
+`mk_non_strict_int_pf_of_strict_int_pf pf` returns a proof of `a + 1 ≤ b`,
+and similarly if `pf` proves a negated weak inequality.
+-/
 meta def mk_non_strict_int_pf_of_strict_int_pf (pf : expr) : tactic expr :=
 do tp ← infer_type pf,
 match tp with
@@ -132,6 +140,10 @@ meta def filter_comparisons : preprocessor :=
    return [h])
 <|> return [] }
 
+/--
+Replaces proofs of negations of comparisons with proofs of the reversed comparisons.
+For example, a proof of `¬ a < b` will become a proof of `a ≥ b`.
+-/
 meta def remove_negations : preprocessor :=
 { name := "replace negations of comparisons",
   transform := λ h,
@@ -202,6 +214,15 @@ meta def find_squares : rb_set (expr × bool) → expr → tactic (rb_set (expr 
 | s e@`(%%e1 * %%e2) := if e1 = e2 then do s ← find_squares s e1, return (s.insert (e1, ff)) else e.mfoldl find_squares s
 | s e := e.mfoldl find_squares s
 
+/--
+`nlinarith_extras` is the preprocessor corresponding to the `nlinarith` tactic.
+
+* For every term `t` such that `t^2` or `t*t` appears in the input, adds a proof of `t^2 ≥ 0`
+  or `t*t ≥ 0`.
+* For every pair of comparisons `t1 R1 0` and `t2 R2 0`, adds a proof of `t1*t2 R 0`.
+
+This preprocessor is typically run last, after all inputs have been canonized.
+-/
 meta def nlinarith_extras : global_preprocessor :=
 { name := "nonlinear arithmetic extras",
   transform := λ ls,

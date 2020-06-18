@@ -31,6 +31,27 @@ namespace linarith
 /-! ### Control -/
 
 /--
+If `e` is a comparison `a R b` or the negation of a comparison `¬ a R b`, found in the target,
+`get_contr_lemma_name_and_type e` returns the name of a lemma that will change the goal to an
+implication, along with the type of `a` and `b`.
+
+For example, if `e` is `(a : ℕ) < b`, returns ``(`lt_of_not_ge, ℕ)``.
+-/
+meta def get_contr_lemma_name_and_type : expr → option (name × expr)
+| `(@has_lt.lt %%tp %%_ _ _) := return (`lt_of_not_ge, tp)
+| `(@has_le.le %%tp %%_ _ _) := return (`le_of_not_gt, tp)
+| `(@eq %%tp _ _) := return (``eq_of_not_lt_of_not_gt, tp)
+| `(@ne %%tp _ _) := return (`not.intro, tp)
+| `(@ge %%tp %%_ _ _) := return (`le_of_not_gt, tp)
+| `(@gt %%tp %%_ _ _) := return (`lt_of_not_ge, tp)
+| `(¬ @has_lt.lt %%tp %%_ _ _) := return (`not.intro, tp)
+| `(¬ @has_le.le %%tp %%_ _ _) := return (`not.intro, tp)
+| `(¬ @eq %%tp _ _) := return (``not.intro, tp)
+| `(¬ @ge %%tp %%_ _ _) := return (`not.intro, tp)
+| `(¬ @gt %%tp %%_ _ _) := return (`not.intro, tp)
+| _ := none
+
+/--
 `apply_contr_lemma` inspects the target to see if it can be moved to a hypothesis by negation.
 For example, a goal `⊢ a ≤ b` can become `a > b ⊢ false`.
 If this is the case, it applies the appropriate lemma and introduces the new hypothesis.

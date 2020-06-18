@@ -35,20 +35,8 @@ meta def linarith_trace_proofs (s : string := "") (l : list expr) : tactic unit 
 tactic.when_tracing `linarith $ do
   tactic.trace s, l.mmap tactic.infer_type >>= tactic.trace
 
-/-!
-### Linear expressions
+/-! ### Linear expressions -/
 
-`linarith` considers two notions of linear expressions.
-`linarith.linexp`, the primary one, is used in the elimination procedure.
-When parsing an expression into linear form, it is useful to store more information about the atoms,
-so during this step we use `linarith.sum` to represent linear combinations of monomials.
-
-
--/
-
-
-
-/-! #### Elimination -/
 /--
 A linear expression is a list of pairs of variable indices and coefficients,
 representing the sum of the products of each coefficient with its corresponding variable.
@@ -247,6 +235,10 @@ meta def preprocessor.globalize (pp : preprocessor) : global_preprocessor :=
 { name := pp.name,
   transform := list.mfoldl (λ ret e, do l' ← pp.transform e, return (l' ++ ret)) [] }
 
+/--
+`process pp l` runs `pp.transform` on `l` and returns the result,
+tracing the result if `trace.linarith` is on.
+-/
 meta def global_preprocessor.process (pp : global_preprocessor) (l : list expr) :
   tactic (list expr) :=
 do l ← pp.transform l,

@@ -5,7 +5,7 @@ Authors: Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import data.ulift
 import data.fintype.basic
-import category_theory.opposites
+import category_theory.eq_to_hom
 
 namespace category_theory
 
@@ -43,7 +43,9 @@ def of_function {I : Type u₁} (F : I → C) : (discrete I) ⥤ C :=
 { obj := F,
   map := λ X Y f, begin cases f, cases f, cases f, exact 𝟙 (F X) end }
 
-@[simp] lemma of_function_obj  {I : Type u₁} (F : I → C) (i : I) : (of_function F).obj i = F i := rfl
+@[simp] lemma of_function_obj  {I : Type u₁} (F : I → C) (i : I) :
+  (of_function F).obj i = F i := rfl
+
 lemma of_function_map  {I : Type u₁} (F : I → C) {i : discrete I} (f : i ⟶ i) :
   (of_function F).map f = 𝟙 (F i) :=
 by { cases f, cases f, cases f, refl }
@@ -56,8 +58,9 @@ def of_homs {I : Type u₁} {F G : discrete I ⥤ C}
   (f : Π i : discrete I, F.obj i ⟶ G.obj i) : F ⟶ G :=
 { app := f }
 
-@[simp] lemma of_homs_app  {I : Type u₁} {F G : discrete I ⥤ C} (f : Π i : discrete I, F.obj i ⟶ G.obj i) (i) :
-  (of_homs f).app i = f i := rfl
+@[simp] lemma of_homs_app  {I : Type u₁} {F G : discrete I ⥤ C}
+  (f : Π i : discrete I, F.obj i ⟶ G.obj i) (i) : (of_homs f).app i = f i :=
+rfl
 
 def of_function {I : Type u₁} {F G : I → C} (f : Π i : I, F i ⟶ G i) :
   (functor.of_function F) ⟶ (functor.of_function G) :=
@@ -70,11 +73,23 @@ end nat_trans
 
 namespace nat_iso
 
-def of_isos {I : Type u₁} {F G : discrete I ⥤ C}
+def of_function {I : Type u₁} {F G : discrete I ⥤ C}
   (f : Π i : discrete I, F.obj i ≅ G.obj i) : F ≅ G :=
 of_components f (by tidy)
 
 end nat_iso
+
+
+namespace equivalence
+
+@[simps]
+def of_equiv {I J : Type u₁} (e : I ≃ J) : discrete I ≌ discrete J :=
+{ functor := functor.of_function (e : I → J),
+  inverse := functor.of_function (e.symm : J → I),
+  unit_iso := nat_iso.of_function (λ i, eq_to_iso (by simp)),
+  counit_iso := nat_iso.of_function (λ j, eq_to_iso (by simp)), }
+
+end equivalence
 
 namespace discrete
 variables {J : Type v₁}
@@ -87,7 +102,7 @@ open opposite
 protected def opposite (α : Type u₁) : (discrete α)ᵒᵖ ≌ discrete α :=
 let F : discrete α ⥤ (discrete α)ᵒᵖ := functor.of_function (λ x, op x) in
 begin
-  refine equivalence.mk (functor.left_op F) F _ (nat_iso.of_isos $ λ X, by simp [F]),
+  refine equivalence.mk (functor.left_op F) F _ (nat_iso.of_function $ λ X, by simp [F]),
   refine nat_iso.of_components (λ X, by simp [F]) _,
   tidy
 end

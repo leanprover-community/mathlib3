@@ -147,17 +147,17 @@ meta def mk_prod_prf : ℕ → tree ℕ → expr → tactic expr
 Given `e`, a term with rational division, produces a natural number `n` and a proof of `n*e = e'`,
 where `e'` has no division. Assumes "well-behaved" division.
 -/
-meta def cancel_factors (e : expr) : tactic (ℕ × expr) :=
+meta def derive (e : expr) : tactic (ℕ × expr) :=
 let (n, t) := find_cancel_factor e in
 prod.mk n <$> mk_prod_prf n t e <|>
-  fail!"cancel_factors failed to normalize {e}. Are you sure this is well-behaved division?"
+  fail!"cancel_factors.derive failed to normalize {e}. Are you sure this is well-behaved division?"
 
 /--
 Given `e`, a term with rational divison, produces a natural number `n` and a proof of `e = e' / n`,
 where `e'` has no divison. Assumes "well-behaved" division.
 -/
-meta def cancel_factors_div (e : expr) : tactic (ℕ × expr) :=
-do (n, p) ← cancel_factors e,
+meta def derive_div (e : expr) : tactic (ℕ × expr) :=
+do (n, p) ← derive e,
    tp ← infer_type e,
    n' ← tp.of_nat n, tgt ← to_expr ``(%%n' ≠ 0),
    (_, pn) ← solve_aux tgt `[norm_num, done],
@@ -184,8 +184,8 @@ Numeric denominators have been canceled in `lhs'` and `rhs'`.
 -/
 meta def cancel_denominators_in_type (h : expr) : tactic (expr × expr) :=
 do some (lhs, rhs, lem) ← return $ find_comp_lemma h | fail "cannot kill factors",
-   (al, lhs_p) ← cancel_factors lhs,
-   (ar, rhs_p) ← cancel_factors rhs,
+   (al, lhs_p) ← derive lhs,
+   (ar, rhs_p) ← derive rhs,
    let gcd := al.gcd ar,
    tp ← infer_type lhs,
    al ← tp.of_nat al,

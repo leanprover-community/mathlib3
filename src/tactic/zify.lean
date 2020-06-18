@@ -140,9 +140,11 @@ end
 add_tactic_doc
 { name := "zify",
   category := doc_category.attr,
-  decl_names := [`zify.zify_attr] }
+  decl_names := [`zify.zify_attr],
+  tags := ["coercions", "transport"] }
 
 add_tactic_doc
 { name := "zify",
   category := doc_category.tactic,
-  decl_names := [`tactic.interactive.zify] }
+  decl_names := [`tactic.interactive.zify],
+  tags := ["coercions", "transport"] }

@@ -148,7 +148,7 @@ begin
     { subst e, rw [add_comm _ i, add_assoc],
       exact nat.le_add_right i (b.succ + b).succ },
     { apply succ_le_succ,
-      rw [← succ_inj e, ← add_assoc, add_comm],
+      rw [← succ.inj e, ← add_assoc, add_comm],
       apply nat.le_add_right } },
   cases a; cases b with b b; simp [nat_abs, nat.succ_add];
   try {refl}; [skip, rw add_comm a b]; apply this

@@ -970,7 +970,7 @@ calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m.fact : α)
   by simp [mul_inv', mul_sum.symm, sum_mul.symm, -nat.fact_succ, mul_comm, inv_pow']
 ... = (n.succ - n.succ * n.succ⁻¹ ^ (j - n)) / (n.fact * n) :
   have h₁ : (n.succ : α) ≠ 1, from @nat.cast_one α _ _ ▸ mt nat.cast_inj.1
-        (mt nat.succ_inj (nat.pos_iff_ne_zero.1 hn)),
+        (mt nat.succ.inj (nat.pos_iff_ne_zero.1 hn)),
   have h₂ : (n.succ : α) ≠ 0, from nat.cast_ne_zero.2 (nat.succ_ne_zero _),
   have h₃ : (n.fact * n : α) ≠ 0,
     from mul_ne_zero (nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 (nat.fact_pos _)))

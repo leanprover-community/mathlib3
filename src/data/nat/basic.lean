@@ -50,7 +50,7 @@ attribute [simp] nat.sub_self
 @[simp] lemma succ_pos' {n : ℕ} : 0 < succ n := succ_pos n
 
 theorem succ_inj' {n m : ℕ} : succ n = succ m ↔ n = m :=
-⟨succ_inj, congr_arg _⟩
+⟨succ.inj, congr_arg _⟩
 
 theorem succ_le_succ_iff {m n : ℕ} : succ m ≤ succ n ↔ m ≤ n :=
 ⟨le_of_succ_le_succ, succ_le_succ⟩
@@ -1059,7 +1059,7 @@ begin
   cases b, {exact absurd rfl h},
   have : shiftl' tt m n + 1 = 1 := congr_arg (+1) s0,
   rw [shiftl'_tt_eq_mul_pow] at this,
-  have m0 := succ_inj (eq_one_of_dvd_one ⟨_, this.symm⟩),
+  have m0 := succ.inj (eq_one_of_dvd_one ⟨_, this.symm⟩),
   subst m0,
   simp at this,
   have : n = 0 := eq_zero_of_le_zero (le_of_not_gt $ λ hn,

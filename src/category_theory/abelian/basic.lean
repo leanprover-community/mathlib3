@@ -354,7 +354,7 @@ def is_limit_pullback_to_biproduct : is_limit (pullback_to_biproduct_fork f g) :
 fork.is_limit.mk _
   (λ s, pullback.lift (fork.ι s ≫ biprod.fst) (fork.ι s ≫ biprod.snd) $
     sub_eq_zero.1 $ by rw [category.assoc, category.assoc, ←comp_sub, sub_eq_add_neg, ←comp_neg,
-      biprod.fst_add_snd, kernel_fork.condition s])
+      ←biprod.desc_eq, kernel_fork.condition s])
   (λ s,
   begin
     ext; rw [fork.ι_of_ι, category.assoc],
@@ -386,7 +386,7 @@ def is_colimit_biproduct_to_pushout : is_colimit (biproduct_to_pushout_cofork f 
 cofork.is_colimit.mk _
   (λ s, pushout.desc (biprod.inl ≫ cofork.π s) (biprod.inr ≫ cofork.π s) $
     sub_eq_zero.1 $ by rw [←category.assoc, ←category.assoc, ←sub_comp, sub_eq_add_neg, ←neg_comp,
-      biprod.inl_add_inr, cofork.condition s, has_zero_morphisms.zero_comp])
+      ←biprod.lift_eq, cofork.condition s, has_zero_morphisms.zero_comp])
   (λ s, by ext; simp)
   (λ s m h, by ext; simp [cofork.π_eq_app_one, ←h walking_parallel_pair.one] )
 

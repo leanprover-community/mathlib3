@@ -721,19 +721,37 @@ end
 
 section lim_functor
 
+/--
+Functoriality of limits.
+
+Usually this morphism should be accessed through `lim.map`,
+but may be needed separately when you hav specified limits for the source and target functors,
+but not necessarily for all functors of shape `J`.
+-/
+def lim_map {F G : J ⥤ C} [has_limit F] [has_limit G] (α : F ⟶ G) : limit F ⟶ limit G :=
+limit.lift G
+  { X := limit F,
+    π :=
+    { app := λ j, limit.π F j ≫ α.app j,
+      naturality' := λ j j' f,
+        by erw [id_comp, assoc, ←α.naturality, ←assoc, limit.w] } }
+
+@[simp, reassoc] lemma lim_map_π {F G : J ⥤ C} [has_limit F] [has_limit G] (α : F ⟶ G) (j : J) :
+  lim_map α ≫ limit.π G j = limit.π F j ≫ α.app j :=
+by apply is_limit.fac
+
 variables [has_limits_of_shape J C]
+
+section
+local attribute [simp] lim_map
 
 /-- `limit F` is functorial in `F`, when `C` has all limits of shape `J`. -/
 def lim : (J ⥤ C) ⥤ C :=
 { obj := λ F, limit F,
-  map := λ F G α, limit.lift G
-    { X := limit F,
-      π :=
-      { app := λ j, limit.π F j ≫ α.app j,
-        naturality' := λ j j' f,
-          by erw [id_comp, assoc, ←α.naturality, ←assoc, limit.w] } },
+  map := λ F G α, lim_map α,
   map_comp' := λ F G H α β,
     by ext; erw [assoc, is_limit.fac, is_limit.fac, ←assoc, is_limit.fac, assoc]; refl }
+end
 
 variables {F} {G : J ⥤ C} (α : F ⟶ G)
 
@@ -1046,19 +1064,39 @@ end
 
 section colim_functor
 
+/--
+Functoriality of colimits.
+
+Usually this morphism should be accessed through `colim.map`,
+but may be needed separately when you hav specified colimits for the source and target functors,
+but not necessarily for all functors of shape `J`.
+-/
+def colim_map {F G : J ⥤ C} [has_colimit F] [has_colimit G] (α : F ⟶ G) : colimit F ⟶ colimit G :=
+colimit.desc F
+  { X := colimit G,
+    ι :=
+    { app := λ j, α.app j ≫ colimit.ι G j,
+      naturality' := λ j j' f,
+        by erw [comp_id, ←assoc, α.naturality, assoc, colimit.w] } }
+
+@[simp, reassoc]
+lemma ι_colim_map {F G : J ⥤ C} [has_colimit F] [has_colimit G] (α : F ⟶ G) (j : J) :
+  colimit.ι F j ≫ colim_map α = α.app j ≫ colimit.ι G j :=
+by apply is_colimit.fac
+
 variables [has_colimits_of_shape J C]
+
+section
+local attribute [simp] colim_map
 
 /-- `colimit F` is functorial in `F`, when `C` has all colimits of shape `J`. -/
 def colim : (J ⥤ C) ⥤ C :=
 { obj := λ F, colimit F,
-  map := λ F G α, colimit.desc F
-    { X := colimit G,
-      ι :=
-      { app := λ j, α.app j ≫ colimit.ι G j,
-        naturality' := λ j j' f,
-          by erw [comp_id, ←assoc, α.naturality, assoc, colimit.w] } },
+  map := λ F G α, colim_map α,
   map_comp' := λ F G H α β,
     by ext; erw [←assoc, is_colimit.fac, is_colimit.fac, assoc, is_colimit.fac, ←assoc]; refl }
+
+end
 
 variables {F} {G : J ⥤ C} (α : F ⟶ G)
 

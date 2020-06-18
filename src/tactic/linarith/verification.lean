@@ -162,8 +162,8 @@ meta def prove_false_by_linarith (cfg : linarith_config) : list expr → tactic 
     hz ← ineq_prf_tp h >>= mk_neg_one_lt_zero_pf,
     let inputs := hz::l',
     -- perform the elimination and fail if no contradiction is found.
-    (comps, vars) ← linear_forms_and_vars cfg.transparency inputs,
-    certificate ← fourier_motzkin.produce_certificate comps vars
+    (comps, max_var) ← linear_forms_and_max_var cfg.transparency inputs,
+    certificate ← fourier_motzkin.produce_certificate comps max_var
       | fail "linarith failed to find a contradiction",
     linarith_trace "linarith has found a contradiction",
     let enum_inputs := inputs.enum,

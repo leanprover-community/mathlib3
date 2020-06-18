@@ -157,13 +157,13 @@ meta def to_comp_fold (red : transparency) : expr_map ℕ → list expr → rb_m
 of expressions. Given a list `pfs` of proofs of comparisons, it produces a list `c` of `comps` of
 the same length, such that `c[i]` represents the linear form of the type of `pfs[i]`.
 
-It also returns a set of the variable indices that appear in comparisons in `c`.
+It also returns the largest variable index that appears in comparisons in `c`.
 -/
-meta def linear_forms_and_vars (red : transparency) (pfs : list expr) :
-  tactic (list comp × rb_set ℕ) :=
+meta def linear_forms_and_max_var (red : transparency) (pfs : list expr) :
+  tactic (list comp × ℕ) :=
 do pftps ← pfs.mmap infer_type,
    (l, _, map) ← to_comp_fold red mk_rb_map pftps mk_rb_map,
-   return (l, rb_map.set_of_list $ list.range map.size)
+   return (l, map.size - 1)
 
 
 end linarith

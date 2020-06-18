@@ -142,18 +142,14 @@ end
 
 /--
 The state for the elimination monad.
-* `vars`: the set of variables that have not been officially eliminated
+* `max_var`: the largest variable index that has not been eliminated.
 * `comps`: a set of comparisons
 
 The elimination procedure proceeds by eliminating variable `v` from `comps` progressively
-for each `v ∈ vars`.
-
-Note: variables are eliminated in decreasing order. Instead of storing `vars` as an `rb_set`,
-we could store the largest `n : N` that has not yet been eliminated.
-This is not done yet for historical reasons, and is a negligible performance gain.
+in decreasing order.
 -/
 meta structure linarith_structure :=
-(vars : rb_set ℕ)
+(max_var : ℕ)
 (comps : rb_set pcomp)
 
 /--
@@ -163,13 +159,9 @@ An exception produces a contradictory `pcomp`.
 @[reducible, derive [monad, monad_except pcomp]] meta def linarith_monad :=
 state_t linarith_structure (except_t pcomp id)
 
-/-- Return the set of active variables. -/
-meta def get_vars : linarith_monad (rb_set ℕ) :=
-linarith_structure.vars <$> get
-
-/-- Return the list of active variables. -/
-meta def get_var_list : linarith_monad (list ℕ) :=
-rb_set.to_list <$> get_vars
+/-- Returns the current max variable. -/
+meta def get_max_var : linarith_monad ℕ :=
+linarith_structure.max_var <$> get
 
 /-- Return the current comparison set. -/
 meta def get_comps : linarith_monad (rb_set pcomp) :=
@@ -184,11 +176,11 @@ match comps.to_list.find (λ p : pcomp, p.is_contr) with
 end
 
 /--
-Updates the current state with a new set of variables and comparisons,
+Updates the current state with a new max variable and comparisons,
 and calls `validate` to check for a contradiction.
 -/
-meta def update (vars : rb_set ℕ) (comps : rb_set pcomp) : linarith_monad unit :=
-state_t.put ⟨vars, comps⟩ >> validate
+meta def update (max_var : ℕ) (comps : rb_set pcomp) : linarith_monad unit :=
+state_t.put ⟨max_var, comps⟩ >> validate
 
 /--
 `split_set_by_var_sign a comps` partitions the set `comps` into three parts.
@@ -211,37 +203,38 @@ comps.fold ⟨mk_pcomp_set, mk_pcomp_set, mk_pcomp_set⟩ $ λ pc ⟨pos, neg, n
 from the `linarith` state.
 -/
 meta def monad.elim_var (a : ℕ) : linarith_monad unit :=
-do vs ← get_vars,
-   when (vs.contains a) $
+do vs ← get_max_var,
+   when (a ≤ vs) $
 do ⟨pos, neg, not_present⟩ ← split_set_by_var_sign a <$> get_comps,
    let cs' := pos.fold not_present (λ p s, s.union (elim_with_set a p neg)),
-   update (vs.erase a) $ cs'
+   update (vs - 1) cs'
 
 /--
 `elim_all_vars` eliminates all variables from the linarith state, leaving it with a set of
 ground comparisons. If this succeeds without exception, the original `linarith` state is consistent.
 -/
 meta def elim_all_vars : linarith_monad unit :=
-get_var_list >>= list.mmap' monad.elim_var
+do mv ← get_max_var,
+   (list.range $ mv + 1).reverse.mmap' monad.elim_var
 
 /--
-`mk_linarith_structure hyps vars` takes a list of hypotheses and a set of the variables present in
+`mk_linarith_structure hyps vars` takes a list of hypotheses and the largest variable present in
 those hypotheses. It produces an initial state for the elimination monad.
 -/
-meta def mk_linarith_structure (hyps : list comp) (vars : rb_set ℕ) : linarith_structure :=
+meta def mk_linarith_structure (hyps : list comp) (max_var : ℕ) : linarith_structure :=
 let pcomp_list : list pcomp := hyps.enum.map $ λ ⟨n, cmp⟩, ⟨cmp, comp_source.assump n⟩,
     pcomp_set := rb_set.of_list_core mk_pcomp_set pcomp_list in
-⟨vars, pcomp_set⟩
+⟨max_var, pcomp_set⟩
 
 /--
 `produce_certificate hyps vars` tries to derive a contradiction from the comparisons in `hyps`
-by eliminating the variables in `vars`.
+by eliminating all variables ≤ `max_var`.
 If successful, it returns a map `coeff : ℕ → ℕ` as a certificate.
 This map represents that we can find a contradiction by taking the sum  `∑ (coeff i) * hyps[i]`.
 -/
-meta def fourier_motzkin.produce_certificate (hyps : list comp) (vars : rb_set ℕ) :
+meta def fourier_motzkin.produce_certificate (hyps : list comp) (max_var : ℕ) :
   option (rb_map ℕ ℕ) :=
-let state := mk_linarith_structure hyps vars in
+let state := mk_linarith_structure hyps max_var in
 match except_t.run (state_t.run (validate >> elim_all_vars) state) with
 | (except.ok (a, _)) := none
 | (except.error contr) := contr.src.flatten

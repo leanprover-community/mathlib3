@@ -411,7 +411,6 @@ binary_fan.is_limit.hom_ext has_binary_biproduct.is_limit h₀ h₁
   (h₀ : biprod.inl ≫ f = biprod.inl ≫ g) (h₁ : biprod.inr ≫ f = biprod.inr ≫ g) : f = g :=
 binary_cofan.is_colimit.hom_ext has_binary_biproduct.is_colimit h₀ h₁
 
--- TODO this is disgusting
 lemma biprod.map_eq_map' {W X Y Z : C} [has_binary_biproduct.{v} W X] [has_binary_biproduct.{v} Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) : biprod.map f g = biprod.map' f g :=
 begin

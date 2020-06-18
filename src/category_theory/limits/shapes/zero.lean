@@ -194,13 +194,39 @@ by ext
 end
 
 /-- A zero object is in particular initial. -/
-def has_initial_of_has_zero_object : has_initial.{v} C :=
+def has_initial : has_initial.{v} C :=
 has_initial_of_unique 0
 /-- A zero object is in particular terminal. -/
-def has_terminal_of_has_zero_object : has_terminal.{v} C :=
+def has_terminal : has_terminal.{v} C :=
 has_terminal_of_unique 0
 
 end has_zero_object
+
+/-- If there are zero morphisms, any initial object is a zero object. -/
+@[priority 50]
+instance has_zero_object_of_has_initial_object
+  [has_zero_morphisms.{v} C] [has_initial.{v} C] : has_zero_object.{v} C :=
+{ zero := ⊥_ C,
+  unique_to := λ X, ⟨⟨0⟩, by tidy⟩,
+  unique_from := λ X, ⟨⟨0⟩, λ f,
+  calc
+    f = f ≫ 𝟙 _ : (category.comp_id _).symm
+    ... = f ≫ 0 : by congr
+    ... = 0     : has_zero_morphisms.comp_zero _ _
+  ⟩ }
+
+/-- If there are zero morphisms, any terminal object is a zero object. -/
+@[priority 50]
+instance has_zero_object_of_has_terminal_object
+  [has_zero_morphisms.{v} C] [has_terminal.{v} C] : has_zero_object.{v} C :=
+{ zero := ⊤_ C,
+  unique_from := λ X, ⟨⟨0⟩, by tidy⟩,
+  unique_to := λ X, ⟨⟨0⟩, λ f,
+  calc
+    f = 𝟙 _ ≫ f : (category.id_comp _).symm
+    ... = 0 ≫ f : by congr
+    ... = 0     : has_zero_morphisms.zero_comp _ _
+  ⟩ }
 
 /-- In the presence of zero morphisms, coprojections into a coproduct are (split) monomorphisms. -/
 instance split_mono_sigma_ι

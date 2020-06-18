@@ -17,14 +17,9 @@ open_locale classical
 class submodule.is_principal [ring R] [add_comm_group M] [module R M] (S : submodule R M) : Prop :=
 (principal [] : ∃ a, S = span R {a})
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
-class principal_ideal_domain (R : Type u) extends integral_domain R :=
+class is_principal_ideal_ring (R : Type u) [comm_ring R] : Prop :=
 (principal : ∀ (S : ideal R), S.is_principal)
-end prio
 
--- see Note [lower instance priority]
-attribute [instance, priority 500] principal_ideal_domain.principal
 namespace submodule.is_principal
 
 variables [comm_ring R] [add_comm_group M] [module R M]
@@ -55,12 +50,13 @@ end submodule.is_principal
 namespace is_prime
 open submodule.is_principal ideal
 
-lemma to_maximal_ideal [principal_ideal_domain R] {S : ideal R}
+-- TODO -- for a non-ID should prove that if p < q then q maximal; 0 isn't prime in a non-ID
+lemma to_maximal_ideal [integral_domain R] [is_principal_ideal_ring R] {S : ideal R}
   [hpi : is_prime S] (hS : S ≠ ⊥) : is_maximal S :=
 is_maximal_iff.2 ⟨(ne_top_iff_one S).1 hpi.1, begin
   assume T x hST hxS hxT,
-  haveI := principal_ideal_domain.principal S,
-  haveI := principal_ideal_domain.principal T,
+  haveI := is_principal_ideal_ring.principal S,
+  haveI := is_principal_ideal_ring.principal T,
   cases (mem_iff_generator_dvd _).1 (hST $ generator_mem S) with z hz,
   cases hpi.2 (show generator T * z ∈ S, from hz ▸ generator_mem S),
   { have hTS : T ≤ S, rwa [← span_singleton_generator T, submodule.span_le, singleton_subset_iff],
@@ -81,8 +77,7 @@ lemma mod_mem_iff {S : ideal R} {x y : R} (hy : y ∈ S) : x % y ∈ S ↔ x ∈
 ⟨λ hxy, div_add_mod x y ▸ ideal.add_mem S (ideal.mul_mem_right S hy) hxy,
   λ hx, (mod_eq_sub_mul_div x y).symm ▸ ideal.sub_mem S hx (ideal.mul_mem_right S hy)⟩
 
-@[priority 100] -- see Note [lower instance priority]
-instance euclidean_domain.to_principal_ideal_domain : principal_ideal_domain R :=
+instance euclidean_domain.to_principal_ideal_domain : is_principal_ideal_ring R :=
 { principal := λ S, by exactI
     ⟨if h : {x : R | x ∈ S ∧ x ≠ 0}.nonempty
     then
@@ -106,14 +101,16 @@ instance euclidean_domain.to_principal_ideal_domain : principal_ideal_domain R :
 end
 
 
-namespace principal_ideal_domain
-variables [principal_ideal_domain R]
+namespace principal_ideal_ring
+open is_principal_ideal_ring
+
+variables [integral_domain R] [is_principal_ideal_ring R]
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_noetherian_ring : is_noetherian_ring R :=
 ⟨assume s : ideal R,
 begin
-  rcases (principal s).principal with ⟨a, rfl⟩,
+  rcases (is_principal_ideal_ring.principal s).principal with ⟨a, rfl⟩,
   rw [← finset.coe_singleton],
   exact ⟨{a}, submodule.ext' rfl⟩
 end⟩
@@ -177,4 +174,4 @@ noncomputable def to_unique_factorization_domain : unique_factorization_domain R
 
 end
 
-end principal_ideal_domain
+end principal_ideal_ring

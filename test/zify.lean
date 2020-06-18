@@ -22,3 +22,10 @@ begin
   apply ne_of_lt hb,
   rw ha
 end
+
+example (a b c : ℕ) (h : a - b < c) (hab : b ≤ a) : false :=
+begin
+  zify [hab] at h,
+  guard_hyp h := (a : ℤ) - b < c,
+  admit
+end

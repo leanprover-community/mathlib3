@@ -65,10 +65,10 @@ do sl ← zify_attr.get_cache,
 /--
 A small variant of `push_cast` suited for non-interactive use.
 
-`push_casts e` returns an expression `e'` and a proof that `e = e'`.
+`push_casts extra_lems e` returns an expression `e'` and a proof that `e = e'`.
 -/
-meta def push_casts (e : expr) : tactic (expr × expr) :=
-do (s, _) ← mk_simp_set tt [`push_cast] [],
+meta def push_casts (extra_lems : list simp_arg_type) (e : expr) : tactic (expr × expr) :=
+do (s, _) ← mk_simp_set tt [`push_cast] extra_lems,
    simplify (s.erase [`int.coe_nat_succ]) [] e {fail_if_unchanged := ff}
 
 attribute [zify] int.coe_nat_le_coe_nat_iff int.coe_nat_lt_coe_nat_iff int.coe_nat_eq_coe_nat_iff
@@ -76,21 +76,23 @@ attribute [zify] int.coe_nat_le_coe_nat_iff int.coe_nat_lt_coe_nat_iff int.coe_n
 end zify
 
 /--
-`zify e` is used to shift propositions in `e` from `ℕ` to `ℤ`.
+`zify extra_lems e` is used to shift propositions in `e` from `ℕ` to `ℤ`.
 This is often useful since `ℤ` has well-behaved subtraction.
 
+The list of extra lemmas is used in the `push_cast` step.
+
 Returns an expression `e'` and a proof that `e = e'`.-/
-meta def tactic.zify : expr → tactic (expr × expr) := λ z,
+meta def tactic.zify (extra_lems : list simp_arg_type) : expr → tactic (expr × expr) := λ z,
 do (z1, p1) ← zify.lift_to_z z <|> fail "failed to find an applicable zify lemma",
-   (z2, p2) ← zify.push_casts z1,
+   (z2, p2) ← zify.push_casts extra_lems z1,
    prod.mk z2 <$> mk_eq_trans p1 p2
 
 /--
 A variant of `tactic.zify` that takes `h`, a proof of a proposition about natural numbers,
 and returns a proof of the zified version of that propositon.
 -/
-meta def tactic.zify_proof (h : expr) : tactic expr :=
-do (_, pf) ← infer_type h >>= tactic.zify,
+meta def tactic.zify_proof (extra_lems : list simp_arg_type := []) (h : expr) : tactic expr :=
+do (_, pf) ← infer_type h >>= tactic.zify extra_lems,
    mk_eq_mp pf h
 
 section
@@ -110,15 +112,25 @@ begin
   h : ¬↑x * ↑y * ↑z < 0
   ⊢ ↑c < ↑a + 3 * ↑b
   -/
+end
+```
+
+`zify` can be given extra lemmas to use in simplification. This is especially useful in the
+presence of nat subtraction: passing `≤` arguments will allow `push_cast` to do more work.
+```
+example (a b c : ℕ) (h : a - b < c) (hab : b ≤ a) : false :=
+begin
+  zify [hab] at h,
+  /- h : ↑a - ↑b < ↑c -/
+end
+```
 
 `zify` makes use of the `@[zify]` attribute to move propositions,
 and the `push_cast` tactic to simplify the `ℤ`-valued expressions.
-end
-```
 -/
-meta def tactic.interactive.zify (l : parse location) : tactic unit :=
+meta def tactic.interactive.zify (sl : parse simp_arg_list) (l : parse location) : tactic unit :=
 do locs ← l.get_locals,
-replace_at tactic.zify locs l.include_goal >>= guardb
+replace_at (tactic.zify sl) locs l.include_goal >>= guardb
 
 end
 

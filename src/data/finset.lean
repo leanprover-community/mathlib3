@@ -1160,7 +1160,7 @@ variables {f : α ↪ β} {s : finset α}
 mem_map.trans $ by simp only [exists_prop]; refl
 
 theorem mem_map' (f : α ↪ β) {a} {s : finset α} : f a ∈ s.map f ↔ a ∈ s :=
-mem_map_of_inj f.2
+mem_map_of_injective f.2
 
 theorem mem_map_of_mem (f : α ↪ β) {a} {s : finset α} : a ∈ s → f a ∈ s.map f :=
 (mem_map' _).2
@@ -1739,10 +1739,10 @@ lemma pi.cons_ne {s : finset α} {a a' : α} {b : δ a} {f : Πa, a ∈ s → δ
   pi.cons s a b f a' h = f a' ((mem_insert.1 h).resolve_left ha.symm) :=
 multiset.pi.cons_ne _ _
 
-lemma injective_pi_cons  {a : α} {b : δ a} {s : finset α} (hs : a ∉ s) :
+lemma pi_cons_injective  {a : α} {b : δ a} {s : finset α} (hs : a ∉ s) :
   function.injective (pi.cons s a b) :=
 assume e₁ e₂ eq,
-@multiset.injective_pi_cons α _ δ a b s.1 hs _ _ $
+@multiset.pi_cons_injective α _ δ a b s.1 hs _ _ $
   funext $ assume e, funext $ assume h,
   have pi.cons s a b e₁ e (by simpa only [mem_cons, mem_insert] using h) =
     pi.cons s a b e₂ e (by simpa only [mem_cons, mem_insert] using h),
@@ -1765,7 +1765,7 @@ begin
   subst s', rw pi_cons,
   congr, funext b,
   rw multiset.erase_dup_eq_self.2,
-  exact multiset.nodup_map (multiset.injective_pi_cons ha) (pi s t).2,
+  exact multiset.nodup_map (multiset.pi_cons_injective ha) (pi s t).2,
 end
 
 lemma pi_subset {s : finset α} (t₁ t₂ : Πa, finset (δ a)) (h : ∀ a ∈ s, t₁ a ⊆ t₂ a) :

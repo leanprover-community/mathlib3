@@ -93,6 +93,10 @@ match l.get n with
 | some v := v
 end
 
+/-- `l.vars` returns the list of variables that occur in `l`. -/
+def vars (l : linexp) : list ℕ :=
+l.map prod.fst
+
 /--
 Defines a lex ordering on `linexp`. This function is performance critical.
 -/
@@ -167,16 +171,20 @@ The represented term is `coeffs.sum (λ ⟨k, v⟩, v * Var[k])`.
 str determines the direction of the comparison -- is it < 0, ≤ 0, or = 0?
 -/
 @[derive inhabited]
-meta structure comp : Type :=
+structure comp : Type :=
 (str : ineq)
 (coeffs : linexp)
 
+/-- `c.vars` returns the list of variables that appear in the linear expression contained in `c`. -/
+def comp.vars : comp → list ℕ :=
+linexp.vars ∘ comp.coeffs
+
 /-- `comp.coeff_of c a` projects the coefficient of variable `a` out of `c`. -/
-meta def comp.coeff_of (c : comp) (a : ℕ) : ℤ :=
+def comp.coeff_of (c : comp) (a : ℕ) : ℤ :=
 c.coeffs.zfind a
 
 /-- `comp.scale c n` scales the coefficients of `c` by `n`. -/
-meta def comp.scale (c : comp) (n : ℕ) : comp :=
+def comp.scale (c : comp) (n : ℕ) : comp :=
 { c with coeffs := c.coeffs.scale n }
 
 /--

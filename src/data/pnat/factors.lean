@@ -59,8 +59,8 @@ instance coe_nat : has_coe prime_multiset (multiset ℕ) := ⟨to_nat_multiset�
 instance coe_nat_hom : is_add_monoid_hom (coe : prime_multiset → multiset ℕ) :=
 by { unfold_coes, dsimp [to_nat_multiset], apply_instance }
 
-theorem coe_nat_inj : function.injective (coe : prime_multiset → multiset ℕ) :=
-multiset.injective_map nat.primes.coe_nat_inj
+theorem coe_nat_injective : function.injective (coe : prime_multiset → multiset ℕ) :=
+multiset.map_injective nat.primes.coe_nat_inj
 
 theorem coe_nat_of_prime (p : nat.primes) :
 ((of_prime p) : multiset ℕ) = (p : ℕ) :: 0 := rfl
@@ -78,8 +78,8 @@ instance coe_pnat : has_coe prime_multiset (multiset ℕ+) := ⟨to_pnat_multise
 instance coe_pnat_hom : is_add_monoid_hom (coe : prime_multiset → multiset ℕ+) :=
 by { unfold_coes, dsimp [to_pnat_multiset], apply_instance }
 
-theorem coe_pnat_inj : function.injective (coe : prime_multiset → multiset ℕ+) :=
-multiset.injective_map nat.primes.coe_pnat_inj
+theorem coe_pnat_injective : function.injective (coe : prime_multiset → multiset ℕ+) :=
+multiset.map_injective nat.primes.coe_pnat_inj
 
 theorem coe_pnat_of_prime (p : nat.primes) :
 ((of_prime p) : multiset ℕ+) = (p : ℕ+) :: 0 := rfl
@@ -208,7 +208,7 @@ namespace prime_multiset
 theorem factor_multiset_prod (v : prime_multiset) :
   v.prod.factor_multiset = v :=
 begin
-  apply prime_multiset.coe_nat_inj,
+  apply prime_multiset.coe_nat_injective,
   rw [v.prod.coe_nat_factor_multiset, prime_multiset.coe_prod],
   rcases v with l,
   unfold_coes,

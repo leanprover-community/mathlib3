@@ -48,6 +48,22 @@ meta def of_list_core {key} (base : rb_set key) : list key → rb_map key unit
 | []      := base
 | (x::xs) := rb_set.insert (of_list_core xs) x
 
+/--
+`of_list l` transforms a list `l : list key` into an `rb_set`,
+inferring an order on the type `key`.
+-/
+meta def of_list {key} [has_lt key] [decidable_rel ((<) : key → key → Prop)] :
+  list key → rb_set key :=
+of_list_core mk_rb_set
+
+/--
+`sdiff s1 s2` returns the set of elements that are in `s1` but not in `s2`.
+It does so by folding over `s2`. If `s1` is significantly smaller than `s2`,
+it may be worth it to reverse the fold.
+-/
+meta def sdiff {α} (s1 s2 : rb_set α) : rb_set α :=
+s2.fold s1 $ λ v s, s.erase v
+
 end rb_set
 
 /-! ### Declarations about `rb_map` -/

@@ -661,7 +661,7 @@ begin
   by_cases h : i = j,
   { subst j,
     convert hs,
-    exact set.preimage_image_eq _ injective_sigma_mk },
+    exact set.preimage_image_eq _ sigma_mk_injective },
   { convert is_open_empty,
     apply set.eq_empty_of_subset_empty,
     rintro x ⟨y, _, hy⟩,
@@ -681,7 +681,7 @@ begin
   by_cases h : i = j,
   { subst j,
     convert hs,
-    exact set.preimage_image_eq _ injective_sigma_mk },
+    exact set.preimage_image_eq _ sigma_mk_injective },
   { convert is_closed_empty,
     apply set.eq_empty_of_subset_empty,
     rintro x ⟨y, _, hy⟩,
@@ -694,11 +694,11 @@ by { rw ←set.image_univ, exact is_closed_map_sigma_mk _ is_closed_univ }
 
 lemma open_embedding_sigma_mk {i : ι} : open_embedding (@sigma.mk ι σ i) :=
 open_embedding_of_continuous_injective_open
-  continuous_sigma_mk injective_sigma_mk is_open_map_sigma_mk
+  continuous_sigma_mk sigma_mk_injective is_open_map_sigma_mk
 
 lemma closed_embedding_sigma_mk {i : ι} : closed_embedding (@sigma.mk ι σ i) :=
 closed_embedding_of_continuous_injective_closed
-  continuous_sigma_mk injective_sigma_mk is_closed_map_sigma_mk
+  continuous_sigma_mk sigma_mk_injective is_closed_map_sigma_mk
 
 lemma embedding_sigma_mk {i : ι} : embedding (@sigma.mk ι σ i) :=
 closed_embedding_sigma_mk.1
@@ -734,7 +734,7 @@ end
 lemma embedding_sigma_map {τ : ι → Type*} [Π i, topological_space (τ i)]
   {f : Π i, σ i → τ i} (hf : ∀ i, embedding (f i)) : embedding (sigma.map id f) :=
 begin
-  refine ⟨⟨_⟩, injective_sigma_map function.injective_id (λ i, (hf i).inj)⟩,
+  refine ⟨⟨_⟩, sigma_map_injective function.injective_id (λ i, (hf i).inj)⟩,
   refine le_antisymm
     (continuous_iff_le_induced.mp (continuous_sigma_map (λ i, (hf i).continuous))) _,
   intros s hs,

@@ -126,7 +126,7 @@ begin
       by rw B,
     suffices C : (function.update v (r j') z) ∘ r = function.update (v ∘ r) j' z,
       by { convert C, exact (c.embedding_comp_inv j).symm },
-    exact function.update_comp_eq_of_injective _ (c.embedding_inj _) _ _ },
+    exact function.update_comp_eq_of_injective _ (c.embedding_injective _) _ _ },
   { simp only [h, function.update_eq_self, function.update_noteq, ne.def, not_false_iff],
     let r : fin (c.blocks_fun k) → fin n := c.embedding k,
     change p (c.blocks_fun k) ((function.update v j z) ∘ r) = p (c.blocks_fun k) (v ∘ r),

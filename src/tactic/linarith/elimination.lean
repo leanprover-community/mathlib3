@@ -32,6 +32,77 @@ we conclude that the original system was unsatisfiable.
 open native
 namespace linarith
 
+/-!
+### Datatypes
+
+The `comp_source` and `pcomp` datatypes are specific to the FM elimination routine;
+they are not shared with other components of `linarith`.
+-/
+
+/--
+`comp_source` tracks the source of a comparison.
+The atomic source of a comparison is an assumption, indexed by a natural number.
+Two comparisons can be added to produce a new comparison,
+and one comparison can be scaled by a natural number to produce a new comparison.
+ -/
+meta inductive comp_source : Type
+| assump : ℕ → comp_source
+| add : comp_source → comp_source → comp_source
+| scale : ℕ → comp_source → comp_source
+
+/--
+Given a `comp_source` `cs`, `cs.flatten` maps an assumption index
+to the number of copies of that assumption that appear in the history of `cs`.
+
+For example, suppose `cs` is produced by scaling assumption 2 by 5,
+and adding to that the sum of assumptions 1 and 2.
+`cs.flatten` maps `1 ↦ 1, 2 ↦ 6`.
+ -/
+meta def comp_source.flatten : comp_source → rb_map ℕ ℕ
+| (comp_source.assump n) := mk_rb_map.insert n 1
+| (comp_source.add c1 c2) := (comp_source.flatten c1).add (comp_source.flatten c2)
+| (comp_source.scale n c) := (comp_source.flatten c).map (λ v, v * n)
+
+/-- Formats a `comp_source` for printing. -/
+meta def comp_source.to_string : comp_source → string
+| (comp_source.assump e) := to_string e
+| (comp_source.add c1 c2) := comp_source.to_string c1 ++ " + " ++ comp_source.to_string c2
+| (comp_source.scale n c) := to_string n ++ " * " ++ comp_source.to_string c
+
+meta instance comp_source.has_to_format : has_to_format comp_source :=
+⟨λ a, comp_source.to_string a⟩
+
+/-- `pcomp` pairs a zero comparison with its history. -/
+meta structure pcomp :=
+(c : comp)
+(src : comp_source)
+
+/--
+The `comp_source` field is ignored when comparing `pcomp`s. Two `pcomp`s proving the same
+comparison, with different sources, are considered equivalent.
+-/
+meta def pcomp.cmp (p1 p2 : pcomp) : ordering :=
+p1.c.cmp p2.c
+
+/-- `pcomp.scale c n` scales the coefficients of `c` by `n` and notes this in the `comp_source`. -/
+meta def pcomp.scale (c : pcomp) (n : ℕ) : pcomp :=
+⟨c.c.scale n, comp_source.scale n c.src⟩
+
+/-- `pcomp.add c1 c2` adds the coefficients of `c1` to `c2`, and notes this in the `comp_source`. -/
+meta def pcomp.add (c1 c2 : pcomp) : pcomp :=
+⟨c1.c.add c2.c, comp_source.add c1.src c2.src⟩
+
+meta instance pcomp.to_format : has_to_format pcomp :=
+⟨λ p, to_fmt p.c.coeffs ++ to_string p.c.str ++ "0"⟩
+
+
+/-- Creates an empty set of `pcomp`s, sorted using `pcomp.cmp`. This should always be used instead
+of `mk_rb_map` for performance reasons. -/
+meta def mk_pcomp_set : rb_set pcomp :=
+rb_map.mk_core unit pcomp.cmp
+
+/-! ### Elimination procedure -/
+
 /-- If `c1` and `c2` both contain variable `a` with opposite coefficients,
 produces `v1` and `v2`, such that `a` has been canceled in `v1*c1 + v2*c2`. -/
 meta def elim_var (c1 c2 : comp) (a : ℕ) : option (ℕ × ℕ × comp) :=
@@ -153,43 +224,27 @@ ground comparisons. If this succeeds without exception, the original `linarith` 
 meta def elim_all_vars : linarith_monad unit :=
 get_var_list >>= list.mmap' monad.elim_var
 
-
-open tactic
-
--- TODO: update doc
 /--
-`mk_linarith_structure red l` takes a list of proofs of props of the form `t {<, ≤, =} 0`,
-and creates a `linarith_structure`. The transparency setting `red` is used to unify atoms.
-
-Along with a `linarith_structure`, it produces a map `ℕ → (expr × expr)`.
-This map assigns indices to the hypotheses in `l`. It maps a natural number `n` to a pair
-`(prf, tp)`, where `prf` is the `n`th element of `l` and is a proof of the comparison `tp`.
+`mk_linarith_structure hyps vars` takes a list of hypotheses and a set of the variables present in
+those hypotheses. It produces an initial state for the elimination monad.
 -/
-meta def mk_linarith_structure (hyps : list (comp)) (vars : rb_set ℕ) :
-   (linarith_structure) := -- × rb_map ℕ (expr × expr)) :=
-let enum_hyps := hyps.enum,
-    pcomp_list : list pcomp := enum_hyps.map $ λ ⟨n, cmp⟩, ⟨cmp, comp_source.assump n⟩,
+meta def mk_linarith_structure (hyps : list comp) (vars : rb_set ℕ) : linarith_structure :=
+let pcomp_list : list pcomp := hyps.enum.map $ λ ⟨n, cmp⟩, ⟨cmp, comp_source.assump n⟩,
     pcomp_set := rb_set.of_list_core mk_pcomp_set pcomp_list in
 ⟨vars, pcomp_set⟩
 
-/- do pftps ← l.mmap infer_type,
-  (l', _, map) ← to_comp_fold red mk_rb_map pftps mk_rb_map,
-  let lz := list.enum $ (l.zip pftps).zip l',
-  let prmap := rb_map.of_list $ lz.map (λ ⟨n, x⟩, (n, x.1)),
---  let vars : rb_set ℕ := rb_map.set_of_list $ list.range map.size,
-  let pc : rb_set pcomp :=
-    rb_set.of_list_core mk_pcomp_set $ lz.map (λ ⟨n, x⟩, ⟨x.2, comp_source.assump n⟩),
-  return (⟨vars, pc⟩, prmap) -/
-
-meta def pcomp.produce_certificate (p : pcomp) : rb_map ℕ ℕ :=
-p.src.flatten
-
+/--
+`produce_certificate hyps vars` tries to derive a contradiction from the comparisons in `hyps`
+by eliminating the variables in `vars`.
+If successful, it returns a map `coeff : ℕ → ℕ` as a certificate.
+This map represents that we can find a contradiction by taking the sum  `∑ (coeff i) * hyps[i]`.
+-/
 meta def fourier_motzkin.produce_certificate (hyps : list comp) (vars : rb_set ℕ) :
   option (rb_map ℕ ℕ) :=
 let state := mk_linarith_structure hyps vars in
 match except_t.run (state_t.run (validate >> elim_all_vars) state) with
 | (except.ok (a, _)) := none
-| (except.error contr) := contr.produce_certificate
+| (except.error contr) := contr.src.flatten
 end
 
 end linarith

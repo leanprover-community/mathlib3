@@ -7,6 +7,7 @@ Author: Robert Y. Lewis
 import tactic.ring
 import tactic.linarith.preprocessing
 import tactic.linarith.elimination
+import tactic.linarith.parsing
 import tactic.cancel_denoms
 
 /-!
@@ -26,179 +27,7 @@ namespace linarith
 
 
 /-!
-### Parsing input expressions into linear form
-
-`linarith` computes the linear form of its input expressions,
-assuming (without justification) that the type of these expressions
-is a commutative semiring.
-
-It identifies atoms up to ring-equivalence: that is, `(y*3)*x` will be identified `3*(x*y)`,
-where the monomial `x*y` is the linear atom.
-
-* Variables are represented by natural numbers.
-* Monomials are represented by `monom := rb_map ℕ ℕ`. The monomial `1` is represented by the empty map.
-* Linear combinations of monomials are represented by `sum := rb_map monom ℤ`.
-
-All input expressions are converted to `sum`s, preserving the map from expressions to variables.
-We then discard the monomial information, mapping each distinct monomial to a natural number.
-The resulting `rb_map ℕ ℤ` represents the ring-normalized linear form of the expression.
-
-This is ultimately converted into a `linexp` in the obvious way.
-
-#### Parsing datatypes
--/
-
-/-- Variables (represented by natural numbers) map to their power. -/
-@[reducible] meta def monom : Type := rb_map ℕ ℕ
-
-/-- Compare monomials by first comparing their keys and then their powers. -/
-@[reducible] meta def monom.lt : monom → monom → Prop :=
-λ a b, (a.keys < b.keys) || ((a.keys = b.keys) && (a.values < b.values))
-
-/-- The `has_lt` instance for `monom` is only needed locally. -/
-local attribute [instance]
-meta def monom_has_lt : has_lt monom := ⟨monom.lt⟩
-
-/-- Linear combinations of monomials are represented by mapping monomials to coefficients. -/
-@[reducible] meta def sum : Type := rb_map monom ℤ
-
-/-- `sum.scale_by_monom s m` multiplies every monomial in `s` by `m`. -/
-meta def sum.scale_by_monom (s : sum) (m : monom) : sum :=
-s.fold mk_rb_map $ λ m' coeff sm, sm.insert (m.add m') coeff
-
-/-- `sum.mul s1 s2` distributes the multiplication of two sums.` -/
-meta def sum.mul (s1 s2 : sum) : sum :=
-s1.fold mk_rb_map $ λ mn coeff sm, sm.add $ (s2.scale_by_monom mn).scale coeff
-
-/-- `sum_of_monom m` lifts `m` to a sum with coefficient `1`. -/
-meta def sum_of_monom (m : monom) : sum :=
-mk_rb_map.insert m 1
-
-/-- The unit monomial `one` is represented by the empty rb map. -/
-meta def one : monom := mk_rb_map
-
-/-- A scalar `z` is represented by a `sum` with coefficient `z` and monomial `one` -/
-meta def scalar (z : ℤ) : sum :=
-mk_rb_map.insert one z
-
-/-- A single variable `n` is represented by a sum with coefficient `1` and monomial `n`. -/
-meta def var (n : ℕ) : sum :=
-mk_rb_map.insert (mk_rb_map.insert n 1) 1
-
-section parse
-
-open ineq tactic
-
-/-! #### Parsing algorithms -/
-
-/--
-`linear_form_of_expr red map e` computes the linear form of `e`.
-
-`map` is a lookup map from atomic expressions to variable numbers.
-If a new atomic expression is encountered, it is added to the map with a new number.
-It matches atomic expressions up to reducibility given by `red`.
-
-Because it matches up to definitional equality, this function must be in the `tactic` monad,
-and forces some functions that call it into `tactic` as well.
--/
-meta def linear_form_of_expr (red : transparency) : expr_map ℕ → expr → tactic (expr_map ℕ × sum)
-| m e@`(%%e1 * %%e2) :=
-   do (m', comp1) ← linear_form_of_expr m e1,
-      (m', comp2) ← linear_form_of_expr m' e2,
-      return (m', comp1.mul comp2)
-| m `(%%e1 + %%e2) :=
-   do (m', comp1) ← linear_form_of_expr m e1,
-      (m', comp2) ← linear_form_of_expr m' e2,
-      return (m', comp1.add comp2)
-| m `(%%e1 - %%e2) :=
-   do (m', comp1) ← linear_form_of_expr m e1,
-      (m', comp2) ← linear_form_of_expr m' e2,
-      return (m', comp1.add (comp2.scale (-1)))
-| m `(-%%e) := do (m', comp) ← linear_form_of_expr m e, return (m', comp.scale (-1))
-| m e :=
-  match e.to_int with
-  | some 0 := return ⟨m, mk_rb_map⟩
-  | some z := return ⟨m, scalar z⟩
-  | none :=
-    (do k ← m.find_defeq red e, return (m, var k)) <|>
-    (let n := m.size + 1 in return (m.insert e n, var n))
-  end
-
-meta def linear_forms_of_exprs (red : transparency) (l : list expr) :
-  tactic (expr_map ℕ × list sum) :=
-l.mfoldl
-  (λ ⟨map, ls⟩ e, do (map, se) ← linear_form_of_expr red map e, return (map, se::ls))
-  (mk_rb_map, [])
-
-/--
-`sum_to_lf s map` eliminates the monomial level of the `sum` `s`.
-
-`map` is a lookup map from monomials to variable numbers.
-The output `rb_map ℕ ℤ` has the same structure as `sum`,
-but each monomial key is replaced with its index according to `map`.
-If any new monomials are encountered, they are assigned variable numbers and `map` is updated.
- -/
-meta def sum_to_lf (s : sum) (m : rb_map monom ℕ) : rb_map monom ℕ × rb_map ℕ ℤ :=
-s.fold (m, mk_rb_map) $ λ mn coeff ⟨map, out⟩,
-  match map.find mn with
-  | some n := ⟨map, out.insert n coeff⟩
-  | none := let n := map.size in ⟨map.insert mn n, out.insert n coeff⟩
-  end
-
-/--
-`to_comp red e e_map monom_map` converts an expression of the form `t < 0`, `t ≤ 0`, or `t = 0`
-into a `comp` object.
-
-`e_map` maps atomic expressions to indices; `monom_map` maps monomials to indices.
-Both of these are updated during processing and returned.
--/
-meta def to_comp (red : transparency) (e : expr) (e_map : expr_map ℕ) (monom_map : rb_map monom ℕ) :
-  tactic (comp × expr_map ℕ × rb_map monom ℕ) :=
-do (iq, e) ← parse_into_comp_and_expr e,
-   (m', comp') ← linear_form_of_expr red e_map e,
-   let ⟨nm, mm'⟩ := sum_to_lf comp' monom_map,
-   return ⟨⟨iq, mm'.to_linexp⟩,m',nm⟩
-
-/--
-`to_comp_fold red e_map exprs monom_map` folds `to_comp` over `exprs`,
-updating `e_map` and `monom_map` as it goes.
- -/
-meta def to_comp_fold (red : transparency) : expr_map ℕ → list expr → rb_map monom ℕ →
-      tactic (list comp × expr_map ℕ × rb_map monom ℕ)
-| m [] mm := return ([], m, mm)
-| m (h::t) mm :=
-  do (c, m', mm') ← to_comp red h m mm,
-      (l, mp, mm') ← to_comp_fold m' t mm',
-      return (c::l, mp, mm')
-
-meta def comps_and_map_of_proofs (red : transparency) (pfs : list expr) :
-  tactic (list comp × rb_set ℕ) :=
-do pftps ← pfs.mmap infer_type,
-   (l, _, map) ← to_comp_fold red mk_rb_map pftps mk_rb_map,
-   return (l, rb_map.set_of_list $ list.range map.size)
-
-
-end parse
-
-/-!
 ### Verification
-
-`linarith_monad.run` is used to search for a way to derive `false` from a set of hypotheses.
-This search is unverified, but it returns a certificate:
-a map `m` from hypothesis indices to natural number coefficients.
-If our set of hypotheses has the form  `{tᵢ Rᵢ 0}`,
-then the elimination process should have guaranteed that
-1.\ `∑ (m i)*tᵢ = 0`,
-with at least one `i` such that `m i > 0` and `Rᵢ` is `<`.
-
-We have also that
-2.\ `∑ (m i)*tᵢ < 0`,
-since for each `i`, `(m i)*tᵢ ≤ 0` and at least one is strictly negative.
-So we conclude a contradiction `0 < 0`.
-
-It remains to produce proofs of (1) and (2). (1) is verified by calling the `discharger` tactic
-of the `linarith_config` object, which is typically `ring`. We prove (2) by folding over the
-set of hypotheses.
 
 #### Auxiliary functions for assembling proofs
 -/
@@ -309,11 +138,30 @@ meta def add_neg_eq_pfs : list expr → tactic (list expr)
   end
 
 /-! #### The main method -/
-#check list.filter_map
+
 /--
 `prove_false_by_linarith` is the main workhorse of `linarith`.
 Given a list `l` of proofs of `tᵢ Rᵢ 0` and a proof state with target `false`,
 it tries to derive a contradiction from `l` and use this to close the goal.
+
+An oracle is used to search for a certificate of unsatisfiability.
+In the current implementation, this is the Fourier Motzkin elimination routine in
+`elimination.lean`, but other oracles could easily be swapped in.
+
+The returned certificate is a map `m` from hypothesis indices to natural number coefficients.
+If our set of hypotheses has the form  `{tᵢ Rᵢ 0}`,
+then the elimination process should have guaranteed that
+1.\ `∑ (m i)*tᵢ = 0`,
+with at least one `i` such that `m i > 0` and `Rᵢ` is `<`.
+
+We have also that
+2.\ `∑ (m i)*tᵢ < 0`,
+since for each `i`, `(m i)*tᵢ ≤ 0` and at least one is strictly negative.
+So we conclude a contradiction `0 < 0`.
+
+It remains to produce proofs of (1) and (2). (1) is verified by calling the `discharger` tactic
+of the `linarith_config` object, which is typically `ring`. We prove (2) by folding over the
+set of hypotheses.
 -/
 meta def prove_false_by_linarith (cfg : linarith_config) : list expr → tactic unit
 | [] := fail "no args to linarith"
@@ -324,14 +172,13 @@ meta def prove_false_by_linarith (cfg : linarith_config) : list expr → tactic 
     hz ← ineq_prf_tp h >>= mk_neg_one_lt_zero_pf,
     let inputs := hz::l',
     -- perform the elimination and fail if no contradiction is found.
-    (comps, vars) ← comps_and_map_of_proofs cfg.transparency inputs,
+    (comps, vars) ← linear_forms_and_vars cfg.transparency inputs,
     certificate ← fourier_motzkin.produce_certificate comps vars
       | fail "linarith failed to find a contradiction",
-    -- we construct two lists `coeffs` and `pfs` of equal length,
-    -- filtering out the comparisons that were not used in deriving the contradiction.
     linarith_trace "linarith has found a contradiction",
     let enum_inputs := inputs.enum,
-    let zip : list (expr × ℕ) := enum_inputs.filter_map $ λ ⟨n, e⟩, prod.mk e <$> certificate.find n,
+    -- construct a list pairing nonzero coeffs with the proof of their corresponding comparison
+    let zip := enum_inputs.filter_map $ λ ⟨n, e⟩, prod.mk e <$> certificate.find n,
     mls ← zip.mmap (λ ⟨e, n⟩, do e ← term_of_ineq_prf e, return (mul_expr n e)),
     -- `sm` is the sum of input terms, scaled to cancel out all variables.
     sm ← to_expr $ add_exprs mls,

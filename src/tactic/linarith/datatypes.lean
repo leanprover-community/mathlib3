@@ -17,25 +17,38 @@ We split them into their own file.
 This file also contains a few convenient auxiliary functions.
 -/
 
-
 declare_trace linarith
 
+open native
+
+namespace linarith
+
 /-- A shorthand for tracing when the `trace.linarith` option is set to true. -/
-meta def linarith.linarith_trace {α} [has_to_tactic_format α] (s : α) :=
+meta def linarith_trace {α} [has_to_tactic_format α] (s : α) :=
 tactic.when_tracing `linarith (tactic.trace s)
 
 /--
 A shorthand for tracing the types of a list of proof terms
 when the `trace.linarith` option is set to true.
 -/
-meta def linarith.linarith_trace_proofs (s : string := "") (l : list expr) : tactic unit :=
+meta def linarith_trace_proofs (s : string := "") (l : list expr) : tactic unit :=
 tactic.when_tracing `linarith $ do
   tactic.trace s, l.mmap tactic.infer_type >>= tactic.trace
 
-open native
+/-!
+### Linear expressions
 
-/-! ### Linear expressions -/
+`linarith` considers two notions of linear expressions.
+`linarith.linexp`, the primary one, is used in the elimination procedure.
+When parsing an expression into linear form, it is useful to store more information about the atoms,
+so during this step we use `linarith.sum` to represent linear combinations of monomials.
 
+
+-/
+
+
+
+/-! #### Elimination -/
 /--
 A linear expression is a list of pairs of variable indices and coefficients,
 representing the sum of the products of each coefficient with its corresponding variable.
@@ -45,19 +58,9 @@ and that the list is sorted in decreasing order of the first argument.
 This is not enforced by the type but the operations here preserve it.
 -/
 @[reducible]
-def linarith.linexp : Type := list (ℕ × ℤ)
-
-/--
-A map `ℕ → ℤ` is converted to `list (ℕ × ℤ)` in the obvious way.
-This list is sorted in decreasing order of the first argument.
--/
-meta def native.rb_map.to_linexp (m : rb_map ℕ ℤ) : linarith.linexp :=
-m.to_list
-
-namespace linarith
+def linexp : Type := list (ℕ × ℤ)
 
 namespace linexp
-
 /--
 Add two `linexp`s together componentwise.
 Preserves sorting and uniqueness of the first argument.
@@ -211,69 +214,11 @@ that is, it represents the fact `0 < 0`.
  -/
 meta def comp.is_contr (c : comp) : bool := c.coeffs.empty ∧ c.str = ineq.lt
 
-/--
-`comp_source` tracks the source of a comparison.
-The atomic source of a comparison is an assumption, indexed by a natural number.
-Two comparisons can be added to produce a new comparison,
-and one comparison can be scaled by a natural number to produce a new comparison.
- -/
-meta inductive comp_source : Type
-| assump : ℕ → comp_source
-| add : comp_source → comp_source → comp_source
-| scale : ℕ → comp_source → comp_source
-
-/--
-Given a `comp_source` `cs`, `cs.flatten` maps an assumption index
-to the number of copies of that assumption that appear in the history of `cs`.
-
-For example, suppose `cs` is produced by scaling assumption 2 by 5,
-and adding to that the sum of assumptions 1 and 2.
-`cs.flatten` maps `1 ↦ 1, 2 ↦ 6`.
- -/
-meta def comp_source.flatten : comp_source → rb_map ℕ ℕ
-| (comp_source.assump n) := mk_rb_map.insert n 1
-| (comp_source.add c1 c2) := (comp_source.flatten c1).add (comp_source.flatten c2)
-| (comp_source.scale n c) := (comp_source.flatten c).map (λ v, v * n)
-
-/-- Formats a `comp_source` for printing. -/
-meta def comp_source.to_string : comp_source → string
-| (comp_source.assump e) := to_string e
-| (comp_source.add c1 c2) := comp_source.to_string c1 ++ " + " ++ comp_source.to_string c2
-| (comp_source.scale n c) := to_string n ++ " * " ++ comp_source.to_string c
-
-meta instance comp_source.has_to_format : has_to_format comp_source :=
-⟨λ a, comp_source.to_string a⟩
-
-/-- `pcomp` pairs a zero comparison with its history. -/
-meta structure pcomp :=
-(c : comp)
-(src : comp_source)
-
-/--
-The `comp_source` field is ignored when comparing `pcomp`s. Two `pcomp`s proving the same
-comparison, with different sources, are considered equivalent.
--/
-meta def pcomp.cmp (p1 p2 : pcomp) : ordering :=
-p1.c.cmp p2.c
-
-/-- `pcomp.scale c n` scales the coefficients of `c` by `n` and notes this in the `comp_source`. -/
-meta def pcomp.scale (c : pcomp) (n : ℕ) : pcomp :=
-⟨c.c.scale n, comp_source.scale n c.src⟩
-
-/-- `pcomp.add c1 c2` adds the coefficients of `c1` to `c2`, and notes this in the `comp_source`. -/
-meta def pcomp.add (c1 c2 : pcomp) : pcomp :=
-⟨c1.c.add c2.c, comp_source.add c1.src c2.src⟩
-
-meta instance pcomp.to_format : has_to_format pcomp :=
-⟨λ p, to_fmt p.c.coeffs ++ to_string p.c.str ++ "0"⟩
-
 meta instance comp.to_format : has_to_format comp :=
 ⟨λ p, to_fmt p.coeffs ++ to_string p.str ++ "0"⟩
 
-/-- Creates an empty set of `pcomp`s, sorted using `pcomp.cmp`. This should always be used instead
-of `mk_rb_map` for performance reasons. -/
-meta def mk_pcomp_set : rb_set pcomp :=
-rb_map.mk_core unit pcomp.cmp
+/-! ### Parsing into linear form -/
+
 
 /-! ### Control -/
 
@@ -383,6 +328,5 @@ do tp ← infer_type h,
        (_, ex) ← solve_aux cpos `[norm_num, done],
        e' ← to_expr ``(%%nm %%h %%ex) ff,
        return (iq, e')
-
 
 end linarith

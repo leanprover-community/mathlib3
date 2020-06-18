@@ -327,12 +327,8 @@ lemma norm_nonpos_right {x y : ℚ} (h1 : x * x + y * y ≤ 0) : y = 0 :=
 by nlinarith
 
 lemma norm_nonpos_left (x y : ℚ) (h1 : x * x + y * y ≤ 0) : x = 0 :=
-<<<<<<< HEAD
 by nlinarith
-=======
-by nlinarith -/
 
 variables {E : Type*} [add_group E]
 example (f : ℤ → E) (h : 0 = f 0) : 1 ≤ 2 := by nlinarith
 example (a : E) (h : a = a) : 1 ≤ 2  := by nlinarith
->>>>>>> blessed/zify

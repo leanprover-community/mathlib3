@@ -238,16 +238,16 @@ do s ← ls.mfoldr (λ h s', infer_type h >>= find_squares s') mk_rb_set,
      tp ← infer_type e,
      return $ (parse_into_comp_and_expr tp).elim (ineq.lt, e) (λ ⟨ine, _⟩, (ine, e))),
    products ← with_comps.mmap_diag $ λ ⟨posa, a⟩ ⟨posb, b⟩,
-    match posa, posb with
+     some <$> match posa, posb with
       | ineq.eq, _ := mk_app ``zero_mul_eq [a, b]
       | _, ineq.eq := mk_app ``mul_zero_eq [a, b]
       | ineq.lt, ineq.lt := mk_app ``mul_pos_of_neg_of_neg [a, b]
       | ineq.lt, ineq.le := do a ← mk_app ``le_of_lt [a], mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
       | ineq.le, ineq.lt := do b ← mk_app ``le_of_lt [b], mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
       | ineq.le, ineq.le := mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
-      end,
-    products ← make_comp_with_zero.globalize.transform products,
-    return $ new_es ++ ls ++ products }
+      end <|> return none,
+   products ← make_comp_with_zero.globalize.transform products.reduce_option,
+   return $ new_es ++ ls ++ products }
 
 /--
 The default list of preprocessors, in the order they should typically run.

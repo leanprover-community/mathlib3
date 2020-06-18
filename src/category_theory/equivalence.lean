@@ -36,15 +36,10 @@ variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D
 
 namespace equivalence
 
-@[simp] def unit (e : C ≌ D) : 𝟭 C ⟶ e.functor ⋙ e.inverse := e.unit_iso.hom
-@[simp] def counit (e : C ≌ D) : e.inverse ⋙ e.functor ⟶ 𝟭 D := e.counit_iso.hom
-@[simp] def unit_inv (e : C ≌ D) : e.functor ⋙ e.inverse ⟶ 𝟭 C := e.unit_iso.inv
-@[simp] def counit_inv (e : C ≌ D) : 𝟭 D ⟶ e.inverse ⋙ e.functor := e.counit_iso.inv
-
-lemma unit_def (e : C ≌ D) : e.unit_iso.hom = e.unit := rfl
-lemma counit_def (e : C ≌ D) : e.counit_iso.hom = e.counit := rfl
-lemma unit_inv_def (e : C ≌ D) : e.unit_iso.inv = e.unit_inv := rfl
-lemma counit_inv_def (e : C ≌ D) : e.counit_iso.inv = e.counit_inv := rfl
+abbreviation unit (e : C ≌ D) : 𝟭 C ⟶ e.functor ⋙ e.inverse := e.unit_iso.hom
+abbreviation counit (e : C ≌ D) : e.inverse ⋙ e.functor ⟶ 𝟭 D := e.counit_iso.hom
+abbreviation unit_inv (e : C ≌ D) : e.functor ⋙ e.inverse ⟶ 𝟭 C := e.unit_iso.inv
+abbreviation counit_inv (e : C ≌ D) : 𝟭 D ⟶ e.inverse ⋙ e.functor := e.counit_iso.inv
 
 @[simp] lemma functor_unit_comp (e : C ≌ D) (X : C) : e.functor.map (e.unit_iso.hom.app X) ≫
   e.counit_iso.hom.app (e.functor.obj X) = 𝟙 (e.functor.obj X) :=
@@ -73,7 +68,7 @@ by { erw [←iso.hom_comp_eq_id (e.functor.map_iso (e.unit_iso.app X)), functor_
 begin
   rw [←id_comp (e.inverse.map _), ←map_id e.inverse, ←counit_inv_functor_comp, map_comp,
       ←iso.hom_inv_id_assoc (e.unit_iso.app _) (e.inverse.map (e.functor.map _)),
-      app_hom, app_inv, unit_def, unit_inv_def],
+      app_hom, app_inv],
   slice_lhs 2 3 { erw [e.unit.naturality] },
   slice_lhs 1 2 { erw [e.unit.naturality] },
   slice_lhs 4 4

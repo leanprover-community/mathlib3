@@ -10,11 +10,6 @@ universes v u u' -- declare the `v`'s first; see `category_theory.category` for 
 
 open category_theory
 
--- There is an awkward difficulty with universes here.
--- If we allowed `J` to be a small category in `Prop`, we'd run into trouble
--- because `yoneda.obj (F : (J ⥤ C)ᵒᵖ)` will be a functor into `Sort (max v 1)`,
--- not into `Sort v`.
--- So we don't allow this case; it's not particularly useful anyway.
 variables {J : Type v} [small_category J]
 variables {C : Type u} [category.{v} C]
 
@@ -317,15 +312,14 @@ def whiskering_equivalence {K : Type v} [small_category K] (e : K ≌ J) :
   cocone F ≌ cocone (e.functor ⋙ F) :=
 { functor := whiskering e.functor,
   inverse := whiskering e.inverse ⋙
-    postcompose ((functor.associator _ _ _).inv ≫ (whisker_right (e.counit_iso).hom F) ≫
-      (functor.left_unitor F).hom),
+    precompose ((functor.left_unitor F).inv ≫ (whisker_right (e.counit_iso).inv F) ≫ (functor.associator _ _ _).inv),
   unit_iso := nat_iso.of_components (λ s, cocones.ext (iso.refl _) (by tidy)) (by tidy),
   counit_iso := nat_iso.of_components (λ s, cocones.ext (iso.refl _)
   (begin
     intro k,
-    have t := s.π.naturality (e.unit_inv.app k),
+    have t := s.ι.naturality (e.unit.app k),
     dsimp at t,
-    simp only [←e.counit_functor k, id_comp] at t,
+    simp only [e.functor_unit k, comp_id] at t,
     dsimp,
     simp [t],
   end)) (by tidy), }
@@ -336,7 +330,7 @@ The categories of cocones over `F` and `G` are equivalent if `F` and `G` are nat
 -/
 def equivalence_of_reindexing {K : Type v} [small_category K] {G : K ⥤ C}
   (e : K ≌ J) (α : e.functor ⋙ F ≅ G) : cocone F ≌ cocone G :=
-(whiskering_equivalence e).trans (postcompose_equivalence α)
+(whiskering_equivalence e).trans (precompose_equivalence α.symm)
 
 section
 variable (F)

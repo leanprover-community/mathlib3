@@ -617,7 +617,7 @@ begin
   intro j,
   apply biproduct.hom_ext',
   intro j',
-  simp [sum_comp, comp_sum, biproduct.ι_π, comp_dite],
+  simp [sum_comp, comp_sum, biproduct.ι_π, comp_dite, sum_dite_eq],
 end
 
 /-- If a preadditive category has all products, then it has all preadditive biproducts. -/

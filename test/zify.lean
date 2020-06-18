@@ -29,3 +29,10 @@ begin
   guard_hyp h := (a : ℤ) - b < c,
   admit
 end
+
+example (a b c : ℕ) (h : a + b ≠ c) : false :=
+begin
+  zify at h,
+  guard_hyp h := (a : ℤ) + b ≠ c,
+  admit
+end

@@ -28,7 +28,7 @@ def has_binary_products_of_terminal_and_pullbacks
     { cone :=
       { X := pullback (terminal.from (F.obj walking_pair.left))
                       (terminal.from (F.obj walking_pair.right)),
-        π := nat_trans.of_homs (λ x, walking_pair.cases_on x pullback.fst pullback.snd)},
+        π := discrete.nat_trans (λ x, walking_pair.cases_on x pullback.fst pullback.snd)},
       is_limit :=
       { lift := λ c, pullback.lift ((c.π).app walking_pair.left)
                                    ((c.π).app walking_pair.right)

@@ -148,7 +148,7 @@ variables {J : Type v} [decidable_eq J]
 variables {C : Type u} [category.{v} C] [has_zero_morphisms.{v} C]
 
 /-- `biproduct f` computes the biproduct of a family of elements `f`. (It is defined as an
-   abbreviation for `limit (functor.of_function f)`, so for most facts about `biproduct f`, you will
+   abbreviation for `limit (discrete.functor f)`, so for most facts about `biproduct f`, you will
    just use general facts about limits and colimits.) -/
 abbreviation biproduct (f : J → C) [has_biproduct f] :=
 limit (functor.of_function f)

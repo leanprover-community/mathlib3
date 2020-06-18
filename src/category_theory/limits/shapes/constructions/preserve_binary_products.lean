@@ -27,7 +27,7 @@ variables [has_binary_products.{v} D] (F : C ⥤ D)
 @[simps]
 def alternative_cone (A B : C) : cone (pair A B ⋙ F) :=
 { X := F.obj A ⨯ F.obj B,
-  π := nat_trans.of_homs (λ j, walking_pair.cases_on j limits.prod.fst limits.prod.snd)}
+  π := discrete.nat_trans (λ j, walking_pair.cases_on j limits.prod.fst limits.prod.snd)}
 
 /-- (Implementation). Show that we have a limit for the shape `pair A B ⋙ F`. -/
 def alternative_cone_is_limit (A B : C) : is_limit (alternative_cone F A B) :=

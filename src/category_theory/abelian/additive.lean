@@ -17,7 +17,8 @@ universes v u
 namespace category_theory
 
 variables {C : Type u} [category.{v} C]
-variables [preadditive.{v} C] [has_binary_biproducts.{v} C]
+section
+variables [has_zero_morphisms.{v} C] [has_binary_biproducts.{v} C]
 
 /--
 If
@@ -53,14 +54,43 @@ end
 def is_iso_right_of_is_iso_biprod_map {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) [is_iso (biprod.map f g)] : is_iso g :=
 sorry
 
+end
+
 section
-variables {X₁ X₂ Y₁ Y₂ : C} (f₁₁ : X₁ ⟶ Y₁) (f₁₂ : X₁ ⟶ Y₂) (f₂₁ : X₂ ⟶ Y₁) (f₂₂ : X₂ ⟶ Y₂)
+variables [preadditive.{v} C] [has_preadditive_binary_biproducts.{v} C]
+
+variables {X₁ X₂ Y₁ Y₂ : C}
+variables (f₁₁ : X₁ ⟶ Y₁) (f₁₂ : X₁ ⟶ Y₂) (f₂₁ : X₂ ⟶ Y₁) (f₂₂ : X₂ ⟶ Y₂)
 
 def biprod.of_components : X₁ ⊞ X₂ ⟶ Y₁ ⊞ Y₂ :=
 biprod.fst ≫ f₁₁ ≫ biprod.inl +
 biprod.fst ≫ f₁₂ ≫ biprod.inr +
 biprod.snd ≫ f₂₁ ≫ biprod.inl +
 biprod.snd ≫ f₂₂ ≫ biprod.inr
+
+@[simp]
+lemma biprod.inl_of_components :
+  biprod.inl ≫ biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂ =
+    f₁₁ ≫ biprod.inl + f₁₂ ≫ biprod.inr :=
+by simp [biprod.of_components]
+
+@[simp]
+lemma biprod.inr_of_components :
+  biprod.inr ≫ biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂ =
+    f₂₁ ≫ biprod.inl + f₂₂ ≫ biprod.inr :=
+by simp [biprod.of_components]
+
+@[simp]
+lemma biprod.of_components_fst :
+  biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂ ≫ biprod.fst =
+    biprod.fst ≫ f₁₁ + biprod.snd ≫ f₂₁ :=
+by simp [biprod.of_components]
+
+@[simp]
+lemma biprod.of_components_snd :
+  biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂ ≫ biprod.snd =
+    biprod.fst ≫ f₁₂ + biprod.snd ≫ f₂₂ :=
+by simp [biprod.of_components]
 
 @[simp]
 lemma biprod.inl_of_components_fst :
@@ -139,6 +169,60 @@ begin
   exact as_iso r
 end
 
+-- lemma biprod.row_nonzero_of_iso [is_iso (biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂)] :
+--   𝟙 X₁ = 0 ∨ f₁₁ ≠ 0 ∨ f₁₂ ≠ 0 :=
+-- begin
+--   classical,
+--   by_contradiction,
+--   rw [not_or_distrib, not_or_distrib, classical.not_not, classical.not_not] at a,
+--   set M := biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂,
+--   rcases a with ⟨nz, rfl, rfl⟩,
+--   set X := inv M,
+--   set x := biprod.inl ≫ M ≫ X ≫ biprod.fst,
+--   have h₁ : x = 𝟙 _, by simp [x],
+--   have h₀ : x = 0,
+--   begin
+--     dsimp [x, M, X],
+--     conv_lhs {
+--       slice 1 2,
+--       rw [biprod.inl_of_components],
+--     },
+--     simp,
+--   end,
+--   exact nz (h₁.symm.trans h₀),
+-- end
+
+lemma biprod.row_nonzero_of_iso {W X Y Z : C}
+  (f : W ⊞ X ⟶ Y ⊞ Z) [is_iso f] :
+  𝟙 W = 0 ∨ biprod.inl ≫ f ≫ biprod.fst ≠ 0 ∨ biprod.inl ≫ f ≫ biprod.snd ≠ 0 :=
+begin
+  classical,
+  by_contradiction,
+  rw [not_or_distrib, not_or_distrib, classical.not_not, classical.not_not] at a,
+  rcases a with ⟨nz, a₁, a₂⟩,
+  set x := biprod.inl ≫ f ≫ inv f ≫ biprod.fst,
+  have h₁ : x = 𝟙 W, by simp [x],
+  have h₀ : x = 0,
+  { dsimp [x],
+    rw [←category.id_comp (inv f), category.assoc, ←biprod.total],
+    conv_lhs { slice 2 3, rw [comp_add], },
+    simp only [category.assoc],
+    rw [comp_add_assoc, add_comp],
+    conv_lhs { congr, skip, slice 1 3, rw a₂, },
+    simp only [has_zero_morphisms.zero_comp, add_zero],
+    conv_lhs { slice 1 3, rw a₁, },
+    simp only [has_zero_morphisms.zero_comp], },
+  exact nz (h₁.symm.trans h₀),
 end
+
+
+end
+
+-- We'll definitely need preadditive biproducts here.
+lemma biproduct.row_nonzero_of_iso {σ τ : Type v} [decidable_eq σ] [fintype σ] [decidable_eq τ] [fintype τ]
+  (S : σ → C) [has_biproduct.{v} S] (T : τ → C) [has_biproduct.{v} T]
+  (f : ⨁ S ⟶ ⨁ T) [is_iso f] (s : σ) :
+  𝟙 (S s) = 0 ∨ ∃ t : τ, biproduct.ι S s ≫ f ≫ biproduct.π T t ≠ 0 :=
+sorry
 
 end category_theory

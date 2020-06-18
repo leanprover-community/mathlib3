@@ -82,12 +82,12 @@ variables {F : J → C}
 namespace bicone
 /-- Extract the cone from a bicone. -/
 @[simps]
-def to_cone (B : bicone F) : cone (functor.of_function F) :=
+def to_cone (B : bicone F) : cone (discrete.functor F) :=
 { X := B.X,
   π := { app := λ j, B.π j }, }
 /-- Extract the cocone from a bicone. -/
 @[simps]
-def to_cocone (B : bicone F) : cocone (functor.of_function F) :=
+def to_cocone (B : bicone F) : cocone (discrete.functor F) :=
 { X := B.X,
   ι := { app := λ j, B.ι j }, }
 end bicone
@@ -102,12 +102,12 @@ class has_biproduct (F : J → C) :=
 (is_colimit : is_colimit bicone.to_cocone)
 
 @[priority 100]
-instance has_product_of_has_biproduct [has_biproduct F] : has_limit (functor.of_function F) :=
+instance has_product_of_has_biproduct [has_biproduct F] : has_limit (discrete.functor F) :=
 { cone := has_biproduct.bicone.to_cone,
   is_limit := has_biproduct.is_limit, }
 
 @[priority 100]
-instance has_coproduct_of_has_biproduct [has_biproduct F] : has_colimit (functor.of_function F) :=
+instance has_coproduct_of_has_biproduct [has_biproduct F] : has_colimit (discrete.functor F) :=
 { cocone := has_biproduct.bicone.to_cocone,
   is_colimit := has_biproduct.is_colimit, }
 
@@ -151,16 +151,16 @@ variables {C : Type u} [category.{v} C] [has_zero_morphisms.{v} C]
    abbreviation for `limit (discrete.functor f)`, so for most facts about `biproduct f`, you will
    just use general facts about limits and colimits.) -/
 abbreviation biproduct (f : J → C) [has_biproduct f] :=
-limit (functor.of_function f)
+limit (discrete.functor f)
 
 notation `⨁ ` f:20 := biproduct f
 
 /-- The projection onto a summand of a biproduct. -/
 abbreviation biproduct.π (f : J → C) [has_biproduct f] (b : J) : ⨁ f ⟶ f b :=
-limit.π (functor.of_function f) b
+limit.π (discrete.functor f) b
 /-- The inclusion into a summand of a biproduct. -/
 abbreviation biproduct.ι (f : J → C) [has_biproduct f] (b : J) : f b ⟶ ⨁ f :=
-colimit.ι (functor.of_function f) b
+colimit.ι (discrete.functor f) b
 
 @[reassoc]
 lemma biproduct.ι_π (f : J → C) [has_biproduct f] (j j' : J) :
@@ -180,13 +180,13 @@ colimit.desc _ (cofan.mk p)
 indexed by the same type, we obtain a map between the biproducts. -/
 abbreviation biproduct.map [fintype J] {f g : J → C} [has_finite_biproducts.{v} C]
   (p : Π b, f b ⟶ g b) : ⨁ f ⟶ ⨁ g :=
-lim_map (nat_trans.of_function p)
+lim_map (discrete.nat_trans p)
 
 /-- An alternative to `biproduct.map` constructed via colimits.
 This construction only exists in order to show it is equal to `biproduct.map`. -/
 abbreviation biproduct.map' [fintype J] {f g : J → C} [has_finite_biproducts.{v} C]
   (p : Π b, f b ⟶ g b) : ⨁ f ⟶ ⨁ g :=
-@colim_map _ _ _ _ (functor.of_function f) (functor.of_function g) _ _ (nat_trans.of_function p)
+@colim_map _ _ _ _ (discrete.functor f) (discrete.functor g) _ _ (discrete.nat_trans p)
 
 @[ext] lemma biproduct.hom_ext [fintype J] {f : J → C} [has_finite_biproducts.{v} C]
   {Z : C} (g h : Z ⟶ ⨁ f)
@@ -202,7 +202,7 @@ lemma biproduct.map_eq_map' [fintype J] {f g : J → C} [has_finite_biproducts.{
   (p : Π b, f b ⟶ g b) : biproduct.map p = biproduct.map' p :=
 begin
   ext j j',
-  simp only [nat_trans.of_function_app, limits.ι_colim_map, limits.lim_map_π, category.assoc],
+  simp only [discrete.nat_trans_app, limits.ι_colim_map, limits.lim_map_π, category.assoc],
   rw [biproduct.ι_π_assoc, biproduct.ι_π],
   split_ifs,
   { subst h, rw [eq_to_hom_refl, category.id_comp], erw category.comp_id, },

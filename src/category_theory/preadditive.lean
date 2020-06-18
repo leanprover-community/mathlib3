@@ -60,7 +60,7 @@ class preadditive :=
 attribute [instance] preadditive.hom_group
 restate_axiom preadditive.add_comp'
 restate_axiom preadditive.comp_add'
-attribute [simp] preadditive.add_comp preadditive.comp_add
+attribute [simp, reassoc] preadditive.add_comp preadditive.comp_add
 
 end category_theory
 

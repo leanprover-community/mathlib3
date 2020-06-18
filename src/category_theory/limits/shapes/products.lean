@@ -32,12 +32,18 @@ def cofan.mk {f : β → C} {P : C} (p : Π b, f b ⟶ P) : cofan f :=
 @[simp] lemma fan.mk_π_app {f : β → C} {P : C} (p : Π b, P ⟶ f b) (b : β) : (fan.mk p).π.app b = p b := rfl
 @[simp] lemma cofan.mk_π_app {f : β → C} {P : C} (p : Π b, f b ⟶ P) (b : β) : (cofan.mk p).ι.app b = p b := rfl
 
+/-- An abbreviation for `has_limit (discrete.functor f)`. -/
 abbreviation has_product (f : β → C) := has_limit (discrete.functor f)
+
+/-- An abbreviation for `has_colimit (discrete.functor f)`. -/
 abbreviation has_coproduct (f : β → C) := has_colimit (discrete.functor f)
+
 section
 variables (C)
 
+/-- An abbreviation for `has_limits_of_shape (discrete f)`. -/
 abbreviation has_products_of_shape (β : Type v) := has_limits_of_shape.{v} (discrete β)
+/-- An abbreviation for `has_colimits_of_shape (discrete f)`. -/
 abbreviation has_coproducts_of_shape (β : Type v) := has_colimits_of_shape.{v} (discrete β)
 end
 

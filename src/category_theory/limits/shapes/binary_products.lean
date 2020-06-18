@@ -157,7 +157,9 @@ def binary_cofan.is_colimit.desc' {W X Y : C} {s : binary_cofan X Y} (h : is_col
   (g : Y ⟶ W) : {l : s.X ⟶ W // s.inl ≫ l = f ∧ s.inr ≫ l = g} :=
 ⟨h.desc $ binary_cofan.mk f g, h.fac _ _, h.fac _ _⟩
 
+/-- An abbreviation for `has_limit (pair X Y)`. -/
 abbreviation has_binary_product (X Y : C) := has_limit (pair X Y)
+/-- An abbreviation for `has_colimit (pair X Y)`. -/
 abbreviation has_binary_coproduct (X Y : C) := has_colimit (pair X Y)
 
 /-- If we have chosen a product of `X` and `Y`, we can access it using `prod X Y` or

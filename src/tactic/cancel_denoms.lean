@@ -22,6 +22,8 @@ As an example, we want to transform a comparison `5*(a/3 + b/4) < c/3` into the 
 The tooling here was originally written for `linarith`, not intended as an interactive tactic.
 The interactive version has been split off because it is sometimes convenient to use on its own.
 There are likely some rough edges to it.
+
+Improving this tactic would be a good project for someone interested in learning tactic programming.
 -/
 
 namespace cancel_factors
@@ -37,7 +39,7 @@ lemma div_subst {α} [field α] {n1 n2 k e1 e2 t1 : α} (h1 : n1 * e1 = t1) (h2 
    (h3 : n1*n2 = k) : k * (e1 / e2) = t1 :=
 by rw [←h3, mul_assoc, mul_div_comm, h2, ←mul_assoc, h1, mul_comm, one_mul]
 
-lemma kill_factors_eq_div {α} [field α] {n e e' : α} (h : n*e = e') (h2 : n ≠ 0) :
+lemma cancel_factors_eq_div {α} [field α] {n e e' : α} (h : n*e = e') (h2 : n ≠ 0) :
   e = e' / n :=
 eq_div_of_mul_eq _ _ h2 $ by rwa mul_comm at h
 
@@ -49,7 +51,7 @@ lemma sub_subst {α} [ring α] {n e1 e2 t1 t2 : α} (h1 : n * e1 = t1) (h2 : n *
 
 lemma neg_subst {α} [ring α] {n e t : α} (h1 : n * e = t) : n * (-e) = -t := by simp *
 
-lemma kill_factors_lt {α} [linear_ordered_field α] {a b ad bd a' b' gcd : α} (ha : ad*a = a')
+lemma cancel_factors_lt {α} [linear_ordered_field α] {a b ad bd a' b' gcd : α} (ha : ad*a = a')
   (hb : bd*b = b') (had : 0 < ad) (hbd : 0 < bd) (hgcd : 0 < gcd) :
   a < b = ((1/gcd)*(bd*a') < (1/gcd)*(ad*b')) :=
 begin
@@ -58,7 +60,7 @@ begin
   exact one_div_pos_of_pos hgcd
 end
 
-lemma kill_factors_le {α} [linear_ordered_field α] {a b ad bd a' b' gcd : α} (ha : ad*a = a')
+lemma cancel_factors_le {α} [linear_ordered_field α] {a b ad bd a' b' gcd : α} (ha : ad*a = a')
   (hb : bd*b = b') (had : 0 < ad) (hbd : 0 < bd) (hgcd : 0 < gcd)  :
   a ≤ b = ((1/gcd)*(bd*a') ≤ (1/gcd)*(ad*b')) :=
 begin
@@ -67,7 +69,7 @@ begin
   exact one_div_pos_of_pos hgcd
 end
 
-lemma kill_factors_eq {α} [linear_ordered_field α] {a b ad bd a' b' gcd : α} (ha : ad*a = a')
+lemma cancel_factors_eq {α} [linear_ordered_field α] {a b ad bd a' b' gcd : α} (ha : ad*a = a')
   (hb : bd*b = b') (had : 0 < ad) (hbd : 0 < bd) (hgcd : 0 < gcd) :
   a = b = ((1/gcd)*(bd*a') = (1/gcd)*(ad*b')) :=
 begin
@@ -145,44 +147,45 @@ meta def mk_prod_prf : ℕ → tree ℕ → expr → tactic expr
 Given `e`, a term with rational division, produces a natural number `n` and a proof of `n*e = e'`,
 where `e'` has no division. Assumes "well-behaved" division.
 -/
-meta def kill_factors (e : expr) : tactic (ℕ × expr) :=
+meta def derive (e : expr) : tactic (ℕ × expr) :=
 let (n, t) := find_cancel_factor e in
 prod.mk n <$> mk_prod_prf n t e <|>
-  fail!"kill_factors failed to normalize {e}. Are you sure this is well-behaved division?"
+  fail!"cancel_factors.derive failed to normalize {e}. Are you sure this is well-behaved division?"
 
 /--
 Given `e`, a term with rational divison, produces a natural number `n` and a proof of `e = e' / n`,
 where `e'` has no divison. Assumes "well-behaved" division.
 -/
-meta def kill_factors_div (e : expr) : tactic (ℕ × expr) :=
-do (n, p) ← kill_factors e,
+meta def derive_div (e : expr) : tactic (ℕ × expr) :=
+do (n, p) ← derive e,
    tp ← infer_type e,
    n' ← tp.of_nat n, tgt ← to_expr ``(%%n' ≠ 0),
    (_, pn) ← solve_aux tgt `[norm_num, done],
    infer_type p >>= trace, infer_type pn >>= trace,
-   prod.mk n <$> mk_mapp ``kill_factors_eq_div [none, none, n', none, none, p, pn]
+   prod.mk n <$> mk_mapp ``cancel_factors_eq_div [none, none, n', none, none, p, pn]
 
 /--
 `find_comp_lemma e` arranges `e` in the form `lhs R rhs`, where `R ∈ {<, ≤, =}`, and returns
-`lhs`, `rhs`, and the `kill_factors` lemma corresponding to `R`.
+`lhs`, `rhs`, and the `cancel_factors` lemma corresponding to `R`.
 -/
 meta def find_comp_lemma : expr → option (expr × expr × name)
-| `(%%a < %%b) := (a, b, ``kill_factors_lt)
-| `(%%a ≤ %%b) := (a, b, ``kill_factors_le)
-| `(%%a = %%b) := (a, b, ``kill_factors_eq)
-| `(%%a ≥ %%b) := (b, a, ``kill_factors_le)
-| `(%%a > %%b) := (b, a, ``kill_factors_lt)
+| `(%%a < %%b) := (a, b, ``cancel_factors_lt)
+| `(%%a ≤ %%b) := (a, b, ``cancel_factors_le)
+| `(%%a = %%b) := (a, b, ``cancel_factors_eq)
+| `(%%a ≥ %%b) := (b, a, ``cancel_factors_le)
+| `(%%a > %%b) := (b, a, ``cancel_factors_lt)
 | _ := none
 
 /--
-`cancel_factors_in_type h` assumes that `h` is of the form `lhs R rhs`, where `R ∈ {<, ≤, =, ≥, >}`.
+`cancel_denominators_in_type h` assumes that `h` is of the form `lhs R rhs`,
+where `R ∈ {<, ≤, =, ≥, >}`.
 It produces an expression `h'` of the form `lhs' R rhs'` and a proof that `h = h'`.
 Numeric denominators have been canceled in `lhs'` and `rhs'`.
 -/
-meta def cancel_factors_in_type (h : expr) : tactic (expr × expr) :=
+meta def cancel_denominators_in_type (h : expr) : tactic (expr × expr) :=
 do some (lhs, rhs, lem) ← return $ find_comp_lemma h | fail "cannot kill factors",
-   (al, lhs_p) ← kill_factors lhs,
-   (ar, rhs_p) ← kill_factors rhs,
+   (al, lhs_p) ← derive lhs,
+   (ar, rhs_p) ← derive rhs,
    let gcd := al.gcd ar,
    tp ← infer_type lhs,
    al ← tp.of_nat al,
@@ -200,19 +203,35 @@ do some (lhs, rhs, lem) ← return $ find_comp_lemma h | fail "cannot kill facto
 
 end cancel_factors
 
-section
-
 /-! ### Interactive version -/
 
 setup_tactic_parser
 open tactic expr cancel_factors
 
 /--
-TOOD: document
+`cancel_denoms` attempts to remove numerals from the denominators of fractions.
+It works on propositions that are field-valued inequalities.
+
+```lean
+variables {α : Type} [linear_ordered_field α] (a b c : α)
+
+example (h : a / 5 + b / 4 < c) : 4*a + 5*b < 20*c :=
+begin
+  cancel_denoms at h,
+  exact h
+end
+
+example (h : a > 0) : a / 5 > 0 :=
+begin
+  cancel_denoms,
+  exact h
+end
+```
 -/
 meta def tactic.interactive.cancel_denoms (l : parse location) : tactic unit :=
 do locs ← l.get_locals,
-   tactic.replace_at cancel_factors_in_type locs l.include_goal >>= guardb,
+   tactic.replace_at cancel_denominators_in_type locs l.include_goal >>= guardb
+     <|> fail "failed to cancel any denominators",
    tactic.interactive.norm_num [simp_arg_type.symm_expr ``(mul_assoc)] l
 
 add_tactic_doc
@@ -220,5 +239,3 @@ add_tactic_doc
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.cancel_denoms],
   tags := ["simplification"] }
-
-end

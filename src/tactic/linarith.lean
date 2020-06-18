@@ -222,7 +222,7 @@ The represented term is `coeffs.sum (λ ⟨k, v⟩, v * Var[k])`.
 str determines the direction of the comparison -- is it < 0, ≤ 0, or = 0?
 -/
 @[derive inhabited]
-structure comp :=
+structure comp : Type :=
 (str : ineq)
 (coeffs : linexp)
 
@@ -231,7 +231,7 @@ def comp.vars : comp → list ℕ :=
 linexp.vars ∘ comp.coeffs
 
 @[derive inhabited]
-inductive comp_source
+inductive comp_source : Type
 | assump : ℕ → comp_source
 | add : comp_source → comp_source → comp_source
 | scale : ℕ → comp_source → comp_source
@@ -276,7 +276,7 @@ We track these sets in order to compute whether the history of a `pcomp` is *min
 Checking this directly is expensive, but effective approximations can be defined in terms of these
 sets. During the variable elimination process, a `pcomp` with non-minimal history can be discarded.
 -/
-meta structure pcomp :=
+meta structure pcomp : Type :=
 (c : comp)
 (src : comp_source)
 (history : rb_set ℕ)

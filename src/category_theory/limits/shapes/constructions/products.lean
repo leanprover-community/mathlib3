@@ -115,7 +115,7 @@ def product_over_sigma_iso {I : Type v} {Z : I → Type v} (f : (Σ i, Z i) → 
   [has_product f] [∀ i, has_product (λ z, f ⟨i, z⟩)] [has_product (λ i, ∏ (λ z, f ⟨i, z⟩))] :
   ∏ f ≅ ∏ λ i, ∏ (λ z, f ⟨i, z⟩) :=
 begin
-  transitivity (cone_over_sigma f (λ i, limit.cone (functor.of_function (λ z, f ⟨i, z⟩))) _).X,
+  transitivity (cone_over_sigma f (λ i, limit.cone (discrete.functor (λ z, f ⟨i, z⟩))) _).X,
   { apply is_limit.cone_point_unique_up_to_iso (limit.is_limit _)
     (is_limit_cone_over_sigma _ _ _ _ _),
     { exact (λ i, limit.is_limit _), },
@@ -129,10 +129,10 @@ open walking_pair
 
 lemma equiv_walking_pair_aux {I : Type v} (e : I ≃ limits.walking_pair) (f : I → C) (i : I) :
   (limits.pair (f (e.symm left)) (f (e.symm right))).obj (e i) =
-    (functor.of_function f).obj i :=
+    (discrete.functor f).obj i :=
 begin
   cases h : e i;
-  { simp only [functor.of_function_obj, limits.pair_obj_left, limits.pair_obj_right],
+  { simp only [discrete.functor_obj, limits.pair_obj_left, limits.pair_obj_right],
     rw [←h, equiv.symm_apply_apply], }
 end
 
@@ -153,10 +153,10 @@ we get an equivalence of categories of cones,
 allowing us to convert between `fan` and `binary_fan`.
 -/
 def cone_equivalence_of_equiv_walking_pair {I : Type v} (e : I ≃ walking_pair) (f : I → C) :
-  cone (functor.of_function f) ≌ cone (pair (f (e.symm left)) (f (e.symm right))) :=
+  cone (discrete.functor f) ≌ cone (pair (f (e.symm left)) (f (e.symm right))) :=
 begin
-  apply cones.equivalence_of_reindexing (equivalence.of_equiv e.symm),
-  apply nat_iso.of_function,
+  apply cones.equivalence_of_reindexing (discrete.equivalence e.symm),
+  apply discrete.nat_iso,
   rintro ⟨i|j⟩; simp,
 end
 
@@ -188,7 +188,7 @@ is just the binary product of the two objects.
 def product_over_equiv_walking_pair {I : Type v} (e : I ≃ walking_pair) (f : I → C)
   [has_product f] [has_binary_product (f (e.symm left)) (f (e.symm right))] :
   ∏ f ≅ (f (e.symm left)) ⨯ (f (e.symm right)) :=
-has_limit.ext_of_equivalence (equivalence.of_equiv e) (nat_iso.of_function (λ i, by simp))
+has_limit.ext_of_equivalence (discrete.equivalence e) (discrete.nat_iso (λ i, by simp))
 
 end
 

@@ -556,19 +556,23 @@ def has_preadditive_biproduct.of_has_product (f : J → C) [has_product.{v} f] :
   has_preadditive_biproduct.{v} f :=
 { bicone :=
   { X := pi_obj f,
-    π := category_theory.limits.pi.π,
-    ι := category_theory.limits.sigma.ι, } }
+    π := category_theory.limits.pi.π f,
+    ι := sorry,
+    -- inl := prod.lift (𝟙 X) 0,
+    -- inr := prod.lift 0 (𝟙 Y),
+    ι_π := sorry, } }
 
 /-- In a preadditive category, if the coproduct over `f : J → C` exists, then the preadditive
     biproduct over `f` exists. -/
 def has_preadditive_biproduct.of_has_coproduct (f : J → C) [has_coproduct.{v} f] :
   has_preadditive_biproduct.{v} f :=
 { bicone :=
-  { X := X ⨿ Y,
-    fst := coprod.desc (𝟙 X) 0,
-    snd := coprod.desc 0 (𝟙 Y),
-    inl := category_theory.limits.coprod.inl,
-    inr := category_theory.limits.coprod.inr } }
+  { X := sigma_obj f,
+    π := sorry,
+    -- fst := coprod.desc (𝟙 X) 0,
+    -- snd := coprod.desc 0 (𝟙 Y),
+    ι := category_theory.limits.sigma.ι f,
+    ι_π := sorry, } }
 
 end has_product
 
@@ -587,19 +591,19 @@ attribute [instance, priority 100] has_preadditive_biproducts.has_preadditive_bi
 instance [has_preadditive_biproducts.{v} C] : has_biproducts.{v} C :=
 ⟨λ X Y, by apply_instance⟩
 
-lemma biproduct.map_eq [has_biproducts.{v} C] {W X Y Z : C} {f : W ⟶ Y} {g : X ⟶ Z} :
+lemma biproduct.map_eq [has_biproducts.{v} C] {f g : J → C} {h : Π j, f j ⟶ g j} :
   biproduct.map f g = biprod.fst ≫ f ≫ biprod.inl + biprod.snd ≫ g ≫ biprod.inr :=
 by apply biprod.hom_ext; apply biprod.hom_ext'; simp
 
 /-- If a preadditive category has all products, then it has all preadditive biproducts. -/
 def has_preadditive_biproducts_of_has_products [has_products.{v} C] :
   has_preadditive_biproducts.{v} C :=
-⟨λ X Y, has_preadditive_biproduct.of_has_product X Y⟩
+⟨λ _ _ _ f, by exactI has_preadditive_biproduct.of_has_product f⟩
 
 /-- If a preadditive category has all coproducts, then it has all preadditive biproducts. -/
 def has_preadditive_binary_biproducts_of_has_binary_coproducts [has_coproducts.{v} C] :
   has_preadditive_biproducts.{v} C :=
-⟨λ X Y, has_preadditive_biproduct.of_has_coproduct X Y⟩
+⟨λ _ _ _ f, by exactI has_preadditive_biproduct.of_has_coproduct f⟩
 
 end
 

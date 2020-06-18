@@ -165,7 +165,7 @@ if_neg hb
 lemma support_single_subset : (single a b).support ⊆ {a} :=
 show ite _ _ _ ⊆ _, by split_ifs; [exact empty_subset _, exact subset.refl _]
 
-lemma injective_single (a : α) : function.injective (single a : β → α →₀ β) :=
+lemma single_injective (a : α) : function.injective (single a : β → α →₀ β) :=
 assume b₁ b₂ eq,
 have (single a b₁ : α →₀ β) a = (single a b₂ : α →₀ β) a, by rw eq,
 by rwa [single_eq_same, single_eq_same] at this
@@ -177,7 +177,7 @@ begin
   { assume eq,
     by_cases a₁ = a₂,
     { refine or.inl ⟨h, _⟩,
-      rwa [h, (injective_single a₂).eq_iff] at eq },
+      rwa [h, (single_injective a₂).eq_iff] at eq },
     { rw [ext_iff] at eq,
       have h₁ := eq a₁,
       have h₂ := eq a₂,
@@ -281,7 +281,7 @@ begin
   refine ⟨v.support.map f, λa₂,
     if h : a₂ ∈ v.support.map f then v (v.support.choose (λa₁, f a₁ = a₂) _) else 0, _⟩,
   { rcases finset.mem_map.1 h with ⟨a, ha, rfl⟩,
-    exact exists_unique.intro a ⟨ha, rfl⟩ (assume b ⟨_, hb⟩, f.inj hb) },
+    exact exists_unique.intro a ⟨ha, rfl⟩ (assume b ⟨_, hb⟩, f.injective hb) },
   { assume a₂,
     split_ifs,
     { simp only [h, true_iff, ne.def],
@@ -350,7 +350,7 @@ begin
     { simp only [eq.symm h_cases, hc₂, single_eq_same] },
     { rw [single_apply, single_apply, if_neg, if_neg h_cases],
       by_contra hfd,
-      exact h_cases (f.inj (hc₂.trans hfd)) } },
+      exact h_cases (f.injective (hc₂.trans hfd)) } },
   { exact hc₂ }
 end
 
@@ -908,11 +908,11 @@ begin
   ext a,
   by_cases a ∈ set.range f,
   { rcases h with ⟨a, rfl⟩,
-    rw [map_domain_apply f.inj, emb_domain_apply] },
+    rw [map_domain_apply f.injective, emb_domain_apply] },
   { rw [map_domain_notin_range, emb_domain_notin_range]; assumption }
 end
 
-lemma injective_map_domain {f : α₁ → α₂} (hf : function.injective f) :
+lemma map_domain_injective {f : α₁ → α₂} (hf : function.injective f) :
   function.injective (map_domain f : (α₁ →₀ β) → (α₂ →₀ β)) :=
 begin
   assume v₁ v₂ eq, ext a,

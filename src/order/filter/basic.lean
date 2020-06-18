@@ -1445,7 +1445,7 @@ section applicative
 lemma singleton_mem_pure_sets {a : α} : {a} ∈ (pure a : filter α) :=
 mem_singleton a
 
-lemma pure_inj : function.injective (pure : α → filter α) :=
+lemma pure_injective : function.injective (pure : α → filter α) :=
 assume a b hab, (filter.ext_iff.1 hab {x | a = x}).1 rfl
 
 @[simp] lemma pure_ne_bot {α : Type u} {a : α} : pure a ≠ (⊥ : filter α) :=

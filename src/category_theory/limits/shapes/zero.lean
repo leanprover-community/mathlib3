@@ -115,7 +115,7 @@ variables [has_zero_morphisms.{v} C] [has_zero_morphisms.{v'} D]
   F.functor.map (0 : X ⟶ Y) = (0 : F.functor.obj X ⟶ F.functor.obj Y) :=
 begin
   have t : F.functor.map (0 : X ⟶ Y) = F.functor.map (0 : X ⟶ Y) ≫ (0 : F.functor.obj Y ⟶ F.functor.obj Y),
-  { apply faithful.injectivity (F.inverse),
+  { apply faithful.map_injective (F.inverse),
     rw [functor.map_comp, equivalence.inv_fun_map],
     dsimp,
     rw [zero_comp, comp_zero, zero_comp], },

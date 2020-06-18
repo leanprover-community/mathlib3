@@ -857,10 +857,10 @@ variables (t : α → set β)
 sending `⟨i, x⟩` to `x`. -/
 def sigma_to_Union (x : Σi, t i) : (⋃i, t i) := ⟨x.2, mem_Union.2 ⟨x.1, x.2.2⟩⟩
 
-lemma surjective_sigma_to_Union : surjective (sigma_to_Union t)
+lemma sigma_to_Union_surjective : surjective (sigma_to_Union t)
 | ⟨b, hb⟩ := have ∃a, b ∈ t a, by simpa using hb, let ⟨a, hb⟩ := this in ⟨⟨a, ⟨b, hb⟩⟩, rfl⟩
 
-lemma injective_sigma_to_Union (h : ∀i j, i ≠ j → disjoint (t i) (t j)) :
+lemma sigma_to_Union_injective (h : ∀i j, i ≠ j → disjoint (t i) (t j)) :
   injective (sigma_to_Union t)
 | ⟨a₁, ⟨b₁, h₁⟩⟩ ⟨a₂, ⟨b₂, h₂⟩⟩ eq :=
   have b_eq : b₁ = b₂, from congr_arg subtype.val eq,
@@ -869,13 +869,13 @@ lemma injective_sigma_to_Union (h : ∀i j, i ≠ j → disjoint (t i) (t j)) :
     h _ _ ne this,
   sigma.eq a_eq $ subtype.eq $ by subst b_eq; subst a_eq
 
-lemma bijective_sigma_to_Union (h : ∀i j, i ≠ j → disjoint (t i) (t j)) :
+lemma sigma_to_Union_bijective (h : ∀i j, i ≠ j → disjoint (t i) (t j)) :
   bijective (sigma_to_Union t) :=
-⟨injective_sigma_to_Union t h, surjective_sigma_to_Union t⟩
+⟨sigma_to_Union_injective t h, sigma_to_Union_surjective t⟩
 
 noncomputable def Union_eq_sigma_of_disjoint {t : α → set β}
   (h : ∀i j, i ≠ j → disjoint (t i) (t j)) : (⋃i, t i) ≃ (Σi, t i) :=
-(equiv.of_bijective _ $ bijective_sigma_to_Union t h).symm
+(equiv.of_bijective _ $ sigma_to_Union_bijective t h).symm
 
 noncomputable def bUnion_eq_sigma_of_disjoint {s : set α} {t : α → set β}
   (h : pairwise_on s (disjoint on t)) : (⋃i∈s, t i) ≃ (Σi:s, t i.val) :=

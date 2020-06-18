@@ -68,7 +68,7 @@ This instance generates the type-class problem `bundled_hom ?m` (which is why th
               map := λ X Y f, 𝒞.to_fun X.str Y.str f,
               map_id' := λ X, 𝒞.id_to_fun X.str,
               map_comp' := by intros; erw 𝒞.comp_to_fun; refl },
-  forget_faithful := { injectivity' := by intros; apply 𝒞.hom_ext } }
+  forget_faithful := { map_injective' := by intros; apply 𝒞.hom_ext } }
 
 variables {hom}
 local attribute [instance] concrete_category.has_coe_to_fun

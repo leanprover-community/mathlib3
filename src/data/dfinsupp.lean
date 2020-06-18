@@ -269,7 +269,7 @@ def mk (s : finset ι) (x : Π i : (↑s : set ι), β i.1) : Π₀ i, β i :=
   (mk s x : Π i, β i) i = if H : i ∈ s then x ⟨i, H⟩ else 0 :=
 rfl
 
-theorem mk_inj (s : finset ι) : function.injective (@mk ι β _ _ s) :=
+theorem mk_injective (s : finset ι) : function.injective (@mk ι β _ _ s) :=
 begin
   intros x y H,
   ext i,

@@ -270,7 +270,7 @@ lemma linear_independent.of_subtype_range (hv : injective v)
 begin
   rw linear_independent_iff,
   intros l hl,
-  apply finsupp.injective_map_domain hv,
+  apply finsupp.map_domain_injective hv,
   apply linear_independent_subtype.1 h (l.map_domain v),
   { rw finsupp.mem_supported,
     intros x hx,
@@ -296,7 +296,7 @@ begin
     have := finset.mem_coe.2 (finsupp.map_domain_support (finset.mem_coe.1 hx)),
     rw finset.coe_image at this,
     exact subtype.val_image_subset _ _ this },
-  apply @finsupp.injective_map_domain _ (subtype s) ι,
+  apply @finsupp.map_domain_injective _ (subtype s) ι,
   { apply subtype.val_injective },
   { simpa },
 end
@@ -535,14 +535,14 @@ lemma surjective_of_linear_independent_of_span
   surjective f :=
 begin
   intros i,
-  let repr : (span R (range (v ∘ f)) : Type*) → ι' →₀ R := (hv.comp f f.inj).repr,
+  let repr : (span R (range (v ∘ f)) : Type*) → ι' →₀ R := (hv.comp f f.injective).repr,
   let l := (repr ⟨v i, hss (mem_range_self i)⟩).map_domain f,
   have h_total_l : finsupp.total ι M R v l = v i,
   { dsimp only [l],
     rw finsupp.total_map_domain,
-    rw (hv.comp f f.inj).total_repr,
+    rw (hv.comp f f.injective).total_repr,
     { refl },
-    { exact f.inj } },
+    { exact f.injective } },
   have h_total_eq : (finsupp.total ι M R v) l = (finsupp.total ι M R v) (finsupp.single i 1),
     by rw [h_total_l, finsupp.total_single, one_smul],
   have l_eq : l = _ := linear_map.ker_eq_bot.1 hv h_total_eq,
@@ -621,8 +621,8 @@ begin
   have inj_v' : injective v' := (linear_independent.injective zero_eq_one hv'),
   apply linear_independent.of_subtype_range,
   { apply sum.elim_injective,
-    { exact prod.injective_inl.comp inj_v },
-    { exact prod.injective_inr.comp inj_v' },
+    { exact prod.inl_injective.comp inj_v },
+    { exact prod.inr_injective.comp inj_v' },
     { intros, simp [hv.ne_zero zero_eq_one] } },
   { rw sum.elim_range,
     refine (hv.image _).to_subtype_range.union (hv'.image _).to_subtype_range _;

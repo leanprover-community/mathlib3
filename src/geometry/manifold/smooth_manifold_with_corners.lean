@@ -10,7 +10,7 @@ import geometry.manifold.charted_space
 # Smooth manifolds (possibly with boundary or corners)
 
 A smooth manifold is a manifold modelled on a normed vector space, or a subset like a
-half-space (to get manifolds with boundaries) for which the change of coordinates are smooth maps.
+half-space (to get manifolds with boundaries) for which the changes of coordinates are smooth maps.
 We define a model with corners as a map `I : H → E` embedding nicely the topological space `H` in
 the vector space `E` (or more precisely as a structure containing all the relevant properties).
 Given such a model with corners `I` on `(E, H)`, we define the groupoid of local
@@ -446,16 +446,28 @@ charted space with a structure groupoid, avoiding the need to specify the groupo
 variables  {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
-  (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+  (M : Type*) [topological_space M] [charted_space H M]
 
 /-- The maximal atlas of `M` for the smooth manifold with corners structure corresponding to the
 modle with corners `I`. -/
 def maximal_atlas := (times_cont_diff_groupoid ⊤ I).maximal_atlas M
 
-lemma compatible
+variable {M}
+
+lemma compatible [smooth_manifold_with_corners I M]
   {e e' : local_homeomorph M H} (he : e ∈ atlas H M) (he' : e' ∈ atlas H M) :
   e.symm.trans e' ∈ times_cont_diff_groupoid ⊤ I :=
 has_groupoid.compatible _ he he'
+
+lemma mem_maximal_atlas_of_mem_atlas [smooth_manifold_with_corners I M]
+  {e : local_homeomorph M H} (he : e ∈ atlas H M) : e ∈ maximal_atlas I M :=
+structure_groupoid.mem_maximal_atlas_of_mem_atlas _ he
+
+lemma chart_mem_maximal_atlas [smooth_manifold_with_corners I M] (x : M) :
+  chart_at H x ∈ maximal_atlas I M :=
+structure_groupoid.chart_mem_maximal_atlas _ x
+
+variable {I}
 
 lemma compatible_of_mem_maximal_atlas
   {e e' : local_homeomorph M H} (he : e ∈ maximal_atlas I M) (he' : e' ∈ maximal_atlas I M) :

@@ -1,7 +1,28 @@
+/-
+Copyright (c) 2020 Robert Y. Lewis. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Robert Y. Lewis
+-/
+
 import tactic.linarith.datatypes
-import tactic.linarith.lemmas
 import tactic.zify
 import tactic.cancel_denoms
+
+/-!
+# Linarith preprocessing
+
+This file contains methods used to preprocess inputs to `linarith`.
+
+In particular, `linarith` works over comparisons of the form `t R 0`, where `R ∈ {<,≤,=}`.
+It assumes that expressions in `t` have integer coefficients and that the type of `t` has
+well-behaved subtraction.
+
+## Implementation details
+
+A `global_preprocessor` is a function `list expr → tactic(list expr)`. Users can add custom
+preprocessing steps by adding them to the `linarith_config` object. `linarith.default_preprocessors`
+is the main list, and generally none of these should be skipped unless you know what you're doing.
+-/
 
 open native tactic expr
 namespace linarith

@@ -23,7 +23,7 @@ equipped with the subspace topology.
 open set filter
 open_locale topological_space
 
-variables {α : Type*} {β : Type*} {γ : Type*}
+variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 variables [topological_space α]
 
 /-- The "neighborhood within" filter. Elements of `nhds_within a s` are sets containing the
@@ -205,7 +205,7 @@ theorem tendsto_nhds_within_iff_subtype {s : set α} {a : α} (h : a ∈ s) (f :
   tendsto f (nhds_within a s) l ↔ tendsto (s.restrict f) (𝓝 ⟨a, h⟩) l :=
 by { simp only [tendsto, nhds_within_eq_map_subtype_val h, filter.map_map], refl }
 
-variables [topological_space β] [topological_space γ]
+variables [topological_space β] [topological_space γ] [topological_space δ]
 
 /-- A function between topological spaces is continuous at a point `x₀` within a subset `s`
 if `f x` tends to `f x₀` when `x` tends to `x₀` while staying within `s`. -/
@@ -240,6 +240,16 @@ theorem continuous_within_at.tendsto_nhds_within_image {f : α → β} {x : α} 
 tendsto_inf.2 ⟨h, tendsto_principal.2 $
   mem_inf_sets_of_right $ mem_principal_sets.2 $
   λ x, mem_image_of_mem _⟩
+
+lemma continuous_within_at.prod_map {f : α → γ} {g : β → δ} {s : set α} {t : set β}
+  {x : α} {y : β} (hx : x ∈ s) (hy : y ∈ t)
+  (hf : continuous_within_at f s x) (hg : continuous_within_at g t y) :
+continuous_within_at (prod.map f g) (s.prod t) (x, y) :=
+begin
+  unfold continuous_within_at at *,
+  rw [nhds_within_prod_eq, prod.map, nhds_prod_eq],
+  exact hf.prod_map hg,
+end
 
 theorem continuous_on_iff {f : α → β} {s : set α} :
   continuous_on f s ↔ ∀ x ∈ s, ∀ t : set β, is_open t → f x ∈ t → ∃ u, is_open u ∧ x ∈ u ∧
@@ -276,6 +286,11 @@ have ∀ t, is_closed (s.restrict f ⁻¹' t) ↔ ∃ (u : set α), is_closed u 
     simp only [preimage_coe_eq_preimage_coe_iff]
   end,
 by rw [continuous_on_iff_continuous_restrict, continuous_iff_is_closed]; simp only [this]
+
+lemma continuous_on.prod_map {f : α → γ} {g : β → δ} {s : set α} {t : set β}
+  (hf : continuous_on f s) (hg : continuous_on g t) :
+continuous_on (prod.map f g) (s.prod t) :=
+λ ⟨x, y⟩ ⟨hx, hy⟩, continuous_within_at.prod_map hx hy (hf x hx) (hg y hy)
 
 lemma continuous_on_empty (f : α → β) : continuous_on f ∅ :=
 λ x, false.elim

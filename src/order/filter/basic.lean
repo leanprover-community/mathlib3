@@ -487,6 +487,21 @@ begin
     use [a, hUV ha] }
 end
 
+lemma inf_principal_ne_bot_iff (f : filter α) (s : set α) :
+  f ⊓ principal s ≠ ⊥ ↔ ∀ U ∈ f, (U ∩ s).nonempty :=
+begin
+  rw inf_ne_bot_iff,
+  apply forall_congr,
+  intros U,
+  split,
+  { intros h U_in,
+    exact h U_in (mem_principal_self s) },
+  { intros h V U_in V_in,
+    rw mem_principal_sets at V_in,
+    cases h U_in with x hx,
+    exact ⟨x, hx.1, V_in hx.2⟩ },
+end
+
 lemma inf_eq_bot_iff {f g : filter α} :
   f ⊓ g = ⊥ ↔ ∃ U V, (U ∈ f) ∧ (V ∈ g) ∧ U ∩ V = ∅ :=
 begin
@@ -1291,6 +1306,22 @@ theorem map_comap_of_surjective {f : α → β} (hf : function.surjective f) (l 
   map f (comap f l) = l :=
 le_antisymm map_comap_le (le_map_comap_of_surjective hf l)
 
+lemma subtype_coe_map_comap (s : set α) (f : filter α) :
+  map (coe : s → α) (comap (coe : s → α) f) = f ⊓ principal s :=
+begin
+  apply le_antisymm,
+  { rw [map_le_iff_le_comap, comap_inf, comap_principal],
+    have : (coe : s → α) ⁻¹' s = univ, by { ext x, simp },
+    rw [this, principal_univ],
+    simp [le_refl _] },
+  { intros V V_in,
+    rcases V_in with ⟨W, W_in, H⟩,
+    rw mem_inf_sets,
+    use [W, W_in, s, mem_principal_self s],
+    erw [← image_subset_iff, subtype.image_preimage_val] at H,
+    exact H }
+end
+
 lemma comap_ne_bot {f : filter β} {m : α → β} (hm : ∀t∈ f, ∃a, m a ∈ t) :
   comap m f ≠ ⊥ :=
 forall_sets_nonempty_iff_ne_bot.mp $ assume s ⟨t, ht, t_s⟩,
@@ -1892,6 +1923,14 @@ le_antisymm
           set.prod_image_image_eq
         ... ⊆ _ : by rwa [image_subset_iff])
   ((tendsto.comp (le_refl _) tendsto_fst).prod_mk (tendsto.comp (le_refl _) tendsto_snd))
+
+lemma tendsto.prod_map {δ : Type*} {f : α → γ} {g : β → δ} {a : filter α} {b : filter β}
+  {c : filter γ} {d : filter δ} (hf : tendsto f a c) (hg : tendsto g b d) :
+tendsto (prod.map f g) (a ×ᶠ b) (c ×ᶠ d) :=
+begin
+  erw [tendsto, ← prod_map_map_eq],
+  exact filter.prod_mono hf hg,
+end
 
 lemma map_prod (m : α × β → γ) (f : filter α) (g : filter β) :
   map m (f.prod g) = (f.map (λa b, m (a, b))).seq g :=

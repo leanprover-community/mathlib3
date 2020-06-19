@@ -354,7 +354,7 @@ variables [Π i, semiring (f i)]
 lemma ring_hom.functions_ext [fintype I] (G : Type*) [semiring G] (g h : (Π i, f i) →+* G)
   (w : ∀ (i : I) (x : f i), g (single i x) = h (single i x)) : g = h :=
 begin
-  apply ring_hom.coe_add_monoid_hom_inj,
+  apply ring_hom.coe_add_monoid_hom_injective,
   convert add_monoid_hom.functions_ext _ _ _ _; assumption
 end
 end

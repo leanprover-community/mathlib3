@@ -92,6 +92,7 @@ and `pcomp.vars` contain variable indices.
   - There is some `ancestor` of `pcomp` such that `n` appears in `ancestor.vars`.
   - `n` does not appear in `pcomp.vars`.
   - `n` was not effectively eliminated.
+
 We track these sets in order to compute whether the history of a `pcomp` is *minimal*.
 Checking this directly is expensive, but effective approximations can be defined in terms of these
 sets. During the variable elimination process, a `pcomp` with non-minimal history can be discarded.
@@ -109,6 +110,7 @@ Any comparison whose history is not minimal is redundant,
 and need not be included in the new set of comparisons.
 `elimed_ge : ℕ` is a natural number such that all variables with index ≥ `elimed_ge` have been
 removed from the system.
+
 This test is an overapproximation to minimality. It gives necessary but not sufficient conditions.
 If the history of `c` is minimal, then `c.maybe_minimal` is true,
 but `c.maybe_minimal` may also be true for some `c` with minimal history.
@@ -119,6 +121,7 @@ The condition described there considers only implicitly eliminated variables tha
 officially eliminated from the system. This is not the case for every implicitly eliminated variable.
 Consider eliminating `z` from `{x + y + z < 0, x - y - z < 0}`. The result is the set
 `{2*x < 0}`; `y` is implicitly but not officially eliminated.
+
 This implementation of Fourier-Motzkin elimination processes variables in decreasing order of
 indices. Immediately after a step that eliminates variable `k`, variable `k'` has been eliminated
 iff `k' ≥ k`. Thus we can compute the intersection of officially and implicitly eliminated variables

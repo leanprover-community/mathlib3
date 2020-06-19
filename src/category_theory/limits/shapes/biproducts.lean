@@ -43,6 +43,8 @@ a `bicone` indexed by a `fintype J` is a `biproduct`:
 * `total : ∑ j, π j ≫ ι j = 𝟙 X`
 and all the corresponding constructions for binary biproducts extend to this case.
 
+TODO: the preadditive version of finite biproducts
+
 ## Notation
 As `⊕` is already taken for the sum of types, we introduce the notation `X ⊞ Y` for
 a binary biproduct. We introduce `⨁ f` for the indexed biproduct.
@@ -733,12 +735,16 @@ by apply biprod.hom_ext; apply biprod.hom_ext'; simp
 
 /-- If a preadditive category has all binary products, then it has all preadditive binary
     biproducts. -/
+-- This particularly dangerous as an instance,
+-- as we can deduce `has_binary_products` from `has_preadditive_binary_biproducts`.
 def has_preadditive_binary_biproducts_of_has_binary_products [has_binary_products.{v} C] :
   has_preadditive_binary_biproducts.{v} C :=
 ⟨λ X Y, has_preadditive_binary_biproduct.of_has_limit_pair X Y⟩
 
 /-- If a preadditive category has all binary coproducts, then it has all preadditive binary
     biproducts. -/
+-- This particularly dangerous as an instance,
+-- as we can deduce `has_binary_products` from `has_preadditive_binary_biproducts`.
 def has_preadditive_binary_biproducts_of_has_binary_coproducts [has_binary_coproducts.{v} C] :
   has_preadditive_binary_biproducts.{v} C :=
 ⟨λ X Y, has_preadditive_binary_biproduct.of_has_colimit_pair X Y⟩

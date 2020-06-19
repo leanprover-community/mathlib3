@@ -115,7 +115,7 @@ begin
           simpa using Z },
         { left,
           rw [this, add_comm, nat.add_one] at Z,
-          exact nat.succ_inj Z } },
+          exact nat.succ.inj Z } },
       have : is_closed (f.ker : set E),
       { cases this,
         { exact H₁ _ this },

@@ -331,21 +331,46 @@ from classical.by_cases
     (prod_congr rfl $ λ b hb, h₀ b hb $ by rintro rfl; cc).trans $
       prod_const_one.trans (h₁ this).symm)
 
+@[to_additive]
+lemma prod_attach {f : α → β} : (∏ x in s.attach, f x.val) = (∏ x in s, f x) :=
+by haveI := classical.dec_eq α; exact
+  calc (∏ x in s.attach, f x.val) = (∏ x in (s.attach).image subtype.val, f x) :
+    by rw [prod_image]; exact assume x _ y _, subtype.eq
+  ... = _ : by rw [attach_image_val]
+
+@[to_additive] lemma prod_apply_dite {s : finset α} {p : α → Prop} {hp : decidable_pred p}
+  (f : Π (x : α), p x → γ) (g : Π (x : α), ¬p x → γ) (h : γ → β) :
+  (∏ x in s, h (if hx : p x then f x hx else g x hx)) =
+  (∏ x in (s.filter p).attach, h (f x.1 (mem_filter.mp x.2).2)) *
+    (∏ x in (s.filter (λ x, ¬ p x)).attach, h (g x.1 (mem_filter.mp x.2).2)) :=
+by letI := classical.dec_eq α; exact
+calc ∏ x in s, h (if hx : p x then f x hx else g x hx)
+    = ∏ x in s.filter p ∪ s.filter (λ x, ¬ p x), h (if hx : p x then f x hx else g x hx) :
+  by rw [filter_union_filter_neg_eq]
+... = (∏ x in s.filter p, h (if hx : p x then f x hx else g x hx)) *
+    (∏ x in s.filter (λ x, ¬ p x), h (if hx : p x then f x hx else g x hx)) :
+  prod_union (by simp [disjoint_right] {contextual := tt})
+... = (∏ x in (s.filter p).attach, h (if hx : p x.1 then f x.1 hx else g x.1 hx)) *
+    (∏ x in (s.filter (λ x, ¬ p x)).attach, h (if hx : p x.1 then f x.1 hx else g x.1 hx)) :
+  congr_arg2 _ prod_attach.symm prod_attach.symm
+... = (∏ x in (s.filter p).attach, h (f x.1 (mem_filter.mp x.2).2)) *
+    (∏ x in (s.filter (λ x, ¬ p x)).attach, h (g x.1 (mem_filter.mp x.2).2)) :
+  congr_arg2 _
+    (prod_congr rfl (λ x hx, congr_arg h (dif_pos (mem_filter.mp x.2).2)))
+    (prod_congr rfl (λ x hx, congr_arg h (dif_neg (mem_filter.mp x.2).2)))
+
 @[to_additive] lemma prod_apply_ite {s : finset α}
   {p : α → Prop} {hp : decidable_pred p} (f g : α → γ) (h : γ → β) :
   (∏ x in s, h (if p x then f x else g x)) =
   (∏ x in s.filter p, h (f x)) * (∏ x in s.filter (λ x, ¬ p x), h (g x)) :=
-by letI := classical.dec_eq α; exact
-calc ∏ x in s, h (if p x then f x else g x)
-    = ∏ x in s.filter p ∪ s.filter (λ x, ¬ p x), h (if p x then f x else g x) :
-  by rw [filter_union_filter_neg_eq]
-... = (∏ x in s.filter p, h (if p x then f x else g x)) *
-    (∏ x in s.filter (λ x, ¬ p x), h (if p x then f x else g x)) :
-  prod_union (by simp [disjoint_right] {contextual := tt})
-... = (∏ x in s.filter p, h (f x)) * (∏ x in s.filter (λ x, ¬ p x), h (g x)) :
-  congr_arg2 _
-    (prod_congr rfl (by simp {contextual := tt}))
-    (prod_congr rfl (by simp {contextual := tt}))
+trans (prod_apply_dite _ _ _) (congr_arg2 _ (@prod_attach _ _ _ _ (h ∘ f)) (@prod_attach _ _ _ _ (h ∘ g)))
+
+@[to_additive] lemma prod_dite {s : finset α} {p : α → Prop} {hp : decidable_pred p}
+  (f : Π (x : α), p x → β) (g : Π (x : α), ¬p x → β) :
+  (∏ x in s, if hx : p x then f x hx else g x hx) =
+  (∏ x in (s.filter p).attach, f x.1 (mem_filter.mp x.2).2) *
+    (∏ x in (s.filter (λ x, ¬ p x)).attach, g x.1 (mem_filter.mp x.2).2) :=
+by simp [prod_apply_dite _ _ (λ x, x)]
 
 @[to_additive] lemma prod_ite {s : finset α}
   {p : α → Prop} {hp : decidable_pred p} (f g : α → β) :
@@ -374,13 +399,6 @@ begin
   congr, ext x,
   by_cases x = a; finish
 end
-
-@[to_additive]
-lemma prod_attach {f : α → β} : (∏ x in s.attach, f x.val) = (∏ x in s, f x) :=
-by haveI := classical.dec_eq α; exact
-calc (∏ x in s.attach, f x.val) = (∏ x in (s.attach).image subtype.val, f x) :
-    by rw [prod_image]; exact assume x _ y _, subtype.eq
-  ... = _ : by rw [attach_image_val]
 
 /--
   Reorder a product.
@@ -956,7 +974,7 @@ begin
     rw [prod_insert ha, pi_insert ha, ih, sum_mul, sum_bind h₁],
     refine sum_congr rfl (λ b _, _),
     have h₂ : ∀p₁∈pi s t, ∀p₂∈pi s t, pi.cons s a b p₁ = pi.cons s a b p₂ → p₁ = p₂, from
-      assume p₁ h₁ p₂ h₂ eq, injective_pi_cons ha eq,
+      assume p₁ h₁ p₂ h₂ eq, pi_cons_injective ha eq,
     rw [sum_image h₂, mul_sum],
     refine sum_congr rfl (λ g _, _),
     rw [attach_insert, prod_insert, prod_image],

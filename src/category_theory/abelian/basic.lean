@@ -14,9 +14,10 @@ import category_theory.limits.shapes.images
 
 This file contains the definition and basic properties of abelian categories.
 
-There are many definitions of abelian category. Our definition is as follows: A category is called
-abelian if it is preadditive, has a zero object, binary products, kernels and cokernels, and if
-every monomorphism and epimorphism is normal.
+There are many definitions of abelian category. Our definition is as follows:
+A category is called abelian if it is preadditive,
+has a finite products, kernels and cokernels,
+and if every monomorphism and epimorphism is normal.
 
 It should be noted that if we also assume coproducts, then preadditivity is actually a consequence
 of the other properties. However, this fact is of little practical relevance (and, as of now, there
@@ -81,20 +82,25 @@ variables (C)
 section prio
 set_option default_priority 100
 
-/-- A (preadditive) category `C` is called abelian if it has a zero object, all binary products and
-    coproducts, all kernels and cokernels, and if every monomorphism is the kernel of some morphism
-    and every epimorphism is the cokernel of some morphism. -/
+/--
+A (preadditive) category `C` is called abelian if it has all finite products,
+all kernels and cokernels, and if every monomorphism is the kernel of some morphism
+and every epimorphism is the cokernel of some morphism.
+
+(This definition implies the existence of zero objects:
+finite products give a terminal object, and in a preadditive category
+any terminal object is a zero object.)
+-/
 class abelian extends preadditive.{v} C :=
-[has_zero_object : has_zero_object.{v} C]
-[has_binary_products : has_binary_products.{v} C]
+[has_finite_products : has_finite_products.{v} C]
 [has_kernels : has_kernels.{v} C]
 [has_cokernels : has_cokernels.{v} C]
 (normal_mono : Π {X Y : C} (f : X ⟶ Y) [mono f], normal_mono.{v} f)
 (normal_epi : Π {X Y : C} (f : X ⟶ Y) [epi f], normal_epi.{v} f)
 
-attribute [instance] abelian.has_zero_object
-attribute [instance] abelian.has_binary_products
+attribute [instance] abelian.has_finite_products
 attribute [instance] abelian.has_kernels abelian.has_cokernels
+
 end prio
 end category_theory
 

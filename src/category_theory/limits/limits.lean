@@ -181,9 +181,9 @@ def of_faithful {t : cone F} {D : Type u'} [category.{v} D] (G : C ⥤ D) [faith
   (ht : is_limit (G.map_cone t)) (lift : Π (s : cone F), s.X ⟶ t.X)
   (h : ∀ s, G.map (lift s) = ht.lift (G.map_cone s)) : is_limit t :=
 { lift := lift,
-  fac' := λ s j, by apply G.injectivity; rw [G.map_comp, h]; apply ht.fac,
+  fac' := λ s j, by apply G.map_injective; rw [G.map_comp, h]; apply ht.fac,
   uniq' := λ s m w, begin
-    apply G.injectivity, rw h,
+    apply G.map_injective, rw h,
     refine ht.uniq (G.map_cone s) _ (λ j, _),
     convert ←congr_arg (λ f, G.map f) (w j),
     apply G.map_comp
@@ -473,9 +473,9 @@ def of_faithful {t : cocone F} {D : Type u'} [category.{v} D] (G : C ⥤ D) [fai
   (ht : is_colimit (G.map_cocone t)) (desc : Π (s : cocone F), t.X ⟶ s.X)
   (h : ∀ s, G.map (desc s) = ht.desc (G.map_cocone s)) : is_colimit t :=
 { desc := desc,
-  fac' := λ s j, by apply G.injectivity; rw [G.map_comp, h]; apply ht.fac,
+  fac' := λ s j, by apply G.map_injective; rw [G.map_comp, h]; apply ht.fac,
   uniq' := λ s m w, begin
-    apply G.injectivity, rw h,
+    apply G.map_injective, rw h,
     refine ht.uniq (G.map_cocone s) _ (λ j, _),
     convert ←congr_arg (λ f, G.map f) (w j),
     apply G.map_comp

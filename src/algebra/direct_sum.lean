@@ -62,11 +62,11 @@ is_add_group_hom.map_neg _ x
 @[simp] lemma of_sub (i : ι) (x y) : of β i (x - y) = of β i x - of β i y :=
 is_add_group_hom.map_sub _ x y
 
-theorem mk_inj (s : finset ι) : function.injective (mk β s) :=
-dfinsupp.mk_inj s
+theorem mk_injective (s : finset ι) : function.injective (mk β s) :=
+dfinsupp.mk_injective s
 
-theorem of_inj (i : ι) : function.injective (of β i) :=
-λ x y H, congr_fun (mk_inj _ H) ⟨i, by simp⟩
+theorem of_injective (i : ι) : function.injective (of β i) :=
+λ x y H, congr_fun (mk_injective _ H) ⟨i, by simp⟩
 
 @[elab_as_eliminator]
 protected theorem induction_on {C : direct_sum ι β → Prop}

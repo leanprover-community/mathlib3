@@ -17,6 +17,7 @@ open_locale classical
 class submodule.is_principal [ring R] [add_comm_group M] [module R M] (S : submodule R M) : Prop :=
 (principal [] : ∃ a, S = span R {a})
 
+/-- A commutative ring is a principal ideal ring if all ideals are principal. -/
 class is_principal_ideal_ring (R : Type u) [comm_ring R] : Prop :=
 (principal : ∀ (S : ideal R), S.is_principal)
 
@@ -77,6 +78,7 @@ lemma mod_mem_iff {S : ideal R} {x y : R} (hy : y ∈ S) : x % y ∈ S ↔ x ∈
 ⟨λ hxy, div_add_mod x y ▸ ideal.add_mem S (ideal.mul_mem_right S hy) hxy,
   λ hx, (mod_eq_sub_mul_div x y).symm ▸ ideal.sub_mem S hx (ideal.mul_mem_right S hy)⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance euclidean_domain.to_principal_ideal_domain : is_principal_ideal_ring R :=
 { principal := λ S, by exactI
     ⟨if h : {x : R | x ∈ S ∧ x ≠ 0}.nonempty
@@ -100,7 +102,6 @@ instance euclidean_domain.to_principal_ideal_domain : is_principal_ideal_ring R 
 
 end
 
-
 namespace principal_ideal_ring
 open is_principal_ideal_ring
 
@@ -114,18 +115,6 @@ begin
   rw [← finset.coe_singleton],
   exact ⟨{a}, submodule.ext' rfl⟩
 end⟩
-
-section
-open_locale classical
-
-lemma factors_decreasing (b₁ b₂ : R) (h₁ : b₁ ≠ 0) (h₂ : ¬ is_unit b₂) :
-  submodule.span R ({b₁ * b₂} : set R) < submodule.span R {b₁} :=
-lt_of_le_not_le (ideal.span_le.2 $ singleton_subset_iff.2 $
-  ideal.mem_span_singleton.2 ⟨b₂, rfl⟩) $ λ h,
-h₂ $ is_unit_of_dvd_one _ $ (mul_dvd_mul_iff_left h₁).1 $
-by rwa [mul_one, ← ideal.span_singleton_le_span_singleton]
-
-end
 
 lemma is_maximal_of_irreducible {p : R} (hp : irreducible p) :
   ideal.is_maximal (span R ({p} : set R)) :=
@@ -150,6 +139,7 @@ by rw [associates.irreducible_mk_iff, associates.prime_mk, irreducible_iff_prime
 section
 open_locale classical
 
+/-- `factors a` is a multiset of irreducible elements whose product is `a`, up to units -/
 noncomputable def factors (a : R) : multiset R :=
 if h : a = 0 then ∅ else classical.some
   (is_noetherian_ring.exists_factors a h)

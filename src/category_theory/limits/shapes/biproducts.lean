@@ -58,6 +58,17 @@ namespace category_theory.limits
 variables {J : Type v} [decidable_eq J]
 variables {C : Type u} [category.{v} C] [has_zero_morphisms.{v} C]
 
+-- TODO move
+lemma comp_dite {P : Prop} [decidable P]
+  {X Y Z : C} (f : X ⟶ Y) (g₀ : P → (Y ⟶ Z)) (g₁ : ¬P → (Y ⟶ Z)) :
+  (f ≫ if h : P then g₀ h else g₁ h) = (if h : P then f ≫ g₀ h else f ≫ g₁ h) :=
+by { split_ifs; refl }
+
+lemma dite_comp {P : Prop} [decidable P]
+  {X Y Z : C} (f₀ : P → (X ⟶ Y)) (f₁ : ¬P → (X ⟶ Y)) (g : Y ⟶ Z) :
+  (if h : P then f₀ h else f₁ h) ≫ g = (if h : P then f₀ h ≫ g else f₁ h ≫ g) :=
+by { split_ifs; refl }
+
 /--
 A `c : bicone F` is:
 * an object `c.X` and
@@ -518,11 +529,7 @@ instance (f : J → C) [has_preadditive_biproduct.{v} f] : has_biproduct.{v} f :
       intros j m,
       erw [reassoc_of (h j)],
     end,
-    fac' := λ s j,
-    begin
-      simp [sum_comp],
-      sorry,
-    end },
+    fac' := λ s j, by simp [sum_comp, has_preadditive_biproduct.bicone.ι_π, comp_dite], },
   is_colimit :=
   { desc := λ s, ∑ j, has_preadditive_biproduct.bicone.π j ≫ s.ι.app j,
     uniq' := λ s m h,
@@ -534,8 +541,9 @@ instance (f : J → C) [has_preadditive_biproduct.{v} f] : has_biproduct.{v} f :
     end,
     fac' := λ s j,
     begin
-      simp,
-      sorry,
+      simp only [comp_sum, ←category.assoc, bicone.to_cocone_ι_app,
+        has_preadditive_biproduct.bicone.ι_π],
+      dsimp, simp [dite_comp],
     end } }
 
 section
@@ -552,10 +560,8 @@ lemma biproduct.desc_eq {T : C} {g : Π j, f j ⟶ T} :
 
 @[simp, reassoc] lemma biproduct.lift_desc {T U : C} {g : Π j, T ⟶ f j} {h : Π j, f j ⟶ U} :
   biproduct.lift g ≫ biproduct.desc h = ∑ j : J, g j ≫ h j :=
-begin
-  simp [biproduct.lift_eq, biproduct.desc_eq],
-  sorry,
-end
+by simp [biproduct.lift_eq, biproduct.desc_eq, comp_sum, sum_comp, biproduct.ι_π_assoc,
+  comp_dite, dite_comp]
 
 end
 
@@ -569,8 +575,8 @@ def has_preadditive_biproduct.of_has_product (f : J → C) [has_product.{v} f] :
   { X := pi_obj f,
     π := limits.pi.π f,
     ι := λ j, pi.lift (λ j', if h : j = j' then eq_to_hom (congr_arg f h) else 0),
-    ι_π := sorry, },
-  total' := sorry, }
+    ι_π := λ j j', by simp, },
+  total' := by { ext, simp [sum_comp, comp_dite] }, }
 
 /-- In a preadditive category, if the coproduct over `f : J → C` exists, then the preadditive
     biproduct over `f` exists. -/
@@ -580,8 +586,16 @@ def has_preadditive_biproduct.of_has_coproduct (f : J → C) [has_coproduct.{v} 
   { X := sigma_obj f,
     π := λ j, sigma.desc (λ j', if h : j' = j then eq_to_hom (congr_arg f h) else 0),
     ι := limits.sigma.ι f,
-    ι_π := sorry, },
-  total' := sorry, }
+    ι_π := λ j j', by simp, },
+  total' :=
+  begin
+    ext,
+    simp only [comp_sum, limits.cofan.mk_π_app, limits.colimit.ι_desc_assoc, eq_self_iff_true,
+      limits.colimit.ι_desc, category.comp_id],
+    dsimp,
+    simp only [dite_comp, finset.sum_dite_eq, finset.mem_univ, if_true, category.id_comp,
+      eq_to_hom_refl, limits.has_zero_morphisms.zero_comp],
+  end, }
 
 end has_product
 
@@ -598,17 +612,7 @@ attribute [instance, priority 100] has_preadditive_biproducts.has_preadditive_bi
 
 @[priority 100]
 instance [has_preadditive_biproducts.{v} C] : has_finite_biproducts.{v} C :=
-⟨λ _ _ _, by apply_instance⟩
-
-lemma comp_dite {P : Prop} [decidable P]
-  {X Y Z : C} (f : X ⟶ Y) (g₀ : P → (Y ⟶ Z)) (g₁ : ¬P → (Y ⟶ Z)) :
-  (f ≫ if h : P then g₀ h else g₁ h) = (if h : P then f ≫ g₀ h else f ≫ g₁ h) :=
-by { split_ifs; refl }
-
-lemma dite_comp {P : Prop} [decidable P]
-  {X Y Z : C} (f₀ : P → (X ⟶ Y)) (f₁ : ¬P → (X ⟶ Y)) (g : Y ⟶ Z) :
-  (if h : P then f₀ h else f₁ h) ≫ g = (if h : P then f₀ h ≫ g else f₁ h ≫ g) :=
-by { split_ifs; refl }
+⟨λ _ _ _, { has_biproduct := λ F, by { resetI, apply_instance } }⟩
 
 lemma biproduct.map_eq [has_finite_biproducts.{v} C] {f g : J → C} {h : Π j, f j ⟶ g j} :
   biproduct.map h = ∑ j : J, biproduct.π f j ≫ h j ≫ biproduct.ι g j :=

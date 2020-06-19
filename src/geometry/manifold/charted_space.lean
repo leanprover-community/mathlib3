@@ -16,8 +16,8 @@ maps.
 
 In this file, we introduce a general framework describing these notions, where the model space is an
 arbitrary topological space. We avoid the word *manifold*, which should be reserved for the
-situation where there are also notions of smoothness and dimension, and use the terminology
-"charted space" instead.
+situation where the model space is a (subset of a) vector space, and use the terminology
+*charted space* instead.
 
 If the changes of charts satisfy some additional property (for instance if they are smooth), then
 `M` inherits additional structure (it makes sense to talk about smooth manifolds). There are
@@ -550,22 +550,27 @@ that changing coordinates with an atlas member gives an element of the groupoid.
 def structure_groupoid.maximal_atlas : set (local_homeomorph M H) :=
 {e | ∀ e' ∈ atlas H M, e.symm ≫ₕ e' ∈ G ∧ e'.symm ≫ₕ e ∈ G}
 
-variables {M G}
+variable {M}
+
+/-- The elements of the atlas belong to the maximal atlas for any structure groupoid -/
+lemma structure_groupoid.mem_maximal_atlas_of_mem_atlas [has_groupoid M G]
+  {e : local_homeomorph M H} (he : e ∈ atlas H M) : e ∈ G.maximal_atlas M :=
+λ e' he', ⟨G.compatible he he', G.compatible he' he⟩
+
+lemma structure_groupoid.chart_mem_maximal_atlas [has_groupoid M G]
+  (x : M) : chart_at H x ∈ G.maximal_atlas M :=
+G.mem_maximal_atlas_of_mem_atlas (chart_mem_atlas H x)
+
+variable {G}
 
 lemma mem_maximal_atlas_iff {e : local_homeomorph M H} :
   e ∈ G.maximal_atlas M ↔ ∀ e' ∈ atlas H M, e.symm ≫ₕ e' ∈ G ∧ e'.symm ≫ₕ e ∈ G :=
 iff.rfl
 
-/-- The elements of the atlas belong to the maximal atlas for any structure groupoid -/
-lemma mem_maximal_atlas_of_mem_atlas [has_groupoid M G]
-  {e : local_homeomorph M H} (he : e ∈ atlas H M) : e ∈ G.maximal_atlas M :=
-λ e' he', ⟨G.compatible he he', G.compatible he' he⟩
-
 /-- Changing coordinates between two elements of the maximal atlas gives rise to an element
 of the structure groupoid. -/
 lemma structure_groupoid.compatible_of_mem_maximal_atlas {e e' : local_homeomorph M H}
-  (he : e ∈ G.maximal_atlas M) (he' : e' ∈ G.maximal_atlas M) :
-  e.symm ≫ₕ e' ∈ G :=
+  (he : e ∈ G.maximal_atlas M) (he' : e' ∈ G.maximal_atlas M) : e.symm ≫ₕ e' ∈ G :=
 begin
   apply G.locality (λ x hx, _),
   set f := chart_at H (e.symm x) with hf,

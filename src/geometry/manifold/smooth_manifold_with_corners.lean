@@ -438,13 +438,31 @@ instance model_space_smooth {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {I : model_with_corners 𝕜 E H} :
   smooth_manifold_with_corners I H := {}
 
-lemma smooth_manifold_with_corners.compatible {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+namespace smooth_manifold_with_corners
+/- We restate in the namespace `smooth_manifolds_with_corners` some lemmas that hold for general
+charted space with a structure groupoid, avoiding the need to specify the groupoid
+`times_cont_diff_groupoid ⊤ I` explicitly. -/
+
+variables  {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
-  {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+  (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+
+/-- The maximal atlas of `M` for the smooth manifold with corners structure corresponding to the
+modle with corners `I`. -/
+def maximal_atlas := (times_cont_diff_groupoid ⊤ I).maximal_atlas M
+
+lemma compatible
   {e e' : local_homeomorph M H} (he : e ∈ atlas H M) (he' : e' ∈ atlas H M) :
   e.symm.trans e' ∈ times_cont_diff_groupoid ⊤ I :=
 has_groupoid.compatible _ he he'
+
+lemma compatible_of_mem_maximal_atlas
+  {e e' : local_homeomorph M H} (he : e ∈ maximal_atlas I M) (he' : e' ∈ maximal_atlas I M) :
+  e.symm.trans e' ∈ times_cont_diff_groupoid ⊤ I :=
+structure_groupoid.compatible_of_mem_maximal_atlas he he'
+
+end smooth_manifold_with_corners
 
 section extended_charts
 open_locale topological_space

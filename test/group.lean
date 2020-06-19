@@ -64,3 +64,11 @@ end
 
 example (n m : ℤ) (a b : G) : a^n*b^n*a^n*a^n*a^-n*a^-n*b^-n*a^-n = 1 :=
 by group
+
+-- Test that group does not make simple equalities harder
+
+example {G : Type*} [group G] (x : G) (h : x = 1) : x = 1 :=
+begin
+  group,
+  exact h,
+end

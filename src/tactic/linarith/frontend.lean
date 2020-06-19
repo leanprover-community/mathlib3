@@ -86,6 +86,11 @@ There is a hook in the `linarith_config` configuration object to add custom prep
 The certificate checking step is *not* by reflection. `linarith` converts the certificate into a
 proof term of type `false`.
 
+Some of the behavior of `linarith` can be inspected with the option
+`set_option trace.linarith true`.
+Because the variable elimination happens outside the tactic monad, we cannot trace intermediate
+steps there.
+
 ## File structure
 
 The components of `linarith` are spread between a number of files for the sake of organization.
@@ -320,6 +325,9 @@ optional arguments:
   (True by default.)
 
 A variant, `nlinarith`, does some basic preprocessing to handle some nonlinear goals.
+
+The option `set_option trace.linarith true` will trace certain intermediate stages of the `linarith`
+routine.
 -/
 add_tactic_doc
 { name       := "linarith",

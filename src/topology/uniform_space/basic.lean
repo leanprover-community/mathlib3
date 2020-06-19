@@ -29,8 +29,10 @@ Those examples are generalizations in two different directions of the elementary
 `X = ℝ` and `V ∈ 𝓤 ℝ ↔ ∃ ε > 0, { p | |p.2 - p.1| < ε } ⊆ V` which features both the topological
 group structure on `ℝ` and its metric space structure.
 
-Each uniform structure on `X` induces a topology on `X` characterized by:
+Each uniform structure on `X` induces a topology on `X` characterized by
+
 > `nhds_eq_comap_uniformity : ∀ {x : X}, 𝓝 x = comap (prod.mk x) (𝓤 X)`
+
 where `prod.mk x : X → X × X := (λ y, (x, y))` is the partial evaluation of the product
 constructor.
 
@@ -206,7 +208,7 @@ lemma uniform_space.core_eq : ∀{u₁ u₂ : uniform_space.core α}, u₁.unifo
 
 section prio
 
-/-- Suppose that one can put two mathematical structures on a type, a rich one `R` and a poor one 
+/-- Suppose that one can put two mathematical structures on a type, a rich one `R` and a poor one
 `P`, and that one can deduce the poor structure from the rich structure through a map `F` (called a
 forgetful functor) (think `R = metric_space` and `P = topological_space`). A possible
 implementation would be to have a type class `rich` containing a field `R`, a type class `poor`

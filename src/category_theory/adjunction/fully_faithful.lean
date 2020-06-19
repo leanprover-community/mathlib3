@@ -35,7 +35,7 @@ instance unit_is_iso_of_L_fully_faithful [full L] [faithful L] : is_iso (adjunct
   hom_inv_id' :=
   begin
     ext, dsimp,
-    apply L.injectivity,
+    apply L.map_injective,
     simp,
   end }.
 
@@ -54,7 +54,7 @@ instance counit_is_iso_of_R_fully_faithful [full R] [faithful R] : is_iso (adjun
   hom_inv_id' :=
   begin
     ext, dsimp,
-    apply R.injectivity,
+    apply R.map_injective,
     simp,
   end }
 

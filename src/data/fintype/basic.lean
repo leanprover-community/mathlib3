@@ -1011,4 +1011,4 @@ instance nat.infinite : infinite ℕ :=
 ⟨λ ⟨s, hs⟩, finset.not_mem_range_self $ s.subset_range_sup_succ (hs _)⟩
 
 instance int.infinite : infinite ℤ :=
-infinite.of_injective int.of_nat (λ _ _, int.of_nat_inj)
+infinite.of_injective int.of_nat (λ _ _, int.of_nat.inj)

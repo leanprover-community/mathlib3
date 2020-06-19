@@ -242,7 +242,9 @@ variables {R M N}
 
 @[simp] lemma mk_apply (m : M) (n : N) : mk R M N m n = m ⊗ₜ n := rfl
 
+@[simp]
 lemma zero_tmul (n : N) : (0 ⊗ₜ[R] n : M ⊗ N) = 0 := (mk R M N).map_zero₂ _
+@[simp]
 lemma tmul_zero (m : M) : (m ⊗ₜ[R] 0 : M ⊗ N) = 0 := (mk R M N _).map_zero
 lemma neg_tmul (m : M) (n : N) : (-m) ⊗ₜ n = -(m ⊗ₜ[R] n) := (mk R M N).map_neg₂ _ _
 lemma tmul_neg (m : M) (n : N) : m ⊗ₜ (-n) = -(m ⊗ₜ[R] n) := (mk R M N _).map_neg _
@@ -419,6 +421,14 @@ protected def comm : M ⊗ N ≃ₗ N ⊗ M :=
 linear_equiv.of_linear (lift (mk R N M).flip) (lift (mk R M N).flip)
   (ext $ λ m n, rfl)
   (ext $ λ m n, rfl)
+
+@[simp] theorem comm_tmul (m : M) (n : N) :
+  ((tensor_product.comm R M N) : (M ⊗ N → N ⊗ M)) (m ⊗ₜ n) = n ⊗ₜ m :=
+begin
+  dsimp [tensor_product.comm],
+  simp,
+end
+
 end
 
 section

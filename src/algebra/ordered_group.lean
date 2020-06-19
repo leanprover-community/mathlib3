@@ -837,6 +837,13 @@ class ordered_comm_group (α : Type u) extends comm_group α, partial_order α :
 
 attribute [to_additive ordered_add_comm_group] ordered_comm_group
 
+/--The units of an ordered commutative monoid form an ordered commutative group. -/
+@[to_additive]
+instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group (units α) :=
+{ mul_le_mul_left := λ a b h c, mul_le_mul_left' h,
+  .. units.partial_order,
+  .. (infer_instance : comm_group (units α)) }
+
 section ordered_comm_group
 variables [ordered_comm_group α] {a b c d : α}
 
@@ -1164,6 +1171,16 @@ by rwa inv_mul_cancel_left at this
 @[to_additive]
 lemma inv_mul_lt_iff_lt_mul_right : c⁻¹ * a < b ↔ a < b * c :=
 by rw [inv_mul_lt_iff_lt_mul, mul_comm]
+
+@[to_additive sub_le_sub_iff]
+lemma div_le_div_iff' (a b c d : α) : a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
+begin
+  split ; intro h,
+  have := mul_le_mul_right'' (mul_le_mul_right'' h b) d,
+  rwa [inv_mul_cancel_right, mul_assoc _ _ b, mul_comm _ b, ← mul_assoc, inv_mul_cancel_right] at this,
+  have := mul_le_mul_right'' (mul_le_mul_right'' h d⁻¹) b⁻¹,
+  rwa [mul_inv_cancel_right, _root_.mul_assoc, _root_.mul_comm d⁻¹ b⁻¹, ← mul_assoc, mul_inv_cancel_right] at this,
+end
 
 end ordered_comm_group
 

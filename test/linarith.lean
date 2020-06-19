@@ -1,6 +1,5 @@
 import tactic.linarith
 
-
 example (e b c a v0 v1 : ℚ) (h1 : v0 = 5*a) (h2 : v1 = 3*b) (h3 : v0 + v1 + c = 10) :
   v0 + 5 + (v1 - 3) + (c - 2) = 10 :=
 by linarith
@@ -170,8 +169,30 @@ example (x y : ℚ) (h : x < y) : x ≠ y := by linarith
 
 example (x y : ℚ) (h : x < y) : ¬ x = y := by linarith
 
-lemma test6 (u v x y A B : ℚ)
+example (u v x y A B : ℚ)
+(a : 0 < A)
+(a_1 : 0 <= 1 - A)
+(a_2 : 0 <= B - 1)
+(a_3 : 0 <= B - x)
+(a_4 : 0 <= B - y)
+(a_5 : 0 <= u)
+(a_6 : 0 <= v)
+(a_7 : 0 < A - u)
+(a_8 : 0 < A - v) :
+ u * y + v * x + u * v < 3 * A * B :=
+ by nlinarith
 
+example (u v x y A B : ℚ) : (0 < A) → (A ≤ 1) → (1 ≤ B)
+→ (x ≤ B) → ( y ≤ B)
+→ (0 ≤ u ) → (0 ≤ v )
+→ (u < A) → ( v < A)
+→ (u * y + v * x + u * v < 3 * A * B) :=
+begin
+  intros,
+  nlinarith
+end
+
+example (u v x y A B : ℚ)
 (a : 0 < A)
 (a_1 : 0 <= 1 - A)
 (a_2 : 0 <= B - 1)
@@ -268,3 +289,34 @@ lemma test6 (u v x y A B : ℚ)
   intros,
   linarith
  end
+
+example (A B : ℚ) : (0 < A) → (1 ≤ B) → (0 < A / 8 * B) :=
+begin
+  intros, nlinarith
+end
+
+example (x y : ℚ) : 0 ≤ x ^2 + y ^2 :=
+by nlinarith
+
+example (x y : ℚ) : 0 ≤ x*x + y*y :=
+by nlinarith
+
+example (x y : ℚ) : x = 0 → y = 0 → x*x + y*y = 0 :=
+by intros; nlinarith
+
+/- lemma norm_eq_zero_iff {x y : ℚ} : x * x + y * y = 0 ↔ x = 0 ∧ y = 0 :=
+begin
+  split,
+  { intro h, split; sorry }, -- should be solved after refactor
+  { rintro ⟨⟩, nlinarith }
+end -/
+
+-- should be solved after refactor
+/- lemma norm_nonpos_right {x y : ℚ} (h1 : x * x + y * y ≤ 0) : y = 0 :=
+by nlinarith
+lemma norm_nonpos_left (x y : ℚ) (h1 : x * x + y * y ≤ 0) : x = 0 :=
+by nlinarith -/
+
+variables {E : Type*} [add_group E]
+example (f : ℤ → E) (h : 0 = f 0) : 1 ≤ 2 := by nlinarith
+example (a : E) (h : a = a) : 1 ≤ 2  := by nlinarith

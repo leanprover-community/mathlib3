@@ -551,8 +551,14 @@ by simp [subset_def, or_imp_distrib, forall_and_distrib]
 theorem insert_subset_insert (h : s ⊆ t) : insert a s ⊆ insert a t :=
 assume a', or.imp_right (@h a')
 
+theorem ssubset_iff_insert {s t : set α} : s ⊂ t ↔ ∃ a ∉ s, insert a s ⊆ t :=
+begin
+  simp only [insert_subset, exists_and_distrib_right, ssubset_def, not_subset],
+  simp only [exists_prop, and_comm]
+end
+
 theorem ssubset_insert {s : set α} {a : α} (h : a ∉ s) : s ⊂ insert a s :=
-by finish [ssubset_iff_subset_ne, ext_iff]
+ssubset_iff_insert.2 ⟨a, h, subset.refl _⟩
 
 theorem insert_comm (a b : α) (s : set α) : insert a (insert b s) = insert b (insert a s) :=
 ext $ by simp [or.left_comm]
@@ -1239,7 +1245,7 @@ begin
   exact preimage_mono h
 end
 
-lemma injective_image {f : α → β} (hf : injective f) : injective (('') f) :=
+lemma image_injective {f : α → β} (hf : injective f) : injective (('') f) :=
 assume s t, (image_eq_image hf).1
 
 lemma prod_quotient_preimage_eq_image [s : setoid α] (g : quotient s → β) {h : α → β}
@@ -1490,7 +1496,7 @@ theorem preimage_val_eq_preimage_val_iff (s t u : set α) :
 begin
   rw [←image_preimage_val, ←image_preimage_val],
   split, { intro h, rw h },
-  intro h, exact set.injective_image (val_injective) h
+  intro h, exact set.image_injective (val_injective) h
 end
 
 lemma exists_set_subtype {t : set α} (p : set α → Prop) :
@@ -1759,7 +1765,7 @@ namespace function
 
 variables {ι : Sort*} {α : Type*} {β : Type*}
 
-lemma surjective.injective_preimage {f : β → α} (hf : surjective f) : injective (preimage f) :=
+lemma surjective.preimage_injective {f : β → α} (hf : surjective f) : injective (preimage f) :=
 assume s t, (preimage_eq_preimage hf).1
 
 lemma surjective.range_eq {f : ι → α} (hf : surjective f) : range f = univ :=

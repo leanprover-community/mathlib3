@@ -50,7 +50,7 @@ attribute [simp] nat.sub_self
 @[simp] lemma succ_pos' {n : ℕ} : 0 < succ n := succ_pos n
 
 theorem succ_inj' {n m : ℕ} : succ n = succ m ↔ n = m :=
-⟨succ_inj, congr_arg _⟩
+⟨succ.inj, congr_arg _⟩
 
 theorem succ_le_succ_iff {m n : ℕ} : succ m ≤ succ n ↔ m ≤ n :=
 ⟨le_of_succ_le_succ, succ_le_succ⟩
@@ -389,6 +389,15 @@ mt (congr_arg (%2)) (by rw [add_comm, add_mul_mod_self_left, mul_mod_right]; exa
 @[elab_as_eliminator]
 protected def strong_rec' {p : ℕ → Sort u} (H : ∀ n, (∀ m, m < n → p m) → p n) : ∀ (n : ℕ), p n
 | n := H n (λ m hm, strong_rec' m)
+
+/-- Recursion principle based on `<` applied to some natural number. -/
+@[elab_as_eliminator]
+def strong_rec_on' {P : ℕ → Sort*} (n : ℕ) (h : ∀ n, (∀ m, m < n → P m) → P n) : P n :=
+nat.strong_rec' h n
+
+theorem strong_rec_on_beta' {P : ℕ → Sort*} {h} {n : ℕ} :
+  (strong_rec_on' n h : P n) = h n (λ m hmn, (strong_rec_on' m h : P m)) :=
+by { simp only [strong_rec_on'], rw nat.strong_rec' }
 
 attribute [simp] nat.div_self
 
@@ -1050,7 +1059,7 @@ begin
   cases b, {exact absurd rfl h},
   have : shiftl' tt m n + 1 = 1 := congr_arg (+1) s0,
   rw [shiftl'_tt_eq_mul_pow] at this,
-  have m0 := succ_inj (eq_one_of_dvd_one ⟨_, this.symm⟩),
+  have m0 := succ.inj (eq_one_of_dvd_one ⟨_, this.symm⟩),
   subst m0,
   simp at this,
   have : n = 0 := eq_zero_of_le_zero (le_of_not_gt $ λ hn,

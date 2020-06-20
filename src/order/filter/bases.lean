@@ -250,7 +250,7 @@ lemma basis_sets (l : filter α) : l.has_basis (λ s : set α, s ∈ l) id :=
 ⟨λ t, exists_sets_subset_iff.symm⟩
 
 lemma has_basis_self {l : filter α} {P : set α → Prop} :
-has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t, (t ∈ l ↔ ∃ r ∈ l, P r ∧ r ⊆ t) :=
+  has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t, (t ∈ l ↔ ∃ r ∈ l, P r ∧ r ⊆ t) :=
 begin
   split,
   { rintros ⟨h⟩ t,
@@ -377,7 +377,7 @@ lemma has_basis.forall_iff (hl : l.has_basis p s) {P : set α → Prop}
   λ H s hs, let ⟨i, hi, his⟩ := hl.mem_iff.1 hs in mono his (H i hi)⟩
 
 lemma has_basis.sInter_sets (h : has_basis l p s) :
-⋂₀ l.sets = ⋂ i ∈ set_of p, s i :=
+  ⋂₀ l.sets = ⋂ i ∈ set_of p, s i :=
 begin
   ext x,
   suffices : (∀ t ∈ l, x ∈ t) ↔ ∀ i, p i → x ∈ s i,
@@ -443,9 +443,9 @@ lemma has_basis.prod (hla : la.has_basis pa sa) (hlb : lb.has_basis pb sb) :
 (hla.comap prod.fst).inf (hlb.comap prod.snd)
 
 lemma has_basis.prod' {la : filter α} {lb : filter β} {ι : Type*} {p : ι → Prop}
-{sa : ι → set α} {sb : ι → set β}
-(hla : la.has_basis p sa) (hlb : lb.has_basis p sb)
-(h_dir : ∀ {i j}, p i → p j → ∃ k, p k ∧ sa k ⊆ sa i ∧ sb k ⊆ sb j) :
+  {sa : ι → set α} {sb : ι → set β}
+  (hla : la.has_basis p sa) (hlb : lb.has_basis p sb)
+  (h_dir : ∀ {i j}, p i → p j → ∃ k, p k ∧ sa k ⊆ sa i ∧ sb k ⊆ sb j) :
   (la.prod lb).has_basis p (λ i, (sa i).prod (sb i)) :=
 ⟨begin
   intros t,

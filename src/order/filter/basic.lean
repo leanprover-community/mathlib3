@@ -1926,7 +1926,7 @@ le_antisymm
 
 lemma tendsto.prod_map {δ : Type*} {f : α → γ} {g : β → δ} {a : filter α} {b : filter β}
   {c : filter γ} {d : filter δ} (hf : tendsto f a c) (hg : tendsto g b d) :
-tendsto (prod.map f g) (a ×ᶠ b) (c ×ᶠ d) :=
+  tendsto (prod.map f g) (a ×ᶠ b) (c ×ᶠ d) :=
 begin
   erw [tendsto, ← prod_map_map_eq],
   exact filter.prod_mono hf hg,

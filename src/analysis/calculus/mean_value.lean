@@ -5,7 +5,6 @@ Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.local_extr
 import analysis.convex.topology
-import analysis.normed_space.dual
 
 /-!
 # The mean value inequality and equalities

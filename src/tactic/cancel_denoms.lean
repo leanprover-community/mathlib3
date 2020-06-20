@@ -17,6 +17,11 @@ This file defines tactics that cancel numeric denominators from field expression
 As an example, we want to transform a comparison `5*(a/3 + b/4) < c/3` into the equivalent
 `5*(4*a + 3*b) < 4*c`.
 
+See also the `field_simp` tactic, which tries to do a similar simplification for field expressions.
+The tactics are not related: `field_simp` handles non-numeral denominators, but has limited support
+for numerals; `field_simp` does not multiply by new terms to cancel denominators, it just
+produces an equal expression.
+
 ## Implementation notes
 
 The tooling here was originally written for `linarith`, not intended as an interactive tactic.
@@ -227,6 +232,11 @@ begin
   exact h
 end
 ```
+
+See also the `field_simp` tactic, which tries to do a similar simplification for field expressions.
+The tactics are not related: `field_simp` handles non-numeral denominators, but has limited support
+for numerals; `field_simp` does not multiply by new terms to cancel denominators, it just
+produces an equal expression.
 -/
 meta def tactic.interactive.cancel_denoms (l : parse location) : tactic unit :=
 do locs ← l.get_locals,

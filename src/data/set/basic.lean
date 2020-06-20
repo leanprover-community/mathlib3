@@ -340,6 +340,9 @@ lemma exists_mem_of_nonempty (α) : ∀ [nonempty α], ∃x:α, x ∈ (univ : se
 instance univ_decidable : decidable_pred (@set.univ α) :=
 λ x, is_true trivial
 
+/-- `diagonal α` is the subset of `α × α` consisting of all pairs of the form `(a, a)`. -/
+def diagonal (α : Type*) : set (α × α) := {p | p.1 = p.2}
+
 /-! ### Lemmas about union -/
 
 theorem union_def {s₁ s₂ : set α} : s₁ ∪ s₂ = {a | a ∈ s₁ ∨ a ∈ s₂} := rfl
@@ -494,6 +497,16 @@ by finish [subset_def, ext_iff, iff_def]
 
 theorem inter_eq_self_of_subset_right {s t : set α} (h : t ⊆ s) : s ∩ t = t :=
 by finish [subset_def, ext_iff, iff_def]
+
+lemma inter_compl_nonempty_iff {α : Type*} {s t : set α} : (s ∩ -t).nonempty ↔ ¬ s ⊆ t :=
+begin
+  split,
+  { rintros ⟨x ,xs, xt⟩ sub,
+    exact xt (sub xs) },
+  { intros h,
+    rcases not_subset.mp h with ⟨x, xs, xt⟩,
+    exact ⟨x, xs, xt⟩ }
+end
 
 theorem union_inter_cancel_left {s t : set α} : (s ∪ t) ∩ s = s :=
 by finish [ext_iff, iff_def]
@@ -985,6 +998,13 @@ begin
   simp only [mem_inter_eq, mem_union_eq, mem_preimage],
   split_ifs;
   simp [mem_def, h]
+end
+
+lemma preimage_coe_coe_diagonal {α : Type*} (s : set α) :
+  (prod.map coe coe) ⁻¹' (diagonal α) = diagonal s :=
+begin
+  ext ⟨⟨x, x_in⟩, ⟨y, y_in⟩⟩,
+  simp [set.diagonal],
 end
 
 end preimage
@@ -1508,6 +1528,7 @@ begin
   rintro ⟨s, hs₁, hs₂⟩, refine ⟨subtype.val ⁻¹' s, _⟩,
   rw [image_preimage_eq_of_subset], exact hs₂, rw [range_val], exact hs₁
 end
+
 end subtype
 
 namespace set

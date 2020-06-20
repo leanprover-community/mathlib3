@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.local_extr
 import analysis.convex.topology
+import analysis.normed_space.dual
 
 /-!
 # The mean value inequality and equalities
@@ -787,3 +788,102 @@ theorem convex_on_univ_of_deriv2_nonneg {f : ℝ → ℝ} (hf' : differentiable 
   convex_on univ f :=
 convex_on_of_deriv2_nonneg convex_univ hf'.continuous.continuous_on hf'.differentiable_on
   hf''.differentiable_on (λ x _, hf''_nonneg x)
+
+/-! ### Functions `f : E → ℝ` -/
+
+/-- Lagrange's Mean Value Theorem, applied to convex domains. -/
+theorem domain_mvt
+  {f : E → ℝ} {s : set E} {x y : E} {f' : E → (E →L[ℝ] ℝ)}
+  (hf : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)
+  (hs : convex s) (xs : x ∈ s) (ys : y ∈ s) :
+  ∃ z ∈ segment x y, f y - f x = f' z (y - x) :=
+begin
+  have hIccIoo := @Ioo_subset_Icc_self ℝ _ 0 1,
+-- parametrize segment
+  set g : ℝ → E := λ t, x + t • (y - x),
+  have hseg : ∀ t ∈ Icc (0:ℝ) 1, g t ∈ segment x y,
+    rw segment_eq_image',
+    simp only [mem_image, and_imp, add_right_inj],
+    intros t ht, exact ⟨t, ht, rfl⟩,
+  have hseg' : Icc 0 1 ⊆ g ⁻¹' s,
+    rw ← image_subset_iff, unfold image, change ∀ _, _,
+    intros z Hz, rw mem_set_of_eq at Hz, rcases Hz with ⟨t, Ht, hgt⟩,
+    rw ← hgt, exact hs.segment_subset xs ys (hseg t Ht),
+-- derivative of pullback of f under parametrization
+  have hfg: ∀ t ∈ Icc (0:ℝ) 1, has_deriv_within_at (f ∘ g)
+    ((f' (g t) : E → ℝ) (y-x)) (Icc (0:ℝ) 1) t,
+    intros t Ht,
+    have hg : has_deriv_at g (y-x) t,
+      have := ((has_deriv_at_id t).smul_const (y - x)).const_add x,
+      rwa one_smul at this,
+    exact (hf (g t) $ hseg' Ht).comp_has_deriv_within_at _ hg.has_deriv_within_at hseg',
+-- apply 1-variable mean value theorem to pullback
+  have hMVT : ∃ (t ∈ Ioo (0:ℝ) 1), ((f' (g t) : E → ℝ) (y-x)) = (f (g 1) - f (g 0)) / (1 - 0),
+    refine exists_has_deriv_at_eq_slope (f ∘ g) _ (by norm_num) _ _,
+    { unfold continuous_on,
+      exact λ t Ht, (hfg t Ht).continuous_within_at },
+    { refine λ t Ht, (hfg t $ hIccIoo Ht).has_deriv_at _,
+      refine mem_nhds_sets_iff.mpr _,
+      use (Ioo (0:ℝ) 1),
+      refine ⟨hIccIoo, _, Ht⟩,
+      simp [real.Ioo_eq_ball, is_open_ball] },
+-- reinterpret on domain
+  rcases hMVT with ⟨t, Ht, hMVT'⟩,
+  use g t, refine ⟨hseg t $ hIccIoo Ht, _⟩,
+  simp [g, hMVT'],
+end
+
+/-! ### Vector-valued functions `f : E → F`.  Strict differentiability. -/
+
+/-- Over the reals, a continuously differentiable function is strictly differentiable. -/
+lemma strict_fderiv_of_cont_diff
+  {f : E → F} {s : set E}  {x : E} {f' : E → (E →L[ℝ] F)}
+  (hf : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)
+  (hcont : continuous_on f' s) (hs : is_open s) (xs : x ∈ s)
+  : has_strict_fderiv_at f (f' x) x :=
+begin
+-- turn little-o definition of strict_fderiv into an epsilon-delta statement
+  change is_o _ _ _,
+  apply is_o_iff_forall_is_O_with.mpr,
+  intros c hc,
+  refine is_O_with.of_bound (eventually_iff.mpr (mem_nhds_iff.mpr _)),
+-- the correct ε is the modulus of continuity of f', shrunk to be inside s
+  rcases (metric.continuous_on_iff.mp hcont x xs c hc) with ⟨ε₁, H₁, hcont'⟩,
+  rcases (metric.is_open_iff.mp hs x xs) with ⟨ε₂, H₂, hε₂⟩,
+  use min ε₁ ε₂, refine ⟨lt_min H₁ H₂, _⟩,
+-- mess with ε construction
+  set t := ball x (min ε₁ ε₂),
+  have hts : t ⊆ s := λ _ hy, hε₂ (ball_subset_ball (min_le_right ε₁ ε₂) hy),
+  have Hf : ∀ y ∈ t, has_fderiv_within_at f (f' y) t y :=
+    λ y yt, has_fderiv_within_at.mono (hf y (hts yt)) hts,
+  have hconv := convex_ball x (min ε₁ ε₂),
+-- simplify formulas involving the product E × E
+  change _ → _, rintros ⟨a, b⟩ h,
+  simp only [mem_set_of_eq, map_sub],
+  have hab : a ∈ t ∧ b ∈ t,
+    rw [mem_ball, prod.dist_eq, max_lt_iff] at h, rw mem_ball, assumption,
+-- convert to a collection of scalar problems
+  refine normed_space.norm_le_dual_bound _ _ (by nlinarith [norm_nonneg (a - b)]) _,
+  intros φ,
+  have hφf' : ∀ (y : E), y ∈ t → has_fderiv_within_at (φ ∘ f) (φ.comp (f' y)) t y,
+    intros y yt,
+    have hφ' := @continuous_linear_map.has_fderiv_within_at _ _ _ _ _ _ _ _ φ _ set.univ,
+    refine has_fderiv_within_at.comp y hφ' (Hf y yt) _,
+    simp,
+-- apply mean value theorem
+  rcases (domain_mvt hφf' hconv hab.2 hab.1) with ⟨x', H', hMVT⟩,
+-- exploit the choice of ε as the modulus of continuity of f'
+  have hf' : ∥f' x' - f' x∥ < c,
+    have hx' := convex.segment_subset hconv hab.2 hab.1 H',
+    change dist (f' x') (f' x) < c,
+    refine hcont' x' (hts hx') _,
+    exact ball_subset_ball (min_le_left ε₁ ε₂) hx',
+-- calculate
+  calc ∥φ (f a - f b - ((f' x) a - (f' x) b))∥ = ∥φ ((f' x' - f' x) (a - b))∥ : by simp [hMVT]
+  ... ≤ ∥φ∥ * ∥(f' x' - f' x) (a - b)∥ : le_op_norm _ _
+  ... ≤ ∥φ∥ * (∥f' x' - f' x∥ * ∥a - b∥) : mul_le_mul_of_nonneg_left (le_op_norm _ _) (norm_nonneg _)
+  ... = ∥f' x' - f' x∥ * ∥a - b∥ * ∥φ∥ : by ring
+  ... ≤ c * ∥a - b∥ * ∥φ∥ : _,
+  refine mul_le_mul_of_nonneg_right _ (norm_nonneg _),
+  nlinarith [norm_nonneg (a - b)],
+end

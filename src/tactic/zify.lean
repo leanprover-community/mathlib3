@@ -62,15 +62,6 @@ do sl ← zify_attr.get_cache,
    sl ← sl.add_simp `ge_iff_le, sl ← sl.add_simp `gt_iff_lt,
    simplify sl [] e
 
-/--
-A small variant of `push_cast` suited for non-interactive use.
-
-`push_casts extra_lems e` returns an expression `e'` and a proof that `e = e'`.
--/
-meta def push_casts (extra_lems : list simp_arg_type) (e : expr) : tactic (expr × expr) :=
-do (s, _) ← mk_simp_set tt [`push_cast] extra_lems,
-   simplify (s.erase [`int.coe_nat_succ]) [] e {fail_if_unchanged := ff}
-
 attribute [zify] int.coe_nat_le_coe_nat_iff int.coe_nat_lt_coe_nat_iff int.coe_nat_eq_coe_nat_iff
 
 end zify
@@ -130,6 +121,11 @@ end
 
 `zify` makes use of the `@[zify]` attribute to move propositions,
 and the `push_cast` tactic to simplify the `ℤ`-valued expressions.
+
+`zify` is in some sense dual to the `lift` tactic. `lift (z : ℤ) to ℕ` will change the type of an
+integer `z` (in the supertype) to `ℕ` (the subtype), given a proof that `z ≥ 0`;
+propositions concerning `z` will still be over `ℤ`. `zify` changes propositions about `ℕ` (the
+subtype) to propositions about `ℤ` (the supertype), without changing the type of any variable.
 -/
 meta def tactic.interactive.zify (sl : parse simp_arg_list) (l : parse location) : tactic unit :=
 do locs ← l.get_locals,

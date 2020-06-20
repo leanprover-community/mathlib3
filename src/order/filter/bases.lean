@@ -253,7 +253,6 @@ lemma has_basis_self {l : filter α} {P : set α → Prop} :
 has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t, (t ∈ l ↔ ∃ r ∈ l, P r ∧ r ⊆ t) :=
 begin
   split,
-  { rintros ⟨h⟩,
   { rintros ⟨h⟩ t,
     convert h t,
     ext s,

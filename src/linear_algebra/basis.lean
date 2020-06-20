@@ -735,6 +735,9 @@ end
 lemma is_basis.injective (hv : is_basis R v) (zero_ne_one : (0 : R) ≠ 1) : injective v :=
   λ x y h, linear_independent.injective zero_ne_one hv.1 h
 
+lemma is_basis.range (hv : is_basis R v) : is_basis R (λ x, x : range v → M) :=
+⟨hv.1.to_subtype_range, by { convert hv.2, ext i, exact ⟨λ ⟨p, hp⟩, hp ▸ p.2, λ hi, ⟨⟨i, hi⟩, rfl⟩⟩ }⟩
+
 /-- Given a basis, any vector can be written as a linear combination of the basis vectors. They are
 given by this linear map. This is one direction of `module_equiv_finsupp`. -/
 def is_basis.repr : M →ₗ (ι →₀ R) :=

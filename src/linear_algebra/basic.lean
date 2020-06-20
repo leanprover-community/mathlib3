@@ -1607,6 +1607,7 @@ def to_add_equiv : M ≃+ M₂ := { .. e }
   (e₁.trans e₂) c = e₂ (e₁ c) := rfl
 @[simp] theorem apply_symm_apply (c : M₂) : e (e.symm c) = c := e.6 c
 @[simp] theorem symm_apply_apply (b : M) : e.symm (e b) = b := e.5 b
+@[simp] lemma symm_trans_apply (c : M₃) : (e₁.trans e₂).symm c = e₁.symm (e₂.symm c) := rfl
 
 @[simp] lemma trans_refl : e.trans (refl R M₂) = e := to_equiv_injective e.to_equiv.trans_refl
 @[simp] lemma refl_trans : (refl R M).trans e = e := to_equiv_injective e.to_equiv.refl_trans
@@ -1828,6 +1829,13 @@ lemma arrow_congr_comp {N N₂ N₃ : Sort*}
   (e₁ : M ≃ₗ[R] N) (e₂ : M₂ ≃ₗ[R] N₂) (e₃ : M₃ ≃ₗ[R] N₃) (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) :
   arrow_congr e₁ e₃ (g.comp f) = (arrow_congr e₂ e₃ g).comp (arrow_congr e₁ e₂ f) :=
 by { ext, simp only [symm_apply_apply, arrow_congr_apply, linear_map.comp_apply], }
+
+lemma arrow_congr_trans {M₁ M₂ M₃ N₁ N₂ N₃ : Sort*}
+  [add_comm_group M₁] [module R M₁] [add_comm_group M₂] [module R M₂] [add_comm_group M₃] [module R M₃]
+  [add_comm_group N₁] [module R N₁] [add_comm_group N₂] [module R N₂] [add_comm_group N₃] [module R N₃]
+  (e₁ : M₁ ≃ₗ[R] M₂) (e₂ : N₁ ≃ₗ[R] N₂) (e₃ : M₂ ≃ₗ[R] M₃) (e₄ : N₂ ≃ₗ[R] N₃) :
+  (arrow_congr e₁ e₂).trans (arrow_congr e₃ e₄) = arrow_congr (e₁.trans e₃) (e₂.trans e₄) :=
+rfl
 
 /-- If `M₂` and `M₃` are linearly isomorphic then the two spaces of linear maps from `M` into `M₂`
 and `M` into `M₃` are linearly isomorphic. -/
@@ -2265,6 +2273,53 @@ end
 end
 
 end pi
+
+section fun_left
+variables (R M) [semiring R] [add_comm_monoid M] [semimodule R M]
+variables {m n p : Type*}
+
+/-- Given an `R`-module `M` and a function `m → n` between arbitrary types,
+construct a linear map `(n → M) →ₗ[R] (m → M)` -/
+def fun_left (f : m → n) : (n → M) →ₗ[R] (m → M) :=
+mk (∘f) (λ _ _, rfl) (λ _ _, rfl)
+
+@[simp] theorem fun_left_apply (f : m → n) (g : n → M) (i : m) : fun_left R M f g i = g (f i) :=
+rfl
+
+@[simp] theorem fun_left_id (g : n → M) : fun_left R M _root_.id g = g :=
+rfl
+
+@[simp] theorem fun_left_comp (f₁ : n → p) (f₂ : m → n) (g : p → M) (i : m) :
+  fun_left R M (f₁ ∘ f₂) g i = fun_left R M f₂ (fun_left R M f₁ g) i :=
+rfl
+
+/-- Given an `R`-module `M` and an equivalence `m ≃ n` between arbitrary types,
+construct a linear equivalence `(n → M) ≃ₗ[R] (m → M)` -/
+def fun_congr_left (e : m ≃ n) : (n → M) ≃ₗ[R] (m → M) :=
+linear_equiv.of_linear (fun_left R M e) (fun_left R M e.symm)
+  (ext $ λ x, funext $ λ i,
+    by rw [comp_apply, id_apply, ← fun_left_comp, equiv.symm_comp_self, fun_left_id])
+  (ext $ λ x, funext $ λ i,
+    by rw [comp_apply, id_apply, ← fun_left_comp, equiv.self_comp_symm, fun_left_id])
+
+@[simp] theorem fun_congr_left_apply (e : m ≃ n) (x : n → M) :
+  fun_congr_left R M e x = fun_left R M e x :=
+rfl
+
+@[simp] theorem fun_congr_left_id :
+  fun_congr_left R M (equiv.refl n) = linear_equiv.refl R (n → M) :=
+rfl
+
+@[simp] theorem fun_congr_left_comp (e₁ : m ≃ n) (e₂ : n ≃ p) :
+  fun_congr_left R M (equiv.trans e₁ e₂) =
+    linear_equiv.trans (fun_congr_left R M e₂) (fun_congr_left R M e₁) :=
+rfl
+
+@[simp] lemma fun_congr_left_symm (e : m ≃ n) :
+  (fun_congr_left R M e).symm = fun_congr_left R M e.symm :=
+rfl
+
+end fun_left
 
 universe i
 variables [semiring R] [add_comm_monoid M] [semimodule R M]

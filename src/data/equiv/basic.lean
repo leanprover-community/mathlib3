@@ -1202,6 +1202,13 @@ noncomputable def of_bijective {α β} (f : α → β) (hf : bijective f) : α �
 @[simp] theorem coe_of_bijective {α β} {f : α → β} (hf : bijective f) :
   (of_bijective f hf : α → β) = f := rfl
 
+noncomputable def of_injective {α β} (f : α → β) (hf : injective f) : α ≃ _root_.set.range f :=
+of_bijective (λ x, ⟨f x, set.mem_range_self x⟩) ⟨λ x y hxy, hf $ by injections, λ ⟨_, x, rfl⟩, ⟨x, rfl⟩⟩
+
+@[simp] lemma of_injective_apply {α β} (f : α → β) (hf : injective f) (x : α) :
+  of_injective f hf x = ⟨f x, set.mem_range_self x⟩ :=
+rfl
+
 def subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid α]
   [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ :  ∀ a, p₁ a ↔ p₂ ⟦a⟧)
   (h : ∀ x y : subtype p₁, @setoid.r _ s₂ x y ↔ (x : α) ≈ y) :

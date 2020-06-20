@@ -257,12 +257,12 @@ by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obv
 def precompose_id : precompose (𝟙 F) ≅ 𝟭 (cocone F) :=
 by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
 
+@[simps]
 def precompose_equivalence {G : J ⥤ C} (α : G ≅ F) : cocone F ≌ cocone G :=
-begin
-  refine equivalence.mk (precompose α.hom) (precompose α.inv) _ _,
-  { symmetry, refine (precompose_comp _ _).symm.trans _, rw [iso.inv_hom_id], exact precompose_id },
-  { refine (precompose_comp _ _).symm.trans _, rw [iso.hom_inv_id], exact precompose_id }
-end
+{ functor := precompose α.hom,
+  inverse := precompose α.inv,
+  unit_iso := nat_iso.of_components (λ s, cocones.ext (iso.refl _) (by tidy)) (by tidy),
+  counit_iso := nat_iso.of_components (λ s, cocones.ext (iso.refl _) (by tidy)) (by tidy) }
 
 section
 variable (F)

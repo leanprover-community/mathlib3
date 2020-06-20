@@ -82,7 +82,7 @@ See the explanations there.
 
 universes u v w
 noncomputable theory
-open_locale classical topological_space
+open_locale classical topological_space big_operators
 open filter asymptotics set
 open continuous_linear_map (smul_right smul_right_one_eq_iff)
 
@@ -188,7 +188,7 @@ lemma has_strict_fderiv_at_iff_has_strict_deriv_at {f' : 𝕜 →L[𝕜] F} :
   has_strict_fderiv_at f f' x ↔ has_strict_deriv_at f (f' 1) x :=
 by simp [has_strict_deriv_at, has_strict_fderiv_at]
 
-lemma has_strict_fderiv_at.has_strict_deriv_at {f' : 𝕜 →L[𝕜] F} :
+protected lemma has_strict_fderiv_at.has_strict_deriv_at {f' : 𝕜 →L[𝕜] F} :
   has_strict_fderiv_at f f' x → has_strict_deriv_at f (f' 1) x :=
 has_strict_fderiv_at_iff_has_strict_deriv_at.mp
 
@@ -1489,7 +1489,7 @@ variable {n : ℕ }
 lemma has_strict_deriv_at_pow (n : ℕ) (x : 𝕜) :
   has_strict_deriv_at (λx, x^n) ((n : 𝕜) * x^(n-1)) x :=
 begin
-  convert (polynomial.C 1 * (polynomial.X)^n).has_strict_deriv_at x,
+  convert (polynomial.C (1 : 𝕜) * (polynomial.X)^n).has_strict_deriv_at x,
   { simp },
   { rw [polynomial.derivative_monomial], simp }
 end
@@ -1524,18 +1524,19 @@ lemma deriv_within_pow (hxs : unique_diff_within_at 𝕜 s x) :
 (has_deriv_within_at_pow n x s).deriv_within hxs
 
 lemma iter_deriv_pow' {k : ℕ} :
-  deriv^[k] (λx:𝕜, x^n) = λ x, ((finset.range k).prod (λ i, n - i):ℕ) * x^(n-k) :=
+  deriv^[k] (λx:𝕜, x^n) = λ x, (∏ i in finset.range k, (n - i) : ℕ) * x^(n-k) :=
 begin
   induction k with k ihk,
-  { simp only [one_mul, finset.prod_range_zero, nat.iterate_zero, nat.sub_zero, nat.cast_one] },
-  { simp only [nat.iterate_succ', ihk, finset.prod_range_succ],
+  { simp only [one_mul, finset.prod_range_zero, function.iterate_zero_apply, nat.sub_zero,
+      nat.cast_one] },
+  { simp only [function.iterate_succ_apply', ihk, finset.prod_range_succ],
     ext x,
     rw [((has_deriv_at_pow (n - k) x).const_mul _).deriv, nat.cast_mul, mul_left_comm, mul_assoc,
       nat.succ_eq_add_one, nat.sub_sub] }
 end
 
 lemma iter_deriv_pow {k : ℕ} :
-  deriv^[k] (λx:𝕜, x^n) x = ((finset.range k).prod (λ i, n - i):ℕ) * x^(n-k) :=
+  deriv^[k] (λx:𝕜, x^n) x = (∏ i in finset.range k, (n - i) : ℕ) * x^(n-k) :=
 congr_fun iter_deriv_pow' x
 
 lemma has_deriv_within_at.pow (hc : has_deriv_within_at c c' s x) :
@@ -1627,16 +1628,14 @@ lemma deriv_within_fpow (hxs : unique_diff_within_at 𝕜 s x) (hx : x ≠ 0) :
 (has_deriv_within_at_fpow m hx s).deriv_within hxs
 
 lemma iter_deriv_fpow {k : ℕ} (hx : x ≠ 0) :
-  deriv^[k] (λx:𝕜, x^m) x = ((finset.range k).prod (λ i, m - i):ℤ) * x^(m-k) :=
+  deriv^[k] (λx:𝕜, x^m) x = (∏ i in finset.range k, (m - i) : ℤ) * x^(m-k) :=
 begin
   induction k with k ihk generalizing x hx,
-  { simp only [one_mul, finset.prod_range_zero, nat.iterate_zero, int.coe_nat_zero, sub_zero,
-      int.cast_one] },
-  { rw [nat.iterate_succ', finset.prod_range_succ, int.cast_mul, mul_assoc, mul_left_comm, int.coe_nat_succ,
-      ← sub_sub, ← ((has_deriv_at_fpow _ hx).const_mul _).deriv],
-    apply deriv_congr_of_mem_nhds,
-    apply eventually.mono _ @ihk,
-    exact mem_nhds_sets is_open_ne hx }
+  { simp only [one_mul, finset.prod_range_zero, function.iterate_zero_apply, int.coe_nat_zero,
+      sub_zero, int.cast_one] },
+  { rw [function.iterate_succ', finset.prod_range_succ, int.cast_mul, mul_assoc, mul_left_comm,
+      int.coe_nat_succ, ← sub_sub, ← ((has_deriv_at_fpow _ hx).const_mul _).deriv],
+    exact deriv_congr_of_mem_nhds (eventually.mono (mem_nhds_sets is_open_ne hx) @ihk) }
 end
 
 end fpow

@@ -253,6 +253,11 @@ begin
      ... = 𝟙 (image f) ≫ h : by rw [←category.assoc, t]
      ... = h                : by rw [category.id_comp]
 end⟩
+
+lemma epi_of_epi_image {X Y : C} (f : X ⟶ Y) [has_image f]
+  [epi (image.ι f)] [epi (factor_thru_image f)] : epi f :=
+by { rw [←image.fac f], apply epi_comp, }
+
 end
 
 section

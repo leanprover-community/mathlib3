@@ -5,6 +5,8 @@ Authors: Oliver Nash
 -/
 import ring_theory.algebra
 import linear_algebra.linear_action
+import linear_algebra.bilinear_form
+import tactic.noncomm_ring
 
 /-!
 # Lie algebras
@@ -78,17 +80,7 @@ by simp [commutator]
 
 lemma jacobi (x y z : A) :
   ⁅x, ⁅y, z⁆⁆ + ⁅y, ⁅z, x⁆⁆ + ⁅z, ⁅x, y⁆⁆ = 0 :=
-begin
-  unfold commutator,
-  repeat { rw mul_sub_left_distrib },
-  repeat { rw mul_sub_right_distrib },
-  repeat { rw add_sub },
-  repeat { rw ←sub_add },
-  repeat { rw ←mul_assoc },
-  have h : ∀ (x y z : A), x - y + z + y = x+z, {simp [sub_eq_add_neg, add_left_comm, add_assoc]},
-  repeat { rw h },
-  simp [sub_eq_add_neg, add_left_comm, add_assoc],
-end
+by { unfold commutator, noncomm_ring, }
 
 end ring_commutator
 
@@ -98,7 +90,7 @@ set_option default_priority 100 -- see Note [default priority]
 A Lie ring is an additive group with compatible product, known as the bracket, satisfying the
 Jacobi identity. The bracket is not associative unless it is identically zero.
 -/
-class lie_ring (L : Type v) extends add_comm_group L, has_bracket L :=
+@[protect_proj] class lie_ring (L : Type v) extends add_comm_group L, has_bracket L :=
 (add_lie : ∀ (x y z : L), ⁅x + y, z⁆ = ⁅x, z⁆ + ⁅y, z⁆)
 (lie_add : ∀ (x y z : L), ⁅z, x + y⁆ = ⁅z, x⁆ + ⁅z, y⁆)
 (lie_self : ∀ (x : L), ⁅x, x⁆ = 0)
@@ -181,7 +173,7 @@ set_option default_priority 100 -- see Note [default priority]
 A Lie algebra is a module with compatible product, known as the bracket, satisfying the Jacobi
 identity. Forgetting the scalar multiplication, every Lie algebra is a Lie ring.
 -/
-class lie_algebra (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] extends module R L :=
+class lie_algebra (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] extends semimodule R L :=
 (lie_smul : ∀ (t : R) (x y : L), ⁅x, t • y⁆ = t • ⁅x, y⁆)
 end prio
 
@@ -362,14 +354,14 @@ lemma endo_algebra_bracket (M : Type v) [add_comm_group M] [module R M] (f g : m
 /--
 The adjoint action of a Lie algebra on itself.
 -/
-def Ad : L →ₗ⁅R⁆ module.End R L := {
-  to_fun  := λ x, {
-    to_fun := has_bracket.bracket x,
-    add    := by { intros, apply lie_add, },
-    smul   := by { intros, apply lie_smul, } },
-  add     := by { intros, ext, simp, },
-  smul    := by { intros, ext, simp, },
-  map_lie := by {
+def Ad : L →ₗ⁅R⁆ module.End R L :=
+{ to_fun    := λ x,
+  { to_fun    := has_bracket.bracket x,
+    map_add'  := by { intros, apply lie_add, },
+    map_smul' := by { intros, apply lie_smul, } },
+  map_add'  := by { intros, ext, simp, },
+  map_smul' := by { intros, ext, simp, },
+  map_lie   := by {
     intros x y, ext z,
     rw endo_algebra_bracket,
     suffices : ⁅⁅x, y⁆, z⁆ = ⁅x, ⁅y, z⁆⁆ + ⁅⁅x, z⁆, y⁆, by simpa [sub_eq_add_neg],
@@ -382,12 +374,15 @@ section lie_subalgebra
 
 variables (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] [lie_algebra R L]
 
+set_option old_structure_cmd true
 /--
 A Lie subalgebra of a Lie algebra is submodule that is closed under the Lie bracket.
 This is a sufficient condition for the subset itself to form a Lie algebra.
 -/
 structure lie_subalgebra extends submodule R L :=
 (lie_mem : ∀ {x y}, x ∈ carrier → y ∈ carrier → ⁅x, y⁆ ∈ carrier)
+
+attribute [nolint doc_blame] lie_subalgebra.to_submodule
 
 /-- The zero algebra is a subalgebra of any Lie algebra. -/
 instance : has_zero (lie_subalgebra R L) :=
@@ -396,6 +391,7 @@ instance : has_zero (lie_subalgebra R L) :=
    ..(0 : submodule R L) }⟩
 
 instance : inhabited (lie_subalgebra R L) := ⟨0⟩
+instance : has_coe (lie_subalgebra R L) (set L) := ⟨lie_subalgebra.carrier⟩
 
 instance lie_subalgebra_coe_submodule : has_coe (lie_subalgebra R L) (submodule R L) :=
 ⟨lie_subalgebra.to_submodule⟩
@@ -415,6 +411,23 @@ instance lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) :
 
 local attribute [instance] lie_ring.of_associative_ring
 local attribute [instance] lie_algebra.of_associative_algebra
+
+/-- The embedding of a Lie subalgebra into the ambient space as a Lie morphism. -/
+def lie_subalgebra.incl
+  {R : Type u} {L : Type v} [comm_ring R] [lie_ring L] [lie_algebra R L]
+  (L' : lie_subalgebra R L) : L' →ₗ⁅R⁆ L :=
+{ map_lie := λ x y, by { rw [linear_map.to_fun_eq_coe, submodule.subtype_apply], refl, },
+  ..L'.to_submodule.subtype }
+
+/-- The range of a morphism of Lie algebras is a Lie subalgebra. -/
+def lie_algebra.morphism.range {R : Type u} {L₁ : Type v} {L₂ : Type w}
+  [comm_ring R] [lie_ring L₁] [lie_ring L₂] [lie_algebra R L₁] [lie_algebra R L₂]
+  (f : L₁ →ₗ⁅R⁆ L₂) : lie_subalgebra R L₂ :=
+{ lie_mem := λ x y,
+    show x ∈ f.to_linear_map.range → y ∈ f.to_linear_map.range → ⁅x, y⁆ ∈ f.to_linear_map.range,
+    by { repeat { rw linear_map.mem_range }, rintros ⟨x', hx⟩ ⟨y', hy⟩, refine ⟨⁅x', y'⁆, _⟩,
+         rw [←hx, ←hy], change f ⁅x', y'⁆ = ⁅f x', f y'⁆, rw lie_algebra.map_lie, },
+  ..f.to_linear_map.range }
 
 /-- A subalgebra of an associative algebra is a Lie subalgebra of the associated Lie algebra. -/
 def lie_subalgebra_of_subalgebra (A : Type v) [ring A] [algebra R A]
@@ -612,20 +625,87 @@ end quotient
 
 end lie_submodule
 
-/--
-An important class of Lie rings are those arising from the associative algebra structure on
-square matrices over a commutative ring.
--/
-def matrix.lie_ring (n : Type u) (R : Type v)
-  [fintype n] [decidable_eq n] [comm_ring R] : lie_ring (matrix n n R) :=
+section matrices
+open_locale matrix
+
+variables {R : Type u} [comm_ring R]
+variables {n : Type w} [fintype n] [decidable_eq n]
+
+/-- An important class of Lie rings are those arising from the associative algebra structure on
+square matrices over a commutative ring. -/
+def matrix.lie_ring : lie_ring (matrix n n R) :=
 lie_ring.of_associative_ring (matrix n n R)
 
 local attribute [instance] matrix.lie_ring
 
-/--
-An important class of Lie algebras are those arising from the associative algebra structure on
-square matrices over a commutative ring.
--/
-def matrix.lie_algebra (n : Type u) (R : Type v)
-  [fintype n] [decidable_eq n] [comm_ring R] : lie_algebra R (matrix n n R) :=
+/-- An important class of Lie algebras are those arising from the associative algebra structure on
+square matrices over a commutative ring. -/
+def matrix.lie_algebra : lie_algebra R (matrix n n R) :=
 lie_algebra.of_associative_algebra (matrix n n R)
+
+local attribute [instance] matrix.lie_algebra
+
+/-- The natural equivalence between linear endomorphisms of finite free modules and square matrices
+is compatible with the Lie algebra structures. -/
+def lie_equiv_matrix' : module.End R (n → R) ≃ₗ⁅R⁆ matrix n n R :=
+{ map_lie := λ T S,
+  begin
+    let f := @linear_map.to_matrixₗ n n _ _ R _ _,
+    change f (T.comp S - S.comp T) = (f T) * (f S) - (f S) * (f T),
+    have h : ∀ (T S : module.End R _), f (T.comp S) = (f T) ⬝ (f S) := matrix.comp_to_matrix_mul,
+    rw [linear_map.map_sub, h, h, matrix.mul_eq_mul, matrix.mul_eq_mul],
+  end,
+  ..linear_equiv_matrix' }
+
+end matrices
+
+namespace bilin_form
+
+variables {R : Type u} [comm_ring R]
+
+section skew_adjoint_endomorphisms
+
+variables {M : Type v} [add_comm_group M] [module R M]
+variables (B : bilin_form R M)
+
+lemma is_skew_adjoint_bracket (f g : module.End R M)
+  (hf : f ∈ B.skew_adjoint_submodule) (hg : g ∈ B.skew_adjoint_submodule) :
+  ⁅f, g⁆ ∈ B.skew_adjoint_submodule :=
+begin
+  rw mem_skew_adjoint_submodule at *,
+  have hfg : is_adjoint_pair B B (f * g) (g * f), { rw ←neg_mul_neg g f, exact hf.mul hg, },
+  have hgf : is_adjoint_pair B B (g * f) (f * g), { rw ←neg_mul_neg f g, exact hg.mul hf, },
+  change bilin_form.is_adjoint_pair B B (f * g - g * f) (-(f * g - g * f)), rw neg_sub,
+  exact hfg.sub hgf,
+end
+
+/-- Given an `R`-module `M`, equipped with a bilinear form, the skew-adjoint endomorphisms form a
+Lie subalgebra of the Lie algebra of endomorphisms. -/
+def skew_adjoint_lie_subalgebra : lie_subalgebra R (module.End R M) :=
+{ lie_mem := B.is_skew_adjoint_bracket, ..B.skew_adjoint_submodule }
+
+end skew_adjoint_endomorphisms
+
+section skew_adjoint_matrices
+
+variables {n : Type w} [fintype n] [decidable_eq n]
+variables (J : matrix n n R)
+
+local attribute [instance] matrix.lie_ring
+local attribute [instance] matrix.lie_algebra
+
+/-- Given a square matrix `J` defining a bilinear form on the free module, there is a natural
+embedding from the corresponding Lie subalgebra of skew-adjoint endomorphisms into the Lie algebra
+of matrices. -/
+def skew_adjoint_matrices_lie_embedding :
+  J.to_bilin_form.skew_adjoint_lie_subalgebra →ₗ⁅R⁆ matrix n n R :=
+lie_algebra.morphism.comp (lie_algebra.equiv.to_morphism lie_equiv_matrix')
+  (skew_adjoint_lie_subalgebra J.to_bilin_form).incl
+
+/-- The Lie subalgebra of skew-adjoint square matrices corresponding to a square matrix `J`. -/
+def skew_adjoint_matrices_lie_subalgebra : lie_subalgebra R (matrix n n R) :=
+(skew_adjoint_matrices_lie_embedding J).range
+
+end skew_adjoint_matrices
+
+end bilin_form

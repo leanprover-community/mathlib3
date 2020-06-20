@@ -2,10 +2,12 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
-
-Quotients -- extends the core library
 -/
 import logic.relator
+
+/-!
+# Quotients -- extends the core library
+-/
 
 variables {α : Sort*} {β : Sort*}
 
@@ -89,11 +91,13 @@ theorem forall_quotient_iff {α : Type*} [r : setoid α] {p : quotient r → Pro
   (∀a:quotient r, p a) ↔ (∀a:α, p ⟦a⟧) :=
 ⟨assume h x, h _, assume h a, a.induction_on h⟩
 
-@[simp] lemma quotient.lift_beta [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b) (x : α) :
-quotient.lift f h (quotient.mk x) = f x := rfl
+@[simp] lemma quotient.lift_beta [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b)
+  (x : α) :
+  quotient.lift f h (quotient.mk x) = f x := rfl
 
-@[simp] lemma quotient.lift_on_beta [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b) (x : α) :
-quotient.lift_on (quotient.mk x) f h = f x := rfl
+@[simp] lemma quotient.lift_on_beta [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b)
+  (x : α) :
+  quotient.lift_on (quotient.mk x) f h = f x := rfl
 
 /-- Choose an element of the equivalence class using the axiom of choice.
   Sound but noncomputable. -/
@@ -170,8 +174,8 @@ protected theorem induction_on {β : trunc α → Prop} (q : trunc α)
 theorem exists_rep (q : trunc α) : ∃ a : α, mk a = q := quot.exists_rep q
 
 attribute [elab_as_eliminator]
-protected theorem induction_on₂
-   {C : trunc α → trunc β → Prop} (q₁ : trunc α) (q₂ : trunc β) (h : ∀ a b, C (mk a) (mk b)) : C q₁ q₂ :=
+protected theorem induction_on₂ {C : trunc α → trunc β → Prop} (q₁ : trunc α) (q₂ : trunc β)
+  (h : ∀ a b, C (mk a) (mk b)) : C q₁ q₂ :=
 trunc.induction_on q₁ $ λ a₁, trunc.induction_on q₂ (h a₁)
 
 protected theorem eq (a b : trunc α) : a = b :=
@@ -273,7 +277,8 @@ quotient.exact
 lemma sound' {a b : α} : @setoid.r _ s₁ a b → @quotient.mk' α s₁ a = quotient.mk' b :=
 quotient.sound
 
-@[simp] protected lemma eq' {a b : α} : @quotient.mk' α s₁ a = quotient.mk' b ↔ @setoid.r _ s₁ a b :=
+@[simp]
+protected lemma eq' {a b : α} : @quotient.mk' α s₁ a = quotient.mk' b ↔ @setoid.r _ s₁ a b :=
 quotient.eq
 
 noncomputable def out' (a : quotient s₁) : α := quotient.out a

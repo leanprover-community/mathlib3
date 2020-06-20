@@ -3,7 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Jeremy Avigad
 -/
-import order.filter
+import order.filter.ultrafilter
+import order.filter.partial
 import order.filter.bases
 
 /-!
@@ -41,8 +42,8 @@ open_locale classical
 universes u v w
 
 /-- A topology on `α`. -/
-structure topological_space (α : Type u) :=
-(is_open       : set α → Prop)
+@[protect_proj] structure topological_space (α : Type u) :=
+(is_open        : set α → Prop)
 (is_open_univ   : is_open univ)
 (is_open_inter  : ∀s t, is_open s → is_open t → is_open (s ∩ t))
 (is_open_sUnion : ∀s, (∀t∈s, is_open t) → is_open (⋃₀ s))
@@ -569,7 +570,8 @@ lemma mem_of_closed_of_tendsto' {f : β → α} {x : filter β} {a : α} {s : se
   (hf : tendsto f x (𝓝 a)) (hs : is_closed s) (h : x ⊓ principal (f ⁻¹' s) ≠ ⊥) : a ∈ s :=
 is_closed_iff_nhds.mp hs _ $ ne_bot_of_le_ne_bot (@map_ne_bot _ _ _ f h) $
   le_inf (le_trans (map_mono $ inf_le_left) hf) $
-    le_trans (map_mono $ inf_le_right_of_le $ by simp only [comap_principal, le_principal_iff]; exact subset.refl _) (@map_comap_le _ _ _ f)
+    le_trans (map_mono $ inf_le_right_of_le $
+      by simp only [comap_principal, le_principal_iff]; exact subset.refl _) (@map_comap_le _ _ _ f)
 
 lemma mem_closure_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
   (hb : b ≠ ⊥) (hf : tendsto f b (𝓝 a)) (h : ∀ᶠ x in b, f x ∈ s) : a ∈ closure s :=
@@ -595,14 +597,31 @@ begin
 end
 
 section lim
-variables [nonempty α]
 
-/-- If `f` is a filter, then `lim f` is a limit of the filter, if it exists. -/
-noncomputable def lim (f : filter α) : α := epsilon $ λa, f ≤ 𝓝 a
+/-- If `f` is a filter, then `Lim f` is a limit of the filter, if it exists. -/
+noncomputable def Lim [nonempty α] (f : filter α) : α := epsilon $ λa, f ≤ 𝓝 a
 
-lemma lim_spec {f : filter α} (h : ∃a, f ≤ 𝓝 a) : f ≤ 𝓝 (lim f) := epsilon_spec h
+/-- If `f` is a filter in `β` and `g : β → α` is a function, then `lim f` is a limit of `g` at `f`,
+if it exists. -/
+noncomputable def lim [nonempty α] (f : filter β) (g : β → α) : α :=
+Lim (f.map g)
+
+/-- If a filter `f` is majorated by some `𝓝 a`, then it is majorated by `𝓝 (Lim f)`. We formulate
+this lemma with a `[nonempty α]` argument of `Lim` derived from `h` to make it useful for types
+without a `[nonempty α]` instance. Because of the built-in proof irrelevance, Lean will unify
+this instance with any other instance. -/
+lemma Lim_spec {f : filter α} (h : ∃a, f ≤ 𝓝 a) : f ≤ 𝓝 (@Lim _ _ (nonempty_of_exists h) f) :=
+epsilon_spec h
+
+/-- If `g` tends to some `𝓝 a` along `f`, then it tends to `𝓝 (lim f g)`. We formulate
+this lemma with a `[nonempty α]` argument of `lim` derived from `h` to make it useful for types
+without a `[nonempty α]` instance. Because of the built-in proof irrelevance, Lean will unify
+this instance with any other instance. -/
+lemma lim_spec {f : filter β} {g : β → α} (h : ∃ a, tendsto g f (𝓝 a)) :
+  tendsto g f (𝓝 $ @lim _ _ _ (nonempty_of_exists h) f g) :=
+Lim_spec h
+
 end lim
-
 
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 section locally_finite
@@ -662,6 +681,10 @@ def continuous (f : α → β) := ∀s, is_open s → is_open (f ⁻¹' s)
 /-- A function between topological spaces is continuous at a point `x₀`
 if `f x` tends to `f x₀` when `x` tends to `x₀`. -/
 def continuous_at (f : α → β) (x : α) := tendsto f (𝓝 x) (𝓝 (f x))
+
+lemma continuous_at.tendsto {f : α → β} {x : α} (h : continuous_at f x) :
+  tendsto f (𝓝 x) (𝓝 (f x)) :=
+h
 
 lemma continuous_at.preimage_mem_nhds {f : α → β} {x : α} {t : set β} (h : continuous_at f x)
   (ht : t ∈ 𝓝 (f x)) : f ⁻¹' t ∈ 𝓝 x :=

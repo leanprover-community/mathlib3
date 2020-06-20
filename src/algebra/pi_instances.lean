@@ -2,11 +2,16 @@
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
-
-Pi instances for algebraic structures.
 -/
 import algebra.module
 import ring_theory.subring
+import ring_theory.prod
+
+open_locale big_operators
+
+/-!
+# Pi instances for algebraic structures
+-/
 
 namespace pi
 universes u v w
@@ -60,43 +65,50 @@ instance semiring           [∀ i, semiring           $ f i] : semiring        
 instance ring               [∀ i, ring               $ f i] : ring               (Π i : I, f i) := by pi_instance
 instance comm_ring          [∀ i, comm_ring          $ f i] : comm_ring          (Π i : I, f i) := by pi_instance
 
-instance mul_action     (α) {m : monoid α}                                      [∀ i, mul_action α $ f i]     : mul_action α (Π i : I, f i) :=
+instance mul_action (α) {m : monoid α} [∀ i, mul_action α $ f i] :
+  @mul_action α (Π i : I, f i) m :=
 { smul := λ c f i, c • f i,
   mul_smul := λ r s f, funext $ λ i, mul_smul _ _ _,
   one_smul := λ f, funext $ λ i, one_smul α _ }
 
-instance distrib_mul_action (α) {m : monoid α}         [∀ i, add_monoid $ f i]      [∀ i, distrib_mul_action α $ f i] : distrib_mul_action α (Π i : I, f i) :=
+instance distrib_mul_action (α) {m : monoid α} {n : ∀ i, add_monoid $ f i} [∀ i, distrib_mul_action α $ f i] :
+  @distrib_mul_action α (Π i : I, f i) m (@pi.add_monoid I f n) :=
 { smul_zero := λ c, funext $ λ i, smul_zero _,
   smul_add := λ c f g, funext $ λ i, smul_add _ _ _,
   ..pi.mul_action _ }
 
 variables (I f)
 
-instance semimodule     (α) {r : semiring α}       [∀ i, add_comm_monoid $ f i] [∀ i, semimodule α $ f i]     : semimodule α (Π i : I, f i) :=
+instance semimodule (α) {r : semiring α} {m : ∀ i, add_comm_monoid $ f i} [∀ i, semimodule α $ f i] :
+  @semimodule α (Π i : I, f i) r (@pi.add_comm_monoid I f m) :=
 { add_smul := λ c f g, funext $ λ i, add_smul _ _ _,
   zero_smul := λ f, funext $ λ i, zero_smul α _,
   ..pi.distrib_mul_action _ }
 
 variables {I f}
 
-instance module         (α) {r : ring α}           [∀ i, add_comm_group $ f i]  [∀ i, module α $ f i]         : module α (Π i : I, f i)       := {..pi.semimodule I f α}
-
-instance left_cancel_semigroup [∀ i, left_cancel_semigroup $ f i] : left_cancel_semigroup (Π i : I, f i) :=
+instance left_cancel_semigroup [∀ i, left_cancel_semigroup $ f i] :
+  left_cancel_semigroup (Π i : I, f i) :=
 by pi_instance
 
-instance add_left_cancel_semigroup [∀ i, add_left_cancel_semigroup $ f i] : add_left_cancel_semigroup (Π i : I, f i) :=
+instance add_left_cancel_semigroup [∀ i, add_left_cancel_semigroup $ f i] :
+  add_left_cancel_semigroup (Π i : I, f i) :=
 by pi_instance
 
-instance right_cancel_semigroup [∀ i, right_cancel_semigroup $ f i] : right_cancel_semigroup (Π i : I, f i) :=
+instance right_cancel_semigroup [∀ i, right_cancel_semigroup $ f i] :
+  right_cancel_semigroup (Π i : I, f i) :=
 by pi_instance
 
-instance add_right_cancel_semigroup [∀ i, add_right_cancel_semigroup $ f i] : add_right_cancel_semigroup (Π i : I, f i) :=
+instance add_right_cancel_semigroup [∀ i, add_right_cancel_semigroup $ f i] :
+  add_right_cancel_semigroup (Π i : I, f i) :=
 by pi_instance
 
-instance ordered_cancel_comm_monoid [∀ i, ordered_cancel_add_comm_monoid $ f i] : ordered_cancel_add_comm_monoid (Π i : I, f i) :=
+instance ordered_cancel_comm_monoid [∀ i, ordered_cancel_add_comm_monoid $ f i] :
+  ordered_cancel_add_comm_monoid (Π i : I, f i) :=
 by pi_instance
 
-instance ordered_add_comm_group [∀ i, ordered_add_comm_group $ f i] : ordered_add_comm_group (Π i : I, f i) :=
+instance ordered_add_comm_group [∀ i, ordered_add_comm_group $ f i] :
+  ordered_add_comm_group (Π i : I, f i) :=
 { add_le_add_left := λ x y hxy c i, add_le_add_left (hxy i) _,
   ..pi.add_comm_group,
   ..pi.partial_order }
@@ -125,7 +137,7 @@ quotient.induction_on s $ assume l, begin simp [list_prod_apply a l] end
 
 @[to_additive]
 lemma finset_prod_apply {α : Type*} {β : α → Type*} {γ} [∀a, comm_monoid (β a)] (a : α)
-  (s : finset γ) (g : γ → Πa, β a) : s.prod g a = s.prod (λc, g c a) :=
+  (s : finset γ) (g : γ → Πa, β a) : (∏ c in s, g c) a = ∏ c in s, g c a :=
 show (s.val.map g).prod a = (s.val.map (λc, g c a)).prod,
   by rw [multiset_prod_apply, multiset.map_map]
 
@@ -184,8 +196,10 @@ variable {I : Type u}     -- The indexing type
 variable (f : I → Type v) -- The family of types already equipped with instances
 variables [Π i, monoid (f i)]
 
-/-- Evaluation of functions into an indexed collection of monoids at a point is a monoid homomorphism. -/
-@[to_additive "Evaluation of functions into an indexed collection of additive monoids at a point is an additive monoid homomorphism."]
+/-- Evaluation of functions into an indexed collection of monoids at a point is a monoid
+homomorphism. -/
+@[to_additive "Evaluation of functions into an indexed collection of additive monoids at a point
+is an additive monoid homomorphism."]
 def monoid_hom.apply (i : I) : (Π i, f i) →* f i :=
 { to_fun := λ g, g i,
   map_one' := rfl,
@@ -216,7 +230,7 @@ variables [Π i, comm_monoid (Z i)]
 
 @[simp, to_additive]
 lemma finset.prod_apply {γ : Type*} {s : finset γ} (h : γ → (Π i, Z i)) (i : I) :
-  (s.prod h) i = s.prod (λ g, h g i) :=
+  (∏ g in s, h g) i = ∏ g in s, h g i :=
 begin
   classical,
   induction s using finset.induction_on with b s nmem ih,
@@ -233,7 +247,7 @@ variables {I : Type*} [decidable_eq I] {Z : I → Type*}
 variables [Π i, add_comm_monoid (Z i)]
 
 lemma finset.univ_sum_single [fintype I] (f : Π i, Z i) :
-  finset.univ.sum (λ i, pi.single i (f i)) = f :=
+  ∑ i, pi.single i (f i) = f :=
 begin
   ext a,
   rw [finset.sum_apply, finset.sum_eq_single a],
@@ -331,40 +345,23 @@ fst.is_group_hom fst.is_add_group_hom snd.is_group_hom snd.is_add_group_hom
 
 @[to_additive]
 lemma fst_prod [comm_monoid α] [comm_monoid β] {t : finset γ} {f : γ → α × β} :
-  (t.prod f).1 = t.prod (λc, (f c).1) :=
+  (∏ c in t, f c).1 = ∏ c in t, (f c).1 :=
 (monoid_hom.fst α β).map_prod f t
 
 @[to_additive]
 lemma snd_prod [comm_monoid α] [comm_monoid β] {t : finset γ} {f : γ → α × β} :
-  (t.prod f).2 = t.prod (λc, (f c).2) :=
+  (∏ c in t, f c).2 = ∏ c in t, (f c).2 :=
 (monoid_hom.snd α β).map_prod f t
 
-instance [semiring α] [semiring β] : semiring (α × β) :=
-{ zero_mul := λ a, mk.inj_iff.mpr ⟨zero_mul _, zero_mul _⟩,
-  mul_zero := λ a, mk.inj_iff.mpr ⟨mul_zero _, mul_zero _⟩,
-  left_distrib := λ a b c, mk.inj_iff.mpr ⟨left_distrib _ _ _, left_distrib _ _ _⟩,
-  right_distrib := λ a b c, mk.inj_iff.mpr ⟨right_distrib _ _ _, right_distrib _ _ _⟩,
-  ..prod.add_comm_monoid, ..prod.monoid }
-
-instance [ring α] [ring β] : ring (α × β) :=
-{ ..prod.add_comm_group, ..prod.semiring }
-
-instance [comm_ring α] [comm_ring β] : comm_ring (α × β) :=
-{ ..prod.ring, ..prod.comm_monoid }
-
-instance [nonzero_comm_ring α] [comm_ring β] : nonzero_comm_ring (α × β) :=
-{ zero_ne_one := mt (congr_arg prod.fst) zero_ne_one,
-  ..prod.comm_ring }
-
 instance fst.is_semiring_hom [semiring α] [semiring β] : is_semiring_hom (prod.fst : α × β → α) :=
-by refine_struct {..}; simp
+(ring_hom.fst α β).is_semiring_hom
 instance snd.is_semiring_hom [semiring α] [semiring β] : is_semiring_hom (prod.snd : α × β → β) :=
-by refine_struct {..}; simp
+(ring_hom.snd α β).is_semiring_hom
 
 instance fst.is_ring_hom [ring α] [ring β] : is_ring_hom (prod.fst : α × β → α) :=
-by refine_struct {..}; simp
+(ring_hom.fst α β).is_ring_hom
 instance snd.is_ring_hom [ring α] [ring β] : is_ring_hom (prod.snd : α × β → β) :=
-by refine_struct {..}; simp
+(ring_hom.snd α β).is_ring_hom
 
 /-- Left injection function for the inner product
 From a vector space (and also group and module) perspective the product is the same as the sum of
@@ -375,17 +372,17 @@ def inl [has_zero β] (a : α) : α × β := (a, 0)
 /-- Right injection function for the inner product -/
 def inr [has_zero α] (b : β) : α × β := (0, b)
 
-lemma injective_inl [has_zero β] : function.injective (inl : α → α × β) :=
+lemma inl_injective [has_zero β] : function.injective (inl : α → α × β) :=
 assume x y h, (prod.mk.inj_iff.mp h).1
 
-lemma injective_inr [has_zero α] : function.injective (inr : β → α × β) :=
+lemma inr_injective [has_zero α] : function.injective (inr : β → α × β) :=
 assume x y h, (prod.mk.inj_iff.mp h).2
 
 @[simp] lemma inl_eq_inl [has_zero β] {a₁ a₂ : α} : (inl a₁ : α × β) = inl a₂ ↔ a₁ = a₂ :=
-iff.intro (assume h, injective_inl h) (assume h, h ▸ rfl)
+iff.intro (assume h, inl_injective h) (assume h, h ▸ rfl)
 
 @[simp] lemma inr_eq_inr [has_zero α] {b₁ b₂ : β} : (inr b₁ : α × β) = inr b₂ ↔ b₁ = b₂ :=
-iff.intro (assume h, injective_inr h) (assume h, h ▸ rfl)
+iff.intro (assume h, inr_injective h) (assume h, h ▸ rfl)
 
 @[simp] lemma inl_eq_inr [has_zero α] [has_zero β] {a : α} {b : β} :
   inl a = inr b ↔ a = 0 ∧ b = 0 :=
@@ -419,9 +416,6 @@ instance {r : semiring α} [add_comm_monoid β] [add_comm_monoid γ]
   smul_zero := assume a, mk.inj_iff.mpr ⟨smul_zero _, smul_zero _⟩,
   .. prod.has_scalar }
 
-instance {r : ring α} [add_comm_group β] [add_comm_group γ]
-  [module α β] [module α γ] : module α (β × γ) := {}
-
 section substructures
 variables (s : set α) (t : set β)
 
@@ -449,7 +443,7 @@ namespace finset
 
 @[to_additive prod_mk_sum]
 lemma prod_mk_prod {α β γ : Type*} [comm_monoid α] [comm_monoid β] (s : finset γ)
-  (f : γ → α) (g : γ → β) : (s.prod f, s.prod g) = s.prod (λ x, (f x, g x)) :=
+  (f : γ → α) (g : γ → β) : (∏ x in s, f x, ∏ x in s, g x) = ∏ x in s, (f x, g x) :=
 by haveI := classical.dec_eq γ; exact
 finset.induction_on s rfl (by simp [prod.ext_iff] {contextual := tt})
 

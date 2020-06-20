@@ -107,15 +107,14 @@ end
 
 end order
 
-section tendsto
-variables {ι : Type*} [semilattice_sup ι] [has_zero β]
-
-lemma tendsto_indicator_of_monotone [nonempty ι] (s : ι → set α) (hs : monotone s) (f : α → β)
-  (a : α) : tendsto (λi, indicator (s i) f a) at_top (pure $ indicator (Union s) f a) :=
+lemma tendsto_indicator_of_monotone {ι} [semilattice_sup ι] [has_zero β]
+  (s : ι → set α) (hs : monotone s) (f : α → β) (a : α) :
+  tendsto (λi, indicator (s i) f a) at_top (pure $ indicator (Union s) f a) :=
 begin
   by_cases h : ∃i, a ∈ s i,
-  { simp only [tendsto_pure, mem_at_top_sets, mem_set_of_eq],
-    rcases h with ⟨i, hi⟩,
+  { rcases h with ⟨i, hi⟩,
+    haveI : inhabited ι := ⟨i⟩,
+    simp only [tendsto_pure, mem_at_top_sets, mem_set_of_eq],
     use i, assume n hn,
     rw [indicator_of_mem (hs hn hi) _, indicator_of_mem ((subset_Union _ _) hi) _] },
   { rw [not_exists] at h,
@@ -127,12 +126,14 @@ begin
     exact tendsto_const_pure }
 end
 
-lemma tendsto_indicator_of_antimono [nonempty ι] (s : ι → set α) (hs : ∀i j, i ≤ j → s j ⊆ s i) (f : α → β)
-  (a : α) : tendsto (λi, indicator (s i) f a) at_top (pure $ indicator (Inter s) f a) :=
+lemma tendsto_indicator_of_antimono {ι} [semilattice_sup ι] [has_zero β]
+  (s : ι → set α) (hs : ∀i j, i ≤ j → s j ⊆ s i) (f : α → β) (a : α) :
+  tendsto (λi, indicator (s i) f a) at_top (pure $ indicator (Inter s) f a) :=
 begin
   by_cases h : ∃i, a ∉ s i,
-  { simp only [tendsto_pure, mem_at_top_sets, mem_set_of_eq],
-    rcases h with ⟨i, hi⟩,
+  { rcases h with ⟨i, hi⟩,
+    haveI : inhabited ι := ⟨i⟩,
+    simp only [tendsto_pure, mem_at_top_sets, mem_set_of_eq],
     use i, assume n hn,
     rw [indicator_of_not_mem _ _, indicator_of_not_mem _ _],
     { simp only [mem_Inter, not_forall], exact ⟨i, hi⟩ },
@@ -146,7 +147,7 @@ begin
     exact tendsto_const_pure }
 end
 
-lemma tendsto_indicator_bUnion_finset (s : ι → set α) (f : α → β) (a : α) :
+lemma tendsto_indicator_bUnion_finset {ι} [has_zero β] (s : ι → set α) (f : α → β) (a : α) :
   tendsto (λ (n : finset ι), indicator (⋃i∈n, s i) f a) at_top (pure $ indicator (Union s) f a) :=
 begin
   by_cases h : ∃i, a ∈ s i,
@@ -169,5 +170,3 @@ begin
     rw this,
     exact tendsto_const_pure }
 end
-
-end tendsto

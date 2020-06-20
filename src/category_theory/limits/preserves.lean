@@ -129,9 +129,10 @@ def preserves_limit_of_iso {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K�
   preserves_limit K₂ F :=
 { preserves := λ c t,
   begin
-    have t' := is_limit.of_cone_equiv (cones.postcompose_equivalence h) t,
+    have t' := is_limit.of_cone_equiv (cones.postcompose_equivalence h).inverse t,
     let hF := iso_whisker_right h F,
-    have := is_limit.of_cone_equiv (cones.postcompose_equivalence hF).symm (preserves_limit.preserves t'),
+    have := is_limit.of_cone_equiv (cones.postcompose_equivalence hF).functor
+              (preserves_limit.preserves t'),
     apply is_limit.of_iso_limit this,
     refine cones.ext (iso.refl _) (λ j, _),
     dsimp,
@@ -144,6 +145,22 @@ def preserves_limit_of_iso {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K�
 def preserves_colimit_of_preserves_colimit_cocone {F : C ⥤ D} {t : cocone K}
   (h : is_colimit t) (hF : is_colimit (F.map_cocone t)) : preserves_colimit K F :=
 ⟨λ t' h', is_colimit.of_iso_colimit hF (functor.map_iso _ (is_colimit.unique_up_to_iso h h'))⟩
+
+/-- Transfer preservation of colimits along a natural isomorphism in the shape. -/
+def preserves_colimit_of_iso {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K₂) [preserves_colimit K₁ F] :
+  preserves_colimit K₂ F :=
+{ preserves := λ c t,
+  begin
+    have t' := is_colimit.of_cocone_equiv (cocones.precompose_equivalence h).functor t,
+    let hF := iso_whisker_right h F,
+    have := is_colimit.of_cocone_equiv (cocones.precompose_equivalence hF).inverse
+              (preserves_colimit.preserves t'),
+    apply is_colimit.of_iso_colimit this,
+    refine cocones.ext (iso.refl _) (λ j, _),
+    dsimp,
+    rw [← F.map_comp],
+    simp,
+  end }
 
 /-
 A functor F : C → D reflects limits if whenever the image of a cone

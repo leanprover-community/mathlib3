@@ -202,7 +202,8 @@ class discrete_topology (α : Type*) [t : topological_space α] : Prop :=
   is_closed s :=
 (discrete_topology.eq_bot α).symm ▸ trivial
 
-lemma continuous_of_discrete_topology [topological_space α] [discrete_topology α] [topological_space β] {f : α → β} : continuous f :=
+lemma continuous_of_discrete_topology [topological_space α] [discrete_topology α]
+  [topological_space β] {f : α → β} : continuous f :=
 λs hs, is_open_discrete _
 
 lemma nhds_bot (α : Type*) : (@nhds α ⊥) = pure :=
@@ -538,7 +539,7 @@ variables {α : Type*} {β : Type*}
 variables [t : topological_space β] {f : α → β}
 
 theorem is_open_induced_eq {s : set α} :
-  @_root_.is_open _ (induced f t) s ↔ s ∈ preimage f '' {s | is_open s} :=
+  @is_open _ (induced f t) s ↔ s ∈ preimage f '' {s | is_open s} :=
 iff.rfl
 
 theorem is_open_induced {s : set β} (h : is_open s) : (induced f t).is_open (f ⁻¹' s) :=

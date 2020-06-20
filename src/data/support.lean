@@ -15,6 +15,7 @@ In this file we define `function.support f = {x | f x ≠ 0}` and prove its basi
 universes u v w x y
 
 open set
+open_locale big_operators
 namespace function
 
 variables {α : Type u} {β : Type v} {ι : Sort w} {A : Type x} {B : Type y}
@@ -93,7 +94,7 @@ lemma support_infi [has_zero A] [conditionally_complete_lattice A] [nonempty ι]
 @support_supr _ _ (order_dual A) ⟨(0:A)⟩ _ _ f
 
 lemma support_sum [add_comm_monoid A] (s : finset α) (f : α → β → A) :
-  support (λ x, s.sum (λ i, f i x)) ⊆ ⋃ i ∈ s, support (f i) :=
+  support (λ x, ∑ i in s, f i x) ⊆ ⋃ i ∈ s, support (f i) :=
 begin
   intros x hx,
   classical,
@@ -104,7 +105,7 @@ end
 
 -- TODO: Drop `classical` once #2332 is merged
 lemma support_prod [integral_domain A] (s : finset α) (f : α → β → A) :
-  support (λ x, s.prod (λ i, f i x)) = ⋂ i ∈ s, support (f i) :=
+  support (λ x, ∏ i in s, f i x) = ⋂ i ∈ s, support (f i) :=
 set.ext $ λ x, by classical;
   simp only [support, ne.def, finset.prod_eq_zero_iff, mem_set_of_eq, set.mem_Inter, not_exists]
 

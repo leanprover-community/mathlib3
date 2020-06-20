@@ -774,7 +774,7 @@ theorem is_O_with_self_const_mul (c : 𝕜) (hc : c ≠ 0) (f : α → 𝕜) (l 
 
 theorem is_O_self_const_mul' {c : R} (hc : is_unit c) (f : α → R) (l : filter α) :
   is_O f (λ x, c * f x) l :=
-let ⟨u, hu⟩ := hc in hu.symm ▸ (is_O_with_self_const_mul' u f l).is_O
+let ⟨u, hu⟩ := hc in hu ▸ (is_O_with_self_const_mul' u f l).is_O
 
 theorem is_O_self_const_mul (c : 𝕜) (hc : c ≠ 0) (f : α → 𝕜) (l : filter α) :
   is_O f (λ x, c * f x) l :=

@@ -35,17 +35,20 @@ end
 section
 variables (C : Type u₁) [category.{v₁} C] (D : Type u₁) [category.{v₁} D]
 /--
-`prod.category.uniform C D` is an additional instance specialised so both factors have the same universe levels. This helps typeclass resolution.
+`prod.category.uniform C D` is an additional instance specialised so both factors have the same
+universe levels. This helps typeclass resolution.
 -/
 instance uniform_prod : category (C × D) := category_theory.prod C D
 end
 
--- Next we define the natural functors into and out of product categories. For now this doesn't address the universal properties.
+-- Next we define the natural functors into and out of product categories. For now this doesn't
+-- address the universal properties.
 namespace prod
 
 /-- `sectl C Z` is the functor `C ⥤ C × D` given by `X ↦ (X, Z)`. -/
 -- Here and below we specify explicitly the projections to generate `@[simp]` lemmas for,
--- as the default behaviour of `@[simps]` will generate projections all the way down to components of pairs.
+-- as the default behaviour of `@[simps]` will generate projections all the way down to components
+-- of pairs.
 @[simps obj map] def sectl
   (C : Type u₁) [category.{v₁} C] {D : Type u₂} [category.{v₂} D] (Z : D) : C ⥤ C × D :=
 { obj := λ X, (X, Z),

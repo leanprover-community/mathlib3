@@ -149,7 +149,7 @@ lemma uniform_inducing_pure_cauchy : uniform_inducing (pure_cauchy : α → Cauc
       ... = 𝓤 α : by simp [this]⟩
 
 lemma uniform_embedding_pure_cauchy : uniform_embedding (pure_cauchy : α → Cauchy α) :=
-{ inj := assume a₁ a₂ h, pure_inj $ subtype.ext.1 h,
+{ inj := assume a₁ a₂ h, pure_injective $ subtype.ext.1 h,
   ..uniform_inducing_pure_cauchy }
 
 lemma pure_cauchy_dense : ∀x, x ∈ closure (range pure_cauchy) :=
@@ -251,7 +251,7 @@ end
 
 theorem Cauchy_eq
   {α : Type*} [inhabited α] [uniform_space α] [complete_space α] [separated α] {f g : Cauchy α} :
-  lim f.1 = lim g.1 ↔ (f, g) ∈ separation_rel (Cauchy α) :=
+  Lim f.1 = Lim g.1 ↔ (f, g) ∈ separation_rel (Cauchy α) :=
 begin
   split,
   { intros e s hs,
@@ -259,22 +259,22 @@ begin
     apply ts,
     rcases comp_mem_uniformity_sets tu with ⟨d, du, dt⟩,
     refine mem_prod_iff.2
-      ⟨_, le_nhds_lim_of_cauchy f.2 (mem_nhds_right (lim f.1) du),
-       _, le_nhds_lim_of_cauchy g.2 (mem_nhds_left (lim g.1) du), λ x h, _⟩,
+      ⟨_, f.2.le_nhds_Lim (mem_nhds_right (Lim f.1) du),
+       _, g.2.le_nhds_Lim (mem_nhds_left (Lim g.1) du), λ x h, _⟩,
     cases x with a b, cases h with h₁ h₂,
     rw ← e at h₂,
     exact dt ⟨_, h₁, h₂⟩ },
   { intros H,
     refine separated_def.1 (by apply_instance) _ _ (λ t tu, _),
     rcases mem_uniformity_is_closed tu with ⟨d, du, dc, dt⟩,
-    refine H {p | (lim p.1.1, lim p.2.1) ∈ t}
+    refine H {p | (Lim p.1.1, Lim p.2.1) ∈ t}
       (Cauchy.mem_uniformity'.2 ⟨d, du, λ f g h, _⟩),
     rcases mem_prod_iff.1 h with ⟨x, xf, y, yg, h⟩,
-    have limc : ∀ (f : Cauchy α) (x ∈ f.1), lim f.1 ∈ closure x,
+    have limc : ∀ (f : Cauchy α) (x ∈ f.1), Lim f.1 ∈ closure x,
     { intros f x xf,
       rw closure_eq_nhds,
       exact ne_bot_of_le_ne_bot f.2.1
-        (le_inf (le_nhds_lim_of_cauchy f.2) (le_principal_iff.2 xf)) },
+        (le_inf f.2.le_nhds_Lim (le_principal_iff.2 xf)) },
     have := (closure_subset_iff_subset_of_is_closed dc).2 h,
     rw closure_prod_eq at this,
     refine dt (this ⟨_, _⟩); dsimp; apply limc; assumption }
@@ -283,7 +283,7 @@ end
 section
 local attribute [instance] uniform_space.separation_setoid
 
-lemma injective_separated_pure_cauchy {α : Type*} [uniform_space α] [s : separated α] :
+lemma separated_pure_cauchy_injective {α : Type*} [uniform_space α] [s : separated α] :
   function.injective (λa:α, ⟦pure_cauchy a⟧) | a b h :=
 separated_def.1 s _ _ $ assume s hs,
 let ⟨t, ht, hts⟩ :=
@@ -391,7 +391,7 @@ cpkg.continuous_coe
 
 lemma uniform_embedding_coe [separated α] : uniform_embedding  (coe : α → completion α) :=
 { comap_uniformity := comap_coe_eq_uniformity α,
-  inj := injective_separated_pure_cauchy }
+  inj := separated_pure_cauchy_injective }
 
 variable {α}
 
@@ -400,7 +400,7 @@ lemma dense_inducing_coe : dense_inducing (coe : α → completion α) :=
   ..(uniform_inducing_coe α).inducing }
 
 lemma dense_embedding_coe [separated α]: dense_embedding (coe : α → completion α) :=
-{ inj := injective_separated_pure_cauchy,
+{ inj := separated_pure_cauchy_injective,
   ..dense_inducing_coe }
 
 lemma dense₂ : dense_range (λx:α × β, ((x.1 : completion α), (x.2 : completion β))) :=

@@ -3,4 +3,4 @@ use_squash_merge = true
 timeout_sec = 21600
 block_labels = ["not-ready-to-merge", "WIP", "changes-requested", "blocked-by-other-PR"]
 delete_merged_branches = true
-cut_body_after = "TO CONTRIBUTORS:"
+cut_body_after = "---"

@@ -205,6 +205,9 @@ not_subset.1 h.2
 lemma ssubset_iff_subset_ne {s t : set α} : s ⊂ t ↔ s ⊆ t ∧ s ≠ t :=
 by split; simp [set.ssubset_def, ne.def, set.subset.antisymm_iff] {contextual := tt}
 
+lemma ssubset_iff_of_subset {s t : set α} (h : s ⊆ t) : s ⊂ t ↔ ∃ x ∈ t, x ∉ s :=
+⟨exists_of_ssubset, λ ⟨x, hxt, hxs⟩, ⟨h, λ h, hxs $ h hxt⟩⟩
+
 theorem not_mem_empty (x : α) : ¬ (x ∈ (∅ : set α)) :=
 assume h : x ∈ ∅, h
 
@@ -548,8 +551,14 @@ by simp [subset_def, or_imp_distrib, forall_and_distrib]
 theorem insert_subset_insert (h : s ⊆ t) : insert a s ⊆ insert a t :=
 assume a', or.imp_right (@h a')
 
+theorem ssubset_iff_insert {s t : set α} : s ⊂ t ↔ ∃ a ∉ s, insert a s ⊆ t :=
+begin
+  simp only [insert_subset, exists_and_distrib_right, ssubset_def, not_subset],
+  simp only [exists_prop, and_comm]
+end
+
 theorem ssubset_insert {s : set α} {a : α} (h : a ∉ s) : s ⊂ insert a s :=
-by finish [ssubset_iff_subset_ne, ext_iff]
+ssubset_iff_insert.2 ⟨a, h, subset.refl _⟩
 
 theorem insert_comm (a b : α) (s : set α) : insert a (insert b s) = insert b (insert a s) :=
 ext $ by simp [or.left_comm]
@@ -854,11 +863,22 @@ by rw [union_comm, ←diff_subset_iff]
 @[simp] lemma diff_singleton_subset_iff {x : α} {s t : set α} : s \ {x} ⊆ t ↔ s ⊆ insert x t :=
 by { rw [←union_singleton, union_comm], apply diff_subset_iff }
 
+lemma subset_diff_singleton {x : α} {s t : set α} (h : s ⊆ t) (hx : x ∉ s) : s ⊆ t \ {x} :=
+subset_inter h $ subset_compl_comm.1 $ singleton_subset_iff.2 hx
+
 lemma subset_insert_diff_singleton (x : α) (s : set α) : s ⊆ insert x (s \ {x}) :=
 by rw [←diff_singleton_subset_iff]
 
 lemma diff_subset_comm {s t u : set α} : s \ t ⊆ u ↔ s \ u ⊆ t :=
 by rw [diff_subset_iff, diff_subset_iff, union_comm]
+
+lemma diff_inter {s t u : set α} : s \ (t ∩ u) = (s \ t) ∪ (s \ u) :=
+ext $ λ x, by simp [classical.not_and_distrib, and_or_distrib_left]
+
+lemma diff_compl : s \ -t = s ∩ t := by rw [diff_eq, compl_compl]
+
+lemma diff_diff_right {s t u : set α} : s \ (t \ u) = (s \ t) ∪ (s ∩ u) :=
+by rw [diff_eq t u, diff_inter, diff_compl]
 
 @[simp] theorem insert_diff_of_mem (s) (h : a ∈ t) : insert a s \ t = s \ t :=
 ext $ by intro; constructor; simp [or_imp_distrib, h] {contextual := tt}
@@ -897,8 +917,11 @@ by simp [insert_eq, union_diff_self, -union_singleton, -singleton_union]
 
 @[simp] lemma diff_self {s : set α} : s \ s = ∅ := ext $ by simp
 
-lemma mem_diff_singleton {s s' : set α} {t : set (set α)} : s ∈ t \ {s'} ↔ (s ∈ t ∧ s ≠ s') :=
-by simp
+lemma diff_diff_cancel_left {s t : set α} (h : s ⊆ t) : t \ (t \ s) = s :=
+by simp only [diff_diff_right, diff_self, inter_eq_self_of_subset_right h, empty_union]
+
+lemma mem_diff_singleton {x y : α} {s : set α} : x ∈ s \ {y} ↔ (x ∈ s ∧ x ≠ y) :=
+iff.rfl
 
 lemma mem_diff_singleton_empty {s : set α} {t : set (set α)} :
   s ∈ t \ {∅} ↔ (s ∈ t ∧ s.nonempty) :=
@@ -1189,9 +1212,6 @@ protected lemma push_pull' (f : α → β) (s : set α) (t : set β) :
   f '' (f ⁻¹' t ∩ s) = t ∩ f '' s :=
 by simp only [inter_comm, set.push_pull]
 
-lemma surjective_preimage {f : β → α} (hf : surjective f) : injective (preimage f) :=
-assume s t, (preimage_eq_preimage hf).1
-
 theorem compl_image : image (@compl α) = preimage compl :=
 image_eq_preimage_of_inverse compl_compl compl_compl
 
@@ -1225,7 +1245,7 @@ begin
   exact preimage_mono h
 end
 
-lemma injective_image {f : α → β} (hf : injective f) : injective (('') f) :=
+lemma image_injective {f : α → β} (hf : injective f) : injective (('') f) :=
 assume s t, (image_eq_image hf).1
 
 lemma prod_quotient_preimage_eq_image [s : setoid α] (g : quotient s → β) {h : α → β}
@@ -1476,7 +1496,7 @@ theorem preimage_val_eq_preimage_val_iff (s t u : set α) :
 begin
   rw [←image_preimage_val, ←image_preimage_val],
   split, { intro h, rw h },
-  intro h, exact set.injective_image (val_injective) h
+  intro h, exact set.image_injective (val_injective) h
 end
 
 lemma exists_set_subtype {t : set α} (p : set α → Prop) :
@@ -1714,6 +1734,9 @@ def inclusion {s t : set α} (h : s ⊆ t) : s → t :=
   (x : s) : inclusion htu (inclusion hst x) = inclusion (set.subset.trans hst htu) x :=
 by cases x; refl
 
+@[simp] lemma coe_inclusion {s t : set α} (h : s ⊆ t) (x : s) :
+  (inclusion h x : α) = (x : α) := rfl
+
 lemma inclusion_injective {s t : set α} (h : s ⊆ t) :
   function.injective (inclusion h)
 | ⟨_, _⟩ ⟨_, _⟩ := subtype.ext.2 ∘ subtype.ext.1
@@ -1737,3 +1760,19 @@ lemma set_cases {p : set α → Prop} (h0 : p ∅) (h1 : p univ) (s) : p s :=
 s.eq_empty_or_nonempty.elim (λ h, h.symm ▸ h0) $ λ h, (eq_univ_of_nonempty h).symm ▸ h1
 
 end subsingleton
+
+namespace function
+
+variables {ι : Sort*} {α : Type*} {β : Type*}
+
+lemma surjective.preimage_injective {f : β → α} (hf : surjective f) : injective (preimage f) :=
+assume s t, (preimage_eq_preimage hf).1
+
+lemma surjective.range_eq {f : ι → α} (hf : surjective f) : range f = univ :=
+range_iff_surjective.2 hf
+
+lemma surjective.range_comp (g : α → β) {f : ι → α} (hf : surjective f) :
+  range (g ∘ f) = range g :=
+by rw [range_comp, hf.range_eq, image_univ]
+
+end function

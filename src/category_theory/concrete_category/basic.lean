@@ -82,7 +82,7 @@ local attribute [instance] concrete_category.has_coe_to_fun
 /-- In any concrete category, we can test equality of morphisms by pointwise evaluations.-/
 lemma concrete_category.hom_ext {X Y : C} (f g : X ⟶ Y) (w : ∀ x : X, f x  = g x) : f = g :=
 begin
-  apply faithful.injectivity (forget C),
+  apply faithful.map_injective (forget C),
   ext,
   exact w x,
 end

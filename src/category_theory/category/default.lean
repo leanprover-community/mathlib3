@@ -23,7 +23,9 @@ local notation f ` ⊚ `:80 g:80 := category.comp g f    -- type as \oo
 ```
 -/
 
-universes v u  -- The order in this declaration matters: v often needs to be explicitly specified while u often can be omitted
+-- The order in this declaration matters: v often needs to be explicitly specified while u often
+-- can be omitted
+universes v u
 
 namespace category_theory
 
@@ -103,9 +105,11 @@ by { convert w (𝟙 Y), tidy }
 lemma eq_of_comp_right_eq {f g : Y ⟶ Z} (w : ∀ {X : C} (h : X ⟶ Y), h ≫ f = h ≫ g) : f = g :=
 by { convert w (𝟙 Y), tidy }
 
-lemma eq_of_comp_left_eq' (f g : X ⟶ Y) (w : (λ {Z : C} (h : Y ⟶ Z), f ≫ h) = (λ {Z : C} (h : Y ⟶ Z), g ≫ h)) : f = g :=
+lemma eq_of_comp_left_eq' (f g : X ⟶ Y)
+  (w : (λ {Z : C} (h : Y ⟶ Z), f ≫ h) = (λ {Z : C} (h : Y ⟶ Z), g ≫ h)) : f = g :=
 eq_of_comp_left_eq (λ Z h, by convert congr_fun (congr_fun w Z) h)
-lemma eq_of_comp_right_eq' (f g : Y ⟶ Z) (w : (λ {X : C} (h : X ⟶ Y), h ≫ f) = (λ {X : C} (h : X ⟶ Y), h ≫ g)) : f = g :=
+lemma eq_of_comp_right_eq' (f g : Y ⟶ Z)
+  (w : (λ {X : C} (h : X ⟶ Y), h ≫ f) = (λ {X : C} (h : X ⟶ Y), h ≫ g)) : f = g :=
 eq_of_comp_right_eq (λ X h, by convert congr_fun (congr_fun w X) h)
 
 lemma id_of_comp_left_id (f : X ⟶ X) (w : ∀ {Y : C} (g : X ⟶ Y), f ≫ g = g) : f = 𝟙 X :=
@@ -157,7 +161,8 @@ begin
   exact (cancel_mono _).1 w,
 end
 
-lemma mono_of_mono_fac {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z} [mono h] (w : f ≫ g = h) : mono f :=
+lemma mono_of_mono_fac {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z} [mono h] (w : f ≫ g = h) :
+  mono f :=
 by { resetI, subst h, exact mono_of_mono f g, }
 
 lemma epi_of_epi {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [epi (f ≫ g)] : epi g :=
@@ -169,7 +174,8 @@ begin
   exact (cancel_epi _).1 w,
 end
 
-lemma epi_of_epi_fac {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z} [epi h] (w : f ≫ g = h) : epi g :=
+lemma epi_of_epi_fac {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z} [epi h] (w : f ≫ g = h) :
+  epi g :=
 by { resetI, subst h, exact epi_of_epi f g, }
 end
 

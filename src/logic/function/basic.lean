@@ -46,8 +46,8 @@ mt (assume h, hf h)
 
 /-- If the co-domain `β` of an injective function `f : α → β` has decidable equality, then
 the domain `α` also has decidable equality. -/
-def injective.decidable_eq [decidable_eq β] (I : injective f) : decidable_eq α
-| a b := decidable_of_iff _ I.eq_iff
+def injective.decidable_eq [decidable_eq β] (I : injective f) : decidable_eq α :=
+λ a b, decidable_of_iff _ I.eq_iff
 
 lemma injective.of_comp {γ : Sort w} {g : γ → α} (I : injective (f ∘ g)) : injective g :=
 λ x y h, I $ show f (g x) = f (g y), from congr_arg f h
@@ -114,6 +114,12 @@ h.right_inverse.surjective
 theorem right_inverse.injective {f : α → β} {g : β → α} (h : right_inverse f g) :
   injective f :=
 h.left_inverse.injective
+
+theorem left_inverse.eq_right_inverse {f : α → β} {g₁ g₂ : β → α} (h₁ : left_inverse g₁ f)
+  (h₂ : right_inverse g₂ f) :
+  g₁ = g₂ :=
+calc g₁ = g₁ ∘ f ∘ g₂ : by rw [h₂.comp_eq_id, comp.right_id]
+    ... = g₂          : by rw [← comp.assoc, h₁.comp_eq_id, comp.left_id]
 
 local attribute [instance, priority 10] classical.prop_decidable
 
@@ -273,6 +279,19 @@ begin
   { rw h, simp },
   { simp [h] }
 end
+
+theorem update_comm {α} [decidable_eq α] {β : α → Sort*}
+  {a b : α} (h : a ≠ b) (v : β a) (w : β b) (f : Πa, β a) :
+  update (update f a v) b w = update (update f b w) a v :=
+begin
+  funext c, simp [update],
+  by_cases h₁ : c = b; by_cases h₂ : c = a; try {simp [h₁, h₂]},
+  cases h (h₂.symm.trans h₁),
+end
+
+@[simp] theorem update_idem {α} [decidable_eq α] {β : α → Sort*}
+  {a : α} (v w : β a) (f : Πa, β a) : update (update f a v) a w = update f a w :=
+by {funext b, by_cases b = a; simp [update, h]}
 
 end update
 

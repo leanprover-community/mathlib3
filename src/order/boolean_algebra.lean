@@ -60,11 +60,11 @@ is_compl_bot_top.neg_eq
 @[simp] theorem compl_compl' : - (- x) = x :=
 is_compl_neg.symm.neg_eq
 
-theorem compl_inj : function.injective (has_neg.neg : α → α) :=
+theorem compl_injective : function.injective (has_neg.neg : α → α) :=
 function.involutive.injective $ λ x, compl_compl'
 
 @[simp] theorem compl_inj_iff : - x = - y ↔ x = y :=
-compl_inj.eq_iff
+compl_injective.eq_iff
 
 @[simp] theorem compl_inf : - (x ⊓ y) = -x ⊔ -y :=
 (is_compl_neg.inf_sup is_compl_neg).neg_eq

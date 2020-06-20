@@ -67,6 +67,15 @@ meta def mfoldl {α : Type} {m} [monad m] (f : α → expr → m α) : α → ex
 | x e := prod.snd <$> (state_t.run (e.traverse $ λ e',
     (get >>= monad_lift ∘ flip f e' >>= put) $> e') x : m _)
 
+/-- `kreplace e old new` replaces all occurrences of the expression `old` in `e`
+with `new`. The occurrences of `old` in `e` are determined using keyed matching
+with transparency `md`; see `kabstract` for details. If `unify` is true,
+we may assign metavariables in `e` as we match subterms of `e` against `old`. -/
+meta def kreplace (e old new : expr) (md := semireducible) (unify := tt)
+  : tactic expr := do
+  e ← kabstract e old md unify,
+  pure $ e.instantiate_var new
+
 end expr
 
 namespace interaction_monad
@@ -221,7 +230,8 @@ meta def mk_user_fresh_name : tactic name :=
 do nm ← mk_fresh_name,
    return $ `user__ ++ nm.pop_prefix.sanitize_name ++ `user__
 
-/-- `has_attribute' attr_name decl_name` checks whether `decl_name` has attribute `attr_name`. -/
+/-- `has_attribute' attr_name decl_name` checks
+whether `decl_name` exists and has attribute `attr_name`. -/
 meta def has_attribute' (attr_name decl_name : name) : tactic bool :=
 succeeds (has_attribute attr_name decl_name)
 
@@ -1100,6 +1110,10 @@ meta def mk_meta_pis : expr → tactic (list expr × expr)
   return ((p :: ps), r)
 | e := return ([], e)
 
+/-- Protect the declaration `n` -/
+meta def mk_protected (n : name) : tactic unit :=
+do env ← get_env, set_env (env.mk_protected n)
+
 end tactic
 
 namespace lean.parser
@@ -1901,7 +1915,7 @@ do e ← pformat_macro () s,
 
 reserve prefix `trace! `:100
 /--
-The combination of `pformat` and `fail`.
+The combination of `pformat` and `trace`.
 -/
 @[user_notation]
 meta def trace_macro (_ : parse $ tk "trace!") (s : string) : parser pexpr :=

@@ -51,11 +51,11 @@ protected def const : ℕ → code
 | 0     := zero
 | (n+1) := comp succ (const n)
 
-theorem injective_const : Π {n₁ n₂}, nat.partrec.code.const n₁ = nat.partrec.code.const n₂ → n₁ = n₂
+theorem const_inj : Π {n₁ n₂}, nat.partrec.code.const n₁ = nat.partrec.code.const n₂ → n₁ = n₂
 | 0 0 h := by simp
-| (n₁+1) (n₂+1) h := by { dsimp [nat.partrec.code.const] at h, 
-                          injection h with h₁ h₂, 
-                          simp only [injective_const h₂] }
+| (n₁+1) (n₂+1) h := by { dsimp [nat.partrec.code.const] at h,
+                          injection h with h₁ h₂,
+                          simp only [const_inj h₂] }
 
 protected def id : code := pair left right
 
@@ -506,20 +506,20 @@ by simp! [(<*>)]
 theorem const_prim : primrec code.const :=
 (primrec.id.nat_iterate (primrec.const zero)
   (comp_prim.comp (primrec.const succ) primrec.snd).to₂).of_eq $
-λ n, by simp; induction n; simp [*, code.const, nat.iterate_succ']
+λ n, by simp; induction n; simp [*, code.const, function.iterate_succ']
 
 theorem curry_prim : primrec₂ curry :=
 comp_prim.comp primrec.fst $
 pair_prim.comp (const_prim.comp primrec.snd) (primrec.const code.id)
 
-theorem injective_curry {c₁ c₂ n₁ n₂} (h : curry c₁ n₁ = curry c₂ n₂) : c₁ = c₂ ∧ n₁ = n₂ :=
-⟨by injection h, by { injection h, 
-                      injection h with h₁ h₂, 
-                      injection h₂ with h₃ h₄, 
-                      exact injective_const h₃ }⟩
+theorem curry_inj {c₁ c₂ n₁ n₂} (h : curry c₁ n₁ = curry c₂ n₂) : c₁ = c₂ ∧ n₁ = n₂ :=
+⟨by injection h, by { injection h,
+                      injection h with h₁ h₂,
+                      injection h₂ with h₃ h₄,
+                      exact const_inj h₃ }⟩
 
-theorem smn : ∃ f : code → ℕ → code, 
-  computable₂ f ∧ ∀ c n x, eval (f c n) x = eval c (mkpair n x) := 
+theorem smn : ∃ f : code → ℕ → code,
+  computable₂ f ∧ ∀ c n x, eval (f c n) x = eval c (mkpair n x) :=
 ⟨curry, primrec₂.to_comp curry_prim, eval_curry⟩
 
 theorem exists_code {f : ℕ →. ℕ} : nat.partrec f ↔ ∃ c : code, eval c = f :=

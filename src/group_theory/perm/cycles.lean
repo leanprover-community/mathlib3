@@ -68,7 +68,7 @@ lemma cycle_of_apply [fintype α] (f : perm α) (x y : α) :
 
 lemma cycle_of_inv [fintype α] (f : perm α) (x : α) :
   (cycle_of f x)⁻¹ = cycle_of f⁻¹ x :=
-equiv.ext _ _ $ λ y, begin
+equiv.ext $ λ y, begin
   rw [inv_eq_iff_eq, cycle_of_apply, cycle_of_apply];
   split_ifs; simp [*, same_cycle_inv, same_cycle_inv_apply] at *
 end
@@ -83,8 +83,8 @@ end
 @[simp] lemma cycle_of_gpow_apply_self [fintype α] (f : perm α) (x : α) :
   ∀ n : ℤ, (cycle_of f x ^ n) x = (f ^ n) x
 | (n : ℕ) := cycle_of_pow_apply_self f x n
-| -[1+ n] := by rw [gpow_neg_succ, ← inv_pow, cycle_of_inv,
-  gpow_neg_succ, ← inv_pow, cycle_of_pow_apply_self]
+| -[1+ n] := by rw [gpow_neg_succ_of_nat, ← inv_pow, cycle_of_inv,
+  gpow_neg_succ_of_nat, ← inv_pow, cycle_of_pow_apply_self]
 
 lemma cycle_of_apply_of_same_cycle [fintype α] {f : perm α} {x y : α} (h : same_cycle f x y) :
   cycle_of f x y = f y := dif_pos h
@@ -97,7 +97,7 @@ lemma cycle_of_apply_of_not_same_cycle [fintype α] {f : perm α} {x y : α} (h 
 
 lemma cycle_of_cycle [fintype α] {f : perm α} (hf : is_cycle f) {x : α} (hx : f x ≠ x) :
   cycle_of f x = f :=
-equiv.ext _ _ $ λ y,
+equiv.ext $ λ y,
   if h : same_cycle f x y then by rw [cycle_of_apply_of_same_cycle h]
   else by rw [cycle_of_apply_of_not_same_cycle h, not_not.1 (mt ((same_cycle_cycle hx).1 hf).2 h)]
 

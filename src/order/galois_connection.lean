@@ -83,6 +83,16 @@ funext (assume x, le_antisymm (gc.monotone_u (gc.l_u_le _)) (gc.le_u_l _))
 lemma l_u_l_eq_l : l ∘ u ∘ l = l :=
 funext (assume x, le_antisymm (gc.l_u_le _) (gc.monotone_l (gc.le_u_l _)))
 
+lemma l_unique {l' : α → β} {u' : β → α} (gc' : galois_connection l' u')
+  (hu : ∀ b, u b = u' b) {a : α} : l a = l' a :=
+le_antisymm (gc.l_le $ (hu (l' a)).symm ▸ gc'.le_u_l _)
+  (gc'.l_le $ hu (l a) ▸ gc.le_u_l _)
+
+lemma u_unique {l' : α → β} {u' : β → α} (gc' : galois_connection l' u')
+  (hl : ∀ a, l a = l' a) {b : β} : u b = u' b :=
+le_antisymm (gc'.le_u $ hl (u b) ▸ gc.l_u_le _)
+  (gc.le_u $ (hl (u' b)).symm ▸ gc'.l_u_le _)
+
 end partial_order
 
 section order_top

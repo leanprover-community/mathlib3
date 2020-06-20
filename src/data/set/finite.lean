@@ -14,6 +14,7 @@ basic facts about finite sets.
 -/
 
 open set function
+open_locale big_operators
 
 universes u v w x
 variables {α : Type u} {β : Type v} {ι : Sort w} {γ : Type x}
@@ -125,7 +126,7 @@ end
 
 lemma to_finset_insert [decidable_eq α] {a : α} {s : set α} (hs : finite s) :
   (finite_insert a hs).to_finset = insert a hs.to_finset :=
-finset.ext.mpr $ by simp
+finset.ext $ by simp
 
 @[elab_as_eliminator]
 theorem finite.induction_on {C : set α → Prop} {s : set α} (h : finite s)
@@ -358,6 +359,10 @@ set.finite_mem_finset s
 @[simp] lemma coe_bind {f : α → finset β} : ↑(s.bind f) = (⋃x ∈ (↑s : set α), ↑(f x) : set β) :=
 by simp [set.ext_iff]
 
+@[simp] lemma finite_to_set_to_finset {α : Type*} (s : finset α) :
+  (finite_to_set s).to_finset = s :=
+by { ext, rw [set.finite.mem_to_finset, mem_coe] }
+
 end finset
 
 namespace set
@@ -390,6 +395,33 @@ let ⟨I, Ifin, hI⟩ := finite_subset_Union tfin h in
       { rintros ⟨i, hi, H⟩,
         exact H }
     end⟩
+
+instance nat.fintype_Iio (n : ℕ) : fintype (Iio n) :=
+fintype.of_finset (finset.range n) $ by simp
+
+/--
+If `P` is some relation between terms of `γ` and sets in `γ`, 
+such that every finite set `t : set γ` has some `c : γ` related to it, 
+then there is a recursively defined sequence `u` in `γ` 
+so `u n` is related to the image of `{0, 1, ..., n-1}` under `u`.
+
+(We use this later to show sequentially compact sets
+are totally bounded.)
+-/
+lemma seq_of_forall_finite_exists  {γ : Type*}
+  {P : γ → set γ → Prop} (h : ∀ t,  finite t → ∃ c, P c t) :
+  ∃ u : ℕ → γ, ∀ n, P (u n) (u '' Iio n) :=
+⟨λ n, @nat.strong_rec_on' (λ _, γ) n $ λ n ih, classical.some $ h
+    (range $ λ m : Iio n, ih m.1 m.2)
+    (finite_range _),
+λ n, begin
+  classical,
+  refine nat.strong_rec_on' n (λ n ih, _),
+  rw nat.strong_rec_on_beta', convert classical.some_spec (h _ _),
+  ext x, split,
+  { rintros ⟨m, hmn, rfl⟩, exact ⟨⟨m, hmn⟩, rfl⟩ },
+  { rintros ⟨⟨m, hmn⟩, rfl⟩, exact ⟨m, hmn, rfl⟩ }
+end⟩
 
 lemma finite_range_ite {p : α → Prop} [decidable_pred p] {f g : α → β} (hf : finite (range f))
   (hg : finite (range g)) : finite (range (λ x, if p x then f x else g x)) :=
@@ -428,8 +460,7 @@ lemma eq_of_subset_of_card_le {s t : set α} [fintype s] [fintype t]
 
 lemma card_range_of_injective [fintype α] {f : α → β} (hf : injective f)
   [fintype (range f)] : fintype.card (range f) = fintype.card α :=
-eq.symm $ fintype.card_congr (@equiv.of_bijective  _ _ (λ a : α, show range f, from ⟨f a, a, rfl⟩)
-  ⟨λ x y h, hf $ subtype.mk.inj h, λ b, let ⟨a, ha⟩ := b.2 in ⟨a, by simp *⟩⟩)
+eq.symm $ fintype.card_congr $ equiv.set.range f hf
 
 lemma finite.exists_maximal_wrt [partial_order β] (f : α → β) (s : set α) (h : set.finite s) :
   s.nonempty → ∃a∈s, ∀a'∈s, f a ≤ f a' → f a = f a' :=
@@ -452,15 +483,16 @@ begin
     { exact ih c hcs hbc } }
 end
 
+lemma finite.card_to_finset {s : set α} [fintype s] (h : s.finite) :
+  h.to_finset.card = fintype.card s :=
+by { rw [← finset.card_attach, finset.attach_eq_univ, ← fintype.card], congr' 2, funext,
+     rw set.finite.mem_to_finset }
+
 section
 
 local attribute [instance, priority 1] classical.prop_decidable
 
-lemma to_finset_card {α : Type*} [fintype α] (H : set α) :
-  H.to_finset.card = fintype.card H :=
-multiset.card_map subtype.val finset.univ.val
-
-lemma to_finset_inter {α : Type*} [fintype α] (s t : set α) [decidable_eq α] :
+lemma to_finset_inter {α : Type*} [fintype α] (s t : set α) :
   (s ∩ t).to_finset = s.to_finset ∩ t.to_finset :=
 by ext; simp
 
@@ -529,11 +561,11 @@ end preimage
 @[to_additive]
 lemma prod_preimage [comm_monoid β] (f : α → γ) (s : finset γ)
   (hf : set.bij_on f (f ⁻¹' ↑s) ↑s) (g : γ → β) :
-  (preimage s hf.inj_on).prod (g ∘ f) = s.prod g :=
+  ∏ x in preimage s hf.inj_on, g (f x) = ∏ x in s, g x :=
 by classical;
 calc
-  (preimage s hf.inj_on).prod (g ∘ f)
-      = (image f (preimage s hf.inj_on)).prod g :
+  ∏ x in preimage s hf.inj_on, g (f x)
+      = ∏ x in image f (preimage s hf.inj_on), g x :
           begin
             rw prod_image,
             intros x hx y hy hxy,
@@ -542,7 +574,7 @@ calc
                           rw [set.mem_preimage, mem_coe] },
                     assumption },
           end
-  ... = s.prod g : by rw [image_preimage]
+  ... = ∏ x in s, g x : by rw [image_preimage]
 
 /-- A finset is bounded above. -/
 lemma bdd_above [semilattice_sup α] [nonempty α] (s : finset α) : bdd_above (↑s : set α) :=

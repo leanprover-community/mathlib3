@@ -23,20 +23,21 @@ notion of structure groupoid, i.e., a set of local homeomorphisms stable under c
 inverse, to which the change of coordinates should belong.
 
 ## Main definitions
-* `structure_groupoid H`   : a subset of local homeomorphisms of `H` stable under composition, inverse
-                             and restriction (ex: local diffeos)
+* `structure_groupoid H`   : a subset of local homeomorphisms of `H` stable under composition,
+                             inverse and restriction (ex: local diffeos)
 * `pregroupoid H`          : a subset of local homeomorphisms of `H` stable under composition and
                              restriction, but not inverse (ex: smooth maps)
-* `groupoid_of_pregroupoid`: construct a groupoid from a pregroupoid, by requiring that a map and its
-                             inverse both belong to the pregroupoid (ex: construct diffeos from smooth
-                             maps)
+* `groupoid_of_pregroupoid`: construct a groupoid from a pregroupoid, by requiring that a map and
+                             its inverse both belong to the pregroupoid (ex: construct diffeos from
+                             smooth maps)
 * `continuous_groupoid H`  : the groupoid of all local homeomorphisms of `H`
 
 * `manifold H M`           : manifold structure on `M` modelled on `H`, given by an atlas of local
-                             homeomorphisms from `M` to `H` whose sources cover `M`. This is a type class.
-* `has_groupoid M G`       : when `G` is a structure groupoid on `H` and `M` is a manifold modelled on
-                             `H`, require that all coordinate changes belong to `G`. This is a type
-                             class
+                             homeomorphisms from `M` to `H` whose sources cover `M`. This is a type
+                             class.
+* `has_groupoid M G`       : when `G` is a structure groupoid on `H` and `M` is a manifold modelled
+                             on `H`, require that all coordinate changes belong to `G`. This is
+                             a type class
 * `atlas H M`              : when `M` is a manifold modelled on `H`, the atlas of this manifold
                              structure, i.e., the set of charts
 * `structomorph G M M'`    : the set of diffeomorphisms between the manifolds `M` and `M'` for the
@@ -132,7 +133,7 @@ variable [topological_space H]
 /-- Partial order on the set of groupoids, given by inclusion of the members of the groupoid -/
 instance structure_groupoid.partial_order : partial_order (structure_groupoid H) :=
 partial_order.lift structure_groupoid.members
-(λa b h, by { cases a, cases b, dsimp at h, induction h, refl }) (by apply_instance)
+(λa b h, by { cases a, cases b, dsimp at h, induction h, refl })
 
 /-- The trivial groupoid, containing only the identity (and maps with empty source, as this is
 necessary from the definition) -/
@@ -183,7 +184,7 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
       rwa ← this },
     { right,
       change (e.to_local_equiv).source = ∅ at he,
-      rwa [set.mem_set_of_eq, source_eq_of_eq_on_source he'e] }
+      rwa [set.mem_set_of_eq, he'e.source_eq] }
   end }
 
 /-- Every structure groupoid contains the identity groupoid -/
@@ -250,7 +251,7 @@ def pregroupoid.groupoid (PG : pregroupoid H) : structure_groupoid H :=
     split,
     { apply PG.congr e'.open_source ee'.2,
       simp only [ee'.1, he.1] },
-    { have A := eq_on_source_symm ee',
+    { have A := ee'.symm',
       apply PG.congr e'.symm.open_source A.2,
       convert he.2,
       rw A.1,
@@ -275,7 +276,7 @@ lemma mem_pregroupoid_of_eq_on_source (PG : pregroupoid H) {e e' : local_homeomo
   PG.property e' e'.source :=
 begin
   rw ← he'.1,
-  exact PG.congr e.open_source (λx hx, (he'.2 x hx).symm) he,
+  exact PG.congr e.open_source he'.eq_on.symm he,
 end
 
 /-- The pregroupoid of all local maps on a topological space H -/
@@ -532,12 +533,12 @@ def structomorph.trans (e : structomorph G M M') (e' : structomorph G M' M'') : 
     have : F₁ ≈ F₂ := calc
       F₁ ≈ c.symm ≫ₕ f₁ ≫ₕ (g ≫ₕ g.symm) ≫ₕ f₂ ≫ₕ c' : by simp [F₁, trans_assoc]
       ... ≈ c.symm ≫ₕ f₁ ≫ₕ (of_set g.source g.open_source) ≫ₕ f₂ ≫ₕ c' :
-        by simp [eq_on_source_trans, trans_self_symm g]
+        by simp [eq_on_source.trans', trans_self_symm g]
       ... ≈ ((c.symm ≫ₕ f₁) ≫ₕ (of_set g.source g.open_source)) ≫ₕ (f₂ ≫ₕ c') :
         by simp [trans_assoc]
       ... ≈ ((c.symm ≫ₕ f₁).restr s) ≫ₕ (f₂ ≫ₕ c') : by simp [s, trans_of_set']
       ... ≈ ((c.symm ≫ₕ f₁) ≫ₕ (f₂ ≫ₕ c')).restr s : by simp [restr_trans]
-      ... ≈ (c.symm ≫ₕ (f₁ ≫ₕ f₂) ≫ₕ c').restr s : by simp [eq_on_source_restr, trans_assoc]
+      ... ≈ (c.symm ≫ₕ (f₁ ≫ₕ f₂) ≫ₕ c').restr s : by simp [eq_on_source.restr, trans_assoc]
       ... ≈ F₂ : by simp [F₂, feq],
     have : F₂ ∈ G := G.eq_on_source F₁ F₂ A (setoid.symm this),
     exact this

@@ -313,7 +313,7 @@ def ess_surj_of_equivalence (F : C ⥤ D) [is_equivalence F] : ess_surj F :=
 
 @[priority 100] -- see Note [lower instance priority]
 instance faithful_of_equivalence (F : C ⥤ D) [is_equivalence F] : faithful F :=
-{ injectivity' := λ X Y f g w,
+{ map_injective' := λ X Y f g w,
   begin
     have p := congr_arg (@category_theory.functor.map _ _ _ _ F.inv _ _) w,
     simpa only [cancel_epi, cancel_mono, is_equivalence.inv_fun_map] using p
@@ -322,21 +322,21 @@ instance faithful_of_equivalence (F : C ⥤ D) [is_equivalence F] : faithful F :
 @[priority 100] -- see Note [lower instance priority]
 instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=
 { preimage := λ X Y f, F.fun_inv_id.inv.app X ≫ F.inv.map f ≫ F.fun_inv_id.hom.app Y,
-  witness' := λ X Y f, F.inv.injectivity
+  witness' := λ X Y f, F.inv.map_injective
   (by simpa only [is_equivalence.inv_fun_map, assoc, hom_inv_id_app_assoc, hom_inv_id_app] using comp_id _) }
 
 @[simp] private def equivalence_inverse (F : C ⥤ D) [full F] [faithful F] [ess_surj F] : D ⥤ C :=
 { obj  := λ X, F.obj_preimage X,
   map := λ X Y f, F.preimage ((F.fun_obj_preimage_iso X).hom ≫ f ≫ (F.fun_obj_preimage_iso Y).inv),
-  map_id' := λ X, begin apply F.injectivity, tidy end,
-  map_comp' := λ X Y Z f g, by apply F.injectivity; simp }
+  map_id' := λ X, begin apply F.map_injective, tidy end,
+  map_comp' := λ X Y Z f g, by apply F.map_injective; simp }
 
 def equivalence_of_fully_faithfully_ess_surj
   (F : C ⥤ D) [full F] [faithful F] [ess_surj F] : is_equivalence F :=
 is_equivalence.mk (equivalence_inverse F)
   (nat_iso.of_components
     (λ X, (preimage_iso $ F.fun_obj_preimage_iso $ F.obj X).symm)
-    (λ X Y f, by { apply F.injectivity, obviously }))
+    (λ X Y f, by { apply F.map_injective, obviously }))
   (nat_iso.of_components
     (λ Y, F.fun_obj_preimage_iso Y)
     (by obviously))

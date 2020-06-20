@@ -140,7 +140,7 @@ called `eq_on_source`. -/
 @[ext]
 protected lemma ext (e' : local_homeomorph α β) (h : ∀x, e x = e' x)
   (hinv: ∀x, e.symm x = e'.symm x) (hs : e.source = e'.source) : e = e' :=
-eq_of_local_equiv_eq (local_equiv.ext e.to_local_equiv e'.to_local_equiv h hinv hs)
+eq_of_local_equiv_eq (local_equiv.ext h hinv hs)
 
 @[simp] lemma symm_to_local_equiv : e.symm.to_local_equiv = e.to_local_equiv.symm := rfl
 -- The following lemmas are already simp via local_equiv
@@ -394,11 +394,11 @@ eq_of_local_equiv_eq $ local_equiv.restr_trans e.to_local_equiv e'.to_local_equi
 /-- `eq_on_source e e'` means that `e` and `e'` have the same source, and coincide there. They
 should really be considered the same local equiv. -/
 def eq_on_source (e e' : local_homeomorph α β) : Prop :=
-e.source = e'.source ∧ (∀x ∈ e.source, e x = e' x)
+e.source = e'.source ∧ (eq_on e e' e.source)
 
 lemma eq_on_source_iff (e e' : local_homeomorph α β) :
 eq_on_source e e' ↔ local_equiv.eq_on_source e.to_local_equiv e'.to_local_equiv :=
-by refl
+iff.rfl
 
 /-- `eq_on_source` is an equivalence relation -/
 instance : setoid (local_homeomorph α β) :=
@@ -412,42 +412,36 @@ instance : setoid (local_homeomorph α β) :=
 lemma eq_on_source_refl : e ≈ e := setoid.refl _
 
 /-- If two local homeomorphisms are equivalent, so are their inverses -/
-lemma eq_on_source_symm {e e' : local_homeomorph α β} (h : e ≈ e') : e.symm ≈ e'.symm :=
-local_equiv.eq_on_source_symm h
+lemma eq_on_source.symm' {e e' : local_homeomorph α β} (h : e ≈ e') : e.symm ≈ e'.symm :=
+local_equiv.eq_on_source.symm' h
 
 /-- Two equivalent local homeomorphisms have the same source -/
-lemma source_eq_of_eq_on_source {e e' : local_homeomorph α β} (h : e ≈ e') : e.source = e'.source :=
+lemma eq_on_source.source_eq {e e' : local_homeomorph α β} (h : e ≈ e') : e.source = e'.source :=
 h.1
 
 /-- Two equivalent local homeomorphisms have the same target -/
-lemma target_eq_of_eq_on_source {e e' : local_homeomorph α β} (h : e ≈ e') : e.target = e'.target :=
-(eq_on_source_symm h).1
+lemma eq_on_source.target_eq {e e' : local_homeomorph α β} (h : e ≈ e') : e.target = e'.target :=
+h.symm'.1
 
 /-- Two equivalent local homeomorphisms have coinciding `to_fun` on the source -/
-lemma apply_eq_of_eq_on_source {e e' : local_homeomorph α β} (h : e ≈ e')
-  {x : α} (hx : x ∈ e.source) : e x = e' x :=
-h.2 x hx
+lemma eq_on_source.eq_on {e e' : local_homeomorph α β} (h : e ≈ e') :
+  eq_on e e' e.source :=
+h.2
 
 /-- Two equivalent local homeomorphisms have coinciding `inv_fun` on the target -/
-lemma inv_apply_eq_of_eq_on_source {e e' : local_homeomorph α β} (h : e ≈ e')
-  {x : β} (hx : x ∈ e.target) : e.symm x = e'.symm x :=
-(eq_on_source_symm h).2 x hx
+lemma eq_on_source.symm_eq_on_target {e e' : local_homeomorph α β} (h : e ≈ e') :
+  eq_on e.symm e'.symm e.target :=
+h.symm'.2
 
 /-- Composition of local homeomorphisms respects equivalence -/
-lemma eq_on_source_trans {e e' : local_homeomorph α β} {f f' : local_homeomorph β γ}
+lemma eq_on_source.trans' {e e' : local_homeomorph α β} {f f' : local_homeomorph β γ}
   (he : e ≈ e') (hf : f ≈ f') : e.trans f ≈ e'.trans f' :=
-begin
-  change local_equiv.eq_on_source (e.trans f).to_local_equiv (e'.trans f').to_local_equiv,
-  simp only [trans_to_local_equiv],
-  apply local_equiv.eq_on_source_trans,
-  exact he,
-  exact hf
-end
+local_equiv.eq_on_source.trans' he hf
 
 /-- Restriction of local homeomorphisms respects equivalence -/
-lemma eq_on_source_restr {e e' : local_homeomorph α β} (he : e ≈ e') (s : set α) :
+lemma eq_on_source.restr {e e' : local_homeomorph α β} (he : e ≈ e') (s : set α) :
   e.restr s ≈ e'.restr s :=
-local_equiv.eq_on_source_restr he _
+local_equiv.eq_on_source.restr he _
 
 /-- Composition of a local homeomorphism and its inverse is equivalent to the restriction of the
 identity to the source -/

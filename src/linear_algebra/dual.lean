@@ -40,13 +40,13 @@ variables [comm_ring R] [add_comm_group M] [module R M]
 
 namespace dual
 
-instance : inhabited (dual R M) := by unfold dual; apply_instance
+instance : inhabited (dual R M) := by dunfold dual; apply_instance
 
 instance : has_coe_to_fun (dual R M) := ⟨_, linear_map.to_fun⟩
 
 /-- Maps a module M to the dual of the dual of M. See `vector_space.eval_range` and
 `vector_space.eval_equiv`. -/
-def eval : M →ₗ[R] (dual R (dual R M)) := linear_map.id.flip
+def eval : M →ₗ[R] (dual R (dual R M)) := linear_map.flip linear_map.id
 
 lemma eval_apply (v : M) (a : dual R M) : (eval R M v) a = a v :=
 begin
@@ -62,8 +62,6 @@ universes u v w
 variables {K : Type u} {V : Type v} {ι : Type w}
 variables [field K] [add_comm_group V] [vector_space K V]
 open vector_space module module.dual submodule linear_map cardinal function
-
-instance dual.vector_space : vector_space K (dual K V) := { ..module.dual.inst K V }
 
 variables [de : decidable_eq ι]
 variables {B : ι → V} (h : is_basis K B)
@@ -84,9 +82,9 @@ def to_dual_flip (v : V) : (V →ₗ[K] K) := (linear_map.flip h.to_dual).to_fun
 omit de h
 /-- Evaluation of finitely supported functions at a fixed point `i`, as a `K`-linear map. -/
 def eval_finsupp_at (i : ι) : (ι →₀ K) →ₗ[K] K :=
-{ to_fun := λ f, f i,
-  add := by intros; rw finsupp.add_apply,
-  smul := by intros; rw finsupp.smul_apply }
+{ to_fun    := λ f, f i,
+  map_add'  := by intros; rw finsupp.add_apply,
+  map_smul' := by intros; rw finsupp.smul_apply }
 include h
 
 

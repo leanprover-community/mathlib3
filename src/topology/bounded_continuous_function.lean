@@ -485,8 +485,8 @@ instance : has_scalar 𝕜 (α →ᵇ β) :=
 @[simp] lemma coe_smul (c : 𝕜) (f : α →ᵇ β) : ⇑(c • f) = λ x, c • (f x) := rfl
 lemma smul_apply (c : 𝕜) (f : α →ᵇ β) (x : α) : (c • f) x = c • f x := rfl
 
-instance : module 𝕜 (α →ᵇ β) :=
-module.of_core $
+instance : semimodule 𝕜 (α →ᵇ β) :=
+semimodule.of_core $
 { smul     := (•),
   smul_add := λ c f g, ext $ λ x, smul_add c (f x) (g x),
   add_smul := λ c₁ c₂ f, ext $ λ x, add_smul c₁ c₂ (f x),
@@ -551,7 +551,7 @@ instance : algebra 𝕜 (α →ᵇ γ) :=
 { to_ring_hom := C,
   commutes' := λ c f, ext $ λ x, algebra.commutes' _ _,
   smul_def' := λ c f, ext $ λ x, algebra.smul_def' _ _,
-  ..bounded_continuous_function.module,
+  ..bounded_continuous_function.semimodule,
   ..bounded_continuous_function.ring }
 
 instance [nonempty α] : normed_algebra 𝕜 (α →ᵇ γ) :=
@@ -577,7 +577,7 @@ instance has_scalar' : has_scalar (α →ᵇ 𝕜) (α →ᵇ β) :=
     (norm_nonneg _)) ⟩
 
 instance module' : module (α →ᵇ 𝕜) (α →ᵇ β) :=
-module.of_core $
+semimodule.of_core $
 { smul     := (•),
   smul_add := λ c f₁ f₂, ext $ λ x, smul_add _ _ _,
   add_smul := λ c₁ c₂ f, ext $ λ x, add_smul _ _ _,

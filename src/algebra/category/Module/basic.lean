@@ -81,9 +81,6 @@ variables {R} {M N U : Module R}
 @[simp] lemma coe_comp (f : M ⟶ N) (g : N ⟶ U) :
   ((f ≫ g) : M → U) = g ∘ f := rfl
 
-instance hom_is_module_hom (f : M ⟶ N) :
-  is_linear_map R (f : M → N) := linear_map.is_linear _
-
 end Module
 
 variables {R}
@@ -108,14 +105,14 @@ def to_linear_equiv {X Y : Module.{u} R} (i : X ≅ Y) : X ≃ₗ[R] Y :=
   inv_fun   := i.inv,
   left_inv  := by tidy,
   right_inv := by tidy,
-  add       := by tidy,
-  smul      := by tidy, }.
+  map_add'  := by tidy,
+  map_smul' := by tidy, }.
 
 end category_theory.iso
 
 /-- linear equivalences between `module`s are the same as (isomorphic to) isomorphisms in `Module` -/
 @[simps]
-def linear_equiv_iso_Group_iso {X Y : Type u} [add_comm_group X] [add_comm_group Y] [module R X] [module R Y] :
+def linear_equiv_iso_Module_iso {X Y : Type u} [add_comm_group X] [add_comm_group Y] [module R X] [module R Y] :
   (X ≃ₗ[R] Y) ≅ (Module.of R X ≅ Module.of R Y) :=
 { hom := λ e, e.to_Module_iso,
   inv := λ i, i.to_linear_equiv, }

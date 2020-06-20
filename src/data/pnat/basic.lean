@@ -26,7 +26,7 @@ def succ_pnat (n : ℕ) : ℕ+ := ⟨succ n, succ_pos n⟩
 @[simp] theorem succ_pnat_coe (n : ℕ) : (succ_pnat n : ℕ) = succ n := rfl
 
 theorem succ_pnat_inj {n m : ℕ} : succ_pnat n = succ_pnat m → n = m :=
-λ h, by { let h' := congr_arg (coe : ℕ+ → ℕ) h, exact nat.succ_inj h' }
+λ h, by { let h' := congr_arg (coe : ℕ+ → ℕ) h, exact nat.succ.inj h' }
 
 /-- Convert a natural number to a pnat. `n+1` is mapped to itself,
   and `0` becomes `1`. -/
@@ -147,10 +147,14 @@ instance : inhabited ℕ+ := ⟨1⟩
 -- TODO: these lemmas are perhaps incomplete:
 -- * 1 is not represented as a bit0 or bit1
 -- * strict inequalities?
-@[simp] lemma bit0_le_bit0 (n m : ℕ+) : (bit0 n) ≤ (bit0 m) ↔ (bit0 (n : ℕ)) ≤ (bit0 (m : ℕ)) := iff.refl _
-@[simp] lemma bit0_le_bit1 (n m : ℕ+) : (bit0 n) ≤ (bit1 m) ↔ (bit0 (n : ℕ)) ≤ (bit1 (m : ℕ)) := iff.refl _
-@[simp] lemma bit1_le_bit0 (n m : ℕ+) : (bit1 n) ≤ (bit0 m) ↔ (bit1 (n : ℕ)) ≤ (bit0 (m : ℕ)) := iff.refl _
-@[simp] lemma bit1_le_bit1 (n m : ℕ+) : (bit1 n) ≤ (bit1 m) ↔ (bit1 (n : ℕ)) ≤ (bit1 (m : ℕ)) := iff.refl _
+@[simp] lemma bit0_le_bit0 (n m : ℕ+) : (bit0 n) ≤ (bit0 m) ↔ (bit0 (n : ℕ)) ≤ (bit0 (m : ℕ)) :=
+iff.rfl
+@[simp] lemma bit0_le_bit1 (n m : ℕ+) : (bit0 n) ≤ (bit1 m) ↔ (bit0 (n : ℕ)) ≤ (bit1 (m : ℕ)) :=
+iff.rfl
+@[simp] lemma bit1_le_bit0 (n m : ℕ+) : (bit1 n) ≤ (bit0 m) ↔ (bit1 (n : ℕ)) ≤ (bit0 (m : ℕ)) :=
+iff.rfl
+@[simp] lemma bit1_le_bit1 (n m : ℕ+) : (bit1 n) ≤ (bit1 m) ↔ (bit1 (n : ℕ)) ≤ (bit1 (m : ℕ)) :=
+iff.rfl
 
 @[simp] theorem one_coe : ((1 : ℕ+) : ℕ) = 1 := rfl
 @[simp] theorem mul_coe (m n : ℕ+) : ((m * n : ℕ+) : ℕ) = m * n := rfl
@@ -162,7 +166,7 @@ instance coe_mul_hom : is_monoid_hom (coe : ℕ+ → ℕ) :=
 
 @[simp] theorem pow_coe (m : ℕ+) (n : ℕ) : ((m ^ n : ℕ+) : ℕ) = (m : ℕ) ^ n :=
 by induction n with n ih;
- [refl, rw [nat.pow_succ, _root_.pow_succ, mul_coe, mul_comm, ih]]
+ [refl, rw [nat.pow_succ, pow_succ, mul_coe, mul_comm, ih]]
 
 instance : left_cancel_semigroup ℕ+ :=
 { mul_left_cancel := λ a b c h, by {

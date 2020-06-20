@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 Computational realization of filters (experimental).
 -/
-import order.filter.basic
+import order.filter.cofinite
 open set filter
 
 /-- A `cfilter α σ` is a realization of a filter (base) on `α`,
@@ -129,7 +129,8 @@ filter_eq $ set.ext $ λ x, by simp [cfilter.to_filter]; rw F.mem_sets; exact
 exists_congr (λ s, image_subset_iff)⟩
 
 @[simp] theorem map_σ (m : α → β) {f : filter α} (F : f.realizer) : (F.map m).σ = F.σ := rfl
-@[simp] theorem map_F (m : α → β) {f : filter α} (F : f.realizer) (s) : (F.map m).F s = image m (F.F s) := rfl
+@[simp] theorem map_F (m : α → β) {f : filter α} (F : f.realizer) (s) :
+  (F.map m).F s = image m (F.F s) := rfl
 
 /-- Construct a realizer for `comap m f` given a realizer for `f` -/
 protected def comap (m : α → β) {f : filter β} (F : f.realizer) : (comap m f).realizer := ⟨F.σ,
@@ -178,7 +179,8 @@ filter_eq $ set.ext $ λ x, by simp [cfilter.to_filter]; exactI
   classical.by_contradiction $ λ h', h (mem_to_finset.2 h')⟩⟩⟩
 
 /-- Construct a realizer for filter bind -/
-protected def bind {f : filter α} {m : α → filter β} (F : f.realizer) (G : ∀ i, (m i).realizer) : (f.bind m).realizer :=
+protected def bind {f : filter α} {m : α → filter β} (F : f.realizer) (G : ∀ i, (m i).realizer) :
+  (f.bind m).realizer :=
 ⟨Σ s : F.σ, Π i ∈ F.F s, (G i).σ,
 { f            := λ ⟨s, f⟩, ⋃ i ∈ F.F s, (G i).F (f i H),
   pt           := ⟨F.F.pt, λ i H, (G i).F.pt⟩,

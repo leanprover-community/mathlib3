@@ -159,16 +159,16 @@ instance {F : C ⥤ D} [full F] : full F.op :=
 { preimage := λ X Y f, (F.preimage f.unop).op }
 
 instance {F : C ⥤ D} [faithful F] : faithful F.op :=
-{ injectivity' := λ X Y f g h,
-    has_hom.hom.unop_inj $ by simpa using injectivity F (has_hom.hom.op_inj h) }
+{ map_injective' := λ X Y f g h,
+    has_hom.hom.unop_inj $ by simpa using map_injective F (has_hom.hom.op_inj h) }
 
 /-- If F is faithful then the right_op of F is also faithful. -/
 instance right_op_faithful {F : Cᵒᵖ ⥤ D} [faithful F] : faithful F.right_op :=
-{ injectivity' := λ X Y f g h, has_hom.hom.op_inj (injectivity F (has_hom.hom.op_inj h)) }
+{ map_injective' := λ X Y f g h, has_hom.hom.op_inj (map_injective F (has_hom.hom.op_inj h)) }
 
 /-- If F is faithful then the left_op of F is also faithful. -/
 instance left_op_faithful {F : C ⥤ Dᵒᵖ} [faithful F] : faithful F.left_op :=
-{ injectivity' := λ X Y f g h, has_hom.hom.unop_inj (injectivity F (has_hom.hom.unop_inj h)) }
+{ map_injective' := λ X Y f g h, has_hom.hom.unop_inj (map_injective F (has_hom.hom.unop_inj h)) }
 
 end
 

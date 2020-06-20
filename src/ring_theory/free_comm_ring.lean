@@ -173,7 +173,7 @@ end restriction
 theorem is_supported_of {p} {s : set α} : is_supported (of p) s ↔ p ∈ s :=
 suffices is_supported (of p) s → p ∈ s, from ⟨this, λ hps, ring.subset_closure ⟨p, hps, rfl⟩⟩,
 assume hps : is_supported (of p) s, begin
-  classical,
+  haveI := classical.dec_pred s,
   have : ∀ x, is_supported x s →
     ∃ (n : ℤ), lift (λ a, if a ∈ s then (0 : polynomial ℤ) else polynomial.X) x = n,
   { intros x hx, refine ring.in_closure.rec_on hx _ _ _ _,
@@ -185,8 +185,7 @@ assume hps : is_supported (of p) s, begin
   exfalso, apply ne.symm int.zero_ne_one,
   rcases this with ⟨w, H⟩, rw polynomial.int_cast_eq_C at H,
   have : polynomial.X.coeff 1 = (polynomial.C ↑w).coeff 1, by rw H,
-  rwa [polynomial.coeff_C, if_neg one_ne_zero, polynomial.coeff_X, if_pos rfl] at this,
-  apply_instance
+  rwa [polynomial.coeff_C, if_neg (one_ne_zero : 1 ≠ 0), polynomial.coeff_X, if_pos rfl] at this
 end
 
 theorem map_subtype_val_restriction {x} (s : set α) [decidable_pred s] (hxs : is_supported x s) :

@@ -216,6 +216,9 @@ abbreviation cofork.π (t : cofork f g) := t.ι.app one
 @[simp] lemma cofork.π_of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) :
   cofork.π (cofork.of_π π w) = π := rfl
 
+lemma fork.ι_eq_app_zero (t : fork f g) : fork.ι t = t.π.app zero := rfl
+lemma cofork.π_eq_app_one (t : cofork f g) : cofork.π t = t.ι.app one := rfl
+
 lemma fork.condition (t : fork f g) : (fork.ι t) ≫ f = (fork.ι t) ≫ g :=
 begin
   erw [t.w left, ← t.w right], refl

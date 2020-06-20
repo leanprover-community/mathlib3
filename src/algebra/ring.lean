@@ -1,26 +1,28 @@
 /-
 Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston
+Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston, Yury Kudryashov,
+Neil Strickland
 -/
 import algebra.group.hom
 import algebra.group.units
+import tactic.alias
 import tactic.norm_cast
 import tactic.split_ifs
-import algebra.group.units
 
 /-!
 # Properties and homomorphisms of semirings and rings
 
 This file proves simple properties of semirings, rings and domains and their unit groups. It also
-defines homomorphisms of semirings and rings, both unbundled (e.g. `is_semiring_hom f`)
-and bundled (e.g. `ring_hom a β`, a.k.a. `α →+* β`). The unbundled ones are deprecated
-and the plan is to slowly remove them from mathlib.
+defines bundled homomorphisms of semirings and rings. As with monoid and groups, we use the same
+structure `ring_hom a β`, a.k.a. `α →+* β`, for both homomorphism types.
+
+The unbundled homomorphisms are defined in `deprecated/ring`. They are deprecated and the plan is to
+slowly remove them from mathlib.
 
 ## Main definitions
 
-is_semiring_hom (deprecated), is_ring_hom (deprecated), ring_hom, nonzero_comm_semiring,
-nonzero_comm_ring, domain
+ring_hom, nonzero, domain, integral_domain
 
 ## Notations
 
@@ -43,11 +45,11 @@ to use this method than to use type class inference.
 
 ## Tags
 
-is_ring_hom, is_semiring_hom, ring_hom, semiring_hom, semiring, comm_semiring, ring, comm_ring,
-domain, integral_domain, nonzero_comm_semiring, nonzero_comm_ring, units
+`ring_hom`, `semiring_hom`, `semiring`, `comm_semiring`, `ring`, `comm_ring`, `domain`,
+`integral_domain`, `nonzero`, `units`
 -/
-universes u v w
-variable {α : Type u}
+universes u v w x
+variables {α : Type u} {β : Type v} {γ : Type w} {R : Type x}
 
 set_option default_priority 100 -- see Note [default priority]
 set_option old_structure_cmd true
@@ -56,7 +58,7 @@ mk_simp_attribute field_simps "The simpset `field_simps` is used by the tactic `
 reduce an expression in a field to an expression of the form `n / d` where `n` and `d` are
 division-free."
 
-@[ancestor has_mul has_add]
+@[protect_proj, ancestor has_mul has_add]
 class distrib (α : Type u) extends has_mul α, has_add α :=
 (left_distrib : ∀ a b c : α, a * (b + c) = (a * b) + (a * c))
 (right_distrib : ∀ a b c : α, (a + b) * c = (a * c) + (b * c))
@@ -64,14 +66,14 @@ class distrib (α : Type u) extends has_mul α, has_add α :=
 lemma left_distrib [distrib α] (a b c : α) : a * (b + c) = a * b + a * c :=
 distrib.left_distrib a b c
 
-def mul_add := @left_distrib
+alias left_distrib ← mul_add
 
 lemma right_distrib [distrib α] (a b c : α) : (a + b) * c = a * c + b * c :=
 distrib.right_distrib a b c
 
-def add_mul := @right_distrib
+alias right_distrib ← add_mul
 
-@[ancestor has_mul has_zero]
+@[protect_proj, ancestor has_mul has_zero]
 class mul_zero_class (α : Type u) extends has_mul α, has_zero α :=
 (zero_mul : ∀ a : α, 0 * a = 0)
 (mul_zero : ∀ a : α, a * 0 = 0)
@@ -82,21 +84,24 @@ mul_zero_class.zero_mul a
 @[ematch, simp] lemma mul_zero [mul_zero_class α] (a : α) : a * 0 = 0 :=
 mul_zero_class.mul_zero a
 
-@[ancestor has_zero has_one]
-class zero_ne_one_class (α : Type u) extends has_zero α, has_one α :=
+/-- Predicate typeclass for expressing that a (semi)ring or similar algebraic structure
+is nonzero. -/
+@[protect_proj] class nonzero (α : Type u) [has_zero α] [has_one α] : Prop :=
 (zero_ne_one : 0 ≠ (1:α))
 
 @[simp]
-lemma zero_ne_one [s: zero_ne_one_class α] : 0 ≠ (1:α) :=
-@zero_ne_one_class.zero_ne_one α s
+lemma zero_ne_one [has_zero α] [has_one α] [nonzero α] : 0 ≠ (1:α) :=
+nonzero.zero_ne_one
 
 @[simp]
-lemma one_ne_zero [s: zero_ne_one_class α] : (1:α) ≠ 0 :=
-assume h, @zero_ne_one_class.zero_ne_one α s h.symm
+lemma one_ne_zero [has_zero α] [has_one α] [nonzero α] : (1:α) ≠ 0 :=
+zero_ne_one.symm
 
-/- semiring -/
+/-!
+### Semirings
+-/
 
-@[ancestor add_comm_monoid monoid distrib mul_zero_class]
+@[protect_proj, ancestor add_comm_monoid monoid distrib mul_zero_class]
 class semiring (α : Type u) extends add_comm_monoid α, monoid α, distrib α, mul_zero_class α
 
 section semiring
@@ -138,7 +143,7 @@ by split_ifs; refl
 -- We make `mul_ite` and `ite_mul` simp lemmas,
 -- but not `add_ite` or `ite_add`.
 -- The problem we're trying to avoid is dealing with
--- summations of the form `s.sum (λ x, f x + ite P 1 0)`,
+-- summations of the form `∑ x in s, (f x + ite P 1 0)`,
 -- in which `add_ite` followed by `sum_ite` would needlessly slice up
 -- the `f x` terms according to whether `P` holds at `x`.
 -- There doesn't appear to be a corresponding difficulty so far with
@@ -219,7 +224,7 @@ lemma coe_add_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : se
 
 namespace ring_hom
 
-variables {β : Type v} {γ : Type w} [rα : semiring α] [rβ : semiring β]
+variables [rα : semiring α] [rβ : semiring β]
 
 section
 include rα rβ
@@ -237,10 +242,10 @@ coe_inj (funext h)
 theorem ext_iff {f g : α →+* β} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
-theorem coe_add_monoid_hom_inj : function.injective (coe : (α →+* β) → (α →+ β)) :=
+theorem coe_add_monoid_hom_injective : function.injective (coe : (α →+* β) → (α →+ β)) :=
 λ f g h, coe_inj $ show ((f : α →+ β) : α → β) = (g : α →+ β), from congr_arg coe_fn h
 
-theorem coe_monoid_hom_inj : function.injective (coe : (α →+* β) → (α →* β)) :=
+theorem coe_monoid_hom_injective : function.injective (coe : (α →+* β) → (α →* β)) :=
 λ f g h, coe_inj $ show ((f : α →* β) : α → β) = (g : α →* β), from congr_arg coe_fn h
 
 /-- Ring homomorphisms map zero to zero. -/
@@ -322,11 +327,15 @@ omit rα rβ rγ
 
 end ring_hom
 
-@[ancestor semiring comm_monoid]
+@[protect_proj, ancestor semiring comm_monoid]
 class comm_semiring (α : Type u) extends semiring α, comm_monoid α
 
 section comm_semiring
-variables [comm_semiring α] {a b c : α}
+variables [comm_semiring α] [comm_semiring β] {a b c : α}
+
+lemma add_mul_self_eq (a b : α) : (a + b) * (a + b) = a*a + 2*a*b + b*b :=
+calc (a + b)*(a + b) = a*a + (1+1)*a*b + b*b : by simp [add_mul, mul_add, mul_comm, add_assoc]
+              ...     = a*a + 2*a*b + b*b    : by rw one_add_one_eq_two
 
 instance comm_semiring_has_dvd : has_dvd α :=
 has_dvd.mk (λ a b, ∃ c, b = a * c)
@@ -336,12 +345,12 @@ has_dvd.mk (λ a b, ∃ c, b = a * c)
 theorem dvd.intro (c : α) (h : a * c = b) : a ∣ b :=
 exists.intro c h^.symm
 
-def dvd_of_mul_right_eq := @dvd.intro
+alias dvd.intro ← dvd_of_mul_right_eq
 
 theorem dvd.intro_left (c : α) (h : c * a = b) : a ∣ b :=
 dvd.intro _ (begin rewrite mul_comm at h, apply h end)
 
-def dvd_of_mul_left_eq := @dvd.intro_left
+alias dvd.intro_left ← dvd_of_mul_left_eq
 
 theorem exists_eq_mul_right_of_dvd (h : a ∣ b) : ∃ c, b = a * c := h
 
@@ -365,7 +374,7 @@ match h₁, h₂ with
   ⟨d * e, show c = a * (d * e), by simp [h₃, h₄]⟩
 end
 
-def dvd.trans := @dvd_trans
+alias dvd_trans ← dvd.trans
 
 theorem eq_zero_of_zero_dvd (h : 0 ∣ a) : a = 0 :=
 dvd.elim h (assume c, assume H' : a = 0 * c, eq.trans H' (zero_mul c))
@@ -407,11 +416,16 @@ dvd.elim h (begin intros d h₁, rw [h₁, mul_assoc], apply dvd_mul_right end)
 theorem dvd_of_mul_left_dvd (h : a * b ∣ c) : b ∣ c :=
 dvd.elim h (λ d ceq, dvd.intro (a * d) (by simp [ceq]))
 
+lemma ring_hom.map_dvd (f : α →+* β) {a b : α} : a ∣ b → f a ∣ f b :=
+λ ⟨z, hz⟩, ⟨f z, by rw [hz, f.map_mul]⟩
+
 end comm_semiring
 
-/- ring -/
+/-!
+### Rings
+-/
 
-@[ancestor add_comm_group monoid distrib]
+@[protect_proj, ancestor add_comm_group monoid distrib]
 class ring (α : Type u) extends add_comm_group α, monoid α, distrib α
 
 section ring
@@ -431,6 +445,12 @@ show 0 * a = 0, from  (add_left_cancel this).symm
 
 instance ring.to_semiring : semiring α :=
 { mul_zero := ring.mul_zero, zero_mul := ring.zero_mul, ..‹ring α› }
+
+/- The instance from `ring` to `semiring` happens often in linear algebra, for which all the basic
+definitions are given in terms of semirings, but many applications use rings or fields. We increase
+a little bit its priority above 100 to try it quickly, but remaining below the default 1000 so that
+more specific instances are tried first. -/
+attribute [instance, priority 200] ring.to_semiring
 
 lemma neg_mul_eq_neg_mul (a b : α) : -(a * b) = -a * b :=
 neg_eq_of_add_eq_zero
@@ -460,14 +480,14 @@ calc
    a * (b - c) = a * b + a * -c : left_distrib a b (-c)
            ... = a * b - a * c  : by simp [sub_eq_add_neg]
 
-def mul_sub := @mul_sub_left_distrib
+alias mul_sub_left_distrib ← mul_sub
 
 lemma mul_sub_right_distrib (a b c : α) : (a - b) * c = a * c - b * c :=
 calc
   (a - b) * c = a * c  + -b * c : right_distrib a (-b) c
           ... = a * c - b * c   : by simp [sub_eq_add_neg]
 
-def sub_mul := @mul_sub_right_distrib
+alias mul_sub_right_distrib ← sub_mul
 
 /-- An element of a ring multiplied by the additive inverse of one is the element's additive
   inverse. -/
@@ -565,7 +585,7 @@ def mk' {γ} [semiring α] [ring γ] (f : α →* γ) (map_add : ∀ a b : α, f
 
 end ring_hom
 
-@[ancestor ring comm_semigroup]
+@[protect_proj, ancestor ring comm_semigroup]
 class comm_ring (α : Type u) extends ring α, comm_semigroup α
 
 instance comm_ring.to_comm_semiring [s : comm_ring α] : comm_semiring α :=
@@ -581,10 +601,6 @@ begin simp [right_distrib, left_distrib, sub_eq_add_neg] end
 
 lemma mul_self_sub_one_eq (a : α) : a * a - 1 = (a + 1) * (a - 1) :=
 begin simp [right_distrib, left_distrib, sub_eq_add_neg], rw [add_left_comm, add_comm (-a), add_left_comm a], simp end
-
-lemma add_mul_self_eq (a b : α) : (a + b) * (a + b) = a*a + 2*a*b + b*b :=
-calc (a + b)*(a + b) = a*a + (1+1)*a*b + b*b : by simp [right_distrib, left_distrib]
-              ...     = a*a + 2*a*b + b*b     : by rw one_add_one_eq_two
 
 theorem dvd_neg_of_dvd (h : a ∣ b) : (a ∣ -b) :=
 dvd.elim h
@@ -662,77 +678,70 @@ begin
   rw [this, sub_add, ← sub_mul, sub_self]
 end
 
+lemma dvd_mul_sub_mul {α : Type*} [comm_ring α]
+  {k a b x y : α} (hab : k ∣ a - b) (hxy : k ∣ x - y) :
+  k ∣ a * x - b * y :=
+begin
+  convert dvd_add (dvd_mul_of_dvd_right hxy a) (dvd_mul_of_dvd_left hab y),
+  rw [mul_sub_left_distrib, mul_sub_right_distrib],
+  simp only [sub_eq_add_neg, add_assoc, neg_add_cancel_left],
+end
+
+lemma dvd_iff_dvd_of_dvd_sub {R : Type*} [comm_ring R] {a b c : R}
+  (h : a ∣ (b - c)) : (a ∣ b ↔ a ∣ c) :=
+begin
+  split,
+  { intro h',
+    convert dvd_sub h' h,
+    exact eq.symm (sub_sub_self b c) },
+  { intro h',
+    convert dvd_add h h',
+    exact eq_add_of_sub_eq rfl }
+end
+
 end comm_ring
 
-/-- Predicate for semirings in which zero does not equal one. -/
-class nonzero_semiring (α : Type*) extends semiring α, zero_ne_one_class α
-
-/-- Predicate for commutative semirings in which zero does not equal one. -/
-class nonzero_comm_semiring (α : Type*) extends comm_semiring α, zero_ne_one_class α
-
-/-- Predicate for commutative rings in which zero does not equal one. -/
-class nonzero_comm_ring (α : Type*) extends comm_ring α, zero_ne_one_class α
-
--- This could be generalized, for example if we added `nonzero_ring` into the hierarchy,
--- but it doesn't seem worth doing just for these lemmas.
-lemma succ_ne_self [nonzero_comm_ring α] (a : α) : a + 1 ≠ a :=
+lemma succ_ne_self [ring α] [nonzero α] (a : α) : a + 1 ≠ a :=
 λ h, one_ne_zero ((add_right_inj a).mp (by simp [h]))
 
--- As with succ_ne_self.
-lemma pred_ne_self [nonzero_comm_ring α] (a : α) : a - 1 ≠ a :=
+lemma pred_ne_self [ring α] [nonzero α] (a : α) : a - 1 ≠ a :=
 λ h, one_ne_zero (neg_inj ((add_right_inj a).mp (by { convert h, simp })))
 
-/-- A nonzero commutative semiring is a nonzero semiring. -/
-@[priority 100] -- see Note [lower instance priority]
-instance nonzero_comm_semiring.to_nonzero_semiring {α : Type*} [ncs : nonzero_comm_semiring α] :
-  nonzero_semiring α :=
-{..ncs}
-
-/-- A nonzero commutative ring is a nonzero commutative semiring. -/
-@[priority 100] -- see Note [lower instance priority]
-instance nonzero_comm_ring.to_nonzero_comm_semiring {α : Type*} [I : nonzero_comm_ring α] :
-  nonzero_comm_semiring α :=
-{ zero_ne_one := by convert zero_ne_one,
-  ..show comm_semiring α, by apply_instance }
-
-/-- An element of the unit group of a nonzero commutative semiring represented as an element
+/-- An element of the unit group of a nonzero semiring represented as an element
     of the semiring is nonzero. -/
-lemma units.coe_ne_zero [nonzero_comm_semiring α] (u : units α) : (u : α) ≠ 0 :=
+lemma units.coe_ne_zero [semiring α] [nonzero α] (u : units α) : (u : α) ≠ 0 :=
 λ h : u.1 = 0, by simpa [h, zero_ne_one] using u.3
 
-/-- Makes a nonzero commutative ring from a commutative ring containing at least two distinct
-    elements. -/
-def nonzero_comm_ring.of_ne [comm_ring α] {x y : α} (h : x ≠ y) : nonzero_comm_ring α :=
-{ one := 1,
-  zero := 0,
-  zero_ne_one := λ h01, h $ by rw [← one_mul x, ← one_mul y, ← h01, zero_mul, zero_mul],
-  ..show comm_ring α, by apply_instance }
+/-- Proves that a semiring that contains at least two distinct elements is nonzero. -/
+theorem nonzero.of_ne [semiring α] {x y : α} (h : x ≠ y) : nonzero α :=
+{ zero_ne_one := λ h01, h $ by rw [← one_mul x, ← one_mul y, ← h01, zero_mul, zero_mul] }
 
-/-- Makes a nonzero commutative semiring from a commutative semiring containing at least two
-    distinct elements. -/
-def nonzero_comm_semiring.of_ne [comm_semiring α] {x y : α} (h : x ≠ y) : nonzero_comm_semiring α :=
-{ one := 1,
-  zero := 0,
-  zero_ne_one := λ h01, h $ by rw [← one_mul x, ← one_mul y, ← h01, zero_mul, zero_mul],
-  ..show comm_semiring α, by apply_instance }
-
-@[ancestor has_mul has_zero]
-class no_zero_divisors (α : Type u) extends has_mul α, has_zero α :=
+@[protect_proj] class no_zero_divisors (α : Type u) [has_mul α] [has_zero α] : Prop :=
 (eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)
 
-lemma eq_zero_or_eq_zero_of_mul_eq_zero [no_zero_divisors α] {a b : α} (h : a * b = 0) : a = 0 ∨ b = 0 :=
+lemma eq_zero_or_eq_zero_of_mul_eq_zero [has_mul α] [has_zero α] [no_zero_divisors α]
+  {a b : α} (h : a * b = 0) : a = 0 ∨ b = 0 :=
 no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero a b h
 
-lemma eq_zero_of_mul_self_eq_zero [no_zero_divisors α] {a : α} (h : a * a = 0) : a = 0 :=
+lemma eq_zero_of_mul_self_eq_zero [has_mul α] [has_zero α] [no_zero_divisors α]
+  {a : α} (h : a * a = 0) : a = 0 :=
 or.elim (eq_zero_or_eq_zero_of_mul_eq_zero h) (assume h', h') (assume h', h')
 
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
   is an integral domain without assuming commutativity of multiplication. -/
-class domain (α : Type u) extends ring α, no_zero_divisors α, zero_ne_one_class α
+@[protect_proj] class domain (α : Type u) extends ring α :=
+(eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)
+(zero_ne_one : (0 : α) ≠ 1)
 
 section domain
 variable [domain α]
+
+instance domain.to_no_zero_divisors : no_zero_divisors α :=
+⟨domain.eq_zero_or_eq_zero_of_mul_eq_zero⟩
+
+instance domain.to_nonzero : nonzero α :=
+⟨domain.zero_ne_one⟩
 
 /-- Simplification theorems for the definition of a domain. -/
 @[simp] theorem mul_eq_zero {a b : α} : a * b = 0 ↔ a = 0 ∨ b = 0 :=
@@ -771,7 +780,7 @@ theorem eq_zero_of_mul_eq_self_left' {a b : α} (h₁ : b ≠ 1) (h₂ : b * a =
 by apply (mul_eq_zero.1 _).resolve_left (sub_ne_zero.2 h₁);
     rw [mul_sub_right_distrib, one_mul, sub_eq_zero, h₂]
 
-/-- For elements a, b of a domain, if a*b is nonzero, so is b*a. -/
+/-- For elements `a`, `b` of a domain, if `a*b` is nonzero, so is `b*a`. -/
 theorem mul_ne_zero_comm' {a b : α} (h : a * b ≠ 0) : b * a ≠ 0 :=
 mul_ne_zero' (ne_zero_of_mul_ne_zero_left h) (ne_zero_of_mul_ne_zero_right h)
 
@@ -779,8 +788,8 @@ end domain
 
 /- integral domains -/
 
-@[ancestor comm_ring no_zero_divisors zero_ne_one_class]
-class integral_domain (α : Type u) extends comm_ring α, no_zero_divisors α, zero_ne_one_class α
+@[protect_proj, ancestor comm_ring domain]
+class integral_domain (α : Type u) extends comm_ring α, domain α
 
 section integral_domain
 variables [integral_domain α] {a b c d e : α}
@@ -834,10 +843,6 @@ lemma mul_self_eq_one_iff (a : α) : a * a = 1 ↔ a = 1 ∨ a = -1 :=
 have a * a = 1 * 1 ↔ a = 1 ∨ a = -1, from mul_self_eq_mul_self_iff a 1,
 by rwa mul_one at this
 
-/-- An integral domain is a domain. -/
-instance integral_domain.to_domain : domain α :=
-{..‹integral_domain α›, ..(by apply_instance : semiring α)}
-
 /-- Right multiplcation by a nonzero element of an integral domain is injective. -/
 theorem eq_of_mul_eq_mul_right_of_ne_zero (ha : a ≠ 0) (h : b * a = c * a) : b = c :=
 have b * a - c * a = 0, by simp [h],
@@ -867,11 +872,6 @@ exists_congr $ λ d, by rw [mul_right_comm, domain.mul_left_inj hc]
 lemma units.inv_eq_self_iff (u : units α) : u⁻¹ = u ↔ u = 1 ∨ u = -1 :=
 by conv {to_lhs, rw [inv_eq_iff_mul_eq_one, ← mul_one (1 : units α), units.ext_iff, units.coe_mul,
   units.coe_mul, mul_self_eq_mul_self_iff, ← units.ext_iff, ← units.coe_neg, ← units.ext_iff] }
-
-/-- An integral domain is a nonzero commutative ring. -/
-instance integral_domain.to_nonzero_comm_ring
-  (α : Type*) [integral_domain α] : nonzero_comm_ring α :=
-{ ..‹integral_domain α› }
 
 end integral_domain
 
@@ -921,15 +921,6 @@ iff.intro
 
 end comm_semiring
 
-section domain
-variables [domain α]
-
-/-- Every unit in a domain is nonzero. -/
-@[simp] theorem ne_zero : ∀(u : units α), (↑u : α) ≠ 0
-| ⟨u, v, (huv : 0 * v = 1), hvu⟩ rfl := by simpa using huv
-
-end domain
-
 end units
 
 namespace is_unit
@@ -939,11 +930,11 @@ variables [semiring α]
 
 theorem mul_left_eq_zero_iff_eq_zero {r u : α}
   (hu : is_unit u) : r * u = 0 ↔ r = 0 :=
-by cases hu with u hu; exact hu.symm ▸ units.mul_left_eq_zero_iff_eq_zero u
+by cases hu with u hu; exact hu ▸ units.mul_left_eq_zero_iff_eq_zero u
 
 theorem mul_right_eq_zero_iff_eq_zero {r u : α}
   (hu : is_unit u) : u * r = 0 ↔ r = 0 :=
-by cases hu with u hu; exact hu.symm ▸ units.mul_right_eq_zero_iff_eq_zero u
+by cases hu with u hu; exact hu ▸ units.mul_right_eq_zero_iff_eq_zero u
 
 end semiring
 
@@ -969,3 +960,82 @@ whose data is definitionally equal to the existing data. -/
 def is_integral_domain.to_integral_domain (R : Type u) [ring R] (h : is_integral_domain R) :
   integral_domain R :=
 { .. (‹_› : ring R), .. (‹_› : is_integral_domain R) }
+
+namespace semiconj_by
+
+@[simp] lemma add_right [distrib R] {a x y x' y' : R}
+  (h : semiconj_by a x y) (h' : semiconj_by a x' y') :
+  semiconj_by a (x + x') (y + y') :=
+by simp only [semiconj_by, left_distrib, right_distrib, h.eq, h'.eq]
+
+@[simp] lemma add_left [distrib R] {a b x y : R}
+  (ha : semiconj_by a x y) (hb : semiconj_by b x y) :
+  semiconj_by (a + b) x y :=
+by simp only [semiconj_by, left_distrib, right_distrib, ha.eq, hb.eq]
+
+@[simp] lemma zero_right [mul_zero_class R] (a : R) :
+  semiconj_by a 0 0 :=
+by simp only [semiconj_by, mul_zero, zero_mul]
+
+@[simp] lemma zero_left [mul_zero_class R] (x y : R) :
+  semiconj_by 0 x y :=
+by simp only [semiconj_by, mul_zero, zero_mul]
+
+variables [ring R] {a b x y x' y' : R}
+
+lemma neg_right (h : semiconj_by a x y) : semiconj_by a (-x) (-y) :=
+by simp only [semiconj_by, h.eq, neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm]
+
+@[simp] lemma neg_right_iff : semiconj_by a (-x) (-y) ↔ semiconj_by a x y :=
+⟨λ h, neg_neg x ▸ neg_neg y ▸ h.neg_right, semiconj_by.neg_right⟩
+
+lemma neg_left (h : semiconj_by a x y) : semiconj_by (-a) x y :=
+by simp only [semiconj_by, h.eq, neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm]
+
+@[simp] lemma neg_left_iff : semiconj_by (-a) x y ↔ semiconj_by a x y :=
+⟨λ h, neg_neg a ▸ h.neg_left, semiconj_by.neg_left⟩
+
+@[simp] lemma neg_one_right (a : R) : semiconj_by a (-1) (-1) :=
+(one_right a).neg_right
+
+@[simp] lemma neg_one_left (x : R) : semiconj_by (-1) x x :=
+(semiconj_by.one_left x).neg_left
+
+@[simp] lemma sub_right (h : semiconj_by a x y) (h' : semiconj_by a x' y') :
+  semiconj_by a (x - x') (y - y') :=
+h.add_right h'.neg_right
+
+@[simp] lemma sub_left (ha : semiconj_by a x y) (hb : semiconj_by b x y) :
+  semiconj_by (a - b) x y :=
+ha.add_left hb.neg_left
+
+end semiconj_by
+
+namespace commute
+
+@[simp] theorem add_right [distrib R] {a b c : R} :
+  commute a b → commute a c → commute a (b + c) :=
+semiconj_by.add_right
+
+@[simp] theorem add_left [distrib R] {a b c : R} :
+  commute a c → commute b c → commute (a + b) c :=
+semiconj_by.add_left
+
+@[simp] theorem zero_right [mul_zero_class R] (a : R) :commute a 0 := semiconj_by.zero_right a
+@[simp] theorem zero_left [mul_zero_class R] (a : R) : commute 0 a := semiconj_by.zero_left a a
+
+variables [ring R] {a b c : R}
+
+theorem neg_right : commute a b → commute a (- b) := semiconj_by.neg_right
+@[simp] theorem neg_right_iff : commute a (-b) ↔ commute a b := semiconj_by.neg_right_iff
+
+theorem neg_left : commute a b → commute (- a) b := semiconj_by.neg_left
+@[simp] theorem neg_left_iff : commute (-a) b ↔ commute a b := semiconj_by.neg_left_iff
+
+@[simp] theorem neg_one_right (a : R) : commute a (-1) := semiconj_by.neg_one_right a
+@[simp] theorem neg_one_left (a : R): commute (-1) a := semiconj_by.neg_one_left a
+
+@[simp] theorem sub_right : commute a b → commute a c → commute a (b - c) := semiconj_by.sub_right
+@[simp] theorem sub_left : commute a c → commute b c → commute (a - b) c := semiconj_by.sub_left
+
+end commute

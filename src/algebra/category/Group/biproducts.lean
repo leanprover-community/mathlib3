@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.category.Group.basic
+import algebra.category.Group.preadditive
 import category_theory.limits.shapes.biproducts
 import algebra.pi_instances
 
@@ -32,33 +33,15 @@ instance has_limit_pair (G H : AddCommGroup.{u}) : has_limit.{u} (pair G H) :=
       ext; [rw ← w walking_pair.left, rw ← w walking_pair.right]; refl,
     end, } }
 
-instance has_colimit_pair (G H : AddCommGroup.{u}) : has_colimit.{u} (pair G H) :=
-{ cocone :=
-  { X := AddCommGroup.of (G × H),
-    ι := { app := λ j, walking_pair.cases_on j (add_monoid_hom.inl G H) (add_monoid_hom.inr G H) }},
-  is_colimit :=
-  { desc := λ s, add_monoid_hom.coprod (s.ι.app walking_pair.left) (s.ι.app walking_pair.right),
-    fac' := by { rintros s (⟨⟩|⟨⟩); { ext x, dsimp, simp, } },
-    uniq' := λ s m w,
-    begin
-      ext,
-      rw [←w, ←w],
-      simp [←add_monoid_hom.map_add],
-    end, }, }
-
-instance (G H : AddCommGroup.{u}) : has_binary_biproduct.{u} G H :=
-{ bicone :=
-  { X := AddCommGroup.of (G × H),
-    π₁ := add_monoid_hom.fst G H,
-    π₂ := add_monoid_hom.snd G H,
-    ι₁ := add_monoid_hom.inl G H,
-    ι₂ := add_monoid_hom.inr G H, },
-  is_limit := limit.is_limit (pair G H),
-  is_colimit := colimit.is_colimit (pair G H), }
+instance (G H : AddCommGroup.{u}) : has_preadditive_binary_biproduct.{u} G H :=
+has_preadditive_binary_biproduct.of_has_limit_pair _ _
 
 -- We verify that the underlying type of the biproduct we've just defined is definitionally
 -- the cartesian product of the underlying types:
 example (G H : AddCommGroup.{u}) : ((G ⊞ H : AddCommGroup.{u}) : Type u) = (G × H) := rfl
+
+-- Furthermore, our biproduct will automatically function as a coproduct.
+example (G H : AddCommGroup.{u}) : has_colimit.{u} (pair G H) := by apply_instance
 
 variables {J : Type u} (F : (discrete J) ⥤ AddCommGroup.{u})
 
@@ -79,7 +62,7 @@ def lift (s : cone F) :
 instance has_limit_discrete : has_limit F :=
 { cone :=
   { X := AddCommGroup.of (Π j, F.obj j),
-    π := nat_trans.of_homs (λ j, add_monoid_hom.apply (λ j, F.obj j) j), },
+    π := discrete.nat_trans (λ j, add_monoid_hom.apply (λ j, F.obj j) j), },
   is_limit :=
   { lift := lift F,
     fac' := λ s j, by { ext, dsimp, simp, },
@@ -122,7 +105,7 @@ variables [decidable_eq J]
 instance has_colimit_discrete : has_colimit F :=
 { cocone :=
   { X := AddCommGroup.of (Π j, F.obj j),
-    ι := nat_trans.of_homs (λ j, add_monoid_hom.single (λ j, F.obj j) j), },
+    ι := discrete.nat_trans (λ j, add_monoid_hom.single (λ j, F.obj j) j), },
   is_colimit :=
   { desc := desc F,
     fac' := λ s j,
@@ -160,8 +143,8 @@ variables [decidable_eq J] [fintype J]
 instance : has_bilimit F :=
 { bicone :=
   { X := AddCommGroup.of (Π j, F.obj j),
-    ι := nat_trans.of_homs (λ j, add_monoid_hom.single (λ j, F.obj j) j),
-    π := nat_trans.of_homs (λ j, add_monoid_hom.apply (λ j, F.obj j) j), },
+    ι := discrete.nat_trans (λ j, add_monoid_hom.single (λ j, F.obj j) j),
+    π := discrete.nat_trans (λ j, add_monoid_hom.apply (λ j, F.obj j) j), },
   is_limit := limit.is_limit F,
   is_colimit := colimit.is_colimit F, }.
 

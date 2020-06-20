@@ -10,6 +10,7 @@ import algebra.big_operators
 variables {α : Type*}
 
 open nat roption
+open_locale big_operators
 
 theorem nat.find_le {p q : ℕ → Prop} [decidable_pred p] [decidable_pred q]
     (h : ∀ n, q n → p n) (hp : ∃ n, p n) (hq : ∃ n, q n) :
@@ -283,7 +284,7 @@ lemma finite_mul_iff {p a b : α} (hp : prime p) : finite p (a * b) ↔ finite p
 
 lemma finite_pow {p a : α} (hp : prime p) : Π {k : ℕ} (ha : finite p a), finite p (a ^ k)
 | 0     ha := ⟨0, by simp [mt is_unit_iff_dvd_one.2 hp.2.1]⟩
-| (k+1) ha := by rw [_root_.pow_succ]; exact finite_mul hp ha (finite_pow ha)
+| (k+1) ha := by rw [pow_succ]; exact finite_mul hp ha (finite_pow ha)
 
 variable [decidable_rel ((∣) : α → α → Prop)]
 
@@ -291,7 +292,7 @@ variable [decidable_rel ((∣) : α → α → Prop)]
   multiplicity a a = 1 :=
 eq_some_iff.2 ⟨by simp, λ ⟨b, hb⟩, ha (is_unit_iff_dvd_one.2
   ⟨b, (domain.mul_right_inj ha0).1 $ by clear _fun_match;
-    simpa [_root_.pow_succ, mul_assoc] using hb⟩)⟩
+    simpa [pow_succ, mul_assoc] using hb⟩)⟩
 
 @[simp] lemma get_multiplicity_self {a : α} (ha : finite a a) :
   get (multiplicity a a) ha = 1 :=
@@ -340,7 +341,7 @@ else begin
 end
 
 lemma finset.prod {β : Type*} {p : α} (hp : prime p) (s : finset β) (f : β → α) :
-  multiplicity p (s.prod f) = s.sum (λ x, multiplicity p (f x)) :=
+  multiplicity p (∏ x in s, f x) = ∑ x in s, multiplicity p (f x) :=
 begin
   classical,
   induction s using finset.induction with a s has ih h,
@@ -353,13 +354,13 @@ end
 protected lemma pow' {p a : α} (hp : prime p) (ha : finite p a) : ∀ {k : ℕ},
   get (multiplicity p (a ^ k)) (finite_pow hp ha) = k * get (multiplicity p a) ha
 | 0     := by dsimp [_root_.pow_zero]; simp [one_right hp.not_unit]; refl
-| (k+1) := by dsimp only [_root_.pow_succ];
+| (k+1) := by dsimp only [pow_succ];
   erw [multiplicity.mul' hp, pow', add_mul, one_mul, add_comm]
 
 lemma pow {p a : α} (hp : prime p) : ∀ {k : ℕ},
-  multiplicity p (a ^ k) = add_monoid.smul k (multiplicity p a)
+  multiplicity p (a ^ k) = k •ℕ (multiplicity p a)
 | 0        := by simp [one_right hp.not_unit]
-| (succ k) := by simp [_root_.pow_succ, succ_smul, pow, multiplicity.mul hp]
+| (succ k) := by simp [pow_succ, succ_nsmul, pow, multiplicity.mul hp]
 
 lemma multiplicity_pow_self {p : α} (h0 : p ≠ 0) (hu : ¬ is_unit p) (n : ℕ) :
   multiplicity p (p ^ n) = n :=

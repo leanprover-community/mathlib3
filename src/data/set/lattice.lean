@@ -36,6 +36,12 @@ instance lattice_set : complete_lattice (set α) :=
 instance : distrib_lattice (set α) :=
 { le_sup_inf := λ s t u x, or_and_distrib_left.2, ..set.lattice_set }
 
+@[simp] lemma bot_eq_empty : (⊥ : set α) = ∅ := rfl
+@[simp] lemma sup_eq_union (s t : set α) : s ⊔ t = s ∪ t := rfl
+@[simp] lemma inf_eq_inter (s t : set α) : s ⊓ t = s ∩ t := rfl
+@[simp] lemma le_eq_subset (s t : set α) : s ≤ t = (s ⊆ t) := rfl
+@[simp] lemma lt_eq_ssubset (s t : set α) : s < t = (s ⊂ t) := rfl
+
 /-- Image is monotone. See `set.image_image` for the statement in terms of `⊆`. -/
 lemma monotone_image {f : α → β} : monotone (image f) :=
 assume s t, assume h : s ⊆ t, image_subset _ h
@@ -111,6 +117,12 @@ theorem subset_Inter {t : set β} {s : ι → set β} (h : ∀ i, t ⊆ s i) : t
 @le_infi (set β) _ set.lattice_set _ _ h
 
 theorem subset_Union : ∀ (s : ι → set β) (i : ι), s i ⊆ (⋃ i, s i) := le_supr
+
+-- This rather trivial consequence is convenient with `apply`,
+-- and has `i` explicit for this use case.
+theorem subset_subset_Union
+  {A : set β} {s : ι → set β} (i : ι) (h : A ⊆ s i) : A ⊆ ⋃ (i : ι), s i :=
+subset.trans h (subset_Union s i)
 
 theorem Inter_subset : ∀ (s : ι → set β) (i : ι), (⋂ i, s i) ⊆ s i := infi_le
 
@@ -255,6 +267,21 @@ bUnion_subset (λ x xs, subset.trans (h x xs) (subset_bUnion_of_mem xs))
 theorem bInter_subset_bInter_right {s : set α} {t1 t2 : α → set β}
   (h : ∀ x ∈ s, t1 x ⊆ t2 x) : (⋂ x ∈ s, t1 x) ⊆ (⋂ x ∈ s, t2 x) :=
 subset_bInter (λ x xs, subset.trans (bInter_subset_of_mem xs) (h x xs))
+
+theorem bUnion_subset_bUnion {γ : Type*} {s : set α} {t : α → set β} {s' : set γ} {t' : γ → set β}
+  (h : ∀ x ∈ s, ∃ y ∈ s', t x ⊆ t' y) :
+  (⋃ x ∈ s, t x) ⊆ (⋃ y ∈ s', t' y) :=
+begin
+  intros x,
+  simp only [mem_Union],
+  rintros ⟨a, a_in, ha⟩,
+  rcases h a a_in with ⟨c, c_in, hc⟩,
+  exact ⟨c, c_in, hc ha⟩
+end
+
+theorem bUnion_mono {s : set α} {t t' : α → set β} (h : ∀ x ∈ s, t x ⊆ t' x) :
+  (⋃ x ∈ s, t x) ⊆ (⋃ x ∈ s, t' x) :=
+bUnion_subset_bUnion (λ x x_in, ⟨x, x_in, h x x_in⟩)
 
 theorem bUnion_eq_Union (s : set α) (t : α → set β) : (⋃ x ∈ s, t x) = (⋃ x : s, t x.1) :=
 set.ext $ by simp
@@ -734,19 +761,6 @@ instance : monad set :=
   seq        := λ(α β : Type u), set.seq,
   map        := λ(α β : Type u), set.image }
 
-instance : is_lawful_monad set :=
-{ pure_bind             := assume α β x f, by simp,
-  bind_assoc            := assume α β γ s f g, set.ext $ assume a,
-    by simp [exists_and_distrib_right.symm, -exists_and_distrib_right,
-             exists_and_distrib_left.symm, -exists_and_distrib_left, and_assoc];
-       exact exists_swap,
-  id_map                := assume α, id_map,
-  bind_pure_comp_eq_map := assume α β f s, set.ext $ by simp [set.image, eq_comm],
-  bind_map_eq_seq       := assume α β s t, by simp [seq_def] }
-
-instance : is_comm_applicative (set : Type u → Type u) :=
-⟨ assume α β s t, prod_image_seq_comm s t ⟩
-
 section monad
 variables {α' β' : Type u} {s : set α'} {f : α' → set β'} {g : set (α' → β')}
 
@@ -759,6 +773,19 @@ variables {α' β' : Type u} {s : set α'} {f : α' → set β'} {g : set (α' �
 @[simp] lemma pure_def (a : α) : (pure a : set α) = {a} := rfl
 
 end monad
+
+instance : is_lawful_monad set :=
+{ pure_bind             := assume α β x f, by simp,
+  bind_assoc            := assume α β γ s f g, set.ext $ assume a,
+    by simp [exists_and_distrib_right.symm, -exists_and_distrib_right,
+             exists_and_distrib_left.symm, -exists_and_distrib_left, and_assoc];
+       exact exists_swap,
+  id_map                := assume α, id_map,
+  bind_pure_comp_eq_map := assume α β f s, set.ext $ by simp [set.image, eq_comm],
+  bind_map_eq_seq       := assume α β s t, by simp [seq_def] }
+
+instance : is_comm_applicative (set : Type u → Type u) :=
+⟨ assume α β s t, prod_image_seq_comm s t ⟩
 
 section pi
 
@@ -826,12 +853,14 @@ end set
 namespace set
 variables (t : α → set β)
 
+/-- If `t` is an indexed family of sets, then there is a natural map from `Σ i, t i` to `⋃ i, t i`
+sending `⟨i, x⟩` to `x`. -/
 def sigma_to_Union (x : Σi, t i) : (⋃i, t i) := ⟨x.2, mem_Union.2 ⟨x.1, x.2.2⟩⟩
 
-lemma surjective_sigma_to_Union : surjective (sigma_to_Union t)
+lemma sigma_to_Union_surjective : surjective (sigma_to_Union t)
 | ⟨b, hb⟩ := have ∃a, b ∈ t a, by simpa using hb, let ⟨a, hb⟩ := this in ⟨⟨a, ⟨b, hb⟩⟩, rfl⟩
 
-lemma injective_sigma_to_Union (h : ∀i j, i ≠ j → disjoint (t i) (t j)) :
+lemma sigma_to_Union_injective (h : ∀i j, i ≠ j → disjoint (t i) (t j)) :
   injective (sigma_to_Union t)
 | ⟨a₁, ⟨b₁, h₁⟩⟩ ⟨a₂, ⟨b₂, h₂⟩⟩ eq :=
   have b_eq : b₁ = b₂, from congr_arg subtype.val eq,
@@ -840,13 +869,13 @@ lemma injective_sigma_to_Union (h : ∀i j, i ≠ j → disjoint (t i) (t j)) :
     h _ _ ne this,
   sigma.eq a_eq $ subtype.eq $ by subst b_eq; subst a_eq
 
-lemma bijective_sigma_to_Union (h : ∀i j, i ≠ j → disjoint (t i) (t j)) :
+lemma sigma_to_Union_bijective (h : ∀i j, i ≠ j → disjoint (t i) (t j)) :
   bijective (sigma_to_Union t) :=
-⟨injective_sigma_to_Union t h, surjective_sigma_to_Union t⟩
+⟨sigma_to_Union_injective t h, sigma_to_Union_surjective t⟩
 
 noncomputable def Union_eq_sigma_of_disjoint {t : α → set β}
   (h : ∀i j, i ≠ j → disjoint (t i) (t j)) : (⋃i, t i) ≃ (Σi, t i) :=
-(equiv.of_bijective $ bijective_sigma_to_Union t h).symm
+(equiv.of_bijective _ $ sigma_to_Union_bijective t h).symm
 
 noncomputable def bUnion_eq_sigma_of_disjoint {s : set α} {t : α → set β}
   (h : pairwise_on s (disjoint on t)) : (⋃i∈s, t i) ≃ (Σi:s, t i.val) :=

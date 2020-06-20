@@ -361,7 +361,7 @@ begin
     apply dim_V },
   have dim_add : dim (W ⊔ img) + dim (W ⊓ img) = dim W + 2^m,
   { convert ← dim_sup_add_dim_inf_eq W img,
-    rw ← dim_eq_injective (g m) g_injective,
+    rw ← dim_eq_of_injective (g m) g_injective,
     apply dim_V },
   have dimW : dim W = card H,
   { have li : linear_independent ℝ (set.restrict e H) :=
@@ -414,5 +414,5 @@ begin
     ... ≤ (finset.card ((H ∩ Q.adjacent q).to_finset )) * |ε q y| :
      (mul_le_mul_right H_q_pos).mpr (by {
              norm_cast,
-             exact finset.card_le_of_subset (by rw set.to_finset_inter; apply finset.inter_subset_inter_right coeffs_support) })
+             exact finset.card_le_of_subset (by rw set.to_finset_inter; convert finset.inter_subset_inter_right coeffs_support) })
 end

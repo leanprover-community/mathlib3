@@ -31,8 +31,8 @@ namespace has_limit_of_has_products_of_has_equalizers
 -- We assume here only that we have exactly the products we need, so that we can prove
 -- variations of the construction (all products gives all limits, finite products gives finite limits...)
 variables (F : J ⥤ C)
-          [H₁ : has_limit.{v} (functor.of_function F.obj)]
-          [H₂ : has_limit.{v} (functor.of_function (λ f : (Σ p : J × J, p.1 ⟶ p.2), F.obj f.1.2))]
+          [H₁ : has_limit.{v} (discrete.functor F.obj)]
+          [H₂ : has_limit.{v} (discrete.functor (λ f : (Σ p : J × J, p.1 ⟶ p.2), F.obj f.1.2))]
 include H₁ H₂
 
 /--
@@ -82,8 +82,7 @@ local attribute [semireducible] op unop opposite
   begin
     refine (fork.of_ι _ _).π,
     { exact pi.lift c.app },
-    { ext f,
-      rcases f with ⟨⟨A,B⟩,f⟩,
+    { ext ⟨⟨A,B⟩,f⟩,
       dsimp,
       simp only [limit.lift_π, limit.lift_π_assoc, fan.mk_π_app, category.assoc],
       rw ←(c.naturality f),

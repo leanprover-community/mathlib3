@@ -58,6 +58,7 @@ def uniform_space_core : uniform_space.core R :=
 def uniform_space : uniform_space R :=
 uniform_space.of_core (uniform_space_core abv)
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem mem_uniformity {s : set (R×R)} :
   s ∈ (uniform_space_core abv).uniformity ↔
   (∃ε>0, ∀{a b:R}, abv (b - a) < ε → (a, b) ∈ s) :=

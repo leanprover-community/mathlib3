@@ -14,7 +14,7 @@ bounded linear map between Banach spaces has a bounded inverse.
 -/
 
 open function metric set filter finset
-open_locale classical topological_space
+open_locale classical topological_space big_operators
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
@@ -131,8 +131,9 @@ begin
   have hnle : ∀n:ℕ, ∥(h^[n]) y∥ ≤ (1/2)^n * ∥y∥,
   { assume n,
     induction n with n IH,
-    { simp only [one_div_eq_inv, nat.nat_zero_eq_zero, one_mul, nat.iterate_zero, pow_zero] },
-    { rw [nat.iterate_succ'],
+    { simp only [one_div_eq_inv, nat.nat_zero_eq_zero, one_mul, iterate_zero_apply,
+        pow_zero] },
+    { rw [iterate_succ'],
       apply le_trans (hle _) _,
       rw [pow_succ, mul_assoc],
       apply mul_le_mul_of_nonneg_left IH,
@@ -157,15 +158,15 @@ begin
     ... = 2 * C * ∥y∥ + 0 : by rw [add_zero, mul_assoc]
     ... ≤ 2 * C * ∥y∥ + ∥y∥ : add_le_add (le_refl _) (norm_nonneg _)
     ... = (2 * C + 1) * ∥y∥ : by ring,
-  have fsumeq : ∀n:ℕ, f((finset.range n).sum u) = y - (h^[n]) y,
+  have fsumeq : ∀n:ℕ, f(∑ i in finset.range n, u i) = y - (h^[n]) y,
   { assume n,
     induction n with n IH,
     { simp [f.map_zero] },
-    { rw [sum_range_succ, f.map_add, IH, nat.iterate_succ'],
+    { rw [sum_range_succ, f.map_add, IH, iterate_succ'],
       simp [u, h, sub_eq_add_neg, add_comm, add_left_comm] } },
-  have : tendsto (λn, (range n).sum u) at_top (𝓝 x) :=
+  have : tendsto (λn, ∑ i in range n, u i) at_top (𝓝 x) :=
     su.has_sum.tendsto_sum_nat,
-  have L₁ : tendsto (λn, f((range n).sum u)) at_top (𝓝 (f x)) :=
+  have L₁ : tendsto (λn, f(∑ i in range n, u i)) at_top (𝓝 (f x)) :=
     (f.continuous.tendsto _).comp this,
   simp only [fsumeq] at L₁,
   have L₂ : tendsto (λn, y - (h^[n]) y) at_top (𝓝 (y - 0)),
@@ -236,3 +237,26 @@ def to_continuous_linear_equiv_of_continuous (e : E ≃ₗ[𝕜] F) (h : continu
   ⇑(e.to_continuous_linear_equiv_of_continuous h).symm = e.symm := rfl
 
 end linear_equiv
+
+namespace continuous_linear_equiv
+
+/-- Convert a bijective continuous linear map `f : E →L[𝕜] F` between two Banach spaces
+to a continuous linear equivalence. -/
+noncomputable def of_bijective (f : E →L[𝕜] F) (hinj : f.ker = ⊥) (hsurj : f.range = ⊤) :
+  E ≃L[𝕜] F :=
+(linear_equiv.of_bijective ↑f hinj hsurj).to_continuous_linear_equiv_of_continuous f.continuous
+
+@[simp] lemma coe_fn_of_bijective (f : E →L[𝕜] F) (hinj : f.ker = ⊥) (hsurj : f.range = ⊤) :
+  ⇑(of_bijective f hinj hsurj) = f := rfl
+
+@[simp] lemma of_bijective_symm_apply_apply (f : E →L[𝕜] F) (hinj : f.ker = ⊥)
+  (hsurj : f.range = ⊤) (x : E) :
+  (of_bijective f hinj hsurj).symm (f x) = x :=
+(of_bijective f hinj hsurj).symm_apply_apply x
+
+@[simp] lemma of_bijective_apply_symm_apply (f : E →L[𝕜] F) (hinj : f.ker = ⊥)
+  (hsurj : f.range = ⊤) (y : F) :
+  f ((of_bijective f hinj hsurj).symm y) = y :=
+(of_bijective f hinj hsurj).apply_symm_apply y
+
+end continuous_linear_equiv

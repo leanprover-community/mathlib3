@@ -122,16 +122,16 @@ lemma subset_zero_locus_iff_le_vanishing_ideal (t : set (prime_spectrum R)) (I :
 begin
   split; intro h,
   { intros f hf,
-    rw [submodule.mem_coe, mem_vanishing_ideal],
+    rw [mem_vanishing_ideal],
     intros x hx,
     have hxI := h hx,
     rw mem_zero_locus at hxI,
     exact hxI hf },
   { intros x hx,
     rw mem_zero_locus,
-    refine set.subset.trans h _,
+    refine le_trans h _,
     intros f hf,
-    rw [submodule.mem_coe, mem_vanishing_ideal] at hf,
+    rw [mem_vanishing_ideal] at hf,
     exact hf x hx }
 end
 
@@ -271,7 +271,7 @@ lemma sup_vanishing_ideal_le (t t' : set (prime_spectrum R)) :
   vanishing_ideal t ⊔ vanishing_ideal t' ≤ vanishing_ideal (t ∩ t') :=
 begin
   intros r,
-  rw [submodule.mem_coe, submodule.mem_sup, submodule.mem_coe, mem_vanishing_ideal],
+  rw [submodule.mem_sup, mem_vanishing_ideal],
   rintro ⟨f, hf, g, hg, rfl⟩ x ⟨hxt, hxt'⟩,
   rw mem_vanishing_ideal at hf hg,
   apply submodule.add_mem; solve_by_elim

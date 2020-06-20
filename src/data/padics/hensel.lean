@@ -45,7 +45,8 @@ let ⟨z, hz⟩ := F.eval_sub_factor x y in calc
 
 open filter metric
 
-private lemma comp_tendsto_lim {p : ℕ} [fact p.prime] {F : polynomial ℤ_[p]} (ncs : cau_seq ℤ_[p] norm) :
+private lemma comp_tendsto_lim {p : ℕ} [fact p.prime] {F : polynomial ℤ_[p]}
+  (ncs : cau_seq ℤ_[p] norm) :
   tendsto (λ i, F.eval (ncs i)) at_top (𝓝 (F.eval ncs.lim)) :=
 (F.continuous_eval.tendsto _).comp ncs.tendsto_limit
 
@@ -88,7 +89,7 @@ parameters {p : ℕ} [fact p.prime] {F : polynomial ℤ_[p]} {a : ℤ_[p]}
 include hnorm
 
 /-- `T` is an auxiliary value that is used to control the behavior of the polynomial `F`. -/
-private def T : ℝ := ∥(F.eval a).val / ((F.derivative.eval a).val)^2∥
+private def T : ℝ := ∥(F.eval a / (F.derivative.eval a)^2 : ℚ_[p])∥
 
 private lemma deriv_sq_norm_pos : 0 < ∥F.derivative.eval a∥ ^ 2 :=
 lt_of_le_of_lt (norm_nonneg _) hnorm
@@ -104,7 +105,7 @@ lt_of_le_of_ne (norm_nonneg _) (ne.symm deriv_norm_ne_zero)
 private lemma deriv_ne_zero : F.derivative.eval a ≠ 0 := mt norm_eq_zero.2 deriv_norm_ne_zero
 
 private lemma T_def : T = ∥F.eval a∥ / ∥F.derivative.eval a∥^2 :=
-calc T = ∥(F.eval a).val∥ / ∥((F.derivative.eval a).val)^2∥ : normed_field.norm_div _ _
+calc T = ∥F.eval a∥ / ∥((F.derivative.eval a)^2 : ℚ_[p])∥ : normed_field.norm_div _ _
    ... = ∥F.eval a∥ / ∥(F.derivative.eval a)^2∥ : by simp [norm, padic_norm_z]
    ... = ∥F.eval a∥ / ∥(F.derivative.eval a)∥^2 : by simp [pow, monoid.pow]
 
@@ -113,7 +114,8 @@ let h := (div_lt_one_iff_lt deriv_sq_norm_pos).2 hnorm in
 by rw T_def; apply h
 
 private lemma T_pow {n : ℕ} (hn : n > 0) : T ^ n < 1 :=
-have T ^ n ≤ T ^ 1, from pow_le_pow_of_le_one (norm_nonneg _) (le_of_lt T_lt_one) (succ_le_of_lt hn),
+have T ^ n ≤ T ^ 1,
+from pow_le_pow_of_le_one (norm_nonneg _) (le_of_lt T_lt_one) (succ_le_of_lt hn),
 lt_of_le_of_lt (by simpa) T_lt_one
 
 private lemma T_pow' (n : ℕ) : T ^ (2 ^ n) < 1 := (T_pow (nat.pow_pos (by norm_num) _))
@@ -145,9 +147,11 @@ calc
     ≤ ∥z' - z∥ : padic_polynomial_dist _ _ _
 ... = ∥z1∥ : by simp only [sub_eq_add_neg, add_assoc, hz', add_add_neg_cancel'_right, norm_neg]
 ... = ∥F.eval z∥ / ∥F.derivative.eval a∥ : hz1
-... ≤ ∥F.derivative.eval a∥^2 * T^(2^n) / ∥F.derivative.eval a∥ : (div_le_div_right deriv_norm_pos).2 hz.2
+... ≤ ∥F.derivative.eval a∥^2 * T^(2^n) / ∥F.derivative.eval a∥ :
+  (div_le_div_right deriv_norm_pos).2 hz.2
 ... = ∥F.derivative.eval a∥ * T^(2^n) : div_sq_cancel deriv_norm_ne_zero _
-... < ∥F.derivative.eval a∥ : (mul_lt_iff_lt_one_right deriv_norm_pos).2 (T_pow (pow_pos (by norm_num) _))
+... < ∥F.derivative.eval a∥ :
+  (mul_lt_iff_lt_one_right deriv_norm_pos).2 (T_pow (pow_pos (by norm_num) _))
 
 private def calc_eval_z'  {z z' z1 : ℤ_[p]} (hz' : z' = z - z1) {n} (hz : ih n z)
   (h1 : ∥(↑(F.eval z) : ℚ_[p]) / ↑(F.derivative.eval z)∥ ≤ 1) (hzeq : z1 = ⟨_, h1⟩) :
@@ -162,7 +166,7 @@ have ∥(↑(F.derivative.eval z) * (↑(F.eval z) / ↑(F.derivative.eval z)) :
 have F.derivative.eval z * (-z1) = -F.eval z, from calc
   F.derivative.eval z * (-z1)
     = (F.derivative.eval z) * -⟨↑(F.eval z) / ↑(F.derivative.eval z), h1⟩ : by rw [hzeq]
-... = -((F.derivative.eval z) * ⟨↑(F.eval z) / ↑(F.derivative.eval z), h1⟩) : by simp
+... = -((F.derivative.eval z) * ⟨↑(F.eval z) / ↑(F.derivative.eval z), h1⟩) : by simp [subtype.coe_ext]
 ... = -(⟨↑(F.derivative.eval z) * (↑(F.eval z) / ↑(F.derivative.eval z)), this⟩) : subtype.ext.2 $ by simp
 ... = -(F.eval z) : by simp [mul_div_cancel' _ hdzne'],
 have heq : F.eval z' = q * z1^2, by simpa [this, hz'] using hq,
@@ -223,7 +227,7 @@ private lemma newton_seq_norm_le (n : ℕ) :
 
 private lemma newton_seq_norm_eq (n : ℕ) :
   ∥newton_seq (n+1) - newton_seq n∥ = ∥F.eval (newton_seq n)∥ / ∥F.derivative.eval (newton_seq n)∥ :=
-by induction n; simp [sub_eq_add_neg, add_left_comm, add_assoc, newton_seq, newton_seq_aux, ih_n]
+by simp [newton_seq, newton_seq_aux, ih_n, sub_eq_add_neg, add_comm]
 
 private lemma newton_seq_succ_dist (n : ℕ) :
   ∥newton_seq (n+1) - newton_seq n∥ ≤ ∥F.derivative.eval a∥ * T^(2^n) :=
@@ -300,7 +304,7 @@ begin
   exact tendsto_const_nhds.mul
                     (tendsto.comp
                       (tendsto_pow_at_top_nhds_0_of_lt_1 (norm_nonneg _) (T_lt_one hnorm))
-                      (tendsto_pow_at_top_at_top_of_gt_1_nat (by norm_num)))
+                      (nat.tendsto_pow_at_top_at_top_of_one_lt (by norm_num)))
 end
 
 private lemma bound : ∀ {ε}, ε > 0 → ∃ N : ℕ, ∀ {n}, n ≥ N → ∥F.derivative.eval a∥ * T^(2^n) < ε :=

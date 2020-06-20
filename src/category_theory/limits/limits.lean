@@ -126,9 +126,9 @@ def of_faithful {t : cone F} {D : Type u'} [category.{v} D] (G : C ⥤ D) [faith
   (ht : is_limit (G.map_cone t)) (lift : Π (s : cone F), s.X ⟶ t.X)
   (h : ∀ s, G.map (lift s) = ht.lift (G.map_cone s)) : is_limit t :=
 { lift := lift,
-  fac' := λ s j, by apply G.injectivity; rw [G.map_comp, h]; apply ht.fac,
+  fac' := λ s j, by apply G.map_injective; rw [G.map_comp, h]; apply ht.fac,
   uniq' := λ s m w, begin
-    apply G.injectivity, rw h,
+    apply G.map_injective, rw h,
     refine ht.uniq (G.map_cone s) _ (λ j, _),
     convert ←congr_arg (λ f, G.map f) (w j),
     apply G.map_comp
@@ -174,16 +174,15 @@ def iso_unique_cone_morphism {t : cone F} :
   { lift := λ s, (h s).default.hom,
     uniq' := λ s f w, congr_arg cone_morphism.hom ((h s).uniq ⟨f, w⟩) } }
 
--- TODO: this should actually hold for an adjunction between cone F and cone G, not just for
--- equivalences
 /--
 Given two functors which have equivalent categories of cones, we can transport a limiting cone across
 the equivalence.
 -/
-def of_cone_equiv {D : Type u'} [category.{v} D] {G : K ⥤ D} (h : cone F ≌ cone G) {c : cone G} (t : is_limit c) :
-  is_limit (h.inverse.obj c) :=
+def of_cone_equiv {D : Type u'} [category.{v} D] {G : K ⥤ D}
+  (h : cone G ⥤ cone F) [is_right_adjoint h] {c : cone G} (t : is_limit c) :
+  is_limit (h.obj c) :=
 mk_cone_morphism
-  (λ s, h.to_adjunction.hom_equiv s c (t.lift_cone_morphism _))
+  (λ s, (adjunction.of_right_adjoint h).hom_equiv s c (t.lift_cone_morphism _))
   (λ s m, (adjunction.eq_hom_equiv_apply _ _ _).2 t.uniq_cone_morphism )
 
 namespace of_nat_iso
@@ -375,9 +374,9 @@ def of_faithful {t : cocone F} {D : Type u'} [category.{v} D] (G : C ⥤ D) [fai
   (ht : is_colimit (G.map_cocone t)) (desc : Π (s : cocone F), t.X ⟶ s.X)
   (h : ∀ s, G.map (desc s) = ht.desc (G.map_cocone s)) : is_colimit t :=
 { desc := desc,
-  fac' := λ s j, by apply G.injectivity; rw [G.map_comp, h]; apply ht.fac,
+  fac' := λ s j, by apply G.map_injective; rw [G.map_comp, h]; apply ht.fac,
   uniq' := λ s m w, begin
-    apply G.injectivity, rw h,
+    apply G.map_injective, rw h,
     refine ht.uniq (G.map_cocone s) _ (λ j, _),
     convert ←congr_arg (λ f, G.map f) (w j),
     apply G.map_comp
@@ -395,6 +394,17 @@ def iso_unique_cocone_morphism {t : cocone F} :
   inv := λ h,
   { desc := λ s, (h s).default.hom,
     uniq' := λ s f w, congr_arg cocone_morphism.hom ((h s).uniq ⟨f, w⟩) } }
+
+/--
+Given two functors which have equivalent categories of cocones, we can transport a limiting cocone
+across the equivalence.
+-/
+def of_cocone_equiv {D : Type u'} [category.{v} D] {G : K ⥤ D}
+  (h : cocone G ⥤ cocone F) [is_left_adjoint h] {c : cocone G} (t : is_colimit c) :
+  is_colimit (h.obj c) :=
+mk_cocone_morphism
+  (λ s, ((adjunction.of_left_adjoint h).hom_equiv c s).symm (t.desc_cocone_morphism _))
+  (λ s m, (adjunction.hom_equiv_apply_eq _ _ _).1 t.uniq_cocone_morphism)
 
 namespace of_nat_iso
 variables {X : C} (h : coyoneda.obj (op X) ≅ F.cocones)

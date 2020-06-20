@@ -2,8 +2,14 @@
 Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
+-/
+import topology.uniform_space.uniform_embedding
+import topology.uniform_space.complete_separated
+import topology.algebra.group
+import tactic.abel
 
-Uniform structure on topological groups:
+/-!
+# Uniform structure on topological groups
 
 * `topological_add_group.to_uniform_space` and `topological_add_group_is_uniform` can be used to
   construct a canonical uniformity for a topological add group.
@@ -13,10 +19,6 @@ Uniform structure on topological groups:
 * `add_group_with_zero_nhd`: construct the topological structure from a group with a neighbourhood
   around zero. Then with `topological_add_group.to_uniform_space` one can derive a `uniform_space`.
 -/
-import topology.uniform_space.uniform_embedding
-import topology.uniform_space.complete_separated
-import topology.algebra.group
-import tactic.abel
 
 noncomputable theory
 open_locale classical uniformity topological_space
@@ -88,7 +90,7 @@ lemma uniform_embedding_translate (a : α) : uniform_embedding (λx:α, x + a) :
     rintros ⟨p₁, p₂⟩ ⟨q₁, q₂⟩,
     simp [prod.eq_iff_fst_eq_snd_eq] {contextual := tt}
   end,
-  inj := assume x y, eq_of_add_eq_add_right }
+  inj := add_left_injective a }
 
 section
 variables (α)

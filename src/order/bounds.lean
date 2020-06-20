@@ -53,6 +53,34 @@ def is_lub (s : set α) : α → Prop := is_least (upper_bounds s)
 /-- `a` is a greatest lower bound of a set `s`; for a partial order, it is unique if exists. -/
 def is_glb (s : set α) : α → Prop := is_greatest (lower_bounds s)
 
+lemma mem_upper_bounds : a ∈ upper_bounds s ↔ ∀ x ∈ s, x ≤ a := iff.rfl
+
+lemma mem_lower_bounds : a ∈ lower_bounds s ↔ ∀ x ∈ s, a ≤ x := iff.rfl
+
+/-- A set `s` is not bounded above if and only if for each `x` there exists `y ∈ s` such that `x`
+is not greater than or equal to `y`. This version only assumes `preorder` structure and uses
+`¬(y ≤ x)`. A version for linear orders is called `not_bdd_above_iff`. -/
+lemma not_bdd_above_iff' : ¬bdd_above s ↔ ∀ x, ∃ y ∈ s, ¬(y ≤ x) :=
+by simp [bdd_above, upper_bounds, set.nonempty]
+
+/-- A set `s` is not bounded below if and only if for each `x` there exists `y ∈ s` such that `x`
+is not less than or equal to `y`. This version only assumes `preorder` structure and uses
+`¬(x ≤ y)`. A version for linear orders is called `not_bdd_below_iff`. -/
+lemma not_bdd_below_iff' : ¬bdd_below s ↔ ∀ x, ∃ y ∈ s, ¬(x ≤ y) :=
+@not_bdd_above_iff' (order_dual α) _ _
+
+/-- A set `s` is not bounded above if and only if for each `x` there exists `y ∈ s` that is greater
+than `x`. A version for preorders is called `not_bdd_above_iff'`. -/
+lemma not_bdd_above_iff {α : Type*} [linear_order α] {s : set α} :
+  ¬bdd_above s ↔ ∀ x, ∃ y ∈ s, x < y :=
+by simp only [not_bdd_above_iff', not_le]
+
+/-- A set `s` is not bounded below if and only if for each `x` there exists `y ∈ s` that is less
+than `x`. A version for preorders is called `not_bdd_below_iff'`. -/
+lemma not_bdd_below_iff {α : Type*} [linear_order α] {s : set α} :
+  ¬bdd_below s ↔ ∀ x, ∃ y ∈ s, y < x :=
+@not_bdd_above_iff (order_dual α) _ _
+
 /-!
 ### Monotonicity
 -/
@@ -99,6 +127,18 @@ lemma is_glb.of_subset_of_superset {s t p : set α} (hs : is_glb s a) (hp : is_g
   (hst : s ⊆ t) (htp : t ⊆ p) : is_glb t a :=
 @is_lub.of_subset_of_superset (order_dual α) _ a s t p hs hp hst htp
 
+lemma is_least.mono (ha : is_least s a) (hb : is_least t b) (hst : s ⊆ t) : b ≤ a :=
+hb.2 (hst ha.1)
+
+lemma is_greatest.mono (ha : is_greatest s a) (hb : is_greatest t b) (hst : s ⊆ t) : a ≤ b :=
+hb.2 (hst ha.1)
+
+lemma is_lub.mono (ha : is_lub s a) (hb : is_lub t b) (hst : s ⊆ t) : a ≤ b :=
+hb.mono ha $ upper_bounds_mono_set hst
+
+lemma is_glb.mono (ha : is_glb s a) (hb : is_glb t b) (hst : s ⊆ t) : b ≤ a :=
+hb.mono ha $ lower_bounds_mono_set hst
+
 /-!
 ### Conversions
 -/
@@ -118,6 +158,12 @@ h.is_glb.lower_bounds_eq
 
 lemma is_greatest.upper_bounds_eq (h : is_greatest s a) : upper_bounds s = Ici a :=
 h.is_lub.upper_bounds_eq
+
+lemma is_lub_le_iff (h : is_lub s a) : a ≤ b ↔ b ∈ upper_bounds s :=
+by { rw h.upper_bounds_eq, refl }
+
+lemma le_is_glb_iff (h : is_glb s a) : b ≤ a ↔ b ∈ lower_bounds s :=
+by { rw h.lower_bounds_eq, refl }
 
 /-- If `s` has a least upper bound, then it is bounded above. -/
 lemma is_lub.bdd_above (h : is_lub s a) : bdd_above s := ⟨a, h.1⟩
@@ -243,7 +289,6 @@ lemma is_greatest.union [decidable_linear_order γ] {a b : γ} {s t : set γ}
 
 #### Unbounded intervals
 -/
-
 
 lemma is_least_Ici : is_least (Ici a) a := ⟨left_mem_Ici, λ x, id⟩
 
@@ -455,6 +500,12 @@ not_le_of_lt ha' this
 lemma is_glb.nonempty [no_top_order α] (hs : is_glb s a) : s.nonempty :=
 @is_lub.nonempty (order_dual α) _ _ _ _ hs
 
+lemma nonempty_of_not_bdd_above [ha : nonempty α] (h : ¬bdd_above s) : s.nonempty :=
+nonempty.elim ha $ λ x, (not_bdd_above_iff'.1 h x).imp $ λ a ha, ha.fst
+
+lemma nonempty_of_not_bdd_below [ha : nonempty α] (h : ¬bdd_below s) : s.nonempty :=
+@nonempty_of_not_bdd_above (order_dual α) _ _ _ h
+
 /-!
 ### insert
 -/
@@ -570,12 +621,6 @@ Ha.unique Hb
 lemma is_glb.unique (Ha : is_glb s a) (Hb : is_glb s b) : a = b :=
 Ha.unique Hb
 
-lemma is_lub_le_iff (h : is_lub s a) : a ≤ b ↔ b ∈ upper_bounds s :=
-by { rw h.upper_bounds_eq, refl }
-
-lemma le_is_glb_iff (h : is_glb s a) : b ≤ a ↔ b ∈ lower_bounds s :=
-by { rw h.lower_bounds_eq, refl }
-
 end partial_order
 
 section linear_order
@@ -627,7 +672,7 @@ lemma is_lub_image_le (Ha : is_lub s a) {b : β} (Hb : is_lub (f '' s) b) :
   b ≤ f a :=
 Hb.2 (Hf.mem_upper_bounds_image Ha.1)
 
-lemma le_is_glb_image_le (Ha : is_glb s a) {b : β} (Hb : is_glb (f '' s) b) :
+lemma le_is_glb_image (Ha : is_glb s a) {b : β} (Hb : is_glb (f '' s) b) :
   f a ≤ b :=
 Hb.2 (Hf.mem_lower_bounds_image Ha.1)
 

@@ -24,7 +24,7 @@ open native
 namespace linarith
 
 /-- A shorthand for tracing when the `trace.linarith` option is set to true. -/
-meta def linarith_trace {α} [has_to_tactic_format α] (s : α) :=
+meta def linarith_trace {α} [has_to_tactic_format α] (s : α) : tactic unit :=
 tactic.when_tracing `linarith (tactic.trace s)
 
 /--
@@ -117,7 +117,7 @@ end linexp
 
 /-- The three-element type `ineq` is used to represent the strength of a comparison between terms. -/
 @[derive decidable_eq, derive inhabited]
-inductive ineq
+inductive ineq : Type
 | eq | le | lt
 
 namespace ineq
@@ -168,7 +168,7 @@ The main datatype for FM elimination.
 Variables are represented by natural numbers, each of which has an integer coefficient.
 Index 0 is reserved for constants, i.e. `coeffs.find 0` is the coefficient of 1.
 The represented term is `coeffs.sum (λ ⟨k, v⟩, v * Var[k])`.
-str determines the direction of the comparison -- is it < 0, ≤ 0, or = 0?
+str determines the strength of the comparison -- is it < 0, ≤ 0, or = 0?
 -/
 @[derive inhabited]
 structure comp : Type :=
@@ -257,7 +257,7 @@ meta instance : has_coe preprocessor global_preprocessor :=
 ⟨preprocessor.globalize⟩
 
 /-- A configuration object for `linarith`. -/
-meta structure linarith_config :=
+meta structure linarith_config : Type :=
 (discharger : tactic unit := `[ring])
 (restrict_type : option Type := none)
 (restrict_type_reflect : reflected restrict_type . tactic.apply_instance)

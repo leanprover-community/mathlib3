@@ -202,7 +202,7 @@ namespace expr_map
 /--
 `find_defeq red m e` looks for a key in `m` that is defeq to `e` (up to transparency `red`),
 and returns the value associated with this key if it exists.
-Otherwise fails.
+Otherwise, it fails.
 -/
 meta def find_defeq (red : tactic.transparency) {v} (m : expr_map v) (e : expr) :
   tactic v :=

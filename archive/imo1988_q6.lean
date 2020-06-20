@@ -212,7 +212,7 @@ begin
     apply ne_of_lt,
     calc x*x + x*x = x*x * 2       : by rw mul_two
                ... ≤ x*x * k       : nat.mul_le_mul_left (x*x) k_lt_one
-               ... < (x*x + 1) * k : by apply mul_lt_mul; {nlinarith} },
+               ... < (x*x + 1) * k : by apply mul_lt_mul; nlinarith },
   { -- Show the descent step.
     intros x y hx x_lt_y hxky h z h_root hV₁ hV₀,
     split,

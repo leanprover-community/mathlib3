@@ -235,7 +235,7 @@ The state for the elimination monad.
 The elimination procedure proceeds by eliminating variable `v` from `comps` progressively
 in decreasing order.
 -/
-meta structure linarith_structure :=
+meta structure linarith_structure : Type :=
 (max_var : ℕ)
 (comps : rb_set pcomp)
 
@@ -243,7 +243,7 @@ meta structure linarith_structure :=
 The linarith monad extends an exceptional monad with a `linarith_structure` state.
 An exception produces a contradictory `pcomp`.
 -/
-@[reducible, derive [monad, monad_except pcomp]] meta def linarith_monad :=
+@[reducible, derive [monad, monad_except pcomp]] meta def linarith_monad : Type → Type :=
 state_t linarith_structure (except_t pcomp id)
 
 /-- Returns the current max variable. -/

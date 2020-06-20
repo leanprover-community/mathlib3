@@ -39,6 +39,20 @@ instance fintype_walking_pair : fintype walking_pair :=
   complete := λ x, by { cases x; simp } }
 
 /--
+The equivalence swapping left and right.
+-/
+def walking_pair.swap : walking_pair ≃ walking_pair :=
+{ to_fun := λ j, walking_pair.rec_on j right left,
+  inv_fun := λ j, walking_pair.rec_on j right left,
+  left_inv := λ j, by { cases j; refl, },
+  right_inv := λ j, by { cases j; refl, }, }
+
+@[simp] lemma walking_pair.swap_apply_left : walking_pair.swap left = right := rfl
+@[simp] lemma walking_pair.swap_apply_right : walking_pair.swap right = left := rfl
+@[simp] lemma walking_pair.swap_symm_apply_tt : walking_pair.swap.symm left = right := rfl
+@[simp] lemma walking_pair.swap_symm_apply_ff : walking_pair.swap.symm right = left := rfl
+
+/--
 An equivalence from `walking_pair` to `bool`, sometimes useful when reindexing limits.
 -/
 def walking_pair.equiv_bool : walking_pair ≃ bool :=

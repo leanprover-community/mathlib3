@@ -143,6 +143,22 @@ begin
   exact cone_point_unique_up_to_iso P Q',
 end
 
+lemma cone_points_iso_of_equivalence_hom {F : J ⥤ C} {s : cone F} {G : K ⥤ C} {t : cone G}
+  (P : is_limit s) (Q : is_limit t) (e : J ≌ K) (w : e.functor ⋙ G ≅ F) :
+  (cone_points_iso_of_equivalence P Q e w).hom =
+    Q.lift
+    { X := s.X,
+      π := (whisker_left e.inverse (s.π ≫ w.inv)) ≫ (functor.associator e.inverse e.functor G).inv ≫
+        whisker_right e.counit_iso.hom G ≫ (left_unitor G).hom } :=
+begin
+  suffices : (cone_points_iso_of_equivalence P Q e w).hom = (𝟙 _ ≫ 𝟙 _) ≫ (Q.lift_cone_morphism
+    ((limits.cones.postcompose
+    ((e.inverse.associator e.functor G).inv ≫ whisker_right e.counit_iso.hom G ≫ G.left_unitor.hom)).obj
+    (limits.cone.whisker e.inverse ((limits.cones.postcompose w.inv).obj s)))).hom,
+  simpa,
+  refl,
+end
+
 end equivalence
 
 /-- The universal property of a limit cone: a map `W ⟶ X` is the same as

@@ -6,6 +6,7 @@ Authors: Markus Himmel, Scott Morrison
 import category_theory.limits.shapes.zero
 import category_theory.limits.shapes.kernels
 import category_theory.abelian.basic
+import category_theory.abelian.additive
 
 open category_theory.limits
 
@@ -59,6 +60,9 @@ begin
   apply w,
   exact is_iso_of_mono_of_nonzero h,
 end
+
+lemma id_nonzero (X : C) [simple.{v} X] : 𝟙 X ≠ 0 :=
+(simple.mono_is_iso_equiv_nonzero (𝟙 X)) (by apply_instance)
 
 section
 variable [has_zero_object.{v} C]
@@ -127,81 +131,5 @@ begin
 end
 
 end abelian
-
-section
-variables {C}
-variables [has_zero_morphisms.{v} C] [has_finite_biproducts.{v} C]
-
-structure simple_decomposition (X : C) :=
-(ι : Type v)
-[fintype : fintype ι]
-[decidable_eq : decidable_eq ι]
-(summand : ι → C)
-[is_simple : Π i, simple.{v} (summand i)]
-(iso : X ≅ ⨁ summand)
-
-attribute [instance] simple_decomposition.fintype simple_decomposition.decidable_eq
-attribute [instance] simple_decomposition.is_simple
-
-def simple_decomposition.multiplicity
-  [decidable_rel (λ X Y : C, nonempty (X ≅ Y))] -- This will presumably be provided by classical logic.
-  {X : C} (D : simple_decomposition.{v} X) (Y : C) [simple.{v} Y] : ℕ :=
-fintype.card { i // nonempty (D.summand i ≅ Y) }
-
-end
-
-section
-variables [preadditive.{v} C] [has_finite_biproducts.{v} C] -- TODO these should add up to `additive`?
-
-def equiv_of_simple_decompositions' (n : ℕ) {X : C}
-  (D E : simple_decomposition.{v} X) (w : fintype.card D.ι = n) :
-  trunc Σ e : D.ι ≃ E.ι, Π i, E.summand (e i) ≅ D.summand i :=
-begin
-  induction n with n ih generalizing X,
-  { sorry, },
-  -- set e' := ,
-  trunc_cases fintype.equiv_fin D.ι with e₁,
-  rw w at e₁,
-end
-
-def equiv_of_simple_decompositions {X : C} (D E : simple_decomposition.{v} X) :
-  trunc Σ e : D.ι ≃ E.ι, Π i, E.summand (e i) ≅ D.summand i :=
--- TODO this requires some work
--- We'll do it by induction, and use Gaussian elimination on 2x2 matrices.
-equiv_of_simple_decompositions' (fintype.card D.ι) D E rfl
-
-open_locale classical
-
-lemma multiplicity_constant {X : C} (D E : simple_decomposition.{v} X) (Y : C) [simple.{v} Y] :
-  D.multiplicity Y = E.multiplicity Y :=
-begin
-  obtain ⟨e, f⟩ := equiv_of_simple_decompositions D E,
-  dsimp [simple_decomposition.multiplicity],
-  apply fintype.card_congr,
-  refine equiv.subtype_congr e _,
-  intro i,
-  refine equiv.nonempty_iff_nonempty _,
-  exact
-  { to_fun := λ e', (f i).trans e',
-    inv_fun := λ e', (f i).symm.trans e',
-    left_inv := by { intro i, simp, },
-    right_inv := by { intro i, simp, }, }
-end
-
-end
-
-variables (C) [preadditive.{v} C] [has_finite_biproducts.{v} C]
-class semisimple :=
-(simple_decomposition : Π X : C, trunc (simple_decomposition.{v} X))
-
-variables {C} [semisimple.{v} C] [decidable_rel (λ X Y : C, nonempty (X ≅ Y))]
-
-def multiplicity (Y : C) [simple.{v} Y] (X : C) : ℕ :=
-begin
-  have D := semisimple.simple_decomposition.{v} X,
-  trunc_cases D,
-  { exact D.multiplicity Y, },
-  { convert multiplicity_constant a b Y, },
-end
 
 end category_theory

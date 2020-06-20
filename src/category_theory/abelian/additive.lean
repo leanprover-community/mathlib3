@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.limits.shapes.biproducts
 import category_theory.preadditive
-import category_theory.simple
+-- import category_theory.simple
 import tactic.abel
 
 open category_theory
@@ -30,29 +30,41 @@ is invertible, then `f` is invertible.
 -/
 def is_iso_left_of_is_iso_biprod_map
   {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) [is_iso (biprod.map f g)] : is_iso f :=
-begin
-  fsplit,
-  exact biprod.inl ≫ inv (biprod.map f g) ≫ biprod.fst,
-  { dsimp,
-    have := is_iso.hom_inv_id (biprod.map f g),
-    have := congr_arg (λ p : W ⊞ X ⟶ W ⊞ X, biprod.inl ≫ p ≫ biprod.fst) this,
-    simp only [category.id_comp, category.assoc] at this,
-    simp only [biprod.inl_map_assoc] at this,
-    rw this,
-    simp, },
-  { dsimp,
-    have := is_iso.inv_hom_id (biprod.map f g),
-    have := congr_arg (λ p : Y ⊞ Z ⟶ Y ⊞ Z, biprod.inl ≫ p ≫ biprod.fst) this,
-    simp only [category.id_comp, category.assoc] at this,
-    simp only [biprod.map_fst] at this,
+{ inv := biprod.inl ≫ inv (biprod.map f g) ≫ biprod.fst,
+  hom_inv_id' :=
+  begin
+    have t := congr_arg (λ p : W ⊞ X ⟶ W ⊞ X, biprod.inl ≫ p ≫ biprod.fst)
+      (is_iso.hom_inv_id (biprod.map f g)),
+    simp only [category.id_comp, category.assoc, biprod.inl_map_assoc] at t,
+    simp [t],
+  end,
+  inv_hom_id' :=
+  begin
+    have t := congr_arg (λ p : Y ⊞ Z ⟶ Y ⊞ Z, biprod.inl ≫ p ≫ biprod.fst)
+      (is_iso.inv_hom_id (biprod.map f g)),
+    simp only [category.id_comp, category.assoc, biprod.map_fst] at t,
     simp only [category.assoc],
-    rw this,
-    simp, },
+    simp [t],
+  end }
 
-end
+def biprod.swap (X Y : C) : X ⊞ Y ≅ Y ⊞ X :=
+has_limit.ext_of_equivalence
+  (discrete.equivalence walking_pair.swap)
+  (discrete.nat_iso (λ j, by { cases j; simp, }))
 
-def is_iso_right_of_is_iso_biprod_map {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) [is_iso (biprod.map f g)] : is_iso g :=
+lemma biprod.swap_map_swap {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) :
+  (biprod.swap X W).hom ≫ biprod.map f g ≫ (biprod.swap Y Z).hom = biprod.map g f :=
 sorry
+-- by { ext; simp [biprod.swap, has_limit.ext_of_equivalence, is_limit.cone_points_iso_of_equivalence_hom], }
+
+def is_iso_right_of_is_iso_biprod_map
+  {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) [is_iso (biprod.map f g)] : is_iso g :=
+begin
+  haveI : is_iso (biprod.map g f) := by
+  { rw [←biprod.swap_map_swap],
+    apply_instance, },
+  exact is_iso_left_of_is_iso_biprod_map g f,
+end
 
 end
 
@@ -192,7 +204,7 @@ end
 --   exact nz (h₁.symm.trans h₀),
 -- end
 
-lemma biprod.row_nonzero_of_iso {W X Y Z : C}
+lemma biprod.column_nonzero_of_iso {W X Y Z : C}
   (f : W ⊞ X ⟶ Y ⊞ Z) [is_iso f] :
   𝟙 W = 0 ∨ biprod.inl ≫ f ≫ biprod.fst ≠ 0 ∨ biprod.inl ≫ f ≫ biprod.snd ≠ 0 :=
 begin
@@ -218,11 +230,72 @@ end
 
 end
 
--- We'll definitely need preadditive biproducts here.
-lemma biproduct.row_nonzero_of_iso {σ τ : Type v} [decidable_eq σ] [fintype σ] [decidable_eq τ] [fintype τ]
-  (S : σ → C) [has_biproduct.{v} S] (T : τ → C) [has_biproduct.{v} T]
+variables [preadditive.{v} C]
+open_locale big_operators
+
+lemma biproduct.column_nonzero_of_iso'
+  {σ τ : Type v} [decidable_eq σ] [fintype σ] [decidable_eq τ] [fintype τ]
+  {S : σ → C} [has_preadditive_biproduct.{v} S] {T : τ → C} [has_preadditive_biproduct.{v} T]
   (f : ⨁ S ⟶ ⨁ T) [is_iso f] (s : σ) :
-  𝟙 (S s) = 0 ∨ ∃ t : τ, biproduct.ι S s ≫ f ≫ biproduct.π T t ≠ 0 :=
-sorry
+  (∀ t : τ, biproduct.ι S s ≫ f ≫ biproduct.π T t = 0) → 𝟙 (S s) = 0 :=
+begin
+  intro z,
+  set x := biproduct.ι S s ≫ f ≫ inv f ≫ biproduct.π S s,
+  have h₁ : x = 𝟙 (S s), by simp [x],
+  have h₀ : x = 0,
+  { dsimp [x],
+    rw [←category.id_comp (inv f), category.assoc, ←biproduct.total],
+    simp only [comp_sum_assoc],
+    conv_lhs { congr, apply_congr, skip, simp only [reassoc_of z], },
+    simp, },
+  exact h₁.symm.trans h₀,
+end
+
+/--
+For `s : multiset α`, we can lift the existential statement that `∃ x, x ∈ s` to a `trunc α`.
+-/
+def trunc_of_multiset_exists_mem {α} (s : multiset α) : (∃ x, x ∈ s) → trunc α :=
+quotient.rec_on_subsingleton s $ λ l h,
+  match l, h with
+    | [],       _ := false.elim (by tauto)
+    | (a :: _), _ := trunc.mk a
+  end
+
+/--
+A `nonempty` `fintype` constructively contains an element.
+-/
+def trunc_of_nonempty_fintype {α} (h : nonempty α) [fintype α] : trunc α :=
+trunc_of_multiset_exists_mem finset.univ.val (by simp)
+
+/--
+A `fintype` with positive cardinality constructively contains an element.
+-/
+def trunc_of_card_pos {α} [fintype α] (h : 0 < fintype.card α) : trunc α :=
+trunc_of_nonempty_fintype (fintype.card_pos_iff.mp h)
+
+/--
+By iterating over the elements of a fintype, we can lift an existential statement `∃ a, P a`
+to `trunc (Σ' a, P a)`, containing data.
+-/
+def trunc_sigma_of_exists {α} [fintype α] {P : α → Prop} [decidable_pred P] (h : ∃ a, P a) :
+  trunc (Σ' a, P a) :=
+trunc_of_nonempty_fintype $ exists.elim h $ λ a ha, ⟨⟨a, ha⟩⟩
+
+def biproduct.column_nonzero_of_iso
+  {σ τ : Type v} [decidable_eq σ] [fintype σ] [decidable_eq τ] [fintype τ]
+  {S : σ → C} [has_preadditive_biproduct.{v} S] {T : τ → C} [has_preadditive_biproduct.{v} T]
+  (s : σ) (nz : 𝟙 (S s) ≠ 0)
+  [∀ t, decidable_eq (S s ⟶ T t)]
+  (f : ⨁ S ⟶ ⨁ T) [is_iso f] :
+  trunc (Σ' t : τ, biproduct.ι S s ≫ f ≫ biproduct.π T t ≠ 0) :=
+begin
+  apply trunc_sigma_of_exists,
+  -- Do this before we run `classical`, so we get the right `decidable_eq` instances.
+  have t := biproduct.column_nonzero_of_iso'.{v} f s,
+  classical,
+  by_contradiction,
+  simp only [classical.not_exists_not] at a,
+  exact nz (t a)
+end
 
 end category_theory

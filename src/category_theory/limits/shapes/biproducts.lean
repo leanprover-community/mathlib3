@@ -181,6 +181,16 @@ lemma biproduct.ι_π (f : J → C) [has_biproduct f] (j j' : J) :
   biproduct.ι f j ≫ biproduct.π f j' = if h : j = j' then eq_to_hom (congr_arg f h) else 0 :=
 has_biproduct.bicone.ι_π j j'
 
+@[simp,reassoc]
+lemma biproduct.ι_π_self (f : J → C) [has_biproduct f] (j : J) :
+  biproduct.ι f j ≫ biproduct.π f j = 𝟙 _ :=
+by simp [biproduct.ι_π]
+
+@[simp,reassoc]
+lemma biproduct.ι_π_ne (f : J → C) [has_biproduct f] {j j' : J} (h : j ≠ j') :
+  biproduct.ι f j ≫ biproduct.π f j' = 0 :=
+by simp [biproduct.ι_π, h]
+
 /-- Given a collection of maps into the summands, we obtain a map into the biproduct. -/
 abbreviation biproduct.lift
   {f : J → C} [has_biproduct f] {P : C} (p : Π b, P ⟶ f b) : P ⟶ ⨁ f :=

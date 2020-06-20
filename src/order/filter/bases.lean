@@ -254,7 +254,7 @@ has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t, (t ∈ l ↔ ∃ r ∈ l, P r 
 begin
   split,
   { rintros ⟨h⟩,
-    intros t,
+  { rintros ⟨h⟩ t,
     convert h t,
     ext s,
     tauto, },

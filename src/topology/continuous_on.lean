@@ -242,7 +242,7 @@ tendsto_inf.2 ⟨h, tendsto_principal.2 $
   λ x, mem_image_of_mem _⟩
 
 lemma continuous_within_at.prod_map {f : α → γ} {g : β → δ} {s : set α} {t : set β}
-  {x : α} {y : β} (hx : x ∈ s) (hy : y ∈ t)
+  {x : α} {y : β}
   (hf : continuous_within_at f s x) (hg : continuous_within_at g t y) :
 continuous_within_at (prod.map f g) (s.prod t) (x, y) :=
 begin
@@ -290,7 +290,7 @@ by rw [continuous_on_iff_continuous_restrict, continuous_iff_is_closed]; simp on
 lemma continuous_on.prod_map {f : α → γ} {g : β → δ} {s : set α} {t : set β}
   (hf : continuous_on f s) (hg : continuous_on g t) :
 continuous_on (prod.map f g) (s.prod t) :=
-λ ⟨x, y⟩ ⟨hx, hy⟩, continuous_within_at.prod_map hx hy (hf x hx) (hg y hy)
+λ ⟨x, y⟩ ⟨hx, hy⟩, continuous_within_at.prod_map (hf x hx) (hg y hy)
 
 lemma continuous_on_empty (f : α → β) : continuous_on f ∅ :=
 λ x, false.elim

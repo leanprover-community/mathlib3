@@ -340,6 +340,7 @@ lemma exists_mem_of_nonempty (α) : ∀ [nonempty α], ∃x:α, x ∈ (univ : se
 instance univ_decidable : decidable_pred (@set.univ α) :=
 λ x, is_true trivial
 
+/-- `diagonal α` is the subset of `α × α` consisting of all pairs of the form `(a, a)`. -/
 def diagonal (α : Type*) : set (α × α) := {p | p.1 = p.2}
 
 /-! ### Lemmas about union -/
@@ -497,7 +498,7 @@ by finish [subset_def, ext_iff, iff_def]
 theorem inter_eq_self_of_subset_right {s t : set α} (h : t ⊆ s) : s ∩ t = t :=
 by finish [subset_def, ext_iff, iff_def]
 
-lemma set.inter_compl_nonempty_iff {α : Type*} {s t : set α} : (s ∩ -t).nonempty ↔ ¬ s ⊆ t :=
+lemma inter_compl_nonempty_iff {α : Type*} {s t : set α} : (s ∩ -t).nonempty ↔ ¬ s ⊆ t :=
 begin
   split,
   { rintros ⟨x ,xs, xt⟩ sub,

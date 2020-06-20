@@ -62,13 +62,12 @@ end general
 section real
 variables (E : Type*) [normed_group E] [normed_space ℝ E]
 
-open_locale classical
-
 /-- If one controls the norm of every `f x`, then one controls the norm of `x`.
     Compare `continuous_linear_map.op_norm_le_bound`. -/
 lemma norm_le_dual_bound (x : E) {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ (f: dual ℝ E), ∥f x∥ ≤ M * ∥f∥) :
   ∥x∥ ≤ M :=
 begin
+  classical,
   by_cases h : x = 0,
   { simp only [h, hMp, norm_zero] },
   { cases exists_dual_vector x h with f hf,

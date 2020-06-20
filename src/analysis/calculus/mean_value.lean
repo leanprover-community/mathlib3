@@ -13,7 +13,8 @@ In this file we prove the following facts:
 
 * `convex.norm_image_sub_le_of_norm_deriv_le` : if `f` is differentiable on a convex set `s`
   and the norm of its derivative is bounded by `C`, then `f` is Lipschitz continuous on `s` with
-  constant `C`.
+  constant `C`; also a variant in which what is bounded by `C` is the norm of the difference of the
+  derivative from a fixed linear map.
 
 * `image_le_of*`, `image_norm_le_of_*` : several similar lemmas deducing `f x ≤ B x` or
   `∥f x∥ ≤ B x` from upper estimates on `f'` or `∥f'∥`, respectively. These lemmas differ by
@@ -40,6 +41,8 @@ In this file we prove the following facts:
 
 * `exists_has_deriv_at_eq_slope` and `exists_deriv_eq_slope` : Lagrange's Mean Value Theorem.
 
+* `domain_mvt` : Lagrange's Mean Value Theorem, applied to a segment in a convex domain.
+
 * `convex.image_sub_lt_mul_sub_of_deriv_lt`, `convex.mul_sub_lt_image_sub_of_lt_deriv`,
   `convex.image_sub_le_mul_sub_of_deriv_le`, `convex.mul_sub_le_image_sub_of_le_deriv`,
   if `∀ x, C (</≤/>/≥) (f' x)`, then `C * (y - x) (</≤/>/≥) (f y - f x)` whenever `x < y`.
@@ -52,6 +55,9 @@ In this file we prove the following facts:
 
 * `convex_on_of_deriv_mono`, `convex_on_of_deriv2_nonneg` : if the derivative of a function
   is increasing or its second derivative is nonnegative, then the original function is convex.
+
+* `strict_fderiv_of_cont_diff` : a C^1 function over the reals is strictly differentiable.  (This
+  is a corollary of the mean value inequality.)
 -/
 
 
@@ -827,8 +833,7 @@ convex_on_of_deriv2_nonneg convex_univ hf'.continuous.continuous_on hf'.differen
 /-- Lagrange's Mean Value Theorem, applied to convex domains. -/
 theorem domain_mvt
   {f : E → ℝ} {s : set E} {x y : E} {f' : E → (E →L[ℝ] ℝ)}
-  (hf : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)
-  (hs : convex s) (xs : x ∈ s) (ys : y ∈ s) :
+  (hf : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hs : convex s) (xs : x ∈ s) (ys : y ∈ s) :
   ∃ z ∈ segment x y, f y - f x = f' z (y - x) :=
 begin
   have hIccIoo := @Ioo_subset_Icc_self ℝ _ 0 1,
@@ -871,8 +876,7 @@ end
 /-- Over the reals, a continuously differentiable function is strictly differentiable. -/
 lemma strict_fderiv_of_cont_diff
   {f : E → F} {s : set E}  {x : E} {f' : E → (E →L[ℝ] F)}
-  (hf : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)
-  (hcont : continuous_on f' s) (hs : is_open s) (xs : x ∈ s) :
+  (hf : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hcont : continuous_on f' s) (hs : s ∈ 𝓝 x) :
   has_strict_fderiv_at f (f' x) x :=
 begin
 -- turn little-o definition of strict_fderiv into an epsilon-delta statement
@@ -881,8 +885,8 @@ begin
   intros c hc,
   refine is_O_with.of_bound (eventually_iff.mpr (mem_nhds_iff.mpr _)),
 -- the correct ε is the modulus of continuity of f', shrunk to be inside s
-  rcases (metric.continuous_on_iff.mp hcont x xs c hc) with ⟨ε₁, H₁, hcont'⟩,
-  rcases (metric.is_open_iff.mp hs x xs) with ⟨ε₂, H₂, hε₂⟩,
+  rcases (metric.continuous_on_iff.mp hcont x (mem_of_nhds hs) c hc) with ⟨ε₁, H₁, hcont'⟩,
+  rcases (mem_nhds_iff.mp hs) with ⟨ε₂, H₂, hε₂⟩,
   use min ε₁ ε₂, refine ⟨lt_min H₁ H₂, _⟩,
 -- mess with ε construction
   set t := ball x (min ε₁ ε₂),

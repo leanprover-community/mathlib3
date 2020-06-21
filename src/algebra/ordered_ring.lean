@@ -965,15 +965,8 @@ instance : has_one (with_top α) := ⟨↑(1:α)⟩
 @[simp] theorem top_ne_zero : ⊤ ≠ (0 : with_top α) .
 @[simp] theorem zero_ne_top : (0 : with_top α) ≠ ⊤ .
 
-@[simp] theorem coe_eq_zero {a : α} : (a : with_top α) = 0 ↔ a = 0 :=
-iff.intro
-  (assume h, match a, h with _, rfl := rfl end)
-  (assume h, h.symm ▸ rfl)
-
 @[simp] theorem zero_eq_coe {a : α} : 0 = (a : with_top α) ↔ a = 0 :=
 by rw [eq_comm, coe_eq_zero]
-
-@[simp] theorem coe_zero : ↑(0 : α) = (0 : with_top α) := rfl
 
 variable [decidable_eq α]
 

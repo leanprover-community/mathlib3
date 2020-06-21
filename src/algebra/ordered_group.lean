@@ -204,11 +204,11 @@ namespace units
 instance [monoid α] [preorder α] : preorder (units α) :=
 preorder.lift (coe : units α → α)
 
-@[simp, to_additive]
+@[simp, to_additive, norm_cast]
 theorem coe_le_coe [monoid α] [preorder α] {a b : units α} :
   (a : α) ≤ b ↔ a ≤ b := iff.rfl
 
-@[simp, to_additive]
+@[simp, to_additive, norm_cast]
 theorem coe_lt_coe [monoid α] [preorder α] {a b : units α} :
   (a : α) < b ↔ a < b := iff.rfl
 
@@ -224,12 +224,12 @@ linear_order.lift coe units.ext
 instance [monoid α] [decidable_linear_order α] : decidable_linear_order (units α) :=
 decidable_linear_order.lift coe units.ext
 
-@[simp, to_additive]
+@[simp, to_additive, norm_cast]
 theorem max_coe [monoid α] [decidable_linear_order α] {a b : units α} :
   (↑(max a b) : α) = max a b :=
 by by_cases a ≤ b; simp [max, h]
 
-@[simp, to_additive]
+@[simp, to_additive, norm_cast]
 theorem min_coe [monoid α] [decidable_linear_order α] {a b : units α} :
   (↑(min a b) : α) = min a b :=
 by by_cases a ≤ b; simp [min, h]
@@ -284,13 +284,17 @@ end
 
 end with_zero
 
+-- the norm_cast attribute was not available in order.bounded_lattice
+attribute [norm_cast] with_top.coe_eq_coe with_top.coe_le_coe with_top.coe_lt_coe
+  with_bot.coe_eq_coe with_bot.coe_le_coe with_bot.coe_lt_coe
+
 namespace with_top
 
 instance [add_semigroup α] : add_semigroup (with_top α) :=
 { add := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a + b)),
   ..@additive.add_semigroup _ $ @with_zero.semigroup (multiplicative α) _ }
 
-lemma coe_add [add_semigroup α] {a b : α} : ((a + b : α) : with_top α) = a + b := rfl
+@[norm_cast] lemma coe_add [add_semigroup α] {a b : α} : ((a + b : α) : with_top α) = a + b := rfl
 
 instance [add_comm_semigroup α] : add_comm_semigroup (with_top α) :=
 { ..@additive.add_comm_semigroup _ $
@@ -300,6 +304,13 @@ instance [add_monoid α] : add_monoid (with_top α) :=
 { zero := some 0,
   add := (+),
   ..@additive.add_monoid _ $ @with_zero.monoid (multiplicative α) _ }
+
+@[simp, norm_cast] lemma coe_zero {α : Type*}
+  [add_monoid α] : ((0 : α) : with_top α) = 0 := rfl
+
+@[simp, norm_cast] lemma coe_eq_zero {α : Type*}
+  [add_monoid α] {a : α} : (a : with_top α) = 0 ↔ a = 0 :=
+by norm_cast
 
 instance [add_comm_monoid α] : add_comm_monoid (with_top α) :=
 { zero := 0,
@@ -334,7 +345,7 @@ end
 @[simp] lemma zero_lt_top [ordered_add_comm_monoid α] : (0 : with_top α) < ⊤ :=
 coe_lt_top 0
 
-@[simp] lemma zero_lt_coe [ordered_add_comm_monoid α] (a : α) : (0 : with_top α) < a ↔ 0 < a :=
+@[simp, norm_cast] lemma zero_lt_coe [ordered_add_comm_monoid α] (a : α) : (0 : with_top α) < a ↔ 0 < a :=
 coe_lt_coe
 
 @[simp] lemma add_top [ordered_add_comm_monoid α] : ∀{a : with_top α}, a + ⊤ = ⊤
@@ -388,9 +399,13 @@ begin
     exact ⟨_, rfl, add_le_add_left' h⟩, }
 end
 
-@[simp] lemma coe_zero [add_monoid α] : ((0 : α) : with_bot α) = 0 := rfl
+@[simp, norm_cast] lemma coe_zero [add_monoid α] : ((0 : α) : with_bot α) = 0 := rfl
 
-@[simp] lemma coe_add [add_semigroup α] (a b : α) : ((a + b : α) : with_bot α) = a + b := rfl
+@[simp, norm_cast] lemma coe_eq_zero {α : Type*}
+  [add_monoid α] {a : α} : (a : with_bot α) = 0 ↔ a = 0 :=
+by norm_cast
+
+@[simp, norm_cast] lemma coe_add [add_semigroup α] (a b : α) : ((a + b : α) : with_bot α) = a + b := rfl
 
 @[simp] lemma bot_add [ordered_add_comm_monoid α] (a : with_bot α) : ⊥ + a = ⊥ := rfl
 
@@ -398,7 +413,7 @@ end
 
 instance has_one [has_one α] : has_one (with_bot α) := ⟨(1 : α)⟩
 
-@[simp] lemma coe_one [has_one α] : ((1 : α) : with_bot α) = 1 := rfl
+@[simp, norm_cast] lemma coe_one [has_one α] : ((1 : α) : with_bot α) = 1 := rfl
 
 end with_bot
 
@@ -478,7 +493,7 @@ instance with_top.canonically_ordered_add_monoid : canonically_ordered_add_monoi
     begin
       simp [canonically_ordered_add_monoid.le_iff_exists_add, -add_comm],
       split,
-      { rintro ⟨c, rfl⟩, refine ⟨c, _⟩, simp [with_top.coe_add] },
+      { rintro ⟨c, rfl⟩, refine ⟨c, _⟩, norm_cast },
       { exact assume h, match b, h with _, ⟨some c, rfl⟩ := ⟨_, rfl⟩ end }
     end
   | none, some b := show (⊤ : with_top α) ≤ b ↔ ∃c:with_top α, ↑b = ⊤ + c, by simp
@@ -812,9 +827,8 @@ lemma with_top.add_lt_add_iff_left :
     assume b c h,
     cases b; cases c;
       simp [with_top.none_eq_top, with_top.some_eq_coe, with_top.coe_lt_top, with_top.coe_lt_coe],
-    { rw [← with_top.coe_add], exact with_top.coe_lt_top _ },
-    { rw [← with_top.coe_add, ← with_top.coe_add, with_top.coe_lt_coe],
-      exact add_lt_add_iff_left _ }
+    { norm_cast, exact with_top.coe_lt_top _ },
+    { norm_cast, exact add_lt_add_iff_left _ }
   end
 
 lemma with_top.add_lt_add_iff_right

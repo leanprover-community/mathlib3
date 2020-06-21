@@ -907,7 +907,9 @@ def completion {α : Type u} [measurable_space α] (μ : measure α) :
     letI := null_measurable μ,
     refine le_antisymm (λ s, _) (outer_measure.trim_ge _),
     rw outer_measure.trim_eq_infi,
-    dsimp, clear _inst,
+    dsimp,
+    clear _inst,
+    resetI,
     rw measure_eq_infi s,
     exact infi_le_infi (λ t, infi_le_infi $ λ st,
       infi_le_infi2 $ λ ht, ⟨ht.is_null_measurable _, le_refl _⟩)

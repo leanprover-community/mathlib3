@@ -232,7 +232,7 @@ begin
     have B : e (e.symm y) = y := linear_equiv.apply_symm_apply _ _,
     conv_lhs { rw [← A, ← B] },
     change dist (f (e.symm x)) (f (e.symm y)) ≤ ∥f∥ * dist (e.symm x) (e.symm y),
-    exact f.lipschitz.dist_le_mul _ _ }
+    unfreezingI { exact f.lipschitz.dist_le_mul _ _ } }
 end
 
 end proper_field

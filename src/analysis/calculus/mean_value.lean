@@ -469,7 +469,7 @@ hs.norm_image_sub_le_of_norm_has_fderiv_within_le
 (λ x hx, (hf x hx).has_fderiv_at.has_fderiv_within_at) bound xs ys
 
 /-- Variant of the mean value inequality on a convex set, using a bound on the difference between
-the derivative and a fixed linear map, rather than a bound on the deriviative itself. Version with
+the derivative and a fixed linear map, rather than a bound on the derivative itself. Version with
 `has_fderiv_within`. -/
 theorem convex.norm_image_sub_le_of_norm_has_fderiv_within_le'
   {f : E → F} {C : ℝ} {s : set E} {x y : E} {f' : E → (E →L[ℝ] F)} {φ : E →L[ℝ] F}
@@ -880,14 +880,13 @@ lemma strict_fderiv_of_cont_diff
   has_strict_fderiv_at f (f' x) x :=
 begin
 -- turn little-o definition of strict_fderiv into an epsilon-delta statement
-  change is_o _ _ _,
   apply is_o_iff_forall_is_O_with.mpr,
   intros c hc,
   refine is_O_with.of_bound (eventually_iff.mpr (mem_nhds_iff.mpr _)),
 -- the correct ε is the modulus of continuity of f', shrunk to be inside s
   rcases (metric.continuous_on_iff.mp hcont x (mem_of_nhds hs) c hc) with ⟨ε₁, H₁, hcont'⟩,
   rcases (mem_nhds_iff.mp hs) with ⟨ε₂, H₂, hε₂⟩,
-  use min ε₁ ε₂, refine ⟨lt_min H₁ H₂, _⟩,
+  refine ⟨min ε₁ ε₂, lt_min H₁ H₂, _⟩,
 -- mess with ε construction
   set t := ball x (min ε₁ ε₂),
   have hts : t ⊆ s := λ _ hy, hε₂ (ball_subset_ball (min_le_right ε₁ ε₂) hy),
@@ -895,16 +894,14 @@ begin
     λ y yt, has_fderiv_within_at.mono (hf y (hts yt)) hts,
   have hconv := convex_ball x (min ε₁ ε₂),
 -- simplify formulas involving the product E × E
-  change _ → _, rintros ⟨a, b⟩ h,
+  rintros ⟨a, b⟩ h,
   simp only [mem_set_of_eq, map_sub],
   have hab : a ∈ t ∧ b ∈ t := by rwa [mem_ball, prod.dist_eq, max_lt_iff] at h,
 -- exploit the choice of ε as the modulus of continuity of f'
   have hf' : ∀ x' ∈ t, ∥f' x' - f' x∥ ≤ c,
   { intros x' H',
-    change dist (f' x') (f' x) ≤ c,
     refine le_of_lt (hcont' x' (hts H') _),
     exact ball_subset_ball (min_le_left ε₁ ε₂) H' },
 -- apply mean value theorem
-  have := convex.norm_image_sub_le_of_norm_has_fderiv_within_le' Hf hf' hconv hab.2 hab.1,
-  simpa,
+  simpa using convex.norm_image_sub_le_of_norm_has_fderiv_within_le' Hf hf' hconv hab.2 hab.1,
 end

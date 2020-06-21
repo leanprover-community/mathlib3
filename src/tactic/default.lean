@@ -29,3 +29,4 @@ import tactic.reassoc_axiom -- most likely useful only for category_theory
 import tactic.slice
 import tactic.subtype_instance
 import tactic.group
+import tactic.zify

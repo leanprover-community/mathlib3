@@ -53,6 +53,8 @@ by cases s₁; cases s₂; simp [alist.to_finmap]
 
 @[simp] theorem alist.to_finmap_entries (s : alist β) : ⟦s⟧.entries = s.entries := rfl
 
+/-- Given `l : list (sigma β)`, create a term of type `finmap β` by removing
+entries with duplicate keys. -/
 def list.to_finmap [decidable_eq α] (s : list (sigma β)) : finmap β := s.to_alist.to_finmap
 
 namespace finmap
@@ -162,6 +164,8 @@ def singleton (a : α) (b : β a) : finmap β := ⟦alist.singleton a b⟧
 @[simp] lemma mem_singleton (x y : α) (b : β y) : x ∈ singleton y b ↔ x = y :=
 by simp only [singleton]; erw [mem_cons_eq, mem_nil_iff, or_false]
 
+section
+
 variables [decidable_eq α]
 
 instance has_decidable_eq [∀ a, decidable_eq (β a)] : decidable_eq (finmap β)
@@ -233,6 +237,8 @@ induction_on s $ λ s, by simp
   a' ∈ replace a b s ↔ a' ∈ s :=
 induction_on s $ λ s, by simp
 
+end
+
 /-! ### foldl -/
 
 /-- Fold a commutative function over the key-value pairs in the map -/
@@ -241,13 +247,19 @@ def foldl {δ : Type w} (f : δ → Π a, β a → δ)
   (d : δ) (m : finmap β) : δ :=
 m.entries.foldl (λ d s, f d s.1 s.2) (λ d s t, H _ _ _ _ _) d
 
+/-- `any f s` returns `tt` iff there exists a value `v` in `s` such that `f v = tt`. -/
 def any (f : Π x, β x → bool) (s : finmap β) : bool :=
 s.foldl (λ x y z, x ∨ f y z) (by simp [or_assoc]; intros; congr' 2; rw or_comm) ff
 
+/-- `all f s` returns `tt` iff `f v = tt` for all values `v` in `s`. -/
 def all (f : Π x, β x → bool) (s : finmap β) : bool :=
 s.foldl (λ x y z, x ∧ f y z) (by simp [and_assoc]; intros; congr' 2; rw and_comm) ff
 
 /-! ### erase -/
+
+section
+
+variables [decidable_eq α]
 
 /-- Erase a key from the map. If the key is not present it does nothing. -/
 def erase (a : α) (s : finmap β) : finmap β :=
@@ -283,6 +295,8 @@ induction_on s $ λ s, ext (by simp only [erase_erase, erase_to_finmap])
 
 /-! ### sdiff -/
 
+/-- `sdiff s s'` consists of all key-value pairs from `s` and `s'` where the keys are in `s` or
+`s'` but not both. -/
 def sdiff (s s' : finmap β) : finmap β :=
 s'.foldl (λ s x _, s.erase x) (λ a₀ a₁ _ a₂ _, erase_erase) s
 
@@ -423,13 +437,13 @@ ext_lookup
       { have : x ∉ singleton a b, { rwa mem_singleton },
         rw [lookup_union_left_of_not_in this, lookup_erase_ne h'] } } )
 
+end
+
 /-! ### disjoint -/
 
+/-- `disjoint s₁ s₂` holds if `s₁` and `s₂` have no keys in common. -/
 def disjoint (s₁ s₂ : finmap β) : Prop :=
 ∀ x ∈ s₁, ¬ x ∈ s₂
-
-instance : decidable_rel (@disjoint α β _) :=
-λ x y, by dsimp only [disjoint]; apply_instance
 
 lemma disjoint_empty (x : finmap β) : disjoint ∅ x .
 
@@ -439,6 +453,13 @@ lemma disjoint.symm (x y : finmap β) (h : disjoint x y) : disjoint y x :=
 
 lemma disjoint.symm_iff (x y : finmap β) : disjoint x y ↔ disjoint y x :=
 ⟨disjoint.symm x y, disjoint.symm y x⟩
+
+section
+
+variables [decidable_eq α]
+
+instance : decidable_rel (@disjoint α β) :=
+λ x y, by dsimp only [disjoint]; apply_instance
 
 lemma disjoint_union_left (x y z : finmap β) : disjoint (x ∪ y) z ↔ disjoint x z ∧ disjoint y z :=
 by simp [disjoint, finmap.mem_union, or_imp_distrib, forall_and_distrib]
@@ -463,5 +484,6 @@ theorem union_cancel {s₁ s₂ s₃ : finmap β} (h : disjoint s₁ s₃) (h' :
         end,
  λ h, h ▸ rfl⟩
 
+end
+
 end finmap
-#lint

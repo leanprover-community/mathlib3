@@ -296,7 +296,7 @@ end
 /-! ### disjoint -/
 
 /-- Two associative lists are disjoint if they have no common keys. -/
-def disjoint (s₁ s₂ : alist β) :=
+def disjoint (s₁ s₂ : alist β) : Prop :=
 ∀ k ∈ s₁.keys, ¬ k ∈ s₂.keys
 
 variables [decidable_eq α]

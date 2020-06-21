@@ -380,7 +380,7 @@ open set
 
 instance : partial_order (submodule R M) :=
 { le := λ p p', ∀ ⦃x⦄, x ∈ p → x ∈ p',
-  ..partial_order.lift (coe : submodule R M → set M) ext' }
+  ..partial_order.lift (coe : submodule R M → set M) coe_injective }
 
 variables {p p'}
 
@@ -547,7 +547,7 @@ submodule.ext $ λ a, by simp
 
 lemma map_comp (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) (p : submodule R M) :
   map (g.comp f) p = map g (map f p) :=
-submodule.ext' $ by simp [map_coe]; rw ← image_comp
+submodule.coe_injective $ by simp [map_coe]; rw ← image_comp
 
 lemma map_mono {f : M →ₗ[R] M₂} {p p' : submodule R M} : p ≤ p' → map f p ≤ map f p' :=
 image_subset _
@@ -569,7 +569,7 @@ def comap (f : M →ₗ[R] M₂) (p : submodule R M₂) : submodule R M :=
   x ∈ comap f p ↔ f x ∈ p := iff.rfl
 
 lemma comap_id : comap linear_map.id p = p :=
-submodule.ext' rfl
+submodule.coe_injective rfl
 
 lemma comap_comp (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) (p : submodule R M₃) :
   comap (g.comp f) p = comap f (comap g p) := rfl
@@ -847,7 +847,7 @@ lemma prod_mono {p p' : submodule R M} {q q' : submodule R M₂} :
   p ≤ p' → q ≤ q' → prod p q ≤ prod p' q' := prod_mono
 
 @[simp] lemma prod_inf_prod : prod p q ⊓ prod p' q' = prod (p ⊓ p') (q ⊓ q') :=
-ext' set.prod_inter_prod
+coe_injective set.prod_inter_prod
 
 @[simp] lemma prod_sup_prod : prod p q ⊔ prod p' q' = prod (p ⊔ p') (q ⊔ q') :=
 begin
@@ -1633,7 +1633,7 @@ protected lemma image_eq_preimage (s : set M) : e '' s = e.symm ⁻¹' s :=
 e.to_equiv.image_eq_preimage s
 
 lemma map_eq_comap {p : submodule R M} : (p.map e : submodule R M₂) = p.comap e.symm :=
-submodule.ext' $ by simp [e.image_eq_preimage]
+submodule.coe_injective $ by simp [e.image_eq_preimage]
 
 end
 

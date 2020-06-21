@@ -570,7 +570,8 @@ def change_origin_summable_aux_j (k : ℕ) :
     → (Σ (k : ℕ) (n : ℕ), {s : finset (fin n) // finset.card s = k}) :=
 λ ⟨n, s, hs⟩, ⟨k, n, s, hs⟩
 
-lemma change_origin_summable_aux_j_inj (k : ℕ) : function.injective (change_origin_summable_aux_j k) :=
+lemma change_origin_summable_aux_j_injective (k : ℕ) :
+  function.injective (change_origin_summable_aux_j k) :=
 begin
   rintros ⟨_, ⟨_, _⟩⟩ ⟨_, ⟨_, _⟩⟩ a,
   simp only [change_origin_summable_aux_j, true_and, eq_self_iff_true, heq_iff_eq, sigma.mk.inj_iff] at a,
@@ -589,7 +590,7 @@ begin
   have S : @summable ℝ _ _ _ ((λ ⟨n, s, hs⟩, ∥(p n).restr s hs x∥ * (r : ℝ) ^ k) :
     (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}) → ℝ),
   { convert summable.summable_comp_of_injective (p.change_origin_summable_aux2 hr)
-      (change_origin_summable_aux_j_inj k),
+      (change_origin_summable_aux_j_injective k),
     -- again, cleanup that could be done by `tidy`:
     ext ⟨_, ⟨_, _⟩⟩, refl },
   have : (r : ℝ)^k ≠ 0, by simp [pow_ne_zero, nnreal.coe_eq_zero, ne_of_gt rpos],
@@ -640,7 +641,7 @@ begin
     (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}) → ℝ) :
       by { rw tsum_mul_right, convert p.change_origin_summable_aux3 k h, tidy }
   ... = tsum (A ∘ change_origin_summable_aux_j k) : by { congr, tidy }
-  ... ≤ tsum A : tsum_comp_le_tsum_of_inj SA A_nonneg (change_origin_summable_aux_j_inj k)
+  ... ≤ tsum A : tsum_comp_le_tsum_of_inj SA A_nonneg (change_origin_summable_aux_j_injective k)
 end
 
 -- From this point on, assume that the space is complete, to make sure that series that converge

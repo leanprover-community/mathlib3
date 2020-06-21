@@ -782,7 +782,7 @@ lift_range $ λ _ _, id
 /-- A monoid homomorphism `f` induces an injective homomorphism on the quotient by `f`'s kernel. -/
 @[to_additive "An `add_monoid` homomorphism `f` induces an injective homomorphism on the quotient
 by `f`'s kernel."]
-lemma injective_ker_lift (f : M →* P) : injective (ker_lift f) :=
+lemma ker_lift_injective (f : M →* P) : injective (ker_lift f) :=
 λ x y, quotient.induction_on₂' x y $ λ _ _, (ker f).eq.2
 
 /-- Given congruence relations `c, d` on a monoid such that `d` contains `c`, `d`'s quotient
@@ -813,7 +813,7 @@ noncomputable def quotient_ker_equiv_range (f : M →* P) : (ker f).quotient ≃
       ((@mul_equiv.to_monoid_hom (ker_lift f).mrange _ _ _
         $ mul_equiv.submonoid_congr ker_lift_range_eq).comp (ker_lift f).mrange_restrict) $
       (equiv.bijective _).comp
-        ⟨λ x y h, injective_ker_lift f $ by rcases x; rcases y; injections,
+        ⟨λ x y h, ker_lift_injective f $ by rcases x; rcases y; injections,
          λ ⟨w, z, hzm, hz⟩, ⟨z, by rcases hz; rcases _x; refl⟩⟩ }
 
 /-- The first isomorphism theorem for monoids in the case of a surjective homomorphism. -/
@@ -823,7 +823,7 @@ noncomputable def quotient_ker_equiv_of_surjective (f : M →* P) (hf : surjecti
   (ker f).quotient ≃* P :=
 { map_mul' := monoid_hom.map_mul _,
   ..equiv.of_bijective (ker_lift f)
-      ⟨injective_ker_lift f, lift_surjective_of_surjective (le_refl _) hf⟩ }
+      ⟨ker_lift_injective f, lift_surjective_of_surjective (le_refl _) hf⟩ }
 
 /-- The second isomorphism theorem for monoids. -/
 @[to_additive "The second isomorphism theorem for `add_monoid`s."]

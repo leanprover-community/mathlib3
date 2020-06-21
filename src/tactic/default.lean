@@ -30,3 +30,4 @@ import tactic.slice
 import tactic.subtype_instance
 import tactic.group
 import tactic.cancel_denoms
+import tactic.zify

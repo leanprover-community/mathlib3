@@ -224,15 +224,15 @@ variables (φ : A →ₐ[R] B)
 theorem coe_fn_inj ⦃φ₁ φ₂ : A →ₐ[R] B⦄ (H : ⇑φ₁ = φ₂) : φ₁ = φ₂ :=
 by { cases φ₁, cases φ₂, congr, exact H }
 
-theorem coe_ring_hom_inj : function.injective (coe : (A →ₐ[R] B) → (A →+* B)) :=
+theorem coe_ring_hom_injective : function.injective (coe : (A →ₐ[R] B) → (A →+* B)) :=
 λ φ₁ φ₂ H, coe_fn_inj $ show ((φ₁ : (A →+* B)) : A → B) = ((φ₂ : (A →+* B)) : A → B),
   from congr_arg _ H
 
-theorem coe_monoid_hom_inj : function.injective (coe : (A →ₐ[R] B)  → (A →* B)) :=
-ring_hom.coe_monoid_hom_inj.comp coe_ring_hom_inj
+theorem coe_monoid_hom_injective : function.injective (coe : (A →ₐ[R] B)  → (A →* B)) :=
+ring_hom.coe_monoid_hom_injective.comp coe_ring_hom_injective
 
-theorem coe_add_monoid_hom_inj : function.injective (coe : (A →ₐ[R] B)  → (A →+ B)) :=
-ring_hom.coe_add_monoid_hom_inj.comp coe_ring_hom_inj
+theorem coe_add_monoid_hom_injective : function.injective (coe : (A →ₐ[R] B)  → (A →+ B)) :=
+ring_hom.coe_add_monoid_hom_injective.comp coe_ring_hom_injective
 
 @[ext]
 theorem ext {φ₁ φ₂ : A →ₐ[R] B} (H : ∀ x, φ₁ x = φ₂ x) : φ₁ = φ₂ :=

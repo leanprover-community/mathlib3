@@ -83,7 +83,7 @@ begin
   split; intro h,
   { apply eq, dsimp [w, z, succ_pnat], rw [← h],
     repeat { rw [nat.succ_eq_add_one] }, ring },
-  { apply nat.succ_inj,
+  { apply nat.succ.inj,
     replace h := congr_arg (coe : ℕ+ → ℕ) h,
     rw [mul_coe, w, z] at h,
     repeat { rw [succ_pnat_coe, nat.succ_eq_add_one] at h },

@@ -52,7 +52,7 @@ by obviously
 instance yoneda_full : full (@yoneda C _) :=
 { preimage := λ X Y f, (f.app (op X)) (𝟙 X) }
 instance yoneda_faithful : faithful (@yoneda C _) :=
-{ injectivity' := λ X Y f g p,
+{ map_injective' := λ X Y f g p,
   begin
     injection p with h,
     convert (congr_fun (congr_fun h (op X)) (𝟙 X)); dsimp; simp,
@@ -87,7 +87,7 @@ begin erw [functor_to_types.naturality], refl end
 instance coyoneda_full : full (@coyoneda C _) :=
 { preimage := λ X Y f, ((f.app (unop X)) (𝟙 _)).op }
 instance coyoneda_faithful : faithful (@coyoneda C _) :=
-{ injectivity' := λ X Y f g p,
+{ map_injective' := λ X Y f g p,
   begin
     injection p with h,
     have t := (congr_fun (congr_fun h (unop X)) (𝟙 _)),

@@ -72,11 +72,11 @@ lemma to_fun_as_coe (e : α ≃ β) (a : α) : e.to_fun a = e a := rfl
 @[simp]
 lemma inv_fun_as_coe (e : α ≃ β) (b : β) : e.inv_fun b = e.symm b := rfl
 
-protected theorem injective : ∀ f : α ≃ β, injective f
-| ⟨f, g, h₁, h₂⟩ := h₁.injective
+protected theorem injective (e : α ≃ β) : injective e :=
+e.left_inv.injective
 
-protected theorem surjective : ∀ f : α ≃ β, surjective f
-| ⟨f, g, h₁, h₂⟩ := h₂.surjective
+protected theorem surjective (e : α ≃ β) : surjective e :=
+e.right_inv.surjective
 
 protected theorem bijective (f : α ≃ β) : bijective f :=
 ⟨f.injective, f.surjective⟩
@@ -88,11 +88,11 @@ protected theorem subsingleton (e : α ≃ β) [subsingleton β] : subsingleton 
 e.injective.comap_subsingleton
 
 /-- Transfer `decidable_eq` across an equivalence. -/
-protected def decidable_eq (e : α ≃ β) [H : decidable_eq β] : decidable_eq α
-| a b := decidable_of_iff _ e.injective.eq_iff
+protected def decidable_eq (e : α ≃ β) [decidable_eq β] : decidable_eq α :=
+e.injective.decidable_eq
 
-lemma nonempty_iff_nonempty : α ≃ β → (nonempty α ↔ nonempty β)
-| ⟨f, g, _, _⟩ := nonempty.congr f g
+lemma nonempty_iff_nonempty (e : α ≃ β) : nonempty α ↔ nonempty β :=
+nonempty.congr e e.symm
 
 /-- If `α ≃ β` and `β` is inhabited, then so is `α`. -/
 protected def inhabited [inhabited β] (e : α ≃ β) : inhabited α :=

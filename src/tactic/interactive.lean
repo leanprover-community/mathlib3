@@ -939,8 +939,10 @@ meta def set (h_simp : parse (tk "!")?) (a : parse ident) (tp : parse ((tk ":") 
   (rev_name : parse opt_dir_with) :=
  do let vt := tp.get_or_else pexpr.mk_placeholder,
    tp ← i_to_expr vt,
-   to_expr ``(%%pv : %%tp) >>= definev a tp,
-   when h_simp.is_none $ change' ``(%%pv : %%vt) (some (expr.const a [])) loc.wildcard,
+   pv ← to_expr ``(%%pv : %%tp),
+   tp ← instantiate_mvars tp,
+   definev a tp pv,
+   when h_simp.is_none $ change' ``(%%pv) (some (expr.const a [])) $ interactive.loc.wildcard,
    match rev_name with
    | some (flip, id) :=
      do nv ← get_local a,

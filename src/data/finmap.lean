@@ -2,12 +2,13 @@
 Copyright (c) 2018 Sean Leather. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sean Leather, Mario Carneiro
-
-Finite maps over `multiset`.
 -/
 import data.list.alist
 import data.finset
 import data.pfun
+/-!
+# Finite maps over `multiset`
+-/
 
 universes u v w
 open list
@@ -244,7 +245,7 @@ iff.trans list.mem_keys $ exists_congr $ λ b,
 lemma mem_of_lookup_eq_some {a : α} {b : β a} {s : finmap β} (h : s.lookup a = some b) : a ∈ s :=
 mem_iff.mpr ⟨_,h⟩
 
-/- sub -/
+/-! ### sdiff -/
 
 def sdiff (s s' : finmap β) : finmap β :=
 s'.foldl (λ s x _, s.erase x) (λ a₀ a₁ _ a₂ _, erase_erase) s
@@ -252,7 +253,7 @@ s'.foldl (λ s x _, s.erase x) (λ a₀ a₁ _ a₂ _, erase_erase) s
 instance : has_sdiff (finmap β) :=
 ⟨ sdiff ⟩
 
-/- insert -/
+/-! ### insert -/
 
 /-- Insert a key-value pair into a finite map, replacing any existing pair with
   the same key. -/
@@ -304,7 +305,7 @@ by { induction xs with x xs; [skip, cases x];
 @[simp] theorem insert_singleton_eq {a : α} {b b' : β a} : insert a b (singleton a b') = singleton a b :=
 by simp only [singleton, finmap.insert_to_finmap, alist.insert_singleton_eq]
 
-/- extract -/
+/-! ### extract -/
 
 /-- Erase a key from the map, and return the corresponding value, if found. -/
 def extract (a : α) (s : finmap β) : option (β a) × finmap β :=
@@ -315,7 +316,7 @@ lift_on s (λ t, prod.map id to_finmap (extract a t)) $
   extract a s = (lookup a s, erase a s) :=
 induction_on s $ λ s, by simp [extract]
 
-/- union -/
+/-! ### union -/
 
 /-- `s₁ ∪ s₂` is the key-based union of two finite maps. It is left-biased: if
 there exists an `a ∈ s₁`, `lookup a (s₁ ∪ s₂) = lookup a s₁`. -/
@@ -390,9 +391,9 @@ ext_lookup
       { have : x ∉ singleton a b, { rw mem_singleton, exact h' },
         rw [lookup_union_left_of_not_in this,lookup_erase_ne h'] } } )
 
-/- disjoint -/
+/-! ### disjoint -/
 
-def disjoint (s₁ s₂ : finmap β) :=
+def disjoint (s₁ s₂ : finmap β) : Prop :=
 ∀ x ∈ s₁, ¬ x ∈ s₂
 
 instance : decidable_rel (@disjoint α β _) :=
@@ -431,3 +432,4 @@ theorem union_cancel {s₁ s₂ s₃ : finmap β} (h : disjoint s₁ s₃) (h' :
  λ h, h ▸ rfl⟩
 
 end finmap
+#lint

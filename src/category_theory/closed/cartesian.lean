@@ -353,7 +353,8 @@ def cartesian_closed_of_equiv (e : C ≌ D) [h : cartesian_closed C] : cartesian
         { apply iso_whisker_right e.counit_iso (prod_functor.obj X ⋙ e.inverse ⋙ e.functor) ≪≫ _,
           change prod_functor.obj X ⋙ e.inverse ⋙ e.functor ≅ prod_functor.obj X,
           apply iso_whisker_left (prod_functor.obj X) e.counit_iso, },
-        unfreezingI { apply adjunction.left_adjoint_of_nat_iso this } },
+        resetI,
+        apply adjunction.left_adjoint_of_nat_iso this },
     end } }
 
 variables [cartesian_closed C] [cartesian_closed D]

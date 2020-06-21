@@ -2289,8 +2289,8 @@ rfl
 @[simp] theorem fun_left_id (g : n → M) : fun_left R M _root_.id g = g :=
 rfl
 
-@[simp] theorem fun_left_comp (f₁ : n → p) (f₂ : m → n) (g : p → M) (i : m) :
-  fun_left R M (f₁ ∘ f₂) g i = fun_left R M f₂ (fun_left R M f₁ g) i :=
+theorem fun_left_comp (f₁ : n → p) (f₂ : m → n) (g : p → M) :
+  fun_left R M (f₁ ∘ f₂) g = (fun_left R M f₂).comp (fun_left R M f₁ g) :=
 rfl
 
 /-- Given an `R`-module `M` and an equivalence `m ≃ n` between arbitrary types,

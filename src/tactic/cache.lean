@@ -32,11 +32,10 @@ namespace interactive
 open interactive interactive.types
 
 /--
-Unfreeze local instances, which allows us to revert instances in the context.
-Please use `unfreezingI` instead,
-or use `freezeI` afterwards to re-enable the type-class cache.
+**Please use `unfreezingI` instead.**
 
-**NOTE**: This command has significant negative peformance implications:
+Unfreeze local instances, which allows us to revert instances in the context.
+This command has significant negative peformance implications:
 it disables the type-class cache until you call `freezeI` again (the freeze setting is per-goal).
 -/
 meta def unfreezeI := tactic.unfreeze_local_instances

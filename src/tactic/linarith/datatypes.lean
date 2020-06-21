@@ -322,11 +322,11 @@ do tp ← infer_type h,
     do e' ← mk_app ``zero_mul [e], return (ineq.eq, e')
   else if c = 1 then return (iq, h)
   else
-    do nm ← resolve_name iq.to_const_mul_nm,
-       tp ← (prod.snd <$> (infer_type h >>= get_rel_sides)) >>= infer_type,
-       cpos ← to_expr ``((%%c.to_pexpr : %%tp) > 0),
+    do tp ← (prod.snd <$> (infer_type h >>= get_rel_sides)) >>= infer_type,
+       c ← tp.of_nat c,
+       cpos ← to_expr ``(%%c > 0),
        (_, ex) ← solve_aux cpos `[norm_num, done],
-       e' ← to_expr ``(%%nm %%h %%ex) ff,
+       e' ← mk_app iq.to_const_mul_nm [h, ex],
        return (iq, e')
 
 end linarith

@@ -39,28 +39,28 @@ If `prf` is a proof of `¬ e`, where `e` is a comparison,
 For example, if `prf : ¬ a < b`, ``rem_neg prf `(a < b)`` returns a proof of `a ≥ b`.
 -/
 meta def rem_neg (prf : expr) : expr → tactic expr
-| `(_ ≤ _) := to_expr ``(lt_of_not_ge %%prf)
-| `(_ < _) := to_expr ``(le_of_not_gt %%prf)
-| `(_ > _) := to_expr ``(le_of_not_gt %%prf)
-| `(_ ≥ _) := to_expr ``(lt_of_not_ge %%prf)
+| `(_ ≤ _) := mk_app ``lt_of_not_ge [prf]
+| `(_ < _) := mk_app ``le_of_not_gt [prf]
+| `(_ > _) := mk_app ``le_of_not_gt [prf]
+| `(_ ≥ _) := mk_app ``lt_of_not_ge [prf]
 | e := failed
 
 private meta def rearr_comp_aux : expr → expr → tactic expr
 | prf `(%%a ≤ 0) := return prf
 | prf  `(%%a < 0) := return prf
 | prf  `(%%a = 0) := return prf
-| prf  `(%%a ≥ 0) := to_expr ``(neg_nonpos.mpr %%prf)
-| prf  `(%%a > 0) := to_expr ``(neg_neg_of_pos %%prf)
-| prf  `(0 ≥ %%a) := to_expr ``(show %%a ≤ 0, from %%prf)
-| prf  `(0 > %%a) := to_expr ``(show %%a < 0, from %%prf)
-| prf  `(0 = %%a) := to_expr ``(eq.symm %%prf)
-| prf  `(0 ≤ %%a) := to_expr ``(neg_nonpos.mpr %%prf)
-| prf  `(0 < %%a) := to_expr ``(neg_neg_of_pos %%prf)
-| prf  `(%%a ≤ %%b) := to_expr ``(sub_nonpos.mpr %%prf)
-| prf  `(%%a < %%b) := to_expr ``(sub_neg_of_lt %%prf)
-| prf  `(%%a = %%b) := to_expr ``(sub_eq_zero.mpr %%prf)
-| prf  `(%%a > %%b) := to_expr ``(sub_neg_of_lt %%prf)
-| prf  `(%%a ≥ %%b) := to_expr ``(sub_nonpos.mpr %%prf)
+| prf  `(%%a ≥ 0) := mk_app ``neg_nonpos_of_nonneg [prf]
+| prf  `(%%a > 0) := mk_app `neg_neg_of_pos [prf]
+| prf  `(0 ≥ %%a) := to_expr ``(id_rhs (%%a ≤ 0) %%prf)
+| prf  `(0 > %%a) := to_expr ``(id_rhs (%%a < 0) %%prf)
+| prf  `(0 = %%a) := mk_app `eq.symm [prf]
+| prf  `(0 ≤ %%a) := mk_app ``neg_nonpos_of_nonneg [prf]
+| prf  `(0 < %%a) := mk_app `neg_neg_of_pos [prf]
+| prf  `(%%a ≤ %%b) := mk_app ``sub_nonpos_of_le [prf]
+| prf  `(%%a < %%b) := mk_app `sub_neg_of_lt [prf]
+| prf  `(%%a = %%b) := mk_app `sub_eq_zero_of_eq [prf]
+| prf  `(%%a > %%b) := mk_app `sub_neg_of_lt [prf]
+| prf  `(%%a ≥ %%b) := mk_app ``sub_nonpos_of_le [prf]
 | prf  `(¬ %%t) := do nprf ← rem_neg prf t, tp ← infer_type nprf, rearr_comp_aux nprf tp
 | prf  a := trace a >> fail "couldn't rearrange comp"
 
@@ -114,10 +114,10 @@ and similarly if `pf` proves a negated weak inequality.
 meta def mk_non_strict_int_pf_of_strict_int_pf (pf : expr) : tactic expr :=
 do tp ← infer_type pf,
 match tp with
-| `(%%a < %%b) := to_expr ``(@cast (%%a < %%b) (%%a + 1 ≤ %%b) (by refl) %%pf)
-| `(%%a > %%b) := to_expr ``(@cast (%%a > %%b) (%%a ≥ %%b + 1) (by refl) %%pf)
-| `(¬ %%a ≤ %%b) := to_expr ``(@cast (%%a > %%b) (%%a ≥ %%b + 1) (by refl) (lt_of_not_ge %%pf))
-| `(¬ %%a ≥ %%b) := to_expr ``(@cast (%%a < %%b) (%%a + 1 ≤ %%b) (by refl) (lt_of_not_ge %%pf))
+| `(%%a < %%b) := to_expr ``(id_rhs (%%a + 1 ≤ %%b) %%pf)
+| `(%%a > %%b) := to_expr ``(id_rhs (%%b + 1 ≤ %%a) %%pf)
+| `(¬ %%a ≤ %%b) := to_expr ``(id_rhs (%%b + 1 ≤ %%a) %%pf)
+| `(¬ %%a ≥ %%b) := to_expr ``(id_rhs (%%a + 1 ≤ %%b) %%pf)
 | _ := fail "mk_non_strict_int_pf_of_strict_int_pf failed: proof is not an inequality"
 end
 

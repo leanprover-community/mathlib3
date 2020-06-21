@@ -70,9 +70,7 @@ along with this proof.
 meta def mk_lt_zero_pf_aux (c : ineq) (pf npf : expr) (coeff : ℕ) : tactic (ineq × expr) :=
 do (iq, h') ← mk_single_comp_zero_pf coeff npf,
    let (nm, niq) := ineq_const_nm c iq,
-   n ← resolve_name nm,
-   e' ← to_expr ``(%%n %%pf %%h'),
-   return (niq, e')
+   prod.mk niq <$> mk_app nm [pf, h']
 
 /--
 `mk_lt_zero_pf coeffs pfs` takes a list of proofs of the form `tᵢ Rᵢ 0`,

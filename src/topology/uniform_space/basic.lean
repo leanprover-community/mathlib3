@@ -503,7 +503,7 @@ lemma ball_eq_of_symmetry {V : set (β × β)} (hV : symmetric_rel V) {x} :
 by { ext y, rw mem_ball_symmetry hV, exact iff.rfl }
 
 lemma mem_comp_of_mem_ball {V W : set (β × β)} {x y z : β} (hV : symmetric_rel V)
-(hx : x ∈ ball z V) (hy : y ∈ ball z W) : (x, y) ∈ V ○ W :=
+  (hx : x ∈ ball z V) (hy : y ∈ ball z W) : (x, y) ∈ V ○ W :=
 begin
   rw mem_ball_symmetry hV at hx,
   exact ⟨z, hx, hy⟩
@@ -731,6 +731,7 @@ begin
     exact mem_sets_of_superset r_in r_sub, }
 end
 
+/-- Closed entourages form a basis of the uniformity filter. -/
 lemma uniformity_has_basis_closure : has_basis (𝓤 α) (λ V : set (α × α), V ∈ 𝓤 α) closure :=
 ⟨begin
   intro t,

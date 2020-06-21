@@ -160,9 +160,10 @@ by simp only [sup_le_iff]; rw [← H, @sup_le_iff α A, H, H]
 theorem semilattice_sup.ext {α} {A B : semilattice_sup α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
 begin
-  haveI this := partial_order.ext H,
+  have := partial_order.ext H,
   have ss := funext (λ x, funext $ semilattice_sup.ext_sup H x),
-  cases A; cases B; injection this; congr'
+  unfreezingI { cases A, cases B },
+  injection this; congr'
 end
 
 lemma directed_of_sup {β : Type*} {r : β → β → Prop} {f : α → β}
@@ -293,9 +294,10 @@ by simp only [le_inf_iff]; rw [← H, @le_inf_iff α A, H, H]
 theorem semilattice_inf.ext {α} {A B : semilattice_inf α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
 begin
-  haveI this := partial_order.ext H,
+  have := partial_order.ext H,
   have ss := funext (λ x, funext $ semilattice_inf.ext_inf H x),
-  cases A; cases B; injection this; congr'
+  unfreezingI { cases A, cases B },
+  injection this; congr'
 end
 
 /-- An antimonotone function on an inf-semilattice is directed. -/
@@ -336,7 +338,8 @@ begin
   have SS : @lattice.to_semilattice_sup α A =
             @lattice.to_semilattice_sup α B := semilattice_sup.ext H,
   have II := semilattice_inf.ext H,
-  resetI, cases A; cases B; injection SS; injection II; congr'
+  unfreezingI { cases A, cases B },
+  injection SS; injection II; congr'
 end
 
 end lattice

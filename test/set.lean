@@ -33,6 +33,6 @@ def u : S := nat.zero
 def p : true :=
 begin
   set a : T := v,
-  set b : T := v, -- the type `T` can't be fully elaborated without `u` but this is fine
+  set b : T := u, -- the type `T` can't be fully elaborated without the body but this is fine
   trivial
 end

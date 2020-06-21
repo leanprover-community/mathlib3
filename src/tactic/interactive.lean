@@ -709,6 +709,11 @@ begin
   field_simp [hx, hy],
   ring
 end
+
+See also the `cancel_denoms` tactic, which tries to do a similar simplification for expressions
+that have numerals in denominators.
+The tactics are not related: `cancel_denoms` will only handle numeric denominators, and will try to
+entirely remove (numeric) division from the expression by multiplying by a factor.
 ```
 -/
 meta def field_simp (no_dflt : parse only_flag) (hs : parse simp_arg_list)

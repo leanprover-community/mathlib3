@@ -399,9 +399,9 @@ begin
     exact ⟨_, rfl, add_le_add_left' h⟩, }
 end
 
-@[simp, norm_cast] lemma coe_zero [add_monoid α] : ((0 : α) : with_bot α) = 0 := rfl
+@[norm_cast] lemma coe_zero [add_monoid α] : ((0 : α) : with_bot α) = 0 := rfl
 
-@[simp, norm_cast] lemma coe_eq_zero {α : Type*}
+@[norm_cast] lemma coe_eq_zero {α : Type*}
   [add_monoid α] {a : α} : (a : with_bot α) = 0 ↔ a = 0 :=
 by norm_cast
 

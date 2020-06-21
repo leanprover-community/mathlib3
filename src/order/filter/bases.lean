@@ -249,6 +249,22 @@ lemma has_basis.forall_nonempty_iff_ne_bot (hl : l.has_basis p s) :
 lemma basis_sets (l : filter α) : l.has_basis (λ s : set α, s ∈ l) id :=
 ⟨λ t, exists_sets_subset_iff.symm⟩
 
+lemma has_basis_self {l : filter α} {P : set α → Prop} :
+  has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t, (t ∈ l ↔ ∃ r ∈ l, P r ∧ r ⊆ t) :=
+begin
+  split,
+  { rintros ⟨h⟩ t,
+    convert h t,
+    ext s,
+    tauto, },
+  { intro h,
+    constructor,
+    intro t,
+    convert h t,
+    ext s,
+    tauto }
+end
+
 lemma at_top_basis [nonempty α] [semilattice_sup α] :
   (@at_top α _).has_basis (λ _, true) Ici :=
 ⟨λ t, by simpa only [exists_prop, true_and] using @mem_at_top_sets α _ _ t⟩
@@ -331,6 +347,10 @@ lemma has_basis.comap (f : β → α) (hl : l.has_basis p s) :
     exact ⟨s i, ⟨i, hi, subset.refl _⟩, H⟩ }
 end⟩
 
+lemma comap_has_basis (f : α → β) (l : filter β) :
+  has_basis (comap f l) (λ s : set β, s ∈ l) (λ s, f ⁻¹' s) :=
+⟨λ t, mem_comap_sets⟩
+
 lemma has_basis.prod_self (hl : l.has_basis p s) :
   (l.prod l).has_basis p (λ i, (s i).prod (s i)) :=
 ⟨begin
@@ -355,6 +375,20 @@ lemma has_basis.forall_iff (hl : l.has_basis p s) {P : set α → Prop}
   (∀ s ∈ l, P s) ↔ ∀ i, p i → P (s i) :=
 ⟨λ H i hi, H (s i) $ hl.mem_of_mem hi,
   λ H s hs, let ⟨i, hi, his⟩ := hl.mem_iff.1 hs in mono his (H i hi)⟩
+
+lemma has_basis.sInter_sets (h : has_basis l p s) :
+  ⋂₀ l.sets = ⋂ i ∈ set_of p, s i :=
+begin
+  ext x,
+  suffices : (∀ t ∈ l, x ∈ t) ↔ ∀ i, p i → x ∈ s i,
+    by simpa only [mem_Inter, mem_set_of_eq, mem_sInter],
+  simp_rw h.mem_iff,
+  split,
+  { intros h i hi,
+    exact h (s i) ⟨i, hi, subset.refl _⟩ },
+  { rintros h _ ⟨i, hi, sub⟩,
+    exact sub (h i hi) },
+end
 
 variables [preorder ι] (l p s)
 
@@ -407,6 +441,28 @@ lemma tendsto.basis_both (H : tendsto f la lb) (hla : la.has_basis pa sa)
 lemma has_basis.prod (hla : la.has_basis pa sa) (hlb : lb.has_basis pb sb) :
   (la.prod lb).has_basis (λ i : ι × ι', pa i.1 ∧ pb i.2) (λ i, (sa i.1).prod (sb i.2)) :=
 (hla.comap prod.fst).inf (hlb.comap prod.snd)
+
+lemma has_basis.prod' {la : filter α} {lb : filter β} {ι : Type*} {p : ι → Prop}
+  {sa : ι → set α} {sb : ι → set β}
+  (hla : la.has_basis p sa) (hlb : lb.has_basis p sb)
+  (h_dir : ∀ {i j}, p i → p j → ∃ k, p k ∧ sa k ⊆ sa i ∧ sb k ⊆ sb j) :
+  (la.prod lb).has_basis p (λ i, (sa i).prod (sb i)) :=
+⟨begin
+  intros t,
+  rw mem_prod_iff,
+  split,
+  { rintros ⟨u, u_in, v, v_in, huv⟩,
+    rcases hla.mem_iff.mp u_in with ⟨i, hi, si⟩,
+    rcases hlb.mem_iff.mp v_in with ⟨j, hj, sj⟩,
+    rcases h_dir hi hj with ⟨k, hk, ki, kj⟩,
+    use [k, hk],
+    calc
+    (sa k).prod (sb k) ⊆ (sa i).prod (sb j) : set.prod_mono ki kj
+                   ... ⊆ u.prod v           : set.prod_mono si sj
+                   ... ⊆ t                  : huv, },
+  { rintro ⟨i, hi, h⟩,
+    exact ⟨sa i, hla.mem_of_mem hi, sb i, hlb.mem_of_mem hi, h⟩ },
+end⟩
 
 lemma has_antimono_basis.tendsto [semilattice_sup ι] [nonempty ι] {l : filter α}
   {p : ι → Prop} {s : ι → set α} (hl : l.has_antimono_basis p s) {φ : ι → α}

@@ -43,6 +43,8 @@ meta def aux_group₁ (locat : loc) : tactic unit :=
   simp_core {} skip tt [
   expr ``(mul_one),
   expr ``(one_mul),
+  expr ``(one_pow),
+  expr ``(one_gpow),
   expr ``(sub_self),
   expr ``(add_neg_self),
   expr ``(neg_add_self),

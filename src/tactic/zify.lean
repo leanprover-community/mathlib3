@@ -87,7 +87,7 @@ The list of extra lemmas is used in the `push_cast` step.
 Returns an expression `e'` and a proof that `e = e'`.-/
 meta def tactic.zify (extra_lems : list simp_arg_type) : expr → tactic (expr × expr) := λ z,
 do (z1, p1) ← zify.lift_to_z z <|> fail "failed to find an applicable zify lemma",
-   (z2, p2) ← zify.push_casts extra_lems z1,
+   (z2, p2) ← norm_cast.derive_push_cast extra_lems z1,
    prod.mk z2 <$> mk_eq_trans p1 p2
 
 /--

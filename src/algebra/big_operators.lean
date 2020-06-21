@@ -752,6 +752,77 @@ lemma prod_update_of_mem [decidable_eq α] {s : finset α} {i : α} (h : i ∈ s
   (∏ x in s, function.update f i b x) = b * (∏ x in s \ (singleton i), f x) :=
 by { rw [update_eq_piecewise, prod_piecewise], simp [h] }
 
+/-- If a product of a `finset` of size at most 1 is 1, so are the
+terms in that product. -/
+lemma eq_one_of_card_le_one_of_prod_eq_one {s : finset α} (hc : s.card ≤ 1) {f : α → β}
+    (h : ∏ x in s, f x = 1) : ∀ x ∈ s, f x = 1 :=
+begin
+  intros x hx,
+  by_cases hc0 : s.card = 0,
+  { exact false.elim (card_ne_zero_of_mem hx hc0) },
+  { have h1 : s.card = 1 := le_antisymm hc (nat.one_le_of_lt (nat.pos_of_ne_zero hc0)),
+    rw card_eq_one at h1,
+    cases h1 with x2 hx2,
+    rw [hx2, mem_singleton] at hx,
+    simp_rw hx2 at h,
+    rw hx,
+    rw prod_singleton at h,
+    exact h }
+end
+
+/-- If a sum of a `finset` of size at most 1 is 0, so are the
+terms in that sum. -/
+lemma eq_zero_of_card_le_one_of_sum_eq_zero [add_comm_monoid γ] {s : finset α} (hc : s.card ≤ 1)
+    {f : α → γ} (h : ∑ x in s, f x = 0) : ∀ x ∈ s, f x = 0 :=
+begin
+  intros x hx,
+  by_cases hc0 : s.card = 0,
+  { exact false.elim (card_ne_zero_of_mem hx hc0) },
+  { have h1 : s.card = 1 := le_antisymm hc (nat.one_le_of_lt (nat.pos_of_ne_zero hc0)),
+    rw card_eq_one at h1,
+    cases h1 with x2 hx2,
+    rw [hx2, mem_singleton] at hx,
+    simp_rw hx2 at h,
+    rw hx,
+    rw sum_singleton at h,
+    exact h }
+end
+
+attribute [to_additive eq_zero_of_card_le_one_of_sum_eq_zero] eq_one_of_card_le_one_of_prod_eq_one
+
+/-- If a function applied at a point is 1, a product is unchanged by
+removing that point, if present, from a `finset`. -/
+@[to_additive "If a function applied at a point is 0, a sum is unchanged by
+removing that point, if present, from a `finset`."]
+lemma prod_erase [decidable_eq α] (s : finset α) {f : α → β} {a : α} (h : f a = 1) :
+  ∏ x in s.erase a, f x = ∏ x in s, f x :=
+begin
+  rw ←sdiff_singleton_eq_erase,
+  apply prod_subset sdiff_subset_self,
+  intros x hx hnx,
+  rw sdiff_singleton_eq_erase at hnx,
+  rwa eq_of_mem_of_not_mem_erase hx hnx
+end
+
+/-- If a product is 1 and the function is 1 except possibly at one
+point, it is 1 everywhere on the `finset`. -/
+@[to_additive "If a sum is 0 and the function is 0 except possibly at one
+point, it is 0 everywhere on the `finset`."]
+lemma eq_one_of_prod_eq_one {s : finset α} {f : α → β} {a : α} (hp : ∏ x in s, f x = 1)
+    (h1 : ∀ x ∈ s, x ≠ a → f x = 1) : ∀ x ∈ s, f x = 1 :=
+begin
+  intros x hx,
+  classical,
+  by_cases h : x = a,
+  { rw h,
+    rw h at hx,
+    rw [←prod_subset (singleton_subset_iff.2 hx)
+                      (λ t ht ha, h1 t ht (not_mem_singleton.1 ha)),
+        prod_singleton] at hp,
+    exact hp },
+  { exact h1 x hx h }
+end
+
 end comm_monoid
 
 lemma sum_update_of_mem [add_comm_monoid β] [decidable_eq α] {s : finset α} {i : α}

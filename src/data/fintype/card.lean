@@ -58,6 +58,14 @@ lemma prod_unique [unique β] (f : β → M) :
   (∏ x, f x) = f (default β) :=
 by simp only [finset.prod_singleton, univ_unique]
 
+/-- If a product of a `finset` of a subsingleton type is 1, so are the
+terms in that product. -/
+@[to_additive "If a sum of a `finset` of a subsingleton type is 0, so are the
+terms in that sum."]
+lemma eq_one_of_subsingleton_of_prod_eq_one {ι : Type*} [subsingleton ι] {s : finset ι}
+    {f : ι → M} (h : ∏ i in s, f i = 1) : ∀ i ∈ s, f i = 1 :=
+finset.eq_one_of_card_le_one_of_prod_eq_one (finset.card_le_one_of_subsingleton s) h
+
 end
 
 end fintype

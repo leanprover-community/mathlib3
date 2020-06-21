@@ -569,8 +569,10 @@ end⟩
 lemma le_div_two_iff_lt_neg (n : ℕ) [hn : fact ((n : ℕ) % 2 = 1)]
   {x : zmod n} (hx0 : x ≠ 0) : x.val ≤ (n / 2 : ℕ) ↔ (n / 2 : ℕ) < (-x).val :=
 begin
-  haveI npos : fact (0 < n) :=
-  by { apply (nat.eq_zero_or_pos n).resolve_left, resetI, rintro rfl, simpa [fact] using hn, },
+  haveI npos : fact (0 < n) := by
+  { apply (nat.eq_zero_or_pos n).resolve_left,
+    unfreezingI { rintro rfl },
+    simpa [fact] using hn, },
   have hn2 : (n : ℕ) / 2 < n := nat.div_lt_of_lt_mul ((lt_mul_iff_one_lt_left npos).2 dec_trivial),
   have hn2' : (n : ℕ) - n / 2 = n / 2 + 1,
   { conv {to_lhs, congr, rw [← nat.succ_sub_one n, nat.succ_sub npos]},

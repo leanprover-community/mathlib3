@@ -1309,8 +1309,8 @@ def lift.principal_seg : @principal_seg ordinal.{u} ordinal.{max (u+1) v} (<) (<
     cases lift_type_lt.1 h with f, cases f with f a hf,
     existsi a, revert hf,
     apply induction_on a, intros α r _ hf,
-    refine lift_type_eq.{u (max (u+1) v) (max (u+1) v)}.2
-      ⟨(order_iso.of_surjective (order_embedding.of_monotone _ _) _).symm⟩,
+    unfreezingI { refine lift_type_eq.{u (max (u+1) v) (max (u+1) v)}.2
+      ⟨(order_iso.of_surjective (order_embedding.of_monotone _ _) _).symm⟩ },
     { exact λ b, enum r (f b) ((hf _).2 ⟨_, rfl⟩) },
     { refine λ a b h, (typein_lt_typein r).1 _,
       rw [typein_enum, typein_enum],
@@ -1319,8 +1319,8 @@ def lift.principal_seg : @principal_seg ordinal.{u} ordinal.{max (u+1) v} (<) (<
       existsi b, simp, simp [e] } },
   { cases h with a e, rw [← e],
     apply induction_on a, intros α r _,
-    exact lift_type_lt.{u (u+1) (max (u+1) v)}.2
-      ⟨typein.principal_seg r⟩ }
+    unfreezingI { exact lift_type_lt.{u (u+1) (max (u+1) v)}.2
+      ⟨typein.principal_seg r⟩ } }
 end⟩
 
 @[simp] theorem lift.principal_seg_coe :
@@ -2918,13 +2918,13 @@ begin
   refine acc.rec_on (cardinal.wf.apply c) (λ c _,
     quotient.induction_on c $ λ α IH ol, _) h,
   rcases ord_eq α with ⟨r, wo, e⟩, resetI,
-  let := decidable_linear_order_of_STO' r,
-  have : is_well_order α (<) := wo,
+  letI := decidable_linear_order_of_STO' r,
+  haveI : is_well_order α (<) := wo,
   let g : α × α → α := λ p, max p.1 p.2,
   let f : α × α ↪ ordinal × (α × α) :=
     ⟨λ p:α×α, (typein (<) (g p), p), λ p q, congr_arg prod.snd⟩,
   let s := f ⁻¹'o (prod.lex (<) (prod.lex (<) (<))),
-  have : is_well_order _ s := (order_embedding.preimage _ _).is_well_order,
+  haveI : is_well_order _ s := (order_embedding.preimage _ _).is_well_order,
   suffices : type s ≤ type r, {exact card_le_card this},
   refine le_of_forall_lt (λ o h, _),
   rcases typein_surj s h with ⟨p, rfl⟩,

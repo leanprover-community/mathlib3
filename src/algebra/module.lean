@@ -167,8 +167,8 @@ lemma module_ext {R : Type*} [ring R] {M : Type*} [add_comm_group M] (P Q : modu
   (w : ∀ (r : R) (m : M), by { haveI := P, exact r • m } = by { haveI := Q, exact r • m }) :
   P = Q :=
 begin
-  resetI,
-  rcases P with ⟨⟨⟨⟨P⟩⟩⟩⟩, rcases Q with ⟨⟨⟨⟨Q⟩⟩⟩⟩, congr,
+  unfreezingI { rcases P with ⟨⟨⟨⟨P⟩⟩⟩⟩, rcases Q with ⟨⟨⟨⟨Q⟩⟩⟩⟩ },
+  congr,
   funext r m,
   exact w r m,
   all_goals { apply proof_irrel_heq },

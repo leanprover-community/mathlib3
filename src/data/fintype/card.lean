@@ -212,8 +212,7 @@ lemma finset.prod_subtype {M : Type*} [comm_monoid M]
 have (∈ s) = p, from set.ext h,
 begin
   rw ← prod_attach,
-  resetI,
-  subst p,
+  unfreezingI { subst p },
   congr,
   simp [finset.ext_iff]
 end

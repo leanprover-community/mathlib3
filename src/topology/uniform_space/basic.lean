@@ -502,14 +502,14 @@ lemma ball_eq_of_symmetry {V : set (β × β)} (hV : symmetric_rel V) {x} :
   ball x V = {y | (y, x) ∈ V} :=
 by { ext y, rw mem_ball_symmetry hV, exact iff.rfl }
 
-lemma mem_comp_of_mem_ball {α : Type*} {V W : set (α × α)} {x y z : α} (hV : symmetric_rel V)
+lemma mem_comp_of_mem_ball {V W : set (β × β)} {x y z : β} (hV : symmetric_rel V)
 (hx : x ∈ ball z V) (hy : y ∈ ball z W) : (x, y) ∈ V ○ W :=
 begin
   rw mem_ball_symmetry hV at hx,
   exact ⟨z, hx, hy⟩
 end
 
-lemma mem_comp_comp {V W M : set (α × α)} (hW' : symmetric_rel W) {p : α × α} :
+lemma mem_comp_comp {V W M : set (β × β)} (hW' : symmetric_rel W) {p : β × β} :
   p ∈ V ○ M ○ W ↔ ((ball p.1 V).prod (ball p.2 W) ∩ M).nonempty :=
 begin
   cases p with x y,
@@ -574,20 +574,19 @@ begin
   exact nhds_basis_uniformity' h
 end
 
-lemma uniform_space.mem_nhds_iff [uniform_space α] {x : α} {s : set α} :
-  s ∈ 𝓝 x ↔ ∃ V ∈ 𝓤 α, ball x V ⊆ s :=
+lemma uniform_space.mem_nhds_iff {x : α} {s : set α} : s ∈ 𝓝 x ↔ ∃ V ∈ 𝓤 α, ball x V ⊆ s :=
 begin
   rw [nhds_eq_comap_uniformity, mem_comap_sets],
   exact iff.rfl,
 end
 
-lemma uniform_space.ball_mem_nhds [uniform_space α] (x : α) ⦃V : set (α × α)⦄ (V_in : V ∈ 𝓤 α) : ball x V ∈ 𝓝 x :=
+lemma uniform_space.ball_mem_nhds (x : α) ⦃V : set (α × α)⦄ (V_in : V ∈ 𝓤 α) : ball x V ∈ 𝓝 x :=
 begin
   rw uniform_space.mem_nhds_iff,
   exact ⟨V, V_in, subset.refl _⟩
 end
 
-lemma uniform_space.mem_nhds_iff_symm [uniform_space α] {x : α} {s : set α} :
+lemma uniform_space.mem_nhds_iff_symm {x : α} {s : set α} :
   s ∈ 𝓝 x ↔ ∃ V ∈ 𝓤 α, symmetric_rel V ∧ ball x V ⊆ s :=
 begin
   rw uniform_space.mem_nhds_iff,

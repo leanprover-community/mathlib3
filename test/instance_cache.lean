@@ -48,3 +48,16 @@ begin
   assert_frozen_instances,
   exact default α
 end
+
+example (α β) (h : α = β) [inhabited α] : β :=
+begin
+  unfreezingI { subst h },
+  assert_frozen_instances,
+  exact default _
+end
+
+example (α β) (h : α = β) [inhabited α] : β :=
+begin
+  unfreezingI { cases _inst_1 },
+  subst h, assumption
+end

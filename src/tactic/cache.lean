@@ -33,7 +33,8 @@ open interactive interactive.types
 
 /--
 Unfreeze local instances, which allows us to revert instances in the context.
-Please use `freezeI` afterwards to re-enable the type-class cache.
+Please use `unfreezingI` instead,
+or use `freezeI` afterwards to re-enable the type-class cache.
 
 **NOTE**: This command has significant negative peformance implications:
 it disables the type-class cache until you call `freezeI` again (the freeze setting is per-goal).
@@ -44,6 +45,12 @@ meta def unfreezeI := tactic.unfreeze_local_instances
 Freezes the local instances after `unfreezeI`, re-enabling the type-class cache.
 -/
 meta def freezeI := tactic.freeze_local_instances
+
+/--
+`unfreezingI { tac }` executes tac while temporarily unfreezing the instance cache.
+-/
+meta def unfreezingI (tac : itactic) :=
+unfreezeI >> ((show tactic unit, from tac); freezeI)
 
 /-- Reset the instance cache. This allows any new instances
 added to the context to be used in typeclass inference. -/
@@ -120,6 +127,8 @@ by its variant `haveI` described below.
 
 * `unfreezeI`: Unfreeze local instances, which allows us to revert
   instances in the context
+
+* `unfreezingI { tac }`: Unfreeze local instances while executing the tactic `tac`.
 
 * `freezeI`: Freezes the local instances again, which re-enables the type-class cache
 

@@ -19,7 +19,9 @@ local postfix *:9001 := many
 
 namespace tactic
 /-- Reset the instance cache for the main goal. -/
-meta def reset_instance_cache : tactic unit := unfreeze_local_instances
+meta def reset_instance_cache : tactic unit := do
+unfreeze_local_instances,
+freeze_local_instances
 
 /-- Unfreeze local instances, if the passed expression is amongst the frozen instances. -/
 meta def unfreeze (h : expr) : tactic unit :=
@@ -29,9 +31,19 @@ do frozen ← frozen_local_instances,
 namespace interactive
 open interactive interactive.types
 
-/-- Unfreeze local instances, which allows us to revert
-instances in the context. -/
+/--
+Unfreeze local instances, which allows us to revert instances in the context.
+Please use `freezeI` afterwards to re-enable the type-class cache.
+
+**NOTE**: This command has significant negative peformance implications:
+it disables the type-class cache until you call `freezeI` again (the freeze setting is per-goal).
+-/
 meta def unfreezeI := tactic.unfreeze_local_instances
+
+/--
+Freezes the local instances after `unfreezeI`, re-enabling the type-class cache.
+-/
+meta def freezeI := tactic.freeze_local_instances
 
 /-- Reset the instance cache. This allows any new instances
 added to the context to be used in typeclass inference. -/
@@ -72,7 +84,7 @@ do h ← match h with
   | some a := return a
   end,
   «let» (some h) q₁ q₂,
-  match q₁ with
+  match q₂ with
   | none    := swap >> reset_instance_cache >> swap
   | some p₂ := reset_instance_cache
   end
@@ -109,6 +121,8 @@ by its variant `haveI` described below.
 * `unfreezeI`: Unfreeze local instances, which allows us to revert
   instances in the context
 
+* `freezeI`: Freezes the local instances again, which re-enables the type-class cache
+
 * `introI`/`introsI`: `intro`/`intros` followed by `resetI`. Like
   `intro`/`intros`, but uses the introduced variable in typeclass inference.
 
@@ -124,10 +138,7 @@ by its variant `haveI` described below.
 add_tactic_doc
 { name        := "Instance cache tactics",
   category    := doc_category.tactic,
-  decl_names  := [`tactic.interactive.unfreezeI, `tactic.interactive.resetI,
-                  `tactic.interactive.introI, `tactic.interactive.introsI,
-                  `tactic.interactive.haveI, `tactic.interactive.letI,
-                  `tactic.interactive.exactI],
+  decl_names  := [``unfreezeI, ``freezeI, ``resetI, ``introI, ``introsI, ``haveI, ``letI, ``exactI],
   tags        := ["type class", "context management"] }
 
 end interactive

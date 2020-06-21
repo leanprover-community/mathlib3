@@ -1202,6 +1202,7 @@ noncomputable def of_bijective {α β} (f : α → β) (hf : bijective f) : α �
 @[simp] theorem coe_of_bijective {α β} {f : α → β} (hf : bijective f) :
   (of_bijective f hf : α → β) = f := rfl
 
+/-- If `f` is an injective function, then its domain is equivalent to its range. -/
 noncomputable def of_injective {α β} (f : α → β) (hf : injective f) : α ≃ _root_.set.range f :=
 of_bijective (λ x, ⟨f x, set.mem_range_self x⟩) ⟨λ x y hxy, hf $ by injections, λ ⟨_, x, rfl⟩, ⟨x, rfl⟩⟩
 

@@ -937,8 +937,7 @@ end
 meta def set (h_simp : parse (tk "!")?) (a : parse ident) (tp : parse ((tk ":") >> texpr)?)
   (_ : parse (tk ":=")) (pv : parse texpr)
   (rev_name : parse opt_dir_with) :=
- do let vt := tp.get_or_else pexpr.mk_placeholder,
-   tp ← i_to_expr vt,
+do tp ← i_to_expr $ tp.get_or_else pexpr.mk_placeholder,
    pv ← to_expr ``(%%pv : %%tp),
    tp ← instantiate_mvars tp,
    definev a tp pv,
@@ -946,7 +945,7 @@ meta def set (h_simp : parse (tk "!")?) (a : parse ident) (tp : parse ((tk ":") 
    match rev_name with
    | some (flip, id) :=
      do nv ← get_local a,
-        pf ← to_expr (cond flip ``(%%pv = %%nv) ``(%%nv = %%pv)) >>= assert id,
+        mk_app `eq (cond flip [pv, nv] [nv, pv]) >>= assert id,
         reflexivity
    | none := skip
    end

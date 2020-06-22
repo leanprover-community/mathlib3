@@ -8,6 +8,7 @@ import linear_algebra.basis
 
 noncomputable theory
 open_locale big_operators
+open_locale classical
 
 /-!
 # Affine spaces
@@ -211,6 +212,96 @@ begin
 end
 
 end finset
+
+section affine_independent
+
+open add_torsor
+
+variables (k : Type*) (V : Type*) {P : Type*} [ring k] [add_comm_group V] [module k V]
+variables [affine_space k V P] {ι : Type*}
+
+/-- An indexed family is said to be affinely independent if no
+nontrivial weighted subtractions (where the sum of weights is 0) are
+0. -/
+def affine_independent (p : ι → P) : Prop :=
+∀ (s : finset ι) (w : ι → k) (h : ∑ i in s, w i = 0), s.weighted_vsub V p w = 0 → ∀ i ∈ s, w i = 0
+
+/-- A family with at most one point is affinely independent. -/
+lemma affine_independent_of_subsingleton [subsingleton ι] (p : ι → P) :
+  affine_independent k V p :=
+λ s w h hs i hi, fintype.eq_of_subsingleton_of_sum_eq h i hi
+
+/-- A family is affinely independent if and only if the differences
+from a base point in that family are linearly independent. -/
+lemma affine_independent_iff_linear_independent_vsub (p : ι → P) (i1 : ι) :
+  affine_independent k V p ↔ linear_independent k (λ i : {x // x ≠ i1}, (p i -ᵥ p i1 : V)) :=
+begin
+  split,
+  { intro h,
+    rw linear_independent_iff',
+    intros s g hg i hi,
+    set f : ι → k := λ x, if hx : x = i1 then -∑ y in s, g y else g ⟨x, hx⟩ with hfdef,
+    let s2 : finset ι := insert i1 (s.map (function.embedding.subtype _)),
+    have hm : i1 ∉ (s.map (function.embedding.subtype _)),
+    { rw finset.mem_map,
+      push_neg,
+      exact λ x hx, x.property },
+    have hfg : ∀ x : {x // x ≠ i1}, g x = f x,
+    { intro x,
+      rw hfdef,
+      dsimp only [],
+      erw [dif_neg x.property, subtype.coe_eta] },
+    rw hfg,
+    have hf : ∑ ι in s2, f ι = 0,
+    { rw [finset.sum_insert hm, finset.sum_map],
+      change f i1 + ∑ x in s, f (x : ι) = 0,
+      simp_rw ←hfg,
+      rw hfdef,
+      dsimp only [],
+      rw dif_pos rfl,
+      exact neg_add_self _ },
+    have hs2 : s2.weighted_vsub V p f = 0,
+    { rw [finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero V s2 f p hf (p i1),
+          finset.weighted_vsub_of_point_apply, finset.sum_insert hm, finset.sum_map, vsub_self,
+          smul_zero, zero_add],
+      change ∑ x in s, f (x : ι) • (p (x : ι) -ᵥ p i1 : V) = 0,
+      simp_rw ←hfg,
+      exact hg },
+    exact h s2 f hf hs2 i (finset.mem_insert_of_mem (finset.mem_map.2 ⟨i, hi, rfl⟩)) },
+  { intro h,
+    rw linear_independent_iff' at h,
+    intros s w hw hs i hi,
+    rw [finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero V s w p hw (p i1),
+        finset.weighted_vsub_of_point_apply] at hs,
+    let f : ι → V := λ i, w i • (p i -ᵥ p i1),
+    have hz : f i1 = 0,
+    { change w i1 • (p i1 -ᵥ p i1 : V) = 0,
+      rw [vsub_self, smul_zero] },
+    erw ←finset.sum_erase s hz at hs,
+    set s2 := (s.erase i1).subtype (λ i, i ≠ i1) with hs2def,
+    have hs2 : ∑ i in s2, w i • (p i -ᵥ p i1 : V) = 0,
+    { erw ←finset.sum_map _ (function.embedding.subtype _) f,
+      convert hs,
+      ext,
+      rw finset.mem_map,
+      change (∃ a_1 : {i // i ≠ i1}, ∃ H, a_1.val = a) ↔ _,
+      rw hs2def,
+      split,
+      { rintros ⟨a1, ha1, ha1val⟩,
+        rw [finset.mem_subtype, ha1val] at ha1,
+        exact ha1 },
+      { intro ha,
+        use ⟨a, finset.ne_of_mem_erase ha⟩,
+        rw finset.mem_subtype,
+        exact ⟨ha, rfl⟩ } },
+    have h2 := h s2 (λ x, w x) hs2,
+    simp_rw [hs2def, finset.mem_subtype] at h2,
+    have h2b : ∀ i ∈ s, i ≠ i1 → w i = 0 :=
+      λ i his hi, h2 ⟨i, hi⟩ (finset.mem_erase_of_ne_of_mem hi his),
+    exact finset.eq_zero_of_sum_eq_zero hw h2b i hi }
+end
+
+end affine_independent
 
 open add_torsor affine_space
 

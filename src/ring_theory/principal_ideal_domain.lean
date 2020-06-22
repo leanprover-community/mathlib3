@@ -5,7 +5,31 @@ Author: Chris Hughes, Morenikeji Neri
 -/
 import ring_theory.noetherian
 import ring_theory.unique_factorization_domain
+/-!
+# Principal ideal rings and principal ideal domains
 
+A principal ideal ring (PIR) is a commutative ring in which all ideals are principal. A
+principal ideal domain (PID) is an integral domain which is a principal ideal ring.
+
+# Main definitions
+
+Note that for principal ideal domains, one should use
+`[integral domain R] [is_principal_ideal_ring R]`. There is no explicit definition of a PID.
+Theorems about PID's are in the `principal_ideal_ring` namespace.
+
+- `is_principal_ideal_ring`: a predicate on commutative rings, saying that every
+  ideal is principal.
+- `generator`: a generator of a principal ideal (or more generally submodule)
+- `to_unique_factorization_domain`: a noncomputable definition, putting a UFD structure on a PID.
+  Note that the definition of a UFD is currently not a predicate, as it contains data
+  of factorizations of non-zero elements.
+
+# Main results
+
+- `to_maximal_ideal`: a non-zero prime ideal in a PID is maximal.
+- `euclidean_domain.to_principal_ideal_domain` : a Euclidean domain is a PID.
+
+-/
 universes u v
 variables {R : Type u} {M : Type v}
 
@@ -17,14 +41,12 @@ open_locale classical
 class submodule.is_principal [ring R] [add_comm_group M] [module R M] (S : submodule R M) : Prop :=
 (principal [] : ∃ a, S = span R {a})
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
-class principal_ideal_domain (R : Type u) extends integral_domain R :=
+/-- A commutative ring is a principal ideal ring if all ideals are principal. -/
+class is_principal_ideal_ring (R : Type u) [comm_ring R] : Prop :=
 (principal : ∀ (S : ideal R), S.is_principal)
-end prio
 
--- see Note [lower instance priority]
-attribute [instance, priority 500] principal_ideal_domain.principal
+attribute [instance] is_principal_ideal_ring.principal
+
 namespace submodule.is_principal
 
 variables [comm_ring R] [add_comm_group M] [module R M]
@@ -55,12 +77,11 @@ end submodule.is_principal
 namespace is_prime
 open submodule.is_principal ideal
 
-lemma to_maximal_ideal [principal_ideal_domain R] {S : ideal R}
+-- TODO -- for a non-ID should prove that if p < q then q maximal; 0 isn't prime in a non-ID
+lemma to_maximal_ideal [integral_domain R] [is_principal_ideal_ring R] {S : ideal R}
   [hpi : is_prime S] (hS : S ≠ ⊥) : is_maximal S :=
 is_maximal_iff.2 ⟨(ne_top_iff_one S).1 hpi.1, begin
   assume T x hST hxS hxT,
-  haveI := principal_ideal_domain.principal S,
-  haveI := principal_ideal_domain.principal T,
   cases (mem_iff_generator_dvd _).1 (hST $ generator_mem S) with z hz,
   cases hpi.2 (show generator T * z ∈ S, from hz ▸ generator_mem S),
   { have hTS : T ≤ S, rwa [← span_singleton_generator T, submodule.span_le, singleton_subset_iff],
@@ -82,7 +103,7 @@ lemma mod_mem_iff {S : ideal R} {x y : R} (hy : y ∈ S) : x % y ∈ S ↔ x ∈
   λ hx, (mod_eq_sub_mul_div x y).symm ▸ ideal.sub_mem S hx (ideal.mul_mem_right S hy)⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance euclidean_domain.to_principal_ideal_domain : principal_ideal_domain R :=
+instance euclidean_domain.to_principal_ideal_domain : is_principal_ideal_ring R :=
 { principal := λ S, by exactI
     ⟨if h : {x : R | x ∈ S ∧ x ≠ 0}.nonempty
     then
@@ -105,30 +126,19 @@ instance euclidean_domain.to_principal_ideal_domain : principal_ideal_domain R :
 
 end
 
+namespace principal_ideal_ring
+open is_principal_ideal_ring
 
-namespace principal_ideal_domain
-variables [principal_ideal_domain R]
+variables [integral_domain R] [is_principal_ideal_ring R]
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_noetherian_ring : is_noetherian_ring R :=
 ⟨assume s : ideal R,
 begin
-  rcases (principal s).principal with ⟨a, rfl⟩,
+  rcases (is_principal_ideal_ring.principal s).principal with ⟨a, rfl⟩,
   rw [← finset.coe_singleton],
   exact ⟨{a}, submodule.coe_injective rfl⟩
 end⟩
-
-section
-open_locale classical
-
-lemma factors_decreasing (b₁ b₂ : R) (h₁ : b₁ ≠ 0) (h₂ : ¬ is_unit b₂) :
-  submodule.span R ({b₁ * b₂} : set R) < submodule.span R {b₁} :=
-lt_of_le_not_le (ideal.span_le.2 $ singleton_subset_iff.2 $
-  ideal.mem_span_singleton.2 ⟨b₂, rfl⟩) $ λ h,
-h₂ $ is_unit_of_dvd_one _ $ (mul_dvd_mul_iff_left h₁).1 $
-by rwa [mul_one, ← ideal.span_singleton_le_span_singleton]
-
-end
 
 lemma is_maximal_of_irreducible {p : R} (hp : irreducible p) :
   ideal.is_maximal (span R ({p} : set R)) :=
@@ -153,6 +163,7 @@ by rw [associates.irreducible_mk_iff, associates.prime_mk, irreducible_iff_prime
 section
 open_locale classical
 
+/-- `factors a` is a multiset of irreducible elements whose product is `a`, up to units -/
 noncomputable def factors (a : R) : multiset R :=
 if h : a = 0 then ∅ else classical.some
   (is_noetherian_ring.exists_factors a h)
@@ -177,4 +188,4 @@ noncomputable def to_unique_factorization_domain : unique_factorization_domain R
 
 end
 
-end principal_ideal_domain
+end principal_ideal_ring

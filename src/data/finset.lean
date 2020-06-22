@@ -580,6 +580,15 @@ theorem mem_of_mem_erase {a b : α} {s : finset α} : b ∈ erase s a → b ∈ 
 theorem mem_erase_of_ne_of_mem {a b : α} {s : finset α} : a ≠ b → a ∈ s → a ∈ erase s b :=
 by simp only [mem_erase]; exact and.intro
 
+/-- An element of `s` that is not an element of `erase s a` must be
+`a`. -/
+lemma eq_of_mem_of_not_mem_erase {a b : α} {s : finset α} (hs : b ∈ s)
+    (hsa : b ∉ s.erase a) : b = a :=
+begin
+  rw [mem_erase, not_and] at hsa,
+  exact not_imp_not.mp hsa hs
+end
+
 theorem erase_insert {a : α} {s : finset α} (h : a ∉ s) : erase (insert a s) a = s :=
 ext $ assume x, by simp only [mem_erase, mem_insert, and_or_distrib_left, not_and_self, false_or];
 apply and_iff_right_of_imp; rintro H rfl; exact h H

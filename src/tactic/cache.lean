@@ -133,7 +133,7 @@ by its variant `haveI` described below.
 add_tactic_doc
 { name        := "Instance cache tactics",
   category    := doc_category.tactic,
-  decl_names  := [``resetI, ``substI, ``introI, ``introsI, ``haveI, ``letI, ``exactI],
+  decl_names  := [``resetI, ``unfreezingI, ``substI, ``introI, ``introsI, ``haveI, ``letI, ``exactI],
   tags        := ["type class", "context management"] }
 
 end interactive

@@ -752,10 +752,10 @@ lemma prod_update_of_mem [decidable_eq α] {s : finset α} {i : α} (h : i ∈ s
   (∏ x in s, function.update f i b x) = b * (∏ x in s \ (singleton i), f x) :=
 by { rw [update_eq_piecewise, prod_piecewise], simp [h] }
 
-/-- If a product of a `finset` of size at most 1 is 1, so are the
-terms in that product. -/
-lemma eq_one_of_card_le_one_of_prod_eq_one {s : finset α} (hc : s.card ≤ 1) {f : α → β}
-    (h : ∏ x in s, f x = 1) : ∀ x ∈ s, f x = 1 :=
+/-- If a product of a `finset` of size at most 1 has a given value, so
+do the terms in that product. -/
+lemma eq_of_card_le_one_of_prod_eq {s : finset α} (hc : s.card ≤ 1) {f : α → β} {b : β}
+    (h : ∏ x in s, f x = b) : ∀ x ∈ s, f x = b :=
 begin
   intros x hx,
   by_cases hc0 : s.card = 0,
@@ -770,10 +770,10 @@ begin
     exact h }
 end
 
-/-- If a sum of a `finset` of size at most 1 is 0, so are the
-terms in that sum. -/
-lemma eq_zero_of_card_le_one_of_sum_eq_zero [add_comm_monoid γ] {s : finset α} (hc : s.card ≤ 1)
-    {f : α → γ} (h : ∑ x in s, f x = 0) : ∀ x ∈ s, f x = 0 :=
+/-- If a sum of a `finset` of size at most 1 has a given value, so do
+the terms in that sum. -/
+lemma eq_of_card_le_one_of_sum_eq [add_comm_monoid γ] {s : finset α} (hc : s.card ≤ 1)
+    {f : α → γ} {b : γ} (h : ∑ x in s, f x = b) : ∀ x ∈ s, f x = b :=
 begin
   intros x hx,
   by_cases hc0 : s.card = 0,
@@ -788,7 +788,7 @@ begin
     exact h }
 end
 
-attribute [to_additive eq_zero_of_card_le_one_of_sum_eq_zero] eq_one_of_card_le_one_of_prod_eq_one
+attribute [to_additive eq_of_card_le_one_of_sum_eq] eq_of_card_le_one_of_prod_eq
 
 /-- If a function applied at a point is 1, a product is unchanged by
 removing that point, if present, from a `finset`. -/

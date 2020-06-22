@@ -116,55 +116,25 @@ include S
 variables {ι : Type*} (s : finset ι)
 
 /-- A weighted sum of the results of subtracting a base point from the
-given points.  The main cases of interest are where the sum of the
-weights is 0, in which case the sum is independent of the choice of
-base point, and where the sum of the weights is 1, in which case the
-sum added to the base point is independent of the choice of base
-point. -/
-def weighted_vsub_of_point (w : ι → k) (p : ι → P) (b : P) : V := ∑ i in s, w i • (p i -ᵥ b)
-
-/-- `weighted_vsub_of_point` as a linear map on the weights. -/
-def weighted_vsub_of_point_linear (p : ι → P) (b : P) : (ι → k) →ₗ[k] V :=
+given points, as a linear map on the weights.  The main cases of
+interest are where the sum of the weights is 0, in which case the sum
+is independent of the choice of base point, and where the sum of the
+weights is 1, in which case the sum added to the base point is
+independent of the choice of base point. -/
+def weighted_vsub_of_point (p : ι → P) (b : P) : (ι → k) →ₗ[k] V :=
 ∑ i in s, (linear_map.proj i : (ι → k) →ₗ[k] k).smul_right (p i -ᵥ b)
 
-@[simp] lemma weighted_vsub_of_point_linear_apply (w : ι → k) (p : ι → P) (b : P) :
-  s.weighted_vsub_of_point_linear V p b w = s.weighted_vsub_of_point V w p b :=
-by simp [weighted_vsub_of_point_linear, linear_map.sum_apply, weighted_vsub_of_point]
-
-/-- The weighted sum when the weights are 0. -/
-@[simp] lemma weighted_vsub_of_point_zero (p : ι → P) (b : P) :
-  s.weighted_vsub_of_point V (0 : ι → k) p b = 0 :=
-by rw [← weighted_vsub_of_point_linear_apply, linear_map.map_zero]
-
-/-- The weighted sum, multiplied by a constant. -/
-lemma weighted_vsub_of_point_smul (r : k) (w : ι → k) (p : ι → P) (b : P) :
-  r • s.weighted_vsub_of_point V w p b = s.weighted_vsub_of_point V (r • w) p b :=
-by simp only [← weighted_vsub_of_point_linear_apply, linear_map.map_smul]
-
-/-- The weighted sum, negated. -/
-lemma weighted_vsub_of_point_neg (w : ι → k) (p : ι → P) (b : P) :
-  -s.weighted_vsub_of_point V w p b = s.weighted_vsub_of_point V (-w) p b :=
-by simp only [← weighted_vsub_of_point_linear_apply, linear_map.map_neg]
-
-/-- Adding two weighted sums. -/
-lemma weighted_vsub_of_point_add (w₁ w₂ : ι → k) (p : ι → P) (b : P) :
-  s.weighted_vsub_of_point V w₁ p b + s.weighted_vsub_of_point V w₂ p b =
-    s.weighted_vsub_of_point V (w₁ + w₂) p b :=
-by simp only [← weighted_vsub_of_point_linear_apply, linear_map.map_add]
-
-/-- Subtracting two weighted sums. -/
-lemma weighted_vsub_of_point_sub (w₁ w₂ : ι → k) (p : ι → P) (b : P) :
-  s.weighted_vsub_of_point V w₁ p b - s.weighted_vsub_of_point V w₂ p b =
-    s.weighted_vsub_of_point V (w₁ - w₂) p b :=
-by simp only [← weighted_vsub_of_point_linear_apply, linear_map.map_sub]
+@[simp] lemma weighted_vsub_of_point_apply (w : ι → k) (p : ι → P) (b : P) :
+  s.weighted_vsub_of_point V p b w = ∑ i in s, w i • (p i -ᵥ b) :=
+by simp [weighted_vsub_of_point, linear_map.sum_apply]
 
 /-- The weighted sum is independent of the base point when the sum of
 the weights is 0. -/
 lemma weighted_vsub_of_point_eq_of_sum_eq_zero (w : ι → k) (p : ι → P) (h : ∑ i in s, w i = 0)
-    (b₁ b₂ : P) : s.weighted_vsub_of_point V w p b₁ = s.weighted_vsub_of_point V w p b₂ :=
+    (b₁ b₂ : P) : s.weighted_vsub_of_point V p b₁ w = s.weighted_vsub_of_point V p b₂ w :=
 begin
   apply eq_of_sub_eq_zero,
-  erw ←finset.sum_sub_distrib,
+  rw [weighted_vsub_of_point_apply, weighted_vsub_of_point_apply, ←finset.sum_sub_distrib],
   conv_lhs {
     congr,
     skip,
@@ -178,10 +148,11 @@ end
 base point when the sum of the weights is 1. -/
 lemma weighted_vsub_of_point_vadd_eq_of_sum_eq_one (w : ι → k) (p : ι → P) (h : ∑ i in s, w i = 1)
     (b₁ b₂ : P) :
-  s.weighted_vsub_of_point V w p b₁ +ᵥ b₁ = s.weighted_vsub_of_point V w p b₂ +ᵥ b₂ :=
+  s.weighted_vsub_of_point V p b₁ w +ᵥ b₁ = s.weighted_vsub_of_point V p b₂ w +ᵥ b₂ :=
 begin
-  erw [←vsub_eq_zero_iff_eq V, vadd_vsub_assoc, vsub_vadd_eq_vsub_sub, ←add_sub_assoc, add_comm,
-       add_sub_assoc, ←finset.sum_sub_distrib],
+  erw [weighted_vsub_of_point_apply, weighted_vsub_of_point_apply, ←vsub_eq_zero_iff_eq V,
+       vadd_vsub_assoc, vsub_vadd_eq_vsub_sub, ←add_sub_assoc, add_comm, add_sub_assoc,
+       ←finset.sum_sub_distrib],
   conv_lhs {
     congr,
     skip,
@@ -194,41 +165,17 @@ begin
 end
 
 /-- A weighted sum of the results of subtracting a default base point
-from the given points.  This is intended to be used when the sum of
-the weights is 0; that condition is specified as a hypothesis on those
-lemmas that require it. -/
-def weighted_vsub (w : ι → k) (p : ι → P) : V :=
-s.weighted_vsub_of_point V w p (classical.choice S.nonempty)
+from the given points, as a linear map on the weights.  This is
+intended to be used when the sum of the weights is 0; that condition
+is specified as a hypothesis on those lemmas that require it. -/
+def weighted_vsub (p : ι → P) : (ι → k) →ₗ[k] V :=
+s.weighted_vsub_of_point V p (classical.choice S.nonempty)
 
 /-- `weighted_vsub` gives the sum of the results of subtracting any
 base point, when the sum of the weights is 0. -/
 lemma weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero (w : ι → k) (p : ι → P)
-    (h : ∑ i in s, w i = 0) (b : P) : s.weighted_vsub V w p = s.weighted_vsub_of_point V w p b :=
+    (h : ∑ i in s, w i = 0) (b : P) : s.weighted_vsub V p w = s.weighted_vsub_of_point V p b w :=
 s.weighted_vsub_of_point_eq_of_sum_eq_zero V w p h _ _
-
-/-- The weighted sum when the weights are 0. -/
-@[simp] lemma weighted_vsub_zero (p : ι → P) : s.weighted_vsub V (0 : ι → k) p = 0 :=
-s.weighted_vsub_of_point_zero V p _
-
-/-- The weighted sum, multiplied by a constant. -/
-lemma weighted_vsub_smul (r : k) (w : ι → k) (p : ι → P) :
-  r • s.weighted_vsub V w p = s.weighted_vsub V (r • w) p :=
-s.weighted_vsub_of_point_smul V r w p _
-
-/-- The weighted sum, negated. -/
-lemma weighted_vsub_neg (w : ι → k) (p : ι → P) :
-  -s.weighted_vsub V w p = s.weighted_vsub V (-w) p :=
-s.weighted_vsub_of_point_neg V w p _
-
-/-- Adding two weighted sums. -/
-lemma weighted_vsub_add (w₁ w₂ : ι → k) (p : ι → P) :
-  s.weighted_vsub V w₁ p + s.weighted_vsub V w₂ p = s.weighted_vsub V (w₁ + w₂) p :=
-s.weighted_vsub_of_point_add V w₁ w₂ p _
-
-/-- Subtracting two weighted sums. -/
-lemma weighted_vsub_sub (w₁ w₂ : ι → k) (p : ι → P) :
-  s.weighted_vsub V w₁ p - s.weighted_vsub V w₂ p = s.weighted_vsub V (w₁ - w₂) p :=
-s.weighted_vsub_of_point_sub V w₁ w₂ p _
 
 /-- A weighted sum of the results of subtracting a default base point
 from the given points, added to that base point.  This is intended to
@@ -237,30 +184,30 @@ affine combination (barycenter) of the points with the given weights;
 that condition is specified as a hypothesis on those lemmas that
 require it. -/
 def affine_combination (w : ι → k) (p : ι → P) : P :=
-s.weighted_vsub_of_point V w p (classical.choice S.nonempty) +ᵥ (classical.choice S.nonempty)
+s.weighted_vsub_of_point V p (classical.choice S.nonempty) w +ᵥ (classical.choice S.nonempty)
 
 /-- `affine_combination` gives the sum with any base point, when the
 sum of the weights is 1. -/
 lemma affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one (w : ι → k) (p : ι → P)
     (h : ∑ i in s, w i = 1) (b : P) :
-  s.affine_combination V w p = s.weighted_vsub_of_point V w p b +ᵥ b :=
+  s.affine_combination V w p = s.weighted_vsub_of_point V p b w +ᵥ b :=
 s.weighted_vsub_of_point_vadd_eq_of_sum_eq_one V w p h _ _
 
 /-- Adding a `weighted_vsub` to an `affine_combination`. -/
 lemma weighted_vsub_vadd_affine_combination (w₁ w₂ : ι → k) (p : ι → P) :
-  s.weighted_vsub V w₁ p +ᵥ s.affine_combination V w₂ p = s.affine_combination V (w₁ + w₂) p :=
+  s.weighted_vsub V p w₁ +ᵥ s.affine_combination V w₂ p = s.affine_combination V (w₁ + w₂) p :=
 begin
   erw vadd_assoc,
   congr,
-  exact s.weighted_vsub_add V w₁ w₂ p
+  exact (linear_map.map_add _ _ _).symm
 end
 
 /-- Subtracting two `affine_combination`s. -/
 lemma affine_combination_vsub (w₁ w₂ : ι → k) (p : ι → P) :
-  s.affine_combination V w₁ p -ᵥ s.affine_combination V w₂ p = s.weighted_vsub V (w₁ - w₂) p :=
+  s.affine_combination V w₁ p -ᵥ s.affine_combination V w₂ p = s.weighted_vsub V p (w₁ - w₂) :=
 begin
   erw vadd_vsub_vadd_cancel_right,
-  exact s.weighted_vsub_sub V w₁ w₂ p
+  exact (linear_map.map_sub _ _ _).symm
 end
 
 end finset
@@ -718,7 +665,7 @@ variables [affine_space k V P] {ι : Type*} (s : finset ι)
 -- TODO: define `affine_map.proj`, `affine_map.fst`, `affine_map.snd`
 /-- A weighted sum, as an affine map on the points involved. -/
 def weighted_vsub_of_point (w : ι → k) : affine_map k ((ι → V) × V) ((ι → P) × P) V V :=
-{ to_fun := λ p, s.weighted_vsub_of_point _ w p.fst p.snd,
+{ to_fun := λ p, s.weighted_vsub_of_point _ p.fst p.snd w,
   linear := ∑ i in s,
     w i • ((linear_map.proj i).comp (linear_map.fst _ _ _) - linear_map.snd _ _ _),
   map_vadd' := begin

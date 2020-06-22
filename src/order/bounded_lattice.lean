@@ -731,7 +731,6 @@ lemma lt_iff_exists_coe_btwn [partial_order α] [densely_ordered α] [no_top_ord
  λ ⟨x, hx⟩, lt_trans hx.1 hx.2⟩
 
 /-- Lemma shows that a in with_top Z is either the maximal element or some integer n. -/
-
 lemma with_top.cases (a : with_top ℤ) : a = ⊤ ∨ ∃ n : ℤ, a = n :=
 begin
   cases a with n,

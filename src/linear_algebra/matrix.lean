@@ -299,81 +299,6 @@ lemma trace_mul_comm {S : Type v} [comm_ring S] (A : matrix m n S) (B : matrix n
   trace n S S (B ⬝ A) = trace m S S (A ⬝ B) :=
 by rw [←trace_transpose, ←trace_transpose_mul, transpose_mul]
 
-/-- The trace of an endomorphism given a basis. -/
-def trace_aux (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
-  {ι : Type w} [fintype ι] [decidable_eq ι] {b : ι → M} (hb : is_basis R b) :
-  (M →ₗ[R] M) →ₗ[R] R :=
-(trace ι R R).comp $ linear_equiv_matrix hb hb
-
-@[simp] lemma trace_aux_def (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
-  {ι : Type w} [fintype ι] [decidable_eq ι] {b : ι → M} (hb : is_basis R b) (f : M →ₗ[R] M) :
-  trace_aux R hb f = trace ι R R (linear_equiv_matrix hb hb f) :=
-rfl
-
-theorem trace_aux_eq' (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
-  {ι : Type w} [fintype ι] [decidable_eq ι] {b : ι → M} (hb : is_basis R b)
-  {κ : Type w} [fintype κ] [decidable_eq κ] {c : κ → M} (hc : is_basis R c) :
-  trace_aux R hb = trace_aux R hc :=
-linear_map.ext $ λ f,
-calc  trace ι R R (linear_equiv_matrix hb hb f)
-    = trace ι R R (linear_equiv_matrix hb hb ((linear_map.id.comp f).comp linear_map.id)) :
-  by rw [linear_map.id_comp, linear_map.comp_id]
-... = trace ι R R (linear_equiv_matrix hc hb linear_map.id ⬝
-        linear_equiv_matrix hc hc f ⬝
-        linear_equiv_matrix hb hc linear_map.id) :
-  by rw [linear_equiv_matrix_comp _ hc, linear_equiv_matrix_comp _ hc]
-... = trace κ R R (linear_equiv_matrix hc hc f ⬝
-        linear_equiv_matrix hb hc linear_map.id ⬝
-        linear_equiv_matrix hc hb linear_map.id) :
-  by rw [matrix.mul_assoc, trace_mul_comm]
-... = trace κ R R (linear_equiv_matrix hc hc ((f.comp linear_map.id).comp linear_map.id)) :
-  by rw [linear_equiv_matrix_comp _ hb, linear_equiv_matrix_comp _ hc]
-... = trace κ R R (linear_equiv_matrix hc hc f) :
-  by rw [linear_map.comp_id, linear_map.comp_id]
-
-open_locale classical
-
-theorem trace_aux_range (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
-  {ι : Type w} [fintype ι] {b : ι → M} (hb : is_basis R b) :
-  trace_aux R hb.range = trace_aux R hb :=
-linear_map.ext $ λ f, if H : 0 = 1 then @subsingleton.elim _ (subsingleton_of_zero_eq_one R H) _ _ else
-begin
-  change ∑ i : range b, _ = ∑ i : ι, _, simp_rw [diag_apply], symmetry,
-  convert finset.sum_equiv (equiv.of_injective _ $ hb.injective H) _, ext i,
-  exact (linear_equiv_matrix_range hb hb f i i).symm
-end
-
-/-- where `ι` and `κ` can reside in different universes -/
-theorem trace_aux_eq (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
-  {ι : Type*} [fintype ι] [decidable_eq ι] {b : ι → M} (hb : is_basis R b)
-  {κ : Type*} [fintype κ] [decidable_eq κ] {c : κ → M} (hc : is_basis R c) :
-  trace_aux R hb = trace_aux R hc :=
-calc  trace_aux R hb
-    = trace_aux R hb.range : by { rw trace_aux_range R hb, congr }
-... = trace_aux R hc.range : trace_aux_eq' _ _ _
-... = trace_aux R hc : by { rw trace_aux_range R hc, congr }
-
-/-- Trace of an endomorphism independent of basis. -/
-def trace' (R : Type u) [comm_ring R] (M : Type v) [add_comm_group M] [module R M] :
-  (M →ₗ[R] M) →ₗ[R] R :=
-if H : ∃ s : finset M, is_basis R (λ x, x : (↑s : set M) → M)
-then trace_aux R (classical.some_spec H)
-else 0
-
-theorem trace'_apply (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
-  {ι : Type w} [fintype ι] {b : ι → M} (hb : is_basis R b) (f : M →ₗ[R] M) :
-  trace' R M f = trace ι R R (linear_equiv_matrix hb hb f) :=
-have ∃ s : finset M, is_basis R (λ x, x : (↑s : set M) → M),
-from ⟨finset.univ.image b,
-  by { rw [finset.coe_image, finset.coe_univ, set.image_univ], exact hb.range }⟩,
-by { rw [trace', dif_pos this, ← trace_aux_def], congr' 1, apply trace_aux_eq }
-
-theorem trace'_mul_comm (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
-  (f g : M →ₗ[R] M) : trace' R M (f * g) = trace' R M (g * f) :=
-if H : ∃ s : finset M, is_basis R (λ x, x : (↑s : set M) → M) then let ⟨s, hb⟩ := H in
-by { simp_rw [trace'_apply R hb, linear_equiv_matrix_mul], apply trace_mul_comm }
-else by rw [trace', dif_neg H, linear_map.zero_apply, linear_map.zero_apply]
-
 end trace
 
 section ring
@@ -470,6 +395,87 @@ by rw [@linear_equiv.findim_eq R (matrix m n R) _ _ _ _ _ _ (linear_equiv.uncurr
 end finite_dimensional
 
 end matrix
+
+namespace linear_map
+
+open_locale matrix
+
+/-- The trace of an endomorphism given a basis. -/
+def trace_aux (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
+  {ι : Type w} [fintype ι] [decidable_eq ι] {b : ι → M} (hb : is_basis R b) :
+  (M →ₗ[R] M) →ₗ[R] R :=
+(matrix.trace ι R R).comp $ linear_equiv_matrix hb hb
+
+@[simp] lemma trace_aux_def (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
+  {ι : Type w} [fintype ι] [decidable_eq ι] {b : ι → M} (hb : is_basis R b) (f : M →ₗ[R] M) :
+  trace_aux R hb f = matrix.trace ι R R (linear_equiv_matrix hb hb f) :=
+rfl
+
+theorem trace_aux_eq' (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
+  {ι : Type w} [fintype ι] [decidable_eq ι] {b : ι → M} (hb : is_basis R b)
+  {κ : Type w} [fintype κ] [decidable_eq κ] {c : κ → M} (hc : is_basis R c) :
+  trace_aux R hb = trace_aux R hc :=
+linear_map.ext $ λ f,
+calc  matrix.trace ι R R (linear_equiv_matrix hb hb f)
+    = matrix.trace ι R R (linear_equiv_matrix hb hb ((linear_map.id.comp f).comp linear_map.id)) :
+  by rw [linear_map.id_comp, linear_map.comp_id]
+... = matrix.trace ι R R (linear_equiv_matrix hc hb linear_map.id ⬝
+        linear_equiv_matrix hc hc f ⬝
+        linear_equiv_matrix hb hc linear_map.id) :
+  by rw [matrix.linear_equiv_matrix_comp _ hc, matrix.linear_equiv_matrix_comp _ hc]
+... = matrix.trace κ R R (linear_equiv_matrix hc hc f ⬝
+        linear_equiv_matrix hb hc linear_map.id ⬝
+        linear_equiv_matrix hc hb linear_map.id) :
+  by rw [matrix.mul_assoc, matrix.trace_mul_comm]
+... = matrix.trace κ R R (linear_equiv_matrix hc hc ((f.comp linear_map.id).comp linear_map.id)) :
+  by rw [matrix.linear_equiv_matrix_comp _ hb, matrix.linear_equiv_matrix_comp _ hc]
+... = matrix.trace κ R R (linear_equiv_matrix hc hc f) :
+  by rw [linear_map.comp_id, linear_map.comp_id]
+
+open_locale classical
+
+theorem trace_aux_range (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
+  {ι : Type w} [fintype ι] {b : ι → M} (hb : is_basis R b) :
+  trace_aux R hb.range = trace_aux R hb :=
+linear_map.ext $ λ f, if H : 0 = 1 then @subsingleton.elim _ (subsingleton_of_zero_eq_one R H) _ _ else
+begin
+  change ∑ i : set.range b, _ = ∑ i : ι, _, simp_rw [matrix.diag_apply], symmetry,
+  convert finset.sum_equiv (equiv.of_injective _ $ hb.injective H) _, ext i,
+  exact (linear_equiv_matrix_range hb hb f i i).symm
+end
+
+/-- where `ι` and `κ` can reside in different universes -/
+theorem trace_aux_eq (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
+  {ι : Type*} [fintype ι] [decidable_eq ι] {b : ι → M} (hb : is_basis R b)
+  {κ : Type*} [fintype κ] [decidable_eq κ] {c : κ → M} (hc : is_basis R c) :
+  trace_aux R hb = trace_aux R hc :=
+calc  trace_aux R hb
+    = trace_aux R hb.range : by { rw trace_aux_range R hb, congr }
+... = trace_aux R hc.range : trace_aux_eq' _ _ _
+... = trace_aux R hc : by { rw trace_aux_range R hc, congr }
+
+/-- Trace of an endomorphism independent of basis. -/
+def trace (R : Type u) [comm_ring R] (M : Type v) [add_comm_group M] [module R M] :
+  (M →ₗ[R] M) →ₗ[R] R :=
+if H : ∃ s : finset M, is_basis R (λ x, x : (↑s : set M) → M)
+then trace_aux R (classical.some_spec H)
+else 0
+
+theorem trace_apply (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
+  {ι : Type w} [fintype ι] {b : ι → M} (hb : is_basis R b) (f : M →ₗ[R] M) :
+  trace R M f = matrix.trace ι R R (linear_equiv_matrix hb hb f) :=
+have ∃ s : finset M, is_basis R (λ x, x : (↑s : set M) → M),
+from ⟨finset.univ.image b,
+  by { rw [finset.coe_image, finset.coe_univ, set.image_univ], exact hb.range }⟩,
+by { rw [trace, dif_pos this, ← trace_aux_def], congr' 1, apply trace_aux_eq }
+
+theorem trace_mul_comm (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
+  (f g : M →ₗ[R] M) : trace R M (f * g) = trace R M (g * f) :=
+if H : ∃ s : finset M, is_basis R (λ x, x : (↑s : set M) → M) then let ⟨s, hb⟩ := H in
+by { simp_rw [trace_apply R hb, matrix.linear_equiv_matrix_mul], apply matrix.trace_mul_comm }
+else by rw [trace, dif_neg H, linear_map.zero_apply, linear_map.zero_apply]
+
+end linear_map
 
 /-- The natural equivalence between linear endomorphisms of finite free modules and square matrices
 is compatible with the algebra structures. -/

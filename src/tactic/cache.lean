@@ -23,10 +23,17 @@ meta def reset_instance_cache : tactic unit := do
 unfreeze_local_instances,
 freeze_local_instances
 
-/-- Unfreeze local instances, if the passed expression is amongst the frozen instances. -/
-meta def unfreeze (h : expr) : tactic unit :=
+/-- Unfreeze the local instances while executing `tac` on the main goal. -/
+meta def unfreezing (tac : tactic unit) : tactic unit :=
+unfreeze_local_instances *> (tac; freeze_local_instances)
+
+/--
+Unfreeze local instances while executing `tac`,
+if the passed expression is amongst the frozen instances.
+-/
+meta def unfreezing_hyp (h : expr) (tac : tactic unit) : tactic unit :=
 do frozen ← frozen_local_instances,
-   if h ∈ frozen.get_or_else [] then unfreeze_local_instances else skip
+   if h ∈ frozen.get_or_else [] then unfreezing tac else tac
 
 namespace interactive
 open interactive interactive.types
@@ -35,7 +42,7 @@ open interactive interactive.types
 `unfreezingI { tac }` executes tac while temporarily unfreezing the instance cache.
 -/
 meta def unfreezingI (tac : itactic) :=
-unfreeze_local_instances *> ((id tac : tactic unit); freeze_local_instances)
+unfreezing tac
 
 /-- Reset the instance cache. This allows any new instances
 added to the context to be used in typeclass inference. -/

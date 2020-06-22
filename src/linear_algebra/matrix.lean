@@ -461,7 +461,7 @@ if H : ∃ s : finset M, is_basis R (λ x, x : (↑s : set M) → M)
 then trace_aux R (classical.some_spec H)
 else 0
 
-theorem trace_apply (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
+theorem trace_eq_matrix_trace (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
   {ι : Type w} [fintype ι] {b : ι → M} (hb : is_basis R b) (f : M →ₗ[R] M) :
   trace R M f = matrix.trace ι R R (linear_equiv_matrix hb hb f) :=
 have ∃ s : finset M, is_basis R (λ x, x : (↑s : set M) → M),

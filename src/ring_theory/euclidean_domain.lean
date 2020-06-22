@@ -46,9 +46,9 @@ theorem dvd_or_coprime {α} [euclidean_domain α] (x y : α)
   (h : irreducible x) : x ∣ y ∨ is_coprime x y :=
 begin
   refine or_iff_not_imp_left.2 (λ h', _),
-  unfreezeI, apply is_coprime_of_dvd,
-  { rintro ⟨rfl, rfl⟩, simpa using h },
-  { rintro z nu nz ⟨w, rfl⟩ dy,
+  apply is_coprime_of_dvd,
+  { unfreezingI { rintro ⟨rfl, rfl⟩ }, simpa using h },
+  { unfreezingI { rintro z nu nz ⟨w, rfl⟩ dy },
     refine h' (dvd.trans _ dy),
     simpa using mul_dvd_mul_left z (is_unit_iff_dvd_one.1 $
       (of_irreducible_mul h).resolve_left nu) }

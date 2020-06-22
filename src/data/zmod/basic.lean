@@ -131,7 +131,7 @@ instance fintype : Π (n : ℕ) [fact (0 < n)], fintype (zmod n)
 
 lemma card (n : ℕ) [fact (0 < n)] : fintype.card (zmod n) = n :=
 begin
-  unfreezeI, cases n,
+  unfreezingI { cases n },
   { exfalso, exact nat.not_lt_zero 0 ‹0 < 0› },
   { exact fintype.card_fin (n+1) }
 end
@@ -162,7 +162,7 @@ def val : Π {n : ℕ}, zmod n → ℕ
 
 lemma val_lt {n : ℕ} [fact (0 < n)] (a : zmod n) : a.val < n :=
 begin
-  unfreezeI, cases n,
+  unfreezingI { cases n },
   { exfalso, exact nat.not_lt_zero 0 ‹0 < 0› },
   exact fin.is_lt a
 end
@@ -173,8 +173,7 @@ end
 
 lemma val_cast_nat {n : ℕ} (a : ℕ) : (a : zmod n).val = a % n :=
 begin
-  unfreezeI,
-  cases n,
+  unfreezingI { cases n },
   { rw [nat.mod_zero, int.nat_cast_eq_coe_nat],
     exact int.nat_abs_of_nat a, },
   rw ← fin.of_nat_eq_coe,
@@ -224,8 +223,7 @@ lemma nat_cast_surjective [fact (0 < n)] :
   function.surjective (coe : ℕ → zmod n) :=
 begin
   assume i,
-  unfreezeI,
-  cases n,
+  unfreezingI { cases n },
   { exfalso, exact nat.not_lt_zero 0 ‹0 < 0› },
   { refine ⟨i.val, _⟩,
     cases i with i hi,
@@ -271,7 +269,7 @@ variables [ring R]
 @[simp] lemma nat_cast_val [fact (0 < n)] (i : zmod n) :
   (i.val : R) = i :=
 begin
-  unfreezeI, cases n,
+  unfreezingI { cases n },
   { exfalso, exact nat.not_lt_zero 0 ‹0 < 0› },
   refl
 end
@@ -283,10 +281,10 @@ variables {n} {m : ℕ} [char_p R m]
 
 @[simp] lemma cast_one (h : m ∣ n) : ((1 : zmod n) : R) = 1 :=
 begin
-  unfreezeI,
-  cases n, { exact int.cast_one },
+  unfreezingI { cases n },
+  { exact int.cast_one },
   show ((1 % (n+1) : ℕ) : R) = 1,
-  cases n, { rw [nat.dvd_one] at h, subst m, apply subsingleton.elim },
+  cases n, { rw [nat.dvd_one] at h, substI m, apply subsingleton.elim },
   rw nat.mod_eq_of_lt,
   { exact nat.cast_one },
   exact nat.lt_of_sub_eq_succ rfl
@@ -294,8 +292,8 @@ end
 
 lemma cast_add (h : m ∣ n) (a b : zmod n) : ((a + b : zmod n) : R) = a + b :=
 begin
-  unfreezeI,
-  cases n, { apply int.cast_add },
+  unfreezingI { cases n },
+  { apply int.cast_add },
   show ((fin.val (a + b) : ℕ) : R) = fin.val a + fin.val b,
   symmetry, resetI,
   rw [fin.val_add, ← nat.cast_add, ← sub_eq_zero, ← nat.cast_sub,
@@ -306,8 +304,8 @@ end
 
 lemma cast_mul (h : m ∣ n) (a b : zmod n) : ((a * b : zmod n) : R) = a * b :=
 begin
-  unfreezeI,
-  cases n, { apply int.cast_mul },
+  unfreezingI { cases n },
+  { apply int.cast_mul },
   show ((fin.val (a * b) : ℕ) : R) = fin.val a * fin.val b,
   symmetry, resetI,
   rw [fin.val_mul, ← nat.cast_mul, ← sub_eq_zero, ← nat.cast_sub,
@@ -404,8 +402,7 @@ end
 lemma val_injective (n : ℕ) [fact (0 < n)] :
   function.injective (zmod.val : zmod n → ℕ) :=
 begin
-  unfreezeI,
-  cases n,
+  unfreezingI { cases n },
   { exfalso, exact nat.not_lt_zero 0 ‹_› },
   assume a b h,
   ext,
@@ -420,7 +417,7 @@ by { rw val_one_eq_one_mod, exact nat.mod_eq_of_lt ‹1 < n› }
 
 lemma val_add {n : ℕ} [fact (0 < n)] (a b : zmod n) : (a + b).val = (a.val + b.val) % n :=
 begin
-  unfreezeI, cases n,
+  unfreezingI { cases n },
   { exfalso, exact nat.not_lt_zero 0 ‹0 < 0› },
   { apply fin.val_add }
 end
@@ -640,7 +637,7 @@ def val_min_abs : Π {n : ℕ}, zmod n → ℤ
 lemma val_min_abs_def_pos {n : ℕ} [fact (0 < n)] (x : zmod n) :
   val_min_abs x = if x.val ≤ n / 2 then x.val else x.val - n :=
 begin
-  unfreezeI, cases n,
+  unfreezingI { cases n },
   { exfalso, exact nat.not_lt_zero 0 ‹0 < 0› },
   { refl }
 end

@@ -1470,8 +1470,7 @@ private lemma times_cont_diff_on.comp_same_univ
   (hg : times_cont_diff_on 𝕜 n g t) (hf : times_cont_diff_on 𝕜 n f s) (st : s ⊆ f ⁻¹' t) :
   times_cont_diff_on 𝕜 n (g ∘ f) s :=
 begin
-  unfreezeI,
-  induction n using with_top.nat_induction with n IH Itop generalizing Eu Fu Gu,
+  unfreezingI { induction n using with_top.nat_induction with n IH Itop generalizing Eu Fu Gu },
   { rw times_cont_diff_on_zero at hf hg ⊢,
     exact continuous_on.comp hg hf st },
   { rw times_cont_diff_on_succ_iff_has_fderiv_within_at at hg ⊢,

@@ -370,7 +370,7 @@ namespace set
 lemma finite_subset_Union {s : set α} (hs : finite s)
   {ι} {t : ι → set α} (h : s ⊆ ⋃ i, t i) : ∃ I : set ι, finite I ∧ s ⊆ ⋃ i ∈ I, t i :=
 begin
-  unfreezeI, cases hs,
+  unfreezingI { cases hs },
   choose f hf using show ∀ x : s, ∃ i, x.1 ∈ t i, {simpa [subset_def] using h},
   refine ⟨range f, finite_range f, _⟩,
   rintro x hx,
@@ -400,9 +400,9 @@ instance nat.fintype_Iio (n : ℕ) : fintype (Iio n) :=
 fintype.of_finset (finset.range n) $ by simp
 
 /--
-If `P` is some relation between terms of `γ` and sets in `γ`, 
-such that every finite set `t : set γ` has some `c : γ` related to it, 
-then there is a recursively defined sequence `u` in `γ` 
+If `P` is some relation between terms of `γ` and sets in `γ`,
+such that every finite set `t : set γ` has some `c : γ` related to it,
+then there is a recursively defined sequence `u` in `γ`
 so `u n` is related to the image of `{0, 1, ..., n-1}` under `u`.
 
 (We use this later to show sequentially compact sets

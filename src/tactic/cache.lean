@@ -55,6 +55,10 @@ unfreezeI >> ((show tactic unit, from tac); freezeI)
 added to the context to be used in typeclass inference. -/
 meta def resetI := reset_instance_cache
 
+/-- Like `subst`, but can also substitute in instance arguments. -/
+meta def substI (q : parse texpr) : tactic unit :=
+unfreezingI (subst q)
+
 /-- Like `intro`, but uses the introduced variable
 in typeclass inference. -/
 meta def introI (p : parse ident_?) : tactic unit :=
@@ -134,6 +138,8 @@ by its variant `haveI` described below.
 * `introI`/`introsI`: `intro`/`intros` followed by `resetI`. Like
   `intro`/`intros`, but uses the introduced variable in typeclass inference.
 
+* `substI`: like `subst`, but can also substitute in type-class arguments
+
 * `haveI`/`letI`: `have`/`let` followed by `resetI`. Used to add typeclasses
   to the context so that they can be used in typeclass inference. The syntax
   `haveI := <proof>` and `haveI : t := <proof>` is supported, but
@@ -146,7 +152,8 @@ by its variant `haveI` described below.
 add_tactic_doc
 { name        := "Instance cache tactics",
   category    := doc_category.tactic,
-  decl_names  := [``unfreezeI, ``freezeI, ``resetI, ``introI, ``introsI, ``haveI, ``letI, ``exactI],
+  decl_names  := [``unfreezeI, ``freezeI, ``resetI,
+                  ``substI, ``introI, ``introsI, ``haveI, ``letI, ``exactI],
   tags        := ["type class", "context management"] }
 
 end interactive

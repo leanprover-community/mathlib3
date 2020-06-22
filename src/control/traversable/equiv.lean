@@ -46,7 +46,7 @@ begin
   have : F = equiv.functor,
   { unfreezingI { cases F }, dsimp [equiv.functor],
     congr; ext; [rw ← h₀, rw ← h₁] },
-  unfreezingI { subst this },
+  substI this,
   exact equiv.is_lawful_functor
 end
 

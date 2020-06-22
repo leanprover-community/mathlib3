@@ -373,7 +373,7 @@ instance add_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ + o₂)
       exact lt_of_le_of_lt (le_add_right _ _) this },
     { simpa using (mul_le_mul_iff_left $
         power_pos (repr e') omega_pos).2 (nat_cast_le.2 n'.pos) } },
-  { change e = e' at ee, unfreezingI { subst e' },
+  { change e = e' at ee, substI e',
     rw [← add_assoc, ← ordinal.mul_add, ← nat.cast_add] }
 end
 
@@ -411,7 +411,7 @@ instance sub_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ - o₂)
   cases cmp e₁ e₂,
   { rw [sub_eq_zero_iff_le.2], {refl},
     exact le_of_lt (oadd_lt_oadd_1 h₁ h₂ ee) },
-  { change e₁ = e₂ at ee, unfreezingI { subst e₂ }, unfold sub._match_1,
+  { change e₁ = e₂ at ee, substI e₂, unfold sub._match_1,
     cases mn : (n₁:ℕ) - n₂; dsimp only [sub._match_2],
     { by_cases en : n₁ = n₂,
       { simp [en], rwa [add_sub_add_cancel] },

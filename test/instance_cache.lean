@@ -51,7 +51,7 @@ end
 
 example (α β) (h : α = β) [inhabited α] : β :=
 begin
-  unfreezingI { subst h },
+  substI h,
   assert_frozen_instances,
   exact default _
 end
@@ -59,5 +59,6 @@ end
 example (α β) (h : α = β) [inhabited α] : β :=
 begin
   unfreezingI { cases _inst_1 },
+  assert_frozen_instances,
   subst h, assumption
 end

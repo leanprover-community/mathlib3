@@ -32,24 +32,10 @@ namespace interactive
 open interactive interactive.types
 
 /--
-**Please use `unfreezingI` instead.**
-
-Unfreeze local instances, which allows us to revert instances in the context.
-This command has significant negative peformance implications:
-it disables the type-class cache until you call `freezeI` again (the freeze setting is per-goal).
--/
-meta def unfreezeI := tactic.unfreeze_local_instances
-
-/--
-Freezes the local instances after `unfreezeI`, re-enabling the type-class cache.
--/
-meta def freezeI := tactic.freeze_local_instances
-
-/--
 `unfreezingI { tac }` executes tac while temporarily unfreezing the instance cache.
 -/
 meta def unfreezingI (tac : itactic) :=
-unfreezeI >> ((show tactic unit, from tac); freezeI)
+unfreeze_local_instances *> ((id tac : tactic unit); freeze_local_instances)
 
 /-- Reset the instance cache. This allows any new instances
 added to the context to be used in typeclass inference. -/
@@ -128,12 +114,7 @@ by its variant `haveI` described below.
 * `resetI`: Reset the instance cache. This allows any instances
   currently in the context to be used in typeclass inference.
 
-* `unfreezeI`: Unfreeze local instances, which allows us to revert
-  instances in the context
-
 * `unfreezingI { tac }`: Unfreeze local instances while executing the tactic `tac`.
-
-* `freezeI`: Freezes the local instances again, which re-enables the type-class cache
 
 * `introI`/`introsI`: `intro`/`intros` followed by `resetI`. Like
   `intro`/`intros`, but uses the introduced variable in typeclass inference.
@@ -152,8 +133,7 @@ by its variant `haveI` described below.
 add_tactic_doc
 { name        := "Instance cache tactics",
   category    := doc_category.tactic,
-  decl_names  := [``unfreezeI, ``freezeI, ``resetI,
-                  ``substI, ``introI, ``introsI, ``haveI, ``letI, ``exactI],
+  decl_names  := [``resetI, ``substI, ``introI, ``introsI, ``haveI, ``letI, ``exactI],
   tags        := ["type class", "context management"] }
 
 end interactive

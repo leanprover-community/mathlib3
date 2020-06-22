@@ -960,8 +960,6 @@ end canonically_ordered_semiring
 namespace with_top
 variables [canonically_ordered_comm_semiring α]
 
-instance : has_one (with_top α) := ⟨↑(1:α)⟩
-
 @[simp] theorem top_ne_zero : ⊤ ≠ (0 : with_top α) .
 @[simp] theorem zero_ne_top : (0 : with_top α) ≠ ⊤ .
 
@@ -1044,8 +1042,8 @@ begin
 end
 
 private lemma one_mul' : ∀a : with_top α, 1 * a = a
-| none     := show ((1:α) : with_top α) * ⊤ = ⊤, by simp [-with_bot.coe_one]
-| (some a) := show ((1:α) : with_top α) * a = a, by simp [coe_mul.symm, -with_bot.coe_one]
+| none     := show ((1:α) : with_top α) * ⊤ = ⊤, by simp [-with_top.coe_one]
+| (some a) := show ((1:α) : with_top α) * a = a, by simp [coe_mul.symm, -with_top.coe_one]
 
 instance : canonically_ordered_comm_semiring (with_top α) :=
 { one             := (1 : α),

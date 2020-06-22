@@ -71,7 +71,7 @@ def complete_lattice_of_Inf (α : Type u) [H1 : partial_order α]
 /-- Create a `complete_lattice` from a `partial_order` and `Sup` function
 that returns the least upper bound of a set. Usually this constructor provides
 poor definitional equalities, so it should be used with
-`.. complete_lattice_of_Sup α_ `. -/
+`.. complete_lattice_of_Sup α _`. -/
 def complete_lattice_of_Sup (α : Type*) [H1 : partial_order α]
   [H2 : has_Sup α] (is_lub_Sup : ∀ s : set α, is_lub s (Sup s)) :
   complete_lattice α :=

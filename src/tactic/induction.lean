@@ -1276,8 +1276,8 @@ focus1 $ do
       eliminee_type ← infer_type eliminee,
       ⟨_, eliminee_args⟩ ← decompose_app_normalizing eliminee_type,
 
-      -- Clear the eliminated hypothesis
-      clear eliminee,
+      -- Clear the eliminated hypothesis (if possible)
+      try $ clear eliminee,
 
       -- Clear the index args (unless other stuff in the goal depends on them)
       -- TODO is this the right thing to do? I don't think this necessarily

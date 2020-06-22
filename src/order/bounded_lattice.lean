@@ -730,6 +730,43 @@ lemma lt_iff_exists_coe_btwn [partial_order α] [densely_ordered α] [no_top_ord
 ⟨λ h, let ⟨y, hy⟩ := dense h, ⟨x, hx⟩ := (lt_iff_exists_coe _ _).1 hy.2 in ⟨x, hx.1 ▸ hy⟩,
  λ ⟨x, hx⟩, lt_trans hx.1 hx.2⟩
 
+/- Lemma shows that a in with_top Z is either the maximal element or some integer n. -/
+
+lemma with_top.cases (a : with_top ℤ) : a = ⊤ ∨ ∃ n : ℤ, a = n :=
+begin
+  cases a with n,
+  { left,
+    refl,
+  },
+  { right,
+    use n,
+    refl,
+  }
+end
+
+/- Shows that for a in with_top, a+a = 0 is equivalent to a=0. -/
+
+example (a : with_top ℤ) : a + a = 0 ↔ a = 0 :=
+begin
+  split,
+  { intro h, 
+  cases (with_top.cases a) with htop hn,
+    { rw htop at h,
+      cases h,
+    },
+    { cases hn with n hn,
+      rw hn at h ⊢,
+      norm_cast at h ⊢,
+      rw add_self_eq_zero at h,
+      assumption
+    }
+  },
+  { intro ha,
+    rw ha,
+    simp
+  }
+end
+
 end with_top
 
 namespace order_dual

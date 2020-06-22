@@ -367,28 +367,6 @@ def is_right {α β} : α ⊕ β → bool
 end sum
 
 
-namespace parser
-
-def char : parser char :=
-sat (λ _, true)
-
-def digit : parser nat := do
-  c ← char,
-  let c' := c.to_nat - '0'.to_nat,
-  if 0 ≤ c' ∧ c' ≤ 9
-    then pure c'
-    else parser.fail $ "expected a digit, got: " ++ c.to_string
-
-def nat : parser nat := do
-  digits ← many1 digit,
-  pure $ prod.fst $
-    digits.foldr
-      (λ digit ⟨sum, magnitude⟩, ⟨sum + digit * magnitude, magnitude * 10⟩)
-      ⟨0, 1⟩
-
-end parser
-
-
 namespace name
 
 open parser

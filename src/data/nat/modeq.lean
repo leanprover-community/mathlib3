@@ -105,7 +105,7 @@ def chinese_remainder (co : coprime n m) (a b : ℕ) : {k // k ≡ a [MOD n] ∧
   { by_cases h₁ : n = 0, {simp [coprime, h₁] at co, substs m n, simp},
     by_cases h₂ : m = 0, {simp [coprime, h₂] at co, substs m n, simp},
     exact int.mod_nonneg _
-      (mul_ne_zero (int.coe_nat_ne_zero.2 h₁) (int.coe_nat_ne_zero.2 h₂)) },
+      (mul_ne_zero.2 ⟨int.coe_nat_ne_zero.2 h₁, int.coe_nat_ne_zero.2 h₂⟩) },
   have := gcd_eq_gcd_ab n m, simp [co.gcd_eq_one, mul_comm] at this,
   rw [int.mod_def, ← sub_add, ← sub_add]; split,
   { refine dvd_add _ (dvd_trans (dvd_mul_right _ _) (dvd_mul_right _ _)),

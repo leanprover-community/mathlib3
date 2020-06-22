@@ -70,7 +70,7 @@ assume x, iff.intro
       discrim a b c = 4*a*(a*x*x + b*x + c) + b*b - 4*a*c : by rw [h, discrim]; ring
       ... = (2*a*x + b)^2 : by ring)
   (assume h,
-    have ha : 2*2*a ≠ 0 := mul_ne_zero (mul_ne_zero two_ne_zero two_ne_zero) ha,
+    have ha : 2*2*a ≠ 0 := mul_ne_zero.2 ⟨mul_ne_zero.2 ⟨two_ne_zero, two_ne_zero⟩, ha⟩,
     eq_of_mul_eq_mul_left_of_ne_zero ha $
     calc
       2 * 2 * a * (a * x * x + b * x + c) = (2*a*x + b)^2 - (b^2 - 4*a*c) : by ring
@@ -83,7 +83,7 @@ lemma quadratic_eq_zero_iff (ha : a ≠ 0) {s : α} (h : discrim a b c = s * s) 
 begin
   classical, -- TODO: otherwise linarith performance sucks
   rw [quadratic_eq_zero_iff_discrim_eq_square ha, h, pow_two, mul_self_eq_mul_self_iff],
-  have ne : 2 * a ≠ 0 := mul_ne_zero two_ne_zero ha,
+  have ne : 2 * a ≠ 0 := mul_ne_zero.2 ⟨two_ne_zero, ha⟩,
   have : x = 2 * a * x / (2 * a) := (mul_div_cancel_left x ne).symm,
   have h₁ : 2 * a * ((-b + s) / (2 * a)) = -b + s := mul_div_cancel' _ ne,
   have h₂ : 2 * a * ((-b - s) / (2 * a)) = -b - s := mul_div_cancel' _ ne,

@@ -161,7 +161,7 @@ instance : discrete_linear_ordered_field ℚ :=
   add_le_add_left := assume a b ab c, rat.add_le_add_left.2 ab,
   mul_pos         := assume a b ha hb, lt_of_le_of_ne
     (rat.mul_nonneg (le_of_lt ha) (le_of_lt hb))
-    (mul_ne_zero (ne_of_lt ha).symm (ne_of_lt hb).symm).symm,
+    (mul_ne_zero.2 ⟨(ne_of_lt ha).symm, (ne_of_lt hb).symm⟩).symm,
   ..rat.field,
   ..rat.decidable_linear_order,
   ..rat.semiring }

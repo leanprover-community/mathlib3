@@ -640,7 +640,7 @@ begin
   exact congr_arg C hp
 end
 
-lemma coeff_nonzero_of_eq_degree {p : polynomial R} {n : ℕ} (hn : degree p = n) :
+lemma coeff_ne_zero_of_eq_degree {p : polynomial R} {n : ℕ} (hn : degree p = n) :
   coeff p n ≠ 0 :=
 λ h, mem_support_iff.mp (mem_of_max hn) h
 
@@ -2745,7 +2745,7 @@ on_finset f.support
     intros i h,
     apply mem_support_iff.mpr,
     split_ifs at h with hi,
-    { exact coeff_nonzero_of_eq_degree hi },
+    { exact coeff_ne_zero_of_eq_degree hi },
     { exact ne_zero_of_mul_ne_zero_right h },
   end
 
@@ -2789,7 +2789,7 @@ begin
   simp only [to_monic, on_finset_apply, mem_support_iff],
   split_ifs with hi,
   { simp only [ne.def, not_false_iff, true_iff, one_ne_zero, hi],
-    exact coeff_nonzero_of_eq_degree hi },
+    exact coeff_ne_zero_of_eq_degree hi },
   split,
   { intro h,
     exact ne_zero_of_mul_ne_zero_right h },

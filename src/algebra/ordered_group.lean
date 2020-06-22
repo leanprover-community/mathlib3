@@ -284,17 +284,44 @@ end
 
 end with_zero
 
--- the norm_cast attribute was not available in order.bounded_lattice
+-- The norm_cast attribute was not available in order.bounded_lattice
+-- so I tag them here. TODO Can one change the import heirarchy to fix this?
 attribute [norm_cast] with_top.coe_eq_coe with_top.coe_le_coe with_top.coe_lt_coe
   with_bot.coe_eq_coe with_bot.coe_le_coe with_bot.coe_lt_coe
 
 namespace with_top
+
+instance [has_zero α] : has_zero (with_top α) := ⟨(0 : α)⟩
+
+@[simp, norm_cast] lemma coe_zero {α : Type*}
+  [has_zero α] : ((0 : α) : with_top α) = 0 := rfl
+
+-- not tagged with norm_cast because norm_cast can prove it
+@[simp] lemma coe_eq_zero {α : Type*}
+  [has_zero α] {a : α} : (a : with_top α) = 0 ↔ a = 0 :=
+by norm_cast
+
+instance [has_one α] : has_one (with_top α) := ⟨(1 : α)⟩
+
+@[simp, norm_cast] lemma coe_one {α : Type*}
+  [has_one α] : ((1 : α) : with_top α) = 1 := rfl
+
+-- not tagged with norm_cast because norm_cast can prove it
+@[simp] lemma coe_eq_one {α : Type*}
+  [has_one α] {a : α} : (a : with_top α) = 1 ↔ a = 1 :=
+by norm_cast
 
 instance [add_semigroup α] : add_semigroup (with_top α) :=
 { add := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a + b)),
   ..@additive.add_semigroup _ $ @with_zero.semigroup (multiplicative α) _ }
 
 @[norm_cast] lemma coe_add [add_semigroup α] {a b : α} : ((a + b : α) : with_top α) = a + b := rfl
+
+@[norm_cast] lemma coe_bit0 [add_semigroup α] {a : α} : ((bit0 a : α) : with_top α) = bit0 a :=
+by unfold bit0; norm_cast
+
+@[norm_cast] lemma coe_bit1 [add_semigroup α] [has_one α] {a : α} : ((bit1 a : α) : with_top α) = bit1 a :=
+by unfold bit1; norm_cast
 
 instance [add_comm_semigroup α] : add_comm_semigroup (with_top α) :=
 { ..@additive.add_comm_semigroup _ $
@@ -304,13 +331,6 @@ instance [add_monoid α] : add_monoid (with_top α) :=
 { zero := some 0,
   add := (+),
   ..@additive.add_monoid _ $ @with_zero.monoid (multiplicative α) _ }
-
-@[simp, norm_cast] lemma coe_zero {α : Type*}
-  [add_monoid α] : ((0 : α) : with_top α) = 0 := rfl
-
-@[simp, norm_cast] lemma coe_eq_zero {α : Type*}
-  [add_monoid α] {a : α} : (a : with_top α) = 0 ↔ a = 0 :=
-by norm_cast
 
 instance [add_comm_monoid α] : add_comm_monoid (with_top α) :=
 { zero := 0,
@@ -370,6 +390,8 @@ end with_top
 
 namespace with_bot
 
+instance [has_zero α] : has_zero (with_bot α) := with_top.has_zero
+instance [has_one α] : has_one (with_bot α) := with_top.has_one
 instance [add_semigroup α] : add_semigroup (with_bot α) := with_top.add_semigroup
 instance [add_comm_semigroup α] : add_comm_semigroup (with_bot α) := with_top.add_comm_semigroup
 instance [add_monoid α] : add_monoid (with_bot α) := with_top.add_monoid
@@ -399,21 +421,31 @@ begin
     exact ⟨_, rfl, add_le_add_left' h⟩, }
 end
 
-@[norm_cast] lemma coe_zero [add_monoid α] : ((0 : α) : with_bot α) = 0 := rfl
+-- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
+lemma coe_zero [has_zero α] : ((0 : α) : with_bot α) = 0 := rfl
 
-@[norm_cast] lemma coe_eq_zero {α : Type*}
+-- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
+lemma coe_one [has_one α] : ((1 : α) : with_bot α) = 1 := rfl
+
+-- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
+lemma coe_eq_zero {α : Type*}
   [add_monoid α] {a : α} : (a : with_bot α) = 0 ↔ a = 0 :=
 by norm_cast
 
-@[simp, norm_cast] lemma coe_add [add_semigroup α] (a b : α) : ((a + b : α) : with_bot α) = a + b := rfl
+-- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
+lemma coe_add [add_semigroup α] {a b : α} : ((a + b : α) : with_bot α) = a + b := by norm_cast
+
+-- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
+lemma coe_bit0 [add_semigroup α] {a : α} : ((bit0 a : α) : with_bot α) = bit0 a :=
+by norm_cast
+
+-- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
+lemma coe_bit1 [add_semigroup α] [has_one α] {a : α} : ((bit1 a : α) : with_bot α) = bit1 a :=
+by norm_cast
 
 @[simp] lemma bot_add [ordered_add_comm_monoid α] (a : with_bot α) : ⊥ + a = ⊥ := rfl
 
 @[simp] lemma add_bot [ordered_add_comm_monoid α] (a : with_bot α) : a + ⊥ = ⊥ := by cases a; refl
-
-instance has_one [has_one α] : has_one (with_bot α) := ⟨(1 : α)⟩
-
-@[simp, norm_cast] lemma coe_one [has_one α] : ((1 : α) : with_bot α) = 1 := rfl
 
 end with_bot
 

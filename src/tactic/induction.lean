@@ -1231,13 +1231,10 @@ focus1 $ do
   let eliminee_args := einfo.args.values.reverse,
   env ← get_env,
 
-  -- Find the name of the inductive type
+  -- Get info about the inductive type
   iname ← get_inductive_name eliminee_type <|> fail!
     "The type of {eliminee_name} should be an inductive type, but it is\n{eliminee_type}",
-
   iinfo ← get_inductive_info env iname,
-  let rec_name := iname ++ "rec_on",
-  rec_const ← mk_const rec_name,
 
   -- TODO We would like to disallow mutual/nested inductive types, since these
   -- have complicated recursors which we probably don't support. However, there
@@ -1264,8 +1261,13 @@ focus1 $ do
   in_tag ← get_main_tag,
   old_hyps ← hyp_unique_names,
 
-  -- Apply the recursor
-  interactive.apply ``(%%rec_const %%eliminee),
+  -- Apply the recursor. We first try the nondependent recursor, then the
+  -- dependent recursor (if available).
+  rec ← mk_const $ iname ++ "rec_on",
+  drec ← try_core $ mk_const $ iname ++ "drec_on",
+  interactive.apply ``(%%rec %%eliminee)
+    <|> (do drec ← drec, interactive.apply ``(%%drec %%eliminee))
+    <|> fail! "Failed to apply the (dependent) recursor for {iname}.",
 
   -- For each case (constructor):
   cases : list (option (name × list expr)) ←

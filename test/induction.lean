@@ -188,6 +188,44 @@ begin
   exact ()
 end
 
+-- In the following example we must apply the dependent recursor; the
+-- nondependent one won't do.
+inductive star {α : Sort*} (r : α → α → Prop) (a : α) : α → Prop
+| refl {}    : star a
+| tail {b c} : star b → r b c → star c
+
+namespace star
+
+variables {α : Sort*} {r : α → α → Prop} {a b c d : α}
+
+lemma head (hab : r a b) (hbc : star r b c) :
+  star r a c :=
+begin
+  induction' hbc fixing hab,
+  case refl {
+    exact refl.tail hab },
+  case tail : c d hbc hcd hac {
+    exact hac.tail hcd }
+end
+
+lemma head_induction_on {P : ∀a : α, star r a b → Prop} {a} (h : star r a b)
+  (refl : P b refl)
+  (head : ∀{a c} (h' : r a c) (h : star r c b), P c h → P a (h.head h')) :
+  P a h :=
+begin
+  induction' h,
+  case refl {
+    exact refl
+  },
+  case tail : b c hab hbc P refl head ih {
+    apply ih,
+    { exact head hbc _ refl, },
+    { intros _ _ hab _, exact head hab _}
+  }
+end
+
+end star
+
 --------------------------------------------------------------------------------
 -- Jasmin's original use cases
 --------------------------------------------------------------------------------

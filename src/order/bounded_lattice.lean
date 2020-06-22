@@ -738,31 +738,25 @@ begin
     refl },
   { right,
     use n,
-    refl,
-  }
+    refl },
 end
 
-/- Shows that for a in with_top, a+a = 0 is equivalent to a=0. -/
-
-example (a : with_top ℤ) : a + a = 0 ↔ a = 0 :=
+/-- Shows that for a in with_top, a+a = 0 is equivalent to a=0. -/
+lemma (a : with_top ℤ) : a + a = 0 ↔ a = 0 :=
 begin
   split,
   { intro h, 
   cases (with_top.cases a) with htop hn,
     { rw htop at h,
-      cases h,
-    },
+      cases h },
     { cases hn with n hn,
       rw hn at h ⊢,
       norm_cast at h ⊢,
       rw add_self_eq_zero at h,
-      assumption
-    }
-  },
+      assumption } },
   { intro ha,
     rw ha,
-    simp
-  }
+    simp }
 end
 
 end with_top

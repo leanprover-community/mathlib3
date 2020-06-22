@@ -813,11 +813,6 @@ apply_nolint int.even doc_blame
 apply_nolint lazy_list.list_equiv_lazy_list doc_blame
 apply_nolint lazy_list.traverse doc_blame
 
--- data/list/alist.lean
-apply_nolint alist.disjoint unused_arguments
-apply_nolint alist.foldl unused_arguments
-apply_nolint list.to_alist doc_blame
-
 -- data/list/defs.lean
 apply_nolint list.erasep doc_blame
 apply_nolint list.extractp doc_blame

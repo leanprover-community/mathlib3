@@ -277,6 +277,7 @@ by cases ha with a ha; rw [←ha, units.mul_right_inj]
   b * a = c * a ↔ b = c :=
 by cases ha with a ha; rw [←ha, units.mul_left_inj]
 
+/-- The element of the group of units, corresponding to an element of a monoid which is a unit. -/
 noncomputable def is_unit.unit [monoid M] {a : M} (h : is_unit a) : units M :=
 classical.some h
 

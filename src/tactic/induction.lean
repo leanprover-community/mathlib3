@@ -756,7 +756,7 @@ TODO precond: `fixed` contains only locals
 -- map to avoid multiple traversals
 -- TODO what happens with local defs?
 meta def revert_all_except_locals (fixed : list expr) : tactic (ℕ × list name) := do
-  ctx ← local_context,
+  ctx ← revertible_local_context,
   to_revert ← ctx.mfilter $ λ hyp,
     fixed.m_all (λ fixed_hyp, bnot <$> local_depends_on_local fixed_hyp hyp),
   -- TODO Is the following correct? What happens if there are duplicate names?

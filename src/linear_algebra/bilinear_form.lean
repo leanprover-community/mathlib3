@@ -155,8 +155,8 @@ linear_map.mk₂ R₂ F.1 (bilin_add_left F) (bilin_smul_left F) (bilin_add_righ
 /-- Bilinear forms are equivalent to maps with two arguments that is linear in both. -/
 def bilin_linear_map_equiv : (bilin_form R₂ M) ≃ₗ[R₂] (M →ₗ[R₂] M →ₗ[R₂] R₂) :=
 { to_fun := to_linear_map,
-  add := λ B D, rfl,
-  smul := λ a B, rfl,
+  map_add' := λ B D, rfl,
+  map_smul' := λ a B, rfl,
   inv_fun := linear_map.to_bilin,
   left_inv := λ B, by {ext, refl},
   right_inv := λ B, by {ext, refl} }
@@ -296,8 +296,8 @@ def matrix.to_bilin_formₗ : matrix n n R →ₗ[R] bilin_form R (n → R) :=
     bilin_smul_left := λ a x y, by simp,
     bilin_add_right := λ x y z, by simp [matrix.mul_add],
     bilin_smul_right := λ a x y, by simp },
-  add := λ f g, by { ext, simp [add_apply, matrix.mul_add, matrix.add_mul] },
-  smul := λ f g, by { ext, simp [smul_apply] } }
+  map_add' := λ f g, by { ext, simp [add_apply, matrix.mul_add, matrix.add_mul] },
+  map_smul' := λ f g, by { ext, simp [smul_apply] } }
 
 /-- The map from `matrix n n R` to bilinear forms on `n → R`. -/
 def matrix.to_bilin_form : matrix n n R → bilin_form R (n → R) :=
@@ -311,8 +311,8 @@ variables [decidable_eq n] [decidable_eq o]
 /-- The linear map from bilinear forms on `n → R` to `matrix n n R`. -/
 def bilin_form.to_matrixₗ : bilin_form R (n → R) →ₗ[R] matrix n n R :=
 { to_fun := λ B i j, B (λ n, if n = i then 1 else 0) (λ n, if n = j then 1 else 0),
-  add := λ f g, rfl,
-  smul := λ f g, rfl }
+  map_add' := λ f g, rfl,
+  map_smul' := λ f g, rfl }
 
 /-- The map from bilinear forms on `n → R` to `matrix n n R`. -/
 def bilin_form.to_matrix : bilin_form R (n → R) → matrix n n R :=
@@ -513,10 +513,10 @@ def is_pair_self_adjoint (f : module.End R M) := is_adjoint_pair B B' f f
 
 /-- The set of pair-self-adjoint endomorphisms are a submodule of the type of all endomorphisms. -/
 def is_pair_self_adjoint_submodule : submodule R (module.End R M) :=
-{ carrier := { f | is_pair_self_adjoint B B' f },
-  zero    := is_adjoint_pair_zero,
-  add     := λ f g hf hg, hf.add hg,
-  smul    := λ c f h, h.smul c, }
+{ carrier   := { f | is_pair_self_adjoint B B' f },
+  zero_mem' := is_adjoint_pair_zero,
+  add_mem'  := λ f g hf hg, hf.add hg,
+  smul_mem' := λ c f h, h.smul c, }
 
 /-- An endomorphism of a module is self-adjoint with respect to a bilinear form if it serves as an
 adjoint for itself. -/

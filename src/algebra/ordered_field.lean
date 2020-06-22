@@ -11,7 +11,7 @@ set_option old_structure_cmd true
 
 variable {α : Type*}
 
-@[protect_proj] class linear_ordered_field (α : Type*) extends linear_ordered_ring α, field α
+@[protect_proj] class linear_ordered_field (α : Type*) extends linear_ordered_comm_ring α, field α
 
 section linear_ordered_field
 variables [linear_ordered_field α] {a b c d e : α}

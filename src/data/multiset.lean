@@ -641,9 +641,9 @@ by rw [← multiset.card_eq_zero, multiset.card_map, multiset.card_eq_zero]
 theorem mem_map_of_mem (f : α → β) {a : α} {s : multiset α} (h : a ∈ s) : f a ∈ map f s :=
 mem_map.2 ⟨_, h, rfl⟩
 
-theorem mem_map_of_inj {f : α → β} (H : function.injective f) {a : α} {s : multiset α} :
+theorem mem_map_of_injective {f : α → β} (H : function.injective f) {a : α} {s : multiset α} :
   f a ∈ map f s ↔ a ∈ s :=
-quot.induction_on s $ λ l, mem_map_of_inj H
+quot.induction_on s $ λ l, mem_map_of_injective H
 
 @[simp] theorem map_map (g : β → γ) (f : α → β) (s : multiset α) : map g (map f s) = map (g ∘ f) s :=
 quot.induction_on s $ λ l, congr_arg coe $ list.map_map _ _ _
@@ -2126,7 +2126,7 @@ theorem map_eq_map {f : α → β} (hf : function.injective f) {s t : multiset �
   s.map f = t.map f ↔ s = t :=
 by rw [← rel_eq, ← rel_eq, rel_map_left, rel_map_right]; simp [hf.eq_iff]
 
-theorem injective_map {f : α → β} (hf : function.injective f) :
+theorem map_injective {f : α → β} (hf : function.injective f) :
   function.injective (multiset.map f) :=
 assume x y, (map_eq_map hf).1
 
@@ -2592,6 +2592,9 @@ theorem le_ndunion_right (s t : multiset α) : t ≤ ndunion s t :=
 quotient.induction_on₂ s t $ λ l₁ l₂,
 (sublist_of_suffix $ suffix_union_right _ _).subperm
 
+theorem subset_ndunion_right (s t : multiset α) : t ⊆ ndunion s t :=
+subset_of_le (le_ndunion_right s t)
+
 theorem ndunion_le_add (s t : multiset α) : ndunion s t ≤ s + t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, (union_sublist_append _ _).subperm
 
@@ -2650,6 +2653,9 @@ by simp [ndinter, le_filter, subset_iff]
 
 theorem ndinter_le_left (s t : multiset α) : ndinter s t ≤ s :=
 (le_ndinter.1 (le_refl _)).1
+
+theorem ndinter_subset_left (s t : multiset α) : ndinter s t ⊆ s :=
+subset_of_le (ndinter_le_left s t)
 
 theorem ndinter_subset_right (s t : multiset α) : ndinter s t ⊆ t :=
 (le_ndinter.1 (le_refl _)).2
@@ -2965,7 +2971,7 @@ end
   pi (a :: m) t = ((t a).bind $ λb, (pi m t).map $ pi.cons m a b) :=
 rec_on_cons a m
 
-lemma injective_pi_cons {a : α} {b : δ a} {s : multiset α} (hs : a ∉ s) :
+lemma pi_cons_injective {a : α} {b : δ a} {s : multiset α} (hs : a ∉ s) :
   function.injective (pi.cons s a b) :=
 assume f₁ f₂ eq, funext $ assume a', funext $ assume h',
 have ne : a ≠ a', from assume h, hs $ h.symm ▸ h',
@@ -2988,7 +2994,7 @@ begin
   simp,
   split,
   { assume b hb,
-    from nodup_map (injective_pi_cons has) (ih hs $ assume a' h', ht a' $ mem_cons_of_mem h') },
+    from nodup_map (pi_cons_injective has) (ih hs $ assume a' h', ht a' $ mem_cons_of_mem h') },
   { apply pairwise_of_nodup _ (ht a $ mem_cons_self _ _),
     from assume b₁ hb₁ b₂ hb₂ neb, disjoint_map_map.2 (assume f hf g hg eq,
       have pi.cons s a b₁ f a (mem_cons_self _ _) = pi.cons s a b₂ g a (mem_cons_self _ _),

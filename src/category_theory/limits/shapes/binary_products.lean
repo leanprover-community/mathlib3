@@ -42,7 +42,7 @@ variables {C : Type u} [category.{v} C]
 
 /-- The diagram on the walking pair, sending the two points to `X` and `Y`. -/
 def pair (X Y : C) : discrete walking_pair ⥤ C :=
-functor.of_function (λ j, walking_pair.cases_on j X Y)
+discrete.functor (λ j, walking_pair.cases_on j X Y)
 
 @[simp] lemma pair_obj_left (X Y : C) : (pair X Y).obj left = X := rfl
 @[simp] lemma pair_obj_right (X Y : C) : (pair X Y).obj right = Y := rfl
@@ -352,10 +352,10 @@ class has_binary_coproducts :=
 
 attribute [instance] has_binary_products.has_limits_of_shape has_binary_coproducts.has_colimits_of_shape
 
-@[priority 100] -- see Note [lower instance priority]
+@[priority 200] -- see Note [lower instance priority]
 instance [has_finite_products.{v} C] : has_binary_products.{v} C :=
 { has_limits_of_shape := by apply_instance }
-@[priority 100] -- see Note [lower instance priority]
+@[priority 200] -- see Note [lower instance priority]
 instance [has_finite_coproducts.{v} C] : has_binary_coproducts.{v} C :=
 { has_colimits_of_shape := by apply_instance }
 
@@ -447,6 +447,32 @@ begin
   { simp only [← F.map_comp, category.assoc, prod.lift_fst, prod.map_fst, category.comp_id] },
   { simp only [← F.map_comp, category.assoc, prod.lift_snd, prod.map_snd, prod.lift_snd_assoc] },
 end
+
+@[reassoc]
+lemma inv_prod_comparison_map_fst (F : C ⥤ D) (A B : C) [is_iso (prod_comparison F A B)] :
+  inv (prod_comparison F A B) ≫ F.map prod.fst = prod.fst :=
+begin
+  erw (as_iso (prod_comparison F A B)).inv_comp_eq,
+  dsimp [as_iso_hom, prod_comparison],
+  rw prod.lift_fst,
+end
+
+@[reassoc]
+lemma inv_prod_comparison_map_snd (F : C ⥤ D) (A B : C) [is_iso (prod_comparison F A B)] :
+  inv (prod_comparison F A B) ≫ F.map prod.snd = prod.snd :=
+begin
+  erw (as_iso (prod_comparison F A B)).inv_comp_eq,
+  dsimp [as_iso_hom, prod_comparison],
+  rw prod.lift_snd,
+end
+
+/-- If the product comparison morphism is an iso, its inverse is natural. -/
+@[reassoc]
+lemma prod_comparison_inv_natural (F : C ⥤ D) {A A' B B' : C} (f : A ⟶ A') (g : B ⟶ B')
+  [is_iso (prod_comparison F A B)] [is_iso (prod_comparison F A' B')] :
+  inv (prod_comparison F A B) ≫ F.map (prod.map f g) = prod.map (F.map f) (F.map g) ≫ inv (prod_comparison F A' B') :=
+by { erw [(as_iso (prod_comparison F A' B')).eq_comp_inv, category.assoc,
+    (as_iso (prod_comparison F A B)).inv_comp_eq, prod_comparison_natural], refl }
 
 variables [has_terminal.{v} C]
 

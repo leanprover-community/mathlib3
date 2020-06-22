@@ -82,9 +82,9 @@ def to_dual_flip (v : V) : (V →ₗ[K] K) := (linear_map.flip h.to_dual).to_fun
 omit de h
 /-- Evaluation of finitely supported functions at a fixed point `i`, as a `K`-linear map. -/
 def eval_finsupp_at (i : ι) : (ι →₀ K) →ₗ[K] K :=
-{ to_fun := λ f, f i,
-  add := by intros; rw finsupp.add_apply,
-  smul := by intros; rw finsupp.smul_apply }
+{ to_fun    := λ f, f i,
+  map_add'  := by intros; rw finsupp.add_apply,
+  map_smul' := by intros; rw finsupp.smul_apply }
 include h
 
 

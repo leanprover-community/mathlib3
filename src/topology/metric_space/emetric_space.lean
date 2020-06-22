@@ -44,26 +44,6 @@ le_antisymm
 class has_edist (α : Type*) := (edist : α → α → ennreal)
 export has_edist (edist)
 
-/- Design note: one could define an `emetric_space` just by giving `edist`, and then
-derive an instance of `uniform_space` by taking the natural uniform structure
-associated to the distance. This creates diamonds problem for products, as the
-uniform structure on the product of two emetric spaces could be obtained first
-by obtaining two uniform spaces and then taking their products, or by taking
-the product of the emetric spaces and then the associated uniform structure.
-The two uniform structure we have just described are equal, but not defeq, which
-creates a lot of problem.
-
-The idea is to add, in the very definition of an `emetric_space`, a uniform structure
-with a uniformity which equal to the one given by the distance, but maybe not defeq.
-And the instance from `emetric_space` to `uniform_space` uses this uniformity.
-In this way, when we create the product of emetric spaces, we put in the product
-the uniformity corresponding to the product of the uniformities. There is one more
-proof obligation, that this product uniformity is equal to the uniformity corresponding
-to the product metric. But the diamond problem disappears.
-
-The same trick is used in the definition of a metric space, where one stores as well
-a uniform structure and an edistance. -/
-
 /-- Creating a uniform space from an extended distance. -/
 def uniform_space_of_edist
   (edist : α → α → ennreal)
@@ -92,6 +72,10 @@ uniform_space.of_core {
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
+
+-- the uniform structure is embedded in the emetric space structure
+-- to avoid instance diamond issues. See Note [forgetful inheritance].
+
 /-- Extended metric spaces, with an extended distance `edist` possibly taking the
 value ∞
 
@@ -102,7 +86,7 @@ filled in by default. There is a default value for the uniformity, that can be s
 in cases of interest, for instance when instantiating an `emetric_space` structure
 on a product.
 
-Continuity of `edist` is finally proving in `topology.instances.ennreal`
+Continuity of `edist` is proved in `topology.instances.ennreal`
 -/
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 class emetric_space (α : Type u) extends has_edist α : Type u :=
@@ -398,7 +382,9 @@ separated_def.2 $ λ x y h, eq_of_forall_edist_le $
 /-- Auxiliary function to replace the uniformity on an emetric space with
 a uniformity which is equal to the original one, but maybe not defeq.
 This is useful if one wants to construct an emetric space with a
-specified uniformity. -/
+specified uniformity. See Note [forgetful inheritance] explaining why having definitionally
+the right uniformity is often important.
+-/
 def emetric_space.replace_uniformity {α} [U : uniform_space α] (m : emetric_space α)
   (H : @uniformity _ U = @uniformity _ emetric_space.to_uniform_space) :
   emetric_space α :=
@@ -494,12 +480,12 @@ instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π 
     end,
   to_uniform_space := Pi.uniform_space _,
   uniformity_edist := begin
-    simp only [Pi.uniformity, emetric_space.uniformity_edist, comap_infi, gt_iff_lt, preimage_set_of_eq,
-          comap_principal],
+    simp only [Pi.uniformity, emetric_space.uniformity_edist, comap_infi, gt_iff_lt,
+      preimage_set_of_eq, comap_principal],
     rw infi_comm, congr, funext ε,
     rw infi_comm, congr, funext εpos,
     change 0 < ε at εpos,
-    simp [ext_iff, εpos]
+    simp [set.ext_iff, εpos]
   end }
 
 end pi

@@ -11,8 +11,8 @@ import algebra.continued_fractions.translations
 
 Given a generalized continued fraction `g`, for all `n ≥ 1`, we prove that the `continuants`
 function indeed satisfies the following recurrences:
-
-  `Aₙ = bₙ * Aₙ₋₁ + aₙ * Aₙ₋₂`, and `Bₙ = bₙ * Bₙ₋₁ + aₙ * Bₙ₋₂`.
+- `Aₙ = bₙ * Aₙ₋₁ + aₙ * Aₙ₋₂`, and
+- `Bₙ = bₙ * Bₙ₋₁ + aₙ * Bₙ₋₂`.
 -/
 
 namespace generalized_continued_fraction
@@ -32,6 +32,7 @@ lemma continuants_recurrence_aux {gp ppred pred : gcf.pair K} (nth_s_eq : g.s.nt
 by simp [nth_cont_eq_succ_nth_cont_aux,
   (continuants_aux_recurrence nth_s_eq nth_conts_aux_eq succ_nth_conts_aux_eq)]
 
+/-- Shows that `Aₙ = bₙ * Aₙ₋₁ + aₙ * Aₙ₋₂` and `Bₙ = bₙ * Bₙ₋₁ + aₙ * Bₙ₋₂`. -/
 theorem continuants_recurrence {gp ppred pred : gcf.pair K}
   (succ_nth_s_eq : g.s.nth (n + 1) = some gp)
   (nth_conts_eq : g.continuants n = ppred)
@@ -42,6 +43,7 @@ begin
   exact (continuants_recurrence_aux succ_nth_s_eq nth_conts_eq succ_nth_conts_eq)
 end
 
+/-- Shows that `Aₙ = bₙ * Aₙ₋₁ + aₙ * Aₙ₋₂`. -/
 lemma numerators_recurrence {gp : gcf.pair K} {ppredA predA : K}
   (succ_nth_s_eq : g.s.nth (n + 1) = some gp)
   (nth_num_eq : g.numerators n = ppredA)
@@ -56,6 +58,7 @@ begin
   rw [num_eq_conts_a, (continuants_recurrence succ_nth_s_eq nth_conts_eq succ_nth_conts_eq)]
 end
 
+/-- Shows that `Bₙ = bₙ * Bₙ₋₁ + aₙ * Bₙ₋₂`. -/
 lemma denominators_recurrence {gp : gcf.pair K} {ppredB predB : K}
   (succ_nth_s_eq : g.s.nth (n + 1) = some gp)
   (nth_denom_eq : g.denominators n = ppredB)

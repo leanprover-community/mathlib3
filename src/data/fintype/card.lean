@@ -58,6 +58,14 @@ lemma prod_unique [unique β] (f : β → M) :
   (∏ x, f x) = f (default β) :=
 by simp only [finset.prod_singleton, univ_unique]
 
+/-- If a product of a `finset` of a subsingleton type has a given
+value, so do the terms in that product. -/
+@[to_additive "If a sum of a `finset` of a subsingleton type has a given
+value, so do the terms in that sum."]
+lemma eq_of_subsingleton_of_prod_eq {ι : Type*} [subsingleton ι] {s : finset ι}
+    {f : ι → M} {b : M} (h : ∏ i in s, f i = b) : ∀ i ∈ s, f i = b :=
+finset.eq_of_card_le_one_of_prod_eq (finset.card_le_one_of_subsingleton s) h
+
 end
 
 end fintype
@@ -65,14 +73,14 @@ end fintype
 open finset
 
 theorem fin.prod_univ_succ [comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
-  univ.prod f = f 0 * univ.prod (λ i:fin n, f i.succ) :=
+  ∏ i, f i = f 0 * ∏ i : fin n, f i.succ :=
 begin
   rw [fin.univ_succ, prod_insert, prod_image],
   { intros x _ y _ hxy, exact fin.succ.inj hxy },
   { simpa using fin.succ_ne_zero }
 end
 
-@[simp, to_additive] theorem fin.prod_univ_zero [comm_monoid β] (f : fin 0 → β) : univ.prod f = 1 := rfl
+@[simp, to_additive] theorem fin.prod_univ_zero [comm_monoid β] (f : fin 0 → β) : ∏ i, f i = 1 := rfl
 
 theorem fin.sum_univ_succ [add_comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
   ∑ i, f i = f 0 + ∑ i : fin n, f i.succ :=
@@ -81,7 +89,7 @@ by apply @fin.prod_univ_succ (multiplicative β)
 attribute [to_additive] fin.prod_univ_succ
 
 theorem fin.prod_univ_cast_succ [comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
-  univ.prod f = univ.prod (λ i:fin n, f i.cast_succ) * f (fin.last n) :=
+  ∏ i, f i = (∏ i : fin n, f i.cast_succ) * f (fin.last n) :=
 begin
   rw [fin.univ_cast_succ, prod_insert, prod_image, mul_comm],
   { intros x _ y _ hxy, exact fin.cast_succ_inj.mp hxy },
@@ -105,11 +113,11 @@ by simp [sum.fintype, fintype.of_equiv_card]
 
 @[simp] lemma fintype.card_pi_finset [decidable_eq α] [fintype α]
   {δ : α → Type*} (t : Π a, finset (δ a)) :
-  (fintype.pi_finset t).card = finset.univ.prod (λ a, card (t a)) :=
+  (fintype.pi_finset t).card = ∏ a, card (t a) :=
 by simp [fintype.pi_finset, card_map]
 
 @[simp] lemma fintype.card_pi {β : α → Type*} [fintype α] [decidable_eq α]
-  [f : Π a, fintype (β a)] : fintype.card (Π a, β a) = univ.prod (λ a, fintype.card (β a)) :=
+  [f : Π a, fintype (β a)] : fintype.card (Π a, β a) = ∏ a, fintype.card (β a) :=
 fintype.card_pi_finset _
 
 -- FIXME ouch, this should be in the main file.
@@ -124,12 +132,12 @@ by rw fintype.of_equiv_card; simp
 
 @[simp, to_additive]
 lemma finset.prod_attach_univ [fintype α] [comm_monoid β] (f : {a : α // a ∈ @univ α _} → β) :
-  univ.attach.prod (λ x, f x) = univ.prod (λ x, f ⟨x, (mem_univ _)⟩) :=
+  ∏ x in univ.attach, f x = ∏ x, f ⟨x, (mem_univ _)⟩ :=
 prod_bij (λ x _, x.1) (λ _ _, mem_univ _) (λ _ _ , by simp) (by simp) (λ b _, ⟨⟨b, mem_univ _⟩, by simp⟩)
 
 @[to_additive]
 lemma finset.range_prod_eq_univ_prod [comm_monoid β] (n : ℕ) (f : ℕ → β) :
-  (range n).prod f = univ.prod (λ (k : fin n), f k) :=
+  ∏ k in range n, f k = ∏ k : fin n, f k :=
 begin
   symmetry,
   refine prod_bij (λ k hk, k) _ _ _ _,
@@ -151,7 +159,7 @@ end
 lemma finset.prod_univ_pi [decidable_eq α] [fintype α] [comm_monoid β]
   {δ : α → Type*} {t : Π (a : α), finset (δ a)}
   (f : (Π (a : α), a ∈ (univ : finset α) → δ a) → β) :
-  (univ.pi t).prod f = (fintype.pi_finset t).prod (λ x, f (λ a _, x a)) :=
+  ∏ x in univ.pi t, f x = ∏ x in fintype.pi_finset t, f (λ a _, x a) :=
 prod_bij (λ x _ a, x a (mem_univ _))
   (by simp)
   (by simp)
@@ -164,8 +172,7 @@ prod_bij (λ x _ a, x a (mem_univ _))
 lemma finset.prod_univ_sum [decidable_eq α] [fintype α] [comm_semiring β] {δ : α → Type u_1}
   [Π (a : α), decidable_eq (δ a)] {t : Π (a : α), finset (δ a)}
   {f : Π (a : α), δ a → β} :
-  univ.prod (λ a, ∑ b in t a, f a b) =
-  ∑ p in fintype.pi_finset t, univ.prod (λ x, f x (p x)) :=
+  ∏ a, ∑ b in t a, f a b = ∑ p in fintype.pi_finset t, ∏ x, f x (p x) :=
 by simp only [finset.prod_attach_univ, prod_sum, finset.sum_univ_pi]
 
 /-- Summing `a^s.card * b^(n-s.card)` over all finite subsets `s` of a fintype of cardinality `n`
@@ -186,7 +193,7 @@ by simpa using fintype.sum_pow_mul_eq_add_pow (fin n) a b
 /-- It is equivalent to sum a function over `fin n` or `finset.range n`. -/
 @[to_additive]
 lemma fin.prod_univ_eq_prod_range [comm_monoid α] (f : ℕ → α) (n : ℕ) :
-  finset.univ.prod (λ (i : fin n), f i.val) = (finset.range n).prod f :=
+  ∏ i : fin n, f i.val = ∏ i in finset.range n, f i :=
 begin
   apply finset.prod_bij (λ (a : fin n) ha, a.val),
   { assume a ha, simp [a.2] },
@@ -197,7 +204,7 @@ end
 
 @[to_additive]
 lemma finset.prod_equiv [fintype α] [fintype β] [comm_monoid γ] (e : α ≃ β) (f : β → γ) :
-  finset.univ.prod (f ∘ e) = finset.univ.prod f :=
+  ∏ i, f (e i) = ∏ i, f i :=
 begin
   apply prod_bij (λ i hi, e i) (λ i hi, mem_univ _) _ (λ a b _ _ h, e.injective h),
   { assume b hb,
@@ -216,7 +223,7 @@ begin
   resetI,
   subst p,
   congr,
-  simp [finset.ext]
+  simp [finset.ext_iff]
 end
 
 @[to_additive] lemma finset.prod_fiberwise [fintype β] [decidable_eq β] [comm_monoid γ]
@@ -259,7 +266,7 @@ begin
   rw [← prod_sdiff (subset_univ s),
       ← @prod_image (α₁ ⊕ α₂) _ _ _ _ _ _ sum.inl,
       ← @prod_image (α₁ ⊕ α₂) _ _ _ _ _ _ sum.inr],
-  { congr, rw finset.ext, rintro (a|a);
+  { congr, rw finset.ext_iff, rintro (a|a);
     { simp only [mem_image, exists_eq, mem_sdiff, mem_univ, exists_false,
         exists_prop_of_true, not_false_iff, and_self, not_true, and_false], } },
   all_goals { intros, solve_by_elim [sum.inl.inj, sum.inr.inj], }
@@ -270,7 +277,7 @@ end
 namespace list
 
 lemma prod_take_of_fn [comm_monoid α] {n : ℕ} (f : fin n → α) (i : ℕ) :
-  ((of_fn f).take i).prod = (finset.univ.filter (λ (j : fin n), j.val < i)).prod f :=
+  ((of_fn f).take i).prod = ∏ j in finset.univ.filter (λ (j : fin n), j.val < i), f j :=
 begin
   have A : ∀ (j : fin n), ¬ (j.val < 0) := λ j, not_lt_bot,
   induction i with i IH, { simp [A] },
@@ -327,7 +334,7 @@ attribute [to_additive] prod_take_of_fn
 
 @[to_additive]
 lemma prod_of_fn [comm_monoid α] {n : ℕ} {f : fin n → α} :
-  (of_fn f).prod = finset.univ.prod f :=
+  (of_fn f).prod = ∏ i, f i :=
 begin
   convert prod_take_of_fn f n,
   { rw [take_all_of_le (le_of_eq (length_of_fn f))] },

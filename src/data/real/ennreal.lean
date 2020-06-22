@@ -76,6 +76,8 @@ by { rw [coe_nnreal_eq], refl }
 
 @[simp] lemma top_to_nnreal : ∞.to_nnreal = 0 := rfl
 @[simp] lemma top_to_real : ∞.to_real = 0 := rfl
+@[simp] lemma one_to_real : (1 : ennreal).to_real = 1 := rfl
+@[simp] lemma one_to_nnreal : (1 : ennreal).to_nnreal = 1 := rfl
 @[simp] lemma coe_to_real (r : nnreal) : (r : ennreal).to_real = r := rfl
 @[simp] lemma zero_to_nnreal : (0 : ennreal).to_nnreal = 0 := rfl
 @[simp] lemma zero_to_real : (0 : ennreal).to_real = 0 := rfl
@@ -600,15 +602,20 @@ section sum
 
 open finset
 
-/-- sum of finte numbers is still finite -/
+/-- A sum of finite numbers is still finite -/
 lemma sum_lt_top {s : finset α} {f : α → ennreal} :
   (∀a∈s, f a < ⊤) → ∑ a in s, f a < ⊤ :=
 with_top.sum_lt_top
 
-/-- sum of finte numbers is still finite -/
+/-- A sum of finite numbers is still finite -/
 lemma sum_lt_top_iff {s : finset α} {f : α → ennreal} :
   ∑ a in s, f a < ⊤ ↔ (∀a∈s, f a < ⊤) :=
 with_top.sum_lt_top_iff
+
+/-- A sum of numbers is infinite iff one of them is infinite -/
+lemma sum_eq_top_iff {s : finset α} {f : α → ennreal} :
+  (∑ x in s, f x) = ⊤ ↔ (∃a∈s, f a = ⊤) :=
+with_top.sum_eq_top_iff
 
 /-- seeing `ennreal` as `nnreal` does not change their sum, unless one of the `ennreal` is
 infinity -/

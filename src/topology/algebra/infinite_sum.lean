@@ -442,7 +442,7 @@ begin
   rw [tsum_add hf₁ hf₂, tsum_eq_single 0],
   { congr' 1,
     fapply tsum_eq_tsum_of_ne_zero_bij (λ n _, n + 1),
-    { intros _ _ _ _, exact nat.succ_inj },
+    { intros _ _ _ _, exact nat.succ.inj },
     { rintros (_ | n) h,
       { contradiction },
       { exact ⟨n, h, rfl⟩ } },

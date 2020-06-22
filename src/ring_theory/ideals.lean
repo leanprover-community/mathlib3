@@ -149,25 +149,21 @@ begin
     exact SC JS ((eq_top_iff_one _).2 J0) }
 end
 
-def is_coprime (x y : α) : Prop :=
-span ({x, y} : set α) = ⊤
-
 theorem mem_span_pair {x y z : α} :
   z ∈ span ({x, y} : set α) ↔ ∃ a b, a * x + b * y = z :=
 by simp [mem_span_insert, mem_span_singleton', @eq_comm _ _ z]
-
-theorem is_coprime_def {x y : α} :
-  is_coprime x y ↔ ∀ z, ∃ a b, a * x + b * y = z :=
-by simp [is_coprime, submodule.eq_top_iff', mem_span_pair]
-
-theorem is_coprime_self {x : α} :
-  is_coprime x x ↔ is_unit x :=
-by rw [← span_singleton_eq_top]; simp [is_coprime]
 
 lemma span_singleton_lt_span_singleton [integral_domain β] {x y : β} :
   span ({x} : set β) < span ({y} : set β) ↔ y ≠ 0 ∧ ∃ d : β, ¬ is_unit d ∧ x = y * d :=
 by rw [lt_iff_le_not_le, span_singleton_le_span_singleton, span_singleton_le_span_singleton,
   dvd_and_not_dvd_iff]
+
+lemma factors_decreasing [integral_domain β] (b₁ b₂ : β) (h₁ : b₁ ≠ 0) (h₂ : ¬ is_unit b₂) :
+  span ({b₁ * b₂} : set β) < span {b₁} :=
+lt_of_le_not_le (ideal.span_le.2 $ singleton_subset_iff.2 $
+  ideal.mem_span_singleton.2 ⟨b₂, rfl⟩) $ λ h,
+h₂ $ is_unit_of_dvd_one _ $ (mul_dvd_mul_iff_left h₁).1 $
+by rwa [mul_one, ← ideal.span_singleton_le_span_singleton]
 
 def quotient (I : ideal α) := I.quotient
 
@@ -215,10 +211,10 @@ lemma mk_eq_mk_hom (I : ideal α) (x : α) : ideal.quotient.mk I x = ideal.quoti
 
 def map_mk (I J : ideal α) : ideal I.quotient :=
 { carrier := mk I '' J,
-  zero := ⟨0, J.zero_mem, rfl⟩,
-  add := by rintro _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩;
+  zero_mem' := ⟨0, J.zero_mem, rfl⟩,
+  add_mem' := by rintro _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩;
     exact ⟨x + y, J.add_mem hx hy, rfl⟩,
-  smul := by rintro ⟨c⟩ _ ⟨x, hx, rfl⟩;
+  smul_mem' := by rintro ⟨c⟩ _ ⟨x, hx, rfl⟩;
     exact ⟨c * x, J.mul_mem_left hx, rfl⟩ }
 
 @[simp] lemma mk_zero (I : ideal α) : mk I 0 = 0 := rfl
@@ -396,11 +392,12 @@ end
 
 variable (α)
 
+/-- The ideal of elements that are not units. -/
 def nonunits_ideal : ideal α :=
 { carrier := nonunits α,
-  zero := zero_mem_nonunits.2 $ zero_ne_one,
-  add := λ x y hx hy, nonunits_add hx hy,
-  smul := λ a x, mul_mem_nonunits_right }
+  zero_mem' := zero_mem_nonunits.2 $ zero_ne_one,
+  add_mem' := λ x y hx hy, nonunits_add hx hy,
+  smul_mem' := λ a x, mul_mem_nonunits_right }
 
 instance nonunits_ideal.is_maximal : (nonunits_ideal α).is_maximal :=
 begin

@@ -61,7 +61,7 @@ end
 
 lemma splits_mul {f g : polynomial α} (hf : splits i f) (hg : splits i g) : splits i (f * g) :=
 if h : f * g = 0 then by simp [h]
-else or.inr $ λ p hp hpf, ((principal_ideal_domain.irreducible_iff_prime.1 hp).2.2 _ _
+else or.inr $ λ p hp hpf, ((principal_ideal_ring.irreducible_iff_prime.1 hp).2.2 _ _
     (show p ∣ map i f * map i g, by convert hpf; rw polynomial.map_mul)).elim
   (hf.resolve_left (λ hf, by simpa [hf] using h) hp)
   (hg.resolve_left (λ hg, by simpa [hg] using h) hp)
@@ -144,7 +144,7 @@ is_noetherian_ring.irreducible_induction_on (f.map i)
 
 section UFD
 
-local attribute [instance, priority 10] principal_ideal_domain.to_unique_factorization_domain
+local attribute [instance, priority 10] principal_ideal_ring.to_unique_factorization_domain
 local infix ` ~ᵤ ` : 50 := associated
 
 open unique_factorization_domain associates
@@ -159,8 +159,10 @@ else
       (factors (f.map i)) (s.map (λ a : β, (X : polynomial β) - C a)) :=
     unique
       (λ p hp, irreducible_factors (mt (map_eq_zero i).1 hf0) _ hp)
-      (λ p, by simp [@eq_comm _ _ p, -sub_eq_add_neg,
-          irreducible_of_degree_eq_one (degree_X_sub_C _)] {contextual := tt})
+      (λ p' m, begin
+          obtain ⟨a,m,rfl⟩ := multiset.mem_map.1 m,
+          exact irreducible_of_degree_eq_one (degree_X_sub_C _),
+        end)
       (associated.symm $ calc _ ~ᵤ f.map i :
         ⟨(units.map' C : units β →* units (polynomial β)) (units.mk0 (f.map i).leading_coeff
             (mt leading_coeff_eq_zero.1 (mt (map_eq_zero i).1 hf0))),

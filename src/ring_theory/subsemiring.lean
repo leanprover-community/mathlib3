@@ -131,7 +131,7 @@ s.to_add_submonoid.multiset_sum_mem m
     subsemiring. -/
 lemma prod_mem {R : Type*} [comm_semiring R] (s : subsemiring R)
   {ι : Type*} {t : finset ι} {f : ι → R} (h : ∀c ∈ t, f c ∈ s) :
-  t.prod f ∈ s :=
+  ∏ i in t, f i ∈ s :=
 s.to_submonoid.prod_mem h
 
 /-- Sum of elements in an `add_subsemiring` of an `add_comm_monoid` indexed by a `finset`
@@ -172,7 +172,7 @@ def subtype : s →+* R :=
 
 instance : partial_order (subsemiring R) :=
 { le := λ s t, ∀ ⦃x⦄, x ∈ s → x ∈ t,
-  .. partial_order.lift (coe : subsemiring R → set R) ext' _ }
+  .. partial_order.lift (coe : subsemiring R → set R) ext' }
 
 lemma le_def {s t : subsemiring R} : s ≤ t ↔ ∀ ⦃x : R⦄, x ∈ s → x ∈ t := iff.rfl
 

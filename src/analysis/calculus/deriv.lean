@@ -82,7 +82,7 @@ See the explanations there.
 
 universes u v w
 noncomputable theory
-open_locale classical topological_space
+open_locale classical topological_space big_operators
 open filter asymptotics set
 open continuous_linear_map (smul_right smul_right_one_eq_iff)
 
@@ -1489,7 +1489,7 @@ variable {n : ℕ }
 lemma has_strict_deriv_at_pow (n : ℕ) (x : 𝕜) :
   has_strict_deriv_at (λx, x^n) ((n : 𝕜) * x^(n-1)) x :=
 begin
-  convert (polynomial.C 1 * (polynomial.X)^n).has_strict_deriv_at x,
+  convert (polynomial.C (1 : 𝕜) * (polynomial.X)^n).has_strict_deriv_at x,
   { simp },
   { rw [polynomial.derivative_monomial], simp }
 end
@@ -1524,7 +1524,7 @@ lemma deriv_within_pow (hxs : unique_diff_within_at 𝕜 s x) :
 (has_deriv_within_at_pow n x s).deriv_within hxs
 
 lemma iter_deriv_pow' {k : ℕ} :
-  deriv^[k] (λx:𝕜, x^n) = λ x, ((finset.range k).prod (λ i, n - i):ℕ) * x^(n-k) :=
+  deriv^[k] (λx:𝕜, x^n) = λ x, (∏ i in finset.range k, (n - i) : ℕ) * x^(n-k) :=
 begin
   induction k with k ihk,
   { simp only [one_mul, finset.prod_range_zero, function.iterate_zero_apply, nat.sub_zero,
@@ -1536,7 +1536,7 @@ begin
 end
 
 lemma iter_deriv_pow {k : ℕ} :
-  deriv^[k] (λx:𝕜, x^n) x = ((finset.range k).prod (λ i, n - i):ℕ) * x^(n-k) :=
+  deriv^[k] (λx:𝕜, x^n) x = (∏ i in finset.range k, (n - i) : ℕ) * x^(n-k) :=
 congr_fun iter_deriv_pow' x
 
 lemma has_deriv_within_at.pow (hc : has_deriv_within_at c c' s x) :
@@ -1628,7 +1628,7 @@ lemma deriv_within_fpow (hxs : unique_diff_within_at 𝕜 s x) (hx : x ≠ 0) :
 (has_deriv_within_at_fpow m hx s).deriv_within hxs
 
 lemma iter_deriv_fpow {k : ℕ} (hx : x ≠ 0) :
-  deriv^[k] (λx:𝕜, x^m) x = ((finset.range k).prod (λ i, m - i):ℤ) * x^(m-k) :=
+  deriv^[k] (λx:𝕜, x^m) x = (∏ i in finset.range k, (m - i) : ℤ) * x^(m-k) :=
 begin
   induction k with k ihk generalizing x hx,
   { simp only [one_mul, finset.prod_range_zero, function.iterate_zero_apply, int.coe_nat_zero,

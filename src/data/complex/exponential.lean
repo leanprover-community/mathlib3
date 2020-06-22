@@ -6,7 +6,13 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir
 import algebra.geom_sum
 import data.nat.choose
 import data.complex.basic
+/-!
+# Exponential, trigonometric and hyperbolic trigonometric functions
 
+This file containss the definitions of the real and complex exponential, sine, cosine, tangent,
+hyperbolic sine, hypebolic cosine, and hyperbolic tangent functions.
+
+-/
 local notation `abs'` := _root_.abs
 open is_absolute_value
 open_locale classical big_operators
@@ -27,6 +33,7 @@ begin
   { exact le_trans (h _ (le_trans hkm (nat.le_add_right _ _))) ih }
 end
 
+section
 variables {α : Type*} {β : Type*} [ring β]
   [discrete_linear_ordered_field α] [archimedean α] {abv : β → α} [is_absolute_value abv]
 
@@ -66,13 +73,22 @@ lemma is_cau_of_mono_bounded (f : ℕ → α) {a : α} {m : ℕ} (ham : ∀ n �
   (hnm : ∀ n ≥ m, f n ≤ f n.succ) : is_cau_seq abs f :=
 begin
   refine @eq.rec_on (ℕ → α) _ (is_cau_seq abs) _ _
-    (-⟨_, @is_cau_of_decreasing_bounded _ _ _ (λ n, -f n) a m (by simpa) (by simpa)⟩ : cau_seq α abs).2,
+    (-⟨_, @is_cau_of_decreasing_bounded _ _ _ (λ n, -f n) a m (by simpa) (by simpa)⟩ :
+      cau_seq α abs).2,
   ext,
   exact neg_neg _
 end
 
-lemma is_cau_series_of_abv_le_cau  {f : ℕ → β} {g : ℕ → α}  (n : ℕ) : (∀ m, n ≤ m → abv (f m) ≤ g m) →
-  is_cau_seq abs (λ n, ∑ i in range n, g i) → is_cau_seq abv (λ n, ∑ i in range n, f i) :=
+end
+
+section no_archimedean
+variables {α : Type*} {β : Type*} [ring β]
+  [discrete_linear_ordered_field α] {abv : β → α} [is_absolute_value abv]
+
+lemma is_cau_series_of_abv_le_cau {f : ℕ → β} {g : ℕ → α} (n : ℕ) :
+  (∀ m, n ≤ m → abv (f m) ≤ g m) →
+  is_cau_seq abs (λ n, ∑ i in range n, g i) →
+  is_cau_seq abv (λ n, ∑ i in range n, f i) :=
 begin
   assume hm hg ε ε0,
   cases hg (ε / 2) (div_pos ε0 (by norm_num)) with i hi,
@@ -80,7 +96,8 @@ begin
   assume j ji,
   have hi₁ := hi j (le_trans (le_max_right n i) ji),
   have hi₂ := hi (max n i) (le_max_right n i),
-  have sub_le := abs_sub_le (∑ k in range j, g k) (∑ k in range i, g k) (∑ k in range (max n i), g k),
+  have sub_le := abs_sub_le (∑ k in range j, g k) (∑ k in range i, g k)
+    (∑ k in range (max n i), g k),
   have := add_lt_add hi₁ hi₂,
   rw [abs_sub (∑ k in range (max n i), g k), add_halves ε] at this,
   refine lt_of_le_of_lt (le_trans (le_trans _ (le_abs_self _)) sub_le) this,
@@ -100,6 +117,12 @@ end
 lemma is_cau_series_of_abv_cau {f : ℕ → β} : is_cau_seq abs (λ m, ∑ n in range m, abv (f n)) →
   is_cau_seq abv (λ m, ∑ n in range m, f n) :=
 is_cau_series_of_abv_le_cau 0 (λ n h, le_refl _)
+
+end no_archimedean
+
+section
+variables {α : Type*} {β : Type*} [ring β]
+  [discrete_linear_ordered_field α] [archimedean α] {abv : β → α} [is_absolute_value abv]
 
 lemma is_cau_geo_series {β : Type*} [field β] {abv : β → α} [is_absolute_value abv]
    (x : β) (hx1 : abv x < 1) : is_cau_seq abv (λ n, ∑ m in range n, x ^ m) :=
@@ -128,9 +151,11 @@ begin
     exact mul_le_mul_of_nonneg_right (le_of_lt hx1) (pow_nonneg (abv_nonneg _ _) _) }
 end
 
-lemma is_cau_geo_series_const (a : α) {x : α} (hx1 : abs x < 1) : is_cau_seq abs (λ m, ∑ n in range m, a * x ^ n) :=
-have is_cau_seq abs (λ m, a * ∑ n in range m, x ^ n) := (cau_seq.const abs a * ⟨_, is_cau_geo_series x hx1⟩).2,
-  by simpa only [mul_sum]
+lemma is_cau_geo_series_const (a : α) {x : α} (hx1 : abs x < 1) :
+  is_cau_seq abs (λ m, ∑ n in range m, a * x ^ n) :=
+have is_cau_seq abs (λ m, a * ∑ n in range m, x ^ n) :=
+  (cau_seq.const abs a * ⟨_, is_cau_geo_series x hx1⟩).2,
+by simpa only [mul_sum]
 
 lemma series_ratio_test {f : ℕ → β} (n : ℕ) (r : α)
   (hr0 : 0 ≤ r) (hr1 : r < 1) (h : ∀ m, n ≤ m → abv (f m.succ) ≤ r * abv (f m)) :
@@ -186,13 +211,6 @@ h₁ ▸ h₂ ▸ sum_bij
     mem_range.2 (nat.lt_succ_of_le (nat.le_add_left _ _))⟩,
   sigma.mk.inj_iff.2 ⟨rfl, heq_of_eq (nat.add_sub_cancel _ _).symm⟩⟩⟩)
 
-lemma abv_sum_le_sum_abv {γ : Type*} (f : γ → β) (s : finset γ) :
-  abv (∑ k in s, f k) ≤ ∑ k in s, abv (f k) :=
-by haveI := classical.dec_eq γ; exact
-finset.induction_on s (by simp [abv_zero abv])
-  (λ a s has ih, by rw [sum_insert has, sum_insert has];
-    exact le_trans (abv_add abv _ _) (add_le_add_left ih _))
-
 lemma sum_range_sub_sum_range {α : Type*} [add_comm_group α] {f : ℕ → α}
   {n m : ℕ} (hnm : n ≤ m) : ∑ k in range m, f k - ∑ k in range n, f k =
   ∑ k in (range m).filter (λ k, n ≤ k), f k :=
@@ -200,11 +218,24 @@ begin
   rw [← sum_sdiff (@filter_subset _ (λ k, n ≤ k) _ (range m)),
     sub_eq_iff_eq_add, ← eq_sub_iff_add_eq, add_sub_cancel'],
   refine finset.sum_congr
-    (finset.ext.2 $ λ a, ⟨λ h, by simp at *; finish,
+    (finset.ext $ λ a, ⟨λ h, by simp at *; finish,
     λ h, have ham : a < m := lt_of_lt_of_le (mem_range.1 h) hnm,
       by simp * at *⟩)
     (λ _ _, rfl),
 end
+
+end
+
+section no_archimedean
+variables {α : Type*} {β : Type*} [ring β]
+  [discrete_linear_ordered_field α] {abv : β → α} [is_absolute_value abv]
+
+lemma abv_sum_le_sum_abv {γ : Type*} (f : γ → β) (s : finset γ) :
+  abv (∑ k in s, f k) ≤ ∑ k in s, abv (f k) :=
+by haveI := classical.dec_eq γ; exact
+finset.induction_on s (by simp [abv_zero abv])
+  (λ a s has ih, by rw [sum_insert has, sum_insert has];
+    exact le_trans (abv_add abv _ _) (add_le_add_left ih _))
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma cauchy_product {a b : ℕ → β}
@@ -219,7 +250,8 @@ have hPε0 : 0 < ε / (2 * P),
   from div_pos ε0 (mul_pos (show (2 : α) > 0, from by norm_num) hP0),
 let ⟨N, hN⟩ := cau_seq.cauchy₂ ⟨_, hb⟩ hPε0 in
 have hQε0 : 0 < ε / (4 * Q),
-  from div_pos ε0 (mul_pos (show (0 : α) < 4, by norm_num) (lt_of_le_of_lt (abv_nonneg _ _) (hQ 0))),
+  from div_pos ε0 (mul_pos (show (0 : α) < 4, by norm_num)
+    (lt_of_le_of_lt (abv_nonneg _ _) (hQ 0))),
 let ⟨M, hM⟩ := cau_seq.cauchy₂ ⟨_, ha⟩ hQε0 in
 ⟨2 * (max N M + 1), λ K hK,
 have h₁ : ∑ m in range K, ∑ k in range (m + 1), a k * b (m - k) =
@@ -260,7 +292,8 @@ have hsumltP : ∑ n in range (max N M + 1), abv (a n) < P :=
 begin
   rw [h₁, h₂, h₃, sum_mul, ← sub_sub, sub_right_comm, sub_self, zero_sub, abv_neg abv],
   refine lt_of_le_of_lt (abv_sum_le_sum_abv _ _) _,
-  suffices : ∑ i in range (max N M + 1), abv (a i) * abv (∑ k in range (K - i), b k - ∑ k in range K, b k) +
+  suffices : ∑ i in range (max N M + 1),
+    abv (a i) * abv (∑ k in range (K - i), b k - ∑ k in range K, b k) +
     (∑ i in range K, abv (a i) * abv (∑ k in range (K - i), b k - ∑ k in range K, b k) -
     ∑ i in range (max N M + 1), abv (a i) * abv (∑ k in range (K - i), b k - ∑ k in range K, b k)) <
     ε / (2 * P) * P + ε / (4 * Q) * (2 * Q),
@@ -288,6 +321,8 @@ begin
             (nat.le_succ_of_le (le_max_right _ _))))
 end⟩
 
+end no_archimedean
+
 end
 
 open finset
@@ -312,24 +347,36 @@ series_ratio_test n (complex.abs z / n) (div_nonneg_of_nonneg_of_pos (complex.ab
 
 noncomputable theory
 
-lemma is_cau_exp (z : ℂ) : is_cau_seq abs (λ n, ∑ m in range n, z ^ m / nat.fact m) :=
-  is_cau_series_of_abv_cau (is_cau_abs_exp z)
+lemma is_cau_exp (z : ℂ) :
+  is_cau_seq abs (λ n, ∑ m in range n, z ^ m / nat.fact m) :=
+is_cau_series_of_abv_cau (is_cau_abs_exp z)
 
-def exp' (z : ℂ) : cau_seq ℂ complex.abs := ⟨λ n, ∑ m in range n, z ^ m / nat.fact m, is_cau_exp z⟩
+/-- The Cauchy sequence consisting of partial sums of the Taylor series of
+the complex exponential function -/
+@[pp_nodot] def exp' (z : ℂ) :
+  cau_seq ℂ complex.abs :=
+⟨λ n, ∑ m in range n, z ^ m / nat.fact m, is_cau_exp z⟩
 
-def exp (z : ℂ) : ℂ := lim (exp' z)
+/-- The complex exponential function, defined via its Taylor series -/
+@[pp_nodot] def exp (z : ℂ) : ℂ := lim (exp' z)
 
-def sin (z : ℂ) : ℂ := ((exp (-z * I) - exp (z * I)) * I) / 2
+/-- The complex sine function, defined via `exp` -/
+@[pp_nodot] def sin (z : ℂ) : ℂ := ((exp (-z * I) - exp (z * I)) * I) / 2
 
-def cos (z : ℂ) : ℂ := (exp (z * I) + exp (-z * I)) / 2
+/-- The complex cosine function, defined via `exp` -/
+@[pp_nodot] def cos (z : ℂ) : ℂ := (exp (z * I) + exp (-z * I)) / 2
 
-def tan (z : ℂ) : ℂ := sin z / cos z
+/-- The complex tangent function, defined as `sin z / cos z` -/
+@[pp_nodot] def tan (z : ℂ) : ℂ := sin z / cos z
 
-def sinh (z : ℂ) : ℂ := (exp z - exp (-z)) / 2
+/-- The complex hyperbolic sine function, defined via `exp` -/
+@[pp_nodot] def sinh (z : ℂ) : ℂ := (exp z - exp (-z)) / 2
 
-def cosh (z : ℂ) : ℂ := (exp z + exp (-z)) / 2
+/-- The complex hyperbolic cosine function, defined via `exp` -/
+@[pp_nodot] def cosh (z : ℂ) : ℂ := (exp z + exp (-z)) / 2
 
-def tanh (z : ℂ) : ℂ := sinh z / cosh z
+/-- The complex hyperbolic tangent function, defined as `sinh z / cosh z` -/
+@[pp_nodot] def tanh (z : ℂ) : ℂ := sinh z / cosh z
 
 end complex
 
@@ -337,19 +384,27 @@ namespace real
 
 open complex
 
-def exp (x : ℝ) : ℝ := (exp x).re
+/-- The real exponential function, defined as the real part of the complex exponential -/
+@[pp_nodot] def exp (x : ℝ) : ℝ := (exp x).re
 
-def sin (x : ℝ) : ℝ := (sin x).re
+/-- The real sine function, defined as the real part of the complex sine -/
+@[pp_nodot] def sin (x : ℝ) : ℝ := (sin x).re
 
-def cos (x : ℝ) : ℝ := (cos x).re
+/-- The real cosine function, defined as the real part of the complex cosine -/
+@[pp_nodot] def cos (x : ℝ) : ℝ := (cos x).re
 
-def tan (x : ℝ) : ℝ := (tan x).re
+/-- The real tangent function, defined as the real part of the complex tangent -/
+@[pp_nodot] def tan (x : ℝ) : ℝ := (tan x).re
 
-def sinh (x : ℝ) : ℝ := (sinh x).re
+/-- The real hypebolic sine function, defined as the real part of the complex hyperbolic sine -/
+@[pp_nodot] def sinh (x : ℝ) : ℝ := (sinh x).re
 
-def cosh (x : ℝ) : ℝ := (cosh x).re
+/-- The real hypebolic cosine function, defined as the real part of the complex hyperbolic cosine -/
+@[pp_nodot] def cosh (x : ℝ) : ℝ := (cosh x).re
 
-def tanh (x : ℝ) : ℝ := (tanh x).re
+/-- The real hypebolic tangent function, defined as the real part of
+the complex hyperbolic tangent -/
+@[pp_nodot] def tanh (x : ℝ) : ℝ := (tanh x).re
 
 end real
 
@@ -382,12 +437,12 @@ have hj : ∀ j : ℕ, ∑ m in range j, (x + y) ^ m / m.fact =
     finset.sum_congr rfl (λ m hm, begin
       rw [add_pow, div_eq_mul_inv, sum_mul],
       refine finset.sum_congr rfl (λ i hi, _),
-      have h₁ : (nat.choose m i : ℂ) ≠ 0 := nat.cast_ne_zero.2
+      have h₁ : (m.choose i : ℂ) ≠ 0 := nat.cast_ne_zero.2
         (nat.pos_iff_ne_zero.1 (nat.choose_pos (nat.le_of_lt_succ (mem_range.1 hi)))),
       have h₂ := nat.choose_mul_fact_mul_fact (nat.le_of_lt_succ $ finset.mem_range.1 hi),
       rw [← h₂, nat.cast_mul, nat.cast_mul, mul_inv', mul_inv'],
-      simp only [mul_left_comm (nat.choose m i : ℂ), mul_assoc, mul_left_comm (nat.choose m i : ℂ)⁻¹,
-        mul_comm (nat.choose m i : ℂ)],
+      simp only [mul_left_comm (m.choose i : ℂ), mul_assoc, mul_left_comm (m.choose i : ℂ)⁻¹,
+        mul_comm (m.choose i : ℂ)],
       rw inv_mul_cancel h₁,
       simp [div_eq_mul_inv, mul_comm, mul_assoc, mul_left_comm]
     end),
@@ -403,7 +458,7 @@ lemma exp_list_sum (l : list ℂ) : exp l.sum = (l.map exp).prod :=
 lemma exp_multiset_sum (s : multiset ℂ) : exp s.sum = (s.map exp).prod :=
 @monoid_hom.map_multiset_prod (multiplicative ℂ) ℂ _ _ ⟨exp, exp_zero, exp_add⟩ s
 
-lemma exp_sum {α : Type*} (s : finset α) (f : α → ℂ) : exp (∑ x in s, f x) = s.prod (exp ∘ f) :=
+lemma exp_sum {α : Type*} (s : finset α) (f : α → ℂ) : exp (∑ x in s, f x) = ∏ x in s, exp (f x) :=
 @monoid_hom.map_prod α (multiplicative ℂ) ℂ _ _ ⟨exp, exp_zero, exp_add⟩ f s
 
 lemma exp_nat_mul (x : ℂ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
@@ -491,7 +546,7 @@ lemma cosh_sub : cosh (x - y) = cosh x * cosh y - sinh x * sinh y :=
 by simp [sub_eq_add_neg, cosh_add, sinh_neg, cosh_neg]
 
 lemma sinh_conj : sinh (conj x) = conj (sinh x) :=
-by rw [sinh, ← conj_neg, exp_conj, exp_conj, ← conj_sub, sinh, conj_div, conj_two]
+by rw [sinh, ← conj_neg, exp_conj, exp_conj, ← conj_sub, sinh, conj_div, conj_bit0, conj_one]
 
 @[simp] lemma of_real_sinh_of_real_re (x : ℝ) : ((sinh x).re : ℂ) = sinh x :=
 eq_conj_iff_re.1 $ by rw [← sinh_conj, conj_of_real]
@@ -505,7 +560,7 @@ by rw [← of_real_sinh_of_real_re, of_real_im]
 lemma sinh_of_real_re (x : ℝ) : (sinh x).re = real.sinh x := rfl
 
 lemma cosh_conj : cosh (conj x) = conj (cosh x) :=
-by rw [cosh, ← conj_neg, exp_conj, exp_conj, ← conj_add, cosh, conj_div, conj_two]
+by rw [cosh, ← conj_neg, exp_conj, exp_conj, ← conj_add, cosh, conj_div, conj_bit0, conj_one]
 
 @[simp] lemma of_real_cosh_of_real_re (x : ℝ) : ((cosh x).re : ℂ) = cosh x :=
 eq_conj_iff_re.1 $ by rw [← cosh_conj, conj_of_real]
@@ -712,7 +767,7 @@ lemma exp_list_sum (l : list ℝ) : exp l.sum = (l.map exp).prod :=
 lemma exp_multiset_sum (s : multiset ℝ) : exp s.sum = (s.map exp).prod :=
 @monoid_hom.map_multiset_prod (multiplicative ℝ) ℝ _ _ ⟨exp, exp_zero, exp_add⟩ s
 
-lemma exp_sum {α : Type*} (s : finset α) (f : α → ℝ) : exp (∑ x in s, f x) = s.prod (exp ∘ f) :=
+lemma exp_sum {α : Type*} (s : finset α) (f : α → ℝ) : exp (∑ x in s, f x) = ∏ x in s, exp (f x) :=
 @monoid_hom.map_prod α (multiplicative ℝ) ℝ _ _ ⟨exp, exp_zero, exp_add⟩ f s
 
 lemma exp_nat_mul (x : ℝ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
@@ -908,27 +963,30 @@ calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m.fact : α)
     { rw [← nat.cast_pow, ← nat.cast_mul, nat.cast_le, add_comm],
       exact nat.fact_mul_pow_le_fact },
     { exact nat.cast_pos.2 (nat.fact_pos _) },
-    { exact mul_pos (nat.cast_pos.2 (nat.fact_pos _)) (pow_pos (nat.cast_pos.2 (nat.succ_pos _)) _) },
+    { exact mul_pos (nat.cast_pos.2 (nat.fact_pos _))
+        (pow_pos (nat.cast_pos.2 (nat.succ_pos _)) _) },
   end
 ... = (nat.fact n)⁻¹ * ∑ m in range (j - n), n.succ⁻¹ ^ m :
   by simp [mul_inv', mul_sum.symm, sum_mul.symm, -nat.fact_succ, mul_comm, inv_pow']
 ... = (n.succ - n.succ * n.succ⁻¹ ^ (j - n)) / (n.fact * n) :
   have h₁ : (n.succ : α) ≠ 1, from @nat.cast_one α _ _ ▸ mt nat.cast_inj.1
-        (mt nat.succ_inj (nat.pos_iff_ne_zero.1 hn)),
+        (mt nat.succ.inj (nat.pos_iff_ne_zero.1 hn)),
   have h₂ : (n.succ : α) ≠ 0, from nat.cast_ne_zero.2 (nat.succ_ne_zero _),
-  have h₃ : (n.fact * n : α) ≠ 0, from mul_ne_zero (nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 (nat.fact_pos _)))
+  have h₃ : (n.fact * n : α) ≠ 0,
+    from mul_ne_zero (nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 (nat.fact_pos _)))
     (nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 hn)),
   have h₄ : (n.succ - 1 : α) = n, by simp,
-  by rw [← geom_series_def, geom_sum_inv h₁ h₂, eq_div_iff_mul_eq _ _ h₃, mul_comm _ (n.fact * n : α),
-      ← mul_assoc (n.fact⁻¹ : α), ← mul_inv', h₄, ← mul_assoc (n.fact * n : α),
-      mul_comm (n : α) n.fact, mul_inv_cancel h₃];
+  by rw [← geom_series_def, geom_sum_inv h₁ h₂, eq_div_iff_mul_eq _ _ h₃,
+      mul_comm _ (n.fact * n : α), ← mul_assoc (n.fact⁻¹ : α), ← mul_inv', h₄,
+      ← mul_assoc (n.fact * n : α), mul_comm (n : α) n.fact, mul_inv_cancel h₃];
     simp [mul_add, add_mul, mul_assoc, mul_comm]
 ... ≤ n.succ / (n.fact * n) :
   begin
     refine iff.mpr (div_le_div_right (mul_pos _ _)) _,
     exact nat.cast_pos.2 (nat.fact_pos _),
     exact nat.cast_pos.2 hn,
-    exact sub_le_self _ (mul_nonneg (nat.cast_nonneg _) (pow_nonneg (inv_nonneg.2 (nat.cast_nonneg _)) _))
+    exact sub_le_self _
+      (mul_nonneg (nat.cast_nonneg _) (pow_nonneg (inv_nonneg.2 (nat.cast_nonneg _)) _))
   end
 
 lemma exp_bound {x : ℂ} (hx : abs x ≤ 1) {n : ℕ} (hn : 0 < n) :
@@ -984,7 +1042,8 @@ namespace real
 
 open complex finset
 
-lemma cos_bound {x : ℝ} (hx : abs' x ≤ 1) : abs' (cos x - (1 - x ^ 2 / 2)) ≤ abs' x ^ 4 * (5 / 96) :=
+lemma cos_bound {x : ℝ} (hx : abs' x ≤ 1) :
+  abs' (cos x - (1 - x ^ 2 / 2)) ≤ abs' x ^ 4 * (5 / 96) :=
 calc abs' (cos x - (1 - x ^ 2 / 2)) = abs (complex.cos x - (1 - x ^ 2 / 2)) :
   by rw ← abs_of_real; simp [of_real_bit0, of_real_one, of_real_inv]
 ... = abs ((complex.exp (x * I) + complex.exp (-x * I) - (2 - x ^ 2)) / 2) :
@@ -1008,7 +1067,8 @@ calc abs' (cos x - (1 - x ^ 2 / 2)) = abs (complex.cos x - (1 - x ^ 2 / 2)) :
              ((div_le_div_right (by norm_num)).2 (exp_bound (by simpa) dec_trivial))
 ... ≤ abs' x ^ 4 * (5 / 96) : by norm_num; simp [mul_assoc, mul_comm, mul_left_comm, mul_div_assoc]
 
-lemma sin_bound {x : ℝ} (hx : abs' x ≤ 1) : abs' (sin x - (x - x ^ 3 / 6)) ≤ abs' x ^ 4 * (5 / 96) :=
+lemma sin_bound {x : ℝ} (hx : abs' x ≤ 1) :
+  abs' (sin x - (x - x ^ 3 / 6)) ≤ abs' x ^ 4 * (5 / 96) :=
 calc abs' (sin x - (x - x ^ 3 / 6)) = abs (complex.sin x - (x - x ^ 3 / 6)) :
   by rw ← abs_of_real; simp [of_real_bit0, of_real_one, of_real_inv]
 ... = abs (((complex.exp (-x * I) - complex.exp (x * I)) * I - (2 * x - x ^ 3 / 3)) / 2) :

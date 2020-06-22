@@ -49,6 +49,10 @@ export has_dist (dist)
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
+
+-- the uniform structure and the emetric space structure are embedded in the metric space structure
+-- to avoid instance diamond issues. See Note [forgetful inheritance].
+
 /-- Metric space
 
 Each metric space induces a canonical `uniform_space` and hence a canonical `topological_space`.
@@ -56,11 +60,7 @@ This is enforced in the type class definition, by extending the `uniform_space` 
 instantiating a `metric_space` structure, the uniformity fields are not necessary, they will be
 filled in by default. In the same way, each metric space induces an emetric space structure.
 It is included in the structure, but filled in by default.
-
-When one instantiates a metric space structure, for instance a product structure,
-this makes it possible to use a uniform structure and an edistance that are exactly
-the ones for the uniform spaces product and the emetric spaces products, thereby
-ensuring that everything in defeq in diamonds.-/
+-/
 class metric_space (α : Type u) extends has_dist α : Type u :=
 (dist_self : ∀ x : α, dist x x = 0)
 (eq_of_dist_eq_zero : ∀ {x y : α}, dist x y = 0 → x = y)
@@ -249,6 +249,13 @@ def ball (x : α) (ε : ℝ) : set α := {y | dist y x < ε}
 @[simp] theorem mem_ball : y ∈ ball x ε ↔ dist y x < ε := iff.rfl
 
 theorem mem_ball' : y ∈ ball x ε ↔ dist x y < ε := by rw dist_comm; refl
+
+lemma ball_eq_ball (ε : ℝ) (x : α) :
+  uniform_space.ball x {p | dist p.2 p.1 < ε} = metric.ball x ε := rfl
+
+lemma ball_eq_ball' (ε : ℝ) (x : α) :
+  uniform_space.ball x {p | dist p.1 p.2 < ε} = metric.ball x ε :=
+by { ext, simp [dist_comm, uniform_space.ball] }
 
 /-- `closed_ball x ε` is the set of all points `y` with `dist y x ≤ ε` -/
 def closed_ball (x : α) (ε : ℝ) := {y | dist y x ≤ ε}
@@ -456,7 +463,7 @@ theorem totally_bounded_iff {s : set α} :
 /-- A metric space space is totally bounded if one can reconstruct up to any ε>0 any element of the
 space from finitely many data. -/
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-lemma totally_bounded_of_finite_discretization {α : Type u} [metric_space α] {s : set α}
+lemma totally_bounded_of_finite_discretization {s : set α}
   (H : ∀ε > (0 : ℝ), ∃ (β : Type u) [fintype β] (F : s → β),
     ∀x y, F x = F y → dist (x:α) y < ε) :
   totally_bounded s :=
@@ -473,6 +480,15 @@ begin
   have : F x' = F ⟨x, xs⟩ := function.inv_fun_eq ⟨⟨x, xs⟩, rfl⟩,
   simp only [set.mem_Union, set.mem_range],
   exact ⟨_, ⟨F ⟨x, xs⟩, rfl⟩, hF _ _ this.symm⟩
+end
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem finite_approx_of_totally_bounded {s : set α} (hs : totally_bounded s) :
+  ∀ ε > 0, ∃ t ⊆ s, finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
+begin
+  intros ε ε_pos,
+  rw totally_bounded_iff_subset at hs,
+  exact hs _ (dist_mem_uniformity ε_pos),
 end
 
 /-- Expressing locally uniform convergence on a set using `dist`. -/
@@ -1409,6 +1425,24 @@ begin
             ... ≤ C + dist x c : add_le_add_right (hC y x hy hx) _⟩ } },
   { exact bounded_closed_ball.subset hC }
 end
+
+lemma bounded_closure_of_bounded (h : bounded s) : bounded (closure s) :=
+begin
+  cases h with C h,
+  replace h : ∀ p : α × α, p ∈ set.prod s s → dist p.1 p.2 ∈ { d | d ≤ C },
+  { rintros ⟨x, y⟩ ⟨x_in, y_in⟩,
+    exact h x y x_in y_in },
+  use C,
+  suffices : ∀ p : α × α, p ∈ closure (set.prod s s) → dist p.1 p.2 ∈ { d | d ≤ C },
+  { rw closure_prod_eq at this,
+    intros x y x_in y_in,
+    exact this (x, y) (mk_mem_prod x_in y_in) },
+  intros p p_in,
+  have := mem_closure continuous_dist p_in h,
+  rwa closure_eq_of_is_closed (is_closed_le' C) at this
+end
+
+alias bounded_closure_of_bounded ← bounded.closure
 
 /-- The union of two bounded sets is bounded iff each of the sets is bounded -/
 @[simp] lemma bounded_union :

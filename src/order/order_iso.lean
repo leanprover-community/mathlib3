@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import logic.embedding
 import data.nat.basic
 import logic.function.iterate
+import order.rel_classes
 
 open function
 
@@ -44,7 +45,7 @@ namespace order_embedding
 
 instance : has_coe_to_fun (r ≼o s) := ⟨λ _, α → β, λ o, o.to_embedding⟩
 
-theorem inj (f : r ≼o s) : injective f := f.inj'
+theorem injective (f : r ≼o s) : injective f := f.inj'
 
 theorem ord (f : r ≼o s) : ∀ {a b}, r a b ↔ s (f a) (f b) := f.ord'
 
@@ -55,7 +56,7 @@ theorem ord (f : r ≼o s) : ∀ {a b}, r a b ↔ s (f a) (f b) := f.ord'
 
 /-- The map `coe_fn : (r ≼o s) → (r → s)` is injective. We can't use `function.injective`
 here but mimic its signature by using `⦃e₁ e₂⦄`. -/
-theorem coe_fn_injective : ∀ ⦃e₁ e₂ : r ≼o s⦄, (e₁ : α → β) = e₂ → e₁ = e₂
+theorem coe_fn_inj : ∀ ⦃e₁ e₂ : r ≼o s⦄, (e₁ : α → β) = e₂ → e₁ = e₂
 | ⟨⟨f₁, h₁⟩, o₁⟩ ⟨⟨f₂, h₂⟩, o₂⟩ h := by { congr, exact h }
 
 @[refl] protected def refl (r : α → α → Prop) : r ≼o r :=
@@ -135,7 +136,7 @@ protected theorem is_well_order : ∀ (f : r ≼o s) [is_well_order β s], is_we
   to show it is an order embedding. -/
 def of_monotone [is_trichotomous α r] [is_asymm β s] (f : α → β) (H : ∀ a b, r a b → s (f a) (f b)) : r ≼o s :=
 begin
-  haveI := @is_irrefl_of_is_asymm β s _,
+  haveI := @is_asymm.is_irrefl β s _,
   refine ⟨⟨f, λ a b e, _⟩, λ a b, ⟨H _ _, λ h, _⟩⟩,
   { refine ((@trichotomous _ r _ a b).resolve_left _).resolve_right _;
     exact λ h, @irrefl _ s _ _ (by simpa [e] using H _ _ h) },
@@ -285,7 +286,7 @@ protected def preimage (f : α ≃ β) (s : β → β → Prop) : f ⁻¹'o s �
 
 /-- A surjective order embedding is an order isomorphism. -/
 noncomputable def of_surjective (f : r ≼o s) (H : surjective f) : r ≃o s :=
-⟨equiv.of_bijective f ⟨f.inj, H⟩, by simp [f.ord']⟩
+⟨equiv.of_bijective f ⟨f.injective, H⟩, by simp [f.ord']⟩
 
 @[simp] theorem of_surjective_coe (f : r ≼o s) (H) : (of_surjective f H : α → β) = f :=
 rfl

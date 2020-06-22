@@ -6,6 +6,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 import algebra.group
 import deprecated.group
 import data.nat.basic
+import order.rel_classes
 
 /-!
 # Basic properties of lists
@@ -38,11 +39,11 @@ theorem tail_eq_of_cons_eq {h₁ h₂ : α} {t₁ t₂ : list α} :
       (h₁::t₁) = (h₂::t₂) → t₁ = t₂ :=
 assume Peq, list.no_confusion Peq (assume Pheq Pteq, Pteq)
 
-theorem cons_inj {a : α} : injective (cons a) :=
+theorem cons_injective {a : α} : injective (cons a) :=
 assume l₁ l₂, assume Pe, tail_eq_of_cons_eq Pe
 
-theorem cons_inj' (a : α) {l l' : list α} : a::l = a::l' ↔ l = l' :=
-⟨λ e, cons_inj e, congr_arg _⟩
+theorem cons_inj (a : α) {l l' : list α} : a::l = a::l' ↔ l = l' :=
+⟨λ e, cons_injective e, congr_arg _⟩
 
 /-! ### mem -/
 
@@ -116,7 +117,7 @@ end
 @[simp] theorem mem_map {f : α → β} {b : β} {l : list α} : b ∈ map f l ↔ ∃ a, a ∈ l ∧ f a = b :=
 ⟨exists_of_mem_map, λ ⟨a, la, h⟩, by rw [← h]; exact mem_map_of_mem f la⟩
 
-theorem mem_map_of_inj {f : α → β} (H : injective f) {a : α} {l : list α} :
+theorem mem_map_of_injective {f : α → β} (H : injective f) {a : α} {l : list α} :
   f a ∈ map f l ↔ a ∈ l :=
 ⟨λ m, let ⟨a', m', e⟩ := exists_of_mem_map m in H e ▸ m', mem_map_of_mem _⟩
 
@@ -197,7 +198,7 @@ lemma exists_of_length_succ {n} :
 | [] H := absurd H.symm $ succ_ne_zero n
 | (h :: t) H := ⟨h, t, rfl⟩
 
-lemma injective_length_iff : injective (list.length : list α → ℕ) ↔ subsingleton α :=
+lemma length_injective_iff : injective (list.length : list α → ℕ) ↔ subsingleton α :=
 begin
   split,
   { intro h, refine ⟨λ x y, _⟩, suffices : [x] = [y], { simpa using this }, apply h, refl },
@@ -206,8 +207,8 @@ begin
     congr, exactI subsingleton.elim _ _, apply l1_ih, simpa using hl }
 end
 
-lemma injective_length [subsingleton α] : injective (length : list α → ℕ) :=
-injective_length_iff.mpr $ by apply_instance
+lemma length_injective [subsingleton α] : injective (length : list α → ℕ) :=
+length_injective_iff.mpr $ by apply_instance
 
 /-! ### set-theoretic notation of lists -/
 
@@ -1107,7 +1108,7 @@ theorem nth_modify_nth (f : α → α) : ∀ n (l : list α) m,
 | 0     (a::l) (m+1) := by cases nth l m; refl
 | (n+1) (a::l) (m+1) := (nth_modify_nth n l m).trans $
   by cases nth l m with b; by_cases n = m;
-  simp only [h, if_pos, if_true, if_false, option.map_none, option.map_some, mt succ_inj,
+  simp only [h, if_pos, if_true, if_false, option.map_none, option.map_some, mt succ.inj,
     not_false_iff]
 
 theorem modify_nth_tail_length (f : list α → list α) (H : ∀ l, length (f l) = length l) :
@@ -1271,7 +1272,7 @@ by unfold list.bind; induction l; simp only [map, join, list.ret, cons_append, n
 @[simp] theorem map_tail (f : α → β) (l) : map f (tail l) = tail (map f l) :=
 by cases l; refl
 
-@[simp] theorem injective_map_iff {f : α → β} : injective (map f) ↔ injective f :=
+@[simp] theorem map_injective_iff {f : α → β} : injective (map f) ↔ injective f :=
 begin
   split; intros h x y hxy,
   { suffices : [x] = [y], { simpa using this }, apply h, simp [hxy] },
@@ -2471,7 +2472,7 @@ begin
   induction l with a l ih,
   { exact iff_of_true rfl (forall_mem_nil _) },
   rw forall_mem_cons, by_cases p a,
-  { rw [filter_cons_of_pos _ h, cons_inj', ih, and_iff_right h] },
+  { rw [filter_cons_of_pos _ h, cons_inj, ih, and_iff_right h] },
   { rw [filter_cons_of_neg _ h],
     refine iff_of_false _ (mt and.left h), intro e,
     have := filter_sublist l, rw e at this,
@@ -2965,7 +2966,7 @@ end
 
 @[simp] theorem mem_sublists {s t : list α} : s ∈ sublists t ↔ s <+ t :=
 by rw [← reverse_sublist_iff, ← mem_sublists',
-       sublists'_reverse, mem_map_of_inj reverse_injective]
+       sublists'_reverse, mem_map_of_injective reverse_injective]
 
 @[simp] theorem length_sublists (l : list α) : length (sublists l) = 2 ^ length l :=
 by simp only [sublists_eq_sublists', length_map, length_sublists', length_reverse]

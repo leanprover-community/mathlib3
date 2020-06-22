@@ -170,9 +170,9 @@ open polynomial
 /-- Transport an ideal of `R[X]` to an `R`-submodule of `R[X]`. -/
 def of_polynomial (I : ideal (polynomial R)) : submodule R (polynomial R) :=
 { carrier := I.carrier,
-  zero := I.zero_mem,
-  add := λ _ _, I.add_mem,
-  smul := λ c x H, by rw [← C_mul']; exact submodule.smul_mem _ _ H }
+  zero_mem' := I.zero_mem,
+  add_mem' := λ _ _, I.add_mem,
+  smul_mem' := λ c x H, by rw [← C_mul']; exact submodule.smul_mem _ _ H }
 
 variables {I : ideal (polynomial R)}
 theorem mem_of_polynomial (x) : x ∈ I.of_polynomial ↔ x ∈ I := iff.rfl
@@ -383,7 +383,7 @@ begin
   obtain ⟨t, q, rfl⟩ := exists_finset_rename q,
   have : p.rename (subtype.map id (finset.subset_union_left s t) : {x // x ∈ s} → {x // x ∈ s ∪ t}) *
     q.rename (subtype.map id (finset.subset_union_right s t)) = 0,
-  { apply injective_rename _ subtype.val_injective, simpa using h },
+  { apply rename_injective _ subtype.val_injective, simpa using h },
   letI := mv_polynomial.integral_domain_fintype R {x // x ∈ (s ∪ t)},
   rw mul_eq_zero at this,
   cases this; [left, right],

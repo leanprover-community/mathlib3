@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Ellen Arlt. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin, Scott Morrison, Yakov Pechersky
+Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
 -/
 import algebra.pi_instances
 /-!
@@ -59,6 +59,8 @@ instance [add_comm_group α] : add_comm_group (matrix m n α) := pi.add_comm_gro
 section diagonal
 variables [decidable_eq n]
 
+/-- `diagonal d` is the square matrix such that `(diagonal d) i i = d i` and `(diagonal d) i j = 0`
+if `i ≠ j`. -/
 def diagonal [has_zero α] (d : n → α) : matrix n n α := λ i j, if i = j then d i else 0
 
 @[simp] theorem diagonal_val_eq [has_zero α] {d : n → α} (i : n) : (diagonal d) i i = d i :=
@@ -82,6 +84,10 @@ begin
   { simp [h, transpose, diagonal_val_ne' h] }
 end
 
+@[simp] theorem diagonal_add [add_monoid α] (d₁ d₂ : n → α) :
+  diagonal d₁ + diagonal d₂ = diagonal (λ i, d₁ i + d₂ i) :=
+by ext i j; by_cases h : i = j; simp [h]
+
 section one
 variables [has_zero α] [has_one α]
 
@@ -101,18 +107,16 @@ diagonal_val_ne'
 
 end one
 
-end diagonal
-
 section numeral
 
-@[simp] lemma bit0_val [has_add α] (M : matrix n n α) (i : n) (j : n) :
+@[simp] lemma bit0_val [has_add α] (M : matrix m m α) (i : m) (j : m) :
   (bit0 M) i j = bit0 (M i j) := rfl
 
-variables [decidable_eq n] [add_monoid α] [has_one α]
+variables [add_monoid α] [has_one α]
 
 lemma bit1_val (M : matrix n n α) (i : n) (j : n) :
   (bit1 M) i j = if i = j then bit1 (M i j) else bit0 (M i j) :=
-by dsimp [bit1]; by_cases i = j; simp [h]
+by dsimp [bit1]; by_cases h : i = j; simp [h]
 
 @[simp]
 lemma bit1_val_eq (M : matrix n n α) (i : n) :
@@ -126,9 +130,7 @@ by simp [bit1_val, h]
 
 end numeral
 
-@[simp] theorem diagonal_add [decidable_eq n] [add_monoid α] (d₁ d₂ : n → α) :
-  diagonal d₁ + diagonal d₂ = diagonal (λ i, d₁ i + d₂ i) :=
-by ext i j; by_cases i = j; simp [h]
+end diagonal
 
 section dot_product
 

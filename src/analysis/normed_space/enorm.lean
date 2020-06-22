@@ -150,10 +150,10 @@ def emetric_space : emetric_space V :=
 
 /-- The subspace of vectors with finite enorm. -/
 def finite_subspace : subspace 𝕜 V :=
-{ carrier := {x | e x < ⊤},
-  zero    := by simp,
-  add     := λ x y hx hy, lt_of_le_of_lt (e.map_add_le x y) (ennreal.add_lt_top.2 ⟨hx, hy⟩),
-  smul    := λ c x hx,
+{ carrier   := {x | e x < ⊤},
+  zero_mem' := by simp,
+  add_mem'  := λ x y hx hy, lt_of_le_of_lt (e.map_add_le x y) (ennreal.add_lt_top.2 ⟨hx, hy⟩),
+  smul_mem' := λ c x hx,
     calc e (c • x) = nnnorm c * e x : e.map_smul c x
                ... < ⊤              : ennreal.mul_lt_top ennreal.coe_lt_top hx }
 

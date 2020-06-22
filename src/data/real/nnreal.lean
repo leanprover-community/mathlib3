@@ -5,6 +5,7 @@ Authors: Johan Commelin
 
 Nonnegative real numbers.
 -/
+import algebra.linear_ordered_comm_group_with_zero
 import data.real.basic
 
 noncomputable theory
@@ -123,7 +124,7 @@ to_real_hom.map_multiset_prod s
 to_real_hom.map_sum _ _
 
 @[norm_cast] lemma coe_prod {α} {s : finset α} {f : α → ℝ≥0} :
-  ↑(s.prod f) = s.prod (λa, (f a : ℝ)) :=
+  ↑(∏ a in s, f a) = ∏ a in s, (f a : ℝ) :=
 to_real_hom.map_prod _ _
 
 @[norm_cast] lemma nsmul_coe (r : ℝ≥0) (n : ℕ) : ↑(n •ℕ r) = n •ℕ (r:ℝ) :=
@@ -133,7 +134,7 @@ to_real_hom.to_add_monoid_hom.map_nsmul _ _
 to_real_hom.map_nat_cast n
 
 instance : decidable_linear_order ℝ≥0 :=
-decidable_linear_order.lift (coe : ℝ≥0 → ℝ) subtype.val_injective (by apply_instance)
+decidable_linear_order.lift (coe : ℝ≥0 → ℝ) subtype.val_injective
 
 @[norm_cast] protected lemma coe_le_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) ≤ r₂ ↔ r₁ ≤ r₂ := iff.rfl
 @[norm_cast] protected lemma coe_lt_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) < r₂ ↔ r₁ < r₂ := iff.rfl
@@ -195,6 +196,12 @@ instance : canonically_ordered_comm_semiring ℝ≥0 :=
   .. nnreal.linear_ordered_semiring,
   .. nnreal.canonically_ordered_add_monoid,
   .. nnreal.comm_semiring }
+
+instance : linear_ordered_comm_group_with_zero ℝ≥0 :=
+{ mul_le_mul_left := assume a b h c, mul_le_mul (le_refl c) h (zero_le a) (zero_le c),
+  zero_le_one := zero_le 1,
+  .. nnreal.linear_ordered_semiring,
+  .. nnreal.comm_group_with_zero }
 
 instance : densely_ordered ℝ≥0 :=
 ⟨assume a b (h : (a : ℝ) < b), let ⟨c, hac, hcb⟩ := dense h in
@@ -487,14 +494,14 @@ by rw [mul_comm, inv_mul_cancel h]
 @[simp] lemma div_self {r : ℝ≥0} (h : r ≠ 0) : r / r = 1 :=
 mul_inv_cancel h
 
-@[simp] lemma div_mul_cancel {r p : ℝ≥0} (h : p ≠ 0) : r / p * p = r :=
-by rw [div_def, mul_assoc, inv_mul_cancel h, mul_one]
+lemma div_self_le (r : ℝ≥0) : r / r ≤ 1 :=
+if h : r = 0 then by simp [h] else by rw [div_self h]
 
 @[simp] lemma mul_div_cancel {r p : ℝ≥0} (h : p ≠ 0) : r * p / p = r :=
 by rw [div_def, mul_assoc, mul_inv_cancel h, mul_one]
 
 @[simp] lemma mul_div_cancel' {r p : ℝ≥0} (h : r ≠ 0) : r * (p / r) = p :=
-by rw [mul_comm, div_mul_cancel h]
+by rw [mul_comm, div_mul_cancel _ h]
 
 @[simp] lemma inv_inv {r : ℝ≥0} : r⁻¹⁻¹ = r := nnreal.eq (inv_inv' _)
 

@@ -23,7 +23,9 @@ meta def nat.to_pexpr : ℕ → pexpr
 | 1 := ``(1)
 | n := if n % 2 = 0 then ``(bit0 %%(nat.to_pexpr (n/2))) else ``(bit1 %%(nat.to_pexpr (n/2)))
 
+
 open native
+
 namespace linarith
 
 section lemmas
@@ -98,6 +100,91 @@ by rw [←h3, mul_assoc, mul_div_comm, h2, ←mul_assoc, h1, mul_comm, one_mul]
 
 end lemmas
 
+/--
+A linear expression is a list of pairs of variable indices and coefficients.
+
+Some functions on `linexp` assume that `n : ℕ` occurs at most once as the first element of a pair,
+and that the list is sorted in decreasing order of the first argument.
+This is not enforced by the type but the operations here preserve it.
+-/
+@[reducible]
+def linexp : Type := list (ℕ × ℤ)
+end linarith
+
+/--
+A map `ℕ → ℤ` is converted to `list (ℕ × ℤ)` in the obvious way.
+This list is sorted in decreasing order of the first argument.
+-/
+meta def native.rb_map.to_linexp (m : rb_map ℕ ℤ) : linarith.linexp :=
+m.to_list
+
+namespace linarith
+namespace linexp
+
+/--
+Add two `linexp`s together componentwise.
+Preserves sorting and uniqueness of the first argument.
+-/
+meta def add : linexp → linexp → linexp
+| [] a := a
+| a [] := a
+| (a@(n1,z1)::t1) (b@(n2,z2)::t2) :=
+  if n1 < n2 then b::add (a::t1) t2
+  else if n2 < n1 then a::add t1 (b::t2)
+  else let sum := z1 + z2 in if sum = 0 then add t1 t2 else (n1, sum)::add t1 t2
+
+/-- `l.scale c` scales the values in `l` by `c` without modifying the order or keys. -/
+def scale (c : ℤ) (l : linexp) : linexp :=
+if c = 0 then []
+else if c = 1 then l
+else l.map $ λ ⟨n, z⟩, (n, z*c)
+
+/--
+`l.get n` returns the value in `l` associated with key `n`, if it exists, and `none` otherwise.
+This function assumes that `l` is sorted in decreasing order of the first argument,
+that is, it will return `none` as soon as it finds a key smaller than `n`.
+-/
+def get (n : ℕ) : linexp → option ℤ
+| [] := none
+| ((a, b)::t) :=
+  if a < n then none
+  else if a = n then some b
+  else get t
+
+/--
+`l.contains n` is true iff `n` is the first element of a pair in `l`.
+-/
+def contains (n : ℕ) : linexp → bool := option.is_some ∘ get n
+
+/--
+`l.zfind n` returns the value associated with key `n` if there is one, and 0 otherwise.
+-/
+def zfind (n : ℕ) (l : linexp) : ℤ :=
+match l.get n with
+| none := 0
+| some v := v
+end
+
+/--
+Defines a lex ordering on `linexp`. This function is performance critical.
+-/
+def cmp : linexp → linexp → ordering
+| [] [] := ordering.eq
+| [] _ := ordering.lt
+| _ [] := ordering.gt
+| ((n1,z1)::t1) ((n2,z2)::t2) :=
+  if n1 < n2 then ordering.lt
+  else if n2 < n1 then ordering.gt
+  else if z1 < z2 then ordering.lt
+  else if z2 < z1 then ordering.gt
+  else cmp t1 t2
+
+/-- `l.vars` returns the list of variables that occur in `l`. -/
+def vars (l : linexp) : list ℕ :=
+l.map prod.fst
+
+end linexp
+
 section datatypes
 
 @[derive decidable_eq, derive inhabited]
@@ -111,11 +198,14 @@ def ineq.max : ineq → ineq → ineq
 | le a := a
 | lt a := lt
 
-def ineq.is_lt : ineq → ineq → bool
-| eq le := tt
-| eq lt := tt
-| le lt := tt
-| _ _ := ff
+/-- `ineq` is ordered `eq < le < lt`. -/
+def ineq.cmp : ineq → ineq → ordering
+| eq eq := ordering.eq
+| eq _ := ordering.lt
+| le le := ordering.eq
+| le lt := ordering.lt
+| lt lt := ordering.eq
+| _ _ := ordering.gt
 
 def ineq.to_string : ineq → string
 | eq := "="
@@ -128,15 +218,20 @@ instance : has_to_string ineq := ⟨ineq.to_string⟩
 The main datatype for FM elimination.
 Variables are represented by natural numbers, each of which has an integer coefficient.
 Index 0 is reserved for constants, i.e. `coeffs.find 0` is the coefficient of 1.
-The represented term is `coeffs.keys.sum (λ i, coeffs.find i * Var[i])`.
+The represented term is `coeffs.sum (λ ⟨k, v⟩, v * Var[k])`.
 str determines the direction of the comparison -- is it < 0, ≤ 0, or = 0?
 -/
-@[derive _root_.inhabited]
-meta structure comp :=
+@[derive inhabited]
+structure comp : Type :=
 (str : ineq)
-(coeffs : rb_map ℕ int)
+(coeffs : linexp)
 
-meta inductive comp_source
+/-- `c.vars` returns the list of variables that appear in the linear expression contained in `c`. -/
+def comp.vars : comp → list ℕ :=
+linexp.vars ∘ comp.coeffs
+
+@[derive inhabited]
+inductive comp_source : Type
 | assump : ℕ → comp_source
 | add : comp_source → comp_source → comp_source
 | scale : ℕ → comp_source → comp_source
@@ -146,7 +241,7 @@ meta def comp_source.flatten : comp_source → rb_map ℕ ℕ
 | (comp_source.add c1 c2) := (comp_source.flatten c1).add (comp_source.flatten c2)
 | (comp_source.scale n c) := (comp_source.flatten c).map (λ v, v * n)
 
-meta def comp_source.to_string : comp_source → string
+def comp_source.to_string : comp_source → string
 | (comp_source.assump e) := to_string e
 | (comp_source.add c1 c2) := comp_source.to_string c1 ++ " + " ++ comp_source.to_string c2
 | (comp_source.scale n c) := to_string n ++ " * " ++ comp_source.to_string c
@@ -154,72 +249,175 @@ meta def comp_source.to_string : comp_source → string
 meta instance comp_source.has_to_format : has_to_format comp_source :=
 ⟨λ a, comp_source.to_string a⟩
 
-meta structure pcomp :=
+/--
+A `pcomp` stores a linear comparison `Σ cᵢ*xᵢ R 0`,
+along with information about how this comparison was derived.
+
+The original expressions fed into `linarith` are each assigned a unique natural number label.
+The *historical set* `pcomp.history` stores the labels of expressions
+that were used in deriving the current `pcomp`.
+
+Variables are also indexed by natural numbers. The sets `pcomp.effective`, `pcomp.implicit`,
+and `pcomp.vars` contain variable indices.
+
+* `pcomp.vars` contains the variables that appear in `pcomp.c`. We store them in `pcomp` to
+  avoid recomputing the set, which requires folding over a list. (TODO: is this really needed?)
+* `pcomp.effective` contains the variables that have been effectively eliminated from `pcomp`.
+  A variable `n` is said to be *effectively eliminated* in `pcomp` if the elimination of `n`
+  produced at least one of the ancestors of `pcomp`.
+* `pcomp.implicit` contains the variables that have been implicitly eliminated from `pcomp`.
+  A variable `n` is said to be *implicitly eliminated* in `pcomp` if it satisfies the following
+  properties:
+  - There is some `ancestor` of `pcomp` such that `n` appears in `ancestor.vars`.
+  - `n` does not appear in `pcomp.vars`.
+  - `n` was not effectively eliminated.
+
+We track these sets in order to compute whether the history of a `pcomp` is *minimal*.
+Checking this directly is expensive, but effective approximations can be defined in terms of these
+sets. During the variable elimination process, a `pcomp` with non-minimal history can be discarded.
+-/
+meta structure pcomp : Type :=
 (c : comp)
 (src : comp_source)
+(history : rb_set ℕ)
+(effective : rb_set ℕ)
+(implicit : rb_set ℕ)
+(vars : rb_set ℕ)
 
-meta def map_lt (m1 m2 : rb_map ℕ int) : bool :=
-list.lex (prod.lex (<) (<)) m1.to_list m2.to_list
+/--
+Any comparison whose history is not minimal is redundant,
+and need not be included in the new set of comparisons.
 
--- make more efficient
-meta def comp.lt (c1 c2 : comp) : bool :=
-(c1.str.is_lt c2.str) || (c1.str = c2.str) && map_lt c1.coeffs c2.coeffs
+`elimed_ge : ℕ` is a natural number such that all variables with index ≥ `elimed_ge` have been
+removed from the system.
 
-meta instance comp.has_lt : has_lt comp := ⟨λ a b, comp.lt a b⟩
-meta instance pcomp.has_lt : has_lt pcomp := ⟨λ p1 p2, p1.c < p2.c⟩
- -- short-circuit type class inference
-meta instance pcomp.has_lt_dec : decidable_rel ((<) : pcomp → pcomp → Prop) := by apply_instance
+This test is an overapproximation to minimality. It gives necessary but not sufficient conditions.
+If the history of `c` is minimal, then `c.maybe_minimal` is true,
+but `c.maybe_minimal` may also be true for some `c` with minimal history.
+Thus, if `c.maybe_minimal` is false, `c` is known not to be minimal and must be redundant.
+
+See http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.51.493&rep=rep1&type=pdf p.13
+(Theorem 7).
+
+The condition described there considers only implicitly eliminated variables that have been
+officially eliminated from the system. This is not the case for every implicitly eliminated variable.
+Consider eliminating `z` from `{x + y + z < 0, x - y - z < 0}`. The result is the set
+`{2*x < 0}`; `y` is implicitly but not officially eliminated.
+
+This implementation of Fourier-Motzkin elimination processes variables in decreasing order of
+indices. Immediately after a step that eliminates variable `k`, variable `k'` has been eliminated
+iff `k' ≥ k`. Thus we can compute the intersection of officially and implicitly eliminated variables
+by taking the set of implicitly eliminated variables with indices ≥ `elimed_ge`.
+-/
+meta def pcomp.maybe_minimal (c : pcomp) (elimed_ge : ℕ) : bool :=
+c.history.size ≤ 1 + ((c.implicit.filter (≥ elimed_ge)).union c.effective).size
+
+/-- `comp` has a lex order. First the `ineq`s are compared, then the `coeff`s. -/
+meta def comp.cmp : comp → comp → ordering
+| ⟨str1, coeffs1⟩ ⟨str2, coeffs2⟩ :=
+  match str1.cmp str2 with
+  | ordering.lt := ordering.lt
+  | ordering.gt := ordering.gt
+  | ordering.eq := coeffs1.cmp coeffs2
+  end
+
+/--
+The `comp_source` field is ignored when comparing `pcomp`s. Two `pcomp`s proving the same
+comparison, with different sources, are considered equivalent.
+-/
+meta def pcomp.cmp (p1 p2 : pcomp) : ordering :=
+p1.c.cmp p2.c
 
 meta def comp.coeff_of (c : comp) (a : ℕ) : ℤ :=
 c.coeffs.zfind a
 
 meta def comp.scale (c : comp) (n : ℕ) : comp :=
-{ c with coeffs := c.coeffs.map ((*) (n : ℤ)) }
+{ c with coeffs := c.coeffs.scale n }
 
 meta def comp.add (c1 c2 : comp) : comp :=
 ⟨c1.str.max c2.str, c1.coeffs.add c2.coeffs⟩
 
 meta def pcomp.scale (c : pcomp) (n : ℕ) : pcomp :=
-⟨c.c.scale n, comp_source.scale n c.src⟩
+{c with c := c.c.scale n, src := c.src.scale n}
 
-meta def pcomp.add (c1 c2 : pcomp) : pcomp :=
-⟨c1.c.add c2.c, comp_source.add c1.src c2.src⟩
+/--
+`pcomp.add c1 c2 elim_var` creates the result of summing the linear comparisons `c1` and `c2`,
+during the process of eliminating the variable `elim_var`.
+The computation assumes, but does not enforce, that `elim_var` appears in both `c1` and `c2`
+and does not appear in the sum.
+
+Computing the sum of the two comparisons is easy; the complicated details lie in tracking the
+additional fields of `pcomp`.
+
+* The historical set `pcomp.history` of `c1 + c2` is the union of the two historical sets.
+* We recompute the variables that appear in `c1 + c2` from the newly created `linexp`,
+  since some may have been implicitly eliminated.
+* The effectively eliminated variables of `c1 + c2` are the union of the two effective sets,
+  with `elim_var` inserted.
+* The implicitly eliminated variables of `c1 + c2` are those that appear in at least one of
+  `c1.vars` and `c2.vars` but not in `(c1 + c2).vars`, excluding `elim_var`.
+-/
+meta def pcomp.add (c1 c2 : pcomp) (elim_var : ℕ) : pcomp :=
+let c := c1.c.add c2.c,
+    src := c1.src.add c2.src,
+    history := c1.history.union c2.history,
+    vars := native.rb_set.of_list c.vars,
+    effective := (c1.effective.union c2.effective).insert elim_var,
+    implicit := ((c1.vars.union c2.vars).sdiff vars).erase elim_var in
+⟨c, src, history, effective, implicit, vars⟩
+
+/--
+`pcomp.assump c n` creates a `pcomp` whose comparison is `c` and whose source is
+`comp_source.assump n`, that is, `c` is derived from the `n`th hypothesis.
+The history is the singleton set `{n}`.
+No variables have been eliminated (effectively or implicitly).
+-/
+meta def pcomp.assump (c : comp) (n : ℕ) : pcomp :=
+{ c := c,
+  src := comp_source.assump n,
+  history := mk_rb_set.insert n,
+  effective := mk_rb_set,
+  implicit := mk_rb_set,
+  vars := rb_set.of_list c.vars }
 
 meta instance pcomp.to_format : has_to_format pcomp :=
 ⟨λ p, to_fmt p.c.coeffs ++ to_string p.c.str ++ "0"⟩
 
 meta instance comp.to_format : has_to_format comp :=
-⟨λ p, to_fmt p.coeffs⟩
+⟨λ p, to_fmt p.coeffs ++ to_string p.str ++ "0"⟩
+
+/-- Creates an empty set of `pcomp`s, sorted using `pcomp.cmp`. -/
+meta def mk_pcomp_set : rb_set pcomp :=
+rb_map.mk_core unit pcomp.cmp
 
 end datatypes
 
 section fm_elim
 
 /-- If `c1` and `c2` both contain variable `a` with opposite coefficients,
-produces `v1`, `v2`, and `c` such that `a` has been cancelled in `c := v1*c1 + v2*c2`. -/
-meta def elim_var (c1 c2 : comp) (a : ℕ) : option (ℕ × ℕ × comp) :=
+produces `v1`, `v2` such that `a` has been cancelled in `v1*c1 + v2*c2`. -/
+meta def elim_var (c1 c2 : comp) (a : ℕ) : option (ℕ × ℕ) :=
 let v1 := c1.coeff_of a,
     v2 := c2.coeff_of a in
 if v1 * v2 < 0 then
   let vlcm :=  nat.lcm v1.nat_abs v2.nat_abs,
       v1' := vlcm / v1.nat_abs,
       v2' := vlcm / v2.nat_abs in
-  some ⟨v1', v2', comp.add (c1.scale v1') (c2.scale v2')⟩
+  some ⟨v1', v2'⟩
 else none
 
 meta def pelim_var (p1 p2 : pcomp) (a : ℕ) : option pcomp :=
-do (n1, n2, c) ← elim_var p1.c p2.c a,
-   return ⟨c, comp_source.add (p1.src.scale n1) (p2.src.scale n2)⟩
+do (n1, n2) ← elim_var p1.c p2.c a,
+   return $ (p1.scale n1).add (p2.scale n2) a
 
 meta def comp.is_contr (c : comp) : bool := c.coeffs.empty ∧ c.str = ineq.lt
 
 meta def pcomp.is_contr (p : pcomp) : bool := p.c.is_contr
 
 meta def elim_with_set (a : ℕ) (p : pcomp) (comps : rb_set pcomp) : rb_set pcomp :=
-if ¬ p.c.coeffs.contains a then mk_rb_set.insert p else
-comps.fold mk_rb_set $ λ pc s,
+comps.fold mk_pcomp_set $ λ pc s,
 match pelim_var p pc a with
-| some pc := s.insert pc
+| some pc := if pc.maybe_minimal a then s.insert pc else s
 | none := s
 end
 
@@ -227,11 +425,6 @@ end
 The state for the elimination monad.
 * `vars`: the set of variables present in `comps`
 * `comps`: a set of comparisons
-* `inputs`: a set of pairs of exprs `(t, pf)`, where `t` is a term and `pf` is a proof that
-  `t {<, ≤, =} 0`, indexed by `ℕ`.
-* `has_false`: stores a `pcomp` of `0 < 0` if one has been found
-
-TODO: is it more efficient to store comps as a list, to avoid comparisons?
 -/
 meta structure linarith_structure :=
 (vars : rb_set ℕ)
@@ -259,17 +452,92 @@ end
 meta def update (vars : rb_set ℕ) (comps : rb_set pcomp) : linarith_monad unit :=
 state_t.put ⟨vars, comps⟩ >> validate
 
+/--
+`split_set_by_var_sign a comps` partitions the set `comps` into three parts.
+* `pos` contains the elements of `comps` in which `a` has a positive coefficient.
+* `neg` contains the elements of `comps` in which `a` has a negative coefficient.
+* `not_present` contains the elements of `comps` in which `a` has coefficient 0.
+
+Returns `(pos, neg, not_present)`.
+-/
+meta def split_set_by_var_sign (a : ℕ) (comps : rb_set pcomp) :
+  rb_set pcomp × rb_set pcomp × rb_set pcomp :=
+comps.fold ⟨mk_pcomp_set, mk_pcomp_set, mk_pcomp_set⟩ $ λ pc ⟨pos, neg, not_present⟩,
+  let n := pc.c.coeff_of a in
+  if n > 0 then ⟨pos.insert pc, neg, not_present⟩
+  else if n < 0 then ⟨pos, neg.insert pc, not_present⟩
+  else ⟨pos, neg, not_present.insert pc⟩
+
+/--
+`monad.elim_var a` performs one round of Fourier-Motzkin elimination, eliminating the variable `a`
+from the `linarith` state.
+-/
 meta def monad.elim_var (a : ℕ) : linarith_monad unit :=
 do vs ← get_vars,
    when (vs.contains a) $
-do comps ← get_comps,
-   let cs' := comps.fold mk_rb_set (λ p s, s.union (elim_with_set a p comps)),
+do ⟨pos, neg, not_present⟩ ← split_set_by_var_sign a <$> get_comps,
+   let cs' := pos.fold not_present (λ p s, s.union (elim_with_set a p neg)),
    update (vs.erase a) cs'
+
 
 meta def elim_all_vars : linarith_monad unit :=
 get_var_list >>= list.mmap' monad.elim_var
 
 end fm_elim
+
+/-!
+`linarith` computes the linear form of its input expressions,
+assuming (without justification) that the type of these expressions
+is a commutative semiring.
+
+It identifies atoms up to ring-equivalence: that is, `(y*3)*x` will be identified `3*(x*y)`,
+where the monomial `x*y` is the linear atom.
+
+* Variables are represented by natural numbers.
+* Monomials are represented by `monom := rb_map ℕ ℕ`. The monomial `1` is represented by the empty map.
+* Linear combinations of monomials are represented by `sum := rb_map monom ℤ`.
+
+All input expressions are converted to `sum`s, preserving the map from expressions to variables.
+We then discard the monomial information, mapping each distinct monomial to a natural number.
+The resulting `rb_map ℕ ℤ` represents the ring-normalized linear form of the expression.
+-/
+
+/-- Variables (represented by natural numbers) map to their power. -/
+@[reducible] meta def monom : Type := rb_map ℕ ℕ
+
+/-- Compare monomials by first comparing their keys and then their powers. -/
+@[reducible] meta def monom.lt : monom → monom → Prop :=
+λ a b, (a.keys < b.keys) || ((a.keys = b.keys) && (a.values < b.values))
+
+/-- The `has_lt` instance for `monom` is only needed locally. -/
+local attribute [instance]
+meta def monom_has_lt : has_lt monom := ⟨monom.lt⟩
+
+/-- Linear combinations of monomials are represented by mapping monomials to coefficients. -/
+@[reducible] meta def sum : Type := rb_map monom ℤ
+
+/-- `sum.scale_by_monom s m` multiplies every monomial in `s` by `m`. -/
+meta def sum.scale_by_monom (s : sum) (m : monom) : sum :=
+s.fold mk_rb_map $ λ m' coeff sm, sm.insert (m.add m') coeff
+
+/-- `sum.mul s1 s2` distributes the multiplication of two sums.` -/
+meta def sum.mul (s1 s2 : sum) : sum :=
+s1.fold mk_rb_map $ λ mn coeff sm, sm.add $ (s2.scale_by_monom mn).scale coeff
+
+/-- `sum_of_monom m` lifts `m` to a sum with coefficient `1`. -/
+meta def sum_of_monom (m : monom) : sum :=
+mk_rb_map.insert m 1
+
+/-- The unit monomial `one` is represented by the empty rb map. -/
+meta def one : monom := mk_rb_map
+
+/-- A scalar `z` is represented by a `sum` with coefficient `z` and monomial `one` -/
+meta def scalar (z : ℤ) : sum :=
+mk_rb_map.insert one z
+
+/-- A single variable `n` is represented by a sum with coefficient `1` and monomial `n`. -/
+meta def var (n : ℕ) : sum :=
+mk_rb_map.insert (mk_rb_map.insert n 1) 1
 
 section parse
 
@@ -292,18 +560,16 @@ meta def rb_map.find_defeq (red : transparency) {v} (m : expr_map v) (e : expr) 
 prod.snd <$> list.mfind (λ p, is_def_eq e p.1 red) m.to_list
 
 /--
-Turns an expression into a map from `ℕ` to `ℤ`, for use in a `comp` object.
-The `expr_map` `ℕ` argument identifies which expressions have already been assigned numbers.
-Returns a new map.
+`map_of_expr red map e` computes the linear form of `e`.
+
+`map` is a lookup map from atomic expressions to variable numbers.
+If a new atomic expression is encountered, it is added to the map with a new number.
 -/
-meta def map_of_expr (red : transparency) : expr_map ℕ → expr → tactic (expr_map ℕ × rb_map ℕ ℤ)
+meta def map_of_expr (red : transparency) : expr_map ℕ → expr → tactic (expr_map ℕ × sum)
 | m e@`(%%e1 * %%e2) :=
-   (do (m', comp1) ← map_of_expr m e1,
+   do (m', comp1) ← map_of_expr m e1,
       (m', comp2) ← map_of_expr m' e2,
-      mp ← map_of_expr_mul_aux comp1 comp2,
-      return (m', mp)) <|>
-   (do k ← rb_map.find_defeq red m e, return (m, mk_rb_map.insert k 1)) <|>
-   (let n := m.size + 1 in return (m.insert e n, mk_rb_map.insert n 1))
+      return (m', comp1.mul comp2)
 | m `(%%e1 + %%e2) :=
    do (m', comp1) ← map_of_expr m e1,
       (m', comp2) ← map_of_expr m' e2,
@@ -316,10 +582,25 @@ meta def map_of_expr (red : transparency) : expr_map ℕ → expr → tactic (ex
 | m e :=
   match e.to_int with
   | some 0 := return ⟨m, mk_rb_map⟩
-  | some z := return ⟨m, mk_rb_map.insert 0 z⟩
+  | some z := return ⟨m, scalar z⟩
   | none :=
-    (do k ← rb_map.find_defeq red m e, return (m, mk_rb_map.insert k 1)) <|>
-    (let n := m.size + 1 in return (m.insert e n, mk_rb_map.insert n 1))
+    (do k ← rb_map.find_defeq red m e, return (m, var k)) <|>
+    (let n := m.size + 1 in return (m.insert e n, var n))
+  end
+
+/--
+`sum_to_lf s map` eliminates the monomial level of the `sum` `s`.
+
+`map` is a lookup map from monomials to variable numbers.
+The output `rb_map ℕ ℤ` has the same structure as `sum`,
+but each monomial key is replaced with its index according to `map`.
+If any new monomials are encountered, they are assigned variable numbers and `map` is updated.
+ -/
+meta def sum_to_lf (s : sum) (m : rb_map monom ℕ) : rb_map monom ℕ × rb_map ℕ ℤ :=
+s.fold (m, mk_rb_map) $ λ mn coeff ⟨map, out⟩,
+  match map.find mn with
+  | some n := ⟨map, out.insert n coeff⟩
+  | none := let n := map.size in ⟨map.insert mn n, out.insert n coeff⟩
   end
 
 meta def parse_into_comp_and_expr : expr → option (ineq × expr)
@@ -328,20 +609,22 @@ meta def parse_into_comp_and_expr : expr → option (ineq × expr)
 | `(%%e = 0) := (ineq.eq, e)
 | _ := none
 
-meta def to_comp (red : transparency) (e : expr) (m : expr_map ℕ) : tactic (comp × expr_map ℕ) :=
+meta def to_comp (red : transparency) (e : expr) (m : expr_map ℕ) (mm : rb_map monom ℕ) :
+  tactic (comp × expr_map ℕ × rb_map monom ℕ) :=
 do (iq, e) ← parse_into_comp_and_expr e,
    (m', comp') ← map_of_expr red m e,
-   return ⟨⟨iq, comp'⟩, m'⟩
+   let ⟨nm, mm'⟩ := sum_to_lf comp' mm,
+   return ⟨⟨iq, mm'.to_linexp⟩,m',nm⟩
 
-meta def to_comp_fold (red : transparency) : expr_map ℕ → list expr →
-      tactic (list (option comp) × expr_map ℕ)
-| m [] := return ([], m)
-| m (h::t) :=
-  (do (c, m') ← to_comp red h m,
-      (l, mp) ← to_comp_fold m' t,
-      return (c::l, mp)) <|>
-  (do (l, mp) ← to_comp_fold m t,
-      return (none::l, mp))
+meta def to_comp_fold (red : transparency) : expr_map ℕ → list expr → rb_map monom ℕ →
+      tactic (list (option comp) × expr_map ℕ × rb_map monom ℕ )
+| m [] mm := return ([], m, mm)
+| m (h::t) mm :=
+  (do (c, m', mm') ← to_comp red h m mm,
+      (l, mp, mm') ← to_comp_fold m' t mm',
+      return (c::l, mp, mm')) <|>
+  (do (l, mp, mm') ← to_comp_fold m t mm,
+      return (none::l, mp, mm'))
 
 /--
 Takes a list of proofs of props of the form `t {<, ≤, =} 0`, and creates a
@@ -350,13 +633,13 @@ Takes a list of proofs of props of the form `t {<, ≤, =} 0`, and creates a
 meta def mk_linarith_structure (red : transparency) (l : list expr) :
   tactic (linarith_structure × rb_map ℕ (expr × expr)) :=
 do pftps ← l.mmap infer_type,
-  (l', map) ← to_comp_fold red mk_rb_map pftps,
+  (l', _, map) ← to_comp_fold red mk_rb_map pftps mk_rb_map,
   let lz := list.enum $ ((l.zip pftps).zip l').filter_map (λ ⟨a, b⟩, prod.mk a <$> b),
   let prmap := rb_map.of_list $ lz.map (λ ⟨n, x⟩, (n, x.1)),
-  let vars : rb_set ℕ := rb_map.set_of_list $ list.range map.size.succ,
-  let pc : rb_set pcomp := rb_map.set_of_list $
-    lz.map (λ ⟨n, x⟩, ⟨x.2, comp_source.assump n⟩),
-  return (⟨vars, pc⟩, prmap)
+  let vars : rb_set ℕ := rb_map.set_of_list $ list.range map.size,
+  let pc : rb_set pcomp :=
+    rb_set.of_list_core mk_pcomp_set $ lz.map (λ ⟨n, x⟩, pcomp.assump x.2 n),
+  return ({vars := vars, comps := pc}, prmap)
 
 meta def linarith_monad.run (red : transparency) {α} (tac : linarith_monad α) (l : list expr) :
   tactic ((pcomp ⊕ α) × rb_map ℕ (expr × expr)) :=
@@ -556,12 +839,8 @@ meta def find_cancel_factor : expr → ℕ × tree ℕ
   let (v1, t1) := find_cancel_factor e1, (v2, t2) := find_cancel_factor e2, lcm := v1.lcm v2 in
   (lcm, tree.node lcm t1 t2)
 | `(%%e1 * %%e2) :=
-  match is_numeric e1, is_numeric e2 with
-  | none, none := (1, tree.node 1 tree.nil tree.nil)
-  | _, _ :=
-    let (v1, t1) := find_cancel_factor e1, (v2, t2) := find_cancel_factor e2, pd := v1*v2 in
-    (pd, tree.node pd t1 t2)
-  end
+  let (v1, t1) := find_cancel_factor e1, (v2, t2) := find_cancel_factor e2, pd := v1*v2 in
+  (pd, tree.node pd t1 t2)
 | `(%%e1 / %%e2) :=
   match is_numeric e2 with
   | some q := let (v1, t1) := find_cancel_factor e1, n := v1.lcm q.num.nat_abs in
@@ -772,6 +1051,27 @@ do l' ← replace_nat_pfs l,
 
 end normalize
 
+/--
+`find_squares m e` collects all terms of the form `a ^ 2` and `a * a` that appear in `e`
+and adds them to the set `m`.
+A pair `(a, tt)` is added to `m` when `a^2` appears in `e`, and `(a, ff)` is added to `m`
+when `a*a` appears in `e`.  -/
+meta def find_squares : rb_set (expr × bool) → expr → tactic (rb_set (expr × bool))
+| s `(%%a ^ 2) := do s ← find_squares s a, return (s.insert (a, tt))
+| s e@`(%%e1 * %%e2) := if e1 = e2 then do s ← find_squares s e1, return (s.insert (e1, ff)) else e.mfoldl find_squares s
+| s e := e.mfoldl find_squares s
+
+-- used in the `nlinarith` normalization steps. The `_` argument is for uniformity.
+@[nolint unused_arguments]
+lemma mul_zero_eq {α} {R : α → α → Prop} [semiring α] {a b : α} (_ : R a 0) (h : b = 0) : a * b = 0 :=
+by simp [h]
+
+-- used in the `nlinarith` normalization steps. The `_` argument is for uniformity.
+@[nolint unused_arguments]
+lemma zero_mul_eq {α} {R : α → α → Prop} [semiring α] {a b : α} (h : a = 0) (_ : R b 0) : a * b = 0 :=
+by simp [h]
+
+
 end linarith
 
 section
@@ -888,11 +1188,78 @@ optional arguments:
   hypotheses.
 * If `exfalso` is false, `linarith` will fail when the goal is neither an inequality nor `false`.
   (True by default.)
+
+A variant, `nlinarith`, does some basic preprocessing to handle some nonlinear goals.
 -/
 add_tactic_doc
 { name       := "linarith",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.linarith],
+  tags       := ["arithmetic", "decision procedure", "finishing"] }
+
+/--
+An extension of `linarith` with some preprocessing to allow it to solve some nonlinear arithmetic
+problems. (Based on Coq's `nra` tactic.) See `linarith` for the available syntax of options,
+which are inherited by `nlinarith`; that is, `nlinarith!` and `nlinarith only [h1, h2]` all work as
+in `linarith`. The preprocessing is as follows:
+
+* For every subterm `a ^ 2` or `a * a` in a hypothesis or the goal,
+  the assumption `0 ≤ a ^ 2` or `0 ≤ a * a` is added to the context.
+* For every pair of hypotheses `a1 R1 b1`, `a2 R2 b2` in the context, `R1, R2 ∈ {<, ≤, =}`,
+  the assumption `0 R' (b1 - a1) * (b2 - a2)` is added to the context (non-recursively),
+  where `R ∈ {<, ≤, =}` is the appropriate comparison derived from `R1, R2`.
+-/
+meta def tactic.interactive.nlinarith (red : parse ((tk "!")?))
+  (restr : parse ((tk "only")?)) (hyps : parse pexpr_list?)
+  (cfg : linarith_config := {}) : tactic unit := do
+  ls ← match hyps with
+    | none := if restr.is_some then return [] else local_context
+    | some hyps := do
+      ls ← hyps.mmap i_to_expr,
+      if restr.is_some then return ls else (++ ls) <$> local_context
+    end,
+  (s, ge0) ← (list.mfoldr (λ h ⟨s, l⟩, do
+      h ← infer_type h >>= rearr_comp h <|> return h,
+      t ← infer_type h,
+      s ← find_squares s t,
+      return (s, match t with
+        | `(%%a ≤ 0) := (ineq.le, h) :: l
+        | `(%%a < 0) := (ineq.lt, h) :: l
+        | `(%%a = 0) := (ineq.eq, h) :: l
+        | _ := l end))
+    (mk_rb_set, []) ls : tactic (rb_set (expr × bool) × list (ineq × expr))),
+  s ← target >>= find_squares s,
+  (hyps, ge0) ← s.fold (return (hyps, ge0)) (λ ⟨e, is_sq⟩ tac, do
+    (hyps, ge0) ← tac,
+    (do
+      t ← infer_type e,
+      when cfg.restrict_type.is_some
+        (is_def_eq `(some %%t : option Type) cfg.restrict_type_reflect),
+      p ← mk_app (if is_sq then ``pow_two_nonneg else ``mul_self_nonneg) [e],
+      p ← infer_type p >>= rearr_comp p <|> return p,
+      t ← infer_type p,
+      h ← assertv `h t p,
+      return (hyps.map (λ l, pexpr.of_expr h :: l), (ineq.le, h) :: ge0)) <|>
+    return (hyps, ge0)),
+  ge0.mmap'_diag (λ ⟨posa, a⟩ ⟨posb, b⟩, try $ do
+    p ←  match posa, posb with
+      | ineq.eq, _ := mk_app ``zero_mul_eq [a, b]
+      | _, ineq.eq := mk_app ``mul_zero_eq [a, b]
+      | ineq.lt, ineq.lt := mk_app ``mul_pos_of_neg_of_neg [a, b]
+      | ineq.lt, ineq.le := do a ← mk_app ``le_of_lt [a], mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
+      | ineq.le, ineq.lt := do b ← mk_app ``le_of_lt [b], mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
+      | ineq.le, ineq.le := mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
+      end,
+    t ← infer_type p,
+    assertv `h t p, skip),
+  tactic.interactive.linarith red restr hyps cfg
+
+add_hint_tactic "nlinarith"
+
+add_tactic_doc
+{ name       := "nlinarith",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.nlinarith],
   tags       := ["arithmetic", "decision procedure", "finishing"] }
 
 end

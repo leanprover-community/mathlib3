@@ -99,7 +99,7 @@ begin
 end
 
 lemma integrable_congr_ae {f g : α → β} (h : ∀ₘ a, f a = g a) : integrable f ↔ integrable g :=
-iff.intro (λhf, integrable_of_ae_eq hf h) (λhg, integrable_of_ae_eq hg (all_ae_eq_symm h))
+iff.intro (λhf, integrable_of_ae_eq hf h) (λhg, integrable_of_ae_eq hg (ae_eq_symm h))
 
 lemma integrable_of_le_ae {f : α → β} {g : α → γ} (h : ∀ₘ a, ∥f a∥ ≤ ∥g a∥) (hg : integrable g) :
   integrable f :=
@@ -112,7 +112,7 @@ end
 
 lemma integrable_of_le {f : α → β} {g : α → γ} (h : ∀a, ∥f a∥ ≤ ∥g a∥) (hg : integrable g) :
   integrable f :=
-integrable_of_le_ae (all_ae_of_all h) hg
+integrable_of_le_ae (ae_of_all _ h) hg
 
 lemma lintegral_nnnorm_eq_lintegral_edist (f : α → β) :
   (∫⁻ a, nnnorm (f a)) = ∫⁻ a, edist (f a) 0 :=
@@ -252,7 +252,7 @@ lemma all_ae_of_real_f_le_bound (h_bound : ∀ n, ∀ₘ a, ∥F n a∥ ≤ boun
   ∀ₘ a, ennreal.of_real ∥f a∥ ≤ ennreal.of_real (bound a) :=
 begin
   have F_le_bound := all_ae_of_real_F_le_bound h_bound,
-  rw ← all_ae_all_iff at F_le_bound,
+  rw ← ae_all_iff at F_le_bound,
   apply F_le_bound.mp ((all_ae_tendsto_of_real_norm h_lim).mono _),
   assume a tendsto_norm F_le_bound,
   exact le_of_tendsto' at_top_ne_bot tendsto_norm (F_le_bound)
@@ -552,10 +552,6 @@ instance : semimodule 𝕜 (α →₁ β) :=
   smul_zero := λx, l1.eq (by { simp only [coe_zero, coe_smul], exact smul_zero _ }),
   add_smul  := λx y f, l1.eq (by { simp only [coe_smul], exact add_smul _ _ _ }),
   zero_smul := λf, l1.eq (by { simp only [coe_smul], exact zero_smul _ _ }) }
-
-instance : module 𝕜 (α →₁ β) := { .. l1.semimodule }
-
-instance : vector_space 𝕜 (α →₁ β) := { .. l1.semimodule }
 
 instance : normed_space 𝕜 (α →₁ β) :=
 ⟨ begin

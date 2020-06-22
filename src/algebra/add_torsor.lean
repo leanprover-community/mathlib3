@@ -5,6 +5,7 @@ Authors: Joseph Myers, Yury Kudryashov.
 -/
 import algebra.group.prod
 import algebra.group.type_tags
+import algebra.pi_instances
 import data.equiv.basic
 
 /-!
@@ -267,6 +268,32 @@ instance : add_torsor (G × G') (P × P') :=
   ((p₁, p₁') -ᵥ (p₂, p₂') : G × G') = (p₁ -ᵥ p₂, p₁' -ᵥ p₂') := rfl
 
 end prod
+
+namespace pi
+
+universes u v w
+variables {I : Type u} {fg : I → Type v} [∀ i, add_group (fg i)] {fp : I → Type w}
+
+open add_action add_torsor
+
+/-- A product of `add_torsor`s is an `add_torsor`. -/
+instance [T : ∀ i, add_torsor (fg i) (fp i)] : add_torsor (Π i, fg i) (Π i, fp i) :=
+{
+  vadd := λ g p, λ i, g i +ᵥ p i,
+  zero_vadd' := λ p, funext $ λ i, zero_vadd (fg i) (p i),
+  vadd_assoc' := λ g₁ g₂ p, funext $ λ i, vadd_assoc (fg i) (g₁ i) (g₂ i) (p i),
+  vsub := λ p₁ p₂, λ i, p₁ i -ᵥ p₂ i,
+  nonempty := ⟨λ i, classical.choice (T i).nonempty⟩,
+  vsub_vadd' := λ p₁ p₂, funext $ λ i, vsub_vadd (fg i) (p₁ i) (p₂ i),
+  vadd_vsub' := λ g p, funext $ λ i, vadd_vsub (fg i) (g i) (p i),
+}
+
+/-- Addition in a product of `add_torsor`s. -/
+@[simp] lemma vadd_apply [T : ∀ i, add_torsor (fg i) (fp i)] (x : Π i, fg i) (y : Π i, fp i)
+  {i : I} : (x +ᵥ y) i = x i +ᵥ y i
+:= rfl
+
+end pi
 
 namespace equiv
 

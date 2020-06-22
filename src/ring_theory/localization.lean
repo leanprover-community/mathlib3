@@ -609,9 +609,9 @@ rfl
 variables (f)
 /-- Localization map `f` from `R` to `S` as an `R`-linear map. -/
 def lin_coe : R →ₗ[R] f.codomain :=
-{ to_fun := f.to_map,
-  add := f.to_map.map_add,
-  smul := f.to_map.map_mul }
+{ to_fun    := f.to_map,
+  map_add'  := f.to_map.map_add,
+  map_smul' := f.to_map.map_mul }
 
 variables {f}
 

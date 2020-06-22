@@ -41,7 +41,7 @@ rfl
 rfl
 
 @[simp] lemma ker_lsingle (a : α) : (lsingle a : M →ₗ[R] (α →₀ M)).ker = ⊥ :=
-ker_eq_bot.2 (injective_single a)
+ker_eq_bot.2 (single_injective a)
 
 lemma lsingle_range_le_ker_lapply (s t : set α) (h : disjoint s t) :
   (⨆a∈s, (lsingle a : M →ₗ[R] (α →₀ M)).range) ≤ (⨅a∈t, ker (lapply a)) :=
@@ -132,8 +132,8 @@ variables (M R)
 def restrict_dom (s : set α) : (α →₀ M) →ₗ supported M R s :=
 linear_map.cod_restrict _
   { to_fun := filter (∈ s),
-    add := λ l₁ l₂, filter_add,
-    smul := λ a l, filter_smul }
+    map_add' := λ l₁ l₂, filter_add,
+    map_smul' := λ a l, filter_smul }
   (λ l, (mem_supported' _ _).2 $ λ x, filter_apply_neg (∈ s) l)
 
 variables {M R}
@@ -321,7 +321,7 @@ begin
     rw finsupp.total_apply,
     unfold finsupp.sum,
     apply sum_mem (span R (range v)),
-    exact λ i hi, submodule.smul _ _ (subset_span (mem_range_self i)) },
+    exact λ i hi, submodule.smul_mem _ _ (subset_span (mem_range_self i)) },
   { apply span_le.2,
     intros x hx,
     rcases hx with ⟨i, hi⟩,
@@ -446,7 +446,7 @@ begin
   simp only [mem_supr, supr_le_iff],
   assume N hN,
   rw [finsupp.total_apply, finsupp.sum, ← submodule.mem_coe],
-  apply is_add_submonoid.finset_sum_mem,
+  apply N.sum_mem,
   assume x hx,
   apply submodule.smul_mem,
   let i : ι := g ⟨x, hx⟩,

@@ -223,11 +223,11 @@ def ring_hom.to_semimodule [semiring R] [semiring S] (f : R →+* S) : semimodul
 `f (x + y) = f x + f y` and `f (c • x) = c • f x`. The predicate `is_linear_map R f` asserts this
 property. A bundled version is available with `linear_map`, and should be favored over
 `is_linear_map` most of the time. -/
-class is_linear_map (R : Type u) {M : Type v} {M₂ : Type w}
+structure is_linear_map (R : Type u) {M : Type v} {M₂ : Type w}
   [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂]
   (f : M → M₂) : Prop :=
-(add [] : ∀ x y, f (x + y) = f x + f y)
-(smul [] : ∀ (c : R) x, f (c • x) = c • f x)
+(map_add : ∀ x y, f (x + y) = f x + f y)
+(map_smul : ∀ (c : R) x, f (c • x) = c • f x)
 
 /-- A map `f` between semimodules over a semiring is linear if it satisfies the two properties
 `f (x + y) = f x + f y` and `f (c • x) = c • f x`. Elements of `linear_map R M M₂` (available under
@@ -236,8 +236,8 @@ the predicate `is_linear_map`, but it should be avoided most of the time. -/
 structure linear_map (R : Type u) (M : Type v) (M₂ : Type w)
   [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂] :=
 (to_fun : M → M₂)
-(add  : ∀x y, to_fun (x + y) = to_fun x + to_fun y)
-(smul : ∀(c : R) x, to_fun (c • x) = c • to_fun x)
+(map_add'  : ∀x y, to_fun (x + y) = to_fun x + to_fun y)
+(map_smul' : ∀(c : R) x, to_fun (c • x) = c • to_fun x)
 
 infixr ` →ₗ `:25 := linear_map _
 notation M ` →ₗ[`:25 R:25 `] `:0 M₂:0 := linear_map R M M₂
@@ -274,7 +274,7 @@ variables (f g : M →ₗ[R] M₂)
 
 @[simp] lemma to_fun_eq_coe : f.to_fun = ⇑f := rfl
 
-theorem is_linear : is_linear_map R f := {..f}
+theorem is_linear : is_linear_map R f := ⟨f.2, f.3⟩
 
 variables {f g}
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
@@ -288,9 +288,9 @@ theorem ext_iff : f = g ↔ ∀ x, f x = g x :=
 
 variables (f g)
 
-@[simp] lemma map_add (x y : M) : f (x + y) = f x + f y := f.add x y
+@[simp] lemma map_add (x y : M) : f (x + y) = f x + f y := f.map_add' x y
 
-@[simp] lemma map_smul (c : R) (x : M) : f (c • x) = c • f x := f.smul c x
+@[simp] lemma map_smul (c : R) (x : M) : f (c • x) = c • f x := f.map_smul' c x
 
 @[simp] lemma map_zero : f 0 = 0 :=
 by rw [← zero_smul R, map_smul f 0 0, zero_smul]
@@ -356,7 +356,7 @@ variables [semimodule R M] [semimodule R M₂]
 include R
 
 /-- Convert an `is_linear_map` predicate to a `linear_map` -/
-def mk' (f : M → M₂) (H : is_linear_map R f) : M →ₗ M₂ := {to_fun := f, ..H}
+def mk' (f : M → M₂) (H : is_linear_map R f) : M →ₗ M₂ := ⟨f, H.1, H.2⟩
 
 @[simp] theorem mk'_apply {f : M → M₂} (H : is_linear_map R f) (x : M) :
   mk' f H x = f x := rfl
@@ -378,10 +378,6 @@ variables {f : M → M₂} (lin : is_linear_map R f)
 include M M₂ lin
 
 lemma map_zero : f (0 : M) = (0 : M₂) := (lin.mk' f).map_zero
-
-lemma map_add : ∀ x y, f (x + y) = f x + f y := lin.add
-
-lemma map_smul (c : R) (x : M) : f (c • x) = c • f x := (lin.mk' f).map_smul c x
 
 end add_comm_monoid
 
@@ -410,35 +406,53 @@ end is_linear_map
 abbreviation module.End (R : Type u) (M : Type v)
   [semiring R] [add_comm_monoid M] [semimodule R M] := M →ₗ[R] M
 
+set_option old_structure_cmd true
+
 /-- A submodule of a module is one which is closed under vector operations.
   This is a sufficient condition for the subset of vectors in the submodule
   to themselves form a module. -/
 structure submodule (R : Type u) (M : Type v) [semiring R]
-  [add_comm_monoid M] [semimodule R M] : Type v :=
-(carrier : set M)
-(zero : (0:M) ∈ carrier)
-(add : ∀ {x y}, x ∈ carrier → y ∈ carrier → x + y ∈ carrier)
-(smul : ∀ (c:R) {x}, x ∈ carrier → c • x ∈ carrier)
+  [add_comm_monoid M] [semimodule R M] extends add_submonoid M : Type v :=
+(smul_mem' : ∀ (c:R) {x}, x ∈ carrier → c • x ∈ carrier)
+
+/-- Reinterpret a `submodule` as an `add_submonoid`. -/
+add_decl_doc submodule.to_add_submonoid
 
 namespace submodule
 
 variables [semiring R] [add_comm_monoid M] [semimodule R M]
 
-instance : has_coe (submodule R M) (set M) := ⟨submodule.carrier⟩
+instance : has_coe_t (submodule R M) (set M) := ⟨λ s, s.carrier⟩
 instance : has_mem M (submodule R M) := ⟨λ x p, x ∈ (p : set M)⟩
 instance : has_coe_to_sort (submodule R M) := ⟨_, λ p, {x : M // x ∈ p}⟩
 
+variables (p q : submodule R M)
+
+@[simp, norm_cast] theorem coe_sort_coe : ↥(p : set M) = p := rfl
+
+variables {p q}
+
+protected theorem «exists» {q : p → Prop} : (∃ x, q x) ↔ (∃ x ∈ p, q ⟨x, ‹_›⟩) := set_coe.exists
+
+protected theorem «forall» {q : p → Prop} : (∀ x, q x) ↔ (∀ x ∈ p, q ⟨x, ‹_›⟩) := set_coe.forall
+
+theorem coe_injective : injective (coe : submodule R M → set M) :=
+λ p q h, by cases p; cases q; congr'
+
+@[simp, norm_cast] theorem coe_set_eq : (p : set M) = q ↔ p = q := coe_injective.eq_iff
+
+theorem ext'_iff : p = q ↔ (p : set M) = q := coe_set_eq.symm
+
+@[ext] theorem ext (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := coe_injective $ set.ext h
+
+theorem to_add_submonoid_injective :
+  injective (to_add_submonoid : submodule R M → add_submonoid M) :=
+λ p q h, ext'_iff.2 $ add_submonoid.ext'_iff.1 h
+
+@[simp] theorem to_add_submonoid_eq : p.to_add_submonoid = q.to_add_submonoid ↔ p = q :=
+to_add_submonoid_injective.eq_iff
+
 end submodule
-
-protected theorem submodule.exists [semiring R] [add_comm_monoid M] [semimodule R M] {p : submodule R M}
-  {q : p → Prop} :
-  (∃ x, q x) ↔ (∃ x (hx : x ∈ p), q ⟨x, hx⟩) :=
-set_coe.exists
-
-protected theorem submodule.forall [semiring R] [add_comm_monoid M] [semimodule R M] {p : submodule R M}
-  {q : p → Prop} :
-  (∀ x, q x) ↔ (∀ x (hx : x ∈ p), q ⟨x, hx⟩) :=
-set_coe.forall
 
 namespace submodule
 
@@ -452,30 +466,17 @@ variables {semimodule_M : semimodule R M}
 variables {p q : submodule R M}
 variables {r : R} {x y : M}
 
-theorem ext' (h : (p : set M) = q) : p = q :=
-by cases p; cases q; congr'
-
-protected theorem ext'_iff : (p : set M) = q ↔ p = q :=
-⟨ext', λ h, h ▸ rfl⟩
-
-@[ext] theorem ext
-  (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := ext' $ set.ext h
-
 variables (p)
 @[simp] theorem mem_coe : x ∈ (p : set M) ↔ x ∈ p := iff.rfl
 
-@[simp] lemma zero_mem : (0 : M) ∈ p := p.zero
+@[simp] lemma zero_mem : (0 : M) ∈ p := p.zero_mem'
 
-lemma add_mem (h₁ : x ∈ p) (h₂ : y ∈ p) : x + y ∈ p := p.add h₁ h₂
+lemma add_mem (h₁ : x ∈ p) (h₂ : y ∈ p) : x + y ∈ p := p.add_mem' h₁ h₂
 
-lemma smul_mem (r : R) (h : x ∈ p) : r • x ∈ p := p.smul r h
+lemma smul_mem (r : R) (h : x ∈ p) : r • x ∈ p := p.smul_mem' r h
 
-lemma sum_mem {t : finset ι} {f : ι → M} :
-  (∀c∈t, f c ∈ p) → (∑ i in t, f i) ∈ p :=
-begin
-  classical,
-  exact finset.induction_on t (by simp [p.zero_mem]) (by simp [p.add_mem] {contextual := tt})
-end
+lemma sum_mem {t : finset ι} {f : ι → M} : (∀c∈t, f c ∈ p) → (∑ i in t, f i) ∈ p :=
+p.to_add_submonoid.sum_mem
 
 @[simp] lemma smul_mem_iff' (u : units R) : (u:R) • x ∈ p ↔ x ∈ p :=
 ⟨λ h, by simpa only [smul_smul, u.inv_mul, one_smul] using p.smul_mem ↑u⁻¹ h, p.smul_mem u⟩
@@ -501,8 +502,7 @@ variables {p}
 variables (p)
 
 instance : add_comm_monoid p :=
-by refine {add := (+), zero := 0, ..};
-  { intros, apply set_coe.ext, simp [add_comm, add_left_comm] }
+{ add := (+), zero := 0, .. p.to_add_submonoid.to_add_comm_monoid }
 
 instance : semimodule R p :=
 by refine {smul := (•), ..};
@@ -527,10 +527,15 @@ variables {r : R} {x y : M}
 
 lemma neg_mem (hx : x ∈ p) : -x ∈ p := by rw ← neg_one_smul R; exact p.smul_mem _ hx
 
+/-- Reinterpret a submodule as an additive subgroup. -/
+def to_add_subgroup : add_subgroup M :=
+{ neg_mem' := λ _, p.neg_mem , .. p.to_add_submonoid }
+
+@[simp] lemma coe_to_add_subgroup : (p.to_add_subgroup : set M) = p := rfl
+
 lemma sub_mem (hx : x ∈ p) (hy : y ∈ p) : x - y ∈ p := p.add_mem hx (p.neg_mem hy)
 
-lemma neg_mem_iff : -x ∈ p ↔ x ∈ p :=
-⟨λ h, by simpa using neg_mem p h, neg_mem p⟩
+@[simp] lemma neg_mem_iff : -x ∈ p ↔ x ∈ p := p.to_add_subgroup.neg_mem_iff
 
 lemma add_mem_iff_left (h₁ : y ∈ p) : x + y ∈ p ↔ x ∈ p :=
 ⟨λ h₂, by simpa using sub_mem _ h₂ h₁, λ h₂, add_mem _ h₂ h₁⟩
@@ -543,13 +548,7 @@ instance : has_neg p := ⟨λx, ⟨-x.1, neg_mem _ x.2⟩⟩
 @[simp, norm_cast] lemma coe_neg (x : p) : ((-x : p) : M) = -x := rfl
 
 instance : add_comm_group p :=
-by refine {add := (+), zero := 0, neg := has_neg.neg, ..};
-  { intros, apply set_coe.ext, simp [add_comm, add_left_comm] }
-
-instance submodule_is_add_subgroup : is_add_subgroup (p : set M) :=
-{ zero_mem := p.zero,
-  add_mem  := p.add,
-  neg_mem  := λ _, p.neg_mem }
+{ add := (+), zero := 0, neg := has_neg.neg, ..p.to_add_subgroup.to_add_comm_group }
 
 @[simp, norm_cast] lemma coe_sub (x y : p) : (↑(x - y) : M) = ↑x - ↑y := rfl
 

@@ -281,7 +281,7 @@ lemma div_eq_filter_card {a b c : ℕ} (hb0 : 0 < b) (hc : a / b ≤ c) : a / b 
   ((Ico 1 c.succ).filter (λ x, x * b ≤ a)).card :=
 calc a / b = (Ico 1 (a / b).succ).card : by simp
 ... = ((Ico 1 c.succ).filter (λ x, x * b ≤ a)).card :
-  congr_arg _$ finset.ext.2 $ λ x,
+  congr_arg _ $ finset.ext $ λ x,
     have x * b ≤ a → x ≤ c,
       from λ h, le_trans (by rwa [le_div_iff_mul_le _ _ hb0]) hc,
     by simp [lt_succ_iff, le_div_iff_mul_le _ _ hb0]; tauto
@@ -292,7 +292,7 @@ private lemma sum_Ico_eq_card_lt {p q : ℕ} :
   ∑ a in Ico 1 (p / 2).succ, (a * q) / p =
   (((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
   (λ x : ℕ × ℕ, x.2 * p ≤ x.1 * q)).card :=
-if hp0 : p = 0 then by simp [hp0, finset.ext]
+if hp0 : p = 0 then by simp [hp0, finset.ext_iff]
 else
   calc ∑ a in Ico 1 (p / 2).succ, (a * q) / p =
     ∑ a in Ico 1 (p / 2).succ,
@@ -348,7 +348,7 @@ have hunion : ((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
     ((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
       (λ x : ℕ × ℕ, x.1 * q ≤ x.2 * p) =
     ((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)),
-  from finset.ext.2 $ λ x, by have := le_total (x.2 * p) (x.1 * q); simp; tauto,
+  from finset.ext $ λ x, by have := le_total (x.2 * p) (x.1 * q); simp; tauto,
 by rw [sum_Ico_eq_card_lt, sum_Ico_eq_card_lt, hswap, ← card_disjoint_union hdisj, hunion,
     card_product];
   simp

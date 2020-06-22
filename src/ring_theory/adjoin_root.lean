@@ -110,7 +110,7 @@ end comm_ring
 variables [field K] {f : polynomial K} [irreducible f]
 
 instance is_maximal_span : is_maximal (span {f} : ideal (polynomial K)) :=
-principal_ideal_domain.is_maximal_of_irreducible ‹irreducible f›
+principal_ideal_ring.is_maximal_of_irreducible ‹irreducible f›
 
 noncomputable instance field : field (adjoin_root f) :=
 ideal.quotient.field (span {f} : ideal (polynomial K))
@@ -121,7 +121,8 @@ lemma coe_injective : function.injective (coe : K → adjoin_root f) :=
 variable (f)
 
 lemma mul_div_root_cancel :
-  (X - C (root f)) * (f.map (of f) / (X - C (root f))) = f.map (of f) :=
+  ((X - C (root f)) * (f.map (of f) / (X - C (root f))) : polynomial (adjoin_root f)) =
+    f.map (of f) :=
 mul_div_eq_iff_is_root.2 $ is_root_root _
 
 end adjoin_root

@@ -504,7 +504,7 @@ instance normed_field.is_monoid_hom_norm [normed_field α] : is_monoid_hom (norm
 is_monoid_hom.map_pow norm a
 
 @[simp] lemma norm_prod {β : Type*} [normed_field α] (s : finset β) (f : β → α) :
-  ∥s.prod f∥ = s.prod (λb, ∥f b∥) :=
+  ∥∏ b in s, f b∥ = ∏ b in s, ∥f b∥ :=
 eq.symm (s.prod_hom norm)
 
 @[simp] lemma norm_div {α : Type*} [normed_field α] (a b : α) : ∥a/b∥ = ∥a∥/∥b∥ :=
@@ -610,6 +610,8 @@ begin
   exact (tendsto_inv hx)
 end
 
+end normed_field
+
 instance : normed_field ℝ :=
 { norm := λ x, abs x,
   dist_eq := assume x y, rfl,
@@ -617,7 +619,6 @@ instance : normed_field ℝ :=
 
 instance : nondiscrete_normed_field ℝ :=
 { non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
-end normed_field
 
 /-- If a function converges to a nonzero value, its inverse converges to the inverse of this value.
 We use the name `tendsto.inv'` as `tendsto.inv` is already used in multiplicative topological
@@ -901,13 +902,17 @@ end prio
 normed_algebra.norm_algebra_map_eq _
 
 @[priority 100]
-instance to_normed_space (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
+instance normed_algebra.to_normed_space (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
   [h : normed_algebra 𝕜 𝕜'] : normed_space 𝕜 𝕜' :=
 { norm_smul_le := λ s x, calc
     ∥s • x∥ = ∥((algebra_map 𝕜 𝕜') s) * x∥ : by { rw h.smul_def', refl }
     ... ≤ ∥algebra_map 𝕜 𝕜' s∥ * ∥x∥ : normed_ring.norm_mul _ _
     ... = ∥s∥ * ∥x∥ : by rw norm_algebra_map_eq,
   ..h }
+
+instance normed_algebra.id (𝕜 : Type*) [normed_field 𝕜] : normed_algebra 𝕜 𝕜 :=
+{ norm_algebra_map_eq := by simp,
+.. algebra.id 𝕜}
 
 end normed_algebra
 

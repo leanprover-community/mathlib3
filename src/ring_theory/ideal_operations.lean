@@ -219,7 +219,7 @@ begin
     exact quotient.eq_zero_iff_mem.2 (hr i) }
 end
 
-theorem bijective_quotient_inf_to_pi_quotient [fintype ι] {f : ι → ideal R}
+theorem quotient_inf_to_pi_quotient_bijective [fintype ι] {f : ι → ideal R}
   (hf : ∀ i j, i ≠ j → f i ⊔ f j = ⊤) :
   function.bijective (quotient_inf_to_pi_quotient f) :=
 ⟨λ x y, quotient.induction_on₂' x y $ λ r s hrs, quotient.eq.2 $
@@ -232,7 +232,7 @@ theorem bijective_quotient_inf_to_pi_quotient [fintype ι] {f : ι → ideal R}
 noncomputable def quotient_inf_ring_equiv_pi_quotient [fintype ι] (f : ι → ideal R)
   (hf : ∀ i j, i ≠ j → f i ⊔ f j = ⊤) :
   (⨅ i, f i).quotient ≃+* Π i, (f i).quotient :=
-{ .. equiv.of_bijective _ (bijective_quotient_inf_to_pi_quotient hf),
+{ .. equiv.of_bijective _ (quotient_inf_to_pi_quotient_bijective hf),
   .. quotient_inf_to_pi_quotient f }
 
 end chinese_remainder
@@ -333,8 +333,8 @@ end
 /-- The radical of an ideal `I` consists of the elements `r` such that `r^n ∈ I` for some `n`. -/
 def radical (I : ideal R) : ideal R :=
 { carrier := { r | ∃ n : ℕ, r ^ n ∈ I },
-  zero := ⟨1, (pow_one (0:R)).symm ▸ I.zero_mem⟩,
-  add := λ x y ⟨m, hxmi⟩ ⟨n, hyni⟩, ⟨m + n,
+  zero_mem' := ⟨1, (pow_one (0:R)).symm ▸ I.zero_mem⟩,
+  add_mem' := λ x y ⟨m, hxmi⟩ ⟨n, hyni⟩, ⟨m + n,
     (add_pow x y (m + n)).symm ▸ I.sum_mem $
     show ∀ c ∈ finset.range (nat.succ (m + n)), x ^ c * y ^ (m + n - c) * (nat.choose (m + n) c) ∈ I,
     from λ c hc, or.cases_on (le_total c m)
@@ -342,7 +342,7 @@ def radical (I : ideal R) : ideal R :=
         (pow_add y n (m-c)).symm ▸ I.mul_mem_right hyni)
       (λ hmc, I.mul_mem_right $ I.mul_mem_right $ nat.add_sub_cancel' hmc ▸
         (pow_add x m (c-m)).symm ▸ I.mul_mem_right hxmi)⟩,
-  smul := λ r s ⟨n, hsni⟩, ⟨n, show (r * s)^n ∈ I,
+  smul_mem' := λ r s ⟨n, hsni⟩, ⟨n, show (r * s)^n ∈ I,
     from (mul_pow r s n).symm ▸ I.mul_mem_left hsni⟩ }
 
 theorem le_radical : I ≤ radical I :=
@@ -437,9 +437,8 @@ span (f '' I)
 /-- `I.comap f` is the preimage of `I` under `f`. -/
 def comap (I : ideal S) : ideal R :=
 { carrier := f ⁻¹' I,
-  zero := by simp only [set.mem_preimage, f.map_zero, I.mem_coe, I.zero_mem],
-  add := λ x y hx hy, show f (x + y) ∈ I, by { rw f.map_add, exact I.add_mem hx hy },
-  smul := λ c x hx, show f (c * x) ∈ I, by { rw f.map_mul, exact I.mul_mem_left hx } }
+  smul_mem' := λ c x hx, show f (c * x) ∈ I, by { rw f.map_mul, exact I.mul_mem_left hx },
+  .. I.to_add_submonoid.comap (f : R →+ S) }
 
 variables {f}
 theorem map_mono (h : I ≤ J) : map f I ≤ map f J :=
@@ -773,11 +772,11 @@ by rw [ker, ideal.mem_comap, submodule.mem_bot]
 
 lemma ker_eq : ((ker f) : set R) = is_add_group_hom.ker f := rfl
 
-lemma inj_iff_ker_eq_bot : function.injective f ↔ ker f = ⊥ :=
-by rw [←submodule.ext'_iff, ker_eq]; exact is_add_group_hom.inj_iff_trivial_ker f
+lemma injective_iff_ker_eq_bot : function.injective f ↔ ker f = ⊥ :=
+by rw [submodule.ext'_iff, ker_eq]; exact is_add_group_hom.injective_iff_trivial_ker f
 
 lemma ker_eq_bot_iff_eq_zero : ker f = ⊥ ↔ ∀ x, f x = 0 → x = 0 :=
-by rw [←submodule.ext'_iff, ker_eq]; exact is_add_group_hom.trivial_ker_iff_eq_zero f
+by rw [submodule.ext'_iff, ker_eq]; exact is_add_group_hom.trivial_ker_iff_eq_zero f
 
 /-- If the target is not the zero ring, then one is not in the kernel.-/
 lemma not_one_mem_ker [nonzero S] (f : R →+* S) : (1:R) ∉ ker f :=

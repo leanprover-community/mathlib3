@@ -44,7 +44,7 @@ def short.mk' {x : pgame} [fintype x.left_moves] [fintype x.right_moves]
   (sL : ∀ i : x.left_moves, short (x.move_left i))
   (sR : ∀ j : x.right_moves, short (x.move_right j)) :
   short x :=
-by { casesI x, dsimp at *, exact short.mk sL sR }
+by unfreezingI { cases x, dsimp at * }; exact short.mk sL sR
 
 attribute [class] short
 

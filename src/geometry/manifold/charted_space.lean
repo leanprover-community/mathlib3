@@ -107,6 +107,13 @@ In the locale `manifold`, we denote the composition of local homeomorphisms with
 composition of local equivs with `≫`.
 -/
 
+-- register in the simpset `mfld_simps` several lemmas that are often useful
+attribute [mfld_simps] id.def function.comp.left_id set.mem_set_of_eq set.image_eq_empty
+set.univ_inter set.preimage_univ set.prod_mk_mem_set_prod_eq and_true set.mem_univ
+set.mem_image_of_mem true_and set.mem_inter_eq set.mem_preimage function.comp_app
+set.inter_subset_left set.mem_prod set.range_id and_self set.mem_range_self
+eq_self_iff_true forall_const forall_true_iff
+
 noncomputable theory
 open_locale classical
 universes u
@@ -200,7 +207,7 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
 { members := {local_homeomorph.refl H} ∪ {e : local_homeomorph H H | e.source = ∅},
   trans' := λe e' he he', begin
     cases he; simp at he he',
-    { simpa [he] },
+    { simpa only [he, refl_trans]},
     { have : (e ≫ₕ e').source ⊆ e.source := sep_subset _ _,
       rw he at this,
       have : (e ≫ₕ e') ∈ {e : local_homeomorph H H | e.source = ∅} := disjoint_iff.1 this,
@@ -210,7 +217,7 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
     cases (mem_union _ _ _).1 he with E E,
     { finish },
     { right,
-      simpa [e.to_local_equiv.image_source_eq_target.symm] using E },
+      simpa only [e.to_local_equiv.image_source_eq_target.symm] with mfld_simps using E},
   end,
   id_mem' := mem_union_left _ rfl,
   locality' := λe he, begin
@@ -377,7 +384,7 @@ class charted_space (H : Type*) [topological_space H] (M : Type*) [topological_s
 (chart_mem_atlas []  : ∀x, chart_at x ∈ atlas)
 
 export charted_space
-attribute [simp] mem_chart_source chart_mem_atlas
+attribute [simp, mfld_simps] mem_chart_source chart_mem_atlas
 
 section charted_space
 
@@ -390,12 +397,12 @@ instance manifold_model_space (H : Type*) [topological_space H] : charted_space 
 
 /-- In the trivial charted_space structure of a space modelled over itself through the identity, the
 atlas members are just the identity -/
-@[simp] lemma model_space_atlas {H : Type*} [topological_space H] {e : local_homeomorph H H} :
+@[simp, mfld_simps] lemma model_space_atlas {H : Type*} [topological_space H] {e : local_homeomorph H H} :
   e ∈ atlas H H ↔ e = local_homeomorph.refl H :=
 by simp [atlas, charted_space.atlas]
 
 /-- In the model space, chart_at is always the identity -/
-@[simp] lemma chart_at_model_space_eq {H : Type*} [topological_space H] {x : H} :
+@[simp, mfld_simps] lemma chart_at_model_space_eq {H : Type*} [topological_space H] {x : H} :
   chart_at H x = local_homeomorph.refl H :=
 by simpa using chart_mem_atlas H x
 

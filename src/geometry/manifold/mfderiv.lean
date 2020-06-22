@@ -365,7 +365,7 @@ lemma has_mfderiv_at.mdifferentiable_at (h : has_mfderiv_at I I' f x f') :
   mdifferentiable_at I I' f x :=
 ⟨h.1, ⟨f', h.2⟩⟩
 
-@[simp] lemma has_mfderiv_within_at_univ :
+@[simp, mfld_simps] lemma has_mfderiv_within_at_univ :
   has_mfderiv_within_at I I' f univ x f' ↔ has_mfderiv_at I I' f x f' :=
 by simp [has_mfderiv_within_at, has_mfderiv_at, continuous_within_at_univ]
 
@@ -503,7 +503,7 @@ lemma mdifferentiable_on.mono
 
 lemma mdifferentiable_on_univ :
   mdifferentiable_on I I' f univ ↔ mdifferentiable I I' f :=
-by { simp [mdifferentiable_on, mdifferentiable_within_at_univ], refl }
+by { simp only [mdifferentiable_on, mdifferentiable_within_at_univ] with mfld_simps, refl }
 
 lemma mdifferentiable.mdifferentiable_on
   (h : mdifferentiable I I' f) : mdifferentiable_on I I' f s :=
@@ -518,10 +518,10 @@ begin
 end
 
 include Is I's
-@[simp] lemma mfderiv_within_univ : mfderiv_within I I' f univ = mfderiv I I' f :=
+@[simp, mfld_simps] lemma mfderiv_within_univ : mfderiv_within I I' f univ = mfderiv I I' f :=
 begin
   ext x : 1,
-  simp [mfderiv_within, mfderiv],
+  simp only [mfderiv_within, mfderiv] with mfld_simps,
   erw mdifferentiable_within_at_univ
 end
 
@@ -559,11 +559,11 @@ include Is I's
 lemma tangent_map_within_subset {p : tangent_bundle I M}
   (st : s ⊆ t) (hs : unique_mdiff_within_at I s p.1) (h : mdifferentiable_within_at I I' f t p.1) :
   tangent_map_within I I' f s p = tangent_map_within I I' f t p :=
-by { simp [tangent_map_within], rw mfderiv_within_subset st hs h }
+by { simp only [tangent_map_within], rw mfderiv_within_subset st hs h }
 
 lemma tangent_map_within_univ :
   tangent_map_within I I' f univ = tangent_map I I' f :=
-by { ext p : 1, simp [tangent_map_within, tangent_map] }
+by { ext p : 1, simp only [tangent_map_within, tangent_map] with mfld_simps }
 
 lemma tangent_map_within_eq_tangent_map {p : tangent_bundle I M}
   (hs : unique_mdiff_within_at I s p.1) (h : mdifferentiable_at I I' f p.1) :
@@ -574,16 +574,16 @@ begin
   exact tangent_map_within_subset (subset_univ _) hs h,
 end
 
-@[simp] lemma tangent_map_within_tangent_bundle_proj {p : tangent_bundle I M} :
+@[simp, mfld_simps] lemma tangent_map_within_tangent_bundle_proj {p : tangent_bundle I M} :
   tangent_bundle.proj I' M' (tangent_map_within I I' f s p) = f (tangent_bundle.proj I M p) := rfl
 
-@[simp] lemma tangent_map_within_proj {p : tangent_bundle I M} :
+@[simp, mfld_simps] lemma tangent_map_within_proj {p : tangent_bundle I M} :
   (tangent_map_within I I' f s p).1 = f p.1 := rfl
 
-@[simp] lemma tangent_map_tangent_bundle_proj {p : tangent_bundle I M} :
+@[simp, mfld_simps] lemma tangent_map_tangent_bundle_proj {p : tangent_bundle I M} :
   tangent_bundle.proj I' M' (tangent_map I I' f p) = f (tangent_bundle.proj I M p) := rfl
 
-@[simp] lemma tangent_map_proj {p : tangent_bundle I M} :
+@[simp, mfld_simps] lemma tangent_map_proj {p : tangent_bundle I M} :
   (tangent_map I I' f p).1 = f p.1 := rfl
 
 omit Is I's
@@ -599,8 +599,8 @@ begin
       nhds_within ((ext_chart_at I x) x) ((ext_chart_at I x).symm ⁻¹' s ∩ range I) :=
       ext_chart_preimage_mem_nhds_within I x h₁,
     apply filter.mem_sets_of_superset this (λy, _),
-    simp [written_in_ext_chart_at, hx] {contextual := tt} },
-  { simp [written_in_ext_chart_at, hx] },
+    simp only [written_in_ext_chart_at, hx] with mfld_simps {contextual := tt}},
+  { simp only [written_in_ext_chart_at, hx] with mfld_simps },
 end
 
 lemma has_mfderiv_within_at.congr_mono (h : has_mfderiv_within_at I I' f s x f')
@@ -841,9 +841,9 @@ begin
     ((ext_chart_at I x) ∘ (ext_chart_at I x).symm) y = id y,
   { apply filter.mem_sets_of_superset (ext_chart_at_target_mem_nhds_within I x),
     assume y hy,
-    simp [(ext_chart_at I x).right_inv hy] },
+    simp only [-ext_chart_at, hy] with mfld_simps },
   apply has_fderiv_within_at.congr_of_mem_nhds_within (has_fderiv_within_at_id _ _) this,
-  simp [(ext_chart_at I x).left_inv, mem_ext_chart_source I x]
+  simp only [] with mfld_simps
 end
 
 theorem has_mfderiv_within_at_id (s : set M) (x : M) :
@@ -862,7 +862,7 @@ lemma mdifferentiable_id : mdifferentiable I I (@_root_.id M) :=
 lemma mdifferentiable_on_id : mdifferentiable_on I I (@_root_.id M) s :=
 (mdifferentiable_id I).mdifferentiable_on
 
-@[simp] lemma mfderiv_id :
+@[simp, mfld_simps] lemma mfderiv_id :
   mfderiv I I (@_root_.id M) x = (continuous_linear_map.id 𝕜 (tangent_space I x)) :=
 has_mfderiv_at.mfderiv (has_mfderiv_at_id I x)
 
@@ -911,7 +911,7 @@ lemma mdifferentiable_const : mdifferentiable I I' (λy : M, c) :=
 lemma mdifferentiable_on_const : mdifferentiable_on I I' (λy : M, c) s :=
 (mdifferentiable_const I I').mdifferentiable_on
 
-@[simp] lemma mfderiv_const : mfderiv I I' (λy : M, c) x =
+@[simp, mfld_simps] lemma mfderiv_const : mfderiv I I' (λy : M, c) x =
   (0 : tangent_space I x →L[𝕜] tangent_space I' c) :=
 has_mfderiv_at.mfderiv (has_mfderiv_at_const I I' c x)
 
@@ -1080,7 +1080,7 @@ lemma unique_mdiff_on_iff_unique_diff_on :
   unique_mdiff_on (model_with_corners_self 𝕜 E) s ↔ unique_diff_on 𝕜 s :=
 by simp [unique_mdiff_on, unique_diff_on, unique_mdiff_within_at_iff_unique_diff_within_at]
 
-@[simp] lemma written_in_ext_chart_model_space :
+@[simp, mfld_simps] lemma written_in_ext_chart_model_space :
   written_in_ext_chart_at (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') x f = f :=
 by { ext y, simp [written_in_ext_chart_at] }
 

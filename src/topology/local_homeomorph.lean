@@ -79,33 +79,33 @@ protected lemma continuous_on : continuous_on e e.source := e.continuous_to_fun
 
 lemma continuous_on_symm : continuous_on e.symm e.target := e.continuous_inv_fun
 
-@[simp] lemma mk_coe (e : local_equiv α β) (a b c d) :
+@[simp, mfld_simps] lemma mk_coe (e : local_equiv α β) (a b c d) :
   (local_homeomorph.mk e a b c d : α → β) = e := rfl
 
-@[simp] lemma mk_coe_symm (e : local_equiv α β) (a b c d) :
+@[simp, mfld_simps] lemma mk_coe_symm (e : local_equiv α β) (a b c d) :
   ((local_homeomorph.mk e a b c d).symm : β → α) = e.symm := rfl
 
 /- Register a few simp lemmas to make sure that `simp` puts the application of a local
 homeomorphism in its normal form, i.e., in terms of its coercion to a function. -/
 
-@[simp] lemma to_fun_eq_coe (e : local_homeomorph α β) : e.to_fun = e := rfl
+@[simp, mfld_simps] lemma to_fun_eq_coe (e : local_homeomorph α β) : e.to_fun = e := rfl
 
-@[simp] lemma inv_fun_eq_coe (e : local_homeomorph α β) : e.inv_fun = e.symm := rfl
+@[simp, mfld_simps] lemma inv_fun_eq_coe (e : local_homeomorph α β) : e.inv_fun = e.symm := rfl
 
-@[simp] lemma coe_coe : (e.to_local_equiv : α → β) = e := rfl
+@[simp, mfld_simps] lemma coe_coe : (e.to_local_equiv : α → β) = e := rfl
 
-@[simp] lemma coe_coe_symm : (e.to_local_equiv.symm : β → α) = e.symm := rfl
+@[simp, mfld_simps] lemma coe_coe_symm : (e.to_local_equiv.symm : β → α) = e.symm := rfl
 
-@[simp] lemma map_source {x : α} (h : x ∈ e.source) : e x ∈ e.target :=
+@[simp, mfld_simps] lemma map_source {x : α} (h : x ∈ e.source) : e x ∈ e.target :=
 e.map_source' h
 
-@[simp] lemma map_target {x : β} (h : x ∈ e.target) : e.symm x ∈ e.source :=
+@[simp, mfld_simps] lemma map_target {x : β} (h : x ∈ e.target) : e.symm x ∈ e.source :=
 e.map_target' h
 
-@[simp] lemma left_inv {x : α} (h : x ∈ e.source) : e.symm (e x) = x :=
+@[simp, mfld_simps] lemma left_inv {x : α} (h : x ∈ e.source) : e.symm (e x) = x :=
 e.left_inv' h
 
-@[simp] lemma right_inv {x : β} (h : x ∈ e.target) : e (e.symm x) = x :=
+@[simp, mfld_simps] lemma right_inv {x : β} (h : x ∈ e.target) : e (e.symm x) = x :=
 e.right_inv' h
 
 lemma eq_of_local_equiv_eq {e e' : local_homeomorph α β}
@@ -158,11 +158,11 @@ protected lemma ext (e' : local_homeomorph α β) (h : ∀x, e x = e' x)
   (hinv: ∀x, e.symm x = e'.symm x) (hs : e.source = e'.source) : e = e' :=
 eq_of_local_equiv_eq (local_equiv.ext h hinv hs)
 
-@[simp] lemma symm_to_local_equiv : e.symm.to_local_equiv = e.to_local_equiv.symm := rfl
+@[simp, mfld_simps] lemma symm_to_local_equiv : e.symm.to_local_equiv = e.to_local_equiv.symm := rfl
 -- The following lemmas are already simp via local_equiv
 lemma symm_source : e.symm.source = e.target := rfl
 lemma symm_target : e.symm.target = e.source := rfl
-@[simp] lemma symm_symm : e.symm.symm = e := eq_of_local_equiv_eq $ by simp
+@[simp, mfld_simps] lemma symm_symm : e.symm.symm = e := eq_of_local_equiv_eq $ by simp
 
 /-- A local homeomorphism is continuous at any point of its source -/
 protected lemma continuous_at {x : α} (h : x ∈ e.source) : continuous_at e x :=
@@ -241,7 +241,7 @@ protected def restr_open (s : set α) (hs : is_open s) :
   continuous_inv_fun := e.continuous_inv_fun.mono (inter_subset_left _ _),
   ..e.to_local_equiv.restr s}
 
-@[simp] lemma restr_open_to_local_equiv (s : set α) (hs : is_open s) :
+@[simp, mfld_simps] lemma restr_open_to_local_equiv (s : set α) (hs : is_open s) :
   (e.restr_open s hs).to_local_equiv = e.to_local_equiv.restr s := rfl
 
 -- Already simp via local_equiv
@@ -255,10 +255,10 @@ restriction of local equivalences -/
 protected def restr (s : set α) : local_homeomorph α β :=
 e.restr_open (interior s) is_open_interior
 
-@[simp] lemma restr_to_local_equiv (s : set α) :
+@[simp, mfld_simps] lemma restr_to_local_equiv (s : set α) :
   (e.restr s).to_local_equiv = (e.to_local_equiv).restr (interior s) := rfl
-@[simp] lemma restr_coe (s : set α) : (e.restr s : α → β) = e := rfl
-@[simp] lemma restr_coe_symm (s : set α) : ((e.restr s).symm : β → α) = e.symm := rfl
+@[simp, mfld_simps] lemma restr_coe (s : set α) : (e.restr s : α → β) = e := rfl
+@[simp, mfld_simps] lemma restr_coe_symm (s : set α) : ((e.restr s).symm : β → α) = e.symm := rfl
 lemma restr_source (s : set α)  : (e.restr s).source = e.source ∩ interior s := rfl
 lemma restr_target (s : set α) :
   (e.restr s).target = e.target ∩ e.symm ⁻¹' (interior s) := rfl
@@ -280,7 +280,7 @@ begin
   rwa interior_eq_of_open (e.open_source) at this
 end
 
-@[simp] lemma restr_univ {e : local_homeomorph α β} : e.restr univ = e :=
+@[simp, mfld_simps] lemma restr_univ {e : local_homeomorph α β} : e.restr univ = e :=
 restr_eq_of_source_subset (subset_univ _)
 
 lemma restr_source_inter (s : set α) : e.restr (e.source ∩ s) = e.restr s :=
@@ -294,11 +294,11 @@ end
 protected def refl (α : Type*) [topological_space α] : local_homeomorph α α :=
 (homeomorph.refl α).to_local_homeomorph
 
-@[simp] lemma refl_local_equiv : (local_homeomorph.refl α).to_local_equiv = local_equiv.refl α := rfl
+@[simp, mfld_simps] lemma refl_local_equiv : (local_homeomorph.refl α).to_local_equiv = local_equiv.refl α := rfl
 lemma refl_source : (local_homeomorph.refl α).source = univ := rfl
 lemma refl_target : (local_homeomorph.refl α).target = univ := rfl
-@[simp] lemma refl_symm : (local_homeomorph.refl α).symm = local_homeomorph.refl α := rfl
-@[simp] lemma refl_coe : (local_homeomorph.refl α : α → α) = id := rfl
+@[simp, mfld_simps] lemma refl_symm : (local_homeomorph.refl α).symm = local_homeomorph.refl α := rfl
+@[simp, mfld_simps] lemma refl_coe : (local_homeomorph.refl α : α → α) = id := rfl
 
 section
 variables {s : set α} (hs : is_open s)
@@ -311,11 +311,12 @@ def of_set (s : set α) (hs : is_open s) : local_homeomorph α α :=
   continuous_inv_fun := continuous_id.continuous_on,
   ..local_equiv.of_set s }
 
-@[simp] lemma of_set_to_local_equiv : (of_set s hs).to_local_equiv = local_equiv.of_set s := rfl
+@[simp, mfld_simps] lemma of_set_to_local_equiv :
+  (of_set s hs).to_local_equiv = local_equiv.of_set s := rfl
 lemma of_set_source : (of_set s hs).source = s := rfl
 lemma of_set_target : (of_set s hs).target = s := rfl
-@[simp] lemma of_set_coe : (of_set s hs : α → α) = id := rfl
-@[simp] lemma of_set_symm : (of_set s hs).symm = of_set s hs := rfl
+@[simp, mfld_simps] lemma of_set_coe : (of_set s hs : α → α) = id := rfl
+@[simp, mfld_simps] lemma of_set_symm : (of_set s hs).symm = of_set s hs := rfl
 
 end
 
@@ -342,10 +343,10 @@ protected def trans : local_homeomorph α γ :=
   local_homeomorph.trans' (e.symm.restr_open e'.source e'.open_source).symm
     (e'.restr_open e.target e.open_target) (by simp [inter_comm])
 
-@[simp] lemma trans_to_local_equiv :
+@[simp, mfld_simps] lemma trans_to_local_equiv :
   (e.trans e').to_local_equiv = e.to_local_equiv.trans e'.to_local_equiv := rfl
-@[simp] lemma coe_trans : (e.trans e' : α → γ) = e' ∘ e := rfl
-@[simp] lemma coe_trans_symm : ((e.trans e').symm : γ → α) = e.symm ∘ e'.symm := rfl
+@[simp, mfld_simps] lemma coe_trans : (e.trans e' : α → γ) = e' ∘ e := rfl
+@[simp, mfld_simps] lemma coe_trans_symm : ((e.trans e').symm : γ → α) = e.symm ∘ e'.symm := rfl
 
 lemma trans_symm_eq_symm_trans_symm : (e.trans e').symm = e'.symm.trans e.symm :=
 by cases e; cases e'; refl
@@ -379,10 +380,10 @@ lemma trans_assoc (e'' : local_homeomorph γ δ) :
   (e.trans e').trans e'' = e.trans (e'.trans e'') :=
 eq_of_local_equiv_eq $ local_equiv.trans_assoc e.to_local_equiv e'.to_local_equiv e''.to_local_equiv
 
-@[simp] lemma trans_refl : e.trans (local_homeomorph.refl β) = e :=
+@[simp, mfld_simps] lemma trans_refl : e.trans (local_homeomorph.refl β) = e :=
 eq_of_local_equiv_eq $ local_equiv.trans_refl e.to_local_equiv
 
-@[simp] lemma refl_trans : (local_homeomorph.refl α).trans e = e :=
+@[simp, mfld_simps] lemma refl_trans : (local_homeomorph.refl α).trans e = e :=
 eq_of_local_equiv_eq $ local_equiv.refl_trans e.to_local_equiv
 
 lemma trans_of_set {s : set β} (hs : is_open s) :
@@ -487,7 +488,7 @@ def prod (e : local_homeomorph α β) (e' : local_homeomorph γ δ) : local_home
     (continuous_on.comp e'.continuous_inv_fun continuous_snd.continuous_on (prod_subset_preimage_snd _ _)),
   ..e.to_local_equiv.prod e'.to_local_equiv }
 
-@[simp] lemma prod_to_local_equiv (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
+@[simp, mfld_simps] lemma prod_to_local_equiv (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
   (e.prod e').to_local_equiv = e.to_local_equiv.prod e'.to_local_equiv := rfl
 
 lemma prod_source (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
@@ -496,17 +497,18 @@ lemma prod_source (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
 lemma prod_target (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
   (e.prod e').target = set.prod e.target e'.target := rfl
 
-@[simp] lemma prod_coe (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
+@[simp, mfld_simps] lemma prod_coe (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
   (e.prod e' : α × γ → β × δ) = λp, (e p.1, e' p.2) := rfl
 
 lemma prod_coe_symm (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
   ((e.prod e').symm : β × δ → α × γ) = λp, (e.symm p.1, e'.symm p.2) := rfl
 
-@[simp] lemma prod_symm (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
+@[simp, mfld_simps] lemma prod_symm (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
   (e.prod e').symm = (e.symm.prod e'.symm) :=
 by ext x; simp [prod_coe_symm]
 
-@[simp] lemma prod_trans {η : Type*} {ε : Type*} [topological_space η] [topological_space ε]
+@[simp, mfld_simps] lemma prod_trans
+  {η : Type*} {ε : Type*} [topological_space η] [topological_space ε]
   (e : local_homeomorph α β) (f : local_homeomorph β γ)
   (e' : local_homeomorph δ η) (f' : local_homeomorph η ε) :
   (e.prod e').trans (f.prod f') = (e.trans f).prod (e'.trans f') :=
@@ -643,10 +645,11 @@ def to_homeomorph_of_source_eq_univ_target_eq_univ (h : e.source = (univ : set �
     rw h'
   end }
 
-@[simp] lemma to_homeomorph_coe (h : e.source = (univ : set α)) (h' : e.target = univ) :
+@[simp, mfld_simps] lemma to_homeomorph_coe (h : e.source = (univ : set α)) (h' : e.target = univ) :
   (e.to_homeomorph_of_source_eq_univ_target_eq_univ h h' : α → β) = e := rfl
 
-@[simp] lemma to_homeomorph_symm_coe (h : e.source = (univ : set α)) (h' : e.target = univ) :
+@[simp, mfld_simps] lemma to_homeomorph_symm_coe
+  (h : e.source = (univ : set α)) (h' : e.target = univ) :
   ((e.to_homeomorph_of_source_eq_univ_target_eq_univ h h').symm : β → α) = e.symm := rfl
 
 end local_homeomorph
@@ -656,14 +659,16 @@ variables (e : homeomorph α β) (e' : homeomorph β γ)
 /- Register as simp lemmas that the fields of a local homeomorphism built from a homeomorphism
 correspond to the fields of the original homeomorphism. -/
 
-@[simp] lemma to_local_homeomorph_source   : e.to_local_homeomorph.source = univ := rfl
-@[simp] lemma to_local_homeomorph_target   : e.to_local_homeomorph.target = univ := rfl
-@[simp] lemma to_local_homeomorph_coe      : (e.to_local_homeomorph : α → β) = e := rfl
-@[simp] lemma to_local_homeomorph_coe_symm : (e.to_local_homeomorph.symm : β → α) = e.symm := rfl
-@[simp] lemma refl_to_local_homeomorph :
+@[simp, mfld_simps] lemma to_local_homeomorph_source   : e.to_local_homeomorph.source = univ := rfl
+@[simp, mfld_simps] lemma to_local_homeomorph_target   : e.to_local_homeomorph.target = univ := rfl
+@[simp, mfld_simps] lemma to_local_homeomorph_coe      : (e.to_local_homeomorph : α → β) = e := rfl
+@[simp, mfld_simps] lemma to_local_homeomorph_coe_symm :
+  (e.to_local_homeomorph.symm : β → α) = e.symm := rfl
+@[simp, mfld_simps] lemma refl_to_local_homeomorph :
   (homeomorph.refl α).to_local_homeomorph = local_homeomorph.refl α := rfl
-@[simp] lemma symm_to_local_homeomorph : e.symm.to_local_homeomorph = e.to_local_homeomorph.symm := rfl
-@[simp] lemma trans_to_local_homeomorph :
+@[simp, mfld_simps] lemma symm_to_local_homeomorph :
+  e.symm.to_local_homeomorph = e.to_local_homeomorph.symm := rfl
+@[simp, mfld_simps] lemma trans_to_local_homeomorph :
   (e.trans e').to_local_homeomorph = e.to_local_homeomorph.trans e'.to_local_homeomorph :=
 local_homeomorph.eq_of_local_equiv_eq $ equiv.trans_to_local_equiv _ _
 

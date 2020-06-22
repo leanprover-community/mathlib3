@@ -15,8 +15,8 @@ open_locale classical
 
 namespace finsupp
 
-variables {α : Type*} {M : Type*} {R : Type*}
-variables [ring R] [add_comm_group M] [module R M]
+variables {α : Type*} {M : Type*} {N : Type*} {R : Type*}
+variables [ring R] [add_comm_group M] [module R M] [add_comm_group N] [module R N]
 
 def lsingle (a : α) : M →ₗ[R] (α →₀ M) :=
 ⟨single a, assume a b, single_add, assume c b, (smul_single _ _ _).symm⟩
@@ -217,13 +217,18 @@ begin
   exact linear_map.is_linear _
 end
 
-def lsum (f : α → R →ₗ[R] M) : (α →₀ R) →ₗ[R] M :=
+/-- finsupp.sum as a linear map. -/
+def lsum (f : α → M →ₗ[R] N) : (α →₀ M) →ₗ[R] N :=
 ⟨λ d, d.sum (λ i, f i),
   assume d₁ d₂, by simp [sum_add_index],
-  assume a d, by simp [sum_smul_index, smul_sum, -smul_eq_mul, smul_eq_mul.symm]⟩
+  assume a d, by simp [sum_smul_index', smul_sum]⟩
 
-@[simp] theorem lsum_apply (f : α → R →ₗ[R] M) (l : α →₀ R) :
-  (finsupp.lsum f : (α →₀ R) →ₗ M) l = l.sum (λ b, f b) := rfl
+theorem lsum_apply (f : α → M →ₗ[R] N) (l : α →₀ M) :
+  finsupp.lsum f l = l.sum (λ b, f b) := rfl
+
+theorem lsum_single (f : α → M →ₗ[R] N) (i : α) (m : M) :
+  finsupp.lsum f (finsupp.single i m) = f i m :=
+finsupp.sum_single_index (f i).map_zero
 
 section lmap_domain
 variables {α' : Type*} {α'' : Type*} (M R)
@@ -453,3 +458,11 @@ begin
   have hi : i ∈ s, { rw finset.mem_image, exact ⟨⟨x, hx⟩, finset.mem_univ _, rfl⟩ },
   exact hN i hi (hg _),
 end
+
+noncomputable def finsupp_lequiv_direct_sum {ι : Sort*} : (ι →₀ M) ≃ₗ[R] direct_sum ι (λ i, M) :=
+linear_equiv.of_linear
+  (finsupp.lsum $ direct_sum.lof R ι (λ _, M))
+  (direct_sum.to_module _ _ _ finsupp.lsingle)
+  (linear_map.ext $ direct_sum.to_module.ext _ $ λ i,
+    linear_map.ext $ λ x, by simp [finsupp.lsum_single])
+  (linear_map.ext $ λ f, finsupp.ext $ λ i, by simp [finsupp.lsum_apply])

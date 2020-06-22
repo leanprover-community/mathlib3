@@ -433,7 +433,7 @@ lemma coe_eq_zero {α : Type*}
 by norm_cast
 
 -- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
-lemma coe_add [add_semigroup α] {a b : α} : ((a + b : α) : with_bot α) = a + b := by norm_cast
+lemma coe_add [add_semigroup α] (a b : α) : ((a + b : α) : with_bot α) = a + b := by norm_cast
 
 -- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
 lemma coe_bit0 [add_semigroup α] {a : α} : ((bit0 a : α) : with_bot α) = bit0 a :=

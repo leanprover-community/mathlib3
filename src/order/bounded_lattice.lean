@@ -730,7 +730,7 @@ lemma lt_iff_exists_coe_btwn [partial_order α] [densely_ordered α] [no_top_ord
 ⟨λ h, let ⟨y, hy⟩ := dense h, ⟨x, hx⟩ := (lt_iff_exists_coe _ _).1 hy.2 in ⟨x, hx.1 ▸ hy⟩,
  λ ⟨x, hx⟩, lt_trans hx.1 hx.2⟩
 
-/- Lemma shows that a in with_top Z is either the maximal element or some integer n. -/
+/-- Lemma shows that a in with_top Z is either the maximal element or some integer n. -/
 
 lemma with_top.cases (a : with_top ℤ) : a = ⊤ ∨ ∃ n : ℤ, a = n :=
 begin
@@ -955,4 +955,3 @@ is_compl.of_eq bot_inf_eq sup_top_eq
 
 lemma is_compl_top_bot [bounded_lattice α] : is_compl (⊤ : α) ⊥ :=
 is_compl.of_eq inf_bot_eq top_sup_eq
-

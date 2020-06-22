@@ -674,8 +674,6 @@ def weighted_vsub_of_point (w : ι → k) : affine_map k ((ι → V) × V) ((ι 
           vadd_vsub_assoc, add_sub, ← sub_add_eq_add_sub, smul_add, finset.sum_add_distrib]
   end }
 
-variables [fintype ι]
-
 end affine_map
 
 namespace linear_map

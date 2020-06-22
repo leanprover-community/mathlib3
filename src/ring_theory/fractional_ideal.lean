@@ -521,7 +521,7 @@ theorem mul_inv_cancel_iff {I : fractional_ideal g} :
 
 end quotient
 
-section principal_ideal_domain
+section principal_ideal_ring
 
 variables {K : Type*} [field K] {g : fraction_map R K}
 
@@ -655,7 +655,6 @@ instance is_principal {R} [integral_domain R] [is_principal_ideal_ring R] {f : f
   (I : fractional_ideal f) : (I : submodule R f.codomain).is_principal :=
 ⟨ begin
   obtain ⟨a, aI, ha⟩ := exists_eq_span_singleton_mul I,
-  haveI : is_principal aI := is_principal_ideal_ring.principal aI,
   have := a * f.to_map (generator aI),
   use a * f.to_map (generator aI),
   suffices : I = span_singleton (a * f.to_map (generator aI)),
@@ -664,7 +663,7 @@ instance is_principal {R} [integral_domain R] [is_principal_ideal_ring R] {f : f
   rw [coe_ideal_span_singleton (generator aI), span_singleton_mul_span_singleton]
 end ⟩
 
-end principal_ideal_domain
+end principal_ideal_ring
 
 end fractional_ideal
 

@@ -126,7 +126,9 @@ begin
   have a_ne_zero : a ≠ 0 := mt polynomial.leading_coeff_eq_zero.mp p_ne_zero,
   have y_integral : is_integral R (algebra_map R S a) := is_integral_algebra_map,
   have x_integral : is_integral R (z * algebra_map R S a) :=
-    ⟨ p.to_monic, monic_to_monic p_ne_zero, to_monic_aeval_eq_zero p_ne_zero px inj ⟩,
+    ⟨ p.integral_normalization,
+      monic_integral_normalization p_ne_zero,
+      integral_normalization_aeval_eq_zero p_ne_zero px inj ⟩,
   refine ⟨⟨_, x_integral⟩, ⟨_, y_integral⟩, _, rfl⟩,
   exact λ h, a_ne_zero (inj _ (subtype.ext.mp h))
 end

@@ -1691,7 +1691,7 @@ begin
   rcases (hf 1 hn x (mem_of_nhds hs)) with ⟨u, H, p, hp⟩,
   use (continuous_multilinear_curry_fin1 ℝ E' F') (p x 1),
   refine hp.has_strict_fderiv_at (by norm_num) _,
-  exact continuous_on.nhds_of_nhds_within_of_nhds hs H,
+  exact nhds_of_nhds_within_of_nhds hs H,
 end
 
 lemma times_cont_diff.has_strict_fderiv_at

@@ -62,21 +62,29 @@ end general
 section real
 variables (E : Type*) [normed_group E] [normed_space ℝ E]
 
+/-- If one controls the norm of every `f x`, then one controls the norm of `x`.
+    Compare `continuous_linear_map.op_norm_le_bound`. -/
+lemma norm_le_dual_bound (x : E) {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ (f: dual ℝ E), ∥f x∥ ≤ M * ∥f∥) :
+  ∥x∥ ≤ M :=
+begin
+  classical,
+  by_cases h : x = 0,
+  { simp only [h, hMp, norm_zero] },
+  { cases exists_dual_vector x h with f hf,
+    calc ∥x∥ = f x : hf.2.symm
+    ... ≤ ∥f x∥ : le_max_left (f x) (-f x)
+    ... ≤ M * ∥f∥ : hM f
+    ... = M : by rw [ hf.1, mul_one ] }
+end
+
 /-- The inclusion of a real normed space in its double dual is an isometry onto its image.-/
 lemma inclusion_in_double_dual_isometry (x : E) : ∥inclusion_in_double_dual ℝ E x∥ = ∥x∥ :=
 begin
-  by_cases h : vector_space.dim ℝ E = 0,
-  { rw dim_zero_iff_forall_zero.mp h x, simp },
-  { have h' : 0 < vector_space.dim ℝ E := zero_lt_iff_ne_zero.mpr h,
-    refine le_antisymm_iff.mpr ⟨double_dual_bound ℝ E x, _⟩,
-    rw continuous_linear_map.norm_def,
-    apply real.lb_le_Inf _ continuous_linear_map.bounds_nonempty,
-    intros c, simp only [and_imp, set.mem_set_of_eq], intros h₁ h₂,
-    cases exists_dual_vector' h' x with f hf,
-    calc ∥x∥ = f x : hf.2.symm
-    ... ≤ ∥f x∥ : le_max_left (f x) (-f x)
-    ... ≤ c * ∥f∥ : h₂ f
-    ... = c : by rw [ hf.1, mul_one ] }
+  refine le_antisymm_iff.mpr ⟨double_dual_bound ℝ E x, _⟩,
+  rw continuous_linear_map.norm_def,
+  apply real.lb_le_Inf _ continuous_linear_map.bounds_nonempty,
+  intros c,
+  simpa using norm_le_dual_bound E x,
 end
 
 -- TODO: This is also true over ℂ.

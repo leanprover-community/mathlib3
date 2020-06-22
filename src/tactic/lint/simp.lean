@@ -82,7 +82,7 @@ tt ← is_valid_simp_lemma_cnst d.to_name | pure none,
 [] ← get_eqn_lemmas_for ff d.to_name | pure none,
 try_for timeout $
 retrieve $ do
-reset_instance_cache,
+unfreeze_local_instances,
 g ← mk_meta_var d.type,
 set_goals [g],
 intros,

@@ -3,7 +3,7 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.calculus.fderiv
+import analysis.calculus.mean_value
 
 /-!
 # Higher differentiability
@@ -1659,3 +1659,44 @@ lemma times_cont_diff.sub {n : with_top ℕ} {f g : E → F}
   (hf : times_cont_diff 𝕜 n f) (hg : times_cont_diff 𝕜 n g) :
   times_cont_diff 𝕜 n (λx, f x - g x) :=
 hf.add hg.neg
+
+section reals
+/-- ### Results over ℝ
+  The results in this section rely on the Mean Value Theorem, and therefore hold only over ℝ (and
+  its extension fields such as ℂ). -/
+
+variables
+{E' : Type*} [normed_group E'] [normed_space ℝ E']
+{F' : Type*} [normed_group F'] [normed_space ℝ F']
+
+/-- If a function has a Taylor series at order at least 1, then at points in the interior of the
+    domain of definition, the term of order 1 of this series is a strict derivative of f. -/
+lemma has_ftaylor_series_up_to_on.has_strict_fderiv_at
+  {s : set E'} {f : E' → F'} {x : E'} {p : E' → formal_multilinear_series ℝ E' F'} {n : with_top ℕ}
+  (hf : has_ftaylor_series_up_to_on n f p s) (hn : 1 ≤ n) (hs : s ∈ nhds x) :
+  has_strict_fderiv_at f ((continuous_multilinear_curry_fin1 ℝ E' F') (p x 1)) x :=
+begin
+  let f' := λ x, (continuous_multilinear_curry_fin1 ℝ E' F') (p x 1),
+  have hf' : ∀ x, x ∈ s → has_fderiv_within_at f (f' x) s x :=
+    λ x, has_ftaylor_series_up_to_on.has_fderiv_within_at hf hn,
+  have hcont : continuous_on f' s :=
+    (continuous_multilinear_curry_fin1 ℝ E' F').continuous.comp_continuous_on (hf.cont 1 hn),
+  exact strict_fderiv_of_cont_diff hf' hcont hs,
+end
+
+lemma times_cont_diff_on.has_strict_fderiv_at
+  {s : set E'} {f : E' → F'} {x : E'} {n : with_top ℕ} (hf : times_cont_diff_on ℝ n f s) (hn : 1 ≤ n)
+  (hs : s ∈ nhds x) : ∃ (f' : E' →L[ℝ] F'), has_strict_fderiv_at f f' x :=
+begin
+  rcases (hf 1 hn x (mem_of_nhds hs)) with ⟨u, H, p, hp⟩,
+  use (continuous_multilinear_curry_fin1 ℝ E' F') (p x 1),
+  refine hp.has_strict_fderiv_at (by norm_num) _,
+  exact continuous_on.nhds_of_nhds_within_of_nhds hs H,
+end
+
+lemma times_cont_diff.has_strict_fderiv_at
+  {f : E' → F'} {x : E'} {n : with_top ℕ} (hf : times_cont_diff ℝ n f) (hn : 1 ≤ n) :
+  ∃ (f' : E' →L[ℝ] F'), has_strict_fderiv_at f f' x :=
+times_cont_diff_on.has_strict_fderiv_at (times_cont_diff_on_univ.mpr hf) hn (nhds x).univ_sets
+
+end reals

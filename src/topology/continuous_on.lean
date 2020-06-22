@@ -58,6 +58,13 @@ lemma mem_nhds_within_iff_exists_mem_nhds_inter {t : set α} {a : α} {s : set �
   t ∈ nhds_within a s ↔ ∃ u ∈ 𝓝 a, u ∩ s ⊆ t :=
 (nhds_within_has_basis (𝓝 a).basis_sets s).mem_iff
 
+lemma nhds_of_nhds_within_of_nhds
+  {s t : set α} {a : α} (h1 : s ∈ 𝓝 a) (h2 : t ∈ nhds_within a s) : (t ∈ 𝓝 a) :=
+begin
+  rcases mem_nhds_within_iff_exists_mem_nhds_inter.mp h2 with ⟨_, Hw, hw⟩,
+  exact (nhds a).sets_of_superset ((nhds a).inter_sets Hw h1) hw,
+end
+
 lemma mem_nhds_within_of_mem_nhds {s t : set α} {a : α} (h : s ∈ 𝓝 a) :
   s ∈ nhds_within a t :=
 mem_inf_sets_of_left h

@@ -1395,7 +1395,7 @@ by cases s; simp only [multiset.card_eq_one, finset.card, ← val_inj, singleton
 by simpa only [card_cons, card, insert_val] using
 congr_arg multiset.card (ndinsert_of_not_mem h)
 
-@[simp] theorem card_insert_of_mem [decidable_eq α] {a : α} {s : finset α}
+theorem card_insert_of_mem [decidable_eq α] {a : α} {s : finset α}
   (h : a ∈ s) : card (insert a s) = card s := by rw insert_eq_of_mem h
 
 theorem card_insert_le [decidable_eq α] (a : α) (s : finset α) : card (insert a s) ≤ card s + 1 :=

@@ -727,6 +727,15 @@ lemma eq_zero_of_mul_self_eq_zero [has_mul α] [has_zero α] [no_zero_divisors �
   {a : α} (h : a * a = 0) : a = 0 :=
 or.elim (eq_zero_or_eq_zero_of_mul_eq_zero h) (assume h', h') (assume h', h')
 
+@[simp] theorem mul_eq_zero [mul_zero_class α] [no_zero_divisors α] {a b : α} :
+  a * b = 0 ↔ a = 0 ∨ b = 0 :=
+⟨eq_zero_or_eq_zero_of_mul_eq_zero, λo,
+  or.elim o (λh, by rw h; apply zero_mul) (λh, by rw h; apply mul_zero)⟩
+
+@[simp] theorem zero_eq_mul [mul_zero_class α] [no_zero_divisors α] {a b : α} :
+  0 = a * b ↔ a = 0 ∨ b = 0 :=
+by rw [eq_comm, mul_eq_zero]
+
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
   is an integral domain without assuming commutativity of multiplication. -/
@@ -742,14 +751,6 @@ instance domain.to_no_zero_divisors : no_zero_divisors α :=
 
 instance domain.to_nonzero : nonzero α :=
 ⟨domain.zero_ne_one⟩
-
-/-- Simplification theorems for the definition of a domain. -/
-@[simp] theorem mul_eq_zero {a b : α} : a * b = 0 ↔ a = 0 ∨ b = 0 :=
-⟨eq_zero_or_eq_zero_of_mul_eq_zero, λo,
-  or.elim o (λh, by rw h; apply zero_mul) (λh, by rw h; apply mul_zero)⟩
-
-@[simp] theorem zero_eq_mul {a b : α} : 0 = a * b ↔ a = 0 ∨ b = 0 :=
-by rw [eq_comm, mul_eq_zero]
 
 lemma mul_self_eq_zero {α} [domain α] {x : α} : x * x = 0 ↔ x = 0 := by simp
 lemma zero_eq_mul_self {α} [domain α] {x : α} : 0 = x * x ↔ x = 0 := by simp

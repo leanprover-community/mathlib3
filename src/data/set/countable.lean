@@ -149,11 +149,12 @@ lemma finite.countable {s : set α} : finite s → countable s
 lemma countable_set_of_finite_subset {s : set α} : countable s →
   countable {t | finite t ∧ t ⊆ s} | ⟨h⟩ :=
 begin
-  unfreezingI { refine countable.mono _ (countable_range
-    (λ t : finset s, {a | ∃ h:a ∈ s, subtype.mk a h ∈ t})) },
-  rintro t ⟨⟨ht⟩, ts⟩,
-  unfreezingI { refine ⟨finset.univ.map (embedding_of_subset _ _ ts),
-    set.ext $ λ a, _⟩ },
+  resetI,
+  refine countable.mono _ (countable_range
+    (λ t : finset s, {a | ∃ h:a ∈ s, subtype.mk a h ∈ t})),
+  rintro t ⟨⟨ht⟩, ts⟩, resetI,
+  refine ⟨finset.univ.map (embedding_of_subset _ _ ts),
+    set.ext $ λ a, _⟩,
   suffices : a ∈ s ∧ a ∈ t ↔ a ∈ t, by simpa,
   exact ⟨and.right, λ h, ⟨ts h, h⟩⟩
 end

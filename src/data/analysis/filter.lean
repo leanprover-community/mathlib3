@@ -173,10 +173,10 @@ protected def cofinite [decidable_eq α] : (@cofinite α).realizer := ⟨finset 
   inf          := (∪),
   inf_le_left  := λ s t a, mt (finset.mem_union_left _),
   inf_le_right := λ s t a, mt (finset.mem_union_right _) },
-filter_eq $ set.ext $ λ x, by simp [cfilter.to_filter]; unfreezingI { exact
+filter_eq $ set.ext $ λ x,
 ⟨λ ⟨s, h⟩, finite_subset (finite_mem_finset s) (compl_subset_comm.1 h),
- λ ⟨fs⟩, ⟨(-x).to_finset, λ a (h : a ∉ (-x).to_finset),
-  classical.by_contradiction $ λ h', h (mem_to_finset.2 h')⟩⟩ }⟩
+ λ ⟨fs⟩, by exactI ⟨(-x).to_finset, λ a (h : a ∉ (-x).to_finset),
+  classical.by_contradiction $ λ h', h (mem_to_finset.2 h')⟩⟩⟩
 
 /-- Construct a realizer for filter bind -/
 protected def bind {f : filter α} {m : α → filter β} (F : f.realizer) (G : ∀ i, (m i).realizer) :

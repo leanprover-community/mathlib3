@@ -1308,9 +1308,9 @@ def lift.principal_seg : @principal_seg ordinal.{u} ordinal.{max (u+1) v} (<) (<
   { rw ← lift_id (type s) at h ⊢,
     cases lift_type_lt.1 h with f, cases f with f a hf,
     existsi a, revert hf,
-    apply induction_on a, intros α r _ hf,
-    unfreezingI { refine lift_type_eq.{u (max (u+1) v) (max (u+1) v)}.2
-      ⟨(order_iso.of_surjective (order_embedding.of_monotone _ _) _).symm⟩ },
+    apply induction_on a, introsI α r _ hf,
+    refine lift_type_eq.{u (max (u+1) v) (max (u+1) v)}.2
+      ⟨(order_iso.of_surjective (order_embedding.of_monotone _ _) _).symm⟩,
     { exact λ b, enum r (f b) ((hf _).2 ⟨_, rfl⟩) },
     { refine λ a b h, (typein_lt_typein r).1 _,
       rw [typein_enum, typein_enum],
@@ -1318,9 +1318,9 @@ def lift.principal_seg : @principal_seg ordinal.{u} ordinal.{max (u+1) v} (<) (<
     { intro a', cases (hf _).1 (typein_lt_type _ a') with b e,
       existsi b, simp, simp [e] } },
   { cases h with a e, rw [← e],
-    apply induction_on a, intros α r _,
-    unfreezingI { exact lift_type_lt.{u (u+1) (max (u+1) v)}.2
-      ⟨typein.principal_seg r⟩ } }
+    apply induction_on a, introsI α r _,
+    exact lift_type_lt.{u (u+1) (max (u+1) v)}.2
+      ⟨typein.principal_seg r⟩ }
 end⟩
 
 @[simp] theorem lift.principal_seg_coe :

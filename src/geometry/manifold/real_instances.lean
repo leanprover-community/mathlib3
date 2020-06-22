@@ -84,21 +84,21 @@ def model_with_corners_euclidean_half_space (n : ℕ) [has_zero (fin n)] :
   inv_fun     := λx, ⟨λi, if h : i = 0 then max (x i) 0 else x i, by simp [le_refl]⟩,
   source      := univ,
   target      := range (λx : euclidean_half_space n, x.val),
-  map_source' := λx hx, by simpa [-mem_range, mem_range_self] using x.property,
+  map_source' := λx hx, by simpa only [subtype.val_range] using x.property,
   map_target' := λx hx, mem_univ _,
   left_inv'   := λ⟨xval, xprop⟩ hx, begin
     rw subtype.mk_eq_mk,
     ext1 i,
     by_cases hi : i = 0,
-    { rw hi, simp [hi, xprop] },
-    { simp [hi] }
+    { rw hi, simp only [xprop, dif_pos, max_eq_left] },
+    { simp only [hi, dif_neg, not_false_iff] }
   end,
   right_inv'  := λx hx, begin
-    simp [range_half_space] at hx,
+    simp only [mem_set_of_eq, subtype.val_range] at hx,
     ext1 i,
     by_cases hi : i = 0,
-    { rw hi, simp [hi, hx] },
-    { simp [hi] }
+    { rw hi, simp only [hx, dif_pos, max_eq_left]} ,
+    { simp only [hi, dif_neg, not_false_iff]}
   end,
   source_eq    := rfl,
   unique_diff' := begin
@@ -108,14 +108,14 @@ def model_with_corners_euclidean_half_space (n : ℕ) [has_zero (fin n)] :
     apply unique_diff_on_convex,
     show convex {y : euclidean_space (fin n) | 0 ≤ y 0},
     { assume x y hx hy a b ha hb hab,
-      simpa using add_le_add (mul_nonneg ha hx) (mul_nonneg hb hy) },
+      simpa only [add_zero] using add_le_add (mul_nonneg ha hx) (mul_nonneg hb hy) },
     show (interior {y : euclidean_space (fin n) | 0 ≤ y 0}).nonempty,
     { use (λi, 1),
       rw mem_interior,
       refine ⟨(pi (univ : set (fin n)) (λi, (Ioi 0 : set ℝ))), _,
         is_open_set_pi finite_univ (λa ha, is_open_Ioi), _⟩,
       { assume x hx,
-        simp [pi] at hx,
+        simp only [pi, forall_prop_of_true, mem_univ, mem_Ioi] at hx,
         exact le_of_lt (hx 0) },
       { simp only [pi, forall_prop_of_true, mem_univ, mem_Ioi],
         assume i,
@@ -131,7 +131,7 @@ def model_with_corners_euclidean_half_space (n : ℕ) [has_zero (fin n)] :
       simp only [dif_pos],
       have : continuous (λx:ℝ, max x 0) := continuous_id.max continuous_const,
       exact this.comp (continuous_apply 0) },
-    { simp [h],
+    { simp only [h, dif_neg, not_false_iff],
       exact continuous_apply i }
   end }
 
@@ -141,20 +141,20 @@ model for manifolds with corners -/
 def model_with_corners_euclidean_quadrant (n : ℕ) :
   model_with_corners ℝ (euclidean_space (fin n)) (euclidean_quadrant n) :=
 { to_fun      := λx, x.val,
-  inv_fun     := λx, ⟨λi, max (x i) 0, λi, by simp [le_refl]⟩,
+  inv_fun     := λx, ⟨λi, max (x i) 0, λi, by simp only [le_refl, or_true, le_max_iff]⟩,
   source      := univ,
   target      := range (λx : euclidean_quadrant n, x.val),
-  map_source' := λx hx, by simpa [-mem_range, mem_range_self] using x.property,
+  map_source' := λx hx, by simpa only [subtype.val_range] using x.property,
   map_target' := λx hx, mem_univ _,
   left_inv'   := λ⟨xval, xprop⟩ hx, begin
     rw subtype.mk_eq_mk,
     ext1 i,
-    simp [xprop i]
+    simp only [xprop i, max_eq_left]
   end,
   right_inv' := λx hx, begin
     rw range_quadrant at hx,
     ext1 i,
-    simp [hx i]
+    simp only [hx i, max_eq_left]
   end,
   source_eq    := rfl,
   unique_diff' := begin
@@ -164,14 +164,14 @@ def model_with_corners_euclidean_quadrant (n : ℕ) :
     apply unique_diff_on_convex,
     show convex {y : euclidean_space (fin n) | ∀ (i : fin n), 0 ≤ y i},
     { assume x y hx hy a b ha hb hab i,
-      simpa using add_le_add (mul_nonneg ha (hx i)) (mul_nonneg hb (hy i)) },
+      simpa only [add_zero] using add_le_add (mul_nonneg ha (hx i)) (mul_nonneg hb (hy i)) },
     show (interior {y : euclidean_space (fin n) | ∀ (i : fin n), 0 ≤ y i}).nonempty,
     { use (λi, 1),
       rw mem_interior,
       refine ⟨(pi (univ : set (fin n)) (λi, (Ioi 0 : set ℝ))), _,
         is_open_set_pi finite_univ (λa ha, is_open_Ioi), _⟩,
       { assume x hx i,
-        simp [pi] at hx,
+        simp only [pi, forall_prop_of_true, mem_univ, mem_Ioi] at hx,
         exact le_of_lt (hx i) },
       { simp only [pi, forall_prop_of_true, mem_univ, mem_Ioi],
         assume i,
@@ -199,9 +199,14 @@ def Icc_left_chart (x y : ℝ) [fact (x < y)] :
   target      := {z : euclidean_half_space 1 | z.val 0 < y - x},
   to_fun      := λ(z : Icc x y), ⟨λi, z.val - x, sub_nonneg.mpr z.property.1⟩,
   inv_fun     := λz, ⟨min (z.val 0 + x) y, by simp [le_refl, z.property, le_of_lt ‹x < y›]⟩,
-  map_source' := by simp,
-  map_target' := by { simp, assume z hz, left, dsimp at hz, linarith },
-  left_inv'   := by { rintros ⟨z, hz⟩ h'z, simp at hz h'z, simp [hz, h'z] },
+  map_source' := by simp only [imp_self, sub_lt_sub_iff_right, mem_set_of_eq, forall_true_iff],
+  map_target' :=
+    by { simp only [min_lt_iff, mem_set_of_eq], assume z hz, left, dsimp at hz, linarith },
+  left_inv'   := begin
+    rintros ⟨z, hz⟩ h'z,
+    simp only [mem_set_of_eq, mem_Icc] at hz h'z,
+    simp only [hz, min_eq_left, sub_add_cancel]
+  end,
   right_inv'  := begin
     rintros ⟨z, hz⟩ h'z,
     rw subtype.mk_eq_mk,
@@ -209,7 +214,7 @@ def Icc_left_chart (x y : ℝ) [fact (x < y)] :
     dsimp at hz h'z,
     have A : x + z 0 ≤ y, by linarith,
     rw subsingleton.elim i 0,
-    simp [A, add_comm],
+    simp only [A, add_comm, add_sub_cancel', min_eq_left],
   end,
   open_source := begin
     have : is_open {z : ℝ | z < y} := is_open_Iio,
@@ -248,9 +253,14 @@ def Icc_right_chart (x y : ℝ) [fact (x < y)] :
   to_fun      := λ(z : Icc x y), ⟨λi, y - z.val, sub_nonneg.mpr z.property.2⟩,
   inv_fun     := λz,
     ⟨max (y - z.val 0) x, by simp [le_refl, z.property, le_of_lt ‹x < y›, sub_eq_add_neg]⟩,
-  map_source' := by simp,
-  map_target' := by { simp, assume z hz, left, dsimp at hz, linarith },
-  left_inv'   := by { rintros ⟨z, hz⟩ h'z, simp at hz h'z, simp [hz, h'z, sub_eq_add_neg] },
+  map_source' := by simp only [imp_self, mem_set_of_eq, sub_lt_sub_iff_left, forall_true_iff],
+  map_target' :=
+    by { simp only [lt_max_iff, mem_set_of_eq], assume z hz, left, dsimp at hz, linarith },
+  left_inv'   := begin
+    rintros ⟨z, hz⟩ h'z,
+    simp only [mem_set_of_eq, mem_Icc] at hz h'z,
+    simp only [hz, sub_eq_add_neg, max_eq_left, add_add_neg_cancel'_right, neg_add_rev, neg_neg]
+  end,
   right_inv'  := begin
     rintros ⟨z, hz⟩ h'z,
     rw subtype.mk_eq_mk,
@@ -258,7 +268,7 @@ def Icc_right_chart (x y : ℝ) [fact (x < y)] :
     dsimp at hz h'z,
     have A : x ≤ y - z 0, by linarith,
     rw subsingleton.elim i 0,
-    simp [A, sub_sub_cancel],
+    simp only [A, sub_sub_cancel, max_eq_left],
   end,
   open_source := begin
     have : is_open {z : ℝ | x < z} := is_open_Ioi,
@@ -298,7 +308,7 @@ instance Icc_manifold (x y : ℝ) [fact (x < y)] : charted_space (euclidean_half
       exact h' },
     { simp only [h', if_false],
       apply lt_of_lt_of_le ‹x < y›,
-      simpa using h' }
+      simpa only [not_lt] using h'}
   end,
   chart_mem_atlas := λz, by { by_cases h' : z.val < y; simp [h'] } }
 
@@ -315,7 +325,7 @@ begin
   begin
     apply has_groupoid_of_pregroupoid,
     assume e e' he he',
-    simp [atlas] at he he',
+    simp only [atlas, mem_singleton_iff, mem_insert_iff] at he he',
     /- We need to check that any composition of two charts gives a `C^∞` function. Each chart can be
     either the left chart or the right chart, leaving 4 possibilities that we handle successively.
     -/
@@ -326,24 +336,27 @@ begin
     { -- `e = left chart`, `e' = right chart`
       apply M.congr_mono _ (subset_univ _),
       assume z hz,
-      simp [-mem_range, range_half_space, model_with_corners_euclidean_half_space,
-            local_equiv.trans_source, Icc_left_chart, Icc_right_chart] at hz,
+      simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, dif_pos,
+        lt_add_iff_pos_left, max_lt_iff, lt_min_iff, sub_pos, lt_max_iff, subtype.val_range]
+        with mfld_simps at hz,
       have A : 0 ≤ z 0 := hz.2,
       have B : z 0 + x ≤ y, by { have := hz.1.1.1, linarith },
       ext i,
       rw subsingleton.elim i 0,
-      simp [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B],
+      simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B,
+        pi_Lp.add_apply, dif_pos, min_eq_left, max_eq_left, pi_Lp.neg_apply] with mfld_simps,
       ring },
     { -- `e = right chart`, `e' = left chart`
       apply M.congr_mono _ (subset_univ _),
       assume z hz,
-      simp [-mem_range, range_half_space, model_with_corners_euclidean_half_space,
-            local_equiv.trans_source, Icc_left_chart, Icc_right_chart] at hz,
+      simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, dif_pos,
+        max_lt_iff, sub_pos, subtype.val_range] with mfld_simps at hz,
       have A : 0 ≤ z 0 := hz.2,
       have B : x ≤ y - z 0, by { have := hz.1.1.1, dsimp at this, linarith },
       ext i,
       rw subsingleton.elim i 0,
-      simp [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B],
+      simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B,
+        pi_Lp.add_apply, dif_pos, max_eq_left, pi_Lp.neg_apply] with mfld_simps,
       ring },
     { -- `e = right chart`, `e' = right chart`
       refine ((mem_groupoid_of_pregroupoid _ _).mpr _).1,

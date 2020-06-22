@@ -129,7 +129,7 @@ def unique_mdiff_on (s : set M) :=
 
 /-- Conjugating a function to write it in the preferred charts around `x`. The manifold derivative
 of `f` will just be the derivative of this conjugated function. -/
-def written_in_ext_chart_at (x : M) (f : M → M') : E → E' :=
+@[simp, mfld_simps] def written_in_ext_chart_at (x : M) (f : M → M') : E → E' :=
 (ext_chart_at I' (f x)) ∘ f ∘ (ext_chart_at I x).symm
 
 /-- `mdifferentiable_within_at I I' f s x` indicates that the function `f` between manifolds
@@ -414,7 +414,7 @@ lemma mdifferentiable_within_at.has_mfderiv_within_at (h : mdifferentiable_withi
   has_mfderiv_within_at I I' f s x (mfderiv_within I I' f s x) :=
 begin
   refine ⟨h.1, _⟩,
-  simp [mfderiv_within, h],
+  simp only [mfderiv_within, h, dif_pos] with mfld_simps,
   exact differentiable_within_at.has_fderiv_within_at h.2
 end
 
@@ -428,7 +428,7 @@ lemma mdifferentiable_at.has_mfderiv_at (h : mdifferentiable_at I I' f x) :
   has_mfderiv_at I I' f x (mfderiv I I' f x) :=
 begin
   refine ⟨h.1, _⟩,
-  simp [mfderiv, h],
+  simp only [mfderiv, h, dif_pos] with mfld_simps,
   exact differentiable_within_at.has_fderiv_within_at h.2
 end
 
@@ -522,12 +522,12 @@ include Is I's
 begin
   ext x : 1,
   simp only [mfderiv_within, mfderiv] with mfld_simps,
-  erw mdifferentiable_within_at_univ
+  rw mdifferentiable_within_at_univ
 end
 
 lemma mfderiv_within_inter (ht : t ∈ 𝓝 x) (hs : unique_mdiff_within_at I s x) :
   mfderiv_within I I' f (s ∩ t) x = mfderiv_within I I' f s x :=
-by erw [mfderiv_within, mfderiv_within, ext_chart_preimage_inter_eq,
+by rw [mfderiv_within, mfderiv_within, ext_chart_preimage_inter_eq,
   mdifferentiable_within_at_inter ht, fderiv_within_inter (ext_chart_preimage_mem_nhds I x ht) hs]
 
 omit Is I's
@@ -599,8 +599,8 @@ begin
       nhds_within ((ext_chart_at I x) x) ((ext_chart_at I x).symm ⁻¹' s ∩ range I) :=
       ext_chart_preimage_mem_nhds_within I x h₁,
     apply filter.mem_sets_of_superset this (λy, _),
-    simp only [written_in_ext_chart_at, hx] with mfld_simps {contextual := tt}},
-  { simp only [written_in_ext_chart_at, hx] with mfld_simps },
+    simp only [hx] with mfld_simps {contextual := tt}},
+  { simp only [hx] with mfld_simps },
 end
 
 lemma has_mfderiv_within_at.congr_mono (h : has_mfderiv_within_at I I' f s x f')
@@ -611,7 +611,7 @@ lemma has_mfderiv_within_at.congr_mono (h : has_mfderiv_within_at I I' f s x f')
 lemma has_mfderiv_at.congr_of_mem_nhds (h : has_mfderiv_at I I' f x f')
   (h₁ : ∀ᶠ y in 𝓝 x, f₁ y = f y) : has_mfderiv_at I I' f₁ x f' :=
 begin
-  erw ← has_mfderiv_within_at_univ at ⊢ h,
+  rw ← has_mfderiv_within_at_univ at ⊢ h,
   apply h.congr_of_mem_nhds_within _ (mem_of_nhds h₁ : _),
   rwa nhds_within_univ
 end
@@ -693,11 +693,9 @@ begin
     ((f ∘ (ext_chart_at I x).symm)⁻¹' (ext_chart_at I' (f x)).source) _
     (ext_chart_preimage_mem_nhds_within I x (h.preimage_mem_nhds_within (ext_chart_at_source_mem_nhds _ _))),
   assume y hy,
-  simp only [ext_chart_at, written_in_ext_chart_at, mem_set_of_eq, function.comp_app,
-    local_equiv.coe_trans, local_equiv.coe_trans_symm, local_homeomorph.coe_coe_symm,
-    local_homeomorph.coe_coe, mem_univ, local_equiv.left_inv, model_with_corners.source_eq],
+  simp only [] with mfld_simps,
   rw (chart_at H' (f x)).left_inv,
-  simpa [ext_chart_at_source] using hy
+  simpa only [] with mfld_simps using hy
 end
 
 variable (x)
@@ -722,16 +720,15 @@ begin
     rw [← has_fderiv_within_at_inter' this, ← ext_chart_preimage_inter_eq] at hf ⊢,
     have : written_in_ext_chart_at I I' x f ((ext_chart_at I x) x)
         = (ext_chart_at I' (f x)) (f x),
-      by simp [written_in_ext_chart_at, local_equiv.left_inv, mem_chart_source],
+      by simp only [] with mfld_simps,
     rw ← this at hg,
     apply has_fderiv_within_at.comp ((ext_chart_at I x) x) hg.2 hf.2 _,
     assume y hy,
-    simp [ext_chart_at_coe_symm, local_equiv.trans_source, -mem_range, ext_chart_at_source] at hy,
+    simp only [] with mfld_simps at hy,
     have : f (((chart_at H x).symm : H → M) (I.symm y)) ∈ u := hst hy.1.1,
-    simp [written_in_ext_chart_at, ext_chart_at_coe_symm, -mem_range, hy, this, mem_range_self,
-          ext_chart_at_coe] },
+    simp only [hy, this] with mfld_simps },
   apply A.congr_of_mem_nhds_within (written_in_ext_chart_comp hf.1),
-  simp [written_in_ext_chart_at, ext_chart_at, local_equiv.left_inv, mem_chart_source]
+  simp only [] with mfld_simps
 end
 
 /-- The chain rule. -/
@@ -799,7 +796,7 @@ lemma tangent_map_within_comp_at (p : tangent_bundle I M)
   tangent_map_within I I'' (g ∘ f) s p =
   tangent_map_within I' I'' g u (tangent_map_within I I' f s p) :=
 begin
-  simp [tangent_map_within],
+  simp only [tangent_map_within],
   rw mfderiv_within_comp p.1 hg hf h hps,
   refl
 end
@@ -809,7 +806,7 @@ lemma tangent_map_comp_at (p : tangent_bundle I M)
   tangent_map I I'' (g ∘ f) p = tangent_map I' I'' g (tangent_map I I' f p) :=
 begin
   rcases p with ⟨x, v⟩,
-  simp [tangent_map],
+  simp only [tangent_map],
   rw mfderiv_comp x hg hf,
   refl
 end
@@ -932,34 +929,26 @@ section model_with_corners
 lemma model_with_corners.mdifferentiable :
   mdifferentiable I (model_with_corners_self 𝕜 E) I :=
 begin
-  simp only [mdifferentiable, mdifferentiable_at, written_in_ext_chart_at, ext_chart_at,
-    local_equiv.refl_coe, chart_at_model_space_eq, function.comp.left_id,
-    local_homeomorph.refl_coe, id.def, ext_chart_model_space_eq_id, local_equiv.refl_trans,
-    model_with_corners.to_local_equiv_coe_symm, local_homeomorph.refl_local_equiv,
-    model_with_corners.to_local_equiv_coe],
+  simp only [mdifferentiable, mdifferentiable_at] with mfld_simps,
   assume x,
   refine ⟨I.continuous.continuous_at, _⟩,
   have : differentiable_within_at 𝕜 id (range I) (I x) :=
     differentiable_at_id.differentiable_within_at,
   apply this.congr,
-  { simp [model_with_corners.right_inv] {contextual := tt} },
-  { simp [model_with_corners.left_inv] }
+  { simp only [] with mfld_simps {contextual := tt} },
+  { simp only [] with mfld_simps }
 end
 
 lemma model_with_corners.mdifferentiable_on_symm :
   mdifferentiable_on (model_with_corners_self 𝕜 E) I I.symm (range I) :=
 begin
-  simp only [mdifferentiable_on, mdifferentiable_within_at, written_in_ext_chart_at, ext_chart_at,
-    local_equiv.refl_trans, local_equiv.refl_coe, preimage_id, id.def, inter_univ,
-    model_with_corners_self_local_equiv, range_id, function.comp.right_id, chart_at_model_space_eq,
-    local_homeomorph.refl_local_equiv, local_equiv.refl_symm,
-    model_with_corners_self_coe, model_with_corners.to_local_equiv_coe],
+  simp only [mdifferentiable_on, mdifferentiable_within_at] with mfld_simps,
   assume x hx,
   refine ⟨I.continuous_symm.continuous_at.continuous_within_at, _⟩,
   have : differentiable_within_at 𝕜 id (range I) x := differentiable_at_id.differentiable_within_at,
   apply this.congr,
-  { simp [model_with_corners.right_inv] {contextual := tt} },
-  { simp [model_with_corners.right_inv, hx] }
+  { simp only [] with mfld_simps {contextual := tt} },
+  { simp only [hx] with mfld_simps }
 end
 
 end model_with_corners
@@ -974,18 +963,17 @@ begin
   refine ⟨(e.continuous_on x hx).continuous_at (mem_nhds_sets e.open_source hx), _⟩,
   have mem : I ((chart_at H x : M → H) x) ∈
     I.symm ⁻¹' ((chart_at H x).symm ≫ₕ e).source ∩ range I,
-    by simp [hx, local_equiv.trans_source, -mem_range, mem_range_self],
+    by simp only [hx] with mfld_simps,
   have : (chart_at H x).symm.trans e ∈ times_cont_diff_groupoid ⊤ I :=
     has_groupoid.compatible _ (chart_mem_atlas H x) h,
   have A : times_cont_diff_on 𝕜 ⊤
     (I ∘ ((chart_at H x).symm.trans e) ∘ I.symm)
     (I.symm ⁻¹' ((chart_at H x).symm.trans e).source ∩ range I) :=
     this.1,
-  have B := A.differentiable_on (by simp) (I ((chart_at H x : M → H) x)) mem,
-  simp only [local_homeomorph.coe_trans, local_homeomorph.trans_to_local_equiv,
-    local_homeomorph.symm_to_local_equiv] at B,
+  have B := A.differentiable_on le_top (I ((chart_at H x : M → H) x)) mem,
+  simp only [] with mfld_simps at B,
   rw [inter_comm, differentiable_within_at_inter] at B,
-  { simpa [written_in_ext_chart_at, ext_chart_at] },
+  { simpa only [] with mfld_simps },
   { apply mem_nhds_sets (I.continuous_symm _ (local_homeomorph.open_source _)) mem.1 }
 end
 
@@ -998,21 +986,17 @@ lemma mdifferentiable_at_atlas_symm (h : e ∈ atlas H M) {x : H} (hx : x ∈ e.
 begin
   refine ⟨(e.continuous_on_symm x hx).continuous_at (mem_nhds_sets e.open_target hx), _⟩,
   have mem : I x ∈ I.symm ⁻¹' (e.symm ≫ₕ chart_at H (e.symm x)).source ∩ range (I),
-  by simp only [local_equiv.trans_source, mem_preimage, mem_inter_eq, model_with_corners.left_inv,
-    hx, true_and, mem_range_self, mem_chart_source, local_homeomorph.coe_coe_symm,
-    local_homeomorph.trans_to_local_equiv, local_equiv.symm_source,
-    local_homeomorph.symm_to_local_equiv],
+    by simp only [hx] with mfld_simps,
   have : e.symm.trans (chart_at H (e.symm x)) ∈ times_cont_diff_groupoid ⊤ I :=
     has_groupoid.compatible _ h (chart_mem_atlas H _),
   have A : times_cont_diff_on 𝕜 ⊤
     (I ∘ (e.symm.trans (chart_at H (e.symm x))) ∘ I.symm)
     (I.symm ⁻¹' (e.symm.trans (chart_at H (e.symm x))).source ∩ range I) :=
     this.1,
-  have B := A.differentiable_on (by simp) (I x) mem,
-  simp only [local_homeomorph.coe_trans, local_homeomorph.trans_to_local_equiv,
-    local_homeomorph.symm_to_local_equiv] at B,
+  have B := A.differentiable_on le_top (I x) mem,
+  simp only [] with mfld_simps at B,
   rw [inter_comm, differentiable_within_at_inter] at B,
-  { simpa [written_in_ext_chart_at, ext_chart_at] },
+  { simpa only [] with mfld_simps },
   { apply (mem_nhds_sets (I.continuous_symm _ (local_homeomorph.open_source _)) mem.1) }
 end
 
@@ -1047,10 +1031,9 @@ begin
   rw mdifferentiable_at.mfderiv (mdifferentiable_at_atlas_symm _ (chart_mem_atlas _ _) h),
   -- a trivial instance is needed after the rewrite, handle it right now.
   rotate, { apply_instance },
-  simp [written_in_ext_chart_at, ext_chart_at, chart_at, charted_space.chart_at,
-    basic_smooth_bundle_core.chart, basic_smooth_bundle_core.to_topological_fiber_bundle_core,
-    topological_fiber_bundle_core.local_triv, topological_fiber_bundle_core.local_triv',
-    tangent_bundle_core, h]
+  simp only [chart_at, basic_smooth_bundle_core.chart, topological_fiber_bundle_core.local_triv,
+    basic_smooth_bundle_core.to_topological_fiber_bundle_core,
+    topological_fiber_bundle_core.local_triv', tangent_bundle_core, h] with mfld_simps
 end
 
 end charts
@@ -1082,7 +1065,7 @@ by simp [unique_mdiff_on, unique_diff_on, unique_mdiff_within_at_iff_unique_diff
 
 @[simp, mfld_simps] lemma written_in_ext_chart_model_space :
   written_in_ext_chart_at (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') x f = f :=
-by { ext y, simp [written_in_ext_chart_at] }
+by { ext y, simp only [] with mfld_simps }
 
 /-- For maps between vector spaces, `mdifferentiable_within_at` and `fdifferentiable_within_at`
 coincide -/
@@ -1090,7 +1073,7 @@ theorem mdifferentiable_within_at_iff_differentiable_within_at :
   mdifferentiable_within_at (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') f s x
   ↔ differentiable_within_at 𝕜 f s x :=
 begin
-  simp [mdifferentiable_within_at],
+  simp only [mdifferentiable_within_at] with mfld_simps,
   exact ⟨λH, H.2, λH, ⟨H.continuous_within_at, H⟩⟩
 end
 
@@ -1099,7 +1082,7 @@ theorem mdifferentiable_at_iff_differentiable_at :
   mdifferentiable_at (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') f x
   ↔ differentiable_at 𝕜 f x :=
 begin
-  simp [mdifferentiable_at, differentiable_within_at_univ],
+  simp only [mdifferentiable_at, differentiable_within_at_univ] with mfld_simps,
   exact ⟨λH, H.2, λH, ⟨H.continuous_at, H⟩⟩
 end
 
@@ -1107,13 +1090,14 @@ end
 theorem mdifferentiable_on_iff_differentiable_on :
   mdifferentiable_on (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') f s
   ↔ differentiable_on 𝕜 f s :=
-by simp [mdifferentiable_on, differentiable_on, mdifferentiable_within_at_iff_differentiable_within_at]
+by simp only [mdifferentiable_on, differentiable_on,
+              mdifferentiable_within_at_iff_differentiable_within_at]
 
 /-- For maps between vector spaces, `mdifferentiable` and `differentiable` coincide -/
 theorem mdifferentiable_iff_differentiable :
   mdifferentiable (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') f
   ↔ differentiable 𝕜 f :=
-by simp [mdifferentiable, differentiable, mdifferentiable_at_iff_differentiable_at]
+by simp only [mdifferentiable, differentiable, mdifferentiable_at_iff_differentiable_at]
 
 /-- For maps between vector spaces, `mfderiv_within` and `fderiv_within` coincide -/
 theorem mfderiv_within_eq_fderiv_within :
@@ -1121,14 +1105,14 @@ theorem mfderiv_within_eq_fderiv_within :
   = fderiv_within 𝕜 f s x :=
 begin
   by_cases h : mdifferentiable_within_at (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') f s x,
-  { simp [mfderiv_within, h] },
-  { simp [mfderiv_within, h],
+  { simp only [mfderiv_within, h, dif_pos] with mfld_simps },
+  { simp only [mfderiv_within, h, dif_neg, not_false_iff],
     rw [mdifferentiable_within_at_iff_differentiable_within_at,
         differentiable_within_at] at h,
     change ¬(∃(f' : tangent_space (model_with_corners_self 𝕜 E) x →L[𝕜]
                     tangent_space (model_with_corners_self 𝕜 E') (f x)),
             has_fderiv_within_at f f' s x) at h,
-    simp [fderiv_within, h] }
+    simp only [fderiv_within, h, dif_neg, not_false_iff] }
 end
 
 /-- For maps between vector spaces, `mfderiv` and `fderiv` coincide -/
@@ -1186,7 +1170,7 @@ begin
   have : e.source ∈ 𝓝 x := mem_nhds_sets e.open_source hx,
   apply filter.mem_sets_of_superset this,
   assume p hp,
-  simp [e.left_inv, hp]
+  simp only [hp] with mfld_simps
 end
 
 lemma comp_symm_deriv {x : M'} (hx : x ∈ e.target) :
@@ -1225,11 +1209,11 @@ lemma trans (he': e'.mdifferentiable I' I'') : (e.trans e').mdifferentiable I I'
 begin
   split,
   { assume x hx,
-    simp [local_equiv.trans_source] at hx,
+    simp only [] with mfld_simps at hx,
     exact ((he'.mdifferentiable_at hx.2).comp _
            (he.mdifferentiable_at hx.1)).mdifferentiable_within_at },
   { assume x hx,
-    simp [local_equiv.trans_target] at hx,
+    simp only [] with mfld_simps at hx,
     exact ((he.symm.mdifferentiable_at hx.2).comp _
            (he'.symm.mdifferentiable_at hx.1)).mdifferentiable_within_at }
 end
@@ -1263,8 +1247,8 @@ begin
   derivative preserves the unique derivative property.-/
   assume x hx,
   let z := e.symm x,
-  have z_source : z ∈ e.source, by simp [hx.1, local_equiv.map_target],
-  have zx : e z = x, by simp [z, hx.1],
+  have z_source : z ∈ e.source, by simp only [hx.1] with mfld_simps,
+  have zx : e z = x, by simp only [z, hx.1] with mfld_simps,
   let F := ext_chart_at I z,
   -- the unique derivative property at `z` is expressed through its preferred chart, that we call `F`.
   have B : unique_diff_within_at 𝕜
@@ -1273,7 +1257,7 @@ begin
     have S : e.source ∩ e ⁻¹' ((ext_chart_at I' x).source) ∈ 𝓝 z,
     { apply mem_nhds_sets,
       apply e.continuous_on.preimage_open_of_open e.open_source (ext_chart_at_open_source I' x),
-      simp [z_source, zx] },
+      simp only [z_source, zx] with mfld_simps },
     have := this.inter S,
     rw [unique_mdiff_within_at_iff] at this,
     exact this },
@@ -1286,10 +1270,10 @@ begin
     have B := mdifferentiable_of_mem_atlas I' (chart_mem_atlas H' x),
     exact A.symm.trans (he.trans B) },
   have Mmem : (chart_at H z : M → H) z ∈ ((chart_at H z).symm ≫ₕ e ≫ₕ (chart_at H' x)).source,
-    by simp [local_equiv.trans_source, local_equiv.map_source, z_source, zx],
+    by simp only [z_source, zx] with mfld_simps,
   have A : differentiable_within_at 𝕜 G (range I) (F z),
   { refine (Diff.mdifferentiable_at Mmem).2.congr (λp hp, _) _;
-    simp [G, written_in_ext_chart_at, ext_chart_at, F] },
+    simp only [G, F] with mfld_simps },
   -- let `G'` be its derivative
   let G' := fderiv_within 𝕜 G (range I) (F z),
   have D₁ : has_fderiv_within_at G G' (range I) (F z) :=
@@ -1298,7 +1282,7 @@ begin
     (F.symm ⁻¹' (s ∩ (e.source ∩ e ⁻¹' ((ext_chart_at I' x).source))) ∩ F.target) (F z),
   { apply D₁.mono,
     refine subset.trans (inter_subset_right _ _) _,
-    simp [F, ext_chart_at, local_equiv.trans_target] },
+    simp only [F] with mfld_simps },
   -- The derivative `G'` is onto, as it is the derivative of a local diffeomorphism, the composition
   -- of the two charts and of `e`.
   have C₁ : range (G' : E → E') = univ,
@@ -1311,7 +1295,7 @@ begin
   have key : unique_diff_within_at 𝕜
     (G '' (F.symm ⁻¹' (s ∩ (e.source ∩ e ⁻¹' ((ext_chart_at I' x).source))) ∩ F.target))
     (G (F z)) := D₂.unique_diff_within_at B C₂,
-  have : G (F z) = (ext_chart_at I' x) x, by { dsimp [G, F], simp [hx.1] },
+  have : G (F z) = (ext_chart_at I' x) x, by { dsimp [G, F], simp only [hx.1] with mfld_simps },
   rw this at key,
   apply key.mono,
   show G '' (F.symm ⁻¹' (s ∩ (e.source ∩ e ⁻¹' ((ext_chart_at I' x).source))) ∩ F.target) ⊆
@@ -1319,7 +1303,7 @@ begin
       range (I'),
   rw image_subset_iff,
   rintros p ⟨⟨hp₁, ⟨hp₂, hp₄⟩⟩, hp₃⟩,
-  simp [G, local_equiv.map_source, hp₂, hp₁, mem_preimage.1 hp₄, -mem_range, mem_range_self],
+  simp only [G, hp₂, hp₁, mem_preimage.1 hp₄, -ext_chart_at] with mfld_simps,
   exact mem_range_self _
 end
 
@@ -1331,21 +1315,16 @@ begin
   -- this is just a reformulation of `unique_mdiff_on.unique_mdiff_on_preimage`, using as `e`
   -- the local chart at `x`.
   assume z hz,
-  simp [ext_chart_at, local_equiv.trans_target, -mem_range] at hz,
+  simp only [] with mfld_simps at hz,
   have : (chart_at H x).mdifferentiable I I := mdifferentiable_chart _ _,
   have T := (hs.unique_mdiff_on_preimage this) (I.symm z),
-  simp only [ext_chart_at, hz.left.left, hz.left.right, hz.right, local_equiv.trans_target,
-    unique_mdiff_within_at, local_equiv.refl_trans, forall_prop_of_true, model_with_corners.target,
-    mem_inter_eq, preimage_inter, mem_preimage, chart_at_model_space_eq,
-    local_homeomorph.refl_local_equiv, and_self, model_with_corners.right_inv,
-    local_equiv.coe_trans_symm, model_with_corners.to_local_equiv_coe_symm,
-    local_homeomorph.coe_coe_symm, model_with_corners.to_local_equiv_coe] at ⊢ T,
+  simp only [hz.left.left, hz.left.right, hz.right, unique_mdiff_within_at] with mfld_simps at ⊢ T,
   convert T using 1,
   rw @preimage_comp _ _ _ _ (chart_at H x).symm,
   -- it remains to show that `(a ∩ b) ∩ c` = `(b ∩ c) ∩ a`, which finish can do but very slowly
   ext p,
   split;
-  { assume hp, simp at hp, simp [hp] }
+  { assume hp, simp only [] with mfld_simps at hp, simp only [hp] with mfld_simps }
 end
 
 /-- When considering functions between manifolds, this statement shows up often. It entails
@@ -1377,7 +1356,7 @@ begin
   reduce the situation to the model space, where we can use the fact that products respect
   unique differentiability. -/
   assume p hp,
-  replace hp : p.fst ∈ s, by simpa using hp,
+  replace hp : p.fst ∈ s, by simpa only [] with mfld_simps using hp,
   let e₀ := chart_at H p.1,
   let e := chart_at (H × F) p,
   -- It suffices to prove unique differentiability in a chart
@@ -1390,11 +1369,11 @@ begin
       apply_instance },
     have : p ∈ e.symm.target ∩
       e.symm.symm ⁻¹' (e.target ∩ e.symm⁻¹' (Z.to_topological_fiber_bundle_core.proj ⁻¹' s)),
-        by simp [e, hp],
+        by simp only [e, hp] with mfld_simps,
     apply (A _ this).mono,
     assume q hq,
-    simp [e, local_homeomorph.left_inv _ hq.1] at hq,
-    simp [hq] },
+    simp only [e, local_homeomorph.left_inv _ hq.1] with mfld_simps at hq,
+    simp only [hq] with mfld_simps },
   -- rewrite the relevant set in the chart as a direct product
   have : (λ (p : E × F), (I.symm p.1, p.snd)) ⁻¹' e.target ∩
          (λ (p : E × F), (I.symm p.1, p.snd)) ⁻¹' (e.symm ⁻¹' (prod.fst ⁻¹' s)) ∩
@@ -1403,24 +1382,21 @@ begin
   { ext q,
     split;
     { assume hq,
-      simp [-mem_range, mem_range_self, prod_range_univ_eq.symm] at hq,
-      simp [-mem_range, mem_range_self, hq, prod_range_univ_eq.symm] } },
+      simp only [prod_range_univ_eq.symm] with mfld_simps at hq,
+      simp only [hq, prod_range_univ_eq.symm] with mfld_simps } },
   assume q hq,
   replace hq : q.1 ∈ (chart_at H p.1).target ∧ ((chart_at H p.1).symm : H → M) q.1 ∈ s,
-    by simpa using hq,
-  simp only [unique_mdiff_within_at, ext_chart_at, model_with_corners.prod, local_equiv.refl_trans,
-    topological_fiber_bundle_core.proj, id.def, preimage_inter, chart_at_model_space_eq,
-    local_homeomorph.refl_local_equiv, this, model_with_corners.mk_coe, local_equiv.coe_mk,
-    model_with_corners_self_coe, local_equiv.coe_symm_mk, model_with_corners_self_coe_symm],
+    by simpa only [] with mfld_simps using hq,
+  simp only [unique_mdiff_within_at, model_with_corners.prod, preimage_inter, this] with mfld_simps,
   -- apply unique differentiability of products to conclude
   apply unique_diff_on.prod _ unique_diff_on_univ,
-  { simp [-mem_range, mem_range_self, hq] },
+  { simp only [hq] with mfld_simps },
   { assume x hx,
     have A : unique_mdiff_on I (e₀.target ∩ e₀.symm⁻¹' s),
     { apply hs.unique_mdiff_on_preimage,
       exact (mdifferentiable_of_mem_atlas _ (chart_mem_atlas _ _)),
       apply_instance },
-    simp [unique_mdiff_on, unique_mdiff_within_at, ext_chart_at] at A,
+    simp only [unique_mdiff_on, unique_mdiff_within_at, preimage_inter] with mfld_simps at A,
     have B := A (I.symm x) hx.1.1 hx.1.2,
     rwa [← preimage_inter, model_with_corners.right_inv _ hx.2] at B }
 end

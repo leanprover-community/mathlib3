@@ -727,14 +727,40 @@ lemma eq_zero_of_mul_self_eq_zero [has_mul α] [has_zero α] [no_zero_divisors �
   {a : α} (h : a * a = 0) : a = 0 :=
 or.elim (eq_zero_or_eq_zero_of_mul_eq_zero h) (assume h', h') (assume h', h')
 
-@[simp] theorem mul_eq_zero [mul_zero_class α] [no_zero_divisors α] {a b : α} :
-  a * b = 0 ↔ a = 0 ∨ b = 0 :=
+section
+
+variables [mul_zero_class α] [no_zero_divisors α]
+
+/-- If `α` has no zero divisors, then the product of two elements equals zero iff one of them
+equals zero. -/
+@[simp] theorem mul_eq_zero {a b : α} : a * b = 0 ↔ a = 0 ∨ b = 0 :=
 ⟨eq_zero_or_eq_zero_of_mul_eq_zero, λo,
   or.elim o (λh, by rw h; apply zero_mul) (λh, by rw h; apply mul_zero)⟩
 
-@[simp] theorem zero_eq_mul [mul_zero_class α] [no_zero_divisors α] {a b : α} :
-  0 = a * b ↔ a = 0 ∨ b = 0 :=
+/-- If `α` has no zero divisors, then the product of two elements equals zero iff one of them
+equals zero. -/
+@[simp] theorem zero_eq_mul {a b : α} : 0 = a * b ↔ a = 0 ∨ b = 0 :=
 by rw [eq_comm, mul_eq_zero]
+
+/-- If `α` has no zero divisors, then the product of two elements is nonzero iff both of them
+are nonzero. -/
+theorem mul_ne_zero {a b : α} : a * b ≠ 0 ↔ a ≠ 0 ∧ b ≠ 0 :=
+(not_congr mul_eq_zero).trans not_or_distrib
+
+/-- If `α` has no zero divisors, then for elements `a, b : α`, `a * b` equals zero iff so is
+`b * a`. -/
+theorem mul_eq_zero_comm {a b : α} : a * b = 0 ↔ b * a = 0 :=
+mul_eq_zero.trans $ (or_comm _ _).trans mul_eq_zero.symm
+
+/-- If `α` has no zero divisors, then for elements `a, b : α`, `a * b` is nonzero iff so is
+`b * a`. -/
+theorem mul_ne_zero_comm {a b : α} : a * b ≠ 0 ↔ b * a ≠ 0 :=
+not_congr mul_eq_zero_comm
+
+lemma mul_self_eq_zero {x : α} : x * x = 0 ↔ x = 0 := by simp
+lemma zero_eq_mul_self {x : α} : 0 = x * x ↔ x = 0 := by simp
+
+end
 
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
@@ -751,13 +777,6 @@ instance domain.to_no_zero_divisors : no_zero_divisors α :=
 
 instance domain.to_nonzero : nonzero α :=
 ⟨domain.zero_ne_one⟩
-
-lemma mul_self_eq_zero {α} [domain α] {x : α} : x * x = 0 ↔ x = 0 := by simp
-lemma zero_eq_mul_self {α} [domain α] {x : α} : 0 = x * x ↔ x = 0 := by simp
-
-/-- The product of two nonzero elements of a domain is nonzero. -/
-theorem mul_ne_zero' {a b : α} (h₁ : a ≠ 0) (h₂ : b ≠ 0) : a * b ≠ 0 :=
-λ h, or.elim (eq_zero_or_eq_zero_of_mul_eq_zero h) h₁ h₂
 
 /-- Right multiplication by a nonzero element in a domain is injective. -/
 theorem domain.mul_left_inj {a b c : α} (ha : a ≠ 0) : b * a = c * a ↔ b = c :=
@@ -781,10 +800,6 @@ theorem eq_zero_of_mul_eq_self_left' {a b : α} (h₁ : b ≠ 1) (h₂ : b * a =
 by apply (mul_eq_zero.1 _).resolve_left (sub_ne_zero.2 h₁);
     rw [mul_sub_right_distrib, one_mul, sub_eq_zero, h₂]
 
-/-- For elements `a`, `b` of a domain, if `a*b` is nonzero, so is `b*a`. -/
-theorem mul_ne_zero_comm' {a b : α} (h : a * b ≠ 0) : b * a ≠ 0 :=
-mul_ne_zero' (ne_zero_of_mul_ne_zero_left h) (ne_zero_of_mul_ne_zero_right h)
-
 end domain
 
 /- integral domains -/
@@ -798,9 +813,6 @@ variables [integral_domain α] {a b c d e : α}
 lemma mul_eq_zero_iff_eq_zero_or_eq_zero : a * b = 0 ↔ a = 0 ∨ b = 0 :=
 ⟨eq_zero_or_eq_zero_of_mul_eq_zero, λo,
   or.elim o (λh, by rw h; apply zero_mul) (λh, by rw h; apply mul_zero)⟩
-
-lemma mul_ne_zero (h₁ : a ≠ 0) (h₂ : b ≠ 0) : a * b ≠ 0 :=
-λ h, or.elim (eq_zero_or_eq_zero_of_mul_eq_zero h) (assume h₃, h₁ h₃) (assume h₄, h₂ h₄)
 
 lemma eq_of_mul_eq_mul_right (ha : a ≠ 0) (h : b * a = c * a) : b = c :=
 have b * a - c * a = 0, from sub_eq_zero_of_eq h,

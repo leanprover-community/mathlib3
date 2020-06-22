@@ -735,8 +735,7 @@ lemma with_top.cases (a : with_top ℤ) : a = ⊤ ∨ ∃ n : ℤ, a = n :=
 begin
   cases a with n,
   { left,
-    refl,
-  },
+    refl },
   { right,
     use n,
     refl,

@@ -337,11 +337,7 @@ end
 
 lemma eval₂_smul (g : R →+* S) (p : polynomial R) (x : S) {s : R} :
   eval₂ g x (s • p) = g s * eval₂ g x p :=
-begin
-  convert (show eval₂ g x (C s * p) = g s * eval₂ g x p, by rw [eval₂_mul, eval₂_C]),
-  ext,
-  rw [coeff_smul, coeff_C_mul]
-end
+by rw [← C_mul', eval₂_mul, eval₂_C]
 
 instance eval₂.is_semiring_hom : is_semiring_hom (eval₂ f x) :=
 ⟨eval₂_zero _ _, eval₂_one _ _, λ _ _, eval₂_add _ _, λ _ _, eval₂_mul _ _⟩

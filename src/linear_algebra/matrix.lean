@@ -472,7 +472,7 @@ by { rw [trace, dif_pos this, ← trace_aux_def], congr' 1, apply trace_aux_eq }
 theorem trace_mul_comm (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
   (f g : M →ₗ[R] M) : trace R M (f * g) = trace R M (g * f) :=
 if H : ∃ s : finset M, is_basis R (λ x, x : (↑s : set M) → M) then let ⟨s, hb⟩ := H in
-by { simp_rw [trace_apply R hb, matrix.linear_equiv_matrix_mul], apply matrix.trace_mul_comm }
+by { simp_rw [trace_eq_matrix_trace R hb, matrix.linear_equiv_matrix_mul], apply matrix.trace_mul_comm }
 else by rw [trace, dif_neg H, linear_map.zero_apply, linear_map.zero_apply]
 
 end linear_map

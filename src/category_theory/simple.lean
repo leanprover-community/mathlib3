@@ -25,7 +25,7 @@ class simple (X : C) : Type (max u v) :=
 
 @[ext] lemma simple.ext {X : C} {a b : simple.{v} X} : a = b :=
 begin
-  unfreezingI { cases a, cases b },
+  casesI a, casesI b,
   congr,
   funext Y f m,
   ext,

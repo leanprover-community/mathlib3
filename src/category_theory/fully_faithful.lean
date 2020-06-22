@@ -156,7 +156,7 @@ lemma faithful.div_comp (F : C ⥤ E) [faithful F] (G : D ⥤ E) [faithful G]
   (h_map : ∀ {X Y} {f : X ⟶ Y}, G.map (map f) == F.map f) :
   (faithful.div F G obj @h_obj @map @h_map) ⋙ G = F :=
 begin
-  unfreezingI { cases F with F_obj _ _ _, cases G with G_obj _ _ _ },
+  casesI F with F_obj _ _ _, casesI G with G_obj _ _ _,
   unfold faithful.div functor.comp,
   unfold_projs at h_obj,
   have: F_obj = G_obj ∘ obj := (funext h_obj).symm,

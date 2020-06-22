@@ -58,7 +58,7 @@ variables {C}
 private lemma ext_aux (I J : has_zero_morphisms.{v} C)
   (w : ∀ X Y : C, (@has_zero_morphisms.has_zero.{v} _ _ I X Y).zero = (@has_zero_morphisms.has_zero.{v} _ _ J X Y).zero) : I = J :=
 begin
-  unfreezingI { cases I, cases J },
+  casesI I, casesI J,
   congr,
   { ext X Y,
     exact w X Y },

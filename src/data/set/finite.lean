@@ -370,7 +370,7 @@ namespace set
 lemma finite_subset_Union {s : set α} (hs : finite s)
   {ι} {t : ι → set α} (h : s ⊆ ⋃ i, t i) : ∃ I : set ι, finite I ∧ s ⊆ ⋃ i ∈ I, t i :=
 begin
-  unfreezingI { cases hs },
+  casesI hs,
   choose f hf using show ∀ x : s, ∃ i, x.1 ∈ t i, {simpa [subset_def] using h},
   refine ⟨range f, finite_range f, _⟩,
   rintro x hx,

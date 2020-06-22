@@ -635,7 +635,7 @@ begin
   have na := (NF_repr_split e₁).1,
   cases e₂ : split' o₂ with b' k,
   haveI := (NF_repr_split' e₂).1,
-  unfreezingI { cases a with a0 n a' },
+  casesI a with a0 n a',
   { cases m with m,
     { by_cases o₂ = 0; simp [pow, power, e₁, h]; apply_instance },
     { by_cases m = 0; simp [pow, power, e₁, e₂, h]; apply_instance } },

@@ -83,7 +83,7 @@ theorem order_top.ext {α} {A B : order_top α}
 begin
   have := partial_order.ext H,
   have tt := order_top.ext_top H,
-  unfreezingI { cases A, cases B },
+  casesI A, casesI B,
   injection this; congr'
 end
 
@@ -142,7 +142,7 @@ theorem order_bot.ext {α} {A B : order_bot α}
 begin
   have := partial_order.ext H,
   have tt := order_bot.ext_bot H,
-  unfreezingI { cases A, cases B },
+  casesI A, casesI B,
   injection this; congr'
 end
 
@@ -269,7 +269,7 @@ begin
   have H3 : @bounded_lattice.to_order_top α A =
              @bounded_lattice.to_order_top α B := order_top.ext H,
   have tt := order_bot.ext_bot H,
-  unfreezingI { cases A, cases B },
+  casesI A, casesI B,
   injection H1; injection H2; injection H3; congr'
 end
 

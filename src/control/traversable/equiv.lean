@@ -44,7 +44,7 @@ protected lemma is_lawful_functor' [F : _root_.functor t']
   _root_.is_lawful_functor t' :=
 begin
   have : F = equiv.functor,
-  { unfreezingI { cases F }, dsimp [equiv.functor],
+  { casesI F, dsimp [equiv.functor],
     congr; ext; [rw ← h₀, rw ← h₁] },
   substI this,
   exact equiv.is_lawful_functor

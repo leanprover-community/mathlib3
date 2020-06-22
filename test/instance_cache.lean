@@ -62,3 +62,10 @@ begin
   assert_frozen_instances,
   subst h, assumption
 end
+
+example (α β) (h : α = β) [inhabited α] : β :=
+begin
+  casesI _inst_1,
+  assert_frozen_instances,
+  subst h, assumption
+end

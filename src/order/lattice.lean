@@ -162,7 +162,7 @@ theorem semilattice_sup.ext {α} {A B : semilattice_sup α}
 begin
   have := partial_order.ext H,
   have ss := funext (λ x, funext $ semilattice_sup.ext_sup H x),
-  unfreezingI { cases A, cases B },
+  casesI A, casesI B,
   injection this; congr'
 end
 
@@ -296,7 +296,7 @@ theorem semilattice_inf.ext {α} {A B : semilattice_inf α}
 begin
   have := partial_order.ext H,
   have ss := funext (λ x, funext $ semilattice_inf.ext_inf H x),
-  unfreezingI { cases A, cases B },
+  casesI A, casesI B,
   injection this; congr'
 end
 
@@ -338,7 +338,7 @@ begin
   have SS : @lattice.to_semilattice_sup α A =
             @lattice.to_semilattice_sup α B := semilattice_sup.ext H,
   have II := semilattice_inf.ext H,
-  unfreezingI { cases A, cases B },
+  casesI A, casesI B,
   injection SS; injection II; congr'
 end
 

@@ -44,7 +44,7 @@ def short.mk' {x : pgame} [fintype x.left_moves] [fintype x.right_moves]
   (sL : ∀ i : x.left_moves, short (x.move_left i))
   (sR : ∀ j : x.right_moves, short (x.move_right j)) :
   short x :=
-by unfreezingI { cases x, dsimp at * }; exact short.mk sL sR
+by { casesI x, dsimp at *, exact short.mk sL sR }
 
 attribute [class] short
 
@@ -54,40 +54,40 @@ This is an unindexed typeclass, so it can't be made a global instance.
 -/
 def fintype_left {α β : Type u} {L : α → pgame.{u}} {R : β → pgame.{u}} [S : short ⟨α, β, L, R⟩] :
   fintype α :=
-by unfreezingI { cases S with _ _ _ _ _ _ F _ }; exact F
+by { casesI S with _ _ _ _ _ _ F _, exact F }
 local attribute [instance] fintype_left
 instance fintype_left_moves (x : pgame) [S : short x] : fintype (x.left_moves) :=
-by unfreezingI { cases x }; dsimp; apply_instance
+by { casesI x, dsimp, apply_instance }
 /--
 Extracting the `fintype` instance for the indexing type for Right's moves in a short game.
 This is an unindexed typeclass, so it can't be made a global instance.
 -/
 def fintype_right {α β : Type u} {L : α → pgame.{u}} {R : β → pgame.{u}} [S : short ⟨α, β, L, R⟩] :
   fintype β :=
-by unfreezingI { cases S with _ _ _ _ _ _ _ F}; exact F
+by { casesI S with _ _ _ _ _ _ _ F, exact F }
 local attribute [instance] fintype_right
 instance fintype_right_moves (x : pgame) [S : short x] : fintype (x.right_moves) :=
-by unfreezingI { cases x }; dsimp; apply_instance
+by { casesI x, dsimp, apply_instance }
 
 instance move_left_short (x : pgame) [S : short x] (i : x.left_moves) : short (x.move_left i) :=
-by unfreezingI { cases S with _ _ _ _ L _ _ _ }; apply L
+by { casesI S with _ _ _ _ L _ _ _, apply L }
 /--
 Extracting the `short` instance for a move by Left.
 This would be a dangerous instance potentially introducing new metavariables
 in typeclass search, so we only make it an instance locally.
 -/
 def move_left_short' {xl xr} (xL xR) [S : short (mk xl xr xL xR)] (i : xl) : short (xL i) :=
-by unfreezingI { cases S with _ _ _ _ L _ _ _}; apply L
+by { casesI S with _ _ _ _ L _ _ _, apply L }
 local attribute [instance] move_left_short'
 instance move_right_short (x : pgame) [S : short x] (j : x.right_moves) : short (x.move_right j) :=
-by unfreezingI { cases S with _ _ _ _ _ R _ _ }; apply R
+by { casesI S with _ _ _ _ _ R _ _, apply R }
 /--
 Extracting the `short` instance for a move by Right.
 This would be a dangerous instance potentially introducing new metavariables
 in typeclass search, so we only make it an instance locally.
 -/
 def move_right_short' {xl xr} (xL xR) [S : short (mk xl xr xL xR)] (j : xr) : short (xR j) :=
-by unfreezingI { cases S with _ _ _ _ _ R _ _ }; apply R
+by { casesI S with _ _ _ _ _ R _ _, apply R }
 local attribute [instance] move_right_short'
 
 instance short.of_pempty {xL} {xR} : short (mk pempty pempty xL xR) :=

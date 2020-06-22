@@ -52,6 +52,10 @@ meta def resetI := reset_instance_cache
 meta def substI (q : parse texpr) : tactic unit :=
 unfreezingI (subst q)
 
+/-- Like `cases`, but can also be used with instance arguments. -/
+meta def casesI (p : parse cases_arg_p) (q : parse with_ident_list) : tactic unit :=
+unfreezingI (cases p q)
+
 /-- Like `intro`, but uses the introduced variable
 in typeclass inference. -/
 meta def introI (p : parse ident_?) : tactic unit :=
@@ -126,6 +130,8 @@ by its variant `haveI` described below.
 * `introI`/`introsI`: `intro`/`intros` followed by `resetI`. Like
   `intro`/`intros`, but uses the introduced variable in typeclass inference.
 
+* `casesI`: like `cases`, but can also be used with instance arguments.
+
 * `substI`: like `subst`, but can also substitute in type-class arguments
 
 * `haveI`/`letI`: `have`/`let` followed by `resetI`. Used to add typeclasses
@@ -140,7 +146,8 @@ by its variant `haveI` described below.
 add_tactic_doc
 { name        := "Instance cache tactics",
   category    := doc_category.tactic,
-  decl_names  := [``resetI, ``unfreezingI, ``substI, ``introI, ``introsI, ``haveI, ``letI, ``exactI],
+  decl_names  := [``resetI, ``unfreezingI, ``casesI, ``substI, ``introI, ``introsI, ``haveI, ``letI,
+                  ``exactI],
   tags        := ["type class", "context management"] }
 
 end interactive

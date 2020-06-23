@@ -253,8 +253,7 @@ omit dec
 lemma finite_supp (f : Π₀ i, β i) : set.finite {i | f i ≠ 0} :=
 begin
   classical,
-  exact quotient.induction_on f (λ x, set.finite_subset
-  (finset.finite_to_set x.2.to_finset) (λ i H,
+  exact quotient.induction_on f (λ x, x.2.to_finset.finite_to_set.subset (λ i H,
     multiset.mem_to_finset.2 ((x.3 i).resolve_right H)))
 end
 include dec

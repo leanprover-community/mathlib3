@@ -82,7 +82,7 @@ have x_mem_A' : ∀ {N x}, (x ∈ ⋃ M ≤ N, ⋃ k ≤ N, A M k) → x ∈ A' 
 have F_finite : ∀ {N}, finite (range (F N)) :=
 begin
   assume N, apply finite_range_ite,
-  { rw range_comp, apply finite_image, exact finite_range_find_greatest },
+  { rw range_comp, exact finite_range_find_greatest.image _ },
   { exact finite_range_const }
 end,
 -- prove that for all N, (F N) is a measurable function

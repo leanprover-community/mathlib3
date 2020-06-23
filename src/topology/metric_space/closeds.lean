@@ -210,14 +210,14 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
   -- `F` is finite
   { apply @finite_of_finite_image _ _ F (λf, f.val),
     { exact subtype.val_injective.inj_on F },
-    { refine finite_subset (finite_subsets_of_finite fs) (λb, _),
+    { refine fs.finite_subsets.subset (λb, _),
       simp only [and_imp, set.mem_image, set.mem_set_of_eq, exists_imp_distrib],
       assume x hx hx',
       rwa hx' at hx }},
   -- `F` is ε-dense
   { assume u _,
     rcases main u.val with ⟨t0, t0s, Dut0⟩,
-    have : is_closed t0 := closed_of_compact _ (finite_subset fs t0s).compact,
+    have : is_closed t0 := closed_of_compact _ (fs.subset t0s).compact,
     let t : closeds α := ⟨t0, this⟩,
     have : t ∈ F := t0s,
     have : edist u t < ε := lt_of_le_of_lt Dut0 δlt,
@@ -334,7 +334,7 @@ begin
       -- a : set α,  af : finite a,  ta : t.val ⊆ ⋃ (y : α) (H : y ∈ a), eball y (δ / 2)
       -- replace each center by a nearby approximation in `s`, giving a new set `b`
       let b := F '' a,
-      have : finite b := finite_image _ af,
+      have : finite b := af.image _,
       have tb : ∀x ∈ t.val, ∃y ∈ b, edist x y < δ,
       { assume x hx,
         rcases mem_bUnion_iff.1 (ta hx) with ⟨z, za, Dxz⟩,
@@ -344,7 +344,7 @@ begin
              ... = δ : ennreal.add_halves _ },
       -- keep only the points in `b` that are close to point in `t`, yielding a new set `c`
       let c := {y ∈ b | ∃x∈t.val, edist x y < δ},
-      have : finite c := finite_subset ‹finite b› (λx hx, hx.1),
+      have : finite c := ‹finite b›.subset (λx hx, hx.1),
       -- points in `t` are well approximated by points in `c`
       have tc : ∀x ∈ t.val, ∃y ∈ c, edist x y ≤ δ,
       { assume x hx,

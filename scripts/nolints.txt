@@ -729,14 +729,6 @@ apply_nolint ring_equiv.to_mul_equiv doc_blame
 -- data/fin.lean
 apply_nolint fin.add_nat_val unused_arguments
 
--- data/finmap.lean
-apply_nolint finmap.all doc_blame
-apply_nolint finmap.any doc_blame
-apply_nolint finmap.disjoint doc_blame unused_arguments
-apply_nolint finmap.foldl unused_arguments
-apply_nolint finmap.sdiff doc_blame
-apply_nolint list.to_finmap doc_blame
-
 -- data/fintype/basic.lean
 apply_nolint finset.insert_none doc_blame
 apply_nolint fintype.bij_inv unused_arguments
@@ -1718,10 +1710,6 @@ apply_nolint mv_power_series.inv doc_blame
 apply_nolint mv_power_series.trunc_fun doc_blame
 apply_nolint power_series.inv doc_blame
 apply_nolint power_series.inv.aux doc_blame
-
--- ring_theory/principal_ideal_domain.lean
-apply_nolint principal_ideal_domain doc_blame
-apply_nolint principal_ideal_domain.factors doc_blame
 
 -- ring_theory/subring.lean
 apply_nolint ring.closure doc_blame

@@ -119,8 +119,8 @@ lemma countable_Union {t : α → set β} [encodable α] (ht : ∀a, countable (
 by haveI := (λ a, (ht a).to_encodable);
    rw Union_eq_range_sigma; apply countable_range
 
-lemma countable.bUnion {s : set α} {t : α → set β} (hs : countable s) (ht : ∀a∈s, countable (t a)) :
-  countable (⋃a∈s, t a) :=
+lemma countable.bUnion {s : set α} {t : Π x ∈ s, set β} (hs : countable s) (ht : ∀a∈s, countable (t a ‹_›)) :
+  countable (⋃a∈s, t a ‹_›) :=
 begin
   rw bUnion_eq_Union,
   haveI := hs.to_encodable,

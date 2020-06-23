@@ -25,7 +25,7 @@ open_locale classical
 
 open filter encodable set
 
-variables {α : Type*} {β : Type*} {γ : Type*}
+variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 section is_Gδ
 variable [topological_space α]
@@ -38,43 +38,50 @@ def is_Gδ (s : set α) : Prop :=
 lemma is_open.is_Gδ {s : set α} (h : is_open s) : is_Gδ s :=
 ⟨{s}, by simp [h], countable_singleton _, (set.sInter_singleton _).symm⟩
 
-lemma is_Gδ_bInter_of_open {ι : Type*} {I : set ι} (hI : countable I) {f : ι → set α}
+lemma is_Gδ_univ : is_Gδ (univ : set α) := is_open_univ.is_Gδ
+
+lemma is_Gδ_bInter_of_open {I : set ι} (hI : countable I) {f : ι → set α}
   (hf : ∀i ∈ I, is_open (f i)) : is_Gδ (⋂i∈I, f i) :=
 ⟨f '' I, by rwa ball_image_iff, hI.image _, by rw sInter_image⟩
 
-lemma is_Gδ_Inter_of_open {ι : Type*} [encodable ι] {f : ι → set α}
+lemma is_Gδ_Inter_of_open [encodable ι] {f : ι → set α}
   (hf : ∀i, is_open (f i)) : is_Gδ (⋂i, f i) :=
 ⟨range f, by rwa forall_range_iff, countable_range _, by rw sInter_range⟩
 
 /-- A countable intersection of Gδ sets is a Gδ set. -/
 lemma is_Gδ_sInter {S : set (set α)} (h : ∀s∈S, is_Gδ s) (hS : countable S) : is_Gδ (⋂₀ S) :=
 begin
-  have : ∀s : set α, ∃T : set (set α), s ∈ S → ((∀t ∈ T, is_open t) ∧ countable T ∧ s = (⋂₀ T)),
-  { assume s,
-    by_cases hs : s ∈ S,
-    { simp [hs], exact h s hs },
-    { simp [hs] }},
-  choose T hT using this,
-  refine ⟨⋃s∈S, T s, λt ht, _, _, _⟩,
-  { simp only [exists_prop, set.mem_Union] at ht,
-    rcases ht with ⟨s, hs, tTs⟩,
+  choose T hT using h,
+  refine ⟨_, _, _, (sInter_bUnion (λ s hs, (hT s hs).2.2)).symm⟩,
+  { simp only [mem_Union],
+    rintros t ⟨s, hs, tTs⟩,
     exact (hT s hs).1 t tTs },
   { exact hS.bUnion (λs hs, (hT s hs).2.1) },
-  { exact (sInter_bUnion (λs hs, (hT s hs).2.2)).symm }
 end
+
+lemma is_Gδ_Inter [encodable ι]  {s : ι → set α} (hs : ∀ i, is_Gδ (s i)) : is_Gδ (⋂ i, s i) :=
+is_Gδ_sInter (forall_range_iff.2 hs) $ countable_range s
+
+lemma is_Gδ_bInter {s : set ι} (hs : countable s) {t : Π i ∈ s, set α} (ht : ∀ i ∈ s, is_Gδ (t i ‹_›)) :
+  is_Gδ (⋂ i ∈ s, t i ‹_›) :=
+begin
+  rw [bInter_eq_Inter],
+  haveI := hs.to_encodable,
+  exact is_Gδ_Inter (λ x, ht x x.2)
+end
+
+lemma is_Gδ.inter {s t : set α} (hs : is_Gδ s) (ht : is_Gδ t) : is_Gδ (s ∩ t) :=
+by { rw inter_eq_Inter, exact is_Gδ_Inter (bool.forall_bool.2 ⟨ht, hs⟩) }
 
 /-- The union of two Gδ sets is a Gδ set. -/
 lemma is_Gδ.union {s t : set α} (hs : is_Gδ s) (ht : is_Gδ t) : is_Gδ (s ∪ t) :=
 begin
-  rcases hs with ⟨S, Sopen, Scount, sS⟩,
-  rcases ht with ⟨T, Topen, Tcount, tT⟩,
-  rw [sS, tT, sInter_union_sInter],
+  rcases hs with ⟨S, Sopen, Scount, rfl⟩,
+  rcases ht with ⟨T, Topen, Tcount, rfl⟩,
+  rw [sInter_union_sInter],
   apply is_Gδ_bInter_of_open (countable_prod Scount Tcount),
   rintros ⟨a, b⟩ hab,
-  simp only [set.prod_mk_mem_set_prod_eq] at hab,
-  have aopen : is_open a := Sopen a hab.1,
-  have bopen : is_open b := Topen b hab.2,
-  simp [aopen, bopen, is_open_union]
+  exact is_open_union (Sopen a hab.1) (Topen b hab.2)
 end
 
 end is_Gδ
@@ -224,39 +231,17 @@ theorem dense_sInter_of_Gδ {S : set (set α)} (ho : ∀s∈S, is_Gδ s) (hS : c
 begin
   -- the result follows from the result for a countable intersection of dense open sets,
   -- by rewriting each set as a countable intersection of open sets, which are of course dense.
-  have : ∀s : set α, ∃T : set (set α), s ∈ S → ((∀t ∈ T, is_open t) ∧ countable T ∧ s = (⋂₀ T)),
-  { assume s,
-    by_cases hs : s ∈ S,
-    { simp [hs], exact ho s hs },
-    { simp [hs] }},
-  choose T hT using this,
-  have : ⋂₀ S = ⋂₀ (⋃s∈S, T s) := (sInter_bUnion (λs hs, (hT s hs).2.2)).symm,
+  choose T hT using ho,
+  have : ⋂₀ S = ⋂₀ (⋃s∈S, T s ‹_›) := (sInter_bUnion (λs hs, (hT s hs).2.2)).symm,
   rw this,
-  refine dense_sInter_of_open (λt ht, _) (hS.bUnion (λs hs, (hT s hs).2.1)) (λt ht, _),
+  refine dense_sInter_of_open _ (hS.bUnion (λs hs, (hT s hs).2.1)) _;
+    simp only [set.mem_Union, exists_prop]; rintro t ⟨s, hs, tTs⟩,
   show is_open t,
-  { simp only [exists_prop, set.mem_Union] at ht,
-    rcases ht with ⟨s, hs, tTs⟩,
-    exact (hT s hs).1 t tTs },
+  { exact (hT s hs).1 t tTs },
   show closure t = univ,
-  { simp only [exists_prop, set.mem_Union] at ht,
-    rcases ht with ⟨s, hs, tTs⟩,
-    apply subset.antisymm (subset_univ _),
-    rw ← (hd s hs),
-    apply closure_mono,
-    have := sInter_subset_of_mem tTs,
-    rwa ← (hT s hs).2.2 at this }
-end
-
-/-- Baire theorem: a countable intersection of dense Gδ sets is dense. Formulated here with
-an index set which is a countable set in any type. -/
-theorem dense_bInter_of_Gδ {S : set β} {f : β → set α} (ho : ∀s∈S, is_Gδ (f s))
-  (hS : countable S) (hd : ∀s∈S, closure (f s) = univ) : closure (⋂s∈S, f s) = univ :=
-begin
-  rw ← sInter_image,
-  apply dense_sInter_of_Gδ,
-  { rwa ball_image_iff },
-  { exact hS.image _ },
-  { rwa ball_image_iff }
+  { apply eq_univ_of_univ_subset,
+    rw [← hd s hs, (hT s hs).2.2],
+    exact closure_mono (sInter_subset_of_mem tTs) }
 end
 
 /-- Baire theorem: a countable intersection of dense Gδ sets is dense. Formulated here with
@@ -265,10 +250,26 @@ theorem dense_Inter_of_Gδ [encodable β] {f : β → set α} (ho : ∀s, is_Gδ
   (hd : ∀s, closure (f s) = univ) : closure (⋂s, f s) = univ :=
 begin
   rw ← sInter_range,
-  apply dense_sInter_of_Gδ,
-  { rwa forall_range_iff },
-  { exact countable_range _ },
-  { rwa forall_range_iff }
+  exact dense_sInter_of_Gδ (forall_range_iff.2 ‹_›) (countable_range _) (forall_range_iff.2 ‹_›)
+end
+
+/-- Baire theorem: a countable intersection of dense Gδ sets is dense. Formulated here with
+an index set which is a countable set in any type. -/
+theorem dense_bInter_of_Gδ {S : set β} {f : Π x ∈ S, set α} (ho : ∀s∈S, is_Gδ (f s ‹_›))
+  (hS : countable S) (hd : ∀s∈S, closure (f s ‹_›) = univ) : closure (⋂s∈S, f s ‹_›) = univ :=
+begin
+  rw bInter_eq_Inter,
+  haveI := hS.to_encodable,
+  exact dense_Inter_of_Gδ (λ s, ho s s.2) (λ s, hd s s.2)
+end
+
+/-- Baire theorem: the intersection of two dense Gδ sets is dense. -/
+theorem dense_inter_of_Gδ {s t : set α} (hs : is_Gδ s) (ht : is_Gδ t) (hsc : closure s = univ)
+  (htc : closure t = univ) :
+  closure (s ∩ t) = univ :=
+begin
+  rw [inter_eq_Inter],
+  apply dense_Inter_of_Gδ; simp [bool.forall_bool, *]
 end
 
 /-- Baire theorem: if countably many closed sets cover the whole space, then their interiors
@@ -282,7 +283,7 @@ begin
     show is_open (g s), from is_open_compl_iff.2 is_closed_frontier,
     show closure (g s) = univ,
     { apply subset.antisymm (subset_univ _),
-     simp [g, interior_frontier (hc s hs)] }},
+      simp [interior_frontier (hc s hs)] }},
   have : (⋂s∈S, g s) ⊆ (⋃s∈S, interior (f s)),
   { assume x hx,
     have : x ∈ ⋃s∈S, f s, { have := mem_univ x, rwa ← hU at this },

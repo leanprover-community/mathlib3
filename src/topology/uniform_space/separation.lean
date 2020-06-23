@@ -13,7 +13,7 @@ import tactic.apply_fun
 This file studies uniform spaces whose underlying topological spaces are separated
 (also known as Hausdorff or T₂).
 This turns out to be equivalent to asking that the intersection of all entourages
-is the diagonal only. This conditions actually implies the stronger separation property
+is the diagonal only. This condition actually implies the stronger separation property
 that the space is regular (T₃), hence those conditions are equivalent for topologies coming from
 a uniform structure.
 
@@ -23,7 +23,7 @@ undistinguishable from the point of view of the uniform structure. For instance 
 continuous function will send equivalent points to the same value.
 
 The quotient `separation_quotient X` of `X` by `𝓢 X` has a natural uniform structure which is
-separated space, and satisfies a universal property: every uniformly continuous function
+separated, and satisfies a universal property: every uniformly continuous function
 from `X` to a separated uniform space uniquely factors through `separation_quotient X`.
 As usual, this allows to turn `separation_quotient` into a functor (but we don't use the
 category theory library in this file).
@@ -113,7 +113,7 @@ theorem separated_def' {α : Type u} [uniform_space α] :
 separated_def.trans $ forall_congr $ λ x, forall_congr $ λ y,
 by rw ← not_imp_not; simp [classical.not_forall]
 
-lemma id_rel_sub_separation_relation (α : Type*) [uniform_space α]: id_rel ⊆ 𝓢 α :=
+lemma id_rel_sub_separation_relation (α : Type*) [uniform_space α] : id_rel ⊆ 𝓢 α :=
 begin
   unfold separation_rel,
   rw id_rel_subset,
@@ -123,7 +123,7 @@ begin
 end
 
 lemma separation_rel_comap  {f : α → β} (h : ‹uniform_space α› = uniform_space.comap f ‹uniform_space β›) :
-𝓢 α = (prod.map f f) ⁻¹' 𝓢 β :=
+  𝓢 α = (prod.map f f) ⁻¹' 𝓢 β :=
 begin
   dsimp [separation_rel],
   rw [uniformity_comap h, (filter.comap_has_basis (prod.map f f) (𝓤 β)).sInter_sets,
@@ -133,7 +133,7 @@ end
 
 protected lemma filter.has_basis.separation_rel {ι : Type*} {p : ι → Prop} {s : ι → set (α × α)}
   (h : has_basis (𝓤 α) p s) :
-𝓢 α = ⋂ i ∈ set_of p, s i :=
+  𝓢 α = ⋂ i ∈ set_of p, s i :=
 by { unfold separation_rel, rw h.sInter_sets }
 
 lemma separation_rel_eq_inter_closure : 𝓢 α = ⋂₀ (closure '' (𝓤 α).sets) :=
@@ -245,7 +245,7 @@ lemma separated_set_iff_induced {s : set α} : separated_set s ↔ separated s :
 begin
   change _ ↔ 𝓢 ({x // x ∈ s}) = _,
   rw [separation_rel_comap rfl, separated_set_def'],
-  split ; intro h,
+  split; intro h,
   { ext ⟨⟨x, x_in⟩, ⟨y, y_in⟩⟩,
     suffices : (x, y) ∈ 𝓢 α ↔ x = y, by simpa only [mem_id_rel],
     refine ⟨λ H, h ⟨mk_mem_prod x_in y_in, H⟩, _⟩,

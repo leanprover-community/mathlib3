@@ -20,8 +20,14 @@ universes v u
 variables {C : Type u} [category.{v} C]
 
 section
-variables {C}
 variables [has_zero_morphisms.{v} C] [has_finite_biproducts.{v} C]
+
+structure decomposition_over {ι : Type v} (Z : ι → C) (X : C) :=
+(κ : Type v)
+[fintype : fintype κ]
+[decidable_eq : decidable_eq κ]
+(summand : κ → ι)
+(iso : X ≅ ⨁ (λ k, Z (summand k)))
 
 structure simple_decomposition (X : C) :=
 (ι : Type v)
@@ -65,7 +71,7 @@ rfl,
 sorry⟩
 
 section
-variables [preadditive.{v} C]
+variables [has_zero_morphisms.{v} C]
 
 lemma foo {I J : Type v} [fintype I] [decidable_eq I] [fintype J] [decidable_eq J] (f : I ⊕ J → C)
   [has_finite_biproducts.{v} C] [has_binary_biproducts.{v} C] :
@@ -86,7 +92,15 @@ calc ⨁ f ≅ ⨁ (λ p, f (e.symm p))
      ... ≅ (⨁ (λ j, f (e.symm (sum.inl j)))) ⊞ (⨁ (λ j, f (e.symm (sum.inr j))))
            : product_over_sum_iso _
      ... ≅ f (e.symm (sum.inl punit.star)) ⊞ ⨁ (λ j, f (e.symm (sum.inr j)))
-           : biprod.map_iso (product_over_unique (λ j, f (e.symm (sum.inl j)))) (iso.refl _)
+           : biprod.map_iso (product_over_unique_iso (λ j, f (e.symm (sum.inl j)))) (iso.refl _)
+
+@[simp,reassoc]
+lemma srt {I J : Type v} [fintype I] [decidable_eq I] [fintype J] [decidable_eq J] (f : I → C) (e : I ≃ punit.{v+1} ⊕ J)
+  [has_finite_biproducts.{v} C] [has_binary_biproducts.{v} C] :
+(biproduct_iso_of_equiv_punit_sum f e).hom ≫ biprod.fst = biproduct.π f (e.symm (sum.inl punit.star)) :=
+begin
+  simp [biproduct_iso_of_equiv_punit_sum], refl,
+end
 
 @[simp,reassoc]
 lemma quux {I J : Type v} [fintype I] [decidable_eq I] [fintype J] [decidable_eq J] (f : I → C) (e : I ≃ punit.{v+1} ⊕ J)
@@ -96,7 +110,7 @@ begin
   simp only [biproduct_iso_of_equiv_punit_sum],
   rw foo,
   simp,
-  sorry,
+  refl,
 end
 
 end
@@ -131,15 +145,15 @@ begin
 
   set h₁ : ⨁ D.summand ≅ (D.summand s) ⊞ (⨁ (λ i, D.summand (eD.symm (sum.inr i)))) :=
     (biproduct_iso_of_equiv_punit_sum D.summand eD).trans
-      (biprod.map_iso (eq_to_iso (by rw hD)) (iso.refl _)),
+      (biprod.map_iso (congr_eq_to_iso _ hD) (iso.refl _)),
   set h₂ : ⨁ E.summand ≅ (E.summand t) ⊞ (⨁ (λ i, E.summand (eE.symm (sum.inr i)))) :=
     (biproduct_iso_of_equiv_punit_sum E.summand eE).trans
-      (biprod.map_iso (eq_to_iso (by rw hE)) (iso.refl _)),
+      (biprod.map_iso (congr_eq_to_iso _ hE) (iso.refl _)),
   have h : ⨁ (λ i, D.summand (eD.symm (sum.inr i))) ≅ ⨁ (λ i, E.summand (eE.symm (sum.inr i))),
   { set h' := ((h₁.symm.trans f).trans h₂),
     have t : biprod.inl ≫ h'.hom ≫ biprod.fst =
       biproduct.ι D.summand s ≫ f.hom ≫ biproduct.π E.summand t,
-    { simp only [h', h₁, h₂], simp, sorry, },
+    { simp only [h', h₁, h₂], simp, },
     haveI : is_iso (biprod.inl ≫ h'.hom ≫ biprod.fst) := by { rw t, exact is_iso_of_hom_simple nz, },
     exact biprod.iso_elim h', },
   sorry,

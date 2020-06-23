@@ -366,12 +366,14 @@ by { rw det_transpose, exact h, }
 noncomputable def nonsing_inv : matrix n n α :=
 if h : is_unit A.det then (↑h.unit⁻¹ : α) • A.adjugate else 0
 
+noncomputable instance : has_inv (matrix n n α) := ⟨matrix.nonsing_inv⟩
+
 lemma nonsing_inv_apply (h : is_unit A.det) :
-  A.nonsing_inv = (↑h.unit⁻¹ : α) • A.adjugate :=
-by { dunfold nonsing_inv, simp only [dif_pos, h], }
+  A⁻¹ = (↑h.unit⁻¹ : α) • A.adjugate :=
+by { change A.nonsing_inv = _, dunfold nonsing_inv, simp only [dif_pos, h], }
 
 lemma transpose_nonsing_inv (h : is_unit A.det) :
-  (A.nonsing_inv)ᵀ = Aᵀ.nonsing_inv :=
+  (A⁻¹)ᵀ = (Aᵀ)⁻¹ :=
 begin
   have h' := A.is_unit_det_transpose h,
   have dets_eq : (↑h.unit : α) = ↑h'.unit := by rw [h.unit_spec, h'.unit_spec, det_transpose],
@@ -381,36 +383,35 @@ begin
 end
 
 /-- The `nonsing_inv` of `A` is a right inverse. -/
-@[simp] lemma mul_nonsing_inv (h : is_unit A.det) : A ⬝ A.nonsing_inv = 1 :=
+@[simp] lemma mul_nonsing_inv (h : is_unit A.det) : A ⬝ A⁻¹ = 1 :=
 by rw [A.nonsing_inv_apply h, mul_smul, mul_adjugate, smul_smul, units.inv_mul' h.unit_spec,
        one_smul]
 
 /-- The `nonsing_inv` of `A` is a left inverse. -/
-@[simp] lemma nonsing_inv_mul (h : is_unit A.det) : A.nonsing_inv ⬝ A = 1 :=
-calc A.nonsing_inv ⬝ A
-    = (Aᵀ ⬝ Aᵀ.nonsing_inv)ᵀ : by { rw [transpose_mul,
-                                       Aᵀ.transpose_nonsing_inv (A.is_unit_det_transpose h),
-                                       transpose_transpose], }
-... = 1ᵀ                     : by { rw Aᵀ.mul_nonsing_inv, exact A.is_unit_det_transpose h, }
-... = 1                      : transpose_one
+@[simp] lemma nonsing_inv_mul (h : is_unit A.det) : A⁻¹ ⬝ A = 1 :=
+calc A⁻¹ ⬝ A = (Aᵀ ⬝ (Aᵀ)⁻¹)ᵀ : by { rw [transpose_mul,
+                                    Aᵀ.transpose_nonsing_inv (A.is_unit_det_transpose h),
+                                    transpose_transpose], }
+         ... = 1ᵀ             : by { rw Aᵀ.mul_nonsing_inv, exact A.is_unit_det_transpose h, }
+         ... = 1              : transpose_one
 
-@[simp] lemma nonsing_inv_det (h : is_unit A.det) : A.nonsing_inv.det * A.det = 1 :=
+@[simp] lemma nonsing_inv_det (h : is_unit A.det) : A⁻¹.det * A.det = 1 :=
 by rw [←det_mul, A.nonsing_inv_mul h, det_one]
 
-lemma is_unit_nonsing_inv_det (h : is_unit A.det) : is_unit A.nonsing_inv.det :=
+lemma is_unit_nonsing_inv_det (h : is_unit A.det) : is_unit A⁻¹.det :=
 is_unit_of_mul_eq_one _ _ (A.nonsing_inv_det h)
 
-@[simp] lemma nonsing_inv_nonsing_inv (h : is_unit A.det) : A.nonsing_inv.nonsing_inv = A :=
-calc A.nonsing_inv.nonsing_inv
-    = 1 ⬝ A.nonsing_inv.nonsing_inv : by rw matrix.one_mul
-... = A ⬝ A.nonsing_inv ⬝ A.nonsing_inv.nonsing_inv : by rw A.mul_nonsing_inv h
-... = A : by { rw [matrix.mul_assoc, A.nonsing_inv.mul_nonsing_inv (A.is_unit_nonsing_inv_det h),
-                   matrix.mul_one], }
+@[simp] lemma nonsing_inv_nonsing_inv (h : is_unit A.det) : (A⁻¹)⁻¹ = A :=
+calc (A⁻¹)⁻¹ = 1 ⬝ (A⁻¹)⁻¹        : by rw matrix.one_mul
+         ... = A ⬝ A⁻¹ ⬝ (A⁻¹)⁻¹  : by rw A.mul_nonsing_inv h
+         ... = A                  : by { rw [matrix.mul_assoc,
+                                         (A⁻¹).mul_nonsing_inv (A.is_unit_nonsing_inv_det h),
+                                         matrix.mul_one], }
 
 /-- A matrix whose determinant is a unit is itself a unit. -/
 noncomputable def nonsing_inv_unit (h : is_unit A.det) : units (matrix n n α) :=
 { val     := A,
-  inv     := A.nonsing_inv,
+  inv     := A⁻¹,
   val_inv := by { rw matrix.mul_eq_mul, apply A.mul_nonsing_inv h, },
   inv_val := by { rw matrix.mul_eq_mul, apply A.nonsing_inv_mul h, } }
 

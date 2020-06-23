@@ -332,8 +332,6 @@ instance : complete_space (completion α) := by dunfold completion ; apply_insta
 
 instance : separated_space (completion α) := by dunfold completion ; apply_instance
 
-instance : t2_space (completion α) := separated_t2
-
 instance : regular_space (completion α) := separated_regular
 
 /-- Automatic coercion from `α` to its completion. Not always injective. -/

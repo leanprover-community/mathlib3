@@ -152,7 +152,7 @@ begin
   resetI,
   refine countable.mono _ (countable_range
     (λ t : finset s, {a | ∃ h:a ∈ s, subtype.mk a h ∈ t})),
-  rintro t ⟨⟨ht⟩, ts⟩,
+  rintro t ⟨⟨ht⟩, ts⟩, resetI,
   refine ⟨finset.univ.map (embedding_of_subset _ _ ts),
     set.ext $ λ a, _⟩,
   suffices : a ∈ s ∧ a ∈ t ↔ a ∈ t, by simpa,

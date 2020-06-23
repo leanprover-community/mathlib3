@@ -81,9 +81,10 @@ top_unique $ by rw ← H; apply le_top
 theorem order_top.ext {α} {A B : order_top α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
 begin
-  haveI this := partial_order.ext H,
+  have := partial_order.ext H,
   have tt := order_top.ext_top H,
-  cases A; cases B; injection this; congr'
+  casesI A, casesI B,
+  injection this; congr'
 end
 
 section prio
@@ -139,9 +140,10 @@ bot_unique $ by rw ← H; apply bot_le
 theorem order_bot.ext {α} {A B : order_bot α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
 begin
-  haveI this := partial_order.ext H,
+  have := partial_order.ext H,
   have tt := order_bot.ext_bot H,
-  cases A; cases B; injection this; congr'
+  casesI A, casesI B,
+  injection this; congr'
 end
 
 section prio
@@ -261,13 +263,14 @@ instance semilattice_sup_bot_of_bounded_lattice (α : Type u) [bl : bounded_latt
 theorem bounded_lattice.ext {α} {A B : bounded_lattice α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
 begin
-  haveI H1 : @bounded_lattice.to_lattice α A =
+  have H1 : @bounded_lattice.to_lattice α A =
              @bounded_lattice.to_lattice α B := lattice.ext H,
-  haveI H2 := order_bot.ext H,
-  haveI H3 : @bounded_lattice.to_order_top α A =
+  have H2 := order_bot.ext H,
+  have H3 : @bounded_lattice.to_order_top α A =
              @bounded_lattice.to_order_top α B := order_top.ext H,
   have tt := order_bot.ext_bot H,
-  cases A; cases B; injection H1; injection H2; injection H3; congr'
+  casesI A, casesI B,
+  injection H1; injection H2; injection H3; congr'
 end
 
 section prio
@@ -918,4 +921,3 @@ is_compl.of_eq bot_inf_eq sup_top_eq
 
 lemma is_compl_top_bot [bounded_lattice α] : is_compl (⊤ : α) ⊥ :=
 is_compl.of_eq inf_bot_eq top_sup_eq
-

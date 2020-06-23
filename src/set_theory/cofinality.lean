@@ -129,7 +129,7 @@ theorem lift_cof (o) : (cof o).lift = cof o.lift :=
 induction_on o $ begin introsI α r _,
   cases lift_type r with _ e, rw e,
   apply le_antisymm,
-  { refine le_cof_type.2 (λ S H, _),
+  { unfreezingI { refine le_cof_type.2 (λ S H, _) },
     have : (mk (ulift.up ⁻¹' S)).lift ≤ mk S :=
      ⟨⟨λ ⟨⟨x, h⟩⟩, ⟨⟨x⟩, h⟩,
        λ ⟨⟨x, h₁⟩⟩ ⟨⟨y, h₂⟩⟩ e, by simp at e; congr; injection e⟩⟩,
@@ -140,7 +140,7 @@ induction_on o $ begin introsI α r _,
      ⟨⟨λ ⟨⟨x⟩, h⟩, ⟨⟨x, h⟩⟩,
        λ ⟨⟨x⟩, h₁⟩ ⟨⟨y⟩, h₂⟩ e, by simp at e; congr; injections⟩⟩,
     rw e' at this,
-    refine le_trans (cof_type_le _ _) this,
+    unfreezingI { refine le_trans (cof_type_le _ _) this },
     exact λ ⟨a⟩, let ⟨b, bs, br⟩ := H a in ⟨⟨b⟩, bs, br⟩ }
 end
 

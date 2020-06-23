@@ -174,6 +174,7 @@ begin
        ... = 0 ≫ l : by rw [←category.assoc, kernel.condition]
        ... = 0 : has_zero_morphisms.zero_comp _ _,
   -- i factors through u = ker h via some s.
+  resetI,
   obtain ⟨s, hs⟩ := normal_mono.lift' u i hih,
   have hs' : (s ≫ kernel.ι g) ≫ i = 𝟙 I ≫ i, by rw [category.assoc, hs, category.id_comp],
   haveI : epi (kernel.ι g) := epi_of_epi_fac ((cancel_mono _).1 hs'),
@@ -234,6 +235,7 @@ begin
     h ≫ p = (l ≫ kernel.ι f) ≫ p : hl ▸ rfl
     ... = l ≫ 0 : by rw [category.assoc, cokernel.condition]
     ... = 0 : has_zero_morphisms.comp_zero _ _,
+  resetI,
   -- p factors through u = coker h via some s.
   obtain ⟨s, hs⟩ := normal_epi.desc' u p hhp,
   have hs' : p ≫ cokernel.π g ≫ s = p ≫ 𝟙 I, by rw [←category.assoc, hs, category.comp_id],

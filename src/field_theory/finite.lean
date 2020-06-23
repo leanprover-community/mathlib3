@@ -212,7 +212,7 @@ lemma sum_two_squares (p : ℕ) [hp : fact p.prime] (x : zmod p) :
   ∃ a b : zmod p, a^2 + b^2 = x :=
 begin
   cases hp.eq_two_or_odd with hp2 hp_odd,
-  { unfreezeI, subst p, revert x, exact dec_trivial },
+  { substI p, revert x, exact dec_trivial },
   let f : polynomial (zmod p) := X^2,
   let g : polynomial (zmod p) := X^2 - C x,
   obtain ⟨a, b, hab⟩ : ∃ a b, f.eval a + g.eval b = 0 :=

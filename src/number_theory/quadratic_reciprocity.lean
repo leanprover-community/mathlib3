@@ -55,7 +55,7 @@ lemma euler_criterion_units (x : units (zmod p)) :
   (∃ y : units (zmod p), y ^ 2 = x) ↔ x ^ (p / 2) = 1 :=
 begin
   cases nat.prime.eq_two_or_odd ‹p.prime› with hp2 hp_odd,
-  { resetI, subst p, refine iff_of_true ⟨1, _⟩ _; apply subsingleton.elim  },
+  { substI p, refine iff_of_true ⟨1, _⟩ _; apply subsingleton.elim  },
   obtain ⟨g, hg⟩ := is_cyclic.exists_generator (units (zmod p)),
   obtain ⟨n, hn⟩ : x ∈ powers g, { rw powers_eq_gpowers, apply hg },
   split,
@@ -87,7 +87,7 @@ lemma exists_pow_two_eq_neg_one_iff_mod_four_ne_three :
   (∃ y : zmod p, y ^ 2 = -1) ↔ p % 4 ≠ 3 :=
 begin
   cases nat.prime.eq_two_or_odd ‹p.prime› with hp2 hp_odd,
-  { resetI, subst p, exact dec_trivial },
+  { substI p, exact dec_trivial },
   change fact (p % 2 = 1) at hp_odd, resetI,
   have neg_one_ne_zero : (-1 : zmod p) ≠ 0, from mt neg_eq_zero.1 one_ne_zero,
   rw [euler_criterion p neg_one_ne_zero, neg_one_pow_eq_pow_mod_two],
@@ -109,7 +109,7 @@ lemma pow_div_two_eq_neg_one_or_one {a : zmod p} (ha : a ≠ 0) :
   a ^ (p / 2) = 1 ∨ a ^ (p / 2) = -1 :=
 begin
   cases nat.prime.eq_two_or_odd ‹p.prime› with hp2 hp_odd,
-  { resetI, subst p, revert a ha, exact dec_trivial },
+  { substI p, revert a ha, exact dec_trivial },
   rw [← mul_self_eq_one_iff, ← _root_.pow_add, ← two_mul, two_mul_odd_div_two hp_odd],
   exact fermat_little p ha
 end
@@ -377,7 +377,7 @@ begin
   by_cases ha : (a : zmod p) = 0,
   { simp only [if_pos, ha, _root_.zero_pow (nat.div_pos (hp.two_le) (succ_pos 1)), int.cast_zero] },
   cases hp.eq_two_or_odd with hp2 hp_odd,
-  { resetI, subst p,
+  { substI p,
     have : ∀ (a : zmod 2),
       ((if a = 0 then 0 else if a ^ (2 / 2) = 1 then 1 else -1 : ℤ) : zmod 2) = a ^ (2 / 2),
     by exact dec_trivial,
@@ -498,7 +498,7 @@ end
 
 lemma exists_pow_two_eq_prime_iff_of_mod_four_eq_one (hp1 : p % 4 = 1) [hq1 : fact (q % 2 = 1)] :
   (∃ a : zmod p, a ^ 2 = q) ↔ ∃ b : zmod q, b ^ 2 = p :=
-if hpq : p = q then by resetI; subst hpq else
+if hpq : p = q then by substI hpq else
 have h1 : ((p / 2) * (q / 2)) % 2 = 0,
   from (dvd_iff_mod_eq_zero _ _).1
     (dvd_mul_of_dvd_left ((dvd_iff_mod_eq_zero _ _).2 $

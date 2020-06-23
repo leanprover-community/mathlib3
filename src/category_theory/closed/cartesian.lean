@@ -344,16 +344,17 @@ def cartesian_closed_of_equiv (e : C ≌ D) [h : cartesian_closed C] : cartesian
           simp only [equivalence.unit, equivalence.unit_inv, nat_iso.hom_inv_id_app, assoc,
             equivalence.inv_fun_map, functor.map_comp, comp_id],
           erw comp_id, }, },
-      { haveI : is_left_adjoint (e.functor ⋙ prod_functor.obj X ⋙ e.inverse) :=
-          adjunction.left_adjoint_of_nat_iso this.symm,
-        haveI : is_left_adjoint (e.inverse ⋙ e.functor ⋙ prod_functor.obj X ⋙ e.inverse) :=
-          adjunction.left_adjoint_of_comp e.inverse _,
+      { have : is_left_adjoint (e.functor ⋙ prod_functor.obj X ⋙ e.inverse) :=
+          by exactI adjunction.left_adjoint_of_nat_iso this.symm,
+        have : is_left_adjoint (e.inverse ⋙ e.functor ⋙ prod_functor.obj X ⋙ e.inverse) :=
+          by exactI adjunction.left_adjoint_of_comp e.inverse _,
         have : (e.inverse ⋙ e.functor ⋙ prod_functor.obj X ⋙ e.inverse) ⋙ e.functor ≅
           prod_functor.obj X,
         { apply iso_whisker_right e.counit_iso (prod_functor.obj X ⋙ e.inverse ⋙ e.functor) ≪≫ _,
           change prod_functor.obj X ⋙ e.inverse ⋙ e.functor ≅ prod_functor.obj X,
           apply iso_whisker_left (prod_functor.obj X) e.counit_iso, },
-        apply adjunction.left_adjoint_of_nat_iso this, },
+        resetI,
+        apply adjunction.left_adjoint_of_nat_iso this },
     end } }
 
 variables [cartesian_closed C] [cartesian_closed D]

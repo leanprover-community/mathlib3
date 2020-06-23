@@ -144,6 +144,21 @@ begin
   exact (n + m)
 end
 
+-- This example tests automatic generalisation.
+example {n m : ℕ} : n + m = m + n :=
+begin
+  induction' m,
+  case zero {
+    simp
+  },
+  case succ : k IH {
+    guard_hyp k := ℕ,
+    guard_hyp n := ℕ,
+    guard_hyp IH := ∀ {n}, n + k = k + n,
+    ac_refl
+  }
+end
+
 -- This example checks that constructor arguments don't 'steal' the names of
 -- generalised hypotheses.
 example (n : list ℕ) (n : ℕ) : list ℕ :=
@@ -217,7 +232,7 @@ begin
   case refl {
     exact refl
   },
-  case tail : b c hab hbc P refl head ih {
+  case tail : b c hab hbc ih {
     apply ih,
     { exact head hbc _ refl, },
     { intros _ _ hab _, exact head hab _}

@@ -1322,8 +1322,13 @@ focus1 $ do
       -- names should be unique in the context, so we can use these.
       ihs.mmap' (get_local >=> simplify_ih num_generalized num_index_vars),
 
-      -- Return the constructor name and the new hypotheses
+      -- Return the constructor name and the new hypotheses.
+      -- (The previously generalised hypotheses don't count as new.)
       new_hyps ← hyps_except old_hyps,
+      let generalized_hyps :=
+        name_set.of_list $ generalized_hyps.map expr.local_pp_name,
+      let new_hyps :=
+        new_hyps.filter (λ h, ¬ generalized_hyps.contains h.local_pp_name),
       pure $ some (cinfo.cname, new_hyps)
     },
 

@@ -41,3 +41,12 @@ def has_binary_products_of_terminal_and_pullbacks
                    rw limit.lift_π;
                    refl
                  end } } } }
+
+/--
+If we have all finite products, we have all binary products.
+-/
+def has_binary_products_of_finite_products
+  (C : Type u) [𝒞 : category.{v} C] [has_finite_products.{v} C] :
+  has_binary_products.{v} C :=
+{ has_limits_of_shape :=
+  { has_limit := by apply_instance } }

@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import category_theory.limits.shapes.zero
 import category_theory.limits.shapes.kernels
 import category_theory.limits.shapes.constructions.products
+import category_theory.limits.shapes.constructions.binary_products
 import category_theory.abelian.basic
 import category_theory.abelian.additive
 import category_theory.simple
@@ -103,7 +104,6 @@ end
 section
 
 variables [preadditive.{v} C] [has_finite_biproducts.{v} C] -- TODO these should add up to `additive`?
-variables [has_binary_biproducts.{v} C] -- TODO this is only used in the proof, and could be constructed from the indexed biproducts.
 variables [has_kernels.{v} C] -- We need this for Schur's lemma.
 variables [∀ X Y : C, decidable_eq (X ⟶ Y)]
 
@@ -125,6 +125,10 @@ begin
   obtain ⟨ιE, dE, fE, eE, hE, cE⟩ := equiv_punit_sum_of_term t,
   resetI,
   set X' : C := ⨁ (λ i, D.summand (eD.symm (sum.inr i))),
+
+  -- We only use these internally, so it doesn't matter if they're not your favorites!
+  haveI := has_binary_biproducts_of_finite_biproducts C,
+
   set h₁ : ⨁ D.summand ≅ (D.summand s) ⊞ (⨁ (λ i, D.summand (eD.symm (sum.inr i)))) :=
     (biproduct_iso_of_equiv_punit_sum D.summand eD).trans
       (biprod.map_iso (eq_to_iso (by rw hD)) (iso.refl _)),
@@ -174,8 +178,6 @@ end
 
 def equiv_of_simple_decompositions {X : C} (D E : simple_decomposition.{v} X) :
   trunc Σ e : D.ι ≃ E.ι, Π i, E.summand (e i) ≅ D.summand i :=
--- TODO this requires some work
--- We'll do it by induction, and use Gaussian elimination on 2x2 matrices.
 equiv_of_simple_decompositions' (fintype.card D.ι) D E rfl
 
 open_locale classical
@@ -203,7 +205,6 @@ class semisimple :=
 (simple_decomposition : Π X : C, trunc (simple_decomposition.{v} X))
 
 variables {C} [semisimple.{v} C] [has_kernels.{v} C]
-variables [has_binary_biproducts.{v} C] -- FIXME shouldn't be needed
 variables [decidable_rel (λ X Y : C, nonempty (X ≅ Y))]
 variables [∀ X Y : C, decidable_eq (X ⟶ Y)]
 

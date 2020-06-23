@@ -159,10 +159,21 @@ variables {C : Type u} [category.{v} C] [has_zero_morphisms.{v} C]
 /-- `biproduct f` computes the biproduct of a family of elements `f`. (It is defined as an
    abbreviation for `limit (discrete.functor f)`, so for most facts about `biproduct f`, you will
    just use general facts about limits and colimits.) -/
-abbreviation biproduct (f : J → C) [has_biproduct f] :=
+abbreviation biproduct (f : J → C) [has_biproduct f] : C :=
 limit (discrete.functor f)
 
 notation `⨁ ` f:20 := biproduct f
+
+abbreviation biproduct.bicone (f : J → C) [has_biproduct f] : bicone f :=
+has_biproduct.bicone
+
+abbreviation biproduct.is_limit (f : J → C) [has_biproduct f] :
+  is_limit (biproduct.bicone f).to_cone :=
+has_biproduct.is_limit
+
+abbreviation biproduct.is_colimit (f : J → C) [has_biproduct f] :
+  is_colimit (biproduct.bicone f).to_cocone :=
+has_biproduct.is_colimit
 
 /-- The projection onto a summand of a biproduct. -/
 abbreviation biproduct.π (f : J → C) [has_biproduct f] (b : J) : ⨁ f ⟶ f b :=
@@ -302,6 +313,33 @@ lemma to_cocone_ι_app_right (c : binary_bicone.{v} P Q) :
 
 end binary_bicone
 
+namespace bicone
+
+/-- Convert a `bicone` over a function on `walking_pair` to a binary_bicone. -/
+def to_binary_bicone {X Y : C} (b : bicone (pair X Y).obj) : binary_bicone X Y :=
+{ X := b.X,
+  fst := b.π walking_pair.left,
+  snd := b.π walking_pair.right,
+  inl := b.ι walking_pair.left,
+  inr := b.ι walking_pair.right,
+  inl_fst' := by { simp [bicone.ι_π], refl, },
+  inr_fst' := by simp [bicone.ι_π],
+  inl_snd' := by simp [bicone.ι_π],
+  inr_snd' := by { simp [bicone.ι_π], refl, }, }
+
+def to_binary_bicone_is_limit {X Y : C} {b : bicone (pair X Y).obj}
+  (c : is_limit (b.to_cone)) :
+  is_limit (b.to_binary_bicone.to_cone) :=
+{ lift := λ s, sorry,
+   fac' := sorry,
+   uniq' := sorry, }
+
+def to_binary_bicone_is_colimit {X Y : C} {b : bicone (pair X Y).obj}
+  (c : is_colimit (b.to_cocone)) :
+  is_colimit (b.to_binary_bicone.to_cocone) := sorry
+
+end bicone
+
 /--
 `has_binary_biproduct P Q` represents a particular chosen bicone which is
 simultaneously a limit and a colimit of the diagram `pair P Q`.
@@ -322,6 +360,13 @@ class has_binary_biproducts :=
 (has_binary_biproduct : Π (P Q : C), has_binary_biproduct.{v} P Q)
 
 attribute [instance, priority 100] has_binary_biproducts.has_binary_biproduct
+
+def has_binary_biproducts_of_finite_biproducts [has_finite_biproducts.{v} C] :
+  has_binary_biproducts.{v} C :=
+{ has_binary_biproduct := λ P Q,
+  { bicone := (biproduct.bicone (pair P Q).obj).to_binary_bicone,
+    is_limit := bicone.to_binary_bicone_is_limit (biproduct.is_limit _),
+    is_colimit := bicone.to_binary_bicone_is_colimit (biproduct.is_colimit _) } }
 
 end
 

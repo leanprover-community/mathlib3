@@ -5,8 +5,24 @@ Authors: Scott Morrison
 -/
 import category_theory.limits.shapes.biproducts
 import category_theory.preadditive
--- import category_theory.simple
 import tactic.abel
+
+/-!
+# Basic facts about isomorphisms between biproducts in preadditive categories.
+
+* In any category (with zero morphisms), if `biprod.map f g` is an isomorphism,
+  then both `f` and `g` are isomorphisms.
+
+* If `f` is an isomorphism `X₁ ⊞ X₂ ≅ Y₁ ⊞ Y₂` whose `X₁ ⟶ Y₁` entry is an isomorphism,
+  then we can construct an isomorphism `X₂ ≅ Y₂`, via Gaussian elimination.
+
+* If `f : W ⊞ X ⟶ Y ⊞ Z` is an isomorphism, either `𝟙 W = 0`,
+  or at least one of the component maps `W ⟶ Y` and `W ⟶ Z` is nonzero.
+
+* If `f : ⨁ S ⟶ ⨁ T` is an isomorphism,
+  then every column (corresponding to a nonzero summand in the domain)
+  has some nonzero matrix entry.
+-/
 
 open category_theory
 open category_theory.preadditive
@@ -47,7 +63,14 @@ def is_iso_left_of_is_iso_biprod_map
     simp [t],
   end }
 
-def is_iso_right_of_is_iso_biprod_map
+/--
+If
+```
+(f 0)
+(0 g)
+```
+is invertible, then `g` is invertible.
+-/def is_iso_right_of_is_iso_biprod_map
   {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) [is_iso (biprod.map f g)] : is_iso g :=
 begin
   haveI : is_iso (biprod.map g f) := by
@@ -64,6 +87,9 @@ variables [preadditive.{v} C] [has_binary_biproducts.{v} C]
 variables {X₁ X₂ Y₁ Y₂ : C}
 variables (f₁₁ : X₁ ⟶ Y₁) (f₁₂ : X₁ ⟶ Y₂) (f₂₁ : X₂ ⟶ Y₁) (f₂₂ : X₂ ⟶ Y₂)
 
+/--
+The "matrix" morphism `X₁ ⊞ X₂ ⟶ Y₁ ⊞ Y₂` with specified components.
+-/
 def biprod.of_components : X₁ ⊞ X₂ ⟶ Y₁ ⊞ Y₂ :=
 biprod.fst ≫ f₁₁ ≫ biprod.inl +
 biprod.fst ≫ f₁₂ ≫ biprod.inr +
@@ -92,26 +118,6 @@ by simp [biprod.of_components]
 lemma biprod.of_components_snd :
   biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂ ≫ biprod.snd =
     biprod.fst ≫ f₁₂ + biprod.snd ≫ f₂₂ :=
-by simp [biprod.of_components]
-
-@[simp]
-lemma biprod.inl_of_components_fst :
-  biprod.inl ≫ biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂ ≫ biprod.fst = f₁₁ :=
-by simp [biprod.of_components]
-
-@[simp]
-lemma biprod.inl_of_components_snd :
-  biprod.inl ≫ biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂ ≫ biprod.snd = f₁₂ :=
-by simp [biprod.of_components]
-
-@[simp]
-lemma biprod.inr_of_components_fst :
-  biprod.inr ≫ biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂ ≫ biprod.fst = f₂₁ :=
-by simp [biprod.of_components]
-
-@[simp]
-lemma biprod.inr_of_components_snd :
-  biprod.inr ≫ biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂ ≫ biprod.snd = f₂₂ :=
 by simp [biprod.of_components]
 
 @[simp]
@@ -185,7 +191,9 @@ then we can construct an isomorphism `X₂ ≅ Y₂`, via Gaussian elimination.
 -/
 def biprod.iso_elim (f : X₁ ⊞ X₂ ≅ Y₁ ⊞ Y₂) [is_iso (biprod.inl ≫ f.hom ≫ biprod.fst)] : X₂ ≅ Y₂ :=
 begin
-  haveI : is_iso (biprod.of_components (biprod.inl ≫ f.hom ≫ biprod.fst) (biprod.inl ≫ f.hom ≫ biprod.snd)
+  haveI : is_iso (biprod.of_components
+       (biprod.inl ≫ f.hom ≫ biprod.fst)
+       (biprod.inl ≫ f.hom ≫ biprod.snd)
        (biprod.inr ≫ f.hom ≫ biprod.fst)
        (biprod.inr ≫ f.hom ≫ biprod.snd)) :=
   by { simp only [biprod.of_components_eq], apply_instance, },
@@ -195,29 +203,6 @@ begin
     (biprod.inr ≫ f.hom ≫ biprod.fst)
     (biprod.inr ≫ f.hom ≫ biprod.snd)
 end
-
--- lemma biprod.row_nonzero_of_iso [is_iso (biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂)] :
---   𝟙 X₁ = 0 ∨ f₁₁ ≠ 0 ∨ f₁₂ ≠ 0 :=
--- begin
---   classical,
---   by_contradiction,
---   rw [not_or_distrib, not_or_distrib, classical.not_not, classical.not_not] at a,
---   set M := biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂,
---   rcases a with ⟨nz, rfl, rfl⟩,
---   set X := inv M,
---   set x := biprod.inl ≫ M ≫ X ≫ biprod.fst,
---   have h₁ : x = 𝟙 _, by simp [x],
---   have h₀ : x = 0,
---   begin
---     dsimp [x, M, X],
---     conv_lhs {
---       slice 1 2,
---       rw [biprod.inl_of_components],
---     },
---     simp,
---   end,
---   exact nz (h₁.symm.trans h₀),
--- end
 
 lemma biprod.column_nonzero_of_iso {W X Y Z : C}
   (f : W ⊞ X ⟶ Y ⊞ Z) [is_iso f] :
@@ -249,9 +234,9 @@ variables [preadditive.{v} C]
 open_locale big_operators
 
 lemma biproduct.column_nonzero_of_iso'
-  {σ τ : Type v} [decidable_eq σ] [fintype σ] [decidable_eq τ] [fintype τ]
+  {σ τ : Type v} [decidable_eq σ] [decidable_eq τ] [fintype τ]
   {S : σ → C} [has_biproduct.{v} S] {T : τ → C} [has_biproduct.{v} T]
-  (f : ⨁ S ⟶ ⨁ T) [is_iso f] (s : σ) :
+  (s : σ) (f : ⨁ S ⟶ ⨁ T) [is_iso f] :
   (∀ t : τ, biproduct.ι S s ≫ f ≫ biproduct.π T t = 0) → 𝟙 (S s) = 0 :=
 begin
   intro z,
@@ -266,8 +251,12 @@ begin
   exact h₁.symm.trans h₀,
 end
 
+/--
+If `f : ⨁ S ⟶ ⨁ T` is an isomorphism, and `s` is a non-trivial summand of the source,
+then there is some `t` in the target so that the `s, t` matrix entry of `f` is nonzero.
+-/
 def biproduct.column_nonzero_of_iso
-  {σ τ : Type v} [decidable_eq σ] [fintype σ] [decidable_eq τ] [fintype τ]
+  {σ τ : Type v} [decidable_eq σ] [decidable_eq τ] [fintype τ]
   {S : σ → C} [has_biproduct.{v} S] {T : τ → C} [has_biproduct.{v} T]
   (s : σ) (nz : 𝟙 (S s) ≠ 0)
   [∀ t, decidable_eq (S s ⟶ T t)]
@@ -276,7 +265,7 @@ def biproduct.column_nonzero_of_iso
 begin
   apply trunc_sigma_of_exists,
   -- Do this before we run `classical`, so we get the right `decidable_eq` instances.
-  have t := biproduct.column_nonzero_of_iso'.{v} f s,
+  have t := biproduct.column_nonzero_of_iso'.{v} s f,
   classical,
   by_contradiction,
   simp only [classical.not_exists_not] at a,

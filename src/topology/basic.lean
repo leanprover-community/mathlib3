@@ -554,6 +554,17 @@ have 𝓝 a ⊓ principal (s ∩ t) ≠ ⊥,
     ... ≠ ⊥ : by rw [closure_eq_nhds] at ht; assumption,
 by rwa [closure_eq_nhds]
 
+lemma dense_inter_of_open_left {s t : set α} (hs : closure s = univ) (ht : closure t = univ)
+  (hso : is_open s) :
+  closure (s ∩ t) = univ :=
+eq_univ_of_subset (closure_minimal (closure_inter_open hso) is_closed_closure) $
+  by simp only [*, inter_univ]
+
+lemma dense_inter_of_open_right {s t : set α} (hs : closure s = univ) (ht : closure t = univ)
+  (hto : is_open t) :
+  closure (s ∩ t) = univ :=
+inter_comm t s ▸ dense_inter_of_open_left ht hs hto
+
 lemma closure_diff {s t : set α} : closure s - closure t ⊆ closure (s - t) :=
 calc closure s \ closure t = (- closure t) ∩ closure s : by simp only [diff_eq, inter_comm]
   ... ⊆ closure (- closure t ∩ s) : closure_inter_open $ is_open_compl_iff.mpr $ is_closed_closure

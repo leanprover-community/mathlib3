@@ -768,7 +768,7 @@ end
 
 theorem continuous_edist : continuous (λp:α×α, edist p.1 p.2) :=
 begin
-  apply continuous_of_le_add_edist 2 (by simp),
+  apply continuous_of_le_add_edist 2 (by norm_num),
   rintros ⟨x, y⟩ ⟨x', y'⟩,
   calc edist x y ≤ edist x x' + edist x' y' + edist y' y : edist_triangle4 _ _ _ _
     ... = edist x' y' + (edist x x' + edist y y') : by simp [edist_comm]; cc
@@ -794,6 +794,9 @@ begin
   rw ennreal.tsum_coe_ne_top_iff_summable at hd,
   exact cauchy_seq_of_edist_le_of_summable d hf hd
 end
+
+lemma emetric.is_closed_ball {a : α} {r : ennreal} : is_closed (closed_ball a r) :=
+is_closed_le (continuous_id.edist continuous_const) continuous_const
 
 /-- If `edist (f n) (f (n+1))` is bounded above by a function `d : ℕ → ennreal`,
 then the distance from `f n` to the limit is bounded by `∑'_{k=n}^∞ d k`. -/

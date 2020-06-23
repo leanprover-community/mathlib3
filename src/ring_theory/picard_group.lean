@@ -98,8 +98,8 @@ namespace principal_ideal_domain
 
 local attribute [semireducible] picard_group_WRT
 
-def picard_group_WRT_trivial {R} [principal_ideal_domain R] (g : fraction_map R K) :
-  picard_group_WRT g ≃* unit :=
+def picard_group_WRT_trivial {R} [integral_domain R] [is_principal_ideal_ring R]
+  (g : fraction_map R K) : picard_group_WRT g ≃* unit :=
 show quotient_group.quotient (to_principal_ideal g).range ≃* unit,
 from have (to_principal_ideal g).range = ⊤ :=
   (to_principal_ideal g).range_eq_top.mpr (λ I,
@@ -107,7 +107,7 @@ from have (to_principal_ideal g).range = ⊤ :=
     to_principal_ideal_eq_iff.mpr (by { rw [coe_mk0], exact (eq_span_singleton_of_principal ↑I).symm }) ⟩),
 by { convert quotient_group.quotient_top (units (fractional_ideal g)); assumption }
 
-noncomputable def picard_group_trivial (R) [principal_ideal_domain R] :
+noncomputable def picard_group_trivial (R) [integral_domain R] [is_principal_ideal_ring R] :
   picard_group R ≃* unit :=
 picard_group_WRT_trivial (of R)
 
@@ -117,7 +117,7 @@ noncomputable example : picard_group ℤ ≃* unit := principal_ideal_domain.pic
 def DD3 (R) [integral_domain R] : Prop :=
 ∀ {I : fractional_ideal (of R)}, I ≠ 0 → I * I⁻¹ = 1
 
-lemma DD3_of_principal_ideal_domain {R} [principal_ideal_domain R] : DD3 R :=
+lemma DD3_of_principal_ideal_domain {R} [integral_domain R] [is_principal_ideal_ring R] : DD3 R :=
 λ I hI, fractional_ideal.invertible_of_principal I hI
 
 end principal_ideal_domain

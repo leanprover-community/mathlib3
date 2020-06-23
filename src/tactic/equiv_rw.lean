@@ -217,7 +217,7 @@ dsimp_result (do
   b ← target >>= is_prop,
   if b then do
     subst h,
-    `[try { simp only [] with equiv_rw_simp }]
+    `[try { simp only with equiv_rw_simp }]
   else
     clear' tt [x'] <|>
       fail format!"equiv_rw expected to be able to clear the original hypothesis {x}, but couldn't.",

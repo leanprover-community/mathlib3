@@ -206,7 +206,7 @@ begin
   induction n with n ih,
   { dsimp [ε] at h, exact h (λ _, tt) },
   { cases v with v₁ v₂,
-    ext ; change _ = (0 : V n) ; simp only [] ; apply ih ; intro p ;
+    ext ; change _ = (0 : V n) ; simp only ; apply ih ; intro p ;
     [ let q : Q (n+1) := λ i, if h : i = 0 then tt else p (i.pred h),
       let q : Q (n+1) := λ i, if h : i = 0 then ff else p (i.pred h)],
     all_goals {

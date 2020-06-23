@@ -322,7 +322,7 @@ pregroupoid.groupoid
     rw this,
     apply times_cont_diff_on.comp hg _,
     { rintros x ⟨hx1, hx2⟩,
-      simp only [] with mfld_simps at ⊢ hx1,
+      simp only with mfld_simps at ⊢ hx1,
       exact hx1.2 },
     { refine hf.mono _,
       rintros x ⟨hx1, hx2⟩,
@@ -333,14 +333,14 @@ pregroupoid.groupoid
     rintros x ⟨hx1, hx2⟩,
     rcases mem_range.1 hx2 with ⟨y, hy⟩,
     rw ← hy,
-    simp only [] with mfld_simps,
+    simp only with mfld_simps,
   end,
   locality := λf u hu H, begin
     apply times_cont_diff_on_of_locally_times_cont_diff_on,
     rintros y ⟨hy1, hy2⟩,
     rcases mem_range.1 hy2 with ⟨x, hx⟩,
     rw ← hx at ⊢ hy1,
-    simp only [] with mfld_simps at ⊢ hy1,
+    simp only with mfld_simps at ⊢ hy1,
     rcases H x hy1 with ⟨v, v_open, xv, hv⟩,
     have : ((I.symm ⁻¹' (u ∩ v)) ∩ (range I))
         = ((I.symm ⁻¹' u) ∩ (range I) ∩ I.symm ⁻¹' v),
@@ -355,7 +355,7 @@ pregroupoid.groupoid
     rintros y ⟨hy1, hy2⟩,
     rcases mem_range.1 hy2 with ⟨x, hx⟩,
     rw ← hx at ⊢ hy1,
-    simp only [] with mfld_simps at ⊢ hy1,
+    simp only with mfld_simps at ⊢ hy1,
     rw fg _ hy1
   end }
 
@@ -506,11 +506,11 @@ lemma ext_chart_at_open_source : is_open (ext_chart_at I x).source :=
 by { rw ext_chart_at_source, exact (chart_at H x).open_source }
 
 lemma mem_ext_chart_source : x ∈ (ext_chart_at I x).source :=
-by simp only [] with mfld_simps
+by simp only with mfld_simps
 
 lemma ext_chart_at_to_inv :
   (ext_chart_at I x).symm ((ext_chart_at I x) x) = x :=
-by simp only [] with mfld_simps
+by simp only with mfld_simps
 
 lemma ext_chart_at_source_mem_nhds : (ext_chart_at I x).source ∈ 𝓝 x :=
 mem_nhds_sets (ext_chart_at_open_source I x) (mem_ext_chart_source I x)
@@ -542,7 +542,7 @@ begin
   simp only [function.comp_app, local_equiv.coe_trans, model_with_corners.target],
   refine inter_mem_nhds_within _
     (mem_nhds_sets (I.continuous_symm _ (chart_at H x).open_target) _),
-  simp only [] with mfld_simps
+  simp only with mfld_simps
 end
 
 lemma ext_chart_at_coe (p : M) : (ext_chart_at I x) p = I ((chart_at H x : M → H) p) := rfl
@@ -556,7 +556,7 @@ lemma nhds_within_ext_chart_target_eq :
 begin
   apply le_antisymm,
   { apply nhds_within_mono,
-    simp only [] with mfld_simps},
+    simp only with mfld_simps},
   { apply nhds_within_le_of_mem (ext_chart_at_target_mem_nhds_within _ _) }
 end
 
@@ -565,7 +565,7 @@ lemma ext_chart_continuous_at_symm' {x' : M} (h : x' ∈ (ext_chart_at I x).sour
 begin
   apply continuous_at.comp,
   { rw ext_chart_at_source at h,
-    simp only [] with mfld_simps,
+    simp only with mfld_simps,
     exact ((chart_at H x).continuous_on_symm _
       ((chart_at H x).map_source h)).continuous_at
         (mem_nhds_sets (chart_at H x).open_target
@@ -626,4 +626,4 @@ identity.-/
 lemma ext_chart_model_space_eq_id (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (x : E) :
   ext_chart_at (model_with_corners_self 𝕜 E) x = local_equiv.refl E :=
-by simp only [] with mfld_simps
+by simp only with mfld_simps

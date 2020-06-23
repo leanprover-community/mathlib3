@@ -1053,7 +1053,7 @@ H.mono $ λ _, eq.symm
   f =ᶠ[l] h :=
 H₂.rw (λ x y, f x = y) H₁
 
-lemma eventually_eq.func_comp {f g : α → β} {l : filter α} (H : f =ᶠ[l] g) (h : β → γ) :
+lemma eventually_eq.fun_comp {f g : α → β} {l : filter α} (H : f =ᶠ[l] g) (h : β → γ) :
   (h ∘ f) =ᶠ[l] (h ∘ g) :=
 H.mono $ λ x hx, congr_arg h hx
 
@@ -1071,7 +1071,7 @@ h.comp₂ (*) h'
 @[to_additive]
 lemma eventually_eq.inv [has_inv β] {f g : α → β} {l : filter α} (h : f =ᶠ[l] g) :
   ((λ x, (f x)⁻¹) =ᶠ[l] (λ x, (g x)⁻¹)) :=
-h.func_comp has_inv.inv
+h.fun_comp has_inv.inv
 
 lemma eventually_eq.div [group_with_zero β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)
   (h' : f' =ᶠ[l] g') :
@@ -1130,6 +1130,8 @@ funext $ assume _, filter_eq $ rfl
 @[simp] lemma map_map : filter.map m' (filter.map m f) = filter.map (m' ∘ m) f :=
 congr_fun (@@filter.map_compose m m') f
 
+/-- If functions `m₁` and `m₂` are eventually equal at a filter `f`, then
+they map this filter to the same filter. -/
 lemma map_congr {m₁ m₂ : α → β} {f : filter α} (h : m₁ =ᶠ[f] m₂) :
   map m₁ f = map m₂ f :=
 filter.ext' $ λ p,

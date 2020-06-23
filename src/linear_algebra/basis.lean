@@ -430,7 +430,7 @@ begin
       { apply disjoint_def.1 (hd x₁ {y₁} (finite_singleton y₁)
           (λ h, h_cases (eq_of_mem_singleton h))) (f x₁ x₂) (subset_span (mem_range_self _)),
         rw supr_singleton,
-        simp only [] at hxy,
+        simp only at hxy,
         rw hxy,
         exact (subset_span (mem_range_self y₂)) },
       exact false.elim ((hindep x₁).ne_zero zero_eq_one h0) } },

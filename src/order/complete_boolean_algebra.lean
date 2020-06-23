@@ -59,7 +59,7 @@ begin
         rw [← x'y, ← ax],
         simp [ha, x't] },
       rw [infi_image] at this,
-      simp only [] at this,
+      simp only at this,
       rwa ← sup_Inf_eq at this },
     calc (⨅p ∈ set.prod s t, (p : α × α).1 ⊔ p.2) ≤ (⨅a∈s, a ⊔ Inf t) : by simp; exact this
        ... = Inf s ⊔ Inf t : Inf_sup_eq.symm }
@@ -80,7 +80,7 @@ begin
         rw [← x'y, ← ax],
         simp [ha, x't] },
       rw [supr_image] at this,
-      simp only [] at this,
+      simp only at this,
       rwa ← inf_Sup_eq at this },
     calc Sup s ⊓ Sup t = (⨆a∈s, a ⊓ Sup t) : Sup_inf_eq
       ... ≤ (⨆p ∈ set.prod s t, (p : α × α).1 ⊓ p.2) : by simp; exact this },

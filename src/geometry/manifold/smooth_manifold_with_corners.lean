@@ -4,20 +4,20 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.calculus.times_cont_diff
-import geometry.manifold.manifold
+import geometry.manifold.charted_space
 
 /-!
 # Smooth manifolds (possibly with boundary or corners)
 
 A smooth manifold is a manifold modelled on a normed vector space, or a subset like a
-half-space (to get manifolds with boundaries) for which the change of coordinates are smooth maps.
+half-space (to get manifolds with boundaries) for which the changes of coordinates are smooth maps.
 We define a model with corners as a map `I : H → E` embedding nicely the topological space `H` in
 the vector space `E` (or more precisely as a structure containing all the relevant properties).
 Given such a model with corners `I` on `(E, H)`, we define the groupoid of local
 homeomorphisms of `H` which are smooth when read in `E` (for any regularity `n : with_top ℕ`).
-With this groupoid at hand and the general machinery of manifolds, we thus get the notion of `C^n`
-manifold with respect to any model with corners `I` on `(E, H)`. We also introduce a specific type
-class for `C^∞` manifolds as these are the most commonly used.
+With this groupoid at hand and the general machinery of charted spaces, we thus get the notion
+of `C^n` manifold with respect to any model with corners `I` on `(E, H)`. We also introduce a
+specific type class for `C^∞` manifolds as these are the most commonly used.
 
 ## Main definitions
 
@@ -31,7 +31,7 @@ class for `C^∞` manifolds as these are the most commonly used.
   when `I` is a model with corners on `(𝕜, E, H)`, this is the groupoid of local homeos of `H`
   which are of class `C^n` over the normed field `𝕜`, when read in `E`.
 * `smooth_manifold_with_corners I M` :
-  a type class saying that the manifold `M`, modelled on the space `H`, has `C^∞` changes of
+  a type class saying that the charted space `M`, modelled on the space `H`, has `C^∞` changes of
   coordinates with respect to the model with corners `I` on `(𝕜, E, H)`. This type class is just
   a shortcut for `has_groupoid M (times_cont_diff_groupoid ⊤ I)`.
 * `ext_chart_at I x`:
@@ -41,31 +41,34 @@ class for `C^∞` manifolds as these are the most commonly used.
   we register them as local equivs. `ext_chart_at I x` is the canonical such local equiv around `x`.
 
 As specific examples of models with corners, we define (in the file `real_instances.lean`)
-* `euclidean_space n` for a model vector space of dimension `n`.
-* `model_with_corners ℝ (euclidean_space n) (euclidean_half_space n)` for the model space used
-to define `n`-dimensional real manifolds with boundary and
-* `model_with_corners ℝ (euclidean_space n) (euclidean_quadrant n)` for the model space used
-to define `n`-dimensional real manifolds with corners
+* `model_with_corners_self ℝ (euclidean_space (fin n))` for the model space used to define
+  `n`-dimensional real manifolds without boundary (with notation `𝓡 n` in the locale `manifold`)
+* `model_with_corners ℝ (euclidean_space (fin n)) (euclidean_half_space n)` for the model space
+  used to define `n`-dimensional real manifolds with boundary (with notation `𝓡∂ n` in the locale
+  `manifold`)
+* `model_with_corners ℝ (euclidean_space (fin n)) (euclidean_quadrant n)` for the model space used
+  to define `n`-dimensional real manifolds with corners
 
 With these definitions at hand, to invoke an `n`-dimensional real manifold without boundary,
 one could use
 
-  `variables {n : ℕ} {M : Type*} [topological_space M] [manifold (euclidean_space n)]
-   [smooth_manifold_with_corners (model_with_corners_self ℝ (euclidean_space n)) M]`.
+  `variables {n : ℕ} {M : Type*} [topological_space M] [charted_space (euclidean_space (fin n)) M]
+   [smooth_manifold_with_corners (𝓡 n) M]`.
 
 However, this is not the recommended way: a theorem proved using this assumption would not apply
 for instance to the tangent space of such a manifold, which is modelled on
-`(euclidean_space n) × (euclidean_space n)` and not on `euclidean_space (2 * n)`! In the same way,
-it would not apply to product manifolds, modelled on `(euclidean_space n) × (euclidean_space m)`.
+`(euclidean_space (fin n)) × (euclidean_space (fin n))` and not on `euclidean_space (fin (2 * n))`!
+In the same way, it would not apply to product manifolds, modelled on
+`(euclidean_space (fin n)) × (euclidean_space (fin m))`.
 The right invocation does not focus on one specific construction, but on all constructions sharing
 the right properties, like
 
   `variables {E : Type*} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
   {I : model_with_corners ℝ E E} [I.boundaryless]
-  {M : Type*} [topological_space M] [manifold E M] [smooth_manifold_with_corners I M]`
+  {M : Type*} [topological_space M] [charted_space E M] [smooth_manifold_with_corners I M]`
 
 Here, `I.boundaryless` is a typeclass property ensuring that there is no boundary (this is for
-instance the case for model_with_corners_self, or products of these). Note that one could consider
+instance the case for `model_with_corners_self`, or products of these). Note that one could consider
 as a natural assumption to only use the trivial model with corners `model_with_corners_self ℝ E`,
 but again in product manifolds the natural model with corners will not be this one but the product
 one (and they are not defeq as `(λp : E × F, (p.1, p.2))` is not defeq to the identity). So, it is
@@ -82,7 +85,7 @@ example) is not directly a subtype of itself: the inclusion of `univ : set E` in
 show up in the definition, instead of `id`.
 
 A good abstraction covering both cases it to have a vector
-space `E` (with basic example the Euclidean space), a model space H``  (with basic example the upper
+space `E` (with basic example the Euclidean space), a model space `H` (with basic example the upper
 half space), and an embedding of `H` into `E` (which can be the identity for `H = E`, or
 `subtype.val` for manifolds with corners). We say that the pair `(E, H)` with their embedding is a
 model with corners, and we encompass all the relevant properties (in particular the fact that the
@@ -128,7 +131,7 @@ structure model_with_corners (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
 (continuous_to_fun  : continuous to_fun)
 (continuous_inv_fun : continuous inv_fun)
 
-attribute [simp] model_with_corners.source_eq
+attribute [simp, mfld_simps] model_with_corners.source_eq
 
 /-- A vector space is a model with corners. -/
 def model_with_corners_self (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
@@ -157,15 +160,15 @@ instance : has_coe_to_fun (model_with_corners 𝕜 E H) := ⟨_, λ e, e.to_fun�
 protected def model_with_corners.symm : local_equiv E H := I.to_local_equiv.symm
 
 /- Register a few lemmas to make sure that `simp` puts expressions in normal form -/
-@[simp] lemma model_with_corners.to_local_equiv_coe : (I.to_local_equiv : H → E) = I := rfl
+@[simp, mfld_simps] lemma model_with_corners.to_local_equiv_coe : (I.to_local_equiv : H → E) = I := rfl
 
-@[simp] lemma model_with_corners.mk_coe (e : local_equiv H E) (a b c d) :
+@[simp, mfld_simps] lemma model_with_corners.mk_coe (e : local_equiv H E) (a b c d) :
   ((model_with_corners.mk e a b c d : model_with_corners 𝕜 E H) : H → E) = (e : H → E) := rfl
 
-@[simp] lemma model_with_corners.to_local_equiv_coe_symm :
+@[simp, mfld_simps] lemma model_with_corners.to_local_equiv_coe_symm :
   (I.to_local_equiv.symm : E → H) = I.symm := rfl
 
-@[simp] lemma model_with_corners.mk_coe_symm (e : local_equiv H E) (a b c d) :
+@[simp, mfld_simps] lemma model_with_corners.mk_coe_symm (e : local_equiv H E) (a b c d) :
   ((model_with_corners.mk e a b c d : model_with_corners 𝕜 E H).symm : E → H) = (e.symm : E → H) :=
 rfl
 
@@ -179,27 +182,27 @@ section
 variables (𝕜 E)
 
 /-- In the trivial model with corners, the associated local equiv is the identity. -/
-@[simp] lemma model_with_corners_self_local_equiv :
+@[simp, mfld_simps] lemma model_with_corners_self_local_equiv :
   (model_with_corners_self 𝕜 E).to_local_equiv = local_equiv.refl E := rfl
 
-@[simp] lemma model_with_corners_self_coe :
+@[simp, mfld_simps] lemma model_with_corners_self_coe :
   (model_with_corners_self 𝕜 E : E → E) = id := rfl
 
-@[simp] lemma model_with_corners_self_coe_symm :
+@[simp, mfld_simps] lemma model_with_corners_self_coe_symm :
   ((model_with_corners_self 𝕜 E).symm : E → E) = id := rfl
 
 end
 
-@[simp] lemma model_with_corners.target : I.target = range (I : H → E) :=
+@[simp, mfld_simps] lemma model_with_corners.target : I.target = range (I : H → E) :=
 by { rw [← image_univ, ← I.source_eq], exact (I.to_local_equiv.image_source_eq_target).symm }
 
-@[simp] lemma model_with_corners.left_inv (x : H) : I.symm (I x) = x :=
+@[simp, mfld_simps] lemma model_with_corners.left_inv (x : H) : I.symm (I x) = x :=
 by { convert I.left_inv' _, simp }
 
-@[simp] lemma model_with_corners.left_inv' : I.symm ∘ I = id :=
+@[simp, mfld_simps] lemma model_with_corners.left_inv' : I.symm ∘ I = id :=
 by { ext x, exact model_with_corners.left_inv _ _ }
 
-@[simp] lemma model_with_corners.right_inv {x : E} (hx : x ∈ range I) :
+@[simp, mfld_simps] lemma model_with_corners.right_inv {x : E} (hx : x ∈ range I) :
   I (I.symm x) = x :=
 by { apply I.right_inv', simp [hx] }
 
@@ -211,11 +214,11 @@ begin
   split,
   { rintros ⟨y, ⟨ys, hy⟩⟩,
     rw ← hy,
-    simp [ys],
+    simp only [ys, true_and, model_with_corners.left_inv],
     exact ⟨y, rfl⟩ },
   { rintros ⟨xs, ⟨y, yx⟩⟩,
     rw ← yx at xs,
-    simp at xs,
+    simp only [model_with_corners.left_inv] at xs,
     exact ⟨y, ⟨xs, yx⟩⟩ }
 end
 
@@ -319,8 +322,8 @@ pregroupoid.groupoid
     rw this,
     apply times_cont_diff_on.comp hg _,
     { rintros x ⟨hx1, hx2⟩,
-      simp at ⊢ hx1,
-      exact ⟨hx1.2, (f (I.symm x)), rfl⟩ },
+      simp only with mfld_simps at ⊢ hx1,
+      exact hx1.2 },
     { refine hf.mono _,
       rintros x ⟨hx1, hx2⟩,
       exact ⟨hx1.1, hx2⟩ }
@@ -330,14 +333,14 @@ pregroupoid.groupoid
     rintros x ⟨hx1, hx2⟩,
     rcases mem_range.1 hx2 with ⟨y, hy⟩,
     rw ← hy,
-    simp,
+    simp only with mfld_simps,
   end,
   locality := λf u hu H, begin
     apply times_cont_diff_on_of_locally_times_cont_diff_on,
     rintros y ⟨hy1, hy2⟩,
     rcases mem_range.1 hy2 with ⟨x, hx⟩,
     rw ← hx at ⊢ hy1,
-    simp at ⊢ hy1,
+    simp only with mfld_simps at ⊢ hy1,
     rcases H x hy1 with ⟨v, v_open, xv, hv⟩,
     have : ((I.symm ⁻¹' (u ∩ v)) ∩ (range I))
         = ((I.symm ⁻¹' u) ∩ (range I) ∩ I.symm ⁻¹' v),
@@ -352,7 +355,7 @@ pregroupoid.groupoid
     rintros y ⟨hy1, hy2⟩,
     rcases mem_range.1 hy2 with ⟨x, hx⟩,
     rw ← hx at ⊢ hy1,
-    simp at ⊢ hy1,
+    simp only with mfld_simps at ⊢ hy1,
     rw fg _ hy1
   end }
 
@@ -411,7 +414,7 @@ lemma symm_trans_mem_times_cont_diff_groupoid (e : local_homeomorph M H) :
 begin
   have : e.symm.trans e ≈ local_homeomorph.of_set e.target e.open_target :=
     local_homeomorph.trans_symm_self _,
-  exact structure_groupoid.eq_on_source _ _ _
+  exact structure_groupoid.eq_on_source _
     (of_set_mem_times_cont_diff_groupoid n I e.open_target) this
 end
 
@@ -426,7 +429,7 @@ field `𝕜` and with infinite smoothness to simplify typeclass search and state
 class smooth_manifold_with_corners {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
-  (M : Type*) [topological_space M] [manifold H M] extends
+  (M : Type*) [topological_space M] [charted_space H M] extends
   has_groupoid M (times_cont_diff_groupoid ⊤ I) : Prop
 
 /-- For any model with corners, the model space is a smooth manifold -/
@@ -435,6 +438,43 @@ instance model_space_smooth {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {I : model_with_corners 𝕜 E H} :
   smooth_manifold_with_corners I H := {}
 
+namespace smooth_manifold_with_corners
+/- We restate in the namespace `smooth_manifolds_with_corners` some lemmas that hold for general
+charted space with a structure groupoid, avoiding the need to specify the groupoid
+`times_cont_diff_groupoid ⊤ I` explicitly. -/
+
+variables  {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
+  (M : Type*) [topological_space M] [charted_space H M]
+
+/-- The maximal atlas of `M` for the smooth manifold with corners structure corresponding to the
+modle with corners `I`. -/
+def maximal_atlas := (times_cont_diff_groupoid ⊤ I).maximal_atlas M
+
+variable {M}
+
+lemma compatible [smooth_manifold_with_corners I M]
+  {e e' : local_homeomorph M H} (he : e ∈ atlas H M) (he' : e' ∈ atlas H M) :
+  e.symm.trans e' ∈ times_cont_diff_groupoid ⊤ I :=
+has_groupoid.compatible _ he he'
+
+lemma mem_maximal_atlas_of_mem_atlas [smooth_manifold_with_corners I M]
+  {e : local_homeomorph M H} (he : e ∈ atlas H M) : e ∈ maximal_atlas I M :=
+structure_groupoid.mem_maximal_atlas_of_mem_atlas _ he
+
+lemma chart_mem_maximal_atlas [smooth_manifold_with_corners I M] (x : M) :
+  chart_at H x ∈ maximal_atlas I M :=
+structure_groupoid.chart_mem_maximal_atlas _ x
+
+variable {I}
+
+lemma compatible_of_mem_maximal_atlas
+  {e e' : local_homeomorph M H} (he : e ∈ maximal_atlas I M) (he' : e' ∈ maximal_atlas I M) :
+  e.symm.trans e' ∈ times_cont_diff_groupoid ⊤ I :=
+structure_groupoid.compatible_of_mem_maximal_atlas he he'
+
+end smooth_manifold_with_corners
 
 section extended_charts
 open_locale topological_space
@@ -442,7 +482,7 @@ open_locale topological_space
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
-  {M : Type*} [topological_space M] [manifold H M]
+  {M : Type*} [topological_space M] [charted_space H M]
   (x : M) {s t : set M}
 
 /-!
@@ -456,7 +496,7 @@ as `local_equiv`.
 
 /-- The preferred extended chart on a manifold with corners around a point `x`, from a neighborhood
 of `x` to the model vector space. -/
-def ext_chart_at (x : M) : local_equiv M E :=
+@[simp, mfld_simps] def ext_chart_at (x : M) : local_equiv M E :=
 (chart_at H x).to_local_equiv.trans I.to_local_equiv
 
 lemma ext_chart_at_source : (ext_chart_at I x).source = (chart_at H x).source :=
@@ -465,12 +505,12 @@ by rw [ext_chart_at, local_equiv.trans_source, I.source_eq, preimage_univ, inter
 lemma ext_chart_at_open_source : is_open (ext_chart_at I x).source :=
 by { rw ext_chart_at_source, exact (chart_at H x).open_source }
 
-@[simp] lemma mem_ext_chart_source : x ∈ (ext_chart_at I x).source :=
-by { rw ext_chart_at_source, exact mem_chart_source _ _ }
+lemma mem_ext_chart_source : x ∈ (ext_chart_at I x).source :=
+by simp only with mfld_simps
 
-@[simp] lemma ext_chart_at_to_inv :
+lemma ext_chart_at_to_inv :
   (ext_chart_at I x).symm ((ext_chart_at I x) x) = x :=
-by rw (ext_chart_at I x).left_inv (mem_ext_chart_source _ _)
+by simp only with mfld_simps
 
 lemma ext_chart_at_source_mem_nhds : (ext_chart_at I x).source ∈ 𝓝 x :=
 mem_nhds_sets (ext_chart_at_open_source I x) (mem_ext_chart_source I x)
@@ -502,7 +542,7 @@ begin
   simp only [function.comp_app, local_equiv.coe_trans, model_with_corners.target],
   refine inter_mem_nhds_within _
     (mem_nhds_sets (I.continuous_symm _ (chart_at H x).open_target) _),
-  simp
+  simp only with mfld_simps
 end
 
 lemma ext_chart_at_coe (p : M) : (ext_chart_at I x) p = I ((chart_at H x : M → H) p) := rfl
@@ -516,7 +556,7 @@ lemma nhds_within_ext_chart_target_eq :
 begin
   apply le_antisymm,
   { apply nhds_within_mono,
-    simp [ext_chart_at, local_equiv.trans_target], },
+    simp only with mfld_simps},
   { apply nhds_within_le_of_mem (ext_chart_at_target_mem_nhds_within _ _) }
 end
 
@@ -525,7 +565,7 @@ lemma ext_chart_continuous_at_symm' {x' : M} (h : x' ∈ (ext_chart_at I x).sour
 begin
   apply continuous_at.comp,
   { rw ext_chart_at_source at h,
-    simp [ext_chart_at],
+    simp only with mfld_simps,
     exact ((chart_at H x).continuous_on_symm _
       ((chart_at H x).map_source h)).continuous_at
         (mem_nhds_sets (chart_at H x).open_target
@@ -583,7 +623,7 @@ end extended_charts
 
 /-- In the case of the manifold structure on a vector space, the extended charts are just the
 identity.-/
-@[simp] lemma ext_chart_model_space_eq_id (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+lemma ext_chart_model_space_eq_id (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (x : E) :
   ext_chart_at (model_with_corners_self 𝕜 E) x = local_equiv.refl E :=
-by simp [ext_chart_at]
+by simp only with mfld_simps

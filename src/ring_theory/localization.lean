@@ -135,7 +135,7 @@ lemma eq_iff_exists {x y} : f.to_map x = f.to_map y ↔ ∃ c : M, x * c = y * c
   (h : ∀ x, f.to_map x = g.to_map x) : f = g :=
 begin
   cases f, cases g,
-  simp only [] at *,
+  simp only at *,
   exact funext h
 end
 

@@ -350,7 +350,7 @@ else
   have H = is_subgroup.trivial α,
     from set.ext $ λ x, ⟨λ h, by simp at *; tauto,
       λ h, by rw [is_subgroup.mem_trivial.1 h]; exact is_submonoid.one_mem⟩,
-  by clear _let_match; subst this; apply_instance
+  by clear _let_match; substI this; apply_instance
 
 open finset nat
 

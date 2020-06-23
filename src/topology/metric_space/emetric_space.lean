@@ -566,6 +566,9 @@ by rw [emetric.ball_eq_empty_iff]
 theorem nhds_basis_eball : (𝓝 x).has_basis (λ ε:ennreal, 0 < ε) (ball x) :=
 nhds_basis_uniformity uniformity_basis_edist
 
+theorem nhds_basis_closed_eball : (𝓝 x).has_basis (λ ε:ennreal, 0 < ε) (closed_ball x) :=
+nhds_basis_uniformity uniformity_basis_edist_le
+
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem nhds_eq : 𝓝 x = (⨅ε>0, principal (ball x ε)) :=
 nhds_basis_eball.eq_binfi

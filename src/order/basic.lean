@@ -59,7 +59,7 @@ theorem ge_of_eq [preorder α] {a b : α} : a = b → a ≥ b :=
 theorem preorder.ext {α} {A B : preorder α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
 begin
-  resetI, cases A, cases B, congr,
+  casesI A, casesI B, congr,
   { funext x y, exact propext (H x y) },
   { funext x y,
     dsimp [(≤)] at A_lt_iff_le_not_le B_lt_iff_le_not_le H,
@@ -68,13 +68,13 @@ end
 
 theorem partial_order.ext {α} {A B : partial_order α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
-by haveI this := preorder.ext H;
-   cases A; cases B; injection this; congr'
+by { haveI this := preorder.ext H,
+     casesI A, casesI B, injection this, congr' }
 
 theorem linear_order.ext {α} {A B : linear_order α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
-by haveI this := partial_order.ext H;
-   cases A; cases B; injection this; congr'
+by { haveI this := partial_order.ext H,
+     casesI A, casesI B, injection this, congr' }
 
 /-- Given an order `R` on `β` and a function `f : α → β`,
   the preimage order on `α` is defined by `x ≤ y ↔ f x ≤ f y`.

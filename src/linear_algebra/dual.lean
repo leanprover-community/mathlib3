@@ -220,7 +220,7 @@ lemma eval_range (h : dim K V < omega) : (eval K V).range = ⊤ :=
 begin
   classical,
   rcases exists_is_basis_fintype h with ⟨b, hb, ⟨hf⟩⟩,
-  rw [← hb.to_dual_to_dual, range_comp, hb.to_dual_range, map_top, to_dual_range _],
+  unfreezingI { rw [← hb.to_dual_to_dual, range_comp, hb.to_dual_range, map_top, to_dual_range _] },
   apply_instance
 end
 

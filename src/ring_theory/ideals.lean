@@ -158,6 +158,13 @@ lemma span_singleton_lt_span_singleton [integral_domain β] {x y : β} :
 by rw [lt_iff_le_not_le, span_singleton_le_span_singleton, span_singleton_le_span_singleton,
   dvd_and_not_dvd_iff]
 
+lemma factors_decreasing [integral_domain β] (b₁ b₂ : β) (h₁ : b₁ ≠ 0) (h₂ : ¬ is_unit b₂) :
+  span ({b₁ * b₂} : set β) < span {b₁} :=
+lt_of_le_not_le (ideal.span_le.2 $ singleton_subset_iff.2 $
+  ideal.mem_span_singleton.2 ⟨b₂, rfl⟩) $ λ h,
+h₂ $ is_unit_of_dvd_one _ $ (mul_dvd_mul_iff_left h₁).1 $
+by rwa [mul_one, ← ideal.span_singleton_le_span_singleton]
+
 def quotient (I : ideal α) := I.quotient
 
 namespace quotient

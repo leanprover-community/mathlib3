@@ -585,7 +585,7 @@ begin
   let s := e.target ∩ (e.symm ⁻¹' f.source),
   have hs : is_open s,
   { apply e.symm.continuous_to_fun.preimage_open_of_open; apply open_source },
-  have xs : x ∈ s, by { simp [local_equiv.trans_source] at hx, simp [s, hx] },
+  have xs : x ∈ s, by { dsimp at hx, simp [s, hx] },
   refine ⟨s, hs, xs, _⟩,
   have A : e.symm ≫ₕ f ∈ G := (mem_maximal_atlas_iff.1 he f (chart_mem_atlas _ _)).1,
   have B : f.symm ≫ₕ e' ∈ G := (mem_maximal_atlas_iff.1 he' f (chart_mem_atlas _ _)).2,

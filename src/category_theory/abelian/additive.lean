@@ -59,7 +59,7 @@ end
 end
 
 section
-variables [preadditive.{v} C] [has_preadditive_binary_biproducts.{v} C]
+variables [preadditive.{v} C] [has_binary_biproducts.{v} C]
 
 variables {X₁ X₂ Y₁ Y₂ : C}
 variables (f₁₁ : X₁ ⟶ Y₁) (f₁₂ : X₁ ⟶ Y₂) (f₂₁ : X₂ ⟶ Y₁) (f₂₂ : X₂ ⟶ Y₂)
@@ -250,7 +250,7 @@ open_locale big_operators
 
 lemma biproduct.column_nonzero_of_iso'
   {σ τ : Type v} [decidable_eq σ] [fintype σ] [decidable_eq τ] [fintype τ]
-  {S : σ → C} [has_preadditive_biproduct.{v} S] {T : τ → C} [has_preadditive_biproduct.{v} T]
+  {S : σ → C} [has_biproduct.{v} S] {T : τ → C} [has_biproduct.{v} T]
   (f : ⨁ S ⟶ ⨁ T) [is_iso f] (s : σ) :
   (∀ t : τ, biproduct.ι S s ≫ f ≫ biproduct.π T t = 0) → 𝟙 (S s) = 0 :=
 begin
@@ -298,7 +298,7 @@ trunc_of_nonempty_fintype $ exists.elim h $ λ a ha, ⟨⟨a, ha⟩⟩
 
 def biproduct.column_nonzero_of_iso
   {σ τ : Type v} [decidable_eq σ] [fintype σ] [decidable_eq τ] [fintype τ]
-  {S : σ → C} [has_preadditive_biproduct.{v} S] {T : τ → C} [has_preadditive_biproduct.{v} T]
+  {S : σ → C} [has_biproduct.{v} S] {T : τ → C} [has_biproduct.{v} T]
   (s : σ) (nz : 𝟙 (S s) ≠ 0)
   [∀ t, decidable_eq (S s ⟶ T t)]
   (f : ⨁ S ⟶ ⨁ T) [is_iso f] :

@@ -33,8 +33,8 @@ instance has_limit_pair (G H : AddCommGroup.{u}) : has_limit.{u} (pair G H) :=
       ext; [rw ← w walking_pair.left, rw ← w walking_pair.right]; refl,
     end, } }
 
-instance (G H : AddCommGroup.{u}) : has_preadditive_binary_biproduct.{u} G H :=
-has_preadditive_binary_biproduct.of_has_limit_pair _ _
+instance (G H : AddCommGroup.{u}) : has_binary_biproduct.{u} G H :=
+has_binary_biproduct.of_has_binary_product _ _
 
 -- We verify that the underlying type of the biproduct we've just defined is definitionally
 -- the cartesian product of the underlying types:

@@ -102,8 +102,8 @@ end
 
 section
 
-variables [preadditive.{v} C] [has_preadditive_biproducts.{v} C] -- TODO these should add up to `additive`?
-variables [has_preadditive_binary_biproducts.{v} C] -- TODO this is only used in the proof, and could be constructed from the indexed biproducts.
+variables [preadditive.{v} C] [has_finite_biproducts.{v} C] -- TODO these should add up to `additive`?
+variables [has_binary_biproducts.{v} C] -- TODO this is only used in the proof, and could be constructed from the indexed biproducts.
 variables [has_kernels.{v} C] -- We need this for Schur's lemma.
 variables [∀ X Y : C, decidable_eq (X ⟶ Y)]
 
@@ -198,11 +198,12 @@ end
 
 end
 
-variables (C) [preadditive.{v} C] [has_preadditive_biproducts.{v} C]
+variables (C) [preadditive.{v} C] [has_finite_biproducts.{v} C]
 class semisimple :=
 (simple_decomposition : Π X : C, trunc (simple_decomposition.{v} X))
 
 variables {C} [semisimple.{v} C] [has_kernels.{v} C]
+variables [has_binary_biproducts.{v} C] -- FIXME shouldn't be needed
 variables [decidable_rel (λ X Y : C, nonempty (X ≅ Y))]
 variables [∀ X Y : C, decidable_eq (X ⟶ Y)]
 

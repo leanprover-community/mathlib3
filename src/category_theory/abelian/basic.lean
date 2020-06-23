@@ -324,7 +324,7 @@ end
 
 section
 local attribute [instance] preadditive.has_coequalizers_of_has_cokernels
-local attribute [instance] has_preadditive_binary_biproducts_of_has_binary_products
+local attribute [instance] has_binary_biproducts.of_has_binary_products
 
 /-- Any abelian category has pushouts -/
 def has_pushouts : has_pushouts.{v} C :=
@@ -335,7 +335,7 @@ end
 namespace pullback_to_biproduct_is_kernel
 variables [limits.has_pullbacks.{v} C] {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
 
-local attribute [instance] has_preadditive_binary_biproducts_of_has_binary_products
+local attribute [instance] has_binary_biproducts.of_has_binary_products
 
 /-! This section contains a slightly technical result about pullbacks and biproducts.
     We will need it in the proof that the pullback of an epimorphism is an epimorpism. -/
@@ -374,7 +374,7 @@ end pullback_to_biproduct_is_kernel
 namespace biproduct_to_pushout_is_cokernel
 variables [limits.has_pushouts.{v} C] {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z)
 
-local attribute [instance] has_preadditive_binary_biproducts_of_has_binary_products
+local attribute [instance] has_binary_biproducts.of_has_binary_products
 
 /-- The canonical map `Y ⊞ Z ⟶ pushout f g` -/
 abbreviation biproduct_to_pushout : Y ⊞ Z ⟶ pushout f g :=
@@ -401,7 +401,7 @@ end biproduct_to_pushout_is_cokernel
 section epi_pullback
 variables [limits.has_pullbacks.{v} C] {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
 
-local attribute [instance] has_preadditive_binary_biproducts_of_has_binary_products
+local attribute [instance] has_binary_biproducts.of_has_binary_products
 
 /-- In an abelian category, the pullback of an epimorphism is an epimorphism.
     Proof from [aluffi2016, IX.2.3], cf. [borceux-vol2, 1.7.6] -/
@@ -477,7 +477,7 @@ end epi_pullback
 section mono_pushout
 variables [limits.has_pushouts.{v} C] {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z)
 
-local attribute [instance] has_preadditive_binary_biproducts_of_has_binary_products
+local attribute [instance] has_binary_biproducts.of_has_binary_products
 
 instance mono_pushout_of_mono_f [mono f] : mono (pushout.inr : Z ⟶ pushout f g) :=
 mono_of_cancel_zero _ $ λ R e h,

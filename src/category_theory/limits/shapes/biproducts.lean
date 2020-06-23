@@ -26,16 +26,19 @@ and morphisms `fst : X ⟶ P`, `snd : X ⟶ Q`, `inl : P ⟶ X` and `inr : X ⟶
 such that `inl ≫ fst = 𝟙 P`, `inl ≫ snd = 0`, `inr ≫ fst = 0`, and `inr ≫ snd = 𝟙 Q`.
 Such a `binary_bicone` is a biproduct if the cone is a limit cone, and the cocone is a colimit cocone.
 
-In a preadditive category, we prove the equivalence between three notions:
-* a `binary_bicone` which satisfies `total : fst ≫ inl + snd ≫ inr = 𝟙 X`
-* a `binary_bicone` whose cone is a limit cone,
-* a `binary_bicone` whose cocone is a colimit cocone.
-
-We use the first notion as the definition of a "preadditive biproduct".
+In a preadditive category,
+* any `binary_biproduct` satisfies `total : fst ≫ inl + snd ≫ inr = 𝟙 X`
+* any `binary_product` is a `binary_biproduct`
+* any `binary_coproduct` is a `binary_biproduct`
 
 For biproducts indexed by a `fintype J`, a `bicone` again consists of a cone point `X`
 and morphisms `π j : X ⟶ F j` and `ι j : F j ⟶ X` for each `j`,
 such that `ι j ≫ π j'` is the identity when `j = j'` and zero otherwise.
+
+In a preadditive category,
+* any `biproduct` satisfies `total : ∑ j : J, biproduct.π f j ≫ biproduct.ι f j = 𝟙 (⨁ f)`
+* any `product` is a `biproduct`
+* any `coproduct` is a `biproduct`
 
 ## Notation
 As `⊕` is already taken for the sum of types, we introduce the notation `X ⊞ Y` for
@@ -204,12 +207,12 @@ abbreviation biproduct.map' [fintype J] {f g : J → C} [has_finite_biproducts.{
   (p : Π b, f b ⟶ g b) : ⨁ f ⟶ ⨁ g :=
 @colim_map _ _ _ _ (discrete.functor f) (discrete.functor g) _ _ (discrete.nat_trans p)
 
-@[ext] lemma biproduct.hom_ext [fintype J] {f : J → C} [has_finite_biproducts.{v} C]
+@[ext] lemma biproduct.hom_ext {f : J → C} [has_biproduct.{v} f]
   {Z : C} (g h : Z ⟶ ⨁ f)
   (w : ∀ j, g ≫ biproduct.π f j = h ≫ biproduct.π f j) : g = h :=
 limit.hom_ext w
 
-@[ext] lemma biproduct.hom_ext' [fintype J] {f : J → C} [has_finite_biproducts.{v} C]
+@[ext] lemma biproduct.hom_ext' {f : J → C} [has_biproduct.{v} f]
   {Z : C} (g h : ⨁ f ⟶ Z)
   (w : ∀ j, biproduct.ι f j ≫ g =  biproduct.ι f j ≫ h) : g = h :=
 colimit.hom_ext w
@@ -554,252 +557,185 @@ variables {J : Type v} [fintype J] [decidable_eq J]
 open category_theory.preadditive
 open_locale big_operators
 
-/--
-A preadditive binary product is a bicone on a family of objects `f : J → C` with `[fintype J]`
-satisfying a further axiom
-`total : ∑ j, π j ≫ ι j = 𝟙 _`.
-The notion of preadditive binary product is strictly stronger than the notion of binary product
-(but it in any preadditive category, the existence of a binary product implies the existence of a
-preadditive binary product: a biproduct is, in particular, a (co)product,
-and every (co)product gives rise to a preadditive biproduct).
--/
-class has_preadditive_biproduct (f : J → C) :=
-(bicone : bicone.{v} f)
-(total' : ∑ j : J, bicone.π j ≫ bicone.ι j = 𝟙 bicone.X . obviously)
-
-restate_axiom has_preadditive_biproduct.total'
-attribute [simp] has_preadditive_biproduct.total
-
-/-- A preadditive biproduct is a biproduct. -/
-@[priority 100]
-instance (f : J → C) [has_preadditive_biproduct.{v} f] : has_biproduct.{v} f :=
-{ bicone := has_preadditive_biproduct.bicone,
+def has_biproduct_of_total {f : J → C} (b : bicone f) (total : ∑ j : J, b.π j ≫ b.ι j = 𝟙 b.X) :
+  has_biproduct.{v} f :=
+{ bicone := b,
   is_limit :=
-  { lift := λ s, ∑ j, s.π.app j ≫ has_preadditive_biproduct.bicone.ι j,
+  { lift := λ s, ∑ j, s.π.app j ≫ b.ι j,
     uniq' := λ s m h,
     begin
-      erw [←category.comp_id m, ←has_preadditive_biproduct.total, comp_sum],
+      erw [←category.comp_id m, ←total, comp_sum],
       apply finset.sum_congr rfl,
       intros j m,
       erw [reassoc_of (h j)],
     end,
-    fac' := λ s j, by simp [sum_comp, has_preadditive_biproduct.bicone.ι_π, comp_dite], },
+    fac' := λ s j,
+    begin
+      simp only [sum_comp, category.assoc, bicone.to_cone_π_app, b.ι_π, comp_dite],
+      dsimp, simp,
+    end },
   is_colimit :=
-  { desc := λ s, ∑ j, has_preadditive_biproduct.bicone.π j ≫ s.ι.app j,
+  { desc := λ s, ∑ j, b.π j ≫ s.ι.app j,
     uniq' := λ s m h,
     begin
-      erw [←category.id_comp m, ←has_preadditive_biproduct.total, sum_comp],
+      erw [←category.id_comp m, ←total, sum_comp],
             apply finset.sum_congr rfl,
       intros j m,
       erw [category.assoc, h],
     end,
     fac' := λ s j,
     begin
-      simp only [comp_sum, ←category.assoc, bicone.to_cocone_ι_app,
-        has_preadditive_biproduct.bicone.ι_π],
-      dsimp, simp [dite_comp],
+      simp only [comp_sum, ←category.assoc, bicone.to_cocone_ι_app, b.ι_π, dite_comp],
+      dsimp, simp,
     end } }
 
+/-- In a preadditive category, if the product over `f : J → C` exists,
+    then the biproduct over `f` exists. -/
+def has_biproduct.of_has_product (f : J → C) [has_product.{v} f] :
+  has_biproduct.{v} f :=
+has_biproduct_of_total
+{ X := pi_obj f,
+  π := limits.pi.π f,
+  ι := λ j, pi.lift (λ j', if h : j = j' then eq_to_hom (congr_arg f h) else 0),
+  ι_π := λ j j', by simp, }
+(by { ext, simp [sum_comp, comp_dite] })
+
+/-- In a preadditive category, if the coproduct over `f : J → C` exists,
+    then the biproduct over `f` exists. -/
+def has_biproduct.of_has_coproduct (f : J → C) [has_coproduct.{v} f] :
+  has_biproduct.{v} f :=
+has_biproduct_of_total
+{ X := sigma_obj f,
+  π := λ j, sigma.desc (λ j', if h : j' = j then eq_to_hom (congr_arg f h) else 0),
+  ι := limits.sigma.ι f,
+  ι_π := λ j j', by simp, }
+begin
+  ext,
+  simp only [comp_sum, limits.cofan.mk_π_app, limits.colimit.ι_desc_assoc, eq_self_iff_true,
+    limits.colimit.ι_desc, category.comp_id],
+  dsimp,
+  simp only [dite_comp, finset.sum_dite_eq, finset.mem_univ, if_true, category.id_comp,
+    eq_to_hom_refl, limits.has_zero_morphisms.zero_comp],
+end
+
 section
-variables {f : J → C} [has_preadditive_biproduct.{v} f]
+variables {f : J → C} [has_biproduct.{v} f]
 
 @[simp] lemma biproduct.total : ∑ j : J, biproduct.π f j ≫ biproduct.ι f j = 𝟙 (⨁ f) :=
-has_preadditive_biproduct.total
+begin
+  ext j j',
+  simp [comp_sum, sum_comp, biproduct.ι_π, comp_dite, dite_comp],
+end
 
 lemma biproduct.lift_eq {T : C} {g : Π j, T ⟶ f j} :
-  biproduct.lift g = ∑ j, g j ≫ biproduct.ι f j := rfl
+  biproduct.lift g = ∑ j, g j ≫ biproduct.ι f j :=
+begin
+  ext j,
+  simp [sum_comp, biproduct.ι_π, comp_dite],
+end
 
 lemma biproduct.desc_eq {T : C} {g : Π j, f j ⟶ T} :
-  biproduct.desc g = ∑ j, biproduct.π f j ≫ g j := rfl
+  biproduct.desc g = ∑ j, biproduct.π f j ≫ g j :=
+begin
+  ext j,
+  simp [comp_sum, biproduct.ι_π_assoc, dite_comp],
+end
 
 @[simp, reassoc] lemma biproduct.lift_desc {T U : C} {g : Π j, T ⟶ f j} {h : Π j, f j ⟶ U} :
   biproduct.lift g ≫ biproduct.desc h = ∑ j : J, g j ≫ h j :=
 by simp [biproduct.lift_eq, biproduct.desc_eq, comp_sum, sum_comp, biproduct.ι_π_assoc,
   comp_dite, dite_comp]
 
-end
-
-section has_product
-
-/-- In a preadditive category, if the product over `f : J → C` exists, then the preadditive
-    biproduct over `f` exists. -/
-def has_preadditive_biproduct.of_has_product (f : J → C) [has_product.{v} f] :
-  has_preadditive_biproduct.{v} f :=
-{ bicone :=
-  { X := pi_obj f,
-    π := limits.pi.π f,
-    ι := λ j, pi.lift (λ j', if h : j = j' then eq_to_hom (congr_arg f h) else 0),
-    ι_π := λ j j', by simp, },
-  total' := by { ext, simp [sum_comp, comp_dite] }, }
-
-/-- In a preadditive category, if the coproduct over `f : J → C` exists, then the preadditive
-    biproduct over `f` exists. -/
-def has_preadditive_biproduct.of_has_coproduct (f : J → C) [has_coproduct.{v} f] :
-  has_preadditive_biproduct.{v} f :=
-{ bicone :=
-  { X := sigma_obj f,
-    π := λ j, sigma.desc (λ j', if h : j' = j then eq_to_hom (congr_arg f h) else 0),
-    ι := limits.sigma.ι f,
-    ι_π := λ j j', by simp, },
-  total' :=
-  begin
-    ext,
-    simp only [comp_sum, limits.cofan.mk_π_app, limits.colimit.ι_desc_assoc, eq_self_iff_true,
-      limits.colimit.ι_desc, category.comp_id],
-    dsimp,
-    simp only [dite_comp, finset.sum_dite_eq, finset.mem_univ, if_true, category.id_comp,
-      eq_to_hom_refl, limits.has_zero_morphisms.zero_comp],
-  end, }
-
-end has_product
-
-section
-variable (C)
-
-/-- A preadditive category `has_preadditive_biproducts` if the preadditive biproduct
-    exists for every pair of objects. -/
-class has_preadditive_biproducts :=
-(has_preadditive_biproduct : Π {J : Type v} [fintype J] [decidable_eq J] (f : J → C),
-  has_preadditive_biproduct.{v} f)
-
-attribute [instance, priority 100] has_preadditive_biproducts.has_preadditive_biproduct
-
-@[priority 100]
-instance [has_preadditive_biproducts.{v} C] : has_finite_biproducts.{v} C :=
-⟨λ _ _ _, { has_biproduct := λ F, by { resetI, apply_instance } }⟩
-
 lemma biproduct.map_eq [has_finite_biproducts.{v} C] {f g : J → C} {h : Π j, f j ⟶ g j} :
   biproduct.map h = ∑ j : J, biproduct.π f j ≫ h j ≫ biproduct.ι g j :=
 begin
-  apply biproduct.hom_ext,
-  intro j,
-  apply biproduct.hom_ext',
-  intro j',
-  simp [sum_comp, comp_sum, biproduct.ι_π, comp_dite],
+  ext,
+  simp [biproduct.ι_π, biproduct.ι_π_assoc, comp_sum, sum_comp, comp_dite, dite_comp],
 end
-
-/-- If a preadditive category has all products, then it has all preadditive biproducts. -/
-def has_preadditive_biproducts_of_has_products [has_products.{v} C] :
-  has_preadditive_biproducts.{v} C :=
-⟨λ _ _ _ f, by exactI has_preadditive_biproduct.of_has_product f⟩
-
-/-- If a preadditive category has all coproducts, then it has all preadditive biproducts. -/
-def has_preadditive_biproducts_of_has_coproducts [has_coproducts.{v} C] :
-  has_preadditive_biproducts.{v} C :=
-⟨λ _ _ _ f, by exactI has_preadditive_biproduct.of_has_coproduct f⟩
 
 end
 
-/--
-A preadditive binary biproduct is a bicone on two objects `X` and `Y` satisfying a further axiom
-`total : fst ≫ inl + snd ≫ = 𝟙 _`.
-The notion of preadditive binary biproduct is strictly stronger than the notion of binary biproduct
-(but it in any preadditive category, the existence of a binary biproduct implies the existence of a
-preadditive binary biproduct: a biproduct is, in particular, a (co)product,
-and every (co)product gives rise to a preadditive binary biproduct,
-see `has_preadditive_binary_biproduct.of_has_limit_pair`).
--/
-class has_preadditive_binary_biproduct (X Y : C) :=
-(bicone : binary_bicone.{v} X Y)
-(total' : bicone.fst ≫ bicone.inl + bicone.snd ≫ bicone.inr = 𝟙 bicone.X . obviously)
-
-restate_axiom has_preadditive_binary_biproduct.total'
-attribute [simp] has_preadditive_binary_biproduct.total
-
-/-- A preadditive binary biproduct is a binary biproduct. -/
-@[priority 100]
-instance (X Y : C) [has_preadditive_binary_biproduct.{v} X Y] : has_binary_biproduct.{v} X Y :=
-{ bicone := has_preadditive_binary_biproduct.bicone,
+def has_binary_biproduct_of_total {X Y : C} (b : binary_bicone X Y)
+  (total : b.fst ≫ b.inl + b.snd ≫ b.inr = 𝟙 b.X) :
+  has_binary_biproduct.{v} X Y :=
+{ bicone := b,
   is_limit :=
-  { lift := λ s, binary_fan.fst s ≫ has_preadditive_binary_biproduct.bicone.inl +
-      binary_fan.snd s ≫ has_preadditive_binary_biproduct.bicone.inr,
-    uniq' := λ s m h, by erw [←category.comp_id m, ←has_preadditive_binary_biproduct.total,
+  { lift := λ s, binary_fan.fst s ≫ b.inl +
+      binary_fan.snd s ≫ b.inr,
+    uniq' := λ s m h, by erw [←category.comp_id m, ←total,
       comp_add, reassoc_of (h walking_pair.left), reassoc_of (h walking_pair.right)],
     fac' := λ s j, by cases j; simp, },
   is_colimit :=
-  { desc := λ s, has_preadditive_binary_biproduct.bicone.fst ≫ binary_cofan.inl s +
-      has_preadditive_binary_biproduct.bicone.snd ≫ binary_cofan.inr s,
-    uniq' := λ s m h, by erw [←category.id_comp m, ←has_preadditive_binary_biproduct.total,
+  { desc := λ s, b.fst ≫ binary_cofan.inl s +
+      b.snd ≫ binary_cofan.inr s,
+    uniq' := λ s m h, by erw [←category.id_comp m, ←total,
       add_comp, category.assoc, category.assoc, h walking_pair.left, h walking_pair.right],
     fac' := λ s j, by cases j; simp, } }
 
+/-- In a preadditive category, if the product of `X` and `Y` exists, then the
+    binary biproduct of `X` and `Y` exists. -/
+def has_binary_biproduct.of_has_binary_product (X Y : C) [has_binary_product.{v} X Y] :
+  has_binary_biproduct.{v} X Y :=
+has_binary_biproduct_of_total
+{ X := X ⨯ Y,
+  fst := category_theory.limits.prod.fst,
+  snd := category_theory.limits.prod.snd,
+  inl := prod.lift (𝟙 X) 0,
+  inr := prod.lift 0 (𝟙 Y) }
+begin
+  ext; simp [add_comp],
+end
+
+def has_binary_biproducts.of_has_binary_products [has_binary_products.{v} C] :
+  has_binary_biproducts.{v} C :=
+{ has_binary_biproduct := λ X Y, has_binary_biproduct.of_has_binary_product X Y, }
+
+/-- In a preadditive category, if the product of `X` and `Y` exists, then the
+    binary biproduct of `X` and `Y` exists. -/
+def has_binary_biproduct.of_has_binary_coproduct (X Y : C) [has_binary_coproduct.{v} X Y] :
+  has_binary_biproduct.{v} X Y :=
+has_binary_biproduct_of_total
+{ X := X ⨿ Y,
+  fst := coprod.desc (𝟙 X) 0,
+  snd := coprod.desc 0 (𝟙 Y),
+  inl := category_theory.limits.coprod.inl,
+  inr := category_theory.limits.coprod.inr }
+begin
+  ext; simp [add_comp],
+end
+
+def has_binary_biproducts.of_has_binary_coproducts [has_binary_coproducts.{v} C] :
+  has_binary_biproducts.{v} C :=
+{ has_binary_biproduct := λ X Y, has_binary_biproduct.of_has_binary_coproduct X Y, }
+
 section
-variables {X Y : C} [has_preadditive_binary_biproduct.{v} X Y]
+variables {X Y : C} [has_binary_biproduct.{v} X Y]
 
 @[simp] lemma biprod.total : biprod.fst ≫ biprod.inl + biprod.snd ≫ biprod.inr = 𝟙 (X ⊞ Y) :=
-has_preadditive_binary_biproduct.total
+begin
+  ext; simp [add_comp],
+end
 
 lemma biprod.lift_eq {T : C} {f : T ⟶ X} {g : T ⟶ Y} :
-  biprod.lift f g = f ≫ biprod.inl + g ≫ biprod.inr := rfl
+  biprod.lift f g = f ≫ biprod.inl + g ≫ biprod.inr :=
+begin
+  ext; simp [add_comp],
+end
 
 lemma biprod.desc_eq {T : C} {f : X ⟶ T} {g : Y ⟶ T} :
-  biprod.desc f g = biprod.fst ≫ f + biprod.snd ≫ g := rfl
+  biprod.desc f g = biprod.fst ≫ f + biprod.snd ≫ g :=
+begin
+  ext; simp [add_comp],
+end
 
 @[simp, reassoc] lemma biprod.lift_desc {T U : C} {f : T ⟶ X} {g : T ⟶ Y} {h : X ⟶ U} {i : Y ⟶ U} :
   biprod.lift f g ≫ biprod.desc h i = f ≫ h + g ≫ i :=
 by simp [biprod.lift_eq, biprod.desc_eq]
 
-end
-
-section has_limit_pair
-
-/-- In a preadditive category, if the product of `X` and `Y` exists, then the preadditive binary
-    biproduct of `X` and `Y` exists. -/
-def has_preadditive_binary_biproduct.of_has_limit_pair (X Y : C) [has_limit.{v} (pair X Y)] :
-  has_preadditive_binary_biproduct.{v} X Y :=
-{ bicone :=
-  { X := X ⨯ Y,
-    fst := category_theory.limits.prod.fst,
-    snd := category_theory.limits.prod.snd,
-    inl := prod.lift (𝟙 X) 0,
-    inr := prod.lift 0 (𝟙 Y) } }
-
-/-- In a preadditive category, if the coproduct of `X` and `Y` exists, then the preadditive binary
-    biproduct of `X` and `Y` exists. -/
-def has_preadditive_binary_biproduct.of_has_colimit_pair (X Y : C) [has_colimit.{v} (pair X Y)] :
-  has_preadditive_binary_biproduct.{v} X Y :=
-{ bicone :=
-  { X := X ⨿ Y,
-    fst := coprod.desc (𝟙 X) 0,
-    snd := coprod.desc 0 (𝟙 Y),
-    inl := category_theory.limits.coprod.inl,
-    inr := category_theory.limits.coprod.inr } }
-
-end has_limit_pair
-
-section
-variable (C)
-
-/-- A preadditive category `has_preadditive_binary_biproducts` if the preadditive binary biproduct
-    exists for every pair of objects. -/
-class has_preadditive_binary_biproducts :=
-(has_preadditive_binary_biproduct : Π (X Y : C), has_preadditive_binary_biproduct.{v} X Y)
-
-attribute [instance, priority 100] has_preadditive_binary_biproducts.has_preadditive_binary_biproduct
-
-@[priority 100]
-instance [has_preadditive_binary_biproducts.{v} C] : has_binary_biproducts.{v} C :=
-⟨λ X Y, by apply_instance⟩
 
 lemma biprod.map_eq [has_binary_biproducts.{v} C] {W X Y Z : C} {f : W ⟶ Y} {g : X ⟶ Z} :
   biprod.map f g = biprod.fst ≫ f ≫ biprod.inl + biprod.snd ≫ g ≫ biprod.inr :=
 by apply biprod.hom_ext; apply biprod.hom_ext'; simp
-
-/-- If a preadditive category has all binary products, then it has all preadditive binary
-    biproducts. -/
--- This particularly dangerous as an instance,
--- as we can deduce `has_binary_products` from `has_preadditive_binary_biproducts`.
-def has_preadditive_binary_biproducts_of_has_binary_products [has_binary_products.{v} C] :
-  has_preadditive_binary_biproducts.{v} C :=
-⟨λ X Y, has_preadditive_binary_biproduct.of_has_limit_pair X Y⟩
-
-/-- If a preadditive category has all binary coproducts, then it has all preadditive binary
-    biproducts. -/
--- This particularly dangerous as an instance,
--- as we can deduce `has_binary_products` from `has_preadditive_binary_biproducts`.
-def has_preadditive_binary_biproducts_of_has_binary_coproducts [has_binary_coproducts.{v} C] :
-  has_preadditive_binary_biproducts.{v} C :=
-⟨λ X Y, has_preadditive_binary_biproduct.of_has_colimit_pair X Y⟩
 
 end
 

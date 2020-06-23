@@ -84,9 +84,6 @@ apply_nolint set.pointwise_zero doc_blame
 apply_nolint comm_ring doc_blame
 apply_nolint comm_semiring doc_blame
 apply_nolint distrib doc_blame
-apply_nolint dvd.trans def_lemma doc_blame
-apply_nolint dvd_of_mul_left_eq def_lemma doc_blame
-apply_nolint dvd_of_mul_right_eq def_lemma doc_blame
 apply_nolint integral_domain doc_blame
 apply_nolint mul_zero_class doc_blame
 apply_nolint no_zero_divisors doc_blame
@@ -178,15 +175,6 @@ apply_nolint category_theory.curry doc_blame
 apply_nolint category_theory.curry_obj doc_blame
 apply_nolint category_theory.currying doc_blame
 apply_nolint category_theory.uncurry doc_blame
-
--- category_theory/discrete_category.lean
-apply_nolint category_theory.discrete doc_blame
-apply_nolint category_theory.discrete.lift doc_blame
-apply_nolint category_theory.discrete.opposite doc_blame
-apply_nolint category_theory.functor.of_function doc_blame
-apply_nolint category_theory.nat_iso.of_isos doc_blame
-apply_nolint category_theory.nat_trans.of_function doc_blame
-apply_nolint category_theory.nat_trans.of_homs doc_blame
 
 -- category_theory/elements.lean
 apply_nolint category_theory.functor.elements has_inhabited_instance
@@ -824,11 +812,6 @@ apply_nolint int.even doc_blame
 -- data/lazy_list2.lean
 apply_nolint lazy_list.list_equiv_lazy_list doc_blame
 apply_nolint lazy_list.traverse doc_blame
-
--- data/list/alist.lean
-apply_nolint alist.disjoint unused_arguments
-apply_nolint alist.foldl unused_arguments
-apply_nolint list.to_alist doc_blame
 
 -- data/list/defs.lean
 apply_nolint list.erasep doc_blame
@@ -2098,7 +2081,6 @@ apply_nolint linarith.mk_neg_one_lt_zero_pf doc_blame
 apply_nolint linarith.mk_non_strict_int_pf_of_strict_int_pf doc_blame
 apply_nolint linarith.mk_prod_prf doc_blame
 apply_nolint linarith.mk_single_comp_zero_pf doc_blame
-apply_nolint linarith.monad.elim_var doc_blame
 apply_nolint linarith.mul_eq unused_arguments
 apply_nolint linarith.mul_expr doc_blame
 apply_nolint linarith.norm_hyp doc_blame
@@ -2106,8 +2088,6 @@ apply_nolint linarith.norm_hyp_aux doc_blame
 apply_nolint linarith.parse_into_comp_and_expr doc_blame
 apply_nolint linarith.partition_by_type doc_blame
 apply_nolint linarith.partition_by_type_aux doc_blame
-apply_nolint linarith.pcomp doc_blame
-apply_nolint linarith.pcomp.add doc_blame
 apply_nolint linarith.pcomp.is_contr doc_blame
 apply_nolint linarith.pcomp.scale doc_blame
 apply_nolint linarith.pelim_var doc_blame

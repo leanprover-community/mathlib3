@@ -190,7 +190,7 @@ f.to_add_monoid_hom.eq_nat_cast f.map_one n
 (f.comp (nat.cast_ring_hom R)).eq_nat_cast n
 
 lemma ext_nat (f g : ℕ →+* R) : f = g :=
-coe_add_monoid_hom_inj $ add_monoid_hom.ext_nat $ f.map_one.trans g.map_one.symm
+coe_add_monoid_hom_injective $ add_monoid_hom.ext_nat $ f.map_one.trans g.map_one.symm
 
 end ring_hom
 

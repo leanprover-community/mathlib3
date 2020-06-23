@@ -419,7 +419,7 @@ end of_zero_exact
 
 /-- If the maps in the directed system are injective, then the canonical maps
 from the components to the direct limits are injective. -/
-theorem of_inj (hf : ∀ i j hij, function.injective (f i j hij)) (i) :
+theorem of_injective (hf : ∀ i j hij, function.injective (f i j hij)) (i) :
   function.injective (of G f i) :=
 begin
   suffices : ∀ x, of G f i x = 0 → x = 0,

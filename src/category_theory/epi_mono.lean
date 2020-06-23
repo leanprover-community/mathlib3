@@ -42,12 +42,12 @@ end
 
 lemma faithful_reflects_epi (F : C ⥤ D) [faithful F] {X Y : C} {f : X ⟶ Y}
   (hf : epi (F.map f)) : epi f :=
-⟨λ Z g h H, F.injectivity $
+⟨λ Z g h H, F.map_injective $
   by rw [←cancel_epi (F.map f), ←F.map_comp, ←F.map_comp, H]⟩
 
 lemma faithful_reflects_mono (F : C ⥤ D) [faithful F] {X Y : C} {f : X ⟶ Y}
   (hf : mono (F.map f)) : mono f :=
-⟨λ Z g h H, F.injectivity $
+⟨λ Z g h H, F.map_injective $
   by rw [←cancel_mono (F.map f), ←F.map_comp, ←F.map_comp, H]⟩
 end
 

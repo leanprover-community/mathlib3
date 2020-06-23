@@ -1,6 +1,5 @@
 import tactic.linarith
 
-
 example (e b c a v0 v1 : ℚ) (h1 : v0 = 5*a) (h2 : v1 = 3*b) (h3 : v0 + v1 + c = 10) :
   v0 + 5 + (v1 - 3) + (c - 2) = 10 :=
 by linarith
@@ -317,3 +316,7 @@ end -/
 by nlinarith
 lemma norm_nonpos_left (x y : ℚ) (h1 : x * x + y * y ≤ 0) : x = 0 :=
 by nlinarith -/
+
+variables {E : Type*} [add_group E]
+example (f : ℤ → E) (h : 0 = f 0) : 1 ≤ 2 := by nlinarith
+example (a : E) (h : a = a) : 1 ≤ 2  := by nlinarith

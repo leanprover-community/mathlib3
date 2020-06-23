@@ -23,7 +23,9 @@ meta def nat.to_pexpr : ℕ → pexpr
 | 1 := ``(1)
 | n := if n % 2 = 0 then ``(bit0 %%(nat.to_pexpr (n/2))) else ``(bit1 %%(nat.to_pexpr (n/2)))
 
+
 open native
+
 namespace linarith
 
 section lemmas
@@ -177,6 +179,10 @@ def cmp : linexp → linexp → ordering
   else if z2 < z1 then ordering.gt
   else cmp t1 t2
 
+/-- `l.vars` returns the list of variables that occur in `l`. -/
+def vars (l : linexp) : list ℕ :=
+l.map prod.fst
+
 end linexp
 
 section datatypes
@@ -216,11 +222,16 @@ The represented term is `coeffs.sum (λ ⟨k, v⟩, v * Var[k])`.
 str determines the direction of the comparison -- is it < 0, ≤ 0, or = 0?
 -/
 @[derive inhabited]
-meta structure comp : Type :=
+structure comp : Type :=
 (str : ineq)
 (coeffs : linexp)
 
-meta inductive comp_source : Type
+/-- `c.vars` returns the list of variables that appear in the linear expression contained in `c`. -/
+def comp.vars : comp → list ℕ :=
+linexp.vars ∘ comp.coeffs
+
+@[derive inhabited]
+inductive comp_source : Type
 | assump : ℕ → comp_source
 | add : comp_source → comp_source → comp_source
 | scale : ℕ → comp_source → comp_source
@@ -230,7 +241,7 @@ meta def comp_source.flatten : comp_source → rb_map ℕ ℕ
 | (comp_source.add c1 c2) := (comp_source.flatten c1).add (comp_source.flatten c2)
 | (comp_source.scale n c) := (comp_source.flatten c).map (λ v, v * n)
 
-meta def comp_source.to_string : comp_source → string
+def comp_source.to_string : comp_source → string
 | (comp_source.assump e) := to_string e
 | (comp_source.add c1 c2) := comp_source.to_string c1 ++ " + " ++ comp_source.to_string c2
 | (comp_source.scale n c) := to_string n ++ " * " ++ comp_source.to_string c
@@ -238,9 +249,68 @@ meta def comp_source.to_string : comp_source → string
 meta instance comp_source.has_to_format : has_to_format comp_source :=
 ⟨λ a, comp_source.to_string a⟩
 
-meta structure pcomp :=
+/--
+A `pcomp` stores a linear comparison `Σ cᵢ*xᵢ R 0`,
+along with information about how this comparison was derived.
+
+The original expressions fed into `linarith` are each assigned a unique natural number label.
+The *historical set* `pcomp.history` stores the labels of expressions
+that were used in deriving the current `pcomp`.
+
+Variables are also indexed by natural numbers. The sets `pcomp.effective`, `pcomp.implicit`,
+and `pcomp.vars` contain variable indices.
+
+* `pcomp.vars` contains the variables that appear in `pcomp.c`. We store them in `pcomp` to
+  avoid recomputing the set, which requires folding over a list. (TODO: is this really needed?)
+* `pcomp.effective` contains the variables that have been effectively eliminated from `pcomp`.
+  A variable `n` is said to be *effectively eliminated* in `pcomp` if the elimination of `n`
+  produced at least one of the ancestors of `pcomp`.
+* `pcomp.implicit` contains the variables that have been implicitly eliminated from `pcomp`.
+  A variable `n` is said to be *implicitly eliminated* in `pcomp` if it satisfies the following
+  properties:
+  - There is some `ancestor` of `pcomp` such that `n` appears in `ancestor.vars`.
+  - `n` does not appear in `pcomp.vars`.
+  - `n` was not effectively eliminated.
+
+We track these sets in order to compute whether the history of a `pcomp` is *minimal*.
+Checking this directly is expensive, but effective approximations can be defined in terms of these
+sets. During the variable elimination process, a `pcomp` with non-minimal history can be discarded.
+-/
+meta structure pcomp : Type :=
 (c : comp)
 (src : comp_source)
+(history : rb_set ℕ)
+(effective : rb_set ℕ)
+(implicit : rb_set ℕ)
+(vars : rb_set ℕ)
+
+/--
+Any comparison whose history is not minimal is redundant,
+and need not be included in the new set of comparisons.
+
+`elimed_ge : ℕ` is a natural number such that all variables with index ≥ `elimed_ge` have been
+removed from the system.
+
+This test is an overapproximation to minimality. It gives necessary but not sufficient conditions.
+If the history of `c` is minimal, then `c.maybe_minimal` is true,
+but `c.maybe_minimal` may also be true for some `c` with minimal history.
+Thus, if `c.maybe_minimal` is false, `c` is known not to be minimal and must be redundant.
+
+See http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.51.493&rep=rep1&type=pdf p.13
+(Theorem 7).
+
+The condition described there considers only implicitly eliminated variables that have been
+officially eliminated from the system. This is not the case for every implicitly eliminated variable.
+Consider eliminating `z` from `{x + y + z < 0, x - y - z < 0}`. The result is the set
+`{2*x < 0}`; `y` is implicitly but not officially eliminated.
+
+This implementation of Fourier-Motzkin elimination processes variables in decreasing order of
+indices. Immediately after a step that eliminates variable `k`, variable `k'` has been eliminated
+iff `k' ≥ k`. Thus we can compute the intersection of officially and implicitly eliminated variables
+by taking the set of implicitly eliminated variables with indices ≥ `elimed_ge`.
+-/
+meta def pcomp.maybe_minimal (c : pcomp) (elimed_ge : ℕ) : bool :=
+c.history.size ≤ 1 + ((c.implicit.filter (≥ elimed_ge)).union c.effective).size
 
 /-- `comp` has a lex order. First the `ineq`s are compared, then the `coeff`s. -/
 meta def comp.cmp : comp → comp → ordering
@@ -268,10 +338,47 @@ meta def comp.add (c1 c2 : comp) : comp :=
 ⟨c1.str.max c2.str, c1.coeffs.add c2.coeffs⟩
 
 meta def pcomp.scale (c : pcomp) (n : ℕ) : pcomp :=
-⟨c.c.scale n, comp_source.scale n c.src⟩
+{c with c := c.c.scale n, src := c.src.scale n}
 
-meta def pcomp.add (c1 c2 : pcomp) : pcomp :=
-⟨c1.c.add c2.c, comp_source.add c1.src c2.src⟩
+/--
+`pcomp.add c1 c2 elim_var` creates the result of summing the linear comparisons `c1` and `c2`,
+during the process of eliminating the variable `elim_var`.
+The computation assumes, but does not enforce, that `elim_var` appears in both `c1` and `c2`
+and does not appear in the sum.
+
+Computing the sum of the two comparisons is easy; the complicated details lie in tracking the
+additional fields of `pcomp`.
+
+* The historical set `pcomp.history` of `c1 + c2` is the union of the two historical sets.
+* We recompute the variables that appear in `c1 + c2` from the newly created `linexp`,
+  since some may have been implicitly eliminated.
+* The effectively eliminated variables of `c1 + c2` are the union of the two effective sets,
+  with `elim_var` inserted.
+* The implicitly eliminated variables of `c1 + c2` are those that appear in at least one of
+  `c1.vars` and `c2.vars` but not in `(c1 + c2).vars`, excluding `elim_var`.
+-/
+meta def pcomp.add (c1 c2 : pcomp) (elim_var : ℕ) : pcomp :=
+let c := c1.c.add c2.c,
+    src := c1.src.add c2.src,
+    history := c1.history.union c2.history,
+    vars := native.rb_set.of_list c.vars,
+    effective := (c1.effective.union c2.effective).insert elim_var,
+    implicit := ((c1.vars.union c2.vars).sdiff vars).erase elim_var in
+⟨c, src, history, effective, implicit, vars⟩
+
+/--
+`pcomp.assump c n` creates a `pcomp` whose comparison is `c` and whose source is
+`comp_source.assump n`, that is, `c` is derived from the `n`th hypothesis.
+The history is the singleton set `{n}`.
+No variables have been eliminated (effectively or implicitly).
+-/
+meta def pcomp.assump (c : comp) (n : ℕ) : pcomp :=
+{ c := c,
+  src := comp_source.assump n,
+  history := mk_rb_set.insert n,
+  effective := mk_rb_set,
+  implicit := mk_rb_set,
+  vars := rb_set.of_list c.vars }
 
 meta instance pcomp.to_format : has_to_format pcomp :=
 ⟨λ p, to_fmt p.c.coeffs ++ to_string p.c.str ++ "0"⟩
@@ -288,30 +395,29 @@ end datatypes
 section fm_elim
 
 /-- If `c1` and `c2` both contain variable `a` with opposite coefficients,
-produces `v1`, `v2`, and `c` such that `a` has been cancelled in `c := v1*c1 + v2*c2`. -/
-meta def elim_var (c1 c2 : comp) (a : ℕ) : option (ℕ × ℕ × comp) :=
+produces `v1`, `v2` such that `a` has been cancelled in `v1*c1 + v2*c2`. -/
+meta def elim_var (c1 c2 : comp) (a : ℕ) : option (ℕ × ℕ) :=
 let v1 := c1.coeff_of a,
     v2 := c2.coeff_of a in
 if v1 * v2 < 0 then
   let vlcm :=  nat.lcm v1.nat_abs v2.nat_abs,
       v1' := vlcm / v1.nat_abs,
       v2' := vlcm / v2.nat_abs in
-  some ⟨v1', v2', comp.add (c1.scale v1') (c2.scale v2')⟩
+  some ⟨v1', v2'⟩
 else none
 
 meta def pelim_var (p1 p2 : pcomp) (a : ℕ) : option pcomp :=
-do (n1, n2, c) ← elim_var p1.c p2.c a,
-   return ⟨c, comp_source.add (p1.src.scale n1) (p2.src.scale n2)⟩
+do (n1, n2) ← elim_var p1.c p2.c a,
+   return $ (p1.scale n1).add (p2.scale n2) a
 
 meta def comp.is_contr (c : comp) : bool := c.coeffs.empty ∧ c.str = ineq.lt
 
 meta def pcomp.is_contr (p : pcomp) : bool := p.c.is_contr
 
 meta def elim_with_set (a : ℕ) (p : pcomp) (comps : rb_set pcomp) : rb_set pcomp :=
-if ¬ p.c.coeffs.contains a then mk_pcomp_set.insert p else
 comps.fold mk_pcomp_set $ λ pc s,
 match pelim_var p pc a with
-| some pc := s.insert pc
+| some pc := if pc.maybe_minimal a then s.insert pc else s
 | none := s
 end
 
@@ -319,11 +425,6 @@ end
 The state for the elimination monad.
 * `vars`: the set of variables present in `comps`
 * `comps`: a set of comparisons
-* `inputs`: a set of pairs of exprs `(t, pf)`, where `t` is a term and `pf` is a proof that
-  `t {<, ≤, =} 0`, indexed by `ℕ`.
-* `has_false`: stores a `pcomp` of `0 < 0` if one has been found
-
-TODO: is it more efficient to store comps as a list, to avoid comparisons?
 -/
 meta structure linarith_structure :=
 (vars : rb_set ℕ)
@@ -351,12 +452,33 @@ end
 meta def update (vars : rb_set ℕ) (comps : rb_set pcomp) : linarith_monad unit :=
 state_t.put ⟨vars, comps⟩ >> validate
 
+/--
+`split_set_by_var_sign a comps` partitions the set `comps` into three parts.
+* `pos` contains the elements of `comps` in which `a` has a positive coefficient.
+* `neg` contains the elements of `comps` in which `a` has a negative coefficient.
+* `not_present` contains the elements of `comps` in which `a` has coefficient 0.
+
+Returns `(pos, neg, not_present)`.
+-/
+meta def split_set_by_var_sign (a : ℕ) (comps : rb_set pcomp) :
+  rb_set pcomp × rb_set pcomp × rb_set pcomp :=
+comps.fold ⟨mk_pcomp_set, mk_pcomp_set, mk_pcomp_set⟩ $ λ pc ⟨pos, neg, not_present⟩,
+  let n := pc.c.coeff_of a in
+  if n > 0 then ⟨pos.insert pc, neg, not_present⟩
+  else if n < 0 then ⟨pos, neg.insert pc, not_present⟩
+  else ⟨pos, neg, not_present.insert pc⟩
+
+/--
+`monad.elim_var a` performs one round of Fourier-Motzkin elimination, eliminating the variable `a`
+from the `linarith` state.
+-/
 meta def monad.elim_var (a : ℕ) : linarith_monad unit :=
 do vs ← get_vars,
    when (vs.contains a) $
-do comps ← get_comps,
-   let cs' := comps.fold mk_pcomp_set (λ p s, s.union (elim_with_set a p comps)),
+do ⟨pos, neg, not_present⟩ ← split_set_by_var_sign a <$> get_comps,
+   let cs' := pos.fold not_present (λ p s, s.union (elim_with_set a p neg)),
    update (vs.erase a) cs'
+
 
 meta def elim_all_vars : linarith_monad unit :=
 get_var_list >>= list.mmap' monad.elim_var
@@ -516,8 +638,8 @@ do pftps ← l.mmap infer_type,
   let prmap := rb_map.of_list $ lz.map (λ ⟨n, x⟩, (n, x.1)),
   let vars : rb_set ℕ := rb_map.set_of_list $ list.range map.size,
   let pc : rb_set pcomp :=
-    rb_set.of_list_core mk_pcomp_set $ lz.map (λ ⟨n, x⟩, ⟨x.2, comp_source.assump n⟩),
-  return (⟨vars, pc⟩, prmap)
+    rb_set.of_list_core mk_pcomp_set $ lz.map (λ ⟨n, x⟩, pcomp.assump x.2 n),
+  return ({vars := vars, comps := pc}, prmap)
 
 meta def linarith_monad.run (red : transparency) {α} (tac : linarith_monad α) (l : list expr) :
   tactic ((pcomp ⊕ α) × rb_map ℕ (expr × expr)) :=
@@ -1119,7 +1241,7 @@ meta def tactic.interactive.nlinarith (red : parse ((tk "!")?))
       h ← assertv `h t p,
       return (hyps.map (λ l, pexpr.of_expr h :: l), (ineq.le, h) :: ge0)) <|>
     return (hyps, ge0)),
-  ge0.mmap'_diag (λ ⟨posa, a⟩ ⟨posb, b⟩, do
+  ge0.mmap'_diag (λ ⟨posa, a⟩ ⟨posb, b⟩, try $ do
     p ←  match posa, posb with
       | ineq.eq, _ := mk_app ``zero_mul_eq [a, b]
       | _, ineq.eq := mk_app ``mul_zero_eq [a, b]

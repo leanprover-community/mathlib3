@@ -191,7 +191,7 @@ instance : euclidean_domain ℤ[i] :=
   .. gaussian_int.comm_ring,
   .. gaussian_int.nonzero }
 
-open principal_ideal_domain
+open principal_ideal_ring
 
 lemma mod_four_eq_three_of_nat_prime_of_prime (p : ℕ) [hp : fact p.prime] (hpi : prime (p : ℤ[i])) :
   p % 4 = 3 :=

@@ -112,7 +112,7 @@ end category_theory.iso
 
 /-- linear equivalences between `module`s are the same as (isomorphic to) isomorphisms in `Module` -/
 @[simps]
-def linear_equiv_iso_Group_iso {X Y : Type u} [add_comm_group X] [add_comm_group Y] [module R X] [module R Y] :
+def linear_equiv_iso_Module_iso {X Y : Type u} [add_comm_group X] [add_comm_group Y] [module R X] [module R Y] :
   (X ≃ₗ[R] Y) ≅ (Module.of R X ≅ Module.of R Y) :=
 { hom := λ e, e.to_Module_iso,
   inv := λ i, i.to_linear_equiv, }

@@ -61,7 +61,8 @@ which is a special case of `mem_closure_of_tendsto` from topology.basic.
 ## Notations
 
 * `∀ᶠ x in f, p x` : `f.eventually p`;
-* `∃ᶠ x in f, p x` : `f.frequently p`.
+* `∃ᶠ x in f, p x` : `f.frequently p`;
+* `f =ᶠ[l] g` : `∀ᶠ x in l, f x = g x`;
 * `f ×ᶠ g` : `filter.prod f g`, localized in `filter`.
 
 ## References
@@ -776,6 +777,16 @@ notation `∀ᶠ` binders ` in ` f `, ` r:(scoped p, filter.eventually p f) := r
 lemma eventually_iff {f : filter α} {P : α → Prop} : (∀ᶠ x in f, P x) ↔ {x | P x} ∈ f :=
 iff.rfl
 
+protected lemma ext' {f₁ f₂ : filter α}
+  (h : ∀ p : α → Prop, (∀ᶠ x in f₁, p x) ↔ (∀ᶠ x in f₂, p x)) :
+  f₁ = f₂ :=
+filter.ext h
+
+lemma eventually.filter_mono {f₁ f₂ : filter α} (h : f₁ ≤ f₂) {p : α → Prop}
+  (hp : ∀ᶠ x in f₂, p x) :
+  ∀ᶠ x in f₁, p x :=
+h hp
+
 lemma eventually_of_mem {f : filter α} {P : α → Prop} {U : set α} (hU : U ∈ f) (h : ∀ x ∈ U, P x) :
   ∀ᶠ x in f, P x :=
 mem_sets_of_superset hU h
@@ -1014,6 +1025,64 @@ lemma frequently_supr {p : α → Prop} {fs : β → filter α} :
   (∃ᶠ x in (⨆ b, fs b), p x) ↔ (∃ b, ∃ᶠ x in fs b, p x) :=
 by simp [filter.frequently, -not_eventually, not_forall]
 
+/-!
+### Relation “eventually equal”
+-/
+
+/-- Two functions `f` and `g` are *eventually equal* along a filter `l` if the set of `x` such that
+`f x = g x` belongs to `l`. -/
+def eventually_eq (l : filter α) (f g : α → β) : Prop := ∀ᶠ x in l, f x = g x
+
+notation f ` =ᶠ[`l`] ` g := eventually_eq l f g
+
+lemma eventually_eq.rw {l : filter α} {f g : α → β} (h : f =ᶠ[l] g) (p : α → β → Prop)
+  (hf : ∀ᶠ x in l, p x (f x)) :
+  ∀ᶠ x in l, p x (g x) :=
+hf.congr $ h.mono $ λ x hx, hx ▸ iff.rfl
+
+@[refl] lemma eventually_eq.refl (l : filter α) (f : α → β) :
+  f =ᶠ[l] f :=
+eventually_of_forall l $ λ x, rfl
+
+@[symm] lemma eventually_eq.symm {f g : α → β} {l : filter α} (H : f =ᶠ[l] g) :
+  g =ᶠ[l] f :=
+H.mono $ λ _, eq.symm
+
+@[trans] lemma eventually_eq.trans {f g h : α → β} {l : filter α}
+  (H₁ : f =ᶠ[l] g) (H₂ : g =ᶠ[l] h) :
+  f =ᶠ[l] h :=
+H₂.rw (λ x y, f x = y) H₁
+
+lemma eventually_eq.func_comp {f g : α → β} {l : filter α} (H : f =ᶠ[l] g) (h : β → γ) :
+  (h ∘ f) =ᶠ[l] (h ∘ g) :=
+H.mono $ λ x hx, congr_arg h hx
+
+lemma eventually_eq.comp₂ {δ} {f f' : α → β} {g g' : α → γ} {l} (Hf : f =ᶠ[l] f') (h : β → γ → δ)
+  (Hg : g =ᶠ[l] g') :
+  (λ x, h (f x) (g x)) =ᶠ[l] (λ x, h (f' x) (g' x)) :=
+Hf.mp $ Hg.mono $ by { intros, simp only * }
+
+@[to_additive]
+lemma eventually_eq.mul [has_mul β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)
+  (h' : f' =ᶠ[l] g') :
+  ((λ x, f x * f' x) =ᶠ[l] (λ x, g x * g' x)) :=
+h.comp₂ (*) h'
+
+@[to_additive]
+lemma eventually_eq.inv [has_inv β] {f g : α → β} {l : filter α} (h : f =ᶠ[l] g) :
+  ((λ x, (f x)⁻¹) =ᶠ[l] (λ x, (g x)⁻¹)) :=
+h.func_comp has_inv.inv
+
+lemma eventually_eq.div [group_with_zero β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)
+  (h' : f' =ᶠ[l] g') :
+  ((λ x, f x / f' x) =ᶠ[l] (λ x, g x / g' x)) :=
+h.mul h'.inv
+
+lemma eventually_eq.sub [add_group β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)
+  (h' : f' =ᶠ[l] g') :
+  ((λ x, f x - f' x) =ᶠ[l] (λ x, g x - g' x)) :=
+h.add h'.neg
+
 /-! ### Push-forwards, pull-backs, and the monad structure -/
 
 section map
@@ -1060,6 +1129,11 @@ funext $ assume _, filter_eq $ rfl
 
 @[simp] lemma map_map : filter.map m' (filter.map m f) = filter.map (m' ∘ m) f :=
 congr_fun (@@filter.map_compose m m') f
+
+lemma map_congr {m₁ m₂ : α → β} {f : filter α} (h : m₁ =ᶠ[f] m₂) :
+  map m₁ f = map m₂ f :=
+filter.ext' $ λ p,
+by { simp only [eventually_map], exact eventually_congr (h.mono $ λ x hx, hx ▸ iff.rfl) }
 
 end map
 
@@ -1376,17 +1450,6 @@ begin
 end
 end map
 
-lemma map_cong {m₁ m₂ : α → β} {f : filter α} (h : {x | m₁ x = m₂ x} ∈ f) :
-  map m₁ f = map m₂ f :=
-have ∀(m₁ m₂ : α → β) (h : {x | m₁ x = m₂ x} ∈ f), map m₁ f ≤ map m₂ f,
-begin
-  intros  m₁ m₂ h s hs,
-  show {x | m₁ x ∈ s} ∈ f,
-  filter_upwards [h, hs],
-  simp only [subset_def, mem_preimage, mem_set_of_eq, forall_true_iff] {contextual := tt}
-end,
-le_antisymm (this m₁ m₂ h) (this m₂ m₁ $ mem_sets_of_superset h $ assume x, eq.symm)
-
 -- this is a generic rule for monotone functions:
 lemma map_infi_le {f : ι → filter α} {m : α → β} :
   map m (infi f) ≤ (⨅ i, map m (f i)) :=
@@ -1663,7 +1726,7 @@ hf h
 lemma eventually_eq_of_left_inv_of_right_inv {f : α → β} {g₁ g₂ : β → α} {fa : filter α}
   {fb : filter β} (hleft : ∀ᶠ x in fa, g₁ (f x) = x) (hright : ∀ᶠ y in fb, f (g₂ y) = y)
   (htendsto : tendsto g₂ fb fa) :
-  ∀ᶠ y in fb, g₁ y = g₂ y :=
+  g₁ =ᶠ[fb] g₂ :=
 (htendsto.eventually hleft).mp $ hright.mono $ λ y hr hl, (congr_arg g₁ hr.symm).trans hl
 
 lemma tendsto_iff_comap {f : α → β} {l₁ : filter α} {l₂ : filter β} :
@@ -1671,11 +1734,12 @@ lemma tendsto_iff_comap {f : α → β} {l₁ : filter α} {l₂ : filter β} :
 map_le_iff_le_comap
 
 lemma tendsto_congr' {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter β}
-  (hl : {x | f₁ x = f₂ x} ∈ l₁) :  tendsto f₁ l₁ l₂ ↔ tendsto f₂ l₁ l₂ :=
-by rw [tendsto, tendsto, map_cong hl]
+  (hl : f₁ =ᶠ[l₁] f₂) :
+  tendsto f₁ l₁ l₂ ↔ tendsto f₂ l₁ l₂ :=
+by rw [tendsto, tendsto, map_congr hl]
 
 lemma tendsto.congr' {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter β}
-  (hl : {x | f₁ x = f₂ x} ∈ l₁) (h : tendsto f₁ l₁ l₂) : tendsto f₂ l₁ l₂ :=
+  (hl : f₁ =ᶠ[l₁] f₂) (h : tendsto f₁ l₁ l₂) : tendsto f₂ l₁ l₂ :=
 (tendsto_congr' hl).1 h
 
 theorem tendsto_congr {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter β}
@@ -1779,8 +1843,8 @@ lemma tendsto_principal_principal {f : α → β} {s : set α} {t : set β} :
 by simp only [tendsto, image_subset_iff, le_principal_iff, map_principal, mem_principal_sets]; refl
 
 lemma tendsto_pure {f : α → β} {a : filter α} {b : β} :
-  tendsto f a (pure b) ↔ {x | f x = b} ∈ a :=
-by simp only [tendsto, le_pure_iff, mem_map, mem_singleton_iff]
+  tendsto f a (pure b) ↔ ∀ᶠ x in a, f x = b :=
+by simp only [tendsto, le_pure_iff, mem_map, mem_singleton_iff, filter.eventually]
 
 lemma tendsto_pure_pure (f : α → β) (a : α) :
   tendsto f (pure a) (pure (f a)) :=

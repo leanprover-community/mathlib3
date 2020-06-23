@@ -14,7 +14,7 @@ open set linear_map submodule
 
 namespace finsupp
 
-section module
+section ring
 variables {R : Type*} {M : Type*} {ι : Type*}
 variables [ring R] [add_comm_group M] [module R M]
 
@@ -41,17 +41,11 @@ begin
       apply range_comp_subset_range } }
 end
 
-end module
-
-section vector_space
-variables {K : Type*} {V : Type*} {ι : Type*}
-variables [field K] [add_comm_group V] [vector_space K V]
-
 open linear_map submodule
 
-lemma is_basis_single {φ : ι → Type*} (f : Π ι, φ ι → V)
-  (hf : ∀i, is_basis K (f i)) :
-  is_basis K (λ ix : Σ i, φ i, single ix.1 (f ix.1 ix.2)) :=
+lemma is_basis_single {φ : ι → Type*} (f : Π ι, φ ι → M)
+  (hf : ∀i, is_basis R (f i)) :
+  is_basis R (λ ix : Σ i, φ i, single ix.1 (f ix.1 ix.2)) :=
 begin
   split,
   { apply linear_independent_single,
@@ -61,7 +55,28 @@ begin
     simp only [image_univ, (hf _).2, map_top, supr_lsingle_range] }
 end
 
-end vector_space
+lemma is_basis_single_one : is_basis R (λ i : ι, single i (1 : R)) :=
+by convert (is_basis_single (λ (i : ι) (x : unit), (1 : R)) (λ i, is_basis_singleton_one R)).comp
+  (λ i : ι, ⟨i, ()⟩) ⟨λ _ _, and.left ∘ sigma.mk.inj, λ ⟨i, ⟨⟩⟩, ⟨i, rfl⟩⟩
+
+end ring
+
+section comm_ring
+variables {R : Type*} {M : Type*} {N : Type*} {ι : Type*} {κ : Type*}
+variables [comm_ring R] [add_comm_group M] [module R M] [add_comm_group N] [module R N]
+
+lemma is_basis.tensor_product {b : ι → M} (hb : is_basis R b) {c : κ → N} (hc : is_basis R c) :
+  is_basis R (λ i : ι × κ, b i.1 ⊗ₜ[R] c i.2) :=
+let e := (tensor_product.congr (module_equiv_finsupp hb) (module_equiv_finsupp hc)).trans
+  (finsupp_tensor_finsupp _ _ _ _ _) in
+_
+
+#check finsupp.dom_lcongr
+
+#check linear_equiv.is_basis
+#check tensor_product.lid
+
+end comm_ring
 
 section dim
 universes u v

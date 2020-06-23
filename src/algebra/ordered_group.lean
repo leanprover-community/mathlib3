@@ -284,11 +284,6 @@ end
 
 end with_zero
 
--- The norm_cast attribute was not available in order.bounded_lattice
--- so I tag them here. TODO Can one change the import heirarchy to fix this?
-attribute [norm_cast] with_top.coe_eq_coe with_top.coe_le_coe with_top.coe_lt_coe
-  with_bot.coe_eq_coe with_bot.coe_le_coe with_bot.coe_lt_coe
-
 namespace with_top
 
 instance [has_zero α] : has_zero (with_top α) := ⟨(0 : α)⟩
@@ -296,8 +291,7 @@ instance [has_zero α] : has_zero (with_top α) := ⟨(0 : α)⟩
 @[simp, norm_cast] lemma coe_zero {α : Type*}
   [has_zero α] : ((0 : α) : with_top α) = 0 := rfl
 
--- not tagged with norm_cast because norm_cast can prove it
-@[simp] lemma coe_eq_zero {α : Type*}
+@[simp, norm_cast] lemma coe_eq_zero {α : Type*}
   [has_zero α] {a : α} : (a : with_top α) = 0 ↔ a = 0 :=
 by norm_cast
 
@@ -306,8 +300,7 @@ instance [has_one α] : has_one (with_top α) := ⟨(1 : α)⟩
 @[simp, norm_cast] lemma coe_one {α : Type*}
   [has_one α] : ((1 : α) : with_top α) = 1 := rfl
 
--- not tagged with norm_cast because norm_cast can prove it
-@[simp] lemma coe_eq_one {α : Type*}
+@[simp, norm_cast] lemma coe_eq_one {α : Type*}
   [has_one α] {a : α} : (a : with_top α) = 1 ↔ a = 1 :=
 by norm_cast
 

@@ -114,7 +114,7 @@ begin
   by_cases h : ∃i, a ∈ s i,
   { rcases h with ⟨i, hi⟩,
     haveI : inhabited ι := ⟨i⟩,
-    simp only [tendsto_pure, mem_at_top_sets, mem_set_of_eq],
+    simp only [tendsto_pure, eventually_at_top],
     use i, assume n hn,
     rw [indicator_of_mem (hs hn hi) _, indicator_of_mem ((subset_Union _ _) hi) _] },
   { rw [not_exists] at h,
@@ -133,7 +133,7 @@ begin
   by_cases h : ∃i, a ∉ s i,
   { rcases h with ⟨i, hi⟩,
     haveI : inhabited ι := ⟨i⟩,
-    simp only [tendsto_pure, mem_at_top_sets, mem_set_of_eq],
+    simp only [tendsto_pure, eventually_at_top],
     use i, assume n hn,
     rw [indicator_of_not_mem _ _, indicator_of_not_mem _ _],
     { simp only [mem_Inter, not_forall], exact ⟨i, hi⟩ },
@@ -151,7 +151,7 @@ lemma tendsto_indicator_bUnion_finset {ι} [has_zero β] (s : ι → set α) (f 
   tendsto (λ (n : finset ι), indicator (⋃i∈n, s i) f a) at_top (pure $ indicator (Union s) f a) :=
 begin
   by_cases h : ∃i, a ∈ s i,
-  { simp only [mem_at_top_sets, tendsto_pure, mem_set_of_eq, ge_iff_le, finset.le_iff_subset],
+  { simp only [tendsto_pure, eventually_at_top, ge_iff_le, finset.le_iff_subset],
     rcases h with ⟨i, hi⟩,
     use {i}, assume n hn,
     replace hn : i ∈ n := hn (finset.mem_singleton_self _),

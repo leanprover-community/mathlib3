@@ -150,7 +150,7 @@ let ⟨c, hc⟩ := h in hc.exists_nonneg
 /-! ### Congruence -/
 
 theorem is_O_with_congr {c₁ c₂} {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
-  (hc : c₁ = c₂) (hf : ∀ᶠ x in l, f₁ x = f₂ x) (hg : ∀ᶠ x in l, g₁ x = g₂ x) :
+  (hc : c₁ = c₂) (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
   is_O_with c₁ f₁ g₁ l ↔ is_O_with c₂ f₂ g₂ l :=
 begin
   subst c₂,
@@ -162,7 +162,7 @@ begin
 end
 
 theorem is_O_with.congr' {c₁ c₂} {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
-  (hc : c₁ = c₂) (hf : ∀ᶠ x in l, f₁ x = f₂ x) (hg : ∀ᶠ x in l, g₁ x = g₂ x) :
+  (hc : c₁ = c₂) (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
   is_O_with c₁ f₁ g₁ l → is_O_with c₂ f₂ g₂ l :=
 (is_O_with_congr hc hf hg).mp
 
@@ -184,12 +184,12 @@ theorem is_O_with.congr_const {c₁ c₂} {l : filter α} (hc : c₁ = c₂) :
 is_O_with.congr hc (λ _, rfl) (λ _, rfl)
 
 theorem is_O_congr {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
-    (hf : ∀ᶠ x in l, f₁ x = f₂ x) (hg : ∀ᶠ x in l, g₁ x = g₂ x) :
+    (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
   is_O f₁ g₁ l ↔ is_O f₂ g₂ l :=
 exists_congr $ λ c, is_O_with_congr rfl hf hg
 
 theorem is_O.congr' {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
-  (hf : ∀ᶠ x in l, f₁ x = f₂ x) (hg : ∀ᶠ x in l, g₁ x = g₂ x) :
+    (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
   is_O f₁ g₁ l → is_O f₂ g₂ l :=
 (is_O_congr hf hg).mp
 
@@ -207,12 +207,12 @@ theorem is_O.congr_right {g₁ g₂ : α → E} {l : filter α} (hg : ∀ x, g�
 is_O.congr (λ _, rfl) hg
 
 theorem is_o_congr {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
-    (hf : ∀ᶠ x in l, f₁ x = f₂ x) (hg : ∀ᶠ x in l, g₁ x = g₂ x) :
+    (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
   is_o f₁ g₁ l ↔ is_o f₂ g₂ l :=
 ball_congr (λ c hc, is_O_with_congr (eq.refl c) hf hg)
 
 theorem is_o.congr' {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
-  (hf : ∀ᶠ x in l, f₁ x = f₂ x) (hg : ∀ᶠ x in l, g₁ x = g₂ x) :
+    (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
   is_o f₁ g₁ l → is_o f₂ g₂ l :=
 (is_o_congr hf hg).mp
 

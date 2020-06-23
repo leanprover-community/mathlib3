@@ -63,7 +63,7 @@ iff.intro
     (assume s₁ s₂ h ⟨a, ha⟩, ⟨a, assume b hb, h $ ha _ hb⟩))
   (assume ⟨a, h⟩, mem_infi_sets a $ assume x, h x)
 
-@[nolint ge_or_gt]
+@[simp, nolint ge_or_gt]
 lemma eventually_at_top {α} [semilattice_sup α] [nonempty α] {p : α → Prop} :
   (∀ᶠ x in at_top, p x) ↔ (∃ a, ∀ b ≥ a, p b) :=
 by simp only [filter.eventually, filter.mem_at_top_sets, mem_set_of_eq]

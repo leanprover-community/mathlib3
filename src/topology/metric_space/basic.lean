@@ -1011,7 +1011,7 @@ lemma prod.dist_eq [metric_space β] {x y : α × β} :
 
 end prod
 
-theorem uniform_continuous_dist' : uniform_continuous (λp:α×α, dist p.1 p.2) :=
+theorem uniform_continuous_dist : uniform_continuous (λp:α×α, dist p.1 p.2) :=
 metric.uniform_continuous_iff.2 (λ ε ε0, ⟨ε/2, half_pos ε0,
 begin
   suffices,
@@ -1029,13 +1029,13 @@ begin
   rwa [add_halves, dist_comm p₂, sub_add_sub_cancel, dist_comm q₂] at this
 end⟩)
 
-theorem uniform_continuous_dist [uniform_space β] {f g : β → α}
+theorem uniform_continuous.dist [uniform_space β] {f g : β → α}
   (hf : uniform_continuous f) (hg : uniform_continuous g) :
   uniform_continuous (λb, dist (f b) (g b)) :=
-uniform_continuous_dist'.comp (hf.prod_mk hg)
+uniform_continuous_dist.comp (hf.prod_mk hg)
 
 theorem continuous_dist : continuous (λp:α×α, dist p.1 p.2) :=
-uniform_continuous_dist'.continuous
+uniform_continuous_dist.continuous
 
 theorem continuous.dist [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, dist (f b) (g b)) :=
@@ -1055,7 +1055,12 @@ lemma tendsto_iff_dist_tendsto_zero {f : β → α} {x : filter β} {a : α} :
 by rw [← nhds_comap_dist a, tendsto_comap_iff]
 
 lemma uniform_continuous_nndist : uniform_continuous (λp:α×α, nndist p.1 p.2) :=
-uniform_continuous_subtype_mk uniform_continuous_dist' _
+uniform_continuous_subtype_mk uniform_continuous_dist _
+
+lemma uniform_continuous.nndist [uniform_space β] {f g : β → α} (hf : uniform_continuous f)
+  (hg : uniform_continuous g) :
+  uniform_continuous (λ b, nndist (f b) (g b)) :=
+uniform_continuous_nndist.comp (hf.prod_mk hg)
 
 lemma continuous_nndist : continuous (λp:α×α, nndist p.1 p.2) :=
 uniform_continuous_nndist.continuous

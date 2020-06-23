@@ -35,7 +35,7 @@ uniform_continuous_extension₂ dist
 
 /-- The new distance is an extension of the original distance. -/
 protected lemma completion.dist_eq (x y : α) : dist (x : completion α) y = dist x y :=
-completion.extension₂_coe_coe uniform_continuous_dist' _ _
+completion.extension₂_coe_coe uniform_continuous_dist _ _
 
 /- Let us check that the new distance satisfies the axioms of a distance, by starting from the
 properties on α and extending them to `completion α` by continuity. -/

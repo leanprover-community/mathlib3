@@ -96,11 +96,8 @@ encodable source space). -/
 theorem dense_Inter_of_open_nat {f : ℕ → set α} (ho : ∀n, is_open (f n))
   (hd : ∀n, closure (f n) = univ) : closure (⋂n, f n) = univ :=
 begin
-  let B : ℕ → ennreal := λn, 1/2^n,
-  have Bpos : ∀n, 0 < B n,
-  { intro n,
-    simp only [B, div_def, one_mul, ennreal.inv_pos],
-    exact pow_ne_top two_ne_top },
+  let B : ℕ → ℝ := λn, ((1/2)^n : ℝ),
+  have Bpos : ∀n, 0 < B n := λn, begin apply pow_pos, by norm_num end,
   /- Translate the density assumption into two functions `center` and `radius` associating
   to any n, x, δ, δpos a center and a positive radius such that
   `closed_ball center radius` is included both in `f n` and in `closed_ball x δ`.
@@ -109,40 +106,40 @@ begin
   { assume n x δ,
     by_cases δpos : δ > 0,
     { have : x ∈ closure (f n) := by simpa only [(hd n).symm] using mem_univ x,
-      rcases emetric.mem_closure_iff.1 this (δ/2) (ennreal.half_pos δpos) with ⟨y, ys, xy⟩,
-      rw edist_comm at xy,
-      obtain ⟨r, rpos, hr⟩ : ∃ r > 0, closed_ball y r ⊆ f n :=
-        nhds_basis_closed_eball.mem_iff.1 (is_open_iff_mem_nhds.1 (ho n) y ys),
-      refine ⟨y, min (min (δ/2) r) (B (n+1)), λ_, ⟨_, _, λz hz, ⟨_, _⟩⟩⟩,
-      show 0 < min (min (δ / 2) r) (B (n+1)),
-        from lt_min (lt_min (ennreal.half_pos δpos) rpos) (Bpos (n+1)),
-      show min (min (δ / 2) r) (B (n+1)) ≤ B (n+1), from min_le_right _ _,
+      rcases metric.mem_closure_iff.1 this (δ/2) (half_pos δpos) with ⟨y, ys, xy⟩,
+      rw dist_comm at xy,
+      rcases is_open_iff.1 (ho n) y ys with ⟨r, rpos, hr⟩,
+      refine ⟨y, min (min (δ/2) (r/2)) (B (n+1)), λ_, ⟨_, _, λz hz, ⟨_, _⟩⟩⟩,
+      show 0 < min (min (δ / 2) (r/2)) (B (n+1)),
+        from lt_min (lt_min (half_pos δpos) (half_pos rpos)) (Bpos (n+1)),
+      show min (min (δ / 2) (r/2)) (B (n+1)) ≤ B (n+1), from min_le_right _ _,
       show z ∈ closed_ball x δ, from calc
-        edist z x ≤ edist z y + edist y x : edist_triangle _ _ _
-        ... ≤ (min (min (δ / 2) r) (B (n+1))) + (δ/2) : add_le_add' hz (le_of_lt xy)
-        ... ≤ δ/2 + δ/2 : add_le_add' (le_trans (min_le_left _ _) (min_le_left _ _)) (le_refl _)
-        ... = δ : ennreal.add_halves δ,
+        dist z x ≤ dist z y + dist y x : dist_triangle _ _ _
+        ... ≤ (min (min (δ / 2) (r/2)) (B (n+1))) + (δ/2) : add_le_add hz (le_of_lt xy)
+        ... ≤ δ/2 + δ/2 : add_le_add (le_trans (min_le_left _ _) (min_le_left _ _)) (le_refl _)
+        ... = δ : add_halves _,
       show z ∈ f n, from hr (calc
-        edist z y ≤ min (min (δ / 2) r) (B (n+1)) : hz
-        ... ≤ r : le_trans (min_le_left _ _) (min_le_right _ _)) },
+        dist z y ≤ min (min (δ / 2) (r/2)) (B (n+1)) : hz
+        ... ≤ r/2 : le_trans (min_le_left _ _) (min_le_right _ _)
+        ... < r : half_lt_self rpos) },
     { use [x, 0] }},
   choose center radius H using this,
 
   refine subset.antisymm (subset_univ _) (λx hx, _),
-  refine (mem_closure_iff_nhds_basis nhds_basis_closed_eball).2 (λ ε εpos, _),
+  refine metric.mem_closure_iff.2 (λε εpos, _),
   /- ε is positive. We have to find a point in the ball of radius ε around x belonging to all `f n`.
   For this, we construct inductively a sequence `F n = (c n, r n)` such that the closed ball
   `closed_ball (c n) (r n)` is included in the previous ball and in `f n`, and such that
   `r n` is small enough to ensure that `c n` is a Cauchy sequence. Then `c n` converges to a
   limit which belongs to all the `f n`. -/
-  let F : ℕ → (α × ennreal) := λn, nat.rec_on n (prod.mk x (min ε (B 0)))
+  let F : ℕ → (α × ℝ) := λn, nat.rec_on n (prod.mk x (min (ε/2) 1))
                               (λn p, prod.mk (center n p.1 p.2) (radius n p.1 p.2)),
   let c : ℕ → α := λn, (F n).1,
-  let r : ℕ → ennreal := λn, (F n).2,
+  let r : ℕ → ℝ := λn, (F n).2,
   have rpos : ∀n, r n > 0,
   { assume n,
     induction n with n hn,
-    exact lt_min εpos (Bpos 0),
+    exact lt_min (half_pos εpos) (zero_lt_one),
     exact (H n (c n) (r n) hn).1 },
   have rB : ∀n, r n ≤ B n,
   { assume n,
@@ -151,17 +148,20 @@ begin
     exact (H n (c n) (r n) (rpos n)).2.1 },
   have incl : ∀n, closed_ball (c (n+1)) (r (n+1)) ⊆ (closed_ball (c n) (r n)) ∩ (f n) :=
     λn, (H n (c n) (r n) (rpos n)).2.2,
-  have cdist : ∀n, edist (c n) (c (n+1)) ≤ B n,
+  have cdist : ∀n, dist (c n) (c (n+1)) ≤ B n,
   { assume n,
-    rw edist_comm,
-    have A : c (n+1) ∈ closed_ball (c (n+1)) (r (n+1)) := mem_closed_ball_self,
+    rw dist_comm,
+    have A : c (n+1) ∈ closed_ball (c (n+1)) (r (n+1)) :=
+      mem_closed_ball_self (le_of_lt (rpos (n+1))),
     have I := calc
       closed_ball (c (n+1)) (r (n+1)) ⊆ closed_ball (c n) (r n) :
         subset.trans (incl n) (inter_subset_left _ _)
       ... ⊆ closed_ball (c n) (B n) : closed_ball_subset_closed_ball (rB n),
     exact I A },
-  have : cauchy_seq c :=
-    cauchy_seq_of_edist_le_geometric_two _ one_ne_top cdist,
+  have : cauchy_seq c,
+  { refine cauchy_seq_of_le_geometric (1/2) 1 (by norm_num) (λn, _),
+    rw one_mul,
+    exact cdist n },
   -- as the sequence `c n` is Cauchy in a complete space, it converges to a limit `y`.
   rcases cauchy_seq_tendsto_of_complete this with ⟨y, ylim⟩,
   -- this point `y` will be the desired point. We will check that it belongs to all

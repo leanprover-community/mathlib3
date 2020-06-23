@@ -360,8 +360,6 @@ begin
       refl } }
 end
 
-instance sign_aux.is_group_hom {n : ℕ} : is_group_hom (@sign_aux n) := { map_mul := sign_aux_mul }
-
 private lemma sign_aux_swap_zero_one {n : ℕ} (hn : 2 ≤ n) :
   sign_aux (swap (⟨0, lt_of_lt_of_le dec_trivial hn⟩ : fin n)
   ⟨1, lt_of_lt_of_le dec_trivial hn⟩) = -1 :=
@@ -391,7 +389,7 @@ lemma sign_aux_swap : ∀ {n : ℕ} {x y : fin n} (hxy : x ≠ y),
 | (n+2) := λ x y hxy,
 have h2n : 2 ≤ n + 2 := dec_trivial,
 by rw [← is_conj_iff_eq, ← sign_aux_swap_zero_one h2n];
-  exact (monoid_hom.of sign_aux).map_is_conj (is_conj_swap hxy dec_trivial)
+  exact (monoid_hom.mk' sign_aux sign_aux_mul).map_is_conj (is_conj_swap hxy dec_trivial)
 
 def sign_aux2 : list α → perm α → units ℤ
 | []     f := 1
@@ -451,26 +449,24 @@ end
 /-- `sign` of a permutation returns the signature or parity of a permutation, `1` for even
 permutations, `-1` for odd permutations. It is the unique surjective group homomorphism from
 `perm α` to the group with two elements.-/
-def sign [fintype α] (f : perm α) := sign_aux3 f mem_univ
-
-instance sign.is_group_hom [fintype α] : is_group_hom (@sign α _ _) :=
-{ map_mul := λ f g, (sign_aux3_mul_and_swap f g _ mem_univ).1 }
+def sign [fintype α] : perm α →* units ℤ := monoid_hom.mk'
+(λ f, sign_aux3 f mem_univ) (λ f g, (sign_aux3_mul_and_swap f g _ mem_univ).1)
 
 section sign
 
 variable [fintype α]
 
 @[simp] lemma sign_mul (f g : perm α) : sign (f * g) = sign f * sign g :=
-is_mul_hom.map_mul sign _ _
+monoid_hom.map_mul sign f g
 
 @[simp] lemma sign_one : (sign (1 : perm α)) = 1 :=
-is_group_hom.map_one sign
+monoid_hom.map_one sign
 
 @[simp] lemma sign_refl : sign (equiv.refl α) = 1 :=
-is_group_hom.map_one sign
+monoid_hom.map_one sign
 
 @[simp] lemma sign_inv (f : perm α) : sign f⁻¹ = sign f :=
-by rw [is_group_hom.map_inv sign, int.units_inv_eq_self]; apply_instance
+by rw [monoid_hom.map_inv sign f, int.units_inv_eq_self]
 
 lemma sign_swap {x y : α} (h : x ≠ y) : sign (swap x y) = -1 :=
 (sign_aux3_mul_and_swap 1 1 _ mem_univ).2 x y h
@@ -513,8 +509,7 @@ lemma sign_surjective (hα : 1 < fintype.card α) : function.surjective (sign : 
     let ⟨y, hxy⟩ := fintype.exists_ne_of_one_lt_card hα x in
     ⟨swap y x, by rw [sign_swap hxy, h]⟩ )
 
-lemma eq_sign_of_surjective_hom {s : perm α → units ℤ}
-  [is_group_hom s] (hs : surjective s) : s = sign :=
+lemma eq_sign_of_surjective_hom {s : perm α →* units ℤ} (hs : surjective s) : s = sign :=
 have ∀ {f}, is_swap f → s f = -1 :=
   λ f ⟨x, y, hxy, hxy'⟩, hxy'.symm ▸ by_contradiction (λ h,
     have ∀ f, is_swap f → s f = 1 := λ f ⟨a, b, hab, hab'⟩,
@@ -528,7 +523,7 @@ have ∀ {f}, is_swap f → s f = -1 :=
     by rw [← l.prod_hom s, list.eq_repeat'.2 this, list.prod_repeat, one_pow],
   by rw [hl.1, hg] at this;
     exact absurd this dec_trivial),
-funext $ λ f,
+monoid_hom.ext $ λ f,
 let ⟨l, hl₁, hl₂⟩ := trunc.out (trunc_swap_factors f) in
 have hsl : ∀ a ∈ l.map s, a = (-1 : units ℤ) := λ a ha,
   let ⟨g, hg⟩ := list.mem_map.1 ha in hg.2 ▸  this (hl₂ _ hg.1),

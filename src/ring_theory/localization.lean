@@ -964,8 +964,7 @@ variables {B : Type*} [integral_domain B] [field K] {L : Type*} [field L]
   (f : fraction_map A K) {g : A →+* L}
 
 lemma mk'_eq_div {r s} : f.mk' r s = f.to_map r / f.to_map s :=
-f.mk'_eq_iff_eq_mul.2 $ (div_mul_cancel _
-    (f.map_ne_zero_of_mem_non_zero_divisors _)).symm
+f.mk'_eq_iff_eq_mul.2 $ (div_mul_cancel _ f.map_ne_zero_of_mem_non_zero_divisors).symm
 
 lemma is_unit_map_of_injective (hg : injective g)
   (y : non_zero_divisors A) : is_unit (g y) :=

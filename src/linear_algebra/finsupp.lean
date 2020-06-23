@@ -6,6 +6,7 @@ Author: Johannes Hölzl
 Linear structures on function with finite support `α →₀ M`.
 -/
 import data.monoid_algebra
+import linear_algebra.direct_sum.tensor_product
 
 noncomputable theory
 

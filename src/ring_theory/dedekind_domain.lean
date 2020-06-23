@@ -41,12 +41,96 @@ namespace unique_factorization_domain
 
 variables [integral_domain R] [unique_factorization_domain R] [field K] {f : fraction_map R K}
 
--- TODO: might need nonzero or similar assumptions
-lemma exists_reduced_factors (a b : R) :
-  ∃ a' b' c', (∀ {p}, p ∣ a' → p ∣ b' → is_unit p) ∧ a' * c' = a ∧ b' * c' = b :=
-sorry
+lemma is_unit.mul_right_dvd_of_dvd {a b c : R} (hb : is_unit b) (h : a ∣ c) : a * b ∣ c :=
+begin
+  rcases hb with ⟨b, rfl⟩,
+  rcases h with ⟨c', rfl⟩,
+  use (b⁻¹ : units R) * c',
+  rw [mul_assoc, units.mul_inv_cancel_left]
+end
 
-lemma mul_mem_non_zero_divisors {a b : R} : a * b ∈ non_zero_divisors R ↔ a ∈ non_zero_divisors R ∧ b ∈ non_zero_divisors R :=
+lemma is_unit.mul_left_dvd_of_dvd {a b c : R} (hb : is_unit b) (h : a ∣ c) : b * a ∣ c :=
+begin
+  rcases hb with ⟨b, rfl⟩,
+  rcases h with ⟨c', rfl⟩,
+  use (b⁻¹ : units R) * c',
+  rw [mul_comm (b : R) a, mul_assoc, units.mul_inv_cancel_left]
+end
+
+/-- If `p` and `q` are irreducible, then `p ∣ q` implies `q ∣ p`. -/
+lemma irreducible.dvd_symm {p q : R} (hp : irreducible p) (hq : irreducible q) :
+  p ∣ q → q ∣ p :=
+begin
+  tactic.unfreeze_local_instances,
+  rintros ⟨q', rfl⟩,
+  cases of_irreducible_mul hq with h h,
+  { have := hp.not_unit,
+    contradiction },
+  { exact is_unit.mul_right_dvd_of_dvd h (dvd_refl p) }
+end
+
+lemma left_dvd_or_dvd_right_of_dvd_prime_mul {a : R} :
+  ∀ {b p : R}, prime p → (a ∣ p * b) → p ∣ a ∨ a ∣ b :=
+begin
+  refine induction_on_prime a _ _ _,
+  { intros b p _ ha,
+    refine (eq_zero_or_eq_zero_of_mul_eq_zero (zero_dvd_iff.mp ha)).imp _ _;
+      rintro ⟨rfl⟩; refl },
+  { intros x x_is_unit b _ _ _,
+    exact or.inr (is_unit_iff_forall_dvd.mp x_is_unit b) },
+  { intros a q a_ne_zero hq ih b p hp qa_dvd,
+    cases (hq.div_or_div (dvd_of_mul_right_dvd qa_dvd)) with q_dvd_p q_dvd_b,
+    { left,
+      apply dvd_mul_of_dvd_left,
+      refine irreducible.dvd_symm (irreducible_of_prime _) (irreducible_of_prime _) _;
+        assumption },
+    { rcases q_dvd_b with ⟨b', rfl⟩,
+      rw mul_left_comm at qa_dvd,
+      refine (ih hp ((mul_dvd_mul_iff_left hq.ne_zero).mp qa_dvd)).imp _ _,
+      { exact λ h, dvd_mul_of_dvd_right h _ },
+      { exact mul_dvd_mul_left q } } }
+end
+
+/-- If `a ≠ 0, b` are elements of a unique factorization domain, then dividing
+out their common factor `c'` gives `a'` and `b'` with no factors in common. -/
+lemma exists_reduced_factors : ∀ (a ≠ (0 : R)) b,
+  ∃ a' b' c', (∀ {p}, p ∣ a' → p ∣ b' → is_unit p) ∧ c' * a' = a ∧ c' * b' = b :=
+begin
+  haveI := classical.prop_decidable,
+  intros a,
+  refine induction_on_prime a _ _ _,
+  { intros, contradiction },
+  { intros a a_unit a_ne_zero b,
+    use [a, b, 1],
+    split,
+    { intros p p_dvd_a _,
+      exact is_unit_of_dvd_unit p_dvd_a a_unit },
+    { simp } },
+  { intros a p a_ne_zero p_prime ih_a pa_ne_zero b,
+    by_cases p ∣ b,
+    { rcases h with ⟨b, rfl⟩,
+      obtain ⟨a', b', c', no_factor, ha', hb'⟩ := ih_a a_ne_zero b,
+      refine ⟨a', b', p * c', @no_factor, _, _⟩,
+      { rw [mul_assoc, ha'] },
+      { rw [mul_assoc, hb'] } },
+    { obtain ⟨a', b', c', coprime, rfl, rfl⟩ := ih_a a_ne_zero b,
+      refine ⟨p * a', b', c', _, mul_left_comm _ _ _, rfl⟩,
+      intros q q_dvd_pa' q_dvd_b',
+      cases left_dvd_or_dvd_right_of_dvd_prime_mul p_prime q_dvd_pa' with p_dvd_q q_dvd_a',
+      { have : p ∣ c' * b' := dvd_mul_of_dvd_right (dvd_trans p_dvd_q q_dvd_b') _,
+        contradiction },
+      exact coprime q_dvd_a' q_dvd_b'  } }
+end
+
+lemma exists_reduced_factors' (a b : R) (hb : b ≠ 0) :
+  ∃ a' b' c', (∀ {p}, p ∣ a' → p ∣ b' → is_unit p) ∧ c' * a' = a ∧ c' * b' = b :=
+let ⟨b', a', c', no_factor, hb, ha⟩ := exists_reduced_factors b hb a
+in ⟨a', b', c', λ _ hpb hpa, no_factor hpa hpb, ha, hb⟩
+
+#check f.to_map_eq_zero_iff
+
+lemma mul_mem_non_zero_divisors {a b : R} :
+  a * b ∈ non_zero_divisors R ↔ a ∈ non_zero_divisors R ∧ b ∈ non_zero_divisors R :=
 begin
 split,
 intro h, split,
@@ -69,27 +153,36 @@ have hba: b*x*a=0, rw [mul_comm,← mul_assoc], exact hab,
 apply hb, rw [mul_assoc,hx],
 end
 
+lemma exists_reduced_fraction (x : f.codomain) :
+  ∃ (a : R) (b : non_zero_divisors R),
+  (∀ {p}, p ∣ a → p ∣ b → is_unit p) ∧
+  f.to_map a / f.to_map b = x :=
+begin
+  obtain ⟨⟨b, b_nonzero⟩, a, hab⟩ := f.exists_integer_multiple x,
+  obtain ⟨a', b', c', no_factor, rfl, rfl⟩ := exists_reduced_factors' a b
+    (mem_non_zero_divisors_iff_ne_zero.mp b_nonzero),
+  obtain ⟨c'_nonzero, b'_nonzero⟩ := mul_mem_non_zero_divisors.mp b_nonzero,
+  refine ⟨a', ⟨b', b'_nonzero⟩, @no_factor, eq.symm ((eq_div_iff _).mpr _)⟩,
+  { exact f.map_ne_zero_of_mem_non_zero_divisors ⟨b', b'_nonzero⟩ },
+  { rw mul_comm x,
+    apply mul_left_cancel' (f.map_ne_zero_of_mem_non_zero_divisors ⟨c', c'_nonzero⟩),
+    simp only [subtype.coe_mk, f.to_map.map_mul] at *,
+    rw [←mul_assoc, hab] },
+end
+
 lemma integrally_closed : integral_closure R f.codomain = ⊥ :=
 begin
   apply integrally_closed_iff_integral_implies_integer.mpr,
   rintros x ⟨p, hp, px⟩,
-  obtain ⟨⟨b, b_nonzero⟩, a, hab⟩ := f.exists_integer_multiple x,
-  rw subtype.coe_mk at hab,
-  obtain ⟨a', b', c', coprime, rfl, rfl⟩ := exists_reduced_factors a b,
-  obtain ⟨b'_nonzero, c'_nonzero⟩ := mul_mem_non_zero_divisors.mp b_nonzero,
-  suffices : b' ∣ a',
-  { obtain ⟨⟨b', d', hbd, hdb⟩, rfl⟩ := coprime this (dvd_refl b'),
-    rw units.coe_mk at *,
-    use d' * a',
-    apply eq_of_mul_eq_mul_right_of_ne_zero
-      (mt f.to_map_eq_zero_iff.mpr (mem_non_zero_divisors_iff_ne_zero.mp c'_nonzero))_,
-    calc f.to_map (d' * a') * f.to_map c'
-          = f.to_map d' * f.to_map (a' * c') : by simp [mul_assoc]
-      ... = f.to_map d' * (f.to_map (b' * c') * x) :
-        by rw hab
-      ... = f.to_map (d' * b') * x * f.to_map c' :
-        by simp [mul_assoc, mul_comm, mul_left_comm]
-      ... = x * f.to_map c' : by rw [hdb, ring_hom.map_one, one_mul] },
+  obtain ⟨a, ⟨b, b_nonzero⟩, no_factors, rfl⟩ := exists_reduced_fraction x,
+  simp only [subtype.coe_mk] at *,
+  suffices : is_unit b,
+  { obtain ⟨⟨b, c, hbc, hcb⟩, rfl⟩ := this,
+    simp only [units.coe_mk] at *,
+    use c * a,
+    refine (eq_div_iff _).mpr _,
+    { exact f.map_ne_zero_of_mem_non_zero_divisors ⟨b, b_nonzero⟩ },
+    rw [←f.to_map.map_mul, mul_assoc, mul_left_comm, hcb, mul_one] },
   sorry
 end
 

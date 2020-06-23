@@ -643,14 +643,13 @@ def locally_finite (f : β → set α) :=
 ∀x:α, ∃t ∈ 𝓝 x, finite {i | (f i ∩ t).nonempty }
 
 lemma locally_finite_of_finite {f : β → set α} (h : finite (univ : set β)) : locally_finite f :=
-assume x, ⟨univ, univ_mem_sets, finite_subset h $ subset_univ _⟩
+assume x, ⟨univ, univ_mem_sets, h.subset $ subset_univ _⟩
 
 lemma locally_finite_subset
   {f₁ f₂ : β → set α} (hf₂ : locally_finite f₂) (hf : ∀b, f₁ b ⊆ f₂ b) : locally_finite f₁ :=
 assume a,
 let ⟨t, ht₁, ht₂⟩ := hf₂ a in
-⟨t, ht₁, finite_subset ht₂ $ assume i hi,
-   hi.mono $ inter_subset_inter (hf i) $ subset.refl _⟩
+⟨t, ht₁, ht₂.subset $ assume i hi, hi.mono $ inter_subset_inter (hf i) $ subset.refl _⟩
 
 lemma is_closed_Union_of_locally_finite {f : β → set α}
   (h₁ : locally_finite f) (h₂ : ∀i, is_closed (f i)) : is_closed (⋃i, f i) :=

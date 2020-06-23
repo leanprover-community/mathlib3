@@ -286,7 +286,7 @@ theorem totally_bounded_iff_subset {s : set α} : totally_bounded s ↔
   have : ∀ x : u, f x ∈ s ∧ (f x, x.1) ∈ r := λ x, classical.some_spec x.2.2,
   refine ⟨range f, _, _, _⟩,
   { exact range_subset_iff.2 (λ x, (this x).1) },
-  { have : finite u := finite_subset fk (λ x h, h.1),
+  { have : finite u := fk.subset (λ x h, h.1),
     exact ⟨@set.fintype_range _ _ _ _ this.fintype⟩ },
   { intros x xs,
     have := ks xs, simp at this,
@@ -332,7 +332,7 @@ assume t ht,
 have {p:α×α | (f p.1, f p.2) ∈ t} ∈ 𝓤 α,
   from hf ht,
 let ⟨c, hfc, hct⟩ := hs _ this in
-⟨f '' c, finite_image f hfc,
+⟨f '' c, hfc.image f,
   begin
     simp [image_subset_iff],
     simp [subset_def] at hct,
@@ -373,7 +373,7 @@ lemma totally_bounded_iff_filter {s : set α} :
   in
   have f ≠ ⊥,
     from infi_ne_bot_of_directed ⟨a⟩
-      (assume ⟨t₁, ht₁⟩ ⟨t₂, ht₂⟩, ⟨⟨t₁ ∪ t₂, finite_union ht₁ ht₂⟩,
+      (assume ⟨t₁, ht₁⟩ ⟨t₂, ht₂⟩, ⟨⟨t₁ ∪ t₂, ht₁.union ht₂⟩,
         principal_mono.mpr $ diff_subset_diff_right $ Union_subset_Union $
           assume t, Union_subset_Union_const or.inl,
         principal_mono.mpr $ diff_subset_diff_right $ Union_subset_Union $

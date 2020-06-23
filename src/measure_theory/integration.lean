@@ -2,14 +2,16 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl
+-/
+import measure_theory.measure_space
+import measure_theory.borel_space
 
-Lebesgue integral on `ennreal`.
+/-!
+# Lebesgue integral for `ennreal`-valued functions
 
 We define simple functions and show that each Borel measurable function on `ennreal` can be
 approximated by a sequence of simple functions.
 -/
-import measure_theory.measure_space
-import measure_theory.borel_space
 
 noncomputable theory
 open set (hiding restrict restrict_apply) filter
@@ -51,8 +53,7 @@ iff.intro
 
 /-- Constant function as a `simple_func`. -/
 def const (α) {β} [measurable_space α] (b : β) : α →ₛ β :=
-⟨λ a, b, λ x, is_measurable.const _,
-  finite_subset (set.finite_singleton b) $ by rintro _ ⟨a, rfl⟩; simp⟩
+⟨λ a, b, λ x, is_measurable.const _, finite_range_const⟩
 
 instance [inhabited β] : inhabited (α →ₛ β) := ⟨const _ (default _)⟩
 
@@ -62,8 +63,7 @@ lemma range_const (α) [measurable_space α] [nonempty α] (b : β) :
   (const α b).range = {b} :=
 begin
   ext b',
-  simp [mem_range],
-  tauto
+  simp [mem_range, eq_comm]
 end
 
 lemma is_measurable_cut (p : α → β → Prop) (f : α →ₛ β)
@@ -77,17 +77,18 @@ begin
 end
 
 theorem preimage_measurable (f : α →ₛ β) (s) : is_measurable (f ⁻¹' s) :=
-is_measurable_cut (λ _ b, b ∈ s) f (λ b, by simp [is_measurable.const])
+is_measurable_cut (λ _ b, b ∈ s) f (λ b, is_measurable.const (b ∈ s))
 
 /-- A simple function is measurable -/
-theorem measurable [measurable_space β] (f : α →ₛ β) : measurable f :=
+protected theorem measurable [measurable_space β] (f : α →ₛ β) : measurable f :=
 λ s _, preimage_measurable f s
 
+/-- If-then-else as a `simple_func`. -/
 def ite {s : set α} (hs : is_measurable s) (f g : α →ₛ β) : α →ₛ β :=
 ⟨λ a, if a ∈ s then f a else g a,
  λ x, by letI : measurable_space β := ⊤; exact
    measurable.if hs f.measurable g.measurable _ trivial,
- finite_subset (finite_union f.finite g.finite) begin
+ (f.finite.union g.finite).subset begin
    rintro _ ⟨a, rfl⟩,
    by_cases a ∈ s; simp [h],
    exacts [or.inl ⟨_, rfl⟩, or.inr ⟨_, rfl⟩]
@@ -101,7 +102,7 @@ then `f.bind g` binds the first argument of `g` to `f`. In other words, `f.bind 
 def bind (f : α →ₛ β) (g : β → α →ₛ γ) : α →ₛ γ :=
 ⟨λa, g (f a) a,
  λ c, is_measurable_cut (λa b, g b a ∈ ({c} : set γ)) f (λ b, (g b).measurable_sn c),
- finite_subset (finite_bUnion f.finite (λ b, (g b).finite)) $
+ (f.finite.bUnion (λ b _, (g b).finite)).subset $
  by rintro _ ⟨a, rfl⟩; simp; exact ⟨a, a, rfl⟩⟩
 
 @[simp] theorem bind_apply (f : α →ₛ β) (g : β → α →ₛ γ) (a) :

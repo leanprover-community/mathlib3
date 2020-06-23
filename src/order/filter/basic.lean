@@ -256,7 +256,7 @@ begin
       exact ⟨t, hts, htfin, subset.trans hinter hVW⟩ },
     { rcases hV with ⟨t, hts, htfin, htinter⟩,
       rcases hW with ⟨z, hzs, hzfin, hzinter⟩,
-      refine ⟨t ∪ z, union_subset hts hzs, finite_union htfin hzfin, _⟩,
+      refine ⟨t ∪ z, union_subset hts hzs, htfin.union hzfin, _⟩,
       rw sInter_union,
       exact inter_subset_inter htinter hzinter } },
   { rcases h with ⟨t, ts, tfin, h⟩,

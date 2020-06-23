@@ -407,7 +407,7 @@ begin
       refine span_mono (@supr_le_supr2 (set M) _ _ _ _ _ _),
       rintros ⟨i⟩, exact ⟨i, le_refl _⟩ },
     { change finite (plift.up ⁻¹' ↑s),
-      exact finite_preimage (assume i j _ _, plift.up.inj) s.finite_to_set } }
+      exact s.finite_to_set.preimage (assume i j _ _, plift.up.inj) } }
 end
 
 lemma linear_independent_Union_finite {η : Type*} {ιs : η → Type*}
@@ -1155,7 +1155,7 @@ lemma exists_finite_card_le_of_finite_of_linear_independent_of_span
   ∃h : finite s, h.to_finset.card ≤ ht.to_finset.card :=
 have s ⊆ (span K ↑(ht.to_finset) : submodule K V), by simp; assumption,
 let ⟨u, hust, hsu, eq⟩ := exists_of_linear_independent_of_finite_span hs this in
-have finite s, from finite_subset u.finite_to_set hsu,
+have finite s, from u.finite_to_set.subset hsu,
 ⟨this, by rw [←eq]; exact (finset.card_le_of_subset $ finset.coe_subset.mp $ by simp [hsu])⟩
 
 lemma linear_map.exists_left_inverse_of_injective (f : V →ₗ[K] V')

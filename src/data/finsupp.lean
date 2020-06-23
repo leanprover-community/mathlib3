@@ -1812,6 +1812,6 @@ end
 The set of `m : σ →₀ ℕ` that are coordinatewise less than or equal to `n`,
 but not equal to `n` everywhere, is a finite set. -/
 lemma finite_lt_nat (n : σ →₀ ℕ) : set.finite {m | m < n} :=
-set.finite_subset (finite_le_nat n) $ λ m, le_of_lt
+(finite_le_nat n).subset $ λ m, le_of_lt
 
 end finsupp

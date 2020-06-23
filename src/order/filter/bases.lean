@@ -203,7 +203,7 @@ def filter_basis.of_sets (s : set (set α)) : filter_basis α :=
   nonempty := ⟨univ, ∅, ⟨⟨finite_empty, empty_subset s⟩, sInter_empty⟩⟩,
   inter_sets := begin
     rintros _ _ ⟨a, ⟨fina, suba⟩, rfl⟩ ⟨b, ⟨finb, subb⟩, rfl⟩,
-    exact ⟨⋂₀ (a ∪ b), mem_image_of_mem _ ⟨finite_union fina finb, union_subset suba subb⟩,
+    exact ⟨⋂₀ (a ∪ b), mem_image_of_mem _ ⟨fina.union finb, union_subset suba subb⟩,
            by rw sInter_union⟩,
   end }
 

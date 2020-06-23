@@ -176,7 +176,7 @@ begin
     refine ⟨(b / a : zmod p).val_min_abs.nat_abs, Ico.mem.mpr ⟨_, _⟩, _⟩,
     { apply nat.pos_of_ne_zero,
       simp only [div_eq_mul_inv, hap, char_p.cast_eq_zero_iff (zmod p) p, hpe hb, not_false_iff,
-        val_min_abs_eq_zero, inv_eq_zero, int.nat_abs_eq_zero, ne.def, mul_eq_zero_iff', or_self] },
+        val_min_abs_eq_zero, inv_eq_zero, int.nat_abs_eq_zero, ne.def, mul_eq_zero, or_self] },
       { apply lt_succ_of_le, apply nat_abs_val_min_abs_le },
       { rw cast_nat_abs_val_min_abs,
         split_ifs,

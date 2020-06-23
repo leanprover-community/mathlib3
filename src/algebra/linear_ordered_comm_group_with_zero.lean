@@ -85,8 +85,8 @@ zero_lt_iff.2 $ unit_ne_zero u
 lemma mul_lt_mul'''' (hab : a < b) (hcd : c < d) : a * c < b * d :=
 have hb : b ≠ 0 := ne_zero_of_lt hab,
 have hd : d ≠ 0 := ne_zero_of_lt hcd,
-if ha : a = 0 then by { rw [ha, zero_mul, zero_lt_iff], exact mul_ne_zero'' hb hd } else
-if hc : c = 0 then by { rw [hc, mul_zero, zero_lt_iff], exact mul_ne_zero'' hb hd } else
+if ha : a = 0 then by { rw [ha, zero_mul, zero_lt_iff], exact mul_ne_zero hb hd } else
+if hc : c = 0 then by { rw [hc, mul_zero, zero_lt_iff], exact mul_ne_zero hb hd } else
 @mul_lt_mul''' _ _ (units.mk0 a ha) (units.mk0 b hb) (units.mk0 c hc) (units.mk0 d hd) hab hcd
 
 lemma mul_inv_lt_of_lt_mul' (h : x < y * z) : x * z⁻¹ < y :=

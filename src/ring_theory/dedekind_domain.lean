@@ -15,14 +15,15 @@ def ring.is_one_dimensional (R : Type*) [comm_ring R] :=
 
 open ring
 
-lemma principal_ideal_domain.is_one_dimensional (R : Type*) [principal_ideal_domain R] :
+lemma principal_ideal_ring.is_one_dimensional (R : Type*) [integral_domain R]
+  [is_principal_ideal_ring R] :
   ring.is_one_dimensional R :=
-λ p nonzero prime, prime.to_maximal_ideal nonzero
+λ p nonzero prime, by { haveI := prime, exact ideal.is_prime.to_maximal_ideal nonzero }
 
 variables {R K : Type*}
 
 -- TODO: `class is_dedekind_domain`?
-structure is_dedekind_domain [integral_domain R] [comm_ring K] (f : fraction_map R K) :=
+structure is_dedekind_domain [comm_ring R] [comm_ring K] (f : fraction_map R K) :=
 (is_one_dimensional : is_one_dimensional R)
 (is_noetherian_ring : is_noetherian_ring R)
 (is_integrally_closed : integral_closure R f.codomain = ⊥)
@@ -95,12 +96,13 @@ end
 end unique_factorization_domain
 
 -- TODO: instance instead of def?
-def principal_ideal_domain.to_dedekind_domain [principal_ideal_domain R] [field K] (f : fraction_map R K) :
+def principal_ideal_ring.to_dedekind_domain [integral_domain R] [is_principal_ideal_ring R]
+  [field K] (f : fraction_map R K) :
   is_dedekind_domain f :=
-{ is_one_dimensional := principal_ideal_domain.is_one_dimensional R,
-  is_noetherian_ring := principal_ideal_domain.is_noetherian_ring,
+{ is_one_dimensional := principal_ideal_ring.is_one_dimensional R,
+  is_noetherian_ring := principal_ideal_ring.is_noetherian_ring,
   is_integrally_closed := @unique_factorization_domain.integrally_closed R _ _
-    (principal_ideal_domain.to_unique_factorization_domain) _ _}
+    (principal_ideal_ring.to_unique_factorization_domain) _ _}
 
 namespace dedekind_domain
 
@@ -115,9 +117,9 @@ instance : integral_domain (integral_closure R S) :=
     or.imp subtype.ext.mpr subtype.ext.mpr (eq_zero_or_eq_zero_of_mul_eq_zero (subtype.ext.mp h)),
   ..(integral_closure R S).comm_ring R S }
 
-lemma maximal_ideal_invertible_of_dedekind (h: is_dedekind_domain f) (M : ideal R) :
-(hM : ideal.is_maximal M) : is_fractional f M:=
-
+lemma maximal_ideal_invertible_of_dedekind (h : is_dedekind_domain f) {M : ideal R}
+(hM : ideal.is_maximal M) : is_unit (M : fractional_ideal f) :=
+sorry
 
 lemma fractional_ideal_invertible_of_dedekind (h : is_dedekind_domain f) (I : fractional_ideal f) :
 I * I⁻¹ = 1 :=
@@ -173,7 +175,7 @@ begin
   { intro h,
     exact ne_zero_of_mul_ne_zero_right h },
   { intro h,
-    refine mul_ne_zero' h (pow_ne_zero _ _),
+    refine mul_ne_zero h (pow_ne_zero _ _),
     exact λ h, hf (leading_coeff_eq_zero.mp h) }
 end
 

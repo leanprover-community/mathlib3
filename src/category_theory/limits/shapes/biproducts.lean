@@ -37,14 +37,6 @@ For biproducts indexed by a `fintype J`, a `bicone` again consists of a cone poi
 and morphisms `π j : X ⟶ F j` and `ι j : F j ⟶ X` for each `j`,
 such that `ι j ≫ π j'` is the identity when `j = j'` and zero otherwise.
 
-## Future work
-Again, in a preadditive category we have a nice characterisation of when
-a `bicone` indexed by a `fintype J` is a `biproduct`:
-* `total : ∑ j, π j ≫ ι j = 𝟙 X`
-and all the corresponding constructions for binary biproducts extend to this case.
-
-TODO: the preadditive version of finite biproducts
-
 ## Notation
 As `⊕` is already taken for the sum of types, we introduce the notation `X ⊞ Y` for
 a binary biproduct. We introduce `⨁ f` for the indexed biproduct.

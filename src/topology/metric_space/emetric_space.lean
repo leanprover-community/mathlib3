@@ -375,7 +375,7 @@ open emetric
 
 /-- An emetric space is separated -/
 @[priority 100] -- see Note [lower instance priority]
-instance to_separated : separated α :=
+instance to_separated : separated_space α :=
 separated_def.2 $ λ x y h, eq_of_forall_edist_le $
 λ ε ε0, le_of_lt (h _ (edist_mem_uniformity ε0))
 

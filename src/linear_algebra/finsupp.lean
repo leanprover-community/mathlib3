@@ -223,6 +223,8 @@ def lsum (f : α → M →ₗ[R] N) : (α →₀ M) →ₗ[R] N :=
   assume d₁ d₂, by simp [sum_add_index],
   assume a d, by simp [sum_smul_index', smul_sum]⟩
 
+@[simp] lemma coe_lsum (f : α → M →ₗ[R] N) : (lsum f : (α →₀ M) → N) = λ d, d.sum (λ i, f i) := rfl
+
 theorem lsum_apply (f : α → M →ₗ[R] N) (l : α →₀ M) :
   finsupp.lsum f l = l.sum (λ b, f b) := rfl
 
@@ -497,7 +499,7 @@ linear_equiv.of_linear
   (finsupp.lsum $ direct_sum.lof R ι (λ _, M))
   (direct_sum.to_module _ _ _ finsupp.lsingle)
   (linear_map.ext $ direct_sum.to_module.ext _ $ λ i,
-    linear_map.ext $ λ x, by simp [finsupp.lsum_single])
+    linear_map.ext $ λ x, by simp [finsupp.sum_single_index])
   (linear_map.ext $ λ f, finsupp.ext $ λ i, by simp [finsupp.lsum_apply])
 
 @[simp] theorem finsupp_lequiv_direct_sum_single (i : ι) (m : M) :

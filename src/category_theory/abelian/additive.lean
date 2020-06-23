@@ -47,21 +47,11 @@ def is_iso_left_of_is_iso_biprod_map
     simp [t],
   end }
 
-def biprod.swap (X Y : C) : X ⊞ Y ≅ Y ⊞ X :=
-has_limit.ext_of_equivalence
-  (discrete.equivalence walking_pair.swap)
-  (discrete.nat_iso (λ j, by { cases j; simp, }))
-
-lemma biprod.swap_map_swap {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) :
-  (biprod.swap X W).hom ≫ biprod.map f g ≫ (biprod.swap Y Z).hom = biprod.map g f :=
-sorry
--- by { ext; simp [biprod.swap, has_limit.ext_of_equivalence, is_limit.cone_points_iso_of_equivalence_hom], }
-
 def is_iso_right_of_is_iso_biprod_map
   {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) [is_iso (biprod.map f g)] : is_iso g :=
 begin
   haveI : is_iso (biprod.map g f) := by
-  { rw [←biprod.swap_map_swap],
+  { rw [←biprod.braiding_map_braiding],
     apply_instance, },
   exact is_iso_left_of_is_iso_biprod_map g f,
 end
@@ -125,6 +115,14 @@ lemma biprod.inr_of_components_snd :
 by simp [biprod.of_components]
 
 @[simp]
+lemma biprod.of_components_eq (f : X₁ ⊞ X₂ ⟶ Y₁ ⊞ Y₂) :
+  biprod.of_components (biprod.inl ≫ f ≫ biprod.fst) (biprod.inl ≫ f ≫ biprod.snd)
+    (biprod.inr ≫ f ≫ biprod.fst) (biprod.inr ≫ f ≫ biprod.snd) = f :=
+begin
+  ext; simp,
+end
+
+@[simp]
 lemma biprod.of_components_comp {X₁ X₂ Y₁ Y₂ Z₁ Z₂ : C}
   (f₁₁ : X₁ ⟶ Y₁) (f₁₂ : X₁ ⟶ Y₂) (f₂₁ : X₂ ⟶ Y₁) (f₂₂ : X₂ ⟶ Y₂)
   (g₁₁ : Y₁ ⟶ Z₁) (g₁₂ : Y₁ ⟶ Z₂) (g₂₁ : Y₂ ⟶ Z₁) (g₂₂ : Y₂ ⟶ Z₂) :
@@ -166,7 +164,7 @@ def biprod.unipotent_lower {X₁ X₂ : C} (r : X₂ ⟶ X₁) : X₁ ⊞ X₂ �
 If `X₁ ⊞ X₂ ≅ Y₁ ⊞ Y₂` via a two-by-two matrix whose `X₁ ⟶ Y₁` entry is an isomorphism,
 then we can construct an isomorphism `X₂ ≅ Y₂`, via Gaussian elimination.
 -/
-def biprod.iso_elim [is_iso f₁₁] [is_iso (biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂)] : X₂ ≅ Y₂ :=
+def biprod.iso_elim' [is_iso f₁₁] [is_iso (biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂)] : X₂ ≅ Y₂ :=
 begin
   -- We use Gaussian elimination to show that the matrix `f` is equivalent to a diagonal matrix,
   -- which then must be an isomorphism.
@@ -179,6 +177,23 @@ begin
   haveI : is_iso d := by { rw ←w, apply_instance, },
   haveI : is_iso r := (is_iso_right_of_is_iso_biprod_map f₁₁ r),
   exact as_iso r
+end
+
+/--
+If `f` is an isomorphism `X₁ ⊞ X₂ ≅ Y₁ ⊞ Y₂` whose `X₁ ⟶ Y₁` entry is an isomorphism,
+then we can construct an isomorphism `X₂ ≅ Y₂`, via Gaussian elimination.
+-/
+def biprod.iso_elim (f : X₁ ⊞ X₂ ≅ Y₁ ⊞ Y₂) [is_iso (biprod.inl ≫ f.hom ≫ biprod.fst)] : X₂ ≅ Y₂ :=
+begin
+  haveI : is_iso (biprod.of_components (biprod.inl ≫ f.hom ≫ biprod.fst) (biprod.inl ≫ f.hom ≫ biprod.snd)
+       (biprod.inr ≫ f.hom ≫ biprod.fst)
+       (biprod.inr ≫ f.hom ≫ biprod.snd)) :=
+  by { simp only [biprod.of_components_eq], apply_instance, },
+  exact biprod.iso_elim'
+    (biprod.inl ≫ f.hom ≫ biprod.fst)
+    (biprod.inl ≫ f.hom ≫ biprod.snd)
+    (biprod.inr ≫ f.hom ≫ biprod.fst)
+    (biprod.inr ≫ f.hom ≫ biprod.snd)
 end
 
 -- lemma biprod.row_nonzero_of_iso [is_iso (biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂)] :

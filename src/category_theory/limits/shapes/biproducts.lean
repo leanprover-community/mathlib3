@@ -421,6 +421,14 @@ abbreviation biprod.map {W X Y Z : C} [has_binary_biproduct.{v} W X] [has_binary
   (f : W ⟶ Y) (g : X ⟶ Z) : W ⊞ X ⟶ Y ⊞ Z :=
 lim_map (@map_pair _ _ (pair W X) (pair Y Z) f g)
 
+/-- Given a pair of isomorphisms between the summands of a pair of binary biproducts,
+we obtain an isomorphism between the binary biproducts. -/
+@[simps]
+def biprod.map_iso {W X Y Z : C} [has_binary_biproduct.{v} W X] [has_binary_biproduct.{v} Y Z]
+  (f : W ≅ Y) (g : X ≅ Z) : W ⊞ X ≅ Y ⊞ Z :=
+{ hom := biprod.map f.hom g.hom,
+  inv := biprod.map f.inv g.inv, }
+
 /-- An alternative to `biprod.map` constructed via colimits.
 This construction only exists in order to show it is equal to `biprod.map`. -/
 abbreviation biprod.map' {W X Y Z : C} [has_binary_biproduct.{v} W X] [has_binary_biproduct.{v} Y Z]
@@ -472,6 +480,7 @@ lemma biprod.map_fst {W X Y Z : C} [has_binary_biproduct.{v} W X] [has_binary_bi
   (f : W ⟶ Y) (g : X ⟶ Z) :
   biprod.map f g ≫ biprod.fst = biprod.fst ≫ f :=
 by simp
+
 @[simp,reassoc]
 lemma biprod.map_snd {W X Y Z : C} [has_binary_biproduct.{v} W X] [has_binary_biproduct.{v} Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) :
@@ -488,6 +497,7 @@ begin
   rw biprod.map_eq_map',
   simp,
 end
+
 @[simp,reassoc]
 lemma biprod.inr_map {W X Y Z : C} [has_binary_biproduct.{v} W X] [has_binary_biproduct.{v} Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) :
@@ -495,6 +505,46 @@ lemma biprod.inr_map {W X Y Z : C} [has_binary_biproduct.{v} W X] [has_binary_bi
 begin
   rw biprod.map_eq_map',
   simp,
+end
+
+section
+variables [has_binary_biproducts.{v} C]
+
+/-- The braiding isomorphism which swaps a binary biproduct. -/
+@[simps] def biprod.braiding (P Q : C) : P ⊞ Q ≅ Q ⊞ P :=
+{ hom := biprod.lift biprod.snd biprod.fst,
+  inv := biprod.lift biprod.snd biprod.fst }
+
+/--
+An alternative formula for the braiding isomorphism which swaps a binary biproduct,
+using the fact that the biproduct is a coproduct.
+-/
+@[simps] def biprod.braiding' (P Q : C) : P ⊞ Q ≅ Q ⊞ P :=
+{ hom := biprod.desc biprod.inr biprod.inl,
+  inv := biprod.desc biprod.inr biprod.inl }
+
+@[simp] lemma biprod.braiding'_eq_braiding {P Q : C} :
+  biprod.braiding' P Q = biprod.braiding P Q :=
+by tidy
+
+/-- The braiding isomorphism can be passed through a map by swapping the order. -/
+@[reassoc] lemma biprod.braid_natural {W X Y Z : C} (f : X ⟶ Y) (g : Z ⟶ W) :
+  biprod.map f g ≫ (biprod.braiding _ _).hom = (biprod.braiding _ _).hom ≫ biprod.map g f :=
+by tidy
+
+@[simp, reassoc] lemma biprod.braiding_map_braiding {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) :
+  (biprod.braiding X W).hom ≫ biprod.map f g ≫ (biprod.braiding Y Z).hom = biprod.map g f :=
+by tidy
+
+@[simp, reassoc] lemma biprod.symmetry' (P Q : C) :
+  biprod.lift biprod.snd biprod.fst ≫ biprod.lift biprod.snd biprod.fst = 𝟙 (P ⊞ Q) :=
+by tidy
+
+/-- The braiding isomorphism is symmetric. -/
+@[reassoc] lemma biprod.symmetry (P Q : C) :
+  (biprod.braiding P Q).hom ≫ (biprod.braiding Q P).hom = 𝟙 _ :=
+by simp
+
 end
 
 -- TODO:

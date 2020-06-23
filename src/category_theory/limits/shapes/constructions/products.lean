@@ -197,6 +197,7 @@ Given any specified choice of the product,
 the product over a type equivalent to `punit`
 is just the object sitting over `punit.star`.
 -/
+@[simps]
 def product_over_equiv_punit {I : Type v} (e : I ≃ punit) (f : I → C) [has_product f] :
   ∏ f ≅ f (e.symm punit.star) :=
 { hom := pi.π f (e.symm punit.star),
@@ -212,6 +213,35 @@ def product_over_unique {I : Type v} [unique I] (f : I → C) [has_product f] :
   ∏ f ≅ f (default I) :=
 product_over_equiv_punit equiv_punit_of_unique f
 
+@[simp] lemma product_over_unique_hom {I : Type v} [unique I] (f : I → C) [has_product f] :
+  (product_over_unique f).hom = pi.π f (default I) :=
+rfl
+
+/--
+Given any specified choice of the coproduct,
+the coproduct over a type equivalent to `punit`
+is just the object sitting over `punit.star`.
+-/
+@[simps]
+def coproduct_over_equiv_punit {I : Type v} (e : I ≃ punit) (f : I → C) [has_coproduct f] :
+  ∐ f ≅ f (e.symm punit.star) :=
+{ hom := sigma.desc (λ i, eq_to_hom (congr_arg f (e.injective (subsingleton.elim _ _)))),
+  inv := sigma.ι f (e.symm punit.star),
+  hom_inv_id' := begin ext j, equiv_rw e at j, cases j, simp, dsimp, simp, end, }
+
+/--
+Given any specified choice of the coproduct,
+the coproduct over a `unique` type `I`
+is just the object sitting over `default I`.
+-/
+def coproduct_over_unique {I : Type v} [unique I] (f : I → C) [has_coproduct f] :
+  ∐ f ≅ f (default I) :=
+coproduct_over_equiv_punit equiv_punit_of_unique f
+
+@[simp] lemma coproduct_over_unique_hom {I : Type v} [unique I] (f : I → C) [has_coproduct f] :
+  (coproduct_over_unique f).inv = sigma.ι f (default I) :=
+rfl
+
 /--
 Given any specified choices of the products involved (using `has_*` typeclasses),
 the product over a `sum` type is isomorphic to
@@ -220,6 +250,7 @@ the binary product of the products over the two types.
 -- We could muck about transferring `is_limit` instances,
 -- but it's so easy to just write down the maps,
 -- and let automation apply the extensionality lemmas to prove they are inverses.
+@[simps] -- TODO perhaps provide the simp lemma only for `hom` here, and a (nicer) simp lemma for `inv` in the presence of biproducts?
 def product_over_sum_iso {I J : Type v} (f : I ⊕ J → C)
   [has_product f] [has_product (f ∘ sum.inl)] [has_product (f ∘ sum.inr)]
   [has_binary_product (∏ f ∘ sum.inl) (∏ f ∘ sum.inr)] :
@@ -228,6 +259,21 @@ def product_over_sum_iso {I J : Type v} (f : I ⊕ J → C)
   inv := pi.lift (λ x, sum.cases_on x
     (λ (i : I), limits.prod.fst ≫ limits.pi.π _ i)
     (λ (j : J), limits.prod.snd ≫ limits.pi.π _ j)), }
+
+/--
+Given any specified choices of the coproducts involved (using `has_*` typeclasses),
+the coproduct over a `sum` type is isomorphic to
+the binary coproduct of the coproducts over the two types.
+-/
+@[simps]
+def coproduct_over_sum_iso {I J : Type v} (f : I ⊕ J → C)
+  [has_coproduct f] [has_coproduct (f ∘ sum.inl)] [has_coproduct (f ∘ sum.inr)]
+  [has_binary_coproduct (∐ f ∘ sum.inl) (∐ f ∘ sum.inr)] :
+  ∐ f ≅ (∐ f ∘ sum.inl) ⨿ (∐ f ∘ sum.inr) :=
+{ hom := sigma.desc (λ x, sum.cases_on x
+    (λ (i : I), @sigma.ι I _ _ (λ i : I, f (sum.inl i)) _ i ≫ coprod.inl)
+    (λ (j : J), @sigma.ι J _ _ (λ j : J, f (sum.inr j)) _ j ≫ coprod.inr)),
+  inv := coprod.desc (sigma.desc (λ i, sigma.ι f (sum.inl i))) (sigma.desc (λ j, sigma.ι f (sum.inr j))), }
 
 /--
 Given any specified choices of the products involved (using `has_*` typeclasses),
@@ -241,5 +287,68 @@ def product_over_sum_iso' {I J : Type v} (f : I → C) (g : J → C)
   [has_product f] [has_product g] [has_product (sum.elim f g)] [has_binary_product (∏ f) (∏ g)] :
   ∏ (sum.elim f g) ≅ ∏ f ⨯ ∏ g :=
 product_over_sum_iso (sum.elim f g)
+
+-- TODO simp lemma for this
+
+/-- TODO explain why we need this! -/
+def congr_eq_to_hom {I : Type v} (f : I → C) {i i' : I} (h : i = i') : f i ⟶ f i' :=
+eq_to_hom (congr_arg f h)
+
+@[simp]
+lemma congr_eq_to_hom_refl {I : Type v} {f : I → C} {i : I} :
+  congr_eq_to_hom f rfl = 𝟙 (f i) :=
+rfl
+
+def congr_eq_to_iso {I : Type v} (f : I → C) {i i' : I} (h : i = i') : f i ≅ f i' :=
+eq_to_iso (congr_arg f h)
+
+@[simp]
+lemma congr_eq_to_iso_refl {I : Type v} {f : I → C} {i : I} :
+  congr_eq_to_iso f rfl = iso.refl (f i) :=
+rfl
+
+@[simp]
+lemma quux {I : Type v} (f : I → C) [has_product f] {i i' : I} (h : i = i') :
+  limits.pi.π f i ≫ congr_eq_to_hom f h = limits.pi.π f i' :=
+by { induction h, simp, }
+
+@[simp]
+lemma quux' {I J : Type v} (f : I → C) (e : I ≃ J) [has_product (λ j, f (e.symm j))] {j j' : J} (h : e.symm j = e.symm j') :
+  limits.pi.π (λ j, f (e.symm j)) j ≫ congr_eq_to_hom f h = limits.pi.π (λ j, f (e.symm j)) j' :=
+by { convert quux (λ j, f (e.symm j)) _, simpa using h, }
+
+@[simps]
+def product_iso_of_equiv {I J : Type v} (f : I → C) (e : I ≃ J)
+  [has_product f] [has_product (λ j, f (e.symm j))] :
+  ∏ f ≅ ∏ (λ j, f (e.symm j)) :=
+{ hom := pi.lift (λ j : J, pi.π f (e.symm j)),
+  inv := pi.lift (λ i : I, pi.π (λ j, f (e.symm j)) (e i) ≫ congr_eq_to_hom f (by simp)), }
+
+def product_iso_of_equiv_punit_sum {I J : Type v} (f : I → C) (e : I ≃ punit.{v+1} ⊕ J)
+  [has_products.{v} C] [has_binary_products.{v} C] :
+  ∏ f ≅ f (e.symm (sum.inl punit.star)) ⨯ ∏ (λ j, f (e.symm (sum.inr j))) :=
+calc ∏ f ≅ ∏ (λ p, f (e.symm p))
+           : product_iso_of_equiv f e -- we could use `has_limit.ext_equivalence`, but it is hard to reason about.
+     ... ≅ (∏ (λ j, f (e.symm (sum.inl j)))) ⨯ (∏ (λ j, f (e.symm (sum.inr j))))
+           : product_over_sum_iso _
+     ... ≅ f (e.symm (sum.inl punit.star)) ⨯ ∏ (λ j, f (e.symm (sum.inr j)))
+           : prod.map_iso (product_over_unique (λ j, f (e.symm (sum.inl j)))) (iso.refl _)
+
+lemma srt {I J : Type v} (f : I → C) (e : I ≃ punit.{v+1} ⊕ J)
+  [has_products.{v} C] [has_binary_products.{v} C] :
+(product_iso_of_equiv_punit_sum f e).hom ≫ prod.fst = pi.π f (e.symm (sum.inl punit.star)) :=
+begin
+  simp [product_iso_of_equiv_punit_sum], refl,
+end
+
+def product_iso_of_equiv_punit_sum' {I J : Type v} (f : I → C) (e : I ≃ punit.{v+1} ⊕ J)
+  (i : I) (h : e.symm (sum.inl punit.star) = i)
+  [has_products.{v} C] [has_binary_products.{v} C] :
+  ∏ f ≅ f i ⨯ ∏ (λ j, f (e.symm (sum.inr j))) :=
+(product_iso_of_equiv_punit_sum f e).trans
+(prod.map_iso (congr_eq_to_iso f h) (iso.refl _))
+
+-- TODO and we need to make sure `ι` plays well with this iso...
+-- which may be a hassle because `has_limit.ext_of_equivalence` is so opaque
 
 end category_theory.limits

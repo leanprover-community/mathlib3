@@ -288,11 +288,23 @@ abbreviation prod.map {W X Y Z : C} [has_limits_of_shape.{v} (discrete walking_p
   (f : W ⟶ Y) (g : X ⟶ Z) : W ⨯ X ⟶ Y ⨯ Z :=
 lim.map (map_pair f g)
 
+/-- If the products `W ⨯ X` and `Y ⨯ Z` exist, then every pair of isomorphisms `f : W ≅ Y` and
+    `g : X ≅ Z` induces a isomorphism `prod.map_iso f g : W ⨯ X ≅ Y ⨯ Z`. -/
+abbreviation prod.map_iso {W X Y Z : C} [has_limits_of_shape.{v} (discrete walking_pair) C]
+  (f : W ≅ Y) (g : X ≅ Z) : W ⨯ X ≅ Y ⨯ Z :=
+lim.map_iso (map_pair_iso f g)
+
 /-- If the coproducts `W ⨿ X` and `Y ⨿ Z` exist, then every pair of morphisms `f : W ⟶ Y` and
     `g : W ⟶ Z` induces a morphism `coprod.map f g : W ⨿ X ⟶ Y ⨿ Z`. -/
 abbreviation coprod.map {W X Y Z : C} [has_colimits_of_shape.{v} (discrete walking_pair) C]
   (f : W ⟶ Y) (g : X ⟶ Z) : W ⨿ X ⟶ Y ⨿ Z :=
 colim.map (map_pair f g)
+
+/-- If the coproducts `W ⨿ X` and `Y ⨿ Z` exist, then every pair of isomorphisms `f : W ≅ Y` and
+    `g : W ≅ Z` induces a isomorphism `coprod.map_iso f g : W ⨿ X ≅ Y ⨿ Z`. -/
+abbreviation coprod.map_iso {W X Y Z : C} [has_colimits_of_shape.{v} (discrete walking_pair) C]
+  (f : W ≅ Y) (g : X ≅ Z) : W ⨿ X ≅ Y ⨿ Z :=
+colim.map_iso (map_pair_iso f g)
 
 section prod_lemmas
 variable [has_limits_of_shape.{v} (discrete walking_pair) C]

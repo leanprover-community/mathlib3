@@ -91,8 +91,11 @@ end
 end is_Gδ
 
 /-- A set `s` is called *residual* if it includes a dense `Gδ` set. If `α` is a Baire space
-(e.g., a complete metric space), then residual sets form a filter. Though we define this filter
-for any topological space, it is useful only in a Baire space. -/
+(e.g., a complete metric space), then residual sets form a filter, see `mem_residual`.
+
+ For technical reasons we define the filter `residual` in any topological space
+ but in a non-Baire space it is not useful because it may contain some non-residual
+ sets. -/
 def residual (α : Type*) [topological_space α] : filter α :=
 ⨅ t (ht : is_Gδ t) (ht' : closure t = univ), principal t
 

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import measure_theory.outer_measure
+import order.filter.countable_Inter
+
 /-!
 # Measure spaces
 
@@ -748,15 +750,21 @@ by simp only [ae_iff, not_not, set_of_mem_eq]
 lemma ae_of_all {p : α → Prop} (μ : measure α) : (∀a, p a) → ∀ₘ a ∂ μ, p a :=
 eventually_of_forall _
 
+instance : countable_Inter_filter μ.ae :=
+⟨begin
+  intros S hSc hS,
+  simp only [mem_ae_iff, compl_sInter, sUnion_image, bUnion_eq_Union] at hS ⊢,
+  haveI := hSc.to_encodable,
+  exact measure_Union_null (subtype.forall.2 hS)
+end⟩
+
 lemma ae_all_iff {ι : Type*} [encodable ι] {p : α → ι → Prop} :
   (∀ₘ a ∂ μ, ∀i, p a i) ↔ (∀i, ∀ₘ a ∂ μ, p a i) :=
-begin
-  refine iff.intro (assume h i, _) (assume h, _),
-  { filter_upwards [h] assume a ha, ha i },
-  { have h := measure_Union_null h,
-    rw [← compl_Inter] at h,
-    filter_upwards [h] assume a, mem_Inter.1 }
-end
+eventually_countable_forall
+
+lemma ae_ball_iff {ι} {S : set ι} (hS : countable S) {p : Π (x : α) (i ∈ S), Prop} :
+  (∀ₘ x ∂ μ, ∀ i ∈ S, p x i ‹_›) ↔ ∀ i ∈ S, ∀ₘ x ∂ μ, p x i ‹_› :=
+eventually_countable_ball hS
 
 lemma ae_eq_refl (f : α → β) : ∀ₘ a ∂ μ, f a = f a :=
 ae_of_all μ $ λ a, rfl

@@ -1,7 +1,15 @@
+/-
+Copyright (c) 2020 Dan Stanescu. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: D. Stanescu.
+-/
+
 import tactic
 
-/-
-Knights and knaves puzzles by R. Smullyan.
+/-!
+# Knights and knaves puzzles
+Two puzzles from "Knights and Knaves" by Raymond Smullyan.
+
 There is an island where all inhabitants are either knights or knaves. 
 Knights always tell the truth. Knaves always lie.
 Jack and Bob are two inhabitants of this island.

@@ -20,7 +20,7 @@ open set filter
 
 variables {ι α : Type*}
 
-/-- A filter `l` has countable intersection property if for any countable collection
+/-- A filter `l` has the countable intersection property if for any countable collection
 of sets `s ∈ l` their intersection belongs to `l` as well. -/
 class countable_Inter_filter (l : filter α) : Prop :=
 (countable_sInter_mem_sets' :

@@ -206,7 +206,6 @@ with_top (multiset { a : associates α // irreducible a })
 
 local attribute [instance] associated.setoid
 
--- removing norm_cast attribute becasue proof is by norm_cast
 theorem factor_set.coe_add {a b : multiset { a : associates α // irreducible a }} :
   (↑(a + b) : factor_set α) = a + b :=
 by norm_cast

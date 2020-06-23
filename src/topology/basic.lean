@@ -386,7 +386,7 @@ by rw [frontier, interior_eq_of_open hs]
 lemma is_closed_frontier {s : set α} : is_closed (frontier s) :=
 by rw frontier_eq_closure_inter_closure; exact is_closed_inter is_closed_closure is_closed_closure
 
-/-- The frontier of a set has no interior point. -/
+/-- The frontier of a closed set has no interior point. -/
 lemma interior_frontier {s : set α} (h : is_closed s) : interior (frontier s) = ∅ :=
 begin
   have A : frontier s = s \ interior s, from h.frontier_eq,

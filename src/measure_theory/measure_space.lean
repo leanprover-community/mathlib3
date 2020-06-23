@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import measure_theory.outer_measure
+import order.filter.countable_Inter
+
 /-!
 # Measure spaces
 
@@ -390,7 +392,7 @@ by rw [measure_eq_measure' (h₁.union h₂),
 
 lemma measure_bUnion {s : set β} {f : β → set α} (hs : countable s)
   (hd : pairwise_on s (disjoint on f)) (h : ∀b∈s, is_measurable (f b)) :
-  μ (⋃b∈s, f b) = ∑'p:s, μ (f p.1) :=
+  μ (⋃b∈s, f b) = ∑'p:s, μ (f p) :=
 begin
   haveI := hs.to_encodable,
   rw [← measure_Union, bUnion_eq_Union],
@@ -401,7 +403,7 @@ end
 
 lemma measure_sUnion {S : set (set α)} (hs : countable S)
   (hd : pairwise_on S disjoint) (h : ∀s∈S, is_measurable s) :
-  μ (⋃₀ S) = ∑' s:S, μ s.1 :=
+  μ (⋃₀ S) = ∑' s:S, μ s :=
 by rw [sUnion_eq_bUnion, measure_bUnion hs hd h]
 
 lemma measure_bUnion_finset {s : finset ι} {f : ι → set α} (hd : pairwise_on ↑s (disjoint on f))

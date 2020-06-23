@@ -68,6 +68,32 @@ def complete_lattice_of_Inf (α : Type u) [H1 : partial_order α]
   Sup_le := λ s a ha, (is_glb_Inf (upper_bounds s)).1 ha,
   .. H1, .. H2 }
 
+/-- Create a `complete_lattice` from a `partial_order` and `Sup` function
+that returns the least upper bound of a set. Usually this constructor provides
+poor definitional equalities, so it should be used with
+`.. complete_lattice_of_Sup α _`. -/
+def complete_lattice_of_Sup (α : Type*) [H1 : partial_order α]
+  [H2 : has_Sup α] (is_lub_Sup : ∀ s : set α, is_lub s (Sup s)) :
+  complete_lattice α :=
+{ top := Sup univ,
+  le_top := λ x, (is_lub_Sup univ).1 trivial,
+  bot := Sup ∅,
+  bot_le := λ x, (is_lub_Sup ∅).2 $ by simp,
+  sup := λ a b, Sup {a, b},
+  sup_le := λ a b c hac hbc, (is_lub_Sup _).2 (by simp [*]),
+  le_sup_left := λ a b, (is_lub_Sup _).1 $ mem_insert _ _,
+  le_sup_right := λ a b, (is_lub_Sup _).1 $ mem_insert_of_mem _ $ mem_singleton _,
+  inf := λ a b, Sup {x | x ≤ a ∧ x ≤ b},
+  le_inf := λ a b c hab hac, (is_lub_Sup _).1 $ by simp [*],
+  inf_le_left := λ a b, (is_lub_Sup _).2 (λ x, and.left),
+  inf_le_right := λ a b, (is_lub_Sup _).2 (λ x, and.right),
+  Inf := λ s, Sup (lower_bounds s),
+  Sup_le := λ s a ha, (is_lub_Sup s).2 ha,
+  le_Sup := λ s a ha, (is_lub_Sup s).1 ha,
+  Inf_le := λ s a ha, (is_lub_Sup (lower_bounds s)).2 (λ b hb, hb ha),
+  le_Inf := λ s a ha, (is_lub_Sup (lower_bounds s)).1 ha,
+  .. H1, .. H2 }
+
 /-- A complete linear order is a linear order whose lattice structure is complete. -/
 class complete_linear_order (α : Type u) extends complete_lattice α, decidable_linear_order α
 end prio

@@ -391,7 +391,7 @@ begin
 end
 
 @[field_simps] theorem mul_ne_zero' {a b : nnreal} (h₁ : a ≠ 0) (h₂ : b ≠ 0) : a * b ≠ 0 :=
-mul_ne_zero'' h₁ h₂
+mul_ne_zero h₁ h₂
 
 end mul
 

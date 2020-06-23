@@ -209,7 +209,7 @@ end
   (a * c) /. (b * c) = a /. b :=
 begin
   by_cases b0 : b = 0, { subst b0, simp },
-  apply (mk_eq (mul_ne_zero.2 ⟨b0, c0⟩) b0).2, simp [mul_comm, mul_assoc]
+  apply (mk_eq (mul_ne_zero b0 c0) b0).2, simp [mul_comm, mul_assoc]
 end
 
 @[simp] theorem num_denom : ∀ {a : ℚ}, a.num /. a.denom = a
@@ -276,7 +276,7 @@ end
 begin
   apply lift_binop_eq rat.add; intros; try {assumption},
   { apply mk_pnat_eq },
-  { apply mul_ne_zero.2 ⟨d₁0, d₂0⟩ },
+  { apply mul_ne_zero d₁0 d₂0 },
   calc (n₁ * d₂ + n₂ * d₁) * (b * d) =
           (n₁ * b) * d₂ * d + (n₂ * d) * (d₁ * b) : by simp [mul_add, mul_comm, mul_left_comm]
     ... = (a * d₁) * d₂ * d + (c * d₂) * (d₁ * b) : by rw [h₁, h₂]
@@ -308,7 +308,7 @@ instance : has_mul ℚ := ⟨rat.mul⟩
 begin
   apply lift_binop_eq rat.mul; intros; try {assumption},
   { apply mk_pnat_eq },
-  { exact mul_ne_zero.2 ⟨d₁0, d₂0⟩ },
+  { apply mul_ne_zero d₁0 d₂0 },
   cc
 end
 

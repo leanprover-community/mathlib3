@@ -83,8 +83,8 @@ begin
   { rintro rfl, refl },
   { intro h,
     simp only [←mul_assoc] at h,
-    refine eq_of_mul_eq_mul_left (mul_ne_zero.2 ⟨_, _⟩) h,
-    refine mul_ne_zero.2 ⟨div_ne_zero _ _, _⟩,
+    refine eq_of_mul_eq_mul_left (mul_ne_zero _ _) h,
+    apply mul_ne_zero, apply div_ne_zero,
     all_goals {apply ne_of_gt; assumption <|> exact zero_lt_one}}
 end
 

@@ -382,14 +382,13 @@ lemma inv_div_left : a⁻¹ / b = (b * a)⁻¹ :=
 (mul_inv_rev' _ _).symm
 
 lemma div_ne_zero (ha : a ≠ 0) (hb : b ≠ 0) : a / b ≠ 0 :=
-mul_ne_zero.2 ⟨ha, inv_ne_zero hb⟩
+mul_ne_zero ha (inv_ne_zero hb)
 
-lemma div_ne_zero_iff (hb : b ≠ 0) : a / b ≠ 0 ↔ a ≠ 0 :=
-⟨mt (λ h, by rw [h, zero_div]), λ ha, div_ne_zero ha hb⟩
+lemma div_eq_zero_iff : a / b = 0 ↔ a = 0 ∨ b = 0:=
+by simp [div_eq_mul_inv]
 
-lemma div_eq_zero_iff (hb : b ≠ 0) : a / b = 0 ↔ a = 0 :=
-by haveI := classical.prop_decidable; exact
-not_iff_not.1 (div_ne_zero_iff hb)
+lemma div_ne_zero_iff : a / b ≠ 0 ↔ a ≠ 0 ∧ b ≠ 0 :=
+(not_congr div_eq_zero_iff).trans not_or_distrib
 
 lemma div_left_inj' (hc : c ≠ 0) : a / c = b / c ↔ a = b :=
 by rw [← divp_mk0 _ hc, ← divp_mk0 _ hc, divp_left_inj]
@@ -527,7 +526,7 @@ by rw [← mul_div_assoc, div_mul_cancel _ hc]
 
 @[field_simps] lemma div_eq_div_iff (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = c * b :=
 calc a / b = c / d ↔ a / b * (b * d) = c / d * (b * d) :
-by rw [mul_left_inj' (mul_ne_zero.2 ⟨hb, hd⟩)]
+by rw [mul_left_inj' (mul_ne_zero hb hd)]
                ... ↔ a * d = c * b :
 by rw [← mul_assoc, div_mul_cancel _ hb,
       ← mul_assoc, mul_right_comm, div_mul_cancel _ hd]
@@ -564,8 +563,8 @@ begin
   { subst x,
     simp only [semiconj_by, mul_zero, @eq_comm _ _ (y * a), mul_eq_zero] at h,
     simp [h.resolve_right ha] },
-  { have := mul_ne_zero.2 ⟨ha, hx⟩,
-    rw [h.eq, mul_ne_zero] at this,
+  { have := mul_ne_zero ha hx,
+    rw [h.eq, mul_ne_zero_iff] at this,
     exact @units_inv_right _ _ _ (units.mk0 x hx) (units.mk0 y this.1) h },
 end
 

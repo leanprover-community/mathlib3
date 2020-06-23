@@ -1923,7 +1923,8 @@ variables [integral_domain R] {p q : polynomial R}
 @[simp] lemma degree_mul_eq : degree (p * q) = degree p + degree q :=
 if hp0 : p = 0 then by simp only [hp0, degree_zero, zero_mul, with_bot.bot_add]
 else if hq0 : q = 0 then  by simp only [hq0, degree_zero, mul_zero, with_bot.add_bot]
-else degree_mul_eq' $ mul_ne_zero.2 ⟨mt leading_coeff_eq_zero.1 hp0, mt leading_coeff_eq_zero.1 hq0⟩
+else degree_mul_eq' $ mul_ne_zero (mt leading_coeff_eq_zero.1 hp0)
+    (mt leading_coeff_eq_zero.1 hq0)
 
 @[simp] lemma degree_pow_eq (p : polynomial R) (n : ℕ) :
   degree (p ^ n) = n •ℕ (degree p) :=
@@ -1938,7 +1939,7 @@ begin
   { by_cases hq : q = 0,
     { simp only [hq, mul_zero, leading_coeff_zero] },
     { rw [leading_coeff_mul'],
-      exact mul_ne_zero.2 ⟨mt leading_coeff_eq_zero.1 hp, mt leading_coeff_eq_zero.1 hq⟩ } }
+      exact mul_ne_zero (mt leading_coeff_eq_zero.1 hp) (mt leading_coeff_eq_zero.1 hq) } }
 end
 
 @[simp] lemma leading_coeff_pow (p : polynomial R) (n : ℕ) :
@@ -1958,7 +1959,7 @@ instance : integral_domain (polynomial R) :=
 
 lemma nat_degree_mul_eq (hp : p ≠ 0) (hq : q ≠ 0) : nat_degree (p * q) =
   nat_degree p + nat_degree q :=
-by rw [← with_bot.coe_eq_coe, ← degree_eq_nat_degree (mul_ne_zero.2 ⟨hp, hq⟩),
+by rw [← with_bot.coe_eq_coe, ← degree_eq_nat_degree (mul_ne_zero hp hq),
     with_bot.coe_add, ← degree_eq_nat_degree hp,
     ← degree_eq_nat_degree hq, degree_mul_eq]
 
@@ -2118,8 +2119,8 @@ le_antisymm nat_degree_comp_le
     calc coeff (p.comp q) (nat_degree p * nat_degree q)
         = leading_coeff p * leading_coeff q ^ nat_degree p :
       coeff_comp_degree_mul_degree hqd0
-    ... ≠ 0 : mul_ne_zero.2 ⟨mt leading_coeff_eq_zero.1 hp0,
-      pow_ne_zero _ $ mt leading_coeff_eq_zero.1 hq0⟩)
+    ... ≠ 0 : mul_ne_zero (mt leading_coeff_eq_zero.1 hp0)
+      (pow_ne_zero _ (mt leading_coeff_eq_zero.1 hq0)))
 
 lemma leading_coeff_comp (hq : nat_degree q ≠ 0) : leading_coeff (p.comp q) =
   leading_coeff p * leading_coeff q ^ nat_degree p :=
@@ -2232,8 +2233,8 @@ private lemma remainder_lt_aux (p : polynomial R) (hq : q ≠ 0) :
   degree (mod p q) < degree q :=
 by rw ← degree_mul_leading_coeff_inv q hq; exact
   degree_mod_by_monic_lt p (monic_mul_leading_coeff_inv hq)
-    (mul_ne_zero.2 ⟨hq, mt leading_coeff_eq_zero.2 (by rw leading_coeff_C;
-      exact inv_ne_zero (mt leading_coeff_eq_zero.1 hq))⟩)
+    (mul_ne_zero hq (mt leading_coeff_eq_zero.2 (by rw leading_coeff_C;
+      exact inv_ne_zero (mt leading_coeff_eq_zero.1 hq))))
 
 instance : has_div (polynomial R) := ⟨div⟩
 
@@ -2363,7 +2364,7 @@ instance : normalization_domain (polynomial R) :=
        exact mt leading_coeff_eq_zero.1 hp0,⟩,
   norm_unit_zero := dif_pos rfl,
   norm_unit_mul := λ p q hp0 hq0, begin
-      rw [dif_neg hp0, dif_neg hq0, dif_neg (mul_ne_zero.2 ⟨hp0, hq0⟩)],
+      rw [dif_neg hp0, dif_neg hq0, dif_neg (mul_ne_zero hp0 hq0)],
       apply units.ext,
       show C (leading_coeff (p * q))⁻¹ = C (leading_coeff p)⁻¹ * C (leading_coeff q)⁻¹,
       rw [leading_coeff_mul, mul_inv', C_mul, mul_comm]

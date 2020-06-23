@@ -744,8 +744,11 @@ by rw [eq_comm, mul_eq_zero]
 
 /-- If `α` has no zero divisors, then the product of two elements is nonzero iff both of them
 are nonzero. -/
-theorem mul_ne_zero {a b : α} : a * b ≠ 0 ↔ a ≠ 0 ∧ b ≠ 0 :=
+theorem mul_ne_zero_iff {a b : α} : a * b ≠ 0 ↔ a ≠ 0 ∧ b ≠ 0 :=
 (not_congr mul_eq_zero).trans not_or_distrib
+
+theorem mul_ne_zero {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) : a * b ≠ 0 :=
+mul_ne_zero_iff.2 ⟨ha, hb⟩
 
 /-- If `α` has no zero divisors, then for elements `a, b : α`, `a * b` equals zero iff so is
 `b * a`. -/

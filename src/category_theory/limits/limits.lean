@@ -832,7 +832,7 @@ section lim_functor
 Functoriality of limits.
 
 Usually this morphism should be accessed through `lim.map`,
-but may be needed separately when you hav specified limits for the source and target functors,
+but may be needed separately when you have specified limits for the source and target functors,
 but not necessarily for all functors of shape `J`.
 -/
 def lim_map {F G : J ⥤ C} [has_limit F] [has_limit G] (α : F ⟶ G) : limit F ⟶ limit G :=
@@ -1178,7 +1178,7 @@ section colim_functor
 Functoriality of colimits.
 
 Usually this morphism should be accessed through `colim.map`,
-but may be needed separately when you hav specified colimits for the source and target functors,
+but may be needed separately when you have specified colimits for the source and target functors,
 but not necessarily for all functors of shape `J`.
 -/
 def colim_map {F G : J ⥤ C} [has_colimit F] [has_colimit G] (α : F ⟶ G) : colimit F ⟶ colimit G :=

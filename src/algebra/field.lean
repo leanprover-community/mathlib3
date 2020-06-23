@@ -49,19 +49,6 @@ by simp [mul_div_assoc]
 
 local attribute [simp] one_inv_eq
 
--- note: integral domain has a "mul_ne_zero". a commutative division ring is an integral
--- domain, but let's not define that class for now.
-lemma division_ring.mul_ne_zero (ha : a ≠ 0) (hb : b ≠ 0) : a * b ≠ 0 :=
-assume : a * b = 0,
-have   a * 1 = 0, by rw [← mul_one_div_cancel hb, ← mul_assoc, this, zero_mul],
-have   a = 0, by rwa mul_one at this,
-absurd this ha
-
-lemma mul_ne_zero_comm (h : a * b ≠ 0) : b * a ≠ 0 :=
-have h₁ : a ≠ 0, from ne_zero_of_mul_ne_zero_right h,
-have h₂ : b ≠ 0, from ne_zero_of_mul_ne_zero_left h,
-division_ring.mul_ne_zero h₂ h₁
-
 lemma eq_one_div_of_mul_eq_one (h : a * b = 1) : b = 1 / a :=
 have a ≠ 0, from
    assume : a = 0,
@@ -77,16 +64,6 @@ have a ≠ 0, from
     absurd this zero_ne_one,
 by rw [← h, mul_div_assoc, div_self this, mul_one]
 
-lemma division_ring.one_div_mul_one_div : (1 / a) * (1 / b) = 1 / (b * a) :=
-match classical.em (a = 0), classical.em (b = 0) with
-| or.inr ha, or.inr hb :=
-  have (b * a) * ((1 / a) * (1 / b)) = 1,
-    by rw [mul_assoc, ← mul_assoc a, mul_one_div_cancel ha, one_mul, mul_one_div_cancel hb],
-  eq_one_div_of_mul_eq_one this
-| or.inl ha, _         := by simp [ha]
-| _        , or.inl hb := by simp [hb]
-end
-
 lemma one_div_neg_one_eq_neg_one : (1:α) / (-1) = -1 :=
 have (-1) * (-1) = (1:α), by rw [neg_mul_neg, one_mul],
 eq.symm (eq_one_div_of_mul_eq_one this)
@@ -94,7 +71,7 @@ eq.symm (eq_one_div_of_mul_eq_one this)
 lemma one_div_neg_eq_neg_one_div (a : α) : 1 / (- a) = - (1 / a) :=
 calc
   1 / (- a) = 1 / ((-1) * a)        : by rw neg_eq_neg_one_mul
-        ... = (1 / a) * (1 / (- 1)) : by rw division_ring.one_div_mul_one_div
+        ... = (1 / a) * (1 / (- 1)) : by rw one_div_mul_one_div_rev
         ... = (1 / a) * (-1)        : by rw one_div_neg_one_eq_neg_one
         ... = - (1 / a)             : by rw [mul_neg_eq_neg_mul_symm, mul_one]
 
@@ -123,11 +100,7 @@ end
 lemma eq_of_one_div_eq_one_div (h : 1 / a = 1 / b) : a = b :=
 by rw [← one_div_one_div a, h,one_div_one_div]
 
-lemma mul_inv' (a b : α) : (b * a)⁻¹ = a⁻¹ * b⁻¹ :=
-eq.symm $ calc
-  a⁻¹ * b⁻¹ = (1 / a) * (1 / b) : by simp
-        ... = (1 / (b * a))     : division_ring.one_div_mul_one_div
-        ... = (b * a)⁻¹         : by simp
+lemma mul_inv' (a b : α) : (b * a)⁻¹ = a⁻¹ * b⁻¹ := mul_inv_rev' b a
 
 lemma one_div_div (a b : α) : 1 / (a / b) = b / a :=
 by rw [one_div_eq_inv, division_def, mul_inv',
@@ -200,10 +173,8 @@ lemma mul_mul_div (a : α) {c : α} (hc : c ≠ 0) : a = a * c * (1 / c) :=
 by simp [hc]
 
 instance division_ring.to_domain : domain α :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h,
-    classical.by_contradiction $ λ hn,
-      division_ring.mul_ne_zero (mt or.inl hn) (mt or.inr hn) h
-  ..‹division_ring α›, ..(by apply_instance : semiring α) }
+{ ..‹division_ring α›, ..(by apply_instance : semiring α),
+  ..(by apply_instance : no_zero_divisors α) }
 
 end division_ring
 

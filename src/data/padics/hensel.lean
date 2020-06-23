@@ -355,10 +355,7 @@ squeeze_zero (λ _, norm_nonneg _) newton_seq_norm_le bound'_sq
 
 private lemma newton_seq_dist_tendsto :
   tendsto (λ n, ∥newton_cau_seq n - a∥) at_top (𝓝 (∥F.eval a∥ / ∥F.derivative.eval a∥)) :=
-tendsto.congr'
-  (suffices ∃ k, ∀ n ≥ k,  ∥F.eval a∥ / ∥F.derivative.eval a∥ = ∥newton_cau_seq n - a∥, by simpa,
-    ⟨1, λ _ hx, (newton_seq_dist_to_a _ hx).symm⟩)
-  (tendsto_const_nhds)
+tendsto_const_nhds.congr' $ eventually_at_top.2 ⟨1, λ _ hx, (newton_seq_dist_to_a _ hx).symm⟩
 
 private lemma newton_seq_dist_tendsto' :
   tendsto (λ n, ∥newton_cau_seq n - a∥) at_top (𝓝 ∥soln - a∥) :=

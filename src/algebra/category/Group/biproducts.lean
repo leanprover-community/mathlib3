@@ -54,8 +54,8 @@ to the cartesian product of those groups.
 def lift (s : cone F) :
   s.X ⟶ AddCommGroup.of (Π j, F.obj j) :=
 { to_fun := λ x j, s.π.app j x,
-  map_zero' := by { ext, dsimp, simp, refl, },
-  map_add' := λ x y, by { ext, dsimp, simp, refl, }, }
+  map_zero' := by { ext, simp },
+  map_add' := λ x y, by { ext, simp }, }
 
 @[simp] lemma lift_apply (s : cone F) (x : s.X) (j : J) : (lift F s) x j = s.π.app j x := rfl
 

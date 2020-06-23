@@ -206,10 +206,9 @@ with_top (multiset { a : associates α // irreducible a })
 
 local attribute [instance] associated.setoid
 
-@[norm_cast]
 theorem factor_set.coe_add {a b : multiset { a : associates α // irreducible a }} :
   (↑(a + b) : factor_set α) = a + b :=
-by simp
+by norm_cast
 
 lemma factor_set.sup_add_inf_eq_add [decidable_eq (associates α)] :
   ∀(a b : factor_set α), a ⊔ b + a ⊓ b = a + b

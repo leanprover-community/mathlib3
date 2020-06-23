@@ -94,7 +94,7 @@ begin
     λ i hi1, le_of_lt (by simp only [lt_iff_not_ge];
     exact λ hi2, hi1 (lt_of_le_of_lt (le_abs_self _) (hf' i hi2)) : i < N),
   exact mem_hyperfilter_of_finite_compl
-    (set.finite_subset (set.finite_le_nat N) hs)
+    ((set.finite_le_nat N).subset hs)
 end
 
 lemma neg_lt_of_tendsto_zero_of_pos {f : ℕ → ℝ} (hf : tendsto f at_top (𝓝 0)) :
@@ -437,7 +437,7 @@ Exists.cases_on (hf' (r + 1)) $ λ i hi,
     by simp only [set.compl_set_of, not_lt];
     exact λ a har, le_of_lt (hi' a (lt_of_le_of_lt har (lt_add_one _))),
   (lt_def U).mpr $ mem_hyperfilter_of_finite_compl $
-  set.finite_subset (set.finite_le_nat _) hS
+  (set.finite_le_nat _).subset hS
 
 theorem infinite_neg_of_tendsto_bot {f : ℕ → ℝ} (hf : tendsto f at_top at_bot) :
   infinite_neg (of_seq f) :=
@@ -449,7 +449,7 @@ Exists.cases_on (hf' (r - 1)) $ λ i hi,
     by simp only [set.compl_set_of, not_lt];
     exact λ a har, le_of_lt (hi' a (lt_of_lt_of_le (sub_one_lt _) har)),
   (lt_def U).mpr $ mem_hyperfilter_of_finite_compl $
-  set.finite_subset (set.finite_le_nat _) hS
+  (set.finite_le_nat _).subset hS
 
 lemma not_infinite_neg {x : ℝ*} : ¬ infinite x → ¬ infinite (-x) :=
 not_imp_not.mpr infinite_iff_infinite_neg.mpr

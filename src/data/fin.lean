@@ -714,10 +714,9 @@ lemma is_some_find_iff : Π {n : ℕ} {p : fin n → Prop} [decidable_pred p],
   by exactI (find p).is_some ↔ ∃ i, p i
 | 0     p _ := iff_of_false (λ h, bool.no_confusion h) (λ ⟨i, _⟩, fin.elim0 i)
 | (n+1) p _ := ⟨λ h, begin
-  resetI,
   rw [option.is_some_iff_exists] at h,
   cases h with i hi,
-  exact ⟨i, find_spec _ hi⟩
+  exactI ⟨i, find_spec _ hi⟩
 end, λ ⟨⟨i, hin⟩, hi⟩,
 begin
   resetI,
@@ -727,7 +726,7 @@ begin
     { exact option.is_some_some },
     { have := (@is_some_find_iff n (λ x, p (x.cast_lt (nat.lt_succ_of_lt x.2))) _).2
         ⟨⟨i, lt_of_le_of_ne (nat.le_of_lt_succ hin)
-        (λ h, by clear_aux_decl; subst h; exact hl hi)⟩, hi⟩,
+        (λ h, by clear_aux_decl; cases h; exact hl hi)⟩, hi⟩,
       rw h at this,
       exact this } },
   { simp }

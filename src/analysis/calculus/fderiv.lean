@@ -367,7 +367,7 @@ begin
   assume U hU,
   refine (eventually_ne_of_tendsto_norm_at_top hc (0:𝕜)).mono (λ y hy, _),
   convert mem_of_nhds hU,
-  dsimp only [],
+  dsimp only,
   rw [← mul_smul, mul_inv_cancel hy, one_smul]
 end
 

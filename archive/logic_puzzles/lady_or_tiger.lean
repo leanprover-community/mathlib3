@@ -1,12 +1,21 @@
+/-
+Copyright (c) 2020 Dan Stanescu.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: D.Stanescu and Y. G. Kudryashov.
+-/
+
 import tactic
 
-/-
-The first three puzzles from:
+/-!
+# Six logic puzzles.
+-/
+
+/-- The first six puzzles from:
     "The Lady or the Tiger? And Other Logic Puzzles"
         by Raymond Smullyan.
-Contributed to the Lean Zulip chat by Yury G. Kudryashov
+First three contributed to the Lean Zulip chat by Yury G. Kudryashov
 but apparently set up by his seven-years-old son.
-Slightly modified in appearance (for readability) but not in content.
+Slightly modified in appearance (for readability) but not in content by D. Stanescu.
 -/
 
 inductive door_leads_to
@@ -81,8 +90,7 @@ by rcases q with ⟨_|_,_|_⟩; simp [H, D1, D2]
 
 end Q3
 
-/-
-Puzzles 4-7 from the same book:
+/-- Puzzles 4-7 from the same book:
     "The Lady or the Tiger? And Other Logic Puzzles"
         by Raymond Smullyan.
 Solutions written by D. Stanescu in the same framework as above. 
@@ -91,7 +99,7 @@ is in in that room and is false if a tiger is in that room. The opposite is true
 the second door (D2), which is true if a tiger is hidden behind it but false otherwise.
 -/
 
-/-
+/--
 Puzzle number four: 
 First door sign says that both rooms contain ladies.
 Second door sign is identical.
@@ -130,7 +138,7 @@ begin
     done
 end
 
-/-
+/--
 Puzzle number five: 
 First door sign says that at least one room contains a lady.
 Second door sign says : "In the other room there is a lady."
@@ -163,7 +171,7 @@ end
 
 end Q5
 
-/-
+/--
 Puzzle number six: 
 First door sign says that it makes no difference which room the prisoner picks.
 Second door sign is the same as in the previous puzzle.

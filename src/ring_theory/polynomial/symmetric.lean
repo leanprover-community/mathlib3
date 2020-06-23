@@ -5,6 +5,8 @@ Authors: Johan Commelin
 
 import data.fintype.card
 import ring_theory.polynomial.homogeneous
+import data.list.antidiagonal
+import tactic
 
 open equiv (perm)
 open_locale big_operators
@@ -57,15 +59,50 @@ end
 
 end multiset
 
--- -- move this
--- namespace mv_polynomial
+-- move this
+namespace list
+variables {α : Type*} [linear_order α]
 
--- variables {σ : Type*} {τ : Type*} {R : Type*} [comm_semiring R]
+lemma le_of_forall_nth_le_le : Π {n : ℕ} (l₁ l₂ : list α) (h₁ : l₁.length = n) (h₂ : l₂.length = n)
+  (H : ∀ (i : ℕ) (hi₁ : i < l₁.length) (hi₂ : i < l₂.length), l₁.nth_le i hi₁ ≤ l₂.nth_le i hi₂),
+  l₁ ≤ l₂
+| 0     []         []         rfl rfl H := le_refl _
+| (n+1) (a₁ :: l₁) (a₂ :: l₂) h₁  h₂  H :=
+begin
+  contrapose! H,
+  cases H with H_h H_h,
+  { change l₂ < l₁ at H_h,
+    contrapose! H_h,
+    simp only [add_left_inj, length] at h₁ h₂,
+    apply le_of_forall_nth_le_le _ _ h₁ h₂,
+    intros i hi₁ hi₂,
+    specialize H_h (i + 1) (nat.add_lt_add_right hi₁ 1),
+    rw [not_exists] at H_h,
+    specialize H_h (nat.add_lt_add_right hi₂ 1),
+    rwa not_lt at H_h },
+  { exact ⟨0, nat.zero_lt_succ _, nat.zero_lt_succ _, H_h⟩, }
+end
 
--- lemma coeff_rename (φ : mv_polynomial σ R) (f : σ → τ) (d : τ →₀ ℕ) :
---   coeff d (rename f φ) = _
+end list
 
--- end mv_polynomial
+-- move this
+section wf
+
+variables {α : Type*} (r : α → α → Prop) [is_trans α r] [is_irrefl α r]
+
+lemma well_founded_of_finite (h : ∀ a₀, set.finite {a | r a a₀}) :
+  well_founded r :=
+⟨λ a₀, acc.intro _ (λ b hb, begin
+  cases h a₀ with fint,
+  refine @well_founded.fix {a | r a a₀} (λ b, acc r b) (λ x y : {a | r a a₀}, r x y)
+    (@fintype.well_founded_of_trans_of_irrefl _ fint
+      (λ x y : {a | r a a₀}, r x y) ⟨λ x y z h₁ h₂, trans h₁ h₂⟩
+      ⟨λ x, irrefl x⟩) _ ⟨b, hb⟩,
+  rintros ⟨b, hb⟩ ih,
+  exact acc.intro _ (λ y hy, ih ⟨y, trans hy hb⟩ hy)
+end)⟩
+
+end wf
 
 -- move this
 namespace finsupp
@@ -336,14 +373,12 @@ structure signature (n : ℕ) :=
 namespace signature
 variables {n : ℕ}
 
+lemma coeffs_injective : function.injective (coeffs : signature n → list ℕ) :=
+by { rintros ⟨l₁, _, _⟩ ⟨l₂, _, _⟩ h, congr, exact h }
+
 @[ext]
 lemma ext {l₁ l₂ : signature n} (h : l₁.coeffs = l₂.coeffs) : l₁ = l₂ :=
-begin
-  cases l₁ with l₁ s₁ n₁,
-  cases l₂ with l₂ s₂ n₂,
-  congr,
-  exact h,
-end
+coeffs_injective h
 
 lemma ext' {l₁ l₂ : signature n} (h : l₁.coeffs ~ l₂.coeffs) : l₁ = l₂ :=
 ext $ list.eq_of_sorted_of_perm h l₁.sorted l₂.sorted
@@ -354,50 +389,137 @@ lemma ext_iff {l₁ l₂ : signature n} : l₁ = l₂ ↔ l₁.coeffs = l₂.coe
 lemma ext_iff' {l₁ l₂ : signature n} : l₁ = l₂ ↔ l₁.coeffs ~ l₂.coeffs :=
 ⟨by { rintro rfl, refl }, ext'⟩
 
-instance (n : ℕ) : partial_order (signature n) :=
-{ le := λ l₁ l₂, l₁.coeffs.sum < l₂.coeffs.sum ∨ (l₁.coeffs.sum = l₂.coeffs.sum ∧ l₁.coeffs ≤ l₂.coeffs),
-  le_refl := by { intro l, right, split; refl },
-  le_trans :=
-  begin
-    rintro l₁ l₂ l₃ (h₁₂|⟨h₁₂, h₁₂'⟩) (h₂₃|⟨h₂₃, h₂₃'⟩),
-    { left, exact lt_trans h₁₂ h₂₃ },
-    { left, rwa ← h₂₃ },
-    { left, rwa h₁₂ },
-    { right, exact ⟨h₂₃ ▸ h₁₂, le_trans h₁₂' h₂₃'⟩ }
-  end,
-  le_antisymm :=
-  begin
-    rintro l₁ l₂ (h₁₂|⟨h₁₂, h₁₂'⟩) (h₂₁|⟨h₂₁, h₂₁'⟩),
-    { exfalso, exact lt_irrefl _ (lt_trans h₁₂ h₂₁) },
-    { exfalso, rw h₂₁ at h₁₂, exact lt_irrefl _ h₁₂ },
-    { exfalso, rw h₁₂ at h₂₁, exact lt_irrefl _ h₂₁ },
-    { apply ext, rw le_antisymm h₁₂' h₂₁' }
-  end }
+-- instance (n : ℕ) : partial_order (signature n) :=
+-- { le := λ l₁ l₂, l₁.coeffs.sum < l₂.coeffs.sum ∨ (l₁.coeffs.sum = l₂.coeffs.sum ∧ l₁.coeffs ≤ l₂.coeffs),
+--   le_refl := by { intro l, right, split; refl },
+--   le_trans :=
+--   begin
+--     rintro l₁ l₂ l₃ (h₁₂|⟨h₁₂, h₁₂'⟩) (h₂₃|⟨h₂₃, h₂₃'⟩),
+--     { left, exact lt_trans h₁₂ h₂₃ },
+--     { left, rwa ← h₂₃ },
+--     { left, rwa h₁₂ },
+--     { right, exact ⟨h₂₃ ▸ h₁₂, le_trans h₁₂' h₂₃'⟩ }
+--   end,
+--   le_antisymm :=
+--   begin
+--     rintro l₁ l₂ (h₁₂|⟨h₁₂, h₁₂'⟩) (h₂₁|⟨h₂₁, h₂₁'⟩),
+--     { exfalso, exact lt_irrefl _ (lt_trans h₁₂ h₂₁) },
+--     { exfalso, rw h₂₁ at h₁₂, exact lt_irrefl _ h₁₂ },
+--     { exfalso, rw h₁₂ at h₂₁, exact lt_irrefl _ h₂₁ },
+--     { apply ext, rw le_antisymm h₁₂' h₂₁' }
+--   end }
+
+instance (n : ℕ) : linear_order (signature n) :=
+linear_order.lift signature.coeffs coeffs_injective (by apply_instance)
+
+instance : unique (signature 0) :=
+{ default := ⟨[], list.sorted_nil, rfl⟩,
+  uniq    := by { intro l, ext1, rw list.eq_nil_of_length_eq_zero l.length, } }
+
+lemma lt_iff : ∀ {n : ℕ} {l₁ l₂ : signature n},
+  l₁ < l₂ ↔ l₁.coeffs.head < l₂.coeffs.head ∨
+            (l₁.coeffs.head = l₂.coeffs.head ∧ l₁.coeffs.tail < l₂.coeffs.tail)
+| 0 ⟨[], s₁, h₁⟩ ⟨[], s₂, h₂⟩ :=
+begin
+  show list.nil < [] ↔ 0 < 0 ∨ 0 = 0 ∧ [] < [],
+  simp only [true_and, eq_self_iff_true, lt_irrefl 0, false_or],
+end
+| (n+1) ⟨(n₁ :: l₁), s₁, h₁⟩ ⟨(n₂ :: l₂), s₂, h₂⟩ :=
+begin
+  show (list.cons n₁ l₁) < n₂ :: l₂ ↔ n₁ < n₂ ∨ n₁ = n₂ ∧ l₁ < l₂,
+  split,
+  { rintro (_ | _ | _),
+    { right, exact ⟨rfl, ‹_›⟩ },
+    { left, assumption } },
+  { rintro (H | ⟨rfl, H⟩),
+    { exact list.lex.rel H },
+    { exact list.lex.cons H } }
+end
+
+lemma le_iff : ∀ {n : ℕ} {l₁ l₂ : signature n},
+  l₁ ≤ l₂ ↔ l₁.coeffs.head ≤ l₂.coeffs.head ∧
+            (l₁.coeffs.head = l₂.coeffs.head → l₁.coeffs.tail ≤ l₂.coeffs.tail)
+| 0 ⟨[], s₁, h₁⟩ ⟨[], s₂, h₂⟩ :=
+begin
+  show list.nil ≤ [] ↔ 0 ≤ 0 ∧ (0 = 0 → [] ≤ []),
+  simp only [true_and, eq_self_iff_true, le_refl 0, true_implies_iff],
+end
+| (n+1) ⟨(n₁ :: l₁), s₁, h₁⟩ ⟨(n₂ :: l₂), s₂, h₂⟩ :=
+begin
+  rw [le_iff_lt_or_eq, le_iff_lt_or_eq, lt_iff, or_assoc, ext_iff],
+  show n₁ < n₂ ∨ n₁ = n₂ ∧ l₁ < l₂ ∨ list.cons n₁ l₁ = n₂ :: l₂ ↔
+    (n₁ < n₂ ∨ n₁ = n₂) ∧ (n₁ = n₂ → l₁ ≤ l₂),
+  simp only [le_iff_lt_or_eq],
+  split,
+  { rintro (H|⟨rfl, H⟩|⟨rfl,rfl⟩),
+    { refine ⟨or.inl H, _⟩, rintro rfl, exfalso, exact lt_irrefl _ H },
+    { exact ⟨or.inr rfl, λ _, or.inl H⟩ },
+    { exact ⟨or.inr rfl, λ _, or.inr rfl⟩ } },
+  { rintro ⟨H|rfl, H'⟩,
+    { exact or.inl H },
+    { rcases H' rfl with H|rfl,
+      { right, left, exact ⟨rfl, H⟩ },
+      { right, right, exact ⟨rfl, rfl⟩ } } }
+end
+
+lemma le_of_forall_nth_le_le {n : ℕ} {l₁ l₂ : signature n}
+  (h : ∀ (i : ℕ) (hi : i < n),
+    l₁.coeffs.nth_le i (l₁.length.symm ▸ hi) ≤ l₂.coeffs.nth_le i (l₂.length.symm ▸ hi)) :
+  l₁ ≤ l₂ :=
+begin
+  apply list.le_of_forall_nth_le_le _ _ l₁.length l₂.length,
+  intros i hi₁ hi₂,
+  apply h,
+  rwa l₁.length at hi₁,
+end
 
 lemma lt_wf (n : ℕ) : well_founded (@has_lt.lt (signature n) _) :=
-sorry
--- subrelation.wf (λ l₁ l₂ h, _) $ inv_image.wf (λ l, l.coeffs.sum) nat.lt_wf
-
-/-
-/-- The order on `σ →₀ ℕ` is well-founded.-/
-lemma lt_wf : well_founded (@has_lt.lt (σ →₀ ℕ) _) :=
-subrelation.wf (sum_id_lt_of_lt) $ inv_image.wf _ nat.lt_wf
--/
+begin
+  apply well_founded_of_finite,
+  intro l₀,
+  let k := l₀.coeffs.sum + 1,
+  have hk : ∀ i : fin n, l₀.coeffs.nth_le i (l₀.length.symm ▸ i.2) < k,
+  { sorry },
+  constructor,
+  have aux : ∀ (l : {l : signature n // l < l₀}) (i : ℕ) (hi : i < (l : signature n).coeffs.length),
+    (l : signature n).coeffs.nth_le i hi < k,
+  { rintros ⟨l,hl⟩ i hi,
+    cases n,
+    { simp only [l.length, nat.nat_zero_eq_zero, subtype.coe_mk] at hi, exact fin.elim0 ⟨i, hi⟩ },
+    cases i,
+    { rw list.nth_le_zero,
+      calc l.coeffs.head ≤ l₀.coeffs.head : _
+                     ... < k              : _,
+      {  },
+      {  } },
+    have H := l.sorted,
+    rw [list.sorted, list.pairwise_iff_nth_le] at H,
+    apply lt_of_le_of_lt (H 0 i _ _), },
+  let f : {l : signature n // l < l₀} → (fin n → fin k) :=
+  λ l i, ⟨(l : signature n).coeffs.nth_le i ((l : signature n).length.symm ▸ i.2), aux l _ _⟩,
+  apply fintype.of_injective f,
+  intros l₁ l₂ h,
+  rw [subtype.ext, signature.ext_iff],
+  apply list.ext_le,
+  { rw [l₁.val.length, l₂.val.length] },
+  { intros i hi₁ hi₂,
+    rw [l₁.val.length] at hi₁,
+    rw [function.funext_iff] at h,
+    specialize h ⟨i, hi₁⟩,
+    rwa [fin.ext_iff] at h }
+end
 
 instance (n : ℕ) : has_zero (signature n) :=
 ⟨{ coeffs := list.repeat 0 n, sorted := list.sorted_repeat _ _ _, length := list.length_repeat _ _ }⟩
 
 @[simp] lemma coeffs_zero : (0 : signature n).coeffs = list.repeat 0 n := rfl
 
--- lemma zero_le (l : signature n) : 0 ≤ l :=
--- begin
---   by_cases H : (0 : signature n).coeffs.sum = l.coeffs.sum,
---   { right, refine ⟨H, _⟩, sorry },
---   { left, contrapose! H,
---     have aux : (0 : signature n).coeffs.sum = 0,
---     { show (list.repeat 0 n).sum = 0, rw [list.sum_repeat, nsmul_zero] },
---     rw aux at H ⊢, rw nat.le_zero_iff at H, exact H.symm }
--- end
+lemma zero_le (l : signature n) : 0 ≤ l :=
+begin
+  apply le_of_forall_nth_le_le,
+  intros i hi,
+  simp only [coeffs_zero, list.nth_le_repeat, zero_le],
+end
 
 def single : Π (n k : ℕ), signature n
 | 0     _ := ⟨[], list.sorted_nil, rfl⟩
@@ -924,6 +1046,9 @@ begin
 end
 
 variables (R)
+
+lemma induction_step (l : signature (card σ)) :
+
 
 def monomial_symmetric_as_polynomial_elementary_symmetric :
   Π (l : signature (card σ)), mv_polynomial ℕ R

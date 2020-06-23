@@ -24,7 +24,7 @@ notation `n` := person.knave
 
 structure Q := (p₁ p₂ : person)
 
-/-
+/--
 In this first puzzle, only Jack makes a statement.
 He affirms that both our heroes (i.e. both Jack and Bob) are knaves.
 What kind of islanders are they?
@@ -49,7 +49,7 @@ end
 
 end Q1
 
-/-
+/--
 In the second puzzle, both Jack and Bob make a statement.
 Jack states that he's a knave if and only if Bob is a knave.
 Bob only states that they are different kinds. 

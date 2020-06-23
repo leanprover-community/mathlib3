@@ -66,7 +66,7 @@ by { rw ← principal_univ, apply countable_Inter_filter_principal }
 
 /-- Infimum of two `countable_Inter_filter`s is a `countable_Inter_filter`. This is useful, e.g.,
 to automatically get an instance for `residual α ⊓ principal s`. -/
-instance countable_Inter_filter_inf {l₁ l₂ : filter α} [countable_Inter_filter l₁]
+instance countable_Inter_filter_inf (l₁ l₂ : filter α) [countable_Inter_filter l₁]
   [countable_Inter_filter l₂] :
   countable_Inter_filter (l₁ ⊓ l₂) :=
 begin
@@ -80,7 +80,7 @@ begin
 end
 
 /-- Supremum of two `countable_Inter_filter`s is a `countable_Inter_filter`. -/
-instance countable_Inter_filter_sup {l₁ l₂ : filter α} [countable_Inter_filter l₁]
+instance countable_Inter_filter_sup (l₁ l₂ : filter α) [countable_Inter_filter l₁]
   [countable_Inter_filter l₂] :
   countable_Inter_filter (l₁ ⊔ l₂) :=
 begin

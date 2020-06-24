@@ -66,13 +66,13 @@ classical.by_cases mem_sets_of_eq_bot $
   assume : f ⊓ 𝓟 (- t) ≠ ⊥,
   let ⟨a, ha, (hfa : cluster_pt a $ f ⊓ 𝓟 (-t))⟩ := hs _ this $ inf_le_left_of_le hf₂ in
   have a ∈ t,
-    from ht₂ a ha (cluster_pt_of_inf_left hfa),
+    from ht₂ a ha (hfa.of_inf_left),
   have (-t) ∩ t ∈ nhds_within a (-t),
     from inter_mem_nhds_within _ (mem_nhds_sets ht₁ this),
   have A : nhds_within a (-t) = ⊥,
     from empty_in_sets_eq_bot.1 $ compl_inter_self t ▸ this,
   have nhds_within a (-t) ≠ ⊥,
-    from cluster_pt_of_inf_right hfa,
+    from hfa.of_inf_right,
   absurd A this
 
 lemma compact_iff_ultrafilter_le_nhds {s : set α} :

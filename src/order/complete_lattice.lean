@@ -649,6 +649,14 @@ theorem supr_union {f : β → α} {s t : set β} : (⨆ x ∈ s ∪ t, f x) = (
 calc (⨆ x ∈ s ∪ t, f x) = (⨆ x, (⨆h : x∈s, f x) ⊔ (⨆h : x∈t, f x)) : congr_arg supr $ funext $ assume x, supr_or
                     ... = (⨆x∈s, f x) ⊔ (⨆x∈t, f x) : supr_sup_eq
 
+lemma supr_split (f : β → α) (p : β → Prop) :
+(⨆ i, f i) = (⨆ i (h : p i), f i) ⊔ (⨆ i (h : ¬ p i), f i) :=
+by simpa [classical.em] using @supr_union _ _ _ f {i | p i} {i | ¬ p i}
+
+lemma supr_split_single (f : β → α) (i₀ : β) :
+(⨆ i, f i) = f i₀ ⊔ (⨆ i (h : i ≠ i₀), f i) :=
+by convert supr_split _ _; simp
+
 theorem supr_le_supr_of_subset {f : β → α} {s t : set β} (h : s ⊆ t) :
   (⨆ x ∈ s, f x) ≤ (⨆ x ∈ t, f x) :=
 by rw [(union_eq_self_of_subset_left h).symm, supr_union]; exact le_sup_left

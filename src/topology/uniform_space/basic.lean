@@ -550,11 +550,16 @@ lemma mem_nhds_uniformity_iff_left {x : α} {s : set α} :
   s ∈ 𝓝 x ↔ {p : α × α | p.2 = x → p.1 ∈ s} ∈ 𝓤 α :=
 by { rw [uniformity_eq_symm, mem_nhds_uniformity_iff_right], refl }
 
-lemma nhds_eq_comap_uniformity {x : α} : 𝓝 x = (𝓤 α).comap (prod.mk x) :=
-by ext s; rw [mem_nhds_uniformity_iff_right, mem_comap_sets]; from iff.intro
+lemma nhds_eq_comap_uniformity_aux  {α : Type u} {x : α} {s : set α} {F : filter (α × α)} :
+ {p : α × α | p.fst = x → p.snd ∈ s} ∈ F ↔ s ∈ comap (prod.mk x) F :=
+by rw mem_comap_sets ; from iff.intro
   (assume hs, ⟨_, hs, assume x hx, hx rfl⟩)
-  (assume ⟨t, h, ht⟩, (𝓤 α).sets_of_superset h $
+  (assume ⟨t, h, ht⟩, F.sets_of_superset h $
     assume ⟨p₁, p₂⟩ hp (h : p₁ = x), ht $ by simp [h.symm, hp])
+
+
+lemma nhds_eq_comap_uniformity {x : α} : 𝓝 x = (𝓤 α).comap (prod.mk x) :=
+by { ext s, rw [mem_nhds_uniformity_iff_right], exact nhds_eq_comap_uniformity_aux }
 
 lemma is_open_iff_ball_subset {s : set α} : is_open s ↔ ∀ x ∈ s, ∃ V ∈ 𝓤 α, ball x V ⊆ s :=
 begin
@@ -693,6 +698,20 @@ match this with
     is_open_Union $ assume (p:α×α), is_open_Union $ assume hp, (ht p hp).right.left,
     assume ⟨a, b⟩ hp, begin simp; exact ⟨a, b, hp, (ht (a,b) hp).right.right⟩ end,
     Union_subset $ assume p, Union_subset $ assume hp, (ht p hp).left⟩
+end
+
+/-- Entourages are neighborhoods of the diagonal. -/
+lemma nhds_le_uniformity : (⨆ x : α, 𝓝 (x, x)) ≤  𝓤 α :=
+begin
+  apply supr_le _,
+  intros x V V_in,
+  rcases comp_symm_mem_uniformity_sets V_in with ⟨w, w_in, w_symm, w_sub⟩,
+  have : (ball x w).prod (ball x w) ∈ 𝓝 (x, x),
+  { rw nhds_prod_eq,
+    exact prod_mem_prod (ball_mem_nhds x w_in) (ball_mem_nhds x w_in) },
+  apply mem_sets_of_superset this,
+  rintros ⟨u, v⟩ ⟨u_in, v_in⟩,
+  exact w_sub (mem_comp_of_mem_ball w_symm u_in v_in)
 end
 
 /-!
@@ -850,6 +869,13 @@ as `(x, y)` tends to the diagonal. In other words, if `x` is sufficiently close 
 `f x` is close to `f y` no matter where `x` and `y` are located in `α`. -/
 def uniform_continuous [uniform_space β] (f : α → β) :=
 tendsto (λx:α×α, (f x.1, f x.2)) (𝓤 α) (𝓤 β)
+
+/-- A function `f : α → β` is *uniformly continuous* on `s : set α` if `(f x, f y)` tends to
+the diagonal as `(x, y)` tends to the diagonal while remaining in `s.prod s`.
+In other words, if `x` is sufficiently close to `y`, then `f x` is close to
+`f y` no matter where `x` and `y` are located in `s`.-/
+def uniform_continuous_on [uniform_space β] (f : α → β) (s : set α) : Prop :=
+tendsto (λ x : α × α, (f x.1, f x.2)) (𝓤 α ⊓ principal (s.prod s)) (𝓤 β)
 
 theorem uniform_continuous_def [uniform_space β] {f : α → β} :
   uniform_continuous f ↔ ∀ r ∈ 𝓤 β, { x : α × α | (f x.1, f x.2) ∈ r} ∈ 𝓤 α :=
@@ -1095,6 +1121,26 @@ lemma uniform_continuous_subtype_mk {p : α → Prop} [uniform_space α] [unifor
   {f : β → α} (hf : uniform_continuous f) (h : ∀x, p (f x)) :
   uniform_continuous (λx, ⟨f x, h x⟩ : β → subtype p) :=
 uniform_continuous_comap' hf
+
+lemma uniform_continuous_on_iff_restrict [uniform_space α] [uniform_space β] (f : α → β) (s : set α) :
+uniform_continuous_on f s ↔ uniform_continuous (s.restrict f) :=
+begin
+  -- All the mathematical content is in `subtype_coe_map_comap` and functorial properties
+  -- of filter `map` and `comap`, but here we'll have to fight coercions in the two unnamed
+  -- intermediate facts
+  unfold uniform_continuous_on set.restrict uniform_continuous,
+  have :  (λ x : s × s, (f x.1, f x.2)) = (prod.map f f) ∘ (prod.map coe coe),
+  ext x ; refl,
+  rw [uniformity_comap rfl, this, tendsto, tendsto, ← filter.map_map, ← subtype_coe_map_comap],
+  convert iff.rfl using 3,
+  change map (prod.map coe coe) (filter.comap (prod.map coe coe) _) = _,
+  let φ : ↥s × ↥s → (s.prod s)  := (λ x : s × s, ⟨(x.1.1, x.2.1), mk_mem_prod x.1.2 x.2.2⟩),
+  have : (prod.map coe coe : s × s → α × α) = coe ∘ φ,
+  ext ; refl,
+  rw [this, ← filter.map_map, ← filter.comap_comap_comp, map_comap_of_surjective],
+  rintro ⟨⟨x, y⟩, ⟨x_in, y_in⟩⟩,
+  use [(⟨x, x_in⟩, ⟨y, y_in⟩), rfl],
+end
 
 lemma tendsto_of_uniform_continuous_subtype
   [uniform_space α] [uniform_space β] {f : α → β} {s : set α} {a : α}

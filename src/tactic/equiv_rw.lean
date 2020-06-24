@@ -215,7 +215,7 @@ dsimp_result (do
   b ← target >>= is_prop,
   if b then do
     subst h,
-    `[try { simp only [] with equiv_rw_simp }]
+    `[try { simp only with equiv_rw_simp }]
   else
     -- We may need to unfreeze `x` before we can `clear` it.
     unfreezing_hyp x' (clear' tt [x']) <|>

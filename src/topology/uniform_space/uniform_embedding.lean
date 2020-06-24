@@ -362,7 +362,7 @@ begin
     end⟩
 end
 
-variables [separated γ]
+variables [separated_space γ]
 
 lemma uniformly_extend_of_ind (b : β) : ψ (e b) = f b :=
 dense_inducing.extend_e_eq _ b (continuous_iff_continuous_at.1 h_f.continuous b)

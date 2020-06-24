@@ -291,6 +291,9 @@ open is_semiring_hom
 def eval₂ (p : polynomial R) : S :=
 p.sum (λ e a, f a * x ^ e)
 
+@[simp] lemma eval₂_zero : (0 : polynomial R).eval₂ f x = 0 :=
+finsupp.sum_zero_index
+
 variables [is_semiring_hom f]
 
 @[simp] lemma eval₂_C : (C a).eval₂ f x = f a :=
@@ -298,9 +301,6 @@ variables [is_semiring_hom f]
 
 @[simp] lemma eval₂_X : X.eval₂ f x = x :=
 (sum_single_index $ by rw [map_zero f, zero_mul]).trans $ by rw [map_one f, one_mul, pow_one]
-
-@[simp] lemma eval₂_zero : (0 : polynomial R).eval₂ f x = 0 :=
-finsupp.sum_zero_index
 
 @[simp] lemma eval₂_add : (p + q).eval₂ f x = p.eval₂ f x + q.eval₂ f x :=
 finsupp.sum_add_index
@@ -334,6 +334,10 @@ begin
   { intro, rw [map_zero f, zero_mul] },
   { intros, rw [map_add f, add_mul] }
 end
+
+lemma eval₂_smul (g : R →+* S) (p : polynomial R) (x : S) {s : R} :
+  eval₂ g x (s • p) = g s * eval₂ g x p :=
+by rw [← C_mul', eval₂_mul, eval₂_C]
 
 instance eval₂.is_semiring_hom : is_semiring_hom (eval₂ f x) :=
 ⟨eval₂_zero _ _, eval₂_one _ _, λ _ _, eval₂_add _ _, λ _ _, eval₂_mul _ _⟩
@@ -464,6 +468,12 @@ by unfold comp; apply_instance
 
 end comp
 
+end comm_semiring
+
+section semiring
+
+variables [semiring R] {p : polynomial R} [semiring S] {q : polynomial S}
+
 /-- `leading_coeff p` gives the coefficient of the highest power of `X` in `p`-/
 def leading_coeff (p : polynomial R) : R := coeff p (nat_degree p)
 
@@ -481,15 +491,6 @@ by unfold monic; apply_instance
 @[simp] lemma degree_zero : degree (0 : polynomial R) = ⊥ := rfl
 
 @[simp] lemma nat_degree_zero : nat_degree (0 : polynomial R) = 0 := rfl
-
-@[simp] lemma degree_C (ha : a ≠ 0) : degree (C a) = (0 : with_bot ℕ) :=
-show sup (ite (a = 0) ∅ {0}) some = 0, by rw if_neg ha; refl
-
-lemma degree_C_le : degree (C a) ≤ (0 : with_bot ℕ) :=
-by by_cases h : a = 0; [rw [h, C_0], rw [degree_C h]]; [exact bot_le, exact le_refl _]
-
-lemma degree_one_le : degree (1 : polynomial R) ≤ (0 : with_bot ℕ) :=
-by rw [← C_1]; exact degree_C_le
 
 lemma degree_eq_bot : degree p = ⊥ ↔ p = 0 :=
 ⟨λ h, by rw [degree, ← max_eq_sup_with_bot] at h;
@@ -529,7 +530,7 @@ begin
   exact le_refl _
 end
 
-lemma nat_degree_eq_of_degree_eq [comm_semiring S] {q : polynomial S}
+lemma nat_degree_eq_of_degree_eq {q : polynomial S}
   (h : degree p = degree q) : nat_degree p = nat_degree q :=
 by unfold nat_degree; rw h
 
@@ -550,6 +551,27 @@ begin
   { rw hp, exact bot_le },
   { rw degree_eq_nat_degree hp, exact le_degree_of_ne_zero h }
 end
+
+lemma degree_ne_of_nat_degree_ne {n : ℕ} :
+  p.nat_degree ≠ n → degree p ≠ n :=
+@option.cases_on _ (λ d, d.get_or_else 0 ≠ n → d ≠ n) p.degree
+  (λ _ h, option.no_confusion h)
+  (λ n' h, mt option.some_inj.mp h)
+
+end semiring
+
+section comm_semiring
+
+variables [comm_semiring R] {p q : polynomial R}
+
+@[simp] lemma degree_C (ha : a ≠ 0) : degree (C a) = (0 : with_bot ℕ) :=
+show sup (ite (a = 0) ∅ {0}) some = 0, by rw if_neg ha; refl
+
+lemma degree_C_le : degree (C a) ≤ (0 : with_bot ℕ) :=
+by by_cases h : a = 0; [rw [h, C_0], rw [degree_C h]]; [exact bot_le, exact le_refl _]
+
+lemma degree_one_le : degree (1 : polynomial R) ≤ (0 : with_bot ℕ) :=
+by rw [← C_1]; exact degree_C_le
 
 @[simp] lemma nat_degree_C (a : R) : nat_degree (C a) = 0 :=
 begin
@@ -613,6 +635,10 @@ begin
   { rw [this, one_mul] },
   exact congr_arg C hp
 end
+
+lemma coeff_ne_zero_of_eq_degree {p : polynomial R} {n : ℕ} (hn : degree p = n) :
+  coeff p n ≠ 0 :=
+λ h, mem_support_iff.mp (mem_of_max hn) h
 
 section map
 variables [comm_semiring S]
@@ -1754,7 +1780,7 @@ lemma dvd_iff_mod_by_monic_eq_zero (hq : monic q) : p %ₘ q = 0 ↔ q ∣ p :=
     exact not_lt_of_ge (nat.le_add_right _ _) (with_bot.some_lt_some.1 this))⟩
 
 @[simp] lemma mod_by_monic_one (p : polynomial R) : p %ₘ 1 = 0 :=
-(dvd_iff_mod_by_monic_eq_zero monic_one).2 (one_dvd _)
+(dvd_iff_mod_by_monic_eq_zero (by convert monic_one)).2 (one_dvd _)
 
 @[simp] lemma div_by_monic_one (p : polynomial R) : p /ₘ 1 = p :=
 by conv_rhs { rw [← mod_by_monic_add_div p monic_one] }; simp
@@ -1767,6 +1793,51 @@ lt_of_not_ge $ λ hlt, begin
     nat.cases_on n h (λ _, coeff_eq_zero_of_degree_lt (lt_of_le_of_lt hlt
       (with_bot.coe_lt_coe.2 (nat.succ_pos _)))))),
 end
+
+lemma eq_C_of_nat_degree_le_zero {p : polynomial R} (h : nat_degree p ≤ 0) : p = C (coeff p 0) :=
+begin
+  refine polynomial.ext (λ n, _),
+  cases n,
+  { simp },
+  { have : nat_degree p < nat.succ n := lt_of_le_of_lt h (nat.succ_pos _),
+    rw [coeff_C, if_neg (nat.succ_ne_zero _), coeff_eq_zero_of_nat_degree_lt this] }
+end
+
+variables [comm_ring S]
+
+lemma nat_degree_pos_iff_degree_pos {p : polynomial R} :
+  0 < nat_degree p ↔ 0 < degree p :=
+⟨ λ h, ((degree_eq_iff_nat_degree_eq_of_pos h).mpr rfl).symm ▸ (with_bot.some_lt_some.mpr h),
+  by { unfold nat_degree,
+       cases degree p,
+       { rintros ⟨_, ⟨⟩, _⟩ },
+       { exact with_bot.some_lt_some.mp } } ⟩
+
+lemma nat_degree_pos_of_eval₂_root {p : polynomial R} (hp : p ≠ 0) (f : R →+* S)
+  {z : S} (hz : eval₂ f z p = 0) (inj : ∀ (x : R), f x = 0 → x = 0) :
+  0 < nat_degree p :=
+lt_of_not_ge $ λ hlt, begin
+  rw [eq_C_of_nat_degree_le_zero hlt, eval₂_C] at hz,
+  refine hp (finsupp.ext (λ n, _)),
+  cases n,
+  { exact inj _ hz },
+  { exact coeff_eq_zero_of_nat_degree_lt (lt_of_le_of_lt hlt (nat.succ_pos _)) }
+end
+
+lemma degree_pos_of_eval₂_root {p : polynomial R} (hp : p ≠ 0) (f : R →+* S)
+  {z : S} (hz : eval₂ f z p = 0) (inj : ∀ (x : R), f x = 0 → x = 0) :
+  0 < degree p :=
+nat_degree_pos_iff_degree_pos.mp (nat_degree_pos_of_eval₂_root hp f hz inj)
+
+lemma nat_degree_pos_of_aeval_root [algebra R S] {p : polynomial R} (hp : p ≠ 0)
+  {z : S} (hz : aeval R S z p = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
+  0 < p.nat_degree :=
+nat_degree_pos_of_eval₂_root hp (algebra_map R S) hz inj
+
+lemma degree_pos_of_aeval_root [algebra R S] {p : polynomial R} (hp : p ≠ 0)
+  {z : S} (hz : aeval R S z p = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
+  0 < p.degree :=
+nat_degree_pos_iff_degree_pos.mp (nat_degree_pos_of_aeval_root hp hz inj)
 
 theorem monic_X_sub_C (x : R) : monic (X - C x) :=
 by simpa only [C_neg] using monic_X_add_C (-x)
@@ -2652,6 +2723,119 @@ begin
 end
 
 end identities
+
+section integral_normalization
+
+section comm_semiring
+variables [comm_semiring R]
+
+/-- If `f : polynomial R` is a nonzero polynomial with root `z`, `integral_normalization f` is
+a monic polynomial with root `leading_coeff f * z`.
+
+Moreover, `integral_normalization 0 = 0`.
+-/
+noncomputable def integral_normalization (f : polynomial R) : polynomial R :=
+on_finset f.support
+  (λ i, if f.degree = i then 1 else coeff f i * f.leading_coeff ^ (f.nat_degree - 1 - i))
+  begin
+    intros i h,
+    apply mem_support_iff.mpr,
+    split_ifs at h with hi,
+    { exact coeff_ne_zero_of_eq_degree hi },
+    { exact ne_zero_of_mul_ne_zero_right h },
+  end
+
+lemma integral_normalization_coeff_degree {f : polynomial R} {i : ℕ} (hi : f.degree = i) :
+  (integral_normalization f).coeff i = 1 :=
+if_pos hi
+
+lemma integral_normalization_coeff_nat_degree {f : polynomial R} (hf : f ≠ 0) :
+  (integral_normalization f).coeff (nat_degree f) = 1 :=
+integral_normalization_coeff_degree (degree_eq_nat_degree hf)
+
+lemma integral_normalization_coeff_ne_degree {f : polynomial R} {i : ℕ} (hi : f.degree ≠ i) :
+  coeff (integral_normalization f) i = coeff f i * f.leading_coeff ^ (f.nat_degree - 1 - i) :=
+if_neg hi
+
+lemma integral_normalization_coeff_ne_nat_degree {f : polynomial R} {i : ℕ} (hi : i ≠ nat_degree f) :
+  coeff (integral_normalization f) i = coeff f i * f.leading_coeff ^ (f.nat_degree - 1 - i) :=
+integral_normalization_coeff_ne_degree (degree_ne_of_nat_degree_ne hi.symm)
+
+lemma monic_integral_normalization {f : polynomial R} (hf : f ≠ 0) :
+  monic (integral_normalization f) :=
+begin
+  apply monic_of_degree_le f.nat_degree,
+  { refine finset.sup_le (λ i h, _),
+    rw [integral_normalization, mem_support_iff, on_finset_apply] at h,
+    split_ifs at h with hi,
+    { exact le_trans (le_of_eq hi.symm) degree_le_nat_degree },
+    { erw [with_bot.some_le_some],
+      apply le_nat_degree_of_ne_zero,
+      exact ne_zero_of_mul_ne_zero_right h } },
+  { exact integral_normalization_coeff_nat_degree hf }
+end
+
+end comm_semiring
+
+variables [integral_domain R]
+
+@[simp] lemma support_integral_normalization {f : polynomial R} (hf : f ≠ 0) :
+  (integral_normalization f).support = f.support :=
+begin
+  ext i,
+  simp only [integral_normalization, on_finset_apply, mem_support_iff],
+  split_ifs with hi,
+  { simp only [ne.def, not_false_iff, true_iff, one_ne_zero, hi],
+    exact coeff_ne_zero_of_eq_degree hi },
+  split,
+  { intro h,
+    exact ne_zero_of_mul_ne_zero_right h },
+  { intro h,
+    refine mul_ne_zero h (pow_ne_zero _ _),
+    exact λ h, hf (leading_coeff_eq_zero.mp h) }
+end
+
+variables [comm_ring S]
+
+lemma integral_normalization_eval₂_eq_zero {p : polynomial R} (hp : p ≠ 0) (f : R →+* S)
+  {z : S} (hz : eval₂ f z p = 0) (inj : ∀ (x : R), f x = 0 → x = 0) :
+  eval₂ f (z * f p.leading_coeff) (integral_normalization p) = 0 :=
+calc eval₂ f (z * f p.leading_coeff) (integral_normalization p)
+    = p.support.attach.sum
+        (λ i, f (coeff (integral_normalization p) i.1 * p.leading_coeff ^ i.1) * z ^ i.1) :
+      by { rw [eval₂, finsupp.sum, support_integral_normalization hp],
+           simp only [mul_comm z, mul_pow, mul_assoc, ring_hom.map_pow, ring_hom.map_mul],
+           exact finset.sum_attach.symm }
+... = p.support.attach.sum
+        (λ i, f (coeff p i.1 * p.leading_coeff ^ (nat_degree p - 1)) * z ^ i.1) :
+      begin
+        have one_le_deg : 1 ≤ nat_degree p :=
+          nat.succ_le_of_lt (nat_degree_pos_of_eval₂_root hp f hz inj),
+        congr,
+        ext i,
+        congr' 2,
+        by_cases hi : i.1 = nat_degree p,
+        { rw [hi, integral_normalization_coeff_degree, one_mul, leading_coeff, ←pow_succ,
+              nat.sub_add_cancel one_le_deg],
+          exact degree_eq_nat_degree hp },
+        { have : i.1 ≤ p.nat_degree - 1 := nat.le_pred_of_lt (lt_of_le_of_ne
+            (le_nat_degree_of_ne_zero (finsupp.mem_support_iff.mp i.2)) hi),
+          rw [integral_normalization_coeff_ne_nat_degree hi, mul_assoc, ←pow_add,
+              nat.sub_add_cancel this] }
+      end
+... = f p.leading_coeff ^ (nat_degree p - 1) * eval₂ f z p :
+      by { simp_rw [eval₂, finsupp.sum, λ i, mul_comm (coeff p i), ring_hom.map_mul,
+                    ring_hom.map_pow, mul_assoc, ←finset.mul_sum],
+           congr' 1,
+           exact @finset.sum_attach _ _ p.support _ (λ i, f (p.coeff i) * z ^ i) }
+... = 0 : by rw [hz, _root_.mul_zero]
+
+lemma integral_normalization_aeval_eq_zero [algebra R S] {f : polynomial R} (hf : f ≠ 0)
+  {z : S} (hz : aeval R S z f = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
+  aeval R S (z * algebra_map R S f.leading_coeff) (integral_normalization f) = 0 :=
+integral_normalization_eval₂_eq_zero hf (algebra_map R S) hz inj
+
+end integral_normalization
 
 end polynomial
 

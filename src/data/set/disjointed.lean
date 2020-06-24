@@ -17,7 +17,7 @@ variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
 /-- A relation `p` holds pairwise if `p i j` for all `i ≠ j`. -/
 def pairwise {α : Type*} (p : α → α → Prop) := ∀i j, i ≠ j → p i j
 
-@[simp] theorem set.pairwise_on_univ {r : α → α → Prop} :
+theorem set.pairwise_on_univ {r : α → α → Prop} :
   (univ : set α).pairwise_on r ↔ pairwise r :=
 by simp only [pairwise_on, pairwise, mem_univ, forall_const]
 

@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Johannes Hölzl
 -/
 import measure_theory.measure_space
 import measure_theory.borel_space
+import data.indicator_function
 
 /-!
 # Lebesgue integral for `ennreal`-valued functions
@@ -26,8 +27,8 @@ if every preimage `f ⁻¹' {x}` is measurable, and the range is finite. This st
 a function with these properties. -/
 structure {u v} simple_func (α : Type u) [measurable_space α] (β : Type v) :=
 (to_fun : α → β)
-(measurable_sn : ∀ x, is_measurable (to_fun ⁻¹' {x}))
-(finite : (set.range to_fun).finite)
+(is_measurable_fiber' : ∀ x, is_measurable (to_fun ⁻¹' {x}))
+(finite_range' : (set.range to_fun).finite)
 
 local infixr ` →ₛ `:25 := simple_func
 
@@ -40,16 +41,24 @@ instance has_coe_to_fun : has_coe_to_fun (α →ₛ β) := ⟨_, to_fun⟩
 @[ext] theorem ext {f g : α →ₛ β} (H : ∀ a, f a = g a) : f = g :=
 by cases f; cases g; congr; exact funext H
 
-/-- Range of a simple function `α →ₛ β` as a `finset β`. -/
-protected def range (f : α →ₛ β) : finset β := f.finite.to_finset
+lemma finite_range (f : α →ₛ β) : (set.range f).finite := f.finite_range'
 
-@[simp] theorem mem_range {f : α →ₛ β} {b} : b ∈ f.range ↔ ∃ a, f a = b :=
+lemma is_measurable_fiber (f : α →ₛ β) (x : β) : is_measurable (f ⁻¹' {x}) :=
+f.is_measurable_fiber' x
+
+/-- Range of a simple function `α →ₛ β` as a `finset β`. -/
+protected def range (f : α →ₛ β) : finset β := f.finite_range.to_finset
+
+@[simp] theorem mem_range {f : α →ₛ β} {b} : b ∈ f.range ↔ b ∈ range f :=
 finite.mem_to_finset
 
+theorem mem_range_self (f : α →ₛ β) (x : α) : f x ∈ f.range := mem_range.2 ⟨x, rfl⟩
+
+@[simp] lemma coe_range (f : α →ₛ β) : (↑f.range : set β) = set.range f :=
+f.finite_range.coe_to_finset
+
 lemma preimage_eq_empty_iff (f : α →ₛ β) (b : β) : f ⁻¹' {b} = ∅ ↔ b ∉ f.range :=
-iff.intro
-  (by simp [set.eq_empty_iff_forall_not_mem, mem_range])
-  (by simp [set.eq_empty_iff_forall_not_mem, mem_range])
+preimage_singleton_eq_empty.trans $ not_congr mem_range.symm
 
 /-- Constant function as a `simple_func`. -/
 def const (α) {β} [measurable_space α] (b : β) : α →ₛ β :=
@@ -57,52 +66,53 @@ def const (α) {β} [measurable_space α] (b : β) : α →ₛ β :=
 
 instance [inhabited β] : inhabited (α →ₛ β) := ⟨const _ (default _)⟩
 
-@[simp] theorem const_apply (a : α) (b : β) : (const α b) a = b := rfl
+theorem const_apply (a : α) (b : β) : (const α b) a = b := rfl
+
+@[simp] theorem coe_const (b : β) : ⇑(const α b) = function.const α b := rfl
 
 lemma range_const (α) [measurable_space α] [nonempty α] (b : β) :
   (const α b).range = {b} :=
+finset.coe_injective $ by simp
+
+lemma is_measurable_cut (r : α → β → Prop) (f : α →ₛ β)
+  (h : ∀b, is_measurable {a | r a b}) : is_measurable {a | r a (f a)} :=
 begin
-  ext b',
-  simp [mem_range, eq_comm]
+  have : {a | r a (f a)} = ⋃ b ∈ range f, {a | r a b} ∩ f ⁻¹' {b},
+  { ext a,
+    suffices : r a (f a) ↔ ∃ i, r a (f i) ∧ f a = f i, by simpa,
+    exact ⟨λ h, ⟨a, ⟨h, rfl⟩⟩, λ ⟨a', ⟨h', e⟩⟩, e.symm ▸ h'⟩ },
+  rw this,
+  exact is_measurable.bUnion f.finite_range.countable
+    (λ b _, is_measurable.inter (h b) (f.is_measurable_fiber _))
 end
 
-lemma is_measurable_cut (p : α → β → Prop) (f : α →ₛ β)
-  (h : ∀b, is_measurable {a | p a b}) : is_measurable {a | p a (f a)} :=
-begin
-  rw (_ : {a | p a (f a)} = ⋃ b ∈ set.range f, {a | p a b} ∩ f ⁻¹' {b}),
-  { exact is_measurable.bUnion f.finite.countable
-      (λ b _, is_measurable.inter (h b) (f.measurable_sn _)) },
-  ext a, simp,
-  exact ⟨λ h, ⟨a, ⟨h, rfl⟩⟩, λ ⟨a', ⟨h', e⟩⟩, e.symm ▸ h'⟩
-end
-
-theorem preimage_measurable (f : α →ₛ β) (s) : is_measurable (f ⁻¹' s) :=
+theorem is_measurable_preimage (f : α →ₛ β) (s) : is_measurable (f ⁻¹' s) :=
 is_measurable_cut (λ _ b, b ∈ s) f (λ b, is_measurable.const (b ∈ s))
 
 /-- A simple function is measurable -/
 protected theorem measurable [measurable_space β] (f : α →ₛ β) : measurable f :=
-λ s _, preimage_measurable f s
+λ s _, is_measurable_preimage f s
 
 /-- If-then-else as a `simple_func`. -/
 def ite {s : set α} (hs : is_measurable s) (f g : α →ₛ β) : α →ₛ β :=
-⟨λ a, if a ∈ s then f a else g a,
+⟨s.piecewise f g,
  λ x, by letI : measurable_space β := ⊤; exact
    measurable.if hs f.measurable g.measurable _ trivial,
- (f.finite.union g.finite).subset begin
-   rintro _ ⟨a, rfl⟩,
-   by_cases a ∈ s; simp [h],
-   exacts [or.inl ⟨_, rfl⟩, or.inr ⟨_, rfl⟩]
- end⟩
+ (f.finite_range.union g.finite_range).subset range_ite_subset⟩
 
-@[simp] theorem ite_apply {s : set α} (hs : is_measurable s)
+@[simp] theorem coe_ite {s : set α} (hs : is_measurable s) (f g : α →ₛ β) :
+  ⇑(ite hs f g) = s.piecewise f g :=
+rfl
+
+theorem ite_apply {s : set α} (hs : is_measurable s)
   (f g : α →ₛ β) (a) : ite hs f g a = if a ∈ s then f a else g a := rfl
 
 /-- If `f : α →ₛ β` is a simple function and `g : β → α →ₛ γ` is a family of simple functions,
 then `f.bind g` binds the first argument of `g` to `f`. In other words, `f.bind g a = g (f a) a`. -/
 def bind (f : α →ₛ β) (g : β → α →ₛ γ) : α →ₛ γ :=
 ⟨λa, g (f a) a,
- λ c, is_measurable_cut (λa b, g b a ∈ ({c} : set γ)) f (λ b, (g b).measurable_sn c),
- (f.finite.bUnion (λ b _, (g b).finite)).subset $
+ λ c, is_measurable_cut (λa b, g b a ∈ ({c} : set γ)) f (λ b, (g b).is_measurable_fiber c),
+ (f.finite_range.bUnion (λ b _, (g b).finite_range)).subset $
  by rintro _ ⟨a, rfl⟩; simp; exact ⟨a, a, rfl⟩⟩
 
 @[simp] theorem bind_apply (f : α →ₛ β) (g : β → α →ₛ γ) (a) :
@@ -113,50 +123,51 @@ then `f.restrict s a = if a ∈ s then f a else 0`, otherwise `f.restrict s = co
 def restrict [has_zero β] (f : α →ₛ β) (s : set α) : α →ₛ β :=
 if hs : is_measurable s then ite hs f (const α 0) else const α 0
 
-@[simp] theorem restrict_apply [has_zero β]
+@[simp] theorem coe_restrict [has_zero β]
+  (f : α →ₛ β) {s : set α} (hs : is_measurable s) :
+  ⇑(restrict f s) = indicator s f :=
+by { rw [restrict, dif_pos hs], refl }
+
+theorem restrict_apply [has_zero β]
   (f : α →ₛ β) {s : set α} (hs : is_measurable s) (a) :
   restrict f s a = if a ∈ s then f a else 0 :=
-by unfold_coes; simp [restrict, hs]; apply ite_apply hs
+by simp only [hs, coe_restrict]
 
 theorem restrict_preimage [has_zero β]
   (f : α →ₛ β) {s : set α} (hs : is_measurable s)
   {t : set β} (ht : (0:β) ∉ t) : restrict f s ⁻¹' t = s ∩ f ⁻¹' t :=
-by ext a; dsimp [preimage]; rw [restrict_apply]; by_cases a ∈ s; simp [h, hs, ht]
+by simp [hs, indicator_preimage_of_not_mem _ _ ht]
+
+theorem restrict_preimage_singleton [has_zero β]
+  (f : α →ₛ β) {s : set α} (hs : is_measurable s)
+  {r : β} (hr : r ≠ 0) : restrict f s ⁻¹' {r} = s ∩ f ⁻¹' {r} :=
+f.restrict_preimage hs hr.symm
+
+lemma mem_restrict_range [has_zero β] {r : β} {s : set α} {f : α →ₛ β} (hs : is_measurable s) :
+  r ∈ (restrict f s).range ↔ (r = 0 ∧ s ≠ univ) ∨ (r ∈ f '' s) :=
+by rw [← finset.mem_coe, coe_range, coe_restrict _ hs, mem_range_indicator]
 
 /-- Given a function `g : β → γ` and a simple function `f : α →ₛ β`, `f.map g` return the simple
     function `g ∘ f : α →ₛ γ` -/
 def map (g : β → γ) (f : α →ₛ β) : α →ₛ γ := bind f (const α ∘ g)
 
-@[simp] theorem map_apply (g : β → γ) (f : α →ₛ β) (a) : f.map g a = g (f a) := rfl
+theorem map_apply (g : β → γ) (f : α →ₛ β) (a) : f.map g a = g (f a) := rfl
 
 theorem map_map (g : β → γ) (h: γ → δ) (f : α →ₛ β) : (f.map g).map h = f.map (h ∘ g) := rfl
 
-theorem coe_map (g : β → γ) (f : α →ₛ β) : (f.map g : α → γ) = g ∘ f := rfl
+@[simp] theorem coe_map (g : β → γ) (f : α →ₛ β) : (f.map g : α → γ) = g ∘ f := rfl
 
 @[simp] theorem range_map [decidable_eq γ] (g : β → γ) (f : α →ₛ β) :
   (f.map g).range = f.range.image g :=
-begin
-  ext c,
-  simp only [mem_range, exists_prop, mem_range, finset.mem_image, map_apply],
-  split,
-  { rintros ⟨a, rfl⟩, exact ⟨f a, ⟨_, rfl⟩, rfl⟩ },
-  { rintros ⟨_, ⟨a, rfl⟩, rfl⟩, exact ⟨_, rfl⟩ }
-end
+finset.coe_injective $ by simp [range_comp]
 
 lemma map_preimage (f : α →ₛ β) (g : β → γ) (s : set γ) :
-  (f.map g) ⁻¹' s = (⋃b∈f.range.filter (λb, g b ∈ s), f ⁻¹' {b}) :=
-begin
-  /- True because `f` only takes finitely many values. -/
-  ext a',
-  simp only [mem_Union, set.mem_preimage, exists_prop, set.mem_preimage, map_apply,
-      finset.mem_filter, mem_range, mem_singleton_iff, exists_eq_right'],
-  split,
-  { assume eq, exact ⟨⟨_, rfl⟩, eq⟩ },
-  { rintros ⟨_, eq⟩, exact eq }
-end
+  (f.map g) ⁻¹' s = f ⁻¹' ↑(f.range.filter (λb, g b ∈ s)) :=
+by { simp only [coe_range, sep_mem_eq, set.mem_range, function.comp_app, coe_map, finset.coe_filter,
+  ← mem_preimage, inter_comm, preimage_inter_range], apply preimage_comp }
 
 lemma map_preimage_singleton (f : α →ₛ β) (g : β → γ) (c : γ) :
-  (f.map g) ⁻¹' {c} = (⋃b∈f.range.filter (λb, g b = c), f ⁻¹' {b}) :=
+  (f.map g) ⁻¹' {c} = f ⁻¹' ↑(f.range.filter (λ b, g b = c)) :=
 map_preimage _ _ _
 
 /-- If `f` is a simple function taking values in `β → γ` and `g` is another simple function
@@ -295,7 +306,7 @@ def approx (i : ℕ → β) (f : α → β) (n : ℕ) : α →ₛ β :=
 (finset.range n).sup (λk, restrict (const α (i k)) {a:α | i k ≤ f a})
 
 lemma approx_apply [topological_space β] [order_closed_topology β] [measurable_space β]
-  [opens_measurable_space β] {i : ℕ → β} {f : α → β} {n : ℕ} (a : α) (hf : _root_.measurable f) :
+  [opens_measurable_space β] {i : ℕ → β} {f : α → β} {n : ℕ} (a : α) (hf : measurable f) :
   (approx i f n : α →ₛ β) a = (finset.range n).sup (λk, if i k ≤ f a then i k else 0) :=
 begin
   dsimp only [approx],
@@ -343,7 +354,7 @@ section eapprox
 
 /-- A sequence of `ennreal`s such that its range is the set of non-negative rational numbers. -/
 def ennreal_rat_embed (n : ℕ) : ennreal :=
-nnreal.of_real ((encodable.decode ℚ n).get_or_else (0 : ℚ))
+ennreal.of_real ((encodable.decode ℚ n).get_or_else (0 : ℚ))
 
 lemma ennreal_rat_embed_encode (q : ℚ) :
   ennreal_rat_embed (encodable.encode q) = nnreal.of_real q :=
@@ -382,92 +393,72 @@ end eapprox
 end measurable
 
 section measure
-variables [measure_space α]
+variables [measurable_space α] {μ : measure α}
 
-lemma volume_bUnion_preimage (s : finset β) (f : α →ₛ β) :
-  volume (⋃b ∈ s, f ⁻¹' {b}) = ∑ b in s, volume (f ⁻¹' {b}) :=
-begin
-  /- Taking advantage of the fact that `f ⁻¹' {b}` are disjoint for `b ∈ s`. -/
-  rw [measure_bUnion_finset],
-  { simp only [pairwise_on, (on), finset.mem_coe, ne.def],
-    rintros _ _ _ _ ne _ ⟨h₁, h₂⟩,
-    simp only [mem_singleton_iff, mem_preimage] at h₁ h₂,
-    rw [← h₁, h₂] at ne,
-    exact ne rfl },
-  exact assume a ha, preimage_measurable _ _
-end
+lemma sum_measure_preimage_singleton (f : α →ₛ β) (s : finset β) :
+  ∑ b in s, μ (f ⁻¹' {b}) = μ (f ⁻¹' ↑s) :=
+sum_measure_preimage_singleton s (λ y hy, f.is_measurable_fiber y)
 
 /-- Integral of a simple function whose codomain is `ennreal`. -/
-def integral (f : α →ₛ ennreal) : ennreal :=
-∑ x in f.range, x * volume (f ⁻¹' {x})
+def lintegral (f : α →ₛ ennreal) (μ : measure α) : ennreal :=
+∑ x in f.range, x * μ (f ⁻¹' {x})
+
+lemma lintegral_eq_of_subset (f : α →ₛ ennreal) {s : finset ennreal}
+  (hs : ∀ x, f x * μ {y | f y = f x} ≠ 0 → f x ∈ s) :
+  f.lintegral μ = ∑ x in s, x * μ (f ⁻¹' {x}) :=
+begin
+  simp only [lintegral],
+  refine finset.sum_bij_ne_zero (λr _ _, r) _ _ _ _,
+  { simpa only [← finset.mem_coe, coe_range, forall_range_iff, preimage, mem_singleton_iff] },
+  { intros, assumption },
+  { intros b _ hb,
+    refine ⟨b, _, hb, rfl⟩,
+    rw [mem_range, ← preimage_singleton_nonempty],
+    exact nonempty_of_measure_ne_zero (mul_ne_zero_iff.1 hb).2 }
+end
 
 /-- Calculate the integral of `(g ∘ f)`, where `g : β → ennreal` and `f : α →ₛ β`.  -/
-lemma map_integral (g : β → ennreal) (f : α →ₛ β) :
-  (f.map g).integral = ∑ x in f.range, g x * volume (f ⁻¹' {x}) :=
+lemma map_lintegral (g : β → ennreal) (f : α →ₛ β) :
+  (f.map g).lintegral μ = ∑ x in f.range, g x * μ (f ⁻¹' {x}) :=
 begin
-  simp only [integral, range_map],
+  simp only [lintegral, range_map],
   refine finset.sum_image' _ (assume b hb, _),
   rcases mem_range.1 hb with ⟨a, rfl⟩,
-  rw [map_preimage_singleton, volume_bUnion_preimage, finset.mul_sum],
+  rw [map_preimage_singleton, ← f.sum_measure_preimage_singleton, finset.mul_sum],
   refine finset.sum_congr _ _,
   { congr },
   { assume x, simp only [finset.mem_filter], rintro ⟨_, h⟩, rw h }
 end
 
-lemma zero_integral : (0 : α →ₛ ennreal).integral = 0 :=
+/-- The integral of a simple function with respect to any measure is zero. -/
+lemma zero_lintegral : (0 : α →ₛ ennreal).lintegral μ = 0 :=
 begin
   refine (finset.sum_eq_zero_iff_of_nonneg $ assume _ _, zero_le _).2 _,
   assume r hr, rcases mem_range.1 hr with ⟨a, rfl⟩,
   exact zero_mul _
 end
 
-lemma add_integral (f g : α →ₛ ennreal) : (f + g).integral = f.integral + g.integral :=
-calc (f + g).integral =
-      ∑ x in (pair f g).range, (x.1 * volume (pair f g ⁻¹' {x}) + x.2 * volume (pair f g ⁻¹' {x})) :
-    by rw [add_eq_map₂, map_integral]; exact finset.sum_congr rfl (assume a ha, add_mul _ _ _)
-  ... = ∑ x in (pair f g).range, x.1 * volume (pair f g ⁻¹' {x}) +
-      ∑ x in (pair f g).range, x.2 * volume (pair f g ⁻¹' {x}) : by rw [finset.sum_add_distrib]
-  ... = ((pair f g).map prod.fst).integral + ((pair f g).map prod.snd).integral :
-    by rw [map_integral, map_integral]
-  ... = integral f + integral g : rfl
+lemma add_lintegral (f g : α →ₛ ennreal) : (f + g).lintegral μ = f.lintegral μ + g.lintegral μ :=
+calc (f + g).lintegral μ =
+      ∑ x in (pair f g).range, (x.1 * μ (pair f g ⁻¹' {x}) + x.2 * μ (pair f g ⁻¹' {x})) :
+    by rw [add_eq_map₂, map_lintegral]; exact finset.sum_congr rfl (assume a ha, add_mul _ _ _)
+  ... = ∑ x in (pair f g).range, x.1 * μ (pair f g ⁻¹' {x}) +
+      ∑ x in (pair f g).range, x.2 * μ (pair f g ⁻¹' {x}) : by rw [finset.sum_add_distrib]
+  ... = ((pair f g).map prod.fst).lintegral μ + ((pair f g).map prod.snd).lintegral μ :
+    by rw [map_lintegral, map_lintegral]
+  ... = lintegral f μ + lintegral g μ : rfl
 
-lemma const_mul_integral (f : α →ₛ ennreal) (x : ennreal) :
-  (const α x * f).integral = x * f.integral :=
-calc (f.map (λa, x * a)).integral = ∑ r in f.range, x * r * volume (f ⁻¹' {r}) :
-    by rw [map_integral]
-  ... = ∑ r in f.range, x * (r * volume (f ⁻¹' {r})) :
+lemma const_mul_lintegral (f : α →ₛ ennreal) (x : ennreal) :
+  (const α x * f).lintegral μ = x * f.lintegral μ :=
+calc (f.map (λa, x * a)).lintegral μ = ∑ r in f.range, x * r * μ (f ⁻¹' {r}) :
+    by rw [map_lintegral]
+  ... = ∑ r in f.range, x * (r * μ (f ⁻¹' {r})) :
     finset.sum_congr rfl (assume a ha, mul_assoc _ _ _)
-  ... = x * f.integral :
+  ... = x * f.lintegral μ :
     finset.mul_sum.symm
 
-lemma mem_restrict_range [has_zero β] {r : β} {s : set α} {f : α →ₛ β} (hs : is_measurable s) :
-  r ∈ (restrict f s).range ↔ (r = 0 ∧ s ≠ univ) ∨ (∃a∈s, f a = r) :=
-begin
-  simp only [mem_range, restrict_apply, hs],
-  split,
-  { rintros ⟨a, ha⟩,
-    split_ifs at ha,
-    { exact or.inr ⟨a, h, ha⟩ },
-    { exact or.inl ⟨ha.symm, assume eq, h $ eq.symm ▸ trivial⟩ } },
-  { rintros (⟨rfl, h⟩ | ⟨a, ha, rfl⟩),
-    { have : ¬ ∀a, a ∈ s := assume this, h $ eq_univ_of_forall this,
-      rcases not_forall.1 this with ⟨a, ha⟩,
-      refine ⟨a, _⟩,
-      rw [if_neg ha] },
-    { refine ⟨a, _⟩,
-      rw [if_pos ha] } }
-end
-
-lemma restrict_preimage' {r : ennreal} {s : set α}
-  (f : α →ₛ ennreal) (hs : is_measurable s) (hr : r ≠ 0) :
-  (restrict f s) ⁻¹' {r} = (f ⁻¹' {r} ∩ s) :=
-begin
-  ext a,
-  by_cases a ∈ s; simp [hs, h, hr.symm]
-end
-
-lemma restrict_integral (f : α →ₛ ennreal) (s : set α) (hs : is_measurable s) :
-  (restrict f s).integral = ∑ r in f.range, r * volume (f ⁻¹' {r} ∩ s) :=
+lemma restrict_lintegral (f : α →ₛ ennreal) (s : set α) (hs : is_measurable s) :
+  (restrict f s).lintegral μ = ∑ r in f.range, r * μ (f ⁻¹' {r} ∩ s) :=
 begin
   refine finset.sum_bij_ne_zero (λr _ _, r) _ _ _ _,
   { assume r hr,
@@ -482,66 +473,57 @@ begin
     have : f ⁻¹' {f a} ∩ s ≠ ∅,
     { assume h, simpa [h] using h0 },
     rcases ne_empty_iff_nonempty.1 this with ⟨a', eq', ha'⟩,
-    refine ⟨_, (mem_restrict_range hs).2 (or.inr ⟨a', ha', _⟩), _, rfl⟩,
-    { simpa using eq' },
-    { rwa [restrict_preimage' _ hs r0] } },
+    refine ⟨_, (mem_restrict_range hs).2 (or.inr ⟨a', ha', mem_preimage.1 eq'⟩), _, rfl⟩,
+    rwa [restrict_preimage_singleton _ hs r0, inter_comm] },
   { assume r hr ne,
-    by_cases r = 0, { simp [h] },
-    rw [restrict_preimage' _ hs h] }
+    by_cases h : r = 0, { simp [h] },
+    rw [restrict_preimage_singleton _ hs h, inter_comm] }
 end
 
-lemma restrict_const_integral (c : ennreal) (s : set α) (hs : is_measurable s) :
-  (restrict (const α c) s).integral = c * volume s :=
-have (@const α ennreal _ c) ⁻¹' {c} = univ,
-begin
-  refine eq_univ_of_forall (assume a, _),
-  simp,
-end,
-calc (restrict (const α c) s).integral = c * volume ((const α c) ⁻¹' {c} ∩ s) :
+lemma restrict_const_lintegral (c : ennreal) (s : set α) (hs : is_measurable s) :
+  (restrict (const α c) s).lintegral μ  = c * μ s :=
+have (@const α ennreal _ c) ⁻¹' {c} = univ := preimage_const_of_mem rfl,
+calc (restrict (const α c) s).lintegral μ = c * μ ((const α c) ⁻¹' {c} ∩ s) :
   begin
-    rw [restrict_integral (const α c) s hs],
+    rw [restrict_lintegral (const α c) s hs],
     refine finset.sum_eq_single c _ _,
     { assume r hr, rcases mem_range.1 hr with ⟨a, rfl⟩, contradiction },
-    { by_cases nonempty α,
-      { assume ne,
-        rcases h with ⟨a⟩,
-        exfalso,
-        exact ne (mem_range.2 ⟨a, rfl⟩) },
-      { assume empty,
-        have : (@const α ennreal _ c) ⁻¹' {c} ∩ s = ∅,
-        { ext a, exfalso, exact h ⟨a⟩ },
-        simp only [this, measure_empty, mul_zero] } }
+    { simp only [mem_range, not_exists, const_apply, eq_self_iff_true, not_true],
+      assume empty,
+      have : (@const α ennreal _ c) ⁻¹' {c} ∩ s = ∅,
+      { ext a, exfalso, exact empty a },
+      simp only [this, measure_empty, mul_zero] }
   end
-  ... = c * volume s : by rw [this, univ_inter]
+  ... = c * μ s : by rw [this, univ_inter]
 
-lemma integral_sup_le (f g : α →ₛ ennreal) : f.integral ⊔ g.integral ≤ (f ⊔ g).integral :=
-calc f.integral ⊔ g.integral =
-      ((pair f g).map prod.fst).integral ⊔ ((pair f g).map prod.snd).integral : rfl
-  ... ≤ ∑ x in (pair f g).range, (x.1 ⊔ x.2) * volume (pair f g ⁻¹' {x}) :
+lemma lintegral_sup_le (f g : α →ₛ ennreal) : f.lintegral μ ⊔ g.lintegral μ ≤ (f ⊔ g).lintegral μ :=
+calc f.lintegral μ ⊔ g.lintegral μ =
+      ((pair f g).map prod.fst).lintegral μ ⊔ ((pair f g).map prod.snd).lintegral μ : rfl
+  ... ≤ ∑ x in (pair f g).range, (x.1 ⊔ x.2) * μ (pair f g ⁻¹' {x}) :
   begin
-    rw [map_integral, map_integral],
+    rw [map_lintegral, map_lintegral],
     refine sup_le _ _;
       refine finset.sum_le_sum (λ a _, canonically_ordered_semiring.mul_le_mul _ (le_refl _)),
     exact le_sup_left,
     exact le_sup_right
   end
-  ... = (f ⊔ g).integral : by rw [sup_eq_map₂, map_integral]
+  ... = (f ⊔ g).lintegral μ : by rw [sup_eq_map₂, map_lintegral]
 
-lemma integral_le_integral (f g : α →ₛ ennreal) (h : f ≤ g) : f.integral ≤ g.integral :=
-calc f.integral ≤ f.integral ⊔ g.integral : le_sup_left
-  ... ≤ (f ⊔ g).integral : integral_sup_le _ _
-  ... = g.integral : by rw [sup_of_le_right h]
+lemma lintegral_mono (f g : α →ₛ ennreal) (h : f ≤ g) : f.lintegral μ ≤ g.lintegral μ :=
+calc f.lintegral μ ≤ f.lintegral μ ⊔ g.lintegral μ : le_sup_left
+  ... ≤ (f ⊔ g).lintegral μ : lintegral_sup_le _ _
+  ... = g.lintegral μ : by rw [sup_of_le_right h]
 
-lemma integral_congr (f g : α →ₛ ennreal) (h : ∀ₘ a, f a = g a) :
-  f.integral = g.integral :=
-show ((pair f g).map prod.fst).integral = ((pair f g).map prod.snd).integral, from
+lemma lintegral_congr (f g : α →ₛ ennreal) (h : ∀ₘ a ∂ μ, f a = g a) :
+  f.lintegral μ = g.lintegral μ :=
+show ((pair f g).map prod.fst).lintegral μ = ((pair f g).map prod.snd).lintegral μ, from
 begin
-  rw [map_integral, map_integral],
+  rw [map_lintegral, map_lintegral],
   refine finset.sum_congr rfl (assume p hp, _),
   rcases mem_range.1 hp with ⟨a, rfl⟩,
   by_cases eq : f a = g a,
   { dsimp only [pair_apply], rw eq },
-  { have : volume ((pair f g) ⁻¹' {(f a, g a)}) = 0,
+  { have : μ ((pair f g) ⁻¹' {(f a, g a)}) = 0,
     { refine measure_mono_null (assume a' ha', _) h,
       simp at ha',
       show f a' ≠ g a',
@@ -549,9 +531,9 @@ begin
     simp [this] }
 end
 
-lemma integral_map {β} [measure_space β] (f : α →ₛ ennreal) (g : β →ₛ ennreal)(m : α → β)
-  (eq : ∀a:α, f a = g (m a)) (h : ∀s:set β, is_measurable s → volume s = volume (m ⁻¹' s)) :
-  f.integral = g.integral :=
+lemma lintegral_map {β} [measurable_space β] {μ' : measure β} (f : α →ₛ ennreal) (g : β →ₛ ennreal)
+  (m : α → β) (eq : ∀a:α, f a = g (m a)) (h : ∀s:set β, is_measurable s → μ' s = μ (m ⁻¹' s)) :
+  f.lintegral μ = g.lintegral μ' :=
 have f_eq : (f : α → ennreal) = g ∘ m := funext eq,
 have vol_f : ∀r, volume (f ⁻¹' {r}) = volume (g ⁻¹' {r}),
   by { assume r, rw [h, f_eq, preimage_comp], exact measurable_sn _ _ },

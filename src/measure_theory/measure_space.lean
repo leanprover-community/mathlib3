@@ -339,6 +339,9 @@ by rw [measure_eq_outer_measure',
 
 @[simp] lemma measure_empty : μ ∅ = 0 := μ.empty
 
+lemma nonempty_of_measure_ne_zero (h : μ s ≠ 0) : s.nonempty :=
+ne_empty_iff_nonempty.1 $ λ h', h $ h'.symm ▸ measure_empty
+
 lemma measure_mono (h : s₁ ⊆ s₂) : μ s₁ ≤ μ s₂ := μ.mono h
 
 lemma measure_mono_null (h : s₁ ⊆ s₂) (h₂ : μ s₂ = 0) : μ s₁ = 0 :=
@@ -413,6 +416,21 @@ begin
   rw [← finset.sum_attach, finset.attach_eq_univ, ← tsum_fintype],
   exact measure_bUnion s.countable_to_set hd hm
 end
+
+/-- If `s` is a countable set, then the measure of its preimage can be found as the sum of measures
+of the fibers `f ⁻¹' {y}`. -/
+lemma tsum_measure_preimage_singleton {s : set β} (hs : countable s) {f : α → β}
+  (hf : ∀ y ∈ s, is_measurable (f ⁻¹' {y})) :
+  (∑' b : s, μ (f ⁻¹' {↑b})) = μ (f ⁻¹' s) :=
+by rw [← set.bUnion_preimage_singleton, measure_bUnion hs (pairwise_on_disjoint_fiber _ _) hf]
+
+/-- If `s` is a `finset`, then the measure of its preimage can be found as the sum of measures
+of the fibers `f ⁻¹' {y}`. -/
+lemma sum_measure_preimage_singleton (s : finset β) {f : α → β}
+  (hf : ∀ y ∈ s, is_measurable (f ⁻¹' {y})) :
+  ∑ b in s, μ (f ⁻¹' {b}) = μ (f ⁻¹' ↑s) :=
+by simp only [← measure_bUnion_finset (pairwise_on_disjoint_fiber _ _) hf,
+  finset.bUnion_preimage_singleton]
 
 lemma measure_diff {s₁ s₂ : set α} (h : s₂ ⊆ s₁)
   (h₁ : is_measurable s₁) (h₂ : is_measurable s₂)

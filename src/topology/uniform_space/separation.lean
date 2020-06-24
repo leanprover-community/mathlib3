@@ -56,7 +56,7 @@ on a uniform space `X`,
 
 ## Implementation notes
 
-The separatoin setoid `separation_setoid` is not declared as a global instance.
+The separation setoid `separation_setoid` is not declared as a global instance.
 It is made a local instance while building the theory of `separation_quotient`.
 The factored map `separation_quotient.lift f` is defined without imposing any condition on
 `f`, but returns junk if `f` is not uniformly continuous (constant junk hence it is always

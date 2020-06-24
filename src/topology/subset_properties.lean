@@ -39,13 +39,13 @@ section compact
 
 /-- A set `s` is compact if for every filter `f` that contains `s`,
     every set of `f` also meets every neighborhood of some `a ∈ s`. -/
-def compact (s : set α) := ∀f, f ≠ ⊥ → f ≤ 𝓟 s → ∃a∈s, f ⊓ 𝓝 a ≠ ⊥
+def compact (s : set α) := ∀f, f ≠ ⊥ → f ≤ 𝓟 s → ∃a∈s, cluster_pt a f
 
 lemma compact.inter_right {s t : set α} (hs : compact s) (ht : is_closed t) : compact (s ∩ t) :=
 assume f hnf hstf,
-let ⟨a, hsa, (ha : f ⊓ 𝓝 a ≠ ⊥)⟩ := hs f hnf (le_trans hstf (le_principal_iff.2 (inter_subset_left _ _))) in
+let ⟨a, hsa, (ha : cluster_pt a f)⟩ := hs f hnf (le_trans hstf (le_principal_iff.2 (inter_subset_left _ _))) in
 have a ∈ t,
-  from ht.mem_of_nhds_within_ne_bot $ ne_bot_of_le_ne_bot (by { rw inf_comm at ha, exact ha }) $
+  from ht.mem_of_nhds_within_ne_bot $ ne_bot_of_le_ne_bot ha $
     inf_le_inf_left _ (le_trans hstf (le_principal_iff.2 (inter_subset_right _ _))),
 ⟨a, ⟨hsa, this⟩, ha⟩
 
@@ -60,19 +60,19 @@ lemma compact_of_is_closed_subset {s t : set α}
 inter_eq_self_of_subset_right h ▸ hs.inter_right ht
 
 lemma compact.adherence_nhdset {s t : set α} {f : filter α}
-  (hs : compact s) (hf₂ : f ≤ 𝓟 s) (ht₁ : is_open t) (ht₂ : ∀a∈s, 𝓝 a ⊓ f ≠ ⊥ → a ∈ t) :
+  (hs : compact s) (hf₂ : f ≤ 𝓟 s) (ht₁ : is_open t) (ht₂ : ∀a∈s, cluster_pt a f → a ∈ t) :
   t ∈ f :=
 classical.by_cases mem_sets_of_eq_bot $
   assume : f ⊓ 𝓟 (- t) ≠ ⊥,
-  let ⟨a, ha, (hfa : f ⊓ 𝓟 (-t) ⊓ 𝓝 a ≠ ⊥)⟩ := hs _ this $ inf_le_left_of_le hf₂ in
+  let ⟨a, ha, (hfa : cluster_pt a $ f ⊓ 𝓟 (-t))⟩ := hs _ this $ inf_le_left_of_le hf₂ in
   have a ∈ t,
-    from ht₂ a ha $ ne_bot_of_le_ne_bot hfa $ le_inf inf_le_right $ inf_le_left_of_le inf_le_left,
+    from ht₂ a ha (cluster_pt_of_inf_left hfa),
   have (-t) ∩ t ∈ nhds_within a (-t),
     from inter_mem_nhds_within _ (mem_nhds_sets ht₁ this),
   have A : nhds_within a (-t) = ⊥,
     from empty_in_sets_eq_bot.1 $ compl_inter_self t ▸ this,
   have nhds_within a (-t) ≠ ⊥,
-    from ne_bot_of_le_ne_bot hfa $ le_inf inf_le_right $ inf_le_left_of_le inf_le_right,
+    from cluster_pt_of_inf_right hfa,
   absurd A this
 
 lemma compact_iff_ultrafilter_le_nhds {s : set α} :
@@ -85,9 +85,9 @@ lemma compact_iff_ultrafilter_le_nhds {s : set α} :
   assume f hf hfs,
   let ⟨a, ha, (h : ultrafilter_of f ≤ 𝓝 a)⟩ :=
     hs (ultrafilter_of f) (ultrafilter_ultrafilter_of hf) (le_trans ultrafilter_of_le hfs) in
-  have ultrafilter_of f ⊓ 𝓝 a ≠ ⊥,
-    by simp only [inf_of_le_left, h]; exact (ultrafilter_ultrafilter_of hf).left,
-  ⟨a, ha, ne_bot_of_le_ne_bot this (inf_le_inf_right _ ultrafilter_of_le)⟩⟩
+  have cluster_pt a (ultrafilter_of f),
+    from cluster_pt.of_le_nhds h (ultrafilter_ultrafilter_of hf).left,
+  ⟨a, ha, this.mono ultrafilter_of_le⟩⟩
 
 /-- For every open cover of a compact set, there exists a finite subcover. -/
 lemma compact.elim_finite_subcover {s : set α} {ι : Type v} (hs : compact s)
@@ -111,14 +111,13 @@ classical.by_contradiction $ assume h,
   have f ≤ 𝓟 s, from infi_le_of_le ∅ $
     show 𝓟 (s \ _) ≤ 𝓟 s, from le_principal_iff.2 (diff_subset _ _),
   let
-    ⟨a, ha, (h : f ⊓ 𝓝 a ≠ ⊥)⟩ := hs f ‹f ≠ ⊥› this,
+    ⟨a, ha, (h : cluster_pt a f)⟩ := hs f ‹f ≠ ⊥› this,
     ⟨_, ⟨i, rfl⟩, (ha : a ∈ U i)⟩ := hsU ha
   in
   have f ≤ 𝓟 (- U i),
     from infi_le_of_le {i} $ principal_mono.mpr $ show s - _ ⊆ - U i, by simp [diff_subset_iff],
   have is_closed (- U i), from is_open_compl_iff.mp $ by rw compl_compl; exact hUo i,
-  have a ∈ - U i, from is_closed_iff_nhds.mp this _ $ ne_bot_of_le_ne_bot h $
-    le_inf inf_le_right (inf_le_left_of_le ‹f ≤ 𝓟 (- U i)›),
+  have a ∈ - U i, from is_closed_iff_nhds.mp this _ (h.mono ‹f ≤ 𝓟 (- U i)›),
   this ‹a ∈ U i›
 
 /-- For every family of closed sets whose intersection avoids a compact set,
@@ -201,9 +200,9 @@ theorem compact_of_finite_subfamily_closed {s : set α}
   (h : Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →
     s ∩ (⋂ i, Z i) = ∅ → (∃ (t : finset ι), s ∩ (⋂ i ∈ t, Z i) = ∅)) :
   compact s :=
-assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ 𝓝 x ≠ ⊥),
+assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, cluster_pt x f),
   have hf : ∀x∈s, 𝓝 x ⊓ f = ⊥,
-    by simpa only [not_exists, not_not, inf_comm],
+    by simpa only [cluster_pt, not_exists, not_not],
   have ¬ ∃x∈s, ∀t∈f.sets, x ∈ closure t,
     from assume ⟨x, hxs, hx⟩,
     have ∅ ∈ 𝓝 x ⊓ f, by rw [empty_in_sets_eq_bot, hf x hxs],
@@ -369,7 +368,7 @@ class compact_space (α : Type*) [topological_space α] : Prop :=
 lemma compact_univ [h : compact_space α] : compact (univ : set α) := h.compact_univ
 
 lemma cluster_point_of_compact [compact_space α]
-  {f : filter α} (h : f ≠ ⊥) : ∃ x, f ⊓ 𝓝 x ≠ ⊥ :=
+  {f : filter α} (h : f ≠ ⊥) : ∃ x, cluster_pt x f :=
 by simpa using compact_univ f h (by simpa using f.univ_sets)
 
 theorem compact_space_of_finite_subfamily_closed {α : Type u} [topological_space α]
@@ -397,8 +396,8 @@ begin
     from comap_inf_principal_ne_bot_of_image_mem lne (le_principal_iff.1 ls),
   rcases hs (l.comap f ⊓ 𝓟 s) ne_bot inf_le_right with ⟨a, has, ha⟩,
   use [f a, mem_image_of_mem f has],
-  rw [inf_assoc, @inf_comm _ _ _ (𝓝 a)] at ha,
-  exact ne_bot_of_le_ne_bot (@@map_ne_bot f ha) (tendsto_comap.inf $ hf a has)
+  apply ne_bot_of_le_ne_bot (@@map_ne_bot f ha),
+  convert (tendsto_comap.inf (hf a has) :  tendsto f (comap f l ⊓ (𝓝 a ⊓ 𝓟 s)) _) using 1 ; ac_refl
 end
 
 lemma compact.image {s : set α} {f : α → β} (hs : compact s) (hf : continuous f) :
@@ -421,7 +420,7 @@ begin
   set πY := (prod.snd : X × Y → Y),
   assume C (hC : is_closed C),
   rw is_closed_iff_nhds at hC ⊢,
-  assume y (y_closure : 𝓝 y ⊓ 𝓟 (πY '' C) ≠ ⊥),
+  assume y (y_closure : cluster_pt y $ 𝓟 (πY '' C)),
   have : map πX (comap πY (𝓝 y) ⊓ 𝓟 C) ≠ ⊥,
   { suffices : map πY (comap πY (𝓝 y) ⊓ 𝓟 C) ≠ ⊥,
       from map_ne_bot (λ h, this $  by rw h ; exact map_bot ),
@@ -429,7 +428,7 @@ begin
        𝓝 y ⊓ map πY (𝓟 C) : filter.push_pull' _ _ _
       ... = 𝓝 y ⊓ 𝓟 (πY '' C) : by rw map_principal
       ... ≠ ⊥ : y_closure },
-  obtain ⟨x, hx⟩ : ∃ x, map πX (comap πY (𝓝 y) ⊓ 𝓟 C) ⊓ 𝓝 x ≠ ⊥,
+  obtain ⟨x, hx⟩ : ∃ x, cluster_pt x (map πX (comap πY (𝓝 y) ⊓ 𝓟 C)),
     from cluster_point_of_compact this,
   refine ⟨⟨x, y⟩, _, by simp [πY]⟩,
   apply hC,
@@ -438,6 +437,7 @@ begin
       = map πX (comap πX (𝓝 x) ⊓ comap πY (𝓝 y) ⊓ 𝓟 C) : by rw [nhds_prod_eq, filter.prod]
   ... = map πX (comap πY (𝓝 y) ⊓ 𝓟 C ⊓ comap πX (𝓝 x)) : by ac_refl
   ... = map πX (comap πY (𝓝 y) ⊓ 𝓟 C) ⊓ 𝓝 x            : by rw filter.push_pull
+  ... = 𝓝 x ⊓ map πX (comap πY (𝓝 y) ⊓ 𝓟 C)            : by rw inf_comm
   ... ≠ ⊥ : hx,
 end
 

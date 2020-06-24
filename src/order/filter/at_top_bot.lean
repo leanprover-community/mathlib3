@@ -124,8 +124,8 @@ lemma tendsto_at_top_mono [preorder β] (l : filter α) :
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma map_at_top_inf_ne_bot_iff [semilattice_sup α] [nonempty α] {F : filter β} {u : α → β} :
-  (map u at_top) ⊓ F ≠ ⊥ ↔ ∀ U ∈ F, ∀ N, ∃ n ≥ N, u n ∈ U :=
-by simp_rw [inf_ne_bot_iff_frequently_right, frequently_map, frequently_at_top] ; trivial
+  F ⊓ (map u at_top) ≠ ⊥ ↔ ∀ U ∈ F, ∀ N, ∃ n ≥ N, u n ∈ U :=
+by simp_rw [inf_ne_bot_iff_frequently_left, frequently_map, frequently_at_top] ; trivial
 
 lemma extraction_of_frequently_at_top' {P : ℕ → Prop} (h : ∀ N, ∃ n > N, P n) :
   ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, P (φ n) :=

@@ -68,7 +68,7 @@ cauchy_downwards cauchy_nhds pure_ne_bot (pure_le_nhds a)
 one can choose a set `t ∈ f` of diameter `s` such that it contains a point `y`
 with `(x, y) ∈ s`, then `f` converges to `x`. -/
 lemma le_nhds_of_cauchy_adhp_aux {f : filter α} {x : α}
-  (adhs : ∀ s ∈ 𝓤 α, ∃ t ∈ f, (set.prod t t ⊆ s) ∧ ∃ y, (y ∈ t) ∧ (x, y) ∈ s) :
+  (adhs : ∀ s ∈ 𝓤 α, ∃ t ∈ f, (set.prod t t ⊆ s) ∧ ∃ y, (x, y) ∈ s ∧ y ∈ t) :
   f ≤ 𝓝 x :=
 begin
   -- Consider a neighborhood `s` of `x`
@@ -76,7 +76,7 @@ begin
   -- Take an entourage twice smaller than `s`
   rcases comp_mem_uniformity_sets (mem_nhds_uniformity_iff_right.1 hs) with ⟨U, U_mem, hU⟩,
   -- Take a set `t ∈ f`, `t × t ⊆ U`, and a point `y ∈ t` such that `(x, y) ∈ U`
-  rcases adhs U U_mem with ⟨t, t_mem, ht, y, hy, hxy⟩,
+  rcases adhs U U_mem with ⟨t, t_mem, ht, y, hxy, hy⟩,
   apply mem_sets_of_superset t_mem,
   -- Given a point `z ∈ t`, we have `(x, y) ∈ U` and `(y, z) ∈ t × t ⊆ U`, hence `z ∈ s`
   exact (λ z hz, hU (prod_mk_mem_comp_rel hxy (ht $ mk_mem_prod hy hz)) rfl)
@@ -85,20 +85,20 @@ end
 /-- If `x` is an adherent (cluster) point for a Cauchy filter `f`, then it is a limit point
 for `f`. -/
 lemma le_nhds_of_cauchy_adhp {f : filter α} {x : α} (hf : cauchy f)
-  (adhs : f ⊓ 𝓝 x ≠ ⊥) : f ≤ 𝓝 x :=
+  (adhs : cluster_pt x f) : f ≤ 𝓝 x :=
 le_nhds_of_cauchy_adhp_aux
 begin
   assume s hs,
-  -- Take `t ∈ f` such that `t × t ⊆ s`.
-  rcases (cauchy_iff.1 hf).2 s hs with ⟨t, t_mem, ht⟩,
+  obtain ⟨t, t_mem, ht⟩ : ∃ (t : set α) (h : t ∈ f), t.prod t ⊆ s,
+    from (cauchy_iff.1 hf).2 s hs,
   use [t, t_mem, ht],
   exact (forall_sets_nonempty_iff_ne_bot.2 adhs _
-    (inter_mem_inf_sets t_mem (mem_nhds_left x hs)))
+    (inter_mem_inf_sets (mem_nhds_left x hs) t_mem ))
 end
 
 lemma le_nhds_iff_adhp_of_cauchy {f : filter α} {x : α} (hf : cauchy f) :
-  f ≤ 𝓝 x ↔ f ⊓ 𝓝 x ≠ ⊥ :=
-⟨assume h, left_eq_inf.2 h ▸ hf.left, le_nhds_of_cauchy_adhp hf⟩
+  f ≤ 𝓝 x ↔ cluster_pt x f :=
+⟨assume h, cluster_pt.of_le_nhds h hf.1, le_nhds_of_cauchy_adhp hf⟩
 
 lemma cauchy_map [uniform_space β] {f : filter α} {m : α → β}
   (hm : uniform_continuous m) (hf : cauchy f) : cauchy (map m f) :=
@@ -147,15 +147,9 @@ cauchy_map_iff.trans $ (and_iff_right at_top_ne_bot).trans $
 lemma tendsto_nhds_of_cauchy_seq_of_subseq
   [semilattice_sup β] {u : β → α} (hu : cauchy_seq u)
   {ι : Type*} {f : ι → β} {p : filter ι} (hp : p ≠ ⊥)
-  (hf : tendsto f p at_top) {a : α} (ha : tendsto (λ i, u (f i)) p (𝓝 a)) :
+  (hf : tendsto f p at_top) {a : α} (ha : tendsto (u ∘ f) p (𝓝 a)) :
   tendsto u at_top (𝓝 a) :=
-begin
-  apply le_nhds_of_cauchy_adhp hu,
-  rw ← bot_lt_iff_ne_bot,
-  have : ⊥ < map (λ i, u (f i)) p ⊓ 𝓝 a,
-    by { rw [bot_lt_iff_ne_bot, inf_of_le_left ha], exact map_ne_bot hp },
-  exact lt_of_lt_of_le this (inf_le_inf_right _ (map_mono hf))
-end
+le_nhds_of_cauchy_adhp hu (seq_cluster_pt_of_subseq hp hf ha)
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma filter.has_basis.cauchy_seq_iff {γ} [nonempty β] [semilattice_sup β] {u : β → α}
@@ -501,7 +495,7 @@ begin
   rcases U_le s hs with ⟨m, hm⟩,
   rcases (tendsto_at_top' _ _).1 ha _ (mem_nhds_left a (U_mem m)) with ⟨n, hn⟩,
   refine ⟨set_seq hf U_mem (max m n), set_seq_mem hf U_mem _, _,
-    seq hf U_mem (max m n), seq_mem hf U_mem _, _⟩,
+          seq hf U_mem (max m n), _, seq_mem hf U_mem _⟩,
   { have := le_max_left m n,
     exact set.subset.trans (set_seq_prod_subset hf U_mem this this) hm },
   { exact hm (hn _ $ le_max_right m n) }

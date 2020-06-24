@@ -705,7 +705,7 @@ hcb.tendsto_iff_seq_tendsto.2
 
 lemma subseq_tendsto {f : filter α} (hf : is_countably_generated f)
   {u : ℕ → α}
-  (hx : map u at_top ⊓ f ≠ ⊥) :
+  (hx : f ⊓ map u at_top ≠ ⊥) :
   ∃ (θ : ℕ → ℕ), (strict_mono θ) ∧ (tendsto (u ∘ θ) at_top f) :=
 begin
   rcases hf.has_antimono_basis with ⟨B, h⟩,

@@ -118,7 +118,7 @@ class first_countable_topology : Prop :=
 
 namespace first_countable_topology
 variable {α}
-lemma tendsto_subseq [first_countable_topology α] {u : ℕ → α} {x : α} (hx : map u at_top ⊓ 𝓝 x ≠ ⊥) :
+lemma tendsto_subseq [first_countable_topology α] {u : ℕ → α} {x : α} (hx : seq_cluster_pt x u) :
   ∃ (ψ : ℕ → ℕ), (strict_mono ψ) ∧ (tendsto (u ∘ ψ) at_top (𝓝 x)) :=
 (nhds_generated_countable x).subseq_tendsto hx
 end first_countable_topology

@@ -277,10 +277,10 @@ have cauchy (filter.comap m g),
   from cauchy_comap (le_of_eq hm.comap_uniformity) ‹cauchy g› (by assumption),
 
 let ⟨x, (hx : map m (filter.comap m g) ≤ 𝓝 x)⟩ := h _ this in
-have map m (filter.comap m g) ⊓ 𝓝 x ≠ ⊥,
+have cluster_pt x (map m (filter.comap m g)),
   from (le_nhds_iff_adhp_of_cauchy (cauchy_map hm.uniform_continuous this)).mp hx,
-have g ⊓ 𝓝 x ≠ ⊥,
-  from ne_bot_of_le_ne_bot this (inf_le_inf_right _ (assume s hs, ⟨s, hs, subset.refl _⟩)),
+have cluster_pt x g,
+  from  this.mono map_comap_le,
 
 ⟨x, calc f ≤ g : by assumption
   ... ≤ 𝓝 x : le_nhds_of_cauchy_adhp ‹cauchy g› this⟩⟩

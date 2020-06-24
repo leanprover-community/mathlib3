@@ -41,6 +41,10 @@ open_locale classical filter
 
 universes u v w
 
+/-!
+### Topological spaces
+-/
+
 /-- A topology on `α`. -/
 @[protect_proj] structure topological_space (α : Type u) :=
 (is_open        : set α → Prop)
@@ -189,6 +193,10 @@ by rw [this]; exact is_closed_union (is_closed_compl_iff.mpr hp) hq
 lemma is_open_neg : is_closed {a | p a} → is_open {a | ¬ p a} :=
 is_open_compl_iff.mpr
 
+/-!
+### Interior of a set
+-/
+
 /-- The interior of a set `s` is the largest open subset of `s`. -/
 def interior (s : set α) : set α := ⋃₀ {t | is_open t ∧ t ⊆ s}
 
@@ -253,6 +261,10 @@ subset.antisymm
 
 lemma is_open_iff_forall_mem_open : is_open s ↔ ∀ x ∈ s, ∃ t ⊆ s, is_open t ∧ x ∈ t :=
 by rw ← subset_interior_iff_open; simp only [subset_def, mem_interior]
+
+/-!
+### Closure of a set
+-/
 
 /-- The closure of `s` is the smallest closed set containing `s`. -/
 def closure (s : set α) : set α := ⋂₀ {t | is_closed t ∧ s ⊆ t}
@@ -350,6 +362,10 @@ lemma dense_of_subset_dense {s₁ s₂ : set α} (h : s₁ ⊆ s₂) (hd : closu
   closure s₂ = univ :=
 by { rw [← univ_subset_iff, ← hd], exact closure_mono h }
 
+/-!
+### Frontier of a set
+-/
+
 /-- The frontier of a set is the set of points between the closure and interior. -/
 def frontier (s : set α) : set α := closure s \ interior s
 
@@ -397,25 +413,14 @@ begin
   rwa [inter_diff_self, subset_empty_iff] at this,
 end
 
+/-!
+### Neighborhoods
+-/
+
 /-- neighbourhood filter -/
 def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s)
 
 localized "notation `𝓝` := nhds" in topological_space
-
-/-- A point `x` is a cluster point of a filter `F` if 𝓝 x ⊓ F ≠ ⊥. -/
-def cluster_pt (x : α) (F : filter α) : Prop := 𝓝 x ⊓ F ≠ ⊥
-
-lemma cluster_pt_of_inf_left {x : α} {f g : filter α} (H : cluster_pt x $ f ⊓ g) :
-  cluster_pt x f :=
-ne_bot_of_le_ne_bot H $ inf_le_inf_left _ inf_le_left
-
-lemma cluster_pt_of_inf_right {x : α} {f g : filter α} (H : cluster_pt x $ f ⊓ g) :
-  cluster_pt x g :=
-ne_bot_of_le_ne_bot H $ inf_le_inf_left _ inf_le_right
-
-/-- A point `x` is a cluster point of a sequence `u` if it is a cluster point
-of `map u at_top`. -/
-def seq_cluster_pt {ι :Type*} [preorder ι] (x : α) (u : ι → α) : Prop := cluster_pt x (map u at_top)
 
 lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s) := rfl
 
@@ -505,6 +510,51 @@ end
 
 @[simp] lemma nhds_ne_bot {a : α} : 𝓝 a ≠ ⊥ :=
 ne_bot_of_le_ne_bot pure_ne_bot (pure_le_nhds a)
+
+/-!
+### Cluster points
+-/
+
+/-- A point `x` is a cluster point of a filter `F` if 𝓝 x ⊓ F ≠ ⊥. -/
+def cluster_pt (x : α) (F : filter α) : Prop := 𝓝 x ⊓ F ≠ ⊥
+
+lemma cluster_pt.of_le_nhds {x : α} {f : filter α} (H : f ≤ 𝓝 x) (h : f ≠ ⊥) : cluster_pt x f :=
+by rwa [cluster_pt, inf_comm, inf_eq_left.mpr H]
+
+lemma cluster_pt.of_nhds_le {x : α} {f : filter α} (H : 𝓝 x ≤ f) : cluster_pt x f :=
+by simp [cluster_pt, inf_eq_left.mpr H]
+
+lemma cluster_pt.mono {x : α} {f g : filter α} (H : cluster_pt x f) (h : f ≤ g) :
+  cluster_pt x g :=
+ne_bot_of_le_ne_bot H $ inf_le_inf_left _ h
+
+lemma cluster_pt_of_inf_left {x : α} {f g : filter α} (H : cluster_pt x $ f ⊓ g) :
+  cluster_pt x f :=
+H.mono inf_le_left
+
+lemma cluster_pt_of_inf_right {x : α} {f g : filter α} (H : cluster_pt x $ f ⊓ g) :
+  cluster_pt x g :=
+H.mono inf_le_right
+
+/-- A point `x` is a cluster point of a sequence `u` if it is a cluster point
+of `map u at_top`. -/
+def seq_cluster_pt {ι :Type*} [preorder ι] (x : α) (u : ι → α) : Prop := cluster_pt x (map u at_top)
+
+lemma seq_cluster_pt_of_subseq {ι δ :Type*} [preorder ι] {φ : δ → ι} {p : filter δ}
+  {x : α} {u : ι → α} (hp : p ≠ ⊥) (h : tendsto φ p at_top) (H : tendsto (u ∘ φ) p (𝓝 x)) :
+  seq_cluster_pt x u :=
+begin
+  have := calc
+  map (u ∘ φ) p = map u (map φ p) : map_map
+  ... ≤ map u at_top : map_mono h,
+  have : map (u ∘ φ) p ≤ 𝓝 x ⊓ map u at_top,
+    from le_inf H this,
+  exact ne_bot_of_le_ne_bot (map_ne_bot hp) this
+end
+
+/-!
+### Interior, closure and frontier in terms of neighborhoods
+-/
 
 lemma interior_eq_nhds {s : set α} : interior s = {a | 𝓝 a ≤ 𝓟 s} :=
 set.ext $ λ x, by simp only [mem_interior, le_principal_iff, mem_nhds_sets_iff]; refl
@@ -622,6 +672,10 @@ begin
   exact this.1
 end
 
+/-!
+### Limits of filters in topological spaces
+-/
+
 section lim
 
 /-- If `f` is a filter, then `Lim f` is a limit of the filter, if it exists. -/
@@ -648,6 +702,10 @@ lemma lim_spec {f : filter β} {g : β → α} (h : ∃ a, tendsto g f (𝓝 a))
 Lim_spec h
 
 end lim
+
+/-!
+### Locally finite families
+-/
 
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 section locally_finite
@@ -693,6 +751,10 @@ is_open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f i),
 end locally_finite
 
 end topological_space
+
+/-!
+### Continuity
+-/
 
 section continuous
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}

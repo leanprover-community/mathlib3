@@ -353,24 +353,24 @@ lemma congr_eq_to_iso_inv {I : Type v} {f : I → C} {i i' : I} {h : i = i'} :
 rfl
 
 @[simp,reassoc]
-lemma quux {I : Type v} (f : I → C) [has_product f] {i i' : I} (h : i = i') :
+lemma limits.pi.π_congr_eq_hom {I : Type v} (f : I → C) [has_product f] {i i' : I} (h : i = i') :
   limits.pi.π f i ≫ congr_eq_to_hom f h = limits.pi.π f i' :=
 by { induction h, simp, }
 
 @[simp,reassoc]
-lemma quux2 {I : Type v} (f : I → C) [has_coproduct f] {i i' : I} (h : i = i') :
+lemma limits.sigma.congr_eq_hom_ι {I : Type v} (f : I → C) [has_coproduct f] {i i' : I} (h : i = i') :
   congr_eq_to_hom f h ≫ limits.sigma.ι f i' = limits.sigma.ι f i :=
 by { induction h, simp, }
 
 @[simp]
-lemma quux' {I J : Type v} (f : I → C) (e : I ≃ J) [has_product (λ j, f (e.symm j))] {j j' : J} (h : e.symm j = e.symm j') :
+lemma limits.pi.π_congr_eq_hom' {I J : Type v} (f : I → C) (e : I ≃ J) [has_product (λ j, f (e.symm j))] {j j' : J} (h : e.symm j = e.symm j') :
   limits.pi.π (λ j, f (e.symm j)) j ≫ congr_eq_to_hom f h = limits.pi.π (λ j, f (e.symm j)) j' :=
-by { convert quux (λ j, f (e.symm j)) _, simpa using h, }
+by { convert limits.pi.π_congr_eq_hom (λ j, f (e.symm j)) _, simpa using h, }
 
 @[simp]
-lemma quux2' {I J : Type v} (f : I → C) (e : I ≃ J) [has_coproduct (λ j, f (e.symm j))] {j j' : J} (h : e.symm j = e.symm j') :
+lemma limits.sigma.congr_eq_hom_ι' {I J : Type v} (f : I → C) (e : I ≃ J) [has_coproduct (λ j, f (e.symm j))] {j j' : J} (h : e.symm j = e.symm j') :
   congr_eq_to_hom f h ≫ @limits.sigma.ι J _ _ (λ j, f (e.symm j)) _ j' = limits.sigma.ι (λ j, f (e.symm j)) j :=
-by { convert quux2 (λ j, f (e.symm j)) _, simpa using h, }
+by { convert limits.sigma.congr_eq_hom_ι (λ j, f (e.symm j)) _, simpa using h, }
 
 def product_iso_of_equiv {I J : Type v} (f : I → C) (e : I ≃ J)
   [has_product f] [has_product (λ j, f (e.symm j))] :

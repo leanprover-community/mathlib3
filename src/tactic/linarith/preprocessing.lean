@@ -258,7 +258,7 @@ do s ← ls.mfoldr (λ h s', infer_type h >>= find_squares s') mk_rb_set,
    with_comps ← (new_es ++ ls).mmap (λ e, do
      tp ← infer_type e,
      return $ (parse_into_comp_and_expr tp).elim (ineq.lt, e) (λ ⟨ine, _⟩, (ine, e))),
-   products ← with_comps.mmap_diag $ λ ⟨posa, a⟩ ⟨posb, b⟩,
+   products ← with_comps.mmap_upper_triangle $ λ ⟨posa, a⟩ ⟨posb, b⟩,
      some <$> match posa, posb with
       | ineq.eq, _ := mk_app ``zero_mul_eq [a, b]
       | _, ineq.eq := mk_app ``mul_zero_eq [a, b]

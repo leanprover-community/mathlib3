@@ -1,4 +1,5 @@
-import tactic.induction tactic.linarith
+import tactic.induction
+import tactic.linarith
 
 universes u v w
 
@@ -203,8 +204,32 @@ begin
   exact ()
 end
 
--- In the following example we must apply the dependent recursor; the
--- nondependent one won't do.
+-- Sometimes generalising a hypothesis H does not give us a more general
+-- induction hypothesis. In such cases, induction' should not generalise H. The
+-- following example is not realistic, but situations like this can occur in
+-- practice; see accufact_1_eq_fact below.
+example (n m k : ℕ) : m + k = k + m :=
+begin
+  induction' m,
+  case zero { simp },
+  case succ {
+    guard_hyp ih := ∀ k, m + k = k + m,
+    -- k was generalised because this makes the IH more general.
+    -- n was not generalised -- if it had been, the IH would be
+    --
+    --     ∀ n k, m + k = k + m
+    --
+    -- with one useless additional argument.
+    linarith
+  }
+end
+
+--------------------------------------------------------------------------------
+-- Jasmin's original use cases
+--------------------------------------------------------------------------------
+
+/- Head induction for transitive closure -/
+
 inductive star {α : Sort*} (r : α → α → Prop) (a : α) : α → Prop
 | refl {}    : star a
 | tail {b c} : star b → r b c → star c
@@ -223,6 +248,8 @@ begin
     exact hac.tail hcd }
 end
 
+-- In this example, induction' must apply the dependent recursor for star; the
+-- nondependent one doesn't apply.
 lemma head_induction_on {P : ∀a : α, star r a b → Prop} {a} (h : star r a b)
   (refl : P b refl)
   (head : ∀{a c} (h' : r a c) (h : star r c b), P c h → P a (h.head h')) :
@@ -241,9 +268,28 @@ end
 
 end star
 
---------------------------------------------------------------------------------
--- Jasmin's original use cases
---------------------------------------------------------------------------------
+
+/- Factorial -/
+
+def accufact : ℕ → ℕ → ℕ
+| a 0       := a
+| a (n + 1) := accufact ((n + 1) * a) n
+
+lemma accufact_1_eq_fact (n : ℕ) :
+  accufact 1 n = nat.fact n :=
+have accufact_eq_fact_mul : ∀m a, accufact a m = nat.fact m * a :=
+  begin
+    intros m a,
+    induction' m,
+    case zero {
+      simp [nat.fact, accufact] },
+    case succ {
+      simp [nat.fact, accufact, ih, nat.succ_eq_add_one],
+      cc }
+  end,
+by simp [accufact_eq_fact_mul n 1]
+
+/- Substitution -/
 
 namespace expressions
 

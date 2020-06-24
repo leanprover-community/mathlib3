@@ -328,11 +328,18 @@ meta def decompose_app_normalizing (e : expr) (md := semireducible)
   (f , args) ← decompose_app_normalizing_aux md e,
   pure (f , args.reverse)
 
-meta def local_constants (e : expr) : expr_set :=
+meta def locals (e : expr) : expr_set :=
 e.fold mk_expr_set $ λ e _ occs,
   if e.is_local_constant
     then occs.insert e
     else occs
+
+meta def local_unique_names (e : expr) : name_set :=
+e.fold mk_name_set $ λ e _ occs,
+  match e with
+  | (local_const u _ _ _) := occs.insert u
+  | _ := occs
+  end
 
 meta def match_eq : expr → option (level × expr × expr × expr)
 | (app (app (app (const `eq [u]) type) lhs) rhs) := some (u, type, lhs, rhs)
@@ -532,7 +539,7 @@ meta def decompose_constructor_type_return (num_params : ℕ) (args : expr_set)
       if i < num_params
         then pure occ_map
         else do
-          let ret_arg_consts := ret_arg.local_constants,
+          let ret_arg_consts := ret_arg.locals,
           ret_arg_consts.mfold occ_map $ λ c occ_map, do
             ret_arg_type ← infer_type ret_arg,
             eq ← fuzzy_type_match c.local_type ret_arg_type,
@@ -727,42 +734,59 @@ meta def intro_fresh (ns : list name) (reserved : name_set) : tactic expr := do
   n ← get_unused_name' ns reserved,
   intro n
 
-/- Precond: i is a local constant. -/
-meta def type_depends_on_local (h i : expr) : tactic bool := do
+meta def type_depends_on_locals (h : expr) (ns : name_set) : tactic bool := do
   h_type ← infer_type h,
-  pure $ h_type.has_local_constant i
+  pure $ h_type.has_local_in ns
 
-/- Precond: i is a local constant. -/
-meta def local_def_depends_on_local (h i : expr) : tactic bool := do
+meta def local_def_depends_on_locals (h : expr) (ns : name_set) : tactic bool := do
   (some h_val) ← try_core $ local_def_value h | pure ff,
-  pure $ h_val.has_local_constant i
+  pure $ h_val.has_local_in ns
 
 /- Precond: h and i are local constants. -/
-meta def local_depends_on_local (h i : expr) : tactic bool :=
+meta def local_depends_on_locals (h : expr) (ns : name_set) : tactic bool :=
 list.mbor
-  [ pure $ h = i
-  , type_depends_on_local h i
-  , local_def_depends_on_local h i
+  [ pure $ ns.contains h.local_uniq_name
+  , type_depends_on_locals h ns
+  , local_def_depends_on_locals h ns
   ]
 
-/--
-Reverts all hypotheses except those in `fixed` and those whose type depends
-on any of the hypotheses in `fixed`.
+meta def local_dependencies_of_local (h : expr) : tactic name_set := do
+  let deps := mk_name_set.insert h.local_uniq_name,
+  t ← infer_type h,
+  let deps := name_set.merge deps t.local_unique_names,
+  (some val) ← try_core $ local_def_value h | pure deps,
+  let deps := name_set.merge deps $ val.local_unique_names,
+  pure deps
 
-TODO example
-TODO precond: `fixed` contains only locals
--/
--- TODO efficiency: we could put the locals that appear in each hypothesis in a
--- map to avoid multiple traversals
--- TODO what happens with local defs?
-meta def revert_all_except_locals (fixed : list expr) : tactic (ℕ × list name) := do
+
+-- precond: fixed contains only locals
+meta def generalize_hyps (eliminee : expr) (fixed : list expr) : tactic (ℕ × list expr) := do
+  tgt ← target,
+  let tgt_dependencies := tgt.local_unique_names,
+  eliminee_type ← infer_type eliminee,
+  eliminee_dependencies ← local_dependencies_of_local eliminee,
+  fixed_dependencies ←
+    name_set.merge_many <$> (eliminee :: fixed).mmap local_dependencies_of_local,
   ctx ← revertible_local_context,
-  to_revert ← ctx.mfilter $ λ hyp,
-    fixed.m_all (λ fixed_hyp, bnot <$> local_depends_on_local fixed_hyp hyp),
-  -- TODO Is the following correct? What happens if there are duplicate names?
-  let reverted_names := to_revert.map expr.local_pp_name,
-  n ← revert_lst to_revert,
-  pure ⟨n, reverted_names⟩
+  to_revert ← ctx.mfilter_map $ λ h, do {
+    h_type ← infer_type h,
+    let h_name := h.local_uniq_name,
+    let rev :=
+      ¬ fixed_dependencies.contains h_name ∧
+      (tgt_dependencies.contains h_name ∨ h_type.has_local_in eliminee_dependencies),
+    pure $ if rev then some h_name else none
+  },
+  let to_revert := name_set.of_list to_revert,
+  -- We take the 'dependency closure' of to_revert: any hypothesis that depends
+  -- on any of the hypotheses in to_revert should get reverted. revert_lst can
+  -- do this for us, but it doesn't report which hypotheses were actually
+  -- reverted (only how many).
+  to_revert ← ctx.mfilter_map $ λ h, do {
+    dep_on_reverted ← local_depends_on_locals h to_revert,
+    pure $ if dep_on_reverted then some h else none
+  },
+  num_reverted ← revert_lst to_revert,
+  pure (num_reverted, to_revert)
 
 meta def constructor_argument_intros (einfo : eliminee_info)
   (iinfo : inductive_info) (cinfo : constructor_info) (reserved_names : name_set)
@@ -1248,9 +1272,10 @@ focus1 $ do
   -- Generalise all generalisable hypotheses except those mentioned in a "fixing"
   -- clause.
   fix_exprs ← fix.mmap get_local,
-  ⟨num_generalized, generalized_names⟩ ←
-    revert_all_except_locals (eliminee :: fix_exprs),
-  let generalized_names := name_set.of_list generalized_names,
+  ⟨num_generalized, generalized_hyps⟩ ←
+    generalize_hyps eliminee fix_exprs,
+  let generalized_names :=
+    name_set.of_list $ generalized_hyps.map expr.local_pp_name,
 
   -- NOTE: The previous step may have changed the unique names of all hyps in
   -- the context.

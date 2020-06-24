@@ -823,6 +823,10 @@ by rw [is_basis.constr, linear_map.range_comp, linear_map.range_comp, is_basis.r
 def module_equiv_finsupp (hv : is_basis R v) : M ≃ₗ[R] ι →₀ R :=
 (hv.1.total_equiv.trans (linear_equiv.of_top _ hv.2)).symm
 
+@[simp] theorem module_equiv_finsupp_apply_basis (hv : is_basis R v) (i : ι) :
+  module_equiv_finsupp hv (v i) = finsupp.single i 1 :=
+(linear_equiv.symm_apply_eq _).2 $ by simp [linear_independent.total_equiv]
+
 /-- Isomorphism between the two modules, given two modules `M` and `M'` with respective bases
 `v` and `v'` and a bijection between the indexing sets of the two bases. -/
 def equiv_of_is_basis {v : ι → M} {v' : ι' → M'} (hv : is_basis R v) (hv' : is_basis R v')

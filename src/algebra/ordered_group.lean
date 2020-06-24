@@ -290,7 +290,7 @@ section has_one
 
 variables [has_one α]
 
-@[to_additive] instance [has_one α] : has_one (with_top α) := ⟨(1 : α)⟩
+@[to_additive] instance : has_one (with_top α) := ⟨(1 : α)⟩
 
 @[simp, to_additive] lemma coe_one : ((1 : α) : with_top α) = 1 := rfl
 

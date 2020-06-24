@@ -107,19 +107,19 @@ theorem fg_bot : (⊥ : submodule R M).fg :=
 theorem fg_sup {N₁ N₂ : submodule R M}
   (hN₁ : N₁.fg) (hN₂ : N₂.fg) : (N₁ ⊔ N₂).fg :=
 let ⟨t₁, ht₁⟩ := fg_def.1 hN₁, ⟨t₂, ht₂⟩ := fg_def.1 hN₂ in
-fg_def.2 ⟨t₁ ∪ t₂, finite_union ht₁.1 ht₂.1, by rw [span_union, ht₁.2, ht₂.2]⟩
+fg_def.2 ⟨t₁ ∪ t₂, ht₁.1.union ht₂.1, by rw [span_union, ht₁.2, ht₂.2]⟩
 
 variables {P : Type*} [add_comm_group P] [module R P]
 variables {f : M →ₗ[R] P}
 
 theorem fg_map {N : submodule R M} (hs : N.fg) : (N.map f).fg :=
-let ⟨t, ht⟩ := fg_def.1 hs in fg_def.2 ⟨f '' t, finite_image _ ht.1, by rw [span_image, ht.2]⟩
+let ⟨t, ht⟩ := fg_def.1 hs in fg_def.2 ⟨f '' t, ht.1.image _, by rw [span_image, ht.2]⟩
 
 theorem fg_prod {sb : submodule R M} {sc : submodule R P}
   (hsb : sb.fg) (hsc : sc.fg) : (sb.prod sc).fg :=
 let ⟨tb, htb⟩ := fg_def.1 hsb, ⟨tc, htc⟩ := fg_def.1 hsc in
 fg_def.2 ⟨prod.inl '' tb ∪ prod.inr '' tc,
-  finite_union (finite_image _ htb.1) (finite_image _ htc.1),
+  (htb.1.image _).union (htc.1.image _),
   by rw [linear_map.span_inl_union_inr, htb.2, htc.2]⟩
 
 variable (f)
@@ -330,7 +330,7 @@ theorem is_noetherian_iff_well_founded
       rcases IH (P ⊔ submodule.span R {x})
         ⟨@le_sup_left _ _ P _, this⟩
         (sup_le PN (submodule.span_le.2 (by simpa))) with ⟨s, hs, hs₂⟩,
-      refine ⟨insert x s, finite_insert _ hs, _⟩,
+      refine ⟨insert x s, hs.insert x, _⟩,
       rw [← hs₂, sup_assoc, ← submodule.span_union], simp }
   end⟩
 
@@ -351,7 +351,7 @@ begin
     span R ((subtype.val ∘ f) '' {m | m ≤ a}) ≤ span R ((subtype.val ∘ f) '' {m | m ≤ b}),
   { assume a b,
     rw [span_le_span_iff zero_ne_one hs (this a) (this b),
-      set.image_subset_image_iff (subtype.val_injective.comp f.inj),
+      set.image_subset_image_iff (subtype.val_injective.comp f.injective),
       set.subset_def],
     exact ⟨λ hab x (hxa : x ≤ a), le_trans hxa hab, λ hx, hx a (le_refl a)⟩ },
   exact ⟨⟨λ n, span R ((subtype.val ∘ f) '' {m | m ≤ n}),

@@ -193,12 +193,7 @@ then the set `{x ∈ s | f x ≤ g x}` is a closed set. -/
 lemma is_closed.is_closed_le [topological_space β] {f g : β → α} {s : set β} (hs : is_closed s)
   (hf : continuous_on f s) (hg : continuous_on g s) :
   is_closed {x ∈ s | f x ≤ g x} :=
-begin
-  have A : {x ∈ s | f x ≤ g x} ⊆ s := inter_subset_left _ _,
-  refine is_closed_of_closure_subset (λ x hx, _),
-  have B : x ∈ s := closure_minimal A hs hx,
-  exact ⟨B, ((hf x B).mono A).closure_le hx ((hg x B).mono A) (λ y, and.right)⟩
-end
+(hf.prod hg).preimage_closed_of_closed hs order_closed_topology.is_closed_le'
 
 end preorder
 
@@ -1102,7 +1097,7 @@ begin
   letI := classical.DLO α,
   rcases hs.elim_finite_subcover_image (λ x (_ : x ∈ s), @is_open_Ioi _ _ _ _ x) _
     with ⟨t, st, ft, ht⟩,
-  { refine H ((bdd_below_finite ft).imp $ λ C hC y hy, _),
+  { refine H (ft.bdd_below.imp $ λ C hC y hy, _),
     rcases mem_bUnion_iff.1 (ht hy) with ⟨x, hx, xy⟩,
     exact le_trans (hC hx) (le_of_lt xy) },
   { refine λ x hx, mem_bUnion_iff.2 (not_imp_comm.1 _ H),

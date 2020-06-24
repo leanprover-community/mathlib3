@@ -339,7 +339,7 @@ variables [topological_space α] [add_comm_group α] [topological_add_group α]
 variables [topological_space β] [add_comm_group β] [topological_add_group β]
 variables [topological_space γ] [add_comm_group γ] [topological_add_group γ]
 variables [topological_space δ] [add_comm_group δ] [topological_add_group δ]
-variables [uniform_space G] [add_comm_group G] [uniform_add_group G] [separated G] [complete_space G]
+variables [uniform_space G] [add_comm_group G] [uniform_add_group G] [separated_space G] [complete_space G]
 variables {e : β → α} [is_add_group_hom e] (de : dense_inducing e)
 variables {f : δ → γ} [is_add_group_hom f] (df : dense_inducing f)
 variables {φ : β × δ → G} (hφ : continuous φ) [bilin : is_Z_bilin φ]

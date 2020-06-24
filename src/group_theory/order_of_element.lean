@@ -30,7 +30,7 @@ iff.intro
 
 end finset
 
-lemma conj_inj [group α] {x : α} : function.injective (λ (g : α), x * g * x⁻¹) :=
+lemma conj_injective [group α] {x : α} : function.injective (λ (g : α), x * g * x⁻¹) :=
 λ a b h, by simpa [mul_left_inj, mul_right_inj] using h
 
 lemma mem_normalizer_fintype [group α] {s : set α} [fintype s] {x : α}
@@ -39,9 +39,9 @@ by haveI := classical.prop_decidable;
 haveI := set.fintype_image s (λ n, x * n * x⁻¹); exact
 λ n, ⟨h n, λ h₁,
 have heq : (λ n, x * n * x⁻¹) '' s = s := set.eq_of_subset_of_card_le
-  (λ n ⟨y, hy⟩, hy.2 ▸ h y hy.1) (by rw set.card_image_of_injective s conj_inj),
+  (λ n ⟨y, hy⟩, hy.2 ▸ h y hy.1) (by rw set.card_image_of_injective s conj_injective),
 have x * n * x⁻¹ ∈ (λ n, x * n * x⁻¹) '' s := heq.symm ▸ h₁,
-let ⟨y, hy⟩ := this in conj_inj hy.2 ▸ hy.1⟩
+let ⟨y, hy⟩ := this in conj_injective hy.2 ▸ hy.1⟩
 
 section order_of
 variable [group α]
@@ -350,7 +350,7 @@ else
   have H = is_subgroup.trivial α,
     from set.ext $ λ x, ⟨λ h, by simp at *; tauto,
       λ h, by rw [is_subgroup.mem_trivial.1 h]; exact is_submonoid.one_mem⟩,
-  by clear _let_match; subst this; apply_instance
+  by clear _let_match; substI this; apply_instance
 
 open finset nat
 

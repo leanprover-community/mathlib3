@@ -221,7 +221,7 @@ protected lemma dist {p : ℝ} {hp : 1 ≤ p} {α : ι → Type*}
 /-- normed group instance on the product of finitely many normed groups, using the `L^p` norm. -/
 instance normed_group [∀i, normed_group (α i)] : normed_group (pi_Lp p hp α) :=
 { norm := λf, (∑ (i : ι), norm (f i) ^ p) ^ (1/p),
-  dist_eq := λ x y, by { simp [pi_Lp.dist, dist_eq_norm], refl },
+  dist_eq := λ x y, by { simp [pi_Lp.dist, dist_eq_norm] },
   .. pi.add_comm_group }
 
 lemma norm_eq {p : ℝ} {hp : 1 ≤ p} {α : ι → Type*}

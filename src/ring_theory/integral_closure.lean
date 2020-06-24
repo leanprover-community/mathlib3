@@ -262,10 +262,7 @@ begin
   rcases is_integral_iff_is_integral_closure_finite.1 hr with ⟨s, hfs, hr⟩,
   apply algebra.mem_bot.2, refine ⟨⟨_, _⟩, rfl⟩,
   refine (mem_integral_closure_iff_mem_fg _ _).2 ⟨algebra.adjoin _ (subtype.val '' s ∪ {r}),
-    algebra.fg_trans
-      (fg_adjoin_of_finite (set.finite_image _ hfs)
-        (λ y ⟨x, hx, hxy⟩, hxy ▸ x.2))
-      _,
+    algebra.fg_trans (fg_adjoin_of_finite (hfs.image _) (λ y ⟨x, hx, hxy⟩, hxy ▸ x.2)) _,
     algebra.subset_adjoin (or.inr rfl)⟩,
   refine fg_adjoin_singleton_of_integral _ _,
   rcases hr with ⟨p, hmp, hpx⟩,

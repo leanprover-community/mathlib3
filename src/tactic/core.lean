@@ -856,7 +856,7 @@ do h ← get_local hyp,
    tp ← infer_type h,
    olde ← to_expr olde, newe ← to_expr newe,
    let repl_tp := tp.replace (λ a n, if a = olde then some newe else none),
-   change_core repl_tp (some h)
+   when (repl_tp ≠ tp) $ change_core repl_tp (some h)
 
 /-- Returns a list of all metavariables in the current partial proof. This can differ from
 the list of goals, since the goals can be manually edited. -/
@@ -1915,7 +1915,7 @@ do e ← pformat_macro () s,
 
 reserve prefix `trace! `:100
 /--
-The combination of `pformat` and `fail`.
+The combination of `pformat` and `trace`.
 -/
 @[user_notation]
 meta def trace_macro (_ : parse $ tk "trace!") (s : string) : parser pexpr :=
@@ -1988,7 +1988,7 @@ private meta def get_pexpr_arg_arity_with_tgt (func : pexpr) (tgt : expr) : tact
 lock_tactic_state $ do
   mv ← mk_mvar,
   solve_aux tgt $ intros >> to_expr ``(%%func %%mv),
-  expr.pi_arity <$> (instantiate_mvars mv >>= infer_type)
+  expr.pi_arity <$> (infer_type mv >>= instantiate_mvars)
 
 /--
 Tries to derive instances by unfolding the newly introduced type and applying type class resolution.

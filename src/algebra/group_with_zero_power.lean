@@ -31,7 +31,7 @@ begin
   induction n with n ih,
   { rw pow_zero at H,
     rw [← mul_one g, H, mul_zero] },
-  exact or.cases_on (mul_eq_zero' _ _ H) id ih
+  exact or.cases_on (mul_eq_zero.1 H) id ih
 end
 
 @[field_simps] theorem pow_ne_zero' {g : G₀} (n : ℕ) (h : g ≠ 0) : g ^ n ≠ 0 :=

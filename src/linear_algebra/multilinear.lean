@@ -253,7 +253,6 @@ coordinate. Here, we give an auxiliary statement tailored for an inductive proof
 lemma map_sum_finset_aux {n : ℕ} (h : ∑ i, (A i).card = n) :
   f (λ i, ∑ j in A i, g i j) = ∑ r in pi_finset A, f (λ i, g i (r i)) :=
 begin
-  unfreezeI,
   induction n using nat.strong_induction_on with n IH generalizing A,
   -- If one of the sets is empty, then all the sums are zero
   by_cases Ai_empty : ∃ i, A i = ∅,

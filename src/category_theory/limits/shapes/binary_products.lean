@@ -42,7 +42,7 @@ variables {C : Type u} [category.{v} C]
 
 /-- The diagram on the walking pair, sending the two points to `X` and `Y`. -/
 def pair (X Y : C) : discrete walking_pair ⥤ C :=
-functor.of_function (λ j, walking_pair.cases_on j X Y)
+discrete.functor (λ j, walking_pair.cases_on j X Y)
 
 @[simp] lemma pair_obj_left (X Y : C) : (pair X Y).obj left = X := rfl
 @[simp] lemma pair_obj_right (X Y : C) : (pair X Y).obj right = Y := rfl
@@ -352,10 +352,10 @@ class has_binary_coproducts :=
 
 attribute [instance] has_binary_products.has_limits_of_shape has_binary_coproducts.has_colimits_of_shape
 
-@[priority 100] -- see Note [lower instance priority]
+@[priority 200] -- see Note [lower instance priority]
 instance [has_finite_products.{v} C] : has_binary_products.{v} C :=
 { has_limits_of_shape := by apply_instance }
-@[priority 100] -- see Note [lower instance priority]
+@[priority 200] -- see Note [lower instance priority]
 instance [has_finite_coproducts.{v} C] : has_binary_coproducts.{v} C :=
 { has_colimits_of_shape := by apply_instance }
 

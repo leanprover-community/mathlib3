@@ -54,15 +54,15 @@ to the cartesian product of those groups.
 def lift (s : cone F) :
   s.X ⟶ AddCommGroup.of (Π j, F.obj j) :=
 { to_fun := λ x j, s.π.app j x,
-  map_zero' := by { ext, dsimp, simp, refl, },
-  map_add' := λ x y, by { ext, dsimp, simp, refl, }, }
+  map_zero' := by { ext, simp },
+  map_add' := λ x y, by { ext, simp }, }
 
 @[simp] lemma lift_apply (s : cone F) (x : s.X) (j : J) : (lift F s) x j = s.π.app j x := rfl
 
 instance has_limit_discrete : has_limit F :=
 { cone :=
   { X := AddCommGroup.of (Π j, F.obj j),
-    π := nat_trans.of_homs (λ j, add_monoid_hom.apply (λ j, F.obj j) j), },
+    π := discrete.nat_trans (λ j, add_monoid_hom.apply (λ j, F.obj j) j), },
   is_limit :=
   { lift := lift F,
     fac' := λ s j, by { ext, dsimp, simp, },
@@ -105,7 +105,7 @@ variables [decidable_eq J]
 instance has_colimit_discrete : has_colimit F :=
 { cocone :=
   { X := AddCommGroup.of (Π j, F.obj j),
-    ι := nat_trans.of_homs (λ j, add_monoid_hom.single (λ j, F.obj j) j), },
+    ι := discrete.nat_trans (λ j, add_monoid_hom.single (λ j, F.obj j) j), },
   is_colimit :=
   { desc := desc F,
     fac' := λ s j,
@@ -143,8 +143,8 @@ variables [decidable_eq J] [fintype J]
 instance : has_bilimit F :=
 { bicone :=
   { X := AddCommGroup.of (Π j, F.obj j),
-    ι := nat_trans.of_homs (λ j, add_monoid_hom.single (λ j, F.obj j) j),
-    π := nat_trans.of_homs (λ j, add_monoid_hom.apply (λ j, F.obj j) j), },
+    ι := discrete.nat_trans (λ j, add_monoid_hom.single (λ j, F.obj j) j),
+    π := discrete.nat_trans (λ j, add_monoid_hom.apply (λ j, F.obj j) j), },
   is_limit := limit.is_limit F,
   is_colimit := colimit.is_colimit F, }.
 

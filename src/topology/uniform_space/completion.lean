@@ -149,7 +149,7 @@ lemma uniform_inducing_pure_cauchy : uniform_inducing (pure_cauchy : α → Cauc
       ... = 𝓤 α : by simp [this]⟩
 
 lemma uniform_embedding_pure_cauchy : uniform_embedding (pure_cauchy : α → Cauchy α) :=
-{ inj := assume a₁ a₂ h, pure_inj $ subtype.ext.1 h,
+{ inj := assume a₁ a₂ h, pure_injective $ subtype.ext.1 h,
   ..uniform_inducing_pure_cauchy }
 
 lemma pure_cauchy_dense : ∀x, x ∈ closure (range pure_cauchy) :=
@@ -225,7 +225,7 @@ if uniform_continuous f then
 else
   λ x, f (classical.inhabited_of_nonempty $ nonempty_Cauchy_iff.1 ⟨x⟩).default
 
-variables [separated β]
+variables [separated_space β]
 
 lemma extend_pure_cauchy {f : α → β} (hf : uniform_continuous f) (a : α) :
   extend f (pure_cauchy a) = f a :=
@@ -250,7 +250,7 @@ end extend
 end
 
 theorem Cauchy_eq
-  {α : Type*} [inhabited α] [uniform_space α] [complete_space α] [separated α] {f g : Cauchy α} :
+  {α : Type*} [inhabited α] [uniform_space α] [complete_space α] [separated_space α] {f g : Cauchy α} :
   Lim f.1 = Lim g.1 ↔ (f, g) ∈ separation_rel (Cauchy α) :=
 begin
   split,
@@ -283,7 +283,7 @@ end
 section
 local attribute [instance] uniform_space.separation_setoid
 
-lemma injective_separated_pure_cauchy {α : Type*} [uniform_space α] [s : separated α] :
+lemma separated_pure_cauchy_injective {α : Type*} [uniform_space α] [s : separated_space α] :
   function.injective (λa:α, ⟦pure_cauchy a⟧) | a b h :=
 separated_def.1 s _ _ $ assume s hs,
 let ⟨t, ht, hts⟩ :=
@@ -330,9 +330,7 @@ instance : uniform_space (completion α) := by dunfold completion ; apply_instan
 
 instance : complete_space (completion α) := by dunfold completion ; apply_instance
 
-instance : separated (completion α) := by dunfold completion ; apply_instance
-
-instance : t2_space (completion α) := separated_t2
+instance : separated_space (completion α) := by dunfold completion ; apply_instance
 
 instance : regular_space (completion α) := separated_regular
 
@@ -389,9 +387,9 @@ cpkg.uniform_continuous_coe
 lemma continuous_coe : continuous (coe : α → completion α) :=
 cpkg.continuous_coe
 
-lemma uniform_embedding_coe [separated α] : uniform_embedding  (coe : α → completion α) :=
+lemma uniform_embedding_coe [separated_space α] : uniform_embedding  (coe : α → completion α) :=
 { comap_uniformity := comap_coe_eq_uniformity α,
-  inj := injective_separated_pure_cauchy }
+  inj := separated_pure_cauchy_injective }
 
 variable {α}
 
@@ -399,8 +397,8 @@ lemma dense_inducing_coe : dense_inducing (coe : α → completion α) :=
 { dense := dense,
   ..(uniform_inducing_coe α).inducing }
 
-lemma dense_embedding_coe [separated α]: dense_embedding (coe : α → completion α) :=
-{ inj := injective_separated_pure_cauchy,
+lemma dense_embedding_coe [separated_space α]: dense_embedding (coe : α → completion α) :=
+{ inj := separated_pure_cauchy_injective,
   ..dense_inducing_coe }
 
 lemma dense₂ : dense_range (λx:α × β, ((x.1 : completion α), (x.2 : completion β))) :=
@@ -445,7 +443,7 @@ returns an arbitrary constant value if `f` is not uniformly continuous -/
 protected def extension (f : α → β) : completion α → β :=
 cpkg.extend f
 
-variables [separated β]
+variables [separated_space β]
 
 @[simp] lemma extension_coe (hf : uniform_continuous f) (a : α) : (completion.extension f) a = f a :=
 cpkg.extend_coe hf a
@@ -490,7 +488,7 @@ cpkg.map_unique cpkg hg h
 @[simp] lemma map_id : completion.map (@id α) = id :=
 cpkg.map_id
 
-lemma extension_map [complete_space γ] [separated γ] {f : β → γ} {g : α → β}
+lemma extension_map [complete_space γ] [separated_space γ] {f : β → γ} {g : α → β}
   (hf : uniform_continuous f) (hg : uniform_continuous g) :
   completion.extension f ∘ completion.map g = completion.extension (f ∘ g) :=
 completion.ext (continuous_extension.comp continuous_map) continuous_extension $
@@ -543,7 +541,7 @@ open function
 protected def extension₂ (f : α → β → γ) : completion α → completion β → γ :=
 cpkg.extend₂ cpkg f
 
-variables [separated γ] {f}
+variables [separated_space γ] {f}
 
 @[simp] lemma extension₂_coe_coe (hf : uniform_continuous₂ f) (a : α) (b : β) :
   completion.extension₂ f a b = f a b :=

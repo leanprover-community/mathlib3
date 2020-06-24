@@ -206,7 +206,7 @@ begin
   induction n with n ih,
   { dsimp [ε] at h, exact h (λ _, tt) },
   { cases v with v₁ v₂,
-    ext ; change _ = (0 : V n) ; simp only [] ; apply ih ; intro p ;
+    ext ; change _ = (0 : V n) ; simp only ; apply ih ; intro p ;
     [ let q : Q (n+1) := λ i, if h : i = 0 then tt else p (i.pred h),
       let q : Q (n+1) := λ i, if h : i = 0 then ff else p (i.pred h)],
     all_goals {
@@ -361,7 +361,7 @@ begin
     apply dim_V },
   have dim_add : dim (W ⊔ img) + dim (W ⊓ img) = dim W + 2^m,
   { convert ← dim_sup_add_dim_inf_eq W img,
-    rw ← dim_eq_injective (g m) g_injective,
+    rw ← dim_eq_of_injective (g m) g_injective,
     apply dim_V },
   have dimW : dim W = card H,
   { have li : linear_independent ℝ (set.restrict e H) :=

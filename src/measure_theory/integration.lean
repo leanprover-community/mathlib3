@@ -47,9 +47,7 @@ protected def range (f : α →ₛ β) : finset β := f.finite.to_finset
 finite.mem_to_finset
 
 lemma preimage_eq_empty_iff (f : α →ₛ β) (b : β) : f ⁻¹' {b} = ∅ ↔ b ∉ f.range :=
-iff.intro
-  (by simp [set.eq_empty_iff_forall_not_mem, mem_range])
-  (by simp [set.eq_empty_iff_forall_not_mem, mem_range])
+preimage_singleton_eq_empty.trans $ not_congr mem_range.symm
 
 /-- Constant function as a `simple_func`. -/
 def const (α) {β} [measurable_space α] (b : β) : α →ₛ β :=

@@ -695,11 +695,19 @@ lemma preimage_bInter {s : γ → set β} {t : set γ} {f : α → β} :
   f ⁻¹' (⋂ i∈t, s i) = (⋂ i∈t, f ⁻¹' s i) :=
 by ext; simp
 
+lemma bUnion_preimage_singleton (f : α → β) (s : set β) : (⋃ y ∈ s, f ⁻¹' {y}) = f ⁻¹' s :=
+by rw [← preimage_bUnion, bUnion_of_singleton]
+
+lemma bUnion_range_preimage_singleton (f : α → β) : (⋃ y ∈ range f, f ⁻¹' {y}) = univ :=
+(bUnion_preimage_singleton f _).trans $ preimage_range f
+
 end preimage
 
 
 section seq
 
+/-- Given a set `s` of functions `α → β` and `t : set α`, `seq s t` is the union of `f '' t` over
+all `f ∈ s`. -/
 def seq (s : set (α → β)) (t : set α) : set β := {b | ∃f∈s, ∃a∈t, (f : α → β) a = b}
 
 lemma seq_def {s : set (α → β)} {t : set α} : seq s t = ⋃f∈s, f '' t :=
@@ -828,6 +836,10 @@ by rw [disjoint.comm]; exact disjoint_singleton_left
 theorem disjoint_image_image {f : β → α} {g : γ → α} {s : set β} {t : set γ}
   (h : ∀b∈s, ∀c∈t, f b ≠ g c) : disjoint (f '' s) (g '' t) :=
 by rintros a ⟨⟨b, hb, eq⟩, ⟨c, hc, rfl⟩⟩; exact h b hb c hc eq
+
+theorem pairwise_on_disjoint_fiber (f : α → β) (s : set β) :
+  pairwise_on s (disjoint on (λ y, f ⁻¹' {y})) :=
+λ y₁ _ y₂ _ hy x ⟨hx₁, hx₂⟩, hy (eq.trans (eq.symm hx₁) hx₂)
 
 /-- A collection of sets is `pairwise_disjoint`, if any two different sets in this collection
 are disjoint.  -/

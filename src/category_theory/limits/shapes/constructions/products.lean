@@ -182,12 +182,32 @@ Given any specified choice of the product,
 the product over a type equivalent to `walking_pair`
 is just the binary product of the two objects.
 -/
--- We could prove this using the above lemmas tranferring `is_limit` terms,
--- but there is also a direct API for comparing chosen limits.
 def product_over_equiv_walking_pair {I : Type v} (e : I ≃ walking_pair) (f : I → C)
   [has_product f] [has_binary_product (f (e.symm left)) (f (e.symm right))] :
   ∏ f ≅ (f (e.symm left)) ⨯ (f (e.symm right)) :=
+/- There are several options for proving this!
+1. We have the very general
+```
 has_limit.ext_of_equivalence (discrete.equivalence e) (discrete.nat_iso (λ i, by simp))
+```
+which is unfortunately difficult to reason about.
+2. We could use the lemmas above to transfer `is_limit` terms.
+3. We can just write down the isomorphism (relying on automation to check that is an iso):
+-/
+-- { hom := prod.lift (pi.π f (e.symm left)) (pi.π f (e.symm right)),
+--   inv := pi.lift (λ i, begin  end)
+-- }
+has_limit.ext_of_equivalence (discrete.equivalence e) (discrete.nat_iso (λ i, by simp))
+
+lemma product_over_equiv_walking_pair_hom_comp_prod_fst {I : Type v} (e : I ≃ walking_pair) (f : I → C)
+  [has_product f] [has_binary_product (f (e.symm left)) (f (e.symm right))] :
+  (product_over_equiv_walking_pair e f).hom ≫ prod.fst = pi.π f (e.symm left) :=
+begin
+  simp [product_over_equiv_walking_pair, has_limit.ext_of_equivalence,
+  is_limit.cone_points_iso_of_equivalence, is_limit.cone_point_unique_up_to_iso, is_limit.unique_up_to_iso,
+  is_limit.lift_cone_morphism, is_limit.of_cone_equiv, is_limit.mk_cone_morphism],
+
+end
 
 end
 
@@ -442,21 +462,16 @@ calc ∏ f ≅ ∏ (λ p, f (e.symm p))
      ... ≅ f (e.symm (sum.inl punit.star)) ⨯ ∏ (λ j, f (e.symm (sum.inr j)))
            : prod.map_iso (product_over_unique_iso (λ j, f (e.symm (sum.inl j)))) (iso.refl _)
 
-lemma srt {I J : Type v} (f : I → C) (e : I ≃ punit.{v+1} ⊕ J)
+@[simp]
+lemma product_iso_of_equiv_punit_sum_hom_comp_prod_fst {I J : Type v} (f : I → C) (e : I ≃ punit.{v+1} ⊕ J)
   [has_products.{v} C] [has_binary_products.{v} C] :
 (product_iso_of_equiv_punit_sum f e).hom ≫ prod.fst = pi.π f (e.symm (sum.inl punit.star)) :=
-begin
-  simp [product_iso_of_equiv_punit_sum], refl,
-end
+by { simp [product_iso_of_equiv_punit_sum], refl, }
 
-def product_iso_of_equiv_punit_sum' {I J : Type v} (f : I → C) (e : I ≃ punit.{v+1} ⊕ J)
-  (i : I) (h : e.symm (sum.inl punit.star) = i)
-  [has_products.{v} C] [has_binary_products.{v} C] :
-  ∏ f ≅ f i ⨯ ∏ (λ j, f (e.symm (sum.inr j))) :=
-(product_iso_of_equiv_punit_sum f e).trans
-(prod.map_iso (congr_eq_to_iso f h) (iso.refl _))
-
--- TODO and we need to make sure `ι` plays well with this iso...
--- which may be a hassle because `has_limit.ext_of_equivalence` is so opaque
+@[simp]
+lemma product_iso_of_equiv_punit_sum_hom_comp_prod_snd_comp_pi {I J : Type v} (f : I → C) (e : I ≃ punit.{v+1} ⊕ J)
+  [has_products.{v} C] [has_binary_products.{v} C] (j : J) :
+(product_iso_of_equiv_punit_sum f e).hom ≫ prod.snd ≫ pi.π _ j = pi.π f (e.symm (sum.inr j)) :=
+by { simp only [product_iso_of_equiv_punit_sum], dsimp, simp, dsimp, simp, }
 
 end category_theory.limits

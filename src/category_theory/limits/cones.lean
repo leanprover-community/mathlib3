@@ -236,6 +236,13 @@ def equivalence_of_reindexing {K : Type v} [small_category K] {G : K ⥤ C}
   (e : K ≌ J) (α : e.functor ⋙ F ≅ G) : cone F ≌ cone G :=
 (whiskering_equivalence e).trans (postcompose_equivalence α)
 
+@[simp]
+lemma equivalence_of_reindexing_functor_obj {K : Type v} [small_category K] {G : K ⥤ C}
+  (e : K ≌ J) (α : e.functor ⋙ F ≅ G) (c : cone F) :
+  (equivalence_of_reindexing e α).functor.obj c =
+  (postcompose α.hom).obj (cone.whisker e.functor c) :=
+rfl
+
 section
 variable (F)
 
@@ -331,6 +338,13 @@ The categories of cocones over `F` and `G` are equivalent if `F` and `G` are nat
 def equivalence_of_reindexing {K : Type v} [small_category K] {G : K ⥤ C}
   (e : K ≌ J) (α : e.functor ⋙ F ≅ G) : cocone F ≌ cocone G :=
 (whiskering_equivalence e).trans (precompose_equivalence α.symm)
+
+@[simp]
+lemma equivalence_of_reindexing_functor_obj {K : Type v} [small_category K] {G : K ⥤ C}
+  (e : K ≌ J) (α : e.functor ⋙ F ≅ G) (c : cocone F) :
+  (equivalence_of_reindexing e α).functor.obj c =
+  (precompose α.inv).obj (cocone.whisker e.functor c) :=
+rfl
 
 section
 variable (F)

@@ -387,11 +387,17 @@ instance left_adjoint_of_equivalence {F : C ⥤ D} [is_equivalence F] : is_left_
 { right := _,
   adj := functor.adjunction F }
 
+@[simp]
+lemma right_adjoint_of_is_equivalence {F : C ⥤ D} [is_equivalence F] : right_adjoint F = inv F := rfl
+
 /-- If `F` is an equivalence, it's a right adjoint. -/
 @[priority 10]
 instance right_adjoint_of_equivalence {F : C ⥤ D} [is_equivalence F] : is_right_adjoint F :=
 { left := _,
   adj := functor.adjunction F.inv }
+
+@[simp]
+lemma left_adjoint_of_is_equivalence {F : C ⥤ D} [is_equivalence F] : left_adjoint F = inv F := rfl
 
 end functor
 

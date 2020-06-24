@@ -330,7 +330,7 @@ def to_binary_bicone {X Y : C} (b : bicone (pair X Y).obj) : binary_bicone X Y :
 def to_binary_bicone_is_limit {X Y : C} {b : bicone (pair X Y).obj}
   (c : is_limit (b.to_cone)) :
   is_limit (b.to_binary_bicone.to_cone) :=
-{ lift := λ s, sorry,
+{ lift := λ s, begin end,
    fac' := sorry,
    uniq' := sorry, }
 

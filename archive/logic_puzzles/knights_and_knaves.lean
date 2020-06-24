@@ -63,7 +63,7 @@ namespace Q2
 
 variables (q : Q2)
 
-def S1 := q.2 = n ↔ q.1 = n
+def S1 := q.1 = n ↔ q.2 = n
 def S2 := q.1 = y ∧ q.2 = n ∨ q.1 = n ∧ q.2 = y
 
 def H1 := (q.1 = y ∧ q.S1) ∨ (q.1 = n ∧ ¬ q.S1)
@@ -79,4 +79,3 @@ end
 
 
 end Q2
-

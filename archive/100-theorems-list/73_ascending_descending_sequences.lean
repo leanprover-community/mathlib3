@@ -26,24 +26,6 @@ variables {α : Type*} [linear_order α] {β : Type*}
 open function finset
 open_locale classical
 
-def mono_inc_on [linear_order β] (f : α → β) (t : set α) : Prop :=
-∀ (x ∈ t) (y ∈ t), x < y → f x < f y
-def mono_dec_on [linear_order β] (f : α → β) (t : set α) : Prop :=
-∀ (x ∈ t) (y ∈ t), x < y → f x > f y
-
-lemma nat.succ_injective : injective nat.succ := λ x y, nat.succ_inj
-
-lemma injective_of_lt_imp_ne (f : α → β) (h : ∀ x y, x < y → f x ≠ f y) : injective f :=
-begin
-  intros x y k,
-  contrapose k,
-  rw [←ne.def, ne_iff_lt_or_gt] at k,
-  cases k,
-  apply h _ _ k,
-  rw eq_comm,
-  apply h _ _ k,
-end
-
 /--
 Given a sequence of more than `r * s` distinct values, there is an increasing sequence of length
 longer than `r` or a decreasing sequence of length longer than `s`.
@@ -56,20 +38,20 @@ We then show the pair of labels must be unique. Now if there is no increasing se
 which is a contradiction if there are more than `r * s` elements.
 -/
 theorem erdos_szekeres {r s n : ℕ} {f : fin n → α} (hn : r * s < n) (hf : injective f) :
-  (∃ (t : finset (fin n)), r < t.card ∧ mono_inc_on f ↑t) ∨
-  (∃ (t : finset (fin n)), s < t.card ∧ mono_dec_on f ↑t) :=
+  (∃ (t : finset (fin n)), r < t.card ∧ strict_mono_incr_on f ↑t) ∨
+  (∃ (t : finset (fin n)), s < t.card ∧ strict_mono_decr_on f ↑t) :=
 begin
   -- Given an index `i`, produce the set of increasing (resp, decreasing) subsequences which ends
   -- at `i`.
   let inc_sequences_ending_in : fin n → finset (finset (fin n)) :=
-    λ i, univ.powerset.filter (λ t, finset.max t = some i ∧ mono_inc_on f ↑t),
+    λ i, univ.powerset.filter (λ t, finset.max t = some i ∧ strict_mono_incr_on f ↑t),
   let dec_sequences_ending_in : fin n → finset (finset (fin n)) :=
-    λ i, univ.powerset.filter (λ t, finset.max t = some i ∧ mono_dec_on f ↑t),
+    λ i, univ.powerset.filter (λ t, finset.max t = some i ∧ strict_mono_decr_on f ↑t),
   -- The singleton sequence is in both of the above collections.
   -- (This is useful to show that the maximum length subsequence is at least 1, and that the set
   -- of subsequences is nonempty.)
-  have inc_i : ∀ i, {i} ∈ inc_sequences_ending_in i := λ i, by simp [mono_inc_on],
-  have dec_i : ∀ i, {i} ∈ dec_sequences_ending_in i := λ i, by simp [mono_dec_on],
+  have inc_i : ∀ i, {i} ∈ inc_sequences_ending_in i := λ i, by simp [strict_mono_incr_on],
+  have dec_i : ∀ i, {i} ∈ dec_sequences_ending_in i := λ i, by simp [strict_mono_decr_on],
   -- Define the pair of labels: at index i, the pair is the maximum length of an increasing
   -- subsequence ending at i, paired with the maximum length of a decreasing subsequence ending
   -- at i.
@@ -125,7 +107,7 @@ begin
           apply le_of_lt ‹i < j› },
         -- To show it's increasing (ie f is monotone increasing on t.insert j), we do cases on
         -- what the possibilities could be - either in t or equals j.
-        simp only [mono_inc_on, mono_dec_on, coe_insert, set.mem_insert_iff, mem_coe],
+        simp only [strict_mono_incr_on, strict_mono_decr_on, coe_insert, set.mem_insert_iff, mem_coe],
         -- Most of the cases are just bashes.
         rintros x ⟨rfl | _⟩ y ⟨rfl | _⟩ _,
         { apply (irrefl _ ‹j < j›).elim },
@@ -140,6 +122,8 @@ begin
       { rw [card_insert_of_not_mem, ht₂],
         intro _,
         apply not_le_of_lt ‹i < j› (le_max_of_mem ‹j ∈ t› ‹i ∈ t.max›) } } },
+      -- Finished both goals!
+  -- Now that we have uniqueness of each label, it remains to do some counting to finish off.
   -- Suppose all the labels are small.
   by_contra q,
   push_neg at q,

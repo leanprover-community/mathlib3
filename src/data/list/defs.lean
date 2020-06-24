@@ -167,7 +167,7 @@ def find (p : α → Prop) [decidable_pred p] : list α → option α
 | (a::l) := if p a then some a else find l
 
 /-- `mfind tac l` returns the first element of `l` on which `tac` succeeds, and fails otherwise. -/
-meta def mfind {α} {m : Type → Type} [monad m] [alternative m] (tac : α → m unit) : list α → m α :=
+def mfind {α} {m : Type → Type u} [monad m] [alternative m] (tac : α → m unit) : list α → m α :=
 list.mfirst $ λ a, tac a $> a
 
 def find_indexes_aux (p : α → Prop) [decidable_pred p] : list α → nat → list nat

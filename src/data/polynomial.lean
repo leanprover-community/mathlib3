@@ -2791,7 +2791,7 @@ begin
   { intro h,
     exact ne_zero_of_mul_ne_zero_right h },
   { intro h,
-    refine mul_ne_zero' h (pow_ne_zero _ _),
+    refine mul_ne_zero h (pow_ne_zero _ _),
     exact λ h, hf (leading_coeff_eq_zero.mp h) }
 end
 

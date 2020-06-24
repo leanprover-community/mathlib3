@@ -475,6 +475,15 @@ lemma exists_irreducible_factor {a : R} (ha : ¬ is_unit a) (ha0 : a ≠ 0) :
         (λ hxf, let ⟨i, hi⟩ := ih x ⟨hx0, y, hy, hxy.symm⟩ hx hx0 hxf in
           ⟨i, hi.1, dvd.trans hi.2 (hxy ▸ by simp)⟩)) a ha ha0)
 
+lemma is_unit_of_no_irreducible_factor {a : R} (ne_zero : a ≠ 0) :
+  (∀ {p}, irreducible p → ¬ p ∣ a) → is_unit a :=
+begin
+  contrapose,
+  intros not_unit no_irreducible_factor,
+  obtain ⟨p, hp, p_dvd_a⟩ := exists_irreducible_factor not_unit ne_zero,
+  apply no_irreducible_factor hp p_dvd_a
+end
+
 @[elab_as_eliminator] lemma irreducible_induction_on {P : R → Prop} (a : R)
   (h0 : P 0) (hu : ∀ u : R, is_unit u → P u)
   (hi : ∀ a i : R, a ≠ 0 → irreducible i → P a → P (i * a)) :

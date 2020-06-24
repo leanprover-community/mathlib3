@@ -531,4 +531,9 @@ lemma exists_reduced_factors' (a b : R) (hb : b ≠ 0) :
 let ⟨b', a', c', no_factor, hb, ha⟩ := exists_reduced_factors b hb a
 in ⟨a', b', c', λ _ hpb hpa, no_factor hpa hpb, ha, hb⟩
 
+lemma is_unit_of_no_prime_factor {a : R} :
+  a ≠ 0 → (∀ {p}, prime p → ¬ p ∣ a) → is_unit a :=
+induction_on_prime a (absurd rfl) (λ a ha _ _, ha)
+  (λ a p _ hp ih _ no_factor, absurd (dvd_mul_right p a) (no_factor hp))
+
 end unique_factorization_domain

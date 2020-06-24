@@ -8,7 +8,7 @@ Bases of topologies. Countability axioms.
 import topology.constructions
 
 open set filter classical
-open_locale topological_space
+open_locale topological_space filter
 
 namespace topological_space
 /- countability axioms
@@ -192,7 +192,7 @@ end
 instance second_countable_topology.to_separable_space
   [second_countable_topology α] : separable_space α :=
 let ⟨b, hb₁, hb₂, hb₃, hb₄, eq⟩ := is_open_generated_countable_inter α in
-have nhds_eq : ∀a, 𝓝 a = (⨅ s : {s : set α // a ∈ s ∧ s ∈ b}, principal s.val),
+have nhds_eq : ∀a, 𝓝 a = (⨅ s : {s : set α // a ∈ s ∧ s ∈ b}, 𝓟 s.val),
   by intro a; rw [eq, nhds_generate_from, infi_subtype]; refl,
 have ∀s∈b, set.nonempty s,
   from assume s hs, ne_empty_iff_nonempty.1 $ λ eq, absurd hs (eq.symm ▸ hb₂),
@@ -204,8 +204,9 @@ let ⟨f, hf⟩ := this in
   have a ∈ (⋃₀ b), by rw [hb₄]; exact trivial,
   let ⟨t, ht₁, ht₂⟩ := this in
   have w : {s : set α // a ∈ s ∧ s ∈ b}, from ⟨t, ht₂, ht₁⟩,
-  suffices (⨅ (x : {s // a ∈ s ∧ s ∈ b}), principal (x.val ∩ ⋃s (h₁ h₂ : s ∈ b), {f s h₂})) ≠ ⊥,
-    by simpa only [closure_eq_nhds, nhds_eq, infi_inf w, inf_principal, mem_set_of_eq, mem_univ, iff_true],
+  suffices (⨅ (x : {s // a ∈ s ∧ s ∈ b}), 𝓟 (x.val ∩ ⋃s (h₁ h₂ : s ∈ b), {f s h₂})) ≠ ⊥,
+    by simpa only [closure_eq_cluster_pts, cluster_pt, nhds_eq, infi_inf w, inf_principal,
+                   mem_set_of_eq, mem_univ, iff_true],
   infi_ne_bot_of_directed ⟨a⟩
     (assume ⟨s₁, has₁, hs₁⟩ ⟨s₂, has₂, hs₂⟩,
       have a ∈ s₁ ∩ s₂, from ⟨has₁, has₂⟩,

@@ -25,7 +25,7 @@ variables {α : Type u} {β : Type v}
 namespace filter
 
 open set zorn
-open_locale classical
+open_locale classical filter
 
 variables {f g : filter α}
 
@@ -48,7 +48,7 @@ lemma ultrafilter_iff_compl_mem_iff_not_mem :
    ⟨assume hns hs,
       hf.1 $ empty_in_sets_eq_bot.mp $ by convert f.inter_sets hs hns; rw [inter_compl_self],
     assume hs,
-      have f ≤ principal (-s), from
+      have f ≤ 𝓟 (-s), from
         le_of_ultrafilter hf $ assume h, hs $ mem_sets_of_eq_bot $
           by simp only [h, eq_self_iff_true, compl_compl],
       by simp only [le_principal_iff] at this; assumption⟩,
@@ -191,7 +191,7 @@ def ultrafilter (α : Type u) : Type u := {f : filter α // is_ultrafilter f}
 def ultrafilter.map (m : α → β) (u : ultrafilter α) : ultrafilter β :=
 ⟨u.val.map m, ultrafilter_map u.property⟩
 
-/-- The principal ultra-filter associated to a point `x`. -/
+/-- The 𝓟 ultra-filter associated to a point `x`. -/
 def ultrafilter.pure (x : α) : ultrafilter α := ⟨pure x, ultrafilter_pure⟩
 
 /-- Monadic bind for ultra-filters, coming from the one on filters

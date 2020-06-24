@@ -16,6 +16,7 @@ it defines the same uniformity as the already defined uniform structure on the c
 -/
 
 open set filter uniform_space uniform_space.completion
+open_locale filter
 noncomputable theory
 
 universes u
@@ -153,7 +154,7 @@ end
 of the metric space structure. -/
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 protected lemma completion.uniformity_dist' :
-  uniformity (completion α) = (⨅ε:{ε:ℝ // ε>0}, principal {p | dist p.1 p.2 < ε.val}) :=
+  uniformity (completion α) = (⨅ε:{ε:ℝ // ε>0}, 𝓟 {p | dist p.1 p.2 < ε.val}) :=
 begin
   ext s, rw mem_infi,
   { simp [completion.mem_uniformity_dist, subset_def] },
@@ -164,7 +165,7 @@ end
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 protected lemma completion.uniformity_dist :
-  uniformity (completion α) = (⨅ ε>0, principal {p | dist p.1 p.2 < ε}) :=
+  uniformity (completion α) = (⨅ ε>0, 𝓟 {p | dist p.1 p.2 < ε}) :=
 by simpa [infi_subtype] using @completion.uniformity_dist' α _
 
 /-- Metric space structure on the completion of a metric space. -/

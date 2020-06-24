@@ -29,7 +29,7 @@ https://ncatlab.org/nlab/show/too+simple+to+be+simple#relationship_to_biased_def
 -/
 
 open set filter classical
-open_locale classical topological_space
+open_locale classical topological_space filter
 
 universes u v
 variables {α : Type u} {β : Type v} [topological_space α]
@@ -39,7 +39,7 @@ section compact
 
 /-- A set `s` is compact if for every filter `f` that contains `s`,
     every set of `f` also meets every neighborhood of some `a ∈ s`. -/
-def compact (s : set α) := ∀f, f ≠ ⊥ → f ≤ principal s → ∃a∈s, f ⊓ 𝓝 a ≠ ⊥
+def compact (s : set α) := ∀f, f ≠ ⊥ → f ≤ 𝓟 s → ∃a∈s, f ⊓ 𝓝 a ≠ ⊥
 
 lemma compact.inter_right {s t : set α} (hs : compact s) (ht : is_closed t) : compact (s ∩ t) :=
 assume f hnf hstf,
@@ -60,11 +60,11 @@ lemma compact_of_is_closed_subset {s t : set α}
 inter_eq_self_of_subset_right h ▸ hs.inter_right ht
 
 lemma compact.adherence_nhdset {s t : set α} {f : filter α}
-  (hs : compact s) (hf₂ : f ≤ principal s) (ht₁ : is_open t) (ht₂ : ∀a∈s, 𝓝 a ⊓ f ≠ ⊥ → a ∈ t) :
+  (hs : compact s) (hf₂ : f ≤ 𝓟 s) (ht₁ : is_open t) (ht₂ : ∀a∈s, 𝓝 a ⊓ f ≠ ⊥ → a ∈ t) :
   t ∈ f :=
 classical.by_cases mem_sets_of_eq_bot $
-  assume : f ⊓ principal (- t) ≠ ⊥,
-  let ⟨a, ha, (hfa : f ⊓ principal (-t) ⊓ 𝓝 a ≠ ⊥)⟩ := hs _ this $ inf_le_left_of_le hf₂ in
+  assume : f ⊓ 𝓟 (- t) ≠ ⊥,
+  let ⟨a, ha, (hfa : f ⊓ 𝓟 (-t) ⊓ 𝓝 a ≠ ⊥)⟩ := hs _ this $ inf_le_left_of_le hf₂ in
   have a ∈ t,
     from ht₂ a ha $ ne_bot_of_le_ne_bot hfa $ le_inf inf_le_right $ inf_le_left_of_le inf_le_left,
   have (-t) ∩ t ∈ nhds_within a (-t),
@@ -76,12 +76,12 @@ classical.by_cases mem_sets_of_eq_bot $
   absurd A this
 
 lemma compact_iff_ultrafilter_le_nhds {s : set α} :
-  compact s ↔ (∀f, is_ultrafilter f → f ≤ principal s → ∃a∈s, f ≤ 𝓝 a) :=
+  compact s ↔ (∀f, is_ultrafilter f → f ≤ 𝓟 s → ∃a∈s, f ≤ 𝓝 a) :=
 ⟨assume hs : compact s, assume f hf hfs,
   let ⟨a, ha, h⟩ := hs _ hf.left hfs in
   ⟨a, ha, le_of_ultrafilter hf h⟩,
 
-  assume hs : (∀f, is_ultrafilter f → f ≤ principal s → ∃a∈s, f ≤ 𝓝 a),
+  assume hs : (∀f, is_ultrafilter f → f ≤ 𝓟 s → ∃a∈s, f ≤ 𝓝 a),
   assume f hf hfs,
   let ⟨a, ha, (h : ultrafilter_of f ≤ 𝓝 a)⟩ :=
     hs (ultrafilter_of f) (ultrafilter_ultrafilter_of hf) (le_trans ultrafilter_of_le hfs) in
@@ -97,7 +97,7 @@ classical.by_contradiction $ assume h,
   have h : ∀ t : finset ι, ¬ s ⊆ ⋃ i ∈ t, U i,
     from assume t ht, h ⟨t, ht⟩,
   let
-    f : filter α := (⨅t:finset ι, principal (s - ⋃ i ∈ t, U i)),
+    f : filter α := (⨅t:finset ι, 𝓟 (s - ⋃ i ∈ t, U i)),
     ⟨a, ha⟩ := (@ne_empty_iff_nonempty α s).1 (assume h', h ∅ $ h'.symm ▸ empty_subset _)
   in
   have f ≠ ⊥, from infi_ne_bot_of_directed ⟨a⟩
@@ -106,19 +106,19 @@ classical.by_contradiction $ assume h,
       bUnion_subset_bUnion_left $ finset.subset_union_left _ _,
     principal_mono.mpr $ diff_subset_diff_right $
       bUnion_subset_bUnion_left $ finset.subset_union_right _ _⟩)
-   (assume t, show principal (s \ _) ≠ ⊥,
+   (assume t, show 𝓟 (s \ _) ≠ ⊥,
      by simp only [ne.def, principal_eq_bot_iff, diff_eq_empty]; exact h _),
-  have f ≤ principal s, from infi_le_of_le ∅ $
-    show principal (s \ _) ≤ principal s, from le_principal_iff.2 (diff_subset _ _),
+  have f ≤ 𝓟 s, from infi_le_of_le ∅ $
+    show 𝓟 (s \ _) ≤ 𝓟 s, from le_principal_iff.2 (diff_subset _ _),
   let
     ⟨a, ha, (h : f ⊓ 𝓝 a ≠ ⊥)⟩ := hs f ‹f ≠ ⊥› this,
     ⟨_, ⟨i, rfl⟩, (ha : a ∈ U i)⟩ := hsU ha
   in
-  have f ≤ principal (- U i),
+  have f ≤ 𝓟 (- U i),
     from infi_le_of_le {i} $ principal_mono.mpr $ show s - _ ⊆ - U i, by simp [diff_subset_iff],
   have is_closed (- U i), from is_open_compl_iff.mp $ by rw compl_compl; exact hUo i,
   have a ∈ - U i, from is_closed_iff_nhds.mp this _ $ ne_bot_of_le_ne_bot h $
-    le_inf inf_le_right (inf_le_left_of_le ‹f ≤ principal (- U i)›),
+    le_inf inf_le_right (inf_le_left_of_le ‹f ≤ 𝓟 (- U i)›),
   this ‹a ∈ U i›
 
 /-- For every family of closed sets whose intersection avoids a compact set,
@@ -208,11 +208,11 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ 𝓝
     from assume ⟨x, hxs, hx⟩,
     have ∅ ∈ 𝓝 x ⊓ f, by rw [empty_in_sets_eq_bot, hf x hxs],
     let ⟨t₁, ht₁, t₂, ht₂, ht⟩ := by rw [mem_inf_sets] at this; exact this in
-    have ∅ ∈ 𝓝 x ⊓ principal t₂,
-      from (𝓝 x ⊓ principal t₂).sets_of_superset (inter_mem_inf_sets ht₁ (subset.refl t₂)) ht,
-    have 𝓝 x ⊓ principal t₂ = ⊥,
+    have ∅ ∈ 𝓝 x ⊓ 𝓟 t₂,
+      from (𝓝 x ⊓ 𝓟 t₂).sets_of_superset (inter_mem_inf_sets ht₁ (subset.refl t₂)) ht,
+    have 𝓝 x ⊓ 𝓟 t₂ = ⊥,
       by rwa [empty_in_sets_eq_bot] at this,
-    by simp only [closure_eq_nhds] at hx; exact hx t₂ ht₂ this,
+    by simp only [closure_eq_cluster_pts] at hx; exact hx t₂ ht₂ this,
   let ⟨t, ht⟩ := h (λ i : f.sets, closure i.1) (λ i, is_closed_closure)
     (by simpa [eq_empty_iff_forall_not_mem, not_exists]) in
   have (⋂i∈t, subtype.val i) ∈ f,
@@ -393,9 +393,9 @@ lemma compact.image_of_continuous_on {s : set α} {f : α → β} (hs : compact 
   (hf : continuous_on f s) : compact (f '' s) :=
 begin
   intros l lne ls,
-  have ne_bot : l.comap f ⊓ principal s ≠ ⊥,
+  have ne_bot : l.comap f ⊓ 𝓟 s ≠ ⊥,
     from comap_inf_principal_ne_bot_of_image_mem lne (le_principal_iff.1 ls),
-  rcases hs (l.comap f ⊓ principal s) ne_bot inf_le_right with ⟨a, has, ha⟩,
+  rcases hs (l.comap f ⊓ 𝓟 s) ne_bot inf_le_right with ⟨a, has, ha⟩,
   use [f a, mem_image_of_mem f has],
   rw [inf_assoc, @inf_comm _ _ _ (𝓝 a)] at ha,
   exact ne_bot_of_le_ne_bot (@@map_ne_bot f ha) (tendsto_comap.inf $ hf a has)
@@ -433,7 +433,7 @@ begin
     from cluster_point_of_compact this,
   refine ⟨⟨x, y⟩, _, by simp [πY]⟩,
   apply hC,
-  rw ← filter.map_ne_bot_iff πX,
+  rw [cluster_pt, ← filter.map_ne_bot_iff πX],
   calc map πX (𝓝 (x, y) ⊓ 𝓟 C)
       = map πX (comap πX (𝓝 x) ⊓ comap πY (𝓝 y) ⊓ 𝓟 C) : by rw [nhds_prod_eq, filter.prod]
   ... = map πX (comap πY (𝓝 y) ⊓ 𝓟 C ⊓ comap πX (𝓝 x)) : by ac_refl
@@ -447,7 +447,7 @@ iff.intro (assume h, h.image hf.continuous) $ assume h, begin
   rw compact_iff_ultrafilter_le_nhds at ⊢ h,
   intros u hu us',
   let u' : filter β := map f u,
-  have : u' ≤ principal (f '' s), begin
+  have : u' ≤ 𝓟 (f '' s), begin
     rw [map_le_iff_le_comap, comap_principal], convert us',
     exact preimage_image_eq _ hf.inj
   end,

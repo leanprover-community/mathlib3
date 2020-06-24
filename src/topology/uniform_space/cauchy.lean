@@ -12,10 +12,9 @@ import data.set.intervals
 universes u v
 
 open filter topological_space set classical uniform_space
-open_locale classical
-variables {α : Type u} {β : Type v} [uniform_space α]
+open_locale classical uniformity topological_space filter
 
-open_locale uniformity topological_space
+variables {α : Type u} {β : Type v} [uniform_space α]
 
 /-- A filter `f` is Cauchy if for every entourage `r`, there exists an
   `s ∈ f` such that `s × s ⊆ r`. This is a generalization of Cauchy
@@ -25,7 +24,7 @@ def cauchy (f : filter α) := f ≠ ⊥ ∧ filter.prod f f ≤ (𝓤 α)
 
 /-- A set `s` is called *complete*, if any Cauchy filter `f` such that `s ∈ f`
 has a limit in `s` (formally, it satisfies `f ≤ 𝓝 x` for some `x ∈ s`). -/
-def is_complete (s : set α) := ∀f, cauchy f → f ≤ principal s → ∃x∈s, f ≤ 𝓝 x
+def is_complete (s : set α) := ∀f, cauchy f → f ≤ 𝓟 s → ∃x∈s, f ≤ 𝓝 x
 
 lemma filter.has_basis.cauchy_iff {p : β → Prop} {s : β → set (α × α)} (h : (𝓤 α).has_basis p s)
   {f : filter α} :
@@ -341,7 +340,7 @@ let ⟨c, hfc, hct⟩ := hs _ this in
   end⟩
 
 lemma cauchy_of_totally_bounded_of_ultrafilter {s : set α} {f : filter α}
-  (hs : totally_bounded s) (hf : is_ultrafilter f) (h : f ≤ principal s) : cauchy f :=
+  (hs : totally_bounded s) (hf : is_ultrafilter f) (h : f ≤ 𝓟 s) : cauchy f :=
 ⟨hf.left, assume t ht,
   let ⟨t', ht'₁, ht'_symm, ht'_t⟩ := comp_symm_of_uniformity ht in
   let ⟨i, hi, hs_union⟩ := hs t' ht'₁ in
@@ -356,18 +355,18 @@ lemma cauchy_of_totally_bounded_of_ultrafilter {s : set α} {f : filter α}
   (filter.prod f f).sets_of_superset (prod_mem_prod hif hif) (subset.trans this ht'_t)⟩
 
 lemma totally_bounded_iff_filter {s : set α} :
-  totally_bounded s ↔ (∀f, f ≠ ⊥ → f ≤ principal s → ∃c ≤ f, cauchy c) :=
+  totally_bounded s ↔ (∀f, f ≠ ⊥ → f ≤ 𝓟 s → ∃c ≤ f, cauchy c) :=
 ⟨assume : totally_bounded s, assume f hf hs,
   ⟨ultrafilter_of f, ultrafilter_of_le,
     cauchy_of_totally_bounded_of_ultrafilter this
       (ultrafilter_ultrafilter_of hf) (le_trans ultrafilter_of_le hs)⟩,
 
-  assume h : ∀f, f ≠ ⊥ → f ≤ principal s → ∃c ≤ f, cauchy c, assume d hd,
+  assume h : ∀f, f ≠ ⊥ → f ≤ 𝓟 s → ∃c ≤ f, cauchy c, assume d hd,
   classical.by_contradiction $ assume hs,
   have hd_cover : ∀{t:set α}, finite t → ¬ s ⊆ (⋃y∈t, {x | (x,y) ∈ d}),
     by simpa using hs,
   let
-    f := ⨅t:{t : set α // finite t}, principal (s \ (⋃y∈t.val, {x | (x,y) ∈ d})),
+    f := ⨅t:{t : set α // finite t}, 𝓟 (s \ (⋃y∈t.val, {x | (x,y) ∈ d})),
     ⟨a, ha⟩ := (@ne_empty_iff_nonempty α s).1
       (assume h, hd_cover finite_empty $ h.symm ▸ empty_subset _)
   in
@@ -379,12 +378,12 @@ lemma totally_bounded_iff_filter {s : set α} :
         principal_mono.mpr $ diff_subset_diff_right $ Union_subset_Union $
           assume t, Union_subset_Union_const or.inr⟩)
       (assume ⟨t, ht⟩, by simp [diff_eq_empty]; exact hd_cover ht),
-  have f ≤ principal s, from infi_le_of_le ⟨∅, finite_empty⟩ $ by simp; exact subset.refl s,
+  have f ≤ 𝓟 s, from infi_le_of_le ⟨∅, finite_empty⟩ $ by simp; exact subset.refl s,
   let
     ⟨c, (hc₁ : c ≤ f), (hc₂ : cauchy c)⟩ := h f ‹f ≠ ⊥› this,
     ⟨m, hm, (hmd : set.prod m m ⊆ d)⟩ := (@mem_prod_same_iff α c d).mp $ hc₂.right hd
   in
-  have c ≤ principal s, from le_trans ‹c ≤ f› this,
+  have c ≤ 𝓟 s, from le_trans ‹c ≤ f› this,
   have m ∩ s ∈ c.sets, from inter_mem_sets hm $ le_principal_iff.mp this,
   let ⟨y, hym, hys⟩ := nonempty_of_mem_sets hc₂.left this in
   let ys := (⋃y'∈({y}:set α), {x | (x, y') ∈ d}) in
@@ -392,7 +391,7 @@ lemma totally_bounded_iff_filter {s : set α} :
     from assume y' hy',
       show  y' ∈ (⋃y'∈({y}:set α), {x | (x, y') ∈ d}),
         by simp; exact @hmd (y', y) ⟨hy', hym⟩,
-  have c ≤ principal (s - ys),
+  have c ≤ 𝓟 (s - ys),
     from le_trans hc₁ $ infi_le_of_le ⟨{y}, finite_singleton _⟩ $ le_refl _,
   have (s - ys) ∩ (m ∩ s) ∈ c.sets,
     from inter_mem_sets (le_principal_iff.mp this) ‹m ∩ s ∈ c.sets›,
@@ -401,7 +400,7 @@ lemma totally_bounded_iff_filter {s : set α} :
   hc₂.left $ empty_in_sets_eq_bot.mp this⟩
 
 lemma totally_bounded_iff_ultrafilter {s : set α} :
-  totally_bounded s ↔ (∀f, is_ultrafilter f → f ≤ principal s → cauchy f) :=
+  totally_bounded s ↔ (∀f, is_ultrafilter f → f ≤ 𝓟 s → cauchy f) :=
 ⟨assume hs f, cauchy_of_totally_bounded_of_ultrafilter hs,
   assume h, totally_bounded_iff_filter.mpr $ assume f hf hfs,
   have cauchy (ultrafilter_of f),

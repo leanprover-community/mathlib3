@@ -1142,7 +1142,7 @@ end fraction_map
 
 namespace integral_closure
 
-variables {L : Type*} [field K] [field L] {f : fraction_map A K}
+variables {L : Type*} [field K] [field L] (f : fraction_map A K)
 
 open algebra
 
@@ -1160,6 +1160,8 @@ def fraction_map_of_algebraic [algebra A L] (alg : is_algebraic A L)
   (λ x y, ⟨ λ (h : x.1 = y.1), ⟨1, by simpa using subtype.ext_iff_val.mpr h⟩,
             λ ⟨c, hc⟩, congr_arg (algebra_map _ L)
               (mul_right_cancel' (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc) ⟩)
+
+variables {K} (L)
 
 /-- If the field `L` is a finite extension of the fraction field of the integral domain `A`,
 the integral closure of `A` in `L` has fraction field `L`. -/

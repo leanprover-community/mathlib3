@@ -1116,7 +1116,7 @@ begin
   exact (λ _, le_refl _),
   assume a s ha ih h,
   have : f a + (∑ x in s, f x) ≤ g a + (∑ x in s, g x),
-    from add_le_add' (h _ (mem_insert_self _ _)) (ih $ assume x hx, h _ $ mem_insert_of_mem hx),
+    from add_le_add (h _ (mem_insert_self _ _)) (ih $ assume x hx, h _ $ mem_insert_of_mem hx),
   by simpa only [sum_insert ha]
 end
 

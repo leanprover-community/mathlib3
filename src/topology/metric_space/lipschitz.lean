@@ -144,7 +144,7 @@ begin
   rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
   simp only [function.uncurry, ennreal.coe_add, add_mul],
   apply le_trans (edist_triangle _ (f a₂ b₁) _),
-  exact add_le_add' (le_trans (hα _ _ _) $ ennreal.mul_left_mono $ le_max_left _ _)
+  exact add_le_add (le_trans (hα _ _ _) $ ennreal.mul_left_mono $ le_max_left _ _)
     (le_trans (hβ _ _ _) $ ennreal.mul_left_mono $ le_max_right _ _)
 end
 

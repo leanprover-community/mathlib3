@@ -90,7 +90,7 @@ by rcases q with ⟨_|_,_|_⟩; simp [H, D1, D2]
 
 end Q3
 
-/-- Puzzles 4-7 from the same book:
+/-! Puzzles 4-7 from the same book:
     "The Lady or the Tiger? And Other Logic Puzzles"
         by Raymond Smullyan.
 Solutions written by D. Stanescu in the same framework as above. 

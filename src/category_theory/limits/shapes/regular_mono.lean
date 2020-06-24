@@ -62,7 +62,12 @@ def regular_mono.lift' {W : C} (f : X ⟶ Y) [regular_mono f] (k : W ⟶ Y)
   {l : W ⟶ X // l ≫ f = k} :=
 fork.is_limit.lift' regular_mono.is_limit _ h
 
-/-- If `h` is a regular mono and `g` is a pullback of `h`, then `g` is a regular mono. -/
+/--
+The second leg of a pullback cone is a regular monomorphism if the right component is too.
+
+See also `pullback.snd_of_mono` for the basic monomorphism version, and
+`regular_of_is_pullback_fst_of_regular` for the flipped version.
+-/
 def regular_of_is_pullback_snd_of_regular {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
   [hr : regular_mono h] (comm : f ≫ h = g ≫ k) (t : is_limit (pullback_cone.mk _ _ comm)) :
 regular_mono g :=
@@ -87,7 +92,12 @@ regular_mono g :=
     { exact z },
   end }
 
-/-- If `k` is a regular mono and `f` is a pullback of `k`, then `f` is a regular mono. -/
+/--
+The first leg of a pullback cone is a regular monomorphism if the left component is too.
+
+See also `pullback.fst_of_mono` for the basic monomorphism version, and
+`regular_of_is_pullback_snd_of_regular` for the flipped version.
+-/
 def regular_of_is_pullback_fst_of_regular {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
   [hr : regular_mono k] (comm : f ≫ h = g ≫ k) (t : is_limit (pullback_cone.mk _ _ comm)) :
 regular_mono f :=
@@ -120,7 +130,12 @@ def normal_mono.lift' {W : C} (f : X ⟶ Y) [normal_mono f] (k : W ⟶ Y) (h : k
   {l : W ⟶ X // l ≫ f = k} :=
 kernel_fork.is_limit.lift' normal_mono.is_limit _ h
 
-/-- If `h` is a normal mono and `g` is a pullback of `g`, then `g` is a normal mono. -/
+/--
+The second leg of a pullback cone is a normal monomorphism if the right component is too.
+
+See also `pullback.snd_of_mono` for the basic monomorphism version, and
+`normal_of_is_pullback_fst_of_normal` for the flipped version.
+-/
 def normal_of_is_pullback_snd_of_normal {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
   [hn : normal_mono h] (comm : f ≫ h = g ≫ k) (t : is_limit (pullback_cone.mk _ _ comm)) :
 normal_mono g :=
@@ -136,7 +151,12 @@ normal_mono g :=
     congr, exact q, exact q, exact q, apply proof_irrel_heq,
   end }
 
-/-- If `k` is a normal mono and `f` is a pullback of `k`, then `f` is a normal mono. -/
+/--
+The first leg of a pullback cone is a normal monomorphism if the left component is too.
+
+See also `pullback.fst_of_mono` for the basic monomorphism version, and
+`normal_of_is_pullback_snd_of_normal` for the flipped version.
+-/
 def normal_of_is_pullback_fst_of_normal {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
   [hn : normal_mono k] (comm : f ≫ h = g ≫ k) (t : is_limit (pullback_cone.mk _ _ comm)) :
 normal_mono f :=
@@ -173,7 +193,12 @@ def regular_epi.desc' {W : C} (f : X ⟶ Y) [regular_epi f] (k : X ⟶ W)
   {l : Y ⟶ W // f ≫ l = k} :=
 cofork.is_colimit.desc' (regular_epi.is_colimit) _ h
 
-/-- If `g` is a regular epi and `h` is a pushout of `g`, then `h` is a regular epi. -/
+/--
+The second leg of a pushout cocone is a regular epimorphism if the right component is too.
+
+See also `pushout.snd_of_epi` for the basic epimorphism version, and
+`regular_of_is_pushout_fst_of_regular` for the flipped version.
+-/
 def regular_of_is_pushout_snd_of_regular {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
   [gr : regular_epi g] (comm : f ≫ h = g ≫ k) (t : is_colimit (pushout_cocone.mk _ _ comm)) :
 regular_epi h :=
@@ -198,7 +223,12 @@ regular_epi h :=
     { erw [← cancel_epi g, ← reassoc_of comm, ← reassoc_of comm, z], refl },
   end }
 
-/-- If `f` is a regular epi and `k` is a pushout of `f`, then `k` is a regular epi. -/
+/--
+The first leg of a pushout cocone is a regular epimorphism if the left component is too.
+
+See also `pushout.fst_of_epi` for the basic epimorphism version, and
+`regular_of_is_pushout_snd_of_regular` for the flipped version.
+-/
 def regular_of_is_pushout_fst_of_regular {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
   [fr : regular_epi f] (comm : f ≫ h = g ≫ k) (t : is_colimit (pushout_cocone.mk _ _ comm)) :
 regular_epi k :=
@@ -245,7 +275,12 @@ def normal_epi.desc' {W : C} (f : X ⟶ Y) [normal_epi f] (k : X ⟶ W) (h : nor
   {l : Y ⟶ W // f ≫ l = k} :=
 cokernel_cofork.is_colimit.desc' (normal_epi.is_colimit) _ h
 
-/-- If `h` is a normal epi and `g` is a pushout of `g`, then `g` is a normal epi. -/
+/--
+The second leg of a pushout cocone is a normal epimorphism if the right component is too.
+
+See also `pushout.snd_of_epi` for the basic epimorphism version, and
+`normal_of_is_pushout_fst_of_normal` for the flipped version.
+-/
 def normal_of_is_pushout_snd_of_normal {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
   [gn : normal_epi g] (comm : f ≫ h = g ≫ k) (t : is_colimit (pushout_cocone.mk _ _ comm)) :
 normal_epi h :=
@@ -261,7 +296,12 @@ normal_epi h :=
     congr, exact q, exact q, exact q, apply proof_irrel_heq,
   end }
 
-/-- If `k` is a normal epi and `f` is a pullback of `k`, then `f` is a normal epi. -/
+/--
+The first leg of a pushout cocone is a normal epimorphism if the left component is too.
+
+See also `pushout.fst_of_epi` for the basic epimorphism version, and
+`normal_of_is_pushout_snd_of_normal` for the flipped version.
+-/
 def normal_of_is_pushout_fst_of_normal {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
   [hn : normal_epi f] (comm : f ≫ h = g ≫ k) (t : is_colimit (pushout_cocone.mk _ _ comm)) :
 normal_epi k :=

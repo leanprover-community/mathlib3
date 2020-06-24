@@ -194,18 +194,3 @@ meta instance {data : Type} : inhabited (name_map data) :=
 ⟨mk_name_map⟩
 
 end name_map
-
-/-! ### Declarations about `expr_map` -/
-
-namespace expr_map
-
-/--
-`find_defeq red m e` looks for a key in `m` that is defeq to `e` (up to transparency `red`),
-and returns the value associated with this key if it exists.
-Otherwise, it fails.
--/
-meta def find_defeq (red : tactic.transparency) {v} (m : expr_map v) (e : expr) :
-  tactic v :=
-prod.snd <$> list.mfind (λ p, tactic.is_def_eq e p.1 red) m.to_list
-
-end expr_map

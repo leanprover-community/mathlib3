@@ -71,6 +71,8 @@ mk_rb_map.insert (mk_rb_map.insert n 1) 1
 
 /-! ### Parsing algorithms -/
 
+local notation `exmap` := list (expr × ℕ)
+
 /--
 `linear_form_of_expr red map e` computes the linear form of `e`.
 
@@ -81,7 +83,7 @@ It matches atomic expressions up to reducibility given by `red`.
 Because it matches up to definitional equality, this function must be in the `tactic` monad,
 and forces some functions that call it into `tactic` as well.
 -/
-meta def linear_form_of_expr (red : transparency) : expr_map ℕ → expr → tactic (expr_map ℕ × sum)
+meta def linear_form_of_expr (red : transparency) : exmap → expr → tactic (exmap × sum)
 | m e@`(%%e1 * %%e2) :=
    do (m', comp1) ← linear_form_of_expr m e1,
       (m', comp2) ← linear_form_of_expr m' e2,
@@ -100,16 +102,9 @@ meta def linear_form_of_expr (red : transparency) : expr_map ℕ → expr → ta
   | some 0 := return ⟨m, mk_rb_map⟩
   | some z := return ⟨m, scalar z⟩
   | none :=
-    (do k ← m.find_defeq red e, return (m, var k)) <|>
-    (let n := m.size + 1 in return (m.insert e n, var n))
+    (do (_, k) ← m.find_defeq red e, return (m, var k)) <|>
+    (let n := m.length + 1 in return ((e, n)::m, var n))
   end
-
-/-- `linear_form_of_exprs red l` folds `linear_form_of_expr red` over `l`. -/
-meta def linear_forms_of_exprs (red : transparency) (l : list expr) :
-  tactic (expr_map ℕ × list sum) :=
-l.mfoldl
-  (λ ⟨map, ls⟩ e, do (map, se) ← linear_form_of_expr red map e, return (map, se::ls))
-  (mk_rb_map, [])
 
 /--
 `sum_to_lf s map` eliminates the monomial level of the `sum` `s`.
@@ -133,19 +128,19 @@ into a `comp` object.
 `e_map` maps atomic expressions to indices; `monom_map` maps monomials to indices.
 Both of these are updated during processing and returned.
 -/
-meta def to_comp (red : transparency) (e : expr) (e_map : expr_map ℕ) (monom_map : rb_map monom ℕ) :
-  tactic (comp × expr_map ℕ × rb_map monom ℕ) :=
+meta def to_comp (red : transparency) (e : expr) (e_map : exmap) (monom_map : rb_map monom ℕ) :
+  tactic (comp × exmap × rb_map monom ℕ) :=
 do (iq, e) ← parse_into_comp_and_expr e,
    (m', comp') ← linear_form_of_expr red e_map e,
    let ⟨nm, mm'⟩ := sum_to_lf comp' monom_map,
-   return ⟨⟨iq, mm'.to_list⟩,m',nm⟩
+   return ⟨⟨iq, mm'.to_list⟩, m', nm⟩
 
 /--
 `to_comp_fold red e_map exprs monom_map` folds `to_comp` over `exprs`,
 updating `e_map` and `monom_map` as it goes.
  -/
-meta def to_comp_fold (red : transparency) : expr_map ℕ → list expr → rb_map monom ℕ →
-      tactic (list comp × expr_map ℕ × rb_map monom ℕ)
+meta def to_comp_fold (red : transparency) : exmap → list expr → rb_map monom ℕ →
+      tactic (list comp × exmap × rb_map monom ℕ)
 | m [] mm := return ([], m, mm)
 | m (h::t) mm :=
   do (c, m', mm') ← to_comp red h m mm,
@@ -162,7 +157,7 @@ It also returns the largest variable index that appears in comparisons in `c`.
 meta def linear_forms_and_max_var (red : transparency) (pfs : list expr) :
   tactic (list comp × ℕ) :=
 do pftps ← pfs.mmap infer_type,
-   (l, _, map) ← to_comp_fold red mk_rb_map pftps mk_rb_map,
+   (l, _, map) ← to_comp_fold red [] pftps mk_rb_map,
    return (l, map.size - 1)
 
 

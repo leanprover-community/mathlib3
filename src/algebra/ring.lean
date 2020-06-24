@@ -793,13 +793,13 @@ by rw [← sub_eq_zero, ← mul_sub_left_distrib, mul_eq_zero];
 
 /-- An element of a domain fixed by right multiplication by an element other than one must
   be zero. -/
-theorem eq_zero_of_mul_eq_self_right' {a b : α} (h₁ : b ≠ 1) (h₂ : a * b = a) : a = 0 :=
+theorem eq_zero_of_mul_eq_self_right {a b : α} (h₁ : b ≠ 1) (h₂ : a * b = a) : a = 0 :=
 by apply (mul_eq_zero.1 _).resolve_right (sub_ne_zero.2 h₁);
     rw [mul_sub_left_distrib, mul_one, sub_eq_zero, h₂]
 
 /-- An element of a domain fixed by left multiplication by an element other than one must
   be zero. -/
-theorem eq_zero_of_mul_eq_self_left' {a b : α} (h₁ : b ≠ 1) (h₂ : b * a = a) : a = 0 :=
+theorem eq_zero_of_mul_eq_self_left {a b : α} (h₁ : b ≠ 1) (h₂ : b * a = a) : a = 0 :=
 by apply (mul_eq_zero.1 _).resolve_left (sub_ne_zero.2 h₁);
     rw [mul_sub_right_distrib, one_mul, sub_eq_zero, h₂]
 
@@ -813,34 +813,11 @@ class integral_domain (α : Type u) extends comm_ring α, domain α
 section integral_domain
 variables [integral_domain α] {a b c d e : α}
 
-lemma mul_eq_zero_iff_eq_zero_or_eq_zero : a * b = 0 ↔ a = 0 ∨ b = 0 :=
-⟨eq_zero_or_eq_zero_of_mul_eq_zero, λo,
-  or.elim o (λh, by rw h; apply zero_mul) (λh, by rw h; apply mul_zero)⟩
-
 lemma eq_of_mul_eq_mul_right (ha : a ≠ 0) (h : b * a = c * a) : b = c :=
-have b * a - c * a = 0, from sub_eq_zero_of_eq h,
-have (b - c) * a = 0,   by rw [mul_sub_right_distrib, this],
-have b - c = 0,         from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_right ha,
-eq_of_sub_eq_zero this
+(domain.mul_left_inj ha).1 h
 
 lemma eq_of_mul_eq_mul_left (ha : a ≠ 0) (h : a * b = a * c) : b = c :=
-have a * b - a * c = 0, from sub_eq_zero_of_eq h,
-have a * (b - c) = 0,   by rw [mul_sub_left_distrib, this],
-have b - c = 0,         from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_left ha,
-eq_of_sub_eq_zero this
-
-lemma eq_zero_of_mul_eq_self_right (h₁ : b ≠ 1) (h₂ : a * b = a) : a = 0 :=
-have hb : b - 1 ≠ 0, from
-  assume : b - 1 = 0,
-  have b = 0 + 1, from eq_add_of_sub_eq this,
-  have b = 1,     by rwa zero_add at this,
-  h₁ this,
-have a * b - a = 0,   by simp [h₂],
-have a * (b - 1) = 0, by rwa [mul_sub_left_distrib, mul_one],
-  show a = 0, from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_right hb
-
-lemma eq_zero_of_mul_eq_self_left (h₁ : b ≠ 1) (h₂ : b * a = a) : a = 0 :=
-eq_zero_of_mul_eq_self_right h₁ (by rwa mul_comm at h₂)
+(domain.mul_right_inj ha).1 h
 
 lemma mul_self_eq_mul_self_iff (a b : α) : a * a = b * b ↔ a = b ∨ a = -b :=
 iff.intro
@@ -861,17 +838,11 @@ by rwa mul_one at this
 
 /-- Right multiplcation by a nonzero element of an integral domain is injective. -/
 theorem eq_of_mul_eq_mul_right_of_ne_zero (ha : a ≠ 0) (h : b * a = c * a) : b = c :=
-have b * a - c * a = 0, by simp [h],
-have (b - c) * a = 0, by rw [mul_sub_right_distrib, this],
-have b - c = 0, from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_right ha,
-eq_of_sub_eq_zero this
+eq_of_mul_eq_mul_right ha h
 
 /-- Left multiplication by a nonzero element of an integral domain is injective. -/
 theorem eq_of_mul_eq_mul_left_of_ne_zero (ha : a ≠ 0) (h : a * b = a * c) : b = c :=
-have a * b - a * c = 0, by simp [h],
-have a * (b - c) = 0, by rw [mul_sub_left_distrib, this],
-have b - c = 0, from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_left ha,
-eq_of_sub_eq_zero this
+eq_of_mul_eq_mul_left ha h
 
 /-- Given two elements b, c of an integral domain and a nonzero element a, a*b divides a*c iff
   b divides c. -/

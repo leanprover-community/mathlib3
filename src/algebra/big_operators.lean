@@ -1098,7 +1098,7 @@ begin
   apply finset.induction_on s,
   exact ⟨not.elim one_ne_zero, λ ⟨_, H, _⟩, H.elim⟩,
   assume a s ha ih,
-  rw [prod_insert ha, mul_eq_zero_iff_eq_zero_or_eq_zero, bex_def, exists_mem_insert, ih, ← bex_def]
+  rw [prod_insert ha, mul_eq_zero, bex_def, exists_mem_insert, ih, ← bex_def]
 end
 
 theorem prod_ne_zero_iff : (∏ x in s, f x) ≠ 0 ↔ (∀ a ∈ s, f a ≠ 0) :=

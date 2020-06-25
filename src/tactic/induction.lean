@@ -827,10 +827,13 @@ meta def ih_intros (iinfo : inductive_info)
   | ns := ns.mmap (λ ih, intro_fresh [ih] reserved_names)
   end
 
-meta def constructor_intros (einfo : eliminee_info) (iinfo : inductive_info)
+meta def constructor_intros (generate_induction_hyps : bool)
+  (einfo : eliminee_info) (iinfo : inductive_info)
   (cinfo : constructor_info) (reserved_names : name_set) : tactic (list expr) := do
   args ← constructor_argument_intros einfo iinfo cinfo reserved_names,
-  ih_intros iinfo args reserved_names
+  if generate_induction_hyps
+    then ih_intros iinfo args reserved_names
+    else pure []
 
 meta def match_structure_equation (t : expr)
   : tactic (option (list level × list expr × list name × level × expr × expr × expr)) :=
@@ -1267,7 +1270,8 @@ meta def revert_all_except (hyp_unique_names : name_set) : tactic ℕ := do
   let ctx := ctx.filter (λ h, ¬ hyp_unique_names.contains h.local_uniq_name),
   revert_lst ctx
 
-meta def induction'' (eliminee_name : name) (fix : list name) : tactic unit :=
+meta def eliminate (eliminee_name : name) (generate_induction_hyps : bool)
+  (fixed : list name := []) : tactic unit :=
 focus1 $ do
   einfo ← get_eliminee_info eliminee_name,
   let eliminee := einfo.eexpr,
@@ -1291,7 +1295,9 @@ focus1 $ do
 
   -- Generalise all generalisable hypotheses except those mentioned in a "fixing"
   -- clause.
-  fix_exprs ← fix.mmap get_local,
+  -- TODO This is only needed in 'induction' mode, though it doesn't do any harm
+  -- in 'cases' mode.
+  fix_exprs ← fixed.mmap get_local,
   ⟨num_generalized, generalized_hyps⟩ ←
     generalize_hyps eliminee fix_exprs,
   let generalized_names :=
@@ -1308,8 +1314,10 @@ focus1 $ do
 
   -- Apply the recursor. We first try the nondependent recursor, then the
   -- dependent recursor (if available).
-  rec ← mk_const $ iname ++ "rec_on",
-  drec ← try_core $ mk_const $ iname ++ "drec_on",
+  let rec_suffix := if generate_induction_hyps then "rec_on" else "cases_on",
+  let drec_suffix := if generate_induction_hyps then "drec_on" else "dcases_on",
+  rec ← mk_const $ iname ++ rec_suffix,
+  drec ← try_core $ mk_const $ iname ++ drec_suffix,
   interactive.apply ``(%%rec %%eliminee)
     <|> (do drec ← drec, interactive.apply ``(%%drec %%eliminee))
     <|> fail! "Failed to apply the (dependent) recursor for {iname}.",
@@ -1347,7 +1355,8 @@ focus1 $ do
       -- the old hyps).
 
       -- Introduce the constructor arguments
-      ihs ← constructor_intros einfo iinfo cinfo generalized_names,
+      ihs ← constructor_intros generate_induction_hyps einfo iinfo cinfo
+              generalized_names,
       let ihs := ihs.map expr.local_pp_name,
 
       -- Introduce any hypotheses we've previously generalised
@@ -1370,10 +1379,8 @@ focus1 $ do
       -- Return the constructor name and the new hypotheses.
       -- (The previously generalised hypotheses don't count as new.)
       new_hyps ← hyps_except old_hyps,
-      let generalized_hyps :=
-        name_set.of_list $ generalized_hyps.map expr.local_pp_name,
       let new_hyps :=
-        new_hyps.filter (λ h, ¬ generalized_hyps.contains h.local_pp_name),
+        new_hyps.filter (λ h, ¬ generalized_names.contains h.local_pp_name),
       pure $ some (cinfo.cname, new_hyps)
     },
 
@@ -1390,10 +1397,11 @@ open interactive lean.parser
 
 precedence `fixing`:0
 
-meta def induction'
-  (hyp : parse ident)
-  (fix : parse (optional (tk "fixing" *> many ident)))
-  : tactic unit :=
-  tactic.induction'' hyp (fix.get_or_else [])
+meta def induction' (hyp : parse ident)
+  (fixed : parse (optional (tk "fixing" *> many ident))) : tactic unit :=
+tactic.eliminate hyp tt (fixed.get_or_else [])
+
+meta def cases' (hyp : parse ident) : tactic unit :=
+tactic.eliminate hyp ff []
 
 end tactic.interactive

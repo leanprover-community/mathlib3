@@ -92,7 +92,7 @@ example {α n m} {xs : Vec α n} {ys : Vec α m} (h : Vec.eq n m xs ys) : n = m 
 begin
   induction' h,
   case nil {
-    reflexivity
+    refl
   },
   case cons {
     exact congr_arg nat.succ ih,
@@ -117,11 +117,28 @@ begin
   exact h
 end
 
+-- It also works with cases'.
+example {α : Sort u} {x y n m} {xs : Vec α n} {ys : Vec α m}
+  : Vec.eq (n + 1) (m + 1) (Vec.cons x xs) (Vec.cons y ys)
+  → Vec.eq n m xs ys :=
+begin
+  intro h,
+  cases' h,
+  exact h
+end
+
 -- This example requires elimination of cyclic generalised index equations.
 example (n : ℕ) (h : n = n + 3) : false :=
 begin
   success_if_fail { cases h },
-  induction' h,
+  induction' h
+end
+
+-- It also works with cases'.
+example (n : ℕ) (h : n = n + 3) : false :=
+begin
+  success_if_fail { cases h },
+  cases' h
 end
 
 -- This example tests type-based naming.

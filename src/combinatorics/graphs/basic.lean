@@ -7,6 +7,7 @@ Author: Kyle Miller.
 --import data.equiv.basic
 --import combinatorics.graphs.sym2
 --import combinatorics.graphs.multigraphs
+import data.fintype.basic
 import order.bounded_lattice
 import tactic
 open function (hiding graph)
@@ -50,10 +51,11 @@ end links
 
 
 -- This is the type for multigraphs with vertex and edge sets that are
--- drawn from some given types.
+-- drawn from some given types.  Exposing the types lets you more
+-- easily have labeled vertex and edge sets.
 --
--- If you want to deal with graphs all with the same vertex then you
--- might want to use subgraphs of a complete graph.
+-- If you want to deal with graphs all with the same vertex type then
+-- you might want to use subgraphs of some fixed multigraph.
 --
 -- The links field carries the edges and attaches them to the
 -- vertices.  For non-loop edges, they come in pairs and represent the
@@ -78,10 +80,6 @@ begin
   rw ←xdest,
   exact g.link_src ⟨x.rev, g.link_rev ⟨x, xel, rfl⟩, rfl⟩,
 end
-
-
---instance (g : multigraph V) [fintype g.links] : fintype V := sorry
---instance (g : multigraph V) [fintype g.links] : fintype g.E := sorry
 
 namespace multigraph
 variables {α : Type u} {β : Type v} {v w : α}
@@ -306,7 +304,49 @@ end subgraph_lattice
 
 end subgraphs
 
+namespace multigraph
+variables {α : Type u} {β : Type v}
+
+instance link.fintype [fintype α] [fintype β] : fintype (link α β) :=
+begin
+  have equiv : link α β ≃ α × β × α, {
+    use λ x, ⟨x.src, x.via, x.dest⟩,
+    use λ z, ⟨z.1, z.2.1, z.2.2⟩,
+    rintro ⟨s, v, d⟩, simp,
+    rintro ⟨s, v, d⟩, simp,
+  },
+  exact fintype.of_equiv _ equiv.symm,
+end
+
+-- superfluous
+instance fintype.links_from_α_and_β (g : multigraph α β) [fintype α] [fintype β] [decidable_pred g.links] : fintype g.links :=
+begin
+  apply_instance,
+end
+
+-- TODO not sure if this is possible
+-- instance fintype.links_from_verts_and_edges (g : multigraph α β) [fintype g.V] [fintype g.E] [decidable_pred g.links] : fintype g.links := sorry
+
+instance fintype.edges_from_links (g : multigraph α β) [fintype g.links] [decidable_eq β] : fintype g.E :=
+begin
+  let f : g.links → g.E := begin
+    rintro ⟨x,xel⟩,
+    exact ⟨x.via, (set.ext_iff.mp g.link_via x.via).mp ⟨x, xel, rfl⟩⟩,
+  end,
+  have h : surjective f, {
+    rintro ⟨e, eel⟩,
+    rcases (set.ext_iff.mp g.link_via e).mpr eel with ⟨x, xel, rfl⟩,
+    use ⟨x, xel⟩,
+  },
+  exact fintype.of_surjective f h,
+end
+
+
+end multigraph
+
+
 end graph
+
 
 
 -- structure graph (V : Type u) extends multigraph V :=

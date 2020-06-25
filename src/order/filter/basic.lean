@@ -63,7 +63,8 @@ which is a special case of `mem_closure_of_tendsto` from topology.basic.
 * `∀ᶠ x in f, p x` : `f.eventually p`;
 * `∃ᶠ x in f, p x` : `f.frequently p`;
 * `f =ᶠ[l] g` : `∀ᶠ x in l, f x = g x`;
-* `f ×ᶠ g` : `filter.prod f g`, localized in `filter`.
+* `f ×ᶠ g` : `filter.prod f g`, localized in `filter`;
+* `𝓟 s` : `principal s`, localized in `filter`.
 
 ## References
 

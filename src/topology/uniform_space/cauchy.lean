@@ -149,7 +149,7 @@ lemma tendsto_nhds_of_cauchy_seq_of_subseq
   {ι : Type*} {f : ι → β} {p : filter ι} (hp : p ≠ ⊥)
   (hf : tendsto f p at_top) {a : α} (ha : tendsto (u ∘ f) p (𝓝 a)) :
   tendsto u at_top (𝓝 a) :=
-le_nhds_of_cauchy_adhp hu (seq_cluster_pt_of_subseq hp hf ha)
+le_nhds_of_cauchy_adhp hu (map_cluster_pt_of_comp hp hf ha)
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma filter.has_basis.cauchy_seq_iff {γ} [nonempty β] [semilattice_sup β] {u : β → α}

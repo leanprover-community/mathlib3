@@ -710,7 +710,7 @@ lemma subseq_tendsto {f : filter α} (hf : is_countably_generated f)
 begin
   rcases hf.has_antimono_basis with ⟨B, h⟩,
   have : ∀ N, ∃ n ≥ N, u n ∈ B N,
-    from λ N, filter.map_at_top_inf_ne_bot_iff.mp hx _ (h.to_has_basis.mem_of_mem trivial) N,
+    from λ N, filter.inf_map_at_top_ne_bot_iff.mp hx _ (h.to_has_basis.mem_of_mem trivial) N,
   choose φ hφ using this,
   cases forall_and_distrib.mp hφ with φ_ge φ_in,
   have lim_uφ : tendsto (u ∘ φ) at_top f,

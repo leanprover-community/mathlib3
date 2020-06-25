@@ -12,7 +12,10 @@ import order.filter.bases
 
 The main definition is the type class `topological space α` which endows a type `α` with a topology.
 Then `set α` gets predicates `is_open`, `is_closed` and functions `interior`, `closure` and
-`frontier`. Each point `x` of `α` gets a neighborhood filter `𝓝 x`.
+`frontier`. Each point `x` of `α` gets a neighborhood filter `𝓝 x`. A filter `F` on `α` has
+`x` as a cluster point if `is_cluster_pt x F : 𝓝 x ⊓ F ≠ ⊥`. A map `f : ι → α` clusters at `x`
+along `F : filter ι` if `map_cluster_pt x F f : cluster_pt x (map f F)`. In particular
+the notion of cluster point of a sequence `u` is `map_cluster_pt x at_top u`.
 
 This file also defines locally finite families of subsets of `α`.
 
@@ -536,18 +539,22 @@ lemma cluster_pt_of_inf_right {x : α} {f g : filter α} (H : cluster_pt x $ f �
   cluster_pt x g :=
 H.mono inf_le_right
 
-/-- A point `x` is a cluster point of a sequence `u` if it is a cluster point
-of `map u at_top`. -/
-def seq_cluster_pt {ι :Type*} [preorder ι] (x : α) (u : ι → α) : Prop := cluster_pt x (map u at_top)
+/-- A point `x` is a cluster point of a sequence `u` along a filter `F` if it is a cluster point
+of `map u F`. -/
+def map_cluster_pt {ι :Type*} (x : α) (F : filter ι) (u : ι → α) : Prop := cluster_pt x (map u F)
 
-lemma seq_cluster_pt_of_subseq {ι δ :Type*} [preorder ι] {φ : δ → ι} {p : filter δ}
-  {x : α} {u : ι → α} (hp : p ≠ ⊥) (h : tendsto φ p at_top) (H : tendsto (u ∘ φ) p (𝓝 x)) :
-  seq_cluster_pt x u :=
+lemma map_cluster_pt_iff {ι :Type*} (x : α) (F : filter ι) (u : ι → α) :
+  map_cluster_pt x F u ↔ ∀ s ∈ 𝓝 x, ∃ᶠ a in F, u a ∈ s :=
+by { simp_rw [map_cluster_pt, cluster_pt, inf_ne_bot_iff_frequently_left, frequently_map], refl }
+
+lemma map_cluster_pt_of_comp {ι δ :Type*} {F : filter ι} {φ : δ → ι} {p : filter δ}
+  {x : α} {u : ι → α} (hp : p ≠ ⊥) (h : tendsto φ p F) (H : tendsto (u ∘ φ) p (𝓝 x)) :
+  map_cluster_pt x F u :=
 begin
   have := calc
   map (u ∘ φ) p = map u (map φ p) : map_map
-  ... ≤ map u at_top : map_mono h,
-  have : map (u ∘ φ) p ≤ 𝓝 x ⊓ map u at_top,
+  ... ≤ map u F : map_mono h,
+  have : map (u ∘ φ) p ≤ 𝓝 x ⊓ map u F,
     from le_inf H this,
   exact ne_bot_of_le_ne_bot (map_ne_bot hp) this
 end

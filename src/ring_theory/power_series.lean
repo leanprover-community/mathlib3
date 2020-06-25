@@ -1506,4 +1506,3 @@ instance : is_semiring_hom (coe : polynomial α → power_series α) :=
 
 end coe_to_mv_power_series
 end polynomial
-#lint

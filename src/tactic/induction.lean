@@ -149,7 +149,7 @@ def mfilter_map {m : Type u → Type v} [monad m] {α β} (p : α → m (option 
 | (a :: as) := do
   mb ← p a,
   match mb with
-  | some b := (λ z, b :: z) <$> mfilter_map as
+  | some b := (λ bs, b :: bs) <$> mfilter_map as
   | none := mfilter_map as
   end
 
@@ -753,7 +753,7 @@ meta def local_def_depends_on_locals (h : expr) (ns : name_set) : tactic bool :=
   (some h_val) ← try_core $ local_def_value h | pure ff,
   pure $ h_val.has_local_in ns
 
-/- Precond: h and i are local constants. -/
+/- Precond: h is a local constant. -/
 meta def local_depends_on_locals (h : expr) (ns : name_set) : tactic bool :=
 list.mbor
   [ pure $ ns.contains h.local_uniq_name
@@ -769,6 +769,21 @@ meta def local_dependencies_of_local (h : expr) : tactic name_set := do
   let deps := name_set.merge deps $ val.local_unique_names,
   pure deps
 
+meta def revert_lst'' (hs : name_set) : tactic (ℕ × list expr) := do
+  ctx ← revertible_local_context,
+  -- We take the 'dependency closure' of hs: any hypothesis that depends on any
+  -- of the hypotheses in hs should get reverted. revert_lst can do this for us,
+  -- but it doesn't report which hypotheses were actually reverted (only how
+  -- many).
+  to_revert ← ctx.mfilter_map $ λ h, do {
+    dep_on_reverted ← local_depends_on_locals h hs,
+    pure $ if dep_on_reverted then some h else none
+  },
+  num_reverted ← revert_lst to_revert,
+  pure (num_reverted, to_revert)
+
+meta def revert_lst' (hs : list expr) : tactic (ℕ × list expr) :=
+revert_lst'' $ name_set.of_list $ hs.map expr.local_uniq_name
 
 -- precond: fixed contains only locals
 meta def generalize_hyps (eliminee : expr) (fixed : list expr) : tactic (ℕ × list expr) := do
@@ -785,19 +800,13 @@ meta def generalize_hyps (eliminee : expr) (fixed : list expr) : tactic (ℕ × 
     let rev :=
       ¬ fixed_dependencies.contains h_name ∧
       (tgt_dependencies.contains h_name ∨ h_type.has_local_in eliminee_dependencies),
+    -- TODO I think `h_type.has_local_in eliminee_dependencies` is an
+    -- overapproximation. What we actually want is any hyp that depends either
+    -- on the eliminee or on one of the eliminee's index args. (But the
+    -- overapproximation seems to work okay in practice as well.)
     pure $ if rev then some h_name else none
   },
-  let to_revert := name_set.of_list to_revert,
-  -- We take the 'dependency closure' of to_revert: any hypothesis that depends
-  -- on any of the hypotheses in to_revert should get reverted. revert_lst can
-  -- do this for us, but it doesn't report which hypotheses were actually
-  -- reverted (only how many).
-  to_revert ← ctx.mfilter_map $ λ h, do {
-    dep_on_reverted ← local_depends_on_locals h to_revert,
-    pure $ if dep_on_reverted then some h else none
-  },
-  num_reverted ← revert_lst to_revert,
-  pure (num_reverted, to_revert)
+  revert_lst'' $ name_set.of_list to_revert
 
 meta def constructor_argument_intros (einfo : eliminee_info)
   (iinfo : inductive_info) (cinfo : constructor_info) (reserved_names : name_set)

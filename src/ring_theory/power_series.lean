@@ -1392,7 +1392,7 @@ begin
   { rw [coeff_of_lt_order ψ j hj, mul_zero] },
   rw not_lt at hi hj, rw finset.nat.mem_antidiagonal at hij,
   exfalso,
-  apply ne_of_lt (lt_of_lt_of_le hn $ add_le_add' hi hj),
+  apply ne_of_lt (lt_of_lt_of_le hn $ add_le_add hi hj),
   rw [← enat.coe_add, hij]
 end
 

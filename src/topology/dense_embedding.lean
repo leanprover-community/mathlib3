@@ -24,7 +24,7 @@ has to be `dense_inducing` (not necessarily injective).
 noncomputable theory
 
 open set filter
-open_locale classical topological_space
+open_locale classical topological_space filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
@@ -142,10 +142,10 @@ begin
   exact le_trans lim1 lim2,
 end
 
-protected lemma nhds_inf_ne_bot (di : dense_inducing i) {b : β} : 𝓝 b ⊓ principal (range i) ≠ ⊥ :=
+protected lemma nhds_inf_ne_bot (di : dense_inducing i) {b : β} : 𝓝 b ⊓ 𝓟 (range i) ≠ ⊥ :=
 begin
   convert di.dense b,
-  simp [closure_eq_nhds]
+  simp [closure_eq_cluster_pts, cluster_pt]
 end
 
 lemma comap_nhds_ne_bot (di : dense_inducing i) {b : β} : comap i (𝓝 b) ≠ ⊥ :=
@@ -188,16 +188,16 @@ have h₁ : closure (f '' (i ⁻¹' s')) ⊆ s'',
   by rw [closure_subset_iff_subset_of_is_closed hs''₃, image_subset_iff]; exact hs'₂,
 have h₂ : t ⊆ di.extend f ⁻¹' closure (f '' (i ⁻¹' t)), from
   assume b' hb',
-  have 𝓝 b' ≤ principal t, by simp; exact mem_nhds_sets ht₂ hb',
-  have map f (comap i (𝓝 b')) ≤ 𝓝 (di.extend f b') ⊓ principal (f '' (i ⁻¹' t)),
-    from calc _ ≤ map f (comap i (𝓝 b' ⊓ principal t)) : map_mono $ comap_mono $ le_inf (le_refl _) this
-      ... ≤ map f (comap i (𝓝 b')) ⊓ map f (comap i (principal t)) :
+  have 𝓝 b' ≤ 𝓟 t, by simp; exact mem_nhds_sets ht₂ hb',
+  have map f (comap i (𝓝 b')) ≤ 𝓝 (di.extend f b') ⊓ 𝓟 (f '' (i ⁻¹' t)),
+    from calc _ ≤ map f (comap i (𝓝 b' ⊓ 𝓟 t)) : map_mono $ comap_mono $ le_inf (le_refl _) this
+      ... ≤ map f (comap i (𝓝 b')) ⊓ map f (comap i (𝓟 t)) :
         le_inf (map_mono $ comap_mono $ inf_le_left) (map_mono $ comap_mono $ inf_le_right)
-      ... ≤ map f (comap i (𝓝 b')) ⊓ principal (f '' (i ⁻¹' t)) : by simp [le_refl]
+      ... ≤ map f (comap i (𝓝 b')) ⊓ 𝓟 (f '' (i ⁻¹' t)) : by simp [le_refl]
       ... ≤ _ : inf_le_inf_right _ (ht₁ hb').left,
   show di.extend f b' ∈ closure (f '' (i ⁻¹' t)),
   begin
-    rw [closure_eq_nhds],
+    rw [closure_eq_cluster_pts],
     apply ne_bot_of_le_ne_bot _ this,
     simp,
     exact di.comap_nhds_ne_bot

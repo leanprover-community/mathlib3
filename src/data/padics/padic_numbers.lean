@@ -813,7 +813,7 @@ theorem norm_rat_le_one : ∀ {q : ℚ} (hq : ¬ p ∣ q.denom), ∥(q : ℚ_[p]
       norm_cast,
       rw [padic_norm.eq_fpow_of_nonzero p hnz', padic_val_rat_def p hnz'],
       have h : (multiplicity p d).get _ = 0, by simp [multiplicity_eq_zero_of_not_dvd, hq],
-      simp only [], norm_cast,
+      simp only, norm_cast,
       rw_mod_cast [h, sub_zero],
       apply fpow_le_one_of_nonpos,
       { exact_mod_cast le_of_lt hp.one_lt, },

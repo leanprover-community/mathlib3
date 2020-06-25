@@ -672,6 +672,8 @@ instance unique_singleton (a : α) : unique ↥({a} : set α) :=
 theorem mem_sep {s : set α} {p : α → Prop} {x : α} (xs : x ∈ s) (px : p x) : x ∈ {x ∈ s | p x} :=
 ⟨xs, px⟩
 
+@[simp] theorem sep_mem_eq {s t : set α} : {x ∈ s | x ∈ t} = s ∩ t := rfl
+
 @[simp] theorem mem_sep_eq {s : set α} {p : α → Prop} {x : α} : x ∈ {x ∈ s | p x} = (x ∈ s ∧ p x) := rfl
 
 theorem mem_sep_iff {s : set α} {p : α → Prop} {x : α} : x ∈ {x ∈ s | p x} ↔ x ∈ s ∧ p x :=
@@ -986,6 +988,18 @@ theorem subset_preimage_univ {s : set α} : s ⊆ f ⁻¹' univ := subset_univ _
 rfl
 
 @[simp] theorem preimage_id {s : set α} : id ⁻¹' s = s := rfl
+
+theorem preimage_const_of_mem {b : β} {s : set β} (h : b ∈ s) :
+  (λ (x : α), b) ⁻¹' s = univ :=
+eq_univ_of_forall $ λ x, h
+
+theorem preimage_const_of_not_mem {b : β} {s : set β} (h : b ∉ s) :
+  (λ (x : α), b) ⁻¹' s = ∅ :=
+eq_empty_of_subset_empty $ λ x hx, h hx
+
+theorem preimage_const (b : β) (s : set β) [decidable (b ∈ s)] :
+  (λ (x : α), b) ⁻¹' s = if b ∈ s then univ else ∅ :=
+by { split_ifs with hb hb, exacts [preimage_const_of_mem hb, preimage_const_of_not_mem hb] }
 
 theorem preimage_comp {s : set γ} : (g ∘ f) ⁻¹' s = f ⁻¹' (g ⁻¹' s) := rfl
 
@@ -1415,8 +1429,11 @@ begin
   rintro rfl, refl
 end
 
-theorem preimage_inter_range {f : α → β} {s : set β} : f ⁻¹' (s ∩ range f) = f ⁻¹' s :=
+@[simp] theorem preimage_inter_range {f : α → β} {s : set β} : f ⁻¹' (s ∩ range f) = f ⁻¹' s :=
 set.ext $ λ x, and_iff_left ⟨x, rfl⟩
+
+@[simp] theorem preimage_range_inter {f : α → β} {s : set β} : f ⁻¹' (range f ∩ s) = f ⁻¹' s :=
+by rw [inter_comm, preimage_inter_range]
 
 theorem preimage_image_preimage {f : α → β} {s : set β} :
   f ⁻¹' (f '' (f ⁻¹' s)) = f ⁻¹' s :=
@@ -1431,6 +1448,14 @@ range_subset_iff.2 $ λ x, rfl
 @[simp] lemma range_const : ∀ [nonempty ι] {c : α}, range (λx:ι, c) = {c}
 | ⟨x⟩ c := subset.antisymm range_const_subset $
   assume y hy, (mem_singleton_iff.1 hy).symm ▸ mem_range_self x
+
+theorem preimage_singleton_nonempty {f : α → β} {y : β} :
+  (f ⁻¹' {y}).nonempty ↔ y ∈ range f :=
+iff.rfl
+
+theorem preimage_singleton_eq_empty {f : α → β} {y : β} :
+  f ⁻¹' {y} = ∅ ↔ y ∉ range f :=
+not_nonempty_iff_eq_empty.symm.trans $ not_congr preimage_singleton_nonempty
 
 /-- Any map `f : ι → β` factors through a map `range_factorization f : ι → range f`. -/
 def range_factorization (f : ι → β) : ι → range f :=
@@ -1464,6 +1489,9 @@ begin
   simp [if_pos h, mem_union, mem_range_self],
   simp [if_neg h, mem_union, mem_range_self]
 end
+
+@[simp] lemma preimage_range (f : α → β) : f ⁻¹' (range f) = univ :=
+eq_univ_of_forall mem_range_self
 
 end range
 

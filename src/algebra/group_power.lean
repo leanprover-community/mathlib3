@@ -542,7 +542,7 @@ calc n •ℕ a = n •ℕ a + 0 : (add_zero _).symm
 
 lemma nsmul_le_nsmul_of_le_right {a b : A} (hab : a ≤ b) : ∀ i : ℕ, i •ℕ a ≤ i •ℕ b
 | 0 := by simp
-| (k+1) := add_le_add' hab (nsmul_le_nsmul_of_le_right _)
+| (k+1) := add_le_add hab (nsmul_le_nsmul_of_le_right _)
 
 end add_monoid
 

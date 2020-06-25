@@ -14,7 +14,7 @@ open_locale classical
 open_locale topological_space
 variables {α : Type*} {β : Type*} {γ : Type*}
 
-open_locale ennreal big_operators
+open_locale ennreal big_operators filter
 
 namespace ennreal
 variables {a b c d : ennreal} {r p q : nnreal}
@@ -134,10 +134,10 @@ lemma tendsto_nat_nhds_top : tendsto (λ n : ℕ, ↑n) at_top (𝓝 ∞) :=
 tendsto_nhds_top $ λ n, mem_at_top_sets.2
   ⟨n+1, λ m hm, ennreal.coe_nat_lt_coe_nat.2 $ nat.lt_of_succ_le hm⟩
 
-lemma nhds_top : 𝓝 ∞ = ⨅a ≠ ∞, principal (Ioi a) :=
+lemma nhds_top : 𝓝 ∞ = ⨅a ≠ ∞, 𝓟 (Ioi a) :=
 nhds_top_order.trans $ by simp [lt_top_iff_ne_top, Ioi]
 
-lemma nhds_zero : 𝓝 (0 : ennreal) = ⨅a ≠ 0, principal (Iio a) :=
+lemma nhds_zero : 𝓝 (0 : ennreal) = ⨅a ≠ 0, 𝓟 (Iio a) :=
 nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot, Iio]
 
 /-- The set of finite `ennreal` numbers is homeomorphic to `nnreal`. -/
@@ -170,7 +170,7 @@ begin
 end
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-lemma nhds_of_ne_top : x ≠ ⊤ → 𝓝 x = ⨅ε > 0, principal (Icc (x - ε) (x + ε)) :=
+lemma nhds_of_ne_top : x ≠ ⊤ → 𝓝 x = ⨅ε > 0, 𝓟 (Icc (x - ε) (x + ε)) :=
 begin
   assume xt, refine le_antisymm _ _,
   -- first direction
@@ -327,7 +327,7 @@ ennreal.inv_top ▸ ennreal.tendsto_inv_iff.2 tendsto_nat_nhds_top
 lemma Sup_add {s : set ennreal} (hs : s.nonempty) : Sup s + a = ⨆b∈s, b + a :=
 have Sup ((λb, b + a) '' s) = Sup s + a,
   from is_lub.Sup_eq (is_lub_of_is_lub_of_tendsto
-    (assume x _ y _ h, add_le_add' h (le_refl _))
+    (assume x _ y _ h, add_le_add h (le_refl _))
     (is_lub_Sup s)
     hs
     (tendsto.add (tendsto_id' inf_le_left) tendsto_const_nhds)),
@@ -347,7 +347,7 @@ lemma supr_add_supr {ι : Sort*} {f g : ι → ennreal} (h : ∀i j, ∃k, f i +
 begin
   by_cases hι : nonempty ι,
   { letI := hι,
-    refine le_antisymm _ (supr_le $ λ a, add_le_add' (le_supr _ _) (le_supr _ _)),
+    refine le_antisymm _ (supr_le $ λ a, add_le_add (le_supr _ _) (le_supr _ _)),
     simpa [add_supr, supr_add] using
       λ i j:ι, show f i + g j ≤ ⨆ a, f a + g a, from
       let ⟨k, hk⟩ := h i j in le_supr_of_le k hk },
@@ -358,7 +358,7 @@ end
 lemma supr_add_supr_of_monotone {ι : Sort*} [semilattice_sup ι]
   {f g : ι → ennreal} (hf : monotone f) (hg : monotone g) :
   supr f + supr g = (⨆ a, f a + g a) :=
-supr_add_supr $ assume i j, ⟨i ⊔ j, add_le_add' (hf $ le_sup_left) (hg $ le_sup_right)⟩
+supr_add_supr $ assume i j, ⟨i ⊔ j, add_le_add (hf $ le_sup_left) (hg $ le_sup_right)⟩
 
 lemma finset_sum_supr_nat {α} {ι} [semilattice_sup ι] {s : finset α} {f : α → ι → ennreal}
   (hf : ∀a, monotone (f a)) :
@@ -718,7 +718,7 @@ begin
     let ε := min (f x - e) 1,
     have : ε < ⊤ := lt_of_le_of_lt (min_le_right _ _) (by simp [lt_top_iff_ne_top]),
     have : 0 < ε := by simp [ε, hC, he, ennreal.zero_lt_one],
-    have : 0 < C⁻¹ * (ε/2) := bot_lt_iff_ne_bot.2 (by simp [hC, (ne_of_lt this).symm, ennreal.mul_eq_zero]),
+    have : 0 < C⁻¹ * (ε/2) := bot_lt_iff_ne_bot.2 (by simp [hC, (ne_of_lt this).symm, mul_eq_zero]),
     have I : C * (C⁻¹ * (ε/2)) < ε,
     { by_cases C_zero : C = 0,
       { simp [C_zero, ‹0 < ε›] },
@@ -746,7 +746,7 @@ begin
     let ε := min (e - f x) 1,
     have : ε < ⊤ := lt_of_le_of_lt (min_le_right _ _) (by simp [lt_top_iff_ne_top]),
     have : 0 < ε := by simp [ε, he, ennreal.zero_lt_one],
-    have : 0 < C⁻¹ * (ε/2) := bot_lt_iff_ne_bot.2 (by simp [hC, (ne_of_lt this).symm, ennreal.mul_eq_zero]),
+    have : 0 < C⁻¹ * (ε/2) := bot_lt_iff_ne_bot.2 (by simp [hC, (ne_of_lt this).symm, mul_eq_zero]),
     have I : C * (C⁻¹ * (ε/2)) < ε,
     { by_cases C_zero : C = 0,
       simp [C_zero, ‹0 < ε›],
@@ -773,7 +773,7 @@ begin
   calc edist x y ≤ edist x x' + edist x' y' + edist y' y : edist_triangle4 _ _ _ _
     ... = edist x' y' + (edist x x' + edist y y') : by simp [edist_comm]; cc
     ... ≤ edist x' y' + (edist (x, y) (x', y') + edist (x, y) (x', y')) :
-      add_le_add_left' (add_le_add' (by simp [edist, le_refl]) (by simp [edist, le_refl]))
+      add_le_add_left' (add_le_add (by simp [edist, le_refl]) (by simp [edist, le_refl]))
     ... = edist x' y' + 2 * edist (x, y) (x', y') : by rw [← mul_two, mul_comm]
 end
 

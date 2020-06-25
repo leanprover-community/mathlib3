@@ -15,7 +15,7 @@ import topology.algebra.ordered
 open set filter classical topological_space
 noncomputable theory
 
-open_locale uniformity topological_space big_operators
+open_locale uniformity topological_space big_operators filter
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -27,7 +27,7 @@ def uniform_space_of_dist
   (dist_comm : ∀ x y : α, dist x y = dist y x)
   (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z) : uniform_space α :=
 uniform_space.of_core {
-  uniformity := (⨅ ε>0, principal {p:α×α | dist p.1 p.2 < ε}),
+  uniformity := (⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε}),
   refl       := le_infi $ assume ε, le_infi $
     by simp [set.subset_def, id_rel, dist_self, (>)] {contextual := tt},
   comp       := le_infi $ assume ε, le_infi $ assume h, lift'_le
@@ -69,7 +69,7 @@ class metric_space (α : Type u) extends has_dist α : Type u :=
 (edist : α → α → ennreal := λx y, ennreal.of_real (dist x y))
 (edist_dist : ∀ x y : α, edist x y = ennreal.of_real (dist x y) . control_laws_tac)
 (to_uniform_space : uniform_space α := uniform_space_of_dist dist dist_self dist_comm dist_triangle)
-(uniformity_dist : 𝓤 α = ⨅ ε>0, principal {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
+(uniformity_dist : 𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
 end prio
 
 variables [metric_space α]
@@ -651,7 +651,7 @@ end metric
 open metric
 
 @[priority 100] -- see Note [lower instance priority]
-instance metric_space.to_separated : separated α :=
+instance metric_space.to_separated : separated_space α :=
 separated_def.2 $ λ x y h, eq_of_forall_dist_le $
   λ ε ε0, le_of_lt (h _ (dist_mem_uniformity ε0))
 
@@ -676,7 +676,7 @@ protected lemma metric.uniformity_basis_edist :
 end⟩
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-theorem metric.uniformity_edist : 𝓤 α = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
+theorem metric.uniformity_edist : 𝓤 α = (⨅ ε>0, 𝓟 {p:α×α | edist p.1 p.2 < ε}) :=
 metric.uniformity_basis_edist.eq_binfi
 
 /-- A metric space induces an emetric space -/

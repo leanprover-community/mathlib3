@@ -630,7 +630,7 @@ instance : has_coe_to_fun (M ≃L[R] M₂) := ⟨λ _, M → M₂, λ f, f⟩
 @[ext] lemma ext {f g : M ≃L[R] M₂} (h : (f : M → M₂) = g) : f = g :=
 begin
   cases f; cases g,
-  simp only [],
+  simp only,
   ext x,
   induction h,
   refl

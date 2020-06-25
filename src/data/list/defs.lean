@@ -166,6 +166,10 @@ def find (p : α → Prop) [decidable_pred p] : list α → option α
 | []     := none
 | (a::l) := if p a then some a else find l
 
+/-- `mfind tac l` returns the first element of `l` on which `tac` succeeds, and fails otherwise. -/
+def mfind {α} {m : Type → Type u} [monad m] [alternative m] (tac : α → m unit) : list α → m α :=
+list.mfirst $ λ a, tac a $> a
+
 def find_indexes_aux (p : α → Prop) [decidable_pred p] : list α → nat → list nat
 | []     n := []
 | (a::l) n := let t := find_indexes_aux l (succ n) in if p a then n :: t else t
@@ -525,7 +529,19 @@ def mmap_filter {m : Type → Type v} [monad m] {α β} (f : α → m (option β
   match b with none := t' | (some x) := x::t' end
 
 /--
-`mmap'_diag f l` calls `f` on all elements in the "upper diagonal" of `l × l`.
+`mmap_upper_triangle f l` calls `f` on all elements in the upper triangular part of `l × l`.
+That is, for each `e ∈ l`, it will run `f e e` and then `f e e'`
+for each `e'` that appears after `e` in `l`.
+
+Example: suppose `l = [1, 2, 3]`. `mmap_upper_triangle f l` will produce the list
+`[f 1 1, f 1 2, f 1 3, f 2 2, f 2 3, f 3 3]`.
+-/
+def mmap_upper_triangle {m} [monad m] {α β : Type u} (f : α → α → m β) : list α → m (list β)
+| [] := return []
+| (h::t) := do v ← f h h, l ← t.mmap (f h), t ← t.mmap_upper_triangle, return $ (v::l) ++ t
+
+/--
+`mmap'_diag f l` calls `f` on all elements in the upper triangular part of `l × l`.
 That is, for each `e ∈ l`, it will run `f e e` and then `f e e'`
 for each `e'` that appears after `e` in `l`.
 

@@ -363,3 +363,14 @@ lemma algebra.is_integral_trans (A_int : ∀ x : A, is_integral R x)(B_int : ∀
 λ x, is_integral_trans A_int x (B_int x)
 
 end algebra
+
+section integral_domain
+variables {R S : Type*} [comm_ring R] [integral_domain S] [algebra R S]
+
+instance : integral_domain (integral_closure R S) :=
+{ zero_ne_one := mt subtype.ext.mp zero_ne_one,
+  eq_zero_or_eq_zero_of_mul_eq_zero := λ ⟨a, ha⟩ ⟨b, hb⟩ h,
+    or.imp subtype.ext.mpr subtype.ext.mpr (eq_zero_or_eq_zero_of_mul_eq_zero (subtype.ext.mp h)),
+  ..(integral_closure R S).comm_ring R S }
+
+end integral_domain

@@ -42,7 +42,7 @@ open map, closed map, embedding, quotient map, identification map
 -/
 
 open set filter
-open_locale topological_space
+open_locale topological_space filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 

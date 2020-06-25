@@ -47,9 +47,7 @@ protected def range (f : α →ₛ β) : finset β := f.finite.to_finset
 finite.mem_to_finset
 
 lemma preimage_eq_empty_iff (f : α →ₛ β) (b : β) : f ⁻¹' {b} = ∅ ↔ b ∉ f.range :=
-iff.intro
-  (by simp [set.eq_empty_iff_forall_not_mem, mem_range])
-  (by simp [set.eq_empty_iff_forall_not_mem, mem_range])
+preimage_singleton_eq_empty.trans $ not_congr mem_range.symm
 
 /-- Constant function as a `simple_func`. -/
 def const (α) {β} [measurable_space α] (b : β) : α →ₛ β :=
@@ -851,7 +849,7 @@ calc (∫⁻ a, f a + g a) =
     rw [lintegral_supr],
     { congr, funext n, rw [← simple_func.add_integral, ← simple_func.lintegral_eq_integral], refl },
     { assume n, exact measurable.add (eapprox f n).measurable (eapprox g n).measurable },
-    { assume i j h a, exact add_le_add' (monotone_eapprox _ h _) (monotone_eapprox _ h _) }
+    { assume i j h a, exact add_le_add (monotone_eapprox _ h _) (monotone_eapprox _ h _) }
   end
   ... = (⨆n, (eapprox f n).integral) + (⨆n, (eapprox g n).integral) :
   by refine (ennreal.supr_add_supr_of_monotone _ _).symm;

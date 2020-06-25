@@ -11,24 +11,152 @@ import category_theory.abelian.basic
 import category_theory.abelian.additive
 import category_theory.simple
 import category_theory.schur
+import category_theory.isomorphism_classes
 import data.fintype.card
+import data.pequiv
 
 open category_theory.limits
 
 namespace category_theory
 
-universes v u
+universes v u w
 variables {C : Type u} [category.{v} C]
+
+section
+variables (C)
+variables [has_zero_morphisms.{v} C]
+
+/-- `is_isomorphic` defines a setoid on the simple objects. -/
+def simple_is_isomorphic_setoid : setoid (Σ (X : C), simple X) :=
+{ r := λ X Y, is_isomorphic X.1 Y.1,
+  iseqv := ⟨λ X, ⟨iso.refl X.1⟩, λ X Y ⟨α⟩, ⟨α.symm⟩, λ X Y Z ⟨α⟩ ⟨β⟩, ⟨α.trans β⟩⟩ }
+
+/-- The isomorphism classes of simples in a category. -/
+def iso_classes_of_simples : Type (max u v) := quotient (simple_is_isomorphic_setoid C)
+
+local attribute [instance] simple_is_isomorphic_setoid
+
+
+/-- An arbitrarily chosen representative of each isomorphism class of simple object. -/
+noncomputable def simples : iso_classes_of_simples C → C :=
+λ X, (quotient.out X).1
+
+lemma simples_non_isomorphic (i j) (h : i ≠ j) (f : simples C i ≅ simples C j) : false :=
+begin
+  -- FIXME golf!
+  apply h, clear h,
+  induction i, induction j,
+  simp [simples] at f,
+  apply quotient.sound,
+  transitivity,
+  exact setoid.symm (quotient.mk_out _),
+  transitivity,
+  split,
+  exact f,
+  exact quotient.mk_out _,
+  refl,
+  refl,
+end
+
+variables {C}
+
+/-- The isomorphism class of a simple object. -/
+def simple.iso_class (X : C) [simple X] : iso_classes_of_simples C :=
+quotient.mk ⟨X, by apply_instance⟩
+
+/-- Every simple object is isomorphic to the chosen representative from its isomorphism class. -/
+noncomputable def simple.iso_to_representative (X : C) [simple X] :
+  X ≅ simples C (simple.iso_class X) :=
+classical.choice (setoid.symm (quotient.mk_out (⟨X, by apply_instance⟩ : Σ (X : C), simple X)))
+
+noncomputable instance simples_simple (X : iso_classes_of_simples C) : simple (simples C X) :=
+(quotient.out X).2
+
+/--
+We say a family of objects `Z : ι → C` in a category with zero morphisms is
+"mutually simple" if
+* for distinct `i j`, every morphism `Z i ⟶ Z j` is zero,
+* a morphism `f : Z i ⟶ Z i` is an isomorphism iff it is not zero.
+
+As an example, in a preadditive category with kernels,
+any collection of non-isomorphic simple objects is mutually simple (by Schur's lemma).
+
+We abstract out this notion because
+1. it's useful to state the definition of Müger semisimplicity
+   (which is often used to show that diagrammatic categories are semisimple), and
+2. it's the key property needed to diagonalize morphisms between semisimple objects (see below).
+-/
+structure mutually_simple {ι : Type w} (Z : ι → C) :=
+(eq_zero : ∀ {i j} (h : i ≠ j) (f : Z i ⟶ Z j), f = 0)
+(simple : Π i (f : Z i ⟶ Z i), is_iso f ≃ (f ≠ 0))
+
+end
+
+section
+variables [preadditive.{v} C] [has_kernels.{v} C]
+
+/--
+In a preadditive category with kernels,
+any family of non-isomorphic simple objects is "mutually simple".
+-/
+def simples_mutually_simple' {ι : Type w} (Z : ι → C)
+  [Π i, simple (Z i)] [Π i j, decidable_eq (Z i ⟶ Z j)]
+  (w : ∀ (i j) (h : i ≠ j), (Z i ≅ Z j) → false) :
+  mutually_simple Z :=
+{ eq_zero := λ i j h f,
+  begin
+    by_contradiction,
+    haveI := is_iso_of_hom_simple a,
+    exact w _ _ h (as_iso f),
+  end,
+  simple := λ i f, is_iso_equiv_nonzero }
+
+/--
+In a preadditive category with kernels,
+an arbitrarily chosen representative of each isomorphism class of simples
+provides a "mutually simple" family.
+-/
+noncomputable def simples_mutually_simple [Π i j, decidable_eq (simples C i ⟶ simples C j)] :
+  mutually_simple.{v} (simples C) :=
+simples_mutually_simple' (simples C) (simples_non_isomorphic C)
+
+end
 
 section
 variables [has_zero_morphisms.{v} C] [has_finite_biproducts.{v} C]
 
-structure decomposition_over {ι : Type v} (Z : ι → C) (X : C) :=
+structure decomposition_over {ι : Type w} (Z : ι → C) (X : C) :=
 (κ : Type v)
 [fintype : fintype κ]
 [decidable_eq : decidable_eq κ]
 (summand : κ → ι)
 (iso : X ≅ ⨁ (λ k, Z (summand k)))
+
+attribute [instance] decomposition_over.fintype decomposition_over.decidable_eq
+
+@[simps]
+def decomposition_over.trivial {ι : Type w} {Z : ι → C}
+  {κ : Type v} [fintype κ] [decidable_eq κ] {summand : κ → ι} :
+  decomposition_over Z (⨁ (λ k, Z (summand k))) :=
+{ κ := κ,
+  summand := summand,
+  iso := iso.refl _ }
+
+def decomposition_over.transport {ι : Type w} {Z : ι → C} {X : C} (D : decomposition_over Z X)
+  {Y : C} (i : X ≅ Y) : decomposition_over Z Y :=
+{ iso := i.symm ≪≫ D.iso,
+  .. D }
+
+section
+variables [has_binary_biproducts.{v} C]
+
+def decomposition_over.biprod_single {ι : Type w} {Z : ι → C} {X : C} (D : decomposition_over Z X)
+  (i : ι) : decomposition_over Z (Z i ⊞ X) :=
+{ κ := punit.{v+1} ⊕ D.κ,
+  summand := sum.elim (λ _, i) D.summand,
+  iso := sorry }
+
+end
 
 structure simple_decomposition (X : C) :=
 (ι : Type v)
@@ -45,12 +173,6 @@ def simple_decomposition.multiplicity
   [decidable_rel (λ X Y : C, nonempty (X ≅ Y))]
   {X : C} (D : simple_decomposition.{v} X) (Y : C) [simple.{v} Y] : ℕ :=
 fintype.card { i // nonempty (D.summand i ≅ Y) }
-
-def fintype.equiv_pempty {α : Type v} [fintype α] (h : fintype.card α = 0) : α ≃ pempty.{v} :=
-{ to_fun := λ a, false.elim (fintype.card_eq_zero_iff.1 h a),
-  inv_fun := λ a, pempty.elim a,
-  left_inv := λ a, false.elim (fintype.card_eq_zero_iff.1 h a),
-  right_inv := λ a, pempty.elim a, }
 
 lemma simple_decomposition.zero_of_card_zero
   {X : C} (D : simple_decomposition.{v} X) (h : fintype.card D.ι = 0) :
@@ -117,8 +239,101 @@ fintype.card_ne a⟩
 section
 
 variables [preadditive.{v} C] [has_finite_biproducts.{v} C] -- TODO these should add up to `additive`?
+variables [has_binary_biproducts.{v} C] -- only needed inside the proof of diagonalization
 variables [has_kernels.{v} C] -- We need this for Schur's lemma.
 variables [∀ X Y : C, decidable_eq (X ⟶ Y)]
+
+variables {ι : Type w} (Z : ι → C) (ms : mutually_simple Z)
+
+/--
+Given two objects which can be written as a sum of objects from a mutually simple family
+(i.e. there are some isomorphisms `X ≅ ⨁ D`, `Y ≅ ⨁ E`),
+and a morphism `f : X ⟶ Y`,
+we say a "diagonalization" of `f` consists of
+* a new choice of isomorphisms `d : X ≅ ⨁ D` and `e : Y ≅ ⨁ E`
+* a partial equivalence between the summands of `X` and the summands of `Y`
+* such that with respect to these direct sum decompositions `f` is diagonal
+  with respect to that partial equivalence
+-/
+structure diagonalization
+  {X Y : C} (D : decomposition_over.{v} Z X) (E : decomposition_over Z Y) (f : X ⟶ Y) :=
+(d : X ≅ ⨁ (λ k, Z (D.summand k)))
+(e : Y ≅ ⨁ (λ k, Z (E.summand k)))
+(p : D.κ ≃. E.κ)
+(h : ∀ (x : D.κ) (y : E.κ), y ∈ p x ↔ biproduct.ι _ x ≫ d.inv ≫ f ≫ e.hom ≫ biproduct.π _ y ≠ 0)
+
+def diagonalization_source_card_zero
+  {X Y : C} (D : decomposition_over.{v} Z X) (E : decomposition_over Z Y) (f : X ⟶ Y)
+  (h : fintype.card D.κ = 0) : diagonalization Z D E f := sorry
+
+def diagonalization_target_card_zero
+  {X Y : C} (D : decomposition_over.{v} Z X) (E : decomposition_over Z Y) (f : X ⟶ Y)
+  (h : fintype.card E.κ = 0) : diagonalization Z D E f := sorry
+
+def diagonalization_conjugate
+  {X Y X' Y' : C} (D : decomposition_over.{v} Z X) (E : decomposition_over Z Y) (f : X ⟶ Y)
+  (Δ : diagonalization Z D E f) (iX : X ≅ X') (iY : Y ≅ Y') :
+  diagonalization Z (D.transport iX) (E.transport iY) (iX.inv ≫ f ≫ iY.hom) := sorry
+
+def diagonalization_conjugate'
+  {X Y X' Y' : C} (D : decomposition_over.{v} Z X) (E : decomposition_over Z Y) (f : X ⟶ Y)
+  (iX : X ≅ X') (iY : Y ≅ Y')
+  (Δ : diagonalization Z (D.transport iX) (E.transport iY) (iX.inv ≫ f ≫ iY.hom)) :
+  diagonalization Z D E f := sorry
+
+def diagonalization_foo
+  {X Y : C} (D : decomposition_over.{v} Z X) (E : decomposition_over Z Y) (f : X ⟶ Y)
+  (Δ : diagonalization Z decomposition_over.trivial decomposition_over.trivial (D.iso.inv ≫ f ≫ E.iso.hom)) :
+  diagonalization Z D E f :=
+diagonalization_conjugate' Z D E f D.iso E.iso
+begin
+  convert Δ;
+  { dsimp [decomposition_over.transport, decomposition_over.trivial],
+    congr,
+    simp, }
+end
+
+def diagonalization_biprod {X Y : C} (D : decomposition_over.{v} Z X) (E : decomposition_over Z Y) (f : X ⟶ Y)
+  (Δ : diagonalization Z D E f) (i : ι) (g : Z i ≅ Z i) :
+  diagonalization Z (D.biprod_single i) (E.biprod_single i) (biprod.map g.hom f) := sorry
+
+def diagonalize'
+  {X Y : C} (D : decomposition_over.{v} Z X) (E : decomposition_over Z Y) (f : X ⟶ Y)
+  {n : ℕ} (h : fintype.card D.κ = n) :
+  trunc (diagonalization Z D E f) :=
+begin
+  induction n with n ih generalizing X Y,
+  { apply trunc.mk,
+    apply diagonalization_source_card_zero,
+    exact h, },
+  { apply trunc.map,
+    apply diagonalization_foo,
+    generalize : D.iso.inv ≫ f ≫ E.iso.hom = f', clear f,
+    by_cases w : ∀ (x : D.κ) (y : E.κ), biproduct.ι _ x ≫ f' ≫ biproduct.π _ y = 0,
+    { apply trunc.mk,
+      refine ⟨iso.refl _, iso.refl _, ⊥, _⟩,
+      intros x y, split,
+      rintro ⟨⟩, intro h', exfalso, dsimp at h', simp at h', exact h' (w x y), },
+    { -- Okay, we've found a nonzero entry!
+      simp at w,
+      replace w := trunc_sigma_of_exists w,
+      trunc_cases w,
+      rcases w with ⟨x, w⟩,
+      replace w := trunc_sigma_of_exists w,
+      trunc_cases w,
+      rcases w with ⟨y, w⟩,
+      -- now use conjugate?
+      sorry,
+    }, }
+end
+
+
+def diagonalize
+  {X Y : C} (D : decomposition_over.{v} Z X) (E : decomposition_over Z Y) (f : X ⟶ Y) :
+  trunc (diagonalization Z D E f) :=
+diagonalize' Z D E f rfl
+
+#exit
 
 /--
 An auxiliary definition for `equiv_of_simple_decomposition`,

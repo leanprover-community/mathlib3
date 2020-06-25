@@ -426,6 +426,13 @@ lemma fintype.card_eq_zero_iff [fintype α] : fintype.card α = 0 ↔ (α → fa
   λ h, have e : α ≃ empty := ⟨λ a, (h a).elim, λ a, a.elim, λ a, (h a).elim, λ a, a.elim⟩,
     by simp [fintype.card_congr e]⟩
 
+/-- A `fintype` with cardinality zero is equivalent to `pempty`. -/
+def fintype.equiv_pempty {α : Type v} [fintype α] (h : fintype.card α = 0) : α ≃ pempty.{v} :=
+{ to_fun := λ a, false.elim (fintype.card_eq_zero_iff.1 h a),
+  inv_fun := λ a, pempty.elim a,
+  left_inv := λ a, false.elim (fintype.card_eq_zero_iff.1 h a),
+  right_inv := λ a, pempty.elim a, }
+
 lemma fintype.card_pos_iff [fintype α] : 0 < fintype.card α ↔ nonempty α :=
 ⟨λ h, classical.by_contradiction (λ h₁,
   have fintype.card α = 0 := fintype.card_eq_zero_iff.2 (λ a, h₁ ⟨a⟩),
@@ -1029,7 +1036,7 @@ to a point in the fiber over its equivalence class.
 
 See also `equiv.sigma_quotient_fin_card` for the nonconstructive version.
 -/
-def equiv.sigma_quotient_fin_card_trunc
+def sigma_quotient_fin_card_trunc
   {α : Type*} [fa : fintype α] [decidable_eq α] (s : setoid α) [decidable_rel s.r] :
   trunc { e : α ≃ Σ (q : quotient s), fin (fintype.card {x // ⟦x⟧ = q}) // ∀ x, (e x).1 = ⟦x⟧ } :=
 begin
@@ -1052,12 +1059,12 @@ and fiber over `q` given by `fin (fintype.card {x // ⟦x⟧ = q})`.
 
 See also `equiv.sigma_quotient_fin_card_trunc` for the constructive version (wrapped in `trunc`).
 -/
-noncomputable def equiv.sigma_quotient_fin_card {α : Type*} [fintype α] (s : setoid α) :
+noncomputable def sigma_quotient_fin_card {α : Type*} [fintype α] (s : setoid α) :
    α ≃ Σ (q : quotient s), fin (fintype.card {x // ⟦x⟧ = q}) :=
 (trunc.out (equiv.sigma_quotient_fin_card_trunc s)).1
 
 @[simp]
-lemma equiv.sigma_quot_fin_card_apply_fst {α : Type*} [fintype α] (s : setoid α) (x : α) :
+lemma sigma_quot_fin_card_apply_fst {α : Type*} [fintype α] (s : setoid α) (x : α) :
   ((equiv.sigma_quotient_fin_card s) x).1 = ⟦x⟧ :=
 (trunc.out (equiv.sigma_quotient_fin_card_trunc s)).2 x
 

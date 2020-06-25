@@ -270,7 +270,7 @@ lemma csupr_le_csupr {f g : ι → α} (B : bdd_above (range g)) (H : ∀x, f x 
   supr f ≤ supr g :=
 begin
   classical, by_cases hι : nonempty ι,
-  { have Rf : (range f).nonempty := range_nonempty _,
+  { have Rf : (range f).nonempty, { exactI range_nonempty _ },
     apply cSup_le Rf,
     rintros y ⟨x, rfl⟩,
     have : g x ∈ range g := ⟨x, rfl⟩,
@@ -293,7 +293,7 @@ lemma cinfi_le_cinfi {f g : ι → α} (B : bdd_below (range f)) (H : ∀x, f x 
   infi f ≤ infi g :=
 begin
   classical, by_cases hι : nonempty ι,
-  { have Rg : (range g).nonempty, from range_nonempty _,
+  { have Rg : (range g).nonempty, { exactI range_nonempty _ },
     apply le_cInf Rg,
     rintros y ⟨x, rfl⟩,
     have : f x ∈ range f := ⟨x, rfl⟩,

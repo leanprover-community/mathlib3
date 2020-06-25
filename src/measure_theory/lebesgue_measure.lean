@@ -178,7 +178,7 @@ lemma is_lebesgue_measurable_Iio {c : ℝ} :
   lebesgue_outer.caratheodory.is_measurable (Iio c) :=
 outer_measure.caratheodory_is_measurable $ λ t,
 le_infi $ λ a, le_infi $ λ b, le_infi $ λ h, begin
-  refine le_trans (add_le_add'
+  refine le_trans (add_le_add
     (lebesgue_length_mono $ inter_subset_inter_left _ h)
     (lebesgue_length_mono $ diff_subset_diff_left h)) _,
   cases le_total a c with hac hca; cases le_total b c with hbc hcb;

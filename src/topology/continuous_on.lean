@@ -373,27 +373,24 @@ begin
 end
 
 lemma continuous_on.congr_mono {f g : α → β} {s s₁ : set α} (h : continuous_on f s)
-  (h' : ∀x ∈ s₁, g x = f x) (h₁ : s₁ ⊆ s) : continuous_on g s₁ :=
+  (h' : eq_on g f s₁) (h₁ : s₁ ⊆ s) : continuous_on g s₁ :=
 begin
   assume x hx,
   unfold continuous_within_at,
   have A := (h x (h₁ hx)).mono h₁,
   unfold continuous_within_at at A,
-  rw ← h' x hx at A,
-  have : {x : α | g x = f x} ∈ nhds_within x s₁ := mem_inf_sets_of_right h',
-  apply tendsto.congr' _ A,
-  convert this,
-  ext,
-  finish
+  rw ← h' hx at A,
+  have : (g =ᶠ[nhds_within x s₁] f) := mem_inf_sets_of_right h',
+  exact A.congr' this.symm
 end
 
-lemma continuous_on.congr {f g : α → β} {s : set α} (h : continuous_on f s)
-  (h' : ∀x ∈ s, g x = f x) : continuous_on g s :=
+lemma continuous_on.congr {f g : α → β} {s : set α} (h : continuous_on f s) (h' : eq_on g f s) :
+  continuous_on g s :=
 h.congr_mono h' (subset.refl _)
 
-lemma continuous_on_congr {f g : α → β} {s : set α} (h' : ∀x ∈ s, g x = f x) :
+lemma continuous_on_congr {f g : α → β} {s : set α} (h' : eq_on g f s) :
   continuous_on g s ↔ continuous_on f s :=
-⟨λ h, continuous_on.congr h (λx hx, (h' x hx).symm), λ h, continuous_on.congr h h'⟩
+⟨λ h, continuous_on.congr h h'.symm, λ h, h.congr h'⟩
 
 lemma continuous_at.continuous_within_at {f : α → β} {s : set α} {x : α} (h : continuous_at f x) :
   continuous_within_at f s x :=
@@ -468,9 +465,9 @@ begin
 end
 
 lemma continuous_within_at.congr_of_mem_nhds_within {f f₁ : α → β} {s : set α} {x : α}
-  (h : continuous_within_at f s x) (h₁ : {y | f₁ y = f y} ∈ nhds_within x s) (hx : f₁ x = f x) :
+  (h : continuous_within_at f s x) (h₁ : f₁ =ᶠ[nhds_within x s] f) (hx : f₁ x = f x) :
   continuous_within_at f₁ s x :=
-by rwa [continuous_within_at, filter.tendsto, hx, filter.map_cong h₁]
+by rwa [continuous_within_at, filter.tendsto, hx, filter.map_congr h₁]
 
 lemma continuous_within_at.congr {f f₁ : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (h₁ : ∀y∈s, f₁ y = f y) (hx : f₁ x = f x) :

@@ -331,6 +331,9 @@ by simp [ext_iff]
 
 theorem eq_univ_of_forall {s : set α} : (∀ x, x ∈ s) → s = univ := eq_univ_iff_forall.2
 
+lemma eq_univ_of_subset {s t : set α} (h : s ⊆ t) (hs : s = univ) : t = univ :=
+eq_univ_of_univ_subset $ hs ▸ h
+
 @[simp] lemma univ_eq_empty_iff : (univ : set α) = ∅ ↔ ¬ nonempty α :=
 eq_empty_iff_forall_not_mem.trans ⟨λ H ⟨x⟩, H x trivial, λ H x _, H ⟨x⟩⟩
 

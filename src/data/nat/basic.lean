@@ -27,8 +27,7 @@ instance : canonically_ordered_comm_semiring ℕ :=
   ⟨assume h, let ⟨c, hc⟩ := nat.le.dest h in ⟨c, hc.symm⟩,
     assume ⟨c, hc⟩, hc.symm ▸ nat.le_add_right _ _⟩,
   zero_ne_one       := ne_of_lt zero_lt_one,
-  mul_eq_zero_iff   := assume a b,
-    iff.intro nat.eq_zero_of_mul_eq_zero (by simp [or_imp_distrib] {contextual := tt}),
+  eq_zero_or_eq_zero_of_mul_eq_zero   := assume a b, nat.eq_zero_of_mul_eq_zero,
   bot               := 0,
   bot_le            := nat.zero_le,
   .. (infer_instance : ordered_add_comm_monoid ℕ),
@@ -51,6 +50,8 @@ attribute [simp] nat.sub_self
 
 theorem succ_inj' {n m : ℕ} : succ n = succ m ↔ n = m :=
 ⟨succ.inj, congr_arg _⟩
+
+theorem succ_injective : function.injective nat.succ := λ x y, succ.inj
 
 theorem succ_le_succ_iff {m n : ℕ} : succ m ≤ succ n ↔ m ≤ n :=
 ⟨le_of_succ_le_succ, succ_le_succ⟩

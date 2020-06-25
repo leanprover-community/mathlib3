@@ -416,7 +416,7 @@ end comm_group
 
 @[simp] lemma with_bot.coe_nsmul [add_monoid A] (a : A) (n : ℕ) :
   ((nsmul n a : A) : with_bot A) = nsmul n a :=
-add_monoid_hom.map_nsmul ⟨_, with_bot.coe_zero, with_bot.coe_add⟩ a n
+add_monoid_hom.map_nsmul ⟨(coe : A → with_bot A), with_bot.coe_zero, with_bot.coe_add⟩ a n
 
 theorem nsmul_eq_mul' [semiring R] (a : R) (n : ℕ) : n •ℕ a = a * n :=
 by induction n with n ih; [rw [zero_nsmul, nat.cast_zero, mul_zero],
@@ -542,7 +542,7 @@ calc n •ℕ a = n •ℕ a + 0 : (add_zero _).symm
 
 lemma nsmul_le_nsmul_of_le_right {a b : A} (hab : a ≤ b) : ∀ i : ℕ, i •ℕ a ≤ i •ℕ b
 | 0 := by simp
-| (k+1) := add_le_add' hab (nsmul_le_nsmul_of_le_right _)
+| (k+1) := add_le_add hab (nsmul_le_nsmul_of_le_right _)
 
 end add_monoid
 

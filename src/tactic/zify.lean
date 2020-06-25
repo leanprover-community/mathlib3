@@ -85,7 +85,7 @@ do (z1, p1) ← zify.lift_to_z z <|> fail "failed to find an applicable zify lem
 A variant of `tactic.zify` that takes `h`, a proof of a proposition about natural numbers,
 and returns a proof of the zified version of that propositon.
 -/
-meta def tactic.zify_proof (extra_lems : list simp_arg_type := []) (h : expr) : tactic expr :=
+meta def tactic.zify_proof (extra_lems : list simp_arg_type) (h : expr) : tactic expr :=
 do (_, pf) ← infer_type h >>= tactic.zify extra_lems,
    mk_eq_mp pf h
 

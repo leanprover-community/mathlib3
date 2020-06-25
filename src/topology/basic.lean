@@ -386,7 +386,7 @@ by rw [frontier, interior_eq_of_open hs]
 lemma is_closed_frontier {s : set α} : is_closed (frontier s) :=
 by rw frontier_eq_closure_inter_closure; exact is_closed_inter is_closed_closure is_closed_closure
 
-/-- The frontier of a set has no interior point. -/
+/-- The frontier of a closed set has no interior point. -/
 lemma interior_frontier {s : set α} (h : is_closed s) : interior (frontier s) = ∅ :=
 begin
   have A : frontier s = s \ interior s, from h.frontier_eq,
@@ -554,6 +554,17 @@ have 𝓝 a ⊓ principal (s ∩ t) ≠ ⊥,
     ... ≠ ⊥ : by rw [closure_eq_nhds] at ht; assumption,
 by rwa [closure_eq_nhds]
 
+lemma dense_inter_of_open_left {s t : set α} (hs : closure s = univ) (ht : closure t = univ)
+  (hso : is_open s) :
+  closure (s ∩ t) = univ :=
+eq_univ_of_subset (closure_minimal (closure_inter_open hso) is_closed_closure) $
+  by simp only [*, inter_univ]
+
+lemma dense_inter_of_open_right {s t : set α} (hs : closure s = univ) (ht : closure t = univ)
+  (hto : is_open t) :
+  closure (s ∩ t) = univ :=
+inter_comm t s ▸ dense_inter_of_open_left ht hs hto
+
 lemma closure_diff {s t : set α} : closure s - closure t ⊆ closure (s - t) :=
 calc closure s \ closure t = (- closure t) ∩ closure s : by simp only [diff_eq, inter_comm]
   ... ⊆ closure (- closure t ∩ s) : closure_inter_open $ is_open_compl_iff.mpr $ is_closed_closure
@@ -632,14 +643,13 @@ def locally_finite (f : β → set α) :=
 ∀x:α, ∃t ∈ 𝓝 x, finite {i | (f i ∩ t).nonempty }
 
 lemma locally_finite_of_finite {f : β → set α} (h : finite (univ : set β)) : locally_finite f :=
-assume x, ⟨univ, univ_mem_sets, finite_subset h $ subset_univ _⟩
+assume x, ⟨univ, univ_mem_sets, h.subset $ subset_univ _⟩
 
 lemma locally_finite_subset
   {f₁ f₂ : β → set α} (hf₂ : locally_finite f₂) (hf : ∀b, f₁ b ⊆ f₂ b) : locally_finite f₁ :=
 assume a,
 let ⟨t, ht₁, ht₂⟩ := hf₂ a in
-⟨t, ht₁, finite_subset ht₂ $ assume i hi,
-   hi.mono $ inter_subset_inter (hf i) $ subset.refl _⟩
+⟨t, ht₁, ht₂.subset $ assume i hi, hi.mono $ inter_subset_inter (hf i) $ subset.refl _⟩
 
 lemma is_closed_Union_of_locally_finite {f : β → set α}
   (h₁ : locally_finite f) (h₂ : ∀i, is_closed (f i)) : is_closed (⋃i, f i) :=

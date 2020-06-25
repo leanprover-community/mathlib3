@@ -43,8 +43,9 @@ begin
     refine mem_Union.2 ⟨n, subset_closure _⟩,
     refine (mem_image _ _ _).2 ⟨x, ⟨_, hx⟩⟩,
     rwa [mem_ball, dist_eq_norm, sub_zero] },
-  have : ∃(n:ℕ) y ε, 0 < ε ∧ ball y ε ⊆ closure (f '' (ball 0 n)) :=
+  have : ∃ (n : ℕ) x, x ∈ interior (closure (f '' (ball 0 n))) :=
     nonempty_interior_of_Union_of_closed (λn, is_closed_closure) A,
+  simp only [mem_interior_iff_mem_nhds, mem_nhds_iff] at this,
   rcases this with ⟨n, a, ε, ⟨εpos, H⟩⟩,
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   refine ⟨(ε/2)⁻¹ * ∥c∥ * 2 * n, _, λy, _⟩,

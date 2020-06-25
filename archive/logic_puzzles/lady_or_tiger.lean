@@ -138,13 +138,14 @@ begin
     done
 end
 
+end Q4
+
 /--
 Puzzle number five: 
 First door sign says that at least one room contains a lady.
 Second door sign says : "In the other room there is a lady."
 -/
 
-end Q4
 
 def Q5 := Q
 /- ∧ : \and ∨ : \or ¬ : \not -/

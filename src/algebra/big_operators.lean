@@ -350,37 +350,6 @@ by haveI := classical.dec_eq α; exact
     by rw [prod_image]; exact assume x _ y _, subtype.eq
   ... = _ : by rw [attach_image_val]
 
-/-- `s.subtype p` converts back to `s.filter p` with
-`embedding.subtype`. -/
-lemma subtype_map (p : α → Prop) [decidable_pred p] :
-  (s.subtype p).map (function.embedding.subtype _) = s.filter p :=
-begin
-  ext x,
-  rw mem_map,
-  change (∃ a : {x // p x}, ∃ H, a.val = x) ↔ _,
-  split,
-  { rintros ⟨y, hy, hyval⟩,
-    rw [mem_subtype, hyval] at hy,
-    rw mem_filter,
-    use hy,
-    rw ← hyval,
-    use y.property },
-  { intro hx,
-    rw mem_filter at hx,
-    use ⟨⟨x, hx.2⟩, mem_subtype.2 hx.1, rfl⟩ }
-end
-
-/-- If all elements of a `finset` satisfy the predicate `p`,
-`s.subtype p` converts back to `s` with `embedding.subtype`. -/
-lemma subtype_map_of_mem {p : α → Prop} [decidable_pred p] (h : ∀ x ∈ s, p x) :
-  (s.subtype p).map (function.embedding.subtype _) = s :=
-begin
-  rw subtype_map,
-  ext x,
-  rw mem_filter,
-  exact ⟨(λ hx, hx.1), (λ hx, ⟨hx, h x hx⟩)⟩
-end
-
 /-- A product over `s.subtype p` equals one over `s.filter p`. -/
 @[to_additive "A sum over `s.subtype p` equals one over `s.filter p`."]
 lemma prod_subtype_eq_prod_filter (f : α → β) {p : α → Prop} [decidable_pred p] :

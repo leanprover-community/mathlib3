@@ -1357,6 +1357,37 @@ protected def subtype {α} (p : α → Prop) [decidable_pred p] (s : finset α) 
   ∀{a : subtype p}, a ∈ s.subtype p ↔ a.val ∈ s
 | ⟨a, ha⟩ := by simp [finset.subtype, ha]
 
+/-- `s.subtype p` converts back to `s.filter p` with
+`embedding.subtype`. -/
+lemma subtype_map (p : α → Prop) [decidable_pred p] :
+  (s.subtype p).map (function.embedding.subtype _) = s.filter p :=
+begin
+  ext x,
+  rw mem_map,
+  change (∃ a : {x // p x}, ∃ H, a.val = x) ↔ _,
+  split,
+  { rintros ⟨y, hy, hyval⟩,
+    rw [mem_subtype, hyval] at hy,
+    rw mem_filter,
+    use hy,
+    rw ← hyval,
+    use y.property },
+  { intro hx,
+    rw mem_filter at hx,
+    use ⟨⟨x, hx.2⟩, mem_subtype.2 hx.1, rfl⟩ }
+end
+
+/-- If all elements of a `finset` satisfy the predicate `p`,
+`s.subtype p` converts back to `s` with `embedding.subtype`. -/
+lemma subtype_map_of_mem {p : α → Prop} [decidable_pred p] (h : ∀ x ∈ s, p x) :
+  (s.subtype p).map (function.embedding.subtype _) = s :=
+begin
+  rw subtype_map,
+  ext x,
+  rw mem_filter,
+  exact ⟨(λ hx, hx.1), (λ hx, ⟨hx, h x hx⟩)⟩
+end
+
 lemma subset_image_iff {f : α → β}
   {s : finset β} {t : set α} : ↑s ⊆ f '' t ↔ ∃s' : finset α, ↑s' ⊆ t ∧ s'.image f = s :=
 begin

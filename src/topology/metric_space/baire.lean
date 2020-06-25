@@ -132,8 +132,8 @@ begin
       show min (min (δ / 2) r) (B (n+1)) ≤ B (n+1), from min_le_right _ _,
       show z ∈ closed_ball x δ, from calc
         edist z x ≤ edist z y + edist y x : edist_triangle _ _ _
-        ... ≤ (min (min (δ / 2) r) (B (n+1))) + (δ/2) : add_le_add' hz (le_of_lt xy)
-        ... ≤ δ/2 + δ/2 : add_le_add' (le_trans (min_le_left _ _) (min_le_left _ _)) (le_refl _)
+        ... ≤ (min (min (δ / 2) r) (B (n+1))) + (δ/2) : add_le_add hz (le_of_lt xy)
+        ... ≤ δ/2 + δ/2 : add_le_add (le_trans (min_le_left _ _) (min_le_left _ _)) (le_refl _)
         ... = δ : ennreal.add_halves δ,
       show z ∈ f n, from hr (calc
         edist z y ≤ min (min (δ / 2) r) (B (n+1)) : hz

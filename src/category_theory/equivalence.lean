@@ -41,6 +41,17 @@ abbreviation counit (e : C ≌ D) : e.inverse ⋙ e.functor ⟶ 𝟭 D := e.coun
 abbreviation unit_inv (e : C ≌ D) : e.functor ⋙ e.inverse ⟶ 𝟭 C := e.unit_iso.inv
 abbreviation counit_inv (e : C ≌ D) : 𝟭 D ⟶ e.inverse ⋙ e.functor := e.counit_iso.inv
 
+/- While these abbreviations are convenient, they also cause some trouble,
+preventing structure projections from unfolding. -/
+@[simp] lemma equivalence_mk'_unit (functor inverse unit_iso counit_iso f) :
+  (⟨functor, inverse, unit_iso, counit_iso, f⟩ : C ≌ D).unit = unit_iso.hom := rfl
+@[simp] lemma equivalence_mk'_counit (functor inverse unit_iso counit_iso f) :
+  (⟨functor, inverse, unit_iso, counit_iso, f⟩ : C ≌ D).counit = counit_iso.hom := rfl
+@[simp] lemma equivalence_mk'_unit_inv (functor inverse unit_iso counit_iso f) :
+  (⟨functor, inverse, unit_iso, counit_iso, f⟩ : C ≌ D).unit_inv = unit_iso.inv := rfl
+@[simp] lemma equivalence_mk'_counit_inv (functor inverse unit_iso counit_iso f) :
+  (⟨functor, inverse, unit_iso, counit_iso, f⟩ : C ≌ D).counit_inv = counit_iso.inv := rfl
+
 @[simp] lemma functor_unit_comp (e : C ≌ D) (X : C) : e.functor.map (e.unit.app X) ≫
   e.counit.app (e.functor.obj X) = 𝟙 (e.functor.obj X) :=
 e.functor_unit_iso_comp X
@@ -248,6 +259,15 @@ is_equivalence.inverse F
 instance is_equivalence_inv (F : C ⥤ D) [is_equivalence F] : is_equivalence F.inv :=
 is_equivalence.of_equivalence F.as_equivalence.symm
 
+@[simp] lemma as_equivalence_functor (F : C ⥤ D) [is_equivalence F] :
+  F.as_equivalence.functor = F := rfl
+
+@[simp] lemma as_equivalence_inverse (F : C ⥤ D) [is_equivalence F] :
+  F.as_equivalence.inverse = inv F := rfl
+
+@[simp] lemma inv_inv (F : C ⥤ D) [is_equivalence F] :
+  inv (inv F) = F := rfl
+
 def fun_inv_id (F : C ⥤ D) [is_equivalence F] : F ⋙ F.inv ≅ 𝟭 C :=
 is_equivalence.unit_iso.symm
 
@@ -261,6 +281,24 @@ instance is_equivalence_trans (F : C ⥤ D) (G : D ⥤ E) [is_equivalence F] [is
 is_equivalence.of_equivalence (equivalence.trans (as_equivalence F) (as_equivalence G))
 
 end functor
+
+namespace equivalence
+
+@[simp]
+lemma functor_inv (E : C ≌ D) : E.functor.inv = E.inverse := rfl
+
+@[simp]
+lemma inverse_inv (E : C ≌ D) : E.inverse.inv = E.functor := rfl
+
+@[simp]
+lemma functor_as_equivalence (E : C ≌ D) : E.functor.as_equivalence = E :=
+by { cases E, congr, }
+
+@[simp]
+lemma inverse_as_equivalence (E : C ≌ D) : E.inverse.as_equivalence = E.symm :=
+by { cases E, congr, }
+
+end equivalence
 
 namespace is_equivalence
 

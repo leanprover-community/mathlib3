@@ -174,6 +174,17 @@ have hpd : p ∣ x * y, from ⟨z, by rwa [domain.mul_right_inj hp0] at h⟩,
   (λ ⟨d, hd⟩, or.inl ⟨d, by simp [*, pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
   (λ ⟨d, hd⟩, or.inr ⟨d, by simp [*, pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
 
+/-- If `p` and `q` are irreducible, then `p ∣ q` implies `q ∣ p`. -/
+lemma dvd_symm_of_irreducible [comm_semiring α] {p q : α}
+  (hp : irreducible p) (hq : irreducible q) : p ∣ q → q ∣ p :=
+begin
+  tactic.unfreeze_local_instances,
+  rintros ⟨q', rfl⟩,
+  exact is_unit.mul_right_dvd_of_dvd
+    (or.resolve_left (of_irreducible_mul hq) hp.not_unit)
+    (dvd_refl p)
+end
+
 /-- Two elements of a `monoid` are `associated` if one of them is another one
 multiplied by a unit on the right. -/
 def associated [monoid α] (x y : α) : Prop := ∃u:units α, x * u = y

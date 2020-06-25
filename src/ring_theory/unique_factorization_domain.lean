@@ -455,3 +455,67 @@ def unique_factorization_domain.to_gcd_domain
   .. ‹normalization_domain α› }
 
 end
+
+namespace unique_factorization_domain
+
+variables {R : Type*} [integral_domain R] [unique_factorization_domain R]
+
+lemma left_dvd_or_dvd_right_of_dvd_prime_mul {a : R} :
+  ∀ {b p : R}, prime p → a ∣ p * b → p ∣ a ∨ a ∣ b :=
+begin
+  refine induction_on_prime a _ _ _,
+  { intros b p _ ha,
+    refine (eq_zero_or_eq_zero_of_mul_eq_zero (zero_dvd_iff.mp ha)).imp _ _;
+      rintro ⟨rfl⟩; refl },
+  { intros x x_is_unit b _ _ _,
+    exact or.inr (is_unit_iff_forall_dvd.mp x_is_unit b) },
+  { intros a q a_ne_zero hq ih b p hp qa_dvd,
+    cases (hq.div_or_div (dvd_of_mul_right_dvd qa_dvd)) with q_dvd_p q_dvd_b,
+    { left,
+      apply dvd_mul_of_dvd_left,
+      refine dvd_symm_of_irreducible (irreducible_of_prime _) (irreducible_of_prime _) _;
+        assumption },
+    { rcases q_dvd_b with ⟨b', rfl⟩,
+      rw mul_left_comm at qa_dvd,
+      refine (ih hp ((mul_dvd_mul_iff_left hq.ne_zero).mp qa_dvd)).imp _ _,
+      { exact λ h, dvd_mul_of_dvd_right h _ },
+      { exact mul_dvd_mul_left q } } }
+end
+
+/-- If `a ≠ 0, b` are elements of a unique factorization domain, then dividing
+out their common factor `c'` gives `a'` and `b'` with no factors in common. -/
+lemma exists_reduced_factors : ∀ (a ≠ (0 : R)) b,
+  ∃ a' b' c', (∀ {p}, p ∣ a' → p ∣ b' → is_unit p) ∧ c' * a' = a ∧ c' * b' = b :=
+begin
+  haveI := classical.prop_decidable,
+  intros a,
+  refine induction_on_prime a _ _ _,
+  { intros, contradiction },
+  { intros a a_unit a_ne_zero b,
+    use [a, b, 1],
+    split,
+    { intros p p_dvd_a _,
+      exact is_unit_of_dvd_unit p_dvd_a a_unit },
+    { simp } },
+  { intros a p a_ne_zero p_prime ih_a pa_ne_zero b,
+    by_cases p ∣ b,
+    { rcases h with ⟨b, rfl⟩,
+      obtain ⟨a', b', c', no_factor, ha', hb'⟩ := ih_a a_ne_zero b,
+      refine ⟨a', b', p * c', @no_factor, _, _⟩,
+      { rw [mul_assoc, ha'] },
+      { rw [mul_assoc, hb'] } },
+    { obtain ⟨a', b', c', coprime, rfl, rfl⟩ := ih_a a_ne_zero b,
+      refine ⟨p * a', b', c', _, mul_left_comm _ _ _, rfl⟩,
+      intros q q_dvd_pa' q_dvd_b',
+      cases left_dvd_or_dvd_right_of_dvd_prime_mul p_prime q_dvd_pa' with p_dvd_q q_dvd_a',
+      { have : p ∣ c' * b' := dvd_mul_of_dvd_right (dvd_trans p_dvd_q q_dvd_b') _,
+        contradiction },
+      exact coprime q_dvd_a' q_dvd_b'  } }
+end
+
+lemma exists_reduced_factors' (a b : R) (hb : b ≠ 0) :
+  ∃ a' b' c', (∀ {p}, p ∣ a' → p ∣ b' → is_unit p) ∧ c' * a' = a ∧ c' * b' = b :=
+let ⟨b', a', c', no_factor, hb, ha⟩ := exists_reduced_factors b hb a
+in ⟨a', b', c', λ _ hpb hpa, no_factor hpa hpb, ha, hb⟩
+
+end unique_factorization_domain

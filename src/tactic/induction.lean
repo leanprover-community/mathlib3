@@ -116,21 +116,32 @@ def all_some : list (option α) → option (list α)
 | (some x :: xs) := (λ xs, x :: xs) <$> all_some xs
 | (none :: xs) := none
 
-def m_any {m} [monad m] {α} (p : α → m bool) : list α → m bool
+def mbfind' {m : Type u → Type v} [monad m] {α : Type u} (p : α → m (ulift bool))
+  : list α → m (option α)
+| [] := pure none
+| (x :: xs) := do
+  ⟨px⟩ ← p x,
+  if px then pure (some x) else mbfind' xs
+
+def mbfind {m : Type → Type v} [monad m] {α : Type} (p : α → m bool)
+  (xs : list α) : m (option α) :=
+xs.mbfind' (functor.map ulift.up ∘ p)
+
+-- I'd like to define this in terms of mbfind, but that gives us less universe
+-- polymorphism.
+def mbany {m : Type → Type v} [monad m] {α : Type u} (p : α → m bool)
+  : list α → m bool
 | [] := pure ff
 | (x :: xs) := do
   px ← p x,
-  if px then pure tt else m_any xs
+  if px then pure tt else mbany xs
 
-def m_all {m} [monad m] {α} (p : α → m bool) : list α → m bool
-| [] := pure tt
-| (x :: xs) := do
-  px ← p x,
-  if px then m_all xs else pure ff
+def mball {m} [monad m] {α} (p : α → m bool) (xs : list α) : m bool :=
+bnot <$> xs.mbany (functor.map bnot ∘ p)
 
-def mbor {m} [monad m] (xs : list (m bool)) : m bool := xs.m_any id
+def mbor {m} [monad m] (xs : list (m bool)) : m bool := xs.mbany id
 
-def mband {m} [monad m] (xs : list (m bool)) : m bool := xs.m_all id
+def mband {m} [monad m] (xs : list (m bool)) : m bool := xs.mball id
 
 def mfilter_map {m : Type u → Type v} [monad m] {α β} (p : α → m (option β))
   : list α → m (list β)

@@ -165,6 +165,26 @@ begin
   rw [←finset.sum_smul, h, one_smul, vsub_add_vsub_cancel, vsub_self]
 end
 
+/-- The weighted sum is unaffected by removing the base point, if
+present, from the set of points. -/
+lemma weighted_vsub_of_point_erase (w : ι → k) (p : ι → P) (i : ι) :
+  (s.erase i).weighted_vsub_of_point V p (p i) w = s.weighted_vsub_of_point V p (p i) w :=
+begin
+  rw [weighted_vsub_of_point_apply, weighted_vsub_of_point_apply],
+  apply finset.sum_erase,
+  rw [vsub_self, smul_zero]
+end
+
+/-- The weighted sum is unaffected by adding the base point, whether
+or not present, to the set of points. -/
+lemma weighted_vsub_of_point_insert (w : ι → k) (p : ι → P) (i : ι) :
+  (insert i s).weighted_vsub_of_point V p (p i) w = s.weighted_vsub_of_point V p (p i) w :=
+begin
+  rw [weighted_vsub_of_point_apply, weighted_vsub_of_point_apply],
+  apply finset.sum_insert_zero,
+  rw [vsub_self, smul_zero]
+end
+
 /-- A weighted sum of the results of subtracting a default base point
 from the given points, as a linear map on the weights.  This is
 intended to be used when the sum of the weights is 0; that condition
@@ -262,8 +282,8 @@ begin
       exact neg_add_self _ },
     have hs2 : s2.weighted_vsub V p f = 0,
     { rw [finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero V s2 f p hf (p i1),
-          finset.weighted_vsub_of_point_apply, finset.sum_insert hm, finset.sum_map, vsub_self,
-          smul_zero, zero_add],
+          finset.weighted_vsub_of_point_insert, finset.weighted_vsub_of_point_apply,
+          finset.sum_map],
       change ∑ x in s, f (x : ι) • (p (x : ι) -ᵥ p i1 : V) = 0,
       simp_rw ←hfg,
       exact hg },
@@ -272,12 +292,8 @@ begin
     rw linear_independent_iff' at h,
     intros s w hw hs i hi,
     rw [finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero V s w p hw (p i1),
-        finset.weighted_vsub_of_point_apply] at hs,
+        ←s.weighted_vsub_of_point_erase V w p i1, finset.weighted_vsub_of_point_apply] at hs,
     let f : ι → V := λ i, w i • (p i -ᵥ p i1),
-    have hz : f i1 = 0,
-    { change w i1 • (p i1 -ᵥ p i1 : V) = 0,
-      rw [vsub_self, smul_zero] },
-    erw ←finset.sum_erase s hz at hs,
     set s2 := (s.erase i1).subtype (λ i, i ≠ i1) with hs2def,
     have hs2 : ∑ i in s2, w i • (p i -ᵥ p i1 : V) = 0,
     { erw ←finset.sum_map _ (function.embedding.subtype _) f,

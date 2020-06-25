@@ -117,6 +117,16 @@ by { convert w (𝟙 X), tidy }
 lemma id_of_comp_right_id (f : X ⟶ X) (w : ∀ {Y : C} (g : Y ⟶ X), g ≫ f = g) : f = 𝟙 X :=
 by { convert w (𝟙 X), tidy }
 
+lemma comp_dite {P : Prop} [decidable P]
+  {X Y Z : C} (f : X ⟶ Y) (g₀ : P → (Y ⟶ Z)) (g₁ : ¬P → (Y ⟶ Z)) :
+  (f ≫ if h : P then g₀ h else g₁ h) = (if h : P then f ≫ g₀ h else f ≫ g₁ h) :=
+by { split_ifs; refl }
+
+lemma dite_comp {P : Prop} [decidable P]
+  {X Y Z : C} (f₀ : P → (X ⟶ Y)) (f₁ : ¬P → (X ⟶ Y)) (g : Y ⟶ Z) :
+  (if h : P then f₀ h else f₁ h) ≫ g = (if h : P then f₀ h ≫ g else f₁ h ≫ g) :=
+by { split_ifs; refl }
+
 class epi  (f : X ⟶ Y) : Prop :=
 (left_cancellation : Π {Z : C} (g h : Y ⟶ Z) (w : f ≫ g = f ≫ h), g = h)
 class mono (f : X ⟶ Y) : Prop :=

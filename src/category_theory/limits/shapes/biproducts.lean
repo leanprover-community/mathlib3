@@ -55,17 +55,6 @@ namespace category_theory.limits
 variables {J : Type v} [decidable_eq J]
 variables {C : Type u} [category.{v} C] [has_zero_morphisms.{v} C]
 
--- TODO move
-lemma comp_dite {P : Prop} [decidable P]
-  {X Y Z : C} (f : X ⟶ Y) (g₀ : P → (Y ⟶ Z)) (g₁ : ¬P → (Y ⟶ Z)) :
-  (f ≫ if h : P then g₀ h else g₁ h) = (if h : P then f ≫ g₀ h else f ≫ g₁ h) :=
-by { split_ifs; refl }
-
-lemma dite_comp {P : Prop} [decidable P]
-  {X Y Z : C} (f₀ : P → (X ⟶ Y)) (f₁ : ¬P → (X ⟶ Y)) (g : Y ⟶ Z) :
-  (if h : P then f₀ h else f₁ h) ≫ g = (if h : P then f₀ h ≫ g else f₁ h ≫ g) :=
-by { split_ifs; refl }
-
 /--
 A `c : bicone F` is:
 * an object `c.X` and
@@ -393,6 +382,12 @@ class has_binary_biproducts :=
 
 attribute [instance, priority 100] has_binary_biproducts.has_binary_biproduct
 
+/--
+A category with finite biproducts has binary biproducts.
+
+This is not an instance as typically in concrete categories there will be
+an alternative construction with nicer definitional properties.
+-/
 def has_binary_biproducts_of_finite_biproducts [has_finite_biproducts.{v} C] :
   has_binary_biproducts.{v} C :=
 { has_binary_biproduct := λ P Q,
@@ -634,6 +629,12 @@ variables {J : Type v} [fintype J] [decidable_eq J]
 open category_theory.preadditive
 open_locale big_operators
 
+/--
+In a preadditive category, we can construct a biproduct for `f : J → C` from
+any bicone `b` for `f` satisfying `total : ∑ j : J, b.π j ≫ b.ι j = 𝟙 b.X`.
+
+(That is, such a bicone is a limit cone and a colimit cocone.)
+-/
 def has_biproduct_of_total {f : J → C} (b : bicone f) (total : ∑ j : J, b.π j ≫ b.ι j = 𝟙 b.X) :
   has_biproduct.{v} f :=
 { bicone := b,
@@ -698,6 +699,10 @@ end
 section
 variables {f : J → C} [has_biproduct.{v} f]
 
+/--
+In any preadditive category, any biproduct satsifies
+`∑ j : J, biproduct.π f j ≫ biproduct.ι f j = 𝟙 (⨁ f)`
+-/
 @[simp] lemma biproduct.total : ∑ j : J, biproduct.π f j ≫ biproduct.ι f j = 𝟙 (⨁ f) :=
 begin
   ext j j',
@@ -732,6 +737,12 @@ end
 
 end
 
+/--
+In a preadditive category, we can construct a binary biproduct for `X Y : C` from
+any binary bicone `b` satisfying `total : b.fst ≫ b.inl + b.snd ≫ b.inr = 𝟙 b.X`.
+
+(That is, such a bicone is a limit cone and a colimit cocone.)
+-/
 def has_binary_biproduct_of_total {X Y : C} (b : binary_bicone X Y)
   (total : b.fst ≫ b.inl + b.snd ≫ b.inr = 𝟙 b.X) :
   has_binary_biproduct.{v} X Y :=
@@ -763,6 +774,8 @@ begin
   ext; simp [add_comp],
 end
 
+/-- In a preadditive category, if all binary products exist,
+    then the all binary biproducts exist. -/
 def has_binary_biproducts.of_has_binary_products [has_binary_products.{v} C] :
   has_binary_biproducts.{v} C :=
 { has_binary_biproduct := λ X Y, has_binary_biproduct.of_has_binary_product X Y, }
@@ -781,6 +794,8 @@ begin
   ext; simp [add_comp],
 end
 
+/-- In a preadditive category, if all binary coproducts exist,
+    then the all binary biproducts exist. -/
 def has_binary_biproducts.of_has_binary_coproducts [has_binary_coproducts.{v} C] :
   has_binary_biproducts.{v} C :=
 { has_binary_biproduct := λ X Y, has_binary_biproduct.of_has_binary_coproduct X Y, }
@@ -788,6 +803,10 @@ def has_binary_biproducts.of_has_binary_coproducts [has_binary_coproducts.{v} C]
 section
 variables {X Y : C} [has_binary_biproduct.{v} X Y]
 
+/--
+In any preadditive category, any binary biproduct satsifies
+`biprod.fst ≫ biprod.inl + biprod.snd ≫ biprod.inr = 𝟙 (X ⊞ Y)`.
+-/
 @[simp] lemma biprod.total : biprod.fst ≫ biprod.inl + biprod.snd ≫ biprod.inr = 𝟙 (X ⊞ Y) :=
 begin
   ext; simp [add_comp],

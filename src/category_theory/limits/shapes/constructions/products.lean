@@ -563,6 +563,32 @@ begin
   refl,
 end
 
+
+
+def equiv_punit_sum_of_term' {α : Type v} [decidable_eq α] [fintype α] (a : α) :
+  α ≃ punit.{v+1} ⊕ {a' // a' ≠ a} :=
+{ to_fun := λ a', if h : a' = a then sum.inl punit.star else sum.inr ⟨a', h⟩,
+  inv_fun := λ p, match p with | sum.inl _ := a | sum.inr v := v.1 end,
+  left_inv := λ a',
+  begin
+    dsimp, split_ifs,
+    { subst h, unfold_aux, simp, },
+    { unfold_aux, simp, }
+  end,
+  right_inv := λ p,
+  begin
+    rcases p with ⟨⟨p⟩⟩|⟨a',ne⟩,
+    { unfold_aux, simp, },
+    { unfold_aux, simp [ne], },
+  end, }
+
+def biproduct_iso_of_term
+  {I : Type v} [fintype I] [decidable_eq I]
+  (f : I → C) (i : I)
+  [has_finite_biproducts.{v} C] [has_binary_biproducts.{v} C] :
+  ⨁ f ≅ f i ⊞ ⨁ (λ j : { i' // i' ≠ i }, f j.1) :=
+biproduct_iso_of_equiv_punit_sum f (equiv_punit_sum_of_term' i)
+
 end
 
 end category_theory.limits

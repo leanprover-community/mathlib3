@@ -125,21 +125,25 @@ end
 section
 variables [has_zero_morphisms.{v} C] [has_finite_biproducts.{v} C]
 
-structure decomposition_over {ι : Type w} (Z : ι → C) (X : C) :=
+structure sum_over {ι : Type w} (Z : ι → C) :=
 (κ : Type v)
 [fintype : fintype κ]
 [decidable_eq : decidable_eq κ]
 (summand : κ → ι)
-(iso : X ≅ ⨁ (λ k, Z (summand k)))
 
-attribute [instance] decomposition_over.fintype decomposition_over.decidable_eq
+attribute [instance] sum_over.fintype sum_over.decidable_eq
+
+def sum_over.sum {ι : Type w} {Z : ι → C} (O : sum_over Z) : C := ⨁ (λ k, Z (O.summand k))
+
+structure decomposition_over {ι : Type w} (Z : ι → C) (X : C) :=
+(O : sum_over Z)
+(iso : X ≅ O.sum)
 
 @[simps]
 def decomposition_over.trivial {ι : Type w} {Z : ι → C}
-  {κ : Type v} [fintype κ] [decidable_eq κ] {summand : κ → ι} :
-  decomposition_over Z (⨁ (λ k, Z (summand k))) :=
-{ κ := κ,
-  summand := summand,
+  {O : sum_over Z} :
+  decomposition_over Z O.sum :=
+{ O := O,
   iso := iso.refl _ }
 
 def decomposition_over.transport {ι : Type w} {Z : ι → C} {X : C} (D : decomposition_over Z X)
@@ -150,10 +154,13 @@ def decomposition_over.transport {ι : Type w} {Z : ι → C} {X : C} (D : decom
 section
 variables [has_binary_biproducts.{v} C]
 
+def sum_over.foo {ι : Type w} {Z : ι → C} (O : sum_over Z) (i : ι) : sum_over Z :=
+{ κ := punit.{v+1} ⊕ O.κ,
+  summand := sum.elim (λ _, i) O.summand, }
+
 def decomposition_over.biprod_single {ι : Type w} {Z : ι → C} {X : C} (D : decomposition_over Z X)
   (i : ι) : decomposition_over Z (Z i ⊞ X) :=
-{ κ := punit.{v+1} ⊕ D.κ,
-  summand := sum.elim (λ _, i) D.summand,
+{ O := D.O.foo i,
   iso := sorry }
 
 end
@@ -199,23 +206,6 @@ end
 
 
 
-def equiv_punit_sum_of_term' {α : Type v} [decidable_eq α] [fintype α] (a : α) :
-  α ≃ punit.{v+1} ⊕ {a' // a' ≠ a} :=
-{ to_fun := λ a', if h : a' = a then sum.inl punit.star else sum.inr ⟨a', h⟩,
-  inv_fun := λ p, match p with | sum.inl _ := a | sum.inr v := v.1 end,
-  left_inv := λ a',
-  begin
-    dsimp, split_ifs,
-    { subst h, unfold_aux, simp, },
-    { unfold_aux, simp, }
-  end,
-  right_inv := λ p,
-  begin
-    rcases p with ⟨⟨p⟩⟩|⟨a',ne⟩,
-    { unfold_aux, simp, },
-    { unfold_aux, simp [ne], },
-  end, }
-
 lemma fintype.card_ne {α : Type v} [fintype α] [decidable_eq α] (a : α) :
   fintype.card {a' // a' ≠ a} = fintype.card α - 1 :=
 begin
@@ -256,36 +246,32 @@ we say a "diagonalization" of `f` consists of
   with respect to that partial equivalence
 -/
 structure diagonalization
-  {X Y : C} (D : decomposition_over.{v} Z X) (E : decomposition_over Z Y) (f : X ⟶ Y) :=
-(d : X ≅ ⨁ (λ k, Z (D.summand k)))
-(e : Y ≅ ⨁ (λ k, Z (E.summand k)))
+  {X Y : C} (D : sum_over.{v} Z) (E : sum_over Z) (f : X ⟶ Y) :=
+(d : X ≅ D.sum)
+(e : Y ≅ E.sum)
 (p : D.κ ≃. E.κ)
 (h : ∀ (x : D.κ) (y : E.κ), y ∈ p x ↔ biproduct.ι _ x ≫ d.inv ≫ f ≫ e.hom ≫ biproduct.π _ y ≠ 0)
 
 def diagonalization_source_card_zero
-  {X Y : C} (D : decomposition_over.{v} Z X) (E : decomposition_over Z Y) (f : X ⟶ Y)
-  (h : fintype.card D.κ = 0) : diagonalization Z D E f := sorry
-
-def diagonalization_target_card_zero
-  {X Y : C} (D : decomposition_over.{v} Z X) (E : decomposition_over Z Y) (f : X ⟶ Y)
-  (h : fintype.card E.κ = 0) : diagonalization Z D E f := sorry
+  {X Y : C} (D : decomposition_over.{v} Z X) (E : sum_over Z) (f : X ⟶ Y)
+  (h : fintype.card D.O.κ = 0) : diagonalization Z D.O E f := sorry
 
 def diagonalization_conjugate
-  {X Y X' Y' : C} (D : decomposition_over.{v} Z X) (E : decomposition_over Z Y) (f : X ⟶ Y)
+  {X Y X' Y' : C} (D : sum_over Z) (E : sum_over Z) (f : X ⟶ Y)
   (Δ : diagonalization Z D E f) (iX : X ≅ X') (iY : Y ≅ Y') :
-  diagonalization Z (D.transport iX) (E.transport iY) (iX.inv ≫ f ≫ iY.hom) := sorry
+  diagonalization Z D E (iX.inv ≫ f ≫ iY.hom) := sorry
 
 def diagonalization_conjugate'
-  {X Y X' Y' : C} (D : decomposition_over.{v} Z X) (E : decomposition_over Z Y) (f : X ⟶ Y)
+  {X Y X' Y' : C} (D : sum_over Z) (E : sum_over Z) (f : X ⟶ Y)
   (iX : X ≅ X') (iY : Y ≅ Y')
-  (Δ : diagonalization Z (D.transport iX) (E.transport iY) (iX.inv ≫ f ≫ iY.hom)) :
+  (Δ : diagonalization Z D E (iX.inv ≫ f ≫ iY.hom)) :
   diagonalization Z D E f := sorry
 
 def diagonalization_foo
   {X Y : C} (D : decomposition_over.{v} Z X) (E : decomposition_over Z Y) (f : X ⟶ Y)
-  (Δ : diagonalization Z decomposition_over.trivial decomposition_over.trivial (D.iso.inv ≫ f ≫ E.iso.hom)) :
-  diagonalization Z D E f :=
-diagonalization_conjugate' Z D E f D.iso E.iso
+  (Δ : diagonalization Z D.O E.O (D.iso.inv ≫ f ≫ E.iso.hom)) :
+  diagonalization Z D.O E.O f :=
+diagonalization_conjugate' Z D.O E.O f D.iso E.iso
 begin
   convert Δ;
   { dsimp [decomposition_over.transport, decomposition_over.trivial],
@@ -293,14 +279,29 @@ begin
     simp, }
 end
 
-def diagonalization_biprod {X Y : C} (D : decomposition_over.{v} Z X) (E : decomposition_over Z Y) (f : X ⟶ Y)
-  (Δ : diagonalization Z D E f) (i : ι) (g : Z i ≅ Z i) :
-  diagonalization Z (D.biprod_single i) (E.biprod_single i) (biprod.map g.hom f) := sorry
+def diagonalization_biprod {X Y : C} (D : sum_over Z) (E : sum_over Z) (f : X ⟶ Y)
+  (Δ : diagonalization Z D E f) (i j : ι) (g : Z i ⟶ Z j) :
+  diagonalization Z (D.foo i) (E.foo j) (biprod.map g f) := sorry
+
+def diagonalization_gaussian {X Y : C} (D : sum_over Z) (E : sum_over Z) (i j : ι) (f : Z i ⊞ X ⟶ Z j ⊞ Y)
+  [is_iso (biprod.inl ≫ f ≫ biprod.fst)] (Δ : diagonalization Z D E (biprod.gaussian f).2.2.1) :
+  diagonalization Z (D.foo i) (E.foo j) f :=
+begin
+  obtain ⟨L, R, g, w⟩ := biprod.gaussian f,
+  intro Δ, -- FIXME how did that get reverted??
+  apply diagonalization_conjugate' _ _ _ _ L.symm R,
+  simp,
+  rw w,
+  apply diagonalization_biprod,
+  exact Δ,
+end
+
+
 
 def diagonalize'
   {X Y : C} (D : decomposition_over.{v} Z X) (E : decomposition_over Z Y) (f : X ⟶ Y)
-  {n : ℕ} (h : fintype.card D.κ = n) :
-  trunc (diagonalization Z D E f) :=
+  {n : ℕ} (h : fintype.card D.O.κ = n) :
+  trunc (diagonalization Z D.O E.O f) :=
 begin
   induction n with n ih generalizing X Y,
   { apply trunc.mk,
@@ -309,11 +310,11 @@ begin
   { apply trunc.map,
     apply diagonalization_foo,
     generalize : D.iso.inv ≫ f ≫ E.iso.hom = f', clear f,
-    by_cases w : ∀ (x : D.κ) (y : E.κ), biproduct.ι _ x ≫ f' ≫ biproduct.π _ y = 0,
+    by_cases w : ∀ (x : D.O.κ) (y : E.O.κ), biproduct.ι _ x ≫ f' ≫ biproduct.π _ y = 0,
     { apply trunc.mk,
       refine ⟨iso.refl _, iso.refl _, ⊥, _⟩,
       intros x y, split,
-      rintro ⟨⟩, intro h', exfalso, dsimp at h', simp at h', exact h' (w x y), },
+      rintro ⟨⟩, intro h', exfalso, dsimp at h', simp at h', erw [category.id_comp] at h', exact h' (w x y), },
     { -- Okay, we've found a nonzero entry!
       simp at w,
       replace w := trunc_sigma_of_exists w,
@@ -322,6 +323,12 @@ begin
       replace w := trunc_sigma_of_exists w,
       trunc_cases w,
       rcases w with ⟨y, w⟩,
+      apply trunc.map,
+      apply diagonalization_conjugate',
+      apply biproduct_iso_of_term.{v} _ x, assumption,
+      apply biproduct_iso_of_term.{v} _ y, assumption,
+      apply trunc.map,
+      apply diagonalization_gaussian,
       -- now use conjugate?
       sorry,
     }, }

@@ -166,23 +166,34 @@ def biprod.unipotent_lower {X₁ X₂ : C} (r : X₂ ⟶ X₁) : X₁ ⊞ X₂ �
   inv := biprod.of_components (𝟙 _) 0 (-r) (𝟙 _), }
 
 
+def biprod.gaussian' [is_iso f₁₁] :
+  Σ' (L : X₁ ⊞ X₂ ≅ X₁ ⊞ X₂) (R : Y₁ ⊞ Y₂ ≅ Y₁ ⊞ Y₂) (g₂₂ : X₂ ⟶ Y₂),
+    L.hom ≫ (biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂) ≫ R.hom = biprod.map f₁₁ g₂₂ :=
+⟨biprod.unipotent_lower (-(f₂₁ ≫ inv f₁₁)),
+ biprod.unipotent_upper (-(inv f₁₁ ≫ f₁₂)),
+ f₂₂ - f₂₁ ≫ (inv f₁₁) ≫ f₁₂,
+ by ext; simp; abel⟩
+
+def biprod.gaussian (f : X₁ ⊞ X₂ ⟶ Y₁ ⊞ Y₂) [is_iso (biprod.inl ≫ f ≫ biprod.fst)] :
+  Σ' (L : X₁ ⊞ X₂ ≅ X₁ ⊞ X₂) (R : Y₁ ⊞ Y₂ ≅ Y₁ ⊞ Y₂) (g₂₂ : X₂ ⟶ Y₂),
+    L.hom ≫ f ≫ R.hom = biprod.map (biprod.inl ≫ f ≫ biprod.fst) g₂₂ :=
+begin
+  have := biprod.gaussian'
+    (biprod.inl ≫ f ≫ biprod.fst) (biprod.inl ≫ f ≫ biprod.snd)
+    (biprod.inr ≫ f ≫ biprod.fst) (biprod.inr ≫ f ≫ biprod.snd),
+  simpa [biprod.of_components_eq],
+end
+
 /--
 If `X₁ ⊞ X₂ ≅ Y₁ ⊞ Y₂` via a two-by-two matrix whose `X₁ ⟶ Y₁` entry is an isomorphism,
 then we can construct an isomorphism `X₂ ≅ Y₂`, via Gaussian elimination.
 -/
 def biprod.iso_elim' [is_iso f₁₁] [is_iso (biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂)] : X₂ ≅ Y₂ :=
 begin
-  -- We use Gaussian elimination to show that the matrix `f` is equivalent to a diagonal matrix,
-  -- which then must be an isomorphism.
-  set f := biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂,
-  set a : X₁ ⊞ X₂ ≅ X₁ ⊞ X₂ := biprod.unipotent_lower (-(f₂₁ ≫ inv f₁₁)),
-  set b : Y₁ ⊞ Y₂ ≅ Y₁ ⊞ Y₂ := biprod.unipotent_upper (-(inv f₁₁ ≫ f₁₂)),
-  set r : X₂ ⟶ Y₂ := f₂₂ - f₂₁ ≫ (inv f₁₁) ≫ f₁₂,
-  set d : X₁ ⊞ X₂ ⟶ Y₁ ⊞ Y₂ := biprod.map f₁₁ r,
-  have w : a.hom ≫ f ≫ b.hom = d := by { ext; simp [f, a, b, d, r]; abel, },
-  haveI : is_iso d := by { rw ←w, apply_instance, },
-  haveI : is_iso r := (is_iso_right_of_is_iso_biprod_map f₁₁ r),
-  exact as_iso r
+  obtain ⟨L, R, g, w⟩ := biprod.gaussian' f₁₁ f₁₂ f₂₁ f₂₂,
+  haveI : is_iso (biprod.map f₁₁ g) := by { rw ←w, apply_instance, },
+  haveI : is_iso g := (is_iso_right_of_is_iso_biprod_map f₁₁ g),
+  exact as_iso g,
 end
 
 /--

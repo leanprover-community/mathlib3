@@ -191,7 +191,7 @@ def ultrafilter (α : Type u) : Type u := {f : filter α // is_ultrafilter f}
 def ultrafilter.map (m : α → β) (u : ultrafilter α) : ultrafilter β :=
 ⟨u.val.map m, ultrafilter_map u.property⟩
 
-/-- The 𝓟 ultra-filter associated to a point `x`. -/
+/-- The principal ultra-filter associated to a point `x`. -/
 def ultrafilter.pure (x : α) : ultrafilter α := ⟨pure x, ultrafilter_pure⟩
 
 /-- Monadic bind for ultra-filters, coming from the one on filters

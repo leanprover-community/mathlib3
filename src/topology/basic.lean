@@ -516,9 +516,13 @@ ne_bot_of_le_ne_bot pure_ne_bot (pure_le_nhds a)
 
 /-!
 ### Cluster points
+
+In this section we define [cluster points](https://en.wikipedia.org/wiki/Limit_point)
+(also known as limit points and accumulation points) of a filter and of a sequence.
 -/
 
-/-- A point `x` is a cluster point of a filter `F` if 𝓝 x ⊓ F ≠ ⊥. -/
+/-- A point `x` is a cluster point of a filter `F` if 𝓝 x ⊓ F ≠ ⊥. Also known as
+an accumulation point or a limit point. -/
 def cluster_pt (x : α) (F : filter α) : Prop := 𝓝 x ⊓ F ≠ ⊥
 
 lemma cluster_pt.of_le_nhds {x : α} {f : filter α} (H : f ≤ 𝓝 x) (h : f ≠ ⊥) : cluster_pt x f :=

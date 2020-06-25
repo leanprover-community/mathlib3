@@ -3,6 +3,8 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
+
+import linear_algebra.finite_dimensional
 import ring_theory.integral_closure
 
 /-!
@@ -104,4 +106,29 @@ begin
   exact is_integral_trans L_alg A_alg,
 end
 
+/-- A field extension is algebraic if it is finite. -/
+lemma is_algebraic_of_finite [finite : finite_dimensional K L] : is_algebraic K L :=
+λ x, (is_algebraic_iff_is_integral _).mpr (is_integral_of_noetherian ⊤
+  (is_noetherian_of_submodule_of_noetherian _ _ _ finite) x algebra.mem_top)
+
 end algebra
+
+variables {R S : Type*} [integral_domain R] [comm_ring S]
+
+lemma exists_integral_multiple [algebra R S] {z : S} (hz : is_algebraic R z)
+  (inj : ∀ x, algebra_map R S x = 0 → x = 0) :
+  ∃ (x : integral_closure R S) (y ≠ (0 : integral_closure R S)),
+    z * y = x :=
+begin
+  rcases hz with ⟨p, p_ne_zero, px⟩,
+  set n := p.nat_degree with n_def,
+  set a := p.leading_coeff with a_def,
+  have a_ne_zero : a ≠ 0 := mt polynomial.leading_coeff_eq_zero.mp p_ne_zero,
+  have y_integral : is_integral R (algebra_map R S a) := is_integral_algebra_map,
+  have x_integral : is_integral R (z * algebra_map R S a) :=
+    ⟨ p.integral_normalization,
+      monic_integral_normalization p_ne_zero,
+      integral_normalization_aeval_eq_zero p_ne_zero px inj ⟩,
+  refine ⟨⟨_, x_integral⟩, ⟨_, y_integral⟩, _, rfl⟩,
+  exact λ h, a_ne_zero (inj _ (subtype.ext.mp h))
+end

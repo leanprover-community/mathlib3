@@ -24,6 +24,8 @@ open_locale classical big_operators
 
 universes u v
 
+section comm_semiring
+
 variables {R : Type u} [comm_semiring R] (x y z : R)
 
 /-- The proposition that `x` and `y` are coprime, defined to be the existence of `a` and `b` such
@@ -162,3 +164,91 @@ show is_coprime x (x * k), from hk ▸ H
 theorem is_coprime.map (H : is_coprime x y) {S : Type v} [comm_semiring S] (f : R →+* S) :
   is_coprime (f x) (f y) :=
 let ⟨a, b, h⟩ := H in ⟨f a, f b, by rw [← f.map_mul, ← f.map_mul, ← f.map_add, h, f.map_one]⟩
+
+variables {x y z}
+
+lemma is_coprime.of_add_mul_left_left (h : is_coprime (x + y * z) y) : is_coprime x y :=
+let ⟨a, b, H⟩ := h in ⟨a, a * z + b, by simpa only [add_mul, mul_add,
+    add_assoc, add_comm, add_left_comm, mul_assoc, mul_comm, mul_left_comm] using H⟩
+
+lemma is_coprime.of_add_mul_right_left (h : is_coprime (x + z * y) y) : is_coprime x y :=
+by { rw mul_comm at h, exact h.of_add_mul_left_left }
+
+lemma is_coprime.of_add_mul_left_right (h : is_coprime x (y + x * z)) : is_coprime x y :=
+by { rw is_coprime_comm at h ⊢, exact h.of_add_mul_left_left }
+
+lemma is_coprime.of_add_mul_right_right (h : is_coprime x (y + z * x)) : is_coprime x y :=
+by { rw mul_comm at h, exact h.of_add_mul_left_right }
+
+lemma is_coprime.of_mul_add_left_left (h : is_coprime (y * z + x) y) : is_coprime x y :=
+by { rw add_comm at h, exact h.of_add_mul_left_left }
+
+lemma is_coprime.of_mul_add_right_left (h : is_coprime (z * y + x) y) : is_coprime x y :=
+by { rw add_comm at h, exact h.of_add_mul_right_left }
+
+lemma is_coprime.of_mul_add_left_right (h : is_coprime x (x * z + y)) : is_coprime x y :=
+by { rw add_comm at h, exact h.of_add_mul_left_right }
+
+lemma is_coprime.of_mul_add_right_right (h : is_coprime x (z * x + y)) : is_coprime x y :=
+by { rw add_comm at h, exact h.of_add_mul_right_right }
+
+end comm_semiring
+
+namespace is_coprime
+
+section comm_ring
+
+variables {R : Type u} [comm_ring R]
+
+lemma add_mul_left_left {x y : R} (h : is_coprime x y) (z : R) : is_coprime (x + y * z) y :=
+@of_add_mul_left_left R _ _ _ (-z) $
+by simpa only [mul_neg_eq_neg_mul_symm, add_neg_cancel_right] using h
+
+lemma add_mul_right_left {x y : R} (h : is_coprime x y) (z : R) : is_coprime (x + z * y) y :=
+by { rw mul_comm, exact h.add_mul_left_left z }
+
+lemma add_mul_left_right {x y : R} (h : is_coprime x y) (z : R) : is_coprime x (y + x * z) :=
+by { rw is_coprime_comm, exact h.symm.add_mul_left_left z }
+
+lemma add_mul_right_right {x y : R} (h : is_coprime x y) (z : R) : is_coprime x (y + z * x) :=
+by { rw is_coprime_comm, exact h.symm.add_mul_right_left z }
+
+lemma mul_add_left_left {x y : R} (h : is_coprime x y) (z : R) : is_coprime (y * z + x) y :=
+by { rw add_comm, exact h.add_mul_left_left z }
+
+lemma mul_add_right_left {x y : R} (h : is_coprime x y) (z : R) : is_coprime (z * y + x) y :=
+by { rw add_comm, exact h.add_mul_right_left z }
+
+lemma mul_add_left_right {x y : R} (h : is_coprime x y) (z : R) : is_coprime x (x * z + y) :=
+by { rw add_comm, exact h.add_mul_left_right z }
+
+lemma mul_add_right_right {x y : R} (h : is_coprime x y) (z : R) : is_coprime x (z * x + y) :=
+by { rw add_comm, exact h.add_mul_right_right z }
+
+lemma add_mul_left_left_iff {x y z : R} : is_coprime (x + y * z) y ↔ is_coprime x y :=
+⟨of_add_mul_left_left, λ h, h.add_mul_left_left z⟩
+
+lemma add_mul_right_left_iff {x y z : R} : is_coprime (x + z * y) y ↔ is_coprime x y :=
+⟨of_add_mul_right_left, λ h, h.add_mul_right_left z⟩
+
+lemma add_mul_left_right_iff {x y z : R} : is_coprime x (y + x * z) ↔ is_coprime x y :=
+⟨of_add_mul_left_right, λ h, h.add_mul_left_right z⟩
+
+lemma add_mul_right_right_iff {x y z : R} : is_coprime x (y + z * x) ↔ is_coprime x y :=
+⟨of_add_mul_right_right, λ h, h.add_mul_right_right z⟩
+
+lemma mul_add_left_left_iff {x y z : R} : is_coprime (y * z + x) y ↔ is_coprime x y :=
+⟨of_mul_add_left_left, λ h, h.mul_add_left_left z⟩
+
+lemma mul_add_right_left_iff {x y z : R} : is_coprime (z * y + x) y ↔ is_coprime x y :=
+⟨of_mul_add_right_left, λ h, h.mul_add_right_left z⟩
+
+lemma mul_add_left_right_iff {x y z : R} : is_coprime x (x * z + y) ↔ is_coprime x y :=
+⟨of_mul_add_left_right, λ h, h.mul_add_left_right z⟩
+
+lemma mul_add_right_right_iff {x y z : R} : is_coprime x (z * x + y) ↔ is_coprime x y :=
+⟨of_mul_add_right_right, λ h, h.mul_add_right_right z⟩
+
+end comm_ring
+
+end is_coprime

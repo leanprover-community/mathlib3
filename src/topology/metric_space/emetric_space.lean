@@ -145,7 +145,7 @@ begin
     exact le_refl (0:ennreal) },
   { assume n hn hrec,
     calc edist (f m) (f (n+1)) ≤ edist (f m) (f n) + edist (f n) (f (n+1)) : edist_triangle _ _ _
-      ... ≤ ∑ i in finset.Ico m n, _ + _ : add_le_add' hrec (le_refl _)
+      ... ≤ ∑ i in finset.Ico m n, _ + _ : add_le_add hrec (le_refl _)
       ... = ∑ i in finset.Ico m (n+1), _ :
         by rw [finset.Ico.succ_top hn, finset.sum_insert, add_comm]; simp }
 end
@@ -375,7 +375,7 @@ open emetric
 
 /-- An emetric space is separated -/
 @[priority 100] -- see Note [lower instance priority]
-instance to_separated : separated α :=
+instance to_separated : separated_space α :=
 separated_def.2 $ λ x y h, eq_of_forall_edist_le $
 λ ε ε0, le_of_lt (h _ (edist_mem_uniformity ε0))
 
@@ -438,8 +438,8 @@ instance prod.emetric_space_max [emetric_space β] : emetric_space (α × β) :=
   end,
   edist_comm := λ x y, by simp [edist_comm],
   edist_triangle := λ x y z, max_le
-    (le_trans (edist_triangle _ _ _) (add_le_add' (le_max_left _ _) (le_max_left _ _)))
-    (le_trans (edist_triangle _ _ _) (add_le_add' (le_max_right _ _) (le_max_right _ _))),
+    (le_trans (edist_triangle _ _ _) (add_le_add (le_max_left _ _) (le_max_left _ _)))
+    (le_trans (edist_triangle _ _ _) (add_le_add (le_max_right _ _) (le_max_right _ _))),
   uniformity_edist := begin
     refine uniformity_prod.trans _,
     simp [emetric_space.uniformity_edist, comap_infi],
@@ -470,7 +470,7 @@ instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π 
     begin
       simp only [finset.sup_le_iff],
       assume b hb,
-      exact le_trans (edist_triangle _ (g b) _) (add_le_add' (le_sup hb) (le_sup hb))
+      exact le_trans (edist_triangle _ (g b) _) (add_le_add (le_sup hb) (le_sup hb))
     end,
   eq_of_edist_eq_zero := assume f g eq0,
     begin
@@ -806,7 +806,7 @@ begin
   have A : ∀a ∈ s, ∀b ∈ t, edist a b ≤ diam s + edist x y + diam t := λa ha b hb, calc
     edist a b ≤ edist a x + edist x y + edist y b : edist_triangle4 _ _ _ _
     ... ≤ diam s + edist x y + diam t :
-      add_le_add' (add_le_add' (edist_le_diam_of_mem ha xs) (le_refl _)) (edist_le_diam_of_mem yt hb),
+      add_le_add (add_le_add (edist_le_diam_of_mem ha xs) (le_refl _)) (edist_le_diam_of_mem yt hb),
   refine diam_le_of_forall_edist_le (λa ha b hb, _),
   cases (mem_union _ _ _).1 ha with h'a h'a; cases (mem_union _ _ _).1 hb with h'b h'b,
   { calc edist a b ≤ diam s : edist_le_diam_of_mem h'a h'b
@@ -824,7 +824,7 @@ let ⟨x, ⟨xs, xt⟩⟩ := h in by simpa using diam_union xs xt
 lemma diam_closed_ball {r : ennreal} : diam (closed_ball x r) ≤ 2 * r :=
 diam_le_of_forall_edist_le $ λa ha b hb, calc
   edist a b ≤ edist a x + edist b x : edist_triangle_right _ _ _
-  ... ≤ r + r : add_le_add' ha hb
+  ... ≤ r + r : add_le_add ha hb
   ... = 2 * r : by simp [mul_two, mul_comm]
 
 lemma diam_ball {r : ennreal} : diam (ball x r) ≤ 2 * r :=

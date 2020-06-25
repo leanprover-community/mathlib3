@@ -324,12 +324,12 @@ variables [ordered_add_comm_monoid β] {f g : α → β} {a : α} {s : set α} {
 lemma is_min_filter.add (hf : is_min_filter f l a) (hg : is_min_filter g l a) :
   is_min_filter (λ x, f x + g x) l a :=
 show is_min_filter (λ x, f x + g x) l a,
-from hf.bicomp_mono (λ x x' hx y y' hy, add_le_add' hx hy) hg
+from hf.bicomp_mono (λ x x' hx y y' hy, add_le_add hx hy) hg
 
 lemma is_max_filter.add (hf : is_max_filter f l a) (hg : is_max_filter g l a) :
   is_max_filter (λ x, f x + g x) l a :=
 show is_max_filter (λ x, f x + g x) l a,
-from hf.bicomp_mono (λ x x' hx y y' hy, add_le_add' hx hy) hg
+from hf.bicomp_mono (λ x x' hx y y' hy, add_le_add hx hy) hg
 
 lemma is_min_on.add (hf : is_min_on f s a) (hg : is_min_on g s a) :
   is_min_on (λ x, f x + g x) s a :=

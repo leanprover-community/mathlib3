@@ -65,7 +65,7 @@ instance is_add_group_hom_coe : is_add_group_hom (coe : α → completion α) :=
 
 variables {β : Type v} [uniform_space β] [add_group β] [uniform_add_group β]
 
-lemma is_add_group_hom_extension  [complete_space β] [separated β]
+lemma is_add_group_hom_extension  [complete_space β] [separated_space β]
   {f : α → β} [is_add_group_hom f] (hf : continuous f) : is_add_group_hom (completion.extension f) :=
 have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
 { map_add := assume a b, completion.induction_on₂ a b

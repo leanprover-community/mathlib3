@@ -294,6 +294,10 @@ def to_cone (c : binary_bicone.{v} P Q) : cone (pair P Q) :=
 binary_fan.mk c.fst c.snd
 
 @[simp]
+lemma to_cone_X (c : binary_bicone.{v} P Q) :
+  c.to_cone.X = c.X := rfl
+
+@[simp]
 lemma to_cone_π_app_left (c : binary_bicone.{v} P Q) :
   c.to_cone.π.app (walking_pair.left) = c.fst := rfl
 @[simp]
@@ -303,6 +307,10 @@ lemma to_cone_π_app_right (c : binary_bicone.{v} P Q) :
 /-- Extract the cocone from a binary bicone. -/
 def to_cocone (c : binary_bicone.{v} P Q) : cocone (pair P Q) :=
 binary_cofan.mk c.inl c.inr
+
+@[simp]
+lemma to_cocone_X (c : binary_bicone.{v} P Q) :
+  c.to_cocone.X = c.X := rfl
 
 @[simp]
 lemma to_cocone_ι_app_left (c : binary_bicone.{v} P Q) :
@@ -316,6 +324,7 @@ end binary_bicone
 namespace bicone
 
 /-- Convert a `bicone` over a function on `walking_pair` to a binary_bicone. -/
+@[simps]
 def to_binary_bicone {X Y : C} (b : bicone (pair X Y).obj) : binary_bicone X Y :=
 { X := b.X,
   fst := b.π walking_pair.left,
@@ -327,16 +336,39 @@ def to_binary_bicone {X Y : C} (b : bicone (pair X Y).obj) : binary_bicone X Y :
   inl_snd' := by simp [bicone.ι_π],
   inr_snd' := by { simp [bicone.ι_π], refl, }, }
 
+/--
+If the cone obtained from a bicone over `pair X Y` is a limit cone,
+so is the cone obtained by converting that bicone to a binary_bicone, then to a cone.
+-/
 def to_binary_bicone_is_limit {X Y : C} {b : bicone (pair X Y).obj}
   (c : is_limit (b.to_cone)) :
   is_limit (b.to_binary_bicone.to_cone) :=
-{ lift := λ s, begin end,
-   fac' := sorry,
-   uniq' := sorry, }
+{ lift := λ s, c.lift s,
+   fac' := λ s j, by { cases j; erw c.fac, },
+   uniq' := λ s m w,
+   begin
+     apply c.uniq s,
+     rintro (⟨⟩|⟨⟩),
+     exact w walking_pair.left,
+     exact w walking_pair.right,
+   end, }
 
+/--
+If the cocone obtained from a bicone over `pair X Y` is a colimit cocone,
+so is the cocone obtained by converting that bicone to a binary_bicone, then to a cocone.
+-/
 def to_binary_bicone_is_colimit {X Y : C} {b : bicone (pair X Y).obj}
   (c : is_colimit (b.to_cocone)) :
-  is_colimit (b.to_binary_bicone.to_cocone) := sorry
+  is_colimit (b.to_binary_bicone.to_cocone) :=
+{ desc := λ s, c.desc s,
+   fac' := λ s j, by { cases j; erw c.fac, },
+   uniq' := λ s m w,
+   begin
+     apply c.uniq s,
+     rintro (⟨⟩|⟨⟩),
+     exact w walking_pair.left,
+     exact w walking_pair.right,
+   end, }
 
 end bicone
 

@@ -75,6 +75,24 @@ def nat_iso {I : Type u₁} {F G : discrete I ⥤ C}
   (f : Π i : discrete I, F.obj i ≅ G.obj i) : F ≅ G :=
 nat_iso.of_components f (by tidy)
 
+@[simp]
+lemma nat_iso_hom_app {I : Type u₁} {F G : discrete I ⥤ C}
+  (f : Π i : discrete I, F.obj i ≅ G.obj i) (i : I) :
+  (discrete.nat_iso f).hom.app i = (f i).hom :=
+rfl
+
+@[simp]
+lemma nat_iso_inv_app {I : Type u₁} {F G : discrete I ⥤ C}
+  (f : Π i : discrete I, F.obj i ≅ G.obj i) (i : I) :
+  (discrete.nat_iso f).inv.app i = (f i).inv :=
+rfl
+
+@[simp]
+lemma nat_iso_app {I : Type u₁} {F G : discrete I ⥤ C}
+  (f : Π i : discrete I, F.obj i ≅ G.obj i) (i : I) :
+  (discrete.nat_iso f).app i = f i :=
+by tidy
+
 /--
 We can promote a type-level `equiv` to
 an equivalence between the corresponding `discrete` categories.

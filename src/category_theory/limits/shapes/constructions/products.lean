@@ -185,28 +185,59 @@ is just the binary product of the two objects.
 def product_over_equiv_walking_pair {I : Type v} (e : I ≃ walking_pair) (f : I → C)
   [has_product f] [has_binary_product (f (e.symm left)) (f (e.symm right))] :
   ∏ f ≅ (f (e.symm left)) ⨯ (f (e.symm right)) :=
-/- There are several options for proving this!
-1. We have the very general
-```
-has_limit.ext_of_equivalence (discrete.equivalence e) (discrete.nat_iso (λ i, by simp))
-```
-which is unfortunately difficult to reason about.
-2. We could use the lemmas above to transfer `is_limit` terms.
-3. We can just write down the isomorphism (relying on automation to check that is an iso):
--/
--- { hom := prod.lift (pi.π f (e.symm left)) (pi.π f (e.symm right)),
---   inv := pi.lift (λ i, begin  end)
--- }
-has_limit.ext_of_equivalence (discrete.equivalence e) (discrete.nat_iso (λ i, by simp))
+has_limit.iso_of_equivalence (discrete.equivalence e) (discrete.nat_iso (λ i, eq_to_iso (by simp)))
 
-lemma product_over_equiv_walking_pair_hom_comp_prod_fst {I : Type v} (e : I ≃ walking_pair) (f : I → C)
+@[simp]
+lemma product_over_equiv_walking_pair_hom_prod_fst {I : Type v} (e : I ≃ walking_pair) (f : I → C)
   [has_product f] [has_binary_product (f (e.symm left)) (f (e.symm right))] :
   (product_over_equiv_walking_pair e f).hom ≫ prod.fst = pi.π f (e.symm left) :=
 begin
-  simp [product_over_equiv_walking_pair, has_limit.ext_of_equivalence,
-  is_limit.cone_points_iso_of_equivalence, is_limit.cone_point_unique_up_to_iso, is_limit.unique_up_to_iso,
-  is_limit.lift_cone_morphism, is_limit.of_cone_equiv, is_limit.mk_cone_morphism],
+  simp [product_over_equiv_walking_pair],
+  dsimp,
+  simp,
+end
 
+@[simp]
+lemma product_over_equiv_walking_pair_hom_prod_snd {I : Type v} (e : I ≃ walking_pair) (f : I → C)
+  [has_product f] [has_binary_product (f (e.symm left)) (f (e.symm right))] :
+  (product_over_equiv_walking_pair e f).hom ≫ prod.snd = pi.π f (e.symm right) :=
+begin
+  simp [product_over_equiv_walking_pair],
+  dsimp,
+  simp,
+end
+
+end
+
+/-- A product over an empty family is terminal. -/
+def product_over_equiv_pempty_terminal {I : Type v} (e : I ≃ pempty) (f : I → C) [has_product f] :
+  Π Y : C, unique (Y ⟶ ∏ f) :=
+λ Y,
+{ default := pi.lift (λ i, pempty.elim (e i)),
+  uniq := λ g, begin ext, cases e j, end, }
+
+/-- A coproduct over an empty family is initial. -/
+def coproduct_over_equiv_pempty_initial {I : Type v} (e : I ≃ pempty) (f : I → C) [has_coproduct f] :
+  Π Y : C, unique (∐ f ⟶ Y) :=
+λ Y,
+{ default := sigma.desc (λ i, pempty.elim (e i)),
+  uniq := λ g, begin ext, cases e j, end, }
+
+section
+variables [has_zero_morphisms.{v} C]
+
+lemma product_over_equiv_pempty_id_eq_zero {I : Type v} (e : I ≃ pempty) (f : I → C) [has_product f] :
+  𝟙 (∏ f) = 0 :=
+begin
+  haveI := (product_over_equiv_pempty_terminal e f (∏ f)),
+  apply subsingleton.elim,
+end
+
+lemma coproduct_over_equiv_pempty_id_eq_zero {I : Type v} (e : I ≃ pempty) (f : I → C) [has_coproduct f] :
+  𝟙 (∐ f) = 0 :=
+begin
+  haveI := (coproduct_over_equiv_pempty_initial e f (∐ f)),
+  apply subsingleton.elim,
 end
 
 end
@@ -345,6 +376,24 @@ product_over_sum_iso (sum.elim f g)
 
 -- TODO simp lemma for this
 
+
+section
+variables [has_zero_morphisms.{v} C]
+
+lemma product_over_sum_iso_eq_coproduct_over_sum_iso
+  {I J : Type v} [fintype I] [decidable_eq I] [fintype J] [decidable_eq J] (f : I ⊕ J → C)
+  [has_finite_biproducts.{v} C] [has_binary_biproducts.{v} C] :
+  product_over_sum_iso f = coproduct_over_sum_iso f :=
+begin
+  ext1, ext1; ext1 p; cases p; ext1 x,
+  { by_cases h : p = x; { simp [biproduct.ι_π, h], }, },
+  { simp, },
+  { simp, },
+  { by_cases h : p = x; { simp [biproduct.ι_π, h], }, },
+end
+
+end
+
 /-- TODO explain why we need this! -/
 def congr_eq_to_hom {I : Type v} (f : I → C) {i i' : I} (h : i = i') : f i ⟶ f i' :=
 eq_to_hom (congr_arg f h)
@@ -456,22 +505,64 @@ def product_iso_of_equiv_punit_sum {I J : Type v} (f : I → C) (e : I ≃ punit
   [has_products.{v} C] [has_binary_products.{v} C] :
   ∏ f ≅ f (e.symm (sum.inl punit.star)) ⨯ ∏ (λ j, f (e.symm (sum.inr j))) :=
 calc ∏ f ≅ ∏ (λ p, f (e.symm p))
-           : product_iso_of_equiv f e -- we could use `has_limit.ext_equivalence`, but it is hard to reason about.
+           : product_iso_of_equiv f e
      ... ≅ (∏ (λ j, f (e.symm (sum.inl j)))) ⨯ (∏ (λ j, f (e.symm (sum.inr j))))
            : product_over_sum_iso _
      ... ≅ f (e.symm (sum.inl punit.star)) ⨯ ∏ (λ j, f (e.symm (sum.inr j)))
            : prod.map_iso (product_over_unique_iso (λ j, f (e.symm (sum.inl j)))) (iso.refl _)
 
 @[simp]
-lemma product_iso_of_equiv_punit_sum_hom_comp_prod_fst {I J : Type v} (f : I → C) (e : I ≃ punit.{v+1} ⊕ J)
+lemma product_iso_of_equiv_punit_sum_hom_prod_fst {I J : Type v} (f : I → C) (e : I ≃ punit.{v+1} ⊕ J)
   [has_products.{v} C] [has_binary_products.{v} C] :
 (product_iso_of_equiv_punit_sum f e).hom ≫ prod.fst = pi.π f (e.symm (sum.inl punit.star)) :=
 by { simp [product_iso_of_equiv_punit_sum], refl, }
 
 @[simp]
-lemma product_iso_of_equiv_punit_sum_hom_comp_prod_snd_comp_pi {I J : Type v} (f : I → C) (e : I ≃ punit.{v+1} ⊕ J)
+lemma product_iso_of_equiv_punit_sum_hom_prod_snd_pi {I J : Type v} (f : I → C) (e : I ≃ punit.{v+1} ⊕ J)
   [has_products.{v} C] [has_binary_products.{v} C] (j : J) :
 (product_iso_of_equiv_punit_sum f e).hom ≫ prod.snd ≫ pi.π _ j = pi.π f (e.symm (sum.inr j)) :=
 by { simp only [product_iso_of_equiv_punit_sum], dsimp, simp, dsimp, simp, }
+
+section
+variables [has_zero_morphisms.{v} C]
+
+def biproduct_iso_of_equiv_punit_sum
+  {I J : Type v} [fintype I] [decidable_eq I] [fintype J] [decidable_eq J]
+  (f : I → C) (e : I ≃ punit.{v+1} ⊕ J)
+  [has_finite_biproducts.{v} C] [has_binary_biproducts.{v} C] :
+  ⨁ f ≅ f (e.symm (sum.inl punit.star)) ⊞ ⨁ (λ j, f (e.symm (sum.inr j))) :=
+calc ⨁ f ≅ ⨁ (λ p, f (e.symm p))
+           : product_iso_of_equiv f e
+     ... ≅ (⨁ (λ j, f (e.symm (sum.inl j)))) ⊞ (⨁ (λ j, f (e.symm (sum.inr j))))
+           : product_over_sum_iso _
+     ... ≅ f (e.symm (sum.inl punit.star)) ⊞ ⨁ (λ j, f (e.symm (sum.inr j)))
+           : biprod.map_iso (product_over_unique_iso (λ j, f (e.symm (sum.inl j)))) (iso.refl _)
+
+@[simp,reassoc]
+lemma biproduct_iso_of_equiv_punit_sum_hom_biprod_fst
+  {I J : Type v} [fintype I] [decidable_eq I] [fintype J] [decidable_eq J]
+  (f : I → C) (e : I ≃ punit.{v+1} ⊕ J)
+  [has_finite_biproducts.{v} C] [has_binary_biproducts.{v} C] :
+  (biproduct_iso_of_equiv_punit_sum f e).hom ≫ biprod.fst =
+    biproduct.π f (e.symm (sum.inl punit.star)) :=
+begin
+  simp [biproduct_iso_of_equiv_punit_sum], refl,
+end
+
+@[simp,reassoc]
+lemma biprod_inl_biproduct_iso_of_equiv_punit_sum_hom_prod_fst
+  {I J : Type v} [fintype I] [decidable_eq I] [fintype J] [decidable_eq J]
+  (f : I → C) (e : I ≃ punit.{v+1} ⊕ J)
+  [has_finite_biproducts.{v} C] [has_binary_biproducts.{v} C] :
+  biprod.inl ≫ (biproduct_iso_of_equiv_punit_sum f e).inv =
+    biproduct.ι f (e.symm (sum.inl punit.star)) :=
+begin
+  simp only [biproduct_iso_of_equiv_punit_sum],
+  rw product_over_sum_iso_eq_coproduct_over_sum_iso,
+  simp,
+  refl,
+end
+
+end
 
 end category_theory.limits

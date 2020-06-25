@@ -86,7 +86,7 @@ begin
   apply add_lt_add_left, rw mul_lt_mul_left h1, exact ih (λ k hk, hn _ $ succ_lt_succ hk) fn gn
 end
 
-lemma injective_cantor_function (h1 : 0 < c) (h2 : c < 1 / 2) :
+lemma cantor_function_injective (h1 : 0 < c) (h2 : c < 1 / 2) :
   function.injective (cantor_function c) :=
 begin
   intros f g hfg, classical, by_contra h, revert hfg,
@@ -107,7 +107,7 @@ begin
   apply le_antisymm,
   { dsimp [real], apply le_trans mk_quotient_le, apply le_trans (mk_subtype_le _),
     rw [←power_def, mk_nat, mk_rat, power_self_eq (le_refl _)] },
-  { convert mk_le_of_injective (injective_cantor_function _ _),
+  { convert mk_le_of_injective (cantor_function_injective _ _),
     rw [←power_def, mk_bool, mk_nat], exact 1 / 3, norm_num, norm_num }
 end
 

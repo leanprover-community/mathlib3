@@ -49,6 +49,10 @@ export has_dist (dist)
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
+
+-- the uniform structure and the emetric space structure are embedded in the metric space structure
+-- to avoid instance diamond issues. See Note [forgetful inheritance].
+
 /-- Metric space
 
 Each metric space induces a canonical `uniform_space` and hence a canonical `topological_space`.
@@ -56,11 +60,7 @@ This is enforced in the type class definition, by extending the `uniform_space` 
 instantiating a `metric_space` structure, the uniformity fields are not necessary, they will be
 filled in by default. In the same way, each metric space induces an emetric space structure.
 It is included in the structure, but filled in by default.
-
-When one instantiates a metric space structure, for instance a product structure,
-this makes it possible to use a uniform structure and an edistance that are exactly
-the ones for the uniform spaces product and the emetric spaces products, thereby
-ensuring that everything in defeq in diamonds.-/
+-/
 class metric_space (α : Type u) extends has_dist α : Type u :=
 (dist_self : ∀ x : α, dist x x = 0)
 (eq_of_dist_eq_zero : ∀ {x y : α}, dist x y = 0 → x = y)
@@ -249,6 +249,13 @@ def ball (x : α) (ε : ℝ) : set α := {y | dist y x < ε}
 @[simp] theorem mem_ball : y ∈ ball x ε ↔ dist y x < ε := iff.rfl
 
 theorem mem_ball' : y ∈ ball x ε ↔ dist x y < ε := by rw dist_comm; refl
+
+lemma ball_eq_ball (ε : ℝ) (x : α) :
+  uniform_space.ball x {p | dist p.2 p.1 < ε} = metric.ball x ε := rfl
+
+lemma ball_eq_ball' (ε : ℝ) (x : α) :
+  uniform_space.ball x {p | dist p.1 p.2 < ε} = metric.ball x ε :=
+by { ext, simp [dist_comm, uniform_space.ball] }
 
 /-- `closed_ball x ε` is the set of all points `y` with `dist y x ≤ ε` -/
 def closed_ball (x : α) (ε : ℝ) := {y | dist y x ≤ ε}
@@ -456,7 +463,7 @@ theorem totally_bounded_iff {s : set α} :
 /-- A metric space space is totally bounded if one can reconstruct up to any ε>0 any element of the
 space from finitely many data. -/
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-lemma totally_bounded_of_finite_discretization {α : Type u} [metric_space α] {s : set α}
+lemma totally_bounded_of_finite_discretization {s : set α}
   (H : ∀ε > (0 : ℝ), ∃ (β : Type u) [fintype β] (F : s → β),
     ∀x y, F x = F y → dist (x:α) y < ε) :
   totally_bounded s :=
@@ -467,12 +474,22 @@ begin
   haveI : inhabited s := ⟨⟨x0, hx0⟩⟩,
   refine totally_bounded_iff.2 (λ ε ε0, _),
   rcases H ε ε0 with ⟨β, fβ, F, hF⟩,
+  resetI,
   let Finv := function.inv_fun F,
   refine ⟨range (subtype.val ∘ Finv), finite_range _, λ x xs, _⟩,
   let x' := Finv (F ⟨x, xs⟩),
   have : F x' = F ⟨x, xs⟩ := function.inv_fun_eq ⟨⟨x, xs⟩, rfl⟩,
   simp only [set.mem_Union, set.mem_range],
   exact ⟨_, ⟨F ⟨x, xs⟩, rfl⟩, hF _ _ this.symm⟩
+end
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem finite_approx_of_totally_bounded {s : set α} (hs : totally_bounded s) :
+  ∀ ε > 0, ∃ t ⊆ s, finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
+begin
+  intros ε ε_pos,
+  rw totally_bounded_iff_subset at hs,
+  exact hs _ (dist_mem_uniformity ε_pos),
 end
 
 /-- Expressing locally uniform convergence on a set using `dist`. -/
@@ -536,7 +553,7 @@ theorem nhds_basis_ball_inv_nat_pos :
 nhds_basis_uniformity uniformity_basis_dist_inv_nat_pos
 
 theorem is_open_iff : is_open s ↔ ∀x∈s, ∃ε>0, ball x ε ⊆ s :=
-by simp only [is_open_iff_nhds, mem_nhds_iff, le_principal_iff]
+by simp only [is_open_iff_mem_nhds, mem_nhds_iff]
 
 theorem is_open_ball : is_open (ball x ε) :=
 is_open_iff.2 $ λ y, exists_ball_subset_ball
@@ -634,7 +651,7 @@ end metric
 open metric
 
 @[priority 100] -- see Note [lower instance priority]
-instance metric_space.to_separated : separated α :=
+instance metric_space.to_separated : separated_space α :=
 separated_def.2 $ λ x y h, eq_of_forall_dist_le $
   λ ε ε0, le_of_lt (h _ (dist_mem_uniformity ε0))
 
@@ -995,7 +1012,7 @@ lemma prod.dist_eq [metric_space β] {x y : α × β} :
 
 end prod
 
-theorem uniform_continuous_dist' : uniform_continuous (λp:α×α, dist p.1 p.2) :=
+theorem uniform_continuous_dist : uniform_continuous (λp:α×α, dist p.1 p.2) :=
 metric.uniform_continuous_iff.2 (λ ε ε0, ⟨ε/2, half_pos ε0,
 begin
   suffices,
@@ -1013,13 +1030,13 @@ begin
   rwa [add_halves, dist_comm p₂, sub_add_sub_cancel, dist_comm q₂] at this
 end⟩)
 
-theorem uniform_continuous_dist [uniform_space β] {f g : β → α}
+theorem uniform_continuous.dist [uniform_space β] {f g : β → α}
   (hf : uniform_continuous f) (hg : uniform_continuous g) :
   uniform_continuous (λb, dist (f b) (g b)) :=
-uniform_continuous_dist'.comp (hf.prod_mk hg)
+uniform_continuous_dist.comp (hf.prod_mk hg)
 
 theorem continuous_dist : continuous (λp:α×α, dist p.1 p.2) :=
-uniform_continuous_dist'.continuous
+uniform_continuous_dist.continuous
 
 theorem continuous.dist [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, dist (f b) (g b)) :=
@@ -1039,7 +1056,12 @@ lemma tendsto_iff_dist_tendsto_zero {f : β → α} {x : filter β} {a : α} :
 by rw [← nhds_comap_dist a, tendsto_comap_iff]
 
 lemma uniform_continuous_nndist : uniform_continuous (λp:α×α, nndist p.1 p.2) :=
-uniform_continuous_subtype_mk uniform_continuous_dist' _
+uniform_continuous_subtype_mk uniform_continuous_dist _
+
+lemma uniform_continuous.nndist [uniform_space β] {f g : β → α} (hf : uniform_continuous f)
+  (hg : uniform_continuous g) :
+  uniform_continuous (λ b, nndist (f b) (g b)) :=
+uniform_continuous_nndist.comp (hf.prod_mk hg)
 
 lemma continuous_nndist : continuous (λp:α×α, nndist p.1 p.2) :=
 uniform_continuous_nndist.continuous
@@ -1334,6 +1356,7 @@ begin
   letI : inhabited α := ⟨x0⟩,
   refine second_countable_of_almost_dense_set (λε ε0, _),
   rcases H ε ε0 with ⟨β, fβ, F, hF⟩,
+  resetI,
   let Finv := function.inv_fun F,
   refine ⟨range Finv, ⟨countable_range _, λx, _⟩⟩,
   let x' := Finv (F x),
@@ -1409,6 +1432,24 @@ begin
             ... ≤ C + dist x c : add_le_add_right (hC y x hy hx) _⟩ } },
   { exact bounded_closed_ball.subset hC }
 end
+
+lemma bounded_closure_of_bounded (h : bounded s) : bounded (closure s) :=
+begin
+  cases h with C h,
+  replace h : ∀ p : α × α, p ∈ set.prod s s → dist p.1 p.2 ∈ { d | d ≤ C },
+  { rintros ⟨x, y⟩ ⟨x_in, y_in⟩,
+    exact h x y x_in y_in },
+  use C,
+  suffices : ∀ p : α × α, p ∈ closure (set.prod s s) → dist p.1 p.2 ∈ { d | d ≤ C },
+  { rw closure_prod_eq at this,
+    intros x y x_in y_in,
+    exact this (x, y) (mk_mem_prod x_in y_in) },
+  intros p p_in,
+  have := mem_closure continuous_dist p_in h,
+  rwa closure_eq_of_is_closed (is_closed_le' C) at this
+end
+
+alias bounded_closure_of_bounded ← bounded.closure
 
 /-- The union of two bounded sets is bounded iff each of the sets is bounded -/
 @[simp] lemma bounded_union :

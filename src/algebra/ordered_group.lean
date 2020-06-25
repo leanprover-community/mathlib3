@@ -64,7 +64,7 @@ mul_comm c a ▸ mul_comm c b ▸ mul_le_mul_left' h
 lemma lt_of_mul_lt_mul_left' : a * b < a * c → b < c :=
 ordered_comm_monoid.lt_of_mul_lt_mul_left a b c
 
-@[to_additive]
+@[to_additive add_le_add]
 lemma mul_le_mul' (h₁ : a ≤ b) (h₂ : c ≤ d) : a * c ≤ b * d :=
 le_trans (mul_le_mul_right' h₁) (mul_le_mul_left' h₂)
 
@@ -201,35 +201,35 @@ add_pos' h h
 namespace units
 
 @[to_additive]
-instance [monoid α] [i : preorder α] : preorder (units α) :=
-preorder.lift (coe : units α → α) i
+instance [monoid α] [preorder α] : preorder (units α) :=
+preorder.lift (coe : units α → α)
 
-@[simp, to_additive]
+@[simp, to_additive, norm_cast]
 theorem coe_le_coe [monoid α] [preorder α] {a b : units α} :
   (a : α) ≤ b ↔ a ≤ b := iff.rfl
 
-@[simp, to_additive]
+@[simp, to_additive, norm_cast]
 theorem coe_lt_coe [monoid α] [preorder α] {a b : units α} :
   (a : α) < b ↔ a < b := iff.rfl
 
 @[to_additive]
-instance [monoid α] [i : partial_order α] : partial_order (units α) :=
-partial_order.lift (coe : units α → α) (by ext) i
+instance [monoid α] [partial_order α] : partial_order (units α) :=
+partial_order.lift coe units.ext
 
 @[to_additive]
-instance [monoid α] [i : linear_order α] : linear_order (units α) :=
-linear_order.lift (coe : units α → α) (by ext) i
+instance [monoid α] [linear_order α] : linear_order (units α) :=
+linear_order.lift coe units.ext
 
 @[to_additive]
-instance [monoid α] [i : decidable_linear_order α] : decidable_linear_order (units α) :=
-decidable_linear_order.lift (coe : units α → α) (by ext) i
+instance [monoid α] [decidable_linear_order α] : decidable_linear_order (units α) :=
+decidable_linear_order.lift coe units.ext
 
-@[simp, to_additive]
+@[simp, to_additive, norm_cast]
 theorem max_coe [monoid α] [decidable_linear_order α] {a b : units α} :
   (↑(max a b) : α) = max a b :=
 by by_cases a ≤ b; simp [max, h]
 
-@[simp, to_additive]
+@[simp, to_additive, norm_cast]
 theorem min_coe [monoid α] [decidable_linear_order α] {a b : units α} :
   (↑(min a b) : α) = min a b :=
 by by_cases a ≤ b; simp [min, h]
@@ -286,11 +286,40 @@ end with_zero
 
 namespace with_top
 
+section has_one
+
+variables [has_one α]
+
+@[to_additive] instance : has_one (with_top α) := ⟨(1 : α)⟩
+
+@[simp, to_additive] lemma coe_one : ((1 : α) : with_top α) = 1 := rfl
+
+@[simp, to_additive] lemma coe_eq_one {a : α} : (a : with_top α) = 1 ↔ a = 1 :=
+coe_eq_coe
+
+@[simp, to_additive] theorem one_eq_coe {a : α} : 1 = (a : with_top α) ↔ a = 1 :=
+by rw [eq_comm, coe_eq_one]
+
+attribute [norm_cast] coe_one coe_eq_one coe_zero coe_eq_zero one_eq_coe zero_eq_coe
+
+@[simp, to_additive] theorem top_ne_one : ⊤ ≠ (1 : with_top α) .
+@[simp, to_additive] theorem one_ne_top : (1 : with_top α) ≠ ⊤ .
+
+end has_one
+
+instance [has_add α] : has_add (with_top α) :=
+⟨λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a + b))⟩
+
 instance [add_semigroup α] : add_semigroup (with_top α) :=
-{ add := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a + b)),
+{ add := (+),
   ..@additive.add_semigroup _ $ @with_zero.semigroup (multiplicative α) _ }
 
-lemma coe_add [add_semigroup α] {a b : α} : ((a + b : α) : with_top α) = a + b := rfl
+@[norm_cast] lemma coe_add [has_add α] {a b : α} : ((a + b : α) : with_top α) = a + b := rfl
+
+@[norm_cast] lemma coe_bit0 [has_add α] {a : α} : ((bit0 a : α) : with_top α) = bit0 a := rfl
+
+@[norm_cast]
+lemma coe_bit1 [has_add α] [has_one α] {a : α} : ((bit1 a : α) : with_top α) = bit1 a := rfl
 
 instance [add_comm_semigroup α] : add_comm_semigroup (with_top α) :=
 { ..@additive.add_comm_semigroup _ $
@@ -334,7 +363,7 @@ end
 @[simp] lemma zero_lt_top [ordered_add_comm_monoid α] : (0 : with_top α) < ⊤ :=
 coe_lt_top 0
 
-@[simp] lemma zero_lt_coe [ordered_add_comm_monoid α] (a : α) : (0 : with_top α) < a ↔ 0 < a :=
+@[simp, norm_cast] lemma zero_lt_coe [ordered_add_comm_monoid α] (a : α) : (0 : with_top α) < a ↔ 0 < a :=
 coe_lt_coe
 
 @[simp] lemma add_top [ordered_add_comm_monoid α] : ∀{a : with_top α}, a + ⊤ = ⊤
@@ -359,6 +388,8 @@ end with_top
 
 namespace with_bot
 
+instance [has_zero α] : has_zero (with_bot α) := with_top.has_zero
+instance [has_one α] : has_one (with_bot α) := with_top.has_one
 instance [add_semigroup α] : add_semigroup (with_bot α) := with_top.add_semigroup
 instance [add_comm_semigroup α] : add_comm_semigroup (with_bot α) := with_top.add_comm_semigroup
 instance [add_monoid α] : add_monoid (with_bot α) := with_top.add_monoid
@@ -388,17 +419,31 @@ begin
     exact ⟨_, rfl, add_le_add_left' h⟩, }
 end
 
-@[simp] lemma coe_zero [add_monoid α] : ((0 : α) : with_bot α) = 0 := rfl
+-- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
+lemma coe_zero [has_zero α] : ((0 : α) : with_bot α) = 0 := rfl
 
-@[simp] lemma coe_add [add_semigroup α] (a b : α) : ((a + b : α) : with_bot α) = a + b := rfl
+-- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
+lemma coe_one [has_one α] : ((1 : α) : with_bot α) = 1 := rfl
+
+-- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
+lemma coe_eq_zero {α : Type*}
+  [add_monoid α] {a : α} : (a : with_bot α) = 0 ↔ a = 0 :=
+by norm_cast
+
+-- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
+lemma coe_add [add_semigroup α] (a b : α) : ((a + b : α) : with_bot α) = a + b := by norm_cast
+
+-- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
+lemma coe_bit0 [add_semigroup α] {a : α} : ((bit0 a : α) : with_bot α) = bit0 a :=
+by norm_cast
+
+-- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
+lemma coe_bit1 [add_semigroup α] [has_one α] {a : α} : ((bit1 a : α) : with_bot α) = bit1 a :=
+by norm_cast
 
 @[simp] lemma bot_add [ordered_add_comm_monoid α] (a : with_bot α) : ⊥ + a = ⊥ := rfl
 
 @[simp] lemma add_bot [ordered_add_comm_monoid α] (a : with_bot α) : a + ⊥ = ⊥ := by cases a; refl
-
-instance has_one [has_one α] : has_one (with_bot α) := ⟨(1 : α)⟩
-
-@[simp] lemma coe_one [has_one α] : ((1 : α) : with_bot α) = 1 := rfl
 
 end with_bot
 
@@ -444,11 +489,11 @@ end
 
 lemma le_add_left (h : a ≤ c) : a ≤ b + c :=
 calc a = 0 + a : by simp
-  ... ≤ b + c : add_le_add' (zero_le _) h
+  ... ≤ b + c : add_le_add (zero_le _) h
 
 lemma le_add_right (h : a ≤ b) : a ≤ b + c :=
 calc a = a + 0 : by simp
-  ... ≤ b + c : add_le_add' h (zero_le _)
+  ... ≤ b + c : add_le_add h (zero_le _)
 
 instance with_zero.canonically_ordered_add_monoid :
   canonically_ordered_add_monoid (with_zero α) :=
@@ -478,7 +523,7 @@ instance with_top.canonically_ordered_add_monoid : canonically_ordered_add_monoi
     begin
       simp [canonically_ordered_add_monoid.le_iff_exists_add, -add_comm],
       split,
-      { rintro ⟨c, rfl⟩, refine ⟨c, _⟩, simp [with_top.coe_add] },
+      { rintro ⟨c, rfl⟩, refine ⟨c, _⟩, norm_cast },
       { exact assume h, match b, h with _, ⟨some c, rfl⟩ := ⟨_, rfl⟩ end }
     end
   | none, some b := show (⊤ : with_top α) ≤ b ↔ ∃c:with_top α, ↑b = ⊤ + c, by simp
@@ -550,10 +595,6 @@ begin
  exact (mul_lt_mul_left' h c)
 end
 
-@[to_additive add_le_add]
-lemma mul_le_mul'' {a b c d : α} (h₁ : a ≤ b) (h₂ : c ≤ d) : a * c ≤ b * d :=
-le_trans (mul_le_mul_right' h₁) (mul_le_mul_left' h₂)
-
 @[to_additive]
 lemma le_mul_of_one_le_right (h : 1 ≤ b) : a ≤ a * b :=
 have a * 1 ≤ a * b, from mul_le_mul_left' h,
@@ -599,7 +640,7 @@ lt_of_mul_lt_mul_left''
 -- here we start using properties of one.
 @[to_additive add_nonneg]
 lemma one_le_mul (ha : 1 ≤ a) (hb : 1 ≤ b) : 1 ≤ a * b :=
-one_mul (1:α) ▸ (mul_le_mul'' ha hb)
+one_mul (1:α) ▸ (mul_le_mul' ha hb)
 
 @[to_additive]
 lemma mul_one_lt (ha : 1 < a) (hb : 1 < b) : 1 < a * b :=
@@ -615,7 +656,7 @@ one_mul (1:α) ▸ (mul_lt_mul_of_le_of_lt ha hb)
 
 @[to_additive add_nonpos]
 lemma mul_le_one'' (ha : a ≤ 1) (hb : b ≤ 1) : a * b ≤ 1 :=
-one_mul (1:α) ▸ (mul_le_mul'' ha hb)
+one_mul (1:α) ▸ (mul_le_mul' ha hb)
 
 @[to_additive]
 lemma mul_lt_one (ha : a < 1) (hb : b < 1) : a * b < 1 :=
@@ -652,11 +693,11 @@ iff.intro
 
 @[to_additive]
 lemma le_mul_of_one_le_of_le (ha : 1 ≤ a) (hbc : b ≤ c) : b ≤ a * c :=
-one_mul b ▸ mul_le_mul'' ha hbc
+one_mul b ▸ mul_le_mul' ha hbc
 
 @[to_additive]
 lemma le_mul_of_le_of_one_le (hbc : b ≤ c) (ha : 1 ≤ a) : b ≤ c * a :=
-mul_one b ▸ mul_le_mul'' hbc ha
+mul_one b ▸ mul_le_mul' hbc ha
 
 @[to_additive]
 lemma lt_mul_of_one_lt_of_le (ha : 1 < a) (hbc : b ≤ c) : b < a * c :=
@@ -668,11 +709,11 @@ mul_one b ▸ mul_lt_mul_of_le_of_lt hbc ha
 
 @[to_additive]
 lemma mul_le_of_le_one_of_le (ha : a ≤ 1) (hbc : b ≤ c) : a * b ≤ c :=
-one_mul c ▸ mul_le_mul'' ha hbc
+one_mul c ▸ mul_le_mul' ha hbc
 
 @[to_additive]
 lemma mul_le_of_le_of_le_one (hbc : b ≤ c) (ha : a ≤ 1) : b * a ≤ c :=
-mul_one c ▸ mul_le_mul'' hbc ha
+mul_one c ▸ mul_le_mul' hbc ha
 
 @[to_additive]
 lemma mul_lt_of_lt_one_of_le (ha : a < 1) (hbc : b ≤ c) : a * b < c :=
@@ -812,9 +853,8 @@ lemma with_top.add_lt_add_iff_left :
     assume b c h,
     cases b; cases c;
       simp [with_top.none_eq_top, with_top.some_eq_coe, with_top.coe_lt_top, with_top.coe_lt_coe],
-    { rw [← with_top.coe_add], exact with_top.coe_lt_top _ },
-    { rw [← with_top.coe_add, ← with_top.coe_add, with_top.coe_lt_coe],
-      exact add_lt_add_iff_left _ }
+    { norm_cast, exact with_top.coe_lt_top _ },
+    { norm_cast, exact add_lt_add_iff_left _ }
   end
 
 lemma with_top.add_lt_add_iff_right
@@ -836,6 +876,13 @@ class ordered_comm_group (α : Type u) extends comm_group α, partial_order α :
 (mul_le_mul_left : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
 
 attribute [to_additive ordered_add_comm_group] ordered_comm_group
+
+/--The units of an ordered commutative monoid form an ordered commutative group. -/
+@[to_additive]
+instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group (units α) :=
+{ mul_le_mul_left := λ a b h c, mul_le_mul_left' h,
+  .. units.partial_order,
+  .. (infer_instance : comm_group (units α)) }
 
 section ordered_comm_group
 variables [ordered_comm_group α] {a b c d : α}
@@ -1053,8 +1100,8 @@ lemma mul_le_mul_three {a b c d e f : α} (h₁ : a ≤ d) (h₂ : b ≤ e) (h�
       a * b * c ≤ d * e * f :=
 begin
   apply le_trans,
-  apply mul_le_mul'',
-  apply mul_le_mul'',
+  apply mul_le_mul',
+  apply mul_le_mul',
   assumption',
   apply le_refl
 end
@@ -1164,6 +1211,16 @@ by rwa inv_mul_cancel_left at this
 @[to_additive]
 lemma inv_mul_lt_iff_lt_mul_right : c⁻¹ * a < b ↔ a < b * c :=
 by rw [inv_mul_lt_iff_lt_mul, mul_comm]
+
+@[to_additive sub_le_sub_iff]
+lemma div_le_div_iff' (a b c d : α) : a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
+begin
+  split ; intro h,
+  have := mul_le_mul_right'' (mul_le_mul_right'' h b) d,
+  rwa [inv_mul_cancel_right, mul_assoc _ _ b, mul_comm _ b, ← mul_assoc, inv_mul_cancel_right] at this,
+  have := mul_le_mul_right'' (mul_le_mul_right'' h d⁻¹) b⁻¹,
+  rwa [mul_inv_cancel_right, _root_.mul_assoc, _root_.mul_comm d⁻¹ b⁻¹, ← mul_assoc, mul_inv_cancel_right] at this,
+end
 
 end ordered_comm_group
 

@@ -82,7 +82,7 @@ have x_mem_A' : ∀ {N x}, (x ∈ ⋃ M ≤ N, ⋃ k ≤ N, A M k) → x ∈ A' 
 have F_finite : ∀ {N}, finite (range (F N)) :=
 begin
   assume N, apply finite_range_ite,
-  { rw range_comp, apply finite_image, exact finite_range_find_greatest },
+  { rw range_comp, exact finite_range_find_greatest.image _ },
   { exact finite_range_const }
 end,
 -- prove that for all N, (F N) is a measurable function
@@ -246,7 +246,7 @@ have hF_meas : ∀ n, measurable (G n) := λ n, measurable.comp measurable_coe $
   (F n).measurable.nndist hfm,
 have hg_meas : measurable g := measurable.comp measurable_coe $ measurable.add
   (measurable.add hfm.nnnorm hfm.nnnorm) hfm.nnnorm,
-have h_bound : ∀ n, ∀ₘ x, G n x ≤ g x := λ n, all_ae_of_all $ λ x, coe_le_coe.2 $
+have h_bound : ∀ n, ∀ₘ x, G n x ≤ g x := λ n, ae_of_all _ $ λ x, coe_le_coe.2 $
   calc
     nndist (F n x) (f x) ≤ nndist (F n x) 0 + nndist 0 (f x) : nndist_triangle _ _ _
     ... = nnnorm (F n x) + nnnorm (f x) : by simp [nndist_eq_nnnorm]
@@ -259,7 +259,7 @@ have h_finite : lintegral g < ⊤ :=
     by { rw [lintegral_add, lintegral_nnnorm_add],
       exacts [hfm, hfm, hfm.ennnorm.add hfm.ennnorm, hfm.ennnorm] }
     ... < ⊤ : by { simp only [and_self, add_lt_top], exact hfi},
-have h_lim : ∀ₘ x, tendsto (λ n, G n x) at_top (𝓝 0) := all_ae_of_all $ λ x,
+have h_lim : ∀ₘ x, tendsto (λ n, G n x) at_top (𝓝 0) := ae_of_all _ $ λ x,
   begin
     apply (@tendsto_coe ℕ at_top (λ n, nndist (F n x) (f x)) 0).2,
     apply (@nnreal.tendsto_coe ℕ at_top (λ n, nndist (F n x) (f x)) 0).1,

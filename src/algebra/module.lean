@@ -167,8 +167,8 @@ lemma module_ext {R : Type*} [ring R] {M : Type*} [add_comm_group M] (P Q : modu
   (w : ∀ (r : R) (m : M), by { haveI := P, exact r • m } = by { haveI := Q, exact r • m }) :
   P = Q :=
 begin
-  resetI,
-  rcases P with ⟨⟨⟨⟨P⟩⟩⟩⟩, rcases Q with ⟨⟨⟨⟨Q⟩⟩⟩⟩, congr,
+  unfreezingI { rcases P with ⟨⟨⟨⟨P⟩⟩⟩⟩, rcases Q with ⟨⟨⟨⟨Q⟩⟩⟩⟩ },
+  congr,
   funext r m,
   exact w r m,
   all_goals { apply proof_irrel_heq },
@@ -436,14 +436,14 @@ protected theorem «exists» {q : p → Prop} : (∃ x, q x) ↔ (∃ x ∈ p, q
 
 protected theorem «forall» {q : p → Prop} : (∀ x, q x) ↔ (∀ x ∈ p, q ⟨x, ‹_›⟩) := set_coe.forall
 
-theorem ext' : injective (coe : submodule R M → set M) :=
+theorem coe_injective : injective (coe : submodule R M → set M) :=
 λ p q h, by cases p; cases q; congr'
 
-@[simp, norm_cast] theorem coe_set_eq : (p : set M) = q ↔ p = q := ext'.eq_iff
+@[simp, norm_cast] theorem coe_set_eq : (p : set M) = q ↔ p = q := coe_injective.eq_iff
 
 theorem ext'_iff : p = q ↔ (p : set M) = q := coe_set_eq.symm
 
-@[ext] theorem ext (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := ext' $ set.ext h
+@[ext] theorem ext (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := coe_injective $ set.ext h
 
 theorem to_add_submonoid_injective :
   injective (to_add_submonoid : submodule R M → add_submonoid M) :=

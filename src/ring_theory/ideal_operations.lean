@@ -219,7 +219,7 @@ begin
     exact quotient.eq_zero_iff_mem.2 (hr i) }
 end
 
-theorem bijective_quotient_inf_to_pi_quotient [fintype ι] {f : ι → ideal R}
+theorem quotient_inf_to_pi_quotient_bijective [fintype ι] {f : ι → ideal R}
   (hf : ∀ i j, i ≠ j → f i ⊔ f j = ⊤) :
   function.bijective (quotient_inf_to_pi_quotient f) :=
 ⟨λ x y, quotient.induction_on₂' x y $ λ r s hrs, quotient.eq.2 $
@@ -232,7 +232,7 @@ theorem bijective_quotient_inf_to_pi_quotient [fintype ι] {f : ι → ideal R}
 noncomputable def quotient_inf_ring_equiv_pi_quotient [fintype ι] (f : ι → ideal R)
   (hf : ∀ i j, i ≠ j → f i ⊔ f j = ⊤) :
   (⨅ i, f i).quotient ≃+* Π i, (f i).quotient :=
-{ .. equiv.of_bijective _ (bijective_quotient_inf_to_pi_quotient hf),
+{ .. equiv.of_bijective _ (quotient_inf_to_pi_quotient_bijective hf),
   .. quotient_inf_to_pi_quotient f }
 
 end chinese_remainder
@@ -772,8 +772,8 @@ by rw [ker, ideal.mem_comap, submodule.mem_bot]
 
 lemma ker_eq : ((ker f) : set R) = is_add_group_hom.ker f := rfl
 
-lemma inj_iff_ker_eq_bot : function.injective f ↔ ker f = ⊥ :=
-by rw [submodule.ext'_iff, ker_eq]; exact is_add_group_hom.inj_iff_trivial_ker f
+lemma injective_iff_ker_eq_bot : function.injective f ↔ ker f = ⊥ :=
+by rw [submodule.ext'_iff, ker_eq]; exact is_add_group_hom.injective_iff_trivial_ker f
 
 lemma ker_eq_bot_iff_eq_zero : ker f = ⊥ ↔ ∀ x, f x = 0 → x = 0 :=
 by rw [submodule.ext'_iff, ker_eq]; exact is_add_group_hom.trivial_ker_iff_eq_zero f

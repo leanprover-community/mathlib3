@@ -5,6 +5,7 @@ Authors: Johan Commelin
 
 Nonnegative real numbers.
 -/
+import algebra.linear_ordered_comm_group_with_zero
 import data.real.basic
 
 noncomputable theory
@@ -133,7 +134,7 @@ to_real_hom.to_add_monoid_hom.map_nsmul _ _
 to_real_hom.map_nat_cast n
 
 instance : decidable_linear_order ℝ≥0 :=
-decidable_linear_order.lift (coe : ℝ≥0 → ℝ) subtype.val_injective (by apply_instance)
+decidable_linear_order.lift (coe : ℝ≥0 → ℝ) subtype.val_injective
 
 @[norm_cast] protected lemma coe_le_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) ≤ r₂ ↔ r₁ ≤ r₂ := iff.rfl
 @[norm_cast] protected lemma coe_lt_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) < r₂ ↔ r₁ < r₂ := iff.rfl
@@ -189,12 +190,18 @@ instance : linear_ordered_semiring ℝ≥0 :=
   .. nnreal.canonically_ordered_add_monoid,
   .. nnreal.comm_semiring }
 
-instance : canonically_ordered_comm_semiring ℝ≥0 :=
-{ zero_ne_one     := assume h, zero_ne_one $ congr_arg subtype.val $ h,
-  mul_eq_zero_iff := assume a b, nnreal.eq_iff.symm.trans $ mul_eq_zero.trans $ by simp,
+instance : linear_ordered_comm_group_with_zero ℝ≥0 :=
+{ mul_le_mul_left := assume a b h c, mul_le_mul (le_refl c) h (zero_le a) (zero_le c),
+  zero_le_one := zero_le 1,
   .. nnreal.linear_ordered_semiring,
+  .. nnreal.comm_group_with_zero }
+
+instance : canonically_ordered_comm_semiring ℝ≥0 :=
+{ .. nnreal.linear_ordered_semiring,
   .. nnreal.canonically_ordered_add_monoid,
-  .. nnreal.comm_semiring }
+  .. nnreal.comm_semiring,
+  .. (show no_zero_divisors ℝ≥0, by apply_instance),
+  .. (show nonzero ℝ≥0, by apply_instance) }
 
 instance : densely_ordered ℝ≥0 :=
 ⟨assume a b (h : (a : ℝ) < b), let ⟨c, hac, hcb⟩ := dense h in
@@ -384,7 +391,7 @@ begin
 end
 
 @[field_simps] theorem mul_ne_zero' {a b : nnreal} (h₁ : a ≠ 0) (h₂ : b ≠ 0) : a * b ≠ 0 :=
-mul_ne_zero'' h₁ h₂
+mul_ne_zero h₁ h₂
 
 end mul
 

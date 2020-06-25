@@ -293,7 +293,7 @@ lemma totally_bounded_preimage {f : α → β} {s : set β} (hf : uniform_embedd
   rcases mem_comap_sets.2 ht with ⟨t', ht', ts⟩,
   rcases totally_bounded_iff_subset.1
     (totally_bounded_subset (image_preimage_subset f s) hs) _ ht' with ⟨c, cs, hfc, hct⟩,
-  refine ⟨f ⁻¹' c, finite_preimage (hf.inj.inj_on _) hfc, λ x h, _⟩,
+  refine ⟨f ⁻¹' c, hfc.preimage (hf.inj.inj_on _), λ x h, _⟩,
   have := hct (mem_image_of_mem f h), simp at this ⊢,
   rcases this with ⟨z, zc, zt⟩,
   rcases cs zc with ⟨y, yc, rfl⟩,
@@ -362,7 +362,7 @@ begin
     end⟩
 end
 
-variables [separated γ]
+variables [separated_space γ]
 
 lemma uniformly_extend_of_ind (b : β) : ψ (e b) = f b :=
 dense_inducing.extend_e_eq _ b (continuous_iff_continuous_at.1 h_f.continuous b)

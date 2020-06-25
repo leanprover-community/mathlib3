@@ -237,7 +237,7 @@ lemma coe_subset_coe {S T : submonoid M} : (S : set M) ⊆ T ↔ S ≤ T := iff.
 @[to_additive]
 instance : partial_order (submonoid M) :=
 { le := λ S T, ∀ ⦃x⦄, x ∈ S → x ∈ T,
-  .. partial_order.lift (coe : submonoid M → set M) ext' infer_instance }
+  .. partial_order.lift (coe : submonoid M → set M) ext' }
 
 @[simp, norm_cast, to_additive]
 lemma coe_ssubset_coe {S T : submonoid M} : (S : set M) ⊂ T ↔ S < T := iff.rfl

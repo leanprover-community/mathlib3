@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Scott Morrison
 -/
 import algebra.module
+import data.fintype.card
 
 /-!
 
@@ -94,7 +95,7 @@ lemma ext_iff {f g : α →₀ β} : f = g ↔ (∀a:α, f a = g a) :=
 ⟨by rintros rfl a; refl, ext⟩
 
 @[simp] lemma support_eq_empty {f : α →₀ β} : f.support = ∅ ↔ f = 0 :=
-⟨assume h, ext $ assume a, by_contradiction $ λ H, (finset.ext.1 h a).1 $
+⟨assume h, ext $ assume a, by_contradiction $ λ H, (finset.ext_iff.1 h a).1 $
   mem_support_iff.2 H, by rintro rfl; refl⟩
 
 instance finsupp.decidable_eq [decidable_eq α] [decidable_eq β] : decidable_eq (α →₀ β) :=
@@ -164,7 +165,7 @@ if_neg hb
 lemma support_single_subset : (single a b).support ⊆ {a} :=
 show ite _ _ _ ⊆ _, by split_ifs; [exact empty_subset _, exact subset.refl _]
 
-lemma injective_single (a : α) : function.injective (single a : β → α →₀ β) :=
+lemma single_injective (a : α) : function.injective (single a : β → α →₀ β) :=
 assume b₁ b₂ eq,
 have (single a b₁ : α →₀ β) a = (single a b₂ : α →₀ β) a, by rw eq,
 by rwa [single_eq_same, single_eq_same] at this
@@ -176,7 +177,7 @@ begin
   { assume eq,
     by_cases a₁ = a₂,
     { refine or.inl ⟨h, _⟩,
-      rwa [h, (injective_single a₂).eq_iff] at eq },
+      rwa [h, (single_injective a₂).eq_iff] at eq },
     { rw [ext_iff] at eq,
       have h₁ := eq a₁,
       have h₂ := eq a₂,
@@ -280,7 +281,7 @@ begin
   refine ⟨v.support.map f, λa₂,
     if h : a₂ ∈ v.support.map f then v (v.support.choose (λa₁, f a₁ = a₂) _) else 0, _⟩,
   { rcases finset.mem_map.1 h with ⟨a, ha, rfl⟩,
-    exact exists_unique.intro a ⟨ha, rfl⟩ (assume b ⟨_, hb⟩, f.inj hb) },
+    exact exists_unique.intro a ⟨ha, rfl⟩ (assume b ⟨_, hb⟩, f.injective hb) },
   { assume a₂,
     split_ifs,
     { simp only [h, true_iff, ne.def],
@@ -349,7 +350,7 @@ begin
     { simp only [eq.symm h_cases, hc₂, single_eq_same] },
     { rw [single_apply, single_apply, if_neg, if_neg h_cases],
       by_contra hfd,
-      exact h_cases (f.inj (hc₂.trans hfd)) } },
+      exact h_cases (f.injective (hc₂.trans hfd)) } },
   { exact hc₂ }
 end
 
@@ -431,6 +432,20 @@ def sum [has_zero β] [add_comm_monoid γ] (f : α →₀ β) (g : α → β →
 @[to_additive]
 def prod [has_zero β] [comm_monoid γ] (f : α →₀ β) (g : α → β → γ) : γ :=
 ∏ a in f.support, g a (f a)
+
+@[to_additive]
+lemma prod_fintype [fintype α] [has_zero β] [comm_monoid γ]
+  (f : α →₀ β) (g : α → β → γ) (h : ∀ i, g i 0 = 1) :
+  f.prod g = ∏ i, g i (f i) :=
+begin
+  classical,
+  rw [finsupp.prod, ← fintype.prod_extend_by_one, finset.prod_congr rfl],
+  intros i hi,
+  split_ifs with hif hif,
+  { refl },
+  { rw finsupp.not_mem_support_iff at hif,
+    rw [hif, h] }
+end
 
 @[to_additive]
 lemma prod_map_range_index [has_zero β₁] [has_zero β₂] [comm_monoid γ]
@@ -893,11 +908,11 @@ begin
   ext a,
   by_cases a ∈ set.range f,
   { rcases h with ⟨a, rfl⟩,
-    rw [map_domain_apply f.inj, emb_domain_apply] },
+    rw [map_domain_apply f.injective, emb_domain_apply] },
   { rw [map_domain_notin_range, emb_domain_notin_range]; assumption }
 end
 
-lemma injective_map_domain {f : α₁ → α₂} (hf : function.injective f) :
+lemma map_domain_injective {f : α₁ → α₂} (hf : function.injective f) :
   function.injective (map_domain f : (α₁ →₀ β) → (α₂ →₀ β)) :=
 begin
   assume v₁ v₂ eq, ext a,
@@ -945,7 +960,7 @@ lemma eq_zero_of_comap_domain_eq_zero {α₁ α₂ γ : Type*} [add_comm_monoid 
    comap_domain f l hf.inj_on = 0 → l = 0 :=
 begin
   rw [← support_eq_empty, ← support_eq_empty, comap_domain],
-  simp only [finset.ext, finset.not_mem_empty, iff_false, mem_preimage],
+  simp only [finset.ext_iff, finset.not_mem_empty, iff_false, mem_preimage],
   assume h a ha,
   cases hf.2.2 ha with b hb,
   exact h b (hb.2.symm ▸ ha)
@@ -985,7 +1000,7 @@ if_pos h
 if_neg h
 
 @[simp] lemma support_filter : (f.filter p).support = f.support.filter p :=
-finset.ext.mpr $ assume a, if H : p a
+finset.ext $ assume a, if H : p a
 then by simp only [mem_support_iff, filter_apply_pos _ _ H, mem_filter, H, and_true]
 else by simp only [mem_support_iff, filter_apply_neg _ _ H, mem_filter, H, and_false, ne.def,
   ne_self_iff_false]
@@ -1475,6 +1490,11 @@ lemma sum_smul_index [ring β] [add_comm_monoid γ] {g : α →₀ β} {b : β} 
   (h0 : ∀i, h i 0 = 0) : (b • g).sum h = g.sum (λi a, h i (b * a)) :=
 finsupp.sum_map_range_index h0
 
+lemma sum_smul_index' [semiring β] [add_comm_monoid γ] [semimodule β γ] [add_comm_monoid δ]
+  {g : α →₀ γ} {b : β} {h : α → γ → δ} (h0 : ∀i, h i 0 = 0) :
+  (b • g).sum h = g.sum (λi c, h i (b • c)) :=
+finsupp.sum_map_range_index h0
+
 section
 variables [semiring β] [semiring γ]
 
@@ -1580,7 +1600,7 @@ def split_comp [has_zero γ] (g : Π i, (αs i →₀ β) → γ)
   end }
 
 lemma sigma_support : l.support = l.split_support.sigma (λ i, (l.split i).support) :=
-by simp only [finset.ext, split_support, split, comap_domain, mem_image,
+by simp only [finset.ext_iff, split_support, split, comap_domain, mem_image,
   mem_preimage, sigma.forall, mem_sigma]; tauto
 
 lemma sigma_sum [add_comm_monoid γ] (f : (Σ (i : ι), αs i) → β → γ) :
@@ -1797,6 +1817,6 @@ end
 The set of `m : σ →₀ ℕ` that are coordinatewise less than or equal to `n`,
 but not equal to `n` everywhere, is a finite set. -/
 lemma finite_lt_nat (n : σ →₀ ℕ) : set.finite {m | m < n} :=
-set.finite_subset (finite_le_nat n) $ λ m, le_of_lt
+(finite_le_nat n).subset $ λ m, le_of_lt
 
 end finsupp

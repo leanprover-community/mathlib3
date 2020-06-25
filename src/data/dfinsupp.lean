@@ -253,8 +253,7 @@ omit dec
 lemma finite_supp (f : Π₀ i, β i) : set.finite {i | f i ≠ 0} :=
 begin
   classical,
-  exact quotient.induction_on f (λ x, set.finite_subset
-  (finset.finite_to_set x.2.to_finset) (λ i H,
+  exact quotient.induction_on f (λ x, x.2.to_finset.finite_to_set.subset (λ i H,
     multiset.mem_to_finset.2 ((x.3 i).resolve_right H)))
 end
 include dec
@@ -269,7 +268,7 @@ def mk (s : finset ι) (x : Π i : (↑s : set ι), β i.1) : Π₀ i, β i :=
   (mk s x : Π i, β i) i = if H : i ∈ s then x ⟨i, H⟩ else 0 :=
 rfl
 
-theorem mk_inj (s : finset ι) : function.injective (@mk ι β _ _ s) :=
+theorem mk_injective (s : finset ι) : function.injective (@mk ι β _ _ s) :=
 begin
   intros x y H,
   ext i,
@@ -498,7 +497,7 @@ lemma mem_support_iff (f : Π₀ i, β i) : ∀i:ι, i ∈ f.support ↔ f i ≠
 f.mem_support_to_fun
 
 @[simp] lemma support_eq_empty {f : Π₀ i, β i} : f.support = ∅ ↔ f = 0 :=
-⟨λ H, ext $ by simpa [finset.ext] using H, by simp {contextual:=tt}⟩
+⟨λ H, ext $ by simpa [finset.ext_iff] using H, by simp {contextual:=tt}⟩
 
 instance decidable_zero : decidable_pred (eq (0 : Π₀ i, β i)) :=
 λ f, decidable_of_iff _ $ support_eq_empty.trans eq_comm

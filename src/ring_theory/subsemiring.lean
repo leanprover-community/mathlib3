@@ -172,7 +172,7 @@ def subtype : s →+* R :=
 
 instance : partial_order (subsemiring R) :=
 { le := λ s t, ∀ ⦃x⦄, x ∈ s → x ∈ t,
-  .. partial_order.lift (coe : subsemiring R → set R) ext' _ }
+  .. partial_order.lift (coe : subsemiring R → set R) ext' }
 
 lemma le_def {s t : subsemiring R} : s ≤ t ↔ ∀ ⦃x : R⦄, x ∈ s → x ∈ t := iff.rfl
 

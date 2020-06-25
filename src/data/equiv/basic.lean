@@ -72,11 +72,11 @@ lemma to_fun_as_coe (e : α ≃ β) (a : α) : e.to_fun a = e a := rfl
 @[simp]
 lemma inv_fun_as_coe (e : α ≃ β) (b : β) : e.inv_fun b = e.symm b := rfl
 
-protected theorem injective : ∀ f : α ≃ β, injective f
-| ⟨f, g, h₁, h₂⟩ := h₁.injective
+protected theorem injective (e : α ≃ β) : injective e :=
+e.left_inv.injective
 
-protected theorem surjective : ∀ f : α ≃ β, surjective f
-| ⟨f, g, h₁, h₂⟩ := h₂.surjective
+protected theorem surjective (e : α ≃ β) : surjective e :=
+e.right_inv.surjective
 
 protected theorem bijective (f : α ≃ β) : bijective f :=
 ⟨f.injective, f.surjective⟩
@@ -88,11 +88,11 @@ protected theorem subsingleton (e : α ≃ β) [subsingleton β] : subsingleton 
 e.injective.comap_subsingleton
 
 /-- Transfer `decidable_eq` across an equivalence. -/
-protected def decidable_eq (e : α ≃ β) [H : decidable_eq β] : decidable_eq α
-| a b := decidable_of_iff _ e.injective.eq_iff
+protected def decidable_eq (e : α ≃ β) [decidable_eq β] : decidable_eq α :=
+e.injective.decidable_eq
 
-lemma nonempty_iff_nonempty : α ≃ β → (nonempty α ↔ nonempty β)
-| ⟨f, g, _, _⟩ := nonempty.congr f g
+lemma nonempty_iff_nonempty (e : α ≃ β) : nonempty α ↔ nonempty β :=
+nonempty.congr e e.symm
 
 /-- If `α ≃ β` and `β` is inhabited, then so is `α`. -/
 protected def inhabited [inhabited β] (e : α ≃ β) : inhabited α :=
@@ -955,6 +955,45 @@ def subtype_prod_equiv_prod {α : Type u} {β : Type v} {p : α → Prop} {q : �
 
 end
 
+section subtype_equiv_codomain
+variables {X : Type*} {Y : Type*} [decidable_eq X] {x : X}
+
+/-- The type of all functions `X → Y` with prescribed values for all `x' ≠ x`
+is equivalent to the codomain `Y`. -/
+def subtype_equiv_codomain (f : {x' // x' ≠ x} → Y) : {g : X → Y // g ∘ coe = f} ≃ Y :=
+(subtype_preimage _ f).trans $
+@fun_unique {x' // ¬ x' ≠ x} _ $
+show unique {x' // ¬ x' ≠ x}, from @equiv.unique _ _
+  (show unique {x' // x' = x}, from
+    { default := ⟨x, rfl⟩, uniq := λ ⟨x', h⟩, subtype.val_injective h })
+  (subtype_congr_right $ λ a, not_not)
+
+@[simp] lemma coe_subtype_equiv_codomain (f : {x' // x' ≠ x} → Y) :
+  (subtype_equiv_codomain f : {g : X → Y // g ∘ coe = f} → Y) = λ g, (g : X → Y) x := rfl
+
+@[simp] lemma subtype_equiv_codomain_apply (f : {x' // x' ≠ x} → Y)
+  (g : {g : X → Y // g ∘ coe = f}) :
+  subtype_equiv_codomain f g = (g : X → Y) x := rfl
+
+lemma coe_subtype_equiv_codomain_symm (f : {x' // x' ≠ x} → Y) :
+  ((subtype_equiv_codomain f).symm : Y → {g : X → Y // g ∘ coe = f}) =
+  λ y, ⟨λ x', if h : x' ≠ x then f ⟨x', h⟩ else y,
+    by { funext x', dsimp, erw [dif_pos x'.2, subtype.coe_eta] }⟩ := rfl
+
+@[simp] lemma subtype_equiv_codomain_symm_apply (f : {x' // x' ≠ x} → Y) (y : Y) (x' : X) :
+  ((subtype_equiv_codomain f).symm y : X → Y) x' = if h : x' ≠ x then f ⟨x', h⟩ else y :=
+rfl
+
+@[simp] lemma subtype_equiv_codomain_symm_apply_eq (f : {x' // x' ≠ x} → Y) (y : Y) :
+  ((subtype_equiv_codomain f).symm y : X → Y) x = y :=
+dif_neg (not_not.mpr rfl)
+
+lemma subtype_equiv_codomain_symm_apply_ne (f : {x' // x' ≠ x} → Y) (y : Y) (x' : X) (h : x' ≠ x) :
+  ((subtype_equiv_codomain f).symm y : X → Y) x' = f ⟨x', h⟩ :=
+dif_pos h
+
+end subtype_equiv_codomain
+
 namespace set
 open set
 
@@ -1162,6 +1201,14 @@ noncomputable def of_bijective {α β} (f : α → β) (hf : bijective f) : α �
 
 @[simp] theorem coe_of_bijective {α β} {f : α → β} (hf : bijective f) :
   (of_bijective f hf : α → β) = f := rfl
+
+/-- If `f` is an injective function, then its domain is equivalent to its range. -/
+noncomputable def of_injective {α β} (f : α → β) (hf : injective f) : α ≃ _root_.set.range f :=
+of_bijective (λ x, ⟨f x, set.mem_range_self x⟩) ⟨λ x y hxy, hf $ by injections, λ ⟨_, x, rfl⟩, ⟨x, rfl⟩⟩
+
+@[simp] lemma of_injective_apply {α β} (f : α → β) (hf : injective f) (x : α) :
+  of_injective f hf x = ⟨f x, set.mem_range_self x⟩ :=
+rfl
 
 def subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid α]
   [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ :  ∀ a, p₁ a ↔ p₂ ⟦a⟧)

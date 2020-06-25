@@ -92,7 +92,8 @@ polynomial, multivariate polynomial, multivariable polynomial
 -/
 
 noncomputable theory
-local attribute [instance, priority 100] classical.prop_decidable
+
+open_locale classical big_operators
 
 open set function finsupp add_monoid_algebra
 open_locale big_operators
@@ -155,7 +156,7 @@ instance : is_semiring_hom (C : α → mv_polynomial σ α) :=
 
 lemma C_injective (σ : Type*) (R : Type*) [comm_ring R] :
   function.injective (C : R → mv_polynomial σ R) :=
-finsupp.injective_single _
+finsupp.single_injective _
 
 @[simp] lemma C_inj {σ : Type*} (R : Type*) [comm_ring R] (r s : R) :
   (C r : mv_polynomial σ R) = C s ↔ r = s :=
@@ -420,6 +421,14 @@ variables (f : α → β) (g : σ → β)
 def eval₂ (p : mv_polynomial σ α) : β :=
 p.sum (λs a, f a * s.prod (λn e, g n ^ e))
 
+lemma eval₂_eq (g : α →+* β) (x : σ → β) (f : mv_polynomial σ α) :
+  f.eval₂ g x = ∑ d in f.support, g (f.coeff d) * ∏ i in d.support, x i ^ d i :=
+rfl
+
+lemma eval₂_eq' [fintype σ] (g : α →+* β) (x : σ → β) (f : mv_polynomial σ α) :
+  f.eval₂ g x = ∑ d in f.support, g (f.coeff d) * ∏ i, x i ^ d i :=
+by { simp only [eval₂_eq, ← finsupp.prod_pow], refl }
+
 @[simp] lemma eval₂_zero : (0 : mv_polynomial σ α).eval₂ f g = 0 :=
 finsupp.sum_zero_index
 
@@ -535,6 +544,14 @@ variables {f : σ → α}
 /-- Evaluate a polynomial `p` given a valuation `f` of all the variables -/
 def eval (f : σ → α) : mv_polynomial σ α → α := eval₂ id f
 
+lemma eval_eq (x : σ → α) (f : mv_polynomial σ α) :
+  f.eval x = ∑ d in f.support, f.coeff d * ∏ i in d.support, x i ^ d i :=
+rfl
+
+lemma eval_eq' [fintype σ] (x : σ → α) (f : mv_polynomial σ α) :
+f.eval x = ∑ d in f.support, f.coeff d * ∏ i, x i ^ d i :=
+eval₂_eq' (ring_hom.id α) x f
+
 @[simp] lemma eval_zero : (0 : mv_polynomial σ α).eval f = 0 := eval₂_zero _ _
 
 @[simp] lemma eval_one : (1 : mv_polynomial σ α).eval f = 1 := eval₂_one _ _
@@ -554,6 +571,15 @@ eval₂_monomial _ _
 
 instance eval.is_semiring_hom : is_semiring_hom (eval f) :=
 eval₂.is_semiring_hom _ _
+
+lemma eval_sum {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ α) (g : σ → α) :
+  eval g (∑ i in s, f i) = ∑ i in s, eval g (f i) :=
+eval₂_sum (ring_hom.id α) g s f
+
+@[to_additive]
+lemma eval_prod {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ α) (g : σ → α) :
+  eval g (∏ i in s, f i) = ∏ i in s, eval g (f i) :=
+eval₂_prod (ring_hom.id α) g s f
 
 theorem eval_assoc {τ}
   (f : σ → mv_polynomial τ α) (g : τ → α)
@@ -888,6 +914,18 @@ begin
   refl
 end
 
+lemma exists_degree_lt [fintype σ] (f : mv_polynomial σ α) (n : ℕ)
+  (h : f.total_degree < n * fintype.card σ) {d : σ →₀ ℕ} (hd : d ∈ f.support) :
+  ∃ i, d i < n :=
+begin
+  contrapose! h,
+  calc n * fintype.card σ
+        = ∑ s:σ, n         : by rw [finset.sum_const, nat.nsmul_eq_mul, mul_comm, finset.card_univ]
+    ... ≤ ∑ s, d s         : finset.sum_le_sum (λ s _, h s)
+    ... ≤ d.sum (λ i e, e) : by { rw [finsupp.sum_fintype], intros, refl }
+    ... ≤ f.total_degree   : finset.le_sup hd,
+end
+
 end total_degree
 
 end comm_semiring
@@ -1149,13 +1187,13 @@ begin
   exact assume a b c, pow_add _ _ _
 end
 
-lemma injective_rename (f : β → γ) (hf : function.injective f) :
+lemma rename_injective (f : β → γ) (hf : function.injective f) :
   function.injective (rename f : mv_polynomial β α → mv_polynomial γ α) :=
 have (rename f : mv_polynomial β α → mv_polynomial γ α) =
   finsupp.map_domain (finsupp.map_domain f) := funext (rename_eq f),
 begin
   rw this,
-  exact finsupp.injective_map_domain (finsupp.injective_map_domain hf)
+  exact finsupp.map_domain_injective (finsupp.map_domain_injective hf)
 end
 
 lemma total_degree_rename_le (f : β → γ) (p : mv_polynomial β α) :

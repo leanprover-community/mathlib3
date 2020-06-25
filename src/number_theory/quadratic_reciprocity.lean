@@ -55,7 +55,7 @@ lemma euler_criterion_units (x : units (zmod p)) :
   (∃ y : units (zmod p), y ^ 2 = x) ↔ x ^ (p / 2) = 1 :=
 begin
   cases nat.prime.eq_two_or_odd ‹p.prime› with hp2 hp_odd,
-  { resetI, subst p, refine iff_of_true ⟨1, _⟩ _; apply subsingleton.elim  },
+  { substI p, refine iff_of_true ⟨1, _⟩ _; apply subsingleton.elim  },
   obtain ⟨g, hg⟩ := is_cyclic.exists_generator (units (zmod p)),
   obtain ⟨n, hn⟩ : x ∈ powers g, { rw powers_eq_gpowers, apply hg },
   split,
@@ -87,7 +87,7 @@ lemma exists_pow_two_eq_neg_one_iff_mod_four_ne_three :
   (∃ y : zmod p, y ^ 2 = -1) ↔ p % 4 ≠ 3 :=
 begin
   cases nat.prime.eq_two_or_odd ‹p.prime› with hp2 hp_odd,
-  { resetI, subst p, exact dec_trivial },
+  { substI p, exact dec_trivial },
   change fact (p % 2 = 1) at hp_odd, resetI,
   have neg_one_ne_zero : (-1 : zmod p) ≠ 0, from mt neg_eq_zero.1 one_ne_zero,
   rw [euler_criterion p neg_one_ne_zero, neg_one_pow_eq_pow_mod_two],
@@ -109,7 +109,7 @@ lemma pow_div_two_eq_neg_one_or_one {a : zmod p} (ha : a ≠ 0) :
   a ^ (p / 2) = 1 ∨ a ^ (p / 2) = -1 :=
 begin
   cases nat.prime.eq_two_or_odd ‹p.prime› with hp2 hp_odd,
-  { resetI, subst p, revert a ha, exact dec_trivial },
+  { substI p, revert a ha, exact dec_trivial },
   rw [← mul_self_eq_one_iff, ← _root_.pow_add, ← two_mul, two_mul_odd_div_two hp_odd],
   exact fermat_little p ha
 end
@@ -176,7 +176,7 @@ begin
     refine ⟨(b / a : zmod p).val_min_abs.nat_abs, Ico.mem.mpr ⟨_, _⟩, _⟩,
     { apply nat.pos_of_ne_zero,
       simp only [div_eq_mul_inv, hap, char_p.cast_eq_zero_iff (zmod p) p, hpe hb, not_false_iff,
-        val_min_abs_eq_zero, inv_eq_zero, int.nat_abs_eq_zero, ne.def, mul_eq_zero_iff', or_self] },
+        val_min_abs_eq_zero, inv_eq_zero, int.nat_abs_eq_zero, ne.def, mul_eq_zero, or_self] },
       { apply lt_succ_of_le, apply nat_abs_val_min_abs_le },
       { rw cast_nat_abs_val_min_abs,
         split_ifs,
@@ -281,7 +281,7 @@ lemma div_eq_filter_card {a b c : ℕ} (hb0 : 0 < b) (hc : a / b ≤ c) : a / b 
   ((Ico 1 c.succ).filter (λ x, x * b ≤ a)).card :=
 calc a / b = (Ico 1 (a / b).succ).card : by simp
 ... = ((Ico 1 c.succ).filter (λ x, x * b ≤ a)).card :
-  congr_arg _$ finset.ext.2 $ λ x,
+  congr_arg _ $ finset.ext $ λ x,
     have x * b ≤ a → x ≤ c,
       from λ h, le_trans (by rwa [le_div_iff_mul_le _ _ hb0]) hc,
     by simp [lt_succ_iff, le_div_iff_mul_le _ _ hb0]; tauto
@@ -292,7 +292,7 @@ private lemma sum_Ico_eq_card_lt {p q : ℕ} :
   ∑ a in Ico 1 (p / 2).succ, (a * q) / p =
   (((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
   (λ x : ℕ × ℕ, x.2 * p ≤ x.1 * q)).card :=
-if hp0 : p = 0 then by simp [hp0, finset.ext]
+if hp0 : p = 0 then by simp [hp0, finset.ext_iff]
 else
   calc ∑ a in Ico 1 (p / 2).succ, (a * q) / p =
     ∑ a in Ico 1 (p / 2).succ,
@@ -348,7 +348,7 @@ have hunion : ((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
     ((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
       (λ x : ℕ × ℕ, x.1 * q ≤ x.2 * p) =
     ((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)),
-  from finset.ext.2 $ λ x, by have := le_total (x.2 * p) (x.1 * q); simp; tauto,
+  from finset.ext $ λ x, by have := le_total (x.2 * p) (x.1 * q); simp; tauto,
 by rw [sum_Ico_eq_card_lt, sum_Ico_eq_card_lt, hswap, ← card_disjoint_union hdisj, hunion,
     card_product];
   simp
@@ -377,7 +377,7 @@ begin
   by_cases ha : (a : zmod p) = 0,
   { simp only [if_pos, ha, _root_.zero_pow (nat.div_pos (hp.two_le) (succ_pos 1)), int.cast_zero] },
   cases hp.eq_two_or_odd with hp2 hp_odd,
-  { resetI, subst p,
+  { substI p,
     have : ∀ (a : zmod 2),
       ((if a = 0 then 0 else if a ^ (2 / 2) = 1 then 1 else -1 : ℤ) : zmod 2) = a ^ (2 / 2),
     by exact dec_trivial,
@@ -498,7 +498,7 @@ end
 
 lemma exists_pow_two_eq_prime_iff_of_mod_four_eq_one (hp1 : p % 4 = 1) [hq1 : fact (q % 2 = 1)] :
   (∃ a : zmod p, a ^ 2 = q) ↔ ∃ b : zmod q, b ^ 2 = p :=
-if hpq : p = q then by resetI; subst hpq else
+if hpq : p = q then by substI hpq else
 have h1 : ((p / 2) * (q / 2)) % 2 = 0,
   from (dvd_iff_mod_eq_zero _ _).1
     (dvd_mul_of_dvd_left ((dvd_iff_mod_eq_zero _ _).2 $

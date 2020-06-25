@@ -34,7 +34,7 @@ let b' := (λf, ⋂₀ f) '' {f:set (set α) | finite f ∧ f ⊆ s ∧ (⋂₀ 
 ⟨assume s₁ ⟨t₁, ⟨hft₁, ht₁b, ht₁⟩, eq₁⟩ s₂ ⟨t₂, ⟨hft₂, ht₂b, ht₂⟩, eq₂⟩,
     have ie : ⋂₀(t₁ ∪ t₂) = ⋂₀ t₁ ∩ ⋂₀ t₂, from Inf_union,
     eq₁ ▸ eq₂ ▸ assume x h,
-      ⟨_, ⟨t₁ ∪ t₂, ⟨finite_union hft₁ hft₂, union_subset ht₁b ht₂b,
+      ⟨_, ⟨t₁ ∪ t₂, ⟨hft₁.union hft₂, union_subset ht₁b ht₂b,
         ie.symm ▸ ⟨_, h⟩⟩, ie⟩, h, subset.refl _⟩,
   eq_univ_iff_forall.2 $ assume a, ⟨univ, ⟨∅, ⟨finite_empty, empty_subset _,
     by rw sInter_empty; exact ⟨a, mem_univ a⟩⟩, sInter_empty⟩, mem_univ _⟩,
@@ -115,6 +115,13 @@ class separable_space : Prop :=
   countable neighborhood basis. -/
 class first_countable_topology : Prop :=
 (nhds_generated_countable : ∀a:α, (𝓝 a).is_countably_generated)
+
+namespace first_countable_topology
+variable {α}
+lemma tendsto_subseq [first_countable_topology α] {u : ℕ → α} {x : α} (hx : map u at_top ⊓ 𝓝 x ≠ ⊥) :
+  ∃ (ψ : ℕ → ℕ), (strict_mono ψ) ∧ (tendsto (u ∘ ψ) at_top (𝓝 x)) :=
+(nhds_generated_countable x).subseq_tendsto hx
+end first_countable_topology
 
 /-- A second-countable space is one with a countable basis. -/
 class second_countable_topology : Prop :=

@@ -42,12 +42,12 @@ end
 
 lemma faithful_reflects_epi (F : C ⥤ D) [faithful F] {X Y : C} {f : X ⟶ Y}
   (hf : epi (F.map f)) : epi f :=
-⟨λ Z g h H, F.injectivity $
+⟨λ Z g h H, F.map_injective $
   by rw [←cancel_epi (F.map f), ←F.map_comp, ←F.map_comp, H]⟩
 
 lemma faithful_reflects_mono (F : C ⥤ D) [faithful F] {X Y : C} {f : X ⟶ Y}
   (hf : mono (F.map f)) : mono f :=
-⟨λ Z g h H, F.injectivity $
+⟨λ Z g h H, F.map_injective $
   by rw [←cancel_mono (F.map f), ←F.map_comp, ←F.map_comp, H]⟩
 end
 
@@ -81,6 +81,11 @@ split_mono.id'
 instance retraction_split_epi {X Y : C} (f : X ⟶ Y) [split_mono f] : split_epi (retraction f) :=
 { section_ := f }
 
+/-- A split mono which is epi is an iso. -/
+def is_iso_of_epi_of_split_mono {X Y : C} (f : X ⟶ Y) [split_mono f] [epi f] : is_iso f :=
+{ inv := retraction f,
+  inv_hom_id' := by simp [← cancel_epi f] }
+
 /--
 The chosen section of a split epimorphism.
 (Note that `section` is a reserved keyword, so we append an underscore.)
@@ -92,6 +97,11 @@ split_epi.id'
 /-- The section of a split epimorphism is itself a split monomorphism. -/
 instance section_split_mono {X Y : C} (f : X ⟶ Y) [split_epi f] : split_mono (section_ f) :=
 { retraction := f }
+
+/-- A split epi which is mono is an iso. -/
+def is_iso_of_mono_of_split_epi {X Y : C} (f : X ⟶ Y) [mono f] [split_epi f] : is_iso f :=
+{ inv := section_ f,
+  hom_inv_id' := by simp [← cancel_mono f] }
 
 /-- Every iso is a split mono. -/
 @[priority 100]

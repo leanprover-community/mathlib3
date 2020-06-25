@@ -216,7 +216,7 @@ lemma mfoldl.unop_of_free_monoid  (f : β → α → m β) (xs : free_monoid α)
 instance fold_mfoldl (f : β → α → m β) :
   is_monoid_hom (mfoldl.of_free_monoid f) :=
 { map_one := rfl,
-  map_mul := by intros; apply unop_inj; ext; apply list.mfoldl_append }
+  map_mul := by intros; apply unop_injective; ext; apply list.mfoldl_append }
 
 instance fold_mfoldr (f : α → β → m β) :
   is_monoid_hom (mfoldr.of_free_monoid f) :=

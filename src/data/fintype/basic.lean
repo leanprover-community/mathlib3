@@ -37,10 +37,10 @@ by ext; simp
 theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 
 theorem eq_univ_iff_forall {s : finset α} : s = univ ↔ ∀ x, x ∈ s :=
-by simp [ext]
+by simp [ext_iff]
 
 @[simp] lemma univ_inter [decidable_eq α] (s : finset α) :
-  univ ∩ s = s := ext' $ λ a, by simp
+  univ ∩ s = s := ext $ λ a, by simp
 
 @[simp] lemma inter_univ [decidable_eq α] (s : finset α) :
   s ∩ univ = s :=
@@ -154,7 +154,7 @@ equiv.of_bijective (mono_of_fin univ h) begin
 end
 
 instance (α : Type*) : subsingleton (fintype α) :=
-⟨λ ⟨s₁, h₁⟩ ⟨s₂, h₂⟩, by congr; simp [finset.ext, h₁, h₂]⟩
+⟨λ ⟨s₁, h₁⟩ ⟨s₂, h₂⟩, by congr; simp [finset.ext_iff, h₁, h₂]⟩
 
 protected def subtype {p : α → Prop} (s : finset α)
   (H : ∀ x : α, x ∈ s ↔ p x) : fintype {x // p x} :=
@@ -521,6 +521,10 @@ begin
     exact subtype.eq (H x.2 y.2) }
 end
 
+/-- A `finset` of a subsingleton type has cardinality at most one. -/
+lemma finset.card_le_one_of_subsingleton [subsingleton α] (s : finset α) : s.card ≤ 1 :=
+finset.card_le_one_iff.2 $ λ _ _ _ _, subsingleton.elim _ _
+
 lemma finset.one_lt_card_iff {s : finset α} :
   1 < s.card ↔ ∃ x y, (x ∈ s) ∧ (y ∈ s) ∧ x ≠ y :=
 begin
@@ -840,7 +844,7 @@ by rw [perms_of_list, list.nodup_append, list.nodup_bind, pairwise_iff_nth_le]; 
 def perms_of_finset (s : finset α) : finset (perm α) :=
 quotient.hrec_on s.1 (λ l hl, ⟨perms_of_list l, nodup_perms_of_list hl⟩)
   (λ a b hab, hfunext (congr_arg _ (quotient.sound hab))
-    (λ ha hb _, heq_of_eq $ finset.ext.2 $
+    (λ ha hb _, heq_of_eq $ finset.ext $
       by simp [mem_perms_of_list_iff, hab.mem_iff]))
   s.2
 
@@ -1011,4 +1015,4 @@ instance nat.infinite : infinite ℕ :=
 ⟨λ ⟨s, hs⟩, finset.not_mem_range_self $ s.subset_range_sup_succ (hs _)⟩
 
 instance int.infinite : infinite ℤ :=
-infinite.of_injective int.of_nat (λ _ _, int.of_nat_inj)
+infinite.of_injective int.of_nat (λ _ _, int.of_nat.inj)

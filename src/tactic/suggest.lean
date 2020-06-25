@@ -101,7 +101,7 @@ it matches the head symbol `hs` for the current goal.
 -- It turns out `apply` is so fast, it's better to just try them all.
 meta def process_declaration (hs : name) (d : declaration) : option decl_data :=
 let n := d.to_name in
-if ¬ d.is_trusted ∨ n.is_internal then
+if !d.is_trusted || n.is_internal then
   none
 else
   (λ m, ⟨d, n, m, n.length⟩) <$> match_head_symbol hs d.type
@@ -109,43 +109,58 @@ else
 /-- Retrieve all library definitions with a given head symbol. -/
 meta def library_defs (hs : name) : tactic (list decl_data) :=
 do env ← get_env,
-   return $ env.decl_filter_map (process_declaration hs)
+   let defs := env.decl_filter_map (process_declaration hs),
+   -- Sort by length; people like short proofs
+   let defs := defs.qsort(λ d₁ d₂, d₁.l ≤ d₂.l),
+   trace_if_enabled `suggest format!"Found {defs.length} relevant lemmas:",
+   trace_if_enabled `suggest $ defs.map (λ ⟨d, n, m, l⟩, (n, m.to_string)),
+   return defs
+
 
 /--
 Apply the lemma `e`, then attempt to close all goals using
 `solve_by_elim opt`, failing if `close_goals = tt`
 and there are any goals remaining.
+
+Returns the number of subgoals which were closed using `solve_by_elim`.
 -/
 -- Implementation note: as this is used by both `library_search` and `suggest`,
--- we first run `solve_by_elim` separately on a subset of the goals,
+-- we first run `solve_by_elim` separately on the independent goals,
 -- whether or not `close_goals` is set,
--- and then if `close_goals = tt`, require that `solve_by_elim { all_goals := tt }` succeeds
--- on the remaining goals.
-meta def apply_and_solve (close_goals : bool) (opt : opt := { }) (e : expr) : tactic unit :=
-opt.apply e >>
--- Phase 1
--- Run `solve_by_elim` on each "safe" goal separately, not worrying about failures.
--- (We only attempt the "safe" goals in this way in Phase 1. In Phase 2 we will do
--- backtracking search across all goals, allowing us to guess solutions that involve data, or
--- unify metavariables, but only as long as we can finish all goals.)
-try (any_goals (independent_goal >> solve_by_elim opt)) >>
--- Phase 2
-(done <|>
-  -- If there were any goals that we did not attempt solving in the first phase
-  -- (because they weren't propositional, or contained a metavariable)
-  -- as a second phase we attempt to solve all remaining goals at once
-  -- (with backtracking across goals).
-  any_goals (success_if_fail independent_goal) >>
-  solve_by_elim { backtrack_all_goals := tt, ..opt } <|>
-  -- and fail unless `close_goals = ff`
-  guard ¬ close_goals)
+-- and then run `solve_by_elim { all_goals := tt }`,
+-- requiring that it succeeds if `close_goals = tt`.
+meta def apply_and_solve (close_goals : bool) (opt : opt := { }) (e : expr) : tactic ℕ :=
+do
+  opt.apply e,
+  trace_if_enabled `suggest format!"Applied lemma: {e}",
+  ng ← num_goals,
+  -- Phase 1
+  -- Run `solve_by_elim` on each "safe" goal separately, not worrying about failures.
+  -- (We only attempt the "safe" goals in this way in Phase 1. In Phase 2 we will do
+  -- backtracking search across all goals, allowing us to guess solutions that involve data, or
+  -- unify metavariables, but only as long as we can finish all goals.)
+  try (any_goals (independent_goal >> solve_by_elim opt)),
+  -- Phase 2
+  (done >> return ng) <|> (do
+    -- If there were any goals that we did not attempt solving in the first phase
+    -- (because they weren't propositional, or contained a metavariable)
+    -- as a second phase we attempt to solve all remaining goals at once
+    -- (with backtracking across goals).
+    (any_goals (success_if_fail independent_goal) >>
+    solve_by_elim { backtrack_all_goals := tt, ..opt }) <|>
+    -- and fail unless `close_goals = ff`
+    guard ¬ close_goals,
+    ng' ← num_goals,
+    return (ng - ng'))
 
 /--
 Apply the declaration `d` (or the forward and backward implications separately, if it is an `iff`),
-and then attempt to solve the goal using `apply_and_solve`.
+and then attempt to solve the subgoal using `apply_and_solve`.
+
+Returns the number of subgoals successfully closed.
 -/
 meta def apply_declaration (close_goals : bool) (opt : opt := { }) (d : decl_data) :
-  tactic unit :=
+  tactic ℕ :=
 let tac := apply_and_solve close_goals opt in
 do (e, t) ← decl_mk_const d.d,
    match d.m with
@@ -235,10 +250,6 @@ do g :: _ ← get_goals,
    -- Collect all definitions with the correct head symbol
    t ← infer_type g,
    defs ← library_defs (head_symbol t),
-   -- Sort by length; people like short proofs
-   let defs := defs.qsort(λ d₁ d₂, d₁.l ≤ d₂.l),
-   trace_if_enabled `suggest format!"Found {defs.length} relevant lemmas:",
-   trace_if_enabled `suggest $ defs.map (λ ⟨d, n, m, l⟩, (n, m.to_string)),
 
    let defs : mllist tactic _ := mllist.of_list defs,
 

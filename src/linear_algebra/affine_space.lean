@@ -7,12 +7,14 @@ import algebra.add_torsor
 import linear_algebra.basis
 
 noncomputable theory
+open_locale big_operators
 
 /-!
 # Affine spaces
 
 This file defines affine spaces (over modules) and subspaces, affine
-maps, and the affine span of a set of points.
+maps, affine combinations of points, and the affine span of a set of
+points.
 
 ## Implementation notes
 
@@ -102,6 +104,114 @@ end
 
 end affine_space
 
+namespace finset
+
+open add_action
+open add_torsor
+
+variables {k : Type*} (V : Type*) {P : Type*} [ring k] [add_comm_group V] [module k V]
+variables [S : affine_space k V P]
+include S
+
+variables {ι : Type*} (s : finset ι)
+
+/-- A weighted sum of the results of subtracting a base point from the
+given points, as a linear map on the weights.  The main cases of
+interest are where the sum of the weights is 0, in which case the sum
+is independent of the choice of base point, and where the sum of the
+weights is 1, in which case the sum added to the base point is
+independent of the choice of base point. -/
+def weighted_vsub_of_point (p : ι → P) (b : P) : (ι → k) →ₗ[k] V :=
+∑ i in s, (linear_map.proj i : (ι → k) →ₗ[k] k).smul_right (p i -ᵥ b)
+
+@[simp] lemma weighted_vsub_of_point_apply (w : ι → k) (p : ι → P) (b : P) :
+  s.weighted_vsub_of_point V p b w = ∑ i in s, w i • (p i -ᵥ b) :=
+by simp [weighted_vsub_of_point, linear_map.sum_apply]
+
+/-- The weighted sum is independent of the base point when the sum of
+the weights is 0. -/
+lemma weighted_vsub_of_point_eq_of_sum_eq_zero (w : ι → k) (p : ι → P) (h : ∑ i in s, w i = 0)
+    (b₁ b₂ : P) : s.weighted_vsub_of_point V p b₁ w = s.weighted_vsub_of_point V p b₂ w :=
+begin
+  apply eq_of_sub_eq_zero,
+  rw [weighted_vsub_of_point_apply, weighted_vsub_of_point_apply, ←finset.sum_sub_distrib],
+  conv_lhs {
+    congr,
+    skip,
+    funext,
+    rw [←smul_sub, vsub_sub_vsub_cancel_left]
+  },
+  rw [←finset.sum_smul, h, zero_smul]
+end
+
+/-- The weighted sum, added to the base point, is independent of the
+base point when the sum of the weights is 1. -/
+lemma weighted_vsub_of_point_vadd_eq_of_sum_eq_one (w : ι → k) (p : ι → P) (h : ∑ i in s, w i = 1)
+    (b₁ b₂ : P) :
+  s.weighted_vsub_of_point V p b₁ w +ᵥ b₁ = s.weighted_vsub_of_point V p b₂ w +ᵥ b₂ :=
+begin
+  erw [weighted_vsub_of_point_apply, weighted_vsub_of_point_apply, ←vsub_eq_zero_iff_eq V,
+       vadd_vsub_assoc, vsub_vadd_eq_vsub_sub, ←add_sub_assoc, add_comm, add_sub_assoc,
+       ←finset.sum_sub_distrib],
+  conv_lhs {
+    congr,
+    skip,
+    congr,
+    skip,
+    funext,
+    rw [←smul_sub, vsub_sub_vsub_cancel_left]
+  },
+  rw [←finset.sum_smul, h, one_smul, vsub_add_vsub_cancel, vsub_self]
+end
+
+/-- A weighted sum of the results of subtracting a default base point
+from the given points, as a linear map on the weights.  This is
+intended to be used when the sum of the weights is 0; that condition
+is specified as a hypothesis on those lemmas that require it. -/
+def weighted_vsub (p : ι → P) : (ι → k) →ₗ[k] V :=
+s.weighted_vsub_of_point V p (classical.choice S.nonempty)
+
+/-- `weighted_vsub` gives the sum of the results of subtracting any
+base point, when the sum of the weights is 0. -/
+lemma weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero (w : ι → k) (p : ι → P)
+    (h : ∑ i in s, w i = 0) (b : P) : s.weighted_vsub V p w = s.weighted_vsub_of_point V p b w :=
+s.weighted_vsub_of_point_eq_of_sum_eq_zero V w p h _ _
+
+/-- A weighted sum of the results of subtracting a default base point
+from the given points, added to that base point.  This is intended to
+be used when the sum of the weights is 1, in which case it is an
+affine combination (barycenter) of the points with the given weights;
+that condition is specified as a hypothesis on those lemmas that
+require it. -/
+def affine_combination (w : ι → k) (p : ι → P) : P :=
+s.weighted_vsub_of_point V p (classical.choice S.nonempty) w +ᵥ (classical.choice S.nonempty)
+
+/-- `affine_combination` gives the sum with any base point, when the
+sum of the weights is 1. -/
+lemma affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one (w : ι → k) (p : ι → P)
+    (h : ∑ i in s, w i = 1) (b : P) :
+  s.affine_combination V w p = s.weighted_vsub_of_point V p b w +ᵥ b :=
+s.weighted_vsub_of_point_vadd_eq_of_sum_eq_one V w p h _ _
+
+/-- Adding a `weighted_vsub` to an `affine_combination`. -/
+lemma weighted_vsub_vadd_affine_combination (w₁ w₂ : ι → k) (p : ι → P) :
+  s.weighted_vsub V p w₁ +ᵥ s.affine_combination V w₂ p = s.affine_combination V (w₁ + w₂) p :=
+begin
+  erw vadd_assoc,
+  congr,
+  exact (linear_map.map_add _ _ _).symm
+end
+
+/-- Subtracting two `affine_combination`s. -/
+lemma affine_combination_vsub (w₁ w₂ : ι → k) (p : ι → P) :
+  s.affine_combination V w₁ p -ᵥ s.affine_combination V w₂ p = s.weighted_vsub V p (w₁ - w₂) :=
+begin
+  erw vadd_vsub_vadd_cancel_right,
+  exact (linear_map.map_sub _ _ _).symm
+end
+
+end finset
+
 open add_torsor affine_space
 
 /-- An `affine_subspace k V P` is a subset of an `affine_space k V P`
@@ -153,6 +263,90 @@ lemma mem_univ (p : P) : p ∈ univ k V P :=
 set.mem_univ p
 
 instance : inhabited (affine_subspace k V P) := ⟨univ k V P⟩
+
+variables {k V P}
+
+/-- Two affine subspaces are equal if they have the same points. -/
+@[ext] lemma ext {s1 s2 : affine_subspace k V P} (h : (s1 : set P) = s2) : s1 = s2 :=
+begin
+  cases s1,
+  cases s2,
+  change s1_carrier = s2_carrier at h,
+  congr,
+  { exact h },
+  { ext v,
+    split,
+    { intro hv,
+      have hm := s1_nonempty.some_mem,
+      have hvp := s1_add s1_nonempty.some v hm hv,
+      conv_rhs at hm { rw h },
+      conv_rhs at hvp { rw h },
+      rw ←vadd_vsub V v s1_nonempty.some,
+      exact s2_sub _ _ hvp hm },
+    { intro hv,
+      have hm := s2_nonempty.some_mem,
+      have hvp := s2_add s2_nonempty.some v hm hv,
+      conv_rhs at hm { rw ←h },
+      conv_rhs at hvp { rw ←h },
+      rw ←vadd_vsub V v s2_nonempty.some,
+      exact s1_sub _ _ hvp hm } }
+end
+
+/-- Two affine subspaces with the same direction and nonempty
+intersection are equal. -/
+lemma ext_of_direction_eq {s1 s2 : affine_subspace k V P} (hd : s1.direction = s2.direction)
+    (hn : ((s1 : set P) ∩ s2).nonempty) : s1 = s2 :=
+begin
+  ext p,
+  have hq1 := set.mem_of_mem_inter_left hn.some_mem,
+  have hq2 := set.mem_of_mem_inter_right hn.some_mem,
+  split,
+  { intro hp,
+    rw ←vsub_vadd V p hn.some,
+    refine s2.add _ _ hq2 _,
+    rw ←hd,
+    exact s1.sub _ _ hp hq1 },
+  { intro hp,
+    rw ←vsub_vadd V p hn.some,
+    refine s1.add _ _ hq1 _,
+    rw hd,
+    exact s2.sub _ _ hp hq2 }
+end
+
+/-- Construct an affine subspace from a point and a direction. -/
+def mk_of_point_of_direction (p : P) (direction : submodule k V) : affine_subspace k V P :=
+{ carrier := {q | ∃ v ∈ direction, q = v +ᵥ p},
+  direction := direction,
+  nonempty := ⟨p, ⟨0, ⟨direction.zero_mem, (add_action.zero_vadd _ _).symm⟩⟩⟩,
+  add := λ p2 v hp2 hv, begin
+    rcases hp2 with ⟨v2, hv2, hp2⟩,
+    use [v + v2, direction.add_mem hv hv2],
+    rw [←add_action.vadd_assoc, hp2]
+  end,
+  sub := λ p1 p2 hp1 hp2, begin
+    rcases hp1 with ⟨v1, hv1, hp1⟩,
+    rcases hp2 with ⟨v2, hv2, hp2⟩,
+    rw [hp1, hp2, vadd_vsub_vadd_cancel_right],
+    exact direction.sub_mem hv1 hv2
+  end }
+
+/-- The direction of an affine space constructed from a point and a
+direction. -/
+@[simp] lemma direction_mk_of_point_of_direction (p : P) (direction : submodule k V) :
+  (mk_of_point_of_direction p direction).direction = direction :=
+rfl
+
+/-- An affine space constructed from a point and a direction contains
+that point. -/
+lemma mem_mk_of_point_of_direction (p : P) (direction : submodule k V) :
+  p ∈ mk_of_point_of_direction p direction :=
+⟨0, ⟨direction.zero_mem, (add_action.zero_vadd _ _).symm⟩⟩
+
+/-- Constructing an affine subspace from a point in a subspace and
+that subspace's direction yields the original subspace. -/
+@[simp] lemma mk_of_point_of_direction_eq {s : affine_subspace k V P} {p : P} (hp : p ∈ s) :
+  mk_of_point_of_direction p s.direction = s :=
+ext_of_direction_eq rfl ⟨p, set.mem_inter (mem_mk_of_point_of_direction _ _) hp⟩
 
 end affine_subspace
 
@@ -461,6 +655,24 @@ def homothety_affine (c : P1) :
 @[simp] lemma coe_homothety_affine (c : P1) :
   ⇑(homothety_affine V1 c : affine_map k k k _ _) = homothety V1 c :=
 rfl
+
+end affine_map
+
+namespace affine_map
+variables {k : Type*} (V : Type*) (P : Type*) [comm_ring k] [add_comm_group V] [module k V]
+variables [affine_space k V P] {ι : Type*} (s : finset ι)
+
+-- TODO: define `affine_map.proj`, `affine_map.fst`, `affine_map.snd`
+/-- A weighted sum, as an affine map on the points involved. -/
+def weighted_vsub_of_point (w : ι → k) : affine_map k ((ι → V) × V) ((ι → P) × P) V V :=
+{ to_fun := λ p, s.weighted_vsub_of_point _ p.fst p.snd w,
+  linear := ∑ i in s,
+    w i • ((linear_map.proj i).comp (linear_map.fst _ _ _) - linear_map.snd _ _ _),
+  map_vadd' := begin
+    rintros ⟨p, b⟩ ⟨v, b'⟩,
+    simp [linear_map.sum_apply, finset.weighted_vsub_of_point, vsub_vadd_eq_vsub_sub,
+          vadd_vsub_assoc, add_sub, ← sub_add_eq_add_sub, smul_add, finset.sum_add_distrib]
+  end }
 
 end affine_map
 

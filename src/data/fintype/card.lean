@@ -58,6 +58,14 @@ lemma prod_unique [unique β] (f : β → M) :
   (∏ x, f x) = f (default β) :=
 by simp only [finset.prod_singleton, univ_unique]
 
+/-- If a product of a `finset` of a subsingleton type has a given
+value, so do the terms in that product. -/
+@[to_additive "If a sum of a `finset` of a subsingleton type has a given
+value, so do the terms in that sum."]
+lemma eq_of_subsingleton_of_prod_eq {ι : Type*} [subsingleton ι] {s : finset ι}
+    {f : ι → M} {b : M} (h : ∏ i in s, f i = b) : ∀ i ∈ s, f i = b :=
+finset.eq_of_card_le_one_of_prod_eq (finset.card_le_one_of_subsingleton s) h
+
 end
 
 end fintype
@@ -212,10 +220,9 @@ lemma finset.prod_subtype {M : Type*} [comm_monoid M]
 have (∈ s) = p, from set.ext h,
 begin
   rw ← prod_attach,
-  resetI,
-  subst p,
+  substI p,
   congr,
-  simp [finset.ext]
+  simp [finset.ext_iff]
 end
 
 @[to_additive] lemma finset.prod_fiberwise [fintype β] [decidable_eq β] [comm_monoid γ]
@@ -258,7 +265,7 @@ begin
   rw [← prod_sdiff (subset_univ s),
       ← @prod_image (α₁ ⊕ α₂) _ _ _ _ _ _ sum.inl,
       ← @prod_image (α₁ ⊕ α₂) _ _ _ _ _ _ sum.inr],
-  { congr, rw finset.ext, rintro (a|a);
+  { congr, rw finset.ext_iff, rintro (a|a);
     { simp only [mem_image, exists_eq, mem_sdiff, mem_univ, exists_false,
         exists_prop_of_true, not_false_iff, and_self, not_true, and_false], } },
   all_goals { intros, solve_by_elim [sum.inl.inj, sum.inr.inj], }

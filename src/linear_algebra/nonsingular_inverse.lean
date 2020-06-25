@@ -354,33 +354,77 @@ Defines the matrix `nonsing_inv A` and proves it is the inverse matrix
 of a square matrix `A` as long as `det A` has a multiplicative inverse.
 -/
 
-variables [comm_ring α] [has_inv α]
+variables [comm_ring α]
+variables (A : matrix n n α)
 
-/-- The inverse of a nonsingular matrix.
+open_locale classical
 
-  This is not the most general possible definition, so we don't instantiate `has_inv` (yet).
--/
-def nonsing_inv (A : matrix n n α) : matrix n n α := (A.det)⁻¹ • adjugate A
+lemma is_unit_det_transpose (h : is_unit A.det) : is_unit Aᵀ.det :=
+by { rw det_transpose, exact h, }
 
-lemma nonsing_inv_val (A : matrix n n α) (i j : n) :
-  A.nonsing_inv i j = (A.det)⁻¹ * adjugate A i j := rfl
+/-- The inverse of a square matrix, when it is invertible (and zero otherwise).-/
+noncomputable def nonsing_inv : matrix n n α :=
+if h : is_unit A.det then (↑h.unit⁻¹ : α) • A.adjugate else 0
 
-lemma transpose_nonsing_inv (A : matrix n n α) : (A.nonsing_inv)ᵀ = (Aᵀ).nonsing_inv :=
-by {ext, simp [transpose_val, nonsing_inv_val, det_transpose, (adjugate_transpose A).symm]}
+noncomputable instance : has_inv (matrix n n α) := ⟨matrix.nonsing_inv⟩
+
+lemma nonsing_inv_apply (h : is_unit A.det) :
+  A⁻¹ = (↑h.unit⁻¹ : α) • A.adjugate :=
+by { change A.nonsing_inv = _, dunfold nonsing_inv, simp only [dif_pos, h], }
+
+lemma transpose_nonsing_inv (h : is_unit A.det) :
+  (A⁻¹)ᵀ = (Aᵀ)⁻¹ :=
+begin
+  have h' := A.is_unit_det_transpose h,
+  have dets_eq : (↑h.unit : α) = ↑h'.unit := by rw [h.unit_spec, h'.unit_spec, det_transpose],
+  rw [A.nonsing_inv_apply h, Aᵀ.nonsing_inv_apply h',
+      units.inv_unique dets_eq, A.adjugate_transpose.symm],
+  refl,
+end
 
 /-- The `nonsing_inv` of `A` is a right inverse. -/
-theorem mul_nonsing_inv (A : matrix n n α) (inv_mul_cancel : A.det⁻¹ * A.det = 1) :
-  A ⬝ nonsing_inv A = 1 :=
-by erw [mul_smul, mul_adjugate, smul_smul, inv_mul_cancel, one_smul]
+@[simp] lemma mul_nonsing_inv (h : is_unit A.det) : A ⬝ A⁻¹ = 1 :=
+by rw [A.nonsing_inv_apply h, mul_smul, mul_adjugate, smul_smul, units.inv_mul' h.unit_spec,
+       one_smul]
 
 /-- The `nonsing_inv` of `A` is a left inverse. -/
-theorem nonsing_inv_mul (A : matrix n n α) (inv_mul_cancel : A.det⁻¹ * A.det = 1) :
-  nonsing_inv A ⬝ A = 1 :=
-have inv_mul_cancel' : (det Aᵀ)⁻¹ * det Aᵀ = 1 := by {rw det_transpose, assumption},
-calc nonsing_inv A ⬝ A
-    = (Aᵀ ⬝ nonsing_inv (Aᵀ))ᵀ : by rw [transpose_mul, transpose_nonsing_inv, transpose_transpose]
-... = 1ᵀ                       : by rw [mul_nonsing_inv Aᵀ inv_mul_cancel']
-... = 1                        : transpose_one
+@[simp] lemma nonsing_inv_mul (h : is_unit A.det) : A⁻¹ ⬝ A = 1 :=
+calc A⁻¹ ⬝ A = (Aᵀ ⬝ (Aᵀ)⁻¹)ᵀ : by { rw [transpose_mul,
+                                    Aᵀ.transpose_nonsing_inv (A.is_unit_det_transpose h),
+                                    transpose_transpose], }
+         ... = 1ᵀ             : by { rw Aᵀ.mul_nonsing_inv, exact A.is_unit_det_transpose h, }
+         ... = 1              : transpose_one
+
+@[simp] lemma nonsing_inv_det (h : is_unit A.det) : A⁻¹.det * A.det = 1 :=
+by rw [←det_mul, A.nonsing_inv_mul h, det_one]
+
+lemma is_unit_nonsing_inv_det (h : is_unit A.det) : is_unit A⁻¹.det :=
+is_unit_of_mul_eq_one _ _ (A.nonsing_inv_det h)
+
+@[simp] lemma nonsing_inv_nonsing_inv (h : is_unit A.det) : (A⁻¹)⁻¹ = A :=
+calc (A⁻¹)⁻¹ = 1 ⬝ (A⁻¹)⁻¹        : by rw matrix.one_mul
+         ... = A ⬝ A⁻¹ ⬝ (A⁻¹)⁻¹  : by rw A.mul_nonsing_inv h
+         ... = A                  : by { rw [matrix.mul_assoc,
+                                         (A⁻¹).mul_nonsing_inv (A.is_unit_nonsing_inv_det h),
+                                         matrix.mul_one], }
+
+/-- A matrix whose determinant is a unit is itself a unit. -/
+noncomputable def nonsing_inv_unit (h : is_unit A.det) : units (matrix n n α) :=
+{ val     := A,
+  inv     := A⁻¹,
+  val_inv := by { rw matrix.mul_eq_mul, apply A.mul_nonsing_inv h, },
+  inv_val := by { rw matrix.mul_eq_mul, apply A.nonsing_inv_mul h, } }
+
+lemma is_unit_iff_is_unit_det : is_unit A ↔ is_unit A.det :=
+begin
+  split; intros h,
+  { -- is_unit A → is_unit A.det
+    suffices : ∃ (B : matrix n n α), A ⬝ B = 1,
+    { rcases this with ⟨B, hB⟩, apply is_unit_of_mul_eq_one _ B.det, rw [←det_mul, hB, det_one], },
+    refine ⟨↑h.unit⁻¹, _⟩, conv_lhs { congr, rw ←h.unit_spec, }, exact h.unit.mul_inv, },
+  { -- is_unit A.det → is_unit A
+    exact is_unit_unit (A.nonsing_inv_unit h), },
+end
 
 end inv
 end matrix

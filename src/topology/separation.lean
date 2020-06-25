@@ -122,6 +122,40 @@ t2_iff_nhds.trans
      let ⟨f, hf, uf⟩ := exists_ultrafilter xy in
      h f uf (le_trans hf inf_le_left) (le_trans hf inf_le_right)⟩
 
+lemma is_closed_diagonal [t2_space α] : is_closed (diagonal α) :=
+is_closed_iff_nhds.mpr $ assume ⟨a₁, a₂⟩ h, eq_of_nhds_ne_bot $ assume : 𝓝 a₁ ⊓ 𝓝 a₂ = ⊥, h $
+  let ⟨t₁, ht₁, t₂, ht₂, (h' : t₁ ∩ t₂ ⊆ ∅)⟩ :=
+    by rw [←empty_in_sets_eq_bot, mem_inf_sets] at this; exact this in
+  begin
+    change t₁ ∈ 𝓝 a₁ at ht₁,
+    change t₂ ∈ 𝓝 a₂ at ht₂,
+    rw [nhds_prod_eq, ←empty_in_sets_eq_bot],
+    apply filter.sets_of_superset,
+    apply inter_mem_inf_sets (prod_mem_prod ht₁ ht₂) (mem_principal_sets.mpr (subset.refl _)),
+    exact assume ⟨x₁, x₂⟩ ⟨⟨hx₁, hx₂⟩, (heq : x₁ = x₂)⟩,
+      show false, from @h' x₁ ⟨hx₁, heq.symm ▸ hx₂⟩
+  end
+
+lemma t2_iff_is_closed_diagonal : t2_space α ↔ is_closed (diagonal α) :=
+begin
+  split,
+  { introI h,
+    exact is_closed_diagonal },
+  { intro h,
+    constructor,
+    intros x y hxy,
+    have : (x, y) ∈ -diagonal α, by rwa [mem_compl_iff],
+    obtain ⟨t, t_sub, t_op, xyt⟩ : ∃ t ⊆ -diagonal α, is_open t ∧ (x, y) ∈ t :=
+      is_open_iff_forall_mem_open.mp h _ this,
+    rcases is_open_prod_iff.mp t_op x y xyt with ⟨U, V, U_op, V_op, xU, yV, H⟩,
+    use [U, V, U_op, V_op, xU, yV],
+    have := subset.trans H t_sub,
+    rw eq_empty_iff_forall_not_mem,
+    rintros z ⟨zU, zV⟩,
+    have : ¬ (z, z) ∈ diagonal α := this (mk_mem_prod zU zV),
+    exact this rfl },
+end
+
 @[simp] lemma nhds_eq_nhds_iff {a b : α} [t2_space α] : 𝓝 a = 𝓝 b ↔ a = b :=
 ⟨assume h, eq_of_nhds_ne_bot $ by rw [h, inf_idem]; exact nhds_ne_bot, assume h, h ▸ rfl⟩
 
@@ -201,20 +235,6 @@ instance Pi.t2_space {α : Type*} {β : α → Type v} [t₂ : Πa, topological_
 ⟨assume x y h,
   let ⟨i, hi⟩ := not_forall.mp (mt funext h) in
   separated_by_f (λz, z i) (infi_le _ i) hi⟩
-
-lemma is_closed_diagonal [t2_space α] : is_closed {p:α×α | p.1 = p.2} :=
-is_closed_iff_nhds.mpr $ assume ⟨a₁, a₂⟩ h, eq_of_nhds_ne_bot $ assume : 𝓝 a₁ ⊓ 𝓝 a₂ = ⊥, h $
-  let ⟨t₁, ht₁, t₂, ht₂, (h' : t₁ ∩ t₂ ⊆ ∅)⟩ :=
-    by rw [←empty_in_sets_eq_bot, mem_inf_sets] at this; exact this in
-  begin
-    change t₁ ∈ 𝓝 a₁ at ht₁,
-    change t₂ ∈ 𝓝 a₂ at ht₂,
-    rw [nhds_prod_eq, ←empty_in_sets_eq_bot],
-    apply filter.sets_of_superset,
-    apply inter_mem_inf_sets (prod_mem_prod ht₁ ht₂) (mem_principal_sets.mpr (subset.refl _)),
-    exact assume ⟨x₁, x₂⟩ ⟨⟨hx₁, hx₂⟩, (heq : x₁ = x₂)⟩,
-      show false, from @h' x₁ ⟨hx₁, heq.symm ▸ hx₂⟩
-  end
 
 variables [topological_space β]
 

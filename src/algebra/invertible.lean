@@ -73,6 +73,10 @@ by simp [mul_assoc]
 lemma inv_of_eq_right_inv [monoid α] {a b : α} [invertible a] (hac : a * b = 1) : ⅟a = b :=
 left_inv_eq_right_inv (inv_of_mul_self _) hac
 
+lemma invertible_unique {α : Type u} [monoid α] (a b : α) (h : a = b) [invertible a] [invertible b] :
+  ⅟a = ⅟b :=
+by { apply inv_of_eq_right_inv, rw [h, mul_inv_of_self], }
+
 instance [monoid α] (a : α) : subsingleton (invertible a) :=
 ⟨ λ ⟨b, hba, hab⟩ ⟨c, hca, hac⟩, by { congr, exact left_inv_eq_right_inv hba hac } ⟩
 

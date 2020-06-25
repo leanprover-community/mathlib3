@@ -257,7 +257,7 @@ lemma lipschitz_with.add {α : Type*} [emetric_space α] {Kf : nnreal} {f : α �
 calc edist (f x + g x) (f y + g y) ≤ edist (f x) (f y) + edist (g x) (g y) :
   edist_add_add_le _ _ _ _
 ... ≤ Kf * edist x y + Kg * edist x y :
-  add_le_add' (hf x y) (hg x y)
+  add_le_add (hf x y) (hg x y)
 ... = (Kf + Kg) * edist x y :
   (add_mul _ _ _).symm
 
@@ -610,6 +610,8 @@ begin
   exact (tendsto_inv hx)
 end
 
+end normed_field
+
 instance : normed_field ℝ :=
 { norm := λ x, abs x,
   dist_eq := assume x y, rfl,
@@ -617,7 +619,6 @@ instance : normed_field ℝ :=
 
 instance : nondiscrete_normed_field ℝ :=
 { non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
-end normed_field
 
 /-- If a function converges to a nonzero value, its inverse converges to the inverse of this value.
 We use the name `tendsto.inv'` as `tendsto.inv` is already used in multiplicative topological
@@ -901,13 +902,17 @@ end prio
 normed_algebra.norm_algebra_map_eq _
 
 @[priority 100]
-instance to_normed_space (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
+instance normed_algebra.to_normed_space (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
   [h : normed_algebra 𝕜 𝕜'] : normed_space 𝕜 𝕜' :=
 { norm_smul_le := λ s x, calc
     ∥s • x∥ = ∥((algebra_map 𝕜 𝕜') s) * x∥ : by { rw h.smul_def', refl }
     ... ≤ ∥algebra_map 𝕜 𝕜' s∥ * ∥x∥ : normed_ring.norm_mul _ _
     ... = ∥s∥ * ∥x∥ : by rw norm_algebra_map_eq,
   ..h }
+
+instance normed_algebra.id (𝕜 : Type*) [normed_field 𝕜] : normed_algebra 𝕜 𝕜 :=
+{ norm_algebra_map_eq := by simp,
+.. algebra.id 𝕜}
 
 end normed_algebra
 

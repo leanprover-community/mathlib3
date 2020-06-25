@@ -111,6 +111,19 @@ begin
   cases exists_is_basis K V with s hs,
   exact ⟨s, hs, finite_of_linear_independent hs.1⟩
 end
+
+/-- In a finite dimensional space, there exists a finite basis. Provides the basis as a finset.
+This is in contrast to `exists_is_basis_finite`, which provides a set and a `set.finite`.
+-/
+lemma exists_is_basis_finset [finite_dimensional K V] :
+  ∃ b : finset V, is_basis K (subtype.val : (↑b : set V) → V) :=
+begin
+  obtain ⟨s, s_basis, s_finite⟩ := exists_is_basis_finite K V,
+  refine ⟨s_finite.to_finset, _⟩,
+  rw set.finite.coe_to_finset,
+  exact s_basis,
+end
+
 variables {K V}
 
 /-- A vector space is finite-dimensional if and only if it is finitely generated. As the
@@ -132,6 +145,11 @@ end
 lemma of_finite_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K b) :
   finite_dimensional K V :=
 iff_fg.2 $ ⟨finset.univ.image b, by {convert h.2, simp} ⟩
+
+/-- If a vector space has a finite basis, then it is finite-dimensional, finset style. -/
+lemma of_finset_basis {b : finset V} (h : is_basis K (subtype.val : (↑b : set V) -> V)) :
+  finite_dimensional K V :=
+iff_fg.2 $ ⟨b, by {convert h.2, simp} ⟩
 
 /-- A subspace of a finite-dimensional space is also finite-dimensional. -/
 instance finite_dimensional_submodule [finite_dimensional K V] (S : submodule K V) :
@@ -182,7 +200,7 @@ end
 /-- If a vector space is finite-dimensional, then the cardinality of any basis is equal to its
 `findim`. -/
 lemma findim_eq_card_basis' [finite_dimensional K V] {ι : Type w} {b : ι → V} (h : is_basis K b) :
-  (findim K V : cardinal.{w}) = cardinal.mk ι  :=
+  (findim K V : cardinal.{w}) = cardinal.mk ι :=
 begin
   rcases exists_is_basis_finite K V with ⟨s, s_basis, s_finite⟩,
   letI: fintype s := s_finite.fintype,
@@ -194,6 +212,160 @@ begin
   have : cardinal.lift.{w v} (cardinal.mk ι) = cardinal.lift.{w v} (findim K V),
     by { simp, exact C },
   exact (lift_inj.mp this).symm
+end
+
+/-- If a vector space has a finite basis, then its dimension is equal to the cardinality of the
+basis. This lemma uses a `finset` instead of indexed types. -/
+lemma findim_eq_card_finset_basis {b : finset V}
+  (h : is_basis K (subtype.val : (↑b : set V) -> V)) :
+  findim K V = finset.card b :=
+by { rw [findim_eq_card_basis h, fintype.subtype_card], intros x, refl }
+
+-- Note here we've restricted the universe levels of `ι` and `V` to be the same, for convenience.
+lemma cardinal_mk_le_findim_of_linear_independent
+  [finite_dimensional K V] {ι : Type v} {b : ι → V} (h : linear_independent K b) :
+  cardinal.mk ι ≤ findim K V :=
+begin
+  convert cardinal_le_dim_of_linear_independent h,
+  rw ←findim_eq_dim K V
+end
+
+-- Note here we've restricted the universe levels of `ι` and `V` to be the same, for convenience.
+lemma fintype_card_le_findim_of_linear_independent
+  [finite_dimensional K V] {ι : Type v} [fintype ι] {b : ι → V} (h : linear_independent K b) :
+  fintype.card ι ≤ findim K V :=
+by simpa [fintype_card] using cardinal_mk_le_findim_of_linear_independent h
+
+lemma finset_card_le_findim_of_linear_independent [finite_dimensional K V] {b : finset V}
+  (h : linear_independent K (λ x, x : (↑b : set V) → V)) :
+  b.card ≤ findim K V :=
+begin
+  rw ←fintype.card_coe,
+  exact fintype_card_le_findim_of_linear_independent h,
+end
+
+section
+open_locale big_operators
+open finset
+
+/--
+If a finset has cardinality larger than the dimension of the space,
+then there is a nontrivial linear relation amongst its elements.
+-/
+lemma exists_nontrivial_relation_of_dim_lt_card
+  [finite_dimensional K V] {t : finset V} (h : findim K V < t.card) :
+  ∃ f : V → K, ∑ e in t, f e • e = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
+begin
+  have := mt finset_card_le_findim_of_linear_independent (by { simpa using h }),
+  rw linear_dependent_iff at this,
+  obtain ⟨s, g, sum, z, zm, nonzero⟩ := this,
+  -- Now we have to extend `g` to all of `t`, then to all of `V`.
+  let f : V → K := λ x, if h : x ∈ t then if (⟨x, h⟩ : (↑t : set V)) ∈ s then g ⟨x, h⟩ else 0 else 0,
+  -- and finally clean up the mess caused by the extension.
+  refine ⟨f, _, _⟩,
+  { dsimp [f],
+    rw ← sum,
+    fapply sum_bij_ne_zero (λ v hvt _, (⟨v, hvt⟩ : {v // v ∈ t})),
+    { intros v hvt H, dsimp,
+      rw [dif_pos hvt] at H,
+      contrapose! H,
+      rw [if_neg H, zero_smul], },
+    { intros _ _ _ _ _ _, exact subtype.mk.inj, },
+    { intros b hbs hb,
+      use b,
+      simpa only [hbs, exists_prop, dif_pos, mk_coe, and_true, if_true, finset.coe_mem,
+        eq_self_iff_true, exists_prop_of_true, ne.def] using hb, },
+    { intros a h₁, dsimp, rw [dif_pos h₁],
+      intro h₂, rw [if_pos], contrapose! h₂,
+      rw [if_neg h₂, zero_smul], }, },
+  { refine ⟨z, z.2, _⟩, dsimp only [f], erw [dif_pos z.2, if_pos]; rwa [subtype.coe_eta] },
+end
+
+/--
+If a finset has cardinality larger than `findim + 1`,
+then there is a nontrivial linear relation amongst its elements,
+such that the coefficients of the relation sum to zero.
+-/
+lemma exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card
+  [finite_dimensional K V] {t : finset V} (h : findim K V + 1 < t.card) :
+  ∃ f : V → K, ∑ e in t, f e • e = 0 ∧ ∑ e in t, f e = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
+begin
+  -- Pick an element x₀ ∈ t,
+  have card_pos : 0 < t.card := lt_trans (nat.succ_pos _) h,
+  obtain ⟨x₀, m⟩ := (finset.card_pos.1 card_pos).bex,
+  -- and apply the previous lemma to the {xᵢ - x₀}
+  let shift : V ↪ V := ⟨λ x, x - x₀, add_left_injective (-x₀)⟩,
+  let t' := (t.erase x₀).map shift,
+  have h' : findim K V < t'.card,
+  { simp only [t', card_map, finset.card_erase_of_mem m],
+    exact nat.lt_pred_iff.mpr h, },
+  -- to obtain a function `g`.
+  obtain ⟨g, gsum, x₁, x₁_mem, nz⟩ := exists_nontrivial_relation_of_dim_lt_card h',
+  -- Then obtain `f` by translating back by `x₀`,
+  -- and setting the value of `f` at `x₀` to ensure `∑ e in t, f e = 0`.
+  let f : V → K := λ z, if z = x₀ then - ∑ z in (t.erase x₀), g (z - x₀) else g (z - x₀),
+  refine ⟨f, _ ,_ ,_⟩,
+  -- After this, it's a matter of verifiying the properties,
+  -- based on the corresponding properties for `g`.
+  { show ∑ (e : V) in t, f e • e = 0,
+    -- We prove this by splitting off the `x₀` term of the sum,
+    -- which is itself a sum over `t.erase x₀`,
+    -- combining the two sums, and
+    -- observing that after reindexing we have exactly
+    -- ∑ (x : V) in t', g x • x = 0.
+    simp only [f],
+    conv_lhs { apply_congr, skip, rw [ite_smul], },
+    rw [finset.sum_ite],
+    conv { congr, congr, apply_congr, simp [filter_eq', m], },
+    conv { congr, congr, skip, apply_congr, simp [filter_ne'], },
+    rw [sum_singleton, neg_smul, add_comm, ←sub_eq_add_neg, sum_smul, ←sum_sub_distrib],
+    simp only [←smul_sub],
+    -- At the end we have to reindex the sum, so we use `change` to
+    -- express the summand using `shift`.
+    change (∑ (x : V) in t.erase x₀, (λ e, g e • e) (shift x)) = 0,
+    rw ←sum_map _ shift,
+    exact gsum, },
+  { show ∑ (e : V) in t, f e = 0,
+    -- Again we split off the `x₀` term,
+    -- observing that it exactly cancels the other terms.
+    rw [← insert_erase m, sum_insert (not_mem_erase x₀ t)],
+    dsimp [f],
+    rw [if_pos rfl],
+    conv_lhs { congr, skip, apply_congr, skip, rw if_neg (show x ≠ x₀, from (mem_erase.mp H).1), },
+    exact neg_add_self _, },
+  { show ∃ (x : V) (H : x ∈ t), f x ≠ 0,
+    -- We can use x₁ + x₀.
+    refine ⟨x₁ + x₀, _, _⟩,
+    { rw finset.mem_map at x₁_mem,
+      rcases x₁_mem with ⟨x₁, x₁_mem, rfl⟩,
+      rw mem_erase at x₁_mem,
+      simp only [x₁_mem, sub_add_cancel, function.embedding.coe_fn_mk], },
+    { dsimp only [f],
+      rwa [if_neg, add_sub_cancel],
+      rw [add_left_eq_self], rintro rfl,
+      simpa only [sub_eq_zero, exists_prop, finset.mem_map, embedding.coe_fn_mk, eq_self_iff_true,
+        mem_erase, not_true, exists_eq_right, ne.def, false_and] using x₁_mem, } },
+end
+
+section
+variables {L : Type*} [discrete_linear_ordered_field L]
+variables {W : Type v} [add_comm_group W] [vector_space L W]
+
+/--
+A slight strengthening of `exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card`
+available when working over an ordered field:
+we can ensure a positive coefficient, not just a nonzero coefficient.
+-/
+lemma exists_relation_sum_zero_pos_coefficient_of_dim_succ_lt_card
+  [finite_dimensional L W] {t : finset W} (h : findim L W + 1 < t.card) :
+  ∃ f : W → L, ∑ e in t, f e • e = 0 ∧ ∑ e in t, f e = 0 ∧ ∃ x ∈ t, 0 < f x :=
+begin
+  obtain ⟨f, sum, total, nonzero⟩ := exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card h,
+  exact ⟨f, sum, total, exists_pos_of_sum_zero_of_exists_nonzero f total nonzero⟩,
+end
+
+end
+
 end
 
 /-- If a submodule has maximal dimension in a finite dimensional space, then it is equal to the
@@ -247,6 +419,9 @@ by simp
 /-- The submodule generated by a finite set is finite-dimensional. -/
 theorem span_of_finite {A : set V} (hA : set.finite A) : finite_dimensional K (submodule.span K A) :=
 is_noetherian_span_of_finite K hA
+
+/-- The submodule generated by a single element is finite-dimensional. -/
+instance (x : V) : finite_dimensional K (submodule.span K ({x} : set V)) := by {apply span_of_finite, simp}
 
 end finite_dimensional
 
@@ -310,7 +485,7 @@ open finite_dimensional
 lemma surjective_of_injective [finite_dimensional K V] {f : V →ₗ[K] V}
   (hinj : injective f) : surjective f :=
 begin
-  have h := dim_eq_injective _ hinj,
+  have h := dim_eq_of_injective _ hinj,
   rw [← findim_eq_dim, ← findim_eq_dim, nat_cast_inj] at h,
   exact range_eq_top.1 (eq_top_of_findim_eq h.symm)
 end
@@ -366,3 +541,40 @@ theorem findim_range_add_findim_ker [finite_dimensional K V] (f : V →ₗ[K] V�
 by { rw [← f.quot_ker_equiv_range.findim_eq], exact submodule.findim_quotient_add_findim _ }
 
 end linear_map
+
+section zero_dim
+
+open vector_space finite_dimensional
+
+lemma finite_dimensional_of_dim_eq_zero (h : vector_space.dim K V = 0) : finite_dimensional K V :=
+by rw [finite_dimensional_iff_dim_lt_omega, h]; exact cardinal.omega_pos
+
+lemma findim_eq_zero_of_dim_eq_zero [finite_dimensional K V] (h : vector_space.dim K V = 0) :
+  findim K V = 0 :=
+begin
+  convert findim_eq_dim K V,
+  rw h, norm_cast
+end
+
+variables (K V)
+
+lemma finite_dimensional_bot : finite_dimensional K (⊥ : submodule K V) :=
+finite_dimensional_of_dim_eq_zero $ by simp
+
+lemma findim_bot : findim K (⊥ : submodule K V) = 0 :=
+begin
+  haveI := finite_dimensional_bot K V,
+  convert findim_eq_dim K (⊥ : submodule K V),
+  rw dim_bot, norm_cast
+end
+
+variables {K V}
+
+lemma bot_eq_top_of_dim_eq_zero (h : vector_space.dim K V = 0) : (⊥ : submodule K V) = ⊤ :=
+begin
+  haveI := finite_dimensional_of_dim_eq_zero h,
+  apply eq_top_of_findim_eq,
+  rw [findim_bot, findim_eq_zero_of_dim_eq_zero h]
+end
+
+end zero_dim

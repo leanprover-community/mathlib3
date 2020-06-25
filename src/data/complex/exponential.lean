@@ -218,7 +218,7 @@ begin
   rw [← sum_sdiff (@filter_subset _ (λ k, n ≤ k) _ (range m)),
     sub_eq_iff_eq_add, ← eq_sub_iff_add_eq, add_sub_cancel'],
   refine finset.sum_congr
-    (finset.ext.2 $ λ a, ⟨λ h, by simp at *; finish,
+    (finset.ext $ λ a, ⟨λ h, by simp at *; finish,
     λ h, have ham : a < m := lt_of_lt_of_le (mem_range.1 h) hnm,
       by simp * at *⟩)
     (λ _ _, rfl),
@@ -546,7 +546,7 @@ lemma cosh_sub : cosh (x - y) = cosh x * cosh y - sinh x * sinh y :=
 by simp [sub_eq_add_neg, cosh_add, sinh_neg, cosh_neg]
 
 lemma sinh_conj : sinh (conj x) = conj (sinh x) :=
-by rw [sinh, ← conj_neg, exp_conj, exp_conj, ← conj_sub, sinh, conj_div, conj_two]
+by rw [sinh, ← conj_neg, exp_conj, exp_conj, ← conj_sub, sinh, conj_div, conj_bit0, conj_one]
 
 @[simp] lemma of_real_sinh_of_real_re (x : ℝ) : ((sinh x).re : ℂ) = sinh x :=
 eq_conj_iff_re.1 $ by rw [← sinh_conj, conj_of_real]
@@ -560,7 +560,7 @@ by rw [← of_real_sinh_of_real_re, of_real_im]
 lemma sinh_of_real_re (x : ℝ) : (sinh x).re = real.sinh x := rfl
 
 lemma cosh_conj : cosh (conj x) = conj (cosh x) :=
-by rw [cosh, ← conj_neg, exp_conj, exp_conj, ← conj_add, cosh, conj_div, conj_two]
+by rw [cosh, ← conj_neg, exp_conj, exp_conj, ← conj_add, cosh, conj_div, conj_bit0, conj_one]
 
 @[simp] lemma of_real_cosh_of_real_re (x : ℝ) : ((cosh x).re : ℂ) = cosh x :=
 eq_conj_iff_re.1 $ by rw [← cosh_conj, conj_of_real]
@@ -970,7 +970,7 @@ calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m.fact : α)
   by simp [mul_inv', mul_sum.symm, sum_mul.symm, -nat.fact_succ, mul_comm, inv_pow']
 ... = (n.succ - n.succ * n.succ⁻¹ ^ (j - n)) / (n.fact * n) :
   have h₁ : (n.succ : α) ≠ 1, from @nat.cast_one α _ _ ▸ mt nat.cast_inj.1
-        (mt nat.succ_inj (nat.pos_iff_ne_zero.1 hn)),
+        (mt nat.succ.inj (nat.pos_iff_ne_zero.1 hn)),
   have h₂ : (n.succ : α) ≠ 0, from nat.cast_ne_zero.2 (nat.succ_ne_zero _),
   have h₃ : (n.fact * n : α) ≠ 0,
     from mul_ne_zero (nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 (nat.fact_pos _)))

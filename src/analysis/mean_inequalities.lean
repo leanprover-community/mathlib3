@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury Kudryashov
+Authors: Yury Kudryashov, Sébastien Gouëzel
 -/
 import analysis.convex.specific_functions
 import analysis.special_functions.pow
@@ -72,6 +72,8 @@ $$
 \sum_{i\in s} a_ib_i ≤ \sqrt[p]{\sum_{i\in s} a_i^p}\sqrt[q]{\sum_{i\in s} b_i^q}.
 $$
 
+We give versions of this result in `real`, `nnreal` and `ennreal`.
+
 There are at least two short proofs of this inequality. In one proof we prenormalize both vectors,
 then apply Young's inequality to each $a_ib_i$. We use a different proof deducing this inequality
 from the generalized mean inequality for well-chosen vectors and weights.
@@ -84,6 +86,8 @@ $$
 $$
 satisfies the triangle inequality $\|a+b\|_p\le \|a\|_p+\|b\|_p$.
 
+We give versions of this result in `real`, `nnreal` and `ennreal`.
+
 We deduce this inequality from Hölder's inequality. Namely, Hölder inequality implies that $\|a\|_p$
 is the maximum of the inner product $\sum_{i\in s}a_ib_i$ over `b` such that $\|b\|_q\le 1$. Now
 Minkowski's inequality follows from the fact that the maximum value of the sum of two functions is
@@ -91,7 +95,6 @@ less than or equal to the sum of the maximum values of the summands.
 
 ## TODO
 
-- `ennreal` versions of (some? all?) of these inequalities;
 - each inequality `A ≤ B` should come with a theorem `A = B ↔ _`; one of the ways to prove them
   is to define `strict_convex_on` functions.
 - generalized mean inequality with any `p ≤ q`, including negative numbers;
@@ -384,7 +387,7 @@ begin
 end
 
 variables {f g}
-  
+
 /-- Hölder inequality: the scalar product of two functions is bounded by the product of their
 `L^p` and `L^q` norms when `p` and `q` are conjugate exponents. Version for sums over finite sets,
 with real-valued nonnegative functions. -/
@@ -404,3 +407,57 @@ by convert Lp_add_le s f g hp using 2 ; [skip, congr' 1, congr' 1];
   apply sum_congr rfl; intros i hi; simp only [abs_of_nonneg, hf i hi, hg i hi, add_nonneg]
 
 end real
+
+namespace ennreal
+
+variables (f g : ι → ennreal)  {p q : ℝ}
+
+/-- Hölder inequality: the scalar product of two functions is bounded by the product of their
+`L^p` and `L^q` norms when `p` and `q` are conjugate exponents. Version for sums over finite sets,
+with `ennreal`-valued functions. -/
+theorem inner_le_Lp_mul_Lq (hpq : p.is_conjugate_exponent q) :
+  (∑ i in s, f i * g i) ≤ (∑ i in s, (f i)^p) ^ (1/p) * (∑ i in s, (g i)^q) ^ (1/q) :=
+begin
+  by_cases H : (∑ i in s, (f i)^p) ^ (1/p) = 0 ∨ (∑ i in s, (g i)^q) ^ (1/q) = 0,
+  { replace H : (∀ i ∈ s, f i = 0) ∨ (∀ i ∈ s, g i = 0),
+      by simpa [ennreal.rpow_eq_zero_iff, hpq.pos, hpq.symm.pos, asymm hpq.pos, asymm hpq.symm.pos,
+                sum_eq_zero_iff_of_nonneg] using H,
+    have : ∀ i ∈ s, f i * g i = 0 := λ i hi, by cases H; simp [H i hi],
+    have : (∑ i in s, f i * g i) = (∑ i in s, 0) := sum_congr rfl this,
+    simp [this] },
+  push_neg at H,
+  by_cases H' : (∑ i in s, (f i)^p) ^ (1/p) = ⊤ ∨ (∑ i in s, (g i)^q) ^ (1/q) = ⊤,
+  { cases H'; simp [H', -one_div_eq_inv, H] },
+  replace H' : (∀ i ∈ s, f i ≠ ⊤) ∧ (∀ i ∈ s, g i ≠ ⊤),
+    by simpa [ennreal.rpow_eq_top_iff, asymm hpq.pos, asymm hpq.symm.pos, hpq.pos, hpq.symm.pos,
+              ennreal.sum_eq_top_iff, not_or_distrib] using H',
+  have := ennreal.coe_le_coe.2 (@nnreal.inner_le_Lp_mul_Lq _ s (λ i, ennreal.to_nnreal (f i))
+              (λ i, ennreal.to_nnreal (g i)) _ _ hpq),
+  push_cast [← ennreal.coe_rpow_of_nonneg, le_of_lt (hpq.pos), le_of_lt (hpq.one_div_pos),
+             le_of_lt (hpq.symm.pos), le_of_lt (hpq.symm.one_div_pos)] at this,
+  convert this using 1;
+  [skip, congr' 2];
+  { apply finset.sum_congr rfl (λ i hi, _), simp [H'.1 i hi, H'.2 i hi] },
+end
+
+/-- Minkowski inequality: the `L_p` seminorm of the sum of two vectors is less than or equal
+to the sum of the `L_p`-seminorms of the summands. A version for `ennreal` valued nonnegative
+functions. -/
+theorem Lp_add_le (hp : 1 ≤ p) :
+  (∑ i in s, (f i + g i) ^ p)^(1/p) ≤ (∑ i in s, (f i)^p) ^ (1/p) + (∑ i in s, (g i)^p) ^ (1/p) :=
+begin
+  by_cases H' : (∑ i in s, (f i)^p) ^ (1/p) = ⊤ ∨ (∑ i in s, (g i)^p) ^ (1/p) = ⊤,
+  { cases H'; simp [H', -one_div_eq_inv] },
+  have pos : 0 < p := lt_of_lt_of_le zero_lt_one hp,
+  replace H' : (∀ i ∈ s, f i ≠ ⊤) ∧ (∀ i ∈ s, g i ≠ ⊤),
+    by simpa [ennreal.rpow_eq_top_iff, asymm pos, pos, ennreal.sum_eq_top_iff,
+              not_or_distrib] using H',
+  have := ennreal.coe_le_coe.2 (@nnreal.Lp_add_le _ s (λ i, ennreal.to_nnreal (f i))
+              (λ i, ennreal.to_nnreal (g i)) _  hp),
+  push_cast [← ennreal.coe_rpow_of_nonneg, le_of_lt (pos), le_of_lt (one_div_pos_of_pos pos)] at this,
+  convert this using 2;
+  [skip, congr' 1, congr' 1];
+  { apply finset.sum_congr rfl (λ i hi, _), simp [H'.1 i hi, H'.2 i hi] }
+end
+
+end ennreal

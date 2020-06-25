@@ -11,7 +11,7 @@ import data.set.intervals
 -/
 universes u v
 
-open filter topological_space set classical
+open filter topological_space set classical uniform_space
 open_locale classical
 variables {α : Type u} {β : Type v} [uniform_space α]
 
@@ -122,6 +122,17 @@ lemma cauchy_comap [uniform_space β] {f : filter β} {m : α → β}
 defined on ℝ is Cauchy at +∞ to deduce convergence. Therefore, we define it in a type class that
 is general enough to cover both ℕ and ℝ, which are the main motivating examples. -/
 def cauchy_seq [semilattice_sup β] (u : β → α) := cauchy (at_top.map u)
+
+lemma cauchy_seq.mem_entourage {ι : Type*} [nonempty ι] [decidable_linear_order ι] {u : ι → α}
+(h : cauchy_seq u) {V : set (α × α)} (hV : V ∈ 𝓤 α) : ∃ k₀, ∀ i j, k₀ ≤ i → k₀ ≤ j → (u i, u j) ∈ V :=
+begin
+  have := h.right hV,
+  obtain ⟨⟨i₀, j₀⟩, H⟩ : ∃ a, ∀ b : ι × ι, b ≥ a → prod.map u u b ∈ V,
+    by rwa [prod_map_at_top_eq, mem_map, mem_at_top_sets] at this,
+  refine ⟨max i₀ j₀, _⟩,
+  intros i j hi hj,
+  exact H (i, j) ⟨le_of_max_le_left  hi, le_of_max_le_right hj⟩,
+end
 
 lemma cauchy_seq_of_tendsto_nhds [semilattice_sup β] [nonempty β] (f : β → α) {x}
   (hx : tendsto f at_top (𝓝 x)) :
@@ -275,7 +286,7 @@ theorem totally_bounded_iff_subset {s : set α} : totally_bounded s ↔
   have : ∀ x : u, f x ∈ s ∧ (f x, x.1) ∈ r := λ x, classical.some_spec x.2.2,
   refine ⟨range f, _, _, _⟩,
   { exact range_subset_iff.2 (λ x, (this x).1) },
-  { have : finite u := finite_subset fk (λ x h, h.1),
+  { have : finite u := fk.subset (λ x h, h.1),
     exact ⟨@set.fintype_range _ _ _ _ this.fintype⟩ },
   { intros x xs,
     have := ks xs, simp at this,
@@ -284,6 +295,18 @@ theorem totally_bounded_iff_subset {s : set α} : totally_bounded s ↔
     exact mem_bUnion_iff.2 ⟨_, ⟨z, rfl⟩, rd $ mem_comp_rel.2 ⟨_, xy, rs (this z).2⟩⟩ }
 end,
 λ H d hd, let ⟨t, _, ht⟩ := H d hd in ⟨t, ht⟩⟩
+
+lemma totally_bounded_of_forall_symm {s : set α}
+  (h : ∀ V ∈ 𝓤 α, symmetric_rel V → ∃ t : set α, finite t ∧ s ⊆ ⋃ y ∈ t, ball y V) :
+totally_bounded s :=
+begin
+  intros V V_in,
+  rcases h _ (symmetrize_mem_uniformity V_in) (symmetric_symmetrize_rel V) with ⟨t, tfin, h⟩,
+  refine ⟨t, tfin, subset.trans h _⟩,
+  mono,
+  intros x x_in z z_in,
+  exact z_in.right
+end
 
 lemma totally_bounded_subset {s₁ s₂ : set α} (hs : s₁ ⊆ s₂)
   (h : totally_bounded s₂) : totally_bounded s₁ :=
@@ -309,7 +332,7 @@ assume t ht,
 have {p:α×α | (f p.1, f p.2) ∈ t} ∈ 𝓤 α,
   from hf ht,
 let ⟨c, hfc, hct⟩ := hs _ this in
-⟨f '' c, finite_image f hfc,
+⟨f '' c, hfc.image f,
   begin
     simp [image_subset_iff],
     simp [subset_def] at hct,
@@ -350,7 +373,7 @@ lemma totally_bounded_iff_filter {s : set α} :
   in
   have f ≠ ⊥,
     from infi_ne_bot_of_directed ⟨a⟩
-      (assume ⟨t₁, ht₁⟩ ⟨t₂, ht₂⟩, ⟨⟨t₁ ∪ t₂, finite_union ht₁ ht₂⟩,
+      (assume ⟨t₁, ht₁⟩ ⟨t₂, ht₂⟩, ⟨⟨t₁ ∪ t₂, ht₁.union ht₂⟩,
         principal_mono.mpr $ diff_subset_diff_right $ Union_subset_Union $
           assume t, Union_subset_Union_const or.inl,
         principal_mono.mpr $ diff_subset_diff_right $ Union_subset_Union $

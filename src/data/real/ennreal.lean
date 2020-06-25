@@ -76,6 +76,8 @@ by { rw [coe_nnreal_eq], refl }
 
 @[simp] lemma top_to_nnreal : ∞.to_nnreal = 0 := rfl
 @[simp] lemma top_to_real : ∞.to_real = 0 := rfl
+@[simp] lemma one_to_real : (1 : ennreal).to_real = 1 := rfl
+@[simp] lemma one_to_nnreal : (1 : ennreal).to_nnreal = 1 := rfl
 @[simp] lemma coe_to_real (r : nnreal) : (r : ennreal).to_real = r := rfl
 @[simp] lemma zero_to_nnreal : (0 : ennreal).to_nnreal = 0 := rfl
 @[simp] lemma zero_to_real : (0 : ennreal).to_real = 0 := rfl
@@ -352,7 +354,7 @@ begin
     rw [← coe_add, ← coe_add, coe_lt_coe],
     apply add_lt_add (coe_lt_coe.1 aa') (coe_lt_coe.1 bb')
   end,
-  have J : ↑a'R + ↑b'R ≤ c + d := add_le_add' (le_of_lt a'c) (le_of_lt b'd),
+  have J : ↑a'R + ↑b'R ≤ c + d := add_le_add (le_of_lt a'c) (le_of_lt b'd),
   apply lt_of_lt_of_le I J
 end
 
@@ -425,9 +427,6 @@ lemma mul_lt_mul_left : a ≠ 0 → a ≠ ⊤ → (a * b < a * c ↔ b < c) :=
 lemma mul_lt_mul_right : c ≠ 0 → c ≠ ∞ → (a * c < b * c ↔ a < b) :=
 mul_comm c a ▸ mul_comm c b ▸ mul_lt_mul_left
 
-lemma mul_eq_zero {a b : ennreal} : a * b = 0 ↔ a = 0 ∨ b = 0 :=
-canonically_ordered_comm_semiring.mul_eq_zero_iff _ _
-
 end mul
 
 section sub
@@ -458,7 +457,7 @@ lemma sub_le_sub (h₁ : a ≤ b) (h₂ : d ≤ c) : a - c ≤ b - d :=
 Inf_le_Inf $ assume e (h : b ≤ e + d),
   calc a ≤ b : h₁
     ... ≤ e + d : h
-    ... ≤ e + c : add_le_add' (le_refl _) h₂
+    ... ≤ e + c : add_le_add (le_refl _) h₂
 
 @[simp] lemma add_sub_self : ∀{a b : ennreal}, b < ∞ → (a + b) - b = a
 | a        none     := by simp [none_eq_top]
@@ -600,15 +599,20 @@ section sum
 
 open finset
 
-/-- sum of finte numbers is still finite -/
+/-- A sum of finite numbers is still finite -/
 lemma sum_lt_top {s : finset α} {f : α → ennreal} :
   (∀a∈s, f a < ⊤) → ∑ a in s, f a < ⊤ :=
 with_top.sum_lt_top
 
-/-- sum of finte numbers is still finite -/
+/-- A sum of finite numbers is still finite -/
 lemma sum_lt_top_iff {s : finset α} {f : α → ennreal} :
   ∑ a in s, f a < ⊤ ↔ (∀a∈s, f a < ⊤) :=
 with_top.sum_lt_top_iff
+
+/-- A sum of numbers is infinite iff one of them is infinite -/
+lemma sum_eq_top_iff {s : finset α} {f : α → ennreal} :
+  (∑ x in s, f x) = ⊤ ↔ (∃a∈s, f a = ⊤) :=
+with_top.sum_eq_top_iff
 
 /-- seeing `ennreal` as `nnreal` does not change their sum, unless one of the `ennreal` is
 infinity -/
@@ -1118,7 +1122,7 @@ variables {ι : Sort*} {f g : ι → ennreal}
 
 lemma infi_add : infi f + a = ⨅i, f i + a :=
 le_antisymm
-  (le_infi $ assume i, add_le_add' (infi_le _ _) $ le_refl _)
+  (le_infi $ assume i, add_le_add (infi_le _ _) $ le_refl _)
   (ennreal.sub_le_iff_le_add.1 $ le_infi $ assume i, ennreal.sub_le_iff_le_add.2 $ infi_le _ _)
 
 lemma supr_sub : (⨆i, f i) - a = (⨆i, f i - a) :=
@@ -1141,7 +1145,7 @@ by rw [add_comm, infi_add]; simp [add_comm]
 
 lemma infi_add_infi (h : ∀i j, ∃k, f k + g k ≤ f i + g j) : infi f + infi g = (⨅a, f a + g a) :=
 suffices (⨅a, f a + g a) ≤ infi f + infi g,
-  from le_antisymm (le_infi $ assume a, add_le_add' (infi_le _ _) (infi_le _ _)) this,
+  from le_antisymm (le_infi $ assume a, add_le_add (infi_le _ _) (infi_le _ _)) this,
 calc (⨅a, f a + g a) ≤ (⨅ a a', f a + g a') :
     le_infi $ assume a, le_infi $ assume a',
       let ⟨k, h⟩ := h a a' in infi_le_of_le k h
@@ -1155,7 +1159,7 @@ finset.induction_on s (by simp) $ assume a s ha ih,
   have ∀ (i j : ι), ∃ (k : ι), f k a + ∑ b in s, f k b ≤ f i a + ∑ b in s, f j b,
     from assume i j,
     let ⟨k, hk⟩ := h (insert a s) i j in
-    ⟨k, add_le_add' (hk a (finset.mem_insert_self _ _)).left $ finset.sum_le_sum $
+    ⟨k, add_le_add (hk a (finset.mem_insert_self _ _)).left $ finset.sum_le_sum $
       assume a ha, (hk _ $ finset.mem_insert_of_mem ha).right⟩,
   by simp [ha, ih.symm, infi_add_infi this]
 

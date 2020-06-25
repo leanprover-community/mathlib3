@@ -424,7 +424,7 @@ end map
 section trunc
 variables [comm_semiring α] (n : σ →₀ ℕ)
 
--- Auxiliary definition for the truncation function.
+/-- Auxiliary definition for the truncation function. -/
 def trunc_fun (φ : mv_power_series σ α) : mv_polynomial σ α :=
 { support := (n.antidiagonal.support.image prod.fst).filter (λ m, coeff α m φ ≠ 0),
   to_fun := λ m, if m ≤ n then coeff α m φ else 0,
@@ -600,15 +600,13 @@ section comm_ring
 variable [comm_ring α]
 
 /-- Multivariate formal power series over a local ring form a local ring.-/
-lemma is_local_ring (h : is_local_ring α) : is_local_ring (mv_power_series σ α) :=
-begin
-  split,
-  { have H : (0:α) ≠ 1 := ‹is_local_ring α›.1, contrapose! H,
+instance is_local_ring [local_ring α] : local_ring (mv_power_series σ α) :=
+{ zero_ne_one := by { have H : (0:α) ≠ 1 := ‹local_ring α›.zero_ne_one, contrapose! H,
     simpa using congr_arg (constant_coeff σ α) H },
-  { intro φ, rcases ‹is_local_ring α›.2 (constant_coeff σ α φ) with ⟨u,h⟩|⟨u,h⟩; [left, right];
+  is_local := by { intro φ, rcases local_ring.is_local (constant_coeff σ α φ) with ⟨u,h⟩|⟨u,h⟩;
+    [left, right];
     { refine is_unit_of_mul_eq_one _ _ (mul_inv_of_unit _ u _),
-      simpa using h.symm } }
-end
+      simpa using h.symm } } }
 
 -- TODO(jmc): once adic topology lands, show that this is complete
 
@@ -632,11 +630,13 @@ end, congr_arg X⟩
 end nonzero
 
 section local_ring
-variables {β : Type*} [local_ring α] [local_ring β] (f : α →+* β) [is_local_ring_hom f]
+variables {β : Type*} [comm_ring α] [comm_ring β] (f : α →+* β)
+  [is_local_ring_hom f]
 
-instance : local_ring (mv_power_series σ α) :=
-local_of_is_local_ring $ is_local_ring ⟨zero_ne_one, local_ring.is_local⟩
+-- Thanks to the linter for informing us that  this instance does
+-- not actually need α and β to be local rings!
 
+/-- The map `A[[X]] → B[[X]]` induced by a local ring hom `A → B` is local -/
 instance map.is_local_ring_hom : is_local_ring_hom (map σ f) :=
 ⟨begin
   rintros φ ⟨ψ, h⟩,
@@ -648,11 +648,18 @@ instance map.is_local_ring_hom : is_local_ring_hom (map σ f) :=
   exact is_unit_of_mul_eq_one φ (inv_of_unit φ c) (mul_inv_of_unit φ c hc.symm)
 end⟩
 
+variables [local_ring α] [local_ring β]
+
+instance : local_ring (mv_power_series σ α) :=
+{ zero_ne_one := zero_ne_one,
+  is_local := local_ring.is_local }
+
 end local_ring
 
 section field
 variables [field α]
 
+/-- The inverse `1/f` of a multivariable power series `f` over a field -/
 protected def inv (φ : mv_power_series σ α) : mv_power_series σ α :=
 inv.aux (constant_coeff σ α φ)⁻¹ φ
 
@@ -1051,6 +1058,7 @@ end comm_semiring
 section ring
 variables [ring α]
 
+/-- Auxiliary function used for computing inverse of a power series -/
 protected def inv.aux : α → power_series α → power_series α :=
 mv_power_series.inv.aux
 
@@ -1164,29 +1172,23 @@ end
 end integral_domain
 
 section local_ring
-variables [comm_ring α]
+variables {β : Type*} [comm_ring α] [comm_ring β]
+  (f : α →+* β) [is_local_ring_hom f]
 
-lemma is_local_ring (h : is_local_ring α) :
-  is_local_ring (power_series α) :=
-mv_power_series.is_local_ring h
+instance map.is_local_ring_hom : is_local_ring_hom (map f) :=
+mv_power_series.map.is_local_ring_hom f
 
-end local_ring
-
-section local_ring
-variables {β : Type*} [local_ring α] [local_ring β] (f : α →+* β) [is_local_ring_hom f]
+variables [local_ring α] [local_ring β]
 
 instance : local_ring (power_series α) :=
 mv_power_series.local_ring
-
-instance map.is_local_ring_hom :
-  is_local_ring_hom (map f) :=
-mv_power_series.map.is_local_ring_hom f
 
 end local_ring
 
 section field
 variables [field α]
 
+/-- The inverse 1/f of a power series f defined over a field -/
 protected def inv : power_series α → power_series α :=
 mv_power_series.inv
 

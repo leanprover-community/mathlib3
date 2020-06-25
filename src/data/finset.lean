@@ -2976,6 +2976,10 @@ rfl
 @[simp] theorem bUnion_singleton (a : α) (s : α → set β) : (⋃ x ∈ ({a} : finset α), s x) = s a :=
 by rw [← bUnion_coe, coe_singleton, set.bUnion_singleton]
 
+@[simp] lemma bUnion_preimage_singleton (f : α → β) (s : finset β) :
+  (⋃ y ∈ s, f ⁻¹' {y}) = f ⁻¹' ↑s :=
+set.bUnion_preimage_singleton f ↑s
+
 variables [decidable_eq α]
 
 theorem supr_union {α} [complete_lattice α] {β} [decidable_eq β] {f : β → α} {s t : finset β} :

@@ -65,7 +65,7 @@ uniformly continuous).
 -/
 
 open filter topological_space set classical function uniform_space
-open_locale classical topological_space uniformity
+open_locale classical topological_space uniformity filter
 noncomputable theory
 set_option eqn_compiler.zeta true
 
@@ -190,8 +190,8 @@ instance separated_regular [separated_space α] : regular_space α :=
         have (a, a') ∈ comp_rel d d, from ⟨y, hx₂, hy⟩,
         h this rfl,
     have closure e ∈ 𝓝 a, from (𝓝 a).sets_of_superset (mem_nhds_left a hd) subset_closure,
-    have 𝓝 a ⊓ principal (-closure e) = ⊥,
-      from (@inf_eq_bot_iff_le_compl _ _ _ (principal (- closure e)) (principal (closure e))
+    have 𝓝 a ⊓ 𝓟 (-closure e) = ⊥,
+      from (@inf_eq_bot_iff_le_compl _ _ _ (𝓟 (- closure e)) (𝓟 (closure e))
         (by simp [principal_univ, union_comm]) (by simp)).mpr (by simp [this]),
     ⟨- closure e, is_closed_closure, assume x h₁ h₂, @e_subset x h₂ h₁, this⟩,
     ..@t2_space.t1_space _ _ (separated_iff_t2.mp ‹_›) }
@@ -274,8 +274,8 @@ begin
   intros x y x_in y_in H,
   have : ∀ V ∈ 𝓤 α, (x, y) ∈ closure V,
   { intros V V_in,
-    rw [closure_eq_nhds, mem_set_of_eq, inf_comm],
-    have : 𝓤 α ≤ principal V, by rwa le_principal_iff,
+    simp_rw [closure_eq_cluster_pts, cluster_pt, mem_set_of_eq, inf_comm],
+    have : 𝓤 α ≤ 𝓟 V, by rwa le_principal_iff,
     exact ne_bot_of_le_ne_bot H (inf_le_inf_right _ this) },
   apply hs x y x_in y_in,
   simpa [separation_rel_eq_inter_closure],

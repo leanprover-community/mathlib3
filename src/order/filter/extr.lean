@@ -17,7 +17,7 @@ and `B` is `filter` or `on`.
 * `is_max_filter f l a` means that `f x ≤ f a` in some `l`-neighborhood of `a`;
 * `is_extr_filter f l a` means `is_min_filter f l a` or `is_max_filter f l a`.
 
-Similar predicates with `_on` suffix are particular cases for `l = principal s`.
+Similar predicates with `_on` suffix are particular cases for `l = 𝓟 s`.
 
 ## Main statements
 
@@ -76,6 +76,7 @@ universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
 open set filter
+open_locale filter
 
 section preorder
 
@@ -95,13 +96,13 @@ def is_max_filter : Prop := ∀ᶠ x in l, f x ≤ f a
 def is_extr_filter : Prop := is_min_filter f l a ∨ is_max_filter f l a
 
 /-- `is_min_on f s a` means that `f a ≤ f x` for all `x ∈ a`. Note that we do not assume `a ∈ s`. -/
-def is_min_on := is_min_filter f (principal s) a
+def is_min_on := is_min_filter f (𝓟 s) a
 
 /-- `is_max_on f s a` means that `f x ≤ f a` for all `x ∈ a`. Note that we do not assume `a ∈ s`. -/
-def is_max_on := is_max_filter f (principal s) a
+def is_max_on := is_max_filter f (𝓟 s) a
 
 /-- `is_extr_on f s a` means `is_min_on f s a` or `is_max_on f s a` -/
-def is_extr_on : Prop := is_extr_filter f (principal s) a
+def is_extr_on : Prop := is_extr_filter f (𝓟 s) a
 
 variables {f s a l} {t : set α} {l' : filter α}
 
@@ -324,12 +325,12 @@ variables [ordered_add_comm_monoid β] {f g : α → β} {a : α} {s : set α} {
 lemma is_min_filter.add (hf : is_min_filter f l a) (hg : is_min_filter g l a) :
   is_min_filter (λ x, f x + g x) l a :=
 show is_min_filter (λ x, f x + g x) l a,
-from hf.bicomp_mono (λ x x' hx y y' hy, add_le_add' hx hy) hg
+from hf.bicomp_mono (λ x x' hx y y' hy, add_le_add hx hy) hg
 
 lemma is_max_filter.add (hf : is_max_filter f l a) (hg : is_max_filter g l a) :
   is_max_filter (λ x, f x + g x) l a :=
 show is_max_filter (λ x, f x + g x) l a,
-from hf.bicomp_mono (λ x x' hx y y' hy, add_le_add' hx hy) hg
+from hf.bicomp_mono (λ x x' hx y y' hy, add_le_add hx hy) hg
 
 lemma is_min_on.add (hf : is_min_on f s a) (hg : is_min_on g s a) :
   is_min_on (λ x, f x + g x) s a :=

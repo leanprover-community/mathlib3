@@ -833,7 +833,7 @@ calc (∫⁻ a, f a + g a) =
     rw [lintegral_supr],
     { congr, funext n, rw [← simple_func.add_integral, ← simple_func.lintegral_eq_integral], refl },
     { assume n, exact measurable.add (eapprox f n).measurable (eapprox g n).measurable },
-    { assume i j h a, exact add_le_add' (monotone_eapprox _ h _) (monotone_eapprox _ h _) }
+    { assume i j h a, exact add_le_add (monotone_eapprox _ h _) (monotone_eapprox _ h _) }
   end
   ... = (⨆n, (eapprox f n).integral) + (⨆n, (eapprox g n).integral) :
   by refine (ennreal.supr_add_supr_of_monotone _ _).symm;

@@ -241,7 +241,7 @@ ext $ λ s, begin
   rw ennreal.infi_add_infi,
   rintro ⟨t₁, st₁, ht₁⟩ ⟨t₂, st₂, ht₂⟩,
   exact ⟨⟨_, subset_inter_iff.2 ⟨st₁, st₂⟩, ht₁.inter ht₂⟩,
-    add_le_add'
+    add_le_add
       (m₁.mono' (inter_subset_left _ _))
       (m₂.mono' (inter_subset_right _ _))⟩,
 end
@@ -645,7 +645,7 @@ begin
     rw [to_outer_measure_apply],
     refine measure_mono hst },
   rw [measure_eq_inter_diff hu hs],
-  refine add_le_add' (hm $ inter_subset_inter_left _ htu) (hm $ diff_subset_diff_left htu)
+  refine add_le_add (hm $ inter_subset_inter_left _ htu) (hm $ diff_subset_diff_left htu)
 end
 
 instance : has_Inf (measure α) :=

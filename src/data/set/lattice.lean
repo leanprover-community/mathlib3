@@ -656,18 +656,18 @@ lemma image_eq_Union (f : α → β) (s : set α) : f '' s = (⋃i∈s, {f i}) :
 set.ext $ assume b, by simp [@eq_comm β b]
 
 @[simp] lemma bUnion_range {f : ι → α} {g : α → set β} : (⋃x ∈ range f, g x) = (⋃y, g (f y)) :=
-by rw [← sUnion_image, ← range_comp, sUnion_range]
+supr_range
 
 @[simp] lemma bInter_range {f : ι → α} {g : α → set β} : (⋂x ∈ range f, g x) = (⋂y, g (f y)) :=
-by rw [← sInter_image, ← range_comp, sInter_range]
+infi_range
 
 variables {s : set γ} {f : γ → α} {g : α → set β}
 
 @[simp] lemma bUnion_image : (⋃x∈ (f '' s), g x) = (⋃y ∈ s, g (f y)) :=
-by rw [← sUnion_image, ← image_comp, sUnion_image]
+supr_image
 
 @[simp] lemma bInter_image : (⋂x∈ (f '' s), g x) = (⋂y ∈ s, g (f y)) :=
-by rw [← sInter_image, ← image_comp, sInter_image]
+infi_image
 
 end image
 
@@ -680,11 +680,11 @@ theorem monotone_preimage {f : α → β} : monotone (preimage f) := assume a b 
 set.ext $ by simp [preimage]
 
 theorem preimage_bUnion {ι} {f : α → β} {s : set ι} {t : ι → set β} :
-  preimage f (⋃i ∈ s, t i) = (⋃i ∈ s, preimage f (t i)) :=
+  f ⁻¹' (⋃i ∈ s, t i) = (⋃i ∈ s, f ⁻¹' (t i)) :=
 by simp
 
 @[simp] theorem preimage_sUnion {f : α → β} {s : set (set β)} :
-  preimage f (⋃₀ s) = (⋃t ∈ s, preimage f t) :=
+  f ⁻¹' (⋃₀ s) = (⋃t ∈ s, f ⁻¹' t) :=
 set.ext $ by simp [preimage]
 
 lemma preimage_Inter {ι : Sort*} {s : ι → set β} {f : α → β} :
@@ -695,11 +695,11 @@ lemma preimage_bInter {s : γ → set β} {t : set γ} {f : α → β} :
   f ⁻¹' (⋂ i∈t, s i) = (⋂ i∈t, f ⁻¹' s i) :=
 by ext; simp
 
-lemma bUnion_preimage_singleton (f : α → β) (s : set β) : (⋃ y ∈ s, f ⁻¹' {y}) = f ⁻¹' s :=
+@[simp] lemma bUnion_preimage_singleton (f : α → β) (s : set β) : (⋃ y ∈ s, f ⁻¹' {y}) = f ⁻¹' s :=
 by rw [← preimage_bUnion, bUnion_of_singleton]
 
 lemma bUnion_range_preimage_singleton (f : α → β) : (⋃ y ∈ range f, f ⁻¹' {y}) = univ :=
-(bUnion_preimage_singleton f _).trans $ preimage_range f
+by simp
 
 end preimage
 

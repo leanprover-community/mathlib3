@@ -51,6 +51,8 @@ attribute [simp] nat.sub_self
 theorem succ_inj' {n m : ℕ} : succ n = succ m ↔ n = m :=
 ⟨succ.inj, congr_arg _⟩
 
+theorem succ_injective : function.injective nat.succ := λ x y, succ.inj
+
 theorem succ_le_succ_iff {m n : ℕ} : succ m ≤ succ n ↔ m ≤ n :=
 ⟨le_of_succ_le_succ, succ_le_succ⟩
 

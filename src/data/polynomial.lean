@@ -816,14 +816,14 @@ calc degree (p * q) ≤ (p.support).sup (λi, degree (sum q (λj a, C (coeff p i
       refine finset.sup_le (λ a ha, finset.sup_le (λ b hb, le_trans (degree_monomial_le _ _) _)),
       rw [with_bot.coe_add],
       rw mem_support_iff at ha hb,
-      exact add_le_add' (le_degree_of_ne_zero ha) (le_degree_of_ne_zero hb)
+      exact add_le_add (le_degree_of_ne_zero ha) (le_degree_of_ne_zero hb)
     end
 
 lemma degree_pow_le (p : polynomial R) : ∀ n, degree (p ^ n) ≤ n •ℕ (degree p)
 | 0     := by rw [pow_zero, zero_nsmul]; exact degree_one_le
 | (n+1) := calc degree (p ^ (n + 1)) ≤ degree p + degree (p ^ n) :
     by rw pow_succ; exact degree_mul_le _ _
-  ... ≤ _ : by rw succ_nsmul; exact add_le_add' (le_refl _) (degree_pow_le _)
+  ... ≤ _ : by rw succ_nsmul; exact add_le_add (le_refl _) (degree_pow_le _)
 
 @[simp] lemma leading_coeff_monomial (a : R) (n : ℕ) : leading_coeff (C a * X ^ n) = a :=
 begin
@@ -977,7 +977,7 @@ else with_bot.coe_le_coe.1 $
     calc degree (C (coeff p n) * q ^ n)
         ≤ degree (C (coeff p n)) + degree (q ^ n) : degree_mul_le _ _
     ... ≤ nat_degree (C (coeff p n)) + n •ℕ (degree q) :
-      add_le_add' degree_le_nat_degree (degree_pow_le _ _)
+      add_le_add degree_le_nat_degree (degree_pow_le _ _)
     ... ≤ nat_degree (C (coeff p n)) + n •ℕ (nat_degree q) :
       add_le_add_left' (nsmul_le_nsmul_of_le_right (@degree_le_nat_degree _ _ q) n)
     ... = (n * nat_degree q : ℕ) :
@@ -1342,7 +1342,7 @@ calc (div_X p).degree < (div_X p * X + C (p.coeff 0)).degree :
          ... = degree (X : polynomial R) : degree_X.symm
          ... ≤ degree (div_X p * X) :
           by rw [← zero_add (degree X), degree_mul_eq' this];
-            exact add_le_add'
+            exact add_le_add
               (by rw [zero_le_degree_iff, ne.def, div_X_eq_zero_iff];
                 exact λ h0, h (h0.symm ▸ degree_C_le))
               (le_refl _),
@@ -2077,7 +2077,7 @@ then
     ... ≤ degree p :
       by rw [← degree_add_div_by_monic (monic_X_sub_C x) hdeg,
           degree_X_sub_C, add_comm];
-        exact add_le_add' (le_refl (1 : with_bot ℕ)) htd,
+        exact add_le_add (le_refl (1 : with_bot ℕ)) htd,
   begin
     assume y,
     rw [mem_insert, htr, eq_comm, ← root_X_sub_C],

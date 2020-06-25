@@ -204,6 +204,9 @@ by { cases h1, congr, ext ⟨i, hi⟩, exact h2 i hi hi }
 
 end formal_multilinear_series
 
+
+/-! ### Functions with a Taylor series on a domain -/
+
 variable {p : E → formal_multilinear_series 𝕜 E F}
 
 /-- `has_ftaylor_series_up_to_on n f p s` registers the fact that `p 0 = f` and `p (m+1)` is a
@@ -406,137 +409,126 @@ begin
         rwa continuous_linear_equiv.comp_continuous_on_iff at this } } }
 end
 
+/-! ### Smooth functions within a set around a point -/
+
 variable (𝕜)
 
-/-- A function is continuously differentiable up to `n` if it admits derivatives within `s` up to
-order `n`, which are continuous. There is a subtlety on sets where derivatives are not unique, that
-choices of derivatives around different points might not match. To ensure that being `C^n` is a
-local property, we therefore require it locally around each point. There is another subtlety that
-one might be able to find nice derivatives up to `n` for any finite `n`, but that they don't match
-so that one can not find them up to infinity. To get a good notion for `n = ∞`, we only require that
-for any finite `n` we may find such matching derivatives.
+/-- A function is continuously differentiable up to `n` within a set `s` at a point `x` if it admits
+derivatives within a neighborhood of `x` in `s` up to order `n`, which are continuous.
+There is a subtlety that one might be able to find nice derivatives up to `n` for any finite `n`,
+but that they don't match so that one can not find them up to infinity. To get a good notion for
+`n = ∞`, we only require that for any finite `n` we may find such matching derivatives.
 -/
-definition times_cont_diff_on (n : with_top ℕ) (f : E → F) (s : set E) :=
+def times_cont_diff_within_at (n : with_top ℕ) (f : E → F) (s : set E) (x : E) :=
 ∀ (m : ℕ), (m : with_top ℕ) ≤ n →
-∀ x ∈ s, ∃ u ∈ nhds_within x s, ∃ p : E → formal_multilinear_series 𝕜 E F,
-  has_ftaylor_series_up_to_on m f p u
+  ∃ u ∈ nhds_within x s, ∃ p : E → formal_multilinear_series 𝕜 E F,
+    has_ftaylor_series_up_to_on m f p u
 
 variable {𝕜}
 
-lemma times_cont_diff_on_nat {n : ℕ} :
-  times_cont_diff_on 𝕜 n f s ↔
-  ∀ x ∈ s, ∃ u ∈ nhds_within x s, ∃ p : E → formal_multilinear_series 𝕜 E F,
+lemma times_cont_diff_within_at_nat {n : ℕ} :
+  times_cont_diff_within_at 𝕜 n f s x ↔
+  ∃ u ∈ nhds_within x s, ∃ p : E → formal_multilinear_series 𝕜 E F,
   has_ftaylor_series_up_to_on n f p u :=
-begin
-  refine ⟨λ H, H n (le_refl _), λ H m hm x hx, _⟩,
-  rcases H x hx with ⟨u, hu, p, hp⟩,
-  exact ⟨u, hu, p, hp.of_le hm⟩
-end
+⟨λ H, H n (le_refl _), λ ⟨u, hu, p, hp⟩ m hm, ⟨u, hu, p, hp.of_le hm⟩⟩
 
-lemma times_cont_diff_on_top :
-  times_cont_diff_on 𝕜 ⊤ f s ↔ ∀ (n : ℕ), times_cont_diff_on 𝕜 n f s :=
+lemma times_cont_diff_within_at_top :
+  times_cont_diff_within_at 𝕜 ⊤ f s x ↔ ∀ (n : ℕ), times_cont_diff_within_at 𝕜 n f s x :=
 begin
   split,
-  { assume H n m hm x hx,
-    rcases H m le_top x hx with ⟨u, hu, p, hp⟩,
+  { assume H n m hm,
+    rcases H m le_top with ⟨u, hu, p, hp⟩,
     exact ⟨u, hu, p, hp⟩ },
-  { assume H m hm x hx,
-    rcases H m m (le_refl _) x hx with ⟨u, hu, p, hp⟩,
+  { assume H m hm,
+    rcases H m m (le_refl _) with ⟨u, hu, p, hp⟩,
     exact ⟨u, hu, p, hp⟩ }
 end
 
-lemma times_cont_diff_on.continuous_on {n : with_top ℕ}
-  (h : times_cont_diff_on 𝕜 n f s) : continuous_on f s :=
+lemma times_cont_diff_within_at.continuous_within_at {n : with_top ℕ}
+  (h : times_cont_diff_within_at 𝕜 n f s x) (hx : x ∈ s) : continuous_within_at f s x :=
 begin
-  apply continuous_on_of_locally_continuous_on (λ x hx, _),
-  rcases h 0 bot_le x hx with ⟨u, hu, p, H⟩,
+  rcases h 0 bot_le with ⟨u, hu, p, H⟩,
   rcases mem_nhds_within.1 hu with ⟨t, t_open, xt, tu⟩,
-  refine ⟨t, t_open, xt, _⟩,
-  rw inter_comm at tu,
-  exact (H.mono tu).continuous_on
+  have := (H.mono tu).continuous_on.continuous_within_at (⟨xt, hx⟩ : x ∈ t ∩ s),
+  rw inter_comm at this,
+  exact (continuous_within_at_inter (mem_nhds_sets t_open xt)).1 this,
 end
 
-lemma times_cont_diff_on.congr {n : with_top ℕ}
-  (h : times_cont_diff_on 𝕜 n f s) (h₁ : ∀ x ∈ s, f₁ x = f x) :
-  times_cont_diff_on 𝕜 n f₁ s :=
+lemma times_cont_diff_within_at.congr {n : with_top ℕ}
+  (h : times_cont_diff_within_at 𝕜 n f s x) (h₁ : f₁ =ᶠ[nhds_within x s] f) :
+  times_cont_diff_within_at 𝕜 n f₁ s x :=
 begin
-  assume m hm x hx,
-  rcases h m hm x hx with ⟨u, hu, p, H⟩,
-  refine ⟨u ∩ s, filter.inter_mem_sets hu self_mem_nhds_within, p, _⟩,
-  exact (H.mono (inter_subset_left u s)).congr (λ x hx, h₁ x hx.2)
+  assume m hm,
+  rcases h m hm with ⟨u, hu, p, H⟩,
+  rcases h₁.exists_mem with ⟨v, v_neighb, hv⟩,
+  refine ⟨u ∩ (v ∩ s),
+    filter.inter_mem_sets hu (filter.inter_mem_sets v_neighb self_mem_nhds_within), p, _⟩,
+  exact (H.mono (inter_subset_left u _)).congr (λ x hx, hv _ hx.2.1)
 end
 
-lemma times_cont_diff_on_congr {n : with_top ℕ} (h₁ : ∀ x ∈ s, f₁ x = f x) :
-  times_cont_diff_on 𝕜 n f₁ s ↔ times_cont_diff_on 𝕜 n f s :=
-⟨λ H, H.congr (λ x hx, (h₁ x hx).symm), λ H, H.congr h₁⟩
+lemma times_cont_diff_within_at_congr {n : with_top ℕ} (h₁ : f₁ =ᶠ[nhds_within x s] f) :
+  times_cont_diff_within_at 𝕜 n f₁ s x ↔ times_cont_diff_within_at 𝕜 n f s x :=
+⟨λ H, times_cont_diff_within_at.congr H h₁.symm, λ H, H.congr h₁⟩
 
-lemma times_cont_diff_on.mono {n : with_top ℕ}
-  (h : times_cont_diff_on 𝕜 n f s) {t : set E} (hst : t ⊆ s) :
-  times_cont_diff_on 𝕜 n f t :=
+lemma times_cont_diff_within_at.mono {n : with_top ℕ}
+  (h : times_cont_diff_within_at 𝕜 n f s x) {t : set E} (hst : t ⊆ s) :
+  times_cont_diff_within_at 𝕜 n f t x :=
 begin
-  assume m hm x hx,
-  rcases h m hm x (hst hx) with ⟨u, hu, p, H⟩,
+  assume m hm,
+  rcases h m hm with ⟨u, hu, p, H⟩,
   exact ⟨u, nhds_within_mono x hst hu, p, H⟩
 end
 
-lemma times_cont_diff_on.congr_mono {n : with_top ℕ}
-  (hf : times_cont_diff_on 𝕜 n f s) (h₁ : ∀ x ∈ s₁, f₁ x = f x) (hs : s₁ ⊆ s) :
-  times_cont_diff_on 𝕜 n f₁ s₁ :=
-(hf.mono hs).congr h₁
+lemma times_cont_diff_within_at.of_le {m n : with_top ℕ}
+  (h : times_cont_diff_within_at 𝕜 n f s x) (hmn : m ≤ n) :
+  times_cont_diff_within_at 𝕜 m f s x :=
+λ k hk, h k (le_trans hk hmn)
 
-lemma times_cont_diff_on.of_le {m n : with_top ℕ}
-  (h : times_cont_diff_on 𝕜 n f s) (hmn : m ≤ n) :
-  times_cont_diff_on 𝕜 m f s :=
+
+lemma times_cont_diff_within_at_inter' {n : with_top ℕ} (h : t ∈ nhds_within x s) :
+  times_cont_diff_within_at 𝕜 n f (s ∩ t) x ↔ times_cont_diff_within_at 𝕜 n f s x :=
 begin
-  assume k hk x hx,
-  rcases h k (le_trans hk hmn) x hx with ⟨u, hu, p, H⟩,
-  exact ⟨u, hu, p, H⟩
+  refine ⟨λ H m hm, _, λ H, H.mono (inter_subset_left _ _)⟩,
+  rcases H m hm with ⟨u, u_nhbd, p, hu⟩,
+  refine ⟨s ∩ t ∩ u, _, p, hu.mono (inter_subset_right _ _)⟩,
+  rw nhds_within_restrict'' s h,
+  exact filter.inter_mem_sets self_mem_nhds_within u_nhbd
 end
 
-/-- If a function is `C^n` on a set with `n ≥ 1`, then it is differentiable there. -/
-lemma times_cont_diff_on.differentiable_on {n : with_top ℕ}
-  (h : times_cont_diff_on 𝕜 n f s) (hn : 1 ≤ n) : differentiable_on 𝕜 f s :=
+lemma times_cont_diff_within_at_inter {n : with_top ℕ} (h : t ∈ 𝓝 x) :
+  times_cont_diff_within_at 𝕜 n f (s ∩ t) x ↔ times_cont_diff_within_at 𝕜 n f s x :=
+times_cont_diff_within_at_inter' (mem_nhds_within_of_mem_nhds h)
+
+/-- If a function is `C^n` within a set at a point, with `n ≥ 1`, then it is differentiable
+within this set at this point. -/
+lemma times_cont_diff_within_at.differentiable_within_at {n : with_top ℕ}
+  (h : times_cont_diff_within_at 𝕜 n f s x) (hx : x ∈ s) (hn : 1 ≤ n) :
+  differentiable_within_at 𝕜 f s x :=
 begin
-  apply differentiable_on_of_locally_differentiable_on (λ x hx, _),
-  rcases h 1 hn x hx with ⟨u, hu, p, H⟩,
+  rcases h 1 hn with ⟨u, hu, p, H⟩,
   rcases mem_nhds_within.1 hu with ⟨t, t_open, xt, tu⟩,
   rw inter_comm at tu,
-  exact ⟨t, t_open, xt, (H.mono tu).differentiable_on (le_refl _)⟩
-end
-
-/-- If a function is `C^n` around each point in a set, then it is `C^n` on the set. -/
-lemma times_cont_diff_on_of_locally_times_cont_diff_on {n : with_top ℕ}
-  (h : ∀ x ∈ s, ∃u, is_open u ∧ x ∈ u ∧ times_cont_diff_on 𝕜 n f (s ∩ u)) :
-  times_cont_diff_on 𝕜 n f s :=
-begin
-  assume m hm x hx,
-  rcases h x hx with ⟨u, u_open, xu, Hu⟩,
-  rcases Hu m hm x ⟨hx, xu⟩ with ⟨v, hv, p, H⟩,
-  rw ← nhds_within_restrict s xu u_open at hv,
-  exact ⟨v, hv, p, H⟩,
+  have := ((H.mono tu).differentiable_on (le_refl _)) x ⟨hx, xt⟩,
+  exact (differentiable_within_at_inter (mem_nhds_sets t_open xt)).1 this,
 end
 
 /-- A function is `C^(n + 1)` on a domain iff locally, it has a derivative which is `C^n`. -/
-theorem times_cont_diff_on_succ_iff_has_fderiv_within_at {n : ℕ} :
-  times_cont_diff_on 𝕜 ((n + 1) : ℕ) f s
-  ↔ ∀ x ∈ s, ∃ u ∈ nhds_within x s, ∃ f' : E → (E →L[𝕜] F),
-    (∀ x ∈ u, has_fderiv_within_at f (f' x) u x)
-    ∧ (times_cont_diff_on 𝕜 n f' u) :=
+theorem times_cont_diff_within_at_succ_iff_has_fderiv_within_at {n : ℕ} :
+  times_cont_diff_within_at 𝕜 ((n + 1) : ℕ) f s x
+  ↔ ∃ u ∈ nhds_within x s, ∃ f' : E → (E →L[𝕜] F),
+    (∀ x ∈ u, has_fderiv_within_at f (f' x) u x) ∧ (times_cont_diff_within_at 𝕜 n f' u x) :=
 begin
   split,
-  { assume h x hx,
-    rcases h n.succ (le_refl _) x hx with ⟨u, hu, p, Hp⟩,
+  { assume h,
+    rcases h n.succ (le_refl _) with ⟨u, hu, p, Hp⟩,
     refine ⟨u, hu, λ y, (continuous_multilinear_curry_fin1 𝕜 E F) (p y 1),
       λ y hy, Hp.has_fderiv_within_at (with_top.coe_le_coe.2 (nat.le_add_left 1 n)) hy, _⟩,
     rw has_ftaylor_series_up_to_on_succ_iff_right at Hp,
-    assume m hm z hz,
+    assume m hm,
     exact ⟨u, self_mem_nhds_within, λ (x : E), (p x).shift, Hp.2.2.of_le hm⟩ },
-  { assume h,
-    rw times_cont_diff_on_nat,
-    assume x hx,
-    rcases h x hx with ⟨u, hu, f', f'_eq_deriv, Hf'⟩,
-    have xu : x ∈ u := mem_of_mem_nhds_within hx hu,
-    rcases Hf' n (le_refl _) x xu with ⟨v, hv, p', Hp'⟩,
+  { rintros ⟨u, hu, f', f'_eq_deriv, Hf'⟩,
+    rw times_cont_diff_within_at_nat,
+    rcases Hf' n (le_refl _) with ⟨v, hv, p', Hp'⟩,
     refine ⟨v ∩ u, filter.inter_mem_sets (nhds_within_le_of_mem hu hv) hu,
             λ x, (p' x).unshift (f x), _⟩,
     rw has_ftaylor_series_up_to_on_succ_iff_right,
@@ -559,6 +551,76 @@ begin
         change p' x k (init (@snoc k (λ i : fin k.succ, E) v y))
           (@snoc k (λ i : fin k.succ, E) v y (last k)) = p' x k v y,
         rw [snoc_last, init_snoc] } } }
+end
+
+/-! ### Smooth functions within a set -/
+
+variable (𝕜)
+
+/-- A function is continuously differentiable up to `n` if it admits derivatives within `s` up to
+order `n`, which are continuous. There is a subtlety on sets where derivatives are not unique, that
+choices of derivatives around different points might not match. To ensure that being `C^n` is a
+local property, we therefore require it locally around each point. There is another subtlety that
+one might be able to find nice derivatives up to `n` for any finite `n`, but that they don't match
+so that one can not find them up to infinity. To get a good notion for `n = ∞`, we only require that
+for any finite `n` we may find such matching derivatives.
+-/
+definition times_cont_diff_on (n : with_top ℕ) (f : E → F) (s : set E) :=
+∀ x ∈ s, times_cont_diff_within_at 𝕜 n f s x
+
+variable {𝕜}
+
+lemma times_cont_diff_on.times_cont_diff_within_at {n : with_top ℕ}
+  (h : times_cont_diff_on 𝕜 n f s) (hx : x ∈ s) :
+  times_cont_diff_within_at 𝕜 n f s x :=
+h x hx
+
+lemma times_cont_diff_on_top :
+  times_cont_diff_on 𝕜 ⊤ f s ↔ ∀ (n : ℕ), times_cont_diff_on 𝕜 n f s :=
+by { simp [times_cont_diff_on, times_cont_diff_within_at_top], tauto }
+
+lemma times_cont_diff_on.continuous_on {n : with_top ℕ}
+  (h : times_cont_diff_on 𝕜 n f s) : continuous_on f s :=
+λ x hx, (h x hx).continuous_within_at hx
+
+lemma times_cont_diff_on.congr {n : with_top ℕ}
+  (h : times_cont_diff_on 𝕜 n f s) (h₁ : ∀ x ∈ s, f₁ x = f x) :
+  times_cont_diff_on 𝕜 n f₁ s :=
+λ x hx, (h x hx).congr (filter.eventually_eq_iff_exists_mem.2 ⟨s, self_mem_nhds_within, h₁⟩)
+
+lemma times_cont_diff_on_congr {n : with_top ℕ} (h₁ : ∀ x ∈ s, f₁ x = f x) :
+  times_cont_diff_on 𝕜 n f₁ s ↔ times_cont_diff_on 𝕜 n f s :=
+⟨λ H, H.congr (λ x hx, (h₁ x hx).symm), λ H, H.congr h₁⟩
+
+lemma times_cont_diff_on.mono {n : with_top ℕ}
+  (h : times_cont_diff_on 𝕜 n f s) {t : set E} (hst : t ⊆ s) :
+  times_cont_diff_on 𝕜 n f t :=
+λ x hx, (h x (hst hx)).mono hst
+
+lemma times_cont_diff_on.congr_mono {n : with_top ℕ}
+  (hf : times_cont_diff_on 𝕜 n f s) (h₁ : ∀ x ∈ s₁, f₁ x = f x) (hs : s₁ ⊆ s) :
+  times_cont_diff_on 𝕜 n f₁ s₁ :=
+(hf.mono hs).congr h₁
+
+lemma times_cont_diff_on.of_le {m n : with_top ℕ}
+  (h : times_cont_diff_on 𝕜 n f s) (hmn : m ≤ n) :
+  times_cont_diff_on 𝕜 m f s :=
+λ x hx, (h x hx).of_le hmn
+
+/-- If a function is `C^n` on a set with `n ≥ 1`, then it is differentiable there. -/
+lemma times_cont_diff_on.differentiable_on {n : with_top ℕ}
+  (h : times_cont_diff_on 𝕜 n f s) (hn : 1 ≤ n) : differentiable_on 𝕜 f s :=
+λ x hx, (h x hx).differentiable_within_at hx hn
+
+/-- If a function is `C^n` around each point in a set, then it is `C^n` on the set. -/
+lemma times_cont_diff_on_of_locally_times_cont_diff_on {n : with_top ℕ}
+  (h : ∀ x ∈ s, ∃u, is_open u ∧ x ∈ u ∧ times_cont_diff_on 𝕜 n f (s ∩ u)) :
+  times_cont_diff_on 𝕜 n f s :=
+begin
+  assume x xs,
+  rcases h x xs with ⟨u, u_open, xu, hu⟩,
+  apply (times_cont_diff_within_at_inter _).1 (hu x ⟨xs, xu⟩),
+  exact mem_nhds_sets u_open xu
 end
 
 /-! ### Iterated derivative within a set -/
@@ -709,7 +771,7 @@ iterated_fderiv_within_inter' (mem_nhds_within_of_mem_nhds hu) hs xs
   times_cont_diff_on 𝕜 0 f s ↔ continuous_on f s :=
 begin
   refine ⟨λ H, H.continuous_on, λ H, _⟩,
-  assume m hm x hx,
+  assume x hx m hm,
   have : (m : with_top ℕ) = 0 := le_antisymm hm bot_le,
   rw this,
   refine ⟨s, self_mem_nhds_within, ftaylor_series_within 𝕜 f s, _⟩,
@@ -745,7 +807,7 @@ begin
     simp only [ftaylor_series_within, continuous_multilinear_map.uncurry0_apply,
                iterated_fderiv_within_zero_apply] },
   { assume m hm x hx,
-    rcases h m.succ (with_top.add_one_le_of_lt hm) x hx with ⟨u, hu, p, Hp⟩,
+    rcases h x hx m.succ (with_top.add_one_le_of_lt hm) with ⟨u, hu, p, Hp⟩,
     rcases mem_nhds_within.1 hu with ⟨o, o_open, xo, ho⟩,
     rw inter_comm at ho,
     have : p x m.succ = ftaylor_series_within 𝕜 f s x m.succ,
@@ -765,7 +827,7 @@ begin
   { assume m hm,
     apply continuous_on_of_locally_continuous_on,
     assume x hx,
-    rcases h m hm x hx with ⟨u, hu, p, Hp⟩,
+    rcases h x hx m hm with ⟨u, hu, p, Hp⟩,
     rcases mem_nhds_within.1 hu with ⟨o, o_open, xo, ho⟩,
     rw inter_comm at ho,
     refine ⟨o, o_open, xo, _⟩,
@@ -785,14 +847,14 @@ lemma times_cont_diff_on_of_continuous_on_differentiable_on {n : with_top ℕ}
     differentiable_on 𝕜 (λ x, iterated_fderiv_within 𝕜 m f s x) s) :
   times_cont_diff_on 𝕜 n f s :=
 begin
-  assume m hm x hx,
+  assume x hx m hm,
   refine ⟨s, self_mem_nhds_within, ftaylor_series_within 𝕜 f s, _⟩,
   split,
-  { assume x hx,
+  { assume y hy,
     simp only [ftaylor_series_within, continuous_multilinear_map.uncurry0_apply,
                 iterated_fderiv_within_zero_apply] },
-  { assume k hk x hx,
-    convert (Hdiff k (lt_of_lt_of_le hk hm) x hx).has_fderiv_within_at,
+  { assume k hk y hy,
+    convert (Hdiff k (lt_of_lt_of_le hk hm) y hy).has_fderiv_within_at,
     simp only [ftaylor_series_within, iterated_fderiv_within_succ_eq_comp_left,
                 continuous_linear_equiv.coe_apply, function.comp_app, coe_fn_coe_base],
     exact continuous_linear_map.curry_uncurry_left _ },
@@ -833,29 +895,33 @@ begin
     exact times_cont_diff_on_of_continuous_on_differentiable_on h.1 h.2 }
 end
 
-/-- A function is `C^(n + 1)` on a domain with unique derivatives if and only if it is differentiable
-there, and its derivative is `C^n`. -/
+/-- A function is `C^(n + 1)` on a domain with unique derivatives if and only if it is
+differentiable there, and its derivative is `C^n`. -/
 theorem times_cont_diff_on_succ_iff_fderiv_within {n : ℕ} (hs : unique_diff_on 𝕜 s) :
   times_cont_diff_on 𝕜 ((n + 1) : ℕ) f s ↔
   differentiable_on 𝕜 f s ∧ times_cont_diff_on 𝕜 n (λ y, fderiv_within 𝕜 f s y) s :=
 begin
   split,
   { assume H,
-    refine ⟨H.differentiable_on (with_top.coe_le_coe.2 (nat.le_add_left 1 n)), _⟩,
-    apply times_cont_diff_on_of_locally_times_cont_diff_on,
-    assume x hx,
-    rcases times_cont_diff_on_succ_iff_has_fderiv_within_at.1 H x hx with ⟨u, hu, f', hff', hf'⟩,
+    refine ⟨H.differentiable_on (with_top.coe_le_coe.2 (nat.le_add_left 1 n)), λ x hx, _⟩,
+    rcases times_cont_diff_within_at_succ_iff_has_fderiv_within_at.1 (H x hx)
+      with ⟨u, hu, f', hff', hf'⟩,
     rcases mem_nhds_within.1 hu with ⟨o, o_open, xo, ho⟩,
     rw inter_comm at ho,
-    refine ⟨o, o_open, xo, _⟩,
-    apply (hf'.mono ho).congr (λ y hy, _),
+    have := hf'.mono ho,
+    rw times_cont_diff_within_at_inter' (mem_nhds_within_of_mem_nhds (mem_nhds_sets o_open xo))
+      at this,
+    apply this.congr,
+    have : o ∩ s ∈ nhds_within x s := mem_nhds_within.2 ⟨o, o_open, xo, subset.refl _⟩,
+    rw inter_comm at this,
+    apply filter.eventually_eq_iff_exists_mem.2 ⟨s ∩ o, this, λ y hy, _⟩,
     have A : fderiv_within 𝕜 f (s ∩ o) y = f' y :=
       ((hff' y (ho hy)).mono ho).fderiv_within (hs.inter o_open y hy),
     rwa fderiv_within_inter (mem_nhds_sets o_open hy.2) (hs y hy.1) at A },
-  { rw times_cont_diff_on_succ_iff_has_fderiv_within_at,
-    rintros ⟨hdiff, h⟩ x hx,
+  { rintros ⟨hdiff, h⟩ x hx,
+    rw times_cont_diff_within_at_succ_iff_has_fderiv_within_at,
     exact ⟨s, self_mem_nhds_within, fderiv_within 𝕜 f s,
-           λ x hx, (hdiff x hx).has_fderiv_within_at, h⟩ }
+      λ y hy, (hdiff y hy).has_fderiv_within_at, h x hx⟩ }
 end
 
 /-- A function is `C^∞` on a domain with unique derivatives if and only if it is differentiable
@@ -907,6 +973,8 @@ begin
       (prod_subset_preimage_fst _ _) },
   exact A.comp_continuous_on B
 end
+
+/-! ### Functions with a Taylor series on the whole space -/
 
 /-- `has_ftaylor_series_up_to n f p` registers the fact that `p 0 = f` and `p (m+1)` is a
 derivative of `p m` for `m < n`, and is continuous for `m ≤ n`. This is a predicate analogous to
@@ -995,6 +1063,46 @@ theorem has_ftaylor_series_up_to_succ_iff_right {n : ℕ} :
 by simp [has_ftaylor_series_up_to_on_succ_iff_right, has_ftaylor_series_up_to_on_univ_iff.symm,
          -add_comm, -with_bot.coe_add]
 
+/-! ### Smooth functions at a point -/
+
+variable (𝕜)
+
+/-- A function is continuously differentiable up to `n` at a point `x` if, for any integer `k ≤ n`,
+there is a neighborhood of `x` where `f` admits derivatives up to order `n`, which are continuous.
+-/
+definition times_cont_diff_at (n : with_top ℕ) (f : E → F) (x : E) :=
+times_cont_diff_within_at 𝕜 n f univ x
+
+variable {𝕜}
+
+theorem times_cont_diff_within_at_univ {n : with_top ℕ} :
+  times_cont_diff_within_at 𝕜 n f univ x ↔ times_cont_diff_at 𝕜 n f x :=
+iff.rfl
+
+lemma times_cont_diff_at_top :
+  times_cont_diff_at 𝕜 ⊤ f x ↔ ∀ (n : ℕ), times_cont_diff_at 𝕜 n f x :=
+by simp [← times_cont_diff_within_at_univ, times_cont_diff_within_at_top]
+
+lemma times_cont_diff_at.times_cont_diff_within_at {n : with_top ℕ}
+  (h : times_cont_diff_at 𝕜 n f x) : times_cont_diff_within_at 𝕜 n f s x :=
+h.mono (subset_univ _)
+
+lemma times_cont_diff_at.of_le {m n : with_top ℕ}
+  (h : times_cont_diff_at 𝕜 n f x) (hmn : m ≤ n) :
+  times_cont_diff_at 𝕜 m f x :=
+h.of_le hmn
+
+lemma times_cont_diff_at.continuous_at {n : with_top ℕ}
+  (h : times_cont_diff_at 𝕜 n f x) : continuous_at f x :=
+by simpa [continuous_within_at_univ] using h.continuous_within_at
+
+/-- If a function is `C^n` with `n ≥ 1` at a point, then it is differentiable there. -/
+lemma times_cont_diff_at.differentiable {n : with_top ℕ}
+  (h : times_cont_diff_at 𝕜 n f x) (hn : 1 ≤ n) : differentiable_at 𝕜 f x :=
+by simpa [hn, differentiable_within_at_univ] using h.differentiable_within_at
+
+/-! ### Smooth functions -/
+
 variable (𝕜)
 
 /-- A function is continuously differentiable up to `n` if it admits derivatives up to
@@ -1014,9 +1122,17 @@ begin
     use ftaylor_series_within 𝕜 f univ,
     rw ← has_ftaylor_series_up_to_on_univ_iff,
     exact H.ftaylor_series_within unique_diff_on_univ },
-  { rintros ⟨p, hp⟩ m hm x hx,
+  { rintros ⟨p, hp⟩ x hx m hm,
     exact ⟨univ, self_mem_nhds_within, p, (hp.has_ftaylor_series_up_to_on univ).of_le hm⟩ }
 end
+
+lemma times_cont_diff_iff_times_cont_diff_at {n : with_top ℕ} :
+  times_cont_diff 𝕜 n f ↔ ∀ x, times_cont_diff_at 𝕜 n f x :=
+by simp [← times_cont_diff_on_univ, times_cont_diff_on, times_cont_diff_at]
+
+lemma times_cont_diff.times_cont_diff_at {n : with_top ℕ} (h : times_cont_diff 𝕜 n f) :
+  times_cont_diff_at 𝕜 n f x :=
+times_cont_diff_iff_times_cont_diff_at.1 h x
 
 lemma times_cont_diff_top :
   times_cont_diff 𝕜 ⊤ f ↔ ∀ (n : ℕ), times_cont_diff 𝕜 n f :=
@@ -1047,10 +1163,10 @@ lemma times_cont_diff.differentiable {n : with_top ℕ}
   (h : times_cont_diff 𝕜 n f) (hn : 1 ≤ n) : differentiable 𝕜 f :=
 differentiable_on_univ.1 $ (times_cont_diff_on_univ.2 h).differentiable_on hn
 
-variable (𝕜)
-
 
 /-! ### Iterated derivative -/
+
+variable (𝕜)
 
 /-- The `n`-th derivative of a function, as a multilinear map, defined inductively. -/
 noncomputable def iterated_fderiv (n : ℕ) (f : E → F) :

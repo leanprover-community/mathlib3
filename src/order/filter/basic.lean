@@ -810,6 +810,14 @@ empty_in_sets_eq_bot
   (∀ᶠ x in f, p) ↔ p :=
 classical.by_cases (λ h : p, by simp [h]) (λ h, by simp [h, hf])
 
+lemma eventually.exists_mem {p : α → Prop} {f : filter α} (hp : ∀ᶠ x in f, p x) :
+  ∃ v ∈ f, ∀ y ∈ v, p y :=
+ ⟨{x | p x}, hp, λ y hy, hy⟩
+
+lemma eventually_iff_exists_mem {p : α → Prop} {f : filter α} :
+  (∀ᶠ x in f, p x) ↔ ∃ v ∈ f, ∀ y ∈ v, p y :=
+⟨λ hp, hp.exists_mem, λ ⟨v, vf, hv⟩, eventually_of_mem vf hv⟩
+
 lemma eventually.mp {p q : α → Prop} {f : filter α} (hp : ∀ᶠ x in f, p x)
   (hq : ∀ᶠ x in f, p x → q x) :
   ∀ᶠ x in f, q x :=
@@ -1039,6 +1047,14 @@ lemma eventually_eq.rw {l : filter α} {f g : α → β} (h : f =ᶠ[l] g) (p : 
   (hf : ∀ᶠ x in l, p x (f x)) :
   ∀ᶠ x in l, p x (g x) :=
 hf.congr $ h.mono $ λ x hx, hx ▸ iff.rfl
+
+lemma eventually_eq.exists_mem {l : filter α} {f g : α → β} (h : f =ᶠ[l] g) :
+  ∃ s ∈ l, ∀ x ∈ s, f x = g x :=
+filter.eventually.exists_mem h
+
+lemma eventually_eq_iff_exists_mem {l : filter α} {f g : α → β} :
+  (f =ᶠ[l] g) ↔ ∃ s ∈ l, ∀ x ∈ s, f x = g x :=
+filter.eventually_iff_exists_mem
 
 @[refl] lemma eventually_eq.refl (l : filter α) (f : α → β) :
   f =ᶠ[l] f :=

@@ -99,13 +99,13 @@ begin
   have B : (e'.target ∩ e'.symm ⁻¹' s) ∩ c.target =
            c.target ∩ c.symm ⁻¹' t,
   { ext y,
-    simp [c, local_equiv.trans_source, local_equiv.trans_target],
+    simp only with mfld_simps,
     split,
     { assume hy,
-      simp [hy] },
+      simp only [hy] with mfld_simps },
     { assume hy,
-      simp [hy],
-      simpa [hy] using hy } },
+      simp only [hy] with mfld_simps,
+      simpa only [hy] with mfld_simps using hy } },
   have : P (c.target ∩ c.symm ⁻¹' t) (c (e x)) :=
     hG.invariance _ _ _ cG h,
   convert this using 1,
@@ -122,7 +122,6 @@ lemma invariant_prop_set_pt.lift_prop_set_pt_iff [has_groupoid M G]
   charted_space.lift_prop_set_pt P s x ↔ P (e.target ∩ e.symm ⁻¹' s) (e x) :=
 ⟨hG.indep_chart x (G.chart_mem_maximal_atlas x) (mem_chart_source H x) he xe,
 hG.indep_chart x he xe (G.chart_mem_maximal_atlas x) (mem_chart_source H x)⟩
-
 
 /-- If a property of a germ of function `g` on a pointed set `(s, x)` is invariant under the
 structure groupoid (in the source space and in the target space), then expressing it in charted
@@ -156,14 +155,14 @@ begin
              (e.target ∩ e.symm ⁻¹' (s ∩ g⁻¹' f.source) ∩ (e.target ∩ e.symm ⁻¹' o)) (e x),
   { apply (hG.is_local _ _).1 h,
     { exact e.continuous_on_symm.preimage_open_of_open e.open_target o_open },
-    { simp [xe, xo] } },
+    { simp only [xe, xo] with mfld_simps} },
   have B : P ((f.symm ≫ₕ f') ∘ (f ∘ g ∘ e.symm))
              (e.target ∩ e.symm ⁻¹' (s ∩ g⁻¹' f.source) ∩ (e.target ∩ e.symm ⁻¹' o)) (e x),
   { apply hG.left_invariance (compatible_of_mem_maximal_atlas hf hf') _ A,
     assume y hy,
-    simp at hy,
-    have : e.symm y ∈ o ∩ s, by simp [hy],
-    simpa [hy] using of' this },
+    simp only with mfld_simps at hy,
+    have : e.symm y ∈ o ∩ s, by simp only [hy] with mfld_simps,
+    simpa only [hy] with mfld_simps using of' this },
   have C : P (f' ∘ g ∘ e.symm)
              (e.target ∩ e.symm ⁻¹' (s ∩ g⁻¹' f.source) ∩ (e.target ∩ e.symm ⁻¹' o)) (e x),
   { apply hG.congr _ B,
@@ -171,8 +170,8 @@ begin
     simp only [local_homeomorph.coe_trans, function.comp_app],
     rw f.left_inv,
     apply of,
-    simp at hy,
-    simp [hy] },
+    simp only with mfld_simps at hy,
+    simp only [hy] with mfld_simps },
   let w := e.symm ≫ₕ e',
   let ow := w.target ∩ w.symm ⁻¹'
     (e.target ∩ e.symm ⁻¹' (s ∩ g⁻¹' f.source) ∩ (e.target ∩ e.symm ⁻¹' o)),
@@ -181,30 +180,31 @@ begin
   have E : P (f' ∘ g ∘ e'.symm) ow (w (e x)),
   { apply hG.congr _ D,
     assume y hy,
-    simp only [local_homeomorph.coe_trans_symm, function.comp_app, local_homeomorph.symm_symm],
+    simp only with mfld_simps,
     rw e.left_inv,
-    simp at hy,
-    simp [hy] },
-  have : w (e x) = e' x, by simp [w, xe],
+    simp only with mfld_simps at hy,
+    simp only [hy] with mfld_simps },
+  have : w (e x) = e' x, by simp only [w, xe] with mfld_simps,
   rw this at E,
   have : ow = (e'.target ∩ e'.symm ⁻¹' (s ∩ g⁻¹' f'.source))
                ∩ (w.target ∩ (e'.target ∩ e'.symm ⁻¹' o)),
   { ext y,
     split,
     { assume hy,
-      have : e.symm (e ((e'.symm) y)) = e'.symm y, by { simp at hy, simp [hy] },
+      have : e.symm (e ((e'.symm) y)) = e'.symm y,
+        by { simp only with mfld_simps at hy, simp only [hy] with mfld_simps },
       simp [this] at hy,
-      have : g (e'.symm y) ∈ f'.source, by { apply of', simp [hy] },
-      simp [hy, this] },
+      have : g (e'.symm y) ∈ f'.source, by { apply of', simp only [hy] with mfld_simps },
+      simp only [hy, this] with mfld_simps },
     { assume hy,
-      simp at hy,
-      have : g (e'.symm y) ∈ f.source, by { apply of, simp [hy] },
-      simp [this, hy] } },
+      simp only with mfld_simps at hy,
+      have : g (e'.symm y) ∈ f.source, by { apply of, simp only [hy] with mfld_simps },
+      simp only [this, hy] with mfld_simps } },
   rw this at E,
   apply (hG.is_local _ _).2 E,
   { exact is_open_inter w.open_target
       (e'.continuous_on_symm.preimage_open_of_open e'.open_target o_open) },
-  { simp [xe', xe, xo] }
+  { simp only [xe', xe, xo] with mfld_simps }
 end
 
 end structure_groupoid

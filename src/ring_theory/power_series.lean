@@ -654,8 +654,6 @@ instance : local_ring (mv_power_series σ α) :=
 { zero_ne_one := zero_ne_one,
   is_local := local_ring.is_local }
 
-
-
 end local_ring
 
 section field

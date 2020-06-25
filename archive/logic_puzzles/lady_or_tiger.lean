@@ -54,15 +54,16 @@ def D2 := (q.1 = y ∨ q.2 = y) ∧ (q.1 = n ∨ q.2 = n)
 
 def H := q.D1 ∧ ¬q.D2 ∨ ¬q.D1 ∧ q.D2
 
+-- Terse proof.
 lemma answer_term : q.H → q.1 = n ∧ q.2 = y :=
   by rcases q with ⟨_|_,_|_⟩; simp [H, D1, D2]
 
--- Tactics mode proof. State changes can be seen by clicking after each comma.
+-- Verbose proof. State changes can be seen by clicking after each comma.
 lemma answer_tactic : q.H → q.1 = n ∧ q.2 = y :=
 begin
   rcases q with ⟨_|_,_|_⟩,
   simp [H], simp [D1], simp [D2],
-  simp [H], simp [D1], simp [D2],
+  simp[H], simp [D1], simp [D2],
   simp [H], 
   simp [H], simp [D1], simp [D2], 
   done
@@ -150,6 +151,7 @@ def H1 := q.1 = y ∧ q.D1 ∨ q.1 = n ∧ ¬ q.D1
 def H2 := q.2 = y ∧ ¬ q.D2 ∨ q.2 = n ∧ q.D2
 def H := q.H1 ∧ q.H2
 
+-- Verbose proof
 lemma answer1 : q.H → q.1 = n ∧ q.2 = y :=
 begin
   rcases q with ⟨_|_,_|_⟩,
@@ -160,6 +162,7 @@ begin
   done
 end
 
+-- Terse proof
 lemma answer2 : q.H → q.1 = n ∧ q.2 = y :=
 begin
   rcases q with ⟨_|_,_|_⟩;

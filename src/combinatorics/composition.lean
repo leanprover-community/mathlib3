@@ -256,7 +256,7 @@ def embedding (i : fin c.length) : fin (c.blocks_fun i) → fin n :=
   ... ≤ n :
     by { conv_rhs { rw ← c.size_up_to_length }, exact monotone_sum_take _ i.2 } ⟩
 
-lemma embedding_inj (i : fin c.length) : function.injective (c.embedding i) :=
+lemma embedding_injective (i : fin c.length) : function.injective (c.embedding i) :=
 λ a b hab, by simpa [embedding, fin.ext_iff] using hab
 
 /--

@@ -331,21 +331,51 @@ from classical.by_cases
     (prod_congr rfl $ λ b hb, h₀ b hb $ by rintro rfl; cc).trans $
       prod_const_one.trans (h₁ this).symm)
 
+@[to_additive]
+lemma prod_attach {f : α → β} : (∏ x in s.attach, f x.val) = (∏ x in s, f x) :=
+by haveI := classical.dec_eq α; exact
+  calc (∏ x in s.attach, f x.val) = (∏ x in (s.attach).image subtype.val, f x) :
+    by rw [prod_image]; exact assume x _ y _, subtype.eq
+  ... = _ : by rw [attach_image_val]
+
+@[to_additive]
+lemma prod_eq_one {f : α → β} {s : finset α} (h : ∀x∈s, f x = 1) : (∏ x in s, f x) = 1 :=
+calc (∏ x in s, f x) = ∏ x in s, 1 : finset.prod_congr rfl h
+  ... = 1 : finset.prod_const_one
+
+@[to_additive] lemma prod_apply_dite {s : finset α} {p : α → Prop} {hp : decidable_pred p}
+  (f : Π (x : α), p x → γ) (g : Π (x : α), ¬p x → γ) (h : γ → β) :
+  (∏ x in s, h (if hx : p x then f x hx else g x hx)) =
+  (∏ x in (s.filter p).attach, h (f x.1 (mem_filter.mp x.2).2)) *
+    (∏ x in (s.filter (λ x, ¬ p x)).attach, h (g x.1 (mem_filter.mp x.2).2)) :=
+by letI := classical.dec_eq α; exact
+calc ∏ x in s, h (if hx : p x then f x hx else g x hx)
+    = ∏ x in s.filter p ∪ s.filter (λ x, ¬ p x), h (if hx : p x then f x hx else g x hx) :
+  by rw [filter_union_filter_neg_eq]
+... = (∏ x in s.filter p, h (if hx : p x then f x hx else g x hx)) *
+    (∏ x in s.filter (λ x, ¬ p x), h (if hx : p x then f x hx else g x hx)) :
+  prod_union (by simp [disjoint_right] {contextual := tt})
+... = (∏ x in (s.filter p).attach, h (if hx : p x.1 then f x.1 hx else g x.1 hx)) *
+    (∏ x in (s.filter (λ x, ¬ p x)).attach, h (if hx : p x.1 then f x.1 hx else g x.1 hx)) :
+  congr_arg2 _ prod_attach.symm prod_attach.symm
+... = (∏ x in (s.filter p).attach, h (f x.1 (mem_filter.mp x.2).2)) *
+    (∏ x in (s.filter (λ x, ¬ p x)).attach, h (g x.1 (mem_filter.mp x.2).2)) :
+  congr_arg2 _
+    (prod_congr rfl (λ x hx, congr_arg h (dif_pos (mem_filter.mp x.2).2)))
+    (prod_congr rfl (λ x hx, congr_arg h (dif_neg (mem_filter.mp x.2).2)))
+
 @[to_additive] lemma prod_apply_ite {s : finset α}
   {p : α → Prop} {hp : decidable_pred p} (f g : α → γ) (h : γ → β) :
   (∏ x in s, h (if p x then f x else g x)) =
   (∏ x in s.filter p, h (f x)) * (∏ x in s.filter (λ x, ¬ p x), h (g x)) :=
-by letI := classical.dec_eq α; exact
-calc ∏ x in s, h (if p x then f x else g x)
-    = ∏ x in s.filter p ∪ s.filter (λ x, ¬ p x), h (if p x then f x else g x) :
-  by rw [filter_union_filter_neg_eq]
-... = (∏ x in s.filter p, h (if p x then f x else g x)) *
-    (∏ x in s.filter (λ x, ¬ p x), h (if p x then f x else g x)) :
-  prod_union (by simp [disjoint_right] {contextual := tt})
-... = (∏ x in s.filter p, h (f x)) * (∏ x in s.filter (λ x, ¬ p x), h (g x)) :
-  congr_arg2 _
-    (prod_congr rfl (by simp {contextual := tt}))
-    (prod_congr rfl (by simp {contextual := tt}))
+trans (prod_apply_dite _ _ _) (congr_arg2 _ (@prod_attach _ _ _ _ (h ∘ f)) (@prod_attach _ _ _ _ (h ∘ g)))
+
+@[to_additive] lemma prod_dite {s : finset α} {p : α → Prop} {hp : decidable_pred p}
+  (f : Π (x : α), p x → β) (g : Π (x : α), ¬p x → β) :
+  (∏ x in s, if hx : p x then f x hx else g x hx) =
+  (∏ x in (s.filter p).attach, f x.1 (mem_filter.mp x.2).2) *
+    (∏ x in (s.filter (λ x, ¬ p x)).attach, g x.1 (mem_filter.mp x.2).2) :=
+by simp [prod_apply_dite _ _ (λ x, x)]
 
 @[to_additive] lemma prod_ite {s : finset α}
   {p : α → Prop} {hp : decidable_pred p} (f g : α → β) :
@@ -353,13 +383,33 @@ calc ∏ x in s, h (if p x then f x else g x)
   (∏ x in s.filter p, f x) * (∏ x in s.filter (λ x, ¬ p x), g x) :=
 by simp [prod_apply_ite _ _ (λ x, x)]
 
+@[simp, to_additive]
+lemma prod_dite_eq [decidable_eq α] (s : finset α) (a : α) (b : Π x : α, a = x → β) :
+  (∏ x in s, (if h : a = x then b x h else 1)) = ite (a ∈ s) (b a rfl) 1 :=
+begin
+  split_ifs with h,
+  { rw [finset.prod_eq_single a, dif_pos rfl],
+    { intros, rw dif_neg, cc },
+    { cc } },
+  { rw finset.prod_eq_one,
+    intros, rw dif_neg, intro, cc }
+end
+
+@[simp, to_additive]
+lemma prod_dite_eq' [decidable_eq α] (s : finset α) (a : α) (b : Π x : α, x = a → β) :
+  (∏ x in s, (if h : x = a then b x h else 1)) = ite (a ∈ s) (b a rfl) 1 :=
+begin
+  split_ifs with h,
+  { rw [finset.prod_eq_single a, dif_pos rfl],
+    { intros, rw dif_neg, cc },
+    { cc } },
+  { rw finset.prod_eq_one,
+    intros, rw dif_neg, intro, cc }
+end
+
 @[simp, to_additive] lemma prod_ite_eq [decidable_eq α] (s : finset α) (a : α) (b : α → β) :
   (∏ x in s, (ite (a = x) (b x) 1)) = ite (a ∈ s) (b a) 1 :=
-begin
-  rw ←finset.prod_filter,
-  split_ifs;
-  simp only [filter_eq, if_true, if_false, h, prod_empty, prod_singleton],
-end
+prod_dite_eq s a (λ x _, b x)
 
 /--
   When a product is taken over a conditional whose condition is an equality test on the index
@@ -369,18 +419,7 @@ end
 -/
 @[simp, to_additive] lemma prod_ite_eq' [decidable_eq α] (s : finset α) (a : α) (b : α → β) :
   (∏ x in s, (ite (x = a) (b x) 1)) = ite (a ∈ s) (b a) 1 :=
-begin
-  rw ←prod_ite_eq,
-  congr, ext x,
-  by_cases x = a; finish
-end
-
-@[to_additive]
-lemma prod_attach {f : α → β} : (∏ x in s.attach, f x.val) = (∏ x in s, f x) :=
-by haveI := classical.dec_eq α; exact
-calc (∏ x in s.attach, f x.val) = (∏ x in (s.attach).image subtype.val, f x) :
-    by rw [prod_image]; exact assume x _ y _, subtype.eq
-  ... = _ : by rw [attach_image_val]
+prod_dite_eq' s a (λ x _, b x)
 
 /--
   Reorder a product.
@@ -677,11 +716,6 @@ calc ∏ a in s, f (g a)
 ... = ∏ b in s.image g, f b ^ (s.filter (λ a, g a = b)).card :
   prod_congr rfl (λ _ _, prod_const _)
 
-@[to_additive]
-lemma prod_eq_one {f : α → β} {s : finset α} (h : ∀x∈s, f x = 1) : (∏ x in s, f x) = 1 :=
-calc (∏ x in s, f x) = ∏ x in s, 1 : finset.prod_congr rfl h
-  ... = 1 : finset.prod_const_one
-
 /-- A product over all subsets of `s ∪ {x}` is obtained by multiplying the product over all subsets
 of `s`, and over all subsets of `s` to which one adds `x`. -/
 @[to_additive]
@@ -733,6 +767,77 @@ end
 lemma prod_update_of_mem [decidable_eq α] {s : finset α} {i : α} (h : i ∈ s) (f : α → β) (b : β) :
   (∏ x in s, function.update f i b x) = b * (∏ x in s \ (singleton i), f x) :=
 by { rw [update_eq_piecewise, prod_piecewise], simp [h] }
+
+/-- If a product of a `finset` of size at most 1 has a given value, so
+do the terms in that product. -/
+lemma eq_of_card_le_one_of_prod_eq {s : finset α} (hc : s.card ≤ 1) {f : α → β} {b : β}
+    (h : ∏ x in s, f x = b) : ∀ x ∈ s, f x = b :=
+begin
+  intros x hx,
+  by_cases hc0 : s.card = 0,
+  { exact false.elim (card_ne_zero_of_mem hx hc0) },
+  { have h1 : s.card = 1 := le_antisymm hc (nat.one_le_of_lt (nat.pos_of_ne_zero hc0)),
+    rw card_eq_one at h1,
+    cases h1 with x2 hx2,
+    rw [hx2, mem_singleton] at hx,
+    simp_rw hx2 at h,
+    rw hx,
+    rw prod_singleton at h,
+    exact h }
+end
+
+/-- If a sum of a `finset` of size at most 1 has a given value, so do
+the terms in that sum. -/
+lemma eq_of_card_le_one_of_sum_eq [add_comm_monoid γ] {s : finset α} (hc : s.card ≤ 1)
+    {f : α → γ} {b : γ} (h : ∑ x in s, f x = b) : ∀ x ∈ s, f x = b :=
+begin
+  intros x hx,
+  by_cases hc0 : s.card = 0,
+  { exact false.elim (card_ne_zero_of_mem hx hc0) },
+  { have h1 : s.card = 1 := le_antisymm hc (nat.one_le_of_lt (nat.pos_of_ne_zero hc0)),
+    rw card_eq_one at h1,
+    cases h1 with x2 hx2,
+    rw [hx2, mem_singleton] at hx,
+    simp_rw hx2 at h,
+    rw hx,
+    rw sum_singleton at h,
+    exact h }
+end
+
+attribute [to_additive eq_of_card_le_one_of_sum_eq] eq_of_card_le_one_of_prod_eq
+
+/-- If a function applied at a point is 1, a product is unchanged by
+removing that point, if present, from a `finset`. -/
+@[to_additive "If a function applied at a point is 0, a sum is unchanged by
+removing that point, if present, from a `finset`."]
+lemma prod_erase [decidable_eq α] (s : finset α) {f : α → β} {a : α} (h : f a = 1) :
+  ∏ x in s.erase a, f x = ∏ x in s, f x :=
+begin
+  rw ←sdiff_singleton_eq_erase,
+  apply prod_subset sdiff_subset_self,
+  intros x hx hnx,
+  rw sdiff_singleton_eq_erase at hnx,
+  rwa eq_of_mem_of_not_mem_erase hx hnx
+end
+
+/-- If a product is 1 and the function is 1 except possibly at one
+point, it is 1 everywhere on the `finset`. -/
+@[to_additive "If a sum is 0 and the function is 0 except possibly at one
+point, it is 0 everywhere on the `finset`."]
+lemma eq_one_of_prod_eq_one {s : finset α} {f : α → β} {a : α} (hp : ∏ x in s, f x = 1)
+    (h1 : ∀ x ∈ s, x ≠ a → f x = 1) : ∀ x ∈ s, f x = 1 :=
+begin
+  intros x hx,
+  classical,
+  by_cases h : x = a,
+  { rw h,
+    rw h at hx,
+    rw [←prod_subset (singleton_subset_iff.2 hx)
+                      (λ t ht ha, h1 t ht (not_mem_singleton.1 ha)),
+        prod_singleton] at hp,
+    exact hp },
+  { exact h1 x hx h }
+end
 
 end comm_monoid
 
@@ -932,7 +1037,7 @@ begin
     rw [prod_insert ha, pi_insert ha, ih, sum_mul, sum_bind h₁],
     refine sum_congr rfl (λ b _, _),
     have h₂ : ∀p₁∈pi s t, ∀p₂∈pi s t, pi.cons s a b p₁ = pi.cons s a b p₂ → p₁ = p₂, from
-      assume p₁ h₁ p₂ h₂ eq, injective_pi_cons ha eq,
+      assume p₁ h₁ p₂ h₂ eq, pi_cons_injective ha eq,
     rw [sum_image h₂, mul_sum],
     refine sum_congr rfl (λ g _, _),
     rw [attach_insert, prod_insert, prod_image],
@@ -1009,7 +1114,7 @@ begin
   apply finset.induction_on s,
   exact ⟨not.elim one_ne_zero, λ ⟨_, H, _⟩, H.elim⟩,
   assume a s ha ih,
-  rw [prod_insert ha, mul_eq_zero_iff_eq_zero_or_eq_zero, bex_def, exists_mem_insert, ih, ← bex_def]
+  rw [prod_insert ha, mul_eq_zero, bex_def, exists_mem_insert, ih, ← bex_def]
 end
 
 theorem prod_ne_zero_iff : (∏ x in s, f x) ≠ 0 ↔ (∀ a ∈ s, f a ≠ 0) :=
@@ -1027,7 +1132,7 @@ begin
   exact (λ _, le_refl _),
   assume a s ha ih h,
   have : f a + (∑ x in s, f x) ≤ g a + (∑ x in s, g x),
-    from add_le_add' (h _ (mem_insert_self _ _)) (ih $ assume x hx, h _ $ mem_insert_of_mem hx),
+    from add_le_add (h _ (mem_insert_self _ _)) (ih $ assume x hx, h _ $ mem_insert_of_mem hx),
   by simpa only [sum_insert ha]
 end
 

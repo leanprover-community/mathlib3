@@ -235,7 +235,7 @@ abbreviation to_map (f : localization_map S N) := f.to_monoid_hom
 
 @[to_additive, ext] lemma ext {f g : localization_map S N} (h : ∀ x, f.to_map x = g.to_map x) :
   f = g :=
-by cases f; cases g; simp only []; exact funext h
+by cases f; cases g; simp only; exact funext h
 
 attribute [ext] add_submonoid.localization_map.ext
 

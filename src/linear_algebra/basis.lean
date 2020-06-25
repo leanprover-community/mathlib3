@@ -270,7 +270,7 @@ lemma linear_independent.of_subtype_range (hv : injective v)
 begin
   rw linear_independent_iff,
   intros l hl,
-  apply finsupp.injective_map_domain hv,
+  apply finsupp.map_domain_injective hv,
   apply linear_independent_subtype.1 h (l.map_domain v),
   { rw finsupp.mem_supported,
     intros x hx,
@@ -296,7 +296,7 @@ begin
     have := finset.mem_coe.2 (finsupp.map_domain_support (finset.mem_coe.1 hx)),
     rw finset.coe_image at this,
     exact subtype.val_image_subset _ _ this },
-  apply @finsupp.injective_map_domain _ (subtype s) ι,
+  apply @finsupp.map_domain_injective _ (subtype s) ι,
   { apply subtype.val_injective },
   { simpa },
 end
@@ -407,7 +407,7 @@ begin
       refine span_mono (@supr_le_supr2 (set M) _ _ _ _ _ _),
       rintros ⟨i⟩, exact ⟨i, le_refl _⟩ },
     { change finite (plift.up ⁻¹' ↑s),
-      exact finite_preimage (assume i j _ _, plift.up.inj) s.finite_to_set } }
+      exact s.finite_to_set.preimage (assume i j _ _, plift.up.inj) } }
 end
 
 lemma linear_independent_Union_finite {η : Type*} {ιs : η → Type*}
@@ -430,7 +430,7 @@ begin
       { apply disjoint_def.1 (hd x₁ {y₁} (finite_singleton y₁)
           (λ h, h_cases (eq_of_mem_singleton h))) (f x₁ x₂) (subset_span (mem_range_self _)),
         rw supr_singleton,
-        simp only [] at hxy,
+        simp only at hxy,
         rw hxy,
         exact (subset_span (mem_range_self y₂)) },
       exact false.elim ((hindep x₁).ne_zero zero_eq_one h0) } },
@@ -535,14 +535,14 @@ lemma surjective_of_linear_independent_of_span
   surjective f :=
 begin
   intros i,
-  let repr : (span R (range (v ∘ f)) : Type*) → ι' →₀ R := (hv.comp f f.inj).repr,
+  let repr : (span R (range (v ∘ f)) : Type*) → ι' →₀ R := (hv.comp f f.injective).repr,
   let l := (repr ⟨v i, hss (mem_range_self i)⟩).map_domain f,
   have h_total_l : finsupp.total ι M R v l = v i,
   { dsimp only [l],
     rw finsupp.total_map_domain,
-    rw (hv.comp f f.inj).total_repr,
+    rw (hv.comp f f.injective).total_repr,
     { refl },
-    { exact f.inj } },
+    { exact f.injective } },
   have h_total_eq : (finsupp.total ι M R v) l = (finsupp.total ι M R v) (finsupp.single i 1),
     by rw [h_total_l, finsupp.total_single, one_smul],
   have l_eq : l = _ := linear_map.ker_eq_bot.1 hv h_total_eq,
@@ -621,8 +621,8 @@ begin
   have inj_v' : injective v' := (linear_independent.injective zero_eq_one hv'),
   apply linear_independent.of_subtype_range,
   { apply sum.elim_injective,
-    { exact prod.injective_inl.comp inj_v },
-    { exact prod.injective_inr.comp inj_v' },
+    { exact prod.inl_injective.comp inj_v },
+    { exact prod.inr_injective.comp inj_v' },
     { intros, simp [hv.ne_zero zero_eq_one] } },
   { rw sum.elim_range,
     refine (hv.image _).to_subtype_range.union (hv'.image _).to_subtype_range _;
@@ -735,6 +735,9 @@ end
 lemma is_basis.injective (hv : is_basis R v) (zero_ne_one : (0 : R) ≠ 1) : injective v :=
   λ x y h, linear_independent.injective zero_ne_one hv.1 h
 
+lemma is_basis.range (hv : is_basis R v) : is_basis R (λ x, x : range v → M) :=
+⟨hv.1.to_subtype_range, by { convert hv.2, ext i, exact ⟨λ ⟨p, hp⟩, hp ▸ p.2, λ hi, ⟨⟨i, hi⟩, rfl⟩⟩ }⟩
+
 /-- Given a basis, any vector can be written as a linear combination of the basis vectors. They are
 given by this linear map. This is one direction of `module_equiv_finsupp`. -/
 def is_basis.repr : M →ₗ (ι →₀ R) :=
@@ -819,6 +822,10 @@ by rw [is_basis.constr, linear_map.range_comp, linear_map.range_comp, is_basis.r
 /-- Canonical equivalence between a module and the linear combinations of basis vectors. -/
 def module_equiv_finsupp (hv : is_basis R v) : M ≃ₗ[R] ι →₀ R :=
 (hv.1.total_equiv.trans (linear_equiv.of_top _ hv.2)).symm
+
+@[simp] theorem module_equiv_finsupp_apply_basis (hv : is_basis R v) (i : ι) :
+  module_equiv_finsupp hv (v i) = finsupp.single i 1 :=
+(linear_equiv.symm_apply_eq _).2 $ by simp [linear_independent.total_equiv]
 
 /-- Isomorphism between the two modules, given two modules `M` and `M'` with respective bases
 `v` and `v'` and a bijection between the indexing sets of the two bases. -/
@@ -1152,7 +1159,7 @@ lemma exists_finite_card_le_of_finite_of_linear_independent_of_span
   ∃h : finite s, h.to_finset.card ≤ ht.to_finset.card :=
 have s ⊆ (span K ↑(ht.to_finset) : submodule K V), by simp; assumption,
 let ⟨u, hust, hsu, eq⟩ := exists_of_linear_independent_of_finite_span hs this in
-have finite s, from finite_subset u.finite_to_set hsu,
+have finite s, from u.finite_to_set.subset hsu,
 ⟨this, by rw [←eq]; exact (finset.card_le_of_subset $ finset.coe_subset.mp $ by simp [hsu])⟩
 
 lemma linear_map.exists_left_inverse_of_injective (f : V →ₗ[K] V')

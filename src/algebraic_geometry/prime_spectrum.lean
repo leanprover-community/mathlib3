@@ -287,7 +287,7 @@ topological_space.of_closed (set.range prime_spectrum.zero_locus)
     intros Zs h,
     rw set.sInter_eq_Inter,
     let f : Zs → set R := λ i, classical.some (h i.2),
-    have hf : ∀ i : Zs, i.1 = zero_locus (f i) := λ i, (classical.some_spec (h i.2)).symm,
+    have hf : ∀ i : Zs, ↑i = zero_locus (f i) := λ i, (classical.some_spec (h i.2)).symm,
     simp only [hf],
     exact ⟨_, zero_locus_Union _⟩
   end

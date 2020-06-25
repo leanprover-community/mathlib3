@@ -40,7 +40,7 @@ theorem zip_append : ∀ {l₁ l₂ r₁ r₂ : list α} (h : length l₁ = leng
    zip (l₁ ++ r₁) (l₂ ++ r₂) = zip l₁ l₂ ++ zip r₁ r₂
 | []      l₂      r₁ r₂ h := by simp only [eq_nil_of_length_eq_zero h.symm]; refl
 | l₁      []      r₁ r₂ h := by simp only [eq_nil_of_length_eq_zero h]; refl
-| (a::l₁) (b::l₂) r₁ r₂ h := by simp only [cons_append, zip_cons_cons, zip_append (succ_inj h)];
+| (a::l₁) (b::l₂) r₁ r₂ h := by simp only [cons_append, zip_cons_cons, zip_append (succ.inj h)];
     split; refl
 
 theorem zip_map (f : α → γ) (g : β → δ) : ∀ (l₁ : list α) (l₂ : list β),

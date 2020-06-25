@@ -190,7 +190,7 @@ f.to_add_monoid_hom.eq_nat_cast f.map_one n
 (f.comp (nat.cast_ring_hom R)).eq_nat_cast n
 
 lemma ext_nat (f g : ℕ →+* R) : f = g :=
-coe_add_monoid_hom_inj $ add_monoid_hom.ext_nat $ f.map_one.trans g.map_one.symm
+coe_add_monoid_hom_injective $ add_monoid_hom.ext_nat $ f.map_one.trans g.map_one.symm
 
 end ring_hom
 
@@ -206,18 +206,19 @@ instance nat.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℕ 
 ⟨ring_hom.ext_nat⟩
 
 namespace with_top
-variables {α : Type*} [canonically_ordered_comm_semiring α] [decidable_eq α]
+variables {α : Type*}
 
-@[simp] lemma coe_nat : ∀(n : nat), ((n : α) : with_top α) = n
+variables [has_zero α] [has_one α] [has_add α]
+
+@[simp, norm_cast] lemma coe_nat : ∀(n : nat), ((n : α) : with_top α) = n
 | 0     := rfl
-| (n+1) := have (((1 : nat) : α) : with_top α) = ((1 : nat) : with_top α) := rfl,
-           by rw [nat.cast_add, coe_add, nat.cast_add, coe_nat n, this]
+| (n+1) := by { push_cast, rw [coe_nat n] }
 
 @[simp] lemma nat_ne_top (n : nat) : (n : with_top α) ≠ ⊤ :=
-by rw [←coe_nat n]; apply coe_ne_top
+by { rw [←coe_nat n], apply coe_ne_top }
 
 @[simp] lemma top_ne_nat (n : nat) : (⊤ : with_top α) ≠ n :=
-by rw [←coe_nat n]; apply top_ne_coe
+by { rw [←coe_nat n], apply top_ne_coe }
 
 lemma add_one_le_of_lt {i n : with_top ℕ} (h : i < n) : i + 1 ≤ n :=
 begin

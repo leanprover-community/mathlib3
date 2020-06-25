@@ -76,8 +76,7 @@ continuous, in `linear_map.continuous_of_finite_dimensional`. -/
 lemma continuous_equiv_fun_basis {ι : Type v} [fintype ι] (ξ : ι → E) (hξ : is_basis 𝕜 ξ) :
   continuous (equiv_fun_basis hξ) :=
 begin
-  unfreezeI,
-  induction hn : fintype.card ι with n IH generalizing ι E,
+  unfreezingI { induction hn : fintype.card ι with n IH generalizing ι E },
   { apply linear_map.continuous_of_bound _ 0 (λx, _),
     have : equiv_fun_basis hξ x = 0,
       by { ext i, exact (fintype.card_eq_zero_iff.1 hn i).elim },
@@ -115,7 +114,7 @@ begin
           simpa using Z },
         { left,
           rw [this, add_comm, nat.add_one] at Z,
-          exact nat.succ_inj Z } },
+          exact nat.succ.inj Z } },
       have : is_closed (f.ker : set E),
       { cases this,
         { exact H₁ _ this },
@@ -232,7 +231,7 @@ begin
     have B : e (e.symm y) = y := linear_equiv.apply_symm_apply _ _,
     conv_lhs { rw [← A, ← B] },
     change dist (f (e.symm x)) (f (e.symm y)) ≤ ∥f∥ * dist (e.symm x) (e.symm y),
-    exact f.lipschitz.dist_le_mul _ _ }
+    unfreezingI { exact f.lipschitz.dist_le_mul _ _ } }
 end
 
 end proper_field

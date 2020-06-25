@@ -205,7 +205,7 @@ begin
     { exact nat.add_sub_cancel' (nat_degree_le_of_degree_le hpdeg) },
     refine ⟨p * X ^ (n - nat_degree p), ⟨_, I.mul_mem_right hpI⟩, _⟩,
     { apply le_trans (degree_mul_le _ _) _,
-      apply le_trans (add_le_add' (degree_le_nat_degree) (degree_X_pow_le _)) _,
+      apply le_trans (add_le_add (degree_le_nat_degree) (degree_X_pow_le _)) _,
       rw [← with_bot.coe_add, this],
       exact le_refl _ },
     { rw [leading_coeff, ← coeff_mul_X_pow p (n - nat_degree p), this] } }
@@ -227,7 +227,7 @@ begin
   rcases hr with ⟨p, hpI, hpdeg, rfl⟩,
   refine ⟨p * X ^ (n - m), I.mul_mem_right hpI, _, leading_coeff_mul_X_pow⟩,
   refine le_trans (degree_mul_le _ _) _,
-  refine le_trans (add_le_add' hpdeg (degree_X_pow_le _)) _,
+  refine le_trans (add_le_add hpdeg (degree_X_pow_le _)) _,
   rw [← with_bot.coe_add, nat.add_sub_cancel' H],
   exact le_refl _
 end
@@ -383,7 +383,7 @@ begin
   obtain ⟨t, q, rfl⟩ := exists_finset_rename q,
   have : p.rename (subtype.map id (finset.subset_union_left s t) : {x // x ∈ s} → {x // x ∈ s ∪ t}) *
     q.rename (subtype.map id (finset.subset_union_right s t)) = 0,
-  { apply injective_rename _ subtype.val_injective, simpa using h },
+  { apply rename_injective _ subtype.val_injective, simpa using h },
   letI := mv_polynomial.integral_domain_fintype R {x // x ∈ (s ∪ t)},
   rw mul_eq_zero at this,
   cases this; [left, right],

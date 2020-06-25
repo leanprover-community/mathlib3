@@ -190,18 +190,18 @@ instance : linear_ordered_semiring ℝ≥0 :=
   .. nnreal.canonically_ordered_add_monoid,
   .. nnreal.comm_semiring }
 
-instance : canonically_ordered_comm_semiring ℝ≥0 :=
-{ zero_ne_one     := assume h, zero_ne_one $ congr_arg subtype.val $ h,
-  mul_eq_zero_iff := assume a b, nnreal.eq_iff.symm.trans $ mul_eq_zero.trans $ by simp,
-  .. nnreal.linear_ordered_semiring,
-  .. nnreal.canonically_ordered_add_monoid,
-  .. nnreal.comm_semiring }
-
 instance : linear_ordered_comm_group_with_zero ℝ≥0 :=
 { mul_le_mul_left := assume a b h c, mul_le_mul (le_refl c) h (zero_le a) (zero_le c),
   zero_le_one := zero_le 1,
   .. nnreal.linear_ordered_semiring,
   .. nnreal.comm_group_with_zero }
+
+instance : canonically_ordered_comm_semiring ℝ≥0 :=
+{ .. nnreal.linear_ordered_semiring,
+  .. nnreal.canonically_ordered_add_monoid,
+  .. nnreal.comm_semiring,
+  .. (show no_zero_divisors ℝ≥0, by apply_instance),
+  .. (show nonzero ℝ≥0, by apply_instance) }
 
 instance : densely_ordered ℝ≥0 :=
 ⟨assume a b (h : (a : ℝ) < b), let ⟨c, hac, hcb⟩ := dense h in
@@ -391,7 +391,7 @@ begin
 end
 
 @[field_simps] theorem mul_ne_zero' {a b : nnreal} (h₁ : a ≠ 0) (h₂ : b ≠ 0) : a * b ≠ 0 :=
-mul_ne_zero'' h₁ h₂
+mul_ne_zero h₁ h₂
 
 end mul
 

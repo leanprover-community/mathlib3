@@ -159,7 +159,7 @@ protected lemma padic_int.eq_zero_or_eq_zero_of_mul_eq_zero :
           ∀ (a b : ℤ_[p]), a * b = 0 → a = 0 ∨ b = 0
 | ⟨a, ha⟩ ⟨b, hb⟩ := λ h : (⟨a * b, _⟩ : ℤ_[p]) = ⟨0, _⟩,
 have a * b = 0, from subtype.ext.1 h,
-(mul_eq_zero_iff_eq_zero_or_eq_zero.1 this).elim
+(mul_eq_zero.1 this).elim
   (λ h1, or.inl (by simp [h1]; refl))
   (λ h2, or.inr (by simp [h2]; refl))
 

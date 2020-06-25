@@ -485,7 +485,7 @@ open finite_dimensional
 lemma surjective_of_injective [finite_dimensional K V] {f : V →ₗ[K] V}
   (hinj : injective f) : surjective f :=
 begin
-  have h := dim_eq_injective _ hinj,
+  have h := dim_eq_of_injective _ hinj,
   rw [← findim_eq_dim, ← findim_eq_dim, nat_cast_inj] at h,
   exact range_eq_top.1 (eq_top_of_findim_eq h.symm)
 end

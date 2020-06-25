@@ -684,8 +684,8 @@ lemma symm_to_equiv {α β} [measurable_space α] [measurable_space β] (e : mea
 protected def cast {α β} [i₁ : measurable_space α] [i₂ : measurable_space β]
   (h : α = β) (hi : i₁ == i₂) : measurable_equiv α β :=
 { to_equiv := equiv.cast h,
-  measurable_to_fun  := by unfreezeI; subst h; subst hi; exact measurable_id,
-  measurable_inv_fun := by unfreezeI; subst h; subst hi; exact measurable_id }
+  measurable_to_fun  := by substI h; substI hi; exact measurable_id,
+  measurable_inv_fun := by substI h; substI hi; exact measurable_id }
 
 protected lemma measurable {α β} [measurable_space α] [measurable_space β]
   (e : measurable_equiv α β) : measurable (e : α → β) :=

@@ -110,7 +110,7 @@ end comm_ring
 variables [field K] {f : polynomial K} [irreducible f]
 
 instance is_maximal_span : is_maximal (span {f} : ideal (polynomial K)) :=
-principal_ideal_domain.is_maximal_of_irreducible ‹irreducible f›
+principal_ideal_ring.is_maximal_of_irreducible ‹irreducible f›
 
 noncomputable instance field : field (adjoin_root f) :=
 ideal.quotient.field (span {f} : ideal (polynomial K))

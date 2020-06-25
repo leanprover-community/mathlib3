@@ -521,6 +521,10 @@ begin
     exact subtype.eq (H x.2 y.2) }
 end
 
+/-- A `finset` of a subsingleton type has cardinality at most one. -/
+lemma finset.card_le_one_of_subsingleton [subsingleton α] (s : finset α) : s.card ≤ 1 :=
+finset.card_le_one_iff.2 $ λ _ _ _ _, subsingleton.elim _ _
+
 lemma finset.one_lt_card_iff {s : finset α} :
   1 < s.card ↔ ∃ x y, (x ∈ s) ∧ (y ∈ s) ∧ x ≠ y :=
 begin
@@ -1011,4 +1015,4 @@ instance nat.infinite : infinite ℕ :=
 ⟨λ ⟨s, hs⟩, finset.not_mem_range_self $ s.subset_range_sup_succ (hs _)⟩
 
 instance int.infinite : infinite ℤ :=
-infinite.of_injective int.of_nat (λ _ _, int.of_nat_inj)
+infinite.of_injective int.of_nat (λ _ _, int.of_nat.inj)

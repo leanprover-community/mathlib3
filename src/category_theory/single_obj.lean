@@ -148,6 +148,6 @@ instance to_Cat_full : full to_Cat :=
   witness' := λ x y, by apply equiv.right_inv }
 
 instance to_Cat_faithful : faithful to_Cat :=
-{ injectivity' := λ x y, by apply equiv.injective }
+{ map_injective' := λ x y, by apply equiv.injective }
 
 end Mon

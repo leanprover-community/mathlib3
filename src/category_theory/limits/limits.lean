@@ -105,14 +105,13 @@ mk_cone_morphism
 The cone points of two limit cones for naturally isomorphic functors
 are themselves isomorphic.
 -/
+@[simps]
 def cone_points_iso_of_nat_iso {F G : J ⥤ C} {s : cone F} {t : cone G}
   (P : is_limit s) (Q : is_limit t) (w : F ≅ G) : s.X ≅ t.X :=
-begin
-  let s' := (cones.postcompose_equivalence w).functor.obj s,
-  have P' : is_limit s' := of_cone_equiv _ P,
-  change s'.X ≅ t.X,
-  exact cone_point_unique_up_to_iso P' Q,
-end
+{ hom := Q.lift ((limits.cones.postcompose w.hom).obj s),
+  inv := P.lift ((limits.cones.postcompose w.inv).obj t),
+  hom_inv_id' := by { apply hom_ext P, tidy, },
+  inv_hom_id' := by { apply hom_ext Q, tidy, }, }
 
 section equivalence
 open category_theory.equivalence
@@ -134,14 +133,22 @@ This is the most general form of uniqueness of cone points,
 allowing relabelling of both the indexing category (up to equivalence)
 and the functor (up to natural isomorphism).
 -/
+@[simps]
 def cone_points_iso_of_equivalence {F : J ⥤ C} {s : cone F} {G : K ⥤ C} {t : cone G}
   (P : is_limit s) (Q : is_limit t) (e : J ≌ K) (w : e.functor ⋙ G ≅ F) : s.X ≅ t.X :=
-begin
-  let t' := (cones.equivalence_of_reindexing e w).functor.obj t,
-  have Q' : is_limit t' := of_cone_equiv _ Q,
-  change s.X ≅ t'.X,
-  exact cone_point_unique_up_to_iso P Q',
-end
+let w' : e.inverse ⋙ F ≅ G := (iso_whisker_left e.inverse w).symm ≪≫ inv_fun_id_assoc e G in
+{ hom := Q.lift ((cones.equivalence_of_reindexing e.symm w').functor.obj s),
+  inv := P.lift ((cones.equivalence_of_reindexing e w).functor.obj t),
+  hom_inv_id' :=
+  begin
+    apply hom_ext P, intros j,
+    dsimp,
+    simp only [limits.cone.whisker_π, limits.cones.postcompose_obj_π, fac, whisker_left_app,
+      assoc, id_comp, inv_fun_id_assoc_hom_app, fac_assoc, nat_trans.comp_app],
+    rw [counit_functor, ←functor.comp_map, w.hom.naturality],
+    simp,
+  end,
+  inv_hom_id' := by { apply hom_ext Q, tidy, }, }
 
 end equivalence
 
@@ -181,9 +188,9 @@ def of_faithful {t : cone F} {D : Type u'} [category.{v} D] (G : C ⥤ D) [faith
   (ht : is_limit (G.map_cone t)) (lift : Π (s : cone F), s.X ⟶ t.X)
   (h : ∀ s, G.map (lift s) = ht.lift (G.map_cone s)) : is_limit t :=
 { lift := lift,
-  fac' := λ s j, by apply G.injectivity; rw [G.map_comp, h]; apply ht.fac,
+  fac' := λ s j, by apply G.map_injective; rw [G.map_comp, h]; apply ht.fac,
   uniq' := λ s m w, begin
-    apply G.injectivity, rw h,
+    apply G.map_injective, rw h,
     refine ht.uniq (G.map_cone s) _ (λ j, _),
     convert ←congr_arg (λ f, G.map f) (w j),
     apply G.map_comp
@@ -319,7 +326,7 @@ structure is_colimit (t : cocone F) :=
   m = desc s . obviously)
 
 restate_axiom is_colimit.fac'
-attribute [simp] is_colimit.fac
+attribute [simp,reassoc] is_colimit.fac
 restate_axiom is_colimit.uniq'
 
 namespace is_colimit
@@ -397,14 +404,13 @@ mk_cocone_morphism
 The cocone points of two colimit cocones for naturally isomorphic functors
 are themselves isomorphic.
 -/
+@[simps]
 def cocone_points_iso_of_nat_iso {F G : J ⥤ C} {s : cocone F} {t : cocone G}
   (P : is_colimit s) (Q : is_colimit t) (w : F ≅ G) : s.X ≅ t.X :=
-begin
-  let s' := (cocones.precompose_equivalence w).inverse.obj s,
-  have P' : is_colimit s' := of_cocone_equiv _ P,
-  change s'.X ≅ t.X,
-  exact cocone_point_unique_up_to_iso P' Q,
-end
+{ hom := P.desc ((limits.cocones.precompose w.hom).obj t),
+  inv := Q.desc ((limits.cocones.precompose w.inv).obj s),
+  hom_inv_id' := by { apply hom_ext P, tidy, },
+  inv_hom_id' := by { apply hom_ext Q, tidy, }, }
 
 section equivalence
 open category_theory.equivalence
@@ -426,14 +432,23 @@ This is the most general form of uniqueness of cocone points,
 allowing relabelling of both the indexing category (up to equivalence)
 and the functor (up to natural isomorphism).
 -/
+@[simps]
 def cocone_points_iso_of_equivalence {F : J ⥤ C} {s : cocone F} {G : K ⥤ C} {t : cocone G}
   (P : is_colimit s) (Q : is_colimit t) (e : J ≌ K) (w : e.functor ⋙ G ≅ F) : s.X ≅ t.X :=
-begin
-  let t' := (cocones.equivalence_of_reindexing e w).functor.obj t,
-  have Q' : is_colimit t' := of_cocone_equiv _ Q,
-  change s.X ≅ t'.X,
-  exact cocone_point_unique_up_to_iso P Q',
-end
+let w' : e.inverse ⋙ F ≅ G := (iso_whisker_left e.inverse w).symm ≪≫ inv_fun_id_assoc e G in
+{ hom := P.desc ((cocones.equivalence_of_reindexing e w).functor.obj t),
+  inv := Q.desc ((cocones.equivalence_of_reindexing e.symm w').functor.obj s),
+  hom_inv_id' :=
+  begin
+    apply hom_ext P, intros j,
+    dsimp,
+    simp only [limits.cocone.whisker_ι, fac, inv_fun_id_assoc_inv_app, whisker_left_app, assoc,
+      comp_id, limits.cocones.precompose_obj_ι, fac_assoc, nat_trans.comp_app],
+    rw [←functor_unit, ←functor.comp_map, ←w.inv.naturality_assoc],
+    dsimp,
+    simp,
+  end,
+  inv_hom_id' := by { apply hom_ext Q, tidy, }, }
 
 end equivalence
 
@@ -473,9 +488,9 @@ def of_faithful {t : cocone F} {D : Type u'} [category.{v} D] (G : C ⥤ D) [fai
   (ht : is_colimit (G.map_cocone t)) (desc : Π (s : cocone F), t.X ⟶ s.X)
   (h : ∀ s, G.map (desc s) = ht.desc (G.map_cocone s)) : is_colimit t :=
 { desc := desc,
-  fac' := λ s j, by apply G.injectivity; rw [G.map_comp, h]; apply ht.fac,
+  fac' := λ s j, by apply G.map_injective; rw [G.map_comp, h]; apply ht.fac,
   uniq' := λ s m w, begin
-    apply G.injectivity, rw h,
+    apply G.map_injective, rw h,
     refine ht.uniq (G.map_cocone s) _ (λ j, _),
     convert ←congr_arg (λ f, G.map f) (w j),
     apply G.map_comp
@@ -709,17 +724,34 @@ def has_limit.of_cones_iso {J K : Type v} [small_category J] [small_category K] 
 The chosen limits of `F : J ⥤ C` and `G : J ⥤ C` are isomorphic,
 if the functors are naturally isomorphic.
 -/
-def has_limit.ext_of_nat_iso {F G : J ⥤ C} [has_limit F] [has_limit G] (w : F ≅ G) :
+def has_limit.iso_of_nat_iso {F G : J ⥤ C} [has_limit F] [has_limit G] (w : F ≅ G) :
   limit F ≅ limit G :=
 is_limit.cone_points_iso_of_nat_iso (limit.is_limit F) (limit.is_limit G) w
+
+@[simp]
+lemma has_limit.iso_of_nat_iso_hom_π {F G : J ⥤ C} [has_limit F] [has_limit G]
+  (w : F ≅ G) (j : J) :
+  (has_limit.iso_of_nat_iso w).hom ≫ limit.π G j = limit.π F j ≫ w.hom.app j :=
+by simp [has_limit.iso_of_nat_iso, is_limit.cone_points_iso_of_nat_iso_hom]
 
 /--
 The chosen limits of `F : J ⥤ C` and `G : K ⥤ C` are isomorphic,
 if there is an equivalence `e : J ≌ K` making the triangle commute up to natural isomorphism.
 -/
-def has_limit.ext_of_equivalence {F : J ⥤ C} [has_limit F] {G : K ⥤ C} [has_limit G]
+def has_limit.iso_of_equivalence {F : J ⥤ C} [has_limit F] {G : K ⥤ C} [has_limit G]
    (e : J ≌ K) (w : e.functor ⋙ G ≅ F) : limit F ≅ limit G :=
 is_limit.cone_points_iso_of_equivalence (limit.is_limit F) (limit.is_limit G) e w
+
+@[simp]
+lemma has_limit.iso_of_equivalence_π {F : J ⥤ C} [has_limit F] {G : K ⥤ C} [has_limit G]
+   (e : J ≌ K) (w : e.functor ⋙ G ≅ F) (k : K) :
+  (has_limit.iso_of_equivalence e w).hom ≫ limit.π G k =
+    limit.π F (e.inverse.obj k) ≫ w.inv.app (e.inverse.obj k) ≫ G.map (e.counit.app k) :=
+begin
+  simp [has_limit.iso_of_equivalence, is_limit.cone_points_iso_of_equivalence_hom],
+  dsimp,
+  simp,
+end
 
 section pre
 variables (F) [has_limit F] (E : K ⥤ J) [has_limit (E ⋙ F)]
@@ -812,19 +844,37 @@ end
 
 section lim_functor
 
+/--
+Functoriality of limits.
+
+Usually this morphism should be accessed through `lim.map`,
+but may be needed separately when you have specified limits for the source and target functors,
+but not necessarily for all functors of shape `J`.
+-/
+def lim_map {F G : J ⥤ C} [has_limit F] [has_limit G] (α : F ⟶ G) : limit F ⟶ limit G :=
+limit.lift G
+  { X := limit F,
+    π :=
+    { app := λ j, limit.π F j ≫ α.app j,
+      naturality' := λ j j' f,
+        by erw [id_comp, assoc, ←α.naturality, ←assoc, limit.w] } }
+
+@[simp, reassoc] lemma lim_map_π {F G : J ⥤ C} [has_limit F] [has_limit G] (α : F ⟶ G) (j : J) :
+  lim_map α ≫ limit.π G j = limit.π F j ≫ α.app j :=
+by apply is_limit.fac
+
 variables [has_limits_of_shape J C]
+
+section
+local attribute [simp] lim_map
 
 /-- `limit F` is functorial in `F`, when `C` has all limits of shape `J`. -/
 def lim : (J ⥤ C) ⥤ C :=
 { obj := λ F, limit F,
-  map := λ F G α, limit.lift G
-    { X := limit F,
-      π :=
-      { app := λ j, limit.π F j ≫ α.app j,
-        naturality' := λ j j' f,
-          by erw [id_comp, assoc, ←α.naturality, ←assoc, limit.w] } },
+  map := λ F G α, lim_map α,
   map_comp' := λ F G H α β,
     by ext; erw [assoc, is_limit.fac, is_limit.fac, ←assoc, is_limit.fac, assoc]; refl }
+end
 
 variables {F} {G : J ⥤ C} (α : F ⟶ G)
 
@@ -1028,17 +1078,34 @@ def has_colimit.of_cocones_iso {J K : Type v} [small_category J] [small_category
 The chosen colimits of `F : J ⥤ C` and `G : J ⥤ C` are isomorphic,
 if the functors are naturally isomorphic.
 -/
-def has_colimit.ext_of_nat_iso {F G : J ⥤ C} [has_colimit F] [has_colimit G] (w : F ≅ G) :
+def has_colimit.iso_of_nat_iso {F G : J ⥤ C} [has_colimit F] [has_colimit G] (w : F ≅ G) :
   colimit F ≅ colimit G :=
 is_colimit.cocone_points_iso_of_nat_iso (colimit.is_colimit F) (colimit.is_colimit G) w
+
+@[simp]
+lemma has_colimit.iso_of_nat_iso_hom_π {F G : J ⥤ C} [has_colimit F] [has_colimit G]
+  (w : F ≅ G) (j : J) :
+  colimit.ι F j ≫ (has_colimit.iso_of_nat_iso w).hom = w.hom.app j ≫ colimit.ι G j :=
+by simp [has_colimit.iso_of_nat_iso, is_colimit.cocone_points_iso_of_nat_iso_inv]
 
 /--
 The chosen colimits of `F : J ⥤ C` and `G : K ⥤ C` are isomorphic,
 if there is an equivalence `e : J ≌ K` making the triangle commute up to natural isomorphism.
 -/
-def has_colimit.ext_of_equivalence {F : J ⥤ C} [has_colimit F] {G : K ⥤ C} [has_colimit G]
+def has_colimit.iso_of_equivalence {F : J ⥤ C} [has_colimit F] {G : K ⥤ C} [has_colimit G]
    (e : J ≌ K) (w : e.functor ⋙ G ≅ F) : colimit F ≅ colimit G :=
 is_colimit.cocone_points_iso_of_equivalence (colimit.is_colimit F) (colimit.is_colimit G) e w
+
+@[simp]
+lemma has_colimit.iso_of_equivalence_π {F : J ⥤ C} [has_colimit F] {G : K ⥤ C} [has_colimit G]
+   (e : J ≌ K) (w : e.functor ⋙ G ≅ F) (j : J) :
+  colimit.ι F j ≫ (has_colimit.iso_of_equivalence e w).hom =
+     F.map (e.unit.app j) ≫ w.inv.app _ ≫ colimit.ι G _ :=
+begin
+  simp [has_colimit.iso_of_equivalence, is_colimit.cocone_points_iso_of_equivalence_inv],
+  dsimp,
+  simp,
+end
 
 section pre
 variables (F) [has_colimit F] (E : K ⥤ J) [has_colimit (E ⋙ F)]
@@ -1140,19 +1207,39 @@ end
 
 section colim_functor
 
+/--
+Functoriality of colimits.
+
+Usually this morphism should be accessed through `colim.map`,
+but may be needed separately when you have specified colimits for the source and target functors,
+but not necessarily for all functors of shape `J`.
+-/
+def colim_map {F G : J ⥤ C} [has_colimit F] [has_colimit G] (α : F ⟶ G) : colimit F ⟶ colimit G :=
+colimit.desc F
+  { X := colimit G,
+    ι :=
+    { app := λ j, α.app j ≫ colimit.ι G j,
+      naturality' := λ j j' f,
+        by erw [comp_id, ←assoc, α.naturality, assoc, colimit.w] } }
+
+@[simp, reassoc]
+lemma ι_colim_map {F G : J ⥤ C} [has_colimit F] [has_colimit G] (α : F ⟶ G) (j : J) :
+  colimit.ι F j ≫ colim_map α = α.app j ≫ colimit.ι G j :=
+by apply is_colimit.fac
+
 variables [has_colimits_of_shape J C]
+
+section
+local attribute [simp] colim_map
 
 /-- `colimit F` is functorial in `F`, when `C` has all colimits of shape `J`. -/
 def colim : (J ⥤ C) ⥤ C :=
 { obj := λ F, colimit F,
-  map := λ F G α, colimit.desc F
-    { X := colimit G,
-      ι :=
-      { app := λ j, α.app j ≫ colimit.ι G j,
-        naturality' := λ j j' f,
-          by erw [comp_id, ←assoc, α.naturality, assoc, colimit.w] } },
+  map := λ F G α, colim_map α,
   map_comp' := λ F G H α β,
     by ext; erw [←assoc, is_colimit.fac, is_colimit.fac, assoc, is_colimit.fac, ←assoc]; refl }
+
+end
 
 variables {F} {G : J ⥤ C} (α : F ⟶ G)
 

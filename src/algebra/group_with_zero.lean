@@ -247,32 +247,18 @@ lemma is_unit.mk0 (x : G₀) (hx : x ≠ 0) : is_unit x := is_unit_unit (units.m
 lemma is_unit_iff_ne_zero {x : G₀} : is_unit x ↔ x ≠ 0 :=
 ⟨λ ⟨u, hu⟩, hu ▸ λ h : u.1 = 0, by simpa [h, zero_ne_one] using u.3, is_unit.mk0 x⟩
 
-lemma mul_eq_zero' (a b : G₀) (h : a * b = 0) : a = 0 ∨ b = 0 :=
-begin
-  classical, contrapose! h,
-  exact unit_ne_zero ((units.mk0 a h.1) * (units.mk0 b h.2))
-end
-
 section prio
 set_option default_priority 10 -- see Note [default priority]
 
 instance group_with_zero.no_zero_divisors : no_zero_divisors G₀ :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := mul_eq_zero',
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h,
+    begin
+      classical, contrapose! h,
+      exact unit_ne_zero ((units.mk0 a h.1) * (units.mk0 b h.2))
+    end,
   .. (‹_› : group_with_zero G₀) }
 
 end prio
-
-@[simp] lemma mul_eq_zero_iff' {a b : G₀} : a * b = 0 ↔ a = 0 ∨ b = 0 :=
-⟨mul_eq_zero' a b, by rintro (H|H); simp [H]⟩
-
-lemma mul_ne_zero'' {a b : G₀} (ha : a ≠ 0) (hb : b ≠ 0) : a * b ≠ 0 :=
-begin
-  assume ab0, rw mul_eq_zero_iff' at ab0,
-  cases ab0; contradiction
-end
-
-lemma mul_ne_zero_iff {a b : G₀} : a * b ≠ 0 ↔ a ≠ 0 ∧ b ≠ 0 :=
-by { classical, rw ← not_iff_not, push_neg, exact mul_eq_zero_iff' }
 
 lemma mul_left_cancel' {x : G₀} (hx : x ≠ 0) {y z : G₀} (h : x * y = x * z) : y = z :=
 calc y = x⁻¹ * (x * y) : by rw inv_mul_cancel_assoc_right _ _ hx
@@ -345,9 +331,6 @@ assume : 1 / a = 0,
 have 0 = (1:G₀), from eq.symm (by rw [← mul_one_div_cancel h, this, mul_zero]),
 absurd this zero_ne_one
 
-lemma mul_ne_zero_comm'' {a b : G₀} (h : a * b ≠ 0) : b * a ≠ 0 :=
-by { rw mul_ne_zero_iff at h ⊢, rwa and_comm }
-
 lemma eq_one_div_of_mul_eq_one' {a b : G₀} (h : a * b = 1) : b = 1 / a :=
 have a ≠ 0, from
    assume : a = 0,
@@ -399,14 +382,13 @@ lemma inv_div_left : a⁻¹ / b = (b * a)⁻¹ :=
 (mul_inv_rev' _ _).symm
 
 lemma div_ne_zero (ha : a ≠ 0) (hb : b ≠ 0) : a / b ≠ 0 :=
-mul_ne_zero'' ha (inv_ne_zero hb)
+mul_ne_zero ha (inv_ne_zero hb)
 
-lemma div_ne_zero_iff (hb : b ≠ 0) : a / b ≠ 0 ↔ a ≠ 0 :=
-⟨mt (λ h, by rw [h, zero_div]), λ ha, div_ne_zero ha hb⟩
+lemma div_eq_zero_iff : a / b = 0 ↔ a = 0 ∨ b = 0:=
+by simp [div_eq_mul_inv]
 
-lemma div_eq_zero_iff (hb : b ≠ 0) : a / b = 0 ↔ a = 0 :=
-by haveI := classical.prop_decidable; exact
-not_iff_not.1 (div_ne_zero_iff hb)
+lemma div_ne_zero_iff : a / b ≠ 0 ↔ a ≠ 0 ∧ b ≠ 0 :=
+(not_congr div_eq_zero_iff).trans not_or_distrib
 
 lemma div_left_inj' (hc : c ≠ 0) : a / c = b / c ↔ a = b :=
 by rw [← divp_mk0 _ hc, ← divp_mk0 _ hc, divp_left_inj]
@@ -544,7 +526,7 @@ by rw [← mul_div_assoc, div_mul_cancel _ hc]
 
 @[field_simps] lemma div_eq_div_iff (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = c * b :=
 calc a / b = c / d ↔ a / b * (b * d) = c / d * (b * d) :
-by rw [mul_left_inj' (mul_ne_zero'' hb hd)]
+by rw [mul_left_inj' (mul_ne_zero hb hd)]
                ... ↔ a * d = c * b :
 by rw [← mul_assoc, div_mul_cancel _ hb,
       ← mul_assoc, mul_right_comm, div_mul_cancel _ hd]
@@ -579,9 +561,9 @@ begin
   { simp only [ha, zero_left] },
   by_cases hx : x = 0,
   { subst x,
-    simp only [semiconj_by, mul_zero, @eq_comm _ _ (y * a), mul_eq_zero_iff'] at h,
+    simp only [semiconj_by, mul_zero, @eq_comm _ _ (y * a), mul_eq_zero] at h,
     simp [h.resolve_right ha] },
-  { have := mul_ne_zero'' ha hx,
+  { have := mul_ne_zero ha hx,
     rw [h.eq, mul_ne_zero_iff] at this,
     exact @units_inv_right _ _ _ (units.mk0 x hx) (units.mk0 y this.1) h },
 end

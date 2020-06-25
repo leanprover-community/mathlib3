@@ -62,7 +62,7 @@ lemma answer_tactic : q.H → q.1 = n ∧ q.2 = y :=
 begin
   rcases q with ⟨_|_,_|_⟩,
   simp [H], simp [D1], simp [D2],
-  simp[H], simp [D1], simp [D2],
+  simp [H], simp [D1], simp [D2],
   simp [H], 
   simp [H], simp [D1], simp [D2], 
   done

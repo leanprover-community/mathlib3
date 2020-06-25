@@ -1429,10 +1429,10 @@ begin
   rintro rfl, refl
 end
 
-theorem preimage_inter_range {f : α → β} {s : set β} : f ⁻¹' (s ∩ range f) = f ⁻¹' s :=
+@[simp] theorem preimage_inter_range {f : α → β} {s : set β} : f ⁻¹' (s ∩ range f) = f ⁻¹' s :=
 set.ext $ λ x, and_iff_left ⟨x, rfl⟩
 
-theorem preimage_range_inter {f : α → β} {s : set β} : f ⁻¹' (range f ∩ s) = f ⁻¹' s :=
+@[simp] theorem preimage_range_inter {f : α → β} {s : set β} : f ⁻¹' (range f ∩ s) = f ⁻¹' s :=
 by rw [inter_comm, preimage_inter_range]
 
 theorem preimage_image_preimage {f : α → β} {s : set β} :

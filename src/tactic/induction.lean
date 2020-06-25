@@ -913,41 +913,44 @@ meta def decompose_structure_equation (h : parse ident) : tactic unit := do
 end interactive
 
 meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr)
-  : tactic (expr × ℕ × name_set) := do
+  : tactic (expr × ℕ × list name × name_set) := do
   let ⟨locals, nonlocals⟩ :=
     index_args.partition (λ arg : expr, arg.is_local_constant),
 
   -- If there aren't any complex index arguments, we don't need to do anything.
-  (_ :: _) ← pure nonlocals | pure (eliminee, 0, mk_name_set),
+  (_ :: _) ← pure nonlocals | pure (eliminee, 0, [], mk_name_set),
 
   -- Revert the eliminee (and any hypotheses depending on it).
   num_reverted_eliminee ← revert eliminee,
 
   -- Revert any hypotheses depending on one of the complex index arguments
   (num_reverted_args : ℕ) ← list.sum <$> nonlocals.mmap revert_kdependencies,
+  -- TODO is revert_kdependencies broken with local defs?
 
   -- Generate fresh names for the index variables and equations
   generalizes_args ← nonlocals.mmap $ λ arg, do {
-    -- TODO better names
-    arg_name ← get_unused_name `index,
-    eq_name ← get_unused_name $ arg_name ++ "eq",
-    pure (arg_name, some eq_name, arg)
+    -- TODO better names?
+    pure (`index, some `index_eq, arg)
   },
 
   -- Generalise the complex index arguments
   index_vars_eqs ← generalizes_intro generalizes_args,
 
   -- Every second hypothesis introduced by `generalizes` is an index equation.
-  -- (The other introduced hypotheses are the index variables.)
-  let index_equation_names :=
-    index_vars_eqs.foldr_with_index
-      (λ i x xs, if i % 2 = 0 then xs else x.local_pp_name :: xs) [],
+  -- The other introduced hypotheses are the index variables.
+  let ⟨index_vars, index_equations⟩ :=
+    @list.foldr_with_index expr (list name × list name)
+      (λ i (h : expr) ⟨vars, eqs⟩,
+        let n := h.local_pp_name in
+        if i % 2 = 0 then (n :: vars, eqs) else (vars, n :: eqs))
+      ([], [])
+      index_vars_eqs,
 
   -- Decompose the index equations equating elements of structures.
-  -- NOTE: Each step in the following loop may change the unique names of
-  -- hypotheses in the context, so we go by pretty names. We made sure above
-  -- that these are unique.
-  fields ← index_equation_names.mmap $ λ eq, do {
+  -- Note: Each step in the following loop may change the unique names of
+  -- hypotheses in the context, so we go by pretty names. `generalizes_intro`
+  -- and decompose_structure_equation_hyp make sure that these are unique.
+  fields ← index_equations.mmap $ λ eq, do {
     eq ← get_local eq,
     decompose_structure_equation_hyp eq
   },
@@ -961,10 +964,10 @@ meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr
   eliminee ← intro1,
 
   -- Re-revert the index equations
-  index_var_equations ← index_equation_names.mmap get_local,
+  index_var_equations ← index_equations.mmap get_local,
   revert_lst index_var_equations,
 
-  pure (eliminee, nonlocals.length, fields)
+  pure (eliminee, nonlocals.length, index_vars, fields)
 
 meta def replace' (h : expr) (x : expr) (t : option expr := none) : tactic expr := do
   h' ← note h.local_pp_name t x,
@@ -1290,7 +1293,7 @@ focus1 $ do
   -- (`environment.is_ginductive` doesn't seem to work.)
 
   -- Generalise complex indices
-  (eliminee, num_index_vars, structure_field_names) ←
+  (eliminee, num_index_vars, index_var_names, structure_field_names) ←
     generalize_complex_index_args eliminee (eliminee_args.drop iinfo.num_params),
 
   -- Generalise all generalisable hypotheses except those mentioned in a "fixing"
@@ -1375,6 +1378,10 @@ focus1 $ do
       -- induction hypotheses, so we have to locate them again. Their pretty
       -- names should be unique in the context, so we can use these.
       ihs.mmap' (get_local >=> simplify_ih num_generalized num_index_vars),
+
+      -- Try to clear the index variables. These often become unused during
+      -- the index equation simplification step.
+      index_var_names.mmap $ λ h, try $ do { h ← get_local h, clear h},
 
       -- Return the constructor name and the new hypotheses.
       -- (The previously generalised hypotheses don't count as new.)

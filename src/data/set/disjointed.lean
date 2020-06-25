@@ -17,6 +17,10 @@ variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
 /-- A relation `p` holds pairwise if `p i j` for all `i ≠ j`. -/
 def pairwise {α : Type*} (p : α → α → Prop) := ∀i j, i ≠ j → p i j
 
+theorem set.pairwise_on_univ {r : α → α → Prop} :
+  (univ : set α).pairwise_on r ↔ pairwise r :=
+by simp only [pairwise_on, pairwise, mem_univ, forall_const]
+
 theorem set.pairwise_on.on_injective {s : set α} {r : α → α → Prop} (hs : pairwise_on s r)
   {f : β → α} (hf : function.injective f) (hfs : ∀ x, f x ∈ s) :
   pairwise (r on f) :=
@@ -34,6 +38,9 @@ pairwise_on_bool $ λ _ _, disjoint.symm
 theorem pairwise.pairwise_on {p : α → α → Prop} (h : pairwise p) (s : set α) : s.pairwise_on p :=
 λ x hx y hy, h x y
 
+theorem pairwise_disjoint_fiber (f : α → β) : pairwise (disjoint on (λ y : β, f ⁻¹' {y})) :=
+set.pairwise_on_univ.1 $ pairwise_on_disjoint_fiber f univ
+
 namespace set
 
 /-- If `f : ℕ → set α` is a sequence of sets, then `disjointed f` is
@@ -50,10 +57,7 @@ end
 
 lemma disjoint_disjointed' {f : ℕ → set α} :
   ∀ i j, i ≠ j → (disjointed f i) ∩ (disjointed f j) = ∅ :=
-begin
-  assume i j hij, have := @disjoint_disjointed _ f i j hij,
-  rw [function.on_fun, disjoint_iff] at this, exact this
-end
+λ i j hij, disjoint_iff.1 $ disjoint_disjointed i j hij
 
 lemma disjointed_subset {f : ℕ → set α} {n : ℕ} : disjointed f n ⊆ f n := inter_subset_left _ _
 

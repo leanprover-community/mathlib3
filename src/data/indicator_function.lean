@@ -46,6 +46,8 @@ lemma indicator_apply (s : set α) (f : α → β) (a : α) :
 
 @[simp] lemma indicator_of_not_mem (h : a ∉ s) (f : α → β) : indicator s f a = 0 := if_neg h
 
+lemma eq_on_indicator : eq_on (indicator s f) f s := λ x hx, indicator_of_mem hx f
+
 lemma support_indicator : function.support (s.indicator f) ⊆ s :=
 λ x hx, hx.imp_symm (λ h, indicator_of_not_mem h f)
 
@@ -80,6 +82,15 @@ end
 lemma indicator_preimage (s : set α) (f : α → β) (B : set β) :
   (indicator s f)⁻¹' B = s ∩ f ⁻¹' B ∪ (-s) ∩ (λa:α, (0:β)) ⁻¹' B :=
 by { rw [indicator, if_preimage] }
+
+lemma indicator_preimage_of_not_mem (s : set α) (f : α → β) {t : set β} (ht : (0:β) ∉ t) :
+  (indicator s f)⁻¹' t = s ∩ f ⁻¹' t :=
+by simp [indicator_preimage, set.preimage_const_of_not_mem ht]
+
+lemma mem_range_indicator {r : β} {s : set α} {f : α → β} :
+  r ∈ range (indicator s f) ↔ (r = 0 ∧ s ≠ univ) ∨ (r ∈ f '' s) :=
+by simp [indicator, ite_eq_iff, exists_or_distrib, eq_univ_iff_forall, and_comm, or_comm,
+  @eq_comm _ r 0]
 
 end has_zero
 

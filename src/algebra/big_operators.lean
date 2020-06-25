@@ -350,6 +350,61 @@ by haveI := classical.dec_eq α; exact
     by rw [prod_image]; exact assume x _ y _, subtype.eq
   ... = _ : by rw [attach_image_val]
 
+/-- `s.subtype p` converts back to `s.filter p` with
+`embedding.subtype`. -/
+lemma subtype_map (p : α → Prop) [decidable_pred p] :
+  (s.subtype p).map (function.embedding.subtype _) = s.filter p :=
+begin
+  ext x,
+  rw mem_map,
+  change (∃ a : {x // p x}, ∃ H, a.val = x) ↔ _,
+  split,
+  { rintros ⟨y, hy, hyval⟩,
+    rw [mem_subtype, hyval] at hy,
+    rw mem_filter,
+    use hy,
+    rw ← hyval,
+    use y.property },
+  { intro hx,
+    rw mem_filter at hx,
+    use ⟨⟨x, hx.2⟩, mem_subtype.2 hx.1, rfl⟩ }
+end
+
+/-- If all elements of a `finset` satisfy the predicate `p`,
+`s.subtype p` converts back to `s` with `embedding.subtype`. -/
+lemma subtype_map_of_mem {p : α → Prop} [decidable_pred p] (h : ∀ x ∈ s, p x) :
+  (s.subtype p).map (function.embedding.subtype _) = s :=
+begin
+  rw subtype_map,
+  ext x,
+  rw mem_filter,
+  exact ⟨(λ hx, hx.1), (λ hx, ⟨hx, h x hx⟩)⟩
+end
+
+/-- A product over `s.subtype p` equals one over `s.filter p`. -/
+@[to_additive "A sum over `s.subtype p` equals one over `s.filter p`."]
+lemma prod_subtype_eq_prod_filter (f : α → β) {p : α → Prop} [decidable_pred p] :
+  ∏ x in s.subtype p, f x = ∏ x in s.filter p, f x :=
+begin
+  conv_lhs {
+    erw ←prod_map (s.subtype p) (function.embedding.subtype _) f
+  },
+  exact prod_congr (subtype_map _) (λ x hx, rfl)
+end
+
+/-- If all elements of a `finset` satisfy the predicate `p`, a product
+over `s.subtype p` equals that product over `s`. -/
+@[to_additive "If all elements of a `finset` satisfy the predicate `p`, a sum
+over `s.subtype p` equals that sum over `s`."]
+lemma prod_subtype_of_mem (f : α → β) {p : α → Prop} [decidable_pred p]
+    (h : ∀ x ∈ s, p x) : ∏ x in s.subtype p, f x = ∏ x in s, f x :=
+begin
+  rw prod_subtype_eq_prod_filter,
+  refine prod_congr _ (λ x hx, rfl),
+  ext x,
+  exact ⟨(λ hx, (mem_filter.1 hx).1), (λ hx, mem_filter.2 ⟨hx, h x hx⟩)⟩
+end
+
 @[to_additive]
 lemma prod_eq_one {f : α → β} {s : finset α} (h : ∀x∈s, f x = 1) : (∏ x in s, f x) = 1 :=
 calc (∏ x in s, f x) = ∏ x in s, 1 : finset.prod_congr rfl h

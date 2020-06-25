@@ -8,7 +8,7 @@ Separation properties of topological spaces.
 import topology.subset_properties
 
 open set filter
-open_locale topological_space
+open_locale topological_space filter
 local attribute [instance] classical.prop_decidable -- TODO: use "open_locale classical"
 
 universes u v
@@ -197,7 +197,7 @@ Lim_nhds a
 
 @[simp] lemma Lim_nhds_within {a : α} {s : set α} (h : a ∈ closure s) :
   @Lim _ _ ⟨a⟩ (nhds_within a s) = a :=
-Lim_eq begin rw [closure_eq_nhds] at h, exact h end inf_le_left
+Lim_eq begin rw [closure_eq_cluster_pts] at h, exact h end inf_le_left
 
 @[simp] lemma lim_nhds_within_id {a : α} {s : set α} (h : a ∈ closure s) :
   @lim _ _ _ ⟨a⟩ (nhds_within a s) id = a :=
@@ -301,13 +301,13 @@ set_option default_priority 100 -- see Note [default priority]
   omits T₂), is one in which for every closed `C` and `x ∉ C`, there exist
   disjoint open sets containing `x` and `C` respectively. -/
 class regular_space (α : Type u) [topological_space α] extends t1_space α : Prop :=
-(regular : ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ 𝓝 a ⊓ principal t = ⊥)
+(regular : ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ 𝓝 a ⊓ 𝓟 t = ⊥)
 end prio
 
 lemma nhds_is_closed [regular_space α] {a : α} {s : set α} (h : s ∈ 𝓝 a) :
   ∃t∈(𝓝 a), t ⊆ s ∧ is_closed t :=
 let ⟨s', h₁, h₂, h₃⟩ := mem_nhds_sets_iff.mp h in
-have ∃t, is_open t ∧ -s' ⊆ t ∧ 𝓝 a ⊓ principal t = ⊥,
+have ∃t, is_open t ∧ -s' ⊆ t ∧ 𝓝 a ⊓ 𝓟 t = ⊥,
   from regular_space.regular (is_closed_compl_iff.mpr h₂) (not_not_intro h₃),
 let ⟨t, ht₁, ht₂, ht₃⟩ := this in
 ⟨-t,

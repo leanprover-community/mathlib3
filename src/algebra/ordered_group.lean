@@ -286,35 +286,40 @@ end with_zero
 
 namespace with_top
 
-instance [has_zero α] : has_zero (with_top α) := ⟨(0 : α)⟩
+section has_one
 
-@[simp, norm_cast] lemma coe_zero {α : Type*}
-  [has_zero α] : ((0 : α) : with_top α) = 0 := rfl
+variables [has_one α]
 
-@[simp, norm_cast] lemma coe_eq_zero {α : Type*}
-  [has_zero α] {a : α} : (a : with_top α) = 0 ↔ a = 0 :=
-by norm_cast
+@[to_additive] instance : has_one (with_top α) := ⟨(1 : α)⟩
 
-instance [has_one α] : has_one (with_top α) := ⟨(1 : α)⟩
+@[simp, to_additive] lemma coe_one : ((1 : α) : with_top α) = 1 := rfl
 
-@[simp, norm_cast] lemma coe_one {α : Type*}
-  [has_one α] : ((1 : α) : with_top α) = 1 := rfl
+@[simp, to_additive] lemma coe_eq_one {a : α} : (a : with_top α) = 1 ↔ a = 1 :=
+coe_eq_coe
 
-@[simp, norm_cast] lemma coe_eq_one {α : Type*}
-  [has_one α] {a : α} : (a : with_top α) = 1 ↔ a = 1 :=
-by norm_cast
+@[simp, to_additive] theorem one_eq_coe {a : α} : 1 = (a : with_top α) ↔ a = 1 :=
+by rw [eq_comm, coe_eq_one]
+
+attribute [norm_cast] coe_one coe_eq_one coe_zero coe_eq_zero one_eq_coe zero_eq_coe
+
+@[simp, to_additive] theorem top_ne_one : ⊤ ≠ (1 : with_top α) .
+@[simp, to_additive] theorem one_ne_top : (1 : with_top α) ≠ ⊤ .
+
+end has_one
+
+instance [has_add α] : has_add (with_top α) :=
+⟨λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a + b))⟩
 
 instance [add_semigroup α] : add_semigroup (with_top α) :=
-{ add := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a + b)),
+{ add := (+),
   ..@additive.add_semigroup _ $ @with_zero.semigroup (multiplicative α) _ }
 
-@[norm_cast] lemma coe_add [add_semigroup α] {a b : α} : ((a + b : α) : with_top α) = a + b := rfl
+@[norm_cast] lemma coe_add [has_add α] {a b : α} : ((a + b : α) : with_top α) = a + b := rfl
 
-@[norm_cast] lemma coe_bit0 [add_semigroup α] {a : α} : ((bit0 a : α) : with_top α) = bit0 a :=
-by unfold bit0; norm_cast
+@[norm_cast] lemma coe_bit0 [has_add α] {a : α} : ((bit0 a : α) : with_top α) = bit0 a := rfl
 
-@[norm_cast] lemma coe_bit1 [add_semigroup α] [has_one α] {a : α} : ((bit1 a : α) : with_top α) = bit1 a :=
-by unfold bit1; norm_cast
+@[norm_cast]
+lemma coe_bit1 [has_add α] [has_one α] {a : α} : ((bit1 a : α) : with_top α) = bit1 a := rfl
 
 instance [add_comm_semigroup α] : add_comm_semigroup (with_top α) :=
 { ..@additive.add_comm_semigroup _ $

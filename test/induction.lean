@@ -11,12 +11,6 @@ inductive lt : ℕ → ℕ → Type
 | zero {n} : lt 0 (n + 1)
 | succ {n m} : lt n m → lt (n + 1) (m + 1)
 
-inductive unit_param (a : unit) : Type
-| intro : unit_param
-
-inductive unit_index : unit → Type
-| intro : unit_index ()
-
 inductive Fin : ℕ → Type
 | zero {n} : Fin (n + 1)
 | succ {n} : Fin n → Fin (n + 1)
@@ -45,12 +39,6 @@ inductive eq {α} : ∀ n m, Vec α n → Vec α m → Prop
   x = y →
   eq n m xs ys →
   eq (n + 1) (m + 1) (cons x xs) (cons y ys)
-
-inductive is_prefix {α} : ∀ n m, Vec α n → Vec α m → Prop
-| nil {n xs} : is_prefix 0 n nil xs
-| cons {n m x xs ys} :
-  is_prefix n m xs ys →
-  is_prefix (n + 1) (m + 1) (cons x xs) (cons x ys)
 
 end Vec
 

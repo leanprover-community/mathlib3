@@ -745,6 +745,37 @@ meta def intro_fresh (ns : list name) (reserved : name_set) : tactic expr := do
   n ← get_unused_name' ns reserved,
   intro n
 
+inductive intro_spec
+| as_is (n : name)
+| fresh (ns : list name) -- ns must be nonempty
+
+/- Precond: each of the name lists is nonempty. -/
+meta def intro_lst_fresh (ns : list intro_spec) (reserved : name_set)
+  : tactic (list expr) := do
+ns.mmap $ λ spec,
+  match spec with
+  | intro_spec.as_is n := intro n
+  | intro_spec.fresh ns := intro_fresh ns reserved
+  end
+
+-- TODO integrate into tactic.rename?
+-- Precond: each of the name lists in `renames` must be nonempty.
+meta def rename_fresh (renames : name_map (list name)) (reserved : name_set)
+  : tactic (name_map name) := do
+  ctx ← revertible_local_context,
+  let ctx_suffix := ctx.drop_while (λ h, (renames.find h.local_pp_name).is_none),
+  let new_names :=
+    ctx_suffix.map $ λ h,
+      match renames.find h.local_pp_name with
+      | none := intro_spec.as_is h.local_pp_name
+      | some new_names := intro_spec.fresh new_names
+      end,
+  revert_lst ctx_suffix,
+  new_hyps ← intro_lst_fresh new_names reserved,
+  pure $ rb_map.of_list $
+    list.map₂ (λ (old new : expr), (old.local_pp_name, new.local_pp_name))
+      ctx_suffix new_hyps
+
 meta def type_depends_on_locals (h : expr) (ns : name_set) : tactic bool := do
   h_type ← infer_type h,
   pure $ h_type.has_local_in ns
@@ -808,32 +839,65 @@ meta def generalize_hyps (eliminee : expr) (fixed : list expr) : tactic (ℕ × 
   },
   revert_lst'' $ name_set.of_list to_revert
 
-meta def constructor_argument_intros (einfo : eliminee_info)
-  (iinfo : inductive_info) (cinfo : constructor_info) (reserved_names : name_set)
-  : tactic (list (name × expr)) :=
-(cinfo.args.drop iinfo.num_params).mmap $ λ ainfo, do
-  names ← constructor_argument_names ⟨einfo, iinfo, cinfo, ainfo⟩,
-  h ← intro_fresh names reserved_names,
-  pure ⟨h.local_pp_name, ainfo.type⟩
-
-meta def ih_intros (iinfo : inductive_info)
-  (args : list (name × expr)) (reserved_names : name_set) : tactic (list expr) := do
-  let rec_args := args.filter $ λ i,
-    is_recursive_constructor_argument iinfo.iname i.2,
-  let ih_names := rec_args.map $ λ ⟨n, _⟩, ih_name n,
-  match ih_names with
-  | []  := pure []
-  | [n] := do ih ← intro_fresh ["ih", n] reserved_names, pure [ih]
-  | ns := ns.mmap (λ ih, intro_fresh [ih] reserved_names)
-  end
+meta def intron_fresh : ℕ → tactic (list expr)
+| 0 := pure []
+| (n + 1) := do
+  nam ← mk_fresh_name,
+  h ← intro nam,
+  hs ← intron_fresh n,
+  pure $ h :: hs
 
 meta def constructor_intros (generate_induction_hyps : bool)
-  (einfo : eliminee_info) (iinfo : inductive_info)
-  (cinfo : constructor_info) (reserved_names : name_set) : tactic (list expr) := do
-  args ← constructor_argument_intros einfo iinfo cinfo reserved_names,
-  if generate_induction_hyps
-    then ih_intros iinfo args reserved_names
-    else pure []
+  (iinfo : inductive_info) (cinfo : constructor_info)
+  : tactic (list (name × constructor_argument_info) × list (name × name)) := do
+  let args := cinfo.args.drop iinfo.num_params,
+  let num_args := args.length,
+  arg_hyps ← intron_fresh num_args,
+  let arg_hyp_names :=
+    list.map₂ (λ (h : expr) ainfo, (h.local_pp_name, ainfo)) arg_hyps args,
+  tt ← pure generate_induction_hyps | pure (arg_hyp_names, []),
+
+  let rec_args := arg_hyp_names.filter $ λ x,
+    is_recursive_constructor_argument iinfo.iname x.2.type,
+  let num_ihs := rec_args.length,
+    -- TODO the information whether an arg is recursive should be in
+    -- constructor_argument_info.
+  ih_hyps ← intron_fresh num_ihs,
+  let ih_hyp_names :=
+    list.map₂
+      (λ (h : expr) (arg : name × constructor_argument_info),
+        (h.local_pp_name, arg.1))
+      ih_hyps rec_args,
+  pure (arg_hyp_names, ih_hyp_names)
+
+meta def constructor_renames (generate_induction_hyps : bool)
+  (einfo : eliminee_info) (iinfo : inductive_info) (cinfo : constructor_info)
+  (args : list (name × constructor_argument_info)) (ihs : list (name × name))
+  : tactic unit := do
+  -- Rename constructor arguments
+  let iname := iinfo.iname,
+  arg_renames : list (name × list name) ←
+    args.mmap $ λ ⟨old, ainfo⟩, do {
+      new ← constructor_argument_names ⟨einfo, iinfo, cinfo, ainfo⟩,
+      pure (old, new)
+    },
+  let arg_renames := rb_map.of_list arg_renames,
+  new_arg_names ← rename_fresh arg_renames mk_name_set,
+
+  -- Rename induction hypotheses (if we generated them)
+  tt ← pure generate_induction_hyps | pure (),
+  ih_renames ← ihs.mmap $ λ ⟨ih_hyp, arg_hyp⟩, do {
+    some arg_hyp ← pure $ new_arg_names.find arg_hyp,
+    pure $ (ih_hyp, ih_name arg_hyp)
+  },
+  let ih_renames : list (name × list name) :=
+    match ih_renames with
+    | [] := []
+    | [(h, n)] := [(h, ["ih", n])]
+    | ns := ns.map (λ ⟨h, n⟩, (h, [n]))
+    end,
+  rename_fresh (rb_map.of_list ih_renames) mk_name_set,
+  pure ()
 
 meta def match_structure_equation (t : expr)
   : tactic (option (list level × list expr × list name × level × expr × expr × expr)) :=
@@ -1358,9 +1422,8 @@ focus1 $ do
       -- the old hyps).
 
       -- Introduce the constructor arguments
-      ihs ← constructor_intros generate_induction_hyps einfo iinfo cinfo
-              generalized_names,
-      let ihs := ihs.map expr.local_pp_name,
+      (constructor_arg_names, ih_names) ←
+        constructor_intros generate_induction_hyps iinfo cinfo,
 
       -- Introduce any hypotheses we've previously generalised
       generalized_hyps ← intron' num_generalized,
@@ -1377,11 +1440,19 @@ focus1 $ do
       -- NOTE: The previous step may have changed the unique names of the
       -- induction hypotheses, so we have to locate them again. Their pretty
       -- names should be unique in the context, so we can use these.
-      ihs.mmap' (get_local >=> simplify_ih num_generalized num_index_vars),
+      (ih_names.map prod.fst).mmap'
+        (get_local >=> simplify_ih num_generalized num_index_vars),
 
       -- Try to clear the index variables. These often become unused during
       -- the index equation simplification step.
       index_var_names.mmap $ λ h, try $ do { h ← get_local h, clear h},
+
+      -- Rename the constructor names and IHs. We do this here (rather than
+      -- earlier, when we introduced them) because there may now be less
+      -- hypotheses in the context, and therefore more of the desired
+      -- names may be free.
+      constructor_renames generate_induction_hyps einfo iinfo cinfo
+        constructor_arg_names ih_names,
 
       -- Return the constructor name and the new hypotheses.
       -- (The previously generalised hypotheses don't count as new.)

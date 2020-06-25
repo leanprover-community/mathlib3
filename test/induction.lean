@@ -145,7 +145,6 @@ end
 example (k : ℕ') (i : ℕ') : ℕ :=
 begin
   induction' k,
-  -- (do tactic.fail_if_success (tactic.resolve_name `n)),
   induction' i,
   exact (n + m)
 end

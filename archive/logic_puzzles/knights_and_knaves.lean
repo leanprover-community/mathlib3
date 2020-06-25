@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Dan Stanescu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: D. Stanescu.
+Authors: Dan Stanescu.
 -/
 
 import tactic

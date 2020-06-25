@@ -42,9 +42,9 @@ def H := (q.1 = y ∧ q.S1) ∨ (q.1 = n ∧ ¬ q.S1)
 
 lemma answer : q.H → q.1 = n ∧ q.2 = y :=
 begin
-    rcases q with ⟨_|_,_|_⟩;
-    { simp [H, S1], },
-    done
+   rcases q with ⟨_|_,_|_⟩;
+   { simp [H, S1], },
+   done
 end
 
 end Q1
@@ -72,9 +72,9 @@ def H := q.H1 ∧ q.H2
 
 lemma answer : q.H → q.1 = n ∧ q.2 = y :=
 begin
-    rcases q with ⟨_|_,_|_⟩;
-    { simp [H, H1, S1, H2, S2], },
-    done
+   rcases q with ⟨_|_,_|_⟩;
+   { simp [H, H1, S1, H2, S2], },
+   done
 end
 
 

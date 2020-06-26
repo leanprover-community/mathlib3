@@ -576,13 +576,14 @@ lemma times_cont_diff_on.times_cont_diff_within_at {n : with_top ℕ}
 h x hx
 
 lemma times_cont_diff_within_at.times_cont_diff_on {n : with_top ℕ} {m : ℕ}
-  (hmn : (m : with_top ℕ) ≤ n) (h : times_cont_diff_within_at 𝕜 n f s x) :
-  ∃ u ∈ nhds_within x s, times_cont_diff_on 𝕜 m f u :=
+  (hm : (m : with_top ℕ) ≤ n) (h : times_cont_diff_within_at 𝕜 n f s x) :
+  ∃ u ∈ nhds_within x s, u ⊆ s ∧ times_cont_diff_on 𝕜 m f u :=
 begin
-
+  rcases h m hm with ⟨u, u_nhd, p, hp⟩,
+  refine ⟨u ∩ s, filter.inter_mem_sets u_nhd self_mem_nhds_within, inter_subset_right _ _, _⟩,
+  assume y hy m' hm',
+  exact ⟨u ∩ s, self_mem_nhds_within, p,  (hp.mono (inter_subset_left u s)).of_le hm'⟩
 end
-
-#exit
 
 lemma times_cont_diff_on_top :
   times_cont_diff_on 𝕜 ⊤ f s ↔ ∀ (n : ℕ), times_cont_diff_on 𝕜 n f s :=
@@ -1734,24 +1735,16 @@ begin
   /- we lift all the spaces to a common universe, as we have already proved the result in this
   situation. For the lift, we use the trick that `H` is isomorphic through a
   continuous linear equiv to `continuous_multilinear_map 𝕜 (λ (i : fin 0), (E × F × G)) H`, and
-  continuous linear equivs respect smoothness classes.
-  The instances are not found automatically by Lean, so we declare them by hand.
-  TODO: fix. -/
+  continuous linear equivs respect smoothness classes. -/
   let Eu := continuous_multilinear_map 𝕜 (λ (i : fin 0), (E × F × G)) E,
-  letI : normed_group Eu :=
-    @continuous_multilinear_map.to_normed_group 𝕜 (fin 0) (λ (i : fin 0), E × F × G) E _ _ _ _ _ _ _,
-  letI : normed_space 𝕜 Eu :=
-    @continuous_multilinear_map.to_normed_space 𝕜 (fin 0) (λ (i : fin 0), E × F × G) E _ _ _ _ _ _ _,
+  letI : normed_group Eu := by apply_instance,
+  letI : normed_space 𝕜 Eu := by apply_instance,
   let Fu := continuous_multilinear_map 𝕜 (λ (i : fin 0), (E × F × G)) F,
-  letI : normed_group Fu :=
-    @continuous_multilinear_map.to_normed_group 𝕜 (fin 0) (λ (i : fin 0), E × F × G) F _ _ _ _ _ _ _,
-  letI : normed_space 𝕜 Fu :=
-    @continuous_multilinear_map.to_normed_space 𝕜 (fin 0) (λ (i : fin 0), E × F × G) F _ _ _ _ _ _ _,
+  letI : normed_group Fu := by apply_instance,
+  letI : normed_space 𝕜 Fu := by apply_instance,
   let Gu := continuous_multilinear_map 𝕜 (λ (i : fin 0), (E × F × G)) G,
-  letI : normed_group Gu :=
-    @continuous_multilinear_map.to_normed_group 𝕜 (fin 0) (λ (i : fin 0), E × F × G) G _ _ _ _ _ _ _,
-  letI : normed_space 𝕜 Gu :=
-    @continuous_multilinear_map.to_normed_space 𝕜 (fin 0) (λ (i : fin 0), E × F × G) G _ _ _ _ _ _ _,
+  letI : normed_group Gu := by apply_instance,
+  letI : normed_space 𝕜 Gu := by apply_instance,
   -- declare the isomorphisms
   let isoE : Eu ≃L[𝕜] E := continuous_multilinear_curry_fin0 𝕜 (E × F × G) E,
   let isoF : Fu ≃L[𝕜] F := continuous_multilinear_curry_fin0 𝕜 (E × F × G) F,
@@ -1789,7 +1782,7 @@ lemma times_cont_diff.comp {n : with_top ℕ} {g : F → G} {f : E → F}
 times_cont_diff_on_univ.1 $ times_cont_diff_on.comp (times_cont_diff_on_univ.2 hg)
   (times_cont_diff_on_univ.2 hf) (subset_univ _)
 
-/-- The composition of `C^n` functions on domains is `C^n`. -/
+/-- The composition of `C^n` functions at points in domains is `C^n`. -/
 lemma times_cont_diff_within_at.comp
   {n : with_top ℕ} {s : set E} {t : set F} {g : F → G} {f : E → F} {x : E} (hx : x ∈ s)
   (hg : times_cont_diff_within_at 𝕜 n g t (f x))
@@ -1797,11 +1790,25 @@ lemma times_cont_diff_within_at.comp
   times_cont_diff_within_at 𝕜 n (g ∘ f) s x :=
 begin
   assume m hm,
-  rcases hg m hm with ⟨u, u_nhd, hu⟩,
-  rcases hf m hm with ⟨v, v_nhd, hv⟩,
+  rcases hg.times_cont_diff_on hm with ⟨u, u_nhd, ut, hu⟩,
+  rcases hf.times_cont_diff_on hm with ⟨v, v_nhd, vs, hv⟩,
+  have xmem : x ∈ f ⁻¹' u ∩ v,
+  { have : f x ∈ t := st hx,
+    simp only [mem_inter_eq, mem_preimage],
+    exact ⟨mem_of_mem_nhds_within this u_nhd, mem_of_mem_nhds_within hx v_nhd⟩ },
   have : f ⁻¹' u ∈ nhds_within x s,
   { apply (hf.continuous_within_at hx).preimage_mem_nhds_within',
     exact nhds_within_mono _ (image_subset_iff.mpr st) u_nhd },
+  have Z := (hu.comp (hv.mono (inter_subset_right (f ⁻¹' u) v)) (inter_subset_left _ _))
+    .times_cont_diff_within_at xmem m (le_refl _),
+  have : nhds_within x (f ⁻¹' u ∩ v) = nhds_within x s,
+  { have A : f ⁻¹' u ∩ v = s ∩ (f ⁻¹' u ∩ v),
+    { apply subset.antisymm _ (inter_subset_right _ _),
+      rintros y ⟨hy1, hy2⟩,
+      simp [hy1, hy2, vs hy2] },
+    rw [A, ← nhds_within_restrict''],
+    exact filter.inter_mem_sets this v_nhd },
+  rwa this at Z,
 end
 
 /-- The bundled derivative of a `C^{n+1}` function is `C^n`. -/

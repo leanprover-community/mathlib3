@@ -17,6 +17,7 @@ instance punit_category : small_category punit :=
 namespace functor
 variables {C : Type u} [category.{v} C]
 
+/-- The constant functor sending everything to `punit.start`. -/
 def star : C ⥤ punit.{w+1} := (const C).obj punit.star
 @[simp] lemma star_obj (X : C) : star.obj X = punit.star := rfl
 @[simp] lemma star_map {X Y : C} (f : X ⟶ Y) : star.map f = 𝟙 _ := rfl

@@ -33,7 +33,11 @@ universes w v u
 variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
-/-- The type of objects for the category of elements of a functor `F : C ⥤ Type` is a pair `(X : C, x : F.obj X)`. -/
+/--
+The type of objects for the category of elements of a functor `F : C ⥤ Type`
+is a pair `(X : C, x : F.obj X)`.
+-/
+@[nolint has_inhabited_instance]
 def functor.elements (F : C ⥤ Type w) := (Σ c : C, F.obj c)
 
 /-- The category structure on `F.elements`, for `F : C ⥤ Type`.

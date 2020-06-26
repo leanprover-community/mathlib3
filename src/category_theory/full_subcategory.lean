@@ -64,7 +64,7 @@ instance induced_category.category : category.{v} (induced_category D F) :=
 
 /--
 The forgetful functor from an induced category to the original category,
-forgetting the extra data,
+forgetting the extra data.
 -/
 @[simps] def induced_functor : induced_category D F ⥤ D :=
 { obj := F, map := λ x y f, f }

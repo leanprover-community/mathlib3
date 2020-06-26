@@ -8,7 +8,7 @@ import category_theory.concrete_category
 /-!
 # Category of categories
 
-This file contains the definition of category `Cat` of all categories.
+This file contains the definition of the category `Cat` of all categories.
 In this category objects are categories and
 morphisms are functors between these categories.
 

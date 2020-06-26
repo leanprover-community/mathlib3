@@ -390,6 +390,18 @@ is_colimit.mk_cocone_morphism
   (λ s, i.inv ≫ P.desc_cocone_morphism s)
   (λ s m, by rw i.eq_inv_comp; apply P.uniq_cocone_morphism)
 
+/--
+If the canonical morphism from a cone point to a limiting cone point is an iso, then the
+first cone was limiting also.
+-/
+def of_point_iso {r t : cocone F} (P : is_colimit r) [i : is_iso (P.desc t)] : is_colimit t :=
+of_iso_colimit P
+begin
+  haveI : is_iso (P.desc_cocone_morphism t).hom := i,
+  haveI : is_iso (P.desc_cocone_morphism t) := cocone_iso_of_hom_iso _,
+  apply as_iso (P.desc_cocone_morphism t),
+end
+
 variables {t : cocone F}
 
 lemma hom_desc (h : is_colimit t) {W : C} (m : t.X ⟶ W) :

@@ -39,6 +39,9 @@ private meta def sf.flatten : sf → sf
   end
 | (sf.of_string s) := sf.of_string s
 
+/--
+The actions accepted by an expression widget.
+-/
 meta inductive action (γ : Type)
 | on_mouse_enter : subexpr → action
 | on_mouse_leave_all : action
@@ -46,6 +49,9 @@ meta inductive action (γ : Type)
 | on_tooltip_action : γ → action
 | on_close_tooltip : action
 
+/--
+Renders a subexpression as a list of html elements.
+-/
 meta def view {γ} (tooltip_component : tc subexpr (action γ)) (click_address : option expr.address) (select_address : option expr.address) :
   subexpr → sf → tactic (list (html (action γ)))
 | ⟨ce, current_address⟩ (sf.tag_expr ea e m) := do
@@ -111,6 +117,9 @@ meta def implicit_arg_list (tooltip : tc subexpr empty) (e : expr) : tactic $ ht
       list.map (λ a, h "span" [className "bg-gray br3 ma1 ph2 white"] [a]) args
     )
 
+/--
+Component for the type tooltip.
+-/
 meta def type_tooltip : tc subexpr empty :=
 tc.stateless (λ ⟨e,ea⟩, do
     y ← tactic.infer_type e,
@@ -127,12 +136,18 @@ tc.stateless (λ ⟨e,ea⟩, do
 
 end interactive_expression
 
+/--
+Supported tactic state filters.
+-/
 @[derive decidable_eq]
 meta inductive filter_type
 | none
 | no_instances
 | only_props
 
+/--
+Filters a local constant using the given filter.
+-/
 meta def filter_local : filter_type → expr → tactic bool
 | (filter_type.none) e := pure tt
 | (filter_type.no_instances) e := do
@@ -142,6 +157,9 @@ meta def filter_local : filter_type → expr → tactic bool
   t ← tactic.infer_type e,
   tactic.is_prop t
 
+/--
+Component for the filter dropdown.
+-/
 meta def filter_component : component filter_type filter_type :=
 component.stateless (λ lf,
   [ h "label" [] ["filter: "],
@@ -153,11 +171,17 @@ component.stateless (λ lf,
   ]
 )
 
+/--
+Converts a name into an html element.
+-/
 meta def html.of_name {α : Type} : name → html α
 | n := html.of_string $ name.to_string n
 
 open tactic
 
+/--
+Component that shows a type.
+-/
 meta def show_type_component : tc expr empty :=
 tc.stateless (λ x, do
   y ← infer_type x,
@@ -208,6 +232,9 @@ tc.stateless $ λ ft, do
       t_comp
   ]]
 
+/--
+Actions accepted by the `tactic_view_component`.
+-/
 meta inductive tactic_view_action (γ : Type)
 | out (a:γ): tactic_view_action
 | filter (f: filter_type): tactic_view_action
@@ -251,6 +278,9 @@ tc.stateless $ λ _, do
     h "li" [className "lh-copy"] [h "strong" [cn "goal-goals"] ["expected type:"]],
     h "li" [className "lh-copy"] [goal]]]
 
+/--
+Component showing a local collection.
+-/
 meta def show_local_collection_component : tc local_collection empty :=
 tc.stateless (λ lc, do
   (l::_) ← pure lc.locals,
@@ -258,9 +288,15 @@ tc.stateless (λ lc, do
   pure [c]
 )
 
+/--
+Renders a the current tactic string.
+-/
 meta def tactic_render : tc unit string :=
 component.ignore_action $ tactic_view_component show_local_collection_component show_type_component
 
+/--
+Component showing the current tactic state.
+-/
 meta def tactic_state_widget : component tactic_state string :=
 tc.to_component tactic_render
 

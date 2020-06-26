@@ -5,6 +5,7 @@ Authors: Reid Barton, Mario Carneiro, Scott Morrison, Floris van Doorn
 -/
 import category_theory.limits.cones
 import category_theory.adjunction.basic
+import category_theory.reflect_isomorphisms
 
 open category_theory category_theory.category category_theory.functor opposite
 
@@ -77,6 +78,19 @@ def of_iso_limit {r t : cone F} (P : is_limit r) (i : r ≅ t) : is_limit t :=
 is_limit.mk_cone_morphism
   (λ s, P.lift_cone_morphism s ≫ i.hom)
   (λ s m, by rw ←i.comp_inv_eq; apply P.uniq_cone_morphism)
+
+/--
+If the canonical morphism from a cone point to a limiting cone point is an iso, then the
+first cone was limiting also.
+-/
+def of_point_iso {r t : cone F} (P : is_limit r) [i : is_iso (P.lift t)] : is_limit t :=
+of_iso_limit P
+begin
+  haveI : is_iso (P.lift_cone_morphism t).hom := i,
+  haveI : is_iso (P.lift_cone_morphism t) := cone_iso_of_hom_iso _,
+  symmetry,
+  apply as_iso (P.lift_cone_morphism t),
+end
 
 variables {t : cone F}
 

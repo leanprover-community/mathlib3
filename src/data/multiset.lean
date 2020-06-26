@@ -1975,48 +1975,6 @@ instance : semilattice_sup_bot (multiset α) :=
   bot_le := zero_le,
   ..multiset.lattice }
 
-theorem exists_smul_of_dvd_count (s : multiset α) {k : ℕ} :
-  (∀ (a : α), k ∣ multiset.count a s) → ∃ (u : multiset α), s = k • u :=
-begin
-  apply strong_induction_on s,
-  intros s2 ht ha,
-  by_cases hs20 : s2 = 0,
-  { rw hs20, apply exists.intro (0 : multiset α), rw add_monoid.smul_zero },
-  { cases (exists_mem_of_ne_zero hs20) with b hbs,
-    have hsb : s2 - repeat b (count b s2) + repeat b (count b s2) = s2,
-    { apply sub_add_cancel, apply le_count_iff_repeat_le.1, refl },
-    rw ←hsb, clear hsb,
-    have hd : ∀ (a : α), k ∣ count a (s2 - repeat b (count b s2)),
-    { intro a, rw count_sub, by_cases hab : a = b,
-      { rw [hab, count_repeat, nat.sub_self], apply dvd_zero },
-      { rw count_eq_zero.mpr (mt eq_of_mem_repeat hab), apply (ha a) }},
-    have hl : s2 - repeat b (count b s2) < s2,
-    { refine lt_iff_le_and_ne.mpr _,
-      apply and.intro (sub_le_self _ _),
-      apply mt ext.1,
-      apply classical.not_forall.mpr,
-      apply exists.intro b,
-      rw [multiset.count_sub, count_repeat, nat.sub_self],
-      apply mt eq.symm,
-      apply mt count_eq_zero.mp,
-      simpa only []
-    },
-    cases ht (s2 - repeat b (count b s2)) hl hd with w hw, clear hl hd,
-    have hb : ∃ t, repeat b (count b s2) = k • t,
-    { cases (exists_eq_mul_right_of_dvd (ha b)) with m hm,
-      apply exists.intro (repeat b m),
-      apply multiset.ext',
-      intro c,
-      by_cases hcb : c = b,
-      { rw hcb, simpa only [count_repeat, count_smul] },
-      { rw count_smul, rw count_eq_zero.mpr (mt eq_of_mem_repeat hcb),
-        rw count_eq_zero.mpr (mt eq_of_mem_repeat hcb), apply nat.mul_zero k }},
-    cases hb with t ht,
-    apply exists.intro (w + t), rw hw, rw ht,
-    exact (is_add_hom.map_add (add_monoid.smul k) w t).symm
-  }
-end
-
 end
 
 /- relator -/

@@ -351,7 +351,7 @@ by haveI := classical.dec_eq α; exact
   ... = _ : by rw [attach_image_val]
 
 /-- A product over `s.subtype p` equals one over `s.filter p`. -/
-@[to_additive "A sum over `s.subtype p` equals one over `s.filter p`."]
+@[simp, to_additive "A sum over `s.subtype p` equals one over `s.filter p`."]
 lemma prod_subtype_eq_prod_filter (f : α → β) {p : α → Prop} [decidable_pred p] :
   ∏ x in s.subtype p, f x = ∏ x in s.filter p, f x :=
 begin
@@ -363,7 +363,7 @@ end
 
 /-- If all elements of a `finset` satisfy the predicate `p`, a product
 over `s.subtype p` equals that product over `s`. -/
-@[to_additive "If all elements of a `finset` satisfy the predicate `p`, a sum
+@[simp, to_additive "If all elements of a `finset` satisfy the predicate `p`, a sum
 over `s.subtype p` equals that sum over `s`."]
 lemma prod_subtype_of_mem (f : α → β) {p : α → Prop} [decidable_pred p]
     (h : ∀ x ∈ s, p x) : ∏ x in s.subtype p, f x = ∏ x in s, f x :=

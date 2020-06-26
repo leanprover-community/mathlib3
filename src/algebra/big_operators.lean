@@ -367,12 +367,7 @@ over `s.subtype p` equals that product over `s`. -/
 over `s.subtype p` equals that sum over `s`."]
 lemma prod_subtype_of_mem (f : α → β) {p : α → Prop} [decidable_pred p]
     (h : ∀ x ∈ s, p x) : ∏ x in s.subtype p, f x = ∏ x in s, f x :=
-begin
-  rw prod_subtype_eq_prod_filter,
-  refine prod_congr _ (λ x hx, rfl),
-  ext x,
-  exact ⟨(λ hx, (mem_filter.1 hx).1), (λ hx, mem_filter.2 ⟨hx, h x hx⟩)⟩
-end
+by simp_rw [prod_subtype_eq_prod_filter, filter_true_of_mem h]
 
 /-- A product of a function over a `finset` in a subtype equals a
 product in the main type of a function that agrees with the first

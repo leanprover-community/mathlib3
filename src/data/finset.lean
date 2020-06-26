@@ -851,6 +851,11 @@ by ext; simp
 @[simp] theorem filter_false {h} (s : finset α) : @filter α (λa, false) h s = ∅ :=
 ext $ assume a, by simp only [mem_filter, and_false]; refl
 
+/-- If all elements of a `finset` satisfy the predicate `p`, `s.filter
+p` is `s`. -/
+@[simp] lemma filter_true_of_mem {s : finset α} (h : ∀ x ∈ s, p x) : s.filter p = s :=
+ext $ λ x, ⟨λ h, (mem_filter.1 h).1, λ hx, mem_filter.2 ⟨hx, h x hx⟩⟩
+
 lemma filter_congr {s : finset α} (H : ∀ x ∈ s, p x ↔ q x) : filter p s = filter q s :=
 eq_of_veq $ filter_congr H
 
@@ -1381,12 +1386,7 @@ end
 `s.subtype p` converts back to `s` with `embedding.subtype`. -/
 lemma subtype_map_of_mem {p : α → Prop} [decidable_pred p] (h : ∀ x ∈ s, p x) :
   (s.subtype p).map (function.embedding.subtype _) = s :=
-begin
-  rw subtype_map,
-  ext x,
-  rw mem_filter,
-  exact ⟨(λ hx, hx.1), (λ hx, ⟨hx, h x hx⟩)⟩
-end
+by rw [subtype_map, filter_true_of_mem h]
 
 lemma subset_image_iff {f : α → β}
   {s : finset β} {t : set α} : ↑s ⊆ f '' t ↔ ∃s' : finset α, ↑s' ⊆ t ∧ s'.image f = s :=

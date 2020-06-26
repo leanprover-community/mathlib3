@@ -729,35 +729,30 @@ meta def get_unused_name'_aux (n : name) (reserved : name_set)
 
 /- Precond: ns is nonempty. -/
 meta def get_unused_name' (ns : list name) (reserved : name_set) : tactic name := do
-  let fallback := ns.head,
-  let ns := ns.filter (λ n, ¬ reserved.contains n),
-  n ← try_core $ first $ ns.map $ λ n, do {
+  let fallback := if ns.empty then `x else ns.head,
+  (first $ ns.map $ λ n, do {
     guard (¬ reserved.contains n),
     fail_if_success (resolve_name n),
     pure n
-  },
-  match n with
-  | some n := pure n
-  | none := get_unused_name'_aux fallback reserved none
-  end
+  })
+  <|>
+  get_unused_name'_aux fallback reserved none
 
 /- Precond: ns is nonempty. -/
 meta def intro_fresh (ns : list name) (reserved : name_set) : tactic expr := do
   n ← get_unused_name' ns reserved,
   intro n
 
-inductive intro_spec
-| as_is (n : name)
-| fresh (ns : list name) -- ns must be nonempty
-
 /- Precond: each of the name lists is nonempty. -/
-meta def intro_lst_fresh (ns : list intro_spec) (reserved : name_set)
+meta def intro_lst_fresh (ns : list (name ⊕ list name)) (reserved : name_set)
   : tactic (list expr) := do
-ns.mmap $ λ spec,
-  match spec with
-  | intro_spec.as_is n := intro n
-  | intro_spec.fresh ns := intro_fresh ns reserved
-  end
+  let fixed := name_set.of_list $ ns.filter_map sum.get_left,
+  let reserved := reserved.merge fixed,
+  ns.mmap $ λ spec,
+    match spec with
+    | sum.inl n := intro n
+    | sum.inr ns := intro_fresh ns reserved
+    end
 
 -- TODO integrate into tactic.rename?
 -- Precond: each of the name lists in `renames` must be nonempty.
@@ -768,8 +763,8 @@ meta def rename_fresh (renames : name_map (list name)) (reserved : name_set)
   let new_names :=
     ctx_suffix.map $ λ h,
       match renames.find h.local_pp_name with
-      | none := intro_spec.as_is h.local_pp_name
-      | some new_names := intro_spec.fresh new_names
+      | none := sum.inl h.local_pp_name
+      | some new_names := sum.inr new_names
       end,
   revert_lst ctx_suffix,
   new_hyps ← intro_lst_fresh new_names reserved,

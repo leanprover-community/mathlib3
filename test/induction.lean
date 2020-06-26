@@ -228,6 +228,27 @@ begin
   }
 end
 
+-- The following example used to trigger a bug where eliminate would generate
+-- hypotheses with duplicate names.
+structure fraction : Type :=
+(num           : ℤ)
+(denom         : ℤ)
+(denom_ne_zero : denom ≠ 0)
+
+lemma fraction.ext (a b : fraction) (hnum : fraction.num a = fraction.num b)
+    (hdenom : fraction.denom a = fraction.denom b) :
+  a = b :=
+begin
+  cases' a,
+  cases' b,
+  guard_hyp num := ℤ,
+  guard_hyp denom := ℤ,
+  guard_hyp num_1 := ℤ,
+  guard_hyp denom_1 := ℤ,
+  rw fraction.mk.inj_eq,
+  exact and.intro hnum hdenom
+end
+
 --------------------------------------------------------------------------------
 -- Jasmin's original use cases
 --------------------------------------------------------------------------------

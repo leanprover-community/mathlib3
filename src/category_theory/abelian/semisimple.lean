@@ -271,13 +271,7 @@ def diagonalization_foo
   {X Y : C} (D : decomposition_over.{v} Z X) (E : decomposition_over Z Y) (f : X ⟶ Y)
   (Δ : diagonalization Z D.O E.O (D.iso.inv ≫ f ≫ E.iso.hom)) :
   diagonalization Z D.O E.O f :=
-diagonalization_conjugate' Z D.O E.O f D.iso E.iso
-begin
-  convert Δ;
-  { dsimp [decomposition_over.transport, decomposition_over.trivial],
-    congr,
-    simp, }
-end
+diagonalization_conjugate' Z D.O E.O f D.iso E.iso Δ
 
 def diagonalization_biprod {X Y : C} (D : sum_over Z) (E : sum_over Z) (f : X ⟶ Y)
   (Δ : diagonalization Z D E f) (i j : ι) (g : Z i ⟶ Z j) :

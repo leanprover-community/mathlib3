@@ -391,8 +391,8 @@ is_colimit.mk_cocone_morphism
   (λ s m, by rw i.eq_inv_comp; apply P.uniq_cocone_morphism)
 
 /--
-If the canonical morphism from a cone point to a limiting cone point is an iso, then the
-first cone was limiting also.
+If the canonical morphism to a cocone point from a colimiting cocone point is an iso, then the
+first cocone was colimiting also.
 -/
 def of_point_iso {r t : cocone F} (P : is_colimit r) [i : is_iso (P.desc t)] : is_colimit t :=
 of_iso_colimit P

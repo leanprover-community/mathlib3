@@ -1197,6 +1197,19 @@ by rw ← image_union; simp [image_univ_of_surjective H]
 theorem image_compl_eq {f : α → β} {s : set α} (H : bijective f) : f '' -s = -(f '' s) :=
 subset.antisymm (image_compl_subset H.1) (subset_image_compl H.2)
 
+theorem subset_image_diff (f : α → β) (s t : set α) :
+  f '' s \ f '' t ⊆ f '' (s \ t) :=
+begin
+  rw [diff_subset_iff, ← image_union, union_diff_self],
+  exact image_subset f (subset_union_right t s)
+end
+
+theorem image_diff {f : α → β} (hf : injective f) (s t : set α) :
+  f '' (s \ t) = f '' s \ f '' t :=
+subset.antisymm
+  (subset.trans (image_inter_subset _ _ _) $ inter_subset_inter_right _ $ image_compl_subset hf)
+  (subset_image_diff f s t)
+
 lemma nonempty.image (f : α → β) {s : set α} : s.nonempty → (f '' s).nonempty
 | ⟨x, hx⟩ := ⟨f x, mem_image_of_mem f hx⟩
 
@@ -1532,15 +1545,15 @@ theorem val_image_subset (s : set α) (t : set (subtype s)) : t.image val ⊆ s 
 λ x ⟨y, yt, yvaleq⟩, by rw ←yvaleq; exact y.property
 
 theorem val_image_univ (s : set α) : @val _ s '' set.univ = s :=
-set.eq_of_subset_of_subset (val_image_subset _ _) (λ x xs, ⟨⟨x, xs⟩, ⟨set.mem_univ _, rfl⟩⟩)
+image_univ.trans (range_val s)
 
-theorem image_preimage_val (s t : set α) :
+@[simp] theorem image_preimage_val (s t : set α) :
   (@subtype.val _ s) '' ((@subtype.val _ s) ⁻¹' t) = t ∩ s :=
-begin
-  ext x, simp, split,
-  { rintros ⟨y, ys, yt, yx⟩, rw ←yx, exact ⟨yt, ys⟩ },
-  rintros ⟨xt, xs⟩, exact ⟨x, xs, xt, rfl⟩
-end
+image_preimage_eq_inter_range.trans $ congr_arg _ (range_val s)
+
+@[simp] theorem image_preimage_coe (s t : set α) :
+  (coe : s → α) '' (coe ⁻¹' t) = t ∩ s :=
+image_preimage_val s t
 
 theorem preimage_val_eq_preimage_val_iff (s t u : set α) :
   ((@subtype.val _ s) ⁻¹' t = (@subtype.val _ s) ⁻¹' u) ↔ (t ∩ s = u ∩ s) :=
@@ -1551,7 +1564,7 @@ begin
 end
 
 lemma exists_set_subtype {t : set α} (p : set α → Prop) :
-(∃(s : set t), p (subtype.val '' s)) ↔ ∃(s : set α), s ⊆ t ∧ p s :=
+  (∃(s : set t), p (subtype.val '' s)) ↔ ∃(s : set α), s ⊆ t ∧ p s :=
 begin
   split,
   { rintro ⟨s, hs⟩, refine ⟨subtype.val '' s, _, hs⟩,

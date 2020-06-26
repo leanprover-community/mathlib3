@@ -579,15 +579,26 @@ finsupp.has_scalar
 instance [semiring k] : semimodule k (add_monoid_algebra k G) :=
 finsupp.semimodule G k
 
-instance [comm_semiring k] [add_monoid G] : algebra k (add_monoid_algebra k G) :=
-{ to_fun := single 0,
-  map_one' := rfl,
-  map_mul' := λ x y, by rw [single_mul_single, zero_add],
-  map_zero' := single_zero,
-  map_add' := λ x y, single_add,
-  smul_def' := λ r a, by { ext x, exact smul_apply.trans (single_zero_mul_apply _ _ _).symm },
-  commutes' := λ r f, show single 0 r * f = f * single 0 r,
-    by ext; rw [single_zero_mul_apply, mul_single_zero_apply, mul_comm] }
+-- instance [comm_semiring k] [add_monoid G] : algebra k (add_monoid_algebra k G) :=
+-- { to_fun := single 0,
+--   map_one' := rfl,
+--   map_mul' := λ x y, by rw [single_mul_single, zero_add],
+--   map_zero' := single_zero,
+--   map_add' := λ x y, single_add,
+--   smul_def' := λ r a, by { ext x, exact smul_apply.trans (single_zero_mul_apply _ _ _).symm },
+--   commutes' := λ r f, show single 0 r * f = f * single 0 r,
+--     by ext; rw [single_zero_mul_apply, mul_single_zero_apply, mul_comm] }
+
+instance {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [add_monoid G] :
+  algebra k (add_monoid_algebra A G) :=
+{ to_fun := λ x, single 0 (algebra_map k A x),
+  map_one' := by { simp, refl },
+  map_mul' := λ x y, by rw [single_mul_single, zero_add, (algebra_map k A).map_mul],
+  map_zero' := by rw [(algebra_map k A).map_zero, single_zero],
+  map_add' := λ x y, by rw [(algebra_map k A).map_add, single_add],
+  smul_def' := λ r a, by { ext x, dsimp, rw single_zero_mul_apply, rw algebra.smul_def'', },
+  commutes' := λ r f, show single 0 (algebra_map k A r) * f = f * single 0 (algebra_map k A r),
+    by { ext, rw [single_zero_mul_apply, mul_single_zero_apply, algebra.commutes], }, }
 
 @[simp] lemma coe_algebra_map [comm_semiring k] [add_monoid G] :
   (algebra_map k (add_monoid_algebra k G) : k → add_monoid_algebra k G) = single 0 :=

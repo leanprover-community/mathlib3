@@ -297,7 +297,8 @@ finsupp.sum_zero_index
 variables [is_semiring_hom f]
 
 @[simp] lemma eval₂_C : (C a).eval₂ f x = f a :=
-(sum_single_index $ by rw [map_zero f, zero_mul]).trans $ by rw [pow_zero, mul_one]
+(sum_single_index $ by rw [map_zero f, zero_mul]).trans $
+  by rw [pow_zero, mul_one, algebra.id.map_eq_self]
 
 @[simp] lemma eval₂_X : X.eval₂ f x = x :=
 (sum_single_index $ by rw [map_zero f, zero_mul]).trans $ by rw [map_one f, one_mul, pow_one]
@@ -1467,9 +1468,10 @@ is_ring_hom.map_sub _
 section aeval
 /-- `R[X]` is the generator of the category `R-Alg`. -/
 instance polynomial (R : Type u) [comm_semiring R] : algebra R (polynomial R) :=
-{ commutes' := λ _ _, mul_comm _ _,
-  smul_def' := λ c p, (polynomial.C_mul' c p).symm,
-  .. polynomial.semimodule, .. ring_hom.of polynomial.C }
+add_monoid_algebra.algebra
+-- { commutes' := λ _ _, mul_comm _ _,
+--   smul_def' := λ c p, (polynomial.C_mul' c p).symm,
+--   .. polynomial.semimodule, .. ring_hom.of polynomial.C }
 
 variables (R) (A)
 variables [comm_ring A] [algebra R A]

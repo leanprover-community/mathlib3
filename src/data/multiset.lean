@@ -1267,7 +1267,7 @@ end
 ⟨λ h, ⟨mem_of_le (inter_le_left _ _) h, mem_of_le (inter_le_right _ _) h⟩,
  λ ⟨h₁, h₂⟩, by rw [← cons_erase h₁, cons_inter_of_pos _ h₂]; apply mem_cons_self⟩
 
-instance multiset.lattice : lattice (multiset α) :=
+instance : lattice (multiset α) :=
 { sup          := (∪),
   sup_le       := @union_le _ _,
   le_sup_left  := le_union_left,
@@ -1284,7 +1284,7 @@ instance multiset.lattice : lattice (multiset α) :=
 @[simp] theorem le_inter_iff : s ≤ t ∩ u ↔ s ≤ t ∧ s ≤ u := le_inf_iff
 @[simp] theorem union_le_iff : s ∪ t ≤ u ↔ s ≤ u ∧ t ≤ u := sup_le_iff
 
-instance multiset.semilattice_inf_bot : semilattice_inf_bot (multiset α) :=
+instance : semilattice_inf_bot (multiset α) :=
 { bot := 0, bot_le := zero_le, ..multiset.lattice }
 
 theorem union_comm (s t : multiset α) : s ∪ t = t ∪ s := sup_comm
@@ -1971,7 +1971,7 @@ instance : distrib_lattice (multiset α) :=
       multiset.count_inter, multiset.sup_eq_union, multiset.count_union, multiset.inf_eq_inter],
   ..multiset.lattice }
 
-instance multiset.semilattice_sup_bot : semilattice_sup_bot (multiset α) :=
+instance : semilattice_sup_bot (multiset α) :=
 { bot := 0,
   bot_le := zero_le,
   ..multiset.lattice }

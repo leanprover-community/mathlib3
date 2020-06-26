@@ -6,7 +6,6 @@ Authors: Johannes Hölzl
 Theory of complete lattices.
 -/
 import order.bounds
-import data.equiv.encodable
 
 set_option old_structure_cmd true
 open set
@@ -862,11 +861,6 @@ by rw [← Sup_image]; refl
 lemma supr_apply {α : Type u} {β : α → Type v} {ι : Sort*} [∀ i, complete_lattice (β i)]
   {f : ι → Πa, β a} {a : α} : (⨆i, f i) a = (⨆i, f i a) :=
 by erw [← Sup_range, Sup_apply, supr_range]
-
-open encodable
-lemma supr_decode2 {α β} [complete_lattice α] [encodable β] (f : β → α) :
-  (⨆ b, f b) = ⨆ (i : ℕ) (b ∈ decode2 β i), f b :=
-by { rw [supr_comm], simp [mem_decode2] }
 
 section complete_lattice
 variables [preorder α] [complete_lattice β]

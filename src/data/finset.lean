@@ -521,7 +521,7 @@ finset.inter_subset_inter (finset.subset.refl _) h
 
 /-! ### lattice laws -/
 
-instance finset.lattice : lattice (finset α) :=
+instance : lattice (finset α) :=
 { sup          := (∪),
   sup_le       := assume a b c, union_subset,
   le_sup_left  := subset_union_left,
@@ -535,13 +535,13 @@ instance finset.lattice : lattice (finset α) :=
 @[simp] theorem sup_eq_union (s t : finset α) : s ⊔ t = s ∪ t := rfl
 @[simp] theorem inf_eq_inter (s t : finset α) : s ⊓ t = s ∩ t := rfl
 
-instance finset.semilattice_inf_bot : semilattice_inf_bot (finset α) :=
+instance : semilattice_inf_bot (finset α) :=
 { bot := ∅, bot_le := empty_subset, ..finset.lattice }
 
-instance finset.semilattice_sup_bot {α : Type*} [decidable_eq α] : semilattice_sup_bot (finset α) :=
+instance {α : Type*} [decidable_eq α] : semilattice_sup_bot (finset α) :=
 { ..finset.semilattice_inf_bot, ..finset.lattice }
 
-instance finset.distrib_lattice : distrib_lattice (finset α) :=
+instance : distrib_lattice (finset α) :=
 { le_sup_inf := assume a b c, show (a ∪ b) ∩ (a ∪ c) ⊆ a ∪ b ∩ c,
     by simp only [subset_iff, mem_inter, mem_union, and_imp, or_imp_distrib] {contextual:=tt};
     simp only [true_or, imp_true_iff, true_and, or_true],
@@ -2074,6 +2074,13 @@ theorem subset_range_sup_succ (s : finset ℕ) : s ⊆ range (s.sup id).succ :=
 
 theorem exists_nat_subset_range (s : finset ℕ) : ∃n : ℕ, s ⊆ range n :=
 ⟨_, s.subset_range_sup_succ⟩
+
+/-- The first component of a sup in a subtype is the sup if first components. -/
+lemma sup_val {P : α → Prop}
+  {Pbot : P ⊥} {Psup : ∀{{x y}}, P x → P y → P (x ⊔ y)}
+  (t : finset β) (f : β → {x : α // P x}) :
+  (@finset.sup _ _ (_root_.subtype.semilattice_sup_bot Pbot Psup) t f).1 = t.sup (λ x, (f x).1) :=
+by { classical, rw [finset.comp_sup_eq_sup_comp' subtype.val]; intros; refl }
 
 end sup
 

@@ -272,7 +272,7 @@ meta def normalize (mode := normalize_mode.term) (e : expr) : tactic (expr × ex
 pow_lemma ← simp_lemmas.mk.add_simp ``pow_one,
 let lemmas := match mode with
 | normalize_mode.term :=
-  [``term.equations._eqn_1, ``termg.equations._eqn_1, ``add_zero, ``one_nsmul, ``one_gsmul]
+  [``term.equations._eqn_1, ``termg.equations._eqn_1, ``add_zero, ``one_nsmul, ``one_gsmul, ``gsmul_zero]
 | _ := []
 end,
 lemmas ← lemmas.mfoldl simp_lemmas.add_simp simp_lemmas.mk,

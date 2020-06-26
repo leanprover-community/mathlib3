@@ -25,7 +25,7 @@ variables {α : Type u} {β : Type v}
 namespace filter
 
 open set zorn
-open_locale classical
+open_locale classical filter
 
 variables {f g : filter α}
 
@@ -35,9 +35,9 @@ def is_ultrafilter (f : filter α) := f ≠ ⊥ ∧ ∀g, g ≠ ⊥ → g ≤ f 
 lemma ultrafilter_unique (hg : is_ultrafilter g) (hf : f ≠ ⊥) (h : f ≤ g) : f = g :=
 le_antisymm h (hg.right _ hf h)
 
-lemma le_of_ultrafilter {g : filter α} (hf : is_ultrafilter f) (h : f ⊓ g ≠ ⊥) :
+lemma le_of_ultrafilter {g : filter α} (hf : is_ultrafilter f) (h : g ⊓ f ≠ ⊥) :
   f ≤ g :=
-le_of_inf_eq $ ultrafilter_unique hf h inf_le_left
+by { rw inf_comm at h, exact le_of_inf_eq (ultrafilter_unique hf h inf_le_left) }
 
 /-- Equivalent characterization of ultrafilters:
   A filter f is an ultrafilter if and only if for each set s,
@@ -48,9 +48,9 @@ lemma ultrafilter_iff_compl_mem_iff_not_mem :
    ⟨assume hns hs,
       hf.1 $ empty_in_sets_eq_bot.mp $ by convert f.inter_sets hs hns; rw [inter_compl_self],
     assume hs,
-      have f ≤ principal (-s), from
+      have f ≤ 𝓟 (-s), from
         le_of_ultrafilter hf $ assume h, hs $ mem_sets_of_eq_bot $
-          by simp only [h, eq_self_iff_true, compl_compl],
+          by rwa inf_comm,
       by simp only [le_principal_iff] at this; assumption⟩,
  assume hf,
    ⟨mt empty_in_sets_eq_bot.mpr ((hf ∅).mp (by convert f.univ_sets; rw [compl_empty])),

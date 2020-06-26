@@ -205,6 +205,33 @@ def is_limit.mk (t : pullback_cone f g) (lift : Π (s : cone (cospan f g)), s.X 
     (λ j', walking_pair.cases_on j' (fac_left s) (fac_right s)),
   uniq' := uniq }
 
+/-- This is another convenient method to verify that a pullback cone is a limit cone. It
+    only asks for a proof of facts that carry any mathematical content, and allows access to the
+    same `s` for all parts. -/
+def is_limit.mk' (t : pullback_cone f g)
+  (create : Π (s : pullback_cone f g),
+    {l // l ≫ t.fst = s.fst ∧ l ≫ t.snd = s.snd ∧ ∀ {m}, m ≫ t.fst = s.fst → m ≫ t.snd = s.snd → m = l}) :
+is_limit t :=
+pullback_cone.is_limit.mk t
+  (λ s, (create s).1)
+  (λ s, (create s).2.1)
+  (λ s, (create s).2.2.1)
+  (λ s m w, (create s).2.2.2 (w walking_cospan.left) (w walking_cospan.right))
+
+/-- The flip of a pullback square is a pullback square. -/
+def flip_is_limit {W : C} {h : W ⟶ X} {k : W ⟶ Y}
+  {comm : h ≫ f = k ≫ g} (t : is_limit (mk _ _ comm.symm)) :
+  is_limit (mk _ _ comm) :=
+is_limit.mk' _ $ λ s,
+begin
+  refine ⟨(is_limit.lift' t _ _ s.condition.symm).1,
+          (is_limit.lift' t _ _ _).2.2,
+          (is_limit.lift' t _ _ _).2.1, λ m m₁ m₂, t.hom_ext _⟩,
+  apply (mk k h _).equalizer_ext,
+  { rwa (is_limit.lift' t _ _ _).2.1 },
+  { rwa (is_limit.lift' t _ _ _).2.2 },
+end
+
 end pullback_cone
 
 /-- A pushout cocone is just a cocone on the span formed by two morphisms `f : X ⟶ Y` and
@@ -270,6 +297,33 @@ def is_colimit.mk (t : pushout_cocone f g) (desc : Π (s : cocone (span f g)), t
   fac' := λ s j, option.cases_on j (by { simp [← s.w fst, ← t.w fst, fac_left s] } )
                     (λ j', walking_pair.cases_on j' (fac_left s) (fac_right s)),
   uniq' := uniq }
+
+/-- This is another convenient method to verify that a pushout cocone is a colimit cocone. It
+    only asks for a proof of facts that carry any mathematical content, and allows access to the
+    same `s` for all parts. -/
+def is_colimit.mk' (t : pushout_cocone f g)
+  (create : Π (s : pushout_cocone f g),
+    {l // t.inl ≫ l = s.inl ∧ t.inr ≫ l = s.inr ∧ ∀ {m}, t.inl ≫ m = s.inl → t.inr ≫ m = s.inr → m = l}) :
+is_colimit t :=
+is_colimit.mk t
+  (λ s, (create s).1)
+  (λ s, (create s).2.1)
+  (λ s, (create s).2.2.1)
+  (λ s m w, (create s).2.2.2 (w walking_cospan.left) (w walking_cospan.right))
+
+/-- The flip of a pushout square is a pushout square. -/
+def flip_is_colimit {W : C} {h : Y ⟶ W} {k : Z ⟶ W}
+  {comm : f ≫ h = g ≫ k} (t : is_colimit (mk _ _ comm.symm)) :
+  is_colimit (mk _ _ comm) :=
+is_colimit.mk' _ $ λ s,
+begin
+  refine ⟨(is_colimit.desc' t _ _ s.condition.symm).1,
+          (is_colimit.desc' t _ _ _).2.2,
+          (is_colimit.desc' t _ _ _).2.1, λ m m₁ m₂, t.hom_ext _⟩,
+  apply (mk k h _).coequalizer_ext,
+  { rwa (is_colimit.desc' t _ _ _).2.1 },
+  { rwa (is_colimit.desc' t _ _ _).2.2 },
+end
 
 end pushout_cocone
 

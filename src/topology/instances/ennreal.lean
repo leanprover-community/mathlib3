@@ -14,7 +14,7 @@ open_locale classical
 open_locale topological_space
 variables {α : Type*} {β : Type*} {γ : Type*}
 
-open_locale ennreal big_operators
+open_locale ennreal big_operators filter
 
 namespace ennreal
 variables {a b c d : ennreal} {r p q : nnreal}
@@ -134,10 +134,10 @@ lemma tendsto_nat_nhds_top : tendsto (λ n : ℕ, ↑n) at_top (𝓝 ∞) :=
 tendsto_nhds_top $ λ n, mem_at_top_sets.2
   ⟨n+1, λ m hm, ennreal.coe_nat_lt_coe_nat.2 $ nat.lt_of_succ_le hm⟩
 
-lemma nhds_top : 𝓝 ∞ = ⨅a ≠ ∞, principal (Ioi a) :=
+lemma nhds_top : 𝓝 ∞ = ⨅a ≠ ∞, 𝓟 (Ioi a) :=
 nhds_top_order.trans $ by simp [lt_top_iff_ne_top, Ioi]
 
-lemma nhds_zero : 𝓝 (0 : ennreal) = ⨅a ≠ 0, principal (Iio a) :=
+lemma nhds_zero : 𝓝 (0 : ennreal) = ⨅a ≠ 0, 𝓟 (Iio a) :=
 nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot, Iio]
 
 /-- The set of finite `ennreal` numbers is homeomorphic to `nnreal`. -/
@@ -170,7 +170,7 @@ begin
 end
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-lemma nhds_of_ne_top : x ≠ ⊤ → 𝓝 x = ⨅ε > 0, principal (Icc (x - ε) (x + ε)) :=
+lemma nhds_of_ne_top : x ≠ ⊤ → 𝓝 x = ⨅ε > 0, 𝓟 (Icc (x - ε) (x + ε)) :=
 begin
   assume xt, refine le_antisymm _ _,
   -- first direction

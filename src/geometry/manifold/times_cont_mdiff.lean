@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 
 import geometry.manifold.mfderiv
+import geometry.manifold.local_properties
 
 /-!
 # Smooth functions between smooth manifolds
@@ -27,6 +28,7 @@ Let `M ` and `M'` be two smooth manifolds, with respect to model with corners `I
 -/
 
 open set
+open_locale topological_space
 
 /-! ### Definition of smooth functions between manifolds -/
 
@@ -39,6 +41,33 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {M' : Type*} [topological_space M'] [charted_space H' M'] [I's : smooth_manifold_with_corners I' M']
 {f f₁ : M → M'} {s s₁ : set M} {x : M}
 {m n : with_top ℕ}
+
+lemma zoug :
+  structure_groupoid.invariant_prop_fun_set_pt
+  (times_cont_diff_groupoid ⊤ I) (times_cont_diff_groupoid ⊤ I')
+  (λ f s x, times_cont_diff_within_at 𝕜 n (I' ∘ f ∘ I.symm) (range I ∩ I.symm ⁻¹' s) (I x)) :=
+{ is_local :=
+  begin
+    assume s x u f u_open xu,
+    have : range I ∩ I.symm ⁻¹' (s ∩ u) = (range I ∩ I.symm ⁻¹' s) ∩ I.symm ⁻¹' u,
+      by simp [inter_assoc],
+    rw this,
+    symmetry,
+    apply times_cont_diff_within_at_inter,
+    have : u ∈ 𝓝 (I.symm (I x)),
+      by { rw [model_with_corners.left_inv], exact mem_nhds_sets u_open xu },
+    apply continuous_at.preimage_mem_nhds I.continuous_symm.continuous_at this,
+  end,
+  right_invariance :=
+  begin
+    assume s x f e he h,
+
+  end,
+  congr := sorry,
+  left_invariance := sorry,
+
+}
+#exit
 
 /-- A function is `n` times continuously differentiable in a set of a manifold if it is continuous
 and, for any pair of points, it is `n` times continuously differentiable on this set in the charts

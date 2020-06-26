@@ -1057,9 +1057,13 @@ lemma eventually_eq.exists_mem {l : filter α} {f g : α → β} (h : f =ᶠ[l] 
   ∃ s ∈ l, ∀ x ∈ s, f x = g x :=
 filter.eventually.exists_mem h
 
+lemma eventually_eq_of_mem {l : filter α} {f g : α → β} {s : set α}
+  (hs : s ∈ l) (h : ∀ x ∈ s, f x = g x) : f =ᶠ[l] g :=
+eventually_of_mem hs h
+
 lemma eventually_eq_iff_exists_mem {l : filter α} {f g : α → β} :
   (f =ᶠ[l] g) ↔ ∃ s ∈ l, ∀ x ∈ s, f x = g x :=
-filter.eventually_iff_exists_mem
+eventually_iff_exists_mem
 
 @[refl] lemma eventually_eq.refl (l : filter α) (f : α → β) :
   f =ᶠ[l] f :=

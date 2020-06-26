@@ -22,29 +22,6 @@ structure invariant_prop_set_pt (P : set H → H → Prop) : Prop :=
 (invariance : ∀ s x (e : local_homeomorph H H), e ∈ G → P s x →
                 P (e.target ∩ e.symm ⁻¹' s) (e x))
 
-structure invariant_prop_set (P : set H → Prop) : Prop :=
-(is_local   : ∀ s, (∀ x ∈ s, ∃ u, is_open u ∧ x ∈ u ∧ P (s ∩ u)) → P s)
-(mono       : ∀ s u, P s → is_open u → P (s ∩ u))
-(invariance : ∀ s (e : local_homeomorph H H), e ∈ G → P s →
-                P (e.target ∩ e.symm ⁻¹' s))
-
-lemma invariant_prop_set_pt.invariant_prop_set {P : set H → H → Prop}
-  (h : G.invariant_prop_set_pt P) : G.invariant_prop_set (λ s, (∀ x ∈ s, P s x)) :=
-begin
-  split,
-  { assume s hs x hx,
-    rcases hs x hx with ⟨u, ⟨u_open, xu, hu⟩⟩,
-    rw h.is_local u_open xu,
-    exact hu x ⟨hx, xu⟩ },
-  { assume s u hs hu x hx,
-    exact (h.is_local hu hx.2).1 (hs x hx.1) },
-  { assume s e eG hP x hx,
-    set y := e.symm x with hy,
-    have : P (e.target ∩ e.symm ⁻¹' s) (e y) :=
-      h.invariance s y e eG (hP y hx.2),
-    rwa [hy, e.right_inv hx.1] at this }
-end
-
 structure invariant_prop_fun_set_pt (P : (H → H') → (set H) → H → Prop) : Prop :=
 (is_local : ∀ {s x u} {f : H → H'}, is_open u → x ∈ u → (P f s x ↔ P f (s ∩ u) x))
 (right_invariance : ∀ {s x f} {e : local_homeomorph H H}, e ∈ G → P f s x →
@@ -60,11 +37,6 @@ end structure_groupoid
 corresponding property in the manifold, using the preferred chart at the point. -/
 def charted_space.lift_prop_set_pt (P : set H → H → Prop) (s : set M) (x : M) : Prop :=
 P ((chart_at H x).target ∩ (chart_at H x).symm ⁻¹' s) (chart_at H x x)
-
-/-- If one can define a property of sets in the model space, then one define a
-corresponding property in the manifold, by requiring that it holds for all preferred charts. -/
-def charted_space.lift_prop_set (P : set H → Prop) (s : set M) : Prop :=
-∀ x, P ((chart_at H x).target ∩ (chart_at H x).symm ⁻¹' s)
 
 /-- If one can define a property of germs of functions and sets in the model space, then one define
 a corresponding property in the manifold, by requiring that it holds for all preferred charts. -/
@@ -94,7 +66,7 @@ begin
   have cG : c ∈ G := compatible_of_mem_maximal_atlas he he',
   suffices A : P ((e'.target ∩ e'.symm ⁻¹' s) ∩ c.target) (e' x),
   { apply (hG.is_local c.open_target _).2 A,
-    simp [c, local_equiv.trans_target, xe, xe'] },
+    simp only [c, xe, xe'] with mfld_simps },
   set t := e.target ∩ e.symm ⁻¹' s with ht,
   have B : (e'.target ∩ e'.symm ⁻¹' s) ∩ c.target =
            c.target ∩ c.symm ⁻¹' t,
@@ -110,7 +82,7 @@ begin
     hG.invariance _ _ _ cG h,
   convert this using 1,
   { exact B },
-  { simp [c, xe, xe'] }
+  { simp only [c, xe, xe'] with mfld_simps }
 end
 
 /-- If a property of a pointed set is invariant under the structure groupoid, then it is equivalent
@@ -124,11 +96,11 @@ lemma invariant_prop_set_pt.lift_prop_set_pt_iff [has_groupoid M G]
 hG.indep_chart x he xe (G.chart_mem_maximal_atlas x) (mem_chart_source H x)⟩
 
 /-- If a property of a germ of function `g` on a pointed set `(s, x)` is invariant under the
-structure groupoid (in the source space and in the target space), then expressing it in charted
-spaces does not depend on the element of the maximal atlas one uses both in the source
-and in the target manifolds, provided they are defined around `x` and `g x` respectively, and
-provided `g` is continuous within `s` at `x` (otherwise, the local behavior of `g` at `x` can not
-be captured with a chart in the target). -/
+structure groupoid (by composition in the source space and in the target space), then
+expressing it in charted spaces does not depend on the element of the maximal atlas one uses
+both in the source and in the target manifolds, provided they are defined around `x` and `g x`
+respectively, and provided `g` is continuous within `s` at `x` (otherwise, the local behavior
+of `g` at `x` can not be captured with a chart in the target). -/
 lemma invariant_prop_fun_set_pt.indep_chart {P : (H → H') → set H → H → Prop}
   (hG : G.invariant_prop_fun_set_pt G' P) (g : M → M') (x : M)
   (he : e ∈ G.maximal_atlas M) (xe : x ∈ e.source)
@@ -193,7 +165,7 @@ begin
     { assume hy,
       have : e.symm (e ((e'.symm) y)) = e'.symm y,
         by { simp only with mfld_simps at hy, simp only [hy] with mfld_simps },
-      simp [this] at hy,
+      simp only [this] with mfld_simps at hy,
       have : g (e'.symm y) ∈ f'.source, by { apply of', simp only [hy] with mfld_simps },
       simp only [hy, this] with mfld_simps },
     { assume hy,

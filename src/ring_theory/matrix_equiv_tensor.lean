@@ -14,6 +14,8 @@ and show `matrix n n A ≃ₐ[R] (A ⊗[R] matrix n n R)`.
 universes u v w
 
 open_locale tensor_product
+open_locale big_operators
+
 open tensor_product
 open algebra.tensor_product
 
@@ -104,8 +106,6 @@ begin
   refl,
 end
 
-open_locale big_operators
-
 /--
 (Implementation detail.)
 
@@ -162,6 +162,11 @@ begin
   { intros x y hx hy, simp [alg_hom.map_sum, hx, hy], },
 end
 
+/--
+(Implementation detail)
+
+The equivalence, ignoring the algebra structure, `(A ⊗[R] matrix n n R) ≃ matrix n n A`.
+-/
 def equiv : (A ⊗[R] matrix n n R) ≃ matrix n n A :=
 { to_fun := to_fun_alg_hom R A n,
   inv_fun := inv_fun R A n,
@@ -176,7 +181,6 @@ The `R`-algebra isomorphism `matrix n n A ≃ₐ[R] (A ⊗[R] matrix n n R)`.
 def matrix_equiv_tensor : matrix n n A ≃ₐ[R] (A ⊗[R] matrix n n R) :=
 alg_equiv.symm { ..(matrix_equiv_tensor.to_fun_alg_hom R A n), ..(matrix_equiv_tensor.equiv R A n) }
 
-open_locale big_operators
 open matrix_equiv_tensor
 
 @[simp] lemma matrix_equiv_tensor_apply (M : matrix n n A) :

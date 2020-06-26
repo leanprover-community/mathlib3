@@ -374,6 +374,20 @@ begin
   exact ⟨(λ hx, (mem_filter.1 hx).1), (λ hx, mem_filter.2 ⟨hx, h x hx⟩)⟩
 end
 
+/-- A product of a function over a `finset` in a subtype equals a
+product in the main type of a function that agrees with the first
+function on that `finset`. -/
+@[simp, to_additive "A sum of a function over a `finset` in a subtype equals a
+sum in the main type of a function that agrees with the first
+function on that `finset`."]
+lemma prod_subtype_map_embedding {p : α → Prop} {s : finset {x // p x}} {f : {x // p x} → β}
+    {g : α → β} (h : ∀ x : {x // p x}, x ∈ s → g x = f x) :
+  ∏ x in s.map (function.embedding.subtype _), g x = ∏ x in s, f x :=
+begin
+  rw finset.prod_map,
+  exact finset.prod_congr rfl h
+end
+
 @[to_additive]
 lemma prod_eq_one {f : α → β} {s : finset α} (h : ∀x∈s, f x = 1) : (∏ x in s, f x) = 1 :=
 calc (∏ x in s, f x) = ∏ x in s, 1 : finset.prod_congr rfl h

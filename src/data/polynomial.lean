@@ -281,10 +281,14 @@ end coeff
 lemma C_inj : C a = C b ↔ a = b :=
 ⟨λ h, coeff_C_zero.symm.trans (h.symm ▸ coeff_C_zero), congr_arg C⟩
 
+end comm_semiring
+
+section semiring
+variables [semiring R]
+
 section eval₂
 variables [semiring S]
 variables (f : R → S) (x : S)
-open is_semiring_hom
 
 /-- Evaluate a polynomial `p` given a ring hom `f` from the scalar ring
   to the target and a value `x` for the variable in the target -/
@@ -294,7 +298,18 @@ p.sum (λ e a, f a * x ^ e)
 @[simp] lemma eval₂_zero : (0 : polynomial R).eval₂ f x = 0 :=
 finsupp.sum_zero_index
 
+end eval₂
+
+end semiring
+
+section comm_semiring
+variables [comm_semiring R] {p q r : polynomial R}
+
+section eval₂
+variables [semiring S]
+variables (f : R → S) (x : S)
 variables [is_semiring_hom f]
+open is_semiring_hom
 
 @[simp] lemma eval₂_C : (C a).eval₂ f x = f a :=
 (sum_single_index $ by rw [map_zero f, zero_mul]).trans $
@@ -1395,6 +1410,16 @@ rec_on_horner p
 
 end comm_semiring
 
+section ring
+variables [ring R] {p q : polynomial R}
+
+@[simp] lemma coeff_neg (p : polynomial R) (n : ℕ) : coeff (-p) n = -coeff p n := rfl
+
+@[simp]
+lemma coeff_sub (p q : polynomial R) (n : ℕ) : coeff (p - q) n = coeff p n - coeff q n := rfl
+
+end ring
+
 section comm_ring
 variables [comm_ring R] {p q : polynomial R}
 instance : comm_ring (polynomial R) := add_monoid_algebra.comm_ring
@@ -1446,11 +1471,6 @@ by simp [nat_degree]
 @[simp] lemma nat_degree_int_cast (n : ℤ) : nat_degree (n : polynomial R) = 0 :=
 by simp [int_cast_eq_C]
 
-@[simp] lemma coeff_neg (p : polynomial R) (n : ℕ) : coeff (-p) n = -coeff p n := rfl
-
-@[simp]
-lemma coeff_sub (p q : polynomial R) (n : ℕ) : coeff (p - q) n = coeff p n - coeff q n := rfl
-
 @[simp] lemma eval₂_neg {S} [comm_ring S] (f : R → S) [is_ring_hom f] {x : S} :
   (-p).eval₂ f x = -p.eval₂ f x :=
 is_ring_hom.map_neg _
@@ -1467,11 +1487,9 @@ is_ring_hom.map_sub _
 
 section aeval
 /-- `R[X]` is the generator of the category `R-Alg`. -/
-instance polynomial (R : Type u) [comm_semiring R] : algebra R (polynomial R) :=
+instance polynomial (R : Type u) [comm_semiring R] (A : Type u) [semiring A] [algebra R A] :
+  algebra R (polynomial A) :=
 add_monoid_algebra.algebra
--- { commutes' := λ _ _, mul_comm _ _,
---   smul_def' := λ c p, (polynomial.C_mul' c p).symm,
---   .. polynomial.semimodule, .. ring_hom.of polynomial.C }
 
 variables (R) (A)
 variables [comm_ring A] [algebra R A]

@@ -334,12 +334,38 @@ instance {β : Type w} [semiring α] [add_comm_monoid β] [semimodule α β] :
 
 @[simp] lemma smul_val [semiring α] (a : α) (A : matrix m n α) (i : m) (j : n) : (a • A) i j = a * A i j := rfl
 
-section comm_semiring
-variables [comm_semiring α]
+section semiring
+variables [semiring α]
 
 lemma smul_eq_diagonal_mul [decidable_eq m] (M : matrix m n α) (a : α) :
   a • M = diagonal (λ _, a) ⬝ M :=
 by { ext, simp }
+
+@[simp] lemma smul_mul (M : matrix m n α) (a : α) (N : matrix n l α) : (a • M) ⬝ N = a • M ⬝ N :=
+by { ext, apply smul_dot_product }
+
+@[simp] lemma mul_mul_left (M : matrix m n α) (N : matrix n o α) (a : α) :
+  (λ i j, a * M i j) ⬝ N = a • (M ⬝ N) :=
+begin
+  simp only [←smul_val],
+  simp,
+end
+
+/--
+The ring homomorphism `α →+* matrix n n α`
+sending `a` to the diagonal matrix with `a` on the diagonal.
+-/
+def scalar (n : Type u) [fintype n] [decidable_eq n] [semiring α] : α →+* matrix n n α :=
+{ to_fun := λ a, a • 1,
+  map_zero' := by simp,
+  map_add' := by { intros, ext, simp [add_mul], },
+  map_one' := by simp,
+  map_mul' := by { intros, ext, simp [mul_assoc], }, }
+
+end semiring
+
+section comm_semiring
+variables [comm_semiring α]
 
 lemma smul_eq_mul_diagonal [decidable_eq n] (M : matrix m n α) (a : α) :
   a • M = M ⬝ diagonal (λ _, a) :=
@@ -348,8 +374,12 @@ by { ext, simp [mul_comm] }
 @[simp] lemma mul_smul (M : matrix m n α) (a : α) (N : matrix n l α) : M ⬝ (a • N) = a • M ⬝ N :=
 by { ext, apply dot_product_smul }
 
-@[simp] lemma smul_mul (M : matrix m n α) (a : α) (N : matrix n l α) : (a • M) ⬝ N = a • M ⬝ N :=
-by { ext, apply smul_dot_product }
+@[simp] lemma mul_mul_right (M : matrix m n α) (N : matrix n o α) (a : α) :
+  M ⬝ (λ i j, a * N i j) = a • (M ⬝ N) :=
+begin
+  simp only [←smul_val],
+  simp,
+end
 
 end comm_semiring
 
@@ -547,3 +577,13 @@ lemma row_mul_vec [semiring α] (M : matrix m n α) (v : n → α) :
 end row_col
 
 end matrix
+
+namespace ring_hom
+variables {α β : Type*} [semiring α] [semiring β]
+variables {m n o : Type u} [fintype m] [fintype n] [fintype o]
+
+lemma map_matrix_mul (M : matrix m n α) (N : matrix n o α) (i : m) (j : o) (f : α →+* β) :
+  f (matrix.mul M N i j) = matrix.mul (λ i j, f (M i j)) (λ i j, f (N i j)) i j :=
+by simp [matrix.mul_val, ring_hom.map_sum]
+
+end ring_hom

@@ -229,6 +229,9 @@ variables [rα : semiring α] [rβ : semiring β]
 section
 include rα rβ
 
+@[simp]
+lemma to_fun_eq_coe (f : α →+* β) : f.to_fun = f := rfl
+
 @[simp] lemma coe_mk (f : α → β) (h₁ h₂ h₃ h₄) : ⇑(⟨f, h₁, h₂, h₃, h₄⟩ : α →+* β) = f := rfl
 
 variables (f : α →+* β) {x y : α} {rα rβ}

@@ -171,13 +171,9 @@ instance module.endomorphism_algebra (R : Type u) (M : Type v)
 
 instance matrix_algebra (n : Type u) (R : Type v)
   [fintype n] [decidable_eq n] [comm_semiring R] : algebra R (matrix n n R) :=
-{ to_fun    := λ r, r • 1,
-  map_one'  := one_smul _ _,
-  map_mul'  := λ r₁ r₂, by { ext, simp [mul_assoc] },
-  map_zero' :=  zero_smul _ _,
-  map_add'  := λ _ _, add_smul _ _ _,
-  commutes' := by { intros, simp },
-  smul_def' := by { intros, simp } }
+{ commutes' := by { intros, simp [matrix.scalar], },
+  smul_def' := by { intros, simp [matrix.scalar], },
+  ..(matrix.scalar n) }
 
 set_option old_structure_cmd true
 /-- Defining the homomorphism in the category R-Alg. -/

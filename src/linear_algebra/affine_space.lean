@@ -167,7 +167,7 @@ end
 
 /-- The weighted sum is unaffected by removing the base point, if
 present, from the set of points. -/
-lemma weighted_vsub_of_point_erase (w : ι → k) (p : ι → P) (i : ι) :
+@[simp] lemma weighted_vsub_of_point_erase (w : ι → k) (p : ι → P) (i : ι) :
   (s.erase i).weighted_vsub_of_point V p (p i) w = s.weighted_vsub_of_point V p (p i) w :=
 begin
   rw [weighted_vsub_of_point_apply, weighted_vsub_of_point_apply],

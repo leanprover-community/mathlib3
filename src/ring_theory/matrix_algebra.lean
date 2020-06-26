@@ -136,7 +136,7 @@ by simp [inv_fun,finset.mul_sum]
   inv_fun R A n (λ i j, algebra_map R A (M i j)) = 1 ⊗ₜ M :=
 begin
   dsimp [inv_fun],
-  simp only [algebra_map_eq_smul_one, smul_tmul, ←tmul_sum, (•), mul_boole],
+  simp only [algebra.algebra_map_eq_smul_one, smul_tmul, ←tmul_sum, (•), mul_boole],
   congr, ext,
   calc
     (∑ (x : n × n), λ (i i_1 : n), ite ((i, i_1) = x) (M x.fst x.snd) 0) i j

@@ -777,7 +777,7 @@ begin
 end
 
 lemma principal_le_iff {s : set α} {f : filter α} :
-  principal s ≤ f ↔ ∀ V ∈ f, s ⊆ V :=
+  𝓟 s ≤ f ↔ ∀ V ∈ f, s ⊆ V :=
 begin
   change (∀ V, V ∈ f → V ∈ _) ↔ _,
   simp_rw mem_principal_sets,

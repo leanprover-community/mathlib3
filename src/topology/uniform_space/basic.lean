@@ -551,7 +551,7 @@ lemma mem_nhds_uniformity_iff_left {x : α} {s : set α} :
 by { rw [uniformity_eq_symm, mem_nhds_uniformity_iff_right], refl }
 
 lemma nhds_eq_comap_uniformity_aux  {α : Type u} {x : α} {s : set α} {F : filter (α × α)} :
- {p : α × α | p.fst = x → p.snd ∈ s} ∈ F ↔ s ∈ comap (prod.mk x) F :=
+  {p : α × α | p.fst = x → p.snd ∈ s} ∈ F ↔ s ∈ comap (prod.mk x) F :=
 by rw mem_comap_sets ; from iff.intro
   (assume hs, ⟨_, hs, assume x hx, hx rfl⟩)
   (assume ⟨t, h, ht⟩, F.sets_of_superset h $
@@ -701,7 +701,7 @@ match this with
 end
 
 /-- Entourages are neighborhoods of the diagonal. -/
-lemma nhds_le_uniformity : (⨆ x : α, 𝓝 (x, x)) ≤  𝓤 α :=
+lemma nhds_le_uniformity : (⨆ x : α, 𝓝 (x, x)) ≤ 𝓤 α :=
 begin
   apply supr_le _,
   intros x V V_in,

@@ -218,6 +218,10 @@ xs.foldl merge mk_rb_set
 
 end rb_set
 
+end native
+
+open native
+
 
 namespace name_set
 
@@ -228,9 +232,6 @@ meta def merge_many (xs : list name_set) : name_set :=
 xs.foldl merge mk_name_set
 
 end name_set
-end native
-
-open native
 
 
 namespace expr
@@ -795,9 +796,9 @@ list.mbor
 meta def local_dependencies_of_local (h : expr) : tactic name_set := do
   let deps := mk_name_set.insert h.local_uniq_name,
   t ← infer_type h,
-  let deps := name_set.merge deps t.local_unique_names,
+  let deps := deps.merge t.local_unique_names,
   (some val) ← try_core $ local_def_value h | pure deps,
-  let deps := name_set.merge deps $ val.local_unique_names,
+  let deps := deps.merge val.local_unique_names,
   pure deps
 
 meta def revert_lst'' (hs : name_set) : tactic (ℕ × list expr) := do

@@ -363,7 +363,7 @@ end
 
 /-- If all elements of a `finset` satisfy the predicate `p`, a product
 over `s.subtype p` equals that product over `s`. -/
-@[simp, to_additive "If all elements of a `finset` satisfy the predicate `p`, a sum
+@[to_additive "If all elements of a `finset` satisfy the predicate `p`, a sum
 over `s.subtype p` equals that sum over `s`."]
 lemma prod_subtype_of_mem (f : α → β) {p : α → Prop} [decidable_pred p]
     (h : ∀ x ∈ s, p x) : ∏ x in s.subtype p, f x = ∏ x in s, f x :=

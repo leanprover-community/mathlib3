@@ -269,23 +269,24 @@ begin
 end
 
 lemma eq_of_uniformity_inf_nhds_of_is_separated {s : set α} (hs : is_separated s) :
-  ∀ x y ∈ s, 𝓤 α ⊓ 𝓝 (x, y) ≠ ⊥ → x = y :=
+  ∀ {x y : α}, x ∈ s → y ∈ s → cluster_pt (x, y) (𝓤 α) → x = y :=
 begin
   intros x y x_in y_in H,
   have : ∀ V ∈ 𝓤 α, (x, y) ∈ closure V,
   { intros V V_in,
-    simp_rw [closure_eq_cluster_pts, cluster_pt, mem_set_of_eq, inf_comm],
+    rw mem_closure_iff_cluster_pt,
     have : 𝓤 α ≤ 𝓟 V, by rwa le_principal_iff,
-    exact ne_bot_of_le_ne_bot H (inf_le_inf_right _ this) },
+    exact H.mono this },
   apply hs x y x_in y_in,
   simpa [separation_rel_eq_inter_closure],
 end
 
-lemma eq_of_uniformity_inf_nhds [separated_space α] : ∀ {x y}, 𝓤 α ⊓ 𝓝 (x, y) ≠ ⊥ → x = y :=
+lemma eq_of_uniformity_inf_nhds [separated_space α] : ∀ {x y : α}, cluster_pt (x, y) (𝓤 α) → x = y :=
 begin
   have : is_separated (univ : set α),
   { rw univ_separated_iff,
     assumption },
+  introv,
   simpa using eq_of_uniformity_inf_nhds_of_is_separated this,
 end
 

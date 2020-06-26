@@ -1153,19 +1153,7 @@ apply_nolint polynomial.rec_on_horner doc_blame
 apply_nolint polynomial.root_multiplicity doc_blame
 
 -- data/quot.lean
-apply_nolint quot.hrec_on₂ doc_blame
-apply_nolint quotient.choice doc_blame
-apply_nolint quotient.hrec_on₂ doc_blame
-apply_nolint quotient.lift_on' doc_blame
-apply_nolint quotient.lift_on₂' doc_blame
-apply_nolint quotient.mk' doc_blame
-apply_nolint quotient.out' doc_blame
 apply_nolint trunc.bind doc_blame
-apply_nolint trunc.lift_on doc_blame
-apply_nolint trunc.map doc_blame
-apply_nolint trunc.rec doc_blame
-apply_nolint trunc.rec_on doc_blame
-apply_nolint trunc.rec_on_subsingleton doc_blame
 
 -- data/rat/basic.lean
 apply_nolint rat.add doc_blame
@@ -1265,7 +1253,6 @@ apply_nolint set.enumerate doc_blame
 -- data/set/lattice.lean
 apply_nolint set.Union_eq_sigma_of_disjoint doc_blame
 apply_nolint set.bUnion_eq_sigma_of_disjoint doc_blame
-apply_nolint set.seq doc_blame
 
 -- data/string/basic.lean
 apply_nolint string.ltb doc_blame
@@ -1668,23 +1655,6 @@ apply_nolint ideal.quotient_inf_to_pi_quotient doc_blame
 apply_nolint submodule.annihilator doc_blame
 apply_nolint submodule.colon doc_blame
 
--- ring_theory/ideals.lean
-apply_nolint ideal.is_maximal doc_blame
-apply_nolint ideal.is_prime doc_blame
-apply_nolint ideal.quotient doc_blame has_inhabited_instance
-apply_nolint ideal.quotient.map_mk doc_blame
-apply_nolint ideal.quotient.mk doc_blame
-apply_nolint ideal.span doc_blame
-apply_nolint is_local_ring doc_blame
-apply_nolint is_local_ring_hom doc_blame
-apply_nolint local_of_is_local_ring doc_blame
-apply_nolint local_of_nonunits_ideal doc_blame
-apply_nolint local_of_unique_max_ideal doc_blame
-apply_nolint local_of_unit_or_unit_one_sub doc_blame
-apply_nolint local_ring doc_blame
-apply_nolint local_ring.residue_field doc_blame has_inhabited_instance
-apply_nolint local_ring.residue_field.map doc_blame
-
 -- ring_theory/integral_closure.lean
 apply_nolint integral_closure doc_blame
 
@@ -1693,12 +1663,6 @@ apply_nolint ring_invo.id doc_blame
 
 -- ring_theory/multiplicity.lean
 apply_nolint multiplicity.finite doc_blame
-
--- ring_theory/power_series.lean
-apply_nolint mv_power_series.inv doc_blame
-apply_nolint mv_power_series.trunc_fun doc_blame
-apply_nolint power_series.inv doc_blame
-apply_nolint power_series.inv.aux doc_blame
 
 -- ring_theory/subring.lean
 apply_nolint ring.closure doc_blame

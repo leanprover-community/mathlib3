@@ -97,8 +97,11 @@ namespace CommGroup
 @[to_additive]
 instance : bundled_hom.parent_projection comm_group.to_group := ⟨⟩
 
-/-- Construct a bundled CommGroup from the underlying type and typeclass. -/
+/-- Construct a bundled `CommGroup` from the underlying type and typeclass. -/
 @[to_additive] def of (G : Type u) [comm_group G] : CommGroup := bundled.of G
+
+/-- Construct a bundled `AddCommGroup` from the underlying type and typeclass. -/
+add_decl_doc AddCommGroup.of
 
 local attribute [reducible] CommGroup
 

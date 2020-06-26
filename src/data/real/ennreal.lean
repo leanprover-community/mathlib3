@@ -197,6 +197,9 @@ by simp [(≠), mul_eq_top] {contextual := tt}
 lemma mul_lt_top {a b : ennreal}  : a < ⊤ → b < ⊤ → a * b < ⊤ :=
 by simpa only [ennreal.lt_top_iff_ne_top] using mul_ne_top
 
+@[simp] lemma mul_pos {a b : ennreal} : 0 < a * b ↔ 0 < a ∧ 0 < b :=
+by simp only [zero_lt_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
+
 lemma pow_eq_top : ∀ n:ℕ, a^n=∞ → a=∞
 | 0 := by simp
 | (n+1) := λ o, (mul_eq_top.1 o).elim (λ h, pow_eq_top n h.2) and.left
@@ -753,6 +756,12 @@ inv_zero ▸ inv_eq_inv
 
 lemma inv_ne_top : a⁻¹ ≠ ∞ ↔ a ≠ 0 := by simp
 
+lemma inv_lt_top {x : ennreal} : x⁻¹ < ⊤ ↔ 0 < x :=
+by { simp only [lt_top_iff_ne_top, inv_ne_top, zero_lt_iff_ne_zero] }
+
+lemma div_lt_top {x y : ennreal} (h1 : x < ⊤) (h2 : 0 < y) : x / y < ⊤ :=
+mul_lt_top h1 (inv_lt_top.mpr h2)
+
 @[simp] lemma inv_eq_zero : a⁻¹ = 0 ↔ a = ∞ :=
 inv_top ▸ inv_eq_inv
 
@@ -1162,6 +1171,23 @@ finset.induction_on s (by simp) $ assume a s ha ih,
     ⟨k, add_le_add (hk a (finset.mem_insert_self _ _)).left $ finset.sum_le_sum $
       assume a ha, (hk _ $ finset.mem_insert_of_mem ha).right⟩,
   by simp [ha, ih.symm, infi_add_infi this]
+
+
+lemma infi_mul {ι} [nonempty ι] {f : ι → ennreal} {x : ennreal} (h : x ≠ ⊤) :
+  infi f * x = ⨅i, f i * x :=
+begin
+  by_cases h2 : x = 0, simp only [h2, mul_zero, infi_const],
+  refine le_antisymm
+    (le_infi $ λ i, mul_right_mono $ infi_le _ _)
+    ((div_le_iff_le_mul (or.inl h2) $ or.inl h).mp $ le_infi $
+      λ i, (div_le_iff_le_mul (or.inl h2) $ or.inl h).mpr $ infi_le _ _)
+end
+
+lemma mul_infi {ι} [nonempty ι] {f : ι → ennreal} {x : ennreal} (h : x ≠ ⊤) :
+  x * infi f = ⨅i, x * f i :=
+by { rw [mul_comm, infi_mul h], simp only [mul_comm], assumption }
+
+/-! `supr_mul`, `mul_supr` and variants are in `topology.instances.ennreal`. -/
 
 end infi
 

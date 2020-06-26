@@ -77,6 +77,13 @@ lemma comp_sup_eq_sup_comp_of_is_total [is_total α (≤)] {γ : Type} [semilatt
   (g : α → γ) (mono_g : monotone g) (bot : g ⊥ = ⊥) : g (s.sup f) = s.sup (g ∘ f) :=
 comp_sup_eq_sup_comp g mono_g.map_sup bot
 
+/-- The first component of a sup in a subtype is the sup if first components. -/
+lemma sup_coe {P : α → Prop}
+  {Pbot : P ⊥} {Psup : ∀{{x y}}, P x → P y → P (x ⊔ y)}
+  (t : finset β) (f : β → {x : α // P x}) :
+  (@sup _ _ (subtype.semilattice_sup_bot Pbot Psup) t f : α) = t.sup (λ x, f x) :=
+by { classical, rw [comp_sup_eq_sup_comp coe]; intros; refl }
+
 theorem subset_range_sup_succ (s : finset ℕ) : s ⊆ range (s.sup id).succ :=
 λ n hn, mem_range.2 $ nat.lt_succ_of_le $ le_sup hn
 
@@ -99,7 +106,7 @@ def inf (s : finset β) (f : β → α) : α := s.fold (⊓) ⊤ f
 
 variables {s s₁ s₂ : finset β} {f : β → α}
 
-lemma inf_val : s.inf f = (s.1.map f).inf := rfl
+lemma inf_def : s.inf f = (s.1.map f).inf := rfl
 
 @[simp] lemma inf_empty : (∅ : finset β).inf f = ⊤ :=
 fold_empty
@@ -142,6 +149,13 @@ lemma comp_inf_eq_inf_comp [semilattice_inf_top γ] {s : finset β}
 lemma comp_inf_eq_inf_comp_of_is_total [h : is_total α (≤)] {γ : Type} [semilattice_inf_top γ]
   (g : α → γ) (mono_g : monotone g) (top : g ⊤ = ⊤) : g (s.inf f) = s.inf (g ∘ f) :=
 comp_inf_eq_inf_comp g mono_g.map_inf top
+
+/-- The first component of a sup in a subtype is the sup if first components. -/
+lemma inf_coe {P : α → Prop}
+  {Ptop : P ⊤} {Pinf : ∀{{x y}}, P x → P y → P (x ⊓ y)}
+  (t : finset β) (f : β → {x : α // P x}) :
+  (@inf _ _ (subtype.semilattice_inf_top Ptop Pinf) t f : α) = t.inf (λ x, f x) :=
+by { classical, rw [comp_inf_eq_inf_comp coe]; intros; refl }
 
 end inf
 

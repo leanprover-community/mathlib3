@@ -859,9 +859,9 @@ meta def constructor_intros (generate_induction_hyps : bool)
 
   let rec_args := arg_hyp_names.filter $ λ x,
     is_recursive_constructor_argument iinfo.iname x.2.type,
-  let num_ihs := rec_args.length,
     -- TODO the information whether an arg is recursive should be in
     -- constructor_argument_info.
+  let num_ihs := rec_args.length,
   ih_hyps ← intron_fresh num_ihs,
   let ih_hyp_names :=
     list.map₂
@@ -873,7 +873,7 @@ meta def constructor_intros (generate_induction_hyps : bool)
 meta def constructor_renames (generate_induction_hyps : bool)
   (einfo : eliminee_info) (iinfo : inductive_info) (cinfo : constructor_info)
   (args : list (name × constructor_argument_info)) (ihs : list (name × name))
-  : tactic unit := do
+  : tactic (list expr × list expr) := do
   -- Rename constructor arguments
   let iname := iinfo.iname,
   arg_renames : list (name × list name) ←
@@ -883,9 +883,13 @@ meta def constructor_renames (generate_induction_hyps : bool)
     },
   let arg_renames := rb_map.of_list arg_renames,
   new_arg_names ← rename_fresh arg_renames mk_name_set,
+  new_arg_hyps ← args.mfilter_map $ λ ⟨a, _⟩, do {
+    (some new_name) ← pure $ new_arg_names.find a | pure none,
+    some <$> get_local new_name
+  },
 
   -- Rename induction hypotheses (if we generated them)
-  tt ← pure generate_induction_hyps | pure (),
+  tt ← pure generate_induction_hyps | pure (new_arg_hyps, []),
   ih_renames ← ihs.mmap $ λ ⟨ih_hyp, arg_hyp⟩, do {
     some arg_hyp ← pure $ new_arg_names.find arg_hyp,
     pure $ (ih_hyp, ih_name arg_hyp)
@@ -896,8 +900,12 @@ meta def constructor_renames (generate_induction_hyps : bool)
     | [(h, n)] := [(h, ["ih", n])]
     | ns := ns.map (λ ⟨h, n⟩, (h, [n]))
     end,
-  rename_fresh (rb_map.of_list ih_renames) mk_name_set,
-  pure ()
+  new_ih_names ← rename_fresh (rb_map.of_list ih_renames) mk_name_set,
+  new_ih_hyps ← ihs.mfilter_map $ λ ⟨a, _⟩, do {
+    (some new_name) ← pure $ new_ih_names.find a | pure none,
+    some <$> get_local new_name
+  },
+  pure (new_arg_hyps, new_ih_hyps)
 
 meta def match_structure_equation (t : expr)
   : tactic (option (list level × list expr × list name × level × expr × expr × expr)) :=
@@ -1374,8 +1382,7 @@ focus1 $ do
   -- the context.
 
   -- Record the current case tag and the unique names of all hypotheses in the
-  -- context. These will be used later to identify the new hypotheses we
-  -- introduced.
+  -- context.
   in_tag ← get_main_tag,
   old_hyps ← hyp_unique_names,
 
@@ -1445,21 +1452,22 @@ focus1 $ do
 
       -- Try to clear the index variables. These often become unused during
       -- the index equation simplification step.
-      index_var_names.mmap $ λ h, try $ do { h ← get_local h, clear h},
+      index_var_names.mmap $ λ h, try (get_local h >>= clear),
 
       -- Rename the constructor names and IHs. We do this here (rather than
       -- earlier, when we introduced them) because there may now be less
       -- hypotheses in the context, and therefore more of the desired
       -- names may be free.
-      constructor_renames generate_induction_hyps einfo iinfo cinfo
-        constructor_arg_names ih_names,
+      ⟨constructor_arg_hyps, ih_hyps⟩ ←
+        constructor_renames generate_induction_hyps einfo iinfo cinfo
+          constructor_arg_names ih_names,
 
-      -- Return the constructor name and the new hypotheses.
-      -- (The previously generalised hypotheses don't count as new.)
-      new_hyps ← hyps_except old_hyps,
-      let new_hyps :=
-        new_hyps.filter (λ h, ¬ generalized_names.contains h.local_pp_name),
-      pure $ some (cinfo.cname, new_hyps)
+      -- Return the constructor name and the renamable new hypotheses. These are
+      -- the hypotheses that can later be renamed by the `case` tactic. Note
+      -- that index variables and index equations are not renamable. This may be
+      -- counterintuitive in some cases, but it's surprisingly difficult to
+      -- catch exactly the relevant hyps here.
+      pure $ some (cinfo.cname, constructor_arg_hyps ++ ih_hyps)
     },
 
   set_cases_tags in_tag (cases.filter_map id),

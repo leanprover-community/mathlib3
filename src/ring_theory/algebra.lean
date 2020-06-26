@@ -106,6 +106,10 @@ attribute [instance, priority 0] algebra.to_has_scalar
 lemma smul_def (r : R) (x : A) : r • x = algebra_map R A r * x :=
 algebra.smul_def' r x
 
+lemma algebra_map_eq_smul_one (r : R) : algebra_map R A r = r • 1 :=
+calc algebra_map R A r = algebra_map R A r * 1 : (mul_one _).symm
+                   ... = r • 1                 : (algebra.smul_def r 1).symm
+
 theorem commutes (r : R) (x : A) : algebra_map R A r * x = x * algebra_map R A r :=
 algebra.commutes' r x
 

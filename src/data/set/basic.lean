@@ -8,6 +8,7 @@ import tactic.finish
 import data.subtype
 import logic.unique
 import data.prod
+import logic.function.basic
 
 /-!
 # Basic properties of sets

@@ -377,7 +377,7 @@ end
 /-- A product of a function over a `finset` in a subtype equals a
 product in the main type of a function that agrees with the first
 function on that `finset`. -/
-@[simp, to_additive "A sum of a function over a `finset` in a subtype equals a
+@[to_additive "A sum of a function over a `finset` in a subtype equals a
 sum in the main type of a function that agrees with the first
 function on that `finset`."]
 lemma prod_subtype_map_embedding {p : α → Prop} {s : finset {x // p x}} {f : {x // p x} → β}

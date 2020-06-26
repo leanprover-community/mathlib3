@@ -1379,7 +1379,7 @@ end
 
 /-- If all elements of a `finset` satisfy the predicate `p`,
 `s.subtype p` converts back to `s` with `embedding.subtype`. -/
-@[simp] lemma subtype_map_of_mem {p : α → Prop} [decidable_pred p] (h : ∀ x ∈ s, p x) :
+lemma subtype_map_of_mem {p : α → Prop} [decidable_pred p] (h : ∀ x ∈ s, p x) :
   (s.subtype p).map (function.embedding.subtype _) = s :=
 begin
   rw subtype_map,

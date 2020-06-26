@@ -9,53 +9,67 @@ open function
 
 namespace sym2
 universe u
+variables {α : Type u}
 
-inductive sym2_rel (α : Type u) : (α × α) → (α × α) → Prop
-| refl (x y : α) : sym2_rel ⟨x,y⟩ ⟨x,y⟩
-| swap (x y : α) : sym2_rel ⟨x,y⟩ ⟨y,x⟩
+inductive rel (α : Type u) : (α × α) → (α × α) → Prop
+| refl (x y : α) : rel (x, y) (x, y)
+| swap (x y : α) : rel (x, y) (y, x)
 
--- The symmetric square is the cartesian product α × α modulo `swap`.
-def sym2 (α : Type u) := quot (sym2_rel α)
+attribute [refl] rel.refl
 
-@[reducible]
-def sym2.mk {α : Type u} (x y : α) : sym2 α := quot.mk (sym2_rel α) ⟨x, y⟩
-
--- def sym2.rec_eq {α : Type u} {β : Sort*} (z : sym2 α) (f : Π (x y : α), z = sym2.mk x y  → β)
--- (h : ∀ (x y x' y' : α), Π (h : z = sym2.mk x y) (h' : z = sym2.mk x' y'), f x y h = f x' y' h') : β :=
-
-
--- A type naturally includes in the diagonal of the cartesian square, and this is the quotient of that.
-instance sym2.incl_diag (α : Type u) : has_lift α (sym2 α) := ⟨λ x, sym2.mk x x⟩
-
-def sym2.is_diag {α : Type u} (x : sym2 α) : Prop :=
-quot.rec_on x (λ y, y.1 = y.2) (begin intros, cases p, simp, simp, tauto, end)
-
-lemma sym2.mk_is_diag {α : Type u} {x y : α} (h : (sym2.mk x y).is_diag) : x = y :=
+@[symm] lemma rel.symm {x y : α × α} : rel α x y → rel α y x :=
 begin
-  exact h,
+  tidy, cases a, exact a, apply rel.swap,
 end
 
-lemma sym2.comm {α : Type u} (x y : α) : sym2.mk x y = sym2.mk y x :=
-quot.sound (sym2_rel.swap x y)
-
-def sym2.induce {α β : Type u} (f : α → β) : sym2 α → sym2 β :=
-λ z, quot.rec_on z (λ x, sym2.mk (f x.1) (f x.2))
+@[trans] lemma rel.trans {x y z : α × α} : rel α x y → rel α y z → rel α x z :=
 begin
-  intros, cases p, simp, simp, apply quot.sound, apply sym2_rel.swap,
+  tidy, cases_matching* rel _ _ _; apply rel.refl <|> apply rel.swap,
+end
+
+instance rel.setoid (α : Type u) : setoid (α × α) :=
+begin
+  use rel α, tidy, apply rel.trans a a_1,
+end
+
+-- The symmetric square is the cartesian product α × α modulo `swap`.
+def sym2 (α : Type u) := quotient (rel.setoid α)
+
+lemma eq_swap {a b : α} : ⟦(a, b)⟧ = ⟦(b, a)⟧ :=
+by { rw quotient.eq, apply rel.swap }
+
+lemma other_unique (a b c : α) : ⟦(a, b)⟧ = ⟦(a, c)⟧ ↔ b = c :=
+begin
+  split,
+  intro h, rw quotient.eq at h, cases h; refl,
+  intro h, apply congr_arg _ h,
+end
+
+-- A type is naturally included in the diagonal of the cartesian
+-- square, and this is the quotient of that.
+def incl (x : α) : sym2 α := ⟦(x, x)⟧
+
+def is_diag (x : sym2 α) : Prop :=
+quotient.rec_on x (λ y, y.1 = y.2) (begin tidy, cases p; refl, cases p; refl, end)
+
+lemma diag_to_eq (x y : α) (h : is_diag ⟦(x, y)⟧) : x = y :=
+by tidy
+
+def induce {α β : Type u} (f : α → β) : sym2 α → sym2 β :=
+λ z, quotient.rec_on z (λ x, ⟦(f x.1, f x.2)⟧)
+begin
+  intros, rw [eq_rec_constant, quotient.eq],
+  cases p, refl, apply rel.swap,
 end
 
 @[simp]
-def sym2.induce.id {α : Type u} : sym2.induce (@id α) = id :=
-begin
-  ext, induction x, cases x, apply quot.sound, exact sym2_rel.refl x_fst x_snd, refl,
-end
+def induce.id : sym2.induce (@id α) = id :=
+by tidy
 
-def sym2.induce.functorial {α β γ: Type u} {g : β → γ} {f : α → β} : sym2.induce (g ∘ f) = sym2.induce g ∘ sym2.induce f :=
-begin
-  ext, induction x, cases x, rw comp_app, refl, refl,
-end
+def induce.functorial {α β γ: Type u} {g : β → γ} {f : α → β} : sym2.induce (g ∘ f) = sym2.induce g ∘ sym2.induce f :=
+by tidy
 
-instance sym2.is_diag.decidable_pred (α : Type u) [decidable_eq α] : decidable_pred (@sym2.is_diag α) :=
+instance is_diag.decidable_pred (α : Type u) [decidable_eq α] : decidable_pred (@is_diag α) :=
 begin
   intro x,
   induction x,
@@ -65,32 +79,63 @@ begin
   apply subsingleton.elim,
 end
 
-def sym2.mem {α : Type u} (x : α) (z : sym2 α) : Prop :=
+def mem (x : α) (z : sym2 α) : Prop :=
+∃ (y : α), z = ⟦(x, y)⟧
+
+def mk_has_mem (x y : α) : mem x ⟦(x, y)⟧ :=
+⟨y, rfl⟩
+
+def trunc_mem (x : α) (z : sym2 α) : Type u :=
+trunc {y : α // z = ⟦(x, y)⟧}
+
+def mk_has_trunc_mem (x y : α) : trunc_mem x ⟦(x, y)⟧ :=
+quot.mk _ ⟨y, rfl⟩
+
+def from_other {a : α} {z : sym2 α} (h : trunc_mem a z) : mem a z :=
+trunc.rec_on h (λ x, ⟨x.val, x.property⟩) (λ _ _, rfl)
+
+instance {a : α} {z : sym2 α} : has_lift (trunc_mem a z) (mem a z) := ⟨from_other⟩
+
+lemma eq {x y z w : α} (h : ⟦(x, y)⟧ = ⟦(z, w)⟧):
+(x = z ∧ y = w) ∨ (x = w ∧ y = z) :=
 begin
-  induction z, exact x = z.1 ∨ x = z.2,
-  simp only [eq_rec_constant, eq_iff_iff],
-  induction z_p, simp,
-  simp only [],
-  split,
-  intro h, cases h, right, exact h, left, exact h,
-  intro h, cases h, right, exact h, left, exact h,
+  rw quotient.eq at h,
+  cases h; tidy,
 end
 
-instance {α : Type u} : has_mem α (sym2 α) := ⟨sym2.mem⟩
-
-lemma sym2.mk_mem {α : Type u} (x y : α) : x ∈ sym2.mk x y :=
+lemma other {a : α} {p : sym2 α} (h : trunc_mem a p) : α :=
+trunc.rec_on h subtype.val $ λ ⟨x, _⟩ ⟨y, _⟩,
 begin
-  dsimp [has_mem.mem, sym2.mem, sym2.mk, quot.rec],
-  left, refl,
+  convert (other_unique a x y).mp (by cc),
+  simp,
 end
 
-lemma sym2.eq {α : Type u} {x y z w : α}
-: sym2.mk x y = sym2.mk z w → (x = z ∧ y = w) ∨ (x = w ∧ y = z) :=
+lemma other_spec (a : α) (z : sym2 α) (h : trunc_mem a z) : ⟦(a, other h)⟧ = z :=
+by { induction h, cases h, dunfold other, tidy, }
+
+noncomputable
+lemma mem_other {a : α} {z : sym2 α} (h : mem a z) : α :=
+classical.some h
+
+lemma mem_other_spec (a : α) (z : sym2 α) (h : mem a z) : ⟦(a, mem_other h)⟧ = z :=
 begin
-  intro h,
-  
-  sorry,
-  
+  dunfold mem_other,
+  exact (classical.some_spec h).symm,
+end
+
+lemma other_is_mem_other {a : α} {z : sym2 α} (h : trunc_mem a z) (h' : mem a z) :
+other h = mem_other h' :=
+begin
+  rw ←other_unique a,
+  rw other_spec,
+  rw mem_other_spec,
+end
+
+lemma is_one_of {a b c : α} (h : mem a ⟦(b, c)⟧) : a = b ∨ a = c :=
+begin
+  cases h,
+  have p := eq h_h,
+  tidy,
 end
 
 end sym2

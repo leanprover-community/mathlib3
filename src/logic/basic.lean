@@ -866,6 +866,10 @@ theorem not_ball {α : Sort*} {p : α → Prop} {P : Π (x : α), p x → Prop} 
 
 end classical
 
+lemma ite_eq_iff {α} {p : Prop} [decidable p] {a b c : α} :
+  (if p then a else b) = c ↔ p ∧ a = c ∨ ¬p ∧ b = c :=
+by by_cases p; simp *
+
 /-! ### Declarations about `nonempty` -/
 
 section nonempty

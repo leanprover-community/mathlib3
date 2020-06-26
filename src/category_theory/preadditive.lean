@@ -5,6 +5,7 @@ Authors: Markus Himmel
 -/
 import algebra.group.hom
 import category_theory.limits.shapes.kernels
+import algebra.big_operators
 
 /-!
 # Preadditive categories
@@ -60,7 +61,8 @@ class preadditive :=
 attribute [instance] preadditive.hom_group
 restate_axiom preadditive.add_comp'
 restate_axiom preadditive.comp_add'
-attribute [simp] preadditive.add_comp preadditive.comp_add
+attribute [simp,reassoc] preadditive.add_comp
+attribute [simp] preadditive.comp_add
 
 end category_theory
 
@@ -97,6 +99,28 @@ map_neg (left_comp _ _) _
 
 @[reassoc] lemma neg_comp_neg {P Q R : C} (f : P ⟶ Q) (g : Q ⟶ R) : (-f) ≫ (-g) = f ≫ g :=
 by simp
+
+section big_operators
+
+open_locale big_operators
+
+@[reassoc] lemma comp_sum {P Q R : C} {J : Type*} {s : finset J} (f : P ⟶ Q) (g : J → (Q ⟶ R)) :
+  f ≫ ∑ j in s, g j = ∑ j in s, f ≫ g j :=
+begin
+  change left_comp R f _ = _,
+  rw [add_monoid_hom.map_sum],
+  refl,
+end
+
+@[reassoc] lemma sum_comp {P Q R : C} {J : Type*} {s : finset J} (f : J → (P ⟶ Q)) (g : Q ⟶ R) :
+  (∑ j in s, f j) ≫ g  = ∑ j in s, f j ≫ g :=
+begin
+  change right_comp P g _ = _,
+  rw [add_monoid_hom.map_sum],
+  refl,
+end
+
+end big_operators
 
 instance {P Q : C} {f : P ⟶ Q} [epi f] : epi (-f) :=
 ⟨λ R g g', by { rw [neg_comp, neg_comp, ←comp_neg, ←comp_neg, cancel_epi], exact neg_inj }⟩

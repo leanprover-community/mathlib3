@@ -110,7 +110,7 @@ But it makes a more systematic use of the filter library.
 -/
 
 open set filter classical
-open_locale classical topological_space
+open_locale classical topological_space filter
 
 set_option eqn_compiler.zeta true
 
@@ -144,6 +144,10 @@ theorem monotone_comp_rel [preorder β] {f g : β → set (α×α)}
   (hf : monotone f) (hg : monotone g) : monotone (λx, (f x) ○ (g x)) :=
 assume a b h p ⟨z, h₁, h₂⟩, ⟨z, hf h h₁, hg h h₂⟩
 
+@[mono]
+lemma comp_rel_mono {f g h k: set (α×α)} (h₁ : f ⊆ h) (h₂ : g ⊆ k) : f ○ g ⊆ h ○ k :=
+λ ⟨x, y⟩ ⟨z, h, h'⟩, ⟨z, h₁ h, h₂ h'⟩
+
 lemma prod_mk_mem_comp_rel {a b c : α} {s t : set (α×α)} (h₁ : (a, c) ∈ s) (h₂ : (c, b) ∈ t) :
   (a, b) ∈ s ○ t :=
 ⟨c, h₁, h₂⟩
@@ -154,6 +158,9 @@ set.ext $ assume ⟨a, b⟩, by simp
 lemma comp_rel_assoc {r s t : set (α×α)} :
   (r ○ s) ○ t = r ○ (s ○ t) :=
 by ext p; cases p; simp only [mem_comp_rel]; tauto
+
+lemma subset_comp_self {α : Type*} {s : set (α × α)} (h : id_rel ⊆ s) : s ⊆ s ○ s :=
+λ ⟨x, y⟩ xy_in, ⟨x, h (by rw mem_id_rel), xy_in⟩
 
 /-- The relation is invariant under swapping factors. -/
 def symmetric_rel (V : set (α × α)) : Prop := prod.swap ⁻¹' V = V
@@ -171,11 +178,18 @@ sep_subset _ _
 lemma symmetrize_mono {V W: set (α × α)} (h : V ⊆ W) : symmetrize_rel V ⊆ symmetrize_rel W :=
 inter_subset_inter h $ preimage_mono h
 
+lemma symmetric_rel_inter {U V : set (α × α)} (hU : symmetric_rel U) (hV : symmetric_rel V) :
+symmetric_rel (U ∩ V) :=
+begin
+  unfold symmetric_rel at *,
+  rw [preimage_inter, hU, hV],
+end
+
 /-- This core description of a uniform space is outside of the type class hierarchy. It is useful
   for constructions of uniform spaces, when the topology is derived from the uniform space. -/
 structure uniform_space.core (α : Type u) :=
 (uniformity : filter (α × α))
-(refl       : principal id_rel ≤ uniformity)
+(refl       : 𝓟 id_rel ≤ uniformity)
 (symm       : tendsto prod.swap uniformity uniformity)
 (comp       : uniformity.lift' (λs, s ○ s) ≤ uniformity)
 
@@ -323,7 +337,7 @@ lemma is_open_uniformity {s : set α} :
   is_open s ↔ (∀x∈s, { p : α × α | p.1 = x → p.2 ∈ s } ∈ 𝓤 α) :=
 uniform_space.is_open_uniformity s
 
-lemma refl_le_uniformity : principal id_rel ≤ 𝓤 α :=
+lemma refl_le_uniformity : 𝓟 id_rel ≤ 𝓤 α :=
 (@uniform_space.to_core α _).refl
 
 lemma refl_mem_uniformity {x : α} {s : set (α × α)} (h : s ∈ 𝓤 α) :
@@ -422,13 +436,40 @@ calc (𝓤 α).lift' (λd, d ○ (d ○ d)) =
     exact (assume x, monotone_comp_rel monotone_id monotone_const),
   end
   ... ≤ (𝓤 α).lift (λs, (𝓤 α).lift' (λt:set(α×α), s ○ t)) :
-    lift_mono' $ assume s hs, @uniformity_lift_le_comp α _ _ (principal ∘ (○) s) $
+    lift_mono' $ assume s hs, @uniformity_lift_le_comp α _ _ (𝓟 ∘ (○) s) $
       monotone_principal.comp (monotone_comp_rel monotone_const monotone_id)
   ... = (𝓤 α).lift' (λs:set(α×α), s ○ s) :
     lift_lift'_same_eq_lift'
       (assume s, monotone_comp_rel monotone_const monotone_id)
       (assume s, monotone_comp_rel monotone_id monotone_const)
   ... ≤ (𝓤 α) : comp_le_uniformity
+
+lemma comp_symm_mem_uniformity_sets {s : set (α × α)} (hs : s ∈ 𝓤 α) :
+  ∃ t ∈ 𝓤 α, symmetric_rel t ∧ t ○ t ⊆ s :=
+begin
+  obtain ⟨w, w_in, w_sub⟩ : ∃ w ∈ 𝓤 α, w ○ w ⊆ s := comp_mem_uniformity_sets hs,
+  use [symmetrize_rel w, symmetrize_mem_uniformity w_in, symmetric_symmetrize_rel w],
+  have : symmetrize_rel w ⊆ w := symmetrize_rel_subset_self w,
+  calc symmetrize_rel w ○ symmetrize_rel w ⊆ w ○ w : by mono
+                                       ... ⊆ s     : w_sub,
+end
+
+lemma subset_comp_self_of_mem_uniformity {s : set (α × α)} (h : s ∈ 𝓤 α) : s ⊆ s ○ s :=
+subset_comp_self (refl_le_uniformity h)
+
+lemma comp_comp_symm_mem_uniformity_sets {s : set (α × α)} (hs : s ∈ 𝓤 α) :
+  ∃ t ∈ 𝓤 α, symmetric_rel t ∧ t ○ t ○ t ⊆ s :=
+begin
+  rcases comp_symm_mem_uniformity_sets hs with ⟨w, w_in, w_symm, w_sub⟩,
+  rcases comp_symm_mem_uniformity_sets w_in with ⟨t, t_in, t_symm, t_sub⟩,
+  use [t, t_in, t_symm],
+  have : t ⊆ t ○ t :=  subset_comp_self_of_mem_uniformity t_in,
+  calc
+  t ○ t ○ t ⊆ w ○ t       : by mono
+        ... ⊆ w ○ (t ○ t) : by mono
+        ... ⊆ w ○ w       : by mono
+        ... ⊆ s           : w_sub,
+end
 
 /-!
 ### Balls in uniform spaces
@@ -460,6 +501,25 @@ show (x, y) ∈ prod.swap ⁻¹' V ↔ (x, y) ∈ V, by { unfold symmetric_rel a
 lemma ball_eq_of_symmetry {V : set (β × β)} (hV : symmetric_rel V) {x} :
   ball x V = {y | (y, x) ∈ V} :=
 by { ext y, rw mem_ball_symmetry hV, exact iff.rfl }
+
+lemma mem_comp_of_mem_ball {V W : set (β × β)} {x y z : β} (hV : symmetric_rel V)
+  (hx : x ∈ ball z V) (hy : y ∈ ball z W) : (x, y) ∈ V ○ W :=
+begin
+  rw mem_ball_symmetry hV at hx,
+  exact ⟨z, hx, hy⟩
+end
+
+lemma mem_comp_comp {V W M : set (β × β)} (hW' : symmetric_rel W) {p : β × β} :
+  p ∈ V ○ M ○ W ↔ ((ball p.1 V).prod (ball p.2 W) ∩ M).nonempty :=
+begin
+  cases p with x y,
+  split,
+  { rintros ⟨z, ⟨w, hpw, hwz⟩, hzy⟩,
+    exact ⟨(w, z), ⟨hpw, by rwa mem_ball_symmetry hW'⟩, hwz⟩, },
+  { rintro ⟨⟨w, z⟩, ⟨w_in, z_in⟩, hwz⟩,
+    rwa mem_ball_symmetry hW' at z_in,
+    use [z, w] ; tauto },
+end
 
 /-!
 ### Neighborhoods in uniform spaces
@@ -514,6 +574,46 @@ begin
   exact nhds_basis_uniformity' h
 end
 
+lemma uniform_space.mem_nhds_iff {x : α} {s : set α} : s ∈ 𝓝 x ↔ ∃ V ∈ 𝓤 α, ball x V ⊆ s :=
+begin
+  rw [nhds_eq_comap_uniformity, mem_comap_sets],
+  exact iff.rfl,
+end
+
+lemma uniform_space.ball_mem_nhds (x : α) ⦃V : set (α × α)⦄ (V_in : V ∈ 𝓤 α) : ball x V ∈ 𝓝 x :=
+begin
+  rw uniform_space.mem_nhds_iff,
+  exact ⟨V, V_in, subset.refl _⟩
+end
+
+lemma uniform_space.mem_nhds_iff_symm {x : α} {s : set α} :
+  s ∈ 𝓝 x ↔ ∃ V ∈ 𝓤 α, symmetric_rel V ∧ ball x V ⊆ s :=
+begin
+  rw uniform_space.mem_nhds_iff,
+  split,
+  { rintros ⟨V, V_in, V_sub⟩,
+    use [symmetrize_rel V, symmetrize_mem_uniformity V_in, symmetric_symmetrize_rel V],
+    exact subset.trans (ball_mono (symmetrize_rel_subset_self V) x) V_sub },
+  { rintros ⟨V, V_in, V_symm, V_sub⟩,
+    exact ⟨V, V_in, V_sub⟩ }
+end
+
+lemma uniform_space.has_basis_nhds (x : α) :
+  has_basis (𝓝 x) (λ s : set (α × α), s ∈ 𝓤 α ∧ symmetric_rel s) (λ s, ball x s) :=
+⟨λ t, by simp [uniform_space.mem_nhds_iff_symm, and_assoc]⟩
+
+open uniform_space
+
+lemma uniform_space.has_basis_nhds_prod (x y : α) :
+  has_basis (𝓝 (x, y)) (λ s, s ∈ 𝓤 α ∧ symmetric_rel s) $ λ s, (ball x s).prod (ball y s) :=
+begin
+  rw nhds_prod_eq,
+  apply (has_basis_nhds x).prod' (has_basis_nhds y),
+  rintro U V ⟨U_in, U_symm⟩ ⟨V_in, V_symm⟩,
+  exact ⟨U ∩ V, ⟨(𝓤 α).inter_sets U_in V_in, symmetric_rel_inter U_symm V_symm⟩,
+         ball_mono (inter_subset_left U V) x, ball_mono (inter_subset_right U V) y⟩,
+end
+
 lemma nhds_eq_uniformity {x : α} : 𝓝 x = (𝓤 α).lift' (λs:set (α×α), {y | (x, y) ∈ s}) :=
 (nhds_basis_uniformity' (𝓤 α).basis_sets).eq_binfi
 
@@ -554,7 +654,7 @@ lemma nhds_nhds_eq_uniformity_uniformity_prod {a b : α} :
     set.prod {y : α | (y, a) ∈ s} {y : α | (b, y) ∈ t})) :=
 begin
   rw [prod_def],
-  show (𝓝 a).lift (λs:set α, (𝓝 b).lift (λt:set α, principal (set.prod s t))) = _,
+  show (𝓝 a).lift (λs:set α, (𝓝 b).lift (λt:set α, 𝓟 (set.prod s t))) = _,
   rw [lift_nhds_right],
   apply congr_arg, funext s,
   rw [lift_nhds_left],
@@ -599,18 +699,65 @@ end
 ### Closure and interior in uniform spaces
 -/
 
+lemma closure_eq_uniformity (s : set $ α × α) :
+  closure s = ⋂ V ∈ {V | V ∈ 𝓤 α ∧ symmetric_rel V}, V ○ s ○ V :=
+begin
+  ext ⟨x, y⟩,
+  simp_rw [mem_closure_iff_nhds_basis (uniform_space.has_basis_nhds_prod x y),
+           mem_Inter, mem_set_of_eq],
+  apply forall_congr,
+  intro V,
+  apply forall_congr,
+  rintros ⟨V_in, V_symm⟩,
+  simp_rw [mem_comp_comp V_symm, inter_comm, exists_prop],
+  exact iff.rfl,
+end
+
+lemma uniformity_has_basis_closed : has_basis (𝓤 α) (λ V : set (α × α), V ∈ 𝓤 α ∧ is_closed V) id :=
+begin
+  rw filter.has_basis_self,
+  intro t,
+  split,
+  { intro h,
+    rcases comp_comp_symm_mem_uniformity_sets h with ⟨w, w_in, w_symm, r⟩,
+    refine ⟨closure w, _,  is_closed_closure, _⟩,
+    apply mem_sets_of_superset w_in subset_closure,
+    refine subset.trans _ r,
+    rw closure_eq_uniformity,
+    apply Inter_subset_of_subset,
+    apply Inter_subset,
+    exact ⟨w_in, w_symm⟩ },
+  { rintros ⟨r, r_in, r_closed, r_sub⟩,
+    exact mem_sets_of_superset r_in r_sub, }
+end
+
+/-- Closed entourages form a basis of the uniformity filter. -/
+lemma uniformity_has_basis_closure : has_basis (𝓤 α) (λ V : set (α × α), V ∈ 𝓤 α) closure :=
+⟨begin
+  intro t,
+  rw uniformity_has_basis_closed.mem_iff,
+  split,
+  { rintros ⟨r, ⟨r_in, r_closed⟩, r_sub⟩,
+    use [r, r_in],
+    convert r_sub,
+    rw closure_eq_of_is_closed r_closed,
+    refl },
+  { rintros ⟨r, r_in, r_sub⟩,
+    exact ⟨closure r, ⟨mem_sets_of_superset r_in subset_closure, is_closed_closure⟩, r_sub⟩ }
+end⟩
+
 lemma closure_eq_inter_uniformity {t : set (α×α)} :
   closure t = (⋂ d ∈ 𝓤 α, d ○ (t ○ d)) :=
 set.ext $ assume ⟨a, b⟩,
-calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ principal t ≠ ⊥) : by simp [closure_eq_nhds]
+calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ 𝓟 t ≠ ⊥) : by simp [closure_eq_cluster_pts, cluster_pt]
   ... ↔ (((@prod.swap α α) <$> 𝓤 α).lift'
-      (λ (s : set (α × α)), set.prod {x : α | (x, a) ∈ s} {y : α | (b, y) ∈ s}) ⊓ principal t ≠ ⊥) :
+      (λ (s : set (α × α)), set.prod {x : α | (x, a) ∈ s} {y : α | (b, y) ∈ s}) ⊓ 𝓟 t ≠ ⊥) :
     by rw [←uniformity_eq_symm, nhds_eq_uniformity_prod]
   ... ↔ ((map (@prod.swap α α) (𝓤 α)).lift'
-      (λ (s : set (α × α)), set.prod {x : α | (x, a) ∈ s} {y : α | (b, y) ∈ s}) ⊓ principal t ≠ ⊥) :
+      (λ (s : set (α × α)), set.prod {x : α | (x, a) ∈ s} {y : α | (b, y) ∈ s}) ⊓ 𝓟 t ≠ ⊥) :
     by refl
   ... ↔ ((𝓤 α).lift'
-      (λ (s : set (α × α)), set.prod {y : α | (a, y) ∈ s} {x : α | (x, b) ∈ s}) ⊓ principal t ≠ ⊥) :
+      (λ (s : set (α × α)), set.prod {y : α | (a, y) ∈ s} {x : α | (x, b) ∈ s}) ⊓ 𝓟 t ≠ ⊥) :
   begin
     rw [map_lift'_eq2],
     simp [image_swap_eq_preimage_swap, function.comp],
@@ -770,7 +917,7 @@ instance : has_top (uniform_space α) :=
 
 instance : has_bot (uniform_space α) :=
 ⟨{ to_topological_space := ⊥,
-  uniformity  := principal id_rel,
+  uniformity  := 𝓟 id_rel,
   refl        := le_refl _,
   symm        := by simp [tendsto]; apply subset.refl,
   comp        :=
@@ -844,6 +991,11 @@ def uniform_space.comap (f : α → β) (u : uniform_space β) : uniform_space �
       exact ⟨{y | (f x, y) ∈ t}, λ y hy, @hts (x, y) hy rfl,
         mem_nhds_uniformity_iff_right.1 $ mem_nhds_left _ ht⟩ }
   end }
+
+lemma uniformity_comap [uniform_space α] [uniform_space β] {f : α → β}
+  (h : ‹uniform_space α› = uniform_space.comap f ‹uniform_space β›) :
+  𝓤 α = comap (prod.map f f) (𝓤 β) :=
+by { rw h, refl }
 
 lemma uniform_space_comap_id {α : Type*} : uniform_space.comap (id : α → α) = id :=
 by ext u ; dsimp [uniform_space.comap] ; rw [prod.id_prod, filter.comap_id]

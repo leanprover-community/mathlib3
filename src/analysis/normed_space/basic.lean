@@ -257,7 +257,7 @@ lemma lipschitz_with.add {α : Type*} [emetric_space α] {Kf : nnreal} {f : α �
 calc edist (f x + g x) (f y + g y) ≤ edist (f x) (f y) + edist (g x) (g y) :
   edist_add_add_le _ _ _ _
 ... ≤ Kf * edist x y + Kg * edist x y :
-  add_le_add' (hf x y) (hg x y)
+  add_le_add (hf x y) (hg x y)
 ... = (Kf + Kg) * edist x y :
   (add_mul _ _ _).symm
 

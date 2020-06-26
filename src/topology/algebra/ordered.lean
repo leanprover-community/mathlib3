@@ -92,7 +92,7 @@ for specific types.
 
 open classical set filter topological_space
 open function (curry uncurry)
-open_locale topological_space classical
+open_locale topological_space classical filter
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -193,12 +193,7 @@ then the set `{x ∈ s | f x ≤ g x}` is a closed set. -/
 lemma is_closed.is_closed_le [topological_space β] {f g : β → α} {s : set β} (hs : is_closed s)
   (hf : continuous_on f s) (hg : continuous_on g s) :
   is_closed {x ∈ s | f x ≤ g x} :=
-begin
-  have A : {x ∈ s | f x ≤ g x} ⊆ s := inter_subset_left _ _,
-  refine is_closed_of_closure_subset (λ x hx, _),
-  have B : x ∈ s := closure_minimal A hs hx,
-  exact ⟨B, ((hf x B).mono A).closure_le hx ((hg x B).mono A) (λ y, and.right)⟩
-end
+(hf.prod hg).preimage_closed_of_closed hs order_closed_topology.is_closed_le'
 
 end preorder
 
@@ -409,7 +404,7 @@ lemma ge_mem_nhds {a b : α} (h : a < b) : ∀ᶠ x in 𝓝 a, x ≤ b :=
 (𝓝 a).sets_of_superset (gt_mem_nhds h) $ assume b hb, le_of_lt hb
 
 lemma nhds_eq_order (a : α) :
-  𝓝 a = (⨅b ∈ Iio a, principal (Ioi b)) ⊓ (⨅b ∈ Ioi a, principal (Iio b)) :=
+  𝓝 a = (⨅b ∈ Iio a, 𝓟 (Ioi b)) ⊓ (⨅b ∈ Ioi a, 𝓟 (Iio b)) :=
 by rw [t.topology_eq_generate_intervals, nhds_generate_from];
 from le_antisymm
   (le_inf
@@ -451,12 +446,12 @@ tendsto_of_tendsto_of_tendsto_of_le_of_le' hg hh
   (eventually_of_forall _ hgf) (eventually_of_forall _ hfh)
 
 lemma nhds_order_unbounded {a : α} (hu : ∃u, a < u) (hl : ∃l, l < a) :
-  𝓝 a = (⨅l (h₂ : l < a) u (h₂ : a < u), principal (Ioo l u)) :=
+  𝓝 a = (⨅l (h₂ : l < a) u (h₂ : a < u), 𝓟 (Ioo l u)) :=
 let ⟨u, hu⟩ := hu, ⟨l, hl⟩ := hl in
-calc 𝓝 a = (⨅b<a, principal {c | b < c}) ⊓ (⨅b>a, principal {c | c < b}) : nhds_eq_order a
-  ... = (⨅b<a, principal {c | b < c} ⊓ (⨅b>a, principal {c | c < b})) :
+calc 𝓝 a = (⨅b<a, 𝓟 {c | b < c}) ⊓ (⨅b>a, 𝓟 {c | c < b}) : nhds_eq_order a
+  ... = (⨅b<a, 𝓟 {c | b < c} ⊓ (⨅b>a, 𝓟 {c | c < b})) :
     binfi_inf hl
-  ... = (⨅l<a, (⨅u>a, principal {c | c < u} ⊓ principal {c | l < c})) :
+  ... = (⨅l<a, (⨅u>a, 𝓟 {c | c < u} ⊓ 𝓟 {c | l < c})) :
     begin
       congr, funext x,
       congr, funext hx,
@@ -514,11 +509,11 @@ induced_order_topology' f @hf
   (λ a x ax, let ⟨b, ab, bx⟩ := H ax in ⟨b, hf.1 ab, le_of_lt bx⟩)
 
 lemma nhds_top_order [topological_space α] [order_top α] [order_topology α] :
-  𝓝 (⊤:α) = (⨅l (h₂ : l < ⊤), principal (Ioi l)) :=
+  𝓝 (⊤:α) = (⨅l (h₂ : l < ⊤), 𝓟 (Ioi l)) :=
 by simp [nhds_eq_order (⊤:α)]
 
 lemma nhds_bot_order [topological_space α] [order_bot α] [order_topology α] :
-  𝓝 (⊥:α) = (⨅l (h₂ : ⊥ < l), principal (Iio l)) :=
+  𝓝 (⊥:α) = (⨅l (h₂ : ⊥ < l), 𝓟 (Iio l)) :=
 by simp [nhds_eq_order (⊥:α)]
 
 section linear_order
@@ -532,7 +527,7 @@ begin
   rcases hs with ⟨t₁, ht₁, t₂, ht₂, hts⟩,
   -- First we show that `t₂` includes `(-∞, a]`, so it suffices to show `(l', ∞) ⊆ t₁`
   suffices : ∃ l' ∈ Ico l a, Ioi l' ⊆ t₁,
-  { have A : principal (Iic a) ≤ ⨅ b ∈ Ioi a, principal (Iio b),
+  { have A : 𝓟 (Iic a) ≤ ⨅ b ∈ Ioi a, 𝓟 (Iio b),
       from (le_infi $ λ b, le_infi $ λ hb, principal_mono.2 $ Iic_subset_Iio.2 hb),
     have B : t₁ ∩ Iic a ⊆ s,
       from subset.trans (inter_subset_inter_right _ (A ht₂)) hts,
@@ -568,7 +563,7 @@ let ⟨l', hl'⟩ := h in let ⟨l, hl⟩ := exists_Ico_subset_of_mem_nhds' hs h
 lemma mem_nhds_unbounded {a : α} {s : set α} (hu : ∃u, a < u) (hl : ∃l, l < a) :
   s ∈ 𝓝 a ↔ (∃l u, l < a ∧ a < u ∧ ∀b, l < b → b < u → b ∈ s) :=
 let ⟨l, hl'⟩ := hl, ⟨u, hu'⟩ := hu in
-have 𝓝 a = (⨅p : {l // l < a} × {u // a < u}, principal (Ioo p.1.val p.2.val)),
+have 𝓝 a = (⨅p : {l // l < a} × {u // a < u}, 𝓟 (Ioo p.1.val p.2.val)),
   by simp [nhds_order_unbounded hu hl, infi_subtype, infi_prod],
 iff.intro
   (assume hs, by rw [this] at hs; from infi_sets_induct hs
@@ -611,7 +606,7 @@ lemma order_topology.t2_space : t2_space α := by apply_instance
 instance order_topology.regular_space : regular_space α :=
 { regular := assume s a hs ha,
     have hs' : -s ∈ 𝓝 a, from mem_nhds_sets hs ha,
-    have ∃t:set α, is_open t ∧ (∀l∈ s, l < a → l ∈ t) ∧ 𝓝 a ⊓ principal t = ⊥,
+    have ∃t:set α, is_open t ∧ (∀l∈ s, l < a → l ∈ t) ∧ 𝓝 a ⊓ 𝓟 t = ⊥,
       from by_cases
         (assume h : ∃l, l < a,
           let ⟨l, hl, h⟩ := exists_Ioc_subset_of_mem_nhds hs' h in
@@ -628,7 +623,7 @@ instance order_topology.regular_space : regular_space α :=
         (assume : ¬ ∃l, l < a, ⟨∅, is_open_empty, assume l _ hl, (this ⟨l, hl⟩).elim,
           by rw [principal_empty, inf_bot_eq]⟩),
     let ⟨t₁, ht₁o, ht₁s, ht₁a⟩ := this in
-    have ∃t:set α, is_open t ∧ (∀u∈ s, u>a → u ∈ t) ∧ 𝓝 a ⊓ principal t = ⊥,
+    have ∃t:set α, is_open t ∧ (∀u∈ s, u>a → u ∈ t) ∧ 𝓝 a ⊓ 𝓟 t = ⊥,
       from by_cases
         (assume h : ∃u, u > a,
           let ⟨u, hu, h⟩ := exists_Ico_subset_of_mem_nhds hs' h in
@@ -1051,7 +1046,7 @@ have ∀a'∈s, ¬ b < f a',
       have a' < a, from lt_of_le_of_ne (ha.left ha') h.symm,
       have {x | a' < x} ∈ 𝓝 a, from mem_nhds_sets (is_open_lt' _) this,
       have {x | a' < x} ∩ t₁ ∈ 𝓝 a, from inter_mem_sets this ht₁,
-      have ({x | a' < x} ∩ t₁) ∩ s ∈ 𝓝 a ⊓ principal s,
+      have ({x | a' < x} ∩ t₁) ∩ s ∈ 𝓝 a ⊓ 𝓟 s,
         from inter_mem_inf_sets this (subset.refl s),
       let ⟨x, ⟨hx₁, hx₂⟩, hx₃⟩ := nonempty_of_mem_sets hnbot this in
       have hxa' : f x < f a', from hs ⟨hx₂, ht₂ hx₃⟩,
@@ -1070,17 +1065,17 @@ lemma is_glb_of_is_glb_of_tendsto {f : α → β} {s : set α} {a : α} {b : β}
 
 lemma is_glb_of_is_lub_of_tendsto : ∀ {f : α → β} {s : set α} {a : α} {b : β},
   (∀x∈s, ∀y∈s, x ≤ y → f y ≤ f x) → is_lub s a → s.nonempty →
-  tendsto f (𝓝 a ⊓ principal s) (𝓝 b) → is_glb (f '' s) b :=
+  tendsto f (𝓝 a ⊓ 𝓟 s) (𝓝 b) → is_glb (f '' s) b :=
 @is_lub_of_is_lub_of_tendsto α (order_dual β) _ _ _ _ _ _
 
 lemma is_lub_of_is_glb_of_tendsto : ∀ {f : α → β} {s : set α} {a : α} {b : β},
   (∀x∈s, ∀y∈s, x ≤ y → f y ≤ f x) → is_glb s a → s.nonempty →
-  tendsto f (𝓝 a ⊓ principal s) (𝓝 b) → is_lub (f '' s) b :=
+  tendsto f (𝓝 a ⊓ 𝓟 s) (𝓝 b) → is_lub (f '' s) b :=
 @is_glb_of_is_glb_of_tendsto α (order_dual β) _ _ _ _ _ _
 
 lemma mem_closure_of_is_lub {a : α} {s : set α} (ha : is_lub s a) (hs : s.nonempty) :
   a ∈ closure s :=
-by rw closure_eq_nhds; exact ha.nhds_within_ne_bot hs
+by rw closure_eq_cluster_pts; exact ha.nhds_within_ne_bot hs
 
 lemma mem_of_is_lub_of_is_closed {a : α} {s : set α} (ha : is_lub s a) (hs : s.nonempty)
   (sc : is_closed s) : a ∈ s :=
@@ -1088,7 +1083,7 @@ by rw ←closure_eq_of_is_closed sc; exact mem_closure_of_is_lub ha hs
 
 lemma mem_closure_of_is_glb {a : α} {s : set α} (ha : is_glb s a) (hs : s.nonempty) :
   a ∈ closure s :=
-by rw closure_eq_nhds; exact ha.nhds_within_ne_bot hs
+by rw closure_eq_cluster_pts; exact ha.nhds_within_ne_bot hs
 
 lemma mem_of_is_glb_of_is_closed {a : α} {s : set α} (ha : is_glb s a) (hs : s.nonempty)
   (sc : is_closed s) : a ∈ s :=
@@ -1102,7 +1097,7 @@ begin
   letI := classical.DLO α,
   rcases hs.elim_finite_subcover_image (λ x (_ : x ∈ s), @is_open_Ioi _ _ _ _ x) _
     with ⟨t, st, ft, ht⟩,
-  { refine H ((bdd_below_finite ft).imp $ λ C hC y hy, _),
+  { refine H (ft.bdd_below.imp $ λ C hC y hy, _),
     rcases mem_bUnion_iff.1 (ht hy) with ⟨x, hx, xy⟩,
     exact le_trans (hC hx) (le_of_lt xy) },
   { refine λ x hx, mem_bUnion_iff.2 (not_imp_comm.1 _ H),
@@ -1745,7 +1740,7 @@ end order_topology
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma order_topology_of_nhds_abs
   {α : Type*} [decidable_linear_ordered_add_comm_group α] [topological_space α]
-  (h_nhds : ∀a:α, 𝓝 a = (⨅r>0, principal {b | abs (a - b) < r})) : order_topology α :=
+  (h_nhds : ∀a:α, 𝓝 a = (⨅r>0, 𝓟 {b | abs (a - b) < r})) : order_topology α :=
 order_topology.mk $ eq_of_nhds_eq_nhds $ assume a:α, le_antisymm_iff.mpr
 begin
   simp [infi_and, topological_space.nhds_generate_from,

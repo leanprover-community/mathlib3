@@ -117,6 +117,16 @@ by { convert w (𝟙 X), tidy }
 lemma id_of_comp_right_id (f : X ⟶ X) (w : ∀ {Y : C} (g : Y ⟶ X), g ≫ f = g) : f = 𝟙 X :=
 by { convert w (𝟙 X), tidy }
 
+lemma comp_dite {P : Prop} [decidable P]
+  {X Y Z : C} (f : X ⟶ Y) (g : P → (Y ⟶ Z)) (g' : ¬P → (Y ⟶ Z)) :
+  (f ≫ if h : P then g h else g' h) = (if h : P then f ≫ g h else f ≫ g' h) :=
+by { split_ifs; refl }
+
+lemma dite_comp {P : Prop} [decidable P]
+  {X Y Z : C} (f : P → (X ⟶ Y)) (f' : ¬P → (X ⟶ Y)) (g : Y ⟶ Z) :
+  (if h : P then f h else f' h) ≫ g = (if h : P then f h ≫ g else f' h ≫ g) :=
+by { split_ifs; refl }
+
 class epi  (f : X ⟶ Y) : Prop :=
 (left_cancellation : Π {Z : C} (g h : Y ⟶ Z) (w : f ≫ g = f ≫ h), g = h)
 class mono (f : X ⟶ Y) : Prop :=
@@ -163,7 +173,7 @@ end
 
 lemma mono_of_mono_fac {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z} [mono h] (w : f ≫ g = h) :
   mono f :=
-by { resetI, subst h, exact mono_of_mono f g, }
+by { substI h, exact mono_of_mono f g, }
 
 lemma epi_of_epi {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [epi (f ≫ g)] : epi g :=
 begin
@@ -176,7 +186,7 @@ end
 
 lemma epi_of_epi_fac {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z} [epi h] (w : f ≫ g = h) :
   epi g :=
-by { resetI, subst h, exact epi_of_epi f g, }
+by substI h; exact epi_of_epi f g
 end
 
 section

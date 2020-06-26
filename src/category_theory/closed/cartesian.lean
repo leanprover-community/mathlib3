@@ -335,25 +335,26 @@ def cartesian_closed_of_equiv (e : C ≌ D) [h : cartesian_closed C] : cartesian
               by simpa [←prod_map_id_comp, prod_map_id_id]⟩, },
       { intros Y Z g,
         simp only [prod_comparison, inv_prod_comparison_map_fst, inv_prod_comparison_map_snd,
-                  prod.lift_map, equivalence.unit_inv, functor.comp_map,
-                  prod_functor_obj_map, assoc, comp_id, iso.trans_hom, as_iso_hom],
+          prod.lift_map, functor.comp_map, prod_functor_obj_map, assoc, comp_id,
+          iso.trans_hom, as_iso_hom],
         apply prod.hom_ext,
         { rw [assoc, prod.lift_fst, prod.lift_fst, ←functor.map_comp,
             limits.prod.map_fst, comp_id], },
         { rw [assoc, prod.lift_snd, prod.lift_snd, ←functor.map_comp_assoc, limits.prod.map_snd],
-          simp only [equivalence.unit, equivalence.unit_inv, nat_iso.hom_inv_id_app, assoc,
-            equivalence.inv_fun_map, functor.map_comp, comp_id],
+          simp only [nat_iso.hom_inv_id_app, assoc, equivalence.inv_fun_map,
+            functor.map_comp, comp_id],
           erw comp_id, }, },
-      { haveI : is_left_adjoint (e.functor ⋙ prod_functor.obj X ⋙ e.inverse) :=
-          adjunction.left_adjoint_of_nat_iso this.symm,
-        haveI : is_left_adjoint (e.inverse ⋙ e.functor ⋙ prod_functor.obj X ⋙ e.inverse) :=
-          adjunction.left_adjoint_of_comp e.inverse _,
+      { have : is_left_adjoint (e.functor ⋙ prod_functor.obj X ⋙ e.inverse) :=
+          by exactI adjunction.left_adjoint_of_nat_iso this.symm,
+        have : is_left_adjoint (e.inverse ⋙ e.functor ⋙ prod_functor.obj X ⋙ e.inverse) :=
+          by exactI adjunction.left_adjoint_of_comp e.inverse _,
         have : (e.inverse ⋙ e.functor ⋙ prod_functor.obj X ⋙ e.inverse) ⋙ e.functor ≅
           prod_functor.obj X,
         { apply iso_whisker_right e.counit_iso (prod_functor.obj X ⋙ e.inverse ⋙ e.functor) ≪≫ _,
           change prod_functor.obj X ⋙ e.inverse ⋙ e.functor ≅ prod_functor.obj X,
           apply iso_whisker_left (prod_functor.obj X) e.counit_iso, },
-        apply adjunction.left_adjoint_of_nat_iso this, },
+        resetI,
+        apply adjunction.left_adjoint_of_nat_iso this },
     end } }
 
 variables [cartesian_closed C] [cartesian_closed D]

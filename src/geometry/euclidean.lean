@@ -254,7 +254,7 @@ begin
         rw [hx, inner_zero_left] },
       { rw norm_eq_zero at hy,
         rw [hy, inner_zero_right] } },
-    { rwa div_eq_zero_iff h at h2 } },
+    { simpa [h, div_eq_zero_iff] using h2 } },
 end
 
 /-- Pythagorean theorem, if-and-only-if vector angle form. -/

@@ -15,7 +15,7 @@ import topology.algebra.ordered
 open set filter classical topological_space
 noncomputable theory
 
-open_locale uniformity topological_space big_operators
+open_locale uniformity topological_space big_operators filter
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -27,7 +27,7 @@ def uniform_space_of_dist
   (dist_comm : ∀ x y : α, dist x y = dist y x)
   (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z) : uniform_space α :=
 uniform_space.of_core {
-  uniformity := (⨅ ε>0, principal {p:α×α | dist p.1 p.2 < ε}),
+  uniformity := (⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε}),
   refl       := le_infi $ assume ε, le_infi $
     by simp [set.subset_def, id_rel, dist_self, (>)] {contextual := tt},
   comp       := le_infi $ assume ε, le_infi $ assume h, lift'_le
@@ -69,7 +69,7 @@ class metric_space (α : Type u) extends has_dist α : Type u :=
 (edist : α → α → ennreal := λx y, ennreal.of_real (dist x y))
 (edist_dist : ∀ x y : α, edist x y = ennreal.of_real (dist x y) . control_laws_tac)
 (to_uniform_space : uniform_space α := uniform_space_of_dist dist dist_self dist_comm dist_triangle)
-(uniformity_dist : 𝓤 α = ⨅ ε>0, principal {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
+(uniformity_dist : 𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
 end prio
 
 variables [metric_space α]
@@ -474,6 +474,7 @@ begin
   haveI : inhabited s := ⟨⟨x0, hx0⟩⟩,
   refine totally_bounded_iff.2 (λ ε ε0, _),
   rcases H ε ε0 with ⟨β, fβ, F, hF⟩,
+  resetI,
   let Finv := function.inv_fun F,
   refine ⟨range (subtype.val ∘ Finv), finite_range _, λ x xs, _⟩,
   let x' := Finv (F ⟨x, xs⟩),
@@ -552,7 +553,7 @@ theorem nhds_basis_ball_inv_nat_pos :
 nhds_basis_uniformity uniformity_basis_dist_inv_nat_pos
 
 theorem is_open_iff : is_open s ↔ ∀x∈s, ∃ε>0, ball x ε ⊆ s :=
-by simp only [is_open_iff_nhds, mem_nhds_iff, le_principal_iff]
+by simp only [is_open_iff_mem_nhds, mem_nhds_iff]
 
 theorem is_open_ball : is_open (ball x ε) :=
 is_open_iff.2 $ λ y, exists_ball_subset_ball
@@ -650,7 +651,7 @@ end metric
 open metric
 
 @[priority 100] -- see Note [lower instance priority]
-instance metric_space.to_separated : separated α :=
+instance metric_space.to_separated : separated_space α :=
 separated_def.2 $ λ x y h, eq_of_forall_dist_le $
   λ ε ε0, le_of_lt (h _ (dist_mem_uniformity ε0))
 
@@ -675,7 +676,7 @@ protected lemma metric.uniformity_basis_edist :
 end⟩
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-theorem metric.uniformity_edist : 𝓤 α = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
+theorem metric.uniformity_edist : 𝓤 α = (⨅ ε>0, 𝓟 {p:α×α | edist p.1 p.2 < ε}) :=
 metric.uniformity_basis_edist.eq_binfi
 
 /-- A metric space induces an emetric space -/
@@ -1011,7 +1012,7 @@ lemma prod.dist_eq [metric_space β] {x y : α × β} :
 
 end prod
 
-theorem uniform_continuous_dist' : uniform_continuous (λp:α×α, dist p.1 p.2) :=
+theorem uniform_continuous_dist : uniform_continuous (λp:α×α, dist p.1 p.2) :=
 metric.uniform_continuous_iff.2 (λ ε ε0, ⟨ε/2, half_pos ε0,
 begin
   suffices,
@@ -1029,13 +1030,13 @@ begin
   rwa [add_halves, dist_comm p₂, sub_add_sub_cancel, dist_comm q₂] at this
 end⟩)
 
-theorem uniform_continuous_dist [uniform_space β] {f g : β → α}
+theorem uniform_continuous.dist [uniform_space β] {f g : β → α}
   (hf : uniform_continuous f) (hg : uniform_continuous g) :
   uniform_continuous (λb, dist (f b) (g b)) :=
-uniform_continuous_dist'.comp (hf.prod_mk hg)
+uniform_continuous_dist.comp (hf.prod_mk hg)
 
 theorem continuous_dist : continuous (λp:α×α, dist p.1 p.2) :=
-uniform_continuous_dist'.continuous
+uniform_continuous_dist.continuous
 
 theorem continuous.dist [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, dist (f b) (g b)) :=
@@ -1055,7 +1056,12 @@ lemma tendsto_iff_dist_tendsto_zero {f : β → α} {x : filter β} {a : α} :
 by rw [← nhds_comap_dist a, tendsto_comap_iff]
 
 lemma uniform_continuous_nndist : uniform_continuous (λp:α×α, nndist p.1 p.2) :=
-uniform_continuous_subtype_mk uniform_continuous_dist' _
+uniform_continuous_subtype_mk uniform_continuous_dist _
+
+lemma uniform_continuous.nndist [uniform_space β] {f g : β → α} (hf : uniform_continuous f)
+  (hg : uniform_continuous g) :
+  uniform_continuous (λ b, nndist (f b) (g b)) :=
+uniform_continuous_nndist.comp (hf.prod_mk hg)
 
 lemma continuous_nndist : continuous (λp:α×α, nndist p.1 p.2) :=
 uniform_continuous_nndist.continuous
@@ -1350,6 +1356,7 @@ begin
   letI : inhabited α := ⟨x0⟩,
   refine second_countable_of_almost_dense_set (λε ε0, _),
   rcases H ε ε0 with ⟨β, fβ, F, hF⟩,
+  resetI,
   let Finv := function.inv_fun F,
   refine ⟨range Finv, ⟨countable_range _, λx, _⟩⟩,
   let x' := Finv (F x),

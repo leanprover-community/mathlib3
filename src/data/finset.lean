@@ -580,6 +580,15 @@ theorem mem_of_mem_erase {a b : α} {s : finset α} : b ∈ erase s a → b ∈ 
 theorem mem_erase_of_ne_of_mem {a b : α} {s : finset α} : a ≠ b → a ∈ s → a ∈ erase s b :=
 by simp only [mem_erase]; exact and.intro
 
+/-- An element of `s` that is not an element of `erase s a` must be
+`a`. -/
+lemma eq_of_mem_of_not_mem_erase {a b : α} {s : finset α} (hs : b ∈ s)
+    (hsa : b ∉ s.erase a) : b = a :=
+begin
+  rw [mem_erase, not_and] at hsa,
+  exact not_imp_not.mp hsa hs
+end
+
 theorem erase_insert {a : α} {s : finset α} (h : a ∉ s) : erase (insert a s) a = s :=
 ext $ assume x, by simp only [mem_erase, mem_insert, and_or_distrib_left, not_and_self, false_or];
 apply and_iff_right_of_imp; rintro H rfl; exact h H
@@ -1394,6 +1403,9 @@ by cases s; simp only [multiset.card_eq_one, finset.card, ← val_inj, singleton
   {a : α} {s : finset α} (h : a ∉ s) : card (insert a s) = card s + 1 :=
 by simpa only [card_cons, card, insert_val] using
 congr_arg multiset.card (ndinsert_of_not_mem h)
+
+theorem card_insert_of_mem [decidable_eq α] {a : α} {s : finset α}
+  (h : a ∈ s) : card (insert a s) = card s := by rw insert_eq_of_mem h
 
 theorem card_insert_le [decidable_eq α] (a : α) (s : finset α) : card (insert a s) ≤ card s + 1 :=
 by by_cases a ∈ s; [{rw [insert_eq_of_mem h], apply nat.le_add_right},
@@ -2957,8 +2969,16 @@ namespace finset
 
 /-! ### bUnion -/
 
+@[simp] theorem bUnion_coe (s : finset α) (t : α → set β) :
+  (⋃ x ∈ (↑s : set α), t x) = ⋃ x ∈ s, t x :=
+rfl
+
 @[simp] theorem bUnion_singleton (a : α) (s : α → set β) : (⋃ x ∈ ({a} : finset α), s x) = s a :=
-by { simp only [set.Union, ← supr_coe], rw coe_singleton, exact supr_singleton }
+by rw [← bUnion_coe, coe_singleton, set.bUnion_singleton]
+
+@[simp] lemma bUnion_preimage_singleton (f : α → β) (s : finset β) :
+  (⋃ y ∈ s, f ⁻¹' {y}) = f ⁻¹' ↑s :=
+set.bUnion_preimage_singleton f ↑s
 
 variables [decidable_eq α]
 

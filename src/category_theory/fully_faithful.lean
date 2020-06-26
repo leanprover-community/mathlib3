@@ -69,6 +69,11 @@ def preimage_iso (f : (F.obj X) ≅ (F.obj Y)) : X ≅ Y :=
 by tidy
 
 variables (F)
+
+/--
+If the image of a morphism under a fully faithful functor in an isomorphism,
+then the original morphisms is also an isomorphism.
+-/
 def is_iso_of_fully_faithful (f : X ⟶ Y) [is_iso (F.map f)] : is_iso f :=
 { inv := F.preimage (inv (F.map f)),
   hom_inv_id' := F.map_injective (by simp),
@@ -156,12 +161,11 @@ lemma faithful.div_comp (F : C ⥤ E) [faithful F] (G : D ⥤ E) [faithful G]
   (h_map : ∀ {X Y} {f : X ⟶ Y}, G.map (map f) == F.map f) :
   (faithful.div F G obj @h_obj @map @h_map) ⋙ G = F :=
 begin
-  tactic.unfreeze_local_instances,
-  cases F with F_obj _ _ _; cases G with G_obj _ _ _,
+  casesI F with F_obj _ _ _, casesI G with G_obj _ _ _,
   unfold faithful.div functor.comp,
   unfold_projs at h_obj,
   have: F_obj = G_obj ∘ obj := (funext h_obj).symm,
-  subst this,
+  substI this,
   congr,
   funext,
   exact eq_of_heq h_map

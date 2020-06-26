@@ -729,14 +729,6 @@ apply_nolint ring_equiv.to_mul_equiv doc_blame
 -- data/fin.lean
 apply_nolint fin.add_nat_val unused_arguments
 
--- data/finmap.lean
-apply_nolint finmap.all doc_blame
-apply_nolint finmap.any doc_blame
-apply_nolint finmap.disjoint doc_blame unused_arguments
-apply_nolint finmap.foldl unused_arguments
-apply_nolint finmap.sdiff doc_blame
-apply_nolint list.to_finmap doc_blame
-
 -- data/fintype/basic.lean
 apply_nolint finset.insert_none doc_blame
 apply_nolint fintype.bij_inv unused_arguments
@@ -812,11 +804,6 @@ apply_nolint int.even doc_blame
 -- data/lazy_list2.lean
 apply_nolint lazy_list.list_equiv_lazy_list doc_blame
 apply_nolint lazy_list.traverse doc_blame
-
--- data/list/alist.lean
-apply_nolint alist.disjoint unused_arguments
-apply_nolint alist.foldl unused_arguments
-apply_nolint list.to_alist doc_blame
 
 -- data/list/defs.lean
 apply_nolint list.erasep doc_blame
@@ -1158,7 +1145,6 @@ apply_nolint polynomial.decidable_dvd_monic doc_blame
 apply_nolint polynomial.div doc_blame
 apply_nolint polynomial.div_mod_by_monic_aux doc_blame
 apply_nolint polynomial.eval_sub_factor doc_blame
-apply_nolint polynomial.eval₂_zero unused_arguments
 apply_nolint polynomial.lcoeff doc_blame
 apply_nolint polynomial.mod doc_blame
 apply_nolint polynomial.pow_add_expansion doc_blame
@@ -1167,19 +1153,7 @@ apply_nolint polynomial.rec_on_horner doc_blame
 apply_nolint polynomial.root_multiplicity doc_blame
 
 -- data/quot.lean
-apply_nolint quot.hrec_on₂ doc_blame
-apply_nolint quotient.choice doc_blame
-apply_nolint quotient.hrec_on₂ doc_blame
-apply_nolint quotient.lift_on' doc_blame
-apply_nolint quotient.lift_on₂' doc_blame
-apply_nolint quotient.mk' doc_blame
-apply_nolint quotient.out' doc_blame
 apply_nolint trunc.bind doc_blame
-apply_nolint trunc.lift_on doc_blame
-apply_nolint trunc.map doc_blame
-apply_nolint trunc.rec doc_blame
-apply_nolint trunc.rec_on doc_blame
-apply_nolint trunc.rec_on_subsingleton doc_blame
 
 -- data/rat/basic.lean
 apply_nolint rat.add doc_blame
@@ -1276,16 +1250,9 @@ apply_nolint wseq.think_congr unused_arguments
 -- data/set/enumerate.lean
 apply_nolint set.enumerate doc_blame
 
--- data/set/finite.lean
-apply_nolint set.fintype_bUnion doc_blame
-apply_nolint set.fintype_bind doc_blame
-apply_nolint set.fintype_of_fintype_image doc_blame
-apply_nolint set.fintype_subset doc_blame
-
 -- data/set/lattice.lean
 apply_nolint set.Union_eq_sigma_of_disjoint doc_blame
 apply_nolint set.bUnion_eq_sigma_of_disjoint doc_blame
-apply_nolint set.seq doc_blame
 
 -- data/string/basic.lean
 apply_nolint string.ltb doc_blame
@@ -1465,12 +1432,10 @@ apply_nolint is_basis.to_dual_flip doc_blame
 
 -- linear_algebra/finsupp.lean
 apply_nolint finsupp.congr doc_blame
-apply_nolint finsupp.dom_lcongr doc_blame
 apply_nolint finsupp.lapply doc_blame
 apply_nolint finsupp.lmap_domain doc_blame
 apply_nolint finsupp.lsingle doc_blame
 apply_nolint finsupp.lsubtype_domain doc_blame
-apply_nolint finsupp.lsum doc_blame
 apply_nolint finsupp.restrict_dom doc_blame
 apply_nolint finsupp.supported doc_blame
 apply_nolint finsupp.supported_equiv_finsupp doc_blame
@@ -1489,7 +1454,6 @@ apply_nolint linear_map.llcomp doc_blame
 apply_nolint linear_map.lsmul doc_blame
 apply_nolint linear_map.mk₂ doc_blame
 apply_nolint tensor_product doc_blame
-apply_nolint tensor_product.congr doc_blame
 apply_nolint tensor_product.curry doc_blame
 apply_nolint tensor_product.direct_sum doc_blame
 apply_nolint tensor_product.lcurry doc_blame
@@ -1551,7 +1515,6 @@ apply_nolint Meas doc_blame
 apply_nolint measure_theory.measure.integral doc_blame
 apply_nolint measure_theory.measure.with_density doc_blame
 apply_nolint measure_theory.simple_func.fin_vol_supp doc_blame
-apply_nolint measure_theory.simple_func.ite doc_blame
 
 -- measure_theory/measurable_space.lean
 apply_nolint measurable_equiv has_inhabited_instance
@@ -1692,23 +1655,6 @@ apply_nolint ideal.quotient_inf_to_pi_quotient doc_blame
 apply_nolint submodule.annihilator doc_blame
 apply_nolint submodule.colon doc_blame
 
--- ring_theory/ideals.lean
-apply_nolint ideal.is_maximal doc_blame
-apply_nolint ideal.is_prime doc_blame
-apply_nolint ideal.quotient doc_blame has_inhabited_instance
-apply_nolint ideal.quotient.map_mk doc_blame
-apply_nolint ideal.quotient.mk doc_blame
-apply_nolint ideal.span doc_blame
-apply_nolint is_local_ring doc_blame
-apply_nolint is_local_ring_hom doc_blame
-apply_nolint local_of_is_local_ring doc_blame
-apply_nolint local_of_nonunits_ideal doc_blame
-apply_nolint local_of_unique_max_ideal doc_blame
-apply_nolint local_of_unit_or_unit_one_sub doc_blame
-apply_nolint local_ring doc_blame
-apply_nolint local_ring.residue_field doc_blame has_inhabited_instance
-apply_nolint local_ring.residue_field.map doc_blame
-
 -- ring_theory/integral_closure.lean
 apply_nolint integral_closure doc_blame
 
@@ -1717,16 +1663,6 @@ apply_nolint ring_invo.id doc_blame
 
 -- ring_theory/multiplicity.lean
 apply_nolint multiplicity.finite doc_blame
-
--- ring_theory/power_series.lean
-apply_nolint mv_power_series.inv doc_blame
-apply_nolint mv_power_series.trunc_fun doc_blame
-apply_nolint power_series.inv doc_blame
-apply_nolint power_series.inv.aux doc_blame
-
--- ring_theory/principal_ideal_domain.lean
-apply_nolint principal_ideal_domain doc_blame
-apply_nolint principal_ideal_domain.factors doc_blame
 
 -- ring_theory/subring.lean
 apply_nolint ring.closure doc_blame
@@ -2039,75 +1975,8 @@ apply_nolint tactic.get_lift_prf doc_blame
 apply_nolint tactic.to_texpr doc_blame
 apply_nolint tactic.using_texpr doc_blame
 
--- tactic/linarith.lean
-apply_nolint linarith.add_exprs doc_blame
-apply_nolint linarith.add_exprs_aux doc_blame
-apply_nolint linarith.add_neg_eq_pfs doc_blame
-apply_nolint linarith.comp.add doc_blame
-apply_nolint linarith.comp.coeff_of doc_blame
-apply_nolint linarith.comp.is_contr doc_blame
-apply_nolint linarith.comp.scale doc_blame
-apply_nolint linarith.comp_source doc_blame
-apply_nolint linarith.comp_source.flatten doc_blame
-apply_nolint linarith.comp_source.to_string doc_blame
-apply_nolint linarith.elab_arg_list doc_blame
-apply_nolint linarith.elim_all_vars doc_blame
-apply_nolint linarith.elim_with_set doc_blame
-apply_nolint linarith.expr_contains doc_blame
-apply_nolint linarith.find_cancel_factor doc_blame
-apply_nolint linarith.find_contr doc_blame
-apply_nolint linarith.get_comps doc_blame
-apply_nolint linarith.get_contr_lemma_name doc_blame
-apply_nolint linarith.get_nat_comps doc_blame
-apply_nolint linarith.get_rel_sides doc_blame
-apply_nolint linarith.get_var_list doc_blame
-apply_nolint linarith.get_vars doc_blame
-apply_nolint linarith.guard_is_nat_prop doc_blame
-apply_nolint linarith.guard_is_strict_int_prop doc_blame
-apply_nolint linarith.ineq doc_blame
-apply_nolint linarith.ineq.max doc_blame
-apply_nolint linarith.ineq.to_string doc_blame
-apply_nolint linarith.ineq_const_mul_nm doc_blame
-apply_nolint linarith.ineq_const_nm doc_blame
-apply_nolint linarith.ineq_pf_tp doc_blame
-apply_nolint linarith.is_nat_int_coe doc_blame
-apply_nolint linarith.is_numeric doc_blame
-apply_nolint linarith.linarith_config doc_blame
-apply_nolint linarith.linarith_monad doc_blame
-apply_nolint linarith.linarith_monad.run doc_blame
-apply_nolint linarith.list.mfind doc_blame
-apply_nolint linarith.map_of_expr_mul_aux doc_blame
-apply_nolint linarith.mk_cast_eq_and_nonneg_prfs doc_blame
-apply_nolint linarith.mk_coe_nat_nonneg_prf doc_blame
-apply_nolint linarith.mk_coe_nat_nonneg_prfs doc_blame
-apply_nolint linarith.mk_int_pfs_of_nat_pf doc_blame
-apply_nolint linarith.mk_lt_zero_pf_aux doc_blame
-apply_nolint linarith.mk_neg_one_lt_zero_pf doc_blame
-apply_nolint linarith.mk_non_strict_int_pf_of_strict_int_pf doc_blame
-apply_nolint linarith.mk_prod_prf doc_blame
-apply_nolint linarith.mk_single_comp_zero_pf doc_blame
+-- tactic/linarith/lemmas.lean
 apply_nolint linarith.mul_eq unused_arguments
-apply_nolint linarith.mul_expr doc_blame
-apply_nolint linarith.norm_hyp doc_blame
-apply_nolint linarith.norm_hyp_aux doc_blame
-apply_nolint linarith.parse_into_comp_and_expr doc_blame
-apply_nolint linarith.partition_by_type doc_blame
-apply_nolint linarith.partition_by_type_aux doc_blame
-apply_nolint linarith.pcomp.is_contr doc_blame
-apply_nolint linarith.pcomp.scale doc_blame
-apply_nolint linarith.pelim_var doc_blame
-apply_nolint linarith.preferred_type_of_goal doc_blame
-apply_nolint linarith.rb_map.find_defeq doc_blame
-apply_nolint linarith.rearr_comp doc_blame
-apply_nolint linarith.rem_neg doc_blame
-apply_nolint linarith.replace_nat_pfs doc_blame
-apply_nolint linarith.replace_strict_int_pfs doc_blame
-apply_nolint linarith.term_of_ineq_prf doc_blame
-apply_nolint linarith.to_comp doc_blame
-apply_nolint linarith.to_comp_fold doc_blame
-apply_nolint linarith.update doc_blame
-apply_nolint linarith.validate doc_blame
-apply_nolint nat.to_pexpr doc_blame
 
 -- tactic/local_cache.lean
 apply_nolint tactic.local_cache.internal.block_local.clear doc_blame
@@ -2581,13 +2450,6 @@ apply_nolint uniform_space.completion.completion_separation_quotient_equiv doc_b
 apply_nolint uniform_space.completion.cpkg doc_blame
 apply_nolint uniform_space.completion.extension₂ doc_blame
 apply_nolint uniform_space.completion.map₂ doc_blame
-
--- topology/uniform_space/separation.lean
-apply_nolint separated doc_blame
-apply_nolint uniform_space.separation_quotient doc_blame
-apply_nolint uniform_space.separation_quotient.lift doc_blame
-apply_nolint uniform_space.separation_quotient.map doc_blame
-apply_nolint uniform_space.separation_setoid doc_blame
 
 -- topology/uniform_space/uniform_embedding.lean
 apply_nolint uniform_embedding doc_blame

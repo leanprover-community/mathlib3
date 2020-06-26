@@ -40,7 +40,7 @@ noncomputable theory
 open filter set
 universes u v w x
 
-open_locale uniformity classical topological_space
+open_locale uniformity classical topological_space filter
 
 /-- Space of Cauchy filters
 
@@ -169,7 +169,7 @@ have h_ex : ∀ s ∈ 𝓤 (Cauchy α), ∃y:α, (f, pure_cauchy y) ∈ s, from
         ht'₂ $ prod_mk_mem_comp_rel (@h (a, x) ⟨h₁, hx⟩) h₂⟩,
   ⟨x, ht''₂ $ by dsimp [gen]; exact this⟩,
 begin
-  simp [closure_eq_nhds, nhds_eq_uniformity, lift'_inf_principal_eq, set.inter_comm],
+  simp [closure_eq_cluster_pts, cluster_pt, nhds_eq_uniformity, lift'_inf_principal_eq, set.inter_comm],
   exact (lift'_ne_bot_iff $ monotone_inter monotone_const monotone_preimage).mpr
     (assume s hs,
       let ⟨y, hy⟩ := h_ex s hs in
@@ -225,7 +225,7 @@ if uniform_continuous f then
 else
   λ x, f (classical.inhabited_of_nonempty $ nonempty_Cauchy_iff.1 ⟨x⟩).default
 
-variables [separated β]
+variables [separated_space β]
 
 lemma extend_pure_cauchy {f : α → β} (hf : uniform_continuous f) (a : α) :
   extend f (pure_cauchy a) = f a :=
@@ -250,7 +250,7 @@ end extend
 end
 
 theorem Cauchy_eq
-  {α : Type*} [inhabited α] [uniform_space α] [complete_space α] [separated α] {f g : Cauchy α} :
+  {α : Type*} [inhabited α] [uniform_space α] [complete_space α] [separated_space α] {f g : Cauchy α} :
   Lim f.1 = Lim g.1 ↔ (f, g) ∈ separation_rel (Cauchy α) :=
 begin
   split,
@@ -272,7 +272,7 @@ begin
     rcases mem_prod_iff.1 h with ⟨x, xf, y, yg, h⟩,
     have limc : ∀ (f : Cauchy α) (x ∈ f.1), Lim f.1 ∈ closure x,
     { intros f x xf,
-      rw closure_eq_nhds,
+      rw closure_eq_cluster_pts,
       exact ne_bot_of_le_ne_bot f.2.1
         (le_inf f.2.le_nhds_Lim (le_principal_iff.2 xf)) },
     have := (closure_subset_iff_subset_of_is_closed dc).2 h,
@@ -283,7 +283,7 @@ end
 section
 local attribute [instance] uniform_space.separation_setoid
 
-lemma separated_pure_cauchy_injective {α : Type*} [uniform_space α] [s : separated α] :
+lemma separated_pure_cauchy_injective {α : Type*} [uniform_space α] [s : separated_space α] :
   function.injective (λa:α, ⟦pure_cauchy a⟧) | a b h :=
 separated_def.1 s _ _ $ assume s hs,
 let ⟨t, ht, hts⟩ :=
@@ -330,9 +330,7 @@ instance : uniform_space (completion α) := by dunfold completion ; apply_instan
 
 instance : complete_space (completion α) := by dunfold completion ; apply_instance
 
-instance : separated (completion α) := by dunfold completion ; apply_instance
-
-instance : t2_space (completion α) := separated_t2
+instance : separated_space (completion α) := by dunfold completion ; apply_instance
 
 instance : regular_space (completion α) := separated_regular
 
@@ -389,7 +387,7 @@ cpkg.uniform_continuous_coe
 lemma continuous_coe : continuous (coe : α → completion α) :=
 cpkg.continuous_coe
 
-lemma uniform_embedding_coe [separated α] : uniform_embedding  (coe : α → completion α) :=
+lemma uniform_embedding_coe [separated_space α] : uniform_embedding  (coe : α → completion α) :=
 { comap_uniformity := comap_coe_eq_uniformity α,
   inj := separated_pure_cauchy_injective }
 
@@ -399,7 +397,7 @@ lemma dense_inducing_coe : dense_inducing (coe : α → completion α) :=
 { dense := dense,
   ..(uniform_inducing_coe α).inducing }
 
-lemma dense_embedding_coe [separated α]: dense_embedding (coe : α → completion α) :=
+lemma dense_embedding_coe [separated_space α]: dense_embedding (coe : α → completion α) :=
 { inj := separated_pure_cauchy_injective,
   ..dense_inducing_coe }
 
@@ -445,7 +443,7 @@ returns an arbitrary constant value if `f` is not uniformly continuous -/
 protected def extension (f : α → β) : completion α → β :=
 cpkg.extend f
 
-variables [separated β]
+variables [separated_space β]
 
 @[simp] lemma extension_coe (hf : uniform_continuous f) (a : α) : (completion.extension f) a = f a :=
 cpkg.extend_coe hf a
@@ -490,7 +488,7 @@ cpkg.map_unique cpkg hg h
 @[simp] lemma map_id : completion.map (@id α) = id :=
 cpkg.map_id
 
-lemma extension_map [complete_space γ] [separated γ] {f : β → γ} {g : α → β}
+lemma extension_map [complete_space γ] [separated_space γ] {f : β → γ} {g : α → β}
   (hf : uniform_continuous f) (hg : uniform_continuous g) :
   completion.extension f ∘ completion.map g = completion.extension (f ∘ g) :=
 completion.ext (continuous_extension.comp continuous_map) continuous_extension $
@@ -543,7 +541,7 @@ open function
 protected def extension₂ (f : α → β → γ) : completion α → completion β → γ :=
 cpkg.extend₂ cpkg f
 
-variables [separated γ] {f}
+variables [separated_space γ] {f}
 
 @[simp] lemma extension₂_coe_coe (hf : uniform_continuous₂ f) (a : α) (b : β) :
   completion.extension₂ f a b = f a b :=

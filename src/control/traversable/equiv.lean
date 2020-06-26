@@ -44,17 +44,10 @@ protected lemma is_lawful_functor' [F : _root_.functor t']
   _root_.is_lawful_functor t' :=
 begin
   have : F = equiv.functor,
-  { unfreezeI, cases F, dsimp [equiv.functor],
+  { casesI F, dsimp [equiv.functor],
     congr; ext; [rw ← h₀, rw ← h₁] },
-  constructor; intros;
-  haveI F' := equiv.is_lawful_functor,
-  { simp, intros, ext,
-    rw [h₁], rw ← this at F',
-    have k := @map_const_eq t' _ _ α β, rw this at ⊢ k, rw ← k, refl },
-  { rw [h₀], rw ← this at F',
-    have k := id_map x, rw this at k, apply k },
-  { rw [h₀], rw ← this at F',
-    have k := comp_map g h x, revert k, rw this, exact id },
+  substI this,
+  exact equiv.is_lawful_functor
 end
 
 end functor
@@ -124,7 +117,7 @@ begin
     -- we can't use the same approach as for `is_lawful_functor'` because
     -- h₂ needs a `is_lawful_applicative` assumption
   refine {to_is_lawful_functor :=
-    equiv.is_lawful_functor' eqv @h₀ @h₁, ..}; intros; resetI,
+    equiv.is_lawful_functor' eqv @h₀ @h₁, ..}; introsI,
   { rw [h₂, equiv.id_traverse], apply_instance },
   { rw [h₂, equiv.comp_traverse f g x, h₂], congr,
     rw [h₂], all_goals { apply_instance } },

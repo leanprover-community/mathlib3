@@ -82,7 +82,7 @@ See the explanations there.
 
 universes u v w
 noncomputable theory
-open_locale classical topological_space big_operators
+open_locale classical topological_space big_operators filter
 open filter asymptotics set
 open continuous_linear_map (smul_right smul_right_one_eq_iff)
 
@@ -231,17 +231,15 @@ definition with a limit. In this version we have to take the limit along the sub
 because for `y=x` the slope equals zero due to the convention `0⁻¹=0`. -/
 lemma has_deriv_at_filter_iff_tendsto_slope {x : 𝕜} {L : filter 𝕜} :
   has_deriv_at_filter f f' x L ↔
-    tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (L ⊓ principal (-{x})) (𝓝 f') :=
+    tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (L ⊓ 𝓟 (-{x})) (𝓝 f') :=
 begin
   conv_lhs { simp only [has_deriv_at_filter_iff_tendsto, (normed_field.norm_inv _).symm,
     (norm_smul _ _).symm, tendsto_zero_iff_norm_tendsto_zero.symm] },
   conv_rhs { rw [← nhds_translation f', tendsto_comap_iff] },
   refine (tendsto_inf_principal_nhds_iff_of_forall_eq $ by simp).symm.trans (tendsto_congr' _),
-  rw mem_inf_principal,
-  refine univ_mem_sets' (λ z hz, _),
-  have : z ≠ x, by simpa [function.comp] using hz,
-  simp only [mem_set_of_eq],
-  rw [smul_sub, ← mul_smul, inv_mul_cancel (sub_ne_zero.2 this), one_smul]
+  refine (eventually_principal.2 $ λ z hz, _).filter_mono inf_le_right,
+  simp only [(∘)],
+  rw [smul_sub, ← mul_smul, inv_mul_cancel (sub_ne_zero.2 hz), one_smul]
 end
 
 lemma has_deriv_within_at_iff_tendsto_slope {x : 𝕜} {s : set 𝕜} :

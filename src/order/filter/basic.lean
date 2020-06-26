@@ -1453,7 +1453,7 @@ begin
     rcases V_in with ⟨W, W_in, H⟩,
     rw mem_inf_sets,
     use [W, W_in, s, mem_principal_self s],
-    erw [← image_subset_iff, subtype.image_preimage_val] at H,
+    erw [← image_subset_iff, subtype.image_preimage_coe] at H,
     exact H }
 end
 

@@ -917,7 +917,7 @@ lemma set.finite.convex_hull_eq_image {s : set E} (hs : finite s) :
 begin
   rw [← convex_hull_basis_eq_std_simplex, ← linear_map.convex_hull_image, ← range_comp, (∘)],
   apply congr_arg,
-  convert (subtype.range_val s).symm,
+  convert subtype.range_coe.symm,
   ext x,
   simp [linear_map.sum_apply, ite_smul, finset.filter_eq]
 end

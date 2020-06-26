@@ -130,5 +130,5 @@ begin
       monic_integral_normalization p_ne_zero,
       integral_normalization_aeval_eq_zero p_ne_zero px inj ⟩,
   refine ⟨⟨_, x_integral⟩, ⟨_, y_integral⟩, _, rfl⟩,
-  exact λ h, a_ne_zero (inj _ (subtype.ext.mp h))
+  exact λ h, a_ne_zero (inj _ (subtype.ext_iff_val.mp h))
 end

@@ -1014,7 +1014,7 @@ variables {n m l : ℕ}
 /-- `range n` is the set of natural numbers less than `n`. -/
 def range (n : ℕ) : finset ℕ := ⟨_, nodup_range n⟩
 
-@[simp] theorem range_val (n : ℕ) : (range n).1 = multiset.range n := rfl
+@[simp] theorem range_coe (n : ℕ) : (range n).1 = multiset.range n := rfl
 
 @[simp] theorem mem_range : m ∈ range n ↔ m < n := mem_range
 
@@ -1064,7 +1064,7 @@ def not_mem_range_equiv (k : ℕ) : {n // n ∉ range k} ≃ ℕ :=
   left_inv :=
   begin
     assume j,
-    rw subtype.ext,
+    rw subtype.ext_iff_val,
     apply nat.sub_add_cancel,
     simpa using j.2
   end,
@@ -1571,10 +1571,10 @@ lemma surj_on_of_inj_on_of_card_le {s : finset α} {t : finset β}
   (∀ b ∈ t, ∃ a ha, b = f a ha) :=
 by haveI := classical.dec_eq β; exact
 λ b hb,
-  have h : card (image (λ (a : {a // a ∈ s}), f (a.val) a.2) (attach s)) = card s,
+  have h : card (image (λ (a : {a // a ∈ s}), f a a.prop) (attach s)) = card s,
     from @card_attach _ s ▸ card_image_of_injective _
       (λ ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩ h, subtype.eq $ hinj _ _ _ _ h),
-  have h₁ : image (λ a : {a // a ∈ s}, f a.1 a.2) s.attach = t :=
+  have h₁ : image (λ a : {a // a ∈ s}, f a a.prop) s.attach = t :=
   eq_of_subset_of_card_le (λ b h, let ⟨a, ha₁, ha₂⟩ := mem_image.1 h in
     ha₂ ▸ hf _ _) (by simp [hst, h]),
 begin
@@ -1605,7 +1605,7 @@ have hsg : surjective g, from λ x,
 have hif : injective f',
   from (left_inverse_of_surjective_of_right_inverse hsg
       (right_inverse_surj_inv _)).injective,
-subtype.ext.1 (@hif ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩ (subtype.eq ha₁a₂))
+subtype.ext_iff_val.1 (@hif ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩ (subtype.eq ha₁a₂))
 
 end card
 

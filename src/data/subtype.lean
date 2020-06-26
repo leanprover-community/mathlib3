@@ -4,60 +4,76 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl
 -/
 import tactic.lint
+import tactic.ext
 
--- Lean complains if this section is turned into a namespace
 open function
-section subtype
-variables {α : Sort*} {p : α → Prop}
 
-@[simp] theorem subtype.forall {q : {a // p a} → Prop} :
+namespace subtype
+variables {α : Sort*} {β : Sort*} {γ : Sort*} {p : α → Prop}
+
+/-- A version of `x.property` or `x.2` where `p` is syntactically applied to the coercion of `x`
+  instead of `x.1`. A similar result is `subtype.mem` in `data.set.basic`. -/
+lemma prop (x : subtype p) : p x := x.2
+
+@[simp] lemma val_eq_coe {x : subtype p} : x.1 = ↑x := rfl
+
+@[simp] protected theorem «forall» {q : {a // p a} → Prop} :
   (∀ x, q x) ↔ (∀ a b, q ⟨a, b⟩) :=
 ⟨assume h a b, h ⟨a, b⟩, assume h ⟨a, b⟩, h a b⟩
 
 /-- An alternative version of `subtype.forall`. This one is useful if Lean cannot figure out `q`
   when using `subtype.forall` from right to left. -/
-theorem subtype.forall' {q : ∀x, p x → Prop} :
+protected theorem forall' {q : ∀x, p x → Prop} :
   (∀ x h, q x h) ↔ (∀ x : {a // p a}, q x.1 x.2) :=
 (@subtype.forall _ _ (λ x, q x.1 x.2)).symm
 
-
-@[simp] theorem subtype.exists {q : {a // p a} → Prop} :
+@[simp] protected theorem «exists» {q : {a // p a} → Prop} :
   (∃ x, q x) ↔ (∃ a b, q ⟨a, b⟩) :=
 ⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
 
-end subtype
+-- lemma ext {f g : equiv α β} (H : ∀ x, f x = g x) : f = g :=
+-- coe_fn_injective (funext H)
 
-namespace subtype
-variables {α : Sort*} {β : Sort*} {γ : Sort*} {p : α → Prop}
-
-lemma val_eq_coe : @val _ p = coe := rfl
-
-protected lemma eq' : ∀ {a1 a2 : {x // p x}}, a1.val = a2.val → a1 = a2
+@[ext] protected lemma ext : ∀ {a1 a2 : {x // p x}}, (a1 : α) = (a2 : α) → a1 = a2
 | ⟨x, h1⟩ ⟨.(x), h2⟩ rfl := rfl
 
-lemma ext {a1 a2 : {x // p x}} : a1 = a2 ↔ a1.val = a2.val :=
-⟨congr_arg _, subtype.eq'⟩
+lemma ext_iff {a1 a2 : {x // p x}} : a1 = a2 ↔ (a1 : α) = (a2 : α) :=
+⟨congr_arg _, subtype.ext⟩
 
-lemma coe_ext {a1 a2 : {x // p x}} : a1 = a2 ↔ (a1 : α) = a2 :=
-ext
+lemma ext_val {a1 a2 : {x // p x}} : a1.1 = a2.1 → a1 = a2 :=
+subtype.ext
+
+lemma ext_iff_val {a1 a2 : {x // p x}} : a1 = a2 ↔ a1.1 = a2.1 :=
+ext_iff
+
+@[simp] theorem coe_eta (a : {a // p a}) (h : p a) : mk ↑a h = a := subtype.ext rfl
+
+@[simp] theorem coe_mk (a h) : (@mk α p a h : α) = a := rfl
+
+@[simp, nolint simp_nf] -- built-in reduction doesn't always work
+theorem mk_eq_mk {a h a' h'} : @mk α p a h = @mk α p a' h' ↔ a = a' :=
+⟨λ H, by injection H, λ H, by congr; assumption⟩
+
+theorem coe_injective : injective (coe : subtype p → α) :=
+λ a b, subtype.ext
 
 theorem val_injective : injective (@val _ p) :=
-λ a b, subtype.eq'
+coe_injective
 
 /-- Restrict a (dependent) function to a subtype -/
 def restrict {α} {β : α → Type*} (f : Πx, β x) (p : α → Prop) (x : subtype p) : β x.1 :=
-f x.1
+f x
 
 lemma restrict_apply {α} {β : α → Type*} (f : Πx, β x) (p : α → Prop) (x : subtype p) :
   restrict f p x = f x.1 :=
 by refl
 
-lemma restrict_def {α β} (f : α → β) (p : α → Prop) : restrict f p = f ∘ subtype.val :=
+lemma restrict_def {α β} (f : α → β) (p : α → Prop) : restrict f p = f ∘ coe :=
 by refl
 
 lemma restrict_injective {α β} {f : α → β} (p : α → Prop) (h : injective f) :
   injective (restrict f p) :=
-h.comp subtype.val_injective
+h.comp coe_injective
 
 /-- Defining a map into a subtype, this can be seen as an "coinduction principle" of `subtype`-/
 def coind {α β} (f : α → β) {p : β → Prop} (h : ∀a, p (f a)) : α → subtype p :=
@@ -70,7 +86,7 @@ theorem coind_injective {α β} {f : α → β} {p : β → Prop} (h : ∀a, p (
 /-- Restriction of a function to a function on subtypes. -/
 def map {p : α → Prop} {q : β → Prop} (f : α → β) (h : ∀a, p a → q (f a)) :
   subtype p → subtype q :=
-λ x, ⟨f x.1, h x.1 x.2⟩
+λ x, ⟨f x, h x x.prop⟩
 
 theorem map_comp {p : α → Prop} {q : β → Prop} {r : γ → Prop} {x : subtype p}
   (f : α → β) (h : ∀a, p a → q (f a)) (g : β → γ) (l : ∀a, q a → r (g a)) :
@@ -82,19 +98,19 @@ funext $ assume ⟨v, h⟩, rfl
 
 lemma map_injective {p : α → Prop} {q : β → Prop} {f : α → β} (h : ∀a, p a → q (f a))
   (hf : injective f) : injective (map f h) :=
-coind_injective _ $ hf.comp val_injective
+coind_injective _ $ hf.comp coe_injective
 
 instance [has_equiv α] (p : α → Prop) : has_equiv (subtype p) :=
-⟨λ s t, s.val ≈ t.val⟩
+⟨λ s t, (s : α) ≈ (t : α)⟩
 
 theorem equiv_iff [has_equiv α] {p : α → Prop} {s t : subtype p} :
-  s ≈ t ↔ s.val ≈ t.val :=
+  s ≈ t ↔ (s : α) ≈ (t : α) :=
 iff.rfl
 
 variables [setoid α]
 
 protected theorem refl (s : subtype p) : s ≈ s :=
-setoid.refl s.val
+setoid.refl ↑s
 
 protected theorem symm {s t : subtype p} (h : s ≈ t) : t ≈ s :=
 setoid.symm h
@@ -111,21 +127,11 @@ setoid.mk (≈) (equivalence p)
 end subtype
 
 namespace subtype
+/-! Some facts about sets, which require that `α` is a type. -/
 variables {α : Type*} {β : Type*} {γ : Type*} {p : α → Prop}
 
-@[simp] theorem coe_eta {α : Type*} {p : α → Prop}
- (a : {a // p a}) (h : p a) : mk ↑a h = a := eta _ _
+@[simp] lemma coe_prop {S : set α} (a : {a // a ∈ S}) : ↑a ∈ S := a.prop
 
-@[simp] theorem coe_mk {α : Type*} {p : α → Prop}
- (a h) : (@mk α p a h : α) = a := rfl
-
-@[simp, nolint simp_nf] -- built-in reduction doesn't always work
-theorem mk_eq_mk {α : Type*} {p : α → Prop}
- {a h a' h'} : @mk α p a h = @mk α p a' h' ↔ a = a' :=
-⟨λ H, by injection H, λ H, by congr; assumption⟩
-
-@[simp] lemma val_prop {S : set α} (a : {a // a ∈ S}) : a.val ∈ S := a.property
-
-@[simp] lemma val_prop' {S : set α} (a : {a // a ∈ S}) : ↑a ∈ S := a.property
+lemma val_prop {S : set α} (a : {a // a ∈ S}) : a.val ∈ S := a.property
 
 end subtype

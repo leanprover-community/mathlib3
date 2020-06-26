@@ -341,7 +341,7 @@ if hx : ∃ (x : α), x ∈ H ∧ x ≠ (1 : α) then
           nat.find_min hex (int.coe_nat_lt.1 $ by rw [← hk₄];
             exact int.mod_lt_of_pos _ (int.coe_nat_pos.2 (nat.find_spec hex).1))
           ⟨nat.pos_of_ne_zero h, hk₅⟩),
-      ⟨k / (nat.find hex : ℤ), subtype.coe_ext.2 begin
+      ⟨k / (nat.find hex : ℤ), subtype.ext_iff_val.2 begin
         suffices : g ^ ((nat.find hex : ℤ) * (k / nat.find hex)) = x,
         { simpa [gpow_mul] },
         rw [int.mul_div_cancel' (int.dvd_of_mod_eq_zero (int.eq_zero_of_nat_abs_eq_zero hk₆)), hk]

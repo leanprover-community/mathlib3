@@ -68,32 +68,18 @@ variables (q : Q2)
 
 -- Joe's statement
 def S1 := q.Joe = n ↔ q.Bob = n
--- Bob's statement in its original form (variant v1)
-def S2_v1 := q.Joe ≠ q.Bob
--- Bob's statement written in a different form (variant v2)
-def S2_v2 := q.Joe = y ∧ q.Bob = n ∨ q.Joe = n ∧ q.Bob = y
+-- Bob's statement 
+def S2 := q.Joe ≠ q.Bob
 -- Stating that either one can be a knight or a knave
 def H1 := (q.Joe = y ∧ q.S1) ∨ (q.Joe = n ∧ ¬ q.S1)
--- For Bob we need two forms:
-def H2_v1 := (q.Bob = y ∧ q.S2_v1) ∨ (q.Bob = n ∧ ¬ q.S2_v1)
-def H2_v2 := (q.Bob = y ∧ q.S2_v2) ∨ (q.Bob = n ∧ ¬ q.S2_v2)
+def H2 := (q.Bob = y ∧ q.S2) ∨ (q.Bob = n ∧ ¬ q.S2)
 -- Again two forms here:
-def H_v1 := q.H1 ∧ q.H2_v1
-def H_v2 := q.H1 ∧ q.H2_v2
+def H := q.H1 ∧ q.H2
 
--- Result using the original form of Bob's statement
-lemma answer_v1 : q.H_v1 → q.Joe = n ∧ q.Bob = y :=
+lemma answer : q.H → q.Joe = n ∧ q.Bob = y :=
 begin
    rcases q with ⟨_|_,_|_⟩;
-   { simp [H_v1, H1, S1, H2_v1, S2_v1], },
-   done
-end
-
--- Result using the second form of Bob's statement
-lemma answer_v2 : q.H_v2 → q.Joe = n ∧ q.Bob = y :=
-begin
-   rcases q with ⟨_|_,_|_⟩;
-   { simp [H_v2, H1, S1, H2_v2, S2_v2], },
+   { simp [H, H1, S1, H2, S2], },
    done
 end
 

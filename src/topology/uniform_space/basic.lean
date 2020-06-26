@@ -1125,21 +1125,12 @@ uniform_continuous_comap' hf
 lemma uniform_continuous_on_iff_restrict [uniform_space α] [uniform_space β] (f : α → β) (s : set α) :
 uniform_continuous_on f s ↔ uniform_continuous (s.restrict f) :=
 begin
-  -- All the mathematical content is in `subtype_coe_map_comap` and functorial properties
-  -- of filter `map` and `comap`, but here we'll have to fight coercions in the two unnamed
-  -- intermediate facts
-  unfold uniform_continuous_on set.restrict uniform_continuous,
-  have :  (λ x : s × s, (f x.1, f x.2)) = (prod.map f f) ∘ (prod.map coe coe),
-  ext x ; refl,
-  rw [uniformity_comap rfl, this, tendsto, tendsto, ← filter.map_map, ← subtype_coe_map_comap],
-  convert iff.rfl using 3,
-  change map (prod.map coe coe) (filter.comap (prod.map coe coe) _) = _,
-  let φ : ↥s × ↥s → (s.prod s)  := (λ x : s × s, ⟨(x.1.1, x.2.1), mk_mem_prod x.1.2 x.2.2⟩),
-  have : (prod.map coe coe : s × s → α × α) = coe ∘ φ,
-  ext ; refl,
-  rw [this, ← filter.map_map, ← filter.comap_comap_comp, map_comap_of_surjective],
-  rintro ⟨⟨x, y⟩, ⟨x_in, y_in⟩⟩,
-  use [(⟨x, x_in⟩, ⟨y, y_in⟩), rfl],
+  unfold uniform_continuous_on set.restrict uniform_continuous tendsto,
+  rw [show (λ x : s × s, (f x.1, f x.2)) = prod.map f f ∘ coe, by ext x; cases x; refl,
+      uniformity_comap rfl,
+      show prod.map subtype.val subtype.val = (coe : s × s → α × α), by ext x; cases x; refl],
+  conv in (map _ (comap _ _)) { rw ← filter.map_map },
+  rw subtype_coe_map_comap_prod, refl,
 end
 
 lemma tendsto_of_uniform_continuous_subtype

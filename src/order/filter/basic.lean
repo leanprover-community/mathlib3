@@ -1457,6 +1457,17 @@ begin
     exact H }
 end
 
+lemma subtype_coe_map_comap_prod (s : set α) (f : filter (α × α)) :
+  map (coe : s × s → α × α) (comap (coe : s × s → α × α) f) = f ⊓ 𝓟 (s.prod s) :=
+let φ (x : s × s) : s.prod s := ⟨⟨x.1.1, x.2.1⟩, ⟨x.1.2, x.2.2⟩⟩ in
+begin
+  rw show (coe : s × s → α × α) = coe ∘ φ, by ext x; cases x; refl,
+  rw [← filter.map_map, ← filter.comap_comap_comp],
+  rw map_comap_of_surjective,
+  exact subtype_coe_map_comap _ _,
+  exact λ ⟨⟨a, b⟩, ⟨ha, hb⟩⟩, ⟨⟨⟨a, ha⟩, ⟨b, hb⟩⟩, rfl⟩
+end
+
 lemma comap_ne_bot {f : filter β} {m : α → β} (hm : ∀t∈ f, ∃a, m a ∈ t) :
   comap m f ≠ ⊥ :=
 forall_sets_nonempty_iff_ne_bot.mp $ assume s ⟨t, ht, t_s⟩,

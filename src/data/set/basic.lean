@@ -1539,7 +1539,7 @@ lemma surjective.range_comp (g : α → β) {f : ι → α} (hf : surjective f) 
   range (g ∘ f) = range g :=
 by rw [range_comp, hf.range_eq, image_univ]
 
-lemma injective.nonempty {f : set α → set β} (hf : injective f)
+lemma injective.nonempty_apply_iff {f : set α → set β} (hf : injective f)
   (h2 : f ∅ = ∅) {s : set α} : (f s).nonempty ↔ s.nonempty :=
 by rw [← ne_empty_iff_nonempty, ← h2, ← ne_empty_iff_nonempty, hf.ne_iff]
 
@@ -1859,7 +1859,7 @@ lemma preimage_injective : injective (preimage f) ↔ surjective f :=
 begin
   refine ⟨λ h y, _, surjective.preimage_injective⟩,
   obtain ⟨x, hx⟩ : (f ⁻¹' {y}).nonempty,
-  { rw [h.nonempty preimage_empty], apply singleton_nonempty },
+  { rw [h.nonempty_apply_iff preimage_empty], apply singleton_nonempty },
   exact ⟨x, hx⟩
 end
 

@@ -2092,7 +2092,7 @@ lemma comp_sup_eq_sup_comp [semilattice_sup_bot γ] {s : finset β}
 by letI := classical.dec_eq β; from
 finset.induction_on s (by simp [bot]) (by simp [g_sup] {contextual := tt})
 
-lemma comp_sup_eq_sup_comp_linear [is_total α (≤)] {γ : Type} [semilattice_sup_bot γ]
+lemma comp_sup_eq_sup_comp_of_is_total [is_total α (≤)] {γ : Type} [semilattice_sup_bot γ]
   (g : α → γ) (mono_g : monotone g) (bot : g ⊥ = ⊥) : g (s.sup f) = s.sup (g ∘ f) :=
 comp_sup_eq_sup_comp g mono_g.map_sup bot
 
@@ -2158,7 +2158,7 @@ lemma comp_inf_eq_inf_comp [semilattice_inf_top γ] {s : finset β}
   g (s.inf f) = s.inf (g ∘ f) :=
 @comp_sup_eq_sup_comp (order_dual α) _ (order_dual γ) _ _ _ _ _ g_inf top
 
-lemma comp_inf_eq_inf_comp_linear [h : is_total α (≤)] {γ : Type} [semilattice_inf_top γ]
+lemma comp_inf_eq_inf_comp_of_is_total [h : is_total α (≤)] {γ : Type} [semilattice_inf_top γ]
   (g : α → γ) (mono_g : monotone g) (top : g ⊤ = ⊤) : g (s.inf f) = s.inf (g ∘ f) :=
 comp_inf_eq_inf_comp g mono_g.map_inf top
 

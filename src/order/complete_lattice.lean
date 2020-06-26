@@ -641,6 +641,14 @@ theorem infi_union {f : β → α} {s t : set β} : (⨅ x ∈ s ∪ t, f x) = (
 calc (⨅ x ∈ s ∪ t, f x) = (⨅ x, (⨅h : x∈s, f x) ⊓ (⨅h : x∈t, f x)) : congr_arg infi $ funext $ assume x, infi_or
                     ... = (⨅x∈s, f x) ⊓ (⨅x∈t, f x) : infi_inf_eq
 
+lemma infi_split (f : β → α) (p : β → Prop) :
+(⨅ i, f i) = (⨅ i (h : p i), f i) ⊓ (⨅ i (h : ¬ p i), f i) :=
+by simpa [classical.em] using @infi_union _ _ _ f {i | p i} {i | ¬ p i}
+
+lemma infi_split_single (f : β → α) (i₀ : β) :
+(⨅ i, f i) = f i₀ ⊓ (⨅ i (h : i ≠ i₀), f i) :=
+by convert infi_split _ _; simp
+
 theorem infi_le_infi_of_subset {f : β → α} {s t : set β} (h : s ⊆ t) :
   (⨅ x ∈ t, f x) ≤ (⨅ x ∈ s, f x) :=
 by rw [(union_eq_self_of_subset_left h).symm, infi_union]; exact inf_le_left

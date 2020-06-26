@@ -75,6 +75,8 @@ singleton, complement, powerset
 
 open function
 
+universe variables u v w x
+
 namespace set
 
 /-- Coercion from a set to the corresponding subtype. -/
@@ -83,8 +85,6 @@ instance {α : Type*} : has_coe_to_sort (set α) := ⟨_, λ s, {x // x ∈ s}�
 end set
 
 section set_coe
-
-universe u
 
 variables {α : Type u}
 
@@ -118,8 +118,6 @@ end set_coe
 lemma subtype.mem {α : Type*} {s : set α} (p : s) : (p : α) ∈ s := p.property
 
 namespace set
-
-universes u v w x
 
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {a : α} {s t : set α}
 
@@ -847,10 +845,6 @@ by finish [ext_iff, iff_def]
 theorem diff_subset (s t : set α) : s \ t ⊆ s :=
 by finish [subset_def]
 
-lemma subset_diff {s t u : set α} : s ⊆ t \ u ↔ s ⊆ t ∧ disjoint s u :=
-⟨λ h, ⟨λ x hxs, (h hxs).1, λ x ⟨hxs, hxu⟩, (h hxs).2 hxu⟩,
-λ ⟨h1, h2⟩ x hxs, ⟨h1 hxs, λ hxu, h2 ⟨hxs, hxu⟩⟩⟩
-
 theorem diff_subset_diff {s₁ s₂ t₁ t₂ : set α} : s₁ ⊆ s₂ → t₂ ⊆ t₁ → s₁ \ t₁ ⊆ s₂ \ t₂ :=
 by finish [subset_def]
 
@@ -899,7 +893,8 @@ lemma diff_inter {s t u : set α} : s \ (t ∩ u) = (s \ t) ∪ (s \ u) :=
 ext $ λ x, by simp [classical.not_and_distrib, and_or_distrib_left]
 
 lemma diff_inter_diff {s t u : set α} : s \ t ∩ (s \ u) = s \ (t ∪ u) :=
-by { ext x, simp only [mem_inter_eq, mem_union_eq, mem_diff], tauto }
+by { ext x, simp only [mem_inter_eq, mem_union_eq, mem_diff, not_or_distrib],
+     exact ⟨λ ⟨⟨h1, h2⟩, _, h3⟩, ⟨h1, h2, h3⟩, λ ⟨h1, h2, h3⟩, ⟨⟨h1, h2⟩, h1, h3⟩⟩ }
 
 lemma diff_compl : s \ -t = s ∩ t := by rw [diff_eq, compl_compl]
 
@@ -1296,9 +1291,6 @@ begin
   exact preimage_mono h
 end
 
-lemma image_injective {f : α → β} (hf : injective f) : injective (('') f) :=
-assume s t, (image_eq_image hf).1
-
 lemma prod_quotient_preimage_eq_image [s : setoid α] (g : quotient s → β) {h : α → β}
   (Hh : h = g ∘ quotient.mk) (r : set (β × β)) :
   {x : quotient s × quotient s | (g x.1, g x.2) ∈ r} =
@@ -1523,6 +1515,36 @@ theorem pairwise_on.mono' {s : set α} {r r' : α → α → Prop}
 end set
 open set
 
+namespace function
+
+variables {ι : Sort*} {α : Type*} {β : Type*} {f : α → β}
+
+lemma surjective.preimage_injective (hf : surjective f) : injective (preimage f) :=
+assume s t, (preimage_eq_preimage hf).1
+
+lemma injective.preimage_surjective (hf : injective f) : surjective (preimage f) :=
+by { intro s, use f '' s, rw preimage_image_eq _ hf }
+
+lemma surjective.image_surjective (hf : surjective f) : surjective (image f) :=
+by { intro s, use f ⁻¹' s, rw image_preimage_eq hf }
+
+lemma injective.image_injective (hf : injective f) : injective (image f) :=
+by { intros s t h, rw [←preimage_image_eq s hf, ←preimage_image_eq t hf, h] }
+
+lemma surjective.range_eq {f : ι → α} (hf : surjective f) : range f = univ :=
+range_iff_surjective.2 hf
+
+lemma surjective.range_comp (g : α → β) {f : ι → α} (hf : surjective f) :
+  range (g ∘ f) = range g :=
+by rw [range_comp, hf.range_eq, image_univ]
+
+lemma injective.nonempty {f : set α → set β} (hf : injective f)
+  (h2 : f ∅ = ∅) {s : set α} : (f s).nonempty ↔ s.nonempty :=
+by rw [← ne_empty_iff_nonempty, ← h2, ← ne_empty_iff_nonempty, hf.ne_iff]
+
+end function
+open function
+
 /-! ### Image and preimage on subtypes -/
 
 namespace subtype
@@ -1556,14 +1578,6 @@ begin
   rintros ⟨xt, xs⟩, exact ⟨x, xs, xt, rfl⟩
 end
 
-theorem preimage_val_eq_preimage_val_iff (s t u : set α) :
-  ((@subtype.val _ s) ⁻¹' t = (@subtype.val _ s) ⁻¹' u) ↔ (t ∩ s = u ∩ s) :=
-begin
-  rw [←image_preimage_val, ←image_preimage_val],
-  split, { intro h, rw h },
-  intro h, exact set.image_injective (val_injective) h
-end
-
 lemma exists_set_subtype {t : set α} (p : set α → Prop) :
 (∃(s : set t), p (subtype.val '' s)) ↔ ∃(s : set α), s ⊆ t ∧ p s :=
 begin
@@ -1573,6 +1587,18 @@ begin
   rintro ⟨s, hs₁, hs₂⟩, refine ⟨subtype.val ⁻¹' s, _⟩,
   rw [image_preimage_eq_of_subset], exact hs₂, rw [range_val], exact hs₁
 end
+
+theorem preimage_val_eq_preimage_val_iff (s t u : set α) :
+  ((@subtype.val _ s) ⁻¹' t = (@subtype.val _ s) ⁻¹' u) ↔ (t ∩ s = u ∩ s) :=
+begin
+  rw [←image_preimage_val, ←image_preimage_val],
+  split, { intro h, rw h },
+  intro h, exact val_injective.image_injective h
+end
+
+theorem preimage_coe_eq_preimage_coe_iff {s t u : set α} :
+  ((coe : s → α) ⁻¹' t = coe ⁻¹' u) ↔ t ∩ s = u ∩ s :=
+subtype.preimage_val_eq_preimage_val_iff _ _ _
 
 end subtype
 
@@ -1584,10 +1610,6 @@ variable {α : Type*}
 
 @[simp] lemma range_coe_subtype (s : set α) : range (coe : s → α) = s :=
 subtype.val_range
-
-theorem preimage_coe_eq_preimage_coe_iff {s t u : set α} :
-  ((coe : s → α) ⁻¹' t = coe ⁻¹' u) ↔ t ∩ s = u ∩ s :=
-subtype.preimage_val_eq_preimage_val_iff _ _ _
 
 end range
 
@@ -1812,76 +1834,6 @@ ext $ λ ⟨x, hx⟩ , by simp [inclusion]
 
 end inclusion
 
-/-! ### Group operations on sets
-
-The product/sum of two sets and the inverse/negation of sets.
--/
-
-section group
-
-variables {α : Type*}
-
-/-- The pointwise product of two sets `s` and `t`:
-  `st = s ⬝ t = s * t = { x * y | x ∈ s, y ∈ t }. -/
-@[to_additive "The pointwise sum of two sets `s` and `t`: `s + t = { x + y | x ∈ s, y ∈ t }."]
-protected def mul [has_mul α] (s t : set α) : set α :=
-(λ p : α × α, p.1 * p.2) '' s.prod t
-
-@[simp, to_additive] lemma mem_mul [has_mul α] {s t : set α} {x : α} :
-  x ∈ s.mul t ↔ ∃ y z, y ∈ s ∧ z ∈ t ∧ y * z = x :=
-by { simp only [set.mul, and.assoc, mem_image, mem_prod, prod.exists] }
-
-@[to_additive] lemma mul_mem_mul [has_mul α] {s t : set α} {x y : α} (hx : x ∈ s) (hy : y ∈ t) :
-  x * y ∈ s.mul t :=
-by { simp only [mem_mul], exact ⟨x, y, hx, hy, rfl⟩ }
-
-@[simp, to_additive add_image_prod]
-lemma mul_image_prod [has_mul α] (s t : set α) : (λ p : α × α, p.1 * p.2) '' s.prod t = s.mul t :=
-rfl
-
-@[to_additive]
-lemma mul_subset_mul [has_mul α] {s t u v : set α} (h1 : u ⊆ s) (h2 : v ⊆ t) :
-  u.mul v ⊆ s.mul t :=
-by { apply image_subset, simp only [prod_subset_prod_iff, h1, h2, true_or, and_self], }
-
-/-- The pointwise inverse of a set `s`: `s⁻¹ = { x⁻¹ | x ∈ s }.
-  We define this as the preimage of `inv` instead of the image, because the preimage is usually
-  better behaved. Use `inv_image` to rewrite it to an image. -/
-@[to_additive "The pointwise additive inverse of a set `s`: `s⁻¹ = { x⁻¹ | x ∈ s }"]
-protected def inv [has_inv α] (s : set α) : set α :=
-has_inv.inv ⁻¹' s
-
-@[to_additive, simp] lemma mem_inv [has_inv α] {s : set α} {x : α} :
-  x ∈ s.inv ↔ x⁻¹ ∈ s :=
-by { simp only [set.inv, mem_preimage] }
-
-@[to_additive] lemma inv_mem_inv [group α] {s : set α} {x : α} : x⁻¹ ∈ s.inv ↔ x ∈ s :=
-by simp only [mem_inv, inv_inv]
-
-@[simp, to_additive]
-lemma inv_preimage [has_inv α] (s : set α) : has_inv.inv ⁻¹' s = s.inv :=
-rfl
-
-@[simp, to_additive]
-lemma inv_image [group α] (s : set α) : has_inv.inv '' s = s.inv :=
-by refine congr_fun (image_eq_preimage_of_inverse _ _) s; intro; simp only [inv_inv]
-
-@[to_additive, simp] protected lemma inv_inv [group α] {s : set α} : s.inv.inv = s :=
-by { simp only [set.inv, ← preimage_comp], convert preimage_id, ext x, apply inv_inv }
-
-@[to_additive, simp] protected lemma univ_inv [group α] : (univ : set α).inv = univ :=
-preimage_univ
-
-@[simp, to_additive]
-lemma inv_subset_inv [group α] {s t : set α} : s.inv ⊆ t.inv ↔ s ⊆ t :=
-by { apply preimage_subset_preimage_iff, rw surjective.range_eq, apply subset_univ,
-     exact (equiv.inv α).surjective }
-
-@[to_additive] lemma inv_subset [group α] {s t : set α} : s.inv ⊆ t ↔ s ⊆ t.inv :=
-by { rw [← inv_subset_inv, set.inv_inv] }
-
-end group
-
 end set
 
 namespace subsingleton
@@ -1897,43 +1849,12 @@ s.eq_empty_or_nonempty.elim (λ h, h.symm ▸ h0) $ λ h, (eq_univ_of_nonempty h
 
 end subsingleton
 
-namespace function
-
-variables {ι : Sort*} {α : Type*} {β : Type*}
-
-lemma surjective.preimage_injective {f : β → α} (hf : surjective f) : injective (preimage f) :=
-assume s t, (preimage_eq_preimage hf).1
-
-lemma injective.preimage_surjective {α β : Type*} {f : α → β} (hf : injective f) :
-  surjective (preimage f) :=
-by { intro s, use f '' s, rw preimage_image_eq _ hf }
-
-lemma surjective.image_surjective {α β : Type*} {f : α → β} (hf : surjective f) :
-  surjective (image f) :=
-by { intro s, use f ⁻¹' s, rw image_preimage_eq hf }
-
-lemma injective.image_injective {α β : Type*} {f : α → β} (hf : injective f) :
-  injective (image f) :=
-by { intros s t h, rw [←preimage_image_eq s hf, ←preimage_image_eq t hf, h] }
-
-lemma surjective.range_eq {f : ι → α} (hf : surjective f) : range f = univ :=
-range_iff_surjective.2 hf
-
-lemma surjective.range_comp (g : α → β) {f : ι → α} (hf : surjective f) :
-  range (g ∘ f) = range g :=
-by rw [range_comp, hf.range_eq, image_univ]
-
-lemma injective.nonempty {α β : Type*} {f : set α → set β} (hf : injective f)
-  (h2 : f ∅ = ∅) {s : set α} : (f s).nonempty ↔ s.nonempty :=
-by rw [← ne_empty_iff_nonempty, ← h2, ← ne_empty_iff_nonempty, hf.ne_iff]
-
-end function
-open function
-
 namespace set
 
+variables {α : Type u} {β : Type v} {f : α → β}
+
 @[simp]
-lemma preimage_injective {α β : Type*} {f : α → β} : injective (preimage f) ↔ surjective f :=
+lemma preimage_injective : injective (preimage f) ↔ surjective f :=
 begin
   refine ⟨λ h y, _, surjective.preimage_injective⟩,
   obtain ⟨x, hx⟩ : (f ⁻¹' {y}).nonempty,
@@ -1942,14 +1863,14 @@ begin
 end
 
 @[simp]
-lemma preimage_surjective {α β : Type*} {f : α → β} : surjective (preimage f) ↔ injective f :=
+lemma preimage_surjective : surjective (preimage f) ↔ injective f :=
 begin
   refine ⟨λ h x x' hx, _, injective.preimage_surjective⟩,
   cases h {x} with s hs, have := mem_singleton x,
   rwa [← hs, mem_preimage, hx, ← mem_preimage, hs, mem_singleton_iff, eq_comm] at this
 end
 
-@[simp] lemma image_surjective {α β : Type*} {f : α → β} : surjective (image f) ↔ surjective f :=
+@[simp] lemma image_surjective : surjective (image f) ↔ surjective f :=
 begin
   refine ⟨λ h y, _, surjective.image_surjective⟩,
   cases h {y} with s hs,
@@ -1957,7 +1878,7 @@ begin
   exact ⟨x, h2x⟩
 end
 
-@[simp] lemma image_injective {α β : Type*} {f : α → β} : injective (image f) ↔ injective f :=
+@[simp] lemma image_injective : injective (image f) ↔ injective f :=
 begin
   refine ⟨λ h x x' hx, _, injective.image_injective⟩,
   rw [← singleton_eq_singleton_iff], apply h,

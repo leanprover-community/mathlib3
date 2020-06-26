@@ -1388,6 +1388,17 @@ lemma subtype_map_of_mem {p : α → Prop} [decidable_pred p] (h : ∀ x ∈ s, 
   (s.subtype p).map (function.embedding.subtype _) = s :=
 by rw [subtype_map, filter_true_of_mem h]
 
+/-- If a `finset` of a subtype is converted to the main type with
+`embedding.subtype`, the result does not contain any value that does
+not satisfy the property of the subtype. -/
+lemma not_mem_map_subtype_of_not_property {p : α → Prop} (s : finset {x // p x})
+    {a : α} (h : ¬ p a) : a ∉ (s.map (function.embedding.subtype _)) :=
+begin
+  rw mem_map,
+  push_neg,
+  exact λ x, λ hxs hx, h (hx ▸ x.property)
+end
+
 lemma subset_image_iff {f : α → β}
   {s : finset β} {t : set α} : ↑s ⊆ f '' t ↔ ∃s' : finset α, ↑s' ⊆ t ∧ s'.image f = s :=
 begin

@@ -43,6 +43,12 @@ variables {C : Type u₁} (D : Type u₂) [category.{v} D]
 variables (F : C → D)
 include F
 
+/--
+`induced_category D F`, where `F : C → D`, is a typeclass synonym for `C`,
+which provides a category structure so that the morphisms `X ⟶ Y` are the morphisms
+in `D` from `F X` to `F Y`.
+-/
+@[nolint has_inhabited_instance unused_arguments]
 def induced_category : Type u₁ := C
 
 variables {D}
@@ -56,6 +62,10 @@ instance induced_category.category : category.{v} (induced_category D F) :=
   id   := λ X, 𝟙 (F X),
   comp := λ _ _ _ f g, f ≫ g }
 
+/--
+The forgetful functor from an induced category to the original category,
+forgetting the extra data.
+-/
 @[simps] def induced_functor : induced_category D F ⥤ D :=
 { obj := F, map := λ x y f, f }
 
@@ -81,6 +91,10 @@ variables (Z : C → Prop)
 instance full_subcategory : category.{v} {X : C // Z X} :=
 induced_category.category subtype.val
 
+/--
+The forgetful functor from a full subcategory into the original category
+("forgetting" the condition).
+-/
 def full_subcategory_inclusion : {X : C // Z X} ⥤ C :=
 induced_functor subtype.val
 

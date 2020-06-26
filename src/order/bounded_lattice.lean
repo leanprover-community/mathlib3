@@ -740,10 +740,10 @@ lemma lt_iff_exists_coe_btwn [partial_order α] [densely_ordered α] [no_top_ord
 
 end with_top
 
-section subtype
+namespace subtype
 
 /-- A subtype forms a `⊔`-semilattice if `⊔` preserves the property. -/
-def subtype.semilattice_sup [semilattice_sup α] {P : α → Prop}
+protected def semilattice_sup [semilattice_sup α] {P : α → Prop}
   (Psup : ∀{{x y}}, P x → P y → P (x ⊔ y)) : semilattice_sup {x : α // P x} :=
 { sup := λ x y, ⟨x.1 ⊔ y.1, Psup x.2 y.2⟩,
   le_sup_left := λ x y, @le_sup_left _ _ (x : α) y,
@@ -752,7 +752,7 @@ def subtype.semilattice_sup [semilattice_sup α] {P : α → Prop}
   ..subtype.partial_order P }
 
 /-- A subtype forms a `⊓`-semilattice if `⊓` preserves the property. -/
-def subtype.semilattice_inf [semilattice_inf α] {P : α → Prop}
+protected def semilattice_inf [semilattice_inf α] {P : α → Prop}
   (Pinf : ∀{{x y}}, P x → P y → P (x ⊓ y)) : semilattice_inf {x : α // P x} :=
 { inf := λ x y, ⟨x.1 ⊓ y.1, Pinf x.2 y.2⟩,
   inf_le_left := λ x y, @inf_le_left _ _ (x : α) y,
@@ -761,21 +761,21 @@ def subtype.semilattice_inf [semilattice_inf α] {P : α → Prop}
   ..subtype.partial_order P }
 
 /-- A subtype forms a `⊔`-`⊥`-semilattice if `⊥` and `⊔` preserve the property. -/
-def subtype.semilattice_sup_bot [semilattice_sup_bot α] {P : α → Prop}
+protected def semilattice_sup_bot [semilattice_sup_bot α] {P : α → Prop}
   (Pbot : P ⊥) (Psup : ∀{{x y}}, P x → P y → P (x ⊔ y)) : semilattice_sup_bot {x : α // P x} :=
 { bot := ⟨⊥, Pbot⟩,
   bot_le := λ x, @bot_le α _ x,
   ..subtype.semilattice_sup Psup }
 
 /-- A subtype forms a `⊓`-`⊥`-semilattice if `⊥` and `⊓` preserve the property. -/
-def subtype.semilattice_inf_bot [semilattice_inf_bot α] {P : α → Prop}
+protected def semilattice_inf_bot [semilattice_inf_bot α] {P : α → Prop}
   (Pbot : P ⊥) (Pinf : ∀{{x y}}, P x → P y → P (x ⊓ y)) : semilattice_inf_bot {x : α // P x} :=
 { bot := ⟨⊥, Pbot⟩,
   bot_le := λ x, @bot_le α _ x,
   ..subtype.semilattice_inf Pinf }
 
 /-- A subtype forms a lattice if `⊔` and `⊓` preserve the property. -/
-def subtype.lattice [lattice α] {P : α → Prop}
+protected def lattice [lattice α] {P : α → Prop}
   (Psup : ∀{{x y}}, P x → P y → P (x ⊔ y)) (Pinf : ∀{{x y}}, P x → P y → P (x ⊓ y)) :
   lattice {x : α // P x} :=
 { ..subtype.semilattice_inf Pinf, ..subtype.semilattice_sup Psup }

@@ -161,6 +161,7 @@ instance decidable_set_of (p : α → Prop) [H : decidable_pred p] : decidable_p
 theorem subset_def {s t : set α} : (s ⊆ t) = ∀ x, x ∈ s → x ∈ t := rfl
 
 @[refl] theorem subset.refl (a : set α) : a ⊆ a := assume x, id
+theorem subset.rfl {s : set α} : s ⊆ s := subset.refl s
 
 @[trans] theorem subset.trans {a b c : set α} (ab : a ⊆ b) (bc : b ⊆ c) : a ⊆ c :=
 assume x h, bc (ab h)
@@ -846,6 +847,10 @@ by finish [ext_iff, iff_def]
 theorem diff_subset (s t : set α) : s \ t ⊆ s :=
 by finish [subset_def]
 
+lemma subset_diff {s t u : set α} : s ⊆ t \ u ↔ s ⊆ t ∧ disjoint s u :=
+⟨λ h, ⟨λ x hxs, (h hxs).1, λ x ⟨hxs, hxu⟩, (h hxs).2 hxu⟩,
+λ ⟨h1, h2⟩ x hxs, ⟨h1 hxs, λ hxu, h2 ⟨hxs, hxu⟩⟩⟩
+
 theorem diff_subset_diff {s₁ s₂ t₁ t₂ : set α} : s₁ ⊆ s₂ → t₂ ⊆ t₁ → s₁ \ t₁ ⊆ s₂ \ t₂ :=
 by finish [subset_def]
 
@@ -892,6 +897,9 @@ by rw [diff_subset_iff, diff_subset_iff, union_comm]
 
 lemma diff_inter {s t u : set α} : s \ (t ∩ u) = (s \ t) ∪ (s \ u) :=
 ext $ λ x, by simp [classical.not_and_distrib, and_or_distrib_left]
+
+lemma diff_inter_diff {s t u : set α} : s \ t ∩ (s \ u) = s \ (t ∪ u) :=
+by { ext x, simp only [mem_inter_eq, mem_union_eq, mem_diff], tauto }
 
 lemma diff_compl : s \ -t = s ∩ t := by rw [diff_eq, compl_compl]
 
@@ -989,6 +997,8 @@ rfl
 
 @[simp] theorem preimage_id {s : set α} : id ⁻¹' s = s := rfl
 
+@[simp] theorem preimage_id' {s : set α} : (λ x, x) ⁻¹' s = s := rfl
+
 theorem preimage_const_of_mem {b : β} {s : set β} (h : b ∈ s) :
   (λ (x : α), b) ⁻¹' s = univ :=
 eq_univ_of_forall $ λ x, h
@@ -1002,6 +1012,10 @@ theorem preimage_const (b : β) (s : set β) [decidable (b ∈ s)] :
 by { split_ifs with hb hb, exacts [preimage_const_of_mem hb, preimage_const_of_not_mem hb] }
 
 theorem preimage_comp {s : set γ} : (g ∘ f) ⁻¹' s = f ⁻¹' (g ⁻¹' s) := rfl
+
+lemma preimage_preimage {g : β → γ} {f : α → β} {s : set γ} :
+  f ⁻¹' (g ⁻¹' s) = (λ x, g (f x)) ⁻¹' s :=
+preimage_comp.symm
 
 theorem eq_preimage_subtype_val_iff {p : α → Prop} {s : set (subtype p)} {t : set α} :
   s = subtype.val ⁻¹' t ↔ (∀x (h : p x), (⟨x, h⟩ : subtype p) ∈ s ↔ x ∈ t) :=
@@ -1797,6 +1811,76 @@ lemma range_inclusion {s t : set α} (h : s ⊆ t) : range (inclusion h) = {x : 
 ext $ λ ⟨x, hx⟩ , by simp [inclusion]
 
 end inclusion
+
+/-! ### Group operations on sets
+
+The product/sum of two sets and the inverse/negation of sets.
+-/
+
+section group
+
+variables {α : Type*}
+
+/-- The pointwise product of two sets `s` and `t`:
+  `st = s ⬝ t = s * t = { x * y | x ∈ s, y ∈ t }. -/
+@[to_additive "The pointwise sum of two sets `s` and `t`: `s + t = { x + y | x ∈ s, y ∈ t }."]
+protected def mul [has_mul α] (s t : set α) : set α :=
+(λ p : α × α, p.1 * p.2) '' s.prod t
+
+@[simp, to_additive] lemma mem_mul [has_mul α] {s t : set α} {x : α} :
+  x ∈ s.mul t ↔ ∃ y z, y ∈ s ∧ z ∈ t ∧ y * z = x :=
+by { simp only [set.mul, and.assoc, mem_image, mem_prod, prod.exists] }
+
+@[to_additive] lemma mul_mem_mul [has_mul α] {s t : set α} {x y : α} (hx : x ∈ s) (hy : y ∈ t) :
+  x * y ∈ s.mul t :=
+by { simp only [mem_mul], exact ⟨x, y, hx, hy, rfl⟩ }
+
+@[simp, to_additive add_image_prod]
+lemma mul_image_prod [has_mul α] (s t : set α) : (λ p : α × α, p.1 * p.2) '' s.prod t = s.mul t :=
+rfl
+
+@[to_additive]
+lemma mul_subset_mul [has_mul α] {s t u v : set α} (h1 : u ⊆ s) (h2 : v ⊆ t) :
+  u.mul v ⊆ s.mul t :=
+by { apply image_subset, simp only [prod_subset_prod_iff, h1, h2, true_or, and_self], }
+
+/-- The pointwise inverse of a set `s`: `s⁻¹ = { x⁻¹ | x ∈ s }.
+  We define this as the preimage of `inv` instead of the image, because the preimage is usually
+  better behaved. Use `inv_image` to rewrite it to an image. -/
+@[to_additive "The pointwise additive inverse of a set `s`: `s⁻¹ = { x⁻¹ | x ∈ s }"]
+protected def inv [has_inv α] (s : set α) : set α :=
+has_inv.inv ⁻¹' s
+
+@[to_additive, simp] lemma mem_inv [has_inv α] {s : set α} {x : α} :
+  x ∈ s.inv ↔ x⁻¹ ∈ s :=
+by { simp only [set.inv, mem_preimage] }
+
+@[to_additive] lemma inv_mem_inv [group α] {s : set α} {x : α} : x⁻¹ ∈ s.inv ↔ x ∈ s :=
+by simp only [mem_inv, inv_inv]
+
+@[simp, to_additive]
+lemma inv_preimage [has_inv α] (s : set α) : has_inv.inv ⁻¹' s = s.inv :=
+rfl
+
+@[simp, to_additive]
+lemma inv_image [group α] (s : set α) : has_inv.inv '' s = s.inv :=
+by refine congr_fun (image_eq_preimage_of_inverse _ _) s; intro; simp only [inv_inv]
+
+@[to_additive, simp] protected lemma inv_inv [group α] {s : set α} : s.inv.inv = s :=
+by { simp only [set.inv, ← preimage_comp], convert preimage_id, ext x, apply inv_inv }
+
+@[to_additive, simp] protected lemma univ_inv [group α] : (univ : set α).inv = univ :=
+preimage_univ
+
+@[simp, to_additive]
+lemma inv_subset_inv [group α] {s t : set α} : s.inv ⊆ t.inv ↔ s ⊆ t :=
+by { apply preimage_subset_preimage_iff, rw surjective.range_eq, apply subset_univ,
+     exact (equiv.inv α).surjective }
+
+@[to_additive] lemma inv_subset [group α] {s t : set α} : s.inv ⊆ t ↔ s ⊆ t.inv :=
+by { rw [← inv_subset_inv, set.inv_inv] }
+
+end group
 
 end set
 

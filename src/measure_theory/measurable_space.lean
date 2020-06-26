@@ -501,9 +501,13 @@ section subtype
 instance {p : α → Prop} [m : measurable_space α] : measurable_space (subtype p) :=
 m.comap subtype.val
 
+lemma measurable_subtype_coe [measurable_space α] {p : α → Prop} :
+  measurable (coe : subtype p → α) :=
+measurable_space.le_map_comap
+
 lemma measurable.subtype_coe [measurable_space α] [measurable_space β] {p : β → Prop}
   {f : α → subtype p} (hf : measurable f) : measurable (λa:α, (f a : β)) :=
-measurable.comp (measurable_space.comap_le_iff_le_map.mp (le_refl _)) hf
+measurable_subtype_coe.comp hf
 
 lemma measurable.subtype_mk [measurable_space α] [measurable_space β] {p : β → Prop}
   {f : α → β} (hf : measurable f) {h : ∀ x, p (f x)} :

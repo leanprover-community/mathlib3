@@ -1241,72 +1241,75 @@ section complete_linear_order
 variables [complete_linear_order α] [topological_space α] [order_topology α]
   [complete_linear_order β] [topological_space β] [order_topology β] [nonempty γ]
 
-lemma Sup_mem_closure {α : Type u} [topological_space α] [complete_linear_order α] [order_topology α]
-  {s : set α} (hs : s.nonempty) : Sup s ∈ closure s :=
+lemma Sup_mem_closure {α : Type u} [topological_space α] [complete_linear_order α]
+  [order_topology α] {s : set α} (hs : s.nonempty) :
+  Sup s ∈ closure s :=
 mem_closure_of_is_lub (is_lub_Sup _) hs
 
-lemma Inf_mem_closure {α : Type u} [topological_space α] [complete_linear_order α] [order_topology α]
-  {s : set α} (hs : s.nonempty) : Inf s ∈ closure s :=
+lemma Inf_mem_closure {α : Type u} [topological_space α] [complete_linear_order α]
+  [order_topology α] {s : set α} (hs : s.nonempty) :
+  Inf s ∈ closure s :=
 mem_closure_of_is_glb (is_glb_Inf _) hs
 
-lemma Sup_mem_of_is_closed {α : Type u} [topological_space α] [complete_linear_order α] [order_topology α]
-  {s : set α} (hs : s.nonempty) (hc : is_closed s) : Sup s ∈ s :=
+lemma is_closed.Sup_mem {α : Type u} [topological_space α] [complete_linear_order α]
+  [order_topology α] {s : set α} (hs : s.nonempty) (hc : is_closed s) :
+  Sup s ∈ s :=
 mem_of_is_lub_of_is_closed (is_lub_Sup _) hs hc
 
-lemma Inf_mem_of_is_closed {α : Type u} [topological_space α] [complete_linear_order α] [order_topology α]
-  {s : set α} (hs : s.nonempty) (hc : is_closed s) : Inf s ∈ s :=
+lemma is_closed.Inf_mem {α : Type u} [topological_space α] [complete_linear_order α]
+  [order_topology α] {s : set α} (hs : s.nonempty) (hc : is_closed s) :
+  Inf s ∈ s :=
 mem_of_is_glb_of_is_closed (is_glb_Inf _) hs hc
 
-/-- A continuous monotone function sends supremum to supremum for nonempty sets. -/
-lemma Sup_of_continuous' {f : α → β} (Mf : continuous f) (Cf : monotone f)
-  {s : set α} (hs : s.nonempty) : f (Sup s) = Sup (f '' s) :=
+/-- A monotone function continuous at the supremum of a nonempty set sends this supremum to
+the supremum of the image of this set. -/
+lemma Sup_of_continuous_at' {f : α → β} {s : set α} (Cf : continuous_at f (Sup s)) (Mf : monotone f)
+  (hs : s.nonempty) : f (Sup s) = Sup (f '' s) :=
 --This is a particular case of the more general is_lub_of_is_lub_of_tendsto
-(is_lub_of_is_lub_of_tendsto (λ x hx y hy xy, Cf xy) (is_lub_Sup _) hs $
-  tendsto_le_left inf_le_left (Mf.tendsto _)).Sup_eq.symm
+(is_lub_of_is_lub_of_tendsto (λ x hx y hy xy, Mf xy) (is_lub_Sup _) hs $
+  tendsto_le_left inf_le_left Cf).Sup_eq.symm
 
 /-- A continuous monotone function sending bot to bot sends supremum to supremum. -/
-lemma Sup_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
-  (fbot : f ⊥ = ⊥) {s : set α} : f (Sup s) = Sup (f '' s) :=
+lemma Sup_of_continuous_at {f : α → β} {s : set α} (Cf : continuous_at f (Sup s)) (Mf : monotone f)
+  (fbot : f ⊥ = ⊥) : f (Sup s) = Sup (f '' s) :=
 begin
   cases s.eq_empty_or_nonempty with h h,
   { simp [h, fbot] },
-  { exact Sup_of_continuous' Mf Cf h }
+  { exact Sup_of_continuous_at' Cf Mf h }
 end
 
 /-- A continuous monotone function sends indexed supremum to indexed supremum. -/
-lemma supr_of_continuous' {ι : Sort*} [nonempty ι] {f : α → β} {g : ι → α}
-  (Mf : continuous f) (Cf : monotone f) : f (supr g) = supr (f ∘ g) :=
-by rw [supr, Sup_of_continuous' Mf Cf (range_nonempty g), ← range_comp, supr]
+lemma supr_of_continuous_at' {ι : Sort*} [nonempty ι] {f : α → β} {g : ι → α}
+  (Cf : continuous_at f (supr g)) (Mf : monotone f) : f (supr g) = supr (f ∘ g) :=
+by rw [supr, Sup_of_continuous_at' Cf Mf (range_nonempty g), ← range_comp, supr]
 
 /-- A continuous monotone function sends indexed supremum to indexed supremum. -/
-lemma supr_of_continuous {ι : Sort*} {f : α → β} {g : ι → α}
-  (Mf : continuous f) (Cf : monotone f) (fbot : f ⊥ = ⊥) : f (supr g) = supr (f ∘ g) :=
-by rw [supr, Sup_of_continuous Mf Cf fbot, ← range_comp, supr]
+lemma supr_of_continuous_at {ι : Sort*} {f : α → β} {g : ι → α}
+  (Cf : continuous_at f (supr g)) (Mf : monotone f) (fbot : f ⊥ = ⊥) :
+  f (supr g) = supr (f ∘ g) :=
+by rw [supr, Sup_of_continuous_at Cf Mf fbot, ← range_comp, supr]
 
 /-- A continuous monotone function sends infimum to infimum for nonempty sets. -/
-lemma Inf_of_continuous' {f : α → β} (Mf : continuous f) (Cf : monotone f)
-  {s : set α} (hs : s.nonempty) : f (Inf s) = Inf (f '' s) :=
-(is_glb_of_is_glb_of_tendsto (λ x hx y hy xy, Cf xy) (is_glb_Inf _) hs $
-  tendsto_le_left inf_le_left (Mf.tendsto _)).Inf_eq.symm
+lemma Inf_of_continuous_at' {f : α → β} {s : set α} (Cf : continuous_at f (Inf s)) (Mf : monotone f)
+  (hs : s.nonempty) :
+  f (Inf s) = Inf (f '' s) :=
+@Sup_of_continuous_at' (order_dual α) (order_dual β) _ _ _ _ _ _ f s Cf Mf.order_dual hs
 
 /-- A continuous monotone function sending top to top sends infimum to infimum. -/
-lemma Inf_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
-  (ftop : f ⊤ = ⊤) {s : set α} : f (Inf s) = Inf (f '' s) :=
-begin
-  cases s.eq_empty_or_nonempty with h h,
-  { simpa [h] },
-  { exact Inf_of_continuous' Mf Cf h }
-end
+lemma Inf_of_continuous_at {f : α → β} {s : set α} (Cf : continuous_at f (Inf s)) (Mf : monotone f)
+  (ftop : f ⊤ = ⊤) : f (Inf s) = Inf (f '' s) :=
+@Sup_of_continuous_at (order_dual α) (order_dual β) _ _ _ _ _ _ f s Cf Mf.order_dual ftop
 
 /-- A continuous monotone function sends indexed infimum to indexed infimum. -/
-lemma infi_of_continuous' {ι : Sort*} [nonempty ι] {f : α → β} {g : ι → α}
-  (Mf : continuous f) (Cf : monotone f) : f (infi g) = infi (f ∘ g) :=
-by rw [infi, Inf_of_continuous' Mf Cf (range_nonempty g), ← range_comp, infi]
+lemma infi_of_continuous_at' {ι : Sort*} [nonempty ι] {f : α → β} {g : ι → α}
+  (Cf : continuous_at f (infi g)) (Mf : monotone f) : f (infi g) = infi (f ∘ g) :=
+@supr_of_continuous_at' (order_dual α) (order_dual β) _ _ _ _ _ _ ι _ f g Cf Mf.order_dual
 
 /-- A continuous monotone function sends indexed infimum to indexed infimum. -/
-lemma infi_of_continuous {ι : Sort*} {f : α → β} {g : ι → α}
-  (Mf : continuous f) (Cf : monotone f) (ftop : f ⊤ = ⊤) : f (infi g) = infi (f ∘ g) :=
-by rw [infi, Inf_of_continuous Mf Cf ftop, ← range_comp, infi]
+lemma infi_of_continuous_at {ι : Sort*} {f : α → β} {g : ι → α}
+  (Cf : continuous_at f (infi g)) (Mf : monotone f) (ftop : f ⊤ = ⊤) :
+  f (infi g) = infi (f ∘ g) :=
+@supr_of_continuous_at (order_dual α) (order_dual β) _ _ _ _ _ _ ι f g Cf Mf.order_dual ftop
 
 end complete_linear_order
 

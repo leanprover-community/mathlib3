@@ -6,12 +6,13 @@ Authors: Johannes Hölzl
 Theory of complete lattices.
 -/
 import order.bounds
+import data.equiv.encodable
 
 set_option old_structure_cmd true
 open set
 
-universes u v w w₂
-variables {α : Type u} {β : Type v} {ι : Sort w} {ι₂ : Sort w₂}
+universes u v v₂ w w₂
+variables {α : Type u} {β : Type v} {β₂ : Type v} {ι : Sort w} {ι₂ : Sort w₂}
 
 /-- class for the `Sup` operator -/
 class has_Sup (α : Type u) := (Sup : set α → α)
@@ -311,6 +312,10 @@ lemma monotone.supr_comp_eq [preorder β] {f : β → α} (hf : monotone f)
   (⨆ x, f (s x)) = ⨆ y, f y :=
 le_antisymm (supr_comp_le _ _) (supr_le_supr2 $ λ x, (hs x).imp $ λ i hi, hf hi)
 
+lemma supr_congr {f : β → α} {g : β₂ → α} (h : β → β₂)
+  (h1 : function.surjective h) (h2 : ∀ x, g (h x) = f x) : (⨆ x, f x) = ⨆ y, g y  :=
+by { unfold supr, congr' 1, convert h1.range_comp g, ext, rw ←h2 }
+
 -- TODO: finish doesn't do well here.
 @[congr] theorem supr_congr_Prop {α : Type u} [has_Sup α] {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : supr f₁ = supr f₂ :=
@@ -384,6 +389,10 @@ lemma monotone.infi_comp_eq [preorder β] {f : β → α} (hf : monotone f)
   {s : ι → β} (hs : ∀ x, ∃ i, s i ≤ x) :
   (⨅ x, f (s x)) = ⨅ y, f y :=
 le_antisymm (infi_le_infi2 $ λ x, (hs x).imp $ λ i hi, hf hi) (le_infi_comp _ _)
+
+lemma infi_congr {f : β → α} {g : β₂ → α} (h : β → β₂)
+  (h1 : function.surjective h) (h2 : ∀ x, g (h x) = f x) : (⨅ x, f x) = ⨅ y, g y  :=
+by { unfold infi, congr' 1, convert h1.range_comp g, ext, rw ←h2 }
 
 @[congr] theorem infi_congr_Prop {α : Type u} [has_Inf α] {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : infi f₁ = infi f₂ :=
@@ -568,10 +577,20 @@ le_antisymm
   (le_infi $ assume i, le_infi $ assume j, infi_le _ _)
   (le_infi $ assume ⟨i, h⟩, infi_le_of_le i $ infi_le _ _)
 
+/-- The symmetric case of `infi_and`, useful for rewriting into a infimum over a conjunction -/
+lemma infi_and' {p q : Prop} {s : p → q → α} :
+  (⨅ (h₁ : p) (h₂ : q), s h₁ h₂) = ⨅ (h : p ∧ q), s h.1 h.2 :=
+by { symmetry, exact infi_and }
+
 theorem supr_and {p q : Prop} {s : p ∧ q → α} : supr s = (⨆ h₁ h₂, s ⟨h₁, h₂⟩) :=
 le_antisymm
   (supr_le $ assume ⟨i, h⟩, le_supr_of_le i $ le_supr (λj, s ⟨i, j⟩) _)
   (supr_le $ assume i, supr_le $ assume j, le_supr _ _)
+
+/-- The symmetric case of `supr_and`, useful for rewriting into a supremum over a conjunction -/
+lemma supr_and' {p q : Prop} {s : p → q → α} :
+  (⨆ (h₁ : p) (h₂ : q), s h₁ h₂) = ⨆ (h : p ∧ q), s h.1 h.2 :=
+by { symmetry, exact supr_and }
 
 theorem infi_or {p q : Prop} {s : p ∨ q → α} :
   infi s = (⨅ h : p, s (or.inl h)) ⊓ (⨅ h : q, s (or.inr h)) :=
@@ -843,6 +862,11 @@ by rw [← Sup_image]; refl
 lemma supr_apply {α : Type u} {β : α → Type v} {ι : Sort*} [∀ i, complete_lattice (β i)]
   {f : ι → Πa, β a} {a : α} : (⨆i, f i) a = (⨆i, f i a) :=
 by erw [← Sup_range, Sup_apply, supr_range]
+
+open encodable
+lemma supr_decode2 {α β} [complete_lattice α] [encodable β] (f : β → α) :
+  (⨆ b, f b) = ⨆ (i : ℕ) (b ∈ decode2 β i), f b :=
+by { rw [supr_comm], simp [mem_decode2] }
 
 section complete_lattice
 variables [preorder α] [complete_lattice β]

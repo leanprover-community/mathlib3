@@ -1123,7 +1123,7 @@ lemma uniform_continuous_subtype_mk {p : α → Prop} [uniform_space α] [unifor
 uniform_continuous_comap' hf
 
 lemma uniform_continuous_on_iff_restrict [uniform_space α] [uniform_space β] (f : α → β) (s : set α) :
-uniform_continuous_on f s ↔ uniform_continuous (s.restrict f) :=
+  uniform_continuous_on f s ↔ uniform_continuous (s.restrict f) :=
 begin
   unfold uniform_continuous_on set.restrict uniform_continuous tendsto,
   rw [show (λ x : s × s, (f x.1, f x.2)) = prod.map f f ∘ coe, by ext x; cases x; refl,

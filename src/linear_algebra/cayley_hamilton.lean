@@ -40,4 +40,5 @@ begin
   rw q at this,
   apply_fun (λ p, p.eval₂ id m) at this,
   rw eval₂_mul_X_sub_monomial' at this,
+  -- so close! just need lemma `r` above and the relation between `eval₂` and `eval`
 end

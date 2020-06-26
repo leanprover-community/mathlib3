@@ -536,7 +536,7 @@ theorem or_dioph {S S' : set (α → ℕ)} : ∀ (d : dioph S) (d' : dioph S'), 
   begin
     refine iff.trans (or_congr ((pe v).trans _) ((qe v).trans _))
       (exists_or_distrib.symm.trans (exists_congr $ λt,
-      (@mul_eq_zero_iff_eq_zero_or_eq_zero _ _ (p ((v ⊗ t) ∘ (inl ⊗ inr ∘ inl)))
+      (@mul_eq_zero _ _ _ (p ((v ⊗ t) ∘ (inl ⊗ inr ∘ inl)))
         (q ((v ⊗ t) ∘ (inl ⊗ inr ∘ inr)))).symm)),
     exact inject_dummies_lem _ (some ⊗ (λ_, none)) (λx, rfl) _ _,
     exact inject_dummies_lem _ ((λ_, none) ⊗ some) (λx, rfl) _ _,

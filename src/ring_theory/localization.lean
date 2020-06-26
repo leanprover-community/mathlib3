@@ -8,6 +8,8 @@ import data.equiv.ring
 import tactic.ring_exp
 import ring_theory.ideal_operations
 import group_theory.monoid_localization
+import ring_theory.algebraic
+import ring_theory.integral_closure
 
 /-!
 # Localizations of commutative rings
@@ -195,7 +197,6 @@ lemma exists_integer_multiple (a : S) :
   ∃ (b : M), is_integer f (f.to_map b * a) :=
 by { simp_rw mul_comm _ a, apply exists_integer_multiple' }
 
-
 /-- Given `z : S`, `f.to_localization_map.sec z` is defined to be a pair `(x, y) : R × M` such
 that `z * f y = f x` (so this lemma is true by definition). -/
 lemma sec_spec {f : localization_map M S} (z : S) :
@@ -207,6 +208,23 @@ that `z * f y = f x`, so this lemma is just an application of `S`'s commutativit
 lemma sec_spec' {f : localization_map M S} (z : S) :
   f.to_map (f.to_localization_map.sec z).1 = f.to_map (f.to_localization_map.sec z).2 * z :=
 by rw [mul_comm, sec_spec]
+
+open_locale big_operators
+
+/-- We can clear the denominators of a finite set of fractions. -/
+lemma exist_integer_multiples_of_finset (s : finset S) :
+  ∃ (b : M), ∀ a ∈ s, is_integer f (f.to_map b * a) :=
+begin
+  haveI := classical.prop_decidable,
+  use ∏ a in s, (f.to_localization_map.sec a).2,
+  intros a ha,
+  use (∏ x in s.erase a, (f.to_localization_map.sec x).2) * (f.to_localization_map.sec a).1,
+  rw [ring_hom.map_mul, sec_spec', ←mul_assoc, ←f.to_map.map_mul],
+  congr' 2,
+  refine trans _ ((submonoid.subtype M).map_prod _ _).symm,
+  rw [mul_comm, ←finset.prod_insert (s.not_mem_erase a), finset.insert_erase ha],
+  refl,
+end
 
 lemma map_right_cancel {x y} {c : M} (h : f.to_map (c * x) = f.to_map (c * y)) :
   f.to_map x = f.to_map y :=
@@ -624,6 +642,81 @@ iff.rfl
 
 @[simp] lemma lin_coe_apply {x} : f.lin_coe x = f.to_map x := rfl
 
+variables {g : R →+* P}
+variables {T : submonoid P} (hy : ∀ y : M, g y ∈ T) {Q : Type*} [comm_ring Q]
+(k : localization_map T Q)
+
+lemma map_smul (x : f.codomain) (z : R) :
+  f.map hy k (z • x : f.codomain) = @has_scalar.smul P k.codomain _ (g z) (f.map hy k x) :=
+show f.map hy k (f.to_map z * x) = k.to_map (g z) * f.map hy k x,
+by rw [ring_hom.map_mul, map_eq]
+
+section integer_normalization
+
+open finsupp polynomial
+open_locale classical
+
+/-- `coeff_integer_normalization p` gives the coefficients of the polynomial
+`integer_normalization p` -/
+noncomputable def coeff_integer_normalization (p : polynomial f.codomain) (i : ℕ) : R :=
+if hi : i ∈ p.support
+then classical.some (classical.some_spec
+      (f.exist_integer_multiples_of_finset (p.support.image p.coeff))
+      (p.coeff i)
+      (finset.mem_image.mpr ⟨i, hi, rfl⟩))
+else 0
+
+lemma coeff_integer_normalization_mem_support (p : polynomial f.codomain) (i : ℕ)
+  (h : coeff_integer_normalization p i ≠ 0) : i ∈ p.support :=
+begin
+  contrapose h,
+  rw [ne.def, not_not, coeff_integer_normalization, dif_neg h]
+end
+
+/-- `integer_normalization g` normalizes `g` to have integer coefficients
+by clearing the denominators -/
+noncomputable def integer_normalization : polynomial f.codomain → polynomial R :=
+λ p, on_finset p.support (coeff_integer_normalization p) (coeff_integer_normalization_mem_support p)
+
+@[simp]
+lemma integer_normalization_coeff (p : polynomial f.codomain) (i : ℕ) :
+  (integer_normalization p).coeff i = coeff_integer_normalization p i := rfl
+
+lemma integer_normalization_spec (p : polynomial f.codomain) :
+  ∃ (b : M), ∀ i, f.to_map ((integer_normalization p).coeff i) = f.to_map b * p.coeff i :=
+begin
+  use classical.some (f.exist_integer_multiples_of_finset (p.support.image p.coeff)),
+  intro i,
+  rw [integer_normalization_coeff, coeff_integer_normalization],
+  split_ifs with hi,
+  { exact classical.some_spec (classical.some_spec
+      (f.exist_integer_multiples_of_finset (p.support.image p.coeff))
+      (p.coeff i)
+      (finset.mem_image.mpr ⟨i, hi, rfl⟩)) },
+  { convert (_root_.mul_zero (f.to_map _)).symm,
+    { exact f.to_ring_hom.map_zero },
+    { exact finsupp.not_mem_support_iff.mp hi } }
+end
+
+lemma integer_normalization_map_to_map (p : polynomial f.codomain) :
+  ∃ (b : M), (integer_normalization p).map f.to_map = f.to_map b • p :=
+let ⟨b, hb⟩ := integer_normalization_spec p in
+⟨b, polynomial.ext (λ i, by { rw coeff_map, exact hb i })⟩
+
+variables {R' : Type*} [comm_ring R']
+
+lemma integer_normalization_eval₂_eq_zero (g : f.codomain →+* R') (p : polynomial f.codomain)
+  {x : R'} (hx : eval₂ g x p = 0) : eval₂ (g ∘ f.to_map) x (integer_normalization p) = 0 :=
+let ⟨b, hb⟩ := integer_normalization_map_to_map p in
+trans (eval₂_map f.to_map g x).symm (by rw [hb, eval₂_smul, hx, _root_.mul_zero])
+
+lemma integer_normalization_aeval_eq_zero [algebra f.codomain R'] (p : polynomial f.codomain)
+  {x : R'} (hx : aeval _ _ x p = 0) :
+  aeval _ (algebra.comap R f.codomain R') x (integer_normalization p) = 0 :=
+integer_normalization_eval₂_eq_zero (algebra_map f.codomain R') p hx
+
+end integer_normalization
+
 end localization_map
 variables (R)
 
@@ -801,7 +894,69 @@ def int.fraction_map : fraction_map ℤ ℚ :=
   end,
   ..int.cast_ring_hom ℚ }
 
+lemma integer_normalization_eq_zero_iff {p : polynomial f.codomain} :
+  integer_normalization p = 0 ↔ p = 0 :=
+begin
+  refine (polynomial.ext_iff.trans (polynomial.ext_iff.trans _).symm),
+  obtain ⟨⟨b, nonzero⟩, hb⟩ := integer_normalization_spec p,
+  split; intros h i,
+  { apply f.to_map_eq_zero_iff.mpr,
+    rw [hb i, h i],
+    exact _root_.mul_zero _ },
+  { have hi := h i,
+    rw [polynomial.coeff_zero, f.to_map_eq_zero_iff, hb i] at hi,
+    apply or.resolve_left (eq_zero_or_eq_zero_of_mul_eq_zero hi),
+    intro h,
+    apply mem_non_zero_divisors_iff_ne_zero.mp nonzero,
+    exact f.to_map_eq_zero_iff.mpr h }
+end
+
+/-- A field is algebraic over the ring `A` iff it is algebraic over the field of fractions of `A`. -/
+lemma comap_is_algebraic_iff [algebra f.codomain L] :
+  algebra.is_algebraic A (algebra.comap A f.codomain L) ↔ algebra.is_algebraic f.codomain L :=
+begin
+  split; intros h x; obtain ⟨p, hp, px⟩ := h x,
+  { refine ⟨p.map f.to_map, λ h, hp (polynomial.ext (λ i, _)), _⟩,
+  { have : f.to_map (p.coeff i) = 0 := trans (polynomial.coeff_map _ _).symm (by simp [h]),
+    exact f.to_map_eq_zero_iff.mpr this },
+  { exact trans (polynomial.eval₂_map _ _ _) px } },
+  { exact ⟨integer_normalization p,
+           mt f.integer_normalization_eq_zero_iff.mp hp,
+           integer_normalization_aeval_eq_zero p px⟩ },
+end
+
 end fraction_map
+
+namespace integral_closure
+
+variables {L : Type*} [field K] [field L] {f : fraction_map A K}
+
+open algebra
+
+/-- If the field `L` is an algebraic extension of the integral domain `A`,
+the integral closure of `A` in `L` has fraction field `L`. -/
+def fraction_map_of_algebraic [algebra A L] (alg : is_algebraic A L)
+  (inj : ∀ x, algebra_map A L x = 0 → x = 0) :
+  fraction_map (integral_closure A L) L :=
+(algebra_map (integral_closure A L) L).to_localization_map
+  (λ ⟨⟨y, integral⟩, nonzero⟩,
+    have y ≠ 0 := λ h, mem_non_zero_divisors_iff_ne_zero.mp nonzero (subtype.ext.mpr h),
+    show is_unit y, from ⟨⟨y, y⁻¹, mul_inv_cancel this, inv_mul_cancel this⟩, rfl⟩)
+  (λ z, let ⟨x, y, hy, hxy⟩ := exists_integral_multiple (alg z) inj in
+    ⟨⟨x, ⟨y, mem_non_zero_divisors_iff_ne_zero.mpr hy⟩⟩, hxy⟩)
+  (λ x y, ⟨ λ (h : x.1 = y.1), ⟨1, by simpa using subtype.ext.mpr h⟩,
+            λ ⟨c, hc⟩, congr_arg (algebra_map _ L)
+              (eq_of_mul_eq_mul_right_of_ne_zero (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc) ⟩)
+
+/-- If the field `L` is a finite extension of the fraction field of the integral domain `A`,
+the integral closure of `A` in `L` has fraction field `L`. -/
+def fraction_map_of_finite_extension [algebra f.codomain L] [finite_dimensional f.codomain L] :
+  fraction_map (integral_closure A (algebra.comap A f.codomain L)) (algebra.comap A f.codomain L) :=
+fraction_map_of_algebraic
+  (f.comap_is_algebraic_iff.mpr is_algebraic_of_finite)
+  (λ x hx, f.to_map_eq_zero_iff.mpr ((algebra_map f.codomain L).map_eq_zero.mp hx))
+
+end integral_closure
 
 variables (A)
 

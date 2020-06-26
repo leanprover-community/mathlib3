@@ -110,7 +110,7 @@ But it makes a more systematic use of the filter library.
 -/
 
 open set filter classical
-open_locale classical topological_space
+open_locale classical topological_space filter
 
 set_option eqn_compiler.zeta true
 
@@ -189,7 +189,7 @@ end
   for constructions of uniform spaces, when the topology is derived from the uniform space. -/
 structure uniform_space.core (α : Type u) :=
 (uniformity : filter (α × α))
-(refl       : principal id_rel ≤ uniformity)
+(refl       : 𝓟 id_rel ≤ uniformity)
 (symm       : tendsto prod.swap uniformity uniformity)
 (comp       : uniformity.lift' (λs, s ○ s) ≤ uniformity)
 
@@ -337,7 +337,7 @@ lemma is_open_uniformity {s : set α} :
   is_open s ↔ (∀x∈s, { p : α × α | p.1 = x → p.2 ∈ s } ∈ 𝓤 α) :=
 uniform_space.is_open_uniformity s
 
-lemma refl_le_uniformity : principal id_rel ≤ 𝓤 α :=
+lemma refl_le_uniformity : 𝓟 id_rel ≤ 𝓤 α :=
 (@uniform_space.to_core α _).refl
 
 lemma refl_mem_uniformity {x : α} {s : set (α × α)} (h : s ∈ 𝓤 α) :
@@ -436,7 +436,7 @@ calc (𝓤 α).lift' (λd, d ○ (d ○ d)) =
     exact (assume x, monotone_comp_rel monotone_id monotone_const),
   end
   ... ≤ (𝓤 α).lift (λs, (𝓤 α).lift' (λt:set(α×α), s ○ t)) :
-    lift_mono' $ assume s hs, @uniformity_lift_le_comp α _ _ (principal ∘ (○) s) $
+    lift_mono' $ assume s hs, @uniformity_lift_le_comp α _ _ (𝓟 ∘ (○) s) $
       monotone_principal.comp (monotone_comp_rel monotone_const monotone_id)
   ... = (𝓤 α).lift' (λs:set(α×α), s ○ s) :
     lift_lift'_same_eq_lift'
@@ -654,7 +654,7 @@ lemma nhds_nhds_eq_uniformity_uniformity_prod {a b : α} :
     set.prod {y : α | (y, a) ∈ s} {y : α | (b, y) ∈ t})) :=
 begin
   rw [prod_def],
-  show (𝓝 a).lift (λs:set α, (𝓝 b).lift (λt:set α, principal (set.prod s t))) = _,
+  show (𝓝 a).lift (λs:set α, (𝓝 b).lift (λt:set α, 𝓟 (set.prod s t))) = _,
   rw [lift_nhds_right],
   apply congr_arg, funext s,
   rw [lift_nhds_left],
@@ -749,15 +749,15 @@ end⟩
 lemma closure_eq_inter_uniformity {t : set (α×α)} :
   closure t = (⋂ d ∈ 𝓤 α, d ○ (t ○ d)) :=
 set.ext $ assume ⟨a, b⟩,
-calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ principal t ≠ ⊥) : by simp [closure_eq_nhds]
+calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ 𝓟 t ≠ ⊥) : by simp [closure_eq_cluster_pts, cluster_pt]
   ... ↔ (((@prod.swap α α) <$> 𝓤 α).lift'
-      (λ (s : set (α × α)), set.prod {x : α | (x, a) ∈ s} {y : α | (b, y) ∈ s}) ⊓ principal t ≠ ⊥) :
+      (λ (s : set (α × α)), set.prod {x : α | (x, a) ∈ s} {y : α | (b, y) ∈ s}) ⊓ 𝓟 t ≠ ⊥) :
     by rw [←uniformity_eq_symm, nhds_eq_uniformity_prod]
   ... ↔ ((map (@prod.swap α α) (𝓤 α)).lift'
-      (λ (s : set (α × α)), set.prod {x : α | (x, a) ∈ s} {y : α | (b, y) ∈ s}) ⊓ principal t ≠ ⊥) :
+      (λ (s : set (α × α)), set.prod {x : α | (x, a) ∈ s} {y : α | (b, y) ∈ s}) ⊓ 𝓟 t ≠ ⊥) :
     by refl
   ... ↔ ((𝓤 α).lift'
-      (λ (s : set (α × α)), set.prod {y : α | (a, y) ∈ s} {x : α | (x, b) ∈ s}) ⊓ principal t ≠ ⊥) :
+      (λ (s : set (α × α)), set.prod {y : α | (a, y) ∈ s} {x : α | (x, b) ∈ s}) ⊓ 𝓟 t ≠ ⊥) :
   begin
     rw [map_lift'_eq2],
     simp [image_swap_eq_preimage_swap, function.comp],
@@ -917,7 +917,7 @@ instance : has_top (uniform_space α) :=
 
 instance : has_bot (uniform_space α) :=
 ⟨{ to_topological_space := ⊥,
-  uniformity  := principal id_rel,
+  uniformity  := 𝓟 id_rel,
   refl        := le_refl _,
   symm        := by simp [tendsto]; apply subset.refl,
   comp        :=

@@ -441,18 +441,14 @@ instance [has_zero α] [monoid α] : has_top (associates α) := ⟨0⟩
 section comm_semiring
 variables [comm_semiring α]
 
-@[simp] theorem mk_zero_eq (a : α) : associates.mk a = 0 ↔ a = 0 :=
+@[simp] theorem mk_eq_zero {a : α} : associates.mk a = 0 ↔ a = 0 :=
 ⟨assume h, (associated_zero_iff_eq_zero a).1 $ quotient.exact h, assume h, h.symm ▸ rfl⟩
 
-@[simp] theorem mul_zero : ∀(a : associates α), a * 0 = 0 :=
-by rintros ⟨a⟩; show associates.mk (a * 0) = associates.mk 0; rw [mul_zero]
-
-@[simp] protected theorem zero_mul : ∀(a : associates α), 0 * a = 0 :=
-by rintros ⟨a⟩; show associates.mk (0 * a) = associates.mk 0; rw [zero_mul]
-
-theorem mk_eq_zero_iff_eq_zero {a : α} : associates.mk a = 0 ↔ a = 0 :=
-calc associates.mk a = 0 ↔ (a ~ᵤ 0) :  mk_eq_mk_iff_associated
-  ... ↔ a = 0 : associated_zero_iff_eq_zero a
+instance : mul_zero_class (associates α) :=
+{ mul := (*),
+  zero := 0,
+  zero_mul := by { rintro ⟨a⟩, show associates.mk (0 * a) = associates.mk 0, rw [zero_mul] },
+  mul_zero := by { rintro ⟨a⟩, show associates.mk (a * 0) = associates.mk 0, rw [mul_zero] } }
 
 theorem dvd_of_mk_le_mk {a b : α} : associates.mk a ≤ associates.mk b → a ∣ b
 | ⟨c', hc'⟩ := (quotient.induction_on c' $ assume c hc,
@@ -499,7 +495,7 @@ begin
     apply forall_congr, assume a,
     exact forall_associated },
   apply and_congr,
-  { rw [(≠), mk_zero_eq] },
+  { rw [(≠), mk_eq_zero] },
   apply and_congr,
   { rw [(≠), ← is_unit_iff_eq_one, is_unit_mk], },
   apply forall_congr, assume a,
@@ -532,24 +528,23 @@ instance : order_top (associates α) :=
   le_top := assume a, ⟨0, mul_zero a⟩,
   .. associates.partial_order }
 
-theorem zero_ne_one : (0 : associates α) ≠ 1 :=
-assume h,
-have (0 : α) ~ᵤ 1, from quotient.exact h,
-have (0 : α) = 1, from ((associated_zero_iff_eq_zero 1).1 this.symm).symm,
-zero_ne_one this
+instance : nonzero (associates α) :=
+⟨ assume h,
+  have (0 : α) ~ᵤ 1, from quotient.exact h,
+  have (0 : α) = 1, from ((associated_zero_iff_eq_zero 1).1 this.symm).symm,
+  zero_ne_one this ⟩
 
-theorem mul_eq_zero_iff {x y : associates α} : x * y = 0 ↔ x = 0 ∨ y = 0 :=
-iff.intro
+instance : no_zero_divisors (associates α) :=
+⟨λ x y,
   (quotient.induction_on₂ x y $ assume a b h,
     have a * b = 0, from (associated_zero_iff_eq_zero _).1 (quotient.exact h),
-    have a = 0 ∨ b = 0, from mul_eq_zero_iff_eq_zero_or_eq_zero.1 this,
-    this.imp (assume h, h.symm ▸ rfl) (assume h, h.symm ▸ rfl))
-  (by simp [or_imp_distrib] {contextual := tt})
+    have a = 0 ∨ b = 0, from mul_eq_zero.1 this,
+    this.imp (assume h, h.symm ▸ rfl) (assume h, h.symm ▸ rfl))⟩
 
 theorem prod_eq_zero_iff {s : multiset (associates α)} :
   s.prod = 0 ↔ (0 : associates α) ∈ s :=
 multiset.induction_on s (by simp; exact zero_ne_one.symm) $
-  assume a s, by simp [mul_eq_zero_iff, @eq_comm _ 0 a] {contextual := tt}
+  assume a s, by simp [mul_eq_zero, @eq_comm _ 0 a] {contextual := tt}
 
 theorem irreducible_mk_iff (a : α) : irreducible (associates.mk a) ↔ irreducible a :=
 begin
@@ -573,7 +568,7 @@ begin
   rintros ⟨a⟩ ⟨b⟩ ⟨c⟩ ha h,
   rcases quotient.exact' h with ⟨u, hu⟩,
   have hu : a * (b * ↑u) = a * c, { rwa [← mul_assoc] },
-  exact quotient.sound' ⟨u, eq_of_mul_eq_mul_left (mt (mk_zero_eq a).2 ha) hu⟩
+  exact quotient.sound' ⟨u, eq_of_mul_eq_mul_left (mt mk_eq_zero.2 ha) hu⟩
 end
 
 lemma le_of_mul_le_mul_left (a b c : associates α) (ha : a ≠ 0) :

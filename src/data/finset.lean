@@ -2153,9 +2153,14 @@ le_inf $ assume b hb, inf_le (h hb)
 lemma lt_inf_iff [h : is_total α (≤)] {a : α} (ha : a < ⊤) : a < s.inf f ↔ (∀b ∈ s, a < f b) :=
 @sup_lt_iff (order_dual α) _ _ _ _ (@is_total.swap α _ h) _ ha
 
-lemma comp_inf_eq_inf_comp [h : is_total α (≤)] {γ : Type} [semilattice_inf_top γ]
+lemma comp_inf_eq_inf_comp [semilattice_inf_top γ] {s : finset β}
+  {f : β → α} (g : α → γ) (g_inf : ∀ x y, g (x ⊓ y) = g x ⊓ g y) (top : g ⊤ = ⊤) :
+  g (s.inf f) = s.inf (g ∘ f) :=
+@comp_sup_eq_sup_comp (order_dual α) _ (order_dual γ) _ _ _ _ _ g_inf top
+
+lemma comp_inf_eq_inf_comp_linear [h : is_total α (≤)] {γ : Type} [semilattice_inf_top γ]
   (g : α → γ) (mono_g : monotone g) (top : g ⊤ = ⊤) : g (s.inf f) = s.inf (g ∘ f) :=
-@comp_sup_eq_sup_comp_linear (order_dual α) _ _ _ _ (@is_total.swap α _ h) _ _ _ mono_g.order_dual top
+comp_inf_eq_inf_comp g mono_g.map_inf top
 
 end inf
 

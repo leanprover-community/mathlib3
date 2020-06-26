@@ -1820,6 +1820,18 @@ variables {ι : Sort*} {α : Type*} {β : Type*}
 lemma surjective.preimage_injective {f : β → α} (hf : surjective f) : injective (preimage f) :=
 assume s t, (preimage_eq_preimage hf).1
 
+lemma injective.preimage_surjective {α β : Type*} {f : α → β} (hf : injective f) :
+  surjective (preimage f) :=
+by { intro s, use f '' s, rw preimage_image_eq _ hf }
+
+lemma surjective.image_surjective {α β : Type*} {f : α → β} (hf : surjective f) :
+  surjective (image f) :=
+by { intro s, use f ⁻¹' s, rw image_preimage_eq hf }
+
+lemma injective.image_injective {α β : Type*} {f : α → β} (hf : injective f) :
+  injective (image f) :=
+by { intros s t h, rw [←preimage_image_eq s hf, ←preimage_image_eq t hf, h] }
+
 lemma surjective.range_eq {f : ι → α} (hf : surjective f) : range f = univ :=
 range_iff_surjective.2 hf
 
@@ -1827,4 +1839,45 @@ lemma surjective.range_comp (g : α → β) {f : ι → α} (hf : surjective f) 
   range (g ∘ f) = range g :=
 by rw [range_comp, hf.range_eq, image_univ]
 
+lemma injective.nonempty {α β : Type*} {f : set α → set β} (hf : injective f)
+  (h2 : f ∅ = ∅) {s : set α} : (f s).nonempty ↔ s.nonempty :=
+by rw [← ne_empty_iff_nonempty, ← h2, ← ne_empty_iff_nonempty, hf.ne_iff]
+
 end function
+open function
+
+namespace set
+
+@[simp]
+lemma preimage_injective {α β : Type*} {f : α → β} : injective (preimage f) ↔ surjective f :=
+begin
+  refine ⟨λ h y, _, surjective.preimage_injective⟩,
+  obtain ⟨x, hx⟩ : (f ⁻¹' {y}).nonempty,
+  { rw [h.nonempty preimage_empty], apply singleton_nonempty },
+  exact ⟨x, hx⟩
+end
+
+@[simp]
+lemma preimage_surjective {α β : Type*} {f : α → β} : surjective (preimage f) ↔ injective f :=
+begin
+  refine ⟨λ h x x' hx, _, injective.preimage_surjective⟩,
+  cases h {x} with s hs, have := mem_singleton x,
+  rwa [← hs, mem_preimage, hx, ← mem_preimage, hs, mem_singleton_iff, eq_comm] at this
+end
+
+@[simp] lemma image_surjective {α β : Type*} {f : α → β} : surjective (image f) ↔ surjective f :=
+begin
+  refine ⟨λ h y, _, surjective.image_surjective⟩,
+  cases h {y} with s hs,
+  have := mem_singleton y, rw [← hs] at this, rcases this with ⟨x, h1x, h2x⟩,
+  exact ⟨x, h2x⟩
+end
+
+@[simp] lemma image_injective {α β : Type*} {f : α → β} : injective (image f) ↔ injective f :=
+begin
+  refine ⟨λ h x x' hx, _, injective.image_injective⟩,
+  rw [← singleton_eq_singleton_iff], apply h,
+  rw [image_singleton, image_singleton, hx]
+end
+
+end set

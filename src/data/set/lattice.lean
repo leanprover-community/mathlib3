@@ -837,6 +837,10 @@ theorem disjoint_image_image {f : β → α} {g : γ → α} {s : set β} {t : s
   (h : ∀b∈s, ∀c∈t, f b ≠ g c) : disjoint (f '' s) (g '' t) :=
 by rintros a ⟨⟨b, hb, eq⟩, ⟨c, hc, rfl⟩⟩; exact h b hb c hc eq
 
+lemma disjoint.preimage {α β} (f : α → β) {s t : set β} (h : disjoint s t) :
+  disjoint (f ⁻¹' s) (f ⁻¹' t) :=
+λ x hx, h hx
+
 theorem pairwise_on_disjoint_fiber (f : α → β) (s : set β) :
   pairwise_on s (disjoint on (λ y, f ⁻¹' {y})) :=
 λ y₁ _ y₂ _ hy x ⟨hx₁, hx₂⟩, hy (eq.trans (eq.symm hx₁) hx₂)

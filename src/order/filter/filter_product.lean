@@ -11,7 +11,7 @@ import algebra.pi_instances
 # Ultraproducts
 
 If `φ` is an ultrafilter, then the space of germs of functions `f : α → β` at `φ` is called
-*ultraproduct*. In this file we prove properties of ultraproducts that rely on `φ` being an
+the *ultraproduct*. In this file we prove properties of ultraproducts that rely on `φ` being an
 ultrafilter. Definitions and properties that work for any filter should go to `order.filter.germ`.
 
 ## Tags

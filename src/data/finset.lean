@@ -2021,7 +2021,7 @@ def sup (s : finset β) (f : β → α) : α := s.fold (⊔) ⊥ f
 
 variables {s s₁ s₂ : finset β} {f : β → α}
 
-lemma sup_val : s.sup f = (s.1.map f).sup := rfl
+lemma sup_def : s.sup f = (s.1.map f).sup := rfl
 
 @[simp] lemma sup_empty : (∅ : finset β).sup f = ⊥ :=
 fold_empty
@@ -2074,13 +2074,6 @@ theorem subset_range_sup_succ (s : finset ℕ) : s ⊆ range (s.sup id).succ :=
 
 theorem exists_nat_subset_range (s : finset ℕ) : ∃n : ℕ, s ⊆ range n :=
 ⟨_, s.subset_range_sup_succ⟩
-
-/-- The first component of a sup in a subtype is the sup if first components. -/
-lemma sup_val {P : α → Prop}
-  {Pbot : P ⊥} {Psup : ∀{{x y}}, P x → P y → P (x ⊔ y)}
-  (t : finset β) (f : β → {x : α // P x}) :
-  (@finset.sup _ _ (_root_.subtype.semilattice_sup_bot Pbot Psup) t f).1 = t.sup (λ x, (f x).1) :=
-by { classical, rw [finset.comp_sup_eq_sup_comp' subtype.val]; intros; refl }
 
 end sup
 

@@ -597,7 +597,7 @@ lemma sum_range_induction {M : Type*} [add_comm_monoid M]
 /-- A telescoping sum along `{0, ..., n-1}` of an additive commutative group valued function
 reduces to the difference of the last and first terms.-/
 lemma sum_range_sub {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
-  ∑ i in range n, (f (i+1) - f i ) = f n - f 0 :=
+  ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
 by { apply sum_range_induction; abel, simp }
 
 

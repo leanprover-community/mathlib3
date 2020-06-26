@@ -1579,6 +1579,14 @@ begin
   rintros ⟨xt, xs⟩, exact ⟨x, xs, xt, rfl⟩
 end
 
+theorem preimage_val_eq_preimage_val_iff (s t u : set α) :
+  ((@subtype.val _ s) ⁻¹' t = (@subtype.val _ s) ⁻¹' u) ↔ (t ∩ s = u ∩ s) :=
+begin
+  rw [←image_preimage_val, ←image_preimage_val],
+  split, { intro h, rw h },
+  intro h, exact val_injective.image_injective h
+end
+
 lemma exists_set_subtype {t : set α} (p : set α → Prop) :
 (∃(s : set t), p (subtype.val '' s)) ↔ ∃(s : set α), s ⊆ t ∧ p s :=
 begin
@@ -1588,18 +1596,6 @@ begin
   rintro ⟨s, hs₁, hs₂⟩, refine ⟨subtype.val ⁻¹' s, _⟩,
   rw [image_preimage_eq_of_subset], exact hs₂, rw [range_val], exact hs₁
 end
-
-theorem preimage_val_eq_preimage_val_iff (s t u : set α) :
-  ((@subtype.val _ s) ⁻¹' t = (@subtype.val _ s) ⁻¹' u) ↔ (t ∩ s = u ∩ s) :=
-begin
-  rw [←image_preimage_val, ←image_preimage_val],
-  split, { intro h, rw h },
-  intro h, exact val_injective.image_injective h
-end
-
-theorem preimage_coe_eq_preimage_coe_iff {s t u : set α} :
-  ((coe : s → α) ⁻¹' t = coe ⁻¹' u) ↔ t ∩ s = u ∩ s :=
-subtype.preimage_val_eq_preimage_val_iff _ _ _
 
 end subtype
 
@@ -1611,6 +1607,10 @@ variable {α : Type*}
 
 @[simp] lemma range_coe_subtype (s : set α) : range (coe : s → α) = s :=
 subtype.val_range
+
+theorem preimage_coe_eq_preimage_coe_iff {s t u : set α} :
+  ((coe : s → α) ⁻¹' t = coe ⁻¹' u) ↔ t ∩ s = u ∩ s :=
+subtype.preimage_val_eq_preimage_val_iff _ _ _
 
 end range
 

@@ -346,6 +346,10 @@ instance univ_decidable : decidable_pred (@set.univ α) :=
 /-- `diagonal α` is the subset of `α × α` consisting of all pairs of the form `(a, a)`. -/
 def diagonal (α : Type*) : set (α × α) := {p | p.1 = p.2}
 
+@[simp]
+lemma mem_diagonal {α : Type*} (x : α) : (x, x) ∈ diagonal α :=
+by simp [diagonal]
+
 /-! ### Lemmas about union -/
 
 theorem union_def {s₁ s₂ : set α} : s₁ ∪ s₂ = {a | a ∈ s₁ ∨ a ∈ s₂} := rfl
@@ -1448,6 +1452,9 @@ range_subset_iff.2 $ λ x, rfl
 @[simp] lemma range_const : ∀ [nonempty ι] {c : α}, range (λx:ι, c) = {c}
 | ⟨x⟩ c := subset.antisymm range_const_subset $
   assume y hy, (mem_singleton_iff.1 hy).symm ▸ mem_range_self x
+
+lemma diagonal_eq_range {α  : Type*} : diagonal α = range (λ x, (x, x)) :=
+by { ext ⟨x, y⟩, simp [diagonal, eq_comm] }
 
 theorem preimage_singleton_nonempty {f : α → β} {y : β} :
   (f ⁻¹' {y}).nonempty ↔ y ∈ range f :=

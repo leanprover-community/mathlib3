@@ -7,6 +7,7 @@ Authors: Johannes Hölzl
 import data.finset
 import data.nat.enat
 import tactic.omega
+import tactic.abel
 
 /-!
 # Big operators
@@ -592,6 +593,19 @@ lemma sum_range_induction {M : Type*} [add_comm_monoid M]
   (f s : ℕ → M) (h0 : s 0 = 0) (h : ∀ n, s (n + 1) = s n + f n) (n : ℕ) :
   ∑ k in finset.range n, f k = s n :=
 @prod_range_induction (multiplicative M) _ f s h0 h n
+
+/-- A telescoping sum along `{0, ..., n-1}` of an additive commutative group valued function
+reduces to the difference of the last and first terms.-/
+lemma sum_range_sub {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
+  ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
+by { apply sum_range_induction; abel, simp }
+
+
+/-- A telescoping product along `{0, ..., n-1}` of a commutative group valued function
+reduces to the ratio of the last and first factors.-/
+lemma prod_range_div {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
+  ∏ i in range n, (f (i+1) * (f i)⁻¹ ) = f n * (f 0)⁻¹ :=
+by apply @sum_range_sub (additive M)
 
 /-- A telescoping sum along `{0, ..., n-1}` of an `ℕ`-valued function reduces to the difference of
 the last and first terms when the function we are summing is monotone. -/

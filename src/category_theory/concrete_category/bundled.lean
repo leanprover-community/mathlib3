@@ -6,6 +6,7 @@ Authors: Scott Morrison, Johannes Hölzl, Reid Barton, Sean Leather
 Bundled types.
 -/
 import tactic.doc_commands
+import tactic.lint
 
 /-!
 `bundled c` provides a uniform structure for bundling a type equipped with a type class.
@@ -22,6 +23,7 @@ variables {c d : Type u → Type v} {α : Type u}
 
 /-- `bundled` is a type bundled with a type class instance for that type. Only
 the type class is exposed as a parameter. -/
+@[nolint has_inhabited_instance]
 structure bundled (c : Type u → Type v) : Type (max (u+1) v) :=
 (α : Type u)
 (str : c α . tactic.apply_instance)

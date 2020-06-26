@@ -25,7 +25,7 @@ namespace iso
 variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
-/- If `X` is isomorphic to `X₁` and `Y` is isomorphic to `Y₁`, then
+/-- If `X` is isomorphic to `X₁` and `Y` is isomorphic to `Y₁`, then
 there is a natural bijection between `X ⟶ Y` and `X₁ ⟶ Y₁`. See also `equiv.arrow_congr`. -/
 def hom_congr {X Y X₁ Y₁ : C} (α : X ≅ X₁) (β : Y ≅ Y₁) :
   (X ⟶ Y) ≃ (X₁ ⟶ Y₁) :=

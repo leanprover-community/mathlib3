@@ -40,7 +40,7 @@ noncomputable theory
 open filter set
 universes u v w x
 
-open_locale uniformity classical topological_space
+open_locale uniformity classical topological_space filter
 
 /-- Space of Cauchy filters
 
@@ -169,7 +169,7 @@ have h_ex : ∀ s ∈ 𝓤 (Cauchy α), ∃y:α, (f, pure_cauchy y) ∈ s, from
         ht'₂ $ prod_mk_mem_comp_rel (@h (a, x) ⟨h₁, hx⟩) h₂⟩,
   ⟨x, ht''₂ $ by dsimp [gen]; exact this⟩,
 begin
-  simp [closure_eq_nhds, nhds_eq_uniformity, lift'_inf_principal_eq, set.inter_comm],
+  simp [closure_eq_cluster_pts, cluster_pt, nhds_eq_uniformity, lift'_inf_principal_eq, set.inter_comm],
   exact (lift'_ne_bot_iff $ monotone_inter monotone_const monotone_preimage).mpr
     (assume s hs,
       let ⟨y, hy⟩ := h_ex s hs in
@@ -272,7 +272,7 @@ begin
     rcases mem_prod_iff.1 h with ⟨x, xf, y, yg, h⟩,
     have limc : ∀ (f : Cauchy α) (x ∈ f.1), Lim f.1 ∈ closure x,
     { intros f x xf,
-      rw closure_eq_nhds,
+      rw closure_eq_cluster_pts,
       exact ne_bot_of_le_ne_bot f.2.1
         (le_inf f.2.le_nhds_Lim (le_principal_iff.2 xf)) },
     have := (closure_subset_iff_subset_of_is_closed dc).2 h,

@@ -21,17 +21,17 @@ equipped with the subspace topology.
 -/
 
 open set filter
-open_locale topological_space
+open_locale topological_space filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 variables [topological_space α]
 
 /-- The "neighborhood within" filter. Elements of `nhds_within a s` are sets containing the
 intersection of `s` and a neighborhood of `a`. -/
-def nhds_within (a : α) (s : set α) : filter α := 𝓝 a ⊓ principal s
+def nhds_within (a : α) (s : set α) : filter α := 𝓝 a ⊓ 𝓟 s
 
 theorem nhds_within_eq (a : α) (s : set α) :
-  nhds_within a s = ⨅ t ∈ {t : set α | a ∈ t ∧ is_open t}, principal (t ∩ s) :=
+  nhds_within a s = ⨅ t ∈ {t : set α | a ∈ t ∧ is_open t}, 𝓟 (t ∩ s) :=
 have set.univ ∈ {s : set α | a ∈ s ∧ is_open s}, from ⟨set.mem_univ _, is_open_univ⟩,
 begin
   rw [nhds_within, nhds, binfi_inf]; try { exact this },
@@ -133,7 +133,7 @@ by unfold nhds_within; rw [inf_left_comm, inf_assoc, inf_principal,
                              ←inf_assoc, inf_idem]
 
 theorem nhds_within_inter' (a : α) (s t : set α) :
-  nhds_within a (s ∩ t) = (nhds_within a s) ⊓ principal t :=
+  nhds_within a (s ∩ t) = (nhds_within a s) ⊓ 𝓟 t :=
 by { unfold nhds_within, rw [←inf_principal, inf_assoc] }
 
 lemma nhds_within_prod_eq {α : Type*} [topological_space α] {β : Type*} [topological_space β]
@@ -150,7 +150,7 @@ by apply tendsto_if; rw [←nhds_within_inter']; assumption
 
 lemma map_nhds_within (f : α → β) (a : α) (s : set α) :
   map f (nhds_within a s) =
-    ⨅ t ∈ {t : set α | a ∈ t ∧ is_open t}, principal (set.image f (t ∩ s)) :=
+    ⨅ t ∈ {t : set α | a ∈ t ∧ is_open t}, 𝓟 (set.image f (t ∩ s)) :=
 ((nhds_within_basis_open a s).map f).eq_binfi
 
 theorem tendsto_nhds_within_mono_left {f : α → β} {a : α}
@@ -169,7 +169,7 @@ theorem tendsto_nhds_within_of_tendsto_nhds {f : α → β} {a : α}
 by rw [←nhds_within_univ] at h; exact tendsto_nhds_within_mono_left (set.subset_univ _) h
 
 theorem principal_subtype {α : Type*} (s : set α) (t : set {x // x ∈ s}) :
-  principal t = comap subtype.val (principal (subtype.val '' t)) :=
+  𝓟 t = comap subtype.val (𝓟 (subtype.val '' t)) :=
 by rw comap_principal; rw set.preimage_image_eq; apply subtype.val_injective
 
 lemma mem_closure_iff_nhds_within_ne_bot {s : set α} {x : α} :
@@ -411,9 +411,9 @@ lemma continuous_within_at.comp {g : β → γ} {f : α → β} {s : set α} {t 
   (hg : continuous_within_at g t (f x)) (hf : continuous_within_at f s x) (h : s ⊆ f ⁻¹' t) :
   continuous_within_at (g ∘ f) s x :=
 begin
-  have : tendsto f (principal s) (principal t),
+  have : tendsto f (𝓟 s) (𝓟 t),
     by { rw tendsto_principal_principal, exact λx hx, h hx },
-  have : tendsto f (nhds_within x s) (principal t) :=
+  have : tendsto f (nhds_within x s) (𝓟 t) :=
     tendsto_le_left inf_le_right this,
   have : tendsto f (nhds_within x s) (nhds_within (f x) t) :=
     tendsto_inf.2 ⟨hf, this⟩,

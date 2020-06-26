@@ -25,7 +25,7 @@ The class `emetric_space` therefore extends `uniform_space` (and `topological_sp
 open set filter classical
 noncomputable theory
 
-open_locale uniformity topological_space big_operators
+open_locale uniformity topological_space big_operators filter
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -35,7 +35,7 @@ in terms of the elements of the uniformity. -/
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem uniformity_dist_of_mem_uniformity [linear_order β] {U : filter (α × α)} (z : β) (D : α → α → β)
   (H : ∀ s, s ∈ U ↔ ∃ε>z, ∀{a b:α}, D a b < ε → (a, b) ∈ s) :
-  U = ⨅ ε>z, principal {p:α×α | D p.1 p.2 < ε} :=
+  U = ⨅ ε>z, 𝓟 {p:α×α | D p.1 p.2 < ε} :=
 le_antisymm
   (le_infi $ λ ε, le_infi $ λ ε0, le_principal_iff.2 $ (H _).2 ⟨ε, ε0, λ a b, id⟩)
   (λ r ur, let ⟨ε, ε0, h⟩ := (H _).1 ur in
@@ -51,7 +51,7 @@ def uniform_space_of_edist
   (edist_comm : ∀ x y : α, edist x y = edist y x)
   (edist_triangle : ∀ x y z : α, edist x z ≤ edist x y + edist y z) : uniform_space α :=
 uniform_space.of_core {
-  uniformity := (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}),
+  uniformity := (⨅ ε>0, 𝓟 {p:α×α | edist p.1 p.2 < ε}),
   refl       := le_infi $ assume ε, le_infi $
     by simp [set.subset_def, id_rel, edist_self, (>)] {contextual := tt},
   comp       :=
@@ -95,7 +95,7 @@ class emetric_space (α : Type u) extends has_edist α : Type u :=
 (edist_comm : ∀ x y : α, edist x y = edist y x)
 (edist_triangle : ∀ x y z : α, edist x z ≤ edist x y + edist y z)
 (to_uniform_space : uniform_space α := uniform_space_of_edist edist edist_self edist_comm edist_triangle)
-(uniformity_edist : 𝓤 α = ⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε} . control_laws_tac)
+(uniformity_edist : 𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | edist p.1 p.2 < ε} . control_laws_tac)
 end prio
 
 /- emetric spaces are less common than metric spaces. Therefore, we work in a dedicated
@@ -176,7 +176,7 @@ eq_of_edist_eq_zero (eq_of_le_of_forall_le_of_dense bot_le h)
 
 /-- Reformulation of the uniform structure in terms of the extended distance -/
 theorem uniformity_edist :
-  𝓤 α = ⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε} :=
+  𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | edist p.1 p.2 < ε} :=
 emetric_space.uniformity_edist
 
 theorem uniformity_basis_edist :
@@ -570,7 +570,7 @@ theorem nhds_basis_closed_eball : (𝓝 x).has_basis (λ ε:ennreal, 0 < ε) (cl
 nhds_basis_uniformity uniformity_basis_edist_le
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-theorem nhds_eq : 𝓝 x = (⨅ε>0, principal (ball x ε)) :=
+theorem nhds_eq : 𝓝 x = (⨅ε>0, 𝓟 (ball x ε)) :=
 nhds_basis_eball.eq_binfi
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]

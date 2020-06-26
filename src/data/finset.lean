@@ -521,7 +521,7 @@ finset.inter_subset_inter (finset.subset.refl _) h
 
 /-! ### lattice laws -/
 
-instance : lattice (finset α) :=
+instance finset.lattice : lattice (finset α) :=
 { sup          := (∪),
   sup_le       := assume a b c, union_subset,
   le_sup_left  := subset_union_left,
@@ -535,13 +535,13 @@ instance : lattice (finset α) :=
 @[simp] theorem sup_eq_union (s t : finset α) : s ⊔ t = s ∪ t := rfl
 @[simp] theorem inf_eq_inter (s t : finset α) : s ⊓ t = s ∩ t := rfl
 
-instance : semilattice_inf_bot (finset α) :=
+instance finset.semilattice_inf_bot : semilattice_inf_bot (finset α) :=
 { bot := ∅, bot_le := empty_subset, ..finset.lattice }
 
-instance {α : Type*} [decidable_eq α] : semilattice_sup_bot (finset α) :=
+instance finset.semilattice_sup_bot {α : Type*} [decidable_eq α] : semilattice_sup_bot (finset α) :=
 { ..finset.semilattice_inf_bot, ..finset.lattice }
 
-instance : distrib_lattice (finset α) :=
+instance finset.distrib_lattice : distrib_lattice (finset α) :=
 { le_sup_inf := assume a b c, show (a ∪ b) ∩ (a ∪ c) ⊆ a ∪ b ∩ c,
     by simp only [subset_iff, mem_inter, mem_union, and_imp, or_imp_distrib] {contextual:=tt};
     simp only [true_or, imp_true_iff, true_and, or_true],

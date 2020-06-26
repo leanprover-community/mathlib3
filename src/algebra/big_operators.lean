@@ -604,14 +604,6 @@ begin
   omega
 end
 
-lemma telescope {M : Type*} [add_comm_group M] (f : ℕ → M) (n : ℕ) :
-  ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
-sorry
-
-lemma telescope' {M : Type*} [add_comm_group M] (f : ℕ → M) (n : ℕ) :
-  ∑ i in range n, (f i - f (i+1)) = f 0 - f n :=
-sorry
-
 lemma prod_Ico_reflect (f : ℕ → β) (k : ℕ) {m n : ℕ} (h : m ≤ n + 1) :
   ∏ j in Ico k m, f (n - j) = ∏ j in Ico (n + 1 - m) (n + 1 - k), f j :=
 begin

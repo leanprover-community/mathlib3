@@ -20,39 +20,45 @@ open algebra.tensor_product
 
 noncomputable theory
 
-variables {R : Type u} [comm_ring R]
-variables {A : Type v} [ring A] [algebra R A]
+variables (R : Type u) [comm_ring R]
+variables (A : Type v) [ring A] [algebra R A]
 
-instance : module R (polynomial A) := module.restrict_scalars' R A (polynomial A)
-def f : algebra R (polynomial R) := by apply_instance
-#print polynomial.polynomial
+-- TODO move this back to `polynomial.lean`?
+instance turkle : algebra R (polynomial A) := add_monoid_algebra.algebra
+
+namespace polynomial_equiv_tensor
+
 def to_fun (a : A) (p : polynomial R) : polynomial A :=
 p.sum (λ n r, monomial n (a * algebra_map R A r))
 
 def to_fun_linear_right (a : A) : polynomial R →ₗ[R] polynomial A :=
-{ to_fun := to_fun a,
+{ to_fun := to_fun R A a,
   map_smul' := sorry,
   map_add' := sorry, }
 
 def to_fun_bilinear : A →ₗ[R] polynomial R →ₗ[R] polynomial A :=
-{ to_fun := to_fun_linear_right,
+{ to_fun := to_fun_linear_right R A,
   map_smul' := sorry,
   map_add' := sorry, }
 
 def to_fun_linear : A ⊗[R] polynomial R →ₗ[R] polynomial A :=
-tensor_product.lift to_fun_bilinear
+tensor_product.lift (to_fun_bilinear R A)
 
 def to_fun_alg_hom : A ⊗[R] polynomial R →ₐ[R] polynomial A :=
-alg_hom_of_linear_map_tensor_product to_fun_linear sorry sorry
+alg_hom_of_linear_map_tensor_product (to_fun_linear R A) sorry sorry
 
 def inv_fun (p : polynomial A) : A ⊗[R] polynomial R :=
 p.eval₂ include_left ((1 : A) ⊗ₜ[R] (X : polynomial R))
 
-def bar2 : polynomial A →ₗ[R] A ⊗[R] polynomial R :=
-{ to_fun := bar, }
+def equiv : (A ⊗[R] polynomial R) ≃ polynomial A :=
+{ to_fun := to_fun_alg_hom R A,
+  inv_fun := inv_fun R A,
+  left_inv := sorry,
+  right_inv := sorry, }
 
-def bar3 : polynomial A →ₐ[R] A ⊗[R] polynomial R :=
-{ to_fun := bar, }
+end polynomial_equiv_tensor
+
+open polynomial_equiv_tensor
 
 def polynomial_equiv_tensor : polynomial A ≃ₐ[R] (A ⊗[R] polynomial R) :=
-sorry
+alg_equiv.symm { ..(polynomial_equiv_tensor.to_fun_alg_hom R A), ..(polynomial_equiv_tensor.equiv R A) }

@@ -255,7 +255,7 @@ tc.mk_simple
     set_goals gs,
     let goal_message :=
       if gs.length = 0 then
-        "goals accomplished"
+        "goals accomplished 🎉"
       else if gs.length = 1 then
         "1 goal"
       else

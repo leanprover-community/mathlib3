@@ -80,6 +80,7 @@ begin
   rw [h, h'],
 end
 
+/-- The unique uniform structure inducing a given compact Hausdorff topological structure. -/
 def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_space α] [t2_space α] :
   uniform_space α :=
 { uniformity := ⨆ x, 𝓝 (x, x),

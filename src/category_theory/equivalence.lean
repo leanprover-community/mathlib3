@@ -171,6 +171,8 @@ variables {E : Type u₃} [category.{v₃} E]
     refine iso.trans _ f.counit_iso,
     exact iso_whisker_left f.inverse (iso_whisker_right e.counit_iso f.functor)
   end,
+  -- We wouldn't have need to give this proof if we'd used `equivalence.mk`,
+  -- but we choose to avoid using that here, for the sake of good structure projection `simp` lemmas.
   functor_unit_iso_comp' := λ X,
   begin
     dsimp,

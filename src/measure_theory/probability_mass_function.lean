@@ -8,7 +8,7 @@ Probability mass function -- discrete probability measures
 import topology.instances.ennreal
 noncomputable theory
 variables {α : Type*} {β : Type*} {γ : Type*}
-open_locale classical
+open_locale classical big_operators
 
 /-- Probability mass functions, i.e. discrete probability measures -/
 def {u} pmf (α : Type u) : Type u := { f : α → nnreal // has_sum f 1 }
@@ -106,9 +106,9 @@ def seq (f : pmf (α → β)) (p : pmf α) : pmf β := f.bind (λm, p.bind $ λa
 
 def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
 ⟨λa, s.count a / s.card,
-  have s.to_finset.sum (λa, (s.count a : ℝ) / s.card) = 1,
+  have ∑ a in s.to_finset, (s.count a : ℝ) / s.card = 1,
     by simp [div_eq_inv_mul, finset.mul_sum.symm, (finset.sum_nat_cast _ _).symm, hs],
-  have s.to_finset.sum (λa, (s.count a : nnreal) / s.card) = 1,
+  have ∑ a in s.to_finset, (s.count a : nnreal) / s.card = 1,
     by rw [← nnreal.eq_iff, nnreal.coe_one, ← this, nnreal.coe_sum]; simp,
   begin
     rw ← this,
@@ -116,7 +116,7 @@ def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
     simp {contextual := tt},
   end⟩
 
-def of_fintype [fintype α] (f : α → nnreal) (h : finset.univ.sum f = 1) : pmf α :=
+def of_fintype [fintype α] (f : α → nnreal) (h : ∑ x, f x = 1) : pmf α :=
 ⟨f, h ▸ has_sum_sum_of_ne_finset_zero (by simp)⟩
 
 def bernoulli (p : nnreal) (h : p ≤ 1) : pmf bool :=

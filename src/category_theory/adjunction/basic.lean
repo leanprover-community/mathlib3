@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Reid Barton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Reid Barton, Johan Commelin
+Authors: Reid Barton, Johan Commelin, Bhavik Mehta
 -/
 import category_theory.equivalence
 import data.equiv.basic
@@ -40,6 +40,15 @@ def left_adjoint (R : D ⥤ C) [is_right_adjoint R] : C ⥤ D :=
 is_right_adjoint.left R
 def right_adjoint (L : C ⥤ D) [is_left_adjoint L] : D ⥤ C :=
 is_left_adjoint.right L
+
+/-- The adjunction associated to a functor known to be a left adjoint. -/
+def adjunction.of_left_adjoint (left : C ⥤ D) [is_left_adjoint left] :
+  adjunction left (right_adjoint left) :=
+is_left_adjoint.adj
+/-- The adjunction associated to a functor known to be a right adjoint. -/
+def adjunction.of_right_adjoint (right : C ⥤ D) [is_right_adjoint right] :
+  adjunction (left_adjoint right) right :=
+is_right_adjoint.adj
 
 namespace adjunction
 
@@ -204,15 +213,86 @@ def id : 𝟭 C ⊣ 𝟭 C :=
   unit := 𝟙 _,
   counit := 𝟙 _ }
 
+/-- If F and G are naturally isomorphic functors, establish an equivalence of hom-sets. -/
+def equiv_homset_left_of_nat_iso
+  {F F' : C ⥤ D} (iso : F ≅ F') {X : C} {Y : D} :
+  (F.obj X ⟶ Y) ≃ (F'.obj X ⟶ Y) :=
+{ to_fun := λ f, iso.inv.app _ ≫ f,
+  inv_fun := λ g, iso.hom.app _ ≫ g,
+  left_inv := λ f, by simp,
+  right_inv := λ g, by simp }
+
+@[simp]
+lemma equiv_homset_left_of_nat_iso_apply {F F' : C ⥤ D} (iso : F ≅ F') {X : C} {Y : D} (f : F.obj X ⟶ Y) :
+  (equiv_homset_left_of_nat_iso iso) f = iso.inv.app _ ≫ f := rfl
+
+@[simp]
+lemma equiv_homset_left_of_nat_iso_symm_apply {F F' : C ⥤ D} (iso : F ≅ F') {X : C} {Y : D} (g : F'.obj X ⟶ Y) :
+  (equiv_homset_left_of_nat_iso iso).symm g = iso.hom.app _ ≫ g := rfl
+
+/-- If G and H are naturally isomorphic functors, establish an equivalence of hom-sets. -/
+def equiv_homset_right_of_nat_iso
+  {G G' : D ⥤ C} (iso : G ≅ G') {X : C} {Y : D} :
+  (X ⟶ G.obj Y) ≃ (X ⟶ G'.obj Y) :=
+{ to_fun := λ f, f ≫ iso.hom.app _,
+  inv_fun := λ g, g ≫ iso.inv.app _,
+  left_inv := λ f, by simp,
+  right_inv := λ g, by simp }
+
+@[simp]
+lemma equiv_homset_right_of_nat_iso_apply {G G' : D ⥤ C} (iso : G ≅ G') {X : C} {Y : D} (f : X ⟶ G.obj Y)  :
+  (equiv_homset_right_of_nat_iso iso) f = f ≫ iso.hom.app _ := rfl
+
+@[simp]
+lemma equiv_homset_right_of_nat_iso_symm_apply {G G' : D ⥤ C} (iso : G ≅ G') {X : C} {Y : D} (g : X ⟶ G'.obj Y) :
+  (equiv_homset_right_of_nat_iso iso).symm g = g ≫ iso.inv.app _ := rfl
+
+/-- Transport an adjunction along an natural isomorphism on the left. -/
+def of_nat_iso_left
+  {F G : C ⥤ D} {H : D ⥤ C} (adj : F ⊣ H) (iso : F ≅ G) :
+  G ⊣ H :=
+adjunction.mk_of_hom_equiv
+{ hom_equiv := λ X Y, (equiv_homset_left_of_nat_iso iso.symm).trans (adj.hom_equiv X Y) }
+
+/-- Transport an adjunction along an natural isomorphism on the right. -/
+def of_nat_iso_right
+  {F : C ⥤ D} {G H : D ⥤ C} (adj : F ⊣ G) (iso : G ≅ H) :
+  F ⊣ H :=
+adjunction.mk_of_hom_equiv
+{ hom_equiv := λ X Y, (adj.hom_equiv X Y).trans (equiv_homset_right_of_nat_iso iso) }
+
+/-- Transport being a right adjoint along a natural isomorphism. -/
+def right_adjoint_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [r : is_right_adjoint F] : is_right_adjoint G :=
+{ left := r.left,
+  adj := of_nat_iso_right r.adj h }
+
+/-- Transport being a left adjoint along a natural isomorphism. -/
+def left_adjoint_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [r : is_left_adjoint F] : is_left_adjoint G :=
+{ right := r.right,
+  adj := of_nat_iso_left r.adj h }
+
 section
 variables {E : Type u₃} [ℰ : category.{v₃} E] (H : D ⥤ E) (I : E ⥤ D)
 
+/-- Show that adjunctions can be composed. -/
 def comp (adj₁ : F ⊣ G) (adj₂ : H ⊣ I) : F ⋙ H ⊣ I ⋙ G :=
 { hom_equiv := λ X Z, equiv.trans (adj₂.hom_equiv _ _) (adj₁.hom_equiv _ _),
   unit := adj₁.unit ≫
   (whisker_left F $ whisker_right adj₂.unit G) ≫ (functor.associator _ _ _).inv,
   counit := (functor.associator _ _ _).hom ≫
     (whisker_left I $ whisker_right adj₁.counit H) ≫ adj₂.counit }
+
+/-- If `F` and `G` are left adjoints then `F ⋙ G` is a left adjoint too. -/
+instance left_adjoint_of_comp {E : Type u₃} [ℰ : category.{v₃} E] (F : C ⥤ D) (G : D ⥤ E)
+  [Fl : is_left_adjoint F] [Gl : is_left_adjoint G] : is_left_adjoint (F ⋙ G) :=
+{ right := Gl.right ⋙ Fl.right,
+  adj := comp _ _ Fl.adj Gl.adj }
+
+/-- If `F` and `G` are right adjoints then `F ⋙ G` is a right adjoint too. -/
+instance right_adjoint_of_comp {E : Type u₃} [ℰ : category.{v₃} E] {F : C ⥤ D} {G : D ⥤ E}
+  [Fr : is_right_adjoint F] [Gr : is_right_adjoint G] : is_right_adjoint (F ⋙ G) :=
+{ left := Gr.left ⋙ Fr.left,
+  adj := comp _ _ Gr.adj Fr.adj }
 
 end
 
@@ -297,8 +377,29 @@ end equivalence
 
 namespace functor
 
+/-- An equivalence `E` is left adjoint to its inverse. -/
 def adjunction (E : C ⥤ D) [is_equivalence E] : E ⊣ E.inv :=
 (E.as_equivalence).to_adjunction
+
+/-- If `F` is an equivalence, it's a left adjoint. -/
+@[priority 10]
+instance left_adjoint_of_equivalence {F : C ⥤ D} [is_equivalence F] : is_left_adjoint F :=
+{ right := _,
+  adj := functor.adjunction F }
+
+@[simp]
+lemma right_adjoint_of_is_equivalence {F : C ⥤ D} [is_equivalence F] : right_adjoint F = inv F :=
+rfl
+
+/-- If `F` is an equivalence, it's a right adjoint. -/
+@[priority 10]
+instance right_adjoint_of_equivalence {F : C ⥤ D} [is_equivalence F] : is_right_adjoint F :=
+{ left := _,
+  adj := functor.adjunction F.inv }
+
+@[simp]
+lemma left_adjoint_of_is_equivalence {F : C ⥤ D} [is_equivalence F] : left_adjoint F = inv F :=
+rfl
 
 end functor
 

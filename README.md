@@ -5,7 +5,7 @@
 
 
 [Mathlib](https://leanprover-community.github.io) is a user maintained library for the [Lean theorem prover](https://leanprover.github.io).
-It contains both programming infrastructure and mathematics, as well as tactics that use the former and allow to develop the later.
+It contains both programming infrastructure and mathematics, as well as tactics that use the former and allow to develop the latter.
 
 ## Installation
 

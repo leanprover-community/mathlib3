@@ -15,8 +15,8 @@ open_locale classical
 
 namespace finsupp
 
-variables {α : Type*} {M : Type*} {R : Type*}
-variables [ring R] [add_comm_group M] [module R M]
+variables {α : Type*} {M : Type*} {N : Type*} {R : Type*}
+variables [ring R] [add_comm_group M] [module R M] [add_comm_group N] [module R N]
 
 def lsingle (a : α) : M →ₗ[R] (α →₀ M) :=
 ⟨single a, assume a b, single_add, assume c b, (smul_single _ _ _).symm⟩
@@ -41,7 +41,7 @@ rfl
 rfl
 
 @[simp] lemma ker_lsingle (a : α) : (lsingle a : M →ₗ[R] (α →₀ M)).ker = ⊥ :=
-ker_eq_bot.2 (injective_single a)
+ker_eq_bot.2 (single_injective a)
 
 lemma lsingle_range_le_ker_lapply (s t : set α) (h : disjoint s t) :
   (⨆a∈s, (lsingle a : M →ₗ[R] (α →₀ M)).range) ≤ (⨅a∈t, ker (lapply a)) :=
@@ -132,8 +132,8 @@ variables (M R)
 def restrict_dom (s : set α) : (α →₀ M) →ₗ supported M R s :=
 linear_map.cod_restrict _
   { to_fun := filter (∈ s),
-    add := λ l₁ l₂, filter_add,
-    smul := λ a l, filter_smul }
+    map_add' := λ l₁ l₂, filter_add,
+    map_smul' := λ a l, filter_smul }
   (λ l, (mem_supported' _ _).2 $ λ x, filter_apply_neg (∈ s) l)
 
 variables {M R}
@@ -207,24 +207,30 @@ begin
   exact λ l, set.subset_Inter
 end
 
-section
-def supported_equiv_finsupp (s : set α) :
-  (supported M R s) ≃ₗ[R] (s →₀ M) :=
-(restrict_support_equiv s).to_linear_equiv
+def supported_equiv_finsupp (s : set α) : (supported M R s) ≃ₗ[R] (s →₀ M) :=
 begin
-  show is_linear_map R ((lsubtype_domain s : (α →₀ M) →ₗ[R] (s →₀ M)).comp
-      (submodule.subtype (supported M R s))),
+  let F : (supported M R s) ≃ (s →₀ M) := restrict_support_equiv s M,
+  refine F.to_linear_equiv _,
+  have : (F : (supported M R s) → (↥s →₀ M)) = ((lsubtype_domain s : (α →₀ M) →ₗ[R] (s →₀ M)).comp
+    (submodule.subtype (supported M R s))) := rfl,
+  rw this,
   exact linear_map.is_linear _
 end
-end
 
-def lsum (f : α → R →ₗ[R] M) : (α →₀ R) →ₗ[R] M :=
+/-- finsupp.sum as a linear map. -/
+def lsum (f : α → M →ₗ[R] N) : (α →₀ M) →ₗ[R] N :=
 ⟨λ d, d.sum (λ i, f i),
   assume d₁ d₂, by simp [sum_add_index],
-  assume a d, by simp [sum_smul_index, smul_sum, -smul_eq_mul, smul_eq_mul.symm]⟩
+  assume a d, by simp [sum_smul_index', smul_sum]⟩
 
-@[simp] theorem lsum_apply (f : α → R →ₗ[R] M) (l : α →₀ R) :
-  (finsupp.lsum f : (α →₀ R) →ₗ M) l = l.sum (λ b, f b) := rfl
+@[simp] lemma coe_lsum (f : α → M →ₗ[R] N) : (lsum f : (α →₀ M) → N) = λ d, d.sum (λ i, f i) := rfl
+
+theorem lsum_apply (f : α → M →ₗ[R] N) (l : α →₀ M) :
+  finsupp.lsum f l = l.sum (λ b, f b) := rfl
+
+theorem lsum_single (f : α → M →ₗ[R] N) (i : α) (m : M) :
+  finsupp.lsum f (finsupp.single i m) = f i m :=
+finsupp.sum_single_index (f i).map_zero
 
 section lmap_domain
 variables {α' : Type*} {α'' : Type*} (M R)
@@ -322,7 +328,7 @@ begin
     rw finsupp.total_apply,
     unfold finsupp.sum,
     apply sum_mem (span R (range v)),
-    exact λ i hi, submodule.smul _ _ (subset_span (mem_range_self i)) },
+    exact λ i hi, submodule.smul_mem _ _ (subset_span (mem_range_self i)) },
   { apply span_le.2,
     intros x hx,
     rcases hx with ⟨i, hi⟩,
@@ -399,6 +405,7 @@ by rw finsupp.total_apply; refl
 
 end total
 
+/-- An equivalence of domains induces a linear equivalence of finitely supported functions. -/
 protected def dom_lcongr
   {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) :
   (α₁ →₀ M) ≃ₗ[R] (α₂ →₀ M) :=
@@ -407,6 +414,10 @@ begin
   change is_linear_map R (lmap_domain M R e : (α₁ →₀ M) →ₗ[R] (α₂ →₀ M)),
   exact linear_map.is_linear _
 end
+
+@[simp] theorem dom_lcongr_single {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) (i : α₁) (m : M) :
+  (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (finsupp.single i m) = finsupp.single (e i) m :=
+by simp [finsupp.dom_lcongr, equiv.to_linear_equiv, finsupp.dom_congr, map_domain_single]
 
 noncomputable def congr {α' : Type*} (s : set α) (t : set α') (e : s ≃ t) :
   supported M R s ≃ₗ[R] supported M R t :=
@@ -417,6 +428,28 @@ begin
       (linear_equiv.trans _ (finsupp.supported_equiv_finsupp t).symm),
   exact finsupp.dom_lcongr e
 end
+
+/-- An equivalence of domain and a linear equivalence of codomain induce a linear equivalence of the
+corresponding finitely supported functions. -/
+def lcongr {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) : (ι →₀ M) ≃ₗ[R] (κ →₀ N) :=
+(finsupp.dom_lcongr e₁).trans
+{ to_fun := map_range e₂ e₂.map_zero,
+  inv_fun := map_range e₂.symm e₂.symm.map_zero,
+  left_inv := λ f, finsupp.induction f (by simp_rw map_range_zero) $ λ a b f ha hb ih,
+    by rw [map_range_add e₂.map_add, map_range_add e₂.symm.map_add,
+      map_range_single, map_range_single, e₂.symm_apply_apply, ih],
+  right_inv := λ f, finsupp.induction f (by simp_rw map_range_zero) $ λ a b f ha hb ih,
+    by rw [map_range_add e₂.symm.map_add, map_range_add e₂.map_add,
+      map_range_single, map_range_single, e₂.apply_symm_apply, ih],
+  map_add' := map_range_add e₂.map_add,
+  map_smul' := λ c f, finsupp.induction f
+    (by rw [smul_zero, map_range_zero, smul_zero]) $ λ a b f ha hb ih,
+    by rw [smul_add, smul_single, map_range_add e₂.map_add, map_range_single, e₂.map_smul, ih,
+      map_range_add e₂.map_add, smul_add, map_range_single, smul_single] }
+
+@[simp] theorem lcongr_single {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N)
+  (i : ι) (m : M) : lcongr e₁ e₂ (finsupp.single i m) = finsupp.single (e₁ i) (e₂ m) :=
+by simp [lcongr]
 
 end finsupp
 
@@ -447,10 +480,65 @@ begin
   simp only [mem_supr, supr_le_iff],
   assume N hN,
   rw [finsupp.total_apply, finsupp.sum, ← submodule.mem_coe],
-  apply is_add_submonoid.finset_sum_mem,
+  apply N.sum_mem,
   assume x hx,
   apply submodule.smul_mem,
   let i : ι := g ⟨x, hx⟩,
   have hi : i ∈ s, { rw finset.mem_image, exact ⟨⟨x, hx⟩, finset.mem_univ _, rfl⟩ },
   exact hN i hi (hg _),
 end
+
+section finsupp_lequiv_direct_sum
+
+variables (R M) (ι : Type*) [decidable_eq ι]
+
+/-- The finitely supported functions ι →₀ M are in linear equivalence with the direct sum of
+copies of M indexed by ι. -/
+def finsupp_lequiv_direct_sum : (ι →₀ M) ≃ₗ[R] direct_sum ι (λ i, M) :=
+linear_equiv.of_linear
+  (finsupp.lsum $ direct_sum.lof R ι (λ _, M))
+  (direct_sum.to_module _ _ _ finsupp.lsingle)
+  (linear_map.ext $ direct_sum.to_module.ext _ $ λ i,
+    linear_map.ext $ λ x, by simp [finsupp.sum_single_index])
+  (linear_map.ext $ λ f, finsupp.ext $ λ i, by simp [finsupp.lsum_apply])
+
+@[simp] theorem finsupp_lequiv_direct_sum_single (i : ι) (m : M) :
+  finsupp_lequiv_direct_sum R M ι (finsupp.single i m) = direct_sum.lof R ι _ i m :=
+finsupp.sum_single_index $ direct_sum.of_zero i
+
+@[simp] theorem finsupp_lequiv_direct_sum_symm_lof (i : ι) (m : M) :
+  (finsupp_lequiv_direct_sum R M ι).symm (direct_sum.lof R ι _ i m) = finsupp.single i m :=
+direct_sum.to_module_lof _ _ _
+
+end finsupp_lequiv_direct_sum
+
+section tensor_product
+
+open_locale tensor_product
+
+/-- The tensor product of ι →₀ M and κ →₀ N is linearly equivalent to (ι × κ) →₀ (M ⊗ N). -/
+def finsupp_tensor_finsupp (R M N ι κ : Sort*) [comm_ring R]
+  [add_comm_group M] [module R M] [add_comm_group N] [module R N] :
+  (ι →₀ M) ⊗[R] (κ →₀ N) ≃ₗ[R] (ι × κ) →₀ (M ⊗[R] N) :=
+linear_equiv.trans
+  (tensor_product.congr (finsupp_lequiv_direct_sum R M ι) (finsupp_lequiv_direct_sum R N κ)) $
+linear_equiv.trans
+  (tensor_product.direct_sum R ι κ (λ _, M) (λ _, N))
+  (finsupp_lequiv_direct_sum R (M ⊗[R] N) (ι × κ)).symm
+
+@[simp] theorem finsupp_tensor_finsupp_single (R M N ι κ : Sort*) [comm_ring R]
+  [add_comm_group M] [module R M] [add_comm_group N] [module R N]
+  (i : ι) (m : M) (k : κ) (n : N) :
+  finsupp_tensor_finsupp R M N ι κ (finsupp.single i m ⊗ₜ finsupp.single k n) =
+  finsupp.single (i, k) (m ⊗ₜ n) :=
+by simp [finsupp_tensor_finsupp]
+
+@[simp] theorem finsupp_tensor_finsupp_symm_single (R M N ι κ : Sort*) [comm_ring R]
+  [add_comm_group M] [module R M] [add_comm_group N] [module R N]
+  (i : ι × κ) (m : M) (n : N) :
+  (finsupp_tensor_finsupp R M N ι κ).symm (finsupp.single i (m ⊗ₜ n)) =
+  (finsupp.single i.1 m ⊗ₜ finsupp.single i.2 n) :=
+prod.cases_on i $ λ i k, (linear_equiv.symm_apply_eq _).2
+  (finsupp_tensor_finsupp_single _ _ _ _ _ _ _ _ _).symm
+
+end tensor_product

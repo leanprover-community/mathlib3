@@ -72,7 +72,7 @@ set.ext $ λ a,
 @[to_additive]
 lemma pointwise_mul_finite [has_mul α] {s t : set α} (hs : finite s) (ht : finite t) :
   finite (s * t) :=
-by { rw pointwise_mul_eq_image, apply set.finite_image, exact set.finite_prod hs ht }
+by { rw pointwise_mul_eq_image, exact (hs.prod ht).image _ }
 
 @[to_additive pointwise_add_add_semigroup]
 def pointwise_mul_semigroup [semigroup α] : semigroup (set α) :=
@@ -332,7 +332,7 @@ iff.intro
 
 lemma mem_smul_set_iff_inv_smul_mem [field α] [mul_action α β]
   {a : α} (ha : a ≠ 0) (A : set β) (x : β) : x ∈ a • A ↔ a⁻¹ • x ∈ A :=
-by conv_lhs { rw ← inv_inv'' a };
+by conv_lhs { rw ← inv_inv' a };
    exact (mem_inv_smul_set_iff (inv_ne_zero ha) _ _)
 
 end

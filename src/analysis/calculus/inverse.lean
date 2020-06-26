@@ -247,9 +247,9 @@ lemma inverse_approx_map_maps_to (hf : approximates_linear_on f (f' : E →L[�
   maps_to g (closed_ball b ε) (closed_ball b ε) :=
 begin
   cases hc with hE hc,
-  { exactI λ x hx, mem_preimage.2 (subsingleton.elim x (g x) ▸ hx) },
+  { exactI λ x hx, subsingleton.elim x (g x) ▸ hx },
   assume x hx,
-  simp only [subset_def, mem_closed_ball, mem_preimage] at hx hy ⊢,
+  simp only [mem_closed_ball] at hx hy ⊢,
   rw [dist_comm] at hy,
   calc dist (inverse_approx_map f f' y x) b ≤
     dist (inverse_approx_map f f' y x) (inverse_approx_map f f' y b) +
@@ -291,7 +291,7 @@ begin
   refine ⟨this.efixed_point' _ _ _ b (mem_closed_ball_self ε0) (edist_lt_top _ _), _, _⟩,
   { exact is_complete_of_is_closed is_closed_ball },
   { apply contracting_with.efixed_point_mem' },
-  { exact (inverse_approx_map_fixed_iff y).1 (this.efixed_point_is_fixed' _ _ _ _) }
+  { exact (inverse_approx_map_fixed_iff y).1 (this.efixed_point_is_fixed_pt' _ _ _ _) }
 end
 
 section
@@ -433,6 +433,16 @@ lemma local_inverse_continuous_at (hf : has_strict_fderiv_at f (f' : E →L[𝕜
   continuous_at (hf.local_inverse f f' a) (f a) :=
 (hf.to_local_homeomorph f).continuous_at_symm hf.image_mem_to_local_homeomorph_target
 
+lemma local_inverse_tendsto (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) :
+  tendsto (hf.local_inverse f f' a) (𝓝 $ f a) (𝓝 a) :=
+(hf.to_local_homeomorph f).tendsto_symm hf.mem_to_local_homeomorph_source
+
+lemma local_inverse_unique (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) {g : F → E}
+  (hg : ∀ᶠ x in 𝓝 a, g (f x) = x) :
+  ∀ᶠ y in 𝓝 (f a), g y = local_inverse f f' a hf y :=
+eventually_eq_of_left_inv_of_right_inv hg hf.eventually_right_inverse $
+  (hf.to_local_homeomorph f).tendsto_symm hf.mem_to_local_homeomorph_source
+
 /-- If `f` has an invertible derivative `f'` at `a` in the sense of strict differentiability `(hf)`,
 then the inverse function `hf.local_inverse f` has derivative `f'.symm` at `f a`. -/
 theorem to_local_inverse (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) :
@@ -451,13 +461,7 @@ see `of_local_left_inverse`.  -/
 theorem to_local_left_inverse (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) {g : F → E}
   (hg : ∀ᶠ x in 𝓝 a, g (f x) = x) :
   has_strict_fderiv_at g (f'.symm : F →L[𝕜] E) (f a) :=
-begin
-  apply hf.to_local_inverse.congr_of_mem_sets,
-  have := ((hf.to_local_homeomorph f).tendsto_symm
-    hf.mem_to_local_homeomorph_source).eventually hg,
-  refine this.mp (hf.eventually_right_inverse.mono $ λ y hy hy', _),
-  exact hy'.symm.trans (congr_arg g hy)
-end
+hf.to_local_inverse.congr_of_mem_sets $ (hf.local_inverse_unique hg).mono $ λ _, eq.symm
 
 end has_strict_fderiv_at
 

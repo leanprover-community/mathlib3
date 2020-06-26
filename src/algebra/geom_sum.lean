@@ -5,8 +5,8 @@ Authors: Neil Strickland
 
 Sums of finite geometric series
 -/
-import algebra.commute
 import algebra.group_with_zero_power
+import algebra.big_operators
 
 universe u
 variable {α : Type u}
@@ -80,12 +80,12 @@ end
 
 theorem geom_series₂_self {α : Type*} [comm_ring α] (x : α) (n : ℕ) :
   geom_series₂ x x n = n * x ^ (n-1) :=
-calc  (finset.range n).sum (λ i, x ^ i * x ^ (n - 1 - i))
-    = (finset.range n).sum (λ i, x ^ (i + (n - 1 - i))) : by simp_rw [← pow_add]
-... = (finset.range n).sum (λ i, x ^ (n - 1)) : finset.sum_congr rfl
+calc  ∑ i in finset.range n, x ^ i * x ^ (n - 1 - i)
+    = ∑ i in finset.range n, x ^ (i + (n - 1 - i)) : by simp_rw [← pow_add]
+... = ∑ i in finset.range n, x ^ (n - 1) : finset.sum_congr rfl
   (λ i hi, congr_arg _ $ nat.add_sub_cancel' $ nat.le_pred_of_lt $ finset.mem_range.1 hi)
-... = add_monoid.smul (finset.range n).card (x ^ (n - 1)) : finset.sum_const _
-... = n * x ^ (n - 1) : by rw [finset.card_range, add_monoid.smul_eq_mul]
+... = (finset.range n).card •ℕ (x ^ (n - 1)) : finset.sum_const _
+... = n * x ^ (n - 1) : by rw [finset.card_range, nsmul_eq_mul]
 
 /-- $x^n-y^n = (x-y) \sum x^ky^{n-1-k}$ reformulated without `-` signs. -/
 theorem geom_sum₂_mul_add [comm_semiring α] (x y : α) (n : ℕ) :
@@ -134,17 +134,17 @@ have x - 1 ≠ 0, by simp [*, -sub_eq_add_neg, sub_eq_iff_eq_add] at *,
 by rw [← geom_sum_mul, mul_div_cancel _ this]
 
 theorem geom_sum_Ico_mul [ring α] (x : α) {m n : ℕ} (hmn : m ≤ n) :
-  ((finset.Ico m n).sum (pow x)) * (x - 1) = x^n - x^m :=
+  (∑ i in finset.Ico m n, x ^ i) * (x - 1) = x^n - x^m :=
 by rw [sum_Ico_eq_sub _ hmn, ← geom_series_def, ← geom_series_def, sub_mul,
   geom_sum_mul, geom_sum_mul, sub_sub_sub_cancel_right]
 
 theorem geom_sum_Ico_mul_neg [ring α] (x : α) {m n : ℕ} (hmn : m ≤ n) :
-  ((finset.Ico m n).sum (pow x)) * (1 - x) = x^m - x^n :=
+  (∑ i in finset.Ico m n, x ^ i) * (1 - x) = x^m - x^n :=
 by rw [sum_Ico_eq_sub _ hmn, ← geom_series_def, ← geom_series_def, sub_mul,
   geom_sum_mul_neg, geom_sum_mul_neg, sub_sub_sub_cancel_left]
 
 theorem geom_sum_Ico [division_ring α] {x : α} (hx : x ≠ 1) {m n : ℕ} (hmn : m ≤ n) :
-  (finset.Ico m n).sum (λ i, x ^ i) = (x ^ n - x ^ m) / (x - 1) :=
+  ∑ i in finset.Ico m n, x ^ i = (x ^ n - x ^ m) / (x - 1) :=
 by simp only [sum_Ico_eq_sub _ hmn, (geom_series_def _ _).symm, geom_sum hx, div_sub_div_same,
   sub_sub_sub_cancel_right]
 

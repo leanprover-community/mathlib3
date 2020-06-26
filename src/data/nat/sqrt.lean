@@ -98,15 +98,15 @@ private lemma sqrt_aux_is_sqrt (n) : ∀ m r,
 | (m+1) r h₁ h₂ := begin
     apply sqrt_aux_is_sqrt_lemma
       (m+1) r n h₁ (2^m * 2^m)
-      (by simp [shiftr, pow_succ, div2_val, mul_comm, mul_left_comm];
+      (by simp [shiftr, nat.pow_succ, div2_val, mul_comm, mul_left_comm];
           repeat {rw @nat.mul_div_cancel_left _ 2 dec_trivial});
       intros,
     { have := sqrt_aux_is_sqrt m r h₁ a,
-      simpa [pow_succ, mul_comm, mul_assoc] },
-    { rw [pow_succ, mul_two, ← add_assoc] at h₂,
+      simpa [nat.pow_succ, mul_comm, mul_assoc] },
+    { rw [nat.pow_succ, mul_two, ← add_assoc] at h₂,
       have := sqrt_aux_is_sqrt m (r + 2^(m+1)) a h₂,
       rwa show (r + 2^(m + 1)) * 2^(m+1) = 2 * (r + 2^(m + 1)) * 2^m,
-          by simp [pow_succ, mul_comm, mul_left_comm] }
+          by simp [nat.pow_succ, mul_comm, mul_left_comm] }
   end
 
 private lemma sqrt_is_sqrt (n : ℕ) : is_sqrt n (sqrt n) :=

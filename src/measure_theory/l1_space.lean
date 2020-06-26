@@ -17,9 +17,9 @@ of being almost everywhere equal is defined as a subspace of the space `L⁰`. S
 
 ## Notation
 
-* `α →₁ β` is the type of `L¹` space, where `α` is a `measure_space` and `β` is a `normed_group` with
-  a `second_countable_topology`. `f : α →ₘ β` is a "function" in `L¹`. In comments, `[f]` is also used
-  to denote an `L¹` function.
+* `α →₁ β` is the type of `L¹` space, where `α` is a `measure_space` and `β` is a `normed_group`
+  with a `second_countable_topology`. `f : α →ₘ β` is a "function" in `L¹`. In comments, `[f]` is
+  also used to denote an `L¹` function.
 
   `₁` can be typed as `\1`.
 
@@ -55,6 +55,7 @@ open_locale classical topological_space
 
 namespace measure_theory
 open set filter topological_space ennreal emetric
+open_locale big_operators
 
 universes u v w
 variables {α : Type u} [measure_space α]
@@ -98,7 +99,7 @@ begin
 end
 
 lemma integrable_congr_ae {f g : α → β} (h : ∀ₘ a, f a = g a) : integrable f ↔ integrable g :=
-iff.intro (λhf, integrable_of_ae_eq hf h) (λhg, integrable_of_ae_eq hg (all_ae_eq_symm h))
+iff.intro (λhf, integrable_of_ae_eq hf h) (λhg, integrable_of_ae_eq hg (ae_eq_symm h))
 
 lemma integrable_of_le_ae {f : α → β} {g : α → γ} (h : ∀ₘ a, ∥f a∥ ≤ ∥g a∥) (hg : integrable g) :
   integrable f :=
@@ -111,7 +112,7 @@ end
 
 lemma integrable_of_le {f : α → β} {g : α → γ} (h : ∀a, ∥f a∥ ≤ ∥g a∥) (hg : integrable g) :
   integrable f :=
-integrable_of_le_ae (all_ae_of_all h) hg
+integrable_of_le_ae (ae_of_all _ h) hg
 
 lemma lintegral_nnnorm_eq_lintegral_edist (f : α → β) :
   (∫⁻ a, nnnorm (f a)) = ∫⁻ a, edist (f a) 0 :=
@@ -170,7 +171,7 @@ calc
 lemma integrable_finset_sum {ι} [measurable_space β] [borel_space β]
   [second_countable_topology β] (s : finset ι) {f : ι → α → β}
   (hfm : ∀ i, measurable (f i)) (hfi : ∀ i, integrable (f i)) :
-  integrable (λ a, s.sum (λ i, f i a)) :=
+  integrable (λ a, ∑ i in s, f i a) :=
 begin
   refine finset.induction_on s _ _,
   { simp only [finset.sum_empty, integrable_zero] },
@@ -251,7 +252,7 @@ lemma all_ae_of_real_f_le_bound (h_bound : ∀ n, ∀ₘ a, ∥F n a∥ ≤ boun
   ∀ₘ a, ennreal.of_real ∥f a∥ ≤ ennreal.of_real (bound a) :=
 begin
   have F_le_bound := all_ae_of_real_F_le_bound h_bound,
-  rw ← all_ae_all_iff at F_le_bound,
+  rw ← ae_all_iff at F_le_bound,
   apply F_le_bound.mp ((all_ae_tendsto_of_real_norm h_lim).mono _),
   assume a tendsto_norm F_le_bound,
   exact le_of_tendsto' at_top_ne_bot tendsto_norm (F_le_bound)
@@ -299,7 +300,7 @@ begin
     apply of_real_le_of_real,
     { apply norm_sub_le }, { exact norm_nonneg _ }, { exact norm_nonneg _ }
   end
-    ... ≤ (ennreal.of_real (bound a)) + (ennreal.of_real (bound a)) : add_le_add' h₁ h₂
+    ... ≤ (ennreal.of_real (bound a)) + (ennreal.of_real (bound a)) : add_le_add h₁ h₂
     ... = b a : by rw ← two_mul
 end,
 /- On the other hand, `F n a --> f a` implies that `∥F n a - f a∥ --> 0`  -/
@@ -386,7 +387,8 @@ begin
     end
 end
 
-lemma integrable_smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) : integrable (λa, c • f a) ↔ integrable f :=
+lemma integrable_smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) :
+  integrable (λa, c • f a) ↔ integrable f :=
 begin
   split,
   { assume h,
@@ -551,10 +553,6 @@ instance : semimodule 𝕜 (α →₁ β) :=
   add_smul  := λx y f, l1.eq (by { simp only [coe_smul], exact add_smul _ _ _ }),
   zero_smul := λf, l1.eq (by { simp only [coe_smul], exact zero_smul _ _ }) }
 
-instance : module 𝕜 (α →₁ β) := { .. l1.semimodule }
-
-instance : vector_space 𝕜 (α →₁ β) := { .. l1.semimodule }
-
 instance : normed_space 𝕜 (α →₁ β) :=
 ⟨ begin
     rintros x ⟨f, hf⟩,
@@ -593,7 +591,8 @@ lemma of_fun_sub (f g : α → β) (hfm hfi hgm hgi) :
     = of_fun f hfm hfi - of_fun g hgm hgi :=
 rfl
 
-lemma norm_of_fun (f : α → β) (hfm hfi) : ∥of_fun f hfm hfi∥ = ennreal.to_real (∫⁻ a, edist (f a) 0) :=
+lemma norm_of_fun (f : α → β) (hfm hfi) :
+  ∥of_fun f hfm hfi∥ = ennreal.to_real (∫⁻ a, edist (f a) 0) :=
 rfl
 
 lemma norm_of_fun_eq_lintegral_norm (f : α → β) (hfm hfi) :
@@ -643,13 +642,15 @@ lemma neg_to_fun (f : α →₁ β) : ∀ₘ a, (-f).to_fun a = -f.to_fun a := a
 lemma sub_to_fun (f g : α →₁ β) : ∀ₘ a, (f - g).to_fun a = f.to_fun a - g.to_fun a :=
 ae_eq_fun.sub_to_fun _ _
 
-lemma dist_to_fun (f g : α →₁ β) : dist f g = ennreal.to_real (∫⁻ x, edist (f.to_fun x) (g.to_fun x)) :=
+lemma dist_to_fun (f g : α →₁ β) :
+  dist f g = ennreal.to_real (∫⁻ x, edist (f.to_fun x) (g.to_fun x)) :=
 by { simp only [dist_eq, edist_to_fun] }
 
 lemma norm_eq_nnnorm_to_fun (f : α →₁ β) : ∥f∥ = ennreal.to_real (∫⁻ a, nnnorm (f.to_fun a)) :=
 by { rw [lintegral_nnnorm_eq_lintegral_edist, ← edist_zero_to_fun], refl }
 
-lemma norm_eq_norm_to_fun (f : α →₁ β) : ∥f∥ = ennreal.to_real (∫⁻ a, ennreal.of_real ∥f.to_fun a∥) :=
+lemma norm_eq_norm_to_fun (f : α →₁ β) :
+  ∥f∥ = ennreal.to_real (∫⁻ a, ennreal.of_real ∥f.to_fun a∥) :=
 by { rw norm_eq_nnnorm_to_fun, congr, funext, rw of_real_norm_eq_coe_nnnorm }
 
 lemma lintegral_edist_to_fun_lt_top (f g : α →₁ β) : (∫⁻ a, edist (f.to_fun a) (g.to_fun a)) < ⊤ :=

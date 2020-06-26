@@ -149,9 +149,6 @@ open list
 instance (n : ℕ) [topological_space α] : topological_space (vector α n) :=
 by unfold vector; apply_instance
 
-lemma cons_val {n : ℕ} {a : α} : ∀{v : vector α n}, (a :: v).val = a :: v.val
-| ⟨l, hl⟩ := rfl
-
 lemma tendsto_cons [topological_space α] {n : ℕ} {a : α} {l : vector α n}:
   tendsto (λp:α×vector α n, vector.cons p.1 p.2) ((𝓝 a).prod (𝓝 l)) (𝓝 (a :: l)) :=
 by

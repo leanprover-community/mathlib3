@@ -55,7 +55,7 @@ begin
   ... = inf_edist y (t.val) + (edist x y + Hausdorff_edist (s.val) (t.val)) :
     by simp [add_comm, add_left_comm, Hausdorff_edist_comm]
   ... ≤ inf_edist y (t.val) + (edist (x, s) (y, t) + edist (x, s) (y, t)) :
-    add_le_add_left' (add_le_add' (by simp [edist, le_refl]) (by simp [edist, le_refl]))
+    add_le_add_left' (add_le_add (by simp [edist, le_refl]) (by simp [edist, le_refl]))
   ... = inf_edist y (t.val) + 2 * edist (x, s) (y, t) :
     by rw [← mul_two, mul_comm]
 end
@@ -162,7 +162,7 @@ begin
     -- y : α,  hy : y ∈ (s n).val,  Dzy : edist z y < B n
     exact ⟨y, hy, calc
       edist x y ≤ edist x z + edist z y : edist_triangle _ _ _
-            ... ≤ B n + B n : add_le_add' (le_of_lt Dxz) (le_of_lt Dzy)
+            ... ≤ B n + B n : add_le_add (le_of_lt Dxz) (le_of_lt Dzy)
             ... = 2 * B n : (two_mul _).symm ⟩ },
   -- Deduce from the above inequalities that the distance between `s n` and `t0` is at most `2 B n`.
   have main : ∀n:ℕ, edist (s n) t ≤ 2 * B n := λn, Hausdorff_edist_le_of_mem_edist (I1 n) (I2 n),
@@ -210,14 +210,14 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
   -- `F` is finite
   { apply @finite_of_finite_image _ _ F (λf, f.val),
     { exact subtype.val_injective.inj_on F },
-    { refine finite_subset (finite_subsets_of_finite fs) (λb, _),
+    { refine fs.finite_subsets.subset (λb, _),
       simp only [and_imp, set.mem_image, set.mem_set_of_eq, exists_imp_distrib],
       assume x hx hx',
       rwa hx' at hx }},
   -- `F` is ε-dense
   { assume u _,
     rcases main u.val with ⟨t0, t0s, Dut0⟩,
-    have : is_closed t0 := closed_of_compact _ (finite_subset fs t0s).compact,
+    have : is_closed t0 := closed_of_compact _ (fs.subset t0s).compact,
     let t : closeds α := ⟨t0, this⟩,
     have : t ∈ F := t0s,
     have : edist u t < ε := lt_of_le_of_lt Dut0 δlt,
@@ -334,7 +334,7 @@ begin
       -- a : set α,  af : finite a,  ta : t.val ⊆ ⋃ (y : α) (H : y ∈ a), eball y (δ / 2)
       -- replace each center by a nearby approximation in `s`, giving a new set `b`
       let b := F '' a,
-      have : finite b := finite_image _ af,
+      have : finite b := af.image _,
       have tb : ∀x ∈ t.val, ∃y ∈ b, edist x y < δ,
       { assume x hx,
         rcases mem_bUnion_iff.1 (ta hx) with ⟨z, za, Dxz⟩,
@@ -344,7 +344,7 @@ begin
              ... = δ : ennreal.add_halves _ },
       -- keep only the points in `b` that are close to point in `t`, yielding a new set `c`
       let c := {y ∈ b | ∃x∈t.val, edist x y < δ},
-      have : finite c := finite_subset ‹finite b› (λx hx, hx.1),
+      have : finite c := ‹finite b›.subset (λx hx, hx.1),
       -- points in `t` are well approximated by points in `c`
       have tc : ∀x ∈ t.val, ∃y ∈ c, edist x y ≤ δ,
       { assume x hx,

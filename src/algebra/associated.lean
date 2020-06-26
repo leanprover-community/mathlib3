@@ -18,7 +18,7 @@ variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
   refine ⟨⟨0, 0, _, _⟩, rfl⟩; apply subsingleton.elim
  end⟩
 
-@[simp] theorem not_is_unit_zero [nonzero_comm_ring α] : ¬ is_unit (0 : α) :=
+@[simp] theorem not_is_unit_zero [semiring α] [nonzero α] : ¬ is_unit (0 : α) :=
 mt is_unit_zero_iff.1 zero_ne_one
 
 lemma is_unit_pow [monoid α] {a : α} (n : ℕ) : is_unit a → is_unit (a ^ n) :=
@@ -50,7 +50,7 @@ theorem is_unit_of_dvd_unit {α} [comm_semiring α] {x y : α}
 is_unit_iff_dvd_one.2 $ dvd_trans xy $ is_unit_iff_dvd_one.1 hu
 
 theorem is_unit_int {n : ℤ} : is_unit n ↔ n.nat_abs = 1 :=
-⟨λ ⟨u, hu⟩, (int.units_eq_one_or u).elim (by simp *) (by simp *),
+⟨begin rintro ⟨u, rfl⟩, exact (int.units_eq_one_or u).elim (by simp) (by simp) end,
   λ h, is_unit_iff_dvd_one.2 ⟨n, by rw [← int.nat_abs_mul_self, h]; refl⟩⟩
 
 lemma is_unit_of_dvd_one [comm_semiring α] : ∀a ∣ 1, is_unit (a:α)
@@ -171,8 +171,8 @@ have h : p ^ (k + l) * (x * y) = p ^ (k + l) * (p * z),
 have hp0: p ^ (k + l) ≠ 0, from pow_ne_zero _ hp.ne_zero,
 have hpd : p ∣ x * y, from ⟨z, by rwa [domain.mul_right_inj hp0] at h⟩,
 (hp.div_or_div hpd).elim
-  (λ ⟨d, hd⟩, or.inl ⟨d, by simp [*, _root_.pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
-  (λ ⟨d, hd⟩, or.inr ⟨d, by simp [*, _root_.pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
+  (λ ⟨d, hd⟩, or.inl ⟨d, by simp [*, pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
+  (λ ⟨d, hd⟩, or.inr ⟨d, by simp [*, pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
 
 /-- Two elements of a `monoid` are `associated` if one of them is another one
 multiplied by a unit on the right. -/
@@ -201,7 +201,7 @@ theorem unit_associated_one [monoid α] {u : units α} : (u : α) ~ᵤ 1 := ⟨u
 
 theorem associated_one_iff_is_unit [monoid α] {a : α} : (a : α) ~ᵤ 1 ↔ is_unit a :=
 iff.intro
-  (assume h, let ⟨c, h⟩ := h.symm in h ▸ ⟨c, one_mul _⟩)
+  (assume h, let ⟨c, h⟩ := h.symm in h ▸ ⟨c, (one_mul _).symm⟩)
   (assume ⟨c, h⟩, associated.symm ⟨c, by simp [h]⟩)
 
 theorem associated_zero_iff_eq_zero [comm_semiring α] (a : α) : a ~ᵤ 0 ↔ a = 0 :=
@@ -267,7 +267,7 @@ by haveI := classical.dec; exact not_iff_not.2 (eq_zero_iff_of_associated h)
 lemma prime_of_associated [comm_semiring α] {p q : α} (h : p ~ᵤ q) (hp : prime p) : prime q :=
 ⟨(ne_zero_iff_of_associated h).1 hp.ne_zero,
   let ⟨u, hu⟩ := h in
-    ⟨λ ⟨v, hv⟩, hp.not_unit ⟨v * u⁻¹, by simp [hv.symm, hu.symm]⟩,
+    ⟨λ ⟨v, hv⟩, hp.not_unit ⟨v * u⁻¹, by simp [hv, hu.symm]⟩,
       hu ▸ by { simp [mul_unit_dvd_iff], intros a b, exact hp.div_or_div }⟩⟩
 
 lemma prime_iff_of_associated [comm_semiring α] {p q : α}
@@ -285,7 +285,7 @@ lemma irreducible_of_associated [comm_semiring α] {p q : α} (h : p ~ᵤ q)
   have hpab : p = a * (b * (u⁻¹ : units α)),
     from calc p = (p * u) * (u ⁻¹ : units α) : by simp
       ... = _ : by rw hu; simp [hab, mul_assoc],
-  (hp.2 _ _ hpab).elim or.inl (λ ⟨v, hv⟩, or.inr ⟨v * u, by simp [hv.symm]⟩)⟩
+  (hp.2 _ _ hpab).elim or.inl (λ ⟨v, hv⟩, or.inr ⟨v * u, by simp [hv]⟩)⟩
 
 lemma irreducible_iff_of_associated [comm_semiring α] {p q : α} (h : p ~ᵤ q) :
   irreducible p ↔ irreducible q :=
@@ -399,7 +399,7 @@ theorem coe_unit_eq_one : ∀u:units (associates α), (u : associates α) = 1
 
 theorem is_unit_iff_eq_one (a : associates α) : is_unit a ↔ a = 1 :=
 iff.intro
-  (assume ⟨u, h⟩, h.symm ▸ coe_unit_eq_one _)
+  (assume ⟨u, h⟩, h ▸ coe_unit_eq_one _)
   (assume h, h.symm ▸ is_unit_one)
 
 theorem is_unit_mk {a : α} : is_unit (associates.mk a) ↔ is_unit a :=
@@ -441,18 +441,14 @@ instance [has_zero α] [monoid α] : has_top (associates α) := ⟨0⟩
 section comm_semiring
 variables [comm_semiring α]
 
-@[simp] theorem mk_zero_eq (a : α) : associates.mk a = 0 ↔ a = 0 :=
+@[simp] theorem mk_eq_zero {a : α} : associates.mk a = 0 ↔ a = 0 :=
 ⟨assume h, (associated_zero_iff_eq_zero a).1 $ quotient.exact h, assume h, h.symm ▸ rfl⟩
 
-@[simp] theorem mul_zero : ∀(a : associates α), a * 0 = 0 :=
-by rintros ⟨a⟩; show associates.mk (a * 0) = associates.mk 0; rw [mul_zero]
-
-@[simp] protected theorem zero_mul : ∀(a : associates α), 0 * a = 0 :=
-by rintros ⟨a⟩; show associates.mk (0 * a) = associates.mk 0; rw [zero_mul]
-
-theorem mk_eq_zero_iff_eq_zero {a : α} : associates.mk a = 0 ↔ a = 0 :=
-calc associates.mk a = 0 ↔ (a ~ᵤ 0) :  mk_eq_mk_iff_associated
-  ... ↔ a = 0 : associated_zero_iff_eq_zero a
+instance : mul_zero_class (associates α) :=
+{ mul := (*),
+  zero := 0,
+  zero_mul := by { rintro ⟨a⟩, show associates.mk (0 * a) = associates.mk 0, rw [zero_mul] },
+  mul_zero := by { rintro ⟨a⟩, show associates.mk (a * 0) = associates.mk 0, rw [mul_zero] } }
 
 theorem dvd_of_mk_le_mk {a b : α} : associates.mk a ≤ associates.mk b → a ∣ b
 | ⟨c', hc'⟩ := (quotient.induction_on c' $ assume c hc,
@@ -499,7 +495,7 @@ begin
     apply forall_congr, assume a,
     exact forall_associated },
   apply and_congr,
-  { rw [(≠), mk_zero_eq] },
+  { rw [(≠), mk_eq_zero] },
   apply and_congr,
   { rw [(≠), ← is_unit_iff_eq_one, is_unit_mk], },
   apply forall_congr, assume a,
@@ -532,24 +528,23 @@ instance : order_top (associates α) :=
   le_top := assume a, ⟨0, mul_zero a⟩,
   .. associates.partial_order }
 
-theorem zero_ne_one : (0 : associates α) ≠ 1 :=
-assume h,
-have (0 : α) ~ᵤ 1, from quotient.exact h,
-have (0 : α) = 1, from ((associated_zero_iff_eq_zero 1).1 this.symm).symm,
-zero_ne_one this
+instance : nonzero (associates α) :=
+⟨ assume h,
+  have (0 : α) ~ᵤ 1, from quotient.exact h,
+  have (0 : α) = 1, from ((associated_zero_iff_eq_zero 1).1 this.symm).symm,
+  zero_ne_one this ⟩
 
-theorem mul_eq_zero_iff {x y : associates α} : x * y = 0 ↔ x = 0 ∨ y = 0 :=
-iff.intro
+instance : no_zero_divisors (associates α) :=
+⟨λ x y,
   (quotient.induction_on₂ x y $ assume a b h,
     have a * b = 0, from (associated_zero_iff_eq_zero _).1 (quotient.exact h),
-    have a = 0 ∨ b = 0, from mul_eq_zero_iff_eq_zero_or_eq_zero.1 this,
-    this.imp (assume h, h.symm ▸ rfl) (assume h, h.symm ▸ rfl))
-  (by simp [or_imp_distrib] {contextual := tt})
+    have a = 0 ∨ b = 0, from mul_eq_zero.1 this,
+    this.imp (assume h, h.symm ▸ rfl) (assume h, h.symm ▸ rfl))⟩
 
 theorem prod_eq_zero_iff {s : multiset (associates α)} :
   s.prod = 0 ↔ (0 : associates α) ∈ s :=
 multiset.induction_on s (by simp; exact zero_ne_one.symm) $
-  assume a s, by simp [mul_eq_zero_iff, @eq_comm _ 0 a] {contextual := tt}
+  assume a s, by simp [mul_eq_zero, @eq_comm _ 0 a] {contextual := tt}
 
 theorem irreducible_mk_iff (a : α) : irreducible (associates.mk a) ↔ irreducible a :=
 begin
@@ -573,7 +568,7 @@ begin
   rintros ⟨a⟩ ⟨b⟩ ⟨c⟩ ha h,
   rcases quotient.exact' h with ⟨u, hu⟩,
   have hu : a * (b * ↑u) = a * c, { rwa [← mul_assoc] },
-  exact quotient.sound' ⟨u, eq_of_mul_eq_mul_left (mt (mk_zero_eq a).2 ha) hu⟩
+  exact quotient.sound' ⟨u, eq_of_mul_eq_mul_left (mt mk_eq_zero.2 ha) hu⟩
 end
 
 lemma le_of_mul_le_mul_left (a b c : associates α) (ha : a ≠ 0) :

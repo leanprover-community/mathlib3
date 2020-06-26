@@ -56,28 +56,35 @@ def map_id : map (𝟙 X) ≅ 𝟭 (opens X) :=
 @[simp] lemma map_id_inv_app (U) : (map_id X).inv.app U = eq_to_hom (map_id_obj U).symm := rfl
 end
 
-@[simp] lemma map_comp_obj (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (map (f ≫ g)).obj U = (map f).obj ((map g).obj U) :=
+@[simp] lemma map_comp_obj (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
+  (map (f ≫ g)).obj U = (map f).obj ((map g).obj U) :=
 by { ext, refl } -- not quite `rfl`, since we don't have eta for records
 
-@[simp] lemma map_comp_obj' (f : X ⟶ Y) (g : Y ⟶ Z) (U) (p) : (map (f ≫ g)).obj ⟨U, p⟩ = (map f).obj ((map g).obj ⟨U, p⟩) :=
+@[simp] lemma map_comp_obj' (f : X ⟶ Y) (g : Y ⟶ Z) (U) (p) :
+  (map (f ≫ g)).obj ⟨U, p⟩ = (map f).obj ((map g).obj ⟨U, p⟩) :=
 rfl
 
-@[simp] lemma map_comp_obj_unop (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (map (f ≫ g)).obj (unop U) = (map f).obj ((map g).obj (unop U)) :=
+@[simp] lemma map_comp_obj_unop (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
+  (map (f ≫ g)).obj (unop U) = (map f).obj ((map g).obj (unop U)) :=
 by simp
-@[simp] lemma op_map_comp_obj (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (map (f ≫ g)).op.obj U = (map f).op.obj ((map g).op.obj U) :=
+@[simp] lemma op_map_comp_obj (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
+  (map (f ≫ g)).op.obj U = (map f).op.obj ((map g).op.obj U) :=
 by simp
 
 def map_comp (f : X ⟶ Y) (g : Y ⟶ Z) : map (f ≫ g) ≅ map g ⋙ map f :=
 { hom := { app := λ U, eq_to_hom (map_comp_obj f g U) },
   inv := { app := λ U, eq_to_hom (map_comp_obj f g U).symm } }
 
-@[simp] lemma map_comp_hom_app (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (map_comp f g).hom.app U = eq_to_hom (map_comp_obj f g U) := rfl
-@[simp] lemma map_comp_inv_app (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (map_comp f g).inv.app U = eq_to_hom (map_comp_obj f g U).symm := rfl
+@[simp] lemma map_comp_hom_app (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
+  (map_comp f g).hom.app U = eq_to_hom (map_comp_obj f g U) := rfl
+@[simp] lemma map_comp_inv_app (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
+  (map_comp f g).inv.app U = eq_to_hom (map_comp_obj f g U).symm := rfl
 
 -- We could make f g implicit here, but it's nice to be able to see when
 -- they are the identity (often!)
 def map_iso (f g : X ⟶ Y) (h : f = g) : map f ≅ map g :=
-nat_iso.of_components (λ U, eq_to_iso (congr_fun (congr_arg functor.obj (congr_arg map h)) U) ) (by obviously)
+nat_iso.of_components (λ U, eq_to_iso (congr_fun (congr_arg functor.obj (congr_arg map h)) U) )
+  (by obviously)
 
 @[simp] lemma map_iso_refl (f : X ⟶ Y) (h) : map_iso f f h = iso.refl (map _) := rfl
 
@@ -86,7 +93,8 @@ nat_iso.of_components (λ U, eq_to_iso (congr_fun (congr_arg functor.obj (congr_
 rfl
 
 @[simp] lemma map_iso_inv_app (f g : X ⟶ Y) (h : f = g) (U : opens Y) :
-  (map_iso f g h).inv.app U = eq_to_hom (congr_fun (congr_arg functor.obj (congr_arg map h.symm)) U) :=
+  (map_iso f g h).inv.app U =
+     eq_to_hom (congr_fun (congr_arg functor.obj (congr_arg map h.symm)) U) :=
 rfl
 
 end topological_space.opens

@@ -33,7 +33,11 @@ universes w v u
 variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
-/-- The type of objects for the category of elements of a functor `F : C ⥤ Type` is a pair `(X : C, x : F.obj X)`. -/
+/--
+The type of objects for the category of elements of a functor `F : C ⥤ Type`
+is a pair `(X : C, x : F.obj X)`.
+-/
+@[nolint has_inhabited_instance]
 def functor.elements (F : C ⥤ Type w) := (Σ c : C, F.obj c)
 
 /-- The category structure on `F.elements`, for `F : C ⥤ Type`.
@@ -43,6 +47,19 @@ instance category_of_elements (F : C ⥤ Type w) : category F.elements :=
 { hom := λ p q, { f : p.1 ⟶ q.1 // (F.map f) p.2 = q.2 },
   id := λ p, ⟨𝟙 p.1, by obviously⟩,
   comp := λ p q r f g, ⟨f.val ≫ g.val, by obviously⟩ }
+
+namespace category_of_elements
+
+@[ext]
+lemma ext (F : C ⥤ Type w) {x y : F.elements} (f g : x ⟶ y) (w : f.val = g.val) : f = g :=
+subtype.eq' w
+
+@[simp] lemma comp_val {F : C ⥤ Type w} {p q r : F.elements} {f : p ⟶ q} {g : q ⟶ r} :
+  (f ≫ g).val = f.val ≫ g.val := rfl
+
+@[simp] lemma id_val {F : C ⥤ Type w} {p : F.elements} : (𝟙 p : p ⟶ p).val = 𝟙 p.1 := rfl
+
+end category_of_elements
 
 omit 𝒞 -- We'll assume C has a groupoid structure, so temporarily forget its category structure
 -- to avoid conflicts.

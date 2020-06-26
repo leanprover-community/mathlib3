@@ -8,6 +8,7 @@ Operator norm on the space of continuous linear maps
 Define the operator norm on the space of continuous linear maps between normed spaces, and prove
 its basic properties. In particular, show that this space is itself a normed space.
 -/
+import linear_algebra.finite_dimensional
 import analysis.normed_space.riesz_lemma
 import analysis.asymptotics
 noncomputable theory
@@ -113,14 +114,14 @@ begin
       from riesz_lemma h hf this,
     have : x₀ ≠ 0,
     { assume h,
-      have : x₀ ∈ f.ker, by { rw h, exact (linear_map.ker f).zero },
+      have : x₀ ∈ f.ker, by { rw h, exact (linear_map.ker f).zero_mem },
       exact x₀ker this },
     have rx₀_ne_zero : r * ∥x₀∥ ≠ 0, by { simp [norm_eq_zero, this], norm_num },
     have : ∀x, ∥f x∥ ≤ (((r * ∥x₀∥)⁻¹) * ∥f x₀∥) * ∥x∥,
     { assume x,
       by_cases hx : f x = 0,
       { rw [hx, norm_zero],
-        apply_rules [mul_nonneg', norm_nonneg, inv_nonneg.2, norm_nonneg] },
+        apply_rules [mul_nonneg, norm_nonneg, inv_nonneg.2, norm_nonneg] },
       { let y := x₀ - (f x₀ * (f x)⁻¹ ) • x,
         have fy_zero : f y = 0, by calc
           f y = f x₀ - (f x₀ * (f x)⁻¹ ) * f x : by simp [y]
@@ -135,7 +136,7 @@ begin
           ∥f x∥ = (r * ∥x₀∥)⁻¹ * (r * ∥x₀∥) * ∥f x∥ : by rwa [inv_mul_cancel, one_mul]
           ... ≤ (r * ∥x₀∥)⁻¹ * (∥f x₀∥ * ∥f x∥⁻¹ * ∥x∥) * ∥f x∥ : begin
             apply mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left A _) (norm_nonneg _),
-            exact inv_nonneg.2 (mul_nonneg' (by norm_num) (norm_nonneg _))
+            exact inv_nonneg.2 (mul_nonneg (by norm_num) (norm_nonneg _))
           end
           ... = (∥f x∥ ⁻¹ * ∥f x∥) * (((r * ∥x₀∥)⁻¹) * ∥f x₀∥) * ∥x∥ : by ring
           ... = (((r * ∥x₀∥)⁻¹) * ∥f x₀∥) * ∥x∥ :
@@ -192,13 +193,31 @@ open asymptotics filter
 theorem is_O_id (l : filter E) : is_O f (λ x, x) l :=
 let ⟨M, hMp, hM⟩ := f.bound in is_O_of_le' l hM
 
-theorem is_O_comp {E : Type*} (g : F →L[𝕜] G) (f : E → F) (l : filter E) :
+theorem is_O_comp {α : Type*} (g : F →L[𝕜] G) (f : α → F) (l : filter α) :
   is_O (λ x', g (f x')) f l :=
 (g.is_O_id ⊤).comp_tendsto le_top
 
 theorem is_O_sub (f : E →L[𝕜] F) (l : filter E) (x : E) :
   is_O (λ x', f (x' - x)) (λ x', x' - x) l :=
 f.is_O_comp _ l
+
+/-- A linear map which is a homothety is a continuous linear map.
+    Since the field `𝕜` need not have `ℝ` as a subfield, this theorem is not directly deducible from
+    the corresponding theorem about isometries plus a theorem about scalar multiplication.  Likewise
+    for the other theorems about homotheties in this file.
+ -/
+def of_homothety (f : E →ₗ[𝕜] F) (a : ℝ) (hf : ∀x, ∥f x∥ = a * ∥x∥) : E →L[𝕜] F :=
+f.mk_continuous a (λ x, le_of_eq (hf x))
+
+variable (𝕜)
+
+lemma to_span_singleton_homothety (x : E) (c : 𝕜) : ∥linear_map.to_span_singleton 𝕜 E x c∥ = ∥x∥ * ∥c∥ :=
+by {rw mul_comm, exact norm_smul _ _}
+
+/-- Given an element `x` of a normed space `E` over a field `𝕜`, the natural continuous
+    linear map from `E` to the span of `x`.-/
+def to_span_singleton (x : E) : 𝕜 →L[𝕜] E :=
+of_homothety (linear_map.to_span_singleton 𝕜 E x) ∥x∥ (to_span_singleton_homothety 𝕜 x)
 
 end
 
@@ -336,6 +355,25 @@ begin
     rw [dist_eq_norm, dist_eq_norm, ← f.map_sub, H] }
 end
 
+lemma homothety_norm (hE : 0 < vector_space.dim 𝕜 E) (f : E →L[𝕜] F) {a : ℝ} (ha : 0 ≤ a) (hf : ∀x, ∥f x∥ = a * ∥x∥) :
+  ∥f∥ = a :=
+begin
+  refine le_antisymm_iff.mpr ⟨_, _⟩,
+  { exact continuous_linear_map.op_norm_le_bound f ha (λ y, le_of_eq (hf y)) },
+  { rw continuous_linear_map.norm_def,
+    apply real.lb_le_Inf _ continuous_linear_map.bounds_nonempty,
+    cases dim_pos_iff_exists_ne_zero.mp hE with x hx,
+    intros c h, rw mem_set_of_eq at h,
+    apply (mul_le_mul_right (norm_pos_iff.mpr hx)).mp,
+    rw ← hf x, exact h.2 x }
+end
+
+lemma to_span_singleton_norm (x : E) : ∥to_span_singleton 𝕜 x∥ = ∥x∥ :=
+begin
+  refine homothety_norm _ _ (norm_nonneg x) (to_span_singleton_homothety 𝕜 x),
+  rw dim_of_field, exact cardinal.zero_lt_one,
+end
+
 variable (f)
 
 theorem uniform_embedding_of_bound {K : nnreal} (hf : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
@@ -407,13 +445,13 @@ begin
   -- Next, we show that this `G` is linear,
   let Glin : E →ₗ[𝕜] F :=
   { to_fun := G,
-    add := λ v w, begin
+    map_add' := λ v w, begin
       have A := hG (v + w),
       have B := (hG v).add (hG w),
       simp only [map_add] at A B,
       exact tendsto_nhds_unique filter.at_top_ne_bot A B,
     end,
-    smul := λ c v, begin
+    map_smul' := λ c v, begin
       have A := hG (c • v),
       have B := filter.tendsto.smul (@tendsto_const_nhds _ ℕ _ c _) (hG v),
       simp only [map_smul] at A B,
@@ -468,14 +506,14 @@ have cont : _ := (uniform_continuous_uniformly_extend h_e h_dense f.uniform_cont
 /- extension of `f` agrees with `f` on the domain of the embedding `e` -/
 have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
 { to_fun := (h_e.dense_inducing h_dense).extend f,
-  add :=
+  map_add' :=
   begin
     refine is_closed_property2 h_dense (is_closed_eq _ _) _,
     { exact cont.comp (continuous_fst.add continuous_snd) },
     { exact (cont.comp continuous_fst).add (cont.comp continuous_snd) },
     { assume x y, rw ← e.map_add, simp only [eq], exact f.map_add _ _  },
   end,
-  smul := λk,
+  map_smul' := λk,
   begin
     refine is_closed_property h_dense (is_closed_eq _ _) _,
     { exact cont.comp (continuous_const.smul continuous_id)  },
@@ -630,6 +668,57 @@ lemma subsingleton_or_norm_symm_pos : subsingleton E ∨ 0 < ∥(e.symm : F →L
 
 lemma subsingleton_or_nnnorm_symm_pos : subsingleton E ∨ 0 < (nnnorm $ (e.symm : F →L[𝕜] E)) :=
 subsingleton_or_norm_symm_pos e
+
+lemma homothety_inverse (a : ℝ) (ha : 0 < a) (f : E ≃ₗ[𝕜] F) :
+  (∀ (x : E), ∥f x∥ = a * ∥x∥) → (∀ (y : F), ∥f.symm y∥ = a⁻¹ * ∥y∥) :=
+begin
+  intros hf y,
+  calc ∥(f.symm) y∥ = a⁻¹ * (a * ∥ (f.symm) y∥) : _
+  ... =  a⁻¹ * ∥f ((f.symm) y)∥ : by rw hf
+  ... = a⁻¹ * ∥y∥ : by simp,
+  rw [← mul_assoc, inv_mul_cancel (ne_of_lt ha).symm, one_mul],
+end
+
+variable (𝕜)
+
+/-- A linear equivalence which is a homothety is a continuous linear equivalence. -/
+def of_homothety (f : E ≃ₗ[𝕜] F) (a : ℝ) (ha : 0 < a) (hf : ∀x, ∥f x∥ = a * ∥x∥) : E ≃L[𝕜] F :=
+{ to_linear_equiv := f,
+  continuous_to_fun := f.to_linear_map.continuous_of_bound a (λ x, le_of_eq (hf x)),
+  continuous_inv_fun := f.symm.to_linear_map.continuous_of_bound a⁻¹
+    (λ x, le_of_eq (homothety_inverse a ha f hf x)) }
+
+lemma to_span_nonzero_singleton_homothety (x : E) (h : x ≠ 0) (c : 𝕜) :
+  ∥linear_equiv.to_span_nonzero_singleton 𝕜 E x h c∥ = ∥x∥ * ∥c∥ :=
+continuous_linear_map.to_span_singleton_homothety _ _ _
+
+/-- Given a nonzero element `x` of a normed space `E` over a field `𝕜`, the natural
+    continuous linear equivalence from `E` to the span of `x`.-/
+def to_span_nonzero_singleton (x : E) (h : x ≠ 0) : 𝕜 ≃L[𝕜] (submodule.span 𝕜 ({x} : set E)) :=
+of_homothety 𝕜
+  (linear_equiv.to_span_nonzero_singleton 𝕜 E x h)
+  ∥x∥
+  (norm_pos_iff.mpr h)
+  (to_span_nonzero_singleton_homothety 𝕜 x h)
+
+/-- Given a nonzero element `x` of a normed space `E` over a field `𝕜`, the natural continuous
+    linear map from the span of `x` to `𝕜`.-/
+abbreviation coord (x : E) (h : x ≠ 0) : (submodule.span 𝕜 ({x} : set E)) →L[𝕜] 𝕜 :=
+  (to_span_nonzero_singleton 𝕜 x h).symm
+
+lemma coord_norm (x : E) (h : x ≠ 0) : ∥coord 𝕜 x h∥ = ∥x∥⁻¹ :=
+begin
+  have hx : 0 < ∥x∥ := (norm_pos_iff.mpr h),
+  refine continuous_linear_map.homothety_norm _ _ (le_of_lt (inv_pos.mpr hx)) _,
+  { rw ← finite_dimensional.findim_eq_dim,
+    rw ← linear_equiv.findim_eq (linear_equiv.to_span_nonzero_singleton 𝕜 E x h),
+    rw finite_dimensional.findim_of_field,
+    have : 0 = ((0:nat) : cardinal) := rfl,
+    rw this, apply cardinal.nat_cast_lt.mpr, norm_num },
+  { intros y,
+    have : (coord 𝕜 x h) y = (to_span_nonzero_singleton 𝕜 x h).symm y := rfl,
+    rw this, apply homothety_inverse, exact hx, exact to_span_nonzero_singleton_homothety 𝕜 x h, }
+end
 
 end continuous_linear_equiv
 

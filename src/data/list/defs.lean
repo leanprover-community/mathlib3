@@ -33,7 +33,8 @@ def split_at : ℕ → list α → list α × list α
 
 
 /-- An auxiliary function for `split_on_p`. -/
-def split_on_p_aux {α : Type u} (P : α → Prop) [decidable_pred P] : list α → (list α → list α) → list (list α)
+def split_on_p_aux {α : Type u} (P : α → Prop) [decidable_pred P] :
+  list α → (list α → list α) → list (list α)
 | [] f       := [f []]
 | (h :: t) f :=
   if P h then f [] :: split_on_p_aux t id
@@ -139,6 +140,18 @@ def prod [has_mul α] [has_one α] : list α → α := foldl (*) 1
 -- dependencies.
 def sum [has_add α] [has_zero α] : list α → α := foldl (+) 0
 
+/-- The alternating sum of a list. -/
+def alternating_sum {G : Type*} [has_zero G] [has_add G] [has_neg G] : list G → G
+| [] := 0
+| (g :: []) := g
+| (g :: h :: t) := g + -h + alternating_sum t
+
+/-- The alternating product of a list. -/
+def alternating_prod {G : Type*} [has_one G] [has_mul G] [has_inv G] : list G → G
+| [] := 1
+| (g :: []) := g
+| (g :: h :: t) := g * h⁻¹ * alternating_prod t
+
 def partition_map (f : α → β ⊕ γ) : list α → list β × list γ
 | [] := ([],[])
 | (x::xs) :=
@@ -152,6 +165,10 @@ end
 def find (p : α → Prop) [decidable_pred p] : list α → option α
 | []     := none
 | (a::l) := if p a then some a else find l
+
+/-- `mfind tac l` returns the first element of `l` on which `tac` succeeds, and fails otherwise. -/
+def mfind {α} {m : Type → Type u} [monad m] [alternative m] (tac : α → m unit) : list α → m α :=
+list.mfirst $ λ a, tac a $> a
 
 def find_indexes_aux (p : α → Prop) [decidable_pred p] : list α → nat → list nat
 | []     n := []
@@ -171,15 +188,6 @@ def lookmap (f : α → option α) : list α → list α
   | some b := b :: l
   | none   := a :: lookmap l
   end
-
-def map_with_index_core (f : ℕ → α → β) : ℕ → list α → list β
-| k []      := []
-| k (a::as) := f k a::(map_with_index_core (k+1) as)
-
-/-- Given a function `f : ℕ → α → β` and `as : list α`, `as = [a₀, a₁, ...]`, returns the list
-`[f 0 a₀, f 1 a₁, ...]`. -/
-def map_with_index (f : ℕ → α → β) (as : list α) : list β :=
-map_with_index_core f 0 as
 
 /-- `indexes_of a l` is the list of all indexes of `a` in `l`.
 
@@ -309,7 +317,8 @@ local infix ` ≺ `:50 := inv_image (prod.lex (<) (<)) meas
 | []      is := H0 is
 | (t::ts) is :=
   have h1 : ⟨ts, t :: is⟩ ≺ ⟨t :: ts, is⟩, from
-    show prod.lex _ _ (succ (length ts + length is), length ts) (succ (length ts) + length is, length (t :: ts)),
+    show prod.lex _ _ (succ (length ts + length is), length ts) (succ (length ts) + length is,
+      length (t :: ts)),
     by rw nat.succ_add; exact prod.lex.right _ (lt_succ_self _),
   have h2 : ⟨is, []⟩ ≺ ⟨t :: ts, is⟩, from prod.lex.left _ _ (nat.lt_add_of_pos_left (succ_pos _)),
   H1 t ts is (permutations_aux.rec ts (t::is)) (permutations_aux.rec is [])
@@ -518,6 +527,31 @@ def mmap_filter {m : Type → Type v} [monad m] {α β} (f : α → m (option β
 | []       := return []
 | (h :: t) := do b ← f h, t' ← t.mmap_filter, return $
   match b with none := t' | (some x) := x::t' end
+
+/--
+`mmap_upper_triangle f l` calls `f` on all elements in the upper triangular part of `l × l`.
+That is, for each `e ∈ l`, it will run `f e e` and then `f e e'`
+for each `e'` that appears after `e` in `l`.
+
+Example: suppose `l = [1, 2, 3]`. `mmap_upper_triangle f l` will produce the list
+`[f 1 1, f 1 2, f 1 3, f 2 2, f 2 3, f 3 3]`.
+-/
+def mmap_upper_triangle {m} [monad m] {α β : Type u} (f : α → α → m β) : list α → m (list β)
+| [] := return []
+| (h::t) := do v ← f h h, l ← t.mmap (f h), t ← t.mmap_upper_triangle, return $ (v::l) ++ t
+
+/--
+`mmap'_diag f l` calls `f` on all elements in the upper triangular part of `l × l`.
+That is, for each `e ∈ l`, it will run `f e e` and then `f e e'`
+for each `e'` that appears after `e` in `l`.
+
+Example: suppose `l = [1, 2, 3]`. `mmap'_diag f l` will evaluate, in this order,
+`f 1 1`, `f 1 2`, `f 1 3`, `f 2 2`, `f 2 3`, `f 3 3`.
+-/
+def mmap'_diag {m} [monad m] {α} (f : α → α → m unit) : list α → m unit
+| [] := return ()
+| (h::t) := f h h >> t.mmap' (f h) >> t.mmap'_diag
+
 
 protected def traverse {F : Type u → Type v} [applicative F] {α β : Type*} (f : α → F β) :
   list α → F (list β)

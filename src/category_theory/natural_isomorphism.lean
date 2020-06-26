@@ -8,12 +8,14 @@ import category_theory.isomorphism
 
 open category_theory
 
-universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄ -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄
 
 namespace category_theory
 open nat_trans
 
-/-- The application of a natural isomorphism to an object. We put this definition in a different namespace, so that we can use α.app -/
+/-- The application of a natural isomorphism to an object. We put this definition in a different
+namespace, so that we can use `α.app` -/
 @[simp, reducible] def iso.app {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
   {F G : C ⥤ D} (α : F ≅ G) (X : C) : F.obj X ≅ G.obj X :=
 { hom := α.hom.app X,
@@ -36,11 +38,13 @@ lemma app_hom {F G : C ⥤ D} (α : F ≅ G) (X : C) : (α.app X).hom = α.hom.a
 lemma app_inv {F G : C ⥤ D} (α : F ≅ G) (X : C) : (α.app X).inv = α.inv.app X := rfl
 
 @[simp, reassoc]
-lemma hom_inv_id_app {F G : C ⥤ D} (α : F ≅ G) (X : C) : α.hom.app X ≫ α.inv.app X = 𝟙 (F.obj X) :=
+lemma hom_inv_id_app {F G : C ⥤ D} (α : F ≅ G) (X : C) :
+  α.hom.app X ≫ α.inv.app X = 𝟙 (F.obj X) :=
 congr_fun (congr_arg app α.hom_inv_id) X
 
 @[simp, reassoc]
-lemma inv_hom_id_app {F G : C ⥤ D} (α : F ≅ G) (X : C) : α.inv.app X ≫ α.hom.app X = 𝟙 (G.obj X) :=
+lemma inv_hom_id_app {F G : C ⥤ D} (α : F ≅ G) (X : C) :
+  α.inv.app X ≫ α.hom.app X = 𝟙 (G.obj X) :=
 congr_fun (congr_arg app α.inv_hom_id) X
 
 variables {F G : C ⥤ D}
@@ -111,18 +115,4 @@ localized "infix ` ■ `:80 := category_theory.nat_iso.hcomp" in category
 
 end nat_iso
 
-namespace functor
-
-variables {C : Type u₁} [category.{v₁} C]
-
-def ulift_down_up : ulift_down.{v₁} C ⋙ ulift_up C ≅ 𝟭 (ulift.{u₂} C) :=
-{ hom := { app := λ X, @category_struct.id (ulift.{u₂} C) _ X },
-  inv := { app := λ X, @category_struct.id (ulift.{u₂} C) _ X } }
-
-def ulift_up_down : ulift_up.{v₁} C ⋙ ulift_down C ≅ 𝟭 C :=
-{ hom := { app := λ X, 𝟙 X },
-  inv := { app := λ X, 𝟙 X } }
-
-
-end functor
 end category_theory

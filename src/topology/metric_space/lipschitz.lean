@@ -27,7 +27,7 @@ argument, and return `lipschitz_with (nnreal.of_real K) f`.
 
 universes u v w x
 
-open filter
+open filter function
 open_locale topological_space nnreal
 
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Type x}
@@ -144,7 +144,7 @@ begin
   rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
   simp only [function.uncurry, ennreal.coe_add, add_mul],
   apply le_trans (edist_triangle _ (f a₂ b₁) _),
-  exact add_le_add' (le_trans (hα _ _ _) $ ennreal.mul_left_mono $ le_max_left _ _)
+  exact add_le_add (le_trans (hα _ _ _) $ ennreal.mul_left_mono $ le_max_left _ _)
     (le_trans (hβ _ _ _) $ ennreal.mul_left_mono $ le_max_right _ _)
 end
 
@@ -156,7 +156,7 @@ protected lemma iterate {f : α → α} (hf : lipschitz_with K f) :
 lemma edist_iterate_succ_le_geometric {f : α → α} (hf : lipschitz_with K f) (x n) :
   edist (f^[n] x) (f^[n + 1] x) ≤ edist x (f x) * K ^ n :=
 begin
-  rw [nat.iterate_succ, mul_comm],
+  rw [iterate_succ, mul_comm],
   simpa only [ennreal.coe_pow] using (hf.iterate n) x (f x)
 end
 
@@ -247,7 +247,7 @@ lipschitz_with.uncurry lipschitz_with.dist_left lipschitz_with.dist_right
 lemma dist_iterate_succ_le_geometric {f : α → α} (hf : lipschitz_with K f) (x n) :
   dist (f^[n] x) (f^[n + 1] x) ≤ dist x (f x) * K ^ n :=
 begin
-  rw [nat.iterate_succ, mul_comm],
+  rw [iterate_succ, mul_comm],
   simpa only [nnreal.coe_pow] using (hf.iterate n).dist_le_mul x (f x)
 end
 

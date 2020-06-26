@@ -94,7 +94,7 @@ begin
     { apply inv_le_one, apply one_le_pow_of_one_le, norm_num },
     { simp only [d, sub_smul, smul_sub, one_smul], abel } },
   show tendsto c at_top at_top,
-  { exact tendsto_pow_at_top_at_top_of_gt_1 one_lt_two },
+  { exact tendsto_pow_at_top_at_top_of_one_lt one_lt_two },
   show filter.tendsto (λ (n : ℕ), c n • d n) filter.at_top (𝓝 (y - x)),
   { have : (λ (n : ℕ), c n • d n) = (λn, y - x),
     { ext n,

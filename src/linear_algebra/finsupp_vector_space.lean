@@ -14,7 +14,7 @@ open set linear_map submodule
 
 namespace finsupp
 
-section module
+section ring
 variables {R : Type*} {M : Type*} {ι : Type*}
 variables [ring R] [add_comm_group M] [module R M]
 
@@ -41,17 +41,11 @@ begin
       apply range_comp_subset_range } }
 end
 
-end module
-
-section vector_space
-variables {K : Type*} {V : Type*} {ι : Type*}
-variables [field K] [add_comm_group V] [vector_space K V]
-
 open linear_map submodule
 
-lemma is_basis_single {φ : ι → Type*} (f : Π ι, φ ι → V)
-  (hf : ∀i, is_basis K (f i)) :
-  is_basis K (λ ix : Σ i, φ i, single ix.1 (f ix.1 ix.2)) :=
+lemma is_basis_single {φ : ι → Type*} (f : Π ι, φ ι → M)
+  (hf : ∀i, is_basis R (f i)) :
+  is_basis R (λ ix : Σ i, φ i, single ix.1 (f ix.1 ix.2)) :=
 begin
   split,
   { apply linear_independent_single,
@@ -61,7 +55,26 @@ begin
     simp only [image_univ, (hf _).2, map_top, supr_lsingle_range] }
 end
 
-end vector_space
+lemma is_basis_single_one : is_basis R (λ i : ι, single i (1 : R)) :=
+by convert (is_basis_single (λ (i : ι) (x : unit), (1 : R)) (λ i, is_basis_singleton_one R)).comp
+  (λ i : ι, ⟨i, ()⟩) ⟨λ _ _, and.left ∘ sigma.mk.inj, λ ⟨i, ⟨⟩⟩, ⟨i, rfl⟩⟩
+
+end ring
+
+section comm_ring
+variables {R : Type*} {M : Type*} {N : Type*} {ι : Type*} {κ : Type*}
+variables [comm_ring R] [add_comm_group M] [module R M] [add_comm_group N] [module R N]
+
+/-- If b : ι → M and c : κ → N are bases then so is λ i, b i.1 ⊗ₜ c i.2 : ι × κ → M ⊗ N. -/
+lemma is_basis.tensor_product {b : ι → M} (hb : is_basis R b) {c : κ → N} (hc : is_basis R c) :
+  is_basis R (λ i : ι × κ, b i.1 ⊗ₜ[R] c i.2) :=
+by { convert linear_equiv.is_basis is_basis_single_one
+  ((tensor_product.congr (module_equiv_finsupp hb) (module_equiv_finsupp hc)).trans $
+    (finsupp_tensor_finsupp _ _ _ _ _).trans $
+    lcongr (equiv.refl _) (tensor_product.lid R R)).symm,
+  ext ⟨i, k⟩, rw [function.comp_apply, linear_equiv.eq_symm_apply], simp }
+
+end comm_ring
 
 section dim
 universes u v
@@ -74,7 +87,7 @@ begin
   rw [← cardinal.lift_inj, cardinal.lift_mul, ← hbs.mk_eq_dim,
       ← (is_basis_single _ (λa:ι, hbs)).mk_eq_dim, ← cardinal.sum_mk,
       ← cardinal.lift_mul, cardinal.lift_inj],
-  { simp only [cardinal.mk_image_eq (injective_single.{u u} _), cardinal.sum_const] }
+  { simp only [cardinal.mk_image_eq (single_injective.{u u} _), cardinal.sum_const] }
 end
 
 end dim
@@ -144,7 +157,7 @@ begin
   rcases cardinal.lt_omega.1 hV₁ with ⟨d₁, eq₁⟩,
   rcases cardinal.lt_omega.1 hk with ⟨d₂, eq₂⟩,
   have : 0 = d₂,
-  { have := dim_eq_surjective f (linear_map.range_eq_top.1 hf),
+  { have := dim_eq_of_surjective f (linear_map.range_eq_top.1 hf),
     rw [heq, eq₁, eq₂, ← nat.cast_add, cardinal.nat_cast_inj] at this,
     exact nat.add_left_cancel this },
   refine eq_bot_iff_dim_eq_zero _ _,
@@ -157,11 +170,9 @@ section vector_space
 universes u
 
 open vector_space
-local attribute [instance] submodule.module
 
 variables {K V : Type u} [field K] [add_comm_group V] [vector_space K V]
 
-set_option pp.universes false
 lemma cardinal_mk_eq_cardinal_mk_field_pow_dim (h : dim K V < cardinal.omega) :
   cardinal.mk V = cardinal.mk K ^ dim K V :=
 begin

@@ -126,7 +126,7 @@ begin
       by rw B,
     suffices C : (function.update v (r j') z) ∘ r = function.update (v ∘ r) j' z,
       by { convert C, exact (c.embedding_comp_inv j).symm },
-    exact function.update_comp_eq_of_injective _ (c.embedding_inj _) _ _ },
+    exact function.update_comp_eq_of_injective _ (c.embedding_injective _) _ _ },
   { simp only [h, function.update_eq_self, function.update_noteq, ne.def, not_false_iff],
     let r : fin (c.blocks_fun k) → fin n := c.embedding k,
     change p (c.blocks_fun k) ((function.update v j z) ∘ r) = p (c.blocks_fun k) (v ∘ r),
@@ -143,9 +143,11 @@ multilinear map, called `q.comp_along_composition p c` below. -/
 def comp_along_composition_multilinear {n : ℕ}
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
   (c : composition n) : multilinear_map 𝕜 (λ i : fin n, E) G :=
-{ to_fun := λ v, q c.length (p.apply_composition c v),
-  add    := λ v i x y, by simp only [apply_composition_update, continuous_multilinear_map.map_add],
-  smul   := λ v i c x, by simp only [apply_composition_update, continuous_multilinear_map.map_smul] }
+{ to_fun    := λ v, q c.length (p.apply_composition c v),
+  map_add'  := λ v i x y, by simp only [apply_composition_update,
+    continuous_multilinear_map.map_add],
+  map_smul' := λ v i c x, by simp only [apply_composition_update,
+    continuous_multilinear_map.map_smul] }
 
 /-- The norm of `q.comp_along_composition_multilinear p c` is controlled by the product of
 the norms of the relevant bits of `q` and `p`. -/
@@ -362,9 +364,9 @@ begin
   let r0 : nnreal := (4 * max Cp 1)⁻¹,
   set r := min rp 1 * min rq 1 * r0,
   have r_pos : 0 < r,
-  { apply mul_pos' (mul_pos' _ _),
+  { apply mul_pos (mul_pos _ _),
     { rw [nnreal.inv_pos],
-      apply mul_pos',
+      apply mul_pos,
       { norm_num },
       { exact lt_of_lt_of_le zero_lt_one (le_max_right _ _) } },
     { rw ennreal.coe_pos at rp_pos, simp [rp_pos, zero_lt_one] },
@@ -380,15 +382,13 @@ begin
   { rintros ⟨n, c⟩,
     rw [← ennreal.coe_pow, ← ennreal.coe_mul, ennreal.coe_le_coe],
     calc nnnorm (q.comp_along_composition p c) * r ^ n
-    ≤ (nnnorm (q c.length) *
-        (finset.univ : finset (fin (c.length))).prod (λ i, nnnorm (p (c.blocks_fun i)))) * r ^ n :
+    ≤ (nnnorm (q c.length) * ∏ i, nnnorm (p (c.blocks_fun i))) * r ^ n :
       mul_le_mul_of_nonneg_right (q.comp_along_composition_nnnorm p c) (bot_le)
     ... = (nnnorm (q c.length) * (min rq 1)^n) *
-      ((finset.univ : finset (fin (c.length))).prod (λ i, nnnorm (p (c.blocks_fun i))) * (min rp 1) ^ n)
-      * r0 ^ n : by { dsimp [r], ring_exp }
+      ((∏ i, nnnorm (p (c.blocks_fun i))) * (min rp 1) ^ n) *
+      r0 ^ n : by { dsimp [r], ring_exp }
     ... ≤ (nnnorm (q c.length) * (min rq 1) ^ c.length) *
-      ((finset.univ : finset (fin c.length)).prod
-        (λ i, nnnorm (p (c.blocks_fun i)) * (min rp 1) ^ (c.blocks_fun i))) * r0 ^ n :
+      (∏ i, nnnorm (p (c.blocks_fun i)) * (min rp 1) ^ (c.blocks_fun i)) * r0 ^ n :
       begin
         apply_rules [mul_le_mul, bot_le, le_refl, pow_le_pow_of_le_one, min_le_right, c.length_le],
         apply le_of_eq,
@@ -396,7 +396,7 @@ begin
         congr' 1,
         conv_lhs { rw [← c.sum_blocks_fun, ← finset.prod_pow_eq_pow_sum] },
       end
-    ... ≤ Cq * ((finset.univ : finset (fin c.length)).prod (λ i, Cp)) * r0 ^ n :
+    ... ≤ Cq * (∏ i : fin c.length, Cp) * r0 ^ n :
       begin
         apply_rules [mul_le_mul, bot_le, le_trans _ (hCq c.length), le_refl, finset.prod_le_prod'],
         { assume i hi,
@@ -431,7 +431,7 @@ begin
     begin
       congr' 1,
       ext1 n,
-      rw [tsum_fintype, finset.sum_const, add_monoid.smul_eq_mul, finset.card_univ, mul_assoc]
+      rw [tsum_fintype, finset.sum_const, nsmul_eq_mul, finset.card_univ, mul_assoc]
     end
   ... ≤ (∑' (n : ℕ), (2 : ennreal) ^ n * (Cq : ennreal) * a ^ n) :
     begin
@@ -506,7 +506,7 @@ def comp_change_of_variables (N : ℕ) (i : Σ n, (fin n) → ℕ) (hi : i ∈ c
 begin
   rcases i with ⟨n, f⟩,
   rw mem_comp_partial_sum_source_iff at hi,
-  refine ⟨finset.univ.sum f, of_fn (λ a, f a), λ i hi', _, by simp [sum_of_fn]⟩,
+  refine ⟨∑ j, f j, of_fn (λ a, f a), λ i hi', _, by simp [sum_of_fn]⟩,
   obtain ⟨j, rfl⟩ : ∃ (j : fin n), f j = i, by rwa [mem_of_fn, set.mem_range] at hi',
   exact (hi.2 j).1
 end
@@ -556,7 +556,7 @@ end
 power series, here given a a finset.
 See also `comp_partial_sum`. -/
 def comp_partial_sum_target (N : ℕ) : finset (Σ n, composition n) :=
-set.finite.to_finset $ set.finite_dependent_image (finset.finite_to_set _)
+set.finite.to_finset $ (finset.finite_to_set _).dependent_image
   (comp_partial_sum_target_subset_image_comp_partial_sum_source N)
 
 @[simp] lemma mem_comp_partial_sum_target_iff {N : ℕ} {a : Σ n, composition n} :

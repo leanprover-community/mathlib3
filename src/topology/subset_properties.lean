@@ -10,7 +10,8 @@ import topology.continuous_on
 
 ## Main definitions
 
-`compact`, `is_clopen`, `is_irreducible`, `is_connected`, `is_totally_disconnected`, `is_totally_separated`
+`compact`, `is_clopen`, `is_irreducible`, `is_connected`, `is_totally_disconnected`,
+`is_totally_separated`
 
 TODO: write better docs
 
@@ -28,7 +29,7 @@ https://ncatlab.org/nlab/show/too+simple+to+be+simple#relationship_to_biased_def
 -/
 
 open set filter classical
-open_locale classical topological_space
+open_locale classical topological_space filter
 
 universes u v
 variables {α : Type u} {β : Type v} [topological_space α]
@@ -38,13 +39,13 @@ section compact
 
 /-- A set `s` is compact if for every filter `f` that contains `s`,
     every set of `f` also meets every neighborhood of some `a ∈ s`. -/
-def compact (s : set α) := ∀f, f ≠ ⊥ → f ≤ principal s → ∃a∈s, f ⊓ 𝓝 a ≠ ⊥
+def compact (s : set α) := ∀f, f ≠ ⊥ → f ≤ 𝓟 s → ∃a∈s, cluster_pt a f
 
 lemma compact.inter_right {s t : set α} (hs : compact s) (ht : is_closed t) : compact (s ∩ t) :=
 assume f hnf hstf,
-let ⟨a, hsa, (ha : f ⊓ 𝓝 a ≠ ⊥)⟩ := hs f hnf (le_trans hstf (le_principal_iff.2 (inter_subset_left _ _))) in
+let ⟨a, hsa, (ha : cluster_pt a f)⟩ := hs f hnf (le_trans hstf (le_principal_iff.2 (inter_subset_left _ _))) in
 have a ∈ t,
-  from ht.mem_of_nhds_within_ne_bot $ ne_bot_of_le_ne_bot (by { rw inf_comm at ha, exact ha }) $
+  from ht.mem_of_nhds_within_ne_bot $ ne_bot_of_le_ne_bot ha $
     inf_le_inf_left _ (le_trans hstf (le_principal_iff.2 (inter_subset_right _ _))),
 ⟨a, ⟨hsa, this⟩, ha⟩
 
@@ -59,34 +60,34 @@ lemma compact_of_is_closed_subset {s t : set α}
 inter_eq_self_of_subset_right h ▸ hs.inter_right ht
 
 lemma compact.adherence_nhdset {s t : set α} {f : filter α}
-  (hs : compact s) (hf₂ : f ≤ principal s) (ht₁ : is_open t) (ht₂ : ∀a∈s, 𝓝 a ⊓ f ≠ ⊥ → a ∈ t) :
+  (hs : compact s) (hf₂ : f ≤ 𝓟 s) (ht₁ : is_open t) (ht₂ : ∀a∈s, cluster_pt a f → a ∈ t) :
   t ∈ f :=
 classical.by_cases mem_sets_of_eq_bot $
-  assume : f ⊓ principal (- t) ≠ ⊥,
-  let ⟨a, ha, (hfa : f ⊓ principal (-t) ⊓ 𝓝 a ≠ ⊥)⟩ := hs _ this $ inf_le_left_of_le hf₂ in
+  assume : f ⊓ 𝓟 (- t) ≠ ⊥,
+  let ⟨a, ha, (hfa : cluster_pt a $ f ⊓ 𝓟 (-t))⟩ := hs _ this $ inf_le_left_of_le hf₂ in
   have a ∈ t,
-    from ht₂ a ha $ ne_bot_of_le_ne_bot hfa $ le_inf inf_le_right $ inf_le_left_of_le inf_le_left,
+    from ht₂ a ha (cluster_pt_of_inf_left hfa),
   have (-t) ∩ t ∈ nhds_within a (-t),
     from inter_mem_nhds_within _ (mem_nhds_sets ht₁ this),
   have A : nhds_within a (-t) = ⊥,
     from empty_in_sets_eq_bot.1 $ compl_inter_self t ▸ this,
   have nhds_within a (-t) ≠ ⊥,
-    from ne_bot_of_le_ne_bot hfa $ le_inf inf_le_right $ inf_le_left_of_le inf_le_right,
+    from cluster_pt_of_inf_right hfa,
   absurd A this
 
 lemma compact_iff_ultrafilter_le_nhds {s : set α} :
-  compact s ↔ (∀f, is_ultrafilter f → f ≤ principal s → ∃a∈s, f ≤ 𝓝 a) :=
+  compact s ↔ (∀f, is_ultrafilter f → f ≤ 𝓟 s → ∃a∈s, f ≤ 𝓝 a) :=
 ⟨assume hs : compact s, assume f hf hfs,
   let ⟨a, ha, h⟩ := hs _ hf.left hfs in
   ⟨a, ha, le_of_ultrafilter hf h⟩,
 
-  assume hs : (∀f, is_ultrafilter f → f ≤ principal s → ∃a∈s, f ≤ 𝓝 a),
+  assume hs : (∀f, is_ultrafilter f → f ≤ 𝓟 s → ∃a∈s, f ≤ 𝓝 a),
   assume f hf hfs,
   let ⟨a, ha, (h : ultrafilter_of f ≤ 𝓝 a)⟩ :=
     hs (ultrafilter_of f) (ultrafilter_ultrafilter_of hf) (le_trans ultrafilter_of_le hfs) in
-  have ultrafilter_of f ⊓ 𝓝 a ≠ ⊥,
-    by simp only [inf_of_le_left, h]; exact (ultrafilter_ultrafilter_of hf).left,
-  ⟨a, ha, ne_bot_of_le_ne_bot this (inf_le_inf_right _ ultrafilter_of_le)⟩⟩
+  have cluster_pt a (ultrafilter_of f),
+    from cluster_pt.of_le_nhds h (ultrafilter_ultrafilter_of hf).left,
+  ⟨a, ha, this.mono ultrafilter_of_le⟩⟩
 
 /-- For every open cover of a compact set, there exists a finite subcover. -/
 lemma compact.elim_finite_subcover {s : set α} {ι : Type v} (hs : compact s)
@@ -96,7 +97,7 @@ classical.by_contradiction $ assume h,
   have h : ∀ t : finset ι, ¬ s ⊆ ⋃ i ∈ t, U i,
     from assume t ht, h ⟨t, ht⟩,
   let
-    f : filter α := (⨅t:finset ι, principal (s - ⋃ i ∈ t, U i)),
+    f : filter α := (⨅t:finset ι, 𝓟 (s - ⋃ i ∈ t, U i)),
     ⟨a, ha⟩ := (@ne_empty_iff_nonempty α s).1 (assume h', h ∅ $ h'.symm ▸ empty_subset _)
   in
   have f ≠ ⊥, from infi_ne_bot_of_directed ⟨a⟩
@@ -105,19 +106,18 @@ classical.by_contradiction $ assume h,
       bUnion_subset_bUnion_left $ finset.subset_union_left _ _,
     principal_mono.mpr $ diff_subset_diff_right $
       bUnion_subset_bUnion_left $ finset.subset_union_right _ _⟩)
-   (assume t, show principal (s \ _) ≠ ⊥,
+   (assume t, show 𝓟 (s \ _) ≠ ⊥,
      by simp only [ne.def, principal_eq_bot_iff, diff_eq_empty]; exact h _),
-  have f ≤ principal s, from infi_le_of_le ∅ $
-    show principal (s \ _) ≤ principal s, from le_principal_iff.2 (diff_subset _ _),
+  have f ≤ 𝓟 s, from infi_le_of_le ∅ $
+    show 𝓟 (s \ _) ≤ 𝓟 s, from le_principal_iff.2 (diff_subset _ _),
   let
-    ⟨a, ha, (h : f ⊓ 𝓝 a ≠ ⊥)⟩ := hs f ‹f ≠ ⊥› this,
+    ⟨a, ha, (h : cluster_pt a f)⟩ := hs f ‹f ≠ ⊥› this,
     ⟨_, ⟨i, rfl⟩, (ha : a ∈ U i)⟩ := hsU ha
   in
-  have f ≤ principal (- U i),
+  have f ≤ 𝓟 (- U i),
     from infi_le_of_le {i} $ principal_mono.mpr $ show s - _ ⊆ - U i, by simp [diff_subset_iff],
   have is_closed (- U i), from is_open_compl_iff.mp $ by rw compl_compl; exact hUo i,
-  have a ∈ - U i, from is_closed_iff_nhds.mp this _ $ ne_bot_of_le_ne_bot h $
-    le_inf inf_le_right (inf_le_left_of_le ‹f ≤ principal (- U i)›),
+  have a ∈ - U i, from is_closed_iff_nhds.mp this _ (h.mono ‹f ≤ 𝓟 (- U i)›),
   this ‹a ∈ U i›
 
 /-- For every family of closed sets whose intersection avoids a compact set,
@@ -200,18 +200,18 @@ theorem compact_of_finite_subfamily_closed {s : set α}
   (h : Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →
     s ∩ (⋂ i, Z i) = ∅ → (∃ (t : finset ι), s ∩ (⋂ i ∈ t, Z i) = ∅)) :
   compact s :=
-assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ 𝓝 x ≠ ⊥),
+assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, cluster_pt x f),
   have hf : ∀x∈s, 𝓝 x ⊓ f = ⊥,
-    by simpa only [not_exists, not_not, inf_comm],
+    by simpa only [cluster_pt, not_exists, not_not],
   have ¬ ∃x∈s, ∀t∈f.sets, x ∈ closure t,
     from assume ⟨x, hxs, hx⟩,
     have ∅ ∈ 𝓝 x ⊓ f, by rw [empty_in_sets_eq_bot, hf x hxs],
     let ⟨t₁, ht₁, t₂, ht₂, ht⟩ := by rw [mem_inf_sets] at this; exact this in
-    have ∅ ∈ 𝓝 x ⊓ principal t₂,
-      from (𝓝 x ⊓ principal t₂).sets_of_superset (inter_mem_inf_sets ht₁ (subset.refl t₂)) ht,
-    have 𝓝 x ⊓ principal t₂ = ⊥,
+    have ∅ ∈ 𝓝 x ⊓ 𝓟 t₂,
+      from (𝓝 x ⊓ 𝓟 t₂).sets_of_superset (inter_mem_inf_sets ht₁ (subset.refl t₂)) ht,
+    have 𝓝 x ⊓ 𝓟 t₂ = ⊥,
       by rwa [empty_in_sets_eq_bot] at this,
-    by simp only [closure_eq_nhds] at hx; exact hx t₂ ht₂ this,
+    by simp only [closure_eq_cluster_pts] at hx; exact hx t₂ ht₂ this,
   let ⟨t, ht⟩ := h (λ i : f.sets, closure i.1) (λ i, is_closed_closure)
     (by simpa [eq_empty_iff_forall_not_mem, not_exists]) in
   have (⋂i∈t, subtype.val i) ∈ f,
@@ -368,7 +368,7 @@ class compact_space (α : Type*) [topological_space α] : Prop :=
 lemma compact_univ [h : compact_space α] : compact (univ : set α) := h.compact_univ
 
 lemma cluster_point_of_compact [compact_space α]
-  {f : filter α} (h : f ≠ ⊥) : ∃ x, f ⊓ 𝓝 x ≠ ⊥ :=
+  {f : filter α} (h : f ≠ ⊥) : ∃ x, cluster_pt x f :=
 by simpa using compact_univ f h (by simpa using f.univ_sets)
 
 theorem compact_space_of_finite_subfamily_closed {α : Type u} [topological_space α]
@@ -392,12 +392,12 @@ lemma compact.image_of_continuous_on {s : set α} {f : α → β} (hs : compact 
   (hf : continuous_on f s) : compact (f '' s) :=
 begin
   intros l lne ls,
-  have ne_bot : l.comap f ⊓ principal s ≠ ⊥,
+  have ne_bot : l.comap f ⊓ 𝓟 s ≠ ⊥,
     from comap_inf_principal_ne_bot_of_image_mem lne (le_principal_iff.1 ls),
-  rcases hs (l.comap f ⊓ principal s) ne_bot inf_le_right with ⟨a, has, ha⟩,
+  rcases hs (l.comap f ⊓ 𝓟 s) ne_bot inf_le_right with ⟨a, has, ha⟩,
   use [f a, mem_image_of_mem f has],
-  rw [inf_assoc, @inf_comm _ _ _ (𝓝 a)] at ha,
-  exact ne_bot_of_le_ne_bot (@@map_ne_bot f ha) (tendsto_comap.inf $ hf a has)
+  apply ne_bot_of_le_ne_bot (@@map_ne_bot f ha),
+  convert (tendsto_comap.inf (hf a has) :  tendsto f (comap f l ⊓ (𝓝 a ⊓ 𝓟 s)) _) using 1 ; ac_refl
 end
 
 lemma compact.image {s : set α} {f : α → β} (hs : compact s) (hf : continuous f) :
@@ -420,7 +420,7 @@ begin
   set πY := (prod.snd : X × Y → Y),
   assume C (hC : is_closed C),
   rw is_closed_iff_nhds at hC ⊢,
-  assume y (y_closure : 𝓝 y ⊓ 𝓟 (πY '' C) ≠ ⊥),
+  assume y (y_closure : cluster_pt y $ 𝓟 (πY '' C)),
   have : map πX (comap πY (𝓝 y) ⊓ 𝓟 C) ≠ ⊥,
   { suffices : map πY (comap πY (𝓝 y) ⊓ 𝓟 C) ≠ ⊥,
       from map_ne_bot (λ h, this $  by rw h ; exact map_bot ),
@@ -428,15 +428,16 @@ begin
        𝓝 y ⊓ map πY (𝓟 C) : filter.push_pull' _ _ _
       ... = 𝓝 y ⊓ 𝓟 (πY '' C) : by rw map_principal
       ... ≠ ⊥ : y_closure },
-  obtain ⟨x, hx⟩ : ∃ x, map πX (comap πY (𝓝 y) ⊓ 𝓟 C) ⊓ 𝓝 x ≠ ⊥,
+  obtain ⟨x, hx⟩ : ∃ x, cluster_pt x (map πX (comap πY (𝓝 y) ⊓ 𝓟 C)),
     from cluster_point_of_compact this,
   refine ⟨⟨x, y⟩, _, by simp [πY]⟩,
   apply hC,
-  rw ← filter.map_ne_bot_iff πX,
+  rw [cluster_pt, ← filter.map_ne_bot_iff πX],
   calc map πX (𝓝 (x, y) ⊓ 𝓟 C)
       = map πX (comap πX (𝓝 x) ⊓ comap πY (𝓝 y) ⊓ 𝓟 C) : by rw [nhds_prod_eq, filter.prod]
   ... = map πX (comap πY (𝓝 y) ⊓ 𝓟 C ⊓ comap πX (𝓝 x)) : by ac_refl
   ... = map πX (comap πY (𝓝 y) ⊓ 𝓟 C) ⊓ 𝓝 x            : by rw filter.push_pull
+  ... = 𝓝 x ⊓ map πX (comap πY (𝓝 y) ⊓ 𝓟 C)            : by rw inf_comm
   ... ≠ ⊥ : hx,
 end
 
@@ -446,7 +447,7 @@ iff.intro (assume h, h.image hf.continuous) $ assume h, begin
   rw compact_iff_ultrafilter_le_nhds at ⊢ h,
   intros u hu us',
   let u' : filter β := map f u,
-  have : u' ≤ principal (f '' s), begin
+  have : u' ≤ 𝓟 (f '' s), begin
     rw [map_le_iff_le_comap, comap_principal], convert us',
     exact preimage_image_eq _ hf.inj
   end,
@@ -830,7 +831,8 @@ lemma is_connected.nonempty {s : set α} (h : is_connected s) :
 lemma is_connected.is_preconnected {s : set α} (h : is_connected s) :
   is_preconnected s := h.2
 
-theorem is_preirreducible.is_preconnected {s : set α} (H : is_preirreducible s) : is_preconnected s :=
+theorem is_preirreducible.is_preconnected {s : set α} (H : is_preirreducible s) :
+  is_preconnected s :=
 λ _ _ hu hv _, H _ _ hu hv
 
 theorem is_irreducible.is_connected {s : set α} (H : is_irreducible s) : is_connected s :=
@@ -989,6 +991,8 @@ subset_connected_component
 /-- A preconnected space is one where there is no non-trivial open partition. -/
 class preconnected_space (α : Type u) [topological_space α] : Prop :=
 (is_preconnected_univ : is_preconnected (univ : set α))
+
+export preconnected_space (is_preconnected_univ)
 
 section prio
 set_option default_priority 100 -- see Note [default priority]

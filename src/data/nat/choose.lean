@@ -3,8 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Bhavik Mehta, Patrick Stevens
 -/
-import algebra.commute
 import tactic.linarith
+import algebra.big_operators
 
 open nat
 
@@ -52,7 +52,7 @@ decreasing_induction
   hr (λ _, le_refl _) hr
 
 /-- `choose n r` is maximised when `r` is `n/2`. -/
-lemma choose_le_middle {r n : ℕ} : nat.choose n r ≤ nat.choose n (n/2) :=
+lemma choose_le_middle (r n : ℕ) : nat.choose n r ≤ nat.choose n (n/2) :=
 begin
   cases le_or_gt r n with b b,
   { cases le_or_lt r (n/2) with a h,
@@ -98,14 +98,14 @@ begin
         rw[pow_succ y, mul_assoc, mul_assoc, mul_assoc, mul_assoc] } }
   end,
   induction n with n ih,
-  { rw [_root_.pow_zero, sum_range_succ, range_zero, sum_empty, add_zero],
+  { rw [pow_zero, sum_range_succ, range_zero, sum_empty, add_zero],
     dsimp [t], rw [choose_self, nat.cast_one, mul_one, mul_one] },
   { rw[sum_range_succ', h_first],
     rw[finset.sum_congr rfl (h_middle n), finset.sum_add_distrib, add_assoc],
     rw[pow_succ (x + y), ih, add_mul, finset.mul_sum, finset.mul_sum],
     congr' 1,
     rw[finset.sum_range_succ', finset.sum_range_succ, h_first, h_last,
-       mul_zero, zero_add, _root_.pow_succ] }
+       mul_zero, zero_add, pow_succ] }
 end
 
 /-- The binomial theorem-/
@@ -138,5 +138,12 @@ calc 2 * (∑ i in range (m + 1), nat.choose (2 * m + 1) i) =
 ... = ∑ i in range (2 * m + 2), nat.choose (2 * m + 1) i : sum_range_add_sum_Ico _ (by omega)
 ... = 2^(2 * m + 1) : sum_range_choose (2 * m + 1)
 ... = 2 * 4^m : by { rw [nat.pow_succ, mul_comm, nat.pow_mul], refl }
+
+lemma choose_middle_le_pow (n : ℕ) : choose (2 * n + 1) n ≤ 4 ^ n :=
+begin
+  have t : choose (2 * n + 1) n ≤ ∑ i in finset.range (n + 1), choose (2 * n + 1) i :=
+    finset.single_le_sum (λ x _, by linarith) (finset.self_mem_range_succ n),
+  simpa [sum_range_choose_halfway n] using t
+end
 
 end binomial

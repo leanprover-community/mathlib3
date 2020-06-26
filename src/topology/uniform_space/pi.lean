@@ -46,7 +46,7 @@ instance Pi.complete [∀ i, complete_space (α i)] : complete_space (Π i, α i
   exact λ i, map_le_iff_le_comap.mp (hx i),
 end⟩
 
-instance Pi.separated [∀ i, separated (α i)] : separated (Π i, α i) :=
+instance Pi.separated [∀ i, separated_space (α i)] : separated_space (Π i, α i) :=
 separated_def.2 $ assume x y H,
 begin
   ext i,

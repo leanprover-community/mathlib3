@@ -59,6 +59,8 @@ instance [add_comm_group α] : add_comm_group (matrix m n α) := pi.add_comm_gro
 section diagonal
 variables [decidable_eq n]
 
+/-- `diagonal d` is the square matrix such that `(diagonal d) i i = d i` and `(diagonal d) i j = 0`
+if `i ≠ j`. -/
 def diagonal [has_zero α] (d : n → α) : matrix n n α := λ i j, if i = j then d i else 0
 
 @[simp] theorem diagonal_val_eq [has_zero α] {d : n → α} (i : n) : (diagonal d) i i = d i :=
@@ -82,6 +84,10 @@ begin
   { simp [h, transpose, diagonal_val_ne' h] }
 end
 
+@[simp] theorem diagonal_add [add_monoid α] (d₁ d₂ : n → α) :
+  diagonal d₁ + diagonal d₂ = diagonal (λ i, d₁ i + d₂ i) :=
+by ext i j; by_cases h : i = j; simp [h]
+
 section one
 variables [has_zero α] [has_one α]
 
@@ -100,11 +106,31 @@ theorem one_val_ne' {i j} : j ≠ i → (1 : matrix n n α) i j = 0 :=
 diagonal_val_ne'
 
 end one
-end diagonal
 
-@[simp] theorem diagonal_add [decidable_eq n] [add_monoid α] (d₁ d₂ : n → α) :
-  diagonal d₁ + diagonal d₂ = diagonal (λ i, d₁ i + d₂ i) :=
-by ext i j; by_cases i = j; simp [h]
+section numeral
+
+@[simp] lemma bit0_val [has_add α] (M : matrix m m α) (i : m) (j : m) :
+  (bit0 M) i j = bit0 (M i j) := rfl
+
+variables [add_monoid α] [has_one α]
+
+lemma bit1_val (M : matrix n n α) (i : n) (j : n) :
+  (bit1 M) i j = if i = j then bit1 (M i j) else bit0 (M i j) :=
+by dsimp [bit1]; by_cases h : i = j; simp [h]
+
+@[simp]
+lemma bit1_val_eq (M : matrix n n α) (i : n) :
+  (bit1 M) i i = bit1 (M i i) :=
+by simp [bit1_val]
+
+@[simp]
+lemma bit1_val_ne (M : matrix n n α) {i j : n} (h : i ≠ j) :
+  (bit1 M) i j = bit0 (M i j) :=
+by simp [bit1_val, h]
+
+end numeral
+
+end diagonal
 
 section dot_product
 
@@ -267,14 +293,14 @@ lemma is_add_monoid_hom_mul_right (M : matrix m n α) :
 { to_is_add_hom := ⟨λ _ _, matrix.add_mul _ _ _⟩, map_zero := matrix.zero_mul _ }
 
 protected lemma sum_mul {β : Type*} (s : finset β) (f : β → matrix l m α)
-  (M : matrix m n α) : s.sum f ⬝ M = s.sum (λ a, f a ⬝ M) :=
+  (M : matrix m n α) : (∑ a in s, f a) ⬝ M = ∑ a in s, f a ⬝ M :=
 (@finset.sum_hom _ _ _ _ _ s f (λ x, x ⬝ M)
 /- This line does not type-check without `id` and `: _`. Lean did not recognize that two different
   `add_monoid` instances were def-eq -/
   (id (@is_add_monoid_hom_mul_right l _ _ _ _ _ _ _ M) : _)).symm
 
 protected lemma mul_sum {β : Type*} (s : finset β) (f : β → matrix m n α)
-  (M : matrix l m α) :  M ⬝ s.sum f = s.sum (λ a, M ⬝ f a) :=
+  (M : matrix l m α) :  M ⬝ ∑ a in s, f a = ∑ a in s, M ⬝ f a :=
 (@finset.sum_hom _ _ _ _ _ s f (λ x, M ⬝ x)
 /- This line does not type-check without `id` and `: _`. Lean did not recognize that two different
   `add_monoid` instances were def-eq -/
@@ -305,17 +331,41 @@ instance [decidable_eq n] [ring α] : ring (matrix n n α) :=
 instance [semiring α] : has_scalar α (matrix m n α) := pi.has_scalar
 instance {β : Type w} [semiring α] [add_comm_monoid β] [semimodule α β] :
   semimodule α (matrix m n β) := pi.semimodule _ _ _
-instance {β : Type w} [ring α] [add_comm_group β] [module α β] :
-  module α (matrix m n β) := { .. matrix.semimodule }
 
 @[simp] lemma smul_val [semiring α] (a : α) (A : matrix m n α) (i : m) (j : n) : (a • A) i j = a * A i j := rfl
 
-section comm_semiring
-variables [comm_semiring α]
+section semiring
+variables [semiring α]
 
 lemma smul_eq_diagonal_mul [decidable_eq m] (M : matrix m n α) (a : α) :
   a • M = diagonal (λ _, a) ⬝ M :=
 by { ext, simp }
+
+@[simp] lemma smul_mul (M : matrix m n α) (a : α) (N : matrix n l α) : (a • M) ⬝ N = a • M ⬝ N :=
+by { ext, apply smul_dot_product }
+
+@[simp] lemma mul_mul_left (M : matrix m n α) (N : matrix n o α) (a : α) :
+  (λ i j, a * M i j) ⬝ N = a • (M ⬝ N) :=
+begin
+  simp only [←smul_val],
+  simp,
+end
+
+/--
+The ring homomorphism `α →+* matrix n n α`
+sending `a` to the diagonal matrix with `a` on the diagonal.
+-/
+def scalar (n : Type u) [fintype n] [decidable_eq n] : α →+* matrix n n α :=
+{ to_fun := λ a, a • 1,
+  map_zero' := by simp,
+  map_add' := by { intros, ext, simp [add_mul], },
+  map_one' := by simp,
+  map_mul' := by { intros, ext, simp [mul_assoc], }, }
+
+end semiring
+
+section comm_semiring
+variables [comm_semiring α]
 
 lemma smul_eq_mul_diagonal [decidable_eq n] (M : matrix m n α) (a : α) :
   a • M = M ⬝ diagonal (λ _, a) :=
@@ -324,8 +374,12 @@ by { ext, simp [mul_comm] }
 @[simp] lemma mul_smul (M : matrix m n α) (a : α) (N : matrix n l α) : M ⬝ (a • N) = a • M ⬝ N :=
 by { ext, apply dot_product_smul }
 
-@[simp] lemma smul_mul (M : matrix m n α) (a : α) (N : matrix n l α) : (a • M) ⬝ N = a • M ⬝ N :=
-by { ext, apply smul_dot_product }
+@[simp] lemma mul_mul_right (M : matrix m n α) (N : matrix n o α) (a : α) :
+  M ⬝ (λ i j, a * N i j) = a • (M ⬝ N) :=
+begin
+  simp only [←smul_val],
+  simp,
+end
 
 end comm_semiring
 
@@ -523,3 +577,13 @@ lemma row_mul_vec [semiring α] (M : matrix m n α) (v : n → α) :
 end row_col
 
 end matrix
+
+namespace ring_hom
+variables {α β : Type*} [semiring α] [semiring β]
+variables {m n o : Type u} [fintype m] [fintype n] [fintype o]
+
+lemma map_matrix_mul (M : matrix m n α) (N : matrix n o α) (i : m) (j : o) (f : α →+* β) :
+  f (matrix.mul M N i j) = matrix.mul (λ i j, f (M i j)) (λ i j, f (N i j)) i j :=
+by simp [matrix.mul_val, ring_hom.map_sum]
+
+end ring_hom

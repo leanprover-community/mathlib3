@@ -140,29 +140,20 @@ protected def comm_ring [comm_ring β] : comm_ring α :=
 { ..equiv.comm_monoid e,
   ..equiv.ring e }
 
-/-- Transfer `zero_ne_one_class` across an `equiv` -/
-protected def zero_ne_one_class [zero_ne_one_class β] : zero_ne_one_class α :=
-{ zero_ne_one := by simp [zero_def, one_def],
-  ..equiv.has_zero e,
-  ..equiv.has_one e }
-
-/-- Transfer `nonzero_comm_ring` across an `equiv` -/
-protected def nonzero_comm_ring [nonzero_comm_ring β] : nonzero_comm_ring α :=
-{ ..equiv.zero_ne_one_class e,
-  ..equiv.comm_ring e }
+/-- Transfer `nonzero` across an `equiv` -/
+protected theorem nonzero [has_zero β] [has_one β] [nonzero β] : @nonzero α e.has_zero e.has_one :=
+{ zero_ne_one := by simp [zero_def, one_def] }
 
 /-- Transfer `domain` across an `equiv` -/
 protected def domain [domain β] : domain α :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := by simp [mul_def, zero_def, equiv.eq_symm_apply],
-  ..equiv.has_zero e,
-  ..equiv.zero_ne_one_class e,
-  ..equiv.has_mul e,
+  zero_ne_one := by simp [zero_def, one_def],
   ..equiv.ring e }
 
 /-- Transfer `integral_domain` across an `equiv` -/
 protected def integral_domain [integral_domain β] : integral_domain α :=
 { ..equiv.domain e,
-  ..equiv.nonzero_comm_ring e }
+  ..equiv.comm_ring e }
 
 /-- Transfer `division_ring` across an `equiv` -/
 protected def division_ring [division_ring β] : division_ring α :=

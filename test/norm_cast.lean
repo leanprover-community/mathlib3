@@ -100,6 +100,14 @@ begin
   assumption_mod_cast
 end
 
+example (a b : ℕ) (h2 : ((a + b + 0 : ℕ) : ℤ) = 10) :
+  ((a + b : ℕ) : ℤ) = 10 :=
+begin
+  push_cast,
+  push_cast [int.add_zero] at h2,
+  exact h2
+end
+
 example {x : ℚ} : ((x + 42 : ℚ) : ℝ) = x + 42 := by push_cast
 
 namespace ennreal

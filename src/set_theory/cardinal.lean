@@ -110,12 +110,11 @@ not_iff_comm.1
 
 instance : has_one cardinal.{u} := ⟨⟦punit⟧⟩
 
-instance : zero_ne_one_class cardinal.{u} :=
-{ zero := 0, one := 1, zero_ne_one :=
-  ne.symm $ ne_zero_iff_nonempty.2 ⟨punit.star⟩ }
+instance : nonzero cardinal.{u} :=
+{ zero_ne_one := ne.symm $ ne_zero_iff_nonempty.2 ⟨punit.star⟩ }
 
 theorem le_one_iff_subsingleton {α : Type u} : mk α ≤ 1 ↔ subsingleton α :=
-⟨λ ⟨f⟩, ⟨λ a b, f.inj (subsingleton.elim _ _)⟩,
+⟨λ ⟨f⟩, ⟨λ a b, f.injective (subsingleton.elim _ _)⟩,
  λ ⟨h⟩, ⟨⟨λ a, punit.star, λ a b _, h _ _⟩⟩⟩
 
 instance : has_add cardinal.{u} :=
@@ -312,7 +311,7 @@ instance : no_top_order cardinal.{u} :=
   of which is provided by `injective_min`). -/
 noncomputable def min {ι} (I : nonempty ι) (f : ι → cardinal) : cardinal :=
 f $ classical.some $
-@embedding.injective_min _ (λ i, (f i).out) I
+@embedding.min_injective _ (λ i, (f i).out) I
 
 theorem min_eq {ι} (I) (f : ι → cardinal) : ∃ i, min I f = f i :=
 ⟨_, rfl⟩
@@ -320,7 +319,7 @@ theorem min_eq {ι} (I) (f : ι → cardinal) : ∃ i, min I f = f i :=
 theorem min_le {ι I} (f : ι → cardinal) (i) : min I f ≤ f i :=
 by rw [← mk_out (min I f), ← mk_out (f i)]; exact
 let ⟨g⟩ := classical.some_spec
-  (@embedding.injective_min _ (λ i, (f i).out) I) in
+  (@embedding.min_injective _ (λ i, (f i).out) I) in
 ⟨g i⟩
 
 theorem le_min {ι I} {f : ι → cardinal} {a} : a ≤ min I f ↔ ∀ i, a ≤ f i :=
@@ -361,12 +360,12 @@ begin
   refine quot.induction_on (succ (quot.mk setoid.r α)) (λ β h, _),
   cases h.left with f,
   have : ¬ surjective f := λ hn,
-    ne_of_lt h (quotient.sound ⟨equiv.of_bijective ⟨f.inj, hn⟩⟩),
+    ne_of_lt h (quotient.sound ⟨equiv.of_bijective f ⟨f.injective, hn⟩⟩),
   cases classical.not_forall.1 this with b nex,
   refine ⟨⟨sum.rec (by exact f) _, _⟩⟩,
   { exact λ _, b },
   { intros a b h, rcases a with a|⟨⟨⟨⟩⟩⟩; rcases b with b|⟨⟨⟨⟩⟩⟩,
-    { rw f.inj h },
+    { rw f.injective h },
     { exact nex.elim ⟨_, h⟩ },
     { exact nex.elim ⟨_, h.symm⟩ },
     { refl } }
@@ -854,6 +853,17 @@ theorem mk_subtype_le_of_subset {α : Type u} {p q : α → Prop} (h : ∀ ⦃x�
 @[simp] theorem mk_emptyc (α : Type u) : mk (∅ : set α) = 0 :=
 quotient.sound ⟨equiv.set.pempty α⟩
 
+lemma mk_emptyc_iff {α : Type u} {s : set α} : mk s = 0 ↔ s = ∅ :=
+begin
+  split,
+  { intro h,
+    have h2 : cardinal.mk s = cardinal.mk pempty, by simp [h],
+    refine set.eq_empty_iff_forall_not_mem.mpr (λ _ hx, _),
+    rcases cardinal.eq.mp h2 with ⟨f, _⟩,
+    cases f ⟨_, hx⟩ },
+  { intro, convert mk_emptyc _ }
+end
+
 theorem mk_univ {α : Type u} : mk (@univ α) = mk α :=
 quotient.sound ⟨equiv.set.univ α⟩
 
@@ -870,7 +880,7 @@ mk_le_of_surjective surjective_onto_range
 lemma mk_range_eq (f : α → β) (h : injective f) : mk (range f) = mk α :=
 quotient.sound ⟨(equiv.set.range f h).symm⟩
 
-lemma mk_range_eq_of_inj {α : Type u} {β : Type v} {f : α → β} (hf : injective f) :
+lemma mk_range_eq_of_injective {α : Type u} {β : Type v} {f : α → β} (hf : injective f) :
   lift.{v u} (mk (range f)) = lift.{u v} (mk α) :=
 begin
   have := (@lift_mk_eq.{v u max u v} (range f) α).2 ⟨(equiv.set.range f hf).symm⟩,
@@ -887,7 +897,7 @@ theorem mk_image_eq {α β : Type u} {f : α → β} {s : set α} (hf : injectiv
 quotient.sound ⟨(equiv.set.image f s hf).symm⟩
 
 theorem mk_Union_le_sum_mk {α ι : Type u} {f : ι → set α} : mk (⋃ i, f i) ≤ sum (λ i, mk (f i)) :=
-calc mk (⋃ i, f i) ≤ mk (Σ i, f i) : mk_le_of_surjective (set.surjective_sigma_to_Union f)
+calc mk (⋃ i, f i) ≤ mk (Σ i, f i) : mk_le_of_surjective (set.sigma_to_Union_surjective f)
   ... = sum (λ i, mk (f i)) : (sum_mk _).symm
 
 theorem mk_Union_eq_sum_mk {α ι : Type u} {f : ι → set α} (h : ∀i j, i ≠ j → disjoint (f i) (f j)) :
@@ -913,11 +923,13 @@ by rw [fintype_card, nat_cast_inj, fintype.card_coe]
 lemma finset_card_lt_omega (s : finset α) : mk (↑s : set α) < omega :=
 by { rw [lt_omega_iff_fintype], exact ⟨finset.subtype.fintype s⟩ }
 
-theorem mk_union_add_mk_inter {α : Type u} {S T : set α} : mk (S ∪ T : set α) + mk (S ∩ T : set α) = mk S + mk T :=
+theorem mk_union_add_mk_inter {α : Type u} {S T : set α} :
+  mk (S ∪ T : set α) + mk (S ∩ T : set α) = mk S + mk T :=
 quot.sound ⟨equiv.set.union_sum_inter S T⟩
 
-theorem mk_union_of_disjoint {α : Type u} {S T : set α} (H : disjoint S T) : mk (S ∪ T : set α) = mk S + mk T :=
-quot.sound ⟨equiv.set.union (disjoint_iff.1 H)⟩
+theorem mk_union_of_disjoint {α : Type u} {S T : set α} (H : disjoint S T) :
+  mk (S ∪ T : set α) = mk S + mk T :=
+quot.sound ⟨equiv.set.union H⟩
 
 lemma mk_sum_compl {α} (s : set α) : #s + #(-s : set α) = #α :=
 quotient.sound ⟨equiv.set.sum_compl s⟩
@@ -943,9 +955,9 @@ lemma mk_image_eq_of_inj_on {α β : Type u} (f : α → β) (s : set α) (h : i
   mk (f '' s) = mk s :=
 quotient.sound ⟨(equiv.set.image_of_inj_on f s h).symm⟩
 
-lemma mk_subtype_of_equiv {α β : Type u} (p : α → Prop) (e : α ≃ β) :
-  mk {a : α // p a} = mk {b : β // p (e.symm b)} :=
-quotient.sound ⟨equiv.subtype_equiv_of_subtype' e⟩
+lemma mk_subtype_of_equiv {α β : Type u} (p : β → Prop) (e : α ≃ β) :
+  mk {a : α // p (e a)} = mk {b : β // p b} :=
+quotient.sound ⟨equiv.subtype_equiv_of_subtype e⟩
 
 lemma mk_sep (s : set α) (t : α → Prop) : mk ({ x ∈ s | t x } : set α) = mk { x : s | t x.1 } :=
 quotient.sound ⟨equiv.set.sep s t⟩

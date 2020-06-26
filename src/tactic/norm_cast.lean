@@ -309,9 +309,22 @@ open norm_cast
 For example, `↑(a + b)` will be written to `↑a + ↑b`.
 Equivalent to `simp only with push_cast`.
 Can also be used at hypotheses.
+
+`push_cast` can also be used at hypotheses and with extra simp rules.
+
+```lean
+example (a b : ℕ) (h1 : ((a + b : ℕ) : ℤ) = 10) (h2 : ((a + b + 0 : ℕ) : ℤ) = 10) :
+  ((a + b : ℕ) : ℤ) = 10 :=
+begin
+  push_cast,
+  push_cast at h1,
+  push_cast [int.add_zero] at h2,
+end
+```
 -/
-meta def push_cast (l : parse location): tactic unit :=
-tactic.interactive.simp none tt [] [`push_cast] l
+meta def push_cast (hs : parse tactic.simp_arg_list) (l : parse location) : tactic unit :=
+tactic.interactive.simp none tt hs [`push_cast] l
+
 
 end tactic.interactive
 
@@ -515,6 +528,15 @@ do
   pr ← mk_eq_trans pr pr4,
   return (new_e, pr)
 
+/--
+A small variant of `push_cast` suited for non-interactive use.
+
+`derive_push_cast extra_lems e` returns an expression `e'` and a proof that `e = e'`.
+-/
+meta def derive_push_cast (extra_lems : list simp_arg_type) (e : expr) : tactic (expr × expr) :=
+do (s, _) ← mk_simp_set tt [`push_cast] extra_lems,
+   simplify (s.erase [`int.coe_nat_succ]) [] e {fail_if_unchanged := ff}
+
 end norm_cast
 
 namespace tactic
@@ -672,8 +694,19 @@ expression `h` in the context it will try to normalize `h` and use
 `push_cast` rewrites the expression to move casts toward the leaf nodes.
 This uses `norm_cast` lemmas in the forward direction.
 For example, `↑(a + b)` will be written to `↑a + ↑b`.
-It is equivalent to `simp only with push_cast`, and can also be used at hypotheses
-with `push_cast at h`.
+It is equivalent to `simp only with push_cast`.
+It can also be used at hypotheses with `push_cast at h`
+and with extra simp lemmas with `push_cast [int.add_zero]`.
+
+```lean
+example (a b : ℕ) (h1 : ((a + b : ℕ) : ℤ) = 10) (h2 : ((a + b + 0 : ℕ) : ℤ) = 10) :
+  ((a + b : ℕ) : ℤ) = 10 :=
+begin
+  push_cast,
+  push_cast at h1,
+  push_cast [int.add_zero] at h2,
+end
+```
 
 The implementation and behavior of the `norm_cast` family is described in detail at
 <https://lean-forward.github.io/norm_cast/norm_cast.pdf>.

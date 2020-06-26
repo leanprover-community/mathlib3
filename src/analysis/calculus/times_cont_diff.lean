@@ -3,7 +3,7 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.calculus.fderiv
+import analysis.calculus.mean_value
 
 /-!
 # Higher differentiability
@@ -138,6 +138,9 @@ open_locale classical
 
 universes u v w
 
+local attribute [instance, priority 1001]
+normed_group.to_add_comm_group normed_space.to_semimodule add_comm_group.to_add_comm_monoid
+
 open set fin
 open_locale topological_space
 
@@ -197,7 +200,7 @@ multilinear series are equal, then the values are also equal. -/
 lemma congr (p : formal_multilinear_series 𝕜 E F) {m n : ℕ} {v : fin m → E} {w : fin n → E}
   (h1 : m = n) (h2 : ∀ (i : ℕ) (him : i < m) (hin : i < n), v ⟨i, him⟩ = w ⟨i, hin⟩) :
   p m v = p n w :=
-by { cases h1, congr, funext i, cases i with i hi, exact h2 i hi hi }
+by { cases h1, congr, ext ⟨i, hi⟩, exact h2 i hi hi }
 
 end formal_multilinear_series
 
@@ -1467,8 +1470,7 @@ private lemma times_cont_diff_on.comp_same_univ
   (hg : times_cont_diff_on 𝕜 n g t) (hf : times_cont_diff_on 𝕜 n f s) (st : s ⊆ f ⁻¹' t) :
   times_cont_diff_on 𝕜 n (g ∘ f) s :=
 begin
-  unfreezeI,
-  induction n using with_top.nat_induction with n IH Itop generalizing Eu Fu Gu,
+  unfreezingI { induction n using with_top.nat_induction with n IH Itop generalizing Eu Fu Gu },
   { rw times_cont_diff_on_zero at hf hg ⊢,
     exact continuous_on.comp hg hf st },
   { rw times_cont_diff_on_succ_iff_has_fderiv_within_at at hg ⊢,
@@ -1656,3 +1658,49 @@ lemma times_cont_diff.sub {n : with_top ℕ} {f g : E → F}
   (hf : times_cont_diff 𝕜 n f) (hg : times_cont_diff 𝕜 n g) :
   times_cont_diff 𝕜 n (λx, f x - g x) :=
 hf.add hg.neg
+
+section reals
+/-!
+### Results over `ℝ`
+  The results in this section rely on the Mean Value Theorem, and therefore hold only over `ℝ` (and
+  its extension fields such as `ℂ`).
+-/
+
+variables
+{E' : Type*} [normed_group E'] [normed_space ℝ E']
+{F' : Type*} [normed_group F'] [normed_space ℝ F']
+
+/-- If a function has a Taylor series at order at least 1, then at points in the interior of the
+    domain of definition, the term of order 1 of this series is a strict derivative of `f`. -/
+lemma has_ftaylor_series_up_to_on.has_strict_fderiv_at
+  {s : set E'} {f : E' → F'} {x : E'} {p : E' → formal_multilinear_series ℝ E' F'} {n : with_top ℕ}
+  (hf : has_ftaylor_series_up_to_on n f p s) (hn : 1 ≤ n) (hs : s ∈ 𝓝 x) :
+  has_strict_fderiv_at f ((continuous_multilinear_curry_fin1 ℝ E' F') (p x 1)) x :=
+begin
+  let f' := λ x, (continuous_multilinear_curry_fin1 ℝ E' F') (p x 1),
+  have hf' : ∀ x, x ∈ s → has_fderiv_within_at f (f' x) s x :=
+    λ x, has_ftaylor_series_up_to_on.has_fderiv_within_at hf hn,
+  have hcont : continuous_on f' s :=
+    (continuous_multilinear_curry_fin1 ℝ E' F').continuous.comp_continuous_on (hf.cont 1 hn),
+  exact strict_fderiv_of_cont_diff hf' hcont hs,
+end
+
+/-- If a function is `C^n` with `1 ≤ n` on a domain, then at points in the interior of the
+    domain of definition, the derivative of `f` is also a strict derivative. -/
+lemma times_cont_diff_on.has_strict_fderiv_at  {s : set E'} {f : E' → F'} {x : E'} {n : with_top ℕ}
+  (hf : times_cont_diff_on ℝ n f s) (hn : 1 ≤ n) (hs : s ∈ 𝓝 x) :
+  has_strict_fderiv_at f (fderiv ℝ f x) x :=
+begin
+  rcases (hf 1 hn x (mem_of_nhds hs)) with ⟨u, H, p, hp⟩,
+  have := hp.has_strict_fderiv_at (by norm_num) (nhds_of_nhds_within_of_nhds hs H),
+  convert this,
+  exact this.has_fderiv_at.fderiv
+end
+
+/-- If a function is `C^n` with `1 ≤ n`, then the derivative of `f` is also a strict derivative. -/
+lemma times_cont_diff.has_strict_fderiv_at
+  {f : E' → F'} {x : E'} {n : with_top ℕ} (hf : times_cont_diff ℝ n f) (hn : 1 ≤ n) :
+  has_strict_fderiv_at f (fderiv ℝ f x) x :=
+times_cont_diff_on.has_strict_fderiv_at (times_cont_diff_on_univ.mpr hf) hn (𝓝 x).univ_sets
+
+end reals

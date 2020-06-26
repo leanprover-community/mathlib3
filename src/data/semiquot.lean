@@ -104,6 +104,9 @@ instance : monad semiquot :=
   map := @semiquot.map,
   bind := @semiquot.bind }
 
+@[simp] lemma map_def {β} : ((<$>) : (α → β) → semiquot α → semiquot β) = map := rfl
+@[simp] lemma bind_def {β} : ((>>=) : semiquot α → (α → semiquot β) → semiquot β) = bind := rfl
+
 @[simp] theorem mem_pure {a b : α} : a ∈ (pure b : semiquot α) ↔ a = b :=
 set.mem_singleton_iff
 

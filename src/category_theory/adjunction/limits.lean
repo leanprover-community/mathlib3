@@ -48,8 +48,8 @@ def left_adjoint_preserves_colimits : preserves_colimits F :=
   { preserves_colimit := λ F,
     by exactI
     { preserves := λ c hc, is_colimit.iso_unique_cocone_morphism.inv
-        (λ s, (((adj.functoriality_is_left_adjoint _).adj).hom_equiv _ _).unique_of_equiv $
-          is_colimit.iso_unique_cocone_morphism.hom hc _ ) } } }.
+        (λ s, @equiv.unique _ _ (is_colimit.iso_unique_cocone_morphism.hom hc _)
+          (((adj.functoriality_is_left_adjoint _).adj).hom_equiv _ _)) } } }.
 
 omit adj
 
@@ -103,8 +103,8 @@ def right_adjoint_preserves_limits : preserves_limits G :=
   { preserves_limit := λ K,
     by exactI
     { preserves := λ c hc, is_limit.iso_unique_cone_morphism.inv
-        (λ s, (((adj.functoriality_is_right_adjoint _).adj).hom_equiv _ _).symm.unique_of_equiv $
-          is_limit.iso_unique_cone_morphism.hom hc _) } } }.
+        (λ s, @equiv.unique _ _ (is_limit.iso_unique_cone_morphism.hom hc _)
+          (((adj.functoriality_is_right_adjoint _).adj).hom_equiv _ _).symm) } } }.
 
 omit adj
 

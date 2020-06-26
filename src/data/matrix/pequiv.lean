@@ -94,7 +94,7 @@ end
 @[simp] lemma to_matrix_bot [decidable_eq n] [has_zero α] [has_one α] :
   ((⊥ : pequiv m n).to_matrix : matrix m n α) = 0 := rfl
 
-lemma to_matrix_injective [decidable_eq n] [zero_ne_one_class α] :
+lemma to_matrix_injective [decidable_eq n] [has_zero α] [has_one α] [nonzero α] :
   function.injective (@to_matrix m n _ _ α _ _ _) :=
 begin
   classical,

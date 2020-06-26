@@ -110,7 +110,7 @@ begin
   have ndeg_eq_zero : nat_degree (minimal_polynomial hx) = 0,
   { simpa using congr_arg nat_degree (eq_C_of_degree_eq_zero deg_eq_zero) },
   have eq_one : minimal_polynomial hx = 1,
-  { rw eq_C_of_degree_eq_zero deg_eq_zero, congr,
+  { rw eq_C_of_degree_eq_zero deg_eq_zero, convert C_1,
     simpa [ndeg_eq_zero.symm] using (monic hx).leading_coeff },
   simpa [eq_one, aeval_def] using aeval hx
 end

@@ -212,6 +212,26 @@ protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
   h.to_homeomorph.to_equiv = h.to_equiv :=
 rfl
 
+/-- The group of isometries. -/
+instance : group (α ≃ᵢ α) :=
+  { one := isometric.refl _,
+    mul := λ e₁ e₂, e₁.trans e₂,
+    inv := isometric.symm,
+    mul_assoc := λ e₁ e₂ e₃, rfl,
+    one_mul := λ e, ext $ λ _, rfl,
+    mul_one := λ e, ext $ λ _, rfl,
+    mul_left_inv := λ e, ext e.apply_symm_apply }
+
+@[simp] lemma coe_one : ⇑(1 : α ≃ᵢ α) = id := rfl
+
+@[simp] lemma coe_mul (e₁ e₂ : α ≃ᵢ α) : ⇑(e₁ * e₂) = e₂ ∘ e₁ := rfl
+
+lemma mul_apply (e₁ e₂ : α ≃ᵢ α) (x : α) : (e₁ * e₂) x = e₂ (e₁ x) := rfl
+
+@[simp] lemma inv_apply_self (e : α ≃ᵢ α) (x: α) : e⁻¹ (e x) = x := e.symm_apply_apply x
+
+@[simp] lemma apply_inv_self (e : α ≃ᵢ α) (x: α) : e (e⁻¹ x) = x := e.apply_symm_apply x
+
 section normed_group
 
 variables {G : Type*} [normed_group G]

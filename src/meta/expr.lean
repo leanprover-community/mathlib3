@@ -45,7 +45,8 @@ def map_prefix (f : name → option name) : name → name
 | (mk_string s n') := (f (mk_string s n')).get_or_else (mk_string s $ map_prefix n')
 | (mk_numeral d n') := (f (mk_numeral d n')).get_or_else (mk_numeral d $ map_prefix n')
 
-/-- If `nm` is a simple name (having only one string component) starting with `_`, then `deinternalize_field nm` removes the underscore. Otherwise, it does nothing. -/
+/-- If `nm` is a simple name (having only one string component) starting with `_`, then
+`deinternalize_field nm` removes the underscore. Otherwise, it does nothing. -/
 meta def deinternalize_field : name → name
 | (mk_string s name.anonymous) :=
   let i := s.mk_iterator in
@@ -230,6 +231,15 @@ meta def int.mk_numeral (type has_zero has_one has_add has_neg : expr) : ℤ →
 | -[1+n] := let ne := (n+1).mk_numeral type has_zero has_one has_add in
             `(@has_neg.neg.{0} %%type %%has_neg %%ne)
 
+/--
+`nat.to_pexpr n` creates a `pexpr` that will evaluate to `n`.
+The `pexpr` does not hold any typing information:
+`to_expr ``((%%(nat.to_pexpr 5) : ℤ))` will create a native integer numeral `(5 : ℤ)`.
+-/
+meta def nat.to_pexpr : ℕ → pexpr
+| 0 := ``(0)
+| 1 := ``(1)
+| n := if n % 2 = 0 then ``(bit0 %%(nat.to_pexpr (n/2))) else ``(bit1 %%(nat.to_pexpr (n/2)))
 namespace expr
 
 /--
@@ -352,6 +362,15 @@ e.fold mk_name_set $ λ e' _ l,
   Returns `true` if `p name.anonymous` is true. -/
 meta def contains_constant (e : expr) (p : name → Prop) [decidable_pred p] : bool :=
 e.fold ff (λ e' _ b, if p (e'.const_name) then tt else b)
+
+/--
+`app_symbol_in e l` returns true iff `e` is an application of a constant whose name is in `l`.
+-/
+meta def app_symbol_in (e : expr) (l : list name) : bool :=
+match e.get_app_fn with
+| (expr.const n _) := n ∈ l
+| _ := ff
+end
 
 /-- `get_simp_args e` returns the arguments of `e` that simp can reach via congruence lemmas. -/
 meta def get_simp_args (e : expr) : tactic (list expr) :=
@@ -726,10 +745,10 @@ end expr
 namespace declaration
 open tactic
 
-/-- 
-`declaration.update_with_fun f tgt decl` 
+/--
+`declaration.update_with_fun f tgt decl`
 sets the name of the given `decl : declaration` to `tgt`, and applies `f` to the names
-of all `expr.const`s which appear in the value or type of `decl`. 
+of all `expr.const`s which appear in the value or type of `decl`.
 -/
 protected meta def update_with_fun (f : name → name) (tgt : name) (decl : declaration) :
   declaration :=

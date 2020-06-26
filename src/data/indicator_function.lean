@@ -25,7 +25,7 @@ indicator, characteristic
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical big_operators
 
 namespace set
 
@@ -45,6 +45,8 @@ lemma indicator_apply (s : set α) (f : α → β) (a : α) :
 @[simp] lemma indicator_of_mem (h : a ∈ s) (f : α → β) : indicator s f a = f a := if_pos h
 
 @[simp] lemma indicator_of_not_mem (h : a ∉ s) (f : α → β) : indicator s f a = 0 := if_neg h
+
+lemma eq_on_indicator : eq_on (indicator s f) f s := λ x hx, indicator_of_mem hx f
 
 lemma support_indicator : function.support (s.indicator f) ⊆ s :=
 λ x hx, hx.imp_symm (λ h, indicator_of_not_mem h f)
@@ -80,6 +82,15 @@ end
 lemma indicator_preimage (s : set α) (f : α → β) (B : set β) :
   (indicator s f)⁻¹' B = s ∩ f ⁻¹' B ∪ (-s) ∩ (λa:α, (0:β)) ⁻¹' B :=
 by { rw [indicator, if_preimage] }
+
+lemma indicator_preimage_of_not_mem (s : set α) (f : α → β) {t : set β} (ht : (0:β) ∉ t) :
+  (indicator s f)⁻¹' t = s ∩ f ⁻¹' t :=
+by simp [indicator_preimage, set.preimage_const_of_not_mem ht]
+
+lemma mem_range_indicator {r : β} {s : set α} {f : α → β} :
+  r ∈ range (indicator s f) ↔ (r = 0 ∧ s ≠ univ) ∨ (r ∈ f '' s) :=
+by simp [indicator, ite_eq_iff, exists_or_distrib, eq_univ_iff_forall, and_comm, or_comm,
+  @eq_comm _ r 0]
 
 end has_zero
 
@@ -139,7 +150,7 @@ begin
 end
 
 lemma indicator_finset_sum {β} [add_comm_monoid β] {ι : Type*} (I : finset ι) (s : set α) (f : ι → α → β) :
-  indicator s (I.sum f) = I.sum (λ i, indicator s (f i)) :=
+  indicator s (∑ i in I, f i) = ∑ i in I, indicator s (f i) :=
 begin
   convert (finset.sum_hom _ _).symm,
   split,
@@ -148,7 +159,7 @@ end
 
 lemma indicator_finset_bUnion {β} [add_comm_monoid β] {ι} (I : finset ι)
   (s : ι → set α) {f : α → β} : (∀ (i ∈ I) (j ∈ I), i ≠ j → s i ∩ s j = ∅) →
-  indicator (⋃ i ∈ I, s i) f = λ a, I.sum (λ i, indicator (s i) f a) :=
+  indicator (⋃ i ∈ I, s i) f = λ a, ∑ i in I, indicator (s i) f a :=
 begin
   refine finset.induction_on I _ _,
   assume h,

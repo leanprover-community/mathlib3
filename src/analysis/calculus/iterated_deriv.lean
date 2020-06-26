@@ -41,7 +41,7 @@ iterated Fréchet derivative.
 -/
 
 noncomputable theory
-open_locale classical topological_space
+open_locale classical topological_space big_operators
 open filter asymptotics set
 
 
@@ -92,7 +92,7 @@ end
 multiplied by the product of the `m i`s. -/
 lemma iterated_fderiv_within_apply_eq_iterated_deriv_within_mul_prod {m : (fin n) → 𝕜} :
   (iterated_fderiv_within 𝕜 n f s x : ((fin n) → 𝕜) → F) m
-  = finset.univ.prod m • iterated_deriv_within n f s x :=
+  = (∏ i, m i) • iterated_deriv_within n f s x :=
 begin
   rw [iterated_deriv_within_eq_iterated_fderiv_within, ← continuous_multilinear_map.map_smul_univ],
   simp
@@ -187,11 +187,11 @@ end
 /-- The `n`-th iterated derivative within a set with unique derivatives can be obtained by
 iterating `n` times the differentiation operation. -/
 lemma iterated_deriv_within_eq_iterate {x : 𝕜} (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) :
-  iterated_deriv_within n f s x = nat.iterate (λ (g : 𝕜 → F), deriv_within g s) n f x :=
+  iterated_deriv_within n f s x = ((λ (g : 𝕜 → F), deriv_within g s)^[n]) f x :=
 begin
   induction n with n IH generalizing x,
   { simp },
-  { rw [iterated_deriv_within_succ (hs x hx), nat.iterate_succ'],
+  { rw [iterated_deriv_within_succ (hs x hx), function.iterate_succ'],
     exact deriv_within_congr (hs x hx) (λ y hy, IH hy) (IH hx) }
 end
 
@@ -229,7 +229,7 @@ end
 /-- The `n`-th Fréchet derivative applied to a vector `(m 0, ..., m (n-1))` is the derivative
 multiplied by the product of the `m i`s. -/
 lemma iterated_fderiv_apply_eq_iterated_deriv_mul_prod {m : (fin n) → 𝕜} :
-  (iterated_fderiv 𝕜 n f x : ((fin n) → 𝕜) → F) m = finset.univ.prod m • iterated_deriv n f x :=
+  (iterated_fderiv 𝕜 n f x : ((fin n) → 𝕜) → F) m = (∏ i, m i) • iterated_deriv n f x :=
 by { rw [iterated_deriv_eq_iterated_fderiv, ← continuous_multilinear_map.map_smul_univ], simp }
 
 @[simp] lemma iterated_deriv_zero :
@@ -282,7 +282,7 @@ end
 
 /-- The `n`-th iterated derivative can be obtained by iterating `n` times the
 differentiation operation. -/
-lemma iterated_deriv_eq_iterate : iterated_deriv n f = nat.iterate deriv n f :=
+lemma iterated_deriv_eq_iterate : iterated_deriv n f = (deriv^[n]) f :=
 begin
   ext x,
   rw [← iterated_deriv_within_univ],

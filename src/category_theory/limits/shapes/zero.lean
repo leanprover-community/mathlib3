@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.shapes.binary_products
+import category_theory.limits.shapes.images
 import category_theory.epi_mono
 import category_theory.punit
 
@@ -57,8 +58,7 @@ variables {C}
 private lemma ext_aux (I J : has_zero_morphisms.{v} C)
   (w : ∀ X Y : C, (@has_zero_morphisms.has_zero.{v} _ _ I X Y).zero = (@has_zero_morphisms.has_zero.{v} _ _ J X Y).zero) : I = J :=
 begin
-  resetI,
-  cases I, cases J,
+  casesI I, casesI J,
   congr,
   { ext X Y,
     exact w X Y },
@@ -97,6 +97,11 @@ by { rw [←zero_comp.{v} X g, cancel_mono] at h, exact h }
 lemma zero_of_epi_comp {X Y Z : C} (f : X ⟶ Y) {g : Y ⟶ Z} [epi f] (h : f ≫ g = 0) : g = 0 :=
 by { rw [←comp_zero.{v} f Z, cancel_epi] at h, exact h }
 
+lemma eq_zero_of_image_eq_zero {X Y : C} {f : X ⟶ Y} [has_image f] (w : image.ι f = 0) : f = 0 :=
+by rw [←image.fac f, w, has_zero_morphisms.comp_zero]
+
+lemma nonzero_image_of_nonzero {X Y : C} {f : X ⟶ Y} [has_image f] (w : f ≠ 0) : image.ι f ≠ 0 :=
+λ h, w (eq_zero_of_image_eq_zero h)
 end
 
 section
@@ -109,7 +114,7 @@ variables [has_zero_morphisms.{v} C] [has_zero_morphisms.{v'} D]
   F.functor.map (0 : X ⟶ Y) = (0 : F.functor.obj X ⟶ F.functor.obj Y) :=
 begin
   have t : F.functor.map (0 : X ⟶ Y) = F.functor.map (0 : X ⟶ Y) ≫ (0 : F.functor.obj Y ⟶ F.functor.obj Y),
-  { apply faithful.injectivity (F.inverse),
+  { apply faithful.map_injective (F.inverse),
     rw [functor.map_comp, equivalence.inv_fun_map],
     dsimp,
     rw [zero_comp, comp_zero, zero_comp], },
@@ -145,6 +150,20 @@ protected def has_zero : has_zero C :=
 local attribute [instance] has_zero_object.has_zero
 local attribute [instance] has_zero_object.unique_to has_zero_object.unique_from
 
+@[ext]
+lemma to_zero_ext {X : C} (f g : X ⟶ 0) : f = g :=
+by rw [(has_zero_object.unique_from.{v} X).uniq f, (has_zero_object.unique_from.{v} X).uniq g]
+
+@[ext]
+lemma from_zero_ext {X : C} (f g : 0 ⟶ X) : f = g :=
+by rw [(has_zero_object.unique_to.{v} X).uniq f, (has_zero_object.unique_to.{v} X).uniq g]
+
+instance {X : C} (f : 0 ⟶ X) : mono f :=
+{ right_cancellation := λ Z g h w, by ext, }
+
+instance {X : C} (f : X ⟶ 0) : epi f :=
+{ left_cancellation := λ Z g h w, by ext, }
+
 /-- A category with a zero object has zero morphisms.
 
     It is rarely a good idea to use this. Many categories that have a zero object have zero
@@ -163,44 +182,63 @@ section
 variable [has_zero_morphisms.{v} C]
 
 /--  An arrow ending in the zero object is zero -/
-@[ext]
+-- This can't be a `simp` lemma because the left hand side would be a metavariable.
 lemma zero_of_to_zero {X : C} (f : X ⟶ 0) : f = 0 :=
-begin
-  rw (has_zero_object.unique_from.{v} X).uniq f,
-  rw (has_zero_object.unique_from.{v} X).uniq (0 : X ⟶ 0)
-end
+by ext
 
 /-- An arrow starting at the zero object is zero -/
-@[ext]
 lemma zero_of_from_zero {X : C} (f : 0 ⟶ X) : f = 0 :=
-begin
-  rw (has_zero_object.unique_to.{v} X).uniq f,
-  rw (has_zero_object.unique_to.{v} X).uniq (0 : 0 ⟶ X)
-end
+by ext
 
 end
 
 /-- A zero object is in particular initial. -/
-def has_initial_of_has_zero_object : has_initial.{v} C :=
+def has_initial : has_initial.{v} C :=
 has_initial_of_unique 0
 /-- A zero object is in particular terminal. -/
-def has_terminal_of_has_zero_object : has_terminal.{v} C :=
+def has_terminal : has_terminal.{v} C :=
 has_terminal_of_unique 0
 
 end has_zero_object
+
+/-- If there are zero morphisms, any initial object is a zero object. -/
+@[priority 50]
+instance has_zero_object_of_has_initial_object
+  [has_zero_morphisms.{v} C] [has_initial.{v} C] : has_zero_object.{v} C :=
+{ zero := ⊥_ C,
+  unique_to := λ X, ⟨⟨0⟩, by tidy⟩,
+  unique_from := λ X, ⟨⟨0⟩, λ f,
+  calc
+    f = f ≫ 𝟙 _ : (category.comp_id _).symm
+    ... = f ≫ 0 : by congr
+    ... = 0     : has_zero_morphisms.comp_zero _ _
+  ⟩ }
+
+/-- If there are zero morphisms, any terminal object is a zero object. -/
+@[priority 50]
+instance has_zero_object_of_has_terminal_object
+  [has_zero_morphisms.{v} C] [has_terminal.{v} C] : has_zero_object.{v} C :=
+{ zero := ⊤_ C,
+  unique_from := λ X, ⟨⟨0⟩, by tidy⟩,
+  unique_to := λ X, ⟨⟨0⟩, λ f,
+  calc
+    f = 𝟙 _ ≫ f : (category.id_comp _).symm
+    ... = 0 ≫ f : by congr
+    ... = 0     : has_zero_morphisms.zero_comp _ _
+  ⟩ }
 
 /-- In the presence of zero morphisms, coprojections into a coproduct are (split) monomorphisms. -/
 instance split_mono_sigma_ι
   {β : Type v} [decidable_eq β]
   [has_zero_morphisms.{v} C]
-  (f : β → C) [has_colimit (functor.of_function f)] (b : β) : split_mono (sigma.ι f b) :=
+  (f : β → C) [has_colimit (discrete.functor f)] (b : β) : split_mono (sigma.ι f b) :=
 { retraction := sigma.desc (λ b', if h : b' = b then eq_to_hom (congr_arg f h) else 0), }
 
 /-- In the presence of zero morphisms, projections into a product are (split) epimorphisms. -/
 instance split_epi_pi_π
   {β : Type v} [decidable_eq β]
   [has_zero_morphisms.{v} C]
-  (f : β → C) [has_limit (functor.of_function f)] (b : β) : split_epi (pi.π f b) :=
+  (f : β → C) [has_limit (discrete.functor f)] (b : β) : split_epi (pi.π f b) :=
 { section_ := pi.lift (λ b', if h : b = b' then eq_to_hom (congr_arg f h) else 0), }
 
 /-- In the presence of zero morphisms, coprojections into a coproduct are (split) monomorphisms. -/

@@ -18,6 +18,7 @@ import data.int.parity
 import data.fintype.card
 
 open finset polynomial finite_field equiv
+open_locale big_operators
 
 namespace int
 
@@ -32,7 +33,7 @@ calc 2 * 2 * m = (x - y)^2 + (x + y)^2 : by rw [mul_assoc, h]; ring
 ... = (2 * ((x - y) / 2))^2 + (2 * ((x + y) / 2))^2 :
   by rw [int.mul_div_cancel' hxsuby, int.mul_div_cancel' hxaddy]
 ... = 2 * 2 * (((x - y) / 2) ^ 2 + ((x + y) / 2) ^ 2) :
-  by simp [mul_add, _root_.pow_succ, mul_comm, mul_assoc, mul_left_comm]
+  by simp [mul_add, pow_succ, mul_comm, mul_assoc, mul_left_comm]
 
 lemma exists_sum_two_squares_add_one_eq_k (p : ℕ) [hp : fact p.prime] :
   ∃ (a b : ℤ) (k : ℕ), a^2 + b^2 + 1 = k * p ∧ k < p :=
@@ -48,8 +49,8 @@ have hk0 : 0 ≤ k, from nonneg_of_mul_nonneg_left
     by rw [hk, int.nat_abs_of_nonneg hk0, mul_comm],
   lt_of_mul_lt_mul_left
     (calc p * k.nat_abs = a.val_min_abs.nat_abs ^ 2 + b.val_min_abs.nat_abs ^ 2 + 1 :
-        by rw [← int.coe_nat_inj', int.coe_nat_add, int.coe_nat_add, nat.pow_two, nat.pow_two,
-          int.nat_abs_mul_self, int.nat_abs_mul_self, ← _root_.pow_two, ← _root_.pow_two,
+        by rw [← int.coe_nat_inj', int.coe_nat_add, int.coe_nat_add, int.coe_nat_pow,
+          int.coe_nat_pow, int.nat_abs_pow_two, int.nat_abs_pow_two,
           int.coe_nat_one, hk, int.coe_nat_mul, int.nat_abs_of_nonneg hk0]
       ... ≤ (p / 2) ^ 2 + (p / 2)^2 + 1 :
         add_le_add
@@ -92,7 +93,7 @@ let ⟨x, hx⟩ := h01 in let ⟨y, hy⟩ := h23 in
     rw [← int.sum_two_squares_of_two_mul_sum_two_squares hx.symm, add_assoc,
       ← int.sum_two_squares_of_two_mul_sum_two_squares hy.symm,
       ← domain.mul_right_inj (show (2 : ℤ) ≠ 0, from dec_trivial), ← h, mul_add, ← hx, ← hy],
-    have : univ.sum (λ x, f (σ x)^2) = univ.sum (λ x, f x^2),
+    have : ∑ x, f (σ x)^2 = ∑ x, f x^2,
     { conv_rhs { rw ← finset.sum_equiv σ } },
     have fin4univ : (univ : finset (fin 4)).1 = 0::1::2::3::0, from dec_trivial,
     simpa [finset.sum_eq_multiset_sum, fin4univ, multiset.sum_cons, f, add_assoc]
@@ -206,8 +207,8 @@ let ⟨w, x, y, z, h₂⟩ := sum_four_squares (n / min_fac n) in
  (a * w + b * x + c * y + d * z).nat_abs,
   begin
     rw [← int.coe_nat_inj', ← nat.mul_div_cancel' (min_fac_dvd (k+2)), int.coe_nat_mul, ← h₁, ← h₂],
-    simp [nat.pow_two, int.coe_nat_add, int.nat_abs_mul_self'],
-    ring,
+    simp,
+    ring
   end⟩
 
 end nat

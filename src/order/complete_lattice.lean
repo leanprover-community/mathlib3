@@ -68,6 +68,32 @@ def complete_lattice_of_Inf (α : Type u) [H1 : partial_order α]
   Sup_le := λ s a ha, (is_glb_Inf (upper_bounds s)).1 ha,
   .. H1, .. H2 }
 
+/-- Create a `complete_lattice` from a `partial_order` and `Sup` function
+that returns the least upper bound of a set. Usually this constructor provides
+poor definitional equalities, so it should be used with
+`.. complete_lattice_of_Sup α _`. -/
+def complete_lattice_of_Sup (α : Type*) [H1 : partial_order α]
+  [H2 : has_Sup α] (is_lub_Sup : ∀ s : set α, is_lub s (Sup s)) :
+  complete_lattice α :=
+{ top := Sup univ,
+  le_top := λ x, (is_lub_Sup univ).1 trivial,
+  bot := Sup ∅,
+  bot_le := λ x, (is_lub_Sup ∅).2 $ by simp,
+  sup := λ a b, Sup {a, b},
+  sup_le := λ a b c hac hbc, (is_lub_Sup _).2 (by simp [*]),
+  le_sup_left := λ a b, (is_lub_Sup _).1 $ mem_insert _ _,
+  le_sup_right := λ a b, (is_lub_Sup _).1 $ mem_insert_of_mem _ $ mem_singleton _,
+  inf := λ a b, Sup {x | x ≤ a ∧ x ≤ b},
+  le_inf := λ a b c hab hac, (is_lub_Sup _).1 $ by simp [*],
+  inf_le_left := λ a b, (is_lub_Sup _).2 (λ x, and.left),
+  inf_le_right := λ a b, (is_lub_Sup _).2 (λ x, and.right),
+  Inf := λ s, Sup (lower_bounds s),
+  Sup_le := λ s a ha, (is_lub_Sup s).2 ha,
+  le_Sup := λ s a ha, (is_lub_Sup s).1 ha,
+  Inf_le := λ s a ha, (is_lub_Sup (lower_bounds s)).2 (λ b hb, hb ha),
+  le_Inf := λ s a ha, (is_lub_Sup (lower_bounds s)).1 ha,
+  .. H1, .. H2 }
+
 /-- A complete linear order is a linear order whose lattice structure is complete. -/
 class complete_linear_order (α : Type u) extends complete_lattice α, decidable_linear_order α
 end prio
@@ -98,10 +124,10 @@ theorem Inf_le_of_le (hb : b ∈ s) (h : b ≤ a) : Inf s ≤ a :=
 le_trans (Inf_le hb) h
 
 theorem Sup_le_Sup (h : s ⊆ t) : Sup s ≤ Sup t :=
-Sup_le (assume a, assume ha : a ∈ s, le_Sup $ h ha)
+(is_lub_Sup s).mono (is_lub_Sup t) h
 
 theorem Inf_le_Inf (h : s ⊆ t) : Inf t ≤ Inf s :=
-le_Inf (assume a, assume ha : a ∈ s, Inf_le $ h ha)
+(is_glb_Inf s).mono (is_glb_Inf t) h
 
 @[simp] theorem Sup_le_iff : Sup s ≤ a ↔ (∀b ∈ s, b ≤ a) :=
 is_lub_le_iff (is_lub_Sup s)
@@ -192,6 +218,7 @@ iff.intro
     let ⟨a, ha, h⟩ := h _ h' in
     lt_irrefl a $ lt_of_le_of_lt (le_Sup ha) h)
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma Inf_eq_bot : Inf s = ⊥ ↔ (∀b>⊥, ∃a∈s, a < b) :=
 iff.intro
   (assume (h : Inf s = ⊥) b (hb : ⊥ < b), by rwa [←h, Inf_lt_iff] at hb)
@@ -763,6 +790,7 @@ lemma supr_eq_top (f : ι → α) : supr f = ⊤ ↔ (∀b<⊤, ∃i, b < f i) :
 by rw [← Sup_range, Sup_eq_top];
 from forall_congr (assume b, forall_congr (assume hb, set.exists_range_iff))
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma infi_eq_bot (f : ι → α) : infi f = ⊥ ↔ (∀b>⊥, ∃i, b > f i) :=
 by rw [← Inf_range, Inf_eq_bot];
 from forall_congr (assume b, forall_congr (assume hb, set.exists_range_iff))
@@ -826,21 +854,6 @@ theorem monotone_Inf_of_monotone {s : set (α → β)} (m_s : ∀f∈s, monotone
 assume x y h, le_Inf $ assume x' ⟨f, f_in, fx_eq⟩, Inf_le_of_le ⟨f, f_in, rfl⟩ $ fx_eq ▸ m_s _ f_in h
 
 end complete_lattice
-
-section ord_continuous
-variables [complete_lattice α] [complete_lattice β]
-
-/-- A function `f` between complete lattices is order-continuous
-  if it preserves all suprema. -/
-def ord_continuous (f : α → β) := ∀s : set α, f (Sup s) = (⨆i∈s, f i)
-
-lemma ord_continuous.sup {f : α → β} {a₁ a₂ : α} (hf : ord_continuous f) : f (a₁ ⊔ a₂) = f a₁ ⊔ f a₂ :=
-by rw [← Sup_pair, ← Sup_pair, hf {a₁, a₂}, ← Sup_image, image_pair]
-
-lemma ord_continuous.mono {f : α → β} (hf : ord_continuous f) : monotone f :=
-assume a₁ a₂ h, by rw [← sup_eq_right, ← hf.sup, sup_of_le_right h]
-
-end ord_continuous
 
 namespace order_dual
 variable (α)

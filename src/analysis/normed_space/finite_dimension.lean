@@ -40,14 +40,7 @@ then the identities from `E` to `E'` and from `E'`to `E` are continuous thanks t
 universes u v w x
 
 open set finite_dimensional
-open_locale classical
-
--- To get a reasonable compile time for `continuous_equiv_fun_basis`, typeclass inference needs
--- to be guided.
-local attribute [instance, priority 10000] pi.module normed_space.to_module
-  submodule.add_comm_group submodule.module
-  linear_map.finite_dimensional_range Pi.complete nondiscrete_normed_field.to_normed_field
-
+open_locale classical big_operators
 
 /-- A linear map on `ι → 𝕜` (where `ι` is a fintype) is continuous -/
 lemma linear_map.continuous_on_pi {ι : Type w} [fintype ι] {𝕜 : Type u} [normed_field 𝕜]
@@ -57,7 +50,7 @@ begin
   -- for the proof, write `f` in the standard basis, and use that each coordinate is a continuous
   -- function.
   have : (f : (ι → 𝕜) → E) =
-         (λx, finset.sum finset.univ (λi:ι, x i • (f (λj, if i = j then 1 else 0)))),
+         (λx, ∑ i : ι, x i • (f (λj, if i = j then 1 else 0))),
     by { ext x, exact f.pi_apply_eq_sum_univ x },
   rw this,
   refine continuous_finset_sum _ (λi hi, _),
@@ -83,8 +76,7 @@ continuous, in `linear_map.continuous_of_finite_dimensional`. -/
 lemma continuous_equiv_fun_basis {ι : Type v} [fintype ι] (ξ : ι → E) (hξ : is_basis 𝕜 ξ) :
   continuous (equiv_fun_basis hξ) :=
 begin
-  unfreezeI,
-  induction hn : fintype.card ι with n IH generalizing ι E,
+  unfreezingI { induction hn : fintype.card ι with n IH generalizing ι E },
   { apply linear_map.continuous_of_bound _ 0 (λx, _),
     have : equiv_fun_basis hξ x = 0,
       by { ext i, exact (fintype.card_eq_zero_iff.1 hn i).elim },
@@ -122,7 +114,7 @@ begin
           simpa using Z },
         { left,
           rw [this, add_comm, nat.add_one] at Z,
-          exact nat.succ_inj Z } },
+          exact nat.succ.inj Z } },
       have : is_closed (f.ker : set E),
       { cases this,
         { exact H₁ _ this },
@@ -139,7 +131,7 @@ begin
       exact ⟨∥f'∥, norm_nonneg _, λx, continuous_linear_map.le_op_norm f' x⟩ },
     -- fourth step: combine the bound on each coefficient to get a global bound and the continuity
     choose C0 hC0 using this,
-    let C := finset.sum finset.univ C0,
+    let C := ∑ i, C0 i,
     have C_nonneg : 0 ≤ C := finset.sum_nonneg (λi hi, (hC0 i).1),
     have C0_le : ∀i, C0 i ≤ C :=
       λi, finset.single_le_sum (λj hj, (hC0 j).1) (finset.mem_univ _),
@@ -239,7 +231,7 @@ begin
     have B : e (e.symm y) = y := linear_equiv.apply_symm_apply _ _,
     conv_lhs { rw [← A, ← B] },
     change dist (f (e.symm x)) (f (e.symm y)) ≤ ∥f∥ * dist (e.symm x) (e.symm y),
-    exact f.lipschitz.dist_le_mul _ _ }
+    unfreezingI { exact f.lipschitz.dist_le_mul _ _ } }
 end
 
 end proper_field

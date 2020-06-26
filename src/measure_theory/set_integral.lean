@@ -23,7 +23,7 @@ Integrate a function over a subset of a measure space.
 
 noncomputable theory
 open set filter topological_space measure_theory measure_theory.simple_func
-open_locale classical topological_space interval
+open_locale classical topological_space interval big_operators
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -281,7 +281,7 @@ begin
   { assume i, exact hfm.subset (hsm i) (subset_Union _ _) },
   { assumption },
   { show integrable_on (Union s) (λa, ∥f a∥), rwa integrable_on_norm_iff },
-  { assume i, apply all_ae_of_all,
+  { assume i, apply ae_of_all,
     assume a,
     rw [norm_indicator_eq_indicator_norm],
     exact indicator_le_indicator_of_subset (subset_Union _ _) (λa, norm_nonneg _) _ },
@@ -297,7 +297,7 @@ begin
   { assume i, refine hfm.subset (hsm i) (h_mono _ _ (zero_le _)) },
   { exact hfm.subset (is_measurable.Inter hsm) (Inter_subset _ _) },
   { show integrable_on (s 0) (λa, ∥f a∥), rwa integrable_on_norm_iff },
-  { assume i, apply all_ae_of_all,
+  { assume i, apply ae_of_all,
     assume a,
     rw [norm_indicator_eq_indicator_norm],
     refine indicator_le_indicator_of_subset (h_mono _ _ (zero_le _)) (λa, norm_nonneg _) _ },
@@ -309,10 +309,10 @@ end
 lemma integral_on_Union (s : ℕ → set α) (f : α → β) (hm : ∀i, is_measurable (s i))
   (hd : ∀ i j, i ≠ j → s i ∩ s j = ∅) (hfm : measurable_on (Union s) f) (hfi : integrable_on (Union s) f) :
   (∫ a in (Union s), f a) = ∑'i, ∫ a in s i, f a :=
-suffices h : tendsto (λn:finset ℕ, n.sum (λ i, ∫ a in s i, f a)) at_top (𝓝 $ (∫ a in (Union s), f a)),
+suffices h : tendsto (λn:finset ℕ, ∑ i in n, ∫ a in s i, f a) at_top (𝓝 $ (∫ a in (Union s), f a)),
   by { rwa tsum_eq_has_sum },
 begin
-  have : (λn:finset ℕ, n.sum (λ i, ∫ a in s i, f a)) = λn:finset ℕ, ∫ a in (⋃i∈n, s i), f a,
+  have : (λn:finset ℕ, ∑ i in n, ∫ a in s i, f a) = λn:finset ℕ, ∫ a in (⋃i∈n, s i), f a,
   { funext,
     rw [← integral_finset_sum, indicator_finset_bUnion],
     { assume i hi j hj hij, exact hd i j hij },

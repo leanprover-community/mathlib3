@@ -23,20 +23,21 @@ where $B_k$ denotes the the $k$-th Bernoulli number.
 
 -/
 
+open_locale big_operators
+
 /-- The Bernoulli numbers:
 the $n$-th Bernoulli number $B_n$ is defined recursively via
 $$B_n = \sum_{k < n} \binom{n}{k} * \frac{B_k}{n+1-k}$$ -/
 def bernoulli : ℕ → ℚ :=
 well_founded.fix nat.lt_wf
-  (λ n bernoulli, 1 - finset.univ.sum
-    (λ k : fin n, (n.choose k) * bernoulli k k.2 / (n + 1 - k)))
+  (λ n bernoulli, 1 - ∑ k : fin n, (n.choose k) * bernoulli k k.2 / (n + 1 - k))
 
 lemma bernoulli_def' (n : ℕ) :
-  bernoulli n = 1 - finset.univ.sum (λ (k : fin n), (n.choose k) * (bernoulli k) / (n + 1 - k)) :=
+  bernoulli n = 1 - ∑ k : fin n, (n.choose k) * (bernoulli k) / (n + 1 - k) :=
 well_founded.fix_eq _ _ _
 
 lemma bernoulli_def (n : ℕ) :
-  bernoulli n = 1 - (finset.range n).sum (λ k, (n.choose k) * (bernoulli k) / (n + 1 - k)) :=
+  bernoulli n = 1 - ∑ k in finset.range n, (n.choose k) * (bernoulli k) / (n + 1 - k) :=
 by { rw [bernoulli_def', finset.range_sum_eq_univ_sum], refl }
 
 @[simp] lemma bernoulli_zero  : bernoulli 0 = 1   := rfl
@@ -62,7 +63,7 @@ begin
 end
 
 @[simp] lemma sum_bernoulli (n : ℕ) :
-  (finset.range n).sum (λ k, (n.choose k : ℚ) * bernoulli k) = n :=
+  ∑ k in finset.range n, (n.choose k : ℚ) * bernoulli k = n :=
 begin
   induction n with n ih, { simp },
   rw [finset.sum_range_succ],

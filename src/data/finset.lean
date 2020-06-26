@@ -6,7 +6,6 @@ Authors: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 import data.multiset
 import tactic.monotonicity
 import tactic.apply
-import data.equiv.encodable
 
 /-!
 # Finite sets
@@ -1056,13 +1055,6 @@ theorem forall_mem_insert [d : decidable_eq α]
   (∀ x, x ∈ insert a s → p x) ↔ p a ∧ (∀ x, x ∈ s → p x) :=
 by simp only [mem_insert, or_imp_distrib, forall_and_distrib, forall_eq]
 
-lemma nonempty_encodable {α} (t : finset α) : nonempty $ encodable {i // i ∈ t} :=
-begin
-  classical, induction t using finset.induction with x t hx ih,
-  { refine ⟨⟨λ _, 0, λ _, none, λ ⟨x,y⟩, y.rec _⟩⟩ },
-  { cases ih with ih, exactI ⟨encodable.of_equiv _ (subtype_insert_equiv_option hx)⟩ }
-end
-
 end finset
 
 /-- Equivalence between the set of natural numbers which are `≥ k` and `ℕ`, given by `n → n - k`. -/
@@ -2109,13 +2101,6 @@ theorem subset_range_sup_succ (s : finset ℕ) : s ⊆ range (s.sup id).succ :=
 
 theorem exists_nat_subset_range (s : finset ℕ) : ∃n : ℕ, s ⊆ range n :=
 ⟨_, s.subset_range_sup_succ⟩
-
-/-- The first component of a sup in a subtype is the sup if first components. -/
-lemma sup_val {P : α → Prop}
-  {Pbot : P ⊥} {Psup : ∀{{x y}}, P x → P y → P (x ⊔ y)}
-  (t : finset β) (f : β → {x : α // P x}) :
-  (@finset.sup _ _ (subtype.semilattice_sup_bot Pbot Psup) t f).1 = t.sup (λ x, (f x).1) :=
-by { classical, rw [finset.comp_sup_eq_sup_comp' subtype.val]; intros; refl }
 
 end sup
 

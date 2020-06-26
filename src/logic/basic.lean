@@ -964,3 +964,15 @@ instance {α β} [h : nonempty α] [h2 : nonempty β] : nonempty (α × β) :=
 h.elim $ λ g, h2.elim $ λ g2, ⟨⟨g, g2⟩⟩
 
 end nonempty
+
+section ite
+
+lemma apply_dite {α β : Type*} (f : α → β) (P : Prop) [decidable P] (x : P → α) (y : ¬P → α) :
+  f (dite P x y) = dite P (λ h, f (x h)) (λ h, f (y h)) :=
+by { by_cases P; simp [h], }
+
+lemma apply_ite {α β : Type*} (f : α → β) (P : Prop) [decidable P] (x y : α) :
+  f (ite P x y) = ite P (f x) (f y) :=
+apply_dite f P (λ _, x) (λ _, y)
+
+end ite

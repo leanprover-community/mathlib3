@@ -148,11 +148,6 @@ begin
   { simp, },
 end
 
--- How is this not in mathlib?!
-lemma apply_ite {α β : Type*} (f : α → β) (P : Prop) [decidable P] (x y : α) :
-  f (ite P x y) = ite P (f x) (f y) :=
-by split_ifs; refl
-
 lemma right_inv (M : matrix n n A) : (to_fun_alg_hom R A n) (inv_fun R A n M) = M :=
 begin
   ext,

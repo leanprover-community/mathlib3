@@ -155,6 +155,11 @@ Here are some guidelines to get you started:
      2d. If two lemmas are duplicates, the linter will complain about the first one.
          Try to fix the second one instead!
          (You can find it among the other simp lemmas the linter prints out!)
+
+  3. 'try_for tactic failed, timeout':
+     This typically means that there is a loop of simp lemmas.
+     Try to apply squeeze_simp to the right-hand side (removing this lemma from the simp set) to see
+     what lemmas might be causing the loop.
 " }
 
 private meta def simp_var_head (d : declaration) : tactic (option string) := do

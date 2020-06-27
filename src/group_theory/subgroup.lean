@@ -817,8 +817,8 @@ open set
 
 lemma gsmul_mem (H : add_subgroup A) {x : A} (hx : x ∈ H) :
   ∀ n : ℤ, gsmul n x ∈ H
-| (int.of_nat n) := add_submonoid.smul_mem H.to_add_submonoid hx n
-| -[1+ n]        := H.neg_mem' $ H.add_mem hx $ add_submonoid.smul_mem H.to_add_submonoid hx n
+| (int.of_nat n) := add_submonoid.nsmul_mem H.to_add_submonoid hx n
+| -[1+ n]        := H.neg_mem' $ H.add_mem hx $ add_submonoid.nsmul_mem H.to_add_submonoid hx n
 
 lemma sub_mem (H : add_subgroup A) {x y : A} (hx : x ∈ H) (hy : y ∈ H) : x - y ∈ H :=
 H.add_mem hx (H.neg_mem hy)

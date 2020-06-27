@@ -204,7 +204,7 @@ instance : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
 instance : algebra R (polynomial R) := add_monoid_algebra.algebra
 
 /-- `C a` is the constant polynomial `a`. -/
-def C : R →ₐ[R] polynomial R := algebra.of_id R (polynomial R)
+def C : R →+* polynomial R := algebra.of_id R (polynomial R)
 
 lemma C_def (a : R) : C a = single 0 a := rfl
 
@@ -245,12 +245,13 @@ lemma C_mul : C (a * b) = C a * C b := C.map_mul a b
 lemma C_add : C (a + b) = C a + C b := C.map_add a b
 
 instance C.is_semiring_hom : is_semiring_hom (C : R → polynomial R) :=
-C.to_ring_hom.is_semiring_hom
+C.is_semiring_hom
 
 lemma C_pow : C (a ^ n) = C a ^ n := C.map_pow a n
 
-lemma nat_cast_eq_C (n : ℕ) : (n : polynomial R) = C (n : R) :=
-(C.to_ring_hom.map_nat_cast n).symm
+@[simp]
+lemma nat_cast_eq_C (n : ℕ) : C (n : R) = (n : polynomial R) :=
+C.map_nat_cast n
 
 section coeff
 
@@ -364,6 +365,9 @@ variable {x : R}
 def eval : R → polynomial R → R := eval₂ id
 
 @[simp] lemma eval_C : (C a).eval x = a := eval₂_C _ _
+
+@[simp] lemma eval_nat_cast {n : ℕ} : (n : polynomial R).eval x = n :=
+by simp only [←nat_cast_eq_C, eval_C]
 
 @[simp] lemma eval_X : X.eval x = x := eval₂_X _ _
 
@@ -585,7 +589,7 @@ end
 @[simp] lemma nat_degree_one : nat_degree (1 : polynomial R) = 0 := nat_degree_C 1
 
 @[simp] lemma nat_degree_nat_cast (n : ℕ) : nat_degree (n : polynomial R) = 0 :=
-by simp [nat_cast_eq_C]
+by simp only [←nat_cast_eq_C, nat_degree_C]
 
 @[simp] lemma degree_monomial (n : ℕ) (ha : a ≠ 0) : degree (C a * X ^ n) = n :=
 by rw [← single_eq_C_mul_X, degree, support_single_ne_zero ha]; refl
@@ -1407,14 +1411,15 @@ variable {R}
 
 @[simp] lemma lcoeff_apply (n : ℕ) (f : polynomial R) : lcoeff R n f = coeff f n := rfl
 
-instance : is_ring_hom (C : R → polynomial R) := (C : R →ₐ[R] polynomial R).to_ring_hom.is_ring_hom
+instance : is_ring_hom (C : R → polynomial R) := (C : R →+* polynomial R).is_ring_hom
 
-lemma int_cast_eq_C (n : ℤ) : (n : polynomial R) = C ↑n :=
-((C : R →ₐ[R] _).to_ring_hom.map_int_cast n).symm
+@[simp]
+lemma int_cast_eq_C (n : ℤ) : C ↑n = (n : polynomial R) :=
+(C : R →+* _).map_int_cast n
 
-lemma C_neg : C (-a) = -C a := alg_hom.map_neg C a
+lemma C_neg : C (-a) = -C a := ring_hom.map_neg C a
 
-lemma C_sub : C (a - b) = C a - C b := alg_hom.map_sub C a b
+lemma C_sub : C (a - b) = C a - C b := ring_hom.map_sub C a b
 
 instance eval₂.is_ring_hom {S} [comm_ring S]
   (f : R → S) [is_ring_hom f] {x : S} : is_ring_hom (eval₂ f x) :=
@@ -1443,7 +1448,7 @@ degree_neg q ▸ degree_add_le p (-q)
 by simp [nat_degree]
 
 @[simp] lemma nat_degree_int_cast (n : ℤ) : nat_degree (n : polynomial R) = 0 :=
-by simp [int_cast_eq_C]
+by simp only [←int_cast_eq_C, nat_degree_C]
 
 @[simp] lemma coeff_neg (p : polynomial R) (n : ℕ) : coeff (-p) n = -coeff p n := rfl
 
@@ -1463,6 +1468,9 @@ is_ring_hom.map_neg _
 
 @[simp] lemma eval_sub (p q : polynomial R) (x : R) : (p - q).eval x = p.eval x - q.eval x :=
 is_ring_hom.map_sub _
+
+@[simp] lemma eval_int_cast {n : ℤ} {x : R} : (n : polynomial R).eval x = n :=
+by simp only [←int_cast_eq_C, eval_C]
 
 section aeval
 /-- `R[X]` is the generator of the category `R-Alg`. -/

@@ -1119,12 +1119,12 @@ end is_unit
 
 end comm_semiring
 
-instance subsingleton [subsingleton R] [comm_semiring R] : subsingleton (polynomial R) :=
+instance subsingleton [subsingleton R] [semiring R] : subsingleton (polynomial R) :=
 ⟨λ _ _, ext (λ _, subsingleton.elim _ _)⟩
 
-section comm_semiring
+section semiring
 
-variables [comm_semiring R] {p q r : polynomial R}
+variables [semiring R] {p q r : polynomial R}
 
 lemma ne_zero_of_monic_of_zero_ne_one (hp : monic p) (h : (0 : R) ≠ 1) :
   p ≠ 0 := mt (congr_arg leading_coeff) $ by rw [monic.def.1 hp, leading_coeff_zero]; cc
@@ -1158,7 +1158,7 @@ by simpa only [C_1, one_mul, pow_one] using degree_C_mul_X_pow_le (1:R) 1
 
 section injective
 open function
-variables [comm_semiring S] {f : R →+* S} (hf : function.injective f)
+variables [semiring S] {f : R →+* S} (hf : function.injective f)
 include hf
 
 lemma degree_map_eq_of_injective (p : polynomial R) : degree (p.map f) = degree p :=
@@ -1249,6 +1249,12 @@ else
 lemma monic_pow (hp : monic p) : ∀ (n : ℕ), monic (p ^ n)
 | 0     := monic_one
 | (n+1) := monic_mul hp (monic_pow n)
+
+end semiring
+
+section comm_semiring
+
+variables [comm_semiring R] {p q : polynomial R}
 
 lemma multiplicity_finite_of_degree_pos_of_monic (hp : (0 : with_bot ℕ) < degree p)
   (hmp : monic p) (hq : q ≠ 0) : multiplicity.finite p q :=

@@ -574,6 +574,31 @@ lemma sum_range_one {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) :
 
 attribute [to_additive finset.sum_range_one] prod_range_one
 
+
+/-- To prove a property of a sum, it suffices to prove that the property is additive and holds on summands.
+-/
+lemma sum_induction {M : Type*} [decidable_eq α] [add_comm_monoid M] {p : M → Prop} {f : α → M}
+  (p_add : ∀ a b, p a → p b → p (a + b)) (p_zero : p 0) (p_s : ∀ x ∈ s, p $ f x) :
+p $ ∑ x in s, f x :=
+begin
+  induction s using finset.induction with x hx s hs, simpa,
+  rw finset.sum_insert, swap, assumption,
+  apply p_add, apply p_s, simp,
+  apply hs, intros a ha, apply p_s, simp [ha],
+end
+
+/-- To prove a property of a product, it suffices to prove that the property is multiplicative and holds on summands.
+-/
+lemma prod_induction {M : Type*} [decidable_eq α] [comm_monoid M] {p : M → Prop} {f : α → M}
+ (p_mul : ∀ a b, p a → p b → p (a * b)) (p_one : p 1) (p_s : ∀ x ∈ s, p $ f x) :
+p $ ∏ x in s, f x :=
+begin
+  induction s using finset.induction with x hx s hs, simpa,
+  rw finset.prod_insert, swap, assumption,
+  apply p_mul, apply p_s, simp,
+  apply hs, intros a ha, apply p_s, simp [ha],
+end
+
 /-- For any product along `{0, ..., n-1}` of a commutative-monoid-valued function, we can verify that
 it's equal to a different function just by checking ratios of adjacent terms.
 This is a multiplicative discrete analogue of the fundamental theorem of calculus. -/

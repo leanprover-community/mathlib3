@@ -221,6 +221,9 @@ lemma single_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
 lemma sum_C_mul_X_eq (p : polynomial R) : p.sum (λn a, C a * X^n) = p :=
 eq.trans (sum_congr rfl $ assume n hn, single_eq_C_mul_X.symm) (finsupp.sum_single _)
 
+lemma sum_monomial_eq (p : polynomial R) : p.sum (λn a, monomial n a) = p :=
+by simp only [single_eq_C_mul_X, sum_C_mul_X_eq]
+
 @[elab_as_eliminator] protected lemma induction_on {M : polynomial R → Prop} (p : polynomial R)
   (h_C : ∀a, M (C a))
   (h_add : ∀p q, M p → M q → M (p + q))
@@ -238,6 +241,15 @@ finsupp.induction p
     h_C 0)
   (assume n a p _ _ hp, suffices M (C a * X^n + p), by { convert this, exact single_eq_C_mul_X },
     h_add _ _ this hp)
+
+/-- A variant of `polynomial.induction_on` written in terms of monomials. -/
+@[elab_as_eliminator] protected lemma induction_on' {M : polynomial R → Prop} (p : polynomial R)
+  (h_C : ∀a, M (C a))
+  (h_add : ∀p q, M p → M q → M (p + q))
+  (h_monomial : ∀(n : ℕ) (a : R), M (monomial n a) → M (monomial (n+1) a)) :
+  M p :=
+polynomial.induction_on p h_C h_add
+(λ n a h, begin rw ←single_eq_C_mul_X at h ⊢, exact h_monomial _ _ h, end)
 
 lemma C_0 : C (0 : R) = 0 := single_zero
 
@@ -312,6 +324,12 @@ variables [is_semiring_hom f]
 @[simp] lemma eval₂_X : X.eval₂ f x = x :=
 (sum_single_index $ by rw [map_zero f, zero_mul]).trans $ by rw [map_one f, one_mul, pow_one]
 
+@[simp] lemma eval₂_monomial {n a} : (monomial n a).eval₂ f x = (f a) * x^n :=
+begin
+  rw [eval₂, monomial, sum_single_index],
+  rw [map_zero f, zero_mul],
+end
+
 @[simp] lemma eval₂_add : (p + q).eval₂ f x = p.eval₂ f x + q.eval₂ f x :=
 finsupp.sum_add_index
   (λ _, by rw [map_zero f, zero_mul])
@@ -342,6 +360,9 @@ def eval : R → polynomial R → R := eval₂ id
 by simp only [←nat_cast_eq_C, eval_C]
 
 @[simp] lemma eval_X : X.eval x = x := eval₂_X _ _
+
+@[simp] lemma eval_monomial {n a} : (monomial n a).eval x = a * x^n :=
+eval₂_monomial _ _
 
 @[simp] lemma eval_zero : (0 : polynomial R).eval x = 0 :=  eval₂_zero _ _
 
@@ -699,6 +720,12 @@ is_semiring_hom.comp _ _
 
 @[simp] lemma map_X : X.map f = X := eval₂_X _ _
 
+@[simp] lemma map_monomial {n a} : (monomial n a).map f = monomial n (f a) :=
+begin
+  dsimp only [map],
+  rw [eval₂_monomial, single_eq_C_mul_X]
+end
+
 @[simp] lemma map_zero : (0 : polynomial R).map f = 0 :=  eval₂_zero _ _
 
 @[simp] lemma map_add : (p + q).map f = p.map f + q.map f := eval₂_add _ _
@@ -720,6 +747,14 @@ lemma map_map [semiring T] (g : S →+* T)
 ext (by simp [coeff_map])
 
 @[simp] lemma map_id : p.map (ring_hom.id _) = p := by simp [polynomial.ext_iff, coeff_map]
+
+lemma eval₂_eq_eval_map {x : S} : p.eval₂ f x = (p.map f).eval x :=
+begin
+  apply polynomial.induction_on' p,
+  { intro r, simp, },
+  { intros p q hp hq, simp [hp, hq], },
+  { intros n r h, simp, }
+end
 
 end map
 

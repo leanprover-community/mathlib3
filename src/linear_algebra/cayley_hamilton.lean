@@ -38,8 +38,10 @@ begin
   change _ = baz (_ * _) at this,
   simp only [baz.map_mul] at this,
   rw q at this,
-  apply_fun (λ p, p.eval₂ id m) at this,
+  apply_fun (λ p, p.eval₂ (ring_hom.id _) m) at this,
   rw eval₂_mul_X_sub_monomial' at this,
   rw r at this,
-  -- so close! just need the relation between `eval₂` and `map`
+  rw eval₂_eq_eval_map at this ⊢,
+  simp at this,
+  exact this,
 end

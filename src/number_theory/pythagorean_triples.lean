@@ -2,25 +2,28 @@
 Copyright (c) 2020 Paul van Wamelen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Paul van Wamelen.
+-/
+import algebra.field
+import algebra.gcd_domain
+import algebra.group_with_zero_power
+import tactic
 
+/-!
+# Pythagorean Triples
 The main result is the classification of pythagorean triples. The final result is for general
 pythagorean triples. It follows from the more interesting relatively prime case. We use the
 "rational parametrization of the circle" method for the proof.
 -/
-import algebra.field
-import algebra.group_with_zero_power
-import data.equiv.basic
-import data.int.modeq
-import tactic
 
 noncomputable theory
 open_locale classical
 
+/-- Definition of a Pythagorean Triple: an integer square that is a sum of two squares -/
 def pythagorean_triple (x y z : ℤ) := x*x + y*y = z*z
 
 variables {k : Type*} [field k]
 
-/- The basic idea is the following parametrization of the circle (to be applied in the case
+/-- The basic idea is the following parametrization of the circle (to be applied in the case
 where k = ℚ) -/
 def circle_equiv_gen (hk : ∀ x : k, 1 + x^2 ≠ 0) :
   k ≃ {p : k × k | p.1^2 + p.2^2 = 1 ∧ p.2 ≠ -1} :=

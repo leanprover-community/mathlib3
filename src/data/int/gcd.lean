@@ -118,36 +118,4 @@ dvd.elim H (λl H1, by rw mul_assoc at H1; exact ⟨_, eq_of_mul_eq_mul_left k_n
 theorem dvd_of_mul_dvd_mul_right {i j k : ℤ} (k_non_zero : k ≠ 0) (H : i * k ∣ j * k) : i ∣ j :=
 by rw [mul_comm i k, mul_comm j k] at H; exact dvd_of_mul_dvd_mul_left k_non_zero H
 
-/- A few useful lemmas, mostly generalizations of the same for nat -/
-lemma gcd_comm (i j : ℤ): gcd i j = gcd j i := by { unfold gcd, rw nat.gcd_comm }
-
-lemma gcd_dvd_left (i j : ℤ) : (gcd i j : ℤ) ∣ i :=
-begin
-  apply nat_abs_dvd_abs_iff.mp,
-  change gcd i j ∣ nat_abs i,
-  apply nat.gcd_dvd_left
-end
-
-lemma gcd_dvd_right (i j : ℤ) : (gcd i j : ℤ) ∣ j :=
-begin
-  apply nat_abs_dvd_abs_iff.mp,
-  change gcd i j ∣ nat_abs j,
-  apply nat.gcd_dvd_right
-end
-
-theorem gcd_div {i j k : ℤ} (H1 : k ∣ i) (H2 : k ∣ j) :
-  gcd (i / k) (j / k) = gcd i j / nat_abs k :=
-begin
-  dunfold gcd,
-  rw [nat_abs_div _ _ H1, nat_abs_div _ _ H2],
-  exact nat.gcd_div (nat_abs_dvd_abs_iff.mpr H1) (nat_abs_dvd_abs_iff.mpr H2)
-end
-
-theorem coprime_div_gcd_div_gcd {i j : ℤ} (H : 0 < gcd i j) :
-  gcd (i / gcd i j) (j / gcd i j) = 1 :=
-begin
-  rw [gcd_div (gcd_dvd_left i j) (gcd_dvd_right i j)],
-  rw [nat_abs_of_nat, nat.div_self H]
-end
-
 end int

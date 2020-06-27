@@ -313,6 +313,9 @@ by rw [← C_1, eval₂_C, map_one f]
 instance eval₂.is_add_monoid_hom : is_add_monoid_hom (eval₂ f x) :=
 { map_zero := eval₂_zero _ _, map_add := λ _ _, eval₂_add _ _ }
 
+@[simp] lemma eval₂_nat_cast (n : ℕ) : (n : polynomial R).eval₂ f x = n :=
+nat.rec_on n rfl $ λ n ih, by rw [n.cast_succ, eval₂_add, ih, eval₂_one, n.cast_succ]
+
 end eval₂
 
 section eval₂

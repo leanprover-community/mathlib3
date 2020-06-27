@@ -575,7 +575,7 @@ lemma sum_range_one {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) :
 attribute [to_additive finset.sum_range_one] prod_range_one
 
 
-/-- To prove a property of a product, it suffices to prove that the property is multiplicative and holds on summands.
+/-- To prove a property of a product, it suffices to prove that the property is multiplicative and holds on factors.
 -/
 @[to_additive "To prove a property of a sum, it suffices to prove that the property is additive and holds on summands."]
 lemma prod_induction {M : Type*} [decidable_eq α] [comm_monoid M] (f : α → M) (p : M → Prop)

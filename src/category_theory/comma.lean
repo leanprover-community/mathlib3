@@ -123,24 +123,22 @@ end
 variables (L) (R)
 
 /-- The functor sending an object `X` in the comma category to `X.left`. -/
+@[simps]
 def fst : comma L R ⥤ A :=
 { obj := λ X, X.left,
   map := λ _ _ f, f.left }
 
 /-- The functor sending an object `X` in the comma category to `X.right`. -/
+@[simps]
 def snd : comma L R ⥤ B :=
 { obj := λ X, X.right,
   map := λ _ _ f, f.right }
-
-@[simp] lemma fst_obj {X : comma L R} : (fst L R).obj X = X.left := rfl
-@[simp] lemma snd_obj {X : comma L R} : (snd L R).obj X = X.right := rfl
-@[simp] lemma fst_map {X Y : comma L R} {f : X ⟶ Y} : (fst L R).map f = f.left := rfl
-@[simp] lemma snd_map {X Y : comma L R} {f : X ⟶ Y} : (snd L R).map f = f.right := rfl
 
 /-- We can interpret the commutative square constituting a morphism in the comma category as a
     natural transformation between the functors `fst ⋙ L` and `snd ⋙ R` from the comma category
     to `T`, where the components are given by the morphism that constitutes an object of the comma
     category. -/
+@[simps]
 def nat_trans : fst L R ⋙ L ⟶ snd L R ⋙ R :=
 { app := λ X, X.hom }
 
@@ -148,6 +146,7 @@ section
 variables {L₁ L₂ L₃ : A ⥤ T} {R₁ R₂ R₃ : B ⥤ T}
 
 /-- A natural transformation `L₁ ⟶ L₂` induces a functor `comma L₂ R ⥤ comma L₁ R`. -/
+@[simps]
 def map_left (l : L₁ ⟶ L₂) : comma L₂ R ⥤ comma L₁ R :=
 { obj := λ X,
   { left  := X.left,
@@ -158,34 +157,19 @@ def map_left (l : L₁ ⟶ L₂) : comma L₂ R ⥤ comma L₁ R :=
     right := f.right,
     w' := by tidy; rw [←category.assoc, l.naturality f.left, category.assoc]; tidy } }
 
-section
-variables {X Y : comma L₂ R} {f : X ⟶ Y} {l : L₁ ⟶ L₂}
-@[simp] lemma map_left_obj_left  : ((map_left R l).obj X).left  = X.left                := rfl
-@[simp] lemma map_left_obj_right : ((map_left R l).obj X).right = X.right               := rfl
-@[simp] lemma map_left_obj_hom   : ((map_left R l).obj X).hom   = l.app X.left ≫ X.hom := rfl
-@[simp] lemma map_left_map_left  : ((map_left R l).map f).left  = f.left                := rfl
-@[simp] lemma map_left_map_right : ((map_left R l).map f).right = f.right               := rfl
-end
-
 /-- The functor `comma L R ⥤ comma L R` induced by the identity natural transformation on `L` is
     naturally isomorphic to the identity functor. -/
+@[simps]
 def map_left_id : map_left R (𝟙 L) ≅ 𝟭 _ :=
 { hom :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
   inv :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } } }
 
-section
-variables {X : comma L R}
-@[simp] lemma map_left_id_hom_app_left  : (((map_left_id L R).hom).app X).left  = 𝟙 (X.left)  := rfl
-@[simp] lemma map_left_id_hom_app_right : (((map_left_id L R).hom).app X).right = 𝟙 (X.right) := rfl
-@[simp] lemma map_left_id_inv_app_left  : (((map_left_id L R).inv).app X).left  = 𝟙 (X.left)  := rfl
-@[simp] lemma map_left_id_inv_app_right : (((map_left_id L R).inv).app X).right = 𝟙 (X.right) := rfl
-end
-
 /-- The functor `comma L₁ R ⥤ comma L₃ R` induced by the composition of two natural transformations
     `l : L₁ ⟶ L₂` and `l' : L₂ ⟶ L₃` is naturally isomorphic to the composition of the two functors
     induced by these natural transformations. -/
+@[simps]
 def map_left_comp (l : L₁ ⟶ L₂) (l' : L₂ ⟶ L₃) :
   (map_left R (l ≫ l')) ≅ (map_left R l') ⋙ (map_left R l) :=
 { hom :=
@@ -193,15 +177,8 @@ def map_left_comp (l : L₁ ⟶ L₂) (l' : L₂ ⟶ L₃) :
   inv :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } } }
 
-section
-variables {X : comma L₃ R} {l : L₁ ⟶ L₂} {l' : L₂ ⟶ L₃}
-@[simp] lemma map_left_comp_hom_app_left  : (((map_left_comp R l l').hom).app X).left  = 𝟙 (X.left)  := rfl
-@[simp] lemma map_left_comp_hom_app_right : (((map_left_comp R l l').hom).app X).right = 𝟙 (X.right) := rfl
-@[simp] lemma map_left_comp_inv_app_left  : (((map_left_comp R l l').inv).app X).left  = 𝟙 (X.left)  := rfl
-@[simp] lemma map_left_comp_inv_app_right : (((map_left_comp R l l').inv).app X).right = 𝟙 (X.right) := rfl
-end
-
 /-- A natural transformation `R₁ ⟶ R₂` induces a functor `comma L R₁ ⥤ comma L R₂`. -/
+@[simps]
 def map_right (r : R₁ ⟶ R₂) : comma L R₁ ⥤ comma L R₂ :=
 { obj := λ X,
   { left  := X.left,
@@ -212,48 +189,25 @@ def map_right (r : R₁ ⟶ R₂) : comma L R₁ ⥤ comma L R₂ :=
     right := f.right,
     w' := by tidy; rw [←r.naturality f.right, ←category.assoc]; tidy } }
 
-section
-variables {X Y : comma L R₁} {f : X ⟶ Y} {r : R₁ ⟶ R₂}
-@[simp] lemma map_right_obj_left  : ((map_right L r).obj X).left  = X.left                 := rfl
-@[simp] lemma map_right_obj_right : ((map_right L r).obj X).right = X.right                := rfl
-@[simp] lemma map_right_obj_hom   : ((map_right L r).obj X).hom   = X.hom ≫ r.app X.right  := rfl
-@[simp] lemma map_right_map_left  : ((map_right L r).map f).left  = f.left                 := rfl
-@[simp] lemma map_right_map_right : ((map_right L r).map f).right = f.right                := rfl
-end
-
 /-- The functor `comma L R ⥤ comma L R` induced by the identity natural transformation on `R` is
     naturally isomorphic to the identity functor. -/
+@[simps]
 def map_right_id : map_right L (𝟙 R) ≅ 𝟭 _ :=
 { hom :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
   inv :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } } }
 
-section
-variables {X : comma L R}
-@[simp] lemma map_right_id_hom_app_left  : (((map_right_id L R).hom).app X).left  = 𝟙 (X.left)  := rfl
-@[simp] lemma map_right_id_hom_app_right : (((map_right_id L R).hom).app X).right = 𝟙 (X.right) := rfl
-@[simp] lemma map_right_id_inv_app_left  : (((map_right_id L R).inv).app X).left  = 𝟙 (X.left)  := rfl
-@[simp] lemma map_right_id_inv_app_right : (((map_right_id L R).inv).app X).right = 𝟙 (X.right) := rfl
-end
-
 /-- The functor `comma L R₁ ⥤ comma L R₃` induced by the composition of the natural transformations
     `r : R₁ ⟶ R₂` and `r' : R₂ ⟶ R₃` is naturally isomorphic to the composition of the functors
     induced by these natural transformations. -/
+@[simps]
 def map_right_comp (r : R₁ ⟶ R₂) (r' : R₂ ⟶ R₃) :
   (map_right L (r ≫ r')) ≅ (map_right L r) ⋙ (map_right L r') :=
 { hom :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
   inv :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } } }
-
-section
-variables {X : comma L R₁} {r : R₁ ⟶ R₂} {r' : R₂ ⟶ R₃}
-@[simp] lemma map_right_comp_hom_app_left  : (((map_right_comp L r r').hom).app X).left  = 𝟙 (X.left)  := rfl
-@[simp] lemma map_right_comp_hom_app_right : (((map_right_comp L r r').hom).app X).right = 𝟙 (X.right) := rfl
-@[simp] lemma map_right_comp_inv_app_left  : (((map_right_comp L r r').inv).app X).left  = 𝟙 (X.left)  := rfl
-@[simp] lemma map_right_comp_inv_app_right : (((map_right_comp L r r').inv).app X).right = 𝟙 (X.right) := rfl
-end
 
 end
 
@@ -262,7 +216,7 @@ end comma
 /-- The over category has as objects arrows in `T` with codomain `X` and as morphisms commutative
     triangles. -/
 @[derive category]
-def over (X : T) := comma.{v₃ 0 v₃} (𝟭 T) ((functor.const punit).obj X)
+def over (X : T) := comma.{v₃ 0 v₃} (𝟭 T) (functor.from_punit X)
 
 -- Satisfying the inhabited linter
 instance over.inhabited [inhabited T] : inhabited (over (default T)) :=
@@ -279,7 +233,10 @@ variables {X : T}
 by tidy
 
 @[simp] lemma over_right (U : over X) : U.right = punit.star := by tidy
-@[simp] lemma over_morphism_right {U V : over X} (f : U ⟶ V) : f.right = 𝟙 punit.star := by tidy
+-- @[simp] lemma over_morphism_right {U V : over X} (f : U ⟶ V) : f.right = sorry :=
+-- begin
+
+-- end
 
 @[simp] lemma id_left (U : over X) : comma_morphism.left (𝟙 U) = 𝟙 U.left := rfl
 @[simp] lemma comp_left (a b c : over X) (f : a ⟶ b) (g : b ⟶ c) :
@@ -312,7 +269,7 @@ def forget : (over X) ⥤ T := comma.fst _ _
 @[simp] lemma forget_map {U V : over X} {f : U ⟶ V} : forget.map f = f.left := rfl
 
 /-- A morphism `f : X ⟶ Y` induces a functor `over X ⥤ over Y` in the obvious way. -/
-def map {Y : T} (f : X ⟶ Y) : over X ⥤ over Y := comma.map_right _ $ (functor.const punit).map f
+def map {Y : T} (f : X ⟶ Y) : over X ⥤ over Y := comma.map_right _ $ discrete.nat_trans (λ _, f)
 
 section
 variables {Y : T} {f : X ⟶ Y} {U V : over X} {g : U ⟶ V}
@@ -386,7 +343,7 @@ end over
 /-- The under category has as objects arrows with domain `X` and as morphisms commutative
     triangles. -/
 @[derive category]
-def under (X : T) := comma.{0 v₃ v₃} ((functor.const punit).obj X) (𝟭 T)
+def under (X : T) := comma.{0 v₃ v₃} (functor.from_punit X) (𝟭 T)
 
 -- Satisfying the inhabited linter
 instance under.inhabited [inhabited T] : inhabited (under (default T)) :=
@@ -403,7 +360,7 @@ variables {X : T}
 by tidy
 
 @[simp] lemma under_left (U : under X) : U.left = punit.star := by tidy
-@[simp] lemma under_morphism_left {U V : under X} (f : U ⟶ V) : f.left = 𝟙 punit.star := by tidy
+-- @[simp] lemma under_morphism_left {U V : under X} (f : U ⟶ V) : f.left = 𝟙 punit.star := by tidy
 
 @[simp] lemma id_right (U : under X) : comma_morphism.right (𝟙 U) = 𝟙 U.right := rfl
 @[simp] lemma comp_right (a b c : under X) (f : a ⟶ b) (g : b ⟶ c) :

@@ -279,7 +279,7 @@ have ∀ t, is_open (s.restrict f ⁻¹' t) ↔ ∃ (u : set α), is_open u ∧ 
   begin
     intro t,
     rw [is_open_induced_iff, set.restrict_eq, set.preimage_comp],
-    simp only [preimage_coe_eq_preimage_coe_iff],
+    simp only [subtype.preimage_coe_eq_preimage_coe_iff],
     split; { rintros ⟨u, ou, useq⟩, exact ⟨u, ou, useq.symm⟩ }
   end,
 by rw [continuous_on_iff_continuous_restrict, continuous]; simp only [this]
@@ -290,7 +290,7 @@ have ∀ t, is_closed (s.restrict f ⁻¹' t) ↔ ∃ (u : set α), is_closed u 
   begin
     intro t,
     rw [is_closed_induced_iff, set.restrict_eq, set.preimage_comp],
-    simp only [preimage_coe_eq_preimage_coe_iff]
+    simp only [subtype.preimage_coe_eq_preimage_coe_iff]
   end,
 by rw [continuous_on_iff_continuous_restrict, continuous_iff_is_closed]; simp only [this]
 

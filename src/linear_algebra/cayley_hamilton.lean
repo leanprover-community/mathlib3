@@ -87,17 +87,11 @@ matrix.scalar n (X : polynomial R) - (λ i j, C (m i j))
 
 @[simp] lemma characteristic_matrix_apply_eq (m : matrix n n R) (i : n) :
   characteristic_matrix m i i = (X : polynomial R) - C (m i i) :=
-begin
-  erw sub_left_inj, simp [scalar],
-end
+by simp only [characteristic_matrix, sub_left_inj, pi.sub_apply, scalar_apply_eq]
 
 @[simp] lemma characteristic_matrix_apply_ne (m : matrix n n R) (i j : n) (h : i ≠ j) :
   characteristic_matrix m i j = - C (m i j) :=
-begin
-  rw ← zero_sub,
-  erw sub_left_inj,
-  simp [scalar, h],
-end
+by simp only [characteristic_matrix, pi.sub_apply, scalar_apply_ne _ _ _ h, zero_sub]
 
 lemma r (p : polynomial R) :
   baz (p • 1) = p.map (algebra_map R (matrix n n R)) :=

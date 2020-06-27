@@ -56,7 +56,6 @@ begin
     congr, ext, simp },
   { apply_instance },
 end
-#check monomial_eq_smul_X
 
 lemma baz_coeff_apply_aux_2 (i j : n) (p : polynomial R) (k : ℕ) :
   coeff (baz (λ i' j', if i' = i ∧ j' = j then p else 0)) k =

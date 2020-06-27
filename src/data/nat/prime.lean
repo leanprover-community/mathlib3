@@ -380,6 +380,16 @@ theorem prime.coprime_iff_not_dvd {p n : ℕ} (pp : prime p) : coprime p n ↔ �
 theorem prime.dvd_iff_not_coprime {p n : ℕ} (pp : prime p) : p ∣ n ↔ ¬ coprime p n :=
 iff_not_comm.2 pp.coprime_iff_not_dvd
 
+theorem prime.dvd_of_not_coprime {m n : ℕ} (h : ¬ coprime m n) :
+  ∃p, prime p ∧ p ∣ m ∧ p ∣ n :=
+begin
+  existsi min_fac (gcd m n),
+  apply and.intro,
+  { apply min_fac_prime h },
+  exact and.intro (dvd.trans (min_fac_dvd (gcd m n)) (gcd_dvd_left m n))
+    (dvd.trans (min_fac_dvd (gcd m n)) (gcd_dvd_right m n))
+end
+
 theorem prime.dvd_mul {p m n : ℕ} (pp : prime p) : p ∣ m * n ↔ p ∣ m ∨ p ∣ n :=
 ⟨λ H, or_iff_not_imp_left.2 $ λ h,
   (pp.coprime_iff_not_dvd.2 h).dvd_of_dvd_mul_left H,

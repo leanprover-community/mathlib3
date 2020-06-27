@@ -640,4 +640,23 @@ begin
     rw [int.cast_mul, mul_comm, mul_div_cancel _ hn, rat.coe_int_denom] }
 end
 
+lemma int_quotient_id {a b : ℤ} (hb0 : 0 < b) (h : nat.coprime a.nat_abs b.nat_abs) :
+  (a / b : ℚ).num = a ∧ ((a / b : ℚ).denom : ℤ) = b :=
+begin
+  lift b to ℕ using le_of_lt hb0,
+  norm_cast at hb0 h,
+  rw [← rat.mk_eq_div, ← rat.mk_pnat_eq a b hb0, rat.mk_pnat_num, rat.mk_pnat_denom,
+    pnat.mk_coe, h.gcd_eq_one, int.coe_nat_one, int.div_one, nat.div_one],
+  split; refl
+end
+
+lemma int_quotient_id' {a b c d : ℤ} (hb0 : 0 < b) (hd0 : 0 < d)
+  (h1 : nat.coprime a.nat_abs b.nat_abs) (h2 : nat.coprime c.nat_abs d.nat_abs)
+  (h : (a : ℚ) / b = (c : ℚ) / d) : a = c ∧ b = d :=
+begin
+  apply and.intro,
+  { rw [←(int_quotient_id hb0 h1).left, h, (int_quotient_id hd0 h2).left] },
+  { rw [←(int_quotient_id hb0 h1).right, h, (int_quotient_id hd0 h2).right] }
+end
+
 end rat

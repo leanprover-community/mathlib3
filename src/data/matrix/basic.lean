@@ -362,6 +362,22 @@ def scalar (n : Type u) [fintype n] [decidable_eq n] : α →+* matrix n n α :=
   map_one' := by simp,
   map_mul' := by { intros, ext, simp [mul_assoc], }, }
 
+section scalar
+
+variable [decidable_eq n]
+
+@[simp] lemma coe_scalar : (scalar n : α → matrix n n α) = λ a, a • 1 := rfl
+
+lemma scalar_apply_eq (a : α) (i : n) :
+  scalar n a i i = a :=
+by simp only [coe_scalar, mul_one, one_val_eq, smul_val]
+
+lemma scalar_apply_ne (a : α) (i j : n) (h : i ≠ j) :
+  scalar n a i j = 0 :=
+by simp only [h, coe_scalar, one_val_ne, ne.def, not_false_iff, smul_val, mul_zero]
+
+end scalar
+
 end semiring
 
 section comm_semiring

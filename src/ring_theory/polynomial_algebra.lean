@@ -62,3 +62,18 @@ open polynomial_equiv_tensor
 
 def polynomial_equiv_tensor : polynomial A ≃ₐ[R] (A ⊗[R] polynomial R) :=
 alg_equiv.symm { ..(polynomial_equiv_tensor.to_fun_alg_hom R A), ..(polynomial_equiv_tensor.equiv R A) }
+
+-- TODO update these if the definitions get changed above!
+
+@[simp]
+lemma polynomial_equiv_tensor_apply (p : polynomial A) :
+  polynomial_equiv_tensor R A p = p.eval₂ include_left ((1 : A) ⊗ₜ[R] (X : polynomial R)) :=
+rfl
+
+@[simp]
+lemma polynomial_equiv_tensor_symm_apply_tmul (a : A) (p : polynomial R) :
+  (polynomial_equiv_tensor R A).symm (a ⊗ₜ p) = p.sum (λ n r, monomial n (a * algebra_map R A r)) :=
+begin
+  simp [polynomial_equiv_tensor, to_fun_alg_hom, alg_hom_of_linear_map_tensor_product, to_fun_linear],
+  refl,
+end

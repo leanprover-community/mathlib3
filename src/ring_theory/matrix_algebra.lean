@@ -190,6 +190,11 @@ open matrix_equiv_tensor
     ∑ (p : n × n), M p.1 p.2 ⊗ₜ (λ i' j', if (i', j') = p then 1 else 0) :=
 rfl
 
+@[simp] lemma matrix_equiv_tensor_apply_elementary (i j : n) (x : A):
+  matrix_equiv_tensor R A n (λ i' j', if i' = i ∧ j' = j then x else 0) =
+    x ⊗ₜ (λ i' j', if i' = i ∧ j' = j then 1 else 0) :=
+sorry
+
 @[simp] lemma matrix_equiv_tensor_apply_symm (a : A) (M : matrix n n R) :
   (matrix_equiv_tensor R A n).symm (a ⊗ₜ M) =
     λ i j, a * algebra_map R A (M i j) :=

@@ -4,14 +4,8 @@ open polynomial
 open finset
 open_locale big_operators
 
+-- TODO everything here should move up to cayley_hamilton.lean or down to polynomial.lean/...
 
-lemma telescope {M : Type*} [add_comm_group M] (f : ℕ → M) (n : ℕ) :
-  ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
-sorry
-
-lemma telescope' {M : Type*} [add_comm_group M] (f : ℕ → M) (n : ℕ) :
-  ∑ i in range n, (f i - f (i+1)) = f 0 - f n :=
-sorry
 
 variables {R S : Type*}
 
@@ -69,7 +63,7 @@ begin
     rw [is_ring_hom.map_neg f],
     rw [is_ring_hom.map_mul f],
   },
-  rw telescope',
+  rw sum_range_sub',
   simp [is_ring_hom.map_zero f],
 end
 

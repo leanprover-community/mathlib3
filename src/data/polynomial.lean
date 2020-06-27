@@ -242,14 +242,17 @@ finsupp.induction p
   (assume n a p _ _ hp, suffices M (C a * X^n + p), by { convert this, exact single_eq_C_mul_X },
     h_add _ _ this hp)
 
-/-- A variant of `polynomial.induction_on` written in terms of monomials. -/
+/--
+To prove something about polynomials,
+it suffices to show the condition is closed under taking sums,
+and it holds for monomials.
+-/
 @[elab_as_eliminator] protected lemma induction_on' {M : polynomial R → Prop} (p : polynomial R)
-  (h_C : ∀a, M (C a))
   (h_add : ∀p q, M p → M q → M (p + q))
-  (h_monomial : ∀(n : ℕ) (a : R), M (monomial n a) → M (monomial (n+1) a)) :
+  (h_monomial : ∀(n : ℕ) (a : R), M (monomial n a)) :
   M p :=
-polynomial.induction_on p h_C h_add
-(λ n a h, begin rw ←single_eq_C_mul_X at h ⊢, exact h_monomial _ _ h, end)
+polynomial.induction_on p (h_monomial 0) h_add
+(λ n a h, begin rw ←single_eq_C_mul_X at ⊢, exact h_monomial _ _, end)
 
 lemma C_0 : C (0 : R) = 0 := single_zero
 
@@ -751,9 +754,8 @@ ext (by simp [coeff_map])
 lemma eval₂_eq_eval_map {x : S} : p.eval₂ f x = (p.map f).eval x :=
 begin
   apply polynomial.induction_on' p,
-  { intro r, simp, },
   { intros p q hp hq, simp [hp, hq], },
-  { intros n r h, simp, }
+  { intros n r, simp, }
 end
 
 end map

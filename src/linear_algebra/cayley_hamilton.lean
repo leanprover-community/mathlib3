@@ -25,12 +25,13 @@ noncomputable def matrix_polynomial_equiv_polynomial_matrix : matrix n n (polyno
 lemma matrix_eq {X : Type*} [add_comm_monoid X] (m : matrix n n X) :
   m = ∑ (x : n × n), (λ i j, if (i, j) = x then m i j else 0) := by { ext, simp }
 
+-- TODO move
 @[elab_as_eliminator] protected lemma matrix.induction_on {X : Type*} [add_comm_monoid X] {M : matrix n n X → Prop} (m : matrix n n X)
   (h_add : ∀p q, M p → M q → M (p + q))
   (h_elementary : ∀ i j x, M (λ i' j', if i' = i ∧ j' = j then x else 0)) :
   M m := sorry -- is_basis.repr
 
-
+-- TODO move
 instance is_ring_hom_of_alg_hom
   {R : Type u} [comm_ring R] {A : Type v} [ring A] [algebra R A] {B : Type w} [ring B] [algebra R B]
   (f : A →ₐ[R] B) :
@@ -81,6 +82,15 @@ begin
     split_ifs; simp },
 end
 
+lemma matrix_polynomial_equiv_polynomial_matrix_smul_one (p : polynomial R) :
+  matrix_polynomial_equiv_polynomial_matrix (p • 1) = p.map (algebra_map R (matrix n n R)) :=
+begin
+  ext m i j,
+  simp [coeff_map, matrix.one_val],
+  simp [algebra_map_matrix_val],
+  split_ifs; simp,
+end
+
 def characteristic_matrix (m : matrix n n R) : matrix n n (polynomial R) :=
 matrix.scalar n (X : polynomial R) - (λ i j, C (m i j))
 
@@ -92,14 +102,6 @@ by simp only [characteristic_matrix, sub_left_inj, pi.sub_apply, scalar_apply_eq
   characteristic_matrix m i j = - C (m i j) :=
 by simp only [characteristic_matrix, pi.sub_apply, scalar_apply_ne _ _ _ h, zero_sub]
 
-lemma r (p : polynomial R) :
-  matrix_polynomial_equiv_polynomial_matrix (p • 1) = p.map (algebra_map R (matrix n n R)) :=
-begin
-  ext m i j,
-  simp [coeff_map, matrix.one_val],
-  simp [algebra_map_matrix_val],
-  split_ifs; simp,
-end
 
 lemma q (m : matrix n n R) :
   matrix_polynomial_equiv_polynomial_matrix (characteristic_matrix m) = X - C m :=

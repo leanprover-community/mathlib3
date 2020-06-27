@@ -312,6 +312,48 @@ finsupp.sum_sum_index (by simp [is_add_monoid_hom.map_zero f])
 
 end eval₂
 
+section eval
+variable {x : R}
+
+/-- `eval x p` is the evaluation of the polynomial `p` at `x` -/
+def eval : R → polynomial R → R := eval₂ id
+
+@[simp] lemma eval_C : (C a).eval x = a := eval₂_C _ _
+
+@[simp] lemma eval_nat_cast {n : ℕ} : (n : polynomial R).eval x = n :=
+by simp only [←nat_cast_eq_C, eval_C]
+
+@[simp] lemma eval_X : X.eval x = x := eval₂_X _ _
+
+@[simp] lemma eval_zero : (0 : polynomial R).eval x = 0 :=  eval₂_zero _ _
+
+@[simp] lemma eval_add : (p + q).eval x = p.eval x + q.eval x := eval₂_add _ _
+
+@[simp] lemma eval_one : (1 : polynomial R).eval x = 1 := eval₂_one _ _
+
+lemma eval_sum (p : polynomial R) (f : ℕ → R → polynomial R) (x : R) :
+  (p.sum f).eval x = p.sum (λ n a, (f n a).eval x) :=
+eval₂_sum _ _ _ _
+
+/-- `is_root p x` implies `x` is a root of `p`. The evaluation of `p` at `x` is zero -/
+def is_root (p : polynomial R) (a : R) : Prop := p.eval a = 0
+
+instance [decidable_eq R] : decidable (is_root p a) := by unfold is_root; apply_instance
+
+@[simp] lemma is_root.def : is_root p a ↔ p.eval a = 0 := iff.rfl
+
+lemma coeff_zero_eq_eval_zero (p : polynomial R) :
+  coeff p 0 = p.eval 0 :=
+calc coeff p 0 = coeff p 0 * 0 ^ 0 : by simp
+... = p.eval 0 : eq.symm $
+  finset.sum_eq_single _ (λ b _ hb, by simp [zero_pow (nat.pos_of_ne_zero hb)]) (by simp)
+
+lemma zero_is_root_of_coeff_zero_eq_zero {p : polynomial R} (hp : p.coeff 0 = 0) :
+  is_root p 0 :=
+by rwa coeff_zero_eq_eval_zero at hp
+
+end eval
+
 end semiring
 
 section ring
@@ -368,31 +410,11 @@ end eval₂
 section eval
 variable {x : R}
 
-/-- `eval x p` is the evaluation of the polynomial `p` at `x` -/
-def eval : R → polynomial R → R := eval₂ id
-
-@[simp] lemma eval_C : (C a).eval x = a := eval₂_C _ _
-
-@[simp] lemma eval_nat_cast {n : ℕ} : (n : polynomial R).eval x = n :=
-by simp only [←nat_cast_eq_C, eval_C]
-
-@[simp] lemma eval_X : X.eval x = x := eval₂_X _ _
-
-@[simp] lemma eval_zero : (0 : polynomial R).eval x = 0 :=  eval₂_zero _ _
-
-@[simp] lemma eval_add : (p + q).eval x = p.eval x + q.eval x := eval₂_add _ _
-
-@[simp] lemma eval_one : (1 : polynomial R).eval x = 1 := eval₂_one _ _
-
 @[simp] lemma eval_mul : (p * q).eval x = p.eval x * q.eval x := eval₂_mul _ _
 
 instance eval.is_semiring_hom : is_semiring_hom (eval x) := eval₂.is_semiring_hom _ _
 
 @[simp] lemma eval_pow (n : ℕ) : (p ^ n).eval x = p.eval x ^ n := eval₂_pow _ _ _
-
-lemma eval_sum (p : polynomial R) (f : ℕ → R → polynomial R) (x : R) :
-  (p.sum f).eval x = p.sum (λ n a, (f n a).eval x) :=
-eval₂_sum _ _ _ _
 
 lemma eval₂_hom [comm_semiring S] (f : R → S) [is_semiring_hom f] (x : R) :
   p.eval₂ f (f x) = f (p.eval x) :=
@@ -402,13 +424,6 @@ polynomial.induction_on p
   (by simp [is_semiring_hom.map_mul f, eval_pow,
     is_semiring_hom.map_pow f, pow_succ', (mul_assoc _ _ _).symm] {contextual := tt})
 
-/-- `is_root p x` implies `x` is a root of `p`. The evaluation of `p` at `x` is zero -/
-def is_root (p : polynomial R) (a : R) : Prop := p.eval a = 0
-
-instance [decidable_eq R] : decidable (is_root p a) := by unfold is_root; apply_instance
-
-@[simp] lemma is_root.def : is_root p a ↔ p.eval a = 0 := iff.rfl
-
 lemma root_mul_left_of_is_root (p : polynomial R) {q : polynomial R} :
   is_root q a → is_root (p * q) a :=
 λ H, by rw [is_root, eval_mul, is_root.def.1 H, mul_zero]
@@ -416,16 +431,6 @@ lemma root_mul_left_of_is_root (p : polynomial R) {q : polynomial R} :
 lemma root_mul_right_of_is_root {p : polynomial R} (q : polynomial R) :
   is_root p a → is_root (p * q) a :=
 λ H, by rw [is_root, eval_mul, is_root.def.1 H, zero_mul]
-
-lemma coeff_zero_eq_eval_zero (p : polynomial R) :
-  coeff p 0 = p.eval 0 :=
-calc coeff p 0 = coeff p 0 * 0 ^ 0 : by simp
-... = p.eval 0 : eq.symm $
-  finset.sum_eq_single _ (λ b _ hb, by simp [zero_pow (nat.pos_of_ne_zero hb)]) (by simp)
-
-lemma zero_is_root_of_coeff_zero_eq_zero {p : polynomial R} (hp : p.coeff 0 = 0) :
-  is_root p 0 :=
-by rwa coeff_zero_eq_eval_zero at hp
 
 end eval
 

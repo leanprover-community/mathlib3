@@ -29,8 +29,7 @@ by simp only [characteristic_matrix, sub_left_inj, pi.sub_apply, scalar_apply_eq
   characteristic_matrix m i j = - C (m i j) :=
 by simp only [characteristic_matrix, pi.sub_apply, scalar_apply_ne _ _ _ h, zero_sub]
 
-
-lemma q (m : matrix n n R) :
+lemma matrix_polynomial_equiv_polynomial_matrix_characteristic_matrix (m : matrix n n R) :
   matrix_polynomial_equiv_polynomial_matrix (characteristic_matrix m) = X - C m :=
 begin
   ext k i j,
@@ -56,7 +55,7 @@ begin
   apply_fun matrix_polynomial_equiv_polynomial_matrix at this,
   change _ = matrix_polynomial_equiv_polynomial_matrix (_ * _) at this,
   simp only [matrix_polynomial_equiv_polynomial_matrix.map_mul] at this,
-  rw q at this,
+  rw matrix_polynomial_equiv_polynomial_matrix_characteristic_matrix at this,
   apply_fun (λ p, p.eval₂ (ring_hom.id _) m) at this,
   rw eval₂_mul_X_sub_C at this,
   rw matrix_polynomial_equiv_polynomial_matrix_smul_one at this,

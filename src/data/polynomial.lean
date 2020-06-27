@@ -59,6 +59,24 @@ def monomial (n : ℕ) (a : R) : polynomial R := finsupp.single n a
 /-- `X` is the polynomial variable (aka indeterminant). -/
 def X : polynomial R := monomial 1 1
 
+/-- `X` commutes with everything, even when the coefficients are noncommutative. -/
+lemma X_mul : X * p = p * X :=
+begin
+  ext,
+  simp [X, monomial, add_monoid_algebra.mul_apply, sum_single_index, add_comm],
+end
+
+lemma X_pow_mul {n : ℕ} : X^n * p = p * X^n :=
+begin
+  induction n with n ih,
+  { simp, },
+  { conv_lhs { rw pow_succ', },
+    rw [mul_assoc, X_mul, ←mul_assoc, ih, mul_assoc, ←pow_succ'], }
+end
+
+lemma X_pow_mul_assoc {n : ℕ} : (p * X^n) * q = (p * q) * X^n :=
+by rw [mul_assoc, X_pow_mul, ←mul_assoc]
+
 /-- coeff p n is the coefficient of X^n in p -/
 def coeff (p : polynomial R) := p.to_fun
 
@@ -394,22 +412,11 @@ by rw [← C_1, C_comp]
 
 end comp
 
-end semiring
-
-section ring
-variables [ring R]
-
-instance : ring (polynomial R) := add_monoid_algebra.ring
-end ring
-
-section comm_semiring
-variables [comm_semiring R] {p q r : polynomial R}
-
-local attribute [instance] coeff_coe_to_fun
-
-instance : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
-instance : algebra R (polynomial R) := add_monoid_algebra.algebra
-
+/-!
+We next prove that eval₂ is multiplicative
+as long as target ring is commutative
+(even if the source ring is not).
+-/
 section eval₂
 variables [comm_semiring S]
 variables (f : R → S) [is_semiring_hom f] (x : S)
@@ -446,6 +453,22 @@ ring_hom.of (eval₂ f x)
 lemma eval₂_pow (n : ℕ) : (p ^ n).eval₂ f x = p.eval₂ f x ^ n := map_pow _ _ _
 
 end eval₂
+
+end semiring
+
+section ring
+variables [ring R]
+
+instance : ring (polynomial R) := add_monoid_algebra.ring
+end ring
+
+section comm_semiring
+variables [comm_semiring R] {p q r : polynomial R}
+
+local attribute [instance] coeff_coe_to_fun
+
+instance : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
+instance : algebra R (polynomial R) := add_monoid_algebra.algebra
 
 section eval
 variable {x : R}
@@ -1022,32 +1045,38 @@ else by rw [degree_eq_nat_degree hp0, ← with_bot.coe_zero, with_bot.coe_le_coe
 
 end degree
 
-end semiring
-
-section comm_semiring
-
-variables [comm_semiring R] {p q : polynomial R}
-
 section map
-variables [comm_semiring S]
+variables [semiring S]
 variables (f : R →+* S)
 
-@[simp] lemma map_mul : (p * q).map f = p.map f * q.map f := eval₂_mul _ _
+open is_semiring_hom
 
-instance map.is_semiring_hom : is_semiring_hom (map f) := eval₂.is_semiring_hom _ _
+-- If the rings were commutative, we could prove this just using `eval₂_mul`.
+-- TODO this proof is just a hack job on the proof of `eval₂_mul`,
+-- using that `X` is central. It should probably be golfed!
+@[simp] lemma map_mul : (p * q).map f = p.map f * q.map f :=
+begin
+  dunfold map,
+  dunfold eval₂,
+  rw [mul_def, finsupp.sum_mul _ p], simp only [finsupp.mul_sum _ q], rw [sum_sum_index],
+  { apply sum_congr rfl, assume i hi, dsimp only, rw [sum_sum_index],
+    { apply sum_congr rfl, assume j hj, dsimp only,
+      rw [sum_single_index, map_mul (C ∘ f), pow_add],
+      { simp [←mul_assoc], conv_lhs { rw ←@X_pow_mul_assoc _ _ _ _ i }, },
+      { simp, } },
+    { intro, simp, },
+    { intros, simp [add_mul], } },
+  { intro, simp, },
+  { intros, simp [add_mul], }
+end
 
-@[simp] lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := eval₂_pow _ _ _
+instance map.is_semiring_hom : is_semiring_hom (map f) :=
+{ map_zero := eval₂_zero _ _,
+  map_one := eval₂_one _ _,
+  map_add := λ _ _, eval₂_add _ _,
+  map_mul := λ _ _, map_mul f, }
 
--- FIXME I don't think any of the next three lemmas actually need commutativity assumptions:
-lemma eval₂_map [comm_semiring T] (g : S → T) [is_semiring_hom g] (x : T) :
-  (p.map f).eval₂ g x = p.eval₂ (λ y, g (f y)) x :=
-polynomial.induction_on p
-  (by simp)
-  (by simp [is_semiring_hom.map_add f] {contextual := tt})
-  (by simp [is_semiring_hom.map_mul f,
-    is_semiring_hom.map_pow f, pow_succ', (mul_assoc _ _ _).symm] {contextual := tt})
-
-lemma eval_map (x : S) : (p.map f).eval x = p.eval₂ f x := eval₂_map _ _ _
+@[simp] lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := is_semiring_hom.map_pow (map f) _ _
 
 lemma mem_map_range {p : polynomial S} :
   p ∈ set.range (map f) ↔ ∀ n, p.coeff n ∈ (set.range f) :=
@@ -1062,9 +1091,29 @@ begin
     rw [map_mul, map_C, hc, map_pow, map_X] }
 end
 
+-- This lemma requires commutativity just in `T`.
+-- Really, it just requires that `x` is central.
+lemma eval₂_map [comm_semiring T] (g : S → T) [is_semiring_hom g] (x : T) :
+  (p.map f).eval₂ g x = p.eval₂ (λ y, g (f y)) x :=
+polynomial.induction_on p
+  (by simp)
+  (by simp [is_semiring_hom.map_add f] {contextual := tt})
+  (by simp [is_semiring_hom.map_mul f,
+    is_semiring_hom.map_pow f, pow_succ', (mul_assoc _ _ _).symm] {contextual := tt})
+
+end map
+
+section map
+variables [comm_semiring S]
+variables (f : R →+* S)
+
+-- FIXME this should be true without any commutativity assumptions.
+lemma eval_map (x : S) : (p.map f).eval x = p.eval₂ f x := eval₂_map _ _ _
+
 end map
 
 section hom_eval₂
+-- Here we need commutativity in both `S` and `T`.
 variables [comm_semiring S] [comm_semiring T]
 variables (f : R →+* S) (g : S →+* T) (p)
 
@@ -1081,8 +1130,13 @@ end
 
 end hom_eval₂
 
-section is_unit
+end semiring
 
+section comm_semiring
+
+variables [comm_semiring R] {p q : polynomial R}
+
+section is_unit
 
 lemma is_unit_C {x : R} : is_unit (C x) ↔ is_unit x :=
 begin
@@ -1444,9 +1498,8 @@ rec_on_horner p
 
 end semiring
 
-section comm_ring
-variables [comm_ring R] {p q : polynomial R}
-instance : comm_ring (polynomial R) := add_monoid_algebra.comm_ring
+section semiring
+variables [semiring R]
 
 variable (R)
 def lcoeff (n : ℕ) : polynomial R →ₗ[R] R :=
@@ -1457,7 +1510,10 @@ variable {R}
 
 @[simp] lemma lcoeff_apply (n : ℕ) (f : polynomial R) : lcoeff R n f = coeff f n := rfl
 
-instance : is_ring_hom (C : R → polynomial R) := (C : R →+* polynomial R).is_ring_hom
+end semiring
+
+section ring
+variables [ring R] {p q : polynomial R}
 
 @[simp]
 lemma int_cast_eq_C (n : ℤ) : C ↑n = (n : polynomial R) :=
@@ -1467,14 +1523,8 @@ lemma C_neg : C (-a) = -C a := ring_hom.map_neg C a
 
 lemma C_sub : C (a - b) = C a - C b := ring_hom.map_sub C a b
 
-instance eval₂.is_ring_hom {S} [comm_ring S]
-  (f : R → S) [is_ring_hom f] {x : S} : is_ring_hom (eval₂ f x) :=
+instance map.is_ring_hom {S} [ring S] (f : R →+* S) : is_ring_hom (map f) :=
 by apply is_ring_hom.of_semiring
-
-instance eval.is_ring_hom {x : R} : is_ring_hom (eval x) := eval₂.is_ring_hom _
-
-instance map.is_ring_hom {S} [comm_ring S] (f : R →+* S) : is_ring_hom (map f) :=
-eval₂.is_ring_hom (C ∘ f)
 
 @[simp] lemma map_sub {S} [comm_ring S] (f : R →+* S) :
   (p - q).map f = p.map f - q.map f :=
@@ -1501,6 +1551,23 @@ by simp only [←int_cast_eq_C, nat_degree_C]
 @[simp]
 lemma coeff_sub (p q : polynomial R) (n : ℕ) : coeff (p - q) n = coeff p n - coeff q n := rfl
 
+@[simp] lemma eval_int_cast {n : ℤ} {x : R} : (n : polynomial R).eval x = n :=
+by simp only [←int_cast_eq_C, eval_C]
+
+end ring
+
+section comm_ring
+variables [comm_ring R] {p q : polynomial R}
+instance : comm_ring (polynomial R) := add_monoid_algebra.comm_ring
+
+instance eval₂.is_ring_hom {S} [comm_ring S]
+  (f : R → S) [is_ring_hom f] {x : S} : is_ring_hom (eval₂ f x) :=
+by apply is_ring_hom.of_semiring
+
+instance eval.is_ring_hom {x : R} : is_ring_hom (eval x) := eval₂.is_ring_hom _
+
+-- FIXME the next four lemmas don't essentially need commutativity, but will need new proofs.
+
 @[simp] lemma eval₂_neg {S} [comm_ring S] (f : R → S) [is_ring_hom f] {x : S} :
   (-p).eval₂ f x = -p.eval₂ f x :=
 is_ring_hom.map_neg _
@@ -1515,8 +1582,7 @@ is_ring_hom.map_neg _
 @[simp] lemma eval_sub (p q : polynomial R) (x : R) : (p - q).eval x = p.eval x - q.eval x :=
 is_ring_hom.map_sub _
 
-@[simp] lemma eval_int_cast {n : ℤ} {x : R} : (n : polynomial R).eval x = n :=
-by simp only [←int_cast_eq_C, eval_C]
+-- FIXME continue migrating from here
 
 section aeval
 /-- `R[X]` is the generator of the category `R-Alg`. -/

@@ -29,9 +29,7 @@ set_option old_structure_cmd true
 
 open set
 
-universes u v w
-variables {α : Type u} {β : Type v} {ι : Sort w}
-
+variables {α β ι : Type*}
 
 section
 
@@ -67,16 +65,16 @@ To differentiate the statements from the corresponding statements in (unconditio
 complete lattices, we prefix Inf and Sup by a c everywhere. The same statements should
 hold in both worlds, sometimes with additional assumptions of nonemptiness or
 boundedness.-/
-class conditionally_complete_lattice (α : Type u) extends lattice α, has_Sup α, has_Inf α :=
+class conditionally_complete_lattice (α : Type*) extends lattice α, has_Sup α, has_Inf α :=
 (le_cSup : ∀s a, bdd_above s → a ∈ s → a ≤ Sup s)
 (cSup_le : ∀ s a, set.nonempty s → a ∈ upper_bounds s → Sup s ≤ a)
 (cInf_le : ∀s a, bdd_below s → a ∈ s → Inf s ≤ a)
 (le_cInf : ∀s a, set.nonempty s → a ∈ lower_bounds s → a ≤ Inf s)
 
-class conditionally_complete_linear_order (α : Type u)
+class conditionally_complete_linear_order (α : Type*)
   extends conditionally_complete_lattice α, decidable_linear_order α
 
-class conditionally_complete_linear_order_bot (α : Type u)
+class conditionally_complete_linear_order_bot (α : Type*)
   extends conditionally_complete_lattice α, decidable_linear_order α, order_bot α :=
 (cSup_empty : Sup ∅ = ⊥)
 end prio
@@ -414,7 +412,7 @@ by { rw [nat.Inf_def ⟨m, hm⟩], exact nat.find_min' ⟨m, hm⟩ hm }
 
 /-- This instance is necessary, otherwise the lattice operations would be derived via
 conditionally_complete_linear_order_bot and marked as noncomputable. -/
-instance : lattice ℕ := infer_instance
+instance : lattice ℕ := lattice_of_decidable_linear_order
 
 noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
 { Sup := Sup, Inf := Inf,
@@ -429,7 +427,7 @@ noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
     apply bot_unique (nat.find_min' _ _),
     trivial
   end,
-  .. (infer_instance : order_bot ℕ), .. (infer_instance : lattice ℕ),
+  .. (infer_instance : order_bot ℕ), .. (lattice_of_decidable_linear_order : lattice ℕ),
   .. (infer_instance : decidable_linear_order ℕ) }
 
 end nat

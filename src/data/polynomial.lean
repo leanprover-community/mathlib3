@@ -1996,10 +1996,8 @@ by rw [is_root.def, eval_sub, eval_X, eval_C, sub_eq_zero_iff_eq, eq_comm]
 
 end comm_ring
 
--- FIXME continue updating from here
-
-section nonzero_comm_ring
-variables [comm_ring R] [nonzero R] {p q : polynomial R}
+section nonzero_ring
+variables [ring R] [nonzero R] {p q : polynomial R}
 
 @[simp] lemma degree_X_sub_C (a : R) : degree (X - C a) = 1 :=
 begin
@@ -2022,7 +2020,7 @@ lemma X_pow_sub_C_ne_zero {n : ℕ} (hn : 0 < n) (a : R) :
 mt degree_eq_bot.2 (show degree ((X : polynomial R) ^ n - C a) ≠ ⊥,
   by rw degree_X_pow_sub_C hn a; exact dec_trivial)
 
-end nonzero_comm_ring
+end nonzero_ring
 
 section comm_ring
 
@@ -2624,7 +2622,7 @@ by rw [neg_mul_eq_neg_mul_symm, ← sub_eq_add_neg, ← mul_sub, sub_sub_sub_can
 end field
 
 section derivative
-variables [comm_semiring R]
+variables [semiring R]
 
 /-- `derivative p` is the formal derivative of the polynomial `p` -/
 def derivative (p : polynomial R) : polynomial R := p.sum (λn a, C (a * n) * X^(n - 1))
@@ -2667,16 +2665,16 @@ by refine finsupp.sum_add_index _ _; intros;
 simp only [add_mul, zero_mul, C_0, C_add, C_mul]
 
 /-- The formal derivative of polynomials, as additive homomorphism. -/
-def derivative_hom (R : Type*) [comm_semiring R] : polynomial R →+ polynomial R :=
+def derivative_hom (R : Type*) [semiring R] : polynomial R →+ polynomial R :=
 { to_fun := derivative,
   map_zero' := derivative_zero,
   map_add' := λ p q, derivative_add }
 
-@[simp] lemma derivative_neg {R : Type*} [comm_ring R] (f : polynomial R) :
+@[simp] lemma derivative_neg {R : Type*} [ring R] (f : polynomial R) :
   derivative (-f) = -derivative f :=
 (derivative_hom R).map_neg f
 
-@[simp] lemma derivative_sub {R : Type*} [comm_ring R] (f g : polynomial R) :
+@[simp] lemma derivative_sub {R : Type*} [ring R] (f g : polynomial R) :
   derivative (f - g) = derivative f - derivative g :=
 (derivative_hom R).map_sub f g
 
@@ -2686,6 +2684,14 @@ instance : is_add_monoid_hom (derivative : polynomial R → polynomial R) :=
 @[simp] lemma derivative_sum {s : finset ι} {f : ι → polynomial R} :
   derivative (∑ b in s, f b) = ∑ b in s, derivative (f b) :=
 (derivative_hom R).map_sum f s
+
+@[simp] lemma derivative_smul (r : R) (p : polynomial R) : derivative (r • p) = r • derivative p :=
+by { ext, simp only [coeff_derivative, mul_assoc, coeff_smul], }
+
+end derivative
+
+section derivative
+variables [comm_semiring R]
 
 @[simp] lemma derivative_mul {f g : polynomial R} :
   derivative (f * g) = derivative f * g + f * derivative g :=
@@ -2717,9 +2723,6 @@ calc derivative (f * g) = f.sum (λn a, g.sum (λm b, C ((a * b) * (n + m : ℕ)
 lemma derivative_eval (p : polynomial R) (x : R) :
   p.derivative.eval x = p.sum (λ n a, (a * n)*x^(n-1)) :=
 by simp [derivative, eval_sum, eval_pow]
-
-@[simp] lemma derivative_smul (r : R) (p : polynomial R) : derivative (r • p) = r • derivative p :=
-by { ext, simp only [coeff_derivative, mul_assoc, coeff_smul], }
 
 /-- The formal derivative of polynomials, as linear homomorphism. -/
 def derivative_lhom (R : Type*) [comm_ring R] : polynomial R →ₗ[R] polynomial R :=
@@ -2866,8 +2869,8 @@ end identities
 
 section integral_normalization
 
-section comm_semiring
-variables [comm_semiring R]
+section semiring
+variables [semiring R]
 
 /-- If `f : polynomial R` is a nonzero polynomial with root `z`, `integral_normalization f` is
 a monic polynomial with root `leading_coeff f * z`.
@@ -2915,7 +2918,7 @@ begin
   { exact integral_normalization_coeff_nat_degree hf }
 end
 
-end comm_semiring
+end semiring
 
 variables [integral_domain R]
 

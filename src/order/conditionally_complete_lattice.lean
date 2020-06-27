@@ -29,7 +29,7 @@ set_option old_structure_cmd true
 
 open set
 
-variables {α β ι : Type*}
+variables {α β : Type*} {ι : Sort*}
 
 section
 

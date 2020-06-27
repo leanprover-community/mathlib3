@@ -1285,8 +1285,8 @@ have zn0 : (0 : R) ≠ 1, from λ h, by haveI := subsingleton_of_zero_eq_one _ h
 
 end comm_semiring
 
-section nonzero_comm_semiring
-variables [comm_semiring R] [nonzero R] {p q : polynomial R}
+section nonzero_semiring
+variables [semiring R] [nonzero R] {p q : polynomial R}
 
 instance : nonzero (polynomial R) :=
 { zero_ne_one := λ (h : (0 : polynomial R) = 1), zero_ne_one $
@@ -1321,10 +1321,10 @@ by simpa only [monic, leading_coeff_zero] using (zero_ne_one : (0 : R) ≠ 1)
 lemma ne_zero_of_monic (h : monic p) : p ≠ 0 :=
 λ h₁, @not_monic_zero R _ _ (h₁ ▸ h)
 
-end nonzero_comm_semiring
+end nonzero_semiring
 
-section comm_semiring
-variables [comm_semiring R] {p q : polynomial R}
+section semiring
+variables [semiring R] {p q : polynomial R}
 
 /-- `dix_X p` return a polynomial `q` such that `q * X + C (p.coeff 0) = p`.
   It can be used in a semiring where the usual division algorithm is not possible -/
@@ -1442,7 +1442,7 @@ rec_on_horner p
         by simpa [h, nat.not_lt_zero] using h0'))
   h0
 
-end comm_semiring
+end semiring
 
 section comm_ring
 variables [comm_ring R] {p q : polynomial R}

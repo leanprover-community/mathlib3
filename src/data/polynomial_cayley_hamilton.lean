@@ -60,14 +60,7 @@ begin
   rw [monomial_eq_smul_X, monomial_eq_smul_X, ← C_mul', ← C_mul', X_pow_mul_assoc, ← mul_assoc,
       ← C_mul, mul_assoc, ← pow_add, coeff_C_mul, coeff_C_mul, coeff_C_mul],
   simp only [if_t_t, mul_boole, coeff_X_pow, zero_mul, ite_mul, mul_ite, mul_zero],
-  cases n,
-  { simp only [mul_one, nat.nat_zero_eq_zero, if_true, eq_self_iff_true, zero_add],
-    split_ifs; refl },
-  cases m,
-  { simp only [mul_one, if_true, eq_self_iff_true], },
-  rw [if_neg, if_neg],
-  { exact (nat.succ_ne_zero n).symm },
-  { simp only [nat.succ_eq_add_one, ←add_assoc], exact (nat.succ_ne_zero _).symm }
+  split_ifs; simp * at *,
 end
 
 lemma eval₂_mul_X_sub_monomial {p : polynomial R} {r : R} :

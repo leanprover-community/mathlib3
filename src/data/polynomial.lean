@@ -580,12 +580,6 @@ lemma degree_ne_of_nat_degree_ne {n : ℕ} :
   (λ _ h, option.no_confusion h)
   (λ n' h, mt option.some_inj.mp h)
 
-end semiring
-
-section comm_semiring
-
-variables [comm_semiring R] {p q : polynomial R}
-
 @[simp] lemma degree_C (ha : a ≠ 0) : degree (C a) = (0 : with_bot ℕ) :=
 show sup (ite (a = 0) ∅ {0}) some = 0, by rw if_neg ha; refl
 
@@ -662,8 +656,14 @@ lemma coeff_ne_zero_of_eq_degree {p : polynomial R} {n : ℕ} (hn : degree p = n
   coeff p n ≠ 0 :=
 λ h, mem_support_iff.mp (mem_of_max hn) h
 
+end semiring
+
+section semiring
+
+variables [semiring R] {p q : polynomial R}
+
 section map
-variables [comm_semiring S]
+variables [semiring S]
 variables (f : R →+* S)
 
 /-- `map f p` maps a polynomial `p` across a ring hom `f` -/
@@ -682,12 +682,6 @@ is_semiring_hom.comp _ _
 
 @[simp] lemma map_one : (1 : polynomial R).map f = 1 := eval₂_one _ _
 
-@[simp] lemma map_mul : (p * q).map f = p.map f * q.map f := eval₂_mul _ _
-
-instance map.is_semiring_hom : is_semiring_hom (map f) := eval₂.is_semiring_hom _ _
-
-@[simp] lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := eval₂_pow _ _ _
-
 lemma coeff_map (n : ℕ) : coeff (p.map f) n = f (coeff p n) :=
 begin
   rw [map, eval₂, coeff_sum],
@@ -698,53 +692,15 @@ begin
   split_ifs; simp [is_semiring_hom.map_zero f],
 end
 
-lemma map_map [comm_semiring T] (g : S →+* T)
+lemma map_map [semiring T] (g : S →+* T)
   (p : polynomial R) : (p.map f).map g = p.map (g.comp f) :=
 ext (by simp [coeff_map])
 
-lemma eval₂_map [comm_semiring T] (g : S → T) [is_semiring_hom g] (x : T) :
-  (p.map f).eval₂ g x = p.eval₂ (λ y, g (f y)) x :=
-polynomial.induction_on p
-  (by simp)
-  (by simp [is_semiring_hom.map_add f] {contextual := tt})
-  (by simp [is_semiring_hom.map_mul f,
-    is_semiring_hom.map_pow f, pow_succ', (mul_assoc _ _ _).symm] {contextual := tt})
-
-lemma eval_map (x : S) : (p.map f).eval x = p.eval₂ f x := eval₂_map _ _ _
-
 @[simp] lemma map_id : p.map (ring_hom.id _) = p := by simp [polynomial.ext_iff, coeff_map]
-
-lemma mem_map_range {p : polynomial S} :
-  p ∈ set.range (map f) ↔ ∀ n, p.coeff n ∈ (set.range f) :=
-begin
-  split,
-  { rintro ⟨p, rfl⟩ n, rw coeff_map, exact set.mem_range_self _ },
-  { intro h, rw p.as_sum,
-    apply is_add_submonoid.finset_sum_mem,
-    intros i hi,
-    rcases h i with ⟨c, hc⟩,
-    use [C c * X^i],
-    rw [map_mul, map_C, hc, map_pow, map_X] }
-end
 
 end map
 
-section
-variables [comm_semiring S] [comm_semiring T]
-variables (f : R →+* S) (g : S →+* T) (p)
-
-lemma hom_eval₂ (x : S) : g (p.eval₂ f x) = p.eval₂ (g ∘ f) (g x) :=
-begin
-  apply polynomial.induction_on p; clear p,
-  { intros a, rw [eval₂_C, eval₂_C] },
-  { intros p q hp hq, simp only [hp, hq, eval₂_add, is_semiring_hom.map_add g] },
-  { intros n a ih,
-    replace ih := congr_arg (λ y, y * g x) ih,
-    simpa [pow_succ', is_semiring_hom.map_mul g, (mul_assoc _ _ _).symm,
-      eval₂_C, eval₂_mul, eval₂_X] using ih }
-end
-
-end
+section degree
 
 lemma coeff_nat_degree_eq_zero_of_degree_lt (h : degree p < degree q) :
   coeff p (nat_degree q) = 0 :=
@@ -1055,6 +1011,79 @@ by rw [ne.def, ← degree_eq_bot];
 by rw [coeff_mul, nat.antidiagonal_zero];
 simp only [polynomial.coeff_X_zero, finset.sum_singleton, mul_zero]
 
+lemma degree_nonneg_iff_ne_zero : 0 ≤ degree p ↔ p ≠ 0 :=
+⟨λ h0p hp0, absurd h0p (by rw [hp0, degree_zero]; exact dec_trivial),
+  λ hp0, le_of_not_gt (λ h, by simp [gt, degree_eq_bot, *] at *)⟩
+
+lemma nat_degree_eq_zero_iff_degree_le_zero : p.nat_degree = 0 ↔ p.degree ≤ 0 :=
+if hp0 : p = 0 then by simp [hp0]
+else by rw [degree_eq_nat_degree hp0, ← with_bot.coe_zero, with_bot.coe_le_coe,
+  nat.le_zero_iff]
+
+end degree
+
+end semiring
+
+section comm_semiring
+
+variables [comm_semiring R] {p q : polynomial R}
+
+section map
+variables [comm_semiring S]
+variables (f : R →+* S)
+
+@[simp] lemma map_mul : (p * q).map f = p.map f * q.map f := eval₂_mul _ _
+
+instance map.is_semiring_hom : is_semiring_hom (map f) := eval₂.is_semiring_hom _ _
+
+@[simp] lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := eval₂_pow _ _ _
+
+-- FIXME I don't think any of the next three lemmas actually need commutativity assumptions:
+lemma eval₂_map [comm_semiring T] (g : S → T) [is_semiring_hom g] (x : T) :
+  (p.map f).eval₂ g x = p.eval₂ (λ y, g (f y)) x :=
+polynomial.induction_on p
+  (by simp)
+  (by simp [is_semiring_hom.map_add f] {contextual := tt})
+  (by simp [is_semiring_hom.map_mul f,
+    is_semiring_hom.map_pow f, pow_succ', (mul_assoc _ _ _).symm] {contextual := tt})
+
+lemma eval_map (x : S) : (p.map f).eval x = p.eval₂ f x := eval₂_map _ _ _
+
+lemma mem_map_range {p : polynomial S} :
+  p ∈ set.range (map f) ↔ ∀ n, p.coeff n ∈ (set.range f) :=
+begin
+  split,
+  { rintro ⟨p, rfl⟩ n, rw coeff_map, exact set.mem_range_self _ },
+  { intro h, rw p.as_sum,
+    apply is_add_submonoid.finset_sum_mem,
+    intros i hi,
+    rcases h i with ⟨c, hc⟩,
+    use [C c * X^i],
+    rw [map_mul, map_C, hc, map_pow, map_X] }
+end
+
+end map
+
+section hom_eval₂
+variables [comm_semiring S] [comm_semiring T]
+variables (f : R →+* S) (g : S →+* T) (p)
+
+lemma hom_eval₂ (x : S) : g (p.eval₂ f x) = p.eval₂ (g ∘ f) (g x) :=
+begin
+  apply polynomial.induction_on p; clear p,
+  { intros a, rw [eval₂_C, eval₂_C] },
+  { intros p q hp hq, simp only [hp, hq, eval₂_add, is_semiring_hom.map_add g] },
+  { intros n a ih,
+    replace ih := congr_arg (λ y, y * g x) ih,
+    simpa [pow_succ', is_semiring_hom.map_mul g, (mul_assoc _ _ _).symm,
+      eval₂_C, eval₂_mul, eval₂_X] using ih }
+end
+
+end hom_eval₂
+
+section is_unit
+
+
 lemma is_unit_C {x : R} : is_unit (C x) ↔ is_unit x :=
 begin
   rw [is_unit_iff_dvd_one, is_unit_iff_dvd_one],
@@ -1066,15 +1095,6 @@ begin
   { rintros ⟨y, hy⟩,
     exact ⟨C y, by rw [← C_mul, ← hy, C_1]⟩ }
 end
-
-lemma degree_nonneg_iff_ne_zero : 0 ≤ degree p ↔ p ≠ 0 :=
-⟨λ h0p hp0, absurd h0p (by rw [hp0, degree_zero]; exact dec_trivial),
-  λ hp0, le_of_not_gt (λ h, by simp [gt, degree_eq_bot, *] at *)⟩
-
-lemma nat_degree_eq_zero_iff_degree_le_zero : p.nat_degree = 0 ↔ p.degree ≤ 0 :=
-if hp0 : p = 0 then by simp [hp0]
-else by rw [degree_eq_nat_degree hp0, ← with_bot.coe_zero, with_bot.coe_le_coe,
-  nat.le_zero_iff]
 
 lemma eq_one_of_is_unit_of_monic (hm : monic p) (hpu : is_unit p) : p = 1 :=
 have degree p ≤ 0,
@@ -1094,6 +1114,8 @@ have degree p ≤ 0,
   ... ≤ 0 : degree_one_le,
 by rw [eq_C_of_degree_le_zero this, ← nat_degree_eq_zero_iff_degree_le_zero.2 this,
     ← leading_coeff, hm.leading_coeff, C_1]
+
+end is_unit
 
 end comm_semiring
 

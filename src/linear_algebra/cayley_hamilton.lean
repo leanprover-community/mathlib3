@@ -23,12 +23,19 @@ noncomputable def baz : matrix n n (polynomial R) ≃ₐ[R] polynomial (matrix n
 
 -- maybe we don't need this?
 lemma matrix_eq {X : Type*} [add_comm_monoid X] (m : matrix n n X) :
-  m = ∑ (x : n × n), (λ i j, if (i, j) = x then m i j else 0) := sorry
+  m = ∑ (x : n × n), (λ i j, if (i, j) = x then m i j else 0) := by { ext, simp }
 
 @[elab_as_eliminator] protected lemma matrix.induction_on {X : Type*} [add_comm_monoid X] {M : matrix n n X → Prop} (m : matrix n n X)
   (h_add : ∀p q, M p → M q → M (p + q))
   (h_elementary : ∀ i j x, M (λ i' j', if i' = i ∧ j' = j then x else 0)) :
   M m := sorry
+
+
+instance is_ring_hom_of_alg_hom
+  {R : Type u} [comm_ring R] {A : Type v} [ring A] [algebra R A] {B : Type w} [ring B] [algebra R B]
+  (f : A →ₐ[R] B) :
+is_ring_hom f :=
+{map_one := by simp, map_mul := by simp, map_add := by simp}
 
 lemma baz_coeff_apply_aux_1 (i j : n) (k : ℕ) (x : R) :
   baz (λ i' j', if i' = i ∧ j' = j then monomial k x else 0) =
@@ -44,10 +51,13 @@ begin
   { simp only [algebra.tensor_product.tmul_mul_tmul, one_pow, one_mul, matrix.mul_one, algebra.tensor_product.tmul_pow,
      algebra.tensor_product.include_left_apply, mul_eq_mul],
     -- almost there: just use `R` bilinearity
+    have : monomial k x = x • monomial k 1, simp, rw this,
+    rw ← tensor_product.smul_tmul,
+    congr, { ext, simp },
     sorry, },
-  { -- wah, missing instance...
-    sorry },
+  { apply_instance },
 end
+
 
 lemma baz_coeff_apply_aux_2 (i j : n) (p : polynomial R) (k : ℕ) :
   coeff (baz (λ i' j', if i' = i ∧ j' = j then p else 0)) k =

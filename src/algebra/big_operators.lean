@@ -578,10 +578,11 @@ attribute [to_additive finset.sum_range_one] prod_range_one
 /-- To prove a property of a product, it suffices to prove that the property is multiplicative and holds on summands.
 -/
 @[to_additive "To prove a property of a sum, it suffices to prove that the property is additive and holds on summands."]
-lemma prod_induction {M : Type*} [decidable_eq α] [comm_monoid M] (f : α → M) (p : M → Prop)
+lemma prod_induction {M : Type*} [comm_monoid M] (f : α → M) (p : M → Prop)
 (p_mul : ∀ a b, p a → p b → p (a * b)) (p_one : p 1) (p_s : ∀ x ∈ s, p $ f x) :
 p $ ∏ x in s, f x :=
 begin
+  classical,
   induction s using finset.induction with x hx s hs, simpa,
   rw finset.prod_insert, swap, assumption,
   apply p_mul, apply p_s, simp,
@@ -1468,3 +1469,4 @@ begin
 end
 
 end with_top
+#lint

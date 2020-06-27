@@ -354,6 +354,46 @@ by rwa coeff_zero_eq_eval_zero at hp
 
 end eval
 
+section comp
+
+def comp (p q : polynomial R) : polynomial R := p.eval₂ C q
+
+
+@[simp] lemma comp_X : p.comp X = p :=
+begin
+  refine ext (λ n, _),
+  rw [comp, eval₂],
+  conv in (C _ * _) { rw ← single_eq_C_mul_X },
+  rw finsupp.sum_single
+end
+
+@[simp] lemma X_comp : X.comp p = p := eval₂_X _ _
+
+@[simp] lemma comp_C : p.comp (C a) = C (p.eval a) :=
+begin
+  dsimp [comp, eval₂, eval, finsupp.sum],
+  rw [← p.support.sum_hom (@C R _)],
+  apply finset.sum_congr rfl; simp
+end
+
+@[simp] lemma C_comp : (C a).comp p = C a := eval₂_C _ _
+
+@[simp] lemma comp_zero : p.comp (0 : polynomial R) = C (p.eval 0) :=
+by rw [← C_0, comp_C]
+
+@[simp] lemma zero_comp : comp (0 : polynomial R) p = 0 :=
+by rw [← C_0, C_comp]
+
+@[simp] lemma comp_one : p.comp 1 = C (p.eval 1) :=
+by rw [← C_1, comp_C]
+
+@[simp] lemma one_comp : comp (1 : polynomial R) p = 1 :=
+by rw [← C_1, C_comp]
+
+@[simp] lemma add_comp : (p + q).comp r = p.comp r + q.comp r := eval₂_add _ _
+
+end comp
+
 end semiring
 
 section ring
@@ -436,8 +476,6 @@ end eval
 
 section comp
 
-def comp (p q : polynomial R) : polynomial R := p.eval₂ C q
-
 lemma eval₂_comp [comm_semiring S] (f : R → S) [is_semiring_hom f] {x : S} :
   (p.comp q).eval₂ f x = p.eval₂ f (q.eval₂ f x) :=
 show (p.sum (λ e a, C a * q ^ e)).eval₂ f x = p.eval₂ f (eval₂ f x q),
@@ -445,41 +483,9 @@ by simp only [eval₂_mul, eval₂_C, eval₂_pow, eval₂_sum]; refl
 
 lemma eval_comp : (p.comp q).eval a = p.eval (q.eval a) := eval₂_comp _
 
-@[simp] lemma comp_X : p.comp X = p :=
-begin
-  refine ext (λ n, _),
-  rw [comp, eval₂],
-  conv in (C _ * _) { rw ← single_eq_C_mul_X },
-  rw finsupp.sum_single
-end
-
-@[simp] lemma X_comp : X.comp p = p := eval₂_X _ _
-
-@[simp] lemma comp_C : p.comp (C a) = C (p.eval a) :=
-begin
-  dsimp [comp, eval₂, eval, finsupp.sum],
-  rw [← p.support.sum_hom (@C R _)],
-  apply finset.sum_congr rfl; simp
-end
-
-@[simp] lemma C_comp : (C a).comp p = C a := eval₂_C _ _
-
-@[simp] lemma comp_zero : p.comp (0 : polynomial R) = C (p.eval 0) :=
-by rw [← C_0, comp_C]
-
-@[simp] lemma zero_comp : comp (0 : polynomial R) p = 0 :=
-by rw [← C_0, C_comp]
-
-@[simp] lemma comp_one : p.comp 1 = C (p.eval 1) :=
-by rw [← C_1, comp_C]
-
-@[simp] lemma one_comp : comp (1 : polynomial R) p = 1 :=
-by rw [← C_1, C_comp]
-
 instance : is_semiring_hom (λ q : polynomial R, q.comp p) :=
 by unfold comp; apply_instance
 
-@[simp] lemma add_comp : (p + q).comp r = p.comp r + q.comp r := eval₂_add _ _
 @[simp] lemma mul_comp : (p * q).comp r = p.comp r * q.comp r := eval₂_mul _ _
 
 end comp

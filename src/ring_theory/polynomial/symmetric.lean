@@ -7,6 +7,7 @@ import data.fintype.card
 import ring_theory.polynomial.homogeneous
 import data.list.antidiagonal
 import tactic
+import data.finsupp
 
 open equiv (perm)
 open_locale big_operators
@@ -473,28 +474,36 @@ begin
   rwa l₁.length at hi₁,
 end
 
+lemma list.nth_le_le_sum (L : list ℕ) {i : ℕ} {h : i < L.length}:
+  L.nth_le i h ≤ L.sum :=
+begin
+  revert i, induction L, simp,
+  intros, cases i, simp, transitivity L_tl.sum, apply L_ih, simp
+end
+
 lemma lt_wf (n : ℕ) : well_founded (@has_lt.lt (signature n) _) :=
 begin
   apply well_founded_of_finite,
   intro l₀,
   let k := l₀.coeffs.sum + 1,
-  have hk : ∀ i : fin n, l₀.coeffs.nth_le i (l₀.length.symm ▸ i.2) < k,
-  { sorry },
+  have hk : ∀ i : fin n, l₀.coeffs.nth_le i (l₀.length.symm ▸ i.2) < k, ---sorry was here
+  { intro, rw nat.lt_add_one_iff, apply list.nth_le_le_sum },
   constructor,
   have aux : ∀ (l : {l : signature n // l < l₀}) (i : ℕ) (hi : i < (l : signature n).coeffs.length),
     (l : signature n).coeffs.nth_le i hi < k,
   { rintros ⟨l,hl⟩ i hi,
+    have h : l.coeffs.head < k,
+    { calc l.coeffs.head ≤ l₀.coeffs.head : _
+                     ... < k              : _,
+      { rw lt_iff at hl, rw le_iff_eq_or_lt, tauto },
+      { rw nat.lt_add_one_iff, apply list.head_le_sum } },
     cases n,
     { simp only [l.length, nat.nat_zero_eq_zero, subtype.coe_mk] at hi, exact fin.elim0 ⟨i, hi⟩ },
-    cases i,
-    { rw list.nth_le_zero,
-      calc l.coeffs.head ≤ l₀.coeffs.head : _
-                     ... < k              : _,
-      {  },
-      {  } },
+    cases i, rw list.nth_le_zero, apply h,
     have H := l.sorted,
     rw [list.sorted, list.pairwise_iff_nth_le] at H,
-    apply lt_of_le_of_lt (H 0 i _ _), },
+    apply lt_of_le_of_lt (H 0 _ _ _), rw list.nth_le_zero, apply h,
+    apply nat.succ_pos },
   let f : {l : signature n // l < l₀} → (fin n → fin k) :=
   λ l i, ⟨(l : signature n).coeffs.nth_le i ((l : signature n).length.symm ▸ i.2), aux l _ _⟩,
   apply fintype.of_injective f,
@@ -1020,12 +1029,40 @@ classical.some_spec (classical.axiom_of_choice (to_signature_surjective)) l
 def signature_coefficient (φ : mv_polynomial σ R) (l : signature (card σ)) : R :=
 coeff (to_signature_section l) φ
 
+/--This should probably be proven by induction -/
+lemma exists_perm_of_rel_univ (r : σ → σ → Prop):
+  multiset.rel r (finset.univ : finset σ).1 (finset.univ : finset σ).1 →
+  ∃ e : perm σ, ∀ i : σ, r i (e i) :=
+begin
+  sorry
+end
+
+lemma exists_perm_of_to_signature_eq_to_signature {d₁ d₂ : σ →₀ ℕ} :
+  to_signature d₁ = to_signature d₂ →
+  ∃ e : perm σ, d₂ = finsupp.map_domain e d₁ :=
+begin
+  intro h, --unfold to_signature at h,
+  have h' :  (to_signature d₁).coeffs = (to_signature d₂).coeffs, rw h,
+  have j : multiset.map d₁ (finset.univ : finset σ).1 = multiset.map d₂ (finset.univ : finset σ).1,
+  { rw ← multiset.sort_eq ge (multiset.map ⇑d₁ finset.univ.val),
+    rw ← multiset.sort_eq ge (multiset.map ⇑d₂ finset.univ.val),
+    unfold to_signature at h', dsimp at h', rw h' },
+  rw ← multiset.rel_eq at j, rw multiset.rel_map_left at j, rw multiset.rel_map_right at j,
+  cases exists_perm_of_rel_univ _ j with e he, existsi e, ext,
+  conv_rhs { rw ←  equiv.apply_symm_apply e a },
+  rw [finsupp.map_domain_apply e.injective _ _, he (e.symm a)], simp
+end
+
 lemma is_symmetric.coeff_eq_coeff
   {φ : mv_polynomial σ R} (h : is_symmetric φ)
   (d₁ d₂ : σ →₀ ℕ) (hd : to_signature d₁ = to_signature d₂) :
   coeff d₁ φ = coeff d₂ φ :=
 begin
-  sorry
+  unfold coeff,
+  unfold mv_polynomial.is_symmetric at h,
+  simp [mv_polynomial.rename_eq] at h,
+  cases exists_perm_of_to_signature_eq_to_signature hd with e he, rw he,
+  rw [← finsupp.map_domain_apply (finsupp.injective_map_domain e.injective) φ d₁, @h e]
 end
 
 lemma is_symmetric.coeff_to_signature_section

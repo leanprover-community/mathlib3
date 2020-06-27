@@ -84,7 +84,19 @@ begin
 end
 
 def characteristic_matrix (m : matrix n n R) : matrix n n (polynomial R) :=
-matrix.scalar n (X : polynomial R) - (λ i j, monomial 0 (m i j))
+matrix.scalar n (X : polynomial R) - (λ i j, C (m i j))
+
+@[simp] lemma characteristic_matrix_apply_eq (m : matrix n n R) (i : n) :
+  characteristic_matrix m i i = (X : polynomial R) - C (m i i) :=
+begin
+  sorry
+end
+
+@[simp] lemma characteristic_matrix_apply_ne (m : matrix n n R) (i j : n) (h : i ≠ j) :
+  characteristic_matrix m i j = - C (m i j) :=
+begin
+  sorry
+end
 
 lemma r (p : polynomial R) :
   baz (p • 1) = p.map (algebra_map R (matrix n n R)) :=
@@ -96,7 +108,17 @@ begin
 end
 
 lemma q (m : matrix n n R) :
-  baz (characteristic_matrix m) = X - monomial 0 m := sorry
+  baz (characteristic_matrix m) = X - C m :=
+begin
+  ext k i j,
+  simp only [baz_coeff_apply, coeff_sub, pi.sub_apply],
+  by_cases h : i = j,
+  { subst h, rw [characteristic_matrix_apply_eq, coeff_sub],
+    simp only [coeff_X, coeff_C],
+    split_ifs; simp, },
+  { rw [characteristic_matrix_apply_ne _ _ _ h, coeff_X, coeff_neg, coeff_C, coeff_C],
+    split_ifs; simp [h], }
+end
 
 def characteristic_polynomial (m : matrix n n R) : polynomial R :=
 (characteristic_matrix m).det
@@ -113,7 +135,7 @@ begin
   simp only [baz.map_mul] at this,
   rw q at this,
   apply_fun (λ p, p.eval₂ (ring_hom.id _) m) at this,
-  rw eval₂_mul_X_sub_monomial' at this,
+  rw eval₂_mul_X_sub_C at this,
   rw r at this,
   rw eval₂_eq_eval_map at this ⊢,
   simp at this,

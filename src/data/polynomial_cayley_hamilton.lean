@@ -71,4 +71,8 @@ lemma eval₂_mul_X_sub_monomial' {p : polynomial R} (r : R) :
   (p * (X - monomial 0 r)).eval₂ (ring_hom.id _) r = 0 :=
 eval₂_mul_X_sub_monomial id
 
+lemma eval₂_mul_X_sub_C {p : polynomial R} (r : R) :
+  (p * (X - C r)).eval₂ (ring_hom.id _) r = 0 :=
+eval₂_mul_X_sub_monomial id
+
 end ring

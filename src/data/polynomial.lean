@@ -354,11 +354,11 @@ lemma eval₂_sum (p : polynomial R) (g : ℕ → R → polynomial R) (x : S) :
 finsupp.sum_sum_index (by simp [is_add_monoid_hom.map_zero f])
   (by intros; simp [right_distrib, is_add_monoid_hom.map_add f])
 
-theorem eval₂_smul (f : R → S) [is_semiring_hom f] (s : S) (r : R) (p : polynomial R) :
+@[simp] theorem eval₂_smul (f : R → S) [is_semiring_hom f] (s : S) (r : R) (p : polynomial R) :
   (r • p).eval₂ f s = f r * p.eval₂ f s :=
 by rw [← C_mul', eval₂_mul, eval₂_C]
 
-theorem eval₂_monomial (f : R → S) [is_semiring_hom f] (s : S) (n : ℕ) (r : R) :
+@[simp] theorem eval₂_monomial (f : R → S) [is_semiring_hom f] (s : S) (n : ℕ) (r : R) :
   (monomial n r).eval₂ f s = f r * s ^ n :=
 by rw [monomial_eq_smul_X, eval₂_smul, eval₂_pow, eval₂_X]
 
@@ -2560,7 +2560,7 @@ polynomial.induction_on p
       derivative_mul, derivative_pow_succ, derivative_C, zero_mul, zero_add, derivative_X, mul_one,
       map_mul, map_C, map_mul, map_pow, map_add, map_nat_cast, map_one, map_X])
 
-/-- Chain rule. -/
+/-- Chain rule for formal derivative of polynomials. -/
 theorem derivative_eval₂_C (p q : polynomial R) :
   (p.eval₂ C q).derivative = p.derivative.eval₂ C q * q.derivative :=
 polynomial.induction_on p
@@ -2575,17 +2575,17 @@ theorem of_mem_support_derivative {p : polynomial R} {n : ℕ} (h : n ∈ p.deri
 finsupp.mem_support_iff.2 $ λ (h1 : p.coeff (n+1) = 0), finsupp.mem_support_iff.1 h $
 show p.derivative.coeff n = 0, by rw [coeff_derivative, h1, zero_mul]
 
-theorem degree_derviative_lt {p : polynomial R} (hp : p ≠ 0) : p.derivative.degree < p.degree :=
+theorem degree_derivative_lt {p : polynomial R} (hp : p ≠ 0) : p.derivative.degree < p.degree :=
 (finset.sup_lt_iff $ bot_lt_iff_ne_bot.2 $ mt degree_eq_bot.1 hp).2 $ λ n hp, lt_of_lt_of_le
 (with_bot.some_lt_some.2 n.lt_succ_self) $ finset.le_sup $ of_mem_support_derivative hp
 
-theorem nat_degree_derviative_lt {p : polynomial R} (hp : p.derivative ≠ 0) :
+theorem nat_degree_derivative_lt {p : polynomial R} (hp : p.derivative ≠ 0) :
   p.derivative.nat_degree < p.nat_degree :=
 have hp1 : p ≠ 0, from λ h, hp $ by rw [h, derivative_zero],
 with_bot.some_lt_some.1 $ by { rw [nat_degree, option.get_or_else_of_ne_none $ mt degree_eq_bot.1 hp,
   nat_degree, option.get_or_else_of_ne_none $ mt degree_eq_bot.1 hp1], exact degree_derviative_lt hp1 }
 
-theorem degree_derviative_le {p : polynomial R} : p.derivative.degree ≤ p.degree :=
+theorem degree_derivative_le {p : polynomial R} : p.derivative.degree ≤ p.degree :=
 if H : p = 0 then le_of_eq $ by rw [H, derivative_zero] else le_of_lt $ degree_derviative_lt H
 
 /-- The formal derivative of polynomials, as linear homomorphism. -/

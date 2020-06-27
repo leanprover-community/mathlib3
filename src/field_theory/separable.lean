@@ -95,7 +95,7 @@ polynomial.induction_on f (λ r, by simp_rw expand_C)
 theorem expand_mul (f : polynomial R) : expand R (p * q) f = expand R p (expand R q f) :=
 (expand_expand p q f).symm
 
-theorem expand_one (f : polynomial R) : expand R 1 f = f :=
+@[simp] theorem expand_one (f : polynomial R) : expand R 1 f = f :=
 polynomial.induction_on f
   (λ r, by rw expand_C)
   (λ f g ihf ihg, by rw [alg_hom.map_add, ihf, ihg])
@@ -126,7 +126,7 @@ begin
   { rw finset.sum_eq_zero, intros k hk, rw if_neg, exact λ hkn, h ⟨k, hkn.symm⟩, },
 end
 
-theorem coeff_expand_mul {p : ℕ} (hp : 0 < p) (f : polynomial R) (n : ℕ) :
+@[simp] theorem coeff_expand_mul {p : ℕ} (hp : 0 < p) (f : polynomial R) (n : ℕ) :
   (expand R p f).coeff (n * p) = f.coeff n :=
 by rw [coeff_expand hp, if_pos (dvd_mul_left _ _), nat.mul_div_cancel _ hp]
 
@@ -207,7 +207,7 @@ not_lt_of_le (nat_degree_le_of_dvd this h) $ nat_degree_derviative_lt h⟩
 
 section char_p
 
-variables {p : ℕ} (hp : p.prime)
+variables {p : ℕ} [hp : fact p.prime]
 include hp
 
 /-- The opposite of `expand`: sends `∑ aₙ xⁿᵖ` to `∑ aₙ xⁿ`. -/
@@ -275,7 +275,7 @@ begin
     rw [← hgf, expand_expand, nat.pow_succ, mul_comm] }
 end
 
-theorem of_separable_expand {f : polynomial F} (n : ℕ)
+theorem is_unit_or_eq_zero_of_separable_expand {f : polynomial F} (n : ℕ)
   (hf : (expand F (p ^ n) f).separable) : is_unit f ∨ n = 0 :=
 begin
   rw classical.or_iff_not_imp_right, intro hn,
@@ -309,7 +309,7 @@ section char_zero
 
 variables [char_zero F]
 
-theorem separable_of_irreducible {f : polynomial F} (hf : irreducible f) (hf0 : f ≠ 0) :
+theorem irredicuble.separable {f : polynomial F} (hf : irreducible f) (hf0 : f ≠ 0) :
   separable f :=
 begin
   rw [separable_iff_derivative_ne_zero hf, ne, ← degree_eq_bot, degree_derivative_eq], rintro ⟨⟩,

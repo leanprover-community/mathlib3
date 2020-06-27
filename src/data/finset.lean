@@ -324,14 +324,16 @@ def subtype_insert_equiv_option {t : finset α} {x : α} (h : x ∉ t) :
   {i // i ∈ insert x t} ≃ option {i // i ∈ t} :=
 begin
   refine
-  { to_fun := λ y, if h : y.1 = x then none else some ⟨y, (finset.mem_insert.mp y.2).resolve_left h⟩,
-    inv_fun := λ y, y.elim ⟨x, finset.mem_insert_self _ _⟩ $ λ z, ⟨z.1, finset.mem_insert_of_mem z.2⟩,
+  { to_fun := λ y, if h : ↑y = x then none else some ⟨y, (finset.mem_insert.mp y.2).resolve_left h⟩,
+    inv_fun := λ y, y.elim ⟨x, finset.mem_insert_self _ _⟩ $ λ z, ⟨z, finset.mem_insert_of_mem z.2⟩,
     .. },
-  { intro y, by_cases h : y.1 = x, simp only [subtype.ext, h, option.elim, dif_pos],
-    simp only [h, option.elim, dif_neg, not_false_iff, subtype.coe_eta] },
-  { rintro (_|y), simp only [option.elim, dif_pos],
-    have : y.val ≠ x, { rintro ⟨⟩, exact h y.2 },
-    simp only [this, option.elim, subtype.eta, dif_neg, not_false_iff, subtype.coe_mk] },
+  { intro y, by_cases h : ↑y = x,
+    simp only [subtype.ext_iff, h, option.elim, dif_pos, subtype.coe_mk],
+    simp only [h, option.elim, dif_neg, not_false_iff, subtype.coe_eta, subtype.coe_mk] },
+  { rintro (_|y), simp only [option.elim, dif_pos, subtype.coe_mk],
+    have : ↑y ≠ x, { rintro ⟨⟩, exact h y.2 },
+    simp only [this, option.elim, subtype.eta, dif_neg, not_false_iff, subtype.coe_eta,
+      subtype.coe_mk] },
 end
 
 /-! ### union -/

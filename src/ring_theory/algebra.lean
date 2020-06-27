@@ -269,6 +269,9 @@ lemma map_sum {ι : Type*} (f : ι → A) (s : finset ι) :
   φ (∑ x in s, f x) = ∑ x in s, φ (f x) :=
 φ.to_ring_hom.map_sum f s
 
+@[simp] lemma map_nat_cast (n : ℕ) : φ n = n :=
+φ.to_ring_hom.map_nat_cast n
+
 section
 
 variables (R A)

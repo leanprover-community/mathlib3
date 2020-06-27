@@ -19,7 +19,7 @@ noncomputable theory
 open_locale classical
 
 /-- Definition of a Pythagorean Triple: an integer square that is a sum of two squares -/
-def pythagorean_triple (x y z : ℤ) := x*x + y*y = z*z
+def pythagorean_triple (x y z : ℤ) : Prop := x*x + y*y = z*z
 
 variables {k : Type*} [field k]
 

@@ -187,24 +187,9 @@ ext $ λ k, (coeff_mul_X_pow p n k).symm.trans $ ext_iff.1 H (k+n)
 
 end coeff
 
-end semiring
-
-section ring
-variables [ring R]
-
-instance : ring (polynomial R) := add_monoid_algebra.ring
-end ring
-
-section comm_semiring
-variables [comm_semiring R] {p q r : polynomial R}
-
-local attribute [instance] coeff_coe_to_fun
-
-instance : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
-instance : algebra R (polynomial R) := add_monoid_algebra.algebra
-
+section C
 /-- `C a` is the constant polynomial `a`. -/
-def C : R →+* polynomial R := algebra.of_id R (polynomial R)
+def C : R →+* polynomial R := add_monoid_algebra.algebra_map'
 
 lemma C_def (a : R) : C a = single 0 a := rfl
 
@@ -253,6 +238,8 @@ lemma C_pow : C (a ^ n) = C a ^ n := C.map_pow a n
 lemma nat_cast_eq_C (n : ℕ) : C (n : R) = (n : polynomial R) :=
 C.map_nat_cast n
 
+end C
+
 section coeff
 
 lemma coeff_C : coeff (C a) n = ite (n = 0) a 0 :=
@@ -274,13 +261,17 @@ begin
   { simp [finsupp.sum] }
 end
 
+end coeff
+
+section C
+
 lemma C_mul' (a : R) (f : polynomial R) : C a * f = a • f :=
 ext $ λ n, coeff_C_mul f
 
-end coeff
-
 lemma C_inj : C a = C b ↔ a = b :=
 ⟨λ h, coeff_C_zero.symm.trans (h.symm ▸ coeff_C_zero), congr_arg C⟩
+
+end C
 
 section eval₂
 variables [semiring S]
@@ -314,7 +305,28 @@ by rw [← C_1, eval₂_C, map_one f]
 instance eval₂.is_add_monoid_hom : is_add_monoid_hom (eval₂ f x) :=
 { map_zero := eval₂_zero _ _, map_add := λ _ _, eval₂_add _ _ }
 
+lemma eval₂_sum (p : polynomial R) (g : ℕ → R → polynomial R) (x : S) :
+  (p.sum g).eval₂ f x = p.sum (λ n a, (g n a).eval₂ f x) :=
+finsupp.sum_sum_index (by simp [is_add_monoid_hom.map_zero f])
+  (by intros; simp [right_distrib, is_add_monoid_hom.map_add f])
+
 end eval₂
+
+end semiring
+
+section ring
+variables [ring R]
+
+instance : ring (polynomial R) := add_monoid_algebra.ring
+end ring
+
+section comm_semiring
+variables [comm_semiring R] {p q r : polynomial R}
+
+local attribute [instance] coeff_coe_to_fun
+
+instance : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
+instance : algebra R (polynomial R) := add_monoid_algebra.algebra
 
 section eval₂
 variables [comm_semiring S]
@@ -350,11 +362,6 @@ ring_hom.of (eval₂ f x)
 @[simp] lemma coe_eval₂_ring_hom (f : R →+* S) (x) : ⇑(eval₂_ring_hom f x) = eval₂ f x := rfl
 
 lemma eval₂_pow (n : ℕ) : (p ^ n).eval₂ f x = p.eval₂ f x ^ n := map_pow _ _ _
-
-lemma eval₂_sum (p : polynomial R) (g : ℕ → R → polynomial R) (x : S) :
-  (p.sum g).eval₂ f x = p.sum (λ n a, (g n a).eval₂ f x) :=
-finsupp.sum_sum_index (by simp [is_add_monoid_hom.map_zero f])
-  (by intros; simp [right_distrib, is_add_monoid_hom.map_add f])
 
 end eval₂
 

@@ -218,6 +218,15 @@ noncomputable def contract (f : polynomial F) : polynomial F :=
 
 theorem coeff_contract (f : polynomial F) (n : ℕ) : (contract hp f).coeff n = f.coeff (n * p) := rfl
 
+theorem of_irreducible_expand {f : polynomial F} (hf : irreducible (expand F p f)) :
+  irreducible f :=
+@@of_irreducible_map _ _ _ (is_local_ring_hom_expand F hp.pos) hf
+
+theorem of_irreducible_expand_pow {f : polynomial F} {n : ℕ} :
+  irreducible (expand F (p ^ n) f) → irreducible f :=
+nat.rec_on n (λ hf, by rwa [nat.pow_zero, expand_one] at hf) $ λ n ih hf,
+ih $ of_irreducible_expand hp $ by rwa [expand_expand, mul_comm]
+
 variables [HF : char_p F p]
 include HF
 
@@ -231,15 +240,6 @@ begin
     rw [← nat.cast_succ, char_p.cast_eq_zero_iff F p] at this,
     exact absurd this h }
 end
-
-theorem of_irreducible_expand {f : polynomial F} (hf : irreducible (expand F p f)) :
-  irreducible f :=
-@@of_irreducible_map _ _ _ (is_local_ring_hom_expand F hp.pos) hf
-
-theorem of_irreducible_expand_pow {f : polynomial F} {n : ℕ} :
-  irreducible (expand F (p ^ n) f) → irreducible f :=
-nat.rec_on n (λ hf, by rwa [nat.pow_zero, expand_one] at hf) $ λ n ih hf,
-ih $ of_irreducible_expand hp $ by rwa [expand_expand, mul_comm]
 
 theorem separable_or {f : polynomial F} (hf : irreducible f) : f.separable ∨
   ¬f.separable ∧ ∃ g : polynomial F, irreducible g ∧ expand F p g = f :=

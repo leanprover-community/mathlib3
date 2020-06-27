@@ -249,6 +249,29 @@ lemma tmul_zero (m : M) : (m ⊗ₜ[R] 0 : M ⊗ N) = 0 := (mk R M N _).map_zero
 lemma neg_tmul (m : M) (n : N) : (-m) ⊗ₜ n = -(m ⊗ₜ[R] n) := (mk R M N).map_neg₂ _ _
 lemma tmul_neg (m : M) (n : N) : m ⊗ₜ (-n) = -(m ⊗ₜ[R] n) := (mk R M N _).map_neg _
 
+
+section
+open_locale big_operators
+
+lemma sum_tmul {α : Type*} (s : finset α) (m : α → M) (n : N) :
+  ((∑ a in s, m a) ⊗ₜ[R] n) = ∑ a in s, m a ⊗ₜ[R] n :=
+begin
+  classical,
+  induction s using finset.induction with a s has ih h,
+  { simp, },
+  { simp [finset.sum_insert has, add_tmul, ih], },
+end
+
+lemma tmul_sum (m : M) {α : Type*} (s : finset α) (n : α → N) :
+  (m ⊗ₜ[R] (∑ a in s, n a)) = ∑ a in s, m ⊗ₜ[R] n a :=
+begin
+  classical,
+  induction s using finset.induction with a s has ih h,
+  { simp, },
+  { simp [finset.sum_insert has, tmul_add, ih], },
+end
+end
+
 end module
 
 local attribute [instance] quotient_add_group.left_rel normal_add_subgroup.to_is_add_subgroup
@@ -477,12 +500,18 @@ lift $ comp (compl₂ (mk _ _ _) g) f
   map f g (m ⊗ₜ n) = f m ⊗ₜ g n :=
 rfl
 
+/-- If M and P are linearly equivalent and N and Q are linearly equivalent
+then M ⊗ N and P ⊗ Q are linearly equivalent. -/
 def congr (f : M ≃ₗ[R] P) (g : N ≃ₗ[R] Q) : M ⊗ N ≃ₗ[R] P ⊗ Q :=
 linear_equiv.of_linear (map f g) (map f.symm g.symm)
   (ext $ λ m n, by simp; simp only [linear_equiv.apply_symm_apply])
   (ext $ λ m n, by simp; simp only [linear_equiv.symm_apply_apply])
 
-variables (ι₁ : Type*) (ι₂ : Type*)
+@[simp] theorem congr_tmul (f : M ≃ₗ[R] P) (g : N ≃ₗ[R] Q) (m : M) (n : N) :
+  congr f g (m ⊗ₜ n) = f m ⊗ₜ g n :=
+rfl
+
+variables (R) (ι₁ : Type*) (ι₂ : Type*)
 variables [decidable_eq ι₁] [decidable_eq ι₂]
 variables (M₁ : ι₁ → Type*) (M₂ : ι₂ → Type*)
 variables [Π i₁, add_comm_group (M₁ i₁)] [Π i₂, add_comm_group (M₂ i₂)]
@@ -504,5 +533,10 @@ begin
     rw curry_apply },
   cases i; refl
 end
+
+@[simp] theorem direct_sum_lof_tmul_lof (i₁ : ι₁) (m₁ : M₁ i₁) (i₂ : ι₂) (m₂ : M₂ i₂) :
+  direct_sum R ι₁ ι₂ M₁ M₂ (direct_sum.lof R ι₁ M₁ i₁ m₁ ⊗ₜ direct_sum.lof R ι₂ M₂ i₂ m₂) =
+  direct_sum.lof R (ι₁ × ι₂) (λ i, M₁ i.1 ⊗[R] M₂ i.2) (i₁, i₂) (m₁ ⊗ₜ m₂) :=
+by simp [direct_sum]
 
 end tensor_product

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import measure_theory.outer_measure
+import order.filter.countable_Inter
+
 /-!
 # Measure spaces
 
@@ -239,7 +241,7 @@ ext $ λ s, begin
   rw ennreal.infi_add_infi,
   rintro ⟨t₁, st₁, ht₁⟩ ⟨t₂, st₂, ht₂⟩,
   exact ⟨⟨_, subset_inter_iff.2 ⟨st₁, st₂⟩, ht₁.inter ht₂⟩,
-    add_le_add'
+    add_le_add
       (m₁.mono' (inter_subset_left _ _))
       (m₂.mono' (inter_subset_right _ _))⟩,
 end
@@ -390,7 +392,7 @@ by rw [measure_eq_measure' (h₁.union h₂),
 
 lemma measure_bUnion {s : set β} {f : β → set α} (hs : countable s)
   (hd : pairwise_on s (disjoint on f)) (h : ∀b∈s, is_measurable (f b)) :
-  μ (⋃b∈s, f b) = ∑'p:s, μ (f p.1) :=
+  μ (⋃b∈s, f b) = ∑'p:s, μ (f p) :=
 begin
   haveI := hs.to_encodable,
   rw [← measure_Union, bUnion_eq_Union],
@@ -401,7 +403,7 @@ end
 
 lemma measure_sUnion {S : set (set α)} (hs : countable S)
   (hd : pairwise_on S disjoint) (h : ∀s∈S, is_measurable s) :
-  μ (⋃₀ S) = ∑' s:S, μ s.1 :=
+  μ (⋃₀ S) = ∑' s:S, μ s :=
 by rw [sUnion_eq_bUnion, measure_bUnion hs hd h]
 
 lemma measure_bUnion_finset {s : finset ι} {f : ι → set α} (hd : pairwise_on ↑s (disjoint on f))
@@ -625,7 +627,7 @@ begin
     rw [to_outer_measure_apply],
     refine measure_mono hst },
   rw [measure_eq_inter_diff hu hs],
-  refine add_le_add' (hm $ inter_subset_inter_left _ htu) (hm $ diff_subset_diff_left htu)
+  refine add_le_add (hm $ inter_subset_inter_left _ htu) (hm $ diff_subset_diff_left htu)
 end
 
 instance : has_Inf (measure α) :=
@@ -748,15 +750,21 @@ by simp only [ae_iff, not_not, set_of_mem_eq]
 lemma ae_of_all {p : α → Prop} (μ : measure α) : (∀a, p a) → ∀ₘ a ∂ μ, p a :=
 eventually_of_forall _
 
+instance : countable_Inter_filter μ.ae :=
+⟨begin
+  intros S hSc hS,
+  simp only [mem_ae_iff, compl_sInter, sUnion_image, bUnion_eq_Union] at hS ⊢,
+  haveI := hSc.to_encodable,
+  exact measure_Union_null (subtype.forall.2 hS)
+end⟩
+
 lemma ae_all_iff {ι : Type*} [encodable ι] {p : α → ι → Prop} :
   (∀ₘ a ∂ μ, ∀i, p a i) ↔ (∀i, ∀ₘ a ∂ μ, p a i) :=
-begin
-  refine iff.intro (assume h i, _) (assume h, _),
-  { filter_upwards [h] assume a ha, ha i },
-  { have h := measure_Union_null h,
-    rw [← compl_Inter] at h,
-    filter_upwards [h] assume a, mem_Inter.1 }
-end
+eventually_countable_forall
+
+lemma ae_ball_iff {ι} {S : set ι} (hS : countable S) {p : Π (x : α) (i ∈ S), Prop} :
+  (∀ₘ x ∂ μ, ∀ i ∈ S, p x i ‹_›) ↔ ∀ i ∈ S, ∀ₘ x ∂ μ, p x i ‹_› :=
+eventually_countable_ball hS
 
 lemma ae_eq_refl (f : α → β) : ∀ₘ a ∂ μ, f a = f a :=
 ae_of_all μ $ λ a, rfl
@@ -907,7 +915,9 @@ def completion {α : Type u} [measurable_space α] (μ : measure α) :
     letI := null_measurable μ,
     refine le_antisymm (λ s, _) (outer_measure.trim_ge _),
     rw outer_measure.trim_eq_infi,
-    dsimp, clear _inst,
+    dsimp,
+    clear _inst,
+    resetI,
     rw measure_eq_infi s,
     exact infi_le_infi (λ t, infi_le_infi $ λ st,
       infi_le_infi2 $ λ ht, ⟨ht.is_null_measurable _, le_refl _⟩)

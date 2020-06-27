@@ -229,6 +229,9 @@ variables [rα : semiring α] [rβ : semiring β]
 section
 include rα rβ
 
+@[simp]
+lemma to_fun_eq_coe (f : α →+* β) : f.to_fun = f := rfl
+
 @[simp] lemma coe_mk (f : α → β) (h₁ h₂ h₃ h₄) : ⇑(⟨f, h₁, h₂, h₃, h₄⟩ : α →+* β) = f := rfl
 
 variables (f : α →+* β) {x y : α} {rα rβ}
@@ -727,6 +730,44 @@ lemma eq_zero_of_mul_self_eq_zero [has_mul α] [has_zero α] [no_zero_divisors �
   {a : α} (h : a * a = 0) : a = 0 :=
 or.elim (eq_zero_or_eq_zero_of_mul_eq_zero h) (assume h', h') (assume h', h')
 
+section
+
+variables [mul_zero_class α] [no_zero_divisors α]
+
+/-- If `α` has no zero divisors, then the product of two elements equals zero iff one of them
+equals zero. -/
+@[simp] theorem mul_eq_zero {a b : α} : a * b = 0 ↔ a = 0 ∨ b = 0 :=
+⟨eq_zero_or_eq_zero_of_mul_eq_zero, λo,
+  or.elim o (λh, by rw h; apply zero_mul) (λh, by rw h; apply mul_zero)⟩
+
+/-- If `α` has no zero divisors, then the product of two elements equals zero iff one of them
+equals zero. -/
+@[simp] theorem zero_eq_mul {a b : α} : 0 = a * b ↔ a = 0 ∨ b = 0 :=
+by rw [eq_comm, mul_eq_zero]
+
+/-- If `α` has no zero divisors, then the product of two elements is nonzero iff both of them
+are nonzero. -/
+theorem mul_ne_zero_iff {a b : α} : a * b ≠ 0 ↔ a ≠ 0 ∧ b ≠ 0 :=
+(not_congr mul_eq_zero).trans not_or_distrib
+
+theorem mul_ne_zero {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) : a * b ≠ 0 :=
+mul_ne_zero_iff.2 ⟨ha, hb⟩
+
+/-- If `α` has no zero divisors, then for elements `a, b : α`, `a * b` equals zero iff so is
+`b * a`. -/
+theorem mul_eq_zero_comm {a b : α} : a * b = 0 ↔ b * a = 0 :=
+mul_eq_zero.trans $ (or_comm _ _).trans mul_eq_zero.symm
+
+/-- If `α` has no zero divisors, then for elements `a, b : α`, `a * b` is nonzero iff so is
+`b * a`. -/
+theorem mul_ne_zero_comm {a b : α} : a * b ≠ 0 ↔ b * a ≠ 0 :=
+not_congr mul_eq_zero_comm
+
+lemma mul_self_eq_zero {x : α} : x * x = 0 ↔ x = 0 := by simp
+lemma zero_eq_mul_self {x : α} : 0 = x * x ↔ x = 0 := by simp
+
+end
+
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
   is an integral domain without assuming commutativity of multiplication. -/
@@ -743,21 +784,6 @@ instance domain.to_no_zero_divisors : no_zero_divisors α :=
 instance domain.to_nonzero : nonzero α :=
 ⟨domain.zero_ne_one⟩
 
-/-- Simplification theorems for the definition of a domain. -/
-@[simp] theorem mul_eq_zero {a b : α} : a * b = 0 ↔ a = 0 ∨ b = 0 :=
-⟨eq_zero_or_eq_zero_of_mul_eq_zero, λo,
-  or.elim o (λh, by rw h; apply zero_mul) (λh, by rw h; apply mul_zero)⟩
-
-@[simp] theorem zero_eq_mul {a b : α} : 0 = a * b ↔ a = 0 ∨ b = 0 :=
-by rw [eq_comm, mul_eq_zero]
-
-lemma mul_self_eq_zero {α} [domain α] {x : α} : x * x = 0 ↔ x = 0 := by simp
-lemma zero_eq_mul_self {α} [domain α] {x : α} : 0 = x * x ↔ x = 0 := by simp
-
-/-- The product of two nonzero elements of a domain is nonzero. -/
-theorem mul_ne_zero' {a b : α} (h₁ : a ≠ 0) (h₂ : b ≠ 0) : a * b ≠ 0 :=
-λ h, or.elim (eq_zero_or_eq_zero_of_mul_eq_zero h) h₁ h₂
-
 /-- Right multiplication by a nonzero element in a domain is injective. -/
 theorem domain.mul_left_inj {a b c : α} (ha : a ≠ 0) : b * a = c * a ↔ b = c :=
 by rw [← sub_eq_zero, ← mul_sub_right_distrib, mul_eq_zero];
@@ -770,19 +796,15 @@ by rw [← sub_eq_zero, ← mul_sub_left_distrib, mul_eq_zero];
 
 /-- An element of a domain fixed by right multiplication by an element other than one must
   be zero. -/
-theorem eq_zero_of_mul_eq_self_right' {a b : α} (h₁ : b ≠ 1) (h₂ : a * b = a) : a = 0 :=
+theorem eq_zero_of_mul_eq_self_right {a b : α} (h₁ : b ≠ 1) (h₂ : a * b = a) : a = 0 :=
 by apply (mul_eq_zero.1 _).resolve_right (sub_ne_zero.2 h₁);
     rw [mul_sub_left_distrib, mul_one, sub_eq_zero, h₂]
 
 /-- An element of a domain fixed by left multiplication by an element other than one must
   be zero. -/
-theorem eq_zero_of_mul_eq_self_left' {a b : α} (h₁ : b ≠ 1) (h₂ : b * a = a) : a = 0 :=
+theorem eq_zero_of_mul_eq_self_left {a b : α} (h₁ : b ≠ 1) (h₂ : b * a = a) : a = 0 :=
 by apply (mul_eq_zero.1 _).resolve_left (sub_ne_zero.2 h₁);
     rw [mul_sub_right_distrib, one_mul, sub_eq_zero, h₂]
-
-/-- For elements `a`, `b` of a domain, if `a*b` is nonzero, so is `b*a`. -/
-theorem mul_ne_zero_comm' {a b : α} (h : a * b ≠ 0) : b * a ≠ 0 :=
-mul_ne_zero' (ne_zero_of_mul_ne_zero_left h) (ne_zero_of_mul_ne_zero_right h)
 
 end domain
 
@@ -794,37 +816,11 @@ class integral_domain (α : Type u) extends comm_ring α, domain α
 section integral_domain
 variables [integral_domain α] {a b c d e : α}
 
-lemma mul_eq_zero_iff_eq_zero_or_eq_zero : a * b = 0 ↔ a = 0 ∨ b = 0 :=
-⟨eq_zero_or_eq_zero_of_mul_eq_zero, λo,
-  or.elim o (λh, by rw h; apply zero_mul) (λh, by rw h; apply mul_zero)⟩
-
-lemma mul_ne_zero (h₁ : a ≠ 0) (h₂ : b ≠ 0) : a * b ≠ 0 :=
-λ h, or.elim (eq_zero_or_eq_zero_of_mul_eq_zero h) (assume h₃, h₁ h₃) (assume h₄, h₂ h₄)
-
 lemma eq_of_mul_eq_mul_right (ha : a ≠ 0) (h : b * a = c * a) : b = c :=
-have b * a - c * a = 0, from sub_eq_zero_of_eq h,
-have (b - c) * a = 0,   by rw [mul_sub_right_distrib, this],
-have b - c = 0,         from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_right ha,
-eq_of_sub_eq_zero this
+(domain.mul_left_inj ha).1 h
 
 lemma eq_of_mul_eq_mul_left (ha : a ≠ 0) (h : a * b = a * c) : b = c :=
-have a * b - a * c = 0, from sub_eq_zero_of_eq h,
-have a * (b - c) = 0,   by rw [mul_sub_left_distrib, this],
-have b - c = 0,         from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_left ha,
-eq_of_sub_eq_zero this
-
-lemma eq_zero_of_mul_eq_self_right (h₁ : b ≠ 1) (h₂ : a * b = a) : a = 0 :=
-have hb : b - 1 ≠ 0, from
-  assume : b - 1 = 0,
-  have b = 0 + 1, from eq_add_of_sub_eq this,
-  have b = 1,     by rwa zero_add at this,
-  h₁ this,
-have a * b - a = 0,   by simp [h₂],
-have a * (b - 1) = 0, by rwa [mul_sub_left_distrib, mul_one],
-  show a = 0, from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_right hb
-
-lemma eq_zero_of_mul_eq_self_left (h₁ : b ≠ 1) (h₂ : b * a = a) : a = 0 :=
-eq_zero_of_mul_eq_self_right h₁ (by rwa mul_comm at h₂)
+(domain.mul_right_inj ha).1 h
 
 lemma mul_self_eq_mul_self_iff (a b : α) : a * a = b * b ↔ a = b ∨ a = -b :=
 iff.intro
@@ -845,17 +841,11 @@ by rwa mul_one at this
 
 /-- Right multiplcation by a nonzero element of an integral domain is injective. -/
 theorem eq_of_mul_eq_mul_right_of_ne_zero (ha : a ≠ 0) (h : b * a = c * a) : b = c :=
-have b * a - c * a = 0, by simp [h],
-have (b - c) * a = 0, by rw [mul_sub_right_distrib, this],
-have b - c = 0, from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_right ha,
-eq_of_sub_eq_zero this
+eq_of_mul_eq_mul_right ha h
 
 /-- Left multiplication by a nonzero element of an integral domain is injective. -/
 theorem eq_of_mul_eq_mul_left_of_ne_zero (ha : a ≠ 0) (h : a * b = a * c) : b = c :=
-have a * b - a * c = 0, by simp [h],
-have a * (b - c) = 0, by rw [mul_sub_left_distrib, this],
-have b - c = 0, from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_left ha,
-eq_of_sub_eq_zero this
+eq_of_mul_eq_mul_left ha h
 
 /-- Given two elements b, c of an integral domain and a nonzero element a, a*b divides a*c iff
   b divides c. -/

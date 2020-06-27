@@ -331,6 +331,9 @@ by simp [ext_iff]
 
 theorem eq_univ_of_forall {s : set α} : (∀ x, x ∈ s) → s = univ := eq_univ_iff_forall.2
 
+lemma eq_univ_of_subset {s t : set α} (h : s ⊆ t) (hs : s = univ) : t = univ :=
+eq_univ_of_univ_subset $ hs ▸ h
+
 @[simp] lemma univ_eq_empty_iff : (univ : set α) = ∅ ↔ ¬ nonempty α :=
 eq_empty_iff_forall_not_mem.trans ⟨λ H ⟨x⟩, H x trivial, λ H x _, H ⟨x⟩⟩
 
@@ -342,6 +345,10 @@ instance univ_decidable : decidable_pred (@set.univ α) :=
 
 /-- `diagonal α` is the subset of `α × α` consisting of all pairs of the form `(a, a)`. -/
 def diagonal (α : Type*) : set (α × α) := {p | p.1 = p.2}
+
+@[simp]
+lemma mem_diagonal {α : Type*} (x : α) : (x, x) ∈ diagonal α :=
+by simp [diagonal]
 
 /-! ### Lemmas about union -/
 
@@ -669,6 +676,8 @@ instance unique_singleton (a : α) : unique ↥({a} : set α) :=
 theorem mem_sep {s : set α} {p : α → Prop} {x : α} (xs : x ∈ s) (px : p x) : x ∈ {x ∈ s | p x} :=
 ⟨xs, px⟩
 
+@[simp] theorem sep_mem_eq {s t : set α} : {x ∈ s | x ∈ t} = s ∩ t := rfl
+
 @[simp] theorem mem_sep_eq {s : set α} {p : α → Prop} {x : α} : x ∈ {x ∈ s | p x} = (x ∈ s ∧ p x) := rfl
 
 theorem mem_sep_iff {s : set α} {p : α → Prop} {x : α} : x ∈ {x ∈ s | p x} ↔ x ∈ s ∧ p x :=
@@ -984,6 +993,18 @@ rfl
 
 @[simp] theorem preimage_id {s : set α} : id ⁻¹' s = s := rfl
 
+theorem preimage_const_of_mem {b : β} {s : set β} (h : b ∈ s) :
+  (λ (x : α), b) ⁻¹' s = univ :=
+eq_univ_of_forall $ λ x, h
+
+theorem preimage_const_of_not_mem {b : β} {s : set β} (h : b ∉ s) :
+  (λ (x : α), b) ⁻¹' s = ∅ :=
+eq_empty_of_subset_empty $ λ x hx, h hx
+
+theorem preimage_const (b : β) (s : set β) [decidable (b ∈ s)] :
+  (λ (x : α), b) ⁻¹' s = if b ∈ s then univ else ∅ :=
+by { split_ifs with hb hb, exacts [preimage_const_of_mem hb, preimage_const_of_not_mem hb] }
+
 theorem preimage_comp {s : set γ} : (g ∘ f) ⁻¹' s = f ⁻¹' (g ⁻¹' s) := rfl
 
 theorem eq_preimage_subtype_val_iff {p : α → Prop} {s : set (subtype p)} {t : set α} :
@@ -1179,6 +1200,19 @@ by rw ← image_union; simp [image_univ_of_surjective H]
 
 theorem image_compl_eq {f : α → β} {s : set α} (H : bijective f) : f '' -s = -(f '' s) :=
 subset.antisymm (image_compl_subset H.1) (subset_image_compl H.2)
+
+theorem subset_image_diff (f : α → β) (s t : set α) :
+  f '' s \ f '' t ⊆ f '' (s \ t) :=
+begin
+  rw [diff_subset_iff, ← image_union, union_diff_self],
+  exact image_subset f (subset_union_right t s)
+end
+
+theorem image_diff {f : α → β} (hf : injective f) (s t : set α) :
+  f '' (s \ t) = f '' s \ f '' t :=
+subset.antisymm
+  (subset.trans (image_inter_subset _ _ _) $ inter_subset_inter_right _ $ image_compl_subset hf)
+  (subset_image_diff f s t)
 
 lemma nonempty.image (f : α → β) {s : set α} : s.nonempty → (f '' s).nonempty
 | ⟨x, hx⟩ := ⟨f x, mem_image_of_mem f hx⟩
@@ -1412,8 +1446,11 @@ begin
   rintro rfl, refl
 end
 
-theorem preimage_inter_range {f : α → β} {s : set β} : f ⁻¹' (s ∩ range f) = f ⁻¹' s :=
+@[simp] theorem preimage_inter_range {f : α → β} {s : set β} : f ⁻¹' (s ∩ range f) = f ⁻¹' s :=
 set.ext $ λ x, and_iff_left ⟨x, rfl⟩
+
+@[simp] theorem preimage_range_inter {f : α → β} {s : set β} : f ⁻¹' (range f ∩ s) = f ⁻¹' s :=
+by rw [inter_comm, preimage_inter_range]
 
 theorem preimage_image_preimage {f : α → β} {s : set β} :
   f ⁻¹' (f '' (f ⁻¹' s)) = f ⁻¹' s :=
@@ -1428,6 +1465,17 @@ range_subset_iff.2 $ λ x, rfl
 @[simp] lemma range_const : ∀ [nonempty ι] {c : α}, range (λx:ι, c) = {c}
 | ⟨x⟩ c := subset.antisymm range_const_subset $
   assume y hy, (mem_singleton_iff.1 hy).symm ▸ mem_range_self x
+
+lemma diagonal_eq_range {α  : Type*} : diagonal α = range (λ x, (x, x)) :=
+by { ext ⟨x, y⟩, simp [diagonal, eq_comm] }
+
+theorem preimage_singleton_nonempty {f : α → β} {y : β} :
+  (f ⁻¹' {y}).nonempty ↔ y ∈ range f :=
+iff.rfl
+
+theorem preimage_singleton_eq_empty {f : α → β} {y : β} :
+  f ⁻¹' {y} = ∅ ↔ y ∉ range f :=
+not_nonempty_iff_eq_empty.symm.trans $ not_congr preimage_singleton_nonempty
 
 /-- Any map `f : ι → β` factors through a map `range_factorization f : ι → range f`. -/
 def range_factorization (f : ι → β) : ι → range f :=
@@ -1461,6 +1509,9 @@ begin
   simp [if_pos h, mem_union, mem_range_self],
   simp [if_neg h, mem_union, mem_range_self]
 end
+
+@[simp] lemma preimage_range (f : α → β) : f ⁻¹' (range f) = univ :=
+eq_univ_of_forall mem_range_self
 
 end range
 
@@ -1501,15 +1552,15 @@ theorem val_image_subset (s : set α) (t : set (subtype s)) : t.image val ⊆ s 
 λ x ⟨y, yt, yvaleq⟩, by rw ←yvaleq; exact y.property
 
 theorem val_image_univ (s : set α) : @val _ s '' set.univ = s :=
-set.eq_of_subset_of_subset (val_image_subset _ _) (λ x xs, ⟨⟨x, xs⟩, ⟨set.mem_univ _, rfl⟩⟩)
+image_univ.trans (range_val s)
 
-theorem image_preimage_val (s t : set α) :
+@[simp] theorem image_preimage_val (s t : set α) :
   (@subtype.val _ s) '' ((@subtype.val _ s) ⁻¹' t) = t ∩ s :=
-begin
-  ext x, simp, split,
-  { rintros ⟨y, ys, yt, yx⟩, rw ←yx, exact ⟨yt, ys⟩ },
-  rintros ⟨xt, xs⟩, exact ⟨x, xs, xt, rfl⟩
-end
+image_preimage_eq_inter_range.trans $ congr_arg _ (range_val s)
+
+@[simp] theorem image_preimage_coe (s t : set α) :
+  (coe : s → α) '' (coe ⁻¹' t) = t ∩ s :=
+image_preimage_val s t
 
 theorem preimage_val_eq_preimage_val_iff (s t u : set α) :
   ((@subtype.val _ s) ⁻¹' t = (@subtype.val _ s) ⁻¹' u) ↔ (t ∩ s = u ∩ s) :=
@@ -1520,7 +1571,7 @@ begin
 end
 
 lemma exists_set_subtype {t : set α} (p : set α → Prop) :
-(∃(s : set t), p (subtype.val '' s)) ↔ ∃(s : set α), s ⊆ t ∧ p s :=
+  (∃(s : set t), p (subtype.val '' s)) ↔ ∃(s : set α), s ⊆ t ∧ p s :=
 begin
   split,
   { rintro ⟨s, hs⟩, refine ⟨subtype.val '' s, _, hs⟩,

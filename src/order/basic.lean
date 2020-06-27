@@ -59,7 +59,7 @@ theorem ge_of_eq [preorder α] {a b : α} : a = b → a ≥ b :=
 theorem preorder.ext {α} {A B : preorder α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
 begin
-  resetI, cases A, cases B, congr,
+  casesI A, casesI B, congr,
   { funext x y, exact propext (H x y) },
   { funext x y,
     dsimp [(≤)] at A_lt_iff_le_not_le B_lt_iff_le_not_le H,
@@ -68,13 +68,13 @@ end
 
 theorem partial_order.ext {α} {A B : partial_order α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
-by haveI this := preorder.ext H;
-   cases A; cases B; injection this; congr'
+by { haveI this := preorder.ext H,
+     casesI A, casesI B, injection this, congr' }
 
 theorem linear_order.ext {α} {A B : linear_order α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
-by haveI this := partial_order.ext H;
-   cases A; cases B; injection this; congr'
+by { haveI this := partial_order.ext H,
+     casesI A, casesI B, injection this, congr' }
 
 /-- Given an order `R` on `β` and a function `f : α → β`,
   the preimage order on `α` is defined by `x ≤ y ↔ f x ≤ f y`.
@@ -126,6 +126,15 @@ def strict_mono [has_lt α] [has_lt β] (f : α → β) : Prop :=
 ∀ ⦃a b⦄, a < b → f a < f b
 
 lemma strict_mono_id [has_lt α] : strict_mono (id : α → α) := λ a b, id
+
+/-- A function `f` is strictly monotone increasing on `t` if `x < y` for `x,y ∈ t` implies
+`f x < f y`. -/
+def strict_mono_incr_on [has_lt α] [has_lt β] (f : α → β) (t : set α) : Prop :=
+∀ (x ∈ t) (y ∈ t), x < y → f x < f y
+/-- A function `f` is strictly monotone decreasing on `t` if `x < y` for `x,y ∈ t` implies
+`f y < f x`. -/
+def strict_mono_decr_on [has_lt α] [has_lt β] (f : α → β) (t : set α) : Prop :=
+∀ (x ∈ t) (y ∈ t), x < y → f y < f x
 
 namespace strict_mono
 open ordering function
@@ -180,6 +189,18 @@ end strict_mono
 
 section
 open function
+
+lemma injective_of_lt_imp_ne [linear_order α] {f : α → β} (h : ∀ x y, x < y → f x ≠ f y) : injective f :=
+begin
+  intros x y k,
+  contrapose k,
+  rw [←ne.def, ne_iff_lt_or_gt] at k,
+  cases k,
+  { apply h _ _ k },
+  { rw eq_comm,
+    apply h _ _ k }
+end
+
 variables [partial_order α] [partial_order β] {f : α → β}
 
 lemma strict_mono_of_monotone_of_injective (h₁ : monotone f) (h₂ : injective f) :

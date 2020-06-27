@@ -1,5 +1,20 @@
 import tactic.linarith
 
+example {α : Type} (_inst : Π (a : Prop), decidable a)
+  [linear_ordered_field α]
+  {a b c : α}
+  (ha : a < 0)
+  (hb : ¬b = 0)
+  (hc' : c = 0)
+  (h : (1 - a) * (b * b) ≤ 0)
+  (hc : 0 ≤ 0)
+  (this : -(a * -b * -b + b * -b + 0) = (1 - a) * (b * b))
+  (h : (1 - a) * (b * b) ≤ 0) :
+  0 < 1 - a :=
+begin
+  linarith
+end
+
 example (e b c a v0 v1 : ℚ) (h1 : v0 = 5*a) (h2 : v1 = 3*b) (h3 : v0 + v1 + c = 10) :
   v0 + 5 + (v1 - 3) + (c - 2) = 10 :=
 by linarith
@@ -121,9 +136,6 @@ by linarith
 
 example (x y : ℚ)
   (h : 6 + ((x + 4) * x + (6 + 3 * y) * y) = 3 ∧ (x + 4) * x ≥ 0 ∧ (6 + 3 * y) * y ≥ 0) : false :=
-by linarith
-
-example (x y : ℕ) (h : 6 + ((x + 4) * x + (6 + 3 * y) * y) = 3) : false :=
 by linarith
 
 example (a b i : ℕ) (h1 :  ¬ a < i) (h2 : b < i) (h3 : a ≤ b) : false :=
@@ -304,18 +316,18 @@ by nlinarith
 example (x y : ℚ) : x = 0 → y = 0 → x*x + y*y = 0 :=
 by intros; nlinarith
 
-/- lemma norm_eq_zero_iff {x y : ℚ} : x * x + y * y = 0 ↔ x = 0 ∧ y = 0 :=
+lemma norm_eq_zero_iff {x y : ℚ} : x * x + y * y = 0 ↔ x = 0 ∧ y = 0 :=
 begin
   split,
-  { intro h, split; sorry }, -- should be solved after refactor
-  { rintro ⟨⟩, nlinarith }
-end -/
+  { intro, split; nlinarith },
+  { intro, nlinarith }
+end
 
--- should be solved after refactor
-/- lemma norm_nonpos_right {x y : ℚ} (h1 : x * x + y * y ≤ 0) : y = 0 :=
+lemma norm_nonpos_right {x y : ℚ} (h1 : x * x + y * y ≤ 0) : y = 0 :=
 by nlinarith
+
 lemma norm_nonpos_left (x y : ℚ) (h1 : x * x + y * y ≤ 0) : x = 0 :=
-by nlinarith -/
+by nlinarith
 
 variables {E : Type*} [add_group E]
 example (f : ℤ → E) (h : 0 = f 0) : 1 ≤ 2 := by nlinarith

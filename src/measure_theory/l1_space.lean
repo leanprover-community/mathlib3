@@ -300,7 +300,7 @@ begin
     apply of_real_le_of_real,
     { apply norm_sub_le }, { exact norm_nonneg _ }, { exact norm_nonneg _ }
   end
-    ... ≤ (ennreal.of_real (bound a)) + (ennreal.of_real (bound a)) : add_le_add' h₁ h₂
+    ... ≤ (ennreal.of_real (bound a)) + (ennreal.of_real (bound a)) : add_le_add h₁ h₂
     ... = b a : by rw ← two_mul
 end,
 /- On the other hand, `F n a --> f a` implies that `∥F n a - f a∥ --> 0`  -/

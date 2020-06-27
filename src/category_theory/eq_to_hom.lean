@@ -12,6 +12,12 @@ open opposite
 
 variables {C : Type u} [category.{v} C]
 
+/--
+An equality `X = Y` gives us a morphism `X ⟶ Y`.
+
+It is typically better to use this, rather than rewriting by the equality then using `𝟙 _`
+which usually leads to dependent type theory hell.
+-/
 def eq_to_hom {X Y : C} (p : X = Y) : X ⟶ Y := by rw p; exact 𝟙 _
 
 @[simp] lemma eq_to_hom_refl (X : C) (p : X = X) : eq_to_hom p = 𝟙 X := rfl
@@ -19,6 +25,12 @@ def eq_to_hom {X Y : C} (p : X = Y) : X ⟶ Y := by rw p; exact 𝟙 _
   eq_to_hom p ≫ eq_to_hom q = eq_to_hom (p.trans q) :=
 by cases p; cases q; simp
 
+/--
+An equality `X = Y` gives us a morphism `X ⟶ Y`.
+
+It is typically better to use this, rather than rewriting by the equality then using `iso.refl _`
+which usually leads to dependent type theory hell.
+-/
 def eq_to_iso {X Y : C} (p : X = Y) : X ≅ Y :=
 ⟨eq_to_hom p, eq_to_hom p.symm, by simp, by simp⟩
 

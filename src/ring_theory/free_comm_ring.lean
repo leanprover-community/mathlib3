@@ -202,10 +202,10 @@ theorem exists_finite_support (x : free_comm_ring α) : ∃ s : set α, set.fini
 free_comm_ring.induction_on x
   ⟨∅, set.finite_empty, is_supported_neg is_supported_one⟩
   (λ p, ⟨{p}, set.finite_singleton p, is_supported_of.2 $ set.mem_singleton _⟩)
-  (λ x y ⟨s, hfs, hxs⟩ ⟨t, hft, hxt⟩, ⟨s ∪ t, set.finite_union hfs hft, is_supported_add
+  (λ x y ⟨s, hfs, hxs⟩ ⟨t, hft, hxt⟩, ⟨s ∪ t, hfs.union hft, is_supported_add
     (is_supported_upwards hxs $ set.subset_union_left s t)
     (is_supported_upwards hxt $ set.subset_union_right s t)⟩)
-  (λ x y ⟨s, hfs, hxs⟩ ⟨t, hft, hxt⟩, ⟨s ∪ t, set.finite_union hfs hft, is_supported_mul
+  (λ x y ⟨s, hfs, hxs⟩ ⟨t, hft, hxt⟩, ⟨s ∪ t, hfs.union hft, is_supported_mul
     (is_supported_upwards hxs $ set.subset_union_left s t)
     (is_supported_upwards hxt $ set.subset_union_right s t)⟩)
 

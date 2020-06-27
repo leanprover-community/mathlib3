@@ -9,7 +9,7 @@ import order.filter.basic
 
 open set
 
-open_locale classical
+open_locale classical filter
 
 namespace filter
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Sort*}
@@ -32,7 +32,7 @@ mem_binfi
 
 lemma mem_lift {s : set β} {t : set α} (ht : t ∈ f) (hs : s ∈ g t) :
   s ∈ f.lift g :=
-le_principal_iff.mp $ show f.lift g ≤ principal s,
+le_principal_iff.mp $ show f.lift g ≤ 𝓟 s,
   from infi_le_of_le t $ infi_le_of_le ht $ le_principal_iff.mpr hs
 
 lemma lift_le {f : filter α} {g : set α → filter β} {h : filter β} {s : set α}
@@ -120,7 +120,7 @@ le_antisymm
       ... ≤ g s t                        : hg₁ s (inter_subset_right _ _))
 
 lemma lift_principal {s : set α} (hg : monotone g) :
-  (principal s).lift g = g s :=
+  (𝓟 s).lift g = g s :=
 le_antisymm
   (infi_le_of_le s $ infi_le _ $ subset.refl _)
   (le_infi $ assume t, le_infi $ assume hi, hg hi)
@@ -144,7 +144,7 @@ le_antisymm (lift_le univ_mem_sets $ le_refl g) (le_lift $ assume s hs, le_refl 
   f.lift (λx, g x ⊓ h x) = f.lift g ⊓ f.lift h :=
 by simp only [filter.lift, infi_inf_eq, eq_self_iff_true]
 
-@[simp] lemma lift_principal2 {f : filter α} : f.lift principal = f :=
+@[simp] lemma lift_principal2 {f : filter α} : f.lift 𝓟 = f :=
 le_antisymm
   (assume s hs, mem_lift hs (mem_principal_self s))
   (le_infi $ assume s, le_infi $ assume hs, by simp only [hs, le_principal_iff])
@@ -173,19 +173,19 @@ section lift'
 /-- Specialize `lift` to functions `set α → set β`. This can be viewed as a generalization of `map`.
 This is essentially a push-forward along a function mapping each set to a set. -/
 protected def lift' (f : filter α) (h : set α → set β) :=
-f.lift (principal ∘ h)
+f.lift (𝓟 ∘ h)
 
 variables {f f₁ f₂ : filter α} {h h₁ h₂ : set α → set β}
 
 lemma mem_lift' {t : set α} (ht : t ∈ f) : h t ∈ (f.lift' h) :=
-le_principal_iff.mp $ show f.lift' h ≤ principal (h t),
+le_principal_iff.mp $ show f.lift' h ≤ 𝓟 (h t),
   from infi_le_of_le t $ infi_le_of_le ht $ le_refl _
 
 lemma mem_lift'_sets (hh : monotone h) {s : set β} : s ∈ (f.lift' h) ↔ (∃t∈f, h t ⊆ s) :=
 mem_lift_sets $ monotone_principal.comp hh
 
 lemma lift'_le {f : filter α} {g : set α → set β} {h : filter β} {s : set α}
-  (hs : s ∈ f) (hg : principal (g s) ≤ h) : f.lift' g ≤ h :=
+  (hs : s ∈ f) (hg : 𝓟 (g s) ≤ h) : f.lift' g ≤ h :=
 lift_le hs hg
 
 lemma lift'_mono (hf : f₁ ≤ f₂) (hh : h₁ ≤ h₂) : f₁.lift' h₁ ≤ f₂.lift' h₂ :=
@@ -198,7 +198,7 @@ lemma lift'_cong (hh : ∀s∈f, h₁ s = h₂ s) : f.lift' h₁ = f.lift' h₂ 
 le_antisymm (lift'_mono' $ assume s hs, le_of_eq $ hh s hs) (lift'_mono' $ assume s hs, le_of_eq $ (hh s hs).symm)
 
 lemma map_lift'_eq {m : β → γ} (hh : monotone h) : map m (f.lift' h) = f.lift' (image m ∘ h) :=
-calc map m (f.lift' h) = f.lift (map m ∘ principal ∘ h) :
+calc map m (f.lift' h) = f.lift (map m ∘ 𝓟 ∘ h) :
     map_lift_eq $ monotone_principal.comp hh
   ... = f.lift' (image m ∘ h) : by simp only [(∘), filter.lift', map_principal, eq_self_iff_true]
 
@@ -208,7 +208,7 @@ map_lift_eq2 $ monotone_principal.comp hg
 
 theorem comap_lift'_eq {m : γ → β} (hh : monotone h) :
   comap m (f.lift' h) = f.lift' (preimage m ∘ h) :=
-calc comap m (f.lift' h) = f.lift (comap m ∘ principal ∘ h) :
+calc comap m (f.lift' h) = f.lift (comap m ∘ 𝓟 ∘ h) :
     comap_lift_eq $ monotone_principal.comp hh
   ... = f.lift' (preimage m ∘ h) : by simp only [(∘), filter.lift', comap_principal, eq_self_iff_true]
 
@@ -217,11 +217,11 @@ theorem comap_lift'_eq2 {m : β → α} {g : set β → set γ} (hg : monotone g
 comap_lift_eq2 $ monotone_principal.comp hg
 
 lemma lift'_principal {s : set α} (hh : monotone h) :
-  (principal s).lift' h = principal (h s) :=
+  (𝓟 s).lift' h = 𝓟 (h s) :=
 lift_principal $ monotone_principal.comp hh
 
 lemma principal_le_lift' {t : set β} (hh : ∀s∈f, t ⊆ h s) :
-  principal t ≤ f.lift' h :=
+  𝓟 t ≤ f.lift' h :=
 le_infi $ assume s, le_infi $ assume hs, principal_mono.mpr (hh s hs)
 
 theorem monotone_lift' [preorder γ] {f : γ → filter α} {g : γ → set α → set β}
@@ -231,7 +231,7 @@ assume a b h, lift'_mono (hf h) (hg h)
 lemma lift_lift'_assoc {g : set α → set β} {h : set β → filter γ}
   (hg : monotone g) (hh : monotone h) :
   (f.lift' g).lift h = f.lift (λs, h (g s)) :=
-calc (f.lift' g).lift h = f.lift (λs, (principal (g s)).lift h) :
+calc (f.lift' g).lift h = f.lift (λs, (𝓟 (g s)).lift h) :
     lift_assoc (monotone_principal.comp hg)
   ... = f.lift (λs, h (g s)) : by simp only [lift_principal, hh, eq_self_iff_true]
 
@@ -256,10 +256,10 @@ lift_lift_same_eq_lift
   (assume t, monotone_principal.comp (hg₂ t))
 
 lemma lift'_inf_principal_eq {h : set α → set β} {s : set β} :
-  f.lift' h ⊓ principal s = f.lift' (λt, h t ∩ s) :=
+  f.lift' h ⊓ 𝓟 s = f.lift' (λt, h t ∩ s) :=
 le_antisymm
   (le_infi $ assume t, le_infi $ assume ht,
-    calc filter.lift' f h ⊓ principal s ≤ principal (h t) ⊓ principal s :
+    calc filter.lift' f h ⊓ 𝓟 s ≤ 𝓟 (h t) ⊓ 𝓟 s :
         inf_le_inf_right _ (infi_le_of_le t $ infi_le _ ht)
       ... = _ : by simp only [principal_eq_iff_eq, inf_principal, eq_self_iff_true, function.comp_app])
   (le_inf
@@ -270,7 +270,7 @@ le_antisymm
     by simp only [le_principal_iff, inter_subset_right, mem_principal_sets, function.comp_app]; exact inter_subset_left _ _))
 
 lemma lift'_ne_bot_iff (hh : monotone h) : (f.lift' h ≠ ⊥) ↔ (∀s∈f, (h s).nonempty) :=
-calc (f.lift' h ≠ ⊥) ↔ (∀s∈f, principal (h s) ≠ ⊥) :
+calc (f.lift' h ≠ ⊥) ↔ (∀s∈f, 𝓟 (h s) ≠ ⊥) :
     lift_ne_bot_iff (monotone_principal.comp hh)
   ... ↔ (∀s∈f, (h s).nonempty) : by simp only [principal_ne_bot_iff]
 
@@ -307,7 +307,7 @@ variables {f : filter α}
 
 lemma prod_def {f : filter α} {g : filter β} : f.prod g = (f.lift $ λs, g.lift' $ set.prod s) :=
 have ∀(s:set α) (t : set β),
-    principal (set.prod s t) = (principal s).comap prod.fst ⊓ (principal t).comap prod.snd,
+    𝓟 (set.prod s t) = (𝓟 s).comap prod.fst ⊓ (𝓟 t).comap prod.snd,
   by simp only [principal_eq_iff_eq, comap_principal, inf_principal]; intros; refl,
 begin
   simp only [filter.lift', function.comp, this, -comap_principal, lift_inf, lift_const, lift_inf],

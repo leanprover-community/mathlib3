@@ -272,10 +272,10 @@ def lift : (G →* R) ≃ (monoid_algebra k G →ₐ[k] R) :=
         intros f g,
         rw [mul_def, finsupp.sum_mul, finsupp.sum_sum_index];
           try { intros, simp only [zero_smul, add_smul], done },
-        refine finset.sum_congr rfl (λ a ha, _), simp only [],
+        refine finset.sum_congr rfl (λ a ha, _), simp only,
         rw [finsupp.mul_sum, finsupp.sum_sum_index];
           try { intros, simp only [zero_smul, add_smul], done },
-        refine finset.sum_congr rfl (λ a' ha', _), simp only [],
+        refine finset.sum_congr rfl (λ a' ha', _), simp only,
         rw [sum_single_index, F.map_mul, algebra.mul_smul_comm, algebra.smul_mul_assoc,
           smul_smul, mul_comm],
         apply zero_smul
@@ -605,10 +605,10 @@ def lift [comm_semiring k] [add_monoid G] {R : Type u₃} [semiring R] [algebra 
         intros f g,
         rw [mul_def, finsupp.sum_mul, finsupp.sum_sum_index];
           try { intros, simp only [zero_smul, add_smul], done },
-        refine finset.sum_congr rfl (λ a ha, _), simp only [],
+        refine finset.sum_congr rfl (λ a ha, _), simp only,
         rw [finsupp.mul_sum, finsupp.sum_sum_index];
           try { intros, simp only [zero_smul, add_smul], done },
-        refine finset.sum_congr rfl (λ a' ha', _), simp only [],
+        refine finset.sum_congr rfl (λ a' ha', _), simp only,
         rw [sum_single_index],
         erw [F.map_mul],
         rw [algebra.mul_smul_comm, algebra.smul_mul_assoc, smul_smul, mul_comm],

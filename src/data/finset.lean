@@ -2969,8 +2969,16 @@ namespace finset
 
 /-! ### bUnion -/
 
+@[simp] theorem bUnion_coe (s : finset α) (t : α → set β) :
+  (⋃ x ∈ (↑s : set α), t x) = ⋃ x ∈ s, t x :=
+rfl
+
 @[simp] theorem bUnion_singleton (a : α) (s : α → set β) : (⋃ x ∈ ({a} : finset α), s x) = s a :=
-by { simp only [set.Union, ← supr_coe], rw coe_singleton, exact supr_singleton }
+by rw [← bUnion_coe, coe_singleton, set.bUnion_singleton]
+
+@[simp] lemma bUnion_preimage_singleton (f : α → β) (s : finset β) :
+  (⋃ y ∈ s, f ⁻¹' {y}) = f ⁻¹' ↑s :=
+set.bUnion_preimage_singleton f ↑s
 
 variables [decidable_eq α]
 

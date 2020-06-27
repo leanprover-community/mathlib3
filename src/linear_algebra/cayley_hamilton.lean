@@ -28,7 +28,7 @@ lemma matrix_eq {X : Type*} [add_comm_monoid X] (m : matrix n n X) :
 @[elab_as_eliminator] protected lemma matrix.induction_on {X : Type*} [add_comm_monoid X] {M : matrix n n X → Prop} (m : matrix n n X)
   (h_add : ∀p q, M p → M q → M (p + q))
   (h_elementary : ∀ i j x, M (λ i' j', if i' = i ∧ j' = j then x else 0)) :
-  M m := sorry
+  M m := sorry -- is_basis.repr
 
 
 instance is_ring_hom_of_alg_hom
@@ -51,13 +51,12 @@ begin
   { simp only [algebra.tensor_product.tmul_mul_tmul, one_pow, one_mul, matrix.mul_one, algebra.tensor_product.tmul_pow,
      algebra.tensor_product.include_left_apply, mul_eq_mul],
     -- almost there: just use `R` bilinearity
-    have : monomial k x = x • monomial k 1, simp, rw this,
+    rw monomial_eq_smul_X,
     rw ← tensor_product.smul_tmul,
-    congr, { ext, simp },
-    sorry, },
+    congr, ext, simp },
   { apply_instance },
 end
-
+#check monomial_eq_smul_X
 
 lemma baz_coeff_apply_aux_2 (i j : n) (p : polynomial R) (k : ℕ) :
   coeff (baz (λ i' j', if i' = i ∧ j' = j then p else 0)) k =
@@ -89,13 +88,15 @@ matrix.scalar n (X : polynomial R) - (λ i j, C (m i j))
 @[simp] lemma characteristic_matrix_apply_eq (m : matrix n n R) (i : n) :
   characteristic_matrix m i i = (X : polynomial R) - C (m i i) :=
 begin
-  sorry
+  erw sub_left_inj, simp [scalar],
 end
 
 @[simp] lemma characteristic_matrix_apply_ne (m : matrix n n R) (i j : n) (h : i ≠ j) :
   characteristic_matrix m i j = - C (m i j) :=
 begin
-  sorry
+  rw ← zero_sub,
+  erw sub_left_inj,
+  simp [scalar, h],
 end
 
 lemma r (p : polynomial R) :

@@ -18,7 +18,7 @@ open_locale big_operators
 variables {R : Type u} [comm_ring R]
 variables {n : Type w} [fintype n] [decidable_eq n]
 
-noncomputable def baz : matrix n n (polynomial R) ≃ₐ[R] polynomial (matrix n n R) :=
+noncomputable def matrix_polynomial_equiv_polynomial_matrix : matrix n n (polynomial R) ≃ₐ[R] polynomial (matrix n n R) :=
 (((matrix_equiv_tensor R (polynomial R) n)).trans (algebra.tensor_product.comm R _ _)).trans (polynomial_equiv_tensor R (matrix n n R)).symm
 
 -- maybe we don't need this?
@@ -37,11 +37,11 @@ instance is_ring_hom_of_alg_hom
 is_ring_hom f :=
 {map_one := by simp, map_mul := by simp, map_add := by simp}
 
-lemma baz_coeff_apply_aux_1 (i j : n) (k : ℕ) (x : R) :
-  baz (λ i' j', if i' = i ∧ j' = j then monomial k x else 0) =
+lemma matrix_polynomial_equiv_polynomial_matrix_coeff_apply_aux_1 (i j : n) (k : ℕ) (x : R) :
+  matrix_polynomial_equiv_polynomial_matrix (λ i' j', if i' = i ∧ j' = j then monomial k x else 0) =
     monomial k (λ i' j', if i' = i ∧ j' = j then x else 0) :=
 begin
-  dsimp only [baz, alg_equiv.trans_apply],
+  dsimp only [matrix_polynomial_equiv_polynomial_matrix, alg_equiv.trans_apply],
   simp only [matrix_equiv_tensor_apply_elementary],
   apply (polynomial_equiv_tensor R (matrix n n R)).injective,
   simp only [alg_equiv.apply_symm_apply],
@@ -57,26 +57,26 @@ begin
   { apply_instance },
 end
 
-lemma baz_coeff_apply_aux_2 (i j : n) (p : polynomial R) (k : ℕ) :
-  coeff (baz (λ i' j', if i' = i ∧ j' = j then p else 0)) k =
+lemma matrix_polynomial_equiv_polynomial_matrix_coeff_apply_aux_2 (i j : n) (p : polynomial R) (k : ℕ) :
+  coeff (matrix_polynomial_equiv_polynomial_matrix (λ i' j', if i' = i ∧ j' = j then p else 0)) k =
     (λ i' j', if i' = i ∧ j' = j then coeff p k else 0) :=
 begin
   apply polynomial.induction_on' p,
   { intros p q hp hq,
     sorry, },
   { intros k x,
-    rw baz_coeff_apply_aux_1,
+    rw matrix_polynomial_equiv_polynomial_matrix_coeff_apply_aux_1,
     simp [coeff_single],
     split_ifs; { funext, simp, }, }
 end
 
-@[simp] lemma baz_coeff_apply (m : matrix n n (polynomial R)) (k : ℕ) (i j : n) :
-  coeff (baz m) k i j = coeff (m i j) k :=
+@[simp] lemma matrix_polynomial_equiv_polynomial_matrix_coeff_apply (m : matrix n n (polynomial R)) (k : ℕ) (i j : n) :
+  coeff (matrix_polynomial_equiv_polynomial_matrix m) k i j = coeff (m i j) k :=
 begin
   apply matrix.induction_on m,
   { intros p q hp hq, simp [hp, hq], },
   { intros i' j' x,
-    rw baz_coeff_apply_aux_2,
+    rw matrix_polynomial_equiv_polynomial_matrix_coeff_apply_aux_2,
     dsimp,
     split_ifs; simp },
 end
@@ -93,7 +93,7 @@ by simp only [characteristic_matrix, sub_left_inj, pi.sub_apply, scalar_apply_eq
 by simp only [characteristic_matrix, pi.sub_apply, scalar_apply_ne _ _ _ h, zero_sub]
 
 lemma r (p : polynomial R) :
-  baz (p • 1) = p.map (algebra_map R (matrix n n R)) :=
+  matrix_polynomial_equiv_polynomial_matrix (p • 1) = p.map (algebra_map R (matrix n n R)) :=
 begin
   ext m i j,
   simp [coeff_map, matrix.one_val],
@@ -102,10 +102,10 @@ begin
 end
 
 lemma q (m : matrix n n R) :
-  baz (characteristic_matrix m) = X - C m :=
+  matrix_polynomial_equiv_polynomial_matrix (characteristic_matrix m) = X - C m :=
 begin
   ext k i j,
-  simp only [baz_coeff_apply, coeff_sub, pi.sub_apply],
+  simp only [matrix_polynomial_equiv_polynomial_matrix_coeff_apply, coeff_sub, pi.sub_apply],
   by_cases h : i = j,
   { subst h, rw [characteristic_matrix_apply_eq, coeff_sub],
     simp only [coeff_X, coeff_C],
@@ -124,9 +124,9 @@ begin
     (characteristic_polynomial m) • (1 : matrix n n (polynomial R))
          = (characteristic_matrix m).det • (1 : matrix n n (polynomial R)) : rfl
      ... = adjugate (characteristic_matrix m) * (characteristic_matrix m)  : (adjugate_mul _).symm,
-  apply_fun baz at this,
-  change _ = baz (_ * _) at this,
-  simp only [baz.map_mul] at this,
+  apply_fun matrix_polynomial_equiv_polynomial_matrix at this,
+  change _ = matrix_polynomial_equiv_polynomial_matrix (_ * _) at this,
+  simp only [matrix_polynomial_equiv_polynomial_matrix.map_mul] at this,
   rw q at this,
   apply_fun (λ p, p.eval₂ (ring_hom.id _) m) at this,
   rw eval₂_mul_X_sub_C at this,

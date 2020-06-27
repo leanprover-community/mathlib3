@@ -68,6 +68,7 @@ instance groupoid_of_elements [groupoid C] (F : C ⥤ Type w) : groupoid F.eleme
       calc F.map (inv f.val) q.2 = F.map (inv f.val) (F.map f.val p.2) : by rw f.2
                              ... = (F.map f.val ≫ F.map (inv f.val)) p.2 : by simp
                              ... = p.2 : by {rw ←functor.map_comp, simp}⟩ }
+
 include 𝒞
 
 namespace category_of_elements
@@ -80,8 +81,8 @@ def π : F.elements ⥤ C :=
   map := λ X Y f, f.val }
 
 /-- The forward direction of the equivalence `F.elements ≅ (*, F)`. -/
-def to_comma : F.elements ⥤ comma (functor.from_punit punit) F :=
 @[simps]
+def to_comma : F.elements ⥤ comma (functor.from_punit punit) F :=
 { obj := λ X, { left := punit.star, right := X.1, hom := λ _, X.2 },
   map := λ X Y f, { right := f.val } }
 

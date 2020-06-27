@@ -419,6 +419,16 @@ theorem uniform_continuous_iff [metric_space β] {f : α → β} :
 uniformity_basis_dist.uniform_continuous_iff uniformity_basis_dist
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma uniform_continuous_on_iff [metric_space β] {f : α → β} {s : set α} :
+  uniform_continuous_on f s ↔ ∀ ε > 0, ∃ δ > 0, ∀ x y ∈ s, dist x y < δ → dist (f x) (f y) < ε :=
+begin
+  dsimp [uniform_continuous_on],
+  rw (metric.uniformity_basis_dist.inf_principal (s.prod s)).tendsto_iff metric.uniformity_basis_dist,
+  simp only [and_imp, exists_prop, prod.forall, mem_inter_eq, gt_iff_lt, mem_set_of_eq, mem_prod],
+  finish,
+end
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem uniform_embedding_iff [metric_space β] {f : α → β} :
   uniform_embedding f ↔ function.injective f ∧ uniform_continuous f ∧
     ∀ δ > 0, ∃ ε > 0, ∀ {a b : α}, dist (f a) (f b) < ε → dist a b < δ :=
@@ -531,6 +541,7 @@ lemma tendsto_uniformly_iff {ι : Type*}
   tendsto_uniformly F f p ↔ ∀ ε > 0, ∀ᶠ n in p, ∀ x, dist (f x) (F n x) < ε :=
 by { rw [← tendsto_uniformly_on_univ, tendsto_uniformly_on_iff], simp }
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 protected lemma cauchy_iff {f : filter α} :
   cauchy f ↔ f ≠ ⊥ ∧ ∀ ε > 0, ∃ t ∈ f, ∀ x y ∈ t, dist x y < ε :=
 uniformity_basis_dist.cauchy_iff
@@ -538,6 +549,7 @@ uniformity_basis_dist.cauchy_iff
 theorem nhds_basis_ball : (𝓝 x).has_basis (λ ε:ℝ, 0 < ε) (ball x) :=
 nhds_basis_uniformity uniformity_basis_dist
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem mem_nhds_iff : s ∈ 𝓝 x ↔ ∃ε>0, ball x ε ⊆ s :=
 nhds_basis_ball.mem_iff
 
@@ -552,6 +564,7 @@ theorem nhds_basis_ball_inv_nat_pos :
   (𝓝 x).has_basis (λ n, 0<n) (λ n:ℕ, ball x (1 / ↑n)) :=
 nhds_basis_uniformity uniformity_basis_dist_inv_nat_pos
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem is_open_iff : is_open s ↔ ∀x∈s, ∃ε>0, ball x ε ⊆ s :=
 by simp only [is_open_iff_mem_nhds, mem_nhds_iff]
 
@@ -613,6 +626,7 @@ theorem continuous_iff [metric_space β] {f : α → β} :
   ∀b (ε > 0), ∃ δ > 0, ∀a, dist a b < δ → dist (f a) (f b) < ε :=
 continuous_iff_continuous_at.trans $ forall_congr $ λ b, tendsto_nhds_nhds
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem tendsto_nhds {f : filter β} {u : β → α} {a : α} :
   tendsto u f (𝓝 a) ↔ ∀ ε > 0, ∀ᶠ x in f, dist (u x) a < ε :=
 nhds_basis_ball.tendsto_right_iff
@@ -717,6 +731,10 @@ lemma metric.emetric_closed_ball_nnreal {x : α} {ε : nnreal} :
   emetric.closed_ball x ε = closed_ball x ε :=
 by { convert metric.emetric_closed_ball ε.2, simp }
 
+/-- Build a new metric space from an old one where the bundled uniform structure is provably
+(but typically non-definitionaly) equal to some given uniform structure.
+See Note [forgetful inheritance].
+-/
 def metric_space.replace_uniformity {α} [U : uniform_space α] (m : metric_space α)
   (H : @uniformity _ U = @uniformity _ emetric_space.to_uniform_space') :
   metric_space α :=
@@ -934,6 +952,8 @@ lemma cauchy_seq_iff_le_tendsto_0 {s : ℕ → α} : cauchy_seq s ↔ ∃ b : �
 
 end cauchy_seq
 
+/-- Metric space structure pulled back by an injective function. Injectivity is necessary to
+ensure that `dist x y = 0` only if `x = y`. -/
 def metric_space.induced {α β} (f : α → β) (hf : function.injective f)
   (m : metric_space β) : metric_space α :=
 { dist               := λ x y, dist (f x) (f y),

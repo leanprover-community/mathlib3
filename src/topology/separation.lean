@@ -335,6 +335,20 @@ let ⟨s, hs, hys, hxs⟩ := regular_space.regular is_closed_singleton
 ⟨v, s, hv, hs, hxv, singleton_subset_iff.1 hys,
 eq_empty_of_subset_empty $ λ z ⟨hzv, hzs⟩, htu ⟨hvt hzv, hsu hzs⟩⟩⟩
 
+variable {α}
+
+lemma disjoint_nested_nhds [regular_space α] {x y : α} (h : x ≠ y) :
+  ∃ (U₁ V₁ ∈ 𝓝 x) (U₂ V₂ ∈ 𝓝 y), is_closed V₁ ∧ is_closed V₂ ∧ is_open U₁ ∧ is_open U₂ ∧
+  V₁ ⊆ U₁ ∧ V₂ ⊆ U₂ ∧ U₁ ∩ U₂ = ∅ :=
+begin
+  rcases t2_separation h with ⟨U₁, U₂, U₁_op, U₂_op, x_in, y_in, H⟩,
+  rcases nhds_is_closed (mem_nhds_sets U₁_op x_in) with ⟨V₁, V₁_in, h₁, V₁_closed⟩,
+  rcases nhds_is_closed (mem_nhds_sets U₂_op y_in) with ⟨V₂, V₂_in, h₂, V₂_closed⟩,
+  use [U₁, V₁, mem_sets_of_superset V₁_in h₁, V₁_in,
+       U₂, V₂, mem_sets_of_superset V₂_in h₂, V₂_in],
+  tauto
+end
+
 end regularity
 
 section normality

@@ -21,8 +21,8 @@ matrix.scalar n (X : polynomial R) - (λ i j, monomial 0 (m i j))
 lemma q (m : matrix n n R) :
   baz (characteristic_matrix m) = X - monomial 0 m := sorry
 
--- lemma r (p : polynomial R) :
---   baz (p • 1) = p.map (algebra_map R (matrix n n R))
+lemma r (p : polynomial R) :
+  baz (p • 1) = p.map (algebra_map R (matrix n n R)) := sorry
 
 def characteristic_polynomial (m : matrix n n R) : polynomial R :=
 (characteristic_matrix m).det
@@ -40,5 +40,6 @@ begin
   rw q at this,
   apply_fun (λ p, p.eval₂ id m) at this,
   rw eval₂_mul_X_sub_monomial' at this,
-  -- so close! just need lemma `r` above and the relation between `eval₂` and `eval`
+  rw r at this,
+  -- so close! just need the relation between `eval₂` and `map`
 end

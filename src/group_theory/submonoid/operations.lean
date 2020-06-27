@@ -5,18 +5,50 @@ import algebra.group.prod
 /-!
 # Operations on `submonoid`s
 
-In this file we define the following operations on `submonoid`s:
+In this file we define various operations on `submonoid`s and `monoid_hom`s.
+
+## Main definitions
+
+### Conversion between multiplicative and additive definitions
 
 * `submonoid.to_add_submonoid`, `submonoid.of_add_submonoid`, `add_submonoid.to_submonoid`,
   `add_submonoid.of_submonoid`: convert between multiplicative and additive submonoids of `M`,
   `multiplicative M`, and `additive M`.
 * `submonoid.add_submonoid_equiv`: equivalence between `submonoid M`
   and `add_submonoid (additive M)`.
+
+### (Commutative) monoid structure on a submonoid
+
+* `submonoid.to_monoid`, `submonoid.to_comm_monoid`: a submonoid inherits a (commutative) monoid
+  structure.
+
+### Operations on submonoids
+
 * `submonoid.comap`: preimage of a submonoid under a monoid homomorphism as a submonoid of the
   domain;
 * `submonoid.map`: image of a submonoid under a monoid homomorphism as a submonoid of the codomain;
-* `monoid_hom.mrange`: range of a monoid homomorphism as a submonoid of the codomain;
+* `submonoid.prod`: product of two submonoids `s : submonoid M` and `t : submonoid N` as a submonoid
+  of `M × N`;
 
+### Monoid homomorphisms between submonoid
+
+* `submonoid.subtype`: embedding of a submonoid into the ambient monoid.
+* `submonoid.inclusion`: given two submonoids `S`, `T` such that `S ≤ T`, `S.inclusion T` is the
+  inclusion of `S` into `T` as a monoid homomorphism;
+* `mul_equiv.submonoid_congr`: converts a proof of `S = T` into a monoid isomorphism between `S`
+  and `T`.
+* `submonoid.prod_equiv`: monoid isomorphism between `s.prod t` and `s × t`;
+
+### Operations on `monoid_hom`s
+
+* `monoid_hom.mrange`: range of a monoid homomorphism as a submonoid of the codomain;
+* `monoid_hom.mrestrict`: restrict a monoid homomorphism to a submonoid;
+* `monoid_hom.cod_mrestrict`: restrict the codomain of a monoid homomorphism to a submonoid;
+* `monoid_hom.mrange_restrict`: restrict a monoid homomorphism to its range;
+
+## Tags
+
+submonoid, range, product, map, comap
 -/
 
 variables {M N P : Type*} [monoid M] [monoid N] [monoid P] (S : submonoid M)
@@ -236,26 +268,6 @@ lemma map_inr (s : submonoid N) : s.map (inr M N) = prod ⊥ s :=
 ext $ λ p, ⟨λ ⟨x, hx, hp⟩, hp ▸ ⟨set.mem_singleton 1, hx⟩,
   λ ⟨hp1, hps⟩, ⟨p.2, hps, prod.ext (set.eq_of_mem_singleton hp1).symm rfl⟩⟩
 
-@[to_additive]
-lemma range_inl : (inl M N).mrange = prod ⊤ ⊥ := map_inl ⊤
-
-@[to_additive]
-lemma range_inr : (inr M N).mrange = prod ⊥ ⊤ := map_inr ⊤
-
-@[to_additive]
-lemma range_inl' : (inl M N).mrange = comap (snd M N) ⊥ := range_inl.trans (top_prod _)
-
-@[to_additive]
-lemma range_inr' : (inr M N).mrange = comap (fst M N) ⊥ := range_inr.trans (prod_top _)
-
-@[simp, to_additive]
-lemma range_fst : (fst M N).mrange = ⊤ :=
-(fst M N).mrange_top_of_surjective $ @prod.fst_surjective _ _ ⟨1⟩
-
-@[simp, to_additive]
-lemma range_snd : (snd M N).mrange = ⊤ :=
-(snd M N).mrange_top_of_surjective $ @prod.snd_surjective _ _ ⟨1⟩
-
 @[simp, to_additive prod_bot_sup_bot_prod]
 lemma prod_bot_sup_bot_prod (s : submonoid M) (t : submonoid N) :
   (s.prod ⊥) ⊔ (prod ⊥ t) = s.prod t :=
@@ -263,10 +275,6 @@ le_antisymm (sup_le (prod_mono (le_refl s) bot_le) (prod_mono bot_le (le_refl t)
 assume p hp, prod.fst_mul_snd p ▸ mul_mem _
   ((le_sup_left : s.prod ⊥ ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨hp.1, set.mem_singleton 1⟩)
   ((le_sup_right : prod ⊥ t ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨set.mem_singleton 1, hp.2⟩)
-
-@[simp, to_additive]
-lemma range_inl_sup_range_inr : (inl M N).mrange ⊔ (inr M N).mrange = ⊤ :=
-by simp only [range_inl, range_inr, prod_bot_sup_bot_prod, top_prod_top]
 
 end submonoid
 
@@ -317,4 +325,79 @@ le_antisymm
     (mclosure_preimage_le _ _))
   (closure_le.2 $ set.image_subset _ subset_closure)
 
+/-- Restriction of a monoid hom to a submonoid of the domain. -/
+@[to_additive "Restriction of an add_monoid hom to an `add_submonoid` of the domain."]
+def mrestrict {N : Type*} [monoid N] (f : M →* N) (S : submonoid M) : S →* N := f.comp S.subtype
+
+@[simp, to_additive]
+lemma mrestrict_apply {N : Type*} [monoid N] (f : M →* N) (x : S) : f.mrestrict S x = f x := rfl
+
+/-- Restriction of a monoid hom to a submonoid of the codomain. -/
+@[to_additive "Restriction of an `add_monoid` hom to an `add_submonoid` of the codomain."]
+def cod_mrestrict (f : M →* N) (S : submonoid N) (h : ∀ x, f x ∈ S) : M →* S :=
+{ to_fun := λ n, ⟨f n, h n⟩,
+  map_one' := subtype.eq f.map_one,
+  map_mul' := λ x y, subtype.eq (f.map_mul x y) }
+
+/-- Restriction of a monoid hom to its range interpreted as a submonoid. -/
+@[to_additive "Restriction of an `add_monoid` hom to its range interpreted as a submonoid."]
+def mrange_restrict {N} [monoid N] (f : M →* N) : M →* f.mrange :=
+f.cod_mrestrict f.mrange $ λ x, ⟨x, submonoid.mem_top x, rfl⟩
+
+@[simp, to_additive]
+lemma coe_mrange_restrict {N} [monoid N] (f : M →* N) (x : M) :
+  (f.mrange_restrict x : N) = f x :=
+rfl
+
 end monoid_hom
+
+namespace submonoid
+open monoid_hom
+
+@[to_additive]
+lemma mrange_inl : (inl M N).mrange = prod ⊤ ⊥ := map_inl ⊤
+
+@[to_additive]
+lemma mrange_inr : (inr M N).mrange = prod ⊥ ⊤ := map_inr ⊤
+
+@[to_additive]
+lemma mrange_inl' : (inl M N).mrange = comap (snd M N) ⊥ := mrange_inl.trans (top_prod _)
+
+@[to_additive]
+lemma mrange_inr' : (inr M N).mrange = comap (fst M N) ⊥ := mrange_inr.trans (prod_top _)
+
+@[simp, to_additive]
+lemma mrange_fst : (fst M N).mrange = ⊤ :=
+(fst M N).mrange_top_of_surjective $ @prod.fst_surjective _ _ ⟨1⟩
+
+@[simp, to_additive]
+lemma mrange_snd : (snd M N).mrange = ⊤ :=
+(snd M N).mrange_top_of_surjective $ @prod.snd_surjective _ _ ⟨1⟩
+@[simp, to_additive]
+
+lemma mrange_inl_sup_mrange_inr : (inl M N).mrange ⊔ (inr M N).mrange = ⊤ :=
+by simp only [mrange_inl, mrange_inr, prod_bot_sup_bot_prod, top_prod_top]
+
+/-- The monoid hom associated to an inclusion of submonoids. -/
+@[to_additive "The `add_monoid` hom associated to an inclusion of submonoids."]
+def inclusion {S T : submonoid M} (h : S ≤ T) : S →* T :=
+S.subtype.cod_mrestrict _ (λ x, h x.2)
+
+@[simp, to_additive]
+lemma range_subtype (s : submonoid M) : s.subtype.mrange = s :=
+ext' $ (coe_mrange _).trans $ set.range_coe_subtype s
+
+end submonoid
+
+namespace mul_equiv
+
+variables {T : submonoid M}
+
+/-- Makes the identity isomorphism from a proof that two submonoids of a multiplicative
+    monoid are equal. -/
+@[to_additive add_submonoid_congr "Makes the identity additive isomorphism from a proof two
+submonoids of an additive monoid are equal."]
+def submonoid_congr (h : S = T) : S ≃* T :=
+{ map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ submonoid.ext'_iff.1 h }
+
+end mul_equiv

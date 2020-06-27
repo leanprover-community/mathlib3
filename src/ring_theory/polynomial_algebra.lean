@@ -8,7 +8,17 @@ import ring_theory.matrix_algebra
 import data.polynomial
 
 /-!
-We show `polynomial A ≃ₐ[R] (A ⊗[R] polynomial R)`.
+We show `polynomial A ≃ₐ[R] (A ⊗[R] polynomial R)`,
+and combining this with the isomorphism `matrix n n A ≃ₐ[R] (A ⊗[R] matrix n n R)` proved earlier,
+we obtain
+```
+def matrix_polynomial_equiv_polynomial_matrix :
+  matrix n n (polynomial R) ≃ₐ[R] polynomial (matrix n n R)
+```
+which is characterized by
+```
+coeff (matrix_polynomial_equiv_polynomial_matrix m) k i j = coeff (m i j) k
+```
 -/
 
 universes u v w
@@ -29,28 +39,62 @@ instance turkle : algebra R (polynomial A) := add_monoid_algebra.algebra
 
 namespace polynomial_equiv_tensor
 
+/--
+(Implementation detail).
+The bare function underlying `A ⊗[R] polynomial R →ₐ[R] polynomial A`, on pure tensors.
+-/
 def to_fun (a : A) (p : polynomial R) : polynomial A :=
 p.sum (λ n r, monomial n (a * algebra_map R A r))
 
+/--
+(Implementation detail).
+The function underlying `A ⊗[R] polynomial R →ₐ[R] polynomial A`,
+as a linear map in the second factor.
+-/
 def to_fun_linear_right (a : A) : polynomial R →ₗ[R] polynomial A :=
 { to_fun := to_fun R A a,
   map_smul' := sorry,
   map_add' := sorry, }
 
+/--
+(Implementation detail).
+The function underlying `A ⊗[R] polynomial R →ₐ[R] polynomial A`,
+as a bilinear function of two arguments.
+-/
 def to_fun_bilinear : A →ₗ[R] polynomial R →ₗ[R] polynomial A :=
 { to_fun := to_fun_linear_right R A,
   map_smul' := sorry,
   map_add' := sorry, }
 
+/--
+(Implementation detail).
+The function underlying `A ⊗[R] polynomial R →ₐ[R] polynomial A`,
+as a linear map.
+-/
 def to_fun_linear : A ⊗[R] polynomial R →ₗ[R] polynomial A :=
 tensor_product.lift (to_fun_bilinear R A)
 
+/--
+(Implementation detail).
+The algebra homomorphism `A ⊗[R] polynomial R →ₐ[R] polynomial A`.
+-/
 def to_fun_alg_hom : A ⊗[R] polynomial R →ₐ[R] polynomial A :=
 alg_hom_of_linear_map_tensor_product (to_fun_linear R A) sorry sorry
 
+/--
+(Implementation detail.)
+
+The bare function `polynomial A → A ⊗[R] polynomial R`.
+(We don't need to show that it's an algebra map, thankfully --- just that it's an inverse.)
+-/
 def inv_fun (p : polynomial A) : A ⊗[R] polynomial R :=
 p.eval₂ include_left ((1 : A) ⊗ₜ[R] (X : polynomial R))
 
+/--
+(Implementation detail)
+
+The equivalence, ignoring the algebra structure, `(A ⊗[R] polynomial R) ≃ polynomial A`.
+-/
 def equiv : (A ⊗[R] polynomial R) ≃ polynomial A :=
 { to_fun := to_fun_alg_hom R A,
   inv_fun := inv_fun R A,
@@ -61,6 +105,9 @@ end polynomial_equiv_tensor
 
 open polynomial_equiv_tensor
 
+/--
+The `R`-algebra isomorphism `polynomial A ≃ₐ[R] (A ⊗[R] polynomial R)`.
+-/
 def polynomial_equiv_tensor : polynomial A ≃ₐ[R] (A ⊗[R] polynomial R) :=
 alg_equiv.symm { ..(polynomial_equiv_tensor.to_fun_alg_hom R A), ..(polynomial_equiv_tensor.equiv R A) }
 
@@ -85,6 +132,9 @@ open_locale big_operators
 variables {R}
 variables {n : Type w} [fintype n] [decidable_eq n]
 
+/--
+The algebra isomorphism stating "matrices of polynomials are the same as polynomials of matrices".
+-/
 noncomputable def matrix_polynomial_equiv_polynomial_matrix :
   matrix n n (polynomial R) ≃ₐ[R] polynomial (matrix n n R) :=
 (((matrix_equiv_tensor R (polynomial R) n)).trans (algebra.tensor_product.comm R _ _)).trans (polynomial_equiv_tensor R (matrix n n R)).symm
@@ -105,7 +155,7 @@ instance is_ring_hom_of_alg_hom
   {R : Type u} [comm_ring R] {A : Type v} [ring A] [algebra R A] {B : Type w} [ring B] [algebra R B]
   (f : A →ₐ[R] B) :
 is_ring_hom f :=
-{map_one := by simp, map_mul := by simp, map_add := by simp}
+{ map_one := by simp, map_mul := by simp, map_add := by simp }
 
 lemma matrix_polynomial_equiv_polynomial_matrix_coeff_apply_aux_1 (i j : n) (k : ℕ) (x : R) :
   matrix_polynomial_equiv_polynomial_matrix (λ i' j', if i' = i ∧ j' = j then monomial k x else 0) =

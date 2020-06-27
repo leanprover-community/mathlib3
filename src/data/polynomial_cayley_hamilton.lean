@@ -20,13 +20,26 @@ lemma foo {p : polynomial R} {r : R} {a : ℕ} :
   coeff (p * (X - monomial 0 r)) (a + 1) = coeff p a - coeff p (a + 1) * r :=
 sorry
 
-@[simp] lemma quux {p : polynomial R} : p.coeff (p.nat_degree + 1) = 0 := sorry
+-- @[simp] lemma quux {p : polynomial R} : p.coeff (p.nat_degree + 1) = 0 := sorry
 
 lemma sum_over_range' (p : polynomial R) {f : ℕ → R → S} (h : ∀ n, f n 0 = 0)
   (n : ℕ) (w : p.nat_degree < n) :
   p.sum f = ∑ (a : ℕ) in range n, f a (coeff p a) :=
 begin
-  sorry,
+  rw finsupp.sum,
+  apply finset.sum_bij_ne_zero (λ n _ _, n),
+  { intros k h₁ h₂, simp only [mem_range],
+    calc k ≤ p.nat_degree : _
+       ... < n : w,
+    rw finsupp.mem_support_iff at h₁,
+    exact le_nat_degree_of_ne_zero h₁, },
+  { intros, assumption },
+  { intros b hb hb',
+    refine ⟨b, _, hb', rfl⟩,
+    rw finsupp.mem_support_iff,
+    contrapose! hb',
+    convert h b, },
+  { intros, refl }
 end
 
 lemma sum_over_range (p : polynomial R) {f : ℕ → R → S} (h : ∀ n, f n 0 = 0) :

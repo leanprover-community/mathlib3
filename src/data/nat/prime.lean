@@ -383,7 +383,7 @@ iff_not_comm.2 pp.coprime_iff_not_dvd
 theorem prime.dvd_of_not_coprime {m n : ℕ} (h : ¬ coprime m n) :
   ∃p, prime p ∧ p ∣ m ∧ p ∣ n :=
 begin
-  existsi min_fac (gcd m n),
+  use min_fac (gcd m n),
   apply and.intro,
   { apply min_fac_prime h },
   exact and.intro (dvd.trans (min_fac_dvd (gcd m n)) (gcd_dvd_left m n))

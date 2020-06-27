@@ -1598,6 +1598,20 @@ lemma coeff_sub (p q : polynomial R) (n : ℕ) : coeff (p - q) n = coeff p n - c
 @[simp] lemma eval_int_cast {n : ℤ} {x : R} : (n : polynomial R).eval x = n :=
 by simp only [←int_cast_eq_C, eval_C]
 
+@[simp] lemma eval₂_neg {S} [ring S] (f : R → S) [is_ring_hom f] {x : S} :
+  (-p).eval₂ f x = -p.eval₂ f x :=
+by rw [eq_neg_iff_add_eq_zero, ←eval₂_add, add_left_neg, eval₂_zero]
+
+@[simp] lemma eval₂_sub {S} [ring S] (f : R → S) [is_ring_hom f] {x : S} :
+  (p - q).eval₂ f x = p.eval₂ f x - q.eval₂ f x :=
+by rw [sub_eq_add_neg, eval₂_add, eval₂_neg, sub_eq_add_neg]
+
+@[simp] lemma eval_neg (p : polynomial R) (x : R) : (-p).eval x = -p.eval x :=
+eval₂_neg _
+
+@[simp] lemma eval_sub (p q : polynomial R) (x : R) : (p - q).eval x = p.eval x - q.eval x :=
+eval₂_sub _
+
 end ring
 
 section comm_ring
@@ -1609,22 +1623,6 @@ instance eval₂.is_ring_hom {S} [comm_ring S]
 by apply is_ring_hom.of_semiring
 
 instance eval.is_ring_hom {x : R} : is_ring_hom (eval x) := eval₂.is_ring_hom _
-
--- FIXME the next four lemmas don't essentially need commutativity, but will need new proofs.
-
-@[simp] lemma eval₂_neg {S} [comm_ring S] (f : R → S) [is_ring_hom f] {x : S} :
-  (-p).eval₂ f x = -p.eval₂ f x :=
-is_ring_hom.map_neg _
-
-@[simp] lemma eval₂_sub {S} [comm_ring S] (f : R → S) [is_ring_hom f] {x : S} :
-  (p - q).eval₂ f x = p.eval₂ f x - q.eval₂ f x :=
-is_ring_hom.map_sub _
-
-@[simp] lemma eval_neg (p : polynomial R) (x : R) : (-p).eval x = -p.eval x :=
-is_ring_hom.map_neg _
-
-@[simp] lemma eval_sub (p q : polynomial R) (x : R) : (p - q).eval x = p.eval x - q.eval x :=
-is_ring_hom.map_sub _
 
 end comm_ring
 

@@ -240,7 +240,7 @@ by { ext, rw [single_one_mul_apply, mul_single_one_apply, mul_comm] }
 As a preliminary to defining the `k`-algebra structure on `add_monoid_algebra k G`,
 we define the underlying ring homomorphism.
 -/
-def algebra_map' [comm_semiring k] [monoid G] : k →+* monoid_algebra k G :=
+def algebra_map' [semiring k] [monoid G] : k →+* monoid_algebra k G :=
 { to_fun    := single 1,
   map_one'  := rfl,
   map_mul'  := λ x y, by rw [single_mul_single, one_mul],

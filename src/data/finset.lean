@@ -319,6 +319,21 @@ protected theorem induction_on {α : Type*} {p : finset α → Prop} [decidable_
   (s : finset α) (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : p s :=
 finset.induction h₁ h₂ s
 
+/-- Inserting an element to a finite set is equivalent to the option type. -/
+def subtype_insert_equiv_option {t : finset α} {x : α} (h : x ∉ t) :
+  {i // i ∈ insert x t} ≃ option {i // i ∈ t} :=
+begin
+  refine
+  { to_fun := λ y, if h : y.1 = x then none else some ⟨y, (finset.mem_insert.mp y.2).resolve_left h⟩,
+    inv_fun := λ y, y.elim ⟨x, finset.mem_insert_self _ _⟩ $ λ z, ⟨z.1, finset.mem_insert_of_mem z.2⟩,
+    .. },
+  { intro y, by_cases h : y.1 = x, simp only [subtype.ext, h, option.elim, dif_pos],
+    simp only [h, option.elim, dif_neg, not_false_iff, subtype.coe_eta] },
+  { rintro (_|y), simp only [option.elim, dif_pos],
+    have : y.val ≠ x, { rintro ⟨⟩, exact h y.2 },
+    simp only [this, option.elim, subtype.eta, dif_neg, not_false_iff, subtype.coe_mk] },
+end
+
 /-! ### union -/
 
 /-- `s ∪ t` is the set such that `a ∈ s ∪ t` iff `a ∈ s` or `a ∈ t`. -/
@@ -1542,6 +1557,13 @@ lemma card_union_le [decidable_eq α] (s t : finset α) :
   (s ∪ t).card ≤ s.card + t.card :=
 card_union_add_card_inter s t ▸ le_add_right _ _
 
+lemma card_union_eq [decidable_eq α] {s t : finset α} (h : disjoint s t) :
+  (s ∪ t).card = s.card + t.card :=
+begin
+  rw [← card_union_add_card_inter],
+  convert (add_zero _).symm, rw [card_eq_zero], rwa [disjoint_iff] at h
+end
+
 lemma surj_on_of_inj_on_of_card_le {s : finset α} {t : finset β}
   (f : Π a ∈ s, β) (hf : ∀ a ha, f a ha ∈ t)
   (hinj : ∀ a₁ a₂ ha₁ ha₂, f a₁ ha₁ = f a₂ ha₂ → a₁ = a₂)
@@ -2064,10 +2086,15 @@ by letI := classical.dec_eq β; from
 ⟨ λh b hb, lt_of_le_of_lt (le_sup hb) h,
   finset.induction_on s (by simp [ha]) (by simp {contextual := tt}) ⟩
 
-lemma comp_sup_eq_sup_comp [is_total α (≤)] {γ : Type} [semilattice_sup_bot γ]
-  (g : α → γ) (mono_g : monotone g) (bot : g ⊥ = ⊥) : g (s.sup f) = s.sup (g ∘ f) :=
+lemma comp_sup_eq_sup_comp [semilattice_sup_bot γ] {s : finset β}
+  {f : β → α} (g : α → γ) (g_sup : ∀ x y, g (x ⊔ y) = g x ⊔ g y) (bot : g ⊥ = ⊥) :
+  g (s.sup f) = s.sup (g ∘ f) :=
 by letI := classical.dec_eq β; from
-finset.induction_on s (by simp [bot]) (by simp [mono_g.map_sup] {contextual := tt})
+finset.induction_on s (by simp [bot]) (by simp [g_sup] {contextual := tt})
+
+lemma comp_sup_eq_sup_comp_of_is_total [is_total α (≤)] {γ : Type} [semilattice_sup_bot γ]
+  (g : α → γ) (mono_g : monotone g) (bot : g ⊥ = ⊥) : g (s.sup f) = s.sup (g ∘ f) :=
+comp_sup_eq_sup_comp g mono_g.map_sup bot
 
 theorem subset_range_sup_succ (s : finset ℕ) : s ⊆ range (s.sup id).succ :=
 λ n hn, mem_range.2 $ nat.lt_succ_of_le $ le_sup hn
@@ -2126,9 +2153,14 @@ le_inf $ assume b hb, inf_le (h hb)
 lemma lt_inf_iff [h : is_total α (≤)] {a : α} (ha : a < ⊤) : a < s.inf f ↔ (∀b ∈ s, a < f b) :=
 @sup_lt_iff (order_dual α) _ _ _ _ (@is_total.swap α _ h) _ ha
 
-lemma comp_inf_eq_inf_comp [h : is_total α (≤)] {γ : Type} [semilattice_inf_top γ]
+lemma comp_inf_eq_inf_comp [semilattice_inf_top γ] {s : finset β}
+  {f : β → α} (g : α → γ) (g_inf : ∀ x y, g (x ⊓ y) = g x ⊓ g y) (top : g ⊤ = ⊤) :
+  g (s.inf f) = s.inf (g ∘ f) :=
+@comp_sup_eq_sup_comp (order_dual α) _ (order_dual γ) _ _ _ _ _ g_inf top
+
+lemma comp_inf_eq_inf_comp_of_is_total [h : is_total α (≤)] {γ : Type} [semilattice_inf_top γ]
   (g : α → γ) (mono_g : monotone g) (top : g ⊤ = ⊤) : g (s.inf f) = s.inf (g ∘ f) :=
-@comp_sup_eq_sup_comp (order_dual α) _ _ _ _ (@is_total.swap α _ h) _ _ _ mono_g.order_dual top
+comp_inf_eq_inf_comp g mono_g.map_inf top
 
 end inf
 
@@ -2874,14 +2906,6 @@ end
 
 @[simp] lemma Ico_ℤ.card (l u : ℤ) : (Ico_ℤ l u).card = (u - l).to_nat := by simp [Ico_ℤ]
 
-lemma supr_coe [has_Sup β] (f : α → β) (s : finset α) :
-  (⨆ x ∈ (↑s : set α), f x) = ⨆ x ∈ s, f x :=
-rfl
-
-lemma infi_coe [has_Inf β] (f : α → β) (s : finset α) :
-  (⨅ x ∈ (↑s : set α), f x) = ⨅ x ∈ s, f x :=
-rfl
-
 end finset
 
 namespace multiset
@@ -2967,34 +2991,92 @@ end finset
 
 namespace finset
 
-/-! ### bUnion -/
+/-! ### Interaction with big lattice/set operations -/
+
+section lattice
+
+lemma supr_coe [has_Sup β] (f : α → β) (s : finset α) :
+  (⨆ x ∈ (↑s : set α), f x) = ⨆ x ∈ s, f x :=
+rfl
+
+lemma infi_coe [has_Inf β] (f : α → β) (s : finset α) :
+  (⨅ x ∈ (↑s : set α), f x) = ⨅ x ∈ s, f x :=
+rfl
+
+variables [complete_lattice β]
+
+theorem supr_singleton (a : α) (s : α → β) : (⨆ x ∈ ({a} : finset α), s x) = s a :=
+by simp
+
+theorem infi_singleton (a : α) (s : α → β) : (⨅ x ∈ ({a} : finset α), s x) = s a :=
+by simp
+
+variables [decidable_eq α]
+
+theorem supr_union {f : α → β} {s t : finset α} :
+  (⨆ x ∈ s ∪ t, f x) = (⨆x∈s, f x) ⊔ (⨆x∈t, f x) :=
+by simp [supr_or, supr_sup_eq]
+
+theorem infi_union {f : α → β} {s t : finset α} :
+  (⨅ x ∈ s ∪ t, f x) = (⨅ x ∈ s, f x) ⊓ (⨅ x ∈ t, f x) :=
+by simp [infi_or, infi_inf_eq]
+
+lemma supr_insert (a : α) (s : finset α) (t : α → β) :
+  (⨆ x ∈ insert a s, t x) = t a ⊔ (⨆ x ∈ s, t x) :=
+by { rw insert_eq, simp only [supr_union, finset.supr_singleton] }
+
+lemma infi_insert (a : α) (s : finset α) (t : α → β) :
+  (⨅ x ∈ insert a s, t x) = t a ⊓ (⨅ x ∈ s, t x) :=
+by { rw insert_eq, simp only [infi_union, finset.infi_singleton] }
+
+lemma supr_finset_image {f : γ → α} {g : α → β} {s : finset γ} :
+  (⨆ x ∈ s.image f, g x) = (⨆ y ∈ s, g (f y)) :=
+by rw [← supr_coe, coe_image, supr_image, supr_coe]
+
+lemma infi_finset_image {f : γ → α} {g : α → β} {s : finset γ} :
+  (⨅ x ∈ s.image f, g x) = (⨅ y ∈ s, g (f y)) :=
+by rw [← infi_coe, coe_image, infi_image, infi_coe]
+
+end lattice
 
 @[simp] theorem bUnion_coe (s : finset α) (t : α → set β) :
   (⋃ x ∈ (↑s : set α), t x) = ⋃ x ∈ s, t x :=
 rfl
 
-@[simp] theorem bUnion_singleton (a : α) (s : α → set β) : (⋃ x ∈ ({a} : finset α), s x) = s a :=
-by rw [← bUnion_coe, coe_singleton, set.bUnion_singleton]
+@[simp] theorem bInter_coe (s : finset α) (t : α → set β) :
+  (⋂ x ∈ (↑s : set α), t x) = ⋂ x ∈ s, t x :=
+rfl
 
-@[simp] lemma bUnion_preimage_singleton (f : α → β) (s : finset β) :
-  (⋃ y ∈ s, f ⁻¹' {y}) = f ⁻¹' ↑s :=
-set.bUnion_preimage_singleton f ↑s
+@[simp] theorem bUnion_singleton (a : α) (s : α → set β) : (⋃ x ∈ ({a} : finset α), s x) = s a :=
+supr_singleton a s
+
+@[simp] theorem bInter_singleton (a : α) (s : α → set β) : (⋂ x ∈ ({a} : finset α), s x) = s a :=
+infi_singleton a s
 
 variables [decidable_eq α]
-
-theorem supr_union {α} [complete_lattice α] {β} [decidable_eq β] {f : β → α} {s t : finset β} :
-  (⨆ x ∈ s ∪ t, f x) = (⨆x∈s, f x) ⊔ (⨆x∈t, f x) :=
-calc (⨆ x ∈ s ∪ t, f x) = (⨆ x, (⨆h : x∈s, f x) ⊔ (⨆h : x∈t, f x)) :
-  congr_arg _ $ funext $ λ x, by { convert supr_or, rw finset.mem_union, rw finset.mem_union, refl,
-    refl }
-                    ... = (⨆x∈s, f x) ⊔ (⨆x∈t, f x) : supr_sup_eq
 
 lemma bUnion_union (s t : finset α) (u : α → set β) :
   (⋃ x ∈ s ∪ t, u x) = (⋃ x ∈ s, u x) ∪ (⋃ x ∈ t, u x) :=
 supr_union
 
+lemma bInter_inter (s t : finset α) (u : α → set β) :
+  (⋂ x ∈ s ∪ t, u x) = (⋂ x ∈ s, u x) ∩ (⋂ x ∈ t, u x) :=
+infi_union
+
 @[simp] lemma bUnion_insert (a : α) (s : finset α) (t : α → set β) :
   (⋃ x ∈ insert a s, t x) = t a ∪ (⋃ x ∈ s, t x) :=
-begin rw insert_eq, simp only [bUnion_union, finset.bUnion_singleton] end
+supr_insert a s t
+
+@[simp] lemma bInter_insert (a : α) (s : finset α) (t : α → set β) :
+  (⋂ x ∈ insert a s, t x) = t a ∩ (⋂ x ∈ s, t x) :=
+infi_insert a s t
+
+@[simp] lemma bUnion_finset_image {f : γ → α} {g : α → set β} {s : finset γ} :
+  (⋃x ∈ s.image f, g x) = (⋃y ∈ s, g (f y)) :=
+supr_finset_image
+
+@[simp] lemma bInter_finset_image {f : γ → α} {g : α → set β} {s : finset γ} :
+  (⋂ x ∈ s.image f, g x) = (⋂ y ∈ s, g (f y)) :=
+infi_finset_image
 
 end finset

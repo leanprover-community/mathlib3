@@ -43,30 +43,30 @@ by { rw inf_comm at h, exact le_of_inf_eq (ultrafilter_unique hf h inf_le_left) 
   A filter f is an ultrafilter if and only if for each set s,
   -s belongs to f if and only if s does not belong to f. -/
 lemma ultrafilter_iff_compl_mem_iff_not_mem :
-  is_ultrafilter f ↔ (∀ s, ∁ s ∈ f ↔ s ∉ f) :=
+  is_ultrafilter f ↔ (∀ s, ∁s ∈ f ↔ s ∉ f) :=
 ⟨assume hf s,
    ⟨assume hns hs,
       hf.1 $ empty_in_sets_eq_bot.mp $ by convert f.inter_sets hs hns; rw [inter_compl_self],
     assume hs,
-      have f ≤ 𝓟 (∁ s), from
+      have f ≤ 𝓟 (∁s), from
         le_of_ultrafilter hf $ assume h, hs $ mem_sets_of_eq_bot $
           by rwa inf_comm,
       by simp only [le_principal_iff] at this; assumption⟩,
  assume hf,
    ⟨mt empty_in_sets_eq_bot.mpr ((hf ∅).mp (by convert f.univ_sets; rw [compl_empty])),
     assume g hg g_le s hs, classical.by_contradiction $ mt (hf s).mpr $
-      assume : ∁ s ∈ f,
-        have s ∩ ∁ s ∈ g, from inter_mem_sets hs (g_le this),
+      assume : ∁s ∈ f,
+        have s ∩ ∁s ∈ g, from inter_mem_sets hs (g_le this),
         by simp only [empty_in_sets_eq_bot, hg, inter_compl_self] at this; contradiction⟩⟩
 
 lemma mem_or_compl_mem_of_ultrafilter (hf : is_ultrafilter f) (s : set α) :
-  s ∈ f ∨ ∁ s ∈ f :=
+  s ∈ f ∨ ∁s ∈ f :=
 classical.or_iff_not_imp_left.2 (ultrafilter_iff_compl_mem_iff_not_mem.mp hf s).mpr
 
 lemma mem_or_mem_of_ultrafilter {s t : set α} (hf : is_ultrafilter f) (h : s ∪ t ∈ f) :
   s ∈ f ∨ t ∈ f :=
 (mem_or_compl_mem_of_ultrafilter hf s).imp_right
-  (assume : ∁ s ∈ f, by filter_upwards [this, h] assume x hnx hx, hx.resolve_left hnx)
+  (assume : ∁s ∈ f, by filter_upwards [this, h] assume x hnx hx, hx.resolve_left hnx)
 
 lemma mem_of_finite_sUnion_ultrafilter {s : set (set α)} (hf : is_ultrafilter f) (hs : finite s)
   : ⋃₀ s ∈ f → ∃t∈s, t ∈ f :=
@@ -156,7 +156,7 @@ begin
   intros s hs,
   -- If s ∉ f.sets, we'll apply the ultrafilter lemma to the restriction of f to -s.
   by_contradiction hs',
-  let j : (∁ s) → α := subtype.val,
+  let j : (∁s) → α := subtype.val,
   have j_inv_s : j ⁻¹' s = ∅, by
     erw [←preimage_inter_range, subtype.range_coe, inter_compl_self, preimage_empty],
   let f' := comap j f,
@@ -218,17 +218,17 @@ lemma is_ultrafilter_hyperfilter [infinite α] : is_ultrafilter (@hyperfilter α
 theorem nmem_hyperfilter_of_finite [infinite α] {s : set α} (hf : s.finite) :
   s ∉ @hyperfilter α :=
 λ hy,
-have hx : ∁ s ∉ hyperfilter :=
+have hx : ∁s ∉ hyperfilter :=
   λ hs, (ultrafilter_iff_compl_mem_iff_not_mem.mp is_ultrafilter_hyperfilter s).mp hs hy,
-have ht : ∁ s ∈ cofinite.sets := by show ∁ s ∈ {s | _}; rwa [set.mem_set_of_eq, compl_compl],
+have ht : ∁s ∈ cofinite.sets := by show ∁s ∈ {s | _}; rwa [set.mem_set_of_eq, compl_compl],
 hx $ hyperfilter_le_cofinite ht
 
 theorem compl_mem_hyperfilter_of_finite [infinite α] {s : set α} (hf : set.finite s) :
-  ∁ s ∈ @hyperfilter α :=
+  ∁s ∈ @hyperfilter α :=
 (ultrafilter_iff_compl_mem_iff_not_mem.mp is_ultrafilter_hyperfilter s).mpr $
 nmem_hyperfilter_of_finite hf
 
-theorem mem_hyperfilter_of_finite_compl [infinite α] {s : set α} (hf : set.finite (∁ s)) :
+theorem mem_hyperfilter_of_finite_compl [infinite α] {s : set α} (hf : set.finite (∁s)) :
   s ∈ @hyperfilter α :=
 s.compl_compl ▸ compl_mem_hyperfilter_of_finite hf
 

@@ -19,73 +19,73 @@ set_option default_priority 100 -- see Note [default priority]
   This is a generalization of (classical) logic of propositions, or
   the powerset lattice. -/
 class boolean_algebra α extends bounded_distrib_lattice α, has_compl α, has_sdiff α :=
-(inf_compl_eq_bot : ∀x:α, x ⊓ ∁ x = ⊥)
-(sup_compl_eq_top : ∀x:α, x ⊔ ∁ x = ⊤)
-(sdiff_eq : ∀x y:α, x \ y = x ⊓ ∁ y)
+(inf_compl_eq_bot : ∀x:α, x ⊓ ∁x = ⊥)
+(sup_compl_eq_top : ∀x:α, x ⊔ ∁x = ⊤)
+(sdiff_eq : ∀x y:α, x \ y = x ⊓ ∁y)
 end prio
 
 section boolean_algebra
 variables [boolean_algebra α]
 
-@[simp] theorem inf_compl_eq_bot : x ⊓ ∁ x = ⊥ :=
+@[simp] theorem inf_compl_eq_bot : x ⊓ ∁x = ⊥ :=
 boolean_algebra.inf_compl_eq_bot x
 
-@[simp] theorem compl_inf_eq_bot : ∁ x ⊓ x = ⊥ :=
+@[simp] theorem compl_inf_eq_bot : ∁x ⊓ x = ⊥ :=
 eq.trans inf_comm inf_compl_eq_bot
 
-@[simp] theorem sup_compl_eq_top : x ⊔ ∁ x = ⊤ :=
+@[simp] theorem sup_compl_eq_top : x ⊔ ∁x = ⊤ :=
 boolean_algebra.sup_compl_eq_top x
 
-@[simp] theorem compl_sup_eq_top : ∁ x ⊔ x = ⊤ :=
+@[simp] theorem compl_sup_eq_top : ∁x ⊔ x = ⊤ :=
 eq.trans sup_comm sup_compl_eq_top
 
-theorem is_compl_compl : is_compl x (∁ x) :=
+theorem is_compl_compl : is_compl x (∁x) :=
 is_compl.of_eq inf_compl_eq_bot sup_compl_eq_top
 
-theorem is_compl.compl_eq (h : is_compl x y) : ∁ x = y :=
+theorem is_compl.compl_eq (h : is_compl x y) : ∁x = y :=
 (h.right_unique is_compl_compl).symm
 
-theorem sdiff_eq : x \ y = x ⊓ ∁ y :=
+theorem sdiff_eq : x \ y = x ⊓ ∁y :=
 boolean_algebra.sdiff_eq x y
 
-theorem compl_unique (i : x ⊓ y = ⊥) (s : x ⊔ y = ⊤) : ∁ x = y :=
+theorem compl_unique (i : x ⊓ y = ⊥) (s : x ⊔ y = ⊤) : ∁x = y :=
 (is_compl.of_eq i s).compl_eq
 
-@[simp] theorem compl_top : ∁ ⊤ = (⊥:α) :=
+@[simp] theorem compl_top : ∁⊤ = (⊥:α) :=
 is_compl_top_bot.compl_eq
 
-@[simp] theorem compl_bot : ∁ ⊥ = (⊤:α) :=
+@[simp] theorem compl_bot : ∁⊥ = (⊤:α) :=
 is_compl_bot_top.compl_eq
 
-@[simp] theorem compl_compl' : ∁ (∁ x) = x :=
+@[simp] theorem compl_compl' : ∁(∁x) = x :=
 is_compl_compl.symm.compl_eq
 
 theorem compl_injective : function.injective (compl : α → α) :=
 function.involutive.injective $ λ x, compl_compl'
 
-@[simp] theorem compl_inj_iff : ∁ x = ∁ y ↔ x = y :=
+@[simp] theorem compl_inj_iff : ∁x = ∁y ↔ x = y :=
 compl_injective.eq_iff
 
-@[simp] theorem compl_inf : ∁ (x ⊓ y) = ∁ x ⊔ ∁ y :=
+@[simp] theorem compl_inf : ∁(x ⊓ y) = ∁x ⊔ ∁y :=
 (is_compl_compl.inf_sup is_compl_compl).compl_eq
 
-@[simp] theorem compl_sup : ∁ (x ⊔ y) = ∁ x ⊓ ∁ y :=
+@[simp] theorem compl_sup : ∁(x ⊔ y) = ∁x ⊓ ∁y :=
 (is_compl_compl.sup_inf is_compl_compl).compl_eq
 
-theorem compl_le_compl (h : y ≤ x) : ∁ x ≤ ∁ y :=
+theorem compl_le_compl (h : y ≤ x) : ∁x ≤ ∁y :=
 is_compl_compl.antimono is_compl_compl h
 
-theorem compl_le_compl_iff_le : ∁ y ≤ ∁ x ↔ x ≤ y :=
+theorem compl_le_compl_iff_le : ∁y ≤ ∁x ↔ x ≤ y :=
 ⟨assume h, by have h := compl_le_compl h; simp at h; assumption,
   compl_le_compl⟩
 
-theorem le_compl_of_le_compl (h : y ≤ ∁ x) : x ≤ ∁ y :=
+theorem le_compl_of_le_compl (h : y ≤ ∁x) : x ≤ ∁y :=
 by simpa only [compl_compl'] using compl_le_compl h
 
-theorem compl_le_of_compl_le (h : ∁ y ≤ x) : ∁ x ≤ y :=
+theorem compl_le_of_compl_le (h : ∁y ≤ x) : ∁x ≤ y :=
 by simpa only [compl_compl'] using compl_le_compl h
 
-theorem compl_le_iff_compl_le : y ≤ ∁ x ↔ x ≤ ∁ y :=
+theorem compl_le_iff_compl_le : y ≤ ∁x ↔ x ≤ ∁y :=
 ⟨le_compl_of_le_compl, le_compl_of_le_compl⟩
 
 theorem sup_sdiff_same : x ⊔ (y \ x) = x ⊔ y :=

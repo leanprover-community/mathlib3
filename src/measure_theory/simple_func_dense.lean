@@ -95,7 +95,7 @@ begin
   apply measurable.comp measurable_from_nat, apply measurable_find_greatest,
   assume k' k'_le_N, by_cases k'_eq_0 : k' = 0,
   -- if k' = 0
-  have : {x | k N x = 0} = (∁ ⋃ (M : ℕ) (H : M ≤ N) (k : ℕ) (H : k ≤ N), A M k) ∪
+  have : {x | k N x = 0} = (∁⋃ (M : ℕ) (H : M ≤ N) (k : ℕ) (H : k ≤ N), A M k) ∪
                     (⋃ (m ≤ N), A m 0 \ ⋃ m' (hmm' : m < m') (hm'N : m' ≤ N) (k ≤ N), A m' k),
   { ext, split,
     { rw [mem_set_of_eq, mem_union_eq, or_iff_not_imp_left, mem_compl_eq, not_not_mem],

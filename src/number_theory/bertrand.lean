@@ -29,51 +29,48 @@ begin
     ... = 1 : finset.prod_const_one,
 end
 
+lemma padic_val_nat_of_div_not_one {n p : nat} [prime : fact p.prime] (nonzero : n ≠ 0) (s : p ∣ n)
+  : 1 ≤ padic_val_nat p n :=
+begin
+  rw @padic_val_nat_def _ prime _ nonzero,
+  let one_le_mul := @multiplicity.le_multiplicity_of_pow_dvd _ _ _ p n 1 (begin norm_num, exact s end),
+  simp only [enat.coe_one] at one_le_mul,
+  rcases one_le_mul with ⟨_, q⟩,
+  dsimp at q,
+  solve_by_elim,
+end
+
 lemma prod_pow_prime_padic_val_nat : ∀ (n : nat) (s : n ≠ 0) (m : nat) (pr : n < m),
   ∏ p in finset.filter nat.prime (finset.range m), pow p (padic_val_nat p n) = n
-| n :=
+| 0 := λ nonzero _ _, by cc
+| 1 := λ _ m pr, prod_padic_val_nat_one m pr
+| (m + 2) :=
   -- Nasty case-splitting at the term level rather than in tactic mode, so that we can prove the
   -- recursion to be well-founded.
-  match lt_trichotomy n 1 with
-  | or.inl p :=
-      let u : n = 0 := by linarith in
-      λ nonzero _ _, by cc
-  | or.inr (or.inl n_eq_one) := λ _ m pr,
-    begin
-      clear _match,
-      subst n_eq_one,
-      exact prod_padic_val_nat_one m pr,
-    end
-  | or.inr (or.inr one_lt_n) :=
+  let n := m + 2 in
   let min_fac_prime : nat.prime (nat.min_fac n) := @nat.min_fac_prime n (by linarith) in
   -- The following line is why we've done all this in term-space
-  let less : n / nat.min_fac n < n := nat.div_lt_self (by linarith) (nat.prime.one_lt min_fac_prime) in
+  let wf : n / nat.min_fac n < n := nat.div_lt_self (by linarith) (nat.prime.one_lt min_fac_prime) in
   λ nonzero m n_lt_m,
 begin
-
   have nonzero' : n / nat.min_fac n ≠ 0,
-    { intros quot_zero,
-      have n_smaller : n < nat.min_fac n, exact (nat.div_eq_zero_iff (nat.prime.pos min_fac_prime)).1 quot_zero,
+    { intros div,
+      have n_small : n < nat.min_fac n := (nat.div_eq_zero_iff (nat.prime.pos min_fac_prime)).1 div,
       have n_bigger : n.min_fac ≤ n, exact nat.le_of_dvd (by linarith) (nat.min_fac_dvd n),
       linarith, },
 
-  have padic_val_nat_nonzero : 1 ≤ padic_val_nat n.min_fac n, by sorry,
+  have padic_val_nat_nonzero : 1 ≤ padic_val_nat n.min_fac n,
+    by exact @padic_val_nat_of_div_not_one _ _ min_fac_prime (by norm_num) (nat.min_fac_dvd n),
 
-  have rec :
-    ∏ p in finset.filter nat.prime (finset.range m), p ^ padic_val_nat p (n / n.min_fac)
-    = n / nat.min_fac n,
-    exact prod_pow_prime_padic_val_nat (n / nat.min_fac n) nonzero' m (by linarith),
-
-  have blah : ∀ p ∈ finset.filter nat.prime (finset.range m), p ^ padic_val_nat p (n / n.min_fac) =
+  have extract_fac : ∀ p ∈ finset.filter nat.prime (finset.range m), p ^ padic_val_nat p (n / n.min_fac) =
     if p = n.min_fac then p ^ ((padic_val_nat p n) - 1) else p ^ padic_val_nat p n,
     begin
       intros p p_prime,
       sorry,
     end,
 
-  have min_fac_small : n.min_fac < m, by
-    calc nat.min_fac n ≤ n : min_fac_le (nat.lt_of_succ_lt one_lt_n)
-    ... < m : n_lt_m,
+  have min_fac_small : n.min_fac < m :=
+    nat.lt_of_le_of_lt (nat.min_fac_le (nat.lt_of_succ_lt (by linarith))) n_lt_m,
 
   have split_prod :
     ∏ p in finset.filter nat.prime (finset.range m), p ^ padic_val_nat p (n / nat.min_fac n)
@@ -83,10 +80,12 @@ begin
       (λ a, a ^ padic_val_nat a (n / n.min_fac))
       (λ a, ite (a = n.min_fac) (a ^ ((padic_val_nat a n) - 1)) (a ^ (padic_val_nat a n)))
       (λ a _, a) (λ _ ha, ha)
-      blah
+      extract_fac
       (λ a b a_prime b_prime hyp, by simpa using hyp)
       (λ b b_prime, ⟨b, ⟨b_prime, rfl⟩⟩),
-  rw rec at split_prod,
+
+  -- Make the recursive call
+  rw (prod_pow_prime_padic_val_nat (n / nat.min_fac n) nonzero' m (by linarith)) at split_prod,
 
   calc ∏ p in finset.filter nat.prime (finset.range m), pow p (padic_val_nat p n)
     = ∏ p in finset.filter nat.prime (finset.range m), ite (p = n.min_fac) (pow p (padic_val_nat p n)) (pow p (padic_val_nat p n))
@@ -108,7 +107,7 @@ end
 /-
 
 private def α (n : nat) (pos : 0 < n) (p : nat) (is_prime : nat.prime p) : nat :=
-padic_val_rat.padic_val_nat p (nat.choose (2 * n) n)
+padic_val_nat p (nat.choose (2 * n) n)
 
 def primes_le (n : nat) : finset {m : nat // m ≤ n ∧ nat.prime m} :=
 begin

@@ -183,7 +183,7 @@ assume hps : is_supported (of p) s, begin
     { rintros x y ⟨q, hq⟩ ⟨r, hr⟩, refine ⟨q+r, _⟩, rw [lift_add, hq, hr], norm_cast } },
   specialize this (of p) hps, rw [lift_of] at this, split_ifs at this, { exact h },
   exfalso, apply ne.symm int.zero_ne_one,
-  rcases this with ⟨w, H⟩, rw ←polynomial.int_cast_eq_C at H,
+  rcases this with ⟨w, H⟩, rw ←polynomial.C_eq_int_cast at H,
   have : polynomial.X.coeff 1 = (polynomial.C ↑w).coeff 1, by rw H,
   rwa [polynomial.coeff_C, if_neg (one_ne_zero : 1 ≠ 0), polynomial.coeff_X, if_pos rfl] at this
 end

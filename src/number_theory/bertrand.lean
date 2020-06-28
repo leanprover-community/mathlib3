@@ -9,6 +9,8 @@ import logic.function.basic
 open_locale big_operators
 open padic_val_nat
 
+lemma min_fac_le_self (n : nat) (n_big : 0 < n) : nat.min_fac n ≤ n := nat.le_of_dvd n_big (nat.min_fac_dvd n)
+
 lemma prod_padic_val_nat_one (m : nat) (m_big : 1 < m) :
   ∏ p in finset.filter nat.prime (finset.range m), p ^ padic_val_nat p 1 = 1 :=
 begin
@@ -48,7 +50,7 @@ lemma prod_pow_prime_padic_val_nat : ∀ (n : nat) (s : n ≠ 0) (m : nat) (pr :
   let min_fac_prime : nat.prime (nat.min_fac n) := @nat.min_fac_prime n (by linarith) in
   -- The following line is why we've done all this in term-space
   let less : n / nat.min_fac n < n := nat.div_lt_self (by linarith) (nat.prime.one_lt min_fac_prime) in
-  λ nonzero m pr,
+  λ nonzero m n_lt_m,
 begin
 
   have nonzero' : n / nat.min_fac n ≠ 0,
@@ -56,6 +58,8 @@ begin
       have n_smaller : n < nat.min_fac n, exact (nat.div_eq_zero_iff (nat.prime.pos min_fac_prime)).1 quot_zero,
       have n_bigger : n.min_fac ≤ n, exact nat.le_of_dvd (by linarith) (nat.min_fac_dvd n),
       linarith, },
+
+  have padic_val_nat_nonzero : 1 ≤ padic_val_nat n.min_fac n, by sorry,
 
   have rec :
     ∏ p in finset.filter nat.prime (finset.range m), p ^ padic_val_nat p (n / n.min_fac)
@@ -69,7 +73,11 @@ begin
       sorry,
     end,
 
-  have e :
+  have min_fac_small : n.min_fac < m, by
+    calc nat.min_fac n ≤ n : min_fac_le_self n (nat.lt_of_succ_lt one_lt_n)
+    ... < m : n_lt_m,
+
+  have split_prod :
     ∏ p in finset.filter nat.prime (finset.range m), p ^ padic_val_nat p (n / nat.min_fac n)
     = ∏ p in finset.filter nat.prime (finset.range m), ite (p = n.min_fac) (p ^ (padic_val_nat p n - 1)) (p ^ padic_val_nat p n) :=
     @finset.prod_bij _ _ _ _
@@ -80,25 +88,23 @@ begin
       blah
       (λ a b a_prime b_prime hyp, by simpa using hyp)
       (λ b b_prime, ⟨b, ⟨b_prime, rfl⟩⟩),
-  rw rec at e,
+  rw rec at split_prod,
 
-  have s : n = ∏ p in finset.filter nat.prime (finset.range m), pow p (padic_val_nat p n), by
-    calc n = n.min_fac * (∏ p in finset.filter nat.prime (finset.range m), ite (p = n.min_fac) (p ^ (padic_val_nat p n - 1)) (p ^ padic_val_nat p n))
-        : nat.eq_mul_of_div_eq_right (nat.min_fac_dvd n) e
-      ... = n.min_fac * ((∏ p in finset.filter (λ i, i = n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ (padic_val_nat p n - 1)) * (∏ p in finset.filter (λ i, i ≠ n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ padic_val_nat p n))
-        : by rw finset.prod_ite
-      ... = (n.min_fac * (∏ p in finset.filter (λ i, i = n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ (padic_val_nat p n - 1))) * (∏ p in finset.filter (λ i, i ≠ n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ padic_val_nat p n)
-        : by ring
-      ... = (∏ p in finset.filter (λ i, i = n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ ((padic_val_nat p n - 1) + 1)) * (∏ p in finset.filter (λ i, i ≠ n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ padic_val_nat p n)
-        : by sorry
-      ... = (∏ p in finset.filter (λ i, i = n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ (padic_val_nat p n)) * (∏ p in finset.filter (λ i, i ≠ n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ padic_val_nat p n)
-        : by sorry
-      ... = ∏ p in finset.filter nat.prime (finset.range m), ite (p = n.min_fac) (pow p (padic_val_nat p n)) (pow p (padic_val_nat p n))
-        : by rw ← finset.prod_ite
-      ... = ∏ p in finset.filter nat.prime (finset.range m), pow p (padic_val_nat p n)
-        : by simp,
-
-  exact s.symm,
+  calc ∏ p in finset.filter nat.prime (finset.range m), pow p (padic_val_nat p n)
+    = ∏ p in finset.filter nat.prime (finset.range m), ite (p = n.min_fac) (pow p (padic_val_nat p n)) (pow p (padic_val_nat p n))
+      : by simp
+    ... = (∏ p in finset.filter (λ i, i = n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ (padic_val_nat p n)) * (∏ p in finset.filter (λ i, i ≠ n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ padic_val_nat p n)
+      : by rw ← finset.prod_ite
+    ... = (∏ p in finset.filter (λ i, i = n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ ((padic_val_nat p n - 1) + 1)) * (∏ p in finset.filter (λ i, i ≠ n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ padic_val_nat p n)
+      : by simp [finset.filter_eq', min_fac_prime, min_fac_small, nat.sub_add_cancel padic_val_nat_nonzero]
+    ... = (n.min_fac * (∏ p in finset.filter (λ i, i = n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ (padic_val_nat p n - 1))) * (∏ p in finset.filter (λ i, i ≠ n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ padic_val_nat p n)
+      : by sorry
+    ... = n.min_fac * ((∏ p in finset.filter (λ i, i = n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ (padic_val_nat p n - 1)) * (∏ p in finset.filter (λ i, i ≠ n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ padic_val_nat p n))
+      : by ring
+    ... = n.min_fac * (∏ p in finset.filter nat.prime (finset.range m), ite (p = n.min_fac) (p ^ (padic_val_nat p n - 1)) (p ^ padic_val_nat p n))
+      : by rw finset.prod_ite
+    ... = n
+      : eq.symm (nat.eq_mul_of_div_eq_right (nat.min_fac_dvd n) split_prod),
 end
 
 /-

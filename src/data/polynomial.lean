@@ -1101,14 +1101,16 @@ polynomial.induction_on p
   (by simp [is_semiring_hom.map_mul f,
     is_semiring_hom.map_pow f, pow_succ', (mul_assoc _ _ _).symm] {contextual := tt})
 
-end map
-
-section map
-variables [comm_semiring S]
-variables (f : R →+* S)
-
--- FIXME this should be true without any commutativity assumptions.
-lemma eval_map (x : S) : (p.map f).eval x = p.eval₂ f x := eval₂_map _ _ _
+lemma eval_map (x : S) : (p.map f).eval x = p.eval₂ f x :=
+begin
+  convert finsupp.sum_map_range_index _,
+  work_on_goal 1 { exact ring_hom.map_zero f,},
+  work_on_goal 1 { intro a, simp only [id.def, zero_mul], },
+  { change map f p = map_range f _ p,
+    ext,
+    rw map_range_apply,
+    exact coeff_map f a, },
+end
 
 end map
 

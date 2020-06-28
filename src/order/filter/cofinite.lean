@@ -31,9 +31,9 @@ def cofinite : filter α :=
 { sets             := {s | finite (- s)},
   univ_sets        := by simp only [compl_univ, finite_empty, mem_set_of_eq],
   sets_of_superset := assume s t (hs : finite (-s)) (st: s ⊆ t),
-    finite_subset hs $ compl_subset_compl.2 st,
+    hs.subset $ compl_subset_compl.2 st,
   inter_sets       := assume s t (hs : finite (-s)) (ht : finite (-t)),
-    by simp only [compl_inter, finite_union, ht, hs, mem_set_of_eq] }
+    by simp only [compl_inter, finite.union, ht, hs, mem_set_of_eq] }
 
 @[simp] lemma mem_cofinite {s : set α} : s ∈ (@cofinite α) ↔ finite (-s) := iff.rfl
 
@@ -66,7 +66,7 @@ begin
     have := hs.to_finset.subset_range_sup_succ (finite.mem_to_finset.2 hbs),
     exact not_lt_of_le hb (finset.mem_range.1 this) },
   { rintros ⟨N, hN⟩,
-    apply finite_subset (finite_lt_nat N),
+    apply (finite_lt_nat N).subset,
     assume n hn,
     change n < N,
     exact lt_of_not_ge (λ hn', hn $ hN n hn') }

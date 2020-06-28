@@ -133,11 +133,11 @@ instance : has_add (outer_measure α) :=
 ⟨λm₁ m₂,
   { measure_of := λs, m₁ s + m₂ s,
     empty      := show m₁ ∅ + m₂ ∅ = 0, by simp [outer_measure.empty],
-    mono       := assume s₁ s₂ h, add_le_add' (m₁.mono h) (m₂.mono h),
+    mono       := assume s₁ s₂ h, add_le_add (m₁.mono h) (m₂.mono h),
     Union_nat  := assume s,
       calc m₁ (⋃i, s i) + m₂ (⋃i, s i) ≤
           (∑'i, m₁ (s i)) + (∑'i, m₂ (s i)) :
-          add_le_add' (m₁.Union_nat s) (m₂.Union_nat s)
+          add_le_add (m₁.Union_nat s) (m₂.Union_nat s)
         ... = _ : ennreal.tsum_add.symm}⟩
 
 @[simp] theorem add_apply (m₁ m₂ : outer_measure α) (s : set α) :
@@ -470,7 +470,7 @@ lemma caratheodory_is_measurable {m : set α → ennreal} {s : set α}
 let o := (outer_measure.of_function m h₀) in
 (is_caratheodory_le o).2 $ λ t,
 le_infi $ λ f, le_infi $ λ hf, begin
-  refine le_trans (add_le_add'
+  refine le_trans (add_le_add
     (infi_le_of_le (λi, f i ∩ s) $ infi_le _ _)
     (infi_le_of_le (λi, f i \ s) $ infi_le _ _)) _,
   { rw ← Union_inter,

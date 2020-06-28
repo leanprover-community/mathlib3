@@ -7,6 +7,7 @@ import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.images
 import category_theory.epi_mono
 import category_theory.punit
+import category_theory.discrete_category
 
 /-!
 # Zero morphisms and zero objects
@@ -45,7 +46,7 @@ attribute [simp] has_zero_morphisms.comp_zero
 restate_axiom has_zero_morphisms.zero_comp'
 attribute [simp, reassoc] has_zero_morphisms.zero_comp
 
-instance has_zero_morphisms_pempty : has_zero_morphisms.{v} pempty.{v+1} :=
+instance has_zero_morphisms_pempty : has_zero_morphisms.{v} (discrete pempty.{v+1}) :=
 { has_zero := by tidy }
 
 instance has_zero_morphisms_punit : has_zero_morphisms.{v} punit.{v+1} :=
@@ -58,8 +59,7 @@ variables {C}
 private lemma ext_aux (I J : has_zero_morphisms.{v} C)
   (w : ∀ X Y : C, (@has_zero_morphisms.has_zero.{v} _ _ I X Y).zero = (@has_zero_morphisms.has_zero.{v} _ _ J X Y).zero) : I = J :=
 begin
-  resetI,
-  cases I, cases J,
+  casesI I, casesI J,
   congr,
   { ext X Y,
     exact w X Y },

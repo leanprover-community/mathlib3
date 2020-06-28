@@ -93,8 +93,7 @@ def set_value {α β} (f : α ↪ β) (a : α) (b : β) [∀ a', decidable (a' =
   begin
     intros x y h,
     dsimp at h,
-    unfreezeI,
-    split_ifs at h; try { subst b }; try { simp only [f.injective.eq_iff] at * }; cc
+    split_ifs at h; try { substI b }; try { simp only [f.injective.eq_iff] at * }; cc
   end⟩
 
 theorem set_value_eq {α β} (f : α ↪ β) (a : α) (b : β) [∀ a', decidable (a' = a)]
@@ -198,7 +197,7 @@ open set
 
 /-- `set.image` as an embedding `set α ↪ set β`. -/
 protected def image {α β} (f : α ↪ β) : set α ↪ set β :=
-⟨image f, image_injective f.2⟩
+⟨image f, f.2.image_injective⟩
 
 @[simp] lemma coe_image {α β} (f : α ↪ β) : ⇑f.image = image f := rfl
 

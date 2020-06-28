@@ -82,6 +82,12 @@ attribute [norm_cast] add_units.coe_neg
 @[simp, to_additive] lemma inv_mul : (↑a⁻¹ * a : α) = 1 := inv_val _
 @[simp, to_additive] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := val_inv _
 
+@[to_additive] lemma inv_mul' {u : units α} {a : α} (h : ↑u = a) : ↑u⁻¹ * a = 1 :=
+by { rw [←h, u.inv_mul], }
+
+@[to_additive] lemma mul_inv' {u : units α} {a : α} (h : ↑u = a) : a * ↑u⁻¹ = 1 :=
+by { rw [←h, u.mul_inv], }
+
 @[simp, to_additive] lemma mul_inv_cancel_left (a : units α) (b : α) : (a:α) * (↑a⁻¹ * b) = b :=
 by rw [← mul_assoc, mul_inv, one_mul]
 
@@ -118,6 +124,14 @@ by rw [mul_assoc, inv_mul, mul_one]
 
 @[to_additive] theorem mul_inv_eq_iff_eq_mul {a c : α} : a * ↑b⁻¹ = c ↔ a = c * b :=
 ⟨λ h, by rw [← h, inv_mul_cancel_right], λ h, by rw [h, mul_inv_cancel_right]⟩
+
+lemma inv_eq_of_mul_eq_one {u : units α} {a : α} (h : ↑u * a = 1) : ↑u⁻¹ = a :=
+calc ↑u⁻¹ = ↑u⁻¹ * 1 : by rw mul_one
+      ... = ↑u⁻¹ * ↑u * a : by rw [←h, ←mul_assoc]
+      ... = a : by rw [u.inv_mul, one_mul]
+
+lemma inv_unique {u₁ u₂ : units α} (h : (↑u₁ : α) = ↑u₂) : (↑u₁⁻¹ : α) = ↑u₂⁻¹ :=
+suffices ↑u₁ * (↑u₂⁻¹ : α) = 1, by exact inv_eq_of_mul_eq_one this, by rw [h, u₂.mul_inv]
 
 end units
 
@@ -255,5 +269,12 @@ by cases ha with a ha; rw [←ha, units.mul_right_inj]
 @[to_additive] theorem is_unit.mul_left_inj [monoid M] {a b c : M} (ha : is_unit a) :
   b * a = c * a ↔ b = c :=
 by cases ha with a ha; rw [←ha, units.mul_left_inj]
+
+/-- The element of the group of units, corresponding to an element of a monoid which is a unit. -/
+noncomputable def is_unit.unit [monoid M] {a : M} (h : is_unit a) : units M :=
+classical.some h
+
+lemma is_unit.unit_spec [monoid M] {a : M} (h : is_unit a) : ↑h.unit = a :=
+classical.some_spec h
 
 end is_unit

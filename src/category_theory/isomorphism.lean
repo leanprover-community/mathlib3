@@ -88,6 +88,8 @@ by cases α; refl
 { hom := 𝟙 X,
   inv := 𝟙 X }
 
+instance : inhabited (X ≅ X) := ⟨iso.refl X⟩
+
 @[simp] lemma refl_symm (X : C) : (iso.refl X).symm = iso.refl X := rfl
 
 /-- Composition of two isomorphisms -/

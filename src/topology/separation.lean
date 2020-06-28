@@ -8,7 +8,7 @@ Separation properties of topological spaces.
 import topology.subset_properties
 
 open set filter
-open_locale topological_space
+open_locale topological_space filter
 local attribute [instance] classical.prop_decidable -- TODO: use "open_locale classical"
 
 universes u v
@@ -122,6 +122,40 @@ t2_iff_nhds.trans
      let ⟨f, hf, uf⟩ := exists_ultrafilter xy in
      h f uf (le_trans hf inf_le_left) (le_trans hf inf_le_right)⟩
 
+lemma is_closed_diagonal [t2_space α] : is_closed (diagonal α) :=
+is_closed_iff_nhds.mpr $ assume ⟨a₁, a₂⟩ h, eq_of_nhds_ne_bot $ assume : 𝓝 a₁ ⊓ 𝓝 a₂ = ⊥, h $
+  let ⟨t₁, ht₁, t₂, ht₂, (h' : t₁ ∩ t₂ ⊆ ∅)⟩ :=
+    by rw [←empty_in_sets_eq_bot, mem_inf_sets] at this; exact this in
+  begin
+    change t₁ ∈ 𝓝 a₁ at ht₁,
+    change t₂ ∈ 𝓝 a₂ at ht₂,
+    rw [nhds_prod_eq, ←empty_in_sets_eq_bot],
+    apply filter.sets_of_superset,
+    apply inter_mem_inf_sets (prod_mem_prod ht₁ ht₂) (mem_principal_sets.mpr (subset.refl _)),
+    exact assume ⟨x₁, x₂⟩ ⟨⟨hx₁, hx₂⟩, (heq : x₁ = x₂)⟩,
+      show false, from @h' x₁ ⟨hx₁, heq.symm ▸ hx₂⟩
+  end
+
+lemma t2_iff_is_closed_diagonal : t2_space α ↔ is_closed (diagonal α) :=
+begin
+  split,
+  { introI h,
+    exact is_closed_diagonal },
+  { intro h,
+    constructor,
+    intros x y hxy,
+    have : (x, y) ∈ -diagonal α, by rwa [mem_compl_iff],
+    obtain ⟨t, t_sub, t_op, xyt⟩ : ∃ t ⊆ -diagonal α, is_open t ∧ (x, y) ∈ t :=
+      is_open_iff_forall_mem_open.mp h _ this,
+    rcases is_open_prod_iff.mp t_op x y xyt with ⟨U, V, U_op, V_op, xU, yV, H⟩,
+    use [U, V, U_op, V_op, xU, yV],
+    have := subset.trans H t_sub,
+    rw eq_empty_iff_forall_not_mem,
+    rintros z ⟨zU, zV⟩,
+    have : ¬ (z, z) ∈ diagonal α := this (mk_mem_prod zU zV),
+    exact this rfl },
+end
+
 @[simp] lemma nhds_eq_nhds_iff {a b : α} [t2_space α] : 𝓝 a = 𝓝 b ↔ a = b :=
 ⟨assume h, eq_of_nhds_ne_bot $ by rw [h, inf_idem]; exact nhds_ne_bot, assume h, h ▸ rfl⟩
 
@@ -163,7 +197,7 @@ Lim_nhds a
 
 @[simp] lemma Lim_nhds_within {a : α} {s : set α} (h : a ∈ closure s) :
   @Lim _ _ ⟨a⟩ (nhds_within a s) = a :=
-Lim_eq begin rw [closure_eq_nhds] at h, exact h end inf_le_left
+Lim_eq begin rw [closure_eq_cluster_pts] at h, exact h end inf_le_left
 
 @[simp] lemma lim_nhds_within_id {a : α} {s : set α} (h : a ∈ closure s) :
   @lim _ _ _ ⟨a⟩ (nhds_within a s) id = a :=
@@ -201,20 +235,6 @@ instance Pi.t2_space {α : Type*} {β : α → Type v} [t₂ : Πa, topological_
 ⟨assume x y h,
   let ⟨i, hi⟩ := not_forall.mp (mt funext h) in
   separated_by_f (λz, z i) (infi_le _ i) hi⟩
-
-lemma is_closed_diagonal [t2_space α] : is_closed {p:α×α | p.1 = p.2} :=
-is_closed_iff_nhds.mpr $ assume ⟨a₁, a₂⟩ h, eq_of_nhds_ne_bot $ assume : 𝓝 a₁ ⊓ 𝓝 a₂ = ⊥, h $
-  let ⟨t₁, ht₁, t₂, ht₂, (h' : t₁ ∩ t₂ ⊆ ∅)⟩ :=
-    by rw [←empty_in_sets_eq_bot, mem_inf_sets] at this; exact this in
-  begin
-    change t₁ ∈ 𝓝 a₁ at ht₁,
-    change t₂ ∈ 𝓝 a₂ at ht₂,
-    rw [nhds_prod_eq, ←empty_in_sets_eq_bot],
-    apply filter.sets_of_superset,
-    apply inter_mem_inf_sets (prod_mem_prod ht₁ ht₂) (mem_principal_sets.mpr (subset.refl _)),
-    exact assume ⟨x₁, x₂⟩ ⟨⟨hx₁, hx₂⟩, (heq : x₁ = x₂)⟩,
-      show false, from @h' x₁ ⟨hx₁, heq.symm ▸ hx₂⟩
-  end
 
 variables [topological_space β]
 
@@ -281,13 +301,13 @@ set_option default_priority 100 -- see Note [default priority]
   omits T₂), is one in which for every closed `C` and `x ∉ C`, there exist
   disjoint open sets containing `x` and `C` respectively. -/
 class regular_space (α : Type u) [topological_space α] extends t1_space α : Prop :=
-(regular : ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ 𝓝 a ⊓ principal t = ⊥)
+(regular : ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ 𝓝 a ⊓ 𝓟 t = ⊥)
 end prio
 
 lemma nhds_is_closed [regular_space α] {a : α} {s : set α} (h : s ∈ 𝓝 a) :
   ∃t∈(𝓝 a), t ⊆ s ∧ is_closed t :=
 let ⟨s', h₁, h₂, h₃⟩ := mem_nhds_sets_iff.mp h in
-have ∃t, is_open t ∧ -s' ⊆ t ∧ 𝓝 a ⊓ principal t = ⊥,
+have ∃t, is_open t ∧ -s' ⊆ t ∧ 𝓝 a ⊓ 𝓟 t = ⊥,
   from regular_space.regular (is_closed_compl_iff.mpr h₂) (not_not_intro h₃),
 let ⟨t, ht₁, ht₂, ht₃⟩ := this in
 ⟨-t,
@@ -314,6 +334,20 @@ let ⟨s, hs, hys, hxs⟩ := regular_space.regular is_closed_singleton
   ⟨v, hvt, hv, hxv⟩ := mem_nhds_sets_iff.1 hxt in
 ⟨v, s, hv, hs, hxv, singleton_subset_iff.1 hys,
 eq_empty_of_subset_empty $ λ z ⟨hzv, hzs⟩, htu ⟨hvt hzv, hsu hzs⟩⟩⟩
+
+variable {α}
+
+lemma disjoint_nested_nhds [regular_space α] {x y : α} (h : x ≠ y) :
+  ∃ (U₁ V₁ ∈ 𝓝 x) (U₂ V₂ ∈ 𝓝 y), is_closed V₁ ∧ is_closed V₂ ∧ is_open U₁ ∧ is_open U₂ ∧
+  V₁ ⊆ U₁ ∧ V₂ ⊆ U₂ ∧ U₁ ∩ U₂ = ∅ :=
+begin
+  rcases t2_separation h with ⟨U₁, U₂, U₁_op, U₂_op, x_in, y_in, H⟩,
+  rcases nhds_is_closed (mem_nhds_sets U₁_op x_in) with ⟨V₁, V₁_in, h₁, V₁_closed⟩,
+  rcases nhds_is_closed (mem_nhds_sets U₂_op y_in) with ⟨V₂, V₂_in, h₂, V₂_closed⟩,
+  use [U₁, V₁, mem_sets_of_superset V₁_in h₁, V₁_in,
+       U₂, V₂, mem_sets_of_superset V₂_in h₂, V₂_in],
+  tauto
+end
 
 end regularity
 

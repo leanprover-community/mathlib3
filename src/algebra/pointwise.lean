@@ -72,7 +72,7 @@ set.ext $ λ a,
 @[to_additive]
 lemma pointwise_mul_finite [has_mul α] {s t : set α} (hs : finite s) (ht : finite t) :
   finite (s * t) :=
-by { rw pointwise_mul_eq_image, apply set.finite_image, exact set.finite_prod hs ht }
+by { rw pointwise_mul_eq_image, exact (hs.prod ht).image _ }
 
 @[to_additive pointwise_add_add_semigroup]
 def pointwise_mul_semigroup [semigroup α] : semigroup (set α) :=

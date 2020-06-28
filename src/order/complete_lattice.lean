@@ -68,6 +68,32 @@ def complete_lattice_of_Inf (α : Type u) [H1 : partial_order α]
   Sup_le := λ s a ha, (is_glb_Inf (upper_bounds s)).1 ha,
   .. H1, .. H2 }
 
+/-- Create a `complete_lattice` from a `partial_order` and `Sup` function
+that returns the least upper bound of a set. Usually this constructor provides
+poor definitional equalities, so it should be used with
+`.. complete_lattice_of_Sup α _`. -/
+def complete_lattice_of_Sup (α : Type*) [H1 : partial_order α]
+  [H2 : has_Sup α] (is_lub_Sup : ∀ s : set α, is_lub s (Sup s)) :
+  complete_lattice α :=
+{ top := Sup univ,
+  le_top := λ x, (is_lub_Sup univ).1 trivial,
+  bot := Sup ∅,
+  bot_le := λ x, (is_lub_Sup ∅).2 $ by simp,
+  sup := λ a b, Sup {a, b},
+  sup_le := λ a b c hac hbc, (is_lub_Sup _).2 (by simp [*]),
+  le_sup_left := λ a b, (is_lub_Sup _).1 $ mem_insert _ _,
+  le_sup_right := λ a b, (is_lub_Sup _).1 $ mem_insert_of_mem _ $ mem_singleton _,
+  inf := λ a b, Sup {x | x ≤ a ∧ x ≤ b},
+  le_inf := λ a b c hab hac, (is_lub_Sup _).1 $ by simp [*],
+  inf_le_left := λ a b, (is_lub_Sup _).2 (λ x, and.left),
+  inf_le_right := λ a b, (is_lub_Sup _).2 (λ x, and.right),
+  Inf := λ s, Sup (lower_bounds s),
+  Sup_le := λ s a ha, (is_lub_Sup s).2 ha,
+  le_Sup := λ s a ha, (is_lub_Sup s).1 ha,
+  Inf_le := λ s a ha, (is_lub_Sup (lower_bounds s)).2 (λ b hb, hb ha),
+  le_Inf := λ s a ha, (is_lub_Sup (lower_bounds s)).1 ha,
+  .. H1, .. H2 }
+
 /-- A complete linear order is a linear order whose lattice structure is complete. -/
 class complete_linear_order (α : Type u) extends complete_lattice α, decidable_linear_order α
 end prio
@@ -615,6 +641,14 @@ theorem infi_union {f : β → α} {s t : set β} : (⨅ x ∈ s ∪ t, f x) = (
 calc (⨅ x ∈ s ∪ t, f x) = (⨅ x, (⨅h : x∈s, f x) ⊓ (⨅h : x∈t, f x)) : congr_arg infi $ funext $ assume x, infi_or
                     ... = (⨅x∈s, f x) ⊓ (⨅x∈t, f x) : infi_inf_eq
 
+lemma infi_split (f : β → α) (p : β → Prop) :
+  (⨅ i, f i) = (⨅ i (h : p i), f i) ⊓ (⨅ i (h : ¬ p i), f i) :=
+by simpa [classical.em] using @infi_union _ _ _ f {i | p i} {i | ¬ p i}
+
+lemma infi_split_single (f : β → α) (i₀ : β) :
+  (⨅ i, f i) = f i₀ ⊓ (⨅ i (h : i ≠ i₀), f i) :=
+by convert infi_split _ _; simp
+
 theorem infi_le_infi_of_subset {f : β → α} {s t : set β} (h : s ⊆ t) :
   (⨅ x ∈ t, f x) ≤ (⨅ x ∈ s, f x) :=
 by rw [(union_eq_self_of_subset_left h).symm, infi_union]; exact inf_le_left
@@ -622,6 +656,14 @@ by rw [(union_eq_self_of_subset_left h).symm, infi_union]; exact inf_le_left
 theorem supr_union {f : β → α} {s t : set β} : (⨆ x ∈ s ∪ t, f x) = (⨆x∈s, f x) ⊔ (⨆x∈t, f x) :=
 calc (⨆ x ∈ s ∪ t, f x) = (⨆ x, (⨆h : x∈s, f x) ⊔ (⨆h : x∈t, f x)) : congr_arg supr $ funext $ assume x, supr_or
                     ... = (⨆x∈s, f x) ⊔ (⨆x∈t, f x) : supr_sup_eq
+
+lemma supr_split (f : β → α) (p : β → Prop) :
+  (⨆ i, f i) = (⨆ i (h : p i), f i) ⊔ (⨆ i (h : ¬ p i), f i) :=
+by simpa [classical.em] using @supr_union _ _ _ f {i | p i} {i | ¬ p i}
+
+lemma supr_split_single (f : β → α) (i₀ : β) :
+  (⨆ i, f i) = f i₀ ⊔ (⨆ i (h : i ≠ i₀), f i) :=
+by convert supr_split _ _; simp
 
 theorem supr_le_supr_of_subset {f : β → α} {s t : set β} (h : s ⊆ t) :
   (⨆ x ∈ s, f x) ≤ (⨆ x ∈ t, f x) :=

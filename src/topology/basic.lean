@@ -12,7 +12,10 @@ import order.filter.bases
 
 The main definition is the type class `topological space α` which endows a type `α` with a topology.
 Then `set α` gets predicates `is_open`, `is_closed` and functions `interior`, `closure` and
-`frontier`. Each point `x` of `α` gets a neighborhood filter `𝓝 x`.
+`frontier`. Each point `x` of `α` gets a neighborhood filter `𝓝 x`. A filter `F` on `α` has
+`x` as a cluster point if `is_cluster_pt x F : 𝓝 x ⊓ F ≠ ⊥`. A map `f : ι → α` clusters at `x`
+along `F : filter ι` if `map_cluster_pt x F f : cluster_pt x (map f F)`. In particular
+the notion of cluster point of a sequence `u` is `map_cluster_pt x at_top u`.
 
 This file also defines locally finite families of subsets of `α`.
 
@@ -37,9 +40,13 @@ topological space, interior, closure, frontier, neighborhood, continuity, contin
 -/
 
 open set filter classical
-open_locale classical
+open_locale classical filter
 
 universes u v w
+
+/-!
+### Topological spaces
+-/
 
 /-- A topology on `α`. -/
 @[protect_proj] structure topological_space (α : Type u) :=
@@ -189,6 +196,10 @@ by rw [this]; exact is_closed_union (is_closed_compl_iff.mpr hp) hq
 lemma is_open_neg : is_closed {a | p a} → is_open {a | ¬ p a} :=
 is_open_compl_iff.mpr
 
+/-!
+### Interior of a set
+-/
+
 /-- The interior of a set `s` is the largest open subset of `s`. -/
 def interior (s : set α) : set α := ⋃₀ {t | is_open t ∧ t ⊆ s}
 
@@ -253,6 +264,10 @@ subset.antisymm
 
 lemma is_open_iff_forall_mem_open : is_open s ↔ ∀ x ∈ s, ∃ t ⊆ s, is_open t ∧ x ∈ t :=
 by rw ← subset_interior_iff_open; simp only [subset_def, mem_interior]
+
+/-!
+### Closure of a set
+-/
 
 /-- The closure of `s` is the smallest closed set containing `s`. -/
 def closure (s : set α) : set α := ⋂₀ {t | is_closed t ∧ s ⊆ t}
@@ -350,6 +365,10 @@ lemma dense_of_subset_dense {s₁ s₂ : set α} (h : s₁ ⊆ s₂) (hd : closu
   closure s₂ = univ :=
 by { rw [← univ_subset_iff, ← hd], exact closure_mono h }
 
+/-!
+### Frontier of a set
+-/
+
 /-- The frontier of a set is the set of points between the closure and interior. -/
 def frontier (s : set α) : set α := closure s \ interior s
 
@@ -386,7 +405,7 @@ by rw [frontier, interior_eq_of_open hs]
 lemma is_closed_frontier {s : set α} : is_closed (frontier s) :=
 by rw frontier_eq_closure_inter_closure; exact is_closed_inter is_closed_closure is_closed_closure
 
-/-- The frontier of a set has no interior point. -/
+/-- The frontier of a closed set has no interior point. -/
 lemma interior_frontier {s : set α} (h : is_closed s) : interior (frontier s) = ∅ :=
 begin
   have A : frontier s = s \ interior s, from h.frontier_eq,
@@ -397,12 +416,16 @@ begin
   rwa [inter_diff_self, subset_empty_iff] at this,
 end
 
+/-!
+### Neighborhoods
+-/
+
 /-- neighbourhood filter -/
-def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal s)
+def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s)
 
 localized "notation `𝓝` := nhds" in topological_space
 
-lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal s) := rfl
+lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s) := rfl
 
 lemma nhds_basis_opens (a : α) : (𝓝 a).has_basis (λ s : set α, a ∈ s ∧ is_open s) (λ x, x) :=
 has_basis_binfi_principal
@@ -413,7 +436,7 @@ has_basis_binfi_principal
 lemma le_nhds_iff {f a} : f ≤ 𝓝 a ↔ ∀ s : set α, a ∈ s → is_open s → s ∈ f :=
 by simp [nhds_def]
 
-lemma nhds_le_of_le {f a} {s : set α} (h : a ∈ s) (o : is_open s) (sf : principal s ≤ f) : 𝓝 a ≤ f :=
+lemma nhds_le_of_le {f a} {s : set α} (h : a ∈ s) (o : is_open s) (sf : 𝓟 s ≤ f) : 𝓝 a ≤ f :=
 by rw nhds_def; exact infi_le_of_le s (infi_le_of_le ⟨h, o⟩ sf)
 
 lemma mem_nhds_sets_iff {a : α} {s : set α} :
@@ -422,7 +445,7 @@ lemma mem_nhds_sets_iff {a : α} {s : set α} :
   ⟨λ ⟨t, ⟨hat, ht⟩, hts⟩, ⟨t, hts, ht, hat⟩, λ ⟨t, hts, ht, hat⟩, ⟨t, ⟨hat, ht⟩, hts⟩⟩
 
 lemma map_nhds {a : α} {f : α → β} :
-  map f (𝓝 a) = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal (image f s)) :=
+  map f (𝓝 a) = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 (image f s)) :=
 ((nhds_basis_opens a).map f).eq_binfi
 
 attribute [irreducible] nhds
@@ -491,27 +514,90 @@ end
 @[simp] lemma nhds_ne_bot {a : α} : 𝓝 a ≠ ⊥ :=
 ne_bot_of_le_ne_bot pure_ne_bot (pure_le_nhds a)
 
-lemma interior_eq_nhds {s : set α} : interior s = {a | 𝓝 a ≤ principal s} :=
+/-!
+### Cluster points
+
+In this section we define [cluster points](https://en.wikipedia.org/wiki/Limit_point)
+(also known as limit points and accumulation points) of a filter and of a sequence.
+-/
+
+/-- A point `x` is a cluster point of a filter `F` if 𝓝 x ⊓ F ≠ ⊥. Also known as
+an accumulation point or a limit point. -/
+def cluster_pt (x : α) (F : filter α) : Prop := 𝓝 x ⊓ F ≠ ⊥
+
+lemma cluster_pt_iff {x : α} {F : filter α} :
+  cluster_pt x F ↔ ∀ {U V : set α}, U ∈ 𝓝 x → V ∈ F → (U ∩ V).nonempty :=
+by rw [cluster_pt, inf_ne_bot_iff]
+
+lemma cluster_pt.of_le_nhds {x : α} {f : filter α} (H : f ≤ 𝓝 x) (h : f ≠ ⊥) : cluster_pt x f :=
+by rwa [cluster_pt, inf_comm, inf_eq_left.mpr H]
+
+lemma cluster_pt.of_nhds_le {x : α} {f : filter α} (H : 𝓝 x ≤ f) : cluster_pt x f :=
+by simp [cluster_pt, inf_eq_left.mpr H]
+
+lemma cluster_pt.mono {x : α} {f g : filter α} (H : cluster_pt x f) (h : f ≤ g) :
+  cluster_pt x g :=
+ne_bot_of_le_ne_bot H $ inf_le_inf_left _ h
+
+lemma cluster_pt.of_inf_left {x : α} {f g : filter α} (H : cluster_pt x $ f ⊓ g) :
+  cluster_pt x f :=
+H.mono inf_le_left
+
+lemma cluster_pt.of_inf_right {x : α} {f g : filter α} (H : cluster_pt x $ f ⊓ g) :
+  cluster_pt x g :=
+H.mono inf_le_right
+
+/-- A point `x` is a cluster point of a sequence `u` along a filter `F` if it is a cluster point
+of `map u F`. -/
+def map_cluster_pt {ι :Type*} (x : α) (F : filter ι) (u : ι → α) : Prop := cluster_pt x (map u F)
+
+lemma map_cluster_pt_iff {ι :Type*} (x : α) (F : filter ι) (u : ι → α) :
+  map_cluster_pt x F u ↔ ∀ s ∈ 𝓝 x, ∃ᶠ a in F, u a ∈ s :=
+by { simp_rw [map_cluster_pt, cluster_pt, inf_ne_bot_iff_frequently_left, frequently_map], refl }
+
+lemma map_cluster_pt_of_comp {ι δ :Type*} {F : filter ι} {φ : δ → ι} {p : filter δ}
+  {x : α} {u : ι → α} (hp : p ≠ ⊥) (h : tendsto φ p F) (H : tendsto (u ∘ φ) p (𝓝 x)) :
+  map_cluster_pt x F u :=
+begin
+  have := calc
+  map (u ∘ φ) p = map u (map φ p) : map_map
+  ... ≤ map u F : map_mono h,
+  have : map (u ∘ φ) p ≤ 𝓝 x ⊓ map u F,
+    from le_inf H this,
+  exact ne_bot_of_le_ne_bot (map_ne_bot hp) this
+end
+
+/-!
+### Interior, closure and frontier in terms of neighborhoods
+-/
+
+lemma interior_eq_nhds {s : set α} : interior s = {a | 𝓝 a ≤ 𝓟 s} :=
 set.ext $ λ x, by simp only [mem_interior, le_principal_iff, mem_nhds_sets_iff]; refl
 
 lemma mem_interior_iff_mem_nhds {s : set α} {a : α} :
   a ∈ interior s ↔ s ∈ 𝓝 a :=
 by simp only [interior_eq_nhds, le_principal_iff]; refl
 
-lemma is_open_iff_nhds {s : set α} : is_open s ↔ ∀a∈s, 𝓝 a ≤ principal s :=
+lemma subset_interior_iff_nhds {s V : set α} : s ⊆ interior V ↔ ∀ x ∈ s, V ∈ 𝓝 x :=
+show (∀ x, x ∈ s →  x ∈ _) ↔ _, by simp_rw mem_interior_iff_mem_nhds
+
+lemma is_open_iff_nhds {s : set α} : is_open s ↔ ∀a∈s, 𝓝 a ≤ 𝓟 s :=
 calc is_open s ↔ s ⊆ interior s : subset_interior_iff_open.symm
-  ... ↔ (∀a∈s, 𝓝 a ≤ principal s) : by rw [interior_eq_nhds]; refl
+  ... ↔ (∀a∈s, 𝓝 a ≤ 𝓟 s) : by rw [interior_eq_nhds]; refl
 
 lemma is_open_iff_mem_nhds {s : set α} : is_open s ↔ ∀a∈s, s ∈ 𝓝 a :=
 is_open_iff_nhds.trans $ forall_congr $ λ _, imp_congr_right $ λ _, le_principal_iff
 
-lemma closure_eq_nhds {s : set α} : closure s = {a | 𝓝 a ⊓ principal s ≠ ⊥} :=
+lemma closure_eq_cluster_pts {s : set α} : closure s = {a | cluster_pt a (𝓟 s)} :=
 calc closure s = - interior (- s) : closure_eq_compl_interior_compl
-  ... = {a | ¬ 𝓝 a ≤ principal (-s)} : by rw [interior_eq_nhds]; refl
-  ... = {a | 𝓝 a ⊓ principal s ≠ ⊥} : set.ext $ assume a, not_congr
+  ... = {a | ¬ 𝓝 a ≤ 𝓟 (-s)} : by rw [interior_eq_nhds]; refl
+  ... = {a | cluster_pt a (𝓟 s)} : set.ext $ assume a, not_congr
     (inf_eq_bot_iff_le_compl
-      (show principal s ⊔ principal (-s) = ⊤, by simp only [sup_principal, union_compl_self, principal_univ])
+      (show 𝓟 s ⊔ 𝓟 (-s) = ⊤, by simp only [sup_principal, union_compl_self, principal_univ])
       (by simp only [inf_principal, inter_compl_self, principal_empty])).symm
+
+theorem mem_closure_iff_cluster_pt {s : set α} {a : α} : a ∈ closure s ↔ cluster_pt a (𝓟 s) :=
+by simpa only [closure_eq_cluster_pts]
 
 theorem mem_closure_iff_nhds {s : set α} {a : α} :
   a ∈ closure s ↔ ∀ t ∈ 𝓝 a, (t ∩ s).nonempty :=
@@ -534,25 +620,36 @@ mem_closure_iff_nhds.trans
 lemma mem_closure_iff_ultrafilter {s : set α} {x : α} :
   x ∈ closure s ↔ ∃ (u : ultrafilter α), s ∈ u.val ∧ u.val ≤ 𝓝 x :=
 begin
-  rw closure_eq_nhds, change 𝓝 x ⊓ principal s ≠ ⊥ ↔ _, symmetry,
+  rw closure_eq_cluster_pts, change cluster_pt x (𝓟 s) ↔ _, symmetry,
   convert exists_ultrafilter_iff _, ext u,
   rw [←le_principal_iff, inf_comm, le_inf_iff]
 end
 
-lemma is_closed_iff_nhds {s : set α} : is_closed s ↔ ∀a, 𝓝 a ⊓ principal s ≠ ⊥ → a ∈ s :=
+lemma is_closed_iff_nhds {s : set α} : is_closed s ↔ ∀a, cluster_pt a (𝓟 s) → a ∈ s :=
 calc is_closed s ↔ closure s = s : by rw [closure_eq_iff_is_closed]
   ... ↔ closure s ⊆ s : ⟨assume h, by rw h, assume h, subset.antisymm h subset_closure⟩
-  ... ↔ (∀a, 𝓝 a ⊓ principal s ≠ ⊥ → a ∈ s) : by rw [closure_eq_nhds]; refl
+  ... ↔ (∀a, cluster_pt a (𝓟 s) → a ∈ s) : by rw [closure_eq_cluster_pts]; refl
 
 lemma closure_inter_open {s t : set α} (h : is_open s) : s ∩ closure t ⊆ closure (s ∩ t) :=
 assume a ⟨hs, ht⟩,
 have s ∈ 𝓝 a, from mem_nhds_sets h hs,
-have 𝓝 a ⊓ principal s = 𝓝 a, by rwa [inf_eq_left, le_principal_iff],
-have 𝓝 a ⊓ principal (s ∩ t) ≠ ⊥,
-  from calc 𝓝 a ⊓ principal (s ∩ t) = 𝓝 a ⊓ (principal s ⊓ principal t) : by rw inf_principal
-    ... = 𝓝 a ⊓ principal t : by rw [←inf_assoc, this]
-    ... ≠ ⊥ : by rw [closure_eq_nhds] at ht; assumption,
-by rwa [closure_eq_nhds]
+have 𝓝 a ⊓ 𝓟 s = 𝓝 a, by rwa [inf_eq_left, le_principal_iff],
+have cluster_pt a (𝓟 (s ∩ t)),
+  from calc 𝓝 a ⊓ 𝓟 (s ∩ t) = 𝓝 a ⊓ (𝓟 s ⊓ 𝓟 t) : by rw inf_principal
+    ... = 𝓝 a ⊓ 𝓟 t : by rw [←inf_assoc, this]
+    ... ≠ ⊥ : by rw [closure_eq_cluster_pts] at ht; assumption,
+by rwa [closure_eq_cluster_pts]
+
+lemma dense_inter_of_open_left {s t : set α} (hs : closure s = univ) (ht : closure t = univ)
+  (hso : is_open s) :
+  closure (s ∩ t) = univ :=
+eq_univ_of_subset (closure_minimal (closure_inter_open hso) is_closed_closure) $
+  by simp only [*, inter_univ]
+
+lemma dense_inter_of_open_right {s t : set α} (hs : closure s = univ) (ht : closure t = univ)
+  (hto : is_open t) :
+  closure (s ∩ t) = univ :=
+inter_comm t s ▸ dense_inter_of_open_left ht hs hto
 
 lemma closure_diff {s t : set α} : closure s - closure t ⊆ closure (s - t) :=
 calc closure s \ closure t = (- closure t) ∩ closure s : by simp only [diff_eq, inter_comm]
@@ -562,12 +659,12 @@ calc closure s \ closure t = (- closure t) ∩ closure s : by simp only [diff_eq
 
 lemma mem_of_closed_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
   (hb : b ≠ ⊥) (hf : tendsto f b (𝓝 a)) (hs : is_closed s) (h : f ⁻¹' s ∈ b) : a ∈ s :=
-have b.map f ≤ 𝓝 a ⊓ principal s,
+have b.map f ≤ 𝓝 a ⊓ 𝓟 s,
   from le_trans (le_inf (le_refl _) (le_principal_iff.mpr h)) (inf_le_inf_right _ hf),
 is_closed_iff_nhds.mp hs a $ ne_bot_of_le_ne_bot (map_ne_bot hb) this
 
 lemma mem_of_closed_of_tendsto' {f : β → α} {x : filter β} {a : α} {s : set α}
-  (hf : tendsto f x (𝓝 a)) (hs : is_closed s) (h : x ⊓ principal (f ⁻¹' s) ≠ ⊥) : a ∈ s :=
+  (hf : tendsto f x (𝓝 a)) (hs : is_closed s) (h : x ⊓ 𝓟 (f ⁻¹' s) ≠ ⊥) : a ∈ s :=
 is_closed_iff_nhds.mp hs _ $ ne_bot_of_le_ne_bot (@map_ne_bot _ _ _ f h) $
   le_inf (le_trans (map_mono $ inf_le_left) hf) $
     le_trans (map_mono $ inf_le_right_of_le $
@@ -582,10 +679,10 @@ mem_of_closed_of_tendsto hb hf (is_closed_closure) $
 Then `f` tends to `a` along `l` restricted to `s` if and only it tends to `a` along `l`. -/
 lemma tendsto_inf_principal_nhds_iff_of_forall_eq {f : β → α} {l : filter β} {s : set β}
   {a : α} (h : ∀ x ∉ s, f x = a) :
-  tendsto f (l ⊓ principal s) (𝓝 a) ↔ tendsto f l (𝓝 a) :=
+  tendsto f (l ⊓ 𝓟 s) (𝓝 a) ↔ tendsto f l (𝓝 a) :=
 begin
   rw [tendsto_iff_comap, tendsto_iff_comap],
-  replace h : principal (-s) ≤ comap f (𝓝 a),
+  replace h : 𝓟 (-s) ≤ comap f (𝓝 a),
   { rintros U ⟨t, ht, htU⟩ x hx,
     have : f x ∈ t, from (h x hx).symm ▸ mem_of_nhds ht,
     exact htU this },
@@ -595,6 +692,10 @@ begin
     inf_top_eq, sup_le_iff] at this,
   exact this.1
 end
+
+/-!
+### Limits of filters in topological spaces
+-/
 
 section lim
 
@@ -623,6 +724,10 @@ Lim_spec h
 
 end lim
 
+/-!
+### Locally finite families
+-/
+
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 section locally_finite
 
@@ -632,14 +737,13 @@ def locally_finite (f : β → set α) :=
 ∀x:α, ∃t ∈ 𝓝 x, finite {i | (f i ∩ t).nonempty }
 
 lemma locally_finite_of_finite {f : β → set α} (h : finite (univ : set β)) : locally_finite f :=
-assume x, ⟨univ, univ_mem_sets, finite_subset h $ subset_univ _⟩
+assume x, ⟨univ, univ_mem_sets, h.subset $ subset_univ _⟩
 
 lemma locally_finite_subset
   {f₁ f₂ : β → set α} (hf₂ : locally_finite f₂) (hf : ∀b, f₁ b ⊆ f₂ b) : locally_finite f₁ :=
 assume a,
 let ⟨t, ht₁, ht₂⟩ := hf₂ a in
-⟨t, ht₁, finite_subset ht₂ $ assume i hi,
-   hi.mono $ inter_subset_inter (hf i) $ subset.refl _⟩
+⟨t, ht₁, ht₂.subset $ assume i hi, hi.mono $ inter_subset_inter (hf i) $ subset.refl _⟩
 
 lemma is_closed_Union_of_locally_finite {f : β → set α}
   (h₁ : locally_finite f) (h₂ : ∀i, is_closed (f i)) : is_closed (⋃i, f i) :=
@@ -650,14 +754,14 @@ is_open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f i),
     by simp only [mem_nhds_sets_iff]; exact assume i, ⟨- f i, subset.refl _, h₂ i, this i⟩,
   let ⟨t, h_sets, (h_fin : finite {i | (f i ∩ t).nonempty })⟩ := h₁ a in
 
-  calc 𝓝 a ≤ principal (t ∩ (⋂ i∈{i | (f i ∩ t).nonempty }, - f i)) :
+  calc 𝓝 a ≤ 𝓟 (t ∩ (⋂ i∈{i | (f i ∩ t).nonempty }, - f i)) :
   begin
     rw [le_principal_iff],
     apply @filter.inter_mem_sets _ (𝓝 a) _ _ h_sets,
     apply @filter.Inter_mem_sets _ (𝓝 a) _ _ _ h_fin,
     exact assume i h, this i
   end
-  ... ≤ principal (- ⋃i, f i) :
+  ... ≤ 𝓟 (- ⋃i, f i) :
   begin
     simp only [principal_mono, subset_def, mem_compl_eq, mem_inter_eq,
       mem_Inter, mem_set_of_eq, mem_Union, and_imp, not_exists,
@@ -668,6 +772,10 @@ is_open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f i),
 end locally_finite
 
 end topological_space
+
+/-!
+### Continuity
+-/
 
 section continuous
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
@@ -827,16 +935,16 @@ end
 
 lemma image_closure_subset_closure_image {f : α → β} {s : set α} (h : continuous f) :
   f '' closure s ⊆ closure (f '' s) :=
-have ∀ (a : α), 𝓝 a ⊓ principal s ≠ ⊥ → 𝓝 (f a) ⊓ principal (f '' s) ≠ ⊥,
+have ∀ (a : α), cluster_pt a (𝓟 s) → cluster_pt (f a) (𝓟 (f '' s)),
   from assume a ha,
-  have h₁ : ¬ map f (𝓝 a ⊓ principal s) = ⊥,
+  have h₁ : ¬ map f (𝓝 a ⊓ 𝓟 s) = ⊥,
     by rwa[map_eq_bot_iff],
-  have h₂ : map f (𝓝 a ⊓ principal s) ≤ 𝓝 (f a) ⊓ principal (f '' s),
+  have h₂ : map f (𝓝 a ⊓ 𝓟 s) ≤ 𝓝 (f a) ⊓ 𝓟 (f '' s),
     from le_inf
       (le_trans (map_mono inf_le_left) $ by rw [continuous_iff_continuous_at] at h; exact h a)
       (le_trans (map_mono inf_le_right) $ by simp; exact subset.refl _),
   ne_bot_of_le_ne_bot h₁ h₂,
-by simp [image_subset_iff, closure_eq_nhds]; assumption
+by simp [image_subset_iff, closure_eq_cluster_pts]; assumption
 
 lemma mem_closure {s : set α} {t : set β} {f : α → β} {a : α}
   (hf : continuous f) (ha : a ∈ closure s) (ht : ∀a∈s, f a ∈ t) : f a ∈ closure t :=

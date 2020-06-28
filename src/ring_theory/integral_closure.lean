@@ -262,10 +262,7 @@ begin
   rcases is_integral_iff_is_integral_closure_finite.1 hr with ⟨s, hfs, hr⟩,
   apply algebra.mem_bot.2, refine ⟨⟨_, _⟩, rfl⟩,
   refine (mem_integral_closure_iff_mem_fg _ _).2 ⟨algebra.adjoin _ (subtype.val '' s ∪ {r}),
-    algebra.fg_trans
-      (fg_adjoin_of_finite (set.finite_image _ hfs)
-        (λ y ⟨x, hx, hxy⟩, hxy ▸ x.2))
-      _,
+    algebra.fg_trans (fg_adjoin_of_finite (hfs.image _) (λ y ⟨x, hx, hxy⟩, hxy ▸ x.2)) _,
     algebra.subset_adjoin (or.inr rfl)⟩,
   refine fg_adjoin_singleton_of_integral _ _,
   rcases hr with ⟨p, hmp, hpx⟩,
@@ -366,3 +363,14 @@ lemma algebra.is_integral_trans (A_int : ∀ x : A, is_integral R x)(B_int : ∀
 λ x, is_integral_trans A_int x (B_int x)
 
 end algebra
+
+section integral_domain
+variables {R S : Type*} [comm_ring R] [integral_domain S] [algebra R S]
+
+instance : integral_domain (integral_closure R S) :=
+{ zero_ne_one := mt subtype.ext.mp zero_ne_one,
+  eq_zero_or_eq_zero_of_mul_eq_zero := λ ⟨a, ha⟩ ⟨b, hb⟩ h,
+    or.imp subtype.ext.mpr subtype.ext.mpr (eq_zero_or_eq_zero_of_mul_eq_zero (subtype.ext.mp h)),
+  ..(integral_closure R S).comm_ring R S }
+
+end integral_domain

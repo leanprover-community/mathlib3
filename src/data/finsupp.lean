@@ -1490,6 +1490,11 @@ lemma sum_smul_index [ring β] [add_comm_monoid γ] {g : α →₀ β} {b : β} 
   (h0 : ∀i, h i 0 = 0) : (b • g).sum h = g.sum (λi a, h i (b * a)) :=
 finsupp.sum_map_range_index h0
 
+lemma sum_smul_index' [semiring β] [add_comm_monoid γ] [semimodule β γ] [add_comm_monoid δ]
+  {g : α →₀ γ} {b : β} {h : α → γ → δ} (h0 : ∀i, h i 0 = 0) :
+  (b • g).sum h = g.sum (λi c, h i (b • c)) :=
+finsupp.sum_map_range_index h0
+
 section
 variables [semiring β] [semiring γ]
 
@@ -1812,6 +1817,6 @@ end
 The set of `m : σ →₀ ℕ` that are coordinatewise less than or equal to `n`,
 but not equal to `n` everywhere, is a finite set. -/
 lemma finite_lt_nat (n : σ →₀ ℕ) : set.finite {m | m < n} :=
-set.finite_subset (finite_le_nat n) $ λ m, le_of_lt
+(finite_le_nat n).subset $ λ m, le_of_lt
 
 end finsupp

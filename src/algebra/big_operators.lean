@@ -7,6 +7,7 @@ Authors: Johannes Hölzl
 import data.finset
 import data.nat.enat
 import tactic.omega
+import tactic.abel
 
 /-!
 # Big operators
@@ -338,6 +339,11 @@ by haveI := classical.dec_eq α; exact
     by rw [prod_image]; exact assume x _ y _, subtype.eq
   ... = _ : by rw [attach_image_val]
 
+@[to_additive]
+lemma prod_eq_one {f : α → β} {s : finset α} (h : ∀x∈s, f x = 1) : (∏ x in s, f x) = 1 :=
+calc (∏ x in s, f x) = ∏ x in s, 1 : finset.prod_congr rfl h
+  ... = 1 : finset.prod_const_one
+
 @[to_additive] lemma prod_apply_dite {s : finset α} {p : α → Prop} {hp : decidable_pred p}
   (f : Π (x : α), p x → γ) (g : Π (x : α), ¬p x → γ) (h : γ → β) :
   (∏ x in s, h (if hx : p x then f x hx else g x hx)) =
@@ -378,13 +384,33 @@ by simp [prod_apply_dite _ _ (λ x, x)]
   (∏ x in s.filter p, f x) * (∏ x in s.filter (λ x, ¬ p x), g x) :=
 by simp [prod_apply_ite _ _ (λ x, x)]
 
+@[simp, to_additive]
+lemma prod_dite_eq [decidable_eq α] (s : finset α) (a : α) (b : Π x : α, a = x → β) :
+  (∏ x in s, (if h : a = x then b x h else 1)) = ite (a ∈ s) (b a rfl) 1 :=
+begin
+  split_ifs with h,
+  { rw [finset.prod_eq_single a, dif_pos rfl],
+    { intros, rw dif_neg, cc },
+    { cc } },
+  { rw finset.prod_eq_one,
+    intros, rw dif_neg, intro, cc }
+end
+
+@[simp, to_additive]
+lemma prod_dite_eq' [decidable_eq α] (s : finset α) (a : α) (b : Π x : α, x = a → β) :
+  (∏ x in s, (if h : x = a then b x h else 1)) = ite (a ∈ s) (b a rfl) 1 :=
+begin
+  split_ifs with h,
+  { rw [finset.prod_eq_single a, dif_pos rfl],
+    { intros, rw dif_neg, cc },
+    { cc } },
+  { rw finset.prod_eq_one,
+    intros, rw dif_neg, intro, cc }
+end
+
 @[simp, to_additive] lemma prod_ite_eq [decidable_eq α] (s : finset α) (a : α) (b : α → β) :
   (∏ x in s, (ite (a = x) (b x) 1)) = ite (a ∈ s) (b a) 1 :=
-begin
-  rw ←finset.prod_filter,
-  split_ifs;
-  simp only [filter_eq, if_true, if_false, h, prod_empty, prod_singleton],
-end
+prod_dite_eq s a (λ x _, b x)
 
 /--
   When a product is taken over a conditional whose condition is an equality test on the index
@@ -394,11 +420,7 @@ end
 -/
 @[simp, to_additive] lemma prod_ite_eq' [decidable_eq α] (s : finset α) (a : α) (b : α → β) :
   (∏ x in s, (ite (x = a) (b x) 1)) = ite (a ∈ s) (b a) 1 :=
-begin
-  rw ←prod_ite_eq,
-  congr, ext x,
-  by_cases x = a; finish
-end
+prod_dite_eq' s a (λ x _, b x)
 
 /--
   Reorder a product.
@@ -572,6 +594,19 @@ lemma sum_range_induction {M : Type*} [add_comm_monoid M]
   ∑ k in finset.range n, f k = s n :=
 @prod_range_induction (multiplicative M) _ f s h0 h n
 
+/-- A telescoping sum along `{0, ..., n-1}` of an additive commutative group valued function
+reduces to the difference of the last and first terms.-/
+lemma sum_range_sub {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
+  ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
+by { apply sum_range_induction; abel, simp }
+
+
+/-- A telescoping product along `{0, ..., n-1}` of a commutative group valued function
+reduces to the ratio of the last and first factors.-/
+lemma prod_range_div {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
+  ∏ i in range n, (f (i+1) * (f i)⁻¹ ) = f n * (f 0)⁻¹ :=
+by apply @sum_range_sub (additive M)
+
 /-- A telescoping sum along `{0, ..., n-1}` of an `ℕ`-valued function reduces to the difference of
 the last and first terms when the function we are summing is monotone. -/
 lemma sum_range_sub_of_monotone {f : ℕ → ℕ} (h : monotone f) (n : ℕ) :
@@ -694,11 +729,6 @@ calc ∏ a in s, f (g a)
   prod_congr rfl (λ b hb, prod_congr rfl (by simp {contextual := tt}))
 ... = ∏ b in s.image g, f b ^ (s.filter (λ a, g a = b)).card :
   prod_congr rfl (λ _ _, prod_const _)
-
-@[to_additive]
-lemma prod_eq_one {f : α → β} {s : finset α} (h : ∀x∈s, f x = 1) : (∏ x in s, f x) = 1 :=
-calc (∏ x in s, f x) = ∏ x in s, 1 : finset.prod_congr rfl h
-  ... = 1 : finset.prod_const_one
 
 /-- A product over all subsets of `s ∪ {x}` is obtained by multiplying the product over all subsets
 of `s`, and over all subsets of `s` to which one adds `x`. -/
@@ -1098,7 +1128,7 @@ begin
   apply finset.induction_on s,
   exact ⟨not.elim one_ne_zero, λ ⟨_, H, _⟩, H.elim⟩,
   assume a s ha ih,
-  rw [prod_insert ha, mul_eq_zero_iff_eq_zero_or_eq_zero, bex_def, exists_mem_insert, ih, ← bex_def]
+  rw [prod_insert ha, mul_eq_zero, bex_def, exists_mem_insert, ih, ← bex_def]
 end
 
 theorem prod_ne_zero_iff : (∏ x in s, f x) ≠ 0 ↔ (∀ a ∈ s, f a ≠ 0) :=
@@ -1116,7 +1146,7 @@ begin
   exact (λ _, le_refl _),
   assume a s ha ih h,
   have : f a + (∑ x in s, f x) ≤ g a + (∑ x in s, g x),
-    from add_le_add' (h _ (mem_insert_self _ _)) (ih $ assume x hx, h _ $ mem_insert_of_mem hx),
+    from add_le_add (h _ (mem_insert_self _ _)) (ih $ assume x hx, h _ $ mem_insert_of_mem hx),
   by simpa only [sum_insert ha]
 end
 

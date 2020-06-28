@@ -125,8 +125,8 @@ noncomputable instance : semilattice_sup_top (enorm 𝕜 V) :=
   { to_fun := λ x, max (e₁ x) (e₂ x),
     eq_zero' := λ x h, e₁.eq_zero_iff.1 (ennreal.max_eq_zero_iff.1 h).1,
     map_add_le' := λ x y, max_le
-      (le_trans (e₁.map_add_le _ _) $ add_le_add' (le_max_left _ _) (le_max_left _ _))
-      (le_trans (e₂.map_add_le _ _) $ add_le_add' (le_max_right _ _) (le_max_right _ _)),
+      (le_trans (e₁.map_add_le _ _) $ add_le_add (le_max_left _ _) (le_max_left _ _))
+      (le_trans (e₂.map_add_le _ _) $ add_le_add (le_max_right _ _) (le_max_right _ _)),
     map_smul_le' := λ c x, le_of_eq $ by simp only [map_smul, ennreal.mul_max] },
   le_sup_left := λ e₁ e₂ x, le_max_left _ _,
   le_sup_right := λ e₁ e₂ x, le_max_right _ _,

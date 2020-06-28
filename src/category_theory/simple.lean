@@ -25,8 +25,7 @@ class simple (X : C) : Type (max u v) :=
 
 @[ext] lemma simple.ext {X : C} {a b : simple.{v} X} : a = b :=
 begin
-  unfreezeI,
-  cases a, cases b,
+  casesI a, casesI b,
   congr,
   funext Y f m,
   ext,
@@ -87,11 +86,11 @@ def simple_of_cosimple (X : C) (h : ∀ {Z : C} (f : X ⟶ Z) [epi f], is_iso.{v
     have hx := cokernel.π_of_epi f,
     by_contradiction h,
     push_neg at h,
-    subst h,
+    substI h,
     exact h _ (cokernel.π_of_zero _ _) hx },
   { intro hf,
     suffices : epi f,
-    { apply abelian.is_iso_of_mono_of_epi },
+    { resetI, apply abelian.is_iso_of_mono_of_epi },
     apply preadditive.epi_of_cokernel_zero,
     by_contradiction h',
     exact cokernel_not_iso_of_nonzero hf ((h _).symm h') }

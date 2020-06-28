@@ -132,7 +132,9 @@ def infinite_neg (x : ℝ*) := ∀ r : ℝ, x < r
 /-- A hyperreal number is infinite if it is infinite positive or infinite negative -/
 def infinite (x : ℝ*) := infinite_pos x ∨ infinite_neg x
 
--- SOME FACTS ABOUT ST
+/-!
+### Some facts about `st`
+-/
 
 private lemma is_st_unique' (x : ℝ*) (r s : ℝ) (hr : is_st x r) (hs : is_st x s) (hrs : r < s) :
   false :=
@@ -294,7 +296,9 @@ lemma lt_of_st_lt {x y : ℝ*} (hix : ¬ infinite x) (hiy : ¬ infinite y) :
 have hx' : _ := is_st_st' hix, have hy' : _ := is_st_st' hiy,
 lt_of_is_st_lt hx' hy'
 
--- BASIC LEMMAS ABOUT INFINITE
+/-!
+### Basic lemmas about infinite
+-/
 
 lemma infinite_pos_def {x : ℝ*} : infinite_pos x ↔ ∀ r : ℝ, x > r := by rw iff_eq_eq; refl
 
@@ -479,7 +483,9 @@ theorem not_infinite_real (r : ℝ) : ¬ infinite r := by rw not_infinite_iff_ex
 theorem not_real_of_infinite {x : ℝ*} : infinite x → ∀ r : ℝ, x ≠ r :=
 λ hi r hr,  not_infinite_real r $ @eq.subst _ infinite _ _ hr hi
 
--- FACTS ABOUT ST THAT REQUIRE SOME INFINITE MACHINERY
+/-!
+### Facts about `st` that require some infinite machinery
+-/
 
 private lemma is_st_mul' {x y : ℝ*} {r s : ℝ} (hxr : is_st x r) (hys : is_st y s) (hs : s ≠ 0) :
   is_st (x * y) (r * s) :=
@@ -555,7 +561,9 @@ have hxy : _ := is_st_st' (not_infinite_mul hx hy),
 have hxy' : _ := is_st_mul hx' hy',
 is_st_unique hxy hxy'
 
--- BASIC LEMMAS ABOUT INFINITESIMAL
+/-!
+### Basic lemmas about infinitesimal
+-/
 
 theorem infinitesimal_def {x : ℝ*} :
   infinitesimal x ↔ (∀ r : ℝ, 0 < r → -(r : ℝ*) < x ∧ x < r) :=
@@ -666,7 +674,9 @@ by convert infinite_neg_iff_infinitesimal_inv_neg; simp only [inv_inv']
 theorem infinitesimal_iff_infinite_inv {x : ℝ*} (h : x ≠ 0) : infinitesimal x ↔ infinite x⁻¹ :=
 by convert (infinite_iff_infinitesimal_inv (inv_ne_zero h)).symm; simp only [inv_inv']
 
--- ST STUFF THAT REQUIRES INFINITESIMAL MACHINERY
+/-!
+### `st` stuff that requires infinitesimal machinery
+-/
 
 theorem is_st_of_tendsto {f : ℕ → ℝ} {r : ℝ} (hf : tendsto f at_top (𝓝 r)) :
   is_st (of_seq f) r :=
@@ -694,7 +704,9 @@ begin
   exact st_of_is_st (is_st_inv h1 (is_st_st' h2)),
 end
 
--- INFINITE STUFF THAT REQUIRES INFINITESIMAL MACHINERY
+/-!
+### Infinite stuff that requires infinitesimal machinery
+-/
 
 lemma infinite_pos_omega : infinite_pos ω :=
 infinite_pos_iff_infinitesimal_inv_pos.mpr ⟨infinitesimal_epsilon, epsilon_pos⟩

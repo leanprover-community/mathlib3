@@ -12,8 +12,29 @@ import algebra.pi_instances
 The germ of a function `f : α → β` at a filter `l : filter α` is the equivalence class of `f`
 with respect to the equivalence relation `eventually_eq l`: `f ≈ g` means `∀ᶠ x in l, f x = g x`.
 
-We define `mk l f` to be the germ of `f` at `l` and `const l c` to be the germ of the constant
-function at `l`.
+## Main definitions
+
+We define
+
+* `germ l β` to be the space of germs of functions `α → β` at a filter `l : filter α`;
+* coercion from `α → β` to `germ l β`: `(f : germ l β)` is the germ of `f : α → β`
+  at `l : filter α`; this coercion is declared as `has_coe_t`, so it does not require an explicit
+  up arrow `↑`;
+* coercion from `β` to `germ l β`: `(↑c : germ l β)` is the germ of the constant function
+  `λ x:α, c` at a filter `l`; this coercion is declared as `has_lift_t`, so it requires an explicit
+  up arrow `↑`;
+* `map (F : β → γ) (f : germ l β)` to be the composition of a function `F` and a germ `f`;
+* `map₂ (F : β → γ → δ) (f : germ l β) (g : germ l γ)` to be the germ of `λ x, F (f x) (g x)`
+  at `l`;
+* `f.tendsto lb`: we say that a germ `f : germ l β` tends to a filter `lb` if its representatives
+  tend to `lb` along `l`;
+* `f.comp_tendsto g hg` and `f.comp_tendsto' g hg`: given `f : germ l β` and a function
+  `g : γ → α` (resp., a germ `g : germ lc α`), if `g` tends to `l` along `lc`, then the composition
+  `f ∘ g` is a well-defined germ at `lc`;
+* `germ.lift_pred`, `germ.lift_rel`: lift a predicate or a relation to the space of germs:
+  `(f : germ l β).lift_pred p` means `∀ᶠ x in l, p (f x)`, and similarly for a relation.
+
+We also define `map (F : β → γ) : germ l β → germ l γ` sending each germ `f` to `F ∘ f`.
 
 For each of the following structures we prove that if `β` has this structure, then so does
 `germ l β`:
@@ -128,7 +149,8 @@ def map' {lc : filter γ} (F : (α → β) → (γ → δ)) (hF : (l.eventually_
   germ l β → germ lc δ :=
 quotient.map' F hF
 
-/-- A version of `quotient.lift_on'` using coercion instead of `quotient.mk'`. -/
+/-- Given a germ `f : germ l β` and a function `F : (α → β) → γ` sending eventually equal functions
+to the same value, returns the value `F` takes on functions having germ `f` at `l`. -/
 def lift_on {γ : Sort*} (f : germ l β) (F : (α → β) → γ) (hF : (l.eventually_eq ⇒ (=)) F F) : γ :=
 quotient.lift_on' f F hF
 
@@ -158,7 +180,8 @@ def map₂ (op : β → γ → δ) : germ l β → germ l γ → germ l δ :=
 quotient.map₂' (λ f g x, op (f x) (g x)) $ λ f f' Hf g g' Hg,
 Hg.mp $ Hf.mono $ λ x Hf Hg, by simp only [Hf, Hg]
 
-/-- Lift of `tendsto` to the space of germs. -/
+/-- A germ at `l` of maps from `α` to `β` tends to `lb : filter β` if it is represented by a map
+which tends to `lb` along `l`. -/
 protected def tendsto (f : germ l β) (lb : filter β) : Prop :=
 lift_on f (λ f, tendsto f l lb) $ λ f g H, propext (tendsto_congr' H)
 
@@ -168,7 +191,8 @@ iff.rfl
 
 alias coe_tendsto ↔ _ filter.tendsto.germ_tendsto
 
-/-- Composition of a germ and a `filter.germ.tendsto`. -/
+/-- Given two germs `f : germ l β`, and `g : germ lc α`, where `l : filter α`, if `g` tends to `l`,
+then the composition `f ∘ g` is well-defined as a germ at `lc`. -/
 def comp_tendsto' (f : germ l β) {lc : filter γ} (g : germ lc α) (hg : g.tendsto l) :
   germ lc β :=
 lift_on f (λ f, g.map f) $ λ f₁ f₂ hF, (induction_on g $ λ g hg, coe_eq.2 $ hg.eventually hF) hg
@@ -177,7 +201,8 @@ lift_on f (λ f, g.map f) $ λ f₁ f₂ hF, (induction_on g $ λ g hg, coe_eq.2
   (f : germ l β).comp_tendsto' g hg = g.map f :=
 rfl
 
-/-- Composition of a germ and a `filter.tendsto`. -/
+/-- Given a germ `f : germ l β` and a function `g : γ → α`, where `l : filter α`, if `g` tends
+to `l` along `lc : filter γ`, then the composition `f ∘ g` is well-defined as a germ at `lc`. -/
 def comp_tendsto (f : germ l β) {lc : filter γ} (g : γ → α) (hg : tendsto g lc l) :
   germ lc β :=
 f.comp_tendsto' _ hg.germ_tendsto
@@ -302,10 +327,13 @@ instance [monoid M] : monoid (germ l M) :=
 
 /-- coercion from functions to germs as a monoid homomorphism. -/
 @[to_additive]
-def coe_mul_hom [monoid M] : (α → M) →* germ l M := ⟨coe, rfl, λ f g, rfl⟩
+def coe_mul_hom [monoid M] (l : filter α) : (α → M) →* germ l M := ⟨coe, rfl, λ f g, rfl⟩
 
 /-- coercion from functions to germs as an additive monoid homomorphism. -/
 add_decl_doc coe_add_hom
+
+@[simp, to_additive]
+lemma coe_coe_mul_hom [monoid M] : (coe_mul_hom l : (α → M) → germ l M) = coe := rfl
 
 @[to_additive add_comm_monoid]
 instance [comm_monoid M] : comm_monoid (germ l M) :=
@@ -365,6 +393,12 @@ instance [distrib R] : distrib (germ l R) :=
 
 instance [semiring R] : semiring (germ l R) :=
 { .. germ.add_comm_monoid, .. germ.monoid, .. germ.distrib, .. germ.mul_zero_class }
+
+/-- Coercion `(α → R) → germ l R` as a `ring_hom`. -/
+def coe_ring_hom [semiring R] (l : filter α) : (α → R) →+* germ l R :=
+{ to_fun := coe, .. (coe_mul_hom l : _ →* germ l R), .. (coe_add_hom l : _ →+ germ l R) }
+
+@[simp] lemma coe_coe_ring_hom [semiring R] : (coe_ring_hom l : (α → R) → germ l R) = coe := rfl
 
 instance [ring R] : ring (germ l R) :=
 { .. germ.add_comm_group, .. germ.monoid, .. germ.distrib, .. germ.mul_zero_class }

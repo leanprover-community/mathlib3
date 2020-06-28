@@ -48,7 +48,7 @@ begin
 end
 
 /-- The group of units of a normed ring is an open subset of the ring. -/
-lemma units_open [complete_space α] : is_open (is_unit : set α) :=
+lemma units_open : is_open (is_unit : set α) :=
 begin
   rcases subsingleton_or_nonzero α with _i|_i, resetI,
   { exact is_open_discrete is_unit },

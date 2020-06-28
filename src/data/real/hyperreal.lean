@@ -90,7 +90,7 @@ lemma lt_of_tendsto_zero_of_pos {f : ℕ → ℝ} (hf : tendsto f at_top (𝓝 0
 begin
   simp only [metric.tendsto_at_top, dist_zero_right, norm, lt_def U] at hf ⊢,
   intros r hr, cases hf r hr with N hf',
-  have hs : -{i : ℕ | f i < r} ⊆ {i : ℕ | i ≤ N} :=
+  have hs : ∁ {i : ℕ | f i < r} ⊆ {i : ℕ | i ≤ N} :=
     λ i hi1, le_of_lt (by simp only [lt_iff_not_ge];
     exact λ hi2, hi1 (lt_of_le_of_lt (le_abs_self _) (hf' i hi2)) : i < N),
   exact mem_hyperfilter_of_finite_compl
@@ -433,7 +433,7 @@ theorem infinite_pos_of_tendsto_top {f : ℕ → ℝ} (hf : tendsto f at_top at_
 Exists.cases_on (hf' (r + 1)) $ λ i hi,
   have hi' : ∀ (a : ℕ), f a < (r + 1) → a < i :=
     λ a, by rw [←not_le, ←not_le]; exact not_imp_not.mpr (hi a),
-  have hS : - {a : ℕ | r < f a} ⊆ {a : ℕ | a ≤ i} :=
+  have hS : ∁ {a : ℕ | r < f a} ⊆ {a : ℕ | a ≤ i} :=
     by simp only [set.compl_set_of, not_lt];
     exact λ a har, le_of_lt (hi' a (lt_of_le_of_lt har (lt_add_one _))),
   (lt_def U).mpr $ mem_hyperfilter_of_finite_compl $
@@ -445,7 +445,7 @@ theorem infinite_neg_of_tendsto_bot {f : ℕ → ℝ} (hf : tendsto f at_top at_
 Exists.cases_on (hf' (r - 1)) $ λ i hi,
   have hi' : ∀ (a : ℕ), r - 1 < f a → a < i :=
     λ a, by rw [←not_le, ←not_le]; exact not_imp_not.mpr (hi a),
-  have hS : - {a : ℕ | f a < r} ⊆ {a : ℕ | a ≤ i} :=
+  have hS : ∁ {a : ℕ | f a < r} ⊆ {a : ℕ | a ≤ i} :=
     by simp only [set.compl_set_of, not_lt];
     exact λ a har, le_of_lt (hi' a (lt_of_lt_of_le (sub_one_lt _) har)),
   (lt_def U).mpr $ mem_hyperfilter_of_finite_compl $

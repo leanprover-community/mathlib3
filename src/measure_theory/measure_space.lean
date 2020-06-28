@@ -646,18 +646,16 @@ have μ.to_outer_measure ≤ Inf (to_outer_measure '' m) :=
   le_Inf $ ball_image_of_ball $ assume μ hμ, to_outer_measure_le.2 $ h _ hμ,
 assume s hs, by rw [Inf_apply hs, ← to_outer_measure_apply]; exact this s
 
-instance : order_bot (measure α) :=
-{ bot := 0, bot_le := assume a s hs, by exact bot_le, .. measure.partial_order }
+instance : complete_lattice (measure α) :=
+{ bot := 0,
+  bot_le := assume a s hs, by exact bot_le,
+/- Adding an explicit `top` makes `leanchecker` fail, see lean#364, disable for now
 
-instance : order_top (measure α) :=
-{ top := (⊤ : outer_measure α).to_measure (by rw [outer_measure.top_caratheodory]; exact le_top),
+  top := (⊤ : outer_measure α).to_measure (by rw [outer_measure.top_caratheodory]; exact le_top),
   le_top := assume a s hs,
     by cases s.eq_empty_or_nonempty with h  h;
       simp [h, to_measure_apply ⊤ _ hs, outer_measure.top_apply],
-  .. measure.partial_order }
-
-instance : complete_lattice (measure α) :=
-{ .. measure.partial_order, .. measure.order_top, .. measure.order_bot,
+-/
   .. complete_lattice_of_Inf (measure α) (λ ms, ⟨λ _, Inf_le, λ _, le_Inf⟩) }
 
 end

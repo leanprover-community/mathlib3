@@ -550,7 +550,7 @@ variables [normed_ring α]
 
 open normed_space
 
-/- In a normed ring, the powers of an element x with `∥x∥ < 1` tent to zero.
+/- In a normed ring, the powers of an element x with `∥x∥ < 1` tend to zero.
 Proved above (same name, different namespace) for normed fields. -/
 lemma normed_ring.tendsto_pow_at_top_nhds_0_of_norm_lt_1 (x : α) (h : ∥x∥ < 1) :
   tendsto (λ (n : ℕ), x ^ n) at_top (𝓝 0) :=

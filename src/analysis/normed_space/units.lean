@@ -47,7 +47,7 @@ begin
   ... = y : by abel,
 end
 
-/-- The group of units of a normed ring is an open subset of the ring. -/
+/-- The group of units of a complete normed ring is an open subset of the ring. -/
 lemma units_open : is_open (is_unit : set α) :=
 begin
   rcases subsingleton_or_nonzero α with _i|_i, resetI,

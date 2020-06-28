@@ -27,7 +27,7 @@ loop.
 uniform space, uniform continuity, compact space
 -/
 
-open_locale uniformity topological_space filter
+open_locale classical uniformity topological_space filter
 open filter uniform_space set
 
 variables {α β : Type*} [uniform_space α] [uniform_space β]
@@ -40,7 +40,6 @@ variables {α β : Type*} [uniform_space α] [uniform_space β]
 
 lemma compact_space_uniformity [compact_space α] [separated_space α] : 𝓤 α = ⨆ x : α, 𝓝 (x, x) :=
 begin
-  classical,
   symmetry, refine le_antisymm nhds_le_uniformity _,
   by_contra H,
   obtain ⟨V, hV, h⟩ : ∃ V : set (α × α), (∀ x : α, V ∈ 𝓝 (x, x)) ∧ 𝓤 α ⊓ 𝓟 (-V) ≠ ⊥,
@@ -95,7 +94,6 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
     erw [nhds_prod_eq, ← prod_comm],
   end,
   comp := begin
-    classical,
     /-
     This is the difficult part of the proof. We need to prove that, for each neighborhood W
     of the diagonal Δ, W ○ W is still a neighborhood of the diagonal.

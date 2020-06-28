@@ -70,11 +70,7 @@ variables (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z)
 This says "let `C` be a category, let `W`, `X`, `Y`, `Z` be objects of `C`, and let `f : W ⟶ X`, `g
 : X ⟶ Y` and `h : Y ⟶ Z` be morphisms in `C` (with the specified source and targets)".
 
-Note two unusual things. Firstly, we have to explicitly tell Lean the universe where the objects
-live (by writing `C : Type u`). We do not declare [category C], in contrast to group theory,
-where one would just write `[group G]`). Secondly, we also have to explicitly tell Lean the universe
-where the morphisms live (by writing `category.{v} C`), because Lean cannot guess from knowing `C`
-alone.
+Note that we need to explicitly tell Lean the universe that the morphisms live in, by writing `category.{v} C`, because Lean cannot guess this from `C` alone.
 
 The order in which universes are introduced at the top of the file matters: we put the universes for
 morphisms first (typically `v`, `v₁` and so on), and then universes for objects (typically `u`, `u₁`

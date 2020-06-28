@@ -64,11 +64,19 @@ begin
   exact is_coprime.of_mul_right_right (is_coprime.of_add_mul_left_right this)
 end
 
-theorem separable.of_pow {f : polynomial R} :
+theorem separable.of_pow' {f : polynomial R} :
   ∀ {n : ℕ} (h : (f ^ n).separable), is_unit f ∨ (f.separable ∧ n = 1) ∨ n = 0
 | 0     := λ h, or.inr $ or.inr rfl
 | 1     := λ h, or.inr $ or.inl ⟨pow_one f ▸ h, rfl⟩
 | (n+2) := λ h, or.inl $ is_coprime_self.1 h.is_coprime.of_mul_right_left
+
+theorem separable.of_pow {f : polynomial R} (hf : ¬is_unit f) {n : ℕ} (hn : n ≠ 0)
+  (hfs : (f ^ n).separable) : f.separable ∧ n = 1 :=
+(hfs.of_pow'.resolve_left hf).resolve_right hn
+
+theorem separable.map {p : polynomial R} (h : p.separable) {f : R →+* S} : (p.map f).separable :=
+let ⟨a, b, H⟩ := h in ⟨a.map f, b.map f,
+by rw [derivative_map, ← map_mul, ← map_mul, ← map_add, H, map_one]⟩
 
 variables (R) (p q : ℕ)
 
@@ -77,7 +85,7 @@ noncomputable def expand : polynomial R →ₐ[R] polynomial R :=
 { commutes' := λ r, eval₂_C _ _,
   .. (eval₂_ring_hom C.to_ring_hom (X ^ p) : polynomial R →+* polynomial R) }
 
-@[simp] lemma coe_expand : (expand R p : polynomial R → polynomial R) = eval₂ C (X ^ p) := rfl
+lemma coe_expand : (expand R p : polynomial R → polynomial R) = eval₂ C (X ^ p) := rfl
 
 variables {R}
 
@@ -109,10 +117,6 @@ theorem derivative_expand (f : polynomial R) :
   (expand R p f).derivative = expand R p f.derivative * (p * X ^ (p - 1)) :=
 by rw [coe_expand, derivative_eval₂_C, derivative_pow, derivative_X, mul_one]
 
-theorem separable.map {p : polynomial R} (h : p.separable) {f : R →+* S} : (p.map f).separable :=
-let ⟨a, b, H⟩ := h in ⟨a.map f, b.map f,
-by rw [derivative_map, ← map_mul, ← map_mul, ← map_add, H, map_one]⟩
-
 theorem coeff_expand {p : ℕ} (hp : 0 < p) (f : polynomial R) (n : ℕ) :
   (expand R p f).coeff n = if p ∣ n then f.coeff (n / p) else 0 :=
 begin
@@ -129,6 +133,10 @@ end
 @[simp] theorem coeff_expand_mul {p : ℕ} (hp : 0 < p) (f : polynomial R) (n : ℕ) :
   (expand R p f).coeff (n * p) = f.coeff n :=
 by rw [coeff_expand hp, if_pos (dvd_mul_left _ _), nat.mul_div_cancel _ hp]
+
+@[simp] theorem coeff_expand_mul' {p : ℕ} (hp : 0 < p) (f : polynomial R) (n : ℕ) :
+  (expand R p f).coeff (p * n) = f.coeff n :=
+by rw [mul_comm, coeff_expand_mul hp]
 
 theorem expand_eq_map_domain (p : ℕ) (f : polynomial R) :
   expand R p f = f.map_domain (*p) :=
@@ -203,11 +211,11 @@ theorem separable_iff_derivative_ne_zero {f : polynomial F} (hf : irreducible f)
 λ h, is_coprime_of_dvd (mt and.right h) $ λ g hg1 hg2 ⟨p, hg3⟩ hg4,
 let ⟨u, hu⟩ := (hf.2 _ _ hg3).resolve_left hg1 in
 have f ∣ f.derivative, by { conv_lhs { rw [hg3, ← hu] }, rwa mul_unit_dvd_iff },
-not_lt_of_le (nat_degree_le_of_dvd this h) $ nat_degree_derviative_lt h⟩
+not_lt_of_le (nat_degree_le_of_dvd this h) $ nat_degree_derivative_lt h⟩
 
 section char_p
 
-variables {p : ℕ} [hp : fact p.prime]
+variables (p : ℕ) [hp : fact p.prime]
 include hp
 
 /-- The opposite of `expand`: sends `∑ aₙ xⁿᵖ` to `∑ aₙ xⁿ`. -/
@@ -216,7 +224,7 @@ noncomputable def contract (f : polynomial F) : polynomial F :=
 λ n, f.coeff (n * p),
 λ n, by { rw [finset.mem_preimage, finsupp.mem_support_iff], refl }⟩
 
-theorem coeff_contract (f : polynomial F) (n : ℕ) : (contract hp f).coeff n = f.coeff (n * p) := rfl
+theorem coeff_contract (f : polynomial F) (n : ℕ) : (contract p f).coeff n = f.coeff (n * p) := rfl
 
 theorem of_irreducible_expand {f : polynomial F} (hf : irreducible (expand F p f)) :
   irreducible f :=
@@ -225,13 +233,13 @@ theorem of_irreducible_expand {f : polynomial F} (hf : irreducible (expand F p f
 theorem of_irreducible_expand_pow {f : polynomial F} {n : ℕ} :
   irreducible (expand F (p ^ n) f) → irreducible f :=
 nat.rec_on n (λ hf, by rwa [nat.pow_zero, expand_one] at hf) $ λ n ih hf,
-ih $ of_irreducible_expand hp $ by rwa [expand_expand, mul_comm]
+ih $ of_irreducible_expand p $ by rwa [expand_expand, mul_comm]
 
 variables [HF : char_p F p]
 include HF
 
 theorem expand_contract {f : polynomial F} (hf : f.derivative = 0) :
-  expand F p (contract hp f) = f :=
+  expand F p (contract p f) = f :=
 begin
   ext n, rw [coeff_expand hp.pos, coeff_contract], split_ifs with h,
   { rw nat.div_mul_cancel h },
@@ -245,10 +253,10 @@ theorem separable_or {f : polynomial F} (hf : irreducible f) : f.separable ∨
   ¬f.separable ∧ ∃ g : polynomial F, irreducible g ∧ expand F p g = f :=
 if H : f.derivative = 0 then or.inr
   ⟨by rw [separable_iff_derivative_ne_zero hf, not_not, H],
-  contract hp f,
+  contract p f,
   by haveI := is_local_ring_hom_expand F hp.pos; exact
-    of_irreducible_map ↑(expand F p) (by rwa ← expand_contract hp H at hf),
-  expand_contract hp H⟩
+    of_irreducible_map ↑(expand F p) (by rwa ← expand_contract p H at hf),
+  expand_contract p H⟩
 else or.inl $ (separable_iff_derivative_ne_zero hf).2 H
 
 theorem exists_separable_of_irreducible {f : polynomial F} (hf : irreducible f) (hf0 : f ≠ 0) :
@@ -256,7 +264,7 @@ theorem exists_separable_of_irreducible {f : polynomial F} (hf : irreducible f) 
 begin
   generalize hn : f.nat_degree = N, unfreezingI { revert f },
   apply nat.strong_induction_on N, intros N ih f hf hf0 hn,
-  rcases separable_or hp hf with h | ⟨h1, g, hg, hgf⟩,
+  rcases separable_or p hf with h | ⟨h1, g, hg, hgf⟩,
   { refine ⟨0, f, h, _⟩, rw [nat.pow_zero, expand_one] },
   { cases N with N,
     { rw [nat_degree_eq_zero_iff_degree_le_zero, degree_le_zero_iff] at hn,
@@ -296,7 +304,7 @@ begin
   unfreezingI { intros, rw le_iff_exists_add at hn, rcases hn with ⟨k, rfl⟩,
     rw [← hgf₁, nat.pow_add, expand_mul, expand_inj (nat.pow_pos hp.pos n₁)] at hgf₂, subst hgf₂,
     subst hgf₁,
-    rcases of_separable_expand hp k hg₁ with h | rfl,
+    rcases is_unit_or_eq_zero_of_separable_expand p k hg₁ with h | rfl,
     { rw is_unit_iff at h, rcases h with ⟨r, hr, rfl⟩,
       simp_rw expand_C at hf, exact absurd (is_unit_C.2 hr) hf.1 },
     { rw [add_zero, nat.pow_zero, expand_one], split; refl } },
@@ -305,21 +313,17 @@ end
 
 end char_p
 
-section char_zero
+end field
 
-variables [char_zero F]
+end polynomial
 
-theorem irredicuble.separable {f : polynomial F} (hf : irreducible f) (hf0 : f ≠ 0) :
-  separable f :=
+open polynomial
+
+theorem irreducible.separable {F : Type u} [field F] [char_zero F] {f : polynomial F}
+  (hf : irreducible f) (hf0 : f ≠ 0) : f.separable :=
 begin
   rw [separable_iff_derivative_ne_zero hf, ne, ← degree_eq_bot, degree_derivative_eq], rintro ⟨⟩,
   rw [nat.pos_iff_ne_zero, ne, nat_degree_eq_zero_iff_degree_le_zero, degree_le_zero_iff],
   refine λ hf1, hf.1 _, rw [hf1, is_unit_C, is_unit_iff_ne_zero],
   intro hf2, rw [hf2, C_0] at hf1, exact absurd hf1 hf0
 end
-
-end char_zero
-
-end field
-
-end polynomial

@@ -648,12 +648,12 @@ is_semiring_hom.comp _ _
 
 @[simp] lemma map_one : (1 : polynomial R).map f = 1 := eval₂_one _ _
 
-@[simp] theorem map_nat_cast (n : ℕ) : (n : polynomial R).map f = n :=
-nat.rec_on n rfl $ λ n ih, by rw [n.cast_succ, map_add, ih, map_one, n.cast_succ]
-
 @[simp] lemma map_mul : (p * q).map f = p.map f * q.map f := eval₂_mul _ _
 
 instance map.is_semiring_hom : is_semiring_hom (map f) := eval₂.is_semiring_hom _ _
+
+@[simp] theorem map_nat_cast (n : ℕ) : (n : polynomial R).map f = n :=
+(ring_hom.of $ map f).map_nat_cast n
 
 @[simp] lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := eval₂_pow _ _ _
 
@@ -2583,10 +2583,10 @@ theorem nat_degree_derivative_lt {p : polynomial R} (hp : p.derivative ≠ 0) :
   p.derivative.nat_degree < p.nat_degree :=
 have hp1 : p ≠ 0, from λ h, hp $ by rw [h, derivative_zero],
 with_bot.some_lt_some.1 $ by { rw [nat_degree, option.get_or_else_of_ne_none $ mt degree_eq_bot.1 hp,
-  nat_degree, option.get_or_else_of_ne_none $ mt degree_eq_bot.1 hp1], exact degree_derviative_lt hp1 }
+  nat_degree, option.get_or_else_of_ne_none $ mt degree_eq_bot.1 hp1], exact degree_derivative_lt hp1 }
 
 theorem degree_derivative_le {p : polynomial R} : p.derivative.degree ≤ p.degree :=
-if H : p = 0 then le_of_eq $ by rw [H, derivative_zero] else le_of_lt $ degree_derviative_lt H
+if H : p = 0 then le_of_eq $ by rw [H, derivative_zero] else le_of_lt $ degree_derivative_lt H
 
 /-- The formal derivative of polynomials, as linear homomorphism. -/
 def derivative_lhom (R : Type*) [comm_ring R] : polynomial R →ₗ[R] polynomial R :=

@@ -220,29 +220,6 @@ example : F.map f ≫ α.app Y = (α.app X) ≫ G.map f := α.naturality f
 end nat_trans -- section
 
 /-!
-## Debugging universe problems
-
-Unfortunately, dealing with universe polymorphism is an intrinsic problem in the category theory
-library.
-
-A very common problem is Lean complaining that it can't find an instance of `category X`, when you
-can see right there in the hypotheses a `category X`! What's going on? Nearly always this is because
-the universe level of the morphisms has not been specified explicitly, so in fact Lean is looking
-for a `category.{? u} X` instance, while it has available a `category.{v u} X` instance. (The object
-universe level is unambiguous, because this can be inferred from `X`.) You can determine if this is
-a problem by using `set_option pp.universes true`. The reason this causes a problem is that Lean 3
-is not willing to specialise a universe metavariable in order to solve a typeclass search.
-Typically, you solve this problem by working out how to tell Lean which universe you want the
-morphisms to live in, usually by adding a `.{v}` to the end of some identifier. As an example, in
-```
-instance coe_to_Top : has_coe (PresheafedSpace.{v} C) Top :=
-{ coe := λ X, X.to_Top }
-```
-(taken from `src/algebraic_geometry/presheafed_space.lean`), if you remove the `.{v}` you get a
-typeclass resolution error.
--/
-
-/-!
 ## What next?
 
 There are several lean files in the [category theory docs directory of

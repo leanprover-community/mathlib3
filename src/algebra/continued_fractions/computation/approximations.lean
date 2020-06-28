@@ -7,6 +7,7 @@ import algebra.continued_fractions.computation.translations
 import algebra.continued_fractions.continuants_recurrence
 import algebra.continued_fractions.terminated_stable
 import data.nat.fib
+import tactic.lint
 /-!
 # Approximations for Continued Fraction Computations (`gcf.of`)
 
@@ -22,7 +23,7 @@ for the values involved in the continued fractions computation `gcf.of`.
 - `gcf.of_one_le_nth_part_denom`: shows that `1 ≤ bᵢ`.
 - `gcf.of_succ_nth_fib_le_nth_denom`: shows that the `n`th denominator `Bₙ` is greater or equal than
   the `n + 1`th fibonacci number `nat.fib (n + 1)`.
-- `gcf.of_succ_nth_denom_ge`: shows that `Bₙ₊₁ ≥ bₙ* Bₙ`, where `bₙ` is the `n`th partial denominator
+- `gcf.of_le_succ_nth_denom`: shows that `Bₙ₊₁ ≥ bₙ* Bₙ`, where `bₙ` is the `n`th partial denominator
   of the continued fraction.
 
 ## References
@@ -239,9 +240,9 @@ begin
   exact (of_fib_le_continuants_aux_b this)
 end
 
-lemma of_succ_succ_nth_continuants_aux_b_ge {b : K}
+lemma of_le_succ_succ_nth_continuants_aux_b {b : K}
 (nth_part_denom_eq : (gcf.of v).partial_denominators.nth n = some b) :
-  ((gcf.of v).continuants_aux $ n + 2).b ≥ b * ((gcf.of v).continuants_aux $ n + 1).b :=
+  b * ((gcf.of v).continuants_aux $ n + 1).b ≤ ((gcf.of v).continuants_aux $ n + 2).b :=
 begin
   set g := gcf.of v with g_eq,
   obtain ⟨gp_n, nth_s_eq, ⟨refl⟩⟩ : ∃ gp_n, g.s.nth n = some gp_n ∧ gp_n.b = b, from
@@ -250,7 +251,7 @@ begin
   set pconts := g.continuants_aux (n + 1) with pconts_eq,
   set ppconts := g.continuants_aux n with ppconts_eq,
   -- use the recurrence of continuants_aux and the fact that gp_n.a = 1
-  suffices : ppconts.b + gp_n.b * pconts.b ≥ gp_n.b * pconts.b, by
+  suffices : gp_n.b * pconts.b ≤ ppconts.b + gp_n.b * pconts.b, by
   { have : gp_n.a = 1, from of_part_num_eq_one (part_num_eq_s_a nth_s_eq),
     finish [(gcf.continuants_aux_recurrence nth_s_eq ppconts_eq pconts_eq)] },
   have : 0 ≤ ppconts.b, by
@@ -267,12 +268,12 @@ end
 
 /-- Shows that `Bₙ₊₁ ≥ bₙ* Bₙ`, where `bₙ` is the `n`th partial denominator and `Bₙ₊₁` and `Bₙ` are
 the `n + 1`th and `n`th denominator of the continued fraction. -/
-theorem of_succ_nth_denom_ge {b : K}
+theorem of_le_succ_nth_denom {b : K}
   (nth_part_denom_eq : (gcf.of v).partial_denominators.nth n = some b) :
-  (gcf.of v).denominators (n + 1) ≥ b * (gcf.of v).denominators n :=
+  b * (gcf.of v).denominators n ≤ (gcf.of v).denominators (n + 1) :=
 begin
   rw [denom_eq_conts_b, nth_cont_eq_succ_nth_cont_aux],
-  exact (of_succ_succ_nth_continuants_aux_b_ge nth_part_denom_eq)
+  exact (of_le_succ_succ_nth_continuants_aux_b nth_part_denom_eq)
 end
 
 end generalized_continued_fraction

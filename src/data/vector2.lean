@@ -180,11 +180,11 @@ lemma remove_nth_insert_nth_ne {v : vector α (n+1)} :
   begin
     have : i ≠ j := fin.vne_of_ne ne,
     refine subtype.eq _,
-    dsimp [insert_nth, remove_nth, fin.pred_above, fin.cast_lt],
+    dsimp [insert_nth, remove_nth, fin.pred_above, fin.cast_lt, -subtype.val_eq_coe],
     rcases lt_trichotomy i j with h | h | h,
     { have h_nji : ¬ j < i := lt_asymm h,
       have j_pos : 0 < j := lt_of_le_of_lt (zero_le i) h,
-      simp [h, h_nji, fin.lt_iff_val_lt_val],
+      simp [h, h_nji, fin.lt_iff_val_lt_val, -subtype.val_eq_coe],
       rw [show j.pred = j - 1, from rfl, list.insert_nth_remove_nth_of_ge, nat.sub_add_cancel j_pos],
       { rw [v.2], exact lt_of_lt_of_le h (nat.le_of_succ_le_succ hj) },
       { exact nat.le_sub_right_of_add_le h } },

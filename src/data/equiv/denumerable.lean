@@ -137,7 +137,7 @@ infinite.not_fintype
   ⟨(((multiset.range x.1.succ).filter (∈ s)).pmap
       (λ (y : ℕ) (hy : y ∈ s), subtype.mk y hy)
       (by simp [-multiset.range_succ])).to_finset,
-    by simpa [subtype.ext, multiset.mem_filter, -multiset.range_succ]⟩
+    by simpa [subtype.ext_iff_val, multiset.mem_filter, -multiset.range_succ]⟩
 
 end classical
 
@@ -179,7 +179,7 @@ lemma of_nat_surjective_aux : ∀ {x : ℕ} (hx : x ∈ s), ∃ n, of_nat s n = 
 | x := λ hx, let t : list s := ((list.range x).filter (λ y, y ∈ s)).pmap
   (λ (y : ℕ) (hy : y ∈ s), ⟨y, hy⟩) (by simp) in
 have hmt : ∀ {y : s}, y ∈ t ↔ y < ⟨x, hx⟩,
-  by simp [list.mem_filter, subtype.ext, t]; intros; refl,
+  by simp [list.mem_filter, subtype.ext_iff_val, t]; intros; refl,
 have wf : ∀ m : s, list.maximum t = m → m.1 < x,
   from λ m hmax, by simpa [hmt] using list.maximum_mem hmax,
 begin

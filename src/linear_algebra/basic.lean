@@ -984,7 +984,7 @@ open submodule
 
 theorem map_cod_restrict (p : submodule R M) (f : M₂ →ₗ[R] M) (h p') :
   submodule.map (cod_restrict p f h) p' = comap p.subtype (p'.map f) :=
-submodule.ext $ λ ⟨x, hx⟩, by simp [subtype.coe_ext]
+submodule.ext $ λ ⟨x, hx⟩, by simp [subtype.ext_iff_val]
 
 theorem comap_cod_restrict (p : submodule R M) (f : M₂ →ₗ[R] M) (hf p') :
   submodule.comap (cod_restrict p f hf) p' = submodule.comap f (map p.subtype p') :=
@@ -1315,7 +1315,7 @@ open linear_map
 @[simp] theorem comap_bot (f : M →ₗ[R] M₂) : comap f ⊥ = ker f := rfl
 
 @[simp] theorem ker_subtype : p.subtype.ker = ⊥ :=
-ker_eq_bot_of_injective $ λ x y, subtype.eq'
+ker_eq_bot_of_injective $ λ x y, subtype.ext_val
 
 @[simp] theorem range_subtype : p.subtype.range = p :=
 by simpa using map_comap_subtype p ⊤
@@ -1396,7 +1396,7 @@ def map_subtype.order_iso :
 { to_fun    := λ p', ⟨map p.subtype p', map_subtype_le p _⟩,
   inv_fun   := λ q, comap p.subtype q,
   left_inv  := λ p', comap_map_eq_self $ by simp,
-  right_inv := λ ⟨q, hq⟩, subtype.eq' $ by simp [map_comap_subtype p, inf_of_le_right hq],
+  right_inv := λ ⟨q, hq⟩, subtype.ext_val $ by simp [map_comap_subtype p, inf_of_le_right hq],
   ord'      := λ p₁ p₂, (map_le_map_iff' (ker_subtype p)).symm }
 
 /-- If `p ⊆ M` is a submodule, the ordering of submodules of `p` is embedded in the ordering of
@@ -1492,7 +1492,7 @@ def comap_mkq.order_iso :
 { to_fun    := λ p', ⟨comap p.mkq p', le_comap_mkq p _⟩,
   inv_fun   := λ q, map p.mkq q,
   left_inv  := λ p', map_comap_eq_self $ by simp,
-  right_inv := λ ⟨q, hq⟩, subtype.eq' $ by simpa [comap_map_mkq p],
+  right_inv := λ ⟨q, hq⟩, subtype.ext_val $ by simpa [comap_map_mkq p],
   ord'      := λ p₁ p₂, (comap_le_comap_iff $ range_mkq _).symm }
 
 /-- The ordering on submodules of the quotient of `M` by `p` embeds into the ordering on submodules
@@ -2135,10 +2135,10 @@ begin
     assume j hjJ,
     have : j ∉ I := assume hjI, hd ⟨hjI, hjJ⟩,
     rw [dif_neg this, zero_apply] },
-  { simp only [pi_comp, comp_assoc, subtype_comp_cod_restrict, proj_pi, dif_pos, subtype.val_prop'],
+  { simp only [pi_comp, comp_assoc, subtype_comp_cod_restrict, proj_pi, dif_pos, subtype.coe_prop],
     ext b ⟨j, hj⟩, refl },
-  { ext ⟨b, hb⟩,
-    apply subtype.coe_ext.2,
+  { ext1 ⟨b, hb⟩,
+    apply subtype.ext,
     ext j,
     have hb : ∀i ∈ J, b i = 0,
     { simpa only [mem_infi, mem_ker, proj_apply] using (mem_infi _).1 hb },

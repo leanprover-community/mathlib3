@@ -249,7 +249,7 @@ end
 theorem finite_of_finite_image {s : set α} {f : α → β} (hi : set.inj_on f s) :
   finite (f '' s) → finite s | ⟨h⟩ :=
 ⟨@fintype.of_injective _ _ h (λa:s, ⟨f a.1, mem_image_of_mem f a.2⟩) $
-  assume a b eq, subtype.eq $ hi a.2 b.2 $ subtype.ext.1 eq⟩
+  assume a b eq, subtype.eq $ hi a.2 b.2 $ subtype.ext_iff_val.1 eq⟩
 
 theorem finite_image_iff {s : set α} {f : α → β} (hi : inj_on f s) :
   finite (f '' s) ↔ finite s :=

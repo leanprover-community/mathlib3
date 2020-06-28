@@ -53,9 +53,9 @@ def circle_equiv_gen (hk : ∀ x : K, 1 + x^2 ≠ 0) :
       { field_simp [h2, h3, h4], rw [(add_neg_eq_iff_eq_add.mpr hxy.symm).symm], ring }
     end }
 
-lemma circle_equiv_fun (hk : ∀ x : K, 1 + x^2 ≠ 0) (x : K) :
+@[simp] lemma circle_equiv_fun (hk : ∀ x : K, 1 + x^2 ≠ 0) (x : K) :
   (circle_equiv_gen hk x : K × K) = ⟨2 * x / (1 + x^2), (1 - x^2) / (1 + x^2)⟩ := by refl
 
-lemma circle_equiv_inv (hk : ∀ x : K, 1 + x^2 ≠ 0)
+@[simp] lemma circle_equiv_inv (hk : ∀ x : K, 1 + x^2 ≠ 0)
   (v : {p : K × K // p.1^2 + p.2^2 = 1 ∧ p.2 ≠ -1}) :
   (circle_equiv_gen hk).symm v = v.val.1 / (v.val.2 + 1) := by refl

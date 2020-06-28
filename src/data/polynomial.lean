@@ -316,10 +316,17 @@ variables (f : R →+* S) (x : S)
 (sum_single_index $ by rw [f.map_zero, zero_mul]).trans $ by rw [f.map_one, one_mul, pow_one]
 
 @[simp] lemma eval₂_monomial {n : ℕ} {r : R} : (monomial n r).eval₂ f x = (f r) * x^n :=
-sorry
+begin
+  apply sum_single_index,
+  simp,
+end
 
 @[simp] lemma eval₂_X_pow {n : ℕ} : (X^n).eval₂ f x = x^n :=
-sorry
+begin
+  rw ←monomial_one_eq_X_pow,
+  convert eval₂_monomial f x,
+  simp,
+end
 
 @[simp] lemma eval₂_add : (p + q).eval₂ f x = p.eval₂ f x + q.eval₂ f x :=
 finsupp.sum_add_index

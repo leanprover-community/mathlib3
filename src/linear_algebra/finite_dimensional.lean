@@ -84,7 +84,7 @@ begin
   cases exists_is_basis K V with b hb,
   have := is_basis.mk_eq_dim hb,
   simp only [lift_id] at this,
-  rw [← this, lt_omega_iff_fintype, ← @set.set_of_mem_eq _ b, ← subtype.val_range],
+  rw [← this, lt_omega_iff_fintype, ← @set.set_of_mem_eq _ b, ← subtype.range_coe_subtype],
   split,
   { intro, resetI, convert finite_of_linear_independent hb.1, simp },
   { assume hbfinite,
@@ -102,11 +102,12 @@ finite_dimensional_iff_dim_lt_omega.1
 
 /-- In a finite dimensional space, there exists a finite basis. A basis is in general given as a
 function from an arbitrary type to the vector space. Here, we think of a basis as a set (instead of
-a function), and use as parametrizing type this set (and as a function the function `subtype.val`).
+a function), and use as parametrizing type this set (and as a function the coercion
+  `coe : s → V`).
 -/
 variables (K V)
 lemma exists_is_basis_finite [finite_dimensional K V] :
-  ∃ s : set V, (is_basis K (subtype.val : s → V)) ∧ s.finite :=
+  ∃ s : set V, (is_basis K (coe : s → V)) ∧ s.finite :=
 begin
   cases exists_is_basis K V with s hs,
   exact ⟨s, hs, finite_of_linear_independent hs.1⟩
@@ -116,7 +117,7 @@ end
 This is in contrast to `exists_is_basis_finite`, which provides a set and a `set.finite`.
 -/
 lemma exists_is_basis_finset [finite_dimensional K V] :
-  ∃ b : finset V, is_basis K (subtype.val : (↑b : set V) → V) :=
+  ∃ b : finset V, is_basis K (coe : (↑b : set V) → V) :=
 begin
   obtain ⟨s, s_basis, s_finite⟩ := exists_is_basis_finite K V,
   refine ⟨s_finite.to_finset, _⟩,
@@ -147,7 +148,7 @@ lemma of_finite_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K 
 iff_fg.2 $ ⟨finset.univ.image b, by {convert h.2, simp} ⟩
 
 /-- If a vector space has a finite basis, then it is finite-dimensional, finset style. -/
-lemma of_finset_basis {b : finset V} (h : is_basis K (subtype.val : (↑b : set V) -> V)) :
+lemma of_finset_basis {b : finset V} (h : is_basis K (coe : (↑b : set V) -> V)) :
   finite_dimensional K V :=
 iff_fg.2 $ ⟨b, by {convert h.2, simp} ⟩
 
@@ -384,9 +385,9 @@ begin
   have : subtype.val '' bS = b, from set.eq_of_subset_of_card_le hb.1
     (by rw [set.card_image_of_injective _ subtype.val_injective, ← findim_eq_card_basis hbS,
          ← findim_eq_card_basis hb.2, h]; apply_instance),
-  erw [← hb.2.2, subtype.val_range, ← this, set.set_of_mem_eq, ← subtype_eq_val, span_image],
+  erw [← hb.2.2, subtype.range_coe, ← this, ← subtype_eq_val, span_image],
   have := hbS.2,
-  erw [subtype.val_range, set.set_of_mem_eq] at this,
+  erw [subtype.range_coe] at this,
   rw [this, map_top (submodule.subtype S), range_subtype],
 end
 

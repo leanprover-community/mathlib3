@@ -297,7 +297,7 @@ f.to_localization_map.mk'_self' _ hx
 @[simp] lemma mk'_self' {x : M} : f.mk' x x = 1 :=
 f.to_localization_map.mk'_self _
 
-@[simp] lemma mk'_self'' {x : M} : f.mk' x.1 x = 1 :=
+lemma mk'_self'' {x : M} : f.mk' x.1 x = 1 :=
 f.mk'_self'
 
 lemma mul_mk'_eq_mk'_of_mul (x y : R) (z : M) :
@@ -940,11 +940,11 @@ def fraction_map_of_algebraic [algebra A L] (alg : is_algebraic A L)
   fraction_map (integral_closure A L) L :=
 (algebra_map (integral_closure A L) L).to_localization_map
   (λ ⟨⟨y, integral⟩, nonzero⟩,
-    have y ≠ 0 := λ h, mem_non_zero_divisors_iff_ne_zero.mp nonzero (subtype.ext.mpr h),
+    have y ≠ 0 := λ h, mem_non_zero_divisors_iff_ne_zero.mp nonzero (subtype.ext_iff_val.mpr h),
     show is_unit y, from ⟨⟨y, y⁻¹, mul_inv_cancel this, inv_mul_cancel this⟩, rfl⟩)
   (λ z, let ⟨x, y, hy, hxy⟩ := exists_integral_multiple (alg z) inj in
     ⟨⟨x, ⟨y, mem_non_zero_divisors_iff_ne_zero.mpr hy⟩⟩, hxy⟩)
-  (λ x y, ⟨ λ (h : x.1 = y.1), ⟨1, by simpa using subtype.ext.mpr h⟩,
+  (λ x y, ⟨ λ (h : x.1 = y.1), ⟨1, by simpa using subtype.ext_iff_val.mpr h⟩,
             λ ⟨c, hc⟩, congr_arg (algebra_map _ L)
               (eq_of_mul_eq_mul_right_of_ne_zero (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc) ⟩)
 

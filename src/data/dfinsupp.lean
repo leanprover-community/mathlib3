@@ -198,17 +198,17 @@ ext $ λ i, by simp only [add_apply, filter_apply]; split_ifs; simp only [add_ze
 /-- `subtype_domain p f` is the restriction of the finitely supported function
   `f` to the subtype `p`. -/
 def subtype_domain [Π i, has_zero (β i)] (p : ι → Prop) [decidable_pred p]
-  (f : Π₀ i, β i) : Π₀ i : subtype p, β i.1 :=
+  (f : Π₀ i, β i) : Π₀ i : subtype p, β i :=
 begin
   fapply quotient.lift_on f,
   { intro x,
-    refine ⟦⟨λ i, x.1 i.1,
-      (x.2.filter p).attach.map $ λ j, ⟨j.1, (multiset.mem_filter.1 j.2).2⟩, _⟩⟧,
-    refine λ i, or.cases_on (x.3 i.1) (λ H, _) or.inr,
-    left, rw multiset.mem_map, refine ⟨⟨i.1, multiset.mem_filter.2 ⟨H, i.2⟩⟩, _, subtype.eta _ _⟩,
+    refine ⟦⟨λ i, x.1 (i : ι),
+      (x.2.filter p).attach.map $ λ j, ⟨j, (multiset.mem_filter.1 j.2).2⟩, _⟩⟧,
+    refine λ i, or.cases_on (x.3 i) (λ H, _) or.inr,
+    left, rw multiset.mem_map, refine ⟨⟨i, multiset.mem_filter.2 ⟨H, i.2⟩⟩, _, subtype.eta _ _⟩,
     apply multiset.mem_attach },
   intros x y H,
-  exact quotient.sound (λ i, H i.1)
+  exact quotient.sound (λ i, H i)
 end
 
 @[simp] lemma subtype_domain_zero [Π i, has_zero (β i)] {p : ι → Prop} [decidable_pred p] :
@@ -260,11 +260,11 @@ include dec
 
 /-- Create an element of `Π₀ i, β i` from a finset `s` and a function `x`
 defined on this `finset`. -/
-def mk (s : finset ι) (x : Π i : (↑s : set ι), β i.1) : Π₀ i, β i :=
+def mk (s : finset ι) (x : Π i : (↑s : set ι), β (i : ι)) : Π₀ i, β i :=
 ⟦⟨λ i, if H : i ∈ s then x ⟨i, H⟩ else 0, s.1,
 λ i, if H : i ∈ s then or.inl H else or.inr $ dif_neg H⟩⟧
 
-@[simp] lemma mk_apply {s : finset ι} {x : Π i : (↑s : set ι), β i.1} {i : ι} :
+@[simp] lemma mk_apply {s : finset ι} {x : Π i : (↑s : set ι), β i} {i : ι} :
   (mk s x : Π i, β i) i = if H : i ∈ s then x ⟨i, H⟩ else 0 :=
 rfl
 
@@ -282,7 +282,7 @@ end
 /-- The function `single i b : Π₀ i, β i` sends `i` to `b`
 and all other points to `0`. -/
 def single (i : ι) (b : β i) : Π₀ i, β i :=
-mk {i} $ λ j, eq.rec_on (finset.mem_singleton.1 j.2).symm b
+mk {i} $ λ j, eq.rec_on (finset.mem_singleton.1 j.prop).symm b
 
 @[simp] lemma single_apply {i i' b} :
   (single i b : Π₀ i, β i) i' = (if h : i = i' then eq.rec_on h b else 0) :=
@@ -290,7 +290,7 @@ begin
   dsimp only [single],
   by_cases h : i = i',
   { have h1 : i' ∈ ({i} : finset ι) := finset.mem_singleton.2 h.symm,
-    simp only [mk_apply, dif_pos h, dif_pos h1] },
+    simp only [mk_apply, dif_pos h, dif_pos h1], refl },
   { have h1 : i' ∉ ({i} : finset ι) := finset.not_mem_singleton.2 (ne.symm h),
     simp only [mk_apply, dif_neg h, dif_neg h1] }
 end
@@ -404,7 +404,7 @@ eq.rec_on h4 $ ha i b f h1 h2 h3
 
 end add_monoid
 
-@[simp] lemma mk_add [Π i, add_monoid (β i)] {s : finset ι} {x y : Π i : (↑s : set ι), β i.1} :
+@[simp] lemma mk_add [Π i, add_monoid (β i)] {s : finset ι} {x y : Π i : (↑s : set ι), β i} :
   mk s (x + y) = mk s x + mk s y :=
 ext $ λ i, by simp only [add_apply, mk_apply]; split_ifs; [refl, rw zero_add]
 
@@ -787,10 +787,10 @@ end
 @[to_additive]
 lemma prod_subtype_domain_index [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   [comm_monoid γ] {v : Π₀ i, β i} {p : ι → Prop} [decidable_pred p]
-  {h : Π i, β i → γ} (hp : ∀x∈v.support, p x) :
+  {h : Π i, β i → γ} (hp : ∀ x ∈ v.support, p x) :
   (v.subtype_domain p).prod (λi b, h i.1 b) = v.prod h :=
 finset.prod_bij (λp _, p.val)
-  (by simp)
+  (by { dsimp, simp })
   (by simp)
   (assume ⟨a₀, ha₀⟩ ⟨a₁, ha₁⟩, by simp)
   (λ i hi, ⟨⟨i, hp i hi⟩, by simpa using hi, rfl⟩)

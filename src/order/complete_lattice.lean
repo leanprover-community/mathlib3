@@ -741,7 +741,7 @@ lemma infi_subtype'' {ι} (s : set ι) (f : ι → α) :
 infi_subtype
 
 lemma is_glb_binfi {s : set β} {f : β → α} : is_glb (f '' s) (⨅ x ∈ s, f x) :=
-by simpa only [range_comp, subtype.range_val, infi_subtype'] using @is_glb_infi α s _ (f ∘ subtype.val)
+by simpa only [range_comp, subtype.range_coe, infi_subtype'] using @is_glb_infi α s _ (f ∘ coe)
 
 theorem supr_subtype {p : ι → Prop} {f : subtype p → α} : (⨆ x, f x) = (⨆ i (h:p i), f ⟨i, h⟩) :=
 le_antisymm
@@ -753,7 +753,7 @@ lemma supr_subtype' {p : ι → Prop} {f : ∀ i, p i → α} :
 (@supr_subtype _ _ _ p (λ x, f x.val x.property)).symm
 
 lemma is_lub_bsupr {s : set β} {f : β → α} : is_lub (f '' s) (⨆ x ∈ s, f x) :=
-by simpa only [range_comp, subtype.range_val, supr_subtype'] using @is_lub_supr α s _ (f ∘ subtype.val)
+by simpa only [range_comp, subtype.range_coe, supr_subtype'] using @is_lub_supr α s _ (f ∘ coe)
 
 theorem infi_sigma {p : β → Type w} {f : sigma p → α} : (⨅ x, f x) = (⨅ i (h:p i), f ⟨i, h⟩) :=
 le_antisymm

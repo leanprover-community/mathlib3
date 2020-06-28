@@ -22,7 +22,7 @@ library, as well as extra lemmas for functions in the core library (empty set, u
 intersection, insert, singleton, set-theoretic difference, complement, and powerset).
 
 Note that a set is a term, not a type. There is a coersion from `set α` to `Type*` sending
-`s` to the corresponding subtype `↑s`.
+`s` to the corresponding subtype `↥s`.
 
 See also the file `set_theory/zfc.lean`, which contains an encoding of ZFC set theory in Lean.
 
@@ -62,8 +62,10 @@ Definitions in the file:
 
 ## Implementation notes
 
-`s.nonempty` is to be preferred to `s ≠ ∅` or `∃ x, x ∈ s`. It has the advantage that
+* `s.nonempty` is to be preferred to `s ≠ ∅` or `∃ x, x ∈ s`. It has the advantage that
 the `s.nonempty` dot notation can be used.
+
+* For `s : set α`, do not use `subtype s`. Instead use `↥s` or `(s : Type*)` or `s`.
 
 ## Tags
 
@@ -116,7 +118,8 @@ iff.intro set_coe.ext (assume h, h ▸ rfl)
 
 end set_coe
 
-lemma subtype.mem {α : Type*} {s : set α} (p : s) : (p : α) ∈ s := p.property
+/-- See also `subtype.prop` -/
+lemma subtype.mem {α : Type*} {s : set α} (p : s) : (p : α) ∈ s := p.prop
 
 namespace set
 
@@ -140,6 +143,8 @@ theorem ext_iff {s t : set α} : s = t ↔ ∀ x, x ∈ s ↔ x ∈ t :=
 theorem nmem_set_of_eq {a : α} {P : α → Prop} : a ∉ {a : α | P a} = ¬ P a := rfl
 
 @[simp] theorem set_of_mem_eq {s : set α} : {x | x ∈ s} = s := rfl
+
+theorem set_of_set {s : set α} : set_of s = s := rfl
 
 lemma set_of_app_iff {p : α → Prop} {x : α} : { x | p x } x ↔ p x := iff.rfl
 
@@ -667,7 +672,7 @@ instance unique_singleton (a : α) : unique ↥({a} : set α) :=
   uniq :=
   begin
     intros x,
-    apply subtype.coe_ext.2,
+    apply subtype.ext,
     apply eq_of_mem_singleton (subtype.mem x),
   end}
 
@@ -1572,67 +1577,73 @@ namespace subtype
 
 variable {α : Type*}
 
-lemma val_image {p : α → Prop} {s : set (subtype p)} :
-  subtype.val '' s = {x | ∃h : p x, (⟨x, h⟩ : subtype p) ∈ s} :=
+lemma coe_image {p : α → Prop} {s : set (subtype p)} :
+  coe '' s = {x | ∃h : p x, (⟨x, h⟩ : subtype p) ∈ s} :=
 set.ext $ assume a,
 ⟨assume ⟨⟨a', ha'⟩, in_s, h_eq⟩, h_eq ▸ ⟨ha', in_s⟩,
   assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
 
-@[simp] lemma val_range {p : α → Prop} :
-  set.range (@subtype.val _ p) = {x | p x} :=
-by rw ← set.image_univ; simp [-set.image_univ, val_image]
+lemma range_coe {s : set α} :
+  range (coe : s → α) = s :=
+by { rw ← set.image_univ, simp [-set.image_univ, coe_image] }
 
-lemma range_val (s : set α) : range (subtype.val : s → α) = s :=
-val_range
+/-- A variant of `range_coe`. Try to use `range_coe` if possible.
+  This version is useful when defining a new type that is defined as the subtype of something.
+  In that case, the coercion doesn't fire anymore. -/
+lemma range_val {s : set α} :
+  range (subtype.val : s → α) = s :=
+range_coe
 
-theorem val_image_subset (s : set α) (t : set (subtype s)) : t.image val ⊆ s :=
+/-- We make this the simp lemma instead of `range_coe`. The reason is that if we write
+  for `s : set α` the function `coe : s → α`, then the inferred implicit arguments of `coe` are
+  `coe α (λ x, x ∈ s)`. -/
+@[simp] lemma range_coe_subtype {p : α → Prop} :
+  range (coe : subtype p → α) = {x | p x} :=
+range_coe
+
+lemma range_val_subtype {p : α → Prop} :
+  range (subtype.val : subtype p → α) = {x | p x} :=
+range_coe
+
+theorem coe_image_subset (s : set α) (t : set s) : t.image coe ⊆ s :=
 λ x ⟨y, yt, yvaleq⟩, by rw ←yvaleq; exact y.property
 
-theorem val_image_univ (s : set α) : @val _ s '' set.univ = s :=
-image_univ.trans (range_val s)
-
-@[simp] theorem image_preimage_val (s t : set α) :
-  (@subtype.val _ s) '' ((@subtype.val _ s) ⁻¹' t) = t ∩ s :=
-image_preimage_eq_inter_range.trans $ congr_arg _ (range_val s)
+theorem coe_image_univ (s : set α) : (coe : s → α) '' set.univ = s :=
+image_univ.trans range_coe
 
 @[simp] theorem image_preimage_coe (s t : set α) :
   (coe : s → α) '' (coe ⁻¹' t) = t ∩ s :=
-image_preimage_val s t
+image_preimage_eq_inter_range.trans $ congr_arg _ range_coe
 
-theorem preimage_val_eq_preimage_val_iff (s t u : set α) :
-  ((@subtype.val _ s) ⁻¹' t = (@subtype.val _ s) ⁻¹' u) ↔ (t ∩ s = u ∩ s) :=
+theorem image_preimage_val (s t : set α) :
+  (subtype.val : s → α) '' (subtype.val ⁻¹' t) = t ∩ s :=
+image_preimage_coe s t
+
+theorem preimage_coe_eq_preimage_coe_iff {s t u : set α} :
+  ((coe : s → α) ⁻¹' t = coe ⁻¹' u) ↔ t ∩ s = u ∩ s :=
 begin
-  rw [←image_preimage_val, ←image_preimage_val],
+  rw [←image_preimage_coe, ←image_preimage_coe],
   split, { intro h, rw h },
-  intro h, exact val_injective.image_injective h
+  intro h, exact coe_injective.image_injective h
 end
 
+theorem preimage_val_eq_preimage_val_iff (s t u : set α) :
+  ((subtype.val : s → α) ⁻¹' t = subtype.val ⁻¹' u) ↔ (t ∩ s = u ∩ s) :=
+preimage_coe_eq_preimage_coe_iff
+
 lemma exists_set_subtype {t : set α} (p : set α → Prop) :
-  (∃(s : set t), p (subtype.val '' s)) ↔ ∃(s : set α), s ⊆ t ∧ p s :=
+  (∃(s : set t), p (coe '' s)) ↔ ∃(s : set α), s ⊆ t ∧ p s :=
 begin
   split,
-  { rintro ⟨s, hs⟩, refine ⟨subtype.val '' s, _, hs⟩,
-    convert image_subset_range _ _, rw [range_val] },
-  rintro ⟨s, hs₁, hs₂⟩, refine ⟨subtype.val ⁻¹' s, _⟩,
-  rw [image_preimage_eq_of_subset], exact hs₂, rw [range_val], exact hs₁
+  { rintro ⟨s, hs⟩, refine ⟨coe '' s, _, hs⟩,
+    convert image_subset_range _ _, rw [range_coe] },
+  rintro ⟨s, hs₁, hs₂⟩, refine ⟨coe ⁻¹' s, _⟩,
+  rw [image_preimage_eq_of_subset], exact hs₂, rw [range_coe], exact hs₁
 end
 
 end subtype
 
 namespace set
-
-section range
-
-variable {α : Type*}
-
-@[simp] lemma range_coe_subtype (s : set α) : range (coe : s → α) = s :=
-subtype.val_range
-
-theorem preimage_coe_eq_preimage_coe_iff {s t u : set α} :
-  ((coe : s → α) ⁻¹' t = coe ⁻¹' u) ↔ t ∩ s = u ∩ s :=
-subtype.preimage_val_eq_preimage_val_iff _ _ _
-
-end range
 
 /-! ### Lemmas about cartesian product of sets -/
 
@@ -1848,7 +1859,7 @@ by cases x; refl
 
 lemma inclusion_injective {s t : set α} (h : s ⊆ t) :
   function.injective (inclusion h)
-| ⟨_, _⟩ ⟨_, _⟩ := subtype.ext.2 ∘ subtype.ext.1
+| ⟨_, _⟩ ⟨_, _⟩ := subtype.ext_iff_val.2 ∘ subtype.ext_iff_val.1
 
 lemma range_inclusion {s t : set α} (h : s ⊆ t) : range (inclusion h) = {x : t | (x:α) ∈ s} :=
 ext $ λ ⟨x, hx⟩ , by simp [inclusion]

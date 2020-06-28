@@ -155,7 +155,7 @@ def kernel_is_limit : is_limit (kernel_cone f) :=
     { erw @linear_map.subtype_comp_cod_restrict _ _ _ _ _ _ _ _ (fork.ι s) f.ker _ },
     { rw [←fork.app_zero_left, ←fork.app_zero_left], refl }
   end,
-  uniq' := λ s m h, linear_map.ext $ λ x, subtype.ext.2 $
+  uniq' := λ s m h, linear_map.ext $ λ x, subtype.ext_iff_val.2 $
     have h₁ : (m ≫ (kernel_cone f).π.app zero).to_fun = (s.π.app zero).to_fun,
     by { congr, exact h zero },
     by convert @congr_fun _ _ _ _ h₁ x }

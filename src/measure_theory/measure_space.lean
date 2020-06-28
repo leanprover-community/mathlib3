@@ -397,7 +397,7 @@ begin
   haveI := hs.to_encodable,
   rw [← measure_Union, bUnion_eq_Union],
   { rintro ⟨i, hi⟩ ⟨j, hj⟩ ij x ⟨h₁, h₂⟩,
-    exact hd i hi j hj (mt subtype.eq' ij:_) ⟨h₁, h₂⟩ },
+    exact hd i hi j hj (mt subtype.ext_val ij:_) ⟨h₁, h₂⟩ },
   { simpa }
 end
 

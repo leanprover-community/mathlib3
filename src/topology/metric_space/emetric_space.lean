@@ -418,7 +418,7 @@ def emetric_space.induced {α β} (f : α → β) (hf : function.injective f)
 
 /-- Emetric space instance on subsets of emetric spaces -/
 instance {α : Type*} {p : α → Prop} [t : emetric_space α] : emetric_space (subtype p) :=
-t.induced coe (λ x y, subtype.coe_ext.2)
+t.induced coe (λ x y, subtype.ext_iff_val.2)
 
 /-- The extended distance on a subset of an emetric space is the restriction of
 the original distance, by definition -/

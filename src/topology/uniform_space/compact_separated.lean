@@ -48,7 +48,7 @@ begin
     push_neg at H,
     simpa only [mem_supr_sets] using H },
   let F := 𝓤 α ⊓ 𝓟 (-V),
-  obtain ⟨⟨x, y⟩, hx⟩ : ∃ (x : α × α), cluster_pt x F :=
+  obtain ⟨⟨x, y⟩, hx⟩ : ∃ (p : α × α), cluster_pt p F :=
     cluster_point_of_compact h,
   have : cluster_pt (x, y) (𝓤 α) :=
     hx.of_inf_left,
@@ -189,7 +189,7 @@ begin
                        ... =  ⨆ x, map (prod.map f f) (𝓝 (x, x)) : by rw map_supr
                        ... ≤ ⨆ x, 𝓝 (f x, f x) : supr_le_supr (λ x, (h.prod_map h).continuous_at)
                        ... ≤ ⨆ y, 𝓝 (y, y)     : _
-                       ... ≤ 𝓤 β               : nhds_le_uniformity ,
+                       ... ≤ 𝓤 β                : nhds_le_uniformity,
   rw ← supr_range,
   simp only [and_imp, supr_le_iff, prod.forall, supr_exists, mem_range, prod.mk.inj_iff],
   rintros _ _ ⟨y, rfl, rfl⟩,

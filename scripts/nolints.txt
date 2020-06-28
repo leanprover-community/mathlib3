@@ -1900,9 +1900,6 @@ apply_nolint tactic.get_lift_prf doc_blame
 apply_nolint tactic.to_texpr doc_blame
 apply_nolint tactic.using_texpr doc_blame
 
--- tactic/linarith/lemmas.lean
-apply_nolint linarith.mul_eq unused_arguments
-
 -- tactic/local_cache.lean
 apply_nolint tactic.local_cache.internal.block_local.clear doc_blame
 apply_nolint tactic.local_cache.internal.block_local.get_name doc_blame

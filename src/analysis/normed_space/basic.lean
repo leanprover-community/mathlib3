@@ -965,7 +965,7 @@ calc ∥(1:𝕜')∥ = ∥algebra_map 𝕜 𝕜' 1∥ : by {rw ← (algebra_map 
 ... = ∥(1:𝕜)∥ : norm_algebra_map_eq _ _
 ... = 1 : by simp
 
-instance normed_algebra.to_nonzero {𝕜 : Type*} (𝕜' : Type*) [normed_field 𝕜]
+def normed_algebra.to_nonzero {𝕜 : Type*} (𝕜' : Type*) [normed_field 𝕜]
   [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] : nonzero 𝕜' :=
 { zero_ne_one :=
   begin

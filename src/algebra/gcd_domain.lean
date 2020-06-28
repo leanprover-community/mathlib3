@@ -489,7 +489,7 @@ theorem gcd_div {i j k : ℤ} (H1 : k ∣ i) (H2 : k ∣ j) :
 by rw [gcd, nat_abs_div i k H1, nat_abs_div j k H2];
 exact nat.gcd_div (nat_abs_dvd_abs_iff.mpr H1) (nat_abs_dvd_abs_iff.mpr H2)
 
-theorem coprime_div_gcd_div_gcd {i j : ℤ} (H : 0 < gcd i j) :
+theorem gcd_div_gcd_div_gcd {i j : ℤ} (H : 0 < gcd i j) :
   gcd (i / gcd i j) (j / gcd i j) = 1 :=
 begin
   rw [gcd_div (gcd_dvd_left i j) (gcd_dvd_right i j)],

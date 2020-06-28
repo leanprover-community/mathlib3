@@ -73,7 +73,7 @@ by ext b; simp [this]
 @[simp] lemma bind_bind (p : pmf α) (f : α → pmf β) (g : β → pmf γ) :
   (p.bind f).bind g = p.bind (λa, (f a).bind g) :=
 begin
-  ext b,
+  ext1 b,
   simp only [ennreal.coe_eq_coe.symm, coe_bind_apply, ennreal.tsum_mul_left.symm,
              ennreal.tsum_mul_right.symm],
   rw [ennreal.tsum_comm],
@@ -83,7 +83,7 @@ end
 lemma bind_comm (p : pmf α) (q : pmf β) (f : α → β → pmf γ) :
   p.bind (λa, q.bind (f a)) = q.bind (λb, p.bind (λa, f a b)) :=
 begin
-  ext b,
+  ext1 b,
   simp only [ennreal.coe_eq_coe.symm, coe_bind_apply, ennreal.tsum_mul_left.symm,
              ennreal.tsum_mul_right.symm],
   rw [ennreal.tsum_comm],

@@ -106,7 +106,7 @@ instance : has_mem P (fractional_ideal f) := ⟨λ x I, x ∈ (I : submodule R f
 -/
 @[ext]
 lemma ext {I J : fractional_ideal f} : (I : submodule R f.codomain) = J → I = J :=
-subtype.ext.mpr
+subtype.ext_iff_val.mpr
 
 lemma fractional_of_subset_one (I : submodule R f.codomain)
   (h : I ≤ (submodule.span R {1})) :

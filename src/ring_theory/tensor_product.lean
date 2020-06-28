@@ -180,7 +180,7 @@ instance : algebra R (A ⊗[R] B) :=
     apply tensor_product.induction_on A B x,
     { simp, },
     { intros a b, simp [tensor_algebra_map, algebra.commutes], },
-    { intros, simp [mul_add, add_mul, *], },
+    { intros y y' h h', simp at h h', simp [mul_add, add_mul, h, h'], },
   end,
   smul_def' := λ r x,
   begin

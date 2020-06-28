@@ -91,8 +91,8 @@ begin
     have f := (Kuratowski_embedding.isometry α).isometric_on_range.trans e,
     use λx, f x,
     split,
-    { apply isometry_subtype_val.comp f.isometry },
-    { rw [range_comp, f.range_coe, set.image_univ, set.range_coe_subtype] } },
+    { apply isometry_subtype_coe.comp f.isometry },
+    { rw [range_comp, f.range_coe, set.image_univ, subtype.range_coe] } },
   { rintros ⟨Ψ, ⟨isomΨ, rangeΨ⟩⟩,
     have f := ((Kuratowski_embedding.isometry α).isometric_on_range.symm.trans
                isomΨ.isometric_on_range).symm,
@@ -104,8 +104,8 @@ end
 
 lemma eq_to_GH_space {p : nonempty_compacts ℓ_infty_ℝ} : ⟦p⟧ = to_GH_space p.val :=
 begin
- refine eq_to_GH_space_iff.2 ⟨((λx, x) : p.val → ℓ_infty_ℝ), _, subtype.val_range⟩,
- apply isometry_subtype_val
+ refine eq_to_GH_space_iff.2 ⟨((λx, x) : p.val → ℓ_infty_ℝ), _, subtype.range_coe⟩,
+ apply isometry_subtype_coe
 end
 
 section
@@ -200,7 +200,7 @@ begin
   have ΨΨ' : Ψ = subtype.val ∘ Ψ', by { funext, refl },
   have : Hausdorff_dist (range Φ) (range Ψ) = Hausdorff_dist (range Φ') (range Ψ'),
   { rw [ΦΦ', ΨΨ', range_comp, range_comp],
-    exact Hausdorff_dist_image (isometry_subtype_val) },
+    exact Hausdorff_dist_image (isometry_subtype_coe) },
   rw this,
   -- Embed `s` in `ℓ^∞(ℝ)` through its Kuratowski embedding
   let F := Kuratowski_embedding (subtype s),
@@ -480,11 +480,11 @@ variables {α : Type u} [metric_space α]
 theorem GH_dist_le_nonempty_compacts_dist (p q : nonempty_compacts α) :
   dist p.to_GH_space q.to_GH_space ≤ dist p q :=
 begin
-  have ha : isometry (subtype.val : p.val → α) := isometry_subtype_val,
-  have hb : isometry (subtype.val : q.val → α) := isometry_subtype_val,
+  have ha : isometry (coe : p.val → α) := isometry_subtype_coe,
+  have hb : isometry (coe : q.val → α) := isometry_subtype_coe,
   have A : dist p q = Hausdorff_dist p.val q.val := rfl,
-  have I : p.val = range (subtype.val : p.val → α), by simp,
-  have J : q.val = range (subtype.val : q.val → α), by simp,
+  have I : p.val = range (coe : p.val → α), by simp,
+  have J : q.val = range (coe : q.val → α), by simp,
   rw [I, J] at A,
   rw A,
   exact GH_dist_le_Hausdorff_dist ha hb

@@ -262,16 +262,16 @@ protected lemma prod {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_embedd
 /-- The dense embedding of a subtype inside its closure. -/
 def subtype_emb {α : Type*} (p : α → Prop) (e : α → β) (x : {x // p x}) :
   {x // x ∈ closure (e '' {x | p x})} :=
-⟨e x.1, subset_closure $ mem_image_of_mem e x.2⟩
+⟨e x, subset_closure $ mem_image_of_mem e x.prop⟩
 
 protected lemma subtype (p : α → Prop) : dense_embedding (subtype_emb p e) :=
 { dense_embedding .
   dense   := assume ⟨x, hx⟩, closure_subtype.mpr $
-    have (λ (x : {x // p x}), e (x.val)) = e ∘ subtype.val, from rfl,
+    have (λ (x : {x // p x}), e x) = e ∘ coe, from rfl,
     begin
       rw ← image_univ,
       simp [(image_comp _ _ _).symm, (∘), subtype_emb, -image_univ],
-      rw [this, image_comp, subtype.val_image],
+      rw [this, image_comp, subtype.coe_image],
       simp,
       assumption
     end,

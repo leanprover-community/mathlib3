@@ -1016,3 +1016,37 @@ instance nat.infinite : infinite ℕ :=
 
 instance int.infinite : infinite ℤ :=
 infinite.of_injective int.of_nat (λ _ _, int.of_nat.inj)
+
+section trunc
+
+/--
+For `s : multiset α`, we can lift the existential statement that `∃ x, x ∈ s` to a `trunc α`.
+-/
+def trunc_of_multiset_exists_mem {α} (s : multiset α) : (∃ x, x ∈ s) → trunc α :=
+quotient.rec_on_subsingleton s $ λ l h,
+  match l, h with
+    | [],       _ := false.elim (by tauto)
+    | (a :: _), _ := trunc.mk a
+  end
+
+/--
+A `nonempty` `fintype` constructively contains an element.
+-/
+def trunc_of_nonempty_fintype (α) [nonempty α] [fintype α] : trunc α :=
+trunc_of_multiset_exists_mem finset.univ.val (by simp)
+
+/--
+A `fintype` with positive cardinality constructively contains an element.
+-/
+def trunc_of_card_pos {α} [fintype α] (h : 0 < fintype.card α) : trunc α :=
+by { letI := (fintype.card_pos_iff.mp h), exact trunc_of_nonempty_fintype α }
+
+/--
+By iterating over the elements of a fintype, we can lift an existential statement `∃ a, P a`
+to `trunc (Σ' a, P a)`, containing data.
+-/
+def trunc_sigma_of_exists {α} [fintype α] {P : α → Prop} [decidable_pred P] (h : ∃ a, P a) :
+  trunc (Σ' a, P a) :=
+@trunc_of_nonempty_fintype (Σ' a, P a) (exists.elim h $ λ a ha, ⟨⟨a, ha⟩⟩) _
+
+end trunc

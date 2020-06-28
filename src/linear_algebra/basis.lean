@@ -182,34 +182,34 @@ section subtype
 /-! The following lemmas use the subtype defined by a set in `M` as the index set `ι`. -/
 
 theorem linear_independent_comp_subtype {s : set ι} :
-  linear_independent R (v ∘ subtype.val : s → M) ↔
+  linear_independent R (v ∘ coe : s → M) ↔
   ∀ l ∈ (finsupp.supported R R s), (finsupp.total ι M R v) l = 0 → l = 0 :=
 begin
   rw [linear_independent_iff, finsupp.total_comp],
   simp only [linear_map.comp_apply],
   split,
   { intros h l hl₁ hl₂,
-    have h_bij : bij_on subtype.val (subtype.val ⁻¹' ↑l.support : set s) ↑l.support,
+    have h_bij : bij_on coe (coe ⁻¹' ↑l.support : set s) ↑l.support,
     { apply bij_on.mk,
       { apply maps_to_preimage },
-      { apply subtype.val_injective.inj_on },
+      { apply subtype.coe_injective.inj_on },
       intros i hi,
-      rw [image_preimage_eq_inter_range, subtype.range_val],
+      rw [image_preimage_eq_inter_range, subtype.range_coe],
       exact ⟨hi, (finsupp.mem_supported _ _).1 hl₁ hi⟩ },
     show l = 0,
-    { apply finsupp.eq_zero_of_comap_domain_eq_zero (subtype.val : s → ι) _ h_bij,
+    { apply finsupp.eq_zero_of_comap_domain_eq_zero (coe : s → ι) _ h_bij,
       apply h,
       convert hl₂,
       rw [finsupp.lmap_domain_apply, finsupp.map_domain_comap_domain],
-      exact subtype.val_injective,
-      rw subtype.range_val,
+      exact subtype.coe_injective,
+      rw subtype.range_coe,
       exact (finsupp.mem_supported _ _).1 hl₁ } },
   { intros h l hl,
-    have hl' : finsupp.total ι M R v (finsupp.emb_domain ⟨subtype.val, subtype.val_injective⟩ l) = 0,
-    { rw finsupp.emb_domain_eq_map_domain ⟨subtype.val, subtype.val_injective⟩ l,
+    have hl' : finsupp.total ι M R v (finsupp.emb_domain ⟨coe, subtype.coe_injective⟩ l) = 0,
+    { rw finsupp.emb_domain_eq_map_domain ⟨coe, subtype.coe_injective⟩ l,
       apply hl },
     apply finsupp.emb_domain_inj.1,
-    rw [h (finsupp.emb_domain ⟨subtype.val, subtype.val_injective⟩ l) _ hl',
+    rw [h (finsupp.emb_domain ⟨coe, subtype.coe_injective⟩ l) _ hl',
         finsupp.emb_domain_zero],
     rw [finsupp.mem_supported, finsupp.support_emb_domain],
     intros x hx,
@@ -225,7 +225,7 @@ theorem linear_independent_subtype {s : set M} :
 by apply @linear_independent_comp_subtype _ _ _ id
 
 theorem linear_independent_comp_subtype_disjoint {s : set ι} :
-  linear_independent R (v ∘ subtype.val : s → M) ↔
+  linear_independent R (v ∘ coe : s → M) ↔
   disjoint (finsupp.supported R R s) (finsupp.total ι M R v).ker :=
 by rw [linear_independent_comp_subtype, linear_map.disjoint_ker]
 
@@ -281,23 +281,23 @@ begin
 end
 
 lemma linear_independent.restrict_of_comp_subtype {s : set ι}
-  (hs : linear_independent R (v ∘ subtype.val : s → M)) :
+  (hs : linear_independent R (v ∘ coe : s → M)) :
   linear_independent R (s.restrict v) :=
 begin
-  have h_restrict : restrict v s = v ∘ (λ x, x.val) := rfl,
+  have h_restrict : restrict v s = v ∘ coe := rfl,
   rw [linear_independent_iff, h_restrict, finsupp.total_comp],
   intros l hl,
-  have h_map_domain_subtype_eq_0 : l.map_domain subtype.val = 0,
+  have h_map_domain_subtype_eq_0 : l.map_domain coe = 0,
   { rw linear_independent_comp_subtype at hs,
-    apply hs (finsupp.lmap_domain R R (λ x : subtype s, x.val) l) _ hl,
+    apply hs (finsupp.lmap_domain R R coe l) _ hl,
     rw finsupp.mem_supported,
     simp,
     intros x hx,
     have := finset.mem_coe.2 (finsupp.map_domain_support (finset.mem_coe.1 hx)),
     rw finset.coe_image at this,
-    exact subtype.val_image_subset _ _ this },
+    exact subtype.coe_image_subset _ _ this },
   apply @finsupp.map_domain_injective _ (subtype s) ι,
-  { apply subtype.val_injective },
+  { apply subtype.coe_injective },
   { simpa },
 end
 
@@ -471,7 +471,7 @@ def linear_independent.repr (hv : linear_independent R v) :
   span R (range v) →ₗ[R] ι →₀ R := hv.total_equiv.symm
 
 lemma linear_independent.total_repr (x) : finsupp.total ι M R v (hv.repr x) = x :=
-subtype.coe_ext.1 (linear_equiv.apply_symm_apply hv.total_equiv x)
+subtype.ext_iff.1 (linear_equiv.apply_symm_apply hv.total_equiv x)
 
 lemma linear_independent.total_comp_repr :
   (finsupp.total ι M R v).comp hv.repr = submodule.subtype _ :=
@@ -491,7 +491,7 @@ begin
       = finsupp.total ι M R v l := rfl,
   have : (linear_independent.total_equiv hv : (ι →₀ R) →ₗ[R] span R (range v)) l = x,
   { rw eq at this,
-    exact subtype.coe_ext.2 this },
+    exact subtype.ext_iff.2 this },
   rw ←linear_equiv.symm_apply_apply hv.total_equiv l,
   rw ←this,
   refl,
@@ -557,7 +557,7 @@ end
 lemma eq_of_linear_independent_of_span_subtype {s t : set M} (zero_ne_one : (0 : R) ≠ 1)
   (hs : linear_independent R (λ x, x : s → M)) (h : t ⊆ s) (hst : s ⊆ span R t) : s = t :=
 begin
-  let f : t ↪ s := ⟨λ x, ⟨x.1, h x.2⟩, λ a b hab, subtype.val_injective (subtype.mk.inj hab)⟩,
+  let f : t ↪ s := ⟨λ x, ⟨x.1, h x.2⟩, λ a b hab, subtype.coe_injective (subtype.mk.inj hab)⟩,
   have h_surj : surjective f,
   { apply surjective_of_linear_independent_of_span hs f _ zero_ne_one,
     convert hst; simp [f, comp], },
@@ -699,7 +699,7 @@ have h4 : g a = 0, from calc
 (finset.forall_mem_insert _ _ _).2 ⟨h4, h3⟩)
 
 lemma le_of_span_le_span {s t u: set M} (zero_ne_one : (0 : R) ≠ 1)
-  (hl : linear_independent R (subtype.val : u → M )) (hsu : s ⊆ u) (htu : t ⊆ u)
+  (hl : linear_independent R (coe : u → M )) (hsu : s ⊆ u) (htu : t ⊆ u)
   (hst : span R s ≤ span R t) : s ⊆ t :=
 begin
   have := eq_of_linear_independent_of_span_subtype zero_ne_one
@@ -710,7 +710,7 @@ begin
 end
 
 lemma span_le_span_iff {s t u: set M} (zero_ne_one : (0 : R) ≠ 1)
-  (hl : linear_independent R (subtype.val : u → M )) (hsu : s ⊆ u) (htu : t ⊆ u) :
+  (hl : linear_independent R (coe : u → M)) (hsu : s ⊆ u) (htu : t ⊆ u) :
   span R s ≤ span R t ↔ s ⊆ t :=
 ⟨le_of_span_le_span zero_ne_one hl hsu htu, span_mono⟩
 
@@ -915,7 +915,7 @@ split,
     by rw h₂; apply subtype.mem x,
   rcases mem_map.1 h₃ with ⟨y, hy₁, hy₂⟩,
   have h_x_eq_y : x = y,
-    by rw [subtype.coe_ext, ← hy₂]; simp,
+    by rw [subtype.ext_iff, ← hy₂]; simp,
   rw h_x_eq_y,
   exact hy₁ }
 end
@@ -929,7 +929,7 @@ lemma is_basis_empty_bot (h_empty : ¬ nonempty ι) :
 begin
   apply is_basis_empty h_empty,
   intro x,
-  apply subtype.ext.2,
+  apply subtype.ext_iff_val.2,
   exact (submodule.mem_bot R).1 (subtype.mem x),
 end
 
@@ -1170,7 +1170,7 @@ begin
   have : linear_independent K (λ x, x : f '' B → V'),
   { have h₁ := hB₀.image_subtype
       (show disjoint (span K (range (λ i : B, i.val))) (linear_map.ker f), by simp [hf_inj]),
-    rwa B.range_coe_subtype at h₁ },
+    rwa subtype.range_coe at h₁ },
   rcases exists_subset_is_basis this with ⟨C, BC, hC⟩,
   haveI : inhabited V := ⟨0⟩,
   use hC.constr (C.restrict (inv_fun f)),

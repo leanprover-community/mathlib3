@@ -245,7 +245,7 @@ theorem zorn_subset {α : Type u} (S : set (set α))
   (h : ∀c ⊆ S, chain (⊆) c → ∃ub ∈ S, ∀ s ∈ c, s ⊆ ub) :
   ∃ m ∈ S, ∀a ∈ S, m ⊆ a → a = m :=
 begin
-  letI : partial_order S := partial_order.lift subtype.val (λ _ _, subtype.eq'),
+  letI : partial_order S := partial_order.lift subtype.val (λ _ _, subtype.ext_val),
   have : ∀c:set S, @chain S (≤) c → ∃ub, ∀a∈c, a ≤ ub,
   { intros c hc,
     rcases h (subtype.val '' c) (image_subset_iff.2 _) _ with ⟨s, sS, hs⟩,

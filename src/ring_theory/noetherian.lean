@@ -340,21 +340,21 @@ lemma well_founded_submodule_gt (R M) [ring R] [add_comm_group M] [module R M] :
 is_noetherian_iff_well_founded.mp
 
 lemma finite_of_linear_independent {R M} [comm_ring R] [nonzero R] [add_comm_group M] [module R M]
-  [is_noetherian R M] {s : set M} (hs : linear_independent R (subtype.val : s → M)) : s.finite :=
+  [is_noetherian R M] {s : set M} (hs : linear_independent R (coe : s → M)) : s.finite :=
 begin
   refine classical.by_contradiction (λ hf, order_embedding.well_founded_iff_no_descending_seq.1
     (well_founded_submodule_gt R M) ⟨_⟩),
   have f : ℕ ↪ s, from @infinite.nat_embedding s ⟨λ f, hf ⟨f⟩⟩,
-  have : ∀ n, (subtype.val ∘ f) '' {m | m ≤ n} ⊆ s,
+  have : ∀ n, (coe ∘ f) '' {m | m ≤ n} ⊆ s,
   { rintros n x ⟨y, hy₁, hy₂⟩, subst hy₂, exact (f y).2 },
   have : ∀ a b : ℕ, a ≤ b ↔
-    span R ((subtype.val ∘ f) '' {m | m ≤ a}) ≤ span R ((subtype.val ∘ f) '' {m | m ≤ b}),
+    span R ((coe ∘ f) '' {m | m ≤ a}) ≤ span R ((coe ∘ f) '' {m | m ≤ b}),
   { assume a b,
     rw [span_le_span_iff zero_ne_one hs (this a) (this b),
-      set.image_subset_image_iff (subtype.val_injective.comp f.injective),
+      set.image_subset_image_iff (subtype.coe_injective.comp f.injective),
       set.subset_def],
     exact ⟨λ hab x (hxa : x ≤ a), le_trans hxa hab, λ hx, hx a (le_refl a)⟩ },
-  exact ⟨⟨λ n, span R ((subtype.val ∘ f) '' {m | m ≤ n}),
+  exact ⟨⟨λ n, span R ((coe ∘ f) '' {m | m ≤ n}),
       λ x y, by simp [le_antisymm_iff, (this _ _).symm] {contextual := tt}⟩,
     by dsimp [gt]; simp only [lt_iff_le_not_le, (this _ _).symm]; tauto⟩
 end

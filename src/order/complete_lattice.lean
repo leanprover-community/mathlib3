@@ -2,10 +2,32 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
-
-Theory of complete lattices.
 -/
 import order.bounds
+
+/-!
+# Theory of complete lattices
+
+## Main definitions
+
+* `Sup` and `Inf` are the supremum and the infimum of a set;
+* `supr (f : ι → α)` and `infi (f : ι → α)` are indexed supremum and infimum of a function,
+  defined as `Sup` and `Inf` of the range of this function;
+* `class complete_lattice`: a bounded lattice such that `Sup s` is always the least upper boundary
+  of `s` and `Inf s` is always the greatest lower boundary of `s`;
+* `class complete_linear_order`: a linear ordered complete lattice.
+
+## Naming conventions
+
+We use `Sup`/`Inf`/`supr`/`infi` for the corresponding functions in the statement. Sometimes we
+also use `bsupr`/`binfi` for "bounded` supremum or infimum, i.e. one of `⨆ i ∈ s, f i`,
+`⨆ i (hi : p i), f i`, or more generally `⨆ i (hi : p i), f i hi`.
+
+## Notation
+
+* `⨆ i, f i` : `supr f`, the supremum of the range of `f`;
+* `⨅ i, f i` : `infi f`, the infimum of the range of `f`.
+-/
 
 set_option old_structure_cmd true
 open set
@@ -225,10 +247,10 @@ iff.intro
     let ⟨a, ha, h⟩ := h _ h' in
     lt_irrefl a $ lt_of_lt_of_le h (Inf_le ha))
 
-lemma lt_supr_iff {ι : Sort*} {f : ι → α} : a < supr f ↔ (∃i, a < f i) :=
+lemma lt_supr_iff {f : ι → α} : a < supr f ↔ (∃i, a < f i) :=
 lt_Sup_iff.trans exists_range_iff
 
-lemma infi_lt_iff {ι : Sort*} {f : ι → α} : infi f < a ↔ (∃i, f i < a) :=
+lemma infi_lt_iff {f : ι → α} : infi f < a ↔ (∃i, f i < a) :=
 Inf_lt_iff.trans exists_range_iff
 
 end complete_linear_order
@@ -263,14 +285,26 @@ lemma is_glb.infi_eq (h : is_glb (range s) a) : (⨅j, s j) = a := h.Inf_eq
 theorem le_supr_of_le (i : ι) (h : a ≤ s i) : a ≤ supr s :=
 le_trans h (le_supr _ i)
 
+theorem le_bsupr {p : ι → Prop} {f : Π i (h : p i), α} (i : ι) (hi : p i) :
+  f i hi ≤ ⨆ i hi, f i hi :=
+le_supr_of_le i $ le_supr (f i) hi
+
 theorem supr_le (h : ∀i, s i ≤ a) : supr s ≤ a :=
 Sup_le $ assume b ⟨i, eq⟩, eq ▸ h i
+
+theorem bsupr_le {p : ι → Prop} {f : Π i (h : p i), α} (h : ∀ i hi, f i hi ≤ a) :
+  (⨆ i (hi : p i), f i hi) ≤ a :=
+supr_le $ λ i, supr_le $ h i
 
 theorem supr_le_supr (h : ∀i, s i ≤ t i) : supr s ≤ supr t :=
 supr_le $ assume i, le_supr_of_le i (h i)
 
 theorem supr_le_supr2 {t : ι₂ → α} (h : ∀i, ∃j, s i ≤ t j) : supr s ≤ supr t :=
 supr_le $ assume j, exists.elim (h j) le_supr_of_le
+
+theorem bsupr_le_bsupr {p : ι → Prop} {f g : Π i (hi : p i), α} (h : ∀ i hi, f i hi ≤ g i hi) :
+  (⨆ i hi, f i hi) ≤ ⨆ i hi, g i hi :=
+bsupr_le $ λ i hi, le_trans (h i hi) (le_bsupr i hi)
 
 theorem supr_le_supr_const (h : ι → ι₂) : (⨆ i:ι, a) ≤ (⨆ j:ι₂, a) :=
 supr_le $ le_supr _ ∘ h
@@ -345,14 +379,26 @@ end
 theorem infi_le_of_le (i : ι) (h : s i ≤ a) : infi s ≤ a :=
 le_trans (infi_le _ i) h
 
+theorem binfi_le {p : ι → Prop} {f : Π i (hi : p i), α} (i : ι) (hi : p i) :
+  (⨅ i hi, f i hi) ≤ f i hi :=
+infi_le_of_le i $ infi_le (f i) hi
+
 theorem le_infi (h : ∀i, a ≤ s i) : a ≤ infi s :=
 le_Inf $ assume b ⟨i, eq⟩, eq ▸ h i
+
+theorem le_binfi {p : ι → Prop} {f : Π i (h : p i), α} (h : ∀ i hi, a ≤ f i hi) :
+  a ≤ ⨅ i hi, f i hi :=
+le_infi $ λ i, le_infi $ h i
 
 theorem infi_le_infi (h : ∀i, s i ≤ t i) : infi s ≤ infi t :=
 le_infi $ assume i, infi_le_of_le i (h i)
 
 theorem infi_le_infi2 {t : ι₂ → α} (h : ∀j, ∃i, s i ≤ t j) : infi s ≤ infi t :=
 le_infi $ assume j, exists.elim (h j) infi_le_of_le
+
+theorem binfi_le_binfi {p : ι → Prop} {f g : Π i (h : p i), α} (h : ∀ i hi, f i hi ≤ g i hi) :
+  (⨅ i hi, f i hi) ≤ ⨅ i hi, g i hi :=
+le_binfi $ λ i hi, le_trans (binfi_le i hi) (h i hi)
 
 theorem infi_le_infi_const (h : ι₂ → ι) : (⨅ i:ι, a) ≤ (⨅ j:ι₂, a) :=
 le_infi $ infi_le _ ∘ h
@@ -528,8 +574,7 @@ le_antisymm
 lemma inf_infi {f : ι → α} {a : α} (i : ι) : a ⊓ (⨅x, f x) = (⨅ x, a ⊓ f x) :=
 by rw [inf_comm, infi_inf i]; simp [inf_comm]
 
-lemma binfi_inf {ι : Sort*} {p : ι → Prop}
-  {f : Πi, p i → α} {a : α} {i : ι} (hi : p i) :
+lemma binfi_inf {p : ι → Prop} {f : Π i (hi : p i), α} {a : α} {i : ι} (hi : p i) :
   (⨅i (h : p i), f i h) ⊓ a = (⨅ i (h : p i), f i h ⊓ a) :=
 le_antisymm
   (le_infi $ assume i, le_infi $ assume hi,

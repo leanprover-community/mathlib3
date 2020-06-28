@@ -9,8 +9,6 @@ import logic.function.basic
 open_locale big_operators
 open padic_val_nat
 
-lemma min_fac_le_self (n : nat) (n_big : 0 < n) : nat.min_fac n ≤ n := nat.le_of_dvd n_big (nat.min_fac_dvd n)
-
 lemma prod_padic_val_nat_one (m : nat) (m_big : 1 < m) :
   ∏ p in finset.filter nat.prime (finset.range m), p ^ padic_val_nat p 1 = 1 :=
 begin
@@ -74,7 +72,7 @@ begin
     end,
 
   have min_fac_small : n.min_fac < m, by
-    calc nat.min_fac n ≤ n : min_fac_le_self n (nat.lt_of_succ_lt one_lt_n)
+    calc nat.min_fac n ≤ n : min_fac_le (nat.lt_of_succ_lt one_lt_n)
     ... < m : n_lt_m,
 
   have split_prod :

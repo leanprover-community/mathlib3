@@ -27,7 +27,7 @@ nat_iso.of_components (λ _, eq_to_iso dec_trivial) (λ _ _ _, dec_trivial)
 Any two functors to `discrete punit` are *equal*.
 You probably want to use `punit_ext` instead of this.
 -/
-def punit_ext' (F G : C ⥤ discrete punit) : F = G :=
+lemma punit_ext' (F G : C ⥤ discrete punit) : F = G :=
 functor.ext (λ _, dec_trivial) (λ _ _ _, dec_trivial)
 
 /-- The functor from `discrete punit` sending everything to the given object. -/
@@ -57,8 +57,7 @@ def equiv : (discrete punit ⥤ C) ≌ C :=
     refine nat_iso.of_components iso.refl _,
     intros X Y f,
     dsimp, simp,
-  end
-}
+  end }
 
 end functor
 

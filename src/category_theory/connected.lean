@@ -204,6 +204,7 @@ begin
   { exact (k a).1 }
 end
 
+/-- If `discrete α` is connected, then `α` is (type-)equivalent to `punit`. -/
 def discrete_connected_equiv_punit {α : Type*} [connected (discrete α)] : α ≃ punit :=
 discrete.equiv_of_equivalence
   { functor := functor.star _,

@@ -1104,7 +1104,7 @@ polynomial.induction_on p
 lemma eval_map (x : S) : (p.map f).eval x = p.eval₂ f x :=
 begin
   convert finsupp.sum_map_range_index _,
-  work_on_goal 1 { exact ring_hom.map_zero f,},
+  work_on_goal 1 { exact ring_hom.map_zero f, },
   work_on_goal 1 { intro a, simp only [id.def, zero_mul], },
   { change map f p = map_range f _ p,
     ext,

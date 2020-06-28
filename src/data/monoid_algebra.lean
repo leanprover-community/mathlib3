@@ -250,7 +250,7 @@ def algebra_map' [semiring k] [monoid G] : k →+* monoid_algebra k G :=
 instance [comm_semiring k] [monoid G] : algebra k (monoid_algebra k G) :=
 { smul_def' := λ r a, ext (λ _, smul_apply.trans (single_one_mul_apply _ _ _).symm),
   commutes' := λ r f, ext $ λ _,
-  by simp [algebra_map', single_one_mul_apply, mul_single_one_apply, mul_comm],
+    by simp [algebra_map', single_one_mul_apply, mul_single_one_apply, mul_comm],
   ..algebra_map' }
 
 @[simp] lemma coe_algebra_map [comm_semiring k] [monoid G] :

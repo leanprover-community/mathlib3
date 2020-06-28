@@ -61,8 +61,7 @@ section category
 
 universes v u  -- the order matters (see below)
 
-variables (C : Type u) [𝒞 : category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C]
 
 variables {W X Y Z : C}
 variables (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z)
@@ -71,22 +70,17 @@ variables (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z)
 This says "let `C` be a category, let `W`, `X`, `Y`, `Z` be objects of `C`, and let `f : W ⟶ X`, `g
 : X ⟶ Y` and `h : Y ⟶ Z` be morphisms in `C` (with the specified source and targets)".
 
-Note two unusual things. Firstly, the typeclass `category C` is explicitly named as `𝒞` (in
-contrast to group theory, where one would just write `[group G]` rather than `[h : group G]`).
-Secondly, we have to explicitly tell Lean the universe where the morphisms live (by writing
-`category.{v} C`), because Lean cannot guess from knowing `C` alone.
+Note two unusual things. Firstly, we have to explicitly tell Lean the universe where the objects
+live (by writing `C : Type u`). We do not declare [category C], in contrast to group theory,
+where one would just write `[group G]`). Secondly, we also have to explicitly tell Lean the universe
+where the morphisms live (by writing `category.{v} C`), because Lean cannot guess from knowing `C`
+alone.
 
 The order in which universes are introduced at the top of the file matters: we put the universes for
 morphisms first (typically `v`, `v₁` and so on), and then universes for objects (typically `u`, `u₁`
 and so on). This ensures that in any new definition we make the universe variables for morphisms
 come first, so that they can be explicitly specified while still allowing the universe levels of the
 objects to be inferred automatically.
-
-The reason that the typeclass is given an explicit name `𝒞` (typeset `\McC`) is that one often has
-to write `include 𝒞` in code to ensure that Lean includes the typeclass in theorems and
-definitions. (Lean is not willing to guess the universe level of morphisms, so sometimes won't
-automatically include the `[category.{v} C]` variable.) One can use `omit 𝒞` again (or appropriate
-scoping constructs) to make sure it isn't included in declarations where it isn't needed.
 
 ## Basic notation
 
@@ -139,10 +133,9 @@ section functor
 -- recall we put morphism universes (`vᵢ`) before object universes (`uᵢ`)
 universes v₁ v₂ v₃ u₁ u₂ u₃
 
-variables (C : Type u₁) [𝒞 : category.{v₁} C]
-variables (D : Type u₂) [𝒟 : category.{v₂} D]
-variables (E : Type u₃) [ℰ : category.{v₃} E]
-include 𝒞 𝒟 ℰ
+variables (C : Type u₁) [category.{v₁} C]
+variables (D : Type u₂) [category.{v₂} D]
+variables (E : Type u₃) [category.{v₃} E]
 
 variables {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
 
@@ -197,8 +190,7 @@ section nat_trans
 
 universes v₁ v₂ u₁ u₂
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 
 variables (X Y : C)
 

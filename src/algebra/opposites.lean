@@ -7,6 +7,7 @@ Opposites.
 -/
 import data.opposite
 import algebra.field
+import algebra.group_power
 
 namespace opposite
 universes u
@@ -160,5 +161,17 @@ variable {α}
 
 @[simp] lemma op_inv [has_inv α] (x : α) : op (x⁻¹) = (op x)⁻¹ := rfl
 @[simp] lemma unop_inv [has_inv α] (x : αᵒᵖ) : unop (x⁻¹) = (unop x)⁻¹ := rfl
+
+@[simp] lemma op_pow [monoid α] (x : α) (n : ℕ) : op (x ^ n) = (op x) ^ n :=
+by { induction n with n ih, refl, rw [pow_succ', pow_succ, op_mul, ih], }
+@[simp] lemma unop_pow [monoid α] (x : αᵒᵖ) (n : ℕ) : unop (x ^ n) = (unop x) ^ n :=
+by { induction n with n ih, refl, rw [pow_succ', pow_succ, unop_mul, ih], }
+
+@[simp] lemma op_gpow [group α] (x : α) : ∀ n : ℤ, op (x ^ n) = (op x) ^ n
+| (n : ℕ) := op_pow x n
+| -[1+ n] := by rw [gpow_neg_succ_of_nat, gpow_neg_succ_of_nat, op_inv, op_pow]
+@[simp] lemma unop_gpow [group α] (x : αᵒᵖ) : ∀ n : ℤ, unop (x ^ n) = (unop x) ^ n
+| (n : ℕ) := unop_pow x n
+| -[1+ n] := by rw [gpow_neg_succ_of_nat, gpow_neg_succ_of_nat, unop_inv, unop_pow]
 
 end opposite

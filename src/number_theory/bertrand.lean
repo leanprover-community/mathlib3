@@ -41,30 +41,24 @@ begin
   solve_by_elim,
 end
 
---@[simp, norm_cast]
-theorem cast_dvd {α : Type*} [semiring α] [has_div α] (m n : ℕ) (n_dvd : n ∣ m) (n_nonzero : n ≠ 0) : ((m / n : ℕ) : α) = m / n :=
+theorem cast_dvd {α : Type*} [field α] (m n : ℕ) (n_dvd : n ∣ m) (n_nonzero : (n:α) ≠ 0) : ((m / n : ℕ) : α) = m / n :=
 begin
-  induction m with m ind_m,
-  { cases n,
-    { trivial },
-    have r : ↑(n.succ) ≠ 0 := nat.cast_ne_zero.mpr n_nonzero,
-    have s : ↑n + 1 ≠ 0, by simp,
-    norm_num,
-    sorry,
-  },
-  { sorry, },
+  rcases n_dvd with ⟨k, rfl⟩,
+  have : n ≠ 0, {rintro rfl, simpa using n_nonzero},
+  rw nat.mul_div_cancel_left _ (nat.pos_iff_ne_zero.2 this),
+  rw [nat.cast_mul, mul_div_cancel_left _ n_nonzero],
 end
 
-lemma r (p : nat) (p_prime : nat.prime p) (b : nat) (b_nonzero : b ≠ 0) (dvd : p ∣ b) : (padic_val_nat p (b / p)) = (padic_val_nat p b) - 1 :=
+lemma thing (p : nat) (p_prime : nat.prime p) (b : nat) (b_nonzero : b ≠ 0) (dvd : p ∣ b) : (padic_val_nat p (b / p)) = (padic_val_nat p b) - 1 :=
 begin
   let e := @padic_val_rat.div p p_prime b p (nat.cast_ne_zero.mpr b_nonzero) (nat.cast_ne_zero.mpr (nat.prime.ne_zero p_prime)),
   rw @padic_val_rat.padic_val_rat_self p (nat.prime.one_lt p_prime) at e,
   rw ← @padic_val_rat_of_nat p b at e,
   rw <- @cast_dvd ℚ _ _ b p dvd (nat.prime.ne_zero p_prime) at e,
   rw <- @padic_val_rat_of_nat at e,
-  have r : 1 ≤ padic_val_nat p b, by exact @padic_val_nat_of_div_not_one _ _ p_prime b_nonzero dvd,
+  have r : 1 ≤ padic_val_nat p b, by sorry,
 
-  let e : @coe _ ℤ _ _ = ↑(padic_val_nat p b : ℤ) - (1 : ℤ) := @nat.cast_sub ℤ _ _ 1 (padic_val_nat p b) r,
+  let e : @coe ℕ ℤ _ _ = ↑(padic_val_nat p b : ℤ) - (1 : ℤ) := @nat.cast_sub ℤ _ _ 1 (padic_val_nat p b) r,
   sorry,
 end
 

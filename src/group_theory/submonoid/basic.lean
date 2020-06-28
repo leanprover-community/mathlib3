@@ -18,9 +18,9 @@ a set with `closure s = ⊤`) to the whole monoid, see `submonoid.dense_inductio
 
 ## Main definitions
 
-* `submonoid M`: a bundled submonoid of a monoid `M`; the underlying set is given in the `carrier`
+* `submonoid M`: the type of bundled submonoids of a monoid `M`; the underlying set is given in the `carrier`
   field of the structure, and should be accessed through coercion as in `(S : set M)`.
-* `add_submonoid M` : a bundled submonoid of an additive monoid `M`.
+* `add_submonoid M` : the type of bundled submonoids of an additive monoid `M`.
 
 For each of the following definitions in the `submonoid` namespace, there is a corresponding
 definition in the `add_submonoid` namespace.

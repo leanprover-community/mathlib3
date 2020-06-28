@@ -30,13 +30,8 @@ theorem geom_series_def [semiring α] (x : α) (n : ℕ) :
   geom_series x 1 = 1 :=
 by { rw [geom_series_def, sum_range_one, pow_zero] }
 
-lemma op_geom_series [ring α] (x : α) (n : ℕ) :
-  op (geom_series x n) = geom_series (op x) n :=
-begin
-  unfold geom_series,
-  rw op_sum,
-  simp,
-end
+lemma op_geom_series [ring α] (x : α) (n : ℕ) : op (geom_series x n) = geom_series (op x) n :=
+by simp [geom_series_def]
 
 /-- Sum of the finite geometric series $\sum_{i=0}^{n-1} x^i y^{n-1-i}$. -/
 def geom_series₂ [semiring α] (x y : α) (n : ℕ) :=
@@ -132,15 +127,8 @@ end
 lemma mul_geom_sum [ring α] (x : α) (n : ℕ) :
   (x - 1) * (geom_series x n)= x ^ n - 1 :=
 begin
-  refine (op_inj_iff _ _).mp _,
-  rw [op_mul, op_geom_series],
-  have h1 : op x - 1 = op (x - 1) :=
-    by rw [← op_one, sub_eq_add_neg, ← op_neg, ← op_add, sub_eq_add_neg],
-  rw ← h1,
-  have h2 : op x ^ n - op 1 = op (x ^ n - 1) :=
-    by { rw [sub_eq_add_neg, ← op_neg, ← op_pow, ← op_add], refl },
-  rw ← h2,
-  exact geom_sum_mul _ _,
+  rw ← op_inj_iff,
+  simpa [op_geom_series] using geom_sum_mul (op x) n,
 end
 
 theorem geom_sum_mul_neg [ring α] (x : α) (n : ℕ) :
@@ -154,9 +142,8 @@ end
 lemma mul_neg_geom_sum [ring α] (x : α) (n : ℕ) :
   (1 - x) * (geom_series x n) = 1 - x ^ n :=
 begin
-  have := congr_arg has_neg.neg (mul_geom_sum x n),
-  rw [neg_sub, neg_mul_eq_neg_mul, neg_sub] at this,
-  exact this
+  rw ← op_inj_iff,
+  simpa [op_geom_series] using geom_sum_mul_neg (op x) n,
 end
 
 theorem geom_sum [division_ring α] {x : α} (h : x ≠ 1) (n : ℕ) :

@@ -162,6 +162,9 @@ variable {α}
 @[simp] lemma op_inv [has_inv α] (x : α) : op (x⁻¹) = (op x)⁻¹ := rfl
 @[simp] lemma unop_inv [has_inv α] (x : αᵒᵖ) : unop (x⁻¹) = (unop x)⁻¹ := rfl
 
+@[simp] lemma op_sub [add_group α] (x y : α) : op (x - y) = op x - op y := rfl
+@[simp] lemma unop_sub [add_group α] (x y : αᵒᵖ) : unop (x - y) = unop x - unop y := rfl
+
 @[simp] lemma op_pow [monoid α] (x : α) (n : ℕ) : op (x ^ n) = (op x) ^ n :=
 begin
   induction n with n h,
@@ -180,7 +183,7 @@ open_locale big_operators
 open finset
 variables {ι : Type*}
 
-lemma op_sum [ring α] {s : finset ι} (f : ι → α) :
+@[simp] lemma op_sum [ring α] {s : finset ι} (f : ι → α) :
 op (∑ x in s, f x) = ∑ x in s, (λ x, op (f x)) x :=
 begin
   classical,
@@ -190,7 +193,7 @@ begin
     simp },
 end
 
-lemma unop_sum [ring α] {s : finset ι} (f : ι → αᵒᵖ) :
+@[simp] lemma unop_sum [ring α] {s : finset ι} (f : ι → αᵒᵖ) :
 unop (∑ x in s, f x) = ∑ x in s, (λ x, unop (f x)) x :=
 begin
   classical,

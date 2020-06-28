@@ -7,6 +7,7 @@ Authors: Johannes Hölzl
 import data.finset
 import data.nat.enat
 import tactic.omega
+import tactic.abel
 
 /-!
 # Big operators
@@ -618,6 +619,22 @@ lemma sum_range_one {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) :
 
 attribute [to_additive finset.sum_range_one] prod_range_one
 
+
+/-- To prove a property of a product, it suffices to prove that the property is multiplicative and holds on factors.
+-/
+@[to_additive "To prove a property of a sum, it suffices to prove that the property is additive and holds on summands."]
+lemma prod_induction {M : Type*} [comm_monoid M] (f : α → M) (p : M → Prop)
+(p_mul : ∀ a b, p a → p b → p (a * b)) (p_one : p 1) (p_s : ∀ x ∈ s, p $ f x) :
+p $ ∏ x in s, f x :=
+begin
+  classical,
+  induction s using finset.induction with x hx s hs, simpa,
+  rw finset.prod_insert, swap, assumption,
+  apply p_mul, apply p_s, simp,
+  apply hs, intros a ha, apply p_s, simp [ha],
+end
+
+
 /-- For any product along `{0, ..., n-1}` of a commutative-monoid-valued function, we can verify that
 it's equal to a different function just by checking ratios of adjacent terms.
 This is a multiplicative discrete analogue of the fundamental theorem of calculus. -/
@@ -637,6 +654,19 @@ lemma sum_range_induction {M : Type*} [add_comm_monoid M]
   (f s : ℕ → M) (h0 : s 0 = 0) (h : ∀ n, s (n + 1) = s n + f n) (n : ℕ) :
   ∑ k in finset.range n, f k = s n :=
 @prod_range_induction (multiplicative M) _ f s h0 h n
+
+/-- A telescoping sum along `{0, ..., n-1}` of an additive commutative group valued function
+reduces to the difference of the last and first terms.-/
+lemma sum_range_sub {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
+  ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
+by { apply sum_range_induction; abel, simp }
+
+
+/-- A telescoping product along `{0, ..., n-1}` of a commutative group valued function
+reduces to the ratio of the last and first factors.-/
+lemma prod_range_div {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
+  ∏ i in range n, (f (i+1) * (f i)⁻¹ ) = f n * (f 0)⁻¹ :=
+by apply @sum_range_sub (additive M)
 
 /-- A telescoping sum along `{0, ..., n-1}` of an `ℕ`-valued function reduces to the difference of
 the last and first terms when the function we are summing is monotone. -/
@@ -1322,21 +1352,13 @@ open_locale classical
 /- this is also true for a ordered commutative multiplicative monoid -/
 lemma prod_nonneg {s : finset α} {f : α → β}
   (h0 : ∀(x ∈ s), 0 ≤ f x) : 0 ≤ (∏ x in s, f x) :=
-begin
-  induction s using finset.induction with a s has ih h,
-  { simp [zero_le_one] },
-  { simp [has], apply mul_nonneg, apply h0 a (mem_insert_self a s),
-    exact ih (λ x H, h0 x (mem_insert_of_mem H)) }
-end
+prod_induction f (λ x, 0 ≤ x) (λ _ _ ha hb, mul_nonneg ha hb) zero_le_one h0
+
 
 /- this is also true for a ordered commutative multiplicative monoid -/
 lemma prod_pos {s : finset α} {f : α → β} (h0 : ∀(x ∈ s), 0 < f x) : 0 < (∏ x in s, f x) :=
-begin
-  induction s using finset.induction with a s has ih h,
-  { simp [zero_lt_one] },
-  { simp [has], apply mul_pos, apply h0 a (mem_insert_self a s),
-    exact ih (λ x H, h0 x (mem_insert_of_mem H)) }
-end
+prod_induction f (λ x, 0 < x) (λ _ _ ha hb, mul_pos ha hb) zero_lt_one h0
+
 
 /- this is also true for a ordered commutative multiplicative monoid -/
 lemma prod_le_prod {s : finset α} {f g : α → β} (h0 : ∀(x ∈ s), 0 ≤ f x)
@@ -1473,13 +1495,8 @@ open_locale classical
 /-- A sum of finite numbers is still finite -/
 lemma sum_lt_top [ordered_add_comm_monoid β] {s : finset α} {f : α → with_top β} :
   (∀a∈s, f a < ⊤) → (∑ x in s, f x) < ⊤ :=
-finset.induction_on s (by { intro h, rw sum_empty, exact coe_lt_top _ })
-  (λa s ha ih h,
-  begin
-    rw [sum_insert ha, add_lt_top], split,
-    { apply h, apply mem_insert_self },
-    { apply ih, intros a ha, apply h, apply mem_insert_of_mem ha }
-  end)
+λ h, sum_induction f (λ a, a < ⊤) (by { simp_rw add_lt_top, tauto }) zero_lt_top h
+
 
 /-- A sum of finite numbers is still finite -/
 lemma sum_lt_top_iff [canonically_ordered_add_monoid β] {s : finset α} {f : α → with_top β} :

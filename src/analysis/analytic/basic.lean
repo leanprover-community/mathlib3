@@ -524,7 +524,7 @@ begin
       = ∑ s : finset (fin n), nnnorm (p n) * ((nnnorm x) ^ (n - s.card) * r ^ s.card) :
         by simp [← mul_assoc]
       ... = nnnorm (p n) * (nnnorm x + r) ^ n :
-      by { rw [add_comm, ← finset.mul_sum, ← fin.sum_pow_mul_eq_add_pow], congr, ext s, ring }
+      by { rw [add_comm, ← finset.mul_sum, ← fin.sum_pow_mul_eq_add_pow], congr, ext1 s, ring }
     end
   ... ≤ (∑' (n : ℕ), (C * a ^ n : ennreal)) :
     tsum_le_tsum (λ n, by exact_mod_cast hC n) ennreal.summable ennreal.summable

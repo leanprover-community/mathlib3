@@ -96,7 +96,7 @@ lemma isometry.ediam_range (hf : isometry f) :
 by { rw ← image_univ, exact hf.ediam_image univ }
 
 /-- The injection from a subtype is an isometry -/
-lemma isometry_subtype_val {s : set α} : isometry (subtype.val : s → α) :=
+lemma isometry_subtype_coe {s : set α} : isometry (coe : s → α) :=
 λx y, rfl
 
 end emetric_isometry --section

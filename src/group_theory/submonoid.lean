@@ -694,7 +694,7 @@ S.subtype.cod_mrestrict _ (λ x, h x.2)
 
 @[simp, to_additive]
 lemma range_subtype (s : submonoid M) : s.subtype.mrange = s :=
-ext' $ (coe_mrange _).trans $ set.range_coe_subtype s
+ext' $ (coe_mrange _).trans subtype.range_coe
 
 lemma closure_singleton_eq (x : M) : closure ({x} : set M) = (powers_hom M x).mrange :=
 closure_eq_of_le (set.singleton_subset_iff.2 ⟨multiplicative.of_add 1, trivial, pow_one x⟩) $
@@ -708,7 +708,7 @@ by rw [closure_singleton_eq, mem_mrange]; refl
 @[to_additive]
 lemma closure_eq_mrange (s : set M) : closure s = (free_monoid.lift (coe : s → M)).mrange :=
 by rw [mrange, ← free_monoid.closure_range_of, map_mclosure,
-  ← set.range_comp, free_monoid.lift_comp_of, set.range_coe_subtype]
+  ← set.range_comp, free_monoid.lift_comp_of, subtype.range_coe_subtype, set.set_of_mem_eq]
 
 @[to_additive]
 lemma exists_list_of_mem_closure {s : set M} {x : M} (hx : x ∈ closure s) :

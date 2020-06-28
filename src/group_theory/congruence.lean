@@ -519,7 +519,7 @@ def correspondence : ((≤) : {d // c ≤ d} → {d // c ≤ d} → Prop) ≃o
     (by rw mul_ker_mk_eq; exact d.2) $ @exists_rep _ c.to_setoid,
   inv_fun := λ d, ⟨comap (coe : M → c.quotient) (λ x y, rfl) d, λ _ _ h,
     show d _ _, by rw c.eq.2 h; exact d.refl _ ⟩,
-  left_inv := λ d, subtype.ext.2 $ ext $ λ _ _,
+  left_inv := λ d, subtype.ext_iff_val.2 $ ext $ λ _ _,
     ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in
       d.1.trans (d.1.symm $ d.2 $ c.eq.1 hx) $ d.1.trans H $ d.2 $ c.eq.1 hy,
      λ h, ⟨_, _, rfl, rfl, h⟩⟩,

@@ -23,11 +23,7 @@ local attribute [elab_simple] congr_fun
 /-- (internal implementation) the fact that the proposed limit cone is the limit -/
 def limit_is_limit_ (F : J ⥤ Type u) : is_limit (limit_ F) :=
 { lift := λ s v, ⟨λ j, s.π.app j v, λ j j' f, congr_fun (cone.w s f) _⟩,
-  uniq' :=
-  begin
-    intros, ext x, apply subtype.eq, ext j,
-    exact congr_fun (w j) x
-  end }
+  uniq' := by { intros, ext x j, exact congr_fun (w j) x } }
 
 instance : has_limits.{u} (Type u) :=
 { has_limits_of_shape := λ J 𝒥,
@@ -43,7 +39,7 @@ instance : has_limits.{u} (Type u) :=
 @[simp] lemma types_limit_map {F G : J ⥤ Type u} (α : F ⟶ G) (g : limit F) :
   (lim.map α : limit F → limit G) g =
   (⟨λ j, (α.app j) (g.val j), λ j j' f,
-    by {rw ←functor_to_types.naturality, dsimp, rw ←(g.property f)}⟩ : limit G) := rfl
+    by {rw ←functor_to_types.naturality, dsimp, rw ←(g.prop f)}⟩ : limit G) := rfl
 
 @[simp] lemma types_limit_lift (F : J ⥤ Type u) (c : cone F) (x : c.X) :
   limit.lift F c x = (⟨λ j, c.π.app j x, λ j j' f, congr_fun (cone.w c f) x⟩ : limit F) :=

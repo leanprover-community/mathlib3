@@ -317,7 +317,7 @@ begin
   { rw [← set.mem_range], dsimp only,
     apply (polynomial.mem_map_range _).2,
     { intros i, specialize coeffs_mem i, rw ← subalgebra.mem_coe at coeffs_mem,
-      convert coeffs_mem, exact subtype.val_range } },
+      convert coeffs_mem, exact subtype.range_coe } },
   use q,
   split,
   { suffices h : (q.map (algebra_map (adjoin R S) (comap R A B))).monic,
@@ -368,9 +368,9 @@ section integral_domain
 variables {R S : Type*} [comm_ring R] [integral_domain S] [algebra R S]
 
 instance : integral_domain (integral_closure R S) :=
-{ zero_ne_one := mt subtype.ext.mp zero_ne_one,
+{ zero_ne_one := mt subtype.ext_iff_val.mp zero_ne_one,
   eq_zero_or_eq_zero_of_mul_eq_zero := λ ⟨a, ha⟩ ⟨b, hb⟩ h,
-    or.imp subtype.ext.mpr subtype.ext.mpr (eq_zero_or_eq_zero_of_mul_eq_zero (subtype.ext.mp h)),
+    or.imp subtype.ext_iff_val.mpr subtype.ext_iff_val.mpr (eq_zero_or_eq_zero_of_mul_eq_zero (subtype.ext_iff_val.mp h)),
   ..(integral_closure R S).comm_ring R S }
 
 end integral_domain

@@ -60,14 +60,38 @@ lemma zoug :
   end,
   right_invariance :=
   begin
-    assume s x f e he h,
-
+    assume s x f e he hx h,
+    have : I x = (I ∘ e.symm ∘ I.symm) (I (e x)), by simp only [hx] with mfld_simps,
+    rw this at h,
+    have : I (e x) ∈ (I.symm) ⁻¹' e.target ∩ range ⇑I, by simp only [hx] with mfld_simps,
+    have := ((mem_groupoid_of_pregroupoid.2 he).2.times_cont_diff_within_at this).of_le le_top,
+    convert h.comp' this _ _ using 1,
+    { ext y, simp only with mfld_simps },
+    { ext y, split; { assume hy, simp only with mfld_simps at hy, simp only [hy] with mfld_simps } },
+    { simp only [hx] with mfld_simps },
+    { have : x ∈ s, by simpa only [hx] with mfld_simps using h.1.2,
+      simp only [hx, this] with mfld_simps, },
   end,
-  congr := sorry,
-  left_invariance := sorry,
-
-}
-#exit
+  congr :=
+  begin
+    assume s x f g h hf,
+    apply hf.congr (filter.eventually_eq_of_mem self_mem_nhds_within _),
+    assume y hy,
+    simp only [(∘)],
+    rw h,
+    exact hy.2,
+  end,
+  left_invariance :=
+  begin
+    assume s x f e' he' hs h,
+    have A : (I' ∘ f ∘ I.symm) (I x) ∈ (I'.symm ⁻¹' e'.source ∩ range I'),
+    { have : x ∈ s, by simpa only with mfld_simps using h.1,
+      simpa only with mfld_simps using hs this },
+    have := ((mem_groupoid_of_pregroupoid.2 he').1.times_cont_diff_within_at A).of_le le_top,
+    convert times_cont_diff_within_at.comp this h _,
+    { ext y, simp only with mfld_simps },
+    { assume y hy, simp only with mfld_simps at hy, simpa only [hy] with mfld_simps using hs hy.2 }
+  end }
 
 /-- A function is `n` times continuously differentiable in a set of a manifold if it is continuous
 and, for any pair of points, it is `n` times continuously differentiable on this set in the charts

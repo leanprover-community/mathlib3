@@ -481,11 +481,11 @@ def prod (e : local_homeomorph α β) (e' : local_homeomorph γ δ) : local_home
 { open_source := is_open_prod e.open_source e'.open_source,
   open_target := is_open_prod e.open_target e'.open_target,
   continuous_to_fun := continuous_on.prod
-    (continuous_on.comp e.continuous_to_fun continuous_fst.continuous_on (prod_subset_preimage_fst _ _))
-    (continuous_on.comp e'.continuous_to_fun continuous_snd.continuous_on (prod_subset_preimage_snd _ _)),
+    (e.continuous_to_fun.comp continuous_fst.continuous_on (prod_subset_preimage_fst _ _))
+    (e'.continuous_to_fun.comp continuous_snd.continuous_on (prod_subset_preimage_snd _ _)),
   continuous_inv_fun := continuous_on.prod
-    (continuous_on.comp e.continuous_inv_fun continuous_fst.continuous_on (prod_subset_preimage_fst _ _))
-    (continuous_on.comp e'.continuous_inv_fun continuous_snd.continuous_on (prod_subset_preimage_snd _ _)),
+    (e.continuous_inv_fun.comp continuous_fst.continuous_on (prod_subset_preimage_fst _ _))
+    (e'.continuous_inv_fun.comp continuous_snd.continuous_on (prod_subset_preimage_snd _ _)),
   ..e.to_local_equiv.prod e'.to_local_equiv }
 
 @[simp, mfld_simps] lemma prod_to_local_equiv (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
@@ -517,6 +517,9 @@ by ext x; simp [ext_iff]; tauto
 end prod
 
 section continuity
+
+--set_option pp.instantiate_mvars false
+--set_option profiler true
 
 /-- Continuity within a set at a point can be read under right composition with a local
 homeomorphism, if the point is in its target -/

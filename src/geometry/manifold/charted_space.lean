@@ -325,7 +325,7 @@ def pregroupoid.groupoid (PG : pregroupoid H) : structure_groupoid H :=
       refl }
   end }
 
-lemma mem_groupoid_of_pregroupoid (PG : pregroupoid H) (e : local_homeomorph H H) :
+lemma mem_groupoid_of_pregroupoid {PG : pregroupoid H} {e : local_homeomorph H H} :
   e ∈ PG.groupoid ↔ PG.property e e.source ∧ PG.property e.symm e.target :=
 iff.rfl
 
@@ -528,7 +528,7 @@ lemma has_groupoid_of_pregroupoid (PG : pregroupoid H)
   (h : ∀{e e' : local_homeomorph M H}, e ∈ atlas H M → e' ∈ atlas H M
     → PG.property (e.symm ≫ₕ e') (e.symm ≫ₕ e').source) :
   has_groupoid M (PG.groupoid) :=
-⟨assume e e' he he', (mem_groupoid_of_pregroupoid PG _).mpr ⟨h he he', h he' he⟩⟩
+⟨assume e e' he he', mem_groupoid_of_pregroupoid.mpr ⟨h he he', h he' he⟩⟩
 
 /-- The trivial charted space structure on the model space is compatible with any groupoid -/
 instance has_groupoid_model_space (H : Type*) [topological_space H] (G : structure_groupoid H) :

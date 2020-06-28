@@ -331,7 +331,7 @@ begin
     -/
     rcases he with rfl | rfl; rcases he' with rfl | rfl,
     { -- `e = left chart`, `e' = left chart`
-      refine ((mem_groupoid_of_pregroupoid _ _).mpr _).1,
+      refine (mem_groupoid_of_pregroupoid.mpr _).1,
       exact symm_trans_mem_times_cont_diff_groupoid _ _ _ },
     { -- `e = left chart`, `e' = right chart`
       apply M.congr_mono _ (subset_univ _),
@@ -359,7 +359,7 @@ begin
         pi_Lp.add_apply, dif_pos, max_eq_left, pi_Lp.neg_apply] with mfld_simps,
       ring },
     { -- `e = right chart`, `e' = right chart`
-      refine ((mem_groupoid_of_pregroupoid _ _).mpr _).1,
+      refine (mem_groupoid_of_pregroupoid.mpr _).1,
       exact symm_trans_mem_times_cont_diff_groupoid _ _ _ }
   end,
   constructor

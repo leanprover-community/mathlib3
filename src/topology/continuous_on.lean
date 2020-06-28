@@ -420,6 +420,11 @@ begin
   exact tendsto.comp hg this
 end
 
+lemma continuous_within_at.comp' {g : β → γ} {f : α → β} {s : set α} {t : set β} {x : α}
+  (hg : continuous_within_at g t (f x)) (hf : continuous_within_at f s x) :
+  continuous_within_at (g ∘ f) (s ∩ f⁻¹' t) x :=
+hg.comp (hf.mono (inter_subset_left _ _)) (inter_subset_right _ _)
+
 lemma continuous_on.comp {g : β → γ} {f : α → β} {s : set α} {t : set β}
   (hg : continuous_on g t) (hf : continuous_on f s) (h : s ⊆ f ⁻¹' t) :
   continuous_on (g ∘ f) s :=
@@ -428,6 +433,11 @@ lemma continuous_on.comp {g : β → γ} {f : α → β} {s : set α} {t : set �
 lemma continuous_on.mono {f : α → β} {s t : set α} (hf : continuous_on f s) (h : t ⊆ s)  :
   continuous_on f t :=
 λx hx, tendsto_le_left (nhds_within_mono _ h) (hf x (h hx))
+
+lemma continuous_on.comp' {g : β → γ} {f : α → β} {s : set α} {t : set β}
+  (hg : continuous_on g t) (hf : continuous_on f s) :
+  continuous_on (g ∘ f) (s ∩ f⁻¹' t) :=
+hg.comp (hf.mono (inter_subset_left _ _)) (inter_subset_right _ _)
 
 lemma continuous.continuous_on {f : α → β} {s : set α} (h : continuous f) :
   continuous_on f s :=

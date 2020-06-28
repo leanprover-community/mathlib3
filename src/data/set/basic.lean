@@ -52,13 +52,15 @@ Definitions in the file:
 
 * `prod s t : set (α × β)` : the subset `s × t`.
 
-* `inclusion s₁ s₂ : ↑s₁ → ↑s₂` : the map `↑s₁ → ↑s₂` induced by an inclusion `s₁ ⊆ s₂`.
+* `inclusion s₁ s₂ : ↥s₁ → ↥s₂` : the map `↥s₁ → ↥s₂` induced by an inclusion `s₁ ⊆ s₂`.
 
 ## Notation
 
 * `f ⁻¹' t` for `preimage f t`
 
 * `f '' s` for `image f s`
+
+* `∁ s` for the complement of `s`
 
 ## Implementation notes
 

@@ -2045,7 +2045,7 @@ def sup (s : finset β) (f : β → α) : α := s.fold (⊔) ⊥ f
 
 variables {s s₁ s₂ : finset β} {f : β → α}
 
-lemma sup_val : s.sup f = (s.1.map f).sup := rfl
+lemma sup_def : s.sup f = (s.1.map f).sup := rfl
 
 @[simp] lemma sup_empty : (∅ : finset β).sup f = ⊥ :=
 fold_empty

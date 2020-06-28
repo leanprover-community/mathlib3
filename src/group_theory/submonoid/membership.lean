@@ -143,8 +143,8 @@ by rw [closure_singleton_eq, mem_mrange]; refl
 
 @[to_additive]
 lemma closure_eq_mrange (s : set M) : closure s = (free_monoid.lift (coe : s → M)).mrange :=
-by rw [mrange, ← free_monoid.closure_range_of, map_mclosure,
-  ← set.range_comp, free_monoid.lift_comp_of, set.range_coe_subtype]
+by rw [mrange, ← free_monoid.closure_range_of, map_mclosure, ← set.range_comp,
+  free_monoid.lift_comp_of, subtype.range_coe]
 
 @[to_additive]
 lemma exists_list_of_mem_closure {s : set M} {x : M} (hx : x ∈ closure s) :

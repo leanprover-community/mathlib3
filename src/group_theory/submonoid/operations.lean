@@ -385,7 +385,7 @@ S.subtype.cod_mrestrict _ (λ x, h x.2)
 
 @[simp, to_additive]
 lemma range_subtype (s : submonoid M) : s.subtype.mrange = s :=
-ext' $ (coe_mrange _).trans $ set.range_coe_subtype s
+ext' $ (coe_mrange _).trans $ subtype.range_coe
 
 end submonoid
 

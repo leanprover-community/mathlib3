@@ -53,7 +53,7 @@ begin
   ... ≤ (inf_edist y (t.val) + edist x y) + Hausdorff_edist (t.val) (s.val) :
     add_le_add_right' inf_edist_le_inf_edist_add_edist
   ... = inf_edist y (t.val) + (edist x y + Hausdorff_edist (s.val) (t.val)) :
-    by simp [add_comm, add_left_comm, Hausdorff_edist_comm]
+    by simp [add_comm, add_left_comm, Hausdorff_edist_comm, -subtype.val_eq_coe]
   ... ≤ inf_edist y (t.val) + (edist (x, s) (y, t) + edist (x, s) (y, t)) :
     add_le_add_left' (add_le_add (by simp [edist, le_refl]) (by simp [edist, le_refl]))
   ... = inf_edist y (t.val) + 2 * edist (x, s) (y, t) :

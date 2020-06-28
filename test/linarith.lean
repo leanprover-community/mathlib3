@@ -332,3 +332,14 @@ by nlinarith
 variables {E : Type*} [add_group E]
 example (f : ℤ → E) (h : 0 = f 0) : 1 ≤ 2 := by nlinarith
 example (a : E) (h : a = a) : 1 ≤ 2  := by nlinarith
+
+-- test that the apply bug doesn't affect linarith preprocessing
+
+constant α : Type
+def leα : α → α → Prop := λ a b, ∀ c : α, true
+
+noncomputable instance : discrete_linear_ordered_field α :=
+by refine_struct { le := leα }; admit
+
+example (a : α) (ha : a < 2) : a ≤ a :=
+by linarith

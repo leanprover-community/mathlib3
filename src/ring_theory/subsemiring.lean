@@ -531,7 +531,7 @@ def inclusion {S T : subsemiring R} (h : S ≤ T) : S →* T :=
 S.subtype.cod_srestrict _ (λ x, h x.2)
 
 @[simp] lemma srange_subtype (s : subsemiring R) : s.subtype.srange = s :=
-ext' $ (coe_srange _).trans $ set.range_coe_subtype s
+ext' $ (coe_srange _).trans subtype.range_coe
 
 @[simp]
 lemma range_fst : (fst R S).srange = ⊤ :=

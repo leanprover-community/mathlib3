@@ -29,9 +29,7 @@ set_option old_structure_cmd true
 
 open set
 
-universes u v w
-variables {α : Type u} {β : Type v} {ι : Sort w}
-
+variables {α β : Type*} {ι : Sort*}
 
 section
 
@@ -67,16 +65,16 @@ To differentiate the statements from the corresponding statements in (unconditio
 complete lattices, we prefix Inf and Sup by a c everywhere. The same statements should
 hold in both worlds, sometimes with additional assumptions of nonemptiness or
 boundedness.-/
-class conditionally_complete_lattice (α : Type u) extends lattice α, has_Sup α, has_Inf α :=
+class conditionally_complete_lattice (α : Type*) extends lattice α, has_Sup α, has_Inf α :=
 (le_cSup : ∀s a, bdd_above s → a ∈ s → a ≤ Sup s)
 (cSup_le : ∀ s a, set.nonempty s → a ∈ upper_bounds s → Sup s ≤ a)
 (cInf_le : ∀s a, bdd_below s → a ∈ s → Inf s ≤ a)
 (le_cInf : ∀s a, set.nonempty s → a ∈ lower_bounds s → a ≤ Inf s)
 
-class conditionally_complete_linear_order (α : Type u)
+class conditionally_complete_linear_order (α : Type*)
   extends conditionally_complete_lattice α, decidable_linear_order α
 
-class conditionally_complete_linear_order_bot (α : Type u)
+class conditionally_complete_linear_order_bot (α : Type*)
   extends conditionally_complete_lattice α, decidable_linear_order α, order_bot α :=
 (cSup_empty : Sup ∅ = ⊥)
 end prio
@@ -373,7 +371,7 @@ conditionally_complete_linear_order_bot.cSup_empty
 
 end conditionally_complete_linear_order_bot
 
-section
+namespace nat
 
 open_locale classical
 
@@ -383,34 +381,56 @@ noncomputable instance : has_Inf ℕ :=
 noncomputable instance : has_Sup ℕ :=
 ⟨λs, if h : ∃n, ∀a∈s, a ≤ n then @nat.find (λn, ∀a∈s, a ≤ n) _ h else 0⟩
 
-lemma Inf_nat_def {s : set ℕ} (h : ∃n, n ∈ s) : Inf s = @nat.find (λn, n ∈ s) _ h :=
+lemma Inf_def {s : set ℕ} (h : s.nonempty) : Inf s = @nat.find (λn, n ∈ s) _ h :=
 dif_pos _
 
-lemma Sup_nat_def {s : set ℕ} (h : ∃n, ∀a∈s, a ≤ n) :
+lemma Sup_def {s : set ℕ} (h : ∃n, ∀a∈s, a ≤ n) :
   Sup s = @nat.find (λn, ∀a∈s, a ≤ n) _ h :=
 dif_pos _
 
+@[simp] lemma Inf_eq_zero {s : set ℕ} : Inf s = 0 ↔ 0 ∈ s ∨ s = ∅ :=
+begin
+  cases eq_empty_or_nonempty s,
+  { subst h, simp only [or_true, eq_self_iff_true, iff_true, Inf, has_Inf.Inf,
+      mem_empty_eq, exists_false, dif_neg, not_false_iff] },
+  { have := ne_empty_iff_nonempty.mpr h,
+    simp only [this, or_false, nat.Inf_def, h, nat.find_eq_zero] }
+end
+
+lemma Inf_mem {s : set ℕ} (h : s.nonempty) : Inf s ∈ s :=
+by { rw [nat.Inf_def h], exact nat.find_spec h }
+
+lemma not_mem_of_lt_Inf {s : set ℕ} {m : ℕ} (hm : m < Inf s) : m ∉ s :=
+begin
+  cases eq_empty_or_nonempty s,
+  { subst h, apply not_mem_empty },
+  { rw [nat.Inf_def h] at hm, exact nat.find_min h hm }
+end
+
+protected lemma Inf_le {s : set ℕ} {m : ℕ} (hm : m ∈ s) : Inf s ≤ m :=
+by { rw [nat.Inf_def ⟨m, hm⟩], exact nat.find_min' ⟨m, hm⟩ hm }
+
 /-- This instance is necessary, otherwise the lattice operations would be derived via
 conditionally_complete_linear_order_bot and marked as noncomputable. -/
-instance : lattice ℕ := infer_instance
+instance : lattice ℕ := lattice_of_decidable_linear_order
 
 noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
 { Sup := Sup, Inf := Inf,
-  le_cSup    := assume s a hb ha, by rw [Sup_nat_def hb]; revert a ha; exact @nat.find_spec _ _ hb,
-  cSup_le    := assume s a hs ha, by rw [Sup_nat_def ⟨a, ha⟩]; exact nat.find_min' _ ha,
+  le_cSup    := assume s a hb ha, by rw [Sup_def hb]; revert a ha; exact @nat.find_spec _ _ hb,
+  cSup_le    := assume s a hs ha, by rw [Sup_def ⟨a, ha⟩]; exact nat.find_min' _ ha,
   le_cInf    := assume s a hs hb,
-    by rw [Inf_nat_def hs]; exact hb (@nat.find_spec (λn, n ∈ s) _ _),
-  cInf_le    := assume s a hb ha, by rw [Inf_nat_def ⟨a, ha⟩]; exact nat.find_min' _ ha,
+    by rw [Inf_def hs]; exact hb (@nat.find_spec (λn, n ∈ s) _ _),
+  cInf_le    := assume s a hb ha, by rw [Inf_def ⟨a, ha⟩]; exact nat.find_min' _ ha,
   cSup_empty :=
   begin
-    simp only [Sup_nat_def, set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff, exists_const],
+    simp only [Sup_def, set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff, exists_const],
     apply bot_unique (nat.find_min' _ _),
     trivial
   end,
-  .. (infer_instance : order_bot ℕ), .. (infer_instance : lattice ℕ),
+  .. (infer_instance : order_bot ℕ), .. (lattice_of_decidable_linear_order : lattice ℕ),
   .. (infer_instance : decidable_linear_order ℕ) }
 
-end
+end nat
 
 namespace with_top
 open_locale classical

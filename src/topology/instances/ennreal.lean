@@ -112,7 +112,7 @@ end
 
 lemma continuous_on_to_nnreal : continuous_on ennreal.to_nnreal {a | a ≠ ∞}  :=
 continuous_on_iff_continuous_restrict.2 $ continuous_iff_continuous_at.2 $ λ x,
-  (tendsto_to_nnreal x.2).comp continuous_at_subtype_val
+  (tendsto_to_nnreal x.2).comp continuous_at_subtype_coe
 
 lemma tendsto_to_real {a : ennreal} : a ≠ ⊤ → tendsto (ennreal.to_real) (𝓝 a) (𝓝 a.to_real) :=
 λ ha, tendsto.comp ((@nnreal.tendsto_coe _ (𝓝 a.to_nnreal) id (a.to_nnreal)).2 tendsto_id)
@@ -652,7 +652,7 @@ local attribute [instance] metric_space_emetric_ball
 
 lemma nhds_eq_nhds_emetric_ball (a x : β) (r : ennreal) (h : x ∈ ball a r) :
   𝓝 x = map (coe : ball a r → β) (𝓝 ⟨x, h⟩) :=
-(map_nhds_subtype_val_eq _ $ mem_nhds_sets emetric.is_open_ball h).symm
+(map_nhds_subtype_coe_eq _ $ mem_nhds_sets emetric.is_open_ball h).symm
 end
 
 section

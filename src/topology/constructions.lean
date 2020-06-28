@@ -80,7 +80,7 @@ end
 instance {p : α → Prop} [topological_space α] [discrete_topology α] :
   discrete_topology (subtype p) :=
 ⟨bot_unique $ assume s hs,
-  ⟨subtype.val '' s, is_open_discrete _, (set.preimage_image_eq _ subtype.val_injective)⟩⟩
+  ⟨coe '' s, is_open_discrete _, (set.preimage_image_eq _ subtype.coe_injective)⟩⟩
 
 instance sum.discrete_topology [topological_space α] [topological_space β]
   [hα : discrete_topology α] [hβ : discrete_topology β] : discrete_topology (α ⊕ β) :=
@@ -99,12 +99,12 @@ The 𝓝 filter and the subspace topology.
 -/
 
 theorem mem_nhds_subtype (s : set α) (a : {x // x ∈ s}) (t : set {x // x ∈ s}) :
-  t ∈ 𝓝 a ↔ ∃ u ∈ 𝓝 a.val, (@subtype.val α s) ⁻¹' u ⊆ t :=
-mem_nhds_induced subtype.val a t
+  t ∈ 𝓝 a ↔ ∃ u ∈ 𝓝 (a : α), coe ⁻¹' u ⊆ t :=
+mem_nhds_induced coe a t
 
 theorem nhds_subtype (s : set α) (a : {x // x ∈ s}) :
-  𝓝 a = comap subtype.val (𝓝 a.val) :=
-nhds_induced subtype.val a
+  𝓝 a = comap coe (𝓝 (a : α)) :=
+nhds_induced coe a
 
 end topα
 
@@ -438,8 +438,8 @@ end sum
 section subtype
 variables [topological_space α] [topological_space β] [topological_space γ] {p : α → Prop}
 
-lemma embedding_subtype_val : embedding (@subtype.val α p) :=
-⟨⟨rfl⟩, subtype.val_injective⟩
+lemma embedding_subtype_coe : embedding (coe : subtype p → α) :=
+⟨⟨rfl⟩, subtype.coe_injective⟩
 
 lemma continuous_subtype_val : continuous (@subtype.val α p) :=
 continuous_induced_dom
@@ -447,90 +447,90 @@ continuous_induced_dom
 lemma continuous_subtype_coe : continuous (coe : subtype p → α) :=
 continuous_subtype_val
 
-lemma is_open.open_embedding_subtype_val {s : set α} (hs : is_open s) :
-  open_embedding (subtype.val : s → α) :=
+lemma is_open.open_embedding_subtype_coe {s : set α} (hs : is_open s) :
+  open_embedding (coe : s → α) :=
 { induced := rfl,
-  inj := subtype.val_injective,
-  open_range := (subtype.val_range : range subtype.val = s).symm ▸  hs }
+  inj := subtype.coe_injective,
+  open_range := (subtype.range_coe : range coe = s).symm ▸  hs }
 
-lemma is_open.is_open_map_subtype_val {s : set α} (hs : is_open s) :
-  is_open_map (subtype.val : s → α) :=
-hs.open_embedding_subtype_val.is_open_map
+lemma is_open.is_open_map_subtype_coe {s : set α} (hs : is_open s) :
+  is_open_map (coe : s → α) :=
+hs.open_embedding_subtype_coe.is_open_map
 
 lemma is_open_map.restrict {f : α → β} (hf : is_open_map f) {s : set α} (hs : is_open s) :
   is_open_map (s.restrict f) :=
-hf.comp hs.is_open_map_subtype_val
+hf.comp hs.is_open_map_subtype_coe
 
-lemma is_closed.closed_embedding_subtype_val {s : set α} (hs : is_closed s) :
-  closed_embedding (subtype.val : {x // x ∈ s} → α) :=
+lemma is_closed.closed_embedding_subtype_coe {s : set α} (hs : is_closed s) :
+  closed_embedding (coe : {x // x ∈ s} → α) :=
 { induced := rfl,
-  inj := subtype.val_injective,
-  closed_range := (subtype.val_range : range subtype.val = s).symm ▸ hs }
+  inj := subtype.coe_injective,
+  closed_range := (subtype.range_coe : range coe = s).symm ▸ hs }
 
 lemma continuous_subtype_mk {f : β → α}
   (hp : ∀x, p (f x)) (h : continuous f) : continuous (λx, (⟨f x, hp x⟩ : subtype p)) :=
 continuous_induced_rng h
 
 lemma continuous_inclusion {s t : set α} (h : s ⊆ t) : continuous (inclusion h) :=
-continuous_subtype_mk _ continuous_subtype_val
+continuous_subtype_mk _ continuous_subtype_coe
 
-lemma continuous_at_subtype_val {p : α → Prop} {a : subtype p} :
-  continuous_at subtype.val a :=
-continuous_iff_continuous_at.mp continuous_subtype_val _
+lemma continuous_at_subtype_coe {p : α → Prop} {a : subtype p} :
+  continuous_at (coe : subtype p → α) a :=
+continuous_iff_continuous_at.mp continuous_subtype_coe _
 
-lemma map_nhds_subtype_val_eq {a : α} (ha : p a) (h : {a | p a} ∈ 𝓝 a) :
-  map (@subtype.val α p) (𝓝 ⟨a, ha⟩) = 𝓝 a :=
-map_nhds_induced_eq (by simp [subtype.val_image, h])
+lemma map_nhds_subtype_coe_eq {a : α} (ha : p a) (h : {a | p a} ∈ 𝓝 a) :
+  map (coe : subtype p → α) (𝓝 ⟨a, ha⟩) = 𝓝 a :=
+map_nhds_induced_eq $ by simpa only [subtype.coe_mk, subtype.range_coe] using h
 
 lemma nhds_subtype_eq_comap {a : α} {h : p a} :
-  𝓝 (⟨a, h⟩ : subtype p) = comap subtype.val (𝓝 a) :=
+  𝓝 (⟨a, h⟩ : subtype p) = comap coe (𝓝 a) :=
 nhds_induced _ _
 
 lemma tendsto_subtype_rng {β : Type*} {p : α → Prop} {b : filter β} {f : β → subtype p} :
-  ∀{a:subtype p}, tendsto f b (𝓝 a) ↔ tendsto (λx, subtype.val (f x)) b (𝓝 a.val)
-| ⟨a, ha⟩ := by rw [nhds_subtype_eq_comap, tendsto_comap_iff]
+  ∀{a:subtype p}, tendsto f b (𝓝 a) ↔ tendsto (λx, (f x : α)) b (𝓝 (a : α))
+| ⟨a, ha⟩ := by rw [nhds_subtype_eq_comap, tendsto_comap_iff, subtype.coe_mk]
 
 lemma continuous_subtype_nhds_cover {ι : Sort*} {f : α → β} {c : ι → α → Prop}
   (c_cover : ∀x:α, ∃i, {x | c i x} ∈ 𝓝 x)
-  (f_cont  : ∀i, continuous (λ(x : subtype (c i)), f x.val)) :
+  (f_cont  : ∀i, continuous (λ(x : subtype (c i)), f x)) :
   continuous f :=
 continuous_iff_continuous_at.mpr $ assume x,
   let ⟨i, (c_sets : {x | c i x} ∈ 𝓝 x)⟩ := c_cover x in
   let x' : subtype (c i) := ⟨x, mem_of_nhds c_sets⟩ in
-  calc map f (𝓝 x) = map f (map subtype.val (𝓝 x')) :
-      congr_arg (map f) (map_nhds_subtype_val_eq _ $ c_sets).symm
-    ... = map (λx:subtype (c i), f x.val) (𝓝 x') : rfl
+  calc map f (𝓝 x) = map f (map coe (𝓝 x')) :
+      congr_arg (map f) (map_nhds_subtype_coe_eq _ $ c_sets).symm
+    ... = map (λx:subtype (c i), f x) (𝓝 x') : rfl
     ... ≤ 𝓝 (f x) : continuous_iff_continuous_at.mp (f_cont i) x'
 
 lemma continuous_subtype_is_closed_cover {ι : Sort*} {f : α → β} (c : ι → α → Prop)
   (h_lf : locally_finite (λi, {x | c i x}))
   (h_is_closed : ∀i, is_closed {x | c i x})
   (h_cover : ∀x, ∃i, c i x)
-  (f_cont  : ∀i, continuous (λ(x : subtype (c i)), f x.val)) :
+  (f_cont  : ∀i, continuous (λ(x : subtype (c i)), f x)) :
   continuous f :=
 continuous_iff_is_closed.mpr $
   assume s hs,
-  have ∀i, is_closed (@subtype.val α {x | c i x} '' (f ∘ subtype.val ⁻¹' s)),
+  have ∀i, is_closed ((coe : {x | c i x} → α) '' (f ∘ coe ⁻¹' s)),
     from assume i,
-    embedding_is_closed embedding_subtype_val
-      (by simp [subtype.val_range]; exact h_is_closed i)
+    embedding_is_closed embedding_subtype_coe
+      (by simp [subtype.range_coe]; exact h_is_closed i)
       (continuous_iff_is_closed.mp (f_cont i) _ hs),
-  have is_closed (⋃i, @subtype.val α {x | c i x} '' (f ∘ subtype.val ⁻¹' s)),
+  have is_closed (⋃i, (coe : {x | c i x} → α) '' (f ∘ coe ⁻¹' s)),
     from is_closed_Union_of_locally_finite
       (locally_finite_subset h_lf $ assume i x ⟨⟨x', hx'⟩, _, heq⟩, heq ▸ hx')
       this,
-  have f ⁻¹' s = (⋃i, @subtype.val α {x | c i x} '' (f ∘ subtype.val ⁻¹' s)),
+  have f ⁻¹' s = (⋃i, (coe : {x | c i x} → α) '' (f ∘ coe ⁻¹' s)),
   begin
     apply set.ext,
     have : ∀ (x : α), f x ∈ s ↔ ∃ (i : ι), c i x ∧ f x ∈ s :=
       λ x, ⟨λ hx, let ⟨i, hi⟩ := h_cover x in ⟨i, hi, hx⟩,
             λ ⟨i, hi, hx⟩, hx⟩,
-    simp [and.comm, and.left_comm], simpa [(∘)],
+    simpa [and.comm, @and.left_comm (c _ _), ← exists_and_distrib_right],
   end,
   by rwa [this]
 
 lemma closure_subtype {x : {a // p a}} {s : set {a // p a}}:
-  x ∈ closure s ↔ x.val ∈ closure (subtype.val '' s) :=
+  x ∈ closure s ↔ (x : α) ∈ closure ((coe : _ → α) '' s) :=
 closure_induced $ assume x y, subtype.eq
 
 end subtype

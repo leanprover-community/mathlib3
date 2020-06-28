@@ -41,8 +41,11 @@ lemma comp_apply {α : Sort u} {β : Sort v} {φ : Sort w} (f : β → φ) (g : 
   f a = f b ↔ a = b :=
 ⟨@I _ _, congr_arg f⟩
 
-lemma injective.ne (hf : function.injective f) {a₁ a₂ : α} : a₁ ≠ a₂ → f a₁ ≠ f a₂ :=
+lemma injective.ne (hf : injective f) {a₁ a₂ : α} : a₁ ≠ a₂ → f a₁ ≠ f a₂ :=
 mt (assume h, hf h)
+
+lemma injective.ne_iff (hf : injective f) {x y : α} : f x ≠ f y ↔ x ≠ y :=
+⟨mt $ congr_arg f, hf.ne⟩
 
 /-- If the co-domain `β` of an injective function `f : α → β` has decidable equality, then
 the domain `α` also has decidable equality. -/

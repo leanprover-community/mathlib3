@@ -68,7 +68,7 @@ instance as_ideal.is_prime (x : prime_spectrum R) :
 
 @[ext] lemma ext {x y : prime_spectrum R} :
   x = y ↔ x.as_ideal = y.as_ideal :=
-subtype.ext
+subtype.ext_iff_val
 
 /-- The zero locus of a set `s` of elements of a commutative ring `R`
 is the set of all prime ideals of the ring that contain the set `s`.

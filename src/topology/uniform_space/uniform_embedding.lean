@@ -210,7 +210,7 @@ by rw [complete_space_iff_is_complete_range he, e.range_eq_univ,
 lemma complete_space_coe_iff_is_complete {s : set α} :
   complete_space s ↔ is_complete s :=
 (complete_space_iff_is_complete_range uniform_embedding_subtype_coe).trans $
-  by rw [range_coe_subtype]
+  by rw [subtype.range_coe]
 
 lemma is_complete.complete_space_coe {s : set α} (hs : is_complete s) :
   complete_space s :=

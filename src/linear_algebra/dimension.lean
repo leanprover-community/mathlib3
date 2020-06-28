@@ -145,7 +145,7 @@ by rw [←cardinal.lift_inj, ← (is_basis_span hv).mk_eq_dim,
 
 lemma dim_span_set {s : set V} (hs : linear_independent K (λ x, x : s → V)) :
   dim K ↥(span K s) = cardinal.mk s :=
-by rw [← @set_of_mem_eq _ s, ← subtype.val_range]; exact dim_span hs
+by { rw [← @set_of_mem_eq _ s, ← subtype.range_coe_subtype], exact dim_span hs }
 
 lemma cardinal_le_dim_of_linear_independent
   {ι : Type u'} {v : ι → V} (hv : linear_independent K v) :
@@ -163,7 +163,7 @@ lemma cardinal_le_dim_of_linear_independent'
 begin
   -- extend s to a basis
   obtain ⟨b, ss, h⟩ := exists_subset_is_basis hs,
-  rw [←h.mk_range_eq_dim, range_coe_subtype],
+  rw [←h.mk_range_eq_dim, subtype.range_coe],
   apply cardinal.mk_le_of_injective (inclusion_injective ss),
 end
 
@@ -250,7 +250,7 @@ by { rw [dim_eq_of_injective f h], exact dim_submodule_le _ }
 
 lemma dim_le_of_submodule (s t : submodule K V) (h : s ≤ t) : dim K s ≤ dim K t :=
 dim_le_of_injective (of_le h) $ assume ⟨x, hx⟩ ⟨y, hy⟩ eq,
-  subtype.eq $ show x = y, from subtype.ext.1 eq
+  subtype.eq $ show x = y, from subtype.ext_iff_val.1 eq
 
 section
 variables [add_comm_group V₃] [vector_space K V₃]
@@ -418,7 +418,7 @@ begin
   { intros h x,
     cases exists_is_basis K V with w hw,
     have card_mk_range := hw.mk_range_eq_dim,
-    rw [h, cardinal.mk_emptyc_iff, set.range_coe_subtype] at card_mk_range,
+    rw [h, cardinal.mk_emptyc_iff, subtype.range_coe] at card_mk_range,
     simpa [card_mk_range] using hw.mem_span x },
   { intro h,
     have : (⊤ : submodule K V) = ⊥,

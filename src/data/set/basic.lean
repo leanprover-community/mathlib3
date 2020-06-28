@@ -1615,7 +1615,7 @@ image_univ.trans range_coe
   (coe : s → α) '' (coe ⁻¹' t) = t ∩ s :=
 image_preimage_eq_inter_range.trans $ congr_arg _ range_coe
 
-@[simp] theorem image_preimage_val (s t : set α) :
+theorem image_preimage_val (s t : set α) :
   (subtype.val : s → α) '' (subtype.val ⁻¹' t) = t ∩ s :=
 image_preimage_coe s t
 

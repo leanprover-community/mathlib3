@@ -594,6 +594,26 @@ begin
       ... ≤ ∥smul_right c f∥ * ∥x∥ : le_op_norm _ _ } },
 end
 
+/- Left-multiplication in a normed algebra, considered as a continuous linear map. -/
+def normed_algebra.lmul_left (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
+  [h : normed_algebra 𝕜 𝕜'] : 𝕜' → (𝕜' →L[𝕜] 𝕜') :=
+λ x, (algebra.lmul_left 𝕜 𝕜' x).mk_continuous ∥x∥
+(λ y, by {rw algebra.lmul_left_apply, exact norm_mul_le x y})
+
+@[simp] lemma normed_algebra.lmul_left_apply {𝕜 : Type*} (𝕜' : Type*) [normed_field 𝕜]
+  [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] (x y : 𝕜') :
+  normed_algebra.lmul_left 𝕜 𝕜' x y = x * y := rfl
+
+/- Right-multiplication in a normed algebra, considered as a continuous linear map. -/
+def normed_algebra.lmul_right (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜]
+  [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] : 𝕜' → (𝕜' →L[𝕜] 𝕜') :=
+λ x, (algebra.lmul_right 𝕜 𝕜' x).mk_continuous ∥x∥
+(λ y, by {rw [algebra.lmul_right_apply, mul_comm], exact norm_mul_le y x})
+
+@[simp] lemma normed_algebra.lmul_right_apply {𝕜 : Type*} (𝕜' : Type*) [normed_field 𝕜]
+  [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] (x y : 𝕜') :
+  normed_algebra.lmul_right 𝕜 𝕜' x y = y * x := rfl
+
 section restrict_scalars
 
 variable (𝕜)
@@ -616,6 +636,23 @@ def restrict_scalars (f : E' →L[𝕜'] F') : E' →L[𝕜] F' :=
   (f.restrict_scalars 𝕜 : E' → F') = f := rfl
 
 end restrict_scalars
+
+variables {ι : Type*}
+
+-- Applying a continuous linear map commutes with taking an (infinite) sum.
+lemma has_sum_of_continuous_linear_map_of_has_sum
+  {f : ι → E} (a : E →L[𝕜] F) {x : E} (hf : has_sum f x)
+  : has_sum (λ (b:ι), a (f b)) (a x) :=
+begin
+  unfold has_sum,
+  convert a.continuous.continuous_at.tendsto.comp hf,
+  ext s, rw [function.comp_app, finset.sum_hom s a],
+end
+
+lemma has_sum_of_continuous_linear_map_of_summable
+  {f : ι → E} (a : E →L[𝕜] F) (hf : summable f)
+  : has_sum (λ (b:ι), a (f b)) (a (tsum f)) :=
+has_sum_of_continuous_linear_map_of_has_sum a hf.has_sum
 
 end continuous_linear_map
 

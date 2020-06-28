@@ -7,6 +7,7 @@ Opposites.
 -/
 import data.opposite
 import algebra.field
+import algebra.big_operators
 
 namespace opposite
 universes u
@@ -160,5 +161,43 @@ variable {α}
 
 @[simp] lemma op_inv [has_inv α] (x : α) : op (x⁻¹) = (op x)⁻¹ := rfl
 @[simp] lemma unop_inv [has_inv α] (x : αᵒᵖ) : unop (x⁻¹) = (unop x)⁻¹ := rfl
+
+@[simp] lemma op_pow [monoid α] (x : α) (n : ℕ) : op (x ^ n) = (op x) ^ n :=
+begin
+  induction n with n h,
+  { simp },
+  { rw [pow_succ', op_mul, h, pow_succ] }
+end
+
+@[simp] lemma unop_pow [monoid α] (x : αᵒᵖ) (n : ℕ) : unop (x ^ n) = (unop x) ^ n :=
+begin
+  induction n with n h,
+  { simp },
+  { rw [pow_succ', unop_mul, h, pow_succ] }
+end
+
+open_locale big_operators
+open finset
+variables {ι : Type*}
+
+lemma op_sum [ring α] {s : finset ι} (f : ι → α) :
+op (∑ x in s, f x) = ∑ x in s, (λ x, op (f x)) x :=
+begin
+  classical,
+  induction s using finset.induction with x s hx hs,
+  { simp },
+  { rw [sum_insert hx, sum_insert hx, ← hs],
+    simp },
+end
+
+lemma unop_sum [ring α] {s : finset ι} (f : ι → αᵒᵖ) :
+unop (∑ x in s, f x) = ∑ x in s, (λ x, unop (f x)) x :=
+begin
+  classical,
+  induction s using finset.induction with x s hx hs,
+  { simp },
+  { rw [sum_insert hx, sum_insert hx, ← hs],
+    simp },
+end
 
 end opposite

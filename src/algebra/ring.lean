@@ -6,6 +6,7 @@ Neil Strickland
 -/
 import algebra.group.hom
 import algebra.group.units
+import logic.unique
 import tactic.alias
 import tactic.norm_cast
 import tactic.split_ifs
@@ -169,9 +170,32 @@ by haveI := classical.dec;
 lemma eq_zero_of_zero_eq_one (h : (0 : α) = 1) : (∀a:α, a = 0) :=
 (zero_ne_one_or_forall_eq_0 α).neg_resolve_left h
 
+/-- If zero equals one in a semiring, the semiring has a single element. -/
+def unique_of_zero_eq_one (h : (0 : α) = 1) : unique α :=
+{ default := 0,
+  uniq    := eq_zero_of_zero_eq_one α h }
+
+/-- A semiring either has a unique element or is nonzero. -/
+noncomputable def unique_or_nonzero : psum (unique α) (nonzero α) :=
+begin
+  classical,
+  by_cases h : (0 : α) = 1,
+  { exact psum.inl (unique_of_zero_eq_one α h) },
+  { exact psum.inr (⟨h⟩) }
+end
+
 /-- If zero equals one in a semiring, all elements of that semiring are equal. -/
 theorem subsingleton_of_zero_eq_one (h : (0 : α) = 1) : subsingleton α :=
 ⟨λa b, by rw [eq_zero_of_zero_eq_one α h a, eq_zero_of_zero_eq_one α h b]⟩
+
+/-- A semiring is either a subsingleton or nonzero. -/
+lemma subsingleton_or_nonzero : subsingleton α ∨ nonzero α :=
+begin
+  classical,
+  by_cases h : (0 : α) = 1,
+  { left, exact subsingleton_of_zero_eq_one α h },
+  { right, exact ⟨h⟩ }
+end
 
 end semiring
 

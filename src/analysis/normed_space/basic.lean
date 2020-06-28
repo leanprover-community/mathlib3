@@ -200,6 +200,18 @@ theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
   tendsto f l (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in l, ∥ f x ∥ < ε :=
 metric.tendsto_nhds.trans $ by simp only [dist_zero_right]
 
+/- Condition for a homomorphism of normed groups to be Lipschitz.  The analogous condition for a
+linear map of normed spaces is in `normed_space.operator_norm`. -/
+lemma add_monoid_hom.lipschitz_of_bound (f :α →+ β) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+  lipschitz_with (nnreal.of_real C) f :=
+lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
+
+/- Condition for a homomorphism of normed groups to be continuous.  The analogous condition for a
+linear map of normed spaces is in `normed_space.operator_norm`. -/
+lemma add_monoid_hom.continuous_of_bound (f :α →+ β) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+  continuous f :=
+(f.lipschitz_of_bound C h).continuous
+
 section nnnorm
 
 /-- Version of the norm taking values in nonnegative reals. -/
@@ -334,6 +346,18 @@ have tendsto f a (𝓝 0) ↔ tendsto (λ e, ∥ f e - 0 ∥) a (𝓝 0) :=
   tendsto_iff_norm_tendsto_zero,
 by simpa
 
+lemma squeeze_zero_norm' {f : γ → α} {g : γ → ℝ} {t₀ : filter γ}
+  (h : ∀ᶠ n in t₀, ∥f n∥ ≤ g n)
+  (h' : tendsto g t₀ (𝓝 0)) : tendsto f t₀ (𝓝 0) :=
+tendsto_zero_iff_norm_tendsto_zero.mpr
+  (squeeze_zero' (t₀.eventually_of_forall (λ n, norm_nonneg _)) h h')
+
+lemma squeeze_zero_norm {f : γ → α} {g : γ → ℝ} {t₀ : filter γ}
+  (h : ∀ (n:γ), ∥f n∥ ≤ g n)
+  (h' : tendsto g t₀ (𝓝 0)) :
+  tendsto f t₀ (𝓝 0) :=
+tendsto_zero_iff_norm_tendsto_zero.mpr (squeeze_zero (λ n, norm_nonneg _) h h')
+
 lemma lim_norm (x : α) : (λg:α, ∥g - x∥) →_{x} 0 :=
 tendsto_iff_norm_tendsto_zero.1 (continuous_iff_continuous_at.1 continuous_id x)
 
@@ -413,6 +437,27 @@ lemma norm_pow_le {α : Type*} [normed_ring α] (a : α) : ∀ {n : ℕ}, 0 < n 
   le_trans (norm_mul_le a (a^(n+1)))
            (mul_le_mul (le_refl _)
                        (norm_pow_le (nat.succ_pos _)) (norm_nonneg _) (norm_nonneg _))
+
+lemma norm_pow_le_eventually {α : Type*} [normed_ring α] (a : α) :
+  ∀ᶠ (n:ℕ) in at_top, ∥a ^ n∥ ≤ ∥a∥ ^ n :=
+begin
+  refine eventually_at_top.mpr ⟨1, _⟩,
+  intros b h,
+  exact norm_pow_le a (nat.succ_le_iff.mp h),
+end
+
+lemma norm_pos {α : Type*} [normed_ring α] [nonzero α] (x : units α) : 0 < ∥(x:α)∥ :=
+norm_pos_iff.mpr (units.coe_ne_zero x)
+
+/- In a normed ring, the left-multiplication `add_monoid_hom` is bounded. -/
+lemma mul_left_bound {α : Type*} [normed_ring α] (x : α) :
+  ∀ (y:α), ∥add_monoid_hom.mul_left x y∥ ≤ ∥x∥ * ∥y∥ :=
+λ y, by convert norm_mul_le x y
+
+/- In a normed ring, the right-multiplication `add_monoid_hom` is bounded. -/
+lemma mul_right_bound {α : Type*} [normed_ring α] (x : α) :
+  ∀ (y:α), ∥add_monoid_hom.mul_right x y∥ ≤ ∥x∥ * ∥y∥ :=
+λ y, by {rw mul_comm, convert norm_mul_le y x}
 
 /-- Normed ring structure on the product of two normed rings, using the sup norm. -/
 instance prod.normed_ring [normed_ring α] [normed_ring β] : normed_ring (α × β) :=
@@ -914,6 +959,20 @@ instance normed_algebra.id (𝕜 : Type*) [normed_field 𝕜] : normed_algebra �
 { norm_algebra_map_eq := by simp,
 .. algebra.id 𝕜}
 
+@[simp] lemma normed_algebra.norm_one (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜]
+  [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] : ∥(1:𝕜')∥ = 1 :=
+calc ∥(1:𝕜')∥ = ∥algebra_map 𝕜 𝕜' 1∥ : by {rw ← (algebra_map 𝕜 𝕜').map_one', refl}
+... = ∥(1:𝕜)∥ : norm_algebra_map_eq _ _
+... = 1 : by simp
+
+instance normed_algebra.to_nonzero {𝕜 : Type*} (𝕜' : Type*) [normed_field 𝕜]
+  [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] : nonzero 𝕜' :=
+{ zero_ne_one :=
+  begin
+    refine (norm_pos_iff.mp _).symm,
+    rw normed_algebra.norm_one 𝕜 𝕜', norm_num,
+  end }
+
 end normed_algebra
 
 section restrict_scalars
@@ -937,7 +996,22 @@ end restrict_scalars
 section summable
 open_locale classical
 open finset filter
-variables [normed_group α]
+variables [normed_group α] [normed_group β]
+
+-- Applying a bounded homomorphism commutes with taking an (infinite) sum.
+lemma has_sum_of_bounded_monoid_hom_of_has_sum
+  {f : ι → α} {a : α →+ β} {x : α} (hf : has_sum f x) (C : ℝ) (ha : ∀x, ∥a x∥ ≤ C * ∥x∥) :
+  has_sum (λ (b:ι), a (f b)) (a x) :=
+begin
+  unfold has_sum,
+  convert (a.continuous_of_bound C ha).continuous_at.tendsto.comp hf,
+  ext s, rw [function.comp_app, finset.sum_hom s a],
+end
+
+lemma has_sum_of_bounded_monoid_hom_of_summable
+  {f : ι → α} {a : α →+ β} (hf : summable f) (C : ℝ) (ha : ∀x, ∥a x∥ ≤ C * ∥x∥) :
+  has_sum (λ (b:ι), a (f b)) (a (tsum f)) :=
+has_sum_of_bounded_monoid_hom_of_has_sum hf.has_sum C ha
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma cauchy_seq_finset_iff_vanishing_norm {f : ι → α} :
@@ -976,7 +1050,7 @@ cauchy_seq_finset_of_norm_bounded _ hf (assume i, le_refl _)
 its sum is converging to a limit `a`, then this holds along all finsets, i.e., `f` is summable
 with sum `a`. -/
 lemma has_sum_of_subseq_of_summable {f : ι → α} (hf : summable (λa, ∥f a∥))
-  {s : β → finset ι} {p : filter β} (hp : p ≠ ⊥)
+  {s : γ → finset ι} {p : filter γ} (hp : p ≠ ⊥)
   (hs : tendsto s p at_top) {a : α} (ha : tendsto (λ b, ∑ i in s b, f i) p (𝓝 a)) :
   has_sum f a :=
 tendsto_nhds_of_cauchy_seq_of_subseq (cauchy_seq_finset_of_summable_norm hf) hp hs ha
@@ -1006,6 +1080,17 @@ variable [complete_space α]
 lemma summable_of_norm_bounded {f : ι → α} (g : ι → ℝ) (hg : summable g) (h : ∀i, ∥f i∥ ≤ g i) :
   summable f :=
 by { rw summable_iff_cauchy_seq_finset, exact cauchy_seq_finset_of_norm_bounded g hg h }
+
+lemma summable_of_norm_bounded_eventually {f : ι → α} (g : ι → ℝ) (hg : summable g)
+  (h : ∀ᶠ i in cofinite, ∥f i∥ ≤ g i) : summable f :=
+begin
+  let s : finset ι := (mem_cofinite.mp h).to_finset,
+  refine (summable_subtype_iff s).mp _,
+  refine summable_of_norm_bounded _ ((summable_subtype_iff s).mpr hg) _,
+  refine subtype.forall.mpr _,
+  intros a h',
+  simpa [s] using h',
+end
 
 lemma summable_of_nnnorm_bounded {f : ι → α} (g : ι → nnreal) (hg : summable g)
   (h : ∀i, nnnorm (f i) ≤ g i) : summable f :=

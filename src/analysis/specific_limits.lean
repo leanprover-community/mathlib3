@@ -545,6 +545,65 @@ end
 
 end summable_le_geometric
 
+section normed_ring_geometric
+variables [normed_ring α]
+
+open normed_space
+
+/- In a normed ring, the powers of an element x with `∥x∥ < 1` tent to zero.
+Proved above (same name, different namespace) for normed fields. -/
+lemma normed_ring.tendsto_pow_at_top_nhds_0_of_norm_lt_1 (x : α) (h : ∥x∥ < 1) :
+  tendsto (λ (n : ℕ), x ^ n) at_top (𝓝 0) :=
+begin
+  apply squeeze_zero_norm' (norm_pow_le_eventually x),
+  exact tendsto_pow_at_top_nhds_0_of_lt_1 (norm_nonneg _) h,
+end
+
+/- A geometric series in a complete normed ring is summable.
+Proved above (same name, different namespace) for normed fields. -/
+lemma normed_ring.summable_geometric_of_norm_lt_1
+  [complete_space α] (x : α) (h : ∥x∥ < 1) : summable (λ (n:ℕ), x ^ n) :=
+begin
+  have h1 : summable (λ (n:ℕ), ∥x∥ ^ n) := summable_geometric_of_lt_1 (norm_nonneg _) h,
+  refine summable_of_norm_bounded_eventually _ h1 _,
+  rw nat.cofinite_eq_at_top,
+  exact norm_pow_le_eventually x,
+end
+
+lemma geom_series_mul_neg [complete_space α] (x : α) (h : ∥x∥ < 1) :
+  (tsum (λ (i:ℕ), x ^ i)) * (1 - x) = 1 :=
+begin
+  have := has_sum_of_bounded_monoid_hom_of_summable
+    (normed_ring.summable_geometric_of_norm_lt_1 x h) (∥1 - x∥)
+    (mul_right_bound (1 - x)),
+  refine tendsto_nhds_unique at_top_ne_bot this.tendsto_sum_nat _,
+  have : tendsto (λ (n : ℕ), 1 - x ^ n) at_top (nhds 1),
+  { simpa using tendsto_const_nhds.sub
+      (normed_ring.tendsto_pow_at_top_nhds_0_of_norm_lt_1 x h) },
+  convert ← this,
+  ext n,
+  rw [←geom_sum_mul_neg, geom_series_def, finset.sum_mul],
+  simp,
+end
+
+lemma mul_neg_geom_series [complete_space α] (x : α) (h : ∥x∥ < 1) :
+  (1 - x) * (tsum (λ (i:ℕ), x ^ i)) = 1 :=
+begin
+  have := has_sum_of_bounded_monoid_hom_of_summable
+    (normed_ring.summable_geometric_of_norm_lt_1 x h) (∥1 - x∥)
+    (mul_left_bound (1 - x)),
+  refine tendsto_nhds_unique at_top_ne_bot this.tendsto_sum_nat _,
+  have : tendsto (λ (n : ℕ), 1 - x ^ n) at_top (nhds 1),
+  { simpa using tendsto_const_nhds.sub
+      (normed_ring.tendsto_pow_at_top_nhds_0_of_norm_lt_1 x h) },
+  convert ← this,
+  ext n,
+  rw [←mul_neg_geom_sum, geom_series_def, finset.mul_sum],
+  simp,
+end
+
+end normed_ring_geometric
+
 /-! ### Positive sequences with small sums on encodable types -/
 
 /-- For any positive `ε`, define on an encodable type a positive sequence with sum less than `ε` -/

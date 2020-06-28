@@ -338,7 +338,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
     have E : x ∈ I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I,
       by simpa only [prod_mk_mem_set_prod_eq, and_true, mem_univ] using hx,
     have : I (I.symm x) = x, by simp [E.2],
-    dsimp,
+    dsimp [-subtype.val_eq_coe],
     rw [this, D x E],
     refl
   end,

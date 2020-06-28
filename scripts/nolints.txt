@@ -7,9 +7,6 @@ apply_nolint associates doc_blame
 apply_nolint associates.mk doc_blame
 apply_nolint associates.prime doc_blame
 
--- algebra/category/Group/basic.lean
-apply_nolint AddCommGroup.of doc_blame
-
 -- algebra/direct_limit.lean
 apply_nolint add_comm_group.direct_limit has_inhabited_instance
 apply_nolint field.direct_limit.field doc_blame
@@ -138,9 +135,6 @@ apply_nolint category_theory.adjunction.functoriality_unit' doc_blame
 apply_nolint category_theory.adjunction.has_colimit_of_comp_equivalence doc_blame
 apply_nolint category_theory.adjunction.has_limit_of_comp_equivalence doc_blame
 
--- category_theory/category/Cat.lean
-apply_nolint category_theory.Cat has_inhabited_instance
-
 -- category_theory/category/Kleisli.lean
 apply_nolint category_theory.Kleisli doc_blame unused_arguments has_inhabited_instance
 apply_nolint category_theory.Kleisli.comp_def unused_arguments
@@ -155,37 +149,9 @@ apply_nolint category_theory.mono doc_blame
 apply_nolint category_theory.obviously' doc_blame
 apply_nolint obviously.attr doc_blame
 
--- category_theory/concrete_category/bundled.lean
-apply_nolint category_theory.bundled has_inhabited_instance
-
--- category_theory/conj.lean
-apply_nolint category_theory.iso.hom_congr doc_blame
-
--- category_theory/const.lean
-apply_nolint category_theory.functor.const doc_blame
-apply_nolint category_theory.functor.const.op_obj_op doc_blame
-apply_nolint category_theory.functor.const.op_obj_unop doc_blame
-
--- category_theory/core.lean
-apply_nolint category_theory.core has_inhabited_instance
-apply_nolint category_theory.core.forget_functor_to_core doc_blame
-
--- category_theory/currying.lean
-apply_nolint category_theory.curry doc_blame
-apply_nolint category_theory.curry_obj doc_blame
-apply_nolint category_theory.currying doc_blame
-apply_nolint category_theory.uncurry doc_blame
-
--- category_theory/elements.lean
-apply_nolint category_theory.functor.elements has_inhabited_instance
-
 -- category_theory/endomorphism.lean
 apply_nolint category_theory.Aut doc_blame has_inhabited_instance
 apply_nolint category_theory.End has_inhabited_instance
-
--- category_theory/eq_to_hom.lean
-apply_nolint category_theory.eq_to_hom doc_blame
-apply_nolint category_theory.eq_to_iso doc_blame
 
 -- category_theory/equivalence.lean
 apply_nolint category_theory.equivalence has_inhabited_instance
@@ -212,28 +178,9 @@ apply_nolint category_theory.functor.inv_fun_id doc_blame
 apply_nolint category_theory.functor.obj_preimage doc_blame
 apply_nolint category_theory.is_equivalence.mk doc_blame
 
--- category_theory/full_subcategory.lean
-apply_nolint category_theory.full_subcategory_inclusion doc_blame
-apply_nolint category_theory.induced_category doc_blame unused_arguments has_inhabited_instance
-apply_nolint category_theory.induced_functor doc_blame
-
--- category_theory/fully_faithful.lean
-apply_nolint category_theory.is_iso_of_fully_faithful doc_blame
-
--- category_theory/functor.lean
-apply_nolint category_theory.functor has_inhabited_instance
-apply_nolint category_theory.functor.ulift_down doc_blame
-apply_nolint category_theory.functor.ulift_up doc_blame
-
--- category_theory/functor_category.lean
-apply_nolint category_theory.functor.flip doc_blame
-
 -- category_theory/groupoid.lean
 apply_nolint category_theory.large_groupoid doc_blame
 apply_nolint category_theory.small_groupoid doc_blame
-
--- category_theory/isomorphism.lean
-apply_nolint category_theory.iso has_inhabited_instance
 
 -- category_theory/limits/cones.lean
 apply_nolint category_theory.functor.map_cocone_morphism doc_blame
@@ -337,15 +284,10 @@ apply_nolint category_theory.monoidal_functor.ε_iso doc_blame
 apply_nolint category_theory.monoidal_functor.μ_iso doc_blame
 
 -- category_theory/natural_isomorphism.lean
-apply_nolint category_theory.functor.ulift_down_up doc_blame
-apply_nolint category_theory.functor.ulift_up_down doc_blame
 apply_nolint category_theory.nat_iso.hcomp doc_blame
 apply_nolint category_theory.nat_iso.is_iso_app_of_is_iso doc_blame
 apply_nolint category_theory.nat_iso.is_iso_of_is_iso_app doc_blame
 apply_nolint category_theory.nat_iso.of_components doc_blame
-
--- category_theory/natural_transformation.lean
-apply_nolint category_theory.nat_trans has_inhabited_instance
 
 -- category_theory/opposites.lean
 apply_nolint category_theory.functor.left_op doc_blame
@@ -363,29 +305,12 @@ apply_nolint category_theory.nat_trans.op doc_blame
 apply_nolint category_theory.nat_trans.right_op doc_blame
 apply_nolint category_theory.nat_trans.unop doc_blame
 
--- category_theory/products/associator.lean
-apply_nolint category_theory.prod.associativity doc_blame
-apply_nolint category_theory.prod.associator doc_blame
-apply_nolint category_theory.prod.inverse_associator doc_blame
-
 -- category_theory/products/basic.lean
 apply_nolint category_theory.evaluation doc_blame
 apply_nolint category_theory.evaluation_uncurried doc_blame
 apply_nolint category_theory.prod.braiding doc_blame
 apply_nolint category_theory.prod.swap doc_blame
 apply_nolint category_theory.prod.symmetry doc_blame
-
--- category_theory/punit.lean
-apply_nolint category_theory.functor.star doc_blame
-
--- category_theory/single_obj.lean
-apply_nolint category_theory.single_obj unused_arguments has_inhabited_instance
-apply_nolint category_theory.single_obj.star doc_blame
-
--- category_theory/sums/associator.lean
-apply_nolint category_theory.sum.associativity doc_blame
-apply_nolint category_theory.sum.associator doc_blame
-apply_nolint category_theory.sum.inverse_associator doc_blame
 
 -- category_theory/whiskering.lean
 apply_nolint category_theory.functor.associator doc_blame
@@ -1975,9 +1900,6 @@ apply_nolint tactic.get_lift_prf doc_blame
 apply_nolint tactic.to_texpr doc_blame
 apply_nolint tactic.using_texpr doc_blame
 
--- tactic/linarith/lemmas.lean
-apply_nolint linarith.mul_eq unused_arguments
-
 -- tactic/local_cache.lean
 apply_nolint tactic.local_cache.internal.block_local.clear doc_blame
 apply_nolint tactic.local_cache.internal.block_local.get_name doc_blame
@@ -2383,14 +2305,6 @@ apply_nolint homeomorph has_inhabited_instance
 -- topology/maps.lean
 apply_nolint inducing doc_blame
 apply_nolint is_closed_map doc_blame
-
--- topology/metric_space/basic.lean
-apply_nolint metric.cauchy_iff ge_or_gt
-apply_nolint metric.is_open_iff ge_or_gt
-apply_nolint metric.mem_nhds_iff ge_or_gt
-apply_nolint metric.tendsto_nhds ge_or_gt
-apply_nolint metric_space.induced doc_blame
-apply_nolint metric_space.replace_uniformity doc_blame
 
 -- topology/metric_space/emetric_space.lean
 apply_nolint has_edist doc_blame

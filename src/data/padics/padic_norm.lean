@@ -113,7 +113,9 @@ lemma padic_val_rat_of_int (z : ℤ) (hp : p ≠ 1) (hz : z ≠ 0) :
 by rw [padic_val_rat, dif_pos]; simp *; refl
 
 end padic_val_rat
+end padic_val_rat
 
+namespace padic_val_nat
 section padic_val_nat
 
 /--
@@ -160,7 +162,9 @@ begin
 end
 
 end padic_val_nat
+end padic_val_nat
 
+namespace padic_val_rat
 section padic_val_rat
 open multiplicity
 variables (p : ℕ) [p_prime : fact p.prime]

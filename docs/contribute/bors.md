@@ -62,8 +62,8 @@ more details.)
   Github's default which just combines all commit subject lines into one. We have set things
   up so that the text after the first occurrence of "`---`" is automatically ignored. Contributions
   from other users should be automatically added as [co-authors](https://github.blog/2018-01-29-commit-together-with-co-authors/),
-  like how mergify and Github previously did. For PRs with a lot of commits (100+) they
-  might be missed; in that case (or in cases where you want to acknowledge someone who didn't actually
+  like how mergify and Github previously did. For PRs with a lot of commits (50+) they
+  might be missed; in such cases (or other cases where you want to acknowledge someone who didn't actually
   commit), you can add them with the template `Co-authored-by: Firstname Lastname <email>`.
 
 - Even if the usual "push" build succeeds on a PR branch that is up-to-date with master, `bors r+`

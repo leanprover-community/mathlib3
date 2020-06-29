@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import algebra.ring
+import algebra.module
 
 /-!
 # Lifting algebraic data classes along injective/surjective maps
@@ -24,8 +24,9 @@ And there are versions for (additive) (commutative) semigroups/monoids,
 and for (commutative) (semi)rings.
 -/
 
-section
 open function
+
+section
 variables {M₁ : Type*} {M₂ : Type*} [has_mul M₁]
 
 /-- A type endowed with `*` is a semigroup,
@@ -53,7 +54,6 @@ def comm_semigroup_of_injective [comm_semigroup M₂] (f : M₁ → M₂) (hf : 
 end
 
 section
-open function
 variables {M₁ : Type*} {M₂ : Type*} [has_mul M₂]
 
 /-- A type endowed with `*` is a semigroup,
@@ -89,7 +89,6 @@ def comm_semigroup_of_surjective [comm_semigroup M₁] (f : M₁ → M₂) (hf :
 end
 
 section
-open function
 variables {M₁ : Type*} {M₂ : Type*} [has_one M₁] [has_mul M₁]
 
 /-- A type endowed with `1` and `*` is a monoid,
@@ -140,7 +139,77 @@ def comm_group_of_injective [comm_group M₂] (f : M₁ → M₂) (hf : injectiv
 end
 
 section
-open function
+variables {M α β : Type*} [monoid M]
+
+/-- Pullback a multiplicative action along an injective map respecting `•`. -/
+def mul_action_of_injective [mul_action M β] [has_scalar M α] (f : α → β) (hf : injective f)
+  (smul : ∀ (c : M) x, f (c • x) = c • f x) :
+  mul_action M α :=
+{ smul := (•),
+  one_smul := λ x, hf $ (smul _ _).trans $ one_smul M (f x),
+  mul_smul := λ c₁ c₂ x, hf $ by simp only [smul, mul_smul] }
+
+/-- Pushforward a multiplicative action along a surjective map respecting `•`. -/
+def mul_action_of_surjective [mul_action M α] [has_scalar M β] (f : α → β) (hf : surjective f)
+  (smul : ∀ (c : M) x, f (c • x) = c • f x) :
+  mul_action M β :=
+{ smul := (•),
+  one_smul := λ y, by { rcases hf y with ⟨x, rfl⟩, rw [← smul, one_smul] },
+  mul_smul := λ c₁ c₂ y, by { rcases hf y with ⟨x, rfl⟩, simp only [← smul, mul_smul] } }
+
+end
+
+section
+variables {M M₁ M₂ : Type*} [monoid M] [add_monoid M₁] [add_monoid M₂]
+
+/-- Pullback a distributive multiplicative action along an injective additive monoid
+homomorphism. -/
+def distrib_mul_action_of_injective [distrib_mul_action M M₂] [has_scalar M M₁] (f : M₁ →+ M₂)
+  (hf : injective f) (smul : ∀ (c : M) x, f (c • x) = c • f x) :
+  distrib_mul_action M M₁ :=
+{ smul := (•),
+  smul_add := λ c x y, hf $ by simp only [smul, f.map_add, smul_add],
+  smul_zero := λ c, hf $ by simp only [smul, f.map_zero, smul_zero],
+  .. mul_action_of_injective f hf smul }
+
+/-- Pushforward a distributive multiplicative action along a surjective additive monoid
+homomorphism.-/
+def distrib_mul_action_of_surjective [distrib_mul_action M M₁] [has_scalar M M₂] (f : M₁ →+ M₂)
+  (hf : surjective f) (smul : ∀ (c : M) x, f (c • x) = c • f x) :
+  distrib_mul_action M M₂ :=
+{ smul := (•),
+  smul_add := λ c x y, by { rcases hf x with ⟨x, rfl⟩, rcases hf y with ⟨y, rfl⟩,
+    simp only [smul_add, ← smul, ← f.map_add] },
+  smul_zero := λ c, by simp only [← f.map_zero, ← smul, smul_zero],
+  .. mul_action_of_surjective f hf smul }
+
+end
+
+section
+variables {R M₁ M₂ : Type*} [semiring R] [add_comm_monoid M₁] [add_comm_monoid M₂]
+
+/-- Pullback a semimodule structure along an injective additive monoid homomorphism. -/
+def semimodule_of_injective [semimodule R M₂] [has_scalar R M₁] (f : M₁ →+ M₂)
+  (hf : injective f) (smul : ∀ (c : R) x, f (c • x) = c • f x) :
+  semimodule R M₁ :=
+{ smul := (•),
+  add_smul := λ c₁ c₂ x, hf $ by simp only [smul, f.map_add, add_smul],
+  zero_smul := λ x, hf $ by simp only [smul, zero_smul, f.map_zero],
+  .. distrib_mul_action_of_injective f hf smul }
+
+/-- Pushforward a semimodule structure along a surjective additive monoid homomorphism. -/
+def semimodule_of_surjective [semimodule R M₁] [has_scalar R M₂] (f : M₁ →+ M₂)
+  (hf : surjective f) (smul : ∀ (c : R) x, f (c • x) = c • f x) :
+  semimodule R M₂ :=
+{ smul := (•),
+  add_smul := λ c₁ c₂ x, by { rcases hf x with ⟨x, rfl⟩,
+    simp only [add_smul, ← smul, ← f.map_add] },
+  zero_smul := λ x, by { rcases hf x with ⟨x, rfl⟩, simp only [← f.map_zero, ← smul, zero_smul] },
+  .. distrib_mul_action_of_surjective f hf smul }
+
+end
+
+section
 variables {M₁ : Type*} {M₂ : Type*} [has_one M₂] [has_mul M₂]
 
 /-- A type endowed with `1` and `*` is a monoid,
@@ -191,7 +260,6 @@ def comm_group_of_surjective [comm_group M₁] (f : M₁ → M₂) (hf : surject
 end
 
 section
-open function
 variables {R₁ : Type*} {R₂ : Type*} [has_zero R₁] [has_one R₁] [has_add R₁] [has_mul R₁]
 
 /-- A type endowed with `0`, `1`, `+` and `*` is a semiring,
@@ -237,7 +305,6 @@ def comm_ring_of_injective [comm_ring R₂] (f : R₁ → R₂) (hf : injective 
 end
 
 section
-open function
 variables {R₁ : Type*} {R₂ : Type*} [has_zero R₂] [has_one R₂] [has_add R₂] [has_mul R₂]
 
 /-- A type endowed with `0`, `1`, `+` and `*` is a semiring,

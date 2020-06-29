@@ -117,18 +117,14 @@ else if ¬ is_cond ∧ lhs = lhs' then do
 else
   pure none
 
-/-- A linter for simp lemmas whose lhs is not in simp-normal form, and which hence never fire. -/
-@[linter] meta def linter.simp_nf : linter :=
-{ test := simp_nf_linter,
-  auto_decls := tt,
-  no_errors_found := "All left-hand sides of simp lemmas are in simp-normal form",
-  errors_found := "SOME SIMP LEMMAS ARE REDUNDANT.
-That is, their left-hand side is not in simp-normal form.
+/--
+This note gives you some tips to debug any errors that the simp-normal form linter raises
+The reason that a lemma was considered faulty is because its left-hand side is not in simp-normal form.
 These lemmas are hence never used by the simplifier.
 
 This linter gives you a list of other simp lemmas, look at them!
 
-Here are some guidelines to get you started:
+Here are some tips depending on the error raised by the linter:
 
   1. 'the left-hand side reduces to XYZ':
      you should probably use XYZ as the left-hand side.
@@ -155,6 +151,26 @@ Here are some guidelines to get you started:
      2d. If two lemmas are duplicates, the linter will complain about the first one.
          Try to fix the second one instead!
          (You can find it among the other simp lemmas the linter prints out!)
+
+  3. 'try_for tactic failed, timeout':
+     This typically means that there is a loop of simp lemmas.
+     Try to apply squeeze_simp to the right-hand side (removing this lemma from the simp set) to see
+     what lemmas might be causing the loop.
+
+     Another trick is to `set_option trace.simplify.rewrite true` and
+     then apply `try_for 10000 { simp }` to the right-hand side.  You will
+     see a periodic sequence of lemma applications in the trace message.
+-/
+library_note "simp-normal form"
+
+/-- A linter for simp lemmas whose lhs is not in simp-normal form, and which hence never fire. -/
+@[linter] meta def linter.simp_nf : linter :=
+{ test := simp_nf_linter,
+  auto_decls := tt,
+  no_errors_found := "All left-hand sides of simp lemmas are in simp-normal form",
+  errors_found := "SOME SIMP LEMMAS ARE NOT IN SIMP-NORMAL FORM.
+see note [simp-normal form] for tips how to debug this.
+https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20form
 " }
 
 private meta def simp_var_head (d : declaration) : tactic (option string) := do

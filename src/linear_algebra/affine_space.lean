@@ -366,8 +366,10 @@ lemma direction_eq_vector_span (s : affine_subspace k V P) :
 rfl
 
 /-- Alternative definition of the direction when the affine subspace
-is nonempty.  This is only intended to be used in the proof of
-`coe_direction_eq_vsub_set`. -/
+is nonempty.  This is defined so that the order on submodules (as used
+in the definition of `submodule.span`) can be used in the proof of
+`coe_direction_eq_vsub_set`, and is not intended to be used beyond
+that proof. -/
 def direction_of_nonempty {s : affine_subspace k V P} (h : (s : set P).nonempty) :
   submodule k V :=
 { carrier := vsub_set V (s : set P),

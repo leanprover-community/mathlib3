@@ -7,7 +7,6 @@ import algebra.continued_fractions.computation.translations
 import algebra.continued_fractions.continuants_recurrence
 import algebra.continued_fractions.terminated_stable
 import data.nat.fib
-import tactic.lint
 /-!
 # Approximations for Continued Fraction Computations (`gcf.of`)
 

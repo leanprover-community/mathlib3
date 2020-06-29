@@ -588,11 +588,15 @@ meta structure constructor_argument_info :=
 (type : expr)
 (dependent : bool)
 (index_occurrences : list ℕ)
+(is_recursive : bool)
 
 @[derive has_reflect]
 meta structure constructor_info :=
 (cname : name)
-(args : list constructor_argument_info)
+(non_param_args : list constructor_argument_info)
+(num_non_param_args : ℕ)
+(rec_args : list constructor_argument_info)
+(num_rec_args : ℕ)
 
 @[derive has_reflect]
 meta structure inductive_info :=
@@ -605,16 +609,25 @@ meta structure inductive_info :=
 
 /-- Gathers information about a constructor from the environment. Fails if `c`
 does not refer to a constructor. -/
-meta def get_constructor_info (env : environment) (num_params : ℕ) (c : name)
+meta def get_constructor_info (env : environment) (iname : name)
+  (num_params : ℕ) (c : name)
   : tactic constructor_info := do
   when (¬ env.is_constructor c) $ exceptional.fail format!
     "Expected {c} to be a constructor.",
   decl ← env.get c,
   args ← decompose_constructor_type num_params decl.type,
+  let non_param_args := args.drop num_params,
+  let non_param_args : list constructor_argument_info :=
+    non_param_args.map_with_index $ λ i ⟨name, type, dep, index_occs⟩,
+      let is_recursive := is_recursive_constructor_argument iname type in
+      ⟨name, type, dep, index_occs.to_list, is_recursive⟩,
+  let rec_args := non_param_args.filter $ λ ainfo, ainfo.is_recursive,
   pure
     { cname := decl.to_name,
-      args := args.map_with_index $ λ i ⟨name, type, dep, index_occs⟩,
-        ⟨name, type, dep, index_occs.to_list⟩,
+      non_param_args := non_param_args,
+      num_non_param_args := non_param_args.length,
+      rec_args := rec_args,
+      num_rec_args := rec_args.length
     }
 
 /-- Gathers information about an inductive type from the environment. Fails if
@@ -629,7 +642,7 @@ meta def get_inductive_info (env : environment) (T : name)
   let num_indices := env.inductive_num_indices T,
   let constructor_names := env.constructors_of T,
   constructors ← constructor_names.mmap
-    (get_constructor_info env num_params),
+    (get_constructor_info env T num_params),
   pure
     { iname := T,
       constructors := constructors,
@@ -664,9 +677,7 @@ meta structure constructor_argument_naming_info :=
 constructor_argument_naming_info → tactic (list name)
 
 meta def constructor_argument_naming_rule_rec : constructor_argument_naming_rule := λ i,
-if is_recursive_constructor_argument i.iinfo.iname i.ainfo.type
-  then pure [i.einfo.ename]
-  else failed
+if i.ainfo.is_recursive then pure [i.einfo.ename] else failed
 
 meta def constructor_argument_naming_rule_index : constructor_argument_naming_rule := λ i,
 let index_occs := i.ainfo.index_occurrences in
@@ -846,19 +857,16 @@ meta def intron_fresh : ℕ → tactic (list expr)
 meta def constructor_intros (generate_induction_hyps : bool)
   (iinfo : inductive_info) (cinfo : constructor_info)
   : tactic (list (name × constructor_argument_info) × list (name × name)) := do
-  let args := cinfo.args.drop iinfo.num_params,
-  let num_args := args.length,
-  arg_hyps ← intron_fresh num_args,
+  let args := cinfo.non_param_args,
+  arg_hyps ← intron_fresh cinfo.num_non_param_args,
   let arg_hyp_names :=
     list.map₂ (λ (h : expr) ainfo, (h.local_pp_name, ainfo)) arg_hyps args,
   tt ← pure generate_induction_hyps | pure (arg_hyp_names, []),
 
-  let rec_args := arg_hyp_names.filter $ λ x,
-    is_recursive_constructor_argument iinfo.iname x.2.type,
+  let rec_args := arg_hyp_names.filter $ λ x, x.2.is_recursive,
     -- TODO the information whether an arg is recursive should be in
     -- constructor_argument_info.
-  let num_ihs := rec_args.length,
-  ih_hyps ← intron_fresh num_ihs,
+  ih_hyps ← intron_fresh cinfo.num_rec_args,
   let ih_hyp_names :=
     list.map₂
       (λ (h : expr) (arg : name × constructor_argument_info),

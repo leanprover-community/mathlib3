@@ -861,12 +861,17 @@ theorem filter_filter (s : finset α) :
   (s.filter p).filter q = s.filter (λa, p a ∧ q a) :=
 ext $ assume a, by simp only [mem_filter, and_comm, and.left_comm]
 
-@[simp] lemma filter_true {s : finset α} [h : decidable_pred (λ _, true)] :
+lemma filter_true {s : finset α} [h : decidable_pred (λ _, true)] :
   @finset.filter α (λ _, true) h s = s :=
 by ext; simp
 
 @[simp] theorem filter_false {h} (s : finset α) : @filter α (λa, false) h s = ∅ :=
 ext $ assume a, by simp only [mem_filter, and_false]; refl
+
+/-- If all elements of a `finset` satisfy the predicate `p`, `s.filter
+p` is `s`. -/
+@[simp] lemma filter_true_of_mem {s : finset α} (h : ∀ x ∈ s, p x) : s.filter p = s :=
+ext $ λ x, ⟨λ h, (mem_filter.1 h).1, λ hx, mem_filter.2 ⟨hx, h x hx⟩⟩
 
 lemma filter_congr {s : finset α} (H : ∀ x ∈ s, p x ↔ q x) : filter p s = filter q s :=
 eq_of_veq $ filter_congr H
@@ -1374,6 +1379,43 @@ protected def subtype {α} (p : α → Prop) [decidable_pred p] (s : finset α) 
   ∀{a : subtype p}, a ∈ s.subtype p ↔ a.val ∈ s
 | ⟨a, ha⟩ := by simp [finset.subtype, ha]
 
+/-- `s.subtype p` converts back to `s.filter p` with
+`embedding.subtype`. -/
+@[simp] lemma subtype_map (p : α → Prop) [decidable_pred p] :
+  (s.subtype p).map (function.embedding.subtype _) = s.filter p :=
+begin
+  ext x,
+  rw mem_map,
+  change (∃ a : {x // p x}, ∃ H, a.val = x) ↔ _,
+  split,
+  { rintros ⟨y, hy, hyval⟩,
+    rw [mem_subtype, hyval] at hy,
+    rw mem_filter,
+    use hy,
+    rw ← hyval,
+    use y.property },
+  { intro hx,
+    rw mem_filter at hx,
+    use ⟨⟨x, hx.2⟩, mem_subtype.2 hx.1, rfl⟩ }
+end
+
+/-- If all elements of a `finset` satisfy the predicate `p`,
+`s.subtype p` converts back to `s` with `embedding.subtype`. -/
+lemma subtype_map_of_mem {p : α → Prop} [decidable_pred p] (h : ∀ x ∈ s, p x) :
+  (s.subtype p).map (function.embedding.subtype _) = s :=
+by rw [subtype_map, filter_true_of_mem h]
+
+/-- If a `finset` of a subtype is converted to the main type with
+`embedding.subtype`, the result does not contain any value that does
+not satisfy the property of the subtype. -/
+lemma not_mem_map_subtype_of_not_property {p : α → Prop} (s : finset {x // p x})
+    {a : α} (h : ¬ p a) : a ∉ (s.map (function.embedding.subtype _)) :=
+begin
+  rw mem_map,
+  push_neg,
+  exact λ x, λ hxs hx, h (hx ▸ x.property)
+end
+
 lemma subset_image_iff {f : α → β}
   {s : finset β} {t : set α} : ↑s ⊆ f '' t ↔ ∃s' : finset α, ↑s' ⊆ t ∧ s'.image f = s :=
 begin
@@ -1401,6 +1443,8 @@ section card
 def card (s : finset α) : nat := s.1.card
 
 theorem card_def (s : finset α) : s.card = s.1.card := rfl
+
+@[simp] lemma card_mk {m nodup} : (⟨m, nodup⟩ : finset α).card = m.card := rfl
 
 @[simp] theorem card_empty : card (∅ : finset α) = 0 := rfl
 
@@ -2972,20 +3016,20 @@ namespace nat
 /-- The antidiagonal of a natural number `n` is
     the finset of pairs `(i,j)` such that `i+j = n`. -/
 def antidiagonal (n : ℕ) : finset (ℕ × ℕ) :=
-(multiset.nat.antidiagonal n).to_finset
+⟨multiset.nat.antidiagonal n, multiset.nat.nodup_antidiagonal n⟩
 
 /-- A pair (i,j) is contained in the antidiagonal of `n` if and only if `i+j=n`. -/
 @[simp] lemma mem_antidiagonal {n : ℕ} {x : ℕ × ℕ} :
   x ∈ antidiagonal n ↔ x.1 + x.2 = n :=
-by rw [antidiagonal, multiset.mem_to_finset, multiset.nat.mem_antidiagonal]
+by rw [antidiagonal, finset.mem_def, multiset.nat.mem_antidiagonal]
 
 /-- The cardinality of the antidiagonal of `n` is `n+1`. -/
 @[simp] lemma card_antidiagonal (n : ℕ) : (antidiagonal n).card = n+1 :=
-by simpa using list.to_finset_card_of_nodup (list.nat.nodup_antidiagonal n)
+by simp [antidiagonal]
 
 /-- The antidiagonal of `0` is the list `[(0,0)]` -/
 @[simp] lemma antidiagonal_zero : antidiagonal 0 = {(0, 0)} :=
-by { rw [antidiagonal, multiset.nat.antidiagonal_zero], refl }
+rfl
 
 end nat
 

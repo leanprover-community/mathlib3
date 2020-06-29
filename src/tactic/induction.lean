@@ -367,19 +367,19 @@ end expr
 
 namespace sum
 
-def get_left {α β} : α ⊕ β → option α
+@[simp] def get_left {α β} : α ⊕ β → option α
 | (inl a) := some a
 | _ := none
 
-def get_right {α β} : α ⊕ β → option β
+@[simp] def get_right {α β} : α ⊕ β → option β
 | (inr b) := some b
 | _ := none
 
-def is_left {α β} : α ⊕ β → bool
+@[simp] def is_left {α β} : α ⊕ β → bool
 | (inl _) := tt
 | (inr _) := ff
 
-def is_right {α β} : α ⊕ β → bool
+@[simp] def is_right {α β} : α ⊕ β → bool
 | (inl _) := ff
 | (inr _) := tt
 

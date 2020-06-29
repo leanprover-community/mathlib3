@@ -1538,6 +1538,9 @@ structure linear_equiv (R : Type u) (M : Type v) (M₂ : Type w)
   extends M →ₗ[R] M₂, M ≃ M₂
 end
 
+attribute [nolint doc_blame] linear_equiv.to_linear_map
+attribute [nolint doc_blame] linear_equiv.to_equiv
+
 infix ` ≃ₗ ` := linear_equiv _
 notation M ` ≃ₗ[`:50 R `] ` M₂ := linear_equiv R M M₂
 
@@ -1654,12 +1657,10 @@ def of_submodule (p : submodule R M) : p ≃ₗ[R] ↥(p.map ↑e : submodule R 
   ..((e : M →ₗ[R] M₂).dom_restrict p).cod_restrict (p.map ↑e) (λ x, ⟨x, by simp⟩) }
 
 @[simp] lemma of_submodule_apply (p : submodule R M) (x : p) :
-  ↑(e.of_submodule p x) = e x :=
-rfl
+  ↑(e.of_submodule p x) = e x := rfl
 
 @[simp] lemma of_submodule_symm_apply (p : submodule R M) (x : (p.map ↑e : submodule R M₂)) :
-  ↑((e.of_submodule p).symm x) = e.symm x :=
-rfl
+  ↑((e.of_submodule p).symm x) = e.symm x := rfl
 
 end
 
@@ -1682,8 +1683,7 @@ lemma prod_symm : (e₁.prod e₂).symm = e₁.symm.prod e₂.symm := rfl
   e₁.prod e₂ p = (e₁ p.1, e₂ p.2) := rfl
 
 @[simp, norm_cast] lemma coe_prod :
-  (e₁.prod e₂ : (M × M₃) →ₗ[R] (M₂ × M₄)) = (e₁ : M →ₗ[R] M₂).prod_map (e₂ : M₃ →ₗ[R] M₄) :=
-rfl
+  (e₁.prod e₂ : (M × M₃) →ₗ[R] (M₂ × M₄)) = (e₁ : M →ₗ[R] M₂).prod_map (e₂ : M₃ →ₗ[R] M₄) := rfl
 
 end prod
 
@@ -1715,8 +1715,6 @@ variables (p q : submodule R M)
 def of_eq (h : p = q) : p ≃ₗ[R] q :=
 { map_smul' := λ _ _, rfl, map_add' := λ _ _, rfl, .. equiv.set.of_eq (congr_arg _ h) }
 
-@[simp] lemma of_eq_apply (h : p = q) (x : p) : (↑(of_eq p q h x) : M) = ↑x := rfl
-
 variables {p q}
 
 @[simp] lemma coe_of_eq_apply (h : p = q) (x : p) : (of_eq p q h x : M) = x := rfl
@@ -1729,12 +1727,10 @@ def of_submodules (p : submodule R M) (q : submodule R M₂) (h : p.map ↑e = q
 (e.of_submodule p).trans (linear_equiv.of_eq _ _ h)
 
 @[simp] lemma of_submodules_apply {p : submodule R M} {q : submodule R M₂}
-  (h : p.map ↑e = q) (x : p) : ↑(e.of_submodules p q h x) = e x :=
-rfl
+  (h : p.map ↑e = q) (x : p) : ↑(e.of_submodules p q h x) = e x := rfl
 
 @[simp] lemma of_submodules_symm_apply {p : submodule R M} {q : submodule R M₂}
-  (h : p.map ↑e = q) (x : q) : ↑((e.of_submodules p q h).symm x) = e.symm x :=
-rfl
+  (h : p.map ↑e = q) (x : q) : ↑((e.of_submodules p q h).symm x) = e.symm x := rfl
 
 variable (p)
 
@@ -1889,12 +1885,10 @@ themselves are linearly isomorphic. -/
 def conj (e : M ≃ₗ[R] M₂) : (module.End R M) ≃ₗ[R] (module.End R M₂) := arrow_congr e e
 
 @[simp] lemma conj_apply (e : M ≃ₗ[R] M₂) (f : module.End R M) :
-  e.conj f = ((↑e : M →ₗ[R] M₂).comp f).comp e.symm :=
-rfl
+  e.conj f = ((↑e : M →ₗ[R] M₂).comp f).comp e.symm := rfl
 
 @[simp] lemma symm_conj_apply (e : M ≃ₗ[R] M₂) (f : module.End R M₂) :
-  e.symm.conj f = ((↑e.symm : M₂ →ₗ[R] M).comp f).comp e :=
-rfl
+  e.symm.conj f = ((↑e.symm : M₂ →ₗ[R] M).comp f).comp e := rfl
 
 lemma conj_comp (e : M ≃ₗ[R] M₂) (f g : module.End R M) :
   e.conj (g.comp f) = (e.conj g).comp (e.conj f) :=

@@ -523,8 +523,8 @@ variables (L₁' L₁'' : lie_subalgebra R L₁) (L₂' : lie_subalgebra R L₂)
 /-- Lie subalgebras that are equal as sets are equivalent as Lie algebras. -/
 def of_eq (h : (L₁' : set L₁) = L₁'') : L₁' ≃ₗ⁅R⁆ L₁'' :=
 { map_lie := λ x y, by { apply set_coe.ext, simp, },
-  ..(linear_equiv.of_eq ↑L₁' ↑L₁'' (by {
-    ext x, change x ∈ (L₁' : set L₁) ↔ x ∈ (L₁'' : set L₁), rw h, } )) }
+  ..(linear_equiv.of_eq ↑L₁' ↑L₁''
+      (by {ext x, change x ∈ (L₁' : set L₁) ↔ x ∈ (L₁'' : set L₁), rw h, } )) }
 
 @[simp] lemma of_eq_apply (L L' : lie_subalgebra R L₁) (h : (L : set L₁) = L') (x : L) :
   (↑(of_eq L L' h x) : L₁) = x := rfl
@@ -859,7 +859,7 @@ end skew_adjoint_endomorphisms
 section skew_adjoint_matrices
 open_locale matrix
 
-variables {R : Type u} {n : Type w₁} [comm_ring R] [fintype n] [decidable_eq n]
+variables {R : Type u} {n : Type w} [comm_ring R] [fintype n] [decidable_eq n]
 variables (J : matrix n n R)
 
 local attribute [instance] matrix.lie_ring

@@ -339,12 +339,10 @@ have h' : is_unit P.det := P.is_unit_iff_is_unit_det.mp h,
   ..P.to_lin }
 
 @[simp] lemma to_linear_equiv_apply (P : matrix n n R) (h : is_unit P) :
-  (↑(P.to_linear_equiv h) : module.End R (n → R)) = P.to_lin :=
-rfl
+  (↑(P.to_linear_equiv h) : module.End R (n → R)) = P.to_lin := rfl
 
 @[simp] lemma to_linear_equiv_symm_apply (P : matrix n n R) (h : is_unit P) :
-  (↑(P.to_linear_equiv h).symm : module.End R (n → R)) = P⁻¹.to_lin :=
-rfl
+  (↑(P.to_linear_equiv h).symm : module.End R (n → R)) = P⁻¹.to_lin := rfl
 
 end ring
 

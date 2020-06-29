@@ -49,7 +49,7 @@ attribute [simp, reassoc] has_zero_morphisms.zero_comp
 instance has_zero_morphisms_pempty : has_zero_morphisms (discrete pempty) :=
 { has_zero := by tidy }
 
-instance has_zero_morphisms_punit : has_zero_morphisms punit :=
+instance has_zero_morphisms_punit : has_zero_morphisms (discrete punit) :=
 { has_zero := λ X Y, { zero := punit.star, } }
 
 namespace has_zero_morphisms
@@ -130,7 +130,7 @@ class has_zero_object :=
 (unique_to : Π X : C, unique (zero ⟶ X))
 (unique_from : Π X : C, unique (X ⟶ zero))
 
-instance has_zero_object_punit : has_zero_object punit :=
+instance has_zero_object_punit : has_zero_object (discrete punit) :=
 { zero := punit.star,
   unique_to := by tidy,
   unique_from := by tidy, }

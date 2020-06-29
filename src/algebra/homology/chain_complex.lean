@@ -92,7 +92,7 @@ section
 omit 𝒱
 local attribute [instance] has_zero_object.has_zero
 
-instance : inhabited (cochain_complex punit) := ⟨0⟩
+instance : inhabited (cochain_complex (discrete punit)) := ⟨0⟩
 end
 
 end cochain_complex
@@ -130,7 +130,7 @@ section
 omit 𝒱
 local attribute [instance] has_zero_object.has_zero
 
-instance : inhabited (chain_complex punit) := ⟨0⟩
+instance : inhabited (chain_complex (discrete punit)) := ⟨0⟩
 end
 
 end chain_complex

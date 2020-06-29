@@ -240,7 +240,7 @@ begin
 end
 
 lemma of_le_succ_succ_nth_continuants_aux_b {b : K}
-(nth_part_denom_eq : (gcf.of v).partial_denominators.nth n = some b) :
+  (nth_part_denom_eq : (gcf.of v).partial_denominators.nth n = some b) :
   b * ((gcf.of v).continuants_aux $ n + 1).b ≤ ((gcf.of v).continuants_aux $ n + 2).b :=
 begin
   set g := gcf.of v with g_eq,

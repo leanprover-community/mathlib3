@@ -40,6 +40,9 @@ mk_simp_attribute field_simps "The simpset `field_simps` is used by the tactic `
 reduce an expression in a field to an expression of the form `n / d` where `n` and `d` are
 division-free."
 
+section
+set_option default_priority 100 -- see Note [default priority]
+
 @[protect_proj, ancestor has_mul has_zero]
 class mul_zero_class (G₀ : Type*) extends has_mul G₀, has_zero G₀ :=
 (zero_mul : ∀ a : G₀, 0 * a = 0)
@@ -111,6 +114,8 @@ lemma mul_self_eq_zero : a * a = 0 ↔ a = 0 := by simp
 lemma zero_eq_mul_self : 0 = a * a ↔ a = 0 := by simp
 
 end
+
+end -- default_priority 100
 
 section prio
 set_option default_priority 10 -- see Note [default priority]

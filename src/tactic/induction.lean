@@ -1474,7 +1474,7 @@ focus1 $ do
       pure $ some (cinfo.cname, constructor_arg_hyps ++ ih_hyps)
     },
 
-  set_cases_tags in_tag (cases.filter_map id),
+  set_cases_tags in_tag cases.reduce_option,
 
   pure ()
 

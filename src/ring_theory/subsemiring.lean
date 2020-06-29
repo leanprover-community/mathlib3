@@ -143,11 +143,11 @@ s.to_add_submonoid.sum_mem h
 
 lemma pow_mem {x : R} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := s.to_submonoid.pow_mem hx n
 
-lemma smul_mem {x : R} (hx : x ∈ s) (n : ℕ) :
-  n •ℕ x ∈ s := s.to_add_submonoid.smul_mem hx n
+lemma nsmul_mem {x : R} (hx : x ∈ s) (n : ℕ) :
+  n •ℕ x ∈ s := s.to_add_submonoid.nsmul_mem hx n
 
 lemma coe_nat_mem (n : ℕ) : (n : R) ∈ s :=
-by simp only [← nsmul_one, smul_mem, one_mem]
+by simp only [← nsmul_one, nsmul_mem, one_mem]
 
 /-- A subsemiring of a semiring inherits a semiring structure -/
 instance to_semiring : semiring s :=

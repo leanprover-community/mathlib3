@@ -400,7 +400,7 @@ le_antisymm (vsub_set_subset_vector_span k V s) (submodule.span_le.2 set.subset.
 
 /-- The set of vectors in the direction of a nonempty affine subspace
 is given by `vsub_set`. -/
-lemma direction_coe_eq_vsub_set {s : affine_subspace k V P} (h : (s : set P).nonempty) :
+lemma coe_direction_eq_vsub_set {s : affine_subspace k V P} (h : (s : set P).nonempty) :
   (s.direction : set V) = vsub_set V (s : set P) :=
 direction_of_nonempty_eq_direction h ▸ rfl
 

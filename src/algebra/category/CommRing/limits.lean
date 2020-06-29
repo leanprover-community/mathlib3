@@ -118,14 +118,10 @@ begin
   refine is_limit.of_faithful
     (forget CommRing) (limit.is_limit _)
     (λ s, ⟨_, _, _, _, _⟩) (λ s, rfl); dsimp,
-  { apply subtype.eq, funext, dsimp,
-    erw (s.π.app j).map_one, refl },
-  { intros x y, apply subtype.eq, funext, dsimp,
-    erw (s.π.app j).map_mul, refl },
-  { apply subtype.eq, funext, dsimp,
-    erw (s.π.app j).map_zero, refl },
-  { intros x y, apply subtype.eq, funext, dsimp,
-    erw (s.π.app j).map_add, refl }
+  { ext j, dsimp, rw (s.π.app j).map_one },
+  { intros x y, ext j, dsimp, rw (s.π.app j).map_mul },
+  { ext j, dsimp, rw (s.π.app j).map_zero, refl },
+  { intros x y, ext j, dsimp, rw (s.π.app j).map_add, refl }
 end
 
 end CommRing_has_limits

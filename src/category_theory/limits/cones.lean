@@ -250,16 +250,26 @@ variable (F)
 def forget : cone F ⥤ C :=
 { obj := λ t, t.X, map := λ s t f, f.hom }
 
-variables {D : Type u'} [category.{v} D]
+variables {D : Type u'} [category.{v} D] (G : C ⥤ D)
 
-@[simps] def functoriality (G : C ⥤ D) : cone F ⥤ cone (F ⋙ G) :=
+@[simps] def functoriality : cone F ⥤ cone (F ⋙ G) :=
 { obj := λ A,
   { X := G.obj A.X,
     π := { app := λ j, G.map (A.π.app j), naturality' := by intros; erw ←G.map_comp; tidy } },
   map := λ X Y f,
   { hom := G.map f.hom,
     w'  := by intros; rw [←functor.map_comp, f.w] } }
+
+instance functoriality_full [full G] [faithful G] : full (functoriality F G) :=
+{ preimage := λ X Y t,
+  { hom := G.preimage t.hom,
+    w' := λ j, G.map_injective (by simpa using t.w j) } }
+
+instance functoriality_faithful [faithful G] : faithful (cones.functoriality F G) :=
+{ map_injective' := λ X Y f g e, by { ext1, injection e, apply G.map_injective h_1 } }
+
 end
+
 end cones
 
 @[ext] structure cocone_morphism (A B : cocone F) :=
@@ -353,15 +363,24 @@ variable (F)
 def forget : cocone F ⥤ C :=
 { obj := λ t, t.X, map := λ s t f, f.hom }
 
-variables {D : Type u'} [category.{v} D]
+variables {D : Type u'} [category.{v} D] (G : C ⥤ D)
 
-@[simps] def functoriality (G : C ⥤ D) : cocone F ⥤ cocone (F ⋙ G) :=
+@[simps] def functoriality : cocone F ⥤ cocone (F ⋙ G) :=
 { obj := λ A,
   { X := G.obj A.X,
     ι := { app := λ j, G.map (A.ι.app j), naturality' := by intros; erw ←G.map_comp; tidy } },
   map := λ _ _ f,
   { hom := G.map f.hom,
     w'  := by intros; rw [←functor.map_comp, cocone_morphism.w] } }
+
+instance functoriality_full [full G] [faithful G] : full (functoriality F G) :=
+{ preimage := λ X Y t,
+  { hom := G.preimage t.hom,
+    w' := λ j, G.map_injective (by simpa using t.w j) } }
+
+instance functoriality_faithful [faithful G] : faithful (functoriality F G) :=
+{ map_injective' := λ X Y f g e, by { ext1, injection e, apply G.map_injective h_1 } }
+
 end
 end cocones
 

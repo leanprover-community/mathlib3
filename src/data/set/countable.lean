@@ -89,7 +89,7 @@ begin
   have : range g = univ := univ_subset_iff.1 hg,
   use coe ∘ g,
   rw [range_comp, this],
-  simp
+  simp only [image_univ, subtype.range_coe, mem_def]
 end
 
 @[simp] lemma countable_empty : countable (∅ : set α) :=

@@ -2880,7 +2880,7 @@ begin
   rw finsupp.sum_mul,
   delta finsupp.sum,
   congr, ext i r, dsimp,
-  rw [mul_assoc, ←(pow_sub_pow_factor x y _).property, mul_sub],
+  rw [mul_assoc, ←(pow_sub_pow_factor x y _).prop, mul_sub],
 end
 
 end identities

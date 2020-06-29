@@ -64,9 +64,9 @@ instance subtype.comm_ring {S : set cR} [is_subring S] : comm_ring (subtype S) :
 
 instance subring.domain {D : Type*} [integral_domain D] (S : set D) [is_subring S] :
   integral_domain S :=
-{ zero_ne_one := mt subtype.ext.1 zero_ne_one,
+{ zero_ne_one := mt subtype.ext_iff_val.1 zero_ne_one,
   eq_zero_or_eq_zero_of_mul_eq_zero := λ ⟨x, hx⟩ ⟨y, hy⟩,
-    by { simp only [subtype.ext, subtype.coe_mk], exact eq_zero_or_eq_zero_of_mul_eq_zero },
+    by { simp only [subtype.ext_iff_val, subtype.coe_mk], exact eq_zero_or_eq_zero_of_mul_eq_zero },
   .. subset.comm_ring }
 
 instance is_subring.inter (S₁ S₂ : set R) [is_subring S₁] [is_subring S₂] :

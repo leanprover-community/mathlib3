@@ -5,6 +5,7 @@ Authors: Reid Barton, Mario Carneiro, Scott Morrison, Floris van Doorn
 -/
 import category_theory.limits.cones
 import category_theory.adjunction.basic
+import category_theory.reflect_isomorphisms
 
 open category_theory category_theory.category category_theory.functor opposite
 
@@ -77,6 +78,19 @@ def of_iso_limit {r t : cone F} (P : is_limit r) (i : r ≅ t) : is_limit t :=
 is_limit.mk_cone_morphism
   (λ s, P.lift_cone_morphism s ≫ i.hom)
   (λ s m, by rw ←i.comp_inv_eq; apply P.uniq_cone_morphism)
+
+/--
+If the canonical morphism from a cone point to a limiting cone point is an iso, then the
+first cone was limiting also.
+-/
+def of_point_iso {r t : cone F} (P : is_limit r) [i : is_iso (P.lift t)] : is_limit t :=
+of_iso_limit P
+begin
+  haveI : is_iso (P.lift_cone_morphism t).hom := i,
+  haveI : is_iso (P.lift_cone_morphism t) := cone_iso_of_hom_iso _,
+  symmetry,
+  apply as_iso (P.lift_cone_morphism t),
+end
 
 variables {t : cone F}
 
@@ -375,6 +389,18 @@ def of_iso_colimit {r t : cocone F} (P : is_colimit r) (i : r ≅ t) : is_colimi
 is_colimit.mk_cocone_morphism
   (λ s, i.inv ≫ P.desc_cocone_morphism s)
   (λ s m, by rw i.eq_inv_comp; apply P.uniq_cocone_morphism)
+
+/--
+If the canonical morphism to a cocone point from a colimiting cocone point is an iso, then the
+first cocone was colimiting also.
+-/
+def of_point_iso {r t : cocone F} (P : is_colimit r) [i : is_iso (P.desc t)] : is_colimit t :=
+of_iso_colimit P
+begin
+  haveI : is_iso (P.desc_cocone_morphism t).hom := i,
+  haveI : is_iso (P.desc_cocone_morphism t) := cocone_iso_of_hom_iso _,
+  apply as_iso (P.desc_cocone_morphism t),
+end
 
 variables {t : cocone F}
 

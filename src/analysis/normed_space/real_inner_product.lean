@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Sébastien Gouëzel
 -/
 import algebra.quadratic_discriminant
+import linear_algebra.bilinear_form
 import tactic.apply_fun
 import tactic.monotonicity
 import topology.metric_space.pi_Lp
@@ -257,6 +258,28 @@ inner_product_space.smul_left _ _ _
 
 lemma inner_smul_right {x y : α} {r : ℝ} : inner x (r • y) = r * inner x y :=
 by { rw [inner_comm, inner_smul_left, inner_comm] }
+
+variables (α)
+
+/-- The inner product as a bilinear form. -/
+def bilin_form_of_inner : bilin_form ℝ α :=
+{ bilin := inner,
+  bilin_add_left := λ x y z, inner_add_left,
+  bilin_smul_left := λ a x y, inner_smul_left,
+  bilin_add_right := λ x y z, inner_add_right,
+  bilin_smul_right := λ a x y, inner_smul_right }
+
+variables {α}
+
+/-- An inner product with a sum on the left. -/
+lemma sum_inner {ι : Type*} (s : finset ι) (f : ι → α) (x : α) :
+  inner (∑ i in s, f i) x = ∑ i in s, inner (f i) x :=
+bilin_form.map_sum_left (bilin_form_of_inner α) _ _ _
+
+/-- An inner product with a sum on the right. -/
+lemma inner_sum {ι : Type*} (s : finset ι) (f : ι → α) (x : α) :
+  inner x (∑ i in s, f i) = ∑ i in s, inner x (f i) :=
+bilin_form.map_sum_right (bilin_form_of_inner α) _ _ _
 
 @[simp] lemma inner_zero_left {x : α} : inner 0 x = 0 :=
 by { rw [← zero_smul ℝ (0:α), inner_smul_left, zero_mul] }

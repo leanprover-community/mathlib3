@@ -158,7 +158,7 @@ begin
   by_contradiction hs',
   let j : (-s) → α := subtype.val,
   have j_inv_s : j ⁻¹' s = ∅, by
-    erw [←preimage_inter_range, subtype.val_range, inter_compl_self, preimage_empty],
+    erw [←preimage_inter_range, subtype.range_coe, inter_compl_self, preimage_empty],
   let f' := comap j f,
   have : f' ≠ ⊥,
   { apply mt empty_in_sets_eq_bot.mpr,
@@ -166,7 +166,7 @@ begin
     suffices : t ⊆ s, from absurd (f.sets_of_superset htf this) hs',
     rw [subset_empty_iff] at ht,
     have : j '' (j ⁻¹' t) = ∅, by rw [ht, image_empty],
-    erw [image_preimage_eq_inter_range, subtype.val_range, ←subset_compl_iff_disjoint,
+    erw [image_preimage_eq_inter_range, subtype.range_coe, ←subset_compl_iff_disjoint,
       set.compl_compl] at this,
     exact this },
   rcases exists_ultrafilter this with ⟨g', g'f', u'⟩,
@@ -246,7 +246,7 @@ end
 
 lemma ultrafilter.eq_iff_val_le_val {u v : ultrafilter α} : u = v ↔ u.val ≤ v.val :=
 ⟨assume h, by rw h; exact le_refl _,
- assume h, by rw subtype.ext; apply ultrafilter_unique v.property u.property.1 h⟩
+ assume h, by rw subtype.ext_iff_val; apply ultrafilter_unique v.property u.property.1 h⟩
 
 lemma exists_ultrafilter_iff (f : filter α) : (∃ (u : ultrafilter α), u.val ≤ f) ↔ f ≠ ⊥ :=
 ⟨assume ⟨u, uf⟩, ne_bot_of_le_ne_bot u.property.1 uf,

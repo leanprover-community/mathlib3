@@ -53,7 +53,7 @@ begin
 end
 
 instance subtype.t0_space [t0_space α] {p : α → Prop} : t0_space (subtype p) :=
-⟨λ x y hxy, let ⟨U, hU, hxyU⟩ := t0_space.t0 (x:α) y ((not_congr subtype.coe_ext).1 hxy) in
+⟨λ x y hxy, let ⟨U, hU, hxyU⟩ := t0_space.t0 (x:α) y ((not_congr subtype.ext_iff_val).1 hxy) in
   ⟨(coe : subtype p → α) ⁻¹' U, is_open_induced hU, hxyU⟩⟩
 
 /-- A T₁ space, also known as a Fréchet space, is a topological space
@@ -71,7 +71,7 @@ compl_singleton_eq x ▸ is_open_compl_iff.2 (t1_space.t1 x)
 instance subtype.t1_space {α : Type u} [topological_space α] [t1_space α] {p : α → Prop} :
   t1_space (subtype p) :=
 ⟨λ ⟨x, hx⟩, is_closed_induced_iff.2 $ ⟨{x}, is_closed_singleton, set.ext $ λ y,
-  by simp [subtype.coe_ext]⟩⟩
+  by simp [subtype.ext_iff_val]⟩⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance t1_space.t0_space [t1_space α] : t0_space α :=

@@ -165,55 +165,28 @@ section supremum
 
 instance : has_Sup (outer_measure α) :=
 ⟨λms, {
-  measure_of := λs, ⨆m:ms, m.val s,
-  empty      := le_zero_iff_eq.1 $ supr_le $ λ ⟨m, h⟩, le_of_eq m.empty,
-  mono       := assume s₁ s₂ hs, supr_le_supr $ assume ⟨m, hm⟩, m.mono hs,
-  Union_nat  := assume f, supr_le $ assume m,
-    calc m.val (⋃i, f i) ≤ (∑' (i : ℕ), m.val (f i)) : m.val.Union_nat _
-      ... ≤ (∑'i, ⨆m:ms, m.val (f i)) :
-        ennreal.tsum_le_tsum $ assume i, le_supr (λm:ms, m.val (f i)) m }⟩
-
-protected lemma le_Sup (hm : m ∈ ms) : m ≤ Sup ms :=
-λ s, le_supr (λm:ms, m.val s) ⟨m, hm⟩
-
-protected lemma Sup_le (hm : ∀m' ∈ ms, m' ≤ m) : Sup ms ≤ m :=
-λ s, (supr_le $ assume ⟨m', h'⟩, (hm m' h') s)
-
-instance : has_Inf (outer_measure α) := ⟨λs, Sup {m | ∀m'∈s, m ≤ m'}⟩
-protected lemma Inf_le (hm : m ∈ ms) : Inf ms ≤ m := outer_measure.Sup_le $ assume m' h', h' _ hm
-protected lemma le_Inf (hm : ∀m' ∈ ms, m ≤ m') : m ≤ Inf ms := outer_measure.le_Sup hm
+  measure_of := λs, ⨆ m ∈ ms, (m : outer_measure α) s,
+  empty      := le_zero_iff_eq.1 $ bsupr_le $ λ m h, le_of_eq m.empty,
+  mono       := assume s₁ s₂ hs, bsupr_le_bsupr $ assume m hm, m.mono hs,
+  Union_nat  := assume f, bsupr_le $ assume m hm,
+    calc m (⋃i, f i) ≤ (∑' (i : ℕ), m (f i)) : m.Union_nat _
+      ... ≤ (∑'i, ⨆ m ∈ ms, (m : outer_measure α) (f i)) :
+        ennreal.tsum_le_tsum $ assume i, le_bsupr m hm }⟩
 
 instance : complete_lattice (outer_measure α) :=
-{ top          := Sup univ,
-  le_top       := assume a, outer_measure.le_Sup (mem_univ a),
-  Sup          := Sup,
-  Sup_le       := assume s m, outer_measure.Sup_le,
-  le_Sup       := assume s m, outer_measure.le_Sup,
-  Inf          := Inf,
-  Inf_le       := assume s m, outer_measure.Inf_le,
-  le_Inf       := assume s m, outer_measure.le_Inf,
-  sup          := λa b, Sup {a, b},
-  le_sup_left  := assume a b, outer_measure.le_Sup $ by simp,
-  le_sup_right := assume a b, outer_measure.le_Sup $ by simp,
-  sup_le       := assume a b c ha hb, outer_measure.Sup_le $
-    by simp [or_imp_distrib, ha, hb] {contextual:=tt},
-  inf          := λa b, Inf {a, b},
-  inf_le_left  := assume a b, outer_measure.Inf_le $ by simp,
-  inf_le_right := assume a b, outer_measure.Inf_le $ by simp,
-  le_inf       := assume a b c ha hb, outer_measure.le_Inf $
-    by simp [or_imp_distrib, ha, hb] {contextual:=tt},
-  .. outer_measure.order_bot }
+{ .. outer_measure.order_bot, .. complete_lattice_of_Sup (outer_measure α)
+    (λ ms, ⟨λ m hm s, le_bsupr m hm, λ m hm s, bsupr_le (λ m' hm', hm hm' s)⟩) }
 
 @[simp] theorem Sup_apply (ms : set (outer_measure α)) (s : set α) :
-  (Sup ms) s = ⨆ m : ms, m s := rfl
+  (Sup ms) s = ⨆ m ∈ ms, (m : outer_measure α) s := rfl
 
 @[simp] theorem supr_apply {ι} (f : ι → outer_measure α) (s : set α) :
   (⨆ i : ι, f i) s = ⨆ i, f i s :=
-le_antisymm
-  (supr_le $ λ ⟨_, i, rfl⟩, le_supr _ i)
-  (supr_le $ λ i, le_supr
-    (λ (m : {a : outer_measure α // ∃ i, f i = a}), m.1 s)
-    ⟨f i, i, rfl⟩)
+by rw [supr, Sup_apply, supr_range, supr]
+
+@[norm_cast] theorem coe_supr {ι} (f : ι → outer_measure α) :
+  ⇑(⨆ i, f i) = ⨆ i, f i :=
+funext $ λ s, by rw [supr_apply, _root_.supr_apply]
 
 @[simp] theorem sup_apply (m₁ m₂ : outer_measure α) (s : set α) :
   (m₁ ⊔ m₂) s = m₁ s ⊔ m₂ s :=
@@ -295,8 +268,7 @@ by by_cases b ∈ s; simp [h]
 
 theorem top_apply {s : set α} (h : s.nonempty) : (⊤ : outer_measure α) s = ⊤ :=
 let ⟨a, as⟩ := h in
-top_unique $ le_supr_of_le ⟨(⊤ : ennreal) • dirac a, trivial⟩ $
-by simp [smul_dirac_apply, as]
+top_unique $ le_trans (by simp [smul_dirac_apply, as]) (le_bsupr ((⊤ : ennreal) • dirac a) trivial)
 
 end basic
 

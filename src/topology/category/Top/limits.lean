@@ -5,6 +5,7 @@ Authors: Patrick Massot, Scott Morrison, Mario Carneiro
 -/
 import topology.category.Top.basic
 import category_theory.limits.types
+import category_theory.limits.preserves
 
 open topological_space
 open category_theory

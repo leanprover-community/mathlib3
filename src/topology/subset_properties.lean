@@ -457,11 +457,11 @@ iff.intro (assume h, h.image hf.continuous) $ assume h, begin
 end
 
 lemma compact_iff_compact_in_subtype {p : α → Prop} {s : set {a // p a}} :
-  compact s ↔ compact (subtype.val '' s) :=
-embedding_subtype_val.compact_iff_compact_image
+  compact s ↔ compact ((coe : _ → α) '' s) :=
+embedding_subtype_coe.compact_iff_compact_image
 
-lemma compact_iff_compact_univ {s : set α} : compact s ↔ compact (univ : set (subtype s)) :=
-by rw [compact_iff_compact_in_subtype, image_univ, subtype.val_range]; refl
+lemma compact_iff_compact_univ {s : set α} : compact s ↔ compact (univ : set s) :=
+by rw [compact_iff_compact_in_subtype, image_univ, subtype.range_coe]; refl
 
 lemma compact_iff_compact_space {s : set α} : compact s ↔ compact_space s :=
 compact_iff_compact_univ.trans ⟨λ h, ⟨h⟩, @compact_space.compact_univ _ _⟩

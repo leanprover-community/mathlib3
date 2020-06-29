@@ -959,10 +959,9 @@ begin
       (mem_non_zero_divisors_iff_ne_zero.mp b_nonzero),
   obtain ⟨c'_nonzero, b'_nonzero⟩ := mul_mem_non_zero_divisors.mp b_nonzero,
   refine ⟨a', ⟨b', b'_nonzero⟩, @no_factor, _⟩,
-  apply mul_left_cancel',
-  exact (φ.map_ne_zero_of_mem_non_zero_divisors ⟨c' * b', b_nonzero⟩),
+  apply mul_left_cancel' (φ.map_ne_zero_of_mem_non_zero_divisors ⟨c' * b', b_nonzero⟩),
   simp only [subtype.coe_mk, φ.to_map.map_mul] at *,
-  erw [←hab, mul_assoc, φ.mk'_spec' a' ⟨b', b'_nonzero⟩]
+  erw [←hab, mul_assoc, φ.mk'_spec' a' ⟨b', b'_nonzero⟩],
 end
 
 /-- `f.num x` is the numerator of `x : f.codomain` as a reduced fraction. -/
@@ -979,6 +978,38 @@ lemma num_denom_reduced (x : φ.codomain) :
 
 @[simp] lemma mk'_num_denom (x : φ.codomain) : φ.mk' (φ.num x) (φ.denom x) = x :=
 (classical.some_spec (classical.some_spec (φ.exists_reduced_fraction x))).2
+
+lemma num_mul_denom_eq_num_iff_eq {x y : φ.codomain} :
+  x * φ.to_map (φ.denom y) = φ.to_map (φ.num y) ↔ x = y :=
+⟨ λ h, by simpa only [mk'_num_denom] using φ.eq_mk'_iff_mul_eq.mpr h,
+  λ h, φ.eq_mk'_iff_mul_eq.mp (by rw [h, mk'_num_denom]) ⟩
+
+lemma num_mul_denom_eq_num_iff_eq' {x y : φ.codomain} :
+  y * φ.to_map (φ.denom x) = φ.to_map (φ.num x) ↔ x = y :=
+⟨ λ h, by simpa only [eq_comm, mk'_num_denom] using φ.eq_mk'_iff_mul_eq.mpr h,
+  λ h, φ.eq_mk'_iff_mul_eq.mp (by rw [h, mk'_num_denom]) ⟩
+
+lemma num_mul_denom_eq_num_mul_denom_iff_eq {x y : φ.codomain} :
+  φ.num y * φ.denom x = φ.num x * φ.denom y ↔ x = y :=
+⟨ λ h, by simpa only [mk'_num_denom] using φ.mk'_eq_of_eq h,
+  λ h, by rw h ⟩
+
+lemma eq_zero_of_num_eq_zero {x : φ.codomain} (h : φ.num x = 0) : x = 0 :=
+φ.num_mul_denom_eq_num_iff_eq'.mp (by rw [zero_mul, h, ring_hom.map_zero])
+
+lemma is_integer_of_is_unit_denom {x : φ.codomain} (h : is_unit (φ.denom x : A)) : φ.is_integer x :=
+begin
+  cases h with d hd,
+  have d_ne_zero : φ.to_map (φ.denom x) ≠ 0 := φ.map_ne_zero_of_mem_non_zero_divisors (φ.denom x),
+  use ↑d⁻¹ * φ.num x,
+  refine trans _ (φ.mk'_num_denom x),
+  rw [φ.to_map.map_mul, φ.to_map.map_units_inv, hd],
+  apply mul_left_cancel' d_ne_zero,
+  rw [←mul_assoc, mul_inv_cancel d_ne_zero, one_mul, φ.mk'_spec']
+end
+
+lemma is_unit_denom_of_num_eq_zero {x : φ.codomain} (h : φ.num x = 0) : is_unit (φ.denom x : A) :=
+φ.num_denom_reduced x (h.symm ▸ dvd_zero _) (dvd_refl _)
 
 end num_denom
 

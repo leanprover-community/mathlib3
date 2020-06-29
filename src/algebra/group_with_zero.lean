@@ -698,3 +698,9 @@ hab.div_right hac
 hac.mul_left hbc.inv_left'
 
 end commute
+
+@[simp] lemma monoid_hom.map_units_inv {M G₀ : Type*} [monoid M] [comm_group_with_zero G₀]
+  (f : M →* G₀) (u : units M) : f ↑u⁻¹ = (f u)⁻¹ :=
+have f (u * ↑u⁻¹) = 1 := by rw [←units.coe_mul, mul_inv_self, units.coe_one, f.map_one],
+inv_unique (trans (f.map_mul _ _).symm this)
+  (mul_inv_cancel (λ hu, zero_ne_one (trans (by rw [f.map_mul, hu, zero_mul]) this)))

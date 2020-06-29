@@ -90,6 +90,20 @@ lemma div_or_div [comm_semiring α] {p : α} (hp : prime p) {a b : α} (h : p �
   p ∣ a ∨ p ∣ b :=
 hp.2.2 a b h
 
+lemma dvd_of_dvd_pow [comm_semiring α] {p : α} (hp : prime p) {a : α} {n : ℕ} (h : p ∣ a^n) :
+  p ∣ a :=
+begin
+  induction n with n ih,
+  { rw pow_zero at h,
+    have := is_unit_of_dvd_one _ h,
+    have := not_unit hp,
+    contradiction },
+  rw pow_succ at h,
+  cases div_or_div hp h with dvd_a dvd_pow,
+  { assumption },
+  exact ih dvd_pow
+end
+
 end prime
 
 @[simp] lemma not_prime_zero [comm_semiring α] : ¬ prime (0 : α) :=

@@ -243,6 +243,16 @@ namespace ring_hom
 
 section
 
+variables {R K : Type*} [semiring R] [field K] (f : R →+* K)
+
+@[simp] lemma map_units_inv (u : units R) :
+  f ↑u⁻¹ = (f ↑u)⁻¹ :=
+monoid_hom.map_units_inv f.to_monoid_hom u
+
+end
+
+section
+
 variables {β : Type*} [division_ring α] [division_ring β] (f : α →+* β) {x y : α}
 
 lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 :=

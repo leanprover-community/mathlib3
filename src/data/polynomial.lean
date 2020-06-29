@@ -1713,6 +1713,27 @@ lemma is_root_of_aeval_algebra_map_eq_zero [algebra R S] {p : polynomial R}
   {r : R} (hr : aeval R S (algebra_map R S r) p = 0) : p.is_root r :=
 is_root_of_eval₂_map_eq_zero inj hr
 
+lemma dvd_term_of_dvd_eval_of_dvd_terms {z p : R} {f : polynomial R} (i : ℕ)
+  (dvd_eval : p ∣ f.eval z) (dvd_terms : ∀ (j ≠ i), p ∣ f.coeff j * z ^ j) :
+  p ∣ f.coeff i * z ^ i :=
+begin
+  by_cases hf : f = 0,
+  { simp [hf] },
+  by_cases hi : i ∈ f.support,
+  { unfold polynomial.eval polynomial.eval₂ finsupp.sum id at dvd_eval,
+    rw [←finset.insert_erase hi, finset.sum_insert (finset.not_mem_erase _ _)] at dvd_eval,
+    refine (dvd_add_left (finset.dvd_sum _)).mp dvd_eval,
+    intros j hj,
+    exact dvd_terms j (finset.ne_of_mem_erase hj) },
+  { convert dvd_zero p,
+    convert _root_.zero_mul _,
+    exact finsupp.not_mem_support_iff.mp hi }
+end
+
+lemma dvd_term_of_is_root_of_dvd_terms {r p : R} {f : polynomial R} (i : ℕ)
+  (hr : f.is_root r) (h : ∀ (j ≠ i), p ∣ f.coeff j * r ^ j) : p ∣ f.coeff i * r ^ i :=
+dvd_term_of_dvd_eval_of_dvd_terms i (eq.symm hr ▸ dvd_zero p) h
+
 end aeval
 
 end comm_semiring

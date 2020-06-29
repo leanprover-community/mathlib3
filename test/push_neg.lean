@@ -1,6 +1,5 @@
 import tactic.push_neg
-import init_.data.int.order
-import data.nat.basic
+import data.int.basic
 
 example (h : ∃ p: ℕ, ¬ ∀ n : ℕ, n > p) (h' : ∃ p: ℕ, ¬ ∃ n : ℕ, n < p) : ¬ ∀ n : ℕ, n = 0 :=
 begin

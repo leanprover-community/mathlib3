@@ -91,23 +91,6 @@ meta def get_nat_comps : expr → list expr
   end
 
 /--
-`mk_coe_nat_nonneg_prfs e` returns a list of proofs of the form `0 ≤ ((t : ℕ) : ℤ)`
-for each subexpression of `e` of the form `((t : ℕ) : ℤ)`.
--/
-meta def mk_coe_nat_nonneg_prfs (e : expr) : tactic (list expr) :=
-(get_nat_comps e).mmap mk_coe_nat_nonneg_prf
-
-/--
-If `pf` is a proof of a comparison over `ℕ`, `mk_int_pfs_of_nat_pf pf` returns a proof of the
-corresponding inequality over `ℤ`, using `tactic.zify_proof`, along with proofs that the cast
-naturals are nonnegative.
--/
-meta def mk_int_pfs_of_nat_pf (pf : expr) : tactic (list expr) :=
-do pf' ← zify_proof [] pf,
-   (a, b) ← infer_type pf' >>= get_rel_sides,
-   list.cons pf' <$> ((++) <$> mk_coe_nat_nonneg_prfs a <*> mk_coe_nat_nonneg_prfs b)
-
-/--
 If `pf` is a proof of a strict inequality `(a : ℤ) < b`,
 `mk_non_strict_int_pf_of_strict_int_pf pf` returns a proof of `a + 1 ≤ b`,
 and similarly if `pf` proves a negated weak inequality.

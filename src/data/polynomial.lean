@@ -321,7 +321,7 @@ finsupp.sum_add_index
 by rw [← C_1, eval₂_C, map_one f]
 
 @[simp] lemma eval₂_smul (g : R →+* S) (p : polynomial R) (x : S) {s : R} :
-  eval₂ g x (s • p) = g s * eval₂ g x p :=
+  eval₂ g x (s • p) = g s • eval₂ g x p :=
 begin
   simp only [eval₂, sum_smul_index, forall_const, zero_mul, g.map_zero, g.map_mul, mul_assoc],
   -- Why doesn't `rw [←finsupp.mul_sum]` work?
@@ -356,6 +356,10 @@ by simp only [←C_eq_nat_cast, eval_C]
 @[simp] lemma eval_add : (p + q).eval x = p.eval x + q.eval x := eval₂_add _ _
 
 @[simp] lemma eval_one : (1 : polynomial R).eval x = 1 := eval₂_one _ _
+
+@[simp] lemma eval_smul (p : polynomial R) (x : R) {s : R} :
+  (s • p).eval x = s • p.eval x :=
+eval₂_smul (ring_hom.id _) _ _
 
 lemma eval_sum (p : polynomial R) (f : ℕ → R → polynomial R) (x : R) :
   (p.sum f).eval x = p.sum (λ n a, (f n a).eval x) :=

@@ -158,6 +158,53 @@ begin
     using padic_val_rat_def p n_nonzero,
 end
 
+lemma padic_val_nat_of_div_not_one {n p : nat} [prime : fact p.prime] (nonzero : n ≠ 0) (s : p ∣ n)
+   : 1 ≤ padic_val_nat p n :=
+begin
+  rw @padic_val_nat_def _ prime _ nonzero,
+  let one_le_mul := @multiplicity.le_multiplicity_of_pow_dvd _ _ _ p n 1 (begin norm_num, exact s end),
+  simp only [enat.coe_one] at one_le_mul,
+  rcases one_le_mul with ⟨_, q⟩,
+  dsimp at q,
+  solve_by_elim,
+end
+
+lemma padic_val_nat_of_quot {p : ℕ} [p_prime : fact p.prime] {b : ℕ} (b_nonzero : b ≠ 0) (dvd : p ∣ b) :
+   (padic_val_nat p (b / p)) = (padic_val_nat p b) - 1 :=
+begin
+  have e : padic_val_rat p (b / p) = padic_val_rat p b - padic_val_rat p p :=
+    padic_val_rat.div p (nat.cast_ne_zero.mpr b_nonzero) (nat.cast_ne_zero.mpr (nat.prime.ne_zero p_prime)),
+  rw padic_val_rat.padic_val_rat_self (nat.prime.one_lt p_prime) at e,
+  have r : 1 ≤ padic_val_nat p b := padic_val_nat_of_div_not_one b_nonzero dvd,
+  exact_mod_cast e,
+end
+
+lemma padic_val_nat_of_not_dvd {p : ℕ} [fact p.prime] {n : ℕ} (not_dvd : ¬(p ∣ n))
+  : padic_val_nat p n = 0 :=
+begin
+  by_cases hn : n = 0,
+  { subst hn, simp at not_dvd, trivial, },
+  { rw padic_val_nat_def hn,
+    exact (@multiplicity.unique' _ _ _ p n 0 (by simp) (by simpa using not_dvd)).symm,
+    assumption, },
+end
+
+lemma padic_val_nat_primes {p q : ℕ} [p_prime : fact p.prime] [q_prime : fact q.prime] (neq : p ≠ q)
+   : padic_val_nat p q = 0 :=
+@padic_val_nat_of_not_dvd p p_prime q (primes_not_dvd p q p_prime q_prime neq),
+
+lemma padic_val_nat_of_unrelated_quot {p q : ℕ} [p_prime : fact p.prime] [q_prime : fact q.prime]
+   (neq : p ≠ q) {b : ℕ} (b_nonzero : b ≠ 0) (dvd : q ∣ b) : padic_val_nat p (b / q) = padic_val_nat p b :=
+begin
+  have e : padic_val_rat p (b / q) = padic_val_rat p b - padic_val_rat p q :=
+    padic_val_rat.div p (nat.cast_ne_zero.mpr b_nonzero) (nat.cast_ne_zero.mpr (nat.prime.ne_zero q_prime)),
+  rw [← padic_val_rat_of_nat p q, padic_val_nat_primes neq] at e,
+  simp only [int.coe_nat_zero, sub_zero] at e,
+  have cz : char_zero ℚ := linear_ordered_semiring.to_char_zero,
+  rw [←padic_val_rat_of_nat p b, ←@cast_dvd_char_zero _ _ cz _ _ dvd, ←padic_val_rat_of_nat p (b / q)] at e,
+  exact int.coe_nat_inj e,
+end
+
 end padic_val_nat
 
 namespace padic_val_rat

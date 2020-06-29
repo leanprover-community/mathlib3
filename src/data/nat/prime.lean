@@ -112,6 +112,14 @@ succ_pred_eq_of_pos pp.pos
 theorem dvd_prime {p m : ℕ} (pp : prime p) : m ∣ p ↔ m = 1 ∨ m = p :=
 ⟨λ d, pp.2 m d, λ h, h.elim (λ e, e.symm ▸ one_dvd _) (λ e, e.symm ▸ dvd_refl _)⟩
 
+theorem primes_not_dvd {p q : ℕ} (pp : p.prime) (qp : q.prime) (neq : p ≠ q) : ¬(p ∣ q) :=
+begin
+  intros p_div_q,
+  cases (nat.dvd_prime qp).1 p_div_q with p_one p_eq_q,
+  { subst p_one, exact nat.not_prime_one pp, },
+  { exact neq p_eq_q, },
+end
+
 theorem dvd_prime_two_le {p m : ℕ} (pp : prime p) (H : 2 ≤ m) : m ∣ p ↔ m = p :=
 (dvd_prime pp).trans $ or_iff_right_of_imp $ not.elim $ ne_of_gt H
 

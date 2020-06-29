@@ -454,7 +454,7 @@ begin
     rw [hv, hp1, hp3, vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, submodule.mem_coe],
     exact (vector_span k V s).sub_mem ((vector_span k V s).add_mem hv1
       (vsub_mem_vector_span k V hp2 hp4)) hv2 },
-  { exact submodule.span_mono (vsub_set_mono V (span_points_mono k V s)) }
+  { exact submodule.span_mono (vsub_set_mono V (subset_span_points k V s)) }
 end
 
 /-- A point in a set is in its affine span. -/

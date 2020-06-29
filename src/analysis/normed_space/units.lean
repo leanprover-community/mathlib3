@@ -29,22 +29,16 @@ def perturbation_unit (x : α) (h : ∥x∥ < 1) : units α :=
 lemma unit_of_near_unit [nonzero α] (x : units α) (y : α)
   (h : ∥y - x∥ < ∥((x⁻¹:units α):α)∥⁻¹) : is_unit y :=
 begin
-  have h' : 0 < ∥((x⁻¹:units α):α)∥ := norm_pos x⁻¹,
-  have h'' : ∥((x⁻¹:units α):α) * (x - y)∥ < 1,
-  { calc ∥((x⁻¹:units α):α) * ((x:α) - y)∥ ≤ ∥((x⁻¹:units α):α)∥ * ∥(x:α) - y∥ : _
-    ... = ∥((x⁻¹:units α):α)∥ * ∥y - x∥ : _
-    ... < ∥((x⁻¹:units α):α)∥ * ∥((x⁻¹:units α):α)∥⁻¹ : _
-    ... = 1 : _,
-    exact norm_mul_le x.inv (↑x - y),
-    rw [←neg_sub, norm_neg],
-    exact mul_lt_mul_of_pos_left h h',
-    exact mul_inv_cancel (ne.symm (ne_of_lt h')) },
-  use x * (perturbation_unit _ h''),
-  calc ((x * (perturbation_unit _ h'')):α)
-      = x * ((1 - (((x⁻¹:units α):α) * (x - y))):α) : rfl
-  ... = x * 1 - x * (((x⁻¹:units α):α) * (x - y)) : by noncomm_ring
-  ... = x - (x - y) : by simp
-  ... = y : by abel,
+  have hpos : 0 < ∥((x⁻¹:units α):α)∥ := norm_pos x⁻¹,
+  have hrad : ∥((x⁻¹:units α):α) * (x - y)∥ < 1,
+  { calc ∥((x⁻¹:units α):α) * ((x:α) - y)∥
+        ≤ ∥((x⁻¹:units α):α)∥ * ∥(x:α) - y∥           : norm_mul_le x.inv _
+    ... = ∥((x⁻¹:units α):α)∥ * ∥y - x∥               : by rw [←neg_sub, norm_neg]
+    ... < ∥((x⁻¹:units α):α)∥ * ∥((x⁻¹:units α):α)∥⁻¹ : by nlinarith [h, hpos]
+    ... = 1                                          : mul_inv_cancel (by linarith [hpos]) },
+  use x * (perturbation_unit _ hrad),
+  unfold perturbation_unit,
+  noncomm_ring, simp,
 end
 
 /-- The group of units of a complete normed ring is an open subset of the ring. -/
@@ -54,8 +48,7 @@ begin
   { exact is_open_discrete is_unit },
   { apply metric.is_open_iff.mpr,
     rintros x' ⟨x, h⟩,
-    use ∥((x⁻¹:units α):α)∥⁻¹,
-    refine ⟨inv_pos.mpr (@norm_pos α _ _i x⁻¹), _⟩,
+    refine ⟨∥((x⁻¹:units α):α)∥⁻¹, inv_pos.mpr (@norm_pos α _ _i x⁻¹), _⟩,
     intros y hy,
     rw [metric.mem_ball, dist_eq_norm, ←h] at hy,
     exact @unit_of_near_unit α _ _ _i x y hy },

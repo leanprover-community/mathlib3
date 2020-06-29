@@ -961,17 +961,18 @@ instance normed_algebra.id (𝕜 : Type*) [normed_field 𝕜] : normed_algebra �
 
 @[simp] lemma normed_algebra.norm_one (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜]
   [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] : ∥(1:𝕜')∥ = 1 :=
-calc ∥(1:𝕜')∥ = ∥algebra_map 𝕜 𝕜' 1∥ : by {rw ← (algebra_map 𝕜 𝕜').map_one', refl}
-... = ∥(1:𝕜)∥ : norm_algebra_map_eq _ _
-... = 1 : by simp
+by simpa using (norm_algebra_map_eq 𝕜' (1:𝕜))
+
+lemma normed_algebra.zero_ne_one (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜]
+  [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] : (0:𝕜') ≠ 1 :=
+begin
+  refine (norm_pos_iff.mp _).symm,
+  rw normed_algebra.norm_one 𝕜 𝕜', norm_num,
+end
 
 lemma normed_algebra.to_nonzero {𝕜 : Type*} (𝕜' : Type*) [normed_field 𝕜]
   [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] : nonzero 𝕜' :=
-{ zero_ne_one :=
-  begin
-    refine (norm_pos_iff.mp _).symm,
-    rw normed_algebra.norm_one 𝕜 𝕜', norm_num,
-  end }
+{ zero_ne_one := normed_algebra.zero_ne_one 𝕜 𝕜' }
 
 end normed_algebra
 

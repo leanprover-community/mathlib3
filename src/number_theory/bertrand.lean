@@ -15,7 +15,7 @@ begin
 end
 
 @[norm_cast]
-theorem cast_dvd_char_zero {α : Type*} [field α] [char_zero α ] {m n : ℕ} (n_dvd : n ∣ m) : ((m / n : ℕ) : α) = m / n :=
+theorem cast_dvd_char_zero {α : Type*} [field α] [char_zero α] {m n : ℕ} (n_dvd : n ∣ m) : ((m / n : ℕ) : α) = m / n :=
 begin
   by_cases hn : n = 0,
   { subst hn,
@@ -37,16 +37,47 @@ end
 lemma padic_val_nat_of_quot {p : ℕ} [p_prime : fact p.prime] {b : ℕ} (b_nonzero : b ≠ 0) (dvd : p ∣ b) :
   (padic_val_nat p (b / p)) = (padic_val_nat p b) - 1 :=
 begin
-  have e := padic_val_rat.div p (nat.cast_ne_zero.mpr b_nonzero) (nat.cast_ne_zero.mpr (nat.prime.ne_zero p_prime)),
+  have e : padic_val_rat p (b / p) = padic_val_rat p b - padic_val_rat p p :=
+    padic_val_rat.div p (nat.cast_ne_zero.mpr b_nonzero) (nat.cast_ne_zero.mpr (nat.prime.ne_zero p_prime)),
   rw padic_val_rat.padic_val_rat_self (nat.prime.one_lt p_prime) at e,
   have r : 1 ≤ padic_val_nat p b := padic_val_nat_of_div_not_one b_nonzero dvd,
   exact_mod_cast e,
 end
 
-lemma padic_val_nat_of_unrelated_quot {p q : ℕ} [p_prime : fact p.prime] (q_prime : q.prime)
+lemma padic_val_nat_of_not_dvd {p : ℕ} [fact p.prime] {n : ℕ} (not_dvd : ¬(p ∣ n))
+  : padic_val_nat p n = 0 :=
+begin
+  by_cases hn : n = 0,
+  { subst hn, simp at not_dvd, trivial, },
+  { rw padic_val_nat_def hn,
+    exact (@multiplicity.unique' _ _ _ p n 0 (by simp) (by simpa using not_dvd)).symm,
+    assumption, },
+end
+
+lemma primes_not_dvd (p q : nat) (p_pr : p.prime) (q_pr : q.prime) (neq : p ≠ q) : ¬ (p ∣ q) :=
+begin
+  intros p_div_q,
+  cases (nat.dvd_prime q_pr).1 p_div_q with p_one p_eq_q,
+  { subst p_one, exact nat.not_prime_one p_pr, },
+  { exact neq p_eq_q, },
+end
+
+lemma padic_val_nat_primes {p q : ℕ} [p_prime : fact p.prime] [q_prime : fact q.prime] (neq : p ≠ q)
+  : padic_val_nat p q = 0 :=
+begin
+  exact @padic_val_nat_of_not_dvd p p_prime q (primes_not_dvd p q p_prime q_prime neq),
+end
+
+lemma padic_val_nat_of_unrelated_quot {p q : ℕ} [p_prime : fact p.prime] [q_prime : fact q.prime]
   (neq : p ≠ q) {b : ℕ} (b_nonzero : b ≠ 0) (dvd : q ∣ b) : padic_val_nat p (b / q) = padic_val_nat p b :=
 begin
-sorry
+  have e : padic_val_rat p (b / q) = padic_val_rat p b - padic_val_rat p q :=
+    padic_val_rat.div p (nat.cast_ne_zero.mpr b_nonzero) (nat.cast_ne_zero.mpr (nat.prime.ne_zero q_prime)),
+  rw [← padic_val_rat_of_nat p q, padic_val_nat_primes neq] at e,
+  simp only [int.coe_nat_zero, sub_zero] at e,
+  have cz : char_zero ℚ := linear_ordered_semiring.to_char_zero,
+  rw [←padic_val_rat_of_nat p b, ←@cast_dvd_char_zero _ _ cz _ _ dvd, ←padic_val_rat_of_nat p (b / q)] at e,
+  exact int.coe_nat_inj e,
 end
 
 lemma prod_padic_val_nat_one (m : nat) (m_big : 1 < m) :
@@ -101,7 +132,8 @@ begin
             rcases p_prime with ⟨_, ans⟩,
             exact ans
           end,
-        simp [h, padic_val_nat_of_unrelated_quot (nat.min_fac_prime (by linarith)) h (by linarith) (nat.min_fac_dvd n)], },
+        haveI : fact n.min_fac.prime := nat.min_fac_prime (by linarith),
+        simp [h, padic_val_nat_of_unrelated_quot h (by linarith) (nat.min_fac_dvd n)], },
       { subst h,
         haveI : fact (nat.prime (nat.min_fac n)) := nat.min_fac_prime (by linarith),
         simp [padic_val_nat_of_quot (by linarith) (nat.min_fac_dvd n)], }, },
@@ -124,6 +156,17 @@ begin
   -- Make the recursive call
   rw (prod_pow_prime_padic_val_nat (n / nat.min_fac n) nonzero' m (by linarith)) at split_prod,
 
+  have s : n.min_fac ∈ finset.filter nat.prime (finset.range m),
+    { simp only [finset.mem_filter, finset.mem_range],
+      exact ⟨min_fac_small, min_fac_prime⟩, },
+
+  have extract : ∏ p in finset.filter (λ i, i = n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ ((padic_val_nat p n - 1) + 1) =
+    n.min_fac * (∏ p in finset.filter (λ i, i = n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ (padic_val_nat p n - 1)) :=
+    begin
+      simp only [finset.filter_eq', s, finset.prod_singleton, if_true],
+      ring_exp,
+    end,
+
   calc ∏ p in finset.filter nat.prime (finset.range m), pow p (padic_val_nat p n)
     = ∏ p in finset.filter nat.prime (finset.range m), ite (p = n.min_fac) (pow p (padic_val_nat p n)) (pow p (padic_val_nat p n))
       : by simp
@@ -132,7 +175,7 @@ begin
     ... = (∏ p in finset.filter (λ i, i = n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ ((padic_val_nat p n - 1) + 1)) * (∏ p in finset.filter (λ i, i ≠ n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ padic_val_nat p n)
       : by simp [finset.filter_eq', min_fac_prime, min_fac_small, nat.sub_add_cancel padic_val_nat_nonzero]
     ... = (n.min_fac * (∏ p in finset.filter (λ i, i = n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ (padic_val_nat p n - 1))) * (∏ p in finset.filter (λ i, i ≠ n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ padic_val_nat p n)
-      : by sorry
+      : by rw extract
     ... = n.min_fac * ((∏ p in finset.filter (λ i, i = n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ (padic_val_nat p n - 1)) * (∏ p in finset.filter (λ i, i ≠ n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ padic_val_nat p n))
       : by ring
     ... = n.min_fac * (∏ p in finset.filter nat.prime (finset.range m), ite (p = n.min_fac) (p ^ (padic_val_nat p n - 1)) (p ^ padic_val_nat p n))

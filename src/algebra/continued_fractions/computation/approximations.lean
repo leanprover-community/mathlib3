@@ -20,7 +20,7 @@ for the values involved in the continued fractions computation `gcf.of`.
 - `gcf.of_part_num_eq_one`: shows that all partial numerators `aᵢ` are equal to one.
 - `gcf.of_part_denom_corr_int`: shows that all partial denominators `bᵢ` correspond to an integer.
 - `gcf.of_one_le_nth_part_denom`: shows that `1 ≤ bᵢ`.
-- `gcf.of_succ_nth_fib_le_nth_denom`: shows that the `n`th denominator `Bₙ` is greater or equal than
+- `gcf.of_succ_nth_fib_le_nth_denom`: shows that the `n`th denominator `Bₙ` is greater than or equal to
   the `n + 1`th fibonacci number `nat.fib (n + 1)`.
 - `gcf.of_le_succ_nth_denom`: shows that `Bₙ₊₁ ≥ bₙ* Bₙ`, where `bₙ` is the `n`th partial denominator
   of the continued fraction.

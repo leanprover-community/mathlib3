@@ -451,12 +451,12 @@ begin
   split,
   { intro hp,
     rw ←vsub_vadd V p hn.some,
-    refine direction_vadd_mem _ hq2,
+    refine vadd_mem_of_mem_direction _ hq2,
     rw ←hd,
     exact vsub_mem_direction hp hq1 },
   { intro hp,
     rw ←vsub_vadd V p hn.some,
-    refine direction_vadd_mem _ hq1,
+    refine vadd_mem_of_mem_direction _ hq1,
     rw hd,
     exact vsub_mem_direction hp hq2 }
 end

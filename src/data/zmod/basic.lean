@@ -542,8 +542,8 @@ calc fintype.card (units (zmod n)) = fintype.card {x : zmod n // x.val.coprime n
 ... = φ n :
 begin
   apply finset.card_congr (λ (a : {x : zmod n // x.val.coprime n}) _, a.1.val),
-  { intro a, simp [a.1.val_lt, a.2.symm] {contextual := tt}, },
-  { intros _ _ _ _ h, rw subtype.ext, apply val_injective, exact h, },
+  { intro a, simp [(a : zmod n).val_lt, a.prop.symm] {contextual := tt} },
+  { intros _ _ _ _ h, rw subtype.ext_iff_val, apply val_injective, exact h, },
   { intros b hb,
     rw [finset.mem_filter, finset.mem_range] at hb,
     refine ⟨⟨b, _⟩, finset.mem_univ _, _⟩,

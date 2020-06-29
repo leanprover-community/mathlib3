@@ -50,7 +50,7 @@ instance : has_subset (opens α) :=
 instance : has_mem α (opens α) :=
 { mem := λ a U, a ∈ U.val }
 
-@[ext] lemma ext {U V : opens α} (h : U.val = V.val) : U = V := subtype.ext.mpr h
+@[ext] lemma ext {U V : opens α} (h : U.val = V.val) : U = V := subtype.ext_iff_val.mpr h
 
 instance : partial_order (opens α) := subtype.partial_order _
 
@@ -73,13 +73,13 @@ complete_lattice.copy
   (@galois_insertion.lift_complete_lattice
     (order_dual (set α)) (order_dual (opens α)) interior (subtype.val : opens α → set α) _ _ gi))
 /- le  -/ (λ U V, U.1 ⊆ V.1) rfl
-/- top -/ ⟨set.univ, is_open_univ⟩ (subtype.ext.mpr interior_univ.symm)
+/- top -/ ⟨set.univ, is_open_univ⟩ (subtype.ext_iff_val.mpr interior_univ.symm)
 /- bot -/ ⟨∅, is_open_empty⟩ rfl
 /- sup -/ (λ U V, ⟨U.1 ∪ V.1, is_open_union U.2 V.2⟩) rfl
 /- inf -/ (λ U V, ⟨U.1 ∩ V.1, is_open_inter U.2 V.2⟩)
 begin
   funext,
-  apply subtype.ext.mpr,
+  apply subtype.ext_iff_val.mpr,
   symmetry,
   apply interior_eq_of_open,
   exact (is_open_inter U.2 V.2),
@@ -88,7 +88,7 @@ end
 by { rcases hU with ⟨⟨V, hV⟩, h, h'⟩, dsimp at h', subst h', exact hV}⟩)
 begin
   funext,
-  apply subtype.ext.mpr,
+  apply subtype.ext_iff_val.mpr,
   simp [Sup_range],
   refl,
 end

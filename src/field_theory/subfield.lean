@@ -15,10 +15,10 @@ end prio
 
 instance is_subfield.field [is_subfield S] : field S :=
 { inv := λ x, ⟨x⁻¹, is_subfield.inv_mem x.2⟩,
-  zero_ne_one := λ h, zero_ne_one (subtype.ext.1 h),
-  mul_inv_cancel := λ a ha, subtype.ext.2 (mul_inv_cancel
-    (λ h, ha $ subtype.ext.2 h)),
-  inv_zero := subtype.ext.2 inv_zero,
+  zero_ne_one := λ h, zero_ne_one (subtype.ext_iff_val.1 h),
+  mul_inv_cancel := λ a ha, subtype.ext_iff_val.2 (mul_inv_cancel
+    (λ h, ha $ subtype.ext_iff_val.2 h)),
+  inv_zero := subtype.ext_iff_val.2 inv_zero,
   ..show comm_ring S, by apply_instance }
 
 instance univ.is_subfield : is_subfield (@set.univ F) :=

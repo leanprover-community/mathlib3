@@ -324,14 +324,16 @@ def subtype_insert_equiv_option {t : finset α} {x : α} (h : x ∉ t) :
   {i // i ∈ insert x t} ≃ option {i // i ∈ t} :=
 begin
   refine
-  { to_fun := λ y, if h : y.1 = x then none else some ⟨y, (finset.mem_insert.mp y.2).resolve_left h⟩,
-    inv_fun := λ y, y.elim ⟨x, finset.mem_insert_self _ _⟩ $ λ z, ⟨z.1, finset.mem_insert_of_mem z.2⟩,
+  { to_fun := λ y, if h : ↑y = x then none else some ⟨y, (finset.mem_insert.mp y.2).resolve_left h⟩,
+    inv_fun := λ y, y.elim ⟨x, finset.mem_insert_self _ _⟩ $ λ z, ⟨z, finset.mem_insert_of_mem z.2⟩,
     .. },
-  { intro y, by_cases h : y.1 = x, simp only [subtype.ext, h, option.elim, dif_pos],
-    simp only [h, option.elim, dif_neg, not_false_iff, subtype.coe_eta] },
-  { rintro (_|y), simp only [option.elim, dif_pos],
-    have : y.val ≠ x, { rintro ⟨⟩, exact h y.2 },
-    simp only [this, option.elim, subtype.eta, dif_neg, not_false_iff, subtype.coe_mk] },
+  { intro y, by_cases h : ↑y = x,
+    simp only [subtype.ext_iff, h, option.elim, dif_pos, subtype.coe_mk],
+    simp only [h, option.elim, dif_neg, not_false_iff, subtype.coe_eta, subtype.coe_mk] },
+  { rintro (_|y), simp only [option.elim, dif_pos, subtype.coe_mk],
+    have : ↑y ≠ x, { rintro ⟨⟩, exact h y.2 },
+    simp only [this, option.elim, subtype.eta, dif_neg, not_false_iff, subtype.coe_eta,
+      subtype.coe_mk] },
 end
 
 /-! ### union -/
@@ -1014,7 +1016,7 @@ variables {n m l : ℕ}
 /-- `range n` is the set of natural numbers less than `n`. -/
 def range (n : ℕ) : finset ℕ := ⟨_, nodup_range n⟩
 
-@[simp] theorem range_val (n : ℕ) : (range n).1 = multiset.range n := rfl
+@[simp] theorem range_coe (n : ℕ) : (range n).1 = multiset.range n := rfl
 
 @[simp] theorem mem_range : m ∈ range n ↔ m < n := mem_range
 
@@ -1064,7 +1066,7 @@ def not_mem_range_equiv (k : ℕ) : {n // n ∉ range k} ≃ ℕ :=
   left_inv :=
   begin
     assume j,
-    rw subtype.ext,
+    rw subtype.ext_iff_val,
     apply nat.sub_add_cancel,
     simpa using j.2
   end,
@@ -1571,10 +1573,10 @@ lemma surj_on_of_inj_on_of_card_le {s : finset α} {t : finset β}
   (∀ b ∈ t, ∃ a ha, b = f a ha) :=
 by haveI := classical.dec_eq β; exact
 λ b hb,
-  have h : card (image (λ (a : {a // a ∈ s}), f (a.val) a.2) (attach s)) = card s,
+  have h : card (image (λ (a : {a // a ∈ s}), f a a.prop) (attach s)) = card s,
     from @card_attach _ s ▸ card_image_of_injective _
       (λ ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩ h, subtype.eq $ hinj _ _ _ _ h),
-  have h₁ : image (λ a : {a // a ∈ s}, f a.1 a.2) s.attach = t :=
+  have h₁ : image (λ a : {a // a ∈ s}, f a a.prop) s.attach = t :=
   eq_of_subset_of_card_le (λ b h, let ⟨a, ha₁, ha₂⟩ := mem_image.1 h in
     ha₂ ▸ hf _ _) (by simp [hst, h]),
 begin
@@ -1605,7 +1607,7 @@ have hsg : surjective g, from λ x,
 have hif : injective f',
   from (left_inverse_of_surjective_of_right_inverse hsg
       (right_inverse_surj_inv _)).injective,
-subtype.ext.1 (@hif ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩ (subtype.eq ha₁a₂))
+subtype.ext_iff_val.1 (@hif ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩ (subtype.eq ha₁a₂))
 
 end card
 
@@ -2043,7 +2045,7 @@ def sup (s : finset β) (f : β → α) : α := s.fold (⊔) ⊥ f
 
 variables {s s₁ s₂ : finset β} {f : β → α}
 
-lemma sup_val : s.sup f = (s.1.map f).sup := rfl
+lemma sup_def : s.sup f = (s.1.map f).sup := rfl
 
 @[simp] lemma sup_empty : (∅ : finset β).sup f = ⊥ :=
 fold_empty

@@ -106,7 +106,7 @@ protected def some {α} : α ↪ option α :=
 
 /-- Embedding of a `subtype`. -/
 def subtype {α} (p : α → Prop) : subtype p ↪ α :=
-⟨subtype.val, λ _ _, subtype.eq'⟩
+⟨subtype.val, λ _ _, subtype.ext_val⟩
 
 /-- Choosing an element `b : β` gives an embedding of `punit` into `β`. -/
 def punit {β : Sort*} (b : β) : punit ↪ β :=

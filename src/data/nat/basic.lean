@@ -1329,6 +1329,22 @@ iff.intro
   (assume ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
   (assume h, h.symm ▸ ⟨1, rfl⟩)
 
+section find
+
+@[simp] lemma find_eq_zero {p : ℕ → Prop} [decidable_pred p] (h : ∃ (n : ℕ), p n) :
+  nat.find h = 0 ↔ p 0 :=
+begin
+  split,
+  { intro h0, rw [← h0], apply nat.find_spec },
+  { intro hp, apply nat.eq_zero_of_le_zero, exact nat.find_min' _ hp }
+end
+
+@[simp] lemma find_pos {p : ℕ → Prop} [decidable_pred p] (h : ∃ (n : ℕ), p n) :
+  0 < nat.find h ↔ ¬ p 0 :=
+by rw [nat.pos_iff_ne_zero, not_iff_not, nat.find_eq_zero]
+
+end find
+
 section find_greatest
 
 /-- `find_greatest P b` is the largest `i ≤ bound` such that `P i` holds, or `0` if no such `i`

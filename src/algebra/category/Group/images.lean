@@ -18,7 +18,7 @@ namespace AddCommGroup
 
 variables {G H : AddCommGroup.{0}} (f : G ⟶ H)
 
-local attribute [ext] subtype.eq'
+local attribute [ext] subtype.ext_val
 
 section -- implementation details of `has_image` for AddCommGroup; use the API, not these
 /-- the image of a morphism in AddCommGroup is just the bundling of `set.range f` -/

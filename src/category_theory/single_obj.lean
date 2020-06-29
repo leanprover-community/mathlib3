@@ -37,6 +37,7 @@ universes u v w
 
 namespace category_theory
 /-- Type tag on `unit` used to define single-object categories and groupoids. -/
+@[nolint unused_arguments has_inhabited_instance]
 def single_obj (α : Type u) : Type := unit
 
 namespace single_obj
@@ -61,6 +62,7 @@ instance groupoid [group α] : groupoid (single_obj α) :=
   inv_comp' := λ _ _, mul_right_inv,
   comp_inv' := λ _ _, mul_left_inv }
 
+/-- The single object in `single_obj α`. -/
 protected def star : single_obj α := unit.star
 
 /-- The endomorphisms monoid of the only object in `single_obj α` is equivalent to the original

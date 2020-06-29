@@ -53,7 +53,7 @@ begin
 end
 
 instance subtype.t0_space [t0_space α] {p : α → Prop} : t0_space (subtype p) :=
-⟨λ x y hxy, let ⟨U, hU, hxyU⟩ := t0_space.t0 (x:α) y ((not_congr subtype.coe_ext).1 hxy) in
+⟨λ x y hxy, let ⟨U, hU, hxyU⟩ := t0_space.t0 (x:α) y ((not_congr subtype.ext_iff_val).1 hxy) in
   ⟨(coe : subtype p → α) ⁻¹' U, is_open_induced hU, hxyU⟩⟩
 
 /-- A T₁ space, also known as a Fréchet space, is a topological space
@@ -71,7 +71,7 @@ compl_singleton_eq x ▸ is_open_compl_iff.2 (t1_space.t1 x)
 instance subtype.t1_space {α : Type u} [topological_space α] [t1_space α] {p : α → Prop} :
   t1_space (subtype p) :=
 ⟨λ ⟨x, hx⟩, is_closed_induced_iff.2 $ ⟨{x}, is_closed_singleton, set.ext $ λ y,
-  by simp [subtype.coe_ext]⟩⟩
+  by simp [subtype.ext_iff_val]⟩⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance t1_space.t0_space [t1_space α] : t0_space α :=
@@ -334,6 +334,20 @@ let ⟨s, hs, hys, hxs⟩ := regular_space.regular is_closed_singleton
   ⟨v, hvt, hv, hxv⟩ := mem_nhds_sets_iff.1 hxt in
 ⟨v, s, hv, hs, hxv, singleton_subset_iff.1 hys,
 eq_empty_of_subset_empty $ λ z ⟨hzv, hzs⟩, htu ⟨hvt hzv, hsu hzs⟩⟩⟩
+
+variable {α}
+
+lemma disjoint_nested_nhds [regular_space α] {x y : α} (h : x ≠ y) :
+  ∃ (U₁ V₁ ∈ 𝓝 x) (U₂ V₂ ∈ 𝓝 y), is_closed V₁ ∧ is_closed V₂ ∧ is_open U₁ ∧ is_open U₂ ∧
+  V₁ ⊆ U₁ ∧ V₂ ⊆ U₂ ∧ U₁ ∩ U₂ = ∅ :=
+begin
+  rcases t2_separation h with ⟨U₁, U₂, U₁_op, U₂_op, x_in, y_in, H⟩,
+  rcases nhds_is_closed (mem_nhds_sets U₁_op x_in) with ⟨V₁, V₁_in, h₁, V₁_closed⟩,
+  rcases nhds_is_closed (mem_nhds_sets U₂_op y_in) with ⟨V₂, V₂_in, h₂, V₂_closed⟩,
+  use [U₁, V₁, mem_sets_of_superset V₁_in h₁, V₁_in,
+       U₂, V₂, mem_sets_of_superset V₂_in h₂, V₂_in],
+  tauto
+end
 
 end regularity
 

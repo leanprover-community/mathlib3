@@ -1,4 +1,4 @@
-/-
+  /-
 Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad, Andrew Zipperer, Haitao Zhang, Minchao Wu, Yury Kudryashov
@@ -49,7 +49,7 @@ lemma restrict_eq (f : α → β) (s : set α) : s.restrict f = f ∘ coe := rfl
 @[simp] lemma restrict_apply (f : α → β) (s : set α) (x : s) : restrict f s x = f x := rfl
 
 @[simp] lemma range_restrict (f : α → β) (s : set α) : set.range (restrict f s) = f '' s :=
-range_comp.trans $ congr_arg (('') f) s.range_coe_subtype
+range_comp.trans $ congr_arg (('') f) subtype.range_coe
 
 /-- Restrict codomain of a function `f` to a set `s`. Same as `subtype.coind` but this version
 has codomain `↥s` instead of `subtype s`. -/
@@ -129,7 +129,7 @@ theorem maps_to.iterate_restrict {f : α → α} {s : set α} (h : maps_to f s s
   (h.restrict f s s^[n]) = (h.iterate n).restrict _ _ _ :=
 begin
   funext x,
-  rw [subtype.coe_ext, maps_to.coe_restrict_apply],
+  rw [subtype.ext_iff, maps_to.coe_restrict_apply],
   induction n with n ihn generalizing x,
   { refl },
   { simp [nat.iterate, ihn] }

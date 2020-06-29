@@ -18,26 +18,28 @@ namespace category_theory.limits
 
 variables (C : Type u) [category.{v} C]
 
-/-- A category has a terminal object if it has a limit over the empty diagram. -/
--- Use `has_terminal_of_unique` to construct instances.
+/--
+A category has a terminal object if it has a limit over the empty diagram.
+Use `has_terminal_of_unique` to construct instances.
+-/
 class has_terminal :=
-(has_limits_of_shape : has_limits_of_shape.{v} pempty C)
-/-- A category has an initial object if it has a colimit over the empty diagram. -/
--- Use `has_initial_of_unique` to construct instances.
+(has_limits_of_shape : has_limits_of_shape.{v} (discrete pempty) C)
+/--
+A category has an initial object if it has a colimit over the empty diagram.
+Use `has_initial_of_unique` to construct instances.
+-/
 class has_initial :=
-(has_colimits_of_shape : has_colimits_of_shape.{v} pempty C)
+(has_colimits_of_shape : has_colimits_of_shape.{v} (discrete pempty) C)
 
 attribute [instance] has_terminal.has_limits_of_shape has_initial.has_colimits_of_shape
 
 @[priority 100] -- see Note [lower instance priority]
 instance [has_finite_products.{v} C] : has_terminal.{v} C :=
-{ has_limits_of_shape :=
-  { has_limit := λ F,
-      has_limit_of_equivalence_comp ((functor.empty.{v} (discrete pempty.{v+1})).as_equivalence.symm) } }
+{ has_limits_of_shape := by apply_instance }
+
 @[priority 100] -- see Note [lower instance priority]
 instance [has_finite_coproducts.{v} C] : has_initial.{v} C :=
-{ has_colimits_of_shape :=
-  { has_colimit := λ F, has_colimit_of_equivalence_comp ((functor.empty (discrete pempty)).as_equivalence.symm) } }
+{ has_colimits_of_shape := by apply_instance }
 
 abbreviation terminal [has_terminal.{v} C] : C := limit (functor.empty C)
 abbreviation initial [has_initial.{v} C] : C := colimit (functor.empty C)

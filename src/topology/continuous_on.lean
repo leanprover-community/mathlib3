@@ -169,8 +169,8 @@ theorem tendsto_nhds_within_of_tendsto_nhds {f : α → β} {a : α}
 by rw [←nhds_within_univ] at h; exact tendsto_nhds_within_mono_left (set.subset_univ _) h
 
 theorem principal_subtype {α : Type*} (s : set α) (t : set {x // x ∈ s}) :
-  𝓟 t = comap subtype.val (𝓟 (subtype.val '' t)) :=
-by rw comap_principal; rw set.preimage_image_eq; apply subtype.val_injective
+  𝓟 t = comap coe (𝓟 ((coe : s → α) '' t)) :=
+by rw comap_principal; rw set.preimage_image_eq; apply subtype.coe_injective
 
 lemma mem_closure_iff_nhds_within_ne_bot {s : set α} {x : α} :
   x ∈ closure s ↔ nhds_within x s ≠ ⊥ :=
@@ -190,27 +190,27 @@ nhds_within and subtypes
 
 theorem mem_nhds_within_subtype (s : set α) (a : {x // x ∈ s}) (t u : set {x // x ∈ s}) :
   t ∈ nhds_within a u ↔
-    t ∈ comap (@subtype.val _ s) (nhds_within a.val (subtype.val '' u)) :=
+    t ∈ comap (coe : s → α) (nhds_within a (coe '' u)) :=
 by rw [nhds_within, nhds_subtype, principal_subtype, ←comap_inf, ←nhds_within]
 
 theorem nhds_within_subtype (s : set α) (a : {x // x ∈ s}) (t : set {x // x ∈ s}) :
-  nhds_within a t = comap (@subtype.val _ s) (nhds_within a.val (subtype.val '' t)) :=
+  nhds_within a t = comap (coe : s → α) (nhds_within a (coe '' t)) :=
 filter_eq $ by ext u; rw mem_nhds_within_subtype
 
-theorem nhds_within_eq_map_subtype_val {s : set α} {a : α} (h : a ∈ s) :
-  nhds_within a s = map subtype.val (𝓝 ⟨a, h⟩) :=
+theorem nhds_within_eq_map_subtype_coe {s : set α} {a : α} (h : a ∈ s) :
+  nhds_within a s = map (coe : s → α) (𝓝 ⟨a, h⟩) :=
 have h₀ : s ∈ nhds_within a s,
   by { rw [mem_nhds_within], existsi set.univ, simp [set.diff_eq] },
-have h₁ : ∀ y ∈ s, ∃ x, @subtype.val _ s x = y,
+have h₁ : ∀ y ∈ s, ∃ x : s, ↑x = y,
   from λ y h, ⟨⟨y, h⟩, rfl⟩,
 begin
-  rw [←nhds_within_univ, nhds_within_subtype, subtype.val_image_univ],
+  rw [←nhds_within_univ, nhds_within_subtype, subtype.coe_image_univ],
   exact (map_comap_of_surjective' h₀ h₁).symm,
 end
 
 theorem tendsto_nhds_within_iff_subtype {s : set α} {a : α} (h : a ∈ s) (f : α → β) (l : filter β) :
   tendsto f (nhds_within a s) l ↔ tendsto (s.restrict f) (𝓝 ⟨a, h⟩) l :=
-by { simp only [tendsto, nhds_within_eq_map_subtype_val h, filter.map_map], refl }
+by { simp only [tendsto, nhds_within_eq_map_subtype_coe h, filter.map_map], refl }
 
 variables [topological_space β] [topological_space γ] [topological_space δ]
 
@@ -279,7 +279,7 @@ have ∀ t, is_open (s.restrict f ⁻¹' t) ↔ ∃ (u : set α), is_open u ∧ 
   begin
     intro t,
     rw [is_open_induced_iff, set.restrict_eq, set.preimage_comp],
-    simp only [preimage_coe_eq_preimage_coe_iff],
+    simp only [subtype.preimage_coe_eq_preimage_coe_iff],
     split; { rintros ⟨u, ou, useq⟩, exact ⟨u, ou, useq.symm⟩ }
   end,
 by rw [continuous_on_iff_continuous_restrict, continuous]; simp only [this]
@@ -290,7 +290,7 @@ have ∀ t, is_closed (s.restrict f ⁻¹' t) ↔ ∃ (u : set α), is_closed u 
   begin
     intro t,
     rw [is_closed_induced_iff, set.restrict_eq, set.preimage_comp],
-    simp only [preimage_coe_eq_preimage_coe_iff]
+    simp only [subtype.preimage_coe_eq_preimage_coe_iff]
   end,
 by rw [continuous_on_iff_continuous_restrict, continuous_iff_is_closed]; simp only [this]
 
@@ -357,7 +357,7 @@ begin
   replace h := h.nhds_le ⟨x, xs⟩,
   apply mem_nhds_within_of_mem_nhds,
   apply h,
-  erw [map_compose.symm, function.comp, mem_map, ← nhds_within_eq_map_subtype_val],
+  erw [map_compose.symm, function.comp, mem_map, ← nhds_within_eq_map_subtype_coe],
   apply mem_sets_of_superset (inter_mem_nhds_within _ ht),
   assume y hy,
   rw [mem_set_of_eq, mem_preimage, hleft hy.1],

@@ -283,8 +283,14 @@ variables [semiring α]
 
 @[simp] lemma smul_empty (x : α) (v : fin 0 → α) : x • v = ![] := empty_eq _
 
+@[simp] lemma smul_mat_empty {m' : Type} (x : α) (A : fin 0 → m' → α) : x • A = ![] := empty_eq _
+
 @[simp] lemma smul_cons (x y : α) (v : fin n → α) :
   x • vec_cons y v = vec_cons (x * y) (x • v) :=
+by { ext i, refine fin.cases _ _ i; simp }
+
+@[simp] lemma smul_mat_cons (x : α) (v : n' → α) (A : matrix (fin m) n' α) :
+  x • vec_cons v A = vec_cons (x • v) (x • A) :=
 by { ext i, refine fin.cases _ _ i; simp }
 
 end smul

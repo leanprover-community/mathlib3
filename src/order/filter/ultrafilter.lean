@@ -68,6 +68,23 @@ lemma mem_or_mem_of_ultrafilter {s t : set α} (hf : is_ultrafilter f) (h : s �
 (mem_or_compl_mem_of_ultrafilter hf s).imp_right
   (assume : -s ∈ f, by filter_upwards [this, h] assume x hnx hx, hx.resolve_left hnx)
 
+lemma is_ultrafilter.em (hf : is_ultrafilter f) (p : α → Prop) :
+  (∀ᶠ x in f, p x) ∨ ∀ᶠ x in f, ¬p x :=
+mem_or_compl_mem_of_ultrafilter hf {x | p x}
+
+lemma is_ultrafilter.eventually_or (hf : is_ultrafilter f) {p q : α → Prop} :
+  (∀ᶠ x in f, p x ∨ q x) ↔ (∀ᶠ x in f, p x) ∨ ∀ᶠ x in f, q x :=
+⟨mem_or_mem_of_ultrafilter hf, λ H, H.elim (λ hp, hp.mono $ λ x, or.inl)
+  (λ hp, hp.mono $ λ x, or.inr)⟩
+
+lemma is_ultrafilter.eventually_not (hf : is_ultrafilter f) {p : α → Prop} :
+  (∀ᶠ x in f, ¬p x) ↔ ¬∀ᶠ x in f, p x :=
+ultrafilter_iff_compl_mem_iff_not_mem.1 hf {x | p x}
+
+lemma is_ultrafilter.eventually_imp (hf : is_ultrafilter f) {p q : α → Prop} :
+  (∀ᶠ x in f, p x → q x) ↔ (∀ᶠ x in f, p x) → ∀ᶠ x in f, q x :=
+by simp only [imp_iff_not_or, hf.eventually_or, hf.eventually_not]
+
 lemma mem_of_finite_sUnion_ultrafilter {s : set (set α)} (hf : is_ultrafilter f) (hs : finite s)
   : ⋃₀ s ∈ f → ∃t∈s, t ∈ f :=
 finite.induction_on hs (by simp only [empty_in_sets_eq_bot, hf.left, mem_empty_eq, sUnion_empty,
@@ -158,7 +175,7 @@ begin
   by_contradiction hs',
   let j : (-s) → α := subtype.val,
   have j_inv_s : j ⁻¹' s = ∅, by
-    erw [←preimage_inter_range, subtype.val_range, inter_compl_self, preimage_empty],
+    erw [←preimage_inter_range, subtype.range_coe, inter_compl_self, preimage_empty],
   let f' := comap j f,
   have : f' ≠ ⊥,
   { apply mt empty_in_sets_eq_bot.mpr,
@@ -166,7 +183,7 @@ begin
     suffices : t ⊆ s, from absurd (f.sets_of_superset htf this) hs',
     rw [subset_empty_iff] at ht,
     have : j '' (j ⁻¹' t) = ∅, by rw [ht, image_empty],
-    erw [image_preimage_eq_inter_range, subtype.val_range, ←subset_compl_iff_disjoint,
+    erw [image_preimage_eq_inter_range, subtype.range_coe, ←subset_compl_iff_disjoint,
       set.compl_compl] at this,
     exact this },
   rcases exists_ultrafilter this with ⟨g', g'f', u'⟩,
@@ -215,6 +232,12 @@ ultrafilter_of_le
 lemma is_ultrafilter_hyperfilter [infinite α] : is_ultrafilter (@hyperfilter α) :=
 (ultrafilter_of_spec cofinite_ne_bot).2
 
+@[simp] lemma hyperfilter_ne_bot [infinite α] : @hyperfilter α ≠ ⊥ :=
+is_ultrafilter_hyperfilter.1
+
+@[simp] lemma bot_ne_hyperfilter [infinite α] : ⊥ ≠ @hyperfilter α :=
+is_ultrafilter_hyperfilter.1.symm
+
 theorem nmem_hyperfilter_of_finite [infinite α] {s : set α} (hf : s.finite) :
   s ∉ @hyperfilter α :=
 λ hy,
@@ -246,7 +269,7 @@ end
 
 lemma ultrafilter.eq_iff_val_le_val {u v : ultrafilter α} : u = v ↔ u.val ≤ v.val :=
 ⟨assume h, by rw h; exact le_refl _,
- assume h, by rw subtype.ext; apply ultrafilter_unique v.property u.property.1 h⟩
+ assume h, by rw subtype.ext_iff_val; apply ultrafilter_unique v.property u.property.1 h⟩
 
 lemma exists_ultrafilter_iff (f : filter α) : (∃ (u : ultrafilter α), u.val ≤ f) ↔ f ≠ ⊥ :=
 ⟨assume ⟨u, uf⟩, ne_bot_of_le_ne_bot u.property.1 uf,

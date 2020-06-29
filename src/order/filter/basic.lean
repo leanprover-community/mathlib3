@@ -751,6 +751,38 @@ begin
   refl
 end
 
+lemma mem_iff_inf_principal_compl {f : filter α} {V : set α} :
+  V ∈ f ↔ f ⊓ 𝓟 (-V) = ⊥ :=
+begin
+  rw inf_eq_bot_iff,
+  split,
+  { intro h,
+    use [V, -V],
+    simp [h, subset.refl] },
+  { rintros ⟨U, W, U_in, W_in, UW⟩,
+    rw [mem_principal_sets, compl_subset_comm] at W_in,
+    apply mem_sets_of_superset U_in,
+    intros x x_in,
+    apply W_in,
+    intro H,
+    have : x ∈ U ∩ W := ⟨x_in, H⟩,
+    rwa UW at this },
+end
+
+lemma le_iff_forall_inf_principal_compl {f g : filter α} :
+  f ≤ g ↔ ∀ V ∈ g, f ⊓ 𝓟 (-V) = ⊥ :=
+begin
+  change (∀ V ∈ g, V ∈ f) ↔ _,
+  simp_rw [mem_iff_inf_principal_compl],
+end
+
+lemma principal_le_iff {s : set α} {f : filter α} :
+  𝓟 s ≤ f ↔ ∀ V ∈ f, s ⊆ V :=
+begin
+  change (∀ V, V ∈ f → V ∈ _) ↔ _,
+  simp_rw mem_principal_sets,
+end
+
 @[simp] lemma infi_principal_finset {ι : Type w} (s : finset ι) (f : ι → set α) :
   (⨅i∈s, 𝓟 (f i)) = 𝓟 (⋂i∈s, f i) :=
 begin
@@ -1279,6 +1311,28 @@ theorem preimage_mem_comap (ht : t ∈ g) : m ⁻¹' t ∈ comap m g :=
 lemma comap_id : comap id f = f :=
 le_antisymm (assume s, preimage_mem_comap) (assume s ⟨t, ht, hst⟩, mem_sets_of_superset ht hst)
 
+lemma comap_const_of_not_mem {x : α} {f : filter α} {V : set α} (hV : V ∈ f) (hx : x ∉ V) :
+  comap (λ y : α, x) f = ⊥ :=
+begin
+  ext W,
+  suffices : ∃ t ∈ f, (λ (y : α), x) ⁻¹' t ⊆ W, by simpa,
+  use [V, hV],
+  simp [preimage_const_of_not_mem hx],
+end
+
+lemma comap_const_of_mem {x : α} {f : filter α} (h : ∀ V ∈ f, x ∈ V) : comap (λ y : α, x) f = ⊤ :=
+begin
+  ext W,
+  suffices : (∃ (t : set α), t ∈ f.sets ∧ (λ (y : α), x) ⁻¹' t ⊆ W) ↔ W = univ,
+  by simpa,
+  split,
+  { rintros ⟨V, V_in, hW⟩,
+    simpa [preimage_const_of_mem (h V V_in),  univ_subset_iff] using hW },
+  { rintro rfl,
+    use univ,
+    simp [univ_mem_sets] },
+end
+
 lemma comap_comap_comp {m : γ → β} {n : β → α} : comap m (comap n f) = comap (n ∘ m) f :=
 le_antisymm
   (assume c ⟨b, hb, (h : preimage (n ∘ m) b ⊆ c)⟩, ⟨preimage n b, preimage_mem_comap hb, h⟩)
@@ -1419,8 +1473,19 @@ begin
     rcases V_in with ⟨W, W_in, H⟩,
     rw mem_inf_sets,
     use [W, W_in, s, mem_principal_self s],
-    erw [← image_subset_iff, subtype.image_preimage_val] at H,
+    erw [← image_subset_iff, subtype.image_preimage_coe] at H,
     exact H }
+end
+
+lemma subtype_coe_map_comap_prod (s : set α) (f : filter (α × α)) :
+  map (coe : s × s → α × α) (comap (coe : s × s → α × α) f) = f ⊓ 𝓟 (s.prod s) :=
+let φ (x : s × s) : s.prod s := ⟨⟨x.1.1, x.2.1⟩, ⟨x.1.2, x.2.2⟩⟩ in
+begin
+  rw show (coe : s × s → α × α) = coe ∘ φ, by ext x; cases x; refl,
+  rw [← filter.map_map, ← filter.comap_comap_comp],
+  rw map_comap_of_surjective,
+  exact subtype_coe_map_comap _ _,
+  exact λ ⟨⟨a, b⟩, ⟨ha, hb⟩⟩, ⟨⟨⟨a, ha⟩, ⟨b, hb⟩⟩, rfl⟩
 end
 
 lemma comap_ne_bot {f : filter β} {m : α → β} (hm : ∀t∈ f, ∃a, m a ∈ t) :
@@ -1942,6 +2007,10 @@ begin
   exact assume ⟨t₁, ht₁, t₂, ht₂, h⟩,
     ⟨prod.fst ⁻¹' t₁, ⟨t₁, ht₁, subset.refl _⟩, prod.snd ⁻¹' t₂, ⟨t₂, ht₂, subset.refl _⟩, h⟩
 end
+
+lemma comap_prod (f : α → β × γ) (b : filter β) (c : filter γ) :
+  comap f (b ×ᶠ c) = (comap (prod.fst ∘ f) b) ⊓ (comap (prod.snd ∘ f) c) :=
+by erw [comap_inf, filter.comap_comap_comp, filter.comap_comap_comp]
 
 lemma eventually_prod_iff {p : α × β → Prop} {f : filter α} {g : filter β} :
   (∀ᶠ x in f ×ᶠ g, p x) ↔ ∃ (pa : α → Prop) (ha : ∀ᶠ x in f, pa x)

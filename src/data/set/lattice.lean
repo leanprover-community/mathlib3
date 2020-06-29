@@ -527,10 +527,10 @@ lemma sInter_eq_bInter {s : set (set α)} : (⋂₀ s) = (⋂ (i : set α) (h : 
 by rw [← sInter_image, image_id']
 
 lemma sUnion_eq_Union {s : set (set α)} : (⋃₀ s) = (⋃ (i : s), i) :=
-by rw [← sUnion_range, range_coe_subtype]
+by simp only [←sUnion_range, subtype.range_coe, mem_def]
 
 lemma sInter_eq_Inter {s : set (set α)} : (⋂₀ s) = (⋂ (i : s), i) :=
-by rw [← sInter_range, range_coe_subtype]
+by simp only [←sInter_range, subtype.range_coe, mem_def]
 
 lemma union_eq_Union {s₁ s₂ : set α} : s₁ ∪ s₂ = ⋃ b : bool, cond b s₁ s₂ :=
 set.ext $ λ x, by simp [bool.exists_bool, or_comm]
@@ -813,6 +813,9 @@ namespace set
 
 protected theorem disjoint_iff {s t : set α} : disjoint s t ↔ s ∩ t ⊆ ∅ := iff.rfl
 
+theorem disjoint_iff_inter_eq_empty {s t : set α} : disjoint s t ↔ s ∩ t = ∅ :=
+disjoint_iff
+
 lemma not_disjoint_iff {s t : set α} : ¬disjoint s t ↔ ∃x, x ∈ s ∧ x ∈ t :=
 (not_congr (set.disjoint_iff.trans subset_empty_iff)).trans ne_empty_iff_nonempty
 
@@ -821,6 +824,16 @@ show (∀ x, ¬(x ∈ s ∩ t)) ↔ _, from ⟨λ h a, not_and.1 $ h a, λ h a, 
 
 theorem disjoint_right {s t : set α} : disjoint s t ↔ ∀ {a}, a ∈ t → a ∉ s :=
 by rw [disjoint.comm, disjoint_left]
+
+theorem disjoint_of_subset_left {s t u : set α} (h : s ⊆ u) (d : disjoint u t) : disjoint s t :=
+disjoint_left.2 (λ x m₁, (disjoint_left.1 d) (h m₁))
+
+theorem disjoint_of_subset_right {s t u : set α} (h : t ⊆ u) (d : disjoint s u) : disjoint s t :=
+disjoint_right.2 (λ x m₁, (disjoint_right.1 d) (h m₁))
+
+theorem disjoint_of_subset {s t u v : set α} (h1 : s ⊆ u) (h2 : t ⊆ v) (d : disjoint u v) :
+  disjoint s t :=
+disjoint_of_subset_left h1 $ disjoint_of_subset_right h2 d
 
 theorem disjoint_diff {a b : set α} : disjoint a (b \ a) :=
 disjoint_iff.2 (inter_diff_self _ _)
@@ -836,6 +849,10 @@ by rw [disjoint.comm]; exact disjoint_singleton_left
 theorem disjoint_image_image {f : β → α} {g : γ → α} {s : set β} {t : set γ}
   (h : ∀b∈s, ∀c∈t, f b ≠ g c) : disjoint (f '' s) (g '' t) :=
 by rintros a ⟨⟨b, hb, eq⟩, ⟨c, hc, rfl⟩⟩; exact h b hb c hc eq
+
+lemma disjoint.preimage {α β} (f : α → β) {s t : set β} (h : disjoint s t) :
+  disjoint (f ⁻¹' s) (f ⁻¹' t) :=
+λ x hx, h hx
 
 theorem pairwise_on_disjoint_fiber (f : α → β) (s : set β) :
   pairwise_on s (disjoint on (λ y, f ⁻¹' {y})) :=
@@ -866,6 +883,10 @@ end set
 
 namespace set
 variables (t : α → set β)
+
+lemma subset_diff {s t u : set α} : s ⊆ t \ u ↔ s ⊆ t ∧ disjoint s u :=
+⟨λ h, ⟨λ x hxs, (h hxs).1, λ x ⟨hxs, hxu⟩, (h hxs).2 hxu⟩,
+λ ⟨h1, h2⟩ x hxs, ⟨h1 hxs, λ hxu, h2 ⟨hxs, hxu⟩⟩⟩
 
 /-- If `t` is an indexed family of sets, then there is a natural map from `Σ i, t i` to `⋃ i, t i`
 sending `⟨i, x⟩` to `x`. -/

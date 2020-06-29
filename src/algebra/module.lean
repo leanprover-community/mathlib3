@@ -486,10 +486,10 @@ instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
 instance : inhabited p := ⟨0⟩
 instance : has_scalar R p := ⟨λ c x, ⟨c • x.1, smul_mem _ c x.2⟩⟩
 
-@[simp] lemma mk_eq_zero {x} (h : x ∈ p) : (⟨x, h⟩ : p) = 0 ↔ x = 0 := subtype.ext
+@[simp] lemma mk_eq_zero {x} (h : x ∈ p) : (⟨x, h⟩ : p) = 0 ↔ x = 0 := subtype.ext_iff_val
 
 variables {p}
-@[simp, norm_cast] lemma coe_eq_coe {x y : p} : (x : M) = y ↔ x = y := subtype.ext.symm
+@[simp, norm_cast] lemma coe_eq_coe {x y : p} : (x : M) = y ↔ x = y := subtype.ext_iff_val.symm
 @[simp, norm_cast] lemma coe_eq_zero {x : p} : (x : M) = 0 ↔ x = 0 := @coe_eq_coe _ _ _ _ _ _ x 0
 @[simp, norm_cast] lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : p) : M) = 0 := rfl

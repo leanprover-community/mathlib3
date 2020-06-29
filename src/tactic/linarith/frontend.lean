@@ -149,7 +149,7 @@ Otherwise returns `none`.
 meta def apply_contr_lemma : tactic (option (expr × expr)) :=
 do t ← target,
    match get_contr_lemma_name_and_type t with
-   | some (nm, tp) := do applyc nm, v ← intro1, return $ some (tp, v)
+   | some (nm, tp) := do refine ((expr.const nm []) pexpr.mk_placeholder), v ← intro1, return $ some (tp, v)
    | none := return none
    end
 

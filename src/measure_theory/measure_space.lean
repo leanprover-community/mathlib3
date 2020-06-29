@@ -646,36 +646,17 @@ have μ.to_outer_measure ≤ Inf (to_outer_measure '' m) :=
   le_Inf $ ball_image_of_ball $ assume μ hμ, to_outer_measure_le.2 $ h _ hμ,
 assume s hs, by rw [Inf_apply hs, ← to_outer_measure_apply]; exact this s
 
-instance : has_Sup (measure α) := ⟨λs, Inf {μ' | ∀μ∈s, μ ≤ μ' }⟩
-private lemma le_Sup (h : μ ∈ m) : μ ≤ Sup m := le_Inf $ assume μ' h', h' _ h
-private lemma Sup_le (h : ∀μ' ∈ m, μ' ≤ μ) : Sup m ≤ μ := Inf_le h
+instance : complete_lattice (measure α) :=
+{ bot := 0,
+  bot_le := assume a s hs, by exact bot_le,
+/- Adding an explicit `top` makes `leanchecker` fail, see lean#364, disable for now
 
-instance : order_bot (measure α) :=
-{ bot := 0, bot_le := assume a s hs, by exact bot_le, .. measure.partial_order }
-
-instance : order_top (measure α) :=
-{ top := (⊤ : outer_measure α).to_measure (by rw [outer_measure.top_caratheodory]; exact le_top),
+  top := (⊤ : outer_measure α).to_measure (by rw [outer_measure.top_caratheodory]; exact le_top),
   le_top := assume a s hs,
     by cases s.eq_empty_or_nonempty with h  h;
       simp [h, to_measure_apply ⊤ _ hs, outer_measure.top_apply],
-  .. measure.partial_order }
-
-instance : complete_lattice (measure α) :=
-{ Inf          := Inf,
-  Sup          := Sup,
-  inf          := λa b, Inf {a, b},
-  sup          := λa b, Sup {a, b},
-  le_Sup       := assume s μ h, le_Sup h,
-  Sup_le       := assume s μ h, Sup_le h,
-  Inf_le       := assume s μ h, Inf_le h,
-  le_Inf       := assume s μ h, le_Inf h,
-  le_sup_left  := assume a b, le_Sup $ by simp,
-  le_sup_right := assume a b, le_Sup $ by simp,
-  sup_le       := assume a b c hac hbc, Sup_le $ by simp [*, or_imp_distrib] {contextual := tt},
-  inf_le_left  := assume a b, Inf_le $ by simp,
-  inf_le_right := assume a b, Inf_le $ by simp,
-  le_inf       := assume a b c hac hbc, le_Inf $ by simp [*, or_imp_distrib] {contextual := tt},
-  .. measure.partial_order, .. measure.order_top, .. measure.order_bot }
+-/
+  .. complete_lattice_of_Inf (measure α) (λ ms, ⟨λ _, Inf_le, λ _, le_Inf⟩) }
 
 end
 

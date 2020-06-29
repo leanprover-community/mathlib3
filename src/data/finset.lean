@@ -861,12 +861,17 @@ theorem filter_filter (s : finset α) :
   (s.filter p).filter q = s.filter (λa, p a ∧ q a) :=
 ext $ assume a, by simp only [mem_filter, and_comm, and.left_comm]
 
-@[simp] lemma filter_true {s : finset α} [h : decidable_pred (λ _, true)] :
+lemma filter_true {s : finset α} [h : decidable_pred (λ _, true)] :
   @finset.filter α (λ _, true) h s = s :=
 by ext; simp
 
 @[simp] theorem filter_false {h} (s : finset α) : @filter α (λa, false) h s = ∅ :=
 ext $ assume a, by simp only [mem_filter, and_false]; refl
+
+/-- If all elements of a `finset` satisfy the predicate `p`, `s.filter
+p` is `s`. -/
+@[simp] lemma filter_true_of_mem {s : finset α} (h : ∀ x ∈ s, p x) : s.filter p = s :=
+ext $ λ x, ⟨λ h, (mem_filter.1 h).1, λ hx, mem_filter.2 ⟨hx, h x hx⟩⟩
 
 lemma filter_congr {s : finset α} (H : ∀ x ∈ s, p x ↔ q x) : filter p s = filter q s :=
 eq_of_veq $ filter_congr H
@@ -1373,6 +1378,43 @@ protected def subtype {α} (p : α → Prop) [decidable_pred p] (s : finset α) 
 @[simp] lemma mem_subtype {p : α → Prop} [decidable_pred p] {s : finset α} :
   ∀{a : subtype p}, a ∈ s.subtype p ↔ a.val ∈ s
 | ⟨a, ha⟩ := by simp [finset.subtype, ha]
+
+/-- `s.subtype p` converts back to `s.filter p` with
+`embedding.subtype`. -/
+@[simp] lemma subtype_map (p : α → Prop) [decidable_pred p] :
+  (s.subtype p).map (function.embedding.subtype _) = s.filter p :=
+begin
+  ext x,
+  rw mem_map,
+  change (∃ a : {x // p x}, ∃ H, a.val = x) ↔ _,
+  split,
+  { rintros ⟨y, hy, hyval⟩,
+    rw [mem_subtype, hyval] at hy,
+    rw mem_filter,
+    use hy,
+    rw ← hyval,
+    use y.property },
+  { intro hx,
+    rw mem_filter at hx,
+    use ⟨⟨x, hx.2⟩, mem_subtype.2 hx.1, rfl⟩ }
+end
+
+/-- If all elements of a `finset` satisfy the predicate `p`,
+`s.subtype p` converts back to `s` with `embedding.subtype`. -/
+lemma subtype_map_of_mem {p : α → Prop} [decidable_pred p] (h : ∀ x ∈ s, p x) :
+  (s.subtype p).map (function.embedding.subtype _) = s :=
+by rw [subtype_map, filter_true_of_mem h]
+
+/-- If a `finset` of a subtype is converted to the main type with
+`embedding.subtype`, the result does not contain any value that does
+not satisfy the property of the subtype. -/
+lemma not_mem_map_subtype_of_not_property {p : α → Prop} (s : finset {x // p x})
+    {a : α} (h : ¬ p a) : a ∉ (s.map (function.embedding.subtype _)) :=
+begin
+  rw mem_map,
+  push_neg,
+  exact λ x, λ hxs hx, h (hx ▸ x.property)
+end
 
 lemma subset_image_iff {f : α → β}
   {s : finset β} {t : set α} : ↑s ⊆ f '' t ↔ ∃s' : finset α, ↑s' ⊆ t ∧ s'.image f = s :=

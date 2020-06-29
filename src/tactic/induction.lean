@@ -143,16 +143,6 @@ def mbor {m} [monad m] (xs : list (m bool)) : m bool := xs.mbany id
 
 def mband {m} [monad m] (xs : list (m bool)) : m bool := xs.mball id
 
-def mfilter_map {m : Type u → Type v} [monad m] {α β} (p : α → m (option β))
-  : list α → m (list β)
-| [] := pure []
-| (a :: as) := do
-  mb ← p a,
-  match mb with
-  | some b := (λ bs, b :: bs) <$> mfilter_map as
-  | none := mfilter_map as
-  end
-
 end list
 
 
@@ -813,7 +803,7 @@ meta def revert_lst'' (hs : name_set) : tactic (ℕ × list expr) := do
   -- of the hypotheses in hs should get reverted. revert_lst can do this for us,
   -- but it doesn't report which hypotheses were actually reverted (only how
   -- many).
-  to_revert ← ctx.mfilter_map $ λ h, do {
+  to_revert ← ctx.mmap_filter $ λ h, do {
     dep_on_reverted ← local_depends_on_locals h hs,
     pure $ if dep_on_reverted then some h else none
   },
@@ -832,7 +822,7 @@ meta def generalize_hyps (eliminee : expr) (fixed : list expr) : tactic (ℕ × 
   fixed_dependencies ←
     name_set.merge_many <$> (eliminee :: fixed).mmap local_dependencies_of_local,
   ctx ← revertible_local_context,
-  to_revert ← ctx.mfilter_map $ λ h, do {
+  to_revert ← ctx.mmap_filter $ λ h, do {
     h_type ← infer_type h,
     let h_name := h.local_uniq_name,
     let rev :=
@@ -1267,7 +1257,7 @@ meta def assign_unassigned_mvar (mv : expr) (pp_name : name)
 
 meta def assign_unassigned_mvars (mvars : list (expr × name × binder_info))
   : tactic (list expr) :=
-mvars.mfilter_map $ λ ⟨mv, pp_name, binfo⟩,
+mvars.mmap_filter $ λ ⟨mv, pp_name, binfo⟩,
   assign_unassigned_mvar mv pp_name binfo
 
 meta def simplify_ih (num_generalized : ℕ) (num_index_vars : ℕ) (ih : expr)

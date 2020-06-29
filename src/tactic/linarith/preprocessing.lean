@@ -74,7 +74,7 @@ infer_type e >>= rearr_comp_aux e
 
 /-- If `e` is of the form `((n : ℕ) : ℤ)`, `is_nat_int_coe e` returns `n : ℕ`. -/
 meta def is_nat_int_coe : expr → option expr
-| `((↑(%%n : ℕ) : ℤ)) := some n
+| `(@coe ℕ ℤ %%_ %%n) := some n
 | _ := none
 
 /-- If `e : ℕ`, returns a proof of `0 ≤ (e : ℤ)`. -/

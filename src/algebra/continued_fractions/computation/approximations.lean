@@ -226,7 +226,7 @@ nat.strong_induction_on n
       mono }}
 end)
 
-/-- Shows that the `n`th denominator is greater or equal than `n + 1`th fibonacci number, that is
+/-- Shows that the `n`th denominator is greater than or equal to the `n + 1`th fibonacci number, that is
 `nat.fib (n + 1) ≤ Bₙ`. -/
 lemma of_succ_nth_fib_le_nth_denom (hyp: n = 0 ∨ ¬(gcf.of v).terminated_at (n - 1)) :
   (fib (n + 1) : K) ≤ (gcf.of v).denominators n :=

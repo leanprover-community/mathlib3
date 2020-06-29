@@ -359,7 +359,7 @@ end
 
 open_locale big_operators
 
-lemma prod_padic_val_nat_one (m : nat) (m_big : 1 < m) :
+lemma prod_padic_val_nat_one (m : nat) :
   ∏ p in finset.filter nat.prime (finset.range m), p ^ padic_val_nat p 1 = 1 :=
 begin
   have all_one : ∀ p, p ^ padic_val_nat p 1 = 1,
@@ -382,7 +382,7 @@ end
 lemma prod_pow_prime_padic_val_nat : ∀ (n : nat) (s : n ≠ 0) (m : nat) (pr : n < m),
   ∏ p in finset.filter nat.prime (finset.range m), pow p (padic_val_nat p n) = n
 | 0 := λ nonzero _ _, by cc
-| 1 := λ _ m pr, prod_padic_val_nat_one m pr
+| 1 := λ _ m _, prod_padic_val_nat_one m
 | (m + 2) :=
   -- Nasty case-splitting at the term level rather than in tactic mode, so that we can prove the
   -- recursion to be well-founded.

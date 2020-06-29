@@ -106,15 +106,6 @@ theorem cast_dvd {α : Type*} [field α] {m n : ℕ} (n_dvd : n ∣ m) (n_nonzer
    rw [nat.cast_mul, mul_div_cancel_left _ n_nonzero],
  end
 
- @[simp, norm_cast]
- theorem cast_dvd_char_zero {α : Type*} [field α] [char_zero α] {m n : ℕ} (n_dvd : n ∣ m) : ((m / n : ℕ) : α) = m / n :=
- begin
-   by_cases hn : n = 0,
-   { subst hn,
-     simp },
-   exact cast_dvd n_dvd (cast_ne_zero.mpr hn),
- end
-
 /-- `coe : ℕ → α` as a `ring_hom` -/
 def cast_ring_hom (α : Type*) [semiring α] : ℕ →+* α :=
 { to_fun := coe,

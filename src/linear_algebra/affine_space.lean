@@ -548,7 +548,7 @@ begin
 end
 
 /-- A point in a set is in its affine span. -/
-lemma affine_span_mem {p : P} {s : set P} (hp : p ∈ s) : p ∈ affine_span k V s :=
+lemma mem_affine_span {p : P} {s : set P} (hp : p ∈ s) : p ∈ affine_span k V s :=
 mem_span_points k V p s hp
 
 end affine_span

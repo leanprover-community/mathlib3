@@ -223,8 +223,8 @@ tc.stateless $ λ ft, do
   lcs ← to_local_collection [] lcs,
   lchs ← lcs.mmap (λ lc, do
     lh ← local_c lc,
-    ns ← pure $ lc.locals.map (λ n, h "span" [cn "goal-hyp b"] [html.of_name $ expr.local_pp_name n]),
-    pure $ h "li" [key lc.key] (ns ++ [" : ", h "span" [cn "goal-hyp-type"] [lh]])),
+    ns ← pure $ lc.locals.map (λ n, h "span" [cn "goal-hyp b pr2"] [html.of_name $ expr.local_pp_name n]),
+    pure $ h "li" [key lc.key] (ns ++ [": ", h "span" [cn "goal-hyp-type"] [lh]])),
   t_comp ← target_c g,
   pure $ h "ul" [key g.hash, className "list pl0 font-code"] $ case_tag ++ lchs ++ [
     h "li" [key u_n] [

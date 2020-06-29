@@ -615,7 +615,7 @@ def subtype_preimage :
   left_inv := λ ⟨x, hx⟩, subtype.val_injective $ funext $ λ a,
     (by { dsimp, split_ifs; [ rw ← hx, skip ]; refl }),
   right_inv := λ x, funext $ λ ⟨a, h⟩,
-    show dite (p a) _ _ = _, by { dsimp, rw [dif_neg h], refl } }
+    show dite (p a) _ _ = _, by { dsimp, rw [dif_neg h] } }
 
 @[simp] lemma subtype_preimage_apply (x : {x : α → β // x ∘ coe = x₀}) :
   subtype_preimage p x₀ x = λ a, (x : α → β) a := rfl
@@ -826,8 +826,8 @@ def subtype_congr {p : α → Prop} {q : β → Prop}
   (e : α ≃ β) (h : ∀ a, p a ↔ q (e a)) : {a : α // p a} ≃ {b : β // q b} :=
 ⟨λ x, ⟨e x.1, (h _).1 x.2⟩,
  λ y, ⟨e.symm y.1, (h _).2 (by { simp, exact y.2 })⟩,
- λ ⟨x, h⟩, subtype.eq' $ by simp,
- λ ⟨y, h⟩, subtype.eq' $ by simp⟩
+ λ ⟨x, h⟩, subtype.ext_val $ by simp,
+ λ ⟨y, h⟩, subtype.ext_val $ by simp⟩
 
 /-- If two predicates `p` and `q` are pointwise equivalent, then `{x // p x}` is equivalent to
 `{x // q x}`. -/
@@ -942,7 +942,7 @@ def subtype_pi_equiv_pi {α : Sort u} {β : α → Sort v} {p : Πa, β a → Pr
   {f : Πa, β a // ∀a, p a (f a) } ≃ Πa, { b : β a // p a b } :=
 ⟨λf a, ⟨f.1 a, f.2 a⟩, λf, ⟨λa, (f a).1, λa, (f a).2⟩,
   by { rintro ⟨f, h⟩, refl },
-  by { rintro f, funext a, exact subtype.eq' rfl }⟩
+  by { rintro f, funext a, exact subtype.ext_val rfl }⟩
 
 /-- A subtype of a product defined by componentwise conditions
 is equivalent to a product of subtypes. -/
@@ -1218,7 +1218,7 @@ def subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid 
     (λ a b hab, hfunext (by rw quotient.sound hab)
     (λ h₁ h₂ _, heq_of_eq (quotient.sound ((h _ _).2 hab)))) a.2,
   inv_fun := λ a, quotient.lift_on a (λ a, (⟨⟦a.1⟧, (hp₂ _).1 a.2⟩ : {x // p₂ x}))
-    (λ a b hab, subtype.eq' (quotient.sound ((h _ _).1 hab))),
+    (λ a b hab, subtype.ext_val (quotient.sound ((h _ _).1 hab))),
   left_inv := λ ⟨a, ha⟩, quotient.induction_on a (λ a ha, rfl) ha,
   right_inv := λ a, quotient.induction_on a (λ ⟨a, ha⟩, rfl) }
 
@@ -1526,7 +1526,7 @@ begin
   by_cases h : i ∈ s,
   { simp only [h, dif_pos],
     have A : e.symm ⟨i, h⟩ = j ↔ i = e j,
-      by { rw equiv.symm_apply_eq, exact subtype.ext },
+      by { rw equiv.symm_apply_eq, exact subtype.ext_iff_val },
     by_cases h' : i = e j,
     { rw [A.2 h', h'], simp },
     { have : ¬ e.symm ⟨i, h⟩ = j, by simpa [← A] using h',

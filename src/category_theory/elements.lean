@@ -51,8 +51,8 @@ instance category_of_elements (F : C ⥤ Type w) : category F.elements :=
 namespace category_of_elements
 
 @[ext]
-lemma ext (F : C ⥤ Type w) {x y : F.elements} {f g : x ⟶ y} (w : f.val = g.val) : f = g :=
-subtype.eq' w
+lemma ext (F : C ⥤ Type w) {x y : F.elements} (f g : x ⟶ y) (w : f.val = g.val) : f = g :=
+subtype.ext_val w
 
 @[simp] lemma comp_val {F : C ⥤ Type w} {p q r : F.elements} {f : p ⟶ q} {g : q ⟶ r} :
   (f ≫ g).val = f.val ≫ g.val := rfl

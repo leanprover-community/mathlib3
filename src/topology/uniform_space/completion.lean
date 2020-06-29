@@ -69,7 +69,7 @@ calc map prod.swap ((𝓤 α).lift' gen) =
   begin
     delta gen,
     simp [map_lift'_eq, monotone_set_of, monotone_mem_sets,
-          function.comp, image_swap_eq_preimage_swap]
+          function.comp, image_swap_eq_preimage_swap, -subtype.val_eq_coe]
   end
   ... ≤ (𝓤 α).lift' gen :
     uniformity_lift_le_swap
@@ -77,7 +77,7 @@ calc map prod.swap ((𝓤 α).lift' gen) =
         @monotone_mem_sets (α×α) ((filter.prod ((p.2).val) ((p.1).val)))))
       begin
         have h := λ(p:Cauchy α×Cauchy α), @filter.prod_comm _ _ (p.2.val) (p.1.val),
-        simp [function.comp, h],
+        simp [function.comp, h, -subtype.val_eq_coe],
         exact le_refl _
       end
 
@@ -149,7 +149,7 @@ lemma uniform_inducing_pure_cauchy : uniform_inducing (pure_cauchy : α → Cauc
       ... = 𝓤 α : by simp [this]⟩
 
 lemma uniform_embedding_pure_cauchy : uniform_embedding (pure_cauchy : α → Cauchy α) :=
-{ inj := assume a₁ a₂ h, pure_injective $ subtype.ext.1 h,
+{ inj := assume a₁ a₂ h, pure_injective $ subtype.ext_iff_val.1 h,
   ..uniform_inducing_pure_cauchy }
 
 lemma pure_cauchy_dense : ∀x, x ∈ closure (range pure_cauchy) :=

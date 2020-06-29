@@ -80,7 +80,7 @@ begin
 end
 
 lemma indicator_preimage (s : set α) (f : α → β) (B : set β) :
-  (indicator s f)⁻¹' B = s ∩ f ⁻¹' B ∪ (-s) ∩ (λa:α, (0:β)) ⁻¹' B :=
+  (indicator s f)⁻¹' B = s ∩ f ⁻¹' B ∪ sᶜ ∩ (λa:α, (0:β)) ⁻¹' B :=
 by { rw [indicator, if_preimage] }
 
 lemma indicator_preimage_of_not_mem (s : set α) (f : α → β) {t : set β} (ht : (0:β) ∉ t) :
@@ -139,7 +139,7 @@ lemma indicator_sub (s : set α) (f g : α → β) :
   indicator s (λa, f a - g a) = λa, indicator s f a - indicator s g a :=
 show indicator s (f - g) = indicator s f - indicator s g, from is_add_group_hom.map_sub _ _ _
 
-lemma indicator_compl (s : set α) (f : α → β) : indicator (-s) f = λ a, f a - indicator s f a :=
+lemma indicator_compl (s : set α) (f : α → β) : indicator sᶜ f = λ a, f a - indicator s f a :=
 begin
   funext,
   simp only [indicator],

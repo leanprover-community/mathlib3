@@ -231,7 +231,7 @@ definition with a limit. In this version we have to take the limit along the sub
 because for `y=x` the slope equals zero due to the convention `0⁻¹=0`. -/
 lemma has_deriv_at_filter_iff_tendsto_slope {x : 𝕜} {L : filter 𝕜} :
   has_deriv_at_filter f f' x L ↔
-    tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (L ⊓ 𝓟 (-{x})) (𝓝 f') :=
+    tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (L ⊓ 𝓟 {x}ᶜ) (𝓝 f') :=
 begin
   conv_lhs { simp only [has_deriv_at_filter_iff_tendsto, (normed_field.norm_inv _).symm,
     (norm_smul _ _).symm, tendsto_zero_iff_norm_tendsto_zero.symm] },
@@ -260,7 +260,7 @@ end
 
 lemma has_deriv_at_iff_tendsto_slope {x : 𝕜} :
   has_deriv_at f f' x ↔
-    tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (nhds_within x (-{x})) (𝓝 f') :=
+    tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (nhds_within x {x}ᶜ) (𝓝 f') :=
 has_deriv_at_filter_iff_tendsto_slope
 
 theorem has_deriv_at_iff_is_o_nhds_zero : has_deriv_at f f' x ↔

@@ -360,10 +360,10 @@ end partial_order
 section linear_order
 variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ : α}
 
-lemma compl_Iic : -(Iic a) = Ioi a := ext $ λ _, not_le
-lemma compl_Ici : -(Ici a) = Iio a := ext $ λ _, not_le
-lemma compl_Iio : -(Iio a) = Ici a := ext $ λ _, not_lt
-lemma compl_Ioi : -(Ioi a) = Iic a := ext $ λ _, not_lt
+lemma compl_Iic : (Iic a)ᶜ = Ioi a := ext $ λ _, not_le
+lemma compl_Ici : (Ici a)ᶜ = Iio a := ext $ λ _, not_le
+lemma compl_Iio : (Iio a)ᶜ = Ici a := ext $ λ _, not_lt
+lemma compl_Ioi : (Ioi a)ᶜ = Iic a := ext $ λ _, not_lt
 
 lemma Ioo_eq_empty_iff [densely_ordered α] : Ioo a b = ∅ ↔ b ≤ a :=
 ⟨λ eq, le_of_not_lt $ λ h,

@@ -344,9 +344,9 @@ by convert m.union _ _; rw inter_union_diff t s
 
 @[simp] private lemma C_empty : C ∅ := by simp [C, m.empty, diff_empty]
 
-private lemma C_compl : C s₁ → C (- s₁) := by simp [C, diff_eq, add_comm]
+private lemma C_compl : C s₁ → C s₁ᶜ := by simp [C, diff_eq, add_comm]
 
-@[simp] private lemma C_compl_iff : C (- s) ↔ C s :=
+@[simp] private lemma C_compl_iff : C sᶜ ↔ C s :=
 ⟨λ h, by simpa using C_compl m h, C_compl⟩
 
 private lemma C_union (h₁ : C s₁) (h₂ : C s₂) : C (s₁ ∪ s₂) :=

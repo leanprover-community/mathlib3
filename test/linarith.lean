@@ -343,3 +343,7 @@ by refine_struct { le := leα }; admit
 
 example (a : α) (ha : a < 2) : a ≤ a :=
 by linarith
+
+example (p q r s t u v w : ℕ) (h1 : p + u = q + t) (h2 : r + w = s + v) :
+  p * r + q * s + (t * w + u * v) = p * s + q * r + (t * v + u * w) :=
+by nlinarith

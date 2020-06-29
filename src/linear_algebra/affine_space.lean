@@ -244,7 +244,7 @@ variables [affine_space k V P] {ι : Type*}
 nontrivial weighted subtractions (where the sum of weights is 0) are
 0. -/
 def affine_independent (p : ι → P) : Prop :=
-∀ (s : finset ι) (w : ι → k) (h : ∑ i in s, w i = 0), s.weighted_vsub V p w = 0 → ∀ i ∈ s, w i = 0
+∀ (s : finset ι) (w : ι → k), ∑ i in s, w i = 0 → s.weighted_vsub V p w = 0 → ∀ i ∈ s, w i = 0
 
 /-- A family with at most one point is affinely independent. -/
 lemma affine_independent_of_subsingleton [subsingleton ι] (p : ι → P) :

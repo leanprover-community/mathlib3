@@ -679,7 +679,7 @@ begin
   rw [dist_eq_norm V (s.affine_combination V w₁ p) (s.affine_combination V w₂ p),
       ←inner_self_eq_norm_square, finset.affine_combination_vsub],
   have h : ∑ i in s, (w₁ - w₂) i = 0,
-  { erw [finset.sum_sub_distrib, h₁, h₂, sub_self] },
+  { simp_rw [pi.sub_apply, finset.sum_sub_distrib, h₁, h₂, sub_self] },
   exact inner_weighted_vsub V p h p h
 end
 

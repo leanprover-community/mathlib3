@@ -399,6 +399,10 @@ begin
     intro H, rw [_root_.add_eq_zero_iff] at H, exact one_ne_zero H.2 }
 end
 
+lemma exists_coeff_ne_zero (p : mv_polynomial σ α) (h : p ≠ 0) :
+  ∃ d, coeff d p ≠ 0 :=
+by { contrapose! h, apply ext, intro d, rw [h d, coeff_zero] }
+
 end coeff
 
 section as_sum

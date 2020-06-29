@@ -586,3 +586,81 @@ begin
 end
 
 end ennreal
+
+/-!
+### Harmonic series
+
+Here we define the harmonic series and prove some basic lemmas about it,
+leading to a proof of its divergence to +∞ -/
+
+/-- The harmonic series `1 + 1/2 + 1/3 + ... + 1/n`-/
+def harmonic_series (n : ℕ) : ℝ :=
+∑ i in range n, 1/(i+1 : ℝ)
+
+lemma mono_harmonic : monotone harmonic_series :=
+begin
+  intros p q hpq,
+  apply sum_le_sum_of_subset_of_nonneg,
+  rwa range_subset,
+  intros x h _,
+  apply le_of_lt,
+  apply one_div_pos_of_pos,
+  norm_cast,
+  exact nat.zero_lt_succ _,
+end
+
+lemma half_le_harmonic_double_sub_harmonic (n : ℕ) (hn : 0 < n) : 1/2 ≤ harmonic_series (2*n) - harmonic_series n :=
+begin
+  suffices : harmonic_series n + 1 / 2 ≤ harmonic_series (n + n),
+    { rw two_mul,
+      linarith },
+    have : harmonic_series n + ∑ k in Ico n (n + n), 1/(k + 1 : ℝ) = harmonic_series (n + n) :=
+      sum_range_add_sum_Ico _ (show n ≤ n+n, by linarith),
+    rw [← this,  add_le_add_iff_left],
+    have : ∑ k in Ico n (n + n), 1/(n+n : ℝ) = 1/2,
+    { have : (n : ℝ) + n ≠ 0,
+      { norm_cast, linarith },
+      rw [sum_const, Ico.card],
+      field_simp [this],
+      ring },
+    rw ← this,
+    apply sum_le_sum,
+    intros x hx,
+    rw one_div_le_one_div,
+    { exact_mod_cast nat.succ_le_of_lt (Ico.mem.mp hx).2 },
+    { norm_cast, linarith },
+    { exact_mod_cast nat.zero_lt_succ x }
+end
+
+lemma harmonic_two_pow_ge_id_div_two (n : ℕ) : (n / 2 : ℝ) ≤ harmonic_series (2^n) :=
+begin
+  induction n with n hn,
+  unfold harmonic_series,
+  simp only [one_div_eq_inv, nat.cast_zero, euclidean_domain.zero_div, nat.cast_succ, sum_singleton, inv_one, zero_add, nat.pow_zero, range_one],
+  linarith,
+  have : harmonic_series (2^n) + 1 / 2 ≤ harmonic_series (2^(n+1)),
+  { have := half_le_harmonic_double_sub_harmonic (2^n) (by {apply nat.pow_pos, linarith}),
+    rw [nat.mul_comm, ← nat.pow_succ] at this,
+    linarith},
+  apply le_trans _ this,
+  rw (show (n.succ / 2 : ℝ) = (n/2 : ℝ) + (1/2), by {field_simp}),
+  linarith,
+end
+
+lemma harmonic_two_pow_ge_id_div_two' : (λ n : ℕ, (n/2 : ℝ)) ≤ (λ n : ℕ, harmonic_series (2^n)) :=
+begin
+  intros n,
+  simp only [harmonic_two_pow_ge_id_div_two],
+end
+
+/-- The harmonic series diverges to +∞ -/
+theorem harmonic_tendsto_at_top : tendsto harmonic_series at_top at_top :=
+begin
+  suffices : tendsto (λ n : ℕ, harmonic_series (2^n)) at_top at_top, by
+  { apply tendsto_at_top_of_monotone_of_subseq mono_harmonic this},
+  apply tendsto_at_top_mono,
+  exact harmonic_two_pow_ge_id_div_two',
+  apply tendsto_at_top_div,
+  linarith,
+  exact tendsto_coe_nat_real_at_top_at_top,
+end

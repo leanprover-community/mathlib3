@@ -1831,3 +1831,31 @@ begin
       have : ∀ b, f b < a' ↔ f b - a < ε, by { intro b, simp [lt_sub_iff_add_lt] },
       simpa only [this] }}
 end
+
+lemma tendsto_at_top_supr_of_bdd {ι  : Type*} [nonempty ι] [semilattice_sup ι]
+  {α : Type*} [topological_space α] [conditionally_complete_linear_order α] [order_topology α]
+  {f : ι → α} (h_mono : monotone f) (hbdd : bdd_above $ range f) : tendsto f at_top (𝓝 (⨆i, f i)) :=
+begin
+  rw tendsto_order,
+  split,
+  { intros a h,
+    rw eventually_at_top,
+    cases exists_lt_of_lt_csupr h with N hN,
+    exact ⟨N, λ i hi, lt_of_lt_of_le hN (h_mono hi)⟩ },
+  { intros a h,
+    apply univ_mem_sets',
+    intros n,
+    exact lt_of_le_of_lt (le_csupr hbdd n) h },
+end
+
+lemma tendsto_of_monotone {ι  : Type*} [nonempty ι] [semilattice_sup ι]
+  {α : Type*} [topological_space α] [conditionally_complete_linear_order α] [order_topology α]
+  {f : ι → α} (h_mono : monotone f) : tendsto f at_top at_top ∨ (∃ l, tendsto f at_top (𝓝 l)) :=
+begin
+  classical,
+  by_cases H : bdd_above (range f),
+  { right,
+    exact ⟨supr f, tendsto_at_top_supr_of_bdd h_mono H⟩ },
+  { left,
+    exact tendsto_at_top_of_monotone h_mono H },
+end

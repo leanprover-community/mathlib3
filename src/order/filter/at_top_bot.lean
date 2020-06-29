@@ -448,5 +448,42 @@ map_at_top_eq_of_gc (λb, b * k + (k - 1)) 1
     calc b = (b * k) / k : by rw [nat.mul_div_cancel b hk]
       ... ≤ (b * k + (k - 1)) / k : nat.div_le_div_right $ nat.le_add_right _ _)
 
+lemma tendsto_at_top_of_monotone {ι  : Type*} [nonempty ι] [semilattice_sup ι]
+  {α : Type*} [linear_order α] {u : ι → α}
+  (h : monotone u) (H : ¬bdd_above (range u)) : tendsto u at_top at_top :=
+begin
+    rw tendsto_at_top,
+    intro b,
+    rw mem_at_top_sets,
+    rw not_bdd_above_iff at H,
+    rcases H b with ⟨_, ⟨N, rfl⟩, hN⟩,
+    exact ⟨N, λ n hn, le_of_lt (lt_of_lt_of_le hN $ h hn)⟩,
+end
+
+lemma unbounded_of_tendsto_at_top {α β : Type*} [nonempty α] [semilattice_sup α]
+  [preorder β] [no_top_order β]
+  {f : α → β} (h : tendsto f at_top at_top) : ¬ bdd_above (range f) :=
+begin
+  rintros ⟨M, hM⟩,
+  rw tendsto_at_top at h,
+  cases no_top M with M' hMM',
+  cases mem_at_top_sets.mp (h M') with a ha,
+  apply lt_irrefl M,
+  calc
+  M < M' : hMM'
+  ... ≤ f a : ha a (le_refl _)
+  ... ≤ M : hM (set.mem_range_self a)
+end
+
+lemma tendsto_at_top_of_monotone_of_subseq {ι  : Type*} [nonempty ι] [semilattice_sup ι]
+  {α : Type*} [linear_order α] [no_top_order α] {u : ι → α}
+  {φ : ι → ι} (h : monotone u) (H : tendsto (u ∘ φ) at_top at_top) : tendsto u at_top at_top :=
+begin
+  apply tendsto_at_top_of_monotone h,
+  suffices : ¬ bdd_above (range $ u ∘ φ),
+  { contrapose! this,
+    exact bdd_above.mono (range_comp_subset_range φ u) this },
+  exact unbounded_of_tendsto_at_top H,
+end
 
 end filter

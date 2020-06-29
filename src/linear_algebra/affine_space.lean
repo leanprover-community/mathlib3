@@ -78,7 +78,7 @@ lemma mem_span_points (p : P) (s : set P) : p ∈ s → p ∈ span_points k V s
 | hp := ⟨p, hp, 0, submodule.zero_mem _, (zero_vadd V p).symm⟩
 
 /-- A set is contained in its `span_points`. -/
-lemma span_points_mono (s : set P) : s ⊆ span_points k V s :=
+lemma subset_span_points (s : set P) : s ⊆ span_points k V s :=
 λ p, mem_span_points k V p s
 
 /-- The set of points in the affine span of a nonempty set of points

@@ -35,7 +35,7 @@ begin
         ≤ ∥((x⁻¹:units α):α)∥ * ∥(x:α) - y∥           : norm_mul_le x.inv _
     ... = ∥((x⁻¹:units α):α)∥ * ∥y - x∥               : by rw [←neg_sub, norm_neg]
     ... < ∥((x⁻¹:units α):α)∥ * ∥((x⁻¹:units α):α)∥⁻¹ : by nlinarith [h, hpos]
-    ... = 1                                          : mul_inv_cancel (by linarith [hpos]) },
+    ... = 1                                           : mul_inv_cancel (by linarith [hpos]) },
   use x * (perturbation_unit _ hrad),
   unfold perturbation_unit,
   noncomm_ring, simp,

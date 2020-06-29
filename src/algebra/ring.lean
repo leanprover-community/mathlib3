@@ -6,6 +6,7 @@ Neil Strickland
 -/
 import algebra.group.hom
 import algebra.group.units
+import algebra.group_with_zero
 import tactic.alias
 import tactic.norm_cast
 import tactic.split_ifs
@@ -54,48 +55,20 @@ variables {α : Type u} {β : Type v} {γ : Type w} {R : Type x}
 set_option default_priority 100 -- see Note [default priority]
 set_option old_structure_cmd true
 
-mk_simp_attribute field_simps "The simpset `field_simps` is used by the tactic `field_simp` to
-reduce an expression in a field to an expression of the form `n / d` where `n` and `d` are
-division-free."
-
 @[protect_proj, ancestor has_mul has_add]
-class distrib (α : Type u) extends has_mul α, has_add α :=
-(left_distrib : ∀ a b c : α, a * (b + c) = (a * b) + (a * c))
-(right_distrib : ∀ a b c : α, (a + b) * c = (a * c) + (b * c))
+class distrib (R : Type*) extends has_mul R, has_add R :=
+(left_distrib : ∀ a b c : R, a * (b + c) = (a * b) + (a * c))
+(right_distrib : ∀ a b c : R, (a + b) * c = (a * c) + (b * c))
 
-lemma left_distrib [distrib α] (a b c : α) : a * (b + c) = a * b + a * c :=
+lemma left_distrib [distrib R] (a b c : R) : a * (b + c) = a * b + a * c :=
 distrib.left_distrib a b c
 
 alias left_distrib ← mul_add
 
-lemma right_distrib [distrib α] (a b c : α) : (a + b) * c = a * c + b * c :=
+lemma right_distrib [distrib R] (a b c : R) : (a + b) * c = a * c + b * c :=
 distrib.right_distrib a b c
 
 alias right_distrib ← add_mul
-
-@[protect_proj, ancestor has_mul has_zero]
-class mul_zero_class (α : Type u) extends has_mul α, has_zero α :=
-(zero_mul : ∀ a : α, 0 * a = 0)
-(mul_zero : ∀ a : α, a * 0 = 0)
-
-@[ematch, simp] lemma zero_mul [mul_zero_class α] (a : α) : 0 * a = 0 :=
-mul_zero_class.zero_mul a
-
-@[ematch, simp] lemma mul_zero [mul_zero_class α] (a : α) : a * 0 = 0 :=
-mul_zero_class.mul_zero a
-
-/-- Predicate typeclass for expressing that a (semi)ring or similar algebraic structure
-is nonzero. -/
-@[protect_proj] class nonzero (α : Type u) [has_zero α] [has_one α] : Prop :=
-(zero_ne_one : 0 ≠ (1:α))
-
-@[simp]
-lemma zero_ne_one [has_zero α] [has_one α] [nonzero α] : 0 ≠ (1:α) :=
-nonzero.zero_ne_one
-
-@[simp]
-lemma one_ne_zero [has_zero α] [has_one α] [nonzero α] : (1:α) ≠ 0 :=
-zero_ne_one.symm
 
 /-!
 ### Semirings
@@ -727,55 +700,6 @@ lemma units.coe_ne_zero [semiring α] [nonzero α] (u : units α) : (u : α) ≠
 theorem nonzero.of_ne [semiring α] {x y : α} (h : x ≠ y) : nonzero α :=
 { zero_ne_one := λ h01, h $ by rw [← one_mul x, ← one_mul y, ← h01, zero_mul, zero_mul] }
 
-@[protect_proj] class no_zero_divisors (α : Type u) [has_mul α] [has_zero α] : Prop :=
-(eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)
-
-lemma eq_zero_or_eq_zero_of_mul_eq_zero [has_mul α] [has_zero α] [no_zero_divisors α]
-  {a b : α} (h : a * b = 0) : a = 0 ∨ b = 0 :=
-no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero a b h
-
-lemma eq_zero_of_mul_self_eq_zero [has_mul α] [has_zero α] [no_zero_divisors α]
-  {a : α} (h : a * a = 0) : a = 0 :=
-or.elim (eq_zero_or_eq_zero_of_mul_eq_zero h) (assume h', h') (assume h', h')
-
-section
-
-variables [mul_zero_class α] [no_zero_divisors α]
-
-/-- If `α` has no zero divisors, then the product of two elements equals zero iff one of them
-equals zero. -/
-@[simp] theorem mul_eq_zero {a b : α} : a * b = 0 ↔ a = 0 ∨ b = 0 :=
-⟨eq_zero_or_eq_zero_of_mul_eq_zero, λo,
-  or.elim o (λh, by rw h; apply zero_mul) (λh, by rw h; apply mul_zero)⟩
-
-/-- If `α` has no zero divisors, then the product of two elements equals zero iff one of them
-equals zero. -/
-@[simp] theorem zero_eq_mul {a b : α} : 0 = a * b ↔ a = 0 ∨ b = 0 :=
-by rw [eq_comm, mul_eq_zero]
-
-/-- If `α` has no zero divisors, then the product of two elements is nonzero iff both of them
-are nonzero. -/
-theorem mul_ne_zero_iff {a b : α} : a * b ≠ 0 ↔ a ≠ 0 ∧ b ≠ 0 :=
-(not_congr mul_eq_zero).trans not_or_distrib
-
-theorem mul_ne_zero {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) : a * b ≠ 0 :=
-mul_ne_zero_iff.2 ⟨ha, hb⟩
-
-/-- If `α` has no zero divisors, then for elements `a, b : α`, `a * b` equals zero iff so is
-`b * a`. -/
-theorem mul_eq_zero_comm {a b : α} : a * b = 0 ↔ b * a = 0 :=
-mul_eq_zero.trans $ (or_comm _ _).trans mul_eq_zero.symm
-
-/-- If `α` has no zero divisors, then for elements `a, b : α`, `a * b` is nonzero iff so is
-`b * a`. -/
-theorem mul_ne_zero_comm {a b : α} : a * b ≠ 0 ↔ b * a ≠ 0 :=
-not_congr mul_eq_zero_comm
-
-lemma mul_self_eq_zero {x : α} : x * x = 0 ↔ x = 0 := by simp
-lemma zero_eq_mul_self {x : α} : 0 = x * x ↔ x = 0 := by simp
-
-end
-
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
   is an integral domain without assuming commutativity of multiplication. -/
@@ -971,14 +895,6 @@ by simp only [semiconj_by, left_distrib, right_distrib, h.eq, h'.eq]
   semiconj_by (a + b) x y :=
 by simp only [semiconj_by, left_distrib, right_distrib, ha.eq, hb.eq]
 
-@[simp] lemma zero_right [mul_zero_class R] (a : R) :
-  semiconj_by a 0 0 :=
-by simp only [semiconj_by, mul_zero, zero_mul]
-
-@[simp] lemma zero_left [mul_zero_class R] (x y : R) :
-  semiconj_by 0 x y :=
-by simp only [semiconj_by, mul_zero, zero_mul]
-
 variables [ring R] {a b x y x' y' : R}
 
 lemma neg_right (h : semiconj_by a x y) : semiconj_by a (-x) (-y) :=
@@ -1018,9 +934,6 @@ semiconj_by.add_right
 @[simp] theorem add_left [distrib R] {a b c : R} :
   commute a c → commute b c → commute (a + b) c :=
 semiconj_by.add_left
-
-@[simp] theorem zero_right [mul_zero_class R] (a : R) :commute a 0 := semiconj_by.zero_right a
-@[simp] theorem zero_left [mul_zero_class R] (a : R) : commute 0 a := semiconj_by.zero_left a a
 
 variables [ring R] {a b c : R}
 

@@ -1402,6 +1402,8 @@ def card (s : finset α) : nat := s.1.card
 
 theorem card_def (s : finset α) : s.card = s.1.card := rfl
 
+@[simp] lemma card_mk {m nodup} : (⟨m, nodup⟩ : finset α).card = m.card := rfl
+
 @[simp] theorem card_empty : card (∅ : finset α) = 0 := rfl
 
 @[simp] theorem card_eq_zero {s : finset α} : card s = 0 ↔ s = ∅ :=
@@ -2972,20 +2974,20 @@ namespace nat
 /-- The antidiagonal of a natural number `n` is
     the finset of pairs `(i,j)` such that `i+j = n`. -/
 def antidiagonal (n : ℕ) : finset (ℕ × ℕ) :=
-(multiset.nat.antidiagonal n).to_finset
+⟨multiset.nat.antidiagonal n, multiset.nat.nodup_antidiagonal n⟩
 
 /-- A pair (i,j) is contained in the antidiagonal of `n` if and only if `i+j=n`. -/
 @[simp] lemma mem_antidiagonal {n : ℕ} {x : ℕ × ℕ} :
   x ∈ antidiagonal n ↔ x.1 + x.2 = n :=
-by rw [antidiagonal, multiset.mem_to_finset, multiset.nat.mem_antidiagonal]
+by rw [antidiagonal, finset.mem_def, multiset.nat.mem_antidiagonal]
 
 /-- The cardinality of the antidiagonal of `n` is `n+1`. -/
 @[simp] lemma card_antidiagonal (n : ℕ) : (antidiagonal n).card = n+1 :=
-by simpa using list.to_finset_card_of_nodup (list.nat.nodup_antidiagonal n)
+by simp [antidiagonal]
 
 /-- The antidiagonal of `0` is the list `[(0,0)]` -/
 @[simp] lemma antidiagonal_zero : antidiagonal 0 = {(0, 0)} :=
-by { rw [antidiagonal, multiset.nat.antidiagonal_zero], refl }
+rfl
 
 end nat
 

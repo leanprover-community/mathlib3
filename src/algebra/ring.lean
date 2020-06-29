@@ -158,6 +158,14 @@ by simp
   (if P then 1 else 0) * a = if P then a else 0 :=
 by simp
 
+lemma ite_mul_zero_left {α : Type*} [mul_zero_class α] (P : Prop) [decidable P] (a b : α) :
+  ite P (a * b) 0 = ite P a 0 * b :=
+by { by_cases h : P; simp [h], }
+
+lemma ite_mul_zero_right {α : Type*} [mul_zero_class α] (P : Prop) [decidable P] (a b : α) :
+  ite P (a * b) 0 = a * ite P b 0 :=
+by { by_cases h : P; simp [h], }
+
 variable (α)
 
 /-- Either zero and one are nonequal in a semiring, or the semiring is the zero ring. -/

@@ -68,6 +68,23 @@ lemma mem_or_mem_of_ultrafilter {s t : set α} (hf : is_ultrafilter f) (h : s �
 (mem_or_compl_mem_of_ultrafilter hf s).imp_right
   (assume : ∁s ∈ f, by filter_upwards [this, h] assume x hnx hx, hx.resolve_left hnx)
 
+lemma is_ultrafilter.em (hf : is_ultrafilter f) (p : α → Prop) :
+  (∀ᶠ x in f, p x) ∨ ∀ᶠ x in f, ¬p x :=
+mem_or_compl_mem_of_ultrafilter hf {x | p x}
+
+lemma is_ultrafilter.eventually_or (hf : is_ultrafilter f) {p q : α → Prop} :
+  (∀ᶠ x in f, p x ∨ q x) ↔ (∀ᶠ x in f, p x) ∨ ∀ᶠ x in f, q x :=
+⟨mem_or_mem_of_ultrafilter hf, λ H, H.elim (λ hp, hp.mono $ λ x, or.inl)
+  (λ hp, hp.mono $ λ x, or.inr)⟩
+
+lemma is_ultrafilter.eventually_not (hf : is_ultrafilter f) {p : α → Prop} :
+  (∀ᶠ x in f, ¬p x) ↔ ¬∀ᶠ x in f, p x :=
+ultrafilter_iff_compl_mem_iff_not_mem.1 hf {x | p x}
+
+lemma is_ultrafilter.eventually_imp (hf : is_ultrafilter f) {p q : α → Prop} :
+  (∀ᶠ x in f, p x → q x) ↔ (∀ᶠ x in f, p x) → ∀ᶠ x in f, q x :=
+by simp only [imp_iff_not_or, hf.eventually_or, hf.eventually_not]
+
 lemma mem_of_finite_sUnion_ultrafilter {s : set (set α)} (hf : is_ultrafilter f) (hs : finite s)
   : ⋃₀ s ∈ f → ∃t∈s, t ∈ f :=
 finite.induction_on hs (by simp only [empty_in_sets_eq_bot, hf.left, mem_empty_eq, sUnion_empty,
@@ -214,6 +231,12 @@ ultrafilter_of_le
 
 lemma is_ultrafilter_hyperfilter [infinite α] : is_ultrafilter (@hyperfilter α) :=
 (ultrafilter_of_spec cofinite_ne_bot).2
+
+@[simp] lemma hyperfilter_ne_bot [infinite α] : @hyperfilter α ≠ ⊥ :=
+is_ultrafilter_hyperfilter.1
+
+@[simp] lemma bot_ne_hyperfilter [infinite α] : ⊥ ≠ @hyperfilter α :=
+is_ultrafilter_hyperfilter.1.symm
 
 theorem nmem_hyperfilter_of_finite [infinite α] {s : set α} (hf : s.finite) :
   s ∉ @hyperfilter α :=

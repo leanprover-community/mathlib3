@@ -141,6 +141,18 @@ lemma prod_empty {α : Type u} {f : α → β} : (∏ x in (∅:finset α), f x)
 lemma prod_insert [decidable_eq α] :
   a ∉ s → (∏ x in (insert a s), f x) = f a * ∏ x in s, f x := fold_insert
 
+/-- If a function applied at a point is 1, a product is unchanged by
+adding that point, whether or not present, to a `finset`. -/
+@[simp, to_additive "If a function applied at a point is 0, a sum is unchanged by
+adding that point, whether or not present, to a `finset`."]
+lemma prod_insert_one [decidable_eq α] (h : f a = 1) :
+  ∏ x in insert a s, f x = ∏ x in s, f x :=
+begin
+  by_cases hm : a ∈ s,
+  { simp_rw insert_eq_of_mem hm },
+  { rw [prod_insert hm, h, one_mul] },
+end
+
 @[simp, to_additive]
 lemma prod_singleton : (∏ x in (singleton a), f x) = f a :=
 eq.trans fold_singleton $ mul_one _
@@ -338,6 +350,39 @@ by haveI := classical.dec_eq α; exact
   calc (∏ x in s.attach, f x.val) = (∏ x in (s.attach).image subtype.val, f x) :
     by rw [prod_image]; exact assume x _ y _, subtype.eq
   ... = _ : by rw [attach_image_val]
+
+/-- A product over `s.subtype p` equals one over `s.filter p`. -/
+@[simp, to_additive "A sum over `s.subtype p` equals one over `s.filter p`."]
+lemma prod_subtype_eq_prod_filter (f : α → β) {p : α → Prop} [decidable_pred p] :
+  ∏ x in s.subtype p, f x = ∏ x in s.filter p, f x :=
+begin
+  conv_lhs {
+    erw ←prod_map (s.subtype p) (function.embedding.subtype _) f
+  },
+  exact prod_congr (subtype_map _) (λ x hx, rfl)
+end
+
+/-- If all elements of a `finset` satisfy the predicate `p`, a product
+over `s.subtype p` equals that product over `s`. -/
+@[to_additive "If all elements of a `finset` satisfy the predicate `p`, a sum
+over `s.subtype p` equals that sum over `s`."]
+lemma prod_subtype_of_mem (f : α → β) {p : α → Prop} [decidable_pred p]
+    (h : ∀ x ∈ s, p x) : ∏ x in s.subtype p, f x = ∏ x in s, f x :=
+by simp_rw [prod_subtype_eq_prod_filter, filter_true_of_mem h]
+
+/-- A product of a function over a `finset` in a subtype equals a
+product in the main type of a function that agrees with the first
+function on that `finset`. -/
+@[to_additive "A sum of a function over a `finset` in a subtype equals a
+sum in the main type of a function that agrees with the first
+function on that `finset`."]
+lemma prod_subtype_map_embedding {p : α → Prop} {s : finset {x // p x}} {f : {x // p x} → β}
+    {g : α → β} (h : ∀ x : {x // p x}, x ∈ s → g x = f x) :
+  ∏ x in s.map (function.embedding.subtype _), g x = ∏ x in s, f x :=
+begin
+  rw finset.prod_map,
+  exact finset.prod_congr rfl h
+end
 
 @[to_additive]
 lemma prod_eq_one {f : α → β} {s : finset α} (h : ∀x∈s, f x = 1) : (∏ x in s, f x) = 1 :=

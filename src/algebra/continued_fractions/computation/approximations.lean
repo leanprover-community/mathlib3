@@ -56,13 +56,13 @@ begin
 end
 
 /-- Shows that the fractional parts of the stream are nonnegative. -/
-lemma fr_nonneg {ifp_n : int_fract_pair K}
+lemma nth_stream_fr_nonneg {ifp_n : int_fract_pair K}
   (nth_stream_eq : int_fract_pair.stream v n = some ifp_n) :
   0 ≤ ifp_n.fr :=
 (nth_stream_fr_nonneg_lt_one nth_stream_eq).left
 
 /-- Shows that the fractional parts of the stream smaller than one. -/
-lemma fr_lt_one {ifp_n : int_fract_pair K}
+lemma nth_stream_fr_lt_one {ifp_n : int_fract_pair K}
   (nth_stream_eq : int_fract_pair.stream v n = some ifp_n) :
   ifp_n.fr < 1 :=
 (nth_stream_fr_nonneg_lt_one nth_stream_eq).right
@@ -72,19 +72,18 @@ lemma one_le_succ_nth_stream_b {ifp_succ_n : int_fract_pair K}
   (succ_nth_stream_eq : int_fract_pair.stream v (n + 1) = some ifp_succ_n) :
   1 ≤ ifp_succ_n.b :=
 begin
-  obtain ⟨ifp_n, nth_stream_eq, stream_nth_fr_ne_zero, ⟨refl⟩⟩ :
+  obtain ⟨ifp_n, nth_stream_eq, stream_nth_fr_ne_zero, ⟨_⟩⟩ :
     ∃ ifp_n, int_fract_pair.stream v n = some ifp_n ∧ ifp_n.fr ≠ 0
     ∧ int_fract_pair.of ifp_n.fr⁻¹ = ifp_succ_n, from
       succ_nth_stream_eq_some_iff.elim_left succ_nth_stream_eq,
   change 1 ≤ ⌊ifp_n.fr⁻¹⌋,
   suffices : 1 ≤ ifp_n.fr⁻¹, by { rw_mod_cast [le_floor], assumption },
-  have : 0 ≤ ifp_n.fr ∧ ifp_n.fr < 1, from nth_stream_fr_nonneg_lt_one nth_stream_eq,
-  cases this with ifp_n_fract_nonneg ifp_n_fract_lt_one,
   suffices : 1 * ifp_n.fr ≤ 1, by
   { rw inv_eq_one_div,
-    have : 0 < ifp_n.fr, from lt_of_le_of_ne ifp_n_fract_nonneg stream_nth_fr_ne_zero.symm,
+    have : 0 < ifp_n.fr, from
+      lt_of_le_of_ne (nth_stream_fr_nonneg nth_stream_eq) stream_nth_fr_ne_zero.symm,
     solve_by_elim [le_div_of_mul_le], },
-  simp [(le_of_lt ifp_n_fract_lt_one)]
+  simp [(le_of_lt (nth_stream_fr_lt_one nth_stream_eq))]
 end
 
 /--
@@ -120,7 +119,7 @@ lemma of_one_le_nth_part_denom {b : K}
   (nth_part_denom_eq : (gcf.of v).partial_denominators.nth n = some b) :
   1 ≤ b :=
 begin
-  obtain ⟨gp_n,  nth_s_eq, ⟨refl⟩⟩ : ∃ gp_n, (gcf.of v).s.nth n = some gp_n ∧ gp_n.b = b, from
+  obtain ⟨gp_n,  nth_s_eq, ⟨_⟩⟩ : ∃ gp_n, (gcf.of v).s.nth n = some gp_n ∧ gp_n.b = b, from
     obtain_s_b_of_part_denom nth_part_denom_eq,
   obtain ⟨ifp_n, succ_nth_stream_eq, ifp_n_b_eq_gp_n_b⟩ :
     ∃ ifp, int_fract_pair.stream v (n + 1) = some ifp ∧ (ifp.b : K) = gp_n.b, from
@@ -183,51 +182,49 @@ open nat
 lemma of_fib_le_continuants_aux_b : (n ≤ 1 ∨ ¬(gcf.of v).terminated_at (n - 2)) →
   (fib n : K) ≤ ((gcf.of v).continuants_aux n).b :=
 nat.strong_induction_on n
-(begin
+begin
   clear n,
   assume n IH hyp,
-  cases n with n',
-  case nat.zero { simp [fib_succ_succ, continuants_aux] },
-  case nat.succ
-  { cases n' with n'',
-    { simp [fib_succ_succ, continuants_aux] }, -- case n = 1
-    { let g := gcf.of v,  -- case 2 ≤ n
-      have : ¬(n'' + 2 ≤ 1), by linarith,
-      have not_terminated_at_n'' : ¬g.terminated_at n'', from or.resolve_left hyp this,
-      obtain ⟨gp, s_ppred_nth_eq⟩ : ∃ gp, g.s.nth n'' = some gp, from
-        with_one.ne_one_iff_exists.elim_left not_terminated_at_n'',
-      set pconts := g.continuants_aux (n'' + 1) with pconts_eq,
-      set ppconts := g.continuants_aux n'' with ppconts_eq,
-      -- use the recurrence of continuants_aux
-      suffices : (fib n'' : K) + fib (n'' + 1) ≤ gp.a * ppconts.b + gp.b * pconts.b, by
-        simpa [fib_succ_succ, add_comm,
-          (continuants_aux_recurrence s_ppred_nth_eq ppconts_eq pconts_eq)],
-      -- make use of the fact that gp.a = 1
-      suffices : (fib n'' : K) + fib (n'' + 1) ≤ ppconts.b + gp.b * pconts.b, by
-        simpa [(of_part_num_eq_one $ part_num_eq_s_a s_ppred_nth_eq)],
-      have not_terminated_at_pred_n'' : ¬g.terminated_at (n'' - 1), from
-        mt (terminated_stable $ nat.sub_le n'' 1) not_terminated_at_n'',
-      have not_termianted_at_ppred_n'' : ¬terminated_at g (n'' - 2), from
-        mt (terminated_stable (n'' - 1).pred_le) not_terminated_at_pred_n'',
-      -- use the IH to get the inequalities for `pconts` and `ppconts`
-      have : (fib (n'' + 1) : K) ≤ pconts.b, from
-        IH _ (nat.lt.base $ n'' + 1) (or.inr not_terminated_at_pred_n''),
-      have ppred_nth_fib_le_ppconts_B : (fib n'' : K) ≤ ppconts.b, from
-        IH n'' (lt_trans (nat.lt.base n'') $ nat.lt.base $ n'' + 1)
-        (or.inr not_termianted_at_ppred_n''),
-      suffices : (fib (n'' + 1) : K) ≤ gp.b * pconts.b,
-        solve_by_elim [(add_le_add ppred_nth_fib_le_ppconts_B)],
-      -- finally use the fact that 1 ≤ gp.b to solve the goal
-      suffices : 1 * (fib (n'' + 1) : K) ≤ gp.b * pconts.b, by rwa [one_mul] at this,
-      have one_le_gp_b : (1 : K) ≤ gp.b, from
-        of_one_le_nth_part_denom (part_denom_eq_s_b s_ppred_nth_eq),
-      have : (0 : K) ≤ fib (n'' + 1), by exact_mod_cast (fib (n'' + 1)).zero_le,
-      have : (0 : K) ≤ gp.b, from le_trans zero_le_one one_le_gp_b,
-      mono }}
-end)
+  rcases n with _|_|n,
+  { simp [fib_succ_succ, continuants_aux] }, -- case n = 0
+  { simp [fib_succ_succ, continuants_aux] }, -- case n = 1
+  { let g := gcf.of v,  -- case 2 ≤ n
+    have : ¬(n + 2 ≤ 1), by linarith,
+    have not_terminated_at_n : ¬g.terminated_at n, from or.resolve_left hyp this,
+    obtain ⟨gp, s_ppred_nth_eq⟩ : ∃ gp, g.s.nth n = some gp, from
+      with_one.ne_one_iff_exists.elim_left not_terminated_at_n,
+    set pconts := g.continuants_aux (n + 1) with pconts_eq,
+    set ppconts := g.continuants_aux n with ppconts_eq,
+    -- use the recurrence of continuants_aux
+    suffices : (fib n : K) + fib (n + 1) ≤ gp.a * ppconts.b + gp.b * pconts.b, by
+      simpa [fib_succ_succ, add_comm,
+        (continuants_aux_recurrence s_ppred_nth_eq ppconts_eq pconts_eq)],
+    -- make use of the fact that gp.a = 1
+    suffices : (fib n : K) + fib (n + 1) ≤ ppconts.b + gp.b * pconts.b, by
+      simpa [(of_part_num_eq_one $ part_num_eq_s_a s_ppred_nth_eq)],
+    have not_terminated_at_pred_n : ¬g.terminated_at (n - 1), from
+      mt (terminated_stable $ nat.sub_le n 1) not_terminated_at_n,
+    have not_terminated_at_ppred_n : ¬terminated_at g (n - 2), from
+      mt (terminated_stable (n - 1).pred_le) not_terminated_at_pred_n,
+    -- use the IH to get the inequalities for `pconts` and `ppconts`
+    have : (fib (n + 1) : K) ≤ pconts.b, from
+      IH _ (nat.lt.base $ n + 1) (or.inr not_terminated_at_pred_n),
+    have ppred_nth_fib_le_ppconts_B : (fib n : K) ≤ ppconts.b, from
+      IH n (lt_trans (nat.lt.base n) $ nat.lt.base $ n + 1)
+      (or.inr not_terminated_at_ppred_n),
+    suffices : (fib (n + 1) : K) ≤ gp.b * pconts.b,
+      solve_by_elim [(add_le_add ppred_nth_fib_le_ppconts_B)],
+    -- finally use the fact that 1 ≤ gp.b to solve the goal
+    suffices : 1 * (fib (n + 1) : K) ≤ gp.b * pconts.b, by rwa [one_mul] at this,
+    have one_le_gp_b : (1 : K) ≤ gp.b, from
+      of_one_le_nth_part_denom (part_denom_eq_s_b s_ppred_nth_eq),
+    have : (0 : K) ≤ fib (n + 1), by exact_mod_cast (fib (n + 1)).zero_le,
+    have : (0 : K) ≤ gp.b, from le_trans zero_le_one one_le_gp_b,
+    mono }
+end
 
-/-- Shows that the `n`th denominator is greater than or equal to the `n + 1`th fibonacci number, that is
-`nat.fib (n + 1) ≤ Bₙ`. -/
+/-- Shows that the `n`th denominator is greater than or equal to the `n + 1`th fibonacci number,
+that is `nat.fib (n + 1) ≤ Bₙ`. -/
 lemma of_succ_nth_fib_le_nth_denom (hyp: n = 0 ∨ ¬(gcf.of v).terminated_at (n - 1)) :
   (fib (n + 1) : K) ≤ (gcf.of v).denominators n :=
 begin
@@ -235,7 +232,7 @@ begin
   have : (n + 1) ≤ 1 ∨ ¬(gcf.of v).terminated_at (n - 1), by
   { cases n,
     case nat.zero : { exact (or.inl $ le_refl 1) },
-    case nat.succ : { exact or.inr (or.resolve_left hyp n.succ_ne_zero) }},
+    case nat.succ : { exact or.inr (or.resolve_left hyp n.succ_ne_zero) } },
   exact (of_fib_le_continuants_aux_b this)
 end
 
@@ -244,7 +241,7 @@ lemma of_le_succ_succ_nth_continuants_aux_b {b : K}
   b * ((gcf.of v).continuants_aux $ n + 1).b ≤ ((gcf.of v).continuants_aux $ n + 2).b :=
 begin
   set g := gcf.of v with g_eq,
-  obtain ⟨gp_n, nth_s_eq, ⟨refl⟩⟩ : ∃ gp_n, g.s.nth n = some gp_n ∧ gp_n.b = b, from
+  obtain ⟨gp_n, nth_s_eq, ⟨_⟩⟩ : ∃ gp_n, g.s.nth n = some gp_n ∧ gp_n.b = b, from
     obtain_s_b_of_part_denom nth_part_denom_eq,
   let conts := g.continuants_aux (n + 2),
   set pconts := g.continuants_aux (n + 1) with pconts_eq,

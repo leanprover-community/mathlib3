@@ -92,8 +92,29 @@ lemma first_continuant_aux_eq_h_one : g.continuants_aux 1 = ⟨g.h, 1⟩ := rfl
 @[simp]
 lemma zeroth_continuant_eq_h_one : g.continuants 0 = ⟨g.h, 1⟩ := rfl
 @[simp]
+lemma zeroth_numerator_eq_h : g.numerators 0 = g.h := rfl
+@[simp]
+lemma zeroth_denominator_eq_one : g.denominators 0 = 1 := rfl
+@[simp]
 lemma zeroth_convergent_eq_h : g.convergents 0 = g.h :=
 by simp [convergent_eq_num_div_denom, num_eq_conts_a, denom_eq_conts_b, div_one]
+
+lemma second_continuant_aux_eq {gp : gcf.pair K} (zeroth_s_eq : g.s.nth 0 = some gp) :
+  g.continuants_aux 2 = ⟨gp.b * g.h + gp.a, gp.b⟩ :=
+by simp [zeroth_s_eq, continuants_aux, next_continuants, next_denominator, next_numerator]
+
+lemma first_continuant_eq {gp : gcf.pair K} (zeroth_s_eq : g.s.nth 0 = some gp) :
+  g.continuants 1 = ⟨gp.b * g.h + gp.a, gp.b⟩ :=
+by simp [nth_cont_eq_succ_nth_cont_aux, (second_continuant_aux_eq zeroth_s_eq)]
+
+lemma first_numerator_eq {gp : gcf.pair K} (zeroth_s_eq : g.s.nth 0 = some gp) :
+  g.numerators 1 = gp.b * g.h + gp.a :=
+by simp[num_eq_conts_a, (first_continuant_eq zeroth_s_eq)]
+
+lemma first_denominator_eq {gp : gcf.pair K} (zeroth_s_eq : g.s.nth 0 = some gp) :
+  g.denominators 1 = gp.b :=
+by simp[denom_eq_conts_b, (first_continuant_eq zeroth_s_eq)]
+
 @[simp]
 lemma zeroth_convergent'_aux_eq_zero {s : seq $ gcf.pair K} : convergents'_aux s 0 = 0 := rfl
 @[simp]

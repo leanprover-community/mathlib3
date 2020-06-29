@@ -531,7 +531,7 @@ def affine_span (s : set P) : affine_subspace k V P :=
         (vsub_mem_vector_span_of_mem_span_points_of_mem_span_points k V hp1 hp2)) }
 
 /-- The affine span, converted to a set, is `span_points`. -/
-@[simp] lemma affine_span_coe (s : set P) :
+@[simp] lemma coe_affine_span (s : set P) :
   (affine_span k V s : set P) = span_points k V s :=
 rfl
 

@@ -25,6 +25,7 @@ is the main list, and generally none of these should be skipped unless you know 
 -/
 
 open native tactic expr
+
 namespace linarith
 
 /-! ### Preprocessing -/
@@ -176,14 +177,18 @@ end }
 
 /--
 If `h` is an equality or inequality between natural numbers,
-`nat_to_int h` lifts this inequality to the integers,
-adding the facts that the integers involved are nonnegative.
+`nat_to_int` lifts this inequality to the integers.
+It also adds the facts that the integers involved are nonnegative.
+To avoid adding the same nonnegativity facts many times, it is a global preprocessor.
  -/
-meta def nat_to_int : preprocessor :=
+meta def nat_to_int : global_preprocessor :=
 { name := "move nats to ints",
-  transform := λ h,
-do tp ← infer_type h,
-   guardb (is_nat_prop tp) >> mk_int_pfs_of_nat_pf h <|> return [h] }
+  transform := λ l,
+do l ← l.mmap (λ h, zify_proof [] h <|> return h),
+   nonnegs ← l.mfoldl (λ (es : expr_set) h, do
+     (a, b) ← infer_type h >>= get_rel_sides,
+     return $ (es.insert_list (get_nat_comps a)).insert_list (get_nat_comps b)) mk_rb_set,
+   (++) l <$> nonnegs.to_list.mmap mk_coe_nat_nonneg_prf }
 
 /-- `strengthen_strict_int h` turns a proof `h` of a strict integer inequality `t1 < t2`
 into a proof of `t1 ≤ t2 + 1`. -/

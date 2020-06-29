@@ -11,10 +11,10 @@ import ring_theory.localization
 # Rational root theorem and integral root theorem
 
 This file contains the rational root theorem and integral root theorem.
-The rational root theorem for a unique factorization
-domain `A` with localization `S`, states that the roots of `p : polynomial A` in
-`A`'s field of fractions are of the form `x / y` with `x y : A`, `x ∣ p.coeff 0`
-and `y ∣ p.leading_coeff`.
+The rational root theorem for a unique factorization domain `A`
+with localization `S`, states that the roots of `p : polynomial A` in `A`'s
+field of fractions are of the form `x / y` with `x y : A`, `x ∣ p.coeff 0` and
+`y ∣ p.leading_coeff`.
 The corollary is the integral root theorem `is_integer_of_is_root_of_monic`:
 if `p` is monic, its roots must be integers.
 Finally, we use this to show unique factorization domains are integrally closed.
@@ -218,5 +218,16 @@ then `r` is an integer -/
 theorem is_integer_of_is_root_of_monic {p : polynomial A} (hp : monic p) {r}
   (hr : aeval A f.codomain r p = 0) : f.is_integer r :=
 f.is_integer_of_is_unit_denom (is_unit_of_dvd_one _ (hp ▸ denom_dvd_of_is_root hr))
+
+namespace unique_factorization_domain
+
+lemma integer_of_integral {x : f.codomain} :
+  is_integral A x → f.is_integer x :=
+λ ⟨p, hp, hx⟩, is_integer_of_is_root_of_monic hp hx
+
+lemma integrally_closed : integral_closure A f.codomain = ⊥ :=
+eq_bot_iff.mpr (λ x hx, algebra.mem_bot.mpr (integer_of_integral hx))
+
+end unique_factorization_domain
 
 end rational_root_theorem

@@ -18,7 +18,7 @@ for the values involved in the continued fractions computation `gcf.of`.
 ## Main Theorems
 
 - `gcf.of_part_num_eq_one`: shows that all partial numerators `aᵢ` are equal to one.
-- `gcf.of_part_denom_corr_int`: shows that all partial denominators `bᵢ` correspond to an integer.
+- `gcf.of_obtain_int_part_denom_eq`: shows that all partial denominators `bᵢ` correspond to an integer.
 - `gcf.of_one_le_nth_part_denom`: shows that `1 ≤ bᵢ`.
 - `gcf.of_succ_nth_fib_le_nth_denom`: shows that the `n`th denominator `Bₙ` is greater than or equal to
   the `n + 1`th fibonacci number `nat.fib (n + 1)`.
@@ -132,7 +132,7 @@ end
 Shows that the partial numerators `aᵢ` of the continued fraction are equal to one and the partial
 denominators `bᵢ` correspond to integers.
 -/
-lemma of_part_num_eq_one_and_part_denom_corr_int {gp : gcf.pair K}
+lemma of_part_num_eq_one_and_obtain_int_part_denom_eq {gp : gcf.pair K}
   (nth_s_eq : (gcf.of v).s.nth n = some gp) :
   gp.a = 1 ∧ ∃ (z : ℤ), gp.b = (z : K) :=
 begin
@@ -156,24 +156,25 @@ lemma of_part_num_eq_one {a : K} (nth_part_num_eq : (gcf.of v).partial_numerator
 begin
   obtain ⟨gp, nth_s_eq, gp_a_eq_a_n⟩ : ∃ gp, (gcf.of v).s.nth n = some gp ∧ gp.a = a, from
     obtain_s_a_of_part_num nth_part_num_eq,
-  have : gp.a = 1, from (of_part_num_eq_one_and_part_denom_corr_int nth_s_eq).left,
+  have : gp.a = 1, from (of_part_num_eq_one_and_obtain_int_part_denom_eq nth_s_eq).left,
   rwa gp_a_eq_a_n at this
 end
 
 /-- Shows that the partial denominators `bᵢ` correspond to an integer. -/
-lemma of_part_denom_corr_int {b : K}
+lemma of_obtain_int_part_denom_eq {b : K}
   (nth_part_denom_eq : (gcf.of v).partial_denominators.nth n = some b) :
   ∃ (z : ℤ), b = (z : K) :=
 begin
   obtain ⟨gp, nth_s_eq, gp_b_eq_b_n⟩ : ∃ gp, (gcf.of v).s.nth n = some gp ∧ gp.b = b, from
     obtain_s_b_of_part_denom nth_part_denom_eq,
-  have : ∃ (z : ℤ), gp.b = (z : K), from (of_part_num_eq_one_and_part_denom_corr_int nth_s_eq).right,
+  have : ∃ (z : ℤ), gp.b = (z : K), from (of_part_num_eq_one_and_obtain_int_part_denom_eq nth_s_eq).right,
   rwa gp_b_eq_b_n at this
 end
 
 /-
-Our next goal is to show that `Bₙ₊₁ ≥ bₙ * Bₙ`. For this, we first show that the partial denominators
-`Bₙ` grow quicker than the fibonacci sequence `nat.fib`.
+One of our next goals is to show that `Bₙ₊₁ ≥ bₙ * Bₙ`. For this, we first show that the partial
+denominators `Bₙ` are bounded from below by the fibonacci sequence `nat.fib`. This then implies that
+`0 ≤ Bₙ` and hence `Bₙ₊₂ = bₙ₊₁ * Bₙ₊₁ + Bₙ ≥ bₙ₊₁ * Bₙ₊₁ + 0 = bₙ₊₁ * Bₙ₊₁`.
 -/
 
 -- open `nat` as we will make use of fibonacci numbers.
@@ -236,6 +237,30 @@ begin
   exact (of_fib_le_continuants_aux_b this)
 end
 
+/- As a simple consequence, we can now derive that all denominators are nonnegative. -/
+
+lemma of_zero_le_continuants_aux_b : 0 ≤ ((gcf.of v).continuants_aux n).b :=
+begin
+  let g := gcf.of v,
+  induction n with n IH,
+  case nat.zero: { refl },
+  case nat.succ:
+  { cases (decidable.em $ g.terminated_at (n - 1)) with terminated not_terminated,
+    { cases n,
+      { simp[zero_le_one] },
+      { have : g.continuants_aux (n + 2) = g.continuants_aux (n + 1), from
+          continuants_aux_stable_step_of_terminated terminated,
+        simp[this, IH] } },
+    { calc
+      (0 : K) ≤ fib (n + 1)                            : by exact_mod_cast (n + 1).fib.zero_le
+          ... ≤ ((gcf.of v).continuants_aux (n + 1)).b : of_fib_le_continuants_aux_b
+                                                           (or.inr not_terminated) } }
+end
+
+/-- Shows that all denominators are nonnegative. -/
+lemma of_zero_le_denom : 0 ≤ (gcf.of v).denominators n :=
+by { rw [denom_eq_conts_b, nth_cont_eq_succ_nth_cont_aux], exact of_zero_le_continuants_aux_b }
+
 lemma of_le_succ_succ_nth_continuants_aux_b {b : K}
   (nth_part_denom_eq : (gcf.of v).partial_denominators.nth n = some b) :
   b * ((gcf.of v).continuants_aux $ n + 1).b ≤ ((gcf.of v).continuants_aux $ n + 2).b :=
@@ -250,15 +275,7 @@ begin
   suffices : gp_n.b * pconts.b ≤ ppconts.b + gp_n.b * pconts.b, by
   { have : gp_n.a = 1, from of_part_num_eq_one (part_num_eq_s_a nth_s_eq),
     finish [(gcf.continuants_aux_recurrence nth_s_eq ppconts_eq pconts_eq)] },
-  have : 0 ≤ ppconts.b, by
-  { have not_terminated_at_pred_n : ¬g.terminated_at (n - 1), by
-    { have : ¬g.terminated_at n, by { have : g.s.nth n ≠ none, by simp [nth_s_eq], exact this },
-      exact (mt (terminated_stable n.pred_le) this) },
-    have : (fib n : K) ≤ ppconts.b, by
-    { have : ¬g.terminated_at (n - 2), from
-        mt (terminated_stable (n - 1).pred_le) not_terminated_at_pred_n,
-      exact (of_fib_le_continuants_aux_b $ or.inr this) },
-    exact le_trans (by exact_mod_cast (fib n).zero_le) this },
+  have : 0 ≤ ppconts.b, from of_zero_le_continuants_aux_b,
   solve_by_elim [le_add_of_nonneg_of_le, le_refl]
 end
 
@@ -270,6 +287,28 @@ theorem of_le_succ_nth_denom {b : K}
 begin
   rw [denom_eq_conts_b, nth_cont_eq_succ_nth_cont_aux],
   exact (of_le_succ_succ_nth_continuants_aux_b nth_part_denom_eq)
+end
+
+/-- Shows that the sequence of denominators is monotonically increasing, that is ``Bₙ ≤ Bₙ₊₁`. -/
+theorem of_denom_mono : (gcf.of v).denominators n ≤ (gcf.of v).denominators (n + 1) :=
+begin
+  let g := gcf.of v,
+  cases (decidable.em $ g.partial_denominators.terminated_at n) with terminated not_terminated,
+  { have : g.partial_denominators.nth n = none, by rwa seq.terminated_at at terminated,
+    have : g.terminated_at n, from
+      terminated_at_iff_part_denom_none.elim_right (by rwa seq.terminated_at at terminated),
+    have : (gcf.of v).denominators (n + 1) = (gcf.of v).denominators n, from
+      denominators_stable_of_terminated n.le_succ this,
+    rw this },
+  { obtain ⟨b, nth_part_denom_eq⟩ : ∃ b, g.partial_denominators.nth n = some b, from
+      with_one.ne_one_iff_exists.elim_left not_terminated,
+    have : 1 ≤ b, from of_one_le_nth_part_denom nth_part_denom_eq,
+    calc
+      (gcf.of v).denominators n ≤ b * (gcf.of v).denominators n   : by simpa using
+                                                                      mul_le_mul_of_nonneg_right
+                                                                      this of_zero_le_denom
+                            ... ≤ (gcf.of v).denominators (n + 1) : of_le_succ_nth_denom
+                                                                      nth_part_denom_eq }
 end
 
 end generalized_continued_fraction

@@ -1530,4 +1530,3 @@ lemma cos_int_mul_two_pi_add_pi (n : ℤ) : cos (n * (2 * π) + π) = -1 :=
 by simp [cos_add, sin_add, cos_int_mul_two_pi]
 
 end complex
-#lint

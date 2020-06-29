@@ -391,7 +391,7 @@ by
 -- TODO: If F has a left adjoint L, then F is cartesian closed if and only if
 -- L (B ⨯ F A) ⟶ L B ⨯ L F A ⟶ L B ⨯ A
 -- is an iso for all A ∈ D, B ∈ C.
--- Corollary: If F has a left adjoint L which preserves finite products, F is cartesian closed iffb
+-- Corollary: If F has a left adjoint L which preserves finite products, F is cartesian closed iff
 -- F is full and faithful.
 
 end functor

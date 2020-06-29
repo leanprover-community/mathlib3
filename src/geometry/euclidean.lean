@@ -656,8 +656,8 @@ lemma inner_weighted_vsub {ι₁ : Type*} {s₁ : finset ι₁} {w₁ : ι₁ �
     (-∑ i₁ in s₁, ∑ i₂ in s₂,
       w₁ i₁ * w₂ i₂ * (dist (p₁ i₁) (p₂ i₂) * dist (p₁ i₁) (p₂ i₂))) / 2 :=
 begin
-  erw [finset.weighted_vsub_of_point_apply, finset.weighted_vsub_of_point_apply,
-       inner_sum_smul_sum_smul_of_sum_eq_zero _ h₁ _ h₂],
+  rw [finset.weighted_vsub_apply, finset.weighted_vsub_apply,
+      inner_sum_smul_sum_smul_of_sum_eq_zero _ h₁ _ h₂],
   simp_rw [vsub_sub_vsub_cancel_right],
   congr,
   ext i₁,

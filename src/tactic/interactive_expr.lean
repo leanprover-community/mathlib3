@@ -289,7 +289,7 @@ tc.stateless (λ lc, do
 )
 
 /--
-Renders a the current tactic string.
+Renders the current tactic string.
 -/
 meta def tactic_render : tc unit string :=
 component.ignore_action $ tactic_view_component show_local_collection_component show_type_component

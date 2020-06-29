@@ -39,6 +39,7 @@ typeclass. We provide it as `[fact (x < y)]`.
 
 noncomputable theory
 open set
+open_locale manifold
 
 /--
 The half-space in `ℝ^n`, used to model manifolds with boundary. We only define it when
@@ -320,10 +321,10 @@ The manifold structure on `[x, y]` is smooth.
 instance Icc_smooth_manifold (x y : ℝ) [fact (x < y)] :
   smooth_manifold_with_corners (𝓡∂ 1) (Icc x y) :=
 begin
-  have M : times_cont_diff_on ℝ ⊤ (λz : euclidean_space (fin 1), - z + (λi, y - x)) univ,
+  have M : times_cont_diff_on ℝ ∞ (λz : euclidean_space (fin 1), - z + (λi, y - x)) univ,
   { rw times_cont_diff_on_univ,
     exact times_cont_diff_id.neg.add times_cont_diff_const  },
-  haveI : has_groupoid (Icc x y) (times_cont_diff_groupoid ⊤ (𝓡∂ 1)) :=
+  haveI : has_groupoid (Icc x y) (times_cont_diff_groupoid ∞ (𝓡∂ 1)) :=
   begin
     apply has_groupoid_of_pregroupoid,
     assume e e' he he',

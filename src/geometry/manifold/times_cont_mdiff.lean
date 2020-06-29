@@ -28,7 +28,7 @@ Let `M ` and `M'` be two smooth manifolds, with respect to model with corners `I
 -/
 
 open set
-open_locale topological_space
+open_locale topological_space manifold
 
 /-! ### Definition of smooth functions between manifolds -/
 
@@ -44,7 +44,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 lemma zoug :
   structure_groupoid.invariant_prop_fun_set_pt
-  (times_cont_diff_groupoid ⊤ I) (times_cont_diff_groupoid ⊤ I')
+  (times_cont_diff_groupoid ∞ I) (times_cont_diff_groupoid ∞ I')
   (λ f s x, times_cont_diff_within_at 𝕜 n (I' ∘ f ∘ I.symm) (range I ∩ I.symm ⁻¹' s) (I x)) :=
 { is_local :=
   begin
@@ -145,7 +145,7 @@ lemma times_cont_mdiff_on.mdifferentiable_within_at
 hf.mdifferentiable_on hn x hx
 
 lemma times_cont_mdiff_on_top :
-  times_cont_mdiff_on I I' ⊤ f s ↔ (∀n:ℕ, times_cont_mdiff_on I I' n f s) :=
+  times_cont_mdiff_on I I' ∞ f s ↔ (∀n:ℕ, times_cont_mdiff_on I I' n f s) :=
 begin
   split,
   { assume h n,
@@ -292,14 +292,14 @@ include Is
 
 /-- An atlas member is `C^∞`. -/
 lemma times_cont_mdiff_on_atlas_aux (h : e ∈ atlas H M) :
-  times_cont_mdiff_on I I ⊤ e e.source :=
+  times_cont_mdiff_on I I ∞ e e.source :=
 begin
   refine ⟨e.continuous_to_fun, _⟩,
   assume x y,
   simp only [ext_chart_at, local_equiv.refl_trans, preimage_univ, inter_univ,
              chart_at_model_space_eq, local_homeomorph.refl_local_equiv, model_with_corners.source_eq,
              local_equiv.coe_trans_symm],
-  have := has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) (chart_mem_atlas H x) h,
+  have := has_groupoid.compatible (times_cont_diff_groupoid ∞ I) (chart_mem_atlas H x) h,
   rw [times_cont_diff_groupoid, mem_groupoid_of_pregroupoid] at this,
   convert this.1 using 1,
   rw preimage_comp,
@@ -316,7 +316,7 @@ lemma times_cont_mdiff_on_atlas (h : e ∈ atlas H M) (n : with_top ℕ) :
 
 /-- The inverse of an atlas member is `C^∞`. -/
 lemma times_cont_mdiff_on_atlas_symm_aux (h : e ∈ atlas H M) :
-  times_cont_mdiff_on I I ⊤ e.symm e.target :=
+  times_cont_mdiff_on I I ∞ e.symm e.target :=
 begin
   refine ⟨e.continuous_inv_fun, _⟩,
   assume x y,
@@ -325,7 +325,7 @@ begin
     local_equiv.trans_source, preimage_univ, model_with_corners.to_local_equiv_coe_symm,
     local_homeomorph.coe_coe, inter_univ, model_with_corners.source_eq,
     model_with_corners.to_local_equiv_coe],
-  have := has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) h (chart_mem_atlas H y),
+  have := has_groupoid.compatible (times_cont_diff_groupoid ∞ I) h (chart_mem_atlas H y),
   rw [times_cont_diff_groupoid, mem_groupoid_of_pregroupoid] at this,
   convert this.1 using 1,
   simp only [local_equiv.trans_source, local_homeomorph.coe_coe_symm,

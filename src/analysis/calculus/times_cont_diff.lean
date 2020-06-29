@@ -128,6 +128,8 @@ continuous linear equivs.
 We use the notation `E [×n]→L[𝕜] F` for the space of continuous multilinear maps on `E^n` with
 values in `F`. This is the space in which the `n`-th derivative of a function from `E` to `F` lives.
 
+In this file, we denote `⊤ : with_top ℕ` with `∞`.
+
 ## Tags
 
 derivative, differentiability, higher derivative, `C^n`, multilinear, Taylor series, formal series
@@ -135,6 +137,8 @@ derivative, differentiability, higher derivative, `C^n`, multilinear, Taylor ser
 
 noncomputable theory
 open_locale classical
+
+local notation `∞` := (⊤ : with_top ℕ)
 
 universes u v w
 
@@ -272,7 +276,7 @@ begin
 end
 
 lemma has_ftaylor_series_up_to_on_top_iff :
-  (has_ftaylor_series_up_to_on ⊤ f p s) ↔ (∀ (n : ℕ), has_ftaylor_series_up_to_on n f p s) :=
+  (has_ftaylor_series_up_to_on ∞ f p s) ↔ (∀ (n : ℕ), has_ftaylor_series_up_to_on n f p s) :=
 begin
   split,
   { assume H n, exact H.of_le le_top },
@@ -435,7 +439,7 @@ lemma times_cont_diff_within_at_nat {n : ℕ} :
 ⟨λ H, ⟨H.mem, H.smooth n (le_refl _)⟩, λ ⟨xs, u, hu, p, hp⟩, ⟨xs, λ m hm, ⟨u, hu, p, hp.of_le hm⟩⟩⟩
 
 lemma times_cont_diff_within_at_top :
-  times_cont_diff_within_at 𝕜 ⊤ f s x ↔ ∀ (n : ℕ), times_cont_diff_within_at 𝕜 n f s x :=
+  times_cont_diff_within_at 𝕜 ∞ f s x ↔ ∀ (n : ℕ), times_cont_diff_within_at 𝕜 n f s x :=
 begin
   split,
   { rintros ⟨xs, H⟩ n,
@@ -593,7 +597,7 @@ begin
 end
 
 lemma times_cont_diff_on_top :
-  times_cont_diff_on 𝕜 ⊤ f s ↔ ∀ (n : ℕ), times_cont_diff_on 𝕜 n f s :=
+  times_cont_diff_on 𝕜 ∞ f s ↔ ∀ (n : ℕ), times_cont_diff_on 𝕜 n f s :=
 by { simp [times_cont_diff_on, times_cont_diff_within_at_top], tauto }
 
 lemma times_cont_diff_on.continuous_on {n : with_top ℕ}
@@ -969,8 +973,8 @@ end
 /-- A function is `C^∞` on a domain with unique derivatives if and only if it is differentiable
 there, and its derivative is `C^∞`. -/
 theorem times_cont_diff_on_top_iff_fderiv_within (hs : unique_diff_on 𝕜 s) :
-  times_cont_diff_on 𝕜 ⊤ f s ↔
-  differentiable_on 𝕜 f s ∧ times_cont_diff_on 𝕜 ⊤ (λ y, fderiv_within 𝕜 f s y) s :=
+  times_cont_diff_on 𝕜 ∞ f s ↔
+  differentiable_on 𝕜 f s ∧ times_cont_diff_on 𝕜 ∞ (λ y, fderiv_within 𝕜 f s y) s :=
 begin
   split,
   { assume h,
@@ -979,7 +983,7 @@ begin
     exact h.of_le le_top },
   { assume h,
     refine times_cont_diff_on_top.2 (λ n, _),
-    have A : (n : with_top ℕ) ≤ ⊤ := le_top,
+    have A : (n : with_top ℕ) ≤ ∞ := le_top,
     apply ((times_cont_diff_on_succ_iff_fderiv_within hs).2 ⟨h.1, h.2.of_le A⟩).of_le,
     exact with_top.coe_le_coe.2 (nat.le_succ n) }
 end
@@ -989,8 +993,8 @@ lemma times_cont_diff_on.fderiv_within {m n : with_top ℕ}
   times_cont_diff_on 𝕜 m (λ y, fderiv_within 𝕜 f s y) s :=
 begin
   cases m,
-  { change ⊤ + 1 ≤ n at hmn,
-    have : n = ⊤, by simpa using hmn,
+  { change ∞ + 1 ≤ n at hmn,
+    have : n = ∞, by simpa using hmn,
     rw this at hf,
     exact ((times_cont_diff_on_top_iff_fderiv_within hs).1 hf).2 },
   { change (m.succ : with_top ℕ) ≤ n at hmn,
@@ -1122,7 +1126,7 @@ theorem times_cont_diff_within_at_univ {n : with_top ℕ} :
 iff.rfl
 
 lemma times_cont_diff_at_top :
-  times_cont_diff_at 𝕜 ⊤ f x ↔ ∀ (n : ℕ), times_cont_diff_at 𝕜 n f x :=
+  times_cont_diff_at 𝕜 ∞ f x ↔ ∀ (n : ℕ), times_cont_diff_at 𝕜 n f x :=
 by simp [← times_cont_diff_within_at_univ, times_cont_diff_within_at_top]
 
 lemma times_cont_diff_at.times_cont_diff_within_at {n : with_top ℕ}
@@ -1183,7 +1187,7 @@ lemma times_cont_diff.times_cont_diff_at {n : with_top ℕ} (h : times_cont_diff
 times_cont_diff_iff_times_cont_diff_at.1 h x
 
 lemma times_cont_diff_top :
-  times_cont_diff 𝕜 ⊤ f ↔ ∀ (n : ℕ), times_cont_diff 𝕜 n f :=
+  times_cont_diff 𝕜 ∞ f ↔ ∀ (n : ℕ), times_cont_diff 𝕜 n f :=
 by simp [times_cont_diff_on_univ.symm, times_cont_diff_on_top]
 
 lemma times_cont_diff.times_cont_diff_on {n : with_top ℕ}
@@ -1323,8 +1327,8 @@ by simp [times_cont_diff_on_univ.symm, differentiable_on_univ.symm, fderiv_withi
 /-- A function is `C^∞` on a domain with unique derivatives if and only if it is differentiable
 there, and its derivative is `C^∞`. -/
 theorem times_cont_diff_top_iff_fderiv :
-  times_cont_diff 𝕜 ⊤ f ↔
-  differentiable 𝕜 f ∧ times_cont_diff 𝕜 ⊤ (λ y, fderiv 𝕜 f y) :=
+  times_cont_diff 𝕜 ∞ f ↔
+  differentiable 𝕜 f ∧ times_cont_diff 𝕜 ∞ (λ y, fderiv 𝕜 f y) :=
 begin
   simp [times_cont_diff_on_univ.symm, differentiable_on_univ.symm, fderiv_within_univ.symm,
         - fderiv_within_univ],
@@ -1376,7 +1380,7 @@ Constants are `C^∞`.
 -/
 lemma times_cont_diff_const {n : with_top ℕ} {c : F} : times_cont_diff 𝕜 n (λx : E, c) :=
 begin
-  suffices h : times_cont_diff 𝕜 ⊤ (λx : E, c), by exact h.of_le le_top,
+  suffices h : times_cont_diff 𝕜 ∞ (λx : E, c), by exact h.of_le le_top,
   rw times_cont_diff_top_iff_fderiv,
   refine ⟨differentiable_const c, _⟩,
   rw fderiv_const,
@@ -1404,7 +1408,7 @@ Unbundled bounded linear functions are `C^∞`.
 lemma is_bounded_linear_map.times_cont_diff {n : with_top ℕ} (hf : is_bounded_linear_map 𝕜 f) :
   times_cont_diff 𝕜 n f :=
 begin
-  suffices h : times_cont_diff 𝕜 ⊤ f, by exact h.of_le le_top,
+  suffices h : times_cont_diff 𝕜 ∞ f, by exact h.of_le le_top,
   rw times_cont_diff_top_iff_fderiv,
   refine ⟨hf.differentiable, _⟩,
   simp [hf.fderiv],
@@ -1439,7 +1443,7 @@ Bilinear functions are `C^∞`.
 lemma is_bounded_bilinear_map.times_cont_diff {n : with_top ℕ} (hb : is_bounded_bilinear_map 𝕜 b) :
   times_cont_diff 𝕜 n b :=
 begin
-  suffices h : times_cont_diff 𝕜 ⊤ b, by exact h.of_le le_top,
+  suffices h : times_cont_diff 𝕜 ∞ b, by exact h.of_le le_top,
   rw times_cont_diff_top_iff_fderiv,
   refine ⟨hb.differentiable, _⟩,
   simp [hb.fderiv],

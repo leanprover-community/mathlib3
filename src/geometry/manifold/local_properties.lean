@@ -190,7 +190,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E' : Type*} [normed_group E'] [normed_space 𝕜 E'] (I' : model_with_corners 𝕜 E' H')
 
 lemma times_cont_diff_within_at_invariant (n : ℕ) :
-  (times_cont_diff_groupoid ⊤ I).invariant_prop_fun_set_pt (times_cont_diff_groupoid ⊤ I')
+  (times_cont_diff_groupoid ∞ I).invariant_prop_fun_set_pt (times_cont_diff_groupoid ∞ I')
   (λ f s x, times_cont_diff_within_at 𝕜 n (I' ∘ f ∘ I.symm) (range I ∩ I.symm ⁻¹' s) (I x)) :=
 { is_local :=
   begin

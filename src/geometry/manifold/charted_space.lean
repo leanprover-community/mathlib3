@@ -390,7 +390,7 @@ attribute [simp, mfld_simps] mem_chart_source chart_mem_atlas
 section charted_space
 
 /-- Any space is a charted_space modelled over itself, by just using the identity chart -/
-instance manifold_model_space (H : Type*) [topological_space H] : charted_space H H :=
+instance charted_space_self (H : Type*) [topological_space H] : charted_space H H :=
 { atlas            := {local_homeomorph.refl H},
   chart_at         := λx, local_homeomorph.refl H,
   mem_chart_source := λx, mem_univ x,
@@ -398,12 +398,13 @@ instance manifold_model_space (H : Type*) [topological_space H] : charted_space 
 
 /-- In the trivial charted_space structure of a space modelled over itself through the identity, the
 atlas members are just the identity -/
-@[simp, mfld_simps] lemma model_space_atlas {H : Type*} [topological_space H] {e : local_homeomorph H H} :
+@[simp, mfld_simps] lemma charted_space_self_atlas
+  {H : Type*} [topological_space H] {e : local_homeomorph H H} :
   e ∈ atlas H H ↔ e = local_homeomorph.refl H :=
 by simp [atlas, charted_space.atlas]
 
 /-- In the model space, chart_at is always the identity -/
-@[simp, mfld_simps] lemma chart_at_model_space_eq {H : Type*} [topological_space H] {x : H} :
+@[simp, mfld_simps] lemma chart_at_self_eq {H : Type*} [topological_space H] {x : H} :
   chart_at H x = local_homeomorph.refl H :=
 by simpa using chart_mem_atlas H x
 
@@ -536,7 +537,7 @@ instance has_groupoid_model_space (H : Type*) [topological_space H] (G : structu
 { compatible := λe e' he he', begin
     replace he : e ∈ atlas H H := he,
     replace he' : e' ∈ atlas H H := he',
-    rw model_space_atlas at he he',
+    rw charted_space_self_atlas at he he',
     simp [he, he', structure_groupoid.id_mem]
   end }
 

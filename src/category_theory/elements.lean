@@ -30,8 +30,7 @@ category of elements, Grothendieck construction, comma category
 namespace category_theory
 
 universes w v u
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 /--
 The type of objects for the category of elements of a functor `F : C ⥤ Type`
@@ -61,14 +60,11 @@ subtype.ext_val w
 
 end category_of_elements
 
-omit 𝒞 -- We'll assume C has a groupoid structure, so temporarily forget its category structure
--- to avoid conflicts.
-instance groupoid_of_elements [groupoid C] (F : C ⥤ Type w) : groupoid F.elements :=
+instance groupoid_of_elements {G : Type u} [groupoid G] (F : G ⥤ Type w) : groupoid F.elements :=
 { inv := λ p q f, ⟨inv f.val,
       calc F.map (inv f.val) q.2 = F.map (inv f.val) (F.map f.val p.2) : by rw f.2
                              ... = (F.map f.val ≫ F.map (inv f.val)) p.2 : by simp
                              ... = p.2 : by {rw ←functor.map_comp, simp}⟩ }
-include 𝒞
 
 namespace category_of_elements
 variable (F : C ⥤ Type w)

@@ -132,9 +132,9 @@ class epi  (f : X ⟶ Y) : Prop :=
 class mono (f : X ⟶ Y) : Prop :=
 (right_cancellation : Π {Z : C} (g h : Z ⟶ X) (w : g ≫ f = h ≫ f), g = h)
 
-instance (X : C) : epi.{v} (𝟙 X) :=
+instance (X : C) : epi (𝟙 X) :=
 ⟨λ Z g h w, by simpa using w⟩
-instance (X : C) : mono.{v} (𝟙 X) :=
+instance (X : C) : mono (𝟙 X) :=
 ⟨λ Z g h w, by simpa using w⟩
 
 lemma cancel_epi (f : X ⟶ Y) [epi f]  {g h : Y ⟶ Z} : (f ≫ g = f ≫ h) ↔ g = h :=

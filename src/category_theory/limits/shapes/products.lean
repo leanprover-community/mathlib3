@@ -54,19 +54,19 @@ limit.lift _ (fan.mk p)
 abbreviation sigma.desc {f : β → C} [has_colimit (discrete.functor f)] {P : C} (p : Π b, f b ⟶ P) : ∐ f ⟶ P :=
 colimit.desc _ (cofan.mk p)
 
-abbreviation pi.map {f g : β → C} [has_limits_of_shape.{v} (discrete β) C]
+abbreviation pi.map {f g : β → C} [has_limits_of_shape (discrete β) C]
   (p : Π b, f b ⟶ g b) : ∏ f ⟶ ∏ g :=
 lim.map (discrete.nat_trans p)
-abbreviation sigma.map {f g : β → C} [has_colimits_of_shape.{v} (discrete β) C]
+abbreviation sigma.map {f g : β → C} [has_colimits_of_shape (discrete β) C]
   (p : Π b, f b ⟶ g b) : ∐ f ⟶ ∐ g :=
 colim.map (discrete.nat_trans p)
 
 variables (C)
 
 class has_products :=
-(has_limits_of_shape : Π (J : Type v), has_limits_of_shape.{v} (discrete J) C)
+(has_limits_of_shape : Π (J : Type v), has_limits_of_shape (discrete J) C)
 class has_coproducts :=
-(has_colimits_of_shape : Π (J : Type v), has_colimits_of_shape.{v} (discrete J) C)
+(has_colimits_of_shape : Π (J : Type v), has_colimits_of_shape (discrete J) C)
 
 attribute [instance] has_products.has_limits_of_shape has_coproducts.has_colimits_of_shape
 

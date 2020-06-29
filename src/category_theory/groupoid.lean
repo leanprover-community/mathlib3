@@ -50,12 +50,12 @@ section
 variables {C : Type u} [category.{v} C]
 
 /-- A category where every morphism `is_iso` is a groupoid. -/
-def groupoid.of_is_iso (all_is_iso : ∀ {X Y : C} (f : X ⟶ Y), is_iso.{v} f) : groupoid.{v} C :=
+def groupoid.of_is_iso (all_is_iso : ∀ {X Y : C} (f : X ⟶ Y), is_iso f) : groupoid.{v} C :=
 { inv := λ X Y f, (all_is_iso f).inv }
 
 /-- A category where every morphism has a `trunc` retraction is computably a groupoid. -/
 def groupoid.of_trunc_split_mono
-  (all_split_mono : ∀ {X Y : C} (f : X ⟶ Y), trunc (split_mono.{v} f)) :
+  (all_split_mono : ∀ {X Y : C} (f : X ⟶ Y), trunc (split_mono f)) :
   groupoid.{v} C :=
 begin
   apply groupoid.of_is_iso,

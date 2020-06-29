@@ -49,11 +49,11 @@ class preserves_colimit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves : Π {c : cocone K}, is_colimit c → is_colimit (F.map_cocone c))
 
 /-- A functor which preserves limits preserves chosen limits up to isomorphism. -/
-def preserves_limit_iso (K : J ⥤ C) [has_limit.{v} K] (F : C ⥤ D) [has_limit.{v} (K ⋙ F)] [preserves_limit K F] :
+def preserves_limit_iso (K : J ⥤ C) [has_limit K] (F : C ⥤ D) [has_limit (K ⋙ F)] [preserves_limit K F] :
   F.obj (limit K) ≅ limit (K ⋙ F) :=
 is_limit.cone_point_unique_up_to_iso (preserves_limit.preserves (limit.is_limit K)) (limit.is_limit (K ⋙ F))
 /-- A functor which preserves colimits preserves chosen colimits up to isomorphism. -/
-def preserves_colimit_iso (K : J ⥤ C) [has_colimit.{v} K] (F : C ⥤ D) [has_colimit.{v} (K ⋙ F)] [preserves_colimit K F] :
+def preserves_colimit_iso (K : J ⥤ C) [has_colimit K] (F : C ⥤ D) [has_colimit (K ⋙ F)] [preserves_colimit K F] :
   F.obj (colimit K) ≅ colimit (K ⋙ F) :=
 is_colimit.cocone_point_unique_up_to_iso (preserves_colimit.preserves (colimit.is_colimit K)) (colimit.is_colimit (K ⋙ F))
 

@@ -22,8 +22,7 @@ namespace category_theory
 
 namespace iso
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 /-- If `X` is isomorphic to `X₁` and `Y` is isomorphic to `Y₁`, then
 there is a natural bijection between `X ⟶ Y` and `X₁ ⟶ Y₁`. See also `equiv.arrow_congr`. -/
@@ -74,7 +73,7 @@ lemma conj_apply (f : End X) : α.conj f = α.inv ≫ f ≫ α.hom := rfl
 @[simp] lemma conj_id : α.conj (𝟙 X) = 𝟙 Y :=
 is_monoid_hom.map_one α.conj
 
-@[simp] lemma refl_conj (f : End X) : (@iso.refl C 𝒞 X).conj f = f :=
+@[simp] lemma refl_conj (f : End X) : (iso.refl X).conj f = f :=
 by rw [conj_apply, iso.refl_inv, iso.refl_hom, category.id_comp, category.comp_id]
 
 @[simp] lemma trans_conj {Z : C} (β : Y ≅ Z) (f : End X) : (α ≪≫ β).conj f = β.conj (α.conj f) :=
@@ -122,8 +121,7 @@ namespace functor
 
 universes v₁ u₁
 
-variables {C : Type u} [𝒞 : category.{v} C] {D : Type u₁} [𝒟 : category.{v₁} D] (F : C ⥤ D)
-include 𝒞 𝒟
+variables {C : Type u} [category.{v} C] {D : Type u₁} [category.{v₁} D] (F : C ⥤ D)
 
 lemma map_hom_congr {X Y X₁ Y₁ : C} (α : X ≅ X₁) (β : Y ≅ Y₁) (f : X ⟶ Y) :
   F.map (iso.hom_congr α β f) = iso.hom_congr (F.map_iso α) (F.map_iso β) (F.map f) :=

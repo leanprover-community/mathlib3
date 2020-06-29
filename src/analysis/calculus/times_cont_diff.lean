@@ -419,11 +419,11 @@ There is a subtlety that one might be able to find nice derivatives up to `n` fo
 but that they don't match so that one can not find them up to infinity. To get a good notion for
 `n = ∞`, we only require that for any finite `n` we may find such matching derivatives.
 -/
-def times_cont_diff_within_at (n : with_top ℕ) (f : E → F) (s : set E) (x : E) :=
-x ∈ s ∧
-∀ (m : ℕ), (m : with_top ℕ) ≤ n →
+structure times_cont_diff_within_at (n : with_top ℕ) (f : E → F) (s : set E) (x : E) : Prop :=
+(mem : x ∈ s)
+(smooth : ∀ (m : ℕ), (m : with_top ℕ) ≤ n →
   ∃ u ∈ nhds_within x s, ∃ p : E → formal_multilinear_series 𝕜 E F,
-    has_ftaylor_series_up_to_on m f p u
+    has_ftaylor_series_up_to_on m f p u)
 
 variable {𝕜}
 
@@ -432,7 +432,7 @@ lemma times_cont_diff_within_at_nat {n : ℕ} :
   x ∈ s ∧
   ∃ u ∈ nhds_within x s, ∃ p : E → formal_multilinear_series 𝕜 E F,
   has_ftaylor_series_up_to_on n f p u :=
-⟨λ H, ⟨H.1, H.2 n (le_refl _)⟩, λ ⟨xs, u, hu, p, hp⟩, ⟨xs, λ m hm, ⟨u, hu, p, hp.of_le hm⟩⟩⟩
+⟨λ H, ⟨H.mem, H.smooth n (le_refl _)⟩, λ ⟨xs, u, hu, p, hp⟩, ⟨xs, λ m hm, ⟨u, hu, p, hp.of_le hm⟩⟩⟩
 
 lemma times_cont_diff_within_at_top :
   times_cont_diff_within_at 𝕜 ⊤ f s x ↔ ∀ (n : ℕ), times_cont_diff_within_at 𝕜 n f s x :=
@@ -443,17 +443,17 @@ begin
     rcases H m le_top with ⟨u, hu, p, hp⟩,
     exact ⟨u, hu, p, hp⟩ },
   { assume H,
-    refine ⟨(H 0).1, λ m hm, _⟩,
-    rcases (H m).2 m (le_refl _) with ⟨u, hu, p, hp⟩,
+    refine ⟨(H 0).mem, λ m hm, _⟩,
+    rcases (H m).smooth m (le_refl _) with ⟨u, hu, p, hp⟩,
     exact ⟨u, hu, p, hp⟩ }
 end
 
 lemma times_cont_diff_within_at.continuous_within_at {n : with_top ℕ}
   (h : times_cont_diff_within_at 𝕜 n f s x) : continuous_within_at f s x :=
 begin
-  rcases h.2 0 bot_le with ⟨u, hu, p, H⟩,
+  rcases h.smooth 0 bot_le with ⟨u, hu, p, H⟩,
   rcases mem_nhds_within.1 hu with ⟨t, t_open, xt, tu⟩,
-  have := (H.mono tu).continuous_on.continuous_within_at (⟨xt, h.1⟩ : x ∈ t ∩ s),
+  have := (H.mono tu).continuous_on.continuous_within_at (⟨xt, h.mem⟩ : x ∈ t ∩ s),
   rw inter_comm at this,
   exact (continuous_within_at_inter (mem_nhds_sets t_open xt)).1 this,
 end
@@ -462,8 +462,8 @@ lemma times_cont_diff_within_at.congr {n : with_top ℕ}
   (h : times_cont_diff_within_at 𝕜 n f s x) (h₁ : f₁ =ᶠ[nhds_within x s] f) :
   times_cont_diff_within_at 𝕜 n f₁ s x :=
 begin
-  refine ⟨h.1, λ m hm, _⟩,
-  rcases h.2 m hm with ⟨u, hu, p, H⟩,
+  refine ⟨h.mem, λ m hm, _⟩,
+  rcases h.smooth m hm with ⟨u, hu, p, H⟩,
   rcases h₁.exists_mem with ⟨v, v_neighb, hv⟩,
   refine ⟨u ∩ (v ∩ s),
     filter.inter_mem_sets hu (filter.inter_mem_sets v_neighb self_mem_nhds_within), p, _⟩,
@@ -486,14 +486,14 @@ end
 lemma times_cont_diff_within_at.of_le {m n : with_top ℕ}
   (h : times_cont_diff_within_at 𝕜 n f s x) (hmn : m ≤ n) :
   times_cont_diff_within_at 𝕜 m f s x :=
-⟨h.1, λ k hk, h.2 k (le_trans hk hmn)⟩
+⟨h.mem, λ k hk, h.smooth k (le_trans hk hmn)⟩
 
 lemma times_cont_diff_within_at_inter' {n : with_top ℕ} (h : t ∈ nhds_within x s) :
   times_cont_diff_within_at 𝕜 n f (s ∩ t) x ↔ times_cont_diff_within_at 𝕜 n f s x :=
 begin
-  refine ⟨λ H, _, λ H, H.mono (inter_subset_left _ _) ⟨H.1, mem_of_mem_nhds_within H.1 h⟩⟩,
-  refine ⟨(inter_subset_left s t) H.1, λ m hm, _⟩,
-  rcases H.2 m hm with ⟨u, u_nhbd, p, hu⟩,
+  refine ⟨λ H, _, λ H, H.mono (inter_subset_left _ _) ⟨H.mem, mem_of_mem_nhds_within H.mem h⟩⟩,
+  refine ⟨(inter_subset_left s t) H.mem, λ m hm, _⟩,
+  rcases H.smooth m hm with ⟨u, u_nhbd, p, hu⟩,
   refine ⟨s ∩ t ∩ u, _, p, hu.mono (inter_subset_right _ _)⟩,
   rw nhds_within_restrict'' s h,
   exact filter.inter_mem_sets self_mem_nhds_within u_nhbd
@@ -512,7 +512,7 @@ begin
   rcases h.2 1 hn with ⟨u, hu, p, H⟩,
   rcases mem_nhds_within.1 hu with ⟨t, t_open, xt, tu⟩,
   rw inter_comm at tu,
-  have := ((H.mono tu).differentiable_on (le_refl _)) x ⟨h.1, xt⟩,
+  have := ((H.mono tu).differentiable_on (le_refl _)) x ⟨h.mem, xt⟩,
   exact (differentiable_within_at_inter (mem_nhds_sets t_open xt)).1 this,
 end
 
@@ -530,7 +530,7 @@ begin
     refine ⟨u, hu, λ y, (continuous_multilinear_curry_fin1 𝕜 E F) (p y 1),
       λ y hy, Hp.has_fderiv_within_at (with_top.coe_le_coe.2 (nat.le_add_left 1 n)) hy, _⟩,
     rw has_ftaylor_series_up_to_on_succ_iff_right at Hp,
-    refine ⟨mem_of_mem_nhds_within h.1 hu, λ m hm, _⟩,
+    refine ⟨mem_of_mem_nhds_within h.mem hu, λ m hm, _⟩,
     exact ⟨u, self_mem_nhds_within, λ (x : E), (p x).shift, Hp.2.2.of_le hm⟩ },
   { rintros ⟨xs, u, hu, f', f'_eq_deriv, Hf'⟩,
     rw times_cont_diff_within_at_nat,
@@ -1474,8 +1474,8 @@ lemma times_cont_diff_within_at.continuous_linear_map_comp {n : with_top ℕ} (g
   (hf : times_cont_diff_within_at 𝕜 n f s x) :
   times_cont_diff_within_at 𝕜 n (g ∘ f) s x :=
 begin
-  refine ⟨hf.1, λ m hm, _⟩,
-  rcases hf.2 m hm with ⟨u, hu, p, hp⟩,
+  refine ⟨hf.mem, λ m hm, _⟩,
+  rcases hf.smooth m hm with ⟨u, hu, p, hp⟩,
   exact ⟨u, hu, _, hp.continuous_linear_map_comp g⟩,
 end
 
@@ -1557,8 +1557,8 @@ lemma times_cont_diff_within_at.comp_continuous_linear_map {n : with_top ℕ} {x
   (g : G →L[𝕜] E) (hf : times_cont_diff_within_at 𝕜 n f s (g x)) :
   times_cont_diff_within_at 𝕜 n (f ∘ g) (g ⁻¹' s) x :=
 begin
-  refine ⟨hf.1, λ m hm, _⟩,
-  rcases hf.2 m hm with ⟨u, hu, p, hp⟩,
+  refine ⟨hf.mem, λ m hm, _⟩,
+  rcases hf.smooth m hm with ⟨u, hu, p, hp⟩,
   refine ⟨g ⁻¹' u, _, _, hp.comp_continuous_linear_map g⟩,
   apply continuous_within_at.preimage_mem_nhds_within',
   { exact g.continuous.continuous_within_at },
@@ -1636,9 +1636,9 @@ lemma times_cont_diff_within_at.prod {n : with_top ℕ} {s : set E} {f : E → F
   (hf : times_cont_diff_within_at 𝕜 n f s x) (hg : times_cont_diff_within_at 𝕜 n g s x) :
   times_cont_diff_within_at 𝕜 n (λx:E, (f x, g x)) s x :=
 begin
-  refine ⟨hf.1, λ m hm, _⟩,
-  rcases hf.2 m hm with ⟨u, hu, p, hp⟩,
-  rcases hg.2 m hm with ⟨v, hv, q, hq⟩,
+  refine ⟨hf.mem, λ m hm, _⟩,
+  rcases hf.smooth m hm with ⟨u, hu, p, hp⟩,
+  rcases hg.smooth m hm with ⟨v, hv, q, hq⟩,
   exact ⟨u ∩ v, filter.inter_mem_sets hu hv, _,
         (hp.mono (inter_subset_left u v)).prod (hq.mono (inter_subset_right u v))⟩
 end
@@ -1807,7 +1807,7 @@ lemma times_cont_diff_within_at.comp
   (hf : times_cont_diff_within_at 𝕜 n f s x) (st : s ⊆ f ⁻¹' t) :
   times_cont_diff_within_at 𝕜 n (g ∘ f) s x :=
 begin
-  refine ⟨hf.1, λ m hm, _⟩,
+  refine ⟨hf.mem, λ m hm, _⟩,
   rcases hg.times_cont_diff_on hm with ⟨u, u_nhd, ut, hu⟩,
   rcases hf.times_cont_diff_on hm with ⟨v, v_nhd, vs, hv⟩,
   have xmem : x ∈ f ⁻¹' u ∩ v,
@@ -1954,7 +1954,7 @@ lemma times_cont_diff_at.has_strict_fderiv_at {f : E' → F'} {x : E'} {n : with
   (hf : times_cont_diff_at ℝ n f x) (hn : 1 ≤ n) :
   has_strict_fderiv_at f (fderiv ℝ f x) x :=
 begin
-  rcases hf.2 1 hn with ⟨u, H, p, hp⟩,
+  rcases hf.smooth 1 hn with ⟨u, H, p, hp⟩,
   rw nhds_within_univ at H,
   have := hp.has_strict_fderiv_at (by norm_num) H,
   convert this,

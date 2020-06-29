@@ -22,7 +22,7 @@ We define
   up arrow `↑`;
 * coercion from `β` to `germ l β`: `(↑c : germ l β)` is the germ of the constant function
   `λ x:α, c` at a filter `l`; this coercion is declared as `has_lift_t`, so it requires an explicit
-  up arrow `↑`;
+  up arrow `↑`, see [TPiL][TPiL_coe] for details.
 * `map (F : β → γ) (f : germ l β)` to be the composition of a function `F` and a germ `f`;
 * `map₂ (F : β → γ → δ) (f : germ l β) (g : germ l γ)` to be the germ of `λ x, F (f x) (g x)`
   at `l`;
@@ -33,6 +33,7 @@ We define
   `f ∘ g` is a well-defined germ at `lc`;
 * `germ.lift_pred`, `germ.lift_rel`: lift a predicate or a relation to the space of germs:
   `(f : germ l β).lift_pred p` means `∀ᶠ x in l, p (f x)`, and similarly for a relation.
+[TPiL_coe]: https://leanprover.github.io/theorem_proving_in_lean/type_classes.html#coercions-using-type-classes
 
 We also define `map (F : β → γ) : germ l β → germ l γ` sending each germ `f` to `F ∘ f`.
 

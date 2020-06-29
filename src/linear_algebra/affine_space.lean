@@ -367,7 +367,7 @@ rfl
 
 /-- Alternative definition of the direction when the affine subspace
 is nonempty.  This is only intended to be used in the proof of
-`direction_coe_eq_vsub_set`. -/
+`coe_direction_eq_vsub_set`. -/
 def direction_of_nonempty {s : affine_subspace k V P} (h : (s : set P).nonempty) :
   submodule k V :=
 { carrier := vsub_set V (s : set P),
@@ -409,7 +409,7 @@ only if it is the subtraction of two vectors in the subspace. -/
 lemma mem_direction_iff_eq_vsub {s : affine_subspace k V P} (h : (s : set P).nonempty) (v : V) :
   v ∈ s.direction ↔ ∃ p1 ∈ s, ∃ p2 ∈ s, v = p1 -ᵥ p2 :=
 begin
-  rw [←submodule.mem_coe, direction_coe_eq_vsub_set h],
+  rw [←submodule.mem_coe, coe_direction_eq_vsub_set h],
   exact iff.rfl
 end
 

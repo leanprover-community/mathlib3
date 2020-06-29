@@ -76,7 +76,6 @@ dif_pos ⟨hq, hp.ne_one⟩
 
 namespace padic_val_rat
 open multiplicity
-section padic_val_rat
 variables {p : ℕ}
 
 /--
@@ -114,13 +113,13 @@ by rw [padic_val_rat, dif_pos]; simp *; refl
 
 end padic_val_rat
 
-section padic_val_nat
-
 /--
 A convenience function for the case of `padic_val_rat` when both inputs are natural numbers.
 -/
 def padic_val_nat (p : ℕ) (n : ℕ) : ℕ :=
 int.to_nat (padic_val_rat p n)
+
+section padic_val_nat
 
 /--
 `padic_val_nat` is defined as an `int.to_nat` cast; this lemma ensures that the cast is well-behaved.
@@ -161,7 +160,7 @@ end
 
 end padic_val_nat
 
-section padic_val_rat
+namespace padic_val_rat
 open multiplicity
 variables (p : ℕ) [p_prime : fact p.prime]
 include p_prime
@@ -297,7 +296,6 @@ theorem min_le_padic_val_rat_add {q r : ℚ}
   (λ h, by rw [min_eq_right h, add_comm]; exact le_padic_val_rat_add_of_le _ hr hq
     (by rwa add_comm) h)
 
-end padic_val_rat
 end padic_val_rat
 
 /--

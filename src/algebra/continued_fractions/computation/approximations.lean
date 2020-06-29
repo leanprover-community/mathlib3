@@ -265,7 +265,7 @@ begin
   solve_by_elim [le_add_of_nonneg_of_le, le_refl]
 end
 
-/-- Shows that `Bₙ₊₁ ≥ bₙ* Bₙ`, where `bₙ` is the `n`th partial denominator and `Bₙ₊₁` and `Bₙ` are
+/-- Shows that `Bₙ₊₁ ≥ bₙ * Bₙ`, where `bₙ` is the `n`th partial denominator and `Bₙ₊₁` and `Bₙ` are
 the `n + 1`th and `n`th denominator of the continued fraction. -/
 theorem of_le_succ_nth_denom {b : K}
   (nth_part_denom_eq : (gcf.of v).partial_denominators.nth n = some b) :

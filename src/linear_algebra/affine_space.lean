@@ -415,7 +415,7 @@ end
 
 /-- Adding a vector in the direction to a point in the subspace
 produces a point in the subspace. -/
-lemma direction_vadd_mem {s : affine_subspace k V P} {v : V} (hv : v ∈ s.direction) {p : P}
+lemma vadd_mem_of_mem_direction {s : affine_subspace k V P} {v : V} (hv : v ∈ s.direction) {p : P}
     (hp : p ∈ s) : v +ᵥ p ∈ s :=
 begin
   rw mem_direction_iff_eq_vsub ⟨p, hp⟩ at hv,

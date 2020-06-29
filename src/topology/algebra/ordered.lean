@@ -1597,11 +1597,22 @@ begin
   exact ⟨x, xs, λ y hy, hx.symm ▸ cInf_le B ⟨_, hy, rfl⟩⟩
 end
 
+lemma compact.exists_forall_le' {α : Type u} [topological_space α]
+  {s : set α} (hs : compact s) (ne_s : s.nonempty) {f : α → β} (hf : continuous_on f s) :
+  ∃ x ∈ s,  Inf (f '' s) = f x :=
+let ⟨x₀, x₀_in, h₀⟩ := compact.exists_forall_le hs ne_s hf in
+⟨x₀, x₀_in, is_least.cInf_eq ⟨mem_image_of_mem f x₀_in, by { rintros _ ⟨y, h, rfl⟩, exact h₀ y h }⟩⟩
+
 /-- The extreme value theorem: a continuous function realizes its maximum on a compact set -/
 lemma compact.exists_forall_ge {α : Type u} [topological_space α]:
   ∀ {s : set α}, compact s → s.nonempty → ∀ {f : α → β}, continuous_on f s →
   ∃x∈s, ∀y∈s, f y ≤ f x :=
 @compact.exists_forall_le (order_dual β) _ _ _ _ _
+
+lemma compact.exists_forall_ge' {α : Type u} [topological_space α]:
+  ∀ {s : set α}, compact s → s.nonempty → ∀ {f : α → β}, continuous_on f s →
+  ∃ x ∈ s,  Sup (f '' s) = f x :=
+@compact.exists_forall_le' (order_dual β) _ _ _ _ _
 
 end conditionally_complete_linear_order
 

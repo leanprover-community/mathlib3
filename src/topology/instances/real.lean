@@ -2,28 +2,13 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
-
-The real numbers ℝ.
-
-They are constructed as the topological completion of ℚ. With the following steps:
-(1) prove that ℚ forms a uniform space.
-(2) subtraction and addition are uniform continuous functions in this space
-(3) for multiplication and inverse this only holds on bounded subsets
-(4) ℝ is defined as separated Cauchy filters over ℚ (the separation requires a quotient construction)
-(5) extend the uniform continuous functions along the completion
-(6) proof field properties using the principle of extension of identities
-
-TODO
-
-generalizations:
-* topological groups & rings
-* order topologies
-* Archimedean fields
-
 -/
 import topology.metric_space.basic
 import topology.algebra.uniform_group
 import topology.algebra.ring
+/-!
+# Topological properties of ℝ
+-/
 
 noncomputable theory
 open classical set filter topological_space metric
@@ -339,5 +324,28 @@ begin
   rw this at I,
   exact bounded.subset I bounded_closed_ball
 end⟩
+
+lemma real.image_Icc {f : ℝ → ℝ} {a b : ℝ} (hab : a ≤ b) (h : continuous_on f $ Icc a b) :
+f '' Icc a b = Icc (Inf $ f '' Icc a b) (Sup $ f '' Icc a b) :=
+begin
+  have cpct : compact (f '' Icc a b) :=
+    compact.image_of_continuous_on compact_Icc h,
+  apply subset.antisymm,
+  { intros x x_in,
+    exact ⟨cInf_le (bdd_below_of_compact cpct) x_in, le_cSup (bdd_above_of_compact cpct) x_in⟩ },
+  { intros x x_in,
+    obtain ⟨x₀, x₀_in, hx₀⟩ : ∃ x₀ ∈ Icc a b, Inf (f '' Icc a b) = f x₀ :=
+      compact.exists_forall_le' compact_Icc (nonempty_Icc.mpr hab) h,
+    obtain ⟨y₀, y₀_in, hy₀⟩ : ∃ y₀ ∈ Icc a b, Sup (f '' Icc a b) = f y₀ :=
+      compact.exists_forall_ge' compact_Icc (nonempty_Icc.mpr hab) h,
+    rw [hx₀, hy₀] at x_in,
+    by_cases hxy : x₀ ≤ y₀,
+    { have sub : Icc x₀ y₀ ⊆ Icc a b := Icc_subset_Icc x₀_in.1 y₀_in.2,
+      exact image_subset f sub (intermediate_value_Icc hxy (h.mono sub) x_in) },
+    { push_neg at hxy,
+      replace hxy := le_of_lt hxy,
+      have sub : Icc y₀ x₀ ⊆ Icc a b := Icc_subset_Icc y₀_in.1 x₀_in.2,
+      exact image_subset f sub (intermediate_value_Icc' hxy (h.mono sub) x_in) } }
+end
 
 end

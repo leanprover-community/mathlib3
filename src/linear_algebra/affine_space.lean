@@ -462,7 +462,7 @@ begin
 end
 
 /-- Construct an affine subspace from a point and a direction. -/
-def mk_of_point_of_direction (p : P) (direction : submodule k V) : affine_subspace k V P :=
+def mk' (p : P) (direction : submodule k V) : affine_subspace k V P :=
 { carrier := {q | ∃ v ∈ direction, q = v +ᵥ p},
   smul_vsub_vadd_mem := λ c p1 p2 p3 hp1 hp2 hp3, begin
     rcases hp1 with ⟨v1, hv1, hp1⟩,
@@ -475,43 +475,41 @@ def mk_of_point_of_direction (p : P) (direction : submodule k V) : affine_subspa
 
 /-- An affine space constructed from a point and a direction contains
 that point. -/
-lemma mem_mk_of_point_of_direction (p : P) (direction : submodule k V) :
-  p ∈ mk_of_point_of_direction p direction :=
+lemma self_mem_mk' (p : P) (direction : submodule k V) :
+  p ∈ mk' p direction :=
 ⟨0, ⟨direction.zero_mem, (add_action.zero_vadd _ _).symm⟩⟩
 
 /-- An affine space constructed from a point and a direction contains
 the result of adding a vector in that direction to that point. -/
-lemma vadd_mem_mk_of_point_of_direction {v : V} (p : P) {direction : submodule k V}
-    (hv : v ∈ direction) : v +ᵥ p ∈ mk_of_point_of_direction p direction :=
+lemma vadd_mem_mk' {v : V} (p : P) {direction : submodule k V} (hv : v ∈ direction) :
+  v +ᵥ p ∈ mk' p direction :=
 ⟨v, hv, rfl⟩
 
 /-- An affine space constructed from a point and a direction is
 nonempty. -/
-lemma mk_of_point_of_direction_nonempty (p : P) (direction : submodule k V) :
-  (mk_of_point_of_direction p direction : set P).nonempty :=
-⟨p, mem_mk_of_point_of_direction p direction⟩
+lemma mk'_nonempty (p : P) (direction : submodule k V) : (mk' p direction : set P).nonempty :=
+⟨p, self_mem_mk' p direction⟩
 
 /-- The direction of an affine space constructed from a point and a
 direction. -/
-@[simp] lemma direction_mk_of_point_of_direction (p : P) (direction : submodule k V) :
-  (mk_of_point_of_direction p direction).direction = direction :=
+@[simp] lemma direction_mk' (p : P) (direction : submodule k V) :
+  (mk' p direction).direction = direction :=
 begin
   ext v,
-  rw mem_direction_iff_eq_vsub (mk_of_point_of_direction_nonempty _ _),
+  rw mem_direction_iff_eq_vsub (mk'_nonempty _ _),
   split,
   { rintros ⟨p1, ⟨v1, hv1, hp1⟩, p2, ⟨v2, hv2, hp2⟩, hv⟩,
     rw [hv, hp1, hp2, vadd_vsub_vadd_cancel_right],
     exact direction.sub_mem  hv1 hv2 },
-  { exact λ hv, ⟨v +ᵥ p, vadd_mem_mk_of_point_of_direction _ hv, p,
-                 mem_mk_of_point_of_direction _ _, (vadd_vsub _ _ _).symm⟩ }
+  { exact λ hv, ⟨v +ᵥ p, vadd_mem_mk' _ hv, p,
+                 self_mem_mk' _ _, (vadd_vsub _ _ _).symm⟩ }
 end
 
 /-- Constructing an affine subspace from a point in a subspace and
 that subspace's direction yields the original subspace. -/
-@[simp] lemma mk_of_point_of_direction_eq {s : affine_subspace k V P} {p : P} (hp : p ∈ s) :
-  mk_of_point_of_direction p s.direction = s :=
-ext_of_direction_eq (direction_mk_of_point_of_direction p s.direction)
-                    ⟨p, set.mem_inter (mem_mk_of_point_of_direction _ _) hp⟩
+@[simp] lemma mk'_eq {s : affine_subspace k V P} {p : P} (hp : p ∈ s) : mk' p s.direction = s :=
+ext_of_direction_eq (direction_mk' p s.direction)
+                    ⟨p, set.mem_inter (self_mem_mk' _ _) hp⟩
 
 end affine_subspace
 

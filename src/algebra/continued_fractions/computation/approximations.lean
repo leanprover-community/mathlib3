@@ -69,7 +69,7 @@ lemma fr_lt_one {ifp_n : int_fract_pair K}
 
 /-- Shows that the integer parts of the stream are at least one. -/
 lemma one_le_succ_nth_stream_b {ifp_succ_n : int_fract_pair K}
-(succ_nth_stream_eq : int_fract_pair.stream v (n + 1) = some ifp_succ_n) :
+  (succ_nth_stream_eq : int_fract_pair.stream v (n + 1) = some ifp_succ_n) :
   1 ≤ ifp_succ_n.b :=
 begin
   obtain ⟨ifp_n, nth_stream_eq, stream_nth_fr_ne_zero, ⟨refl⟩⟩ :

@@ -31,11 +31,7 @@ by rw [antidiagonal, length_map, length_range]
 
 /-- The antidiagonal of `0` is the list `[(0,0)]` -/
 @[simp] lemma antidiagonal_zero : antidiagonal 0 = [(0, 0)] :=
-ext_le (length_antidiagonal 0) $ λ n h₁ h₂,
-begin
-  rw [length_antidiagonal, lt_succ_iff, le_zero_iff] at h₁,
-  subst n, simp [antidiagonal]
-end
+rfl
 
 /-- The antidiagonal of `n` does not contain duplicate entries. -/
 lemma nodup_antidiagonal (n : ℕ) : nodup (antidiagonal n) :=

@@ -8,7 +8,7 @@ import category_theory.epi_mono
 
 namespace category_theory
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v v₂ u u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 section prio
 set_option default_priority 100 -- see Note [default priority]

@@ -418,7 +418,34 @@ open finsupp polynomial
 
 lemma maximal_ideal_invertible_of_dedekind (h : is_dedekind_domain f) {M : ideal R}
 (hM : ideal.is_maximal M) : is_unit (M : fractional_ideal f) :=
-sorry
+begin
+have M1 := {x : K | ∀ y ∈ M, f.is_integer (x * f.to_map y)},
+-- have hM1 : is_fractional f (M1), --sorry,
+have M1 : fractional_ideal f, --sorry,
+{use M1,
+  sorry,
+  intros a b ha hb,
+  sorry,
+  sorry,
+  sorry,},
+-- rcases M1 with ⟨I, aI, haI, hI⟩,
+-- have N := fractional_ideal.mk_fractional(M),
+have hprod : ↑M*M1=1, --sorry,
+  apply le_antisymm,
+    apply fractional_ideal.mul_le.mpr,
+      intros x hx y hy,
+      rw [mul_comm], sorry, sorry,
+      -- sto copiando la prova da theorem right_inverse_eq di fractional_ideal.lean
+      -- exact (mem_div_iff_of_nonzero hI).mp hy x hx,},
+    --   {rw [←h],
+    --   apply mul_left_mono I,
+    --   apply (le_div_iff_of_nonzero hI).mpr _,
+    --   intros y hy x hx,
+    --   rw [mul_comm],
+    --   exact mul_mem_mul hx hy},
+apply is_unit_of_mul_eq_one ↑M M1 hprod,
+end
+
 
 lemma fractional_ideal_invertible_of_dedekind (h : is_dedekind_domain f) (I : fractional_ideal f) :
 I * I⁻¹ = 1 :=

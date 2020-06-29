@@ -1,14 +1,53 @@
-import data.int.basic
 import data.nat.prime
-import data.nat.choose
 import data.nat.multiplicity
-import data.padics
+import data.padics.padic_norm
 import tactic
 import ring_theory.multiplicity
-import logic.function.basic
 
 open_locale big_operators
-open padic_val_nat
+
+theorem cast_dvd {α : Type*} [field α] {m n : ℕ} (n_dvd : n ∣ m) (n_nonzero : (n:α) ≠ 0) : ((m / n : ℕ) : α) = m / n :=
+begin
+  rcases n_dvd with ⟨k, rfl⟩,
+  have : n ≠ 0, {rintro rfl, simpa using n_nonzero},
+  rw nat.mul_div_cancel_left _ (nat.pos_iff_ne_zero.2 this),
+  rw [nat.cast_mul, mul_div_cancel_left _ n_nonzero],
+end
+
+@[norm_cast]
+theorem cast_dvd_char_zero {α : Type*} [field α] [char_zero α ] {m n : ℕ} (n_dvd : n ∣ m) : ((m / n : ℕ) : α) = m / n :=
+begin
+  by_cases hn : n = 0,
+  { subst hn,
+    simp },
+  exact cast_dvd n_dvd (nat.cast_ne_zero.mpr hn),
+end
+
+lemma padic_val_nat_of_div_not_one {n p : nat} [prime : fact p.prime] (nonzero : n ≠ 0) (s : p ∣ n)
+  : 1 ≤ padic_val_nat p n :=
+begin
+  rw @padic_val_nat_def _ prime _ nonzero,
+  let one_le_mul := @multiplicity.le_multiplicity_of_pow_dvd _ _ _ p n 1 (begin norm_num, exact s end),
+  simp only [enat.coe_one] at one_le_mul,
+  rcases one_le_mul with ⟨_, q⟩,
+  dsimp at q,
+  solve_by_elim,
+end
+
+lemma padic_val_nat_of_quot {p : ℕ} [p_prime : fact p.prime] {b : ℕ} (b_nonzero : b ≠ 0) (dvd : p ∣ b) :
+  (padic_val_nat p (b / p)) = (padic_val_nat p b) - 1 :=
+begin
+  have e := padic_val_rat.div p (nat.cast_ne_zero.mpr b_nonzero) (nat.cast_ne_zero.mpr (nat.prime.ne_zero p_prime)),
+  rw padic_val_rat.padic_val_rat_self (nat.prime.one_lt p_prime) at e,
+  have r : 1 ≤ padic_val_nat p b := padic_val_nat_of_div_not_one b_nonzero dvd,
+  exact_mod_cast e,
+end
+
+lemma padic_val_nat_of_unrelated_quot {p q : ℕ} [p_prime : fact p.prime] (q_prime : q.prime)
+  (neq : p ≠ q) {b : ℕ} (b_nonzero : b ≠ 0) (dvd : q ∣ b) : padic_val_nat p (b / q) = padic_val_nat p b :=
+begin
+sorry
+end
 
 lemma prod_padic_val_nat_one (m : nat) (m_big : 1 < m) :
   ∏ p in finset.filter nat.prime (finset.range m), p ^ padic_val_nat p 1 = 1 :=
@@ -28,38 +67,6 @@ begin
         exact (λ b pr, ⟨b, ⟨pr, by cc⟩⟩),
       end
     ... = 1 : finset.prod_const_one,
-end
-
-lemma padic_val_nat_of_div_not_one {n p : nat} [prime : fact p.prime] (nonzero : n ≠ 0) (s : p ∣ n)
-  : 1 ≤ padic_val_nat p n :=
-begin
-  rw @padic_val_nat_def _ prime _ nonzero,
-  let one_le_mul := @multiplicity.le_multiplicity_of_pow_dvd _ _ _ p n 1 (begin norm_num, exact s end),
-  simp only [enat.coe_one] at one_le_mul,
-  rcases one_le_mul with ⟨_, q⟩,
-  dsimp at q,
-  solve_by_elim,
-end
-
-theorem cast_dvd {α : Type*} [field α] (m n : ℕ) (n_dvd : n ∣ m) (n_nonzero : (n:α) ≠ 0) : ((m / n : ℕ) : α) = m / n :=
-begin
-  rcases n_dvd with ⟨k, rfl⟩,
-  have : n ≠ 0, {rintro rfl, simpa using n_nonzero},
-  rw nat.mul_div_cancel_left _ (nat.pos_iff_ne_zero.2 this),
-  rw [nat.cast_mul, mul_div_cancel_left _ n_nonzero],
-end
-
-lemma thing (p : nat) (p_prime : nat.prime p) (b : nat) (b_nonzero : b ≠ 0) (dvd : p ∣ b) : (padic_val_nat p (b / p)) = (padic_val_nat p b) - 1 :=
-begin
-  let e := @padic_val_rat.div p p_prime b p (nat.cast_ne_zero.mpr b_nonzero) (nat.cast_ne_zero.mpr (nat.prime.ne_zero p_prime)),
-  rw @padic_val_rat.padic_val_rat_self p (nat.prime.one_lt p_prime) at e,
-  rw ← @padic_val_rat_of_nat p b at e,
-  rw <- @cast_dvd ℚ _ _ b p dvd (nat.prime.ne_zero p_prime) at e,
-  rw <- @padic_val_rat_of_nat at e,
-  have r : 1 ≤ padic_val_nat p b, by sorry,
-
-  let e : @coe ℕ ℤ _ _ = ↑(padic_val_nat p b : ℤ) - (1 : ℤ) := @nat.cast_sub ℤ _ _ 1 (padic_val_nat p b) r,
-  sorry,
 end
 
 lemma prod_pow_prime_padic_val_nat : ∀ (n : nat) (s : n ≠ 0) (m : nat) (pr : n < m),
@@ -86,23 +93,18 @@ begin
 
   have extract_fac : ∀ p ∈ finset.filter nat.prime (finset.range m), p ^ padic_val_nat p (n / n.min_fac) =
     if p = n.min_fac then p ^ ((padic_val_nat p n) - 1) else p ^ padic_val_nat p n,
-    begin
-      intros p p_prime,
-      have p_prime : p.prime,
-      { simp at p_prime,
-        rcases p_prime with ⟨_, ans⟩,
-        exact ans, },
-      rw @padic_val_nat_def _ p_prime _ nonzero,
-      rw @padic_val_nat_def _ p_prime _ nonzero',
+    { intros p p_prime,
       cases (nat.decidable_eq p n.min_fac),
-      { simp [h],
-        sorry,
-      },
-      { simp [h],
-        congr,
-        sorry,
-      }
-    end,
+      { haveI : fact p.prime :=
+          begin
+            simp at p_prime,
+            rcases p_prime with ⟨_, ans⟩,
+            exact ans
+          end,
+        simp [h, padic_val_nat_of_unrelated_quot (nat.min_fac_prime (by linarith)) h (by linarith) (nat.min_fac_dvd n)], },
+      { subst h,
+        haveI : fact (nat.prime (nat.min_fac n)) := nat.min_fac_prime (by linarith),
+        simp [padic_val_nat_of_quot (by linarith) (nat.min_fac_dvd n)], }, },
 
   have min_fac_small : n.min_fac < m :=
     nat.lt_of_le_of_lt (nat.min_fac_le (nat.lt_of_succ_lt (by linarith))) n_lt_m,

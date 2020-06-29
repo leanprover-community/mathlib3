@@ -170,7 +170,10 @@ by haveI := classical.dec;
 lemma eq_zero_of_zero_eq_one (h : (0 : α) = 1) : (∀a:α, a = 0) :=
 (zero_ne_one_or_forall_eq_0 α).neg_resolve_left h
 
-/-- If zero equals one in a semiring, the semiring has a single element. -/
+/-- If zero equals one in a semiring, the semiring has a single element.
+
+Somewhat arbitrarily, we define the default element to be `0`.
+All other elements will be provably equal to it, but not necessarily definitionally equal. -/
 def unique_of_zero_eq_one (h : (0 : α) = 1) : unique α :=
 { default := 0,
   uniq    := eq_zero_of_zero_eq_one α h }

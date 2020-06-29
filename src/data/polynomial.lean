@@ -320,6 +320,14 @@ finsupp.sum_add_index
 @[simp] lemma eval₂_one : (1 : polynomial R).eval₂ f x = 1 :=
 by rw [← C_1, eval₂_C, map_one f]
 
+@[simp] lemma eval₂_smul (g : R →+* S) (p : polynomial R) (x : S) {s : R} :
+  eval₂ g x (s • p) = g s * eval₂ g x p :=
+begin
+  simp only [eval₂, sum_smul_index, forall_const, zero_mul, g.map_zero, g.map_mul, mul_assoc],
+  -- Why doesn't `rw [←finsupp.mul_sum]` work?
+  convert (@finsupp.mul_sum _ _ _ _ _ (g s) p (λ i a, (g a * x ^ i))).symm,
+end
+
 instance eval₂.is_add_monoid_hom : is_add_monoid_hom (eval₂ f x) :=
 { map_zero := eval₂_zero _ _, map_add := λ _ _, eval₂_add _ _ }
 
@@ -436,10 +444,6 @@ begin
   { intro, rw [map_zero f, zero_mul] },
   { intros, rw [map_add f, add_mul] }
 end
-
-lemma eval₂_smul (g : R →+* S) (p : polynomial R) (x : S) {s : R} :
-  eval₂ g x (s • p) = g s * eval₂ g x p :=
-by rw [← C_mul', eval₂_mul, eval₂_C]
 
 instance eval₂.is_semiring_hom : is_semiring_hom (eval₂ f x) :=
 ⟨eval₂_zero _ _, eval₂_one _ _, λ _ _, eval₂_add _ _, λ _ _, eval₂_mul _ _⟩

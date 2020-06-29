@@ -173,7 +173,7 @@ begin
 end
 
 /-
-Our next goal is to show that `Bₙ₊₁ ≥ bₙ* Bₙ`. For this, we first show that the partial denominators
+Our next goal is to show that `Bₙ₊₁ ≥ bₙ * Bₙ`. For this, we first show that the partial denominators
 `Bₙ` grow quicker than the fibonacci sequence `nat.fib`.
 -/
 

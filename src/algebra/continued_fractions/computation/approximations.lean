@@ -135,7 +135,7 @@ denominators `bᵢ` correspond to integers.
 -/
 lemma of_part_num_eq_one_and_part_denom_corr_int {gp : gcf.pair K}
   (nth_s_eq : (gcf.of v).s.nth n = some gp) :
-  gp.a = 1 ∧ ∃ (z :ℤ), gp.b = (z : K) :=
+  gp.a = 1 ∧ ∃ (z : ℤ), gp.b = (z : K) :=
 begin
   obtain ⟨ifp, stream_succ_nth_eq, ifp_b_eq_gp_b⟩ :
     ∃ ifp, int_fract_pair.stream v (n + 1) = some ifp ∧ (ifp.b : K) = gp.b,

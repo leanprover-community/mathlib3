@@ -3174,9 +3174,9 @@ lemma mk_bounded_subset_le {α : Type u} (s : set α) (c : cardinal.{u}) :
 begin
   refine le_trans _ (mk_bounded_set_le s c),
   refine ⟨embedding.cod_restrict _ _ _⟩,
-  use λ t, subtype.val ⁻¹' t.1,
+  use λ t, coe ⁻¹' t.1,
   { rintros ⟨t, ht1, ht2⟩ ⟨t', h1t', h2t'⟩ h, apply subtype.eq, dsimp only at h ⊢,
-    refine (preimage_eq_preimage' _ _).1 h; rw [subtype.range_val]; assumption },
+    refine (preimage_eq_preimage' _ _).1 h; rw [subtype.range_coe]; assumption },
   rintro ⟨t, h1t, h2t⟩, exact le_trans (mk_preimage_of_injective _ _ subtype.val_injective) h2t
 end
 

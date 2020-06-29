@@ -158,14 +158,28 @@ protected definition mk (F : C ⥤ D) (G : D ⥤ C)
 
 variables {E : Type u₃} [category.{v₃} E]
 
-@[trans] def trans (e : C ≌ D) (f : D ≌ E) : C ≌ E :=
-begin
-  apply equivalence.mk (e.functor ⋙ f.functor) (f.inverse ⋙ e.inverse),
-  { refine iso.trans e.unit_iso _,
-    exact iso_whisker_left e.functor (iso_whisker_right f.unit_iso e.inverse) },
-  { refine iso.trans _ f.counit_iso,
-    exact iso_whisker_left f.inverse (iso_whisker_right e.counit_iso f.functor) }
-end
+@[trans, simps] def trans (e : C ≌ D) (f : D ≌ E) : C ≌ E :=
+{ functor := e.functor ⋙ f.functor,
+  inverse := f.inverse ⋙ e.inverse,
+  unit_iso :=
+  begin
+    refine iso.trans e.unit_iso _,
+    exact iso_whisker_left e.functor (iso_whisker_right f.unit_iso e.inverse) ,
+  end,
+  counit_iso :=
+  begin
+    refine iso.trans _ f.counit_iso,
+    exact iso_whisker_left f.inverse (iso_whisker_right e.counit_iso f.functor)
+  end,
+  -- We wouldn't have need to give this proof if we'd used `equivalence.mk`,
+  -- but we choose to avoid using that here, for the sake of good structure projection `simp` lemmas.
+  functor_unit_iso_comp' := λ X,
+  begin
+    dsimp,
+    rw [← f.functor.map_comp_assoc, e.functor.map_comp, functor_unit, fun_inv_map,
+        inv_hom_id_app_assoc, assoc, inv_hom_id_app, counit_functor, ← functor.map_comp],
+    erw [comp_id, hom_inv_id_app, functor.map_id],
+  end }
 
 def fun_inv_id_assoc (e : C ≌ D) (F : C ⥤ E) : e.functor ⋙ e.inverse ⋙ F ≅ F :=
 (functor.associator _ _ _).symm ≪≫ iso_whisker_right e.unit_iso.symm F ≪≫ F.left_unitor

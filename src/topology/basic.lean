@@ -525,6 +525,10 @@ In this section we define [cluster points](https://en.wikipedia.org/wiki/Limit_p
 an accumulation point or a limit point. -/
 def cluster_pt (x : α) (F : filter α) : Prop := 𝓝 x ⊓ F ≠ ⊥
 
+lemma cluster_pt_iff {x : α} {F : filter α} :
+  cluster_pt x F ↔ ∀ {U V : set α}, U ∈ 𝓝 x → V ∈ F → (U ∩ V).nonempty :=
+by rw [cluster_pt, inf_ne_bot_iff]
+
 lemma cluster_pt.of_le_nhds {x : α} {f : filter α} (H : f ≤ 𝓝 x) (h : f ≠ ⊥) : cluster_pt x f :=
 by rwa [cluster_pt, inf_comm, inf_eq_left.mpr H]
 
@@ -535,11 +539,11 @@ lemma cluster_pt.mono {x : α} {f g : filter α} (H : cluster_pt x f) (h : f ≤
   cluster_pt x g :=
 ne_bot_of_le_ne_bot H $ inf_le_inf_left _ h
 
-lemma cluster_pt_of_inf_left {x : α} {f g : filter α} (H : cluster_pt x $ f ⊓ g) :
+lemma cluster_pt.of_inf_left {x : α} {f g : filter α} (H : cluster_pt x $ f ⊓ g) :
   cluster_pt x f :=
 H.mono inf_le_left
 
-lemma cluster_pt_of_inf_right {x : α} {f g : filter α} (H : cluster_pt x $ f ⊓ g) :
+lemma cluster_pt.of_inf_right {x : α} {f g : filter α} (H : cluster_pt x $ f ⊓ g) :
   cluster_pt x g :=
 H.mono inf_le_right
 
@@ -574,6 +578,9 @@ lemma mem_interior_iff_mem_nhds {s : set α} {a : α} :
   a ∈ interior s ↔ s ∈ 𝓝 a :=
 by simp only [interior_eq_nhds, le_principal_iff]; refl
 
+lemma subset_interior_iff_nhds {s V : set α} : s ⊆ interior V ↔ ∀ x ∈ s, V ∈ 𝓝 x :=
+show (∀ x, x ∈ s →  x ∈ _) ↔ _, by simp_rw mem_interior_iff_mem_nhds
+
 lemma is_open_iff_nhds {s : set α} : is_open s ↔ ∀a∈s, 𝓝 a ≤ 𝓟 s :=
 calc is_open s ↔ s ⊆ interior s : subset_interior_iff_open.symm
   ... ↔ (∀a∈s, 𝓝 a ≤ 𝓟 s) : by rw [interior_eq_nhds]; refl
@@ -588,6 +595,9 @@ calc closure s = - interior (- s) : closure_eq_compl_interior_compl
     (inf_eq_bot_iff_le_compl
       (show 𝓟 s ⊔ 𝓟 (-s) = ⊤, by simp only [sup_principal, union_compl_self, principal_univ])
       (by simp only [inf_principal, inter_compl_self, principal_empty])).symm
+
+theorem mem_closure_iff_cluster_pt {s : set α} {a : α} : a ∈ closure s ↔ cluster_pt a (𝓟 s) :=
+by simpa only [closure_eq_cluster_pts]
 
 theorem mem_closure_iff_nhds {s : set α} {a : α} :
   a ∈ closure s ↔ ∀ t ∈ 𝓝 a, (t ∩ s).nonempty :=

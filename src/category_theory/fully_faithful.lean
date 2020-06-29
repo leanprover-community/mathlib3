@@ -69,6 +69,11 @@ def preimage_iso (f : (F.obj X) ≅ (F.obj Y)) : X ≅ Y :=
 by tidy
 
 variables (F)
+
+/--
+If the image of a morphism under a fully faithful functor in an isomorphism,
+then the original morphisms is also an isomorphism.
+-/
 def is_iso_of_fully_faithful (f : X ⟶ Y) [is_iso (F.map f)] : is_iso f :=
 { inv := F.preimage (inv (F.map f)),
   hom_inv_id' := F.map_injective (by simp),

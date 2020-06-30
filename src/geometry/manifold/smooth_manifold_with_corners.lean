@@ -235,6 +235,8 @@ I.unique_diff _ (mem_range_self _)
 
 end
 
+section model_with_corners_prod
+
 /-- Given two model_with_corners `I` on `(E, H)` and `I'` on `(E', H')`, we define the model with
 corners `I.prod I'` on `(E × E', H × H')`. This appears in particular for the manifold structure on
 the tangent bundle to a manifold modelled on `(E, H)`: it will be modelled on `(E × E, H × E)`. -/
@@ -272,17 +274,14 @@ as the model to tangent bundles. -/
   (I : model_with_corners 𝕜 E H) : model_with_corners 𝕜 (E × E) (model_prod H E) :=
  I.prod (model_with_corners_self 𝕜 E)
 
-lemma model_with_corners_prod_to_local_equiv {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
-{E' : Type*} [normed_group E'] [normed_space 𝕜 E']
-{F : Type*} [normed_group F] [normed_space 𝕜 F]
-{F' : Type*} [normed_group F'] [normed_space 𝕜 F']
-{H : Type*} [topological_space H]
-{H' : Type*} [topological_space H']
-{G : Type*} [topological_space G]
-{G' : Type*} [topological_space G']
-{I : model_with_corners 𝕜 E H} {I' : model_with_corners 𝕜 E' H'}
-{J : model_with_corners 𝕜 F G} {J' : model_with_corners 𝕜 F' G'} :
+variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+{E : Type*} [normed_group E] [normed_space 𝕜 E] {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+{F : Type*} [normed_group F] [normed_space 𝕜 F] {F' : Type*} [normed_group F'] [normed_space 𝕜 F']
+{H : Type*} [topological_space H] {H' : Type*} [topological_space H']
+{G : Type*} [topological_space G] {G' : Type*} [topological_space G']
+{I : model_with_corners 𝕜 E H} {J : model_with_corners 𝕜 F G}
+
+@[simp] lemma model_with_corners_prod_to_local_equiv :
   (I.prod J).to_local_equiv = (I.to_local_equiv).prod (J.to_local_equiv) :=
 begin
   ext1 x,
@@ -290,6 +289,8 @@ begin
   { intro x, refl, },
   { simp only [set.univ_prod_univ, model_with_corners.source_eq, local_equiv.prod_source], }
 end
+
+end model_with_corners_prod
 
 section boundaryless
 
@@ -531,8 +532,8 @@ structure_groupoid.compatible_of_mem_maximal_atlas he he'
 instance prod_smooth_manifold_with_corners {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
-  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
-  {H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E' H')
+  {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
+  {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
   (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
   (M' : Type*) [topological_space M'] [charted_space H' M'] [smooth_manifold_with_corners I' M'] :
   smooth_manifold_with_corners (I.prod I') (M×M') :=

@@ -452,12 +452,11 @@ lemma tendsto_at_top_of_monotone {ι  : Type*} [nonempty ι] [semilattice_sup ι
   {α : Type*} [linear_order α] {u : ι → α}
   (h : monotone u) (H : ¬bdd_above (range u)) : tendsto u at_top at_top :=
 begin
-    rw tendsto_at_top,
-    intro b,
-    rw mem_at_top_sets,
-    rw not_bdd_above_iff at H,
-    rcases H b with ⟨_, ⟨N, rfl⟩, hN⟩,
-    exact ⟨N, λ n hn, le_of_lt (lt_of_lt_of_le hN $ h hn)⟩,
+  rw tendsto_at_top_at_top_of_monotone h,
+  intro b,
+  rw not_bdd_above_iff at H,
+  rcases H b with ⟨_, ⟨N, rfl⟩, hN⟩,
+  exact ⟨N, le_of_lt hN⟩,
 end
 
 lemma unbounded_of_tendsto_at_top {α β : Type*} [nonempty α] [semilattice_sup α]
@@ -465,13 +464,12 @@ lemma unbounded_of_tendsto_at_top {α β : Type*} [nonempty α] [semilattice_sup
   {f : α → β} (h : tendsto f at_top at_top) : ¬ bdd_above (range f) :=
 begin
   rintros ⟨M, hM⟩,
-  rw tendsto_at_top at h,
   cases no_top M with M' hMM',
-  cases mem_at_top_sets.mp (h M') with a ha,
+  cases mem_at_top_sets.mp (h $ Ioi_mem_at_top M') with a ha,
   apply lt_irrefl M,
   calc
   M < M' : hMM'
-  ... ≤ f a : ha a (le_refl _)
+  ... < f a : ha a (le_refl _)
   ... ≤ M : hM (set.mem_range_self a)
 end
 

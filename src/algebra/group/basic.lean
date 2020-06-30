@@ -11,6 +11,16 @@ import tactic.protected
 
 universe u
 
+section monoid
+variables {M : Type u} [monoid M]
+
+@[to_additive]
+lemma ite_mul_one {P : Prop} [decidable P] {a b : M} :
+  ite P (a * b) 1 = ite P a 1 * ite P b 1 :=
+by { by_cases h : P; simp [h], }
+
+end monoid
+
 section comm_semigroup
 variables {G : Type u} [comm_semigroup G]
 

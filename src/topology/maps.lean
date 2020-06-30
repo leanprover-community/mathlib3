@@ -369,7 +369,7 @@ begin
   intro s',
   change is_open _ ≤ is_open _,
   rw [←is_closed_compl_iff, ←is_closed_compl_iff],
-  generalize : -s' = s,
+  generalize : s'ᶜ = s,
   rw is_closed_induced_iff,
   refine λ hs, ⟨f '' s, h₃ s hs, _⟩,
   rw preimage_image_eq _ h₂

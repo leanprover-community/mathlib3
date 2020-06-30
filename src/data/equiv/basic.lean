@@ -189,7 +189,7 @@ lemma symm_image_image {α β} (f : equiv α β) (s : set α) : f.symm '' (f '' 
 by { rw [← set.image_comp], simp }
 
 protected lemma image_compl {α β} (f : equiv α β) (s : set α) :
-  f '' -s = -(f '' s) :=
+  f '' sᶜ = (f '' s)ᶜ :=
 set.image_compl_eq f.bijective
 
 /- The group of permutations (self-equivalences) of a type `α` -/
@@ -1075,26 +1075,26 @@ calc (insert a s : set α) ≃ ↥(s ∪ {a}) : equiv.set.of_eq (by simp)
 ... ≃ s ⊕ ({a} : set α) : equiv.set.union (by finish [set.subset_def])
 ... ≃ s ⊕ punit.{u+1} : sum_congr (equiv.refl _) (equiv.set.singleton _)
 
-/-- If `s : set α` is a set with decidable membership, then `s ⊕ (-s)` is equivalent to `α`. -/
-protected def sum_compl {α} (s : set α) [decidable_pred s] : s ⊕ (-s : set α) ≃ α :=
-calc s ⊕ (-s : set α) ≃ ↥(s ∪ -s) : (equiv.set.union (by simp [set.ext_iff])).symm
+/-- If `s : set α` is a set with decidable membership, then `s ⊕ sᶜ` is equivalent to `α`. -/
+protected def sum_compl {α} (s : set α) [decidable_pred s] : s ⊕ (sᶜ : set α) ≃ α :=
+calc s ⊕ (sᶜ : set α) ≃ ↥(s ∪ sᶜ) : (equiv.set.union (by simp [set.ext_iff])).symm
 ... ≃ @univ α : equiv.set.of_eq (by simp)
 ... ≃ α : equiv.set.univ _
 
 @[simp] lemma sum_compl_apply_inl {α : Type u} (s : set α) [decidable_pred s] (x : s) :
   equiv.set.sum_compl s (sum.inl x) = x := rfl
 
-@[simp] lemma sum_compl_apply_inr {α : Type u} (s : set α) [decidable_pred s] (x : -s) :
+@[simp] lemma sum_compl_apply_inr {α : Type u} (s : set α) [decidable_pred s] (x : sᶜ) :
   equiv.set.sum_compl s (sum.inr x) = x := rfl
 
 lemma sum_compl_symm_apply_of_mem {α : Type u} {s : set α} [decidable_pred s] {x : α}
   (hx : x ∈ s) : (equiv.set.sum_compl s).symm x = sum.inl ⟨x, hx⟩ :=
-have ↑(⟨x, or.inl hx⟩ : (s ∪ -s : set α)) ∈ s, from hx,
+have ↑(⟨x, or.inl hx⟩ : (s ∪ sᶜ : set α)) ∈ s, from hx,
 by { rw [equiv.set.sum_compl], simpa using set.union_apply_left _ this }
 
 lemma sum_compl_symm_apply_of_not_mem {α : Type u} {s : set α} [decidable_pred s] {x : α}
   (hx : x ∉ s) : (equiv.set.sum_compl s).symm x = sum.inr ⟨x, hx⟩ :=
-have ↑(⟨x, or.inr hx⟩ : (s ∪ -s : set α)) ∈ -s, from hx,
+have ↑(⟨x, or.inr hx⟩ : (s ∪ sᶜ : set α)) ∈ sᶜ, from hx,
 by { rw [equiv.set.sum_compl], simpa using set.union_apply_right _ this }
 
 /-- `sum_diff_subset s t` is the natural equivalence between

@@ -10,7 +10,5 @@ import algebra.ordered_ring
 /- Turn off trace messages so they don't pollute the test build: -/
 set_option trace.silence_library_search true
 
-set_option pp.all true
-
 example {a b : ℕ} (h : b > 0) (w : a ≥ 1) : b ≤ a * b :=
 by library_search -- exact (le_mul_iff_one_le_left h).mpr w

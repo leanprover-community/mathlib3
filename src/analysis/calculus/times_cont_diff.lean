@@ -462,7 +462,7 @@ begin
   exact (continuous_within_at_inter (mem_nhds_sets t_open xt)).1 this,
 end
 
-lemma times_cont_diff_within_at.congr {n : with_top ℕ}
+lemma times_cont_diff_within_at.congr_of_eventually_eq {n : with_top ℕ}
   (h : times_cont_diff_within_at 𝕜 n f s x) (h₁ : f₁ =ᶠ[nhds_within x s] f) :
   times_cont_diff_within_at 𝕜 n f₁ s x :=
 begin
@@ -474,9 +474,15 @@ begin
   exact (H.mono (inter_subset_left u _)).congr (λ x hx, hv _ hx.2.1)
 end
 
-lemma times_cont_diff_within_at_congr {n : with_top ℕ} (h₁ : f₁ =ᶠ[nhds_within x s] f) :
+lemma times_cont_diff_within_at_congr_of_eventually_eq {n : with_top ℕ}
+  (h₁ : f₁ =ᶠ[nhds_within x s] f) :
   times_cont_diff_within_at 𝕜 n f₁ s x ↔ times_cont_diff_within_at 𝕜 n f s x :=
-⟨λ H, times_cont_diff_within_at.congr H h₁.symm, λ H, H.congr h₁⟩
+⟨λ H, times_cont_diff_within_at.congr_of_eventually_eq H h₁.symm, λ H, H.congr_of_eventually_eq h₁⟩
+
+lemma times_cont_diff_within_at.congr {n : with_top ℕ}
+  (h : times_cont_diff_within_at 𝕜 n f s x) (h₁ : ∀ y ∈ s, f₁ y = f y) :
+  times_cont_diff_within_at 𝕜 n f₁ s x :=
+h.congr_of_eventually_eq $ filter.eventually_eq_of_mem self_mem_nhds_within h₁
 
 lemma times_cont_diff_within_at.mono {n : with_top ℕ}
   (h : times_cont_diff_within_at 𝕜 n f s x) {t : set E} (hst : t ⊆ s) (xt : x ∈ t) :
@@ -607,7 +613,7 @@ lemma times_cont_diff_on.continuous_on {n : with_top ℕ}
 lemma times_cont_diff_on.congr {n : with_top ℕ}
   (h : times_cont_diff_on 𝕜 n f s) (h₁ : ∀ x ∈ s, f₁ x = f x) :
   times_cont_diff_on 𝕜 n f₁ s :=
-λ x hx, (h x hx).congr (filter.eventually_eq_of_mem self_mem_nhds_within h₁)
+λ x hx, (h x hx).congr h₁
 
 lemma times_cont_diff_on_congr {n : with_top ℕ} (h₁ : ∀ x ∈ s, f₁ x = f x) :
   times_cont_diff_on 𝕜 n f₁ s ↔ times_cont_diff_on 𝕜 n f s :=
@@ -957,7 +963,7 @@ begin
     have := hf'.mono ho ⟨xs, xo⟩,
     rw times_cont_diff_within_at_inter' (mem_nhds_within_of_mem_nhds (mem_nhds_sets o_open xo))
       at this,
-    apply this.congr,
+    apply this.congr_of_eventually_eq,
     have : o ∩ s ∈ nhds_within x s := mem_nhds_within.2 ⟨o, o_open, xo, subset.refl _⟩,
     rw inter_comm at this,
     apply filter.eventually_eq_of_mem this (λ y hy, _),

@@ -189,9 +189,9 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
 {E' : Type*} [normed_group E'] [normed_space 𝕜 E'] (I' : model_with_corners 𝕜 E' H')
 
-lemma times_cont_diff_within_at_invariant (n : ℕ) :
+lemma differentiable_within_at_invariant :
   (times_cont_diff_groupoid ∞ I).invariant_prop_fun_set_pt (times_cont_diff_groupoid ∞ I')
-  (λ f s x, times_cont_diff_within_at 𝕜 n (I' ∘ f ∘ I.symm) (range I ∩ I.symm ⁻¹' s) (I x)) :=
+  (λ f s x, differentiable_within_at 𝕜 (I' ∘ f ∘ I.symm) (range I ∩ I.symm ⁻¹' s) (I x)) :=
 { is_local :=
   begin
     assume s x u f u_open xu,
@@ -199,7 +199,7 @@ lemma times_cont_diff_within_at_invariant (n : ℕ) :
       by simp [inter_assoc],
     rw this,
     symmetry,
-    apply times_cont_diff_within_at_inter,
+    apply differentiable_within_at_inter,
     have : u ∈ 𝓝 (I.symm (I x)),
       by { rw [model_with_corners.left_inv], exact mem_nhds_sets u_open xu },
     apply continuous_at.preimage_mem_nhds I.continuous_symm.continuous_at this,
@@ -210,13 +210,10 @@ lemma times_cont_diff_within_at_invariant (n : ℕ) :
     have : I x = (I ∘ e.symm ∘ I.symm) (I (e x)), by simp only [hx] with mfld_simps,
     rw this at h,
     have : I (e x) ∈ (I.symm) ⁻¹' e.target ∩ range ⇑I, by simp only [hx] with mfld_simps,
-    have := ((mem_groupoid_of_pregroupoid.2 he).2.times_cont_diff_within_at this).of_le le_top,
-    convert h.comp' this _ _ using 1,
+    have := ((mem_groupoid_of_pregroupoid.2 he).2.times_cont_diff_within_at this).differentiable_within_at le_top,
+    convert h.comp' _ this using 1,
     { ext y, simp only with mfld_simps },
     { ext y, split; { assume hy, simp only with mfld_simps at hy, simp only [hy] with mfld_simps } },
-    { simp only [hx] with mfld_simps },
-    { have : x ∈ s, by simpa only [hx] with mfld_simps using h.1.2,
-      simp only [hx, this] with mfld_simps, },
   end,
   congr :=
   begin

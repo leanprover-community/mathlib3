@@ -461,7 +461,7 @@ see `of_local_left_inverse`.  -/
 theorem to_local_left_inverse (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) {g : F → E}
   (hg : ∀ᶠ x in 𝓝 a, g (f x) = x) :
   has_strict_fderiv_at g (f'.symm : F →L[𝕜] E) (f a) :=
-hf.to_local_inverse.congr_of_mem_sets $ (hf.local_inverse_unique hg).mono $ λ _, eq.symm
+hf.to_local_inverse.congr_of_eventually_eq $ (hf.local_inverse_unique hg).mono $ λ _, eq.symm
 
 end has_strict_fderiv_at
 

@@ -33,24 +33,11 @@ do {
        to_expr ``(%%Hmono %%hyp)
   | _ := fail ("failed to apply " ++ to_string e ++ " at " ++ to_string hyp.local_pp_name)
   end,
-  -- Let's try to force β-reduction at `h`.
-  -- (Unfortunately `tactic.dsimp_hyp hyp none [] { eta := false, beta := true }`
-  -- is slightly too aggressive; see the tests.)
-  t ← infer_type prf,
-  t ← match t with
-  | `(%%l = %%r) := do
-      l ← head_beta l,
-      r ← head_beta r,
-      to_expr ``(%%l = %%r)
-  | `(%%l ≤ %%r) := do
-      l ← head_beta l,
-      r ← head_beta r,
-      to_expr ``(%%l ≤ %%r)
-  | t := pure t
-  end,
   clear hyp,
-  note hyp.local_pp_name (some t) prf,
-  skip
+  -- Let's try to force β-reduction at `h`.
+  hyp ← note hyp.local_pp_name none prf,
+  -- let's try to force β-reduction at `h`
+  try $ tactic.dsimp_hyp hyp simp_lemmas.mk [] { eta := false, beta := true }
 }
 
 namespace interactive

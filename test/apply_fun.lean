@@ -10,7 +10,7 @@ begin
   exact H h
 end
 
-example (f : ℕ → ℕ) (a b : ℕ) (monof : monotone f)  (h : a ≤ b) : f a ≤ f b :=
+example (f : ℕ → ℕ) (a b : ℕ) (monof : monotone f) (h : a ≤ b) : f a ≤ f b :=
 begin
   apply_fun f at h,
   assumption,
@@ -25,7 +25,7 @@ begin
   exact h
 end
 
-example (f : ℕ → ℕ) (a b : ℕ) (monof : monotone f)  (h : a ≤ b) : f a ≤ f b :=
+example (f : ℕ → ℕ) (a b : ℕ) (monof : monotone f) (h : a ≤ b) : f a ≤ f b :=
 begin
   apply_fun f at h using monof,
   assumption

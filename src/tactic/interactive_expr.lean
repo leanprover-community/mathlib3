@@ -214,16 +214,28 @@ meta structure local_collection :=
 (key : string)
 (locals : list expr)
 (type : expr)
+(value : option expr)
 
-/-- Group consecutive locals according to whether they have the same type -/
-meta def to_local_collection : list local_collection → list expr → tactic (list local_collection)
-| acc [] := pure $ list.map (λ lc : local_collection, {locals := lc.locals.reverse, ..lc}) $ list.reverse $ acc
-| acc (l::ls) := do
-  l_type ← infer_type l,
-  (do (⟨k,ns,t⟩::acc) ← pure acc,
-      is_def_eq t l_type,
-      to_local_collection (⟨k,l::ns,t⟩::acc) ls)
-  <|> (to_local_collection (⟨to_string $ expr.local_uniq_name $ l, [l], l_type⟩::acc) ls)
+/-- Converts a single local constant into a (singleton) `local_collection` -/
+meta def to_local_collection (l : expr) : tactic local_collection :=
+tactic.unsafe.type_context.run $ do
+lctx ← tactic.unsafe.type_context.get_local_context,
+some ldecl ← pure $ lctx.get_local_decl l.local_uniq_name,
+pure {
+  key := l.local_uniq_name.repr,
+  locals := [l],
+  type := ldecl.type,
+  value := ldecl.value }
+
+/-- Groups consecutive local collections by type -/
+meta def group_local_collection : list local_collection → list local_collection
+| (a :: b :: rest) :=
+  if a.type = b.type ∧ a.value = b.value then
+    group_local_collection $
+      { locals := a.locals ++ b.locals, ..a } :: rest
+  else
+    a :: group_local_collection (b :: rest)
+| ls := ls
 
 /-- Component that displays the main (first) goal. -/
 meta def tactic_view_goal {γ} (local_c : tc local_collection γ) (target_c : tc expr γ) : tc filter_type γ :=
@@ -239,11 +251,13 @@ tc.stateless $ λ ft, do
     end,
   lcs ← local_context,
   lcs ← list.mfilter (filter_local ft) lcs,
-  lcs ← to_local_collection [] lcs,
+  lcs ← lcs.mmap $ to_local_collection,
+  let lcs := group_local_collection lcs,
   lchs ← lcs.mmap (λ lc, do
     lh ← local_c lc,
-    ns ← pure $ lc.locals.map (λ n, h "span" [cn "goal-hyp b pr2"] [html.of_name $ expr.local_pp_name n]),
-    pure $ h "li" [key lc.key] (ns ++ [": ", h "span" [cn "goal-hyp-type"] [lh]])),
+    let ns : list (html γ) := lc.locals.map $ λ n,
+      h "span" [cn "goal-hyp b pr2", key n.local_uniq_name] [html.of_name n.local_pp_name],
+    pure $ h "li" [key lc.key] (ns ++ [": ", h "span" [cn "goal-hyp-type", key "type"] [lh]])),
   t_comp ← target_c g,
   pure $ h "ul" [key g.hash, className "list pl0 font-code"] $ case_tag ++ lchs ++ [
     h "li" [key u_n] [
@@ -304,8 +318,12 @@ meta def show_local_collection_component : tc local_collection empty :=
 tc.stateless (λ lc, do
   (l::_) ← pure lc.locals,
   c ← show_type_component l,
-  pure [c]
-)
+  match lc.value with
+  | some v := do
+    v ← interactive_expression.mk interactive_expression.type_tooltip v,
+    pure [c, " := ", v]
+  | none := pure [c]
+  end)
 
 /--
 Renders the current tactic state.

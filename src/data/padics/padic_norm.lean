@@ -170,6 +170,7 @@ begin
   solve_by_elim,
 end
 
+@[simp]
 lemma padic_val_nat_of_zero (m : nat) : padic_val_nat m 0 = 0 := by simpa
 
 @[simp]
@@ -324,15 +325,12 @@ lemma padic_val_nat_div {p : ℕ} [p_prime : fact p.prime] {b : ℕ} (dvd : p �
   (padic_val_nat p (b / p)) = (padic_val_nat p b) - 1 :=
 begin
   by_cases b_split : (b = 0),
-  { have: padic_val_nat p 0 = 0 := padic_val_nat_of_zero p,
-    simpa [b_split], },
-  {
-  have e : padic_val_rat p (b / p) = padic_val_rat p b - padic_val_rat p p :=
-    padic_val_rat.div p (nat.cast_ne_zero.mpr b_split) (nat.cast_ne_zero.mpr (nat.prime.ne_zero p_prime)),
-  rw padic_val_rat.padic_val_rat_self (nat.prime.one_lt p_prime) at e,
-  have r : 1 ≤ padic_val_nat p b := one_le_padic_val_nat_of_dvd b_split dvd,
-  exact_mod_cast e,
-  }
+  { simp [b_split], },
+  { have split_frac : padic_val_rat p (b / p) = padic_val_rat p b - padic_val_rat p p :=
+      padic_val_rat.div p (nat.cast_ne_zero.mpr b_split) (nat.cast_ne_zero.mpr (nat.prime.ne_zero p_prime)),
+    rw padic_val_rat.padic_val_rat_self (nat.prime.one_lt p_prime) at split_frac,
+    have r : 1 ≤ padic_val_nat p b := one_le_padic_val_nat_of_dvd b_split dvd,
+    exact_mod_cast split_frac, }
 end
 
 /--
@@ -355,26 +353,86 @@ lemma padic_val_nat_primes {p q : ℕ} [p_prime : fact p.prime] [q_prime : fact 
 /--
 Dividing out by a prime which is not a factor doesn't change the `padic_val_nat`.
 -/
-lemma padic_val_nat_div' {p : ℕ} [p_prime : fact p.prime] {q : ℕ} (q_coprime : coprime p q)
+-- The strange naming order here, with the two-tick version appearing before the one-tick version,
+-- is because this is a special case of the one-tick version which is nevertheless of interest in
+-- its own right.
+lemma padic_val_nat_div'' {p : ℕ} [p_prime : fact p.prime] {q : ℕ} [q_prime : fact q.prime] (neq : p ≠ q)
   {b : ℕ} (dvd : q ∣ b) : padic_val_nat p (b / q) = padic_val_nat p b :=
 begin
   by_cases b_split : (b = 0),
   { subst b,
-    unfold padic_val_nat,
-    simp, },
-  {
-    have q_nonzero : q ≠ 0,
+    simp [padic_val_nat], },
+  { have q_nonzero : q ≠ 0,
     { intros q_zero,
       simpa [q_zero, zero_dvd_iff] using dvd, },
     have e : padic_val_rat p (b / q) = padic_val_rat p b - padic_val_rat p q :=
       padic_val_rat.div p (nat.cast_ne_zero.mpr b_split) (nat.cast_ne_zero.mpr q_nonzero),
-  rw [← padic_val_rat_of_nat p q, padic_val_nat_primes neq] at e,
-  simp only [int.coe_nat_zero, sub_zero] at e,
-  have cz : char_zero ℚ := linear_ordered_semiring.to_char_zero,
-  rw [←padic_val_rat_of_nat p b, ←@cast_dvd_char_zero _ _ cz _ _ dvd, ←padic_val_rat_of_nat p (b / q)] at e,
-  exact_mod_cast int.coe_nat_inj e,
-  }
+    rw [← padic_val_rat_of_nat p q, padic_val_nat_primes neq] at e,
+    simp only [int.coe_nat_zero, sub_zero] at e,
+    have cz : char_zero ℚ := linear_ordered_semiring.to_char_zero,
+    rw [←padic_val_rat_of_nat p b, ←@cast_dvd_char_zero _ _ cz _ _ dvd, ←padic_val_rat_of_nat p (b / q)] at e,
+    exact_mod_cast int.coe_nat_inj e, },
 end
+
+@[simp]
+lemma div_div_div {a b c : ℕ} (dvd : c ∣ a) (dvd2 : a ∣ b) : (b / (a / c)) / c = b / a :=
+begin
+  by_cases a_split : (a = 0),
+  { subst a_split, simp [dvd2] },
+  { rcases dvd2 with ⟨k, rfl⟩,
+    rw nat.mul_div_cancel_left k (nat.pos_of_ne_zero a_split),
+    by_cases c_split : (c = 0),
+    { subst c_split, simp only [zero_dvd_iff] at dvd, subst dvd, trivial, },
+    { rcases dvd with ⟨k2, rfl⟩,
+      rw nat.mul_div_cancel_left k2 (nat.pos_of_ne_zero c_split),
+      rw nat.mul_comm (c * k2) k,
+      rw ← nat.mul_assoc k c k2,
+      have k2_nonzero : k2 ≠ 0,
+        { intros k2_zero,
+          subst k2_zero,
+          simp at a_split,
+          trivial, },
+      rw nat.mul_div_cancel _ (nat.pos_of_ne_zero k2_nonzero),
+      rw nat.mul_div_cancel _ (nat.pos_of_ne_zero c_split), }, },
+end
+
+lemma padic_val_nat_div' {p : ℕ} [p_prime : fact p.prime] :
+  ∀ {m : ℕ} (cpm : coprime p m) {b : ℕ} (dvd : m ∣ b), padic_val_nat p (b / m) = padic_val_nat p b
+| 0 := λ cpm b dvd, by
+  begin
+    exfalso,
+    have p_one : p = 1, by simpa using cpm,
+    simpa [p_one, nat.not_prime_one] using p_prime,
+  end
+| 1 := λ cpm b dvd, by simp
+| (n + 2) :=
+  let m := n + 2 in
+  let min_fac := nat.min_fac m in
+  let wf : m / (nat.min_fac m) < m := nat.div_lt_self (by linarith) (nat.prime.one_lt (nat.min_fac_prime (by linarith))) in
+  λ cpm b dvd,
+  begin
+    rw ← div_div_div (nat.min_fac_dvd m) dvd,
+    haveI: fact (nat.prime min_fac) := nat.min_fac_prime (by linarith),
+    have p_different : p ≠ min_fac,
+      { intros p_eq,
+        have bad : m.min_fac ∣ m := min_fac_dvd m,
+        rw p_eq at cpm,
+        have min_fac_big : 1 < min_fac := prime.one_lt (nat.min_fac_prime (by linarith)),
+        exact not_coprime_of_dvd_of_dvd min_fac_big (dvd_refl min_fac) bad cpm, },
+    have u : min_fac ∣ b / (m / min_fac),
+      {
+        rcases nat.min_fac_dvd m with ⟨k, pr⟩,
+        rw pr,
+        sorry
+      },
+    rw padic_val_nat_div'' p_different u,
+    have w : (m / min_fac) ∣ b,
+      { rcases dvd with ⟨k, rfl⟩,
+        by_cases k_split : (k = 0),
+        { subst k_split, simp, },
+        { exact dvd_mul_of_dvd_left (div_dvd_of_dvd (nat.min_fac_dvd m)) _ }, },
+    rw padic_val_nat_div' (coprime.coprime_div_right cpm (min_fac_dvd m)) w,
+  end
 
 open_locale big_operators
 
@@ -415,7 +473,7 @@ begin
             exact ans
           end,
         haveI : fact n.min_fac.prime := nat.min_fac_prime (by linarith),
-        simp [h, padic_val_nat_of_unrelated_quot h (by linarith) (nat.min_fac_dvd n)], },
+        simp [h, padic_val_nat_div'' h (nat.min_fac_dvd n)], },
       { subst h,
         haveI : fact (nat.prime (nat.min_fac n)) := nat.min_fac_prime (by linarith),
         simp [padic_val_nat_div (nat.min_fac_dvd n)], }, },

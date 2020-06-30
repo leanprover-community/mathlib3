@@ -70,11 +70,22 @@ span_le.trans $ singleton_subset_iff.trans mem_span_singleton
 
 lemma span_eq_bot {s : set α} : span s = ⊥ ↔ ∀ x ∈ s, (x:α) = 0 := submodule.span_eq_bot
 
-lemma span_singleton_eq_bot {x} : span ({x} : set α) = ⊥ ↔ x = 0 := submodule.span_singleton_eq_bot
+@[simp] lemma span_singleton_eq_bot {x} : span ({x} : set α) = ⊥ ↔ x = 0 := submodule.span_singleton_eq_bot
 
 lemma span_singleton_eq_top {x} : span ({x} : set α) = ⊤ ↔ is_unit x :=
 by rw [is_unit_iff_dvd_one, ← span_singleton_le_span_singleton, singleton_one, span_singleton_one,
   eq_top_iff]
+
+lemma span_singleton_mul_right_unit {a : α} (h2 : is_unit a) (x : α) :
+  span ({x * a} : set α) = span {x} :=
+begin
+  apply le_antisymm,
+  { rw span_singleton_le_span_singleton, use a},
+  { rw span_singleton_le_span_singleton, rw mul_dvd_of_is_unit_right h2}
+end
+
+lemma span_singleton_mul_left_unit {a : α} (h2 : is_unit a) (x : α) :
+  span ({a * x} : set α) = span {x} := by rw [mul_comm, span_singleton_mul_right_unit h2]
 
 /-- An ideal `P` of a ring `R` is prime if `P ≠ R` and `xy ∈ P → x ∈ P ∨ y ∈ P` -/
 @[class] def is_prime (I : ideal α) : Prop :=
@@ -152,6 +163,16 @@ begin
     obtain ⟨J, JS, J0⟩ : ∃ J ∈ S, (1 : α) ∈ J,
       from (submodule.mem_Sup_of_directed ⟨I, IS⟩ cC.directed_on).1 ((eq_top_iff_one _).1 H),
     exact SC JS ((eq_top_iff_one _).2 J0) }
+end
+
+/-- If P is not properly contained in any maximal ideal then it is not properly contained
+  in any proper ideal -/
+lemma maximal_of_no_maximal {R : Type u} [comm_ring R] {P : ideal R}
+(hmax : ∀ m : ideal R, P < m → ¬is_maximal m) (J : ideal R) (hPJ : P < J) : J = ⊤ :=
+begin
+  by_contradiction hnonmax,
+  rcases exists_le_maximal J hnonmax with ⟨M, hM1, hM2⟩,
+  exact hmax M (lt_of_lt_of_le hPJ hM2) hM1,
 end
 
 theorem mem_span_pair {x y z : α} :

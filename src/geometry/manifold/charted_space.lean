@@ -11,7 +11,7 @@ import topology.local_homeomorph
 A smooth manifold is a topological space `M` locally modelled on a euclidean space (or a euclidean
 half-space for manifolds with boundaries, or an infinite dimensional vector space for more general
 notions of manifolds), i.e., the manifold is covered by open subsets on which there are local
-homeomorphisms (the charts) going to a model space`H`, and the changes of charts should be smooth
+homeomorphisms (the charts) going to a model space `H`, and the changes of charts should be smooth
 maps.
 
 In this file, we introduce a general framework describing these notions, where the model space is an
@@ -119,7 +119,7 @@ noncomputable theory
 open_locale classical
 universes u
 
-variables {H : Type u} {M : Type*} {M' : Type*} {M'' : Type*}
+variables {H : Type u} {H' : Type*} {M : Type*} {M' : Type*} {M'' : Type*}
 
 /- Notational shortcut for the composition of local homeomorphisms and local equivs, i.e.,
 `local_homeomorph.trans` and `local_equiv.trans`.
@@ -407,7 +407,102 @@ by simp [atlas, charted_space.atlas]
   chart_at H x = local_homeomorph.refl H :=
 by simpa using chart_mem_atlas H x
 
+def model_prod (H : Type*) (H' : Type*) := H × H'
+
+section
+local attribute [reducible] model_prod
+
+instance (H : Type*) [topological_space H] (H' : Type*) [topological_space H'] :
+  topological_space (model_prod H H') :=
+by apply_instance
+
+/- Next lemma shows up often when dealing with derivatives, register it as simp. -/
+@[simp, mfld_simps] lemma model_prod_range_prod_id
+  {H : Type*} {H' : Type*} {α : Type*} (f : H → α) :
+  range (λ (p : model_prod H H'), (f p.1, p.2)) = set.prod (range f) univ :=
+by rw prod_range_univ_eq
+
+end
+
+/-- The product of two charted spaces is naturally a charted space, with the canonical
+construction of the atlas of product maps. -/
+instance prod_charted_space (H : Type*) [topological_space H]
+  (M : Type*) [topological_space M] [charted_space H M]
+  (H' : Type*) [topological_space H']
+  (M' : Type*) [topological_space M'] [charted_space H' M'] :
+  charted_space (model_prod H H') (M × M') :=
+{ atlas            :=
+    {f : (local_homeomorph (M×M') (model_prod H H')) |
+      ∃ g ∈ charted_space.atlas H M, ∃ h ∈ (charted_space.atlas H' M'),
+        f = local_homeomorph.prod g h},
+  chart_at         := (λ x: (M × M'), (charted_space.chart_at H x.1).prod (charted_space.chart_at H' x.2)),
+  mem_chart_source :=
+  begin
+    intro x,
+    simp only [local_homeomorph.prod_to_local_equiv, set.mem_prod, mem_chart_source, and_self, local_equiv.prod_source],
+  end,
+  chart_mem_atlas  :=
+  begin
+    intro x,
+    use (charted_space.chart_at H x.1),
+    split,
+    { apply chart_mem_atlas _, },
+    { use (charted_space.chart_at H' x.2), simp only [chart_mem_atlas, eq_self_iff_true, and_self], }
+  end
+}
+
+section prod_charted_space
+
 variables [topological_space H] [topological_space M] [charted_space H M]
+[topological_space H'] [topological_space M'] [charted_space H' M'] {x : M×M'}
+
+@[simp] lemma chart_of_prod_eq_prod_of_charts_coe :
+  (chart_at (model_prod H H') x : M × M' → model_prod H H')
+  = (prod.map (chart_at H x.fst) (chart_at H' x.snd)) := rfl
+
+@[simp] lemma chart_of_prod_eq_prod_of_charts_coe_symm :
+  ((chart_at (model_prod H H') x).symm : model_prod H H' → M × M') =
+  (prod.map (chart_at H x.fst).symm (chart_at H' x.snd).symm) := rfl
+
+@[simp] lemma chart_of_prod_eq_prod_of_charts_coe_to_local_equiv_trans {α : Type*} {β : Type*}
+  {e : local_equiv H α} {e' : local_equiv H' β} :
+  (chart_at (model_prod H H') x).to_local_equiv.trans (e.prod e') =
+  (((chart_at H x.fst).to_local_equiv.trans e).prod ((chart_at H' x.snd).to_local_equiv.trans e'))
+  :=
+begin
+  cases x,
+  ext1,
+  {refl,},
+  { intro y, refl, },
+  { ext1 z,
+    cases z,
+    simp only [local_homeomorph.prod_to_local_equiv, local_homeomorph.trans_to_local_equiv,
+    set.prod_mk_mem_set_prod_eq, local_equiv.prod_source],
+    fsplit,
+    { rintro ⟨⟨h1, h2⟩, h3, h4⟩, exact ⟨⟨h1, h3⟩, ⟨h2, h4⟩⟩, },
+    { rintro ⟨⟨h1, h2⟩, h3, h4⟩, exact ⟨⟨h1, h3⟩, ⟨h2, h4⟩⟩, } }
+end
+
+@[simp] lemma chart_of_prod_eq_prod_of_charts_coe_trans {α : Type*} {β : Type*}
+[topological_space α] [topological_space β]
+{e : local_homeomorph H α} {e' : local_homeomorph H' β} :
+(chart_at (model_prod H H') x).trans (e.prod e') =
+((chart_at H x.fst).trans e).prod ((chart_at H' x.snd).trans e') :=
+begin
+  cases x,
+  ext1,
+  {refl,},
+  { intro y, refl, },
+  { ext1 z,
+    cases z,
+    simp only [local_homeomorph.prod_to_local_equiv, local_homeomorph.trans_to_local_equiv,
+    set.prod_mk_mem_set_prod_eq, local_equiv.prod_source],
+    fsplit,
+    { rintro ⟨⟨h1, h2⟩, h3, h4⟩, exact ⟨⟨h1, h3⟩, ⟨h2, h4⟩⟩, },
+    { rintro ⟨⟨h1, h2⟩, h3, h4⟩, exact ⟨⟨h1, h3⟩, ⟨h2, h4⟩⟩, } }
+end
+
+end prod_charted_space
 
 end charted_space
 

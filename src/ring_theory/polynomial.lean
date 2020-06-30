@@ -105,10 +105,10 @@ def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set
 @[simp] theorem restriction_one : restriction (1 : polynomial R) = 1 :=
 ext $ λ i, subtype.eq $ by rw [coeff_restriction', coeff_one, coeff_one]; split_ifs; refl
 
-variables {S : Type v} [comm_ring S] {f : R → S} {x : S}
+variables {S : Type v} [comm_ring S] {f : R →+* S} {x : S}
 
 theorem eval₂_restriction {p : polynomial R} :
-  eval₂ f x p = eval₂ (f ∘ subtype.val) x p.restriction :=
+  eval₂ f x p = eval₂ (f.comp (is_subring.subtype _)) x p.restriction :=
 rfl
 
 section to_subring

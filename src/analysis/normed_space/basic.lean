@@ -356,7 +356,7 @@ lemma squeeze_zero_norm {f : γ → α} {g : γ → ℝ} {t₀ : filter γ}
   (h : ∀ (n:γ), ∥f n∥ ≤ g n)
   (h' : tendsto g t₀ (𝓝 0)) :
   tendsto f t₀ (𝓝 0) :=
-tendsto_zero_iff_norm_tendsto_zero.mpr (squeeze_zero (λ n, norm_nonneg _) h h')
+squeeze_zero_norm' (eventually_of_forall _ h) h'
 
 lemma lim_norm (x : α) : (λg:α, ∥g - x∥) →_{x} 0 :=
 tendsto_iff_norm_tendsto_zero.1 (continuous_iff_continuous_at.1 continuous_id x)
@@ -446,7 +446,7 @@ begin
   exact norm_pow_le a (nat.succ_le_iff.mp h),
 end
 
-lemma norm_pos {α : Type*} [normed_ring α] [nonzero α] (x : units α) : 0 < ∥(x:α)∥ :=
+lemma units.norm_pos {α : Type*} [normed_ring α] [nonzero α] (x : units α) : 0 < ∥(x:α)∥ :=
 norm_pos_iff.mpr (units.coe_ne_zero x)
 
 /- In a normed ring, the left-multiplication `add_monoid_hom` is bounded. -/

@@ -184,7 +184,7 @@ open finset
 variables {ι : Type*}
 
 @[simp] lemma op_sum [ring α] {s : finset ι} (f : ι → α) :
-op (∑ x in s, f x) = ∑ x in s, (λ x, op (f x)) x :=
+  op (∑ x in s, f x) = ∑ x in s, op (f x) :=
 begin
   classical,
   induction s using finset.induction with x s hx hs,
@@ -194,7 +194,7 @@ begin
 end
 
 @[simp] lemma unop_sum [ring α] {s : finset ι} (f : ι → αᵒᵖ) :
-unop (∑ x in s, f x) = ∑ x in s, (λ x, unop (f x)) x :=
+  unop (∑ x in s, f x) = ∑ x in s, unop (f x) :=
 begin
   classical,
   induction s using finset.induction with x s hx hs,

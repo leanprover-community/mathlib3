@@ -316,7 +316,7 @@ are dense. Formulated here with an index set which is a countable set in any typ
 theorem dense_bUnion_interior_of_closed {S : set β} {f : β → set α} (hc : ∀s∈S, is_closed (f s))
   (hS : countable S) (hU : (⋃s∈S, f s) = univ) : closure (⋃s∈S, interior (f s)) = univ :=
 begin
-  let g := λs, - (frontier (f s)),
+  let g := λs, (frontier (f s))ᶜ,
   have clos_g : closure (⋂s∈S, g s) = univ,
   { refine dense_bInter_of_open (λs hs, _) hS (λs hs, _),
     show is_open (g s), from is_open_compl_iff.2 is_closed_frontier,

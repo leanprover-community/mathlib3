@@ -1121,7 +1121,6 @@ apply_nolint hyperreal.gt_of_neg_of_infinitesimal ge_or_gt
 apply_nolint hyperreal.infinite_pos_def ge_or_gt
 apply_nolint hyperreal.infinite_pos_iff_infinite_and_pos ge_or_gt
 apply_nolint hyperreal.infinite_pos_iff_infinitesimal_inv_pos ge_or_gt
-apply_nolint hyperreal.infinitesimal_def ge_or_gt
 apply_nolint hyperreal.infinitesimal_pos_iff_infinite_pos_inv ge_or_gt
 apply_nolint hyperreal.is_st_iff_abs_sub_lt_delta ge_or_gt
 apply_nolint hyperreal.lt_neg_of_pos_of_infinitesimal ge_or_gt
@@ -1329,14 +1328,6 @@ apply_nolint quotient_group.quotient_ker_equiv_range doc_blame
 
 -- group_theory/sylow.lean
 apply_nolint sylow.fixed_points_mul_left_cosets_equiv_quotient doc_blame
-
--- init_/algebra/norm_num.lean
-apply_nolint norm_num.add1 doc_blame
-apply_nolint norm_num.mul_div_helper unused_arguments
-apply_nolint norm_num.nonneg_bit0_helper ge_or_gt
-apply_nolint norm_num.nonneg_bit1_helper ge_or_gt
-apply_nolint norm_num.pos_bit0_helper ge_or_gt
-apply_nolint norm_num.pos_bit1_helper ge_or_gt
 
 -- linear_algebra/basic.lean
 apply_nolint linear_equiv.to_equiv doc_blame

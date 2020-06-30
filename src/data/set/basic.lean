@@ -52,13 +52,15 @@ Definitions in the file:
 
 * `prod s t : set (α × β)` : the subset `s × t`.
 
-* `inclusion s₁ s₂ : ↑s₁ → ↑s₂` : the map `↑s₁ → ↑s₂` induced by an inclusion `s₁ ⊆ s₂`.
+* `inclusion s₁ s₂ : ↥s₁ → ↥s₂` : the map `↥s₁ → ↥s₂` induced by an inclusion `s₁ ⊆ s₂`.
 
 ## Notation
 
 * `f ⁻¹' t` for `preimage f t`
 
 * `f '' s` for `image f s`
+
+* `sᶜ` for the complement of `s`
 
 ## Implementation notes
 
@@ -79,6 +81,18 @@ singleton, complement, powerset
 open function
 
 universe variables u v w x
+
+/-- Set / lattice complement -/
+class has_compl (α : Type*) := (compl : α → α)
+
+export has_compl (compl)
+
+postfix `ᶜ`:(max+1) := compl
+
+run_cmd do e ← tactic.get_env,
+  tactic.set_env $ e.mk_protected `set.compl
+
+instance {α : Type*} : has_compl (set α) := ⟨set.compl⟩
 
 namespace set
 
@@ -510,7 +524,7 @@ by finish [subset_def, ext_iff, iff_def]
 theorem inter_eq_self_of_subset_right {s t : set α} (h : t ⊆ s) : s ∩ t = t :=
 by finish [subset_def, ext_iff, iff_def]
 
-lemma inter_compl_nonempty_iff {α : Type*} {s t : set α} : (s ∩ -t).nonempty ↔ ¬ s ⊆ t :=
+lemma inter_compl_nonempty_iff {s t : set α} : (s ∩ tᶜ).nonempty ↔ ¬ s ⊆ t :=
 begin
   split,
   { rintros ⟨x ,xs, xt⟩ sub,
@@ -703,90 +717,90 @@ set.ext $ by simp
 
 /-! ### Lemmas about complement -/
 
-theorem mem_compl {s : set α} {x : α} (h : x ∉ s) : x ∈ -s := h
+theorem mem_compl {s : set α} {x : α} (h : x ∉ s) : x ∈ sᶜ := h
 
-lemma compl_set_of {α} (p : α → Prop) : - {a | p a} = { a | ¬ p a } := rfl
+lemma compl_set_of {α} (p : α → Prop) : {a | p a}ᶜ = { a | ¬ p a } := rfl
 
-theorem not_mem_of_mem_compl {s : set α} {x : α} (h : x ∈ -s) : x ∉ s := h
+theorem not_mem_of_mem_compl {s : set α} {x : α} (h : x ∈ sᶜ) : x ∉ s := h
 
-@[simp] theorem mem_compl_eq (s : set α) (x : α) : x ∈ -s = (x ∉ s) := rfl
+@[simp] theorem mem_compl_eq (s : set α) (x : α) : x ∈ sᶜ = (x ∉ s) := rfl
 
-theorem mem_compl_iff (s : set α) (x : α) : x ∈ -s ↔ x ∉ s := iff.rfl
+theorem mem_compl_iff (s : set α) (x : α) : x ∈ sᶜ ↔ x ∉ s := iff.rfl
 
-@[simp] theorem inter_compl_self (s : set α) : s ∩ -s = ∅ :=
+@[simp] theorem inter_compl_self (s : set α) : s ∩ sᶜ = ∅ :=
 by finish [ext_iff]
 
-@[simp] theorem compl_inter_self (s : set α) : -s ∩ s = ∅ :=
+@[simp] theorem compl_inter_self (s : set α) : sᶜ ∩ s = ∅ :=
 by finish [ext_iff]
 
-@[simp] theorem compl_empty : -(∅ : set α) = univ :=
+@[simp] theorem compl_empty : (∅ : set α)ᶜ = univ :=
 by finish [ext_iff]
 
-@[simp] theorem compl_union (s t : set α) : -(s ∪ t) = -s ∩ -t :=
+@[simp] theorem compl_union (s t : set α) : (s ∪ t)ᶜ = sᶜ ∩ tᶜ :=
 by finish [ext_iff]
 
 local attribute [simp] -- Will be generalized to lattices in `compl_compl'`
-theorem compl_compl (s : set α) : -(-s) = s :=
+theorem compl_compl (s : set α) : sᶜᶜ = s :=
 by finish [ext_iff]
 
 -- ditto
-theorem compl_inter (s t : set α) : -(s ∩ t) = -s ∪ -t :=
+theorem compl_inter (s t : set α) : (s ∩ t)ᶜ = sᶜ ∪ tᶜ :=
 by finish [ext_iff]
 
-@[simp] theorem compl_univ : -(univ : set α) = ∅ :=
+@[simp] theorem compl_univ : (univ : set α)ᶜ = ∅ :=
 by finish [ext_iff]
 
-lemma compl_empty_iff {s : set α} : -s = ∅ ↔ s = univ :=
+lemma compl_empty_iff {s : set α} : sᶜ = ∅ ↔ s = univ :=
 by { split, intro h, rw [←compl_compl s, h, compl_empty], intro h, rw [h, compl_univ] }
 
-lemma compl_univ_iff {s : set α} : -s = univ ↔ s = ∅ :=
+lemma compl_univ_iff {s : set α} : sᶜ = univ ↔ s = ∅ :=
 by rw [←compl_empty_iff, compl_compl]
 
-lemma nonempty_compl {s : set α} : (-s : set α).nonempty ↔ s ≠ univ :=
+lemma nonempty_compl {s : set α} : sᶜ.nonempty ↔ s ≠ univ :=
 ne_empty_iff_nonempty.symm.trans $ not_congr $ compl_empty_iff
 
-lemma mem_compl_singleton_iff {a x : α} : x ∈ -({a} : set α) ↔ x ≠ a :=
+lemma mem_compl_singleton_iff {a x : α} : x ∈ ({a} : set α)ᶜ ↔ x ≠ a :=
 not_iff_not_of_iff mem_singleton_iff
 
-lemma compl_singleton_eq (a : α) : -({a} : set α) = {x | x ≠ a} :=
+lemma compl_singleton_eq (a : α) : ({a} : set α)ᶜ = {x | x ≠ a} :=
 ext $ λ x,  mem_compl_singleton_iff
 
-theorem union_eq_compl_compl_inter_compl (s t : set α) : s ∪ t = -(-s ∩ -t) :=
+theorem union_eq_compl_compl_inter_compl (s t : set α) : s ∪ t = (sᶜ ∩ tᶜ)ᶜ :=
 by simp [compl_inter, compl_compl]
 
-theorem inter_eq_compl_compl_union_compl (s t : set α) : s ∩ t = -(-s ∪ -t) :=
+theorem inter_eq_compl_compl_union_compl (s t : set α) : s ∩ t = (sᶜ ∪ tᶜ)ᶜ :=
 by simp [compl_compl]
 
-@[simp] theorem union_compl_self (s : set α) : s ∪ -s = univ :=
+@[simp] theorem union_compl_self (s : set α) : s ∪ sᶜ = univ :=
 by finish [ext_iff]
 
-@[simp] theorem compl_union_self (s : set α) : -s ∪ s = univ :=
+@[simp] theorem compl_union_self (s : set α) : sᶜ ∪ s = univ :=
 by finish [ext_iff]
 
 theorem compl_comp_compl : compl ∘ compl = @id (set α) :=
 funext compl_compl
 
-theorem compl_subset_comm {s t : set α} : -s ⊆ t ↔ -t ⊆ s :=
+theorem compl_subset_comm {s t : set α} : sᶜ ⊆ t ↔ tᶜ ⊆ s :=
 by haveI := classical.prop_decidable; exact
 forall_congr (λ a, not_imp_comm)
 
-lemma compl_subset_compl {s t : set α} : -s ⊆ -t ↔ t ⊆ s :=
+lemma compl_subset_compl {s t : set α} : sᶜ ⊆ tᶜ ↔ t ⊆ s :=
 by rw [compl_subset_comm, compl_compl]
 
-theorem compl_subset_iff_union {s t : set α} : -s ⊆ t ↔ s ∪ t = univ :=
+theorem compl_subset_iff_union {s t : set α} : sᶜ ⊆ t ↔ s ∪ t = univ :=
 iff.symm $ eq_univ_iff_forall.trans $ forall_congr $ λ a,
 by haveI := classical.prop_decidable; exact or_iff_not_imp_left
 
-theorem subset_compl_comm {s t : set α} : s ⊆ -t ↔ t ⊆ -s :=
+theorem subset_compl_comm {s t : set α} : s ⊆ tᶜ ↔ t ⊆ sᶜ :=
 forall_congr $ λ a, imp_not_comm
 
-theorem subset_compl_iff_disjoint {s t : set α} : s ⊆ -t ↔ s ∩ t = ∅ :=
+theorem subset_compl_iff_disjoint {s t : set α} : s ⊆ tᶜ ↔ s ∩ t = ∅ :=
 iff.trans (forall_congr $ λ a, and_imp.symm) subset_empty_iff
 
-lemma subset_compl_singleton_iff {a : α} {s : set α} : s ⊆ -({a} : set α) ↔ a ∉ s :=
+lemma subset_compl_singleton_iff {a : α} {s : set α} : s ⊆ {a}ᶜ ↔ a ∉ s :=
 by { rw subset_compl_comm, simp }
 
-theorem inter_subset (a b c : set α) : a ∩ b ⊆ c ↔ a ⊆ -b ∪ c :=
+theorem inter_subset (a b c : set α) : a ∩ b ⊆ c ↔ a ⊆ bᶜ ∪ c :=
 begin
   classical,
   split,
@@ -796,7 +810,7 @@ end
 
 /-! ### Lemmas about set difference -/
 
-theorem diff_eq (s t : set α) : s \ t = s ∩ -t := rfl
+theorem diff_eq (s t : set α) : s \ t = s ∩ tᶜ := rfl
 
 @[simp] theorem mem_diff {s t : set α} (x : α) : x ∈ s \ t ↔ x ∈ s ∧ x ∉ t := iff.rfl
 
@@ -864,7 +878,7 @@ diff_subset_diff h (by refl)
 theorem diff_subset_diff_right {s t u : set α} (h : t ⊆ u) : s \ u ⊆ s \ t :=
 diff_subset_diff (subset.refl s) h
 
-theorem compl_eq_univ_diff (s : set α) : -s = univ \ s :=
+theorem compl_eq_univ_diff (s : set α) : sᶜ = univ \ s :=
 by finish [ext_iff]
 
 @[simp] lemma empty_diff (s : set α) : (∅ \ s : set α) = ∅ :=
@@ -906,7 +920,7 @@ lemma diff_inter_diff {s t u : set α} : s \ t ∩ (s \ u) = s \ (t ∪ u) :=
 by { ext x, simp only [mem_inter_eq, mem_union_eq, mem_diff, not_or_distrib],
      exact ⟨λ ⟨⟨h1, h2⟩, _, h3⟩, ⟨h1, h2, h3⟩, λ ⟨h1, h2, h3⟩, ⟨⟨h1, h2⟩, h1, h3⟩⟩ }
 
-lemma diff_compl : s \ -t = s ∩ t := by rw [diff_eq, compl_compl]
+lemma diff_compl : s \ tᶜ = s ∩ t := by rw [diff_eq, compl_compl]
 
 lemma diff_diff_right {s t u : set α} : s \ (t \ u) = (s \ t) ∪ (s ∩ u) :=
 by rw [diff_eq t u, diff_inter, diff_compl]
@@ -992,7 +1006,7 @@ theorem subset_preimage_univ {s : set α} : s ⊆ f ⁻¹' univ := subset_univ _
 
 @[simp] theorem preimage_union {s t : set β} : f ⁻¹' (s ∪ t) = f ⁻¹' s ∪ f ⁻¹' t := rfl
 
-@[simp] theorem preimage_compl {s : set β} : f ⁻¹' (- s) = - (f ⁻¹' s) := rfl
+@[simp] theorem preimage_compl {s : set β} : f ⁻¹' sᶜ = (f ⁻¹' s)ᶜ := rfl
 
 @[simp] theorem preimage_diff (f : α → β) (s t : set β) :
   f ⁻¹' (s \ t) = f ⁻¹' s \ f ⁻¹' t := rfl
@@ -1028,7 +1042,7 @@ theorem eq_preimage_subtype_val_iff {p : α → Prop} {s : set (subtype p)} {t :
  assume h, ext $ assume ⟨x, hx⟩, by simp [h]⟩
 
 lemma if_preimage (s : set α) [decidable_pred s] (f g : α → β) (t : set β) :
-  (λa, if a ∈ s then f a else g a)⁻¹' t = (s ∩ f ⁻¹' t) ∪ (-s ∩ g ⁻¹' t) :=
+  (λa, if a ∈ s then f a else g a)⁻¹' t = (s ∩ f ⁻¹' t) ∪ (sᶜ ∩ g ⁻¹' t) :=
 begin
   ext,
   simp only [mem_inter_eq, mem_union_eq, mem_preimage],
@@ -1160,13 +1174,11 @@ by simp only [eq_empty_iff_forall_not_mem]; exact
 lemma inter_singleton_nonempty {s : set α} {a : α} : (s ∩ {a}).nonempty ↔ a ∈ s :=
 by finish [set.nonempty]
 
-theorem fix_set_compl (t : set α) : compl t = - t := rfl
-
 -- TODO(Jeremy): there is an issue with - t unfolding to compl t
 theorem mem_compl_image (t : set α) (S : set (set α)) :
-  t ∈ compl '' S ↔ -t ∈ S :=
+  t ∈ compl '' S ↔ tᶜ ∈ S :=
 begin
-  suffices : ∀ x, -x = t ↔ -t = x, {simp [fix_set_compl, this]},
+  suffices : ∀ x, xᶜ = t ↔ tᶜ = x, {simp [this]},
   intro x, split; { intro e, subst e, simp }
 end
 
@@ -1206,14 +1218,14 @@ theorem mem_image_iff_of_inverse {f : α → β} {g : β → α} {b : β} {s : s
   b ∈ f '' s ↔ g b ∈ s :=
 by rw image_eq_preimage_of_inverse h₁ h₂; refl
 
-theorem image_compl_subset {f : α → β} {s : set α} (H : injective f) : f '' -s ⊆ -(f '' s) :=
+theorem image_compl_subset {f : α → β} {s : set α} (H : injective f) : f '' sᶜ ⊆ (f '' s)ᶜ :=
 subset_compl_iff_disjoint.2 $ by simp [image_inter H]
 
-theorem subset_image_compl {f : α → β} {s : set α} (H : surjective f) : -(f '' s) ⊆ f '' -s :=
+theorem subset_image_compl {f : α → β} {s : set α} (H : surjective f) : (f '' s)ᶜ ⊆ f '' sᶜ :=
 compl_subset_iff_union.2 $
 by rw ← image_union; simp [image_univ_of_surjective H]
 
-theorem image_compl_eq {f : α → β} {s : set α} (H : bijective f) : f '' -s = -(f '' s) :=
+theorem image_compl_eq {f : α → β} {s : set α} (H : bijective f) : f '' sᶜ = (f '' s)ᶜ :=
 subset.antisymm (image_compl_subset H.1) (subset_image_compl H.2)
 
 theorem subset_image_diff (f : α → β) (s t : set α) :
@@ -1281,11 +1293,11 @@ protected lemma push_pull' (f : α → β) (s : set α) (t : set β) :
   f '' (f ⁻¹' t ∩ s) = t ∩ f '' s :=
 by simp only [inter_comm, set.push_pull]
 
-theorem compl_image : image (@compl α) = preimage compl :=
+theorem compl_image : image (compl : set α → set α) = preimage compl :=
 image_eq_preimage_of_inverse compl_compl compl_compl
 
 theorem compl_image_set_of {p : set α → Prop} :
-  compl '' {s | p s} = {s | p (- s)} :=
+  compl '' {s | p s} = {s | p sᶜ} :=
 congr_fun compl_image p
 
 theorem inter_preimage_subset (s : set α) (t : set β) (f : α → β) :

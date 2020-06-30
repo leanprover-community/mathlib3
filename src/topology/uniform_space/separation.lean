@@ -171,9 +171,9 @@ end
 @[priority 100] -- see Note [lower instance priority]
 instance separated_regular [separated_space α] : regular_space α :=
 { regular := λs a hs ha,
-    have -s ∈ 𝓝 a,
+    have sᶜ ∈ 𝓝 a,
       from mem_nhds_sets hs ha,
-    have {p : α × α | p.1 = a → p.2 ∈ -s} ∈ 𝓤 α,
+    have {p : α × α | p.1 = a → p.2 ∈ sᶜ} ∈ 𝓤 α,
       from mem_nhds_uniformity_iff_right.mp this,
     let ⟨d, hd, h⟩ := comp_mem_uniformity_sets this in
     let e := {y:α| (a, y) ∈ d} in
@@ -184,16 +184,16 @@ instance separated_regular [separated_space α] : regular_space α :=
       change (⨅d' ∈ 𝓤 α, _) ≤ comp_rel d (comp_rel _ d),
       exact (infi_le_of_le d $ infi_le_of_le hd $ le_refl _)
     end,
-    have e_subset : closure e ⊆ -s,
+    have e_subset : closure e ⊆ sᶜ,
       from assume a' ha',
         let ⟨x, (hx : (a, x) ∈ d), y, ⟨hx₁, hx₂⟩, (hy : (y, _) ∈ d)⟩ := @this ⟨a, a'⟩ ⟨hae, ha'⟩ in
         have (a, a') ∈ comp_rel d d, from ⟨y, hx₂, hy⟩,
         h this rfl,
     have closure e ∈ 𝓝 a, from (𝓝 a).sets_of_superset (mem_nhds_left a hd) subset_closure,
-    have 𝓝 a ⊓ 𝓟 (-closure e) = ⊥,
-      from (@inf_eq_bot_iff_le_compl _ _ _ (𝓟 (- closure e)) (𝓟 (closure e))
+    have 𝓝 a ⊓ 𝓟 (closure e)ᶜ = ⊥,
+      from (@inf_eq_bot_iff_le_compl _ _ _ (𝓟 (closure e)ᶜ) (𝓟 (closure e))
         (by simp [principal_univ, union_comm]) (by simp)).mpr (by simp [this]),
-    ⟨- closure e, is_closed_closure, assume x h₁ h₂, @e_subset x h₂ h₁, this⟩,
+    ⟨(closure e)ᶜ, is_closed_closure, assume x h₁ h₂, @e_subset x h₂ h₁, this⟩,
     ..@t2_space.t1_space _ _ (separated_iff_t2.mp ‹_›) }
 
 /-!

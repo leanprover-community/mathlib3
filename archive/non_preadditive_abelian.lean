@@ -602,13 +602,13 @@ def neg {X Y : C} (f : X ⟶ Y) : X ⟶ Y := sub 0 f
 def add {X Y : C} (f g : X ⟶ Y) : X ⟶ Y := sub f (neg g)
 
 /-- We write `f - g` for `prod.lift f g ≫ σ`. -/
-def pre_neg {X Y : C} : has_neg (X ⟶ Y) := ⟨neg⟩
+def has_neg {X Y : C} : has_neg (X ⟶ Y) := ⟨neg⟩
 /-- We write `-f` for `0 - f`. -/
-def pre_sub {X Y : C} : has_sub (X ⟶ Y) := ⟨sub⟩
+def has_sub {X Y : C} : has_sub (X ⟶ Y) := ⟨sub⟩
 /-- We write `f + g` for `f - (-g)`. -/
-def pre_add {X Y : C} : has_add (X ⟶ Y) := ⟨add⟩
+def has_add {X Y : C} : has_add (X ⟶ Y) := ⟨add⟩
 
-local attribute [instance] pre_neg pre_sub pre_add
+local attribute [instance] has_neg has_sub has_add
 
 lemma sub_def {X Y : C} (a b : X ⟶ Y) : a - b = prod.lift a b ≫ σ := rfl
 lemma add_def {X Y : C} (a b : X ⟶ Y) : a + b = a - (-b) := rfl

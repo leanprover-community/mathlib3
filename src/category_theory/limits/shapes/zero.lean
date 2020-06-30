@@ -50,7 +50,7 @@ instance has_zero_morphisms_pempty : has_zero_morphisms (discrete pempty) :=
 { has_zero := by tidy }
 
 instance has_zero_morphisms_punit : has_zero_morphisms (discrete punit) :=
-{ has_zero := λ X Y, { zero := punit.star, } }
+{ has_zero := by tidy }
 
 namespace has_zero_morphisms
 variables {C}

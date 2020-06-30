@@ -27,8 +27,7 @@ namespace cochain_complex
 open category_theory
 open category_theory.limits
 
-variables {V : Type u} [𝒱 : category.{v} V] [has_zero_morphisms V]
-include 𝒱
+variables {V : Type u} [category.{v} V] [has_zero_morphisms V]
 
 section
 

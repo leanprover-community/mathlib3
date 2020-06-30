@@ -143,6 +143,54 @@ def mbor {m} [monad m] (xs : list (m bool)) : m bool := xs.mbany id
 
 def mband {m} [monad m] (xs : list (m bool)) : m bool := xs.mball id
 
+def take_lst {α} : list α → list ℕ → list (list α) × list α
+| xs [] := ([], xs)
+| xs (n :: ns) :=
+  let ⟨xs₁, xs₂⟩ := xs.split_at n in
+  let ⟨xss, rest⟩ := take_lst xs₂ ns in
+  (xs₁ :: xss, rest)
+
+def map₂_left' {α β γ} (f : α → option β → γ) : list α → list β → (list γ × list β)
+| [] bs := ([], bs)
+| (a :: as) [] :=
+  let ⟨cs, rest⟩ := map₂_left' as [] in
+  (f a none :: cs, rest)
+| (a :: as) (b :: bs) :=
+  let ⟨cs, rest⟩ := map₂_left' as bs in
+  (f a (some b) :: cs, rest)
+
+def map₂_right' {α β γ} (f : option α → β → γ) (as : list α) (bs : list β)
+  : (list γ × list α) :=
+map₂_left' (flip f) bs as
+
+def zip_left' {α β} : list α → list β → list (α × option β) × list β :=
+map₂_left' (λ a b, (a, b))
+
+def zip_right' {α β} : list α → list β → list (option α × β) × list α :=
+map₂_right' (λ a b, (a, b))
+
+def map₂_left {α β γ} (f : α → option β → γ) : list α → list β → list γ
+| [] _ := []
+| (a :: as) [] := f a none :: map₂_left as []
+| (a :: as) (b :: bs) := f a (some b) :: map₂_left as bs
+
+def map₂_right {α β γ} (f : option α → β → γ) (as : list α) (bs : list β)
+  : list γ :=
+map₂_left (flip f) bs as
+
+def zip_left {α β} : list α → list β → list (α × option β) :=
+map₂_left (λ a b, (a, b))
+
+def zip_right {α β} : list α → list β → list (option α × β) :=
+map₂_right (λ a b, (a, b))
+
+lemma map₂_left_eq_map₂_left' {α β γ} (f : α → option β → γ)
+  : ∀ (as : list α) (bs : list β),
+    map₂_left f as bs = (map₂_left' f as bs).1
+| [] bs := by simp!
+| (a :: as) [] := by { simp! [*], cases (map₂_left' f as nil), simp!  }
+| (a :: as) (b :: bs) := by { simp! [*], cases (map₂_left' f as bs), simp! }
+
 end list
 
 
@@ -588,6 +636,9 @@ meta structure constructor_info :=
 (rec_args : list constructor_argument_info)
 (num_rec_args : ℕ)
 
+meta def constructor_info.num_nameable_arguments (c : constructor_info) : ℕ :=
+c.num_non_param_args + c.num_rec_args
+
 @[derive has_reflect]
 meta structure inductive_info :=
 (iname : name)
@@ -864,38 +915,56 @@ meta def constructor_intros (generate_induction_hyps : bool)
       ih_hyps rec_args,
   pure (arg_hyp_names, ih_hyp_names)
 
+-- TODO spaghetti
 meta def constructor_renames (generate_induction_hyps : bool)
   (einfo : eliminee_info) (iinfo : inductive_info) (cinfo : constructor_info)
-  (args : list (name × constructor_argument_info)) (ihs : list (name × name))
+  (with_names : list name) (args : list (name × constructor_argument_info))
+  (ihs : list (name × name))
   : tactic (list expr × list expr) := do
   -- Rename constructor arguments
   let iname := iinfo.iname,
+  let ⟨args, with_names⟩ := args.zip_left' with_names,
   arg_renames : list (name × list name) ←
-    args.mmap $ λ ⟨old, ainfo⟩, do {
+    args.mmap $ λ ⟨⟨old, ainfo⟩, with_name⟩, do {
       new ← constructor_argument_names ⟨einfo, iinfo, cinfo, ainfo⟩,
+      let new :=
+        match with_name with
+        | some `_ := new
+        | some with_name := [with_name]
+        | none := new
+        end,
       pure (old, new)
     },
   let arg_renames := rb_map.of_list arg_renames,
   new_arg_names ← rename_fresh arg_renames mk_name_set,
-  new_arg_hyps ← args.mfilter_map $ λ ⟨a, _⟩, do {
+  new_arg_hyps ← args.mmap_filter $ λ ⟨⟨a, _⟩, _⟩, do {
     (some new_name) ← pure $ new_arg_names.find a | pure none,
     some <$> get_local new_name
   },
 
   -- Rename induction hypotheses (if we generated them)
   tt ← pure generate_induction_hyps | pure (new_arg_hyps, []),
-  ih_renames ← ihs.mmap $ λ ⟨ih_hyp, arg_hyp⟩, do {
-    some arg_hyp ← pure $ new_arg_names.find arg_hyp,
-    pure $ (ih_hyp, ih_name arg_hyp)
+  let ihs := ihs.zip_left with_names,
+  ih_renames ← ihs.mmap $ λ ⟨⟨ih_hyp, arg_hyp⟩, with_name⟩, do {
+    some arg_hyp ← pure $ new_arg_names.find arg_hyp, -- this should never fail
+    let new :=
+      match with_name with
+      | some `_ := sum.inr $ ih_name arg_hyp
+      | some with_name := sum.inl with_name
+      | none := sum.inr $ ih_name arg_hyp
+      end,
+    pure (ih_hyp, new)
   },
   let ih_renames : list (name × list name) :=
+    -- Special case: When there's only one IH and it hasn't been named
+    -- explicitly in a "with" clause, we call it simply "ih" (unless that name
+    -- is already taken).
     match ih_renames with
-    | [] := []
-    | [(h, n)] := [(h, ["ih", n])]
-    | ns := ns.map (λ ⟨h, n⟩, (h, [n]))
+    | [(h, sum.inr n)] := [(h, ["ih", n])]
+    | ns := ns.map (λ ⟨h, n⟩, (h, [n.elim id id]))
     end,
   new_ih_names ← rename_fresh (rb_map.of_list ih_renames) mk_name_set,
-  new_ih_hyps ← ihs.mfilter_map $ λ ⟨a, _⟩, do {
+  new_ih_hyps ← ihs.mmap_filter $ λ ⟨⟨a, _⟩, _⟩, do {
     (some new_name) ← pure $ new_ih_names.find a | pure none,
     some <$> get_local new_name
   },
@@ -994,10 +1063,8 @@ meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr
   -- TODO is revert_kdependencies broken with local defs?
 
   -- Generate fresh names for the index variables and equations
-  generalizes_args ← nonlocals.mmap $ λ arg, do {
-    -- TODO better names?
-    pure (`index, some `index_eq, arg)
-  },
+  -- TODO better names?
+  let generalizes_args := nonlocals.map $ λ arg, (`index, some `index_eq, arg),
 
   -- Generalise the complex index arguments
   index_vars_eqs ← generalizes_intro generalizes_args,
@@ -1016,10 +1083,7 @@ meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr
   -- Note: Each step in the following loop may change the unique names of
   -- hypotheses in the context, so we go by pretty names. `generalizes_intro`
   -- and decompose_structure_equation_hyp make sure that these are unique.
-  fields ← index_equations.mmap $ λ eq, do {
-    eq ← get_local eq,
-    decompose_structure_equation_hyp eq
-  },
+  fields ← index_equations.mmap (get_local >=> decompose_structure_equation_hyp),
   let fields := name_set.merge_many fields,
 
   -- Re-introduce the indices' dependencies
@@ -1340,7 +1404,7 @@ meta def revert_all_except (hyp_unique_names : name_set) : tactic ℕ := do
   revert_lst ctx
 
 meta def eliminate (eliminee_name : name) (generate_induction_hyps : bool)
-  (fixed : list name := []) : tactic unit :=
+  (fixed : list name := []) (with_names : list name := []) : tactic unit :=
 focus1 $ do
   einfo ← get_eliminee_info eliminee_name,
   let eliminee := einfo.eexpr,
@@ -1390,9 +1454,15 @@ focus1 $ do
     <|> (do drec ← drec, interactive.apply ``(%%drec %%eliminee))
     <|> fail! "Failed to apply the (dependent) recursor for {iname}.",
 
+  -- Prepare the "with" names for each constructor case.
+  let with_names := prod.fst $
+    with_names.take_lst
+      (iinfo.constructors.map constructor_info.num_nameable_arguments),
+  let constrs := iinfo.constructors.zip with_names,
+
   -- For each case (constructor):
   cases : list (option (name × list expr)) ←
-    focus $ iinfo.constructors.map $ λ cinfo, do {
+    focus $ constrs.map $ λ ⟨cinfo, with_names⟩, do {
       -- Get the eliminee's arguments. (Some of these may have changed due to
       -- the generalising step above.)
       -- TODO propagate this information instead of re-parsing the type here?
@@ -1454,7 +1524,7 @@ focus1 $ do
       -- names may be free.
       ⟨constructor_arg_hyps, ih_hyps⟩ ←
         constructor_renames generate_induction_hyps einfo iinfo cinfo
-          constructor_arg_names ih_names,
+          with_names constructor_arg_names ih_names,
 
       -- Return the constructor name and the renamable new hypotheses. These are
       -- the hypotheses that can later be renamed by the `case` tactic. Note
@@ -1473,15 +1543,19 @@ end tactic
 
 namespace tactic.interactive
 
-open interactive lean.parser
+open interactive interactive.types lean.parser
 
 precedence `fixing`:0
 
 meta def induction' (hyp : parse ident)
-  (fixed : parse (optional (tk "fixing" *> many ident))) : tactic unit :=
-tactic.eliminate hyp tt (fixed.get_or_else [])
+  (fixed : parse (optional (tk "fixing" *> many ident)))
+  (with_names : parse (optional with_ident_list))
+  : tactic unit :=
+tactic.eliminate hyp tt (fixed.get_or_else []) (with_names.get_or_else [])
 
-meta def cases' (hyp : parse ident) : tactic unit :=
-tactic.eliminate hyp ff []
+meta def cases' (hyp : parse ident)
+  (with_names : parse (optional with_ident_list))
+  : tactic unit :=
+tactic.eliminate hyp ff [] (with_names.get_or_else [])
 
 end tactic.interactive

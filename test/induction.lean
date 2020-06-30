@@ -249,6 +249,61 @@ begin
   exact and.intro hnum hdenom
 end
 
+-- A "with" clause can be used to give the names of constructor arguments (as
+-- for `cases`, `induction` etc).
+example (x : ℕ × ℕ) (y : Vec ℕ 2) (z : List ℕ) : unit :=
+begin
+  cases' x with i j k l,
+  guard_hyp i := ℕ,
+  guard_hyp j := ℕ,
+  clear i j,
+
+  cases' y with i j k l,
+  -- TODO Note that i is 'skipped' because it is used to name the (n : ℕ)
+  -- argument of `cons`, but that argument is cleared by index unification. I
+  -- find this a little strange, but `cases` also behaves like this.
+  guard_hyp j := ℕ,
+  guard_hyp k := Vec ℕ 1,
+  clear j k,
+
+  cases' z with i j k l,
+  case nil { exact () },
+  case cons {
+    guard_hyp i := ℕ,
+    guard_hyp j := List ℕ,
+    exact ()
+  }
+end
+
+-- "with" also works with induction'.
+example (x : List ℕ) : unit :=
+begin
+  induction' x with i j k l,
+  case nil { exact () },
+  case cons {
+    guard_hyp i := ℕ,
+    guard_hyp j := List ℕ,
+    guard_hyp k := unit,
+    exact ()
+  }
+end
+
+
+-- An underscore in a "with" clause means "use the auto-generated name for this
+-- argument".
+example (x : List ℕ) : unit :=
+begin
+  induction' x with _ j _ l,
+  case nil { exact () },
+  case cons {
+    guard_hyp x := ℕ,
+    guard_hyp j := List ℕ,
+    guard_hyp ih := unit,
+    exact ()
+  }
+end
+
+
 --------------------------------------------------------------------------------
 -- Jasmin's original use cases
 --------------------------------------------------------------------------------

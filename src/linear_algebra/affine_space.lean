@@ -192,6 +192,16 @@ is specified as a hypothesis on those lemmas that require it. -/
 def weighted_vsub (p : ι → P) : (ι → k) →ₗ[k] V :=
 s.weighted_vsub_of_point V p (classical.choice S.nonempty)
 
+/-- Applying `weighted_vsub` with given weights.  This is for the case
+where a result involving a default base point is OK (for example, when
+that base point will cancel out later); a more typical use case for
+`weighted_vsub` would involve selecting a preferred base point with
+`weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero` and then
+using `weighted_vsub_of_point_apply`. -/
+lemma weighted_vsub_apply (w : ι → k) (p : ι → P) :
+  s.weighted_vsub V p w = ∑ i in s, w i • (p i -ᵥ (classical.choice S.nonempty)) :=
+by simp [weighted_vsub, linear_map.sum_apply]
+
 /-- `weighted_vsub` gives the sum of the results of subtracting any
 base point, when the sum of the weights is 0. -/
 lemma weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero (w : ι → k) (p : ι → P)

@@ -600,6 +600,20 @@ begin
     exact inner_div_norm_mul_norm_eq_neg_one_of_ne_zero_of_neg_mul hx hr }
 end
 
+/-- The inner product of two weighted sums, where the weights in each
+sum add to 0, in terms of the norms of pairwise differences. -/
+lemma inner_sum_smul_sum_smul_of_sum_eq_zero {ι₁ : Type*} {s₁ : finset ι₁} {w₁ : ι₁ → ℝ}
+    (v₁ : ι₁ → α) (h₁ : ∑ i in s₁, w₁ i = 0) {ι₂ : Type*} {s₂ : finset ι₂} {w₂ : ι₂ → ℝ}
+    (v₂ : ι₂ → α) (h₂ : ∑ i in s₂, w₂ i = 0) :
+  inner (∑ i₁ in s₁, w₁ i₁ • v₁ i₁) (∑ i₂ in s₂, w₂ i₂ • v₂ i₂) =
+    (-∑ i₁ in s₁, ∑ i₂ in s₂, w₁ i₁ * w₂ i₂ * (∥v₁ i₁ - v₂ i₂∥ * ∥v₁ i₁ - v₂ i₂∥)) / 2 :=
+by simp_rw [sum_inner, inner_sum, inner_smul_left, inner_smul_right,
+            inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two,
+            ←div_sub_div_same, ←div_add_div_same, mul_sub_left_distrib, left_distrib,
+            finset.sum_sub_distrib, finset.sum_add_distrib, ←finset.mul_sum, ←finset.sum_mul,
+            h₁, h₂, zero_mul, mul_zero, finset.sum_const_zero, zero_add, zero_sub, finset.mul_sum,
+            neg_div, finset.sum_div, mul_div_assoc, mul_assoc]
+
 end norm
 
 /-! ### Inner product space structure on product spaces -/

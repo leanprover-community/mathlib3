@@ -548,8 +548,10 @@ lemma is_pair_self_adjoint_equiv (e : M₂ ≃ₗ[R] M) (f : module.End R M) :
   is_pair_self_adjoint B B' f ↔
   is_pair_self_adjoint (B.comp ↑e ↑e) (B'.comp ↑e ↑e) (e.symm.conj f) :=
 begin
-  have hₗ : (B'.comp ↑e ↑e).comp_left (e.symm.conj f) = (B'.comp_left f).comp ↑e ↑e := by { ext, simp, },
-  have hᵣ : (B.comp ↑e ↑e).comp_right (e.symm.conj f) = (B.comp_right f).comp ↑e ↑e := by { ext, simp, },
+  have hₗ : (B'.comp ↑e ↑e).comp_left (e.symm.conj f) = (B'.comp_left f).comp ↑e ↑e :=
+    by { ext, simp [linear_equiv.symm_conj_apply], },
+  have hᵣ : (B.comp ↑e ↑e).comp_right (e.symm.conj f) = (B.comp_right f).comp ↑e ↑e :=
+    by { ext, simp [linear_equiv.conj_apply], },
   have he : function.surjective (⇑(↑e : M₂ →ₗ[R] M) : M₂ → M) := e.surjective,
   show bilin_form.is_adjoint_pair _ _ _ _  ↔ bilin_form.is_adjoint_pair _ _ _ _,
   rw [is_adjoint_pair_iff_comp_left_eq_comp_right, is_adjoint_pair_iff_comp_left_eq_comp_right,

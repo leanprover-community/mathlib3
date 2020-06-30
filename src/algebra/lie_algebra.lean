@@ -444,12 +444,18 @@ instance lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) :
 @[simp] lemma lie_subalgebra.mem_coe {L' : lie_subalgebra R L} {x : L} :
   x ∈ (L' : set L) ↔ x ∈ L' := iff.rfl
 
+@[simp] lemma lie_subalgebra.mem_coe' {L' : lie_subalgebra R L} {x : L} :
+  x ∈ (L' : submodule R L) ↔ x ∈ L' := iff.rfl
+
 @[simp, norm_cast] lemma lie_subalgebra.coe_bracket (L' : lie_subalgebra R L) (x y : L') :
   (↑⁅x, y⁆ : L) = ⁅↑x, ↑y⁆ := rfl
 
-@[ext] lemma lie_subalgebra_ext (L₁' L₂' : lie_subalgebra R L) (h : (L₁' : set L) = L₂') :
+@[ext] lemma lie_subalgebra.ext (L₁' L₂' : lie_subalgebra R L) (h : ∀ x, x ∈ L₁' ↔ x ∈ L₂') :
   L₁' = L₂' :=
-by { cases L₁', cases L₂', simp only [], exact h, }
+by { cases L₁', cases L₂', simp only [], ext x, exact h x, }
+
+lemma lie_subalgebra.ext_iff (L₁' L₂' : lie_subalgebra R L) : L₁' = L₂' ↔ ∀ x, x ∈ L₁' ↔ x ∈ L₂' :=
+⟨λ h x, by rw h, lie_subalgebra.ext R L L₁' L₂'⟩
 
 local attribute [instance] lie_ring.of_associative_ring
 local attribute [instance] lie_algebra.of_associative_algebra

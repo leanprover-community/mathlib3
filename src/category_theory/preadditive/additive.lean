@@ -8,7 +8,7 @@ import category_theory.preadditive
 import tactic.abel
 
 /-!
-# Basic facts about isomorphisms between biproducts in preadditive categories.
+# Basic facts about morphisms between biproducts in preadditive categories.
 
 * In any category (with zero morphisms), if `biprod.map f g` is an isomorphism,
   then both `f` and `g` are isomorphisms.

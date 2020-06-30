@@ -57,6 +57,12 @@ lemma inv_smul_smul' {c : G} (hc : c ≠ 0) (x : β) : c⁻¹ • c • x = x :=
 lemma smul_inv_smul' {c : G} (hc : c ≠ 0) (x : β) : c • c⁻¹ • x = x :=
 (units.mk0 c hc).smul_inv_smul x
 
+lemma inv_smul_eq_iff {a : G} (ha : a ≠ 0) {x y : β} : a⁻¹ • x = y ↔ x = a • y :=
+by { split; intro h, rw [← h, smul_inv_smul' ha], rw [h, inv_smul_smul' ha] }
+
+lemma eq_inv_smul_iff {a : G} (ha : a ≠ 0) {x y : β} : x = a⁻¹ • y ↔ a • x = y :=
+by { split; intro h, rw [h, smul_inv_smul' ha], rw [← h, inv_smul_smul' ha] }
+
 end gwz
 
 variables (p : Prop) [decidable p]

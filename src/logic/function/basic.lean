@@ -343,6 +343,26 @@ protected lemma bijective : bijective f := ⟨h.injective, h.surjective⟩
 
 end involutive
 
+/-- The property of a binary function `f : α → β → γ` being injective.
+  Mathematically this should be thought of as the corresponding function `α × β → γ` being injective.
+-/
+@[reducible] def injective2 {α β γ} (f : α → β → γ) : Prop :=
+∀ ⦃a₁ a₂ b₁ b₂⦄, f a₁ b₁ = f a₂ b₂ → a₁ = a₂ ∧ b₁ = b₂
+
+namespace injective2
+variables {α β γ : Type*} (f : α → β → γ)
+
+protected lemma left (hf : injective2 f) ⦃a₁ a₂ b₁ b₂⦄ (h : f a₁ b₁ = f a₂ b₂) : a₁ = a₂ :=
+(hf h).1
+
+protected lemma right (hf : injective2 f) ⦃a₁ a₂ b₁ b₂⦄ (h : f a₁ b₁ = f a₂ b₂) : b₁ = b₂ :=
+(hf h).2
+
+lemma eq_iff (hf : injective2 f) ⦃a₁ a₂ b₁ b₂⦄ : f a₁ b₁ = f a₂ b₂ ↔ a₁ = a₂ ∧ b₁ = b₂ :=
+⟨λ h, hf h, λ⟨h1, h2⟩, congr_arg2 f h1 h2⟩
+
+end injective2
+
 end function
 
 /-- `s.piecewise f g` is the function equal to `f` on the set `s`, and to `g` on its complement. -/

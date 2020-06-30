@@ -284,7 +284,7 @@ section
 
 lemma closure_of_rat_image_lt {q : ℚ} : closure ((coe:ℚ → ℝ) '' {x | q < x}) = {r | ↑q ≤ r} :=
 subset.antisymm
-  ((closure_subset_iff_subset_of_is_closed (is_closed_ge' _)).2
+  ((is_closed_ge' _).closure_subset_iff.2
     (image_subset_iff.2 $ λ p h, le_of_lt $ (@rat.cast_lt ℝ _ _ _).2 h)) $
 λ x hx, mem_closure_iff_nhds.2 $ λ t ht,
 let ⟨ε, ε0, hε⟩ := metric.mem_nhds_iff.1 ht in

@@ -166,7 +166,7 @@ ge_of_tendsto nt lim (eventually_of_forall _ h)
 @[simp]
 lemma closure_le_eq [topological_space β] {f g : β → α} (hf : continuous f) (hg : continuous g) :
   closure {b | f b ≤ g b} = {b | f b ≤ g b} :=
-closure_eq_iff_is_closed.mpr $ is_closed_le hf hg
+(is_closed_le hf hg).closure_eq
 
 lemma closure_lt_subset_le [topological_space β] {f g : β → α} (hf : continuous f)
   (hg : continuous g) :
@@ -178,15 +178,8 @@ lemma continuous_within_at.closure_le [topological_space β]
  (hf : continuous_within_at f s x)
  (hg : continuous_within_at g s x)
  (h : ∀ y ∈ s, f y ≤ g y) : f x ≤ g x :=
-begin
-  show (f x, g x) ∈ {p : α × α | p.1 ≤ p.2},
-  suffices : (f x, g x) ∈ closure {p : α × α | p.1 ≤ p.2},
-    begin
-      rwa closure_eq_of_is_closed at this,
-      exact order_closed_topology.is_closed_le'
-    end,
-  exact (continuous_within_at.prod hf hg).mem_closure hx h
-end
+show (f x, g x) ∈ {p : α × α | p.1 ≤ p.2},
+from order_closed_topology.is_closed_le'.closure_subset ((hf.prod hg).mem_closure hx h)
 
 /-- If `s` is a closed set and two functions `f` and `g` are continuous on `s`,
 then the set `{x ∈ s | f x ≤ g x}` is a closed set. -/
@@ -202,7 +195,7 @@ variables [topological_space α] [partial_order α] [t : order_closed_topology �
 include t
 
 private lemma is_closed_eq : is_closed {p : α × α | p.1 = p.2} :=
-by simp [le_antisymm_iff];
+by simp only [le_antisymm_iff];
    exact is_closed_inter t.is_closed_le' (is_closed_le continuous_snd continuous_fst)
 
 @[priority 90] -- see Note [lower instance priority]
@@ -1085,7 +1078,7 @@ by rw closure_eq_cluster_pts; exact ha.nhds_within_ne_bot hs
 
 lemma mem_of_is_lub_of_is_closed {a : α} {s : set α} (ha : is_lub s a) (hs : s.nonempty)
   (sc : is_closed s) : a ∈ s :=
-by rw ←closure_eq_of_is_closed sc; exact mem_closure_of_is_lub ha hs
+by rw ←sc.closure_eq; exact mem_closure_of_is_lub ha hs
 
 lemma mem_closure_of_is_glb {a : α} {s : set α} (ha : is_glb s a) (hs : s.nonempty) :
   a ∈ closure s :=
@@ -1093,10 +1086,10 @@ by rw closure_eq_cluster_pts; exact ha.nhds_within_ne_bot hs
 
 lemma mem_of_is_glb_of_is_closed {a : α} {s : set α} (ha : is_glb s a) (hs : s.nonempty)
   (sc : is_closed s) : a ∈ s :=
-by rw ←closure_eq_of_is_closed sc; exact mem_closure_of_is_glb ha hs
+by rw ←sc.closure_eq; exact mem_closure_of_is_glb ha hs
 
 /-- A compact set is bounded below -/
-lemma bdd_below_of_compact {α : Type u} [topological_space α] [linear_order α]
+lemma compact.bdd_below {α : Type u} [topological_space α] [linear_order α]
   [order_closed_topology α] [nonempty α] {s : set α} (hs : compact s) : bdd_below s :=
 begin
   by_contra H,
@@ -1111,9 +1104,9 @@ begin
 end
 
 /-- A compact set is bounded above -/
-lemma bdd_above_of_compact {α : Type u} [topological_space α] [linear_order α]
+lemma compact.bdd_above {α : Type u} [topological_space α] [linear_order α]
   [order_topology α] : Π [nonempty α] {s : set α}, compact s → bdd_above s :=
-@bdd_below_of_compact (order_dual α) _ _ _
+@compact.bdd_below (order_dual α) _ _ _
 
 end order_topology
 
@@ -1618,7 +1611,7 @@ end densely_ordered
 
 lemma compact.Inf_mem {s : set α} (hs : compact s) (ne_s : s.nonempty) :
   Inf s ∈ s :=
-(closed_of_compact s hs).cInf_mem ne_s (bdd_below_of_compact hs)
+hs.is_closed.cInf_mem ne_s hs.bdd_below
 
 lemma compact.Sup_mem {s : set α} (hs : compact s) (ne_s : s.nonempty) :
   Sup s ∈ s :=
@@ -1626,7 +1619,7 @@ lemma compact.Sup_mem {s : set α} (hs : compact s) (ne_s : s.nonempty) :
 
 lemma compact.is_glb_Inf {s : set α} (hs : compact s) (ne_s : s.nonempty) :
   is_glb s (Inf s) :=
-is_glb_cInf ne_s (bdd_below_of_compact hs)
+is_glb_cInf ne_s hs.bdd_below
 
 lemma compact.is_lub_Sup {s : set α} (hs : compact s) (ne_s : s.nonempty) :
   is_lub s (Sup s) :=
@@ -1686,8 +1679,8 @@ lemma compact.exists_Sup_image_eq {α : Type u} [topological_space α]:
 
 lemma eq_Icc_of_connected_compact {s : set α} (h₁ : is_connected s) (h₂ : compact s) :
   s = Icc (Inf s) (Sup s) :=
-eq_Icc_cInf_cSup_of_connected_bdd_closed h₁ (bdd_below_of_compact h₂) (bdd_above_of_compact h₂)
-  (closed_of_compact s h₂)
+eq_Icc_cInf_cSup_of_connected_bdd_closed h₁ h₂.bdd_below h₂.bdd_above
+  h₂.is_closed
 
 end conditionally_complete_linear_order
 

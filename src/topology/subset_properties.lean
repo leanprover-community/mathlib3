@@ -117,7 +117,7 @@ classical.by_contradiction $ assume h,
   have f ≤ 𝓟 (U i)ᶜ,
     from infi_le_of_le {i} $ principal_mono.mpr $ show s \ _ ⊆ (U i)ᶜ, by simp [diff_subset_iff],
   have is_closed (U i)ᶜ, from is_open_compl_iff.mp $ by rw compl_compl; exact hUo i,
-  have a ∈ (U i)ᶜ, from is_closed_iff_nhds.mp this _ (h.mono ‹f ≤ 𝓟 (U i)ᶜ›),
+  have a ∈ (U i)ᶜ, from is_closed_iff_cluster_pt.mp this _ (h.mono ‹f ≤ 𝓟 (U i)ᶜ›),
   this ‹a ∈ U i›
 
 /-- For every family of closed sets whose intersection avoids a compact set,
@@ -419,7 +419,7 @@ begin
   set πX := (prod.fst : X × Y → X),
   set πY := (prod.snd : X × Y → Y),
   assume C (hC : is_closed C),
-  rw is_closed_iff_nhds at hC ⊢,
+  rw is_closed_iff_cluster_pt at hC ⊢,
   assume y (y_closure : cluster_pt y $ 𝓟 (πY '' C)),
   have : map πX (comap πY (𝓝 y) ⊓ 𝓟 C) ≠ ⊥,
   { suffices : map πY (comap πY (𝓝 y) ⊓ 𝓟 C) ≠ ⊥,

@@ -75,7 +75,7 @@ begin
     rcases exists_edist_lt_of_Hausdorff_edist_lt hx Dtu with ⟨y, hy, Dxy⟩,
     -- y : α,  hy : y ∈ u.val, Dxy : edist x y < ε
     exact ⟨y, hu hy, Dxy⟩ },
-  rwa closure_eq_of_is_closed hs at this,
+  rwa hs.closure_eq at this,
 end
 
 /-- By definition, the edistance on `closeds α` is given by the Hausdorff edistance -/
@@ -217,7 +217,7 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
   -- `F` is ε-dense
   { assume u _,
     rcases main u.val with ⟨t0, t0s, Dut0⟩,
-    have : is_closed t0 := closed_of_compact _ (fs.subset t0s).compact,
+    have : is_closed t0 := (fs.subset t0s).compact.is_closed,
     let t : closeds α := ⟨t0, this⟩,
     have : t ∈ F := t0s,
     have : edist u t < ε := lt_of_le_of_lt Dut0 δlt,
@@ -234,8 +234,8 @@ instance nonempty_compacts.emetric_space : emetric_space (nonempty_compacts α) 
   edist_triangle      := λs t u, Hausdorff_edist_triangle,
   eq_of_edist_eq_zero := λs t h, subtype.eq $ begin
     have : closure (s.val) = closure (t.val) := Hausdorff_edist_zero_iff_closure_eq_closure.1 h,
-    rwa [closure_eq_iff_is_closed.2 (closed_of_compact _ s.property.2),
-              closure_eq_iff_is_closed.2 (closed_of_compact _ t.property.2)] at this,
+    rwa [s.property.2.is_closed.closure_eq,
+              t.property.2.is_closed.closure_eq] at this,
   end }
 
 /-- `nonempty_compacts.to_closeds` is a uniform embedding (as it is an isometry) -/
@@ -256,7 +256,7 @@ begin
     rw edist_comm at Dst,
     -- since `t` is nonempty, so is `s`
     exact nonempty_of_Hausdorff_edist_ne_top ht.1 (ne_of_lt Dst) },
-  { refine compact_iff_totally_bounded_complete.2 ⟨_, is_complete_of_is_closed s.property⟩,
+  { refine compact_iff_totally_bounded_complete.2 ⟨_, s.property.is_complete⟩,
     refine totally_bounded_iff.2 (λε εpos, _),
     -- we have to show that s is covered by finitely many eballs of radius ε
     -- pick a nonempty compact set t at distance at most ε/2 of s
@@ -281,7 +281,7 @@ from the same statement for closed subsets -/
 instance nonempty_compacts.complete_space [complete_space α] :
   complete_space (nonempty_compacts α) :=
 (complete_space_iff_is_complete_range nonempty_compacts.to_closeds.uniform_embedding).2 $
-  is_complete_of_is_closed nonempty_compacts.is_closed_in_closeds
+  nonempty_compacts.is_closed_in_closeds.is_complete
 
 /-- In a compact space, the type of nonempty compact subsets is compact. This follows from
 the same statement for closed subsets -/

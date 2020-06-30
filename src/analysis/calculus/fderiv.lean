@@ -260,7 +260,7 @@ begin
     have : closure (submodule.span 𝕜 (tangent_cone_at 𝕜 s x) : set E) ⊆ closure K :=
       closure_mono this,
     have : y ∈ closure K := this hy,
-    rwa closure_eq_of_is_closed (is_closed_eq f'.continuous f₁'.continuous) at this },
+    rwa (is_closed_eq f'.continuous f₁'.continuous).closure_eq at this },
   rw H.1 at C,
   ext y,
   exact C y (mem_univ _)

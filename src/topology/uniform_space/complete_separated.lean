@@ -17,9 +17,9 @@ open_locale topological_space filter
 variables {α : Type*}
 
 /-In a separated space, a complete set is closed -/
-lemma is_closed_of_is_complete  [uniform_space α] [separated_space α] {s : set α} (h : is_complete s) :
+lemma is_complete.is_closed  [uniform_space α] [separated_space α] {s : set α} (h : is_complete s) :
   is_closed s :=
-is_closed_iff_nhds.2 $ λ a ha, begin
+is_closed_iff_cluster_pt.2 $ λ a ha, begin
   let f := 𝓝 a ⊓ 𝓟 s,
   have : cauchy f := cauchy_downwards (cauchy_nhds) ha (inf_le_left),
   rcases h f this (inf_le_right) with ⟨y, ys, fy⟩,

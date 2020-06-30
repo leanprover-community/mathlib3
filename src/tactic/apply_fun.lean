@@ -34,7 +34,6 @@ do {
   | _ := fail ("failed to apply " ++ to_string e ++ " at " ++ to_string hyp.local_pp_name)
   end,
   clear hyp,
-  -- Let's try to force β-reduction at `h`.
   hyp ← note hyp.local_pp_name none prf,
   -- let's try to force β-reduction at `h`
   try $ tactic.dsimp_hyp hyp simp_lemmas.mk [] { eta := false, beta := true }

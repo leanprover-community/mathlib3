@@ -107,7 +107,7 @@ begin
 end
 
 /-- The digits in the base b expansion of n are all less than b, if b ≥ 2 -/
-lemma digits_lt_base (b : ℕ) (hb : 2 ≤ b) (m : ℕ) (d : ℕ) (hd : d ∈ digits b m) : d < b :=
+lemma digits_lt_base {b m d : ℕ} (hb : 2 ≤ b) (hd : d ∈ digits b m) : d < b :=
 begin
   rcases b with _ | _ | b; try {linarith},
   exact digits_lt_base' b m d hd,

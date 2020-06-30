@@ -159,9 +159,19 @@ instance : ring (A ⊗[R] B) :=
   .. (by apply_instance : semiring (A ⊗[R] B)) }.
 
 @[simp]
-lemma mul_tmul (a₁ a₂ : A) (b₁ b₂ : B) :
+lemma tmul_mul_tmul (a₁ a₂ : A) (b₁ b₂ : B) :
   (a₁ ⊗ₜ[R] b₁) * (a₂ ⊗ₜ[R] b₂) = (a₁ * a₂) ⊗ₜ[R] (b₁ * b₂) :=
 rfl
+
+@[simp]
+lemma tmul_pow (a : A) (b : B) (k : ℕ) :
+  (a ⊗ₜ[R] b)^k = (a^k) ⊗ₜ[R] (b^k) :=
+begin
+  induction k with k ih,
+  { simp [one_def], },
+  { simp [pow_succ, ih], }
+end
+
 
 /--
 The algebra map `R →+* (A ⊗[R] B)` giving `A ⊗[R] B` the structure of an `R`-algebra.
@@ -217,6 +227,9 @@ def include_left : A →ₐ[R] A ⊗[R] B :=
   map_mul' := by simp,
   commutes' := by simp, }
 
+@[simp]
+lemma include_left_apply (a : A) : (include_left : A →ₐ[R] A ⊗[R] B) a = a ⊗ₜ 1 := rfl
+
 /-- The algebra morphism `B →ₐ[R] A ⊗[R] B` sending `b` to `1 ⊗ₜ b`. -/
 def include_right : B →ₐ[R] A ⊗[R] B :=
 { to_fun := λ b, 1 ⊗ₜ b,
@@ -231,6 +244,9 @@ def include_right : B →ₐ[R] A ⊗[R] B :=
     { rw [←tmul_smul, algebra.smul_def], simp, },
     { simp [algebra.smul_def], },
   end, }
+
+@[simp]
+lemma include_right_apply (b : B) : (include_right : B →ₐ[R] A ⊗[R] B) b = 1 ⊗ₜ b := rfl
 
 end ring
 
@@ -315,6 +331,10 @@ def alg_hom_of_linear_map_tensor_product
   end,
   commutes' := λ r, by simp [w₂],
   .. f }
+
+@[simp]
+lemma alg_hom_of_linear_map_tensor_product_apply (f w₁ w₂ x) :
+  (alg_hom_of_linear_map_tensor_product f w₁ w₂ : A ⊗[R] B →ₐ[R] C) x = f x := rfl
 
 /--
 Build an algebra equivalence from a linear equivalence out of a tensor product,

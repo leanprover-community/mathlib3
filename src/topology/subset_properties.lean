@@ -63,15 +63,15 @@ lemma compact.adherence_nhdset {s t : set α} {f : filter α}
   (hs : compact s) (hf₂ : f ≤ 𝓟 s) (ht₁ : is_open t) (ht₂ : ∀a∈s, cluster_pt a f → a ∈ t) :
   t ∈ f :=
 classical.by_cases mem_sets_of_eq_bot $
-  assume : f ⊓ 𝓟 (- t) ≠ ⊥,
-  let ⟨a, ha, (hfa : cluster_pt a $ f ⊓ 𝓟 (-t))⟩ := hs _ this $ inf_le_left_of_le hf₂ in
+  assume : f ⊓ 𝓟 tᶜ ≠ ⊥,
+  let ⟨a, ha, (hfa : cluster_pt a $ f ⊓ 𝓟 tᶜ)⟩ := hs _ this $ inf_le_left_of_le hf₂ in
   have a ∈ t,
     from ht₂ a ha (hfa.of_inf_left),
-  have (-t) ∩ t ∈ nhds_within a (-t),
+  have tᶜ ∩ t ∈ nhds_within a (tᶜ),
     from inter_mem_nhds_within _ (mem_nhds_sets ht₁ this),
-  have A : nhds_within a (-t) = ⊥,
+  have A : nhds_within a tᶜ = ⊥,
     from empty_in_sets_eq_bot.1 $ compl_inter_self t ▸ this,
-  have nhds_within a (-t) ≠ ⊥,
+  have nhds_within a tᶜ ≠ ⊥,
     from hfa.of_inf_right,
   absurd A this
 
@@ -97,7 +97,7 @@ classical.by_contradiction $ assume h,
   have h : ∀ t : finset ι, ¬ s ⊆ ⋃ i ∈ t, U i,
     from assume t ht, h ⟨t, ht⟩,
   let
-    f : filter α := (⨅t:finset ι, 𝓟 (s - ⋃ i ∈ t, U i)),
+    f : filter α := (⨅t:finset ι, 𝓟 (s \ ⋃ i ∈ t, U i)),
     ⟨a, ha⟩ := (@ne_empty_iff_nonempty α s).1 (assume h', h ∅ $ h'.symm ▸ empty_subset _)
   in
   have f ≠ ⊥, from infi_ne_bot_of_directed ⟨a⟩
@@ -114,10 +114,10 @@ classical.by_contradiction $ assume h,
     ⟨a, ha, (h : cluster_pt a f)⟩ := hs f ‹f ≠ ⊥› this,
     ⟨_, ⟨i, rfl⟩, (ha : a ∈ U i)⟩ := hsU ha
   in
-  have f ≤ 𝓟 (- U i),
-    from infi_le_of_le {i} $ principal_mono.mpr $ show s - _ ⊆ - U i, by simp [diff_subset_iff],
-  have is_closed (- U i), from is_open_compl_iff.mp $ by rw compl_compl; exact hUo i,
-  have a ∈ - U i, from is_closed_iff_nhds.mp this _ (h.mono ‹f ≤ 𝓟 (- U i)›),
+  have f ≤ 𝓟 (U i)ᶜ,
+    from infi_le_of_le {i} $ principal_mono.mpr $ show s \ _ ⊆ (U i)ᶜ, by simp [diff_subset_iff],
+  have is_closed (U i)ᶜ, from is_open_compl_iff.mp $ by rw compl_compl; exact hUo i,
+  have a ∈ (U i)ᶜ, from is_closed_iff_nhds.mp this _ (h.mono ‹f ≤ 𝓟 (U i)ᶜ›),
   this ‹a ∈ U i›
 
 /-- For every family of closed sets whose intersection avoids a compact set,
@@ -125,7 +125,7 @@ there exists a finite subfamily whose intersection avoids this compact set. -/
 lemma compact.elim_finite_subfamily_closed {s : set α} {ι : Type v} (hs : compact s)
   (Z : ι → set α) (hZc : ∀i, is_closed (Z i)) (hsZ : s ∩ (⋂ i, Z i) = ∅) :
   ∃ t : finset ι, s ∩ (⋂ i ∈ t, Z i) = ∅ :=
-let ⟨t, ht⟩ := hs.elim_finite_subcover (λ i, - Z i) hZc
+let ⟨t, ht⟩ := hs.elim_finite_subcover (λ i, (Z i)ᶜ) hZc
   (by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, set.mem_Union,
     exists_prop, set.mem_inter_eq, not_and, iff_self, set.mem_Inter, set.mem_compl_eq] using hsZ)
     in
@@ -233,7 +233,7 @@ lemma compact_of_finite_subcover {s : set α}
   compact s :=
 compact_of_finite_subfamily_closed $
   assume ι Z hZc hsZ,
-  let ⟨t, ht⟩ := h (λ i, - Z i) (assume i, is_open_compl_iff.mpr $ hZc i)
+  let ⟨t, ht⟩ := h (λ i, (Z i)ᶜ) (assume i, is_open_compl_iff.mpr $ hZc i)
     (by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, set.mem_Union,
       exists_prop, set.mem_inter_eq, not_and, iff_self, set.mem_Inter, set.mem_compl_eq] using hsZ)
       in
@@ -560,13 +560,13 @@ theorem is_clopen_inter {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : i
 @[simp] theorem is_clopen_univ : is_clopen (univ : set α) :=
 ⟨is_open_univ, is_closed_univ⟩
 
-theorem is_clopen_compl {s : set α} (hs : is_clopen s) : is_clopen (-s) :=
+theorem is_clopen_compl {s : set α} (hs : is_clopen s) : is_clopen sᶜ :=
 ⟨hs.2, is_closed_compl_iff.2 hs.1⟩
 
-@[simp] theorem is_clopen_compl_iff {s : set α} : is_clopen (-s) ↔ is_clopen s :=
+@[simp] theorem is_clopen_compl_iff {s : set α} : is_clopen sᶜ ↔ is_clopen s :=
 ⟨λ h, compl_compl s ▸ is_clopen_compl h, is_clopen_compl⟩
 
-theorem is_clopen_diff {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s-t) :=
+theorem is_clopen_diff {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s \ t) :=
 is_clopen_inter hs (is_clopen_compl ht)
 
 end clopen
@@ -753,7 +753,7 @@ begin
   split,
   all_goals
   { intros h t₁ t₂ ht₁ ht₂,
-    specialize h (-t₁) (-t₂),
+    specialize h t₁ᶜ t₂ᶜ,
     simp only [is_open_compl_iff, is_closed_compl_iff] at h,
     specialize h ht₁ ht₂ },
   { contrapose!, simp only [not_subset],
@@ -941,7 +941,7 @@ theorem is_preconnected_closed_iff {s : set α} :
   rw [← ne_empty_iff_nonempty, ne.def, not_not, ← subset_compl_iff_disjoint, compl_inter] at h',
   have xt' : x ∉ t', from (h' xs).elim (absurd xt) id,
   have yt : y ∉ t, from (h' ys).elim id (absurd yt'),
-  have := ne_empty_iff_nonempty.2 (h (-t) (-t') (is_open_compl_iff.2 ht)
+  have := ne_empty_iff_nonempty.2 (h tᶜ t'ᶜ (is_open_compl_iff.2 ht)
     (is_open_compl_iff.2 ht') h' ⟨y, ys, yt⟩ ⟨x, xs, xt'⟩),
   rw [ne.def, ← compl_union, ← subset_compl_iff_disjoint, compl_compl] at this,
   contradiction
@@ -953,7 +953,7 @@ begin
     ← subset_compl_iff_disjoint, compl_inter] at h',
   have xv : x ∉ v, from (h' xs).elim (absurd xu) id,
   have yu : y ∉ u, from (h' ys).elim id (absurd yv),
-  have := ne_empty_iff_nonempty.2 (h (-u) (-v) (is_closed_compl_iff.2 hu)
+  have := ne_empty_iff_nonempty.2 (h uᶜ vᶜ (is_closed_compl_iff.2 hu)
     (is_closed_compl_iff.2 hv) h' ⟨y, ys, yu⟩ ⟨x, xs, xv⟩),
   rw [ne.def, ← compl_union, ← subset_compl_iff_disjoint, compl_compl] at this,
   contradiction
@@ -1020,7 +1020,7 @@ by simpa only [univ_inter, univ_subset_iff] using
 
 theorem is_clopen_iff [preconnected_space α] {s : set α} : is_clopen s ↔ s = ∅ ∨ s = univ :=
 ⟨λ hs, classical.by_contradiction $ λ h,
-  have h1 : s ≠ ∅ ∧ -s ≠ ∅, from ⟨mt or.inl h,
+  have h1 : s ≠ ∅ ∧ sᶜ ≠ ∅, from ⟨mt or.inl h,
     mt (λ h2, or.inr $ (by rw [← compl_compl s, h2, compl_empty] : s = univ)) h⟩,
   let ⟨_, h2, h3⟩ := nonempty_inter hs.1 hs.2 (union_compl_self s)
     (ne_empty_iff_nonempty.1 h1.1) (ne_empty_iff_nonempty.1 h1.2) in

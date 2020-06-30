@@ -3183,47 +3183,47 @@ end
 /- compl -/
 
 lemma mk_compl_of_omega_le {α : Type*} (s : set α) (h : omega ≤ #α) (h2 : #s < #α) :
-  #(-s : set α) = #α :=
+  #(sᶜ : set α) = #α :=
 by { refine eq_of_add_eq_of_omega_le _ h2 h, exact mk_sum_compl s }
 
 lemma mk_compl_finset_of_omega_le {α : Type*} (s : finset α) (h : omega ≤ #α) :
-  #(-↑s : set α) = #α :=
+  #((↑s)ᶜ : set α) = #α :=
 by { apply mk_compl_of_omega_le _ h, exact lt_of_lt_of_le (finset_card_lt_omega s) h }
 
 lemma mk_compl_eq_mk_compl_infinite {α : Type*} {s t : set α} (h : omega ≤ #α) (hs : #s < #α)
-  (ht : #t < #α) : #(-s : set α) = #(-t : set α) :=
+  (ht : #t < #α) : #(sᶜ : set α) = #(tᶜ : set α) :=
 by { rw [mk_compl_of_omega_le s h hs, mk_compl_of_omega_le t h ht] }
 
 lemma mk_compl_eq_mk_compl_finite_lift {α : Type u} {β : Type v} {s : set α} {t : set β}
   (hα : #α < omega) (h1 : lift.{u (max v w)} (#α) = lift.{v (max u w)} (#β))
   (h2 : lift.{u (max v w)} (#s) = lift.{v (max u w)} (#t)) :
-  lift.{u (max v w)} (#(-s : set α)) = lift.{v (max u w)} (#(-t : set β)) :=
+  lift.{u (max v w)} (#(sᶜ : set α)) = lift.{v (max u w)} (#(tᶜ : set β)) :=
 begin
   have hα' := hα, have h1' := h1,
   rw [← mk_sum_compl s, ← mk_sum_compl t] at h1,
   rw [← mk_sum_compl s, add_lt_omega_iff] at hα,
   lift #s to ℕ using hα.1 with n hn,
-  lift #(- s : set α) to ℕ using hα.2 with m hm,
-  have : #(- t : set β) < omega,
+  lift #(sᶜ : set α) to ℕ using hα.2 with m hm,
+  have : #(tᶜ : set β) < omega,
   { refine lt_of_le_of_lt (mk_subtype_le _) _,
     rw [← lift_lt, lift_omega, ← h1', ← lift_omega.{u (max v w)}, lift_lt], exact hα' },
-  lift #(- t : set β) to ℕ using this with k hk,
+  lift #(tᶜ : set β) to ℕ using this with k hk,
   simp [nat_eq_lift_eq_iff] at h2, rw [nat_eq_lift_eq_iff.{v (max u w)}] at h2,
   simp [h2.symm] at h1 ⊢, norm_cast at h1, simp at h1, exact h1
 end
 
 lemma mk_compl_eq_mk_compl_finite {α β : Type u} {s : set α} {t : set β}
-  (hα : #α < omega) (h1 : #α = #β) (h : #s = #t) : #(-s : set α) = #(-t : set β) :=
+  (hα : #α < omega) (h1 : #α = #β) (h : #s = #t) : #(sᶜ : set α) = #(tᶜ : set β) :=
 by { rw [← lift_inj], apply mk_compl_eq_mk_compl_finite_lift hα; rw [lift_inj]; assumption }
 
 lemma mk_compl_eq_mk_compl_finite_same {α : Type*} {s t : set α} (hα : #α < omega)
-  (h : #s = #t) : #(-s : set α) = #(-t : set α) :=
+  (h : #s = #t) : #(sᶜ : set α) = #(tᶜ : set α) :=
 mk_compl_eq_mk_compl_finite hα rfl h
 
 /- extend an injection to an equiv -/
 
 theorem extend_function {α β : Type*} {s : set α} (f : s ↪ β)
-  (h : nonempty ((-s : set α) ≃ (- range f : set β))) :
+  (h : nonempty ((sᶜ : set α) ≃ ((range f)ᶜ : set β))) :
   ∃ (g : α ≃ β), ∀ x : s, g x = f x :=
 begin
   intros, have := h, cases this with g,

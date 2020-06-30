@@ -185,7 +185,7 @@ let ⟨s'', hs''₁, hs''₂, hs''₃⟩ := nhds_is_closed hs in
 let ⟨s', hs'₁, (hs'₂ : i ⁻¹' s' ⊆ f ⁻¹' s'')⟩ := mem_of_nhds hφ hs''₁ in
 let ⟨t, (ht₁ : t ⊆ φ ∩ s'), ht₂, ht₃⟩ := mem_nhds_sets_iff.mp $ inter_mem_sets hφ hs'₁ in
 have h₁ : closure (f '' (i ⁻¹' s')) ⊆ s'',
-  by rw [closure_subset_iff_subset_of_is_closed hs''₃, image_subset_iff]; exact hs'₂,
+  by rw [hs''₃.closure_subset_iff, image_subset_iff]; exact hs'₂,
 have h₂ : t ⊆ di.extend f ⁻¹' closure (f '' (i ⁻¹' t)), from
   assume b' hb',
   have 𝓝 b' ≤ 𝓟 t, by simp; exact mem_nhds_sets ht₂ hb',
@@ -287,7 +287,7 @@ lemma is_closed_property [topological_space β] {e : α → β} {p : β → Prop
 have univ ⊆ {b | p b},
   from calc univ = closure (range e) : he.closure_range.symm
     ... ⊆ closure {b | p b} : closure_mono $ range_subset_iff.mpr h
-    ... = _ : closure_eq_of_is_closed hp,
+    ... = _ : hp.closure_eq,
 assume b, this trivial
 
 lemma is_closed_property2 [topological_space β] {e : α → β} {p : β → β → Prop}

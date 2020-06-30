@@ -1842,10 +1842,9 @@ end
 /-- The composition of `C^n` functions at points in domains is `C^n`. -/
 lemma times_cont_diff_within_at.comp' {n : with_top ℕ} {s : set E} {t : set F} {g : F → G}
   {f : E → F} {x : E}
-  (hg : times_cont_diff_within_at 𝕜 n g t (f x)) (hf : times_cont_diff_within_at 𝕜 n f s x)
-  (hx : x ∈ s) (hx' : f x ∈ t) :
+  (hg : times_cont_diff_within_at 𝕜 n g t (f x)) (hf : times_cont_diff_within_at 𝕜 n f s x) :
   times_cont_diff_within_at 𝕜 n (g ∘ f) (s ∩ f⁻¹' t) x :=
-hg.comp (hf.mono (inter_subset_left _ _) ⟨hx, hx'⟩) (inter_subset_right _ _)
+hg.comp (hf.mono (inter_subset_left _ _) ⟨hf.mem, hg.mem⟩) (inter_subset_right _ _)
 
 /-- The bundled derivative of a `C^{n+1}` function is `C^n`. -/
 lemma times_cont_diff_on_fderiv_within_apply {m n : with_top  ℕ} {s : set E}

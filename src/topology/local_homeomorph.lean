@@ -221,6 +221,12 @@ begin
       end }
 end
 
+lemma preimage_open_of_open {s : set β} (hs : is_open s) : is_open (e.source ∩ e ⁻¹' s) :=
+e.continuous_on.preimage_open_of_open e.open_source hs
+
+lemma preimage_open_of_open_symm {s : set α} (hs : is_open s) : is_open (e.target ∩ e.symm ⁻¹' s) :=
+e.symm.continuous_on.preimage_open_of_open e.open_target hs
+
 /-- The image of an open set in the source is open. -/
 lemma image_open_of_open {s : set α} (hs : is_open s) (h : s ⊆ e.source) : is_open (e '' s) :=
 begin

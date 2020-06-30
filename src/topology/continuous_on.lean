@@ -474,7 +474,7 @@ begin
     ... ⊆ f ⁻¹' t : preimage_mono hu
 end
 
-lemma continuous_within_at.congr_of_mem_nhds_within {f f₁ : α → β} {s : set α} {x : α}
+lemma continuous_within_at.congr_of_eventually_eq {f f₁ : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (h₁ : f₁ =ᶠ[nhds_within x s] f) (hx : f₁ x = f x) :
   continuous_within_at f₁ s x :=
 by rwa [continuous_within_at, filter.tendsto, hx, filter.map_congr h₁]
@@ -482,7 +482,7 @@ by rwa [continuous_within_at, filter.tendsto, hx, filter.map_congr h₁]
 lemma continuous_within_at.congr {f f₁ : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (h₁ : ∀y∈s, f₁ y = f y) (hx : f₁ x = f x) :
   continuous_within_at f₁ s x :=
-h.congr_of_mem_nhds_within (mem_sets_of_superset self_mem_nhds_within h₁) hx
+h.congr_of_eventually_eq (mem_sets_of_superset self_mem_nhds_within h₁) hx
 
 lemma continuous_on_const {s : set α} {c : β} : continuous_on (λx, c) s :=
 continuous_const.continuous_on

@@ -8,6 +8,7 @@ The cardinality of the reals.
 import set_theory.ordinal
 import analysis.specific_limits
 import data.rat.denumerable
+import data.set.intervals.image_preimage
 
 open nat set
 noncomputable theory
@@ -113,5 +114,69 @@ end
 
 lemma not_countable_real : ¬ countable (set.univ : set ℝ) :=
 by { rw [countable_iff, not_le, mk_univ, mk_real], apply cantor }
+
+/-- The interval (a, ∞) is uncountable. -/
+lemma not_countable_real_Ioi (a : ℝ) : ¬ countable (Ioi a) :=
+begin
+  intro h,
+  apply not_countable_real,
+  have hu : Iio a ∪ {a} ∪ Ioi a = set.univ,
+  { convert Iic_union_Ioi,
+    exact Iio_union_right },
+  rw ←hu,
+  have h2 : (λ x, a + a - x) '' Ioi a = Iio a,
+  { convert image_const_sub_Ioi _ _,
+    simp },
+  rw ←h2,
+  exact ((h.image _).union (countable_singleton a)).union h
+end
+
+/-- The interval [a, ∞) is uncountable. -/
+lemma not_countable_real_Ici (a : ℝ) : ¬ countable (Ici a) :=
+λ h, not_countable_real_Ioi a $ countable.mono Ioi_subset_Ici_self h
+
+/-- The interval (-∞, a) is uncountable. -/
+lemma not_countable_real_Iio (a : ℝ) : ¬ countable (Iio a) :=
+begin
+  intro h,
+  have h2 : (λ x, a + a - x) '' Iio a = Ioi a,
+  { convert image_const_sub_Iio _ _,
+    simp },
+  apply not_countable_real_Ioi a,
+  rw ←h2,
+  exact h.image _
+end
+
+/-- The interval (-∞, a] is uncountable. -/
+lemma not_countable_real_Iic (a : ℝ) : ¬ countable (Iic a) :=
+λ h, not_countable_real_Iio a $ countable.mono Iio_subset_Iic_self h
+
+/-- The interval (a, b) is uncountable. -/
+lemma not_countable_real_Ioo {a b : ℝ} (h : a < b) :
+  ¬ countable (Ioo a b) :=
+begin
+  intro hc,
+  replace hc := hc.image (λ x, x - a),
+  rw [image_sub_const_Ioo, sub_self] at hc,
+  replace h := sub_pos_of_lt h,
+  apply not_countable_real_Ioi (b - a)⁻¹,
+  rw ←image_inv_Ioo_0_left h,
+  exact hc.image _
+end
+
+/-- The interval [a, b) is uncountable. -/
+lemma not_countable_real_Ico {a b : ℝ} (h : a < b) :
+  ¬ countable (Ico a b) :=
+λ hc, not_countable_real_Ioo h $ countable.mono Ioo_subset_Ico_self hc
+
+/-- The interval [a, b] is uncountable. -/
+lemma not_countable_real_Icc {a b : ℝ} (h : a < b) :
+  ¬ countable (Icc a b) :=
+λ hc, not_countable_real_Ioo h $ countable.mono Ioo_subset_Icc_self hc
+
+/-- The interval (a, b] is uncountable. -/
+lemma not_countable_real_Ioc {a b : ℝ} (h : a < b) :
+  ¬ countable (Ioc a b) :=
+λ hc, not_countable_real_Ioo h $ countable.mono Ioo_subset_Ioc_self hc
 
 end cardinal

@@ -116,7 +116,7 @@ end
 /-- Convex hull of a finite set is closed. -/
 lemma set.finite.is_closed_convex_hull [t2_space E] {s : set E} (hs : finite s) :
   is_closed (convex_hull s) :=
-closed_of_compact _ hs.compact_convex_hull
+hs.compact_convex_hull.is_closed
 
 end topological_vector_space
 

@@ -344,7 +344,7 @@ continuous_iff_is_closed.1 f.cont _ is_closed_singleton
 lemma is_complete_ker {M' : Type*} [uniform_space M'] [complete_space M'] [add_comm_monoid M']
   [semimodule R M'] [t1_space M₂] (f : M' →L[R] M₂) :
   is_complete (f.ker : set M') :=
-is_complete_of_is_closed f.is_closed_ker
+f.is_closed_ker.is_complete
 
 instance complete_space_ker {M' : Type*} [uniform_space M'] [complete_space M'] [add_comm_monoid M']
   [semimodule R M'] [t1_space M₂] (f : M' →L[R] M₂) :

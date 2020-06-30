@@ -218,7 +218,7 @@ complete_space_coe_iff_is_complete.2 hs
 
 lemma is_closed.complete_space_coe [complete_space α] {s : set α} (hs : is_closed s) :
   complete_space s :=
-(is_complete_of_is_closed hs).complete_space_coe
+hs.is_complete.complete_space_coe
 
 lemma complete_space_extension {m : β → α} (hm : uniform_inducing m) (dense : dense_range m)
   (h : ∀f:filter β, cauchy f → ∃x:α, map m f ≤ 𝓝 x) : complete_space α :=
@@ -356,7 +356,7 @@ begin
       rw [←closure_induced, closure_eq_cluster_pts, mem_set_of_eq, cluster_pt,
           (≠), nhds_induced, ← de.to_dense_inducing.nhds_eq_comap],
       change x ∈ {y | cluster_pt y (𝓟 s)} → x ∈ range subtype.val,
-      rw [←closure_eq_cluster_pts, closure_eq_of_is_closed hs],
+      rw [←closure_eq_cluster_pts, hs.closure_eq],
       exact assume hxs, ⟨⟨x, hp x hxs⟩, rfl⟩,
       exact de.inj
     end⟩

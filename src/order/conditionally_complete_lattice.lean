@@ -143,6 +143,10 @@ lemma is_glb.cInf_eq (H : is_glb s a) (ne : s.nonempty) : Inf s = a :=
 lemma is_least.cInf_eq (H : is_least s a) : Inf s = a :=
 H.is_glb.cInf_eq H.nonempty
 
+lemma subset_Icc_cInf_cSup (hb : bdd_below s) (ha : bdd_above s) :
+  s ⊆ Icc (Inf s) (Sup s) :=
+λ x hx, ⟨cInf_le hb hx, le_cSup ha hx⟩
+
 theorem cSup_le_iff (hb : bdd_above s) (ne : s.nonempty) : Sup s ≤ a ↔ (∀b ∈ s, b ≤ a) :=
 is_lub_le_iff (is_lub_cSup ne hb)
 

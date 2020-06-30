@@ -488,6 +488,10 @@ end
   (M + N)ᵀ = Mᵀ + Nᵀ  :=
 by { ext i j, simp }
 
+@[simp] lemma transpose_sub [add_comm_group α] (M : matrix m n α) (N : matrix m n α) :
+  (M - N)ᵀ = Mᵀ - Nᵀ  :=
+by { ext i j, simp }
+
 @[simp] lemma transpose_mul [comm_ring α] (M : matrix m n α) (N : matrix n l α) :
   (M ⬝ N)ᵀ = Nᵀ ⬝ Mᵀ  :=
 begin

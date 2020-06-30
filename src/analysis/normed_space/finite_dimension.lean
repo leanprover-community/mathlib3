@@ -97,7 +97,7 @@ begin
         exact (equiv_fun_basis b_basis).symm.uniform_embedding (linear_map.continuous_on_pi _) this },
       have : is_complete (s : set E),
         from complete_space_coe_iff_is_complete.1 ((complete_space_congr U).1 (by apply_instance)),
-      exact is_closed_of_is_complete this },
+      exact this.is_closed },
     -- second step: any linear form is continuous, as its kernel is closed by the first step
     have H₂ : ∀f : E →ₗ[𝕜] 𝕜, continuous f,
     { assume f,
@@ -199,7 +199,7 @@ complete_space_coe_iff_is_complete.1 (finite_dimensional.complete 𝕜 s)
 /-- A finite-dimensional subspace is closed. -/
 lemma submodule.closed_of_finite_dimensional (s : submodule 𝕜 E) [finite_dimensional 𝕜 s] :
   is_closed (s : set E) :=
-is_closed_of_is_complete s.complete_of_finite_dimensional
+s.complete_of_finite_dimensional.is_closed
 
 lemma continuous_linear_map.exists_right_inverse_of_surjective [finite_dimensional 𝕜 F]
   (f : E →L[𝕜] F) (hf : f.range = ⊤) :

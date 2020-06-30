@@ -289,7 +289,7 @@ begin
     { exact lipschitz_with.of_dist_le_mul (λ x x', hf.inverse_approx_map_contracts_on
         y (hε x.mem) (hε x'.mem)) } },
   refine ⟨this.efixed_point' _ _ _ b (mem_closed_ball_self ε0) (edist_lt_top _ _), _, _⟩,
-  { exact is_complete_of_is_closed is_closed_ball },
+  { exact is_closed_ball.is_complete },
   { apply contracting_with.efixed_point_mem' },
   { exact (inverse_approx_map_fixed_iff y).1 (this.efixed_point_is_fixed_pt' _ _ _ _) }
 end

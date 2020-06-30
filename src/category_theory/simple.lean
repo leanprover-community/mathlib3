@@ -6,6 +6,7 @@ Authors: Markus Himmel, Scott Morrison
 import category_theory.limits.shapes.zero
 import category_theory.limits.shapes.kernels
 import category_theory.abelian.basic
+import category_theory.abelian.additive
 
 open category_theory.limits
 
@@ -58,6 +59,9 @@ begin
   apply w,
   exact is_iso_of_mono_of_nonzero h,
 end
+
+lemma id_nonzero (X : C) [simple.{v} X] : 𝟙 X ≠ 0 :=
+(simple.mono_is_iso_equiv_nonzero (𝟙 X)) (by apply_instance)
 
 section
 variable [has_zero_object.{v} C]

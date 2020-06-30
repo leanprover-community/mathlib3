@@ -18,6 +18,8 @@ open_locale big_operators
 namespace mv_polynomial
 variables {σ : Type*} {τ : Type*} {R : Type*} {S : Type*}
 
+-- todo: create definition for `∑ i in d.support, d i`
+
 /-- A multivariate polynomial `φ` is homogeneous of degree `n`
 if all monomials occuring in `φ` have degree `n`. -/
 def is_homogeneous [comm_semiring R] (φ : mv_polynomial σ R) (n : ℕ) :=

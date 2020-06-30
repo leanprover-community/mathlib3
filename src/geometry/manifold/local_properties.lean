@@ -231,42 +231,32 @@ begin
     { assume y hy, exact hv ⟨hy.1.1.2, hy.2⟩ },
     { assume y hy, exact ust ⟨hy.1.1.1, hy.2⟩ } },
   simp only [lift_prop_fun_set_within_at, A, hcont, true_and, preimage_inter],
-  have : is_open ((chart_at H x).target ∩ (chart_at H x).symm⁻¹' o),
-  { apply continuous_on.preimage_open_of_open,
+  have B : is_open ((chart_at H x).target ∩ (chart_at H x).symm⁻¹' o) :=
+    (chart_at H x).preimage_open_of_open_symm o_open,
+  have C : (chart_at H x) x ∈ (chart_at H x).target ∩ (chart_at H x).symm⁻¹' o,
+    by simp only [xo] with mfld_simps,
+  conv_lhs { rw hG.is_local B C },
+  conv_rhs { rw hG.is_local B C },
+  congr' 2,
+  ext y,
+  split;
+  { assume hy, simp only with mfld_simps at hy, simp only [hy, ost _] with mfld_simps }
+end
 
-  },
-  have Z := hG.is_local,
+lemma lift_within_at_inter (ht : t ∈ 𝓝 x) :
+  lift_prop_fun_set_within_at P g (s ∩ t) x ↔ lift_prop_fun_set_within_at P g s x :=
+hG.lift_within_at_inter' (mem_nhds_within_of_mem_nhds ht)
 
+lemma lift_within_at.lift_at (h : lift_prop_fun_set_within_at P g s x) (hs : s ∈ 𝓝 x) :
+  lift_prop_fun_set_at P g x :=
+begin
+  have : s = univ ∩ s, by rw univ_inter,
+  rwa [this, hG.lift_within_at_inter hs] at h,
 end
 
 #exit
 
-lemma mdifferentiable_within_at_inter (ht : t ∈ 𝓝 x) :
-  mdifferentiable_within_at I I' f (s ∩ t) x ↔ mdifferentiable_within_at I I' f s x :=
-begin
-  rw [mdifferentiable_within_at, mdifferentiable_within_at, ext_chart_preimage_inter_eq,
-      differentiable_within_at_inter, continuous_within_at_inter ht],
-  exact ext_chart_preimage_mem_nhds I x ht
-end
 
-lemma mdifferentiable_within_at_inter' (ht : t ∈ nhds_within x s) :
-  mdifferentiable_within_at I I' f (s ∩ t) x ↔ mdifferentiable_within_at I I' f s x :=
-begin
-  rw [mdifferentiable_within_at, mdifferentiable_within_at, ext_chart_preimage_inter_eq,
-      differentiable_within_at_inter', continuous_within_at_inter' ht],
-  exact ext_chart_preimage_mem_nhds_within I x ht
-end
-
-lemma mdifferentiable_at.mdifferentiable_within_at
-  (h : mdifferentiable_at I I' f x) : mdifferentiable_within_at I I' f s x :=
-mdifferentiable_within_at.mono (subset_univ _) (mdifferentiable_within_at_univ.2 h)
-
-lemma mdifferentiable_within_at.mdifferentiable_at
-  (h : mdifferentiable_within_at I I' f s x) (hs : s ∈ 𝓝 x) : mdifferentiable_at I I' f x :=
-begin
-  have : s = univ ∩ s, by rw univ_inter,
-  rwa [this, mdifferentiable_within_at_inter hs, mdifferentiable_within_at_univ] at h,
-end
 
 lemma mdifferentiable_on.mono
   (h : mdifferentiable_on I I' f t) (st : s ⊆ t) : mdifferentiable_on I I' f s :=

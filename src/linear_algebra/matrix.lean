@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl, Casper Putz
 -/
 import linear_algebra.finite_dimensional
+import linear_algebra.nonsingular_inverse
 
 /-!
 # Linear maps and matrices
@@ -303,14 +304,14 @@ end trace
 
 section ring
 
-variables {R : Type v} [comm_ring R]
+variables {R : Type v} [comm_ring R] [decidable_eq n]
 open linear_map matrix
 
-lemma proj_diagonal [decidable_eq m] (i : m) (w : m → R) :
+lemma proj_diagonal (i : n) (w : n → R) :
   (proj i).comp (to_lin (diagonal w)) = (w i) • proj i :=
 by ext j; simp [mul_vec_diagonal]
 
-lemma diagonal_comp_std_basis [decidable_eq n] (w : n → R) (i : n) :
+lemma diagonal_comp_std_basis (w : n → R) (i : n) :
   (diagonal w).to_lin.comp (std_basis R (λ_:n, R) i) = (w i) • std_basis R (λ_:n, R) i :=
 begin
   ext a j,
@@ -321,9 +322,27 @@ begin
   { rw [std_basis_ne R (λ_:n, R) _ _ (ne.symm h), _root_.mul_zero, _root_.mul_zero] }
 end
 
-lemma diagonal_to_lin [decidable_eq m] (w : m → R) :
+lemma diagonal_to_lin (w : n → R) :
   (diagonal w).to_lin = linear_map.pi (λi, w i • linear_map.proj i) :=
 by ext v j; simp [mul_vec_diagonal]
+
+/-- An invertible matrix yields a linear equivalence from the free module to itself. -/
+def to_linear_equiv (P : matrix n n R) (h : is_unit P) : (n → R) ≃ₗ[R] (n → R) :=
+have h' : is_unit P.det := P.is_unit_iff_is_unit_det.mp h,
+{ inv_fun   := P⁻¹.to_lin,
+  left_inv  := λ v,
+    show (P⁻¹.to_lin.comp P.to_lin) v = v,
+    by rw [←matrix.mul_to_lin, P.nonsing_inv_mul h', matrix.to_lin_one, linear_map.id_apply],
+  right_inv := λ v,
+    show (P.to_lin.comp P⁻¹.to_lin) v = v,
+    by rw [←matrix.mul_to_lin, P.mul_nonsing_inv h', matrix.to_lin_one, linear_map.id_apply],
+  ..P.to_lin }
+
+@[simp] lemma to_linear_equiv_apply (P : matrix n n R) (h : is_unit P) :
+  (↑(P.to_linear_equiv h) : module.End R (n → R)) = P.to_lin := rfl
+
+@[simp] lemma to_linear_equiv_symm_apply (P : matrix n n R) (h : is_unit P) :
+  (↑(P.to_linear_equiv h).symm : module.End R (n → R)) = P⁻¹.to_lin := rfl
 
 end ring
 

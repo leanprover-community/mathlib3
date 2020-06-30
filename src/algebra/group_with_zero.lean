@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import algebra.group.commute
+import algebra.group.hom
 import tactic.alias
 import tactic.push_neg
 

@@ -219,8 +219,8 @@ meta structure local_collection :=
 /-- Converts a single local constant into a (singleton) `local_collection` -/
 meta def to_local_collection (l : expr) : tactic local_collection :=
 tactic.unsafe.type_context.run $ do
-lctx <- tactic.unsafe.type_context.get_local_context,
-some ldecl <- pure $ lctx.get_local_decl l.local_uniq_name,
+lctx ← tactic.unsafe.type_context.get_local_context,
+some ldecl ← pure $ lctx.get_local_decl l.local_uniq_name,
 pure {
   key := l.local_uniq_name.repr,
   locals := [l],

@@ -159,11 +159,12 @@ begin
     using padic_val_rat_def p n_nonzero,
 end
 
-lemma one_le_padic_val_nat_of_dvd {n p : nat} [prime : fact p.prime] (nonzero : n ≠ 0) (s : p ∣ n) :
+lemma one_le_padic_val_nat_of_dvd {n p : nat} [prime : fact p.prime] (nonzero : n ≠ 0) (div : p ∣ n) :
   1 ≤ padic_val_nat p n :=
 begin
   rw @padic_val_nat_def _ prime _ nonzero,
-  have one_le_mul : 1 ≤ _ := @multiplicity.le_multiplicity_of_pow_dvd _ _ _ p n 1 (begin norm_num, exact s end),
+  let one_le_mul : _ ≤ multiplicity p n :=
+    @multiplicity.le_multiplicity_of_pow_dvd _ _ _ p n 1 (begin norm_num, exact div end),
   simp only [enat.coe_one] at one_le_mul,
   rcases one_le_mul with ⟨_, q⟩,
   dsimp at q,

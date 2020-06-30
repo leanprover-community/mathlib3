@@ -13,6 +13,13 @@ import ring_theory.polynomial
 We define a polynomial to be separable if it is coprime with its derivative. We prove basic
 properties about separable polynomials here.
 
+## Main definitions
+
+* `polynomial.separable f`: a polynomial `f` is separable iff it is coprime with its derivative.
+* `polynomial.expand R p f`: expand the polynomial `f` with coefficients in a
+  commutative semiring `R` by a factor of p, so `expand R p (∑ aₙ xⁿ)` is `∑ aₙ xⁿᵖ`.
+* `polynomial.contract p f`: the opposite of `expand`, so it sends `∑ aₙ xⁿᵖ` to `∑ aₙ xⁿ`.
+
 -/
 
 universes u v w

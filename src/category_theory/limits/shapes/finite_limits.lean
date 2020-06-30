@@ -28,19 +28,19 @@ instance fin_category_discrete_of_decidable_fintype (J : Type v) [fintype J] [de
 variables (C : Type u) [category.{v} C]
 
 class has_finite_limits :=
-(has_limits_of_shape : Π (J : Type v) [small_category J] [fin_category J], has_limits_of_shape.{v} J C)
+(has_limits_of_shape : Π (J : Type v) [small_category J] [fin_category J], has_limits_of_shape J C)
 class has_finite_colimits :=
-(has_colimits_of_shape : Π (J : Type v) [small_category J] [fin_category J], has_colimits_of_shape.{v} J C)
+(has_colimits_of_shape : Π (J : Type v) [small_category J] [fin_category J], has_colimits_of_shape J C)
 
 attribute [instance, priority 100] -- see Note [lower instance priority]
   has_finite_limits.has_limits_of_shape
   has_finite_colimits.has_colimits_of_shape
 
 @[priority 100] -- see Note [lower instance priority]
-instance [has_limits.{v} C] : has_finite_limits.{v} C :=
+instance [has_limits C] : has_finite_limits C :=
 { has_limits_of_shape := λ J _ _, by { resetI, apply_instance } }
 @[priority 100] -- see Note [lower instance priority]
-instance [has_colimits.{v} C] : has_finite_colimits.{v} C :=
+instance [has_colimits C] : has_finite_colimits C :=
 { has_colimits_of_shape := λ J _ _, by { resetI, apply_instance } }
 
 end category_theory.limits

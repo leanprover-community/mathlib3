@@ -78,7 +78,7 @@ instance has_colimits_of_shape [has_colimits_of_shape J C] :
   has_colimits_of_shape J (over X) :=
 { has_colimit := λ F, by apply_instance }
 
-instance has_colimits [has_colimits.{v} C] : has_colimits.{v} (over X) :=
+instance has_colimits [has_colimits C] : has_colimits (over X) :=
 { has_colimits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
 instance forget_preserves_colimit {X : C} {F : J ⥤ over X} [has_colimit (F ⋙ forget)] :
@@ -89,7 +89,7 @@ instance forget_preserves_colimits_of_shape [has_colimits_of_shape J C] {X : C} 
   preserves_colimits_of_shape J (forget : over X ⥤ C) :=
 { preserves_colimit := λ F, by apply_instance }
 
-instance forget_preserves_colimits [has_colimits.{v} C] {X : C} :
+instance forget_preserves_colimits [has_colimits C] {X : C} :
   preserves_colimits (forget : over X ⥤ C) :=
 { preserves_colimits_of_shape := λ J 𝒥, by apply_instance }
 
@@ -177,29 +177,29 @@ def has_over_limit_discrete_of_wide_pullback_limit {B : C} {J : Type v} (F : dis
     (cones_equiv B F).functor (limit.is_limit (wide_pullback_diagram_of_diagram_over B F)) }
 
 /-- Given a wide pullback in `C`, construct a product in `C/B`. -/
-def over_product_of_wide_pullback {J : Type v} [has_limits_of_shape.{v} (wide_pullback_shape J) C] {B : C} :
-  has_limits_of_shape.{v} (discrete J) (over B) :=
+def over_product_of_wide_pullback {J : Type v} [has_limits_of_shape (wide_pullback_shape J) C] {B : C} :
+  has_limits_of_shape (discrete J) (over B) :=
 { has_limit := λ F, has_over_limit_discrete_of_wide_pullback_limit F }
 
 /-- Given a pullback in `C`, construct a binary product in `C/B`. -/
-def over_binary_product_of_pullback [has_pullbacks.{v} C] {B : C} :
-  has_binary_products.{v} (over B) :=
+def over_binary_product_of_pullback [has_pullbacks C] {B : C} :
+  has_binary_products (over B) :=
 { has_limits_of_shape := over_product_of_wide_pullback }
 
 /-- Given all wide pullbacks in `C`, construct products in `C/B`. -/
-def over_products_of_wide_pullbacks [has_wide_pullbacks.{v} C] {B : C} :
-  has_products.{v} (over B) :=
+def over_products_of_wide_pullbacks [has_wide_pullbacks C] {B : C} :
+  has_products (over B) :=
 { has_limits_of_shape := λ J, over_product_of_wide_pullback }
 
 /-- Given all finite wide pullbacks in `C`, construct finite products in `C/B`. -/
-def over_finite_products_of_finite_wide_pullbacks [has_finite_wide_pullbacks.{v} C] {B : C} :
-  has_finite_products.{v} (over B) :=
+def over_finite_products_of_finite_wide_pullbacks [has_finite_wide_pullbacks C] {B : C} :
+  has_finite_products (over B) :=
 { has_limits_of_shape := λ J 𝒥₁ 𝒥₂, by exactI over_product_of_wide_pullback }
 
 end construct_products
 
 /-- Construct terminal object in the over category. -/
-instance (B : C) : has_terminal.{v} (over B) :=
+instance (B : C) : has_terminal (over B) :=
 { has_limits_of_shape :=
   { has_limit := λ F,
     { cone :=
@@ -267,30 +267,30 @@ instance has_connected_limits {B : C} [connected J] [has_limits_of_shape J C] : 
 { has_limit := λ F, has_limit_of_created F (forget : over B ⥤ C) }
 
 /-- Make sure we can derive pullbacks in `over B`. -/
-example {B : C} [has_pullbacks.{v} C] : has_pullbacks.{v} (over B) :=
+example {B : C} [has_pullbacks C] : has_pullbacks (over B) :=
 { has_limits_of_shape := infer_instance }
 
 /-- Make sure we can derive equalizers in `over B`. -/
-example {B : C} [has_equalizers.{v} C] : has_equalizers.{v} (over B) :=
+example {B : C} [has_equalizers C] : has_equalizers (over B) :=
 { has_limits_of_shape := infer_instance }
 
-instance has_finite_limits {B : C} [has_finite_wide_pullbacks.{v} C] : has_finite_limits.{v} (over B) :=
+instance has_finite_limits {B : C} [has_finite_wide_pullbacks C] : has_finite_limits (over B) :=
 begin
   apply @finite_limits_from_equalizers_and_finite_products _ _ _ _,
   { exact construct_products.over_finite_products_of_finite_wide_pullbacks },
   { apply @has_equalizers_of_pullbacks_and_binary_products _ _ _ _,
-    { haveI: has_pullbacks.{v} C := ⟨infer_instance⟩,
+    { haveI: has_pullbacks C := ⟨infer_instance⟩,
       exact construct_products.over_binary_product_of_pullback },
     { split,
       apply_instance} }
 end
 
-instance has_limits {B : C} [has_wide_pullbacks.{v} C] : has_limits.{v} (over B) :=
+instance has_limits {B : C} [has_wide_pullbacks C] : has_limits (over B) :=
 begin
   apply @limits_from_equalizers_and_products _ _ _ _,
   { exact construct_products.over_products_of_wide_pullbacks },
   { apply @has_equalizers_of_pullbacks_and_binary_products _ _ _ _,
-    { haveI: has_pullbacks.{v} C := ⟨infer_instance⟩,
+    { haveI: has_pullbacks C := ⟨infer_instance⟩,
       exact construct_products.over_binary_product_of_pullback },
     { split,
       apply_instance } }
@@ -345,10 +345,10 @@ instance has_limits_of_shape [has_limits_of_shape J C] :
   has_limits_of_shape J (under X) :=
 { has_limit := λ F, by apply_instance }
 
-instance has_limits [has_limits.{v} C] : has_limits.{v} (under X) :=
+instance has_limits [has_limits C] : has_limits (under X) :=
 { has_limits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
-instance forget_preserves_limits [has_limits.{v} C] {X : C} :
+instance forget_preserves_limits [has_limits C] {X : C} :
   preserves_limits (forget : under X ⥤ C) :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ F, by exactI

@@ -21,8 +21,8 @@ open category_theory category_theory.category category_theory.limits
 /-- Any category with pullbacks and terminal object has binary products. -/
 -- This is not an instance, as it is not always how one wants to construct binary products!
 def has_binary_products_of_terminal_and_pullbacks
-  (C : Type u) [𝒞 : category.{v} C] [has_terminal.{v} C] [has_pullbacks.{v} C] :
-  has_binary_products.{v} C :=
+  (C : Type u) [𝒞 : category.{v} C] [has_terminal C] [has_pullbacks C] :
+  has_binary_products C :=
 { has_limits_of_shape :=
   { has_limit := λ F,
     { cone :=

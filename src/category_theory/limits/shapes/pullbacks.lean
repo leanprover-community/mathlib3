@@ -92,11 +92,11 @@ open walking_span.hom walking_cospan.hom wide_pullback_shape.hom wide_pushout_sh
 variables {C : Type u} [category.{v} C]
 
 /-- `cospan f g` is the functor from the walking cospan hitting `f` and `g`. -/
-def cospan {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) : walking_cospan.{v} ⥤ C :=
+def cospan {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) : walking_cospan ⥤ C :=
 wide_pullback_shape.wide_cospan Z (λ j, walking_pair.cases_on j X Y) (λ j, walking_pair.cases_on j f g)
 
 /-- `span f g` is the functor from the walking span hitting `f` and `g`. -/
-def span {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) : walking_span.{v} ⥤ C :=
+def span {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) : walking_span ⥤ C :=
 wide_pushout_shape.wide_span X (λ j, walking_pair.cases_on j Y Z) (λ j, walking_pair.cases_on j f g)
 
 @[simp] lemma cospan_left {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
@@ -336,7 +336,7 @@ end pushout_cocone
     which you may find to be an easier way of achieving your goal. -/
 @[simps]
 def cone.of_pullback_cone
-  {F : walking_cospan.{v} ⥤ C} (t : pullback_cone (F.map inl) (F.map inr)) : cone F :=
+  {F : walking_cospan ⥤ C} (t : pullback_cone (F.map inl) (F.map inr)) : cone F :=
 { X := t.X,
   π := t.π ≫ (diagram_iso_cospan F).inv }
 
@@ -349,7 +349,7 @@ def cone.of_pullback_cone
     you may find to be an easiery way of achieving your goal.  -/
 @[simps]
 def cocone.of_pushout_cocone
-  {F : walking_span.{v} ⥤ C} (t : pushout_cocone (F.map fst) (F.map snd)) : cocone F :=
+  {F : walking_span ⥤ C} (t : pushout_cocone (F.map fst) (F.map snd)) : cocone F :=
 { X := t.X,
   ι := (diagram_iso_span F).hom ≫ t.ι }
 
@@ -357,7 +357,7 @@ def cocone.of_pushout_cocone
     and a cone on `F`, we get a pullback cone on `F.map inl` and `F.map inr`. -/
 @[simps]
 def pullback_cone.of_cone
-  {F : walking_cospan.{v} ⥤ C} (t : cone F) : pullback_cone (F.map inl) (F.map inr) :=
+  {F : walking_cospan ⥤ C} (t : cone F) : pullback_cone (F.map inl) (F.map inr) :=
 { X := t.X,
   π := t.π ≫ (diagram_iso_cospan F).hom }
 
@@ -365,7 +365,7 @@ def pullback_cone.of_cone
     and a cocone on `F`, we get a pushout cocone on `F.map fst` and `F.map snd`. -/
 @[simps]
 def pushout_cocone.of_cocone
-  {F : walking_span.{v} ⥤ C} (t : cocone F) : pushout_cocone (F.map fst) (F.map snd) :=
+  {F : walking_span ⥤ C} (t : cocone F) : pushout_cocone (F.map fst) (F.map snd) :=
 { X := t.X,
   ι := (diagram_iso_span F).inv ≫ t.ι }
 
@@ -490,32 +490,32 @@ variables (C)
 
 /-- `has_pullbacks` represents a choice of pullback for every pair of morphisms -/
 class has_pullbacks :=
-(has_limits_of_shape : has_limits_of_shape.{v} walking_cospan C)
+(has_limits_of_shape : has_limits_of_shape walking_cospan C)
 
 /-- `has_pushouts` represents a choice of pushout for every pair of morphisms -/
 class has_pushouts :=
-(has_colimits_of_shape : has_colimits_of_shape.{v} walking_span C)
+(has_colimits_of_shape : has_colimits_of_shape walking_span C)
 
 attribute [instance] has_pullbacks.has_limits_of_shape has_pushouts.has_colimits_of_shape
 
 /-- Pullbacks are finite limits, so if `C` has all finite limits, it also has all pullbacks -/
-def has_pullbacks_of_has_finite_limits [has_finite_limits.{v} C] : has_pullbacks.{v} C :=
+def has_pullbacks_of_has_finite_limits [has_finite_limits C] : has_pullbacks C :=
 { has_limits_of_shape := infer_instance }
 
 /-- Pushouts are finite colimits, so if `C` has all finite colimits, it also has all pushouts -/
-def has_pushouts_of_has_finite_colimits [has_finite_colimits.{v} C] : has_pushouts.{v} C :=
+def has_pushouts_of_has_finite_colimits [has_finite_colimits C] : has_pushouts C :=
 { has_colimits_of_shape := infer_instance }
 
 /-- If `C` has all limits of diagrams `cospan f g`, then it has all pullbacks -/
 def has_pullbacks_of_has_limit_cospan
   [Π {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z}, has_limit (cospan f g)] :
-  has_pullbacks.{v} C :=
+  has_pullbacks C :=
 { has_limits_of_shape := { has_limit := λ F, has_limit_of_iso (diagram_iso_cospan F).symm } }
 
 /-- If `C` has all colimits of diagrams `span f g`, then it has all pushouts -/
 def has_pushouts_of_has_colimit_span
   [Π {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z}, has_colimit (span f g)] :
-  has_pushouts.{v} C :=
+  has_pushouts C :=
 { has_colimits_of_shape := { has_colimit := λ F, has_colimit_of_iso (diagram_iso_span F) } }
 
 end category_theory.limits

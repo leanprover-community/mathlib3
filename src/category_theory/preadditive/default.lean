@@ -62,6 +62,7 @@ attribute [instance] preadditive.hom_group
 restate_axiom preadditive.add_comp'
 restate_axiom preadditive.comp_add'
 attribute [simp,reassoc] preadditive.add_comp
+attribute [reassoc] preadditive.comp_add -- (the linter doesn't like `simp` on this lemma)
 attribute [simp] preadditive.comp_add
 
 end category_theory

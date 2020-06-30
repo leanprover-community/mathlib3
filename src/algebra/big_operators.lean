@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
+import algebra.opposites
 import data.finset
 import data.nat.enat
 import tactic.omega
@@ -1464,5 +1465,22 @@ begin
   simp only [← lt_top_iff_ne_top],
   exact sum_lt_top_iff
 end
+
+open opposite
+
+/- Moving to the opposite ring commutes with summing. -/
+@[simp] lemma op_sum [ring β] {s : finset α} (f : α → β) :
+  op (∑ x in s, f x) = ∑ x in s, op (f x) :=
+begin
+  classical,
+  induction s using finset.induction with x s hx hs,
+  { simp },
+  { rw [sum_insert hx, sum_insert hx, ← hs],
+    simp },
+end
+
+@[simp] lemma unop_sum [ring β] {s : finset α} (f : α → βᵒᵖ) :
+  unop (∑ x in s, f x) = ∑ x in s, unop (f x) :=
+op_injective $ by simp
 
 end with_top

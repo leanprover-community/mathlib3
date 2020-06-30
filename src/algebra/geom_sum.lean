@@ -7,7 +7,6 @@ Sums of finite geometric series
 -/
 import algebra.group_with_zero_power
 import algebra.big_operators
-import algebra.opposites
 
 universe u
 variable {α : Type u}

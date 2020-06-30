@@ -189,7 +189,7 @@ end
 
 /-- If zero equals one in a semiring, all elements of that semiring are equal. -/
 theorem subsingleton_of_zero_eq_one (h : (0 : α) = 1) : subsingleton α :=
-@unique.subsingleton _ (unique_of_zero_eq_one h)
+@unique.subsingleton _ (unique_of_zero_eq_one α h)
 
 /-- A semiring is either a subsingleton or nonzero. -/
 lemma subsingleton_or_nonzero : subsingleton α ∨ nonzero α :=

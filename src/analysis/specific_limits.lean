@@ -555,7 +555,7 @@ Proved above (same name, different namespace) for normed fields. -/
 lemma normed_ring.tendsto_pow_at_top_nhds_0_of_norm_lt_1 (x : α) (h : ∥x∥ < 1) :
   tendsto (λ (n : ℕ), x ^ n) at_top (𝓝 0) :=
 begin
-  apply squeeze_zero_norm' (norm_pow_le_eventually x),
+  apply squeeze_zero_norm' (eventually_norm_pow_le x),
   exact tendsto_pow_at_top_nhds_0_of_lt_1 (norm_nonneg _) h,
 end
 
@@ -567,7 +567,7 @@ begin
   have h1 : summable (λ (n:ℕ), ∥x∥ ^ n) := summable_geometric_of_lt_1 (norm_nonneg _) h,
   refine summable_of_norm_bounded_eventually _ h1 _,
   rw nat.cofinite_eq_at_top,
-  exact norm_pow_le_eventually x,
+  exact eventually_norm_pow_le x,
 end
 
 lemma geom_series_mul_neg [complete_space α] (x : α) (h : ∥x∥ < 1) :

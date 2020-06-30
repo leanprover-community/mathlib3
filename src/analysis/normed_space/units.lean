@@ -29,12 +29,12 @@ def perturbation_unit (x : α) (h : ∥x∥ < 1) : units α :=
 lemma unit_of_near_unit [nonzero α] (x : units α) (y : α)
   (h : ∥y - x∥ < ∥((x⁻¹:units α):α)∥⁻¹) : is_unit y :=
 begin
-  have hpos : 0 < ∥((x⁻¹:units α):α)∥ := norm_pos x⁻¹,
+  have hpos : 0 < ∥((x⁻¹:units α):α)∥ := units.norm_pos x⁻¹,
   have hrad : ∥((x⁻¹:units α):α) * (x - y)∥ < 1,
   { calc ∥((x⁻¹:units α):α) * ((x:α) - y)∥
         ≤ ∥((x⁻¹:units α):α)∥ * ∥(x:α) - y∥           : norm_mul_le x.inv _
     ... = ∥((x⁻¹:units α):α)∥ * ∥y - x∥               : by rw [←neg_sub, norm_neg]
-    ... < ∥((x⁻¹:units α):α)∥ * ∥((x⁻¹:units α):α)∥⁻¹ : by nlinarith [h, hpos]
+    ... < ∥((x⁻¹:units α):α)∥ * ∥((x⁻¹:units α):α)∥⁻¹ : by nlinarith only [h, hpos]
     ... = 1                                           : mul_inv_cancel (by linarith [hpos]) },
   use x * (perturbation_unit _ hrad),
   unfold perturbation_unit,
@@ -42,13 +42,13 @@ begin
 end
 
 /-- The group of units of a complete normed ring is an open subset of the ring. -/
-lemma units_open : is_open (is_unit : set α) :=
+lemma units_open : is_open {x : α | is_unit x} :=
 begin
   rcases subsingleton_or_nonzero α with _i|_i, resetI,
   { exact is_open_discrete is_unit },
   { apply metric.is_open_iff.mpr,
     rintros x' ⟨x, h⟩,
-    refine ⟨∥((x⁻¹:units α):α)∥⁻¹, inv_pos.mpr (@norm_pos α _ _i x⁻¹), _⟩,
+    refine ⟨∥((x⁻¹:units α):α)∥⁻¹, inv_pos.mpr (@units.norm_pos α _ _i x⁻¹), _⟩,
     intros y hy,
     rw [metric.mem_ball, dist_eq_norm, ←h] at hy,
     exact @unit_of_near_unit α _ _ _i x y hy },

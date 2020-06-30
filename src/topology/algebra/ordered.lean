@@ -289,6 +289,12 @@ lemma is_preconnected.Icc_subset {s : set α} (hs : is_preconnected s)
   Icc a b ⊆ s :=
 by simpa only [image_id] using hs.intermediate_value ha hb continuous_on_id
 
+/-- If a preconnected set contains endpoints of an interval, then it includes the whole interval. -/
+lemma is_connected.Icc_subset {s : set α} (hs : is_connected s)
+  {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
+  Icc a b ⊆ s :=
+hs.2.Icc_subset ha hb
+
 /-- If preconnected set in a linear order space is unbounded below and above, then it is the whole
 space. -/
 lemma is_preconnected.eq_univ_of_unbounded {s : set α} (hs : is_preconnected s) (hb : ¬bdd_below s)
@@ -1341,11 +1347,11 @@ mem_closure_of_is_lub (is_lub_cSup hs B) hs
 lemma cInf_mem_closure {s : set α} (hs : s.nonempty) (B : bdd_below s) : Inf s ∈ closure s :=
 mem_closure_of_is_glb (is_glb_cInf hs B) hs
 
-lemma is_closed.cSup_mem {s : set α} (hs : s.nonempty) (hc : is_closed s) (B : bdd_above s) :
+lemma is_closed.cSup_mem {s : set α} (hc : is_closed s) (hs : s.nonempty) (B : bdd_above s) :
   Sup s ∈ s :=
 mem_of_is_lub_of_is_closed (is_lub_cSup hs B) hs hc
 
-lemma is_closed.cInf_mem {s : set α} (hs : s.nonempty) (hc : is_closed s) (B : bdd_below s) :
+lemma is_closed.cInf_mem {s : set α} (hc : is_closed s) (hs : s.nonempty) (B : bdd_below s) :
   Inf s ∈ s :=
 mem_of_is_glb_of_is_closed (is_glb_cInf hs B) hs hc
 
@@ -1390,7 +1396,13 @@ lemma is_connected.Ioo_cInf_cSup_subset {s : set α} (hs : is_connected s) (hb :
   Ioo (Inf s) (Sup s) ⊆ s :=
 λ x hx, let ⟨y, ys, hy⟩ := (is_glb_lt_iff (is_glb_cInf hs.nonempty hb)).1 hx.1 in
 let ⟨z, zs, hz⟩ := (lt_is_lub_iff (is_lub_cSup hs.nonempty ha)).1 hx.2 in
-hs.is_preconnected.Icc_subset ys zs ⟨le_of_lt hy, le_of_lt hz⟩
+hs.Icc_subset ys zs ⟨le_of_lt hy, le_of_lt hz⟩
+
+lemma eq_Icc_cInf_cSup_of_connected_bdd_closed {s : set α} (hc : is_connected s) (hb : bdd_below s)
+  (ha : bdd_above s) (hcl : is_closed s) :
+  s = Icc (Inf s) (Sup s) :=
+subset.antisymm (subset_Icc_cInf_cSup hb ha) $
+  hc.Icc_subset (hcl.cInf_mem hc.nonempty hb) (hcl.cSup_mem hc.nonempty ha)
 
 lemma is_preconnected.Ioi_cInf_subset {s : set α} (hs : is_preconnected s) (hb : bdd_below s)
   (ha : ¬bdd_above s) :
@@ -1421,7 +1433,7 @@ begin
   have hs' : is_connected s := ⟨hne, hs⟩,
   by_cases hb : bdd_below s; by_cases ha : bdd_above s,
   { rcases mem_Icc_Ico_Ioc_Ioo_of_subset_of_subset (hs'.Ioo_cInf_cSup_subset hb ha)
-      (λ x hx, ⟨cInf_le hb hx, le_cSup ha hx⟩) with hs|hs|hs|hs,
+      (subset_Icc_cInf_cSup hb ha) with hs|hs|hs|hs,
     { exact (or.inl hs) },
     { exact (or.inr $ or.inl hs) },
     { exact (or.inr $ or.inr $ or.inl hs) },
@@ -1604,18 +1616,61 @@ is_preconnected_Icc.intermediate_value (right_mem_Icc.2 hab) (left_mem_Icc.2 hab
 
 end densely_ordered
 
+lemma compact.Inf_mem {s : set α} (hs : compact s) (ne_s : s.nonempty) :
+  Inf s ∈ s :=
+(closed_of_compact s hs).cInf_mem ne_s (bdd_below_of_compact hs)
+
+lemma compact.Sup_mem {s : set α} (hs : compact s) (ne_s : s.nonempty) :
+  Sup s ∈ s :=
+@compact.Inf_mem (order_dual α) _ _ _ _ hs ne_s
+
+lemma compact.is_glb_Inf {s : set α} (hs : compact s) (ne_s : s.nonempty) :
+  is_glb s (Inf s) :=
+is_glb_cInf ne_s (bdd_below_of_compact hs)
+
+lemma compact.is_lub_Sup {s : set α} (hs : compact s) (ne_s : s.nonempty) :
+  is_lub s (Sup s) :=
+@compact.is_glb_Inf (order_dual α) _ _ _ _ hs ne_s
+
+lemma compact.is_least_Inf {s : set α} (hs : compact s) (ne_s : s.nonempty) :
+  is_least s (Inf s) :=
+⟨hs.Inf_mem ne_s, (hs.is_glb_Inf ne_s).1⟩
+
+lemma compact.is_greatest_Sup {s : set α} (hs : compact s) (ne_s : s.nonempty) :
+  is_greatest s (Sup s) :=
+@compact.is_least_Inf (order_dual α) _ _ _ _ hs ne_s
+
+lemma compact.exists_is_least {s : set α} (hs : compact s) (ne_s : s.nonempty) :
+  ∃ x, is_least s x :=
+⟨_, hs.is_least_Inf ne_s⟩
+
+lemma compact.exists_is_greatest {s : set α} (hs : compact s) (ne_s : s.nonempty) :
+  ∃ x, is_greatest s x :=
+⟨_, hs.is_greatest_Sup ne_s⟩
+
+lemma compact.exists_is_glb {s : set α} (hs : compact s) (ne_s : s.nonempty) :
+  ∃ x ∈ s, is_glb s x :=
+⟨_, hs.Inf_mem ne_s, hs.is_glb_Inf ne_s⟩
+
+lemma compact.exists_is_lub {s : set α} (hs : compact s) (ne_s : s.nonempty) :
+  ∃ x ∈ s, is_lub s x :=
+⟨_, hs.Sup_mem ne_s, hs.is_lub_Sup ne_s⟩
+
+lemma compact.exists_Inf_image_eq {α : Type u} [topological_space α]
+  {s : set α} (hs : compact s) (ne_s : s.nonempty) {f : α → β} (hf : continuous_on f s) :
+  ∃ x ∈ s,  Inf (f '' s) = f x :=
+let ⟨x, hxs, hx⟩ := (hs.image_of_continuous_on hf).Inf_mem (ne_s.image f)
+in ⟨x, hxs, hx.symm⟩
+
 /-- The extreme value theorem: a continuous function realizes its minimum on a compact set -/
 lemma compact.exists_forall_le {α : Type u} [topological_space α]
   {s : set α} (hs : compact s) (ne_s : s.nonempty) {f : α → β} (hf : continuous_on f s) :
   ∃x∈s, ∀y∈s, f x ≤ f y :=
 begin
-  have C : compact (f '' s) := hs.image_of_continuous_on hf,
-  haveI := has_Inf_to_nonempty β,
-  have B : bdd_below (f '' s) := bdd_below_of_compact C,
-  have : Inf (f '' s) ∈ f '' s :=
-    (closed_of_compact _ C).cInf_mem (ne_s.image _) B,
-  rcases (mem_image _ _ _).1 this with ⟨x, xs, hx⟩,
-  exact ⟨x, xs, λ y hy, hx.symm ▸ cInf_le B ⟨_, hy, rfl⟩⟩
+  rcases hs.exists_Inf_image_eq ne_s hf with ⟨x, hxs, hx⟩,
+  refine ⟨x, hxs, λ y hy, _⟩,
+  rw ← hx,
+  exact ((hs.image_of_continuous_on hf).is_glb_Inf (ne_s.image f)).1 (mem_image_of_mem _ hy)
 end
 
 /-- The extreme value theorem: a continuous function realizes its maximum on a compact set -/
@@ -1623,6 +1678,16 @@ lemma compact.exists_forall_ge {α : Type u} [topological_space α]:
   ∀ {s : set α}, compact s → s.nonempty → ∀ {f : α → β}, continuous_on f s →
   ∃x∈s, ∀y∈s, f y ≤ f x :=
 @compact.exists_forall_le (order_dual β) _ _ _ _ _
+
+lemma compact.exists_Sup_image_eq {α : Type u} [topological_space α]:
+  ∀ {s : set α}, compact s → s.nonempty → ∀ {f : α → β}, continuous_on f s →
+  ∃ x ∈ s,  Sup (f '' s) = f x :=
+@compact.exists_Inf_image_eq (order_dual β) _ _ _ _ _
+
+lemma eq_Icc_of_connected_compact {s : set α} (h₁ : is_connected s) (h₂ : compact s) :
+  s = Icc (Inf s) (Sup s) :=
+eq_Icc_cInf_cSup_of_connected_bdd_closed h₁ (bdd_below_of_compact h₂) (bdd_above_of_compact h₂)
+  (closed_of_compact s h₂)
 
 end conditionally_complete_linear_order
 

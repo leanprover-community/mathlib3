@@ -99,11 +99,11 @@ begin
   intros n IH d hd,
   unfold digits at hd IH,
   cases n with n,
-  { cases hd}, -- base b+2 expansion of 0 has no digits
+  { cases hd }, -- base b+2 expansion of 0 has no digits
   rw digits_aux_def (b+2) (by linarith) n.succ (nat.zero_lt_succ n) at hd,
   cases hd,
-  { rw hd, exact n.succ.mod_lt (by linarith)},
-  { exact IH _ (nat.div_lt_self (nat.succ_pos _) (by linarith)) d hd}
+  { rw hd, exact n.succ.mod_lt (by linarith) },
+  { exact IH _ (nat.div_lt_self (nat.succ_pos _) (by linarith)) d hd }
 end
 
 /-- The digits in the base b expansion of n are all less than b, if b ≥ 2 -/

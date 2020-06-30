@@ -125,26 +125,26 @@ def comap_equiv {β γ : Type w} (e : β ≃ γ) :
 
 end
 
-instance has_shift {β : Type} [add_comm_group β] (s : β) : has_shift.{v} (graded_object_with_shift s C) :=
+instance has_shift {β : Type} [add_comm_group β] (s : β) : has_shift (graded_object_with_shift s C) :=
 { shift := comap_equiv C
   { to_fun := λ b, b-s,
     inv_fun := λ b, b+s,
     left_inv := λ x, (by simp),
     right_inv := λ x, (by simp), } }
 
-instance has_zero_morphisms [has_zero_morphisms.{v} C] (β : Type w) :
+instance has_zero_morphisms [has_zero_morphisms C] (β : Type w) :
   has_zero_morphisms.{(max w v)} (graded_object β C) :=
 { has_zero := λ X Y,
   { zero := λ b, 0 } }
 
 @[simp]
-lemma zero_apply [has_zero_morphisms.{v} C] (β : Type w) (X Y : graded_object β C) (b : β) :
+lemma zero_apply [has_zero_morphisms C] (β : Type w) (X Y : graded_object β C) (b : β) :
   (0 : X ⟶ Y) b = 0 := rfl
 
 section
 local attribute [instance] has_zero_object.has_zero
 
-instance has_zero_object [has_zero_object.{v} C] [has_zero_morphisms.{v} C] (β : Type w) :
+instance has_zero_object [has_zero_object C] [has_zero_morphisms C] (β : Type w) :
   has_zero_object.{(max w v)} (graded_object β C) :=
 { zero := λ b, (0 : C),
   unique_to := λ X, ⟨⟨λ b, 0⟩, λ f, (by ext)⟩,
@@ -159,7 +159,7 @@ namespace graded_object
 -- If you're grading by things in higher universes, have fun!
 variables (β : Type)
 variables (C : Type u) [category.{v} C]
-variables [has_coproducts.{v} C]
+variables [has_coproducts C]
 
 /--
 The total object of a graded object is the coproduct of the graded components.
@@ -168,14 +168,14 @@ def total : graded_object β C ⥤ C :=
 { obj := λ X, ∐ (λ i : ulift.{v} β, X i.down),
   map := λ X Y f, limits.sigma.map (λ i, f i.down) }.
 
-variables [has_zero_morphisms.{v} C]
+variables [has_zero_morphisms C]
 
 /--
 The `total` functor taking a graded object to the coproduct of its graded components is faithful.
 To prove this, we need to know that the coprojections into the coproduct are monomorphisms,
 which follows from the fact we have zero morphisms and decidable equality for the grading.
 -/
-instance : faithful.{v} (total.{v u} β C) :=
+instance : faithful (total β C) :=
 { map_injective' := λ X Y f g w,
   begin
     classical,
@@ -191,7 +191,7 @@ namespace graded_object
 
 variables (β : Type)
 variables (C : Type (u+1)) [large_category C] [concrete_category C]
-  [has_coproducts.{u} C] [has_zero_morphisms.{u} C]
+  [has_coproducts C] [has_zero_morphisms C]
 
 instance : concrete_category (graded_object β C) :=
 { forget := total β C ⋙ forget C }

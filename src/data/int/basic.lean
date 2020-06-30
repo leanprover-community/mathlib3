@@ -6,14 +6,69 @@ Authors: Jeremy Avigad
 The integers, with addition, multiplication, and subtraction.
 -/
 import algebra.char_zero
-import init_.data.int.order
 import algebra.ring
 import data.list.range
 open nat
 
 namespace int
 
+instance : comm_ring int :=
+{ add            := int.add,
+  add_assoc      := int.add_assoc,
+  zero           := int.zero,
+  zero_add       := int.zero_add,
+  add_zero       := int.add_zero,
+  neg            := int.neg,
+  add_left_neg   := int.add_left_neg,
+  add_comm       := int.add_comm,
+  mul            := int.mul,
+  mul_assoc      := int.mul_assoc,
+  one            := int.one,
+  one_mul        := int.one_mul,
+  mul_one        := int.mul_one,
+  left_distrib   := int.distrib_left,
+  right_distrib  := int.distrib_right,
+  mul_comm       := int.mul_comm }
+
+/- Extra instances to short-circuit type class resolution -/
+-- instance : has_sub int            := by apply_instance -- This is in core
+instance : add_comm_monoid int    := by apply_instance
+instance : add_monoid int         := by apply_instance
+instance : monoid int             := by apply_instance
+instance : comm_monoid int        := by apply_instance
+instance : comm_semigroup int     := by apply_instance
+instance : semigroup int          := by apply_instance
+instance : add_comm_semigroup int := by apply_instance
+instance : add_semigroup int      := by apply_instance
+instance : comm_semiring int      := by apply_instance
+instance : semiring int           := by apply_instance
+instance : ring int               := by apply_instance
+instance : distrib int            := by apply_instance
+
+instance : nonzero ℤ :=
+{ zero_ne_one := int.zero_ne_one }
+
 instance : inhabited ℤ := ⟨int.zero⟩
+
+instance : decidable_linear_ordered_comm_ring int :=
+{ add_le_add_left := @int.add_le_add_left,
+  zero_ne_one     := int.zero_ne_one,
+  mul_pos         := @int.mul_pos,
+  zero_lt_one     := int.zero_lt_one,
+  ..int.comm_ring, ..int.decidable_linear_order }
+
+instance : decidable_linear_ordered_add_comm_group int :=
+by apply_instance
+
+theorem abs_eq_nat_abs : ∀ a : ℤ, abs a = nat_abs a
+| (n : ℕ) := abs_of_nonneg $ coe_zero_le _
+| -[1+ n] := abs_of_nonpos $ le_of_lt $ neg_succ_lt_zero _
+
+theorem nat_abs_abs (a : ℤ) : nat_abs (abs a) = nat_abs a :=
+by rw [abs_eq_nat_abs]; refl
+
+theorem sign_mul_abs (a : ℤ) : sign a * abs a = a :=
+by rw [abs_eq_nat_abs, sign_mul_nat_abs]
 
 @[simp] lemma default_eq_zero : default ℤ = 0 := rfl
 

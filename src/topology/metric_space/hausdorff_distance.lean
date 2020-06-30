@@ -79,8 +79,8 @@ begin
     ... ≤ edist x y + edist y z : edist_triangle _ _ _
     ... = edist y z + edist x y : add_comm _ _,
   have : (λz, z + edist x y) (Inf (edist y '' s)) = Inf ((λz, z + edist x y) '' (edist y '' s)),
-  { refine Inf_of_continuous _ _ (by simp),
-    { exact continuous_id.add continuous_const },
+  { refine map_Inf_of_continuous_at_of_monotone _ _ (by simp),
+    { exact continuous_at_id.add continuous_at_const },
     { assume a b h, simp, apply add_le_add_right' h }},
   simp only [inf_edist] at this,
   rw [inf_edist, inf_edist, this, ← image_comp],
@@ -106,7 +106,7 @@ begin
   -- z : α,  zs : z ∈ s,  dyz : edist y z < ↑ε / 2
   calc inf_edist x s ≤ edist x z : inf_edist_le_edist_of_mem zs
         ... ≤ edist x y + edist y z : edist_triangle _ _ _
-        ... ≤ (inf_edist x (closure s) + ε / 2) + (ε/2) : add_le_add' (le_of_lt hy) (le_of_lt dyz)
+        ... ≤ (inf_edist x (closure s) + ε / 2) + (ε/2) : add_le_add (le_of_lt hy) (le_of_lt dyz)
         ... = inf_edist x (closure s) + ↑ε : by rw [add_assoc, ennreal.add_halves]
 end
 
@@ -227,7 +227,7 @@ ennreal.le_of_forall_epsilon_le $ λε εpos h, begin
   -- z : α,  zt : z ∈ t,  dyz : edist y z < Hausdorff_edist s t + ↑ε / 2
   calc inf_edist x t ≤ edist x z : inf_edist_le_edist_of_mem zt
     ... ≤ edist x y + edist y z : edist_triangle _ _ _
-    ... ≤ (inf_edist x s + ε/2) + (Hausdorff_edist s t + ε/2) : add_le_add' (le_of_lt dxy) (le_of_lt dyz)
+    ... ≤ (inf_edist x s + ε/2) + (Hausdorff_edist s t + ε/2) : add_le_add (le_of_lt dxy) (le_of_lt dyz)
     ... = inf_edist x s + Hausdorff_edist s t + ε : by simp [ennreal.add_halves, add_comm, add_left_comm]
 end
 

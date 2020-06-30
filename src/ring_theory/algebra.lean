@@ -106,6 +106,10 @@ attribute [instance, priority 0] algebra.to_has_scalar
 lemma smul_def (r : R) (x : A) : r • x = algebra_map R A r * x :=
 algebra.smul_def' r x
 
+lemma algebra_map_eq_smul_one (r : R) : algebra_map R A r = r • 1 :=
+calc algebra_map R A r = algebra_map R A r * 1 : (mul_one _).symm
+                   ... = r • 1                 : (algebra.smul_def r 1).symm
+
 theorem commutes (r : R) (x : A) : algebra_map R A r * x = x * algebra_map R A r :=
 algebra.commutes' r x
 
@@ -171,13 +175,9 @@ instance module.endomorphism_algebra (R : Type u) (M : Type v)
 
 instance matrix_algebra (n : Type u) (R : Type v)
   [fintype n] [decidable_eq n] [comm_semiring R] : algebra R (matrix n n R) :=
-{ to_fun    := λ r, r • 1,
-  map_one'  := one_smul _ _,
-  map_mul'  := λ r₁ r₂, by { ext, simp [mul_assoc] },
-  map_zero' :=  zero_smul _ _,
-  map_add'  := λ _ _, add_smul _ _ _,
-  commutes' := by { intros, simp },
-  smul_def' := by { intros, simp } }
+{ commutes' := by { intros, simp [matrix.scalar], },
+  smul_def' := by { intros, simp [matrix.scalar], },
+  ..(matrix.scalar n) }
 
 set_option old_structure_cmd true
 /-- Defining the homomorphism in the category R-Alg. -/
@@ -449,6 +449,9 @@ def symm (e : A₁ ≃ₐ[R] A₂) : A₂ ≃ₐ[R] A₁ :=
   ..e.to_ring_equiv.symm, }
 
 @[simp] lemma inv_fun_apply {e : A₁ ≃ₐ[R] A₂} {a : A₂} : e.inv_fun a = e.symm a := rfl
+
+@[simp] lemma symm_symm {e : A₁ ≃ₐ[R] A₂} : e.symm.symm = e :=
+by { ext, refl, }
 
 /-- Algebra equivalences are transitive. -/
 @[trans]

@@ -555,8 +555,8 @@ by { simp [think, join], unfold functor.map, simp [join, cons, append] }
 theorem destruct_tail (s : wseq α) :
   destruct (tail s) = destruct s >>= tail.aux :=
 begin
-  dsimp [tail], simp, rw [← bind_pure_comp_eq_map, is_lawful_monad.bind_assoc],
-  apply congr_arg, ext (_|⟨a, s⟩);
+  simp [tail], rw [← bind_pure_comp_eq_map, is_lawful_monad.bind_assoc],
+  apply congr_arg, ext1 (_|⟨a, s⟩);
   apply (@pure_bind computation _ _ _ _ _ _).trans _; simp
 end
 

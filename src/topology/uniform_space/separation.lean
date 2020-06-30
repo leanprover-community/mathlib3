@@ -65,7 +65,7 @@ uniformly continuous).
 -/
 
 open filter topological_space set classical function uniform_space
-open_locale classical topological_space uniformity
+open_locale classical topological_space uniformity filter
 noncomputable theory
 set_option eqn_compiler.zeta true
 
@@ -171,9 +171,9 @@ end
 @[priority 100] -- see Note [lower instance priority]
 instance separated_regular [separated_space α] : regular_space α :=
 { regular := λs a hs ha,
-    have -s ∈ 𝓝 a,
+    have sᶜ ∈ 𝓝 a,
       from mem_nhds_sets hs ha,
-    have {p : α × α | p.1 = a → p.2 ∈ -s} ∈ 𝓤 α,
+    have {p : α × α | p.1 = a → p.2 ∈ sᶜ} ∈ 𝓤 α,
       from mem_nhds_uniformity_iff_right.mp this,
     let ⟨d, hd, h⟩ := comp_mem_uniformity_sets this in
     let e := {y:α| (a, y) ∈ d} in
@@ -184,16 +184,16 @@ instance separated_regular [separated_space α] : regular_space α :=
       change (⨅d' ∈ 𝓤 α, _) ≤ comp_rel d (comp_rel _ d),
       exact (infi_le_of_le d $ infi_le_of_le hd $ le_refl _)
     end,
-    have e_subset : closure e ⊆ -s,
+    have e_subset : closure e ⊆ sᶜ,
       from assume a' ha',
         let ⟨x, (hx : (a, x) ∈ d), y, ⟨hx₁, hx₂⟩, (hy : (y, _) ∈ d)⟩ := @this ⟨a, a'⟩ ⟨hae, ha'⟩ in
         have (a, a') ∈ comp_rel d d, from ⟨y, hx₂, hy⟩,
         h this rfl,
     have closure e ∈ 𝓝 a, from (𝓝 a).sets_of_superset (mem_nhds_left a hd) subset_closure,
-    have 𝓝 a ⊓ principal (-closure e) = ⊥,
-      from (@inf_eq_bot_iff_le_compl _ _ _ (principal (- closure e)) (principal (closure e))
+    have 𝓝 a ⊓ 𝓟 (closure e)ᶜ = ⊥,
+      from (@inf_eq_bot_iff_le_compl _ _ _ (𝓟 (closure e)ᶜ) (𝓟 (closure e))
         (by simp [principal_univ, union_comm]) (by simp)).mpr (by simp [this]),
-    ⟨- closure e, is_closed_closure, assume x h₁ h₂, @e_subset x h₂ h₁, this⟩,
+    ⟨(closure e)ᶜ, is_closed_closure, assume x h₁ h₂, @e_subset x h₂ h₁, this⟩,
     ..@t2_space.t1_space _ _ (separated_iff_t2.mp ‹_›) }
 
 /-!
@@ -252,7 +252,7 @@ begin
     let Δ := diagonal,
     change _ ⊆ Δ _,
     change (prod.map (C s) (C s)) ⁻¹' (𝓢 α) = Δ _ at h,
-    rw [inter_comm, ← subtype.image_preimage_val,  image_subset_iff],
+    rw [inter_comm, ← subtype.image_preimage_coe,  image_subset_iff],
     change (C _) ⁻¹' _ ⊆ (C _) ⁻¹' _,
 
     let φ : ↥s × ↥s → (s.prod s)  := (λ x : s × s, ⟨(x.1.1, x.2.1), mk_mem_prod x.1.2 x.2.2⟩),
@@ -269,23 +269,24 @@ begin
 end
 
 lemma eq_of_uniformity_inf_nhds_of_is_separated {s : set α} (hs : is_separated s) :
-  ∀ x y ∈ s, 𝓤 α ⊓ 𝓝 (x, y) ≠ ⊥ → x = y :=
+  ∀ {x y : α}, x ∈ s → y ∈ s → cluster_pt (x, y) (𝓤 α) → x = y :=
 begin
   intros x y x_in y_in H,
   have : ∀ V ∈ 𝓤 α, (x, y) ∈ closure V,
   { intros V V_in,
-    rw [closure_eq_nhds, mem_set_of_eq, inf_comm],
-    have : 𝓤 α ≤ principal V, by rwa le_principal_iff,
-    exact ne_bot_of_le_ne_bot H (inf_le_inf_right _ this) },
+    rw mem_closure_iff_cluster_pt,
+    have : 𝓤 α ≤ 𝓟 V, by rwa le_principal_iff,
+    exact H.mono this },
   apply hs x y x_in y_in,
   simpa [separation_rel_eq_inter_closure],
 end
 
-lemma eq_of_uniformity_inf_nhds [separated_space α] : ∀ {x y}, 𝓤 α ⊓ 𝓝 (x, y) ≠ ⊥ → x = y :=
+lemma eq_of_uniformity_inf_nhds [separated_space α] : ∀ {x y : α}, cluster_pt (x, y) (𝓤 α) → x = y :=
 begin
   have : is_separated (univ : set α),
   { rw univ_separated_iff,
     assumption },
+  introv,
   simpa using eq_of_uniformity_inf_nhds_of_is_separated this,
 end
 

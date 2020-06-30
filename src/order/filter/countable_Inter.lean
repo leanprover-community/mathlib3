@@ -17,6 +17,7 @@ the `measure.ae` filter defined in `measure_theory.measure_space`.
 -/
 
 open set filter
+open_locale filter
 
 variables {ι α : Type*}
 
@@ -55,7 +56,7 @@ lemma eventually_countable_ball {S : set ι} (hS : countable S) {p : Π (x : α)
 by simpa only [filter.eventually, set_of_forall]
   using @countable_bInter_mem_sets _ _ l _ _ hS (λ i hi, {x | p x i hi})
 
-instance countable_Inter_filter_principal (s : set α) : countable_Inter_filter (principal s) :=
+instance countable_Inter_filter_principal (s : set α) : countable_Inter_filter (𝓟 s) :=
 ⟨λ S hSc hS, subset_sInter hS⟩
 
 instance countable_Inter_filter_bot : countable_Inter_filter (⊥ : filter α) :=
@@ -65,7 +66,7 @@ instance countable_Inter_filter_top : countable_Inter_filter (⊤ : filter α) :
 by { rw ← principal_univ, apply countable_Inter_filter_principal }
 
 /-- Infimum of two `countable_Inter_filter`s is a `countable_Inter_filter`. This is useful, e.g.,
-to automatically get an instance for `residual α ⊓ principal s`. -/
+to automatically get an instance for `residual α ⊓ 𝓟 s`. -/
 instance countable_Inter_filter_inf (l₁ l₂ : filter α) [countable_Inter_filter l₁]
   [countable_Inter_filter l₂] :
   countable_Inter_filter (l₁ ⊓ l₂) :=

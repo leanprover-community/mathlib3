@@ -1486,8 +1486,13 @@ end
   (b • v) a = b • (v a) :=
 rfl
 
-lemma sum_smul_index [ring β] [add_comm_monoid γ] {g : α →₀ β} {b : β} {h : α → β → γ}
+lemma sum_smul_index [semiring β] [add_comm_monoid γ] {g : α →₀ β} {b : β} {h : α → β → γ}
   (h0 : ∀i, h i 0 = 0) : (b • g).sum h = g.sum (λi a, h i (b * a)) :=
+finsupp.sum_map_range_index h0
+
+lemma sum_smul_index' [semiring β] [add_comm_monoid γ] [semimodule β γ] [add_comm_monoid δ]
+  {g : α →₀ γ} {b : β} {h : α → γ → δ} (h0 : ∀i, h i 0 = 0) :
+  (b • g).sum h = g.sum (λi c, h i (b • c)) :=
 finsupp.sum_map_range_index h0
 
 section

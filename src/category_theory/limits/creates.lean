@@ -3,7 +3,7 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.reflect_isomorphisms
+import category_theory.limits.preserves
 
 open category_theory category_theory.limits
 
@@ -207,7 +207,7 @@ preserves_limits_of_shape J F :=
 { preserves_limit := λ K, category_theory.preserves_limit_of_creates_limit_and_has_limit K F }
 
 /-- `F` preserves limits if it creates limits and `D` has limits. -/
-instance preserves_limits_of_creates_limits_and_has_limits (F : C ⥤ D) [creates_limits F] [has_limits.{v} D] :
+instance preserves_limits_of_creates_limits_and_has_limits (F : C ⥤ D) [creates_limits F] [has_limits D] :
   preserves_limits F :=
 { preserves_limits_of_shape := λ J 𝒥,
   by exactI category_theory.preserves_limit_of_shape_of_creates_limits_of_shape_and_has_limits_of_shape F }
@@ -249,7 +249,7 @@ preserves_colimits_of_shape J F :=
 { preserves_colimit := λ K, category_theory.preserves_colimit_of_creates_colimit_and_has_colimit K F }
 
 /-- `F` preserves limits if it creates limits and `D` has limits. -/
-instance preserves_colimits_of_creates_colimits_and_has_colimits (F : C ⥤ D) [creates_colimits F] [has_colimits.{v} D] :
+instance preserves_colimits_of_creates_colimits_and_has_colimits (F : C ⥤ D) [creates_colimits F] [has_colimits D] :
   preserves_colimits F :=
 { preserves_colimits_of_shape := λ J 𝒥,
   by exactI category_theory.preserves_colimit_of_shape_of_creates_colimits_of_shape_and_has_colimits_of_shape F }

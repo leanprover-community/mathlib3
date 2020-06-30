@@ -109,10 +109,10 @@ def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set
 @[simp] theorem restriction_one : restriction (1 : polynomial R) = 1 :=
 ext $ λ i, subtype.eq $ by rw [coeff_restriction', coeff_one, coeff_one]; split_ifs; refl
 
-variables {S : Type v} [comm_ring S] {f : R → S} {x : S}
+variables {S : Type v} [comm_ring S] {f : R →+* S} {x : S}
 
 theorem eval₂_restriction {p : polynomial R} :
-  eval₂ f x p = eval₂ (f ∘ subtype.val) x p.restriction :=
+  eval₂ f x p = eval₂ (f.comp (is_subring.subtype _)) x p.restriction :=
 rfl
 
 section to_subring
@@ -209,7 +209,7 @@ begin
     { exact nat.add_sub_cancel' (nat_degree_le_of_degree_le hpdeg) },
     refine ⟨p * X ^ (n - nat_degree p), ⟨_, I.mul_mem_right hpI⟩, _⟩,
     { apply le_trans (degree_mul_le _ _) _,
-      apply le_trans (add_le_add' (degree_le_nat_degree) (degree_X_pow_le _)) _,
+      apply le_trans (add_le_add (degree_le_nat_degree) (degree_X_pow_le _)) _,
       rw [← with_bot.coe_add, this],
       exact le_refl _ },
     { rw [leading_coeff, ← coeff_mul_X_pow p (n - nat_degree p), this] } }
@@ -231,7 +231,7 @@ begin
   rcases hr with ⟨p, hpI, hpdeg, rfl⟩,
   refine ⟨p * X ^ (n - m), I.mul_mem_right hpI, _, leading_coeff_mul_X_pow⟩,
   refine le_trans (degree_mul_le _ _) _,
-  refine le_trans (add_le_add' hpdeg (degree_X_pow_le _)) _,
+  refine le_trans (add_le_add hpdeg (degree_X_pow_le _)) _,
   rw [← with_bot.coe_add, nat.add_sub_cancel' H],
   exact le_refl _
 end

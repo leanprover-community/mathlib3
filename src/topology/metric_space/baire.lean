@@ -25,7 +25,7 @@ has the countable intersection property.
 -/
 
 noncomputable theory
-open_locale classical topological_space
+open_locale classical topological_space filter
 
 open filter encodable set
 
@@ -97,7 +97,7 @@ end is_Gδ
  but in a non-Baire space it is not useful because it may contain some non-residual
  sets. -/
 def residual (α : Type*) [topological_space α] : filter α :=
-⨅ t (ht : is_Gδ t) (ht' : closure t = univ), principal t
+⨅ t (ht : is_Gδ t) (ht' : closure t = univ), 𝓟 t
 
 section Baire_theorem
 open emetric ennreal
@@ -132,8 +132,8 @@ begin
       show min (min (δ / 2) r) (B (n+1)) ≤ B (n+1), from min_le_right _ _,
       show z ∈ closed_ball x δ, from calc
         edist z x ≤ edist z y + edist y x : edist_triangle _ _ _
-        ... ≤ (min (min (δ / 2) r) (B (n+1))) + (δ/2) : add_le_add' hz (le_of_lt xy)
-        ... ≤ δ/2 + δ/2 : add_le_add' (le_trans (min_le_left _ _) (min_le_left _ _)) (le_refl _)
+        ... ≤ (min (min (δ / 2) r) (B (n+1))) + (δ/2) : add_le_add hz (le_of_lt xy)
+        ... ≤ δ/2 + δ/2 : add_le_add (le_trans (min_le_left _ _) (min_le_left _ _)) (le_refl _)
         ... = δ : ennreal.add_halves δ,
       show z ∈ f n, from hr (calc
         edist z y ≤ min (min (δ / 2) r) (B (n+1)) : hz
@@ -286,9 +286,9 @@ end
 lemma eventually_residual {p : α → Prop} :
   (∀ᶠ x in residual α, p x) ↔ ∃ (t : set α), is_Gδ t ∧ closure t = univ ∧ ∀ x ∈ t, p x :=
 calc (∀ᶠ x in residual α, p x) ↔
-  ∀ᶠ x in ⨅ (t : set α) (ht : is_Gδ t ∧ closure t = univ), principal t, p x :
+  ∀ᶠ x in ⨅ (t : set α) (ht : is_Gδ t ∧ closure t = univ), 𝓟 t, p x :
     by simp only [residual, infi_and]
-... ↔ ∃ (t : set α) (ht : is_Gδ t ∧ closure t = univ), ∀ᶠ x in principal t, p x :
+... ↔ ∃ (t : set α) (ht : is_Gδ t ∧ closure t = univ), ∀ᶠ x in 𝓟 t, p x :
   mem_binfi (λ t₁ h₁ t₂ h₂, ⟨t₁ ∩ t₂, ⟨h₁.1.inter h₂.1, dense_inter_of_Gδ h₁.1 h₂.1 h₁.2 h₂.2⟩,
     by simp⟩) ⟨univ, is_Gδ_univ, closure_univ⟩
 ... ↔ _ : by simp [and_assoc]
@@ -316,7 +316,7 @@ are dense. Formulated here with an index set which is a countable set in any typ
 theorem dense_bUnion_interior_of_closed {S : set β} {f : β → set α} (hc : ∀s∈S, is_closed (f s))
   (hS : countable S) (hU : (⋃s∈S, f s) = univ) : closure (⋃s∈S, interior (f s)) = univ :=
 begin
-  let g := λs, - (frontier (f s)),
+  let g := λs, (frontier (f s))ᶜ,
   have clos_g : closure (⋂s∈S, g s) = univ,
   { refine dense_bInter_of_open (λs hs, _) hS (λs hs, _),
     show is_open (g s), from is_open_compl_iff.2 is_closed_frontier,

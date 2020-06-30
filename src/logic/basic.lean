@@ -866,6 +866,10 @@ theorem not_ball {α : Sort*} {p : α → Prop} {P : Π (x : α), p x → Prop} 
 
 end classical
 
+lemma ite_eq_iff {α} {p : Prop} [decidable p] {a b c : α} :
+  (if p then a else b) = c ↔ p ∧ a = c ∨ ¬p ∧ b = c :=
+by by_cases p; simp *
+
 /-! ### Declarations about `nonempty` -/
 
 section nonempty
@@ -964,3 +968,25 @@ instance {α β} [h : nonempty α] [h2 : nonempty β] : nonempty (α × β) :=
 h.elim $ λ g, h2.elim $ λ g2, ⟨⟨g, g2⟩⟩
 
 end nonempty
+
+section ite
+
+lemma apply_dite {α β : Type*} (f : α → β) (P : Prop) [decidable P] (x : P → α) (y : ¬P → α) :
+  f (dite P x y) = dite P (λ h, f (x h)) (λ h, f (y h)) :=
+by { by_cases h : P; simp [h], }
+
+lemma apply_ite {α β : Type*} (f : α → β) (P : Prop) [decidable P] (x y : α) :
+  f (ite P x y) = ite P (f x) (f y) :=
+apply_dite f P (λ _, x) (λ _, y)
+
+lemma dite_apply {α : Type*} {β : α → Type*} (P : Prop) [decidable P]
+  (f : P → Π a, β a) (g : ¬ P → Π a, β a) (x : α) :
+  (dite P f g) x = dite P (λ h, f h x) (λ h, g h x) :=
+by { by_cases h : P; simp [h], }
+
+lemma ite_apply {α : Type*} {β : α → Type*} (P : Prop) [decidable P]
+  (f g : Π a, β a) (x : α) :
+  (ite P f g) x = ite P (f x) (g x) :=
+dite_apply P (λ _, f) (λ _, g) x
+
+end ite

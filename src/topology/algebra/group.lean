@@ -394,7 +394,7 @@ lemma topological_group.regular_space [t1_space α] : regular_space α :=
    rw mem_nhds_sets_iff,
    refine ⟨t₁, _, ht₁, a_mem_t₁⟩,
    rintros x hx ⟨y, hy, z, hz, yz⟩,
-   have : x * z⁻¹ ∈ -s := (prod_subset_iff.1 t_subset) x hx z hz,
+   have : x * z⁻¹ ∈ sᶜ := (prod_subset_iff.1 t_subset) x hx z hz,
    have : x * z⁻¹ ∈ s, rw yz, simpa,
    contradiction
  end⟩

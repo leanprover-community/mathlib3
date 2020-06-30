@@ -272,6 +272,25 @@ as the model to tangent bundles. -/
   (I : model_with_corners 𝕜 E H) : model_with_corners 𝕜 (E × E) (model_prod H E) :=
  I.prod (model_with_corners_self 𝕜 E)
 
+lemma model_with_corners_prod_to_local_equiv {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+{E : Type*} [normed_group E] [normed_space 𝕜 E]
+{E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+{F : Type*} [normed_group F] [normed_space 𝕜 F]
+{F' : Type*} [normed_group F'] [normed_space 𝕜 F']
+{H : Type*} [topological_space H]
+{H' : Type*} [topological_space H']
+{G : Type*} [topological_space G]
+{G' : Type*} [topological_space G']
+{I : model_with_corners 𝕜 E H} {I' : model_with_corners 𝕜 E' H'}
+{J : model_with_corners 𝕜 F G} {J' : model_with_corners 𝕜 F' G'} :
+  (I.prod J).to_local_equiv = (I.to_local_equiv).prod (J.to_local_equiv) :=
+begin
+  ext1 x,
+  { refl, },
+  { intro x, refl, },
+  { simp only [set.univ_prod_univ, model_with_corners.source_eq, local_equiv.prod_source], }
+end
+
 section boundaryless
 
 /-- Property ensuring that the model with corners `I` defines manifolds without boundary. -/
@@ -520,8 +539,7 @@ instance prod_smooth_manifold_with_corners {𝕜 : Type*} [nondiscrete_normed_fi
 {
   compatible :=
   begin
-    intros f g,
-    rintros ⟨f1, hf1, f2, hf2, hf⟩ ⟨g1, hg1, g2, hg2, hg⟩,
+    rintros f g ⟨f1, hf1, f2, hf2, hf⟩ ⟨g1, hg1, g2, hg2, hg⟩,
     rw [hf, hg, local_homeomorph.prod_symm, local_homeomorph.prod_trans],
     have h1 := has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) hf1 hg1,
     have h2 := has_groupoid.compatible (times_cont_diff_groupoid ⊤ I') hf2 hg2,

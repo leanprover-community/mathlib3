@@ -438,7 +438,7 @@ lemma norm_pow_le {α : Type*} [normed_ring α] (a : α) : ∀ {n : ℕ}, 0 < n 
            (mul_le_mul (le_refl _)
                        (norm_pow_le (nat.succ_pos _)) (norm_nonneg _) (norm_nonneg _))
 
-lemma norm_pow_le_eventually {α : Type*} [normed_ring α] (a : α) :
+lemma eventually_norm_pow_le {α : Type*} [normed_ring α] (a : α) :
   ∀ᶠ (n:ℕ) in at_top, ∥a ^ n∥ ≤ ∥a∥ ^ n :=
 begin
   refine eventually_at_top.mpr ⟨1, _⟩,

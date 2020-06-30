@@ -63,7 +63,7 @@ not_congr cast_eq_zero
 lemma cast_add_one_ne_zero (n : ℕ) : (n + 1 : α) ≠ 0 :=
 by exact_mod_cast n.succ_ne_zero
 
-@[simp]
+@[simp, norm_cast]
 theorem cast_dvd_char_zero {α : Type*} [field α] [char_zero α] {m n : ℕ} (n_dvd : n ∣ m) : ((m / n : ℕ) : α) = m / n :=
 begin
   by_cases hn : n = 0,

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import algebra.group.commute
-import algebra.ring
+import tactic.alias
 import tactic.push_neg
 
 /-!
@@ -33,6 +33,89 @@ and require `0⁻¹ = 0`.
 -/
 
 set_option old_structure_cmd true
+
+variables {G₀ : Type*}
+
+mk_simp_attribute field_simps "The simpset `field_simps` is used by the tactic `field_simp` to
+reduce an expression in a field to an expression of the form `n / d` where `n` and `d` are
+division-free."
+
+section
+set_option default_priority 100 -- see Note [default priority]
+
+@[protect_proj, ancestor has_mul has_zero]
+class mul_zero_class (G₀ : Type*) extends has_mul G₀, has_zero G₀ :=
+(zero_mul : ∀ a : G₀, 0 * a = 0)
+(mul_zero : ∀ a : G₀, a * 0 = 0)
+
+@[ematch, simp] lemma zero_mul [mul_zero_class G₀] (a : G₀) : 0 * a = 0 :=
+mul_zero_class.zero_mul a
+
+@[ematch, simp] lemma mul_zero [mul_zero_class G₀] (a : G₀) : a * 0 = 0 :=
+mul_zero_class.mul_zero a
+
+/-- Predicate typeclass for expressing that a (semi)ring or similar algebraic structure
+is nonzero. -/
+@[protect_proj] class nonzero (G₀ : Type*) [has_zero G₀] [has_one G₀] : Prop :=
+(zero_ne_one : 0 ≠ (1:G₀))
+
+@[simp]
+lemma zero_ne_one [has_zero G₀] [has_one G₀] [nonzero G₀] : 0 ≠ (1:G₀) :=
+nonzero.zero_ne_one
+
+@[simp]
+lemma one_ne_zero [has_zero G₀] [has_one G₀] [nonzero G₀] : (1:G₀) ≠ 0 :=
+zero_ne_one.symm
+
+class no_zero_divisors (G₀ : Type*) [has_mul G₀] [has_zero G₀] : Prop :=
+(eq_zero_or_eq_zero_of_mul_eq_zero : ∀ {a b : G₀}, a * b = 0 → a = 0 ∨ b = 0)
+
+export no_zero_divisors (eq_zero_or_eq_zero_of_mul_eq_zero)
+
+lemma eq_zero_of_mul_self_eq_zero [has_mul G₀] [has_zero G₀] [no_zero_divisors G₀] {a : G₀}
+  (h : a * a = 0) :
+  a = 0 :=
+or.elim (eq_zero_or_eq_zero_of_mul_eq_zero h) (assume h', h') (assume h', h')
+
+section
+
+variables [mul_zero_class G₀] [no_zero_divisors G₀] {a b : G₀}
+
+/-- If `α` has no zero divisors, then the product of two elements equals zero iff one of them
+equals zero. -/
+@[simp] theorem mul_eq_zero : a * b = 0 ↔ a = 0 ∨ b = 0 :=
+⟨eq_zero_or_eq_zero_of_mul_eq_zero, λo,
+  or.elim o (λh, by rw h; apply zero_mul) (λh, by rw h; apply mul_zero)⟩
+
+/-- If `α` has no zero divisors, then the product of two elements equals zero iff one of them
+equals zero. -/
+@[simp] theorem zero_eq_mul : 0 = a * b ↔ a = 0 ∨ b = 0 :=
+by rw [eq_comm, mul_eq_zero]
+
+/-- If `α` has no zero divisors, then the product of two elements is nonzero iff both of them
+are nonzero. -/
+theorem mul_ne_zero_iff : a * b ≠ 0 ↔ a ≠ 0 ∧ b ≠ 0 :=
+(not_congr mul_eq_zero).trans not_or_distrib
+
+theorem mul_ne_zero (ha : a ≠ 0) (hb : b ≠ 0) : a * b ≠ 0 :=
+mul_ne_zero_iff.2 ⟨ha, hb⟩
+
+/-- If `α` has no zero divisors, then for elements `a, b : α`, `a * b` equals zero iff so is
+`b * a`. -/
+theorem mul_eq_zero_comm : a * b = 0 ↔ b * a = 0 :=
+mul_eq_zero.trans $ (or_comm _ _).trans mul_eq_zero.symm
+
+/-- If `α` has no zero divisors, then for elements `a, b : α`, `a * b` is nonzero iff so is
+`b * a`. -/
+theorem mul_ne_zero_comm : a * b ≠ 0 ↔ b * a ≠ 0 :=
+not_congr mul_eq_zero_comm
+
+lemma mul_self_eq_zero : a * a = 0 ↔ a = 0 := by simp
+lemma zero_eq_mul_self : 0 = a * a ↔ a = 0 := by simp
+
+end
+
+end -- default_priority 100
 
 section prio
 set_option default_priority 10 -- see Note [default priority]
@@ -77,7 +160,7 @@ lemma div_eq_mul_inv {G₀ : Type*} [group_with_zero G₀] {a b : G₀} :
 alias div_eq_mul_inv ← division_def
 
 section group_with_zero
-variables {G₀ : Type*} [group_with_zero G₀]
+variables [group_with_zero G₀]
 
 @[simp] lemma inv_zero : (0 : G₀)⁻¹ = 0 :=
 group_with_zero.inv_zero
@@ -212,7 +295,7 @@ calc 0 = (a : G₀) * a⁻¹ : by simp [a_eq_0]
 end group_with_zero
 
 namespace units
-variables {G₀ : Type*} [group_with_zero G₀]
+variables [group_with_zero G₀]
 variables {a b : G₀}
 
 /-- Embed a non-zero element of a `group_with_zero` into the unit group.
@@ -240,7 +323,7 @@ units.ext rfl
 end units
 
 section group_with_zero
-variables {G₀ : Type*} [group_with_zero G₀]
+variables [group_with_zero G₀]
 
 lemma is_unit.mk0 (x : G₀) (hx : x ≠ 0) : is_unit x := is_unit_unit (units.mk0 x hx)
 
@@ -359,7 +442,7 @@ end group_with_zero
 
 section group_with_zero
 
-variables {G₀ : Type*} [group_with_zero G₀]
+variables [group_with_zero G₀]
 variables {a b c : G₀}
 
 @[simp] lemma inv_eq_zero {a : G₀} : a⁻¹ = 0 ↔ a = 0 :=
@@ -410,7 +493,7 @@ by simp only [div_eq_mul_inv, mul_inv_rev', mul_assoc, mul_inv_cancel_assoc_righ
 end group_with_zero
 
 section comm_group_with_zero -- comm
-variables {G₀ : Type*} [comm_group_with_zero G₀] {a b c : G₀}
+variables [comm_group_with_zero G₀] {a b c : G₀}
 
 lemma mul_inv'' : (a * b)⁻¹ = a⁻¹ * b⁻¹ :=
 by rw [mul_inv_rev', mul_comm]
@@ -499,7 +582,7 @@ by rw [div_mul_eq_mul_div, one_mul, div_mul_right _ h]
 end comm_group_with_zero
 
 section comm_group_with_zero
-variables {G₀ : Type*} [comm_group_with_zero G₀] {a b c d : G₀}
+variables [comm_group_with_zero G₀] {a b c d : G₀}
 
 lemma div_eq_inv_mul : a / b = b⁻¹ * a := mul_comm _ _
 
@@ -544,7 +627,13 @@ end comm_group_with_zero
 
 namespace semiconj_by
 
-variables {G₀ : Type*} [group_with_zero G₀] {a x y x' y' : G₀}
+@[simp] lemma zero_right [mul_zero_class G₀] (a : G₀) : semiconj_by a 0 0 :=
+by simp only [semiconj_by, mul_zero, zero_mul]
+
+@[simp] lemma zero_left [mul_zero_class G₀] (x y : G₀) : semiconj_by 0 x y :=
+by simp only [semiconj_by, mul_zero, zero_mul]
+
+variables [group_with_zero G₀] {a x y x' y' : G₀}
 
 @[simp] lemma inv_symm_left_iff' : semiconj_by a⁻¹ x y ↔ semiconj_by a y x :=
 classical.by_cases
@@ -579,7 +668,10 @@ end semiconj_by
 
 namespace commute
 
-variables {G₀ : Type*} [group_with_zero G₀] {a b c : G₀}
+@[simp] theorem zero_right [mul_zero_class G₀] (a : G₀) :commute a 0 := semiconj_by.zero_right a
+@[simp] theorem zero_left [mul_zero_class G₀] (a : G₀) : commute 0 a := semiconj_by.zero_left a a
+
+variables [group_with_zero G₀] {a b c : G₀}
 
 @[simp] theorem inv_left_iff' : commute a⁻¹ b ↔ commute a b :=
 semiconj_by.inv_symm_left_iff'

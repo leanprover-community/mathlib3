@@ -31,8 +31,8 @@ namespace has_limit_of_has_products_of_has_equalizers
 -- We assume here only that we have exactly the products we need, so that we can prove
 -- variations of the construction (all products gives all limits, finite products gives finite limits...)
 variables (F : J ⥤ C)
-          [H₁ : has_limit.{v} (discrete.functor F.obj)]
-          [H₂ : has_limit.{v} (discrete.functor (λ f : (Σ p : J × J, p.1 ⟶ p.2), F.obj f.1.2))]
+          [H₁ : has_limit (discrete.functor F.obj)]
+          [H₂ : has_limit (discrete.functor (λ f : (Σ p : J × J, p.1 ⟶ p.2), F.obj f.1.2))]
 include H₁ H₂
 
 /--
@@ -114,14 +114,14 @@ open has_limit_of_has_products_of_has_equalizers
 /-- Any category with products and equalizers has all limits. -/
 -- This is not an instance, as it is not always how one wants to construct limits!
 def limits_from_equalizers_and_products
-  [has_products.{v} C] [has_equalizers.{v} C] : has_limits.{v} C :=
+  [has_products C] [has_equalizers C] : has_limits C :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit.of_cones_iso (diagram F) F (cones_iso F) } }
 
 /-- Any category with finite products and equalizers has all finite limits. -/
 -- This is not an instance, as it is not always how one wants to construct finite limits!
 def finite_limits_from_equalizers_and_finite_products
-  [has_finite_products.{v} C] [has_equalizers.{v} C] : has_finite_limits.{v} C :=
+  [has_finite_products C] [has_equalizers C] : has_finite_limits C :=
 { has_limits_of_shape := λ J _ _, by exactI
   { has_limit := λ F, has_limit.of_cones_iso (diagram F) F (cones_iso F) } }
 

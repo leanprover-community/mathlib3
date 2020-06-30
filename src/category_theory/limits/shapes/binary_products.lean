@@ -284,7 +284,7 @@ def coprod.desc' {W X Y : C} [has_binary_coproduct X Y] (f : X ⟶ W) (g : Y ⟶
 
 /-- If the products `W ⨯ X` and `Y ⨯ Z` exist, then every pair of morphisms `f : W ⟶ Y` and
     `g : X ⟶ Z` induces a morphism `prod.map f g : W ⨯ X ⟶ Y ⨯ Z`. -/
-abbreviation prod.map {W X Y Z : C} [has_limits_of_shape.{v} (discrete walking_pair) C]
+abbreviation prod.map {W X Y Z : C} [has_limits_of_shape (discrete walking_pair) C]
   (f : W ⟶ Y) (g : X ⟶ Z) : W ⨯ X ⟶ Y ⨯ Z :=
 lim.map (map_pair f g)
 
@@ -306,7 +306,7 @@ lim.map_iso (map_pair_iso f g)
 
 /-- If the coproducts `W ⨿ X` and `Y ⨿ Z` exist, then every pair of morphisms `f : W ⟶ Y` and
     `g : W ⟶ Z` induces a morphism `coprod.map f g : W ⨿ X ⟶ Y ⨿ Z`. -/
-abbreviation coprod.map {W X Y Z : C} [has_colimits_of_shape.{v} (discrete walking_pair) C]
+abbreviation coprod.map {W X Y Z : C} [has_colimits_of_shape (discrete walking_pair) C]
   (f : W ⟶ Y) (g : X ⟶ Z) : W ⨿ X ⟶ Y ⨿ Z :=
 colim.map (map_pair f g)
 
@@ -324,7 +324,7 @@ colim.map_iso (map_pair_iso f g)
 
 
 section prod_lemmas
-variable [has_limits_of_shape.{v} (discrete walking_pair) C]
+variable [has_limits_of_shape (discrete walking_pair) C]
 
 @[reassoc]
 lemma prod.map_fst {W X Y Z : C}
@@ -363,7 +363,7 @@ by tidy
 end prod_lemmas
 
 section coprod_lemmas
-variable [has_colimits_of_shape.{v} (discrete walking_pair) C]
+variable [has_colimits_of_shape (discrete walking_pair) C]
 
 @[reassoc]
 lemma coprod.inl_map {W X Y Z : C}
@@ -406,35 +406,35 @@ variables (C)
 
 /-- `has_binary_products` represents a choice of product for every pair of objects. -/
 class has_binary_products :=
-(has_limits_of_shape : has_limits_of_shape.{v} (discrete walking_pair) C)
+(has_limits_of_shape : has_limits_of_shape (discrete walking_pair) C)
 
 /-- `has_binary_coproducts` represents a choice of coproduct for every pair of objects. -/
 class has_binary_coproducts :=
-(has_colimits_of_shape : has_colimits_of_shape.{v} (discrete walking_pair) C)
+(has_colimits_of_shape : has_colimits_of_shape (discrete walking_pair) C)
 
 attribute [instance] has_binary_products.has_limits_of_shape has_binary_coproducts.has_colimits_of_shape
 
 @[priority 200] -- see Note [lower instance priority]
-instance [has_finite_products.{v} C] : has_binary_products.{v} C :=
+instance [has_finite_products C] : has_binary_products.{v} C :=
 { has_limits_of_shape := by apply_instance }
 @[priority 200] -- see Note [lower instance priority]
-instance [has_finite_coproducts.{v} C] : has_binary_coproducts.{v} C :=
+instance [has_finite_coproducts C] : has_binary_coproducts.{v} C :=
 { has_colimits_of_shape := by apply_instance }
 
 /-- If `C` has all limits of diagrams `pair X Y`, then it has all binary products -/
 def has_binary_products_of_has_limit_pair [Π {X Y : C}, has_limit (pair X Y)] :
-  has_binary_products.{v} C :=
+  has_binary_products C :=
 { has_limits_of_shape := { has_limit := λ F, has_limit_of_iso (diagram_iso_pair F).symm } }
 
 /-- If `C` has all colimits of diagrams `pair X Y`, then it has all binary coproducts -/
 def has_binary_coproducts_of_has_colimit_pair [Π {X Y : C}, has_colimit (pair X Y)] :
-  has_binary_coproducts.{v} C :=
+  has_binary_coproducts C :=
 { has_colimits_of_shape := { has_colimit := λ F, has_colimit_of_iso (diagram_iso_pair F) } }
 
 section
 
-variables {C} [has_binary_products.{v} C]
-variables {D : Type u₂} [category.{v} D] [has_binary_products.{v} D]
+variables {C} [has_binary_products C]
+variables {D : Type u₂} [category.{v} D] [has_binary_products D]
 
 -- FIXME deterministic timeout with `-T50000`
 /-- The binary product functor. -/
@@ -536,7 +536,7 @@ lemma prod_comparison_inv_natural (F : C ⥤ D) {A A' B B' : C} (f : A ⟶ A') (
 by { erw [(as_iso (prod_comparison F A' B')).eq_comp_inv, category.assoc,
     (as_iso (prod_comparison F A B)).inv_comp_eq, prod_comparison_natural], refl }
 
-variables [has_terminal.{v} C]
+variables [has_terminal C]
 
 /-- The left unitor isomorphism for binary products with the terminal object. -/
 @[simps] def prod.left_unitor
@@ -578,7 +578,7 @@ by tidy
 end
 
 section
-variables {C} [has_binary_coproducts.{v} C]
+variables {C} [has_binary_coproducts C]
 
 /-- The braiding isomorphism which swaps a binary coproduct. -/
 @[simps] def coprod.braiding (P Q : C) : P ⨿ Q ≅ Q ⨿ P :=
@@ -617,7 +617,7 @@ lemma coprod.associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X
     (coprod.associator X₁ X₂ X₃).hom ≫ coprod.map f₁ (coprod.map f₂ f₃) :=
 by tidy
 
-variables [has_initial.{v} C]
+variables [has_initial C]
 
 /-- The left unitor isomorphism for binary coproducts with the initial object. -/
 @[simps] def coprod.left_unitor

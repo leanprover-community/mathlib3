@@ -350,22 +350,30 @@ end
 
 lemma padic_val_nat_primes {p q : ℕ} [p_prime : fact p.prime] [q_prime : fact q.prime] (neq : p ≠ q) :
   padic_val_nat p q = 0 :=
-@padic_val_nat_of_not_dvd p p_prime q (primes_not_dvd p_prime q_prime neq)
+@padic_val_nat_of_not_dvd p p_prime q $ (not_congr (iff.symm (prime_dvd_prime_iff_eq p_prime q_prime))).mp neq
 
 /--
 Dividing out by a prime which is not a factor doesn't change the `padic_val_nat`.
 -/
-lemma padic_val_nat_of_unrelated_quot {p q : ℕ} [p_prime : fact p.prime] [q_prime : fact q.prime]
-  (neq : p ≠ q) {b : ℕ} (b_nonzero : b ≠ 0) (dvd : q ∣ b) :
-  padic_val_nat p (b / q) = padic_val_nat p b :=
+lemma padic_val_nat_div' {p : ℕ} [p_prime : fact p.prime] {q : ℕ} (q_coprime : coprime p q)
+  {b : ℕ} (dvd : q ∣ b) : padic_val_nat p (b / q) = padic_val_nat p b :=
 begin
-  have e : padic_val_rat p (b / q) = padic_val_rat p b - padic_val_rat p q :=
-    padic_val_rat.div p (nat.cast_ne_zero.mpr b_nonzero) (nat.cast_ne_zero.mpr (nat.prime.ne_zero q_prime)),
+  by_cases b_split : (b = 0),
+  { subst b,
+    unfold padic_val_nat,
+    simp, },
+  {
+    have q_nonzero : q ≠ 0,
+    { intros q_zero,
+      simpa [q_zero, zero_dvd_iff] using dvd, },
+    have e : padic_val_rat p (b / q) = padic_val_rat p b - padic_val_rat p q :=
+      padic_val_rat.div p (nat.cast_ne_zero.mpr b_split) (nat.cast_ne_zero.mpr q_nonzero),
   rw [← padic_val_rat_of_nat p q, padic_val_nat_primes neq] at e,
   simp only [int.coe_nat_zero, sub_zero] at e,
   have cz : char_zero ℚ := linear_ordered_semiring.to_char_zero,
   rw [←padic_val_rat_of_nat p b, ←@cast_dvd_char_zero _ _ cz _ _ dvd, ←padic_val_rat_of_nat p (b / q)] at e,
   exact_mod_cast int.coe_nat_inj e,
+  }
 end
 
 open_locale big_operators

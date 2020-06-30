@@ -248,12 +248,6 @@ begin
   apply h, cc
 end
 
-
-@[to_additive]
-lemma prod_product' {s : finset γ} {t : finset α} {f : γ → α → β} :
-  (∏ x in s.product t, f x.fst x.snd) = ∏ x in s, ∏ y in t, f x y :=
-by rw prod_product
-
 @[to_additive]
 lemma prod_sigma {σ : α → Type*}
   {s : finset α} {t : Πa, finset (σ a)} {f : sigma σ → β} :

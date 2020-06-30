@@ -185,7 +185,7 @@ lemma simple_decomposition.zero_of_card_zero
   {X : C} (D : simple_decomposition.{v} X) (h : fintype.card D.ι = 0) :
   𝟙 X = 0 :=
 begin
-  have e : D.ι ≃ pempty.{v} := fintype.equiv_pempty h,
+  have e : D.ι ≃ pempty.{v} := fintype.card_eq_zero_equiv_equiv_pempty h,
   have z : 𝟙 (⨁ D.summand) = 0 := product_over_equiv_pempty_id_eq_zero e _,
   have t : 𝟙 X = D.iso.hom ≫ 𝟙 (⨁ D.summand) ≫ D.iso.inv := by simp,
   simpa [z] using t,
@@ -347,8 +347,8 @@ begin
   -- We proceed by induction on `n`.
   induction n with n ih generalizing X,
   { -- When the index set for `D` is empty, the index set for `E` must be empty as well.
-    set e₁ := fintype.equiv_pempty w,
-    set e₂ := fintype.equiv_pempty (E.card_zero_of_zero (D.zero_of_card_zero w)),
+    set e₁ := fintype.card_eq_zero_equiv_equiv_pempty w,
+    set e₂ := fintype.card_eq_zero_equiv_equiv_pempty (E.card_zero_of_zero (D.zero_of_card_zero w)),
     apply trunc.mk,
     use e₁.trans (e₂.symm),
     intro i,

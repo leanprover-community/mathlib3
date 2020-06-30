@@ -448,7 +448,7 @@ open_locale big_operators
 
 lemma prod_padic_val_nat_one (m : nat) :
   ∏ p in finset.filter nat.prime (finset.range m), p ^ padic_val_nat p 1 = 1 :=
-by simp [padic_val_nat_of_one]
+by simp [padic_val_nat_one]
 
 lemma prod_pow_prime_padic_val_nat : ∀ (n : nat) (s : n ≠ 0) (m : nat) (pr : n < m),
   ∏ p in finset.filter nat.prime (finset.range m), p ^ (padic_val_nat p n) = n

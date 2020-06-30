@@ -491,6 +491,10 @@ begin
   rw if_neg, tauto!,
 end
 
+-- TODO: tie this up with the `basis` machinery of linear algebra
+-- this is not completely trivial because we are indexing by two types, instead of one
+
+-- TODO: add `std_basis_vec`
 lemma elementary_eq_basis_mul_basis (i : m) (j : n) :
 std_basis_matrix i j 1 = vec_mul_vec (λ i', ite (i = i') 1 0) (λ j', ite (j = j') 1 0) :=
 begin

@@ -444,7 +444,7 @@ instance lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) :
 @[simp] lemma lie_subalgebra.mem_coe {L' : lie_subalgebra R L} {x : L} :
   x ∈ (L' : set L) ↔ x ∈ L' := iff.rfl
 
-@[simp, norm_cast] lemma lie_subalgebra_coe_bracket (L' : lie_subalgebra R L) (x y : L') :
+@[simp, norm_cast] lemma lie_subalgebra.coe_bracket (L' : lie_subalgebra R L) (x y : L') :
   (↑⁅x, y⁆ : L) = ⁅↑x, ↑y⁆ := rfl
 
 @[ext] lemma lie_subalgebra_ext (L₁' L₂' : lie_subalgebra R L) (h : (L₁' : set L) = L₂') :
@@ -801,11 +801,11 @@ noncomputable def matrix.lie_conj (P : matrix n n R) (h : is_unit P) :
 
 @[simp] lemma matrix.lie_conj_apply (P A : matrix n n R) (h : is_unit P) :
   P.lie_conj h A = P ⬝ A ⬝ P⁻¹ :=
-by simp [matrix.lie_conj, matrix.comp_to_matrix_mul, to_lin_to_matrix]
+by simp [linear_equiv.conj_apply, matrix.lie_conj, matrix.comp_to_matrix_mul, to_lin_to_matrix]
 
 @[simp] lemma matrix.lie_conj_symm_apply (P A : matrix n n R) (h : is_unit P) :
   (P.lie_conj h).symm A = P⁻¹ ⬝ A ⬝ P :=
-by simp [matrix.lie_conj, matrix.comp_to_matrix_mul, to_lin_to_matrix]
+by simp [linear_equiv.symm_conj_apply, matrix.lie_conj, matrix.comp_to_matrix_mul, to_lin_to_matrix]
 
 end matrices
 

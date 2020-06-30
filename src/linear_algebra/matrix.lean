@@ -331,11 +331,11 @@ def to_linear_equiv (P : matrix n n R) (h : is_unit P) : (n → R) ≃ₗ[R] (n 
 have h' : is_unit P.det := P.is_unit_iff_is_unit_det.mp h,
 { inv_fun   := P⁻¹.to_lin,
   left_inv  := λ v,
-  show (P⁻¹.to_lin.comp P.to_lin) v = v,
-  by rw [←matrix.mul_to_lin, P.nonsing_inv_mul h', matrix.to_lin_one, linear_map.id_apply], },
+    show (P⁻¹.to_lin.comp P.to_lin) v = v,
+    by rw [←matrix.mul_to_lin, P.nonsing_inv_mul h', matrix.to_lin_one, linear_map.id_apply],
   right_inv := λ v,
-  show (P.to_lin.comp P⁻¹.to_lin) v = v,
-  by rw [←matrix.mul_to_lin, P.mul_nonsing_inv h', matrix.to_lin_one, linear_map.id_apply], },
+    show (P.to_lin.comp P⁻¹.to_lin) v = v,
+    by rw [←matrix.mul_to_lin, P.mul_nonsing_inv h', matrix.to_lin_one, linear_map.id_apply],
   ..P.to_lin }
 
 @[simp] lemma to_linear_equiv_apply (P : matrix n n R) (h : is_unit P) :

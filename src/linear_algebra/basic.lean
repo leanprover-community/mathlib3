@@ -1884,10 +1884,10 @@ def congr_right (f : M₂ ≃ₗ[R] M₃) : (M →ₗ[R] M₂) ≃ₗ (M →ₗ 
 themselves are linearly isomorphic. -/
 def conj (e : M ≃ₗ[R] M₂) : (module.End R M) ≃ₗ[R] (module.End R M₂) := arrow_congr e e
 
-@[simp] lemma conj_apply (e : M ≃ₗ[R] M₂) (f : module.End R M) :
+lemma conj_apply (e : M ≃ₗ[R] M₂) (f : module.End R M) :
   e.conj f = ((↑e : M →ₗ[R] M₂).comp f).comp e.symm := rfl
 
-@[simp] lemma symm_conj_apply (e : M ≃ₗ[R] M₂) (f : module.End R M₂) :
+lemma symm_conj_apply (e : M ≃ₗ[R] M₂) (f : module.End R M₂) :
   e.symm.conj f = ((↑e.symm : M₂ →ₗ[R] M).comp f).comp e := rfl
 
 lemma conj_comp (e : M ≃ₗ[R] M₂) (f g : module.End R M) :
@@ -1899,7 +1899,7 @@ lemma conj_trans (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃) :
 by { ext f x, refl, }
 
 @[simp] lemma conj_id (e : M ≃ₗ[R] M₂) : e.conj linear_map.id = linear_map.id :=
-by { ext, simp, }
+by { ext, simp [conj_apply], }
 
 end comm_ring
 

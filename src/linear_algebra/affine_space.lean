@@ -177,7 +177,7 @@ that base point will cancel out later); a more typical use case for
 `weighted_vsub` would involve selecting a preferred base point with
 `weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero` and then
 using `weighted_vsub_of_point_apply`. -/
-@[simp] lemma weighted_vsub_apply (w : ι → k) (p : ι → P) :
+lemma weighted_vsub_apply (w : ι → k) (p : ι → P) :
   s.weighted_vsub V p w = ∑ i in s, w i • (p i -ᵥ (classical.choice S.nonempty)) :=
 by simp [weighted_vsub, linear_map.sum_apply]
 

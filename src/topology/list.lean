@@ -151,9 +151,8 @@ by unfold vector; apply_instance
 
 lemma tendsto_cons [topological_space α] {n : ℕ} {a : α} {l : vector α n}:
   tendsto (λp:α×vector α n, vector.cons p.1 p.2) ((𝓝 a).prod (𝓝 l)) (𝓝 (a :: l)) :=
-by
-  simp [tendsto_subtype_rng, cons_val];
-  exact tendsto_cons tendsto_fst (tendsto.comp continuous_at_subtype_val tendsto_snd)
+by { simp [tendsto_subtype_rng, ←subtype.val_eq_coe, cons_val],
+  exact tendsto_cons tendsto_fst (tendsto.comp continuous_at_subtype_coe tendsto_snd) }
 
 lemma tendsto_insert_nth
   [topological_space α] {n : ℕ} {i : fin (n+1)} {a:α} :
@@ -163,7 +162,7 @@ lemma tendsto_insert_nth
 begin
   rw [insert_nth, tendsto_subtype_rng],
   simp [insert_nth_val],
-  exact list.tendsto_insert_nth tendsto_fst (tendsto.comp continuous_at_subtype_val tendsto_snd : _)
+  exact list.tendsto_insert_nth tendsto_fst (tendsto.comp continuous_at_subtype_coe tendsto_snd : _)
 end
 
 lemma continuous_insert_nth' [topological_space α] {n : ℕ} {i : fin (n+1)} :
@@ -183,8 +182,8 @@ lemma continuous_at_remove_nth [topological_space α] {n : ℕ} {i : fin (n+1)} 
 --| ⟨l, hl⟩ :=
 begin
   rw [continuous_at, remove_nth, tendsto_subtype_rng],
-  simp [remove_nth_val],
-  exact tendsto.comp list.tendsto_remove_nth continuous_at_subtype_val
+  simp [remove_nth_val, ← subtype.val_eq_coe],
+  exact tendsto.comp list.tendsto_remove_nth continuous_at_subtype_coe
 end
 
 lemma continuous_remove_nth [topological_space α] {n : ℕ} {i : fin (n+1)} :

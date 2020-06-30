@@ -348,7 +348,7 @@ lemma ker_diagonal_to_lin [decidable_eq m] (w : m → K) :
 begin
   rw [← comap_bot, ← infi_ker_proj],
   simp only [comap_infi, (ker_comp _ _).symm, proj_diagonal, ker_smul'],
-  have : univ ⊆ {i : m | w i = 0} ∪ -{i : m | w i = 0}, { rw set.union_compl_self },
+  have : univ ⊆ {i : m | w i = 0} ∪ {i : m | w i = 0}ᶜ, { rw set.union_compl_self },
   exact (supr_range_std_basis_eq_infi_ker_proj K (λi:m, K)
     (disjoint_compl {i | w i = 0}) this (finite.of_fintype _)).symm
 end
@@ -365,7 +365,7 @@ end
 lemma rank_diagonal [decidable_eq m] [decidable_eq K] (w : m → K) :
   rank (diagonal w).to_lin = fintype.card { i // w i ≠ 0 } :=
 begin
-  have hu : univ ⊆ - {i : m | w i = 0} ∪ {i : m | w i = 0}, { rw set.compl_union_self },
+  have hu : univ ⊆ {i : m | w i = 0}ᶜ ∪ {i : m | w i = 0}, { rw set.compl_union_self },
   have hd : disjoint {i : m | w i ≠ 0} {i : m | w i = 0} := (disjoint_compl {i | w i = 0}).symm,
   have h₁ := supr_range_std_basis_eq_infi_ker_proj K (λi:m, K) hd hu (finite.of_fintype _),
   have h₂ := @infi_ker_proj_equiv K _ _ (λi:m, K) _ _ _ _ (by simp; apply_instance) hd hu,

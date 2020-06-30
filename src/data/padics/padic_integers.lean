@@ -51,7 +51,7 @@ variables {p : ℕ} [fact p.prime]
 
 instance : has_coe ℤ_[p] ℚ_[p] := ⟨subtype.val⟩
 
-@[ext] lemma ext {x y : ℤ_[p]} : (x : ℚ_[p]) = y → x = y := subtype.ext.2
+@[ext] lemma ext {x y : ℤ_[p]} : (x : ℚ_[p]) = y → x = y := subtype.ext_iff_val.2
 
 /-- Addition on ℤ_p is inherited from ℚ_p. -/
 instance : has_add ℤ_[p] :=
@@ -153,12 +153,12 @@ instance : comm_ring ℤ_[p] :=
   ..padic_int.ring }
 
 protected lemma padic_int.zero_ne_one : (0 : ℤ_[p]) ≠ 1 :=
-show (⟨(0 : ℚ_[p]), _⟩ : ℤ_[p]) ≠ ⟨(1 : ℚ_[p]), _⟩, from mt subtype.ext.1 zero_ne_one
+show (⟨(0 : ℚ_[p]), _⟩ : ℤ_[p]) ≠ ⟨(1 : ℚ_[p]), _⟩, from mt subtype.ext_iff_val.1 zero_ne_one
 
 protected lemma padic_int.eq_zero_or_eq_zero_of_mul_eq_zero :
           ∀ (a b : ℤ_[p]), a * b = 0 → a = 0 ∨ b = 0
 | ⟨a, ha⟩ ⟨b, hb⟩ := λ h : (⟨a * b, _⟩ : ℤ_[p]) = ⟨0, _⟩,
-have a * b = 0, from subtype.ext.1 h,
+have a * b = 0, from subtype.ext_iff_val.1 h,
 (mul_eq_zero.1 this).elim
   (λ h1, or.inl (by simp [h1]; refl))
   (λ h2, or.inr (by simp [h2]; refl))
@@ -236,7 +236,7 @@ lemma mul_inv : ∀ {z : ℤ_[p]}, ∥z∥ = 1 → z * z.inv = 1
     unfold padic_int.inv, split_ifs,
     { change (⟨k * (1/k), _⟩ : ℤ_[p]) = 1,
       simp [hk], refl },
-    { apply subtype.ext.2, simp [mul_inv_cancel hk] }
+    { apply subtype.ext_iff_val.2, simp [mul_inv_cancel hk] }
   end
 
 lemma inv_mul {z : ℤ_[p]} (hz : ∥z∥ = 1) : z.inv * z = 1 :=

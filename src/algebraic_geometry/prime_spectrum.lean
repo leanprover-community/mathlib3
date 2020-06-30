@@ -68,7 +68,7 @@ instance as_ideal.is_prime (x : prime_spectrum R) :
 
 @[ext] lemma ext {x y : prime_spectrum R} :
   x = y ↔ x.as_ideal = y.as_ideal :=
-subtype.ext
+subtype.ext_iff_val
 
 /-- The zero locus of a set `s` of elements of a commutative ring `R`
 is the set of all prime ideals of the ring that contain the set `s`.
@@ -294,8 +294,8 @@ topological_space.of_closed (set.range prime_spectrum.zero_locus)
   (by { rintro _ _ ⟨s, rfl⟩ ⟨t, rfl⟩, exact ⟨_, (union_zero_locus s t).symm⟩ })
 
 lemma is_open_iff (U : set (prime_spectrum R)) :
-  is_open U ↔ ∃ s, -U = zero_locus s :=
-by simp only [@eq_comm _ (-U)]; refl
+  is_open U ↔ ∃ s, Uᶜ = zero_locus s :=
+by simp only [@eq_comm _ Uᶜ]; refl
 
 lemma is_closed_iff_zero_locus (Z : set (prime_spectrum R)) :
   is_closed Z ↔ ∃ s, Z = zero_locus s :=

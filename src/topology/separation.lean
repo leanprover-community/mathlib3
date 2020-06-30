@@ -53,7 +53,7 @@ begin
 end
 
 instance subtype.t0_space [t0_space α] {p : α → Prop} : t0_space (subtype p) :=
-⟨λ x y hxy, let ⟨U, hU, hxyU⟩ := t0_space.t0 (x:α) y ((not_congr subtype.coe_ext).1 hxy) in
+⟨λ x y hxy, let ⟨U, hU, hxyU⟩ := t0_space.t0 (x:α) y ((not_congr subtype.ext_iff_val).1 hxy) in
   ⟨(coe : subtype p → α) ⁻¹' U, is_open_induced hU, hxyU⟩⟩
 
 /-- A T₁ space, also known as a Fréchet space, is a topological space
@@ -71,13 +71,13 @@ compl_singleton_eq x ▸ is_open_compl_iff.2 (t1_space.t1 x)
 instance subtype.t1_space {α : Type u} [topological_space α] [t1_space α] {p : α → Prop} :
   t1_space (subtype p) :=
 ⟨λ ⟨x, hx⟩, is_closed_induced_iff.2 $ ⟨{x}, is_closed_singleton, set.ext $ λ y,
-  by simp [subtype.coe_ext]⟩⟩
+  by simp [subtype.ext_iff_val]⟩⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance t1_space.t0_space [t1_space α] : t0_space α :=
 ⟨λ x y h, ⟨{z | z ≠ y}, is_open_ne, or.inl ⟨h, not_not_intro rfl⟩⟩⟩
 
-lemma compl_singleton_mem_nhds [t1_space α] {x y : α} (h : y ≠ x) : - {x} ∈ 𝓝 y :=
+lemma compl_singleton_mem_nhds [t1_space α] {x y : α} (h : y ≠ x) : {x}ᶜ ∈ 𝓝 y :=
 mem_nhds_sets is_closed_singleton $ by rwa [mem_compl_eq, mem_singleton_iff]
 
 @[simp] lemma closure_singleton [t1_space α] {a : α} :
@@ -144,8 +144,8 @@ begin
   { intro h,
     constructor,
     intros x y hxy,
-    have : (x, y) ∈ -diagonal α, by rwa [mem_compl_iff],
-    obtain ⟨t, t_sub, t_op, xyt⟩ : ∃ t ⊆ -diagonal α, is_open t ∧ (x, y) ∈ t :=
+    have : (x, y) ∈ (diagonal α)ᶜ, by rwa [mem_compl_iff],
+    obtain ⟨t, t_sub, t_op, xyt⟩ : ∃ t ⊆ (diagonal α)ᶜ, is_open t ∧ (x, y) ∈ t :=
       is_open_iff_forall_mem_open.mp h _ this,
     rcases is_open_prod_iff.mp t_op x y xyt with ⟨U, V, U_op, V_op, xU, yV, H⟩,
     use [U, V, U_op, V_op, xU, yV],
@@ -248,7 +248,7 @@ ext $ assume p, iff.intro
   (assume ⟨x, hx⟩, show p.1 = p.2, by rw ←hx)
 
 lemma prod_subset_compl_diagonal_iff_disjoint {α : Type*} {s t : set α} :
-  set.prod s t ⊆ - {p:α×α | p.1 = p.2} ↔ s ∩ t = ∅ :=
+  set.prod s t ⊆ {p:α×α | p.1 = p.2}ᶜ ↔ s ∩ t = ∅ :=
 by rw [eq_empty_iff_forall_not_mem, subset_compl_comm,
        diagonal_eq_range_diagonal_map, range_subset_iff]; simp
 
@@ -263,7 +263,7 @@ is_open_compl_iff.mpr $ is_open_iff_forall_mem_open.mpr $ assume x hx,
   let ⟨u, v, uo, vo, su, xv, uv⟩ :=
     compact_compact_separated hs (compact_singleton : compact {x})
       (by rwa [inter_comm, ←subset_compl_iff_disjoint, singleton_subset_iff]) in
-  have v ⊆ -s, from
+  have v ⊆ sᶜ, from
     subset_compl_comm.mp (subset.trans su (subset_compl_iff_disjoint.mpr uv)),
 ⟨v, this, vo, by simpa using xv⟩
 
@@ -279,10 +279,10 @@ lemma locally_compact_of_compact_nhds [t2_space α] (h : ∀ x : α, ∃ s, s �
   let ⟨v, w, vo, wo, xv, kuw, vw⟩ :=
     compact_compact_separated compact_singleton (compact_diff kc uo)
       (by rw [singleton_inter_eq_empty]; exact λ h, h.2 xu) in
-  have wn : -w ∈ 𝓝 x, from
+  have wn : wᶜ ∈ 𝓝 x, from
    mem_nhds_sets_iff.mpr
      ⟨v, subset_compl_iff_disjoint.mpr vw, vo, singleton_subset_iff.mp xv⟩,
-  ⟨k - w,
+  ⟨k \ w,
    filter.inter_mem_sets kx wn,
    subset.trans (diff_subset_comm.mp kuw) un,
    compact_diff kc wo⟩⟩
@@ -307,10 +307,10 @@ end prio
 lemma nhds_is_closed [regular_space α] {a : α} {s : set α} (h : s ∈ 𝓝 a) :
   ∃t∈(𝓝 a), t ⊆ s ∧ is_closed t :=
 let ⟨s', h₁, h₂, h₃⟩ := mem_nhds_sets_iff.mp h in
-have ∃t, is_open t ∧ -s' ⊆ t ∧ 𝓝 a ⊓ 𝓟 t = ⊥,
+have ∃t, is_open t ∧ s'ᶜ ⊆ t ∧ 𝓝 a ⊓ 𝓟 t = ⊥,
   from regular_space.regular (is_closed_compl_iff.mpr h₂) (not_not_intro h₃),
 let ⟨t, ht₁, ht₂, ht₃⟩ := this in
-⟨-t,
+⟨tᶜ,
   mem_sets_of_eq_bot $ by rwa [compl_compl],
   subset.trans (compl_subset_comm.1 ht₂) h₁,
   is_closed_compl_iff.mpr ht₁⟩
@@ -334,6 +334,20 @@ let ⟨s, hs, hys, hxs⟩ := regular_space.regular is_closed_singleton
   ⟨v, hvt, hv, hxv⟩ := mem_nhds_sets_iff.1 hxt in
 ⟨v, s, hv, hs, hxv, singleton_subset_iff.1 hys,
 eq_empty_of_subset_empty $ λ z ⟨hzv, hzs⟩, htu ⟨hvt hzv, hsu hzs⟩⟩⟩
+
+variable {α}
+
+lemma disjoint_nested_nhds [regular_space α] {x y : α} (h : x ≠ y) :
+  ∃ (U₁ V₁ ∈ 𝓝 x) (U₂ V₂ ∈ 𝓝 y), is_closed V₁ ∧ is_closed V₂ ∧ is_open U₁ ∧ is_open U₂ ∧
+  V₁ ⊆ U₁ ∧ V₂ ⊆ U₂ ∧ U₁ ∩ U₂ = ∅ :=
+begin
+  rcases t2_separation h with ⟨U₁, U₂, U₁_op, U₂_op, x_in, y_in, H⟩,
+  rcases nhds_is_closed (mem_nhds_sets U₁_op x_in) with ⟨V₁, V₁_in, h₁, V₁_closed⟩,
+  rcases nhds_is_closed (mem_nhds_sets U₂_op y_in) with ⟨V₂, V₂_in, h₂, V₂_closed⟩,
+  use [U₁, V₁, mem_sets_of_superset V₁_in h₁, V₁_in,
+       U₂, V₂, mem_sets_of_superset V₂_in h₂, V₂_in],
+  tauto
+end
 
 end regularity
 

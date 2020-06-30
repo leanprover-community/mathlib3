@@ -94,7 +94,7 @@ begin
     ext g,
     rw [monoid_hom.one_apply],
     cases hx ⟨f.to_hom_units g, g, rfl⟩ with n hn,
-    rwa [subtype.coe_ext, units.ext_iff, subtype.coe_mk, monoid_hom.coe_to_hom_units,
+    rwa [subtype.ext_iff, units.ext_iff, subtype.coe_mk, monoid_hom.coe_to_hom_units,
       is_submonoid.coe_pow, units.coe_pow, is_submonoid.coe_one, units.coe_one,
       _root_.one_pow, eq_comm] at hn, },
   replace hx1 : (x : R) - 1 ≠ 0,

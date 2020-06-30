@@ -106,7 +106,7 @@ protected def some {α} : α ↪ option α :=
 
 /-- Embedding of a `subtype`. -/
 def subtype {α} (p : α → Prop) : subtype p ↪ α :=
-⟨subtype.val, λ _ _, subtype.eq'⟩
+⟨subtype.val, λ _ _, subtype.ext_val⟩
 
 /-- Choosing an element `b : β` gives an embedding of `punit` into `β`. -/
 def punit {β : Sort*} (b : β) : punit ↪ β :=
@@ -197,7 +197,7 @@ open set
 
 /-- `set.image` as an embedding `set α ↪ set β`. -/
 protected def image {α β} (f : α ↪ β) : set α ↪ set β :=
-⟨image f, image_injective f.2⟩
+⟨image f, f.2.image_injective⟩
 
 @[simp] lemma coe_image {α β} (f : α ↪ β) : ⇑f.image = image f := rfl
 

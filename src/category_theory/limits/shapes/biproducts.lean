@@ -153,13 +153,16 @@ limit (discrete.functor f)
 
 notation `⨁ ` f:20 := biproduct f
 
+/-- The chosen bicone over a family of elements. -/
 abbreviation biproduct.bicone (f : J → C) [has_biproduct f] : bicone f :=
 has_biproduct.bicone
 
+/-- The cone coming from the chosen bicone is a limit cone. -/
 abbreviation biproduct.is_limit (f : J → C) [has_biproduct f] :
   is_limit (biproduct.bicone f).to_cone :=
 has_biproduct.is_limit
 
+/-- The cocone coming from the chosen bicone is a colimit cocone. -/
 abbreviation biproduct.is_colimit (f : J → C) [has_biproduct f] :
   is_colimit (biproduct.bicone f).to_cocone :=
 has_biproduct.is_colimit
@@ -586,11 +589,12 @@ variables [has_binary_biproducts.{v} C]
 An alternative formula for the braiding isomorphism which swaps a binary biproduct,
 using the fact that the biproduct is a coproduct.
 -/
-@[simps] def biprod.braiding' (P Q : C) : P ⊞ Q ≅ Q ⊞ P :=
+@[simps]
+def biprod.braiding' (P Q : C) : P ⊞ Q ≅ Q ⊞ P :=
 { hom := biprod.desc biprod.inr biprod.inl,
   inv := biprod.desc biprod.inr biprod.inl }
 
-@[simp] lemma biprod.braiding'_eq_braiding {P Q : C} :
+lemma biprod.braiding'_eq_braiding {P Q : C} :
   biprod.braiding' P Q = biprod.braiding P Q :=
 by tidy
 
@@ -599,7 +603,7 @@ by tidy
   biprod.map f g ≫ (biprod.braiding _ _).hom = (biprod.braiding _ _).hom ≫ biprod.map g f :=
 by tidy
 
-@[simp, reassoc] lemma biprod.braiding_map_braiding {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) :
+@[reassoc] lemma biprod.braiding_map_braiding {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) :
   (biprod.braiding X W).hom ≫ biprod.map f g ≫ (biprod.braiding Y Z).hom = biprod.map g f :=
 by tidy
 

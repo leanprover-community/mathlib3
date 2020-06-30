@@ -217,22 +217,18 @@ end
 /-- The original holor can be recovered from its slices by multiplying with unit vectors and summing up. -/
 @[simp] lemma sum_unit_vec_mul_slice [ring α] (x : holor α (d :: ds)) :
   ∑ i in (finset.range d).attach,
-    unit_vec d i.1 ⊗ slice x i.1 (nat.succ_le_of_lt (finset.mem_range.1 i.2)) = x :=
+    unit_vec d i ⊗ slice x i (nat.succ_le_of_lt (finset.mem_range.1 i.prop)) = x :=
 begin
   apply slice_eq _ _ _,
   ext i hid,
   rw [←slice_sum],
   simp only [slice_unit_vec_mul hid],
-  rw finset.sum_eq_single (subtype.mk i _),
-  { simp, refl },
+  rw finset.sum_eq_single (subtype.mk i $ finset.mem_range.2 hid),
+  { simp },
   { assume (b : {x // x ∈ finset.range d}) (hb : b ∈ (finset.range d).attach) (hbi : b ≠ ⟨i, _⟩),
-    have hbi' : i ≠ b.val,
-    { apply not.imp hbi,
-      { assume h0 : i = b.val,
-        apply subtype.eq,
-        simp only [h0] },
-      { exact finset.mem_range.2 hid } },
-    simp [hbi']},
+    have hbi' : i ≠ b,
+    { simpa only [ne.def, subtype.ext_iff, subtype.coe_mk] using hbi.symm },
+    simp [hbi'] },
   { assume hid' : subtype.mk i _ ∉ finset.attach (finset.range d),
     exfalso,
     exact absurd (finset.mem_attach _ _) hid'

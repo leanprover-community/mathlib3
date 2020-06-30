@@ -212,7 +212,7 @@ assume (d : ℕ) (hdvd : ∃ e, p = d * e),
 let ⟨e, hmul⟩ := hdvd in
 have (p : α) = 0, from (cast_eq_zero_iff α p p).mpr (dvd_refl p),
 have (d : α) * e = 0, from (@cast_mul α _ d e) ▸ (hmul ▸ this),
-or.elim (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero (d : α) e this)
+or.elim (eq_zero_or_eq_zero_of_mul_eq_zero this)
   (assume hd : (d : α) = 0,
   have p ∣ d, from (cast_eq_zero_iff α p d).mp hd,
   show d = 1 ∨ d = p, from or.inr (dvd_antisymm ⟨e, hmul⟩ this))

@@ -237,27 +237,21 @@ lemma single_one_comm [comm_semiring k] [monoid G] (r : k) (f : monoid_algebra k
 by { ext, rw [single_one_mul_apply, mul_single_one_apply, mul_comm] }
 
 /--
-As a preliminary to defining the `k`-algebra structure on `monoid_algebra k G`,
+As a preliminary to defining the `k`-algebra structure on `add_monoid_algebra k G`,
 we define the underlying ring homomorphism.
 -/
-def algebra_map' {A : Type*} [semiring k] [semiring A] (f : k →+* A) [monoid G] :
-  k →+* monoid_algebra A G :=
-{ to_fun := λ x, single 1 (f x),
-  map_one' := by { simp, refl },
-  map_mul' := λ x y, by rw [single_mul_single, one_mul, f.map_mul],
-  map_zero' := by rw [f.map_zero, single_zero],
-  map_add' := λ x y, by rw [f.map_add, single_add], }
+def algebra_map' [semiring k] [monoid G] : k →+* monoid_algebra k G :=
+{ to_fun    := single 1,
+  map_one'  := rfl,
+  map_mul'  := λ x y, by rw [single_mul_single, one_mul],
+  map_zero' := single_zero,
+  map_add'  := λ x y, single_add, }
 
-/--
-`monoid_algebra A G` is a `k`-algebra when `A` is a `k`-algebra.
-Note this includes the case where `k` and `A` are identical!
--/
-instance {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] :
-  algebra k (monoid_algebra A G) :=
-{ smul_def' := λ r a, by { ext x, dsimp [algebra_map'], rw single_one_mul_apply, rw algebra.smul_def'', },
-  commutes' := λ r f, show single 1 (algebra_map k A r) * f = f * single 1 (algebra_map k A r),
-    by { ext, rw [single_one_mul_apply, mul_single_one_apply, algebra.commutes], },
-  ..algebra_map' (algebra_map k A) }
+instance [comm_semiring k] [monoid G] : algebra k (monoid_algebra k G) :=
+{ smul_def' := λ r a, ext (λ _, smul_apply.trans (single_one_mul_apply _ _ _).symm),
+  commutes' := λ r f, ext $ λ _,
+    by simp [algebra_map', single_one_mul_apply, mul_single_one_apply, mul_comm],
+  ..algebra_map' }
 
 @[simp] lemma coe_algebra_map [comm_semiring k] [monoid G] :
   (algebra_map k (monoid_algebra k G) : k → monoid_algebra k G) = single 1 :=
@@ -597,24 +591,18 @@ finsupp.semimodule G k
 As a preliminary to defining the `k`-algebra structure on `add_monoid_algebra k G`,
 we define the underlying ring homomorphism.
 -/
-def algebra_map' {A : Type*} [semiring k] [semiring A] (f : k →+* A) [add_monoid G] :
-  k →+* add_monoid_algebra A G :=
-{ to_fun := λ x, single 0 (f x),
-  map_one' := by { simp, refl },
-  map_mul' := λ x y, by rw [single_mul_single, zero_add, f.map_mul],
-  map_zero' := by rw [f.map_zero, single_zero],
-  map_add' := λ x y, by rw [f.map_add, single_add], }
+def algebra_map' [semiring k] [add_monoid G] : k →+* add_monoid_algebra k G :=
+{ to_fun := single 0,
+  map_one' := rfl,
+  map_mul' := λ x y, by rw [single_mul_single, zero_add],
+  map_zero' := single_zero,
+  map_add' := λ x y, single_add, }
 
-/--
-`add_monoid_algebra A G` is a `k`-algebra when `A` is a `k`-algebra.
-Note this includes the case where `k` and `A` are identical!
--/
-instance {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [add_monoid G] :
-  algebra k (add_monoid_algebra A G) :=
-{ smul_def' := λ r a, by { ext x, dsimp [algebra_map'], rw single_zero_mul_apply, rw algebra.smul_def'', },
-  commutes' := λ r f, show single 0 (algebra_map k A r) * f = f * single 0 (algebra_map k A r),
-    by { ext, rw [single_zero_mul_apply, mul_single_zero_apply, algebra.commutes], },
-  ..algebra_map' (algebra_map k A) }
+instance [comm_semiring k] [add_monoid G] : algebra k (add_monoid_algebra k G) :=
+{ smul_def' := λ r a, by { ext x, exact smul_apply.trans (single_zero_mul_apply _ _ _).symm },
+  commutes' := λ r f, show single 0 r * f = f * single 0 r,
+    by ext; rw [single_zero_mul_apply, mul_single_zero_apply, mul_comm],
+  ..algebra_map', }
 
 @[simp] lemma coe_algebra_map [comm_semiring k] [add_monoid G] :
   (algebra_map k (add_monoid_algebra k G) : k → add_monoid_algebra k G) = single 0 :=

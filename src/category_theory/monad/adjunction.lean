@@ -16,7 +16,7 @@ variables (R : D ⥤ C)
 
 namespace adjunction
 
-instance monad (R : D ⥤ C) [is_right_adjoint R] : monad.{v₁} ((left_adjoint R) ⋙ R) :=
+instance monad (R : D ⥤ C) [is_right_adjoint R] : monad ((left_adjoint R) ⋙ R) :=
 let L := left_adjoint R in
 let h : L ⊣ R := is_right_adjoint.adj in
 { η := h.unit,

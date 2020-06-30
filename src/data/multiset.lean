@@ -3270,7 +3270,7 @@ by rw [antidiagonal, coe_card, list.nat.length_antidiagonal]
 
 /-- The antidiagonal of `0` is the list `[(0,0)]` -/
 @[simp] lemma antidiagonal_zero : antidiagonal 0 = {(0, 0)} :=
-by { rw [antidiagonal, list.nat.antidiagonal_zero], refl }
+rfl
 
 /-- The antidiagonal of `n` does not contain duplicate entries. -/
 @[simp] lemma nodup_antidiagonal (n : ℕ) : nodup (antidiagonal n) :=

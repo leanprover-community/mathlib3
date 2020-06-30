@@ -706,9 +706,9 @@ let ⟨b, hb⟩ := integer_normalization_spec p in
 variables {R' : Type*} [comm_ring R']
 
 lemma integer_normalization_eval₂_eq_zero (g : f.codomain →+* R') (p : polynomial f.codomain)
-  {x : R'} (hx : eval₂ g x p = 0) : eval₂ (g ∘ f.to_map) x (integer_normalization p) = 0 :=
+  {x : R'} (hx : eval₂ g x p = 0) : eval₂ (g.comp f.to_map) x (integer_normalization p) = 0 :=
 let ⟨b, hb⟩ := integer_normalization_map_to_map p in
-trans (eval₂_map f.to_map g x).symm (by rw [hb, eval₂_smul, hx, _root_.mul_zero])
+trans (eval₂_map f.to_map g x).symm (by rw [hb, eval₂_smul, hx, smul_zero])
 
 lemma integer_normalization_aeval_eq_zero [algebra f.codomain R'] (p : polynomial f.codomain)
   {x : R'} (hx : aeval _ _ x p = 0) :

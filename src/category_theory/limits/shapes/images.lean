@@ -64,7 +64,7 @@ variables {X Y : C} (f : X ⟶ Y)
 structure mono_factorisation (f : X ⟶ Y) :=
 (I : C)
 (m : I ⟶ Y)
-[m_mono : mono.{v} m]
+[m_mono : mono m]
 (e : X ⟶ I)
 (fac' : e ≫ m = f . obviously)
 
@@ -185,7 +185,7 @@ lemma image.fac_lift (F' : mono_factorisation f) : factor_thru_image f ≫ image
 -- and show that an `image_of f` gives an initial object there
 -- (uniqueness of the lift comes for free).
 
-instance lift_mono (F' : mono_factorisation f) : mono.{v} (image.lift F') :=
+instance lift_mono (F' : mono_factorisation f) : mono (image.lift F') :=
 begin
   split, intros Z a b w,
   have w' : a ≫ image.ι f = b ≫ image.ι f :=
@@ -207,7 +207,7 @@ variables (C)
 
 /-- `has_images` represents a choice of image for every morphism -/
 class has_images :=
-(has_image : Π {X Y : C} (f : X ⟶ Y), has_image.{v} f)
+(has_image : Π {X Y : C} (f : X ⟶ Y), has_image f)
 
 attribute [instance, priority 100] has_images.has_image
 end
@@ -230,7 +230,7 @@ end
 
 -- This is the proof from https://en.wikipedia.org/wiki/Image_(category_theory), which is taken from:
 -- Mitchell, Barry (1965), Theory of categories, MR 0202787, p.12, Proposition 10.1
-instance [Π {Z : C} (g h : image f ⟶ Z), has_limit.{v} (parallel_pair g h)] :
+instance [Π {Z : C} (g h : image f ⟶ Z), has_limit (parallel_pair g h)] :
   epi (factor_thru_image f) :=
 ⟨λ Z g h w,
 begin
@@ -265,7 +265,7 @@ variables {f} {f' : X ⟶ Y} [has_image f] [has_image f']
 
 /-- An equation between morphisms gives a comparison map between the images (which momentarily we prove is an iso). -/
 def image.eq_to_hom (h : f = f') : image f ⟶ image f' :=
-image.lift.{v}
+image.lift
 { I := image f',
   m := image.ι f',
   e := factor_thru_image f', }.
@@ -284,7 +284,7 @@ variables {Z : C} (g : Y ⟶ Z)
 
 /-- The comparison map `image (f ≫ g) ⟶ image g`. -/
 def image.pre_comp [has_image g] [has_image (f ≫ g)] : image (f ≫ g) ⟶ image g :=
-image.lift.{v}
+image.lift
 { I := image g,
   m := image.ι g,
   e := f ≫ factor_thru_image g }
@@ -397,7 +397,7 @@ end
 end has_image_map
 
 section
-variables (C) [has_images.{v} C]
+variables (C) [has_images C]
 
 /-- If a category `has_image_maps`, then all commutative squares induce morphisms on images. -/
 class has_image_maps :=
@@ -408,7 +408,7 @@ attribute [instance, priority 100] has_image_maps.has_image_map
 end
 
 section has_image_maps
-variables [has_images.{v} C] [has_image_maps.{v} C]
+variables [has_images C] [has_image_maps C]
 
 /-- The functor from the arrow category of `C` to `C` itself that maps a morphism to its image
     and a commutative square to the induced morphism on images. -/
@@ -423,7 +423,7 @@ section strong_epi_mono_factorisation
 
 /-- A strong epi-mono factorisation is a decomposition `f = e ≫ m` with `e` a strong epimorphism
     and `m` a monomorphism. -/
-structure strong_epi_mono_factorisation {X Y : C} (f : X ⟶ Y) extends mono_factorisation.{v} f :=
+structure strong_epi_mono_factorisation {X Y : C} (f : X ⟶ Y) extends mono_factorisation f :=
 [e_strong_epi : strong_epi e]
 
 attribute [instance] strong_epi_mono_factorisation.e_strong_epi
@@ -445,11 +445,11 @@ variable (C)
 /-- A category has strong epi-mono factorisations if every morphism admits a strong epi-mono
     factorisation. -/
 class has_strong_epi_mono_factorisations :=
-(has_fac : Π {X Y : C} (f : X ⟶ Y), strong_epi_mono_factorisation.{v} f)
+(has_fac : Π {X Y : C} (f : X ⟶ Y), strong_epi_mono_factorisation f)
 
 @[priority 100]
 instance has_images_of_has_strong_epi_mono_factorisations
-  [has_strong_epi_mono_factorisations.{v} C] : has_images.{v} C :=
+  [has_strong_epi_mono_factorisations C] : has_images C :=
 { has_image := λ X Y f,
   let F' := has_strong_epi_mono_factorisations.has_fac f in
   { F := F'.to_mono_factorisation,
@@ -458,12 +458,12 @@ instance has_images_of_has_strong_epi_mono_factorisations
 end strong_epi_mono_factorisation
 
 section has_strong_epi_images
-variables (C) [has_images.{v} C]
+variables (C) [has_images C]
 
 /-- A category has strong epi images if it has all images and `factor_thru_image f` is a strong
     epimorphism for all `f`. -/
 class has_strong_epi_images :=
-(strong_factor_thru_image : Π {X Y : C} (f : X ⟶ Y), strong_epi.{v} (factor_thru_image f))
+(strong_factor_thru_image : Π {X Y : C} (f : X ⟶ Y), strong_epi (factor_thru_image f))
 
 attribute [instance] has_strong_epi_images.strong_factor_thru_image
 end has_strong_epi_images
@@ -474,20 +474,20 @@ section has_strong_epi_images
     strong epi images. -/
 @[priority 100]
 instance has_strong_epi_images_of_has_strong_epi_mono_factorisations
-  [has_strong_epi_mono_factorisations.{v} C] : has_strong_epi_images.{v} C :=
+  [has_strong_epi_mono_factorisations C] : has_strong_epi_images C :=
 { strong_factor_thru_image := λ X Y f,
     (has_strong_epi_mono_factorisations.has_fac f).e_strong_epi }
 
 end has_strong_epi_images
 
 section has_strong_epi_images
-variables [has_images.{v} C]
+variables [has_images C]
 
 /-- A category with strong epi images has image maps. The construction is taken from Borceux,
     Handbook of Categorical Algebra 1, Proposition 4.4.5. -/
 @[priority 100]
-instance has_image_maps_of_has_strong_epi_images [has_strong_epi_images.{v} C] :
-  has_image_maps.{v} C :=
+instance has_image_maps_of_has_strong_epi_images [has_strong_epi_images C] :
+  has_image_maps C :=
 { has_image_map := λ f g st,
     let I := image (image.ι f.hom ≫ st.right) in
     let I' := image (st.left ≫ factor_thru_image g.hom) in

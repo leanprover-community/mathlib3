@@ -31,12 +31,12 @@ namespace Module
 instance : has_coe_to_sort (Module R) :=
 { S := Type u, coe := Module.carrier }
 
-instance : category (Module.{u} R) :=
+instance : category (Module R) :=
 { hom   := λ M N, M →ₗ[R] N,
   id    := λ M, 1,
   comp  := λ A B C f g, g.comp f }
 
-instance : concrete_category (Module.{u} R) :=
+instance : concrete_category (Module R) :=
 { forget := { obj := λ R, R, map := λ R S f, (f : R → S) },
   forget_faithful := { } }
 
@@ -63,7 +63,7 @@ def of_self_iso (M : Module R) : Module.of R M ≅ M :=
 instance : subsingleton (of R punit) :=
 by { rw of_apply R punit, apply_instance }
 
-instance : has_zero_object.{u} (Module R) :=
+instance : has_zero_object (Module R) :=
 { zero := of R punit,
   unique_to := λ X,
   { default := (0 : punit →ₗ[R] X),
@@ -100,7 +100,7 @@ namespace category_theory.iso
 
 /-- Build a `linear_equiv` from an isomorphism in the category `Module R`. -/
 @[simps]
-def to_linear_equiv {X Y : Module.{u} R} (i : X ≅ Y) : X ≃ₗ[R] Y :=
+def to_linear_equiv {X Y : Module R} (i : X ≅ Y) : X ≃ₗ[R] Y :=
 { to_fun    := i.hom,
   inv_fun   := i.inv,
   left_inv  := by tidy,
@@ -121,7 +121,7 @@ namespace Module
 
 section preadditive
 
-instance : preadditive.{u} (Module.{u} R) :=
+instance : preadditive (Module R) :=
 { add_comp' := λ P Q R f f' g,
     show (f + f') ≫ g = f ≫ g + f' ≫ g, by { ext, simp },
   comp_add' := λ P Q R f g g',
@@ -162,7 +162,7 @@ def kernel_is_limit : is_limit (kernel_cone f) :=
 
 end kernel
 
-instance : has_kernels.{u} (Module R) :=
+instance : has_kernels (Module R) :=
 ⟨λ _ _ f, ⟨kernel_cone f, kernel_is_limit f⟩⟩
 
 end Module

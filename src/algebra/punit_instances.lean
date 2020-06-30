@@ -40,8 +40,9 @@ by refine
   inf := λ _ _, star,
   Sup := λ _, star,
   Inf := λ _, star,
-  sub := λ _ _, star,
-  .. punit.comm_ring, .. };
+  compl := λ _, star,
+  sdiff := λ _ _, star,
+  .. };
 intros; trivial
 
 instance : canonically_ordered_add_monoid punit :=

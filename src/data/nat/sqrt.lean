@@ -7,8 +7,7 @@ An efficient binary implementation of a (sqrt n) function that
 returns s s.t.
     s*s ≤ n ≤ s*s + s + s
 -/
-import data.nat.cast
-import init_.data.int.order
+import data.int.basic
 
 namespace nat
 

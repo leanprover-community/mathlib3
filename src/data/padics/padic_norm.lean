@@ -163,7 +163,7 @@ lemma one_le_padic_val_nat_of_dvd {n p : nat} [prime : fact p.prime] (nonzero : 
   1 ≤ padic_val_nat p n :=
 begin
   rw @padic_val_nat_def _ prime _ nonzero,
-  let one_le_mul := @multiplicity.le_multiplicity_of_pow_dvd _ _ _ p n 1 (begin norm_num, exact s end),
+  have one_le_mul : 1 ≤ _ := @multiplicity.le_multiplicity_of_pow_dvd _ _ _ p n 1 (begin norm_num, exact s end),
   simp only [enat.coe_one] at one_le_mul,
   rcases one_le_mul with ⟨_, q⟩,
   dsimp at q,
@@ -171,10 +171,10 @@ begin
 end
 
 @[simp]
-lemma padic_val_nat_of_zero (m : nat) : padic_val_nat m 0 = 0 := by simpa
+lemma padic_val_nat_zero (m : nat) : padic_val_nat m 0 = 0 := by simpa
 
 @[simp]
-lemma padic_val_nat_of_one (m : nat) : padic_val_nat m 1 = 0 := by simpa [padic_val_nat]
+lemma padic_val_nat_one (m : nat) : padic_val_nat m 1 = 0 := by simpa [padic_val_nat]
 
 end padic_val_nat
 

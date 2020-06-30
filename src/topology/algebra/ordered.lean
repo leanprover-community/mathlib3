@@ -289,6 +289,12 @@ lemma is_preconnected.Icc_subset {s : set α} (hs : is_preconnected s)
   Icc a b ⊆ s :=
 by simpa only [image_id] using hs.intermediate_value ha hb continuous_on_id
 
+/-- If a preconnected set contains endpoints of an interval, then it includes the whole interval. -/
+lemma is_connected.Icc_subset {s : set α} (hs : is_connected s)
+  {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
+  Icc a b ⊆ s :=
+hs.2.Icc_subset ha hb
+
 /-- If preconnected set in a linear order space is unbounded below and above, then it is the whole
 space. -/
 lemma is_preconnected.eq_univ_of_unbounded {s : set α} (hs : is_preconnected s) (hb : ¬bdd_below s)
@@ -1341,11 +1347,11 @@ mem_closure_of_is_lub (is_lub_cSup hs B) hs
 lemma cInf_mem_closure {s : set α} (hs : s.nonempty) (B : bdd_below s) : Inf s ∈ closure s :=
 mem_closure_of_is_glb (is_glb_cInf hs B) hs
 
-lemma is_closed.cSup_mem {s : set α} (hs : s.nonempty) (hc : is_closed s) (B : bdd_above s) :
+lemma is_closed.cSup_mem {s : set α} (hc : is_closed s) (hs : s.nonempty) (B : bdd_above s) :
   Sup s ∈ s :=
 mem_of_is_lub_of_is_closed (is_lub_cSup hs B) hs hc
 
-lemma is_closed.cInf_mem {s : set α} (hs : s.nonempty) (hc : is_closed s) (B : bdd_below s) :
+lemma is_closed.cInf_mem {s : set α} (hc : is_closed s) (hs : s.nonempty) (B : bdd_below s) :
   Inf s ∈ s :=
 mem_of_is_glb_of_is_closed (is_glb_cInf hs B) hs hc
 
@@ -1390,18 +1396,13 @@ lemma is_connected.Ioo_cInf_cSup_subset {s : set α} (hs : is_connected s) (hb :
   Ioo (Inf s) (Sup s) ⊆ s :=
 λ x hx, let ⟨y, ys, hy⟩ := (is_glb_lt_iff (is_glb_cInf hs.nonempty hb)).1 hx.1 in
 let ⟨z, zs, hz⟩ := (lt_is_lub_iff (is_lub_cSup hs.nonempty ha)).1 hx.2 in
-hs.is_preconnected.Icc_subset ys zs ⟨le_of_lt hy, le_of_lt hz⟩
+hs.Icc_subset ys zs ⟨le_of_lt hy, le_of_lt hz⟩
 
 lemma eq_Icc_cInf_cSup_of_connected_bdd_closed {s : set α} (hc : is_connected s) (hb : bdd_below s)
   (ha : bdd_above s) (hcl : is_closed s) :
   s = Icc (Inf s) (Sup s) :=
-begin
-  refine subset.antisymm (subset_Icc_cInf_cSup hb ha) _,
-  rintros x ⟨hI, hS⟩,
-  rcases eq_or_lt_of_le hI with rfl|hI, { exact cInf_mem_of_is_closed hc.nonempty hcl hb },
-  rcases eq_or_lt_of_le hS with rfl|hS, { exact cSup_mem_of_is_closed hc.nonempty hcl ha },
-  exact hc.Ioo_cInf_cSup_subset hb ha ⟨hI, hS⟩
-end
+subset.antisymm (subset_Icc_cInf_cSup hb ha) $
+  hc.Icc_subset (hcl.cInf_mem hc.nonempty hb) (hcl.cSup_mem hc.nonempty ha)
 
 lemma is_preconnected.Ioi_cInf_subset {s : set α} (hs : is_preconnected s) (hb : bdd_below s)
   (ha : ¬bdd_above s) :
@@ -1617,7 +1618,7 @@ end densely_ordered
 
 lemma compact.Inf_mem {s : set α} (hs : compact s) (ne_s : s.nonempty) :
   Inf s ∈ s :=
-cInf_mem_of_is_closed ne_s (closed_of_compact s hs) (bdd_below_of_compact hs)
+(closed_of_compact s hs).cInf_mem ne_s (bdd_below_of_compact hs)
 
 lemma compact.Sup_mem {s : set α} (hs : compact s) (ne_s : s.nonempty) :
   Sup s ∈ s :=

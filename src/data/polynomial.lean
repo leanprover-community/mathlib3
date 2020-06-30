@@ -219,7 +219,7 @@ end coeff
 
 section C
 /-- `C a` is the constant polynomial `a`. -/
-def C : R →+* polynomial R := add_monoid_algebra.algebra_map' (ring_hom.id R)
+def C : R →+* polynomial R := add_monoid_algebra.algebra_map'
 
 lemma C_def (a : R) : C a = monomial 0 a := rfl
 

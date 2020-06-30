@@ -13,8 +13,16 @@ import tactic.abel
 * In any category (with zero morphisms), if `biprod.map f g` is an isomorphism,
   then both `f` and `g` are isomorphisms.
 
-* If `f` is an isomorphism `X₁ ⊞ X₂ ≅ Y₁ ⊞ Y₂` whose `X₁ ⟶ Y₁` entry is an isomorphism,
-  then we can construct an isomorphism `X₂ ≅ Y₂`, via Gaussian elimination.
+The remaining lemmas hold in any preadditive category.
+
+* If `f` is a morphism `X₁ ⊞ X₂ ⟶ Y₁ ⊞ Y₂` whose `X₁ ⟶ Y₁` entry is an isomorphism,
+  then we can construct isomorphisms `L : X₁ ⊞ X₂ ≅ X₁ ⊞ X₂` and `R : Y₁ ⊞ Y₂ ≅ Y₁ ⊞ Y₂`
+  so that `L.hom ≫ g ≫ R.hom` is diagonal (with `X₁ ⟶ Y₁` component still `f`),
+  via Gaussian elimination.
+
+* As a corollary of the previous two facts,
+  if we have an isomorphism `X₁ ⊞ X₂ ≅ Y₁ ⊞ Y₂` whose `X₁ ⟶ Y₁` entry is an isomorphism,
+  we can construct an isomorphism `X₂ ≅ Y₂`.
 
 * If `f : W ⊞ X ⟶ Y ⊞ Z` is an isomorphism, either `𝟙 W = 0`,
   or at least one of the component maps `W ⟶ Y` and `W ⟶ Z` is nonzero.
@@ -133,10 +141,17 @@ lemma biprod.of_components_comp {X₁ X₂ Y₁ Y₂ Z₁ Z₂ : C}
   (f₁₁ : X₁ ⟶ Y₁) (f₁₂ : X₁ ⟶ Y₂) (f₂₁ : X₂ ⟶ Y₁) (f₂₂ : X₂ ⟶ Y₂)
   (g₁₁ : Y₁ ⟶ Z₁) (g₁₂ : Y₁ ⟶ Z₂) (g₂₁ : Y₂ ⟶ Z₁) (g₂₂ : Y₂ ⟶ Z₂) :
   biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂ ≫ biprod.of_components g₁₁ g₁₂ g₂₁ g₂₂ =
-    biprod.of_components (f₁₁ ≫ g₁₁ + f₁₂ ≫ g₂₁) (f₁₁ ≫ g₁₂ + f₁₂ ≫ g₂₂) (f₂₁ ≫ g₁₁ + f₂₂ ≫ g₂₁) (f₂₁ ≫ g₁₂ + f₂₂ ≫ g₂₂) :=
+    biprod.of_components
+      (f₁₁ ≫ g₁₁ + f₁₂ ≫ g₂₁) (f₁₁ ≫ g₁₂ + f₁₂ ≫ g₂₂)
+      (f₂₁ ≫ g₁₁ + f₂₂ ≫ g₂₁) (f₂₁ ≫ g₁₂ + f₂₂ ≫ g₂₂) :=
 begin
   dsimp [biprod.of_components],
-  apply biprod.hom_ext; apply biprod.hom_ext'; simp,
+  apply biprod.hom_ext; apply biprod.hom_ext';
+  simp only [add_comp, comp_add, add_comp_assoc, add_zero, zero_add,
+    biprod.inl_fst, biprod.inl_snd, biprod.inr_fst, biprod.inr_snd,
+    biprod.inl_fst_assoc, biprod.inl_snd_assoc, biprod.inr_fst_assoc, biprod.inr_snd_assoc,
+    has_zero_morphisms.comp_zero, has_zero_morphisms.zero_comp, has_zero_morphisms.zero_comp_assoc,
+    category.comp_id, category.assoc],
 end
 
 /--
@@ -242,7 +257,6 @@ end
 end
 
 variables [preadditive.{v} C]
-open_locale big_operators
 
 lemma biproduct.column_nonzero_of_iso'
   {σ τ : Type v} [decidable_eq σ] [decidable_eq τ] [fintype τ]

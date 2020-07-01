@@ -185,7 +185,7 @@ hs.image2 _ ht
 @[to_additive "addition preserves finiteness"]
 def fintype_mul [has_mul α] [decidable_eq α] (s t : set α) [hs : fintype s] [ht : fintype t] :
   fintype (s * t : set α) :=
-fintype_image2 _ s t
+set.fintype_image2 _ s t
 
 /-! Properties about inversion -/
 @[to_additive set.has_neg'] -- todo: remove prime once name becomes available

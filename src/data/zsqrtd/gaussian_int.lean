@@ -50,6 +50,7 @@ instance : comm_ring ℤ[i] := zsqrtd.comm_ring
 section
 local attribute [-instance] complex.field -- Avoid making things noncomputable unnecessarily.
 
+/-- The embedding of the Gaussian integers into the complex numbers, as a ring homomorphism.
 def to_complex : ℤ[i] →+* ℂ :=
 begin
   refine_struct { to_fun := λ x : ℤ[i], (x.re + x.im * I : ℂ), .. };

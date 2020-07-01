@@ -2530,7 +2530,7 @@ by rw [div_def, mul_comm, degree_mul_leading_coeff_inv _ hq0];
 
 @[simp] lemma degree_map [field k] (p : polynomial R) (f : R →+* k) :
   degree (p.map f) = degree p :=
-p.degree_map_eq_of_injective (f.injective)
+p.degree_map_eq_of_injective f.injective
 
 @[simp] lemma nat_degree_map [field k] (f : R →+* k) :
   nat_degree (p.map f) = nat_degree p :=

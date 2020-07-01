@@ -6,7 +6,6 @@ Authors: Markus Himmel, Scott Morrison
 import category_theory.limits.shapes.zero
 import category_theory.limits.shapes.kernels
 import category_theory.abelian.basic
-import category_theory.abelian.additive
 
 open category_theory.limits
 

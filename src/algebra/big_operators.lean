@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 
 import data.finset.intervals
+import data.finset.fold
 import data.nat.enat
 import tactic.omega
 import tactic.abel

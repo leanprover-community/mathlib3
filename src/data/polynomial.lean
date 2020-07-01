@@ -164,7 +164,7 @@ begin
   (λ x _ hx, nat.mem_antidiagonal.2 (hite x hx)) (λ _ _ _ _ _ _ h, h)
   (λ x h₁ h₂, ⟨x, _, _, rfl⟩) _,
   { rw [mem_product, mem_support_iff, mem_support_iff],
-    exact ⟨left_ne_zero_of_mul h₂, right_ne_zero_of_mul h₂⟩ },
+    exact ne_zero_and_ne_zero_of_mul h₂ },
   { rw nat.mem_antidiagonal at h₁, rwa [if_pos h₁] },
   { intros x h hx, rw [if_pos (hite x hx)] }
 end

@@ -66,7 +66,7 @@ theorem abv_inv
   (a : β) : abv a⁻¹ = (abv a)⁻¹ :=
 classical.by_cases
   (λ h : a = 0, by simp [h, abv_zero abv])
-  (λ h, (mul_left_inj' (mt (abv_eq_zero abv).1 h)).1 $
+  (λ h, mul_right_cancel' (mt (abv_eq_zero abv).1 h) $
     by rw [← abv_mul abv]; simp [h, mt (abv_eq_zero abv).1 h, abv_one abv])
 
 theorem abv_div

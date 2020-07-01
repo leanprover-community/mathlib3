@@ -51,7 +51,7 @@ lemma dvd_and_not_dvd_iff [integral_domain α] {x y : α} :
 ⟨λ ⟨⟨d, hd⟩, hyx⟩, ⟨λ hx0, by simpa [hx0] using hyx, ⟨d,
     mt is_unit_iff_dvd_one.1 (λ ⟨e, he⟩, hyx ⟨e, by rw [hd, mul_assoc, ← he, mul_one]⟩), hd⟩⟩,
   λ ⟨hx0, d, hdu, hdx⟩, ⟨⟨d, hdx⟩, λ ⟨e, he⟩, hdu (is_unit_of_dvd_one _
-    ⟨e, (mul_right_inj' hx0).1 $ by conv {to_lhs, rw [he, hdx]};simp [mul_assoc]⟩)⟩⟩
+    ⟨e, mul_left_cancel' hx0 $ by conv {to_lhs, rw [he, hdx]};simp [mul_assoc]⟩)⟩⟩
 
 lemma pow_dvd_pow_iff [integral_domain α] {x : α} {n m : ℕ} (h0 : x ≠ 0) (h1 : ¬ is_unit x) :
   x ^ n ∣ x ^ m ↔ n ≤ m :=
@@ -146,10 +146,10 @@ lemma irreducible_of_prime [integral_domain α] {p : α} (hp : prime p) : irredu
 ⟨hp.not_unit, λ a b hab,
   (show a * b ∣ a ∨ a * b ∣ b, from hab ▸ hp.div_or_div (hab ▸ (dvd_refl _))).elim
     (λ ⟨x, hx⟩, or.inr (is_unit_iff_dvd_one.2
-      ⟨x, (mul_left_inj' (show a ≠ 0, from λ h, by simp [*, prime] at *)).1
+      ⟨x, mul_right_cancel' (show a ≠ 0, from λ h, by simp [*, prime] at *)
         $ by conv {to_lhs, rw hx}; simp [mul_comm, mul_assoc, mul_left_comm]⟩))
     (λ ⟨x, hx⟩, or.inl (is_unit_iff_dvd_one.2
-      ⟨x, (mul_left_inj' (show b ≠ 0, from λ h, by simp [*, prime] at *)).1
+      ⟨x, mul_right_cancel' (show b ≠ 0, from λ h, by simp [*, prime] at *)
         $ by conv {to_lhs, rw hx}; simp [mul_comm, mul_assoc, mul_left_comm]⟩))⟩
 
 lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul [integral_domain α] {p : α} (hp : prime p) {a b : α}
@@ -284,7 +284,7 @@ lemma irreducible_iff_of_associated [comm_semiring α] {p q : α} (h : p ~ᵤ q)
 lemma associated_mul_left_cancel [integral_domain α] {a b c d : α}
 (h : a * b ~ᵤ c * d) (h₁ : a ~ᵤ c) (ha : a ≠ 0) : b ~ᵤ d :=
 let ⟨u, hu⟩ := h in let ⟨v, hv⟩ := associated.symm h₁ in
-⟨u * (v : units α), (mul_right_inj' ha).1
+⟨u * (v : units α), mul_left_cancel' ha
   begin
     rw [← hv, mul_assoc c (v : α) d, mul_left_comm c, ← hu],
     simp [hv.symm, mul_assoc, mul_comm, mul_left_comm]

@@ -82,10 +82,10 @@ attribute [norm_cast] add_units.coe_neg
 @[simp, to_additive] lemma inv_mul : (↑a⁻¹ * a : α) = 1 := inv_val _
 @[simp, to_additive] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := val_inv _
 
-@[to_additive] lemma inv_mul' {u : units α} {a : α} (h : ↑u = a) : ↑u⁻¹ * a = 1 :=
+@[to_additive] lemma inv_mul_of_eq {u : units α} {a : α} (h : ↑u = a) : ↑u⁻¹ * a = 1 :=
 by { rw [←h, u.inv_mul], }
 
-@[to_additive] lemma mul_inv' {u : units α} {a : α} (h : ↑u = a) : a * ↑u⁻¹ = 1 :=
+@[to_additive] lemma mul_inv_of_eq {u : units α} {a : α} (h : ↑u = a) : a * ↑u⁻¹ = 1 :=
 by { rw [←h, u.mul_inv], }
 
 @[simp, to_additive] lemma mul_inv_cancel_left (a : units α) (b : α) : (a:α) * (↑a⁻¹ * b) = b :=

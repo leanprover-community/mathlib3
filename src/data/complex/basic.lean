@@ -316,7 +316,7 @@ by simp [inv_eq_one_div]
 
 @[simp] lemma norm_sq_inv (z : ℂ) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
 if h : z = 0 then by simp [h] else
-(mul_left_inj' (mt norm_sq_eq_zero.1 h)).1 $
+mul_right_cancel' (mt norm_sq_eq_zero.1 h) $
 by rw [← norm_sq_mul]; simp [h, -norm_sq_mul]
 
 @[simp] lemma norm_sq_div (z w : ℂ) : norm_sq (z / w) = norm_sq z / norm_sq w :=

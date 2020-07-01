@@ -267,7 +267,7 @@ begin
   intros x y,
   by_cases hy : y = 0, { simp [hy, zero_iff], },
   rw show y = 1 * y, by rw one_mul,
-  rw [← (inv_mul_cancel_assoc_left x y hy)],
+  rw [← (inv_mul_cancel_left' x y hy)],
   iterate 2 {rw [v.map_mul _ y, v'.map_mul _ y]},
   rw [v.map_one, v'.map_one],
   split; intro H,

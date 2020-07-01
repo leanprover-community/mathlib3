@@ -1528,7 +1528,7 @@ theorem filter_map_le_filter_map (f : α → option β) {s t : multiset α}
   (h : s ≤ t) : filter_map f s ≤ filter_map f t :=
 le_induction_on h $ λ l₁ l₂ h, (h.filter_map _).subperm
 
-/- countp -/
+/-! ### countp -/
 
 /-- `countp p s` counts the number of elements of `s` (with multiplicity) that
   satisfy `p`. -/

@@ -698,13 +698,13 @@ meta structure eliminee_info :=
 (type : expr)
 (args : rb_map ℕ expr)
 
-meta def get_eliminee_info (ename : name) : tactic eliminee_info := do
-  e ← get_local ename,
-  type ← infer_type e,
+-- Precond: eliminee is a local const.
+meta def get_eliminee_info (eliminee : expr) : tactic eliminee_info := do
+  type ← infer_type eliminee,
   ⟨f, args⟩ ← type.decompose_app_normalizing,
   pure
-    { ename := ename,
-      eexpr := e,
+    { ename := eliminee.local_pp_name,
+      eexpr := eliminee,
       type := type,
       args := args.to_rb_map }
 
@@ -1404,10 +1404,10 @@ meta def revert_all_except (hyp_unique_names : name_set) : tactic ℕ := do
   let ctx := ctx.filter (λ h, ¬ hyp_unique_names.contains h.local_uniq_name),
   revert_lst ctx
 
-meta def eliminate (eliminee_name : name) (generate_induction_hyps : bool)
+meta def eliminate_hyp (generate_induction_hyps : bool) (eliminee : expr)
   (fixed : list name := []) (with_names : list name := []) : tactic unit :=
 focus1 $ do
-  einfo ← get_eliminee_info eliminee_name,
+  einfo ← get_eliminee_info eliminee,
   let eliminee := einfo.eexpr,
   let eliminee_type := einfo.type,
   let eliminee_args := einfo.args.values.reverse,
@@ -1415,7 +1415,7 @@ focus1 $ do
 
   -- Get info about the inductive type
   iname ← get_inductive_name eliminee_type <|> fail!
-    "The type of {eliminee_name} should be an inductive type, but it is\n{eliminee_type}",
+    "The type of {eliminee} should be an inductive type, but it is\n{eliminee_type}",
   iinfo ← get_inductive_info env iname,
 
   -- TODO We would like to disallow mutual/nested inductive types, since these
@@ -1539,24 +1539,49 @@ focus1 $ do
 
   pure ()
 
+meta def eliminate_expr (generate_induction_hyps : bool) (eliminee : expr)
+  (eq_name : option name := none) (fixed : list name := [])
+  (with_names : list name := [])
+  : tactic unit := do
+  num_reverted ← revert_kdeps eliminee,
+  -- TODO use revert_deps instead?
+  hyp ← match eq_name with
+      | some h := do
+          x ← get_unused_name `x,
+          interactive.generalize h () (to_pexpr eliminee, x),
+          get_local x
+      | none := do
+          if eliminee.is_local_constant
+            then pure eliminee
+            else do
+              x ← get_unused_name `x,
+              generalize' eliminee x
+      end,
+  intron num_reverted,
+  eliminate_hyp generate_induction_hyps hyp fixed with_names
+
 end tactic
 
 
 namespace tactic.interactive
 
-open interactive interactive.types lean.parser
+open tactic interactive interactive.types lean.parser
 
 precedence `fixing`:0
 
-meta def induction' (hyp : parse ident)
+meta def induction' (eliminee : parse cases_arg_p)
   (fixed : parse (optional (tk "fixing" *> many ident)))
   (with_names : parse (optional with_ident_list))
-  : tactic unit :=
-tactic.eliminate hyp tt (fixed.get_or_else []) (with_names.get_or_else [])
+  : tactic unit := do
+  let ⟨eq_name, e⟩ := eliminee,
+  e ← to_expr e,
+  eliminate_expr tt e eq_name (fixed.get_or_else []) (with_names.get_or_else [])
 
-meta def cases' (hyp : parse ident)
+meta def cases' (eliminee : parse cases_arg_p)
   (with_names : parse (optional with_ident_list))
-  : tactic unit :=
-tactic.eliminate hyp ff [] (with_names.get_or_else [])
+  : tactic unit := do
+  let ⟨eq_name, e⟩ := eliminee,
+  e ← to_expr e,
+  eliminate_expr ff e eq_name [] (with_names.get_or_else [])
 
 end tactic.interactive

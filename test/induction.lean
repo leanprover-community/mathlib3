@@ -288,7 +288,6 @@ begin
   }
 end
 
-
 -- An underscore in a "with" clause means "use the auto-generated name for this
 -- argument".
 example (x : List ℕ) : unit :=
@@ -303,6 +302,33 @@ begin
   }
 end
 
+-- induction' and cases' can be used to perform induction/case analysis on
+-- arbitrary expressions (not just hypotheses). A very synthetic example:
+example {α} : α ∨ ¬ α :=
+begin
+  cases' classical.em α with a nota,
+  { exact (or.inl a) },
+  { exact (or.inr nota) }
+end
+
+-- Cases'/induction' can add an equation witnessing the case split they
+-- performed. Again, a highly synthetic example:
+example {α} (xs : list α)
+  : xs.reverse.length = 0 ∨ ∃ m, xs.reverse.length = m + 1 :=
+begin
+  cases' eq : xs.length,
+  case zero {
+    left,
+    rw list.length_reverse,
+    exact eq
+  },
+  case succ : l {
+    right,
+    rw list.length_reverse,
+    use l,
+    exact eq
+  }
+end
 
 --------------------------------------------------------------------------------
 -- Jasmin's original use cases
@@ -768,6 +794,3 @@ begin
 end
 
 end semantics
-
-
-/- TODO: Do examples like `measure_induct_rule` in `Lambda_Free_RPOs`? -/

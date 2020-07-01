@@ -1468,7 +1468,7 @@ end
 
 open opposite
 
-/- Moving to the opposite ring commutes with summing. -/
+/-- Moving to the opposite ring commutes with summing. -/
 @[simp] lemma op_sum [ring β] {s : finset α} (f : α → β) :
   op (∑ x in s, f x) = ∑ x in s, op (f x) :=
 begin

@@ -78,7 +78,8 @@ If
 (0 g)
 ```
 is invertible, then `g` is invertible.
--/def is_iso_right_of_is_iso_biprod_map
+-/
+def is_iso_right_of_is_iso_biprod_map
   {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) [is_iso (biprod.map f g)] : is_iso g :=
 begin
   haveI : is_iso (biprod.map g f) := by
@@ -206,7 +207,7 @@ def biprod.gaussian (f : X₁ ⊞ X₂ ⟶ Y₁ ⊞ Y₂) [is_iso (biprod.inl �
   Σ' (L : X₁ ⊞ X₂ ≅ X₁ ⊞ X₂) (R : Y₁ ⊞ Y₂ ≅ Y₁ ⊞ Y₂) (g₂₂ : X₂ ⟶ Y₂),
     L.hom ≫ f ≫ R.hom = biprod.map (biprod.inl ≫ f ≫ biprod.fst) g₂₂ :=
 begin
-  have := biprod.gaussian'
+  let := biprod.gaussian'
     (biprod.inl ≫ f ≫ biprod.fst) (biprod.inl ≫ f ≫ biprod.snd)
     (biprod.inr ≫ f ≫ biprod.fst) (biprod.inr ≫ f ≫ biprod.snd),
   simpa [biprod.of_components_eq],

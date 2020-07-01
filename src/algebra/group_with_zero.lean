@@ -47,7 +47,8 @@ division-free."
 section
 set_option default_priority 100 -- see Note [default priority]
 
-/-- A type with multiplication and zero is a `mul_zero_class` if `0 * a = a * 0 = 0` for all `a`. -/
+/-- Typeclass for expressing that a type `M₀` with multiplication and a zero satisfies
+`0 * a = 0` and `a * 0 = 0` for all `a : M₀`. -/
 @[protect_proj, ancestor has_mul has_zero]
 class mul_zero_class (M₀ : Type*) extends has_mul M₀, has_zero M₀ :=
 (zero_mul : ∀ a : M₀, 0 * a = 0)
@@ -104,7 +105,8 @@ right_ne_zero_of_mul $ ne_zero_of_eq_one h
 
 end
 
-/-- A type with `(*)` and `0` *has no zero divisors* if `a * b = 0` implies `a = 0` or `b = 0`. -/
+/-- Predicate typeclass for expressing that `a * b = 0` implies `a = 0` or `b = 0`
+for all `a` and `b` of type `G₀`. -/
 class no_zero_divisors (M₀ : Type*) [has_mul M₀] [has_zero M₀] : Prop :=
 (eq_zero_or_eq_zero_of_mul_eq_zero : ∀ {a b : M₀}, a * b = 0 → a = 0 ∨ b = 0)
 

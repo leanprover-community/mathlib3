@@ -136,6 +136,18 @@ theorem nhds_within_inter' (a : α) (s t : set α) :
   nhds_within a (s ∩ t) = (nhds_within a s) ⊓ 𝓟 t :=
 by { unfold nhds_within, rw [←inf_principal, inf_assoc] }
 
+lemma mem_nhds_within_insert (h : t ∈ nhds_within x s) :
+  insert x t ∈ nhds_within x (insert x s) :=
+begin
+  rcases mem_nhds_within.1 h with ⟨o, o_open, xo, ho⟩,
+  apply mem_nhds_within.2 ⟨o, o_open, xo, _⟩,
+  assume y,
+  simp only [and_imp, mem_inter_eq, mem_insert_iff],
+  rintro yo (rfl | ys),
+  { simp },
+  { simp [ho ⟨yo, ys⟩] }
+end
+
 lemma nhds_within_prod_eq {α : Type*} [topological_space α] {β : Type*} [topological_space β]
   (a : α) (b : β) (s : set α) (t : set β) :
   nhds_within (a, b) (s.prod t) = (nhds_within a s).prod (nhds_within b t) :=

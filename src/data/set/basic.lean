@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura
 -/
 import tactic.basic
 import tactic.finish
+import tactic.tauto
 import data.subtype
 import logic.unique
 import data.prod
@@ -610,6 +611,9 @@ ext $ assume a, by simp [or.comm, or.left_comm]
 
 theorem insert_nonempty (a : α) (s : set α) : (insert a s).nonempty :=
 ⟨a, mem_insert a s⟩
+
+lemma insert_inter (x : α) (s t : set α) : insert x (s ∩ t) = insert x s ∩ insert x t :=
+by { ext y, simp, tauto! }
 
 -- useful in proofs by induction
 theorem forall_of_forall_insert {P : α → Prop} {a : α} {s : set α} (h : ∀ x, x ∈ insert a s → P x) :

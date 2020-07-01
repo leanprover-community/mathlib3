@@ -158,10 +158,6 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {s s₁ t u : set E} {f f₁ : E → F} {g : F → G} {x : E} {c : F}
 {b : E × F → G}
 
-lemma zou  (f : E → F) (g : G → 𝕜) (p : E × G) :
-  prod.map f g p = (f p.1, g p.2) :=
-rfl
-
 /-- A formal multilinear series over a field `𝕜`, from `E` to `F`, is given by a family of
 multilinear maps from `E^n` to `F` for all `n`. -/
 @[derive add_comm_group]
@@ -471,18 +467,6 @@ lemma times_cont_diff_within_at.continuous_within_at {n : with_top ℕ}
   (h : times_cont_diff_within_at 𝕜 n f s x) : continuous_within_at f s x :=
 (h.continuous_within_at').mono (subset_insert x s)
 
-lemma mem_nhds_within_insert (h : t ∈ nhds_within x s) :
-  insert x t ∈ nhds_within x (insert x s) :=
-begin
-  rcases mem_nhds_within.1 h with ⟨o, o_open, xo, ho⟩,
-  apply mem_nhds_within.2 ⟨o, o_open, xo, _⟩,
-  assume y,
-  simp only [and_imp, mem_inter_eq, mem_insert_iff],
-  rintro yo (rfl | ys),
-  { simp },
-  { simp [ho ⟨yo, ys⟩] }
-end
-
 lemma times_cont_diff_within_at.congr_of_eventually_eq {n : with_top ℕ}
   (h : times_cont_diff_within_at 𝕜 n f s x) (h₁ : f₁ =ᶠ[nhds_within x s] f) (hx : f₁ x = f x) :
   times_cont_diff_within_at 𝕜 n f₁ s x :=
@@ -533,9 +517,6 @@ lemma times_cont_diff_within_at.of_le {m n : with_top ℕ}
   (h : times_cont_diff_within_at 𝕜 n f s x) (hmn : m ≤ n) :
   times_cont_diff_within_at 𝕜 m f s x :=
 λ k hk, h k (le_trans hk hmn)
-
-lemma insert_inter : insert x (s ∩ t) = insert x s ∩ insert x t :=
-by { ext y, simp, tauto }
 
 lemma times_cont_diff_within_at_inter' {n : with_top ℕ} (h : t ∈ nhds_within x s) :
   times_cont_diff_within_at 𝕜 n f (s ∩ t) x ↔ times_cont_diff_within_at 𝕜 n f s x :=

@@ -231,7 +231,7 @@ begin
   apply nnreal.tendsto_pow_at_top_nhds_0_of_lt_1 hr
 end
 
-/- In a normed ring, the powers of an element x with `∥x∥ < 1` tend to zero. -/
+/-- In a normed ring, the powers of an element x with `∥x∥ < 1` tend to zero. -/
 lemma tendsto_pow_at_top_nhds_0_of_norm_lt_1 {α : Type*} [normed_ring α] (x : α)
   (h : ∥x∥ < 1) : tendsto (λ (n : ℕ), x ^ n) at_top (𝓝 0) :=
 begin
@@ -549,7 +549,7 @@ variables [normed_ring α] [complete_space α]
 
 open normed_space
 
-/- A geometric series in a complete normed ring is summable.
+/-- A geometric series in a complete normed ring is summable.
 Proved above (same name, different namespace) for not-necessarily-complete normed fields. -/
 lemma normed_ring.summable_geometric_of_norm_lt_1
   (x : α) (h : ∥x∥ < 1) : summable (λ (n:ℕ), x ^ n) :=

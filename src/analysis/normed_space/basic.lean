@@ -200,14 +200,14 @@ theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
   tendsto f l (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in l, ∥ f x ∥ < ε :=
 metric.tendsto_nhds.trans $ by simp only [dist_zero_right]
 
-/- A homomorphism `f` of normed groups is Lipschitz, if there exists a constant `C` such that for
+/-- A homomorphism `f` of normed groups is Lipschitz, if there exists a constant `C` such that for
 all `x`, one has `∥f x∥ ≤ C * ∥x∥`.
 The analogous condition for a linear map of normed spaces is in `normed_space.operator_norm`. -/
 lemma add_monoid_hom.lipschitz_of_bound (f :α →+ β) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   lipschitz_with (nnreal.of_real C) f :=
 lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
 
-/- A homomorphism `f` of normed groups is continuous, if there exists a constant `C` such that for
+/-- A homomorphism `f` of normed groups is continuous, if there exists a constant `C` such that for
 all `x`, one has `∥f x∥ ≤ C * ∥x∥`.
 The analogous condition for a linear map of normed spaces is in `normed_space.operator_norm`. -/
 lemma add_monoid_hom.continuous_of_bound (f :α →+ β) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
@@ -458,12 +458,12 @@ end
 lemma units.norm_pos {α : Type*} [normed_ring α] [nonzero α] (x : units α) : 0 < ∥(x:α)∥ :=
 norm_pos_iff.mpr (units.coe_ne_zero x)
 
-/- In a normed ring, the left-multiplication `add_monoid_hom` is bounded. -/
+/-- In a normed ring, the left-multiplication `add_monoid_hom` is bounded. -/
 lemma mul_left_bound {α : Type*} [normed_ring α] (x : α) :
   ∀ (y:α), ∥add_monoid_hom.mul_left x y∥ ≤ ∥x∥ * ∥y∥ :=
 norm_mul_le x
 
-/- In a normed ring, the right-multiplication `add_monoid_hom` is bounded. -/
+/-- In a normed ring, the right-multiplication `add_monoid_hom` is bounded. -/
 lemma mul_right_bound {α : Type*} [normed_ring α] (x : α) :
   ∀ (y:α), ∥add_monoid_hom.mul_right x y∥ ≤ ∥x∥ * ∥y∥ :=
 λ y, by {rw mul_comm, convert norm_mul_le y x}

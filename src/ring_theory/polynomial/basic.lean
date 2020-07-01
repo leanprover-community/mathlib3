@@ -7,6 +7,7 @@ Ring-theoretic supplement of data.polynomial.
 
 Main result: Hilbert basis theorem, that if a ring is noetherian then so is its polynomial ring.
 -/
+import algebra.char_p
 import data.mv_polynomial
 import ring_theory.noetherian
 
@@ -16,6 +17,9 @@ local attribute [instance, priority 100] classical.prop_decidable
 universes u v w
 
 namespace polynomial
+
+instance {R : Type u} [comm_semiring R] (p : ℕ) [h : char_p R p] : char_p (polynomial R) p :=
+let ⟨h⟩ := h in ⟨λ n, by rw [← C.map_nat_cast, ← C_0, C_inj, h]⟩
 
 variables (R : Type u) [comm_ring R]
 

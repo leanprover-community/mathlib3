@@ -71,7 +71,7 @@ lemma conj_apply (f : End X) : α.conj f = α.inv ≫ f ≫ α.hom := rfl
 α.conj.map_mul g f
 
 @[simp] lemma conj_id : α.conj (𝟙 X) = 𝟙 Y :=
-is_monoid_hom.map_one α.conj
+α.conj.map_one
 
 @[simp] lemma refl_conj (f : End X) : (iso.refl X).conj f = f :=
 by rw [conj_apply, iso.refl_inv, iso.refl_hom, category.id_comp, category.comp_id]

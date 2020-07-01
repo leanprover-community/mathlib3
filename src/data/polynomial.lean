@@ -329,7 +329,7 @@ theorem coeff_monomial_mul (p : polynomial R) (n d : ℕ) (r : R) :
   coeff (monomial n r * p) (d + n) = r * coeff p d :=
 by rw [single_eq_C_mul_X, mul_assoc, coeff_C_mul, X_pow_mul, coeff_mul_X_pow]
 
-@[simp]
+-- This can already be proved by `simp`.
 theorem coeff_mul_monomial_zero (p : polynomial R) (d : ℕ) (r : R) :
   coeff (p * monomial 0 r) d = coeff p d * r :=
 coeff_mul_monomial p 0 d r

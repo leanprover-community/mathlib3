@@ -182,7 +182,7 @@ mem_closure_iff_nhds_within_ne_bot.1 $ subset_closure hx
 
 lemma is_closed.mem_of_nhds_within_ne_bot {s : set α} (hs : is_closed s)
   {x : α} (hx : nhds_within x s ≠ ⊥) : x ∈ s :=
-by simpa only [hs.closure_eq] using mem_closure_iff_nhds_within_ne_bot.2 hx
+by simpa only [closure_eq_of_is_closed hs] using mem_closure_iff_nhds_within_ne_bot.2 hx
 
 /-
 nhds_within and subtypes
@@ -420,6 +420,11 @@ begin
   exact tendsto.comp hg this
 end
 
+lemma continuous_within_at.comp' {g : β → γ} {f : α → β} {s : set α} {t : set β} {x : α}
+  (hg : continuous_within_at g t (f x)) (hf : continuous_within_at f s x) :
+  continuous_within_at (g ∘ f) (s ∩ f⁻¹' t) x :=
+hg.comp (hf.mono (inter_subset_left _ _)) (inter_subset_right _ _)
+
 lemma continuous_on.comp {g : β → γ} {f : α → β} {s : set α} {t : set β}
   (hg : continuous_on g t) (hf : continuous_on f s) (h : s ⊆ f ⁻¹' t) :
   continuous_on (g ∘ f) s :=
@@ -428,6 +433,11 @@ lemma continuous_on.comp {g : β → γ} {f : α → β} {s : set α} {t : set �
 lemma continuous_on.mono {f : α → β} {s t : set α} (hf : continuous_on f s) (h : t ⊆ s)  :
   continuous_on f t :=
 λx hx, tendsto_le_left (nhds_within_mono _ h) (hf x (h hx))
+
+lemma continuous_on.comp' {g : β → γ} {f : α → β} {s : set α} {t : set β}
+  (hg : continuous_on g t) (hf : continuous_on f s) :
+  continuous_on (g ∘ f) (s ∩ f⁻¹' t) :=
+hg.comp (hf.mono (inter_subset_left _ _)) (inter_subset_right _ _)
 
 lemma continuous.continuous_on {f : α → β} {s : set α} (h : continuous f) :
   continuous_on f s :=
@@ -464,7 +474,7 @@ begin
     ... ⊆ f ⁻¹' t : preimage_mono hu
 end
 
-lemma continuous_within_at.congr_of_mem_nhds_within {f f₁ : α → β} {s : set α} {x : α}
+lemma continuous_within_at.congr_of_eventually_eq {f f₁ : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (h₁ : f₁ =ᶠ[nhds_within x s] f) (hx : f₁ x = f x) :
   continuous_within_at f₁ s x :=
 by rwa [continuous_within_at, filter.tendsto, hx, filter.map_congr h₁]
@@ -472,7 +482,7 @@ by rwa [continuous_within_at, filter.tendsto, hx, filter.map_congr h₁]
 lemma continuous_within_at.congr {f f₁ : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (h₁ : ∀y∈s, f₁ y = f y) (hx : f₁ x = f x) :
   continuous_within_at f₁ s x :=
-h.congr_of_mem_nhds_within (mem_sets_of_superset self_mem_nhds_within h₁) hx
+h.congr_of_eventually_eq (mem_sets_of_superset self_mem_nhds_within h₁) hx
 
 lemma continuous_on_const {s : set α} {c : β} : continuous_on (λx, c) s :=
 continuous_const.continuous_on

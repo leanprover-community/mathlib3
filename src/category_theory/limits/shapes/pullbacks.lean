@@ -168,6 +168,11 @@ def mk {W : C} (fst : W ⟶ X) (snd : W ⟶ Y) (eq : fst ≫ f = snd ≫ g) : pu
 @[simp] lemma mk_π_app_one {W : C} (fst : W ⟶ X) (snd : W ⟶ Y) (eq : fst ≫ f = snd ≫ g) :
   (mk fst snd eq).π.app walking_cospan.one = fst ≫ f := rfl
 
+@[simp] lemma mk_fst {W : C} (fst : W ⟶ X) (snd : W ⟶ Y) (eq : fst ≫ f = snd ≫ g) :
+  (mk fst snd eq).fst = fst := rfl
+@[simp] lemma mk_snd {W : C} (fst : W ⟶ X) (snd : W ⟶ Y) (eq : fst ≫ f = snd ≫ g) :
+  (mk fst snd eq).snd = snd := rfl
+
 @[reassoc] lemma condition (t : pullback_cone f g) : fst t ≫ f = snd t ≫ g :=
 (t.w inl).trans (t.w inr).symm
 
@@ -261,6 +266,11 @@ def mk {W : C} (inl : Y ⟶ W) (inr : Z ⟶ W) (eq : f ≫ inl = g ≫ inr) : pu
   (mk inl inr eq).ι.app walking_span.right = inr := rfl
 @[simp] lemma mk_ι_app_zero {W : C} (inl : Y ⟶ W) (inr : Z ⟶ W) (eq : f ≫ inl = g ≫ inr) :
   (mk inl inr eq).ι.app walking_span.zero = f ≫ inl := rfl
+
+@[simp] lemma mk_inl {W : C} (inl : Y ⟶ W) (inr : Z ⟶ W) (eq : f ≫ inl = g ≫ inr) :
+  (mk inl inr eq).inl = inl := rfl
+@[simp] lemma mk_inr {W : C} (inl : Y ⟶ W) (inr : Z ⟶ W) (eq : f ≫ inl = g ≫ inr) :
+  (mk inl inr eq).inr = inr := rfl
 
 @[reassoc] lemma condition (t : pushout_cocone f g) : f ≫ (inl t) = g ≫ (inr t) :=
 (t.w fst).trans (t.w snd).symm

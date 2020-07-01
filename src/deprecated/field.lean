@@ -21,9 +21,9 @@ lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 := (of f).map_ne_zero
 
 lemma map_eq_zero : f x = 0 ↔ x = 0 := (of f).map_eq_zero
 
-lemma map_inv : f x⁻¹ = (f x)⁻¹ := (of f).map_inv
+lemma map_inv : f x⁻¹ = (f x)⁻¹ := (of f).map_inv x
 
-lemma map_div : f (x / y) = f x / f y := (of f).map_div
+lemma map_div : f (x / y) = f x / f y := (of f).map_div x y
 
 lemma injective : function.injective f := (of f).injective
 

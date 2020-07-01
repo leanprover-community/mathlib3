@@ -163,7 +163,7 @@ begin
   (λ x _ hx, nat.mem_antidiagonal.2 (hite x hx)) (λ _ _ _ _ _ _ h, h)
   (λ x h₁ h₂, ⟨x, _, _, rfl⟩) _,
   { rw [mem_product, mem_support_iff, mem_support_iff],
-    exact ⟨ne_zero_of_mul_ne_zero_right h₂, ne_zero_of_mul_ne_zero_left h₂⟩ },
+    exact ⟨left_ne_zero_of_mul h₂, right_ne_zero_of_mul h₂⟩ },
   { rw nat.mem_antidiagonal at h₁, rwa [if_pos h₁] },
   { intros x h hx, rw [if_pos (hite x hx)] }
 end
@@ -1038,7 +1038,7 @@ le_antisymm (degree_map_le f) $
 
 lemma monic_map [semiring S] (f : R →+* S) (hp : monic p) : monic (p.map f) :=
 if h : (0 : S) = 1 then
-  by haveI := subsingleton_of_zero_eq_one S h;
+  by haveI := subsingleton_of_zero_eq_one h;
   exact subsingleton.elim _ _
 else
 have f (leading_coeff p) ≠ 0,
@@ -1271,8 +1271,8 @@ end injective
 
 theorem monic_of_degree_le (n : ℕ) (H1 : degree p ≤ n) (H2 : coeff p n = 1) : monic p :=
 decidable.by_cases
-  (assume H : degree p < n, @subsingleton.elim _ (subsingleton_of_zero_eq_one R $
-    H2 ▸ (coeff_eq_zero_of_degree_lt H).symm) _ _)
+  (assume H : degree p < n, eq_of_zero_eq_one
+    (H2 ▸ (coeff_eq_zero_of_degree_lt H).symm) _ _)
   (assume H : ¬degree p < n,
     by rwa [monic, leading_coeff, nat_degree, (lt_or_eq_of_le H1).resolve_left H])
 
@@ -1310,7 +1310,7 @@ decidable.by_cases
       rwa [leading_coeff_X_pow, mul_one])
 
 lemma monic_mul (hp : monic p) (hq : monic q) : monic (p * q) :=
-if h0 : (0 : R) = 1 then by haveI := subsingleton_of_zero_eq_one _ h0;
+if h0 : (0 : R) = 1 then by haveI := subsingleton_of_zero_eq_one h0;
   exact subsingleton.elim _ _
 else
   have leading_coeff p * leading_coeff q ≠ 0, by simp [monic.def.1 hp, monic.def.1 hq, ne.symm h0],
@@ -1328,7 +1328,7 @@ variables [comm_semiring R] {p q : polynomial R}
 
 lemma multiplicity_finite_of_degree_pos_of_monic (hp : (0 : with_bot ℕ) < degree p)
   (hmp : monic p) (hq : q ≠ 0) : multiplicity.finite p q :=
-have zn0 : (0 : R) ≠ 1, from λ h, by haveI := subsingleton_of_zero_eq_one _ h;
+have zn0 : (0 : R) ≠ 1, from λ h, by haveI := subsingleton_of_zero_eq_one h;
   exact hq (subsingleton.elim _ _),
 ⟨nat_degree q, λ ⟨r, hr⟩,
   have hp0 : p ≠ 0, from λ hp0, by simp [hp0] at hp; contradiction,
@@ -1828,7 +1828,7 @@ theorem degree_mod_by_monic_le (p : polynomial R) {q : polynomial R}
 decidable.by_cases
   (assume H : q = 0, by rw [monic, H, leading_coeff_zero] at hq;
     have : (0:polynomial R) = 1 := (by rw [← C_0, ← C_1, hq]);
-    rw [eq_zero_of_zero_eq_one _ this (p %ₘ q), eq_zero_of_zero_eq_one _ this q]; exact le_refl _)
+    exact le_of_eq (congr_arg _ $ eq_of_zero_eq_one this (p %ₘ q) q))
   (assume H : q ≠ 0, le_of_lt $ degree_mod_by_monic_lt _ hq H)
 
 end ring
@@ -1943,7 +1943,7 @@ else
 
 lemma map_mod_div_by_monic [comm_ring S] (f : R →+* S) (hq : monic q) :
   (p /ₘ q).map f = p.map f /ₘ q.map f ∧ (p %ₘ q).map f = p.map f %ₘ q.map f :=
-if h01 : (0 : S) = 1 then by haveI := subsingleton_of_zero_eq_one S h01;
+if h01 : (0 : S) = 1 then by haveI := subsingleton_of_zero_eq_one h01;
   exact ⟨subsingleton.elim _ _, subsingleton.elim _ _⟩
 else
 have h01R : (0 : R) ≠ 1, from mt (congr_arg f)
@@ -2042,7 +2042,7 @@ variables [comm_ring R] {p q : polynomial R}
 
 @[simp] lemma mod_by_monic_X_sub_C_eq_C_eval (p : polynomial R) (a : R) :
   p %ₘ (X - C a) = C (p.eval a) :=
-if h0 : (0 : R) = 1 then by letI := subsingleton_of_zero_eq_one R h0; exact subsingleton.elim _ _
+if h0 : (0 : R) = 1 then by letI := subsingleton_of_zero_eq_one h0; exact subsingleton.elim _ _
 else
 by letI : nonzero R := nonzero.of_ne h0; exact
 have h : (p %ₘ (X - C a)).eval a = p.eval a :=
@@ -2086,7 +2086,7 @@ open_locale classical
 lemma multiplicity_X_sub_C_finite (a : R) (h0 : p ≠ 0) :
   multiplicity.finite (X - C a) p :=
 multiplicity_finite_of_degree_pos_of_monic
-  (have (0 : R) ≠ 1, from (λ h, by haveI := subsingleton_of_zero_eq_one _ h;
+  (have (0 : R) ≠ 1, from (λ h, by haveI := subsingleton_of_zero_eq_one h;
       exact h0 (subsingleton.elim _ _)),
     by haveI : nonzero R := ⟨this⟩; rw degree_X_sub_C; exact dec_trivial)
     (monic_X_sub_C _) h0
@@ -2899,7 +2899,7 @@ on_finset f.support
     apply mem_support_iff.mpr,
     split_ifs at h with hi,
     { exact coeff_ne_zero_of_eq_degree hi },
-    { exact ne_zero_of_mul_ne_zero_right h },
+    { exact left_ne_zero_of_mul h },
   end
 
 lemma integral_normalization_coeff_degree {f : polynomial R} {i : ℕ} (hi : f.degree = i) :
@@ -2928,7 +2928,7 @@ begin
     { exact le_trans (le_of_eq hi.symm) degree_le_nat_degree },
     { erw [with_bot.some_le_some],
       apply le_nat_degree_of_ne_zero,
-      exact ne_zero_of_mul_ne_zero_right h } },
+      exact left_ne_zero_of_mul h } },
   { exact integral_normalization_coeff_nat_degree hf }
 end
 
@@ -2946,7 +2946,7 @@ begin
     exact coeff_ne_zero_of_eq_degree hi },
   split,
   { intro h,
-    exact ne_zero_of_mul_ne_zero_right h },
+    exact left_ne_zero_of_mul h },
   { intro h,
     refine mul_ne_zero h (pow_ne_zero _ _),
     exact λ h, hf (leading_coeff_eq_zero.mp h) }

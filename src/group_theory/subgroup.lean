@@ -671,7 +671,7 @@ def center : subgroup G :=
   mul_mem' := λ a b (ha : ∀ g, g * a = a * g) (hb : ∀ g, g * b = b * g) g,
     by assoc_rw [ha, hb g],
   inv_mem' := λ a (ha : ∀ g, g * a = a * g) g,
-    by rw [← inv_inj', mul_inv_rev, inv_inv, ← ha, mul_inv_rev, inv_inv] }
+    by rw [← inv_inj, mul_inv_rev, inv_inv, ← ha, mul_inv_rev, inv_inv] }
 
 variable {G}
 

@@ -48,7 +48,7 @@ lemma zero_lt_one' : (0 : α) < 1 :=
 lt_of_le_of_ne zero_le_one' zero_ne_one
 
 @[simp] lemma zero_le' : 0 ≤ a :=
-by simpa only [mul_zero, mul_one] using mul_le_mul_left' zero_le_one'
+by simpa only [mul_zero, mul_one] using mul_le_mul_left' (@zero_le_one' α _)
 
 @[simp] lemma not_lt_zero' : ¬a < 0 :=
 not_lt_of_le zero_le'
@@ -79,8 +79,8 @@ end
 lemma ne_zero_of_lt (h : b < a) : a ≠ 0 :=
 λ h1, not_lt_zero' $ show b < 0, from h1 ▸ h
 
-@[simp] lemma zero_lt_unit (u : units α) : (0 : α) < u :=
-zero_lt_iff.2 $ unit_ne_zero u
+@[simp] lemma units.zero_lt (u : units α) : (0 : α) < u :=
+zero_lt_iff.2 $ u.ne_zero
 
 lemma mul_lt_mul'''' (hab : a < b) (hcd : c < d) : a * c < b * d :=
 have hb : b ≠ 0 := ne_zero_of_lt hab,

@@ -287,7 +287,7 @@ begin
   suffices : x * y ∣ z * gcd x y,
   { cases this with p hp, use p,
     generalize_hyp : gcd x y = g at hxy hs hp ⊢, subst hs,
-    rw [mul_left_comm, mul_div_cancel_left _ hxy, ← domain.mul_left_inj hxy, hp],
+    rw [mul_left_comm, mul_div_cancel_left _ hxy, ← mul_left_inj' hxy, hp],
     rw [← mul_assoc], simp only [mul_right_comm] },
   rw [gcd_eq_gcd_ab, mul_add], apply dvd_add,
   { rw mul_left_comm, exact mul_dvd_mul_left _ (dvd_mul_of_dvd_left hyz _) },

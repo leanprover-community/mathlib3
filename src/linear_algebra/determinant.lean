@@ -26,7 +26,7 @@ begin
   refine (finset.sum_eq_single 1 _ _).trans _,
   { intros σ h1 h2,
     cases not_forall.1 (mt equiv.ext h2) with x h3,
-    convert ring.mul_zero _,
+    convert mul_zero _,
     apply finset.prod_eq_zero,
     { change x ∈ _, simp },
     exact if_neg h3 },

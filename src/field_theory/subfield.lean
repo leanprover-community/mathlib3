@@ -37,7 +37,7 @@ instance preimage.is_subfield {K : Type*} [field K]
 
 instance image.is_subfield {K : Type*} [field K]
   (f : F →+* K) (s : set F) [is_subfield s] : is_subfield (f '' s) :=
-{ inv_mem := λ a ⟨x, xmem, ha⟩, ⟨x⁻¹, is_subfield.inv_mem xmem, ha ▸ f.map_inv⟩,
+{ inv_mem := λ a ⟨x, xmem, ha⟩, ⟨x⁻¹, is_subfield.inv_mem xmem, ha ▸ f.map_inv _⟩,
   ..f.is_subring_image s }
 
 instance range.is_subfield {K : Type*} [field K]

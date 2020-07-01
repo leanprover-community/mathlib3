@@ -90,7 +90,7 @@ variables (R) (p q : ℕ)
 /-- Expand the polynomial by a factor of p, so `∑ aₙ xⁿ` becomes `∑ aₙ xⁿᵖ`. -/
 noncomputable def expand : polynomial R →ₐ[R] polynomial R :=
 { commutes' := λ r, eval₂_C _ _,
-  .. (eval₂_ring_hom C.to_ring_hom (X ^ p) : polynomial R →+* polynomial R) }
+  .. (eval₂_ring_hom C (X ^ p) : polynomial R →+* polynomial R) }
 
 lemma coe_expand : (expand R p : polynomial R → polynomial R) = eval₂ C (X ^ p) := rfl
 

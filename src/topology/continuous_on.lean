@@ -182,7 +182,7 @@ mem_closure_iff_nhds_within_ne_bot.1 $ subset_closure hx
 
 lemma is_closed.mem_of_nhds_within_ne_bot {s : set α} (hs : is_closed s)
   {x : α} (hx : nhds_within x s ≠ ⊥) : x ∈ s :=
-by simpa only [closure_eq_of_is_closed hs] using mem_closure_iff_nhds_within_ne_bot.2 hx
+by simpa only [hs.closure_eq] using mem_closure_iff_nhds_within_ne_bot.2 hx
 
 /-
 nhds_within and subtypes

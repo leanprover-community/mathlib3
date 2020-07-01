@@ -83,13 +83,25 @@ end
 
 def sum_divisors : ℕ := ∑ i in divisors n, i
 
+def psum_divisors : ℕ+ := ⟨sum_divisors n,
+begin
+  have h : ∑ i in divisors n, 0 = 0, rw finset.sum_eq_zero_iff, simp,
+  rw ← h,
+  apply finset.sum_lt_sum, simp,
+  existsi (1 : ℕ+), simp only [nat.succ_pos', exists_prop, and_true],
+  simp [pnat.one_dvd]
+end⟩
+
+@[simp]
+lemma coe_psum_divisors : ↑(psum_divisors n) = sum_divisors n := rfl
+
 def sum_proper_divisors : ℕ := ∑ i in proper_divisors n, i
 
 lemma sum_divisors_eq_sum_proper_divisors_add_self :
   sum_divisors n = sum_proper_divisors n + n :=
 begin
   rw sum_divisors,
-  rw sum_proper_divisors,
+  rw sum_proper_divisors, dsimp,
   rw divisors_eq_proper_divisors_insert_self,
   rw finset.sum_insert, rw add_comm,
   apply not_proper_self
@@ -104,14 +116,14 @@ end definitions
 
 section basic_lemmas
 
----- should two_mul be a simp lemma?
-lemma perfect_iff_sum_divisors_twice {n : ℕ+} : perfect n ↔ sum_divisors n = 2 * n :=
-begin
-  rw sum_divisors_eq_sum_proper_divisors_add_self,
-  rw perfect, rw two_mul, simp
-end
+@[simp]
+lemma pnat.eq_iff {m n : ℕ+} :
+(m : ℕ) = ↑n ↔ m = n := by { split, apply pnat.eq, intro h, rw h }
 
-@[simp] 
+lemma perfect_iff_sum_divisors_twice {n : ℕ+} : perfect n ↔ sum_divisors n = 2 * n :=
+by { rw [perfect, sum_divisors_eq_sum_proper_divisors_add_self], simp [two_mul] }
+
+@[simp]
 lemma divisors_one : divisors 1 = ({1} : finset ℕ+) :=
 by { ext, rw mem_divisors, simp [pnat.dvd_one_iff] } ---  pnat.dvd_one_iff should be a simp lemma
 
@@ -122,15 +134,6 @@ by { rw mem_divisors, apply pnat.one_dvd }
 lemma mem_self_divisors {n : ℕ+} : n ∈ divisors n :=
 by { rw mem_divisors, apply pnat.dvd_refl }
 
-lemma pos_sum_divisors {n : ℕ+} : 0 < sum_divisors n :=
-begin
-  unfold sum_divisors,
-  have h : ∑ i in divisors n, 0 = 0, rw finset.sum_eq_zero_iff, simp,
-  rw ← h,
-  apply finset.sum_lt_sum, simp,
-  existsi (1 : ℕ+), simp only [nat.succ_pos', exists_prop, and_true],
-  simp
-end
 
 @[simp]
 lemma divisors_pow_prime {p : ℕ+} (pp : p.prime) (k : ℕ)  {x : ℕ+} :
@@ -179,51 +182,49 @@ end
 
 lemma pnat.prime.one_lt {p : ℕ+} : p.prime → 1 < p := nat.prime.one_lt
 
+lemma geom_series_succ {α : Type} [semiring α] (x : α) (k : ℕ) :
+  geom_series x k.succ = geom_series x k + x ^ k :=
+begin
+  unfold geom_series, rw add_comm, simp [finset.sum_range_succ],
+end
+
 lemma sum_divisors_pow_prime {p : ℕ+} (pp : p.prime) (k : ℕ)  :
-  sum_divisors (p ^ k) * (p - 1)= (p ^ (k + 1) - 1) :=
+  sum_divisors (p ^ k) = geom_series p (k + 1) :=
 begin
   rw sum_divisors,
   induction k, simp,
   rw divisors_pow_prime_insert pp,
-  rw finset.sum_insert, 
-  { rw add_mul, rw k_ih,
-    rw nat.pow_succ p (k_n.succ), rw nat.succ_eq_add_one,
-    rw ← nat.add_sub_assoc,
-    { refine congr (congr rfl _) rfl,
-    have h := add_one_sub_one_prime pp,
-    conv_rhs {rw ← h, rw mul_add, rw h}, simp },
-    { rw ← pnat.one_coe, rw ← pnat.pow_coe, rw pnat.coe_le_coe, apply pnat.one_le }
-  },
-  { intro contra, have h := divisor_le contra,
-    have g1 :=  pnat.mul_lt_mul_right (p ^ k_n) (pnat.prime.one_lt pp),
-    rw pow_succ at h, rw one_mul at g1, apply not_lt_of_ge h g1, -- linarith for nats
+  rw finset.sum_insert,
+  { rw k_ih, conv_rhs {rw geom_series_succ}, rw add_comm, simp },
+  { intro contra,
+    have h := divisor_le contra,
+    have g1 :=  nat.mul_lt_mul_of_pos_left (nat.prime.one_lt pp) (nat.pos_pow_of_pos (k_n) (nat.prime.pos pp)),
+    apply not_lt_of_le h, rw pow_add, rw ← pnat.coe_lt_coe, revert g1, simp
   }
 end
 
 lemma sum_divisors_prime {p : ℕ+} (pp : p.prime) : sum_divisors p = p + 1 :=
 begin
-  have h1 := sum_divisors_pow_prime pp 1,
-  rw pow_one at h1, --- had to switch which pow, lol
-  have h2 : ((p + 1) * (p - 1) : ℕ) = p ^ 2 - 1, -- have to make type declarations
-  { rw nat.mul_sub_left_distrib, repeat {rw add_mul},
-    rw nat.pow_two, simp only [mul_one, one_mul],
-    rw add_comm, rw nat.add_sub_add_left },
-  rw ← h2 at h1,
-  apply nat.eq_of_mul_eq_mul_right _ h1,
-  apply nat.prime.pred_pos pp
+  have h := sum_divisors_pow_prime pp 1, rw pow_one at h, rw h, unfold geom_series,
+  simp [finset.sum_range_succ]
 end
 
 lemma pnat.prime_two : (2 : ℕ+).prime := nat.prime_two
 
-lemma sum_divisors_pow_two (k : ℕ) : sum_divisors (2 ^ k) = (2 ^ (k + 1) - 1) :=
+lemma geom_series_two (k : ℕ): geom_series 2 k = 2 ^ k - 1 :=
 begin
-  have h := sum_divisors_pow_prime pnat.prime_two k,
-  change sum_divisors (2 ^ k) * (2 - 1) = 2 ^ (k + 1) - 1 at h, -- couldn't find anything to do but change
-  rw mul_one at h,
-  apply h,
+  induction k with k hk, simp, 
+  rw [geom_series_succ, hk, nat.pow_succ, mul_two, add_comm, nat.add_sub_assoc, nat.pow_eq_pow],
+  apply nat.pos_pow_of_pos, omega
 end
 
-lemma odd_sum_divisors_pow_two (k : ℕ) : ¬ has_dvd.dvd 2 (sum_divisors (2 ^ k)) :=
+lemma sum_divisors_pow_two (k : ℕ) : sum_divisors (2 ^ k) = (2 ^ (k + 1) - 1) :=
+begin
+  induction k with k hk, simp [sum_divisors],
+  rw sum_divisors_pow_prime pnat.prime_two k.succ, simp [geom_series_two]
+end
+
+lemma odd_sum_divisors_pow_two (k : ℕ) : ¬  2 ∣ (sum_divisors (2 ^ k)) :=
 begin
   rw sum_divisors_pow_two k,
   intro contra,
@@ -240,10 +241,6 @@ end
 @[simp]
 lemma pnat.coe_eq_one_iff {m : ℕ+} :
 (m : ℕ) = 1 ↔ m = 1 := by { split; intro h; try { apply pnat.eq}; rw h; simp }
-
-@[simp]
-lemma pnat.eq_iff {m n : ℕ+} :
-(m : ℕ) = ↑n ↔ m = n := by { split, apply pnat.eq, intro h, rw h }
 
 
 lemma pnat.dvd_prime {p m : ℕ+} (pp : p.prime) :
@@ -335,14 +332,16 @@ begin
 end
 
 
-lemma prime_and_one_of_sum_two_divisors_eq_sum_divisors {x y : ℕ+} (hneq : x ≠ y) (hdvd : y ∣ x) (hsum : ↑(x + y) = sum_divisors x) :
+lemma prime_and_one_of_sum_two_divisors_eq_sum_divisors {x y : ℕ+}
+  (hneq : x ≠ y) (hdvd : y ∣ x) (hsum : x + y = psum_divisors x) :
   x.prime ∧ y = 1 :=
 begin
   have hdivs : {x, y} = divisors x,
   { apply subset_eq_divisors_of_sum_eq_sum,
     { intro z, simp only [finset.mem_insert, finset.mem_singleton], intro h,
       cases h; rw h, refl, apply hdvd },
-    { rw ← hsum, apply finset.sum_pair hneq } },
+    { rw ← pnat.eq_iff at hsum, rw coe_psum_divisors at hsum,
+      rw ← hsum, apply finset.sum_pair hneq } },
   have card2 := pnat.card_pair_eq_two hneq, rw hdivs at card2, rw ← prime_iff_two_divisors at card2,
   split, apply card2,
   rw divisors_prime card2 at hdivs,
@@ -428,6 +427,10 @@ begin
       rw mem_divisors at hc, apply hc } }
 end
 
+lemma psum_divisors_multiplicative (m n : ℕ+) :
+  m.coprime n → psum_divisors (m * n) = (psum_divisors m) * (psum_divisors n) :=
+by { intro h, apply pnat.eq, apply sum_divisors_multiplicative m n h }
+
 end basic_lemmas
 
 section mersenne_to_perfect
@@ -438,6 +441,9 @@ A version of ``mersenne'' from number_theory/lucas_lehmer for pnats
 def pmersenne (p : ℕ+) : ℕ+ := ⟨ mersenne p, mersenne_pos p.pos ⟩
 
 def nat.mersenne_succ (n : ℕ) : ℕ+ := ⟨mersenne (n + 1), mersenne_pos n.succ_pos⟩
+
+@[simp]
+lemma nat.coe_mersenne_succ (n : ℕ) : ↑(n.mersenne_succ) = mersenne (n + 1) := rfl
 
 @[simp]
 lemma pmersenne_val (p : ℕ+) : ↑(pmersenne p) = mersenne (↑ p) := rfl
@@ -507,74 +513,66 @@ section perfect_to_mersenne
 theorem even_perfect_to_mersenne {n : ℕ+} (even : 2 ∣ n) (perf : perfect n):
   ∃ (k : ℕ), n = (2 ^ k) * k.mersenne_succ ∧ k.mersenne_succ.prime :=
 begin
-  let k := (factorisation n) two_prime, existsi k,
+  let k := (factor_finsupp n) two_prime, existsi k,
   let x := odd_part n,
   have hxk : x * 2 ^ k = n := (pow_mult_odd_part_eq_self n),
-  --change  at hxk,
-  have posk : 0 < k, rw ← prime_dvd_iff_factorisation_pos, apply even,
+  have posk : 0 < k, rw ← prime_dvd_iff_factor_finsupp_pos, apply even,
   
   have hiff : n = 2 ^ k * k.mersenne_succ ↔ 2 * n = 2 * (2 ^ k * k.mersenne_succ),
   { split; intro h, rw h, apply mul_left_cancel h },
   rw [hiff, ← mul_assoc, ← pow_succ (2 : ℕ+)],
   
   rw perfect_iff_sum_divisors_twice at perf,
-  rw ← pnat.eq_iff, simp only [pnat.coe_bit0, pnat.mul_coe, pnat.one_coe, pnat.pow_coe],
-  rw ← perf,
-  rw ← hxk at perf,
-  change sum_divisors (x * 2 ^ k) = 2 * ↑(x * 2 ^ k) at perf,
-  rw sum_divisors_multiplicative at perf, swap, apply pnat.coprime.symm (coprime_pow_odd_part posk),
-  symmetry' at perf,
+  have pperf : psum_divisors n = (2 : ℕ+) * n, apply pnat.eq, apply perf,
+  rw ← hxk at pperf,
+  rw psum_divisors_multiplicative at pperf, swap, apply pnat.coprime.symm (coprime_pow_odd_part posk),
+  symmetry' at pperf,
 
-  rw hxk at perf,
-  have dvd2n : sum_divisors (2 ^ k) ∣ 2 * n, {existsi (sum_divisors x), rw perf, rw mul_comm},
-  have dvdn : sum_divisors (2 ^ k) ∣ n, 
-  { apply nat.coprime.dvd_of_dvd_mul_left (nat.coprime.symm _) dvd2n,
-    rw nat.prime.coprime_iff_not_dvd nat.prime_two, apply odd_sum_divisors_pow_two k },
-  have dvdx : sum_divisors (2 ^ k) ∣ x := dvd_odd_part_of_odd_dvd dvdn (odd_sum_divisors_pow_two k),
-  let y := x / sum_divisors (2 ^ k),
-  have ysdpow : y * sum_divisors (2 ^ k) = x := pnat.mul_div_exact dvdx,
+  rw hxk at pperf,
+  have dvd2n : psum_divisors (2 ^ k) ∣ (2 : ℕ+) * n,
+  { apply pnat.dvd_intro (psum_divisors x), rw pperf, rw mul_comm },
+  have odd := odd_sum_divisors_pow_two k,
+  have xodd2n : odd_part (2 * n) = x := odd_part_two_mul_eq_odd_part,
+  have dvdx : psum_divisors (2 ^ k) ∣ odd_part (2 * n) := dvd_odd_part_of_odd_dvd dvd2n odd,
+  rw xodd2n at dvdx,
+  let y := pnat.div_exact dvdx,
+  have ysdpow : psum_divisors (2 ^ k) * y = x := pnat.mul_div_exact dvdx, rw mul_comm at ysdpow,
 
-  rw ← hxk at perf,
-  change 2 * (x * 2 ^ k) = sum_divisors x * sum_divisors (2 ^ k) at perf,
-  rw mul_comm at perf,
-  rw mul_assoc at perf,
-  rw ← nat.pow_succ 2 k at perf,
-  rw ← ysdpow at perf,
-  rw mul_comm at perf,
-  rw ← mul_assoc at perf,
-  have h := pnat.mul_right_cancel perf,
+  rw ← hxk at pperf,
+  rw mul_comm at pperf,
+  rw mul_assoc at pperf,
+  rw mul_comm _ (2 : ℕ+) at pperf,
+  rw ← pow_succ _ k at pperf,
+  rw ← ysdpow at pperf,
+  rw mul_comm at pperf,
+  rw ← mul_assoc at pperf,
+  have h := mul_right_cancel pperf,
   rw ysdpow at *,
 
   have xneqy : x ≠ y,
-  { symmetry, rw ← ysdpow, rw sum_divisors_pow_two, rw ← mul_one y, rw mul_assoc, rw one_mul,
-    intro contra, have h := nat.eq_of_mul_eq_mul_left _ contra,
-    { have h'' := nat.le_succ_of_pred_le (nat.le_of_eq h.symm),
-      have h' := nat.pow_lt_pow_of_lt_right (by omega : 2 > 1) posk,
-      change 2 ^ k * 2 ≤ 2 * 1 at h'', rw mul_comm at h'',
-      have h3 :=  nat.le_of_mul_le_mul_left h'' (nat.prime.pos nat.prime_two),
-      rw nat.pow_zero at h', linarith },
-    { by_cases y = 0, swap, apply nat.pos_of_ne_zero h,
-      rw h at ysdpow, rw zero_mul at ysdpow, rw ← ysdpow at hxk, rw zero_mul at hxk,
-      exfalso, rw hxk at posn, linarith } },
+  { symmetry, rw ← mul_one y, rw ← ysdpow, intro contra,
+  have h := mul_left_cancel contra, revert h,
+  rw [← pnat.eq_iff, coe_psum_divisors, pnat.one_coe, sum_divisors_pow_two],
+  apply ne_of_lt, rw nat.sub_one, rw ← nat.pred_succ 1,
+  apply nat.pred_lt_pred, apply nat.succ_ne_zero, 
+  simp only [nat.pred_succ, nat.succ_eq_add_one], norm_num, 
+  conv_lhs {rw ← nat.pow_one 2},
+  apply nat.pow_lt_pow_of_lt_right _, apply nat.lt_add_of_pos_left posk, omega, },
   have hxy : x.prime ∧ y = 1,
-  { apply prime_and_one_of_sum_two_divisors_eq_sum_divisors xnonzero xneqy _, swap,
-    { existsi sum_divisors (2 ^ k), rw ysdpow },
-    rw [← h, ← ysdpow, sum_divisors_pow_two],
-    have powpos : 2 ^ k.succ > 0, apply nat.pos_pow_of_pos, linarith,
-    symmetry, rw ← nat.succ_pred_eq_of_pos powpos, rw nat.succ_eq_add_one, rw add_mul,
-    simp only [nat.add_succ_sub_one, add_zero, one_mul, add_left_inj], rw mul_comm },
+  { apply prime_and_one_of_sum_two_divisors_eq_sum_divisors xneqy _, 
+    swap, apply pnat.dvd_intro (psum_divisors (2 ^ k)) ysdpow,
+    rw ← h, transitivity psum_divisors (2 ^ k) * y + y, rw [mul_comm, ysdpow],
+    transitivity psum_divisors (2 ^ k) * y + 1 * y, rw one_mul, 
+    rw ← add_mul, refine congr (congr rfl _) rfl,
+    apply pnat.eq, simp only [sum_divisors_pow_two, coe_psum_divisors, pnat.coe_bit0, pnat.one_coe, pnat.pow_coe, pnat.add_coe],
+    apply nat.succ_pred_eq_of_pos, apply nat.pos_pow_of_pos (k + 1) (nat.prime.pos nat.prime_two)
+  },
 
-  have xeq : x = sum_divisors (2 ^ k), rw ← ysdpow, rw hxy.right, simp,
+  have xeq : x = k.mersenne_succ, rw ← ysdpow, rw hxy.right, apply pnat.eq, simp [mersenne, sum_divisors_pow_two],
   have xp : x.prime := hxy.left,
 
-  split, swap, rw sum_divisors_pow_two at xeq, rw ← xeq, apply xp,
-  rw ← (pow_fin_mult_coprime_part_eq_self nat.prime_two posn),
-  rw sum_divisors_multiplicative, swap,
-  { apply nat.prime.coprime_pow_of_not_dvd nat.prime_two (not_dvd_coprime_part nat.prime_two posn)},
-  rw [sum_divisors_prime xp, xeq, sum_divisors_pow_two],
-  refine congr (congr rfl _) rfl,
-  apply nat.succ_pred_eq_of_pos, simp only [nat.nat_zero_eq_zero, gt_iff_lt],
-  apply nat.pos_pow_of_pos (k + 1) (nat.prime.pos nat.prime_two)
+  split, swap, rw ← xeq, apply xp,
+  rw [← hxk, ← xeq, pow_add, ← mul_assoc, mul_comm, ← mul_assoc, pow_one],
 end
 
 end perfect_to_mersenne
@@ -587,12 +585,7 @@ The Euclid-Euler Theorem, characterizing perfect numbers in terms of Mersenne pr
 theorem even_perfect_iff_mersenne {n : ℕ+}:
   2 ∣ n ∧ perfect n ↔ ∃ (p : ℕ+), n = (2 ^ (↑p - 1)) * (pmersenne p) ∧ (pmersenne p).prime :=
 begin
-  split, intro even_perf, exact even_perfect_to_mersenne even_perf.left even_perf.right,
-  intro h, cases h with p hp, rw hp.left, split, swap, apply mersenne_to_perfect p hp.right,
-  rw nat.prime.dvd_mul nat.prime_two, left,
-  rw nat.dvd_prime_pow nat.prime_two, existsi 1,
-  simp only [exists_prop, and_true, eq_self_iff_true, nat.pow_one],
-  have gt2 := two_le_exponent_of_prime_mersenne hp.right, omega
+  sorry
 end
 
 end perfect_iff_mersenne

@@ -452,7 +452,7 @@ norm_pos_iff.mpr (units.coe_ne_zero x)
 /- In a normed ring, the left-multiplication `add_monoid_hom` is bounded. -/
 lemma mul_left_bound {α : Type*} [normed_ring α] (x : α) :
   ∀ (y:α), ∥add_monoid_hom.mul_left x y∥ ≤ ∥x∥ * ∥y∥ :=
-λ y, by convert norm_mul_le x y
+norm_mul_le x
 
 /- In a normed ring, the right-multiplication `add_monoid_hom` is bounded. -/
 lemma mul_right_bound {α : Type*} [normed_ring α] (x : α) :

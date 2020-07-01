@@ -180,7 +180,14 @@ def biprod.unipotent_lower {X₁ X₂ : C} (r : X₂ ⟶ X₁) : X₁ ⊞ X₂ �
 { hom := biprod.of_components (𝟙 _) 0 r (𝟙 _),
   inv := biprod.of_components (𝟙 _) 0 (-r) (𝟙 _), }
 
+/--
+If `f` is a morphism `X₁ ⊞ X₂ ⟶ Y₁ ⊞ Y₂` whose `X₁ ⟶ Y₁` entry is an isomorphism,
+then we can construct isomorphisms `L : X₁ ⊞ X₂ ≅ X₁ ⊞ X₂` and `R : Y₁ ⊞ Y₂ ≅ Y₁ ⊞ Y₂`
+so that `L.hom ≫ g ≫ R.hom` is diagonal (with `X₁ ⟶ Y₁` component still `f`),
+via Gaussian elimination.
 
+(This is the version of `biprod.gaussian` written in terms of components.)
+-/
 def biprod.gaussian' [is_iso f₁₁] :
   Σ' (L : X₁ ⊞ X₂ ≅ X₁ ⊞ X₂) (R : Y₁ ⊞ Y₂ ≅ Y₁ ⊞ Y₂) (g₂₂ : X₂ ⟶ Y₂),
     L.hom ≫ (biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂) ≫ R.hom = biprod.map f₁₁ g₂₂ :=
@@ -189,6 +196,12 @@ def biprod.gaussian' [is_iso f₁₁] :
  f₂₂ - f₂₁ ≫ (inv f₁₁) ≫ f₁₂,
  by ext; simp; abel⟩
 
+/--
+If `f` is a morphism `X₁ ⊞ X₂ ⟶ Y₁ ⊞ Y₂` whose `X₁ ⟶ Y₁` entry is an isomorphism,
+then we can construct isomorphisms `L : X₁ ⊞ X₂ ≅ X₁ ⊞ X₂` and `R : Y₁ ⊞ Y₂ ≅ Y₁ ⊞ Y₂`
+so that `L.hom ≫ g ≫ R.hom` is diagonal (with `X₁ ⟶ Y₁` component still `f`),
+via Gaussian elimination.
+-/
 def biprod.gaussian (f : X₁ ⊞ X₂ ⟶ Y₁ ⊞ Y₂) [is_iso (biprod.inl ≫ f ≫ biprod.fst)] :
   Σ' (L : X₁ ⊞ X₂ ≅ X₁ ⊞ X₂) (R : Y₁ ⊞ Y₂ ≅ Y₁ ⊞ Y₂) (g₂₂ : X₂ ⟶ Y₂),
     L.hom ≫ f ≫ R.hom = biprod.map (biprod.inl ≫ f ≫ biprod.fst) g₂₂ :=

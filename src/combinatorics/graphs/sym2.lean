@@ -35,7 +35,6 @@ end
 -- The symmetric square is the cartesian product α × α modulo `swap`.
 @[reducible]
 def sym2 (α : Type u) [h : setoid (α × α)] := quotient h
---def sym2 (α : Type u) := quotient (rel.setoid α)
 
 lemma eq_swap {a b : α} : ⟦(a, b)⟧ = ⟦(b, a)⟧ :=
 by { rw quotient.eq, apply rel.swap }

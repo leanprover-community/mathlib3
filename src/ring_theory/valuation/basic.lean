@@ -117,7 +117,7 @@ def to_preorder : preorder R := preorder.lift v
 begin
   split ; intro h,
   { contrapose! h,
-    exact unit_ne_zero (units.map (v : K →* Γ₀) $ units.mk0 _ h) },
+    exact ((is_unit.mk0 _ h).map (v : K →* Γ₀)).ne_zero },
   { exact h.symm ▸ v.map_zero },
 end
 

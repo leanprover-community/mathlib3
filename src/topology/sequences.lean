@@ -74,7 +74,7 @@ lemma is_seq_closed_of_is_closed (M : set α) (_ : is_closed M) : is_seq_closed 
 suffices sequential_closure M ⊆ M, from
   set.eq_of_subset_of_subset (subset_sequential_closure M) this,
 calc sequential_closure M ⊆ closure M : sequential_closure_subset_closure M
-  ... = M : closure_eq_of_is_closed ‹is_closed M›
+  ... = M : is_closed.closure_eq ‹is_closed M›
 
 /-- The limit of a convergent sequence in a sequentially closed set is in that set.-/
 lemma mem_of_is_seq_closed {A : set α} (_ : is_seq_closed A) {x : ℕ → α}

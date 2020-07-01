@@ -5,6 +5,13 @@ Author: Mario Carneiro
 -/
 import data.multiset.erase_dup
 
+/-!
+## Preparations for defining operations on `finset`.
+
+The operations here ignore multiplicities,
+and preparatory for defining the corresponding operations on `finset`.
+-/
+
 namespace multiset
 open list
 

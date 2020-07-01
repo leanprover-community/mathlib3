@@ -5,6 +5,10 @@ Author: Mario Carneiro
 -/
 import data.multiset.basic
 
+/-!
+## The powerset of a multiset
+-/
+
 namespace multiset
 open list
 

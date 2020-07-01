@@ -5,6 +5,10 @@ Author: Mario Carneiro
 -/
 import data.multiset.nodup
 
+/-!
+## Erasing duplicates in a multiset.
+-/
+
 namespace multiset
 open list
 

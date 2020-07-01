@@ -7,6 +7,10 @@ import data.multiset.basic
 import control.traversable.lemmas
 import control.traversable.instances
 
+/-!
+## Functoriality of `multiset`.
+-/
+
 universes u
 
 namespace multiset

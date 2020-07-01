@@ -5,6 +5,10 @@ Author: Johannes Hölzl
 -/
 import data.multiset.nodup
 
+/-!
+## The cartesian product of multisets
+-/
+
 namespace multiset
 
 section pi

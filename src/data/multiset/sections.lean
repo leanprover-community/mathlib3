@@ -5,11 +5,19 @@ Author: Johannes Hölzl
 -/
 import data.multiset.basic
 
+/-!
+## Sections of a multiset
+-/
+
 namespace multiset
 variables {α : Type*}
 
 section sections
 
+/--
+The sections of a multiset of multisets `s` consists of all those multisets
+which can be put in bijection with `s`, so each element is an member of the corresponding multiset.
+-/
 def sections (s : multiset (multiset α)) : multiset (multiset α) :=
 multiset.rec_on s {0} (λs _ c, s.bind $ λa, c.map ((::) a))
   (assume a₀ a₁ s pi, by simp [map_bind, bind_bind a₀ a₁, cons_swap])

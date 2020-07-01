@@ -6,6 +6,12 @@ Authors: Scott Morrison
 import data.multiset.nodup
 import data.list.intervals
 
+/-!
+## Intervals in ℕ as multisets
+
+For now this only covers `Ico n m`, the "closed-open" interval containing `[n, ..., m-1]`.
+-/
+
 namespace multiset
 open list
 

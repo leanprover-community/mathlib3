@@ -5,6 +5,10 @@ Author: Mario Carneiro
 -/
 import data.multiset.erase_dup
 
+/-!
+## The fold operation for a commutative associative operation over a multiset.
+-/
+
 namespace multiset
 variables {α β : Type*}
 

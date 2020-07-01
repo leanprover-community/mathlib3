@@ -7,6 +7,10 @@ import data.list.sort
 import data.multiset.basic
 import data.string.basic
 
+/-!
+## Construct a sorted list from a multiset.
+-/
+
 namespace multiset
 open list
 variables {α : Type*}

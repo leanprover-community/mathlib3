@@ -280,6 +280,62 @@ lemma factor_finsupp_pow_prime : factor_finsupp (p ^ k) = finsupp.single p k := 
 
 end prime_powers
 
+section pnat_facts
+
+@[simp]
+lemma pnat.eq_iff {m n : ℕ+} :
+(m : ℕ) = ↑n ↔ m = n := by { split, apply pnat.eq, intro h, rw h }
+
+@[simp]
+def pnat.coprime_coe {m n : ℕ+} : nat.coprime ↑m ↑n ↔ m.coprime n :=
+by { unfold pnat.coprime, unfold nat.coprime, rw ← pnat.eq_iff, simp }
+
+lemma pnat.gcd_eq_left_iff_dvd {m n : ℕ+} : m ∣ n ↔ m.gcd n = m :=
+by { rw pnat.dvd_iff, rw nat.gcd_eq_left_iff_dvd, rw ← pnat.eq_iff, simp }
+
+lemma pnat.coprime.gcd_mul_right_cancel (m : ℕ+) {n k : ℕ+} :
+  k.coprime n → (m * k).gcd n = m.gcd n :=
+begin
+  intro h, apply pnat.eq, simp only [pnat.gcd_coe, pnat.mul_coe],
+  apply nat.coprime.gcd_mul_right_cancel, simpa
+end
+
+lemma pnat.gcd_comm {m n : ℕ+} : m.gcd n = n.gcd m :=
+by { apply pnat.eq, simp only [pnat.gcd_coe], apply nat.gcd_comm }
+
+lemma pnat.coprime.symm {m n : ℕ+} : m.coprime n → n.coprime m :=
+by { unfold pnat.coprime, rw pnat.gcd_comm, simp }
+
+lemma pnat.coprime.coprime_dvd_left {m k n : ℕ+} :
+  m ∣ k → k.coprime n → m.coprime n :=
+by { rw pnat.dvd_iff, repeat {rw ← pnat.coprime_coe}, apply nat.coprime.coprime_dvd_left }
+
+lemma coprime_factor_eq_gcd_left {a b m n : ℕ+} (cop : m.coprime n) (am : a ∣ m) (bn : b ∣ n):
+  a = (a * b).gcd m :=
+begin
+  rw pnat.gcd_eq_left_iff_dvd at am,
+  conv_lhs {rw ← am}, symmetry,
+  apply pnat.coprime.gcd_mul_right_cancel a,
+  apply pnat.coprime.coprime_dvd_left bn cop.symm,
+end
+
+lemma pnat.coprime.gcd_mul (k : ℕ+) {m n : ℕ+} (h: m.coprime n) :
+  k.gcd (m * n) = k.gcd m * k.gcd n :=
+begin
+  rw ← pnat.coprime_coe at h, apply pnat.eq,
+  simp only [pnat.gcd_coe, pnat.mul_coe], apply nat.coprime.gcd_mul k h
+end
+
+lemma pnat.gcd_eq_left {m n : ℕ+} : m ∣ n → m.gcd n = m :=
+by { rw pnat.dvd_iff, intro h, apply pnat.eq, simp only [pnat.gcd_coe], apply nat.gcd_eq_left h }
+
+def pnat.coprime.pow {m n : ℕ+} (k l : ℕ) (h : m.coprime n) : (m ^ k).coprime (n ^ l) :=
+begin
+  rw ← pnat.coprime_coe at *, simp only [pnat.pow_coe], apply nat.coprime.pow, apply h
+end
+
+end pnat_facts
+
 section coprime_part
 
 variables (p : nat.primes) (n : ℕ+)

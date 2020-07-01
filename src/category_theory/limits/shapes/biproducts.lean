@@ -708,6 +708,16 @@ begin
     eq_to_hom_refl, limits.has_zero_morphisms.zero_comp],
 end
 
+/-- A preadditive category with finite products has finite biproducts. -/
+def has_finite_biproducts.of_has_finite_products [has_finite_products.{v} C] :
+  has_finite_biproducts.{v} C :=
+⟨λ J _ _, { has_biproduct := λ F, by exactI has_biproduct.of_has_product _ }⟩
+
+/-- A preadditive category with finite coproducts has finite biproducts. -/
+def has_finite_biproducts.of_has_finite_coproducts [has_finite_coproducts.{v} C] :
+  has_finite_biproducts.{v} C :=
+⟨λ J _ _, { has_biproduct := λ F, by exactI has_biproduct.of_has_coproduct _ }⟩
+
 section
 variables {f : J → C} [has_biproduct f]
 

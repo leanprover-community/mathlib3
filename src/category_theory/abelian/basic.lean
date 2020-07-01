@@ -81,7 +81,7 @@ variables {C : Type u} [category.{v} C]
 variables (C)
 
 section prio
-set_option default_priority 100
+set_option default_priority 101
 
 /--
 A (preadditive) category `C` is called abelian if it has all finite products,
@@ -112,8 +112,10 @@ variables {C : Type u} [category.{v} C] [abelian C]
 
 section to_non_preadditive_abelian
 
-local attribute [instance] has_finite_biproducts.of_finite_products
-instance : has_finite_biproducts.{v} C := by apply_instance
+def has_finite_biproducts : has_finite_biproducts.{v} C :=
+limits.has_finite_biproducts.of_has_finite_products
+
+local attribute [instance] has_finite_biproducts
 
 instance nonpreadditive_abelian : non_preadditive_abelian C :=
 { has_zero_object := infer_instance,
@@ -168,37 +170,7 @@ kernel.lift_ι _ _ _
 
 /-- The map `p : P ⟶ image f` is an epimorphism -/
 instance : epi (abelian.factor_thru_image f) :=
-let I := abelian.image f, p := abelian.factor_thru_image f, i := kernel.ι (cokernel.π f) in
--- It will suffice to consider some g : I ⟶ R such that p ≫ g = 0 and show that g = 0.
-epi_of_cancel_zero _ $ λ R (g : I ⟶ R) (hpg : p ≫ g = 0),
-begin
-  -- Since C is abelian, u := ker g ≫ i is the kernel of some morphism h.
-  let u := kernel.ι g ≫ i,
-  haveI : mono u := mono_comp _ _,
-  have hu := abelian.normal_mono u,
-  let h := hu.g,
-  -- By hypothesis, p factors through the kernel of g via some t.
-  obtain ⟨t, ht⟩ := kernel.lift' g p hpg,
-  have fh : f ≫ h = 0, calc
-    f ≫ h = (p ≫ i) ≫ h : (image.fac f).symm ▸ rfl
-       ... = ((t ≫ kernel.ι g) ≫ i) ≫ h : ht ▸ rfl
-       ... = t ≫ u ≫ h : by simp only [category.assoc]; conv_lhs { congr, skip, rw ←category.assoc }
-       ... = t ≫ 0 : hu.w ▸ rfl
-       ... = 0 : has_zero_morphisms.comp_zero _ _,
-  -- h factors through the cokernel of f via some l.
-  obtain ⟨l, hl⟩ := cokernel.desc' f h fh,
-  have hih : i ≫ h = 0, calc
-    i ≫ h = i ≫ cokernel.π f ≫ l : hl ▸ rfl
-       ... = 0 ≫ l : by rw [←category.assoc, kernel.condition]
-       ... = 0 : has_zero_morphisms.zero_comp _ _,
-  -- i factors through u = ker h via some s.
-  resetI,
-  obtain ⟨s, hs⟩ := normal_mono.lift' u i hih,
-  have hs' : (s ≫ kernel.ι g) ≫ i = 𝟙 I ≫ i, by rw [category.assoc, hs, category.id_comp],
-  haveI : epi (kernel.ι g) := epi_of_epi_fac ((cancel_mono _).1 hs'),
-  -- ker g is an epimorphism, but ker g ≫ g = 0 = ker g ≫ 0, so g = 0 as required.
-  exact zero_of_epi_comp _ (kernel.condition g)
-end
+show epi (non_preadditive_abelian.factor_thru_image f), by apply_instance
 
 instance mono_factor_thru_image [mono f] : mono (abelian.factor_thru_image f) :=
 mono_of_mono_fac $ image.fac f
@@ -231,36 +203,7 @@ cokernel.π_desc _ _ _
 
 /-- The canonical morphism `i : coimage f ⟶ Q` is a monomorphism -/
 instance : mono (abelian.factor_thru_coimage f) :=
-let I := abelian.coimage f, i := abelian.factor_thru_coimage f, p := cokernel.π (kernel.ι f) in
-mono_of_cancel_zero _ $ λ R (g : R ⟶ I) (hgi : g ≫ i = 0),
-begin
-  -- Since C is abelian, u := p ≫ coker g is the cokernel of some morphism h.
-  let u := p ≫ cokernel.π g,
-  haveI : epi u := epi_comp _ _,
-  have hu := abelian.normal_epi u,
-  let h := hu.g,
-  -- By hypothesis, i factors through the cokernel of g via some t.
-  obtain ⟨t, ht⟩ := cokernel.desc' g i hgi,
-  have hf : h ≫ f = 0, calc
-    h ≫ f = h ≫ (p ≫ i) : (coimage.fac f).symm ▸ rfl
-    ... = h ≫ (p ≫ (cokernel.π g ≫ t)) : ht ▸ rfl
-    ... = h ≫ u ≫ t : by simp only [category.assoc]; conv_lhs { congr, skip, rw ←category.assoc }
-    ... = 0 ≫ t : by rw [←category.assoc, hu.w]
-    ... = 0 : has_zero_morphisms.zero_comp _ _,
-  -- h factors through the kernel of f via some l.
-  obtain ⟨l, hl⟩ := kernel.lift' f h hf,
-  have hhp : h ≫ p = 0, calc
-    h ≫ p = (l ≫ kernel.ι f) ≫ p : hl ▸ rfl
-    ... = l ≫ 0 : by rw [category.assoc, cokernel.condition]
-    ... = 0 : has_zero_morphisms.comp_zero _ _,
-  resetI,
-  -- p factors through u = coker h via some s.
-  obtain ⟨s, hs⟩ := normal_epi.desc' u p hhp,
-  have hs' : p ≫ cokernel.π g ≫ s = p ≫ 𝟙 I, by rw [←category.assoc, hs, category.comp_id],
-  haveI : mono (cokernel.π g) := mono_of_mono_fac ((cancel_epi _).1 hs'),
-  -- coker g is a monomorphism, but g ≫ coker g = 0 = 0 ≫ coker g, so g = 0 as required.
-  exact zero_of_comp_mono _ (cokernel.condition g)
-end
+show mono (non_preadditive_abelian.factor_thru_coimage f), by apply_instance
 
 instance epi_factor_thru_coimage [epi f] : epi (abelian.factor_thru_coimage f) :=
 epi_of_epi_fac $ coimage.fac f
@@ -314,22 +257,14 @@ variables {X Y : C} {f : X ⟶ Y}
     of `fork.ι s`. -/
 def epi_is_cokernel_of_kernel [epi f] (s : fork f 0) (h : is_limit s) :
   is_colimit (cokernel_cofork.of_π f (kernel_fork.condition s)) :=
-is_cokernel.cokernel_iso _ _
-  (cokernel.of_iso_comp _ _
-    (limits.is_limit.cone_point_unique_up_to_iso (limit.is_limit _) h)
-    (cone_morphism.w (limits.is_limit.unique_up_to_iso (limit.is_limit _) h).hom _))
-  (as_iso $ abelian.factor_thru_coimage f) (coimage.fac f)
+non_preadditive_abelian.epi_is_cokernel_of_kernel s h
 
 /-- In an abelian category, a mono is the kernel of its cokernel. More precisely:
     If `f` is a monomorphism and `s` is some colimit cokernel cocone on `f`, then `f` is a kernel
     of `cofork.π s`. -/
 def mono_is_kernel_of_cokernel [mono f] (s : cofork f 0) (h : is_colimit s) :
   is_limit (kernel_fork.of_ι f (cokernel_cofork.condition s)) :=
-is_kernel.iso_kernel _ _
-  (kernel.of_comp_iso _ _
-    (limits.is_colimit.cocone_point_unique_up_to_iso h (colimit.is_colimit _))
-    (cocone_morphism.w (limits.is_colimit.unique_up_to_iso h $ colimit.is_colimit _).hom _))
-  (as_iso $ abelian.factor_thru_image f) (image.fac f)
+non_preadditive_abelian.mono_is_kernel_of_cokernel s h
 
 end cokernel_of_kernel
 
@@ -548,3 +483,17 @@ end
 end mono_pushout
 
 end category_theory.abelian
+
+namespace category_theory.non_preadditive_abelian
+
+variables (C : Type u) [category.{v} C] [non_preadditive_abelian.{v} C]
+
+def abelian : abelian.{v} C :=
+{ has_finite_products := infer_instance,
+  has_kernels := (show limits.has_kernels.{v} C, by apply_instance),
+  has_cokernels := infer_instance,
+  normal_mono := λ X Y, normal_mono,
+  normal_epi := λ X Y, normal_epi,
+  ..non_preadditive_abelian.preadditive }
+
+end category_theory.non_preadditive_abelian

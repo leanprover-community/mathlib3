@@ -387,6 +387,7 @@ tsum_eq_tsum_of_has_sum_iff_has_sum $ assume a, has_sum_iff_has_sum_of_iso i h�
 lemma tsum_equiv (j : γ ≃ β) : (∑'c, f (j c)) = (∑'b, f b) :=
 tsum_eq_tsum_of_iso j j.symm (by simp) (by simp)
 
+section topological_add_monoid
 variable [topological_add_monoid α]
 
 lemma tsum_add (hf : summable f) (hg : summable g) : (∑'b, f b + g b) = (∑'b, f b) + (∑'b, g b) :=
@@ -400,10 +401,14 @@ lemma tsum_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → 
   (h₁ : ∀b, summable (λc, f ⟨b, c⟩)) (h₂ : summable f) : (∑'p, f p) = (∑'b c, f ⟨b, c⟩) :=
 (tsum_eq_has_sum $ h₂.has_sum.sigma (assume b, (h₁ b).has_sum)).symm
 
+end topological_add_monoid
+
 section encodable
 open encodable
 variable [encodable γ]
 
+/-- You can compute a sum over an encodably type by summing over the natural numbers and
+  taking a supremum. This is useful for outer measures. -/
 theorem tsum_supr_decode2 [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
   (s : γ → β) : (∑' b : γ, m (s b)) = ∑' i : ℕ, m (⨆ b ∈ decode2 γ i, s b) :=
 begin
@@ -426,6 +431,7 @@ begin
     congr, simp [ext_iff, -option.some_get] }
 end
 
+/-- `tsum_supr_decode2` specialized to the complete lattice of sets. -/
 theorem tsum_Union_decode2 (m : set β → α) (m0 : m ∅ = 0)
   (s : γ → set β) : (∑' b, m (s b)) = ∑' i, m (⋃ b ∈ decode2 γ i, s b) :=
 tsum_supr_decode2 m m0 s

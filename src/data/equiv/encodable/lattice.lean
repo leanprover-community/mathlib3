@@ -32,7 +32,7 @@ lemma Union_decode2 (f : β → set α) : (⋃ b, f b) = ⋃ (i : ℕ) (b ∈ de
 supr_decode2 f
 
 @[elab_as_eliminator] lemma Union_decode2_cases
-  {α} [encodable β] {f : β → set α} {C : set α → Prop}
+  {f : β → set α} {C : set α → Prop}
   (H0 : C ∅) (H1 : ∀ b, C (f b)) {n} :
   C (⋃ b ∈ decode2 β n, f b) :=
 match decode2 β n with

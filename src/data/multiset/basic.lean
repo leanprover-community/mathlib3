@@ -1966,6 +1966,8 @@ namespace multiset
 section choose
 variables (p : α → Prop) [decidable_pred p] (l : multiset α)
 
+/-- Given a proof `hp` that there exists a unique `a ∈ l` such that `p a`, `choose p l hp` returns
+that `a`. -/
 def choose_x : Π hp : (∃! a, a ∈ l ∧ p a), { a // a ∈ l ∧ p a } :=
 quotient.rec_on l (λ l' ex_unique, list.choose_x p l' (exists_of_exists_unique ex_unique)) begin
   intros,

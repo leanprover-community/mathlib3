@@ -43,6 +43,8 @@ division-free."
 section
 set_option default_priority 100 -- see Note [default priority]
 
+/-- Typeclass for expressing that a type `G₀` with multiplication and a zero satisfies
+`0 * a = 0` and `a * 0 = 0` for all `a : G₀`. -/
 @[protect_proj, ancestor has_mul has_zero]
 class mul_zero_class (G₀ : Type*) extends has_mul G₀, has_zero G₀ :=
 (zero_mul : ∀ a : G₀, 0 * a = 0)
@@ -67,6 +69,8 @@ nonzero.zero_ne_one
 lemma one_ne_zero [has_zero G₀] [has_one G₀] [nonzero G₀] : (1:G₀) ≠ 0 :=
 zero_ne_one.symm
 
+/-- Predicate typeclass for expressing that `a * b = 0` implies `a = 0` or `b = 0`
+for all `a` and `b` of type `G₀`. -/
 class no_zero_divisors (G₀ : Type*) [has_mul G₀] [has_zero G₀] : Prop :=
 (eq_zero_or_eq_zero_of_mul_eq_zero : ∀ {a b : G₀}, a * b = 0 → a = 0 ∨ b = 0)
 

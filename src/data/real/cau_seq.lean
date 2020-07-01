@@ -44,7 +44,7 @@ variables {α : Type*} [discrete_linear_ordered_field α]
 theorem abv_zero : abv 0 = 0 := (abv_eq_zero abv).2 rfl
 
 theorem abv_one' (h : (1:β) ≠ 0) : abv 1 = 1 :=
-(domain.mul_right_inj $ mt (abv_eq_zero abv).1 h).1 $
+(mul_right_inj' $ mt (abv_eq_zero abv).1 h).1 $
 by rw [← abv_mul abv, mul_one, mul_one]
 
 theorem abv_one
@@ -66,7 +66,7 @@ theorem abv_inv
   (a : β) : abv a⁻¹ = (abv a)⁻¹ :=
 classical.by_cases
   (λ h : a = 0, by simp [h, abv_zero abv])
-  (λ h, (domain.mul_left_inj (mt (abv_eq_zero abv).1 h)).1 $
+  (λ h, mul_right_cancel' (mt (abv_eq_zero abv).1 h) $
     by rw [← abv_mul abv]; simp [h, mt (abv_eq_zero abv).1 h, abv_one abv])
 
 theorem abv_div

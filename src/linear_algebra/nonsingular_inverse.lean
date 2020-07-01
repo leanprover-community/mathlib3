@@ -384,7 +384,7 @@ end
 
 /-- The `nonsing_inv` of `A` is a right inverse. -/
 @[simp] lemma mul_nonsing_inv (h : is_unit A.det) : A ⬝ A⁻¹ = 1 :=
-by rw [A.nonsing_inv_apply h, mul_smul, mul_adjugate, smul_smul, units.inv_mul' h.unit_spec,
+by rw [A.nonsing_inv_apply h, mul_smul, mul_adjugate, smul_smul, units.inv_mul_of_eq h.unit_spec,
        one_smul]
 
 /-- The `nonsing_inv` of `A` is a left inverse. -/

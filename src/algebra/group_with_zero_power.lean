@@ -40,7 +40,7 @@ mt pow_eq_zero' h
 theorem pow_sub' (a : G₀) {m n : ℕ} (ha : a ≠ 0) (h : n ≤ m) : a ^ (m - n) = a ^ m * (a ^ n)⁻¹ :=
 have h1 : m - n + n = m, from nat.sub_add_cancel h,
 have h2 : a ^ (m - n) * a ^ n = a ^ m, by rw [←pow_add, h1],
-eq_mul_inv_of_mul_eq' (pow_ne_zero' _ ha) h2
+eq_div_of_mul_eq (pow_ne_zero' _ ha) h2
 
 theorem pow_inv_comm' (a : G₀) (m n : ℕ) : (a⁻¹) ^ m * a ^ n = a ^ n * (a⁻¹) ^ m :=
 (commute.refl a).inv_left'.pow_pow m n
@@ -152,7 +152,7 @@ by rw [mul_comm, fpow_mul]
 @[simp, norm_cast] lemma units.coe_gpow' (u : units G₀) :
   ∀ (n : ℤ), ((u ^ n : units G₀) : G₀) = u ^ n
 | (n : ℕ) := u.coe_pow n
-| -[1+k] := by rw [gpow_neg_succ_of_nat, fpow_neg_succ_of_nat, units.inv_eq_inv, u.coe_pow]
+| -[1+k] := by rw [gpow_neg_succ_of_nat, fpow_neg_succ_of_nat, units.coe_inv', u.coe_pow]
 
 lemma fpow_ne_zero_of_ne_zero {a : G₀} (ha : a ≠ 0) : ∀ (z : ℤ), a ^ z ≠ 0
 | (of_nat n) := pow_ne_zero' _ ha

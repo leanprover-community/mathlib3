@@ -78,10 +78,11 @@ If
 (0 g)
 ```
 is invertible, then `g` is invertible.
--/def is_iso_right_of_is_iso_biprod_map
+-/
+def is_iso_right_of_is_iso_biprod_map
   {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) [is_iso (biprod.map f g)] : is_iso g :=
 begin
-  haveI : is_iso (biprod.map g f) := by
+  letI : is_iso (biprod.map g f) := by
   { rw [←biprod.braiding_map_braiding],
     apply_instance, },
   exact is_iso_left_of_is_iso_biprod_map g f,
@@ -219,8 +220,8 @@ then we can construct an isomorphism `X₂ ≅ Y₂`, via Gaussian elimination.
 def biprod.iso_elim' [is_iso f₁₁] [is_iso (biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂)] : X₂ ≅ Y₂ :=
 begin
   obtain ⟨L, R, g, w⟩ := biprod.gaussian' f₁₁ f₁₂ f₂₁ f₂₂,
-  haveI : is_iso (biprod.map f₁₁ g) := by { rw ←w, apply_instance, },
-  haveI : is_iso g := (is_iso_right_of_is_iso_biprod_map f₁₁ g),
+  letI : is_iso (biprod.map f₁₁ g) := by { rw ←w, apply_instance, },
+  letI : is_iso g := (is_iso_right_of_is_iso_biprod_map f₁₁ g),
   exact as_iso g,
 end
 
@@ -230,7 +231,7 @@ then we can construct an isomorphism `X₂ ≅ Y₂`, via Gaussian elimination.
 -/
 def biprod.iso_elim (f : X₁ ⊞ X₂ ≅ Y₁ ⊞ Y₂) [is_iso (biprod.inl ≫ f.hom ≫ biprod.fst)] : X₂ ≅ Y₂ :=
 begin
-  haveI : is_iso (biprod.of_components
+  letI : is_iso (biprod.of_components
        (biprod.inl ≫ f.hom ≫ biprod.fst)
        (biprod.inl ≫ f.hom ≫ biprod.snd)
        (biprod.inr ≫ f.hom ≫ biprod.fst)

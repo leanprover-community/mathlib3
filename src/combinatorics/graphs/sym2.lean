@@ -33,7 +33,9 @@ begin
 end
 
 -- The symmetric square is the cartesian product α × α modulo `swap`.
-def sym2 (α : Type u) := quotient (rel.setoid α)
+@[reducible]
+def sym2 (α : Type u) [h : setoid (α × α)] := quotient h
+--def sym2 (α : Type u) := quotient (rel.setoid α)
 
 lemma eq_swap {a b : α} : ⟦(a, b)⟧ = ⟦(b, a)⟧ :=
 by { rw quotient.eq, apply rel.swap }
@@ -137,5 +139,28 @@ begin
   have p := eq h_h,
   tidy,
 end
+
+
+--
+-- Relations
+--
+
+section relations
+variables {r : α → α → Prop}
+
+def in_rel (sym : symmetric r) (z : sym2 α) : Prop :=
+quotient.rec_on z (λ z, r z.1 z.2) begin
+  intros z w p,
+  cases p,
+  simp,
+  simp,
+  split; apply sym,
+end
+
+@[simp]
+lemma in_rel_prop {sym : symmetric r} {a b : α} : in_rel sym ⟦(a, b)⟧ ↔ r a b :=
+by tidy
+
+end relations
 
 end sym2

@@ -743,6 +743,11 @@ coe_monomial _ _
   ((X s : mv_polynomial σ α) : mv_power_series σ α) = mv_power_series.X s :=
 coe_monomial _ _
 
+/--
+The coercion from multivariable polynomials to multivariable power series
+as a ring homomorphism.
+-/
+-- TODO as an algebra homomorphism?
 def coe_to_mv_power_series.ring_hom : mv_polynomial σ α →+* mv_power_series σ α :=
 { to_fun := (coe : mv_polynomial σ α → mv_power_series σ α),
   map_zero' := coe_zero,
@@ -1491,6 +1496,11 @@ end
   ((X : polynomial α) : power_series α) = power_series.X :=
 coe_monomial _ _
 
+/--
+The coercion from polynomials to power series
+as a ring homomorphism.
+-/
+-- TODO as an algebra homomorphism?
 def coe_to_power_series.ring_hom : polynomial α →+* power_series α  :=
 { to_fun := (coe : polynomial α → power_series α),
   map_zero' := coe_zero,

@@ -812,6 +812,9 @@ variables
   [add_comm_monoid β₁] [add_comm_monoid β₂]
   (f : β₁ →+ β₂)
 
+/--
+Composition with a fixed additive homomorphism is itself an additive homomorphism on functions.
+-/
 def map_range.add_monoid_hom : (α →₀ β₁) →+ (α →₀ β₂) :=
 { to_fun := (map_range f f.map_zero : (α →₀ β₁) → (α →₀ β₂)),
   map_zero' := map_range_zero,

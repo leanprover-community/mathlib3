@@ -16,7 +16,7 @@ namespace multiset
 open list
 
 variables {α : Type*} [decidable_eq α]
-/- finset insert -/
+/-! ### finset insert -/
 
 /-- `ndinsert a s` is the lift of the list `insert` operation. This operation
   does not respect multiplicities, unlike `cons`, but it is suitable as
@@ -100,7 +100,7 @@ iff.trans (by simp [disjoint]) disjoint_cons_left
   disjoint s (ndinsert a t) ↔ a ∉ s ∧ disjoint s t :=
 by rw [disjoint_comm, disjoint_ndinsert_left]; tauto
 
-/- finset union -/
+/-! ### finset union -/
 
 /-- `ndunion s t` is the lift of the list `union` operation. This operation
   does not respect multiplicities, unlike `s ∪ t`, but it is suitable as
@@ -155,7 +155,7 @@ le_antisymm (ndunion_le_union _ _) $ union_le (le_ndunion_left _ d) (le_ndunion_
 theorem erase_dup_add (s t : multiset α) : erase_dup (s + t) = ndunion s (erase_dup t) :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ erase_dup_append _ _
 
-/- finset inter -/
+/-! ### finset inter -/
 
 /-- `ndinter s t` is the lift of the list `∩` operation. This operation
   does not respect multiplicities, unlike `s ∩ t`, but it is suitable as

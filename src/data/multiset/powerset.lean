@@ -14,8 +14,10 @@ open list
 
 variables {α : Type*}
 
-/- powerset -/
+/-! ### powerset -/
 
+/-- A helper function for the powerset of a multiset. Given a list `l`, returns a list
+of sublists of `l` (using `sublists_aux`), as multisets. -/
 def powerset_aux (l : list α) : list (multiset α) :=
 0 :: sublists_aux l (λ x y, x :: y)
 
@@ -33,6 +35,8 @@ by simp [powerset_aux, sublists];
 quotient.induction_on s $
 by simp [powerset_aux_eq_map_coe, subperm, and.comm]
 
+/-- Helper function for the powerset of a multiset. Given a list `l`, returns a list
+of sublists of `l` (using `sublists'`), as multisets. -/
 def powerset_aux' (l : list α) : list (multiset α) := (sublists' l).map coe
 
 theorem powerset_aux_perm_powerset_aux' {l : list α} :
@@ -62,6 +66,7 @@ theorem powerset_aux_perm {l₁ l₂ : list α} (p : l₁ ~ l₂) :
 powerset_aux_perm_powerset_aux'.trans $
 (powerset_aux'_perm p).trans powerset_aux_perm_powerset_aux'.symm
 
+/-- The power set of a multiset. -/
 def powerset (s : multiset α) : multiset (multiset α) :=
 quot.lift_on s
   (λ l, (powerset_aux l : multiset (multiset α)))
@@ -143,8 +148,10 @@ begin
   exact (powerset_aux_perm p).map _
 end
 
-/- powerset_len -/
+/-! ### powerset_len -/
 
+/-- Helper function for `powerset_len`. Given a list `l`, `powerset_len_aux n l` is the list
+of sublists of length `n`, as multisets. -/
 def powerset_len_aux (n : ℕ) (l : list α) : list (multiset α) :=
 sublists_len_aux n l coe []
 
@@ -186,6 +193,7 @@ begin
   { exact IH₁.trans IH₂ }
 end
 
+/-- `powerset_len n s` is the multiset of all submultisets of `s` of length `n`. -/
 def powerset_len (n : ℕ) (s : multiset α) : multiset (multiset α) :=
 quot.lift_on s
   (λ l, (powerset_len_aux n l : multiset (multiset α)))

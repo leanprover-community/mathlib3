@@ -13,6 +13,7 @@ import data.multiset.fold
 namespace multiset
 variables {α : Type*}
 
+/-! ### sup -/
 section sup
 variables [semilattice_sup_bot α]
 
@@ -60,6 +61,7 @@ by rw [← sup_erase_dup, erase_dup_ext.2, sup_erase_dup, sup_cons]; simp
 
 end sup
 
+/-! ### inf -/
 section inf
 variables [semilattice_inf_top α]
 

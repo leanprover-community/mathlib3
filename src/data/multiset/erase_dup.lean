@@ -14,7 +14,7 @@ open list
 
 variables {α β : Type*} [decidable_eq α]
 
-/- erase_dup -/
+/-! ### erase_dup -/
 
 /-- `erase_dup s` removes duplicates from `s`, yielding a `nodup` multiset. -/
 def erase_dup (s : multiset α) : multiset α :=

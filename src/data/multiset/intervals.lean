@@ -15,7 +15,7 @@ For now this only covers `Ico n m`, the "closed-open" interval containing `[n, .
 namespace multiset
 open list
 
-/- Ico -/
+/-! ### Ico -/
 
 /-- `Ico n m` is the multiset lifted from the list `Ico n m`, e.g. the set `{n, n+1, ..., m-1}`. -/
 def Ico (n m : ℕ) : multiset ℕ := Ico n m

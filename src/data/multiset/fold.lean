@@ -12,7 +12,7 @@ import data.multiset.erase_dup
 namespace multiset
 variables {α β : Type*}
 
-/- fold -/
+/-! ### fold -/
 section fold
 variables (op : α → α → α) [hc : is_commutative α op] [ha : is_associative α op]
 local notation a * b := op a b

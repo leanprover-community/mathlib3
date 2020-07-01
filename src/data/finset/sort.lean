@@ -7,7 +7,7 @@ import data.finset.lattice
 import data.multiset.sort
 
 /-!
-## Construct a sorted list from a finset.
+# Construct a sorted list from a finset.
 -/
 
 namespace finset

@@ -8,7 +8,7 @@ import control.traversable.lemmas
 import control.traversable.instances
 
 /-!
-## Functoriality of `multiset`.
+# Functoriality of `multiset`.
 -/
 
 universes u

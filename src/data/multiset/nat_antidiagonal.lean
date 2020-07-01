@@ -7,7 +7,7 @@ import data.multiset.nodup
 import data.list.nat_antidiagonal
 
 /-!
-## The "antidiagonal" {(0,n), (1,n-1), ..., (n,0)} as a multiset.
+# The "antidiagonal" {(0,n), (1,n-1), ..., (n,0)} as a multiset.
 -/
 
 namespace multiset

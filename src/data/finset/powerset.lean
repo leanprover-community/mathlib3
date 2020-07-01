@@ -6,7 +6,7 @@ Author: Mario Carneiro
 import data.finset.basic
 
 /-!
-## The powerset of a finset
+# The powerset of a finset
 -/
 
 namespace finset

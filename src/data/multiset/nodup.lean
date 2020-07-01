@@ -6,7 +6,7 @@ Author: Mario Carneiro
 import data.multiset.powerset
 
 /-!
-## The `nodup` predicate for multisets without duplicate elements.
+# The `nodup` predicate for multisets without duplicate elements.
 -/
 
 namespace multiset

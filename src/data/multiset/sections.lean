@@ -6,7 +6,7 @@ Author: Johannes Hölzl
 import data.multiset.basic
 
 /-!
-## Sections of a multiset
+# Sections of a multiset
 -/
 
 namespace multiset

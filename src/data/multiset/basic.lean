@@ -7,7 +7,7 @@ import data.list.perm
 import algebra.group_power
 
 /-!
-## Multisets
+# Multisets
 
 These are implemented as the quotient of a list by permutations.
 -/

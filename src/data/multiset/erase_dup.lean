@@ -6,7 +6,7 @@ Author: Mario Carneiro
 import data.multiset.nodup
 
 /-!
-## Erasing duplicates in a multiset.
+# Erasing duplicates in a multiset.
 -/
 
 namespace multiset

@@ -7,7 +7,7 @@ import data.multiset.finset_ops
 import data.multiset.fold
 
 /-!
-## Lattice operations on multisets
+# Lattice operations on multisets
 -/
 
 namespace multiset

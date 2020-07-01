@@ -7,7 +7,7 @@ import data.finset.basic
 import data.multiset.intervals
 
 /-!
-## Intervals in ℕ as finsets
+# Intervals in ℕ as finsets
 
 For now this only covers `Ico n m`, the "closed-open" interval containing `[n, ..., m-1]`.
 -/

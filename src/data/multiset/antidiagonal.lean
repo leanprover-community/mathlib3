@@ -6,7 +6,7 @@ Author: Mario Carneiro
 import data.multiset.powerset
 
 /-!
-## The antidiagonal on a multiset.
+# The antidiagonal on a multiset.
 
 The antidiagonal of a multiset `s` consists of all pairs `(t₁, t₂)`
 such that `t₁ + t₂ = s`. These pairs are counted with multiplicities.

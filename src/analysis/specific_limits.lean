@@ -571,7 +571,7 @@ begin
 end
 
 lemma geom_series_mul_neg [complete_space α] (x : α) (h : ∥x∥ < 1) :
-  (tsum (λ (i:ℕ), x ^ i)) * (1 - x) = 1 :=
+  (∑' (i:ℕ), x ^ i) * (1 - x) = 1 :=
 begin
   have := has_sum_of_bounded_monoid_hom_of_summable
     (normed_ring.summable_geometric_of_norm_lt_1 x h) (∥1 - x∥)
@@ -587,7 +587,7 @@ begin
 end
 
 lemma mul_neg_geom_series [complete_space α] (x : α) (h : ∥x∥ < 1) :
-  (1 - x) * (tsum (λ (i:ℕ), x ^ i)) = 1 :=
+  (1 - x) * (∑' (i:ℕ), x ^ i) = 1 :=
 begin
   have := has_sum_of_bounded_monoid_hom_of_summable
     (normed_ring.summable_geometric_of_norm_lt_1 x h) (∥1 - x∥)

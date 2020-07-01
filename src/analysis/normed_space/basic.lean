@@ -946,33 +946,35 @@ end prio
   [h : normed_algebra 𝕜 𝕜'] (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥ = ∥x∥ :=
 normed_algebra.norm_algebra_map_eq _
 
+variables (𝕜 : Type*) [normed_field 𝕜]
+variables (𝕜' : Type*) [normed_ring 𝕜']
+
 @[priority 100]
-instance normed_algebra.to_normed_space (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
-  [h : normed_algebra 𝕜 𝕜'] : normed_space 𝕜 𝕜' :=
+instance normed_algebra.to_normed_space [h : normed_algebra 𝕜 𝕜'] : normed_space 𝕜 𝕜' :=
 { norm_smul_le := λ s x, calc
     ∥s • x∥ = ∥((algebra_map 𝕜 𝕜') s) * x∥ : by { rw h.smul_def', refl }
     ... ≤ ∥algebra_map 𝕜 𝕜' s∥ * ∥x∥ : normed_ring.norm_mul _ _
     ... = ∥s∥ * ∥x∥ : by rw norm_algebra_map_eq,
   ..h }
 
-instance normed_algebra.id (𝕜 : Type*) [normed_field 𝕜] : normed_algebra 𝕜 𝕜 :=
+instance normed_algebra.id : normed_algebra 𝕜 𝕜 :=
 { norm_algebra_map_eq := by simp,
 .. algebra.id 𝕜}
 
-@[simp] lemma normed_algebra.norm_one (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜]
-  [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] : ∥(1:𝕜')∥ = 1 :=
+variables {𝕜'} [normed_algebra 𝕜 𝕜']
+include 𝕜
+
+@[simp] lemma normed_algebra.norm_one  : ∥(1:𝕜')∥ = 1 :=
 by simpa using (norm_algebra_map_eq 𝕜' (1:𝕜))
 
-lemma normed_algebra.zero_ne_one (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜]
-  [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] : (0:𝕜') ≠ 1 :=
+lemma normed_algebra.zero_ne_one : (0:𝕜') ≠ 1 :=
 begin
   refine (norm_pos_iff.mp _).symm,
-  rw normed_algebra.norm_one 𝕜 𝕜', norm_num,
+  rw @normed_algebra.norm_one 𝕜, norm_num,
 end
 
-lemma normed_algebra.to_nonzero {𝕜 : Type*} (𝕜' : Type*) [normed_field 𝕜]
-  [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] : nonzero 𝕜' :=
-{ zero_ne_one := normed_algebra.zero_ne_one 𝕜 𝕜' }
+lemma normed_algebra.to_nonzero : nonzero 𝕜' :=
+{ zero_ne_one := normed_algebra.zero_ne_one 𝕜 }
 
 end normed_algebra
 
@@ -1001,18 +1003,18 @@ variables [normed_group α] [normed_group β]
 
 -- Applying a bounded homomorphism commutes with taking an (infinite) sum.
 lemma has_sum_of_bounded_monoid_hom_of_has_sum
-  {f : ι → α} {a : α →+ β} {x : α} (hf : has_sum f x) (C : ℝ) (ha : ∀x, ∥a x∥ ≤ C * ∥x∥) :
-  has_sum (λ (b:ι), a (f b)) (a x) :=
+  {f : ι → α} {φ : α →+ β} {x : α} (hf : has_sum f x) (C : ℝ) (hφ : ∀x, ∥φ x∥ ≤ C * ∥x∥) :
+  has_sum (λ (b:ι), φ (f b)) (φ x) :=
 begin
   unfold has_sum,
-  convert (a.continuous_of_bound C ha).continuous_at.tendsto.comp hf,
-  ext s, rw [function.comp_app, finset.sum_hom s a],
+  convert (φ.continuous_of_bound C hφ).continuous_at.tendsto.comp hf,
+  ext s, rw [function.comp_app, finset.sum_hom s φ],
 end
 
 lemma has_sum_of_bounded_monoid_hom_of_summable
-  {f : ι → α} {a : α →+ β} (hf : summable f) (C : ℝ) (ha : ∀x, ∥a x∥ ≤ C * ∥x∥) :
-  has_sum (λ (b:ι), a (f b)) (a (tsum f)) :=
-has_sum_of_bounded_monoid_hom_of_has_sum hf.has_sum C ha
+  {f : ι → α} {φ : α →+ β} (hf : summable f) (C : ℝ) (hφ : ∀x, ∥φ x∥ ≤ C * ∥x∥) :
+  has_sum (λ (b:ι), φ (f b)) (φ (∑'b, f b)) :=
+has_sum_of_bounded_monoid_hom_of_has_sum hf.has_sum C hφ
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma cauchy_seq_finset_iff_vanishing_norm {f : ι → α} :

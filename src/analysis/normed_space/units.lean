@@ -22,7 +22,7 @@ variables {α : Type*} [normed_ring α] [complete_space α]
 construct its `units` structure.  -/
 def perturbation_unit (x : α) (h : ∥x∥ < 1) : units α :=
 { val := 1 - x,
-  inv := tsum (λ (n : ℕ), x ^ n),
+  inv := ∑' (n : ℕ), x ^ n,
   val_inv := mul_neg_geom_series x h,
   inv_val := geom_series_mul_neg x h }
 

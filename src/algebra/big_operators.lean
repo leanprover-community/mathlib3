@@ -4,7 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
-import data.finset
+import data.finset.intervals
+import data.finset.fold
+import data.finset.powerset
+import data.finset.pi
 import data.nat.enat
 import data.equiv.mul_add
 import tactic.abel

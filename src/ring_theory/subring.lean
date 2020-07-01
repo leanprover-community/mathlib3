@@ -184,7 +184,7 @@ le_antisymm
     rintros _ ⟨x, hx, rfl⟩,
     apply in_closure.rec_on hx; intros,
     { rw [f.map_one], apply is_submonoid.one_mem },
-    { rw [f.map_neg, is_monoid_hom.map_one f],
+    { rw [f.map_neg, f.map_one],
       apply is_add_subgroup.neg_mem, apply is_submonoid.one_mem },
     { rw [f.map_mul],
       apply is_submonoid.mul_mem; solve_by_elim [subset_closure, set.mem_image_of_mem] },

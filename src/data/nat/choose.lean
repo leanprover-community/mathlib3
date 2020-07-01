@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Bhavik Mehta, Patrick Stevens
 -/
 import tactic.linarith
+import tactic.omega
 import algebra.big_operators
 
 open nat

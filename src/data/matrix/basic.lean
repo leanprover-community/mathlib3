@@ -362,6 +362,22 @@ def scalar (n : Type u) [fintype n] [decidable_eq n] : α →+* matrix n n α :=
   map_one' := by simp,
   map_mul' := by { intros, ext, simp [mul_assoc], }, }
 
+section scalar
+
+variable [decidable_eq n]
+
+@[simp] lemma coe_scalar : (scalar n : α → matrix n n α) = λ a, a • 1 := rfl
+
+lemma scalar_apply_eq (a : α) (i : n) :
+  scalar n a i i = a :=
+by simp only [coe_scalar, mul_one, one_val_eq, smul_val]
+
+lemma scalar_apply_ne (a : α) (i j : n) (h : i ≠ j) :
+  scalar n a i j = 0 :=
+by simp only [h, coe_scalar, one_val_ne, ne.def, not_false_iff, smul_val, mul_zero]
+
+end scalar
+
 end semiring
 
 section comm_semiring
@@ -436,6 +452,79 @@ by { ext, symmetry, apply dot_product_assoc }
 lemma vec_mul_vec_eq (w : m → α) (v : n → α) :
   vec_mul_vec w v = (col w) ⬝ (row v) :=
 by { ext i j, simp [vec_mul_vec, mul_val], refl }
+
+variables [decidable_eq m] [decidable_eq n]
+
+/--
+`std_basis_matrix i j a` is the matrix with `a` in the `i`-th row, `j`-th column,
+and zeroes elsewhere.
+-/
+def std_basis_matrix (i : m) (j : n) (a : α) : matrix m n α :=
+(λ i' j', if i' = i ∧ j' = j then a else 0)
+
+@[simp] lemma smul_std_basis_matrix (i : m) (j : n) (a b : α) :
+b • std_basis_matrix i j a = std_basis_matrix i j (b • a) :=
+by { unfold std_basis_matrix, ext, dsimp, simp }
+
+@[simp] lemma std_basis_matrix_zero (i : m) (j : n) :
+std_basis_matrix i j (0 : α) = 0 :=
+by { unfold std_basis_matrix, ext, simp }
+
+lemma std_basis_matrix_add (i : m) (j : n) (a b : α) :
+std_basis_matrix i j (a + b) = std_basis_matrix i j a + std_basis_matrix i j b :=
+begin
+  unfold std_basis_matrix, ext,
+  split_ifs with h; simp [h],
+end
+
+
+lemma matrix_eq_sum_elementary (x : matrix n m α) :
+x = ∑ (i : n) (j : m), std_basis_matrix i j (x i j) :=
+begin
+  ext, iterate 2 {rw finset.sum_apply},
+  rw ← finset.sum_subset, swap 4, exact {i},
+  { norm_num [std_basis_matrix] },
+  { simp },
+  intros, norm_num at a, norm_num,
+  convert finset.sum_const_zero,
+  ext, norm_num [std_basis_matrix],
+  rw if_neg, tauto!,
+end
+
+-- TODO: tie this up with the `basis` machinery of linear algebra
+-- this is not completely trivial because we are indexing by two types, instead of one
+
+-- TODO: add `std_basis_vec`
+lemma elementary_eq_basis_mul_basis (i : m) (j : n) :
+std_basis_matrix i j 1 = vec_mul_vec (λ i', ite (i = i') 1 0) (λ j', ite (j = j') 1 0) :=
+begin
+  ext, norm_num [std_basis_matrix, vec_mul_vec],
+  split_ifs; tauto,
+end
+
+@[elab_as_eliminator] protected lemma induction_on'
+  {X : Type*} [semiring X] {M : matrix n n X → Prop} (m : matrix n n X)
+  (h_zero : M 0)
+  (h_add : ∀p q, M p → M q → M (p + q))
+  (h_elementary : ∀ i j x, M (std_basis_matrix i j x)) :
+  M m :=
+begin
+  rw [matrix_eq_sum_elementary m, ← finset.sum_product'],
+  apply finset.sum_induction _ _ h_add h_zero,
+  { intros, apply h_elementary, }
+end
+
+@[elab_as_eliminator] protected lemma induction_on
+  [nonempty n] {X : Type*} [semiring X] {M : matrix n n X → Prop} (m : matrix n n X)
+  (h_add : ∀p q, M p → M q → M (p + q))
+  (h_elementary : ∀ i j x, M (std_basis_matrix i j x)) :
+  M m :=
+matrix.induction_on' m
+begin
+  have i : n := classical.choice (by assumption),
+  simpa using h_elementary i i 0,
+end
+h_add h_elementary
 
 end semiring
 

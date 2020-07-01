@@ -50,6 +50,10 @@ apply_nolint with_zero.inv doc_blame
 apply_nolint with_zero.lift doc_blame
 apply_nolint with_zero.map doc_blame
 
+-- algebra/group_with_zero.lean
+apply_nolint mul_zero_class doc_blame
+apply_nolint no_zero_divisors doc_blame
+
 -- algebra/order.lean
 apply_nolint decidable.lt_by_cases doc_blame
 apply_nolint ge_iff_le ge_or_gt
@@ -82,8 +86,6 @@ apply_nolint comm_ring doc_blame
 apply_nolint comm_semiring doc_blame
 apply_nolint distrib doc_blame
 apply_nolint integral_domain doc_blame
-apply_nolint mul_zero_class doc_blame
-apply_nolint no_zero_divisors doc_blame
 apply_nolint ring doc_blame
 apply_nolint ring_hom has_inhabited_instance
 apply_nolint ring_hom.to_add_monoid_hom doc_blame
@@ -1328,10 +1330,6 @@ apply_nolint quotient_group.quotient_ker_equiv_range doc_blame
 
 -- group_theory/sylow.lean
 apply_nolint sylow.fixed_points_mul_left_cosets_equiv_quotient doc_blame
-
--- linear_algebra/basic.lean
-apply_nolint linear_equiv.to_equiv doc_blame
-apply_nolint linear_equiv.to_linear_map doc_blame
 
 -- linear_algebra/direct_sum_module.lean
 apply_nolint direct_sum.component doc_blame

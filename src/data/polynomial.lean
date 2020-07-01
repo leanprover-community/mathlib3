@@ -7,8 +7,8 @@ import data.monoid_algebra
 import algebra.gcd_domain
 import ring_theory.euclidean_domain
 import ring_theory.multiplicity
+import data.finset.nat_antidiagonal
 import tactic.ring_exp
-import deprecated.field
 
 /-!
 # Theory of univariate polynomials
@@ -342,6 +342,9 @@ end
 
 instance eval₂.is_add_monoid_hom : is_add_monoid_hom (eval₂ f x) :=
 { map_zero := eval₂_zero _ _, map_add := λ _ _, eval₂_add _ _ }
+
+@[simp] lemma eval₂_nat_cast (n : ℕ) : (n : polynomial R).eval₂ f x = n :=
+nat.rec_on n rfl $ λ n ih, by rw [n.cast_succ, eval₂_add, ih, eval₂_one, n.cast_succ]
 
 lemma eval₂_sum (p : polynomial R) (g : ℕ → R → polynomial R) (x : S) :
   (p.sum g).eval₂ f x = p.sum (λ n a, (g n a).eval₂ f x) :=
@@ -725,6 +728,9 @@ is_semiring_hom.comp _ _
 @[simp] lemma map_add : (p + q).map f = p.map f + q.map f := eval₂_add _ _
 
 @[simp] lemma map_one : (1 : polynomial R).map f = 1 := eval₂_one _ _
+
+@[simp] theorem map_nat_cast (n : ℕ) : (n : polynomial R).map f = n :=
+nat.rec_on n rfl $ λ n ih, by rw [n.cast_succ, map_add, ih, map_one, n.cast_succ]
 
 lemma coeff_map (n : ℕ) : coeff (p.map f) n = f (coeff p n) :=
 begin
@@ -2204,6 +2210,12 @@ else by rw [degree_mul_eq, degree_eq_nat_degree hp,
     degree_eq_nat_degree hq];
   exact with_bot.coe_le_coe.2 (nat.le_add_right _ _)
 
+theorem nat_degree_le_of_dvd {p q : polynomial R} (h1 : p ∣ q) (h2 : q ≠ 0) : p.nat_degree ≤ q.nat_degree :=
+begin
+  rcases h1 with ⟨q, rfl⟩, rw mul_ne_zero_iff at h2,
+  rw [nat_degree_mul_eq h2.1 h2.2], exact nat.le_add_right _ _
+end
+
 lemma exists_finset_roots : ∀ {p : polynomial R} (hp : p ≠ 0),
   ∃ s : finset R, (s.card : with_bot ℕ) ≤ degree p ∧ ∀ x, x ∈ s ↔ is_root p x
 | p := λ hp, by haveI := classical.prop_decidable (∃ x, is_root p x); exact
@@ -2368,6 +2380,12 @@ degree_eq_zero_of_is_unit ⟨u, rfl⟩
   nat_degree (u : polynomial R) = 0 :=
 nat_degree_eq_of_degree_eq_some (degree_coe_units u)
 
+theorem is_unit_iff {f : polynomial R} : is_unit f ↔ ∃ r : R, is_unit r ∧ C r = f :=
+⟨λ hf, ⟨f.coeff 0,
+  is_unit_C.1 $ eq_C_of_degree_eq_zero (degree_eq_zero_of_is_unit hf) ▸ hf,
+  (eq_C_of_degree_eq_zero (degree_eq_zero_of_is_unit hf)).symm⟩,
+λ ⟨r, hr, hrf⟩, hrf ▸ is_unit_C.2 hr⟩
+
 lemma coeff_coe_units_zero_ne_zero (u : units (polynomial R)) :
   coeff (u : polynomial R) 0 ≠ 0 :=
 begin
@@ -2531,7 +2549,7 @@ by rw [div_def, mul_comm, degree_mul_leading_coeff_inv _ hq0];
 
 @[simp] lemma degree_map [field k] (p : polynomial R) (f : R →+* k) :
   degree (p.map f) = degree p :=
-p.degree_map_eq_of_injective (is_ring_hom.injective f)
+p.degree_map_eq_of_injective f.injective
 
 @[simp] lemma nat_degree_map [field k] (f : R →+* k) :
   nat_degree (p.map f) = nat_degree p :=
@@ -2546,17 +2564,17 @@ lemma map_div [field k] (f : R →+* k) :
 if hq0 : q = 0 then by simp [hq0]
 else
 by rw [div_def, div_def, map_mul, map_div_by_monic f (monic_mul_leading_coeff_inv hq0)];
-  simp [is_ring_hom.map_inv f, leading_coeff, coeff_map f]
+  simp [f.map_inv, leading_coeff, coeff_map f]
 
 lemma map_mod [field k] (f : R →+* k) :
   (p % q).map f = p.map f % q.map f :=
 if hq0 : q = 0 then by simp [hq0]
-else by rw [mod_def, mod_def, leading_coeff_map f, ← is_ring_hom.map_inv f, ← map_C f,
+else by rw [mod_def, mod_def, leading_coeff_map f, ← f.map_inv, ← map_C f,
   ← map_mul f, map_mod_by_monic f (monic_mul_leading_coeff_inv hq0)]
 
 @[simp] lemma map_eq_zero [field k] (f : R →+* k) :
   p.map f = 0 ↔ p = 0 :=
-by simp [polynomial.ext_iff, is_ring_hom.map_eq_zero f, coeff_map]
+by simp [polynomial.ext_iff, f.map_eq_zero, coeff_map]
 
 lemma exists_root_of_degree_eq_one (h : degree p = 1) : ∃ x, is_root p x :=
 ⟨-(p.coeff 0 / p.coeff 1),
@@ -2736,7 +2754,56 @@ calc derivative (f * g) = f.sum (λn a, g.sum (λm b, C ((a * b) * (n + m : ℕ)
 
 lemma derivative_eval (p : polynomial R) (x : R) :
   p.derivative.eval x = p.sum (λ n a, (a * n)*x^(n-1)) :=
-by simp [derivative, eval_sum, eval_pow]
+by simp [derivative, eval_sum, eval_pow, -alg_hom.map_nat_cast]
+
+theorem derivative_pow_succ (p : polynomial R) (n : ℕ) :
+  (p ^ (n + 1)).derivative = (n + 1) * (p ^ n) * p.derivative :=
+nat.rec_on n (by rw [pow_one, nat.cast_zero, zero_add, one_mul, pow_zero, one_mul]) $ λ n ih,
+by rw [pow_succ', derivative_mul, ih, mul_right_comm, ← add_mul,
+    add_mul (n.succ : polynomial R), one_mul, pow_succ', mul_assoc, n.cast_succ]
+
+theorem derivative_pow (p : polynomial R) (n : ℕ) :
+  (p ^ n).derivative = n * (p ^ (n - 1)) * p.derivative :=
+nat.cases_on n (by rw [pow_zero, derivative_one, nat.cast_zero, zero_mul, zero_mul]) $ λ n,
+by rw [p.derivative_pow_succ n, n.succ_sub_one, n.cast_succ]
+
+theorem derivative_map [comm_semiring S] (p : polynomial R) (f : R →+* S) :
+  (p.map f).derivative = p.derivative.map f :=
+polynomial.induction_on p
+  (λ r, by rw [map_C, derivative_C, derivative_C, map_zero])
+  (λ p q ihp ihq, by rw [map_add, derivative_add, ihp, ihq, derivative_add, map_add])
+  (λ n r ih, by rw [map_mul, map_C, map_pow, map_X,
+      derivative_mul, derivative_pow_succ, derivative_C, zero_mul, zero_add, derivative_X, mul_one,
+      derivative_mul, derivative_pow_succ, derivative_C, zero_mul, zero_add, derivative_X, mul_one,
+      map_mul, map_C, map_mul, map_pow, map_add, map_nat_cast, map_one, map_X])
+
+/-- Chain rule for formal derivative of polynomials. -/
+theorem derivative_eval₂_C (p q : polynomial R) :
+  (p.eval₂ C q).derivative = p.derivative.eval₂ C q * q.derivative :=
+polynomial.induction_on p
+  (λ r, by rw [eval₂_C, derivative_C, eval₂_zero, zero_mul])
+  (λ p₁ p₂ ih₁ ih₂, by rw [eval₂_add, derivative_add, ih₁, ih₂, derivative_add, eval₂_add, add_mul])
+  (λ n r ih, by rw [pow_succ', ← mul_assoc, eval₂_mul, eval₂_X, derivative_mul, ih,
+      @derivative_mul _ _ _ X, derivative_X, mul_one, eval₂_add, @eval₂_mul _ _ _ _ X, eval₂_X,
+      add_mul, mul_right_comm])
+
+theorem of_mem_support_derivative {p : polynomial R} {n : ℕ} (h : n ∈ p.derivative.support) :
+  n + 1 ∈ p.support :=
+finsupp.mem_support_iff.2 $ λ (h1 : p.coeff (n+1) = 0), finsupp.mem_support_iff.1 h $
+show p.derivative.coeff n = 0, by rw [coeff_derivative, h1, zero_mul]
+
+theorem degree_derivative_lt {p : polynomial R} (hp : p ≠ 0) : p.derivative.degree < p.degree :=
+(finset.sup_lt_iff $ bot_lt_iff_ne_bot.2 $ mt degree_eq_bot.1 hp).2 $ λ n hp, lt_of_lt_of_le
+(with_bot.some_lt_some.2 n.lt_succ_self) $ finset.le_sup $ of_mem_support_derivative hp
+
+theorem nat_degree_derivative_lt {p : polynomial R} (hp : p.derivative ≠ 0) :
+  p.derivative.nat_degree < p.nat_degree :=
+have hp1 : p ≠ 0, from λ h, hp $ by rw [h, derivative_zero],
+with_bot.some_lt_some.1 $ by { rw [nat_degree, option.get_or_else_of_ne_none $ mt degree_eq_bot.1 hp,
+  nat_degree, option.get_or_else_of_ne_none $ mt degree_eq_bot.1 hp1], exact degree_derivative_lt hp1 }
+
+theorem degree_derivative_le {p : polynomial R} : p.derivative.degree ≤ p.degree :=
+if H : p = 0 then le_of_eq $ by rw [H, derivative_zero] else le_of_lt $ degree_derivative_lt H
 
 /-- The formal derivative of polynomials, as linear homomorphism. -/
 def derivative_lhom (R : Type*) [comm_ring R] : polynomial R →ₗ[R] polynomial R :=

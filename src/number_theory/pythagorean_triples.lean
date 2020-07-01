@@ -60,44 +60,8 @@ def circle_equiv_gen (hk : ∀ x : K, 1 + x^2 ≠ 0) :
   (v : {p : K × K // p.1^2 + p.2^2 = 1 ∧ p.2 ≠ -1}) :
   (circle_equiv_gen hk).symm v = v.val.1 / (v.val.2 + 1) := by refl
 
-private lemma int.prime.dvd_mul {i j : ℤ} {p : ℕ} (h : nat.prime p) (h2 : (p : ℤ) ∣ i * j)
-  : (p : ℤ) ∣ i ∨ (p : ℤ) ∣ j :=
-begin
-  rw [int.coe_nat_dvd_left, int.coe_nat_dvd_left, ← nat.prime.dvd_mul h, ← int.nat_abs_mul,
-    ← int.coe_nat_dvd_left],
-  exact h2
-end
-
-private lemma parity_eq_abs_parity (i : ℤ) : i % 2 = (int.nat_abs i) % 2 :=
-begin
-  cases (le_or_lt 0 i) with h h,
-  { rw ←int.eq_nat_abs_of_zero_le h },
-  { rw (int.of_nat_nat_abs_of_nonpos (le_of_lt h)),
-    apply int.mod_eq_mod_iff_mod_sub_eq_zero.mpr,
-    convert int.mul_mod_right 2 i, ring }
-end
-
-private lemma parity_eq_abs_parity_iff {i : ℤ} {k : ℕ} : i % 2 = k ↔ (int.nat_abs i) % 2 = k :=
-begin
-  rw parity_eq_abs_parity, erw ←int.coe_nat_mod, norm_cast
-end
-
-private lemma prime_two_or_dvd_of_dvd_2_mul_sqr {m : ℤ} {p : ℕ}
-  (hp : nat.prime p) (h : (p : ℤ) ∣ 2 * m ^ 2) : p = 2 ∨ p ∣ int.nat_abs m :=
-begin
-  have h2 : int.nat_abs (2 * m ^ 2) = 2 * (int.nat_abs m) ^ 2,
-  { rw [pow_two, nat.pow_two, int.nat_abs_mul, int.nat_abs_mul], refl },
-  have h3 : p ∣ 2 * (int.nat_abs m) ^ 2, { rw ←h2, exact int.coe_nat_dvd_left.mp h },
-  cases (nat.prime.dvd_mul hp).mp h3 with p2 pp,
-  { apply or.intro_left,
-    exact le_antisymm (nat.le_of_dvd (by norm_num : 0 < 2) p2) (nat.prime.two_le hp) },
-  { apply or.intro_right,
-    rw nat.pow_two at pp,
-    exact (or_self _).mp ((nat.prime.dvd_mul hp).mp pp) }
-end
-
-private lemma coprime_sqr_sub_sqr_sum_of_even_odd {m n : ℤ} (h : int.gcd m n = 1)
-  (hm : m % 2 = 0) (hn : n % 2 = 1):
+private lemma coprime_pow_two_sub_pow_two_sum_of_even_odd {m n : ℤ} (h : int.gcd m n = 1)
+  (hm : m % 2 = 0) (hn : n % 2 = 1) :
   int.gcd (m ^ 2 - n ^ 2) (m ^ 2 + n ^ 2) = 1 :=
 begin
   by_contradiction h2,
@@ -110,8 +74,8 @@ begin
   have h2n : (p : ℤ) ∣ 2 * n ^ 2,
   { rw (by ring : 2 * n ^ 2 = m ^ 2 + n ^ 2 - (m ^ 2 - n ^ 2)),
     apply dvd_sub hpp hpm },
-  have hmc : p = 2 ∨ p ∣ int.nat_abs m, { exact prime_two_or_dvd_of_dvd_2_mul_sqr hp.1 h2m },
-  have hnc : p = 2 ∨ p ∣ int.nat_abs n, { exact prime_two_or_dvd_of_dvd_2_mul_sqr hp.1 h2n },
+  have hmc : p = 2 ∨ p ∣ int.nat_abs m, { exact prime_two_or_dvd_of_dvd_two_mul_mul_self hp.1 h2m },
+  have hnc : p = 2 ∨ p ∣ int.nat_abs n, { exact prime_two_or_dvd_of_dvd_two_mul_mul_self hp.1 h2n },
   by_cases hp2 : p = 2,
   { have h3 : (m ^ 2 + n ^ 2) % 2 = 1,
     { rw [int.add_mod, pow_two, pow_two, int.mul_mod, hm, int.mul_mod n n, hn], norm_num },
@@ -121,16 +85,17 @@ begin
     apply nat.prime.ne_one hp.1, exact nat.dvd_one.mp h5 }
 end
 
-private lemma coprime_sqr_sub_sqr_sum_of_odd_even {m n : ℤ} (h : int.gcd m n = 1) (hm : m % 2 = 1) (hn : n % 2 = 0):
+private lemma coprime_pow_two_sub_pow_two_sum_of_odd_even {m n : ℤ} (h : int.gcd m n = 1)
+  (hm : m % 2 = 1) (hn : n % 2 = 0):
   int.gcd (m ^ 2 - n ^ 2) (m ^ 2 + n ^ 2) = 1 :=
 begin
   dunfold int.gcd,
   rw ←int.nat_abs_neg,
   rw [(by ring : -(m ^ 2 - n ^ 2) = n ^ 2 - m ^ 2), add_comm],
-  convert coprime_sqr_sub_sqr_sum_of_even_odd _ hn hm, rw [int.gcd_comm], exact h
+  convert coprime_pow_two_sub_pow_two_sum_of_even_odd _ hn hm, rw [int.gcd_comm], exact h
 end
 
-private lemma coprime_sqr_sub_sqr_sum_of_odd_odd {m n : ℤ} (h : int.gcd m n = 1)
+private lemma coprime_pow_two_sub_pow_two_sum_of_odd_odd {m n : ℤ} (h : int.gcd m n = 1)
   (hm : m % 2 = 1) (hn : n % 2 = 1) :
     2 ∣ m ^ 2 + n ^ 2
     ∧ 2 ∣ m ^ 2 - n ^ 2
@@ -175,24 +140,15 @@ begin
   apply nat.prime.ne_one hp.1, exact nat.dvd_one.mp h5
 end
 
-lemma non_zero_of_coprime {x y : ℤ}
-  (hc : int.gcd x y = 1) : x ≠ 0 ∨ y ≠ 0 :=
-begin
-  by_cases hx : x = 0,
-  { apply or.intro_right,
-    intro hy, revert hc, rw [hx, hy],
-    change 0 ≠ 1, norm_num },
-  tauto
-end
-
-lemma non_zero_of_coprime_pythagorean_triple {x y z : ℤ} (h : pythagorean_triple x y z)
+lemma ne_zero_of_coprime_pythagorean_triple {x y z : ℤ} (h : pythagorean_triple x y z)
   (hc : int.gcd x y = 1) : z ≠ 0 :=
 begin
   change x*x + y*y = z*z at h,
   intro hzz,
   have h2 : 0 < z ^ 2,
   { rw [pow_two, ←h, ←pow_two, ←pow_two],
-    cases non_zero_of_coprime hc with hxz hyz,
+    have hc' : int.gcd x y ≠ 0, { rw hc, simp },
+    cases int.ne_zero_of_gcd hc' with hxz hyz,
     { have h1 : 0 < x ^ 2, { apply lt_of_le_of_ne (pow_two_nonneg x) (pow_ne_zero 2 hxz).symm },
       apply lt_add_of_pos_of_le h1 (pow_two_nonneg y) },
     { have h1 : 0 < y ^ 2, { apply lt_of_le_of_ne (pow_two_nonneg y) (pow_ne_zero 2 hyz).symm },
@@ -218,14 +174,12 @@ begin
   by_contradiction h2,
   cases nat.prime.not_coprime_iff_dvd.mp h2 with p hp,
   have h3 : p ∣ int.nat_abs x,
-  {
-    apply (or_self _).mp,
+  { apply (or_self _).mp,
     rw [←nat.prime.dvd_mul hp.1, ←int.nat_abs_mul, ←int.coe_nat_dvd_left],
     rw (eq_sub_of_add_eq h),
     apply dvd_sub,
     { apply dvd_mul_of_dvd_left (int.coe_nat_dvd_left.mpr hp.2.2) },
-    { apply dvd_mul_of_dvd_left (int.coe_nat_dvd_left.mpr hp.2.1) },
-  },
+    { apply dvd_mul_of_dvd_left (int.coe_nat_dvd_left.mpr hp.2.1) } },
   have h4 : p ∣ 1, { rw ←hc, apply nat.dvd_gcd h3 hp.2.1 },
   apply nat.prime.ne_one hp.1, exact nat.dvd_one.mp h4
 end
@@ -260,8 +214,7 @@ begin
   have hm0 : m ≠ 0, { rw hm, norm_num, apply rat.denom_ne_zero q },
   have hm2n20 : m ^ 2 + n ^ 2 > 0,
   { apply lt_add_of_pos_of_le _ (pow_two_nonneg n),
-    exact lt_of_le_of_ne (pow_two_nonneg m) (ne.symm (pow_ne_zero 2 hm0)),
-  },
+    exact lt_of_le_of_ne (pow_two_nonneg m) (ne.symm (pow_ne_zero 2 hm0)) },
   have hq2 : q = n / m, { rw [hm, hn, int.cast_coe_nat], exact (rat.cast_id q).symm },
   have hw2 : w = (m ^ 2 - n ^ 2) / (m ^ 2 + n ^ 2),
   { rw [ht4.2, hq2], field_simp [hm2n20, (rat.denom_ne_zero q)] },
@@ -271,68 +224,50 @@ begin
     rw [hq2] {occs := occurrences.pos [2, 3]}, field_simp [rat.denom_ne_zero q], ring },
   have hmncp : int.gcd n m = 1, { rw [hm, hn], exact q.cop },
   have hnmcp : int.gcd m n = 1, { rw int.gcd_comm, exact hmncp },
-  cases nat.mod_two_eq_zero_or_one (int.nat_abs m) with hm2 hm2,
-  { cases nat.mod_two_eq_zero_or_one (int.nat_abs n) with hn2 hn2,
+  cases int.mod_two_eq_zero_or_one m with hm2 hm2,
+  { cases int.mod_two_eq_zero_or_one n with hn2 hn2,
     { -- m even, n even
       exfalso,
-      have hh3 : 2 ∣ int.gcd n m,
-      { exact nat.dvd_gcd (nat.dvd_of_mod_eq_zero hn2) (nat.dvd_of_mod_eq_zero hm2) },
-      rw hmncp at hh3, revert hh3, norm_num
-    },
+      have h1 : 2 ∣ (int.gcd n m : ℤ),
+      { exact int.dvd_gcd (int.dvd_of_mod_eq_zero hn2) (int.dvd_of_mod_eq_zero hm2) },
+      rw hmncp at h1, revert h1, norm_num },
     { -- m even, n odd
-      have hh4 : int.gcd (m ^ 2 - n ^ 2) (m ^ 2 + n ^ 2) = 1,
-      { exact coprime_sqr_sub_sqr_sum_of_even_odd hnmcp
-          (parity_eq_abs_parity_iff.mpr hm2) (parity_eq_abs_parity_iff.mpr hn2) },
-      have hh5 : y = m ^ 2 - n ^ 2 ∧ z = m ^ 2 + n ^ 2,
-      { apply rat.div_int_inj hzpos hm2n20 (coprime_of_coprime_pythagorean_triple h hc) hh4,
-        { rw [←hw, hw2], norm_cast }
-      },
+      have h2 : y = m ^ 2 - n ^ 2 ∧ z = m ^ 2 + n ^ 2,
+      { apply rat.div_int_inj hzpos hm2n20 (coprime_of_coprime_pythagorean_triple h hc)
+          (coprime_pow_two_sub_pow_two_sum_of_even_odd hnmcp hm2 hn2),
+        { rw [←hw, hw2], norm_cast } },
       use [m, n],
       apply and.intro,
       { apply (rat.coe_int_inj _ _).mp,
         apply (div_left_inj' ((mt (rat.coe_int_inj z 0).mp) hz)).mp,
-        rw [←hv, hh5.right, hv2], norm_cast,
-      },
-      exact hh5.left
-    }
-  },
-  { cases nat.mod_two_eq_zero_or_one (int.nat_abs n) with hn2 hn2,
+        rw [←hv, h2.right, hv2], norm_cast },
+      exact h2.left } },
+  { cases int.mod_two_eq_zero_or_one n with hn2 hn2,
     { -- m odd, n even
-      have hh4 : int.gcd (m ^ 2 - n ^ 2) (m ^ 2 + n ^ 2) = 1,
-      { exact coprime_sqr_sub_sqr_sum_of_odd_even hnmcp
-          (parity_eq_abs_parity_iff.mpr hm2) (parity_eq_abs_parity_iff.mpr hn2) },
-      have hh5 : y = m ^ 2 - n ^ 2 ∧ z = m ^ 2 + n ^ 2,
-      { apply rat.div_int_inj hzpos hm2n20 (coprime_of_coprime_pythagorean_triple h hc) hh4,
-        { rw [←hw, hw2], norm_cast }
-      },
+      have h2 : y = m ^ 2 - n ^ 2 ∧ z = m ^ 2 + n ^ 2,
+      { apply rat.div_int_inj hzpos hm2n20 (coprime_of_coprime_pythagorean_triple h hc)
+          (coprime_pow_two_sub_pow_two_sum_of_odd_even hnmcp hm2 hn2),
+        { rw [←hw, hw2], norm_cast } },
       use [m, n],
       apply and.intro,
       { apply (rat.coe_int_inj _ _).mp,
         apply (div_left_inj' ((mt (@rat.coe_int_inj z 0).mp) hz)).mp,
-        rw [←hv, hh5.right, hv2], norm_cast,
-      },
-      exact hh5.left
-    },
+        rw [←hv, h2.right, hv2], norm_cast },
+      exact h2.left },
     { -- m odd, n odd
       exfalso,
-      have hh1 : 2 ∣ m ^ 2 + n ^ 2 ∧ 2 ∣ m ^ 2 - n ^ 2
+      have h1 : 2 ∣ m ^ 2 + n ^ 2 ∧ 2 ∣ m ^ 2 - n ^ 2
         ∧ ((m ^ 2 - n ^ 2) / 2) % 2 = 0 ∧ int.gcd ((m ^ 2 - n ^ 2) / 2) ((m ^ 2 + n ^ 2) / 2) = 1,
-      { exact coprime_sqr_sub_sqr_sum_of_odd_odd hnmcp
-          (parity_eq_abs_parity_iff.mpr hm2) (parity_eq_abs_parity_iff.mpr hn2)},
-      have hh2 : y = (m ^ 2 - n ^ 2) / 2 ∧ z = (m ^ 2 + n ^ 2) / 2,
-      { apply rat.div_int_inj hzpos _ (coprime_of_coprime_pythagorean_triple h hc) hh1.2.2.2,
+      { exact coprime_pow_two_sub_pow_two_sum_of_odd_odd hnmcp hm2 hn2 },
+      have h2 : y = (m ^ 2 - n ^ 2) / 2 ∧ z = (m ^ 2 + n ^ 2) / 2,
+      { apply rat.div_int_inj hzpos _ (coprime_of_coprime_pythagorean_triple h hc) h1.2.2.2,
         { rw [←hw, ←rat.mk_eq_div, ←(rat.div_mk_div_cancel_left (by norm_num : (2 : ℤ) ≠ 0))],
-          rw [int.div_mul_cancel hh1.1, int.div_mul_cancel hh1.2.1, hw2], norm_cast
-        },
+          rw [int.div_mul_cancel h1.1, int.div_mul_cancel h1.2.1, hw2], norm_cast },
         { apply (mul_lt_mul_right (by norm_num : 0 < (2 : ℤ))).mp,
-          rw [int.div_mul_cancel hh1.1, zero_mul], exact hm2n20,
-        }
-      },
-      rw [hh2.1, hh1.2.2.1] at hyo,
+          rw [int.div_mul_cancel h1.1, zero_mul], exact hm2n20 } },
+      rw [h2.1, h1.2.2.1] at hyo,
       revert hyo,
-      norm_num,
-    }
-  }
+      norm_num } }
 end
 
 theorem pythagorean_triple_symm {x y z : ℤ} (h : pythagorean_triple x y z)
@@ -374,9 +309,7 @@ begin
         rw [eq_add_of_sub_eq hz2],
         rw (by ring : (z0 * 2 + 1) * (z0 * 2 + 1) = 4 * (z0 * z0 + z0) + 1),
         rw [int.add_mod, int.mul_mod_right],
-        norm_num },
-    },
-  }
+        norm_num } } }
 end
 
 theorem exists_coprime_pythagorean_triple_pos {x y z : ℤ}
@@ -402,50 +335,8 @@ begin
   have h' : pythagorean_triple x y (-z),
   { unfold pythagorean_triple, rw neg_mul_neg, exact h },
   apply exists_coprime_pythagorean_triple_pos h' hc,
-  apply lt_of_le_of_ne _ (ne.symm (non_zero_of_coprime_pythagorean_triple h' hc)),
+  apply lt_of_le_of_ne _ (ne.symm (ne_zero_of_coprime_pythagorean_triple h' hc)),
   exact le_neg.mp (not_lt.mp hz)
-end
-
-lemma nat.dvd_of_dvd_pow_two {m n : ℕ} (h : m * m ∣ n * n) : m ∣ n :=
-begin
-  set mn := nat.gcd m n with hmn,
-  by_cases h0 : m = 0,
-  { suffices hn0 : n = 0, { rw hn0, exact dvd_zero m },
-    apply nat.mul_self_inj.mp, change n * n = 0,
-    rw h0 at h, change 0 ∣ n * n at h,
-    convert zero_dvd_iff.mp h
-  },
-  by_cases hg : nat.gcd m n = 0,
-  { exfalso, revert h0,
-    rw nat.eq_zero_of_gcd_eq_zero_left hg, tauto
-  },
-  set m0 := m / mn with hm0,
-  set n0 := n / mn with hn0,
-  have h2 : nat.coprime m0 n0,
-  { rw [hm0, hn0],
-    exact nat.coprime_div_gcd_div_gcd (lt_of_le_of_ne (nat.zero_le _) (ne.symm hg)) },
-  have h3 : nat.gcd (m * m) (n * n) = mn * mn,
-  replace hm0 : m = m0 * mn,
-  { rw [hm0, hmn], exact (nat.div_mul_cancel (nat.gcd_dvd_left m n)).symm },
-  replace hn0 : n = n0 * mn,
-  { rw [hn0, hmn], exact (nat.div_mul_cancel (nat.gcd_dvd_right m n)).symm },
-  { rw [hm0, hn0, (by ring : m0 * mn * (m0 * mn) = (mn * mn) * (m0 * m0))],
-    rw (by ring : n0 * mn * (n0 * mn) = (mn * mn) * (n0 * n0)),
-    rw nat.gcd_mul_left (mn * mn),
-    rw nat.coprime.gcd_mul_left_cancel m0 (nat.coprime.mul_right h2 h2),
-    rw nat.coprime.gcd_mul_left_cancel_right n0 (nat.coprime.symm h2),
-    dunfold nat.coprime at h2, rw [h2, mul_one]
-  },
-  rw nat.gcd_eq_left h at h3,
-  exact nat.gcd_eq_left_iff_dvd.mpr (eq.symm (nat.mul_self_inj.mp h3))
-end
-
-lemma int.dvd_of_dvd_pow_two {m n : ℤ} (h : m ^ 2 ∣ n ^ 2) : m ∣ n :=
-begin
-  apply int.nat_abs_dvd_abs_iff.mp,
-  apply nat.dvd_of_dvd_pow_two,
-  rw [←int.nat_abs_mul, ←int.nat_abs_mul, ←pow_two, ←pow_two],
-  exact int.nat_abs_dvd_abs_iff.mpr h
 end
 
 theorem exists_pythagorean_triple {x y z : ℤ}
@@ -458,33 +349,25 @@ begin
     have hy0 : y = 0, { apply int.nat_abs_eq_zero.mp, apply nat.eq_zero_of_gcd_eq_zero_right h0 },
     apply or.intro_right, use [(0 : ℤ), (0 : ℤ), (0 : ℤ)], rw [hx0, hy0],
     norm_num },
-  set k := (int.gcd x y : ℤ) with hxy,
-  set x0 := x / k with hx0,
-  set y0 := y / k with hy0,
-  have hx0' : x = x0 * k,
-  { rw [hx0, hxy], exact (int.div_mul_cancel (@int.gcd_dvd_left x y)).symm },
-  have hy0' : y = y0 * k,
-  { rw [hy0, hxy], exact (int.div_mul_cancel (@int.gcd_dvd_right x y)).symm },
-  have h2 : int.gcd x0 y0 = 1,
-  { rw [hx0, hy0, hxy],
-    exact int.gcd_div_gcd_div_gcd (lt_of_le_of_ne (nat.zero_le _) (ne.symm h0)) },
+  rcases int.exists_gcd_one' (nat.pos_of_ne_zero h0) with ⟨k, x0, y0, k0, h2, hx0, hy0⟩,
   dunfold pythagorean_triple at h,
-  have hz : k ^ 2 ∣ z ^ 2,
-  { rw [pow_two z, ←h, hx0', hy0'],
+  have hz : (k : ℤ) ^ 2 ∣ z ^ 2,
+  { rw [pow_two z, ← h, hx0, hy0],
     rw (by ring : x0 * k * (x0 * k) + y0 * k * (y0 * k) = k ^ 2 * (x0 * x0 + y0 * y0)),
     apply dvd_mul_right },
-  have hz0 : ∃ z0, z = z0 * k, { exact exists_eq_mul_left_of_dvd (int.dvd_of_dvd_pow_two hz) },
-  cases hz0 with z0 hz0',
+  have hz0 : ∃ z0, z = z0 * k,
+  { exact exists_eq_mul_left_of_dvd ((int.pow_dvd_pow_iff (by norm_num : 0 < 2)).mp hz) },
+  cases hz0 with z0 hz0,
   have h' : pythagorean_triple x0 y0 z0,
   { dunfold pythagorean_triple,
-    have hk0 : k ^ 2 ≠ 0, { rw hxy, apply pow_ne_zero 2, simpa only [int.coe_nat_eq_zero, ne.def] },
+    have hk0 : (k : ℤ) ^ 2 ≠ 0, { apply pow_ne_zero 2, exact int.coe_nat_ne_zero_iff_pos.mpr k0 },
     apply (domain.mul_left_inj hk0).mp,
-    rw [hz0', hx0', hy0'] at h,
-    rw [(by ring : z0 * z0 * k ^ 2 = z0 * k * (z0 * k)), ←h],
+    rw [hz0, hx0, hy0] at h,
+    rw [(by ring : z0 * z0 * (k : ℤ) ^ 2 = z0 * k * (z0 * k)), ←h],
     ring },
   rcases exists_coprime_pythagorean_triple h' h2 with ⟨m, ⟨n, hmn⟩⟩ | ⟨m, ⟨n, hmn⟩⟩,
   { apply or.intro_left, use [k, m, n],
-    rw [hx0', hy0', hmn.left, hmn.right], apply and.intro; ring },
+    rw [hx0, hy0, hmn.left, hmn.right], apply and.intro; ring },
   { apply or.intro_right, use [k, m, n],
-    rw [hx0', hy0', hmn.left, hmn.right], apply and.intro; ring }
+    rw [hx0, hy0, hmn.left, hmn.right], apply and.intro; ring }
 end

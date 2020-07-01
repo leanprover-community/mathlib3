@@ -521,6 +521,37 @@ nat.dvd_antisymm (by unfold gcd; exact nat.gcd_dvd_left _ _)
 theorem gcd_eq_right {i j : ℤ} (H : j ∣ i) : gcd i j = nat_abs j :=
 by rw [gcd_comm, gcd_eq_left H]
 
+theorem ne_zero_of_gcd {x y : ℤ}
+  (hc : gcd x y ≠ 0) : x ≠ 0 ∨ y ≠ 0 :=
+begin
+  by_cases hx : x = 0,
+  { apply or.intro_right, intro hy, revert hc, rw [hx, hy], simp },
+  tauto
+end
+
+theorem exists_gcd_one {m n : ℤ} (H : 0 < gcd m n) :
+  ∃ (m' n' : ℤ), gcd m' n' = 1 ∧ m = m' * gcd m n ∧ n = n' * gcd m n :=
+⟨_, _, gcd_div_gcd_div_gcd H,
+  (int.div_mul_cancel (gcd_dvd_left m n)).symm,
+  (int.div_mul_cancel (gcd_dvd_right m n)).symm⟩
+
+theorem exists_gcd_one' {m n : ℤ} (H : 0 < gcd m n) :
+  ∃ (g : ℕ), ∃ (m' n' : ℤ), 0 < g ∧ gcd m' n' = 1 ∧ m = m' * g ∧ n = n' * g :=
+let ⟨m', n', h⟩ := exists_gcd_one H in ⟨_, m', n', H, h⟩
+
+theorem pow_dvd_pow_of_dvd {a b : ℤ} (h : a ∣ b) : ∀ n:ℕ, a^n ∣ b^n
+| 0     := dvd_refl _
+| (n+1) := mul_dvd_mul h (pow_dvd_pow_of_dvd n)
+
+theorem pow_dvd_pow_iff {m n : ℤ} {k : ℕ} (k0 : 0 < k) : m ^ k ∣ n ^ k ↔ m ∣ n :=
+begin
+  refine ⟨λ h, _, λ h, pow_dvd_pow_of_dvd h _⟩,
+  apply int.nat_abs_dvd_abs_iff.mp,
+  apply (nat.pow_dvd_pow_iff k0).mp,
+  rw [← int.nat_abs_pow, ← int.nat_abs_pow],
+  exact int.nat_abs_dvd_abs_iff.mpr h
+end
+
 /- lcm -/
 
 theorem lcm_comm (i j : ℤ) : lcm i j = lcm j i :=
@@ -602,4 +633,18 @@ begin
     rw [int.coe_nat_abs_eq_normalize, normalize_idem] },
   { assume n, show int.nat_abs (normalize n) = n,
     rw [← int.coe_nat_abs_eq_normalize, int.nat_abs_of_nat, int.nat_abs_of_nat] }
+end
+
+lemma prime_two_or_dvd_of_dvd_two_mul_mul_self {m : ℤ} {p : ℕ}
+  (hp : nat.prime p) (h : (p : ℤ) ∣ 2 * m ^ 2) : p = 2 ∨ p ∣ int.nat_abs m :=
+begin
+  have h2 : int.nat_abs (2 * m ^ 2) = 2 * (int.nat_abs m) ^ 2,
+  { rw [pow_two, nat.pow_two, int.nat_abs_mul, int.nat_abs_mul], refl },
+  have h3 : p ∣ 2 * (int.nat_abs m) ^ 2, { rw ←h2, exact int.coe_nat_dvd_left.mp h },
+  cases (nat.prime.dvd_mul hp).mp h3 with p2 pp,
+  { apply or.intro_left,
+    exact le_antisymm (nat.le_of_dvd two_pos p2) (nat.prime.two_le hp) },
+  { apply or.intro_right,
+    rw nat.pow_two at pp,
+    exact (or_self _).mp ((nat.prime.dvd_mul hp).mp pp) }
 end

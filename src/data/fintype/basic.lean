@@ -5,7 +5,7 @@ Author: Mario Carneiro
 
 Finite types.
 -/
-import data.finset
+import data.finset.basic
 import data.array.lemmas
 universes u v
 

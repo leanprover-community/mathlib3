@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
-import data.finset
+import data.finset.intervals
 import data.nat.enat
 import tactic.omega
 import tactic.abel

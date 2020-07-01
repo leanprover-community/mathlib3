@@ -7,7 +7,7 @@ import data.monoid_algebra
 import algebra.gcd_domain
 import ring_theory.euclidean_domain
 import ring_theory.multiplicity
-import data.finset.antidiagonal
+import data.finset.nat_antidiagonal
 import tactic.ring_exp
 import deprecated.field
 

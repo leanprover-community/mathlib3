@@ -6,6 +6,8 @@ Authors: Johannes Hölzl
 
 import data.finset.intervals
 import data.finset.fold
+import data.finset.powerset
+import data.finset.pi
 import data.nat.enat
 import tactic.omega
 import tactic.abel

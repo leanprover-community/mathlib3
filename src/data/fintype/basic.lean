@@ -6,7 +6,10 @@ Author: Mario Carneiro
 Finite types.
 -/
 import data.finset.sort
+import data.finset.powerset
+import data.finset.pi
 import data.array.lemmas
+
 universes u v
 
 variables {α : Type*} {β : Type*} {γ : Type*}

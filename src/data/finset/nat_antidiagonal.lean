@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import data.finset.basic
-import data.multiset.antidiagonal
+import data.multiset.nat_antidiagonal
 
 namespace finset
 

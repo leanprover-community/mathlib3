@@ -129,6 +129,14 @@ class has_finite_biproducts :=
 
 attribute [instance, priority 100] has_finite_biproducts.has_biproducts_of_shape
 
+instance has_finite_products_of_has_finite_biproducts [has_finite_biproducts.{v} C] :
+  has_finite_products.{v} C :=
+⟨λ J _ _, ⟨λ F, by exactI has_limit_of_iso discrete.nat_iso_functor.symm⟩⟩
+
+instance has_finite_coproducts_of_has_finite_biproducts [has_finite_biproducts.{v} C] :
+  has_finite_coproducts.{v} C :=
+⟨λ J _ _, ⟨λ F, by exactI has_colimit_of_iso discrete.nat_iso_functor⟩⟩
+
 variables {J C}
 
 /--
@@ -778,13 +786,12 @@ begin
   ext; simp [add_comp],
 end
 
-/-- In a preadditive category, if all binary products exist,
-    then the all binary biproducts exist. -/
+/-- In a preadditive category, if all binary products exist, then all binary biproducts exist. -/
 def has_binary_biproducts.of_has_binary_products [has_binary_products C] :
   has_binary_biproducts C :=
 { has_binary_biproduct := λ X Y, has_binary_biproduct.of_has_binary_product X Y, }
 
-/-- In a preadditive category, if the product of `X` and `Y` exists, then the
+/-- In a preadditive category, if the coproduct of `X` and `Y` exists, then the
     binary biproduct of `X` and `Y` exists. -/
 def has_binary_biproduct.of_has_binary_coproduct (X Y : C) [has_binary_coproduct X Y] :
   has_binary_biproduct X Y :=
@@ -798,8 +805,7 @@ begin
   ext; simp [add_comp],
 end
 
-/-- In a preadditive category, if all binary coproducts exist,
-    then the all binary biproducts exist. -/
+/-- In a preadditive category, if all binary coproducts exist, then all binary biproducts exist. -/
 def has_binary_biproducts.of_has_binary_coproducts [has_binary_coproducts C] :
   has_binary_biproducts C :=
 { has_binary_biproduct := λ X Y, has_binary_biproduct.of_has_binary_coproduct X Y, }

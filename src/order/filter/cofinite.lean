@@ -28,14 +28,14 @@ variables {α : Type*}
 
 /-- The cofinite filter is the filter of subsets whose complements are finite. -/
 def cofinite : filter α :=
-{ sets             := {s | finite (- s)},
+{ sets             := {s | finite sᶜ},
   univ_sets        := by simp only [compl_univ, finite_empty, mem_set_of_eq],
-  sets_of_superset := assume s t (hs : finite (-s)) (st: s ⊆ t),
+  sets_of_superset := assume s t (hs : finite sᶜ) (st: s ⊆ t),
     hs.subset $ compl_subset_compl.2 st,
-  inter_sets       := assume s t (hs : finite (-s)) (ht : finite (-t)),
+  inter_sets       := assume s t (hs : finite sᶜ) (ht : finite (tᶜ)),
     by simp only [compl_inter, finite.union, ht, hs, mem_set_of_eq] }
 
-@[simp] lemma mem_cofinite {s : set α} : s ∈ (@cofinite α) ↔ finite (-s) := iff.rfl
+@[simp] lemma mem_cofinite {s : set α} : s ∈ (@cofinite α) ↔ finite sᶜ := iff.rfl
 
 lemma cofinite_ne_bot [infinite α] : @cofinite α ≠ ⊥ :=
 mt empty_in_sets_eq_bot.mpr $ by { simp only [mem_cofinite, compl_empty], exact infinite_univ }

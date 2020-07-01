@@ -421,10 +421,10 @@ nat_iso.of_components
   (λ Z Z' f, by { dsimp, rw[←tensor_id], apply associator_naturality })
 
 @[simp] lemma tensor_left_tensor_hom_app (X Y Z : C) :
-  (tensor_left_tensor.{v} X Y).hom.app Z = (associator X Y Z).hom :=
+  (tensor_left_tensor X Y).hom.app Z = (associator X Y Z).hom :=
 rfl
 @[simp] lemma tensor_left_tensor_inv_app (X Y Z : C) :
-  (tensor_left_tensor.{v} X Y).inv.app Z = (associator X Y Z).inv :=
+  (tensor_left_tensor X Y).inv.app Z = (associator X Y Z).inv :=
 rfl
 
 /-- Tensoring on the right with as fixed object, as a functor. -/
@@ -439,14 +439,14 @@ tensoring on the right with `X`, and then again with `Y`.
 -/
 def tensor_right_tensor (X Y : C) : tensor_right (X ⊗ Y) ≅ tensor_right X ⋙ tensor_right Y :=
 nat_iso.of_components
-  (λ Z, (associator.{v} Z X Y).symm)
+  (λ Z, (associator Z X Y).symm)
   (λ Z Z' f, by { dsimp, rw[←tensor_id], apply associator_inv_naturality })
 
 @[simp] lemma tensor_right_tensor_hom_app (X Y Z : C) :
-  (tensor_right_tensor.{v} X Y).hom.app Z = (associator Z X Y).inv :=
+  (tensor_right_tensor X Y).hom.app Z = (associator Z X Y).inv :=
 rfl
 @[simp] lemma tensor_right_tensor_inv_app (X Y Z : C) :
-  (tensor_right_tensor.{v} X Y).inv.app Z = (associator Z X Y).hom :=
+  (tensor_right_tensor X Y).inv.app Z = (associator Z X Y).hom :=
 rfl
 
 end

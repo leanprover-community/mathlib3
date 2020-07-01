@@ -556,7 +556,7 @@ let ⟨n, hle, hlt⟩ := exists_int_pow_near' hr hw in
 by rwa norm_fpow⟩
 
 lemma punctured_nhds_ne_bot {α : Type*} [nondiscrete_normed_field α] (x : α) :
-  nhds_within x (-{x}) ≠ ⊥ :=
+  nhds_within x {x}ᶜ ≠ ⊥ :=
 begin
   rw [← mem_closure_iff_nhds_within_ne_bot, metric.mem_closure_iff],
   rintros ε ε0,
@@ -813,7 +813,7 @@ begin
       exact this hy },
     rw [← set.mem_compl_iff, ← closure_compl],
     rcases hE with ⟨z, hz⟩,
-    suffices : (λ c : ℝ, x + c • z) 0 ∈ closure (-{x} : set E),
+    suffices : (λ c : ℝ, x + c • z) 0 ∈ closure ({x}ᶜ : set E),
       by simpa only [zero_smul, add_zero] using this,
     have : (0:ℝ) ∈ closure (set.Ioi (0:ℝ)), by simp [closure_Ioi],
     refine (continuous_const.add (continuous_id.smul
@@ -825,12 +825,12 @@ end
 
 theorem frontier_closed_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :
   frontier (closed_ball x r) = sphere x r :=
-by rw [frontier, closure_eq_of_is_closed is_closed_ball, interior_closed_ball x hr,
+by rw [frontier, closure_closed_ball, interior_closed_ball x hr,
   closed_ball_diff_ball]
 
 theorem frontier_closed_ball' [normed_space ℝ E] (x : E) (r : ℝ) (hE : ∃ z : E, z ≠ 0) :
   frontier (closed_ball x r) = sphere x r :=
-by rw [frontier, closure_eq_of_is_closed is_closed_ball, interior_closed_ball' x r hE,
+by rw [frontier, closure_closed_ball, interior_closed_ball' x r hE,
   closed_ball_diff_ball]
 
 open normed_field

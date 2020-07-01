@@ -61,7 +61,7 @@ local attribute [tidy] tactic.case_bash
 
 variables {C : Type u₂} [category.{v₂} C]
 
-variables [has_binary_products.{v₂} C]
+variables [has_binary_products C]
 
 variables {J : Type v₂} [small_category J]
 

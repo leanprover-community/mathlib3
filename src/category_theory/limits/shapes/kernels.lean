@@ -47,7 +47,7 @@ open category_theory.limits.walking_parallel_pair
 namespace category_theory.limits
 
 variables {C : Type u} [category.{v} C]
-variables [has_zero_morphisms.{v} C]
+variables [has_zero_morphisms C]
 
 /-- A morphism `f` has a kernel if the functor `parallel_pair f 0` has a limit. -/
 abbreviation has_kernel {X Y : C} (f : X ⟶ Y) : Type (max u v) := has_limit (parallel_pair f 0)
@@ -126,7 +126,7 @@ lemma kernel_not_iso_of_nonzero (w : f ≠ 0) : (is_iso (kernel.ι f)) → false
 end
 
 section has_zero_object
-variables [has_zero_object.{v} C]
+variables [has_zero_object C]
 
 local attribute [instance] has_zero_object.has_zero
 
@@ -270,7 +270,7 @@ lemma cokernel_not_iso_of_nonzero (w : f ≠ 0) : (is_iso (cokernel.π f)) → f
 end
 
 section has_zero_object
-variables [has_zero_object.{v} C]
+variables [has_zero_object C]
 
 local attribute [instance] has_zero_object.has_zero
 
@@ -311,7 +311,7 @@ end
 
 
 section has_zero_object
-variables [has_zero_object.{v} C]
+variables [has_zero_object C]
 
 local attribute [instance] has_zero_object.has_zero
 
@@ -367,7 +367,7 @@ end category_theory.limits
 namespace category_theory.limits
 variables (C : Type u) [category.{v} C]
 
-variables [has_zero_morphisms.{v} C]
+variables [has_zero_morphisms C]
 
 /-- `has_kernels` represents a choice of kernel for every morphism -/
 class has_kernels :=
@@ -380,11 +380,11 @@ class has_cokernels :=
 attribute [instance, priority 100] has_kernels.has_limit has_cokernels.has_colimit
 
 /-- Kernels are finite limits, so if `C` has all finite limits, it also has all kernels -/
-def has_kernels_of_has_finite_limits [has_finite_limits.{v} C] : has_kernels.{v} C :=
+def has_kernels_of_has_finite_limits [has_finite_limits C] : has_kernels C :=
 { has_limit := infer_instance }
 
 /-- Cokernels are finite limits, so if `C` has all finite colimits, it also has all cokernels -/
-def has_cokernels_of_has_finite_colimits [has_finite_colimits.{v} C] : has_cokernels.{v} C :=
+def has_cokernels_of_has_finite_colimits [has_finite_colimits C] : has_cokernels C :=
 { has_colimit := infer_instance }
 
 end category_theory.limits

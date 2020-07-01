@@ -2,28 +2,13 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
-
-The real numbers ℝ.
-
-They are constructed as the topological completion of ℚ. With the following steps:
-(1) prove that ℚ forms a uniform space.
-(2) subtraction and addition are uniform continuous functions in this space
-(3) for multiplication and inverse this only holds on bounded subsets
-(4) ℝ is defined as separated Cauchy filters over ℚ (the separation requires a quotient construction)
-(5) extend the uniform continuous functions along the completion
-(6) proof field properties using the principle of extension of identities
-
-TODO
-
-generalizations:
-* topological groups & rings
-* order topologies
-* Archimedean fields
-
 -/
 import topology.metric_space.basic
 import topology.algebra.uniform_group
 import topology.algebra.ring
+/-!
+# Topological properties of ℝ
+-/
 
 noncomputable theory
 open classical set filter topological_space metric
@@ -299,7 +284,7 @@ section
 
 lemma closure_of_rat_image_lt {q : ℚ} : closure ((coe:ℚ → ℝ) '' {x | q < x}) = {r | ↑q ≤ r} :=
 subset.antisymm
-  ((closure_subset_iff_subset_of_is_closed (is_closed_ge' _)).2
+  ((is_closed_ge' _).closure_subset_iff.2
     (image_subset_iff.2 $ λ p h, le_of_lt $ (@rat.cast_lt ℝ _ _ _).2 h)) $
 λ x hx, mem_closure_iff_nhds.2 $ λ t ht,
 let ⟨ε, ε0, hε⟩ := metric.mem_nhds_iff.1 ht in
@@ -339,5 +324,10 @@ begin
   rw this at I,
   exact bounded.subset I bounded_closed_ball
 end⟩
+
+lemma real.image_Icc {f : ℝ → ℝ} {a b : ℝ} (hab : a ≤ b) (h : continuous_on f $ Icc a b) :
+  f '' Icc a b = Icc (Inf $ f '' Icc a b) (Sup $ f '' Icc a b) :=
+eq_Icc_of_connected_compact ⟨(nonempty_Icc.2 hab).image f, is_preconnected_Icc.image f h⟩
+  (compact_Icc.image_of_continuous_on h)
 
 end

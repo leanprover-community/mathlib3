@@ -293,8 +293,9 @@ end C
 
 section eval₂
 variables [semiring S]
-variables (f : R → S) (x : S)
-open is_semiring_hom
+
+section
+variables (f : R →+* S) (x : S)
 
 /-- Evaluate a polynomial `p` given a ring hom `f` from the scalar ring
   to the target and a value `x` for the variable in the target -/
@@ -304,21 +305,32 @@ p.sum (λ e a, f a * x ^ e)
 @[simp] lemma eval₂_zero : (0 : polynomial R).eval₂ f x = 0 :=
 finsupp.sum_zero_index
 
-variables [is_semiring_hom f]
-
 @[simp] lemma eval₂_C : (C a).eval₂ f x = f a :=
-(sum_single_index $ by rw [map_zero f, zero_mul]).trans $ by rw [pow_zero, mul_one]
+(sum_single_index $ by rw [f.map_zero, zero_mul]).trans $ by rw [pow_zero, mul_one]
 
 @[simp] lemma eval₂_X : X.eval₂ f x = x :=
-(sum_single_index $ by rw [map_zero f, zero_mul]).trans $ by rw [map_one f, one_mul, pow_one]
+(sum_single_index $ by rw [f.map_zero, zero_mul]).trans $ by rw [f.map_one, one_mul, pow_one]
+
+@[simp] lemma eval₂_monomial {n : ℕ} {r : R} : (monomial n r).eval₂ f x = (f r) * x^n :=
+begin
+  apply sum_single_index,
+  simp,
+end
+
+@[simp] lemma eval₂_X_pow {n : ℕ} : (X^n).eval₂ f x = x^n :=
+begin
+  rw ←monomial_one_eq_X_pow,
+  convert eval₂_monomial f x,
+  simp,
+end
 
 @[simp] lemma eval₂_add : (p + q).eval₂ f x = p.eval₂ f x + q.eval₂ f x :=
 finsupp.sum_add_index
-  (λ _, by rw [map_zero f, zero_mul])
-  (λ _ _ _, by rw [map_add f, add_mul])
+  (λ _, by rw [f.map_zero, zero_mul])
+  (λ _ _ _, by rw [f.map_add, add_mul])
 
 @[simp] lemma eval₂_one : (1 : polynomial R).eval₂ f x = 1 :=
-by rw [← C_1, eval₂_C, map_one f]
+by rw [← C_1, eval₂_C, f.map_one]
 
 @[simp] lemma eval₂_smul (g : R →+* S) (p : polynomial R) (x : S) {s : R} :
   eval₂ g x (s • p) = g s • eval₂ g x p :=
@@ -336,13 +348,15 @@ lemma eval₂_sum (p : polynomial R) (g : ℕ → R → polynomial R) (x : S) :
 finsupp.sum_sum_index (by simp [is_add_monoid_hom.map_zero f])
   (by intros; simp [right_distrib, is_add_monoid_hom.map_add f])
 
+end
+
 end eval₂
 
 section eval
 variable {x : R}
 
 /-- `eval x p` is the evaluation of the polynomial `p` at `x` -/
-def eval : R → polynomial R → R := eval₂ id
+def eval : R → polynomial R → R := eval₂ (ring_hom.id _)
 
 @[simp] lemma eval_C : (C a).eval x = a := eval₂_C _ _
 
@@ -431,8 +445,7 @@ as long as target ring is commutative
 -/
 section eval₂
 variables [comm_semiring S]
-variables (f : R → S) [is_semiring_hom f] (x : S)
-open is_semiring_hom
+variables (f : R →+* S) (x : S)
 
 @[simp] lemma eval₂_mul : (p * q).eval₂ f x = p.eval₂ f x * q.eval₂ f x :=
 begin
@@ -440,13 +453,13 @@ begin
   rw [mul_def, finsupp.sum_mul _ p], simp only [finsupp.mul_sum _ q], rw [sum_sum_index],
   { apply sum_congr rfl, assume i hi, dsimp only, rw [sum_sum_index],
     { apply sum_congr rfl, assume j hj, dsimp only,
-      rw [sum_single_index, map_mul f, pow_add],
+      rw [sum_single_index, f.map_mul, pow_add],
       { simp only [mul_assoc, mul_left_comm] },
-      { rw [map_zero f, zero_mul] } },
-    { intro, rw [map_zero f, zero_mul] },
-    { intros, rw [map_add f, add_mul] } },
-  { intro, rw [map_zero f, zero_mul] },
-  { intros, rw [map_add f, add_mul] }
+      { rw [f.map_zero, zero_mul] } },
+    { intro, rw [f.map_zero, zero_mul] },
+    { intros, rw [f.map_add, add_mul] } },
+  { intro, rw [f.map_zero, zero_mul] },
+  { intros, rw [f.map_add, add_mul] }
 end
 
 instance eval₂.is_semiring_hom : is_semiring_hom (eval₂ f x) :=
@@ -458,7 +471,7 @@ ring_hom.of (eval₂ f x)
 
 @[simp] lemma coe_eval₂_ring_hom (f : R →+* S) (x) : ⇑(eval₂_ring_hom f x) = eval₂ f x := rfl
 
-lemma eval₂_pow (n : ℕ) : (p ^ n).eval₂ f x = p.eval₂ f x ^ n := map_pow _ _ _
+lemma eval₂_pow (n : ℕ) : (p ^ n).eval₂ f x = p.eval₂ f x ^ n := (eval₂_ring_hom _ _).map_pow _ _
 
 end eval₂
 
@@ -487,13 +500,13 @@ instance eval.is_semiring_hom : is_semiring_hom (eval x) := eval₂.is_semiring_
 
 @[simp] lemma eval_pow (n : ℕ) : (p ^ n).eval x = p.eval x ^ n := eval₂_pow _ _ _
 
-lemma eval₂_hom [comm_semiring S] (f : R → S) [is_semiring_hom f] (x : R) :
+lemma eval₂_hom [comm_semiring S] (f : R →+* S) (x : R) :
   p.eval₂ f (f x) = f (p.eval x) :=
 polynomial.induction_on p
   (by simp)
-  (by simp [is_semiring_hom.map_add f] {contextual := tt})
-  (by simp [is_semiring_hom.map_mul f, eval_pow,
-    is_semiring_hom.map_pow f, pow_succ', (mul_assoc _ _ _).symm] {contextual := tt})
+  (by simp [f.map_add] {contextual := tt})
+  (by simp [f.map_mul, eval_pow,
+    f.map_pow, pow_succ', (mul_assoc _ _ _).symm] {contextual := tt})
 
 lemma root_mul_left_of_is_root (p : polynomial R) {q : polynomial R} :
   is_root q a → is_root (p * q) a :=
@@ -507,7 +520,7 @@ end eval
 
 section comp
 
-lemma eval₂_comp [comm_semiring S] (f : R → S) [is_semiring_hom f] {x : S} :
+lemma eval₂_comp [comm_semiring S] (f : R →+* S) {x : S} :
   (p.comp q).eval₂ f x = p.eval₂ f (q.eval₂ f x) :=
 show (p.sum (λ e a, C a * q ^ e)).eval₂ f x = p.eval₂ f (eval₂ f x q),
 by simp only [eval₂_mul, eval₂_C, eval₂_pow, eval₂_sum]; refl
@@ -698,7 +711,7 @@ variables [semiring S]
 variables (f : R →+* S)
 
 /-- `map f p` maps a polynomial `p` across a ring hom `f` -/
-def map : polynomial R → polynomial S := eval₂ (C ∘ f) X
+def map : polynomial R → polynomial S := eval₂ (C.comp f) X
 
 instance is_semiring_hom_C_f : is_semiring_hom (C ∘ f) :=
 is_semiring_hom.comp _ _
@@ -1069,7 +1082,7 @@ begin
   rw [mul_def, finsupp.sum_mul _ p], simp only [finsupp.mul_sum _ q], rw [sum_sum_index],
   { apply sum_congr rfl, assume i hi, dsimp only, rw [sum_sum_index],
     { apply sum_congr rfl, assume j hj, dsimp only,
-      rw [sum_single_index, map_mul (C ∘ f), pow_add],
+      rw [sum_single_index, (C.comp f).map_mul, pow_add],
       { simp [←mul_assoc], conv_lhs { rw ←@X_pow_mul_assoc _ _ _ _ i }, },
       { simp, } },
     { intro, simp, },
@@ -1099,43 +1112,36 @@ begin
     rw [map_mul, map_C, hc, map_pow, map_X] }
 end
 
--- This lemma requires commutativity just in `T`.
--- Really, it just requires that `x` is central.
-lemma eval₂_map [comm_semiring T] (g : S → T) [is_semiring_hom g] (x : T) :
-  (p.map f).eval₂ g x = p.eval₂ (λ y, g (f y)) x :=
-polynomial.induction_on p
-  (by simp)
-  (by simp [is_semiring_hom.map_add f] {contextual := tt})
-  (by simp [is_semiring_hom.map_mul f,
-    is_semiring_hom.map_pow f, pow_succ', (mul_assoc _ _ _).symm] {contextual := tt})
-
-lemma eval_map (x : S) : (p.map f).eval x = p.eval₂ f x :=
+lemma eval₂_map [semiring T] (g : S →+* T) (x : T) :
+  (p.map f).eval₂ g x = p.eval₂ (g.comp f) x :=
 begin
   convert finsupp.sum_map_range_index _,
-  work_on_goal 1 { exact ring_hom.map_zero f, },
-  work_on_goal 1 { intro a, simp only [id.def, zero_mul], },
   { change map f p = map_range f _ p,
     ext,
     rw map_range_apply,
     exact coeff_map f a, },
+  { exact f.map_zero, },
+  { intro a, simp only [ring_hom.map_zero, zero_mul], },
 end
+
+lemma eval_map (x : S) : (p.map f).eval x = p.eval₂ f x :=
+eval₂_map f (ring_hom.id _) x
 
 end map
 
 section hom_eval₂
--- Here we need commutativity in both `S` and `T`.
+-- TODO: Here we need commutativity in both `S` and `T`?
 variables [comm_semiring S] [comm_semiring T]
 variables (f : R →+* S) (g : S →+* T) (p)
 
-lemma hom_eval₂ (x : S) : g (p.eval₂ f x) = p.eval₂ (g ∘ f) (g x) :=
+lemma hom_eval₂ (x : S) : g (p.eval₂ f x) = p.eval₂ (g.comp f) (g x) :=
 begin
   apply polynomial.induction_on p; clear p,
-  { intros a, rw [eval₂_C, eval₂_C] },
-  { intros p q hp hq, simp only [hp, hq, eval₂_add, is_semiring_hom.map_add g] },
+  { intros a, rw [eval₂_C, eval₂_C], refl, },
+  { intros p q hp hq, simp only [hp, hq, eval₂_add, g.map_add] },
   { intros n a ih,
-    replace ih := congr_arg (λ y, y * g x) ih,
-    simpa [pow_succ', is_semiring_hom.map_mul g, (mul_assoc _ _ _).symm,
-      eval₂_C, eval₂_mul, eval₂_X] using ih }
+    simp only [eval₂_mul, eval₂_C, eval₂_X_pow, g.map_mul, g.map_pow],
+    refl, }
 end
 
 end hom_eval₂
@@ -1608,11 +1614,11 @@ lemma coeff_sub (p q : polynomial R) (n : ℕ) : coeff (p - q) n = coeff p n - c
 @[simp] lemma eval_int_cast {n : ℤ} {x : R} : (n : polynomial R).eval x = n :=
 by simp only [←C_eq_int_cast, eval_C]
 
-@[simp] lemma eval₂_neg {S} [ring S] (f : R → S) [is_ring_hom f] {x : S} :
+@[simp] lemma eval₂_neg {S} [ring S] (f : R →+* S) {x : S} :
   (-p).eval₂ f x = -p.eval₂ f x :=
 by rw [eq_neg_iff_add_eq_zero, ←eval₂_add, add_left_neg, eval₂_zero]
 
-@[simp] lemma eval₂_sub {S} [ring S] (f : R → S) [is_ring_hom f] {x : S} :
+@[simp] lemma eval₂_sub {S} [ring S] (f : R →+* S) {x : S} :
   (p - q).eval₂ f x = p.eval₂ f x - q.eval₂ f x :=
 by rw [sub_eq_add_neg, eval₂_add, eval₂_neg, sub_eq_add_neg]
 
@@ -1629,7 +1635,7 @@ variables [comm_ring R] {p q : polynomial R}
 instance : comm_ring (polynomial R) := add_monoid_algebra.comm_ring
 
 instance eval₂.is_ring_hom {S} [comm_ring S]
-  (f : R → S) [is_ring_hom f] {x : S} : is_ring_hom (eval₂ f x) :=
+  (f : R →+* S) {x : S} : is_ring_hom (eval₂ f x) :=
 by apply is_ring_hom.of_semiring
 
 instance eval.is_ring_hom {x : R} : is_ring_hom (eval x) := eval₂.is_ring_hom _

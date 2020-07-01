@@ -71,7 +71,7 @@ open category_theory
 namespace category_theory.preadditive
 
 section preadditive
-variables {C : Type u} [category.{v} C] [preadditive.{v} C]
+variables {C : Type u} [category.{v} C] [preadditive C]
 
 /-- Composition by a fixed left argument as a group homomorphism -/
 def left_comp {P Q : C} (R : C) (f : P ⟶ Q) : (Q ⟶ R) →+ (P ⟶ R) :=
@@ -129,7 +129,7 @@ instance {P Q : C} {f : P ⟶ Q} [mono f] : mono (-f) :=
 ⟨λ R g g', by { rw [comp_neg, comp_neg, ←neg_comp, ←neg_comp, cancel_mono], exact neg_inj }⟩
 
 @[priority 100]
-instance preadditive_has_zero_morphisms : has_zero_morphisms.{v} C :=
+instance preadditive_has_zero_morphisms : has_zero_morphisms C :=
 { has_zero := infer_instance,
   comp_zero' := λ P Q f R, map_zero $ left_comp R f,
   zero_comp' := λ P Q R f, map_zero $ right_comp P f }
@@ -161,7 +161,7 @@ epi_of_cancel_zero f (λ P g h, by rw [←cokernel.π_desc f g h, w, has_zero_mo
 end preadditive
 
 section equalizers
-variables {C : Type u} [category.{v} C] [preadditive.{v} C]
+variables {C : Type u} [category.{v} C] [preadditive C]
 
 section
 variables {X Y : C} (f : X ⟶ Y) (g : X ⟶ Y)
@@ -182,7 +182,7 @@ end
 section
 
 /-- If a preadditive category has all kernels, then it also has all equalizers. -/
-def has_equalizers_of_has_kernels [has_kernels.{v} C] : has_equalizers.{v} C :=
+def has_equalizers_of_has_kernels [has_kernels C] : has_equalizers C :=
 @has_equalizers_of_has_limit_parallel_pair _ _ (λ _ _ f g, has_limit_parallel_pair f g)
 
 end
@@ -206,7 +206,7 @@ end
 section
 
 /-- If a preadditive category has all cokernels, then it also has all coequalizers. -/
-def has_coequalizers_of_has_cokernels [has_cokernels.{v} C] : has_coequalizers.{v} C :=
+def has_coequalizers_of_has_cokernels [has_cokernels C] : has_coequalizers C :=
 @has_coequalizers_of_has_colimit_parallel_pair _ _ (λ _ _ f g, has_colimit_parallel_pair f g)
 
 end

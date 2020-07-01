@@ -79,8 +79,8 @@ begin
     ... ≤ edist x y + edist y z : edist_triangle _ _ _
     ... = edist y z + edist x y : add_comm _ _,
   have : (λz, z + edist x y) (Inf (edist y '' s)) = Inf ((λz, z + edist x y) '' (edist y '' s)),
-  { refine Inf_of_continuous _ _ (by simp),
-    { exact continuous_id.add continuous_const },
+  { refine map_Inf_of_continuous_at_of_monotone _ _ (by simp),
+    { exact continuous_at_id.add continuous_at_const },
     { assume a b h, simp, apply add_le_add_right' h }},
   simp only [inf_edist] at this,
   rw [inf_edist, inf_edist, this, ← image_comp],
@@ -119,7 +119,7 @@ lemma mem_closure_iff_inf_edist_zero : x ∈ closure s ↔ inf_edist x s = 0 :=
 lemma mem_iff_ind_edist_zero_of_closed (h : is_closed s) : x ∈ s ↔ inf_edist x s = 0 :=
 begin
   convert ← mem_closure_iff_inf_edist_zero,
-  exact closure_eq_iff_is_closed.2 h
+  exact h.closure_eq
 end
 
 /-- The infimum edistance is invariant under isometries -/
@@ -343,8 +343,8 @@ end,
 /-- Two closed sets are at zero Hausdorff edistance if and only if they coincide -/
 lemma Hausdorff_edist_zero_iff_eq_of_closed (hs : is_closed s) (ht : is_closed t) :
   Hausdorff_edist s t = 0 ↔ s = t :=
-by rw [Hausdorff_edist_zero_iff_closure_eq_closure, closure_eq_iff_is_closed.2 hs,
-       closure_eq_iff_is_closed.2 ht]
+by rw [Hausdorff_edist_zero_iff_closure_eq_closure, hs.closure_eq,
+       ht.closure_eq]
 
 /-- The Haudorff edistance to the empty set is infinite -/
 lemma Hausdorff_edist_empty (ne : s.nonempty) : Hausdorff_edist s ∅ = ∞ :=
@@ -484,7 +484,7 @@ lemma mem_iff_inf_dist_zero_of_closed (h : is_closed s) (hs : s.nonempty) :
   x ∈ s ↔ inf_dist x s = 0 :=
 begin
   have := @mem_closure_iff_inf_dist_zero _ _ s x hs,
-  rwa closure_eq_iff_is_closed.2 h at this
+  rwa h.closure_eq at this
 end
 
 /-- The infimum distance is invariant under isometries -/

@@ -426,6 +426,19 @@ lemma fintype.card_eq_zero_iff [fintype α] : fintype.card α = 0 ↔ (α → fa
   λ h, have e : α ≃ empty := ⟨λ a, (h a).elim, λ a, a.elim, λ a, (h a).elim, λ a, a.elim⟩,
     by simp [fintype.card_congr e]⟩
 
+/-- A `fintype` with cardinality zero is (constructively) equivalent to `pempty`. -/
+def fintype.card_eq_zero_equiv_equiv_pempty {α : Type v} [fintype α] :
+  fintype.card α = 0 ≃ (α ≃ pempty.{v+1}) :=
+{ to_fun := λ h,
+  { to_fun := λ a, false.elim (fintype.card_eq_zero_iff.1 h a),
+    inv_fun := λ a, pempty.elim a,
+    left_inv := λ a, false.elim (fintype.card_eq_zero_iff.1 h a),
+    right_inv := λ a, pempty.elim a, },
+  inv_fun := λ e,
+  by { simp only [←fintype.of_equiv_card e], convert fintype.card_pempty, },
+  left_inv := λ h, rfl,
+  right_inv := λ e, by { ext x, cases e x, } }
+
 lemma fintype.card_pos_iff [fintype α] : 0 < fintype.card α ↔ nonempty α :=
 ⟨λ h, classical.by_contradiction (λ h₁,
   have fintype.card α = 0 := fintype.card_eq_zero_iff.2 (λ a, h₁ ⟨a⟩),

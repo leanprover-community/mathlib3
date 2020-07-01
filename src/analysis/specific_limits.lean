@@ -632,12 +632,11 @@ begin
     { exact_mod_cast nat.zero_lt_succ x }
 end
 
-lemma harmonic_two_pow_ge_id_div_two (n : ℕ) : (n / 2 : ℝ) ≤ harmonic_series (2^n) :=
+lemma self_div_two_le_harmonic_two_pow (n : ℕ) : (n / 2 : ℝ) ≤ harmonic_series (2^n) :=
 begin
   induction n with n hn,
   unfold harmonic_series,
-  simp only [one_div_eq_inv, nat.cast_zero, euclidean_domain.zero_div, nat.cast_succ, sum_singleton, inv_one, zero_add, nat.pow_zero, range_one],
-  linarith,
+  simp only [one_div_eq_inv, nat.cast_zero, euclidean_domain.zero_div, nat.cast_succ, sum_singleton, inv_one, zero_add, nat.pow_zero, range_one, zero_le_one],
   have : harmonic_series (2^n) + 1 / 2 ≤ harmonic_series (2^(n+1)),
   { have := half_le_harmonic_double_sub_harmonic (2^n) (by {apply nat.pow_pos, linarith}),
     rw [nat.mul_comm, ← nat.pow_succ] at this,
@@ -647,10 +646,10 @@ begin
   linarith,
 end
 
-lemma harmonic_two_pow_ge_id_div_two' : (λ n : ℕ, (n/2 : ℝ)) ≤ (λ n : ℕ, harmonic_series (2^n)) :=
+lemma self_div_two_le_harmonic_two_pow' : (λ n : ℕ, (n/2 : ℝ)) ≤ (λ n : ℕ, harmonic_series (2^n)) :=
 begin
   intros n,
-  simp only [harmonic_two_pow_ge_id_div_two],
+  exact self_div_two_le_harmonic_two_pow n,
 end
 
 /-- The harmonic series diverges to +∞ -/
@@ -659,7 +658,7 @@ begin
   suffices : tendsto (λ n : ℕ, harmonic_series (2^n)) at_top at_top, by
   { apply tendsto_at_top_of_monotone_of_subseq mono_harmonic this},
   apply tendsto_at_top_mono,
-  exact harmonic_two_pow_ge_id_div_two',
+  exact self_div_two_le_harmonic_two_pow',
   apply tendsto_at_top_div,
   linarith,
   exact tendsto_coe_nat_real_at_top_at_top,

@@ -916,14 +916,14 @@ lemma conj_pow' (u : units M) (x : M) (n : ℕ) : (↑(u⁻¹) * x * u)^n = ↑(
 open opposite
 
 /- Moving to the opposite monoid commutes with taking powers. -/
-@[simp] lemma op_pow [monoid M] (x : M) (n : ℕ) : op (x ^ n) = (op x) ^ n :=
+@[simp] lemma op_pow (x : M) (n : ℕ) : op (x ^ n) = (op x) ^ n :=
 begin
   induction n with n h,
   { simp },
   { rw [pow_succ', op_mul, h, pow_succ] }
 end
 
-@[simp] lemma unop_pow [monoid M] (x : Mᵒᵖ) (n : ℕ) : unop (x ^ n) = (unop x) ^ n :=
+@[simp] lemma unop_pow (x : Mᵒᵖ) (n : ℕ) : unop (x ^ n) = (unop x) ^ n :=
 begin
   induction n with n h,
   { simp },

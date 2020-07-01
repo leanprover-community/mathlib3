@@ -679,10 +679,12 @@ by { apply sum_range_induction; abel, simp }
 
 /-- A telescoping product along `{0, ..., n-1}` of a commutative group valued function
 reduces to the ratio of the last and first factors.-/
+@[to_additive]
 lemma prod_range_div {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
   ∏ i in range n, (f (i+1) * (f i)⁻¹ ) = f n * (f 0)⁻¹ :=
 by apply @sum_range_sub (additive M)
 
+@[to_additive]
 lemma prod_range_div' {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
   ∏ i in range n, (f i * (f (i+1))⁻¹) = (f 0) * (f n)⁻¹ :=
 by apply @sum_range_sub' (additive M)

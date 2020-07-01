@@ -37,7 +37,7 @@ on R / J = `ideal.quotient J` is `on_quot v h`.
 
 -/
 
-local attribute [instance] classical.prop_decidable
+open_locale classical
 noncomputable theory
 
 local attribute [instance, priority 0] classical.DLO
@@ -221,7 +221,7 @@ variables {v₁ : valuation R Γ₀} {v₂ : valuation R Γ'₀} {v₃ : valuati
 λ _ _, iff.trans (h₁₂ _ _) (h₂₃ _ _)
 
 lemma of_eq {v' : valuation R Γ₀} (h : v = v') : v.is_equiv v' :=
-by subst h; refl
+by { subst h, refl }
 
 -- move this
 lemma le_iff_of_mono_injective {α : Type*} {β : Type*} [linear_order α] [linear_order β] {f : α → β}
@@ -284,7 +284,7 @@ begin
 end
 
 section supp
-variables  [comm_ring R]
+variables [comm_ring R]
 variables (v : valuation R Γ₀)
 
 /-- The support of a valuation v : R → Γ₀ is the ideal of R where v vanishes. -/
@@ -306,7 +306,7 @@ def supp : ideal R :=
 instance : ideal.is_prime (supp v) :=
 ⟨λ (h : v.supp = ⊤), one_ne_zero $ show (1 : Γ₀) = 0,
 from calc 1 = v 1 : v.map_one.symm
-        ... = 0   : show (1:R) ∈ supp v, by rw h; trivial,
+        ... = 0   : show (1:R) ∈ supp v, by { rw h, trivial }, 
  λ x y hxy, begin
     show v x = 0 ∨ v y = 0,
     change v (x * y) = 0 at hxy,
@@ -366,7 +366,7 @@ end
 
 lemma self_le_supp_comap (J : ideal R) (v : valuation (quotient J) Γ₀) :
   J ≤ (v.comap (ideal.quotient.mk_hom J)).supp :=
-by rw [comap_supp, ← ideal.map_le_iff_le_comap]; simp
+by { rw [comap_supp, ← ideal.map_le_iff_le_comap], simp }
 
 @[simp] lemma comap_on_quot_eq (J : ideal R) (v : valuation J.quotient Γ₀) :
   (v.comap (ideal.quotient.mk_hom J)).on_quot (v.self_le_supp_comap J) = v :=
@@ -374,7 +374,7 @@ ext $ by { rintro ⟨x⟩, refl }
 
 /-- The quotient valuation on R/J has support supp(v)/J if J ⊆ supp v. -/
 lemma supp_quot {J : ideal R} (hJ : J ≤ supp v) :
-supp (v.on_quot hJ) = (supp v).map (ideal.quotient.mk_hom J) :=
+  supp (v.on_quot hJ) = (supp v).map (ideal.quotient.mk_hom J) :=
 begin
   apply le_antisymm,
   { rintro ⟨x⟩ hx,
@@ -385,7 +385,7 @@ begin
 end
 
 lemma supp_quot_supp : supp (v.on_quot (le_refl _)) = 0 :=
-by rw supp_quot; exact ideal.map_quotient_self _
+by { rw supp_quot, exact ideal.map_quotient_self _ }
 
 end supp_comm -- end of section
 

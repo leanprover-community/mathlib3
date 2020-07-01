@@ -5,6 +5,10 @@ Author: Mario Carneiro
 -/
 import data.finset.basic
 
+/-!
+## The powerset of a finset
+-/
+
 namespace finset
 open multiset
 

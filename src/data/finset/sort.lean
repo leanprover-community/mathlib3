@@ -6,6 +6,10 @@ Author: Mario Carneiro
 import data.finset.lattice
 import data.multiset.sort
 
+/-!
+## Construct a sorted list from a finset.
+-/
+
 namespace finset
 
 open multiset nat

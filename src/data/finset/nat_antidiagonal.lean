@@ -6,6 +6,10 @@ Authors: Johan Commelin
 import data.finset.basic
 import data.multiset.nat_antidiagonal
 
+/-!
+## The "antidiagonal" {(0,n), (1,n-1), ..., (n,0)} as a finset.
+-/
+
 namespace finset
 
 namespace nat

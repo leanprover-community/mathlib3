@@ -6,6 +6,10 @@ Author: Mario Carneiro
 import data.finset.basic
 import data.multiset.fold
 
+/-!
+## The fold operation for a commutative associative operation over a finset.
+-/
+
 namespace finset
 open multiset
 

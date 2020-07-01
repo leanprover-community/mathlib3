@@ -9,6 +9,20 @@ import tactic.apply
 
 /-!
 # Finite sets
+
+mathlib has several different models for finite sets,
+and it can be confusing when you're first getting used to them!
+
+This file builds the basic theory of `finset α`,
+modelled as a `multiset α` without duplicates.
+
+It's "constructive" in the since that there is an underlying list of elements,
+although this is wrapped in a quotient by permutations,
+so anytime you actually use this list you're obligated to show you didn't depend on the ordering.
+
+There's also the typeclass `fintype α`
+(which asserts that there is some `finset α` containing every term of type `α`)
+as well as the predicate `finite` on `s : set α` (which asserts `nonempty (fintype s)`).
 -/
 
 open multiset subtype nat

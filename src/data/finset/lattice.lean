@@ -6,6 +6,10 @@ Author: Mario Carneiro
 import data.finset.fold
 import data.multiset.lattice
 
+/-!
+## Lattice operations on multisets
+-/
+
 variables {α β γ : Type*}
 
 namespace finset

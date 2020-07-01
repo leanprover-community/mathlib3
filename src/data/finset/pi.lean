@@ -6,6 +6,10 @@ Author: Johannes Hölzl
 import data.finset.basic
 import data.multiset.pi
 
+/-!
+## The cartesian product of finsets
+-/
+
 namespace finset
 open multiset
 

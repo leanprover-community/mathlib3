@@ -946,7 +946,8 @@ meta def constructor_renames (generate_induction_hyps : bool)
   tt ← pure generate_induction_hyps | pure (new_arg_hyps, []),
   let ihs := ihs.zip_left with_names,
   ih_renames ← ihs.mmap $ λ ⟨⟨ih_hyp, arg_hyp⟩, with_name⟩, do {
-    some arg_hyp ← pure $ new_arg_names.find arg_hyp, -- this should never fail
+    some arg_hyp ← pure $ new_arg_names.find arg_hyp
+      | fail "internal error in constructor_renames",
     let new :=
       match with_name with
       | some `_ := sum.inr $ ih_name arg_hyp
@@ -1049,7 +1050,7 @@ end interactive
 
 meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr)
   : tactic (expr × ℕ × list name × name_set) := do
-  let ⟨locals, nonlocals⟩ :=
+  let (locals, nonlocals) :=
     index_args.partition (λ arg : expr, arg.is_local_constant),
 
   -- If there aren't any complex index arguments, we don't need to do anything.
@@ -1059,8 +1060,8 @@ meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr
   num_reverted_eliminee ← revert eliminee,
 
   -- Revert any hypotheses depending on one of the complex index arguments
-  (num_reverted_args : ℕ) ← list.sum <$> nonlocals.mmap revert_kdependencies,
-  -- TODO is revert_kdependencies broken with local defs?
+  num_reverted_args ← list.sum <$> nonlocals.mmap revert_kdeps,
+  -- TODO how does revert_kdeps interact with local defs?
 
   -- Generate fresh names for the index variables and equations
   -- TODO better names?
@@ -1071,7 +1072,7 @@ meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr
 
   -- Every second hypothesis introduced by `generalizes` is an index equation.
   -- The other introduced hypotheses are the index variables.
-  let ⟨index_vars, index_equations⟩ :=
+  let (index_vars, index_equations) :=
     @list.foldr_with_index expr (list name × list name)
       (λ i (h : expr) ⟨vars, eqs⟩,
         let n := h.local_pp_name in
@@ -1431,7 +1432,7 @@ focus1 $ do
   -- TODO This is only needed in 'induction' mode, though it doesn't do any harm
   -- in 'cases' mode.
   fix_exprs ← fixed.mmap get_local,
-  ⟨num_generalized, generalized_hyps⟩ ←
+  (num_generalized, generalized_hyps) ←
     generalize_hyps eliminee fix_exprs,
   let generalized_names :=
     name_set.of_list $ generalized_hyps.map expr.local_pp_name,
@@ -1467,7 +1468,7 @@ focus1 $ do
       -- the generalising step above.)
       -- TODO propagate this information instead of re-parsing the type here?
       eliminee_type ← infer_type eliminee,
-      ⟨_, eliminee_args⟩ ← decompose_app_normalizing eliminee_type,
+      (_, eliminee_args) ← decompose_app_normalizing eliminee_type,
 
       -- Clear the eliminated hypothesis (if possible)
       try $ clear eliminee,
@@ -1522,7 +1523,7 @@ focus1 $ do
       -- earlier, when we introduced them) because there may now be less
       -- hypotheses in the context, and therefore more of the desired
       -- names may be free.
-      ⟨constructor_arg_hyps, ih_hyps⟩ ←
+      (constructor_arg_hyps, ih_hyps) ←
         constructor_renames generate_induction_hyps einfo iinfo cinfo
           with_names constructor_arg_names ih_names,
 

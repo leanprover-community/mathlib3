@@ -103,14 +103,14 @@ begin
   rw digits_aux_def (b+2) (by linarith) n.succ (nat.zero_lt_succ n) at hd,
   cases hd,
   { rw hd, exact n.succ.mod_lt (by linarith) },
-  { exact IH _ (nat.div_lt_self (nat.succ_pos _) (by linarith)) d hd }
+  { exact IH _ (nat.div_lt_self (nat.succ_pos _) (by linarith)) hd }
 end
 
 /-- The digits in the base b expansion of n are all less than b, if b ≥ 2 -/
 lemma digits_lt_base {b m d : ℕ} (hb : 2 ≤ b) (hd : d ∈ digits b m) : d < b :=
 begin
   rcases b with _ | _ | b; try {linarith},
-  exact digits_lt_base' b m d hd,
+  exact digits_lt_base' hd,
 end
 
 lemma digits_add (b : ℕ) (h : 2 ≤ b) (x y : ℕ) (w : x < b) (w' : 0 < x ∨ 0 < y) :

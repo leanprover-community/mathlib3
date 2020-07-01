@@ -3,10 +3,14 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import tactic.omega
+
+import data.finset.intervals
+import data.finset.fold
+import data.finset.powerset
+import data.finset.pi
+import data.equiv.mul_add
 import tactic.abel
 import tactic.simp_rw
-import data.finset
 import data.nat.enat
 
 /-!
@@ -100,6 +104,11 @@ end finset
 lemma monoid_hom.map_prod [comm_monoid β] [comm_monoid γ] (g : β →* γ) (f : α → β) (s : finset α) :
   g (∏ x in s, f x) = ∏ x in s, g (f x) :=
 by simp only [finset.prod_eq_multiset_prod, g.map_multiset_prod, multiset.map_map]
+
+@[to_additive]
+lemma mul_equiv.map_prod [comm_monoid β] [comm_monoid γ] (g : β ≃* γ) (f : α → β) (s : finset α) :
+  g (∏ x in s, f x) = ∏ x in s, g (f x) :=
+g.to_monoid_hom.map_prod f s
 
 lemma ring_hom.map_list_prod [semiring β] [semiring γ] (f : β →+* γ) (l : list β) :
   f l.prod = (l.map f).prod :=
@@ -241,6 +250,12 @@ begin
   rintros _ _ _ _ h ⟨_, _⟩ ⟨_, _, ⟨_, _⟩⟩ ⟨_, _⟩ ⟨_, _, ⟨_, _⟩⟩ _,
   apply h, cc
 end
+
+/-- An uncurried version of `prod_product`. -/
+@[to_additive]
+lemma prod_product' {s : finset γ} {t : finset α} {f : γ → α → β} :
+  (∏ x in s.product t, f x.1 x.2) = ∏ x in s, ∏ y in t, f x y :=
+by rw prod_product
 
 @[to_additive]
 lemma prod_sigma {σ : α → Type*}
@@ -674,9 +689,9 @@ lemma sum_range_sub_of_monotone {f : ℕ → ℕ} (h : monotone f) (n : ℕ) :
   ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
 begin
   refine sum_range_induction _ _ (nat.sub_self _) (λ n, _) _,
-  have : f n ≤ f (n+1) := h (nat.le_succ _),
-  have : f 0 ≤ f n := h (nat.zero_le _),
-  omega
+  have h₁ : f n ≤ f (n+1) := h (nat.le_succ _),
+  have h₂ : f 0 ≤ f n := h (nat.zero_le _),
+  rw [←nat.sub_add_comm h₂, nat.add_sub_cancel' h₁],
 end
 
 lemma prod_Ico_reflect (f : ℕ → β) (k : ℕ) {m n : ℕ} (h : m ≤ n + 1) :

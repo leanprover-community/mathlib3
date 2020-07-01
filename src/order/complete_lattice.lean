@@ -47,8 +47,8 @@ def supr [has_Sup α] (s : ι → α) : α := Sup (range s)
 /-- Indexed infimum -/
 def infi [has_Inf α] (s : ι → α) : α := Inf (range s)
 
-lemma has_Inf_to_nonempty (α) [has_Inf α] : nonempty α := ⟨Inf ∅⟩
-lemma has_Sup_to_nonempty (α) [has_Sup α] : nonempty α := ⟨Sup ∅⟩
+@[priority 50] instance has_Inf_to_nonempty (α) [has_Inf α] : nonempty α := ⟨Inf ∅⟩
+@[priority 50] instance has_Sup_to_nonempty (α) [has_Sup α] : nonempty α := ⟨Sup ∅⟩
 
 notation `⨆` binders `, ` r:(scoped f, supr f) := r
 notation `⨅` binders `, ` r:(scoped f, infi f) := r

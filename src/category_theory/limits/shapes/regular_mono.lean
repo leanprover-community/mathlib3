@@ -116,7 +116,7 @@ def is_iso_of_regular_mono_of_epi (f : X ⟶ Y) [regular_mono f] [e : epi f] : i
 @is_iso_limit_cone_parallel_pair_of_epi _ _ _ _ _ _ _ regular_mono.is_limit e
 
 section
-variables [has_zero_morphisms.{v₁} C]
+variables [has_zero_morphisms C]
 /-- A normal monomorphism is a morphism which is the kernel of some morphism. -/
 class normal_mono (f : X ⟶ Y) :=
 (Z : C)
@@ -269,7 +269,7 @@ instance strong_epi_of_regular_epi (f : X ⟶ Y) [regular_epi f] : strong_epi f 
   end }
 
 section
-variables [has_zero_morphisms.{v₁} C]
+variables [has_zero_morphisms C]
 /-- A normal epimorphism is a morphism which is the cokernel of some morphism. -/
 class normal_epi (f : X ⟶ Y) :=
 (W : C)

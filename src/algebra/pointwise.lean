@@ -297,11 +297,16 @@ end is_mul_hom
 
 variables [monoid α] [monoid β] [is_monoid_hom f]
 
-lemma pointwise_mul_image_is_semiring_hom : is_semiring_hom (image f) :=
-{ map_zero := image_empty _,
-  map_one := by erw [image_singleton, is_monoid_hom.map_one f]; refl,
-  map_add := image_union _,
-  map_mul := image_pointwise_mul _ }
+/--
+The image of a set under function is a ring homomorphism
+with respect to the pointwise operations on sets.
+-/
+def pointwise_mul_image_ring_hom : set α →+* set β :=
+{ to_fun := image f,
+  map_zero' := image_empty _,
+  map_one' := by erw [image_singleton, is_monoid_hom.map_one f]; refl,
+  map_add' := image_union _,
+  map_mul' := image_pointwise_mul _ }
 
 end monoid
 

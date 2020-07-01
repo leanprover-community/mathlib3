@@ -281,13 +281,13 @@ subset_sInter $ assume t ⟨h₁, h₂⟩, h₂
 lemma closure_minimal {s t : set α} (h₁ : s ⊆ t) (h₂ : is_closed t) : closure s ⊆ t :=
 sInter_subset_of_mem ⟨h₂, h₁⟩
 
-lemma closure_eq_of_is_closed {s : set α} (h : is_closed s) : closure s = s :=
+lemma is_closed.closure_eq {s : set α} (h : is_closed s) : closure s = s :=
 subset.antisymm (closure_minimal (subset.refl s) h) subset_closure
 
-lemma closure_eq_iff_is_closed {s : set α} : closure s = s ↔ is_closed s :=
-⟨assume h, h ▸ is_closed_closure, closure_eq_of_is_closed⟩
+lemma is_closed.closure_subset {s : set α} (hs : is_closed s) : closure s ⊆ s :=
+closure_minimal (subset.refl _) hs
 
-lemma closure_subset_iff_subset_of_is_closed {s t : set α} (h₁ : is_closed t) :
+lemma is_closed.closure_subset_iff {s t : set α} (h₁ : is_closed t) :
   closure s ⊆ t ↔ s ⊆ t :=
 ⟨subset.trans subset_closure, assume h, closure_minimal h h₁⟩
 
@@ -304,10 +304,16 @@ lemma closure_inter_subset_inter_closure (s t : set α) :
 lemma is_closed_of_closure_subset {s : set α} (h : closure s ⊆ s) : is_closed s :=
 by rw subset.antisymm subset_closure h; exact is_closed_closure
 
-@[simp] lemma closure_empty : closure (∅ : set α) = ∅ :=
-closure_eq_of_is_closed is_closed_empty
+lemma closure_eq_iff_is_closed {s : set α} : closure s = s ↔ is_closed s :=
+⟨assume h, h ▸ is_closed_closure, is_closed.closure_eq⟩
 
-lemma closure_empty_iff (s : set α) : closure s = ∅ ↔ s = ∅ :=
+lemma closure_subset_iff_is_closed {s : set α} : closure s ⊆ s ↔ is_closed s :=
+⟨is_closed_of_closure_subset, is_closed.closure_subset⟩
+
+@[simp] lemma closure_empty : closure (∅ : set α) = ∅ :=
+is_closed_empty.closure_eq
+
+@[simp] lemma closure_empty_iff (s : set α) : closure s = ∅ ↔ s = ∅ :=
 ⟨subset_eq_empty subset_closure, λ h, h.symm ▸ closure_empty⟩
 
 lemma set.nonempty.closure {s : set α} (h : s.nonempty) :
@@ -315,10 +321,10 @@ lemma set.nonempty.closure {s : set α} (h : s.nonempty) :
 let ⟨x, hx⟩ := h in ⟨x, subset_closure hx⟩
 
 @[simp] lemma closure_univ : closure (univ : set α) = univ :=
-closure_eq_of_is_closed is_closed_univ
+is_closed_univ.closure_eq
 
 @[simp] lemma closure_closure {s : set α} : closure (closure s) = closure s :=
-closure_eq_of_is_closed is_closed_closure
+is_closed_closure.closure_eq
 
 @[simp] lemma closure_union {s t : set α} : closure (s ∪ t) = closure s ∪ closure t :=
 subset.antisymm
@@ -396,7 +402,7 @@ by simpa only [frontier_compl, ← compl_union]
   using frontier_inter_subset sᶜ tᶜ
 
 lemma is_closed.frontier_eq {s : set α} (hs : is_closed s) : frontier s = s \ interior s :=
-by rw [frontier, closure_eq_of_is_closed hs]
+by rw [frontier, hs.closure_eq]
 
 lemma is_open.frontier_eq {s : set α} (hs : is_open s) : frontier s = closure s \ s :=
 by rw [frontier, interior_eq_of_open hs]
@@ -625,10 +631,9 @@ begin
   rw [←le_principal_iff, inf_comm, le_inf_iff]
 end
 
-lemma is_closed_iff_nhds {s : set α} : is_closed s ↔ ∀a, cluster_pt a (𝓟 s) → a ∈ s :=
-calc is_closed s ↔ closure s = s : by rw [closure_eq_iff_is_closed]
-  ... ↔ closure s ⊆ s : ⟨assume h, by rw h, assume h, subset.antisymm h subset_closure⟩
-  ... ↔ (∀a, cluster_pt a (𝓟 s) → a ∈ s) : by rw [closure_eq_cluster_pts]; refl
+lemma is_closed_iff_cluster_pt {s : set α} : is_closed s ↔ ∀a, cluster_pt a (𝓟 s) → a ∈ s :=
+calc is_closed s ↔ closure s ⊆ s : closure_subset_iff_is_closed.symm
+  ... ↔ (∀a, cluster_pt a (𝓟 s) → a ∈ s) : by simp only [subset_def, mem_closure_iff_cluster_pt]
 
 lemma closure_inter_open {s t : set α} (h : is_open s) : s ∩ closure t ⊆ closure (s ∩ t) :=
 assume a ⟨hs, ht⟩,
@@ -661,11 +666,11 @@ lemma mem_of_closed_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set
   (hb : b ≠ ⊥) (hf : tendsto f b (𝓝 a)) (hs : is_closed s) (h : f ⁻¹' s ∈ b) : a ∈ s :=
 have b.map f ≤ 𝓝 a ⊓ 𝓟 s,
   from le_trans (le_inf (le_refl _) (le_principal_iff.mpr h)) (inf_le_inf_right _ hf),
-is_closed_iff_nhds.mp hs a $ ne_bot_of_le_ne_bot (map_ne_bot hb) this
+is_closed_iff_cluster_pt.mp hs a $ ne_bot_of_le_ne_bot (map_ne_bot hb) this
 
 lemma mem_of_closed_of_tendsto' {f : β → α} {x : filter β} {a : α} {s : set α}
   (hf : tendsto f x (𝓝 a)) (hs : is_closed s) (h : x ⊓ 𝓟 (f ⁻¹' s) ≠ ⊥) : a ∈ s :=
-is_closed_iff_nhds.mp hs _ $ ne_bot_of_le_ne_bot (@map_ne_bot _ _ _ f h) $
+is_closed_iff_cluster_pt.mp hs _ $ ne_bot_of_le_ne_bot (@map_ne_bot _ _ _ f h) $
   le_inf (le_trans (map_mono $ inf_le_left) hf) $
     le_trans (map_mono $ inf_le_right_of_le $
       by simp only [comap_principal, le_principal_iff]; exact subset.refl _) (@map_comap_le _ _ _ f)

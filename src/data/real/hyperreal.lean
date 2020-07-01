@@ -508,8 +508,7 @@ is_st_iff_abs_sub_lt_delta.mpr $ λ d hd,
   ... = (d / 2 * (abs x / t) + d / 2 : ℝ*) : by
       { push_cast,
         have : (abs s : ℝ*) ≠ 0, by simpa,
-        field_simp [this, @two_ne_zero ℝ* _, add_mul, mul_add],
-        congr' 1; ac_refl }
+        field_simp [this, @two_ne_zero ℝ* _, add_mul, mul_add, mul_assoc, mul_comm, mul_left_comm] }
   ... < (d / 2 * 1 + d / 2 : ℝ*) :
         add_lt_add_right (mul_lt_mul_of_pos_left
         ((div_lt_one_iff_lt $ lt_of_le_of_lt (abs_nonneg x) ht).mpr ht) $

@@ -259,10 +259,10 @@ theorem cauchy_seq.tendsto_lim [semilattice_sup β] [complete_space α] [nonempt
   tendsto u at_top (𝓝 $ lim at_top u) :=
 h.le_nhds_Lim
 
-lemma is_complete_of_is_closed [complete_space α] {s : set α}
+lemma is_closed.is_complete [complete_space α] {s : set α}
   (h : is_closed s) : is_complete s :=
 λ f cf fs, let ⟨x, hx⟩ := complete_space.complete cf in
-⟨x, is_closed_iff_nhds.mp h x (ne_bot_of_le_ne_bot cf.left (le_inf hx fs)), hx⟩
+⟨x, is_closed_iff_cluster_pt.mp h x (ne_bot_of_le_ne_bot cf.left (le_inf hx fs)), hx⟩
 
 /-- A set `s` is totally bounded if for every entourage `d` there is a finite
   set of points `t` such that every element of `s` is `d`-near to some element of `t`. -/
@@ -314,7 +314,7 @@ assume t ht,
 let ⟨t', ht', hct', htt'⟩ := mem_uniformity_is_closed ht, ⟨c, hcf, hc⟩ := h t' ht' in
 ⟨c, hcf,
   calc closure s ⊆ closure (⋃ (y : α) (H : y ∈ c), {x : α | (x, y) ∈ t'}) : closure_mono hc
-    ... = _ : closure_eq_of_is_closed $ is_closed_bUnion hcf $ assume i hi,
+    ... = _ : is_closed.closure_eq $ is_closed_bUnion hcf $ assume i hi,
       continuous_iff_is_closed.mp (continuous_id.prod_mk continuous_const) _ hct'
     ... ⊆ _ : bUnion_subset $ assume i hi, subset.trans (assume x, @htt' (x, i))
       (subset_bUnion_of_mem hi)⟩
@@ -418,7 +418,7 @@ instance complete_of_compact {α : Type u} [uniform_space α] [compact_space α]
 
 lemma compact_of_totally_bounded_is_closed [complete_space α] {s : set α}
   (ht : totally_bounded s) (hc : is_closed s) : compact s :=
-(@compact_iff_totally_bounded_complete α _ s).2 ⟨ht, is_complete_of_is_closed hc⟩
+(@compact_iff_totally_bounded_complete α _ s).2 ⟨ht, hc.is_complete⟩
 
 /-!
 ### Sequentially complete space

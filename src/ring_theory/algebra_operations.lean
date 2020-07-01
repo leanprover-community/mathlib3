@@ -173,6 +173,7 @@ begin
     apply mul_subset_mul }
 end
 
+/-- `span` is a semiring homomorphism (recall multiplication is pointwise multiplication of subsets on either side). -/
 def span.ring_hom : set A →+* submodule R A :=
 { to_fun := submodule.span R,
   map_zero' := span_empty,

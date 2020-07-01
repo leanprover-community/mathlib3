@@ -7,7 +7,7 @@ Authors: Simon Hudon
 import tactic.ext
 import tactic.solve_by_elim
 import data.stream.basic
-import data.finset
+import data.finset.basic
 
 @[ext] lemma unit.ext (x y : unit) : x = y :=
 begin

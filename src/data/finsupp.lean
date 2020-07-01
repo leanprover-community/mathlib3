@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Scott Morrison
 -/
 import algebra.module
 import data.fintype.card
+import data.multiset.antidiagonal
 
 /-!
 

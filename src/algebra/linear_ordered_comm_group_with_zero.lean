@@ -78,6 +78,27 @@ begin
       exact ih (le_antisymm h1 h2) } }
 end
 
+lemma pow_eq_one_iff {n : ℕ} (hn : n ≠ 0) : x ^ n = 1 ↔ x = 1 :=
+⟨eq_one_of_pow_eq_one hn, by { rintro rfl, exact one_pow _ }⟩
+
+lemma one_le_pow_iff {n : ℕ} (hn : n ≠ 0) : 1 ≤ x^n ↔ 1 ≤ x :=
+begin
+  refine ⟨_, one_le_pow_of_one_le'⟩,
+  contrapose!,
+  intro h, apply lt_of_le_of_ne (pow_le_one_of_le_one (le_of_lt h)),
+  rw [ne.def, pow_eq_one_iff hn],
+  exact ne_of_lt h,
+end
+
+lemma pow_le_one_iff {n : ℕ} (hn : n ≠ 0) : x^n ≤ 1 ↔ x ≤ 1 :=
+begin
+  refine ⟨_, pow_le_one_of_le_one⟩,
+  contrapose!,
+  intro h, apply lt_of_le_of_ne (one_le_pow_of_one_le' (le_of_lt h)),
+  rw [ne.def, eq_comm, pow_eq_one_iff hn],
+  exact ne_of_gt h,
+end
+
 end linear_ordered_comm_monoid
 
 lemma zero_le_one' : (0 : α) ≤ 1 :=

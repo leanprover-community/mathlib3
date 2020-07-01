@@ -637,6 +637,8 @@ def restrict_scalars (f : E' →L[𝕜'] F') : E' →L[𝕜] F' :=
 
 end restrict_scalars
 
+end continuous_linear_map
+
 variables {ι : Type*}
 
 -- Applying a continuous linear map commutes with taking an (infinite) sum.
@@ -651,8 +653,6 @@ end
 lemma has_sum_of_summable {f : ι → E} (φ : E →L[𝕜] F) (hf : summable f) :
   has_sum (λ (b:ι), φ (f b)) (φ (∑'b, f b)) :=
 continuous_linear_map.has_sum φ hf.has_sum
-
-end continuous_linear_map
 
 namespace continuous_linear_equiv
 

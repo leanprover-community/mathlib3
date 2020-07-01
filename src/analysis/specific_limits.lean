@@ -231,18 +231,17 @@ begin
   apply nnreal.tendsto_pow_at_top_nhds_0_of_lt_1 hr
 end
 
-lemma tendsto_pow_at_top_nhds_0_of_norm_lt_1 {K : Type*} [normed_field K] {ξ : K}
-  (_ : ∥ξ∥ < 1) : tendsto (λ n : ℕ, ξ^n) at_top (𝓝 0) :=
+/- In a normed ring, the powers of an element x with `∥x∥ < 1` tend to zero. -/
+lemma tendsto_pow_at_top_nhds_0_of_norm_lt_1 {α : Type*} [normed_ring α] (x : α)
+  (h : ∥x∥ < 1) : tendsto (λ (n : ℕ), x ^ n) at_top (𝓝 0) :=
 begin
-  rw [tendsto_iff_norm_tendsto_zero],
-  convert tendsto_pow_at_top_nhds_0_of_lt_1 (norm_nonneg ξ) ‹∥ξ∥ < 1›,
-  ext n,
-  simp
+  apply squeeze_zero_norm' (eventually_norm_pow_le x),
+  exact tendsto_pow_at_top_nhds_0_of_lt_1 (norm_nonneg _) h,
 end
 
 lemma tendsto_pow_at_top_nhds_0_of_abs_lt_1 {r : ℝ} (h : abs r < 1) :
   tendsto (λn:ℕ, r^n) at_top (𝓝 0) :=
-tendsto_pow_at_top_nhds_0_of_norm_lt_1 h
+tendsto_pow_at_top_nhds_0_of_norm_lt_1 _ h
 
 /-! ### Geometric series-/
 section geometric
@@ -333,7 +332,7 @@ lemma has_sum_geometric_of_norm_lt_1 (h : ∥ξ∥ < 1) : has_sum (λn:ℕ, ξ ^
 begin
   have xi_ne_one : ξ ≠ 1, by { contrapose! h, simp [h] },
   have A : tendsto (λn, (ξ ^ n - 1) * (ξ - 1)⁻¹) at_top (𝓝 ((0 - 1) * (ξ - 1)⁻¹)),
-    from ((tendsto_pow_at_top_nhds_0_of_norm_lt_1 h).sub tendsto_const_nhds).mul tendsto_const_nhds,
+    from ((tendsto_pow_at_top_nhds_0_of_norm_lt_1 _ h).sub tendsto_const_nhds).mul tendsto_const_nhds,
   have B : (λ n, (∑ i in range n, ξ ^ i)) = (λ n, geom_series ξ n) := rfl,
   rw [has_sum_iff_tendsto_nat_of_summable_norm, B],
   { simpa [geom_sum, xi_ne_one, neg_inv] using A },
@@ -546,23 +545,14 @@ end
 end summable_le_geometric
 
 section normed_ring_geometric
-variables [normed_ring α]
+variables [normed_ring α] [complete_space α]
 
 open normed_space
 
-/- In a normed ring, the powers of an element x with `∥x∥ < 1` tend to zero.
-Proved above (same name, different namespace) for normed fields. -/
-lemma normed_ring.tendsto_pow_at_top_nhds_0_of_norm_lt_1 (x : α) (h : ∥x∥ < 1) :
-  tendsto (λ (n : ℕ), x ^ n) at_top (𝓝 0) :=
-begin
-  apply squeeze_zero_norm' (eventually_norm_pow_le x),
-  exact tendsto_pow_at_top_nhds_0_of_lt_1 (norm_nonneg _) h,
-end
-
 /- A geometric series in a complete normed ring is summable.
-Proved above (same name, different namespace) for normed fields. -/
+Proved above (same name, different namespace) for not-necessarily-complete normed fields. -/
 lemma normed_ring.summable_geometric_of_norm_lt_1
-  [complete_space α] (x : α) (h : ∥x∥ < 1) : summable (λ (n:ℕ), x ^ n) :=
+  (x : α) (h : ∥x∥ < 1) : summable (λ (n:ℕ), x ^ n) :=
 begin
   have h1 : summable (λ (n:ℕ), ∥x∥ ^ n) := summable_geometric_of_lt_1 (norm_nonneg _) h,
   refine summable_of_norm_bounded_eventually _ h1 _,
@@ -570,7 +560,7 @@ begin
   exact eventually_norm_pow_le x,
 end
 
-lemma geom_series_mul_neg [complete_space α] (x : α) (h : ∥x∥ < 1) :
+lemma geom_series_mul_neg (x : α) (h : ∥x∥ < 1) :
   (∑' (i:ℕ), x ^ i) * (1 - x) = 1 :=
 begin
   have := has_sum_of_bounded_monoid_hom_of_summable
@@ -579,14 +569,14 @@ begin
   refine tendsto_nhds_unique at_top_ne_bot this.tendsto_sum_nat _,
   have : tendsto (λ (n : ℕ), 1 - x ^ n) at_top (nhds 1),
   { simpa using tendsto_const_nhds.sub
-      (normed_ring.tendsto_pow_at_top_nhds_0_of_norm_lt_1 x h) },
+      (tendsto_pow_at_top_nhds_0_of_norm_lt_1 x h) },
   convert ← this,
   ext n,
   rw [←geom_sum_mul_neg, geom_series_def, finset.sum_mul],
   simp,
 end
 
-lemma mul_neg_geom_series [complete_space α] (x : α) (h : ∥x∥ < 1) :
+lemma mul_neg_geom_series (x : α) (h : ∥x∥ < 1) :
   (1 - x) * (∑' (i:ℕ), x ^ i) = 1 :=
 begin
   have := has_sum_of_bounded_monoid_hom_of_summable
@@ -595,7 +585,7 @@ begin
   refine tendsto_nhds_unique at_top_ne_bot this.tendsto_sum_nat _,
   have : tendsto (λ (n : ℕ), 1 - x ^ n) at_top (nhds 1),
   { simpa using tendsto_const_nhds.sub
-      (normed_ring.tendsto_pow_at_top_nhds_0_of_norm_lt_1 x h) },
+      (tendsto_pow_at_top_nhds_0_of_norm_lt_1 x h) },
   convert ← this,
   ext n,
   rw [←mul_neg_geom_sum, geom_series_def, finset.mul_sum],

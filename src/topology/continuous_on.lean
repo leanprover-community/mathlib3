@@ -136,11 +136,11 @@ theorem nhds_within_inter' (a : α) (s t : set α) :
   nhds_within a (s ∩ t) = (nhds_within a s) ⊓ 𝓟 t :=
 by { unfold nhds_within, rw [←inf_principal, inf_assoc] }
 
-lemma mem_nhds_within_insert (h : t ∈ nhds_within x s) :
-  insert x t ∈ nhds_within x (insert x s) :=
+lemma mem_nhds_within_insert {a : α} {s t : set α} (h : t ∈ nhds_within a s) :
+  insert a t ∈ nhds_within a (insert a s) :=
 begin
-  rcases mem_nhds_within.1 h with ⟨o, o_open, xo, ho⟩,
-  apply mem_nhds_within.2 ⟨o, o_open, xo, _⟩,
+  rcases mem_nhds_within.1 h with ⟨o, o_open, ao, ho⟩,
+  apply mem_nhds_within.2 ⟨o, o_open, ao, _⟩,
   assume y,
   simp only [and_imp, mem_inter_eq, mem_insert_iff],
   rintro yo (rfl | ys),

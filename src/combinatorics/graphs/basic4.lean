@@ -1,8 +1,16 @@
 import order.bounded_lattice
 import tactic
-import combinatorics.graphs.sym2
+import data.sym2
 open function (hiding graph)
 open sym2 (sym2)
+
+-- This definition is drawn from [Chou94].
+--
+-- [Chou94] Chou, Ching-Tsun. "A formal theory of undirected graphs in
+-- Higher-Order Logic." (1994)
+-- https://doi.org/10.1007/3-540-58450-1_40
+
+-- Doczkal, Christian and Pous, Damien. (2019). Graph Theory in Coq: Minors, Treewidth, and Isomorphisms
 
 namespace graph
 
@@ -14,11 +22,13 @@ structure link (α : Type u) (β : Type v) :=
 (src : α) (via : β) (dest : α)
 
 namespace link
-variables {α : Type u} {β : Type v}
+variables {α α' : Type u} {β β' : Type v}
 
 def rev (x : link α β) : link α β := ⟨x.dest, x.via, x.src⟩
 
 def ends (x : link α β) : sym2 α := ⟦(x.src, x.dest)⟧
+
+def induce (f_v : α → α') (f_e : β → β') (x : link α β) := link.mk (f_v x.src) (f_e x.via) (f_v x.dest)
 
 lemma rev.involutive : involutive (@link.rev α β) :=
 begin intro x, cases x, simp [rev], end
@@ -35,6 +45,15 @@ sym2.eq_swap
 @[simp] lemma struct_simp (x : link α β) :
 {link . src := x.src, via := x.via, dest := x.dest} = x :=
 by { cases x, simp }
+
+@[simp]
+lemma induce_id (x : link α β) : link.induce id id x = x := by {cases x, simp [link.induce], }
+
+lemma induce_functorial {α' : Type*} {β' : Type*} {α'' : Type*} {β'' : Type*}
+(f_v : α → α') (f_e : β → β') (f_v' : α' → α'') (f_e' : β' → β'') (x : link α β) :
+induce (f_v' ∘ f_v) (f_e' ∘ f_e) x = induce f_v' f_e' (induce f_v f_e x) :=
+by { cases x, simp [induce], }
+
 
 -- Since we are modeling undirected graphs, two links correspond to
 -- the same edge if they are the same up to orientation reversal.
@@ -141,7 +160,18 @@ end from_edge_subtype
 
 end link
 
-
+-- This is a typeclass indicating that the terms of a given type
+-- consist of (multi)graphs.  The class provides the projections for
+-- the vertex and edge sets of the graph.
+--
+-- The way in which edges are attached to the vertices is given by a
+-- set of links.  For non-loop edges, links come in pairs,
+-- representing the two possible orientations for the edge.  Loop
+-- edges only have a single corresponding link.
+--
+-- If you want to deal with graphs all with the same underlying vertex
+-- type, then you might consider using subgraphs of some fixed
+-- multigraph.
 class multigraphs (α : Type*) :=
 (vertices : α → Type u)
 (edges : α → Type v)

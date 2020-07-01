@@ -93,7 +93,7 @@ begin
 end
 
 /-- The digits in the base b+2 expansion of n are all less than b+2 -/
-lemma digits_lt_base' (b : ℕ) (m : ℕ) : ∀ d ∈ digits (b+2) m, d < b+2 :=
+lemma digits_lt_base' {b m : ℕ} : ∀ {d}, d ∈ digits (b+2) m → d < b+2 :=
 begin
   apply nat.strong_induction_on m,
   intros n IH d hd,

@@ -116,9 +116,6 @@ end definitions
 
 section basic_lemmas
 
-@[simp]
-lemma pnat.eq_iff {m n : ℕ+} :
-(m : ℕ) = ↑n ↔ m = n := by { split, apply pnat.eq, intro h, rw h }
 
 lemma perfect_iff_sum_divisors_twice {n : ℕ+} : perfect n ↔ sum_divisors n = 2 * n :=
 by { rw [perfect, sum_divisors_eq_sum_proper_divisors_add_self], simp [two_mul] }
@@ -224,9 +221,8 @@ begin
   rw sum_divisors_pow_prime pnat.prime_two k.succ, simp [geom_series_two]
 end
 
-lemma odd_sum_divisors_pow_two (k : ℕ) : ¬  2 ∣ (sum_divisors (2 ^ k)) :=
+lemma odd_mersenne_succ (k : ℕ) : ¬  2 ∣ (2 ^ (k + 1) - 1) :=
 begin
-  rw sum_divisors_pow_two k,
   intro contra,
   have h : 2 ∣ 2 ^ (k + 1) - 1 + 1,
   { existsi 2 ^ k,
@@ -236,6 +232,11 @@ begin
   },
   rw ← nat.dvd_add_iff_right contra at h,
   have h:= nat.le_of_dvd _ h; linarith,
+end
+
+lemma odd_sum_divisors_pow_two (k : ℕ) : ¬  2 ∣ (sum_divisors (2 ^ k)) :=
+begin
+  rw sum_divisors_pow_two k, apply odd_mersenne_succ,
 end
 
 @[simp]
@@ -351,50 +352,6 @@ begin
   apply memy
 end
 
---def pnat.coprime (m n : ℕ+) : Prop := m.gcd n = 1
-
-@[simp]
-def pnat.coprime_coe {m n : ℕ+} : nat.coprime ↑m ↑n ↔ m.coprime n :=
-by { unfold pnat.coprime, unfold nat.coprime, rw ← pnat.eq_iff, simp }
-
-lemma pnat.gcd_eq_left_iff_dvd {m n : ℕ+} : m ∣ n ↔ m.gcd n = m :=
-by { rw pnat.dvd_iff, rw nat.gcd_eq_left_iff_dvd, rw ← pnat.eq_iff, simp }
-
-lemma pnat.coprime.gcd_mul_right_cancel (m : ℕ+) {n k : ℕ+} :
-  k.coprime n → (m * k).gcd n = m.gcd n :=
-begin
-  intro h, apply pnat.eq, simp only [pnat.gcd_coe, pnat.mul_coe],
-  apply nat.coprime.gcd_mul_right_cancel, simpa
-end
-
-lemma pnat.gcd_comm {m n : ℕ+} : m.gcd n = n.gcd m :=
-by { apply pnat.eq, simp only [pnat.gcd_coe], apply nat.gcd_comm }
-
-lemma pnat.coprime.symm {m n : ℕ+} : m.coprime n → n.coprime m :=
-by { unfold pnat.coprime, rw pnat.gcd_comm, simp }
-
-lemma pnat.coprime.coprime_dvd_left {m k n : ℕ+} :
-  m ∣ k → k.coprime n → m.coprime n :=
-by { rw pnat.dvd_iff, repeat {rw ← pnat.coprime_coe}, apply nat.coprime.coprime_dvd_left }
-
-lemma coprime_factor_eq_gcd_left {a b m n : ℕ+} (cop : m.coprime n) (am : a ∣ m) (bn : b ∣ n):
-  a = (a * b).gcd m :=
-begin
-  rw pnat.gcd_eq_left_iff_dvd at am,
-  conv_lhs {rw ← am}, symmetry,
-  apply pnat.coprime.gcd_mul_right_cancel a,
-  apply pnat.coprime.coprime_dvd_left bn cop.symm,
-end
-
-lemma pnat.coprime.gcd_mul (k : ℕ+) {m n : ℕ+} (h: m.coprime n) :
-  k.gcd (m * n) = k.gcd m * k.gcd n :=
-begin
-  rw ← pnat.coprime_coe at h, apply pnat.eq,
-  simp only [pnat.gcd_coe, pnat.mul_coe], apply nat.coprime.gcd_mul k h
-end
-
-lemma pnat.gcd_eq_left {m n : ℕ+} : m ∣ n → m.gcd n = m :=
-by { rw pnat.dvd_iff, intro h, apply pnat.eq, simp only [pnat.gcd_coe], apply nat.gcd_eq_left h }
 
 lemma sum_divisors_multiplicative (m n : ℕ+) :
   m.coprime n → sum_divisors (m * n) = (sum_divisors m) * (sum_divisors n) :=
@@ -473,32 +430,22 @@ end
 /--
 Euclid's theorem that Mersenne primes induce perfect numbers
 -/
-theorem mersenne_to_perfect (p : ℕ+) :
-  (pmersenne p).prime → perfect ((2 ^ (↑p - 1)) * (pmersenne p)) :=
+theorem mersenne_to_perfect (k : ℕ) :
+  k.mersenne_succ.prime → perfect ((2 ^ k) * k.mersenne_succ) :=
 begin
-  intro mp,
-  have hp : 2 ≤ p := two_le_exponent_of_prime_mersenne mp,
+  intro pr,
+  have hk : 0 < k, cases k, contrapose pr, simp [nat.mersenne_succ, mersenne], simp,
   rw [perfect_iff_sum_divisors_twice, sum_divisors_multiplicative],
-  { rw [sum_divisors_pow_two, sum_divisors_prime mp],
-    repeat {rw ← nat.pred_eq_sub_one},
-    repeat {rw ← nat.succ_eq_add_one},
-    have pps : (p : ℕ).pred.succ = p := nat.succ_pred_eq_of_pos p.property,
-    rw pps, simp only [pnat.coe_bit0, pnat.mul_coe, pmersenne_val, pnat.one_coe, pnat.pow_coe],
-    rw [← mul_assoc, mul_comm],
-    refine congr (congr rfl _) rfl,
-    rw [← pps, mersenne, nat.pred_succ, nat.pow_succ, mul_comm,
-      ← nat.pred_eq_sub_one, nat.succ_pred_eq_of_pos ],
-    apply nat.mul_pos, omega, apply nat.pow_pos, omega },
-  { have h := pow_one (pmersenne p),
-    rw [← h, ← pnat.coprime_coe, pnat.pow_coe, pnat.pow_coe],
-    apply nat.coprime_pow_primes _ _ nat.prime_two mp _,
-    apply ne_of_lt,
-    simp only [pmersenne_val, mersenne],
-    rw [← nat.pred_eq_sub_one, ← nat.pred_succ 2],
-    apply nat.pred_lt_pred, omega,
-    rw nat.pred_succ 2,
-    change 2 ^ 2 ≤ 2 ^ ↑p,
-    apply nat.pow_le_pow_of_le_right, omega, apply hp }
+  { rw [sum_divisors_pow_two, sum_divisors_prime pr],
+    repeat {rw ← nat.pred_eq_sub_one}, repeat {rw ← nat.succ_eq_add_one},
+    simp only [pnat.coe_bit0, pnat.mul_coe, pmersenne_val, pnat.one_coe, pnat.pow_coe],
+    rw [← mul_assoc, mul_comm], refine congr (congr rfl _) rfl,
+    rw nat.mersenne_succ, dsimp, rw mersenne, conv_rhs { rw mul_comm, rw ← nat.pow_succ },
+    apply nat.succ_pred_eq_of_pos, apply nat.pow_pos, omega },
+  { rw ← pow_one (k.mersenne_succ), apply pnat.coprime.pow, apply pnat.coprime.symm,
+    change k.mersenne_succ.coprime ↑two_prime, apply coprime_of_prime_not_dvd,
+    apply odd_mersenne_succ,
+  }
 end
 
 end mersenne_to_perfect
@@ -538,26 +485,19 @@ begin
   let y := pnat.div_exact dvdx,
   have ysdpow : psum_divisors (2 ^ k) * y = x := pnat.mul_div_exact dvdx, rw mul_comm at ysdpow,
 
-  rw ← hxk at pperf,
-  rw mul_comm at pperf,
-  rw mul_assoc at pperf,
-  rw mul_comm _ (2 : ℕ+) at pperf,
-  rw ← pow_succ _ k at pperf,
-  rw ← ysdpow at pperf,
-  rw mul_comm at pperf,
-  rw ← mul_assoc at pperf,
-  have h := mul_right_cancel pperf,
-  rw ysdpow at *,
+  rw [← hxk, mul_comm, mul_assoc, mul_comm _ (2 : ℕ+), ← pow_succ _ k, ← ysdpow, mul_comm,
+    ← mul_assoc] at pperf,
+  have h := mul_right_cancel pperf, rw ysdpow at *,
 
   have xneqy : x ≠ y,
   { symmetry, rw ← mul_one y, rw ← ysdpow, intro contra,
-  have h := mul_left_cancel contra, revert h,
-  rw [← pnat.eq_iff, coe_psum_divisors, pnat.one_coe, sum_divisors_pow_two],
-  apply ne_of_lt, rw nat.sub_one, rw ← nat.pred_succ 1,
-  apply nat.pred_lt_pred, apply nat.succ_ne_zero, 
-  simp only [nat.pred_succ, nat.succ_eq_add_one], norm_num, 
-  conv_lhs {rw ← nat.pow_one 2},
-  apply nat.pow_lt_pow_of_lt_right _, apply nat.lt_add_of_pos_left posk, omega, },
+    have h := mul_left_cancel contra, revert h,
+    rw [← pnat.eq_iff, coe_psum_divisors, pnat.one_coe, sum_divisors_pow_two],
+    apply ne_of_lt, rw nat.sub_one, rw ← nat.pred_succ 1,
+    apply nat.pred_lt_pred, apply nat.succ_ne_zero, 
+    simp only [nat.pred_succ, nat.succ_eq_add_one], norm_num, 
+    conv_lhs {rw ← nat.pow_one 2},
+    apply nat.pow_lt_pow_of_lt_right _, apply nat.lt_add_of_pos_left posk, omega, },
   have hxy : x.prime ∧ y = 1,
   { apply prime_and_one_of_sum_two_divisors_eq_sum_divisors xneqy _, 
     swap, apply pnat.dvd_intro (psum_divisors (2 ^ k)) ysdpow,
@@ -568,10 +508,9 @@ begin
     apply nat.succ_pred_eq_of_pos, apply nat.pos_pow_of_pos (k + 1) (nat.prime.pos nat.prime_two)
   },
 
-  have xeq : x = k.mersenne_succ, rw ← ysdpow, rw hxy.right, apply pnat.eq, simp [mersenne, sum_divisors_pow_two],
-  have xp : x.prime := hxy.left,
-
-  split, swap, rw ← xeq, apply xp,
+  have xeq : x = k.mersenne_succ, 
+  { rw [← ysdpow, hxy.right], apply pnat.eq, simp [mersenne, sum_divisors_pow_two] },
+  split, swap, rw ← xeq, apply hxy.left,
   rw [← hxk, ← xeq, pow_add, ← mul_assoc, mul_comm, ← mul_assoc, pow_one],
 end
 
@@ -583,9 +522,12 @@ section perfect_iff_mersenne
 The Euclid-Euler Theorem, characterizing perfect numbers in terms of Mersenne primes
 -/
 theorem even_perfect_iff_mersenne {n : ℕ+}:
-  2 ∣ n ∧ perfect n ↔ ∃ (p : ℕ+), n = (2 ^ (↑p - 1)) * (pmersenne p) ∧ (pmersenne p).prime :=
+  2 ∣ n ∧ perfect n ↔ ∃ (k : ℕ), n = (2 ^ k) * k.mersenne_succ ∧ k.mersenne_succ.prime  :=
 begin
-  sorry
+  split; intro h, cases h with even perf, apply even_perfect_to_mersenne even perf,
+  cases h with k hk, cases hk with hn pr, rw hn, split, swap, apply mersenne_to_perfect _ pr,
+  cases k, contrapose pr, simp [nat.mersenne_succ, mersenne],
+  apply pnat.dvd_intro (2 ^ k * k.succ.mersenne_succ), rw [← mul_assoc, pow_succ],
 end
 
 end perfect_iff_mersenne

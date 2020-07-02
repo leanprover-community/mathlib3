@@ -16,15 +16,10 @@ open expr tactic
 namespace tactic
 namespace explode
 
--- TODO(Mario): move back to list.basic
-@[simp] def head' {α} : list α → option α
-| []       := none
-| (a :: l) := some a
-
 @[derive inhabited]
-inductive status | reg | intro | lam | sintro
+inductive status : Type | reg | intro | lam | sintro
 
-meta structure entry :=
+meta structure entry : Type :=
 (expr : expr)
 (line : nat)
 (depth : nat)
@@ -37,17 +32,17 @@ let n := l.foldl (λ r (s:string), max r s.length) 0 in
 l.map $ λ s, nat.iterate (λ s, s.push ' ') (n - s.length) s
 
 @[derive inhabited]
-meta structure entries := mk' ::
+meta structure entries : Type := mk' ::
 (s : expr_map entry)
 (l : list entry)
 
-meta def entries.find (es : entries) (e : expr) := es.s.find e
-meta def entries.size (es : entries) := es.s.size
+meta def entries.find (es : entries) (e : expr) : option entry := es.s.find e
+meta def entries.size (es : entries) : ℕ := es.s.size
 
 meta def entries.add : entries → entry → entries
 | es@⟨s, l⟩ e := if s.contains e.expr then es else ⟨s.insert e.expr e, e :: l⟩
 
-meta def entries.head (es : entries) : option entry := head' es.l
+meta def entries.head (es : entries) : option entry := es.l.head'
 
 meta def format_aux : list string → list string → list string → list entry → tactic format
 | (line :: lines) (dep :: deps) (thm :: thms) (en :: es) := do
@@ -142,7 +137,7 @@ do const n _ ← resolve_name n | fail "cannot resolve name",
 open interactive lean lean.parser interaction_monad.result
 
 /--
-`#explode decl_name` displays a proof term in a line by line format somewhat akin to a Fitch style
+`#explode decl_name` displays a proof term in a line-by-line format somewhat akin to a Fitch-style
 proof or the Metamath proof style.
 
 `#explode iff_true_intro` produces
@@ -160,6 +155,41 @@ iff_true_intro : ∀ {a : Prop}, a → (a ↔ true)
 8│1,7│ ∀I        │ a → (a ↔ true)
 9│0,8│ ∀I        │ ∀ {a : Prop}, a → (a ↔ true)
 ```
+
+In more detail:
+
+The output of `#explode` is a Fitch-style proof in a four-column diagram modeled after Metamath
+proof displays like [this](http://us.metamath.org/mpeuni/ru.html). The headers of the columns are
+"Step", "Hyp", "Ref", "Type" (or "Expression" in the case of Metamath):
+* Step: An increasing sequence of numbers to number each step in the proof, used in the Hyp field.
+* Hyp: The direct children of the current step. Most theorems are implications like `A -> B -> C`,
+  and so on the step proving `C` the Hyp field will refer to the steps that prove `A` and `B`.
+* Ref: The name of the theorem being applied. This is well-defined in Metamath, but in Lean there
+  are some special steps that may have long names because the structure of proof terms doesn't
+  exactly match this mold.
+  * If the theorem is `foo (x y : Z) : A x -> B y -> C x y` the Ref field will contain `foo`, `x`
+    and `y` will be suppressed (because term construction is not interesting), while the Hyp field
+    will reference steps proving `A x` and `B y`. This corresponds to a proof term like
+    `@foo x y pA pB` where `pA` and `pB` are subproofs.
+  * If the head of the proof term is a local constant or lambda, then in this case the Ref will
+    say `∀E` for forall-elimination. This happens when you have for example `h : A -> B` and
+    `ha : A` and prove `b` by `h ha`; we reinterpret this as if it said `∀E h ha` where `∀E` is
+    (n-ary) modus ponens.
+  * If the proof term is a lambda, we will also use `∀I` for forall-introduction, referencing the
+    body of the lambda. The indentation level will increase, and a bracket will surround the proof
+    of the body of the lambda, starting at a proof step labeled with the name of the lambda variable
+    and its type, and ending with the `∀I` step. Metamath doesn't have steps like this, but the
+    style is based on Fitch proofs in first-order logic.
+* Type: This contains the type of the proof term, the theorem being proven at the current step.
+  This proof layout differs from `#print` in using lots of intermediate step displays so that you
+  can follow along and don't have to see term construction steps because they are implicitly in the
+  intermediate step displays.
+
+Also, it is common for a Lean theorem to begin with a sequence of lambdas introducing local
+constants of the theorem. In order to minimize the indentation level, the `∀I` steps at the end of
+the proof will be introduced in a group and the indentation will stay fixed. (The indentation
+brackets are only needed in order to delimit the scope of assumptions, and these assumptions
+have global scope anyway so detailed tracking is not necessary.)
 -/
 @[user_command]
 meta def explode_cmd (_ : parse $ tk "#explode") : parser unit :=
@@ -168,10 +198,10 @@ do n ← ident,
 .
 
 add_tactic_doc
-{ name                     := "#explode",
-  category                 := doc_category.cmd,
-  decl_names               := [`tactic.explode_cmd],
-  tags                     := ["proof display"] }
+{ name       := "#explode",
+  category   := doc_category.cmd,
+  decl_names := [`tactic.explode_cmd],
+  tags       := ["proof display"] }
 
 -- #explode iff_true_intro
 -- #explode nat.strong_rec_on

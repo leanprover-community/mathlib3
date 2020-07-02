@@ -57,7 +57,7 @@ universes v u
 
 variables (C : Type u) [category.{v} C]
 
-/-- In this file, we call a category non_preadditive_abelian if it has a zero object, kernels, cokernel, binary
+/-- We call a category `non_preadditive_abelian` if it has a zero object, kernels, cokernels, binary
     products and coproducts, and every monomorphism and every epimorphism is normal. -/
 class non_preadditive_abelian :=
 [has_zero_object : has_zero_object C]
@@ -595,23 +595,20 @@ end
 
 section
 
-/-- Subtraction of morphisms is defined as `(f, g)` followed by the subtraction map. -/
-def sub {X Y : C} (f g : X ⟶ Y) : X ⟶ Y := prod.lift f g ≫ σ
+/- We write `f - g` for `prod.lift f g ≫ σ`. -/
+/-- Subtraction of morphisms in a `non_preadditive_abelian` category. -/
+def has_sub {X Y : C} : has_sub (X ⟶ Y) := ⟨λ f g, prod.lift f g ≫ σ⟩
+local attribute [instance] has_sub
 
-/-- We define `-a` as `0 - a`. -/
-def neg {X Y : C} (f : X ⟶ Y) : X ⟶ Y := sub 0 f
+/- We write `-f` for `0 - f`. -/
+/-- Negation of morphisms in a `non_preadditive_abelian` category. -/
+def has_neg {X Y : C} : has_neg (X ⟶ Y) := ⟨λ f, 0 - f⟩
+local attribute [instance] has_neg
 
-/-- We define `a + b` as `a - (-b)`. -/
-def add {X Y : C} (f g : X ⟶ Y) : X ⟶ Y := sub f (neg g)
-
-/-- We write `f - g` for `prod.lift f g ≫ σ`. -/
-def has_neg {X Y : C} : has_neg (X ⟶ Y) := ⟨neg⟩
-/-- We write `-f` for `0 - f`. -/
-def has_sub {X Y : C} : has_sub (X ⟶ Y) := ⟨sub⟩
-/-- We write `f + g` for `f - (-g)`. -/
-def has_add {X Y : C} : has_add (X ⟶ Y) := ⟨add⟩
-
-local attribute [instance] has_neg has_sub has_add
+/- We write `f + g` for `f - (-g)`. -/
+/-- Addition of morphisms in a `non_preadditive_abelian` category. -/
+def has_add {X Y : C} : has_add (X ⟶ Y) := ⟨λ f g, f - (-g)⟩
+local attribute [instance] has_add
 
 lemma sub_def {X Y : C} (a b : X ⟶ Y) : a - b = prod.lift a b ≫ σ := rfl
 lemma add_def {X Y : C} (a b : X ⟶ Y) : a + b = a - (-b) := rfl
@@ -706,21 +703,21 @@ by rw [add_def, comp_sub, neg_def, comp_sub, has_zero_morphisms.comp_zero, add_d
 lemma add_comp (X Y Z : C) (f g : X ⟶ Y) (h : Y ⟶ Z) : (f + g) ≫ h = f ≫ h + g ≫ h :=
 by rw [add_def, sub_comp, neg_def, sub_comp, has_zero_morphisms.zero_comp, add_def, neg_def]
 
-end
-
 /-- Every `non_preadditive_abelian` category is preadditive. -/
 def preadditive : preadditive C :=
 { hom_group := λ X Y,
-  { add := add,
+  { add := (+),
     add_assoc := add_assoc,
     zero := 0,
     zero_add := neg_neg,
     add_zero := add_zero,
-    neg := λ f, sub 0 f,
+    neg := λ f, -f,
     add_left_neg := neg_add_self,
     add_comm := add_comm },
   add_comp' := add_comp,
   comp_add' := comp_add }
+
+end
 
 end
 

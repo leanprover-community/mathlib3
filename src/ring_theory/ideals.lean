@@ -67,6 +67,14 @@ lemma span_singleton_le_span_singleton {x y : α} :
   span ({x} : set α) ≤ span ({y} : set α) ↔ y ∣ x :=
 span_le.trans $ singleton_subset_iff.trans mem_span_singleton
 
+lemma span_singleton_eq_span_singleton {α : Type u} [integral_domain α] {x y : α} :
+  span ({x} : set α) = span ({y} : set α) ↔ associated x y :=
+begin
+  rw [←dvd_dvd_iff_associated, le_antisymm_iff, and_comm],
+  apply and_congr;
+  rw span_singleton_le_span_singleton,
+end
+
 lemma span_eq_bot {s : set α} : span s = ⊥ ↔ ∀ x ∈ s, (x:α) = 0 := submodule.span_eq_bot
 
 @[simp] lemma span_singleton_eq_bot {x} : span ({x} : set α) = ⊥ ↔ x = 0 := submodule.span_singleton_eq_bot

@@ -603,34 +603,31 @@ begin
   apply sum_le_sum_of_subset_of_nonneg,
   rwa range_subset,
   intros x h _,
-  apply le_of_lt,
-  apply one_div_pos_of_pos,
-  norm_cast,
-  exact nat.zero_lt_succ _,
+  exact le_of_lt nat.one_div_pos_of_nat,
 end
 
 lemma half_le_harmonic_double_sub_harmonic (n : ℕ) (hn : 0 < n) :
   1/2 ≤ harmonic_series (2*n) - harmonic_series n :=
 begin
   suffices : harmonic_series n + 1 / 2 ≤ harmonic_series (n + n),
-    { rw two_mul,
-      linarith },
-    have : harmonic_series n + ∑ k in Ico n (n + n), 1/(k + 1 : ℝ) = harmonic_series (n + n) :=
-      sum_range_add_sum_Ico _ (show n ≤ n+n, by linarith),
-    rw [← this,  add_le_add_iff_left],
-    have : ∑ k in Ico n (n + n), 1/(n+n : ℝ) = 1/2,
-    { have : (n : ℝ) + n ≠ 0,
-      { norm_cast, linarith },
-      rw [sum_const, Ico.card],
-      field_simp [this],
-      ring },
-    rw ← this,
-    apply sum_le_sum,
-    intros x hx,
-    rw one_div_le_one_div,
-    { exact_mod_cast nat.succ_le_of_lt (Ico.mem.mp hx).2 },
+  { rw two_mul,
+    linarith },
+  have : harmonic_series n + ∑ k in Ico n (n + n), 1/(k + 1 : ℝ) = harmonic_series (n + n) :=
+    sum_range_add_sum_Ico _ (show n ≤ n+n, by linarith),
+  rw [← this,  add_le_add_iff_left],
+  have : ∑ k in Ico n (n + n), 1/(n+n : ℝ) = 1/2,
+  { have : (n : ℝ) + n ≠ 0,
     { norm_cast, linarith },
-    { exact_mod_cast nat.zero_lt_succ x }
+    rw [sum_const, Ico.card],
+    field_simp [this],
+    ring },
+  rw ← this,
+  apply sum_le_sum,
+  intros x hx,
+  rw one_div_le_one_div,
+  { exact_mod_cast nat.succ_le_of_lt (Ico.mem.mp hx).2 },
+  { norm_cast, linarith },
+  { exact_mod_cast nat.zero_lt_succ x }
 end
 
 lemma self_div_two_le_harmonic_two_pow (n : ℕ) : (n / 2 : ℝ) ≤ harmonic_series (2^n) :=
@@ -642,9 +639,9 @@ begin
   have : harmonic_series (2^n) + 1 / 2 ≤ harmonic_series (2^(n+1)),
   { have := half_le_harmonic_double_sub_harmonic (2^n) (by {apply nat.pow_pos, linarith}),
     rw [nat.mul_comm, ← nat.pow_succ] at this,
-    linarith},
+    linarith },
   apply le_trans _ this,
-  rw (show (n.succ / 2 : ℝ) = (n/2 : ℝ) + (1/2), by {field_simp}),
+  rw (show (n.succ / 2 : ℝ) = (n/2 : ℝ) + (1/2), by field_simp),
   linarith,
 end
 

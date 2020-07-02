@@ -5,22 +5,24 @@ Author: Kyle Miller.
 -/
 
 import data.quot
+import data.equiv.basic
+import data.vector
 import tactic
 open function
 
 /-!
 # The symmetric square
 
-This file defines symmetric squares, which is `α × α` modulo swapping.
-This is also known as the type of unordered pairs.
+This file defines the symmetric square, which is `α × α` modulo
+swapping.  This is also known as the type of unordered pairs.
 
 From the point of view that an unordered pair is equivalent to a
-multiset of cardinality two, we have `sym2.mem` (the `has_mem`
-instance), which is a `Prop`-valued membership test.  Given `a ∈ z`
-for `z : sym2 α`, it does not appear to be possible, in general, to
-*computably* give the other element in the pair.  For this,
-`sym2.vmem a z` is a `Type`-valued predicate that contains this other
-element.
+multiset of cardinality two (see `sym2.equiv_multiset`), we define a
+`has_mem` instance `sym2.mem`, which is a `Prop`-valued membership
+test.  Given `a ∈ z` for `z : sym2 α`, it does not appear to be
+possible, in general, to *computably* give the other element in the
+pair.  For this, `sym2.vmem a z` is a `Type`-valued membership test
+that gives a way to obtain the other element.
 
 Recall that an undirected graph (allowing self loops, but no multiple
 edges) is equivalent to a symmetric relation on the vertex type `α`.
@@ -64,7 +66,11 @@ by { use rel α,
 end sym2
 
 /--
-This is the type for the symmetric square (i.e., the type of unordered pairs).
+`sym2 α` is the symmetric square of `α`, which, in other words, is the
+type of unordered pairs.
+
+It is equivalent in a natural way to multisets of cardinality 2 (see
+`sym2.equiv_multiset`).
 -/
 @[reducible]
 def sym2 (α : Type*) := quotient (sym2.rel.setoid α)
@@ -167,7 +173,7 @@ lemma other_is_mem_other {a : α} {z : sym2 α} (h : vmem a z) (h' : a ∈ z) :
   h.other = mem.other h' :=
 by rw [←congr_right a, ←vmem_other_spec h, mem_other_spec]
 
-lemma eq_pairs {x y z w : α} :
+lemma eq_iff {x y z w : α} :
   ⟦(x, y)⟧ = ⟦(z, w)⟧ ↔ (x = z ∧ y = w) ∨ (x = w ∧ y = z) :=
 by { split; intro h,
      { rw quotient.eq at h, cases h; tidy, },
@@ -176,7 +182,7 @@ by { split; intro h,
 lemma mem_iff {a b c : α} : a ∈ ⟦(b, c)⟧ ↔ a = b ∨ a = c :=
 begin
   split,
-  { intro h, cases h, rw eq_pairs at h_h, tidy },
+  { intro h, cases h, rw eq_iff at h_h, tidy },
   { intro h, cases h, rw h, apply mk_has_mem,
     rw h, rw eq_swap, apply mk_has_mem, }
 end
@@ -184,7 +190,7 @@ end
 end membership
 
 /--
-A type `α` is naturally included in the diagonal of `α × α`, this function gives the image
+A type `α` is naturally included in the diagonal of `α × α`, and this function gives the image
 of this diagonal in `sym2 α`.
 -/
 def diag (x : α) : sym2 α := ⟦(x, x)⟧
@@ -200,7 +206,7 @@ begin
   cases z with a b,
   split,
   { intro h, cases h with x h, dsimp [diag] at h,
-    cases eq_pairs.mp h with h h; rw [←h.1, ←h.2], },
+    cases eq_iff.mp h with h h; rw [←h.1, ←h.2], },
   { intro h, dsimp at h, rw h, use b, simp [diag], },
 end
 
@@ -247,11 +253,10 @@ begin
   split,
   { intros h z hr hd,
     induction z,
-    change ⟦z⟧ ∈ _ at hr,
-    change is_diag ⟦z⟧ at hd,
-    rw is_diag_iff_proj_eq at hd,
-    rw [from_rel_proj_prop, hd] at hr,
-    exact h _ hr,
+    have hd' := (is_diag_iff_proj_eq _).mp hd,
+    have hr' := from_rel_proj_prop.mp hr,
+    rw hd' at hr',
+    exact h _ hr',
     refl, },
   { intros h x hr,
     rw ← @from_rel_prop _ _ sym at hr,
@@ -259,5 +264,99 @@ begin
 end
 
 end relations
+
+section multiset_equiv
+
+/-! ### Equivalence to multisets of cardinality two -/
+
+/--
+In more generality, the nth symmetric power is n-tuples up to
+permutation.  We define it as a subtype of `multiset` since these are
+well developed in the library.  We also give a definition `sym'` in terms of
+vectors, and show these are equivalent in `sym2_equiv_sym'`.
+-/
+def sym (α : Type*) (n : ℕ) := {s : multiset α // s.card = n}
+
+/--
+This is the `list.perm` setoid lifted to `vector`.
+-/
+def vector.is_setoid (α : Type*) (n : ℕ) : setoid (vector α n) :=
+{ r := λ a b, list.perm a.1 b.1,
+  iseqv := by { rcases list.perm.eqv α with ⟨hr, hs, ht⟩, tidy, } }
+
+local attribute [instance] vector.is_setoid
+
+/--
+Another definition of the nth symmetric power, using vectors modulo permutations. (See `sym`.)
+-/
+def sym' (α : Type*) (n : ℕ) := quotient (vector.is_setoid α n)
+
+/--
+Multisets of cardinality n are equivalent to length-n vectors up to permutations.
+-/
+def sym_equiv_sym' (α : Type*) (n : ℕ) : equiv (sym α n) (sym' α n) :=
+equiv.subtype_quotient_equiv_quotient_subtype _ _ (λ _, by refl) (λ _ _, by refl)
+
+private def from_vector {α : Type*} : vector α 2 → α × α
+| ⟨[a, b], h⟩ := (a, b)
+
+private lemma perm_card_two_iff {α : Type*} {a₁ b₁ a₂ b₂ : α} :
+  [a₁, b₁].perm [a₂, b₂] ↔ (a₁ = a₂ ∧ b₁ = b₂) ∨ (a₁ = b₂ ∧ b₁ = a₂) :=
+begin
+  split, swap,
+  intro h, cases h; rw [h.1, h.2], apply list.perm.swap', refl,
+  intro h,
+  rw ←multiset.coe_eq_coe at h,
+  repeat {rw ←multiset.cons_coe at h},
+  repeat {rw multiset.cons_eq_cons at h},
+  cases h,
+  { cases h, cases h_right,
+    left, simp [h_left, h_right.1],
+    simp at h_right, tauto, },
+  { rcases h.2 with ⟨cs, h'⟩,
+    repeat {rw multiset.cons_eq_cons at h'},
+    simp only [multiset.zero_ne_cons, multiset.coe_nil_eq_zero, exists_false, or_false, and_false, false_and] at h',
+    right, simp [h'.1.1, h'.2.1], },
+end
+
+/--
+The symmetric square is equivalent to length-2 vectors up to permutations.
+-/
+def sym2_equiv_sym' {α : Type*} : equiv (sym2 α) (sym' α 2) :=
+{ to_fun := quotient.map (λ (x : α × α), ⟨[x.1, x.2], rfl⟩) (begin
+    intros x y h, cases h, refl, apply list.perm.swap', refl,
+  end),
+  inv_fun := quotient.map from_vector (begin
+    rintros ⟨x, hx⟩ ⟨y, hy⟩ h,
+    cases x with x0 x, simp at hx, tauto,
+    cases x with x1 x, simp at hx, exfalso, linarith [hx],
+    cases x with x2 x, swap, simp at hx, exfalso, linarith [hx],
+    cases y with y0 y, simp at hy, tauto,
+    cases y with y1 y, simp at hy, exfalso, linarith [hy],
+    cases y with y2 y, swap, simp at hy, exfalso, linarith [hy],
+    cases perm_card_two_iff.mp h; rw [h_1.1, h_1.2],
+    refl,
+    apply sym2.rel.swap,
+  end),
+  left_inv := by tidy,
+  right_inv := begin
+    intro x,
+    induction x,
+    cases x with x hx,
+    cases x with x0 x, simp at hx, tauto,
+    cases x with x1 x, simp at hx, exfalso, linarith [hx],
+    cases x with x2 x, swap, simp at hx, exfalso, linarith [hx],
+    refl,
+    refl,
+  end
+}
+
+/--
+The symmetric square is equivalent to multisets of cardinality two.
+-/
+def equiv_multiset (α : Type*) : sym2 α ≃ {s : multiset α // s.card = 2} :=
+equiv.trans sym2_equiv_sym' (sym_equiv_sym' α 2).symm
+
+end multiset_equiv
 
 end sym2

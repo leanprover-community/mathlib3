@@ -19,7 +19,7 @@ variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 @[simp] theorem prod.exists {p : α × β → Prop} : (∃ x, p x) ↔ (∃ a b, p (a, b)) :=
 ⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
 
-@[simp] lemma prod_map (f : α → γ) (g : β → δ) : prod.map f g = λ p, (f p.1, g p.2) := rfl
+@[simp] lemma prod_map (f : α → γ) (g : β → δ) (p : α × β) : prod.map f g p = (f p.1, g p.2) := rfl
 
 namespace prod
 

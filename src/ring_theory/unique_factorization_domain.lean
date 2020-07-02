@@ -462,18 +462,17 @@ namespace unique_factorization_domain
 variables {R : Type*} [integral_domain R] [unique_factorization_domain R]
 
 lemma no_factors_of_no_prime_factors {a b : R} (ha : a ≠ 0)
-  (h : (∀ {p}, prime p → p ∣ a → p ∣ b → is_unit p)) : ∀ {p}, p ∣ a → p ∣ b → is_unit p :=
+  (h : (∀ {p}, p ∣ a → p ∣ b → ¬ prime p)) : ∀ {p}, p ∣ a → p ∣ b → is_unit p :=
 λ p, induction_on_prime p
   (by { simp only [zero_dvd_iff], intros, contradiction })
   (λ x hx _ _, hx)
-  (λ p q hp hq ih dvd_a dvd_b, is_unit.mul
-    (h hq (dvd_of_mul_right_dvd dvd_a) (dvd_of_mul_right_dvd dvd_b))
-    (ih (dvd_of_mul_left_dvd dvd_a) (dvd_of_mul_left_dvd dvd_b)))
+  (λ p q hp hq ih dvd_a dvd_b,
+    absurd hq (h (dvd_of_mul_right_dvd dvd_a) (dvd_of_mul_right_dvd dvd_b)))
 
 /-- Euclid's lemma: if `a ∣ b * c` and `a` and `c` have no common prime factors, `a ∣ b`.
 Compare `is_coprime.dvd_of_dvd_mul_left`. -/
 lemma dvd_of_dvd_mul_left_of_no_prime_factors {a b c : R} (ha : a ≠ 0) :
-  (∀ {p}, prime p → p ∣ a → p ∣ c → is_unit p) → a ∣ b * c → a ∣ b :=
+  (∀ {p}, p ∣ a → p ∣ c → ¬ prime p) → a ∣ b * c → a ∣ b :=
 begin
   refine induction_on_prime c _ _ _,
   { intro no_factors,
@@ -484,17 +483,16 @@ begin
   { rintros _ ⟨x, rfl⟩ _ a_dvd_bx,
     apply dvd_mul_unit_iff.mp a_dvd_bx },
   { intros c p hc hp ih no_factors a_dvd_bpc,
-    apply ih (λ q hq dvd_a dvd_c, no_factors hq dvd_a (dvd_mul_of_dvd_right dvd_c _)),
+    apply ih (λ q dvd_a dvd_c hq, no_factors dvd_a (dvd_mul_of_dvd_right dvd_c _) hq),
     rw mul_left_comm at a_dvd_bpc,
     refine or.resolve_left (left_dvd_or_dvd_right_of_dvd_prime_mul hp a_dvd_bpc) (λ h, _),
-    apply hp.not_unit,
-    exact no_factors hp h (dvd_mul_right p c) }
+    exact no_factors h (dvd_mul_right p c) hp }
 end
 
 /-- Euclid's lemma: if `a ∣ b * c` and `a` and `b` have no common prime factors, `a ∣ c`.
 Compare `is_coprime.dvd_of_dvd_mul_right`. -/
 lemma dvd_of_dvd_mul_right_of_no_prime_factors {a b c : R} (ha : a ≠ 0)
-  (no_factors : ∀ {p}, prime p → p ∣ a → p ∣ b → is_unit p) : a ∣ b * c → a ∣ c :=
+  (no_factors : ∀ {p}, p ∣ a → p ∣ b → ¬ prime p) : a ∣ b * c → a ∣ c :=
 by simpa [mul_comm b c] using dvd_of_dvd_mul_left_of_no_prime_factors ha @no_factors
 
 /-- If `a ≠ 0, b` are elements of a unique factorization domain, then dividing

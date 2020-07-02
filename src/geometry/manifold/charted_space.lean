@@ -452,8 +452,7 @@ instance prod_charted_space (H : Type*) [topological_space H]
   mem_chart_source :=
   begin
     intro x,
-    simp only [local_homeomorph.prod_to_local_equiv, set.mem_prod, mem_chart_source, and_self,
-      local_equiv.prod_source],
+    simp only [] with mfld_simps,
   end,
   chart_mem_atlas  :=
   begin

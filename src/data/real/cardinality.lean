@@ -103,6 +103,7 @@ begin
     apply eq_ff_of_not_eq_tt, rw [←fn], apply ne.symm, exact nat.find_spec this }
 end
 
+/-- The cardinality of the reals, as a type. -/
 lemma mk_real : mk ℝ = 2 ^ omega.{0} :=
 begin
   apply le_antisymm,
@@ -112,71 +113,78 @@ begin
     rw [←power_def, mk_bool, mk_nat], exact 1 / 3, norm_num, norm_num }
 end
 
-lemma not_countable_real : ¬ countable (set.univ : set ℝ) :=
-by { rw [countable_iff, not_le, mk_univ, mk_real], apply cantor }
+/-- The cardinality of the reals, as a set. -/
+lemma mk_univ_real : mk (set.univ : set ℝ) = 2 ^ omega.{0} :=
+by rw [mk_univ, mk_real]
 
-/-- The interval (a, ∞) is uncountable. -/
-lemma not_countable_real_Ioi (a : ℝ) : ¬ countable (Ioi a) :=
+/-- The reals are not countable. -/
+lemma not_countable_real : ¬ countable (set.univ : set ℝ) :=
+by { rw [countable_iff, not_le, mk_univ_real], apply cantor }
+
+/-- The cardinality of the interval (a, ∞). -/
+lemma mk_real_Ioi (a : ℝ) : mk (Ioi a) = 2 ^ omega.{0} :=
 begin
-  intro h,
-  apply not_countable_real,
+  refine le_antisymm (mk_real ▸ mk_set_le _) _,
+  by_contradiction h,
+  rw not_le at h,
+  refine ne_of_lt _ mk_univ_real,
   have hu : Iio a ∪ {a} ∪ Ioi a = set.univ,
   { convert Iic_union_Ioi,
     exact Iio_union_right },
   rw ←hu,
+  refine lt_of_le_of_lt (mk_union_le _ _) _,
+  refine lt_of_le_of_lt (add_le_add_right _ (mk_union_le _ _)) _,
   have h2 : (λ x, a + a - x) '' Ioi a = Iio a,
   { convert image_const_sub_Ioi _ _,
     simp },
   rw ←h2,
-  exact ((h.image _).union (countable_singleton a)).union h
+  refine add_lt_of_lt (le_of_lt (cantor _)) _ h,
+  refine add_lt_of_lt (le_of_lt (cantor _)) (lt_of_le_of_lt mk_image_le h) _,
+  rw mk_singleton,
+  exact lt_trans one_lt_omega (cantor _)
 end
 
-/-- The interval [a, ∞) is uncountable. -/
-lemma not_countable_real_Ici (a : ℝ) : ¬ countable (Ici a) :=
-λ h, not_countable_real_Ioi a $ countable.mono Ioi_subset_Ici_self h
+/-- The cardinality of the interval [a, ∞). -/
+lemma mk_real_Ici (a : ℝ) : mk (Ici a) = 2 ^ omega.{0} :=
+le_antisymm (mk_real ▸ mk_set_le _) (mk_real_Ioi a ▸ mk_le_mk_of_subset Ioi_subset_Ici_self)
 
-/-- The interval (-∞, a) is uncountable. -/
-lemma not_countable_real_Iio (a : ℝ) : ¬ countable (Iio a) :=
+/-- The cardinality of the interval (-∞, a). -/
+lemma mk_real_Iio (a : ℝ) : mk (Iio a) = 2 ^ omega.{0} :=
 begin
-  intro h,
+  refine le_antisymm (mk_real ▸ mk_set_le _) _,
   have h2 : (λ x, a + a - x) '' Iio a = Ioi a,
   { convert image_const_sub_Iio _ _,
     simp },
-  apply not_countable_real_Ioi a,
-  rw ←h2,
-  exact h.image _
+  exact mk_real_Ioi a ▸ h2 ▸ mk_image_le
 end
 
-/-- The interval (-∞, a] is uncountable. -/
-lemma not_countable_real_Iic (a : ℝ) : ¬ countable (Iic a) :=
-λ h, not_countable_real_Iio a $ countable.mono Iio_subset_Iic_self h
+/-- The cardinality of the interval (-∞, a]. -/
+lemma mk_real_Iic (a : ℝ) : mk (Iic a) = 2 ^ omega.{0} :=
+le_antisymm (mk_real ▸ mk_set_le _) (mk_real_Iio a ▸ mk_le_mk_of_subset Iio_subset_Iic_self)
 
-/-- The interval (a, b) is uncountable. -/
-lemma not_countable_real_Ioo {a b : ℝ} (h : a < b) :
-  ¬ countable (Ioo a b) :=
+/-- The cardinality of the interval (a, b). -/
+lemma mk_real_Ioo {a b : ℝ} (h : a < b) : mk (Ioo a b) = 2 ^ omega.{0} :=
 begin
-  intro hc,
-  replace hc := hc.image (λ x, x - a),
-  rw [image_sub_const_Ioo, sub_self] at hc,
+  refine le_antisymm (mk_real ▸ mk_set_le _) _,
+  have h1 : mk ((λ x, x - a) '' Ioo a b) ≤ mk (Ioo a b) := mk_image_le,
+  refine le_trans _ h1,
+  rw [image_sub_const_Ioo, sub_self],
   replace h := sub_pos_of_lt h,
-  apply not_countable_real_Ioi (b - a)⁻¹,
-  rw ←image_inv_Ioo_0_left h,
-  exact hc.image _
+  have h2 : mk (has_inv.inv '' Ioo 0 (b - a)) ≤ mk (Ioo 0 (b - a)) := mk_image_le,
+  refine le_trans _ h2,
+  rw [image_inv_Ioo_0_left h, mk_real_Ioi]
 end
 
-/-- The interval [a, b) is uncountable. -/
-lemma not_countable_real_Ico {a b : ℝ} (h : a < b) :
-  ¬ countable (Ico a b) :=
-λ hc, not_countable_real_Ioo h $ countable.mono Ioo_subset_Ico_self hc
+/-- The cardinality of the interval [a, b). -/
+lemma mk_real_Ico {a b : ℝ} (h : a < b) : mk (Ico a b) = 2 ^ omega.{0} :=
+le_antisymm (mk_real ▸ mk_set_le _) (mk_real_Ioo h ▸ mk_le_mk_of_subset Ioo_subset_Ico_self)
 
-/-- The interval [a, b] is uncountable. -/
-lemma not_countable_real_Icc {a b : ℝ} (h : a < b) :
-  ¬ countable (Icc a b) :=
-λ hc, not_countable_real_Ioo h $ countable.mono Ioo_subset_Icc_self hc
+/-- The cardinality of the interval [a, b]. -/
+lemma mk_real_Icc {a b : ℝ} (h : a < b) : mk (Icc a b) = 2 ^ omega.{0} :=
+le_antisymm (mk_real ▸ mk_set_le _) (mk_real_Ioo h ▸ mk_le_mk_of_subset Ioo_subset_Icc_self)
 
-/-- The interval (a, b] is uncountable. -/
-lemma not_countable_real_Ioc {a b : ℝ} (h : a < b) :
-  ¬ countable (Ioc a b) :=
-λ hc, not_countable_real_Ioo h $ countable.mono Ioo_subset_Ioc_self hc
+/-- The cardinality of the interval (a, b]. -/
+lemma mk_real_Ioc {a b : ℝ} (h : a < b) : mk (Ioc a b) = 2 ^ omega.{0} :=
+le_antisymm (mk_real ▸ mk_set_le _) (mk_real_Ioo h ▸ mk_le_mk_of_subset Ioo_subset_Ioc_self)
 
 end cardinal

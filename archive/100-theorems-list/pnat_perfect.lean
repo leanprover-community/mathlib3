@@ -54,7 +54,7 @@ begin
   rw pnat.lt_add_one_iff, apply pnat.le_of_dvd hyp
 end
 
-lemma divisor_le {m : ℕ+}:
+lemma le_of_mem_divisors {m : ℕ+}:
 m ∈ divisors n → m ≤ n := by {rw mem_divisors, exact pnat.le_of_dvd}
 
 @[simp]
@@ -67,6 +67,12 @@ begin
   { intro hyp, split, swap, exact hyp.left, apply lt_of_le_of_ne,
     apply pnat.le_of_dvd hyp.left, apply hyp.right }
 end
+
+lemma proper_divisors_subset_divisors : proper_divisors n ⊆ divisors n :=
+by { simp_rw [finset.subset_iff, mem_proper_divisors, mem_divisors], tauto }
+
+lemma proper_divisors_ssubset_divisors : proper_divisors n ⊂ divisors n :=
+by { rw finset.ssubset_iff_of_subset proper_divisors_subset_divisors, use n, simp [pnat.dvd_refl] }
 
 variable (n)
 
@@ -121,19 +127,18 @@ lemma perfect_iff_sum_divisors_twice {n : ℕ+} : perfect n ↔ sum_divisors n =
 by { rw [perfect, sum_divisors_eq_sum_proper_divisors_add_self], simp [two_mul] }
 
 @[simp]
-lemma divisors_one : divisors 1 = ({1} : finset ℕ+) :=
-by { ext, rw mem_divisors, simp [pnat.dvd_one_iff] } ---  pnat.dvd_one_iff should be a simp lemma
+lemma divisors_one : divisors 1 = ({1} : finset ℕ+) := dec_trivial
 
 @[simp]
-lemma mem_one_divisors {n : ℕ+}: (1 : ℕ+) ∈ divisors n :=
+lemma one_mem_divisors {n : ℕ+}: (1 : ℕ+) ∈ divisors n :=
 by { rw mem_divisors, apply pnat.one_dvd }
 
-lemma mem_self_divisors {n : ℕ+} : n ∈ divisors n :=
+lemma self_mem_divisors {n : ℕ+} : n ∈ divisors n :=
 by { rw mem_divisors, apply pnat.dvd_refl }
 
 
 @[simp]
-lemma divisors_pow_prime {p : ℕ+} (pp : p.prime) (k : ℕ)  {x : ℕ+} :
+lemma divisors_prime_pow {p : ℕ+} (pp : p.prime) (k : ℕ)  {x : ℕ+} :
   x ∈ divisors (p ^ k) ↔  ∃ (j : ℕ) (H : j ≤ k), x = p ^ j :=
 begin
   rw mem_divisors,
@@ -144,11 +149,11 @@ begin
   { rw h_h_h, simp only [nat.primes.coe_pnat_nat, pnat.pow_coe] }
 end
 
-lemma divisors_pow_prime_insert {p : ℕ+} (pp : p.prime) (k : ℕ)  :
-  divisors (p ^ (k + 1)) = has_insert.insert (p ^ (k + 1)) (divisors (p ^ k)) :=
+lemma divisors_prime_pow_insert {p : ℕ+} (pp : p.prime) (k : ℕ)  :
+  divisors (p ^ (k + 1)) = insert (p ^ (k + 1)) (divisors (p ^ k)) :=
 begin
   ext,
-  simp [divisors_pow_prime pp],
+  simp [divisors_prime_pow pp],
   split,
   { intro h, cases h, cases h_h,
     by_cases h_w = k + 1,
@@ -182,23 +187,23 @@ begin
   unfold geom_series, rw add_comm, simp [finset.sum_range_succ],
 end
 
-lemma sum_divisors_pow_prime {p : ℕ+} (pp : p.prime) (k : ℕ)  :
+lemma sum_divisors_prime_pow {p : ℕ+} (pp : p.prime) (k : ℕ)  :
   sum_divisors (p ^ k) = geom_series p (k + 1) :=
 begin
   rw sum_divisors,
   induction k, simp,
-  rw divisors_pow_prime_insert pp,
+  rw divisors_prime_pow_insert pp,
   rw finset.sum_insert,
   { rw k_ih, conv_rhs {rw geom_series_succ}, rw add_comm, simp },
   { intro contra,
-    have h := divisor_le contra,
+    have h := le_of_mem_divisors contra,
     have g1 :=  nat.mul_lt_mul_of_pos_left (nat.prime.one_lt pp) (nat.pos_pow_of_pos (k_n) (nat.prime.pos pp)),
     apply not_lt_of_le h, rw pow_add, rw ← pnat.coe_lt_coe, revert g1, simp }
 end
 
 lemma sum_divisors_prime {p : ℕ+} (pp : p.prime) : sum_divisors p = p + 1 :=
 begin
-  have h := sum_divisors_pow_prime pp 1, rw pow_one at h, rw h, unfold geom_series,
+  have h := sum_divisors_prime_pow pp 1, rw pow_one at h, rw h, unfold geom_series,
   simp [finset.sum_range_succ]
 end
 
@@ -214,7 +219,7 @@ end
 lemma sum_divisors_pow_two (k : ℕ) : sum_divisors (2 ^ k) = (2 ^ (k + 1) - 1) :=
 begin
   induction k with k hk, simp [sum_divisors],
-  rw sum_divisors_pow_prime pnat.prime_two k.succ, simp [geom_series_two]
+  rw sum_divisors_prime_pow pnat.prime_two k.succ, simp [geom_series_two]
 end
 
 lemma odd_mersenne_succ (k : ℕ) : ¬  2 ∣ (2 ^ (k + 1) - 1) :=
@@ -271,9 +276,6 @@ begin
 end
 
 @[simp]
-lemma pnat.one_val : (1 : ℕ+).val = 1 := rfl
-
-@[simp]
 lemma pnat.not_prime_one : ¬ (1: ℕ+).prime :=  nat.not_prime_one
 
 lemma pnat.prime.not_dvd_one {p : ℕ+} :
@@ -296,7 +298,7 @@ begin
     have ex := pnat.exists_prime_and_dvd ge2, cases ex with p hp,
     have subs : {n, (1 : ℕ+)} ⊆ divisors n,
     { rw finset.subset_iff, intro x, simp only [finset.mem_insert, finset.mem_singleton],
-      intro h, cases h; rw h_1, apply mem_self_divisors, apply mem_one_divisors },
+      intro h, cases h; rw h_1, apply self_mem_divisors, apply one_mem_divisors },
     have seteq : {n, (1 : ℕ+)} = divisors n,
     { apply finset.eq_of_subset_of_card_le subs _, rw h, rw pnat.card_pair_eq_two _,
       contrapose hp, simp only [classical.not_not] at hp, rw hp,

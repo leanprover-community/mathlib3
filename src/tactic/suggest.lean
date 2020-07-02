@@ -465,7 +465,7 @@ Possible reasons why `library_search` failed:
   Try replacing `a + b` with `b + a`, or `a - b < c` with `a < b + c`,
   to see if maybe the lemma exists but isn't stated quite the way you would like.
 * Make sure that you have all the side conditions for your theorem to be true.
-  For example you won't find `a - b + b = a` in the library because it's false!
+  For example you won't find `a - b + b = a` for natural numbers in the library because it's false!
   Search for `b ≤ a → a - b + b = a` instead.
 * If a definition you made is in the goal,
   you won't find any theorems about it in the library.

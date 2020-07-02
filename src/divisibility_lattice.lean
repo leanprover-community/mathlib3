@@ -8,16 +8,16 @@ import order.conditionally_complete_lattice
 import order.lattice
 import tactic.pi_instances
 
-/-
+/-!
 # Divisibility Lattices
 
 ## Notations
 
 ## Implementation Notes
-Trying to make a standard typeclass for structures with a sensibly defined dvd relation, as well as gcd, coprime, etc. 
-Experimenting with type tags, and 
+Trying to make a standard typeclass for structures with a sensibly defined dvd relation, as well as gcd, coprime, etc.
+Experimenting with type tags, and
 
-## References 
+## References
 
 -/
 
@@ -119,7 +119,7 @@ end divisibility_lattice
 
 section order_iso_lattice
 
-variables (α β: Type) 
+variables (α β: Type)
 
 structure order_iso' [preorder α] [preorder β] :=
 (to_equiv : α ≃ β)
@@ -140,7 +140,7 @@ lemma order_iso'.coe_monotone [partial_order α] [partial_order β] (f : order_i
 def order_iso'.inv_fun [preorder α] [preorder β] (f : order_iso' α β) : β → α := f.to_equiv.inv_fun
 
 lemma order_iso'.monotone_inv_fun [partial_order α] [partial_order β] (f : order_iso' α β) :
-  monotone f.inv_fun := 
+  monotone f.inv_fun :=
 begin
   unfold monotone, unfold order_iso'.inv_fun,
   intros, rw [← f.le_iff_le, f.to_equiv.right_inv, f.to_equiv.right_inv], apply a_1
@@ -150,7 +150,7 @@ variables [lattice α] [lattice β] {f : order_iso' α β}
 
 lemma order_iso'.inf_map {a₁ a₂ : α} : f (a₁ ⊓ a₂) = f (a₁) ⊓ f (a₂) :=
 begin
-  apply lattice.le_antisymm, 
+  apply lattice.le_antisymm,
   { apply lattice.le_inf; refine f.coe_monotone _, apply inf_le_left, apply inf_le_right },
   { rw ← f.to_equiv.right_inv f a₁ ⊓ f a₂, rw f.le_iff_le, },
 end

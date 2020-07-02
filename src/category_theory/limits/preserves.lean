@@ -247,4 +247,28 @@ instance comp_reflects_colimit [reflects_colimit K F] [reflects_colimit (K ⋙ F
 
 end
 
+variable (F : C ⥤ D)
+
+instance fully_faithful_reflects_limits [full F] [faithful F] : reflects_limits F :=
+{ reflects_limits_of_shape := λ J 𝒥₁, by exactI
+  { reflects_limit := λ K,
+    { reflects := λ c t,
+      is_limit.mk_cone_morphism (λ s, (cones.functoriality K F).preimage (t.lift_cone_morphism _)) $
+      begin
+        apply (λ s m, (cones.functoriality K F).map_injective _),
+        rw [functor.image_preimage],
+        apply t.uniq_cone_morphism,
+      end } } }
+
+instance fully_faithful_reflects_colimits [full F] [faithful F] : reflects_colimits F :=
+{ reflects_colimits_of_shape := λ J 𝒥₁, by exactI
+  { reflects_colimit := λ K,
+    { reflects := λ c t,
+      is_colimit.mk_cocone_morphism (λ s, (cocones.functoriality K F).preimage (t.desc_cocone_morphism _)) $
+      begin
+        apply (λ s m, (cocones.functoriality K F).map_injective _),
+        rw [functor.image_preimage],
+        apply t.uniq_cocone_morphism,
+      end } } }
+
 end category_theory.limits

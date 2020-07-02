@@ -246,8 +246,8 @@ def model_with_corners.prod
   (I : model_with_corners 𝕜 E H)
   {E' : Type v'} [normed_group E'] [normed_space 𝕜 E'] {H' : Type w'} [topological_space H']
   (I' : model_with_corners 𝕜 E' H') : model_with_corners 𝕜 (E × E') (model_prod H H') :=
-{ to_fun       := λp, (I p.1, I' p.2),
-  inv_fun      := λp, (I.symm p.1, I'.symm p.2),
+{ to_fun       := λ p, (I p.1, I' p.2),
+  inv_fun      := λ p, (I.symm p.1, I'.symm p.2),
   source       := (univ : set (H × H')),
   target       := set.prod (range I) (range I'),
   map_source'  := λ ⟨x, x'⟩ _, by simp [-mem_range, mem_range_self],
@@ -281,7 +281,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {G : Type*} [topological_space G] {G' : Type*} [topological_space G']
 {I : model_with_corners 𝕜 E H} {J : model_with_corners 𝕜 F G}
 
-@[simp] lemma model_with_corners_prod_to_local_equiv :
+@[simp, mfld_simps] lemma model_with_corners_prod_to_local_equiv :
   (I.prod J).to_local_equiv = (I.to_local_equiv).prod (J.to_local_equiv) :=
 begin
   ext1 x,
@@ -289,6 +289,14 @@ begin
   { intro x, refl, },
   { simp only [set.univ_prod_univ, model_with_corners.source_eq, local_equiv.prod_source], }
 end
+
+@[simp, mfld_simps] lemma model_with_corners_prod_coe
+  (I : model_with_corners 𝕜 E H) (I' : model_with_corners 𝕜 E' H') :
+  (I.prod I' : _ × _ → _ × _) = (prod.map I I') := rfl
+
+@[simp, mfld_simps] lemma model_with_corners_prod_coe_symm
+  (I : model_with_corners 𝕜 E H) (I' : model_with_corners 𝕜 E' H') :
+  ((I.prod I').symm : _ × _ → _ × _) = (prod.map I.symm (I').symm) := rfl
 
 end model_with_corners_prod
 
@@ -440,20 +448,12 @@ end
 
 variables {E' : Type*} [normed_group E'] [normed_space 𝕜 E'] {H' : Type*} [topological_space H']
 
-@[simp] lemma model_with_corners_prod_coe
-  (I : model_with_corners 𝕜 E H) (I' : model_with_corners 𝕜 E' H') :
-  (I.prod I' : _ × _ → _ × _) = (prod.map I I') := rfl
-
-@[simp] lemma model_with_corners_prod_coe_symm
-  (I : model_with_corners 𝕜 E H) (I' : model_with_corners 𝕜 E' H') :
-  ((I.prod I').symm : _ × _ → _ × _) = (prod.map I.symm (I').symm) := rfl
-
 /-- The product of two smooth local homeomorphisms is smooth. -/
 lemma times_cont_diff_groupoid_prod
   {I : model_with_corners 𝕜 E H} {I' : model_with_corners 𝕜 E' H'}
   {e : local_homeomorph H H} {e' : local_homeomorph H' H'}
-  (he : (e ∈ (times_cont_diff_groupoid ⊤ I))) (he' : (e' ∈ (times_cont_diff_groupoid ⊤ I'))) :
-  (e.prod e') ∈ (times_cont_diff_groupoid ⊤ (I.prod I')) :=
+  (he : e ∈ times_cont_diff_groupoid ⊤ I) (he' : e' ∈ times_cont_diff_groupoid ⊤ I') :
+  e.prod e' ∈ times_cont_diff_groupoid ⊤ (I.prod I') :=
 begin
   cases he with he he_symm,
   cases he' with he' he'_symm,
@@ -537,16 +537,14 @@ instance prod_smooth_manifold_with_corners {𝕜 : Type*} [nondiscrete_normed_fi
   (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
   (M' : Type*) [topological_space M'] [charted_space H' M'] [smooth_manifold_with_corners I' M'] :
   smooth_manifold_with_corners (I.prod I') (M×M') :=
-{
-  compatible :=
+{ compatible :=
   begin
     rintros f g ⟨f1, hf1, f2, hf2, hf⟩ ⟨g1, hg1, g2, hg2, hg⟩,
     rw [hf, hg, local_homeomorph.prod_symm, local_homeomorph.prod_trans],
     have h1 := has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) hf1 hg1,
     have h2 := has_groupoid.compatible (times_cont_diff_groupoid ⊤ I') hf2 hg2,
     exact times_cont_diff_groupoid_prod h1 h2,
-  end,
-}
+  end,}
 
 end smooth_manifold_with_corners
 

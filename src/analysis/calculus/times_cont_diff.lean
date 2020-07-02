@@ -1262,7 +1262,7 @@ lemma times_cont_diff_snd {n : with_top ℕ} : times_cont_diff 𝕜 n (prod.snd 
 is_bounded_linear_map.times_cont_diff is_bounded_linear_map.snd
 
 /--
-The first projection on a domain in a product is `C^∞`.
+The second projection on a domain in a product is `C^∞`.
 -/
 lemma times_cont_diff_on_snd {s : set (E×F)} {n : with_top ℕ} :
   times_cont_diff_on 𝕜 n (prod.snd : E × F → F) s :=
@@ -1589,8 +1589,9 @@ times_cont_diff_on_univ.1 $ times_cont_diff_on.comp (times_cont_diff_on_univ.2 h
   (times_cont_diff_on_univ.2 hf) (subset_univ _)
 
 /-- The product map of two `C^n` functions is `C^n`. -/
-lemma times_cont_diff_on.map_prod {T : Type*} [normed_group T] [normed_space 𝕜 T]
-{s : set E} {t : set T} {n : with_top ℕ} {f : E → F} {g : T → G}
+lemma times_cont_diff_on.map_prod {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+{F' : Type*} [normed_group F'] [normed_space 𝕜 F']
+{s : set E} {t : set E'} {n : with_top ℕ} {f : E → F} {g : E' → F'}
   (hf : times_cont_diff_on 𝕜 n f s) (hg : times_cont_diff_on 𝕜 n g t) :
   times_cont_diff_on 𝕜 n (prod.map f g) (set.prod s t) :=
 begin

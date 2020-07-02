@@ -349,3 +349,6 @@ end function
 def set.piecewise {α : Type u} {β : α → Sort v} (s : set α) (f g : Πi, β i) [∀j, decidable (j ∈ s)] :
   Πi, β i :=
 λi, if i ∈ s then f i else g i
+
+@[simp] lemma prod_map {α₁ α₂ β₁ β₂ : Type*}
+  (f : α₁ → α₂) (g : β₁ → β₂) : prod.map f g = λ x, (f x.1, g x.2) := rfl

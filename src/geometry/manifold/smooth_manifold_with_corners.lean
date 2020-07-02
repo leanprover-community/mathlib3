@@ -544,7 +544,7 @@ instance prod_smooth_manifold_with_corners {𝕜 : Type*} [nondiscrete_normed_fi
     have h1 := has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) hf1 hg1,
     have h2 := has_groupoid.compatible (times_cont_diff_groupoid ⊤ I') hf2 hg2,
     exact times_cont_diff_groupoid_prod h1 h2,
-  end,}
+  end }
 
 end smooth_manifold_with_corners
 

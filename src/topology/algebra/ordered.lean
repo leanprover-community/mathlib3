@@ -1870,7 +1870,7 @@ tendsto_nhds_unique at_top_ne_bot (tendsto_at_top_infi_nat f hf)
 /-- $\lim_{x\to+\infty}|x|=+\infty$ -/
 lemma tendsto_abs_at_top_at_top [decidable_linear_ordered_add_comm_group α] :
   tendsto (abs : α → α) at_top at_top :=
-tendsto_at_top_mono _ (λ n, le_abs_self _) tendsto_id
+tendsto_at_top_mono (λ n, le_abs_self _) tendsto_id
 
 local notation `|` x `|` := abs x
 
@@ -1910,3 +1910,37 @@ begin
       have : ∀ b, f b < a' ↔ f b - a < ε, by { intro b, simp [lt_sub_iff_add_lt] },
       simpa only [this] }}
 end
+
+/-!
+Here is a counter-example to a version of the following with `conditionally_complete_lattice α`.
+Take `α = [0, 1) → ℝ` with the natural lattice structure, `ι = ℕ`. Put `f n x = -x^n`. Then
+`⨆ n, f n = 0` while none of `f n` is strictly greater than the constant function `-0.5`.
+-/
+
+lemma tendsto_at_top_csupr {ι α : Type*} [preorder ι] [topological_space α]
+  [conditionally_complete_linear_order α] [order_topology α]
+  {f : ι → α} (h_mono : monotone f) (hbdd : bdd_above $ range f) :
+  tendsto f at_top (𝓝 (⨆i, f i)) :=
+begin
+  by_cases hi : nonempty ι,
+  { resetI,
+    rw tendsto_order,
+    split,
+    { intros a h,
+      cases exists_lt_of_lt_csupr h with N hN,
+      apply eventually.mono (mem_at_top N),
+      exact λ i hi, lt_of_lt_of_le hN (h_mono hi) },
+    { exact λ a h, eventually_of_forall _ (λ n, lt_of_le_of_lt (le_csupr hbdd n) h) } },
+  { exact tendsto_of_not_nonempty hi }
+end
+
+lemma tendsto_at_top_supr {ι α : Type*} [preorder ι] [topological_space α]
+  [complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : monotone f) :
+  tendsto f at_top (𝓝 (⨆i, f i)) :=
+tendsto_at_top_csupr h_mono (order_top.bdd_above _)
+
+lemma tendsto_of_monotone {ι α : Type*} [preorder ι] [topological_space α]
+  [conditionally_complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : monotone f) :
+  tendsto f at_top at_top ∨ (∃ l, tendsto f at_top (𝓝 l)) :=
+if H : bdd_above (range f) then or.inr ⟨_, tendsto_at_top_csupr h_mono H⟩
+else or.inl $ tendsto_at_top_at_top_of_monotone' h_mono H

@@ -295,7 +295,7 @@ by rw [sub_add_eq_sub_sub, sub_self, zero_sub]
 
 lemma add_self_div_two (a : α) : (a + a) / 2 = a :=
 eq.symm
-  (iff.mpr (eq_div_iff_mul_eq _ _ (ne_of_gt (add_pos (@zero_lt_one α _) zero_lt_one)))
+  (iff.mpr (eq_div_iff_mul_eq (ne_of_gt (add_pos (@zero_lt_one α _) zero_lt_one)))
            (begin unfold bit0, rw [left_distrib, mul_one] end))
 
 lemma mul_le_mul_of_mul_div_le {a b c d : α} (h : a * (b / c) ≤ d) (hc : c > 0) : b * a ≤ d * c :=
@@ -616,7 +616,7 @@ lemma one_le_inv (ha0 : 0 < a) (ha : a ≤ 1) : 1 ≤ a⁻¹ :=
 le_of_mul_le_mul_left (by simpa [mul_inv_cancel (ne.symm (ne_of_lt ha0))]) ha0
 
 lemma mul_self_inj_of_nonneg (a0 : 0 ≤ a) (b0 : 0 ≤ b) : a * a = b * b ↔ a = b :=
-(mul_self_eq_mul_self_iff a b).trans $ or_iff_left_of_imp $
+mul_self_eq_mul_self_iff.trans $ or_iff_left_of_imp $
 λ h, by subst a; rw [le_antisymm (neg_nonneg.1 a0) b0, neg_zero]
 
 lemma div_le_div_of_le_left (ha : 0 ≤ a) (hc : 0 < c) (h : c ≤ b) :
@@ -652,7 +652,7 @@ decidable.by_cases
   (assume h : b ≠ 0,
    have h₁ : abs b ≠ 0, from
      assume h₂, h (eq_zero_of_abs_eq_zero h₂),
-   eq_div_of_mul_eq _ _ h₁
+   eq_div_of_mul_eq h₁
    (show abs (a / b) * abs b = abs a, by rw [← abs_mul, div_mul_cancel _ h]))
 
 lemma abs_one_div (a : α) : abs (1 / a) = 1 / abs a :=

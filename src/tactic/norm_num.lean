@@ -433,7 +433,7 @@ end
 theorem inv_neg {α} [division_ring α] (a b : α) (h : a⁻¹ = b) : (-a)⁻¹ = -b :=
 h ▸ by simp only [inv_eq_one_div, one_div_neg_eq_neg_one_div]
 
-theorem inv_one {α} [division_ring α] : (1 : α)⁻¹ = 1 := one_inv_eq
+theorem inv_one {α} [division_ring α] : (1 : α)⁻¹ = 1 := inv_one
 theorem inv_one_div {α} [division_ring α] (a : α) : (1 / a)⁻¹ = a :=
 by rw [one_div_eq_inv, inv_inv']
 theorem inv_div_one {α} [division_ring α] (a : α) : a⁻¹ = 1 / a :=
@@ -456,7 +456,7 @@ meta def prove_inv : instance_cache → expr → ℚ → tactic (instance_cache 
   | sum.inr tt :=
     if n.num = 1 then
       if n.denom = 1 then do
-        (ic, p) ← ic.mk_app ``one_inv_eq [],
+        (ic, p) ← ic.mk_app ``inv_one [],
         return (ic, e, p)
       else do
         let e := e.app_arg,

@@ -321,7 +321,7 @@ begin
   by_cases hxy : x = y,
   { rw hxy },
   { rw [←norm_neg (y - x), neg_sub, mul_comm, mul_comm ∥y∥, div_eq_mul_inv, div_eq_mul_inv,
-        mul_inv', mul_inv', ←mul_assoc, ←mul_assoc] at h,
+        mul_inv_rev', mul_inv_rev', ←mul_assoc, ←mul_assoc] at h,
     replace h :=
       mul_right_cancel' (inv_ne_zero (λ hz, hxy (eq_of_sub_eq_zero (norm_eq_zero.1 hz)))) h,
     rw [inner_sub_right, inner_sub_right, inner_comm y x, inner_self_eq_norm_square,

@@ -171,7 +171,7 @@ begin
   ext,
   change ∑ y, M i y * ite (j = y) 1 0 = M i j,
   have h1 : (λ y, M i y * ite (j = y) 1 0) = (λ y, ite (j = y) (M i y) 0),
-    { ext, split_ifs, exact mul_one _, exact ring.mul_zero _ },
+    { ext, split_ifs, exact mul_one _, exact mul_zero _ },
   have h2 : ∑ y, ite (j = y) (M i y) 0 = ∑ y in {j}, ite (j = y) (M i y) 0,
     { refine (finset.sum_subset _ _).symm,
       { intros _ H, rwa finset.mem_singleton.1 H, exact finset.mem_univ _ },
@@ -211,7 +211,7 @@ theorem linear_equiv_matrix_range {ι κ M₁ M₂ : Type*}
   {v₁ : ι → M₁} {v₂ : κ → M₂} (hv₁ : is_basis R v₁) (hv₂ : is_basis R v₂) (f : M₁ →ₗ[R] M₂) (k i) :
   linear_equiv_matrix hv₁.range hv₂.range f ⟨v₂ k, mem_range_self k⟩ ⟨v₁ i, mem_range_self i⟩ =
     linear_equiv_matrix hv₁ hv₂ f k i :=
-if H : (0 : R) = 1 then @subsingleton.elim _ (subsingleton_of_zero_eq_one R H) _ _ else
+if H : (0 : R) = 1 then eq_of_zero_eq_one H _ _ else
 begin
   simp_rw [linear_equiv_matrix, linear_equiv.trans_apply, linear_equiv_matrix'_apply,
     ← equiv.of_injective_apply _ (hv₁.injective H), ← equiv.of_injective_apply _ (hv₂.injective H),
@@ -456,7 +456,7 @@ open_locale classical
 theorem trace_aux_range (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
   {ι : Type w} [fintype ι] {b : ι → M} (hb : is_basis R b) :
   trace_aux R hb.range = trace_aux R hb :=
-linear_map.ext $ λ f, if H : 0 = 1 then @subsingleton.elim _ (subsingleton_of_zero_eq_one R H) _ _ else
+linear_map.ext $ λ f, if H : 0 = 1 then eq_of_zero_eq_one H _ _ else
 begin
   change ∑ i : set.range b, _ = ∑ i : ι, _, simp_rw [matrix.diag_apply], symmetry,
   convert finset.sum_equiv (equiv.of_injective _ $ hb.injective H) _, ext i,

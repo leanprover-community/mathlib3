@@ -45,7 +45,7 @@ is_cyclic_of_subgroup_integral_domain (units.coe_hom R) $ units.ext
 def field_of_integral_domain [fintype R] [decidable_eq R] : field R :=
 { inv := λ a, if h : a = 0 then 0
     else fintype.bij_inv (show function.bijective (* a),
-      from fintype.injective_iff_bijective.1 $ λ _ _, (domain.mul_left_inj h).1) 1,
+      from fintype.injective_iff_bijective.1 $ λ _ _, mul_right_cancel' h) 1,
   mul_inv_cancel := λ a ha, show a * dite _ _ _ = _, by rw [dif_neg ha, mul_comm];
     exact fintype.right_inverse_bij_inv (show function.bijective (* a), from _) 1,
   inv_zero := dif_pos rfl,
@@ -129,7 +129,7 @@ begin
       (λ b hb, let ⟨n, hn⟩ := hx b in ⟨n % order_of x, mem_range.2 (nat.mod_lt _ (order_of_pos _)),
         by rw [← pow_eq_mod_order_of, hn]⟩)
   ... = 0 : _,
-  rw [← domain.mul_left_inj hx1, zero_mul, ← geom_series, geom_sum_mul, coe_coe],
+  rw [← mul_left_inj' hx1, zero_mul, ← geom_series, geom_sum_mul, coe_coe],
   norm_cast,
   rw [pow_order_of_eq_one, is_submonoid.coe_one, units.coe_one, sub_self],
 end

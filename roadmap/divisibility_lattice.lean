@@ -148,12 +148,8 @@ end
 
 variables [lattice α] [lattice β] {f : order_iso' α β}
 
-lemma order_iso'.inf_map {a₁ a₂ : α} : f (a₁ ⊓ a₂) = f (a₁) ⊓ f (a₂) :=
-begin
-  apply lattice.le_antisymm,
-  { apply lattice.le_inf; refine f.coe_monotone _, apply inf_le_left, apply inf_le_right },
-  { rw ← f.to_equiv.right_inv f a₁ ⊓ f a₂, rw f.le_iff_le, },
-end
+--lemma order_iso'.inf_map {a₁ a₂ : α} : f (a₁ ⊓ a₂) = f (a₁) ⊓ f (a₂) :=
+
 
 
 end order_iso_lattice

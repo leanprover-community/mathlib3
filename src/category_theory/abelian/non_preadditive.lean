@@ -556,10 +556,6 @@ abbreviation σ {A : C} : A ⨯ A ⟶ A := cokernel.π (Δ A) ≫ is_iso.inv (r 
 
 end
 
-lemma comp_lift {X Y Z : C} (f : X ⟶ Y) (g h : Y ⟶ Z) :
-  f ≫ prod.lift g h = prod.lift (f ≫ g) (f ≫ h) :=
-by tidy
-
 @[simp, reassoc] lemma Δ_σ {X : C} : Δ X ≫ σ = 0 :=
 by rw [cokernel.condition_assoc, has_zero_morphisms.zero_comp]
 
@@ -618,11 +614,12 @@ lemma sub_zero {X Y : C} (a : X ⟶ Y) : a - 0 = a :=
 begin
   rw sub_def,
   conv_lhs { congr, congr, rw ←category.comp_id a, skip, rw (show 0 = a ≫ (0 : Y ⟶ Y), by simp)},
-  rw [←comp_lift, category.assoc, lift_σ, category.comp_id]
+  rw [prod.lift_comp_comp, category.assoc, lift_σ, category.comp_id]
 end
 
 lemma sub_self {X Y : C} (a : X ⟶ Y) : a - a = 0 :=
-by rw [sub_def, ←category.comp_id a, ←comp_lift, category.assoc, Δ_σ, has_zero_morphisms.comp_zero]
+by rw [sub_def, ←category.comp_id a, prod.lift_comp_comp, category.assoc, Δ_σ,
+  has_zero_morphisms.comp_zero]
 
 lemma lift_sub_lift {X Y : C} (a b c d : X ⟶ Y) :
   prod.lift a b - prod.lift c d = prod.lift (a - c) (b - d) :=
@@ -691,7 +688,7 @@ lemma add_zero {X Y : C} (a : X ⟶ Y) : a + 0 = a :=
 by rw [add_def, neg_def, sub_self, sub_zero]
 
 lemma comp_sub {X Y Z : C} (f : X ⟶ Y) (g h : Y ⟶ Z) : f ≫ (g - h) = f ≫ g - f ≫ h :=
-by rw [sub_def, ←category.assoc, comp_lift, sub_def]
+by rw [sub_def, ←category.assoc, ←prod.lift_comp_comp, sub_def]
 
 lemma sub_comp {X Y Z : C} (f g : X ⟶ Y) (h : Y ⟶ Z) : (f - g) ≫ h = f ≫ h - g ≫ h :=
 by rw [sub_def, category.assoc, σ_comp, ←category.assoc, prod.lift_map, sub_def]

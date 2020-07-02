@@ -22,6 +22,11 @@ for `z : sym2 α`, it does not appear to be possible, in general, to
 `sym2.vmem a z` is a `Type`-valued predicate that contains this other
 element.
 
+Recall that an undirected graph (allowing self loops, but no multiple
+edges) is equivalent to a symmetric relation on the vertex type `α`.
+Given a symmetric relation on `α`, the corresponding edge set is
+constructed by `sym2.from_rel`.
+
 ## Notation
 
 The symmetric square has a setoid instance, so `⟦(a, b)⟧` denotes a
@@ -216,7 +221,8 @@ section relations
 variables {r : α → α → Prop}
 
 /--
-Symmetric relations define a set on `sym2 α` by taking all those elements that are related.
+Symmetric relations define a set on `sym2 α` by taking all those pairs
+of elements that are related.
 -/
 def from_rel (sym : symmetric r) : set (sym2 α) :=
 (λ z, quotient.rec_on z (λ z, r z.1 z.2) (begin
@@ -228,8 +234,29 @@ def from_rel (sym : symmetric r) : set (sym2 α) :=
 end))
 
 @[simp]
-lemma from_rel_prop {sym : symmetric r} {a b : α} : ⟦(a, b)⟧ ∈ from_rel sym  ↔ r a b :=
+lemma from_rel_proj_prop {sym : symmetric r} {z : α × α} : ⟦z⟧ ∈ from_rel sym ↔ r z.1 z.2 :=
 by tidy
+
+@[simp]
+lemma from_rel_prop {sym : symmetric r} {a b : α} : ⟦(a, b)⟧ ∈ from_rel sym ↔ r a b :=
+by simp only [from_rel_proj_prop]
+
+@[simp]
+lemma from_rel_irreflexive {sym : symmetric r} : irreflexive r ↔ ∀{z}, z ∈ from_rel sym → ¬is_diag z :=
+begin
+  split,
+  { intros h z hr hd,
+    induction z,
+    change ⟦z⟧ ∈ _ at hr,
+    change is_diag ⟦z⟧ at hd,
+    rw is_diag_iff_proj_eq at hd,
+    rw [from_rel_proj_prop, hd] at hr,
+    exact h _ hr,
+    refl, },
+  { intros h x hr,
+    rw ← @from_rel_prop _ _ sym at hr,
+    exact h hr ⟨x, rfl⟩, }
+end
 
 end relations
 

@@ -359,4 +359,21 @@ equiv.trans sym2_equiv_sym' (sym_equiv_sym' α 2).symm
 
 end multiset_equiv
 
+
+section inhabited
+
+-- Instances to make the linter happy
+
+instance inhabited_vmem [inhabited α] : inhabited (vmem (default α) (diag (default α))) :=
+⟨⟨default α, rfl⟩⟩
+
+instance inhabited_sym [inhabited α] (n : ℕ) : inhabited (sym α n) :=
+⟨⟨list.repeat (default α) n,
+  by { simp only [multiset.coe_card, list.length_repeat] }⟩⟩
+
+instance inhabited_sym' [inhabited α] (n : ℕ) : inhabited (sym' α n) :=
+⟨quotient.mk' (vector.repeat (default α) n)⟩
+
+end inhabited
+
 end sym2

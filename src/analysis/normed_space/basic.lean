@@ -490,7 +490,7 @@ namespace normed_field
 have  ∥(1 : α)∥ * ∥(1 : α)∥ = ∥(1 : α)∥ * 1, by calc
  ∥(1 : α)∥ * ∥(1 : α)∥ = ∥(1 : α) * (1 : α)∥ : by rw normed_field.norm_mul'
                   ... = ∥(1 : α)∥ * 1 : by simp,
-eq_of_mul_eq_mul_left (ne_of_gt (norm_pos_iff.2 (by simp))) this
+mul_left_cancel' (ne_of_gt (norm_pos_iff.2 (by simp))) this
 
 @[simp] lemma norm_mul [normed_field α] (a b : α) : ∥a * b∥ = ∥a∥ * ∥b∥ :=
 normed_field.norm_mul' a b
@@ -853,7 +853,7 @@ begin
     exact (div_le_iff εpos).1 (le_of_lt (hn.2)) },
   show ε / ∥c∥ ≤ ∥(c ^ (n + 1))⁻¹ • x∥,
   { rw [div_le_iff cpos, norm_smul, norm_inv, norm_fpow, fpow_add (ne_of_gt cpos),
-        fpow_one, mul_inv', mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
+        fpow_one, mul_inv_rev', mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
         one_mul, ← div_eq_inv_mul, le_div_iff (fpow_pos_of_pos cpos _), mul_comm],
     exact (le_div_iff εpos).1 hn.1 },
   show ∥(c ^ (n + 1))⁻¹∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥,

@@ -50,10 +50,6 @@ apply_nolint with_zero.inv doc_blame
 apply_nolint with_zero.lift doc_blame
 apply_nolint with_zero.map doc_blame
 
--- algebra/group_with_zero.lean
-apply_nolint mul_zero_class doc_blame
-apply_nolint no_zero_divisors doc_blame
-
 -- algebra/order.lean
 apply_nolint decidable.lt_by_cases doc_blame
 apply_nolint ge_iff_le ge_or_gt
@@ -821,24 +817,19 @@ apply_nolint tactic.mllist.squash doc_blame
 apply_nolint tactic.mllist.take doc_blame unused_arguments
 apply_nolint tactic.mllist.uncons doc_blame unused_arguments
 
--- data/multiset.lean
+-- data/multiset/basic.lean
 apply_nolint multiset.choose doc_blame
-apply_nolint multiset.choose_x doc_blame
 apply_nolint multiset.decidable_exists_multiset doc_blame
 apply_nolint multiset.decidable_forall_multiset doc_blame
-apply_nolint multiset.pi.cons doc_blame
-apply_nolint multiset.pi.empty doc_blame unused_arguments
-apply_nolint multiset.powerset doc_blame
-apply_nolint multiset.powerset_aux doc_blame
-apply_nolint multiset.powerset_aux' doc_blame
-apply_nolint multiset.powerset_len doc_blame
-apply_nolint multiset.powerset_len_aux doc_blame
 apply_nolint multiset.rec_on doc_blame
-apply_nolint multiset.sections doc_blame
 apply_nolint multiset.strong_induction_on doc_blame
-apply_nolint multiset.subsingleton_equiv doc_blame
 apply_nolint multiset.sum doc_blame
+
+-- data/multiset/functor.lean
 apply_nolint multiset.traverse doc_blame
+
+-- data/multiset/pi.lean
+apply_nolint multiset.pi.empty unused_arguments
 
 -- data/nat/enat.lean
 apply_nolint enat doc_blame
@@ -1206,7 +1197,6 @@ apply_nolint zsqrtd.norm doc_blame
 apply_nolint gaussian_int doc_blame
 apply_nolint gaussian_int.div doc_blame
 apply_nolint gaussian_int.mod doc_blame
-apply_nolint gaussian_int.to_complex doc_blame
 
 -- deprecated/subgroup.lean
 apply_nolint add_group.closure doc_blame

@@ -35,7 +35,7 @@ open finsupp polynomial
 noncomputable def scale_roots (p : polynomial R) (s : R) : polynomial R :=
 on_finset p.support
   (λ i, coeff p i * s ^ (p.nat_degree - i))
-  (λ i h, mem_support_iff.mpr (ne_zero_of_mul_ne_zero_right h))
+  (λ i h, mem_support_iff.mpr (left_ne_zero_of_mul h))
 
 @[simp] lemma coeff_scale_roots (p : polynomial R) (s : R) (i : ℕ) :
   (scale_roots p s).coeff i = coeff p i * s ^ (p.nat_degree - i) :=
@@ -63,7 +63,7 @@ lemma support_scale_roots_le (p : polynomial R) (s : R) :
 begin
   intros i,
   simp only [mem_support_iff, scale_roots, on_finset_apply],
-  exact ne_zero_of_mul_ne_zero_right
+  exact left_ne_zero_of_mul
 end
 
 lemma support_scale_roots_eq (p : polynomial R) {s : R} (hs : s ∈ non_zero_divisors R) :

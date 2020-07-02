@@ -527,11 +527,7 @@ begin
       norm_num at h },
     refine and.intro hr0 _,
     have h2 : ∥r • x∥ ^ 2 = ∥t + r • x∥ ^ 2,
-    { congr' 1,
-      refine eq_of_div_eq_one _ _ h,
-      intro h0,
-      rw [h0, div_zero] at h,
-      norm_num at h },
+    { rw [eq_of_div_eq_one h] },
     rw [pow_two, pow_two, ←inner_self_eq_norm_square, ←inner_self_eq_norm_square,
         inner_add_add_self] at h2,
     conv_rhs at h2 {
@@ -908,7 +904,7 @@ begin
     let w'' := -w + v,
     have : w'' ∈ K := submodule.add_mem _ (submodule.neg_mem _ hw) hv,
     have h₁ := h w'' this,
-    have h₂ : w'' - v = -w, simp only [neg_inj', add_neg_cancel_right, sub_eq_add_neg],
+    have h₂ : w'' - v = -w, simp only [neg_inj, add_neg_cancel_right, sub_eq_add_neg],
     rw [h₂, inner_neg_right] at h₁,
     linarith,
     exact le_antisymm le ge

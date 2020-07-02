@@ -375,7 +375,7 @@ by letI := classical.dec; exact
 ⟨assume s, ⟨to_finset s, by rw [set.coe_to_finset, submodule.span_eq]⟩⟩
 
 theorem ring.is_noetherian_of_zero_eq_one {R} [ring R] (h01 : (0 : R) = 1) : is_noetherian_ring R :=
-by haveI := subsingleton_of_zero_eq_one R h01;
+by haveI := subsingleton_of_zero_eq_one h01;
    haveI := fintype.of_subsingleton (0:R);
    exact ring.is_noetherian_of_fintype _ _
 

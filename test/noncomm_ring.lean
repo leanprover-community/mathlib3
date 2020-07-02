@@ -6,6 +6,9 @@ local infix ` ⚬ `:70 := λ a b, a * b + b * a
 variables {R : Type*} [ring R]
 variables (a b c : R)
 
+example : 0 = 0 := by noncomm_ring
+example : a = a := by noncomm_ring
+
 example : (a + b) * c = a * c + b * c := by noncomm_ring
 example : a * (b + c) = a * b + a * c := by noncomm_ring
 example : a - b = a + -b := by noncomm_ring
@@ -48,3 +51,5 @@ example : (a ⚬ b) ⚬ (a ⚬ a) = a ⚬ (b ⚬ (a ⚬ a)) := by noncomm_ring
 example : ⁅a, b ⚬ c⁆ = ⁅a, b⁆ ⚬ c + b ⚬ ⁅a, c⁆ := by noncomm_ring
 example : ⁅a ⚬ b, c⁆ = a ⚬ ⁅b, c⁆ + ⁅a, c⁆ ⚬ b := by noncomm_ring
 example : (a ⚬ b) ⚬ c - a ⚬ (b ⚬ c) = -⁅⁅a, b⁆, c⁆ + ⁅a, ⁅b, c⁆⁆ := by noncomm_ring
+
+example : a + -b = -b + a := by noncomm_ring

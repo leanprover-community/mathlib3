@@ -29,7 +29,7 @@ meta def noncomm_ring :=
              -- Pull `gsmul n` out the front so `abel` can see them.
              ←mul_gsmul_assoc, ←mul_gsmul_left,
              -- Pull out negations.
-             neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm];
+             neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm] {fail_if_unchanged := ff};
   abel]
 
 add_tactic_doc

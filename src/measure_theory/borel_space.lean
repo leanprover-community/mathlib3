@@ -199,7 +199,7 @@ lemma is_closed.is_measurable (h : is_closed s) : is_measurable s :=
 is_measurable.compl_iff.1 $ h.is_measurable
 
 lemma compact.is_measurable [t2_space α] (h : compact s) : is_measurable s :=
-(closed_of_compact _ h).is_measurable
+h.is_closed.is_measurable
 
 lemma is_measurable_singleton [t1_space α] {x : α} : is_measurable ({x} : set α) :=
 is_closed_singleton.is_measurable

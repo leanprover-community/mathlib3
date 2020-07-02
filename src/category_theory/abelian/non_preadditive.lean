@@ -541,8 +541,8 @@ begin
     change 𝟙 A ≫ t = 0,
     rw [←limits.prod.lift_snd (𝟙 A) (𝟙 A), category.assoc, ht, ←category.assoc,
       cokernel.condition, has_zero_morphisms.zero_comp] },
-    apply (cancel_epi (cokernel.π (Δ A))).1,
-    rw [←ht, htt, has_zero_morphisms.comp_zero, has_zero_morphisms.comp_zero]
+  apply (cancel_epi (cokernel.π (Δ A))).1,
+  rw [←ht, htt, has_zero_morphisms.comp_zero, has_zero_morphisms.comp_zero]
 end
 
 instance is_iso_r {A : C} : is_iso (r A) :=

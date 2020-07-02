@@ -199,6 +199,10 @@ begin
     (dvd_refl p)
 end
 
+lemma dvd_symm_iff_of_irreducible [comm_semiring α] {p q : α}
+  (hp : irreducible p) (hq : irreducible q) : p ∣ q ↔ q ∣ p :=
+⟨dvd_symm_of_irreducible hp hq, dvd_symm_of_irreducible hq hp⟩
+
 /-- Two elements of a `monoid` are `associated` if one of them is another one
 multiplied by a unit on the right. -/
 def associated [monoid α] (x y : α) : Prop := ∃u:units α, x * u = y

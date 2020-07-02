@@ -2,7 +2,7 @@
 Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Aaron Anderson.
--/
+ -/
 
 import data.finsupp
 import data.pnat.factors
@@ -24,7 +24,7 @@ Most of the sorries will be solved by proving some facts about lattice isomorphi
 
 ## References
 
--/
+ -/
 
 set_option old_structure_cmd true
 
@@ -36,16 +36,16 @@ noncomputable theory
 
 section basics
 
-/--Two pnats are coprime if their gcd is 1-/
+/-- Two pnats are coprime if their gcd is 1. -/
 def pnat.coprime (m n : ℕ+) : Prop := m.gcd n = 1
 
-/--Maps from primes to ℕ - to be viewed as exponents of factorizations -/
+/-- Maps from primes to ℕ - to be viewed as exponents of factorizations.  -/
 def prime_finsupp : Type := nat.primes →₀ ℕ
 
 @[instance]
 instance prime_finsupp.has_coe_to_fun : has_coe_to_fun prime_finsupp := { ..finsupp.has_coe_to_fun}
 
-/--Change the domain to ℕ+-/
+/-- Changes the domain to ℕ+. -/
 def prime_finsupp.to_pnat_finsupp : prime_finsupp → ℕ+ →₀ ℕ := finsupp.map_domain coe
 
 @[instance]
@@ -56,11 +56,11 @@ lemma prime_finsupp.coe_pnat_to_multiset (x : prime_finsupp) :
   prime_multiset.to_pnat_multiset x.to_multiset = (x : ℕ+ →₀ ℕ).to_multiset :=
 finsupp.to_multiset_map x coe
 
-/--Take the product of a function of prime powers with exponents given by a finsupp-/
+/-- Take the product of a function of prime powers with exponents given by a finsupp. -/
 def prime_finsupp.prod_apply_pow {α : Type} [comm_monoid α] (x : prime_finsupp) (f : ℕ+ → α) : α :=
 x.prod (λ p : nat.primes, λ k : ℕ, f (p ^ k))
 
-/--Take the product of prime powers with exponents given by a finsupp-/
+/-- Take the product of prime powers with exponents given by a finsupp. -/
 def prime_finsupp.prod_pow (x : prime_finsupp) := x.prod_apply_pow id
 
 lemma prime_finsupp.prod_pow_eq (x : prime_finsupp) :
@@ -81,7 +81,7 @@ begin
     ← finsupp.prod_to_multiset, ← prime_finsupp.coe_pnat_to_multiset], refl
 end
 
-/--The value of this finsupp at a prime is the multiplicity of that prime in n-/
+/-- The value of this finsupp at a prime is the multiplicity of that prime in n. -/
 def factor_finsupp (n : ℕ+) : prime_finsupp := n.factor_multiset.to_finsupp
 
 @[simp]
@@ -129,7 +129,6 @@ lemma finsupp.sup_apply {a : α} {f g : α →₀ ℕ} : (f ⊔ g) a = f a ⊔ g
 @[simp]
 lemma finsupp.support_sup {f g : α →₀ ℕ} : (f ⊔ g).support = f.support ⊔ g.support := rfl
 
--- finsupp.to_multiset_strict_mono
 
 lemma nat.bot_eq_zero : (⊥ : ℕ) = 0 := rfl
 
@@ -243,7 +242,7 @@ end lattice_isos
 
 section finsupp_lattice_iso_multiset
 
-/--The lattice of finsupps to ℕ is order isomorphic to that of multisets -/
+/-- The lattice of finsupps to ℕ is order isomorphic to that of multisets.  -/
 def finsupp.order_iso_multiset (α : Type) :
   (has_le.le : (α →₀ ℕ) → (α →₀ ℕ) → Prop) ≃o (has_le.le : (multiset α) → (multiset α) → Prop) :=
 ⟨finsupp.equiv_multiset, begin
@@ -251,7 +250,7 @@ def finsupp.order_iso_multiset (α : Type) :
   rw multiset.le_iff_count, simp only [finsupp.count_to_multiset], refl
 end ⟩
 
-/--The lattice of prime_finsupps is order isomorphic to that of prime_multisets -/
+/-- The lattice of prime_finsupps is order isomorphic to that of prime_multisets.  -/
 def prime_finsupp.order_iso_multiset :
 (has_le.le : prime_finsupp → prime_finsupp → Prop) ≃o
   (has_le.le : prime_multiset → prime_multiset → Prop) :=
@@ -270,7 +269,7 @@ lemma prime_finsupp.order_iso_multiset_symm_factor_multiset {n : ℕ+} :
   prime_finsupp.order_iso_multiset.symm n.factor_multiset = factor_finsupp n :=
 by { apply prime_finsupp.order_iso_multiset.to_order_embedding.inj, simp }
 
-/--Factorization is a bijection from ℕ+ to prime_finsupp-/
+/-- Factorization is a bijection from ℕ+ to prime_finsupp. -/
 def pnat.prime_finsupp_equiv : ℕ+ ≃ prime_finsupp :=
 equiv.trans pnat.factor_multiset_equiv (prime_finsupp.order_iso_multiset.to_equiv.symm)
 
@@ -345,8 +344,12 @@ end
 
 end basic_number_theory_definitions
 
+/-- Casts a finsupp on nat.primes to a finsupp on ℕ+. -/
+@[instance]
+def nat.primes.finsupp_coe_pnat : has_coe (nat.primes →₀ ℕ) (ℕ+ →₀ ℕ) :=
+{ coe := finsupp.map_domain coe }
 
-/--Just wraps to_multiset in the prime_multiset type for the next lemma to typecheck-/
+/-- Just wraps to_multiset in the prime_multiset type for the next lemma to typecheck. -/
 def finsupp.to_prime_multiset (f : nat.primes →₀ ℕ) : prime_multiset := f.to_multiset
 
 lemma coe_pnat_commute_to_multiset {f : nat.primes →₀ ℕ} :
@@ -491,9 +494,7 @@ section coprime_part
 
 variables (p : nat.primes) (n : ℕ+)
 
-/--
-The greatest divisor n coprime to prime p
--/
+/-- The greatest divisor n coprime to prime p. -/
 def coprime_part : ℕ+ :=
 prime_finsupp.prod_pow ((factor_finsupp n).erase p)
 
@@ -565,11 +566,11 @@ end
 lemma coprime_part_prime_mul_eq_coprime_part : coprime_part p (p * n) = coprime_part p n :=
 by { apply factor_finsupp_inj, simp }
 
-/--2 as an element of nat.primes-/
+/-- 2 as an element of nat.primes. -/
 def two_prime : nat.primes := ⟨2, nat.prime_two⟩
 
 variable (n)
-/--The greatest odd factor of a pnat-/
+/-- The greatest odd factor of a pnat. -/
 def odd_part : ℕ+ := coprime_part two_prime n
 variable {n}
 
@@ -616,7 +617,7 @@ begin
 end
 
 variables {α : Type} [comm_monoid α]
-/--Determines if a function is multiplicative (in the number-theoretic sense)-/
+/-- Determines if a function is multiplicative (in the number-theoretic sense). -/
 def is_multiplicative (f : ℕ+ → α): Prop :=
 f 1 = 1 ∧ ∀ m n : ℕ+, nat.coprime m n → f (m * n) = f m * f n
 

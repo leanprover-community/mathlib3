@@ -125,15 +125,7 @@ section to_non_preadditive_abelian
 
 local attribute [instance] has_finite_biproducts
 
-@[priority 100] instance nonpreadditive_abelian : non_preadditive_abelian C :=
-{ has_zero_object := infer_instance,
-  has_zero_morphisms := infer_instance,
-  has_kernels := infer_instance,
-  has_cokernels := infer_instance,
-  has_finite_products := infer_instance,
-  has_finite_coproducts := infer_instance,
-  normal_mono := λ X Y, normal_mono,
-  normal_epi := λ X Y, normal_epi }
+@[priority 100] instance nonpreadditive_abelian : non_preadditive_abelian C := { ..‹abelian C› }
 
 end to_non_preadditive_abelian
 

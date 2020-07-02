@@ -186,6 +186,6 @@ end
 constant f : ℕ → ℕ
 axiom F (a b : ℕ) : f a ≤ f b ↔ a ≤ b
 
-example (a b : ℕ) (h : a ≤ b) : f a ≤ f b := by librry_search
+example (a b : ℕ) (h : a ≤ b) : f a ≤ f b := by library_search
 
 end test.library_search

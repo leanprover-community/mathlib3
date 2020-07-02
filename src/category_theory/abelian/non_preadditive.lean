@@ -12,30 +12,30 @@ import category_theory.preadditive
 /-!
 # Every non_preadditive_abelian category is preadditive
 
-In mathlib, we define an non_preadditive_abelian category as a preadditive category with a zero object,
+In mathlib, we define an abelian category as a preadditive category with a zero object,
 kernels and cokernels, products and coproducts and in which every monomorphism and epimorphis is
 normal.
 
-While virtually every interesting non_preadditive_abelian category has a natural preadditive structure (which is why
+While virtually every interesting abelian category has a natural preadditive structure (which is why
 it is included in the definition), preadditivity is not actually needed: Every category that has
-all of the other properties appearing in the definition of an non_preadditive_abelian category admits a preadditive
+all of the other properties appearing in the definition of an abelian category admits a preadditive
 structure. This is the construction we carry out in this file.
 
 The proof proceeds in roughly five steps:
 1. Prove some results (for example that all equalizers exist) that would be trivial if we already
    had the preadditive structure but are a bit of work without it.
-2. Copy-and-paste some results from the formalization of non_preadditive_abelian categories in the main mathlib
+2. Copy-and-paste some results from the formalization of abelian categories in the main mathlib
    repository.
 3. For every object `A`, define a "subtraction" morphism `σ : A ⨯ A ⟶ A` and use it to define
    subtraction on morphisms as `f - g := prod.lift f g ≫ σ`.
 4. Prove a small number of identities about this subtraction from the definition of `σ`.
 5. From these identities, prove a large number of other identities that imply that defining
-   `f + g := f - (0 - g)` indeed gives an non_preadditive_abelian group structure on morphisms such that composition
+   `f + g := f - (0 - g)` indeed gives an abelian group structure on morphisms such that composition
    is bilinear.
 
-The construction is non-trivial and it is quite remarkable that this non_preadditive_abelian group structure can
+The construction is non-trivial and it is quite remarkable that this abelian group structure can
 be constructed purely from the existence of a few limits and colimits. What's even more impressive
-is that all additive structures on a category are in some sense isomorphic, so for non_preadditive_abelian
+is that all additive structures on a category are in some sense isomorphic, so for abelian
 categories with a natural preadditive structure, this construction manages to "almost" reconstruct
 this natural structure. However, we have not formalized this isomorphism.
 
@@ -93,7 +93,7 @@ variables [non_preadditive_abelian.{v} C]
 section strong
 local attribute [instance] non_preadditive_abelian.normal_epi
 
-/-- In an non_preadditive_abelian category, every epimorphism is strong. -/
+/-- In an abelian category, every epimorphism is strong. -/
 def strong_epi_of_epi {P Q : C} (f : P ⟶ Q) [epi f] : strong_epi f := by apply_instance
 
 end strong
@@ -103,7 +103,7 @@ variables {X Y : C} (f : X ⟶ Y)
 
 local attribute [instance] strong_epi_of_epi
 
-/-- In an non_preadditive_abelian category, a monomorphism which is also an epimorphism is an isomorphism. -/
+/-- In an abelian category, a monomorphism which is also an epimorphism is an isomorphism. -/
 def is_iso_of_mono_of_epi [mono f] [epi f] : is_iso f :=
 is_iso_of_mono_of_strong_epi _
 
@@ -228,7 +228,7 @@ end
 section
 local attribute [instance] pushout_of_epi
 
-/-- THe pushout of `(𝟙 Y, f)` and `(𝟙 Y, g)`. -/
+/-- The pushout of `(𝟙 Y, f)` and `(𝟙 Y, g)`. -/
 private abbreviation Q {X Y : C} (f g : X ⟶ Y)
   [epi (coprod.desc (𝟙 Y) f)] [epi (coprod.desc (𝟙 Y) g)] : C :=
 pushout (coprod.desc (𝟙 Y) f) (coprod.desc (𝟙 Y) g)

@@ -20,11 +20,13 @@ A category is called abelian if it is preadditive,
 has a finite products, kernels and cokernels,
 and if every monomorphism and epimorphism is normal.
 
-It should be noted that if we also assume coproducts, then preadditivity is actually a consequence
-of the other properties. However, this fact is of little practical relevance (and, as of now, there
-is no proof of this in mathlib), since essentially all interesting abelian categories come with a
-preadditive structure. In this way, by requiring preadditivity, we allow the user to pass in the
-preadditive structure the specific category they are working with has natively.
+It should be noted that if we also assume coproducts, then preadditivity is
+actually a consequence of the other properties, as we show in
+`non_preadditive_abelian.lean`. However, this fact is of little practical
+relevance, since essentially all interesting abelian categories come with a
+preadditive structure. In this way, by requiring preadditivity, we allow the
+user to pass in the preadditive structure the specific category they are
+working with has natively.
 
 ## Main definitions
 
@@ -49,6 +51,11 @@ preadditive structure the specific category they are working with has natively.
   which is true in any category).
 
 ## Implementation notes
+
+The start of the development in this file is perfectly analogous to the start of the development in
+`non_preadditive_abelian.lean`. Since every `abelian` category is trivially
+`non_preadditive_abelian`, we import long proofs from that file in an effort to somewhat control
+duplication.
 
 We don't show this yet, but abelian categories are finitely complete and finitely cocomplete.
 However, the limits we can construct at this level of generality will most likely be less nice than
@@ -110,14 +117,15 @@ open category_theory
 namespace category_theory.abelian
 variables {C : Type u} [category.{v} C] [abelian C]
 
-section to_non_preadditive_abelian
-
+/-- An abelian category has finite biproducts. -/
 def has_finite_biproducts : has_finite_biproducts.{v} C :=
 limits.has_finite_biproducts.of_has_finite_products
 
+section to_non_preadditive_abelian
+
 local attribute [instance] has_finite_biproducts
 
-instance nonpreadditive_abelian : non_preadditive_abelian C :=
+@[priority 100] instance nonpreadditive_abelian : non_preadditive_abelian C :=
 { has_zero_object := infer_instance,
   has_zero_morphisms := infer_instance,
   has_kernels := infer_instance,
@@ -488,12 +496,21 @@ namespace category_theory.non_preadditive_abelian
 
 variables (C : Type u) [category.{v} C] [non_preadditive_abelian.{v} C]
 
+/-- Every non_preadditive_abelian category can be promoted to an abelian category. -/
 def abelian : abelian.{v} C :=
 { has_finite_products := infer_instance,
-  has_kernels := (show limits.has_kernels.{v} C, by apply_instance),
-  has_cokernels := infer_instance,
-  normal_mono := λ X Y, normal_mono,
-  normal_epi := λ X Y, normal_epi,
+/- We need the `convert`s here because the instances we have are slightly different from the
+   instances we need: `has_kernels` depends on an instance of `has_zero_morphisms`. In the
+   case of `non_preadditive_abelian`, this instance is an explicit argument. However, in the case
+   of `abelian`, the `has_zero_morphisms` instance is derived from `preadditive`. So we need to
+   transform an instance of "has kernels with non_preadditive_abelian.has_zero_morphisms" to an
+   instance of "has kernels with non_preadditive_abelian.preadditive.has_zero_morphisms". Luckily,
+   we have a `subsingleton` instance for `has_zero_morphisms`, so `convert` can immediately close
+   the goal it creates for the two instances of `has_zero_morphisms`, and the proof is complete. -/
+  has_kernels := by convert (show limits.has_kernels.{v} C, from infer_instance),
+  has_cokernels := by convert (show limits.has_cokernels.{v} C, from infer_instance),
+  normal_mono := by { introsI, convert normal_mono f },
+  normal_epi := by { introsI, convert normal_epi f },
   ..non_preadditive_abelian.preadditive }
 
 end category_theory.non_preadditive_abelian

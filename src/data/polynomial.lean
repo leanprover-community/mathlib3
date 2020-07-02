@@ -627,6 +627,19 @@ lemma degree_ne_of_nat_degree_ne {n : ℕ} :
   (λ _ h, option.no_confusion h)
   (λ n' h, mt option.some_inj.mp h)
 
+theorem nat_degree_le_of_degree_le {n : ℕ} (H : degree p ≤ n) : nat_degree p ≤ n :=
+show option.get_or_else (degree p) 0 ≤ n, from match degree p, H with
+| none,     H := zero_le _
+| (some d), H := with_bot.coe_le_coe.1 H
+end
+
+lemma nat_degree_le_nat_degree (hpq : p.degree ≤ q.degree) : p.nat_degree ≤ q.nat_degree :=
+begin
+  by_cases hp : p = 0, { rw [hp, nat_degree_zero], exact zero_le _ },
+  by_cases hq : q = 0, { rw [hq, degree_zero, le_bot_iff, degree_eq_bot] at hpq, cc },
+  rwa [degree_eq_nat_degree hp, degree_eq_nat_degree hq, with_bot.coe_le_coe] at hpq
+end
+
 @[simp] lemma degree_C (ha : a ≠ 0) : degree (C a) = (0 : with_bot ℕ) :=
 show sup (ite (a = 0) ∅ {0}) some = 0, by rw if_neg ha; refl
 
@@ -1232,6 +1245,9 @@ by simpa only [C_1, one_mul] using degree_C_mul_X_pow_le (1:R) n
 theorem degree_X_le : degree (X : polynomial R) ≤ 1 :=
 by simpa only [C_1, one_mul, pow_one] using degree_C_mul_X_pow_le (1:R) 1
 
+lemma nat_degree_X_le : (X : polynomial R).nat_degree ≤ 1 :=
+nat_degree_le_of_degree_le degree_X_le
+
 section injective
 open function
 variables [semiring S] {f : R →+* S} (hf : function.injective f)
@@ -1299,13 +1315,6 @@ theorem degree_le_iff_coeff_zero (f : polynomial R) (n : with_bot ℕ) :
   H1 $ (finsupp.mem_support_to_fun f m).2 H4,
 λ H, finset.sup_le $ λ b Hb, decidable.of_not_not $ λ Hn,
   (finsupp.mem_support_to_fun f b).1 Hb $ H b $ lt_of_not_ge Hn⟩
-
-theorem nat_degree_le_of_degree_le {p : polynomial R} {n : ℕ}
-  (H : degree p ≤ n) : nat_degree p ≤ n :=
-show option.get_or_else (degree p) 0 ≤ n, from match degree p, H with
-| none,     H := zero_le _
-| (some d), H := with_bot.coe_le_coe.1 H
-end
 
 theorem leading_coeff_mul_X_pow {p : polynomial R} {n : ℕ} :
   leading_coeff (p * X ^ n) = leading_coeff p :=
@@ -1379,6 +1388,9 @@ begin
   rw if_neg (one_ne_zero : (1 : R) ≠ 0),
   refl
 end
+
+@[simp] lemma nat_degree_X : (X : polynomial R).nat_degree = 1 :=
+nat_degree_eq_of_degree_eq_some degree_X
 
 lemma X_ne_zero : (X : polynomial R) ≠ 0 :=
 mt (congr_arg (λ p, coeff p 1)) (by simp)
@@ -1920,6 +1932,25 @@ else begin
     (with_bot.coe_lt_coe.1 $ (degree_eq_nat_degree hq0) ▸ h0q))
 end
 
+theorem nat_degree_div_by_monic {R : Type u} [comm_ring R] (f : polynomial R) {g : polynomial R}
+  (hg : g.monic) : nat_degree (f /ₘ g) = nat_degree f - nat_degree g :=
+begin
+  by_cases h01 : (0 : R) = 1,
+  { haveI := subsingleton_of_zero_eq_one h01,
+    rw [subsingleton.elim (f /ₘ g) 0, subsingleton.elim f 0, subsingleton.elim g 0,
+        nat_degree_zero] },
+  haveI : nonzero R := ⟨h01⟩,
+  by_cases hfg : f /ₘ g = 0,
+  { rw [hfg, nat_degree_zero], rw div_by_monic_eq_zero_iff hg hg.ne_zero at hfg,
+    rw nat.sub_eq_zero_of_le (nat_degree_le_nat_degree $ le_of_lt hfg) },
+  have hgf := hfg, rw div_by_monic_eq_zero_iff hg hg.ne_zero at hgf, push_neg at hgf,
+  have := degree_add_div_by_monic hg hgf,
+  have hf : f ≠ 0, { intro hf, apply hfg, rw [hf, zero_div_by_monic] },
+  rw [degree_eq_nat_degree hf, degree_eq_nat_degree hg.ne_zero, degree_eq_nat_degree hfg,
+      ← with_bot.coe_add, with_bot.coe_eq_coe] at this,
+  rw [← this, nat.add_sub_cancel_left]
+end
+
 lemma div_mod_by_monic_unique {f g} (q r : polynomial R) (hg : monic g)
   (h : r + g * q = f ∧ degree r < degree g) : f /ₘ g = q ∧ f %ₘ g = r :=
 if hg0 : g = 0 then by split; exact (subsingleton_of_monic_zero
@@ -2026,6 +2057,9 @@ begin
   { simp only [ha, C_0, neg_zero, zero_add] },
   exact degree_add_eq_of_degree_lt (by rw [degree_X, degree_neg, degree_C ha]; exact dec_trivial)
 end
+
+@[simp] lemma nat_degree_X_sub_C (x : R) : (X - C x).nat_degree = 1 :=
+nat_degree_eq_of_degree_eq_some $ degree_X_sub_C x
 
 lemma degree_X_pow_sub_C {n : ℕ} (hn : 0 < n) (a : R) :
   degree ((X : polynomial R) ^ n - C a) = n :=

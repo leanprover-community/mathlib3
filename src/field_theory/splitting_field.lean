@@ -5,8 +5,8 @@ Authors: Chris Hughes
 
 Definition of splitting fields, and definition of homomorphism into any field that splits
 -/
-import data.polynomial
-import ring_theory.principal_ideal_domain
+import ring_theory.adjoin_root
+import ring_theory.polynomial
 
 universes u v w
 
@@ -198,6 +198,29 @@ begin
   rw [← splits_map_iff],
   rw [← splits_map_iff i] at h,
   exact splits_of_splits_id _ h
+end
+
+theorem exists_splits (f : polynomial α) :
+  ∃ (β : Type u) [field β], by exactI ∃ i : α →+* β, splits i f :=
+begin
+  generalize hn : nat_degree f = n, unfreezingI { revert α },
+  induction n with n ih,
+  { intros, resetI, refine ⟨α, ‹_›, ring_hom.id α, splits_of_degree_le_one _ _⟩,
+    refine le_trans degree_le_nat_degree _, rw hn, exact with_bot.coe_le_coe.2 zero_le_one },
+  intros, resetI,
+  have hdfn0 : f.nat_degree ≠ 0, { intro hf0, rw hf0 at hn, cases hn },
+  have hfn0 : f ≠ 0, { intro hf, apply hdfn0, rw [hf, nat_degree_zero] },
+  obtain ⟨g, hg, f, rfl⟩ := exists_irreducible_of_nat_degree_ne_zero hdfn0, resetI,
+  have := nat_degree_div_by_monic (map (adjoin_root.of g) (g * f))
+    (monic_X_sub_C $ adjoin_root.root g),
+  rw [nat_degree_map, hn, nat_degree_X_sub_C, nat.add_sub_cancel n 1] at this,
+  obtain ⟨β, _, i, hif⟩ := ih _ this, resetI,
+  refine ⟨β, ‹_›, i.comp $ adjoin_root.of g, _⟩,
+  have hfg : is_root (map (adjoin_root.of g) (g * f)) (adjoin_root.root g),
+  { rw map_mul, exact root_mul_right_of_is_root _ (adjoin_root.is_root_root _) },
+  rw ← mul_div_by_monic_eq_iff_is_root at hfg,
+  rw [← splits_id_iff_splits, ← map_map, splits_id_iff_splits, ← hfg],
+  exact splits_mul i (splits_X_sub_C _) hif
 end
 
 end splits

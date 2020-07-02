@@ -57,6 +57,14 @@ local attribute [instance] coeff_coe_to_fun
 @[reducible]
 def monomial (n : ℕ) (a : R) : polynomial R := finsupp.single n a
 
+@[simp] lemma monomial_zero_right (n : ℕ) :
+  monomial n (0 : R) = 0 :=
+by simp [monomial]
+
+lemma monomial_add (n : ℕ) (r s : R) :
+  monomial n (r + s) = monomial n r + monomial n s :=
+by simp [monomial]
+
 /-- `X` is the polynomial variable (aka indeterminant). -/
 def X : polynomial R := monomial 1 1
 
@@ -119,6 +127,7 @@ lemma apply_eq_coeff : p n = coeff p n := rfl
 
 @[simp] lemma coeff_zero (n : ℕ) : coeff (0 : polynomial R) n = 0 := rfl
 
+-- FIXME rename `coeff_monomial`?
 lemma coeff_single : coeff (single n a) m = if n = m then a else 0 :=
 by { dsimp [single, finsupp.single], congr }
 
@@ -169,6 +178,9 @@ begin
   { intros x h hx, rw [if_pos (hite x hx)] }
 end
 
+@[simp] lemma mul_coeff_zero (p q : polynomial R) : coeff (p * q) 0 = coeff p 0 * coeff q 0 :=
+by simp [coeff_mul]
+
 lemma monomial_one_eq_X_pow : ∀{n}, monomial n (1 : R) = X^n
 | 0     := rfl
 | (n+1) :=
@@ -196,7 +208,7 @@ begin
   { exact λ h1, (h1 (nat.mem_antidiagonal.2 rfl)).elim }
 end
 
-theorem coeff_mul_X (p : polynomial R) (n : ℕ) :
+@[simp] theorem coeff_mul_X (p : polynomial R) (n : ℕ) :
   coeff (p * X) (n + 1) = coeff p n :=
 by simpa only [pow_one] using coeff_mul_X_pow p 1 n
 
@@ -210,7 +222,7 @@ section C
 /-- `C a` is the constant polynomial `a`. -/
 def C : R →+* polynomial R := add_monoid_algebra.algebra_map'
 
-lemma C_def (a : R) : C a = single 0 a := rfl
+@[simp] lemma monomial_zero_left (a : R) : monomial 0 a = C a := rfl
 
 lemma single_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
 | 0     := (mul_one _).symm
@@ -221,6 +233,9 @@ lemma single_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
 
 lemma sum_C_mul_X_eq (p : polynomial R) : p.sum (λn a, C a * X^n) = p :=
 eq.trans (sum_congr rfl $ assume n hn, single_eq_C_mul_X.symm) (finsupp.sum_single _)
+
+lemma sum_monomial_eq (p : polynomial R) : p.sum (λn a, monomial n a) = p :=
+by simp only [single_eq_C_mul_X, sum_C_mul_X_eq]
 
 @[elab_as_eliminator] protected lemma induction_on {M : polynomial R → Prop} (p : polynomial R)
   (h_C : ∀a, M (C a))
@@ -240,6 +255,18 @@ finsupp.induction p
   (assume n a p _ _ hp, suffices M (C a * X^n + p), by { convert this, exact single_eq_C_mul_X },
     h_add _ _ this hp)
 
+/--
+To prove something about polynomials,
+it suffices to show the condition is closed under taking sums,
+and it holds for monomials.
+-/
+@[elab_as_eliminator] protected lemma induction_on' {M : polynomial R → Prop} (p : polynomial R)
+  (h_add : ∀p q, M p → M q → M (p + q))
+  (h_monomial : ∀(n : ℕ) (a : R), M (monomial n a)) :
+  M p :=
+polynomial.induction_on p (h_monomial 0) h_add
+(λ n a h, begin rw ←single_eq_C_mul_X at ⊢, exact h_monomial _ _, end)
+
 lemma C_0 : C (0 : R) = 0 := single_zero
 
 lemma C_1 : C (1 : R) = 1 := rfl
@@ -257,12 +284,17 @@ lemma C_pow : C (a ^ n) = C a ^ n := C.map_pow a n
 lemma C_eq_nat_cast (n : ℕ) : C (n : R) = (n : polynomial R) :=
 C.map_nat_cast n
 
+@[simp]
+lemma sum_C_index {a} {β} [add_comm_monoid β] {f : ℕ → R → β} (h : f 0 0 = 0) :
+  (C a).sum f = f 0 a :=
+sum_single_index h
+
 end C
 
 section coeff
 
 lemma coeff_C : coeff (C a) n = ite (n = 0) a 0 :=
-by simp [coeff, eq_comm, C_def, monomial, single]; congr
+by { convert coeff_single using 2, simp [eq_comm], }
 
 @[simp] lemma coeff_C_zero : coeff (C a) 0 = a := coeff_single
 
@@ -273,12 +305,40 @@ by rw [← single_eq_C_mul_X]; simp [monomial, single, eq_comm, coeff]; congr
 @[simp] lemma coeff_C_mul (p : polynomial R) : coeff (C a * p) n = a * coeff p n :=
 begin
   conv in (a * _) { rw [← @sum_single _ _ _ p, coeff_sum] },
-  rw [mul_def, C_def, sum_single_index],
+  rw [mul_def, ←monomial_zero_left, sum_single_index],
   { simp [coeff_single, finsupp.mul_sum, coeff_sum],
     apply sum_congr rfl,
     assume i hi, by_cases i = n; simp [h] },
   { simp [finsupp.sum] }
 end
+
+@[simp] lemma coeff_mul_C (p : polynomial R) (n : ℕ) (a : R) :
+  coeff (p * C a) n = coeff p n * a :=
+begin
+  conv_rhs { rw [← @finsupp.sum_single _ _ _ p, coeff_sum] },
+  rw [mul_def, ←monomial_zero_left], simp_rw [sum_single_index],
+  { simp [coeff_single, finsupp.sum_mul, coeff_sum],
+    apply sum_congr rfl,
+    assume i hi, by_cases i = n; simp [h], },
+end
+
+theorem coeff_mul_monomial (p : polynomial R) (n d : ℕ) (r : R) :
+  coeff (p * monomial n r) (d + n) = coeff p d * r :=
+by rw [single_eq_C_mul_X, ←X_pow_mul, ←mul_assoc, coeff_mul_C, coeff_mul_X_pow]
+
+theorem coeff_monomial_mul (p : polynomial R) (n d : ℕ) (r : R) :
+  coeff (monomial n r * p) (d + n) = r * coeff p d :=
+by rw [single_eq_C_mul_X, mul_assoc, coeff_C_mul, X_pow_mul, coeff_mul_X_pow]
+
+-- This can already be proved by `simp`.
+theorem coeff_mul_monomial_zero (p : polynomial R) (d : ℕ) (r : R) :
+  coeff (p * monomial 0 r) d = coeff p d * r :=
+coeff_mul_monomial p 0 d r
+
+-- This can already be proved by `simp`.
+theorem coeff_monomial_zero_mul (p : polynomial R) (d : ℕ) (r : R) :
+  coeff (monomial 0 r * p) d = r * coeff p d :=
+coeff_monomial_mul p 0 d r
 
 end coeff
 
@@ -307,7 +367,7 @@ p.sum (λ e a, f a * x ^ e)
 finsupp.sum_zero_index
 
 @[simp] lemma eval₂_C : (C a).eval₂ f x = f a :=
-(sum_single_index $ by rw [f.map_zero, zero_mul]).trans $ by rw [pow_zero, mul_one]
+(sum_single_index $ by rw [f.map_zero, zero_mul]).trans $ by simp [pow_zero, mul_one]
 
 @[simp] lemma eval₂_X : X.eval₂ f x = x :=
 (sum_single_index $ by rw [f.map_zero, zero_mul]).trans $ by rw [f.map_one, one_mul, pow_one]
@@ -344,10 +404,13 @@ end
 instance eval₂.is_add_monoid_hom : is_add_monoid_hom (eval₂ f x) :=
 { map_zero := eval₂_zero _ _, map_add := λ _ _, eval₂_add _ _ }
 
+
 @[simp] lemma eval₂_nat_cast (n : ℕ) : (n : polynomial R).eval₂ f x = n :=
 nat.rec_on n rfl $ λ n ih, by rw [n.cast_succ, eval₂_add, ih, eval₂_one, n.cast_succ]
 
-lemma eval₂_sum (p : polynomial R) (g : ℕ → R → polynomial R) (x : S) :
+variables [semiring T]
+
+lemma eval₂_sum (p : polynomial T) (g : ℕ → T → polynomial R) (x : S) :
   (p.sum g).eval₂ f x = p.sum (λ n a, (g n a).eval₂ f x) :=
 finsupp.sum_sum_index (by simp [is_add_monoid_hom.map_zero f])
   (by intros; simp [right_distrib, is_add_monoid_hom.map_add f])
@@ -368,6 +431,9 @@ def eval : R → polynomial R → R := eval₂ (ring_hom.id _)
 by simp only [←C_eq_nat_cast, eval_C]
 
 @[simp] lemma eval_X : X.eval x = x := eval₂_X _ _
+
+@[simp] lemma eval_monomial {n a} : (monomial n a).eval x = a * x^n :=
+eval₂_monomial _ _
 
 @[simp] lemma eval_zero : (0 : polynomial R).eval x = 0 :=  eval₂_zero _ _
 
@@ -485,6 +551,7 @@ section ring
 variables [ring R]
 
 instance : ring (polynomial R) := add_monoid_algebra.ring
+
 end ring
 
 section comm_semiring
@@ -669,6 +736,9 @@ begin
   { rwa [degree_eq_nat_degree hp, with_bot.coe_lt_coe] }
 end
 
+@[simp] lemma coeff_nat_degree_succ_eq_zero {p : polynomial R} : p.coeff (p.nat_degree + 1) = 0 :=
+coeff_eq_zero_of_nat_degree_lt (lt_add_one _)
+
 -- TODO find a home (this file)
 @[simp] lemma finset_sum_coeff (s : finset ι) (f : ι → polynomial R) (n : ℕ) :
   coeff (∑ b in s, f b) n = ∑ b in s, coeff (f b) n :=
@@ -707,6 +777,43 @@ lemma coeff_ne_zero_of_eq_degree {p : polynomial R} {n : ℕ} (hn : degree p = n
 end semiring
 
 section semiring
+variables [semiring R] [add_comm_monoid S]
+
+/--
+We can reexpress a sum over `p.support` as a sum over `range n`,
+for any `n` satisfying `p.nat_degree < n`.
+-/
+lemma sum_over_range' (p : polynomial R) {f : ℕ → R → S} (h : ∀ n, f n 0 = 0)
+  (n : ℕ) (w : p.nat_degree < n) :
+  p.sum f = ∑ (a : ℕ) in range n, f a (coeff p a) :=
+begin
+  rw finsupp.sum,
+  apply finset.sum_bij_ne_zero (λ n _ _, n),
+  { intros k h₁ h₂, simp only [mem_range],
+    calc k ≤ p.nat_degree : _
+       ... < n : w,
+    rw finsupp.mem_support_iff at h₁,
+    exact le_nat_degree_of_ne_zero h₁, },
+  { intros, assumption },
+  { intros b hb hb',
+    refine ⟨b, _, hb', rfl⟩,
+    rw finsupp.mem_support_iff,
+    contrapose! hb',
+    convert h b, },
+  { intros, refl }
+end
+
+/--
+We can reexpress a sum over `p.support` as a sum over `range (p.nat_degree + 1)`.
+-/
+-- See also `as_sum`.
+lemma sum_over_range (p : polynomial R) {f : ℕ → R → S} (h : ∀ n, f n 0 = 0) :
+  p.sum f = ∑ (a : ℕ) in range (p.nat_degree + 1), f a (coeff p a) :=
+sum_over_range' p h (p.nat_degree + 1) (lt_add_one _)
+
+end semiring
+
+section semiring
 
 variables [semiring R] {p q : polynomial R}
 
@@ -723,6 +830,12 @@ is_semiring_hom.comp _ _
 @[simp] lemma map_C : (C a).map f = C (f a) := eval₂_C _ _
 
 @[simp] lemma map_X : X.map f = X := eval₂_X _ _
+
+@[simp] lemma map_monomial {n a} : (monomial n a).map f = monomial n (f a) :=
+begin
+  dsimp only [map],
+  rw [eval₂_monomial, single_eq_C_mul_X], refl,
+end
 
 @[simp] lemma map_zero : (0 : polynomial R).map f = 0 :=  eval₂_zero _ _
 
@@ -748,6 +861,13 @@ lemma map_map [semiring T] (g : S →+* T)
 ext (by simp [coeff_map])
 
 @[simp] lemma map_id : p.map (ring_hom.id _) = p := by simp [polynomial.ext_iff, coeff_map]
+
+lemma eval₂_eq_eval_map {x : S} : p.eval₂ f x = (p.map f).eval x :=
+begin
+  apply polynomial.induction_on' p,
+  { intros p q hp hq, simp [hp, hq], },
+  { intros n r, simp, }
+end
 
 end map
 
@@ -1308,6 +1428,14 @@ show option.get_or_else (degree p) 0 ≤ n, from match degree p, H with
 | (some d), H := with_bot.coe_le_coe.1 H
 end
 
+lemma nat_degree_mul_le {p q : polynomial R} : nat_degree (p * q) ≤ nat_degree p + nat_degree q :=
+begin
+  apply nat_degree_le_of_degree_le,
+  apply le_trans (degree_mul_le p q),
+  rw with_bot.coe_add,
+  refine add_le_add _ _; apply degree_le_nat_degree,
+end
+
 theorem leading_coeff_mul_X_pow {p : polynomial R} {n : ℕ} :
   leading_coeff (p * X ^ n) = leading_coeff p :=
 decidable.by_cases
@@ -1634,6 +1762,10 @@ eval₂_neg _
 
 @[simp] lemma eval_sub (p q : polynomial R) (x : R) : (p - q).eval x = p.eval x - q.eval x :=
 eval₂_sub _
+
+lemma coeff_mul_X_sub_C {p : polynomial R} {r : R} {a : ℕ} :
+  coeff (p * (X - C r)) (a + 1) = coeff p a - coeff p (a + 1) * r :=
+by simp [mul_sub]
 
 end ring
 
@@ -2041,7 +2173,61 @@ lemma X_pow_sub_C_ne_zero {n : ℕ} (hn : 0 < n) (a : R) :
 mt degree_eq_bot.2 (show degree ((X : polynomial R) ^ n - C a) ≠ ⊥,
   by rw degree_X_pow_sub_C hn a; exact dec_trivial)
 
+lemma nat_degree_X_sub_C {r : R} : (X - C r).nat_degree = 1 :=
+by { apply nat_degree_eq_of_degree_eq_some, simp, }
+
+lemma nat_degree_X_pow_sub_C {n : ℕ} (hn : 0 < n) {r : R} :
+  (X ^ n - C r).nat_degree = n :=
+by { apply nat_degree_eq_of_degree_eq_some, simp [degree_X_pow_sub_C hn], }
+
 end nonzero_ring
+
+section ring
+variables [ring R]
+
+lemma eq_zero_of_eq_zero (h : (0 : R) = (1 : R)) (p : polynomial R) : p = 0 :=
+by rw [←one_smul R p, ←h, zero_smul]
+
+lemma nat_degree_X_sub_C_le {r : R} : (X - C r).nat_degree ≤ 1 :=
+begin
+  classical,
+  by_cases h : (0 : R) = (1 : R),
+  { calc (X - C r).nat_degree
+         = (0 : polynomial R).nat_degree : congr_arg nat_degree (eq_zero_of_eq_zero h _)
+     ... = 0 : nat_degree_zero
+     ... ≤ 1 : zero_le 1, },
+  { haveI : nonzero R := ⟨h⟩,
+    exact le_of_eq nat_degree_X_sub_C, }
+end
+
+/--
+The evaluation map is not generally multiplicative when the coefficient ring is noncommutative,
+but nevertheless any polynomial of the form `p * (X - monomial 0 r)` is sent to zero
+when evaluated at `r`.
+
+This is the key step in our proof of the Cayley-Hamilton theorem.
+-/
+lemma eval_mul_X_sub_C {p : polynomial R} (r : R) :
+  (p * (X - C r)).eval r = 0 :=
+begin
+  simp only [eval, eval₂, ring_hom.id_apply],
+  have bound := calc
+    (p * (X - C r)).nat_degree
+         ≤ p.nat_degree + (X - C r).nat_degree : nat_degree_mul_le
+     ... ≤ p.nat_degree + 1 : add_le_add_left nat_degree_X_sub_C_le _
+     ... < p.nat_degree + 2 : lt_add_one _,
+  rw sum_over_range' _ _ (p.nat_degree + 2) bound,
+  swap,
+  { simp, },
+  rw sum_range_succ',
+  conv_lhs {
+    congr, apply_congr, skip,
+    rw [coeff_mul_X_sub_C, sub_mul, mul_assoc, ←pow_succ],
+  },
+  simp [sum_range_sub', coeff_single],
+end
+
+end ring
 
 section comm_ring
 

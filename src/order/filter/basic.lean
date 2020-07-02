@@ -494,7 +494,7 @@ begin
     use [a, hUV ha] }
 end
 
-lemma inf_principal_ne_bot_iff (f : filter α) (s : set α) :
+lemma inf_principal_ne_bot_iff {f : filter α} {s : set α} :
   f ⊓ 𝓟 s ≠ ⊥ ↔ ∀ U ∈ f, (U ∩ s).nonempty :=
 begin
   rw inf_ne_bot_iff,

@@ -24,8 +24,11 @@ structure. This is the construction we carry out in this file.
 The proof proceeds in roughly five steps:
 1. Prove some results (for example that all equalizers exist) that would be trivial if we already
    had the preadditive structure but are a bit of work without it.
-2. Copy-and-paste some results from the formalization of abelian categories in the main mathlib
-   repository.
+2. Develop images and coimages to show that every monomorphism is the kernel of its cokernel.
+
+The results of the first two steps are also useful for the "normal" development of abelian
+categories, and will be used there.
+
 3. For every object `A`, define a "subtraction" morphism `σ : A ⨯ A ⟶ A` and use it to define
    subtraction on morphisms as `f - g := prod.lift f g ≫ σ`.
 4. Prove a small number of identities about this subtraction from the definition of `σ`.
@@ -57,14 +60,14 @@ variables (C : Type u) [category.{v} C]
 /-- In this file, we call a category non_preadditive_abelian if it has a zero object, kernels, cokernel, binary
     products and coproducts, and every monomorphism and every epimorphism is normal. -/
 class non_preadditive_abelian :=
-[has_zero_object : has_zero_object.{v} C]
-[has_zero_morphisms : has_zero_morphisms.{v} C]
-[has_kernels : has_kernels.{v} C]
-[has_cokernels : has_cokernels.{v} C]
-[has_finite_products : has_finite_products.{v} C]
-[has_finite_coproducts : has_finite_coproducts.{v} C]
-(normal_mono : Π {X Y : C} (f : X ⟶ Y) [mono f], normal_mono.{v} f)
-(normal_epi : Π {X Y : C} (f : X ⟶ Y) [epi f], normal_epi.{v} f)
+[has_zero_object : has_zero_object C]
+[has_zero_morphisms : has_zero_morphisms C]
+[has_kernels : has_kernels C]
+[has_cokernels : has_cokernels C]
+[has_finite_products : has_finite_products C]
+[has_finite_coproducts : has_finite_coproducts C]
+(normal_mono : Π {X Y : C} (f : X ⟶ Y) [mono f], normal_mono f)
+(normal_epi : Π {X Y : C} (f : X ⟶ Y) [epi f], normal_epi f)
 
 set_option default_priority 100
 
@@ -88,12 +91,12 @@ variables {C : Type u} [category.{v} C]
 
 
 section
-variables [non_preadditive_abelian.{v} C]
+variables [non_preadditive_abelian C]
 
 section strong
 local attribute [instance] non_preadditive_abelian.normal_epi
 
-/-- In an abelian category, every epimorphism is strong. -/
+/-- In a `non_preadditive_abelian` category, every epimorphism is strong. -/
 def strong_epi_of_epi {P Q : C} (f : P ⟶ Q) [epi f] : strong_epi f := by apply_instance
 
 end strong
@@ -103,7 +106,8 @@ variables {X Y : C} (f : X ⟶ Y)
 
 local attribute [instance] strong_epi_of_epi
 
-/-- In an abelian category, a monomorphism which is also an epimorphism is an isomorphism. -/
+/-- In a `non_preadditive_abelian` category, a monomorphism which is also an epimorphism is an
+    isomorphism. -/
 def is_iso_of_mono_of_epi [mono f] [epi f] : is_iso f :=
 is_iso_of_mono_of_strong_epi _
 
@@ -266,8 +270,8 @@ end
 section
 local attribute [instance] has_limit_parallel_pair
 
-/-- An non_preadditive_abelian category has all equalizers. -/
-@[priority 100] instance : has_equalizers.{v} C :=
+/-- A `non_preadditive_abelian` category has all equalizers. -/
+@[priority 100] instance : has_equalizers C :=
 has_equalizers_of_has_limit_parallel_pair _
 
 end
@@ -275,8 +279,8 @@ end
 section
 local attribute [instance] has_colimit_parallel_pair
 
-/-- An non_preadditive_abelian category as all coequalizers. -/
-@[priority 100] instance : has_coequalizers.{v} C :=
+/-- A `non_preadditive_abelian` category as all coequalizers. -/
+@[priority 100] instance : has_coequalizers C :=
 has_coequalizers_of_has_colimit_parallel_pair _
 
 end
@@ -369,11 +373,12 @@ kernel.lift_ι _ _ _
 
 /-- The map `p : P ⟶ image f` is an epimorphism -/
 instance : epi (non_preadditive_abelian.factor_thru_image f) :=
-let I := non_preadditive_abelian.image f, p := non_preadditive_abelian.factor_thru_image f, i := kernel.ι (cokernel.π f) in
+let I := non_preadditive_abelian.image f, p := non_preadditive_abelian.factor_thru_image f,
+    i := kernel.ι (cokernel.π f) in
 -- It will suffice to consider some g : I ⟶ R such that p ≫ g = 0 and show that g = 0.
 epi_of_zero_cancel _ $ λ R (g : I ⟶ R) (hpg : p ≫ g = 0),
 begin
-  -- Since C is non_preadditive_abelian, u := ker g ≫ i is the kernel of some morphism h.
+  -- Since C is abelian, u := ker g ≫ i is the kernel of some morphism h.
   let u := kernel.ι g ≫ i,
   haveI : mono u := mono_comp _ _,
   haveI hu := non_preadditive_abelian.normal_mono u,
@@ -423,10 +428,11 @@ cokernel.π_desc _ _ _
 
 /-- The canonical morphism `i : coimage f ⟶ Q` is a monomorphism -/
 instance : mono (non_preadditive_abelian.factor_thru_coimage f) :=
-let I := non_preadditive_abelian.coimage f, i := non_preadditive_abelian.factor_thru_coimage f, p := cokernel.π (kernel.ι f) in
+let I := non_preadditive_abelian.coimage f, i := non_preadditive_abelian.factor_thru_coimage f,
+    p := cokernel.π (kernel.ι f) in
 mono_of_cancel_zero _ $ λ R (g : R ⟶ I) (hgi : g ≫ i = 0),
 begin
-  -- Since C is non_preadditive_abelian, u := p ≫ coker g is the cokernel of some morphism h.
+  -- Since C is abelian, u := p ≫ coker g is the cokernel of some morphism h.
   let u := p ≫ cokernel.π g,
   haveI : epi u := epi_comp _ _,
   haveI hu := non_preadditive_abelian.normal_epi u,
@@ -456,7 +462,8 @@ end
 instance epi_factor_thru_coimage [epi f] : epi (non_preadditive_abelian.factor_thru_coimage f) :=
 epi_of_epi_fac $ coimage.fac f
 
-instance is_iso_factor_thru_coimage [epi f] : is_iso (non_preadditive_abelian.factor_thru_coimage f) :=
+instance is_iso_factor_thru_coimage [epi f] :
+  is_iso (non_preadditive_abelian.factor_thru_coimage f) :=
 is_iso_of_mono_of_epi _
 
 end factor
@@ -464,7 +471,7 @@ end factor
 section cokernel_of_kernel
 variables {X Y : C} {f : X ⟶ Y}
 
-/-- In an non_preadditive_abelian category, an epi is the cokernel of its kernel. More precisely:
+/-- In a `non_preadditive_abelian` category, an epi is the cokernel of its kernel. More precisely:
     If `f` is an epimorphism and `s` is some limit kernel cone on `f`, then `f` is a cokernel
     of `fork.ι s`. -/
 def epi_is_cokernel_of_kernel [epi f] (s : fork f 0) (h : is_limit s) :
@@ -475,7 +482,7 @@ is_cokernel.cokernel_iso _ _
     (cone_morphism.w (limits.is_limit.unique_up_to_iso (limit.is_limit _) h).hom _))
   (as_iso $ non_preadditive_abelian.factor_thru_coimage f) (coimage.fac f)
 
-/-- In an non_preadditive_abelian category, a mono is the kernel of its cokernel. More precisely:
+/-- In a `non_preadditive_abelian` category, a mono is the kernel of its cokernel. More precisely:
     If `f` is a monomorphism and `s` is some colimit cokernel cocone on `f`, then `f` is a kernel
     of `cofork.π s`. -/
 def mono_is_kernel_of_cokernel [mono f] (s : cofork f 0) (h : is_colimit s) :
@@ -701,8 +708,8 @@ by rw [add_def, sub_comp, neg_def, sub_comp, has_zero_morphisms.zero_comp, add_d
 
 end
 
-/-- Every non_preadditive_abelian category is preadditive. -/
-def preadditive : preadditive.{v} C :=
+/-- Every `non_preadditive_abelian` category is preadditive. -/
+def preadditive : preadditive C :=
 { hom_group := λ X Y,
   { add := add,
     add_assoc := add_assoc,

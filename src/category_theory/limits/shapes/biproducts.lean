@@ -130,13 +130,13 @@ class has_finite_biproducts :=
 attribute [instance, priority 100] has_finite_biproducts.has_biproducts_of_shape
 
 @[priority 100]
-instance has_finite_products_of_has_finite_biproducts [has_finite_biproducts.{v} C] :
-  has_finite_products.{v} C :=
+instance has_finite_products_of_has_finite_biproducts [has_finite_biproducts C] :
+  has_finite_products C :=
 ⟨λ J _ _, ⟨λ F, by exactI has_limit_of_iso discrete.nat_iso_functor.symm⟩⟩
 
 @[priority 100]
-instance has_finite_coproducts_of_has_finite_biproducts [has_finite_biproducts.{v} C] :
-  has_finite_coproducts.{v} C :=
+instance has_finite_coproducts_of_has_finite_biproducts [has_finite_biproducts C] :
+  has_finite_coproducts C :=
 ⟨λ J _ _, ⟨λ F, by exactI has_colimit_of_iso discrete.nat_iso_functor⟩⟩
 
 variables {J C}
@@ -711,13 +711,13 @@ begin
 end
 
 /-- A preadditive category with finite products has finite biproducts. -/
-def has_finite_biproducts.of_has_finite_products [has_finite_products.{v} C] :
-  has_finite_biproducts.{v} C :=
+def has_finite_biproducts.of_has_finite_products [has_finite_products C] :
+  has_finite_biproducts C :=
 ⟨λ J _ _, { has_biproduct := λ F, by exactI has_biproduct.of_has_product _ }⟩
 
 /-- A preadditive category with finite coproducts has finite biproducts. -/
-def has_finite_biproducts.of_has_finite_coproducts [has_finite_coproducts.{v} C] :
-  has_finite_biproducts.{v} C :=
+def has_finite_biproducts.of_has_finite_coproducts [has_finite_coproducts C] :
+  has_finite_biproducts C :=
 ⟨λ J _ _, { has_biproduct := λ F, by exactI has_biproduct.of_has_coproduct _ }⟩
 
 section

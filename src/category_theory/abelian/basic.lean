@@ -118,14 +118,14 @@ namespace category_theory.abelian
 variables {C : Type u} [category.{v} C] [abelian C]
 
 /-- An abelian category has finite biproducts. -/
-def has_finite_biproducts : has_finite_biproducts.{v} C :=
+def has_finite_biproducts : has_finite_biproducts C :=
 limits.has_finite_biproducts.of_has_finite_products
 
 section to_non_preadditive_abelian
 
 local attribute [instance] has_finite_biproducts
 
-@[priority 100] instance nonpreadditive_abelian : non_preadditive_abelian C := { ..‹abelian C› }
+@[priority 100] instance non_preadditive_abelian : non_preadditive_abelian C := { ..‹abelian C› }
 
 end to_non_preadditive_abelian
 
@@ -486,10 +486,10 @@ end category_theory.abelian
 
 namespace category_theory.non_preadditive_abelian
 
-variables (C : Type u) [category.{v} C] [non_preadditive_abelian.{v} C]
+variables (C : Type u) [category.{v} C] [non_preadditive_abelian C]
 
 /-- Every non_preadditive_abelian category can be promoted to an abelian category. -/
-def abelian : abelian.{v} C :=
+def abelian : abelian C :=
 { has_finite_products := infer_instance,
 /- We need the `convert`s here because the instances we have are slightly different from the
    instances we need: `has_kernels` depends on an instance of `has_zero_morphisms`. In the
@@ -499,8 +499,8 @@ def abelian : abelian.{v} C :=
    instance of "has kernels with non_preadditive_abelian.preadditive.has_zero_morphisms". Luckily,
    we have a `subsingleton` instance for `has_zero_morphisms`, so `convert` can immediately close
    the goal it creates for the two instances of `has_zero_morphisms`, and the proof is complete. -/
-  has_kernels := by convert (show limits.has_kernels.{v} C, from infer_instance),
-  has_cokernels := by convert (show limits.has_cokernels.{v} C, from infer_instance),
+  has_kernels := by convert (infer_instance : limits.has_kernels C),
+  has_cokernels := by convert (infer_instance : limits.has_cokernels C),
   normal_mono := by { introsI, convert normal_mono f },
   normal_epi := by { introsI, convert normal_epi f },
   ..non_preadditive_abelian.preadditive }

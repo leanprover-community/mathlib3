@@ -30,6 +30,14 @@ variables [topological_space α]
 intersection of `s` and a neighborhood of `a`. -/
 def nhds_within (a : α) (s : set α) : filter α := 𝓝 a ⊓ 𝓟 s
 
+@[simp] lemma nhds_bind_nhds_within {a : α} {s : set α} :
+  (𝓝 a).bind (λ x, nhds_within x s) = nhds_within a s :=
+bind_inf_principal.trans $ congr_arg2 _ nhds_bind_nhds rfl
+
+@[simp] lemma eventually_nhds_nhds_within {a : α} {s : set α} {p : α → Prop} :
+  (∀ᶠ y in 𝓝 a, ∀ᶠ x in nhds_within y s, p x) ↔ ∀ᶠ x in nhds_within a s, p x :=
+filter.ext_iff.1 nhds_bind_nhds_within {x | p x}
+
 theorem nhds_within_eq (a : α) (s : set α) :
   nhds_within a s = ⨅ t ∈ {t : set α | a ∈ t ∧ is_open t}, 𝓟 (t ∩ s) :=
 have set.univ ∈ {s : set α | a ∈ s ∧ is_open s}, from ⟨set.mem_univ _, is_open_univ⟩,

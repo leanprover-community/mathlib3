@@ -446,9 +446,13 @@ lemma nhds_le_of_le {f a} {s : set α} (h : a ∈ s) (o : is_open s) (sf : 𝓟 
 by rw nhds_def; exact infi_le_of_le s (infi_le_of_le ⟨h, o⟩ sf)
 
 lemma mem_nhds_sets_iff {a : α} {s : set α} :
- s ∈ 𝓝 a ↔ ∃t⊆s, is_open t ∧ a ∈ t :=
+  s ∈ 𝓝 a ↔ ∃t⊆s, is_open t ∧ a ∈ t :=
 (nhds_basis_opens a).mem_iff.trans
   ⟨λ ⟨t, ⟨hat, ht⟩, hts⟩, ⟨t, hts, ht, hat⟩, λ ⟨t, hts, ht, hat⟩, ⟨t, ⟨hat, ht⟩, hts⟩⟩
+
+lemma eventually_nhds_iff {a : α} {p : α → Prop} :
+  (∀ᶠ x in 𝓝 a, p x) ↔ ∃ (t : set α), (∀ x ∈ t, p x) ∧ is_open t ∧ a ∈ t :=
+mem_nhds_sets_iff.trans $ by simp only [subset_def, exists_prop, mem_set_of_eq]
 
 lemma map_nhds {a : α} {f : α → β} :
   map f (𝓝 a) = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 (image f s)) :=
@@ -464,8 +468,23 @@ lemma filter.eventually.self_of_nhds {p : α → Prop} {a : α}
 mem_of_nhds h
 
 lemma mem_nhds_sets {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
- s ∈ 𝓝 a :=
+  s ∈ 𝓝 a :=
 mem_nhds_sets_iff.2 ⟨s, subset.refl _, hs, ha⟩
+
+lemma filter.eventually.eventually_nhds {p : α → Prop} {a : α} (h : ∀ᶠ y in 𝓝 a, p y) :
+  ∀ᶠ y in 𝓝 a, ∀ᶠ x in 𝓝 y, p x :=
+let ⟨t, htp, hto, ha⟩ := eventually_nhds_iff.1 h in
+eventually_nhds_iff.2 ⟨t, λ x hx, eventually_nhds_iff.2 ⟨t, htp, hto, hx⟩, hto, ha⟩
+
+@[simp] lemma eventually_eventually_nhds {p : α → Prop} {a : α} :
+  (∀ᶠ y in 𝓝 a, ∀ᶠ x in 𝓝 y, p x) ↔ ∀ᶠ x in 𝓝 a, p x :=
+⟨λ h, h.self_of_nhds, λ h, h.eventually_nhds⟩
+
+@[simp] lemma nhds_bind_nhds : (𝓝 a).bind 𝓝 = 𝓝 a := filter.ext $ λ s, eventually_eventually_nhds
+
+lemma filter.eventually_eq.eventually_eq_nhds {f g : α → β} {a : α} (h : f =ᶠ[𝓝 a] g) :
+  ∀ᶠ y in 𝓝 a, f =ᶠ[𝓝 y] g :=
+h.eventually_nhds
 
 theorem all_mem_nhds (x : α) (P : set α → Prop) (hP : ∀ s t, s ⊆ t → P s → P t) :
   (∀ s ∈ 𝓝 x, P s) ↔ (∀ s, is_open s → x ∈ s → P s) :=

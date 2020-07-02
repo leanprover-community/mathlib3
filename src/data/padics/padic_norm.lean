@@ -375,28 +375,6 @@ begin
     exact_mod_cast int.coe_nat_inj e, },
 end
 
-@[simp]
-lemma div_div_div {a b c : ℕ} (dvd : c ∣ a) (dvd2 : a ∣ b) : (b / (a / c)) / c = b / a :=
-begin
-  by_cases a_split : (a = 0),
-  { subst a_split, simp [dvd2] },
-  { rcases dvd2 with ⟨k, rfl⟩,
-    rw nat.mul_div_cancel_left k (nat.pos_of_ne_zero a_split),
-    by_cases c_split : (c = 0),
-    { subst c_split, simp only [zero_dvd_iff] at dvd, subst dvd, trivial, },
-    { rcases dvd with ⟨k2, rfl⟩,
-      rw nat.mul_div_cancel_left k2 (nat.pos_of_ne_zero c_split),
-      rw nat.mul_comm (c * k2) k,
-      rw ← nat.mul_assoc k c k2,
-      have k2_nonzero : k2 ≠ 0,
-        { intros k2_zero,
-          subst k2_zero,
-          simp at a_split,
-          trivial, },
-      rw nat.mul_div_cancel _ (nat.pos_of_ne_zero k2_nonzero),
-      rw nat.mul_div_cancel _ (nat.pos_of_ne_zero c_split), }, },
-end
-
 lemma padic_val_nat_div' {p : ℕ} [p_prime : fact p.prime] :
   ∀ {m : ℕ} (cpm : coprime p m) {b : ℕ} (dvd : m ∣ b), padic_val_nat p (b / m) = padic_val_nat p b
 | 0 := λ cpm b dvd, by
@@ -412,7 +390,7 @@ lemma padic_val_nat_div' {p : ℕ} [p_prime : fact p.prime] :
   let wf : m / (nat.min_fac m) < m := nat.div_lt_self (by linarith) (nat.prime.one_lt (nat.min_fac_prime (by linarith))) in
   λ cpm b dvd,
   begin
-    rw ← div_div_div (nat.min_fac_dvd m) dvd,
+    rw ← nat.div_div_div (nat.min_fac_dvd m) dvd,
     haveI: fact (nat.prime min_fac) := nat.min_fac_prime (by linarith),
     have p_different : p ≠ min_fac,
       { intros p_eq,

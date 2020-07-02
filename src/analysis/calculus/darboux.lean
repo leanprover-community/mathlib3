@@ -68,7 +68,7 @@ theorem exists_has_deriv_within_at_eq_of_lt_of_gt
   m ∈ f' '' (Icc a b) :=
 let ⟨c, cmem, hc⟩ := exists_has_deriv_within_at_eq_of_gt_of_lt hab (λ x hx, (hf x hx).neg)
   (neg_lt_neg hma) (neg_lt_neg hmb)
-in ⟨c, cmem, neg_inj hc⟩
+in ⟨c, cmem, neg_injective hc⟩
 
 /-- Darboux's theorem: the image of a convex set under `f'` is a convex set. -/
 theorem convex_image_has_deriv_at {s : set ℝ} (hs : convex s)

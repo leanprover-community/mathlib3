@@ -469,7 +469,7 @@ lemma exp_ne_zero : exp x ≠ 0 :=
 λ h, zero_ne_one $ by rw [← exp_zero, ← add_neg_self x, exp_add, h]; simp
 
 lemma exp_neg : exp (-x) = (exp x)⁻¹ :=
-by rw [← domain.mul_right_inj (exp_ne_zero x), ← exp_add];
+by rw [← mul_right_inj' (exp_ne_zero x), ← exp_add];
   simp [mul_inv_cancel (exp_ne_zero x)]
 
 lemma exp_sub : exp (x - y) = exp x / exp y :=
@@ -483,7 +483,7 @@ begin
   dsimp [exp', function.comp, cau_seq_conj],
   rw ← sum_hom _ conj,
   refine sum_congr rfl (λ n hn, _),
-  rw [conj_div, conj_pow, ← of_real_nat_cast, conj_of_real]
+  rw [conj.map_div, conj.map_pow, ← of_real_nat_cast, conj_of_real]
 end
 
 @[simp] lemma of_real_exp_of_real_re (x : ℝ) : ((exp x).re : ℂ) = exp x :=
@@ -513,10 +513,10 @@ private lemma sinh_add_aux {a b c d : ℂ} :
 
 lemma sinh_add : sinh (x + y) = sinh x * cosh y + cosh x * sinh y :=
 begin
-  rw [← domain.mul_right_inj (@two_ne_zero' ℂ _ _ _), two_sinh,
+  rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), two_sinh,
       exp_add, neg_add, exp_add, eq_comm,
       mul_add, ← mul_assoc, two_sinh, mul_left_comm, two_sinh,
-      ← domain.mul_right_inj (@two_ne_zero' ℂ _ _ _), mul_add,
+      ← mul_right_inj' (@two_ne_zero' ℂ _ _ _), mul_add,
       mul_left_comm, two_cosh, ← mul_assoc, two_cosh],
   exact sinh_add_aux
 end
@@ -531,10 +531,10 @@ private lemma cosh_add_aux {a b c d : ℂ} :
 
 lemma cosh_add : cosh (x + y) = cosh x * cosh y + sinh x * sinh y :=
 begin
-  rw [← domain.mul_right_inj (@two_ne_zero' ℂ _ _ _), two_cosh,
+  rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), two_cosh,
       exp_add, neg_add, exp_add, eq_comm,
       mul_add, ← mul_assoc, two_cosh, ← mul_assoc, two_sinh,
-      ← domain.mul_right_inj (@two_ne_zero' ℂ _ _ _), mul_add,
+      ← mul_right_inj' (@two_ne_zero' ℂ _ _ _), mul_add,
       mul_left_comm, two_cosh, mul_left_comm, two_sinh],
   exact cosh_add_aux
 end
@@ -546,7 +546,7 @@ lemma cosh_sub : cosh (x - y) = cosh x * cosh y - sinh x * sinh y :=
 by simp [sub_eq_add_neg, cosh_add, sinh_neg, cosh_neg]
 
 lemma sinh_conj : sinh (conj x) = conj (sinh x) :=
-by rw [sinh, ← conj_neg, exp_conj, exp_conj, ← conj_sub, sinh, conj_div, conj_bit0, conj_one]
+by rw [sinh, ← conj.map_neg, exp_conj, exp_conj, ← conj.map_sub, sinh, conj.map_div, conj_bit0, conj.map_one]
 
 @[simp] lemma of_real_sinh_of_real_re (x : ℝ) : ((sinh x).re : ℂ) = sinh x :=
 eq_conj_iff_re.1 $ by rw [← sinh_conj, conj_of_real]
@@ -560,7 +560,10 @@ by rw [← of_real_sinh_of_real_re, of_real_im]
 lemma sinh_of_real_re (x : ℝ) : (sinh x).re = real.sinh x := rfl
 
 lemma cosh_conj : cosh (conj x) = conj (cosh x) :=
-by rw [cosh, ← conj_neg, exp_conj, exp_conj, ← conj_add, cosh, conj_div, conj_bit0, conj_one]
+begin
+  rw [cosh, ← conj.map_neg, exp_conj, exp_conj, ← conj.map_add, cosh, conj.map_div,
+      conj_bit0, conj.map_one]
+end
 
 @[simp] lemma of_real_cosh_of_real_re (x : ℝ) : ((cosh x).re : ℂ) = cosh x :=
 eq_conj_iff_re.1 $ by rw [← cosh_conj, conj_of_real]
@@ -580,7 +583,7 @@ lemma tanh_eq_sinh_div_cosh : tanh x = sinh x / cosh x := rfl
 @[simp] lemma tanh_neg : tanh (-x) = -tanh x := by simp [tanh, neg_div]
 
 lemma tanh_conj : tanh (conj x) = conj (tanh x) :=
-by rw [tanh, sinh_conj, cosh_conj, ← conj_div, tanh]
+by rw [tanh, sinh_conj, cosh_conj, ← conj.map_div, tanh]
 
 @[simp] lemma of_real_tanh_of_real_re (x : ℝ) : ((tanh x).re : ℂ) = tanh x :=
 eq_conj_iff_re.1 $ by rw [← tanh_conj, conj_of_real]
@@ -594,14 +597,14 @@ by rw [← of_real_tanh_of_real_re, of_real_im]
 lemma tanh_of_real_re (x : ℝ) : (tanh x).re = real.tanh x := rfl
 
 lemma cosh_add_sinh : cosh x + sinh x = exp x :=
-by rw [← domain.mul_right_inj (@two_ne_zero' ℂ _ _ _), mul_add,
+by rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), mul_add,
        two_cosh, two_sinh, add_add_sub_cancel, two_mul]
 
 lemma sinh_add_cosh : sinh x + cosh x = exp x :=
 by rw [add_comm, cosh_add_sinh]
 
 lemma cosh_sub_sinh : cosh x - sinh x = exp (-x) :=
-by rw [← domain.mul_right_inj (@two_ne_zero' ℂ _ _ _), mul_sub,
+by rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), mul_sub,
        two_cosh, two_sinh, add_sub_sub_cancel, two_mul]
 
 lemma cosh_sq_sub_sinh_sq : cosh x ^ 2 - sinh x ^ 2 = 1 :=
@@ -619,16 +622,16 @@ lemma two_cos : 2 * cos x = exp (x * I) + exp (-x * I) :=
 mul_div_cancel' _ two_ne_zero'
 
 lemma sinh_mul_I : sinh (x * I) = sin x * I :=
-by rw [← domain.mul_right_inj (@two_ne_zero' ℂ _ _ _), two_sinh,
+by rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), two_sinh,
        ← mul_assoc, two_sin, mul_assoc, I_mul_I, mul_neg_one,
        neg_sub, neg_mul_eq_neg_mul]
 
 lemma cosh_mul_I : cosh (x * I) = cos x :=
-by rw [← domain.mul_right_inj (@two_ne_zero' ℂ _ _ _), two_cosh,
+by rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), two_cosh,
        two_cos, neg_mul_eq_neg_mul]
 
 lemma sin_add : sin (x + y) = sin x * cos y + cos x * sin y :=
-by rw [← domain.mul_left_inj I_ne_zero, ← sinh_mul_I,
+by rw [← mul_left_inj' I_ne_zero, ← sinh_mul_I,
        add_mul, add_mul, mul_right_comm, ← sinh_mul_I,
        mul_assoc, ← sinh_mul_I, ← cosh_mul_I, ← cosh_mul_I, sinh_add]
 
@@ -653,8 +656,8 @@ lemma cos_sub : cos (x - y) = cos x * cos y + sin x * sin y :=
 by simp [sub_eq_add_neg, cos_add, sin_neg, cos_neg]
 
 lemma sin_conj : sin (conj x) = conj (sin x) :=
-by rw [← domain.mul_left_inj I_ne_zero, ← sinh_mul_I,
-       ← conj_neg_I, ← conj_mul, ← conj_mul, sinh_conj,
+by rw [← mul_left_inj' I_ne_zero, ← sinh_mul_I,
+       ← conj_neg_I, ← conj.map_mul, ← conj.map_mul, sinh_conj,
        mul_neg_eq_neg_mul_symm, sinh_neg, sinh_mul_I, mul_neg_eq_neg_mul_symm]
 
 @[simp] lemma of_real_sin_of_real_re (x : ℝ) : ((sin x).re : ℂ) = sin x :=
@@ -669,7 +672,7 @@ by rw [← of_real_sin_of_real_re, of_real_im]
 lemma sin_of_real_re (x : ℝ) : (sin x).re = real.sin x := rfl
 
 lemma cos_conj : cos (conj x) = conj (cos x) :=
-by rw [← cosh_mul_I, ← conj_neg_I, ← conj_mul, ← cosh_mul_I,
+by rw [← cosh_mul_I, ← conj_neg_I, ← conj.map_mul, ← cosh_mul_I,
        cosh_conj, mul_neg_eq_neg_mul_symm, cosh_neg]
 
 @[simp] lemma of_real_cos_of_real_re (x : ℝ) : ((cos x).re : ℂ) = cos x :=
@@ -690,7 +693,7 @@ lemma tan_eq_sin_div_cos : tan x = sin x / cos x := rfl
 @[simp] lemma tan_neg : tan (-x) = -tan x := by simp [tan, neg_div]
 
 lemma tan_conj : tan (conj x) = conj (tan x) :=
-by rw [tan, sin_conj, cos_conj, ← conj_div, tan]
+by rw [tan, sin_conj, cos_conj, ← conj.map_div, tan]
 
 @[simp] lemma of_real_tan_of_real_re (x : ℝ) : ((tan x).re : ℂ) = tan x :=
 eq_conj_iff_re.1 $ by rw [← tan_conj, conj_of_real]
@@ -976,8 +979,8 @@ calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m.fact : α)
     from mul_ne_zero (nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 (nat.fact_pos _)))
     (nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 hn)),
   have h₄ : (n.succ - 1 : α) = n, by simp,
-  by rw [← geom_series_def, geom_sum_inv h₁ h₂, eq_div_iff_mul_eq _ _ h₃,
-      mul_comm _ (n.fact * n : α), ← mul_assoc (n.fact⁻¹ : α), ← mul_inv', h₄,
+  by rw [← geom_series_def, geom_sum_inv h₁ h₂, eq_div_iff_mul_eq h₃,
+      mul_comm _ (n.fact * n : α), ← mul_assoc (n.fact⁻¹ : α), ← mul_inv_rev', h₄,
       ← mul_assoc (n.fact * n : α), mul_comm (n : α) n.fact, mul_inv_cancel h₃];
     simp [mul_add, add_mul, mul_assoc, mul_comm]
 ... ≤ n.succ / (n.fact * n) :

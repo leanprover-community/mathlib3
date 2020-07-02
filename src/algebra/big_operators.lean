@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
-import data.finset
+import data.finset.intervals
+import data.finset.fold
+import data.finset.powerset
+import data.finset.pi
 import data.nat.enat
 import data.equiv.mul_add
-import tactic.omega
 import tactic.abel
 
 /-!
@@ -673,12 +675,21 @@ lemma sum_range_sub {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
   ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
 by { apply sum_range_induction; abel, simp }
 
+lemma sum_range_sub' {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
+  ∑ i in range n, (f i - f (i+1)) = f 0 - f n :=
+by { apply sum_range_induction; abel, simp }
 
 /-- A telescoping product along `{0, ..., n-1}` of a commutative group valued function
 reduces to the ratio of the last and first factors.-/
+@[to_additive]
 lemma prod_range_div {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
   ∏ i in range n, (f (i+1) * (f i)⁻¹ ) = f n * (f 0)⁻¹ :=
 by apply @sum_range_sub (additive M)
+
+@[to_additive]
+lemma prod_range_div' {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
+  ∏ i in range n, (f i * (f (i+1))⁻¹) = (f 0) * (f n)⁻¹ :=
+by apply @sum_range_sub' (additive M)
 
 /-- A telescoping sum along `{0, ..., n-1}` of an `ℕ`-valued function reduces to the difference of
 the last and first terms when the function we are summing is monotone. -/
@@ -686,9 +697,9 @@ lemma sum_range_sub_of_monotone {f : ℕ → ℕ} (h : monotone f) (n : ℕ) :
   ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
 begin
   refine sum_range_induction _ _ (nat.sub_self _) (λ n, _) _,
-  have : f n ≤ f (n+1) := h (nat.le_succ _),
-  have : f 0 ≤ f n := h (nat.zero_le _),
-  omega
+  have h₁ : f n ≤ f (n+1) := h (nat.le_succ _),
+  have h₂ : f 0 ≤ f n := h (nat.zero_le _),
+  rw [←nat.sub_add_comm h₂, nat.add_sub_cancel' h₁],
 end
 
 lemma prod_Ico_reflect (f : ℕ → β) (k : ℕ) {m n : ℕ} (h : m ≤ n + 1) :

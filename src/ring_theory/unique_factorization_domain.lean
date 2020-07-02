@@ -145,8 +145,7 @@ multiset.exists_mem_of_rel_of_mem this (by simp)
 
 def of_unique_irreducible_factorization {α : Type*} [integral_domain α]
   (o : unique_irreducible_factorization α) : unique_factorization_domain α :=
-by letI := classical.dec_eq α; exact
-{ prime_factors := λ a h p (hpa : p ∈ o.factors a),
+{ prime_factors := by letI := classical.dec_eq α; exact λ a h p (hpa : p ∈ o.factors a),
     have hpi : irreducible p, from o.irreducible_factors h _ hpa,
     ⟨hpi.ne_zero, hpi.1,
       λ a b ⟨x, hx⟩,
@@ -156,8 +155,8 @@ by letI := classical.dec_eq α; exact
         (λ hb0, by simp [hb0])
       else
         have hx0 : x ≠ 0, from λ hx0, by simp * at *,
-        have ha0 : a ≠ 0, from ne_zero_of_mul_ne_zero_right hab0,
-        have hb0 : b ≠ 0, from ne_zero_of_mul_ne_zero_left hab0,
+        have ha0 : a ≠ 0, from left_ne_zero_of_mul hab0,
+        have hb0 : b ≠ 0, from right_ne_zero_of_mul hab0,
         have multiset.rel associated  (p :: o.factors x) (o.factors a + o.factors b),
           from o.unique
             (λ i hi, (multiset.mem_cons.1 hi).elim
@@ -165,8 +164,8 @@ by letI := classical.dec_eq α; exact
               (o.irreducible_factors hx0 _))
             (show ∀ x ∈ o.factors a + o.factors b, irreducible x,
               from λ x hx, (multiset.mem_add.1 hx).elim
-                (o.irreducible_factors (ne_zero_of_mul_ne_zero_right hab0) _)
-                (o.irreducible_factors (ne_zero_of_mul_ne_zero_left hab0) _)) $
+                (o.irreducible_factors ha0 _)
+                (o.irreducible_factors hb0 _)) $
               calc multiset.prod (p :: o.factors x)
                   ~ᵤ a * b : by rw [hx, multiset.prod_cons];
                     exact associated_mul_mul (by refl)

@@ -175,6 +175,18 @@ iff.intro
    and.intro ‹a = 1› ‹b = 1›)
   (assume ⟨ha', hb'⟩, by rw [ha', hb', mul_one])
 
+@[to_additive]
+lemma one_le_mul_of_one_le_of_one_le (ha : 1 ≤ a) (hb : 1 ≤ b) : 1 ≤ a * b :=
+have h1 : a * 1 ≤ a * b, from mul_le_mul_left' hb,
+have h2 : a ≤ a * b, by rwa mul_one a at h1,
+le_trans ha h2
+
+@[to_additive]
+lemma mul_le_one_of_le_one_of_le_one (ha : a ≤ 1) (hb : b ≤ 1) : a * b ≤ 1 :=
+have h1 : a * b ≤ a * 1, from mul_le_mul_left' hb,
+have h2 : a * b ≤ a, by rwa mul_one a at h1,
+le_trans h2 ha
+
 section mono
 
 variables {β : Type*} [preorder β] {f g : β → α}

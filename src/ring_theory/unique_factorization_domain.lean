@@ -8,6 +8,7 @@ Theory of unique factorization domains.
 @TODO: setup the complete lattice structure on `factor_set`.
 -/
 import algebra.gcd_domain
+import ring_theory.integral_domain
 
 variables {α : Type*}
 local infix ` ~ᵤ ` : 50 := associated
@@ -468,28 +469,6 @@ lemma no_factors_of_no_prime_factors {a b : R} (ha : a ≠ 0)
   (λ p q hp hq ih dvd_a dvd_b, is_unit.mul
     (h hq (dvd_of_mul_right_dvd dvd_a) (dvd_of_mul_right_dvd dvd_b))
     (ih (dvd_of_mul_left_dvd dvd_a) (dvd_of_mul_left_dvd dvd_b)))
-
-lemma left_dvd_or_dvd_right_of_dvd_prime_mul {a : R} :
-  ∀ {b p : R}, prime p → a ∣ p * b → p ∣ a ∨ a ∣ b :=
-begin
-  refine induction_on_prime a _ _ _,
-  { intros b p _ ha,
-    refine (eq_zero_or_eq_zero_of_mul_eq_zero (zero_dvd_iff.mp ha)).imp _ _;
-      rintro ⟨rfl⟩; refl },
-  { intros x x_is_unit b _ _ _,
-    exact or.inr (is_unit_iff_forall_dvd.mp x_is_unit b) },
-  { intros a q a_ne_zero hq ih b p hp qa_dvd,
-    cases (hq.div_or_div (dvd_of_mul_right_dvd qa_dvd)) with q_dvd_p q_dvd_b,
-    { left,
-      apply dvd_mul_of_dvd_left,
-      refine dvd_symm_of_irreducible (irreducible_of_prime _) (irreducible_of_prime _) _;
-        assumption },
-    { rcases q_dvd_b with ⟨b', rfl⟩,
-      rw mul_left_comm at qa_dvd,
-      refine (ih hp ((mul_dvd_mul_iff_left hq.ne_zero).mp qa_dvd)).imp _ _,
-      { exact λ h, dvd_mul_of_dvd_right h _ },
-      { exact mul_dvd_mul_left q } } }
-end
 
 /-- Euclid's lemma: if `a ∣ b * c` and `a` and `c` have no common prime factors, `a ∣ b`.
 Compare `is_coprime.dvd_of_dvd_mul_left`. -/

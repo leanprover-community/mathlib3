@@ -62,6 +62,7 @@ attribute [instance] preadditive.hom_group
 restate_axiom preadditive.add_comp'
 restate_axiom preadditive.comp_add'
 attribute [simp,reassoc] preadditive.add_comp
+attribute [reassoc] preadditive.comp_add -- (the linter doesn't like `simp` on this lemma)
 attribute [simp] preadditive.comp_add
 
 end category_theory
@@ -123,10 +124,10 @@ end
 end big_operators
 
 instance {P Q : C} {f : P ⟶ Q} [epi f] : epi (-f) :=
-⟨λ R g g', by { rw [neg_comp, neg_comp, ←comp_neg, ←comp_neg, cancel_epi], exact neg_inj }⟩
+⟨λ R g g' H, by rwa [neg_comp, neg_comp, ←comp_neg, ←comp_neg, cancel_epi, neg_inj] at H⟩
 
 instance {P Q : C} {f : P ⟶ Q} [mono f] : mono (-f) :=
-⟨λ R g g', by { rw [comp_neg, comp_neg, ←neg_comp, ←neg_comp, cancel_mono], exact neg_inj }⟩
+⟨λ R g g' H, by rwa [comp_neg, comp_neg, ←neg_comp, ←neg_comp, cancel_mono, neg_inj] at H⟩
 
 @[priority 100]
 instance preadditive_has_zero_morphisms : has_zero_morphisms C :=

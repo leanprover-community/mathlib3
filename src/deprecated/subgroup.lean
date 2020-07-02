@@ -313,7 +313,7 @@ end
 lemma one_ker_inv' (f : G → H) [is_group_hom f] {a b : G} (h : f (a⁻¹ * b) = 1) : f a = f b :=
 begin
   rw [map_mul f, map_inv f] at h,
-  apply eq_of_inv_eq_inv,
+  apply inv_injective,
   rw eq_inv_of_mul_eq_one h
 end
 

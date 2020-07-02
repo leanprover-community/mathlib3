@@ -82,7 +82,7 @@ mem_nhds_sets is_closed_singleton $ by rwa [mem_compl_eq, mem_singleton_iff]
 
 @[simp] lemma closure_singleton [t1_space α] {a : α} :
   closure ({a} : set α) = {a} :=
-closure_eq_of_is_closed is_closed_singleton
+is_closed_singleton.closure_eq
 
 /-- A T₂ space, also known as a Hausdorff space, is one in which for every
   `x ≠ y` there exists disjoint open sets around `x` and `y`. This is
@@ -123,7 +123,7 @@ t2_iff_nhds.trans
      h f uf (le_trans hf inf_le_left) (le_trans hf inf_le_right)⟩
 
 lemma is_closed_diagonal [t2_space α] : is_closed (diagonal α) :=
-is_closed_iff_nhds.mpr $ assume ⟨a₁, a₂⟩ h, eq_of_nhds_ne_bot $ assume : 𝓝 a₁ ⊓ 𝓝 a₂ = ⊥, h $
+is_closed_iff_cluster_pt.mpr $ assume ⟨a₁, a₂⟩ h, eq_of_nhds_ne_bot $ assume : 𝓝 a₁ ⊓ 𝓝 a₂ = ⊥, h $
   let ⟨t₁, ht₁, t₂, ht₂, (h' : t₁ ∩ t₂ ⊆ ∅)⟩ :=
     by rw [←empty_in_sets_eq_bot, mem_inf_sets] at this; exact this in
   begin
@@ -258,7 +258,7 @@ lemma compact_compact_separated [t2_space α] {s t : set α}
 by simp only [prod_subset_compl_diagonal_iff_disjoint.symm] at ⊢ hst;
    exact generalized_tube_lemma hs ht is_closed_diagonal hst
 
-lemma closed_of_compact [t2_space α] (s : set α) (hs : compact s) : is_closed s :=
+lemma compact.is_closed [t2_space α] {s : set α} (hs : compact s) : is_closed s :=
 is_open_compl_iff.mpr $ is_open_iff_forall_mem_open.mpr $ assume x hx,
   let ⟨u, v, uo, vo, su, xv, uv⟩ :=
     compact_compact_separated hs (compact_singleton : compact {x})

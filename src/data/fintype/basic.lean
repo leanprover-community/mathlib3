@@ -5,8 +5,11 @@ Author: Mario Carneiro
 
 Finite types.
 -/
-import data.finset
+import data.finset.sort
+import data.finset.powerset
+import data.finset.pi
 import data.array.lemmas
+
 universes u v
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -834,7 +837,7 @@ have hln' : (perms_of_list l).nodup, from nodup_perms_of_list hl',
 have hmeml : ∀ {f : perm α}, f ∈ perms_of_list l → f a = a,
   from λ f hf, not_not.1 (mt (mem_of_mem_perms_of_list hf) (nodup_cons.1 hl).1),
 by rw [perms_of_list, list.nodup_append, list.nodup_bind, pairwise_iff_nth_le]; exact
-⟨hln', ⟨λ _ _, nodup_map (λ _ _, (mul_right_inj _).1) hln',
+⟨hln', ⟨λ _ _, nodup_map (λ _ _, mul_left_cancel) hln',
   λ i j hj hij x hx₁ hx₂,
     let ⟨f, hf⟩ := list.mem_map.1 hx₁ in
     let ⟨g, hg⟩ := list.mem_map.1 hx₂ in

@@ -106,9 +106,9 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
     have : infi (λp, dist z (Φ p) + dist x (Ψ p)) ≤ infi (λp, dist y (Φ p) + dist x (Ψ p)) + dist y z,
     { have : infi (λp, dist y (Φ p) + dist x (Ψ p)) + dist y z =
             infi ((λt, t + dist y z) ∘ (λp, dist y (Φ p) + dist x (Ψ p))),
-      { refine cinfi_of_cinfi_of_monotone_of_continuous (_ : continuous (λt, t + dist y z)) _ (B _ _),
-        exact continuous_id.add continuous_const,
-        exact λx y hx, by simpa },
+      { refine map_cinfi_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _
+          (B _ _),
+        intros x y hx, simpa },
       rw [this, comp],
       refine cinfi_le_cinfi (B _ _) (λp, _),
       calc
@@ -124,9 +124,9 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
     have : infi (λp, dist z (Φ p) + dist x (Ψ p)) ≤ dist x y + infi (λp, dist z (Φ p) + dist y (Ψ p)),
     { have : dist x y + infi (λp, dist z (Φ p) + dist y (Ψ p)) =
             infi ((λt, dist x y + t) ∘ (λp, dist z (Φ p) + dist y (Ψ p))),
-      { refine cinfi_of_cinfi_of_monotone_of_continuous (_ : continuous (λt, dist x y + t)) _ (B _ _),
-        exact continuous_const.add continuous_id,
-        exact λx y hx, by simpa },
+      { refine map_cinfi_of_continuous_at_of_monotone (continuous_at_const.add continuous_at_id) _
+          (B _ _),
+        intros x y hx, simpa },
       rw [this, comp],
       refine cinfi_le_cinfi (B _ _) (λp, _),
       calc
@@ -142,9 +142,9 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
     have : infi (λp, dist x (Φ p) + dist z (Ψ p)) ≤ dist x y + infi (λp, dist y (Φ p) + dist z (Ψ p)),
     { have : dist x y + infi (λp, dist y (Φ p) + dist z (Ψ p)) =
             infi ((λt, dist x y + t) ∘ (λp, dist y (Φ p) + dist z (Ψ p))),
-      { refine cinfi_of_cinfi_of_monotone_of_continuous ( _ : continuous (λt, dist x y + t)) _ (B _ _),
-        exact continuous_const.add continuous_id,
-        exact λx y hx, by simpa },
+      { refine map_cinfi_of_continuous_at_of_monotone (continuous_at_const.add continuous_at_id) _
+          (B _ _),
+        intros x y hx, simpa },
       rw [this, comp],
       refine cinfi_le_cinfi (B _ _) (λp, _),
       calc
@@ -160,9 +160,9 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
     have : infi (λp, dist x (Φ p) + dist z (Ψ p)) ≤ infi (λp, dist x (Φ p) + dist y (Ψ p)) + dist y z,
     { have : infi (λp, dist x (Φ p) + dist y (Ψ p)) + dist y z =
             infi ((λt, t + dist y z) ∘ (λp, dist x (Φ p) + dist y (Ψ p))),
-      { refine cinfi_of_cinfi_of_monotone_of_continuous (_ : continuous (λt, t + dist y z)) _ (B _ _),
-        exact continuous_id.add continuous_const,
-        exact λx y hx, by simpa },
+      { refine map_cinfi_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _
+          (B _ _),
+        intros x y hx, simpa },
       rw [this, comp],
       refine cinfi_le_cinfi (B _ _) (λp, _),
       calc

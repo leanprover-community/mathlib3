@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl, Casper Putz
 -/
 import linear_algebra.finite_dimensional
+import linear_algebra.nonsingular_inverse
 
 /-!
 # Linear maps and matrices
@@ -170,7 +171,7 @@ begin
   ext,
   change ∑ y, M i y * ite (j = y) 1 0 = M i j,
   have h1 : (λ y, M i y * ite (j = y) 1 0) = (λ y, ite (j = y) (M i y) 0),
-    { ext, split_ifs, exact mul_one _, exact ring.mul_zero _ },
+    { ext, split_ifs, exact mul_one _, exact mul_zero _ },
   have h2 : ∑ y, ite (j = y) (M i y) 0 = ∑ y in {j}, ite (j = y) (M i y) 0,
     { refine (finset.sum_subset _ _).symm,
       { intros _ H, rwa finset.mem_singleton.1 H, exact finset.mem_univ _ },
@@ -210,7 +211,7 @@ theorem linear_equiv_matrix_range {ι κ M₁ M₂ : Type*}
   {v₁ : ι → M₁} {v₂ : κ → M₂} (hv₁ : is_basis R v₁) (hv₂ : is_basis R v₂) (f : M₁ →ₗ[R] M₂) (k i) :
   linear_equiv_matrix hv₁.range hv₂.range f ⟨v₂ k, mem_range_self k⟩ ⟨v₁ i, mem_range_self i⟩ =
     linear_equiv_matrix hv₁ hv₂ f k i :=
-if H : (0 : R) = 1 then @subsingleton.elim _ (subsingleton_of_zero_eq_one R H) _ _ else
+if H : (0 : R) = 1 then eq_of_zero_eq_one H _ _ else
 begin
   simp_rw [linear_equiv_matrix, linear_equiv.trans_apply, linear_equiv_matrix'_apply,
     ← equiv.of_injective_apply _ (hv₁.injective H), ← equiv.of_injective_apply _ (hv₂.injective H),
@@ -303,14 +304,14 @@ end trace
 
 section ring
 
-variables {R : Type v} [comm_ring R]
+variables {R : Type v} [comm_ring R] [decidable_eq n]
 open linear_map matrix
 
-lemma proj_diagonal [decidable_eq m] (i : m) (w : m → R) :
+lemma proj_diagonal (i : n) (w : n → R) :
   (proj i).comp (to_lin (diagonal w)) = (w i) • proj i :=
 by ext j; simp [mul_vec_diagonal]
 
-lemma diagonal_comp_std_basis [decidable_eq n] (w : n → R) (i : n) :
+lemma diagonal_comp_std_basis (w : n → R) (i : n) :
   (diagonal w).to_lin.comp (std_basis R (λ_:n, R) i) = (w i) • std_basis R (λ_:n, R) i :=
 begin
   ext a j,
@@ -321,9 +322,27 @@ begin
   { rw [std_basis_ne R (λ_:n, R) _ _ (ne.symm h), _root_.mul_zero, _root_.mul_zero] }
 end
 
-lemma diagonal_to_lin [decidable_eq m] (w : m → R) :
+lemma diagonal_to_lin (w : n → R) :
   (diagonal w).to_lin = linear_map.pi (λi, w i • linear_map.proj i) :=
 by ext v j; simp [mul_vec_diagonal]
+
+/-- An invertible matrix yields a linear equivalence from the free module to itself. -/
+def to_linear_equiv (P : matrix n n R) (h : is_unit P) : (n → R) ≃ₗ[R] (n → R) :=
+have h' : is_unit P.det := P.is_unit_iff_is_unit_det.mp h,
+{ inv_fun   := P⁻¹.to_lin,
+  left_inv  := λ v,
+    show (P⁻¹.to_lin.comp P.to_lin) v = v,
+    by rw [←matrix.mul_to_lin, P.nonsing_inv_mul h', matrix.to_lin_one, linear_map.id_apply],
+  right_inv := λ v,
+    show (P.to_lin.comp P⁻¹.to_lin) v = v,
+    by rw [←matrix.mul_to_lin, P.mul_nonsing_inv h', matrix.to_lin_one, linear_map.id_apply],
+  ..P.to_lin }
+
+@[simp] lemma to_linear_equiv_apply (P : matrix n n R) (h : is_unit P) :
+  (↑(P.to_linear_equiv h) : module.End R (n → R)) = P.to_lin := rfl
+
+@[simp] lemma to_linear_equiv_symm_apply (P : matrix n n R) (h : is_unit P) :
+  (↑(P.to_linear_equiv h).symm : module.End R (n → R)) = P⁻¹.to_lin := rfl
 
 end ring
 
@@ -437,7 +456,7 @@ open_locale classical
 theorem trace_aux_range (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
   {ι : Type w} [fintype ι] {b : ι → M} (hb : is_basis R b) :
   trace_aux R hb.range = trace_aux R hb :=
-linear_map.ext $ λ f, if H : 0 = 1 then @subsingleton.elim _ (subsingleton_of_zero_eq_one R H) _ _ else
+linear_map.ext $ λ f, if H : 0 = 1 then eq_of_zero_eq_one H _ _ else
 begin
   change ∑ i : set.range b, _ = ∑ i : ι, _, simp_rw [matrix.diag_apply], symmetry,
   convert finset.sum_equiv (equiv.of_injective _ $ hb.injective H) _, ext i,

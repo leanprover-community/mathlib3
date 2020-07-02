@@ -94,7 +94,7 @@ variables {M G A R}
 attribute [simp] smul_one smul_mul' smul_zero smul_add
 
 @[simp] lemma smul_inv [mul_semiring_action M F] (x : M) (m : F) : x • m⁻¹ = (x • m)⁻¹ :=
-(mul_semiring_action.to_semiring_hom M F x).map_inv
+(mul_semiring_action.to_semiring_hom M F x).map_inv _
 
 @[simp] lemma smul_pow [mul_semiring_action M R] (x : M) (m : R) (n : ℕ) :
   x • m ^ n = (x • m) ^ n :=

@@ -220,6 +220,18 @@ by rw [←vsub_vadd_eq_vsub_sub, vsub_vadd]
 /-- The pairwise differences of a set of points. -/
 def vsub_set (s : set P) : set G := {g | ∃ x ∈ s, ∃ y ∈ s, g = x -ᵥ y}
 
+/-- Each pairwise difference is in the `vsub_set`. -/
+lemma vsub_mem_vsub_set {p1 p2 : P} {s : set P} (hp1 : p1 ∈ s) (hp2 : p2 ∈ s) :
+  (p1 -ᵥ p2) ∈ vsub_set G s :=
+⟨p1, hp1, p2, hp2, rfl⟩
+
+/-- `vsub_set` is contained in `vsub_set` of a larger set. -/
+lemma vsub_set_mono {s1 s2 : set P} (h : s1 ⊆ s2) : vsub_set G s1 ⊆ vsub_set G s2 :=
+begin
+  rintros v ⟨p1, hp1, p2, hp2, hv⟩,
+  exact ⟨p1, set.mem_of_mem_of_subset hp1 h, p2, set.mem_of_mem_of_subset hp2 h, hv⟩
+end
+
 @[simp] lemma vadd_vsub_vadd_cancel_right (v₁ v₂ : G) (p : P) :
   ((v₁ +ᵥ p) -ᵥ (v₂ +ᵥ p) : G) = v₁ - v₂ :=
 by rw [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, vsub_self, add_zero]

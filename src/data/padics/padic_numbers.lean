@@ -652,7 +652,7 @@ begin
     { apply padic_norm_e.add },
     { have : (3 : ℚ) ≠ 0, by norm_num,
       have : ε = ε / 3 + ε / 3 + ε / 3,
-      { apply eq_of_mul_eq_mul_left this, simp [left_distrib, mul_div_cancel' _ this ], ring },
+      { field_simp [this], simp [bit0, bit1, mul_add] },
       rw this,
       apply add_lt_add,
       { suffices : padic_norm_e ((↑(lim_seq f j) - f j) + (f j - f (max N N2))) < ε / 3 + ε / 3,

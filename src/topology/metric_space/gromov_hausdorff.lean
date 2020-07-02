@@ -362,7 +362,7 @@ begin
     exact (Hausdorff_dist_image (Kuratowski_embedding.isometry _)).symm },
 end
 
--- without the next two lines, `{ exact closed_of_compact (range Φ) hΦ }` in the next
+-- without the next two lines, `{ exact hΦ.is_closed }` in the next
 -- proof is very slow, as the `t2_space` instance is very hard to find
 local attribute [instance, priority 10] order_topology.t2_space
 local attribute [instance, priority 10] order_closed_topology.to_t2_space
@@ -397,8 +397,8 @@ instance GH_space_metric_space : metric_space GH_space :=
     { have hΦ : compact (range Φ) := compact_range Φisom.continuous,
       have hΨ : compact (range Ψ) := compact_range Ψisom.continuous,
       apply (Hausdorff_dist_zero_iff_eq_of_closed _ _ _).1 (DΦΨ.symm),
-      { exact closed_of_compact (range Φ) hΦ },
-      { exact closed_of_compact (range Ψ) hΨ },
+      { exact hΦ.is_closed },
+      { exact hΨ.is_closed },
       { exact Hausdorff_edist_ne_top_of_nonempty_of_bounded (range_nonempty _)
           (range_nonempty _) hΦ.bounded hΨ.bounded } },
     have T : ((range Ψ) ≃ᵢ y.rep) = ((range Φ) ≃ᵢ y.rep), by rw this,

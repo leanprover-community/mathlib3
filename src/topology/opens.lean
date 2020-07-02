@@ -36,7 +36,7 @@ p.property.1.to_subtype
 
 /-- Associate to a nonempty compact subset the corresponding closed subset -/
 def nonempty_compacts.to_closeds [t2_space α] : nonempty_compacts α → closeds α :=
-set.inclusion $ λ s hs, closed_of_compact _ hs.2
+set.inclusion $ λ s hs, hs.2.is_closed
 
 end nonempty_compacts
 

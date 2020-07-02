@@ -493,7 +493,7 @@ begin
   exact t_eq _ (mem_of_mem_nhds_within hx ht)
 end
 
-lemma times_cont_diff_within_at_congr_of_eventually_eq {n : with_top ℕ}
+lemma filter.eventually_eq.times_cont_diff_within_at_iff {n : with_top ℕ}
   (h₁ : f₁ =ᶠ[nhds_within x s] f) (hx : f₁ x = f x) :
   times_cont_diff_within_at 𝕜 n f₁ s x ↔ times_cont_diff_within_at 𝕜 n f s x :=
 ⟨λ H, times_cont_diff_within_at.congr_of_eventually_eq H h₁.symm hx.symm,

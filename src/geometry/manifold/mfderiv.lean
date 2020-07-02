@@ -1166,11 +1166,7 @@ begin
   rw ← this,
   have : mfderiv I I (_root_.id : M → M) x = continuous_linear_map.id _ _ := mfderiv_id I,
   rw ← this,
-<<<<<<< HEAD
-  apply mfderiv_congr_of_eventually_eq,
-=======
   apply filter.eventually_eq.mfderiv_eq,
->>>>>>> upstream/master
   have : e.source ∈ 𝓝 x := mem_nhds_sets e.open_source hx,
   apply filter.mem_sets_of_superset this,
   assume p hp,

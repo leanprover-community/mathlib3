@@ -346,39 +346,43 @@ lemma tendsto_at_top_at_bot [nonempty α] [decidable_linear_order α] [preorder 
   tendsto f at_top at_bot ↔ ∀ (b : β), ∃ (i : α), ∀ (a : α), i ≤ a → b ≥ f a :=
 @tendsto_at_top_at_top α (order_dual β) _ _ _ f
 
-lemma tendsto_at_top_at_top_of_monotone [nonempty α] [semilattice_sup α] [preorder β]
+lemma tendsto_at_top_at_top_of_monotone [preorder α] [preorder β] {f : α → β} (hf : monotone f)
+  (h : ∀ b, ∃ a, b ≤ f a) :
+  tendsto f at_top at_top :=
+tendsto_infi.2 $ λ b, tendsto_principal.2 $ let ⟨a, ha⟩ := h b in
+mem_sets_of_superset (mem_at_top a) $ λ a' ha', le_trans ha (hf ha')
+
+lemma tendsto_at_top_at_top_iff_of_monotone [nonempty α] [semilattice_sup α] [preorder β]
   {f : α → β} (hf : monotone f) :
   tendsto f at_top at_top ↔ ∀ b : β, ∃ a : α, b ≤ f a :=
 (tendsto_at_top_at_top f).trans $ forall_congr $ λ b, exists_congr $ λ a,
   ⟨λ h, h a (le_refl a), λ h a' ha', le_trans h $ hf ha'⟩
 
 alias tendsto_at_top_at_top_of_monotone ← monotone.tendsto_at_top_at_top
+alias tendsto_at_top_at_top_iff_of_monotone ← monotone.tendsto_at_top_at_top_iff
 
 lemma tendsto_finset_range : tendsto finset.range at_top at_top :=
-finset.range_mono.tendsto_at_top_at_top.2 finset.exists_nat_subset_range
+finset.range_mono.tendsto_at_top_at_top finset.exists_nat_subset_range
 
+/-- If `f` is a monotone sequence of `finset`s and each `x` belongs to obe of `f n`, then
+`tendsto f at_top at_top`. -/
 lemma monotone.tendsto_at_top_finset [nonempty β] [semilattice_sup β]
   {f : β → finset α} (h : monotone f) (h' : ∀ x : α, ∃ n, x ∈ f n) :
   tendsto f at_top at_top :=
 begin
-  classical,
-  apply (tendsto_at_top_at_top_of_monotone h).2,
+  apply h.tendsto_at_top_at_top,
   choose N hN using h',
   assume b,
-  have : bdd_above ↑(b.image N) := finset.bdd_above _,
-  rcases this with ⟨n, hn⟩,
-  refine ⟨n, _⟩,
-  assume i ib,
-  have : N i ∈ ↑(finset.image N b),
-    by { rw finset.mem_coe, exact finset.mem_image_of_mem _ ib },
-  exact (h (hn this)) (hN i)
+  rcases (b.image N).bdd_above with ⟨n, hn⟩,
+  refine ⟨n, λ i ib, _⟩,
+  have : N i ∈ (b.image N) := finset.mem_image_of_mem _ ib,
+  exact (h (hn $ finset.mem_coe.2 this)) (hN i)
 end
 
-lemma tendsto_finset_image_at_top_at_top {i : β → γ} {j : γ → β} (h : ∀x, j (i x) = x) :
+lemma tendsto_finset_image_at_top_at_top {i : β → γ} {j : γ → β} (h : function.left_inverse j i) :
   tendsto (finset.image j) at_top at_top :=
-have j ∘ i = id, from funext h,
-(finset.image_mono j).tendsto_at_top_at_top.2 $ assume s,
-  ⟨s.image i, by simp only [finset.image_image, this, finset.image_id, le_refl]⟩
+(finset.image_mono j).tendsto_at_top_at_top $ assume s,
+  ⟨s.image i, by simp only [finset.image_image, h.comp_eq_id, finset.image_id, le_refl]⟩
 
 lemma prod_at_top_at_top_eq {β₁ β₂ : Type*} [nonempty β₁] [nonempty β₂] [semilattice_sup β₁]
   [semilattice_sup β₂] : (@at_top β₁ _) ×ᶠ (@at_top β₂ _) = @at_top (β₁ × β₂) _ :=
@@ -448,14 +452,16 @@ map_at_top_eq_of_gc (λb, b * k + (k - 1)) 1
     calc b = (b * k) / k : by rw [nat.mul_div_cancel b hk]
       ... ≤ (b * k + (k - 1)) / k : nat.div_le_div_right $ nat.le_add_right _ _)
 
-lemma tendsto_at_top_of_monotone {ι  : Type*} [nonempty ι] [semilattice_sup ι]
-  {α : Type*} [linear_order α] {u : ι → α}
-  (h : monotone u) (H : ¬bdd_above (range u)) : tendsto u at_top at_top :=
+
+/-- If `u` is a monotone function with linear ordered codomain and the range of `u` is not bounded
+above, then `tendsto u at_top at_top`. -/
+lemma tendsto_at_top_at_top_of_monotone' {ι α : Type*} [semilattice_sup ι] [linear_order α]
+  {u : ι → α} (h : monotone u) (H : ¬bdd_above (range u)) :
+  tendsto u at_top at_top :=
 begin
-  rw tendsto_at_top_at_top_of_monotone h,
+  apply h.tendsto_at_top_at_top,
   intro b,
-  rw not_bdd_above_iff at H,
-  rcases H b with ⟨_, ⟨N, rfl⟩, hN⟩,
+  rcases not_bdd_above_iff.1 H b with ⟨_, ⟨N, rfl⟩, hN⟩,
   exact ⟨N, le_of_lt hN⟩,
 end
 
@@ -464,24 +470,24 @@ lemma unbounded_of_tendsto_at_top {α β : Type*} [nonempty α] [semilattice_sup
   {f : α → β} (h : tendsto f at_top at_top) : ¬ bdd_above (range f) :=
 begin
   rintros ⟨M, hM⟩,
-  cases no_top M with M' hMM',
-  cases mem_at_top_sets.mp (h $ Ioi_mem_at_top M') with a ha,
+  cases mem_at_top_sets.mp (h $ Ioi_mem_at_top M) with a ha,
   apply lt_irrefl M,
   calc
-  M < M' : hMM'
-  ... < f a : ha a (le_refl _)
+  M < f a : ha a (le_refl _)
   ... ≤ M : hM (set.mem_range_self a)
 end
 
-lemma tendsto_at_top_of_monotone_of_subseq {ι  : Type*} [nonempty ι] [semilattice_sup ι]
-  {α : Type*} [linear_order α] [no_top_order α] {u : ι → α}
-  {φ : ι → ι} (h : monotone u) (H : tendsto (u ∘ φ) at_top at_top) : tendsto u at_top at_top :=
-begin
-  apply tendsto_at_top_of_monotone h,
-  suffices : ¬ bdd_above (range $ u ∘ φ),
-  { contrapose! this,
-    exact bdd_above.mono (range_comp_subset_range φ u) this },
-  exact unbounded_of_tendsto_at_top H,
-end
+/-- If a monotone function `u : ι → α` tends to `at_top` along *some* non-trivial filter `l`, then
+it tends to `at_top` along `at_top`. -/
+lemma tendsto_at_top_of_monotone_of_filter {ι α : Type*} [preorder ι] [preorder α] {l : filter ι}
+  {u : ι → α} (h : monotone u) (hl : l ≠ ⊥) (hu : tendsto u l at_top) :
+  tendsto u at_top at_top :=
+h.tendsto_at_top_at_top $ λ b, (hu.eventually (mem_at_top b)).exists hl
+
+lemma tendsto_at_top_of_monotone_of_subseq {ι ι' α : Type*} [preorder ι] [preorder α] {u : ι → α}
+  {φ : ι' → ι} (h : monotone u) {l : filter ι'} (hl : l ≠ ⊥)
+  (H : tendsto (u ∘ φ) l at_top) :
+  tendsto u at_top at_top :=
+tendsto_at_top_of_monotone_of_filter h (map_ne_bot hl) (tendsto_map' H)
 
 end filter

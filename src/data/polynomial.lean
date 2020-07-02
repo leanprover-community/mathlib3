@@ -625,19 +625,6 @@ lemma degree_ne_of_nat_degree_ne {n : ℕ} :
   (λ _ h, option.no_confusion h)
   (λ n' h, mt option.some_inj.mp h)
 
-lemma coeff_nat_degree_eq_zero_iff {f : polynomial R} : f.coeff f.nat_degree = 0 ↔ f = 0 :=
-begin
-  split; intro hf,
-  { refine polynomial.degree_eq_bot.mp _,
-    cases i_def : f.degree with i,
-    { exact rfl },
-    simp only [nat_degree, degree, ←finset.max_eq_sup_with_bot] at i_def hf,
-    rw [i_def, option.get_or_else_some] at hf,
-    have := finsupp.mem_support_iff.mp (finset.mem_of_max i_def),
-    contradiction },
-  { rw [hf, polynomial.coeff_zero] }
-end
-
 @[simp] lemma degree_C (ha : a ≠ 0) : degree (C a) = (0 : with_bot ℕ) :=
 show sup (ite (a = 0) ∅ {0}) some = 0, by rw if_neg ha; refl
 

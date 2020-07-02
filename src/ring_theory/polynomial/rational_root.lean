@@ -51,7 +51,7 @@ lemma scale_roots_ne_zero {p : polynomial R} (hp : p ≠ 0) (s : R) :
   scale_roots p s ≠ 0 :=
 begin
   intro h,
-  have : p.coeff p.nat_degree ≠ 0 := mt coeff_nat_degree_eq_zero_iff.mp hp,
+  have : p.coeff p.nat_degree ≠ 0 := mt leading_coeff_eq_zero.mp hp,
   have : (scale_roots p s).coeff p.nat_degree = 0 :=
     congr_fun (congr_arg (coeff : polynomial R → ℕ → R) h) p.nat_degree,
   rw [coeff_scale_roots_nat_degree] at this,

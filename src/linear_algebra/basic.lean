@@ -806,7 +806,7 @@ eq_bot_iff.trans ⟨
   λ H x h, (mem_bot R).1 $ H $ subset_span h,
   λ H, span_le.2 (λ x h, (mem_bot R).2 $ H x h)⟩
 
-lemma span_singleton_eq_bot : span R ({x} : set M) = ⊥ ↔ x = 0 :=
+@[simp] lemma span_singleton_eq_bot : span R ({x} : set M) = ⊥ ↔ x = 0 :=
 span_eq_bot.trans $ by simp
 
 @[simp] lemma span_image (f : M →ₗ[R] M₂) : span R (f '' s) = map f (span R s) :=

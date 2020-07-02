@@ -72,6 +72,8 @@ lemma span_eq_bot {s : set α} : span s = ⊥ ↔ ∀ x ∈ s, (x:α) = 0 := sub
 
 @[simp] lemma span_singleton_eq_bot {x} : span ({x} : set α) = ⊥ ↔ x = 0 := submodule.span_singleton_eq_bot
 
+@[simp] lemma span_zero : span ({0} : set α) = ⊥ := by simp
+
 lemma span_singleton_eq_top {x} : span ({x} : set α) = ⊤ ↔ is_unit x :=
 by rw [is_unit_iff_dvd_one, ← span_singleton_le_span_singleton, singleton_one, span_singleton_one,
   eq_top_iff]
@@ -445,13 +447,22 @@ begin
     simpa using I.smul_mem ↑u⁻¹ H }
 end
 
-lemma max_ideal_unique :
+lemma maximal_ideal_unique :
   ∃! I : ideal α, I.is_maximal :=
 ⟨maximal_ideal α, maximal_ideal.is_maximal α,
   λ I hI, hI.eq_of_le (maximal_ideal.is_maximal α).1 $
   λ x hx, hI.1 ∘ I.eq_top_of_is_unit_mem hx⟩
 
 variable {α}
+
+lemma eq_maximal_ideal {I : ideal α} (hI : I.is_maximal) : I = maximal_ideal α :=
+unique_of_exists_unique (maximal_ideal_unique α) hI $ maximal_ideal.is_maximal α
+
+lemma le_maximal_ideal {J : ideal α} (hJ : J ≠ ⊤) : J ≤ maximal_ideal α :=
+begin
+  rcases ideal.exists_le_maximal J hJ with ⟨M, hM1, hM2⟩,
+  rwa ←eq_maximal_ideal hM1
+end
 
 @[simp] lemma mem_maximal_ideal (x) :
   x ∈ maximal_ideal α ↔ x ∈ nonunits α := iff.rfl
@@ -552,3 +563,4 @@ instance : local_ring α :=
   else or.inl $ is_unit_of_mul_eq_one a a⁻¹ $ div_self h }
 
 end field
+#lint

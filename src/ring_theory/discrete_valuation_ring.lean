@@ -29,30 +29,30 @@ open_locale classical
 
 universe u
 
-open ideal
+open ideal local_ring
 
 /-- A commutative ring is a discrete valuation ring if it's a local PID which is not a field -/
 class discrete_valuation_ring (R : Type u) [integral_domain R]
   extends is_principal_ideal_ring R, local_ring R : Prop :=
-(not_a_field' : local_ring.maximal_ideal R ≠ ⊥)
+(not_a_field' : maximal_ideal R ≠ ⊥)
 
 namespace discrete_valuation_ring
 
 variables (R : Type u) [integral_domain R] [discrete_valuation_ring R]
 
 -- TODO: this should be localised
-notation `is_uniformiser` := irreducible
+local notation `is_uniformiser` := irreducible
 
-def not_a_field : local_ring.maximal_ideal R ≠ ⊥ := not_a_field'
+def not_a_field : maximal_ideal R ≠ ⊥ := not_a_field'
 
 variable {R}
 theorem uniformiser_iff_generator (ϖ : R) :
-  is_uniformiser ϖ ↔ local_ring.maximal_ideal R = ideal.span {ϖ} :=
+  is_uniformiser ϖ ↔ maximal_ideal R = ideal.span {ϖ} :=
 begin
   split,
   { intro hϖ,
-    cases (is_principal_ideal_ring.principal $ local_ring.maximal_ideal R).principal with m hm,
-    have hϖ2 : ϖ ∈ local_ring.maximal_ideal R := hϖ.1,
+    cases (is_principal_ideal_ring.principal $ maximal_ideal R).principal with m hm,
+    have hϖ2 : ϖ ∈ maximal_ideal R := hϖ.1,
     rw hm at hϖ2,
     rw submodule.mem_span_singleton at hϖ2,
     cases hϖ2 with a ha,
@@ -62,19 +62,19 @@ begin
       show ideal.span {m} = _,
       rw ←ha,
       exact (span_singleton_mul_left_unit h _).symm},
-    { have h2 : ¬(is_unit m) := show m ∈ local_ring.maximal_ideal R,
+    { have h2 : ¬(is_unit m) := show m ∈ maximal_ideal R,
       from hm.symm ▸ submodule.mem_span_singleton_self m,
       exact absurd h h2}},
   { intro h,
-    have h2 : ¬(is_unit ϖ) := show ϖ ∈ local_ring.maximal_ideal R,
+    have h2 : ¬(is_unit ϖ) := show ϖ ∈ maximal_ideal R,
       from h.symm ▸ submodule.mem_span_singleton_self ϖ,
     split, exact h2,
     intros a b hab,
     by_contra h,
     push_neg at h,
     cases h with ha hb,
-    change a ∈ local_ring.maximal_ideal R at ha,
-    change b ∈ local_ring.maximal_ideal R at hb,
+    change a ∈ maximal_ideal R at ha,
+    change b ∈ maximal_ideal R at hb,
     rw h at ha hb,
     rw mem_span_singleton' at ha hb,
     rcases ha with ⟨a, rfl⟩,
@@ -91,55 +91,13 @@ end
 
 theorem exists_uniformiser : ∃ ϖ : R, is_uniformiser ϖ :=
 by {simp_rw [uniformiser_iff_generator],
-    exact (is_principal_ideal_ring.principal $ local_ring.maximal_ideal R).principal}
+    exact (is_principal_ideal_ring.principal $ maximal_ideal R).principal}
 
 /-
 Proving a result in Cassels-Froehlich: a DVR is a PID with exactly one non-zero prime ideal
 -/
 
 lemma local_of_unique_nonzero_prime (R : Type u) [comm_ring R]
-(h : ∃! P : ideal R, P ≠ ⊥ ∧ is_prime P) : local_ring R :=
-local_of_unique_max_ideal
-begin
-  rcases h with ⟨P, ⟨hPnonzero, hPnot_top, _⟩, hPunique⟩,
-  use P,
-  split,
-  { split, exact hPnot_top,
-    apply maximal_of_no_maximal,
-    intros M hPM hM,
-    apply ne_of_lt hPM,
-    symmetry,
-    apply hPunique,
-    split, apply ne_bot_of_gt hPM,
-    exact is_maximal.is_prime hM},
-  { intros M hM,
-    apply hPunique,
-    split,
-    { rintro rfl,
-      cases hM with hM1 hM2,
-      specialize hM2 P (bot_lt_iff_ne_bot.2 hPnonzero),
-      exact hPnot_top hM2},
-    { exact is_maximal.is_prime hM}}
-end
-
-/-
-VS Code bug : red squiggle under wrong thing
-
-lemma local_of_unique_nonzero_prime' (R : Type u) [comm_ring R]
-(h : ∃! P : ideal R, P ≠ ⊥ ∧ is_prime P) : local_ring R :=
-let ⟨P, ⟨hPnonzero, hPnot_top, _⟩, hPunique⟩ := h in
-local_of_unique_max_ideal ⟨P, ⟨hPnot_top,
-  maximal_of_no_maximal _ _ $ λ M hPM hM, ne_of_lt hPM $ (hPunique _ ⟨ne_bot_of_gt hPM, is_maximal.is_prime hM⟩).symm⟩,
-  λ M hM, hPunique _ ⟨λ h, hPnot_top $ hM.2 _ (_ : M < P), is_maximal.is_prime hM⟩⟩
--/
-lemma local_of_unique_nonzero_prime' (R : Type u) [comm_ring R]
-(h : ∃! P : ideal R, P ≠ ⊥ ∧ is_prime P) : local_ring R :=
-let ⟨P, ⟨hPnonzero, hPnot_top, _⟩, hPunique⟩ := h in
-local_of_unique_max_ideal ⟨P, ⟨hPnot_top,
-  maximal_of_no_maximal $ λ M hPM hM, ne_of_lt hPM $ (hPunique _ ⟨ne_bot_of_gt hPM, is_maximal.is_prime hM⟩).symm⟩,
-  λ M hM, hPunique _ ⟨λ (h : M = ⊥), hPnot_top $ hM.2 _ (h.symm ▸ (bot_lt_iff_ne_bot.2 hPnonzero : ⊥ < P) : M < P), is_maximal.is_prime hM⟩⟩
-
-lemma local_of_unique_nonzero_prime'' (R : Type u) [comm_ring R]
   (h : ∃! P : ideal R, P ≠ ⊥ ∧ is_prime P) : local_ring R :=
 local_of_unique_max_ideal begin
   rcases h with ⟨P, ⟨hPnonzero, hPnot_top, _⟩, hPunique⟩,
@@ -150,6 +108,47 @@ local_of_unique_max_ideal begin
     exact hPnot_top (hM.2 P (bot_lt_iff_ne_bot.2 hPnonzero)) },
 end
 
+-- -- delete this
+-- lemma local_of_unique_nonzero_prime'' (R : Type u) [comm_ring R]
+-- (h : ∃! P : ideal R, P ≠ ⊥ ∧ is_prime P) : local_ring R :=
+-- local_of_unique_max_ideal
+-- begin
+--   rcases h with ⟨P, ⟨hPnonzero, hPnot_top, _⟩, hPunique⟩,
+--   use P,
+--   split,
+--   { split, exact hPnot_top,
+--     apply maximal_of_no_maximal,
+--     intros M hPM hM,
+--     apply ne_of_lt hPM,
+--     symmetry,
+--     apply hPunique,
+--     split, apply ne_bot_of_gt hPM,
+--     exact is_maximal.is_prime hM},
+--   { intros M hM,
+--     apply hPunique,
+--     split,
+--     { rintro rfl,
+--       cases hM with hM1 hM2,
+--       specialize hM2 P (bot_lt_iff_ne_bot.2 hPnonzero),
+--       exact hPnot_top hM2},
+--     { exact is_maximal.is_prime hM}}
+-- end
+
+-- lemma local_of_unique_nonzero_prime' (R : Type u) [comm_ring R]
+-- (h : ∃! P : ideal R, P ≠ ⊥ ∧ is_prime P) : local_ring R :=
+-- let ⟨P, ⟨hPnonzero, hPnot_top, _⟩, hPunique⟩ := h in
+-- local_of_unique_max_ideal ⟨P, ⟨hPnot_top,
+--   maximal_of_no_maximal $ λ M hPM hM, ne_of_lt hPM $ (hPunique _ ⟨ne_bot_of_gt hPM, is_maximal.is_prime hM⟩).symm⟩,
+--   _
+--  λ M hM, hPunique _ ⟨λ h, hPnot_top $ hM.2 _ (_ : M < P), is_maximal.is_prime hM⟩⟩
+
+-- lemma local_of_unique_nonzero_prime' (R : Type u) [comm_ring R]
+-- (h : ∃! P : ideal R, P ≠ ⊥ ∧ is_prime P) : local_ring R :=
+-- let ⟨P, ⟨hPnonzero, hPnot_top, _⟩, hPunique⟩ := h in
+-- local_of_unique_max_ideal ⟨P, ⟨hPnot_top,
+--   maximal_of_no_maximal $ λ M hPM hM, ne_of_lt hPM $ (hPunique _ ⟨ne_bot_of_gt hPM, is_maximal.is_prime hM⟩).symm⟩,
+--   λ M hM, hPunique _ ⟨λ (h : M = ⊥), hPnot_top $ hM.2 _ (h.symm ▸ (bot_lt_iff_ne_bot.2 hPnonzero : ⊥ < P) : M < P), is_maximal.is_prime hM⟩⟩
+
 -- a DVR is a PID with exactly one non-zero prime ideal
 
 theorem iff_PID_with_one_nonzero_prime (R : Type u) [integral_domain R] :
@@ -159,25 +158,31 @@ begin
   { rintro ⟨RPID, Rlocal, Rnotafield⟩,
     split, assumption,
     resetI,
---    haveI := Rlocal,
     use local_ring.maximal_ideal R,
     split, split,
     { assumption},
     { apply_instance},
-    { intro Q,
-      intro hQ,
-      -- Q gen by q and Max ideal generated by m
-      -- Q ⊆ M so q=tm ∈ Q and so t ∈ Q or m ∈ Q.
-      -- If m ∈ Q we're done
-      -- If not, t = t'm ∈ Q etc (this does it by some descent)
-      -- STP M ⊆ Q. STP m ∈ Q.
-      -- Suppose m not in Q.
-      -- want M/Q=0
-      -- STP M=M^2+Q?
-      sorry}},
-  { rintro ⟨RPID, _⟩,
+    { rintro Q ⟨hQ1, hQ2⟩,
+      obtain ⟨q, rfl⟩ := (is_principal_ideal_ring.principal Q).1,
+      have hq : q ≠ 0,
+      { rintro rfl,
+        apply hQ1,
+        simp,
+      },
+      erw span_singleton_prime hq at hQ2,
 
-    sorry}
+      -- lunch time; back around 2 to 2:15
+
+      -- q is prime and hence irreducible
+      -- say max ideal of R is gen by m
+      -- Q ⊆ M so q=tm ∈ Q and so t is a unit
+      sorry}},
+  { rintro ⟨RPID, Punique⟩,
+    haveI : local_ring R := local_of_unique_nonzero_prime R Punique,
+    refine {not_a_field' := _},
+    rcases Punique with ⟨P, ⟨hP1, hP2⟩, hP3⟩,
+    have hPM : P ≤ maximal_ideal R := le_maximal_ideal (hP2.1),
+    intro h, rw [h, le_bot_iff] at hPM, exact hP1 hPM}
 end
 
 end discrete_valuation_ring

@@ -462,17 +462,17 @@ namespace unique_factorization_domain
 variables {R : Type*} [integral_domain R] [unique_factorization_domain R]
 
 lemma no_factors_of_no_prime_factors {a b : R} (ha : a ≠ 0)
-  (h : (∀ {p}, p ∣ a → p ∣ b → ¬ prime p)) : ∀ {p}, p ∣ a → p ∣ b → is_unit p :=
-λ p, induction_on_prime p
+  (h : (∀ {d}, d ∣ a → d ∣ b → ¬ prime d)) : ∀ {d}, d ∣ a → d ∣ b → is_unit d :=
+λ d, induction_on_prime d
   (by { simp only [zero_dvd_iff], intros, contradiction })
   (λ x hx _ _, hx)
-  (λ p q hp hq ih dvd_a dvd_b,
+  (λ d q hp hq ih dvd_a dvd_b,
     absurd hq (h (dvd_of_mul_right_dvd dvd_a) (dvd_of_mul_right_dvd dvd_b)))
 
 /-- Euclid's lemma: if `a ∣ b * c` and `a` and `c` have no common prime factors, `a ∣ b`.
 Compare `is_coprime.dvd_of_dvd_mul_left`. -/
 lemma dvd_of_dvd_mul_left_of_no_prime_factors {a b c : R} (ha : a ≠ 0) :
-  (∀ {p}, p ∣ a → p ∣ c → ¬ prime p) → a ∣ b * c → a ∣ b :=
+  (∀ {d}, d ∣ a → d ∣ c → ¬ prime d) → a ∣ b * c → a ∣ b :=
 begin
   refine induction_on_prime c _ _ _,
   { intro no_factors,
@@ -492,13 +492,13 @@ end
 /-- Euclid's lemma: if `a ∣ b * c` and `a` and `b` have no common prime factors, `a ∣ c`.
 Compare `is_coprime.dvd_of_dvd_mul_right`. -/
 lemma dvd_of_dvd_mul_right_of_no_prime_factors {a b c : R} (ha : a ≠ 0)
-  (no_factors : ∀ {p}, p ∣ a → p ∣ b → ¬ prime p) : a ∣ b * c → a ∣ c :=
+  (no_factors : ∀ {d}, d ∣ a → d ∣ b → ¬ prime d) : a ∣ b * c → a ∣ c :=
 by simpa [mul_comm b c] using dvd_of_dvd_mul_left_of_no_prime_factors ha @no_factors
 
 /-- If `a ≠ 0, b` are elements of a unique factorization domain, then dividing
 out their common factor `c'` gives `a'` and `b'` with no factors in common. -/
 lemma exists_reduced_factors : ∀ (a ≠ (0 : R)) b,
-  ∃ a' b' c', (∀ {p}, p ∣ a' → p ∣ b' → is_unit p) ∧ c' * a' = a ∧ c' * b' = b :=
+  ∃ a' b' c', (∀ {d}, d ∣ a' → d ∣ b' → is_unit d) ∧ c' * a' = a ∧ c' * b' = b :=
 begin
   haveI := classical.prop_decidable,
   intros a,
@@ -527,7 +527,7 @@ begin
 end
 
 lemma exists_reduced_factors' (a b : R) (hb : b ≠ 0) :
-  ∃ a' b' c', (∀ {p}, p ∣ a' → p ∣ b' → is_unit p) ∧ c' * a' = a ∧ c' * b' = b :=
+  ∃ a' b' c', (∀ {d}, d ∣ a' → d ∣ b' → is_unit d) ∧ c' * a' = a ∧ c' * b' = b :=
 let ⟨b', a', c', no_factor, hb, ha⟩ := exists_reduced_factors b hb a
 in ⟨a', b', c', λ _ hpb hpa, no_factor hpa hpb, ha, hb⟩
 

@@ -951,7 +951,7 @@ variables [unique_factorization_domain A] (φ : fraction_map A K)
 
 lemma exists_reduced_fraction (x : φ.codomain) :
   ∃ (a : A) (b : non_zero_divisors A),
-  (∀ {p}, p ∣ a → p ∣ b → is_unit p) ∧ φ.mk' a b = x :=
+  (∀ {d}, d ∣ a → d ∣ b → is_unit d) ∧ φ.mk' a b = x :=
 begin
   obtain ⟨⟨b, b_nonzero⟩, a, hab⟩ := φ.exists_integer_multiple x,
   obtain ⟨a', b', c', no_factor, rfl, rfl⟩ :=
@@ -973,7 +973,7 @@ noncomputable def denom (x : φ.codomain) : non_zero_divisors A :=
 classical.some (classical.some_spec (φ.exists_reduced_fraction x))
 
 lemma num_denom_reduced (x : φ.codomain) :
-  ∀ {p}, p ∣ φ.num x → p ∣ φ.denom x → is_unit p :=
+  ∀ {d}, d ∣ φ.num x → d ∣ φ.denom x → is_unit d :=
 (classical.some_spec (classical.some_spec (φ.exists_reduced_fraction x))).1
 
 @[simp] lemma mk'_num_denom (x : φ.codomain) : φ.mk' (φ.num x) (φ.denom x) = x :=

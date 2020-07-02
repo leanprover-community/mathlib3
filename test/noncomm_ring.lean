@@ -48,3 +48,5 @@ example : (a ⚬ b) ⚬ (a ⚬ a) = a ⚬ (b ⚬ (a ⚬ a)) := by noncomm_ring
 example : ⁅a, b ⚬ c⁆ = ⁅a, b⁆ ⚬ c + b ⚬ ⁅a, c⁆ := by noncomm_ring
 example : ⁅a ⚬ b, c⁆ = a ⚬ ⁅b, c⁆ + ⁅a, c⁆ ⚬ b := by noncomm_ring
 example : (a ⚬ b) ⚬ c - a ⚬ (b ⚬ c) = -⁅⁅a, b⁆, c⁆ + ⁅a, ⁅b, c⁆⁆ := by noncomm_ring
+
+example {R : Type*} [ring R] (a b : R) : a + -b = -b + a := by noncomm_ring

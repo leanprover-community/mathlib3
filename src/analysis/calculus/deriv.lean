@@ -368,14 +368,14 @@ by { unfold deriv_within, rw fderiv_within_inter ht hs }
 section congr
 /-! ### Congruence properties of derivatives -/
 
-theorem filter.eventually_eq.has_deriv_at_filter_congr
+theorem filter.eventually_eq.has_deriv_at_filter_iff
   (h₀ : f₀ =ᶠ[L] f₁) (hx : f₀ x = f₁ x) (h₁ : f₀' = f₁') :
   has_deriv_at_filter f₀ f₀' x L ↔ has_deriv_at_filter f₁ f₁' x L :=
-h₀.has_fderiv_at_filter_congr hx (by simp [h₁])
+h₀.has_fderiv_at_filter_iff hx (by simp [h₁])
 
 lemma has_deriv_at_filter.congr_of_eventually_eq (h : has_deriv_at_filter f f' x L)
   (hL : f₁ =ᶠ[L] f) (hx : f₁ x = f x) : has_deriv_at_filter f₁ f' x L :=
-by rwa hL.has_deriv_at_filter_congr hx rfl
+by rwa hL.has_deriv_at_filter_iff hx rfl
 
 lemma has_deriv_within_at.congr_mono (h : has_deriv_within_at f f' s x) (ht : ∀x ∈ t, f₁ x = f x)
   (hx : f₁ x = f x) (h₁ : t ⊆ s) : has_deriv_within_at f₁ f' t x :=
@@ -393,18 +393,18 @@ lemma has_deriv_at.congr_of_eventually_eq (h : has_deriv_at f f' x)
   (h₁ : f₁ =ᶠ[𝓝 x] f) : has_deriv_at f₁ f' x :=
 has_deriv_at_filter.congr_of_eventually_eq h h₁ (mem_of_nhds h₁ : _)
 
-lemma filter.eventually_eq.deriv_within_congr (hs : unique_diff_within_at 𝕜 s x)
+lemma filter.eventually_eq.deriv_within_eq (hs : unique_diff_within_at 𝕜 s x)
   (hL : f₁ =ᶠ[nhds_within x s] f) (hx : f₁ x = f x) :
   deriv_within f₁ s x = deriv_within f s x :=
-by { unfold deriv_within, rw hL.fderiv_within_congr hs hx }
+by { unfold deriv_within, rw hL.fderiv_within_eq hs hx }
 
 lemma deriv_within_congr (hs : unique_diff_within_at 𝕜 s x)
   (hL : ∀y∈s, f₁ y = f y) (hx : f₁ x = f x) :
   deriv_within f₁ s x = deriv_within f s x :=
 by { unfold deriv_within, rw fderiv_within_congr hs hL hx }
 
-lemma filter.eventually_eq.deriv_congr (hL : f₁ =ᶠ[𝓝 x] f) : deriv f₁ x = deriv f x :=
-by { unfold deriv, rwa filter.eventually_eq.fderiv_congr }
+lemma filter.eventually_eq.deriv_eq (hL : f₁ =ᶠ[𝓝 x] f) : deriv f₁ x = deriv f x :=
+by { unfold deriv, rwa filter.eventually_eq.fderiv_eq }
 
 end congr
 
@@ -1633,7 +1633,7 @@ begin
       sub_zero, int.cast_one] },
   { rw [function.iterate_succ', finset.prod_range_succ, int.cast_mul, mul_assoc, mul_left_comm,
       int.coe_nat_succ, ← sub_sub, ← ((has_deriv_at_fpow _ hx).const_mul _).deriv],
-    exact filter.eventually_eq.deriv_congr (eventually.mono (mem_nhds_sets is_open_ne hx) @ihk) }
+    exact filter.eventually_eq.deriv_eq (eventually.mono (mem_nhds_sets is_open_ne hx) @ihk) }
 end
 
 end fpow

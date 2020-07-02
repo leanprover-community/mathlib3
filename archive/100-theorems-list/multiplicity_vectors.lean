@@ -8,6 +8,7 @@ import data.finsupp
 import data.pnat.factors
 import order.conditionally_complete_lattice
 import order.lattice
+import order.order_iso
 import tactic.pi_instances
 
 /-
@@ -31,6 +32,8 @@ open_locale big_operators
 
 noncomputable theory
 
+section basics
+
 def pnat.coprime (m n : ℕ+) : Prop := m.gcd n = 1
 
 def mult (n : ℕ+) (p : nat.primes) : ℕ := (pnat.factor_multiset n).count p
@@ -40,20 +43,37 @@ def prime_finsupp : Type := nat.primes →₀ ℕ
 @[instance]
 instance prime_finsupp.has_coe_to_fun : has_coe_to_fun prime_finsupp := { ..finsupp.has_coe_to_fun}
 
+def prime_finsupp.to_pnat_finsupp : prime_finsupp → ℕ+ →₀ ℕ := finsupp.map_domain coe
+
+@[instance]
+instance prime_finsupp.coe_pnat : has_coe prime_finsupp (ℕ+ →₀ ℕ) :=
+⟨prime_finsupp.to_pnat_finsupp⟩
+
+lemma prime_finsupp.coe_pnat_to_multiset (x : prime_finsupp) : 
+  prime_multiset.to_pnat_multiset x.to_multiset = (x : ℕ+ →₀ ℕ).to_multiset :=
+finsupp.to_multiset_map x coe
 
 def prime_finsupp.prod_apply_pow {α : Type} [comm_monoid α] (x : prime_finsupp) (f : ℕ+ → α) : α :=
 x.prod (λ p : nat.primes, λ k : ℕ, f (p ^ k))
 
-def prime_finsupp.prod_coe_pow (x : prime_finsupp) := x.prod_apply_pow id
+def prime_finsupp.prod_pow (x : prime_finsupp) := x.prod_apply_pow id
 
 lemma prime_finsupp.prod_pow_eq (x : prime_finsupp) :
-  x.prod_coe_pow= x.prod (λ p : nat.primes, λ k : ℕ, (p ^ k)) := rfl
+  x.prod_pow= x.prod (λ p : nat.primes, λ k : ℕ, (p ^ k)) := rfl
+
+lemma prime_finsupp.prod_pow_eq_coe_prod_pow (x : prime_finsupp) :
+  x.prod_pow= (x : ℕ+ →₀ ℕ).prod pow :=
+begin
+  change x.prod_pow = (finsupp.map_domain coe x).prod pow, 
+  rw [finsupp.prod_map_domain_index, prime_finsupp.prod_pow_eq], simp, 
+  intros, rw pow_add,
+end
 
 lemma prime_finsupp.prod_pow_eq_prod_to_multiset (x : prime_finsupp) :
-  x.prod_coe_pow= prime_multiset.prod x.to_multiset :=
+  x.prod_pow= prime_multiset.prod x.to_multiset :=
 begin
-  rw prime_finsupp.prod_pow_eq, rw prime_multiset.prod,
-  sorry
+  rw [prime_multiset.prod, prime_finsupp.prod_pow_eq_coe_prod_pow,
+    ← finsupp.prod_to_multiset, ← prime_finsupp.coe_pnat_to_multiset], refl
 end
 
 def factor_finsupp (n : ℕ+) : prime_finsupp := n.factor_multiset.to_finsupp
@@ -163,10 +183,113 @@ begin
     apply finsupp.equiv_multiset.symm.injective h }
 end
 
+lemma finsupp.bot_eq_zero : (⊥ : α →₀ ℕ) = 0 := rfl
+
+@[simp]
+lemma finsupp.disjoint_iff {x y : α →₀ ℕ} : disjoint x y ↔ disjoint x.support y.support :=
+begin
+  unfold disjoint, repeat {rw le_bot_iff},
+  rw [finsupp.bot_eq_zero, ← finsupp.support_eq_empty, finsupp.support_inf], refl,
+end
+
+end basics
+
+section lattice_isos
+
+variables {α β : Type}
+
+lemma order_embedding.map_inf_le [semilattice_inf α] [semilattice_inf β] 
+  (f : (has_le.le : α → α → Prop) ≼o (has_le.le : β → β → Prop))
+  {a₁ a₂ : α}:
+  f (a₁ ⊓ a₂) ≤ f a₁ ⊓ f a₂ :=
+by { apply le_inf; rw ← f.ord; simp }
+
+lemma order_iso.map_inf [semilattice_inf α] [semilattice_inf β] 
+  (f : (has_le.le : α → α → Prop) ≃o (has_le.le : β → β → Prop))
+  {a₁ a₂ : α}:
+  f (a₁ ⊓ a₂) = f a₁ ⊓ f a₂ :=
+begin 
+  apply le_antisymm, apply f.to_order_embedding.map_inf_le, 
+  rw f.symm.ord, rw order_iso.symm_apply_apply,
+  conv_rhs {rw [← order_iso.symm_apply_apply f a₁, ← order_iso.symm_apply_apply f a₂]},
+  apply f.symm.to_order_embedding.map_inf_le
+end
+
+lemma order_embedding.le_map_sup [semilattice_sup α] [semilattice_sup β] 
+  (f : (has_le.le : α → α → Prop) ≼o (has_le.le : β → β → Prop))
+  {a₁ a₂ : α}:
+  f a₁ ⊔ f a₂ ≤ f (a₁ ⊔ a₂) :=
+by { apply sup_le; rw ← f.ord; simp }
+
+lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β] 
+  (f : (has_le.le : α → α → Prop) ≃o (has_le.le : β → β → Prop))
+  {a₁ a₂ : α}:
+  f (a₁ ⊔ a₂) = f a₁ ⊔ f a₂ :=
+begin 
+  apply le_antisymm, swap, apply f.to_order_embedding.le_map_sup, 
+  rw f.symm.ord, rw order_iso.symm_apply_apply,
+  conv_lhs {rw [← order_iso.symm_apply_apply f a₁, ← order_iso.symm_apply_apply f a₂]},
+  apply f.symm.to_order_embedding.le_map_sup
+end
+
+
+end lattice_isos
+
+section finsupp_lattice_iso_multiset
+
+def finsupp.order_iso_multiset (α : Type) :
+  (has_le.le : (α →₀ ℕ) → (α →₀ ℕ) → Prop) ≃o (has_le.le : (multiset α) → (multiset α) → Prop) :=
+⟨finsupp.equiv_multiset, begin
+  intros a b, unfold finsupp.equiv_multiset, dsimp,
+  rw multiset.le_iff_count, simp only [finsupp.count_to_multiset], refl
+end ⟩
+
+def prime_finsupp.order_iso_multiset :
+(has_le.le : prime_finsupp → prime_finsupp → Prop) ≃o
+  (has_le.le : prime_multiset → prime_multiset → Prop) :=
+finsupp.order_iso_multiset nat.primes
+
+@[simp]
+lemma prime_finsupp.order_iso_multiset_factor_finsupp {n : ℕ+} :
+  (factor_finsupp n).order_iso_multiset = n.factor_multiset :=
+begin
+  unfold prime_finsupp.order_iso_multiset, unfold finsupp.order_iso_multiset,
+  unfold finsupp.equiv_multiset, simp
+end
+
+@[simp]
+lemma prime_finsupp.order_iso_multiset_symm_factor_multiset {n : ℕ+} :
+  prime_finsupp.order_iso_multiset.symm n.factor_multiset = factor_finsupp n :=
+by { apply prime_finsupp.order_iso_multiset.to_order_embedding.inj, simp }
+
+def pnat.prime_finsupp_equiv : ℕ+ ≃ prime_finsupp :=
+equiv.trans pnat.factor_multiset_equiv (prime_finsupp.order_iso_multiset.to_equiv.symm)
+
+@[simp]
+lemma pnat.prime_finsupp_equiv_eq_factor_finsupp :
+  ⇑pnat.prime_finsupp_equiv = factor_finsupp := 
+begin
+  transitivity finsupp.of_multiset ∘ pnat.factor_multiset, refl,
+  ext, unfold factor_finsupp, simp,
+end
+
+@[simp]
+lemma pnat.prime_finsupp_equiv_symm_eq_prod_pow :
+  ⇑pnat.prime_finsupp_equiv.symm = prime_finsupp.prod_pow := 
+begin
+  transitivity prime_multiset.prod ∘ finsupp.to_multiset, refl,
+  ext, rw prime_finsupp.prod_pow_eq_prod_to_multiset,
+end
+
+end finsupp_lattice_iso_multiset
+
 section basic_number_theory_definitions
 
 lemma dvd_iff_le_factor_finsupps {m n : ℕ+} :
-  m ∣ n ↔ factor_finsupp m ≤ factor_finsupp n := sorry
+  m ∣ n ↔ factor_finsupp m ≤ factor_finsupp n :=
+begin
+  rw prime_finsupp.order_iso_multiset.ord, simp [pnat.factor_multiset_le_iff],
+end
 
 @[simp]
 lemma factor_finsupp_mul {m n : ℕ+} :
@@ -179,21 +302,36 @@ begin
 end
 
 lemma factor_finsupp_gcd_eq_inf_factor_finsupps {m n : ℕ+} :
-  factor_finsupp (m.gcd n) = has_inf.inf (factor_finsupp m) (factor_finsupp n) :=
+  factor_finsupp (m.gcd n) = (factor_finsupp m) ⊓ (factor_finsupp n) :=
 begin
-  sorry
+  repeat {rw ← prime_finsupp.order_iso_multiset_symm_factor_multiset},
+  rw [pnat.factor_multiset_gcd, order_iso.map_inf],
+end
+
+@[simp]
+lemma factor_finsupp_one : factor_finsupp 1 = 0 :=
+begin 
+  apply finsupp.equiv_multiset.injective,
+  change finsupp.to_multiset (factor_finsupp 1) = finsupp.to_multiset 0,
+  rw [finsupp.to_multiset_zero, factor_finsupp_to_multiset_eq_factor_multiset,
+    pnat.factor_multiset_one]
+ end
+
+lemma coprime_iff_disjoint_factor_finsupps {m n : ℕ+} :
+  m.coprime n ↔ disjoint (factor_finsupp m) (factor_finsupp n) :=
+begin
+  rw [pnat.coprime, disjoint_iff, ← factor_finsupp_gcd_eq_inf_factor_finsupps,
+    finsupp.bot_eq_zero],
+  rw ← factor_finsupp_one, split; intro h, rw h,
+  apply pnat.prime_finsupp_equiv.injective, simpa,
 end
 
 lemma coprime_iff_disjoint_supports {m n : ℕ+} :
   m.coprime n ↔ disjoint (factor_finsupp m).support (factor_finsupp n).support :=
 begin
-  sorry
-end
-
-lemma coprime_iff_disjoint_factor_finsupps {m n : ℕ+} :
-  m.coprime n ↔ disjoint (factor_finsupp m) (factor_finsupp n) :=
-begin
-  sorry
+  rw coprime_iff_disjoint_factor_finsupps, rw finsupp.disjoint_iff,
+  unfold disjoint, repeat {rw le_bot_iff},
+  split; intro h; rw ← h; ext; simp, --WHY DOESN'T REFL WORK???
 end
 
 end basic_number_theory_definitions
@@ -213,7 +351,7 @@ begin
 end
 
 lemma prod_pow_factor_finsupp (n : ℕ+) :
-  (factor_finsupp n).prod_coe_pow = n :=
+  (factor_finsupp n).prod_pow = n :=
 begin
   rw prime_finsupp.prod_pow_eq_prod_to_multiset,
   rw factor_finsupp_to_multiset_eq_factor_multiset,
@@ -221,7 +359,7 @@ begin
 end
 
 lemma factor_finsupp_prod_pow (f : prime_finsupp) :
-factor_finsupp (f.prod_coe_pow) = f :=
+factor_finsupp (f.prod_pow) = f :=
 begin
   unfold factor_finsupp, conv_rhs {rw ← f.to_multiset_to_finsupp},
   rw ← prime_multiset.factor_multiset_prod f.to_multiset,
@@ -235,15 +373,6 @@ begin
 end
 
 section prime_powers
-
-@[simp]
-lemma factor_finsupp_one : factor_finsupp 1 = 0 :=
-begin 
-  apply finsupp.equiv_multiset.injective,
-  change finsupp.to_multiset (factor_finsupp 1) = finsupp.to_multiset 0,
-  rw [finsupp.to_multiset_zero, factor_finsupp_to_multiset_eq_factor_multiset,
-    pnat.factor_multiset_one]
- end
 
 variables {p : nat.primes} {n : ℕ+} {k : ℕ}
 
@@ -290,6 +419,9 @@ lemma pnat.eq_iff {m n : ℕ+} :
 def pnat.coprime_coe {m n : ℕ+} : nat.coprime ↑m ↑n ↔ m.coprime n :=
 by { unfold pnat.coprime, unfold nat.coprime, rw ← pnat.eq_iff, simp }
 
+lemma pnat.coprime.mul {k m n : ℕ+} : m.coprime k → n.coprime k → (m * n).coprime k :=
+by { repeat {rw ← pnat.coprime_coe}, rw pnat.mul_coe, apply nat.coprime.mul }
+
 lemma pnat.gcd_eq_left_iff_dvd {m n : ℕ+} : m ∣ n ↔ m.gcd n = m :=
 by { rw pnat.dvd_iff, rw nat.gcd_eq_left_iff_dvd, rw ← pnat.eq_iff, simp }
 
@@ -303,8 +435,21 @@ end
 lemma pnat.gcd_comm {m n : ℕ+} : m.gcd n = n.gcd m :=
 by { apply pnat.eq, simp only [pnat.gcd_coe], apply nat.gcd_comm }
 
+@[simp]
+lemma pnat.one_gcd {n : ℕ+} : pnat.gcd 1 n = 1 := 
+by { rw ← pnat.gcd_eq_left_iff_dvd, apply pnat.one_dvd }
+
+@[simp]
+lemma pnat.gcd_one {n : ℕ+} : pnat.gcd n 1 = 1 := by { rw pnat.gcd_comm, apply pnat.one_gcd }
+
 lemma pnat.coprime.symm {m n : ℕ+} : m.coprime n → n.coprime m :=
 by { unfold pnat.coprime, rw pnat.gcd_comm, simp }
+
+@[simp]
+lemma pnat.one_coprime {n : ℕ+} : (1 : ℕ+).coprime n := pnat.one_gcd
+
+@[simp]
+lemma pnat.coprime_one {n : ℕ+} : n.coprime 1 := pnat.coprime.symm pnat.one_coprime
 
 lemma pnat.coprime.coprime_dvd_left {m k n : ℕ+} :
   m ∣ k → k.coprime n → m.coprime n :=
@@ -344,7 +489,7 @@ variables (p : nat.primes) (n : ℕ+)
 The greatest divisor n coprime to prime p
 -/
 def coprime_part : ℕ+ :=
-prime_finsupp.prod_coe_pow ((factor_finsupp n).erase p)
+prime_finsupp.prod_pow ((factor_finsupp n).erase p)
 
 variables {p} {n}
 
@@ -450,13 +595,49 @@ end coprime_part
 
 section multiplicative
 
-def is_multiplicative {α : Type} [comm_monoid α] (f : ℕ+ → α): Prop :=
-f(1) = 1 ∧ ∀ m n : ℕ+, nat.coprime m n → f(m * n) = f(m) * f(n)
-
-lemma multiplicative_from_prime_pow {α : Type} [comm_monoid α] {f : ℕ+ → α} (h : is_multiplicative f) :
-∀ n : ℕ+, f(n) = (factor_finsupp n).prod_apply_pow f :=
+--in newest algebra/big_operators
+lemma finset.prod_induction {α : Type} {s : finset α} {M : Type*} [comm_monoid M] (f : α → M) (p : M → Prop)
+(p_mul : ∀ a b, p a → p b → p (a * b)) (p_one : p 1) (p_s : ∀ x ∈ s, p $ f x) :
+p $ ∏ x in s, f x :=
 begin
-  sorry
+  classical,
+  induction s using finset.induction with x hx s hs, simpa,
+  rw finset.prod_insert, swap, assumption,
+  apply p_mul, apply p_s, simp,
+  apply hs, intros a ha, apply p_s, simp [ha],
+end
+
+variables {α : Type} [comm_monoid α]
+
+def is_multiplicative (f : ℕ+ → α): Prop :=
+f 1 = 1 ∧ ∀ m n : ℕ+, nat.coprime m n → f (m * n) = f m * f n
+
+variables {f : ℕ+ → α}
+
+lemma multiplicative_prod_eq_prod_multiplicative
+  (h : is_multiplicative f) {x : prime_finsupp} {s : finset nat.primes} :
+  f (∏ (a : nat.primes) in s, ↑a ^ x a) = ∏ (a : nat.primes) in s, f (↑a ^ x a) := 
+begin
+  apply finset.induction_on s, simp [h.left],
+  intros a s anins ih, repeat {rw finset.prod_insert anins}, rw [h.right, ih],
+  rw pnat.coprime_coe, rw ← pow_one (∏ (x_1 : nat.primes) in s, ↑x_1 ^ x x_1),
+  apply pnat.coprime.pow, apply finset.prod_induction, swap, simp,
+  { intros, apply pnat.coprime.symm, apply pnat.coprime.mul a_2.symm a_3.symm, },
+  { intros p hp, rw ← pnat.coprime_coe, rw ← nat.pow_one ↑↑a, rw pnat.pow_coe,
+    apply nat.coprime_pow_primes, 
+    rw nat.primes.coe_pnat_nat, apply a.property,
+    rw nat.primes.coe_pnat_nat, apply p.property,
+    intro ap, apply anins, rw nat.primes.coe_nat_inj a p _, apply hp,
+    repeat {rw nat.primes.coe_pnat_nat at ap}, apply ap,
+  }
+end
+
+lemma multiplicative_from_prime_pow (h : is_multiplicative f) :
+  ∀ n : ℕ+, f(n) = (factor_finsupp n).prod_apply_pow f :=
+begin
+  intro n, rw prime_finsupp.prod_apply_pow, 
+  conv_lhs {rw ← prod_pow_factor_finsupp n}, rw prime_finsupp.prod_pow_eq, unfold finsupp.prod,
+  apply multiplicative_prod_eq_prod_multiplicative h,
 end
 
 end multiplicative

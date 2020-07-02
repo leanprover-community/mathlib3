@@ -561,4 +561,3 @@ instance : local_ring α :=
   else or.inl $ is_unit_of_mul_eq_one a a⁻¹ $ div_self h }
 
 end field
-#lint

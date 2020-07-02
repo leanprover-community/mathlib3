@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Aaron Anderson.
+Author: Aaron Anderson
 -/
 
 import data.nat.totient
@@ -23,7 +23,7 @@ As a result, there are many new pnat facts and definitions in multiplicity_vecto
 
 ## References
 https://en.wikipedia.org/wiki/Euclid%E2%80%93Euler_theorem
--/
+. -/
 
 open_locale classical
 open_locale big_operators
@@ -32,14 +32,10 @@ section definitions
 
 variable (n : ℕ+)
 
-/--
-The finset of (positive) divisors of n
--/
+/-- The finset of (positive) divisors of n. -/
 def divisors : finset ℕ+ := (pnat.Ico 1 (n + 1)).filter (λ x : ℕ+, x ∣ n)
 
-/--
-The finset of proper (positive) divisors of n
--/
+/-- The finset of proper (positive) divisors of n. -/
 def proper_divisors : finset ℕ+ := (pnat.Ico 1 n).filter (λ x : ℕ+, x ∣ n)
 
 lemma not_proper_self : ¬ n ∈ proper_divisors n := by simp [proper_divisors]
@@ -84,10 +80,10 @@ begin
   { intro hyp, cases hyp, rw hyp, apply pnat.dvd_refl, apply hyp.left }
 end
 
-/--The sum (nat) of the divisors of a pnat n-/
+/-- The sum (nat) of the divisors of a pnat n. -/
 def sum_divisors : ℕ := ∑ i in divisors n, i
 
-/--The sum (pnat) of the divisors of a pnat n-/
+/-- The sum (pnat) of the divisors of a pnat n. -/
 def psum_divisors : ℕ+ := ⟨sum_divisors n,
 begin
   have h : ∑ i in divisors n, 0 = 0, rw finset.sum_eq_zero_iff, simp,
@@ -100,7 +96,7 @@ end⟩
 @[simp]
 lemma coe_psum_divisors : ↑(psum_divisors n) = sum_divisors n := rfl
 
-/--The sum (nat) of the proper divisors (less than n) of a pnat n-/
+/-- The sum (nat) of the proper divisors (less than n) of a pnat n. -/
 def sum_proper_divisors : ℕ := ∑ i in proper_divisors n, i
 
 lemma sum_divisors_eq_sum_proper_divisors_add_self :
@@ -113,9 +109,7 @@ begin
   apply not_proper_self
 end
 
-/--
-A perfect number is one that is equal to the sum of its proper divisors
--/
+/-- A perfect number is one that is equal to the sum of its proper divisors. -/
 def perfect : Prop := sum_proper_divisors n = n
 
 end definitions
@@ -389,7 +383,7 @@ end basic_lemmas
 
 section mersenne_to_perfect
 
-/--A modification of mersenne from number_theory/lucas_lehmer-/
+/-- A modification of mersenne from number_theory/lucas_lehmer. -/
 def nat.mersenne_succ (n : ℕ) : ℕ+ := ⟨mersenne (n + 1), mersenne_pos n.succ_pos⟩
 
 @[simp]
@@ -403,9 +397,7 @@ begin
   omega
 end
 
-/--
-Euclid's theorem that Mersenne primes induce perfect numbers
--/
+/-- Euclid's theorem that Mersenne primes induce perfect numbers. -/
 theorem mersenne_to_perfect (k : ℕ) :
   k.mersenne_succ.prime → perfect ((2 ^ k) * k.mersenne_succ) :=
 begin
@@ -430,9 +422,7 @@ end mersenne_to_perfect
 section perfect_to_mersenne
 
 
-/--
-  Euler's proof that all even perfect numbers come from Mersenne primes
--/
+/--   Euler's proof that all even perfect numbers come from Mersenne primes. -/
 theorem even_perfect_to_mersenne {n : ℕ+} (even : 2 ∣ n) (perf : perfect n):
   ∃ (k : ℕ), n = (2 ^ k) * k.mersenne_succ ∧ k.mersenne_succ.prime :=
 begin
@@ -494,9 +484,7 @@ end perfect_to_mersenne
 
 section perfect_iff_mersenne
 
-/--
-The Euclid-Euler Theorem, characterizing perfect numbers in terms of Mersenne primes
--/
+/-- The Euclid-Euler Theorem, characterizing perfect numbers in terms of Mersenne primes. -/
 theorem even_perfect_iff_mersenne {n : ℕ+}:
   2 ∣ n ∧ perfect n ↔ ∃ (k : ℕ), n = (2 ^ k) * k.mersenne_succ ∧ k.mersenne_succ.prime  :=
 begin

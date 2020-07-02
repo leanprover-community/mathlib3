@@ -296,6 +296,37 @@ instance [decidable_eq α] [decidable_eq β] : semilattice_inf_bot (α ≃. β) 
 
 end order
 
+section sum
+variables {α₁ β₁ α₂ β₂ : Type*} (ea : α₁ ≃. α₂) (eb : β₁ ≃. β₂)
+
+/-- If `α ≃. α'` and `β ≃. β'`, then `α ⊕ β ≃. α' ⊕ β'`. -/
+def sum_congr : α₁ ⊕ β₁ ≃. α₂ ⊕ β₂ :=
+{ to_fun := sum.elim (λ a, (ea a).map sum.inl) (λ b, (eb b).map sum.inr),
+  inv_fun := sum.elim (λ a, (ea.symm a).map sum.inl) (λ b, (eb.symm b).map sum.inr),
+  inv := begin rintros (a|b) (a'|b'); { dsimp, simp [eq_some_iff] }, end }
+
+@[simp]
+lemma sum_congr_sum_inl_mem_sum_inl (a : α₁) (a' : α₂) :
+  sum.inl a' ∈ (sum_congr ea eb) (sum.inl a) ↔ a' ∈ ea a :=
+by simp [sum_congr]
+
+@[simp]
+lemma sum_congr_sum_inr_mem_sum_inl (a : α₁) (b' : β₂) :
+  sum.inr b' ∈ (sum_congr ea eb) (sum.inl a) ↔ false :=
+by simp [sum_congr]
+
+@[simp]
+lemma sum_congr_sum_inl_mem_sum_inr (b : β₁) (a' : α₂) :
+  sum.inl a' ∈ (sum_congr ea eb) (sum.inr b) ↔ false :=
+by simp [sum_congr]
+
+@[simp]
+lemma sum_congr_sum_inr_mem_sum_inr (b : β₁) (b' : β₂) :
+  sum.inr b' ∈ (sum_congr ea eb) (sum.inr b) ↔ b' ∈ eb b :=
+by simp [sum_congr]
+
+end sum
+
 end pequiv
 
 namespace equiv

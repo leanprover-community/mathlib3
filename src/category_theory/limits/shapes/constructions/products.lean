@@ -336,7 +336,7 @@ the binary product of the products over the two types.
 -- We could muck about transferring `is_limit` instances,
 -- but it's so easy to just write down the maps,
 -- and let automation apply the extensionality lemmas to prove they are inverses.
-@[simps] -- TODO perhaps provide the simp lemma only for `hom` here, and a (nicer) simp lemma for `inv` in the presence of biproducts?
+@[simps]
 def product_over_sum_iso {I J : Type v} (f : I ⊕ J → C)
   [has_product f] [has_product (f ∘ sum.inl)] [has_product (f ∘ sum.inr)]
   [has_binary_product (∏ f ∘ sum.inl) (∏ f ∘ sum.inr)] :
@@ -360,6 +360,7 @@ def coproduct_over_sum_iso {I J : Type v} (f : I ⊕ J → C)
     (λ (i : I), @sigma.ι I _ _ (λ i : I, f (sum.inl i)) _ i ≫ coprod.inl)
     (λ (j : J), @sigma.ι J _ _ (λ j : J, f (sum.inr j)) _ j ≫ coprod.inr)),
   inv := coprod.desc (sigma.desc (λ i, sigma.ι f (sum.inl i))) (sigma.desc (λ j, sigma.ι f (sum.inr j))), }
+
 
 /--
 Given any specified choices of the products involved (using `has_*` typeclasses),
@@ -391,6 +392,25 @@ begin
   { simp, },
   { by_cases h : p = x; { simp [biproduct.ι_π, h], }, },
 end
+
+end
+
+section
+variables [preadditive C]
+open_locale big_operators
+
+@[simps]
+def biproduct_over_sum_iso
+  {I J : Type v} [fintype I] [decidable_eq I] [fintype J] [decidable_eq J] (f : I ⊕ J → C)
+  [has_biproduct f] [has_biproduct (f ∘ sum.inl)] [has_biproduct (f ∘ sum.inr)]
+  [has_binary_biproduct (⨁ f ∘ sum.inl) (⨁ f ∘ sum.inr)] :
+  ⨁ f ≅ (⨁ f ∘ sum.inl) ⊞ (⨁ f ∘ sum.inr) :=
+{ hom := ∑ i : I, biproduct.π f (sum.inl i) ≫ (@biproduct.ι I _ _ _ _ (λ i, f (sum.inl i)) _ i) ≫ biprod.inl +
+         ∑ j : J, biproduct.π f (sum.inr j) ≫ (@biproduct.ι J _ _ _ _ (λ j, f (sum.inr j)) _ j) ≫ biprod.inr,
+  inv := ∑ i : I, biprod.fst ≫ biproduct.π _ i ≫ biproduct.ι f (sum.inl i) +
+         ∑ j : J, biprod.snd ≫ biproduct.π _ j ≫ biproduct.ι f (sum.inr j),
+  hom_inv_id' := sorry,
+  inv_hom_id' := sorry, }
 
 end
 
@@ -563,7 +583,12 @@ begin
   refl,
 end
 
-
+def biproduct_over_punit_sum_iso
+  {I : Type v} [fintype I] [decidable_eq I]
+  (f : punit.{v+1} ⊕ I → C)
+  [has_finite_biproducts.{v} C] [has_binary_biproducts.{v} C] :
+  ⨁ f ≅ f (sum.inl punit.star) ⊞ ⨁ (λ j, f (sum.inr j)) :=
+biproduct_iso_of_equiv_punit_sum f (equiv.refl _)
 
 def equiv_punit_sum_of_term' {α : Type v} [decidable_eq α] [fintype α] (a : α) :
   α ≃ punit.{v+1} ⊕ {a' // a' ≠ a} :=

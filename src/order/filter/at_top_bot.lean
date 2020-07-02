@@ -364,19 +364,23 @@ alias tendsto_at_top_at_top_iff_of_monotone ← monotone.tendsto_at_top_at_top_i
 lemma tendsto_finset_range : tendsto finset.range at_top at_top :=
 finset.range_mono.tendsto_at_top_at_top finset.exists_nat_subset_range
 
-/-- If `f` is a monotone sequence of `finset`s and each `x` belongs to obe of `f n`, then
+/-- If `f` is a monotone sequence of `finset`s and each `x` belongs to one of `f n`, then
 `tendsto f at_top at_top`. -/
-lemma monotone.tendsto_at_top_finset [nonempty β] [semilattice_sup β]
+lemma monotone.tendsto_at_top_finset [semilattice_sup β]
   {f : β → finset α} (h : monotone f) (h' : ∀ x : α, ∃ n, x ∈ f n) :
   tendsto f at_top at_top :=
 begin
-  apply h.tendsto_at_top_at_top,
-  choose N hN using h',
-  assume b,
-  rcases (b.image N).bdd_above with ⟨n, hn⟩,
-  refine ⟨n, λ i ib, _⟩,
-  have : N i ∈ (b.image N) := finset.mem_image_of_mem _ ib,
-  exact (h (hn $ finset.mem_coe.2 this)) (hN i)
+  by_cases ne : nonempty β,
+  { resetI,
+    apply h.tendsto_at_top_at_top,
+    choose N hN using h',
+    assume b,
+    rcases (b.image N).bdd_above with ⟨n, hn⟩,
+    refine ⟨n, λ i ib, _⟩,
+    have : N i ∈ b.image N := finset.mem_image_of_mem _ ib,
+    exact h (hn $ finset.mem_coe.2 this) (hN i) },
+  { rw at_top.filter_eq_bot_of_not_nonempty ne,
+    exact tendsto_bot }
 end
 
 lemma tendsto_finset_image_at_top_at_top {i : β → γ} {j : γ → β} (h : function.left_inverse j i) :
@@ -384,14 +388,25 @@ lemma tendsto_finset_image_at_top_at_top {i : β → γ} {j : γ → β} (h : fu
 (finset.image_mono j).tendsto_at_top_at_top $ assume s,
   ⟨s.image i, by simp only [finset.image_image, h.comp_eq_id, finset.image_id, le_refl]⟩
 
-lemma prod_at_top_at_top_eq {β₁ β₂ : Type*} [nonempty β₁] [nonempty β₂] [semilattice_sup β₁]
-  [semilattice_sup β₂] : (@at_top β₁ _) ×ᶠ (@at_top β₂ _) = @at_top (β₁ × β₂) _ :=
-by inhabit β₁; inhabit β₂;
-  simp [at_top, prod_infi_left (default β₁), prod_infi_right (default β₂), infi_prod];
-    exact infi_comm
+lemma prod_at_top_at_top_eq {β₁ β₂ : Type*} [semilattice_sup β₁] [semilattice_sup β₂] :
+  (at_top : filter β₁) ×ᶠ (at_top : filter β₂) = (at_top : filter (β₁ × β₂)) :=
+begin
+  by_cases ne : nonempty β₁ ∧ nonempty β₂,
+  { cases ne,
+    resetI,
+    inhabit β₁,
+    inhabit β₂,
+    simp [at_top, prod_infi_left (default β₁), prod_infi_right (default β₂), infi_prod],
+    exact infi_comm },
+  { push_neg at ne,
+    cases ne;
+    { have : ¬ (nonempty (β₁ × β₂)), by simp [ne],
+      rw [at_top.filter_eq_bot_of_not_nonempty ne, at_top.filter_eq_bot_of_not_nonempty this],
+      simp only [bot_prod, prod_bot] } }
+end
 
-lemma prod_map_at_top_eq {α₁ α₂ β₁ β₂ : Type*} [nonempty β₁] [nonempty β₂]
-  [semilattice_sup β₁] [semilattice_sup β₂] (u₁ : β₁ → α₁) (u₂ : β₂ → α₂) :
+lemma prod_map_at_top_eq {α₁ α₂ β₁ β₂ : Type*} [semilattice_sup β₁] [semilattice_sup β₂]
+  (u₁ : β₁ → α₁) (u₂ : β₂ → α₂) :
   (map u₁ at_top) ×ᶠ (map u₂ at_top) = map (prod.map u₁ u₂) at_top :=
 by rw [prod_map_map_eq, prod_at_top_at_top_eq, prod.map_def]
 

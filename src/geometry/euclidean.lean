@@ -5,9 +5,11 @@ Author: Joseph Myers.
 -/
 import analysis.normed_space.real_inner_product
 import analysis.normed_space.add_torsor
+import linear_algebra.affine_space
 import tactic.interval_cases
 
 noncomputable theory
+open_locale big_operators
 open_locale classical
 open_locale real
 
@@ -643,6 +645,42 @@ begin
       ←vsub_sub_vsub_cancel_right V p3 p2 p1, ←vsub_sub_vsub_cancel_right V p2 p3 p1],
   exact angle_add_angle_sub_add_angle_sub_eq_pi (λ he, h3 ((vsub_eq_zero_iff_eq V).1 he))
                                                 (λ he, h2 ((vsub_eq_zero_iff_eq V).1 he))
+end
+
+/-- The inner product of two vectors given with `weighted_vsub`, in
+terms of the pairwise distances. -/
+lemma inner_weighted_vsub {ι₁ : Type*} {s₁ : finset ι₁} {w₁ : ι₁ → ℝ} (p₁ : ι₁ → P)
+    (h₁ : ∑ i in s₁, w₁ i = 0) {ι₂ : Type*} {s₂ : finset ι₂} {w₂ : ι₂ → ℝ} (p₂ : ι₂ → P)
+    (h₂ : ∑ i in s₂, w₂ i = 0) :
+  inner (s₁.weighted_vsub V p₁ w₁) (s₂.weighted_vsub V p₂ w₂) =
+    (-∑ i₁ in s₁, ∑ i₂ in s₂,
+      w₁ i₁ * w₂ i₂ * (dist (p₁ i₁) (p₂ i₂) * dist (p₁ i₁) (p₂ i₂))) / 2 :=
+begin
+  rw [finset.weighted_vsub_apply, finset.weighted_vsub_apply,
+      inner_sum_smul_sum_smul_of_sum_eq_zero _ h₁ _ h₂],
+  simp_rw [vsub_sub_vsub_cancel_right],
+  congr,
+  ext i₁,
+  congr,
+  ext i₂,
+  rw dist_eq_norm V (p₁ i₁) (p₂ i₂)
+end
+
+/-- The distance between two points given with `affine_combination`,
+in terms of the pairwise distances between the points in that
+combination. -/
+lemma dist_affine_combination {ι : Type*} {s : finset ι} {w₁ w₂ : ι → ℝ} (p : ι → P)
+    (h₁ : ∑ i in s, w₁ i = 1) (h₂ : ∑ i in s, w₂ i = 1) :
+  dist (s.affine_combination V w₁ p) (s.affine_combination V w₂ p) *
+    dist (s.affine_combination V w₁ p) (s.affine_combination V w₂ p) =
+    (-∑ i₁ in s, ∑ i₂ in s,
+      (w₁ - w₂) i₁ * (w₁ - w₂) i₂ * (dist (p i₁) (p i₂) * dist (p i₁) (p i₂))) / 2 :=
+begin
+  rw [dist_eq_norm V (s.affine_combination V w₁ p) (s.affine_combination V w₂ p),
+      ←inner_self_eq_norm_square, finset.affine_combination_vsub],
+  have h : ∑ i in s, (w₁ - w₂) i = 0,
+  { simp_rw [pi.sub_apply, finset.sum_sub_distrib, h₁, h₂, sub_self] },
+  exact inner_weighted_vsub V p h p h
 end
 
 end euclidean_geometry

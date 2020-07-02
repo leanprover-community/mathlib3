@@ -25,11 +25,11 @@ namespace CommRing
 
 variables {J : Type u} [small_category J]
 
-instance comm_ring_obj (F : J ⥤ CommRing.{u}) (j) :
+instance comm_ring_obj (F : J ⥤ CommRing) (j) :
   comm_ring ((F ⋙ forget CommRing).obj j) :=
 by { change comm_ring (F.obj j), apply_instance }
 
-instance sections_submonoid (F : J ⥤ CommRing.{u}) :
+instance sections_submonoid (F : J ⥤ CommRing) :
   is_submonoid (F ⋙ forget CommRing).sections :=
 { one_mem := λ j j' f,
   begin
@@ -46,7 +46,7 @@ instance sections_submonoid (F : J ⥤ CommRing.{u}) :
     refl,
   end }
 
-instance sections_add_submonoid (F : J ⥤ CommRing.{u}) :
+instance sections_add_submonoid (F : J ⥤ CommRing) :
   is_add_submonoid (F ⋙ forget CommRing).sections :=
 { zero_mem := λ j j' f,
   begin
@@ -63,7 +63,7 @@ instance sections_add_submonoid (F : J ⥤ CommRing.{u}) :
     refl,
   end }
 
-instance sections_add_subgroup (F : J ⥤ CommRing.{u}) :
+instance sections_add_subgroup (F : J ⥤ CommRing) :
   is_add_subgroup (F ⋙ forget CommRing).sections :=
 { neg_mem := λ a ah j j' f,
   begin
@@ -74,18 +74,18 @@ instance sections_add_subgroup (F : J ⥤ CommRing.{u}) :
   end,
   ..(CommRing.sections_add_submonoid F) }
 
-instance sections_subring (F : J ⥤ CommRing.{u}) :
+instance sections_subring (F : J ⥤ CommRing) :
   is_subring (F ⋙ forget CommRing).sections :=
 { ..(CommRing.sections_submonoid F),
   ..(CommRing.sections_add_subgroup F) }
 
-instance limit_comm_ring (F : J ⥤ CommRing.{u}) :
+instance limit_comm_ring (F : J ⥤ CommRing) :
   comm_ring (limit (F ⋙ forget CommRing)) :=
 @subtype.comm_ring ((Π (j : J), (F ⋙ forget _).obj j)) (by apply_instance) _
   (by convert (CommRing.sections_subring F))
 
 /-- `limit.π (F ⋙ forget CommRing) j` as a `ring_hom`. -/
-def limit_π_ring_hom (F : J ⥤ CommRing.{u}) (j) :
+def limit_π_ring_hom (F : J ⥤ CommRing) (j) :
   limit (F ⋙ forget CommRing) →+* (F ⋙ forget CommRing).obj j :=
 { to_fun := limit.π (F ⋙ forget CommRing) j,
   map_one' := by { simp only [types.types_limit_π], refl },
@@ -102,7 +102,7 @@ namespace CommRing_has_limits
 Construction of a limit cone in `CommRing`.
 (Internal use only; use the limits API.)
 -/
-def limit (F : J ⥤ CommRing.{u}) : cone F :=
+def limit (F : J ⥤ CommRing) : cone F :=
 { X := ⟨limit (F ⋙ forget _), by apply_instance⟩,
   π :=
   { app := limit_π_ring_hom F,
@@ -113,7 +113,7 @@ def limit (F : J ⥤ CommRing.{u}) : cone F :=
 Witness that the limit cone in `CommRing` is a limit cone.
 (Internal use only; use the limits API.)
 -/
-def limit_is_limit (F : J ⥤ CommRing.{u}) : is_limit (limit F) :=
+def limit_is_limit (F : J ⥤ CommRing) : is_limit (limit F) :=
 begin
   refine is_limit.of_faithful
     (forget CommRing) (limit.is_limit _)
@@ -128,7 +128,7 @@ end CommRing_has_limits
 open CommRing_has_limits
 
 /-- The category of commutative rings has all limits. -/
-instance CommRing_has_limits : has_limits.{u} CommRing.{u} :=
+instance CommRing_has_limits : has_limits CommRing :=
 { has_limits_of_shape := λ J 𝒥,
   { has_limit := λ F, by exactI
     { cone     := limit F,
@@ -138,7 +138,7 @@ instance CommRing_has_limits : has_limits.{u} CommRing.{u} :=
 The forgetful functor from commutative rings to types preserves all limits. (That is, the underlying
 types could have been computed instead as limits in the category of types.)
 -/
-instance forget_preserves_limits : preserves_limits (forget CommRing.{u}) :=
+instance forget_preserves_limits : preserves_limits (forget CommRing) :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ F,
     by exactI preserves_limit_of_preserves_limit_cone

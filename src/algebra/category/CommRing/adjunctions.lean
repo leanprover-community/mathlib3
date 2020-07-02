@@ -23,10 +23,10 @@ namespace CommRing
 open_locale classical
 
 /--
-The free functor `Type u ⥤ CommRing.{u}` sending a type `X` to the multivariable (commutative)
+The free functor `Type u ⥤ CommRing` sending a type `X` to the multivariable (commutative)
 polynomials with variables `x : X`.
 -/
-def free : Type u ⥤ CommRing.{u} :=
+def free : Type u ⥤ CommRing :=
 { obj := λ α, of (mv_polynomial α ℤ),
   -- TODO this should just be `ring_hom.of (rename f)`, but this causes a mysterious deterministic timeout!
   map := λ X Y f, @ring_hom.of _ _ _ _ (rename f) (by apply_instance),

@@ -20,25 +20,21 @@ def subtype_perm (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x)) : 
 @[simp] lemma subtype_perm_one (p : α → Prop) (h : ∀ x, p x ↔ p ((1 : perm α) x)) : @subtype_perm α 1 p h = 1 :=
 equiv.ext $ λ ⟨_, _⟩, rfl
 
-def of_subtype {p : α → Prop} [decidable_pred p] (f : perm (subtype p)) : perm α :=
-⟨λ x, if h : p x then f ⟨x, h⟩ else x, λ x, if h : p x then f⁻¹ ⟨x, h⟩ else x,
+def of_subtype {p : α → Prop} [decidable_pred p] : perm (subtype p) →* perm α :=
+{ to_fun := λ f,
+  ⟨λ x, if h : p x then f ⟨x, h⟩ else x, λ x, if h : p x then f⁻¹ ⟨x, h⟩ else x,
   λ x, have h : ∀ h : p x, p (f ⟨x, h⟩), from λ h, (f ⟨x, h⟩).2,
     by simp; split_ifs at *; simp * at *,
   λ x, have h : ∀ h : p x, p (f⁻¹ ⟨x, h⟩), from λ h, (f⁻¹ ⟨x, h⟩).2,
-    by simp; split_ifs at *; simp * at *⟩
-
-instance of_subtype.is_group_hom {p : α → Prop} [decidable_pred p] : is_group_hom (@of_subtype α p _) :=
-{ map_mul := λ f g, equiv.ext $ λ x, begin
-  rw [of_subtype, of_subtype, of_subtype],
+    by simp; split_ifs at *; simp * at *⟩,
+  map_one' := begin ext, dsimp, split_ifs; refl, end,
+  map_mul' := λ f g, equiv.ext $ λ x, begin
   by_cases h : p x,
   { have h₁ : p (f (g ⟨x, h⟩)), from (f (g ⟨x, h⟩)).2,
     have h₂ : p (g ⟨x, h⟩), from (g ⟨x, h⟩).2,
     simp [h, h₁, h₂] },
   { simp [h] }
 end }
-
-@[simp] lemma of_subtype_one (p : α → Prop) [decidable_pred p] : @of_subtype α p _ 1 = 1 :=
-is_group_hom.map_one of_subtype
 
 lemma eq_inv_iff_eq {f : perm α} {x y : α} : x = f⁻¹ y ↔ f x = y :=
 by conv {to_lhs, rw [← injective.eq_iff f.injective, apply_inv_self]}

@@ -379,8 +379,7 @@ begin
     refine ⟨n, λ i ib, _⟩,
     have : N i ∈ b.image N := finset.mem_image_of_mem _ ib,
     exact h (hn $ finset.mem_coe.2 this) (hN i) },
-  { rw at_top.filter_eq_bot_of_not_nonempty ne,
-    exact tendsto_bot }
+  { exact tendsto_of_not_nonempty ne }
 end
 
 lemma tendsto_finset_image_at_top_at_top {i : β → γ} {j : γ → β} (h : function.left_inverse j i) :

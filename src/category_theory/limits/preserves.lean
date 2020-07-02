@@ -249,7 +249,8 @@ end
 
 variable (F : C ⥤ D)
 
-instance fully_faithful_reflects_limits [full F] [faithful F] : reflects_limits F :=
+/-- A fully faithful functor reflects limits. -/
+def fully_faithful_reflects_limits [full F] [faithful F] : reflects_limits F :=
 { reflects_limits_of_shape := λ J 𝒥₁, by exactI
   { reflects_limit := λ K,
     { reflects := λ c t,
@@ -260,7 +261,8 @@ instance fully_faithful_reflects_limits [full F] [faithful F] : reflects_limits 
         apply t.uniq_cone_morphism,
       end } } }
 
-instance fully_faithful_reflects_colimits [full F] [faithful F] : reflects_colimits F :=
+/-- A fully faithful functor reflects colimits. -/
+def fully_faithful_reflects_colimits [full F] [faithful F] : reflects_colimits F :=
 { reflects_colimits_of_shape := λ J 𝒥₁, by exactI
   { reflects_colimit := λ K,
     { reflects := λ c t,

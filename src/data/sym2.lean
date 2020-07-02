@@ -241,8 +241,8 @@ by tidy
 lemma from_rel_prop {sym : symmetric r} {a b : α} : ⟦(a, b)⟧ ∈ from_rel sym ↔ r a b :=
 by simp only [from_rel_proj_prop]
 
-@[simp]
-lemma from_rel_irreflexive {sym : symmetric r} : irreflexive r ↔ ∀{z}, z ∈ from_rel sym → ¬is_diag z :=
+lemma from_rel_irreflexive {sym : symmetric r} :
+  irreflexive r ↔ ∀ {z}, z ∈ from_rel sym → ¬is_diag z :=
 begin
   split,
   { intros h z hr hd,

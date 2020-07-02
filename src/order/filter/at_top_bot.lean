@@ -109,14 +109,14 @@ lemma tendsto_at_top [preorder β] (m : α → β) (f : filter α) :
 by simp only [at_top, tendsto_infi, tendsto_principal]; refl
 
 lemma tendsto_at_top_mono' [preorder β] (l : filter α) ⦃f₁ f₂ : α → β⦄
-  (h : {x | f₁ x ≤ f₂ x} ∈ l) :
+  (h : ∀ᶠ x in l, f₁ x ≤ f₂ x) :
   tendsto f₁ l at_top → tendsto f₂ l at_top :=
 assume h₁, (tendsto_at_top _ _).2 $ λ b, mp_sets ((tendsto_at_top _ _).1 h₁ b)
   (monotone_mem_sets (λ a ha ha₁, le_trans ha₁ ha) h)
 
-lemma tendsto_at_top_mono [preorder β] (l : filter α) :
-  monotone (λ f : α → β, tendsto f l at_top) :=
-λ f₁ f₂ h, tendsto_at_top_mono' l $ univ_mem_sets' h
+lemma tendsto_at_top_mono [preorder β] {l : filter α} {f g : α → β} (h : ∀ n, f n ≤ g n) :
+  tendsto f l at_top → tendsto g l at_top :=
+tendsto_at_top_mono' l $ eventually_of_forall _ h
 
 /-!
 ### Sequences
@@ -220,11 +220,11 @@ let ⟨φ, h, h'⟩ := extraction_of_frequently_at_top (frequently_high_scores h
 
 lemma strict_mono_subseq_of_id_le {u : ℕ → ℕ} (hu : ∀ n, n ≤ u n) :
   ∃ φ : ℕ → ℕ, strict_mono φ ∧ strict_mono (u ∘ φ) :=
-strict_mono_subseq_of_tendsto_at_top (tendsto_at_top_mono _ hu tendsto_id)
+strict_mono_subseq_of_tendsto_at_top (tendsto_at_top_mono hu tendsto_id)
 
 lemma strict_mono_tendsto_at_top {φ : ℕ → ℕ} (h : strict_mono φ) :
   tendsto φ at_top at_top :=
-tendsto_at_top_mono _ h.id_le tendsto_id
+tendsto_at_top_mono h.id_le tendsto_id
 
 section ordered_add_monoid
 
@@ -455,7 +455,7 @@ map_at_top_eq_of_gc (λb, b * k + (k - 1)) 1
 
 /-- If `u` is a monotone function with linear ordered codomain and the range of `u` is not bounded
 above, then `tendsto u at_top at_top`. -/
-lemma tendsto_at_top_at_top_of_monotone' {ι α : Type*} [semilattice_sup ι] [linear_order α]
+lemma tendsto_at_top_at_top_of_monotone' {ι α : Type*} [preorder ι] [linear_order α]
   {u : ι → α} (h : monotone u) (H : ¬bdd_above (range u)) :
   tendsto u at_top at_top :=
 begin
@@ -466,8 +466,8 @@ begin
 end
 
 lemma unbounded_of_tendsto_at_top {α β : Type*} [nonempty α] [semilattice_sup α]
-  [preorder β] [no_top_order β]
-  {f : α → β} (h : tendsto f at_top at_top) : ¬ bdd_above (range f) :=
+  [preorder β] [no_top_order β] {f : α → β} (h : tendsto f at_top at_top) :
+  ¬ bdd_above (range f) :=
 begin
   rintros ⟨M, hM⟩,
   cases mem_at_top_sets.mp (h $ Ioi_mem_at_top M) with a ha,

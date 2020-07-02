@@ -150,8 +150,8 @@ suffices tendsto (λ n : ℕ, 1 / (↑(n + 1) : ℝ)) at_top (𝓝 0), by simpa,
 lemma tendsto_add_one_pow_at_top_at_top_of_pos [linear_ordered_semiring α] [archimedean α] {r : α}
   (h : 0 < r) :
   tendsto (λ n:ℕ, (r + 1)^n) at_top at_top :=
-(tendsto_at_top_at_top_of_monotone (λ n m, pow_le_pow (le_add_of_nonneg_left' (le_of_lt h)))).2 $
-  λ x, (add_one_pow_unbounded_of_pos x h).imp $ λ _, le_of_lt
+tendsto_at_top_at_top_of_monotone' (λ n m, pow_le_pow (le_add_of_nonneg_left' (le_of_lt h))) $
+  not_bdd_above_iff.2 $ λ x, set.exists_range_iff.2 $ add_one_pow_unbounded_of_pos _ h
 
 lemma tendsto_pow_at_top_at_top_of_one_lt [linear_ordered_ring α] [archimedean α]
   {r : α} (h : 1 < r) :
@@ -609,7 +609,8 @@ begin
   exact nat.zero_lt_succ _,
 end
 
-lemma half_le_harmonic_double_sub_harmonic (n : ℕ) (hn : 0 < n) : 1/2 ≤ harmonic_series (2*n) - harmonic_series n :=
+lemma half_le_harmonic_double_sub_harmonic (n : ℕ) (hn : 0 < n) :
+  1/2 ≤ harmonic_series (2*n) - harmonic_series n :=
 begin
   suffices : harmonic_series n + 1 / 2 ≤ harmonic_series (n + n),
     { rw two_mul,
@@ -636,7 +637,8 @@ lemma self_div_two_le_harmonic_two_pow (n : ℕ) : (n / 2 : ℝ) ≤ harmonic_se
 begin
   induction n with n hn,
   unfold harmonic_series,
-  simp only [one_div_eq_inv, nat.cast_zero, euclidean_domain.zero_div, nat.cast_succ, sum_singleton, inv_one, zero_add, nat.pow_zero, range_one, zero_le_one],
+  simp only [one_div_eq_inv, nat.cast_zero, euclidean_domain.zero_div, nat.cast_succ, sum_singleton,
+    inv_one, zero_add, nat.pow_zero, range_one, zero_le_one],
   have : harmonic_series (2^n) + 1 / 2 ≤ harmonic_series (2^(n+1)),
   { have := half_le_harmonic_double_sub_harmonic (2^n) (by {apply nat.pow_pos, linarith}),
     rw [nat.mul_comm, ← nat.pow_succ] at this,
@@ -646,20 +648,13 @@ begin
   linarith,
 end
 
-lemma self_div_two_le_harmonic_two_pow' : (λ n : ℕ, (n/2 : ℝ)) ≤ (λ n : ℕ, harmonic_series (2^n)) :=
-begin
-  intros n,
-  exact self_div_two_le_harmonic_two_pow n,
-end
-
 /-- The harmonic series diverges to +∞ -/
 theorem harmonic_tendsto_at_top : tendsto harmonic_series at_top at_top :=
 begin
   suffices : tendsto (λ n : ℕ, harmonic_series (2^n)) at_top at_top, by
-  { apply tendsto_at_top_of_monotone_of_subseq mono_harmonic this},
-  apply tendsto_at_top_mono,
-  exact self_div_two_le_harmonic_two_pow',
+  { exact tendsto_at_top_of_monotone_of_subseq mono_harmonic at_top_ne_bot this },
+  apply tendsto_at_top_mono self_div_two_le_harmonic_two_pow,
   apply tendsto_at_top_div,
-  linarith,
-  exact tendsto_coe_nat_real_at_top_at_top,
+  norm_num,
+  exact tendsto_coe_nat_real_at_top_at_top
 end

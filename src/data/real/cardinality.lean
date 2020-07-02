@@ -122,7 +122,7 @@ lemma not_countable_real : ¬ countable (set.univ : set ℝ) :=
 by { rw [countable_iff, not_le, mk_univ_real], apply cantor }
 
 /-- The cardinality of the interval (a, ∞). -/
-lemma mk_real_Ioi (a : ℝ) : mk (Ioi a) = 2 ^ omega.{0} :=
+lemma mk_Ioi_real (a : ℝ) : mk (Ioi a) = 2 ^ omega.{0} :=
 begin
   refine le_antisymm (mk_real ▸ mk_set_le _) _,
   by_contradiction h,
@@ -145,25 +145,25 @@ begin
 end
 
 /-- The cardinality of the interval [a, ∞). -/
-lemma mk_real_Ici (a : ℝ) : mk (Ici a) = 2 ^ omega.{0} :=
-le_antisymm (mk_real ▸ mk_set_le _) (mk_real_Ioi a ▸ mk_le_mk_of_subset Ioi_subset_Ici_self)
+lemma mk_Ici_real (a : ℝ) : mk (Ici a) = 2 ^ omega.{0} :=
+le_antisymm (mk_real ▸ mk_set_le _) (mk_Ioi_real a ▸ mk_le_mk_of_subset Ioi_subset_Ici_self)
 
 /-- The cardinality of the interval (-∞, a). -/
-lemma mk_real_Iio (a : ℝ) : mk (Iio a) = 2 ^ omega.{0} :=
+lemma mk_Iio_real (a : ℝ) : mk (Iio a) = 2 ^ omega.{0} :=
 begin
   refine le_antisymm (mk_real ▸ mk_set_le _) _,
   have h2 : (λ x, a + a - x) '' Iio a = Ioi a,
   { convert image_const_sub_Iio _ _,
     simp },
-  exact mk_real_Ioi a ▸ h2 ▸ mk_image_le
+  exact mk_Ioi_real a ▸ h2 ▸ mk_image_le
 end
 
 /-- The cardinality of the interval (-∞, a]. -/
-lemma mk_real_Iic (a : ℝ) : mk (Iic a) = 2 ^ omega.{0} :=
-le_antisymm (mk_real ▸ mk_set_le _) (mk_real_Iio a ▸ mk_le_mk_of_subset Iio_subset_Iic_self)
+lemma mk_Iic_real (a : ℝ) : mk (Iic a) = 2 ^ omega.{0} :=
+le_antisymm (mk_real ▸ mk_set_le _) (mk_Iio_real a ▸ mk_le_mk_of_subset Iio_subset_Iic_self)
 
 /-- The cardinality of the interval (a, b). -/
-lemma mk_real_Ioo {a b : ℝ} (h : a < b) : mk (Ioo a b) = 2 ^ omega.{0} :=
+lemma mk_Ioo_real {a b : ℝ} (h : a < b) : mk (Ioo a b) = 2 ^ omega.{0} :=
 begin
   refine le_antisymm (mk_real ▸ mk_set_le _) _,
   have h1 : mk ((λ x, x - a) '' Ioo a b) ≤ mk (Ioo a b) := mk_image_le,
@@ -172,19 +172,19 @@ begin
   replace h := sub_pos_of_lt h,
   have h2 : mk (has_inv.inv '' Ioo 0 (b - a)) ≤ mk (Ioo 0 (b - a)) := mk_image_le,
   refine le_trans _ h2,
-  rw [image_inv_Ioo_0_left h, mk_real_Ioi]
+  rw [image_inv_Ioo_0_left h, mk_Ioi_real]
 end
 
 /-- The cardinality of the interval [a, b). -/
-lemma mk_real_Ico {a b : ℝ} (h : a < b) : mk (Ico a b) = 2 ^ omega.{0} :=
-le_antisymm (mk_real ▸ mk_set_le _) (mk_real_Ioo h ▸ mk_le_mk_of_subset Ioo_subset_Ico_self)
+lemma mk_Ico_real {a b : ℝ} (h : a < b) : mk (Ico a b) = 2 ^ omega.{0} :=
+le_antisymm (mk_real ▸ mk_set_le _) (mk_Ioo_real h ▸ mk_le_mk_of_subset Ioo_subset_Ico_self)
 
 /-- The cardinality of the interval [a, b]. -/
-lemma mk_real_Icc {a b : ℝ} (h : a < b) : mk (Icc a b) = 2 ^ omega.{0} :=
-le_antisymm (mk_real ▸ mk_set_le _) (mk_real_Ioo h ▸ mk_le_mk_of_subset Ioo_subset_Icc_self)
+lemma mk_Icc_real {a b : ℝ} (h : a < b) : mk (Icc a b) = 2 ^ omega.{0} :=
+le_antisymm (mk_real ▸ mk_set_le _) (mk_Ioo_real h ▸ mk_le_mk_of_subset Ioo_subset_Icc_self)
 
 /-- The cardinality of the interval (a, b]. -/
-lemma mk_real_Ioc {a b : ℝ} (h : a < b) : mk (Ioc a b) = 2 ^ omega.{0} :=
-le_antisymm (mk_real ▸ mk_set_le _) (mk_real_Ioo h ▸ mk_le_mk_of_subset Ioo_subset_Ioc_self)
+lemma mk_Ioc_real {a b : ℝ} (h : a < b) : mk (Ioc a b) = 2 ^ omega.{0} :=
+le_antisymm (mk_real ▸ mk_set_le _) (mk_Ioo_real h ▸ mk_le_mk_of_subset Ioo_subset_Ioc_self)
 
 end cardinal

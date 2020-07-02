@@ -69,7 +69,7 @@ is the `n+1`-th auxiliary function. -/
 lemma f_aux_deriv_pos (n : ℕ) (x : ℝ) (hx : 0 < x) :
   has_deriv_at (f_aux n) ((P_aux (n+1)).eval x * exp (-x⁻¹) / x^(2 * (n + 1))) x :=
 begin
-  apply (f_aux_deriv n x (ne_of_gt hx)).congr_of_mem_nhds,
+  apply (f_aux_deriv n x (ne_of_gt hx)).congr_of_eventually_eq,
   have : Ioi (0 : ℝ) ∈ 𝓝 x := lt_mem_nhds hx,
   filter_upwards [this],
   assume y hy,
@@ -133,7 +133,7 @@ begin
   rcases lt_trichotomy x 0 with hx|hx|hx,
   { have : f_aux (n+1) x = 0, by simp [f_aux, le_of_lt hx],
     rw this,
-    apply (has_deriv_at_const x (0 : ℝ)).congr_of_mem_nhds,
+    apply (has_deriv_at_const x (0 : ℝ)).congr_of_eventually_eq,
     have : Iio (0 : ℝ) ∈ 𝓝 x := gt_mem_nhds hx,
     filter_upwards [this],
     assume y hy,

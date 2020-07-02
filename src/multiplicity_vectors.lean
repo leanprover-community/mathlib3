@@ -39,50 +39,50 @@ section basics
 /-- Two pnats are coprime if their gcd is 1. -/
 def pnat.coprime (m n : ℕ+) : Prop := m.gcd n = 1
 
-/-- Maps from primes to ℕ - to be viewed as exponents of factorizations.  -/
-def prime_finsupp : Type := nat.primes →₀ ℕ
+--/-- Maps from primes to ℕ - to be viewed as exponents of factorizations.  -/
+--def prime_finsupp : Type := nat.primes →₀ ℕ
 
-@[instance]
-instance prime_finsupp.has_coe_to_fun : has_coe_to_fun prime_finsupp := { ..finsupp.has_coe_to_fun}
+--@[instance]
+--instance finsupp.primes_has_coe_to_fun : has_coe_to_fun prime_finsupp := { ..finsupp.has_coe_to_fun}
 
 /-- Changes the domain to ℕ+. -/
-def prime_finsupp.to_pnat_finsupp : prime_finsupp → ℕ+ →₀ ℕ := finsupp.map_domain coe
+def finsupp.primes_to_pnat : (nat.primes →₀ ℕ) → ℕ+ →₀ ℕ := finsupp.map_domain coe
 
 @[instance]
-instance prime_finsupp.coe_pnat : has_coe prime_finsupp (ℕ+ →₀ ℕ) :=
-⟨prime_finsupp.to_pnat_finsupp⟩
+instance finsupp.coe_primes_to_pnat : has_coe (nat.primes →₀ ℕ) (ℕ+ →₀ ℕ) :=
+⟨finsupp.primes_to_pnat⟩
 
-lemma prime_finsupp.coe_pnat_to_multiset (x : prime_finsupp) :
+lemma finsupp.coe_primes_to_pnat_to_multiset (x : nat.primes →₀ ℕ) :
   prime_multiset.to_pnat_multiset x.to_multiset = (x : ℕ+ →₀ ℕ).to_multiset :=
 finsupp.to_multiset_map x coe
 
 /-- Take the product of a function of prime powers with exponents given by a finsupp. -/
-def prime_finsupp.prod_apply_pow {α : Type} [comm_monoid α] (x : prime_finsupp) (f : ℕ+ → α) : α :=
+def finsupp.primes_prod_apply_pow {α : Type} [comm_monoid α] (x : nat.primes →₀ ℕ) (f : ℕ+ → α) : α :=
 x.prod (λ p : nat.primes, λ k : ℕ, f (p ^ k))
 
 /-- Take the product of prime powers with exponents given by a finsupp. -/
-def prime_finsupp.prod_pow (x : prime_finsupp) := x.prod_apply_pow id
+def finsupp.primes_prod_pow (x : nat.primes →₀ ℕ) := x.primes_prod_apply_pow id
 
-lemma prime_finsupp.prod_pow_eq (x : prime_finsupp) :
-  x.prod_pow= x.prod (λ p : nat.primes, λ k : ℕ, (p ^ k)) := rfl
+lemma finsupp.primes_prod_pow_eq (x : nat.primes →₀ ℕ) :
+  x.primes_prod_pow= x.prod (λ p : nat.primes, λ k : ℕ, (p ^ k)) := rfl
 
-lemma prime_finsupp.prod_pow_eq_coe_prod_pow (x : prime_finsupp) :
-  x.prod_pow= (x : ℕ+ →₀ ℕ).prod pow :=
+lemma finsupp.primes_prod_pow_eq_coe_prod_pow (x : nat.primes →₀ ℕ) :
+  x.primes_prod_pow= (x : ℕ+ →₀ ℕ).prod pow :=
 begin
-  change x.prod_pow = (finsupp.map_domain coe x).prod pow,
-  rw [finsupp.prod_map_domain_index, prime_finsupp.prod_pow_eq], simp,
+  change x.primes_prod_pow = (finsupp.map_domain coe x).prod pow,
+  rw [finsupp.prod_map_domain_index, finsupp.primes_prod_pow_eq], simp,
   intros, rw pow_add,
 end
 
-lemma prime_finsupp.prod_pow_eq_prod_to_multiset (x : prime_finsupp) :
-  x.prod_pow= prime_multiset.prod x.to_multiset :=
+lemma finsupp.primes_prod_pow_eq_prod_to_multiset (x : nat.primes →₀ ℕ) :
+  x.primes_prod_pow= prime_multiset.prod x.to_multiset :=
 begin
-  rw [prime_multiset.prod, prime_finsupp.prod_pow_eq_coe_prod_pow,
-    ← finsupp.prod_to_multiset, ← prime_finsupp.coe_pnat_to_multiset], refl
+  rw [prime_multiset.prod, finsupp.primes_prod_pow_eq_coe_prod_pow,
+    ← finsupp.prod_to_multiset, ← finsupp.coe_primes_to_pnat_to_multiset], refl
 end
 
 /-- The value of this finsupp at a prime is the multiplicity of that prime in n. -/
-def factor_finsupp (n : ℕ+) : prime_finsupp := n.factor_multiset.to_finsupp
+def factor_finsupp (n : ℕ+) : nat.primes →₀ ℕ := n.factor_multiset.to_finsupp
 
 end basics
 
@@ -174,22 +174,10 @@ begin
 end
 
 @[instance]
-instance prime_finsupp.lattice : lattice prime_finsupp :=
-{ ..finsupp.lattice}
-
-@[instance]
 instance finsupp.semilattice_inf_bot : semilattice_inf_bot (α →₀ ℕ) :=
 { bot := 0,
   bot_le := by { intro a, simp [finsupp.le_iff] },
 ..finsupp.lattice}
-
-@[instance]
-instance prime_finsupp.semilattice_inf_bot : semilattice_inf_bot prime_finsupp :=
-{ ..finsupp.semilattice_inf_bot}
-
-@[instance]
-instance prime_finsupp.add_comm_monoid : add_comm_monoid prime_finsupp :=
-{ ..finsupp.add_comm_monoid}
 
 @[simp]
 lemma factor_finsupp_to_multiset_eq_factor_multiset {n : ℕ+} :
@@ -267,28 +255,19 @@ def finsupp.order_iso_multiset (α : Type) :
   rw multiset.le_iff_count, simp only [finsupp.count_to_multiset], refl
 end ⟩
 
-/-- The lattice of prime_finsupps is order isomorphic to that of prime_multisets.  -/
-def prime_finsupp.order_iso_multiset :
-(has_le.le : prime_finsupp → prime_finsupp → Prop) ≃o
-  (has_le.le : prime_multiset → prime_multiset → Prop) :=
-finsupp.order_iso_multiset nat.primes
+@[simp]
+lemma finsupp.order_iso_multiset_factor_finsupp {n : ℕ+} :
+  finsupp.order_iso_multiset nat.primes (factor_finsupp n) = n.factor_multiset :=
+by { simp [finsupp.order_iso_multiset, finsupp.equiv_multiset] }
 
 @[simp]
-lemma prime_finsupp.order_iso_multiset_factor_finsupp {n : ℕ+} :
-  (factor_finsupp n).order_iso_multiset = n.factor_multiset :=
-begin
-  unfold prime_finsupp.order_iso_multiset, unfold finsupp.order_iso_multiset,
-  unfold finsupp.equiv_multiset, simp
-end
+lemma finsupp.order_iso_multiset_symm_factor_multiset {n : ℕ+} :
+  (finsupp.order_iso_multiset nat.primes).symm n.factor_multiset = factor_finsupp n :=
+by { apply (finsupp.order_iso_multiset nat.primes).to_order_embedding.inj, simp }
 
-@[simp]
-lemma prime_finsupp.order_iso_multiset_symm_factor_multiset {n : ℕ+} :
-  prime_finsupp.order_iso_multiset.symm n.factor_multiset = factor_finsupp n :=
-by { apply prime_finsupp.order_iso_multiset.to_order_embedding.inj, simp }
-
-/-- Factorization is a bijection from ℕ+ to prime_finsupp. -/
-def pnat.prime_finsupp_equiv : ℕ+ ≃ prime_finsupp :=
-equiv.trans pnat.factor_multiset_equiv (prime_finsupp.order_iso_multiset.to_equiv.symm)
+/-- Factorization is a bijection from ℕ+ to finsupp.primes_ -/
+def pnat.prime_finsupp_equiv : ℕ+ ≃ (nat.primes →₀ ℕ) :=
+equiv.trans pnat.factor_multiset_equiv ((finsupp.order_iso_multiset nat.primes).to_equiv.symm)
 
 @[simp]
 lemma pnat.prime_finsupp_equiv_eq_factor_finsupp :
@@ -300,10 +279,10 @@ end
 
 @[simp]
 lemma pnat.prime_finsupp_equiv_symm_eq_prod_pow :
-  ⇑pnat.prime_finsupp_equiv.symm = prime_finsupp.prod_pow :=
+  ⇑pnat.prime_finsupp_equiv.symm = finsupp.primes_prod_pow :=
 begin
   transitivity prime_multiset.prod ∘ finsupp.to_multiset, refl,
-  ext, rw prime_finsupp.prod_pow_eq_prod_to_multiset,
+  ext, rw finsupp.primes_prod_pow_eq_prod_to_multiset,
 end
 
 end finsupp_lattice_iso_multiset
@@ -313,7 +292,7 @@ section basic_number_theory_definitions
 lemma dvd_iff_le_factor_finsupps {m n : ℕ+} :
   m ∣ n ↔ factor_finsupp m ≤ factor_finsupp n :=
 begin
-  rw prime_finsupp.order_iso_multiset.ord, simp [pnat.factor_multiset_le_iff],
+  rw (finsupp.order_iso_multiset nat.primes).ord, simp [pnat.factor_multiset_le_iff],
 end
 
 @[simp]
@@ -329,7 +308,7 @@ end
 lemma factor_finsupp_gcd_eq_inf_factor_finsupps {m n : ℕ+} :
   factor_finsupp (m.gcd n) = (factor_finsupp m) ⊓ (factor_finsupp n) :=
 begin
-  repeat {rw ← prime_finsupp.order_iso_multiset_symm_factor_multiset},
+  repeat {rw ← finsupp.order_iso_multiset_symm_factor_multiset},
   rw [pnat.factor_multiset_gcd, order_iso.map_inf],
 end
 
@@ -377,19 +356,19 @@ begin
 end
 
 lemma prod_pow_factor_finsupp (n : ℕ+) :
-  (factor_finsupp n).prod_pow = n :=
+  (factor_finsupp n).primes_prod_pow = n :=
 begin
-  rw prime_finsupp.prod_pow_eq_prod_to_multiset,
+  rw finsupp.primes_prod_pow_eq_prod_to_multiset,
   rw factor_finsupp_to_multiset_eq_factor_multiset,
   rw pnat.prod_factor_multiset
 end
 
-lemma factor_finsupp_prod_pow (f : prime_finsupp) :
-factor_finsupp (f.prod_pow) = f :=
+lemma factor_finsupp_prod_pow (f : nat.primes →₀ ℕ) :
+factor_finsupp (f.primes_prod_pow) = f :=
 begin
   unfold factor_finsupp, conv_rhs {rw ← f.to_multiset_to_finsupp},
   rw ← prime_multiset.factor_multiset_prod f.to_multiset,
-  rw prime_finsupp.prod_pow_eq_prod_to_multiset
+  rw finsupp.primes_prod_pow_eq_prod_to_multiset
 end
 
 lemma factor_finsupp_inj : function.injective factor_finsupp :=
@@ -419,13 +398,6 @@ begin
   rw [pow_succ, nat.succ_eq_add_one, add_smul, ← k_ih, mul_comm], simp
 end
 
-@[simp]
-lemma prime_finsupp.smul_eq_smul {b : ℕ} :
-  (k • finsupp.single p b : prime_finsupp) = (k • finsupp.single p b : nat.primes →₀ ℕ) :=
-begin
-  rw nat.smul_def,
-  induction k, simp, rw [succ_nsmul, nat.succ_eq_add_one, k_ih, add_smul, add_comm], simp
-end
 
 @[simp]
 lemma nat.smul_one : k • 1 = k := by { rw nat.smul_def, simp }
@@ -513,7 +485,7 @@ variables (p : nat.primes) (n : ℕ+)
 
 /-- The greatest divisor n coprime to prime p. -/
 def coprime_part : ℕ+ :=
-prime_finsupp.prod_pow ((factor_finsupp n).erase p)
+finsupp.primes_prod_pow ((factor_finsupp n).erase p)
 
 variables {p} {n}
 
@@ -557,7 +529,7 @@ lemma coprime_pow_coprime_part {k : ℕ} (pos : 0 < k): ((p : ℕ+) ^ k).coprime
 begin
   rw coprime_iff_disjoint_supports,
   rw [factor_finsupp_pow, factor_finsupp_prime, factor_finsupp_coprime_part_eq_erase_factor_finsupp],
-  simp only [prime_finsupp.smul_eq_smul, finsupp.support_erase, nat.smul_one, finsupp.smul_single],
+  simp only [finsupp.support_erase, nat.smul_one, finsupp.smul_single],
   rw finsupp.support_single_ne_zero, simp, omega
 end
 
@@ -641,7 +613,7 @@ f 1 = 1 ∧ ∀ m n : ℕ+, nat.coprime m n → f (m * n) = f m * f n
 variables {f : ℕ+ → α}
 
 lemma multiplicative_prod_eq_prod_multiplicative
-  (h : is_multiplicative f) {x : prime_finsupp} {s : finset nat.primes} :
+  (h : is_multiplicative f) {x : nat.primes →₀ ℕ} {s : finset nat.primes} :
   f (∏ (a : nat.primes) in s, ↑a ^ x a) = ∏ (a : nat.primes) in s, f (↑a ^ x a) :=
 begin
   apply finset.induction_on s, simp [h.left],
@@ -659,10 +631,10 @@ begin
 end
 
 lemma multiplicative_from_prime_pow (h : is_multiplicative f) :
-  ∀ n : ℕ+, f(n) = (factor_finsupp n).prod_apply_pow f :=
+  ∀ n : ℕ+, f(n) = (factor_finsupp n).primes_prod_apply_pow f :=
 begin
-  intro n, rw prime_finsupp.prod_apply_pow,
-  conv_lhs {rw ← prod_pow_factor_finsupp n}, rw prime_finsupp.prod_pow_eq, unfold finsupp.prod,
+  intro n, rw finsupp.primes_prod_apply_pow,
+  conv_lhs {rw ← prod_pow_factor_finsupp n}, rw finsupp.primes_prod_pow_eq, unfold finsupp.prod,
   apply multiplicative_prod_eq_prod_multiplicative h,
 end
 

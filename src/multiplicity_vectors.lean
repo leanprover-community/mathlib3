@@ -84,8 +84,14 @@ end
 /-- The value of this finsupp at a prime is the multiplicity of that prime in n. -/
 def factor_finsupp (n : ℕ+) : prime_finsupp := n.factor_multiset.to_finsupp
 
+end basics
+
+section finsupp_lattice
+
+variables {α β : Type} [has_zero β]
+
 @[simp]
-lemma inf_zero_iff {m n : ℕ} : m ⊓ n = 0 ↔ m = 0 ∨ n = 0 :=
+lemma nat.inf_zero_iff {m n : ℕ} : m ⊓ n = 0 ↔ m = 0 ∨ n = 0 :=
 begin
   split, swap, intro h, cases h; rw h; simp,
   unfold has_inf.inf, unfold semilattice_inf.inf, unfold lattice.inf, unfold min,
@@ -96,41 +102,52 @@ end
 
 lemma nat.zero_eq_bot : (0 : ℕ) = ⊥ := rfl
 
-variable {α : Type}
-
-instance finsupp.has_inf :
-  has_inf (α →₀ ℕ) :=
+instance finsupp.has_inf [semilattice_inf β] :
+  has_inf (α →₀ β) :=
 begin
   refine ⟨_⟩, intros v1 v2,
-  refine ⟨v1.support ∩ v2.support, (λ (a : α), (v1 a ⊓ v2 a)), _⟩,
-  intro a, simp only [finsupp.mem_support_iff, ne.def, finset.mem_inter],
-  symmetry, rw not_iff_comm, push_neg, rw inf_zero_iff,
+  refine ⟨(v1.support ∪ v2.support).filter (λ x, v1 x ⊓ v2 x ≠ 0),
+    (λ (a : α), (v1 a ⊓ v2 a)), _⟩,
+  intro a, simp only [finsupp.mem_support_iff, ne.def, finset.mem_union, finset.mem_filter],
+  apply and_iff_right_of_imp, contrapose, push_neg,
+  intro h, rw [h.left, h.right], apply inf_idem,
 end
 
 @[simp]
-lemma finsupp.inf_apply {a : α} {f g : α →₀ ℕ} : (f ⊓ g) a = f a ⊓ g a := rfl
+lemma finsupp.inf_apply [semilattice_inf β] {a : α} {f g : α →₀ β} : (f ⊓ g) a = f a ⊓ g a := rfl
 
 @[simp]
-lemma finsupp.support_inf {f g : α →₀ ℕ} : (f ⊓ g).support = f.support ⊓ g.support := rfl
+lemma finsupp.nat.support_inf {f g : α →₀ ℕ} : (f ⊓ g).support = f.support ∩ g.support :=
+begin
+  unfold has_inf.inf, dsimp,
+  have h : ∀ m n : ℕ, m ⊓ n = semilattice_inf.inf m n, intros, refl,
+  ext, simp [← h], tauto,
+end
 
-instance finsupp.has_sup :
-  has_sup (α →₀ ℕ) :=
+instance finsupp.has_sup [semilattice_sup β]:
+  has_sup (α →₀ β) :=
 begin
   refine ⟨_⟩, intros v1 v2,
-  refine ⟨v1.support ∪ v2.support, (λ (a : α), (v1 a ⊔ v2 a)), _⟩,
-  intro a, simp only [finsupp.mem_support_iff, ne.def, finset.mem_inter],
-  symmetry, rw not_iff_comm, simp only [finsupp.mem_support_iff, ne.def, finset.mem_union],
-  push_neg, repeat {rw nat.zero_eq_bot}, rw sup_eq_bot_iff,
+  refine ⟨(v1.support ∪ v2.support).filter (λ x, v1 x ⊔ v2 x ≠ 0),
+    (λ (a : α), (v1 a ⊔ v2 a)), _⟩,
+  intro a, simp only [finsupp.mem_support_iff, ne.def, finset.mem_union, finset.mem_filter],
+  apply and_iff_right_of_imp, contrapose, push_neg,
+  intro h, rw [h.left, h.right], apply sup_idem,
 end
 
 @[simp]
-lemma finsupp.sup_apply {a : α} {f g : α →₀ ℕ} : (f ⊔ g) a = f a ⊔ g a := rfl
+lemma finsupp.sup_apply [semilattice_sup β] {a : α} {f g : α →₀ β} : (f ⊔ g) a = f a ⊔ g a := rfl
 
 @[simp]
-lemma finsupp.support_sup {f g : α →₀ ℕ} : (f ⊔ g).support = f.support ⊔ g.support := rfl
+lemma finsupp.nat.support_sup {f g : α →₀ ℕ} : (f ⊔ g).support = f.support ∪ g.support :=
+begin
+  unfold has_sup.sup, dsimp, ext,
+  simp only [finsupp.mem_support_iff, ne.def, finset.mem_union, finset.mem_filter],
+  apply and_iff_left_of_imp, repeat {rw ← bot_eq_zero}, contrapose, push_neg,
+  rw ← sup_eq_bot_iff, intro h, rw ← h, refl,
+end
 
 
-lemma nat.bot_eq_zero : (⊥ : ℕ) = 0 := rfl
 
 @[instance]
 instance finsupp.lattice : lattice (α →₀ ℕ) :=
@@ -188,16 +205,16 @@ begin
     apply finsupp.equiv_multiset.symm.injective h }
 end
 
-lemma finsupp.bot_eq_zero : (⊥ : α →₀ ℕ) = 0 := rfl
+lemma finsupp.nat.bot_eq_zero : (⊥ : α →₀ ℕ) = 0 := rfl
 
 @[simp]
-lemma finsupp.disjoint_iff {x y : α →₀ ℕ} : disjoint x y ↔ disjoint x.support y.support :=
+lemma finsupp.nat.disjoint_iff {x y : α →₀ ℕ} : disjoint x y ↔ disjoint x.support y.support :=
 begin
   unfold disjoint, repeat {rw le_bot_iff},
-  rw [finsupp.bot_eq_zero, ← finsupp.support_eq_empty, finsupp.support_inf], refl,
+  rw [finsupp.nat.bot_eq_zero, ← finsupp.support_eq_empty, finsupp.nat.support_inf], refl,
 end
 
-end basics
+end finsupp_lattice
 
 section lattice_isos
 
@@ -329,7 +346,7 @@ lemma coprime_iff_disjoint_factor_finsupps {m n : ℕ+} :
   m.coprime n ↔ disjoint (factor_finsupp m) (factor_finsupp n) :=
 begin
   rw [pnat.coprime, disjoint_iff, ← factor_finsupp_gcd_eq_inf_factor_finsupps,
-    finsupp.bot_eq_zero],
+    finsupp.nat.bot_eq_zero],
   rw ← factor_finsupp_one, split; intro h, rw h,
   apply pnat.prime_finsupp_equiv.injective, simpa,
 end
@@ -337,7 +354,7 @@ end
 lemma coprime_iff_disjoint_supports {m n : ℕ+} :
   m.coprime n ↔ disjoint (factor_finsupp m).support (factor_finsupp n).support :=
 begin
-  rw coprime_iff_disjoint_factor_finsupps, rw finsupp.disjoint_iff,
+  rw coprime_iff_disjoint_factor_finsupps, rw finsupp.nat.disjoint_iff,
   unfold disjoint, repeat {rw le_bot_iff},
   split; intro h; rw ← h; ext; simp, --WHY DOESN'T REFL WORK???
 end

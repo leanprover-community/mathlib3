@@ -630,7 +630,7 @@ begin
     rw [← int.coe_nat_abs_eq_normalize, int.nat_abs_of_nat, int.nat_abs_of_nat] }
 end
 
-lemma prime_two_or_dvd_of_dvd_two_mul_mul_self {m : ℤ} {p : ℕ}
+lemma prime_two_or_dvd_of_dvd_two_mul_pow_self_two {m : ℤ} {p : ℕ}
   (hp : nat.prime p) (h : (p : ℤ) ∣ 2 * m ^ 2) : p = 2 ∨ p ∣ int.nat_abs m :=
 begin
   have h2 : int.nat_abs (2 * m ^ 2) = 2 * (int.nat_abs m) ^ 2,

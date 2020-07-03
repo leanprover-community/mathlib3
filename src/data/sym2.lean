@@ -273,7 +273,7 @@ section multiset_equiv
 In more generality, the nth symmetric power is n-tuples up to
 permutation.  We define it as a subtype of `multiset` since these are
 well developed in the library.  We also give a definition `sym'` in terms of
-vectors, and show these are equivalent in `sym2_equiv_sym'`.
+vectors, and we show these are equivalent in `sym_equiv_sym'`.
 -/
 def sym (α : Type*) (n : ℕ) := {s : multiset α // s.card = n}
 
@@ -368,8 +368,7 @@ instance inhabited_vmem [inhabited α] : inhabited (vmem (default α) (diag (def
 ⟨⟨default α, rfl⟩⟩
 
 instance inhabited_sym [inhabited α] (n : ℕ) : inhabited (sym α n) :=
-⟨⟨list.repeat (default α) n,
-  by { simp only [multiset.coe_card, list.length_repeat] }⟩⟩
+⟨⟨multiset.repeat (default α) n, multiset.card_repeat _ _⟩⟩
 
 instance inhabited_sym' [inhabited α] (n : ℕ) : inhabited (sym' α n) :=
 ⟨quotient.mk' (vector.repeat (default α) n)⟩

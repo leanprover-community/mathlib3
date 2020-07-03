@@ -63,7 +63,7 @@ iff.intro
 /-- A bounded function `u` is in particular eventually bounded. -/
 lemma is_bounded_under_of {f : filter β} {u : β → α} :
   (∃b, ∀x, r (u x) b) → f.is_bounded_under r u
-| ⟨b, hb⟩ := ⟨b, show ∀ᶠ x in f, r (u x) b, from eventually_of_forall _ hb⟩
+| ⟨b, hb⟩ := ⟨b, show ∀ᶠ x in f, r (u x) b, from eventually_of_forall hb⟩
 
 lemma is_bounded_bot : is_bounded r ⊥ ↔ nonempty α :=
 by simp [is_bounded, exists_true_iff_nonempty]
@@ -147,11 +147,11 @@ lemma is_cobounded_ge_of_top [order_top α] {f : filter α} : f.is_cobounded (�
 ⟨⊤, assume a h, le_top⟩
 
 lemma is_bounded_le_of_top [order_top α] {f : filter α} : f.is_bounded (≤) :=
-⟨⊤, eventually_of_forall _ $ λ _, le_top⟩
+⟨⊤, eventually_of_forall $ λ _, le_top⟩
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma is_bounded_ge_of_bot [order_bot α] {f : filter α} : f.is_bounded (≥) :=
-⟨⊥, eventually_of_forall _ $ λ _, bot_le⟩
+⟨⊥, eventually_of_forall $ λ _, bot_le⟩
 
 lemma is_bounded_under_sup [semilattice_sup α] {f : filter β} {u v : β → α} :
   f.is_bounded_under (≤) u → f.is_bounded_under (≤) v → f.is_bounded_under (≤) (λa, u a ⊔ v a)

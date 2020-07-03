@@ -69,6 +69,11 @@ lemma mul_le_mul' (h₁ : a ≤ b) (h₂ : c ≤ d) : a * c ≤ b * d :=
 le_trans (mul_le_mul_right' h₁ _) (mul_le_mul_left' h₂ _)
 
 @[to_additive]
+lemma mul_le_mul_three {a b c d e f : α} (h₁ : a ≤ d) (h₂ : b ≤ e) (h₃ : c ≤ f) :
+      a * b * c ≤ d * e * f :=
+mul_le_mul' (mul_le_mul' h₁ h₂) h₃
+
+@[to_additive]
 lemma le_mul_of_one_le_right (h : 1 ≤ b) : a ≤ a * b :=
 have a * 1 ≤ a * b, from mul_le_mul_left' h _,
 by rwa mul_one at this
@@ -1018,17 +1023,6 @@ by { rw mul_comm, exact lt_mul_of_inv_mul_lt h }
 @[to_additive]
 lemma inv_mul_lt_right_of_lt_mul (h : a < b * c) : c⁻¹ * a < b :=
 by { rw mul_comm at h, exact inv_mul_lt_of_lt_mul h }
-
-@[to_additive]
-lemma mul_le_mul_three {a b c d e f : α} (h₁ : a ≤ d) (h₂ : b ≤ e) (h₃ : c ≤ f) :
-      a * b * c ≤ d * e * f :=
-begin
-  apply le_trans,
-  apply mul_le_mul',
-  apply mul_le_mul',
-  assumption',
-  apply le_refl
-end
 
 @[simp, to_additive]
 lemma inv_lt_one_iff_one_lt : a⁻¹ < 1 ↔ 1 < a :=

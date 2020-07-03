@@ -337,6 +337,17 @@ lemma op_norm_comp_le (f : E →L[𝕜] F) : ∥h.comp f∥ ≤ ∥h∥ * ∥f�
   ⟨mul_nonneg (op_norm_nonneg _) (op_norm_nonneg _), λ x,
     by { rw mul_assoc, exact h.le_op_norm_of_le (f.le_op_norm x) } ⟩)
 
+/-- Continuous linear maps form a normed ring with respect to the operator norm. -/
+instance to_normed_ring : normed_ring (E →L[𝕜] E) :=
+{ norm_mul := op_norm_comp_le,
+  .. continuous_linear_map.to_normed_group }
+
+/-- Continuous linear maps form a normed algebra with respect to the operator norm. -/
+instance to_normed_algebra (h : 0 < vector_space.dim 𝕜 E) : normed_algebra 𝕜 (E →L[𝕜] E) :=
+{ norm_algebra_map_eq := λ c, show ∥c • id 𝕜 E∥ = ∥c∥,
+    by {rw [norm_smul, norm_id (dim_pos_iff_exists_ne_zero.mp h)], simp},
+  .. continuous_linear_map.algebra }
+
 /-- A continuous linear map is automatically uniformly continuous. -/
 protected theorem uniform_continuous : uniform_continuous f :=
 f.lipschitz.uniform_continuous
@@ -719,6 +730,55 @@ begin
     have : (coord 𝕜 x h) y = (to_span_nonzero_singleton 𝕜 x h).symm y := rfl,
     rw this, apply homothety_inverse, exact hx, exact to_span_nonzero_singleton_homothety 𝕜 x h, }
 end
+
+variable (E)
+
+/-- The continuous linear equivalences from `E` to itself form a group under composition. -/
+instance automorphism_group : group (E ≃L[𝕜] E) :=
+{ mul          := λ f g, g.trans f,
+  one          := continuous_linear_equiv.refl 𝕜 E,
+  inv          := λ f, f.symm,
+  mul_assoc    := λ f g h, by {ext, refl},
+  mul_one      := λ f, by {ext, refl},
+  one_mul      := λ f, by {ext, refl},
+  mul_left_inv := λ f, by {ext, exact f.left_inv x} }
+
+variables {𝕜 E}
+
+/-- An invertible continuous linear map `f` determines a continuous equivalence from `E` to itself.
+-/
+def of_unit (f : units (E →L[𝕜] E)) : (E ≃L[𝕜] E) :=
+{ to_linear_equiv :=
+  { to_fun    := f.val,
+    map_add'  := by simp,
+    map_smul' := by simp,
+    inv_fun   := f.inv,
+    left_inv  := λ x, show (f.inv * f.val) x = x, by {rw f.inv_val, simp},
+    right_inv := λ x, show (f.val * f.inv) x = x, by {rw f.val_inv, simp}, },
+  continuous_to_fun  := f.val.continuous,
+  continuous_inv_fun := f.inv.continuous }
+
+/-- A continuous equivalence from `E` to itself determines an invertible continuous linear map. -/
+def to_unit (f : (E ≃L[𝕜] E)) : units (E →L[𝕜] E) :=
+{ val     := f,
+  inv     := f.symm,
+  val_inv := by {ext, simp},
+  inv_val := by {ext, simp} }
+
+variables (𝕜 E)
+
+/-- The units of the algebra of continuous `𝕜`-linear endomorphisms of `E` is multiplicatively
+equivalent to the type of continuous linear equivalences between `E` and itself. -/
+def units_equiv : units (E →L[𝕜] E) ≃* (E ≃L[𝕜] E) :=
+{ to_fun    := of_unit,
+  inv_fun   := to_unit,
+  left_inv  := λ f, by {ext, refl},
+  right_inv := λ f, by {ext, refl},
+  map_mul'  := λ x y, by {ext, refl} }
+
+@[simp] lemma units_equiv_to_continuous_linear_map
+  (f : units (E →L[𝕜] E)) :
+  (units_equiv 𝕜 E f : E →L[𝕜] E) = f := by {ext, refl}
 
 end continuous_linear_equiv
 

@@ -124,7 +124,7 @@ begin
 end
 
 lemma mul_geom_sum [ring α] (x : α) (n : ℕ) :
-  (x - 1) * (geom_series x n)= x ^ n - 1 :=
+  (x - 1) * (geom_series x n) = x ^ n - 1 :=
 begin
   rw ← op_inj_iff,
   simpa using geom_sum_mul (op x) n,

@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Jens Wagemaker
 
 GCD domain and integral domains with normalization functions
 
-TODO: abstract the domains to to semi domains (i.e. domains on semirings) to include ℕ and ℕ[X] etc.
+TODO: abstract the domains to semi domains (i.e. domains on semirings) to include ℕ and ℕ[X] etc.
 -/
 import algebra.associated
 import data.nat.basic
@@ -524,9 +524,8 @@ by rw [gcd_comm, gcd_eq_left H]
 theorem ne_zero_of_gcd {x y : ℤ}
   (hc : gcd x y ≠ 0) : x ≠ 0 ∨ y ≠ 0 :=
 begin
-  by_cases hx : x = 0,
-  { apply or.intro_right, intro hy, revert hc, rw [hx, hy], simp },
-  tauto
+  contrapose! hc,
+  rw [hc.left, hc.right, gcd_zero_right, nat_abs_zero]
 end
 
 theorem exists_gcd_one {m n : ℤ} (H : 0 < gcd m n) :
@@ -536,12 +535,8 @@ theorem exists_gcd_one {m n : ℤ} (H : 0 < gcd m n) :
   (int.div_mul_cancel (gcd_dvd_right m n)).symm⟩
 
 theorem exists_gcd_one' {m n : ℤ} (H : 0 < gcd m n) :
-  ∃ (g : ℕ), ∃ (m' n' : ℤ), 0 < g ∧ gcd m' n' = 1 ∧ m = m' * g ∧ n = n' * g :=
+  ∃ (g : ℕ) (m' n' : ℤ), 0 < g ∧ gcd m' n' = 1 ∧ m = m' * g ∧ n = n' * g :=
 let ⟨m', n', h⟩ := exists_gcd_one H in ⟨_, m', n', H, h⟩
-
-theorem pow_dvd_pow_of_dvd {a b : ℤ} (h : a ∣ b) : ∀ n:ℕ, a^n ∣ b^n
-| 0     := dvd_refl _
-| (n+1) := mul_dvd_mul h (pow_dvd_pow_of_dvd n)
 
 theorem pow_dvd_pow_iff {m n : ℤ} {k : ℕ} (k0 : 0 < k) : m ^ k ∣ n ^ k ↔ m ∣ n :=
 begin

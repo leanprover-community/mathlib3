@@ -466,6 +466,10 @@ theorem neg_one_pow_eq_or [ring R] : ∀ n : ℕ, (-1 : R)^n = 1 ∨ (-1 : R)^n 
 lemma pow_dvd_pow [comm_semiring R] (a : R) {m n : ℕ} (h : m ≤ n) :
   a ^ m ∣ a ^ n := ⟨a ^ (n - m), by rw [← pow_add, nat.add_sub_cancel' h]⟩
 
+theorem pow_dvd_pow_of_dvd [comm_semiring R] {a b : R} (h : a ∣ b) : ∀ n : ℕ, a ^ n ∣ b ^ n
+| 0     := dvd_refl _
+| (n+1) := mul_dvd_mul h (pow_dvd_pow_of_dvd n)
+
 -- The next four lemmas allow us to replace multiplication by a numeral with a `gsmul` expression.
 -- They are used by the `noncomm_ring` tactic, to normalise expressions before passing to `abel`.
 

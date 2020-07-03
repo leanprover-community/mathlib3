@@ -464,6 +464,7 @@ by { rw ← gcd_eq_left_iff_dvd, apply one_dvd }
 @[simp]
 lemma gcd_one {n : ℕ+} : gcd n 1 = 1 := by { rw gcd_comm, apply one_gcd }
 
+@[symm]
 lemma coprime.symm {m n : ℕ+} : m.coprime n → n.coprime m :=
 by { unfold coprime, rw gcd_comm, simp }
 

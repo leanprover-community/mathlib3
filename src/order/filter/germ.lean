@@ -204,7 +204,7 @@ iff.rfl
 
 lemma lift_pred_const {p : β → Prop} {x : β} (hx : p x) :
   lift_pred p (↑x : germ l β) :=
-eventually_of_forall _ $ λ y, hx
+eventually_of_forall $ λ y, hx
 
 @[simp] lemma lift_pred_const_iff (hl : l ≠ ⊥) {p : β → Prop} {x : β} :
   lift_pred p (↑x : germ l β) ↔ p x :=
@@ -221,7 +221,7 @@ iff.rfl
 
 lemma lift_rel_const {r : β → γ → Prop} {x : β} {y : γ} (h : r x y) :
   lift_rel r (↑x : germ l β) ↑y :=
-eventually_of_forall _ $ λ _, h
+eventually_of_forall $ λ _, h
 
 @[simp] lemma lift_rel_const_iff (hl : l ≠ ⊥) {r : β → γ → Prop} {x : β} {y : γ} :
   lift_rel r (↑x : germ l β) ↑y ↔ r x y :=
@@ -446,7 +446,7 @@ instance [has_bot β] : has_bot (germ l β) := ⟨↑(⊥:β)⟩
 instance [order_bot β] : order_bot (germ l β) :=
 { bot := ⊥,
   le := (≤),
-  bot_le := λ f, induction_on f $ λ f, eventually_of_forall _ $ λ x, bot_le,
+  bot_le := λ f, induction_on f $ λ f, eventually_of_forall $ λ x, bot_le,
   .. germ.partial_order }
 
 instance [has_top β] : has_top (germ l β) := ⟨↑(⊤:β)⟩
@@ -456,7 +456,7 @@ instance [has_top β] : has_top (germ l β) := ⟨↑(⊤:β)⟩
 instance [order_top β] : order_top (germ l β) :=
 { top := ⊤,
   le := (≤),
-  le_top := λ f, induction_on f $ λ f, eventually_of_forall _ $ λ x, le_top,
+  le_top := λ f, induction_on f $ λ f, eventually_of_forall $ λ x, le_top,
   .. germ.partial_order }
 
 instance [has_sup β] : has_sup (germ l β) := ⟨map₂ (⊔)⟩
@@ -470,9 +470,9 @@ instance [has_inf β] : has_inf (germ l β) := ⟨map₂ (⊓)⟩
 instance [semilattice_sup β] : semilattice_sup (germ l β) :=
 { sup := (⊔),
   le_sup_left := λ f g, induction_on₂ f g $ λ f g,
-    eventually_of_forall _ $ λ x, le_sup_left,
+    eventually_of_forall $ λ x, le_sup_left,
   le_sup_right := λ f g, induction_on₂ f g $ λ f g,
-    eventually_of_forall _ $ λ x, le_sup_right,
+    eventually_of_forall $ λ x, le_sup_right,
   sup_le := λ f₁ f₂ g, induction_on₃ f₁ f₂ g $ λ f₁ f₂ g h₁ h₂,
     h₂.mp $ h₁.mono $ λ x, sup_le,
   .. germ.partial_order }
@@ -480,9 +480,9 @@ instance [semilattice_sup β] : semilattice_sup (germ l β) :=
 instance [semilattice_inf β] : semilattice_inf (germ l β) :=
 { inf := (⊓),
   inf_le_left := λ f g, induction_on₂ f g $ λ f g,
-    eventually_of_forall _ $ λ x, inf_le_left,
+    eventually_of_forall $ λ x, inf_le_left,
   inf_le_right := λ f g, induction_on₂ f g $ λ f g,
-    eventually_of_forall _ $ λ x, inf_le_right,
+    eventually_of_forall $ λ x, inf_le_right,
   le_inf := λ f₁ f₂ g, induction_on₃ f₁ f₂ g $ λ f₁ f₂ g h₁ h₂,
     h₂.mp $ h₁.mono $ λ x, le_inf,
   .. germ.partial_order }

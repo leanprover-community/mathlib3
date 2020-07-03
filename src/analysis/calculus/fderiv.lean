@@ -589,7 +589,7 @@ theorem filter.eventually_eq.has_strict_fderiv_at_iff
   (h : f₀ =ᶠ[𝓝 x] f₁) (h' : ∀ y, f₀' y = f₁' y) :
   has_strict_fderiv_at f₀ f₀' x ↔ has_strict_fderiv_at f₁ f₁' x :=
 begin
-  refine is_o_congr ((h.prod_mk_nhds h).mono _) (eventually_of_forall _ $ λ _, rfl),
+  refine is_o_congr ((h.prod_mk_nhds h).mono _) (eventually_of_forall $ λ _, rfl),
   rintros p ⟨hp₁, hp₂⟩,
   simp only [*]
 end
@@ -601,7 +601,7 @@ theorem has_strict_fderiv_at.congr_of_eventually_eq (h : has_strict_fderiv_at f 
 theorem filter.eventually_eq.has_fderiv_at_filter_iff
   (h₀ : f₀ =ᶠ[L] f₁) (hx : f₀ x = f₁ x) (h₁ : ∀ x, f₀' x = f₁' x) :
   has_fderiv_at_filter f₀ f₀' x L ↔ has_fderiv_at_filter f₁ f₁' x L :=
-is_o_congr (h₀.mono $ λ y hy, by simp only [hy, h₁, hx]) (eventually_of_forall _ $ λ _, rfl)
+is_o_congr (h₀.mono $ λ y hy, by simp only [hy, h₁, hx]) (eventually_of_forall $ λ _, rfl)
 
 lemma has_fderiv_at_filter.congr_of_eventually_eq (h : has_fderiv_at_filter f f' x L)
   (hL : f₁ =ᶠ[L] f) (hx : f₁ x = f x) : has_fderiv_at_filter f₁ f' x L :=
@@ -2225,11 +2225,11 @@ begin
     simp },
   refine this.trans_is_o _, clear this,
   refine ((hf.comp_tendsto hg).symm.congr' (hfg.mono _)
-    (eventually_of_forall _ $ λ _, rfl)).trans_is_O _,
+    (eventually_of_forall $ λ _, rfl)).trans_is_O _,
   { rintros p ⟨hp1, hp2⟩,
     simp [hp1, hp2] },
   { refine (hf.is_O_sub_rev.comp_tendsto hg).congr'
-      (eventually_of_forall _ $ λ _, rfl) (hfg.mono _),
+      (eventually_of_forall $ λ _, rfl) (hfg.mono _),
     rintros p ⟨hp1, hp2⟩,
     simp only [(∘), hp1, hp2] }
 end
@@ -2249,11 +2249,11 @@ begin
     simp },
   refine this.trans_is_o _, clear this,
   refine ((hf.comp_tendsto hg).symm.congr' (hfg.mono _)
-    (eventually_of_forall _ $ λ _, rfl)).trans_is_O _,
+    (eventually_of_forall $ λ _, rfl)).trans_is_O _,
   { rintros p hp,
     simp [hp, hfg.self_of_nhds] },
   { refine (hf.is_O_sub_rev.comp_tendsto hg).congr'
-      (eventually_of_forall _ $ λ _, rfl) (hfg.mono _),
+      (eventually_of_forall $ λ _, rfl) (hfg.mono _),
     rintros p hp,
     simp only [(∘), hp, hfg.self_of_nhds] }
 end

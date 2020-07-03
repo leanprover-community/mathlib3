@@ -52,10 +52,13 @@ working with has natively.
 
 ## Implementation notes
 
-The start of the development in this file is perfectly analogous to the start of the development in
-`non_preadditive_abelian.lean`. Since every `abelian` category is trivially
-`non_preadditive_abelian`, we import long proofs from that file in an effort to somewhat control
-duplication.
+The typeclass `abelian` does not extend `non_preadditive_abelian`, 
+to avoid having to deal with comparing the two `has_zero_morphisms` instances 
+(one from `preadditive` in `abelian`, and the other a field of `non_preadditive_abelian`). 
+As a consequence, at the beginning of this file we trivially build 
+a `non_preadditive_abelian` instance from an `abelian` instance, 
+and use this to restate a number of theorems, 
+in each case just reusing the proof from `non_preadditive_abelian.lean`.
 
 We don't show this yet, but abelian categories are finitely complete and finitely cocomplete.
 However, the limits we can construct at this level of generality will most likely be less nice than

@@ -232,7 +232,7 @@ begin
 end
 
 /-- In a normed ring, the powers of an element x with `∥x∥ < 1` tend to zero. -/
-lemma tendsto_pow_at_top_nhds_0_of_norm_lt_1 {α : Type*} [normed_ring α] (x : α)
+lemma tendsto_pow_at_top_nhds_0_of_norm_lt_1 {α : Type*} [normed_ring α] {x : α}
   (h : ∥x∥ < 1) : tendsto (λ (n : ℕ), x ^ n) at_top (𝓝 0) :=
 begin
   apply squeeze_zero_norm' (eventually_norm_pow_le x),
@@ -241,7 +241,7 @@ end
 
 lemma tendsto_pow_at_top_nhds_0_of_abs_lt_1 {r : ℝ} (h : abs r < 1) :
   tendsto (λn:ℕ, r^n) at_top (𝓝 0) :=
-tendsto_pow_at_top_nhds_0_of_norm_lt_1 _ h
+tendsto_pow_at_top_nhds_0_of_norm_lt_1 h
 
 /-! ### Geometric series-/
 section geometric
@@ -332,7 +332,7 @@ lemma has_sum_geometric_of_norm_lt_1 (h : ∥ξ∥ < 1) : has_sum (λn:ℕ, ξ ^
 begin
   have xi_ne_one : ξ ≠ 1, by { contrapose! h, simp [h] },
   have A : tendsto (λn, (ξ ^ n - 1) * (ξ - 1)⁻¹) at_top (𝓝 ((0 - 1) * (ξ - 1)⁻¹)),
-    from ((tendsto_pow_at_top_nhds_0_of_norm_lt_1 _ h).sub tendsto_const_nhds).mul tendsto_const_nhds,
+    from ((tendsto_pow_at_top_nhds_0_of_norm_lt_1 h).sub tendsto_const_nhds).mul tendsto_const_nhds,
   have B : (λ n, (∑ i in range n, ξ ^ i)) = (λ n, geom_series ξ n) := rfl,
   rw [has_sum_iff_tendsto_nat_of_summable_norm, B],
   { simpa [geom_sum, xi_ne_one, neg_inv] using A },

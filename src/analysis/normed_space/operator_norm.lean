@@ -641,7 +641,7 @@ end continuous_linear_map
 
 variables {ι : Type*}
 
--- Applying a continuous linear map commutes with taking an (infinite) sum.
+/-- Applying a continuous linear map commutes with taking an (infinite) sum. -/
 lemma continuous_linear_map.has_sum {f : ι → E} (φ : E →L[𝕜] F) {x : E} (hf : has_sum f x) :
   has_sum (λ (b:ι), φ (f b)) (φ x) :=
 begin
@@ -650,7 +650,7 @@ begin
   ext s, rw [function.comp_app, finset.sum_hom s φ],
 end
 
-lemma has_sum_of_summable {f : ι → E} (φ : E →L[𝕜] F) (hf : summable f) :
+lemma continuous_linear_map.has_sum_of_summable {f : ι → E} (φ : E →L[𝕜] F) (hf : summable f) :
   has_sum (λ (b:ι), φ (f b)) (φ (∑'b, f b)) :=
 continuous_linear_map.has_sum φ hf.has_sum
 

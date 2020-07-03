@@ -1478,10 +1478,24 @@ lemma times_cont_diff_fst {n : with_top ℕ} : times_cont_diff 𝕜 n (prod.fst 
 is_bounded_linear_map.times_cont_diff is_bounded_linear_map.fst
 
 /--
+The first projection on a domain in a product is `C^∞`.
+-/
+lemma times_cont_diff_on_fst {s : set (E×F)} {n : with_top ℕ} :
+  times_cont_diff_on 𝕜 n (prod.fst : E × F → E) s :=
+times_cont_diff.times_cont_diff_on times_cont_diff_fst
+
+/--
 The second projection in a product is `C^∞`.
 -/
 lemma times_cont_diff_snd {n : with_top ℕ} : times_cont_diff 𝕜 n (prod.snd : E × F → F) :=
 is_bounded_linear_map.times_cont_diff is_bounded_linear_map.snd
+
+/--
+The second projection on a domain in a product is `C^∞`.
+-/
+lemma times_cont_diff_on_snd {s : set (E×F)} {n : with_top ℕ} :
+  times_cont_diff_on 𝕜 n (prod.snd : E × F → F) s :=
+times_cont_diff.times_cont_diff_on times_cont_diff_snd
 
 /--
 The identity is `C^∞`.
@@ -1715,6 +1729,18 @@ lemma times_cont_diff.prod {n : with_top ℕ} {f : E → F} {g : E → G}
   times_cont_diff 𝕜 n (λx:E, (f x, g x)) :=
 times_cont_diff_on_univ.1 $ times_cont_diff_on.prod (times_cont_diff_on_univ.2 hf)
   (times_cont_diff_on_univ.2 hg)
+
+/-- The product map of two `C^n` functions is `C^n`. -/
+lemma times_cont_diff_on.map_prod {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+  {F' : Type*} [normed_group F'] [normed_space 𝕜 F']
+  {s : set E} {t : set E'} {n : with_top ℕ} {f : E → F} {g : E' → F'}
+  (hf : times_cont_diff_on 𝕜 n f s) (hg : times_cont_diff_on 𝕜 n g t) :
+  times_cont_diff_on 𝕜 n (prod.map f g) (set.prod s t) :=
+begin
+  have hs : s.prod t ⊆ (prod.fst) ⁻¹' s := by { rintros x ⟨h_x_1, h_x_2⟩, exact h_x_1, },
+  have ht : s.prod t ⊆ (prod.snd) ⁻¹' t := by { rintros x ⟨h_x_1, h_x_2⟩, exact h_x_2, },
+  exact (hf.comp (times_cont_diff_on_fst) hs).prod (hg.comp (times_cont_diff_on_snd) ht),
+end
 
 /-!
 ### Composition of `C^n` functions

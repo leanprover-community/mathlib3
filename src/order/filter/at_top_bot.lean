@@ -116,7 +116,7 @@ assume h₁, (tendsto_at_top _ _).2 $ λ b, mp_sets ((tendsto_at_top _ _).1 h₁
 
 lemma tendsto_at_top_mono [preorder β] {l : filter α} {f g : α → β} (h : ∀ n, f n ≤ g n) :
   tendsto f l at_top → tendsto g l at_top :=
-tendsto_at_top_mono' l $ eventually_of_forall _ h
+tendsto_at_top_mono' l $ eventually_of_forall h
 
 /-!
 ### Sequences

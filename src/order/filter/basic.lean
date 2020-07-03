@@ -63,6 +63,7 @@ which is a special case of `mem_closure_of_tendsto` from topology.basic.
 * `∀ᶠ x in f, p x` : `f.eventually p`;
 * `∃ᶠ x in f, p x` : `f.frequently p`;
 * `f =ᶠ[l] g` : `∀ᶠ x in l, f x = g x`;
+* `f ≤ᶠ[l] g` : `∀ᶠ x in l, f x ≤ g x`;
 * `f ×ᶠ g` : `filter.prod f g`, localized in `filter`;
 * `𝓟 s` : `principal s`, localized in `filter`.
 
@@ -493,7 +494,7 @@ begin
     use [a, hUV ha] }
 end
 
-lemma inf_principal_ne_bot_iff (f : filter α) (s : set α) :
+lemma inf_principal_ne_bot_iff {f : filter α} {s : set α} :
   f ⊓ 𝓟 s ≠ ⊥ ↔ ∀ U ∈ f, (U ∩ s).nonempty :=
 begin
   rw inf_ne_bot_iff,
@@ -803,6 +804,10 @@ by simpa using infi_principal_finset finset.univ f
 
 end lattice
 
+@[mono] lemma join_mono {f₁ f₂ : filter (filter α)} (h : f₁ ≤ f₂) :
+  join f₁ ≤ join f₂ :=
+λ s hs, h hs
+
 /-! ### Eventually -/
 
 /-- `f.eventually p` or `∀ᶠ x in f, p x` mean that `{x | p x} ∈ f`. E.g., `∀ᶠ x in at_top, p x`
@@ -835,7 +840,7 @@ inter_mem_sets
 @[simp]
 lemma eventually_true (f : filter α) : ∀ᶠ x in f, true := univ_mem_sets
 
-lemma eventually_of_forall {p : α → Prop} (f : filter α) (hp : ∀ x, p x) :
+lemma eventually_of_forall {p : α → Prop} {f : filter α} (hp : ∀ x, p x) :
   ∀ᶠ x in f, p x :=
 univ_mem_sets' hp
 
@@ -847,13 +852,13 @@ empty_in_sets_eq_bot
   (∀ᶠ x in f, p) ↔ p :=
 classical.by_cases (λ h : p, by simp [h]) (λ h, by simp [h, hf])
 
-lemma eventually.exists_mem {p : α → Prop} {f : filter α} (hp : ∀ᶠ x in f, p x) :
-  ∃ v ∈ f, ∀ y ∈ v, p y :=
- ⟨{x | p x}, hp, λ y hy, hy⟩
-
 lemma eventually_iff_exists_mem {p : α → Prop} {f : filter α} :
   (∀ᶠ x in f, p x) ↔ ∃ v ∈ f, ∀ y ∈ v, p y :=
-⟨λ hp, hp.exists_mem, λ ⟨v, vf, hv⟩, eventually_of_mem vf hv⟩
+exists_sets_subset_iff.symm
+
+lemma eventually.exists_mem {p : α → Prop} {f : filter α} (hp : ∀ᶠ x in f, p x) :
+  ∃ v ∈ f, ∀ y ∈ v, p y :=
+eventually_iff_exists_mem.1 hp
 
 lemma eventually.mp {p q : α → Prop} {f : filter α} (hp : ∀ᶠ x in f, p x)
   (hq : ∀ᶠ x in f, p x → q x) :
@@ -863,7 +868,7 @@ mp_sets hp hq
 lemma eventually.mono {p q : α → Prop} {f : filter α} (hp : ∀ᶠ x in f, p x)
   (hq : ∀ x, p x → q x) :
   ∀ᶠ x in f, q x :=
-hp.mp (f.eventually_of_forall hq)
+hp.mp (eventually_of_forall hq)
 
 @[simp] lemma eventually_and {p q : α → Prop} {f : filter α} :
   (∀ᶠ x in f, p x ∧ q x) ↔ (∀ᶠ x in f, p x) ∧ (∀ᶠ x in f, q x) :=
@@ -934,7 +939,7 @@ end
 
 lemma frequently_of_forall {f : filter α} (hf : f ≠ ⊥) {p : α → Prop} (h : ∀ x, p x) :
   ∃ᶠ x in f, p x :=
-eventually.frequently hf (f.eventually_of_forall h)
+eventually.frequently hf (eventually_of_forall h)
 
 lemma frequently.mp {p q : α → Prop} {f : filter α} (h : ∃ᶠ x in f, p x)
   (hpq : ∀ᶠ x in f, p x → q x) :
@@ -944,7 +949,7 @@ mt (λ hq, hq.mp $ hpq.mono $ λ x, mt) h
 lemma frequently.mono {p q : α → Prop} {f : filter α} (h : ∃ᶠ x in f, p x)
   (hpq : ∀ x, p x → q x) :
   ∃ᶠ x in f, q x :=
-h.mp (f.eventually_of_forall hpq)
+h.mp (eventually_of_forall hpq)
 
 lemma frequently.and_eventually {p q : α → Prop} {f : filter α}
   (hp : ∃ᶠ x in f, p x) (hq : ∀ᶠ x in f, q x) :
@@ -958,7 +963,7 @@ end
 lemma frequently.exists {p : α → Prop} {f : filter α} (hp : ∃ᶠ x in f, p x) : ∃ x, p x :=
 begin
   by_contradiction H,
-  replace H : ∀ᶠ x in f, ¬ p x, from f.eventually_of_forall (not_exists.1 H),
+  replace H : ∀ᶠ x in f, ¬ p x, from eventually_of_forall (not_exists.1 H),
   exact hp H
 end
 
@@ -1078,7 +1083,7 @@ by simp [filter.frequently, -not_eventually, not_forall]
 `f x = g x` belongs to `l`. -/
 def eventually_eq (l : filter α) (f g : α → β) : Prop := ∀ᶠ x in l, f x = g x
 
-notation f ` =ᶠ[`l`] ` g := eventually_eq l f g
+notation f ` =ᶠ[`:50 l:50 `] `:0 g:50 := eventually_eq l f g
 
 lemma eventually_eq.rw {l : filter α} {f g : α → β} (h : f =ᶠ[l] g) (p : α → β → Prop)
   (hf : ∀ᶠ x in l, p x (f x)) :
@@ -1099,7 +1104,7 @@ eventually_iff_exists_mem
 
 @[refl] lemma eventually_eq.refl (l : filter α) (f : α → β) :
   f =ᶠ[l] f :=
-eventually_of_forall l $ λ x, rfl
+eventually_of_forall $ λ x, rfl
 
 @[symm] lemma eventually_eq.symm {f g : α → β} {l : filter α} (H : f =ᶠ[l] g) :
   g =ᶠ[l] f :=
@@ -1139,6 +1144,54 @@ lemma eventually_eq.sub [add_group β] {f f' g g' : α → β} {l : filter α} (
   (h' : f' =ᶠ[l] g') :
   ((λ x, f x - f' x) =ᶠ[l] (λ x, g x - g' x)) :=
 h.add h'.neg
+
+section has_le
+
+variables [has_le β] {l : filter α}
+
+/-- A function `f` is eventually less than or equal to a function `g` at a filter `l`. -/
+def eventually_le (l : filter α) (f g : α → β) : Prop := ∀ᶠ x in l, f x ≤ g x
+
+notation f ` ≤ᶠ[`:50 l:50 `] `:0 g:50 := eventually_le l f g
+
+lemma eventually_le.congr {f f' g g' : α → β} (H : f ≤ᶠ[l] g) (hf : f =ᶠ[l] f') (hg : g =ᶠ[l] g') :
+  f' ≤ᶠ[l] g' :=
+H.mp $ hg.mp $ hf.mono $ λ x hf hg H, by rwa [hf, hg] at H
+
+lemma eventually_le_congr {f f' g g' : α → β} (hf : f =ᶠ[l] f') (hg : g =ᶠ[l] g') :
+  f ≤ᶠ[l] g ↔ f' ≤ᶠ[l] g' :=
+⟨λ H, H.congr hf hg, λ H, H.congr hf.symm hg.symm⟩
+
+end has_le
+
+section preorder
+
+variables [preorder β] {l : filter α} {f g h : α → β}
+
+lemma eventually_eq.le (h : f =ᶠ[l] g) : f ≤ᶠ[l] g := h.mono $ λ x, le_of_eq
+
+@[refl] lemma eventually_le.refl (l : filter α) (f : α → β) :
+  f ≤ᶠ[l] f :=
+(eventually_eq.refl l f).le
+
+@[trans] lemma eventually_le.trans (H₁ : f ≤ᶠ[l] g) (H₂ : g ≤ᶠ[l] h) : f ≤ᶠ[l] h :=
+H₂.mp $ H₁.mono $ λ x, le_trans
+
+@[trans] lemma eventually_eq.trans_le (H₁ : f =ᶠ[l] g) (H₂ : g ≤ᶠ[l] h) : f ≤ᶠ[l] h :=
+H₁.le.trans H₂
+
+@[trans] lemma eventually_le.trans_eq (H₁ : f ≤ᶠ[l] g) (H₂ : g =ᶠ[l] h) : f ≤ᶠ[l] h :=
+H₁.trans H₂.le
+
+end preorder
+
+lemma eventually_le.antisymm [partial_order β] {l : filter α} {f g : α → β}
+  (h₁ : f ≤ᶠ[l] g) (h₂ : g ≤ᶠ[l] f) :
+  f =ᶠ[l] g :=
+h₂.mp $ h₁.mono $ λ x, le_antisymm
+
+lemma join_le {f : filter (filter α)} {l : filter α} (h : ∀ᶠ m in f, m ≤ l) : join f ≤ l :=
+λ s hs, h.mono $ λ m hm, hm hs
 
 /-! ### Push-forwards, pull-backs, and the monad structure -/
 
@@ -1736,23 +1789,50 @@ end applicative
 
 /- bind equations -/
 section bind
+
+@[simp] lemma eventually_bind {f : filter α} {m : α → filter β} {p : β → Prop} :
+  (∀ᶠ y in bind f m, p y) ↔ ∀ᶠ x in f, ∀ᶠ y in m x, p y :=
+iff.rfl
+
+@[simp] lemma eventually_eq_bind {f : filter α} {m : α → filter β} {g₁ g₂ : β → γ} :
+  (g₁ =ᶠ[bind f m] g₂) ↔ ∀ᶠ x in f, g₁ =ᶠ[m x] g₂ :=
+iff.rfl
+
+@[simp] lemma eventually_le_bind [has_le γ] {f : filter α} {m : α → filter β} {g₁ g₂ : β → γ} :
+  (g₁ ≤ᶠ[bind f m] g₂) ↔ ∀ᶠ x in f, g₁ ≤ᶠ[m x] g₂ :=
+iff.rfl
+
+lemma mem_bind_sets' {s : set β} {f : filter α} {m : α → filter β} :
+  s ∈ bind f m ↔ {a | s ∈ m a} ∈ f :=
+iff.rfl
+
 @[simp] lemma mem_bind_sets {s : set β} {f : filter α} {m : α → filter β} :
   s ∈ bind f m ↔ ∃t ∈ f, ∀x ∈ t, s ∈ m x :=
-calc s ∈ bind f m ↔ {a | s ∈ m a} ∈ f : by simp only [bind, mem_map, iff_self, mem_join_sets, mem_set_of_eq]
-                     ... ↔ (∃t ∈ f, t ⊆ {a | s ∈ m a}) : exists_sets_subset_iff.symm
-                     ... ↔ (∃t ∈ f, ∀x ∈ t, s ∈ m x) : iff.rfl
+calc s ∈ bind f m ↔ {a | s ∈ m a} ∈ f           : iff.rfl
+              ... ↔ (∃t ∈ f, t ⊆ {a | s ∈ m a}) : exists_sets_subset_iff.symm
+              ... ↔ (∃t ∈ f, ∀x ∈ t, s ∈ m x)   : iff.rfl
 
-lemma bind_mono {f : filter α} {g h : α → filter β} (h₁ : {a | g a ≤ h a} ∈ f) :
-  bind f g ≤ bind f h :=
-assume x h₂, show (_ ∈ f), by filter_upwards [h₁, h₂] assume s gh' h', gh' h'
+lemma bind_le {f : filter α} {g : α → filter β} {l : filter β} (h : ∀ᶠ x in f, g x ≤ l) :
+  f.bind g ≤ l :=
+join_le $ eventually_map.2 h
 
-lemma bind_sup {f g : filter α} {h : α → filter β} :
+@[mono] lemma bind_mono {f₁ f₂ : filter α} {g₁ g₂ : α → filter β} (hf : f₁ ≤ f₂)
+  (hg : g₁ ≤ᶠ[f₁] g₂) :
+  bind f₁ g₁ ≤ bind f₂ g₂ :=
+begin
+  refine le_trans (λ s hs, _) (join_mono $ map_mono hf),
+  simp only [mem_join_sets, mem_bind_sets', mem_map] at hs ⊢,
+  filter_upwards [hg, hs],
+  exact λ x hx hs, hx hs
+end
+
+lemma bind_inf_principal {f : filter α} {g : α → filter β} {s : set β} :
+  f.bind (λ x, g x ⊓ 𝓟 s) = (f.bind g) ⊓ 𝓟 s :=
+filter.ext $ λ s, by simp only [mem_bind_sets, mem_inf_principal]
+
+lemma sup_bind {f g : filter α} {h : α → filter β} :
   bind (f ⊔ g) h = bind f h ⊔ bind g h :=
 by simp only [bind, sup_join, map_sup, eq_self_iff_true]
-
-lemma bind_mono2 {f g : filter α} {h : α → filter β} (h₁ : f ≤ g) :
-  bind f h ≤ bind g h :=
-assume s h', h₁ h'
 
 lemma principal_bind {s : set α} {f : α → filter β} :
   (bind (𝓟 s) f) = (⨆x ∈ s, f x) :=

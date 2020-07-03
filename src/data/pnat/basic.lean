@@ -370,6 +370,13 @@ theorem lcm_dvd {m n k : ℕ+} (hm : m ∣ k) (hn : n ∣ k) : lcm m n ∣ k :=
 theorem gcd_mul_lcm (n m : ℕ+) : (gcd n m) * (lcm n m) = n * m :=
  subtype.eq (nat.gcd_mul_lcm (n : ℕ) (m : ℕ))
 
+lemma eq_one_of_lt_two {n : ℕ+} : n < 2 → n = 1 :=
+begin
+  intro h, apply le_antisymm, swap, apply pnat.one_le,
+  change n < 1 + 1 at h, rw pnat.lt_add_one_iff at h, apply h
+end
+
+
 section prime
 /-! ### Prime numbers -/
 
@@ -384,12 +391,6 @@ lemma dvd_prime {p m : ℕ+} (pp : p.prime) :
 
 lemma prime.ne_one {p : ℕ+} : p.prime → p ≠ 1 :=
 by { intro pp, intro contra, apply nat.prime.ne_one pp, rw pnat.coe_eq_one_iff, apply contra }
-
-lemma eq_one_of_lt_two {n : ℕ+} : n < 2 → n = 1 :=
-begin
-  intro h, apply le_antisymm, swap, apply pnat.one_le,
-  change n < 1 + 1 at h, rw pnat.lt_add_one_iff at h, apply h
-end
 
 @[simp]
 lemma not_prime_one : ¬ (1: ℕ+).prime :=  nat.not_prime_one
@@ -454,8 +455,6 @@ lemma coprime.gcd_mul_right_cancel_right (m : ℕ+) {n k : ℕ+} :
 begin
   rw mul_comm, apply coprime.gcd_mul_left_cancel_right,
 end
-
-
 
 @[simp]
 lemma one_gcd {n : ℕ+} : gcd 1 n = 1 :=

@@ -7,6 +7,7 @@ Ring-theoretic supplement of data.polynomial.
 
 Main result: Hilbert basis theorem, that if a ring is noetherian then so is its polynomial ring.
 -/
+import algebra.char_p
 import data.mv_polynomial
 import ring_theory.noetherian
 
@@ -16,6 +17,9 @@ local attribute [instance, priority 100] classical.prop_decidable
 universes u v w
 
 namespace polynomial
+
+instance {R : Type u} [comm_semiring R] (p : ℕ) [h : char_p R p] : char_p (polynomial R) p :=
+let ⟨h⟩ := h in ⟨λ n, by rw [← C.map_nat_cast, ← C_0, C_inj, h]⟩
 
 variables (R : Type u) [comm_ring R]
 
@@ -105,10 +109,10 @@ def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set
 @[simp] theorem restriction_one : restriction (1 : polynomial R) = 1 :=
 ext $ λ i, subtype.eq $ by rw [coeff_restriction', coeff_one, coeff_one]; split_ifs; refl
 
-variables {S : Type v} [comm_ring S] {f : R → S} {x : S}
+variables {S : Type v} [comm_ring S] {f : R →+* S} {x : S}
 
 theorem eval₂_restriction {p : polynomial R} :
-  eval₂ f x p = eval₂ (f ∘ subtype.val) x p.restriction :=
+  eval₂ f x p = eval₂ (f.comp (is_subring.subtype _)) x p.restriction :=
 rfl
 
 section to_subring

@@ -338,7 +338,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
     have E : x ∈ I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I,
       by simpa only [prod_mk_mem_set_prod_eq, and_true, mem_univ] using hx,
     have : I (I.symm x) = x, by simp [E.2],
-    dsimp,
+    dsimp [-subtype.val_eq_coe],
     rw [this, D x E],
     refl
   end,
@@ -363,7 +363,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
       simp only [hz.2.symm, hz.1] with mfld_simps },
     have C : fderiv_within 𝕜 (I ∘ i.1 ∘ i.1.symm ∘ I.symm) (range I) (I x) =
              fderiv_within 𝕜 (id : E → E) (range I) (I x) :=
-      fderiv_within_congr_of_mem_nhds_within I.unique_diff_at_image B
+      filter.eventually_eq.fderiv_within_eq I.unique_diff_at_image B
       (by simp only [hx] with mfld_simps),
     rw fderiv_within_id I.unique_diff_at_image at C,
     rw C,

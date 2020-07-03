@@ -69,7 +69,7 @@ free_abelian_group.lift.sub _ _ _
 @[simp] lemma lift_mul (x y) : lift f (x * y) = lift f x * lift f y :=
 begin
   refine free_abelian_group.induction_on y (mul_zero _).symm _ _ _,
-  { intros s2, conv { to_lhs, dsimp only [(*), mul_zero_class.mul, semiring.mul, ring.mul, semigroup.mul, comm_ring.mul] },
+  { intros s2, conv_lhs { dsimp only [(*), distrib.mul, ring.mul, comm_ring.mul, semigroup.mul] },
     rw [free_abelian_group.lift.of, lift, free_abelian_group.lift.of],
     refine free_abelian_group.induction_on x (zero_mul _).symm _ _ _,
     { intros s1, iterate 3 { rw free_abelian_group.lift.of },
@@ -183,7 +183,7 @@ assume hps : is_supported (of p) s, begin
     { rintros x y ⟨q, hq⟩ ⟨r, hr⟩, refine ⟨q+r, _⟩, rw [lift_add, hq, hr], norm_cast } },
   specialize this (of p) hps, rw [lift_of] at this, split_ifs at this, { exact h },
   exfalso, apply ne.symm int.zero_ne_one,
-  rcases this with ⟨w, H⟩, rw polynomial.int_cast_eq_C at H,
+  rcases this with ⟨w, H⟩, rw ←polynomial.C_eq_int_cast at H,
   have : polynomial.X.coeff 1 = (polynomial.C ↑w).coeff 1, by rw H,
   rwa [polynomial.coeff_C, if_neg (one_ne_zero : 1 ≠ 0), polynomial.coeff_X, if_pos rfl] at this
 end

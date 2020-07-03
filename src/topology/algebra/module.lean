@@ -344,7 +344,7 @@ continuous_iff_is_closed.1 f.cont _ is_closed_singleton
 lemma is_complete_ker {M' : Type*} [uniform_space M'] [complete_space M'] [add_comm_monoid M']
   [semimodule R M'] [t1_space M₂] (f : M' →L[R] M₂) :
   is_complete (f.ker : set M') :=
-is_complete_of_is_closed f.is_closed_ker
+f.is_closed_ker.is_complete
 
 instance complete_space_ker {M' : Type*} [uniform_space M'] [complete_space M'] [add_comm_monoid M']
   [semimodule R M'] [t1_space M₂] (f : M' →L[R] M₂) :
@@ -548,12 +548,12 @@ rfl
 @[simp] lemma proj_ker_of_right_inverse_apply_idem [topological_add_group M]
   (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h : function.right_inverse f₂ f₁) (x : f₁.ker) :
   f₁.proj_ker_of_right_inverse f₂ h x = x :=
-subtype.coe_ext.2 $ by simp
+subtype.ext_iff_val.2 $ by simp
 
 @[simp] lemma proj_ker_of_right_inverse_comp_inv [topological_add_group M]
   (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h : function.right_inverse f₂ f₁) (y : M₂) :
   f₁.proj_ker_of_right_inverse f₂ h (f₂ y) = 0 :=
-subtype.coe_ext.2 $ by simp [h y]
+subtype.ext_iff_val.2 $ by simp [h y]
 
 end ring
 
@@ -918,7 +918,7 @@ end
 ⟨0, λ x, by simp only [zero_apply, eq_zero_of_bot_submodule x]⟩
 
 @[simp] lemma closed_complemented_top : closed_complemented (⊤ : submodule R M) :=
-⟨(id R M).cod_restrict ⊤ (λ x, trivial), λ x, subtype.coe_ext.2 $ by simp⟩
+⟨(id R M).cod_restrict ⊤ (λ x, trivial), λ x, subtype.ext_iff_val.2 $ by simp⟩
 
 end submodule
 

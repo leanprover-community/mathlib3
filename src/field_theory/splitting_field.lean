@@ -134,7 +134,7 @@ is_noetherian_ring.irreducible_induction_on (f.map i)
       have hp1 : degree p = 1, from hfs.resolve_left hpf0 hp (by simp),
       begin
         rw [multiset.map_cons, multiset.prod_cons, leading_coeff_mul, C_mul, mul_assoc,
-          mul_left_comm (C f.leading_coeff), ← hs, ← mul_assoc, domain.mul_left_inj hf0],
+          mul_left_comm (C f.leading_coeff), ← hs, ← mul_assoc, mul_left_inj' hf0],
         conv_lhs {rw eq_X_add_C_of_degree_eq_one hp1},
         simp only [mul_add, coe_norm_unit hp.ne_zero, mul_comm p, coeff_neg,
           C_neg, sub_eq_add_neg, neg_neg, coeff_C_mul, (mul_assoc _ _ _).symm, C_mul.symm,

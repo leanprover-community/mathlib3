@@ -275,7 +275,7 @@ calc ∥f.restr s hk z v∥
         refine ⟨j.1, j.2, _⟩,
         unfold_coes,
         convert hj.symm,
-        rw subtype.ext } }
+        rw subtype.ext_iff_val } }
   end
 ... = C * ∥z∥ ^ (n - k) * ∏ i, ∥v i∥ : by rw mul_assoc
 

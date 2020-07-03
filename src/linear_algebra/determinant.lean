@@ -26,7 +26,7 @@ begin
   refine (finset.sum_eq_single 1 _ _).trans _,
   { intros σ h1 h2,
     cases not_forall.1 (mt equiv.ext h2) with x h3,
-    convert ring.mul_zero _,
+    convert mul_zero _,
     apply finset.prod_eq_zero,
     { change x ∈ _, simp },
     exact if_neg h3 },
@@ -93,7 +93,7 @@ calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) 
           by rw [mul_comm, sign_mul (τ * σ⁻¹)]; simp [sign_mul]
         ... = ε τ : by simp,
       by rw h; simp [this, mul_comm, mul_assoc, mul_left_comm])
-    (λ _ _ _ _, (mul_left_inj _).1) (λ τ _, ⟨τ * σ, by simp⟩))
+    (λ _ _ _ _, mul_right_cancel) (λ τ _, ⟨τ * σ, by simp⟩))
 ... = det M * det N : by simp [det, mul_assoc, mul_sum, mul_comm, mul_left_comm]
 
 instance : is_monoid_hom (det : matrix n n R → R) :=

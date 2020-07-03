@@ -25,8 +25,6 @@ is bounded above.
 Another possible use (not yet in `mathlib`) would be the theory of unbounded linear operators.
 -/
 
-lemma subtype.coe_prop {α : Type*} {p : α → Prop} (x : subtype p) : p x := x.2
-
 open set
 
 universes u v w
@@ -78,7 +76,7 @@ begin
     rw [← sub_eq_zero, ← sub_smul] at h ⊢,
     exact H _ h },
   refine ⟨span R {x}, λ z, _, _, _⟩,
-  { exact (classical.some (mem_span_singleton.1 z.coe_prop) • y) },
+  { exact (classical.some (mem_span_singleton.1 z.prop) • y) },
   { intros z₁ z₂,
     rw [← add_smul],
     apply H,
@@ -203,7 +201,7 @@ private lemma sup_aux (f g : linear_pmap R E F)
     ∀ (x : f.domain) (y : g.domain) (z),
       (x:E) + y = ↑z → fg z = f x + g y :=
 begin
-  choose x hx y hy hxy using λ z : f.domain ⊔ g.domain, mem_sup.1 z.coe_prop,
+  choose x hx y hy hxy using λ z : f.domain ⊔ g.domain, mem_sup.1 z.prop,
   set fg := λ z, f ⟨x z, hx z⟩ + g ⟨y z, hy z⟩,
   have fg_eq : ∀ (x' : f.domain) (y' : g.domain) (z' : f.domain ⊔ g.domain) (H : (x':E) + y' = z'),
     fg z' = f x' + g y',
@@ -265,7 +263,7 @@ begin
   simpa
 end
 
-protected lemma sup_le {f g h : linear_pmap R E F} 
+protected lemma sup_le {f g h : linear_pmap R E F}
   (H : ∀ (x : f.domain) (y : g.domain), (x:E) = y → f x = g y)
   (fh : f ≤ h) (gh : g ≤ h) :
   f.sup g H ≤ h :=

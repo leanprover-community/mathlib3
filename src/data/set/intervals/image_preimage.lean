@@ -12,7 +12,7 @@ import data.equiv.mul_add
 In this file we prove a bunch of trivial lemmas like “if we add `a` to all points of `[b, c]`,
 then we get `[a + b, a + c]`”. For the functions `x ↦ x ± a`, `x ↦ a ± x`, and `x ↦ -x` we prove
 lemmas about preimages and images of all intervals. We also prove a few lemmas about images under
-`x ↦ a * x` and `x ↦ x * a`.
+`x ↦ a * x`, `x ↦ x * a` and `x ↦ x⁻¹`.
 
 -/
 
@@ -285,7 +285,7 @@ by simp [sub_eq_neg_add]
 end ordered_add_comm_group
 
 /-!
-### Multiplication in a field
+### Multiplication and inverse in a field
 -/
 
 section linear_ordered_field
@@ -321,6 +321,18 @@ by { convert image_mul_right_Icc' b c h using 1; simp only [mul_comm _ a] }
 lemma image_mul_left_Icc {a b c : k} (ha : 0 ≤ a) (hbc : b ≤ c) :
   ((*) a) '' Icc b c = Icc (a * b) (a * c) :=
 by { convert image_mul_right_Icc hbc ha using 1; simp only [mul_comm _ a] }
+
+/-- The image under `inv` of `Ioo 0 a` is `Ioi a⁻¹`. -/
+lemma image_inv_Ioo_0_left {a : k} (ha : 0 < a) : has_inv.inv '' Ioo 0 a = Ioi a⁻¹ :=
+begin
+  ext x,
+  split,
+  { rintros ⟨y, ⟨hy0, hya⟩, hyx⟩,
+    exact hyx ▸ (inv_lt_inv ha hy0).2 hya },
+  { exact λ h, ⟨x⁻¹, ⟨inv_pos.2 (lt_trans (inv_pos.2 ha) h),
+                      (inv_lt ha (lt_trans (inv_pos.2 ha) h)).1 h⟩,
+                     inv_inv' x⟩ }
+end
 
 end linear_ordered_field
 end set

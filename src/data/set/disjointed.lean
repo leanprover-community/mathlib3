@@ -46,7 +46,7 @@ namespace set
 /-- If `f : ℕ → set α` is a sequence of sets, then `disjointed f` is
   the sequence formed with each set subtracted from the later ones
   in the sequence, to form a disjoint sequence. -/
-def disjointed (f : ℕ → set α) (n : ℕ) : set α := f n ∩ (⋂i<n, - f i)
+def disjointed (f : ℕ → set α) (n : ℕ) : set α := f n ∩ (⋂i<n, (f i)ᶜ)
 
 lemma disjoint_disjointed {f : ℕ → set α} : pairwise (disjoint on disjointed f) :=
 λ i j h, begin
@@ -84,13 +84,13 @@ begin
   induction n,
   case nat.zero { simp [nat.not_lt_zero, h₁] },
   case nat.succ : n ih {
-    rw [Inter_lt_succ, inter_comm (-f n), ← inter_assoc],
+    rw [Inter_lt_succ, inter_comm ((f n)ᶜ), ← inter_assoc],
     exact h₂ _ n ih }
 end
 
 lemma disjointed_of_mono {f : ℕ → set α} {n : ℕ} (hf : monotone f) :
   disjointed f (n + 1) = f (n + 1) \ f n :=
-have (⋂i (h : i < n + 1), -f i) = - f n,
+have (⋂i (h : i < n + 1), (f i)ᶜ) = (f n)ᶜ,
   from le_antisymm
     (infi_le_of_le n $ infi_le_of_le (nat.lt_succ_self _) $ subset.refl _)
     (le_infi $ assume i, le_infi $ assume hi, compl_le_compl $ hf $ nat.le_of_succ_le_succ hi),

@@ -8,6 +8,8 @@ We say two types are equivalent if they are isomorphic.
 
 Two equivalent types have the same cardinality.
 -/
+import tactic.converter.interactive
+import data.quot
 import data.set.function
 import data.option.basic
 import algebra.group.basic
@@ -189,7 +191,7 @@ lemma symm_image_image {α β} (f : equiv α β) (s : set α) : f.symm '' (f '' 
 by { rw [← set.image_comp], simp }
 
 protected lemma image_compl {α β} (f : equiv α β) (s : set α) :
-  f '' -s = -(f '' s) :=
+  f '' sᶜ = (f '' s)ᶜ :=
 set.image_compl_eq f.bijective
 
 /- The group of permutations (self-equivalences) of a type `α` -/
@@ -615,7 +617,7 @@ def subtype_preimage :
   left_inv := λ ⟨x, hx⟩, subtype.val_injective $ funext $ λ a,
     (by { dsimp, split_ifs; [ rw ← hx, skip ]; refl }),
   right_inv := λ x, funext $ λ ⟨a, h⟩,
-    show dite (p a) _ _ = _, by { dsimp, rw [dif_neg h], refl } }
+    show dite (p a) _ _ = _, by { dsimp, rw [dif_neg h] } }
 
 @[simp] lemma subtype_preimage_apply (x : {x : α → β // x ∘ coe = x₀}) :
   subtype_preimage p x₀ x = λ a, (x : α → β) a := rfl
@@ -826,8 +828,8 @@ def subtype_congr {p : α → Prop} {q : β → Prop}
   (e : α ≃ β) (h : ∀ a, p a ↔ q (e a)) : {a : α // p a} ≃ {b : β // q b} :=
 ⟨λ x, ⟨e x.1, (h _).1 x.2⟩,
  λ y, ⟨e.symm y.1, (h _).2 (by { simp, exact y.2 })⟩,
- λ ⟨x, h⟩, subtype.eq' $ by simp,
- λ ⟨y, h⟩, subtype.eq' $ by simp⟩
+ λ ⟨x, h⟩, subtype.ext_val $ by simp,
+ λ ⟨y, h⟩, subtype.ext_val $ by simp⟩
 
 /-- If two predicates `p` and `q` are pointwise equivalent, then `{x // p x}` is equivalent to
 `{x // q x}`. -/
@@ -942,7 +944,7 @@ def subtype_pi_equiv_pi {α : Sort u} {β : α → Sort v} {p : Πa, β a → Pr
   {f : Πa, β a // ∀a, p a (f a) } ≃ Πa, { b : β a // p a b } :=
 ⟨λf a, ⟨f.1 a, f.2 a⟩, λf, ⟨λa, (f a).1, λa, (f a).2⟩,
   by { rintro ⟨f, h⟩, refl },
-  by { rintro f, funext a, exact subtype.eq' rfl }⟩
+  by { rintro f, funext a, exact subtype.ext_val rfl }⟩
 
 /-- A subtype of a product defined by componentwise conditions
 is equivalent to a product of subtypes. -/
@@ -1075,26 +1077,26 @@ calc (insert a s : set α) ≃ ↥(s ∪ {a}) : equiv.set.of_eq (by simp)
 ... ≃ s ⊕ ({a} : set α) : equiv.set.union (by finish [set.subset_def])
 ... ≃ s ⊕ punit.{u+1} : sum_congr (equiv.refl _) (equiv.set.singleton _)
 
-/-- If `s : set α` is a set with decidable membership, then `s ⊕ (-s)` is equivalent to `α`. -/
-protected def sum_compl {α} (s : set α) [decidable_pred s] : s ⊕ (-s : set α) ≃ α :=
-calc s ⊕ (-s : set α) ≃ ↥(s ∪ -s) : (equiv.set.union (by simp [set.ext_iff])).symm
+/-- If `s : set α` is a set with decidable membership, then `s ⊕ sᶜ` is equivalent to `α`. -/
+protected def sum_compl {α} (s : set α) [decidable_pred s] : s ⊕ (sᶜ : set α) ≃ α :=
+calc s ⊕ (sᶜ : set α) ≃ ↥(s ∪ sᶜ) : (equiv.set.union (by simp [set.ext_iff])).symm
 ... ≃ @univ α : equiv.set.of_eq (by simp)
 ... ≃ α : equiv.set.univ _
 
 @[simp] lemma sum_compl_apply_inl {α : Type u} (s : set α) [decidable_pred s] (x : s) :
   equiv.set.sum_compl s (sum.inl x) = x := rfl
 
-@[simp] lemma sum_compl_apply_inr {α : Type u} (s : set α) [decidable_pred s] (x : -s) :
+@[simp] lemma sum_compl_apply_inr {α : Type u} (s : set α) [decidable_pred s] (x : sᶜ) :
   equiv.set.sum_compl s (sum.inr x) = x := rfl
 
 lemma sum_compl_symm_apply_of_mem {α : Type u} {s : set α} [decidable_pred s] {x : α}
   (hx : x ∈ s) : (equiv.set.sum_compl s).symm x = sum.inl ⟨x, hx⟩ :=
-have ↑(⟨x, or.inl hx⟩ : (s ∪ -s : set α)) ∈ s, from hx,
+have ↑(⟨x, or.inl hx⟩ : (s ∪ sᶜ : set α)) ∈ s, from hx,
 by { rw [equiv.set.sum_compl], simpa using set.union_apply_left _ this }
 
 lemma sum_compl_symm_apply_of_not_mem {α : Type u} {s : set α} [decidable_pred s] {x : α}
   (hx : x ∉ s) : (equiv.set.sum_compl s).symm x = sum.inr ⟨x, hx⟩ :=
-have ↑(⟨x, or.inr hx⟩ : (s ∪ -s : set α)) ∈ -s, from hx,
+have ↑(⟨x, or.inr hx⟩ : (s ∪ sᶜ : set α)) ∈ sᶜ, from hx,
 by { rw [equiv.set.sum_compl], simpa using set.union_apply_right _ this }
 
 /-- `sum_diff_subset s t` is the natural equivalence between
@@ -1218,7 +1220,7 @@ def subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid 
     (λ a b hab, hfunext (by rw quotient.sound hab)
     (λ h₁ h₂ _, heq_of_eq (quotient.sound ((h _ _).2 hab)))) a.2,
   inv_fun := λ a, quotient.lift_on a (λ a, (⟨⟦a.1⟧, (hp₂ _).1 a.2⟩ : {x // p₂ x}))
-    (λ a b hab, subtype.eq' (quotient.sound ((h _ _).1 hab))),
+    (λ a b hab, subtype.ext_val (quotient.sound ((h _ _).1 hab))),
   left_inv := λ ⟨a, ha⟩, quotient.induction_on a (λ a ha, rfl) ha,
   right_inv := λ a, quotient.induction_on a (λ ⟨a, ha⟩, rfl) }
 
@@ -1526,7 +1528,7 @@ begin
   by_cases h : i ∈ s,
   { simp only [h, dif_pos],
     have A : e.symm ⟨i, h⟩ = j ↔ i = e j,
-      by { rw equiv.symm_apply_eq, exact subtype.ext },
+      by { rw equiv.symm_apply_eq, exact subtype.ext_iff_val },
     by_cases h' : i = e j,
     { rw [A.2 h', h'], simp },
     { have : ¬ e.symm ⟨i, h⟩ = j, by simpa [← A] using h',

@@ -32,17 +32,33 @@ open category_theory.limits
 
 universes v u
 variables {C : Type u} [category.{v} C]
-variables [preadditive.{v} C] [has_kernels.{v} C]
+variables [preadditive C] [has_kernels C]
 
 /--
 Schur's Lemma (for a general preadditive category),
 that a nonzero morphism between simple objects is an isomorphism.
 -/
-def is_iso_of_hom_simple {X Y : C} [simple.{v} X] [simple.{v} Y] {f : X ⟶ Y} (w : f ≠ 0) :
+def is_iso_of_hom_simple {X Y : C} [simple X] [simple Y] {f : X ⟶ Y} (w : f ≠ 0) :
   is_iso f :=
 begin
   haveI : mono f := preadditive.mono_of_kernel_zero (kernel_zero_of_nonzero_from_simple w),
   exact is_iso_of_mono_of_nonzero w
 end
+
+/--
+As a corollary of Schur's lemma,
+any morphism between simple objects is (exclusively) either an isomorphism or zero.
+-/
+def is_iso_equiv_nonzero {X Y : C} [simple.{v} X] [simple.{v} Y] {f : X ⟶ Y} :
+  is_iso.{v} f ≃ (f ≠ 0) :=
+{ to_fun := λ I,
+  begin
+    introI h,
+    apply id_nonzero X,
+    simp only [←is_iso.hom_inv_id f, h, has_zero_morphisms.zero_comp],
+  end,
+  inv_fun := λ w, is_iso_of_hom_simple w,
+  left_inv := λ I, subsingleton.elim _ _,
+  right_inv := λ w, rfl }
 
 end category_theory

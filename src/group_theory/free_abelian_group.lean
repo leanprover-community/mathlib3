@@ -172,7 +172,7 @@ begin
   apply free_abelian_group.induction_on x,
   { simp only [lift.zero, map_zero], },
   { intro y, simp [lift.of, map_of, function.comp_app], },
-  { intros x w, simp only [w, neg_inj', lift.neg, map_neg], },
+  { intros x w, simp only [w, neg_inj, lift.neg, map_neg], },
   { intros x y w₁ w₂, simp only [w₁, w₂, lift.add, add_right_inj, map_add], },
 end
 

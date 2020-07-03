@@ -418,7 +418,7 @@ def emetric_space.induced {α β} (f : α → β) (hf : function.injective f)
 
 /-- Emetric space instance on subsets of emetric spaces -/
 instance {α : Type*} {p : α → Prop} [t : emetric_space α] : emetric_space (subtype p) :=
-t.induced coe (λ x y, subtype.coe_ext.2)
+t.induced coe (λ x y, subtype.ext_iff_val.2)
 
 /-- The extended distance on a subset of an emetric space is the restriction of
 the original distance, by definition -/
@@ -678,7 +678,7 @@ begin
     exact ⟨y, ‹y ∈ t›, ‹edist x y < ε›⟩ },
   have T₄ : closure t ⊆ s := calc
     closure t ⊆ closure s : closure_mono T₁
-    ... = s : closure_eq_of_is_closed (closed_of_compact _ hs),
+    ... = s : hs.is_closed.closure_eq,
   exact ⟨t, ⟨T₁, T₂, subset.antisymm T₃ T₄⟩⟩
 end
 

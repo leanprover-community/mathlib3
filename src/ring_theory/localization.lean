@@ -236,8 +236,7 @@ f.to_localization_map.map_left_cancel h
 
 lemma eq_zero_of_fst_eq_zero {z x} {y : M}
   (h : z * f.to_map y = f.to_map x) (hx : x = 0) : z = 0 :=
-by rw [hx, f.to_map.map_zero] at h;
-  exact (is_unit.mul_left_eq_zero_iff_eq_zero (f.map_units y)).1 h
+by rw [hx, f.to_map.map_zero] at h; exact (f.map_units y).mul_left_eq_zero.1 h
 
 /-- Given a localization map `f : R →+* S`, the surjection sending `(x, y) : R × M` to
 `f x * (f y)⁻¹`. -/
@@ -297,7 +296,7 @@ f.to_localization_map.mk'_self' _ hx
 @[simp] lemma mk'_self' {x : M} : f.mk' x x = 1 :=
 f.to_localization_map.mk'_self _
 
-@[simp] lemma mk'_self'' {x : M} : f.mk' x.1 x = 1 :=
+lemma mk'_self'' {x : M} : f.mk' x.1 x = 1 :=
 f.mk'_self'
 
 lemma mul_mk'_eq_mk'_of_mul (x y : R) (z : M) :
@@ -706,9 +705,9 @@ let ⟨b, hb⟩ := integer_normalization_spec p in
 variables {R' : Type*} [comm_ring R']
 
 lemma integer_normalization_eval₂_eq_zero (g : f.codomain →+* R') (p : polynomial f.codomain)
-  {x : R'} (hx : eval₂ g x p = 0) : eval₂ (g ∘ f.to_map) x (integer_normalization p) = 0 :=
+  {x : R'} (hx : eval₂ g x p = 0) : eval₂ (g.comp f.to_map) x (integer_normalization p) = 0 :=
 let ⟨b, hb⟩ := integer_normalization_map_to_map p in
-trans (eval₂_map f.to_map g x).symm (by rw [hb, eval₂_smul, hx, _root_.mul_zero])
+trans (eval₂_map f.to_map g x).symm (by rw [hb, eval₂_smul, hx, smul_zero])
 
 lemma integer_normalization_aeval_eq_zero [algebra f.codomain R'] (p : polynomial f.codomain)
   {x : R'} (hx : aeval _ _ x p = 0) :
@@ -940,13 +939,13 @@ def fraction_map_of_algebraic [algebra A L] (alg : is_algebraic A L)
   fraction_map (integral_closure A L) L :=
 (algebra_map (integral_closure A L) L).to_localization_map
   (λ ⟨⟨y, integral⟩, nonzero⟩,
-    have y ≠ 0 := λ h, mem_non_zero_divisors_iff_ne_zero.mp nonzero (subtype.ext.mpr h),
+    have y ≠ 0 := λ h, mem_non_zero_divisors_iff_ne_zero.mp nonzero (subtype.ext_iff_val.mpr h),
     show is_unit y, from ⟨⟨y, y⁻¹, mul_inv_cancel this, inv_mul_cancel this⟩, rfl⟩)
   (λ z, let ⟨x, y, hy, hxy⟩ := exists_integral_multiple (alg z) inj in
     ⟨⟨x, ⟨y, mem_non_zero_divisors_iff_ne_zero.mpr hy⟩⟩, hxy⟩)
-  (λ x y, ⟨ λ (h : x.1 = y.1), ⟨1, by simpa using subtype.ext.mpr h⟩,
+  (λ x y, ⟨ λ (h : x.1 = y.1), ⟨1, by simpa using subtype.ext_iff_val.mpr h⟩,
             λ ⟨c, hc⟩, congr_arg (algebra_map _ L)
-              (eq_of_mul_eq_mul_right_of_ne_zero (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc) ⟩)
+              (mul_right_cancel' (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc) ⟩)
 
 /-- If the field `L` is a finite extension of the fraction field of the integral domain `A`,
 the integral closure of `A` in `L` has fraction field `L`. -/

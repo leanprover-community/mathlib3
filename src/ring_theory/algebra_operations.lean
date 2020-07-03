@@ -5,6 +5,7 @@ Authors: Kenny Lau
 
 Multiplication and division of submodules of an algebra.
 -/
+import tactic.chain
 import ring_theory.algebra
 import ring_theory.ideals
 import algebra.pointwise
@@ -173,12 +174,14 @@ begin
     apply mul_subset_mul }
 end
 
-instance span.is_semiring_hom : is_semiring_hom (submodule.span R : set A → submodule R A) :=
-{ map_zero := span_empty,
-  map_one := show _ = map _ ⊤,
+/-- `span` is a semiring homomorphism (recall multiplication is pointwise multiplication of subsets on either side). -/
+def span.ring_hom : set A →+* submodule R A :=
+{ to_fun := submodule.span R,
+  map_zero' := span_empty,
+  map_one' := show _ = map _ ⊤,
     by erw [← ideal.span_singleton_one, ← span_image, set.image_singleton, alg_hom.map_one]; refl,
-  map_add := span_union,
-  map_mul := λ s t, by erw [span_mul_span, set.pointwise_mul_eq_image] }
+  map_add' := span_union,
+  map_mul' := λ s t, by erw [span_mul_span, set.pointwise_mul_eq_image] }
 
 end ring
 

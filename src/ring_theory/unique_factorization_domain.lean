@@ -145,8 +145,7 @@ multiset.exists_mem_of_rel_of_mem this (by simp)
 
 def of_unique_irreducible_factorization {α : Type*} [integral_domain α]
   (o : unique_irreducible_factorization α) : unique_factorization_domain α :=
-by letI := classical.dec_eq α; exact
-{ prime_factors := λ a h p (hpa : p ∈ o.factors a),
+{ prime_factors := by letI := classical.dec_eq α; exact λ a h p (hpa : p ∈ o.factors a),
     have hpi : irreducible p, from o.irreducible_factors h _ hpa,
     ⟨hpi.ne_zero, hpi.1,
       λ a b ⟨x, hx⟩,
@@ -156,8 +155,8 @@ by letI := classical.dec_eq α; exact
         (λ hb0, by simp [hb0])
       else
         have hx0 : x ≠ 0, from λ hx0, by simp * at *,
-        have ha0 : a ≠ 0, from ne_zero_of_mul_ne_zero_right hab0,
-        have hb0 : b ≠ 0, from ne_zero_of_mul_ne_zero_left hab0,
+        have ha0 : a ≠ 0, from left_ne_zero_of_mul hab0,
+        have hb0 : b ≠ 0, from right_ne_zero_of_mul hab0,
         have multiset.rel associated  (p :: o.factors x) (o.factors a + o.factors b),
           from o.unique
             (λ i hi, (multiset.mem_cons.1 hi).elim
@@ -165,8 +164,8 @@ by letI := classical.dec_eq α; exact
               (o.irreducible_factors hx0 _))
             (show ∀ x ∈ o.factors a + o.factors b, irreducible x,
               from λ x hx, (multiset.mem_add.1 hx).elim
-                (o.irreducible_factors (ne_zero_of_mul_ne_zero_right hab0) _)
-                (o.irreducible_factors (ne_zero_of_mul_ne_zero_left hab0) _)) $
+                (o.irreducible_factors ha0 _)
+                (o.irreducible_factors hb0 _)) $
               calc multiset.prod (p :: o.factors x)
                   ~ᵤ a * b : by rw [hx, multiset.prod_cons];
                     exact associated_mul_mul (by refl)
@@ -223,12 +222,12 @@ lemma factor_set.sup_add_inf_eq_add [decidable_eq (associates α)] :
 
 def factor_set.prod : factor_set α → associates α
 | none     := 0
-| (some s) := (s.map subtype.val).prod
+| (some s) := (s.map coe).prod
 
 @[simp] theorem prod_top : (⊤ : factor_set α).prod = 0 := rfl
 
 @[simp] theorem prod_coe {s : multiset { a : associates α // irreducible a }} :
-  (s : factor_set α).prod = (s.map subtype.val).prod :=
+  (s : factor_set α).prod = (s.map coe).prod :=
 rfl
 
 @[simp] theorem prod_add : ∀(a b : factor_set α), (a + b).prod = a.prod * b.prod
@@ -291,8 +290,8 @@ def factors' (a : α) (ha : a ≠ 0) : multiset { a : associates α // irreducib
 (factors a).pmap (λa ha, ⟨associates.mk a, (irreducible_mk_iff _).2 ha⟩)
   (irreducible_factors $ ha)
 
-@[simp] theorem map_subtype_val_factors' {a : α} (ha : a ≠ 0) :
-  (factors' a ha).map subtype.val = (factors a).map associates.mk :=
+@[simp] theorem map_subtype_coe_factors' {a : α} (ha : a ≠ 0) :
+  (factors' a ha).map coe = (factors a).map associates.mk :=
 by simp [factors', multiset.map_pmap, multiset.pmap_eq_map]
 
 theorem factors'_cong {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) (h : a ~ᵤ b) :
@@ -300,7 +299,7 @@ theorem factors'_cong {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) (h : a ~ᵤ b) :
 have multiset.rel associated (factors a) (factors b), from
   unique (irreducible_factors ha) (irreducible_factors hb)
     ((factors_prod ha).trans $ h.trans $ (factors_prod hb).symm),
-by simpa [(multiset.map_eq_map subtype.val_injective).symm, rel_associated_iff_map_eq_map.symm]
+by simpa [(multiset.map_eq_map subtype.coe_injective).symm, rel_associated_iff_map_eq_map.symm]
 
 variable [dec : decidable_eq (associates α)]
 include dec
@@ -329,19 +328,19 @@ theorem prod_factors : ∀(s : factor_set α), s.prod.factors = s
 | (some s) :=
   begin
     unfold factor_set.prod,
-    generalize eq_a : (s.map subtype.val).prod = a,
+    generalize eq_a : (s.map coe).prod = a,
     rcases a with ⟨a⟩,
     rw quot_mk_eq_mk at *,
 
-    have : (s.map subtype.val).prod ≠ 0, from assume ha,
+    have : (s.map (coe : _ → associates α)).prod ≠ 0, from assume ha,
       let ⟨⟨a, ha⟩, h, eq⟩ := multiset.mem_map.1 (prod_eq_zero_iff.1 ha) in
       have irreducible (0 : associates α), from eq ▸ ha,
       not_irreducible_zero ((irreducible_mk_iff _).1 this),
     have ha : a ≠ 0, by simp [*] at *,
-    suffices : (unique_factorization_domain.factors a).map associates.mk = s.map subtype.val,
+    suffices : (unique_factorization_domain.factors a).map associates.mk = s.map coe,
     { rw [factors_mk a ha],
       apply congr_arg some _,
-      simpa [(multiset.map_eq_map subtype.val_injective).symm] },
+      simpa [(multiset.map_eq_map subtype.coe_injective).symm] },
 
     refine unique'
       (forall_map_mk_factors_irreducible _ ha)

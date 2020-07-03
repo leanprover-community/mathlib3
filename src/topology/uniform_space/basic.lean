@@ -759,7 +759,7 @@ lemma uniformity_has_basis_closure : has_basis (𝓤 α) (λ V : set (α × α),
   { rintros ⟨r, ⟨r_in, r_closed⟩, r_sub⟩,
     use [r, r_in],
     convert r_sub,
-    rw closure_eq_of_is_closed r_closed,
+    rw r_closed.closure_eq,
     refl },
   { rintros ⟨r, r_in, r_sub⟩,
     exact ⟨closure r, ⟨mem_sets_of_superset r_in subset_closure, is_closed_closure⟩, r_sub⟩ }
@@ -1137,7 +1137,7 @@ lemma tendsto_of_uniform_continuous_subtype
   [uniform_space α] [uniform_space β] {f : α → β} {s : set α} {a : α}
   (hf : uniform_continuous (λx:s, f x.val)) (ha : s ∈ 𝓝 a) :
   tendsto f (𝓝 a) (𝓝 (f a)) :=
-by rw [(@map_nhds_subtype_val_eq α _ s a (mem_of_nhds ha) ha).symm]; exact
+by rw [(@map_nhds_subtype_coe_eq α _ s a (mem_of_nhds ha) ha).symm]; exact
 tendsto_map' (continuous_iff_continuous_at.mp hf.continuous _)
 
 

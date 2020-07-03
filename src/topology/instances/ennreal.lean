@@ -112,7 +112,7 @@ end
 
 lemma continuous_on_to_nnreal : continuous_on ennreal.to_nnreal {a | a ≠ ∞}  :=
 continuous_on_iff_continuous_restrict.2 $ continuous_iff_continuous_at.2 $ λ x,
-  (tendsto_to_nnreal x.2).comp continuous_at_subtype_val
+  (tendsto_to_nnreal x.2).comp continuous_at_subtype_coe
 
 lemma tendsto_to_real {a : ennreal} : a ≠ ⊤ → tendsto (ennreal.to_real) (𝓝 a) (𝓝 a.to_real) :=
 λ ha, tendsto.comp ((@nnreal.tendsto_coe _ (𝓝 a.to_nnreal) id (a.to_nnreal)).2 tendsto_id)
@@ -283,11 +283,37 @@ protected lemma tendsto.mul_const {f : filter α} {m : α → ennreal} {a b : en
   (hm : tendsto m f (𝓝 a)) (ha : a ≠ 0 ∨ b ≠ ⊤) : tendsto (λx, m x * b) f (𝓝 (a * b)) :=
 by simpa only [mul_comm] using ennreal.tendsto.const_mul hm ha
 
-protected lemma continuous_const_mul {a : ennreal} (ha : a < ⊤) : continuous ((*) a) :=
-continuous_iff_continuous_at.2 $ λ x, tendsto.const_mul tendsto_id $ or.inr $ ne_of_lt ha
+protected lemma continuous_at_const_mul {a b : ennreal} (h : a ≠ ⊤ ∨ b ≠ 0) :
+  continuous_at ((*) a) b :=
+tendsto.const_mul tendsto_id h.symm
 
-protected lemma continuous_mul_const {a : ennreal} (ha : a < ⊤) : continuous (λ x, x * a) :=
-by simpa only [mul_comm] using ennreal.continuous_const_mul ha
+protected lemma continuous_at_mul_const {a b : ennreal} (h : a ≠ ⊤ ∨ b ≠ 0) :
+  continuous_at (λ x, x * a) b :=
+tendsto.mul_const tendsto_id h.symm
+
+protected lemma continuous_const_mul {a : ennreal} (ha : a ≠ ⊤) : continuous ((*) a) :=
+continuous_iff_continuous_at.2 $ λ x, ennreal.continuous_at_const_mul (or.inl ha)
+
+protected lemma continuous_mul_const {a : ennreal} (ha : a ≠ ⊤) : continuous (λ x, x * a) :=
+continuous_iff_continuous_at.2 $ λ x, ennreal.continuous_at_mul_const (or.inl ha)
+
+lemma infi_mul_left {ι} [nonempty ι] {f : ι → ennreal} {a : ennreal}
+  (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) :
+  (⨅ i, a * f i) = a * ⨅ i, f i :=
+begin
+  by_cases H : a = ⊤ ∧ (⨅ i, f i) = 0,
+  { rcases h H.1 H.2 with ⟨i, hi⟩,
+    rw [H.2, mul_zero, ← bot_eq_zero, infi_eq_bot],
+    exact λ b hb, ⟨i, by rwa [hi, mul_zero, ← bot_eq_zero]⟩ },
+  { push_neg at H,
+    exact (map_infi_of_continuous_at_of_monotone' (ennreal.continuous_at_const_mul H)
+      ennreal.mul_left_mono).symm }
+end
+
+lemma infi_mul_right {ι} [nonempty ι] {f : ι → ennreal} {a : ennreal}
+  (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) :
+  (⨅ i, f i * a) = (⨅ i, f i) * a :=
+by simpa only [mul_comm a] using infi_mul_left h
 
 protected lemma continuous_inv : continuous (has_inv.inv : ennreal → ennreal) :=
 continuous_iff_continuous_at.2 $ λ a, tendsto_order.2
@@ -652,7 +678,7 @@ local attribute [instance] metric_space_emetric_ball
 
 lemma nhds_eq_nhds_emetric_ball (a x : β) (r : ennreal) (h : x ∈ ball a r) :
   𝓝 x = map (coe : ball a r → β) (𝓝 ⟨x, h⟩) :=
-(map_nhds_subtype_val_eq _ $ mem_nhds_sets emetric.is_open_ball h).symm
+(map_nhds_subtype_coe_eq _ $ mem_nhds_sets emetric.is_open_ball h).symm
 end
 
 section

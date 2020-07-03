@@ -3,7 +3,6 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-import data.rat
 import algebra.gcd_domain
 import algebra.field_power
 import ring_theory.multiplicity
@@ -76,7 +75,6 @@ dif_pos ⟨hq, hp.ne_one⟩
 
 namespace padic_val_rat
 open multiplicity
-section padic_val_rat
 variables {p : ℕ}
 
 /--
@@ -114,13 +112,13 @@ by rw [padic_val_rat, dif_pos]; simp *; refl
 
 end padic_val_rat
 
-section padic_val_nat
-
 /--
 A convenience function for the case of `padic_val_rat` when both inputs are natural numbers.
 -/
 def padic_val_nat (p : ℕ) (n : ℕ) : ℕ :=
 int.to_nat (padic_val_rat p n)
+
+section padic_val_nat
 
 /--
 `padic_val_nat` is defined as an `int.to_nat` cast; this lemma ensures that the cast is well-behaved.
@@ -161,7 +159,7 @@ end
 
 end padic_val_nat
 
-section padic_val_rat
+namespace padic_val_rat
 open multiplicity
 variables (p : ℕ) [p_prime : fact p.prime]
 include p_prime
@@ -298,7 +296,6 @@ theorem min_le_padic_val_rat_add {q r : ℚ}
     (by rwa add_comm) h)
 
 end padic_val_rat
-end padic_val_rat
 
 /--
 If `q ≠ 0`, the p-adic norm of a rational `q` is `p ^ (-(padic_val_rat p q))`.
@@ -398,7 +395,7 @@ The p-adic norm respects division.
 -/
 @[simp] protected theorem div (q r : ℚ) : padic_norm p (q / r) = padic_norm p q / padic_norm p r :=
 if hr : r = 0 then by simp [hr] else
-eq_div_of_mul_eq _ _ (padic_norm.nonzero _ hr) (by rw [←padic_norm.mul, div_mul_cancel _ hr])
+eq_div_of_mul_eq (padic_norm.nonzero _ hr) (by rw [←padic_norm.mul, div_mul_cancel _ hr])
 
 /--
 The p-adic norm of an integer is at most 1.

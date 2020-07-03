@@ -716,7 +716,7 @@ begin
   have lim_uφ : tendsto (u ∘ φ) at_top f,
     from h.tendsto φ_in,
   have lim_φ : tendsto φ at_top at_top,
-    from (tendsto_at_top_mono _ φ_ge tendsto_id),
+    from (tendsto_at_top_mono φ_ge tendsto_id),
   obtain ⟨ψ, hψ, hψφ⟩ : ∃ ψ : ℕ → ℕ, strict_mono ψ ∧ strict_mono (φ ∘ ψ),
     from strict_mono_subseq_of_tendsto_at_top lim_φ,
   exact ⟨φ ∘ ψ, hψφ, lim_uφ.comp $ strict_mono_tendsto_at_top hψ⟩,

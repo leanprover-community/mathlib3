@@ -6,6 +6,7 @@ Authors: Johan Commelin
 Nonnegative real numbers.
 -/
 import algebra.linear_ordered_comm_group_with_zero
+import data.finset.lattice
 import data.real.basic
 
 noncomputable theory
@@ -59,7 +60,7 @@ instance : has_bot ℝ≥0   := ⟨0⟩
 instance : inhabited ℝ≥0 := ⟨0⟩
 
 @[simp, norm_cast] protected lemma coe_eq {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) = r₂ ↔ r₁ = r₂ :=
-subtype.ext.symm
+subtype.ext_iff_val.symm
 @[simp, norm_cast] protected lemma coe_zero : ((0 : ℝ≥0) : ℝ) = 0 := rfl
 @[simp, norm_cast] protected lemma coe_one  : ((1 : ℝ≥0) : ℝ) = 1 := rfl
 @[simp, norm_cast] protected lemma coe_add (r₁ r₂ : ℝ≥0) : ((r₁ + r₂ : ℝ≥0) : ℝ) = r₁ + r₂ := rfl
@@ -375,7 +376,7 @@ section mul
 lemma mul_eq_mul_left {a b c : nnreal} (h : a ≠ 0) : (a * b = a * c ↔ b = c) :=
 begin
   rw [← nnreal.eq_iff, ← nnreal.eq_iff, nnreal.coe_mul, nnreal.coe_mul], split,
-  { exact eq_of_mul_eq_mul_left (mt (@nnreal.eq_iff a 0).1 h) },
+  { exact mul_left_cancel' (mt (@nnreal.eq_iff a 0).1 h) },
   { assume h, rw [h] }
 end
 
@@ -480,7 +481,7 @@ mul_pos hr (inv_pos.2 hp)
 
 @[simp] lemma div_one {r : ℝ≥0} : r / 1 = r := by rw [div_def, inv_one, mul_one]
 
-protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv' _ _
+protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv_rev' _ _
 
 protected lemma inv_pow {r : ℝ≥0} {n : ℕ} : (r^n)⁻¹ = (r⁻¹)^n :=
 nnreal.eq $ by { push_cast, exact (inv_pow' _ _).symm }

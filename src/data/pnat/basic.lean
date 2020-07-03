@@ -520,6 +520,6 @@ begin
   rw ← coprime_coe at *, simp only [pow_coe], apply nat.coprime.pow, apply h
 end
 
-end
+end coprime
 
 end pnat

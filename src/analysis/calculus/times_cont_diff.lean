@@ -60,6 +60,11 @@ so on) preserve `C^n` functions.
 
 ## Implementation notes
 
+The definitions in this file are designed to work on any field `𝕜`. They are sometimes slightly more
+complicated than the naive definitions one would guess from the intuition over the real or complex
+numbers, but they are designed to circumvent the lack of gluing properties and partitions of unity
+in general. In the usual situations, they coincide with the usual definitions.
+
 ### Definition of `C^n` functions in domains
 
 One could define `C^n` functions in a domain `s` by fixing an arbitrary choice of derivatives (this
@@ -88,7 +93,7 @@ There is another issue with the definition of `times_cont_diff_within_at 𝕜 n 
 require the existence and good behavior of derivatives up to order `n` on a neighborhood of `x`
 within `s`. However, this does not imply continuity or differentiability within `s`of the function
 at `x`. Therefore, we require such existence and good behavior on a neighborhood of `x` within
-`s ∪ {x}`.
+`s ∪ {x}` (which appears as `insert x s` in this file).
 
 ### Side of the composition, and universe issues
 

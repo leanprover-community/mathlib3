@@ -8,7 +8,7 @@ import ring_theory.polynomial_algebra
 import linear_algebra.nonsingular_inverse
 
 /-!
-The Cayley-Hamilton theorem, over a commutative ring.
+# The Cayley-Hamilton theorem, over a commutative ring.
 
 We use a nice proof from http://drorbn.net/AcademicPensieve/2015-12/CayleyHamilton.pdf
 -/

@@ -6,6 +6,7 @@ Authors: Jeremy Avigad, Mario Carneiro, Yury G. Kudryashov
 import tactic.simpa
 import tactic.rcases
 import tactic.lint.misc
+import tactic.localized
 import algebra.order
 import order.basic
 

@@ -3,6 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
+import tactic.simps
 import data.matrix.basic
 import linear_algebra.tensor_product
 import data.equiv.ring

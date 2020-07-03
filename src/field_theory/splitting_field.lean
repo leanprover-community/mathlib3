@@ -212,7 +212,7 @@ begin
       splits_of_degree_le_one _ (le_trans degree_le_nat_degree $ hn.symm ▸
         with_bot.coe_le_coe.2 zero_le_one),
       λ γ _ j hj, ⟨j, by exactI j.comp_id⟩⟩ },
-  intros, resetI,
+  introsI,
   have hdfn0 : f.nat_degree ≠ 0, { intro hf0, rw hf0 at hn, cases hn },
   have hfn0 : f ≠ 0, { intro hf, apply hdfn0, rw [hf, nat_degree_zero] },
   obtain ⟨g, hg, f, rfl⟩ := exists_irreducible_of_nat_degree_ne_zero hdfn0, resetI,
@@ -226,7 +226,7 @@ begin
   rw ← mul_div_by_monic_eq_iff_is_root at hfg,
   rw [← splits_id_iff_splits, ← map_map, splits_id_iff_splits, ← hfg],
   refine ⟨splits_mul i (splits_X_sub_C _) hif, _⟩,
-  intros γ _ j hj, resetI,
+  introsI γ _ j hj,
   obtain ⟨x, hx⟩ := exists_root_of_splits j (splits_of_splits_mul j hfn0 hj).1
     (mt is_unit_iff_degree_eq_zero.2 hg.1),
   have : (X - C (adjoin_root.root g)) * (map (adjoin_root.of g) (g * f) /ₘ (X - C (adjoin_root.root g))) ≠ 0,

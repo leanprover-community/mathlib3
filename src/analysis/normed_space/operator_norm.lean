@@ -470,7 +470,7 @@ begin
         apply add_le_add_right,
         simpa [dist_eq_norm] using b_bound n 0 0 (zero_le _) (zero_le _)
       end },
-    exact le_of_tendsto at_top_ne_bot (hG v).norm (eventually_of_forall _ A) },
+    exact le_of_tendsto at_top_ne_bot (hG v).norm (eventually_of_forall A) },
   -- Thus `G` is continuous, and we propose that as the limit point of our original Cauchy sequence.
   let Gcont := Glin.mk_continuous _ Gnorm,
   use Gcont,

@@ -1537,6 +1537,9 @@ by simpa only [monic, leading_coeff_zero] using (zero_ne_one : (0 : R) ≠ 1)
 lemma ne_zero_of_monic (h : monic p) : p ≠ 0 :=
 λ h₁, @not_monic_zero R _ _ (h₁ ▸ h)
 
+theorem not_is_unit_X : ¬ is_unit (X : polynomial R) :=
+λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ _ $ by erw [← coeff_one_zero, ← hgf, coeff_mul_X_zero]
+
 end nonzero_semiring
 
 section semiring
@@ -1659,6 +1662,15 @@ rec_on_horner p
   h0
 
 end semiring
+
+section comm_semiring
+variables [comm_semiring R]
+
+theorem X_dvd_iff {α : Type u} [comm_semiring α] {f : polynomial α} : X ∣ f ↔ f.coeff 0 = 0 :=
+⟨λ ⟨g, hfg⟩, by rw [hfg, mul_comm, coeff_mul_X_zero],
+λ hf, ⟨f.div_X, by rw [mul_comm, ← add_zero (f.div_X * X), ← C_0, ← hf, div_X_mul_X_add]⟩⟩
+
+end comm_semiring
 
 section semiring
 variables [semiring R]
@@ -2206,6 +2218,9 @@ lemma X_pow_sub_C_ne_zero {n : ℕ} (hn : 0 < n) (a : R) :
 mt degree_eq_bot.2 (show degree ((X : polynomial R) ^ n - C a) ≠ ⊥,
   by rw degree_X_pow_sub_C hn a; exact dec_trivial)
 
+theorem X_sub_C_ne_zero (r : R) : X - C r ≠ 0 :=
+pow_one (X : polynomial R) ▸ X_pow_sub_C_ne_zero zero_lt_one r
+
 lemma nat_degree_X_pow_sub_C {n : ℕ} (hn : 0 < n) {r : R} :
   (X ^ n - C r).nat_degree = n :=
 by { apply nat_degree_eq_of_degree_eq_some, simp [degree_X_pow_sub_C hn], }
@@ -2250,6 +2265,14 @@ begin
 end
 
 end ring
+
+section nonzero_ring
+variables [ring R] [nonzero R]
+
+theorem not_is_unit_X_sub_C {r : R} : ¬ is_unit (X - C r) :=
+λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ _ $ by erw [← eval_mul_X_sub_C, hgf, eval_one]
+
+end nonzero_ring
 
 section comm_ring
 
@@ -2409,9 +2432,11 @@ then if hn0 : n = 0 then by simp [hp0, hn0]
 else nat_degree_pow_eq'
   (by rw [← leading_coeff_pow, ne.def, leading_coeff_eq_zero]; exact pow_ne_zero _ hp0)
 
+lemma root_mul : is_root (p * q) a ↔ is_root p a ∨ is_root q a :=
+by simp_rw [is_root, eval_mul, mul_eq_zero]
+
 lemma root_or_root_of_root_mul (h : is_root (p * q) a) : is_root p a ∨ is_root q a :=
-by rw [is_root, eval_mul] at h;
-  exact eq_zero_or_eq_zero_of_mul_eq_zero h
+root_mul.1 h
 
 lemma degree_le_mul_left (p : polynomial R) (hq : q ≠ 0) : degree p ≤ degree (p * q) :=
 if hp : p = 0 then by simp only [hp, zero_mul, le_refl]
@@ -2491,11 +2516,18 @@ with_bot.coe_le_coe.1 (le_trans (card_roots_sub_C hp0) (le_of_eq $ degree_eq_nat
 @[simp] lemma mem_roots (hp : p ≠ 0) : a ∈ p.roots ↔ is_root p a :=
 by unfold roots; rw dif_neg hp; exact (classical.some_spec (exists_finset_roots hp)).2 _
 
+lemma roots_mul (hpq : p * q ≠ 0) : (p * q).roots = p.roots ∪ q.roots :=
+finset.ext $ λ r, by rw [mem_union, mem_roots hpq, mem_roots (mul_ne_zero_iff.1 hpq).1,
+    mem_roots (mul_ne_zero_iff.1 hpq).2, root_mul]
+
 @[simp] lemma mem_roots_sub_C {p : polynomial R} {a x : R} (hp0 : 0 < degree p) :
   x ∈ (p - C a).roots ↔ p.eval x = a :=
 (mem_roots (show p - C a ≠ 0, from mt sub_eq_zero.1 $ λ h,
     not_le_of_gt hp0 $ h.symm ▸ degree_C_le)).trans
   (by rw [is_root.def, eval_sub, eval_C, sub_eq_zero])
+
+lemma roots_X_sub_C (r : R) : roots (X - C r) = {r} :=
+finset.ext $ λ s, by rw [mem_roots (X_sub_C_ne_zero r), root_X_sub_C, mem_singleton, eq_comm]
 
 lemma card_roots_X_pow_sub_C {n : ℕ} (hn : 0 < n) (a : R) :
   (roots ((X : polynomial R) ^ n - C a)).card ≤ n :=
@@ -2616,17 +2648,24 @@ this.elim
     by rw h₁ at h₂; exact absurd h₂ dec_trivial)
   (λ hgu, by rw [hg, degree_mul_eq, degree_X_sub_C, degree_eq_zero_of_is_unit hgu, add_zero])
 
+theorem prime_X_sub_C {r : R} : prime (X - C r) :=
+⟨X_sub_C_ne_zero r, not_is_unit_X_sub_C,
+λ _ _, by { simp_rw [dvd_iff_is_root, is_root.def, eval_mul, mul_eq_zero], exact id }⟩
+
+theorem prime_X : prime (X : polynomial R) :=
+by simpa only [C_0, sub_zero] using (prime_X_sub_C : prime (X - C 0 : polynomial R))
+
 lemma prime_of_degree_eq_one_of_monic (hp1 : degree p = 1)
   (hm : monic p) : prime p :=
 have p = X - C (- p.coeff 0),
   by simpa [hm.leading_coeff] using eq_X_add_C_of_degree_eq_one hp1,
-⟨mt degree_eq_bot.2 $ hp1.symm ▸ dec_trivial,
-  mt degree_eq_zero_of_is_unit (by simp [hp1]; exact dec_trivial),
-    λ _ _, begin
-      rw [this, dvd_iff_is_root, dvd_iff_is_root, dvd_iff_is_root,
-        is_root, is_root, is_root, eval_mul, mul_eq_zero],
-      exact id
-    end⟩
+this.symm ▸ prime_X_sub_C
+
+theorem irreducible_X_sub_C (r : R) : irreducible (X - C r) :=
+irreducible_of_prime prime_X_sub_C
+
+theorem irreducible_X : irreducible (X : polynomial R) :=
+irreducible_of_prime prime_X
 
 lemma irreducible_of_degree_eq_one_of_monic (hp1 : degree p = 1)
   (hm : monic p) : irreducible p :=

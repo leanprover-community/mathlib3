@@ -8,9 +8,10 @@ import data.finset.intervals
 import data.finset.fold
 import data.finset.powerset
 import data.finset.pi
-import data.nat.enat
 import data.equiv.mul_add
 import tactic.abel
+import tactic.simp_rw
+import data.nat.enat
 
 /-!
 # Big operators

@@ -304,6 +304,7 @@ theorem dvd_iff'' {k n : ℕ+} : k ∣ n ↔ ∃ m, k * m = n :=
 theorem dvd_intro {k n : ℕ+} (m : ℕ+) (h : k * m = n) : k ∣ n :=
  dvd_iff''.mpr ⟨m, h⟩
 
+@[simp]
 theorem dvd_refl (m : ℕ+) : m ∣ m := dvd_intro 1 (mul_one m)
 
 theorem dvd_antisymm {m n : ℕ+} : m ∣ n → n ∣ m → m = n :=
@@ -348,5 +349,127 @@ theorem gcd_mul_lcm (n m : ℕ+) : (gcd n m) * (lcm n m) = n * m :=
  subtype.eq (nat.gcd_mul_lcm (n : ℕ) (m : ℕ))
 
 def prime (p : ℕ+) : Prop := (p : ℕ).prime
+
+section coprime_and_more_facts
+
+/-- Two pnats are coprime if their gcd is 1. -/
+def coprime (m n : ℕ+) : Prop := m.gcd n = 1
+
+@[simp]
+lemma eq_iff {m n : ℕ+} :
+(m : ℕ) = ↑n ↔ m = n := by { split, apply eq, intro h, rw h }
+
+@[simp]
+lemma coprime_coe {m n : ℕ+} : nat.coprime ↑m ↑n ↔ m.coprime n :=
+by { unfold coprime, unfold nat.coprime, rw ← eq_iff, simp }
+
+lemma coprime.mul {k m n : ℕ+} : m.coprime k → n.coprime k → (m * n).coprime k :=
+by { repeat {rw ← coprime_coe}, rw mul_coe, apply nat.coprime.mul }
+
+lemma gcd_eq_left_iff_dvd {m n : ℕ+} : m ∣ n ↔ m.gcd n = m :=
+by { rw dvd_iff, rw nat.gcd_eq_left_iff_dvd, rw ← eq_iff, simp }
+
+lemma coprime.gcd_mul_right_cancel (m : ℕ+) {n k : ℕ+} :
+  k.coprime n → (m * k).gcd n = m.gcd n :=
+begin
+  intro h, apply eq, simp only [gcd_coe, mul_coe],
+  apply nat.coprime.gcd_mul_right_cancel, simpa
+end
+
+lemma gcd_comm {m n : ℕ+} : m.gcd n = n.gcd m :=
+by { apply eq, simp only [gcd_coe], apply nat.gcd_comm }
+
+@[simp]
+lemma one_gcd {n : ℕ+} : gcd 1 n = 1 :=
+by { rw ← gcd_eq_left_iff_dvd, apply one_dvd }
+
+@[simp]
+lemma gcd_one {n : ℕ+} : gcd n 1 = 1 := by { rw gcd_comm, apply one_gcd }
+
+lemma coprime.symm {m n : ℕ+} : m.coprime n → n.coprime m :=
+by { unfold coprime, rw gcd_comm, simp }
+
+@[simp]
+lemma one_coprime {n : ℕ+} : (1 : ℕ+).coprime n := one_gcd
+
+@[simp]
+lemma coprime_one {n : ℕ+} : n.coprime 1 := coprime.symm one_coprime
+
+lemma coprime.coprime_dvd_left {m k n : ℕ+} :
+  m ∣ k → k.coprime n → m.coprime n :=
+by { rw dvd_iff, repeat {rw ← coprime_coe}, apply nat.coprime.coprime_dvd_left }
+
+lemma coprime_factor_eq_gcd_left {a b m n : ℕ+} (cop : m.coprime n) (am : a ∣ m) (bn : b ∣ n):
+  a = (a * b).gcd m :=
+begin
+  rw gcd_eq_left_iff_dvd at am,
+  conv_lhs {rw ← am}, symmetry,
+  apply coprime.gcd_mul_right_cancel a,
+  apply coprime.coprime_dvd_left bn cop.symm,
+end
+
+lemma coprime.gcd_mul (k : ℕ+) {m n : ℕ+} (h: m.coprime n) :
+  k.gcd (m * n) = k.gcd m * k.gcd n :=
+begin
+  rw ← coprime_coe at h, apply eq,
+  simp only [gcd_coe, mul_coe], apply nat.coprime.gcd_mul k h
+end
+
+lemma gcd_eq_left {m n : ℕ+} : m ∣ n → m.gcd n = m :=
+by { rw dvd_iff, intro h, apply eq, simp only [gcd_coe], apply nat.gcd_eq_left h }
+
+lemma coprime.pow {m n : ℕ+} (k l : ℕ) (h : m.coprime n) : (m ^ k).coprime (n ^ l) :=
+begin
+  rw ← coprime_coe at *, simp only [pow_coe], apply nat.coprime.pow, apply h
+end
+
+lemma le_of_dvd {m n : ℕ+} : m ∣ n → m ≤ n :=
+by { rw dvd_iff', intro h, rw ← h, apply (mod_le n m).left }
+
+lemma mul_lt_mul_left (a : ℕ+) {b c : ℕ+}: b < c → a * b < a * c :=
+begin
+  intro bc,
+  apply nat.mul_lt_mul_of_pos_left, apply bc, apply a.property,
+end
+
+lemma mul_lt_mul_right (a : ℕ+) {b c : ℕ+}: b < c → b * a < c * a :=
+begin
+  intro bc,
+  apply nat.mul_lt_mul_of_pos_right, apply bc, apply a.property,
+end
+
+lemma prime.one_lt {p : ℕ+} : p.prime → 1 < p := nat.prime.one_lt
+
+lemma prime_two : (2 : ℕ+).prime := nat.prime_two
+
+@[simp]
+lemma coe_eq_one_iff {m : ℕ+} :
+(m : ℕ) = 1 ↔ m = 1 := by { split; intro h; try { apply pnat.eq}; rw h; simp }
+
+lemma dvd_prime {p m : ℕ+} (pp : p.prime) :
+(m ∣ p ↔ m = 1 ∨ m = p) := by { rw pnat.dvd_iff, rw nat.dvd_prime pp, simp }
+
+lemma prime.ne_one {p : ℕ+} : p.prime → p ≠ 1 :=
+by { intro pp, intro contra, apply nat.prime.ne_one pp, rw pnat.coe_eq_one_iff, apply contra }
+
+lemma eq_one_of_lt_two {n : ℕ+} : n < 2 → n = 1 :=
+begin
+  intro h, apply le_antisymm, swap, apply pnat.one_le,
+  change n < 1 + 1 at h, rw pnat.lt_add_one_iff at h, apply h
+end
+
+@[simp]
+lemma not_prime_one : ¬ (1: ℕ+).prime :=  nat.not_prime_one
+
+lemma prime.not_dvd_one {p : ℕ+} :
+p.prime →  ¬ p ∣ 1 := λ pp : p.prime, nat.prime.not_dvd_one pp
+
+lemma exists_prime_and_dvd {n : ℕ+} : 2 ≤ n → (∃ (p : ℕ+), p.prime ∧ p ∣ n) :=
+begin
+  intro h, cases nat.exists_prime_and_dvd h with p hp,
+  existsi (⟨p, nat.prime.pos hp.left⟩ : ℕ+), apply hp
+end
+
+end coprime_and_more_facts
 
 end pnat

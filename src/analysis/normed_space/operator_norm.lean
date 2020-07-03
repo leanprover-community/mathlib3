@@ -342,8 +342,9 @@ instance to_normed_ring : normed_ring (E →L[𝕜] E) :=
 { norm_mul := op_norm_comp_le,
   .. continuous_linear_map.to_normed_group }
 
-/-- Continuous linear maps form a normed algebra with respect to the operator norm. -/
-instance to_normed_algebra (h : 0 < vector_space.dim 𝕜 E) : normed_algebra 𝕜 (E →L[𝕜] E) :=
+/-- For a nonzero normed space `E`, continuous linear endomorphisms form a normed algebra with
+respect to the operator norm. -/
+def to_normed_algebra (h : 0 < vector_space.dim 𝕜 E) : normed_algebra 𝕜 (E →L[𝕜] E) :=
 { norm_algebra_map_eq := λ c, show ∥c • id 𝕜 E∥ = ∥c∥,
     by {rw [norm_smul, norm_id (dim_pos_iff_exists_ne_zero.mp h)], simp},
   .. continuous_linear_map.algebra }

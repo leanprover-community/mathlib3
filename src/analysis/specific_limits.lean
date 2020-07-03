@@ -569,7 +569,7 @@ begin
   refine tendsto_nhds_unique at_top_ne_bot this.tendsto_sum_nat _,
   have : tendsto (λ (n : ℕ), 1 - x ^ n) at_top (nhds 1),
   { simpa using tendsto_const_nhds.sub
-      (tendsto_pow_at_top_nhds_0_of_norm_lt_1 x h) },
+      (tendsto_pow_at_top_nhds_0_of_norm_lt_1 h) },
   convert ← this,
   ext n,
   rw [←geom_sum_mul_neg, geom_series_def, finset.sum_mul],
@@ -585,7 +585,7 @@ begin
   refine tendsto_nhds_unique at_top_ne_bot this.tendsto_sum_nat _,
   have : tendsto (λ (n : ℕ), 1 - x ^ n) at_top (nhds 1),
   { simpa using tendsto_const_nhds.sub
-      (tendsto_pow_at_top_nhds_0_of_norm_lt_1 x h) },
+      (tendsto_pow_at_top_nhds_0_of_norm_lt_1 h) },
   convert ← this,
   ext n,
   rw [←mul_neg_geom_sum, geom_series_def, finset.mul_sum],

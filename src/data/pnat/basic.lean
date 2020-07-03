@@ -350,8 +350,6 @@ theorem gcd_mul_lcm (n m : ℕ+) : (gcd n m) * (lcm n m) = n * m :=
 
 def prime (p : ℕ+) : Prop := (p : ℕ).prime
 
-section coprime_and_more_facts
-
 /-- Two pnats are coprime if their gcd is 1. -/
 def coprime (m n : ℕ+) : Prop := m.gcd n = 1
 
@@ -469,7 +467,5 @@ begin
   intro h, cases nat.exists_prime_and_dvd h with p hp,
   existsi (⟨p, nat.prime.pos hp.left⟩ : ℕ+), apply hp
 end
-
-end coprime_and_more_facts
 
 end pnat

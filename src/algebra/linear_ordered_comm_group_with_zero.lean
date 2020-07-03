@@ -52,14 +52,14 @@ lemma one_le_pow_of_one_le' {n : ℕ} (H : 1 ≤ x) : 1 ≤ x^n :=
 begin
   induction n with n ih,
   { exact le_refl 1 },
-  { exact one_le_mul_of_one_le_of_one_le H ih }
+  { exact one_le_mul H ih }
 end
 
 lemma pow_le_one_of_le_one {n : ℕ} (H : x ≤ 1) : x^n ≤ 1 :=
 begin
   induction n with n ih,
   { exact le_refl 1 },
-  { exact mul_le_one_of_le_one_of_le_one H ih }
+  { exact mul_le_one' H ih }
 end
 
 lemma eq_one_of_pow_eq_one {n : ℕ} (hn : n ≠ 0) (H : x ^ n = 1) : x = 1 :=
@@ -67,9 +67,9 @@ begin
   rcases nat.exists_eq_succ_of_ne_zero hn with ⟨n, rfl⟩, clear hn,
   induction n with n ih,
   { simpa using H },
-  { cases le_total x 1,
+  { cases le_total x 1 with h,
     all_goals
-    { have h1 := mul_le_mul_right' h,
+    { have h1 := mul_le_mul_right' h (x ^ (n + 1)),
       rw pow_succ at H,
       rw [H, one_mul] at h1 },
     { have h2 := pow_le_one_of_le_one h,
@@ -108,7 +108,7 @@ lemma zero_lt_one' : (0 : α) < 1 :=
 lt_of_le_of_ne zero_le_one' zero_ne_one
 
 @[simp] lemma zero_le' : 0 ≤ a :=
-by simpa only [mul_zero, mul_one] using mul_le_mul_left' (@zero_le_one' α _)
+by simpa only [mul_zero, mul_one] using mul_le_mul_left' (@zero_le_one' α _) a
 
 @[simp] lemma not_lt_zero' : ¬a < 0 :=
 not_lt_of_le zero_le'
@@ -120,7 +120,7 @@ lemma zero_lt_iff : 0 < a ↔ a ≠ 0 :=
 ⟨ne_of_gt, λ h, lt_of_le_of_ne zero_le' h.symm⟩
 
 lemma le_of_le_mul_right (h : c ≠ 0) (hab : a * c ≤ b * c) : a ≤ b :=
-by simpa [h] using (mul_le_mul_right' hab : a * c * c⁻¹ ≤ b * c * c⁻¹)
+by simpa only [mul_inv_cancel_right' h] using (mul_le_mul_right' hab c⁻¹)
 
 lemma le_mul_inv_of_mul_le (h : c ≠ 0) (hab : a * c ≤ b) : a ≤ b * c⁻¹ :=
 le_of_le_mul_right h (by simpa [h] using hab)

@@ -1142,7 +1142,7 @@ else with_bot.coe_le_coe.1 $
     ... ≤ nat_degree (C (coeff p n)) + n •ℕ (degree q) :
       add_le_add degree_le_nat_degree (degree_pow_le _ _)
     ... ≤ nat_degree (C (coeff p n)) + n •ℕ (nat_degree q) :
-      add_le_add_left' (nsmul_le_nsmul_of_le_right (@degree_le_nat_degree _ _ q) n)
+      add_le_add_left (nsmul_le_nsmul_of_le_right (@degree_le_nat_degree _ _ q) n) _
     ... = (n * nat_degree q : ℕ) :
      by rw [nat_degree_C, with_bot.coe_zero, zero_add, ← with_bot.coe_nsmul,
        nsmul_eq_mul]; simp
@@ -1321,7 +1321,7 @@ have degree p ≤ 0,
         by rw [hm.leading_coeff, one_mul, ne.def, leading_coeff_eq_zero];
           exact hu0,
       by rw [hu, degree_mul_eq' this];
-        exact le_add_of_nonneg_right' (degree_nonneg_iff_ne_zero.2 hu0)
+        exact le_add_of_nonneg_right (degree_nonneg_iff_ne_zero.2 hu0)
   ... ≤ 0 : degree_one_le,
 by rw [eq_C_of_degree_le_zero this, ← nat_degree_eq_zero_iff_degree_le_zero.2 this,
     ← leading_coeff, hm.leading_coeff, C_1]

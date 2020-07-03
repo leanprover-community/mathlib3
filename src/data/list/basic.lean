@@ -1856,7 +1856,7 @@ begin
   { exfalso, exact lt_irrefl _ h },
   { by_cases h' : f x < g x, exact ⟨x, mem_cons_self _ _, h'⟩,
     rcases l_ih _ with ⟨y, h1y, h2y⟩, refine ⟨y, mem_cons_of_mem x h1y, h2y⟩, simp at h,
-    exact lt_of_add_lt_add_left' (lt_of_lt_of_le h $ add_le_add_right (le_of_not_gt h') _) }
+    exact lt_of_add_lt_add_left (lt_of_lt_of_le h $ add_le_add_right (le_of_not_gt h') _) }
 end
 
 lemma exists_le_of_sum_le [decidable_linear_ordered_cancel_add_comm_monoid β] {l : list α}
@@ -1867,7 +1867,7 @@ begin
   { by_cases h' : f x ≤ g x, exact ⟨x, mem_cons_self _ _, h'⟩,
     rcases exists_lt_of_sum_lt f g _ with ⟨y, h1y, h2y⟩,
     exact ⟨y, mem_cons_of_mem x h1y, le_of_lt h2y⟩, simp at h,
-    exact lt_of_add_lt_add_left' (lt_of_le_of_lt h $ add_lt_add_right (lt_of_not_ge h') _) }
+    exact lt_of_add_lt_add_left (lt_of_le_of_lt h $ add_lt_add_right (lt_of_not_ge h') _) }
 end
 
 -- Several lemmas about sum/head/tail for `list ℕ`.

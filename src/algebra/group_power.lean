@@ -522,7 +522,7 @@ mt pow_eq_zero h
 
 theorem nsmul_nonneg [ordered_add_comm_monoid R] {a : R} (H : 0 ≤ a) : ∀ n : ℕ, 0 ≤ n •ℕ a
 | 0     := le_refl _
-| (n+1) := add_nonneg' H (nsmul_nonneg n)
+| (n+1) := add_nonneg H (nsmul_nonneg n)
 
 lemma pow_abs [decidable_linear_ordered_comm_ring R] (a : R) (n : ℕ) : (abs a)^n = abs (a^n) :=
 by induction n with n ih; [exact (abs_one).symm,
@@ -537,7 +537,7 @@ variable [ordered_add_comm_monoid A]
 theorem nsmul_le_nsmul {a : A} {n m : ℕ} (ha : 0 ≤ a) (h : n ≤ m) : n •ℕ a ≤ m •ℕ a :=
 let ⟨k, hk⟩ := nat.le.dest h in
 calc n •ℕ a = n •ℕ a + 0 : (add_zero _).symm
-  ... ≤ n •ℕ a + k •ℕ a : add_le_add_left' (nsmul_nonneg ha _)
+  ... ≤ n •ℕ a + k •ℕ a : add_le_add_left (nsmul_nonneg ha _) _
   ... = m •ℕ a : by rw [← hk, add_nsmul]
 
 lemma nsmul_le_nsmul_of_le_right {a b : A} (hab : a ≤ b) : ∀ i : ℕ, i •ℕ a ≤ i •ℕ b

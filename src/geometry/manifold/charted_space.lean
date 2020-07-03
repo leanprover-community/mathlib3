@@ -11,7 +11,7 @@ import topology.local_homeomorph
 A smooth manifold is a topological space `M` locally modelled on a euclidean space (or a euclidean
 half-space for manifolds with boundaries, or an infinite dimensional vector space for more general
 notions of manifolds), i.e., the manifold is covered by open subsets on which there are local
-homeomorphisms (the charts) going to a model space`H`, and the changes of charts should be smooth
+homeomorphisms (the charts) going to a model space `H`, and the changes of charts should be smooth
 maps.
 
 In this file, we introduce a general framework describing these notions, where the model space is an
@@ -119,7 +119,7 @@ noncomputable theory
 open_locale classical
 universes u
 
-variables {H : Type u} {M : Type*} {M' : Type*} {M'' : Type*}
+variables {H : Type u} {H' : Type*} {M : Type*} {M' : Type*} {M'' : Type*}
 
 /- Notational shortcut for the composition of local homeomorphisms and local equivs, i.e.,
 `local_homeomorph.trans` and `local_equiv.trans`.
@@ -408,7 +408,71 @@ by simp [atlas, charted_space.atlas]
   chart_at H x = local_homeomorph.refl H :=
 by simpa using chart_mem_atlas H x
 
+/-- Same thing as `H × H'`. We introduce it for technical reasons: a charted space `M` with model `H`
+is a set of local charts from `M` to `H` covering the space. Every space is registered as a charted
+space over itself, using the only chart `id`, in `manifold_model_space`. You can also define a product
+of charted space `M` and `M'` (with model space `H × H'`) by taking the products of the charts. Now,
+on `H × H'`, there are two charted space structures with model space `H × H'` itself, the one coming
+from `manifold_model_space`, and the one coming from the product of the two `manifold_model_space` on
+each component. They are equal, but not defeq (because the product of `id` and `id` is not defeq to
+`id`), which is bad as we know. This expedient of renaming `H × H'` solves this problem. -/
+def model_prod (H : Type*) (H' : Type*) := H × H'
+
+section
+local attribute [reducible] model_prod
+
+instance model_prod_inhabited {α β : Type*} [inhabited α] [inhabited β] :
+  inhabited (model_prod α β) :=
+⟨(default α, default β)⟩
+
+instance (H : Type*) [topological_space H] (H' : Type*) [topological_space H'] :
+  topological_space (model_prod H H') :=
+by apply_instance
+
+/- Next lemma shows up often when dealing with derivatives, register it as simp. -/
+@[simp, mfld_simps] lemma model_prod_range_prod_id
+  {H : Type*} {H' : Type*} {α : Type*} (f : H → α) :
+  range (λ (p : model_prod H H'), (f p.1, p.2)) = set.prod (range f) univ :=
+by rw prod_range_univ_eq
+
+end
+
+/-- The product of two charted spaces is naturally a charted space, with the canonical
+construction of the atlas of product maps. -/
+instance prod_charted_space (H : Type*) [topological_space H]
+  (M : Type*) [topological_space M] [charted_space H M]
+  (H' : Type*) [topological_space H']
+  (M' : Type*) [topological_space M'] [charted_space H' M'] :
+  charted_space (model_prod H H') (M × M') :=
+{ atlas            :=
+    {f : (local_homeomorph (M×M') (model_prod H H')) |
+      ∃ g ∈ charted_space.atlas H M, ∃ h ∈ (charted_space.atlas H' M'),
+        f = local_homeomorph.prod g h},
+  chart_at         := λ x: (M × M'),
+    (charted_space.chart_at H x.1).prod (charted_space.chart_at H' x.2),
+  mem_chart_source :=
+  begin
+    intro x,
+    simp only with mfld_simps,
+  end,
+  chart_mem_atlas  :=
+  begin
+    intro x,
+    use (charted_space.chart_at H x.1),
+    split,
+    { apply chart_mem_atlas _, },
+    { use (charted_space.chart_at H' x.2), simp only [chart_mem_atlas, eq_self_iff_true, and_self], }
+  end }
+
+section prod_charted_space
+
 variables [topological_space H] [topological_space M] [charted_space H M]
+[topological_space H'] [topological_space M'] [charted_space H' M'] {x : M×M'}
+
+@[simp, mfld_simps] lemma prod_charted_space_chart_at :
+  (chart_at (model_prod H H') x) = (chart_at H x.fst).prod (chart_at H' x.snd) := rfl
+
+end prod_charted_space
 
 end charted_space
 

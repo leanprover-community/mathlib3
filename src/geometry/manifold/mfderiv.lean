@@ -1012,7 +1012,7 @@ mdifferentiable_of_mem_atlas _ (chart_mem_atlas _ _)
 
 /-- The derivative of the chart at a base point is the chart of the tangent bundle. -/
 lemma tangent_map_chart {p q : tangent_bundle I M} (h : q.1 ∈ (chart_at H p.1).source) :
-  tangent_map I I (chart_at H p.1) q = (chart_at (H × E) p : tangent_bundle I M → H × E) q :=
+  tangent_map I I (chart_at H p.1) q = (chart_at (model_prod H E) p : tangent_bundle I M → model_prod H E) q :=
 begin
   dsimp [tangent_map],
   rw mdifferentiable_at.mfderiv,
@@ -1022,10 +1022,10 @@ end
 
 /-- The derivative of the inverse of the chart at a base point is the inverse of the chart of the
 tangent bundle. -/
-lemma tangent_map_chart_symm {p : tangent_bundle I M} {q : H × E}
+lemma tangent_map_chart_symm {p : tangent_bundle I M} {q : model_prod H E}
   (h : q.1 ∈ (chart_at H p.1).target) :
   tangent_map I I (chart_at H p.1).symm q =
-  ((chart_at (H × E) p).symm : H × E → tangent_bundle I M) q :=
+  ((chart_at (model_prod H E) p).symm : model_prod H E → tangent_bundle I M) q :=
 begin
   dsimp only [tangent_map],
   rw mdifferentiable_at.mfderiv (mdifferentiable_at_atlas_symm _ (chart_mem_atlas _ _) h),
@@ -1358,7 +1358,7 @@ begin
   assume p hp,
   replace hp : p.fst ∈ s, by simpa only [] with mfld_simps using hp,
   let e₀ := chart_at H p.1,
-  let e := chart_at (H × F) p,
+  let e := chart_at (model_prod H F) p,
   -- It suffices to prove unique differentiability in a chart
   suffices h : unique_mdiff_on (I.prod (model_with_corners_self 𝕜 F))
     (e.target ∩ e.symm⁻¹' (Z.to_topological_fiber_bundle_core.proj ⁻¹' s)),
@@ -1377,13 +1377,13 @@ begin
   -- rewrite the relevant set in the chart as a direct product
   have : (λ (p : E × F), (I.symm p.1, p.snd)) ⁻¹' e.target ∩
          (λ (p : E × F), (I.symm p.1, p.snd)) ⁻¹' (e.symm ⁻¹' (prod.fst ⁻¹' s)) ∩
-         range (λ (p : H × F), (I p.1, p.snd))
+         ((range I).prod univ)
     = set.prod (I.symm ⁻¹' (e₀.target ∩ e₀.symm⁻¹' s) ∩ range I) univ,
   { ext q,
     split;
     { assume hq,
-      simp only [prod_range_univ_eq.symm] with mfld_simps at hq,
-      simp only [hq, prod_range_univ_eq.symm] with mfld_simps } },
+      simp only with mfld_simps at hq,
+      simp only [hq] with mfld_simps } },
   assume q hq,
   replace hq : q.1 ∈ (chart_at H p.1).target ∧ ((chart_at H p.1).symm : H → M) q.1 ∈ s,
     by simpa only [] with mfld_simps using hq,

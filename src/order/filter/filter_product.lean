@@ -49,7 +49,7 @@ protected def field [field β] (U : is_ultrafilter φ) : field β* :=
 /-- If `φ` is an ultrafilter then the ultraproduct is a linear order.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
 protected def linear_order [linear_order β] (U : is_ultrafilter φ) : linear_order β* :=
-{ le_total := λ f g, induction_on₂ f g $ λ f g, U.eventually_or.1 $ eventually_of_forall _ $
+{ le_total := λ f g, induction_on₂ f g $ λ f g, U.eventually_or.1 $ eventually_of_forall $
     λ x, le_total _ _,
   .. germ.partial_order }
 

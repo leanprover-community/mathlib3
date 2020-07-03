@@ -18,7 +18,7 @@ derivative of the `n`-th derivative. It is called `iterated_fderiv 𝕜 n f x` w
 field, `n` is the number of iterations, `f` is the function and `x` is the point, and it is given
 as an `n`-multilinear map. We also define a version `iterated_fderiv_within` relative to a domain,
 as well as predicates `times_cont_diff_within_at`, `times_cont_diff_at`, `times_cont_diff_on` and
-`times_cont_diff_on` saying that the function is `C^n` within a set at a point, at a point, on a set
+`times_cont_diff` saying that the function is `C^n` within a set at a point, at a point, on a set
 and on the whole space respectively.
 
 To avoid the issue of choice when choosing a derivative in sets where the derivative is not
@@ -60,22 +60,40 @@ so on) preserve `C^n` functions.
 
 ## Implementation notes
 
+The definitions in this file are designed to work on any field `𝕜`. They are sometimes slightly more
+complicated than the naive definitions one would guess from the intuition over the real or complex
+numbers, but they are designed to circumvent the lack of gluing properties and partitions of unity
+in general. In the usual situations, they coincide with the usual definitions.
+
 ### Definition of `C^n` functions in domains
 
 One could define `C^n` functions in a domain `s` by fixing an arbitrary choice of derivatives (this
 is what we do with `iterated_fderiv_within`) and requiring that all these derivatives up to `n` are
 continuous. If the derivative is not unique, this could lead to strange behavior like two `C^n`
 functions `f` and `g` on `s` whose sum is not `C^n`. A better definition is thus to say that a
-function is `C^n` inside `s` if it admits a sequence of derivatives up to `n` inside `s`. This
-definition still has the problem that a function which is locally `C^n` would not need to be `C^n`,
-as different choices of sequences of derivatives around different points might possibly not be glued
-together to give a globally defined sequence of derivatives. Also, there are locality problems in
-time: one could image a function which, for each `n`, has a nice sequence of derivatives up to order
-`n`, but they do not coincide for varying `n` and can therefore not be glued to give rise to an
-infinite sequence of derivatives. This would give a function which is `C^n` for all `n`, but not
-`C^∞`. We solve this issue by putting locality conditions in space and time in our definition of
-`times_cont_diff_on`. The resulting definition is slightly more complicated to work with (in fact
-not so much), but it gives rise to completely satisfactory theorems.
+function is `C^n` inside `s` if it admits a sequence of derivatives up to `n` inside `s`.
+
+This definition still has the problem that a function which is locally `C^n` would not need to
+be `C^n`, as different choices of sequences of derivatives around different points might possibly
+not be glued together to give a globally defined sequence of derivatives. (Note that this issue
+can not happen over reals, thanks to partition of unity, but the behavior over a general field is
+not so clear, and we want a definition for general fields). Also, there are locality
+problems for the order parameter: one could image a function which, for each `n`, has a nice
+sequence of derivatives up to order `n`, but they do not coincide for varying `n` and can therefore
+not be  glued to give rise to an infinite sequence of derivatives. This would give a function
+which is `C^n` for all `n`, but not `C^∞`. We solve this issue by putting locality conditions
+in space and order in our definition of `times_cont_diff_within_at` and `times_cont_diff_on`.
+The resulting definition is slightly more complicated to work with (in fact not so much), but it
+gives rise to completely satisfactory theorems.
+
+For instance, with this definition, a real function which is `C^m` (but not better) on `(-1/m, 1/m)`
+for each natural `m` is by definition `C^∞` at `0`.
+
+There is another issue with the definition of `times_cont_diff_within_at 𝕜 n f s x`. We can
+require the existence and good behavior of derivatives up to order `n` on a neighborhood of `x`
+within `s`. However, this does not imply continuity or differentiability within `s`of the function
+at `x`. Therefore, we require such existence and good behavior on a neighborhood of `x` within
+`s ∪ {x}` (which appears as `insert x s` in this file).
 
 ### Side of the composition, and universe issues
 
@@ -419,13 +437,13 @@ end
 
 variable (𝕜)
 
-/-- A function is continuously differentiable up to `n` within a set `s` at a point `x` if it admits
-derivatives within a neighborhood of `x` in `s ∪ {x}` up to order `n`, which are continuous.
-There is a subtlety that one might be able to find nice derivatives up to `n` for any finite `n`,
-but that they don't match so that one can not find them up to infinity. To get a good notion for
-`n = ∞`, we only require that for any finite `n` we may find such matching derivatives. We require
-the good behavior on `s ∪ {x}` to make sure that this notion implies continuity within `s` at `x`,
-and is stable under composition.
+/-- A function is continuously differentiable up to order `n` within a set `s` at a point `x` if
+it admits continuous derivatives up to order `n` in a neighborhood of `x` in `s ∪ {x}`.
+For `n = ∞`, we only require that this holds up to any finite order (where the neighborhood may
+depend on the finite order we consider).
+
+For instance, a real function which is `C^m` on `(-1/m, 1/m)` for each natural `m`, but not
+better, is `C^∞` at `0` within `univ`.
 -/
 def times_cont_diff_within_at (n : with_top ℕ) (f : E → F) (s : set E) (x : E) :=
 ∀ (m : ℕ), (m : with_top ℕ) ≤ n →
@@ -602,13 +620,11 @@ end
 
 variable (𝕜)
 
-/-- A function is continuously differentiable up to `n` on `s` if it admits derivatives within `s`
-up to order `n`, which are continuous. There is a subtlety on sets where derivatives are not unique,
-that choices of derivatives around different points might not match. To ensure that being `C^n` is a
-local property, we therefore require it locally around each point. There is another subtlety that
-one might be able to find nice derivatives up to `n` for any finite `n`, but that they don't match
-so that one can not find them up to infinity. To get a good notion for `n = ∞`, we only require that
-for any finite `n` we may find such matching derivatives.
+/-- A function is continuously differentiable up to `n` on `s` if, for any point `x` in `s`, it
+admits continuous derivatives up to order `n` on a neighborhood of `x` in `s`.
+
+For `n = ∞`, we only require that this holds up to any finite order (where the neighborhood may
+depend on the finite order we consider).
 -/
 definition times_cont_diff_on (n : with_top ℕ) (f : E → F) (s : set E) :=
 ∀ x ∈ s, times_cont_diff_within_at 𝕜 n f s x
@@ -1462,10 +1478,24 @@ lemma times_cont_diff_fst {n : with_top ℕ} : times_cont_diff 𝕜 n (prod.fst 
 is_bounded_linear_map.times_cont_diff is_bounded_linear_map.fst
 
 /--
+The first projection on a domain in a product is `C^∞`.
+-/
+lemma times_cont_diff_on_fst {s : set (E×F)} {n : with_top ℕ} :
+  times_cont_diff_on 𝕜 n (prod.fst : E × F → E) s :=
+times_cont_diff.times_cont_diff_on times_cont_diff_fst
+
+/--
 The second projection in a product is `C^∞`.
 -/
 lemma times_cont_diff_snd {n : with_top ℕ} : times_cont_diff 𝕜 n (prod.snd : E × F → F) :=
 is_bounded_linear_map.times_cont_diff is_bounded_linear_map.snd
+
+/--
+The second projection on a domain in a product is `C^∞`.
+-/
+lemma times_cont_diff_on_snd {s : set (E×F)} {n : with_top ℕ} :
+  times_cont_diff_on 𝕜 n (prod.snd : E × F → F) s :=
+times_cont_diff.times_cont_diff_on times_cont_diff_snd
 
 /--
 The identity is `C^∞`.
@@ -1806,10 +1836,10 @@ begin
   let isoG : Gu ≃L[𝕜] G := continuous_multilinear_curry_fin0 𝕜 (E × F × G) G,
   -- lift the functions to the new spaces, check smoothness there, and then go back.
   let fu : Eu → Fu := (isoF.symm ∘ f) ∘ isoE,
-  have fu_diff : times_cont_diff_on 𝕜 n fu (isoE ⁻¹' s) :=
+  have fu_diff : times_cont_diff_on 𝕜 n fu (isoE ⁻¹' s),
     by rwa [isoE.times_cont_diff_on_comp_iff, isoF.symm.comp_times_cont_diff_on_iff],
   let gu : Fu → Gu := (isoG.symm ∘ g) ∘ isoF,
-  have gu_diff : times_cont_diff_on 𝕜 n gu (isoF ⁻¹' t) :=
+  have gu_diff : times_cont_diff_on 𝕜 n gu (isoF ⁻¹' t),
     by rwa [isoF.times_cont_diff_on_comp_iff, isoG.symm.comp_times_cont_diff_on_iff],
   have main : times_cont_diff_on 𝕜 n (gu ∘ fu) (isoE ⁻¹' s),
   { apply times_cont_diff_on.comp_same_univ gu_diff fu_diff,
@@ -1965,6 +1995,18 @@ lemma times_cont_diff.sub {n : with_top ℕ} {f g : E → F}
   (hf : times_cont_diff 𝕜 n f) (hg : times_cont_diff 𝕜 n g) :
   times_cont_diff 𝕜 n (λx, f x - g x) :=
 hf.add hg.neg
+
+/-- The product map of two `C^n` functions is `C^n`. -/
+lemma times_cont_diff_on.map_prod {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+  {F' : Type*} [normed_group F'] [normed_space 𝕜 F']
+  {s : set E} {t : set E'} {n : with_top ℕ} {f : E → F} {g : E' → F'}
+  (hf : times_cont_diff_on 𝕜 n f s) (hg : times_cont_diff_on 𝕜 n g t) :
+  times_cont_diff_on 𝕜 n (prod.map f g) (set.prod s t) :=
+begin
+  have hs : s.prod t ⊆ (prod.fst) ⁻¹' s := by { rintros x ⟨h_x_1, h_x_2⟩, exact h_x_1, },
+  have ht : s.prod t ⊆ (prod.snd) ⁻¹' t := by { rintros x ⟨h_x_1, h_x_2⟩, exact h_x_2, },
+  exact (hf.comp (times_cont_diff_on_fst) hs).prod (hg.comp (times_cont_diff_on_snd) ht),
+end
 
 section real
 /-!

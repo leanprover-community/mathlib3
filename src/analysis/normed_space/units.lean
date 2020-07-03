@@ -53,10 +53,7 @@ begin
 end )
 
 @[simp] lemma add_coe [nonzero α] (x : units α) (t : α) (h : ∥t∥ < ∥((x⁻¹:units α):α)∥⁻¹) :
-  ((x.add t h) : α) = x + t :=
-begin
-  unfold units.add, simp, noncomm_ring, simp, abel,
-end
+  ((x.add t h) : α) = x + t := by { unfold units.add, simp [mul_add] }
 
 /-- In a complete normed ring, an element `y` of distance less than `∥x⁻¹∥⁻¹` from `x` is a unit.
 Here we construct its `units` structure. -/
@@ -65,8 +62,8 @@ def unit_of_nearby [nonzero α] (x : units α) (y : α)
 x.add ((y:α) - x) h
 
 @[simp] lemma unit_of_nearby_coe [nonzero α] (x : units α) (y : α)
-  (h : ∥y - x∥ < ∥((x⁻¹:units α):α)∥⁻¹) : ((x.unit_of_nearby y h) : α) = y
-:= by { unfold units.unit_of_nearby, simp }
+  (h : ∥y - x∥ < ∥((x⁻¹:units α):α)∥⁻¹) : ((x.unit_of_nearby y h) : α) = y :=
+by { unfold units.unit_of_nearby, simp }
 
 /-- The group of units of a complete normed ring is an open subset of the ring. -/
 lemma is_open : is_open {x : α | is_unit x} :=

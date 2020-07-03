@@ -77,7 +77,7 @@ lemma comp_sup_eq_sup_comp_of_is_total [is_total α (≤)] {γ : Type} [semilatt
   (g : α → γ) (mono_g : monotone g) (bot : g ⊥ = ⊥) : g (s.sup f) = s.sup (g ∘ f) :=
 comp_sup_eq_sup_comp g mono_g.map_sup bot
 
-/-- The first component of a sup in a subtype is the sup if first components. -/
+/-- Computating `sup` in a subtype (closed under `sup`) is the same as computing it in `α`. -/
 lemma sup_coe {P : α → Prop}
   {Pbot : P ⊥} {Psup : ∀{{x y}}, P x → P y → P (x ⊔ y)}
   (t : finset β) (f : β → {x : α // P x}) :

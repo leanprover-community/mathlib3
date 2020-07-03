@@ -14,8 +14,6 @@ notation `ℕ+` := pnat
 instance coe_pnat_nat : has_coe ℕ+ ℕ := ⟨subtype.val⟩
 instance : has_repr ℕ+ := ⟨λ n, repr n.1⟩
 
-
-
 namespace nat
 
 /-- Convert a natural number to a positive natural number. The

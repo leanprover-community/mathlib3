@@ -42,11 +42,11 @@ def one_sub (t : R) (h : ∥t∥ < 1) : units R :=
 def add (x : units R) (t : R) (h : ∥t∥ < ∥((x⁻¹:units R):R)∥⁻¹) : units R :=
 x * (units.one_sub (- (((x⁻¹:units R):R) * t))
 begin
-  rcases subsingleton_or_nonzero R with _i|_i, resetI,
+  rcases subsingleton_or_nonzero R with _i|_i; resetI,
   { rw subsingleton.elim ((x⁻¹:units R):R) 0,
     have : (0:ℝ) < 1 := by norm_num,
     simpa, },
-  { have hpos : 0 < ∥((x⁻¹:units R):R)∥ := @units.norm_pos _ _ _i x⁻¹,
+  { have hpos : 0 < ∥((x⁻¹:units R):R)∥ := units.norm_pos x⁻¹,
     calc ∥-(((x⁻¹:units R):R) * t)∥
         = ∥((x⁻¹:units R):R) * t∥                    : by { rw norm_neg }
     ... ≤ ∥((x⁻¹:units R):R)∥ * ∥t∥                   : norm_mul_le x.inv _
@@ -68,11 +68,11 @@ x.add ((y:R) - x) h
 /-- The group of units of a complete normed ring is an open subset of the ring. -/
 lemma is_open : is_open {x : R | is_unit x} :=
 begin
-  rcases subsingleton_or_nonzero R with _i|_i, resetI,
+  rcases subsingleton_or_nonzero R with _i|_i; resetI,
   { exact is_open_discrete is_unit },
   { apply metric.is_open_iff.mpr,
     rintros x' ⟨x, h⟩,
-    refine ⟨∥((x⁻¹:units R):R)∥⁻¹, inv_pos.mpr (@units.norm_pos R _ _i x⁻¹), _⟩,
+    refine ⟨∥((x⁻¹:units R):R)∥⁻¹, inv_pos.mpr (units.norm_pos x⁻¹), _⟩,
     intros y hy,
     rw [metric.mem_ball, dist_eq_norm, ←h] at hy,
     use x.unit_of_nearby y hy,

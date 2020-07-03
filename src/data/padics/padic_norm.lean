@@ -360,156 +360,98 @@ Dividing out by a prime which is not a factor doesn't change the `padic_val_nat`
 lemma padic_val_nat_div'' {p : ℕ} [p_prime : fact p.prime] {q : ℕ} [q_prime : fact q.prime] (neq : p ≠ q)
   {b : ℕ} (dvd : q ∣ b) : padic_val_nat p (b / q) = padic_val_nat p b :=
 begin
-  by_cases b_split : (b = 0),
-  { subst b,
-    simp [padic_val_nat], },
-  { have q_nonzero : q ≠ 0,
-    { intros q_zero,
-      simpa [q_zero, zero_dvd_iff] using dvd, },
+  by_cases b_split : b = 0,
+  { rw [b_split, nat.zero_div], },
+  { have q_nonzero : q ≠ 0, by { intro q_zero, simpa [q_zero, zero_dvd_iff] using dvd, },
     have e : padic_val_rat p (b / q) = padic_val_rat p b - padic_val_rat p q :=
       padic_val_rat.div p (nat.cast_ne_zero.mpr b_split) (nat.cast_ne_zero.mpr q_nonzero),
-    rw [← padic_val_rat_of_nat p q, padic_val_nat_primes neq] at e,
-    simp only [int.coe_nat_zero, sub_zero] at e,
-    have cz : char_zero ℚ := linear_ordered_semiring.to_char_zero,
-    rw [←padic_val_rat_of_nat p b, ←@cast_dvd_char_zero _ _ cz _ _ dvd, ←padic_val_rat_of_nat p (b / q)] at e,
-    exact_mod_cast int.coe_nat_inj e, },
+    norm_cast at e,
+    rw [padic_val_nat_primes neq, int.coe_nat_zero, sub_zero] at e,
+    exact int.coe_nat_inj e }
 end
 
 lemma padic_val_nat_div' {p : ℕ} [p_prime : fact p.prime] :
   ∀ {m : ℕ} (cpm : coprime p m) {b : ℕ} (dvd : m ∣ b), padic_val_nat p (b / m) = padic_val_nat p b
-| 0 := λ cpm b dvd, by
-  begin
-    exfalso,
-    have p_one : p = 1, by simpa using cpm,
-    simpa [p_one, nat.not_prime_one] using p_prime,
-  end
-| 1 := λ cpm b dvd, by simp
-| (n + 2) :=
-  let m := n + 2 in
-  let min_fac := nat.min_fac m in
-  let wf : m / (nat.min_fac m) < m := nat.div_lt_self (by linarith) (nat.prime.one_lt (nat.min_fac_prime (by linarith))) in
+| 0 := λ cpm b dvd, by { rw zero_dvd_iff at dvd, rw [dvd, nat.zero_div], }
+| (n + 1) :=
   λ cpm b dvd,
   begin
-    rw ← nat.div_div_div (nat.min_fac_dvd m) dvd,
-    haveI: fact (nat.prime min_fac) := nat.min_fac_prime (by linarith),
-    have p_different : p ≠ min_fac,
-      { intros p_eq,
-        have bad : m.min_fac ∣ m := min_fac_dvd m,
-        rw p_eq at cpm,
-        have min_fac_big : 1 < min_fac := prime.one_lt (nat.min_fac_prime (by linarith)),
-        exact not_coprime_of_dvd_of_dvd min_fac_big (dvd_refl min_fac) bad cpm, },
-    have u : min_fac ∣ b / (m / min_fac),
-      { rcases dvd with ⟨k, rfl⟩,
-        rcases nat.min_fac_dvd m with ⟨l, pr⟩,
-        rw [pr, nat.mul_div_cancel_left _ (nat.min_fac_pos m)],
-        have pr' : (n + 2) = m.min_fac * l := pr,
-        rw [pr', mul_comm min_fac, mul_assoc],
-        have l_pos : 0 < l,
-          { cases lt_or_le 0 l,
-            { exact h },
-            { rw le_zero_iff_eq at h,
-              subst h,
-              simp only [add_eq_zero_iff, mul_zero] at pr',
-              trivial, }, },
-        rw nat.mul_div_cancel_left _ l_pos,
-        exact dvd.intro k rfl, },
-    rw padic_val_nat_div'' p_different u,
-    have w : (m / min_fac) ∣ b,
-      { rcases dvd with ⟨k, rfl⟩,
-        by_cases k_split : (k = 0),
-        { subst k_split, simp, },
-        { exact dvd_mul_of_dvd_left (div_dvd_of_dvd (nat.min_fac_dvd m)) _ }, },
-    rw padic_val_nat_div' (coprime.coprime_div_right cpm (min_fac_dvd m)) w,
+    rcases dvd with ⟨c, rfl⟩,
+    rw [mul_div_right c (nat.succ_pos _)],by_cases hc : c = 0,
+    { rw [hc, mul_zero] },
+    { apply int.coe_nat_inj,
+      simp only [padic_val_rat_of_nat, nat.cast_mul],
+      rw [padic_val_rat.mul]; norm_cast, -- we really need padic_val_nat_mul
+      { suffices : ¬ p ∣ (n+1),
+        { rw [padic_val_nat_of_not_dvd this, zero_add] },
+        contrapose! cpm,
+        exact p_prime.dvd_iff_not_coprime.mp cpm },
+      { exact nat.succ_ne_zero _ },
+      { exact hc } },
   end
 
 open_locale big_operators
+open_locale classical
 
-lemma prod_padic_val_nat_one (m : nat) :
-  ∏ p in finset.filter nat.prime (finset.range m), p ^ padic_val_nat p 1 = 1 :=
-by simp [padic_val_nat_one]
+-- move this
+lemma finset.prod_multiset_count {M : Type*} [comm_monoid M] (s : multiset M) :
+  s.prod = ∏ m in s.to_finset, m ^ (s.count m) :=
+sorry
 
-lemma prod_pow_prime_padic_val_nat : ∀ (n : nat) (s : n ≠ 0) (m : nat) (pr : n < m),
-  ∏ p in finset.filter nat.prime (finset.range m), p ^ (padic_val_nat p n) = n
-| 0 := λ nonzero _ _, by cc
-| 1 := λ _ m _, prod_padic_val_nat_one m
+-- move this
+lemma factors_add_two (n : ℕ) :
+  factors (n+2) = (min_fac (n+2)) :: (factors ((n+2) / (min_fac (n+2)))) := rfl
+
+lemma padic_val_nat_eq_factors_count (p : ℕ) [hp : fact p.prime] :
+  ∀ (n : ℕ), padic_val_nat p n = (factors n).count p
+| 0 := rfl
+| 1 := by { rw padic_val_nat_one, refl }
 | (m + 2) :=
-  -- Nasty case-splitting at the term level rather than in tactic mode, so that we can prove the
-  -- recursion to be well-founded.
-  let n := m + 2 in
-  let min_fac_prime : nat.prime (nat.min_fac n) := @nat.min_fac_prime n (by linarith) in
-  -- The following line is why we've done all this in term-space
-  let wf : n / nat.min_fac n < n := nat.div_lt_self (by linarith) (nat.prime.one_lt min_fac_prime) in
-  λ nonzero m n_lt_m,
+let n := m + 2 in
+let q := min_fac n in
+have hq : fact q.prime := min_fac_prime (show m + 2 ≠ 1, by linarith),
+have wf : n / q < n := nat.div_lt_self (nat.succ_pos _) hq.one_lt,
 begin
-  have nonzero' : n / nat.min_fac n ≠ 0,
-    { intros div,
-      have n_small : n < nat.min_fac n := (nat.div_eq_zero_iff (nat.prime.pos min_fac_prime)).1 div,
-      have n_bigger : n.min_fac ≤ n, exact nat.le_of_dvd (by linarith) (nat.min_fac_dvd n),
-      linarith, },
+  rw factors_add_two,
+  show padic_val_nat p n = list.count p (q :: (factors (n / q))),
+  rw [list.count_cons', ← padic_val_nat_eq_factors_count],
+  split_ifs with h,
+  { rw [← h],
+    sorry },
+  { suffices : p.coprime q,
+    { rw [padic_val_nat_div' this (min_fac_dvd n), add_zero], },
+    rwa nat.coprime_primes hp hq, },
+end
 
-  have padic_val_nat_nonzero : 1 ≤ padic_val_nat n.min_fac n,
-    by exact @one_le_padic_val_nat_of_dvd _ _ min_fac_prime (by norm_num) (nat.min_fac_dvd n),
-
-  have extract_fac : ∀ p ∈ finset.filter nat.prime (finset.range m), p ^ padic_val_nat p (n / n.min_fac) =
-    if p = n.min_fac then p ^ ((padic_val_nat p n) - 1) else p ^ padic_val_nat p n,
-    { intros p p_prime,
-      cases (nat.decidable_eq p n.min_fac),
-      { haveI : fact p.prime :=
-          begin
-            simp at p_prime,
-            rcases p_prime with ⟨_, ans⟩,
-            exact ans
-          end,
-        haveI : fact n.min_fac.prime := nat.min_fac_prime (by linarith),
-        simp [h, padic_val_nat_div'' h (nat.min_fac_dvd n)], },
-      { subst h,
-        haveI : fact (nat.prime (nat.min_fac n)) := nat.min_fac_prime (by linarith),
-        simp [padic_val_nat_div (nat.min_fac_dvd n)], }, },
-
-  have min_fac_small : n.min_fac < m :=
-    nat.lt_of_le_of_lt (nat.min_fac_le (nat.lt_of_succ_lt (by linarith))) n_lt_m,
-
-  have split_prod :
-    ∏ p in finset.filter nat.prime (finset.range m), p ^ padic_val_nat p (n / nat.min_fac n)
-    = ∏ p in finset.filter nat.prime (finset.range m), ite (p = n.min_fac) (p ^ (padic_val_nat p n - 1)) (p ^ padic_val_nat p n) :=
-    @finset.prod_bij _ _ _ _
-      (finset.filter nat.prime (finset.range m)) (finset.filter nat.prime (finset.range m))
-      (λ a, a ^ padic_val_nat a (n / n.min_fac))
-      (λ a, ite (a = n.min_fac) (a ^ ((padic_val_nat a n) - 1)) (a ^ (padic_val_nat a n)))
-      (λ a _, a) (λ _ ha, ha)
-      extract_fac
-      (λ a b a_prime b_prime hyp, by simpa using hyp)
-      (λ b b_prime, ⟨b, ⟨b_prime, rfl⟩⟩),
-
-  -- Make the recursive call
-  rw (prod_pow_prime_padic_val_nat (n / nat.min_fac n) nonzero' m (by linarith)) at split_prod,
-
-  have s : n.min_fac ∈ finset.filter nat.prime (finset.range m),
-    { simp only [finset.mem_filter, finset.mem_range],
-      exact ⟨min_fac_small, min_fac_prime⟩, },
-
-  have extract : ∏ p in finset.filter (λ i, i = n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ ((padic_val_nat p n - 1) + 1) =
-    n.min_fac * (∏ p in finset.filter (λ i, i = n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ (padic_val_nat p n - 1)) :=
-    begin
-      simp only [finset.filter_eq', s, finset.prod_singleton, if_true],
-      ring_exp,
-    end,
-
-  calc ∏ p in finset.filter nat.prime (finset.range m), pow p (padic_val_nat p n)
-    = ∏ p in finset.filter nat.prime (finset.range m), ite (p = n.min_fac) (pow p (padic_val_nat p n)) (pow p (padic_val_nat p n))
-      : by simp
-    ... = (∏ p in finset.filter (λ i, i = n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ (padic_val_nat p n)) * (∏ p in finset.filter (λ i, i ≠ n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ padic_val_nat p n)
-      : by rw ← finset.prod_ite
-    ... = (∏ p in finset.filter (λ i, i = n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ ((padic_val_nat p n - 1) + 1)) * (∏ p in finset.filter (λ i, i ≠ n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ padic_val_nat p n)
-      : by simp [finset.filter_eq', min_fac_prime, min_fac_small, nat.sub_add_cancel padic_val_nat_nonzero]
-    ... = (n.min_fac * (∏ p in finset.filter (λ i, i = n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ (padic_val_nat p n - 1))) * (∏ p in finset.filter (λ i, i ≠ n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ padic_val_nat p n)
-      : by rw extract
-    ... = n.min_fac * ((∏ p in finset.filter (λ i, i = n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ (padic_val_nat p n - 1)) * (∏ p in finset.filter (λ i, i ≠ n.min_fac) (finset.filter nat.prime (finset.range m)), p ^ padic_val_nat p n))
-      : by ring
-    ... = n.min_fac * (∏ p in finset.filter nat.prime (finset.range m), ite (p = n.min_fac) (p ^ (padic_val_nat p n - 1)) (p ^ padic_val_nat p n))
-      : by rw finset.prod_ite
-    ... = n
-      : eq.symm (nat.eq_mul_of_div_eq_right (nat.min_fac_dvd n) split_prod),
+lemma prod_pow_prime_padic_val_nat (n : nat) (hn : n ≠ 0) (m : nat) (pr : n < m) :
+  ∏ p in finset.filter nat.prime (finset.range m), p ^ (padic_val_nat p n) = n :=
+begin
+  rw ← nat.pos_iff_ne_zero at hn,
+  have H : (factors n : multiset ℕ).prod = n,
+  { rw [multiset.coe_prod, prod_factors hn], },
+  rw finset.prod_multiset_count at H,
+  conv_rhs { rw ← H, },
+  refine finset.prod_bij_ne_one (λ p hp hp', p) _ _ _ _,
+  { rintro p hp hpn,
+    rw [finset.mem_filter, finset.mem_range] at hp,
+    haveI Hp : fact p.prime := hp.2,
+    rw [multiset.mem_to_finset, multiset.mem_coe, mem_factors_iff_dvd hn Hp],
+    contrapose! hpn,
+    rw [padic_val_nat_of_not_dvd hpn, nat.pow_zero], },
+  { intros, assumption },
+  { intros p hp hpn,
+    rw [multiset.mem_to_finset, multiset.mem_coe] at hp,
+    haveI Hp : fact p.prime := mem_factors hp,
+    simp only [exists_prop, ne.def, finset.mem_filter, finset.mem_range],
+    refine ⟨p, ⟨_, Hp⟩, ⟨_, rfl⟩⟩,
+    { rw mem_factors_iff_dvd hn Hp at hp, exact lt_of_le_of_lt (le_of_dvd hn hp) pr },
+    { rw padic_val_nat_eq_factors_count,
+      simp only [pow_eq_pow, ne.def, multiset.coe_count] at hpn,
+      convert hpn } },
+  { intros p hp hpn,
+    rw [finset.mem_filter, finset.mem_range] at hp,
+    haveI Hp : fact p.prime := hp.2,
+    rw [padic_val_nat_eq_factors_count, multiset.coe_count, pow_eq_pow], congr }
 end
 
 end padic_val_nat

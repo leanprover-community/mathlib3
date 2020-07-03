@@ -145,10 +145,6 @@ theorem maps_to_image (f : α → β) (s : set α) : maps_to f s (f '' s) := by 
 
 theorem maps_to_preimage (f : α → β) (t : set β) : maps_to f (f ⁻¹' t) t := subset.refl _
 
-theorem maps_to_inter_preimage (f : α → β) (s : set α) (t : set β) :
-  maps_to f (s ∩ f ⁻¹' t) t :=
-(maps_to_preimage f t).mono (inter_subset_right _ _) (subset.refl _)
-
 theorem maps_to_range (f : set α) (s : set α) : maps_to f s (range f) :=
 (maps_to_image f s).mono (subset.refl s) (image_subset_range _ _)
 

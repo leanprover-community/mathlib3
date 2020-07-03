@@ -524,9 +524,6 @@ end prod
 
 section continuity
 
---set_option pp.instantiate_mvars false
---set_option profiler true
-
 /-- Continuity within a set at a point can be read under right composition with a local
 homeomorphism, if the point is in its target -/
 lemma continuous_within_at_iff_continuous_within_at_comp_right

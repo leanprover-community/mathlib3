@@ -8,41 +8,68 @@ import analysis.specific_limits
 import tactic.noncomm_ring
 
 /-!
-# The group of units of a normed ring
+# The group of units of a complete normed ring
 
-In this file we prove that the group of units of a complete normed ring is an open subset of the
+This file contains the basic theory for the group of units (invertible elements) of a complete
+normed ring (Banach algebras being a notable special case).
+
+## Main results
+
+The constructions `one_sub`, `add` and `unit_of_nearby` state, in varying forms, that perturbations
+of a unit are units.  The latter two are not stated in their optimal form; more precise versions
+would use the spectral radius.
+
+The main result is `is_open`:  the group of units of a complete normed ring is an open subset of the
 ring.
+
 -/
 
 noncomputable theory
 
+namespace units
 variables {α : Type*} [normed_ring α] [complete_space α]
 
-/-- In a normed ring, an element `x` of distance less than `1` from `1` is a unit.  Here we
-construct its `units` structure.  -/
-def perturbation_unit (x : α) (h : ∥x∥ < 1) : units α :=
-{ val := 1 - x,
-  inv := ∑' (n : ℕ), x ^ n,
-  val_inv := mul_neg_geom_series x h,
-  inv_val := geom_series_mul_neg x h }
+/-- In a complete normed ring, a perturbation of `1` by an element `t` of distance less than `1`
+from `1` is a unit.  Here we construct its `units` structure.  -/
+def one_sub (t : α) (h : ∥t∥ < 1) : units α :=
+{ val := 1 - t,
+  inv := ∑' (n : ℕ), t ^ n,
+  val_inv := mul_neg_geom_series t h,
+  inv_val := geom_series_mul_neg t h }
 
-lemma unit_of_near_unit [nonzero α] (x : units α) (y : α)
-  (h : ∥y - x∥ < ∥((x⁻¹:units α):α)∥⁻¹) : is_unit y :=
+@[simp] lemma one_sub_coe (t : α) (h : ∥t∥ < 1) : ((one_sub t h) : α) = 1 - t := rfl
+
+/-- In a complete normed ring, a perturbation of a unit `x` by an element `t` of distance less than
+`∥x⁻¹∥⁻¹` from `x` is a unit.  Here we construct its `units` structure. -/
+def add [nonzero α] (x : units α) (t : α) (h : ∥t∥ < ∥((x⁻¹:units α):α)∥⁻¹) : units α :=
+x * (units.one_sub (- (((x⁻¹:units α):α) * t))
 begin
   have hpos : 0 < ∥((x⁻¹:units α):α)∥ := units.norm_pos x⁻¹,
-  have hrad : ∥((x⁻¹:units α):α) * (x - y)∥ < 1,
-  { calc ∥((x⁻¹:units α):α) * ((x:α) - y)∥
-        ≤ ∥((x⁻¹:units α):α)∥ * ∥(x:α) - y∥           : norm_mul_le x.inv _
-    ... = ∥((x⁻¹:units α):α)∥ * ∥y - x∥               : by rw [←neg_sub, norm_neg]
-    ... < ∥((x⁻¹:units α):α)∥ * ∥((x⁻¹:units α):α)∥⁻¹ : by nlinarith only [h, hpos]
-    ... = 1                                           : mul_inv_cancel (ne_of_gt hpos) },
-  use x * (perturbation_unit _ hrad),
-  unfold perturbation_unit,
-  noncomm_ring, simp,
+  calc ∥-(((x⁻¹:units α):α) * t)∥
+      = ∥((x⁻¹:units α):α) * t∥                    : by { rw norm_neg }
+  ... ≤ ∥((x⁻¹:units α):α)∥ * ∥t∥                   : norm_mul_le x.inv _
+  ... < ∥((x⁻¹:units α):α)∥ * ∥((x⁻¹:units α):α)∥⁻¹ : by nlinarith only [h, hpos]
+  ... = 1                                         : mul_inv_cancel (ne_of_gt hpos),
+end )
+
+@[simp] lemma add_coe [nonzero α] (x : units α) (t : α) (h : ∥t∥ < ∥((x⁻¹:units α):α)∥⁻¹) :
+  ((x.add t h) : α) = x + t :=
+begin
+  unfold units.add, simp, noncomm_ring, simp, abel,
 end
 
+/-- In a complete normed ring, an element `y` of distance less than `∥x⁻¹∥⁻¹` from `x` is a unit.
+Here we construct its `units` structure. -/
+def unit_of_nearby [nonzero α] (x : units α) (y : α)
+  (h : ∥y - x∥ < ∥((x⁻¹:units α):α)∥⁻¹) : units α :=
+x.add ((y:α) - x) h
+
+@[simp] lemma unit_of_nearby_coe [nonzero α] (x : units α) (y : α)
+  (h : ∥y - x∥ < ∥((x⁻¹:units α):α)∥⁻¹) : ((x.unit_of_nearby y h) : α) = y
+:= by { unfold units.unit_of_nearby, simp }
+
 /-- The group of units of a complete normed ring is an open subset of the ring. -/
-lemma units_open : is_open {x : α | is_unit x} :=
+lemma is_open : is_open {x : α | is_unit x} :=
 begin
   rcases subsingleton_or_nonzero α with _i|_i, resetI,
   { exact is_open_discrete is_unit },
@@ -51,5 +78,8 @@ begin
     refine ⟨∥((x⁻¹:units α):α)∥⁻¹, inv_pos.mpr (@units.norm_pos α _ _i x⁻¹), _⟩,
     intros y hy,
     rw [metric.mem_ball, dist_eq_norm, ←h] at hy,
-    exact @unit_of_near_unit α _ _ _i x y hy },
+    refine ⟨@unit_of_nearby _ _ _ _i x y hy, _⟩,
+    simp }
 end
+
+end units

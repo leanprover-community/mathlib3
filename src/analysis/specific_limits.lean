@@ -232,7 +232,7 @@ begin
 end
 
 /-- In a normed ring, the powers of an element x with `∥x∥ < 1` tend to zero. -/
-lemma tendsto_pow_at_top_nhds_0_of_norm_lt_1 {α : Type*} [normed_ring α] {x : α}
+lemma tendsto_pow_at_top_nhds_0_of_norm_lt_1 {R : Type*} [normed_ring R] {x : R}
   (h : ∥x∥ < 1) : tendsto (λ (n : ℕ), x ^ n) at_top (𝓝 0) :=
 begin
   apply squeeze_zero_norm' (eventually_norm_pow_le x),
@@ -545,14 +545,14 @@ end
 end summable_le_geometric
 
 section normed_ring_geometric
-variables [normed_ring α] [complete_space α]
+variables {R : Type*} [normed_ring R] [complete_space R]
 
 open normed_space
 
 /-- A geometric series in a complete normed ring is summable.
 Proved above (same name, different namespace) for not-necessarily-complete normed fields. -/
 lemma normed_ring.summable_geometric_of_norm_lt_1
-  (x : α) (h : ∥x∥ < 1) : summable (λ (n:ℕ), x ^ n) :=
+  (x : R) (h : ∥x∥ < 1) : summable (λ (n:ℕ), x ^ n) :=
 begin
   have h1 : summable (λ (n:ℕ), ∥x∥ ^ n) := summable_geometric_of_lt_1 (norm_nonneg _) h,
   refine summable_of_norm_bounded_eventually _ h1 _,
@@ -560,7 +560,7 @@ begin
   exact eventually_norm_pow_le x,
 end
 
-lemma geom_series_mul_neg (x : α) (h : ∥x∥ < 1) :
+lemma geom_series_mul_neg (x : R) (h : ∥x∥ < 1) :
   (∑' (i:ℕ), x ^ i) * (1 - x) = 1 :=
 begin
   have := has_sum_of_bounded_monoid_hom_of_summable
@@ -576,7 +576,7 @@ begin
   simp,
 end
 
-lemma mul_neg_geom_series (x : α) (h : ∥x∥ < 1) :
+lemma mul_neg_geom_series (x : R) (h : ∥x∥ < 1) :
   (1 - x) * (∑' (i:ℕ), x ^ i) = 1 :=
 begin
   have := has_sum_of_bounded_monoid_hom_of_summable

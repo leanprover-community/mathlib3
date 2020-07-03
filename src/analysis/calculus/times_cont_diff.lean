@@ -81,8 +81,8 @@ in space and order in our definition of `times_cont_diff_within_at` and `times_c
 The resulting definition is slightly more complicated to work with (in fact not so much), but it
 gives rise to completely satisfactory theorems.
 
-For instance, with this definition, a real function which is `C^n` (but not better) on `(-1/n, 1/n)`
-for each `n` is by definition `C^∞` at `0`.
+For instance, with this definition, a real function which is `C^m` (but not better) on `(-1/m, 1/m)`
+for each natural `m` is by definition `C^∞` at `0`.
 
 There is another issue with the definition of `times_cont_diff_within_at 𝕜 n f s x`. We can
 require the existence and good behavior of derivatives up to order `n` on a neighborhood of `x`
@@ -437,8 +437,8 @@ it admits continuous derivatives up to order `n` in a neighborhood of `x` in `s 
 For `n = ∞`, we only require that this holds up to any finite order (where the neighborhood may
 depend on the finite order we consider).
 
-For instance, a real function which is `C^k` on `(-1/k, 1/k)` for each `k`, but not better, is
-`C^∞` at `0` within `univ`.
+For instance, a real function which is `C^m` on `(-1/m, 1/m)` for each natural `m`, but not
+better, is `C^∞` at `0` within `univ`.
 -/
 def times_cont_diff_within_at (n : with_top ℕ) (f : E → F) (s : set E) (x : E) :=
 ∀ (m : ℕ), (m : with_top ℕ) ≤ n →

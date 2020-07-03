@@ -3,6 +3,7 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
+import algebra.group.hom
 import tactic.alias
 import tactic.push_neg
 import tactic.localized
@@ -808,6 +809,8 @@ end commute
 
 namespace monoid_hom
 
+section group_with_zero
+
 variables {G₀' : Type*} [group_with_zero G₀] [group_with_zero G₀'] (f : G₀ →* G₀') (h0 : f 0 = 0)
   {a : G₀}
 
@@ -830,5 +833,17 @@ begin
 end
 
 lemma map_div : f (a / b) = f a / f b := (f.map_mul _ _).trans $ congr_arg _ $ f.map_inv' h0 b
+
+end group_with_zero
+
+section comm_group_with_zero
+
+@[simp] lemma map_units_inv {M G₀ : Type*} [monoid M] [comm_group_with_zero G₀]
+  (f : M →* G₀) (u : units M) : f ↑u⁻¹ = (f u)⁻¹ :=
+have f (u * ↑u⁻¹) = 1 := by rw [←units.coe_mul, mul_inv_self, units.coe_one, f.map_one],
+inv_unique (trans (f.map_mul _ _).symm this)
+  (mul_inv_cancel (λ hu, zero_ne_one (trans (by rw [f.map_mul, hu, zero_mul]) this)))
+
+end comm_group_with_zero
 
 end monoid_hom

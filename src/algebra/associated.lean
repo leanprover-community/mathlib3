@@ -80,6 +80,20 @@ lemma div_or_div [comm_semiring α] {p : α} (hp : prime p) {a b : α} (h : p �
   p ∣ a ∨ p ∣ b :=
 hp.2.2 a b h
 
+lemma dvd_of_dvd_pow [comm_semiring α] {p : α} (hp : prime p) {a : α} {n : ℕ} (h : p ∣ a^n) :
+  p ∣ a :=
+begin
+  induction n with n ih,
+  { rw pow_zero at h,
+    have := is_unit_of_dvd_one _ h,
+    have := not_unit hp,
+    contradiction },
+  rw pow_succ at h,
+  cases div_or_div hp h with dvd_a dvd_pow,
+  { assumption },
+  exact ih dvd_pow
+end
+
 end prime
 
 @[simp] lemma not_prime_zero [comm_semiring α] : ¬ prime (0 : α) :=
@@ -163,6 +177,21 @@ have hpd : p ∣ x * y, from ⟨z, by rwa [mul_right_inj' hp0] at h⟩,
 (hp.div_or_div hpd).elim
   (λ ⟨d, hd⟩, or.inl ⟨d, by simp [*, pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
   (λ ⟨d, hd⟩, or.inr ⟨d, by simp [*, pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
+
+/-- If `p` and `q` are irreducible, then `p ∣ q` implies `q ∣ p`. -/
+lemma dvd_symm_of_irreducible [comm_semiring α] {p q : α}
+  (hp : irreducible p) (hq : irreducible q) : p ∣ q → q ∣ p :=
+begin
+  tactic.unfreeze_local_instances,
+  rintros ⟨q', rfl⟩,
+  exact is_unit.mul_right_dvd_of_dvd
+    (or.resolve_left (of_irreducible_mul hq) hp.not_unit)
+    (dvd_refl p)
+end
+
+lemma dvd_symm_iff_of_irreducible [comm_semiring α] {p q : α}
+  (hp : irreducible p) (hq : irreducible q) : p ∣ q ↔ q ∣ p :=
+⟨dvd_symm_of_irreducible hp hq, dvd_symm_of_irreducible hq hp⟩
 
 /-- Two elements of a `monoid` are `associated` if one of them is another one
 multiplied by a unit on the right. -/

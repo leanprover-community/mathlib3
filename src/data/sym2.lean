@@ -6,9 +6,11 @@ Author: Kyle Miller.
 
 import data.quot
 import data.equiv.basic
+import data.sym
 import data.vector
 import tactic
 open function
+open sym
 
 /-!
 # The symmetric square
@@ -16,13 +18,16 @@ open function
 This file defines the symmetric square, which is `α × α` modulo
 swapping.  This is also known as the type of unordered pairs.
 
+More generally, the symmetric square is the second symmetric power
+(see `data.sym`). The equivalence is `sym2.equiv_sym`.
+
 From the point of view that an unordered pair is equivalent to a
-multiset of cardinality two (see `sym2.equiv_multiset`), we define a
+multiset of cardinality two (see `sym2.equiv_multiset`), there is a
 `has_mem` instance `sym2.mem`, which is a `Prop`-valued membership
 test.  Given `a ∈ z` for `z : sym2 α`, it does not appear to be
 possible, in general, to *computably* give the other element in the
 pair.  For this, `sym2.vmem a z` is a `Type`-valued membership test
-that gives a way to obtain the other element.
+that gives a way to obtain the other element with `sym2.vmem.other`.
 
 Recall that an undirected graph (allowing self loops, but no multiple
 edges) is equivalent to a symmetric relation on the vertex type `α`.
@@ -36,7 +41,7 @@ term of the symmetric square.
 
 ## Tags
 
-symmetric square, unordered pairs
+symmetric square, unordered pairs, symmetric powers
 -/
 
 namespace sym2
@@ -265,37 +270,11 @@ end
 
 end relations
 
-section multiset_equiv
+section sym_equiv
 
-/-! ### Equivalence to multisets of cardinality two -/
+/-! ### Equivalence to the second symmetric power -/
 
-/--
-In more generality, the nth symmetric power is n-tuples up to
-permutation.  We define it as a subtype of `multiset` since these are
-well developed in the library.  We also give a definition `sym'` in terms of
-vectors, and we show these are equivalent in `sym_equiv_sym'`.
--/
-def sym (α : Type*) (n : ℕ) := {s : multiset α // s.card = n}
-
-/--
-This is the `list.perm` setoid lifted to `vector`.
--/
-def vector.is_setoid (α : Type*) (n : ℕ) : setoid (vector α n) :=
-{ r := λ a b, list.perm a.1 b.1,
-  iseqv := by { rcases list.perm.eqv α with ⟨hr, hs, ht⟩, tidy, } }
-
-local attribute [instance] vector.is_setoid
-
-/--
-Another definition of the nth symmetric power, using vectors modulo permutations. (See `sym`.)
--/
-def sym' (α : Type*) (n : ℕ) := quotient (vector.is_setoid α n)
-
-/--
-Multisets of cardinality n are equivalent to length-n vectors up to permutations.
--/
-def sym_equiv_sym' (α : Type*) (n : ℕ) : equiv (sym α n) (sym' α n) :=
-equiv.subtype_quotient_equiv_quotient_subtype _ _ (λ _, by refl) (λ _ _, by refl)
+local attribute [instance] vector.perm.is_setoid
 
 private def from_vector {α : Type*} : vector α 2 → α × α
 | ⟨[a, b], h⟩ := (a, b)
@@ -352,13 +331,20 @@ def sym2_equiv_sym' {α : Type*} : equiv (sym2 α) (sym' α 2) :=
 }
 
 /--
-The symmetric square is equivalent to multisets of cardinality two.
+The symmetric square is equivalent to the second symmetric power.
 -/
-def equiv_multiset (α : Type*) : sym2 α ≃ {s : multiset α // s.card = 2} :=
+def equiv_sym (α : Type*) : sym2 α ≃ sym α 2 :=
 equiv.trans sym2_equiv_sym' (sym_equiv_sym' α 2).symm
 
-end multiset_equiv
+/--
+The symmetric square is equivalent to multisets of cardinality
+two. (This is currently a synonym for `equiv_sym`, but it's provided
+in case the definition for `sym` changes.)
+-/
+def equiv_multiset (α : Type*) : sym2 α ≃ {s : multiset α // s.card = 2} :=
+equiv_sym α
 
+end sym_equiv
 
 section inhabited
 
@@ -366,12 +352,6 @@ section inhabited
 
 instance inhabited_vmem [inhabited α] : inhabited (vmem (default α) (diag (default α))) :=
 ⟨⟨default α, rfl⟩⟩
-
-instance inhabited_sym [inhabited α] (n : ℕ) : inhabited (sym α n) :=
-⟨⟨multiset.repeat (default α) n, multiset.card_repeat _ _⟩⟩
-
-instance inhabited_sym' [inhabited α] (n : ℕ) : inhabited (sym' α n) :=
-⟨quotient.mk' (vector.repeat (default α) n)⟩
 
 end inhabited
 

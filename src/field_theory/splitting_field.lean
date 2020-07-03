@@ -7,6 +7,7 @@ Definition of splitting fields, and definition of homomorphism into any field th
 -/
 import ring_theory.adjoin_root
 import ring_theory.polynomial
+import field_theory.minimal_polynomial
 
 universes u v w
 
@@ -201,12 +202,16 @@ begin
 end
 
 theorem exists_splits (f : polynomial α) :
-  ∃ (β : Type u) [field β], by exactI ∃ i : α →+* β, splits i f :=
+  ∃ (β : Type u) [field β], by exactI ∃ (i : α →+* β), splits i f ∧
+    ∀ (γ : Type u) [field γ], by exactI ∀ (j : α →+* γ), splits j f →
+      ∃ k : β →+* γ, k.comp i = j :=
 begin
   generalize hn : nat_degree f = n, unfreezingI { revert α },
   induction n with n ih,
-  { intros, resetI, refine ⟨α, ‹_›, ring_hom.id α, splits_of_degree_le_one _ _⟩,
-    refine le_trans degree_le_nat_degree _, rw hn, exact with_bot.coe_le_coe.2 zero_le_one },
+  { intros, exactI ⟨α, ‹_›, ring_hom.id α,
+      splits_of_degree_le_one _ (le_trans degree_le_nat_degree $ hn.symm ▸
+        with_bot.coe_le_coe.2 zero_le_one),
+      λ γ _ j hj, ⟨j, by exactI j.comp_id⟩⟩ },
   intros, resetI,
   have hdfn0 : f.nat_degree ≠ 0, { intro hf0, rw hf0 at hn, cases hn },
   have hfn0 : f ≠ 0, { intro hf, apply hdfn0, rw [hf, nat_degree_zero] },
@@ -214,13 +219,23 @@ begin
   have := nat_degree_div_by_monic (map (adjoin_root.of g) (g * f))
     (monic_X_sub_C $ adjoin_root.root g),
   rw [nat_degree_map, hn, nat_degree_X_sub_C, nat.add_sub_cancel n 1] at this,
-  obtain ⟨β, _, i, hif⟩ := ih _ this, resetI,
+  obtain ⟨β, _, i, hif, hif2⟩ := ih _ this, resetI,
   refine ⟨β, ‹_›, i.comp $ adjoin_root.of g, _⟩,
   have hfg : is_root (map (adjoin_root.of g) (g * f)) (adjoin_root.root g),
   { rw map_mul, exact root_mul_right_of_is_root _ (adjoin_root.is_root_root _) },
   rw ← mul_div_by_monic_eq_iff_is_root at hfg,
   rw [← splits_id_iff_splits, ← map_map, splits_id_iff_splits, ← hfg],
-  exact splits_mul i (splits_X_sub_C _) hif
+  refine ⟨splits_mul i (splits_X_sub_C _) hif, _⟩,
+  intros γ _ j hj, resetI,
+  obtain ⟨x, hx⟩ := exists_root_of_splits j (splits_of_splits_mul j hfn0 hj).1
+    (mt is_unit_iff_degree_eq_zero.2 hg.1),
+  have : (X - C (adjoin_root.root g)) * (map (adjoin_root.of g) (g * f) /ₘ (X - C (adjoin_root.root g))) ≠ 0,
+  { rw [hfg, ne, map_eq_zero], exact hfn0 },
+  have : splits (adjoin_root.lift j x hx) (map (adjoin_root.of g) (g * f) /ₘ (X - C (adjoin_root.root g))),
+  { refine (splits_of_splits_mul _ this _).2,
+    rwa [hfg, ← splits_id_iff_splits, map_map, adjoin_root.lift_comp_of, splits_id_iff_splits] },
+  obtain ⟨k, hk⟩ := hif2 γ (adjoin_root.lift j x hx) this, refine ⟨k, _⟩,
+  rw [← ring_hom.comp_assoc, hk, adjoin_root.lift_comp_of]
 end
 
 end splits

@@ -105,6 +105,9 @@ ideal.quotient.lift_mk _ _ _
 @[simp] lemma lift_of {x : R} : lift i a h x = i x :=
 by rw [← mk_C x, lift_mk, eval₂_C]
 
+@[simp] lemma lift_comp_of : (lift i a h).comp (of f) = i :=
+ring_hom.ext $ λ _, @lift_of _ _ _ _ _ _ _ h _
+
 end comm_ring
 
 variables [field K] {f : polynomial K} [irreducible f]

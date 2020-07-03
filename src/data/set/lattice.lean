@@ -145,19 +145,19 @@ theorem Inter_const [nonempty ι] (s : set β) : (⋂ i:ι, s) = s :=
 ext $ by simp
 
 @[simp] -- complete_boolean_algebra
-theorem compl_Union (s : ι → set β) : - (⋃ i, s i) = (⋂ i, - s i) :=
+theorem compl_Union (s : ι → set β) : (⋃ i, s i)ᶜ = (⋂ i, (s i)ᶜ) :=
 ext (by simp)
 
 -- classical -- complete_boolean_algebra
-theorem compl_Inter (s : ι → set β) : -(⋂ i, s i) = (⋃ i, - s i) :=
+theorem compl_Inter (s : ι → set β) : (⋂ i, s i)ᶜ = (⋃ i, (s i)ᶜ) :=
 ext (λ x, by simp [classical.not_forall])
 
 -- classical -- complete_boolean_algebra
-theorem Union_eq_comp_Inter_comp (s : ι → set β) : (⋃ i, s i) = - (⋂ i, - s i) :=
+theorem Union_eq_comp_Inter_comp (s : ι → set β) : (⋃ i, s i) = (⋂ i, (s i)ᶜ)ᶜ :=
 by simp [compl_Inter, compl_compl]
 
 -- classical -- complete_boolean_algebra
-theorem Inter_eq_comp_Union_comp (s : ι → set β) : (⋂ i, s i) = - (⋃ i, -s i) :=
+theorem Inter_eq_comp_Union_comp (s : ι → set β) : (⋂ i, s i) = (⋃ i, (s i)ᶜ)ᶜ :=
 by simp [compl_compl]
 
 theorem inter_Union (s : set β) (t : ι → set β) :
@@ -348,11 +348,11 @@ theorem bUnion_pair (a b : α) (s : α → set β) :
 by simp [union_comm]
 
 @[simp] -- complete_boolean_algebra
-theorem compl_bUnion (s : set α) (t : α → set β) : - (⋃ i ∈ s, t i) = (⋂ i ∈ s, - t i) :=
+theorem compl_bUnion (s : set α) (t : α → set β) : (⋃ i ∈ s, t i)ᶜ = (⋂ i ∈ s, (t i)ᶜ) :=
 ext (λ x, by simp)
 
 -- classical -- complete_boolean_algebra
-theorem compl_bInter (s : set α) (t : α → set β) : -(⋂ i ∈ s, t i) = (⋃ i ∈ s, - t i) :=
+theorem compl_bInter (s : set α) (t : α → set β) : (⋂ i ∈ s, t i)ᶜ = (⋃ i ∈ s, (t i)ᶜ) :=
 ext (λ x, by simp [classical.not_forall])
 
 theorem inter_bUnion (s : set α) (t : α → set β) (u : set β) :
@@ -453,7 +453,7 @@ lemma sUnion_eq_univ_iff {c : set (set α)} :
  λ H, set.univ_subset_iff.1 $ λ x hx, let ⟨b, hm, hb⟩ := H x in set.mem_sUnion_of_mem hb hm⟩
 
 theorem compl_sUnion (S : set (set α)) :
-  - ⋃₀ S = ⋂₀ (compl '' S) :=
+  (⋃₀ S)ᶜ = ⋂₀ (compl '' S) :=
 set.ext $ assume x,
   ⟨assume : ¬ (∃s∈S, x ∈ s), assume s h,
     match s, h with
@@ -464,17 +464,17 @@ set.ext $ assume x,
 
 -- classical
 theorem sUnion_eq_compl_sInter_compl (S : set (set α)) :
-  ⋃₀ S = - ⋂₀ (compl '' S) :=
+  ⋃₀ S = (⋂₀ (compl '' S))ᶜ :=
 by rw [←compl_compl (⋃₀ S), compl_sUnion]
 
 -- classical
 theorem compl_sInter (S : set (set α)) :
-  - ⋂₀ S = ⋃₀ (compl '' S) :=
+  (⋂₀ S)ᶜ = ⋃₀ (compl '' S) :=
 by rw [sUnion_eq_compl_sInter_compl, compl_compl_image]
 
 -- classical
 theorem sInter_eq_comp_sUnion_compl (S : set (set α)) :
-   ⋂₀ S = -(⋃₀ (compl '' S)) :=
+   ⋂₀ S = (⋃₀ (compl '' S))ᶜ :=
 by rw [←compl_compl (⋂₀ S), compl_sInter]
 
 theorem inter_empty_of_inter_sUnion_empty {s t : set α} {S : set (set α)} (hs : t ∈ S)
@@ -539,12 +539,12 @@ lemma inter_eq_Inter {s₁ s₂ : set α} : s₁ ∩ s₂ = ⋂ b : bool, cond b
 set.ext $ λ x, by simp [bool.forall_bool, and_comm]
 
 instance : complete_boolean_algebra (set α) :=
-{ neg                 := compl,
-  sub                 := (\),
+{ compl               := compl,
+  sdiff               := (\),
   le_sup_inf          := distrib_lattice.le_sup_inf,
-  inf_compl_eq_bot      := assume s, ext $ assume x, ⟨assume ⟨h, nh⟩, nh h, false.elim⟩,
-  sup_compl_eq_top      := assume s, ext $ assume x, ⟨assume h, trivial, assume _, classical.em $ x ∈ s⟩,
-  sub_eq              := assume x y, rfl,
+  inf_compl_eq_bot    := assume s, ext $ assume x, ⟨assume ⟨h, nh⟩, nh h, false.elim⟩,
+  sup_compl_eq_top    := assume s, ext $ assume x, ⟨assume h, trivial, assume _, classical.em $ x ∈ s⟩,
+  sdiff_eq            := assume x y, rfl,
   infi_sup_le_sup_Inf := assume s t x, show x ∈ (⋂ b ∈ t, s ∪ b) → x ∈ s ∪ (⋂₀ t),
     by simp; exact assume h,
       or.imp_right
@@ -616,8 +616,6 @@ begin
   { rintro ⟨y, ⟨i, rfl⟩⟩, exact ⟨i, (f i y).2⟩ },
   { rintro ⟨i, hx⟩, cases hf i ⟨x, hx⟩ with y hy, refine ⟨y, ⟨i, congr_arg subtype.val hy⟩⟩ }
 end
-
-@[simp] theorem sub_eq_diff (s t : set α) : s - t = s \ t := rfl
 
 section
 
@@ -838,7 +836,7 @@ disjoint_of_subset_left h1 $ disjoint_of_subset_right h2 d
 theorem disjoint_diff {a b : set α} : disjoint a (b \ a) :=
 disjoint_iff.2 (inter_diff_self _ _)
 
-theorem disjoint_compl (s : set α) : disjoint s (-s) := assume a ⟨h₁, h₂⟩, h₂ h₁
+theorem disjoint_compl (s : set α) : disjoint s sᶜ := assume a ⟨h₁, h₂⟩, h₂ h₁
 
 theorem disjoint_singleton_left {a : α} {s : set α} : disjoint {a} s ↔ a ∉ s :=
 by simp [set.disjoint_iff, subset_def]; exact iff.rfl

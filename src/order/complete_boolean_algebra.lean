@@ -104,18 +104,18 @@ end prio
 section complete_boolean_algebra
 variables [complete_boolean_algebra α] {a b : α} {s : set α} {f : ι → α}
 
-theorem compl_infi : - infi f = (⨆i, - f i) :=
+theorem compl_infi : (infi f)ᶜ = (⨆i, (f i)ᶜ) :=
 le_antisymm
-  (compl_le_of_compl_le $ le_infi $ assume i, compl_le_of_compl_le $ le_supr (λi, - f i) i)
+  (compl_le_of_compl_le $ le_infi $ assume i, compl_le_of_compl_le $ le_supr (compl ∘ f) i)
   (supr_le $ assume i, compl_le_compl $ infi_le _ _)
 
-theorem compl_supr : - supr f = (⨅i, - f i) :=
+theorem compl_supr : (supr f)ᶜ = (⨅i, (f i)ᶜ) :=
 compl_injective (by simp [compl_infi])
 
-theorem compl_Inf : - Inf s = (⨆i∈s, - i) :=
-by simp [Inf_eq_infi, compl_infi]
+theorem compl_Inf : (Inf s)ᶜ = (⨆i∈s, iᶜ) :=
+by simp only [Inf_eq_infi, compl_infi]
 
-theorem compl_Sup : - Sup s = (⨅i∈s, - i) :=
-by simp [Sup_eq_supr, compl_supr]
+theorem compl_Sup : (Sup s)ᶜ = (⨅i∈s, iᶜ) :=
+by simp only [Sup_eq_supr, compl_supr]
 
 end complete_boolean_algebra

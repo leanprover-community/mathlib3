@@ -759,7 +759,7 @@ lemma uniformity_has_basis_closure : has_basis (𝓤 α) (λ V : set (α × α),
   { rintros ⟨r, ⟨r_in, r_closed⟩, r_sub⟩,
     use [r, r_in],
     convert r_sub,
-    rw closure_eq_of_is_closed r_closed,
+    rw r_closed.closure_eq,
     refl },
   { rintros ⟨r, r_in, r_sub⟩,
     exact ⟨closure r, ⟨mem_sets_of_superset r_in subset_closure, is_closed_closure⟩, r_sub⟩ }

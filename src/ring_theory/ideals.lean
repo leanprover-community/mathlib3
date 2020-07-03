@@ -470,6 +470,11 @@ end prio
   (a) (h : is_unit (f a)) : is_unit a :=
 is_local_ring_hom.map_nonunit a h
 
+theorem of_irreducible_map [semiring α] [semiring β] (f : α →+* β) [h : is_local_ring_hom f] {x : α}
+  (hfx : irreducible (f x)) : irreducible x :=
+⟨λ h, hfx.1 $ is_unit.map f.to_monoid_hom h, λ p q hx, let ⟨H⟩ := h in
+or.imp (H p) (H q) $ hfx.2 _ _ $ f.map_mul p q ▸ congr_arg f hx⟩
+
 section
 open local_ring
 variables [comm_ring α] [local_ring α] [comm_ring β] [local_ring β]

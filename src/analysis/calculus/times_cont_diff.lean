@@ -17,8 +17,9 @@ We formalize these notions by defining iteratively the `n+1`-th derivative of a 
 derivative of the `n`-th derivative. It is called `iterated_fderiv 𝕜 n f x` where `𝕜` is the
 field, `n` is the number of iterations, `f` is the function and `x` is the point, and it is given
 as an `n`-multilinear map. We also define a version `iterated_fderiv_within` relative to a domain,
-as well as predicates `times_cont_diff 𝕜 n f` and `times_cont_diff_on 𝕜 n f s` saying that the
-function is `C^n`, respectively in the whole space or on the set `s`.
+as well as predicates `times_cont_diff_within_at`, `times_cont_diff_at`, `times_cont_diff_on` and
+`times_cont_diff_on` saying that the function is `C^n` within a set at a point, at a point, on a set
+and on the whole space respectively.
 
 To avoid the issue of choice when choosing a derivative in sets where the derivative is not
 necessarily unique, `times_cont_diff_on` is not defined directly in terms of the
@@ -40,6 +41,8 @@ Let `f : E → F` be a map between normed vector spaces over a nondiscrete norme
 * `times_cont_diff 𝕜 n f`: expresses that `f` is `C^n`, i.e., it admits a Taylor series up to
   rank `n`.
 * `times_cont_diff_on 𝕜 n f s`: expresses that `f` is `C^n` in `s`.
+* `times_cont_diff_at 𝕜 n f x`: expresses that `f` is `C^n` around `x`.
+* `times_cont_diff_within_at 𝕜 n f s x`: expresses that `f` is `C^n` around `x` within the set `s`.
 * `iterated_fderiv_within 𝕜 n f s x` is an `n`-th derivative of `f` over the field `𝕜` on the
   set `s` at the point `x`. It is a continuous multilinear map from `E^n` to `F`, defined as a
   derivative within `s` of `iterated_fderiv_within 𝕜 (n-1) f s` if one exists, and `0` otherwise.
@@ -154,7 +157,6 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {G : Type*} [normed_group G] [normed_space 𝕜 G]
 {s s₁ t u : set E} {f f₁ : E → F} {g : F → G} {x : E} {c : F}
 {b : E × F → G}
-
 
 /-- A formal multilinear series over a field `𝕜`, from `E` to `F`, is given by a family of
 multilinear maps from `E^n` to `F` for all `n`. -/
@@ -418,10 +420,12 @@ end
 variable (𝕜)
 
 /-- A function is continuously differentiable up to `n` within a set `s` at a point `x` if it admits
-derivatives within a neighborhood of `x` in `s` up to order `n`, which are continuous.
+derivatives within a neighborhood of `x` in `s ∪ {x}` up to order `n`, which are continuous.
 There is a subtlety that one might be able to find nice derivatives up to `n` for any finite `n`,
 but that they don't match so that one can not find them up to infinity. To get a good notion for
-`n = ∞`, we only require that for any finite `n` we may find such matching derivatives.
+`n = ∞`, we only require that for any finite `n` we may find such matching derivatives. We require
+the good behavior on `s ∪ {x}` to make sure that this notion implies continuity within `s` at `x`,
+and is stable under composition.
 -/
 def times_cont_diff_within_at (n : with_top ℕ) (f : E → F) (s : set E) (x : E) :=
 ∀ (m : ℕ), (m : with_top ℕ) ≤ n →
@@ -463,18 +467,6 @@ lemma times_cont_diff_within_at.continuous_within_at {n : with_top ℕ}
   (h : times_cont_diff_within_at 𝕜 n f s x) : continuous_within_at f s x :=
 (h.continuous_within_at').mono (subset_insert x s)
 
-lemma mem_nhds_within_insert (h : t ∈ nhds_within x s) :
-  insert x t ∈ nhds_within x (insert x s) :=
-begin
-  rcases mem_nhds_within.1 h with ⟨o, o_open, xo, ho⟩,
-  apply mem_nhds_within.2 ⟨o, o_open, xo, _⟩,
-  assume y,
-  simp only [and_imp, mem_inter_eq, mem_insert_iff],
-  rintro yo (rfl | ys),
-  { simp },
-  { simp [ho ⟨yo, ys⟩] }
-end
-
 lemma times_cont_diff_within_at.congr_of_eventually_eq {n : with_top ℕ}
   (h : times_cont_diff_within_at 𝕜 n f s x) (h₁ : f₁ =ᶠ[nhds_within x s] f) (hx : f₁ x = f x) :
   times_cont_diff_within_at 𝕜 n f₁ s x :=
@@ -501,7 +493,7 @@ begin
   exact t_eq _ (mem_of_mem_nhds_within hx ht)
 end
 
-lemma times_cont_diff_within_at_congr_of_eventually_eq {n : with_top ℕ}
+lemma filter.eventually_eq.times_cont_diff_within_at_iff {n : with_top ℕ}
   (h₁ : f₁ =ᶠ[nhds_within x s] f) (hx : f₁ x = f x) :
   times_cont_diff_within_at 𝕜 n f₁ s x ↔ times_cont_diff_within_at 𝕜 n f s x :=
 ⟨λ H, times_cont_diff_within_at.congr_of_eventually_eq H h₁.symm hx.symm,
@@ -525,9 +517,6 @@ lemma times_cont_diff_within_at.of_le {m n : with_top ℕ}
   (h : times_cont_diff_within_at 𝕜 n f s x) (hmn : m ≤ n) :
   times_cont_diff_within_at 𝕜 m f s x :=
 λ k hk, h k (le_trans hk hmn)
-
-lemma insert_inter : insert x (s ∩ t) = insert x s ∩ insert x t :=
-by { ext y, simp, tauto }
 
 lemma times_cont_diff_within_at_inter' {n : with_top ℕ} (h : t ∈ nhds_within x s) :
   times_cont_diff_within_at 𝕜 n f (s ∩ t) x ↔ times_cont_diff_within_at 𝕜 n f s x :=
@@ -613,9 +602,9 @@ end
 
 variable (𝕜)
 
-/-- A function is continuously differentiable up to `n` if it admits derivatives within `s` up to
-order `n`, which are continuous. There is a subtlety on sets where derivatives are not unique, that
-choices of derivatives around different points might not match. To ensure that being `C^n` is a
+/-- A function is continuously differentiable up to `n` on `s` if it admits derivatives within `s`
+up to order `n`, which are continuous. There is a subtlety on sets where derivatives are not unique,
+that choices of derivatives around different points might not match. To ensure that being `C^n` is a
 local property, we therefore require it locally around each point. There is another subtlety that
 one might be able to find nice derivatives up to `n` for any finite `n`, but that they don't match
 so that one can not find them up to infinity. To get a good notion for `n = ∞`, we only require that
@@ -1890,7 +1879,7 @@ lemma times_cont_diff_within_at.comp' {n : with_top ℕ} {s : set E} {t : set F}
   {f : E → F} {x : E}
   (hg : times_cont_diff_within_at 𝕜 n g t (f x)) (hf : times_cont_diff_within_at 𝕜 n f s x) :
   times_cont_diff_within_at 𝕜 n (g ∘ f) (s ∩ f⁻¹' t) x :=
-hg.comp (hf.mono (inter_subset_left _ _) ⟨hf.mem, hg.mem⟩) (inter_subset_right _ _)
+hg.comp (hf.mono (inter_subset_left _ _)) (inter_subset_right _ _)
 
 /-- The bundled derivative of a `C^{n+1}` function is `C^n`. -/
 lemma times_cont_diff_on_fderiv_within_apply {m n : with_top  ℕ} {s : set E}
@@ -2009,8 +1998,8 @@ lemma times_cont_diff_at.has_strict_fderiv_at {f : E' → F'} {x : E'} {n : with
   (hf : times_cont_diff_at ℝ n f x) (hn : 1 ≤ n) :
   has_strict_fderiv_at f (fderiv ℝ f x) x :=
 begin
-  rcases hf.smooth 1 hn with ⟨u, H, p, hp⟩,
-  rw nhds_within_univ at H,
+  rcases hf 1 hn with ⟨u, H, p, hp⟩,
+  simp only [nhds_within_univ, mem_univ, insert_eq_of_mem] at H,
   have := hp.has_strict_fderiv_at (by norm_num) H,
   convert this,
   exact this.has_fderiv_at.fderiv

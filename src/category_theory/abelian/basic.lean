@@ -91,12 +91,12 @@ and every epimorphism is the cokernel of some morphism.
 finite products give a terminal object, and in a preadditive category
 any terminal object is a zero object.)
 -/
-class abelian extends preadditive.{v} C :=
-[has_finite_products : has_finite_products.{v} C]
-[has_kernels : has_kernels.{v} C]
-[has_cokernels : has_cokernels.{v} C]
-(normal_mono : Π {X Y : C} (f : X ⟶ Y) [mono f], normal_mono.{v} f)
-(normal_epi : Π {X Y : C} (f : X ⟶ Y) [epi f], normal_epi.{v} f)
+class abelian extends preadditive C :=
+[has_finite_products : has_finite_products C]
+[has_kernels : has_kernels C]
+[has_cokernels : has_cokernels C]
+(normal_mono : Π {X Y : C} (f : X ⟶ Y) [mono f], normal_mono f)
+(normal_epi : Π {X Y : C} (f : X ⟶ Y) [epi f], normal_epi f)
 
 attribute [instance] abelian.has_finite_products
 attribute [instance] abelian.has_kernels abelian.has_cokernels
@@ -107,7 +107,7 @@ end category_theory
 open category_theory
 
 namespace category_theory.abelian
-variables {C : Type u} [category.{v} C] [abelian.{v} C]
+variables {C : Type u} [category.{v} C] [abelian C]
 
 section strong
 local attribute [instance] abelian.normal_epi
@@ -263,12 +263,12 @@ end factor
 section has_strong_epi_mono_factorisations
 
 /-- An abelian category has strong epi-mono factorisations. -/
-@[priority 100] instance : has_strong_epi_mono_factorisations.{v} C :=
+@[priority 100] instance : has_strong_epi_mono_factorisations C :=
 ⟨λ X Y f, image_strong_epi_mono_factorisation f⟩
 
 /- In particular, this means that it has well-behaved images. -/
-example : has_images.{v} C := by apply_instance
-example : has_image_maps.{v} C := by apply_instance
+example : has_images C := by apply_instance
+example : has_image_maps C := by apply_instance
 
 end has_strong_epi_mono_factorisations
 
@@ -319,7 +319,7 @@ section
 local attribute [instance] preadditive.has_equalizers_of_has_kernels
 
 /-- Any abelian category has pullbacks -/
-def has_pullbacks : has_pullbacks.{v} C :=
+def has_pullbacks : has_pullbacks C :=
 has_pullbacks_of_has_binary_products_of_has_equalizers C
 
 end
@@ -329,13 +329,13 @@ local attribute [instance] preadditive.has_coequalizers_of_has_cokernels
 local attribute [instance] has_binary_biproducts.of_has_binary_products
 
 /-- Any abelian category has pushouts -/
-def has_pushouts : has_pushouts.{v} C :=
+def has_pushouts : has_pushouts C :=
 has_pushouts_of_has_binary_coproducts_of_has_coequalizers C
 
 end
 
 namespace pullback_to_biproduct_is_kernel
-variables [limits.has_pullbacks.{v} C] {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
+variables [limits.has_pullbacks C] {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
 
 local attribute [instance] has_binary_biproducts.of_has_binary_products
 
@@ -374,7 +374,7 @@ fork.is_limit.mk _
 end pullback_to_biproduct_is_kernel
 
 namespace biproduct_to_pushout_is_cokernel
-variables [limits.has_pushouts.{v} C] {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z)
+variables [limits.has_pushouts C] {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z)
 
 local attribute [instance] has_binary_biproducts.of_has_binary_products
 
@@ -401,7 +401,7 @@ cofork.is_colimit.mk _
 end biproduct_to_pushout_is_cokernel
 
 section epi_pullback
-variables [limits.has_pullbacks.{v} C] {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
+variables [limits.has_pullbacks C] {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
 
 local attribute [instance] has_binary_biproducts.of_has_binary_products
 
@@ -477,7 +477,7 @@ end
 end epi_pullback
 
 section mono_pushout
-variables [limits.has_pushouts.{v} C] {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z)
+variables [limits.has_pushouts C] {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z)
 
 local attribute [instance] has_binary_biproducts.of_has_binary_products
 

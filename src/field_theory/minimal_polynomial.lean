@@ -212,7 +212,7 @@ begin
   { intro h,
     have zero_root := polynomial.zero_is_root_of_coeff_zero_eq_zero h,
     rw ← root hx zero_root,
-    exact is_ring_hom.map_zero _ },
+    exact ring_hom.map_zero _ },
   { rintro rfl, simp }
 end
 

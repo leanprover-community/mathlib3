@@ -31,21 +31,21 @@ section
 variables (V : Type u) [𝒱 : category.{v} V]
 include 𝒱
 
-variables [has_zero_morphisms.{v} V]
+variables [has_zero_morphisms V]
 
 /--
 A chain complex in `V` is "just" a differential `ℤ`-graded object in `V`,
 with differential graded `-1`.
 -/
 abbreviation chain_complex : Type (max v u) :=
-differential_object.{v} (graded_object_with_shift (-1 : ℤ) V)
+differential_object (graded_object_with_shift (-1 : ℤ) V)
 
 /--
 A cochain complex in `V` is "just" a differential `ℤ`-graded object in `V`,
 with differential graded `+1`.
 -/
 abbreviation cochain_complex : Type (max v u) :=
-differential_object.{v} (graded_object_with_shift (1 : ℤ) V)
+differential_object (graded_object_with_shift (1 : ℤ) V)
 
 -- The chain groups of a chain complex `C` are accessed as `C.X i`,
 -- and the differentials as `C.d i : C.X i ⟶ C.X (i-1)`.
@@ -57,10 +57,10 @@ namespace cochain_complex
 variables {V : Type u} [𝒱 : category.{v} V]
 include 𝒱
 
-variables [has_zero_morphisms.{v} V]
+variables [has_zero_morphisms V]
 
 @[simp]
-lemma d_squared (C : cochain_complex.{v} V) (i : ℤ) :
+lemma d_squared (C : cochain_complex V) (i : ℤ) :
   C.d i ≫ C.d (i+1) = 0 :=
 congr_fun (C.d_squared) i
 
@@ -92,7 +92,7 @@ section
 omit 𝒱
 local attribute [instance] has_zero_object.has_zero
 
-instance : inhabited (cochain_complex.{v} (discrete punit.{v+1})) := ⟨0⟩
+instance : inhabited (cochain_complex (discrete punit)) := ⟨0⟩
 end
 
 end cochain_complex
@@ -101,10 +101,10 @@ namespace chain_complex
 variables {V : Type u} [𝒱 : category.{v} V]
 include 𝒱
 
-variables [has_zero_morphisms.{v} V]
+variables [has_zero_morphisms V]
 
 @[simp]
-lemma d_squared (C : chain_complex.{v} V) (i : ℤ) :
+lemma d_squared (C : chain_complex V) (i : ℤ) :
   C.d i ≫ C.d (i-1) = 0 :=
 congr_fun (C.d_squared) i
 
@@ -130,7 +130,7 @@ section
 omit 𝒱
 local attribute [instance] has_zero_object.has_zero
 
-instance : inhabited (chain_complex.{v} (discrete punit.{v+1})) := ⟨0⟩
+instance : inhabited (chain_complex (discrete punit)) := ⟨0⟩
 end
 
 end chain_complex

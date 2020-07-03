@@ -624,7 +624,7 @@ lemma mdifferentiable_within_at.congr_of_eventually_eq
 (h.has_mfderiv_within_at.congr_of_eventually_eq h₁ hx).mdifferentiable_within_at
 
 variables (I I')
-lemma mdifferentiable_within_at_congr_of_eventually_eq
+lemma filter.eventually_eq.mdifferentiable_within_at_iff
   (h₁ : f₁ =ᶠ[nhds_within x s] f) (hx : f₁ x = f x) :
   mdifferentiable_within_at I I' f s x ↔ mdifferentiable_within_at I I' f₁ s x :=
 begin
@@ -660,7 +660,7 @@ lemma mdifferentiable_within_at.mfderiv_within_congr_mono (h : mdifferentiable_w
   mfderiv_within I I' f₁ t x = (mfderiv_within I I' f s x : _) :=
 (has_mfderiv_within_at.congr_mono h.has_mfderiv_within_at hs hx h₁).mfderiv_within hxt
 
-lemma mfderiv_within_congr_of_eventually_eq (hs : unique_mdiff_within_at I s x)
+lemma filter.eventually_eq.mfderiv_within_eq (hs : unique_mdiff_within_at I s x)
   (hL : f₁ =ᶠ[nhds_within x s] f) (hx : f₁ x = f x) :
   mfderiv_within I I' f₁ s x = (mfderiv_within I I' f s x : _) :=
 begin
@@ -668,16 +668,16 @@ begin
   { exact ((h.has_mfderiv_within_at).congr_of_eventually_eq hL hx).mfderiv_within hs },
   { unfold mfderiv_within,
     rw [dif_neg h, dif_neg],
-    rwa ← mdifferentiable_within_at_congr_of_eventually_eq I I' hL hx }
+    rwa ← hL.mdifferentiable_within_at_iff I I' hx }
 end
 
-lemma mfderiv_congr_of_eventually_eq (hL : f₁ =ᶠ[𝓝 x] f) :
+lemma filter.eventually_eq.mfderiv_eq (hL : f₁ =ᶠ[𝓝 x] f) :
   mfderiv I I' f₁ x = (mfderiv I I' f x : _) :=
 begin
   have A : f₁ x = f x := (mem_of_nhds hL : _),
   rw [← mfderiv_within_univ, ← mfderiv_within_univ],
   rw ← nhds_within_univ at hL,
-  exact mfderiv_within_congr_of_eventually_eq (unique_mdiff_within_at_univ I) hL A
+  exact hL.mfderiv_within_eq (unique_mdiff_within_at_univ I) A
 end
 
 /-! ### Composition lemmas -/
@@ -1166,7 +1166,7 @@ begin
   rw ← this,
   have : mfderiv I I (_root_.id : M → M) x = continuous_linear_map.id _ _ := mfderiv_id I,
   rw ← this,
-  apply mfderiv_congr_of_eventually_eq,
+  apply filter.eventually_eq.mfderiv_eq,
   have : e.source ∈ 𝓝 x := mem_nhds_sets e.open_source hx,
   apply filter.mem_sets_of_superset this,
   assume p hp,

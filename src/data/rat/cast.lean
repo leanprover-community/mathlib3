@@ -70,7 +70,7 @@ begin
   have := congr_arg (coe : ℤ → α) ((mk_eq b0' $ ne_of_gt $ int.coe_nat_pos.2 h).1 e),
   rw [int.cast_mul, int.cast_mul, int.cast_coe_nat] at this,
   symmetry, change (a * b⁻¹ : α) = n / d,
-  rw [eq_div_iff_mul_eq _ _ d0, mul_assoc, (d.commute_cast _).eq,
+  rw [eq_div_iff_mul_eq d0, mul_assoc, (d.commute_cast _).eq,
       ← mul_assoc, this, mul_assoc, mul_inv_cancel b0, mul_one]
 end
 
@@ -83,7 +83,7 @@ end
   suffices : (n₁ * (d₂ * (d₂⁻¹ * d₁⁻¹)) +
     n₂ * (d₁ * d₂⁻¹) * d₁⁻¹ : α) = n₁ * d₁⁻¹ + n₂ * d₂⁻¹,
   { rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, cast_mk_of_ne_zero],
-    { simpa [division_def, left_distrib, right_distrib, mul_inv', d₁0, d₂0, mul_assoc] },
+    { simpa [division_def, left_distrib, right_distrib, mul_inv_rev', d₁0, d₂0, mul_assoc] },
     all_goals {simp [d₁0, d₂0]} },
   rw [← mul_assoc (d₂:α), mul_inv_cancel d₂0, one_mul,
       (nat.cast_commute _ _).eq], simp [d₁0, mul_assoc]
@@ -106,7 +106,7 @@ by simp [sub_eq_add_neg, (cast_add_of_ne_zero m0 this)]
   rw [num_denom', num_denom', mul_def d₁0' d₂0'],
   suffices : (n₁ * ((n₂ * d₂⁻¹) * d₁⁻¹) : α) = n₁ * (d₁⁻¹ * (n₂ * d₂⁻¹)),
   { rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, cast_mk_of_ne_zero],
-    { simpa [division_def, mul_inv', d₁0, d₂0, mul_assoc] },
+    { simpa [division_def, mul_inv_rev', d₁0, d₂0, mul_assoc] },
     all_goals {simp [d₁0, d₂0]} },
   rw [(d₁.commute_cast (_:α)).inv_right'.eq]
 end
@@ -141,8 +141,8 @@ by rw [division_def, cast_mul_of_ne_zero md (mt this nn), cast_inv_of_ne_zero nn
   have d₂a : (d₂:α) ≠ 0 := nat.cast_ne_zero.2 d₂0,
   rw [num_denom', num_denom'] at h ⊢,
   rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero] at h; simp [d₁0, d₂0] at h ⊢,
-  rwa [eq_div_iff_mul_eq _ _ d₂a, division_def, mul_assoc, (d₁.cast_commute (d₂:α)).inv_left'.eq,
-    ← mul_assoc, ← division_def, eq_comm, eq_div_iff_mul_eq _ _ d₁a, eq_comm,
+  rwa [eq_div_iff_mul_eq d₂a, division_def, mul_assoc, (d₁.cast_commute (d₂:α)).inv_left'.eq,
+    ← mul_assoc, ← division_def, eq_comm, eq_div_iff_mul_eq d₁a, eq_comm,
     ← int.cast_coe_nat, ← int.cast_mul, ← int.cast_coe_nat, ← int.cast_mul,
     int.cast_inj, ← mk_eq (int.coe_nat_ne_zero.2 d₁0) (int.coe_nat_ne_zero.2 d₂0)] at h
 end
@@ -186,11 +186,11 @@ variable {α}
 @[simp] lemma coe_cast_hom [char_zero α] : ⇑(cast_hom α) = coe := rfl
 
 @[simp, norm_cast] theorem cast_inv [char_zero α] (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
-(cast_hom α).map_inv
+(cast_hom α).map_inv _
 
 @[simp, norm_cast] theorem cast_div [char_zero α] (m n) :
   ((m / n : ℚ) : α) = m / n :=
-(cast_hom α).map_div
+(cast_hom α).map_div _ _
 
 @[norm_cast] theorem cast_mk [char_zero α] (a b : ℤ) : ((a /. b) : α) = a / b :=
 by simp only [mk_eq_div, cast_div, cast_coe_int]
@@ -242,9 +242,9 @@ end rat
 open rat ring_hom
 
 lemma ring_hom.eq_rat_cast {k} [division_ring k] (f : ℚ →+* k) (r : ℚ) : f r = r :=
-calc f r = f (r.1 / r.2) : by conv_lhs { rw [← @num_denom r, mk_eq_div, int.cast_coe_nat] }
-     ... = (f.comp $ int.cast_ring_hom ℚ) r.1 / (f.comp $ nat.cast_ring_hom ℚ) r.2 : f.map_div
-     ... = r.1 / r.2     : by rw [eq_nat_cast, eq_int_cast]
+calc f r = f (r.1 / r.2) : by rw [← int.cast_coe_nat, ← mk_eq_div, num_denom]
+     ... = f r.1 / f r.2 : f.map_div _ _
+     ... = r.1 / r.2     : by rw [map_nat_cast, map_int_cast]
 
 -- This seems to be true for a `[char_p k]` too because `k'` must have the same characteristic
 -- but the proof would be much longer

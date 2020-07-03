@@ -26,7 +26,7 @@ by linarith
 lemma hahn_decomposition (hμ : μ univ < ⊤) (hν : ν univ < ⊤) :
   ∃s, is_measurable s ∧
     (∀t, is_measurable t → t ⊆ s → ν t ≤ μ t) ∧
-    (∀t, is_measurable t → t ⊆ - s → μ t ≤ ν t) :=
+    (∀t, is_measurable t → t ⊆ sᶜ → μ t ≤ ν t) :=
 begin
   let d : set α → ℝ := λs, ((μ s).to_nnreal : ℝ) - (ν s).to_nnreal,
   let c : set ℝ := d '' {s | is_measurable s },

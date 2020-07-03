@@ -260,7 +260,7 @@ begin
     have : closure (submodule.span 𝕜 (tangent_cone_at 𝕜 s x) : set E) ⊆ closure K :=
       closure_mono this,
     have : y ∈ closure K := this hy,
-    rwa closure_eq_of_is_closed (is_closed_eq f'.continuous f₁'.continuous) at this },
+    rwa (is_closed_eq f'.continuous f₁'.continuous).closure_eq at this },
   rw H.1 at C,
   ext y,
   exact C y (mem_univ _)
@@ -585,7 +585,8 @@ end continuous
 section congr
 /-! ### congr properties of the derivative -/
 
-theorem has_strict_fderiv_at_congr_of_eventually_eq (h : f₀ =ᶠ[𝓝 x] f₁) (h' : ∀ y, f₀' y = f₁' y) :
+theorem filter.eventually_eq.has_strict_fderiv_at_iff
+  (h : f₀ =ᶠ[𝓝 x] f₁) (h' : ∀ y, f₀' y = f₁' y) :
   has_strict_fderiv_at f₀ f₀' x ↔ has_strict_fderiv_at f₁ f₁' x :=
 begin
   refine is_o_congr ((h.prod_mk_nhds h).mono _) (eventually_of_forall _ $ λ _, rfl),
@@ -595,16 +596,16 @@ end
 
 theorem has_strict_fderiv_at.congr_of_eventually_eq (h : has_strict_fderiv_at f f' x)
   (h₁ : f =ᶠ[𝓝 x] f₁) : has_strict_fderiv_at f₁ f' x :=
-(has_strict_fderiv_at_congr_of_eventually_eq h₁ (λ _, rfl)).1 h
+(h₁.has_strict_fderiv_at_iff (λ _, rfl)).1 h
 
-theorem has_fderiv_at_filter_congr_of_eventually_eq
-  (hx : f₀ x = f₁ x) (h₀ : f₀ =ᶠ[L] f₁) (h₁ : ∀ x, f₀' x = f₁' x) :
+theorem filter.eventually_eq.has_fderiv_at_filter_iff
+  (h₀ : f₀ =ᶠ[L] f₁) (hx : f₀ x = f₁ x) (h₁ : ∀ x, f₀' x = f₁' x) :
   has_fderiv_at_filter f₀ f₀' x L ↔ has_fderiv_at_filter f₁ f₁' x L :=
 is_o_congr (h₀.mono $ λ y hy, by simp only [hy, h₁, hx]) (eventually_of_forall _ $ λ _, rfl)
 
 lemma has_fderiv_at_filter.congr_of_eventually_eq (h : has_fderiv_at_filter f f' x L)
   (hL : f₁ =ᶠ[L] f) (hx : f₁ x = f x) : has_fderiv_at_filter f₁ f' x L :=
-(has_fderiv_at_filter_congr_of_eventually_eq hx hL $ λ _, rfl).2 h
+(hL.has_fderiv_at_filter_iff hx $ λ _, rfl).2 h
 
 lemma has_fderiv_within_at.congr_mono (h : has_fderiv_within_at f f' s x) (ht : ∀x ∈ t, f₁ x = f x)
   (hx : f₁ x = f x) (h₁ : t ⊆ s) : has_fderiv_within_at f₁ f' t x :=
@@ -658,7 +659,7 @@ lemma differentiable_within_at.fderiv_within_congr_mono (h : differentiable_with
   fderiv_within 𝕜 f₁ t x = fderiv_within 𝕜 f s x :=
 (has_fderiv_within_at.congr_mono h.has_fderiv_within_at hs hx h₁).fderiv_within hxt
 
-lemma fderiv_within_congr_of_eventually_eq (hs : unique_diff_within_at 𝕜 s x)
+lemma filter.eventually_eq.fderiv_within_eq (hs : unique_diff_within_at 𝕜 s x)
   (hL : f₁ =ᶠ[nhds_within x s] f) (hx : f₁ x = f x) :
   fderiv_within 𝕜 f₁ s x = fderiv_within 𝕜 f s x :=
 if h : differentiable_within_at 𝕜 f s x
@@ -673,18 +674,18 @@ lemma fderiv_within_congr (hs : unique_diff_within_at 𝕜 s x)
   (hL : ∀y∈s, f₁ y = f y) (hx : f₁ x = f x) :
   fderiv_within 𝕜 f₁ s x = fderiv_within 𝕜 f s x :=
 begin
-  apply fderiv_within_congr_of_eventually_eq hs _ hx,
+  apply filter.eventually_eq.fderiv_within_eq hs _ hx,
   apply mem_sets_of_superset self_mem_nhds_within,
   exact hL
 end
 
-lemma fderiv_congr_of_eventually_eq (hL : f₁ =ᶠ[𝓝 x] f) :
+lemma filter.eventually_eq.fderiv_eq (hL : f₁ =ᶠ[𝓝 x] f) :
   fderiv 𝕜 f₁ x = fderiv 𝕜 f x :=
 begin
   have A : f₁ x = f x := (mem_of_nhds hL : _),
   rw [← fderiv_within_univ, ← fderiv_within_univ],
   rw ← nhds_within_univ at hL,
-  exact fderiv_within_congr_of_eventually_eq unique_diff_within_at_univ hL A
+  exact hL.fderiv_within_eq unique_diff_within_at_univ A
 end
 
 end congr

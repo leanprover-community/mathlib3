@@ -198,7 +198,6 @@ instance : ordered_cancel_comm_monoid ℕ+ :=
   .. (pnat.decidable_linear_order),
   .. (pnat.comm_monoid)}
 
-
 instance : distrib ℕ+ :=
 { left_distrib  := λ a b c, eq (mul_add a b c),
   right_distrib := λ a b c, eq (add_mul a b c),

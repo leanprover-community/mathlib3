@@ -5,6 +5,7 @@ Authors: Kenny Lau
 -/
 import data.equiv.basic
 import control.applicative
+import control.traversable.basic
 
 /-!
 # Free constructions

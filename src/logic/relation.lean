@@ -5,7 +5,11 @@ Authors: Johannes Hölzl
 
 Transitive reflexive as well as reflexive closure of relations.
 -/
-import tactic.basic
+import tactic.mk_iff_of_inductive_prop
+import tactic.rcases
+import tactic.simpa
+import logic.relator
+
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 namespace relation

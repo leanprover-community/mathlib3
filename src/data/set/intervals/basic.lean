@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov
 -/
 import tactic.tauto
+import tactic.localized
 import algebra.order_functions
 import algebra.ordered_field
 

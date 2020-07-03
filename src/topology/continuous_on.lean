@@ -30,6 +30,26 @@ variables [topological_space α]
 intersection of `s` and a neighborhood of `a`. -/
 def nhds_within (a : α) (s : set α) : filter α := 𝓝 a ⊓ 𝓟 s
 
+@[simp] lemma nhds_bind_nhds_within {a : α} {s : set α} :
+  (𝓝 a).bind (λ x, nhds_within x s) = nhds_within a s :=
+bind_inf_principal.trans $ congr_arg2 _ nhds_bind_nhds rfl
+
+@[simp] lemma eventually_nhds_nhds_within {a : α} {s : set α} {p : α → Prop} :
+  (∀ᶠ y in 𝓝 a, ∀ᶠ x in nhds_within y s, p x) ↔ ∀ᶠ x in nhds_within a s, p x :=
+filter.ext_iff.1 nhds_bind_nhds_within {x | p x}
+
+lemma eventually_nhds_within_iff {a : α} {s : set α} {p : α → Prop} :
+  (∀ᶠ x in nhds_within a s, p x) ↔ ∀ᶠ x in 𝓝 a, x ∈ s → p x :=
+mem_inf_principal _ _ _
+
+@[simp] lemma eventually_nhds_within_nhds_within {a : α} {s : set α} {p : α → Prop} :
+  (∀ᶠ y in nhds_within a s, ∀ᶠ x in nhds_within y s, p x) ↔ ∀ᶠ x in nhds_within a s, p x :=
+begin
+  refine ⟨λ h, _, λ h, (eventually_nhds_nhds_within.2 h).filter_mono inf_le_left⟩,
+  simp only [eventually_nhds_within_iff] at h ⊢,
+  exact h.mono (λ x hx hxs, (hx hxs).self_of_nhds hxs)
+end
+
 theorem nhds_within_eq (a : α) (s : set α) :
   nhds_within a s = ⨅ t ∈ {t : set α | a ∈ t ∧ is_open t}, 𝓟 (t ∩ s) :=
 have set.univ ∈ {s : set α | a ∈ s ∧ is_open s}, from ⟨set.mem_univ _, is_open_univ⟩,
@@ -178,11 +198,11 @@ tendsto_le_right (nhds_within_mono a hst) h
 theorem tendsto_nhds_within_of_tendsto_nhds {f : α → β} {a : α}
     {s : set α} {l : filter β} (h : tendsto f (𝓝 a) l) :
   tendsto f (nhds_within a s) l :=
-by rw [←nhds_within_univ] at h; exact tendsto_nhds_within_mono_left (set.subset_univ _) h
+tendsto_le_left inf_le_left h
 
 theorem principal_subtype {α : Type*} (s : set α) (t : set {x // x ∈ s}) :
   𝓟 t = comap coe (𝓟 ((coe : s → α) '' t)) :=
-by rw comap_principal; rw set.preimage_image_eq; apply subtype.coe_injective
+by rw [comap_principal, set.preimage_image_eq _ subtype.coe_injective]
 
 lemma mem_closure_iff_nhds_within_ne_bot {s : set α} {x : α} :
   x ∈ closure s ↔ nhds_within x s ≠ ⊥ :=
@@ -222,7 +242,7 @@ end
 
 theorem tendsto_nhds_within_iff_subtype {s : set α} {a : α} (h : a ∈ s) (f : α → β) (l : filter β) :
   tendsto f (nhds_within a s) l ↔ tendsto (s.restrict f) (𝓝 ⟨a, h⟩) l :=
-by { simp only [tendsto, nhds_within_eq_map_subtype_coe h, filter.map_map], refl }
+by simp only [tendsto, nhds_within_eq_map_subtype_coe h, filter.map_map, restrict]
 
 variables [topological_space β] [topological_space γ] [topological_space δ]
 

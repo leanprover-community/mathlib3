@@ -1590,14 +1590,14 @@ times_cont_diff_on_univ.1 $ times_cont_diff_on.comp (times_cont_diff_on_univ.2 h
 
 /-- The product map of two `C^n` functions is `C^n`. -/
 lemma times_cont_diff_on.map_prod {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
-{F' : Type*} [normed_group F'] [normed_space 𝕜 F']
-{s : set E} {t : set E'} {n : with_top ℕ} {f : E → F} {g : E' → F'}
+  {F' : Type*} [normed_group F'] [normed_space 𝕜 F']
+  {s : set E} {t : set E'} {n : with_top ℕ} {f : E → F} {g : E' → F'}
   (hf : times_cont_diff_on 𝕜 n f s) (hg : times_cont_diff_on 𝕜 n g t) :
   times_cont_diff_on 𝕜 n (prod.map f g) (set.prod s t) :=
 begin
-    have hs : s.prod t ⊆ (prod.fst) ⁻¹' s := by { rintros x ⟨h_x_1, h_x_2⟩, exact h_x_1, },
-    have ht : s.prod t ⊆ (prod.snd) ⁻¹' t := by { rintros x ⟨h_x_1, h_x_2⟩, exact h_x_2, },
-    exact (hf.comp (times_cont_diff_on_fst) hs).prod (hg.comp (times_cont_diff_on_snd) ht),
+  have hs : s.prod t ⊆ (prod.fst) ⁻¹' s := by { rintros x ⟨h_x_1, h_x_2⟩, exact h_x_1, },
+  have ht : s.prod t ⊆ (prod.snd) ⁻¹' t := by { rintros x ⟨h_x_1, h_x_2⟩, exact h_x_2, },
+  exact (hf.comp (times_cont_diff_on_fst) hs).prod (hg.comp (times_cont_diff_on_snd) ht),
 end
 
 /-- The bundled derivative of a `C^{n+1}` function is `C^n`. -/

@@ -292,11 +292,11 @@ end
 
 @[simp, mfld_simps] lemma model_with_corners_prod_coe
   (I : model_with_corners 𝕜 E H) (I' : model_with_corners 𝕜 E' H') :
-  (I.prod I' : _ × _ → _ × _) = (prod.map I I') := rfl
+  (I.prod I' : _ × _ → _ × _) = prod.map I I' := rfl
 
 @[simp, mfld_simps] lemma model_with_corners_prod_coe_symm
   (I : model_with_corners 𝕜 E H) (I' : model_with_corners 𝕜 E' H') :
-  ((I.prod I').symm : _ × _ → _ × _) = (prod.map I.symm (I').symm) := rfl
+  ((I.prod I').symm : _ × _ → _ × _) = prod.map I.symm I'.symm := rfl
 
 end model_with_corners_prod
 
@@ -457,7 +457,7 @@ lemma times_cont_diff_groupoid_prod
 begin
   cases he with he he_symm,
   cases he' with he' he'_symm,
-  simp only [] at he he_symm he' he'_symm,
+  simp only at he he_symm he' he'_symm,
   split;
   simp only [local_equiv.prod_source, local_homeomorph.prod_to_local_equiv],
   { have h3 := times_cont_diff_on.map_prod he he',

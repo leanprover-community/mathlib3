@@ -452,7 +452,7 @@ instance prod_charted_space (H : Type*) [topological_space H]
   mem_chart_source :=
   begin
     intro x,
-    simp only [] with mfld_simps,
+    simp only with mfld_simps,
   end,
   chart_mem_atlas  :=
   begin

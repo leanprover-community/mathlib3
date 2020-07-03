@@ -846,7 +846,7 @@ tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds g0 hf hft
 and  `tendsto_of_tendsto_of_tendsto_of_le_of_le'` for the general case. -/
 lemma squeeze_zero {α} {f g : α → ℝ} {t₀ : filter α} (hf : ∀t, 0 ≤ f t) (hft : ∀t, f t ≤ g t)
   (g0 : tendsto g t₀ (𝓝 0)) : tendsto f t₀ (𝓝 0) :=
-squeeze_zero' (eventually_of_forall _ hf) (eventually_of_forall _ hft) g0
+squeeze_zero' (eventually_of_forall hf) (eventually_of_forall hft) g0
 
 theorem metric.uniformity_eq_comap_nhds_zero :
   𝓤 α = comap (λp:α×α, dist p.1 p.2) (𝓝 (0 : ℝ)) :=

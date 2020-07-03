@@ -41,29 +41,31 @@ def one_sub (t : α) (h : ∥t∥ < 1) : units α :=
 
 /-- In a complete normed ring, a perturbation of a unit `x` by an element `t` of distance less than
 `∥x⁻¹∥⁻¹` from `x` is a unit.  Here we construct its `units` structure. -/
-def add [nonzero α] (x : units α) (t : α) (h : ∥t∥ < ∥((x⁻¹:units α):α)∥⁻¹) : units α :=
+def add (x : units α) (t : α) (h : ∥t∥ < ∥((x⁻¹:units α):α)∥⁻¹) : units α :=
 x * (units.one_sub (- (((x⁻¹:units α):α) * t))
 begin
-  have hpos : 0 < ∥((x⁻¹:units α):α)∥ := units.norm_pos x⁻¹,
-  calc ∥-(((x⁻¹:units α):α) * t)∥
-      = ∥((x⁻¹:units α):α) * t∥                    : by { rw norm_neg }
-  ... ≤ ∥((x⁻¹:units α):α)∥ * ∥t∥                   : norm_mul_le x.inv _
-  ... < ∥((x⁻¹:units α):α)∥ * ∥((x⁻¹:units α):α)∥⁻¹ : by nlinarith only [h, hpos]
-  ... = 1                                         : mul_inv_cancel (ne_of_gt hpos),
+  rcases subsingleton_or_nonzero α with _i|_i, resetI,
+  { rw subsingleton.elim ((x⁻¹:units α):α) 0,
+    have : (0:ℝ) < 1 := by norm_num,
+    simpa, },
+  { have hpos : 0 < ∥((x⁻¹:units α):α)∥ := @units.norm_pos _ _ _i x⁻¹,
+    calc ∥-(((x⁻¹:units α):α) * t)∥
+        = ∥((x⁻¹:units α):α) * t∥                    : by { rw norm_neg }
+    ... ≤ ∥((x⁻¹:units α):α)∥ * ∥t∥                   : norm_mul_le x.inv _
+    ... < ∥((x⁻¹:units α):α)∥ * ∥((x⁻¹:units α):α)∥⁻¹ : by nlinarith only [h, hpos]
+    ... = 1                                         : mul_inv_cancel (ne_of_gt hpos) },
 end )
 
-@[simp] lemma add_coe [nonzero α] (x : units α) (t : α) (h : ∥t∥ < ∥((x⁻¹:units α):α)∥⁻¹) :
+@[simp] lemma add_coe (x : units α) (t : α) (h : ∥t∥ < ∥((x⁻¹:units α):α)∥⁻¹) :
   ((x.add t h) : α) = x + t := by { unfold units.add, simp [mul_add] }
 
 /-- In a complete normed ring, an element `y` of distance less than `∥x⁻¹∥⁻¹` from `x` is a unit.
 Here we construct its `units` structure. -/
-def unit_of_nearby [nonzero α] (x : units α) (y : α)
-  (h : ∥y - x∥ < ∥((x⁻¹:units α):α)∥⁻¹) : units α :=
+def unit_of_nearby (x : units α) (y : α) (h : ∥y - x∥ < ∥((x⁻¹:units α):α)∥⁻¹) : units α :=
 x.add ((y:α) - x) h
 
-@[simp] lemma unit_of_nearby_coe [nonzero α] (x : units α) (y : α)
-  (h : ∥y - x∥ < ∥((x⁻¹:units α):α)∥⁻¹) : ((x.unit_of_nearby y h) : α) = y :=
-by { unfold units.unit_of_nearby, simp }
+@[simp] lemma unit_of_nearby_coe (x : units α) (y : α) (h : ∥y - x∥ < ∥((x⁻¹:units α):α)∥⁻¹) :
+  ((x.unit_of_nearby y h) : α) = y := by { unfold units.unit_of_nearby, simp }
 
 /-- The group of units of a complete normed ring is an open subset of the ring. -/
 lemma is_open : is_open {x : α | is_unit x} :=
@@ -75,7 +77,7 @@ begin
     refine ⟨∥((x⁻¹:units α):α)∥⁻¹, inv_pos.mpr (@units.norm_pos α _ _i x⁻¹), _⟩,
     intros y hy,
     rw [metric.mem_ball, dist_eq_norm, ←h] at hy,
-    refine ⟨@unit_of_nearby _ _ _ _i x y hy, _⟩,
+    use x.unit_of_nearby y hy,
     simp }
 end
 

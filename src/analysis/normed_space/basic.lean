@@ -357,7 +357,7 @@ lemma squeeze_zero_norm' {f : γ → α} {g : γ → ℝ} {t₀ : filter γ}
   (h : ∀ᶠ n in t₀, ∥f n∥ ≤ g n)
   (h' : tendsto g t₀ (𝓝 0)) : tendsto f t₀ (𝓝 0) :=
 tendsto_zero_iff_norm_tendsto_zero.mpr
-  (squeeze_zero' (t₀.eventually_of_forall (λ n, norm_nonneg _)) h h')
+  (squeeze_zero' (eventually_of_forall (λ n, norm_nonneg _)) h h')
 
 /-- Special case of the sandwich theorem: if the norm of `f` is bounded by a real function `g` which
 tends to `0`, then `f` tends to `0`.  -/
@@ -365,7 +365,7 @@ lemma squeeze_zero_norm {f : γ → α} {g : γ → ℝ} {t₀ : filter γ}
   (h : ∀ (n:γ), ∥f n∥ ≤ g n)
   (h' : tendsto g t₀ (𝓝 0)) :
   tendsto f t₀ (𝓝 0) :=
-squeeze_zero_norm' (eventually_of_forall _ h) h'
+squeeze_zero_norm' (eventually_of_forall h) h'
 
 lemma lim_norm (x : α) : (λg:α, ∥g - x∥) →_{x} 0 :=
 tendsto_iff_norm_tendsto_zero.1 (continuous_iff_continuous_at.1 continuous_id x)

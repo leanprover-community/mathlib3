@@ -232,7 +232,10 @@ variables [ordered_cancel_add_comm_monoid β] (l : filter α) {f g : α → β}
 
 lemma tendsto_at_top_add_nonneg_left' (hf : {x | 0 ≤ f x} ∈ l) (hg : tendsto g l at_top) :
   tendsto (λ x, f x + g x) l at_top :=
-tendsto_at_top_mono' l (monotone_mem_sets (λ x, le_add_of_nonneg_left) hf) hg
+begin
+  refine tendsto_at_top_mono' l (monotone_mem_sets (λ x h, _) hf) hg,
+  exact le_add_of_nonneg_left h
+end
 
 lemma tendsto_at_top_add_nonneg_left (hf : ∀ x, 0 ≤ f x) (hg : tendsto g l at_top) :
   tendsto (λ x, f x + g x) l at_top :=

@@ -378,7 +378,7 @@ eq_of_prod_eq_prod $ eq_of_factors_eq_factors $
   by rw [prod_add, factors_prod, factors_prod, factors_prod]
 
 theorem factors_mono : ∀{a b : associates α}, a ≤ b → a.factors ≤ b.factors
-| s t ⟨d, rfl⟩ := by rw [factors_mul] ; exact le_add_of_nonneg_right' bot_le
+| s t ⟨d, rfl⟩ := by rw [factors_mul] ; exact le_add_of_nonneg_right bot_le
 
 theorem factors_le {a b : associates α} : a.factors ≤ b.factors ↔ a ≤ b :=
 iff.intro

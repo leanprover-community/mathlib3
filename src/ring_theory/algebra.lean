@@ -627,9 +627,9 @@ instance coe_to_submodule : has_coe (subalgebra R A) (submodule R A) :=
 instance to_submodule.is_subring : is_subring ((S : submodule R A) : set A) := S.2
 
 instance : partial_order (subalgebra R A) :=
-{ le := λ S T, (S : set A) ≤ (T : set A),
-  le_refl := λ _, le_refl _,
-  le_trans := λ _ _ _, le_trans,
+{ le := λ S T, (S : set A) ⊆ (T : set A),
+  le_refl := λ S, set.subset.refl S,
+  le_trans := λ _ _ _, set.subset.trans,
   le_antisymm := λ S T hst hts, ext $ λ x, ⟨@hst x, @hts x⟩ }
 
 /-- Reinterpret an `S`-subalgebra as an `R`-subalgebra in `comap R S A`. -/

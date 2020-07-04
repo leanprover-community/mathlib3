@@ -280,7 +280,7 @@ begin
     (by rw [@multiplicity.mul _ _ _ _ (_ * _) _ (nat.prime_iff_prime_int.1 p_prime), add_comm])
     (by rw [mul_assoc, @multiplicity.mul _ _ _ _ (q.denom : ℤ)
         (_ * _) (nat.prime_iff_prime_int.1 p_prime)];
-      exact add_le_add_left' h))
+      exact add_le_add_left h _))
     ... ≤ _ : min_le_multiplicity_add
 end
 

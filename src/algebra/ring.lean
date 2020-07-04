@@ -753,6 +753,31 @@ end comm_semiring
 
 end units
 
+namespace is_unit
+
+section comm_semiring
+variables [comm_semiring R]
+
+lemma mul_right_dvd_of_dvd {a b c : R} (hb : is_unit b) (h : a ∣ c) : a * b ∣ c :=
+begin
+  rcases hb with ⟨b, rfl⟩,
+  rcases h with ⟨c', rfl⟩,
+  use (b⁻¹ : units R) * c',
+  rw [mul_assoc, units.mul_inv_cancel_left]
+end
+
+lemma mul_left_dvd_of_dvd {a b c : R} (hb : is_unit b) (h : a ∣ c) : b * a ∣ c :=
+begin
+  rcases hb with ⟨b, rfl⟩,
+  rcases h with ⟨c', rfl⟩,
+  use (b⁻¹ : units R) * c',
+  rw [mul_comm (b : R) a, mul_assoc, units.mul_inv_cancel_left]
+end
+
+end comm_semiring
+
+end is_unit
+
 /-- A predicate to express that a ring is an integral domain.
 
 This is mainly useful because such a predicate does not contain data,

@@ -533,8 +533,8 @@ begin
       end
     ... ≤ abs x ^ (i+1) / (0 + 1) :
       begin
-        apply_rules [div_le_div_of_le_left, pow_nonneg, abs_nonneg,
-                     add_le_add_right (nat.cast_nonneg i)],
+        apply_rules [div_le_div_of_le_left, pow_nonneg, abs_nonneg, add_le_add_right,
+          i.cast_nonneg],
         norm_num,
       end
     ... ≤ abs x ^ i :

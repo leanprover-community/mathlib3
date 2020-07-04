@@ -76,7 +76,7 @@ definition GH_space : Type := quotient (isometry_rel.setoid)
 definition to_GH_space (α : Type u) [metric_space α] [compact_space α] [nonempty α] : GH_space :=
   ⟦nonempty_compacts.Kuratowski_embedding α⟧
 
-instance : inhabited GH_space := ⟨quot.mk _ ⟨{0}, by simp⟩⟩
+instance : inhabited GH_space := ⟨quot.mk _ ⟨{0}, by simp [-singleton_zero]⟩⟩
 
 /-- A metric space representative of any abstract point in `GH_space` -/
 definition GH_space.rep (p : GH_space) : Type := (quot.out p).val

@@ -62,11 +62,15 @@ by { intro a, cases a, exact a, apply rel.swap }
 @[trans] lemma rel.trans {x y z : α × α} : rel α x y → rel α y z → rel α x z :=
 by { intros a b, cases_matching* rel _ _ _; apply rel.refl <|> apply rel.swap }
 
+lemma rel.is_equivalence : equivalence (rel α) :=
+begin
+  split, { intros x, cases x, refl },
+  split, { apply rel.symm },
+  { intros x y z a b, apply rel.trans a b },
+end
+
 instance rel.setoid (α : Type*) : setoid (α × α) :=
-by { use rel α,
-     split, { intros x, cases x, refl },
-     split, { apply rel.symm },
-     { intros x y z a b, apply rel.trans a b } }
+⟨rel α, rel.is_equivalence⟩
 
 end sym2
 
@@ -180,9 +184,11 @@ by rw [←congr_right a, ←vmem_other_spec h, mem_other_spec]
 
 lemma eq_iff {x y z w : α} :
   ⟦(x, y)⟧ = ⟦(z, w)⟧ ↔ (x = z ∧ y = w) ∨ (x = w ∧ y = z) :=
-by { split; intro h,
-     { rw quotient.eq at h, cases h; tidy, },
-     { cases h; rw [h.1, h.2], rw eq_swap, } }
+begin
+  split; intro h,
+  { rw quotient.eq at h, cases h; tidy, },
+  { cases h; rw [h.1, h.2], rw eq_swap, }
+end
 
 lemma mem_iff {a b c : α} : a ∈ ⟦(b, c)⟧ ↔ a = b ∨ a = c :=
 begin
@@ -236,13 +242,14 @@ Symmetric relations define a set on `sym2 α` by taking all those pairs
 of elements that are related.
 -/
 def from_rel (sym : symmetric r) : set (sym2 α) :=
-(λ z, quotient.rec_on z (λ z, r z.1 z.2) (begin
+λ z, quotient.rec_on z (λ z, r z.1 z.2)
+begin
   intros z w p,
   cases p,
   simp,
   simp,
   split; apply sym,
-end))
+end
 
 @[simp]
 lemma from_rel_proj_prop {sym : symmetric r} {z : α × α} : ⟦z⟧ ∈ from_rel sym ↔ r z.1 z.2 :=
@@ -327,8 +334,7 @@ def sym2_equiv_sym' {α : Type*} : equiv (sym2 α) (sym' α 2) :=
     cases x with x2 x, swap, simp at hx, exfalso, linarith [hx],
     refl,
     refl,
-  end
-}
+  end }
 
 /--
 The symmetric square is equivalent to the second symmetric power.

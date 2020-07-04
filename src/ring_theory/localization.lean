@@ -130,8 +130,8 @@ instances on `S` induced by `f` can 'know` the map needed to induce the instance
 @[nolint unused_arguments has_inhabited_instance]
 def codomain (f : localization_map M S) := S
 
-instance : comm_ring f.codomain := _inst_2
-instance {K : Type*} [field K] (f : localization_map M K) : field f.codomain := _inst_4
+instance : comm_ring f.codomain := by assumption
+instance {K : Type*} [field K] (f : localization_map M K) : field f.codomain := by assumption
 
 /-- Short for `to_ring_hom`; used for applying a localization map as a function. -/
 abbreviation to_map := f.to_ring_hom

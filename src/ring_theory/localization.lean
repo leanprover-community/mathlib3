@@ -127,7 +127,11 @@ variables (f : localization_map M S)
 
 /-- We define a copy of the localization map `f`'s codomain `S` carrying the data of `f` so that
 instances on `S` induced by `f` can 'know` the map needed to induce the instance. -/
-@[reducible, nolint unused_arguments] def codomain (f : localization_map M S) := S
+@[nolint unused_arguments has_inhabited_instance]
+def codomain (f : localization_map M S) := S
+
+instance : comm_ring f.codomain := _inst_2
+instance {K : Type*} [field K] (f : localization_map M K) : field f.codomain := _inst_4
 
 /-- Short for `to_ring_hom`; used for applying a localization map as a function. -/
 abbreviation to_map := f.to_ring_hom
@@ -625,7 +629,7 @@ include hp
 namespace ideal
 
 /-- The complement of a prime ideal `I ⊆ R` is a submonoid of `R`. -/
-def prime_submonoid :
+def prime_compl :
   submonoid R :=
 { carrier := (Iᶜ : set R),
   one_mem' := by convert I.ne_top_iff_one.1 hp.1; refl,
@@ -639,14 +643,14 @@ variables (S)
 /-- A localization map from `R` to `S` where the submonoid is the complement of a prime
 ideal of `R`. -/
 @[reducible] def at_prime :=
-localization_map I.prime_submonoid S
+localization_map I.prime_compl S
 
 end localization_map
 namespace localization
 
 /-- The localization of `R` at the complement of a prime ideal, as a quotient type. -/
 @[reducible] def at_prime :=
-localization I.prime_submonoid
+localization I.prime_compl
 
 end localization
 namespace localization_map
@@ -674,7 +678,7 @@ local_of_nonunits_ideal
     rcases f.mk'_surjective y with ⟨ry, sy, hry⟩,
     rcases f.mk'_surjective z with ⟨rz, sz, hrz⟩,
     rw [←hrx, ←hry, ←hrz, ←f.mk'_add, ←f.mk'_mul,
-        ←f.mk'_self I.prime_submonoid.one_mem] at hxyz,
+        ←f.mk'_self I.prime_compl.one_mem] at hxyz,
     rw ←hrx at hx, rw ←hry at hy,
     cases f.eq.1 hxyz with t ht,
     simp only [mul_one, one_mul, submonoid.coe_mul, subtype.coe_mk] at ht,
@@ -689,8 +693,8 @@ end localization_map
 namespace localization
 
 /-- The localization of `R` at the complement of a prime ideal is a local ring. -/
-instance at_prime.local_ring : local_ring (localization I.prime_submonoid) :=
-localization_map.at_prime.local_ring (of I.prime_submonoid)
+instance at_prime.local_ring : local_ring (localization I.prime_compl) :=
+localization_map.at_prime.local_ring (of I.prime_compl)
 
 end localization
 end at_prime

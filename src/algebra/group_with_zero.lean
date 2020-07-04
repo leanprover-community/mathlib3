@@ -242,7 +242,10 @@ end is_unit
 lemma eq_zero_of_zero_eq_one (h : (0 : M₀) = 1) (a : M₀) : a = 0 :=
 by rw [← mul_one a, ← h, mul_zero]
 
-/-- In a monoid with zero, if zero equals one, then zero is the unique element. -/
+/-- In a monoid with zero, if zero equals one, then zero is the unique element.
+
+Somewhat arbitrarily, we define the default element to be `0`.
+All other elements will be provably equal to it, but not necessarily definitionally equal. -/
 def unique_of_zero_eq_one (h : (0 : M₀) = 1) : unique M₀ :=
 { default := 0, uniq := eq_zero_of_zero_eq_one h }
 
@@ -265,6 +268,15 @@ variable (M₀)
 /-- A monoid with zero is either nonzero, or has a unique element. -/
 noncomputable def nonzero_psum_unique : psum (nonzero M₀) (unique M₀) :=
 if h : (0:M₀) = 1 then psum.inr (unique_of_zero_eq_one h) else psum.inl ⟨h⟩
+
+/-- A monoid with zero is either a subsingleton or nonzero. -/
+lemma subsingleton_or_nonzero :  subsingleton M₀ ∨ nonzero M₀ :=
+begin
+  classical,
+  by_cases h : (0 : M₀) = 1,
+  { left, exact subsingleton_of_zero_eq_one h },
+  { right, exact ⟨h⟩ }
+end
 
 /-- In a monoid with zero, either zero and one are nonequal, or zero is the only element. -/
 lemma zero_ne_one_or_forall_eq_0 : (0 : M₀) ≠ 1 ∨ (∀a:M₀, a = 0) :=

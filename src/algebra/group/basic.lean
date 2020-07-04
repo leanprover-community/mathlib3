@@ -437,3 +437,15 @@ lemma sub_eq_sub_iff_sub_eq_sub : a - b = c - d ↔ a - c = b - d :=
 by simp [-sub_eq_add_neg, sub_eq_sub_iff_add_eq_add, add_comm]
 
 end add_comm_group
+
+@[to_additive]
+lemma function.injective.map_eq_one {M N} [has_one M] [has_one N] {f : M → N}
+  (hf : function.injective f) (one : f 1 = 1) {x : M} :
+  f x = 1 ↔ x = 1 :=
+one ▸ hf.eq_iff
+
+@[to_additive]
+lemma function.injective.map_ne_one {M N} [has_one M] [has_one N] {f : M → N}
+  (hf : function.injective f) (one : f 1 = 1) {x : M} :
+  f x ≠ 1 ↔ x ≠ 1 :=
+not_congr (hf.map_eq_one one)

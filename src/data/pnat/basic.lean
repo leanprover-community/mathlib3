@@ -323,7 +323,7 @@ theorem dvd_iff'' {k n : ℕ+} : k ∣ n ↔ ∃ m, k * m = n :=
 theorem dvd_intro {k n : ℕ+} (m : ℕ+) (h : k * m = n) : k ∣ n :=
  dvd_iff''.mpr ⟨m, h⟩
 
-@[simp, refl]
+@[simp]
 theorem dvd_refl (m : ℕ+) : m ∣ m := dvd_intro 1 (mul_one m)
 
 theorem dvd_antisymm {m n : ℕ+} : m ∣ n → n ∣ m → m = n :=

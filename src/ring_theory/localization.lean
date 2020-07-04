@@ -627,8 +627,8 @@ namespace ideal
 /-- The complement of a prime ideal `I ⊆ R` is a submonoid of `R`. -/
 def prime_submonoid :
   submonoid R :=
-{ carrier := (-I : set R),
-  one_mem' := I.ne_top_iff_one.1 hp.1,
+{ carrier := (Iᶜ : set R),
+  one_mem' := by convert I.ne_top_iff_one.1 hp.1; refl,
   mul_mem' := λ x y hnx hny hxy, or.cases_on (hp.2 hxy) hnx hny }
 
 end ideal

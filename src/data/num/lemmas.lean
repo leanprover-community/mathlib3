@@ -807,7 +807,7 @@ theorem cast_sub' [add_group α] [has_one α] : ∀ m n : pos_num, (sub' m n : �
 | a        1        := by rw [sub'_one, num.cast_to_znum,
                               ← num.cast_to_nat, pred'_to_nat, ← nat.sub_one];
                           simp [pos_num.cast_pos]
-| 1        b        := by rw [one_sub', num.cast_to_znum_neg, ← neg_sub, neg_inj',
+| 1        b        := by rw [one_sub', num.cast_to_znum_neg, ← neg_sub, neg_inj,
                               ← num.cast_to_nat, pred'_to_nat, ← nat.sub_one];
                           simp [pos_num.cast_pos]
 | (bit0 a) (bit0 b) := begin

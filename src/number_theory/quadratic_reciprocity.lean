@@ -230,7 +230,7 @@ private lemma gauss_lemma_aux₂ (p : ℕ) [hp : fact p.prime] [hp2 : fact (p % 
   {a : ℕ} (hap : (a : zmod p) ≠ 0) :
   (a^(p / 2) : zmod p) = (-1)^((Ico 1 (p / 2).succ).filter
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card :=
-(domain.mul_left_inj
+(mul_left_inj'
     (show ((p / 2).fact : zmod p) ≠ 0,
       by rw [ne.def, char_p.cast_eq_zero_iff (zmod p) p, hp.dvd_fact, not_le];
           exact nat.div_lt_self hp.pos dec_trivial)).1 $

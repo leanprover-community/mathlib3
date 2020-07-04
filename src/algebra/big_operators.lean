@@ -4,13 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
+import algebra.opposites
 import data.finset.intervals
 import data.finset.fold
 import data.finset.powerset
 import data.finset.pi
-import data.nat.enat
 import data.equiv.mul_add
 import tactic.abel
+import tactic.simp_rw
+import data.nat.enat
 
 /-!
 # Big operators
@@ -675,12 +677,21 @@ lemma sum_range_sub {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
   ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
 by { apply sum_range_induction; abel, simp }
 
+lemma sum_range_sub' {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
+  ∑ i in range n, (f i - f (i+1)) = f 0 - f n :=
+by { apply sum_range_induction; abel, simp }
 
 /-- A telescoping product along `{0, ..., n-1}` of a commutative group valued function
 reduces to the ratio of the last and first factors.-/
+@[to_additive]
 lemma prod_range_div {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
   ∏ i in range n, (f (i+1) * (f i)⁻¹ ) = f n * (f 0)⁻¹ :=
 by apply @sum_range_sub (additive M)
+
+@[to_additive]
+lemma prod_range_div' {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
+  ∏ i in range n, (f i * (f (i+1))⁻¹) = (f 0) * (f n)⁻¹ :=
+by apply @sum_range_sub' (additive M)
 
 /-- A telescoping sum along `{0, ..., n-1}` of an `ℕ`-valued function reduces to the difference of
 the last and first terms when the function we are summing is monotone. -/
@@ -1235,7 +1246,7 @@ lemma sum_le_sum_of_subset_of_nonneg
   (h : s₁ ⊆ s₂) (hf : ∀x∈s₂, x ∉ s₁ → 0 ≤ f x) : (∑ x in s₁, f x) ≤ (∑ x in s₂, f x) :=
 by classical;
 calc (∑ x in s₁, f x) ≤ (∑ x in s₂ \ s₁, f x) + (∑ x in s₁, f x) :
-    le_add_of_nonneg_left' $ sum_nonneg $ by simpa only [mem_sdiff, and_imp]
+    le_add_of_nonneg_left $ sum_nonneg $ by simpa only [mem_sdiff, and_imp]
   ... = ∑ x in s₂ \ s₁ ∪ s₁, f x : (sum_union sdiff_disjoint).symm
   ... = (∑ x in s₂, f x)         : by rw [sdiff_union_of_subset h]
 
@@ -1526,5 +1537,16 @@ begin
   simp only [← lt_top_iff_ne_top],
   exact sum_lt_top_iff
 end
+
+open opposite
+
+/-- Moving to the opposite additive commutative monoid commutes with summing. -/
+@[simp] lemma op_sum [add_comm_monoid β] {s : finset α} (f : α → β) :
+  op (∑ x in s, f x) = ∑ x in s, op (f x) :=
+(@op_add_hom β _).map_sum _ _
+
+@[simp] lemma unop_sum [add_comm_monoid β] {s : finset α} (f : α → βᵒᵖ) :
+  unop (∑ x in s, f x) = ∑ x in s, unop (f x) :=
+(@unop_add_hom β _).map_sum _ _
 
 end with_top

@@ -163,4 +163,16 @@ variable {α}
 @[simp] lemma op_inv [has_inv α] (x : α) : op (x⁻¹) = (op x)⁻¹ := rfl
 @[simp] lemma unop_inv [has_inv α] (x : αᵒᵖ) : unop (x⁻¹) = (unop x)⁻¹ := rfl
 
+@[simp] lemma op_sub [add_group α] (x y : α) : op (x - y) = op x - op y := rfl
+@[simp] lemma unop_sub [add_group α] (x y : αᵒᵖ) : unop (x - y) = unop x - unop y := rfl
+
+/-- The function `op` is a homomorphism of additive commutative monoids. -/
+def op_add_hom [add_comm_monoid α] : α →+ αᵒᵖ := ⟨op, op_zero α, op_add⟩
+
+/-- The function `unop` is a homomorphism of additive commutative monoids. -/
+def unop_add_hom [add_comm_monoid α] : αᵒᵖ →+ α := ⟨unop, unop_zero α, unop_add⟩
+
+@[simp] lemma coe_op_add_hom [add_comm_monoid α] : (op_add_hom : α → αᵒᵖ) = op := rfl
+@[simp] lemma coe_unop_add_hom [add_comm_monoid α] : (unop_add_hom : αᵒᵖ → α) = unop := rfl
+
 end opposite

@@ -927,6 +927,11 @@ theorem mk_union_add_mk_inter {α : Type u} {S T : set α} :
   mk (S ∪ T : set α) + mk (S ∩ T : set α) = mk S + mk T :=
 quot.sound ⟨equiv.set.union_sum_inter S T⟩
 
+/-- The cardinality of a union is at most the sum of the cardinalities
+of the two sets. -/
+lemma mk_union_le {α : Type u} (S T : set α) : mk (S ∪ T : set α) ≤ mk S + mk T :=
+@mk_union_add_mk_inter α S T ▸ le_add_right (mk (S ∪ T : set α)) (mk (S ∩ T : set α))
+
 theorem mk_union_of_disjoint {α : Type u} {S T : set α} (H : disjoint S T) :
   mk (S ∪ T : set α) = mk S + mk T :=
 quot.sound ⟨equiv.set.union H⟩

@@ -8,6 +8,7 @@ Theory of unique factorization domains.
 @TODO: setup the complete lattice structure on `factor_set`.
 -/
 import algebra.gcd_domain
+import ring_theory.integral_domain
 
 variables {α : Type*}
 local infix ` ~ᵤ ` : 50 := associated
@@ -145,8 +146,7 @@ multiset.exists_mem_of_rel_of_mem this (by simp)
 
 def of_unique_irreducible_factorization {α : Type*} [integral_domain α]
   (o : unique_irreducible_factorization α) : unique_factorization_domain α :=
-by letI := classical.dec_eq α; exact
-{ prime_factors := λ a h p (hpa : p ∈ o.factors a),
+{ prime_factors := by letI := classical.dec_eq α; exact λ a h p (hpa : p ∈ o.factors a),
     have hpi : irreducible p, from o.irreducible_factors h _ hpa,
     ⟨hpi.ne_zero, hpi.1,
       λ a b ⟨x, hx⟩,
@@ -156,8 +156,8 @@ by letI := classical.dec_eq α; exact
         (λ hb0, by simp [hb0])
       else
         have hx0 : x ≠ 0, from λ hx0, by simp * at *,
-        have ha0 : a ≠ 0, from ne_zero_of_mul_ne_zero_right hab0,
-        have hb0 : b ≠ 0, from ne_zero_of_mul_ne_zero_left hab0,
+        have ha0 : a ≠ 0, from left_ne_zero_of_mul hab0,
+        have hb0 : b ≠ 0, from right_ne_zero_of_mul hab0,
         have multiset.rel associated  (p :: o.factors x) (o.factors a + o.factors b),
           from o.unique
             (λ i hi, (multiset.mem_cons.1 hi).elim
@@ -165,8 +165,8 @@ by letI := classical.dec_eq α; exact
               (o.irreducible_factors hx0 _))
             (show ∀ x ∈ o.factors a + o.factors b, irreducible x,
               from λ x hx, (multiset.mem_add.1 hx).elim
-                (o.irreducible_factors (ne_zero_of_mul_ne_zero_right hab0) _)
-                (o.irreducible_factors (ne_zero_of_mul_ne_zero_left hab0) _)) $
+                (o.irreducible_factors ha0 _)
+                (o.irreducible_factors hb0 _)) $
               calc multiset.prod (p :: o.factors x)
                   ~ᵤ a * b : by rw [hx, multiset.prod_cons];
                     exact associated_mul_mul (by refl)
@@ -380,7 +380,7 @@ eq_of_prod_eq_prod $ eq_of_factors_eq_factors $
   by rw [prod_add, factors_prod, factors_prod, factors_prod]
 
 theorem factors_mono : ∀{a b : associates α}, a ≤ b → a.factors ≤ b.factors
-| s t ⟨d, rfl⟩ := by rw [factors_mul] ; exact le_add_of_nonneg_right' bot_le
+| s t ⟨d, rfl⟩ := by rw [factors_mul] ; exact le_add_of_nonneg_right bot_le
 
 theorem factors_le {a b : associates α} : a.factors ≤ b.factors ↔ a ≤ b :=
 iff.intro
@@ -456,3 +456,79 @@ def unique_factorization_domain.to_gcd_domain
   .. ‹normalization_domain α› }
 
 end
+
+namespace unique_factorization_domain
+
+variables {R : Type*} [integral_domain R] [unique_factorization_domain R]
+
+lemma no_factors_of_no_prime_factors {a b : R} (ha : a ≠ 0)
+  (h : (∀ {d}, d ∣ a → d ∣ b → ¬ prime d)) : ∀ {d}, d ∣ a → d ∣ b → is_unit d :=
+λ d, induction_on_prime d
+  (by { simp only [zero_dvd_iff], intros, contradiction })
+  (λ x hx _ _, hx)
+  (λ d q hp hq ih dvd_a dvd_b,
+    absurd hq (h (dvd_of_mul_right_dvd dvd_a) (dvd_of_mul_right_dvd dvd_b)))
+
+/-- Euclid's lemma: if `a ∣ b * c` and `a` and `c` have no common prime factors, `a ∣ b`.
+Compare `is_coprime.dvd_of_dvd_mul_left`. -/
+lemma dvd_of_dvd_mul_left_of_no_prime_factors {a b c : R} (ha : a ≠ 0) :
+  (∀ {d}, d ∣ a → d ∣ c → ¬ prime d) → a ∣ b * c → a ∣ b :=
+begin
+  refine induction_on_prime c _ _ _,
+  { intro no_factors,
+    simp only [dvd_zero, mul_zero, forall_prop_of_true],
+    haveI := classical.prop_decidable,
+    exact is_unit_iff_forall_dvd.mp
+      (no_factors_of_no_prime_factors ha @no_factors (dvd_refl a) (dvd_zero a)) _ },
+  { rintros _ ⟨x, rfl⟩ _ a_dvd_bx,
+    apply dvd_mul_unit_iff.mp a_dvd_bx },
+  { intros c p hc hp ih no_factors a_dvd_bpc,
+    apply ih (λ q dvd_a dvd_c hq, no_factors dvd_a (dvd_mul_of_dvd_right dvd_c _) hq),
+    rw mul_left_comm at a_dvd_bpc,
+    refine or.resolve_left (left_dvd_or_dvd_right_of_dvd_prime_mul hp a_dvd_bpc) (λ h, _),
+    exact no_factors h (dvd_mul_right p c) hp }
+end
+
+/-- Euclid's lemma: if `a ∣ b * c` and `a` and `b` have no common prime factors, `a ∣ c`.
+Compare `is_coprime.dvd_of_dvd_mul_right`. -/
+lemma dvd_of_dvd_mul_right_of_no_prime_factors {a b c : R} (ha : a ≠ 0)
+  (no_factors : ∀ {d}, d ∣ a → d ∣ b → ¬ prime d) : a ∣ b * c → a ∣ c :=
+by simpa [mul_comm b c] using dvd_of_dvd_mul_left_of_no_prime_factors ha @no_factors
+
+/-- If `a ≠ 0, b` are elements of a unique factorization domain, then dividing
+out their common factor `c'` gives `a'` and `b'` with no factors in common. -/
+lemma exists_reduced_factors : ∀ (a ≠ (0 : R)) b,
+  ∃ a' b' c', (∀ {d}, d ∣ a' → d ∣ b' → is_unit d) ∧ c' * a' = a ∧ c' * b' = b :=
+begin
+  haveI := classical.prop_decidable,
+  intros a,
+  refine induction_on_prime a _ _ _,
+  { intros, contradiction },
+  { intros a a_unit a_ne_zero b,
+    use [a, b, 1],
+    split,
+    { intros p p_dvd_a _,
+      exact is_unit_of_dvd_unit p_dvd_a a_unit },
+    { simp } },
+  { intros a p a_ne_zero p_prime ih_a pa_ne_zero b,
+    by_cases p ∣ b,
+    { rcases h with ⟨b, rfl⟩,
+      obtain ⟨a', b', c', no_factor, ha', hb'⟩ := ih_a a_ne_zero b,
+      refine ⟨a', b', p * c', @no_factor, _, _⟩,
+      { rw [mul_assoc, ha'] },
+      { rw [mul_assoc, hb'] } },
+    { obtain ⟨a', b', c', coprime, rfl, rfl⟩ := ih_a a_ne_zero b,
+      refine ⟨p * a', b', c', _, mul_left_comm _ _ _, rfl⟩,
+      intros q q_dvd_pa' q_dvd_b',
+      cases left_dvd_or_dvd_right_of_dvd_prime_mul p_prime q_dvd_pa' with p_dvd_q q_dvd_a',
+      { have : p ∣ c' * b' := dvd_mul_of_dvd_right (dvd_trans p_dvd_q q_dvd_b') _,
+        contradiction },
+      exact coprime q_dvd_a' q_dvd_b'  } }
+end
+
+lemma exists_reduced_factors' (a b : R) (hb : b ≠ 0) :
+  ∃ a' b' c', (∀ {d}, d ∣ a' → d ∣ b' → is_unit d) ∧ c' * a' = a ∧ c' * b' = b :=
+let ⟨b', a', c', no_factor, hb, ha⟩ := exists_reduced_factors b hb a
+in ⟨a', b', c', λ _ hpb hpa, no_factor hpa hpb, ha, hb⟩
+
+end unique_factorization_domain

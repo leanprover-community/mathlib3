@@ -320,6 +320,24 @@ end⟩⟩
 
 attribute [instance] polynomial.is_noetherian_ring
 
+namespace polynomial
+
+theorem exists_irreducible_of_degree_pos {R : Type u} [integral_domain R] [is_noetherian_ring R]
+  {f : polynomial R} (hf : 0 < f.degree) : ∃ g, irreducible g ∧ g ∣ f :=
+is_noetherian_ring.exists_irreducible_factor
+  (λ huf, ne_of_gt hf $ degree_eq_zero_of_is_unit huf)
+  (λ hf0, not_lt_of_lt hf $ hf0.symm ▸ (@degree_zero R _).symm ▸ with_bot.bot_lt_coe _)
+
+theorem exists_irreducible_of_nat_degree_pos {R : Type u} [integral_domain R] [is_noetherian_ring R]
+  {f : polynomial R} (hf : 0 < f.nat_degree) : ∃ g, irreducible g ∧ g ∣ f :=
+exists_irreducible_of_degree_pos $ by { contrapose! hf, exact nat_degree_le_of_degree_le hf }
+
+theorem exists_irreducible_of_nat_degree_ne_zero {R : Type u} [integral_domain R] [is_noetherian_ring R]
+  {f : polynomial R} (hf : f.nat_degree ≠ 0) : ∃ g, irreducible g ∧ g ∣ f :=
+exists_irreducible_of_nat_degree_pos $ nat.pos_of_ne_zero hf
+
+end polynomial
+
 namespace mv_polynomial
 
 lemma is_noetherian_ring_fin_0 [is_noetherian_ring R] :

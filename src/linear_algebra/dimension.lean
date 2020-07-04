@@ -396,7 +396,7 @@ by rw [rank, linear_map.range_zero, dim_bot]
 lemma rank_finset_sum_le {η} (s : finset η) (f : η → V →ₗ[K] V₂) :
   rank (∑ d in s, f d) ≤ ∑ d in s, rank (f d) :=
 @finset.sum_hom_rel _ _ _ _ _ (λa b, rank a ≤ b) f (λ d, rank (f d)) s (le_of_eq rank_zero)
-      (λ i g c h, le_trans (rank_add_le _ _) (add_le_add_left' h))
+      (λ i g c h, le_trans (rank_add_le _ _) (add_le_add_left h _))
 
 variables [add_comm_group V₃] [vector_space K V₃]
 

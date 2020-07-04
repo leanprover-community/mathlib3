@@ -321,7 +321,7 @@ begin
   by_cases hxy : x = y,
   { rw hxy },
   { rw [←norm_neg (y - x), neg_sub, mul_comm, mul_comm ∥y∥, div_eq_mul_inv, div_eq_mul_inv,
-        mul_inv', mul_inv', ←mul_assoc, ←mul_assoc] at h,
+        mul_inv_rev', mul_inv_rev', ←mul_assoc, ←mul_assoc] at h,
     replace h :=
       mul_right_cancel' (inv_ne_zero (λ hz, hxy (eq_of_sub_eq_zero (norm_eq_zero.1 hz)))) h,
     rw [inner_sub_right, inner_sub_right, inner_comm y x, inner_self_eq_norm_square,
@@ -462,7 +462,7 @@ begin
     rw angle_eq_pi_iff at hxy,
     rcases hxy with ⟨hx, ⟨r, ⟨hr, hxr⟩⟩⟩,
     rw [hxr, ←one_smul ℝ x, ←mul_smul, mul_one, ←sub_smul, one_smul, sub_eq_add_neg,
-        angle_smul_right_of_pos _ _ (add_pos' zero_lt_one (neg_pos_of_neg hr)), angle_self hx,
+        angle_smul_right_of_pos _ _ (add_pos zero_lt_one (neg_pos_of_neg hr)), angle_self hx,
         add_zero] at hnlt,
     apply hnlt,
     rw add_assoc,
@@ -550,7 +550,7 @@ begin
   unfold angle,
   rw angle_eq_zero_iff,
   rw [←neg_vsub_eq_vsub_rev, neg_ne_zero] at hp1p2,
-  use [hp1p2, -r + 1, add_pos' (neg_pos_of_neg hr) zero_lt_one],
+  use [hp1p2, -r + 1, add_pos (neg_pos_of_neg hr) zero_lt_one],
   rw [add_smul, ←neg_vsub_eq_vsub_rev V p1 p2, smul_neg],
   simp [←hpr]
 end
@@ -572,7 +572,7 @@ begin
   rcases h with ⟨hp2p3, ⟨r, ⟨hr, hpr⟩⟩⟩,
   unfold angle,
   symmetry,
-  convert angle_smul_right_of_pos _ _ (add_pos' (neg_pos_of_neg hr) zero_lt_one),
+  convert angle_smul_right_of_pos _ _ (add_pos (neg_pos_of_neg hr) zero_lt_one),
   rw [add_smul, ←neg_vsub_eq_vsub_rev V p2 p3, smul_neg],
   simp [←hpr]
 end

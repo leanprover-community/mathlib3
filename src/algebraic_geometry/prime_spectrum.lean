@@ -176,7 +176,7 @@ lemma zero_locus_bot :
 (gc R).l_bot
 
 @[simp] lemma zero_locus_singleton_zero :
-  zero_locus ({0} : set R) = set.univ :=
+  zero_locus (0 : set R) = set.univ :=
 zero_locus_bot
 
 @[simp] lemma zero_locus_empty :
@@ -294,8 +294,8 @@ topological_space.of_closed (set.range prime_spectrum.zero_locus)
   (by { rintro _ _ ⟨s, rfl⟩ ⟨t, rfl⟩, exact ⟨_, (union_zero_locus s t).symm⟩ })
 
 lemma is_open_iff (U : set (prime_spectrum R)) :
-  is_open U ↔ ∃ s, -U = zero_locus s :=
-by simp only [@eq_comm _ (-U)]; refl
+  is_open U ↔ ∃ s, Uᶜ = zero_locus s :=
+by simp only [@eq_comm _ Uᶜ]; refl
 
 lemma is_closed_iff_zero_locus (Z : set (prime_spectrum R)) :
   is_closed Z ↔ ∃ s, Z = zero_locus s :=
@@ -354,7 +354,7 @@ begin
     rw [subset_zero_locus_iff_subset_vanishing_ideal] at ht,
     calc fs ⊆ vanishing_ideal t : ht
         ... ⊆ x.as_ideal        : hx },
-  { rw closure_subset_iff_subset_of_is_closed (is_closed_zero_locus _),
+  { rw (is_closed_zero_locus _).closure_subset_iff,
     exact subset_zero_locus_vanishing_ideal t }
 end
 
@@ -366,7 +366,7 @@ begin
   let I : ι → ideal R := λ i, vanishing_ideal (Z i),
   have hI : ∀ i, Z i = zero_locus (I i),
   { intro i,
-    rw [zero_locus_vanishing_ideal_eq_closure, closure_eq_of_is_closed],
+    rw [zero_locus_vanishing_ideal_eq_closure, is_closed.closure_eq],
     exact hZc i },
   have one_mem : (1:R) ∈ ⨆ (i : ι), I i,
   { rw [← ideal.eq_top_iff_one, ← zero_locus_empty_iff_eq_top, zero_locus_supr],

@@ -25,6 +25,7 @@ is the main list, and generally none of these should be skipped unless you know 
 -/
 
 open native tactic expr
+
 namespace linarith
 
 /-! ### Preprocessing -/
@@ -73,7 +74,7 @@ infer_type e >>= rearr_comp_aux e
 
 /-- If `e` is of the form `((n : ℕ) : ℤ)`, `is_nat_int_coe e` returns `n : ℕ`. -/
 meta def is_nat_int_coe : expr → option expr
-| `((↑(%%n : ℕ) : ℤ)) := some n
+| `(@coe ℕ ℤ %%_ %%n) := some n
 | _ := none
 
 /-- If `e : ℕ`, returns a proof of `0 ≤ (e : ℤ)`. -/
@@ -88,23 +89,6 @@ meta def get_nat_comps : expr → list expr
   | some e' := [e']
   | none := []
   end
-
-/--
-`mk_coe_nat_nonneg_prfs e` returns a list of proofs of the form `0 ≤ ((t : ℕ) : ℤ)`
-for each subexpression of `e` of the form `((t : ℕ) : ℤ)`.
--/
-meta def mk_coe_nat_nonneg_prfs (e : expr) : tactic (list expr) :=
-(get_nat_comps e).mmap mk_coe_nat_nonneg_prf
-
-/--
-If `pf` is a proof of a comparison over `ℕ`, `mk_int_pfs_of_nat_pf pf` returns a proof of the
-corresponding inequality over `ℤ`, using `tactic.zify_proof`, along with proofs that the cast
-naturals are nonnegative.
--/
-meta def mk_int_pfs_of_nat_pf (pf : expr) : tactic (list expr) :=
-do pf' ← zify_proof [] pf,
-   (a, b) ← infer_type pf' >>= get_rel_sides,
-   list.cons pf' <$> ((++) <$> mk_coe_nat_nonneg_prfs a <*> mk_coe_nat_nonneg_prfs b)
 
 /--
 If `pf` is a proof of a strict inequality `(a : ℤ) < b`,
@@ -176,14 +160,18 @@ end }
 
 /--
 If `h` is an equality or inequality between natural numbers,
-`nat_to_int h` lifts this inequality to the integers,
-adding the facts that the integers involved are nonnegative.
+`nat_to_int` lifts this inequality to the integers.
+It also adds the facts that the integers involved are nonnegative.
+To avoid adding the same nonnegativity facts many times, it is a global preprocessor.
  -/
-meta def nat_to_int : preprocessor :=
+meta def nat_to_int : global_preprocessor :=
 { name := "move nats to ints",
-  transform := λ h,
-do tp ← infer_type h,
-   guardb (is_nat_prop tp) >> mk_int_pfs_of_nat_pf h <|> return [h] }
+  transform := λ l,
+do l ← l.mmap (λ h, infer_type h >>= guardb ∘ is_nat_prop >> zify_proof [] h <|> return h),
+   nonnegs ← l.mfoldl (λ (es : expr_set) h, do
+     (a, b) ← infer_type h >>= get_rel_sides,
+     return $ (es.insert_list (get_nat_comps a)).insert_list (get_nat_comps b)) mk_rb_set,
+   (++) l <$> nonnegs.to_list.mmap mk_coe_nat_nonneg_prf }
 
 /-- `strengthen_strict_int h` turns a proof `h` of a strict integer inequality `t1 < t2`
 into a proof of `t1 ≤ t2 + 1`. -/

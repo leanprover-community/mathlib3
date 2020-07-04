@@ -3,7 +3,9 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import tactic.basic
+import tactic.simpa
+import tactic.ext
+import data.option.defs
 
 namespace option
 variables {α : Type*} {β : Type*} {γ : Type*}

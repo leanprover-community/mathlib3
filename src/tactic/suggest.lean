@@ -116,6 +116,18 @@ do env ← get_env,
    trace_if_enabled `suggest $ defs.map (λ ⟨d, n, m, l⟩, (n, m.to_string)),
    return defs
 
+/--
+We unpack any element of a list of `decl_data` corresponding to an `↔` statement that could apply
+in both directions into two separate elements.
+
+This ensures that both directions can be independently returned by `suggest`,
+and avoids a problem where the application of one direction prevents
+the application of the other direction. (See `exp_le_exp` in the tests.)
+-/
+meta def unpack_iff_both : list decl_data → list decl_data
+| []                     := []
+| (⟨d, n, both, l⟩ :: L) := ⟨d, n, mp, l⟩ :: ⟨d, n, mpr, l⟩ :: unpack_iff_both L
+| (⟨d, n, m, l⟩ :: L)    := ⟨d, n, m, l⟩ :: unpack_iff_both L
 
 /--
 Apply the lemma `e`, then attempt to close all goals using
@@ -131,6 +143,7 @@ Returns the number of subgoals which were closed using `solve_by_elim`.
 -- requiring that it succeeds if `close_goals = tt`.
 meta def apply_and_solve (close_goals : bool) (opt : opt := { }) (e : expr) : tactic ℕ :=
 do
+  trace_if_enabled `suggest format!"Trying to apply lemma: {e}",
   opt.apply e,
   trace_if_enabled `suggest format!"Applied lemma: {e}",
   ng ← num_goals,
@@ -167,9 +180,7 @@ do (e, t) ← decl_mk_const d.d,
    | ex   := tac e
    | mp   := do l ← iff_mp_core e t, tac l
    | mpr  := do l ← iff_mpr_core e t, tac l
-   | both :=
-      (do l ← iff_mp_core e t, tac l) <|>
-      (do l ← iff_mpr_core e t, tac l)
+   | both := undefined -- we use `unpack_iff_both` to ensure this isn't reachable
    end
 
 /--
@@ -249,7 +260,7 @@ do g :: _ ← get_goals,
    (do
    -- Collect all definitions with the correct head symbol
    t ← infer_type g,
-   defs ← library_defs (head_symbol t),
+   defs ← unpack_iff_both <$> library_defs (head_symbol t),
 
    let defs : mllist tactic _ := mllist.of_list defs,
 
@@ -430,7 +441,7 @@ meta def library_search (semireducible : parse $ optional (tk "!"))
   (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
   (opt : opt := { }) : tactic unit :=
 do asms ← mk_assumption_set ff hs attr_names,
-   tactic.library_search
+   (tactic.library_search
      { backtrack_all_goals := tt,
        lemma_thunks := return asms,
        apply := λ e, tactic.apply e { md := if semireducible.is_some then
@@ -439,7 +450,28 @@ do asms ← mk_assumption_set ff hs attr_names,
    if is_trace_enabled_for `silence_library_search then
      (λ _, skip)
    else
-     trace
+     trace) <|>
+   fail
+"`library_search` failed.
+If you aren't sure what to do next, you can also
+try `library_search!`, `suggest`, or `hint`.
+
+Possible reasons why `library_search` failed:
+* `library_search` will only apply a single lemma from the library,
+  and then try to fill in its hypotheses from local hypotheses.
+* If you haven't already, try stating the theorem you want in its own lemma.
+* Sometimes the library has one version of a lemma
+  but not a very similar version obtained by permuting arguments.
+  Try replacing `a + b` with `b + a`, or `a - b < c` with `a < b + c`,
+  to see if maybe the lemma exists but isn't stated quite the way you would like.
+* Make sure that you have all the side conditions for your theorem to be true.
+  For example you won't find `a - b + b = a` for natural numbers in the library because it's false!
+  Search for `b ≤ a → a - b + b = a` instead.
+* If a definition you made is in the goal,
+  you won't find any theorems about it in the library.
+  Try unfolding the definition using `unfold my_definition`.
+* If all else fails, ask on https://leanprover.zulipchat.com/,
+  and maybe we can improve the library and/or `library_search` for next time."
 
 /--
 `library_search` is a tactic to identify existing lemmas in the library. It tries to close the

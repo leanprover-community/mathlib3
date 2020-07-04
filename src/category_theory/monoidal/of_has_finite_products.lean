@@ -36,7 +36,7 @@ section
 local attribute [tidy] tactic.case_bash
 
 /-- A category with a terminal object and binary products has a natural monoidal structure. -/
-def monoidal_of_has_finite_products [has_terminal.{v} C] [has_binary_products.{v} C] : monoidal_category C :=
+def monoidal_of_has_finite_products [has_terminal C] [has_binary_products C] : monoidal_category C :=
 { tensor_unit  := ⊤_ C,
   tensor_obj   := λ X Y, X ⨯ Y,
   tensor_hom   := λ _ _ _ _ f g, limits.prod.map f g,
@@ -49,7 +49,7 @@ def monoidal_of_has_finite_products [has_terminal.{v} C] [has_binary_products.{v
 end
 
 namespace monoidal_of_has_finite_products
-variables [has_terminal.{v} C] [has_binary_products.{v} C]
+variables [has_terminal C] [has_binary_products C]
 local attribute [instance] monoidal_of_has_finite_products
 
 @[simp]
@@ -80,7 +80,7 @@ section
 local attribute [tidy] tactic.case_bash
 
 /-- A category with an initial object and binary coproducts has a natural monoidal structure. -/
-def monoidal_of_has_finite_coproducts [has_initial.{v} C] [has_binary_coproducts.{v} C] : monoidal_category C :=
+def monoidal_of_has_finite_coproducts [has_initial C] [has_binary_coproducts C] : monoidal_category C :=
 { tensor_unit  := ⊥_ C,
   tensor_obj   := λ X Y, X ⨿ Y,
   tensor_hom   := λ _ _ _ _ f g, limits.coprod.map f g,
@@ -93,7 +93,7 @@ def monoidal_of_has_finite_coproducts [has_initial.{v} C] [has_binary_coproducts
 end
 
 namespace monoidal_of_has_finite_coproducts
-variables [has_initial.{v} C] [has_binary_coproducts.{v} C]
+variables [has_initial C] [has_binary_coproducts C]
 local attribute [instance] monoidal_of_has_finite_coproducts
 
 @[simp]

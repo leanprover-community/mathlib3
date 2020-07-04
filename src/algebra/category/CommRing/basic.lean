@@ -174,7 +174,7 @@ end ring_equiv
 namespace category_theory.iso
 
 /-- Build a `ring_equiv` from an isomorphism in the category `Ring`. -/
-def Ring_iso_to_ring_equiv {X Y : Ring.{u}} (i : X ≅ Y) : X ≃+* Y :=
+def Ring_iso_to_ring_equiv {X Y : Ring} (i : X ≅ Y) : X ≃+* Y :=
 { to_fun    := i.hom,
   inv_fun   := i.inv,
   left_inv  := by tidy,
@@ -183,7 +183,7 @@ def Ring_iso_to_ring_equiv {X Y : Ring.{u}} (i : X ≅ Y) : X ≃+* Y :=
   map_mul'  := by tidy }.
 
 /-- Build a `ring_equiv` from an isomorphism in the category `CommRing`. -/
-def CommRing_iso_to_ring_equiv {X Y : CommRing.{u}} (i : X ≅ Y) : X ≃+* Y :=
+def CommRing_iso_to_ring_equiv {X Y : CommRing} (i : X ≅ Y) : X ≃+* Y :=
 { to_fun    := i.hom,
   inv_fun   := i.inv,
   left_inv  := by tidy,

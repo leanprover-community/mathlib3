@@ -283,11 +283,37 @@ protected lemma tendsto.mul_const {f : filter α} {m : α → ennreal} {a b : en
   (hm : tendsto m f (𝓝 a)) (ha : a ≠ 0 ∨ b ≠ ⊤) : tendsto (λx, m x * b) f (𝓝 (a * b)) :=
 by simpa only [mul_comm] using ennreal.tendsto.const_mul hm ha
 
-protected lemma continuous_const_mul {a : ennreal} (ha : a < ⊤) : continuous ((*) a) :=
-continuous_iff_continuous_at.2 $ λ x, tendsto.const_mul tendsto_id $ or.inr $ ne_of_lt ha
+protected lemma continuous_at_const_mul {a b : ennreal} (h : a ≠ ⊤ ∨ b ≠ 0) :
+  continuous_at ((*) a) b :=
+tendsto.const_mul tendsto_id h.symm
 
-protected lemma continuous_mul_const {a : ennreal} (ha : a < ⊤) : continuous (λ x, x * a) :=
-by simpa only [mul_comm] using ennreal.continuous_const_mul ha
+protected lemma continuous_at_mul_const {a b : ennreal} (h : a ≠ ⊤ ∨ b ≠ 0) :
+  continuous_at (λ x, x * a) b :=
+tendsto.mul_const tendsto_id h.symm
+
+protected lemma continuous_const_mul {a : ennreal} (ha : a ≠ ⊤) : continuous ((*) a) :=
+continuous_iff_continuous_at.2 $ λ x, ennreal.continuous_at_const_mul (or.inl ha)
+
+protected lemma continuous_mul_const {a : ennreal} (ha : a ≠ ⊤) : continuous (λ x, x * a) :=
+continuous_iff_continuous_at.2 $ λ x, ennreal.continuous_at_mul_const (or.inl ha)
+
+lemma infi_mul_left {ι} [nonempty ι] {f : ι → ennreal} {a : ennreal}
+  (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) :
+  (⨅ i, a * f i) = a * ⨅ i, f i :=
+begin
+  by_cases H : a = ⊤ ∧ (⨅ i, f i) = 0,
+  { rcases h H.1 H.2 with ⟨i, hi⟩,
+    rw [H.2, mul_zero, ← bot_eq_zero, infi_eq_bot],
+    exact λ b hb, ⟨i, by rwa [hi, mul_zero, ← bot_eq_zero]⟩ },
+  { push_neg at H,
+    exact (map_infi_of_continuous_at_of_monotone' (ennreal.continuous_at_const_mul H)
+      ennreal.mul_left_mono).symm }
+end
+
+lemma infi_mul_right {ι} [nonempty ι] {f : ι → ennreal} {a : ennreal}
+  (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) :
+  (⨅ i, f i * a) = (⨅ i, f i) * a :=
+by simpa only [mul_comm a] using infi_mul_left h
 
 protected lemma continuous_inv : continuous (has_inv.inv : ennreal → ennreal) :=
 continuous_iff_continuous_at.2 $ λ a, tendsto_order.2
@@ -731,12 +757,12 @@ begin
       { simp [htop, lt_top_iff_ne_top, ne_top_of_lt he] },
       { simp at hy,
         have : e + ε < f y + ε := calc
-          e + ε ≤ e + (f x - e) : add_le_add_left' (min_le_left _ _)
+          e + ε ≤ e + (f x - e) : add_le_add_left (min_le_left _ _) _
           ... = f x : by simp [le_of_lt he]
           ... ≤ f y + C * edist x y : h x y
           ... = f y + C * edist y x : by simp [edist_comm]
           ... ≤ f y + C * (C⁻¹ * (ε/2)) :
-            add_le_add_left' $ canonically_ordered_semiring.mul_le_mul (le_refl _) (le_of_lt hy)
+            add_le_add_left (canonically_ordered_semiring.mul_le_mul (le_refl _) (le_of_lt hy)) _
           ... < f y + ε : (ennreal.add_lt_add_iff_left (lt_top_iff_ne_top.2 htop)).2 I,
         show e < f y, from
           (ennreal.add_lt_add_iff_right ‹ε < ⊤›).1 this }},
@@ -759,9 +785,9 @@ begin
       show f y < e, from calc
         f y ≤ f x + C * edist y x : h y x
         ... ≤ f x + C * (C⁻¹ * (ε/2)) :
-            add_le_add_left' $ canonically_ordered_semiring.mul_le_mul (le_refl _) (le_of_lt hy)
+            add_le_add_left (canonically_ordered_semiring.mul_le_mul (le_refl _) (le_of_lt hy)) _
         ... < f x + ε : (ennreal.add_lt_add_iff_left (lt_top_iff_ne_top.2 htop)).2 I
-        ... ≤ f x + (e - f x) : add_le_add_left' (min_le_left _ _)
+        ... ≤ f x + (e - f x) : add_le_add_left (min_le_left _ _) _
         ... = e : by simp [le_of_lt he] },
     apply filter.mem_sets_of_superset (ball_mem_nhds _ (‹0 < C⁻¹ * (ε/2)›)) this },
 end
@@ -773,7 +799,7 @@ begin
   calc edist x y ≤ edist x x' + edist x' y' + edist y' y : edist_triangle4 _ _ _ _
     ... = edist x' y' + (edist x x' + edist y y') : by simp [edist_comm]; cc
     ... ≤ edist x' y' + (edist (x, y) (x', y') + edist (x, y) (x', y')) :
-      add_le_add_left' (add_le_add (by simp [edist, le_refl]) (by simp [edist, le_refl]))
+      add_le_add_left (add_le_add (le_max_left _ _) (le_max_right _ _)) _
     ... = edist x' y' + 2 * edist (x, y) (x', y') : by rw [← mul_two, mul_comm]
 end
 

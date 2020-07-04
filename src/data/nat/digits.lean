@@ -90,7 +90,28 @@ begin
         rw nat.div_eq_of_lt w₂,
         dsimp only [digits_aux_zero],
         rw nat.mod_eq_of_lt w₂, } } }
-end.
+end
+
+/-- The digits in the base b+2 expansion of n are all less than b+2 -/
+lemma digits_lt_base' {b m : ℕ} : ∀ {d}, d ∈ digits (b+2) m → d < b+2 :=
+begin
+  apply nat.strong_induction_on m,
+  intros n IH d hd,
+  unfold digits at hd IH,
+  cases n with n,
+  { cases hd }, -- base b+2 expansion of 0 has no digits
+  rw digits_aux_def (b+2) (by linarith) n.succ (nat.zero_lt_succ n) at hd,
+  cases hd,
+  { rw hd, exact n.succ.mod_lt (by linarith) },
+  { exact IH _ (nat.div_lt_self (nat.succ_pos _) (by linarith)) hd }
+end
+
+/-- The digits in the base b expansion of n are all less than b, if b ≥ 2 -/
+lemma digits_lt_base {b m d : ℕ} (hb : 2 ≤ b) (hd : d ∈ digits b m) : d < b :=
+begin
+  rcases b with _ | _ | b; try {linarith},
+  exact digits_lt_base' hd,
+end
 
 lemma digits_add (b : ℕ) (h : 2 ≤ b) (x y : ℕ) (w : x < b) (w' : 0 < x ∨ 0 < y) :
   digits b (x + b * y) = x :: digits b y :=

@@ -236,8 +236,7 @@ f.to_localization_map.map_left_cancel h
 
 lemma eq_zero_of_fst_eq_zero {z x} {y : M}
   (h : z * f.to_map y = f.to_map x) (hx : x = 0) : z = 0 :=
-by rw [hx, f.to_map.map_zero] at h;
-  exact (is_unit.mul_left_eq_zero_iff_eq_zero (f.map_units y)).1 h
+by rw [hx, f.to_map.map_zero] at h; exact (f.map_units y).mul_left_eq_zero.1 h
 
 /-- Given a localization map `f : R →+* S`, the surjection sending `(x, y) : R × M` to
 `f x * (f y)⁻¹`. -/
@@ -706,7 +705,7 @@ let ⟨b, hb⟩ := integer_normalization_spec p in
 variables {R' : Type*} [comm_ring R']
 
 lemma integer_normalization_eval₂_eq_zero (g : f.codomain →+* R') (p : polynomial f.codomain)
-  {x : R'} (hx : eval₂ g x p = 0) : eval₂ (g ∘ f.to_map) x (integer_normalization p) = 0 :=
+  {x : R'} (hx : eval₂ g x p = 0) : eval₂ (g.comp f.to_map) x (integer_normalization p) = 0 :=
 let ⟨b, hb⟩ := integer_normalization_map_to_map p in
 trans (eval₂_map f.to_map g x).symm (by rw [hb, eval₂_smul, hx, smul_zero])
 
@@ -728,7 +727,23 @@ def non_zero_divisors : submonoid R :=
     have z * x₁ * x₂ = 0, by rwa mul_assoc,
     hx₁ z $ hx₂ (z * x₁) this }
 
-variables {A : Type*} [integral_domain A]
+variables {R}
+
+lemma mul_mem_non_zero_divisors {a b : R} :
+  a * b ∈ non_zero_divisors R ↔ a ∈ non_zero_divisors R ∧ b ∈ non_zero_divisors R :=
+begin
+  split,
+  { intro h,
+    split; intros x h'; apply h,
+    { rw [←mul_assoc, h', zero_mul] },
+    { rw [mul_comm a b, ←mul_assoc, h', zero_mul] } },
+  { rintros ⟨ha, hb⟩ x hx,
+    apply ha,
+    apply hb,
+    rw [mul_assoc, hx] },
+end
+
+variables (R) {A : Type*} [integral_domain A]
 
 lemma eq_zero_of_ne_zero_of_mul_eq_zero
   {x y : A} (hnx : x ≠ 0) (hxy : y * x = 0) :
@@ -771,6 +786,10 @@ end
 protected theorem injective [comm_ring K] (φ : fraction_map R K) :
   injective φ.to_map :=
 φ.to_map.injective_iff.2 (λ _ h, φ.to_map_eq_zero_iff.mpr h)
+
+protected lemma map_ne_zero_of_mem_non_zero_divisors [comm_ring K] (φ : fraction_map A K)
+  (x : non_zero_divisors A) : φ.to_map x ≠ 0 :=
+map_ne_zero_of_mem_non_zero_divisors φ.injective
 
 local attribute [instance] classical.dec_eq
 
@@ -819,7 +838,7 @@ variables {B : Type*} [integral_domain B] [field K] {L : Type*} [field L]
 
 lemma mk'_eq_div {r s} : f.mk' r s = f.to_map r / f.to_map s :=
 f.mk'_eq_iff_eq_mul.2 $ (div_mul_cancel _
-    (map_ne_zero_of_mem_non_zero_divisors f.injective)).symm
+    (f.map_ne_zero_of_mem_non_zero_divisors _)).symm
 
 lemma is_unit_map_of_injective (hg : injective g)
   (y : non_zero_divisors A) : is_unit (g y) :=
@@ -925,6 +944,74 @@ begin
            integer_normalization_aeval_eq_zero p px⟩ },
 end
 
+section num_denom
+
+variables [unique_factorization_domain A] (φ : fraction_map A K)
+
+lemma exists_reduced_fraction (x : φ.codomain) :
+  ∃ (a : A) (b : non_zero_divisors A),
+  (∀ {d}, d ∣ a → d ∣ b → is_unit d) ∧ φ.mk' a b = x :=
+begin
+  obtain ⟨⟨b, b_nonzero⟩, a, hab⟩ := φ.exists_integer_multiple x,
+  obtain ⟨a', b', c', no_factor, rfl, rfl⟩ :=
+    unique_factorization_domain.exists_reduced_factors' a b
+      (mem_non_zero_divisors_iff_ne_zero.mp b_nonzero),
+  obtain ⟨c'_nonzero, b'_nonzero⟩ := mul_mem_non_zero_divisors.mp b_nonzero,
+  refine ⟨a', ⟨b', b'_nonzero⟩, @no_factor, _⟩,
+  apply mul_left_cancel' (φ.map_ne_zero_of_mem_non_zero_divisors ⟨c' * b', b_nonzero⟩),
+  simp only [subtype.coe_mk, φ.to_map.map_mul] at *,
+  erw [←hab, mul_assoc, φ.mk'_spec' a' ⟨b', b'_nonzero⟩],
+end
+
+/-- `f.num x` is the numerator of `x : f.codomain` as a reduced fraction. -/
+noncomputable def num (x : φ.codomain) : A :=
+classical.some (φ.exists_reduced_fraction x)
+
+/-- `f.num x` is the denominator of `x : f.codomain` as a reduced fraction. -/
+noncomputable def denom (x : φ.codomain) : non_zero_divisors A :=
+classical.some (classical.some_spec (φ.exists_reduced_fraction x))
+
+lemma num_denom_reduced (x : φ.codomain) :
+  ∀ {d}, d ∣ φ.num x → d ∣ φ.denom x → is_unit d :=
+(classical.some_spec (classical.some_spec (φ.exists_reduced_fraction x))).1
+
+@[simp] lemma mk'_num_denom (x : φ.codomain) : φ.mk' (φ.num x) (φ.denom x) = x :=
+(classical.some_spec (classical.some_spec (φ.exists_reduced_fraction x))).2
+
+lemma num_mul_denom_eq_num_iff_eq {x y : φ.codomain} :
+  x * φ.to_map (φ.denom y) = φ.to_map (φ.num y) ↔ x = y :=
+⟨ λ h, by simpa only [mk'_num_denom] using φ.eq_mk'_iff_mul_eq.mpr h,
+  λ h, φ.eq_mk'_iff_mul_eq.mp (by rw [h, mk'_num_denom]) ⟩
+
+lemma num_mul_denom_eq_num_iff_eq' {x y : φ.codomain} :
+  y * φ.to_map (φ.denom x) = φ.to_map (φ.num x) ↔ x = y :=
+⟨ λ h, by simpa only [eq_comm, mk'_num_denom] using φ.eq_mk'_iff_mul_eq.mpr h,
+  λ h, φ.eq_mk'_iff_mul_eq.mp (by rw [h, mk'_num_denom]) ⟩
+
+lemma num_mul_denom_eq_num_mul_denom_iff_eq {x y : φ.codomain} :
+  φ.num y * φ.denom x = φ.num x * φ.denom y ↔ x = y :=
+⟨ λ h, by simpa only [mk'_num_denom] using φ.mk'_eq_of_eq h,
+  λ h, by rw h ⟩
+
+lemma eq_zero_of_num_eq_zero {x : φ.codomain} (h : φ.num x = 0) : x = 0 :=
+φ.num_mul_denom_eq_num_iff_eq'.mp (by rw [zero_mul, h, ring_hom.map_zero])
+
+lemma is_integer_of_is_unit_denom {x : φ.codomain} (h : is_unit (φ.denom x : A)) : φ.is_integer x :=
+begin
+  cases h with d hd,
+  have d_ne_zero : φ.to_map (φ.denom x) ≠ 0 := φ.map_ne_zero_of_mem_non_zero_divisors (φ.denom x),
+  use ↑d⁻¹ * φ.num x,
+  refine trans _ (φ.mk'_num_denom x),
+  rw [φ.to_map.map_mul, φ.to_map.map_units_inv, hd],
+  apply mul_left_cancel' d_ne_zero,
+  rw [←mul_assoc, mul_inv_cancel d_ne_zero, one_mul, φ.mk'_spec']
+end
+
+lemma is_unit_denom_of_num_eq_zero {x : φ.codomain} (h : φ.num x = 0) : is_unit (φ.denom x : A) :=
+φ.num_denom_reduced x (h.symm ▸ dvd_zero _) (dvd_refl _)
+
+end num_denom
+
 end fraction_map
 
 namespace integral_closure
@@ -946,7 +1033,7 @@ def fraction_map_of_algebraic [algebra A L] (alg : is_algebraic A L)
     ⟨⟨x, ⟨y, mem_non_zero_divisors_iff_ne_zero.mpr hy⟩⟩, hxy⟩)
   (λ x y, ⟨ λ (h : x.1 = y.1), ⟨1, by simpa using subtype.ext_iff_val.mpr h⟩,
             λ ⟨c, hc⟩, congr_arg (algebra_map _ L)
-              (eq_of_mul_eq_mul_right_of_ne_zero (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc) ⟩)
+              (mul_right_cancel' (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc) ⟩)
 
 /-- If the field `L` is a finite extension of the fraction field of the integral domain `A`,
 the integral closure of `A` in `L` has fraction field `L`. -/

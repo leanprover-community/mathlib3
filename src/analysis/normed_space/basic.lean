@@ -490,7 +490,7 @@ namespace normed_field
 have  ∥(1 : α)∥ * ∥(1 : α)∥ = ∥(1 : α)∥ * 1, by calc
  ∥(1 : α)∥ * ∥(1 : α)∥ = ∥(1 : α) * (1 : α)∥ : by rw normed_field.norm_mul'
                   ... = ∥(1 : α)∥ * 1 : by simp,
-eq_of_mul_eq_mul_left (ne_of_gt (norm_pos_iff.2 (by simp))) this
+mul_left_cancel' (ne_of_gt (norm_pos_iff.2 (by simp))) this
 
 @[simp] lemma norm_mul [normed_field α] (a b : α) : ∥a * b∥ = ∥a∥ * ∥b∥ :=
 normed_field.norm_mul' a b
@@ -556,7 +556,7 @@ let ⟨n, hle, hlt⟩ := exists_int_pow_near' hr hw in
 by rwa norm_fpow⟩
 
 lemma punctured_nhds_ne_bot {α : Type*} [nondiscrete_normed_field α] (x : α) :
-  nhds_within x (-{x}) ≠ ⊥ :=
+  nhds_within x {x}ᶜ ≠ ⊥ :=
 begin
   rw [← mem_closure_iff_nhds_within_ne_bot, metric.mem_closure_iff],
   rintros ε ε0,
@@ -813,7 +813,7 @@ begin
       exact this hy },
     rw [← set.mem_compl_iff, ← closure_compl],
     rcases hE with ⟨z, hz⟩,
-    suffices : (λ c : ℝ, x + c • z) 0 ∈ closure (-{x} : set E),
+    suffices : (λ c : ℝ, x + c • z) 0 ∈ closure ({x}ᶜ : set E),
       by simpa only [zero_smul, add_zero] using this,
     have : (0:ℝ) ∈ closure (set.Ioi (0:ℝ)), by simp [closure_Ioi],
     refine (continuous_const.add (continuous_id.smul
@@ -825,12 +825,12 @@ end
 
 theorem frontier_closed_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :
   frontier (closed_ball x r) = sphere x r :=
-by rw [frontier, closure_eq_of_is_closed is_closed_ball, interior_closed_ball x hr,
+by rw [frontier, closure_closed_ball, interior_closed_ball x hr,
   closed_ball_diff_ball]
 
 theorem frontier_closed_ball' [normed_space ℝ E] (x : E) (r : ℝ) (hE : ∃ z : E, z ≠ 0) :
   frontier (closed_ball x r) = sphere x r :=
-by rw [frontier, closure_eq_of_is_closed is_closed_ball, interior_closed_ball' x r hE,
+by rw [frontier, closure_closed_ball, interior_closed_ball' x r hE,
   closed_ball_diff_ball]
 
 open normed_field
@@ -853,7 +853,7 @@ begin
     exact (div_le_iff εpos).1 (le_of_lt (hn.2)) },
   show ε / ∥c∥ ≤ ∥(c ^ (n + 1))⁻¹ • x∥,
   { rw [div_le_iff cpos, norm_smul, norm_inv, norm_fpow, fpow_add (ne_of_gt cpos),
-        fpow_one, mul_inv', mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
+        fpow_one, mul_inv_rev', mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
         one_mul, ← div_eq_inv_mul, le_div_iff (fpow_pos_of_pos cpos _), mul_comm],
     exact (le_div_iff εpos).1 hn.1 },
   show ∥(c ^ (n + 1))⁻¹∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥,

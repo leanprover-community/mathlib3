@@ -28,7 +28,7 @@ have (x^2 + y^2).even, by simp [h.symm, even_mul],
 have hxaddy : (x + y).even, by simpa [pow_two] with parity_simps,
 have hxsuby : (x - y).even, by simpa [pow_two] with parity_simps,
 have (x^2 + y^2) % 2 = 0, by simp [h.symm],
-(domain.mul_right_inj (show (2*2 : ℤ) ≠ 0, from dec_trivial)).1 $
+(mul_right_inj' (show (2*2 : ℤ) ≠ 0, from dec_trivial)).1 $
 calc 2 * 2 * m = (x - y)^2 + (x + y)^2 : by rw [mul_assoc, h]; ring
 ... = (2 * ((x - y) / 2))^2 + (2 * ((x + y) / 2))^2 :
   by rw [int.mul_div_cancel' hxsuby, int.mul_div_cancel' hxaddy]
@@ -92,7 +92,7 @@ let ⟨x, hx⟩ := h01 in let ⟨y, hy⟩ := h23 in
   begin
     rw [← int.sum_two_squares_of_two_mul_sum_two_squares hx.symm, add_assoc,
       ← int.sum_two_squares_of_two_mul_sum_two_squares hy.symm,
-      ← domain.mul_right_inj (show (2 : ℤ) ≠ 0, from dec_trivial), ← h, mul_add, ← hx, ← hy],
+      ← mul_right_inj' (show (2 : ℤ) ≠ 0, from dec_trivial), ← h, mul_add, ← hx, ← hy],
     have : ∑ x, f (σ x)^2 = ∑ x, f x^2,
     { conv_rhs { rw ← finset.sum_equiv σ } },
     have fin4univ : (univ : finset (fin 4)).1 = 0::1::2::3::0, from dec_trivial,
@@ -161,7 +161,7 @@ m.mod_two_eq_zero_or_one.elim
             ⟨mc, hmc⟩ := habcd0.2.2.1, ⟨md, hmd⟩ := habcd0.2.2.2 in
         have hmdvdp : m ∣ p,
           from int.coe_nat_dvd.1 ⟨ma^2 + mb^2 + mc^2 + md^2,
-            (domain.mul_right_inj (show (m : ℤ) ≠ 0, from int.coe_nat_ne_zero_iff_pos.2 hm0)).1 $
+            (mul_right_inj' (show (m : ℤ) ≠ 0, from int.coe_nat_ne_zero_iff_pos.2 hm0)).1 $
               by { rw [← habcd, hma, hmb, hmc, hmd], ring }⟩,
         (hp.2 _ hmdvdp).elim hm1 (λ hmeqp, by simpa [lt_irrefl, hmeqp] using hmp)),
       have hawbxcydz : ((m : ℕ) : ℤ) ∣ a * w + b * x + c * y + d * z,
@@ -182,7 +182,7 @@ m.mod_two_eq_zero_or_one.elim
           (by { rw [int.nat_abs_of_nonneg hn_nonneg, ← hn, ← _root_.pow_two], exact hwxyzlt })
           (int.coe_nat_nonneg m)),
       have hstuv : s^2 + t^2 + u^2 + v^2 = n.nat_abs * p,
-        from (domain.mul_right_inj (show (m^2 : ℤ) ≠ 0, from pow_ne_zero 2
+        from (mul_right_inj' (show (m^2 : ℤ) ≠ 0, from pow_ne_zero 2
             (int.coe_nat_ne_zero_iff_pos.2 hm0))).1 $
           calc (m : ℤ)^2 * (s^2 + t^2 + u^2 + v^2) = ((m : ℕ) * s)^2 + ((m : ℕ) * t)^2 +
               ((m : ℕ) * u)^2 + ((m : ℕ) * v)^2 :

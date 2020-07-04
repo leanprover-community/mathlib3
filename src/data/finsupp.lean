@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Scott Morrison
 -/
 import algebra.module
 import data.fintype.card
+import data.multiset.antidiagonal
 
 /-!
 
@@ -810,18 +811,22 @@ lemma multiset_sum_sum [has_zero β] [add_comm_monoid γ] {f : α →₀ β} {h 
 section map_range
 variables
   [add_comm_monoid β₁] [add_comm_monoid β₂]
-  (f : β₁ → β₂) [hf : is_add_monoid_hom f]
+  (f : β₁ →+ β₂)
 
-instance is_add_monoid_hom_map_range :
-  is_add_monoid_hom (map_range f hf.map_zero : (α →₀ β₁) → (α →₀ β₂)) :=
-{ map_zero := map_range_zero, map_add := λ a b, map_range_add hf.map_add _ _ }
+/--
+Composition with a fixed additive homomorphism is itself an additive homomorphism on functions.
+-/
+def map_range.add_monoid_hom : (α →₀ β₁) →+ (α →₀ β₂) :=
+{ to_fun := (map_range f f.map_zero : (α →₀ β₁) → (α →₀ β₂)),
+  map_zero' := map_range_zero,
+  map_add' := λ a b, map_range_add f.map_add _ _ }
 
 lemma map_range_multiset_sum (m : multiset (α →₀ β₁)) :
-  map_range f hf.map_zero m.sum = (m.map $ λx, map_range f hf.map_zero x).sum :=
-(m.sum_hom (map_range f hf.map_zero)).symm
+  map_range f f.map_zero m.sum = (m.map $ λx, map_range f f.map_zero x).sum :=
+(m.sum_hom (map_range.add_monoid_hom f)).symm
 
 lemma map_range_finset_sum {ι : Type*} (s : finset ι) (g : ι → (α →₀ β₁))  :
-  map_range f hf.map_zero (∑ x in s, g x) = ∑ x in s, map_range f hf.map_zero (g x) :=
+  map_range f f.map_zero (∑ x in s, g x) = ∑ x in s, map_range f f.map_zero (g x) :=
 by rw [finset.sum.equations._eqn_1, map_range_multiset_sum, multiset.map_map]; refl
 
 end map_range
@@ -1508,7 +1513,7 @@ by simp only [finsupp.sum, finset.mul_sum]
 
 protected lemma eq_zero_of_zero_eq_one
   (zero_eq_one : (0 : β) = 1) (l : α →₀ β) : l = 0 :=
-by ext i; simp only [eq_zero_of_zero_eq_one β zero_eq_one (l i), finsupp.zero_apply]
+by ext i; simp only [eq_zero_of_zero_eq_one zero_eq_one (l i), finsupp.zero_apply]
 
 end
 

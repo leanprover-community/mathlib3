@@ -275,12 +275,15 @@ instance complete : cau_seq.is_complete ℤ_[p] norm :=
   ⟨ ⟨_, hqn⟩,
     λ ε, by simpa [norm, padic_norm_z] using cau_seq.equiv_lim (cau_seq_to_rat_cau_seq f) ε⟩⟩
 
-instance is_ring_hom_coe : is_ring_hom (coe : ℤ_[p] → ℚ_[p]) :=
-{ map_one := rfl,
-  map_mul := coe_mul,
-  map_add := coe_add }
+/-- The coercion from ℤ[p] to ℚ[p] as a ring homomorphism. -/
+def coe.ring_hom : ℤ_[p] →+* ℚ_[p]  :=
+{ to_fun := (coe : ℤ_[p] → ℚ_[p]),
+  map_zero' := rfl,
+  map_one' := rfl,
+  map_mul' := coe_mul,
+  map_add' := coe_add }
 
-instance : algebra ℤ_[p] ℚ_[p] := (ring_hom.of coe).to_algebra
+instance : algebra ℤ_[p] ℚ_[p] := (coe.ring_hom : ℤ_[p] →+* ℚ_[p]).to_algebra
 
 end padic_int
 

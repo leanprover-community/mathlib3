@@ -120,32 +120,39 @@ ext_iff.2 $ by simp
 @[simp] lemma re_add_im (z : ℂ) : (z.re : ℂ) + z.im * I = z :=
 ext_iff.2 $ by simp
 
+
+/-! ### Commutative ring instance and lemmas -/
+
+instance : comm_ring ℂ :=
+by refine { zero := 0, add := (+), neg := has_neg.neg, one := 1, mul := (*), ..};
+   { intros, apply ext_iff.2; split; simp; ring }
+
+instance re.is_add_group_hom : is_add_group_hom complex.re :=
+{ map_add := complex.add_re }
+
+instance im.is_add_group_hom : is_add_group_hom complex.im :=
+{ map_add := complex.add_im }
+
 /-! ### Complex conjugation -/
 
 /-- The complex conjugate. -/
-def conj (z : ℂ) : ℂ := ⟨z.re, -z.im⟩
+def conj : ℂ →+* ℂ :=
+begin
+  refine_struct { to_fun := λ z : ℂ, (⟨z.re, -z.im⟩ : ℂ), .. };
+  { intros, ext; simp [add_comm], },
+end
 
 @[simp] lemma conj_re (z : ℂ) : (conj z).re = z.re := rfl
 @[simp] lemma conj_im (z : ℂ) : (conj z).im = -z.im := rfl
 
 @[simp] lemma conj_of_real (r : ℝ) : conj r = r := ext_iff.2 $ by simp [conj]
 
-@[simp] lemma conj_zero : conj 0 = 0 := ext_iff.2 $ by simp [conj]
-@[simp] lemma conj_one : conj 1 = 1 := ext_iff.2 $ by simp
 @[simp] lemma conj_I : conj I = -I := ext_iff.2 $ by simp
 
 @[simp] lemma conj_bit0 (z : ℂ) : conj (bit0 z) = bit0 (conj z) := ext_iff.2 $ by simp [bit0]
 @[simp] lemma conj_bit1 (z : ℂ) : conj (bit1 z) = bit1 (conj z) := ext_iff.2 $ by simp [bit0]
 
-@[simp] lemma conj_add (z w : ℂ) : conj (z + w) = conj z + conj w :=
-ext_iff.2 $ by simp [add_comm]
-
-@[simp] lemma conj_neg (z : ℂ) : conj (-z) = -conj z := rfl
-
 @[simp] lemma conj_neg_I : conj (-I) = I := ext_iff.2 $ by simp
-
-@[simp] lemma conj_mul (z w : ℂ) : conj (z * w) = conj z * conj w :=
-ext_iff.2 $ by simp [add_comm]
 
 @[simp] lemma conj_conj (z : ℂ) : conj (conj z) = z :=
 ext_iff.2 $ by simp
@@ -216,26 +223,8 @@ ext_iff.2 $ by simp [norm_sq, mul_comm, sub_eq_neg_add, add_comm]
 theorem add_conj (z : ℂ) : z + conj z = (2 * z.re : ℝ) :=
 ext_iff.2 $ by simp [two_mul]
 
-/-! ### Commutative ring instance and lemmas -/
-
-instance : comm_ring ℂ :=
-by refine { zero := 0, add := (+), neg := has_neg.neg, one := 1, mul := (*), ..};
-   { intros, apply ext_iff.2; split; simp; ring }
-
-instance re.is_add_group_hom : is_add_group_hom complex.re :=
-{ map_add := complex.add_re }
-
-instance im.is_add_group_hom : is_add_group_hom complex.im :=
-{ map_add := complex.add_im }
-
-instance : is_ring_hom conj :=
-by refine_struct {..}; simp
-
 /-- The coercion `ℝ → ℂ` as a `ring_hom`. -/
 def of_real : ℝ →+* ℂ := ⟨coe, of_real_one, of_real_mul, of_real_zero, of_real_add⟩
-
-instance coe.is_ring_hom : is_ring_hom (coe : ℝ → ℂ) :=
-of_real.is_ring_hom
 
 @[simp] lemma of_real_eq_coe (r : ℝ) : of_real r = r := rfl
 
@@ -249,12 +238,6 @@ by induction n; simp [*, of_real_mul, pow_succ]
 
 theorem sub_conj (z : ℂ) : z - conj z = (2 * z.im : ℝ) * I :=
 ext_iff.2 $ by simp [two_mul, sub_eq_add_neg]
-
-@[simp] lemma conj_sub (z w : ℂ) : conj (z - w) = conj z - conj w :=
-by simp [sub_eq_add_neg]
-
-lemma conj_pow (z : ℂ) (n : ℕ) : conj (z ^ n) = conj z ^ n :=
-by induction n; simp [*, conj_mul, pow_succ]
 
 lemma norm_sq_sub (z w : ℂ) : norm_sq (z - w) =
   norm_sq z + norm_sq w - 2 * (z * conj w).re :=
@@ -282,9 +265,6 @@ protected theorem mul_inv_cancel {z : ℂ} (h : z ≠ 0) : z * z⁻¹ = 1 :=
 by rw [inv_def, ← mul_assoc, mul_conj, ← of_real_mul,
   mul_inv_cancel (mt norm_sq_eq_zero.1 h), of_real_one]
 
-@[simp] lemma conj_inv (z : ℂ) : conj z⁻¹ = (conj z)⁻¹ :=
-by ext; simp [neg_div]
-
 /-! ### Field instance and lemmas -/
 
 noncomputable instance : field ℂ :=
@@ -300,13 +280,10 @@ lemma div_im (z w : ℂ) : (z / w).im = z.im * w.re / norm_sq w - z.re * w.im / 
 by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, add_comm]
 
 @[simp, norm_cast] lemma of_real_div (r s : ℝ) : ((r / s : ℝ) : ℂ) = r / s :=
-ring_hom.map_div of_real
+of_real.map_div r s
 
 @[simp, norm_cast] lemma of_real_fpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : ℂ) = (r : ℂ) ^ n :=
-ring_hom.map_fpow of_real r n
-
-@[simp] lemma conj_div (z w : ℂ) : conj (z / w) = conj z / conj w :=
-by rw [division_def, conj_mul, conj_inv]; refl
+of_real.map_fpow r n
 
 @[simp] lemma div_I (z : ℂ) : z / I = -(z * I) :=
 (div_eq_iff_mul_eq I_ne_zero).2 $ by simp [mul_assoc]
@@ -316,7 +293,7 @@ by simp [inv_eq_one_div]
 
 @[simp] lemma norm_sq_inv (z : ℂ) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
 if h : z = 0 then by simp [h] else
-(domain.mul_left_inj (mt norm_sq_eq_zero.1 h)).1 $
+mul_right_cancel' (mt norm_sq_eq_zero.1 h) $
 by rw [← norm_sq_mul]; simp [h, -norm_sq_mul]
 
 @[simp] lemma norm_sq_div (z w : ℂ) : norm_sq (z / w) = norm_sq z / norm_sq w :=
@@ -524,7 +501,7 @@ by rw [lim_eq_lim_im_add_lim_re]; simp
 
 lemma is_cau_seq_conj (f : cau_seq ℂ abs) : is_cau_seq abs (λ n, conj (f n)) :=
 λ ε ε0, let ⟨i, hi⟩ := f.2 ε ε0 in
-⟨i, λ j hj, by rw [← conj_sub, abs_conj]; exact hi j hj⟩
+⟨i, λ j hj, by rw [← conj.map_sub, abs_conj]; exact hi j hj⟩
 
 /-- The complex conjugate of a complex Cauchy sequence, as a complex Cauchy sequence. -/
 noncomputable def cau_seq_conj (f : cau_seq ℂ abs) : cau_seq ℂ abs :=

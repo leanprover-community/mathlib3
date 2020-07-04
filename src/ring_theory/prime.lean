@@ -37,11 +37,11 @@ begin
     have hiu : i ∉ u, from λ hiu, his (htus ▸ mem_union_right _ hiu),
     obtain ⟨d, rfl⟩ | ⟨d, rfl⟩ : p i ∣ b ∨ p i ∣ c,
       from hpi.div_or_div ⟨a, by rw [← hbc, mul_comm]⟩,
-    { rw [mul_assoc, mul_comm a, domain.mul_right_inj hpi.ne_zero] at hbc,
+    { rw [mul_assoc, mul_comm a, mul_right_inj' hpi.ne_zero] at hbc,
       exact ⟨insert i t, u, d, c, by rw [insert_union, htus],
         disjoint_insert_left.2 ⟨hiu, htu⟩,
           by simp [hbc, prod_insert hit, mul_assoc, mul_comm, mul_left_comm]⟩ },
-    { rw [← mul_assoc, mul_right_comm b, domain.mul_left_inj hpi.ne_zero] at hbc,
+    { rw [← mul_assoc, mul_right_comm b, mul_left_inj' hpi.ne_zero] at hbc,
       exact ⟨t, insert i u, b, d, by rw [union_insert, htus],
         disjoint_insert_right.2 ⟨hit, htu⟩,
           by simp [← hbc, prod_insert hiu, mul_assoc, mul_comm, mul_left_comm]⟩ } }

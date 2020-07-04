@@ -46,18 +46,18 @@ attribute [simp] has_zero_morphisms.comp_zero
 restate_axiom has_zero_morphisms.zero_comp'
 attribute [simp, reassoc] has_zero_morphisms.zero_comp
 
-instance has_zero_morphisms_pempty : has_zero_morphisms.{v} (discrete pempty.{v+1}) :=
+instance has_zero_morphisms_pempty : has_zero_morphisms (discrete pempty) :=
 { has_zero := by tidy }
 
-instance has_zero_morphisms_punit : has_zero_morphisms.{v} (discrete punit.{v+1}) :=
+instance has_zero_morphisms_punit : has_zero_morphisms (discrete punit) :=
 { has_zero := by tidy }
 
 namespace has_zero_morphisms
 variables {C}
 
 /-- This lemma will be immediately superseded by `ext`, below. -/
-private lemma ext_aux (I J : has_zero_morphisms.{v} C)
-  (w : ∀ X Y : C, (@has_zero_morphisms.has_zero.{v} _ _ I X Y).zero = (@has_zero_morphisms.has_zero.{v} _ _ J X Y).zero) : I = J :=
+private lemma ext_aux (I J : has_zero_morphisms C)
+  (w : ∀ X Y : C, (@has_zero_morphisms.has_zero _ _ I X Y).zero = (@has_zero_morphisms.has_zero _ _ J X Y).zero) : I = J :=
 begin
   casesI I, casesI J,
   congr,
@@ -74,7 +74,7 @@ instances of `has_zero_morphisms` to exist at all.
 
 See, particularly, the note on `zero_morphisms_of_zero_object` below.
 -/
-lemma ext (I J : has_zero_morphisms.{v} C) : I = J :=
+lemma ext (I J : has_zero_morphisms C) : I = J :=
 begin
   apply ext_aux,
   intros X Y,
@@ -82,7 +82,7 @@ begin
   rw @has_zero_morphisms.zero_comp _ _ J,
 end
 
-instance : subsingleton (has_zero_morphisms.{v} C) :=
+instance : subsingleton (has_zero_morphisms C) :=
 ⟨ext⟩
 
 end has_zero_morphisms
@@ -90,13 +90,13 @@ end has_zero_morphisms
 open has_zero_morphisms
 
 section
-variables {C} [has_zero_morphisms.{v} C]
+variables {C} [has_zero_morphisms C]
 
 lemma zero_of_comp_mono {X Y Z : C} {f : X ⟶ Y} (g : Y ⟶ Z) [mono g] (h : f ≫ g = 0) : f = 0 :=
-by { rw [←zero_comp.{v} X g, cancel_mono] at h, exact h }
+by { rw [←zero_comp X g, cancel_mono] at h, exact h }
 
 lemma zero_of_epi_comp {X Y Z : C} (f : X ⟶ Y) {g : Y ⟶ Z} [epi f] (h : f ≫ g = 0) : g = 0 :=
-by { rw [←comp_zero.{v} f Z, cancel_epi] at h, exact h }
+by { rw [←comp_zero f Z, cancel_epi] at h, exact h }
 
 lemma eq_zero_of_image_eq_zero {X Y : C} {f : X ⟶ Y} [has_image f] (w : image.ι f = 0) : f = 0 :=
 by rw [←image.fac f, w, has_zero_morphisms.comp_zero]
@@ -109,7 +109,7 @@ section
 universes v' u'
 variables (D : Type u') [category.{v'} D]
 
-variables [has_zero_morphisms.{v} C] [has_zero_morphisms.{v'} D]
+variables [has_zero_morphisms C] [has_zero_morphisms D]
 
 @[simp] lemma equivalence_preserves_zero_morphisms (F : C ≌ D) (X Y : C) :
   F.functor.map (0 : X ⟶ Y) = (0 : F.functor.obj X ⟶ F.functor.obj Y) :=
@@ -130,7 +130,7 @@ class has_zero_object :=
 (unique_to : Π X : C, unique (zero ⟶ X))
 (unique_from : Π X : C, unique (X ⟶ zero))
 
-instance has_zero_object_punit : has_zero_object.{v} (discrete punit.{v+1}) :=
+instance has_zero_object_punit : has_zero_object (discrete punit) :=
 { zero := punit.star,
   unique_to := by tidy,
   unique_from := by tidy, }
@@ -139,25 +139,25 @@ variables {C}
 
 namespace has_zero_object
 
-variables [has_zero_object.{v} C]
+variables [has_zero_object C]
 
 /--
 Construct a `has_zero C` for a category with a zero object.
 This can not be a global instance as it will trigger for every `has_zero C` typeclass search.
 -/
 protected def has_zero : has_zero C :=
-{ zero := has_zero_object.zero.{v} }
+{ zero := has_zero_object.zero }
 
 local attribute [instance] has_zero_object.has_zero
 local attribute [instance] has_zero_object.unique_to has_zero_object.unique_from
 
 @[ext]
 lemma to_zero_ext {X : C} (f g : X ⟶ 0) : f = g :=
-by rw [(has_zero_object.unique_from.{v} X).uniq f, (has_zero_object.unique_from.{v} X).uniq g]
+by rw [(has_zero_object.unique_from X).uniq f, (has_zero_object.unique_from X).uniq g]
 
 @[ext]
 lemma from_zero_ext {X : C} (f g : 0 ⟶ X) : f = g :=
-by rw [(has_zero_object.unique_to.{v} X).uniq f, (has_zero_object.unique_to.{v} X).uniq g]
+by rw [(has_zero_object.unique_to X).uniq f, (has_zero_object.unique_to X).uniq g]
 
 instance {X : C} (f : 0 ⟶ X) : mono f :=
 { right_cancellation := λ Z g h w, by ext, }
@@ -173,14 +173,14 @@ instance {X : C} (f : X ⟶ 0) : epi f :=
     the `has_zero_morphisms` instances will not be definitionally equal. For this reason library
     code should generally ask for an instance of `has_zero_morphisms` separately, even if it already
     asks for an instance of `has_zero_objects`. -/
-def zero_morphisms_of_zero_object : has_zero_morphisms.{v} C :=
+def zero_morphisms_of_zero_object : has_zero_morphisms C :=
 { has_zero := λ X Y,
   { zero := inhabited.default (X ⟶ 0) ≫ inhabited.default (0 ⟶ Y) },
   zero_comp' := λ X Y Z f, by { dunfold has_zero.zero, rw category.assoc, congr, },
   comp_zero' := λ X Y Z f, by { dunfold has_zero.zero, rw ←category.assoc, congr, }}
 
 section
-variable [has_zero_morphisms.{v} C]
+variable [has_zero_morphisms C]
 
 /--  An arrow ending in the zero object is zero -/
 -- This can't be a `simp` lemma because the left hand side would be a metavariable.
@@ -194,10 +194,10 @@ by ext
 end
 
 /-- A zero object is in particular initial. -/
-def has_initial : has_initial.{v} C :=
+def has_initial : has_initial C :=
 has_initial_of_unique 0
 /-- A zero object is in particular terminal. -/
-def has_terminal : has_terminal.{v} C :=
+def has_terminal : has_terminal C :=
 has_terminal_of_unique 0
 
 end has_zero_object
@@ -205,7 +205,7 @@ end has_zero_object
 /-- If there are zero morphisms, any initial object is a zero object. -/
 @[priority 50]
 instance has_zero_object_of_has_initial_object
-  [has_zero_morphisms.{v} C] [has_initial.{v} C] : has_zero_object.{v} C :=
+  [has_zero_morphisms C] [has_initial C] : has_zero_object C :=
 { zero := ⊥_ C,
   unique_to := λ X, ⟨⟨0⟩, by tidy⟩,
   unique_from := λ X, ⟨⟨0⟩, λ f,
@@ -218,7 +218,7 @@ instance has_zero_object_of_has_initial_object
 /-- If there are zero morphisms, any terminal object is a zero object. -/
 @[priority 50]
 instance has_zero_object_of_has_terminal_object
-  [has_zero_morphisms.{v} C] [has_terminal.{v} C] : has_zero_object.{v} C :=
+  [has_zero_morphisms C] [has_terminal C] : has_zero_object C :=
 { zero := ⊤_ C,
   unique_from := λ X, ⟨⟨0⟩, by tidy⟩,
   unique_to := λ X, ⟨⟨0⟩, λ f,
@@ -231,36 +231,36 @@ instance has_zero_object_of_has_terminal_object
 /-- In the presence of zero morphisms, coprojections into a coproduct are (split) monomorphisms. -/
 instance split_mono_sigma_ι
   {β : Type v} [decidable_eq β]
-  [has_zero_morphisms.{v} C]
+  [has_zero_morphisms C]
   (f : β → C) [has_colimit (discrete.functor f)] (b : β) : split_mono (sigma.ι f b) :=
 { retraction := sigma.desc (λ b', if h : b' = b then eq_to_hom (congr_arg f h) else 0), }
 
 /-- In the presence of zero morphisms, projections into a product are (split) epimorphisms. -/
 instance split_epi_pi_π
   {β : Type v} [decidable_eq β]
-  [has_zero_morphisms.{v} C]
+  [has_zero_morphisms C]
   (f : β → C) [has_limit (discrete.functor f)] (b : β) : split_epi (pi.π f b) :=
 { section_ := pi.lift (λ b', if h : b = b' then eq_to_hom (congr_arg f h) else 0), }
 
 /-- In the presence of zero morphisms, coprojections into a coproduct are (split) monomorphisms. -/
 instance split_mono_coprod_inl
-  [has_zero_morphisms.{v} C] {X Y : C} [has_colimit (pair X Y)] :
+  [has_zero_morphisms C] {X Y : C} [has_colimit (pair X Y)] :
   split_mono (coprod.inl : X ⟶ X ⨿ Y) :=
 { retraction := coprod.desc (𝟙 X) 0, }
 /-- In the presence of zero morphisms, coprojections into a coproduct are (split) monomorphisms. -/
 instance split_mono_coprod_inr
-  [has_zero_morphisms.{v} C] {X Y : C} [has_colimit (pair X Y)] :
+  [has_zero_morphisms C] {X Y : C} [has_colimit (pair X Y)] :
   split_mono (coprod.inr : Y ⟶ X ⨿ Y) :=
 { retraction := coprod.desc 0 (𝟙 Y), }
 
 /-- In the presence of zero morphisms, projections into a product are (split) epimorphisms. -/
 instance split_epi_prod_fst
-  [has_zero_morphisms.{v} C] {X Y : C} [has_limit (pair X Y)] :
+  [has_zero_morphisms C] {X Y : C} [has_limit (pair X Y)] :
   split_epi (prod.fst : X ⨯ Y ⟶ X) :=
 { section_ := prod.lift (𝟙 X) 0, }
 /-- In the presence of zero morphisms, projections into a product are (split) epimorphisms. -/
 instance split_epi_prod_snd
-  [has_zero_morphisms.{v} C] {X Y : C} [has_limit (pair X Y)] :
+  [has_zero_morphisms C] {X Y : C} [has_limit (pair X Y)] :
   split_epi (prod.snd : X ⨯ Y ⟶ Y) :=
 { section_ := prod.lift 0 (𝟙 Y), }
 

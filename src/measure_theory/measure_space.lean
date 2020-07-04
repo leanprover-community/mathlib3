@@ -710,7 +710,7 @@ def count : measure α := sum dirac
 
 /-- The "almost everywhere" filter of co-null sets. -/
 def ae (μ : measure α) : filter α :=
-{ sets := {s | μ (-s) = 0},
+{ sets := {s | μ sᶜ = 0},
   univ_sets := by simp [measure_empty],
   inter_sets := λ s t hs ht, by simp [compl_inter]; exact measure_union_null hs ht,
   sets_of_superset := λ s t hs hst, measure_mono_null (set.compl_subset_compl.2 hst) hs }
@@ -721,7 +721,7 @@ variables {α : Type*} {β : Type*} [measurable_space α] {μ : measure α}
 
 notation `∀ₘ` binders `∂` μ `, ` r:(scoped P, μ.ae.eventually P) := r
 
-lemma mem_ae_iff (s : set α) : s ∈ μ.ae.sets ↔ μ (- s) = 0 := iff.rfl
+lemma mem_ae_iff (s : set α) : s ∈ μ.ae.sets ↔ μ sᶜ = 0 := iff.rfl
 
 lemma ae_iff {p : α → Prop} : (∀ₘ a ∂ μ, p a) ↔ μ { a | ¬ p a } = 0 := iff.rfl
 
@@ -729,7 +729,7 @@ lemma measure_zero_iff_ae_nmem {s : set α} : μ s = 0 ↔ ∀ₘ a ∂ μ, a �
 by simp only [ae_iff, not_not, set_of_mem_eq]
 
 lemma ae_of_all {p : α → Prop} (μ : measure α) : (∀a, p a) → ∀ₘ a ∂ μ, p a :=
-eventually_of_forall _
+eventually_of_forall
 
 instance : countable_Inter_filter μ.ae :=
 ⟨begin
@@ -860,7 +860,7 @@ end
 
 theorem is_null_measurable.compl {s : set α}
   (hs : is_null_measurable μ s) :
-  is_null_measurable μ (-s) :=
+  is_null_measurable μ sᶜ :=
 begin
   rcases hs with ⟨t, z, rfl, ht, hz⟩,
   rw compl_union,

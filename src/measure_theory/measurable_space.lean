@@ -69,7 +69,7 @@ variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x} {ι : Sort x}
 structure measurable_space (α : Type u) :=
 (is_measurable : set α → Prop)
 (is_measurable_empty : is_measurable ∅)
-(is_measurable_compl : ∀s, is_measurable s → is_measurable (- s))
+(is_measurable_compl : ∀s, is_measurable s → is_measurable sᶜ)
 (is_measurable_Union : ∀f:ℕ → set α, (∀i, is_measurable (f i)) → is_measurable (⋃i, f i))
 
 attribute [class] measurable_space
@@ -83,13 +83,13 @@ def is_measurable : set α → Prop := ‹measurable_space α›.is_measurable
 lemma is_measurable.empty : is_measurable (∅ : set α) :=
 ‹measurable_space α›.is_measurable_empty
 
-lemma is_measurable.compl : is_measurable s → is_measurable (-s) :=
+lemma is_measurable.compl : is_measurable s → is_measurable sᶜ :=
 ‹measurable_space α›.is_measurable_compl s
 
-lemma is_measurable.of_compl (h : is_measurable (-s)) : is_measurable s :=
+lemma is_measurable.of_compl (h : is_measurable sᶜ) : is_measurable s :=
 s.compl_compl ▸ h.compl
 
-lemma is_measurable.compl_iff : is_measurable (-s) ↔ is_measurable s :=
+lemma is_measurable.compl_iff : is_measurable sᶜ ↔ is_measurable s :=
 ⟨is_measurable.of_compl, is_measurable.compl⟩
 
 lemma is_measurable.univ : is_measurable (univ : set α) :=
@@ -170,10 +170,6 @@ lemma is_measurable.diff {s₁ s₂ : set α}
   (h₁ : is_measurable s₁) (h₂ : is_measurable s₂) : is_measurable (s₁ \ s₂) :=
 h₁.inter h₂.compl
 
-lemma is_measurable.sub {s₁ s₂ : set α} :
-  is_measurable s₁ → is_measurable s₂ → is_measurable (s₁ - s₂) :=
-is_measurable.diff
-
 lemma is_measurable.disjointed {f : ℕ → set α} (h : ∀i, is_measurable (f i)) (n) :
   is_measurable (disjointed f n) :=
 disjointed_induct (h n) (assume t i ht, is_measurable.diff ht $ h _)
@@ -203,7 +199,7 @@ instance : partial_order (measurable_space α) :=
 inductive generate_measurable (s : set (set α)) : set α → Prop
 | basic : ∀u∈s, generate_measurable u
 | empty : generate_measurable ∅
-| compl : ∀s, generate_measurable s → generate_measurable (-s)
+| compl : ∀s, generate_measurable s → generate_measurable sᶜ
 | union : ∀f:ℕ → set α, (∀n, generate_measurable (f n)) → generate_measurable (⋃i, f i)
 
 /-- Construct the smallest measure space containing a collection of basic sets -/
@@ -334,7 +330,7 @@ measurable_space.ext $ assume s, iff.rfl
 protected def comap (f : α → β) (m : measurable_space β) : measurable_space α :=
 { is_measurable       := λs, ∃s', m.is_measurable s' ∧ f ⁻¹' s' = s,
   is_measurable_empty := ⟨∅, m.is_measurable_empty, rfl⟩,
-  is_measurable_compl := assume s ⟨s', h₁, h₂⟩, ⟨-s', m.is_measurable_compl _ h₁, h₂ ▸ rfl⟩,
+  is_measurable_compl := assume s ⟨s', h₁, h₂⟩, ⟨s'ᶜ, m.is_measurable_compl _ h₁, h₂ ▸ rfl⟩,
   is_measurable_Union := assume s hs,
     let ⟨s', hs'⟩ := classical.axiom_of_choice hs in
     ⟨⋃i, s' i, m.is_measurable_Union _ (λi, (hs' i).left), by simp [hs'] ⟩ }
@@ -883,7 +879,7 @@ namespace measurable_space
 structure dynkin_system (α : Type*) :=
 (has : set α → Prop)
 (has_empty : has ∅)
-(has_compl : ∀{a}, has a → has (-a))
+(has_compl : ∀{a}, has a → has aᶜ)
 (has_Union_nat : ∀{f:ℕ → set α}, pairwise (disjoint on f) → (∀i, has (f i)) → has (⋃i, f i))
 
 theorem Union_decode2_disjoint_on
@@ -909,7 +905,7 @@ namespace dynkin_system
 
 variable (d : dynkin_system α)
 
-lemma has_compl_iff {a} : d.has (-a) ↔ d.has a :=
+lemma has_compl_iff {a} : d.has aᶜ ↔ d.has a :=
 ⟨λ h, by simpa using d.has_compl h, λ h, d.has_compl h⟩
 
 lemma has_univ : d.has univ :=
@@ -955,7 +951,7 @@ iff.rfl
 inductive generate_has (s : set (set α)) : set α → Prop
 | basic : ∀t∈s, generate_has t
 | empty : generate_has ∅
-| compl : ∀{a}, generate_has a → generate_has (-a)
+| compl : ∀{a}, generate_has a → generate_has aᶜ
 | Union : ∀{f:ℕ → set α}, pairwise (disjoint on f) →
     (∀i, generate_has (f i)) → generate_has (⋃i, f i)
 
@@ -991,7 +987,7 @@ def restrict_on {s : set α} (h : d.has s) : dynkin_system α :=
 { has       := λt, d.has (t ∩ s),
   has_empty := by simp [d.has_empty],
   has_compl := assume t hts,
-    have -t ∩ s = (- (t ∩ s)) \ -s,
+    have tᶜ ∩ s = ((t ∩ s)ᶜ) \ sᶜ,
       from set.ext $ assume x, by by_cases x ∈ s; simp [h],
     by rw [this]; from d.has_diff (d.has_compl hts) (d.has_compl h)
       (compl_subset_compl.mpr $ inter_subset_right _ _),
@@ -1038,7 +1034,7 @@ end dynkin_system
 lemma induction_on_inter {C : set α → Prop} {s : set (set α)} {m : measurable_space α}
   (h_eq : m = generate_from s)
   (h_inter : ∀t₁ t₂ : set α, t₁ ∈ s → t₂ ∈ s → (t₁ ∩ t₂).nonempty → t₁ ∩ t₂ ∈ s)
-  (h_empty : C ∅) (h_basic : ∀t∈s, C t) (h_compl : ∀t, m.is_measurable t → C t → C (- t))
+  (h_empty : C ∅) (h_basic : ∀t∈s, C t) (h_compl : ∀t, m.is_measurable t → C t → C tᶜ)
   (h_union : ∀f:ℕ → set α, (∀i j, i ≠ j → f i ∩ f j ⊆ ∅) →
     (∀i, m.is_measurable (f i)) → (∀i, C (f i)) → C (⋃i, f i)) :
   ∀{t}, m.is_measurable t → C t :=

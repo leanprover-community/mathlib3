@@ -319,7 +319,7 @@ show (λp:α×β, f p.1 p.2) (a, b) ∈ closure u, from
 
 lemma is_closed_prod {s₁ : set α} {s₂ : set β} (h₁ : is_closed s₁) (h₂ : is_closed s₂) :
   is_closed (set.prod s₁ s₂) :=
-closure_eq_iff_is_closed.mp $ by simp [h₁, h₂, closure_prod_eq, closure_eq_of_is_closed]
+closure_eq_iff_is_closed.mp $ by simp only [h₁.closure_eq, h₂.closure_eq, closure_prod_eq]
 
 lemma inducing.prod_mk {f : α → β} {g : γ → δ} (hf : inducing f) (hg : inducing g) :
   inducing (λx:α×γ, (f x.1, g x.2)) :=
@@ -778,12 +778,11 @@ end ulift
 
 lemma mem_closure_of_continuous [topological_space α] [topological_space β]
   {f : α → β} {a : α} {s : set α} {t : set β}
-  (hf : continuous f) (ha : a ∈ closure s) (h : ∀a∈s, f a ∈ closure t) :
+  (hf : continuous f) (ha : a ∈ closure s) (h : maps_to f s (closure t)) :
   f a ∈ closure t :=
 calc f a ∈ f '' closure s : mem_image_of_mem _ ha
   ... ⊆ closure (f '' s) : image_closure_subset_closure_image hf
-  ... ⊆ closure (closure t) : closure_mono $ image_subset_iff.mpr $ h
-  ... ⊆ closure t : begin rw [closure_eq_of_is_closed], exact subset.refl _, exact is_closed_closure end
+  ... ⊆ closure t : closure_minimal h.image_subset is_closed_closure
 
 lemma mem_closure_of_continuous2 [topological_space α] [topological_space β] [topological_space γ]
   {f : α → β → γ} {a : α} {b : β} {s : set α} {t : set β} {u : set γ}

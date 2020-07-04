@@ -191,7 +191,7 @@ namespace category_theory.iso
 /-- Build a `mul_equiv` from an isomorphism in the category `Mon`. -/
 @[to_additive AddMond_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category
 `AddMon`."]
-def Mon_iso_to_mul_equiv {X Y : Mon.{u}} (i : X ≅ Y) : X ≃* Y :=
+def Mon_iso_to_mul_equiv {X Y : Mon} (i : X ≅ Y) : X ≃* Y :=
 { to_fun    := i.hom,
   inv_fun   := i.inv,
   left_inv  := by tidy,
@@ -201,7 +201,7 @@ def Mon_iso_to_mul_equiv {X Y : Mon.{u}} (i : X ≅ Y) : X ≃* Y :=
 /-- Build a `mul_equiv` from an isomorphism in the category `CommMon`. -/
 @[to_additive AddCommMon_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category
 `AddCommMon`."]
-def CommMon_iso_to_mul_equiv {X Y : CommMon.{u}} (i : X ≅ Y) : X ≃* Y :=
+def CommMon_iso_to_mul_equiv {X Y : CommMon} (i : X ≅ Y) : X ≃* Y :=
 { to_fun    := i.hom,
   inv_fun   := i.inv,
   left_inv  := by tidy,

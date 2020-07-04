@@ -275,7 +275,7 @@ instance (G : Type u) [ordered_add_comm_group G] : ordered_comm_group (multiplic
   ..(by apply_instance : comm_group (multiplicative G)),
   ..(by apply_instance : partial_order G) }
 
-instance foo : ordered_comm_group (multiplicative ℤ) := by apply_instance
+instance foo2 : ordered_comm_group (multiplicative ℤ) := by apply_instance
 
 instance : linear_order (multiplicative ℤ) := (by apply_instance : linear_order ℤ)
 
@@ -299,11 +299,55 @@ def hom_with_zero {α β} [monoid α] [monoid β] (f : α →* β) : α →* wit
   map_one' := congr_arg some f.map_one,
   map_mul' := λ x y, congr_arg some $ f.map_mul _ _ }
 
-def canonical : multiplicative enat →* Γ :=
-{ to_fun := sorry,
-  map_one' :=
+def foo (n : enat) [decidable n.dom] : with_zero (multiplicative ℤ) :=
+n.to_option.map $ λ k, multiplicative.of_add (-k)
 
-}
+theorem foo_top' : foo ⊤ = 0 := rfl
+theorem foo_top {h : decidable (⊤ : enat).dom} : foo ⊤ = 0 := by convert foo_top'
+
+theorem foo_coe' (n : ℕ) : foo (n : ℕ) = ↑(multiplicative.of_add (-n : ℤ)) := rfl
+theorem foo_coe (n : ℕ) {h : decidable (n : enat).dom} :
+  foo (n : ℕ) = ↑(multiplicative.of_add (-n : ℤ)) := by convert foo_coe' n
+
+open_locale classical
+
+theorem foo_add (x y) : foo (x + y) = foo x * foo y :=
+begin
+  refine enat.cases_on x _ (λ m, _),
+  { simp_rw [enat.top_add, foo_top, zero_mul] },
+  refine enat.cases_on y _ (λ n, _),
+  { simp_rw [enat.add_top, foo_top, mul_zero] },
+  simp_rw [← enat.coe_add, foo_coe, int.coe_nat_add, neg_add, of_add_add, ← with_zero.mul_coe]
+end
+
+instance {α : Type u} [has_le α] : has_le (multiplicative α) := _inst_1
+instance {α : Type u} [preorder α] : preorder (multiplicative α) := _inst_1
+instance {α : Type u} [partial_order α] : partial_order (multiplicative α) := _inst_1
+instance multiplicative.linear_order' {α : Type u} [linear_order α] : linear_order (multiplicative α) := _inst_1
+
+theorem of_add_le {α : Type u} [has_le α] {x y : α} :
+  multiplicative.of_add x ≤ multiplicative.of_add y ↔ x ≤ y :=
+iff.rfl
+
+-- to replace
+instance multiplicative.ordered_comm_group' (G : Type u) [ordered_add_comm_group G] : ordered_comm_group (multiplicative G) :=
+{ mul_le_mul_left := @add_le_add_left G _,
+  ..(by apply_instance : comm_group (multiplicative G)),
+  ..(by apply_instance : partial_order (multiplicative G)) }
+
+instance multiplicative.linear_ordered_comm_group' (G : Type u) [decidable_linear_ordered_add_comm_group G] : linear_ordered_comm_group (multiplicative G) :=
+{ ..(by apply_instance : ordered_comm_group (multiplicative G)),
+  ..(by apply_instance : linear_order (multiplicative G)) }
+
+theorem foo_le (x y) : foo x ≤ foo y ↔ y ≤ x :=
+begin
+  refine enat.cases_on x _ (λ m, _),
+  { simp_rw [foo_top, with_zero.zero_le, le_top] },
+  refine enat.cases_on y _ (λ n, _),
+  { simp_rw [foo_top, with_zero.le_zero_iff, foo_coe, top_le_iff, with_zero.coe_ne_zero, enat.coe_ne_top] },
+  simp_rw [foo_coe, with_zero.coe_le_coe, of_add_le, neg_le_neg_iff, int.coe_nat_le, enat.coe_le_coe]
+end
+
 
 -- instance : complete_lattice enat :=  by apply_instance
 

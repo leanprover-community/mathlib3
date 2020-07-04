@@ -470,6 +470,15 @@ theorem pow_dvd_pow_of_dvd [comm_semiring R] {a b : R} (h : a ∣ b) : ∀ n : �
 | 0     := dvd_refl _
 | (n+1) := mul_dvd_mul h (pow_dvd_pow_of_dvd n)
 
+lemma pow_two_sub_pow_two {R : Type*} [comm_ring R] (a b : R) :
+  a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
+by simp only [pow_two, mul_sub, add_mul, sub_sub, add_sub, mul_comm, sub_add_cancel]
+
+lemma eq_or_eq_neg_of_pow_two_eq_pow_two [integral_domain R] (a b : R) (h : a ^ 2 = b ^ 2) :
+  a = b ∨ a = -b :=
+by rwa [← add_eq_zero_iff_eq_neg, ← sub_eq_zero, or_comm, ← mul_eq_zero,
+        ← pow_two_sub_pow_two a b, sub_eq_zero]
+
 -- The next four lemmas allow us to replace multiplication by a numeral with a `gsmul` expression.
 -- They are used by the `noncomm_ring` tactic, to normalise expressions before passing to `abel`.
 
@@ -678,6 +687,9 @@ end linear_ordered_semiring
 
 theorem pow_two_nonneg [linear_ordered_ring R] (a : R) : 0 ≤ a ^ 2 :=
 by { rw pow_two, exact mul_self_nonneg _ }
+
+theorem pow_two_pos_of_ne_zero [linear_ordered_ring R] (a : R) (h : a ≠ 0) : 0 < a ^ 2 :=
+lt_of_le_of_ne (pow_two_nonneg a) (pow_ne_zero 2 h).symm
 
 /-- Bernoulli's inequality for `n : ℕ`, `-2 ≤ a`. -/
 theorem one_add_mul_le_pow [linear_ordered_ring R] {a : R} (H : -2 ≤ a) :

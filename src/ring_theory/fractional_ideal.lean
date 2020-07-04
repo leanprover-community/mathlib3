@@ -433,7 +433,7 @@ instance : nonzero (fractional_ideal g) :=
 { zero_ne_one := λ h,
   have this : (1 : K) ∈ (0 : fractional_ideal g) :=
     by rw ←g.to_map.map_one; convert coe_mem_one _,
-  one_ne_zero (mem_zero_iff.mp this) }
+  @one_ne_zero _ _ _ domain.to_nonzero (mem_zero_iff.mp this) }
 
 lemma fractional_div_of_nonzero {I J : fractional_ideal g} (h : J ≠ 0) :
   is_fractional g (I.1 / J.1) :=

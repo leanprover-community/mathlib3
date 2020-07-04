@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 -/
 import algebra.associated
+import algebra.pointwise
 import linear_algebra.basic
 import order.zorn
 
@@ -47,7 +48,7 @@ lemma span_mono {s t : set α} : s ⊆ t → span s ≤ span t := submodule.span
 
 @[simp] lemma span_eq : span (I : set α) = I := submodule.span_eq _
 
-@[simp] lemma span_singleton_one : span ({1} : set α) = ⊤ :=
+@[simp] lemma span_singleton_one : span (1 : set α) = ⊤ :=
 (eq_top_iff_one _).2 $ subset_span $ mem_singleton _
 
 lemma mem_span_insert {s : set α} {x y} :
@@ -72,7 +73,8 @@ lemma span_eq_bot {s : set α} : span s = ⊥ ↔ ∀ x ∈ s, (x:α) = 0 := sub
 lemma span_singleton_eq_bot {x} : span ({x} : set α) = ⊥ ↔ x = 0 := submodule.span_singleton_eq_bot
 
 lemma span_singleton_eq_top {x} : span ({x} : set α) = ⊤ ↔ is_unit x :=
-by rw [is_unit_iff_dvd_one, ← span_singleton_le_span_singleton, span_singleton_one, eq_top_iff]
+by rw [is_unit_iff_dvd_one, ← span_singleton_le_span_singleton, singleton_one, span_singleton_one,
+  eq_top_iff]
 
 /-- An ideal `P` of a ring `R` is prime if `P ≠ R` and `xy ∈ P → x ∈ P ∨ y ∈ P` -/
 @[class] def is_prime (I : ideal α) : Prop :=

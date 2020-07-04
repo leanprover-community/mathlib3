@@ -347,28 +347,25 @@ instance : topological_add_group α :=
 end add_group_with_zero_nhd
 
 section filter_mul
-local attribute [instance]
-  set.pointwise_one set.pointwise_mul set.pointwise_add filter.pointwise_mul filter.pointwise_add
-  filter.pointwise_one
 
 section
 variables [topological_space α] [group α] [topological_group α]
 
 @[to_additive]
-lemma is_open_pointwise_mul_left {s t : set α} : is_open t → is_open (s * t) := λ ht,
+lemma is_open_mul_left {s t : set α} : is_open t → is_open (s * t) := λ ht,
 begin
   have : ∀a, is_open ((λ (x : α), a * x) '' t),
     assume a, apply is_open_map_mul_left, exact ht,
-  rw pointwise_mul_eq_Union_mul_left,
+  rw ← Union_mul_left_image,
   exact is_open_Union (λa, is_open_Union $ λha, this _),
 end
 
 @[to_additive]
-lemma is_open_pointwise_mul_right {s t : set α} : is_open s → is_open (s * t) := λ hs,
+lemma is_open_mul_right {s t : set α} : is_open s → is_open (s * t) := λ hs,
 begin
   have : ∀a, is_open ((λ (x : α), x * a) '' s),
     assume a, apply is_open_map_mul_right, exact hs,
-  rw pointwise_mul_eq_Union_mul_right,
+  rw ← Union_mul_right_image,
   exact is_open_Union (λa, is_open_Union $ λha, this _),
 end
 
@@ -388,14 +385,14 @@ lemma topological_group.regular_space [t1_space α] : regular_space α :=
    is_open_prod_iff.1 (hf _ (is_open_compl_iff.2 hs)) a (1:α) (by simpa [f]) in
  begin
    use s * t₂,
-   use is_open_pointwise_mul_left ht₂,
-   use λ x hx, ⟨x, hx, 1, one_mem_t₂, (mul_one _).symm⟩,
+   use is_open_mul_left ht₂,
+   use λ x hx, ⟨x, 1, hx, one_mem_t₂, mul_one _⟩,
    apply inf_principal_eq_bot,
    rw mem_nhds_sets_iff,
    refine ⟨t₁, _, ht₁, a_mem_t₁⟩,
-   rintros x hx ⟨y, hy, z, hz, yz⟩,
+   rintros x hx ⟨y, z, hy, hz, yz⟩,
    have : x * z⁻¹ ∈ sᶜ := (prod_subset_iff.1 t_subset) x hx z hz,
-   have : x * z⁻¹ ∈ s, rw yz, simpa,
+   have : x * z⁻¹ ∈ s, rw ← yz, simpa,
    contradiction
  end⟩
 
@@ -409,30 +406,30 @@ section
 variables [topological_space α] [comm_group α] [topological_group α]
 
 @[to_additive]
-lemma nhds_pointwise_mul (x y : α) : 𝓝 (x * y) = 𝓝 x * 𝓝 y :=
+lemma nhds_mul (x y : α) : 𝓝 (x * y) = 𝓝 x * 𝓝 y :=
 filter_eq $ set.ext $ assume s,
 begin
   rw [← nhds_translation_mul_inv x, ← nhds_translation_mul_inv y, ← nhds_translation_mul_inv (x*y)],
   split,
   { rintros ⟨t, ht, ts⟩,
     rcases exists_nhds_split ht with ⟨V, V_mem, h⟩,
-    refine ⟨(λa, a * x⁻¹) ⁻¹' V, ⟨V, V_mem, subset.refl _⟩,
-            (λa, a * y⁻¹) ⁻¹' V, ⟨V, V_mem, subset.refl _⟩, _⟩,
-    rintros a ⟨v, v_mem, w, w_mem, rfl⟩,
+    refine ⟨(λa, a * x⁻¹) ⁻¹' V, (λa, a * y⁻¹) ⁻¹' V,
+            ⟨V, V_mem, subset.refl _⟩, ⟨V, V_mem, subset.refl _⟩, _⟩,
+    rintros a ⟨v, w, v_mem, w_mem, rfl⟩,
     apply ts,
     simpa [mul_comm, mul_assoc, mul_left_comm] using h (v * x⁻¹) (w * y⁻¹) v_mem w_mem },
-  { rintros ⟨a, ⟨b, hb, ba⟩, c, ⟨d, hd, dc⟩, ac⟩,
+  { rintros ⟨a, c, ⟨b, hb, ba⟩, ⟨d, hd, dc⟩, ac⟩,
     refine ⟨b ∩ d, inter_mem_sets hb hd, assume v, _⟩,
     simp only [preimage_subset_iff, mul_inv_rev, mem_preimage] at *,
     rintros ⟨vb, vd⟩,
-    refine ac ⟨v * y⁻¹, _, y, _, _⟩,
+    refine ac ⟨v * y⁻¹, y, _, _, _⟩,
     { rw ← mul_assoc _ _ _ at vb, exact ba _ vb },
     { apply dc y, rw mul_right_inv, exact mem_of_nhds hd },
     { simp only [inv_mul_cancel_right] } }
 end
 
 @[to_additive]
-lemma nhds_is_mul_hom : is_mul_hom (λx:α, 𝓝 x) := ⟨λ_ _, nhds_pointwise_mul _ _⟩
+lemma nhds_is_mul_hom : is_mul_hom (λx:α, 𝓝 x) := ⟨λ_ _, nhds_mul _ _⟩
 
 end
 

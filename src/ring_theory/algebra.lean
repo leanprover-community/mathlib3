@@ -3,6 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
+import tactic.simps
 import data.matrix.basic
 import linear_algebra.tensor_product
 import data.equiv.ring
@@ -566,8 +567,8 @@ structure subalgebra (R : Type u) (A : Type v)
 
 namespace subalgebra
 
-variables {R : Type u} {A : Type v}
-variables [comm_ring R] [ring A] [algebra R A]
+variables {R : Type u} {A : Type v} {B : Type w}
+variables [comm_ring R] [ring A] [algebra R A] [ring B] [algebra R B]
 include R
 
 instance : has_coe (subalgebra R A) (set A) :=
@@ -650,6 +651,22 @@ def under {R : Type u} {A : Type v} [comm_ring R] [comm_ring A]
 lemma mul_mem (A' : subalgebra R A) (x y : A) :
   x ∈ A' → y ∈ A' → x * y ∈ A' := @is_submonoid.mul_mem A _ A' _ x y
 
+/-- Transport a subalgebra via an algebra homomorphism. -/
+def map (S : subalgebra R A) (f : A →ₐ[R] B) : subalgebra R B :=
+{ carrier := f '' (S : set A),
+  subring := ring_hom.is_subring_image (f : A →+* B) _,
+  range_le' := λ x ⟨r, hr⟩, ⟨algebra_map R A r, S.range_le ⟨r, rfl⟩, by rw [f.commutes, hr]⟩ }
+
+/-- Preimage of a subalgebra under an algebra homomorphism. -/
+def comap' (S : subalgebra R B) (f : A →ₐ[R] B) : subalgebra R A :=
+{ carrier := f ⁻¹' (S : set B),
+  subring := ring_hom.is_subring_preimage (f : A →+* B) _,
+  range_le' := λ x ⟨r, hr⟩, show f x ∈ S, by { rw [← hr, f.commutes], exact S.range_le ⟨r, rfl⟩ } }
+
+theorem map_le {S : subalgebra R A} {f : A →ₐ[R] B} {U : subalgebra R B} :
+  map S f ≤ U ↔ S ≤ comap' U f :=
+set.image_subset_iff
+
 end subalgebra
 
 namespace alg_hom
@@ -694,7 +711,8 @@ end algebra
 
 namespace algebra
 
-variables (R : Type u) {A : Type v} [comm_ring R] [ring A] [algebra R A]
+variables (R : Type u) {A : Type v} {B : Type w}
+variables [comm_ring R] [ring A] [algebra R A] [ring B] [algebra R B]
 
 /-- The minimal subalgebra that includes `s`. -/
 def adjoin (s : set A) : subalgebra R A :=
@@ -728,6 +746,16 @@ ring.mem_closure $ or.inr trivial
 theorem eq_top_iff {S : subalgebra R A} :
   S = ⊤ ↔ ∀ x : A, x ∈ S :=
 ⟨λ h x, by rw h; exact mem_top, λ h, by ext x; exact ⟨λ _, mem_top, λ _, h x⟩⟩
+
+@[simp] theorem map_top (f : A →ₐ[R] B) : subalgebra.map (⊤ : subalgebra R A) f = f.range :=
+subalgebra.ext $ λ x, ⟨λ ⟨y, _, hy⟩, ⟨y, hy⟩, λ ⟨y, hy⟩, ⟨y, algebra.mem_top, hy⟩⟩
+
+@[simp] theorem map_bot (f : A →ₐ[R] B) : subalgebra.map (⊥ : subalgebra R A) f = ⊥ :=
+eq_bot_iff.2 $ λ x ⟨y, hy, hfy⟩, let ⟨r, hr⟩ := mem_bot.1 hy in subalgebra.range_le _
+⟨r, by rwa [← f.commutes, hr]⟩
+
+@[simp] theorem comap_top (f : A →ₐ[R] B) : subalgebra.comap' (⊤ : subalgebra R B) f = ⊤ :=
+eq_top_iff.2 $ λ x, mem_top
 
 /-- `alg_hom` to `⊤ : subalgebra R A`. -/
 def to_top : A →ₐ[R] (⊤ : subalgebra R A) :=

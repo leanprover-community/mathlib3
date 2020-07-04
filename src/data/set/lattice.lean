@@ -669,6 +669,19 @@ infi_image
 
 end image
 
+section image2
+
+variables (f : α → β → γ) {s : set α} {t : set β}
+
+lemma Union_image_left : (⋃ a ∈ s, f a '' t) = image2 f s t :=
+by { ext y, split; simp only [mem_Union]; rintros ⟨a, ha, x, hx, ax⟩; exact ⟨a, x, ha, hx, ax⟩ }
+
+lemma Union_image_right : (⋃ b ∈ t, (λ a, f a b) '' s) = image2 f s t :=
+by { ext y, split; simp only [mem_Union]; rintros ⟨a, b, c, d, e⟩, exact ⟨c, a, d, b, e⟩,
+     exact ⟨b, d, a, c, e⟩ }
+
+end image2
+
 section preimage
 
 theorem monotone_preimage {f : α → β} : monotone (preimage f) := assume a b h, preimage_mono h

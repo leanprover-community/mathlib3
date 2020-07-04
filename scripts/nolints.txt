@@ -59,24 +59,6 @@ apply_nolint gt_iff_lt ge_or_gt
 apply_nolint discrete_linear_ordered_field doc_blame
 apply_nolint linear_ordered_field doc_blame
 
--- algebra/pointwise.lean
-apply_nolint set.add_comm_monoid doc_blame
-apply_nolint set.comm_monoid doc_blame
-apply_nolint set.pointwise_add doc_blame
-apply_nolint set.pointwise_add_add_monoid doc_blame
-apply_nolint set.pointwise_add_add_semigroup doc_blame
-apply_nolint set.pointwise_add_fintype doc_blame
-apply_nolint set.pointwise_inv doc_blame
-apply_nolint set.pointwise_mul doc_blame
-apply_nolint set.pointwise_mul_comm_semiring doc_blame
-apply_nolint set.pointwise_mul_fintype doc_blame
-apply_nolint set.pointwise_mul_monoid doc_blame
-apply_nolint set.pointwise_mul_semigroup doc_blame
-apply_nolint set.pointwise_mul_semiring doc_blame
-apply_nolint set.pointwise_neg doc_blame
-apply_nolint set.pointwise_one doc_blame
-apply_nolint set.pointwise_zero doc_blame
-
 -- algebra/ring.lean
 apply_nolint comm_ring doc_blame
 apply_nolint comm_semiring doc_blame
@@ -1494,14 +1476,6 @@ apply_nolint filter.rcomap' doc_blame
 apply_nolint filter.rmap doc_blame
 apply_nolint filter.rtendsto doc_blame
 apply_nolint filter.rtendsto' doc_blame
-
--- order/filter/pointwise.lean
-apply_nolint filter.pointwise_add doc_blame
-apply_nolint filter.pointwise_add_add_monoid doc_blame
-apply_nolint filter.pointwise_mul doc_blame
-apply_nolint filter.pointwise_mul_monoid doc_blame
-apply_nolint filter.pointwise_one doc_blame
-apply_nolint filter.pointwise_zero doc_blame
 
 -- order/fixed_points.lean
 apply_nolint fixed_points.next doc_blame

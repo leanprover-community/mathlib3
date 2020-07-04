@@ -3,6 +3,7 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
+import algebra.group.hom
 import tactic.alias
 import tactic.push_neg
 import tactic.localized
@@ -241,7 +242,10 @@ end is_unit
 lemma eq_zero_of_zero_eq_one (h : (0 : M₀) = 1) (a : M₀) : a = 0 :=
 by rw [← mul_one a, ← h, mul_zero]
 
-/-- In a monoid with zero, if zero equals one, then zero is the unique element. -/
+/-- In a monoid with zero, if zero equals one, then zero is the unique element.
+
+Somewhat arbitrarily, we define the default element to be `0`.
+All other elements will be provably equal to it, but not necessarily definitionally equal. -/
 def unique_of_zero_eq_one (h : (0 : M₀) = 1) : unique M₀ :=
 { default := 0, uniq := eq_zero_of_zero_eq_one h }
 
@@ -264,6 +268,15 @@ variable (M₀)
 /-- A monoid with zero is either nonzero, or has a unique element. -/
 noncomputable def nonzero_psum_unique : psum (nonzero M₀) (unique M₀) :=
 if h : (0:M₀) = 1 then psum.inr (unique_of_zero_eq_one h) else psum.inl ⟨h⟩
+
+/-- A monoid with zero is either a subsingleton or nonzero. -/
+lemma subsingleton_or_nonzero :  subsingleton M₀ ∨ nonzero M₀ :=
+begin
+  classical,
+  by_cases h : (0 : M₀) = 1,
+  { left, exact subsingleton_of_zero_eq_one h },
+  { right, exact ⟨h⟩ }
+end
 
 /-- In a monoid with zero, either zero and one are nonequal, or zero is the only element. -/
 lemma zero_ne_one_or_forall_eq_0 : (0 : M₀) ≠ 1 ∨ (∀a:M₀, a = 0) :=
@@ -310,12 +323,12 @@ group_with_zero.inv_zero
 @[simp] lemma mul_inv_cancel {a : G₀} (h : a ≠ 0) : a * a⁻¹ = 1 :=
 group_with_zero.mul_inv_cancel a h
 
-@[simp] lemma mul_inv_cancel_left' (a : G₀) {b : G₀} (h : b ≠ 0) :
+@[simp] lemma mul_inv_cancel_right' {b : G₀} (h : b ≠ 0) (a : G₀) :
   (a * b) * b⁻¹ = a :=
 calc (a * b) * b⁻¹ = a * (b * b⁻¹) : mul_assoc _ _ _
                ... = a             : by simp [h]
 
-@[simp] lemma mul_inv_cancel_right' {a : G₀} (h : a ≠ 0) (b : G₀) :
+@[simp] lemma mul_inv_cancel_left' {a : G₀} (h : a ≠ 0) (b : G₀) :
   a * (a⁻¹ * b) = b :=
 calc a * (a⁻¹ * b) = (a * a⁻¹) * b : (mul_assoc _ _ _).symm
                ... = b             : by simp [h]
@@ -328,12 +341,12 @@ calc a⁻¹ * a = (a⁻¹ * a) * a⁻¹ * a⁻¹⁻¹ : by simp [inv_ne_zero h]
          ... = a⁻¹ * a⁻¹⁻¹             : by simp [h]
          ... = 1                       : by simp [inv_ne_zero h]
 
-@[simp] lemma inv_mul_cancel_left' (a : G₀) {b : G₀} (h : b ≠ 0) :
+@[simp] lemma inv_mul_cancel_right' {b : G₀} (h : b ≠ 0) (a : G₀) :
   (a * b⁻¹) * b = a :=
 calc (a * b⁻¹) * b = a * (b⁻¹ * b) : mul_assoc _ _ _
                ... = a             : by simp [h]
 
-@[simp] lemma inv_mul_cancel_right' {a : G₀} (h : a ≠ 0) (b : G₀) :
+@[simp] lemma inv_mul_cancel_left' {a : G₀} (h : a ≠ 0) (b : G₀) :
   a⁻¹ * (a * b) = b :=
 calc a⁻¹ * (a * b) = (a⁻¹ * a) * b : (mul_assoc _ _ _).symm
                ... = b             : by simp [h]
@@ -395,13 +408,11 @@ inv_inv'
 
 lemma eq_inv_of_mul_right_eq_one {a b : G₀} (h : a * b = 1) :
   b = a⁻¹ :=
-calc b = a⁻¹ * (a * b) : (inv_mul_cancel_right' (left_ne_zero_of_mul_eq_one h) _).symm
-   ... = a⁻¹ : by simp [h]
+by rw [← inv_mul_cancel_left' (left_ne_zero_of_mul_eq_one h) b, h, mul_one]
 
 lemma eq_inv_of_mul_left_eq_one {a b : G₀} (h : a * b = 1) :
   a = b⁻¹ :=
-calc a = (a * b) * b⁻¹ : (mul_inv_cancel_left' _ (right_ne_zero_of_mul_eq_one h)).symm
-   ... = b⁻¹ : by simp [h]
+by rw [← mul_inv_cancel_right' (right_ne_zero_of_mul_eq_one h) a, h, one_mul]
 
 lemma inv_injective' : function.injective (@has_inv.inv G₀ _) :=
 inv_involutive'.injective
@@ -466,9 +477,9 @@ instance group_with_zero.no_zero_divisors : no_zero_divisors G₀ :=
 
 instance group_with_zero.cancel_monoid_with_zero : cancel_monoid_with_zero G₀ :=
 { mul_left_cancel_of_ne_zero := λ x y z hx h,
-    by rw [← inv_mul_cancel_right' hx y, h, inv_mul_cancel_right' hx z],
+    by rw [← inv_mul_cancel_left' hx y, h, inv_mul_cancel_left' hx z],
   mul_right_cancel_of_ne_zero := λ x y z hy h,
-    by rw [← mul_inv_cancel_left' x hy, h, mul_inv_cancel_left' z hy],
+    by rw [← mul_inv_cancel_right' hy x, h, mul_inv_cancel_right' hy z],
   .. (‹_› : group_with_zero G₀) }
 
 end prio
@@ -495,13 +506,13 @@ lemma one_div (a : G₀) : 1 / a = a⁻¹ := one_mul _
 show a * 0⁻¹ = 0, by rw [inv_zero, mul_zero]
 
 @[simp] lemma div_mul_cancel (a : G₀) {b : G₀} (h : b ≠ 0) : a / b * b = a :=
-inv_mul_cancel_left' a h
+inv_mul_cancel_right' h a
 
 lemma div_mul_cancel_of_imp {a b : G₀} (h : b = 0 → a = 0) : a / b * b = a :=
 classical.by_cases (λ hb : b = 0, by simp [*]) (div_mul_cancel a)
 
 @[simp] lemma mul_div_cancel (a : G₀) {b : G₀} (h : b ≠ 0) : a * b / b = a :=
-mul_inv_cancel_left' a h
+mul_inv_cancel_right' h a
 
 lemma mul_div_cancel_of_imp {a b : G₀} (h : b = 0 → a = 0) : a * b / b = a :=
 classical.by_cases (λ hb : b = 0, by simp [*]) (mul_div_cancel a)
@@ -600,11 +611,11 @@ lemma div_eq_one_iff_eq (hb : b ≠ 0) : a / b = 1 ↔ a = b :=
 ⟨eq_of_div_eq_one, λ h, h.symm ▸ div_self hb⟩
 
 lemma div_mul_left {a b : G₀} (hb : b ≠ 0) : b / (a * b) = 1 / a :=
-by simp only [div_eq_mul_inv, mul_inv_rev', mul_inv_cancel_right' hb, one_mul]
+by simp only [div_eq_mul_inv, mul_inv_rev', mul_inv_cancel_left' hb, one_mul]
 
 lemma mul_div_mul_right (a b : G₀) {c : G₀} (hc : c ≠ 0) :
   (a * c) / (b * c) = a / b :=
-by simp only [div_eq_mul_inv, mul_inv_rev', mul_assoc, mul_inv_cancel_right' hc]
+by simp only [div_eq_mul_inv, mul_inv_rev', mul_assoc, mul_inv_cancel_left' hc]
 
 lemma mul_mul_div (a : G₀) {b : G₀} (hb : b ≠ 0) : a = a * b * (1 / b) :=
 by simp [hb]
@@ -810,6 +821,8 @@ end commute
 
 namespace monoid_hom
 
+section group_with_zero
+
 variables {G₀' : Type*} [group_with_zero G₀] [group_with_zero G₀'] (f : G₀ →* G₀') (h0 : f 0 = 0)
   {a : G₀}
 
@@ -832,5 +845,17 @@ begin
 end
 
 lemma map_div : f (a / b) = f a / f b := (f.map_mul _ _).trans $ congr_arg _ $ f.map_inv' h0 b
+
+end group_with_zero
+
+section comm_group_with_zero
+
+@[simp] lemma map_units_inv {M G₀ : Type*} [monoid M] [comm_group_with_zero G₀]
+  (f : M →* G₀) (u : units M) : f ↑u⁻¹ = (f u)⁻¹ :=
+have f (u * ↑u⁻¹) = 1 := by rw [←units.coe_mul, mul_inv_self, units.coe_one, f.map_one],
+inv_unique (trans (f.map_mul _ _).symm this)
+  (mul_inv_cancel (λ hu, zero_ne_one (trans (by rw [f.map_mul, hu, zero_mul]) this)))
+
+end comm_group_with_zero
 
 end monoid_hom

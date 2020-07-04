@@ -94,18 +94,13 @@ theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t) : submodule R A) =
   (adjoin R s) * (adjoin R t) :=
 begin
   rw [adjoin_eq_span, adjoin_eq_span, adjoin_eq_span, span_mul_span],
-  congr' 1,
-  ext z,
-  rw monoid.mem_closure_union_iff,
-  split;
-  { rintro ⟨y, hys, z, hzt, rfl⟩, exact ⟨_, hys, _, hzt, rfl⟩ }
+  congr' 1, ext z, simp [monoid.mem_closure_union_iff, set.mem_mul],
 end
+
 variables {R s t}
 
 theorem adjoin_int (s : set R) : adjoin ℤ s = subalgebra_of_subring (ring.closure s) :=
 le_antisymm (adjoin_le subset_closure) (closure_subset subset_adjoin)
-
-local attribute [instance] set.pointwise_mul_semiring
 
 theorem fg_trans (h1 : (adjoin R s : submodule R A).fg)
   (h2 : (adjoin (adjoin R s) t : submodule (adjoin R s) A).fg) :
@@ -113,9 +108,9 @@ theorem fg_trans (h1 : (adjoin R s : submodule R A).fg)
 begin
   rcases fg_def.1 h1 with ⟨p, hp, hp'⟩,
   rcases fg_def.1 h2 with ⟨q, hq, hq'⟩,
-  refine fg_def.2 ⟨p * q, set.pointwise_mul_finite hp hq, le_antisymm _ _⟩,
+  refine fg_def.2 ⟨p * q, hp.mul hq, le_antisymm _ _⟩,
   { rw [span_le],
-    rintros _ ⟨x, hx, y, hy, rfl⟩,
+    rintros _ ⟨x, y, hx, hy, rfl⟩,
     change x * y ∈ _,
     refine is_submonoid.mul_mem _ _,
     { have : x ∈ (adjoin R s : submodule R A),
@@ -144,7 +139,7 @@ begin
     rw [←hl, finsupp.sum_mul],
     refine sum_mem _ _,
     intros t ht, change _ * _ ∈ _, rw smul_mul_assoc, refine smul_mem _ _ _,
-    exact subset_span ⟨t, hlp ht, z, hlq hz, rfl⟩ }
+    exact subset_span ⟨t, z, hlp ht, hlq hz, rfl⟩ }
 end
 
 end algebra

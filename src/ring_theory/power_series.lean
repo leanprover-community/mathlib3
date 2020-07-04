@@ -601,8 +601,8 @@ variable [comm_ring α]
 
 /-- Multivariate formal power series over a local ring form a local ring.-/
 instance is_local_ring [local_ring α] : local_ring (mv_power_series σ α) :=
-{ zero_ne_one := by { have H : (0:α) ≠ 1 := ‹local_ring α›.zero_ne_one, contrapose! H,
-    simpa using congr_arg (constant_coeff σ α) H },
+{ exists_ne_zero := ⟨1, by { have H : (0:α) ≠ 1 := zero_ne_one, contrapose! H,
+    simpa using congr_arg (constant_coeff σ α) H }⟩,
   is_local := by { intro φ, rcases local_ring.is_local (constant_coeff σ α φ) with ⟨u,h⟩|⟨u,h⟩;
     [left, right];
     { refine is_unit_of_mul_eq_one _ _ (mul_inv_of_unit _ u _),
@@ -616,7 +616,7 @@ section nonzero
 variables [semiring α] [nonzero α]
 
 instance : nonzero (mv_power_series σ α) :=
-{ zero_ne_one := assume h, zero_ne_one $ show (0:α) = 1, from congr_arg (constant_coeff σ α) h }
+⟨⟨1, ne.symm $ assume h, zero_ne_one $ show (0:α) = 1, from congr_arg (constant_coeff σ α) h ⟩⟩
 
 lemma X_inj {s t : σ} : (X s : mv_power_series σ α) = X t ↔ s = t :=
 ⟨begin
@@ -651,7 +651,7 @@ end⟩
 variables [local_ring α] [local_ring β]
 
 instance : local_ring (mv_power_series σ α) :=
-{ zero_ne_one := zero_ne_one,
+{ exists_ne_zero := ⟨1, one_ne_zero⟩,
   is_local := local_ring.is_local }
 
 end local_ring
@@ -1148,8 +1148,8 @@ end
 
 instance : integral_domain (power_series α) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero,
-  .. power_series.comm_ring,
-  .. power_series.nonzero }
+  zero_ne_one := zero_ne_one,
+  .. power_series.comm_ring }
 
 /-- The ideal spanned by the variable in the power series ring
  over an integral domain is a prime ideal.-/

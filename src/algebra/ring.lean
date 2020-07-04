@@ -74,8 +74,8 @@ alias right_distrib ← add_mul
 ### Semirings
 -/
 
-@[protect_proj, ancestor add_comm_monoid monoid distrib mul_zero_class]
-class semiring (α : Type u) extends add_comm_monoid α, monoid α, distrib α, mul_zero_class α
+@[protect_proj, ancestor add_comm_monoid monoid_with_zero distrib]
+class semiring (α : Type u) extends add_comm_monoid α, monoid_with_zero α, distrib α
 
 section semiring
 variables [semiring α]
@@ -313,6 +313,9 @@ end ring_hom
 
 @[protect_proj, ancestor semiring comm_monoid]
 class comm_semiring (α : Type u) extends semiring α, comm_monoid α
+
+instance comm_semiring.to_comm_monoid_with_zero [comm_semiring α] : comm_monoid_with_zero α :=
+{ .. comm_semiring.to_comm_monoid α, .. comm_semiring.to_semiring α }
 
 section comm_semiring
 variables [comm_semiring α] [comm_semiring β] {a b c : α}
@@ -696,10 +699,6 @@ lemma pred_ne_self [ring α] [nonzero α] (a : α) : a - 1 ≠ a :=
 lemma units.coe_ne_zero [semiring α] [nonzero α] (u : units α) : (u : α) ≠ 0 :=
 λ h : u.1 = 0, by simpa [h, zero_ne_one] using u.3
 
-/-- Proves that a semiring that contains at least two distinct elements is nonzero. -/
-theorem nonzero.of_ne [semiring α] {x y : α} (h : x ≠ y) : nonzero α :=
-{ zero_ne_one := λ h01, h $ by rw [← one_mul x, ← one_mul y, ← h01, zero_mul, zero_mul] }
-
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
   is an integral domain without assuming commutativity of multiplication. -/
@@ -714,7 +713,7 @@ instance domain.to_no_zero_divisors : no_zero_divisors α :=
 ⟨domain.eq_zero_or_eq_zero_of_mul_eq_zero⟩
 
 instance domain.to_nonzero : nonzero α :=
-⟨domain.zero_ne_one⟩
+⟨⟨1, domain.zero_ne_one.symm⟩⟩
 
 /-- Right multiplication by a nonzero element in a domain is injective. -/
 theorem domain.mul_left_inj {a b c : α} (ha : a ≠ 0) : b * a = c * a ↔ b = c :=

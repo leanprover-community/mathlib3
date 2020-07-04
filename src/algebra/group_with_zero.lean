@@ -34,7 +34,7 @@ and require `0⁻¹ = 0`.
 
 set_option old_structure_cmd true
 
-variables {G₀ : Type*}
+variables {G₀ : Type*} {G₁ : Type*}
 
 mk_simp_attribute field_simps "The simpset `field_simps` is used by the tactic `field_simp` to
 reduce an expression in a field to an expression of the form `n / d` where `n` and `d` are
@@ -56,18 +56,14 @@ mul_zero_class.zero_mul a
 @[ematch, simp] lemma mul_zero [mul_zero_class G₀] (a : G₀) : a * 0 = 0 :=
 mul_zero_class.mul_zero a
 
-/-- Predicate typeclass for expressing that a (semi)ring or similar algebraic structure
-is nonzero. -/
-@[protect_proj] class nonzero (G₀ : Type*) [has_zero G₀] [has_one G₀] : Prop :=
-(zero_ne_one : 0 ≠ (1:G₀))
+/-- Predicate typeclass for expressing that a (semi)ring or a vector space or a similar algebraic
+structure is not reduced to zero. -/
+@[protect_proj] class nonzero (G₀ : Type*) [has_zero G₀] : Prop :=
+(exists_ne_zero : ∃ (x : G₀), x ≠ 0)
 
-@[simp]
-lemma zero_ne_one [has_zero G₀] [has_one G₀] [nonzero G₀] : 0 ≠ (1:G₀) :=
-nonzero.zero_ne_one
-
-@[simp]
-lemma one_ne_zero [has_zero G₀] [has_one G₀] [nonzero G₀] : (1:G₀) ≠ 0 :=
-zero_ne_one.symm
+lemma exists_ne_zero (G₀ : Type*) [has_zero G₀] [nonzero G₀] :
+  ∃ (x : G₀), x ≠ 0 :=
+nonzero.exists_ne_zero
 
 /-- Predicate typeclass for expressing that `a * b = 0` implies `a = 0` or `b = 0`
 for all `a` and `b` of type `G₀`. -/
@@ -127,6 +123,28 @@ set_option default_priority 10 -- see Note [default priority]
 /-- A type `M` is a “monoid with zero” if it is a monoid with zero element. -/
 @[protect_proj] class monoid_with_zero (G₀ : Type*) extends monoid G₀, mul_zero_class G₀.
 
+@[simp] lemma zero_ne_one [monoid_with_zero G₀] [nonzero G₀] : 0 ≠ (1:G₀) :=
+begin
+  assume h,
+  rcases exists_ne_zero G₀ with ⟨x, hx⟩,
+  apply hx,
+  calc x = 1 * x : by rw [one_mul]
+  ... = 0 : by rw [← h, zero_mul]
+end
+
+@[simp]
+lemma one_ne_zero [monoid_with_zero G₀] [nonzero G₀] : (1:G₀) ≠ 0 :=
+zero_ne_one.symm
+
+/-- Proves that a monoid with zero that contains at least two distinct elements is nonzero. -/
+theorem nonzero.of_ne [monoid_with_zero G₀] {x y : G₀} (h : x ≠ y) : nonzero G₀ :=
+⟨⟨1, begin
+  contrapose! h,
+  calc x = 0 * x : by rw [← h, one_mul]
+     ... = 0 * y : by rw [zero_mul, zero_mul]
+     ... = y : by rw [← h, one_mul]
+end⟩⟩
+
 /-- A type `M` is a commutative “monoid with zero”
 if it is a commutative monoid with zero element. -/
 @[protect_proj]
@@ -144,7 +162,7 @@ class group_with_zero (G₀ : Type*) extends monoid_with_zero G₀, has_inv G₀
 (zero_ne_one : (0 : G₀) ≠ 1)
 
 instance group_with_zero.to_nonzero (G₀ : Type*) [group_with_zero G₀] : nonzero G₀ :=
-⟨group_with_zero.zero_ne_one⟩
+⟨⟨(1 : G₀), group_with_zero.zero_ne_one.symm⟩⟩
 
 /-- A type `G₀` is a commutative “group with zero”
 if it is a commutative monoid with zero element (distinct from `1`)

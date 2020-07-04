@@ -118,7 +118,7 @@ instance [one : has_one α] : has_one (with_zero α) :=
 { ..one }
 
 instance [has_one α] : nonzero (with_zero α) :=
-{ zero_ne_one := λ h, option.no_confusion h }
+⟨⟨1, λ h, option.no_confusion h⟩⟩
 
 lemma coe_one [has_one α] : ((1 : α) : with_zero α) = 1 := rfl
 

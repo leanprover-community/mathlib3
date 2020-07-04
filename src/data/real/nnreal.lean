@@ -198,11 +198,11 @@ instance : linear_ordered_comm_group_with_zero ℝ≥0 :=
   .. nnreal.comm_group_with_zero }
 
 instance : canonically_ordered_comm_semiring ℝ≥0 :=
-{ .. nnreal.linear_ordered_semiring,
+{ zero_ne_one := zero_ne_one,
+  .. nnreal.linear_ordered_semiring,
   .. nnreal.canonically_ordered_add_monoid,
   .. nnreal.comm_semiring,
-  .. (show no_zero_divisors ℝ≥0, by apply_instance),
-  .. (show nonzero ℝ≥0, by apply_instance) }
+  .. (show no_zero_divisors ℝ≥0, by apply_instance), }
 
 instance : densely_ordered ℝ≥0 :=
 ⟨assume a b (h : (a : ℝ) < b), let ⟨c, hac, hcb⟩ := dense h in

@@ -251,7 +251,7 @@ theorem zero_ne_one_iff {I : ideal α} : (0 : I.quotient) ≠ 1 ↔ I ≠ ⊤ :=
 not_congr zero_eq_one_iff
 
 protected theorem nonzero {I : ideal α} (hI : I ≠ ⊤) : nonzero I.quotient :=
-{ zero_ne_one := zero_ne_one_iff.2 hI }
+⟨⟨1, (zero_ne_one_iff.2 hI).symm ⟩⟩
 
 instance (I : ideal α) [hI : I.is_prime] : integral_domain I.quotient :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b,
@@ -259,7 +259,7 @@ instance (I : ideal α) [hI : I.is_prime] : integral_domain I.quotient :=
       (hI.mem_or_mem (eq_zero_iff_mem.1 hab)).elim
         (or.inl ∘ eq_zero_iff_mem.2)
         (or.inr ∘ eq_zero_iff_mem.2),
-  ..quotient.nonzero hI.1,
+  zero_ne_one := by { haveI : nonzero I.quotient := quotient.nonzero hI.1, exact zero_ne_one },
   ..quotient.comm_ring I }
 
 lemma exists_inv {I : ideal α} [hI : I.is_maximal] :
@@ -437,7 +437,7 @@ end local_ring
 
 lemma local_of_nonunits_ideal [comm_ring α] (hnze : (0:α) ≠ 1)
   (h : ∀ x y ∈ nonunits α, x + y ∈ nonunits α) : local_ring α :=
-{ zero_ne_one := hnze,
+{ exists_ne_zero := ⟨1, hnze.symm⟩,
   is_local := λ x, or_iff_not_imp_left.mpr $ λ hx,
 begin
   by_contra H,

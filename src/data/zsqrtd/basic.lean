@@ -116,7 +116,7 @@ instance : ring ℤ√d               := by apply_instance
 instance : distrib ℤ√d            := by apply_instance
 
 instance : nonzero ℤ√d :=
-{ zero_ne_one := dec_trivial }
+⟨⟨1, dec_trivial⟩⟩
 
 @[simp] theorem coe_nat_re (n : ℕ) : (n : ℤ√d).re = n :=
 by induction n; simp *

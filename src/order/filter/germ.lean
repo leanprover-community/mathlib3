@@ -376,9 +376,9 @@ variables {R : Type*}
 
 /-- If `0 ≠ 1` in `β` and `l` is a non-trivial filter (`l ≠ ⊥`), then `0 ≠ 1` in `germ l β`.
 This cannot be an `instance` because it depends on `l ≠ ⊥`. -/
-protected lemma nonzero [has_zero R] [has_one R] [nonzero R] (hl : l ≠ ⊥) :
+protected lemma nonzero [has_zero R] [nonzero R] (hl : l ≠ ⊥) :
   nonzero (germ l R) :=
-{ zero_ne_one := mt (const_inj hl).1 zero_ne_one }
+let ⟨x, hx⟩ := exists_ne_zero R in ⟨⟨↑x, mt (const_inj hl).1 hx⟩⟩
 
 instance [mul_zero_class R] : mul_zero_class (germ l R) :=
 { zero := 0,

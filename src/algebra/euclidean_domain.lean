@@ -42,7 +42,7 @@ variables [euclidean_domain α]
 local infix ` ≺ `:50 := euclidean_domain.r
 
 @[priority 70] -- see Note [lower instance priority]
-instance : nonzero α := ⟨euclidean_domain.zero_ne_one⟩
+instance : nonzero α := ⟨⟨1, euclidean_domain.zero_ne_one.symm⟩⟩
 
 @[priority 70] -- see Note [lower instance priority]
 instance : has_div α := ⟨euclidean_domain.quotient⟩
@@ -350,8 +350,8 @@ instance int.euclidean_domain : euclidean_domain ℤ :=
   mul_left_not_lt := λ a b b0, not_lt_of_ge $
     by rw [← mul_one a.nat_abs, int.nat_abs_mul];
     exact mul_le_mul_of_nonneg_left (int.nat_abs_pos_of_ne_zero b0) (nat.zero_le _),
-  .. int.comm_ring,
-  .. int.nonzero }
+  zero_ne_one := zero_ne_one,
+  .. int.comm_ring }
 
 @[priority 100] -- see Note [lower instance priority]
 instance field.to_euclidean_domain {K : Type u} [field K] : euclidean_domain K :=

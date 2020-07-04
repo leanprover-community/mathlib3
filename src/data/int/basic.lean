@@ -46,7 +46,7 @@ instance : ring int               := by apply_instance
 instance : distrib int            := by apply_instance
 
 instance : nonzero ℤ :=
-{ zero_ne_one := int.zero_ne_one }
+{ exists_ne_zero := ⟨1, int.zero_ne_one.symm⟩ }
 
 instance : inhabited ℤ := ⟨int.zero⟩
 

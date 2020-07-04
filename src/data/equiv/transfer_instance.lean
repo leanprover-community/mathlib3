@@ -141,8 +141,8 @@ protected def comm_ring [comm_ring β] : comm_ring α :=
   ..equiv.ring e }
 
 /-- Transfer `nonzero` across an `equiv` -/
-protected theorem nonzero [has_zero β] [has_one β] [nonzero β] : @nonzero α e.has_zero e.has_one :=
-{ zero_ne_one := by simp [zero_def, one_def] }
+protected theorem nonzero [has_zero β] [nonzero β] : @nonzero α e.has_zero :=
+{ exists_ne_zero := let ⟨x, hx⟩ := exists_ne_zero β in ⟨e.symm x, e.symm.injective.ne hx⟩ }
 
 /-- Transfer `domain` across an `equiv` -/
 protected def domain [domain β] : domain α :=

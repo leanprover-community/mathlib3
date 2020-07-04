@@ -438,7 +438,7 @@ section ordered_ring
 variables [ordered_ring α] {a b c : α}
 
 instance ordered_ring.to_nonzero : nonzero α :=
-⟨ordered_ring.zero_ne_one⟩
+⟨⟨1, ordered_ring.zero_ne_one.symm⟩⟩
 
 lemma ordered_ring.mul_nonneg (a b : α) (h₁ : 0 ≤ a) (h₂ : 0 ≤ b) : 0 ≤ a * b :=
 begin
@@ -937,7 +937,7 @@ variables [canonically_ordered_comm_semiring α] {a b : α}
 open canonically_ordered_add_monoid (le_iff_exists_add)
 
 instance canonically_ordered_comm_semiring.to_nonzero : nonzero α :=
-⟨canonically_ordered_comm_semiring.zero_ne_one⟩
+⟨⟨1, canonically_ordered_comm_semiring.zero_ne_one.symm⟩⟩
 
 instance canonically_ordered_comm_semiring.to_no_zero_divisors :
   no_zero_divisors α :=
@@ -962,8 +962,8 @@ end canonically_ordered_semiring
 
 namespace with_top
 
-instance [has_zero α] [has_one α] [nonzero α] : nonzero (with_top α) :=
-⟨mt coe_eq_coe.1 zero_ne_one⟩
+instance [has_zero α] : nonzero (with_top α) :=
+⟨⟨⊤, top_ne_zero⟩⟩
 
 variable [decidable_eq α]
 
@@ -1074,7 +1074,8 @@ instance : canonically_ordered_comm_semiring (with_top α) :=
   mul_comm        := comm,
   one_mul         := one_mul',
   mul_one         := assume a, by rw [comm, one_mul'],
+  zero_ne_one     := by { have : ¬ ((0 : α) = 1) := zero_ne_one, rwa ← coe_eq_coe at this },
   .. with_top.add_comm_monoid, .. with_top.mul_zero_class, .. with_top.canonically_ordered_add_monoid,
-  .. with_top.no_zero_divisors, .. with_top.nonzero }
+  .. with_top.no_zero_divisors }
 
 end with_top

@@ -22,7 +22,7 @@ universes u v
 attribute [protected] nat.pow_zero nat.pow_succ
 
 instance : nonzero ℕ :=
-{ zero_ne_one := nat.zero_ne_one }
+{ exists_ne_zero := ⟨1, nat.zero_ne_one.symm⟩ }
 
 instance : comm_semiring nat :=
 { add            := nat.add,

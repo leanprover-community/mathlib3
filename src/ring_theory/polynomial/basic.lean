@@ -260,7 +260,8 @@ is_noetherian_submodule_left.1 (is_noetherian_of_fg_of_noetherian _
 end ideal
 
 /-- Hilbert basis theorem: a polynomial ring over a noetherian ring is a noetherian ring. -/
-protected theorem polynomial.is_noetherian_ring [is_noetherian_ring R] : is_noetherian_ring (polynomial R) :=
+protected theorem polynomial.is_noetherian_ring [is_noetherian_ring R] :
+  is_noetherian_ring (polynomial R) :=
 ⟨assume I : ideal (polynomial R),
 let L := I.leading_coeff in
 let M := well_founded.min (is_noetherian_iff_well_founded.1 (by apply_instance))
@@ -288,7 +289,7 @@ from hs ▸ λ x hx, submodule.span_induction hx (λ _ hx, ideal.subset_span hx)
     have : (0 : R) ≠ 1,
     { intro h, apply hp0, ext i, refine (mul_one _).symm.trans _,
       rw [← h, mul_zero], refl },
-    haveI : nonzero R := ⟨this⟩,
+    haveI : nonzero R := ⟨⟨1, ne.symm this⟩⟩,
     have : p.leading_coeff ∈ I.leading_coeff_nth N,
     { rw HN, exact hm2 k ((I.mem_leading_coeff_nth _ _).2
         ⟨_, hp, hn ▸ polynomial.degree_le_nat_degree, rfl⟩) },

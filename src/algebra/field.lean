@@ -23,9 +23,6 @@ class division_ring (α : Type u) extends ring α, has_inv α :=
 section division_ring
 variables [division_ring α] {a b : α}
 
-instance division_ring.to_nonzero : nonzero α :=
-⟨division_ring.zero_ne_one⟩
-
 instance division_ring_has_div : has_div α :=
 ⟨λ a b, a * b⁻¹⟩
 

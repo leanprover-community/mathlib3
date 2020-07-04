@@ -222,7 +222,7 @@ instance : comm_ring (X q) :=
   ..(infer_instance : ring (X q))}
 
 instance [fact (1 < (q : ℕ))] : nonzero (X q) :=
-{ zero_ne_one := λ h, begin injection h with h1 _, exact zero_ne_one h1, end, }
+⟨⟨1, λ h, begin injection h with h1 _, exact zero_ne_one h1.symm, end⟩⟩
 
 @[simp]
 lemma nat_coe_fst (n : ℕ) : (n : X q).fst = (n : zmod q) :=

@@ -1366,10 +1366,10 @@ section nonzero_semiring
 variables [semiring R] [nonzero R] {p q : polynomial R}
 
 instance : nonzero (polynomial R) :=
-{ zero_ne_one := λ (h : (0 : polynomial R) = 1), zero_ne_one $
+⟨⟨1, ne.symm $ λ (h : (0 : polynomial R) = 1), zero_ne_one $
     calc (0 : R) = eval 0 0 : eval_zero.symm
       ... = eval 0 1 : congr_arg _ h
-      ... = 1 : eval_C }
+      ... = 1 : eval_C⟩⟩
 
 @[simp] lemma degree_one : degree (1 : polynomial R) = (0 : with_bot ℕ) :=
 degree_C (show (1 : R) ≠ 0, from zero_ne_one.symm)
@@ -1439,8 +1439,8 @@ lemma div_X_add : div_X (p + q) = div_X p + div_X q :=
 ext $ by simp [div_X]
 
 theorem nonzero.of_polynomial_ne (h : p ≠ q) : nonzero R :=
-{ zero_ne_one := λ h01 : 0 = 1, h $
-    by rw [← mul_one p, ← mul_one q, ← C_1, ← h01, C_0, mul_zero, mul_zero] }
+⟨⟨1, ne.symm $ λ h01 : 0 = 1, h $
+    by rw [← mul_one p, ← mul_one q, ← C_1, ← h01, C_0, mul_zero, mul_zero] ⟩⟩
 
 lemma degree_lt_degree_mul_X (hp : p ≠ 0) : p.degree < (p * X).degree :=
 by haveI := nonzero.of_polynomial_ne hp; exact
@@ -2095,7 +2095,7 @@ lemma multiplicity_X_sub_C_finite (a : R) (h0 : p ≠ 0) :
 multiplicity_finite_of_degree_pos_of_monic
   (have (0 : R) ≠ 1, from (λ h, by haveI := subsingleton_of_zero_eq_one _ h;
       exact h0 (subsingleton.elim _ _)),
-    by haveI : nonzero R := ⟨this⟩; rw degree_X_sub_C; exact dec_trivial)
+    by haveI : nonzero R := ⟨⟨1, ne.symm this⟩⟩; rw degree_X_sub_C; exact dec_trivial)
     (monic_X_sub_C _) h0
 
 def root_multiplicity (a : R) (p : polynomial R) : ℕ :=
@@ -2184,6 +2184,7 @@ instance : integral_domain (polynomial R) :=
     erw [← leading_coeff_eq_zero, ← leading_coeff_eq_zero],
     exact eq_zero_or_eq_zero_of_mul_eq_zero this
   end,
+  zero_ne_one := zero_ne_one,
   ..polynomial.nonzero,
   ..polynomial.comm_ring }
 
@@ -2508,6 +2509,7 @@ instance : euclidean_domain (polynomial R) :=
   quotient_mul_add_remainder_eq := quotient_mul_add_remainder_eq_aux,
   remainder_lt := λ p q hq, remainder_lt_aux _ hq,
   mul_left_not_lt := λ p q hq, not_lt_of_ge (degree_le_mul_left _ hq),
+  zero_ne_one := zero_ne_one,
   .. polynomial.comm_ring,
   .. polynomial.nonzero }
 

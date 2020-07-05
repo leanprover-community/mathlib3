@@ -17,6 +17,7 @@ As (non-exhaustive) examples, these includes things like:
 * data.equiv.encodable
 * order.complete_lattice
 -/
+import tactic.basic -- ensure basic tactics are available
 import tactic.abel
 import tactic.ring_exp
 import tactic.noncomm_ring

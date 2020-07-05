@@ -39,8 +39,7 @@ protected def division_ring [division_ring β] (U : is_ultrafilter φ) : divisio
   inv_mul_cancel := λ f, induction_on f $ λ f hf, coe_eq.2 $ (U.em (λ y, f y = 0)).elim
     (λ H, (hf $ coe_eq.2 H).elim) (λ H, H.mono $ λ x, inv_mul_cancel),
   inv_zero := coe_eq.2 $ by simp only [(∘), inv_zero],
-  zero_ne_one := by { haveI : nonzero (φ.germ β) := germ.nonzero U.1, exact zero_ne_one },
-  .. germ.ring, .. germ.has_inv }
+  .. germ.ring, .. germ.has_inv, .. germ.nontrivial U.1 }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a field.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
@@ -79,8 +78,7 @@ This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
 protected def ordered_ring [ordered_ring β] (U : is_ultrafilter φ) : ordered_ring β* :=
 { mul_pos := λ x y, induction_on₂ x y $ λ f g hf hg, (coe_pos U).2 $
     ((coe_pos U).1 hg).mp $ ((coe_pos U).1 hf).mono $ λ x, mul_pos,
-  zero_ne_one := by { haveI : nonzero (φ.germ β) := germ.nonzero U.1, exact zero_ne_one },
-  .. germ.ring, .. germ.ordered_add_comm_group }
+  .. germ.ring, .. germ.ordered_add_comm_group, .. germ.nontrivial U.1 }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a linear ordered ring.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/

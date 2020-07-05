@@ -289,7 +289,7 @@ from hs ▸ λ x hx, submodule.span_induction hx (λ _ hx, ideal.subset_span hx)
     have : (0 : R) ≠ 1,
     { intro h, apply hp0, ext i, refine (mul_one _).symm.trans _,
       rw [← h, mul_zero], refl },
-    haveI : nonzero R := ⟨⟨1, ne.symm this⟩⟩,
+    haveI : nontrivial R := ⟨⟨0, 1, this⟩⟩,
     have : p.leading_coeff ∈ I.leading_coeff_nth N,
     { rw HN, exact hm2 k ((I.mem_leading_coeff_nth _ _).2
         ⟨_, hp, hn ▸ polynomial.degree_le_nat_degree, rfl⟩) },
@@ -417,14 +417,13 @@ end
 instance {R : Type u} {σ : Type v} [integral_domain R] :
   integral_domain (mv_polynomial σ R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := mv_polynomial.eq_zero_or_eq_zero_of_mul_eq_zero,
-  zero_ne_one :=
+  exists_ne := ⟨0, 1, λ H,
   begin
-    intro H,
     have : eval₂ id (λ s, (0:R)) (0 : mv_polynomial σ R) =
       eval₂ id (λ s, (0:R)) (1 : mv_polynomial σ R),
     { congr, exact H },
     simpa,
-  end,
+  end⟩,
   .. (by apply_instance : comm_ring (mv_polynomial σ R)) }
 
 end mv_polynomial

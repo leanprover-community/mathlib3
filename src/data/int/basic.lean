@@ -14,6 +14,11 @@ open nat
 
 namespace int
 
+instance : inhabited ℤ := ⟨int.zero⟩
+
+instance : nontrivial ℤ :=
+⟨⟨0, 1, int.zero_ne_one⟩⟩
+
 instance : comm_ring int :=
 { add            := int.add,
   add_assoc      := int.add_assoc,
@@ -47,17 +52,11 @@ instance : semiring int           := by apply_instance
 instance : ring int               := by apply_instance
 instance : distrib int            := by apply_instance
 
-instance : nonzero ℤ :=
-{ exists_ne_zero := ⟨1, int.zero_ne_one.symm⟩ }
-
-instance : inhabited ℤ := ⟨int.zero⟩
-
 instance : decidable_linear_ordered_comm_ring int :=
 { add_le_add_left := @int.add_le_add_left,
-  zero_ne_one     := int.zero_ne_one,
   mul_pos         := @int.mul_pos,
   zero_lt_one     := int.zero_lt_one,
-  ..int.comm_ring, ..int.decidable_linear_order }
+  .. int.comm_ring, .. int.decidable_linear_order, .. int.nontrivial }
 
 instance : decidable_linear_ordered_add_comm_group int :=
 by apply_instance
@@ -215,7 +214,8 @@ theorem nat_abs_neg_of_nat (n : ℕ) : nat_abs (neg_of_nat n) = n :=
 by cases n; refl
 
 theorem nat_abs_mul (a b : ℤ) : nat_abs (a * b) = (nat_abs a) * (nat_abs b) :=
-by cases a; cases b; simp only [(*), int.mul, nat_abs_neg_of_nat, eq_self_iff_true, int.nat_abs]
+by cases a; cases b;
+  simp only [← int.mul_def, int.mul, nat_abs_neg_of_nat, eq_self_iff_true, int.nat_abs]
 
 @[simp] lemma nat_abs_mul_self' (a : ℤ) : (nat_abs a * nat_abs a : ℤ) = a * a :=
 by rw [← int.coe_nat_mul, nat_abs_mul_self]
@@ -942,8 +942,8 @@ by cases m with m m; cases n with n n; unfold has_add.add;
   simp [int.add, -of_nat_eq_coe, bool.bxor_comm]
 
 @[simp] lemma bodd_mul (m n : ℤ) : bodd (m * n) = bodd m && bodd n :=
-by cases m with m m; cases n with n n; unfold has_mul.mul;
-  simp [int.mul, -of_nat_eq_coe, bool.bxor_comm]
+by cases m with m m; cases n with n n;
+  simp [← int.mul_def, int.mul, -of_nat_eq_coe, bool.bxor_comm]
 
 theorem bodd_add_div2 : ∀ n, cond (bodd n) 1 0 + 2 * div2 n = n
 | (n : ℕ) :=

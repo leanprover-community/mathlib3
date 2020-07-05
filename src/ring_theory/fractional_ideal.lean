@@ -429,11 +429,11 @@ open_locale classical
 
 variables {K : Type*} [field K] {g : fraction_map R K}
 
-instance : nonzero (fractional_ideal g) :=
-⟨⟨1, ne.symm $ λ h,
+instance : nontrivial (fractional_ideal g) :=
+⟨⟨0, 1, λ h,
   have this : (1 : K) ∈ (0 : fractional_ideal g) :=
     by rw ←g.to_map.map_one; convert coe_mem_one _,
-  @one_ne_zero _ _ domain.to_nonzero (mem_zero_iff.mp this) ⟩⟩
+  one_ne_zero (mem_zero_iff.mp this) ⟩⟩
 
 lemma fractional_div_of_nonzero {I J : fractional_ideal g} (h : J ≠ 0) :
   is_fractional g (I.1 / J.1) :=

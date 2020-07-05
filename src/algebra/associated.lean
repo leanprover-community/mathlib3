@@ -469,10 +469,10 @@ instance : comm_monoid_with_zero (associates α) :=
   mul_zero := by { rintro ⟨a⟩, show associates.mk (a * 0) = associates.mk 0, rw [mul_zero] },
   .. associates.comm_monoid, .. associates.has_zero }
 
-instance [nonzero α] : nonzero (associates α) :=
-⟨⟨1,
+instance [nontrivial α] : nontrivial (associates α) :=
+⟨⟨0, 1,
 assume h,
-have (0 : α) ~ᵤ 1, from quotient.exact h.symm,
+have (0 : α) ~ᵤ 1, from quotient.exact h,
 have (0 : α) = 1, from ((associated_zero_iff_eq_zero 1).1 this.symm).symm,
 zero_ne_one this⟩⟩
 

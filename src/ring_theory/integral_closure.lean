@@ -368,7 +368,7 @@ section integral_domain
 variables {R S : Type*} [comm_ring R] [integral_domain S] [algebra R S]
 
 instance : integral_domain (integral_closure R S) :=
-{ zero_ne_one := mt subtype.ext_iff_val.mp zero_ne_one,
+{ exists_ne := ⟨0, 1, mt subtype.ext_iff_val.mp zero_ne_one⟩,
   eq_zero_or_eq_zero_of_mul_eq_zero := λ ⟨a, ha⟩ ⟨b, hb⟩ h,
     or.imp subtype.ext_iff_val.mpr subtype.ext_iff_val.mpr (eq_zero_or_eq_zero_of_mul_eq_zero (subtype.ext_iff_val.mp h)),
   ..(integral_closure R S).comm_ring R S }

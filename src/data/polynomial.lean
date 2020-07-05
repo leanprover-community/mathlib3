@@ -1016,7 +1016,7 @@ lemma monic.ne_zero_of_zero_ne_one (h : (0:R) ≠ 1) {p : polynomial R} (hp : p.
   p ≠ 0 :=
 by { contrapose! h, rwa [h] at hp }
 
-lemma monic.ne_zero {R : Type*} [semiring R] [nonzero R] {p : polynomial R} (hp : p.monic) :
+lemma monic.ne_zero {R : Type*} [semiring R] [nontrivial R] {p : polynomial R} (hp : p.monic) :
   p ≠ 0 :=
 hp.ne_zero_of_zero_ne_one zero_ne_one
 
@@ -1501,10 +1501,10 @@ have zn0 : (0 : R) ≠ 1, from λ h, by haveI := subsingleton_of_zero_eq_one h;
 end comm_semiring
 
 section nonzero_semiring
-variables [semiring R] [nonzero R] {p q : polynomial R}
+variables [semiring R] [nontrivial R] {p q : polynomial R}
 
-instance : nonzero (polynomial R) :=
-⟨⟨1, ne.symm $ λ (h : (0 : polynomial R) = 1), zero_ne_one $
+instance : nontrivial (polynomial R) :=
+⟨⟨0, 1, λ (h : (0 : polynomial R) = 1), zero_ne_one $
     calc (0 : R) = eval 0 0 : eval_zero.symm
       ... = eval 0 1 : congr_arg _ h
       ... = 1 : eval_C⟩⟩
@@ -1540,7 +1540,7 @@ lemma ne_zero_of_monic (h : monic p) : p ≠ 0 :=
 λ h₁, @not_monic_zero R _ _ (h₁ ▸ h)
 
 theorem not_is_unit_X : ¬ is_unit (X : polynomial R) :=
-λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ _ $ by erw [← coeff_one_zero, ← hgf, coeff_mul_X_zero]
+λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ $ by erw [← coeff_one_zero, ← hgf, coeff_mul_X_zero]
 
 end nonzero_semiring
 
@@ -1582,8 +1582,8 @@ lemma div_X_eq_zero_iff : div_X p = 0 ↔ p = C (p.coeff 0) :=
 lemma div_X_add : div_X (p + q) = div_X p + div_X q :=
 ext $ by simp [div_X]
 
-theorem nonzero.of_polynomial_ne (h : p ≠ q) : nonzero R :=
-⟨⟨1, ne.symm $ λ h01 : 0 = 1, h $
+theorem nonzero.of_polynomial_ne (h : p ≠ q) : nontrivial R :=
+⟨⟨0, 1, λ h01 : 0 = 1, h $
     by rw [← mul_one p, ← mul_one q, ← C_1, ← h01, C_0, mul_zero, mul_zero] ⟩⟩
 
 lemma degree_lt_degree_mul_X (hp : p ≠ 0) : p.degree < (p * X).degree :=
@@ -2121,7 +2121,7 @@ begin
   { haveI := subsingleton_of_zero_eq_one h01,
     rw [subsingleton.elim (f /ₘ g) 0, subsingleton.elim f 0, subsingleton.elim g 0,
         nat_degree_zero] },
-  haveI : nonzero R := ⟨h01⟩,
+  haveI : nontrivial R := ⟨⟨0, 1, h01⟩⟩,
   by_cases hfg : f /ₘ g = 0,
   { rw [hfg, nat_degree_zero], rw div_by_monic_eq_zero_iff hg hg.ne_zero at hfg,
     rw nat.sub_eq_zero_of_le (nat_degree_le_nat_degree $ le_of_lt hfg) },
@@ -2230,7 +2230,7 @@ by rw [is_root.def, eval_sub, eval_X, eval_C, sub_eq_zero_iff_eq, eq_comm]
 end comm_ring
 
 section nonzero_ring
-variables [ring R] [nonzero R] {p q : polynomial R}
+variables [ring R] [nontrivial R] {p q : polynomial R}
 
 @[simp] lemma degree_X_sub_C (a : R) : degree (X - C a) = 1 :=
 begin
@@ -2305,10 +2305,10 @@ end
 end ring
 
 section nonzero_ring
-variables [ring R] [nonzero R]
+variables [ring R] [nontrivial R]
 
 theorem not_is_unit_X_sub_C {r : R} : ¬ is_unit (X - C r) :=
-λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ _ $ by erw [← eval_mul_X_sub_C, hgf, eval_one]
+λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ $ by erw [← eval_mul_X_sub_C, hgf, eval_one]
 
 end nonzero_ring
 
@@ -2320,7 +2320,7 @@ variables [comm_ring R] {p q : polynomial R}
   p %ₘ (X - C a) = C (p.eval a) :=
 if h0 : (0 : R) = 1 then by letI := subsingleton_of_zero_eq_one h0; exact subsingleton.elim _ _
 else
-by letI : nonzero R := nonzero.of_ne h0; exact
+by haveI : nontrivial R := nontrivial_of_ne 0 1 h0; exact
 have h : (p %ₘ (X - C a)).eval a = p.eval a :=
   by rw [mod_by_monic_eq_sub_mul_div _ (monic_X_sub_C a), eval_sub, eval_mul,
     eval_sub, eval_X, eval_C, sub_self, zero_mul, sub_zero],
@@ -2364,7 +2364,7 @@ lemma multiplicity_X_sub_C_finite (a : R) (h0 : p ≠ 0) :
 multiplicity_finite_of_degree_pos_of_monic
   (have (0 : R) ≠ 1, from (λ h, by haveI := subsingleton_of_zero_eq_one h;
       exact h0 (subsingleton.elim _ _)),
-    by haveI : nonzero R := ⟨⟨1, ne.symm this⟩⟩; rw degree_X_sub_C; exact dec_trivial)
+    by haveI : nontrivial R := ⟨⟨0, 1, this⟩⟩; rw degree_X_sub_C; exact dec_trivial)
     (monic_X_sub_C _) h0
 
 def root_multiplicity (a : R) (p : polynomial R) : ℕ :=
@@ -2399,7 +2399,7 @@ lemma eval_div_by_monic_pow_root_multiplicity_ne_zero
   {p : polynomial R} (a : R) (hp : p ≠ 0) :
   (p /ₘ ((X - C a) ^ root_multiplicity a p)).eval a ≠ 0 :=
 begin
-  haveI : nonzero R := nonzero.of_polynomial_ne hp,
+  haveI : nontrivial R := nonzero.of_polynomial_ne hp,
   rw [ne.def, ← is_root.def, ← dvd_iff_is_root],
   rintros ⟨q, hq⟩,
   have := div_by_monic_mul_pow_root_multiplicity_eq p a,
@@ -2453,8 +2453,7 @@ instance : integral_domain (polynomial R) :=
     erw [← leading_coeff_eq_zero, ← leading_coeff_eq_zero],
     exact eq_zero_or_eq_zero_of_mul_eq_zero this
   end,
-  zero_ne_one := zero_ne_one,
-  ..polynomial.nonzero,
+  ..polynomial.nontrivial,
   ..polynomial.comm_ring }
 
 lemma nat_degree_mul_eq (hp : p ≠ 0) (hq : q ≠ 0) : nat_degree (p * q) =
@@ -2794,9 +2793,8 @@ instance : euclidean_domain (polynomial R) :=
   quotient_mul_add_remainder_eq := quotient_mul_add_remainder_eq_aux,
   remainder_lt := λ p q hq, remainder_lt_aux _ hq,
   mul_left_not_lt := λ p q hq, not_lt_of_ge (degree_le_mul_left _ hq),
-  zero_ne_one := zero_ne_one,
   .. polynomial.comm_ring,
-  .. polynomial.nonzero }
+  .. polynomial.nontrivial }
 
 lemma mod_eq_self_iff (hq0 : q ≠ 0) : p % q = p ↔ degree p < degree q :=
 ⟨λ h, h ▸ euclidean_domain.mod_lt _ hq0,

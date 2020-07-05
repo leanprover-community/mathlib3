@@ -35,8 +35,8 @@ instance [add_comm_semigroup α] : add_comm_semigroup (opposite α) :=
 instance [has_zero α] : has_zero (opposite α) :=
 { zero := op 0 }
 
-instance [has_zero α] [nonzero α] : nonzero (opposite α) :=
-⟨let ⟨x, hx⟩ := exists_ne_zero α in ⟨op x, function.injective.ne op_injective hx⟩⟩
+instance [nontrivial α] : nontrivial (opposite α) :=
+let ⟨x, y, h⟩ := exists_ne α in nontrivial_of_ne (op x) (op y) (op_injective.ne h)
 
 section
 local attribute [reducible] opposite
@@ -134,14 +134,12 @@ instance [integral_domain α] : integral_domain (opposite α) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ x y (H : op (_ * _) = op (0:α)),
     or.cases_on (eq_zero_or_eq_zero_of_mul_eq_zero $ op_injective H)
       (λ hy, or.inr $ unop_injective $ hy) (λ hx, or.inl $ unop_injective $ hx),
-  zero_ne_one := zero_ne_one,
-  .. opposite.comm_ring α }
+  .. opposite.comm_ring α, .. opposite.nontrivial α }
 
 instance [field α] : field (opposite α) :=
 { mul_inv_cancel := λ x hx, unop_injective $ inv_mul_cancel $ λ hx', hx $ unop_injective hx',
   inv_zero := unop_injective inv_zero,
-  zero_ne_one := zero_ne_one,
-  .. opposite.comm_ring α, .. opposite.has_inv α }
+  .. opposite.comm_ring α, .. opposite.has_inv α, .. opposite.nontrivial α }
 
 @[simp] lemma op_zero [has_zero α] : op (0 : α) = 0 := rfl
 @[simp] lemma unop_zero [has_zero α] : unop (0 : αᵒᵖ) = 0 := rfl

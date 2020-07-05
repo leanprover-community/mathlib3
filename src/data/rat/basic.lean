@@ -427,7 +427,7 @@ instance : field ℚ :=
   mul_assoc        := rat.mul_assoc,
   left_distrib     := rat.mul_add,
   right_distrib    := rat.add_mul,
-  zero_ne_one      := rat.zero_ne_one,
+  exists_ne        := ⟨0, 1, rat.zero_ne_one⟩,
   mul_inv_cancel   := rat.mul_inv_cancel,
   inv_zero         := rfl }
 
@@ -436,7 +436,7 @@ instance : division_ring ℚ      := by apply_instance
 instance : integral_domain ℚ    := by apply_instance
 -- TODO(Mario): this instance slows down data.real.basic
 --instance : domain ℚ           := by apply_instance
-instance : nonzero ℚ            := by apply_instance
+instance : nontrivial ℚ            := by apply_instance
 instance : comm_ring ℚ          := by apply_instance
 --instance : ring ℚ             := by apply_instance
 instance : comm_semiring ℚ      := by apply_instance

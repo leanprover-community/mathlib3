@@ -141,14 +141,14 @@ protected def comm_ring [comm_ring β] : comm_ring α :=
   ..equiv.ring e }
 
 /-- Transfer `nonzero` across an `equiv` -/
-protected theorem nonzero [has_zero β] [nonzero β] : @nonzero α e.has_zero :=
-{ exists_ne_zero := let ⟨x, hx⟩ := exists_ne_zero β in ⟨e.symm x, e.symm.injective.ne hx⟩ }
+protected theorem nontrivial [nontrivial β] : nontrivial α :=
+let ⟨x, y, h⟩ := exists_ne β in ⟨⟨e.symm x, e.symm y, e.symm.injective.ne h⟩⟩
 
 /-- Transfer `domain` across an `equiv` -/
 protected def domain [domain β] : domain α :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := by simp [mul_def, zero_def, equiv.eq_symm_apply],
-  zero_ne_one := by simp [zero_def, one_def],
-  ..equiv.ring e }
+  ..equiv.ring e,
+  ..equiv.nontrivial e }
 
 /-- Transfer `integral_domain` across an `equiv` -/
 protected def integral_domain [integral_domain β] : integral_domain α :=

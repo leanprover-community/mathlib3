@@ -455,7 +455,7 @@ begin
   exact norm_pow_le a (nat.succ_le_iff.mp h),
 end
 
-lemma units.norm_pos {α : Type*} [normed_ring α] [nonzero α] (x : units α) : 0 < ∥(x:α)∥ :=
+lemma units.norm_pos {α : Type*} [normed_ring α] [nontrivial α] (x : units α) : 0 < ∥(x:α)∥ :=
 norm_pos_iff.mpr (units.coe_ne_zero x)
 
 /-- In a normed ring, the left-multiplication `add_monoid_hom` is bounded. -/
@@ -982,8 +982,8 @@ begin
   rw @normed_algebra.norm_one 𝕜, norm_num,
 end
 
-lemma normed_algebra.to_nonzero : nonzero 𝕜' :=
-{ zero_ne_one := normed_algebra.zero_ne_one 𝕜 }
+lemma normed_algebra.to_nonzero : nontrivial 𝕜' :=
+⟨⟨0, 1, normed_algebra.zero_ne_one 𝕜⟩⟩
 
 end normed_algebra
 

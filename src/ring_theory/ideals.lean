@@ -252,8 +252,8 @@ eq_comm.trans $ eq_zero_iff_mem.trans (eq_top_iff_one _).symm
 theorem zero_ne_one_iff {I : ideal α} : (0 : I.quotient) ≠ 1 ↔ I ≠ ⊤ :=
 not_congr zero_eq_one_iff
 
-protected theorem nonzero {I : ideal α} (hI : I ≠ ⊤) : nonzero I.quotient :=
-⟨⟨1, (zero_ne_one_iff.2 hI).symm ⟩⟩
+protected theorem nontrivial {I : ideal α} (hI : I ≠ ⊤) : nontrivial I.quotient :=
+⟨⟨0, 1, zero_ne_one_iff.2 hI⟩⟩
 
 instance (I : ideal α) [hI : I.is_prime] : integral_domain I.quotient :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b,
@@ -261,8 +261,8 @@ instance (I : ideal α) [hI : I.is_prime] : integral_domain I.quotient :=
       (hI.mem_or_mem (eq_zero_iff_mem.1 hab)).elim
         (or.inl ∘ eq_zero_iff_mem.2)
         (or.inr ∘ eq_zero_iff_mem.2),
-  zero_ne_one := by { haveI : nonzero I.quotient := quotient.nonzero hI.1, exact zero_ne_one },
-  ..quotient.comm_ring I }
+  .. quotient.comm_ring I,
+  .. quotient.nontrivial hI.1 }
 
 lemma exists_inv {I : ideal α} [hI : I.is_maximal] :
  ∀ {a : I.quotient}, a ≠ 0 → ∃ b : I.quotient, a * b = 1 :=
@@ -366,7 +366,7 @@ section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- A commutative ring is local if it has a unique maximal ideal. Note that
   `local_ring` is a predicate. -/
-class local_ring (α : Type u) [comm_ring α] extends nonzero α : Prop :=
+class local_ring (α : Type u) [comm_ring α] extends nontrivial α : Prop :=
 (is_local : ∀ (a : α), (is_unit a) ∨ (is_unit (1 - a)))
 end prio
 
@@ -439,13 +439,13 @@ end local_ring
 
 lemma local_of_nonunits_ideal [comm_ring α] (hnze : (0:α) ≠ 1)
   (h : ∀ x y ∈ nonunits α, x + y ∈ nonunits α) : local_ring α :=
-{ exists_ne_zero := ⟨1, hnze.symm⟩,
+{ exists_ne := ⟨0, 1, hnze⟩,
   is_local := λ x, or_iff_not_imp_left.mpr $ λ hx,
-begin
-  by_contra H,
-  apply h _ _ hx H,
-  simp [-sub_eq_add_neg, add_sub_cancel'_right]
-end}
+  begin
+    by_contra H,
+    apply h _ _ hx H,
+    simp [-sub_eq_add_neg, add_sub_cancel'_right]
+  end }
 
 lemma local_of_unique_max_ideal [comm_ring α] (h : ∃! I : ideal α, I.is_maximal) :
   local_ring α :=

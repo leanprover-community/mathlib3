@@ -982,8 +982,8 @@ theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonemp
 protected lemma one_ne_zero : (1 : ordinal) ≠ 0 :=
 type_ne_zero_iff_nonempty.2 ⟨punit.star⟩
 
-instance : nonzero ordinal.{u} :=
-⟨⟨1, ordinal.one_ne_zero⟩⟩
+instance : nontrivial ordinal.{u} :=
+⟨⟨1, 0, ordinal.one_ne_zero⟩⟩
 
 theorem zero_lt_one : (0 : ordinal) < 1 :=
 lt_iff_le_and_ne.2 ⟨zero_le _, ne.symm $ ordinal.one_ne_zero⟩

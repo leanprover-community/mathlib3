@@ -51,9 +51,6 @@ lemma one_eq_mk [has_one M] [has_one N] : (1 : M × N) = (1, 1) := rfl
 lemma mk_eq_one [has_one M] [has_one N] {x : M} {y : N} : (x, y) = 1 ↔ x = 1 ∧ y = 1 :=
 mk.inj_iff
 
-instance [has_zero M] [has_zero N] [nonzero M] : nonzero (M × N) :=
-⟨let ⟨x, hx⟩ := exists_ne_zero M in ⟨(x, 0), by simp [hx]⟩⟩
-
 @[to_additive]
 lemma fst_mul_snd [monoid M] [monoid N] (p : M × N) :
   (p.fst, 1) * (1, p.snd) = p :=

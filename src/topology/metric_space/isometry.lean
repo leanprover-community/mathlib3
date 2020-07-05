@@ -327,11 +327,9 @@ lemma embedding_of_subset_dist_le (a b : α) :
   dist (embedding_of_subset x a) (embedding_of_subset x b) ≤ dist a b :=
 begin
   refine (dist_le dist_nonneg).2 (λn, _),
-  have A : dist a (x n) + (dist (x 0) (x n) + (-dist b (x n) + -dist (x 0) (x n)))
-    = dist a (x n) - dist b (x n), by ring,
-  simp only [embedding_of_subset_coe, real.dist_eq, A, add_comm, neg_add_rev, _root_.neg_neg,
-             sub_eq_add_neg, add_left_comm],
-  exact abs_dist_sub_le _ _ _
+  simp only [embedding_of_subset_coe, real.dist_eq],
+  convert abs_dist_sub_le a b (x n) using 2,
+  ring
 end
 
 /-- When the reference set is dense, the embedding map is an isometry on its image. -/

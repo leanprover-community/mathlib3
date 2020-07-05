@@ -10,6 +10,7 @@ import tactic.localized
 import logic.unique
 import algebra.group.commute
 import algebra.group.units_hom
+import logic.nontrivial
 
 /-!
 # Groups with an adjoined zero element
@@ -46,7 +47,6 @@ reduce an expression in a field to an expression of the form `n / d` where `n` a
 division-free."
 
 section
-set_option default_priority 100 -- see Note [default priority]
 
 /-- Typeclass for expressing that a type `M₀` with multiplication and a zero satisfies
 `0 * a = 0` and `a * 0 = 0` for all `a : M₀`. -/
@@ -77,15 +77,6 @@ lemma ne_zero_and_ne_zero_of_mul (h : a * b ≠ 0) : a ≠ 0 ∧ b ≠ 0 :=
 ⟨left_ne_zero_of_mul h, right_ne_zero_of_mul h⟩
 
 end mul_zero_class
-
-/-- Predicate typeclass for expressing that a (semi)ring or a vector space or a similar algebraic
-structure is not reduced to zero. -/
-@[protect_proj] class nonzero (G₀ : Type*) [has_zero G₀] : Prop :=
-(exists_ne_zero : ∃ (x : G₀), x ≠ 0)
-
-lemma exists_ne_zero (G₀ : Type*) [has_zero G₀] [nonzero G₀] :
-  ∃ (x : G₀), x ≠ 0 :=
-nonzero.exists_ne_zero
 
 /-- Predicate typeclass for expressing that `a * b = 0` implies `a = 0` or `b = 0`
 for all `a` and `b` of type `G₀`. -/
@@ -152,31 +143,24 @@ and right absorbing, and left/right multiplication by a non-zero element is inje
 (mul_left_cancel_of_ne_zero : ∀ {a b c : M₀}, a ≠ 0 → a * b = a * c → b = c)
 (mul_right_cancel_of_ne_zero : ∀ {a b c : M₀}, b ≠ 0 → a * b = c * b → a = c)
 
-@[simp] lemma zero_ne_one [monoid_with_zero G₀] [nonzero G₀] : 0 ≠ (1:G₀) :=
+section
+
+variables [monoid_with_zero M₀] [nontrivial M₀] {a b : M₀}
+
+/-- In a nontrivial monoid with zero, zero and one are different. -/
+@[simp] lemma zero_ne_one : 0 ≠ (1:M₀) :=
 begin
   assume h,
-  rcases exists_ne_zero G₀ with ⟨x, hx⟩,
+  rcases exists_ne M₀ with ⟨x, y, hx⟩,
   apply hx,
   calc x = 1 * x : by rw [one_mul]
   ... = 0 : by rw [← h, zero_mul]
+  ... = 1 * y : by rw [← h, zero_mul]
+  ... = y : by rw [one_mul]
 end
 
-@[simp]
-lemma one_ne_zero [monoid_with_zero G₀] [nonzero G₀] : (1:G₀) ≠ 0 :=
+@[simp] lemma one_ne_zero : (1:M₀) ≠ 0 :=
 zero_ne_one.symm
-
-/-- Proves that a monoid with zero that contains at least two distinct elements is nonzero. -/
-theorem nonzero.of_ne [monoid_with_zero G₀] {x y : G₀} (h : x ≠ y) : nonzero G₀ :=
-⟨⟨1, begin
-  contrapose! h,
-  calc x = 0 * x : by rw [← h, one_mul]
-     ... = 0 * y : by rw [zero_mul, zero_mul]
-     ... = y : by rw [← h, one_mul]
-end⟩⟩
-
-section
-
-variables [monoid_with_zero M₀] [nonzero M₀] {a b : M₀}
 
 lemma ne_zero_of_eq_one {a : M₀} (h : a = 1) : a ≠ 0 :=
 calc a = 1 : h
@@ -201,13 +185,9 @@ The type is required to come with an “inverse” function, and the inverse of 
 
 Examples include division rings and the ordered monoids that are the
 target of valuations in general valuation theory.-/
-class group_with_zero (G₀ : Type*) extends monoid_with_zero G₀, has_inv G₀ :=
+class group_with_zero (G₀ : Type*) extends monoid_with_zero G₀, has_inv G₀, nontrivial G₀ :=
 (inv_zero : (0 : G₀)⁻¹ = 0)
 (mul_inv_cancel : ∀ a:G₀, a ≠ 0 → a * a⁻¹ = 1)
-(zero_ne_one : (0 : G₀) ≠ 1)
-
-instance group_with_zero.to_nonzero (G₀ : Type*) [group_with_zero G₀] : nonzero G₀ :=
-⟨⟨(1 : G₀), group_with_zero.zero_ne_one.symm⟩⟩
 
 /-- A type `G₀` is a commutative “group with zero”
 if it is a commutative monoid with zero element (distinct from `1`)
@@ -227,7 +207,7 @@ variables [monoid_with_zero M₀]
 
 namespace units
 
-@[simp] lemma ne_zero [nonzero M₀] (u : units M₀) :
+@[simp] lemma ne_zero [nontrivial M₀] (u : units M₀) :
   (u : M₀) ≠ 0 :=
 left_ne_zero_of_mul_eq_one u.mul_inv
 
@@ -244,7 +224,7 @@ end units
 
 namespace is_unit
 
-lemma ne_zero [nonzero M₀] {a : M₀} (ha : is_unit a) : a ≠ 0 := let ⟨u, hu⟩ := ha in hu ▸ u.ne_zero
+lemma ne_zero [nontrivial M₀] {a : M₀} (ha : is_unit a) : a ≠ 0 := let ⟨u, hu⟩ := ha in hu ▸ u.ne_zero
 
 lemma mul_right_eq_zero {a b : M₀} (ha : is_unit a) : a * b = 0 ↔ b = 0 :=
 let ⟨u, hu⟩ := ha in hu ▸ u.mul_right_eq_zero
@@ -276,23 +256,10 @@ lemma eq_of_zero_eq_one (h : (0 : M₀) = 1) (a b : M₀) : a = b :=
 ⟨λ ⟨⟨_, a, (a0 : 0 * a = 1), _⟩, rfl⟩, by rwa zero_mul at a0,
  λ h, ⟨⟨0, 0, eq_of_zero_eq_one h _ _, eq_of_zero_eq_one h _ _⟩, rfl⟩⟩
 
-@[simp] theorem not_is_unit_zero [nonzero M₀] : ¬ is_unit (0 : M₀) :=
+@[simp] theorem not_is_unit_zero [nontrivial M₀] : ¬ is_unit (0 : M₀) :=
 mt is_unit_zero_iff.1 zero_ne_one
 
 variable (M₀)
-
-/-- A monoid with zero is either nonzero, or has a unique element. -/
-noncomputable def nonzero_psum_unique : psum (nonzero M₀) (unique M₀) :=
-if h : (0:M₀) = 1 then psum.inr (unique_of_zero_eq_one h) else psum.inl ⟨⟨1, ne.symm h⟩⟩
-
-/-- A monoid with zero is either a subsingleton or nonzero. -/
-lemma subsingleton_or_nonzero :  subsingleton M₀ ∨ nonzero M₀ :=
-begin
-  classical,
-  by_cases h : (0 : M₀) = 1,
-  { left, exact subsingleton_of_zero_eq_one h },
-  { right, exact ⟨⟨1, ne.symm h⟩⟩ }
-end
 
 /-- In a monoid with zero, either zero and one are nonequal, or zero is the only element. -/
 lemma zero_ne_one_or_forall_eq_0 : (0 : M₀) ≠ 1 ∨ (∀a:M₀, a = 0) :=

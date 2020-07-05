@@ -845,7 +845,7 @@ by rw [← C_0]; exact total_degree_C (0 : α)
 @[simp] lemma total_degree_one : (1 : mv_polynomial σ α).total_degree = 0 :=
 total_degree_C (1 : α)
 
-@[simp] lemma total_degree_X {α} [comm_semiring α] [nonzero α] (s : σ) :
+@[simp] lemma total_degree_X {α} [comm_semiring α] [nontrivial α] (s : σ) :
   (X s : mv_polynomial σ α).total_degree = 1 :=
 begin
   rw [total_degree, X, monomial, finsupp.support_single_ne_zero (one_ne_zero : (1 : α) ≠ 0)],

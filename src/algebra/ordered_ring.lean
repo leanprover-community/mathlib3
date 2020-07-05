@@ -430,15 +430,11 @@ end decidable_linear_ordered_semiring
 /-- An `ordered_ring α` is a ring `α` with a partial order such that
 multiplication with a positive number and addition are monotone. -/
 @[protect_proj]
-class ordered_ring (α : Type u) extends ring α, ordered_add_comm_group α :=
+class ordered_ring (α : Type u) extends ring α, ordered_add_comm_group α, nontrivial α :=
 (mul_pos     : ∀ a b : α, 0 < a → 0 < b → 0 < a * b)
-(zero_ne_one : (0 : α) ≠ 1)
 
 section ordered_ring
 variables [ordered_ring α] {a b c : α}
-
-instance ordered_ring.to_nonzero : nonzero α :=
-⟨⟨1, ordered_ring.zero_ne_one.symm⟩⟩
 
 lemma ordered_ring.mul_nonneg (a b : α) (h₁ : 0 ≤ a) (h₂ : 0 ≤ b) : 0 ≤ a * b :=
 begin
@@ -815,10 +811,9 @@ end decidable_linear_ordered_comm_ring
 
 /-- Extend `nonneg_add_comm_group` to support ordered rings
   specified by their nonnegative elements -/
-class nonneg_ring (α : Type*) extends ring α, nonneg_add_comm_group α :=
+class nonneg_ring (α : Type*) extends ring α, nonneg_add_comm_group α, nontrivial α :=
 (mul_nonneg : ∀ {a b}, nonneg a → nonneg b → nonneg (a * b))
 (mul_pos : ∀ {a b}, pos a → pos b → pos (a * b))
-(zero_ne_one : (0 : α) ≠ 1)
 
 /-- Extend `nonneg_add_comm_group` to support linearly ordered rings
   specified by their nonnegative elements -/
@@ -927,17 +922,13 @@ end linear_nonneg_ring
 in which `a ≤ b` iff there exists `c` with `b = a + c`. This is satisfied by the
 natural numbers, for example, but not the integers or other ordered groups. -/
 class canonically_ordered_comm_semiring (α : Type*) extends
-  canonically_ordered_add_monoid α, comm_semiring α :=
+  canonically_ordered_add_monoid α, comm_semiring α, nontrivial α :=
 (eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)
-(zero_ne_one : (0 : α) ≠ 1)
 
 namespace canonically_ordered_semiring
 variables [canonically_ordered_comm_semiring α] {a b : α}
 
 open canonically_ordered_add_monoid (le_iff_exists_add)
-
-instance canonically_ordered_comm_semiring.to_nonzero : nonzero α :=
-⟨⟨1, canonically_ordered_comm_semiring.zero_ne_one.symm⟩⟩
 
 instance canonically_ordered_comm_semiring.to_no_zero_divisors :
   no_zero_divisors α :=
@@ -962,8 +953,8 @@ end canonically_ordered_semiring
 
 namespace with_top
 
-instance [has_zero α] : nonzero (with_top α) :=
-⟨⟨⊤, top_ne_zero⟩⟩
+instance [nonempty α] : nontrivial (with_top α) :=
+option.nontrivial
 
 variable [decidable_eq α]
 
@@ -1074,8 +1065,7 @@ instance : canonically_ordered_comm_semiring (with_top α) :=
   mul_comm        := comm,
   one_mul         := one_mul',
   mul_one         := assume a, by rw [comm, one_mul'],
-  zero_ne_one     := by { have : ¬ ((0 : α) = 1) := zero_ne_one, rwa ← coe_eq_coe at this },
   .. with_top.add_comm_monoid, .. with_top.mul_zero_class, .. with_top.canonically_ordered_add_monoid,
-  .. with_top.no_zero_divisors }
+  .. with_top.no_zero_divisors, .. with_top.nontrivial }
 
 end with_top

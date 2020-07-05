@@ -80,8 +80,6 @@ class semiring (α : Type u) extends add_comm_monoid α, monoid_with_zero α, di
 section semiring
 variables [semiring α]
 
-instance semiring.to_monoid_with_zero : monoid_with_zero α := { .. (‹_› : semiring α) }
-
 lemma one_add_one_eq_two : 1 + 1 = (2 : α) :=
 by unfold bit0
 
@@ -649,32 +647,28 @@ end
 
 end comm_ring
 
-lemma succ_ne_self [ring α] [nonzero α] (a : α) : a + 1 ≠ a :=
+lemma succ_ne_self [ring α] [nontrivial α] (a : α) : a + 1 ≠ a :=
 λ h, one_ne_zero ((add_right_inj a).mp (by simp [h]))
 
-lemma pred_ne_self [ring α] [nonzero α] (a : α) : a - 1 ≠ a :=
+lemma pred_ne_self [ring α] [nontrivial α] (a : α) : a - 1 ≠ a :=
 λ h, one_ne_zero (neg_injective ((add_right_inj a).mp (by { convert h, simp })))
 
 /-- An element of the unit group of a nonzero semiring represented as an element
     of the semiring is nonzero. -/
-lemma units.coe_ne_zero [semiring α] [nonzero α] (u : units α) : (u : α) ≠ 0 :=
+lemma units.coe_ne_zero [semiring α] [nontrivial α] (u : units α) : (u : α) ≠ 0 :=
 λ h : u.1 = 0, by simpa [h, zero_ne_one] using u.3
 
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
   is an integral domain without assuming commutativity of multiplication. -/
-@[protect_proj] class domain (α : Type u) extends ring α :=
+@[protect_proj] class domain (α : Type u) extends ring α, nontrivial α :=
 (eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)
-(zero_ne_one : (0 : α) ≠ 1)
 
 section domain
 variable [domain α]
 
 instance domain.to_no_zero_divisors : no_zero_divisors α :=
 ⟨domain.eq_zero_or_eq_zero_of_mul_eq_zero⟩
-
-instance domain.to_nonzero : nonzero α :=
-⟨⟨1, domain.zero_ne_one.symm⟩⟩
 
 instance domain.to_cancel_monoid_with_zero : cancel_monoid_with_zero α :=
 { mul_left_cancel_of_ne_zero := λ a b c ha,
@@ -779,10 +773,9 @@ end is_unit
 
 This is mainly useful because such a predicate does not contain data,
 and can therefore be easily transported along ring isomorphisms. -/
-structure is_integral_domain (R : Type u) [ring R] : Prop :=
+structure is_integral_domain (R : Type u) [ring R] extends nontrivial R : Prop :=
 (mul_comm : ∀ (x y : R), x * y = y * x)
 (eq_zero_or_eq_zero_of_mul_eq_zero : ∀ x y : R, x * y = 0 → x = 0 ∨ y = 0)
-(zero_ne_one : (0 : R) ≠ 1)
 
 /-- Every integral domain satisfies the predicate for integral domains. -/
 lemma integral_domain.to_is_integral_domain (R : Type u) [integral_domain R] :

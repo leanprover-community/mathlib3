@@ -497,14 +497,14 @@ variables [directed_system G f]
 
 namespace direct_limit
 
-instance nonzero : nonzero (ring.direct_limit G f) :=
-⟨⟨1, ne.symm $ nonempty.elim (by apply_instance) $ assume i : ι, begin
-    change (0 : ring.direct_limit G f) ≠ 1,
-    rw ← ring.direct_limit.of_one,
-    intros H, rcases ring.direct_limit.of.zero_exact H.symm with ⟨j, hij, hf⟩,
-    rw is_ring_hom.map_one (f i j hij) at hf,
-    exact one_ne_zero hf
-  end ⟩⟩
+instance nontrivial : nontrivial (ring.direct_limit G f) :=
+⟨⟨0, 1, nonempty.elim (by apply_instance) $ assume i : ι, begin
+  change (0 : ring.direct_limit G f) ≠ 1,
+  rw ← ring.direct_limit.of_one,
+  intros H, rcases ring.direct_limit.of.zero_exact H.symm with ⟨j, hij, hf⟩,
+  rw is_ring_hom.map_one (f i j hij) at hf,
+  exact one_ne_zero hf
+end ⟩⟩
 
 theorem exists_inv {p : ring.direct_limit G f} : p ≠ 0 → ∃ y, p * y = 1 :=
 ring.direct_limit.induction_on p $ λ i x H,
@@ -528,8 +528,7 @@ protected noncomputable def field : field (ring.direct_limit G f) :=
 { inv := inv G f,
   mul_inv_cancel := λ p, direct_limit.mul_inv_cancel G f,
   inv_zero := dif_pos rfl,
-  zero_ne_one := zero_ne_one,
-  .. ring.direct_limit.comm_ring G f }
+  .. ring.direct_limit.comm_ring G f, .. field.direct_limit.nontrivial G f }
 
 end
 

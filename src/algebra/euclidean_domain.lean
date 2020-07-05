@@ -14,7 +14,7 @@ section prio
 set_option default_priority 100 -- see Note [default priority]
 set_option old_structure_cmd true
 @[protect_proj without mul_left_not_lt r_well_founded]
-class euclidean_domain (α : Type u) extends comm_ring α :=
+class euclidean_domain (α : Type u) extends comm_ring α, nontrivial α :=
 (quotient : α → α → α)
 (quotient_zero : ∀ a, quotient a 0 = 0)
 (remainder : α → α → α)
@@ -32,7 +32,6 @@ class euclidean_domain (α : Type u) extends comm_ring α :=
   function from weak to strong. I've currently divided the lemmas into
   strong and weak depending on whether they require `val_le_mul_left` or not. -/
 (mul_left_not_lt : ∀ a {b}, b ≠ 0 → ¬r (a * b) a)
-(zero_ne_one : (0 : α) ≠ 1)
 end prio
 
 namespace euclidean_domain
@@ -40,9 +39,6 @@ variable {α : Type u}
 variables [euclidean_domain α]
 
 local infix ` ≺ `:50 := euclidean_domain.r
-
-@[priority 70] -- see Note [lower instance priority]
-instance : nonzero α := ⟨⟨1, euclidean_domain.zero_ne_one.symm⟩⟩
 
 @[priority 70] -- see Note [lower instance priority]
 instance : has_div α := ⟨euclidean_domain.quotient⟩
@@ -350,8 +346,7 @@ instance int.euclidean_domain : euclidean_domain ℤ :=
   mul_left_not_lt := λ a b b0, not_lt_of_ge $
     by rw [← mul_one a.nat_abs, int.nat_abs_mul];
     exact mul_le_mul_of_nonneg_left (int.nat_abs_pos_of_ne_zero b0) (nat.zero_le _),
-  zero_ne_one := zero_ne_one,
-  .. int.comm_ring }
+  .. int.comm_ring, .. int.nontrivial }
 
 @[priority 100] -- see Note [lower instance priority]
 instance field.to_euclidean_domain {K : Type u} [field K] : euclidean_domain K :=

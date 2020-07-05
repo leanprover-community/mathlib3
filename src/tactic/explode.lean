@@ -204,7 +204,4 @@ add_tactic_doc
   decl_names := [`tactic.explode_cmd],
   tags       := ["proof display"] }
 
--- #explode iff_true_intro
--- #explode nat.strong_rec_on
-
 end tactic

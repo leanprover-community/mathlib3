@@ -40,7 +40,7 @@ and require `0⁻¹ = 0`.
 set_option old_structure_cmd true
 open_locale classical
 
-variables {M₀ G₀ G₁ : Type*}
+variables {M₀ G₀ : Type*}
 
 mk_simp_attribute field_simps "The simpset `field_simps` is used by the tactic `field_simp` to
 reduce an expression in a field to an expression of the form `n / d` where `n` and `d` are

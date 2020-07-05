@@ -75,11 +75,11 @@ end
 
 /-- Variant of the above theorem, eliminating the hypothesis that `x` be nonzero, and choosing
     the dual element arbitrarily when `x = 0`. -/
-theorem exists_dual_vector' (h : 0 < vector_space.dim ℝ E) (x : E) : ∃ g : E →L[ℝ] ℝ,
+theorem exists_dual_vector' [nontrivial E] (x : E) : ∃ g : E →L[ℝ] ℝ,
   ∥g∥ = 1 ∧ g x = ∥x∥ :=
 begin
   by_cases hx : x = 0,
-  { cases dim_pos_iff_exists_ne_zero.mp h with y hy,
+  { rcases exists_ne' (0 : E) with ⟨y, hy⟩,
     cases exists_dual_vector y hy with g hg,
     use g, refine ⟨hg.left, _⟩, simp [hx] },
   { exact exists_dual_vector x hx }

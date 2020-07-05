@@ -192,7 +192,8 @@ instance : euclidean_domain ℤ[i] :=
   r_well_founded := measure_wf (int.nat_abs ∘ norm),
   remainder_lt := nat_abs_norm_mod_lt,
   mul_left_not_lt := λ a b hb0, not_lt_of_ge $ norm_le_norm_mul_left a hb0,
-  .. gaussian_int.comm_ring, ..gaussian_int.nontrivial }
+  .. gaussian_int.comm_ring,
+  .. gaussian_int.nontrivial }
 
 open principal_ideal_ring
 

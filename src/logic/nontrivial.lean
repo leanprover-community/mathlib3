@@ -1,6 +1,22 @@
+/-
+Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Sébastien Gouëzel
+-/
+
 import logic.unique
 import tactic.localized
 import tactic.push_neg
+
+/-!
+# Nontrivial types
+
+A type is *nontrivial* if it contains at least two elements. This is useful in particular for rings
+(where it is equivalent to the fact that zero is different from one) and for vector spaces
+(where it is equivalent to the fact that the dimension is positive).
+
+We introduce a typeclass `nontrivial` formalizing this property.
+-/
 
 variables {α : Type*} {β : Type*}
 
@@ -15,11 +31,20 @@ lemma exists_ne (α : Type*) [nontrivial α] :
   ∃ (x y : α), x ≠ y :=
 nontrivial.exists_ne
 
-instance nontrivial.to_nonempty {α : Type*} [H : nontrivial α] : nonempty α :=
-let ⟨x, _⟩ := exists_ne α in ⟨x⟩
+lemma exists_ne' [nontrivial α] (x : α) : ∃ y, y ≠ x :=
+begin
+  rcases exists_ne α with ⟨y, y', h⟩,
+  by_cases hx : x = y,
+  { rw ← hx at h,
+    exact ⟨y', h.symm⟩ },
+  { exact ⟨y, ne.symm hx⟩ }
+end
 
 lemma nontrivial_of_ne (x y : α) (h : x ≠ y) : nontrivial α :=
 { exists_ne := ⟨x, y, h⟩ }
+
+instance nontrivial.to_nonempty [nontrivial α] : nonempty α :=
+let ⟨x, _⟩ := exists_ne α in ⟨x⟩
 
 /-- An inhabited type is either nontrivial, or has a unique element. -/
 noncomputable def nontrivial_psum_unique (α : Type*) [inhabited α] :

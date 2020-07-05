@@ -528,7 +528,8 @@ protected noncomputable def field : field (ring.direct_limit G f) :=
 { inv := inv G f,
   mul_inv_cancel := λ p, direct_limit.mul_inv_cancel G f,
   inv_zero := dif_pos rfl,
-  .. ring.direct_limit.comm_ring G f, .. field.direct_limit.nontrivial G f }
+  .. ring.direct_limit.comm_ring G f,
+  .. direct_limit.nontrivial G f }
 
 end
 

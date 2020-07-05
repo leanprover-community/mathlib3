@@ -156,8 +156,6 @@ by simp [ext, sub_eq_add_neg, mul_comm]
 theorem conj_mul {a b : ℤ√d} : conj (a * b) = conj a * conj b :=
 by { simp [ext], ring }
 
--- by simp [ext, add_comm]
-
 protected lemma coe_int_add (m n : ℤ) : (↑(m + n) : ℤ√d) = ↑m + ↑n := by simp [ext]
 protected lemma coe_int_sub (m n : ℤ) : (↑(m - n) : ℤ√d) = ↑m - ↑n := by simp [ext, sub_eq_add_neg]
 protected lemma coe_int_mul (m n : ℤ) : (↑(m * n) : ℤ√d) = ↑m * ↑n := by simp [ext]

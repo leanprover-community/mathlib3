@@ -29,35 +29,35 @@ open finset
 The "characteristic matrix" of `M : matrix n n R` is the matrix of polynomials $t I - M$.
 The determinant of this matrix is the characteristic polynomial.
 -/
-def characteristic_matrix (M : matrix n n R) : matrix n n (polynomial R) :=
+def char_matrix (M : matrix n n R) : matrix n n (polynomial R) :=
 matrix.scalar n (X : polynomial R) - (λ i j, C (M i j))
 
-@[simp] lemma characteristic_matrix_apply_eq (M : matrix n n R) (i : n) :
-  characteristic_matrix M i i = (X : polynomial R) - C (M i i) :=
-by simp only [characteristic_matrix, sub_left_inj, pi.sub_apply, scalar_apply_eq]
+@[simp] lemma char_matrix_apply_eq (M : matrix n n R) (i : n) :
+  char_matrix M i i = (X : polynomial R) - C (M i i) :=
+by simp only [char_matrix, sub_left_inj, pi.sub_apply, scalar_apply_eq]
 
-@[simp] lemma characteristic_matrix_apply_ne (M : matrix n n R) (i j : n) (h : i ≠ j) :
-  characteristic_matrix M i j = - C (M i j) :=
-by simp only [characteristic_matrix, pi.sub_apply, scalar_apply_ne _ _ _ h, zero_sub]
+@[simp] lemma char_matrix_apply_ne (M : matrix n n R) (i j : n) (h : i ≠ j) :
+  char_matrix M i j = - C (M i j) :=
+by simp only [char_matrix, pi.sub_apply, scalar_apply_ne _ _ _ h, zero_sub]
 
-lemma matrix_polynomial_equiv_polynomial_matrix_characteristic_matrix (M : matrix n n R) :
-  matrix_polynomial_equiv_polynomial_matrix (characteristic_matrix M) = X - C M :=
+lemma mat_poly_equiv_char_matrix (M : matrix n n R) :
+  mat_poly_equiv (char_matrix M) = X - C M :=
 begin
   ext k i j,
-  simp only [matrix_polynomial_equiv_polynomial_matrix_coeff_apply, coeff_sub, pi.sub_apply],
+  simp only [mat_poly_equiv_coeff_apply, coeff_sub, pi.sub_apply],
   by_cases h : i = j,
-  { subst h, rw [characteristic_matrix_apply_eq, coeff_sub],
+  { subst h, rw [char_matrix_apply_eq, coeff_sub],
     simp only [coeff_X, coeff_C],
     split_ifs; simp, },
-  { rw [characteristic_matrix_apply_ne _ _ _ h, coeff_X, coeff_neg, coeff_C, coeff_C],
+  { rw [char_matrix_apply_ne _ _ _ h, coeff_X, coeff_neg, coeff_C, coeff_C],
     split_ifs; simp [h], }
 end
 
 /--
 The characteristic polynomial of a matrix `M` is given by $det (t I - M)$.
 -/
-def characteristic_polynomial (M : matrix n n R) : polynomial R :=
-(characteristic_matrix M).det
+def char_poly (M : matrix n n R) : polynomial R :=
+(char_matrix M).det
 
 /--
 The Cayley-Hamilton theorem, that the characteristic polynomial of a matrix,
@@ -67,19 +67,19 @@ This holds over any commutative ring.
 -/
 -- This proof follows http://drorbn.net/AcademicPensieve/2015-12/CayleyHamilton.pdf
 theorem cayley_hamilton (M : matrix n n R) :
-  ((characteristic_polynomial M).map (algebra_map R (matrix n n R))).eval M = 0 :=
+  ((char_poly M).map (algebra_map R (matrix n n R))).eval M = 0 :=
 begin
   -- We begin with the fact $χ_M(t) I = adjugate (t I - M) * (t I - M)$,
   -- as an identity in `matrix n n (polynomial R)`.
   have h := calc
-    (characteristic_polynomial M) • (1 : matrix n n (polynomial R))
-         = (characteristic_matrix M).det • (1 : matrix n n (polynomial R)) : rfl
-     ... = adjugate (characteristic_matrix M) * (characteristic_matrix M)  : (adjugate_mul _).symm,
+    (char_poly M) • (1 : matrix n n (polynomial R))
+         = (char_matrix M).det • (1 : matrix n n (polynomial R)) : rfl
+     ... = adjugate (char_matrix M) * (char_matrix M)            : (adjugate_mul _).symm,
   -- Using the algebra isomorphism `matrix n n (polynomial R) ≃ₐ[R] polynomial (matrix n n R)`,
   -- we have the same identity in `polynomial (matrix n n R)`.
-  apply_fun matrix_polynomial_equiv_polynomial_matrix at h,
-  simp only [matrix_polynomial_equiv_polynomial_matrix.map_mul,
-    matrix_polynomial_equiv_polynomial_matrix_characteristic_matrix] at h,
+  apply_fun mat_poly_equiv at h,
+  simp only [mat_poly_equiv.map_mul,
+    mat_poly_equiv_char_matrix] at h,
   -- Because the coefficient ring `matrix n n R` is non-commutative,
   -- evaluation at `M` is not multiplicative.
   -- However, any polynomial which is a product of the form $N * (t I - M)$
@@ -89,7 +89,7 @@ begin
   rw eval_mul_X_sub_C at h,
   -- Now $χ_M (t) I$, when thought of as a polynomial of matrices
   -- and evaluated at some `N` is exactly $χ_M (N)$.
-  rw matrix_polynomial_equiv_polynomial_matrix_smul_one at h,
+  rw mat_poly_equiv_smul_one at h,
   -- Thus we have $χ_M(M) = 0$, which is the desired result.
   exact h,
 end

@@ -427,6 +427,10 @@ rfl
   (⋂ x ∈ (↑s : set α), t x) = ⋂ x ∈ s, t x :=
 rfl
 
+theorem bUnion_preimage_singleton (f : α → β) (s : finset β) :
+  (⋃ b ∈ s, f ⁻¹' {b}) = f ⁻¹' ↑s :=
+(↑s : set β).bUnion_preimage_singleton f
+
 @[simp] theorem bUnion_singleton (a : α) (s : α → set β) : (⋃ x ∈ ({a} : finset α), s x) = s a :=
 supr_singleton a s
 

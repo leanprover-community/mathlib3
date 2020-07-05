@@ -623,7 +623,7 @@ instance : has_add (measure α) :=
 @[simp, norm_cast] theorem coe_add (μ₁ μ₂ : measure α) : ⇑(μ₁ + μ₂) = μ₁ + μ₂ := rfl
 
 instance add_comm_monoid : add_comm_monoid (measure α) :=
-add_comm_monoid_of_injective to_outer_measure to_outer_measure_injective zero_to_outer_measure
+to_outer_measure_injective.add_comm_monoid to_outer_measure zero_to_outer_measure
   add_to_outer_measure
 
 instance : has_scalar ennreal (measure α) :=
@@ -646,7 +646,7 @@ rfl
 rfl
 
 instance : semimodule ennreal (measure α) :=
-semimodule_of_injective ⟨to_outer_measure, zero_to_outer_measure, add_to_outer_measure⟩
+injective.semimodule ennreal ⟨to_outer_measure, zero_to_outer_measure, add_to_outer_measure⟩
   to_outer_measure_injective smul_to_outer_measure
 
 instance : partial_order (measure α) :=
@@ -719,6 +719,8 @@ instance : complete_lattice (measure α) :=
 
 end
 
+/-- Lift a linear map between `outer_measure` spaces such that for each measure `μ` every measurable
+set is caratheodory-measurable w.r.t. `f μ` to a linear map between `measure` spaces. -/
 def lift_linear (f : outer_measure α →ₗ[ennreal] outer_measure β)
   (hf : ∀ μ : measure α, ‹_› ≤ (f μ.to_outer_measure).caratheodory) :
   measure α →ₗ[ennreal] measure β :=
@@ -752,6 +754,8 @@ lemma map_map {g : β → γ} {f : α → β} (hg : measurable g) (hf : measurab
 ext $ λ s hs,
 by simp [hf, hg, hs, hg.preimage hs, hg.comp hf, ← preimage_comp]
 
+/-- Pullback of a `measure`. If `f` sends each `measurable` set to a `measurable` set, then for each
+measurable set `s` we have `comap f μ s = μ (f '' s)`. -/
 def comap (f : α → β) : measure β →ₗ[ennreal] measure α :=
 if hf : injective f ∧ ∀ s, is_measurable s → is_measurable (f '' s) then
   lift_linear (outer_measure.comap f) $ λ μ s hs t,
@@ -771,6 +775,8 @@ begin
   exact ⟨hfi, hf⟩
 end
 
+/-- Restrict a measure `μ` to a set `s` as an `ennreal`-linear map. If `s` is not measurable,
+then `restrict s μ = 0`. -/
 def restrict (s : set α) : measure α →ₗ[ennreal] measure α :=
 if hs : is_measurable s then
   lift_linear (outer_measure.restrict s) $ λ μ s' hs' t,

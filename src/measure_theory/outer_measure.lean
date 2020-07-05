@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import analysis.specific_limits
 import measure_theory.measurable_space
-import algebra.inj_surj
 
 /-!
 # Outer Measures
@@ -150,7 +149,7 @@ theorem add_apply (m₁ m₂ : outer_measure α) (s : set α) : (m₁ + m₂) s 
 instance add_comm_monoid : add_comm_monoid (outer_measure α) :=
 { zero      := 0,
   add       := (+),
-  .. add_comm_monoid_of_injective (show outer_measure α → set α → ennreal, from coe_fn)
+  .. injective.add_comm_monoid (show outer_measure α → set α → ennreal, from coe_fn)
     coe_fn_injective rfl (λ _ _, rfl) }
 
 instance : has_scalar ennreal (outer_measure α) :=
@@ -166,7 +165,7 @@ lemma smul_apply (c : ennreal) (m : outer_measure α) (s : set α) : (c • m) s
 
 instance : semimodule ennreal (outer_measure α) :=
 { smul := (•),
-  .. semimodule_of_injective ⟨show outer_measure α → set α → ennreal, from coe_fn, coe_zero,
+  .. injective.semimodule ennreal ⟨show outer_measure α → set α → ennreal, from coe_fn, coe_zero,
     coe_add⟩ coe_fn_injective coe_smul }
 
 instance : has_bot (outer_measure α) := ⟨0⟩
@@ -267,6 +266,7 @@ theorem smul_dirac_apply (a : ennreal) (b : α) (s : set α) :
   (a • dirac b) s = ⨆ h : b ∈ s, a :=
 by by_cases b ∈ s; simp [h]
 
+/-- Pullback of an `outer_measure`: `comap f μ s = μ (f '' s)`. -/
 def comap {β} (f : α → β) : outer_measure β →ₗ[ennreal] outer_measure α :=
 { to_fun := λ m,
     { measure_of := λ s, m (f '' s),
@@ -280,6 +280,7 @@ def comap {β} (f : α → β) : outer_measure β →ₗ[ennreal] outer_measure 
   comap f m s = m (f '' s) :=
 rfl
 
+/-- Restrict an `outer_measure` to a set. -/
 def restrict (s : set α) : outer_measure α →ₗ[ennreal] outer_measure α :=
 (map coe).comp (comap (coe : s → α))
 

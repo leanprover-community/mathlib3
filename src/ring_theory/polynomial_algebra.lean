@@ -8,6 +8,8 @@ import ring_theory.matrix_algebra
 import data.polynomial
 
 /-!
+# Algebra isomorphism between matrices of polynomials and polynomials of matrices
+
 Given `[comm_ring R] [ring A] [algebra R A]`
 we show `polynomial A ≃ₐ[R] (A ⊗[R] polynomial R)`.
 Combining this with the isomorphism `matrix n n A ≃ₐ[R] (A ⊗[R] matrix n n R)` proved earlier

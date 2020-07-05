@@ -21,7 +21,7 @@ universes v u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.cate
 variables {C : Type u₁} [category.{v} C]
 variables {D : Type u₂} [category.{v} D]
 
-variables [has_binary_products.{v} D] (F : C ⥤ D)
+variables [has_binary_products D] (F : C ⥤ D)
 
 /-- (Implementation). Construct a cone for `pair A B ⋙ F` which we will show is limiting. -/
 @[simps]
@@ -37,7 +37,7 @@ def alternative_cone_is_limit (A B : C) : is_limit (alternative_cone F A B) :=
     (by { rw prod.lift_fst, apply w walking_pair.left })
     (by { rw prod.lift_snd, apply w walking_pair.right }) }
 
-variable [has_binary_products.{v} C]
+variable [has_binary_products C]
 
 /-- If `prod_comparison F A B` is an iso, then `F` preserves the limit `A ⨯ B`. -/
 def preserves_binary_prod_of_prod_comparison_iso (A B : C) [is_iso (prod_comparison F A B)] :

@@ -836,11 +836,17 @@ lemma closed_ball_Icc {x r : ℝ} : closed_ball x r = Icc (x-r) (x+r) :=
 by ext y; rw [mem_closed_ball, dist_comm, real.dist_eq,
   abs_sub_le_iff, mem_Icc, ← sub_le_iff_le_add', sub_le]
 
+/-- Special case of the sandwich theorem; see `tendsto_of_tendsto_of_tendsto_of_le_of_le'` for the
+general case. -/
+lemma squeeze_zero' {α} {f g : α → ℝ} {t₀ : filter α} (hf : ∀ᶠ t in t₀, 0 ≤ f t)
+  (hft : ∀ᶠ t in t₀, f t ≤ g t) (g0 : tendsto g t₀ (nhds 0)) : tendsto f t₀ (nhds 0) :=
+tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds g0 hf hft
+
 /-- Special case of the sandwich theorem; see `tendsto_of_tendsto_of_tendsto_of_le_of_le`
 and  `tendsto_of_tendsto_of_tendsto_of_le_of_le'` for the general case. -/
 lemma squeeze_zero {α} {f g : α → ℝ} {t₀ : filter α} (hf : ∀t, 0 ≤ f t) (hft : ∀t, f t ≤ g t)
   (g0 : tendsto g t₀ (𝓝 0)) : tendsto f t₀ (𝓝 0) :=
-tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds g0 hf hft
+squeeze_zero' (eventually_of_forall hf) (eventually_of_forall hft) g0
 
 theorem metric.uniformity_eq_comap_nhds_zero :
   𝓤 α = comap (λp:α×α, dist p.1 p.2) (𝓝 (0 : ℝ)) :=
@@ -1101,6 +1107,9 @@ variables {x y z : α} {ε ε₁ ε₂ : ℝ} {s : set α}
 theorem is_closed_ball : is_closed (closed_ball x ε) :=
 is_closed_le (continuous_id.dist continuous_const) continuous_const
 
+@[simp] theorem closure_closed_ball : closure (closed_ball x ε) = closed_ball x ε :=
+is_closed_ball.closure_eq
+
 theorem closure_ball_subset_closed_ball : closure (ball x ε) ⊆ closed_ball x ε :=
 closure_minimal ball_subset_closed_ball is_closed_ball
 
@@ -1133,7 +1142,7 @@ lemma mem_closure_range_iff_nat {α : Type u} [metric_space α] {e : β → α} 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem mem_of_closed' {α : Type u} [metric_space α] {s : set α} (hs : is_closed s)
   {a : α} : a ∈ s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
-by simpa only [closure_eq_of_is_closed hs] using @mem_closure_iff _ _ s a
+by simpa only [hs.closure_eq] using @mem_closure_iff _ _ s a
 
 end metric
 
@@ -1466,7 +1475,7 @@ begin
     exact this (x, y) (mk_mem_prod x_in y_in) },
   intros p p_in,
   have := mem_closure continuous_dist p_in h,
-  rwa closure_eq_of_is_closed (is_closed_le' C) at this
+  rwa (is_closed_le' C).closure_eq at this
 end
 
 alias bounded_closure_of_bounded ← bounded.closure
@@ -1522,7 +1531,7 @@ compact_univ.bounded.subset (subset_univ _)
 In a proper space, a set is compact if and only if it is closed and bounded -/
 lemma compact_iff_closed_bounded [proper_space α] :
   compact s ↔ is_closed s ∧ bounded s :=
-⟨λ h, ⟨closed_of_compact _ h, h.bounded⟩, begin
+⟨λ h, ⟨h.is_closed, h.bounded⟩, begin
   rintro ⟨hc, hb⟩,
   cases s.eq_empty_or_nonempty with h h, {simp [h, compact_empty]},
   rcases h with ⟨x, hx⟩,
@@ -1538,7 +1547,7 @@ begin
   apply proper_space_of_compact_closed_ball_of_le 0 (λx₀ r hr, _),
   let K := f ⁻¹' (closed_ball x₀ r),
   have A : is_closed K :=
-    continuous_iff_is_closed.1 f_cont (closed_ball x₀ r) (is_closed_ball),
+    continuous_iff_is_closed.1 f_cont (closed_ball x₀ r) is_closed_ball,
   have B : bounded K := ⟨max C 0 * (r + r), λx y hx hy, calc
     dist x y ≤ C * dist (f x) (f y) : hC x y
     ... ≤ max C 0 * dist (f x) (f y) : mul_le_mul_of_nonneg_right (le_max_left _ _) (dist_nonneg)

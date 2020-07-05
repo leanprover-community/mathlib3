@@ -71,7 +71,7 @@ assume x, iff.intro
       ... = (2*a*x + b)^2 : by ring)
   (assume h,
     have ha : 2*2*a ≠ 0 := mul_ne_zero (mul_ne_zero two_ne_zero two_ne_zero) ha,
-    eq_of_mul_eq_mul_left_of_ne_zero ha $
+    mul_left_cancel' ha $
     calc
       2 * 2 * a * (a * x * x + b * x + c) = (2*a*x + b)^2 - (b^2 - 4*a*c) : by ring
       ... = 0 : by { rw [← h, discrim], ring }

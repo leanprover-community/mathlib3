@@ -8,6 +8,7 @@ The cardinality of the reals.
 import set_theory.ordinal
 import analysis.specific_limits
 import data.rat.denumerable
+import data.set.intervals.image_preimage
 
 open nat set
 noncomputable theory
@@ -102,6 +103,7 @@ begin
     apply eq_ff_of_not_eq_tt, rw [←fn], apply ne.symm, exact nat.find_spec this }
 end
 
+/-- The cardinality of the reals, as a type. -/
 lemma mk_real : mk ℝ = 2 ^ omega.{0} :=
 begin
   apply le_antisymm,
@@ -111,7 +113,78 @@ begin
     rw [←power_def, mk_bool, mk_nat], exact 1 / 3, norm_num, norm_num }
 end
 
+/-- The cardinality of the reals, as a set. -/
+lemma mk_univ_real : mk (set.univ : set ℝ) = 2 ^ omega.{0} :=
+by rw [mk_univ, mk_real]
+
+/-- The reals are not countable. -/
 lemma not_countable_real : ¬ countable (set.univ : set ℝ) :=
-by { rw [countable_iff, not_le, mk_univ, mk_real], apply cantor }
+by { rw [countable_iff, not_le, mk_univ_real], apply cantor }
+
+/-- The cardinality of the interval (a, ∞). -/
+lemma mk_Ioi_real (a : ℝ) : mk (Ioi a) = 2 ^ omega.{0} :=
+begin
+  refine le_antisymm (mk_real ▸ mk_set_le _) _,
+  by_contradiction h,
+  rw not_le at h,
+  refine ne_of_lt _ mk_univ_real,
+  have hu : Iio a ∪ {a} ∪ Ioi a = set.univ,
+  { convert Iic_union_Ioi,
+    exact Iio_union_right },
+  rw ←hu,
+  refine lt_of_le_of_lt (mk_union_le _ _) _,
+  refine lt_of_le_of_lt (add_le_add_right _ (mk_union_le _ _)) _,
+  have h2 : (λ x, a + a - x) '' Ioi a = Iio a,
+  { convert image_const_sub_Ioi _ _,
+    simp },
+  rw ←h2,
+  refine add_lt_of_lt (le_of_lt (cantor _)) _ h,
+  refine add_lt_of_lt (le_of_lt (cantor _)) (lt_of_le_of_lt mk_image_le h) _,
+  rw mk_singleton,
+  exact lt_trans one_lt_omega (cantor _)
+end
+
+/-- The cardinality of the interval [a, ∞). -/
+lemma mk_Ici_real (a : ℝ) : mk (Ici a) = 2 ^ omega.{0} :=
+le_antisymm (mk_real ▸ mk_set_le _) (mk_Ioi_real a ▸ mk_le_mk_of_subset Ioi_subset_Ici_self)
+
+/-- The cardinality of the interval (-∞, a). -/
+lemma mk_Iio_real (a : ℝ) : mk (Iio a) = 2 ^ omega.{0} :=
+begin
+  refine le_antisymm (mk_real ▸ mk_set_le _) _,
+  have h2 : (λ x, a + a - x) '' Iio a = Ioi a,
+  { convert image_const_sub_Iio _ _,
+    simp },
+  exact mk_Ioi_real a ▸ h2 ▸ mk_image_le
+end
+
+/-- The cardinality of the interval (-∞, a]. -/
+lemma mk_Iic_real (a : ℝ) : mk (Iic a) = 2 ^ omega.{0} :=
+le_antisymm (mk_real ▸ mk_set_le _) (mk_Iio_real a ▸ mk_le_mk_of_subset Iio_subset_Iic_self)
+
+/-- The cardinality of the interval (a, b). -/
+lemma mk_Ioo_real {a b : ℝ} (h : a < b) : mk (Ioo a b) = 2 ^ omega.{0} :=
+begin
+  refine le_antisymm (mk_real ▸ mk_set_le _) _,
+  have h1 : mk ((λ x, x - a) '' Ioo a b) ≤ mk (Ioo a b) := mk_image_le,
+  refine le_trans _ h1,
+  rw [image_sub_const_Ioo, sub_self],
+  replace h := sub_pos_of_lt h,
+  have h2 : mk (has_inv.inv '' Ioo 0 (b - a)) ≤ mk (Ioo 0 (b - a)) := mk_image_le,
+  refine le_trans _ h2,
+  rw [image_inv_Ioo_0_left h, mk_Ioi_real]
+end
+
+/-- The cardinality of the interval [a, b). -/
+lemma mk_Ico_real {a b : ℝ} (h : a < b) : mk (Ico a b) = 2 ^ omega.{0} :=
+le_antisymm (mk_real ▸ mk_set_le _) (mk_Ioo_real h ▸ mk_le_mk_of_subset Ioo_subset_Ico_self)
+
+/-- The cardinality of the interval [a, b]. -/
+lemma mk_Icc_real {a b : ℝ} (h : a < b) : mk (Icc a b) = 2 ^ omega.{0} :=
+le_antisymm (mk_real ▸ mk_set_le _) (mk_Ioo_real h ▸ mk_le_mk_of_subset Ioo_subset_Icc_self)
+
+/-- The cardinality of the interval (a, b]. -/
+lemma mk_Ioc_real {a b : ℝ} (h : a < b) : mk (Ioc a b) = 2 ^ omega.{0} :=
+le_antisymm (mk_real ▸ mk_set_le _) (mk_Ioo_real h ▸ mk_le_mk_of_subset Ioo_subset_Ioc_self)
 
 end cardinal

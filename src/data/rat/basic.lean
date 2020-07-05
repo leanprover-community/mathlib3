@@ -127,7 +127,7 @@ begin
   cases b with b; simp [mk, mk_nat] at h,
   { simp [mt (congr_arg int.of_nat) b0] at h,
     exact this h },
-  { apply neg_inj, simp [this h] }
+  { apply neg_injective, simp [this h] }
 end
 
 theorem mk_eq : ∀ {a b c d : ℤ} (hb : b ≠ 0) (hd : d ≠ 0),
@@ -141,10 +141,10 @@ begin
     simp [mt (congr_arg int.of_nat) hd],
     all_goals { rw this, try {refl} } },
   { change a * ↑(d.succ) = -c * ↑b ↔ a * -(d.succ) = c * b,
-    constructor; intro h; apply neg_inj; simpa [left_distrib, neg_add_eq_iff_eq_add,
+    constructor; intro h; apply neg_injective; simpa [left_distrib, neg_add_eq_iff_eq_add,
       eq_neg_iff_add_eq_zero, neg_eq_iff_add_eq_zero] using h },
   { change -a * ↑d = c * b.succ ↔ a * d = c * -b.succ,
-    constructor; intro h; apply neg_inj; simpa [left_distrib, eq_comm] using h },
+    constructor; intro h; apply neg_injective; simpa [left_distrib, eq_comm] using h },
   { change -a * d.succ = -c * b.succ ↔ a * -d.succ = c * -b.succ,
     simp [left_distrib, sub_eq_add_neg], cc }
 end,
@@ -164,7 +164,7 @@ begin
     have m0 : (a.nat_abs.gcd b * c.nat_abs.gcd d : ℤ) ≠ 0, {
       refine int.coe_nat_ne_zero.2 (ne_of_gt _),
       apply mul_pos; apply nat.gcd_pos_of_pos_right; assumption },
-    apply eq_of_mul_eq_mul_right m0,
+    apply mul_right_cancel' m0,
     simpa [mul_comm, mul_left_comm] using
       congr (congr_arg (*) ha.symm) (congr_arg coe hb) },
   { suffices : ∀ a c, a * d = c * b →
@@ -635,7 +635,7 @@ begin
   { intro h,
     lift ((m : ℚ) / n) to ℤ using h with k hk,
     use k,
-    rwa [eq_div_iff_mul_eq _ _ hn, ← int.cast_mul, mul_comm, eq_comm, coe_int_inj] at hk },
+    rwa [eq_div_iff_mul_eq hn, ← int.cast_mul, mul_comm, eq_comm, coe_int_inj] at hk },
   { rintros ⟨d, rfl⟩,
     rw [int.cast_mul, mul_comm, mul_div_cancel _ hn, rat.coe_int_denom] }
 end

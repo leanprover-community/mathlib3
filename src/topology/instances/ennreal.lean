@@ -306,7 +306,8 @@ begin
     rw [H.2, mul_zero, ← bot_eq_zero, infi_eq_bot],
     exact λ b hb, ⟨i, by rwa [hi, mul_zero, ← bot_eq_zero]⟩ },
   { push_neg at H,
-    exact (infi_of_continuous_at' (ennreal.continuous_at_const_mul H) ennreal.mul_left_mono).symm }
+    exact (map_infi_of_continuous_at_of_monotone' (ennreal.continuous_at_const_mul H)
+      ennreal.mul_left_mono).symm }
 end
 
 lemma infi_mul_right {ι} [nonempty ι] {f : ι → ennreal} {a : ennreal}
@@ -756,12 +757,12 @@ begin
       { simp [htop, lt_top_iff_ne_top, ne_top_of_lt he] },
       { simp at hy,
         have : e + ε < f y + ε := calc
-          e + ε ≤ e + (f x - e) : add_le_add_left' (min_le_left _ _)
+          e + ε ≤ e + (f x - e) : add_le_add_left (min_le_left _ _) _
           ... = f x : by simp [le_of_lt he]
           ... ≤ f y + C * edist x y : h x y
           ... = f y + C * edist y x : by simp [edist_comm]
           ... ≤ f y + C * (C⁻¹ * (ε/2)) :
-            add_le_add_left' $ canonically_ordered_semiring.mul_le_mul (le_refl _) (le_of_lt hy)
+            add_le_add_left (canonically_ordered_semiring.mul_le_mul (le_refl _) (le_of_lt hy)) _
           ... < f y + ε : (ennreal.add_lt_add_iff_left (lt_top_iff_ne_top.2 htop)).2 I,
         show e < f y, from
           (ennreal.add_lt_add_iff_right ‹ε < ⊤›).1 this }},
@@ -784,9 +785,9 @@ begin
       show f y < e, from calc
         f y ≤ f x + C * edist y x : h y x
         ... ≤ f x + C * (C⁻¹ * (ε/2)) :
-            add_le_add_left' $ canonically_ordered_semiring.mul_le_mul (le_refl _) (le_of_lt hy)
+            add_le_add_left (canonically_ordered_semiring.mul_le_mul (le_refl _) (le_of_lt hy)) _
         ... < f x + ε : (ennreal.add_lt_add_iff_left (lt_top_iff_ne_top.2 htop)).2 I
-        ... ≤ f x + (e - f x) : add_le_add_left' (min_le_left _ _)
+        ... ≤ f x + (e - f x) : add_le_add_left (min_le_left _ _) _
         ... = e : by simp [le_of_lt he] },
     apply filter.mem_sets_of_superset (ball_mem_nhds _ (‹0 < C⁻¹ * (ε/2)›)) this },
 end
@@ -798,7 +799,7 @@ begin
   calc edist x y ≤ edist x x' + edist x' y' + edist y' y : edist_triangle4 _ _ _ _
     ... = edist x' y' + (edist x x' + edist y y') : by simp [edist_comm]; cc
     ... ≤ edist x' y' + (edist (x, y) (x', y') + edist (x, y) (x', y')) :
-      add_le_add_left' (add_le_add (by simp [edist, le_refl]) (by simp [edist, le_refl]))
+      add_le_add_left (add_le_add (le_max_left _ _) (le_max_right _ _)) _
     ... = edist x' y' + 2 * edist (x, y) (x', y') : by rw [← mul_two, mul_comm]
 end
 

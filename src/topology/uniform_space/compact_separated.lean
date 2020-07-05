@@ -42,21 +42,21 @@ lemma compact_space_uniformity [compact_space α] [separated_space α] : 𝓤 α
 begin
   symmetry, refine le_antisymm nhds_le_uniformity _,
   by_contra H,
-  obtain ⟨V, hV, h⟩ : ∃ V : set (α × α), (∀ x : α, V ∈ 𝓝 (x, x)) ∧ 𝓤 α ⊓ 𝓟 (-V) ≠ ⊥,
+  obtain ⟨V, hV, h⟩ : ∃ V : set (α × α), (∀ x : α, V ∈ 𝓝 (x, x)) ∧ 𝓤 α ⊓ 𝓟 Vᶜ ≠ ⊥,
   { rw le_iff_forall_inf_principal_compl at H,
     push_neg at H,
     simpa only [mem_supr_sets] using H },
-  let F := 𝓤 α ⊓ 𝓟 (-V),
+  let F := 𝓤 α ⊓ 𝓟 Vᶜ,
   obtain ⟨⟨x, y⟩, hx⟩ : ∃ (p : α × α), cluster_pt p F :=
     cluster_point_of_compact h,
   have : cluster_pt (x, y) (𝓤 α) :=
     hx.of_inf_left,
   have hxy : x = y := eq_of_uniformity_inf_nhds this,
   subst hxy,
-  have : cluster_pt (x, x) (𝓟 (-V)) :=
+  have : cluster_pt (x, x) (𝓟 Vᶜ) :=
    hx.of_inf_right,
   have : (x, x) ∉ interior V,
-  { have : (x, x) ∈ closure (-V), by rwa mem_closure_iff_cluster_pt,
+  { have : (x, x) ∈ closure Vᶜ, by rwa mem_closure_iff_cluster_pt,
     rwa closure_compl at this },
   have : (x, x) ∈ interior V,
   { rw mem_interior_iff_mem_nhds,
@@ -100,17 +100,17 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
     -/
     set 𝓝Δ := ⨆ x : α, 𝓝 (x, x), -- The filter of neighborhoods of Δ
     set F := 𝓝Δ.lift' (λ (s : set (α × α)), s ○ s), -- Compositions of neighborhoods of Δ
-    -- If this weren't true, then there would be V ∈ 𝓝Δ such that F ⊓ 𝓟 (-V) ≠ ⊥
+    -- If this weren't true, then there would be V ∈ 𝓝Δ such that F ⊓ 𝓟 Vᶜ ≠ ⊥
     rw le_iff_forall_inf_principal_compl,
     intros V V_in,
     by_contra H,
-    -- Hence compactness would give us a cluster point (x, y) for F ⊓ 𝓟 (-V)
-    obtain ⟨⟨x, y⟩, hxy⟩ : ∃ (p : α × α), cluster_pt p (F ⊓ 𝓟 (-V)) := cluster_point_of_compact H,
-    -- In particular (x, y) is a cluster point of 𝓟 (-V), hence is not in the interior of V,
+    -- Hence compactness would give us a cluster point (x, y) for F ⊓ 𝓟 Vᶜ
+    obtain ⟨⟨x, y⟩, hxy⟩ : ∃ (p : α × α), cluster_pt p (F ⊓ 𝓟 Vᶜ) := cluster_point_of_compact H,
+    -- In particular (x, y) is a cluster point of 𝓟 Vᶜ, hence is not in the interior of V,
     -- and a fortiori not in Δ, so x ≠ y
-    have clV : cluster_pt (x, y) (𝓟 $ -V) := hxy.of_inf_right,
+    have clV : cluster_pt (x, y) (𝓟 $ Vᶜ) := hxy.of_inf_right,
     have : (x, y) ∉ interior V,
-    { have : (x, y) ∈ closure (-V), by rwa mem_closure_iff_cluster_pt,
+    { have : (x, y) ∈ closure (Vᶜ), by rwa mem_closure_iff_cluster_pt,
       rwa closure_compl at this },
     have diag_subset : diagonal α ⊆ interior V,
     { rw subset_interior_iff_nhds,
@@ -129,9 +129,9 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
        ∃ (U₁ V₁ ∈ 𝓝 x) (U₂ V₂ ∈ 𝓝 y), is_closed V₁ ∧ is_closed V₂ ∧ is_open U₁ ∧ is_open U₂ ∧
                                        V₁ ⊆ U₁ ∧ V₂ ⊆ U₂ ∧ U₁ ∩ U₂ = ∅ :=
        disjoint_nested_nhds x_ne_y,
-    -- We set U₃ := -(V₁ ∪ V₂) so that W := (U₁.prod U₁) ∪ (U₂.prod U₂) ∪ (U₃.prod U₃) is an open
+    -- We set U₃ := (V₁ ∪ V₂)ᶜ so that W := (U₁.prod U₁) ∪ (U₂.prod U₂) ∪ (U₃.prod U₃) is an open
     -- neighborhood of Δ.
-    let U₃ := -(V₁ ∪ V₂),
+    let U₃ := (V₁ ∪ V₂)ᶜ,
     have U₃_op : is_open U₃ :=
       is_open_compl_iff.mpr (is_closed_union V₁_cl V₂_cl),
     let W := (U₁.prod U₁) ∪ (U₂.prod U₂) ∪ (U₃.prod U₃),
@@ -198,7 +198,8 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
 ### Heine-Cantor theorem
 -/
 
-/-- Heine-Cantor: a continuous function on a compact separated uniform space is uniformly continuous. -/
+/-- Heine-Cantor: a continuous function on a compact separated uniform space is uniformly
+continuous. -/
 lemma compact_space.uniform_continuous_of_continuous [compact_space α] [separated_space α]
   {f : α → β} (h : continuous f) : uniform_continuous f :=
 begin

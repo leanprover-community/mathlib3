@@ -35,6 +35,9 @@ by { dsimp [discrete], apply_instance }
 instance fintype_fun [decidable_eq α] (X Y : discrete α) : fintype (X ⟶ Y) :=
 by { apply ulift.fintype }
 
+instance [subsingleton α] : subsingleton (discrete α) :=
+by { dsimp [discrete], apply_instance }
+
 @[simp] lemma id_def (X : discrete α) : ulift.up (plift.up (eq.refl X)) = 𝟙 X := rfl
 
 variables {C : Type u₂} [category.{v₂} C]
@@ -93,6 +96,11 @@ lemma nat_iso_app {I : Type u₁} {F G : discrete I ⥤ C}
   (discrete.nat_iso f).app i = f i :=
 by tidy
 
+/-- Every functor `F` from a discrete category is naturally isomorphic (actually, equal) to
+  `discrete.functor (F.obj)`. -/
+def nat_iso_functor {I : Type u₁} {F : discrete I ⥤ C} : F ≅ discrete.functor (F.obj) :=
+nat_iso $ λ i, iso.refl _
+
 /--
 We can promote a type-level `equiv` to
 an equivalence between the corresponding `discrete` categories.
@@ -103,6 +111,14 @@ def equivalence {I J : Type u₁} (e : I ≃ J) : discrete I ≌ discrete J :=
   inverse := discrete.functor (e.symm : J → I),
   unit_iso := discrete.nat_iso (λ i, eq_to_iso (by simp)),
   counit_iso := discrete.nat_iso (λ j, eq_to_iso (by simp)), }
+
+/-- We can convert an equivalence of `discrete` categories to a type-level `equiv`. -/
+@[simps]
+def equiv_of_equivalence {α β : Type u₁} (h : discrete α ≌ discrete β) : α ≃ β :=
+{ to_fun := h.functor.obj,
+  inv_fun := h.inverse.obj,
+  left_inv := λ a, (h.unit_iso.app a).2.1.1,
+  right_inv := λ a, (h.counit_iso.app a).1.1.1 }
 
 end discrete
 

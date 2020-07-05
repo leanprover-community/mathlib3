@@ -4,10 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
-import data.finset
-import data.nat.enat
-import tactic.omega
+import algebra.opposites
+import data.finset.intervals
+import data.finset.fold
+import data.finset.powerset
+import data.finset.pi
+import data.equiv.mul_add
 import tactic.abel
+import tactic.simp_rw
+import data.nat.enat
 
 /-!
 # Big operators
@@ -101,6 +106,11 @@ lemma monoid_hom.map_prod [comm_monoid β] [comm_monoid γ] (g : β →* γ) (f 
   g (∏ x in s, f x) = ∏ x in s, g (f x) :=
 by simp only [finset.prod_eq_multiset_prod, g.map_multiset_prod, multiset.map_map]
 
+@[to_additive]
+lemma mul_equiv.map_prod [comm_monoid β] [comm_monoid γ] (g : β ≃* γ) (f : α → β) (s : finset α) :
+  g (∏ x in s, f x) = ∏ x in s, g (f x) :=
+g.to_monoid_hom.map_prod f s
+
 lemma ring_hom.map_list_prod [semiring β] [semiring γ] (f : β →+* γ) (l : list β) :
   f l.prod = (l.map f).prod :=
 f.to_monoid_hom.map_list_prod l
@@ -140,6 +150,18 @@ lemma prod_empty {α : Type u} {f : α → β} : (∏ x in (∅:finset α), f x)
 @[simp, to_additive]
 lemma prod_insert [decidable_eq α] :
   a ∉ s → (∏ x in (insert a s), f x) = f a * ∏ x in s, f x := fold_insert
+
+/-- If a function applied at a point is 1, a product is unchanged by
+adding that point, whether or not present, to a `finset`. -/
+@[simp, to_additive "If a function applied at a point is 0, a sum is unchanged by
+adding that point, whether or not present, to a `finset`."]
+lemma prod_insert_one [decidable_eq α] (h : f a = 1) :
+  ∏ x in insert a s, f x = ∏ x in s, f x :=
+begin
+  by_cases hm : a ∈ s,
+  { simp_rw insert_eq_of_mem hm },
+  { rw [prod_insert hm, h, one_mul] },
+end
 
 @[simp, to_additive]
 lemma prod_singleton : (∏ x in (singleton a), f x) = f a :=
@@ -229,6 +251,12 @@ begin
   rintros _ _ _ _ h ⟨_, _⟩ ⟨_, _, ⟨_, _⟩⟩ ⟨_, _⟩ ⟨_, _, ⟨_, _⟩⟩ _,
   apply h, cc
 end
+
+/-- An uncurried version of `prod_product`. -/
+@[to_additive]
+lemma prod_product' {s : finset γ} {t : finset α} {f : γ → α → β} :
+  (∏ x in s.product t, f x.1 x.2) = ∏ x in s, ∏ y in t, f x y :=
+by rw prod_product
 
 @[to_additive]
 lemma prod_sigma {σ : α → Type*}
@@ -338,6 +366,39 @@ by haveI := classical.dec_eq α; exact
   calc (∏ x in s.attach, f x.val) = (∏ x in (s.attach).image subtype.val, f x) :
     by rw [prod_image]; exact assume x _ y _, subtype.eq
   ... = _ : by rw [attach_image_val]
+
+/-- A product over `s.subtype p` equals one over `s.filter p`. -/
+@[simp, to_additive "A sum over `s.subtype p` equals one over `s.filter p`."]
+lemma prod_subtype_eq_prod_filter (f : α → β) {p : α → Prop} [decidable_pred p] :
+  ∏ x in s.subtype p, f x = ∏ x in s.filter p, f x :=
+begin
+  conv_lhs {
+    erw ←prod_map (s.subtype p) (function.embedding.subtype _) f
+  },
+  exact prod_congr (subtype_map _) (λ x hx, rfl)
+end
+
+/-- If all elements of a `finset` satisfy the predicate `p`, a product
+over `s.subtype p` equals that product over `s`. -/
+@[to_additive "If all elements of a `finset` satisfy the predicate `p`, a sum
+over `s.subtype p` equals that sum over `s`."]
+lemma prod_subtype_of_mem (f : α → β) {p : α → Prop} [decidable_pred p]
+    (h : ∀ x ∈ s, p x) : ∏ x in s.subtype p, f x = ∏ x in s, f x :=
+by simp_rw [prod_subtype_eq_prod_filter, filter_true_of_mem h]
+
+/-- A product of a function over a `finset` in a subtype equals a
+product in the main type of a function that agrees with the first
+function on that `finset`. -/
+@[to_additive "A sum of a function over a `finset` in a subtype equals a
+sum in the main type of a function that agrees with the first
+function on that `finset`."]
+lemma prod_subtype_map_embedding {p : α → Prop} {s : finset {x // p x}} {f : {x // p x} → β}
+    {g : α → β} (h : ∀ x : {x // p x}, x ∈ s → g x = f x) :
+  ∏ x in s.map (function.embedding.subtype _), g x = ∏ x in s, f x :=
+begin
+  rw finset.prod_map,
+  exact finset.prod_congr rfl h
+end
 
 @[to_additive]
 lemma prod_eq_one {f : α → β} {s : finset α} (h : ∀x∈s, f x = 1) : (∏ x in s, f x) = 1 :=
@@ -616,12 +677,21 @@ lemma sum_range_sub {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
   ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
 by { apply sum_range_induction; abel, simp }
 
+lemma sum_range_sub' {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
+  ∑ i in range n, (f i - f (i+1)) = f 0 - f n :=
+by { apply sum_range_induction; abel, simp }
 
 /-- A telescoping product along `{0, ..., n-1}` of a commutative group valued function
 reduces to the ratio of the last and first factors.-/
+@[to_additive]
 lemma prod_range_div {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
   ∏ i in range n, (f (i+1) * (f i)⁻¹ ) = f n * (f 0)⁻¹ :=
 by apply @sum_range_sub (additive M)
+
+@[to_additive]
+lemma prod_range_div' {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
+  ∏ i in range n, (f i * (f (i+1))⁻¹) = (f 0) * (f n)⁻¹ :=
+by apply @sum_range_sub' (additive M)
 
 /-- A telescoping sum along `{0, ..., n-1}` of an `ℕ`-valued function reduces to the difference of
 the last and first terms when the function we are summing is monotone. -/
@@ -629,9 +699,9 @@ lemma sum_range_sub_of_monotone {f : ℕ → ℕ} (h : monotone f) (n : ℕ) :
   ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
 begin
   refine sum_range_induction _ _ (nat.sub_self _) (λ n, _) _,
-  have : f n ≤ f (n+1) := h (nat.le_succ _),
-  have : f 0 ≤ f n := h (nat.zero_le _),
-  omega
+  have h₁ : f n ≤ f (n+1) := h (nat.le_succ _),
+  have h₂ : f 0 ≤ f n := h (nat.zero_le _),
+  rw [←nat.sub_add_comm h₂, nat.add_sub_cancel' h₁],
 end
 
 lemma prod_Ico_reflect (f : ℕ → β) (k : ℕ) {m n : ℕ} (h : m ≤ n + 1) :
@@ -1176,7 +1246,7 @@ lemma sum_le_sum_of_subset_of_nonneg
   (h : s₁ ⊆ s₂) (hf : ∀x∈s₂, x ∉ s₁ → 0 ≤ f x) : (∑ x in s₁, f x) ≤ (∑ x in s₂, f x) :=
 by classical;
 calc (∑ x in s₁, f x) ≤ (∑ x in s₂ \ s₁, f x) + (∑ x in s₁, f x) :
-    le_add_of_nonneg_left' $ sum_nonneg $ by simpa only [mem_sdiff, and_imp]
+    le_add_of_nonneg_left $ sum_nonneg $ by simpa only [mem_sdiff, and_imp]
   ... = ∑ x in s₂ \ s₁ ∪ s₁, f x : (sum_union sdiff_disjoint).symm
   ... = (∑ x in s₂, f x)         : by rw [sdiff_union_of_subset h]
 
@@ -1467,5 +1537,16 @@ begin
   simp only [← lt_top_iff_ne_top],
   exact sum_lt_top_iff
 end
+
+open opposite
+
+/-- Moving to the opposite additive commutative monoid commutes with summing. -/
+@[simp] lemma op_sum [add_comm_monoid β] {s : finset α} (f : α → β) :
+  op (∑ x in s, f x) = ∑ x in s, op (f x) :=
+(@op_add_hom β _).map_sum _ _
+
+@[simp] lemma unop_sum [add_comm_monoid β] {s : finset α} (f : α → βᵒᵖ) :
+  unop (∑ x in s, f x) = ∑ x in s, unop (f x) :=
+(@unop_add_hom β _).map_sum _ _
 
 end with_top

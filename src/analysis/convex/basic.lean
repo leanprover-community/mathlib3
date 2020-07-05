@@ -48,8 +48,6 @@ open_locale classical big_operators
 
 local notation `I` := (Icc 0 1 : set ℝ)
 
-local attribute [instance] set.pointwise_add set.smul_set
-
 section sets
 
 /-! ### Segment -/
@@ -145,11 +143,11 @@ lemma convex_iff_pointwise_add_subset:
   convex s ↔ ∀ ⦃a b : ℝ⦄, 0 ≤ a → 0 ≤ b → a + b = 1 → a • s + b • s ⊆ s :=
 iff.intro
   begin
-    rintros hA a b ha hb hab w ⟨au, ⟨u, hu, rfl⟩, bv, ⟨v, hv, rfl⟩, rfl⟩,
+    rintros hA a b ha hb hab w ⟨au, bv, ⟨u, hu, rfl⟩, ⟨v, hv, rfl⟩, rfl⟩,
     exact hA hu hv ha hb hab
   end
   (λ h x y hx hy a b ha hb hab,
-    (h ha hb hab) (set.add_mem_pointwise_add ⟨_, hx, rfl⟩ ⟨_, hy, rfl⟩))
+    (h ha hb hab) (set.add_mem_add ⟨_, hx, rfl⟩ ⟨_, hy, rfl⟩))
 
 /-- Alternative definition of set convexity, using division -/
 lemma convex_iff_div:
@@ -235,7 +233,7 @@ hs.is_linear_preimage is_linear_map.is_linear_map_neg
 
 lemma convex.smul (c : ℝ) (hs : convex s) : convex (c • s) :=
 begin
-  rw smul_set_eq_image,
+  rw ← image_smul,
   exact hs.is_linear_image (is_linear_map.is_linear_map_smul c)
 end
 
@@ -243,7 +241,7 @@ lemma convex.smul_preimage (c : ℝ) (hs : convex s) : convex ((λ z, c • z) �
 hs.is_linear_preimage (is_linear_map.is_linear_map_smul c)
 
 lemma convex.add {t : set E}  (hs : convex s) (ht : convex t) : convex (s + t) :=
-by { rw pointwise_add_eq_image, exact (hs.prod ht).is_linear_image is_linear_map.is_linear_map_add }
+by { rw ← add_image_prod, exact (hs.prod ht).is_linear_image is_linear_map.is_linear_map_add }
 
 lemma convex.sub {t : set E}  (hs : convex s) (ht : convex t) :
   convex ((λx : E × E, x.1 - x.2) '' (s.prod t)) :=
@@ -253,13 +251,13 @@ lemma convex.translate (hs : convex s) (z : E) : convex ((λx, z + x) '' s) :=
 begin
   convert (convex_singleton z).add hs,
   ext x,
-  simp [set.mem_image, mem_pointwise_add, eq_comm]
+  simp [set.mem_image, mem_add, eq_comm]
 end
 
 lemma convex.affinity (hs : convex s) (z : E) (c : ℝ) : convex ((λx, z + c • x) '' s) :=
 begin
   convert (hs.smul c).translate z using 1,
-  erw [smul_set_eq_image, ←image_comp]
+  erw [← image_smul, ←image_comp]
 end
 
 lemma convex_real_iff {s : set ℝ} :

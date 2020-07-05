@@ -61,8 +61,7 @@ section category
 
 universes v u  -- the order matters (see below)
 
-variables (C : Type u) [𝒞 : category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C]
 
 variables {W X Y Z : C}
 variables (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z)
@@ -71,22 +70,13 @@ variables (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z)
 This says "let `C` be a category, let `W`, `X`, `Y`, `Z` be objects of `C`, and let `f : W ⟶ X`, `g
 : X ⟶ Y` and `h : Y ⟶ Z` be morphisms in `C` (with the specified source and targets)".
 
-Note two unusual things. Firstly, the typeclass `category C` is explicitly named as `𝒞` (in
-contrast to group theory, where one would just write `[group G]` rather than `[h : group G]`).
-Secondly, we have to explicitly tell Lean the universe where the morphisms live (by writing
-`category.{v} C`), because Lean cannot guess from knowing `C` alone.
+Note that we need to explicitly tell Lean the universe that the morphisms live in, by writing `category.{v} C`, because Lean cannot guess this from `C` alone.
 
 The order in which universes are introduced at the top of the file matters: we put the universes for
 morphisms first (typically `v`, `v₁` and so on), and then universes for objects (typically `u`, `u₁`
 and so on). This ensures that in any new definition we make the universe variables for morphisms
 come first, so that they can be explicitly specified while still allowing the universe levels of the
 objects to be inferred automatically.
-
-The reason that the typeclass is given an explicit name `𝒞` (typeset `\McC`) is that one often has
-to write `include 𝒞` in code to ensure that Lean includes the typeclass in theorems and
-definitions. (Lean is not willing to guess the universe level of morphisms, so sometimes won't
-automatically include the `[category.{v} C]` variable.) One can use `omit 𝒞` again (or appropriate
-scoping constructs) to make sure it isn't included in declarations where it isn't needed.
 
 ## Basic notation
 
@@ -139,10 +129,9 @@ section functor
 -- recall we put morphism universes (`vᵢ`) before object universes (`uᵢ`)
 universes v₁ v₂ v₃ u₁ u₂ u₃
 
-variables (C : Type u₁) [𝒞 : category.{v₁} C]
-variables (D : Type u₂) [𝒟 : category.{v₂} D]
-variables (E : Type u₃) [ℰ : category.{v₃} E]
-include 𝒞 𝒟 ℰ
+variables (C : Type u₁) [category.{v₁} C]
+variables (D : Type u₂) [category.{v₂} D]
+variables (E : Type u₃) [category.{v₃} E]
 
 variables {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
 
@@ -197,8 +186,7 @@ section nat_trans
 
 universes v₁ v₂ u₁ u₂
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 
 variables (X Y : C)
 
@@ -230,29 +218,6 @@ commutes.
 example : F.map f ≫ α.app Y = (α.app X) ≫ G.map f := α.naturality f
 
 end nat_trans -- section
-
-/-!
-## Debugging universe problems
-
-Unfortunately, dealing with universe polymorphism is an intrinsic problem in the category theory
-library.
-
-A very common problem is Lean complaining that it can't find an instance of `category X`, when you
-can see right there in the hypotheses a `category X`! What's going on? Nearly always this is because
-the universe level of the morphisms has not been specified explicitly, so in fact Lean is looking
-for a `category.{? u} X` instance, while it has available a `category.{v u} X` instance. (The object
-universe level is unambiguous, because this can be inferred from `X`.) You can determine if this is
-a problem by using `set_option pp.universes true`. The reason this causes a problem is that Lean 3
-is not willing to specialise a universe metavariable in order to solve a typeclass search.
-Typically, you solve this problem by working out how to tell Lean which universe you want the
-morphisms to live in, usually by adding a `.{v}` to the end of some identifier. As an example, in
-```
-instance coe_to_Top : has_coe (PresheafedSpace.{v} C) Top :=
-{ coe := λ X, X.to_Top }
-```
-(taken from `src/algebraic_geometry/presheafed_space.lean`), if you remove the `.{v}` you get a
-typeclass resolution error.
--/
 
 /-!
 ## What next?

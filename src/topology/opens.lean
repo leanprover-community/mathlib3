@@ -35,19 +35,22 @@ instance : has_coe (opens α) (set α) := { coe := subtype.val }
 lemma val_eq_coe (U : opens α) : U.1 = ↑U := rfl
 
 instance : has_subset (opens α) :=
-{ subset := λ U V, U.val ⊆ V.val }
+{ subset := λ U V, (U : set α) ⊆ V }
 
 instance : has_mem α (opens α) :=
-{ mem := λ a U, a ∈ U.val }
+{ mem := λ a U, a ∈ (U : set α) }
 
-@[ext] lemma ext {U V : opens α} (h : (U : set α) = V) : U = V := subtype.ext_iff_val.mpr h
+@[ext] lemma ext {U V : opens α} (h : (U : set α) = V) : U = V := subtype.ext_iff.mpr h
+
+@[ext] lemma ext_iff {U V : opens α} : (U : set α) = V ↔ U = V :=
+⟨opens.ext, congr_arg coe⟩
 
 instance : partial_order (opens α) := subtype.partial_order _
 
 /-- The interior of a set, as an element of `opens`. -/
 def interior (s : set α) : opens α := ⟨interior s, is_open_interior⟩
 
-lemma gc : galois_connection (subtype.val : opens α → set α) interior :=
+lemma gc : galois_connection (coe : opens α → set α) interior :=
 λ U s, ⟨λ h, interior_maximal h U.property, λ h, le_trans h interior_subset⟩
 
 /-- The galois insertion between sets and opens, but ordered by reverse inclusion. -/
@@ -61,14 +64,12 @@ def gi : @galois_insertion (order_dual (set α)) (order_dual (opens α)) _ _ int
 
 instance : complete_lattice (opens α) :=
 complete_lattice.copy
-(@order_dual.complete_lattice _
-  (@galois_insertion.lift_complete_lattice
-    (order_dual (set α)) (order_dual (opens α)) interior (subtype.val : opens α → set α) _ _ gi))
-/- le  -/ (λ U V, U.1 ⊆ V.1) rfl
+  (@order_dual.complete_lattice _ (galois_insertion.lift_complete_lattice (@gi α _)))
+/- le  -/ (λ U V, U ⊆ V) rfl
 /- top -/ ⟨set.univ, is_open_univ⟩ (subtype.ext_iff_val.mpr interior_univ.symm)
 /- bot -/ ⟨∅, is_open_empty⟩ rfl
-/- sup -/ (λ U V, ⟨U.1 ∪ V.1, is_open_union U.2 V.2⟩) rfl
-/- inf -/ (λ U V, ⟨U.1 ∩ V.1, is_open_inter U.2 V.2⟩)
+/- sup -/ (λ U V, ⟨↑U ∪ ↑V, is_open_union U.2 V.2⟩) rfl
+/- inf -/ (λ U V, ⟨↑U ∩ ↑V, is_open_inter U.2 V.2⟩)
 begin
   funext,
   apply subtype.ext_iff_val.mpr,
@@ -76,7 +77,7 @@ begin
   apply interior_eq_of_open,
   exact (is_open_inter U.2 V.2),
 end
-/- Sup -/ (λ Us, ⟨⋃₀ (subtype.val '' Us), is_open_sUnion $ λ U hU,
+/- Sup -/ (λ Us, ⟨⋃₀ (coe '' Us), is_open_sUnion $ λ U hU,
 by { rcases hU with ⟨⟨V, hV⟩, h, h'⟩, dsimp at h', subst h', exact hV}⟩)
 begin
   funext,
@@ -104,7 +105,7 @@ end
 lemma supr_def {ι} (s : ι → opens α) : (⨆ i, s i) = ⟨⋃ i, s i, is_open_Union $ λ i, (s i).2⟩ :=
 by { ext, simp only [supr, opens.Sup_s, sUnion_image, bUnion_range], refl }
 
-def is_basis (B : set (opens α)) : Prop := is_topological_basis (subtype.val '' B)
+def is_basis (B : set (opens α)) : Prop := is_topological_basis ((coe : _ → set α) '' B)
 
 lemma is_basis_iff_nbhd {B : set (opens α)} :
   is_basis B ↔ ∀ {U : opens α} {x}, x ∈ U → ∃ U' ∈ B, x ∈ U' ∧ U' ⊆ U :=
@@ -170,9 +171,9 @@ lemma comap_mono {f : α → β} (hf : continuous f) {V W : opens β} (hVW : V �
   ↑(U.comap hf) = f ⁻¹' U := rfl
 
 @[simp] lemma comap_val {f : α → β} (hf : continuous f) (U : opens β) :
-  (U.comap hf).1 = f ⁻¹' U.1 := rfl
+  (U.comap hf).1 = f ⁻¹' U := rfl
 
-protected lemma comap_compose {g : β → γ} {f : α → β} (hg : continuous g) (hf : continuous f)
+protected lemma comap_comp {g : β → γ} {f : α → β} (hg : continuous g) (hf : continuous f)
   (U : opens γ) : U.comap (hg.comp hf) = (U.comap hg).comap hf :=
 by { ext1, simp only [coe_comap, preimage_preimage] }
 

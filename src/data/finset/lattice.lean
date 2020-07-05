@@ -150,7 +150,7 @@ lemma comp_inf_eq_inf_comp_of_is_total [h : is_total α (≤)] {γ : Type} [semi
   (g : α → γ) (mono_g : monotone g) (top : g ⊤ = ⊤) : g (s.inf f) = s.inf (g ∘ f) :=
 comp_inf_eq_inf_comp g mono_g.map_inf top
 
-/-- The first component of a sup in a subtype is the sup if first components. -/
+/-- Computating `inf` in a subtype (closed under `inf`) is the same as computing it in `α`. -/
 lemma inf_coe {P : α → Prop}
   {Ptop : P ⊤} {Pinf : ∀{{x y}}, P x → P y → P (x ⊓ y)}
   (t : finset β) (f : β → {x : α // P x}) :

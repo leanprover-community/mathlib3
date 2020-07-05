@@ -339,9 +339,9 @@ tsum_eq_has_sum $ has_sum_sum_of_ne_finset_zero hf
 lemma tsum_fintype [fintype β] (f : β → α) : (∑'b, f b) = ∑ b, f b :=
 tsum_eq_has_sum $ has_sum_fintype f
 
-lemma sum_eq_tsum_subtype {f : β → α} {s : finset β} :
-  s.sum f = (∑'x : {x // x ∈ s}, f x.1) :=
-by { rw [tsum_fintype, ← finset.sum_attach], refl }
+@[simp] lemma tsum_subtype_eq_sum {f : β → α} {s : finset β} :
+  (∑'x : {x // x ∈ s}, f x.1) = ∑ x in s, f x :=
+by { rw [tsum_fintype], conv_rhs { rw ← finset.sum_attach }, refl }
 
 lemma tsum_eq_single {f : β → α} (b : β) (hf : ∀b' ≠ b, f b' = 0)  :
   (∑'b, f b) = f b :=

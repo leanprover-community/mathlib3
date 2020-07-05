@@ -409,6 +409,8 @@ section
 variables [topological_space α] [group α] [topological_group α]
 /-- Given a open neighborhood `U` of `1` there is a open neighborhood `V` of `1`
   such that `VV ⊆ U`. -/
+@[to_additive "Given a open neighborhood `U` of `0` there is a open neighborhood `V` of `0`
+  such that `V + V ⊆ U`."]
 lemma one_open_separated_mul {U : set α} (h1U : is_open U) (h2U : (1 : α) ∈ U) :
   ∃ V : set α, is_open V ∧ (1 : α) ∈ V ∧ V * V ⊆ U :=
 begin
@@ -420,6 +422,8 @@ end
 
 /-- Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of `1`
   such that `KV ⊆ U`. -/
+@[to_additive "Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of `0`
+  such that `K + V ⊆ U`."]
 lemma compact_open_separated_mul {K U : set α} (hK : compact K) (hU : is_open U) (hKU : K ⊆ U) :
   ∃ V : set α, is_open V ∧ (1 : α) ∈ V ∧ K * V ⊆ U :=
 begin
@@ -439,8 +443,11 @@ begin
   rw [mem_preimage] at this, convert this using 1, simp only [mul_assoc, mul_inv_cancel_left]
 end
 
-/-- A compact set is covered by finitely many left translates of a set with non-empty interior. -/
-lemma compact_covered_by_left_translates {K V : set α} (hK : compact K)
+/-- A compact set is covered by finitely many left multiplicative translates of a set
+  with non-empty interior. -/
+@[to_additive "A compact set is covered by finitely many left additive translates of a set
+  with non-empty interior."]
+lemma compact_covered_by_mul_left_translates {K V : set α} (hK : compact K)
   (hV : (interior V).nonempty) : ∃ t : finset α, K ⊆ ⋃ g ∈ t, (λ h, g * h) ⁻¹' V :=
 begin
   cases hV with g₀ hg₀,

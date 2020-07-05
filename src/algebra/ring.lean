@@ -174,8 +174,6 @@ lemma ite_mul_zero_right {α : Type*} [mul_zero_class α] (P : Prop) [decidable 
   ite P (a * b) 0 = a * ite P b 0 :=
 by { by_cases h : P; simp [h], }
 
-variable (α)
-
 end semiring
 
 namespace add_monoid_hom

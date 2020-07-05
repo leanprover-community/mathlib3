@@ -3,6 +3,7 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
+import algebra.opposites
 import data.int.basic
 import data.equiv.basic
 import deprecated.ring
@@ -911,5 +912,22 @@ lemma conj_pow (u : units M) (x : M) (n : ℕ) : (↑u * x * ↑(u⁻¹))^n = u 
 
 lemma conj_pow' (u : units M) (x : M) (n : ℕ) : (↑(u⁻¹) * x * u)^n = ↑(u⁻¹) * x^n * u:=
 (u⁻¹).conj_pow x n
+
+open opposite
+
+/-- Moving to the opposite monoid commutes with taking powers. -/
+@[simp] lemma op_pow (x : M) (n : ℕ) : op (x ^ n) = (op x) ^ n :=
+begin
+  induction n with n h,
+  { simp },
+  { rw [pow_succ', op_mul, h, pow_succ] }
+end
+
+@[simp] lemma unop_pow (x : Mᵒᵖ) (n : ℕ) : unop (x ^ n) = (unop x) ^ n :=
+begin
+  induction n with n h,
+  { simp },
+  { rw [pow_succ', unop_mul, h, pow_succ] }
+end
 
 end units

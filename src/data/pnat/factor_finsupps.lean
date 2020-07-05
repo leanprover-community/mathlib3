@@ -254,7 +254,7 @@ by { simp [finsupp.order_iso_multiset, finsupp.equiv_multiset] }
 @[simp]
 lemma finsupp.order_iso_multiset_symm_factor_multiset {n : ℕ+} :
   (finsupp.order_iso_multiset nat.primes).symm n.factor_multiset = factor_finsupp n :=
-by { apply (finsupp.order_iso_multiset nat.primes).to_order_embedding.inj, simp }
+by { apply (finsupp.order_iso_multiset nat.primes).to_order_embedding.injective, simp }
 
 /-- Factorization is a bijection from ℕ+ to finsupp.primes_ -/
 def pnat.prime_finsupp_equiv : ℕ+ ≃ (nat.primes →₀ ℕ) :=
@@ -508,19 +508,8 @@ end coprime_part
 
 section multiplicative
 
---in newest algebra/big_operators
-lemma finset.prod_induction {α : Type} {s : finset α} {M : Type*} [comm_monoid M] (f : α → M) (p : M → Prop)
-(p_mul : ∀ a b, p a → p b → p (a * b)) (p_one : p 1) (p_s : ∀ x ∈ s, p $ f x) :
-p $ ∏ x in s, f x :=
-begin
-  classical,
-  induction s using finset.induction with x hx s hs, simpa,
-  rw finset.prod_insert, swap, assumption,
-  apply p_mul, apply p_s, simp,
-  apply hs, intros a ha, apply p_s, simp [ha],
-end
-
 variables {α : Type} [comm_monoid α]
+
 /-- Determines if a function is multiplicative (in the number-theoretic sense). -/
 def is_multiplicative (f : ℕ+ → α): Prop :=
 f 1 = 1 ∧ ∀ m n : ℕ+, nat.coprime m n → f (m * n) = f m * f n

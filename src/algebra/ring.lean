@@ -56,6 +56,12 @@ set_option default_priority 100 -- see Note [default priority]
 set_option old_structure_cmd true
 open function
 
+/-!
+### `distrib` class
+-/
+
+/-- A typeclass stating that multiplication is left and right distributive
+over addition. -/
 @[protect_proj, ancestor has_mul has_add]
 class distrib (R : Type*) extends has_mul R, has_add R :=
 (left_distrib : ∀ a b c : R, a * (b + c) = (a * b) + (a * c))
@@ -334,17 +340,17 @@ section comm_semiring
 variables [comm_semiring α] [comm_semiring β] {a b c : α}
 
 /-- Pullback a `semiring` instance along an injective function. -/
-protected def function.injective.comm_semiring [has_zero β] [has_one β] [has_add β] [has_mul β]
-  (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
+protected def function.injective.comm_semiring [has_zero γ] [has_one γ] [has_add γ] [has_mul γ]
+  (f : γ → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
-  comm_semiring β :=
+  comm_semiring γ :=
 { .. hf.semiring f zero one add mul, .. hf.comm_semigroup f mul }
 
 /-- Pullback a `semiring` instance along an injective function. -/
-protected def function.surjective.comm_semiring [has_zero β] [has_one β] [has_add β] [has_mul β]
-  (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
+protected def function.surjective.comm_semiring [has_zero γ] [has_one γ] [has_add γ] [has_mul γ]
+  (f : α → γ) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
-  comm_semiring β :=
+  comm_semiring γ :=
 { .. hf.semiring f zero one add mul, .. hf.comm_semigroup f mul }
 
 lemma add_mul_self_eq (a b : α) : (a + b) * (a + b) = a*a + 2*a*b + b*b :=
@@ -770,8 +776,8 @@ instance domain.to_cancel_monoid_with_zero : cancel_monoid_with_zero α :=
   .. (infer_instance : semiring α) }
 
 /-- Pullback a `domain` instance along an injective function. -/
-protected def function.injective.domain [domain α] [has_zero β] [has_one β] [has_add β] [has_mul β]
-  [has_neg β] (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
+protected def function.injective.domain [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β]
+  (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) :
   domain β :=
@@ -780,7 +786,9 @@ protected def function.injective.domain [domain α] [has_zero β] [has_one β] [
 
 end domain
 
-/- integral domains -/
+/-!
+### Integral domains
+-/
 
 @[protect_proj, ancestor comm_ring domain]
 class integral_domain (α : Type u) extends comm_ring α, domain α
@@ -820,7 +828,9 @@ by { rw inv_eq_iff_mul_eq_one, simp only [units.ext_iff], push_cast, exact mul_s
 
 end integral_domain
 
-/- units in various rings -/
+/-!
+### Units in various rings
+-/
 
 namespace units
 

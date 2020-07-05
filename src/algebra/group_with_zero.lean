@@ -115,13 +115,13 @@ calc a = 1 : h
    ... ≠ 0 : one_ne_zero
 
 /-- Pushforward a `nonzero` instance along an injective function. -/
-protected def function.injective.nonzero [has_zero M₀'] [has_one M₀']
+protected lemma function.injective.nonzero [has_zero M₀'] [has_one M₀']
   (f : M₀ → M₀') (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1) :
   nonzero M₀' :=
-⟨zero ▸ (hf.map_ne_one one).2 zero_ne_one⟩
+⟨zero ▸ (hf.ne_iff' one).2 zero_ne_one⟩
 
 /-- Pullback a `nonzero` instance along a function sending `0` to `0` and `1` to `1`. -/
-protected def pullback_nonzero [has_zero M₀'] [has_one M₀']
+protected lemma pullback_nonzero [has_zero M₀'] [has_one M₀']
   (f : M₀' → M₀) (zero : f 0 = 0) (one : f 1 = 1) :
   nonzero M₀' :=
 ⟨mt (congr_arg f) $ by { rw [zero, one], exact zero_ne_one }⟩
@@ -148,7 +148,7 @@ class no_zero_divisors (M₀ : Type*) [has_mul M₀] [has_zero M₀] : Prop :=
 export no_zero_divisors (eq_zero_or_eq_zero_of_mul_eq_zero)
 
 /-- Pushforward a `no_zero_divisors` instance along an injective function. -/
-protected def function.injective.no_zero_divisors [has_mul M₀] [has_zero M₀]
+protected lemma function.injective.no_zero_divisors [has_mul M₀] [has_zero M₀]
   [has_mul M₀'] [has_zero M₀'] [no_zero_divisors M₀']
   (f : M₀ → M₀') (hf : injective f) (zero : f 0 = 0) (mul : ∀ x y, f (x * y) = f x * f y) :
   no_zero_divisors M₀ :=
@@ -360,13 +360,12 @@ lemma mul_right_inj' (ha : a ≠ 0) : a * b = a * c ↔ b = c := ⟨mul_left_can
 
 /-- Pullback a `monoid_with_zero` class along an injective function. -/
 protected def function.injective.cancel_monoid_with_zero [has_zero M₀'] [has_mul M₀'] [has_one M₀']
-  [cancel_monoid_with_zero M₀]
   (f : M₀' → M₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y) :
   cancel_monoid_with_zero M₀' :=
-{ mul_left_cancel_of_ne_zero := λ x y z hx H, hf $ mul_left_cancel' ((hf.map_ne_zero zero).2 hx) $
+{ mul_left_cancel_of_ne_zero := λ x y z hx H, hf $ mul_left_cancel' ((hf.ne_iff' zero).2 hx) $
     by erw [← mul, ← mul, H]; refl,
-  mul_right_cancel_of_ne_zero := λ x y z hx H, hf $ mul_right_cancel' ((hf.map_ne_zero zero).2 hx) $
+  mul_right_cancel_of_ne_zero := λ x y z hx H, hf $ mul_right_cancel' ((hf.ne_iff' zero).2 hx) $
     by erw [← mul, ← mul, H]; refl,
   .. hf.monoid f one mul, .. hf.mul_zero_class f zero mul }
 
@@ -397,20 +396,18 @@ group_with_zero.mul_inv_cancel a h
 
 /-- Pullback a `group_with_zero` class along an injective function. -/
 protected def function.injective.group_with_zero [has_zero G₀'] [has_mul G₀'] [has_one G₀']
-  [has_inv G₀'] [group_with_zero G₀]
-  (f : G₀' → G₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  [has_inv G₀'] (f : G₀' → G₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f x⁻¹ = (f x)⁻¹) :
   group_with_zero G₀' :=
 { inv := has_inv.inv,
   inv_zero := hf $ by erw [inv, zero, inv_zero],
-  mul_inv_cancel := λ x hx, hf $ by erw [one, mul, inv,
-    mul_inv_cancel ((hf.map_ne_zero zero).2 hx)],
+  mul_inv_cancel := λ x hx, hf $ by erw [one, mul, inv, mul_inv_cancel ((hf.ne_iff' zero).2 hx)],
   .. hf.monoid_with_zero f zero one mul,
   .. pullback_nonzero f zero one }
 
 /-- Pushforward a `group_with_zero` class along an surjective function. -/
 protected def function.surjective.group_with_zero [has_zero G₀'] [has_mul G₀'] [has_one G₀']
-  [has_inv G₀'] [group_with_zero G₀] (h01 : (0:G₀') ≠ 1)
+  [has_inv G₀'] (h01 : (0:G₀') ≠ 1)
   (f : G₀ → G₀') (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f x⁻¹ = (f x)⁻¹) :
   group_with_zero G₀' :=
@@ -726,15 +723,14 @@ variables [comm_group_with_zero G₀] {a b c : G₀}
 
 /-- Pullback a `comm_group_with_zero` class along an injective function. -/
 protected def function.injective.comm_group_with_zero [has_zero G₀'] [has_mul G₀'] [has_one G₀']
-  [has_inv G₀'] [comm_group_with_zero G₀]
-  (f : G₀' → G₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  [has_inv G₀'] (f : G₀' → G₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f x⁻¹ = (f x)⁻¹) :
   comm_group_with_zero G₀' :=
 { .. hf.group_with_zero f zero one mul inv, .. hf.comm_semigroup f mul }
 
 /-- Pushforward a `comm_group_with_zero` class along an surjective function. -/
 protected def function.surjective.comm_group_with_zero [has_zero G₀'] [has_mul G₀'] [has_one G₀']
-  [has_inv G₀'] [comm_group_with_zero G₀] (h01 : (0:G₀') ≠ 1)
+  [has_inv G₀'] (h01 : (0:G₀') ≠ 1)
   (f : G₀ → G₀') (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f x⁻¹ = (f x)⁻¹) :
   comm_group_with_zero G₀' :=

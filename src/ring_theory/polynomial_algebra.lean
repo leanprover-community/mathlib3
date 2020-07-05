@@ -13,12 +13,12 @@ we show `polynomial A ≃ₐ[R] (A ⊗[R] polynomial R)`.
 Combining this with the isomorphism `matrix n n A ≃ₐ[R] (A ⊗[R] matrix n n R)` proved earlier
 in `ring_theory.matrix_algebra`, we obtain the algebra isomorphism
 ```
-def matrix_polynomial_equiv_polynomial_matrix :
+def mat_poly_equiv :
   matrix n n (polynomial R) ≃ₐ[R] polynomial (matrix n n R)
 ```
 which is characterized by
 ```
-coeff (matrix_polynomial_equiv_polynomial_matrix m) k i j = coeff (m i j) k
+coeff (mat_poly_equiv m) k i j = coeff (m i j) k
 ```
 
 We will use this algebra isomorphism to prove the Cayley-Hamilton theorem.
@@ -43,7 +43,7 @@ variables [ring A] [algebra R A]
 -- cause deterministic timeouts. Suggestions for better fixes welcome.
 instance algebra_of_algebra' : algebra R (polynomial A) := polynomial.algebra_of_algebra
 
-namespace polynomial_equiv_tensor
+namespace poly_equiv_tensor
 
 /--
 (Implementation detail).
@@ -115,12 +115,7 @@ tensor_product.lift (to_fun_bilinear R A)
 lemma to_fun_linear_mul_tmul_mul_aux_1
   (p : polynomial R) (k : ℕ) (h : decidable (¬p.coeff k = 0)) (a : A) :
   ite (¬coeff p k = 0) (a * (algebra_map R A) (coeff p k)) 0 = a * (algebra_map R A) (coeff p k) :=
-begin
-  haveI := h,
-  by_cases w : ¬p.coeff k = 0,
-  { simp [w], },
-  { simp [classical.not_not.1 w], }
-end
+by { classical, split_ifs; simp *, }
 
 lemma to_fun_linear_mul_tmul_mul_aux_2 (k : ℕ) (a₁ a₂ : A) (p₁ p₂ : polynomial R) :
   a₁ * a₂ * (algebra_map R A) ((p₁ * p₂).coeff k) =
@@ -231,28 +226,28 @@ def equiv : (A ⊗[R] polynomial R) ≃ polynomial A :=
   left_inv := left_inv R A,
   right_inv := right_inv R A, }
 
-end polynomial_equiv_tensor
+end poly_equiv_tensor
 
-open polynomial_equiv_tensor
+open poly_equiv_tensor
 
 /--
 The `R`-algebra isomorphism `polynomial A ≃ₐ[R] (A ⊗[R] polynomial R)`.
 -/
-def polynomial_equiv_tensor : polynomial A ≃ₐ[R] (A ⊗[R] polynomial R) :=
+def poly_equiv_tensor : polynomial A ≃ₐ[R] (A ⊗[R] polynomial R) :=
 alg_equiv.symm
-{ ..(polynomial_equiv_tensor.to_fun_alg_hom R A), ..(polynomial_equiv_tensor.equiv R A) }
+{ ..(poly_equiv_tensor.to_fun_alg_hom R A), ..(poly_equiv_tensor.equiv R A) }
 
 @[simp]
-lemma polynomial_equiv_tensor_apply (p : polynomial A) :
-  polynomial_equiv_tensor R A p =
+lemma poly_equiv_tensor_apply (p : polynomial A) :
+  poly_equiv_tensor R A p =
     p.eval₂ (include_left : A →ₐ[R] A ⊗[R] polynomial R) ((1 : A) ⊗ₜ[R] (X : polynomial R)) :=
 rfl
 
 @[simp]
-lemma polynomial_equiv_tensor_symm_apply_tmul (a : A) (p : polynomial R) :
-  (polynomial_equiv_tensor R A).symm (a ⊗ₜ p) = p.sum (λ n r, monomial n (a * algebra_map R A r)) :=
+lemma poly_equiv_tensor_symm_apply_tmul (a : A) (p : polynomial R) :
+  (poly_equiv_tensor R A).symm (a ⊗ₜ p) = p.sum (λ n r, monomial n (a * algebra_map R A r)) :=
 begin
-  simp [polynomial_equiv_tensor, to_fun_alg_hom, alg_hom_of_linear_map_tensor_product, to_fun_linear],
+  simp [poly_equiv_tensor, to_fun_alg_hom, alg_hom_of_linear_map_tensor_product, to_fun_linear],
   refl,
 end
 
@@ -267,26 +262,26 @@ The algebra isomorphism stating "matrices of polynomials are the same as polynom
 
 (You probably shouldn't attempt to use this underlying definition ---
 it's an algebra equivalence, and characterised extensionally by the lemma
-`matrix_polynomial_equiv_polynomial_matrix_coeff_apply` below.)
+`mat_poly_equiv_coeff_apply` below.)
 -/
-noncomputable def matrix_polynomial_equiv_polynomial_matrix :
+noncomputable def mat_poly_equiv :
   matrix n n (polynomial R) ≃ₐ[R] polynomial (matrix n n R) :=
 (((matrix_equiv_tensor R (polynomial R) n)).trans
   (algebra.tensor_product.comm R _ _)).trans
-  (polynomial_equiv_tensor R (matrix n n R)).symm
+  (poly_equiv_tensor R (matrix n n R)).symm
 
 open finset
 
-lemma matrix_polynomial_equiv_polynomial_matrix_coeff_apply_aux_1 (i j : n) (k : ℕ) (x : R) :
-  matrix_polynomial_equiv_polynomial_matrix (std_basis_matrix i j $ monomial k x) =
+lemma mat_poly_equiv_coeff_apply_aux_1 (i j : n) (k : ℕ) (x : R) :
+  mat_poly_equiv (std_basis_matrix i j $ monomial k x) =
     monomial k (std_basis_matrix i j x) :=
 begin
-  simp only [matrix_polynomial_equiv_polynomial_matrix, alg_equiv.trans_apply,
+  simp only [mat_poly_equiv, alg_equiv.trans_apply,
     matrix_equiv_tensor_apply_elementary],
-  apply (polynomial_equiv_tensor R (matrix n n R)).injective,
+  apply (poly_equiv_tensor R (matrix n n R)).injective,
   simp only [alg_equiv.apply_symm_apply],
   convert algebra.tensor_product.comm_tmul _ _ _ _ _,
-  simp only [polynomial_equiv_tensor_apply],
+  simp only [poly_equiv_tensor_apply],
   convert eval₂_monomial _ _,
   simp only [algebra.tensor_product.tmul_mul_tmul, one_pow, one_mul, matrix.mul_one,
     algebra.tensor_product.tmul_pow, algebra.tensor_product.include_left_apply, mul_eq_mul],
@@ -294,49 +289,49 @@ begin
   congr, ext, simp, dsimp, simp,
 end
 
-lemma matrix_polynomial_equiv_polynomial_matrix_coeff_apply_aux_2
+lemma mat_poly_equiv_coeff_apply_aux_2
   (i j : n) (p : polynomial R) (k : ℕ) :
-  coeff (matrix_polynomial_equiv_polynomial_matrix (std_basis_matrix i j p)) k =
+  coeff (mat_poly_equiv (std_basis_matrix i j p)) k =
     std_basis_matrix i j (coeff p k) :=
 begin
   apply polynomial.induction_on' p,
   { intros p q hp hq, ext,
     simp [hp, hq, coeff_add, add_val, std_basis_matrix_add], },
   { intros k x,
-    simp only [matrix_polynomial_equiv_polynomial_matrix_coeff_apply_aux_1, coeff_single],
+    simp only [mat_poly_equiv_coeff_apply_aux_1, coeff_single],
     split_ifs; { funext, simp, }, }
 end
 
-@[simp] lemma matrix_polynomial_equiv_polynomial_matrix_coeff_apply
+@[simp] lemma mat_poly_equiv_coeff_apply
   (m : matrix n n (polynomial R)) (k : ℕ) (i j : n) :
-  coeff (matrix_polynomial_equiv_polynomial_matrix m) k i j = coeff (m i j) k :=
+  coeff (mat_poly_equiv m) k i j = coeff (m i j) k :=
 begin
   apply matrix.induction_on' m,
   { simp, },
   { intros p q hp hq, simp [hp, hq], },
   { intros i' j' x,
-    erw matrix_polynomial_equiv_polynomial_matrix_coeff_apply_aux_2,
+    erw mat_poly_equiv_coeff_apply_aux_2,
     dsimp [std_basis_matrix],
     split_ifs,
     { rcases h with ⟨rfl, rfl⟩, simp [std_basis_matrix], },
     { simp [std_basis_matrix, h], }, },
 end
 
-@[simp] lemma matrix_polynomial_equiv_polynomial_matrix_symm_apply_coeff
+@[simp] lemma mat_poly_equiv_symm_apply_coeff
   (p : polynomial (matrix n n R)) (i j : n) (k : ℕ) :
-  coeff (matrix_polynomial_equiv_polynomial_matrix.symm p i j) k = coeff p k i j :=
+  coeff (mat_poly_equiv.symm p i j) k = coeff p k i j :=
 begin
-  have t : p = matrix_polynomial_equiv_polynomial_matrix
-    (matrix_polynomial_equiv_polynomial_matrix.symm p) := by simp,
+  have t : p = mat_poly_equiv
+    (mat_poly_equiv.symm p) := by simp,
   conv_rhs { rw t, },
-  simp only [matrix_polynomial_equiv_polynomial_matrix_coeff_apply],
+  simp only [mat_poly_equiv_coeff_apply],
 end
 
-lemma matrix_polynomial_equiv_polynomial_matrix_smul_one (p : polynomial R) :
-  matrix_polynomial_equiv_polynomial_matrix (p • 1) = p.map (algebra_map R (matrix n n R)) :=
+lemma mat_poly_equiv_smul_one (p : polynomial R) :
+  mat_poly_equiv (p • 1) = p.map (algebra_map R (matrix n n R)) :=
 begin
   ext m i j,
   simp only [coeff_map, one_val, algebra_map_matrix_val, mul_boole,
-    smul_val, matrix_polynomial_equiv_polynomial_matrix_coeff_apply],
+    smul_val, mat_poly_equiv_coeff_apply],
   split_ifs; simp,
 end

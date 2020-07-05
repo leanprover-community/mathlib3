@@ -75,9 +75,15 @@ end
 /-- The value of this finsupp at a prime is the multiplicity of that prime in n. -/
 def factor_finsupp (n : ℕ+) : nat.primes →₀ ℕ := n.factor_multiset.to_finsupp
 
+@[simp]
+lemma factor_finsupp_to_multiset_eq_factor_multiset {n : ℕ+} :
+  (factor_finsupp n).to_multiset = n.factor_multiset :=
+by { unfold factor_finsupp, simp }
+
 end basics
 
 section finsupp_lattice
+-- Should this go to data/finsupp.lean? New file data/finsupp/order.lean?
 
 variables {α β : Type} [has_zero β]
 
@@ -170,11 +176,6 @@ instance finsupp.semilattice_inf_bot : semilattice_inf_bot (α →₀ ℕ) :=
   bot_le := by { intro a, simp [finsupp.le_iff] },
 ..finsupp.lattice}
 
-@[simp]
-lemma factor_finsupp_to_multiset_eq_factor_multiset {n : ℕ+} :
-  (factor_finsupp n).to_multiset = n.factor_multiset :=
-by { unfold factor_finsupp, simp }
-
 lemma finsupp.of_multiset_strict_mono : strict_mono (@finsupp.of_multiset α) :=
 begin
   unfold strict_mono, intros, rw lt_iff_le_and_ne at *, split,
@@ -196,6 +197,7 @@ end
 end finsupp_lattice
 
 section lattice_isos
+--I'm guessing this should go to order.order_iso?
 
 variables {α β : Type}
 
@@ -237,6 +239,7 @@ end
 end lattice_isos
 
 section finsupp_lattice_iso_multiset
+-- to data.finsupp or a related file?
 
 /-- The lattice of finsupps to ℕ is order isomorphic to that of multisets.  -/
 def finsupp.order_iso_multiset (α : Type) :
@@ -256,6 +259,9 @@ lemma finsupp.order_iso_multiset_symm_factor_multiset {n : ℕ+} :
   (finsupp.order_iso_multiset nat.primes).symm n.factor_multiset = factor_finsupp n :=
 by { apply (finsupp.order_iso_multiset nat.primes).to_order_embedding.injective, simp }
 
+end finsupp_lattice_iso_multiset
+
+begin prime_finsupp_lattice_iso_multiset
 /-- Factorization is a bijection from ℕ+ to finsupp.primes_ -/
 def pnat.prime_finsupp_equiv : ℕ+ ≃ (nat.primes →₀ ℕ) :=
 equiv.trans pnat.factor_multiset_equiv ((finsupp.order_iso_multiset nat.primes).to_equiv.symm)
@@ -276,7 +282,7 @@ begin
   ext, rw finsupp.primes_prod_pow_eq_prod_to_multiset,
 end
 
-end finsupp_lattice_iso_multiset
+end prime_finsupp_lattice_iso_multiset
 
 section basic_number_theory_definitions
 
@@ -498,6 +504,7 @@ begin
   change coprime_part two_prime n * ↑two_prime ^ (factor_finsupp n) two_prime = n,
   rw pow_mult_coprime_part_eq_self n,
 end
+
 variable {n}
 
 @[simp]

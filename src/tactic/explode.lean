@@ -167,10 +167,11 @@ proof displays like [this](http://us.metamath.org/mpeuni/ru.html). The headers o
 * Ref: The name of the theorem being applied. This is well-defined in Metamath, but in Lean there
   are some special steps that may have long names because the structure of proof terms doesn't
   exactly match this mold.
-  * If the theorem is `foo (x y : Z) : A x -> B y -> C x y` the Ref field will contain `foo`, `x`
-    and `y` will be suppressed (because term construction is not interesting), while the Hyp field
-    will reference steps proving `A x` and `B y`. This corresponds to a proof term like
-    `@foo x y pA pB` where `pA` and `pB` are subproofs.
+  * If the theorem is `foo (x y : Z) : A x -> B y -> C x y`:
+    * the Ref field will contain `foo`,
+    * `x` and `y` will be suppressed, because term construction is not interesting, and
+    * the Hyp field will reference steps proving `A x` and `B y`. This corresponds to a proof term
+      like `@foo x y pA pB` where `pA` and `pB` are subproofs.
   * If the head of the proof term is a local constant or lambda, then in this case the Ref will
     say `∀E` for forall-elimination. This happens when you have for example `h : A -> B` and
     `ha : A` and prove `b` by `h ha`; we reinterpret this as if it said `∀E h ha` where `∀E` is

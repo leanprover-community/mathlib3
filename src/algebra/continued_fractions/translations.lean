@@ -50,11 +50,11 @@ lemma part_denom_eq_s_b {gp : gcf.pair α} (s_nth_eq : g.s.nth n = some gp) :
   g.partial_denominators.nth n = some gp.b :=
 by simp [partial_denominators, s_nth_eq]
 
-lemma obtain_s_a_of_part_num {a : α} (nth_part_num_eq : g.partial_numerators.nth n = some a) :
+lemma exists_s_a_of_part_num {a : α} (nth_part_num_eq : g.partial_numerators.nth n = some a) :
   ∃ gp, g.s.nth n = some gp ∧ gp.a = a :=
 by simpa [partial_numerators, seq.map_nth] using nth_part_num_eq
 
-lemma obtain_s_b_of_part_denom {b : α} (nth_part_denom_eq : g.partial_denominators.nth n = some b) :
+lemma exists_s_b_of_part_denom {b : α} (nth_part_denom_eq : g.partial_denominators.nth n = some b) :
   ∃ gp, g.s.nth n = some gp ∧ gp.b = b :=
 by simpa [partial_denominators, seq.map_nth] using nth_part_denom_eq
 
@@ -77,11 +77,11 @@ lemma convergent_eq_num_div_denom : g.convergents n = g.numerators n / g.denomin
 lemma convergent_eq_conts_a_div_conts_b :
   g.convergents n = (g.continuants n).a / (g.continuants n).b := rfl
 
-lemma obtain_conts_a_of_num {A : K} (nth_num_eq : g.numerators n = A) :
+lemma exists_conts_a_of_num {A : K} (nth_num_eq : g.numerators n = A) :
   ∃ conts, g.continuants n = conts ∧ conts.a = A :=
 by simpa
 
-lemma obtain_conts_b_of_denom {B : K} (nth_denom_eq : g.denominators n = B) :
+lemma exists_conts_b_of_denom {B : K} (nth_denom_eq : g.denominators n = B) :
   ∃ conts, g.continuants n = conts ∧ conts.b = B :=
 by simpa
 

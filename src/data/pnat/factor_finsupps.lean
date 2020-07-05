@@ -261,7 +261,7 @@ by { apply (finsupp.order_iso_multiset nat.primes).to_order_embedding.injective,
 
 end finsupp_lattice_iso_multiset
 
-begin prime_finsupp_lattice_iso_multiset
+section prime_finsupp_lattice_iso_multiset
 /-- Factorization is a bijection from ℕ+ to finsupp.primes_ -/
 def pnat.prime_finsupp_equiv : ℕ+ ≃ (nat.primes →₀ ℕ) :=
 equiv.trans pnat.factor_multiset_equiv ((finsupp.order_iso_multiset nat.primes).to_equiv.symm)

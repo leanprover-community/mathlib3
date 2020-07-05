@@ -115,12 +115,7 @@ tensor_product.lift (to_fun_bilinear R A)
 lemma to_fun_linear_mul_tmul_mul_aux_1
   (p : polynomial R) (k : ℕ) (h : decidable (¬p.coeff k = 0)) (a : A) :
   ite (¬coeff p k = 0) (a * (algebra_map R A) (coeff p k)) 0 = a * (algebra_map R A) (coeff p k) :=
-begin
-  haveI := h,
-  by_cases w : ¬p.coeff k = 0,
-  { simp [w], },
-  { simp [classical.not_not.1 w], }
-end
+by { classical, split_ifs; simp *, }
 
 lemma to_fun_linear_mul_tmul_mul_aux_2 (k : ℕ) (a₁ a₂ : A) (p₁ p₂ : polynomial R) :
   a₁ * a₂ * (algebra_map R A) ((p₁ * p₂).coeff k) =

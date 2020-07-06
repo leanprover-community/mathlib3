@@ -72,14 +72,14 @@ function.update_noteq i_ne b A
 @[simp] lemma update_row_ne {j' : n} (j_ne : j' ≠ j) : update_row A j b i j' = A i j' :=
 function.update_noteq j_ne (b i) (A i)
 
-lemma update_column_val {i' : n} : update_column A i b i' j = if i' = i then b j else A i' j :=
+lemma update_column_apply {i' : n} : update_column A i b i' j = if i' = i then b j else A i' j :=
 begin
   by_cases i' = i,
   { rw [h, update_column_self, if_pos rfl] },
   { rw [update_column_ne h, if_neg h] }
 end
 
-lemma update_row_val {j' : n} : update_row A j b i j' = if j' = j then b i else A i j' :=
+lemma update_row_apply {j' : n} : update_row A j b i j' = if j' = j then b i else A i j' :=
 begin
   by_cases j' = j,
   { rw [h, update_row_self, if_pos rfl] },
@@ -89,7 +89,7 @@ end
 lemma update_column_transpose : update_column Aᵀ i b = (update_row A i b)ᵀ :=
 begin
   ext i' j,
-  rw [transpose_val, update_column_val, update_row_val],
+  rw [transpose_apply, update_column_apply, update_row_apply],
   refl
 end
 end update
@@ -119,7 +119,7 @@ begin
   have : Π {f : n → n} {i : n} (x : n → α),
     (∏ i' : n, (update_column A i x)ᵀ (f i') i')
     = (∏ i' : n, if i' = i then x (f i') else A i' (f i')),
-  { intros, congr, ext i', rw [transpose_val, update_column_val] },
+  { intros, congr, ext i', rw [transpose_apply, update_column_apply] },
   split,
   { intros x y,
     repeat { rw [cramer_map, ←det_transpose, det] },
@@ -216,13 +216,13 @@ def adjugate (A : matrix n n α) : matrix n n α := λ i, cramer α A (λ j, if 
 lemma adjugate_def (A : matrix n n α) :
   adjugate A = λ i, cramer α A (λ j, if i = j then 1 else 0) := rfl
 
-lemma adjugate_val (A : matrix n n α) (i j : n) :
+lemma adjugate_apply (A : matrix n n α) (i j : n) :
   adjugate A i j = (A.update_column j (λ j, if i = j then 1 else 0)).det := rfl
 
 lemma adjugate_transpose (A : matrix n n α) : (adjugate A)ᵀ = adjugate (Aᵀ) :=
 begin
   ext i j,
-  rw [transpose_val, adjugate_val, adjugate_val, update_column_transpose, det_transpose],
+  rw [transpose_apply, adjugate_apply, adjugate_apply, update_column_transpose, det_transpose],
   apply finset.sum_congr rfl,
   intros σ _,
   congr' 1,
@@ -231,7 +231,7 @@ begin
   { -- Everything except `(i , j)` (= `(σ j , j)`) is given by A, and the rest is a single `1`.
     congr; ext j',
     have := (@equiv.injective _ _ σ j j' : σ j = σ j' → j = j'),
-    rw [update_column_val, update_row_val],
+    rw [update_column_apply, update_row_apply],
     finish },
   { -- Otherwise, we need to show that there is a `0` somewhere in the product.
     have : (∏ j' : n, update_row A j (λ (i' : n), ite (i = i') 1 0) (σ j') j') = 0,
@@ -246,7 +246,7 @@ begin
     exact h ((symm_apply_eq σ).mp h'.symm) }
 end
 
-lemma mul_adjugate_val (A : matrix n n α) (i j k) :
+lemma mul_adjugate_apply (A : matrix n n α) (i j k) :
   A i k * adjugate A k j = cramer α A (λ j, if k = j then A i k else 0) j :=
 begin
   erw [←smul_eq_mul, ←pi.smul_apply, ←linear_map.map_smul],
@@ -257,11 +257,11 @@ end
 lemma mul_adjugate (A : matrix n n α) : A ⬝ adjugate A = A.det • 1 :=
 begin
   ext i j,
-  rw [mul_val, smul_val, one_val, mul_boole],
+  rw [mul_apply, smul_apply, one_apply, mul_boole],
   calc
     ∑ k : n, A i k * adjugate A k j
         = ∑ k : n, cramer α A (λ j, if k = j then A i k else 0) j
-      : by {congr, ext k, apply mul_adjugate_val A i j k}
+      : by {congr, ext k, apply mul_adjugate_apply A i j k}
     ... = cramer α A (λ j, ∑ k : n, if k = j then A i k else 0) j
       : sum_cramer_apply A univ (λ (j k : n), if k = j then A i k else 0) j
     ... = cramer α A (A i) j : by { rw [cramer_apply], congr, ext,
@@ -296,7 +296,7 @@ begin
   have i_eq_j : i = j := singleton_inj.mp (by rw [←univ_eq_i, univ_eq_j]),
   have perm_eq : (univ : finset (perm n)) = {1} :=
     univ_eq_singleton_of_card_one (1 : perm n) (by simp [card_univ, fintype.card_perm, h]),
-  simp [adjugate_val, det, univ_eq_i, perm_eq, i_eq_j]
+  simp [adjugate_apply, det, univ_eq_i, perm_eq, i_eq_j]
 end
 
 @[simp] lemma adjugate_zero (h : 1 < fintype.card n) : adjugate (0 : matrix n n α) = 0 :=

@@ -515,6 +515,11 @@ begin
     ⟨a, assume i, (ha i).left, assume i, map_le_iff_le_comap.mp $ (ha i).right⟩
 end
 
+/-- A version of Tychonoff's theorem that uses `set.pi`. -/
+lemma compact_univ_pi {s : Πi:ι, set (π i)} (h : ∀i, compact (s i)) : compact (set.pi set.univ s) :=
+by { convert compact_pi_infinite h, simp only [pi, forall_prop_of_true, mem_univ] }
+
+
 instance pi.compact [∀i:ι, compact_space (π i)] : compact_space (Πi, π i) :=
 ⟨begin
   have A : compact {x : Πi:ι, π i | ∀i, x i ∈ (univ : set (π i))} :=
@@ -539,6 +544,16 @@ evaluation `map C(X, Y) × X → Y` to be continuous for all `Y` when `C(X, Y)` 
 compact-open topology. -/
 class locally_compact_space (α : Type*) [topological_space α] : Prop :=
 (local_compact_nhds : ∀ (x : α) (n ∈ 𝓝 x), ∃ s ∈ 𝓝 x, s ⊆ n ∧ compact s)
+
+/-- A reformulation of the definition of locally compact space: In a locally compact space,
+  every open set containing `x` has a compact subset containing `x` in its interior. -/
+lemma exists_compact_subset [locally_compact_space α] {x : α} {U : set α}
+  (hU : is_open U) (hx : x ∈ U) : ∃ (K : set α), compact K ∧ x ∈ interior K ∧ K ⊆ U :=
+begin
+  rcases locally_compact_space.local_compact_nhds x U _ with ⟨K, h1K, h2K, h3K⟩,
+  { refine ⟨K, h3K, _, h2K⟩, rwa [ mem_interior_iff_mem_nhds] },
+  rwa [← mem_interior_iff_mem_nhds, interior_eq_of_open hU]
+end
 
 end compact
 

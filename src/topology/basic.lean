@@ -822,6 +822,10 @@ open_locale topological_space
   of every open set is open. -/
 def continuous (f : α → β) := ∀s, is_open s → is_open (f ⁻¹' s)
 
+lemma is_open.preimage {f : α → β} (hf : continuous f) {s : set β} (h : is_open s) :
+  is_open (f ⁻¹' s) :=
+hf s h
+
 /-- A function between topological spaces is continuous at a point `x₀`
 if `f x` tends to `f x₀` when `x` tends to `x₀`. -/
 def continuous_at (f : α → β) (x : α) := tendsto f (𝓝 x) (𝓝 (f x))
@@ -890,6 +894,10 @@ lemma continuous_iff_is_closed {f : α → β} :
   continuous f ↔ (∀s, is_closed s → is_closed (f ⁻¹' s)) :=
 ⟨assume hf s hs, hf sᶜ hs,
   assume hf s, by rw [←is_closed_compl_iff, ←is_closed_compl_iff]; exact hf _⟩
+
+lemma is_closed.preimage {f : α → β} (hf : continuous f) {s : set β} (h : is_closed s) :
+  is_closed (f ⁻¹' s) :=
+continuous_iff_is_closed.mp hf s h
 
 lemma continuous_at_iff_ultrafilter {f : α → β} (x) : continuous_at f x ↔
   ∀ g, is_ultrafilter g → g ≤ 𝓝 x → g.map f ≤ 𝓝 (f x) :=

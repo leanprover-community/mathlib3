@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 
 import logic.unique
+import logic.function.basic
 import tactic.localized
 import tactic.push_neg
 
@@ -95,3 +96,8 @@ end
 
 instance option.nontrivial [nonempty α] : nontrivial (option α) :=
 by { inhabit α, use [none, some (default α)] }
+
+/-- Pushforward a `nontrivial` instance along an injective function. -/
+protected lemma function.injective.nontrivial [nontrivial α]
+  {f : α → β} (hf : function.injective f) : nontrivial β :=
+let ⟨x, y, h⟩ := exists_pair_ne α in ⟨⟨f x, f y, hf.ne h⟩⟩

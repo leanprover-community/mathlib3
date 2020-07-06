@@ -774,6 +774,13 @@ protected def semilattice_inf_bot [semilattice_inf_bot α] {P : α → Prop}
   bot_le := λ x, @bot_le α _ x,
   ..subtype.semilattice_inf Pinf }
 
+/-- A subtype forms a `⊓`-`⊤`-semilattice if `⊤` and `⊓` preserve the property. -/
+protected def semilattice_inf_top [semilattice_inf_top α] {P : α → Prop}
+  (Ptop : P ⊤) (Pinf : ∀{{x y}}, P x → P y → P (x ⊓ y)) : semilattice_inf_top {x : α // P x} :=
+{ top := ⟨⊤, Ptop⟩,
+  le_top := λ x, @le_top α _ x,
+  ..subtype.semilattice_inf Pinf }
+
 /-- A subtype forms a lattice if `⊔` and `⊓` preserve the property. -/
 protected def lattice [lattice α] {P : α → Prop}
   (Psup : ∀⦃x y⦄, P x → P y → P (x ⊔ y)) (Pinf : ∀⦃x y⦄, P x → P y → P (x ⊓ y)) :

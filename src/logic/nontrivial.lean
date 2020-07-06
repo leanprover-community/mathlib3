@@ -27,8 +27,10 @@ this is equivalent to `0 ≠ 1`. In vector spaces, this is equivalent to positiv
 class nontrivial (α : Type*) : Prop :=
 (exists_ne : ∃ (x y : α), x ≠ y)
 
-lemma exists_ne (α : Type*) [nontrivial α] :
-  ∃ (x y : α), x ≠ y :=
+lemma nontrivial_iff (α : Type*) : nontrivial α ↔ ∃ (x y : α), x ≠ y :=
+⟨λ h, h.exists_ne, λ h, ⟨h⟩⟩
+
+lemma exists_ne (α : Type*) [nontrivial α] : ∃ (x y : α), x ≠ y :=
 nontrivial.exists_ne
 
 lemma exists_ne' [nontrivial α] (x : α) : ∃ y, y ≠ x :=
@@ -41,10 +43,15 @@ begin
 end
 
 lemma nontrivial_of_ne (x y : α) (h : x ≠ y) : nontrivial α :=
-{ exists_ne := ⟨x, y, h⟩ }
+⟨⟨x, y, h⟩⟩
+
+section prio
+set_option default_priority 100 -- see Note [default priority]
 
 instance nontrivial.to_nonempty [nontrivial α] : nonempty α :=
 let ⟨x, _⟩ := exists_ne α in ⟨x⟩
+
+end prio
 
 /-- An inhabited type is either nontrivial, or has a unique element. -/
 noncomputable def nontrivial_psum_unique (α : Type*) [inhabited α] :
@@ -58,14 +65,15 @@ if h : nontrivial α then psum.inl h else psum.inr
     use [x, default α]
   end }
 
+lemma subsingleton_iff (α : Type*) : subsingleton α ↔ ∀ (x y : α), x = y :=
+⟨by { introsI h, exact subsingleton.elim }, λ h, ⟨h⟩⟩
+
+lemma not_nontrivial_iff_subsingleton (α : Type*) : ¬(nontrivial α) ↔ subsingleton α :=
+by { rw [nontrivial_iff, subsingleton_iff], push_neg, refl }
+
 /-- A type is either a subsingleton or nontrivial. -/
 lemma subsingleton_or_nontrivial (α : Type*) :  subsingleton α ∨ nontrivial α :=
-begin
-  classical,
-  by_cases h : nontrivial α,
-  { right, exact h },
-  { left, constructor, assume x y, contrapose! h, exact nontrivial_of_ne x y h },
-end
+by { rw [← not_nontrivial_iff_subsingleton, or_comm], exact classical.em _ }
 
 instance nontrivial_prod_left [nontrivial α] [nonempty β] : nontrivial (α × β) :=
 begin

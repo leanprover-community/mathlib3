@@ -48,12 +48,17 @@ division-free."
 
 section
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
+
 /-- Typeclass for expressing that a type `M₀` with multiplication and a zero satisfies
 `0 * a = 0` and `a * 0 = 0` for all `a : M₀`. -/
 @[protect_proj, ancestor has_mul has_zero]
 class mul_zero_class (M₀ : Type*) extends has_mul M₀, has_zero M₀ :=
 (zero_mul : ∀ a : M₀, 0 * a = 0)
 (mul_zero : ∀ a : M₀, a * 0 = 0)
+
+end prio
 
 section mul_zero_class
 

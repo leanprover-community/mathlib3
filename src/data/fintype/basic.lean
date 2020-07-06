@@ -475,6 +475,20 @@ begin
   exact ⟨a, fintype.exists_ne_of_one_lt_card h a⟩,
 end
 
+lemma fintype.one_lt_card_iff_nontrivial [fintype α] :
+  1 < fintype.card α ↔ nontrivial α :=
+begin
+  split,
+  { assume h,
+    rcases fintype.exists_pair_of_one_lt_card h with ⟨x, y, hxy⟩,
+    exact ⟨⟨x, y, hxy.symm⟩⟩ },
+  { introsI,
+    rcases exists_ne α with ⟨x, y, h⟩,
+    contrapose! h,
+    rw fintype.card_le_one_iff at h,
+    exact h x y }
+end
+
 lemma fintype.injective_iff_surjective [fintype α] {f : α → α} : injective f ↔ surjective f :=
 by haveI := classical.prop_decidable; exact
 have ∀ {f : α → α}, injective f → surjective f,

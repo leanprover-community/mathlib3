@@ -5,7 +5,6 @@ Author: Mario Carneiro, Johannes Hölzl, Sander Dahmen
 -/
 import linear_algebra.basis
 import set_theory.ordinal
-import tactic
 
 /-!
 # Dimension of modules and vector spaces

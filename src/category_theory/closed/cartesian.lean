@@ -41,7 +41,7 @@ local attribute [instance] monoidal_of_has_finite_products
 An object `X` is *exponentiable* if `(X × -)` is a left adjoint.
 We define this as being `closed` in the cartesian monoidal structure.
 -/
-abbreviation exponentiable {C : Type u} [category.{v} C] [has_finite_products.{v} C] (X : C) :=
+abbreviation exponentiable {C : Type u} [category.{v} C] [has_finite_products C] (X : C) :=
 closed X
 
 /--
@@ -49,7 +49,7 @@ If `X` and `Y` are exponentiable then `X ⨯ Y` is.
 This isn't an instance because it's not usually how we want to construct exponentials, we'll usually
 prove all objects are exponential uniformly.
 -/
-def binary_product_exponentiable {C : Type u} [category.{v} C] [has_finite_products.{v} C] {X Y : C}
+def binary_product_exponentiable {C : Type u} [category.{v} C] [has_finite_products C] {X Y : C}
   (hX : exponentiable X) (hY : exponentiable Y) : exponentiable (X ⨯ Y) :=
 { is_adj :=
   begin
@@ -63,7 +63,7 @@ The terminal object is always exponentiable.
 This isn't an instance because most of the time we'll prove cartesian closed for all objects
 at once, rather than just for this one.
 -/
-def terminal_exponentiable {C : Type u} [category.{v} C] [has_finite_products.{v} C] :
+def terminal_exponentiable {C : Type u} [category.{v} C] [has_finite_products C] :
   exponentiable ⊤_C :=
 unit_closed
 
@@ -71,13 +71,13 @@ unit_closed
 A category `C` is cartesian closed if it has finite products and every object is exponentiable.
 We define this as `monoidal_closed` with respect to the cartesian monoidal structure.
 -/
-abbreviation cartesian_closed (C : Type u) [category.{v} C] [has_finite_products.{v} C] :=
+abbreviation cartesian_closed (C : Type u) [category.{v} C] [has_finite_products C] :=
 monoidal_closed C
 
 variables {C : Type u} [category.{v} C] (A B : C) {X X' Y Y' Z : C}
 
 section exp
-variables [has_finite_products.{v} C] [exponentiable A]
+variables [has_finite_products C] [exponentiable A]
 
 /-- This is (-)^A. -/
 def exp : C ⥤ C :=
@@ -112,7 +112,7 @@ variables {A}
 -- Wrap these in a namespace so we don't clash with the core versions.
 namespace cartesian_closed
 
-variables [has_finite_products.{v} C] [exponentiable A]
+variables [has_finite_products C] [exponentiable A]
 
 /-- Currying in a cartesian closed category. -/
 def curry : (A ⨯ Y ⟶ X) → (Y ⟶ A ⟹ X) :=
@@ -125,7 +125,7 @@ end cartesian_closed
 
 open cartesian_closed
 
-variables [has_finite_products.{v} C] [exponentiable A]
+variables [has_finite_products C] [exponentiable A]
 
 @[reassoc]
 lemma curry_natural_left (f : X ⟶ X') (g : A ⨯ X' ⟶ Y) :
@@ -242,7 +242,7 @@ def internal_hom [cartesian_closed C] : C ⥤ Cᵒᵖ ⥤ C :=
 
 /-- If an initial object `0` exists in a CCC, then `A ⨯ 0 ≅ 0`. -/
 @[simps]
-def zero_mul [has_initial.{v} C] : A ⨯ ⊥_ C ≅ ⊥_ C :=
+def zero_mul [has_initial C] : A ⨯ ⊥_ C ≅ ⊥_ C :=
 { hom := limits.prod.snd,
   inv := default (⊥_ C ⟶ A ⨯ ⊥_ C),
   hom_inv_id' :=
@@ -256,11 +256,11 @@ def zero_mul [has_initial.{v} C] : A ⨯ ⊥_ C ≅ ⊥_ C :=
   }
 
 /-- If an initial object `0` exists in a CCC, then `0 ⨯ A ≅ 0`. -/
-def mul_zero [has_initial.{v} C] : ⊥_ C ⨯ A ≅ ⊥_ C :=
+def mul_zero [has_initial C] : ⊥_ C ⨯ A ≅ ⊥_ C :=
 limits.prod.braiding _ _ ≪≫ zero_mul
 
 /-- If an initial object `0` exists in a CCC then `0^B ≅ 1` for any `B`. -/
-def pow_zero [has_initial.{v} C] [cartesian_closed C] : ⊥_C ⟹ B ≅ ⊤_ C :=
+def pow_zero [has_initial C] [cartesian_closed C] : ⊥_C ⟹ B ≅ ⊤_ C :=
 { hom := default _,
   inv := curry (mul_zero.hom ≫ default (⊥_ C ⟶ B)),
   hom_inv_id' :=
@@ -274,7 +274,7 @@ def pow_zero [has_initial.{v} C] [cartesian_closed C] : ⊥_C ⟹ B ≅ ⊤_ C :
 -- TODO: Generalise the below to its commutated variants.
 -- TODO: Define a distributive category, so that zero_mul and friends can be derived from this.
 /-- In a CCC with binary coproducts, the distribution morphism is an isomorphism. -/
-def prod_coprod_distrib [has_binary_coproducts.{v} C] [cartesian_closed C] (X Y Z : C) :
+def prod_coprod_distrib [has_binary_coproducts C] [cartesian_closed C] (X Y Z : C) :
   (Z ⨯ X) ⨿ (Z ⨯ Y) ≅ Z ⨯ (X ⨿ Y) :=
 { hom := coprod.desc (limits.prod.map (𝟙 _) coprod.inl) (limits.prod.map (𝟙 _) coprod.inr),
   inv := uncurry (coprod.desc (curry coprod.inl) (curry coprod.inr)),
@@ -296,7 +296,7 @@ def prod_coprod_distrib [has_binary_coproducts.{v} C] [cartesian_closed C] (X Y 
 If an initial object `0` exists in a CCC then it is a strict initial object,
 i.e. any morphism to `0` is an iso.
 -/
-instance strict_initial [has_initial.{v} C] {f : A ⟶ ⊥_ C} : is_iso f :=
+instance strict_initial [has_initial C] {f : A ⟶ ⊥_ C} : is_iso f :=
 begin
   haveI : mono (limits.prod.lift (𝟙 A) f ≫ zero_mul.hom) := mono_comp _ _,
   rw [zero_mul_hom, prod.lift_snd] at _inst,
@@ -305,13 +305,13 @@ begin
 end
 
 /-- If an initial object `0` exists in a CCC then every morphism from it is monic. -/
-instance initial_mono (B : C) [has_initial.{v} C] [cartesian_closed C] : mono (initial.to B) :=
+instance initial_mono (B : C) [has_initial C] [cartesian_closed C] : mono (initial.to B) :=
 ⟨λ B g h _, eq_of_inv_eq_inv (subsingleton.elim (inv g) (inv h))⟩
 
 variables {D : Type u₂} [category.{v} D]
 section functor
 
-variables [has_finite_products.{v} D]
+variables [has_finite_products D]
 
 /--
 Transport the property of being cartesian closed across an equivalence of categories.

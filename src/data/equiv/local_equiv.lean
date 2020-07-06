@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import data.equiv.basic
 import tactic.tauto
+import tactic.simps
 
 /-!
 # Local equivalences

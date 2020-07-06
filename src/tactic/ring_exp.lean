@@ -6,6 +6,7 @@ Author: Tim Baanen.
 Solve equations in commutative (semi)rings with exponents.
 -/
 import tactic.norm_num
+import control.traversable.basic
 
 /-!
 # `ring_exp` tactic

@@ -132,7 +132,7 @@ lemma edist_triangle4 (x y z t : α) :
   edist x t ≤ edist x y + edist y z + edist z t :=
 calc
   edist x t ≤ edist x z + edist z t : edist_triangle x z t
-... ≤ (edist x y + edist y z) + edist z t : add_le_add_right' (edist_triangle x y z)
+... ≤ (edist x y + edist y z) + edist z t : add_le_add_right (edist_triangle x y z) _
 
 /-- The triangle (polygon) inequality for sequences of points; `finset.Ico` version. -/
 lemma edist_le_Ico_sum_edist (f : ℕ → α) {m n} (h : m ≤ n) :
@@ -678,7 +678,7 @@ begin
     exact ⟨y, ‹y ∈ t›, ‹edist x y < ε›⟩ },
   have T₄ : closure t ⊆ s := calc
     closure t ⊆ closure s : closure_mono T₁
-    ... = s : closure_eq_of_is_closed (closed_of_compact _ hs),
+    ... = s : hs.is_closed.closure_eq,
   exact ⟨t, ⟨T₁, T₂, subset.antisymm T₃ T₄⟩⟩
 end
 

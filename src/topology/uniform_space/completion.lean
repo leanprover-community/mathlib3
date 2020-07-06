@@ -275,7 +275,7 @@ begin
       rw closure_eq_cluster_pts,
       exact ne_bot_of_le_ne_bot f.2.1
         (le_inf f.2.le_nhds_Lim (le_principal_iff.2 xf)) },
-    have := (closure_subset_iff_subset_of_is_closed dc).2 h,
+    have := dc.closure_subset_iff.2 h,
     rw closure_prod_eq at this,
     refine dt (this ⟨_, _⟩); dsimp; apply limc; assumption }
 end

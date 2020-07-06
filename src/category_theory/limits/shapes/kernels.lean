@@ -47,7 +47,7 @@ open category_theory.limits.walking_parallel_pair
 namespace category_theory.limits
 
 variables {C : Type u} [category.{v} C]
-variables [has_zero_morphisms.{v} C]
+variables [has_zero_morphisms C]
 
 /-- A morphism `f` has a kernel if the functor `parallel_pair f 0` has a limit. -/
 abbreviation has_kernel {X Y : C} (f : X ⟶ Y) : Type (max u v) := has_limit (parallel_pair f 0)
@@ -72,6 +72,9 @@ by rw [←fork.app_zero_left, kernel_fork.condition]
 /-- A morphism `ι` satisfying `ι ≫ f = 0` determines a kernel fork over `f`. -/
 abbreviation kernel_fork.of_ι {Z : C} (ι : Z ⟶ X) (w : ι ≫ f = 0) : kernel_fork f :=
 fork.of_ι ι $ by rw [w, has_zero_morphisms.comp_zero]
+
+@[simp] lemma kernel_fork.ι_of_ι {X Y P : C} (f : X ⟶ Y) (ι : P ⟶ X) (w : ι ≫ f = 0) :
+  fork.ι (kernel_fork.of_ι ι w) = ι := rfl
 
 /-- If `s` is a limit kernel fork and `k : W ⟶ X` satisfies ``k ≫ f = 0`, then there is some
     `l : W ⟶ s.X` sich that `l ≫ fork.ι s = k`. -/
@@ -126,7 +129,7 @@ lemma kernel_not_iso_of_nonzero (w : f ≠ 0) : (is_iso (kernel.ι f)) → false
 end
 
 section has_zero_object
-variables [has_zero_object.{v} C]
+variables [has_zero_object C]
 
 local attribute [instance] has_zero_object.has_zero
 
@@ -215,6 +218,9 @@ by rw [←cofork.left_app_one, cokernel_cofork.condition]
 abbreviation cokernel_cofork.of_π {Z : C} (π : Y ⟶ Z) (w : f ≫ π = 0) : cokernel_cofork f :=
 cofork.of_π π $ by rw [w, has_zero_morphisms.zero_comp]
 
+@[simp] lemma cokernel_cofork.π_of_π {X Y P : C} (f : X ⟶ Y) (π : Y ⟶ P) (w : f ≫ π = 0) :
+  cofork.π (cokernel_cofork.of_π π w) = π := rfl
+
 /-- If `s` is a colimit cokernel cofork, then every `k : Y ⟶ W` satisfying `f ≫ k = 0` induces
     `l : s.X ⟶ W` such that `cofork.π s ≫ l = k`. -/
 def cokernel_cofork.is_colimit.desc' {s : cokernel_cofork f} (hs : is_colimit s) {W : C} (k : Y ⟶ W)
@@ -270,7 +276,7 @@ lemma cokernel_not_iso_of_nonzero (w : f ≠ 0) : (is_iso (cokernel.π f)) → f
 end
 
 section has_zero_object
-variables [has_zero_object.{v} C]
+variables [has_zero_object C]
 
 local attribute [instance] has_zero_object.has_zero
 
@@ -311,7 +317,7 @@ end
 
 
 section has_zero_object
-variables [has_zero_object.{v} C]
+variables [has_zero_object C]
 
 local attribute [instance] has_zero_object.has_zero
 
@@ -367,7 +373,7 @@ end category_theory.limits
 namespace category_theory.limits
 variables (C : Type u) [category.{v} C]
 
-variables [has_zero_morphisms.{v} C]
+variables [has_zero_morphisms C]
 
 /-- `has_kernels` represents a choice of kernel for every morphism -/
 class has_kernels :=
@@ -380,11 +386,11 @@ class has_cokernels :=
 attribute [instance, priority 100] has_kernels.has_limit has_cokernels.has_colimit
 
 /-- Kernels are finite limits, so if `C` has all finite limits, it also has all kernels -/
-def has_kernels_of_has_finite_limits [has_finite_limits.{v} C] : has_kernels.{v} C :=
+def has_kernels_of_has_finite_limits [has_finite_limits C] : has_kernels C :=
 { has_limit := infer_instance }
 
 /-- Cokernels are finite limits, so if `C` has all finite colimits, it also has all cokernels -/
-def has_cokernels_of_has_finite_colimits [has_finite_colimits.{v} C] : has_cokernels.{v} C :=
+def has_cokernels_of_has_finite_colimits [has_finite_colimits C] : has_cokernels C :=
 { has_colimit := infer_instance }
 
 end category_theory.limits

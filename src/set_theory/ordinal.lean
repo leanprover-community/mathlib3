@@ -979,11 +979,14 @@ theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonemp
 @[simp] theorem type_eq_zero_iff_empty [is_well_order α r] : type r = 0 ↔ ¬ nonempty α :=
 (not_iff_comm.1 type_ne_zero_iff_nonempty).symm
 
-instance : nonzero ordinal.{u} :=
-{ zero_ne_one := ne.symm $ type_ne_zero_iff_nonempty.2 ⟨punit.star⟩ }
+protected lemma one_ne_zero : (1 : ordinal) ≠ 0 :=
+type_ne_zero_iff_nonempty.2 ⟨punit.star⟩
+
+instance : nontrivial ordinal.{u} :=
+⟨⟨1, 0, ordinal.one_ne_zero⟩⟩
 
 theorem zero_lt_one : (0 : ordinal) < 1 :=
-lt_iff_le_and_ne.2 ⟨zero_le _, zero_ne_one⟩
+lt_iff_le_and_ne.2 ⟨zero_le _, ne.symm $ ordinal.one_ne_zero⟩
 
 /-- The ordinal predecessor of `o` is `o'` if `o = succ o'`,
   and `o` otherwise. -/
@@ -1651,7 +1654,7 @@ by rw [← le_zero, div_le $ pos_iff_ne_zero.1 $ lt_of_le_of_lt (zero_le _) h];
 by simpa only [add_zero, zero_div] using mul_add_div a b0 0
 
 @[simp] theorem div_one (a : ordinal) : a / 1 = a :=
-by simpa only [one_mul] using mul_div_cancel a one_ne_zero
+by simpa only [one_mul] using mul_div_cancel a ordinal.one_ne_zero
 
 @[simp] theorem div_self {a : ordinal} (h : a ≠ 0) : a / a = 1 :=
 by simpa only [mul_one] using mul_div_cancel 1 h
@@ -2032,7 +2035,7 @@ begin
   { simp only [power_zero] },
   { intros _ ih, simp only [power_succ, ih, mul_one] },
   refine λ b l IH, eq_of_forall_ge_iff (λ c, _),
-  rw [power_le_of_limit one_ne_zero l],
+  rw [power_le_of_limit ordinal.one_ne_zero l],
   exact ⟨λ H, by simpa only [power_zero] using H 0 l.pos,
          λ H b' h, by rwa IH _ h⟩,
 end
@@ -2585,7 +2588,8 @@ by unfold CNF; rw [dif_neg b0, dif_neg b0, CNF_rec_ne_zero b0 o0]
 
 theorem one_CNF {o : ordinal} (o0 : o ≠ 0) :
   CNF 1 o = [(0, o)] :=
-by rw [CNF_ne_zero one_ne_zero o0, log_not_one_lt (lt_irrefl _), power_zero, mod_one, CNF_zero, div_one]
+by rw [CNF_ne_zero ordinal.one_ne_zero o0, log_not_one_lt (lt_irrefl _), power_zero, mod_one,
+       CNF_zero, div_one]
 
 theorem CNF_foldr {b : ordinal} (b0 : b ≠ 0) (o) :
   (CNF b o).foldr (λ p r, b ^ p.1 * p.2 + r) 0 = o :=
@@ -3183,47 +3187,47 @@ end
 /- compl -/
 
 lemma mk_compl_of_omega_le {α : Type*} (s : set α) (h : omega ≤ #α) (h2 : #s < #α) :
-  #(-s : set α) = #α :=
+  #(sᶜ : set α) = #α :=
 by { refine eq_of_add_eq_of_omega_le _ h2 h, exact mk_sum_compl s }
 
 lemma mk_compl_finset_of_omega_le {α : Type*} (s : finset α) (h : omega ≤ #α) :
-  #(-↑s : set α) = #α :=
+  #((↑s)ᶜ : set α) = #α :=
 by { apply mk_compl_of_omega_le _ h, exact lt_of_lt_of_le (finset_card_lt_omega s) h }
 
 lemma mk_compl_eq_mk_compl_infinite {α : Type*} {s t : set α} (h : omega ≤ #α) (hs : #s < #α)
-  (ht : #t < #α) : #(-s : set α) = #(-t : set α) :=
+  (ht : #t < #α) : #(sᶜ : set α) = #(tᶜ : set α) :=
 by { rw [mk_compl_of_omega_le s h hs, mk_compl_of_omega_le t h ht] }
 
 lemma mk_compl_eq_mk_compl_finite_lift {α : Type u} {β : Type v} {s : set α} {t : set β}
   (hα : #α < omega) (h1 : lift.{u (max v w)} (#α) = lift.{v (max u w)} (#β))
   (h2 : lift.{u (max v w)} (#s) = lift.{v (max u w)} (#t)) :
-  lift.{u (max v w)} (#(-s : set α)) = lift.{v (max u w)} (#(-t : set β)) :=
+  lift.{u (max v w)} (#(sᶜ : set α)) = lift.{v (max u w)} (#(tᶜ : set β)) :=
 begin
   have hα' := hα, have h1' := h1,
   rw [← mk_sum_compl s, ← mk_sum_compl t] at h1,
   rw [← mk_sum_compl s, add_lt_omega_iff] at hα,
   lift #s to ℕ using hα.1 with n hn,
-  lift #(- s : set α) to ℕ using hα.2 with m hm,
-  have : #(- t : set β) < omega,
+  lift #(sᶜ : set α) to ℕ using hα.2 with m hm,
+  have : #(tᶜ : set β) < omega,
   { refine lt_of_le_of_lt (mk_subtype_le _) _,
     rw [← lift_lt, lift_omega, ← h1', ← lift_omega.{u (max v w)}, lift_lt], exact hα' },
-  lift #(- t : set β) to ℕ using this with k hk,
+  lift #(tᶜ : set β) to ℕ using this with k hk,
   simp [nat_eq_lift_eq_iff] at h2, rw [nat_eq_lift_eq_iff.{v (max u w)}] at h2,
   simp [h2.symm] at h1 ⊢, norm_cast at h1, simp at h1, exact h1
 end
 
 lemma mk_compl_eq_mk_compl_finite {α β : Type u} {s : set α} {t : set β}
-  (hα : #α < omega) (h1 : #α = #β) (h : #s = #t) : #(-s : set α) = #(-t : set β) :=
+  (hα : #α < omega) (h1 : #α = #β) (h : #s = #t) : #(sᶜ : set α) = #(tᶜ : set β) :=
 by { rw [← lift_inj], apply mk_compl_eq_mk_compl_finite_lift hα; rw [lift_inj]; assumption }
 
 lemma mk_compl_eq_mk_compl_finite_same {α : Type*} {s t : set α} (hα : #α < omega)
-  (h : #s = #t) : #(-s : set α) = #(-t : set α) :=
+  (h : #s = #t) : #(sᶜ : set α) = #(tᶜ : set α) :=
 mk_compl_eq_mk_compl_finite hα rfl h
 
 /- extend an injection to an equiv -/
 
 theorem extend_function {α β : Type*} {s : set α} (f : s ↪ β)
-  (h : nonempty ((-s : set α) ≃ (- range f : set β))) :
+  (h : nonempty ((sᶜ : set α) ≃ ((range f)ᶜ : set β))) :
   ∃ (g : α ≃ β), ∀ x : s, g x = f x :=
 begin
   intros, have := h, cases this with g,

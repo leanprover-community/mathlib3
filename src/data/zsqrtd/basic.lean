@@ -115,8 +115,8 @@ instance : semiring ℤ√d           := by apply_instance
 instance : ring ℤ√d               := by apply_instance
 instance : distrib ℤ√d            := by apply_instance
 
-instance : nonzero ℤ√d :=
-{ zero_ne_one := dec_trivial }
+instance : nontrivial ℤ√d :=
+⟨⟨0, 1, dec_trivial⟩⟩
 
 @[simp] theorem coe_nat_re (n : ℕ) : (n : ℤ√d).re = n :=
 by induction n; simp *
@@ -153,8 +153,8 @@ by simp [ext]
 theorem mul_conj {x y : ℤ} : (⟨x, y⟩ * conj ⟨x, y⟩ : ℤ√d) = x * x - d * y * y :=
 by simp [ext, sub_eq_add_neg, mul_comm]
 
-theorem conj_mul : Π {a b : ℤ√d}, conj (a * b) = conj a * conj b :=
-by simp [ext, add_comm]
+theorem conj_mul {a b : ℤ√d} : conj (a * b) = conj a * conj b :=
+by { simp [ext], ring }
 
 protected lemma coe_int_add (m n : ℤ) : (↑(m + n) : ℤ√d) = ↑m + ↑n := by simp [ext]
 protected lemma coe_int_sub (m n : ℤ) : (↑(m - n) : ℤ√d) = ↑m - ↑n := by simp [ext, sub_eq_add_neg]
@@ -542,18 +542,17 @@ protected theorem eq_zero_or_eq_zero_of_mul_eq_zero : Π {a b : ℤ√d}, a * b 
   if z0 : z = 0 then if w0 : w = 0 then
     or.inr (match z, w, z0, w0 with ._, ._, rfl, rfl := rfl end)
   else
-     or.inl $ fin $ eq_of_mul_eq_mul_right w0 $ calc
+     or.inl $ fin $ mul_right_cancel' w0 $ calc
        x * x * w = -y * (x * z) : by simp [h2, mul_assoc, mul_left_comm]
              ... = d * y * y * w : by simp [h1, mul_assoc, mul_left_comm]
   else
-     or.inl $ fin $ eq_of_mul_eq_mul_right z0 $ calc
+     or.inl $ fin $ mul_right_cancel' z0 $ calc
        x * x * z = d * -y * (x * w) : by simp [h1, mul_assoc, mul_left_comm]
              ... = d * y * y * z : by simp [h2, mul_assoc, mul_left_comm]
 
 instance : integral_domain ℤ√d :=
-{ zero_ne_one := zero_ne_one,
-  eq_zero_or_eq_zero_of_mul_eq_zero := @zsqrtd.eq_zero_or_eq_zero_of_mul_eq_zero,
-  ..zsqrtd.comm_ring }
+{ eq_zero_or_eq_zero_of_mul_eq_zero := @zsqrtd.eq_zero_or_eq_zero_of_mul_eq_zero,
+  .. zsqrtd.comm_ring, .. zsqrtd.nontrivial }
 
 protected theorem mul_pos (a b : ℤ√d) (a0 : 0 < a) (b0 : 0 < b) : 0 < a * b := λab,
 or.elim (eq_zero_or_eq_zero_of_mul_eq_zero
@@ -563,10 +562,9 @@ or.elim (eq_zero_or_eq_zero_of_mul_eq_zero
 
 instance : decidable_linear_ordered_comm_ring ℤ√d :=
 { add_le_add_left := @zsqrtd.add_le_add_left,
-  zero_ne_one     := zero_ne_one,
   mul_pos         := @zsqrtd.mul_pos,
   zero_lt_one     := dec_trivial,
-  ..zsqrtd.comm_ring, ..zsqrtd.decidable_linear_order }
+  .. zsqrtd.comm_ring, .. zsqrtd.decidable_linear_order, .. zsqrtd.nontrivial }
 
 instance : decidable_linear_ordered_semiring ℤ√d := by apply_instance
 instance : linear_ordered_semiring ℤ√d           := by apply_instance

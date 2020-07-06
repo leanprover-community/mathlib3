@@ -52,7 +52,6 @@ lemma equiv_along_prime_subfield_apply_coe {F K : Type*} {q : ℚ}
 by simp only [equiv_along_prime_subfield, prime_subfield_equiv, equiv.set.range_apply,
   function.comp_app, subtype.mk_eq_mk, equiv.coe_trans, rat.cast_inj, equiv.symm_apply_eq]
 
-
 /-- The function sending subsets of the rationals embedded inside of one characteristic zero
     division ring to the corresponding subset of a second such ring. -/
 def cut_map (F K : Type*) [division_ring F] [char_zero F] [division_ring K] [char_zero K] :
@@ -73,6 +72,7 @@ begin
 end
 
 set_option old_structure_cmd true
+set_option default_priority 100
 
 /-- Equivalence commuting with multiplicative, additive and order structure. -/
 structure ordered_ring_equiv {R S : Type*} [has_mul R] [has_add R] [has_mul S] [has_add S]
@@ -560,10 +560,5 @@ def ordered_ring_equiv (F K : Type*)
   end }
 
 end conditionally_complete_linear_ordered_field
-
-
-
-
-
 
 #lint

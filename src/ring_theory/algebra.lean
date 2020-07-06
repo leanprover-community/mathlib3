@@ -125,7 +125,9 @@ by rw [smul_def, smul_def, left_comm]
   (r • x) * y = r • (x * y) :=
 by rw [smul_def, smul_def, mul_assoc]
 
+variables (R)
 instance id : algebra R R := (ring_hom.id R).to_algebra
+variables {R}
 
 namespace id
 

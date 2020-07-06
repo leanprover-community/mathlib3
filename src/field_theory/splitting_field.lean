@@ -271,7 +271,7 @@ instance inhabited {n : ℕ} {f : polynomial α} (hfn : f.nat_degree = n) :
 
 instance algebra (n : ℕ) : Π {α : Type u} [field α], by exactI
   Π {f : polynomial α} (hfn : f.nat_degree = n), algebra α (splitting_field_aux n f hfn) :=
-nat.rec_on n (λ α _ _ _, by exactI algebra.id) $ λ n ih α _ f hfn,
+nat.rec_on n (λ α _ _ _, by exactI algebra.id α) $ λ n ih α _ f hfn,
 by exactI @@algebra.comap.algebra _ _ _ _ _ _ _ (ih _)
 
 instance algebra' {n : ℕ} {f : polynomial α} (hfn : f.nat_degree = n + 1) :

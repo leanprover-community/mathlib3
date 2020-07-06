@@ -10,6 +10,7 @@ universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
 open_locale big_operators
+open function
 
 /-- Typeclass for types with a scalar multiplication operation, denoted `•` (`\bu`) -/
 class has_scalar (α : Type u) (γ : Type v) := (smul : α → γ → γ)
@@ -46,6 +47,22 @@ by rw [smul_smul, u.inv_mul, one_smul]
 @[simp] lemma units.smul_inv_smul (u : units α) (x : β) :
   (u:α) • (↑u⁻¹:α) • x = x :=
 by rw [smul_smul, u.mul_inv, one_smul]
+
+/-- Pullback a multiplicative action along an injective map respecting `•`. -/
+protected def function.injective.mul_action [has_scalar α γ] (f : γ → β)
+  (hf : injective f) (smul : ∀ (c : α) x, f (c • x) = c • f x) :
+  mul_action α γ :=
+{ smul := (•),
+  one_smul := λ x, hf $ (smul _ _).trans $ one_smul _ (f x),
+  mul_smul := λ c₁ c₂ x, hf $ by simp only [smul, mul_smul] }
+
+/-- Pushforward a multiplicative action along a surjective map respecting `•`. -/
+protected def function.surjective.mul_action [has_scalar α γ] (f : β → γ) (hf : surjective f)
+  (smul : ∀ (c : α) x, f (c • x) = c • f x) :
+  mul_action α γ :=
+{ smul := (•),
+  one_smul := λ y, by { rcases hf y with ⟨x, rfl⟩, rw [← smul, one_smul] },
+  mul_smul := λ c₁ c₂ y, by { rcases hf y with ⟨x, rfl⟩, simp only [← smul, mul_smul] } }
 
 section gwz
 
@@ -170,7 +187,7 @@ variables {α} {β}
 instance : is_group_hom (to_perm α β) :=
 { map_mul := λ x y, equiv.ext (λ a, mul_action.mul_smul x y a) }
 
-lemma bijective (g : α) : function.bijective (λ b : β, g • b) :=
+protected lemma bijective (g : α) : bijective (λ b : β, g • b) :=
 (to_perm α β g).bijective
 
 lemma orbit_eq_iff {a b : β} :
@@ -267,6 +284,27 @@ distrib_mul_action.smul_add _ _ _
 
 @[simp] theorem smul_zero (a : α) : a • (0 : β) = 0 :=
 distrib_mul_action.smul_zero _
+
+/-- Pullback a distributive multiplicative action along an injective additive monoid
+homomorphism. -/
+protected def function.injective.distrib_mul_action [add_monoid γ] [has_scalar α γ] (f : γ →+ β)
+  (hf : injective f) (smul : ∀ (c : α) x, f (c • x) = c • f x) :
+  distrib_mul_action α γ :=
+{ smul := (•),
+  smul_add := λ c x y, hf $ by simp only [smul, f.map_add, smul_add],
+  smul_zero := λ c, hf $ by simp only [smul, f.map_zero, smul_zero],
+  .. hf.mul_action f smul }
+
+/-- Pushforward a distributive multiplicative action along a surjective additive monoid
+homomorphism.-/
+protected def function.surjective.distrib_mul_action [add_monoid γ] [has_scalar α γ] (f : β →+ γ)
+  (hf : surjective f) (smul : ∀ (c : α) x, f (c • x) = c • f x) :
+  distrib_mul_action α γ :=
+{ smul := (•),
+  smul_add := λ c x y, by { rcases hf x with ⟨x, rfl⟩, rcases hf y with ⟨y, rfl⟩,
+    simp only [smul_add, ← smul, ← f.map_add] },
+  smul_zero := λ c, by simp only [← f.map_zero, ← smul, smul_zero],
+  .. hf.mul_action f smul }
 
 theorem units.smul_eq_zero (u : units α) {x : β} : (u : α) • x = 0 ↔ x = 0 :=
 ⟨λ h, by rw [← u.inv_smul_smul x, h, smul_zero], λ h, h.symm ▸ smul_zero _⟩

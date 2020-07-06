@@ -4,7 +4,6 @@ import data.equiv.ring
 import algebra.pointwise
 import order.conditionally_complete_lattice
 import tactic.basic
-import data.finset.basic
 
 /-
 
@@ -75,8 +74,18 @@ set_option old_structure_cmd true
 set_option default_priority 100
 
 /-- Equivalence commuting with multiplicative, additive and order structure. -/
+@[nolint has_inhabited_instance]
 structure ordered_ring_equiv {R S : Type*} [has_mul R] [has_add R] [has_mul S] [has_add S]
   (r : R → R → Prop) (s : S → S → Prop) extends R ≃ S, R ≃+* S, r ≃o s
+
+/-- Reinterpret an ordered ring equivalence as a ring equivalence. -/
+add_decl_doc ordered_ring_equiv.to_ring_equiv
+
+/-- Reinterpret an ordered ring equivalence as an order isomorphism. -/
+add_decl_doc ordered_ring_equiv.to_order_iso
+
+/-- Reinterpret an ordered ring equivalence as an equivalence of types. -/
+add_decl_doc ordered_ring_equiv.to_equiv
 
 namespace ordered_ring_equiv
 
@@ -348,8 +357,8 @@ def induced_map (F K : Type*) [linear_ordered_field F]
   [conditionally_complete_linear_ordered_field K] : F → K :=
 λ x, Sup (cut_image F K x)
 
-lemma induced_map_le (F K : Type*)
-  [linear_ordered_field F] [archimedean F] [conditionally_complete_linear_ordered_field K]
+lemma induced_map_le (F K : Type*) [linear_ordered_field F] [archimedean F]
+[conditionally_complete_linear_ordered_field K]
   {x y : F} (h : x ≤ y) : induced_map F K x ≤ induced_map F K y :=
 cSup_le_cSup (cut_image_bdd_above F K _) (cut_image_nonempty F K _) (cut_image_subset F K h)
 
@@ -382,7 +391,7 @@ begin
     use [q, hqt],
     rw induced_map at hqi,
     by_contra hx,
-    simp only [not_lt] at hx,
+    push_neg at hx,
     have hs := cSup_le_cSup (cut_image_bdd_above F K _)
                 (cut_image_nonempty F K x) (cut_image_subset F K hx),
     change _ ≤ induced_map F K q at hs,
@@ -393,11 +402,7 @@ begin
     { exact hqt },
     { obtain ⟨q2, hq2q, hq2x⟩ := exists_rat_btwn hqx,
       rw induced_map,
-      have : (q2 : K) ∈ cut_image F K x :=
-      begin
-        rw mem_cut_image_iff',
-        exact hq2x,
-      end,
+      have : (q2 : K) ∈ cut_image F K x := mem_cut_image_iff'.mpr hq2x,
       apply lt_cSup_of_lt (cut_image_bdd_above F K x) this,
       exact_mod_cast hq2q, }, },
 end
@@ -439,20 +444,26 @@ lemma induced_map_mul (F K : Type*) [linear_ordered_field F] [archimedean F]
   [conditionally_complete_linear_ordered_field K] (x y : F) :
   induced_map F K (x * y) = induced_map F K x * induced_map F K y :=
 begin
+  -- reduce to the case of x = y
   refine map_mul_of_map_pow_two F K two_ne_zero (induced_add_map F K) _ x y,
   clear x y,
   intro x,
-  suffices : ∀ (x : F) (hpos : 0 < x), induced_add_map F K (x * x) = induced_add_map F K x * induced_add_map F K x,
+  -- reduce to the case of 0 < x
+  suffices : ∀ (x : F) (hpos : 0 < x),
+    induced_add_map F K (x * x) = induced_add_map F K x * induced_add_map F K x,
   begin
     rcases lt_trichotomy x 0 with h|rfl|h,
     { rw ← neg_pos at h,
       convert this (-x) h using 1,
-      simp only [neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm, neg_neg],
-      simp only [neg_mul_eq_neg_mul_symm, add_monoid_hom.map_neg, mul_neg_eq_neg_mul_symm, neg_neg], },
+      { simp only [neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm, neg_neg], },
+      { simp only [neg_mul_eq_neg_mul_symm, add_monoid_hom.map_neg, mul_neg_eq_neg_mul_symm,
+          neg_neg], }, },
     { simp only [mul_zero, add_monoid_hom.map_zero], },
     { exact this x h, },
   end,
   intros x hpos,
+  -- prove that the (Sup of rationals less than x) ^ 2 is the Sup of the set of rationals less than
+  -- (x ^ 2) by showing it is an upper bound and any smaller number is not an upper bound
   apply cSup_intro (cut_image_nonempty F K _),
   { rintros a ha,
     rw mem_cut_image_iff at ha,
@@ -476,8 +487,7 @@ begin
       exact mul_self_nonneg (Sup (cut_image F K x)), }, },
   { intros y hy,
     by_cases hypos : 0 ≤ y,
-    {
-      obtain ⟨q2, hqpos, hq21, hq22⟩ := exists_rat_sqr_btwn hy hypos,
+    { obtain ⟨q2, hqpos, hq21, hq22⟩ := exists_rat_sqr_btwn hy hypos,
       rw pow_two at hq22,
       have : (q2 : K) < _ := lt_of_mul_self_lt_mul_self _ _ hq22,
       use (q2 : K)^2,
@@ -542,10 +552,11 @@ begin
     { exact_mod_cast hqw, }, }
 end
 
+/-- The equivalence of ordered rings between two conditionally complete linearly ordered fields. -/
 def ordered_ring_equiv (F K : Type*)
   [conditionally_complete_linear_ordered_field F] [conditionally_complete_linear_ordered_field K] :
   ((≤) : F → F → Prop) ≃+*o ((≤) : K → K → Prop) :=
- { to_fun := induced_map F K,
+{ to_fun := induced_map F K,
   inv_fun := induced_map K F,
   left_inv := induced_map_inv_self F K,
   right_inv := induced_map_inv_self K F,
@@ -560,5 +571,3 @@ def ordered_ring_equiv (F K : Type*)
   end }
 
 end conditionally_complete_linear_ordered_field
-
-#lint

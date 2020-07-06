@@ -351,7 +351,7 @@ instance : has_inv (perfect_closure K p) :=
 end)⟩
 
 instance : field (perfect_closure K p) :=
-{ exists_ne := ⟨0, 1, λ H, zero_ne_one ((eq_iff _ _ _ _).1 H)⟩,
+{ exists_pair_ne := ⟨0, 1, λ H, zero_ne_one ((eq_iff _ _ _ _).1 H)⟩,
   mul_inv_cancel := λ e, induction_on e $ λ ⟨m, x⟩ H,
     have _ := mt (eq_iff _ _ _ _).2 H, (eq_iff _ _ _ _).2
       (by simp only [(frobenius _ _).iterate_map_one, (frobenius K p).iterate_map_zero,

@@ -333,7 +333,7 @@ variables {R : Type*}
 /-- If `β` is nontrivial and `l` is a non-trivial filter (`l ≠ ⊥`), then `germ l β` is nontrivial.
 This cannot be an `instance` because it depends on `l ≠ ⊥`. -/
 protected lemma nontrivial [nontrivial R] (hl : l ≠ ⊥) : nontrivial (germ l R) :=
-let ⟨x, y, h⟩ := exists_ne R in ⟨⟨↑x, ↑y, mt (const_inj hl).1 h⟩⟩
+let ⟨x, y, h⟩ := exists_pair_ne R in ⟨⟨↑x, ↑y, mt (const_inj hl).1 h⟩⟩
 
 instance [mul_zero_class R] : mul_zero_class (germ l R) :=
 { zero := 0,

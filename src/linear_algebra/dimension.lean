@@ -440,7 +440,7 @@ begin
   rw dim_pos_iff_exists_ne_zero,
   split,
   { rintros ⟨x, h⟩, exact ⟨⟨x, 0, h⟩⟩ },
-  { introsI, exact exists_ne' 0 }
+  { introsI, exact exists_ne 0 }
 end
 
 lemma dim_pos [h : nontrivial V] : 0 < vector_space.dim K V :=

@@ -93,7 +93,7 @@ def to_real_hom : ℝ≥0 →+* ℝ :=
 @[simp] lemma coe_to_real_hom : ⇑to_real_hom = coe := rfl
 
 instance : comm_group_with_zero ℝ≥0 :=
-{ exists_ne      := ⟨0, 1, assume h, zero_ne_one $ nnreal.eq_iff.2 h⟩,
+{ exists_pair_ne      := ⟨0, 1, assume h, zero_ne_one $ nnreal.eq_iff.2 h⟩,
   inv_zero       := nnreal.eq $ show (0⁻¹ : ℝ) = 0, from inv_zero,
   mul_inv_cancel := assume x h, nnreal.eq $ mul_inv_cancel $ ne_iff.2 h,
   .. (by apply_instance : has_inv ℝ≥0),

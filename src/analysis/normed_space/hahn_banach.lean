@@ -79,7 +79,7 @@ theorem exists_dual_vector' [nontrivial E] (x : E) : ∃ g : E →L[ℝ] ℝ,
   ∥g∥ = 1 ∧ g x = ∥x∥ :=
 begin
   by_cases hx : x = 0,
-  { rcases exists_ne' (0 : E) with ⟨y, hy⟩,
+  { rcases exists_ne (0 : E) with ⟨y, hy⟩,
     cases exists_dual_vector y hy with g hg,
     use g, refine ⟨hg.left, _⟩, simp [hx] },
   { exact exists_dual_vector x hx }

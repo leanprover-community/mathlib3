@@ -439,7 +439,7 @@ end local_ring
 
 lemma local_of_nonunits_ideal [comm_ring α] (hnze : (0:α) ≠ 1)
   (h : ∀ x y ∈ nonunits α, x + y ∈ nonunits α) : local_ring α :=
-{ exists_ne := ⟨0, 1, hnze⟩,
+{ exists_pair_ne := ⟨0, 1, hnze⟩,
   is_local := λ x, or_iff_not_imp_left.mpr $ λ hx,
   begin
     by_contra H,

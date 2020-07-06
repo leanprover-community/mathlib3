@@ -25,17 +25,17 @@ open_locale classical
 /-- Predicate typeclass for expressing that a type is not reduced to a single element. In rings,
 this is equivalent to `0 ≠ 1`. In vector spaces, this is equivalent to positive dimension. -/
 class nontrivial (α : Type*) : Prop :=
-(exists_ne : ∃ (x y : α), x ≠ y)
+(exists_pair_ne : ∃ (x y : α), x ≠ y)
 
-lemma nontrivial_iff (α : Type*) : nontrivial α ↔ ∃ (x y : α), x ≠ y :=
-⟨λ h, h.exists_ne, λ h, ⟨h⟩⟩
+lemma nontrivial_iff : nontrivial α ↔ ∃ (x y : α), x ≠ y :=
+⟨λ h, h.exists_pair_ne, λ h, ⟨h⟩⟩
 
-lemma exists_ne (α : Type*) [nontrivial α] : ∃ (x y : α), x ≠ y :=
-nontrivial.exists_ne
+lemma exists_pair_ne (α : Type*) [nontrivial α] : ∃ (x y : α), x ≠ y :=
+nontrivial.exists_pair_ne
 
-lemma exists_ne' [nontrivial α] (x : α) : ∃ y, y ≠ x :=
+lemma exists_ne [nontrivial α] (x : α) : ∃ y, y ≠ x :=
 begin
-  rcases exists_ne α with ⟨y, y', h⟩,
+  rcases exists_pair_ne α with ⟨y, y', h⟩,
   by_cases hx : x = y,
   { rw ← hx at h,
     exact ⟨y', h.symm⟩ },
@@ -49,7 +49,7 @@ section prio
 set_option default_priority 100 -- see Note [default priority]
 
 instance nontrivial.to_nonempty [nontrivial α] : nonempty α :=
-let ⟨x, _⟩ := exists_ne α in ⟨x⟩
+let ⟨x, _⟩ := exists_pair_ne α in ⟨x⟩
 
 end prio
 
@@ -65,10 +65,10 @@ if h : nontrivial α then psum.inl h else psum.inr
     use [x, default α]
   end }
 
-lemma subsingleton_iff (α : Type*) : subsingleton α ↔ ∀ (x y : α), x = y :=
+lemma subsingleton_iff : subsingleton α ↔ ∀ (x y : α), x = y :=
 ⟨by { introsI h, exact subsingleton.elim }, λ h, ⟨h⟩⟩
 
-lemma not_nontrivial_iff_subsingleton (α : Type*) : ¬(nontrivial α) ↔ subsingleton α :=
+lemma not_nontrivial_iff_subsingleton : ¬(nontrivial α) ↔ subsingleton α :=
 by { rw [nontrivial_iff, subsingleton_iff], push_neg, refl }
 
 /-- A type is either a subsingleton or nontrivial. -/
@@ -78,7 +78,7 @@ by { rw [← not_nontrivial_iff_subsingleton, or_comm], exact classical.em _ }
 instance nontrivial_prod_left [nontrivial α] [nonempty β] : nontrivial (α × β) :=
 begin
   inhabit β,
-  rcases exists_ne α with ⟨x, y, h⟩,
+  rcases exists_pair_ne α with ⟨x, y, h⟩,
   use [(x, default β), (y, default β)],
   contrapose! h,
   exact congr_arg prod.fst h
@@ -87,7 +87,7 @@ end
 instance nontrivial_prod_right [nontrivial α] [nonempty β] : nontrivial (β × α) :=
 begin
   inhabit β,
-  rcases exists_ne α with ⟨x, y, h⟩,
+  rcases exists_pair_ne α with ⟨x, y, h⟩,
   use [(default β, x), (default β, y)],
   contrapose! h,
   exact congr_arg prod.snd h

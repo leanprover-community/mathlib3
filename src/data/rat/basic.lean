@@ -427,7 +427,7 @@ instance : field ℚ :=
   mul_assoc        := rat.mul_assoc,
   left_distrib     := rat.mul_add,
   right_distrib    := rat.add_mul,
-  exists_ne        := ⟨0, 1, rat.zero_ne_one⟩,
+  exists_pair_ne        := ⟨0, 1, rat.zero_ne_one⟩,
   mul_inv_cancel   := rat.mul_inv_cancel,
   inv_zero         := rfl }
 

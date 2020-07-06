@@ -417,7 +417,7 @@ end
 instance {R : Type u} {σ : Type v} [integral_domain R] :
   integral_domain (mv_polynomial σ R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := mv_polynomial.eq_zero_or_eq_zero_of_mul_eq_zero,
-  exists_ne := ⟨0, 1, λ H,
+  exists_pair_ne := ⟨0, 1, λ H,
   begin
     have : eval₂ id (λ s, (0:R)) (0 : mv_polynomial σ R) =
       eval₂ id (λ s, (0:R)) (1 : mv_polynomial σ R),

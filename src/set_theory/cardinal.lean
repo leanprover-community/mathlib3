@@ -117,6 +117,9 @@ theorem le_one_iff_subsingleton {α : Type u} : mk α ≤ 1 ↔ subsingleton α 
 ⟨λ ⟨f⟩, ⟨λ a b, f.injective (subsingleton.elim _ _)⟩,
  λ ⟨h⟩, ⟨⟨λ a, punit.star, λ a b _, h _ _⟩⟩⟩
 
+theorem one_lt_iff_nontrivial {α : Type u} : 1 < mk α ↔ nontrivial α :=
+by { rw [← not_iff_not, not_nontrivial_iff_subsingleton, ← le_one_iff_subsingleton], simp }
+
 instance : has_add cardinal.{u} :=
 ⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, mk (α ⊕ β)) $ assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
   quotient.sound ⟨equiv.sum_congr e₁ e₂⟩⟩

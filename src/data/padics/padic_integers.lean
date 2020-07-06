@@ -165,7 +165,7 @@ have a * b = 0, from subtype.ext_iff_val.1 h,
 
 instance : integral_domain ℤ_[p] :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := padic_int.eq_zero_or_eq_zero_of_mul_eq_zero,
-  exists_ne := ⟨0, 1, padic_int.zero_ne_one⟩,
+  exists_pair_ne := ⟨0, 1, padic_int.zero_ne_one⟩,
   ..padic_int.comm_ring }
 
 end instances

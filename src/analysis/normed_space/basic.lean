@@ -866,7 +866,7 @@ begin
       obtain rfl : y = x := set.mem_singleton_iff.1 (interior_subset hy),
       exact this hy },
     rw [← set.mem_compl_iff, ← closure_compl],
-    rcases exists_ne' (0 : E) with ⟨z, hz⟩,
+    rcases exists_ne (0 : E) with ⟨z, hz⟩,
     suffices : (λ c : ℝ, x + c • z) 0 ∈ closure ({x}ᶜ : set E),
       by simpa only [zero_smul, add_zero] using this,
     have : (0:ℝ) ∈ closure (set.Ioi (0:ℝ)), by simp [closure_Ioi],

@@ -142,7 +142,7 @@ protected def comm_ring [comm_ring β] : comm_ring α :=
 
 /-- Transfer `nonzero` across an `equiv` -/
 protected theorem nontrivial [nontrivial β] : nontrivial α :=
-let ⟨x, y, h⟩ := exists_ne β in ⟨⟨e.symm x, e.symm y, e.symm.injective.ne h⟩⟩
+let ⟨x, y, h⟩ := exists_pair_ne β in ⟨⟨e.symm x, e.symm y, e.symm.injective.ne h⟩⟩
 
 /-- Transfer `domain` across an `equiv` -/
 protected def domain [domain β] : domain α :=

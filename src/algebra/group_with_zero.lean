@@ -156,7 +156,7 @@ variables [monoid_with_zero M₀] [nontrivial M₀] {a b : M₀}
 @[simp] lemma zero_ne_one : 0 ≠ (1:M₀) :=
 begin
   assume h,
-  rcases exists_ne M₀ with ⟨x, y, hx⟩,
+  rcases exists_pair_ne M₀ with ⟨x, y, hx⟩,
   apply hx,
   calc x = 1 * x : by rw [one_mul]
   ... = 0 : by rw [← h, zero_mul]

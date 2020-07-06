@@ -461,33 +461,26 @@ match n, hn with
     (λ _ _ _, h _ _))⟩
 end
 
-lemma fintype.exists_ne_of_one_lt_card [fintype α] (h : 1 < fintype.card α) (a : α) :
-  ∃ b : α, b ≠ a :=
-let ⟨b, hb⟩ := classical.not_forall.1 (mt fintype.card_le_one_iff.2 (not_le_of_gt h)) in
-let ⟨c, hc⟩ := classical.not_forall.1 hb in
-by haveI := classical.dec_eq α; exact
-if hba : b = a then ⟨c, by cc⟩ else ⟨b, hba⟩
-
-lemma fintype.exists_pair_of_one_lt_card [fintype α] (h : 1 < fintype.card α) :
-  ∃ (a b : α), b ≠ a :=
-begin
-  rcases fintype.card_pos_iff.1 (nat.lt_of_succ_lt h) with a,
-  exact ⟨a, fintype.exists_ne_of_one_lt_card h a⟩,
-end
+lemma fintype.card_le_one_iff_subsingleton [fintype α] :
+  fintype.card α ≤ 1 ↔ subsingleton α :=
+iff.trans fintype.card_le_one_iff subsingleton_iff.symm
 
 lemma fintype.one_lt_card_iff_nontrivial [fintype α] :
   1 < fintype.card α ↔ nontrivial α :=
 begin
-  split,
-  { assume h,
-    rcases fintype.exists_pair_of_one_lt_card h with ⟨x, y, hxy⟩,
-    exact ⟨⟨x, y, hxy.symm⟩⟩ },
-  { introsI,
-    rcases exists_ne α with ⟨x, y, h⟩,
-    contrapose! h,
-    rw fintype.card_le_one_iff at h,
-    exact h x y }
+  classical,
+  rw ← not_iff_not,
+  push_neg,
+  rw [not_nontrivial_iff_subsingleton, fintype.card_le_one_iff_subsingleton]
 end
+
+lemma fintype.exists_ne_of_one_lt_card [fintype α] (h : 1 < fintype.card α) (a : α) :
+  ∃ b : α, b ≠ a :=
+by { haveI : nontrivial α := fintype.one_lt_card_iff_nontrivial.1 h, exact exists_ne a }
+
+lemma fintype.exists_pair_of_one_lt_card [fintype α] (h : 1 < fintype.card α) :
+  ∃ (a b : α), a ≠ b :=
+by { haveI : nontrivial α := fintype.one_lt_card_iff_nontrivial.1 h, exact exists_pair_ne α }
 
 lemma fintype.injective_iff_surjective [fintype α] {f : α → α} : injective f ↔ surjective f :=
 by haveI := classical.prop_decidable; exact

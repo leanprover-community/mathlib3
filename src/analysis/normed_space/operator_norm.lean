@@ -303,7 +303,7 @@ op_norm_le_bound _ zero_le_one (λx, by simp)
 
 /-- If a space is non-trivial, then the norm of the identity equals `1`. -/
 lemma norm_id [nontrivial E] : ∥id 𝕜 E∥ = 1 :=
-le_antisymm norm_id_le $ let ⟨x, hx⟩ := exists_ne' (0 : E) in
+le_antisymm norm_id_le $ let ⟨x, hx⟩ := exists_ne (0 : E) in
 have _ := (id 𝕜 E).ratio_le_op_norm x,
 by rwa [id_apply, div_self (ne_of_gt $ norm_pos_iff.2 hx)] at this
 

@@ -36,7 +36,7 @@ instance [has_zero α] : has_zero (opposite α) :=
 { zero := op 0 }
 
 instance [nontrivial α] : nontrivial (opposite α) :=
-let ⟨x, y, h⟩ := exists_ne α in nontrivial_of_ne (op x) (op y) (op_injective.ne h)
+let ⟨x, y, h⟩ := exists_pair_ne α in nontrivial_of_ne (op x) (op y) (op_injective.ne h)
 
 section
 local attribute [reducible] opposite

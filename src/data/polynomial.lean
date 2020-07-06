@@ -1810,17 +1810,19 @@ section comm_semiring
 variables [comm_semiring R] {p q : polynomial R}
 
 section aeval
-/-- `R[X]` is the generator of the category `R-Alg`. -/
-instance polynomial (R : Type u) [comm_semiring R] : algebra R (polynomial R) :=
-{ commutes' := λ _ _, mul_comm _ _,
-  smul_def' := λ c p, (polynomial.C_mul' c p).symm,
-  .. polynomial.semimodule, .. ring_hom.of polynomial.C }
+instance algebra' (R : Type u) [comm_semiring R] (A : Type v) [comm_semiring A] [algebra R A] :
+  algebra R (polynomial A) :=
+{ smul := λ r p, algebra_map R A r • p,
+  commutes' := λ _ _, mul_comm _ _,
+  smul_def' := λ c p, algebra.smul_def _ _,
+  .. C.comp (algebra_map R A) }
 
 variables (R) (A)
 
 -- TODO this could be generalized: there's no need for `A` to be commutative,
 -- we just need that `x` is central.
-variables [comm_ring A] [algebra R A]
+variables [comm_semiring A] [algebra R A]
+variables {B : Type*} [comm_semiring B] [algebra R B]
 variables (x : A)
 
 /-- Given a valuation `x` of the variable in an `R`-algebra `A`, `aeval R A x` is
@@ -1848,6 +1850,12 @@ begin
     rw [pow_succ', ← mul_assoc, φ.map_mul, eval₂_mul (algebra_map R A), eval₂_X, ih] }
 end
 
+theorem aeval_alg_hom (f : A →ₐ[R] B) (x : A) : aeval R B (f x) = f.comp (aeval R A x) :=
+alg_hom.ext $ λ p, by rw [eval_unique (f.comp (aeval R A x)), alg_hom.comp_apply, aeval_X, aeval_def]
+
+theorem aeval_alg_hom_apply (f : A →ₐ[R] B) (x : A) (p) : aeval R B (f x) p = f (aeval R A x p) :=
+alg_hom.ext_iff.1 (aeval_alg_hom f x) p
+
 variables [comm_ring S] {f : R →+* S}
 
 lemma is_root_of_eval₂_map_eq_zero
@@ -1863,7 +1871,7 @@ lemma is_root_of_aeval_algebra_map_eq_zero [algebra R S] {p : polynomial R}
   {r : R} (hr : aeval R S (algebra_map R S r) p = 0) : p.is_root r :=
 is_root_of_eval₂_map_eq_zero inj hr
 
-lemma dvd_term_of_dvd_eval_of_dvd_terms {z p : A} {f : polynomial A} (i : ℕ)
+lemma dvd_term_of_dvd_eval_of_dvd_terms {z p : S} {f : polynomial S} (i : ℕ)
   (dvd_eval : p ∣ f.eval z) (dvd_terms : ∀ (j ≠ i), p ∣ f.coeff j * z ^ j) :
   p ∣ f.coeff i * z ^ i :=
 begin
@@ -1880,7 +1888,7 @@ begin
     exact finsupp.not_mem_support_iff.mp hi }
 end
 
-lemma dvd_term_of_is_root_of_dvd_terms {r p : A} {f : polynomial A} (i : ℕ)
+lemma dvd_term_of_is_root_of_dvd_terms {r p : S} {f : polynomial S} (i : ℕ)
   (hr : f.is_root r) (h : ∀ (j ≠ i), p ∣ f.coeff j * r ^ j) : p ∣ f.coeff i * r ^ i :=
 dvd_term_of_dvd_eval_of_dvd_terms i (eq.symm hr ▸ dvd_zero p) h
 

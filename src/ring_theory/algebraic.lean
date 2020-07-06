@@ -95,12 +95,12 @@ end field
 namespace algebra
 variables {K : Type*} {L : Type*} {A : Type*}
 variables [field K] [field L] [comm_ring A]
-variables [algebra K L] [algebra L A]
+variables [algebra K L] [algebra L A] [algebra K A] [is_algebra_tower K L A]
 
 /-- If L is an algebraic field extension of K and A is an algebraic algebra over L,
 then A is algebraic over K. -/
 lemma is_algebraic_trans (L_alg : is_algebraic K L) (A_alg : is_algebraic L A) :
-  is_algebraic K (comap K L A) :=
+  is_algebraic K A :=
 begin
   simp only [is_algebraic, is_algebraic_iff_is_integral] at L_alg A_alg ⊢,
   exact is_integral_trans L_alg A_alg,

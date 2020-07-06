@@ -927,6 +927,39 @@ end
 
 end total_degree
 
+section aeval
+
+/-- The algebra of multivariate polynomials. -/
+
+variables (R : Type u) (A : Type v) (f : σ → A)
+variables [comm_semiring R] [comm_semiring A] [algebra R A]
+
+/-- A map `σ → A` where `A` is an algebra over `R` generates an `R`-algebra homomorphism
+from multivariate polynomials over `σ` to `A`. -/
+def aeval : mv_polynomial σ R →ₐ[R] A :=
+{ commutes' := λ r, eval₂_C _ _ _
+  .. eval₂_hom (algebra_map R A) f }
+
+theorem aeval_def (p : mv_polynomial σ R) : aeval R A f p = eval₂ (algebra_map R A) f p := rfl
+
+@[simp] lemma aeval_X (s : σ) : aeval R A f (X s) = f s := eval₂_X _ _ _
+
+@[simp] lemma aeval_C (r : R) : aeval R A f (C r) = algebra_map R A r := eval₂_C _ _ _
+
+theorem eval_unique (φ : mv_polynomial σ R →ₐ[R] A) :
+  φ = aeval R A (φ ∘ X) :=
+begin
+  ext p,
+  apply mv_polynomial.induction_on p,
+  { intro r, rw aeval_C, exact φ.commutes r },
+  { intros f g ih1 ih2,
+    rw [φ.map_add, ih1, ih2, alg_hom.map_add] },
+  { intros p j ih,
+    rw [φ.map_mul, alg_hom.map_mul, aeval_X, ih] }
+end
+
+end aeval
+
 end comm_semiring
 
 section comm_ring
@@ -1068,39 +1101,6 @@ calc (a - b).total_degree = (a + -b).total_degree                : by rw sub_eq_
                       ... = max a.total_degree b.total_degree    : by rw total_degree_neg
 
 end total_degree
-
-section aeval
-
-/-- The algebra of multivariate polynomials. -/
-
-variables (R : Type u) (A : Type v) (f : σ → A)
-variables [comm_ring R] [comm_ring A] [algebra R A]
-
-/-- A map `σ → A` where `A` is an algebra over `R` generates an `R`-algebra homomorphism
-from multivariate polynomials over `σ` to `A`. -/
-def aeval : mv_polynomial σ R →ₐ[R] A :=
-{ commutes' := λ r, eval₂_C _ _ _
-  .. eval₂_hom (algebra_map R A) f }
-
-theorem aeval_def (p : mv_polynomial σ R) : aeval R A f p = eval₂ (algebra_map R A) f p := rfl
-
-@[simp] lemma aeval_X (s : σ) : aeval R A f (X s) = f s := eval₂_X _ _ _
-
-@[simp] lemma aeval_C (r : R) : aeval R A f (C r) = algebra_map R A r := eval₂_C _ _ _
-
-theorem eval_unique (φ : mv_polynomial σ R →ₐ[R] A) :
-  φ = aeval R A (φ ∘ X) :=
-begin
-  ext p,
-  apply mv_polynomial.induction_on p,
-  { intro r, rw aeval_C, exact φ.commutes r },
-  { intros f g ih1 ih2,
-    rw [φ.map_add, ih1, ih2, alg_hom.map_add] },
-  { intros p j ih,
-    rw [φ.map_mul, alg_hom.map_mul, aeval_X, ih] }
-end
-
-end aeval
 
 end comm_ring
 

@@ -271,7 +271,7 @@ instance inhabited {n : ℕ} {f : polynomial α} (hfn : f.nat_degree = n) :
 
 instance algebra (n : ℕ) : Π {α : Type u} [field α], by exactI
   Π {f : polynomial α} (hfn : f.nat_degree = n), algebra α (splitting_field_aux n f hfn) :=
-nat.rec_on n (λ α _ _ _, by exactI algebra.id α) $ λ n ih α _ f hfn,
+nat.rec_on n (λ α _ _ _, by exactI algebra.id) $ λ n ih α _ f hfn,
 by exactI @@algebra.comap.algebra _ _ _ _ _ _ _ (ih _)
 
 instance algebra' {n : ℕ} {f : polynomial α} (hfn : f.nat_degree = n + 1) :
@@ -289,12 +289,12 @@ splitting_field_aux.algebra n _
 
 instance algebra_tower {n : ℕ} {f : polynomial α} (hfn : f.nat_degree = n + 1) :
   is_algebra_tower α (adjoin_root f.factor) (splitting_field_aux _ _ hfn) :=
-is_algebra_tower.of_algebra_map_eq _ _ _ $ λ x, rfl
+is_algebra_tower.of_algebra_map_eq $ λ x, rfl
 
 instance algebra_tower' {n : ℕ} {f : polynomial α} (hfn : f.nat_degree = n + 1) :
   is_algebra_tower α (adjoin_root f.factor)
     (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)) :=
-is_algebra_tower.of_algebra_map_eq _ _ _ $ λ x, rfl
+is_algebra_tower.of_algebra_map_eq $ λ x, rfl
 
 theorem algebra_map_succ (n : ℕ) (f : polynomial α) (hfn : f.nat_degree = n + 1) :
   by exact algebra_map α (splitting_field_aux _ _ hfn) =

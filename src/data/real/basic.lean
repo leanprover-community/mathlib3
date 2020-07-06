@@ -104,7 +104,7 @@ quotient.induction_on₂ a b $ λ f g,
 instance : linear_ordered_comm_ring ℝ :=
 { add_le_add_left := λ a b h c,
     (le_iff_le_iff_lt_iff_lt.2 $ real.add_lt_add_iff_left c).2 h,
-  exists_pair_ne   := ⟨0, 1, ne_of_lt real.zero_lt_one⟩,
+  exists_pair_ne  := ⟨0, 1, ne_of_lt real.zero_lt_one⟩,
   mul_pos     := @real.mul_pos,
   zero_lt_one := real.zero_lt_one,
   .. real.comm_ring, .. real.linear_order, .. real.semiring }

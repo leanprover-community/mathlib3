@@ -605,6 +605,74 @@ instance : complete_lattice (affine_subspace k V P) :=
 
 instance : inhabited (affine_subspace k V P) := ⟨⊤⟩
 
+/-- The `≤` order on subspaces is the same as that on the corresponding
+sets. -/
+lemma le_def (s1 s2 : affine_subspace k V P) : s1 ≤ s2 ↔ (s1 : set P) ⊆ s2 :=
+iff.rfl
+
+/-- One subspace is less than or equal to another if and only if all
+its points are in the second subspace. -/
+lemma le_def' (s1 s2 : affine_subspace k V P) : s1 ≤ s2 ↔ ∀ p ∈ s1, p ∈ s2 :=
+iff.rfl
+
+/-- The `<` order on subspaces is the same as that on the corresponding
+sets. -/
+lemma lt_def (s1 s2 : affine_subspace k V P) : s1 < s2 ↔ (s1 : set P) ⊂ s2 :=
+iff.rfl
+
+/-- One subspace is not less than or equal to another if and only if
+it has a point not in the second subspace. -/
+lemma not_le_iff_exists (s1 s2 : affine_subspace k V P) : ¬ s1 ≤ s2 ↔ ∃ p ∈ s1, p ∉ s2 :=
+set.not_subset
+
+/-- If a subspace is less than another, there is a point only in the
+second. -/
+lemma exists_of_lt {s1 s2 : affine_subspace k V P} (h : s1 < s2) : ∃ p ∈ s2, p ∉ s1 :=
+set.exists_of_ssubset h
+
+/-- A subspace is less than another if and only if it is less than or
+equal to the second subspace and there is a point only in the
+second. -/
+lemma lt_iff_le_and_exists (s1 s2 : affine_subspace k V P) : s1 < s2 ↔ s1 ≤ s2 ∧ ∃ p ∈ s2, p ∉ s1 :=
+by rw [lt_iff_le_not_le, not_le_iff_exists]
+
+variables {P}
+
+/-- The affine span is the `Inf` of subspaces containing the given
+points. -/
+lemma affine_span_eq_Inf (s : set P) : affine_span k V s = Inf {s' | s ⊆ s'} :=
+le_antisymm (span_points_subset_coe_of_subset_coe (set.subset_bInter (λ _ h, h)))
+            (Inf_le (subset_span_points k V _))
+
+variables (P)
+
+/-- The Galois insertion formed by `affine_span` and coercion back to
+a set. -/
+protected def gi : galois_insertion (affine_span k V) (coe : affine_subspace k V P → set P) :=
+{ choice := λ s _, affine_span k V s,
+  gc := λ s1 s2, ⟨λ h, set.subset.trans (subset_span_points k V s1) h,
+                       span_points_subset_coe_of_subset_coe⟩,
+  le_l_u := λ _, subset_span_points k V _,
+  choice_eq := λ _ _, rfl }
+
+/-- The span of the empty set is `⊥`. -/
+@[simp] lemma span_empty : affine_span k V (∅ : set P) = ⊥ :=
+(affine_subspace.gi k V P).gc.l_bot
+
+/-- The span of `univ` is `⊤`. -/
+@[simp] lemma span_univ : affine_span k V (set.univ : set P) = ⊤ :=
+eq_top_iff.2 $ subset_span_points k V _
+
+/-- The span of a union of sets is the sup of their spans. -/
+lemma span_union (s t : set P) : affine_span k V (s ∪ t) = affine_span k V s ⊔ affine_span k V t :=
+(affine_subspace.gi k V P).gc.l_sup
+
+/-- The span of a union of an indexed family of sets is the sup of
+their spans. -/
+lemma span_Union {ι : Type*} (s : ι → set P) :
+  affine_span k V (⋃ i, s i) = ⨆ i, affine_span k V (s i) :=
+(affine_subspace.gi k V P).gc.l_supr
+
 /-- `⊤`, coerced to a set, is the whole set of points. -/
 @[simp] lemma top_coe : ((⊤ : affine_subspace k V P) : set P) = set.univ :=
 rfl

@@ -176,7 +176,7 @@ lemma zero_locus_bot :
 (gc R).l_bot
 
 @[simp] lemma zero_locus_singleton_zero :
-  zero_locus ({0} : set R) = set.univ :=
+  zero_locus (0 : set R) = set.univ :=
 zero_locus_bot
 
 @[simp] lemma zero_locus_empty :

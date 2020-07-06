@@ -5,6 +5,7 @@ Authors: Yury G. Kudryashov, Patrick Massot
 -/
 import data.set.intervals.basic
 import data.equiv.mul_add
+import algebra.pointwise
 
 /-!
 # (Pre)images of intervals
@@ -83,21 +84,21 @@ by simp [← Ioi_inter_Iio]
 ### Preimages under `x ↦ -x`
 -/
 
-@[simp] lemma preimage_neg_Ici : has_neg.neg ⁻¹' (Ici a) = Iic (-a) := ext $ λ x, le_neg
-@[simp] lemma preimage_neg_Iic : has_neg.neg ⁻¹' (Iic a) = Ici (-a) := ext $ λ x, neg_le
-@[simp] lemma preimage_neg_Ioi : has_neg.neg ⁻¹' (Ioi a) = Iio (-a) := ext $ λ x, lt_neg
-@[simp] lemma preimage_neg_Iio : has_neg.neg ⁻¹' (Iio a) = Ioi (-a) := ext $ λ x, neg_lt
+@[simp] lemma preimage_neg_Ici : - Ici a = Iic (-a) := ext $ λ x, le_neg
+@[simp] lemma preimage_neg_Iic : - Iic a = Ici (-a) := ext $ λ x, neg_le
+@[simp] lemma preimage_neg_Ioi : - Ioi a = Iio (-a) := ext $ λ x, lt_neg
+@[simp] lemma preimage_neg_Iio : - Iio a = Ioi (-a) := ext $ λ x, neg_lt
 
-@[simp] lemma preimage_neg_Icc : has_neg.neg ⁻¹' (Icc a b) = Icc (-b) (-a) :=
+@[simp] lemma preimage_neg_Icc : - Icc a b = Icc (-b) (-a) :=
 by simp [← Ici_inter_Iic, inter_comm]
 
-@[simp] lemma preimage_neg_Ico : has_neg.neg ⁻¹' (Ico a b) = Ioc (-b) (-a) :=
+@[simp] lemma preimage_neg_Ico : - Ico a b = Ioc (-b) (-a) :=
 by simp [← Ici_inter_Iio, ← Ioi_inter_Iic, inter_comm]
 
-@[simp] lemma preimage_neg_Ioc : has_neg.neg ⁻¹' (Ioc a b) = Ico (-b) (-a) :=
+@[simp] lemma preimage_neg_Ioc : - Ioc a b = Ico (-b) (-a) :=
 by simp [← Ioi_inter_Iic, ← Ici_inter_Iio, inter_comm]
 
-@[simp] lemma preimage_neg_Ioo : has_neg.neg ⁻¹' (Ioo a b) = Ioo (-b) (-a) :=
+@[simp] lemma preimage_neg_Ioo : - Ioo a b = Ioo (-b) (-a) :=
 by simp [← Ioi_inter_Iio, inter_comm]
 
 /-!
@@ -161,77 +162,62 @@ by simp [← Ioi_inter_Iio, inter_comm]
 -/
 
 @[simp] lemma image_const_add_Ici : (λ x, a + x) '' Ici b = Ici (a + b) :=
-((equiv.add_left a).image_eq_preimage _).trans $ by simp [add_comm]
+by simp [add_comm]
 
 @[simp] lemma image_const_add_Iic : (λ x, a + x) '' Iic b = Iic (a + b) :=
-((equiv.add_left a).image_eq_preimage _).trans $ by simp [add_comm]
+by simp [add_comm]
 
 @[simp] lemma image_const_add_Iio : (λ x, a + x) '' Iio b = Iio (a + b) :=
-((equiv.add_left a).image_eq_preimage _).trans $ by simp [add_comm]
+by simp [add_comm]
 
 @[simp] lemma image_const_add_Ioi : (λ x, a + x) '' Ioi b = Ioi (a + b) :=
-((equiv.add_left a).image_eq_preimage _).trans $ by simp [add_comm]
+by simp [add_comm]
 
 @[simp] lemma image_const_add_Icc : (λ x, a + x) '' Icc b c = Icc (a + b) (a + c) :=
-((equiv.add_left a).image_eq_preimage _).trans $ by simp [add_comm]
+by simp [add_comm]
 
 @[simp] lemma image_const_add_Ico : (λ x, a + x) '' Ico b c = Ico (a + b) (a + c) :=
-((equiv.add_left a).image_eq_preimage _).trans $ by simp [add_comm]
+by simp [add_comm]
 
 @[simp] lemma image_const_add_Ioc : (λ x, a + x) '' Ioc b c = Ioc (a + b) (a + c) :=
-((equiv.add_left a).image_eq_preimage _).trans $ by simp [add_comm]
+by simp [add_comm]
 
 @[simp] lemma image_const_add_Ioo : (λ x, a + x) '' Ioo b c = Ioo (a + b) (a + c) :=
-((equiv.add_left a).image_eq_preimage _).trans $ by simp [add_comm]
+by simp [add_comm]
 
 /-!
 ### Images under `x ↦ x + a`
 -/
 
-@[simp] lemma image_add_const_Ici : (λ x, x + a) '' Ici b = Ici (a + b) := by simp [add_comm _ a]
-@[simp] lemma image_add_const_Iic : (λ x, x + a) '' Iic b = Iic (a + b) := by simp [add_comm _ a]
-@[simp] lemma image_add_const_Iio : (λ x, x + a) '' Iio b = Iio (a + b) := by simp [add_comm _ a]
-@[simp] lemma image_add_const_Ioi : (λ x, x + a) '' Ioi b = Ioi (a + b) := by simp [add_comm _ a]
+@[simp] lemma image_add_const_Ici : (λ x, x + a) '' Ici b = Ici (a + b) := by simp [add_comm]
+@[simp] lemma image_add_const_Iic : (λ x, x + a) '' Iic b = Iic (a + b) := by simp [add_comm]
+@[simp] lemma image_add_const_Iio : (λ x, x + a) '' Iio b = Iio (a + b) := by simp [add_comm]
+@[simp] lemma image_add_const_Ioi : (λ x, x + a) '' Ioi b = Ioi (a + b) := by simp [add_comm]
 
 @[simp] lemma image_add_const_Icc : (λ x, x + a) '' Icc b c = Icc (a + b) (a + c) :=
-by simp [add_comm _ a]
+by simp [add_comm]
 
 @[simp] lemma image_add_const_Ico : (λ x, x + a) '' Ico b c = Ico (a + b) (a + c) :=
-by simp [add_comm _ a]
+by simp [add_comm]
 
 @[simp] lemma image_add_const_Ioc : (λ x, x + a) '' Ioc b c = Ioc (a + b) (a + c) :=
-by simp [add_comm _ a]
+by simp [add_comm]
 
 @[simp] lemma image_add_const_Ioo : (λ x, x + a) '' Ioo b c = Ioo (a + b) (a + c) :=
-by simp [add_comm _ a]
+by simp [add_comm]
 
 /-!
 ### Images under `x ↦ -x`
 -/
 
-@[simp] lemma image_neg_Ici : has_neg.neg '' (Ici a) = Iic (-a) :=
-((equiv.neg G).image_eq_preimage _).trans $ preimage_neg_Ici _
-
-@[simp] lemma image_neg_Iic : has_neg.neg '' (Iic a) = Ici (-a) :=
-((equiv.neg G).image_eq_preimage _).trans $ preimage_neg_Iic _
-
-@[simp] lemma image_neg_Ioi : has_neg.neg '' (Ioi a) = Iio (-a) :=
-((equiv.neg G).image_eq_preimage _).trans $ preimage_neg_Ioi _
-
-@[simp] lemma image_neg_Iio : has_neg.neg '' (Iio a) = Ioi (-a) :=
-((equiv.neg G).image_eq_preimage _).trans $ preimage_neg_Iio _
-
-@[simp] lemma image_neg_Icc : has_neg.neg '' (Icc a b) = Icc (-b) (-a) :=
-((equiv.neg G).image_eq_preimage _).trans $ preimage_neg_Icc _ _
-
-@[simp] lemma image_neg_Ico : has_neg.neg '' (Ico a b) = Ioc (-b) (-a) :=
-((equiv.neg G).image_eq_preimage _).trans $ preimage_neg_Ico _ _
-
-@[simp] lemma image_neg_Ioc : has_neg.neg '' (Ioc a b) = Ico (-b) (-a) :=
-((equiv.neg G).image_eq_preimage _).trans $ preimage_neg_Ioc _ _
-
-@[simp] lemma image_neg_Ioo : has_neg.neg '' (Ioo a b) = Ioo (-b) (-a) :=
-((equiv.neg G).image_eq_preimage _).trans $ preimage_neg_Ioo _ _
+lemma image_neg_Ici : has_neg.neg '' (Ici a) = Iic (-a) := by simp
+lemma image_neg_Iic : has_neg.neg '' (Iic a) = Ici (-a) := by simp
+lemma image_neg_Ioi : has_neg.neg '' (Ioi a) = Iio (-a) := by simp
+lemma image_neg_Iio : has_neg.neg '' (Iio a) = Ioi (-a) := by simp
+lemma image_neg_Icc : has_neg.neg '' (Icc a b) = Icc (-b) (-a) := by simp
+lemma image_neg_Ico : has_neg.neg '' (Ico a b) = Ioc (-b) (-a) := by simp
+lemma image_neg_Ioc : has_neg.neg '' (Ioc a b) = Ico (-b) (-a) := by simp
+lemma image_neg_Ioo : has_neg.neg '' (Ioo a b) = Ioo (-b) (-a) := by simp
 
 /-!
 ### Images under `x ↦ a - x`

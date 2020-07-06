@@ -198,8 +198,13 @@ def over_finite_products_of_finite_wide_pullbacks [has_finite_wide_pullbacks C] 
 
 end construct_products
 
-/-- Construct terminal object in the over category. -/
-instance (B : C) : has_terminal (over B) :=
+/--
+Construct terminal object in the over category. This isn't an instance as it's not typically the
+way we want to define terminal objects.
+(For instance, this gives a terminal object which is different from the generic one given by
+`over_product_of_wide_pullback` above.)
+-/
+def over_has_terminal (B : C) : has_terminal (over B) :=
 { has_limits_of_shape :=
   { has_limit := λ F,
     { cone :=

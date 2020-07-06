@@ -630,16 +630,28 @@ begin
     rw [← int.coe_nat_abs_eq_normalize, int.nat_abs_of_nat, int.nat_abs_of_nat] }
 end
 
+lemma int.prime.dvd_mul {m n : ℤ} {p : ℕ}
+  (hp : nat.prime p) (h : (p : ℤ) ∣ m * n) : p ∣ m.nat_abs ∨ p ∣ n.nat_abs :=
+begin
+  apply (nat.prime.dvd_mul hp).mp,
+  rw ← int.nat_abs_mul,
+  exact int.coe_nat_dvd_left.mp h
+end
+
+lemma int.prime.dvd_mul' {m n : ℤ} {p : ℕ}
+  (hp : nat.prime p) (h : (p : ℤ) ∣ m * n) : (p : ℤ) ∣ m ∨ (p : ℤ) ∣ n :=
+begin
+  rw [int.coe_nat_dvd_left, int.coe_nat_dvd_left],
+  exact int.prime.dvd_mul hp h
+end
+
 lemma prime_two_or_dvd_of_dvd_two_mul_pow_self_two {m : ℤ} {p : ℕ}
   (hp : nat.prime p) (h : (p : ℤ) ∣ 2 * m ^ 2) : p = 2 ∨ p ∣ int.nat_abs m :=
 begin
-  have h2 : int.nat_abs (2 * m ^ 2) = 2 * (int.nat_abs m) ^ 2,
-  { rw [pow_two, nat.pow_two, int.nat_abs_mul, int.nat_abs_mul], refl },
-  have h3 : p ∣ 2 * (int.nat_abs m) ^ 2, { rw ←h2, exact int.coe_nat_dvd_left.mp h },
-  cases (nat.prime.dvd_mul hp).mp h3 with p2 pp,
+  cases int.prime.dvd_mul hp h with hp2 hpp,
   { apply or.intro_left,
-    exact le_antisymm (nat.le_of_dvd two_pos p2) (nat.prime.two_le hp) },
+    exact le_antisymm (nat.le_of_dvd two_pos hp2) (nat.prime.two_le hp) },
   { apply or.intro_right,
-    rw nat.pow_two at pp,
-    exact (or_self _).mp ((nat.prime.dvd_mul hp).mp pp) }
+    rw [pow_two, int.nat_abs_mul] at hpp,
+    exact (or_self _).mp ((nat.prime.dvd_mul hp).mp hpp)}
 end

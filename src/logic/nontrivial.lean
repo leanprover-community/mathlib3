@@ -97,7 +97,7 @@ end
 instance option.nontrivial [nonempty α] : nontrivial (option α) :=
 by { inhabit α, use [none, some (default α)] }
 
-instance fun.nontrivial [nonempty α] [nontrivial β] : nontrivial (α → β) :=
+instance function.nontrivial [nonempty α] [nontrivial β] : nontrivial (α → β) :=
 begin
   rcases exists_pair_ne β with ⟨x, y, h⟩,
   use [λ _, x, λ _, y],

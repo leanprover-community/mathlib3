@@ -78,7 +78,7 @@ instance [add_monoid α]      : add_monoid      (mv_power_series σ α) := pi.ad
 instance [add_group α]       : add_group       (mv_power_series σ α) := pi.add_group
 instance [add_comm_monoid α] : add_comm_monoid (mv_power_series σ α) := pi.add_comm_monoid
 instance [add_comm_group α]  : add_comm_group  (mv_power_series σ α) := pi.add_comm_group
-instance [nontrivial α]      : nontrivial      (mv_power_series σ α) := fun.nontrivial
+instance [nontrivial α]      : nontrivial      (mv_power_series σ α) := function.nontrivial
 
 section add_monoid
 variables [add_monoid α]

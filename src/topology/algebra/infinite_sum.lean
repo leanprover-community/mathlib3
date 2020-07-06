@@ -452,9 +452,9 @@ by { rw [supr_decode2, tsum_supr_decode2 _ m0 s], exact m_supr _ }
 theorem supr_R_sum [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
   (R : α → α → Prop) (m_supr : ∀(s : ℕ → β), R (m (⨆ i, s i)) ((∑' i, m (s i))))
   (s : δ → β) (t : finset δ) :
-  R (m (⨆ d ∈ t, s d)) (t.sum $ λ d, m (s d)) :=
+  R (m (⨆ d ∈ t, s d)) (∑ d in t, m (s d)) :=
 by { cases nonempty_encodable t, rw [supr_subtype'], convert supr_R_tsum m m0 R m_supr _,
-     rw [sum_eq_tsum_subtype], assumption }
+     rw [← tsum_subtype_eq_sum], refl, assumption }
 
 /-- If a function is countably sub-additive then it is binary sub-additive -/
 theorem sup_R_add [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)

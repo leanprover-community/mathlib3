@@ -306,10 +306,13 @@ else
           ... ≤ _ : nat.div_mul_div_le_div _ _ _)
   ... = _ : by rw [← card_sigma];
     exact card_congr (λ a _, ⟨a.1, a.2⟩)
-      (by simp {contextual := tt})
-      (λ ⟨_, _⟩ ⟨_, _⟩, by simp {contextual := tt})
+      (by simp only [mem_filter, mem_sigma, and_self, forall_true_iff, mem_product]
+        {contextual := tt})
+      (λ ⟨_, _⟩ ⟨_, _⟩, by simp only [prod.mk.inj_iff, eq_self_iff_true, and_self, heq_iff_eq,
+        forall_true_iff] {contextual := tt})
       (λ ⟨b₁, b₂⟩ h, ⟨⟨b₁, b₂⟩,
-        by revert h; simp {contextual := tt}⟩)
+        by revert h; simp only [mem_filter, eq_self_iff_true, exists_prop_of_true, mem_sigma,
+          and_self, forall_true_iff, mem_product] {contextual := tt}⟩)
 
 /-- Each of the sums in this lemma is the cardinality of the set integer points in each of the
   two triangles formed by the diagonal of the rectangle `(0, p/2) × (0, q/2)`. Adding them
@@ -319,39 +322,43 @@ private lemma sum_mul_div_add_sum_mul_div_eq_mul (p q : ℕ) [hp : fact p.prime]
   ∑ a in Ico 1 (p / 2).succ, (a * q) / p +
   ∑ a in Ico 1 (q / 2).succ, (a * p) / q =
   (p / 2) * (q / 2) :=
-have hswap : (((Ico 1 (q / 2).succ).product (Ico 1 (p / 2).succ)).filter
+begin
+  have hswap : (((Ico 1 (q / 2).succ).product (Ico 1 (p / 2).succ)).filter
     (λ x : ℕ × ℕ, x.2 * q ≤ x.1 * p)).card =
   (((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
     (λ x : ℕ × ℕ, x.1 * q ≤ x.2 * p)).card :=
   card_congr (λ x _, prod.swap x)
-    (λ ⟨_, _⟩, by simp {contextual := tt})
-    (λ ⟨_, _⟩ ⟨_, _⟩, by simp {contextual := tt})
-    (λ ⟨x₁, x₂⟩ h, ⟨⟨x₂, x₁⟩, by revert h; simp {contextual := tt}⟩),
-have hdisj : disjoint
+    (λ ⟨_, _⟩, by simp only [mem_filter, and_self, prod.swap_prod_mk, forall_true_iff, mem_product]
+      {contextual := tt})
+    (λ ⟨_, _⟩ ⟨_, _⟩, by simp only [prod.mk.inj_iff, eq_self_iff_true, and_self, prod.swap_prod_mk,
+      forall_true_iff] {contextual := tt})
+    (λ ⟨x₁, x₂⟩ h, ⟨⟨x₂, x₁⟩, by revert h; simp only [mem_filter, eq_self_iff_true, and_self,
+      exists_prop_of_true, prod.swap_prod_mk, forall_true_iff, mem_product] {contextual := tt}⟩),
+  have hdisj : disjoint
     (((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
       (λ x : ℕ × ℕ, x.2 * p ≤ x.1 * q))
     (((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
       (λ x : ℕ × ℕ, x.1 * q ≤ x.2 * p)),
-  from disjoint_filter.2 $ λ x hx hpq hqp,
-  have hxp : x.1 < p, from lt_of_le_of_lt
-    (show x.1 ≤ p / 2, by simp [*, nat.lt_succ_iff] at *; tauto)
-    (nat.div_lt_self hp.pos dec_trivial),
-  begin
+  { apply disjoint_filter.2 (λ x hx hpq hqp, _),
+    have hxp : x.1 < p, from lt_of_le_of_lt
+      (show x.1 ≤ p / 2, by simp only [*, lt_succ_iff, Ico.mem, mem_product] at *; tauto)
+      (nat.div_lt_self hp.pos dec_trivial),
     have : (x.1 : zmod p) = 0,
-    { simpa [hq0] using congr_arg (coe : ℕ → zmod p) (le_antisymm hpq hqp) },
+      { simpa [hq0] using congr_arg (coe : ℕ → zmod p) (le_antisymm hpq hqp) },
     apply_fun zmod.val at this,
     rw [val_cast_of_lt hxp, val_zero] at this,
-    simp * at *
-  end,
-have hunion : ((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
+    simpa only [this, le_zero_iff_eq, Ico.mem, one_ne_zero, false_and, mem_product] using hx },
+  have hunion : ((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
       (λ x : ℕ × ℕ, x.2 * p ≤ x.1 * q) ∪
     ((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
       (λ x : ℕ × ℕ, x.1 * q ≤ x.2 * p) =
     ((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)),
-  from finset.ext $ λ x, by have := le_total (x.2 * p) (x.1 * q); simp; tauto,
-by rw [sum_Ico_eq_card_lt, sum_Ico_eq_card_lt, hswap, ← card_disjoint_union hdisj, hunion,
-    card_product];
-  simp
+  from finset.ext (λ x, by have := le_total (x.2 * p) (x.1 * q);
+    simp only [mem_union, mem_filter, Ico.mem, mem_product]; tauto),
+  rw [sum_Ico_eq_card_lt, sum_Ico_eq_card_lt, hswap, ← card_disjoint_union hdisj, hunion,
+    card_product],
+  simp only [Ico.card, nat.sub_zero, succ_sub_succ_eq_sub]
+end
 
 variables (p q : ℕ) [fact p.prime] [fact q.prime]
 

@@ -49,7 +49,10 @@ instance : category SemiRing := infer_instance -- short-circuit type class infer
 instance : concrete_category SemiRing := infer_instance -- short-circuit type class inference
 
 instance has_forget_to_Mon : has_forget₂ SemiRing Mon :=
-bundled_hom.mk_has_forget₂ @semiring.to_monoid (λ R₁ R₂, ring_hom.to_monoid_hom) (λ _ _ _, rfl)
+bundled_hom.mk_has_forget₂
+  (λ R hR, @monoid_with_zero.to_monoid R (@semiring.to_monoid_with_zero R hR))
+  (λ R₁ R₂, ring_hom.to_monoid_hom) (λ _ _ _, rfl)
+
 instance has_forget_to_AddCommMon : has_forget₂ SemiRing AddCommMon :=
 -- can't use bundled_hom.mk_has_forget₂, since AddCommMon is an induced category
 { forget₂ :=

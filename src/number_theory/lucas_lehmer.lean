@@ -222,8 +222,8 @@ instance : comm_ring (X q) :=
 { mul_comm := λ x y, by { ext; { dsimp, ring }, },
   ..(infer_instance : ring (X q))}
 
-instance [fact (1 < (q : ℕ))] : nonzero (X q) :=
-{ zero_ne_one := λ h, begin injection h with h1 _, exact zero_ne_one h1, end, }
+instance [fact (1 < (q : ℕ))] : nontrivial (X q) :=
+⟨⟨0, 1, λ h, by { injection h with h1 _, exact zero_ne_one h1 } ⟩⟩
 
 @[simp]
 lemma nat_coe_fst (n : ℕ) : (n : X q).fst = (n : zmod q) :=

@@ -333,13 +333,14 @@ instance [add_comm_semigroup α] : add_comm_semigroup (with_top α) :=
 instance [add_monoid α] : add_monoid (with_top α) :=
 { zero := some 0,
   add := (+),
-  ..@additive.add_monoid _ $ @with_zero.monoid (multiplicative α) _ }
+  ..@additive.add_monoid _ $ @monoid_with_zero.to_monoid _ $
+    @with_zero.monoid_with_zero (multiplicative α) _ }
 
 instance [add_comm_monoid α] : add_comm_monoid (with_top α) :=
 { zero := 0,
   add := (+),
-  ..@additive.add_comm_monoid _ $
-    @with_zero.comm_monoid (multiplicative α) _ }
+  ..@additive.add_comm_monoid _ $ @comm_monoid_with_zero.to_comm_monoid _ $
+    @with_zero.comm_monoid_with_zero (multiplicative α) _ }
 
 instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_top α) :=
 begin

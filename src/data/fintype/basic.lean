@@ -5,8 +5,11 @@ Author: Mario Carneiro
 
 Finite types.
 -/
-import data.finset
+import data.finset.sort
+import data.finset.powerset
+import data.finset.pi
 import data.array.lemmas
+
 universes u v
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -458,19 +461,26 @@ match n, hn with
     (λ _ _ _, h _ _))⟩
 end
 
+lemma fintype.card_le_one_iff_subsingleton [fintype α] :
+  fintype.card α ≤ 1 ↔ subsingleton α :=
+iff.trans fintype.card_le_one_iff subsingleton_iff.symm
+
+lemma fintype.one_lt_card_iff_nontrivial [fintype α] :
+  1 < fintype.card α ↔ nontrivial α :=
+begin
+  classical,
+  rw ← not_iff_not,
+  push_neg,
+  rw [not_nontrivial_iff_subsingleton, fintype.card_le_one_iff_subsingleton]
+end
+
 lemma fintype.exists_ne_of_one_lt_card [fintype α] (h : 1 < fintype.card α) (a : α) :
   ∃ b : α, b ≠ a :=
-let ⟨b, hb⟩ := classical.not_forall.1 (mt fintype.card_le_one_iff.2 (not_le_of_gt h)) in
-let ⟨c, hc⟩ := classical.not_forall.1 hb in
-by haveI := classical.dec_eq α; exact
-if hba : b = a then ⟨c, by cc⟩ else ⟨b, hba⟩
+by { haveI : nontrivial α := fintype.one_lt_card_iff_nontrivial.1 h, exact exists_ne a }
 
 lemma fintype.exists_pair_of_one_lt_card [fintype α] (h : 1 < fintype.card α) :
-  ∃ (a b : α), b ≠ a :=
-begin
-  rcases fintype.card_pos_iff.1 (nat.lt_of_succ_lt h) with a,
-  exact ⟨a, fintype.exists_ne_of_one_lt_card h a⟩,
-end
+  ∃ (a b : α), a ≠ b :=
+by { haveI : nontrivial α := fintype.one_lt_card_iff_nontrivial.1 h, exact exists_pair_ne α }
 
 lemma fintype.injective_iff_surjective [fintype α] {f : α → α} : injective f ↔ surjective f :=
 by haveI := classical.prop_decidable; exact
@@ -834,7 +844,7 @@ have hln' : (perms_of_list l).nodup, from nodup_perms_of_list hl',
 have hmeml : ∀ {f : perm α}, f ∈ perms_of_list l → f a = a,
   from λ f hf, not_not.1 (mt (mem_of_mem_perms_of_list hf) (nodup_cons.1 hl).1),
 by rw [perms_of_list, list.nodup_append, list.nodup_bind, pairwise_iff_nth_le]; exact
-⟨hln', ⟨λ _ _, nodup_map (λ _ _, (mul_right_inj _).1) hln',
+⟨hln', ⟨λ _ _, nodup_map (λ _ _, mul_left_cancel) hln',
   λ i j hj hij x hx₁ hx₂,
     let ⟨f, hf⟩ := list.mem_map.1 hx₁ in
     let ⟨g, hg⟩ := list.mem_map.1 hx₂ in

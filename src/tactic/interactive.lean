@@ -79,6 +79,11 @@ meta def continue (tac : itactic) : tactic unit :=
  (λ a, result.success ())
  (λ e ref, result.success ())
 
+/-- `id { tac }` is the same as `tac`, but it is useful for creating a block scope without
+requiring the goal to be solved at the end like `{ tac }`. It can also be used to enclose a
+non-interactive tactic for patterns like `tac1; id {tac2}` where `tac2` is non-interactive. -/
+@[inline] protected meta def id (tac : itactic) : tactic unit := tac
+
 /--
 `swap n` will move the `n`th goal to the front.
 `swap` defaults to `swap 2`, and so interchanges the first and second goals.

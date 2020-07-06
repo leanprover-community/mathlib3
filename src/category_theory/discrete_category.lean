@@ -96,6 +96,11 @@ lemma nat_iso_app {I : Type u₁} {F G : discrete I ⥤ C}
   (discrete.nat_iso f).app i = f i :=
 by tidy
 
+/-- Every functor `F` from a discrete category is naturally isomorphic (actually, equal) to
+  `discrete.functor (F.obj)`. -/
+def nat_iso_functor {I : Type u₁} {F : discrete I ⥤ C} : F ≅ discrete.functor (F.obj) :=
+nat_iso $ λ i, iso.refl _
+
 /--
 We can promote a type-level `equiv` to
 an equivalence between the corresponding `discrete` categories.

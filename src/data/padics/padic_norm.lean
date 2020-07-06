@@ -3,7 +3,6 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-import data.rat
 import algebra.gcd_domain
 import algebra.field_power
 import ring_theory.multiplicity
@@ -300,7 +299,7 @@ begin
     (by rw [@multiplicity.mul _ _ _ _ (_ * _) _ (nat.prime_iff_prime_int.1 p_prime), add_comm])
     (by rw [mul_assoc, @multiplicity.mul _ _ _ _ (q.denom : ℤ)
         (_ * _) (nat.prime_iff_prime_int.1 p_prime)];
-      exact add_le_add_left' h))
+      exact add_le_add_left h _))
     ... ≤ _ : min_le_multiplicity_add
 end
 
@@ -554,7 +553,7 @@ The p-adic norm respects division.
 -/
 @[simp] protected theorem div (q r : ℚ) : padic_norm p (q / r) = padic_norm p q / padic_norm p r :=
 if hr : r = 0 then by simp [hr] else
-eq_div_of_mul_eq _ _ (padic_norm.nonzero _ hr) (by rw [←padic_norm.mul, div_mul_cancel _ hr])
+eq_div_of_mul_eq (padic_norm.nonzero _ hr) (by rw [←padic_norm.mul, div_mul_cancel _ hr])
 
 /--
 The p-adic norm of an integer is at most 1.

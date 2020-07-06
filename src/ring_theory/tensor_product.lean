@@ -6,7 +6,6 @@ Authors: Scott Morrison
 
 import linear_algebra.tensor_product
 import ring_theory.algebra
-import tactic
 
 universes u v₁ v₂ v₃ v₄
 

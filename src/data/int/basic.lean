@@ -5,12 +5,19 @@ Authors: Jeremy Avigad
 
 The integers, with addition, multiplication, and subtraction.
 -/
+import tactic.lift
 import algebra.char_zero
 import algebra.ring
 import data.list.range
+
 open nat
 
 namespace int
+
+instance : inhabited ℤ := ⟨int.zero⟩
+
+instance : nontrivial ℤ :=
+⟨⟨0, 1, int.zero_ne_one⟩⟩
 
 instance : comm_ring int :=
 { add            := int.add,
@@ -45,17 +52,11 @@ instance : semiring int           := by apply_instance
 instance : ring int               := by apply_instance
 instance : distrib int            := by apply_instance
 
-instance : nonzero ℤ :=
-{ zero_ne_one := int.zero_ne_one }
-
-instance : inhabited ℤ := ⟨int.zero⟩
-
 instance : decidable_linear_ordered_comm_ring int :=
 { add_le_add_left := @int.add_le_add_left,
-  zero_ne_one     := int.zero_ne_one,
   mul_pos         := @int.mul_pos,
   zero_lt_one     := int.zero_lt_one,
-  ..int.comm_ring, ..int.decidable_linear_order }
+  .. int.comm_ring, .. int.decidable_linear_order, .. int.nontrivial }
 
 instance : decidable_linear_ordered_add_comm_group int :=
 by apply_instance
@@ -213,7 +214,8 @@ theorem nat_abs_neg_of_nat (n : ℕ) : nat_abs (neg_of_nat n) = n :=
 by cases n; refl
 
 theorem nat_abs_mul (a b : ℤ) : nat_abs (a * b) = (nat_abs a) * (nat_abs b) :=
-by cases a; cases b; simp only [(*), int.mul, nat_abs_neg_of_nat, eq_self_iff_true, int.nat_abs]
+by cases a; cases b;
+  simp only [← int.mul_def, int.mul, nat_abs_neg_of_nat, eq_self_iff_true, int.nat_abs]
 
 @[simp] lemma nat_abs_mul_self' (a : ℤ) : (nat_abs a * nat_abs a : ℤ) = a * a :=
 by rw [← int.coe_nat_mul, nat_abs_mul_self]
@@ -300,7 +302,7 @@ end
 theorem div_eq_zero_of_lt_abs {a b : ℤ} (H1 : 0 ≤ a) (H2 : a < abs b) : a / b = 0 :=
 match b, abs b, abs_eq_nat_abs b, H2 with
 | (n : ℕ), ._, rfl, H2 := div_eq_zero_of_lt H1 H2
-| -[1+ n], ._, rfl, H2 := neg_inj $ by rw [← int.div_neg]; exact div_eq_zero_of_lt H1 H2
+| -[1+ n], ._, rfl, H2 := neg_injective $ by rw [← int.div_neg]; exact div_eq_zero_of_lt H1 H2
 end
 
 protected theorem add_mul_div_right (a b : ℤ) {c : ℤ} (H : c ≠ 0) :
@@ -333,7 +335,7 @@ have ∀ {a b c : ℤ}, 0 < c → (a + b * c) / c = a / c + b, from
   eq_sub_of_add_eq $ by rw [← this, sub_add_cancel]
 end,
 match lt_trichotomy c 0 with
-| or.inl hlt          := neg_inj $ by rw [← int.div_neg, neg_add, ← int.div_neg, ← neg_mul_neg];
+| or.inl hlt          := neg_inj.1 $ by rw [← int.div_neg, neg_add, ← int.div_neg, ← neg_mul_neg];
                          apply this (neg_pos_of_neg hlt)
 | or.inr (or.inl heq) := absurd heq H
 | or.inr (or.inr hgt) := this hgt
@@ -673,7 +675,7 @@ begin
   by_cases h3 : c = 0,
   { rw [h3, zero_dvd_iff] at *,
     rw [h1, h2, h3], refl },
-  { apply eq_of_mul_eq_mul_right h3,
+  { apply mul_right_cancel' h3,
     rw add_mul, repeat {rw [int.div_mul_cancel]};
     try {apply dvd_add}; assumption }
 end
@@ -816,9 +818,9 @@ theorem eq_mul_div_of_mul_eq_mul_of_dvd_left {a b c d : ℤ} (hb : b ≠ 0) (hbc
 begin
   cases hbc with k hk,
   subst hk,
-  rw int.mul_div_cancel_left, rw mul_assoc at h,
-  apply _root_.eq_of_mul_eq_mul_left _ h,
-  repeat {assumption}
+  rw [int.mul_div_cancel_left _ hb],
+  rw mul_assoc at h,
+  apply mul_left_cancel' hb h
 end
 
 /-- If an integer with larger absolute value divides an integer, it is
@@ -940,8 +942,8 @@ by cases m with m m; cases n with n n; unfold has_add.add;
   simp [int.add, -of_nat_eq_coe, bool.bxor_comm]
 
 @[simp] lemma bodd_mul (m n : ℤ) : bodd (m * n) = bodd m && bodd n :=
-by cases m with m m; cases n with n n; unfold has_mul.mul;
-  simp [int.mul, -of_nat_eq_coe, bool.bxor_comm]
+by cases m with m m; cases n with n n;
+  simp [← int.mul_def, int.mul, -of_nat_eq_coe, bool.bxor_comm]
 
 theorem bodd_add_div2 : ∀ n, cond (bodd n) 1 0 + 2 * div2 n = n
 | (n : ℕ) :=

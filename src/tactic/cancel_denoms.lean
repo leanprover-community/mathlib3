@@ -41,7 +41,7 @@ by rw [←h3, mul_assoc, mul_div_comm, h2, ←mul_assoc, h1, mul_comm, one_mul]
 
 lemma cancel_factors_eq_div {α} [field α] {n e e' : α} (h : n*e = e') (h2 : n ≠ 0) :
   e = e' / n :=
-eq_div_of_mul_eq _ _ h2 $ by rwa mul_comm at h
+eq_div_of_mul_eq h2 $ by rwa mul_comm at h
 
 lemma add_subst {α} [ring α] {n e1 e2 t1 t2 : α} (h1 : n * e1 = t1) (h2 : n * e2 = t2) :
       n * (e1 + e2) = t1 + t2 := by simp [left_distrib, *]
@@ -78,7 +78,7 @@ begin
   { rintro rfl, refl },
   { intro h,
     simp only [←mul_assoc] at h,
-    refine eq_of_mul_eq_mul_left (mul_ne_zero _ _) h,
+    refine mul_left_cancel' (mul_ne_zero _ _) h,
     apply mul_ne_zero, apply div_ne_zero,
     all_goals {apply ne_of_gt; assumption <|> exact zero_lt_one}}
 end

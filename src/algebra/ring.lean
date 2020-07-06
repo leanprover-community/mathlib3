@@ -887,6 +887,10 @@ structure is_integral_domain (R : Type u) [ring R] extends nontrivial R : Prop :
 (mul_comm : ∀ (x y : R), x * y = y * x)
 (eq_zero_or_eq_zero_of_mul_eq_zero : ∀ x y : R, x * y = 0 → x = 0 ∨ y = 0)
 
+-- The linter does not recognize that is_integral_domain.to_nontrivial is a structure
+-- projection, disable it
+attribute [nolint def_lemma doc_blame] is_integral_domain.to_nontrivial
+
 /-- Every integral domain satisfies the predicate for integral domains. -/
 lemma integral_domain.to_is_integral_domain (R : Type u) [integral_domain R] :
   is_integral_domain R :=

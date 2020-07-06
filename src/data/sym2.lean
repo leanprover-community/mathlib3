@@ -139,6 +139,7 @@ This is a type-valued version of the membership predicate `mem` that contains th
 element `y` of `z` such that `z = ⟦(x, y)⟧`.  It is a subsingleton already,
 so there is no need to apply `trunc` to the type.
 -/
+@[nolint has_inhabited_instance]
 def vmem (x : α) (z : sym2 α) : Type u :=
 {y : α // z = ⟦(x, y)⟧}
 
@@ -351,14 +352,5 @@ def equiv_multiset (α : Type*) : sym2 α ≃ {s : multiset α // s.card = 2} :=
 equiv_sym α
 
 end sym_equiv
-
-section inhabited
-
--- Instances to make the linter happy
-
-instance inhabited_vmem [inhabited α] : inhabited (vmem (default α) (diag (default α))) :=
-⟨⟨default α, rfl⟩⟩
-
-end inhabited
 
 end sym2

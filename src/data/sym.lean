@@ -55,7 +55,7 @@ def sym' (α : Type*) (n : ℕ) := quotient (vector.perm.is_setoid α n)
 /--
 Multisets of cardinality n are equivalent to length-n vectors up to permutations.
 -/
-def sym_equiv_sym' (α : Type*) (n : ℕ) : equiv (sym α n) (sym' α n) :=
+def sym_equiv_sym' (α : Type*) (n : ℕ) : sym α n ≃ sym' α n :=
 equiv.subtype_quotient_equiv_quotient_subtype _ _ (λ _, by refl) (λ _ _, by refl)
 
 section inhabited

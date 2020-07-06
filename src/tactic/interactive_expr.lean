@@ -38,6 +38,7 @@ meta inductive sf : Type
 | compose : sf →  sf →  sf
 | of_string : string →  sf
 
+/-- Prints a debugging representation of an `sf` object. -/
 meta def sf.repr : sf → format
 | (sf.tag_expr addr e a) := format.group $ format.nest 2 $
   "(tag_expr " ++ to_fmt addr ++ format.line ++
@@ -49,6 +50,7 @@ meta instance : has_to_format sf := ⟨sf.repr⟩
 meta instance : has_to_string sf := ⟨λ s, s.repr.to_string⟩
 meta instance : has_repr sf := ⟨λ s, s.repr.to_string⟩
 
+/-- Constructs an `sf` from an `eformat` by forgetting grouping, nesting, etc. -/
 meta def sf.of_eformat : eformat → sf
 | (tag ⟨ea,e⟩ m) := sf.tag_expr ea e $ sf.of_eformat m
 | (group m) := sf.of_eformat m
@@ -57,6 +59,7 @@ meta def sf.of_eformat : eformat → sf
 | (of_format f) := sf.of_string $ format.to_string f
 | (compose x y) := sf.compose (sf.of_eformat x) (sf.of_eformat y)
 
+/-- Flattens an `sf`, i.e. merges adjacent `of_string` constructors. -/
 meta def sf.flatten : sf → sf
 | (sf.tag_expr e ea m) := (sf.tag_expr e ea $ sf.flatten m)
 | (sf.compose x y) :=

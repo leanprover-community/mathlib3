@@ -9,6 +9,7 @@ import tactic.localized
 import logic.unique
 import algebra.group.commute
 import algebra.group.units_hom
+import logic.nontrivial
 import algebra.group.inj_surj
 
 /-!
@@ -47,6 +48,8 @@ reduce an expression in a field to an expression of the form `n / d` where `n` a
 division-free."
 
 section
+
+section prio
 set_option default_priority 100 -- see Note [default priority]
 
 /-- Typeclass for expressing that a type `M₀` with multiplication and a zero satisfies
@@ -55,6 +58,8 @@ set_option default_priority 100 -- see Note [default priority]
 class mul_zero_class (M₀ : Type*) extends has_mul M₀, has_zero M₀ :=
 (zero_mul : ∀ a : M₀, 0 * a = 0)
 (mul_zero : ∀ a : M₀, a * 0 = 0)
+
+end prio
 
 section mul_zero_class
 
@@ -96,49 +101,6 @@ lemma ne_zero_and_ne_zero_of_mul (h : a * b ≠ 0) : a ≠ 0 ∧ b ≠ 0 :=
 ⟨left_ne_zero_of_mul h, right_ne_zero_of_mul h⟩
 
 end mul_zero_class
-
-/-- Predicate typeclass for expressing that a (semi)ring or similar algebraic structure
-is nonzero. -/
-@[protect_proj] class nonzero (M₀ : Type*) [has_zero M₀] [has_one M₀] : Prop :=
-(zero_ne_one : 0 ≠ (1:M₀))
-
-section
-
-variables [has_zero M₀] [has_one M₀] [nonzero M₀]
-
-@[simp] lemma zero_ne_one : 0 ≠ (1:M₀) := nonzero.zero_ne_one
-
-@[simp] lemma one_ne_zero : (1:M₀) ≠ 0 := zero_ne_one.symm
-
-lemma ne_zero_of_eq_one {a : M₀} (h : a = 1) : a ≠ 0 :=
-calc a = 1 : h
-   ... ≠ 0 : one_ne_zero
-
-/-- Pushforward a `nonzero` instance along an injective function. -/
-protected lemma function.injective.nonzero [has_zero M₀'] [has_one M₀']
-  (f : M₀ → M₀') (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1) :
-  nonzero M₀' :=
-⟨zero ▸ (hf.ne_iff' one).2 zero_ne_one⟩
-
-/-- Pullback a `nonzero` instance along a function sending `0` to `0` and `1` to `1`. -/
-protected lemma pullback_nonzero [has_zero M₀'] [has_one M₀']
-  (f : M₀' → M₀) (zero : f 0 = 0) (one : f 1 = 1) :
-  nonzero M₀' :=
-⟨mt (congr_arg f) $ by { rw [zero, one], exact zero_ne_one }⟩
-
-end
-
-section
-
-variables [mul_zero_class M₀] [has_one M₀] [nonzero M₀] {a b : M₀}
-
-lemma left_ne_zero_of_mul_eq_one (h : a * b = 1) : a ≠ 0 :=
-left_ne_zero_of_mul $ ne_zero_of_eq_one h
-
-lemma right_ne_zero_of_mul_eq_one (h : a * b = 1) : b ≠ 0 :=
-right_ne_zero_of_mul $ ne_zero_of_eq_one h
-
-end
 
 /-- Predicate typeclass for expressing that `a * b = 0` implies `a = 0` or `b = 0`
 for all `a` and `b` of type `G₀`. -/
@@ -214,6 +176,42 @@ and right absorbing, and left/right multiplication by a non-zero element is inje
 (mul_left_cancel_of_ne_zero : ∀ {a b c : M₀}, a ≠ 0 → a * b = a * c → b = c)
 (mul_right_cancel_of_ne_zero : ∀ {a b c : M₀}, b ≠ 0 → a * b = c * b → a = c)
 
+section
+
+variables [monoid_with_zero M₀] [nontrivial M₀] {a b : M₀}
+
+/-- In a nontrivial monoid with zero, zero and one are different. -/
+@[simp] lemma zero_ne_one : 0 ≠ (1:M₀) :=
+begin
+  assume h,
+  rcases exists_pair_ne M₀ with ⟨x, y, hx⟩,
+  apply hx,
+  calc x = 1 * x : by rw [one_mul]
+  ... = 0 : by rw [← h, zero_mul]
+  ... = 1 * y : by rw [← h, zero_mul]
+  ... = y : by rw [one_mul]
+end
+
+@[simp] lemma one_ne_zero : (1:M₀) ≠ 0 :=
+zero_ne_one.symm
+
+lemma ne_zero_of_eq_one {a : M₀} (h : a = 1) : a ≠ 0 :=
+calc a = 1 : h
+   ... ≠ 0 : one_ne_zero
+
+lemma left_ne_zero_of_mul_eq_one (h : a * b = 1) : a ≠ 0 :=
+left_ne_zero_of_mul $ ne_zero_of_eq_one h
+
+lemma right_ne_zero_of_mul_eq_one (h : a * b = 1) : b ≠ 0 :=
+right_ne_zero_of_mul $ ne_zero_of_eq_one h
+
+/-- Pullback a `nontrivial` instance along a function sending `0` to `0` and `1` to `1`. -/
+protected lemma pullback_nonzero [has_zero M₀'] [has_one M₀']
+  (f : M₀' → M₀) (zero : f 0 = 0) (one : f 1 = 1) : nontrivial M₀' :=
+⟨⟨0, 1, mt (congr_arg f) $ by { rw [zero, one], exact zero_ne_one }⟩⟩
+
+end
+
 /-- A type `M` is a commutative “monoid with zero” if it is a commutative monoid with zero
 element, and `0` is left and right absorbing. -/
 @[protect_proj]
@@ -225,13 +223,9 @@ The type is required to come with an “inverse” function, and the inverse of 
 
 Examples include division rings and the ordered monoids that are the
 target of valuations in general valuation theory.-/
-class group_with_zero (G₀ : Type*) extends monoid_with_zero G₀, has_inv G₀ :=
+class group_with_zero (G₀ : Type*) extends monoid_with_zero G₀, has_inv G₀, nontrivial G₀ :=
 (inv_zero : (0 : G₀)⁻¹ = 0)
 (mul_inv_cancel : ∀ a:G₀, a ≠ 0 → a * a⁻¹ = 1)
-(zero_ne_one : (0 : G₀) ≠ 1)
-
-instance group_with_zero.to_nonzero (G₀ : Type*) [group_with_zero G₀] : nonzero G₀ :=
-⟨group_with_zero.zero_ne_one⟩
 
 /-- A type `G₀` is a commutative “group with zero”
 if it is a commutative monoid with zero element (distinct from `1`)
@@ -283,7 +277,7 @@ variables [monoid_with_zero M₀]
 
 namespace units
 
-@[simp] lemma ne_zero [nonzero M₀] (u : units M₀) :
+@[simp] lemma ne_zero [nontrivial M₀] (u : units M₀) :
   (u : M₀) ≠ 0 :=
 left_ne_zero_of_mul_eq_one u.mul_inv
 
@@ -300,7 +294,7 @@ end units
 
 namespace is_unit
 
-lemma ne_zero [nonzero M₀] {a : M₀} (ha : is_unit a) : a ≠ 0 := let ⟨u, hu⟩ := ha in hu ▸ u.ne_zero
+lemma ne_zero [nontrivial M₀] {a : M₀} (ha : is_unit a) : a ≠ 0 := let ⟨u, hu⟩ := ha in hu ▸ u.ne_zero
 
 lemma mul_right_eq_zero {a b : M₀} (ha : is_unit a) : a * b = 0 ↔ b = 0 :=
 let ⟨u, hu⟩ := ha in hu ▸ u.mul_right_eq_zero
@@ -332,23 +326,10 @@ lemma eq_of_zero_eq_one (h : (0 : M₀) = 1) (a b : M₀) : a = b :=
 ⟨λ ⟨⟨_, a, (a0 : 0 * a = 1), _⟩, rfl⟩, by rwa zero_mul at a0,
  λ h, ⟨⟨0, 0, eq_of_zero_eq_one h _ _, eq_of_zero_eq_one h _ _⟩, rfl⟩⟩
 
-@[simp] theorem not_is_unit_zero [nonzero M₀] : ¬ is_unit (0 : M₀) :=
+@[simp] theorem not_is_unit_zero [nontrivial M₀] : ¬ is_unit (0 : M₀) :=
 mt is_unit_zero_iff.1 zero_ne_one
 
 variable (M₀)
-
-/-- A monoid with zero is either nonzero, or has a unique element. -/
-noncomputable def nonzero_psum_unique : psum (nonzero M₀) (unique M₀) :=
-if h : (0:M₀) = 1 then psum.inr (unique_of_zero_eq_one h) else psum.inl ⟨h⟩
-
-/-- A monoid with zero is either a subsingleton or nonzero. -/
-lemma subsingleton_or_nonzero :  subsingleton M₀ ∨ nonzero M₀ :=
-begin
-  classical,
-  by_cases h : (0 : M₀) = 1,
-  { left, exact subsingleton_of_zero_eq_one h },
-  { right, exact ⟨h⟩ }
-end
 
 /-- In a monoid with zero, either zero and one are nonequal, or zero is the only element. -/
 lemma zero_ne_one_or_forall_eq_0 : (0 : M₀) ≠ 1 ∨ (∀a:M₀, a = 0) :=
@@ -428,7 +409,7 @@ protected def function.surjective.group_with_zero [has_zero G₀'] [has_mul G₀
   mul_inv_cancel := hf.forall.2 $ λ x hx,
     by erw [← inv, ← mul, mul_inv_cancel (mt (congr_arg f) $ trans_rel_left ne hx zero.symm)];
       exact one,
-  zero_ne_one := h01,
+  exists_pair_ne := ⟨0, 1, h01⟩,
   .. hf.monoid_with_zero f zero one mul }
 
 @[simp] lemma mul_inv_cancel_right' {b : G₀} (h : b ≠ 0) (a : G₀) :

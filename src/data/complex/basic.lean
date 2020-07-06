@@ -269,7 +269,7 @@ by rw [inv_def, ← mul_assoc, mul_conj, ← of_real_mul,
 
 noncomputable instance : field ℂ :=
 { inv := has_inv.inv,
-  zero_ne_one := mt (congr_arg re) zero_ne_one,
+  exists_pair_ne := ⟨0, 1, mt (congr_arg re) zero_ne_one⟩,
   mul_inv_cancel := @complex.mul_inv_cancel,
   inv_zero := complex.inv_zero,
   ..complex.comm_ring }

@@ -403,6 +403,66 @@ lemma topological_group.t2_space [t1_space α] : t2_space α := regular_space.t2
 end
 
 section
+
+/-! Some results about an open set containing the product of two sets in a topological group. -/
+
+variables [topological_space α] [group α] [topological_group α]
+/-- Given a open neighborhood `U` of `1` there is a open neighborhood `V` of `1`
+  such that `VV ⊆ U`. -/
+@[to_additive "Given a open neighborhood `U` of `0` there is a open neighborhood `V` of `0`
+  such that `V + V ⊆ U`."]
+lemma one_open_separated_mul {U : set α} (h1U : is_open U) (h2U : (1 : α) ∈ U) :
+  ∃ V : set α, is_open V ∧ (1 : α) ∈ V ∧ V * V ⊆ U :=
+begin
+  rcases exists_nhds_square (continuous_mul U h1U) (by simp only [mem_preimage, one_mul, h2U] :
+    ((1 : α), (1 : α)) ∈ (λ p : α × α, p.1 * p.2) ⁻¹' U) with ⟨V, h1V, h2V, h3V⟩,
+  refine ⟨V, h1V, h2V, _⟩,
+  rwa [← image_subset_iff, image_mul_prod] at h3V
+end
+
+/-- Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of `1`
+  such that `KV ⊆ U`. -/
+@[to_additive "Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of `0`
+  such that `K + V ⊆ U`."]
+lemma compact_open_separated_mul {K U : set α} (hK : compact K) (hU : is_open U) (hKU : K ⊆ U) :
+  ∃ V : set α, is_open V ∧ (1 : α) ∈ V ∧ K * V ⊆ U :=
+begin
+  let W : α → set α := λ x, (λ y, x * y) ⁻¹' U,
+  have h1W : ∀ x, is_open (W x) := λ x, continuous_mul_left x U hU,
+  have h2W : ∀ x ∈ K, (1 : α) ∈ W x := λ x hx, by simp only [mem_preimage, mul_one, hKU hx],
+  choose V hV using λ x : K, one_open_separated_mul (h1W x) (h2W x.1 x.2),
+  let X : K → set α := λ x, (λ y, (x : α)⁻¹ * y) ⁻¹' (V x),
+  cases hK.elim_finite_subcover X (λ x, continuous_mul_left x⁻¹ (V x) (hV x).1) _ with t ht, swap,
+  { intros x hx, rw [mem_Union], use ⟨x, hx⟩, rw [mem_preimage], convert (hV _).2.1,
+    simp only [mul_left_inv, subtype.coe_mk] },
+  refine ⟨⋂ x ∈ t, V x, is_open_bInter (finite_mem_finset _) (λ x hx, (hV x).1), _, _⟩,
+  { simp only [mem_Inter], intros x hx, exact (hV x).2.1 },
+  rintro _ ⟨x, y, hx, hy, rfl⟩, simp only [mem_Inter] at hy,
+  have := ht hx, simp only [mem_Union, mem_preimage] at this, rcases this with ⟨z, h1z, h2z⟩,
+  have : (z : α)⁻¹ * x * y ∈ W z := (hV z).2.2 (mul_mem_mul h2z (hy z h1z)),
+  rw [mem_preimage] at this, convert this using 1, simp only [mul_assoc, mul_inv_cancel_left]
+end
+
+/-- A compact set is covered by finitely many left multiplicative translates of a set
+  with non-empty interior. -/
+@[to_additive "A compact set is covered by finitely many left additive translates of a set
+  with non-empty interior."]
+lemma compact_covered_by_mul_left_translates {K V : set α} (hK : compact K)
+  (hV : (interior V).nonempty) : ∃ t : finset α, K ⊆ ⋃ g ∈ t, (λ h, g * h) ⁻¹' V :=
+begin
+  cases hV with g₀ hg₀,
+  rcases compact.elim_finite_subcover hK (λ x : α, interior $ (λ h, x * h) ⁻¹' V) _ _ with ⟨t, ht⟩,
+  { refine ⟨t, subset.trans ht _⟩,
+    apply Union_subset_Union, intro g, apply Union_subset_Union, intro hg, apply interior_subset },
+  { intro g, apply is_open_interior },
+  { intros g hg, rw [mem_Union], use g₀ * g⁻¹,
+    apply preimage_interior_subset_interior_preimage, exact continuous_const.mul continuous_id,
+    rwa [mem_preimage, inv_mul_cancel_right] }
+end
+
+end
+
+section
 variables [topological_space α] [comm_group α] [topological_group α]
 
 @[to_additive]

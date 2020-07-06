@@ -5,7 +5,7 @@ Isometries of emetric and metric spaces
 Authors: Sébastien Gouëzel
 -/
 import topology.bounded_continuous_function
-import topology.opens
+import topology.compacts
 
 /-!
 # Isometries

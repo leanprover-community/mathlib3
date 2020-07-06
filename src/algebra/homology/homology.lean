@@ -22,14 +22,34 @@ induced morphisms on images and functorial induced morphisms in cohomology.
 
 universes v u
 
-namespace cochain_complex
-
 open category_theory
 open category_theory.limits
 
 variables {V : Type u} [category.{v} V] [has_zero_morphisms V]
 
-section
+namespace category_theory
+section image_to_kernel_map
+
+/-!
+At this point we assume that we have all images, and all equalizers.
+We need to assume all equalizers, not just kernels, so that
+`factor_thru_image` is an epimorphism.
+-/
+variables [has_images V] [has_equalizers V]
+
+/--
+The morphism from `image f` to `kernel g` when `f ≫ g = 0`.
+-/
+def image_to_kernel_map {A B C : V} (f : A ⟶ B) (g : B ⟶ C) (w : f ≫ g = 0) :
+  image f ⟶ kernel g :=
+kernel.lift g (image.ι f) $ (cancel_epi (factor_thru_image f)).1 $ by simp [w]
+
+end image_to_kernel_map
+end category_theory
+
+namespace cochain_complex
+
+section has_kernels
 
 variable [has_kernels V]
 
@@ -62,9 +82,9 @@ def kernel_functor : cochain_complex V ⥤ graded_object ℤ V :=
 { obj := λ C i, kernel (C.d i),
   map := λ X Y f i, kernel_map f i }
 
-end
+end has_kernels
 
-section
+section has_image_maps
 variables [has_images V] [has_image_maps V]
 
 /-- A morphism of cochain complexes induces a morphism on the images of the differentials in every
@@ -78,26 +98,21 @@ lemma image_map_ι {C C' : cochain_complex V} (f : C ⟶ C') (i : ℤ) :
   image_map f i ≫ image.ι (C'.d i) = image.ι (C.d i) ≫ f.f (i + 1) :=
 image.map_hom_mk'_ι (cochain_complex.comm_at f i).symm
 
-end
+end has_image_maps
 
-/-!
-At this point we assume that we have all images, and all equalizers.
-We need to assume all equalizers, not just kernels, so that
-`factor_thru_image` is an epimorphism.
--/
-variables [has_kernels V] [has_images V] [has_equalizers V]
+variables [has_images V] [has_equalizers V]
 
 /--
 The connecting morphism from the image of `d i` to the kernel of `d (i+1)`.
 -/
 def image_to_kernel_map (C : cochain_complex V) (i : ℤ) :
   image (C.d i) ⟶ kernel (C.d (i+1)) :=
-kernel.lift _ (image.ι (C.d i)) $ (cancel_epi (factor_thru_image (C.d i))).1 $ by simp
+category_theory.image_to_kernel_map (C.d i) (C.d (i+1)) (by simp)
 
 @[simp, reassoc]
 lemma image_to_kernel_map_condition (C : cochain_complex V) (i : ℤ) :
   image_to_kernel_map C i ≫ kernel.ι (C.d (i + 1)) = image.ι (C.d i) :=
-by simp [image_to_kernel_map]
+by simp [image_to_kernel_map, category_theory.image_to_kernel_map]
 
 @[reassoc]
 lemma induced_maps_commute [has_image_maps V] {C C' : cochain_complex V} (f : C ⟶ C')

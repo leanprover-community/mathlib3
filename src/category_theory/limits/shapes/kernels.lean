@@ -298,7 +298,7 @@ def cokernel.of_epi [has_cokernel f] [epi f] : cokernel f ≅ 0 :=
 functor.map_iso (cocones.forget _) $ is_colimit.unique_up_to_iso
   (colimit.is_colimit (parallel_pair f 0)) (cokernel.is_colimit_cocone_zero_cocone f)
 
-/-- The cokernel morphism if an epimorphism is a zero morphism -/
+/-- The cokernel morphism of an epimorphism is a zero morphism -/
 lemma cokernel.π_of_epi [has_cokernel f] [epi f] : cokernel.π f = 0 :=
 by rw [←category.comp_id (cokernel.π f), ←iso.hom_inv_id (cokernel.of_epi f), ←category.assoc,
   has_zero_object.zero_of_from_zero (cokernel.of_epi f).inv, has_zero_morphisms.comp_zero]
@@ -384,6 +384,14 @@ class has_cokernels :=
 (has_colimit : Π {X Y : C} (f : X ⟶ Y), has_cokernel f)
 
 attribute [instance, priority 100] has_kernels.has_limit has_cokernels.has_colimit
+
+@[priority 100]
+instance has_kernels_of_has_equalizers [has_equalizers C] : has_kernels C :=
+{ has_limit := infer_instance }
+
+@[priority 100]
+instance has_cokernels_of_has_coequalizers [has_coequalizers C] : has_cokernels C :=
+{ has_colimit := infer_instance }
 
 /-- Kernels are finite limits, so if `C` has all finite limits, it also has all kernels -/
 def has_kernels_of_has_finite_limits [has_finite_limits C] : has_kernels C :=

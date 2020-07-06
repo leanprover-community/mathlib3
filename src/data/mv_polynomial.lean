@@ -929,7 +929,7 @@ end total_degree
 
 section aeval
 
-/-- The algebra of multivariate polynomials. -/
+/-! ### The algebra of multivariate polynomials -/
 
 variables (R : Type u) (A : Type v) (f : σ → A)
 variables [comm_semiring R] [comm_semiring A] [algebra R A]

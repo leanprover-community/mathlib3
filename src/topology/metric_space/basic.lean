@@ -11,6 +11,7 @@ topological spaces. For example:
 -/
 import topology.metric_space.emetric_space
 import topology.algebra.ordered
+import tactic
 
 open set filter classical topological_space
 noncomputable theory
@@ -573,6 +574,9 @@ is_open_iff.2 $ λ y, exists_ball_subset_ball
 
 theorem ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
 mem_nhds_sets is_open_ball (mem_ball_self ε0)
+
+theorem closed_ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : closed_ball x ε ∈ 𝓝 x :=
+mem_sets_of_superset (ball_mem_nhds x ε0) ball_subset_closed_ball
 
 theorem nhds_within_basis_ball {s : set α} :
   (nhds_within x s).has_basis (λ ε:ℝ, 0 < ε) (λ ε, ball x ε ∩ s) :=

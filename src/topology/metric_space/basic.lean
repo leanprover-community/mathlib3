@@ -11,7 +11,6 @@ topological spaces. For example:
 -/
 import topology.metric_space.emetric_space
 import topology.algebra.ordered
-import tactic
 
 open set filter classical topological_space
 noncomputable theory

@@ -437,6 +437,10 @@ supr_singleton a s
 @[simp] theorem bInter_singleton (a : α) (s : α → set β) : (⋂ x ∈ ({a} : finset α), s x) = s a :=
 infi_singleton a s
 
+@[simp] lemma bUnion_preimage_singleton (f : α → β) (s : finset β) :
+  (⋃ y ∈ s, f ⁻¹' {y}) = f ⁻¹' ↑s :=
+set.bUnion_preimage_singleton f ↑s
+
 variables [decidable_eq α]
 
 lemma bUnion_union (s t : finset α) (u : α → set β) :

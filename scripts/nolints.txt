@@ -1779,7 +1779,6 @@ apply_nolint tactic.explode.entries.head doc_blame
 apply_nolint tactic.explode.entries.size doc_blame
 apply_nolint tactic.explode.entry doc_blame
 apply_nolint tactic.explode.format_aux doc_blame
-apply_nolint tactic.explode.head' doc_blame
 apply_nolint tactic.explode.may_be_proof doc_blame
 apply_nolint tactic.explode.pad_right doc_blame
 apply_nolint tactic.explode.status doc_blame

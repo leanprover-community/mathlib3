@@ -321,6 +321,8 @@ end
 
 lemma append_eq_has_append {L₁ L₂ : list α} : list.append L₁ L₂ = L₁ ++ L₂ := rfl
 
+@[simp] lemma singleton_append {x : α} {l : list α} : [x] ++ l = x :: l := rfl
+
 theorem append_ne_nil_of_ne_nil_left (s t : list α) : s ≠ [] → s ++ t ≠ [] :=
 by induction s; intros; contradiction
 
@@ -475,6 +477,9 @@ by induction n; [refl, simp only [*, repeat, join, append_nil]]
 @[simp] theorem bind_append (f : α → list β) (l₁ l₂ : list α) :
   (l₁ ++ l₂).bind f = l₁.bind f ++ l₂.bind f :=
 append_bind _ _ _
+
+@[simp] theorem bind_singleton (f : α → list β) (x : α) : [x].bind f = f x :=
+append_nil (f x)
 
 /-! ### concat -/
 

@@ -38,10 +38,14 @@ variables {α β β₂ : Type*} {ι ι₂ : Sort*}
 class has_Sup (α : Type*) := (Sup : set α → α)
 /-- class for the `Inf` operator -/
 class has_Inf (α : Type*) := (Inf : set α → α)
+
+export has_Sup (Sup) has_Inf (Inf)
+
 /-- Supremum of a set -/
-def Sup [has_Sup α] : set α → α := has_Sup.Sup
+add_decl_doc has_Sup.Sup
 /-- Infimum of a set -/
-def Inf [has_Inf α] : set α → α := has_Inf.Inf
+add_decl_doc has_Inf.Inf
+
 /-- Indexed supremum -/
 def supr [has_Sup α] (s : ι → α) : α := Sup (range s)
 /-- Indexed infimum -/
@@ -52,6 +56,9 @@ def infi [has_Inf α] (s : ι → α) : α := Inf (range s)
 
 notation `⨆` binders `, ` r:(scoped f, supr f) := r
 notation `⨅` binders `, ` r:(scoped f, infi f) := r
+
+instance (α) [has_Inf α] : has_Sup (order_dual α) := ⟨(Inf : set α → α)⟩
+instance (α) [has_Sup α] : has_Inf (order_dual α) := ⟨(Sup : set α → α)⟩
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
@@ -884,7 +891,7 @@ instance complete_lattice_Prop : complete_lattice Prop :=
   Inf    := λs, ∀a:Prop, a∈s → a,
   Inf_le := assume s a h p, p a h,
   le_Inf := assume s a h p b hb, h b hb p,
-  ..bounded_lattice_Prop }
+  .. bounded_distrib_lattice_Prop }
 
 lemma Inf_Prop_eq {s : set Prop} : Inf s = (∀p ∈ s, p) := rfl
 
@@ -894,50 +901,56 @@ lemma infi_Prop_eq {ι : Sort*} {p : ι → Prop} : (⨅i, p i) = (∀i, p i) :=
 le_antisymm (assume h i, h _ ⟨i, rfl⟩ ) (assume h p ⟨i, eq⟩, eq ▸ h i)
 
 lemma supr_Prop_eq {ι : Sort*} {p : ι → Prop} : (⨆i, p i) = (∃i, p i) :=
-le_antisymm (assume ⟨q, ⟨i, (eq : p i = q)⟩, hq⟩, ⟨i, eq.symm ▸ hq⟩) (assume ⟨i, hi⟩, ⟨p i, ⟨i, rfl⟩, hi⟩)
+le_antisymm (λ ⟨q, ⟨i, (eq : p i = q)⟩, hq⟩, ⟨i, eq.symm ▸ hq⟩) (λ ⟨i, hi⟩, ⟨p i, ⟨i, rfl⟩, hi⟩)
+
+instance pi.has_Sup {α : Type*} {β : α → Type*} [Π i, has_Sup (β i)] : has_Sup (Π i, β i) :=
+⟨λ s i, ⨆ f : s, (f : Π i, β i) i⟩
+
+instance pi.has_Inf {α : Type*} {β : α → Type*} [Π i, has_Inf (β i)] : has_Inf (Π i, β i) :=
+⟨λ s i, ⨅ f : s, (f : Π i, β i) i⟩
 
 instance pi.complete_lattice {α : Type*} {β : α → Type*} [∀ i, complete_lattice (β i)] :
   complete_lattice (Π i, β i) :=
-by { pi_instance;
-     { intros, intro,
-       apply_field, intros,
-       simp at H, rcases H with ⟨ x, H₀, H₁ ⟩,
-       subst b, apply a_1 _ H₀ i, } }
+{ Sup := Sup,
+  Inf := Inf,
+  le_Sup := λ s f hf i, le_supr (λ f : s, (f : Π i, β i) i) ⟨f, hf⟩,
+  Inf_le := λ s f hf i, infi_le (λ f : s, (f : Π i, β i) i) ⟨f, hf⟩,
+  Sup_le := λ s f hf i, supr_le $ λ g, hf g g.2 i,
+  le_Inf := λ s f hf i, le_infi $ λ g, hf g g.2 i,
+  .. pi.bounded_lattice }
 
-lemma Inf_apply
-  {α : Type*} {β : α → Type*} [∀ i, complete_lattice (β i)] {s : set (Πa, β a)} {a : α} :
-  (Inf s) a = (⨅f∈s, (f : Πa, β a) a) :=
-by rw [← Inf_image]; refl
+lemma Inf_apply {α : Type*} {β : α → Type*} [Π i, has_Inf (β i)]
+  {s : set (Πa, β a)} {a : α} :
+  (Inf s) a = (⨅ f : s, (f : Πa, β a) a) :=
+rfl
 
-lemma infi_apply {α : Type*} {β : α → Type*} {ι : Sort*} [∀ i, complete_lattice (β i)]
-  {f : ι → Πa, β a} {a : α} : (⨅i, f i) a = (⨅i, f i a) :=
-by erw [← Inf_range, Inf_apply, infi_range]
+lemma infi_apply {α : Type*} {β : α → Type*} {ι : Sort*} [Π i, has_Inf (β i)]
+  {f : ι → Πa, β a} {a : α} :
+  (⨅i, f i) a = (⨅i, f i a) :=
+by rw [infi, Inf_apply, infi, infi, ← image_eq_range (λ f : Π i, β i, f a) (range f), ← range_comp]
 
-lemma Sup_apply
-  {α : Type*} {β : α → Type*} [∀ i, complete_lattice (β i)] {s : set (Πa, β a)} {a : α} :
-  (Sup s) a = (⨆f∈s, (f : Πa, β a) a) :=
-by rw [← Sup_image]; refl
+lemma Sup_apply {α : Type*} {β : α → Type*} [Π i, has_Sup (β i)] {s : set (Πa, β a)} {a : α} :
+  (Sup s) a = (⨆f:s, (f : Πa, β a) a) :=
+rfl
 
-lemma supr_apply {α : Type*} {β : α → Type*} {ι : Sort*} [∀ i, complete_lattice (β i)]
-  {f : ι → Πa, β a} {a : α} : (⨆i, f i) a = (⨆i, f i a) :=
-by erw [← Sup_range, Sup_apply, supr_range]
+lemma supr_apply {α : Type*} {β : α → Type*} {ι : Sort*} [Π i, has_Sup (β i)] {f : ι → Πa, β a}
+  {a : α} :
+  (⨆i, f i) a = (⨆i, f i a) :=
+@infi_apply α (λ i, order_dual (β i)) _ _ f a
 
 section complete_lattice
 variables [preorder α] [complete_lattice β]
 
 theorem monotone_Sup_of_monotone {s : set (α → β)} (m_s : ∀f∈s, monotone f) : monotone (Sup s) :=
-assume x y h, Sup_le $ assume x' ⟨f, f_in, fx_eq⟩, le_Sup_of_le ⟨f, f_in, rfl⟩ $ fx_eq ▸ m_s _ f_in h
+assume x y h, supr_le $ λ f, le_supr_of_le f $ m_s f f.2 h
 
 theorem monotone_Inf_of_monotone {s : set (α → β)} (m_s : ∀f∈s, monotone f) : monotone (Inf s) :=
-assume x y h, le_Inf $ assume x' ⟨f, f_in, fx_eq⟩, Inf_le_of_le ⟨f, f_in, rfl⟩ $ fx_eq ▸ m_s _ f_in h
+assume x y h, le_infi $ λ f, infi_le_of_le f $ m_s f f.2 h
 
 end complete_lattice
 
 namespace order_dual
 variable (α)
-
-instance [has_Inf α] : has_Sup (order_dual α) := ⟨(Inf : set α → α)⟩
-instance [has_Sup α] : has_Inf (order_dual α) := ⟨(Sup : set α → α)⟩
 
 instance [complete_lattice α] : complete_lattice (order_dual α) :=
 { le_Sup := @complete_lattice.Inf_le α _,

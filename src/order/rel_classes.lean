@@ -9,6 +9,7 @@ import tactic.lint.misc
 import tactic.localized
 import algebra.order
 import order.basic
+import data.set.basic
 
 /-!
 # Unbundled relation classes

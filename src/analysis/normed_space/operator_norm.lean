@@ -302,13 +302,13 @@ lemma norm_id_le : ∥id 𝕜 E∥ ≤ 1 :=
 op_norm_le_bound _ zero_le_one (λx, by simp)
 
 /-- If a space is non-trivial, then the norm of the identity equals `1`. -/
-lemma norm_id (h : ∃ x : E, x ≠ 0) : ∥id 𝕜 E∥ = 1 :=
-le_antisymm norm_id_le $ let ⟨x, hx⟩ := h in
+lemma norm_id [nontrivial E] : ∥id 𝕜 E∥ = 1 :=
+le_antisymm norm_id_le $ let ⟨x, hx⟩ := exists_ne (0 : E) in
 have _ := (id 𝕜 E).ratio_le_op_norm x,
 by rwa [id_apply, div_self (ne_of_gt $ norm_pos_iff.2 hx)] at this
 
 @[simp] lemma norm_id_field : ∥id 𝕜 𝕜∥ = 1 :=
-norm_id ⟨1, one_ne_zero⟩
+norm_id
 
 @[simp] lemma norm_id_field' : ∥(1 : 𝕜 →L[𝕜] 𝕜)∥ = 1 :=
 norm_id_field
@@ -684,22 +684,26 @@ e.is_O_comp_rev _ _
 lemma uniform_embedding : uniform_embedding e :=
 e.antilipschitz.uniform_embedding e.lipschitz.uniform_continuous
 
-lemma one_le_norm_mul_norm_symm (h : ∃ x : E, x ≠ 0) :
+lemma one_le_norm_mul_norm_symm [nontrivial E] :
   1 ≤ ∥(e : E →L[𝕜] F)∥ * ∥(e.symm : F →L[𝕜] E)∥ :=
 begin
   rw [mul_comm],
   convert (e.symm : F →L[𝕜] E).op_norm_comp_le (e : E →L[𝕜] F),
-  rw [e.coe_symm_comp_coe, continuous_linear_map.norm_id h]
+  rw [e.coe_symm_comp_coe, continuous_linear_map.norm_id]
 end
 
-lemma norm_pos (h : ∃ x : E, x ≠ 0) : 0 < ∥(e : E →L[𝕜] F)∥ :=
-pos_of_mul_pos_right (lt_of_lt_of_le zero_lt_one (e.one_le_norm_mul_norm_symm h)) (norm_nonneg _)
+lemma norm_pos [nontrivial E] : 0 < ∥(e : E →L[𝕜] F)∥ :=
+pos_of_mul_pos_right (lt_of_lt_of_le zero_lt_one e.one_le_norm_mul_norm_symm) (norm_nonneg _)
 
-lemma norm_symm_pos (h : ∃ x : E, x ≠ 0) : 0 < ∥(e.symm : F →L[𝕜] E)∥ :=
-pos_of_mul_pos_left (lt_of_lt_of_le zero_lt_one (e.one_le_norm_mul_norm_symm h)) (norm_nonneg _)
+lemma norm_symm_pos [nontrivial E] : 0 < ∥(e.symm : F →L[𝕜] E)∥ :=
+pos_of_mul_pos_left (lt_of_lt_of_le zero_lt_one e.one_le_norm_mul_norm_symm) (norm_nonneg _)
 
 lemma subsingleton_or_norm_symm_pos : subsingleton E ∨ 0 < ∥(e.symm : F →L[𝕜] E)∥ :=
-(subsingleton_or_exists_ne (0 : E)).imp id (λ hE, e.norm_symm_pos hE)
+begin
+  rcases subsingleton_or_nontrivial E with _i|_i; resetI,
+  { left, apply_instance },
+  { right, exact e.norm_symm_pos }
+end
 
 lemma subsingleton_or_nnnorm_symm_pos : subsingleton E ∨ 0 < (nnnorm $ (e.symm : F →L[𝕜] E)) :=
 subsingleton_or_norm_symm_pos e

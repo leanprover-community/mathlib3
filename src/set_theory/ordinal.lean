@@ -979,11 +979,14 @@ theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonemp
 @[simp] theorem type_eq_zero_iff_empty [is_well_order α r] : type r = 0 ↔ ¬ nonempty α :=
 (not_iff_comm.1 type_ne_zero_iff_nonempty).symm
 
-instance : nonzero ordinal.{u} :=
-{ zero_ne_one := ne.symm $ type_ne_zero_iff_nonempty.2 ⟨punit.star⟩ }
+protected lemma one_ne_zero : (1 : ordinal) ≠ 0 :=
+type_ne_zero_iff_nonempty.2 ⟨punit.star⟩
+
+instance : nontrivial ordinal.{u} :=
+⟨⟨1, 0, ordinal.one_ne_zero⟩⟩
 
 theorem zero_lt_one : (0 : ordinal) < 1 :=
-lt_iff_le_and_ne.2 ⟨zero_le _, zero_ne_one⟩
+lt_iff_le_and_ne.2 ⟨zero_le _, ne.symm $ ordinal.one_ne_zero⟩
 
 /-- The ordinal predecessor of `o` is `o'` if `o = succ o'`,
   and `o` otherwise. -/
@@ -1651,7 +1654,7 @@ by rw [← le_zero, div_le $ pos_iff_ne_zero.1 $ lt_of_le_of_lt (zero_le _) h];
 by simpa only [add_zero, zero_div] using mul_add_div a b0 0
 
 @[simp] theorem div_one (a : ordinal) : a / 1 = a :=
-by simpa only [one_mul] using mul_div_cancel a one_ne_zero
+by simpa only [one_mul] using mul_div_cancel a ordinal.one_ne_zero
 
 @[simp] theorem div_self {a : ordinal} (h : a ≠ 0) : a / a = 1 :=
 by simpa only [mul_one] using mul_div_cancel 1 h
@@ -2032,7 +2035,7 @@ begin
   { simp only [power_zero] },
   { intros _ ih, simp only [power_succ, ih, mul_one] },
   refine λ b l IH, eq_of_forall_ge_iff (λ c, _),
-  rw [power_le_of_limit one_ne_zero l],
+  rw [power_le_of_limit ordinal.one_ne_zero l],
   exact ⟨λ H, by simpa only [power_zero] using H 0 l.pos,
          λ H b' h, by rwa IH _ h⟩,
 end
@@ -2585,7 +2588,8 @@ by unfold CNF; rw [dif_neg b0, dif_neg b0, CNF_rec_ne_zero b0 o0]
 
 theorem one_CNF {o : ordinal} (o0 : o ≠ 0) :
   CNF 1 o = [(0, o)] :=
-by rw [CNF_ne_zero one_ne_zero o0, log_not_one_lt (lt_irrefl _), power_zero, mod_one, CNF_zero, div_one]
+by rw [CNF_ne_zero ordinal.one_ne_zero o0, log_not_one_lt (lt_irrefl _), power_zero, mod_one,
+       CNF_zero, div_one]
 
 theorem CNF_foldr {b : ordinal} (b0 : b ≠ 0) (o) :
   (CNF b o).foldr (λ p r, b ^ p.1 * p.2 + r) 0 = o :=

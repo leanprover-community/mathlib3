@@ -876,7 +876,7 @@ lemma eq_zero_of_ne_zero_of_mul_eq_zero
 
 lemma mem_non_zero_divisors_iff_ne_zero {x : A} :
   x ∈ non_zero_divisors A ↔ x ≠ 0 :=
-⟨λ hm hz, @zero_ne_one A _ _ domain.to_nonzero (hm 1 $ by rw [hz, one_mul]).symm,
+⟨λ hm hz, zero_ne_one (hm 1 $ by rw [hz, one_mul]).symm,
 λ hnx z, eq_zero_of_ne_zero_of_mul_eq_zero hnx⟩
 
 lemma map_ne_zero_of_mem_non_zero_divisors {B : Type*} [ring B] {g : A →+* B}
@@ -934,8 +934,7 @@ def to_integral_domain [comm_ring K] (φ : fraction_map A K) : integral_domain K
         { exact or.inl (φ.eq_zero_of_fst_eq_zero hx H) },
       { exact or.inr (φ.eq_zero_of_fst_eq_zero hy H) },
     end,
-  zero_ne_one := by erw [←φ.to_map.map_zero, ←φ.to_map.map_one];
-    exact λ h, @zero_ne_one _ _ _ domain.to_nonzero (φ.injective h),
+  exists_pair_ne := ⟨φ.to_map 0, φ.to_map 1, λ h, zero_ne_one (φ.injective h)⟩,
   ..(infer_instance : comm_ring K) }
 
 /-- The inverse of an element in the field of fractions of an integral domain. -/

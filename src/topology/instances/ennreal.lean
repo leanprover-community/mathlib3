@@ -534,6 +534,9 @@ tsum_add ennreal.summable ennreal.summable
 protected lemma tsum_le_tsum (h : ∀a, f a ≤ g a) : (∑'a, f a) ≤ (∑'a, g a) :=
 tsum_le_tsum h ennreal.summable ennreal.summable
 
+protected lemma sum_le_tsum {f : α → ennreal} (s : finset α) : s.sum f ≤ tsum f :=
+sum_le_tsum s (λ x hx, zero_le _) ennreal.summable
+
 protected lemma tsum_eq_supr_nat {f : ℕ → ennreal} :
   (∑'i:ℕ, f i) = (⨆i:ℕ, ∑ a in finset.range i, f a) :=
 ennreal.tsum_eq_supr_sum' _ finset.exists_nat_subset_range

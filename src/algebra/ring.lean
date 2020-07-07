@@ -101,13 +101,11 @@ protected def function.surjective.distrib {S} [distrib R] [has_add S] [has_mul S
 ### Semirings
 -/
 
-@[protect_proj, ancestor add_comm_monoid monoid distrib mul_zero_class]
-class semiring (α : Type u) extends add_comm_monoid α, monoid α, distrib α, mul_zero_class α
+@[protect_proj, ancestor add_comm_monoid monoid_with_zero distrib]
+class semiring (α : Type u) extends add_comm_monoid α, monoid_with_zero α, distrib α
 
 section semiring
 variables [semiring α]
-
-instance semiring.to_monoid_with_zero : monoid_with_zero α := { .. (‹_› : semiring α) }
 
 /-- Pullback a `semiring` instance along an injective function. -/
 protected def function.injective.semiring [has_zero β] [has_one β] [has_add β] [has_mul β]
@@ -333,6 +331,9 @@ end ring_hom
 
 @[protect_proj, ancestor semiring comm_monoid]
 class comm_semiring (α : Type u) extends semiring α, comm_monoid α
+
+instance comm_semiring.to_comm_monoid_with_zero [comm_semiring α] : comm_monoid_with_zero α :=
+{ .. comm_semiring.to_comm_monoid α, .. comm_semiring.to_semiring α }
 
 section comm_semiring
 variables [comm_semiring α] [comm_semiring β] {a b c : α}
@@ -738,36 +739,28 @@ end
 
 end comm_ring
 
-lemma succ_ne_self [ring α] [nonzero α] (a : α) : a + 1 ≠ a :=
+lemma succ_ne_self [ring α] [nontrivial α] (a : α) : a + 1 ≠ a :=
 λ h, one_ne_zero ((add_right_inj a).mp (by simp [h]))
 
-lemma pred_ne_self [ring α] [nonzero α] (a : α) : a - 1 ≠ a :=
+lemma pred_ne_self [ring α] [nontrivial α] (a : α) : a - 1 ≠ a :=
 λ h, one_ne_zero (neg_injective ((add_right_inj a).mp (by { convert h, simp })))
 
 /-- An element of the unit group of a nonzero semiring represented as an element
     of the semiring is nonzero. -/
-lemma units.coe_ne_zero [semiring α] [nonzero α] (u : units α) : (u : α) ≠ 0 :=
+lemma units.coe_ne_zero [semiring α] [nontrivial α] (u : units α) : (u : α) ≠ 0 :=
 λ h : u.1 = 0, by simpa [h, zero_ne_one] using u.3
-
-/-- Proves that a semiring that contains at least two distinct elements is nonzero. -/
-theorem nonzero.of_ne [semiring α] {x y : α} (h : x ≠ y) : nonzero α :=
-{ zero_ne_one := λ h01, h $ by rw [← one_mul x, ← one_mul y, ← h01, zero_mul, zero_mul] }
 
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
   is an integral domain without assuming commutativity of multiplication. -/
-@[protect_proj] class domain (α : Type u) extends ring α :=
+@[protect_proj] class domain (α : Type u) extends ring α, nontrivial α :=
 (eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)
-(zero_ne_one : (0 : α) ≠ 1)
 
 section domain
 variable [domain α]
 
 instance domain.to_no_zero_divisors : no_zero_divisors α :=
 ⟨domain.eq_zero_or_eq_zero_of_mul_eq_zero⟩
-
-instance domain.to_nonzero : nonzero α :=
-⟨domain.zero_ne_one⟩
 
 instance domain.to_cancel_monoid_with_zero : cancel_monoid_with_zero α :=
 { mul_left_cancel_of_ne_zero := λ a b c ha,
@@ -893,10 +886,13 @@ end is_unit
 
 This is mainly useful because such a predicate does not contain data,
 and can therefore be easily transported along ring isomorphisms. -/
-structure is_integral_domain (R : Type u) [ring R] : Prop :=
+structure is_integral_domain (R : Type u) [ring R] extends nontrivial R : Prop :=
 (mul_comm : ∀ (x y : R), x * y = y * x)
 (eq_zero_or_eq_zero_of_mul_eq_zero : ∀ x y : R, x * y = 0 → x = 0 ∨ y = 0)
-(zero_ne_one : (0 : R) ≠ 1)
+
+-- The linter does not recognize that is_integral_domain.to_nontrivial is a structure
+-- projection, disable it
+attribute [nolint def_lemma doc_blame] is_integral_domain.to_nontrivial
 
 /-- Every integral domain satisfies the predicate for integral domains. -/
 lemma integral_domain.to_is_integral_domain (R : Type u) [integral_domain R] :

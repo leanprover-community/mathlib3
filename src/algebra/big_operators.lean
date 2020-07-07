@@ -1111,11 +1111,6 @@ calc (∑ x in s, f x) / b = ∑ x in s, f x * (1 / b) : by rw [div_eq_mul_one_d
 section comm_semiring
 variables [comm_semiring β]
 
-lemma prod_eq_zero (ha : a ∈ s) (h : f a = 0) : (∏ x in s, f x) = 0 :=
-by haveI := classical.dec_eq α;
-calc (∏ x in s, f x) = ∏ x in insert a (erase s a), f x : by rw insert_erase ha
-                 ... = 0 : by rw [prod_insert (not_mem_erase _ _), h, zero_mul]
-
 /-- The product over a sum can be written as a sum over the product of sets, `finset.pi`.
   `finset.prod_univ_sum` is an alternative statement when the product is over `univ`. -/
 lemma prod_sum {δ : α → Type*} [decidable_eq α] [∀a, decidable_eq (δ a)]
@@ -1206,7 +1201,14 @@ end
 end comm_semiring
 
 section prod_eq_zero
-variables [comm_monoid_with_zero β] [nonzero β] [no_zero_divisors β]
+variables [comm_monoid_with_zero β]
+
+lemma prod_eq_zero (ha : a ∈ s) (h : f a = 0) : (∏ x in s, f x) = 0 :=
+by haveI := classical.dec_eq α;
+calc (∏ x in s, f x) = ∏ x in insert a (erase s a), f x : by rw insert_erase ha
+                 ... = 0 : by rw [prod_insert (not_mem_erase _ _), h, zero_mul]
+
+variables [nontrivial β] [no_zero_divisors β]
 
 lemma prod_eq_zero_iff : (∏ x in s, f x) = 0 ↔ (∃a∈s, f a = 0) :=
 begin

@@ -81,7 +81,7 @@ def mono_key := (with_bot name × with_bot name)
 open nat
 
 meta def mono_head_candidates : ℕ → list expr → expr → tactic mono_key
-| 0 _ h := failed
+| 0 _ h := fail!"Cannot find relation in {h}"
 | (succ n) xs h :=
   do { (rel,l,r) ← if h.is_arrow
            then pure (none,h.binding_domain,h.binding_body)
@@ -96,6 +96,7 @@ meta def mono_head_candidates : ℕ → list expr → expr → tactic mono_key
 meta def monotoncity.check (lm_n : name) (prio : ℕ) (persistent : bool) : tactic mono_key :=
 do lm ← mk_const lm_n,
    lm_t ← infer_type lm,
+   lm_t ← expr.dsimp lm_t { fail_if_unchanged := ff } tt [] [simp_arg_type.expr ``(monotone)],
    (xs,h) ← mk_local_pis lm_t,
    mono_head_candidates 3 xs.reverse h
 

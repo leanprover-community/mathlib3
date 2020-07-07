@@ -353,6 +353,7 @@ end
 meta def match_rule (pat : expr) (r : name) : tactic expr :=
 do  r' ← mk_const r,
     t  ← infer_type r',
+    t  ← expr.dsimp t { fail_if_unchanged := ff } tt [] [simp_arg_type.expr ``(monotone)],
     match_rule_head pat [] r' t
 
 meta def find_lemma (pat : expr) : list name → tactic (list expr)

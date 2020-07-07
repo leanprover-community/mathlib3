@@ -499,6 +499,17 @@ have xmemI : x ∈ I, from ((Iuniq Ix Ixmax) ▸ Hx),
 have ymemI : y ∈ I, from ((Iuniq Iy Iymax) ▸ Hy),
 Imax.1 $ I.eq_top_of_is_unit_mem (I.add_mem xmemI ymemI) H
 
+lemma local_of_unique_nonzero_prime (R : Type u) [comm_ring R]
+  (h : ∃! P : ideal R, P ≠ ⊥ ∧ ideal.is_prime P) : local_ring R :=
+local_of_unique_max_ideal begin
+  rcases h with ⟨P, ⟨hPnonzero, hPnot_top, _⟩, hPunique⟩,
+  refine ⟨P, ⟨hPnot_top, _⟩, λ M hM, hPunique _ ⟨_, ideal.is_maximal.is_prime hM⟩⟩,
+  { refine ideal.maximal_of_no_maximal (λ M hPM hM, ne_of_lt hPM _),
+    exact (hPunique _ ⟨ne_bot_of_gt hPM, ideal.is_maximal.is_prime hM⟩).symm },
+  { rintro rfl,
+    exact hPnot_top (hM.2 P (bot_lt_iff_ne_bot.2 hPnonzero)) },
+end
+
 section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- A local ring homomorphism is a homomorphism between local rings

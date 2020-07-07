@@ -8,16 +8,28 @@ import ring_theory.principal_ideal_domain order.conditionally_complete_lattice
 import ring_theory.multiplicity
 import ring_theory.valuation.basic
 import tactic
-import all
 
 /-!
 # Discrete valuation rings
 
-There are ten definitions on Wikipedia.
+This file defines discrete valuation rings (DVRs) and develops a basic interface
+for them.
 
 ## Important definitions
 
+There are various definitions of a DVR in the literature; we define a DVR to be a local PID
+which is a not a field (the first definition on Wikipedia) and prove that this is equivalent
+to being a PID with a unique non-zero prime ideal (the definition in Serre's
+book "Local Fields").
+
+Let R be an integral domain, assumed to be a principal ideal ring and a local ring.
+
+* `DVR R` : a predicate expresing that R is a DVR
+
 ### Notation
+
+It's a theorem that an element of a DVR is a uniformiser if and only if it's irreducible.
+We do not hence define `uniformiser` at all, because we can use `irreducible` instead.
 
 ### Definitions
 
@@ -43,119 +55,49 @@ namespace discrete_valuation_ring
 
 variables (R : Type u) [integral_domain R] [discrete_valuation_ring R]
 
--- TODO: this should be localised
-local notation `is_uniformiser` := irreducible
-
 def not_a_field : maximal_ideal R ≠ ⊥ := not_a_field'
 
 variable {R}
-theorem uniformiser_iff_generator (ϖ : R) :
-  is_uniformiser ϖ ↔ maximal_ideal R = ideal.span {ϖ} :=
+
+open principal_ideal_ring
+
+/-- An element of a DVR is irreducible iff it is a uniformiser, that is, generates the
+  maximal ideal of R -/
+theorem irreducible_iff_uniformiser (ϖ : R) :
+  irreducible ϖ ↔ maximal_ideal R = ideal.span {ϖ} :=
+⟨λ hϖ, (eq_maximal_ideal (is_maximal_of_irreducible hϖ)).symm,
 begin
-  split,
-  { intro hϖ,
-    cases (is_principal_ideal_ring.principal $ maximal_ideal R).principal with m hm,
-    have hϖ2 : ϖ ∈ maximal_ideal R := hϖ.1,
-    rw hm at hϖ2,
-    rw submodule.mem_span_singleton at hϖ2,
-    cases hϖ2 with a ha,
-    -- rw algebra.id.smul_eq_mul at ha,
-    cases hϖ.2 _ _ ha.symm,
-    { rw hm,
-      show ideal.span {m} = _,
-      rw ←ha,
-      exact (span_singleton_mul_left_unit h _).symm},
-    { have h2 : ¬(is_unit m) := show m ∈ maximal_ideal R,
-      from hm.symm ▸ submodule.mem_span_singleton_self m,
-      exact absurd h h2}},
-  { intro h,
-    have h2 : ¬(is_unit ϖ) := show ϖ ∈ maximal_ideal R,
-      from h.symm ▸ submodule.mem_span_singleton_self ϖ,
-    split, exact h2,
-    intros a b hab,
-    by_contra h,
-    push_neg at h,
-    cases h with ha hb,
-    change a ∈ maximal_ideal R at ha,
-    change b ∈ maximal_ideal R at hb,
-    rw h at ha hb,
-    rw mem_span_singleton' at ha hb,
-    rcases ha with ⟨a, rfl⟩,
-    rcases hb with ⟨b, rfl⟩,
-    rw (show a * ϖ * (b * ϖ) = ϖ * (ϖ * (a * b)), by ring) at hab,
-    have h3 := eq_zero_of_mul_eq_self_right _ hab.symm,
-    { apply not_a_field R,
-      simp [h, h3]},
-    { intro hh, apply h2,
-      refine is_unit_of_dvd_one ϖ _,
-      use a * b, exact hh.symm}
-    }
-end
+  intro h,
+  have h2 : ¬(is_unit ϖ) := show ϖ ∈ maximal_ideal R,
+    from h.symm ▸ submodule.mem_span_singleton_self ϖ,
+  split, exact h2,
+  intros a b hab,
+  by_contra h,
+  push_neg at h,
+  cases h with ha hb,
+  change a ∈ maximal_ideal R at ha,
+  change b ∈ maximal_ideal R at hb,
+  rw h at ha hb,
+  rw mem_span_singleton' at ha hb,
+  rcases ha with ⟨a, rfl⟩,
+  rcases hb with ⟨b, rfl⟩,
+  rw (show a * ϖ * (b * ϖ) = ϖ * (ϖ * (a * b)), by ring) at hab,
+  have h3 := eq_zero_of_mul_eq_self_right _ hab.symm,
+  { apply not_a_field R,
+    simp [h, h3]},
+  { intro hh, apply h2,
+    refine is_unit_of_dvd_one ϖ _,
+    use a * b, exact hh.symm}
+end⟩
 
 variable (R)
-theorem exists_uniformiser : ∃ ϖ : R, is_uniformiser ϖ :=
-by {simp_rw [uniformiser_iff_generator],
+
+/-- Uniformisers exist in a DVR -/
+theorem exists_irreducible : ∃ ϖ : R, irreducible ϖ :=
+by {simp_rw [irreducible_iff_uniformiser],
     exact (is_principal_ideal_ring.principal $ maximal_ideal R).principal}
 
-/-
-Proving a result in Cassels-Froehlich: a DVR is a PID with exactly one non-zero prime ideal
--/
-
--- this should be somewhere else, it's a theorem about local rings
-lemma local_of_unique_nonzero_prime (R : Type u) [comm_ring R]
-  (h : ∃! P : ideal R, P ≠ ⊥ ∧ is_prime P) : local_ring R :=
-local_of_unique_max_ideal begin
-  rcases h with ⟨P, ⟨hPnonzero, hPnot_top, _⟩, hPunique⟩,
-  refine ⟨P, ⟨hPnot_top, _⟩, λ M hM, hPunique _ ⟨_, is_maximal.is_prime hM⟩⟩,
-  { refine maximal_of_no_maximal (λ M hPM hM, ne_of_lt hPM _),
-    exact (hPunique _ ⟨ne_bot_of_gt hPM, is_maximal.is_prime hM⟩).symm },
-  { rintro rfl,
-    exact hPnot_top (hM.2 P (bot_lt_iff_ne_bot.2 hPnonzero)) },
-end
-
--- -- delete this
--- lemma local_of_unique_nonzero_prime'' (R : Type u) [comm_ring R]
--- (h : ∃! P : ideal R, P ≠ ⊥ ∧ is_prime P) : local_ring R :=
--- local_of_unique_max_ideal
--- begin
---   rcases h with ⟨P, ⟨hPnonzero, hPnot_top, _⟩, hPunique⟩,
---   use P,
---   split,
---   { split, exact hPnot_top,
---     apply maximal_of_no_maximal,
---     intros M hPM hM,
---     apply ne_of_lt hPM,
---     symmetry,
---     apply hPunique,
---     split, apply ne_bot_of_gt hPM,
---     exact is_maximal.is_prime hM},
---   { intros M hM,
---     apply hPunique,
---     split,
---     { rintro rfl,
---       cases hM with hM1 hM2,
---       specialize hM2 P (bot_lt_iff_ne_bot.2 hPnonzero),
---       exact hPnot_top hM2},
---     { exact is_maximal.is_prime hM}}
--- end
-
--- lemma local_of_unique_nonzero_prime' (R : Type u) [comm_ring R]
--- (h : ∃! P : ideal R, P ≠ ⊥ ∧ is_prime P) : local_ring R :=
--- let ⟨P, ⟨hPnonzero, hPnot_top, _⟩, hPunique⟩ := h in
--- local_of_unique_max_ideal ⟨P, ⟨hPnot_top,
---   maximal_of_no_maximal $ λ M hPM hM, ne_of_lt hPM $ (hPunique _ ⟨ne_bot_of_gt hPM, is_maximal.is_prime hM⟩).symm⟩,
---   _
---  λ M hM, hPunique _ ⟨λ h, hPnot_top $ hM.2 _ (_ : M < P), is_maximal.is_prime hM⟩⟩
-
--- lemma local_of_unique_nonzero_prime' (R : Type u) [comm_ring R]
--- (h : ∃! P : ideal R, P ≠ ⊥ ∧ is_prime P) : local_ring R :=
--- let ⟨P, ⟨hPnonzero, hPnot_top, _⟩, hPunique⟩ := h in
--- local_of_unique_max_ideal ⟨P, ⟨hPnot_top,
---   maximal_of_no_maximal $ λ M hPM hM, ne_of_lt hPM $ (hPunique _ ⟨ne_bot_of_gt hPM, is_maximal.is_prime hM⟩).symm⟩,
---   λ M hM, hPunique _ ⟨λ (h : M = ⊥), hPnot_top $ hM.2 _ (h.symm ▸ (bot_lt_iff_ne_bot.2 hPnonzero : ⊥ < P) : M < P), is_maximal.is_prime hM⟩⟩
-
--- a DVR is a PID with exactly one non-zero prime ideal
-
+/-- an integral domain is a DVR iff it's a PID with a unique non-zero prime ideal -/
 theorem iff_PID_with_one_nonzero_prime (R : Type u) [integral_domain R] :
   discrete_valuation_ring R ↔ is_principal_ideal_ring R ∧ ∃! P : ideal R, P ≠ ⊥ ∧ is_prime P :=
 begin
@@ -177,7 +119,7 @@ begin
       },
       erw span_singleton_prime hq at hQ2,
       replace hQ2 := irreducible_of_prime hQ2,
-      rw uniformiser_iff_generator at hQ2,
+      rw irreducible_iff_uniformiser at hQ2,
       exact hQ2.symm}},
   { rintro ⟨RPID, Punique⟩,
     haveI : local_ring R := local_of_unique_nonzero_prime R Punique,
@@ -187,10 +129,10 @@ begin
     intro h, rw [h, le_bot_iff] at hPM, exact hP1 hPM}
 end
 
-lemma associated_of_uniformiser {a b : R} (ha : is_uniformiser a) (hb : is_uniformiser b) :
+lemma associated_of_irreducible {a b : R} (ha : irreducible a) (hb : irreducible b) :
   associated a b :=
 begin
-  rw uniformiser_iff_generator at ha hb,
+  rw irreducible_iff_uniformiser at ha hb,
   rw [←span_singleton_eq_span_singleton, ←ha, hb],
 end
 
@@ -214,8 +156,23 @@ multiplicity I (span {r} : ideal R)
 -- want type T
 -- T = {0} ∪ {g^n : n ∈ ℤ}, 0 <
 
-def Γ := with_zero (multiplicative ℤ)
-def g : Γ := some (-1 : ℤ)
+-- C∞₀
+
+#where
+
+def C_infty₀ := with_zero (multiplicative ℤ)
+
+#exit
+-- R : DVR, canonical map R -> enat; Frac(R) -> ℤ ∪ {∞} canonical
+-- v: Frac(R) -> ℝ≥0, v(ϖ) ∈ (0,1), not sure where to put it
+-- v : Frac(R) -> Γ, v(ϖ) = "-1" 
+-- R=Z_p, ϖ = p, traditionally v(ϖ) = 1/p ∈ ℝ≥0
+-- R = ℂ[[T]], ϖ = T, v(ϖ) = anything in (0,1)
+-- but the map from R to Γ is canonical 
+-- If t ∈ ℝ>0 then x ↦ x^t is an isomorphism of groups-with-zero ℝ≥0 → ℝ≥0 , sending 0 to 0 and 1 to 1
+
+
+
 
 set_option old_structure_cmd true
 
@@ -266,24 +223,19 @@ instance (G : Type u) [linear_ordered_comm_group G] : linear_ordered_comm_group_
 
 end with_zero
 
--- instance : partial_order (multiplicative ℤ) := (by apply_instance : partial_order ℤ)
-
--- instance : comm_group (multiplicative ℤ) := by apply_instance -- works
+instance {α : Type u} [h : has_le α] : has_le (multiplicative α) := h
+instance {α : Type u} [h : preorder α] : preorder (multiplicative α) := h
+instance {α : Type u} [h : partial_order α] : partial_order (multiplicative α) := h
+instance {α : Type u} [h : linear_order α] : linear_order (multiplicative α) := h
 
 instance (G : Type u) [ordered_add_comm_group G] : ordered_comm_group (multiplicative G) :=
 { mul_le_mul_left := @add_le_add_left G _,
   ..(by apply_instance : comm_group (multiplicative G)),
-  ..(by apply_instance : partial_order G) }
-
-instance foo2 : ordered_comm_group (multiplicative ℤ) := by apply_instance
-
-instance : linear_order (multiplicative ℤ) := (by apply_instance : linear_order ℤ)
+  ..(by apply_instance : partial_order (multiplicative G)) }
 
 instance (G : Type u) [decidable_linear_ordered_add_comm_group G] : linear_ordered_comm_group (multiplicative G) :=
 { ..(by apply_instance : ordered_comm_group (multiplicative G)),
-  ..(by apply_instance : linear_order G) }
-
-instance bar : linear_ordered_comm_group (multiplicative ℤ) := by apply_instance
+  ..(by apply_instance : linear_order (multiplicative G)) }
 
 instance : linear_ordered_comm_group_with_zero Γ := by dunfold Γ; apply_instance
 
@@ -320,24 +272,11 @@ begin
   simp_rw [← enat.coe_add, foo_coe, int.coe_nat_add, neg_add, of_add_add, ← with_zero.mul_coe]
 end
 
-instance {α : Type u} [has_le α] : has_le (multiplicative α) := _inst_1
-instance {α : Type u} [preorder α] : preorder (multiplicative α) := _inst_1
-instance {α : Type u} [partial_order α] : partial_order (multiplicative α) := _inst_1
-instance multiplicative.linear_order' {α : Type u} [linear_order α] : linear_order (multiplicative α) := _inst_1
-
 theorem of_add_le {α : Type u} [has_le α] {x y : α} :
   multiplicative.of_add x ≤ multiplicative.of_add y ↔ x ≤ y :=
 iff.rfl
 
--- to replace
-instance multiplicative.ordered_comm_group' (G : Type u) [ordered_add_comm_group G] : ordered_comm_group (multiplicative G) :=
-{ mul_le_mul_left := @add_le_add_left G _,
-  ..(by apply_instance : comm_group (multiplicative G)),
-  ..(by apply_instance : partial_order (multiplicative G)) }
 
-instance multiplicative.linear_ordered_comm_group' (G : Type u) [decidable_linear_ordered_add_comm_group G] : linear_ordered_comm_group (multiplicative G) :=
-{ ..(by apply_instance : ordered_comm_group (multiplicative G)),
-  ..(by apply_instance : linear_order (multiplicative G)) }
 
 theorem foo_le (x y) : foo x ≤ foo y ↔ y ≤ x :=
 begin

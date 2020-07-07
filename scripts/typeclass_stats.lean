@@ -75,15 +75,15 @@ do
         file := filename olean_file,
         line := pos_line (env.decl_pos name),
         topic := topic olean_file },
+      (l, tgt) ← return decl.type.pi_binders,
+      guard (l.tail.all $ λ b, b.info = binder_info.inst_implicit),
       is_c ← succeeds (tactic.has_attribute `class name),
-      if is_c then
-        let N : node := { .. I } in
+      if is_c then do
+        let N : node := { .. I },
         return (some (sum.inl N))
       else do
       is_i ← succeeds (tactic.has_attribute `instance name),
       if is_i then do
-        (l, tgt) ← return decl.type.pi_binders,
-        guard (l.tail.all $ λ b, b.info = binder_info.inst_implicit),
         guard (tgt.get_app_args.head.is_var && l.ilast.type.get_app_args.head.is_var),
         let src := to_string l.ilast.type.erase_annotations.get_app_fn.const_name,
         let tgt := to_string tgt.erase_annotations.get_app_fn.const_name,

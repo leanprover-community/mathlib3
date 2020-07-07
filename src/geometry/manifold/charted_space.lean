@@ -665,6 +665,12 @@ begin
   exact G.eq_on_source C (setoid.symm D),
 end
 
+variable (G)
+
+/-- In the model space, the identity is in any maximal atlas. -/
+lemma structure_groupoid.id_mem_maximal_atlas : local_homeomorph.refl H ∈ G.maximal_atlas H :=
+G.mem_maximal_atlas_of_mem_atlas (by simp)
+
 end maximal_atlas
 
 /-! ### Structomorphisms -/

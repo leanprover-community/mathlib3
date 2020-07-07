@@ -7,6 +7,45 @@ import geometry.manifold.smooth_manifold_with_corners
 import analysis.calculus.times_cont_diff
 import tactic.basic
 
+/-!
+# Local properties invariant under a groupoid
+
+We study properties of a triple `(g, s, x)` where `g` is a function between two spaces `H` and `H'`,
+`s` is a subset of `H` and `x` is a point of `H`. Our goal is to register how such a property
+should behave to make sense in charted spaces modelled on `H` and `H'`.
+
+The main examples we have in mind are the properties "`g` is differentiable at `x` within `s`", or
+"`g` is smooth at `x` within `s`". We want to develop general results that, when applied in these
+specific situations, say that the notion of smooth function in a manifold behaves well under
+restriction, intersection, is local, and so on.
+
+## Main definitions
+
+* `local_invariant_prop G G' P` says that a property `P` of a triple `(g, s, x)` is local, and
+  invariant under composition by elements of the groupoids `G` and `G'` of `H` and `H'`
+  respectively.
+* `local_invariant_mono_prop G G' P` requires additionally that the property is invariant under
+  arbitrary restriction, i.e., if it holds for `(g, s, x)`, then it holds for `(g, t, x)` when
+  `t` is a subset of `s`.
+* `charted_space.lift_prop_within_at` (resp. `lift_prop_at`, `lift_prop_on` and `lift_prop`):
+  given a property `P` of `(g, s, x)` where `g : H → H'`, define the corresponding property
+  for functions `M → M'` where `M` and `M'` are charted spaces modelled respectively on `H` and
+  `H'`. We define these properties within a set at a point, or at a point, or on a set, or in the
+  whole space. This lifting process (obtained by restricting to suitable chart domains) can always
+  be done, but it only behaves well under locality and invariance assumptions.
+
+Given `hG : local_invariant_prop G G' P`, we deduce many properties of the lifted property on the
+charted spaces. For instance, `hG.lift_prop_within_at_inter` says that `P g s x` is equivalent to
+`P g (s ∩ t) x` whenever `t` is a neighborhood of `x`.
+
+## Implementation notes
+
+We do not use dot notation for properties of the lifted property. For instance, we have
+`hG.lift_prop_within_at_of_lift_prop_at` saying that if `lift_prop_at P g x` holds, then
+`lift_prop_within_at P g s x` holds. We can't call it `lift_prop_at.lift_prop_within_at` as it is
+in the namespace associated to `local_invariant_prop`, not in the one for `lift_prop_at`.
+-/
+
 noncomputable theory
 open_locale classical manifold topological_space
 universes u
@@ -59,6 +98,7 @@ namespace structure_groupoid
 variables {G : structure_groupoid H} {G' : structure_groupoid H'}
 {e e' : local_homeomorph M H} {f f' : local_homeomorph M' H'}
 {P : (H → H') → set H → H → Prop} {g g' : M → M'} {s t : set M} {x : M}
+{Q : (H → H) → set H → H → Prop}
 
 lemma lift_prop_within_at_univ :
   lift_prop_within_at P g univ x ↔ lift_prop_at P g x :=
@@ -256,6 +296,24 @@ begin
   exact hG.lift_prop_within_at_congr h (λ y hy, ht _ hy.2) hx
 end
 
+omit hG
+
+lemma lift_prop_at_chart [has_groupoid M G]
+  (hG : G.local_invariant_prop G Q) (hQ : ∀ y, Q id univ y)
+  (he : e ∈ maximal_atlas M G) (hx : x ∈ e.source) :
+  lift_prop_at Q e x :=
+begin
+  suffices h : Q (e ∘ e.symm) e.target (e x),
+  { rw [lift_prop_at, hG.lift_prop_within_at_indep_chart he hx G.id_mem_maximal_atlas (mem_univ _)],
+    refine ⟨(e.continuous_at hx).continuous_within_at, _⟩,
+    simpa only with mfld_simps },
+  have A : Q id e.target (e x),
+  { have Z := hQ (e x),
+    have : e x ∈ e.target, by simp only [hx] with mfld_simps,
+    have T := hG.is_local e.open_target this,
+  },
+end
+
 
 end local_invariant_prop
 
@@ -273,7 +331,7 @@ begin
   simp only [hy, hst _] with mfld_simps,
 end
 
-lemma lift_prop_at_to_lift_prop_within_at (h : lift_prop_at P g x) : lift_prop_within_at P g s x :=
+lemma lift_prop_within_at_of_lift_prop_at (h : lift_prop_at P g x) : lift_prop_within_at P g s x :=
 begin
   rw ← lift_prop_within_at_univ at h,
   exact hG.lift_prop_within_at_mono h (subset_univ _),
@@ -283,7 +341,7 @@ lemma lift_prop_on_mono (h : lift_prop_on P g t) (hst : s ⊆ t) :
   lift_prop_on P g s :=
 λ x hx, hG.lift_prop_within_at_mono (h x (hst hx)) hst
 
-lemma lift_prop_to_lift_prop_on (h : lift_prop P g) : lift_prop_on P g s :=
+lemma lift_prop_on_of_lift_prop (h : lift_prop P g) : lift_prop_on P g s :=
 begin
   rw ← lift_prop_on_univ at h,
   exact hG.lift_prop_on_mono h (subset_univ _)

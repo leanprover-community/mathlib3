@@ -338,6 +338,9 @@ instance comm_semiring.to_comm_monoid_with_zero [comm_semiring α] : comm_monoid
 section comm_semiring
 variables [comm_semiring α] [comm_semiring β] {a b c : α}
 
+instance comm_semiring.comm_monoid_with_zero : comm_monoid_with_zero α :=
+{ .. (‹_› : comm_semiring α) }
+
 /-- Pullback a `semiring` instance along an injective function. -/
 protected def function.injective.comm_semiring [has_zero γ] [has_one γ] [has_add γ] [has_mul γ]
   (f : γ → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)

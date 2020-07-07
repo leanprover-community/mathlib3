@@ -46,7 +46,8 @@ meta def fin_cases_at_aux : Π (with_list : list expr) (e : expr), tactic unit
                         (to_rhs >> conv.interactive.change (to_pexpr h))
         -- Otherwise, call `norm_num`. We let `norm_num` unfold `max` and `min`
         -- because it's helpful for the `interval_cases` tactic.
-        | _ := try $ tactic.interactive.norm_num
+        | _ := try $ tactic.interactive.conv (some sn) none $
+               to_rhs >> tactic.interactive.norm_num
                  [simp_arg_type.expr ``(max), simp_arg_type.expr ``(min)] (loc.ns [some sn])
         end,
         s ← get_local sn,

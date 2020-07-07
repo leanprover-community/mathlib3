@@ -246,8 +246,8 @@ instance : semimodule R (M ⊗ N) := semimodule.of_core
 (smul_tmul _ _ _).symm
 
 variables (R M N)
-def mk : M →ₗ N →ₗ M ⊗ N :=
-linear_map.mk₂ R (⊗ₜ) (@add_tmul R _ _ _ _ _ _ _) (λ c m n, by rw [smul_tmul, tmul_smul]) tmul_add tmul_smul
+def mk : M →ₗ N →ₗ M ⊗[R] N :=
+linear_map.mk₂ R (⊗ₜ) add_tmul (λ c m n, by rw [smul_tmul, tmul_smul]) tmul_add tmul_smul
 variables {R M N}
 
 @[simp] lemma mk_apply (m : M) (n : N) : mk R M N m n = m ⊗ₜ n := rfl

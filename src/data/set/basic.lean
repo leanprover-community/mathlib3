@@ -307,6 +307,9 @@ by simp [subset.antisymm_iff]
 theorem eq_empty_of_subset_empty {s : set α} : s ⊆ ∅ → s = ∅ :=
 subset_empty_iff.1
 
+theorem eq_empty_of_not_nonempty (h : ¬nonempty α) (s : set α) : s = ∅ :=
+eq_empty_of_subset_empty $ λ x hx, h ⟨x⟩
+
 lemma not_nonempty_iff_eq_empty {s : set α} : ¬s.nonempty ↔ s = ∅ :=
 by simp only [set.nonempty, eq_empty_iff_forall_not_mem, not_exists]
 

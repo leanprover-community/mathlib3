@@ -1205,8 +1205,8 @@ end
 
 end comm_semiring
 
-section integral_domain /- add integral_semi_domain to support nat and ennreal -/
-variables [integral_domain β]
+section prod_eq_zero
+variables [comm_monoid_with_zero β] [nonzero β] [no_zero_divisors β]
 
 lemma prod_eq_zero_iff : (∏ x in s, f x) = 0 ↔ (∃a∈s, f a = 0) :=
 begin
@@ -1220,7 +1220,7 @@ end
 theorem prod_ne_zero_iff : (∏ x in s, f x) ≠ 0 ↔ (∀ a ∈ s, f a ≠ 0) :=
 by { rw [ne, prod_eq_zero_iff], push_neg }
 
-end integral_domain
+end prod_eq_zero
 
 section ordered_add_comm_monoid
 variables [ordered_add_comm_monoid β]

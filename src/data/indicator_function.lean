@@ -203,7 +203,7 @@ by { rw indicator_apply, split_ifs with as, { exact h as }, refl }
 lemma indicator_nonpos (h : ∀ a ∈ s, f a ≤ 0) : ∀ a, indicator s f a ≤ 0 :=
 λ a, indicator_nonpos' (h a)
 
-lemma indicator_le_indicator (h : f a ≤ g a) : indicator s f a ≤ indicator s g a :=
+@[mono] lemma indicator_le_indicator (h : f a ≤ g a) : indicator s f a ≤ indicator s g a :=
 by { simp only [indicator], split_ifs with ha, { exact h }, refl }
 
 lemma indicator_le_indicator_of_subset (h : s ⊆ t) (hf : ∀a, 0 ≤ f a) (a : α) :

@@ -448,6 +448,9 @@ lemma piecewise_insert_of_ne {i j : α} (h : i ≠ j) [∀i, decidable (i ∈ in
   (insert j s).piecewise f g i = s.piecewise f g i :=
 by simp [piecewise, h]
 
+@[simp] lemma piecewise_compl [∀ i, decidable (i ∈ sᶜ)] : sᶜ.piecewise f g = s.piecewise g f :=
+funext $ λ x, if hx : x ∈ s then by simp [hx] else by simp [hx]
+
 end set
 
 namespace function

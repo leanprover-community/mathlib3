@@ -5,7 +5,7 @@ open tactic declaration environment native
 meta def pos_line (p : option pos) : string :=
 match p with
 | some x := to_string x.line
-| _      := ""
+| _      := "null"
 end
 
 def prepare_filename₁ : string → list string :=

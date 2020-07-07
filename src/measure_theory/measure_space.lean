@@ -272,7 +272,7 @@ begin
     ... ≤ r : le_of_lt hn
 end
 
-/- Can this prove be simplified? Currently it's pretty ugly. -/
+/- Can this proof be simplified? Currently it's pretty ugly. -/
 lemma trim_smul (m : outer_measure α) (x : ennreal) : (x • m).trim = x • m.trim :=
 begin
   ext1 s,

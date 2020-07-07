@@ -439,18 +439,18 @@ tsum_supr_decode2 m m0 s
 /-! Some properties about measure-like functions.
   These could also be functions defined on complete sublattices of sets, with the property
   that they are countably sub-additive.
-  `R` will probably instantiated with `(≤)` in all applications.
+  `R` will probably be instantiated with `(≤)` in all applications.
 -/
 
 /-- If a function is countably sub-additive then it is sub-additive on encodable types -/
 theorem supr_R_tsum [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
-  (R : α → α → Prop) (m_supr : ∀(s : ℕ → β), R (m (⨆ i, s i)) ((∑' i, m (s i))))
+  (R : α → α → Prop) (m_supr : ∀(s : ℕ → β), R (m (⨆ i, s i)) (∑' i, m (s i)))
   (s : γ → β) : R (m (⨆ b : γ, s b)) (∑' b : γ, m (s b)) :=
 by { rw [supr_decode2, tsum_supr_decode2 _ m0 s], exact m_supr _ }
 
 /-- If a function is countably sub-additive then it is sub-additive on finite sets -/
 theorem supr_R_sum [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
-  (R : α → α → Prop) (m_supr : ∀(s : ℕ → β), R (m (⨆ i, s i)) ((∑' i, m (s i))))
+  (R : α → α → Prop) (m_supr : ∀(s : ℕ → β), R (m (⨆ i, s i)) (∑' i, m (s i)))
   (s : δ → β) (t : finset δ) :
   R (m (⨆ d ∈ t, s d)) (∑ d in t, m (s d)) :=
 by { cases nonempty_encodable t, rw [supr_subtype'], convert supr_R_tsum m m0 R m_supr _,
@@ -458,7 +458,7 @@ by { cases nonempty_encodable t, rw [supr_subtype'], convert supr_R_tsum m m0 R 
 
 /-- If a function is countably sub-additive then it is binary sub-additive -/
 theorem sup_R_add [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
-  (R : α → α → Prop) (m_supr : ∀(s : ℕ → β), R (m (⨆ i, s i)) ((∑' i, m (s i))))
+  (R : α → α → Prop) (m_supr : ∀(s : ℕ → β), R (m (⨆ i, s i)) (∑' i, m (s i)))
   (s₁ s₂ : β) : R (m (s₁ ⊔ s₂)) (m s₁ + m s₂) :=
 begin
   convert supr_R_tsum m m0 R m_supr (λ b, cond b s₁ s₂),

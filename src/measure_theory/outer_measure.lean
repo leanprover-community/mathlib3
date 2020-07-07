@@ -84,7 +84,7 @@ lemma Union_null (m : outer_measure α)
 by simpa [h] using m.Union s
 
 protected lemma Union_finset (m : outer_measure α) (s : β → set α) (t : finset β) :
-  m (⋃i ∈ t, s i) ≤ ∑ d in t, m (s d) :=
+  m (⋃i ∈ t, s i) ≤ ∑ i in t, m (s i) :=
 supr_R_sum m m.empty (≤) m.Union_nat s t
 
 protected lemma union (m : outer_measure α) (s₁ s₂ : set α) :

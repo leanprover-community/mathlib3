@@ -15,7 +15,7 @@ Lemmas about lattice and set operations on encodable types
 
 This is a separate file, to avoid unnecessary imports in basic files.
 
-Previously some of these results where in the measure_theory folder.
+Previously some of these results were in the `measure_theory` folder.
 -/
 
 open set

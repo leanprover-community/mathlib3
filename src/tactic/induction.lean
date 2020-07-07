@@ -179,17 +179,17 @@ def map₂_right {α β γ} (f : option α → β → γ) (as : list α) (bs : l
 map₂_left (flip f) bs as
 
 def zip_left {α β} : list α → list β → list (α × option β) :=
-map₂_left (λ a b, (a, b))
+map₂_left prod.mk
 
 def zip_right {α β} : list α → list β → list (option α × β) :=
-map₂_right (λ a b, (a, b))
+map₂_right prod.mk
 
 lemma map₂_left_eq_map₂_left' {α β γ} (f : α → option β → γ)
   : ∀ (as : list α) (bs : list β),
-    map₂_left f as bs = (map₂_left' f as bs).1
+    map₂_left f as bs = (map₂_left' f as bs).fst
 | [] bs := by simp!
-| (a :: as) [] := by { simp! [*], cases (map₂_left' f as nil), simp!  }
-| (a :: as) (b :: bs) := by { simp! [*], cases (map₂_left' f as bs), simp! }
+| (a :: as) [] := by { simp! only [*], cases (map₂_left' f as nil), simp!  }
+| (a :: as) (b :: bs) := by { simp! only [*], cases (map₂_left' f as bs), simp! }
 
 end list
 

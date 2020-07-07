@@ -1075,7 +1075,7 @@ theorem filter.tendsto.dist {f g : β → α} {x : filter β} {a b : α}
 
 lemma nhds_comap_dist (a : α) : (𝓝 (0 : ℝ)).comap (λa', dist a' a) = 𝓝 a :=
 by simp only [@nhds_eq_comap_uniformity α, metric.uniformity_eq_comap_nhds_zero,
-  comap_comap_comp, (∘), dist_comm]
+  comap_comap, (∘), dist_comm]
 
 lemma tendsto_iff_dist_tendsto_zero {f : β → α} {x : filter β} {a : α} :
   (tendsto f x (𝓝 a)) ↔ (tendsto (λb, dist (f b) a) x (𝓝 0)) :=

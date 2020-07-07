@@ -277,7 +277,7 @@ protected lemma subtype (p : α → Prop) : dense_embedding (subtype_emb p e) :=
     end,
   inj     := assume ⟨x, hx⟩ ⟨y, hy⟩ h, subtype.eq $ de.inj $ @@congr_arg subtype.val h,
   induced := (induced_iff_nhds_eq _).2 (assume ⟨x, hx⟩,
-    by simp [subtype_emb, nhds_subtype_eq_comap, de.to_inducing.nhds_eq_comap, comap_comap_comp, (∘)]) }
+    by simp [subtype_emb, nhds_subtype_eq_comap, de.to_inducing.nhds_eq_comap, comap_comap, (∘)]) }
 
 end dense_embedding
 

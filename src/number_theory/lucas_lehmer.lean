@@ -325,7 +325,7 @@ lemma two_lt_q (p' : ℕ) : 2 < q (p'+2) := begin
       ...  < 2^(p'+2) : nat.lt_two_pow _
       ...  = 2        : nat.pred_inj (nat.one_le_two_pow _) dec_trivial h'), },
   { -- If q = 2, we get a contradiction from 2 ∣ 2^p - 1
-    dsimp [q] at h, injection h with h', clear h,
+    norm_num at h, dsimp [q] at h, injection h with h', clear h,
     rw [mersenne, pnat.one_coe, nat.min_fac_eq_two_iff, nat.pow_succ, nat.mul_comm] at h',
     exact nat.two_not_dvd_two_mul_sub_one (nat.one_le_two_pow _) h', }
 end

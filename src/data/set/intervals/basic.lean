@@ -7,6 +7,7 @@ import tactic.tauto
 import tactic.localized
 import algebra.order_functions
 import algebra.ordered_field
+import data.set.basic
 
 /-!
 # Intervals

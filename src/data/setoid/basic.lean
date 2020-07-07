@@ -165,11 +165,10 @@ end
     supremum of the set's image under the map to the underlying binary operation. -/
 lemma Sup_def {s : set (setoid α)} : Sup s = eqv_gen.setoid (Sup (rel '' s)) :=
 begin
-  rw Sup_eq_eqv_gen,
+  rw [Sup_eq_eqv_gen, Sup_image],
   congr,
   ext x y,
-  erw [Sup_image, supr_apply, supr_apply, supr_Prop_eq],
-  simp only [Sup_image, supr_Prop_eq, supr_apply, supr_Prop_eq, exists_prop]
+  simp only [supr_apply, supr_Prop_eq, exists_prop]
 end
 
 /-- The equivalence closure of an equivalence relation r is r. -/

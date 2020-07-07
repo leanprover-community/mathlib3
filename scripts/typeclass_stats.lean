@@ -93,18 +93,6 @@ do
       else do return none
     else do return none
 
-variables {α β : Type*}
-
-def list.remove_none : list (option α) → list α
-| []            := []
-| (none :: l)   := l.remove_none
-| (some a :: l) := a :: l.remove_none
-
-def list.split_sum : list (α ⊕ β) → (list α) × (list β)
-| []  := ([], [])
-| ((sum.inl a) :: l) := let L := l.split_sum in ((a :: L.1), L.2)
-| ((sum.inr b) :: l) := let L := l.split_sum in (L.1, (b :: L.2))
-
 /-- prints information about unary classes and forgetful instances in the environment.
   It only prints instances and classes that have at most 1 argument
   that is not a type-class argument (within square brackets),
@@ -113,7 +101,7 @@ def list.split_sum : list (α ⊕ β) → (list α) × (list β)
 meta def print_content : tactic unit :=
 do curr_env ← get_env,
    o ← (curr_env.fold [] list.cons).mmap (λ x, parse_decl curr_env x <|> pure none),
-   let (ns, es) := o.remove_none.split_sum,
+   let (ns, es) := o.reduce_option.partition_map id,
    trace "{ \"nodes\" : \n",
    trace (to_string ns),
    trace ",\n  \"edges\" :\n",

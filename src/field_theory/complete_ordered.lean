@@ -4,6 +4,8 @@ import data.equiv.ring
 import algebra.pointwise
 import order.conditionally_complete_lattice
 import tactic.basic
+import topology.instances.real
+import analysis.special_functions.pow
 
 /-
 
@@ -34,8 +36,8 @@ open set
 
 /-- The natural equiv between the rationals and the rationals as a set inside any characteristic 0
     division ring -/
-def prime_subfield_equiv (F : Type*) [division_ring F] [char_zero F] :
-  ℚ ≃ range (coe : ℚ → F) := equiv.set.range coe rat.cast_injective
+def prime_subfield_equiv (F : Type*) [division_ring F] [char_zero F] : ℚ ≃ range (coe : ℚ → F) :=
+equiv.set.range coe rat.cast_injective
 
 /-- The natural equiv between the rationals as a set inside any pair of characteristic 0
     division rings -/
@@ -132,7 +134,33 @@ instance : conditionally_complete_linear_ordered_field ℝ := {
 -- TODO a pow version of this?
 theorem exists_rat_sqr_btwn_rat {x y : ℚ} (h : x < y) (hy : 0 ≤ x) : ∃ q : ℚ, 0 ≤ q ∧ x < q^2 ∧ q^2 < y :=
 begin
-  sorry
+  suffices : ∃ q : ℚ, x < q^2 ∧ q^2 < y,
+  begin
+    cases this with q hq,
+    by_cases h : 0 ≤ q,
+    { use [q, h, hq], },
+    { refine ⟨-q, le_of_lt _, _⟩,
+      linarith,
+      simpa only [neg_square], },
+  end,
+  suffices : ∃ (S : set ℝ), S.nonempty ∧ is_open S ∧ ((^ 2) '' S) ⊆ Ioo x y,
+  begin
+    rcases this with ⟨S, Sne, So, Sc⟩,
+    set q : ℚ := sorry,
+    have hq : (q : ℝ) ∈ S := sorry,
+    use q,
+    have := Sc (mem_image_of_mem _ hq),
+    rw mem_Ioo at this,
+    exact_mod_cast this,
+  end,
+  have : continuous ((^ 2) : ℝ → ℝ) := sorry,
+  refine ⟨_, _, this (Ioo x y) is_open_Ioo, _⟩,
+  { simp [mem_preimage],
+    have : ∃ a, (λ x : ℝ, x ^ 2) a ∈ Ioo (x : ℝ) y := sorry,
+    cases this with a ha,
+    rw ← mem_preimage at ha,
+    use [a, ha], },
+  exact image_preimage_subset _ (Ioo x y),
 end
 
 -- TODO a pow version of this?
@@ -252,10 +280,8 @@ begin
     use [q, rfl, h], },
 end
 
-lemma cut_image_ssubset (F K : Type*)
-  [linear_ordered_field F] [archimedean F] [linear_ordered_field K]
-  (x y : F) (h : x < y) :
-cut_image F K x ⊂ cut_image F K y :=
+lemma cut_image_ssubset (F K : Type*) [linear_ordered_field F] [archimedean F]
+  [linear_ordered_field K] {x y : F} (h : x < y) : cut_image F K x ⊂ cut_image F K y :=
 begin
   rw ssubset_iff_subset_ne,
   split,

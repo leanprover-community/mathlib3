@@ -273,7 +273,7 @@ section algebra
 open algebra
 variables {R : Type*} {A : Type*} {B : Type*}
 variables [comm_ring R] [comm_ring A] [comm_ring B]
-variables [algebra R A] [algebra A B] [algebra R B] [is_algebra_tower R A B]
+variables [algebra R A] [algebra A B] [algebra R B]
 
 lemma is_integral_trans_aux (x : B) {p : polynomial A} (pmonic : monic p) (hp : aeval A B x p = 0) :
   is_integral (adjoin R (↑(p.map $ algebra_map A B).frange : set B)) x :=
@@ -296,6 +296,8 @@ begin
     replace hq := congr_arg (eval x) hq,
     convert hq using 1; symmetry; apply eval_map },
 end
+
+variables [is_algebra_tower R A B]
 
 /-- If A is an R-algebra all of whose elements are integral over R,
 and x is an element of an A-algebra that is integral over A, then x is integral over R.-/

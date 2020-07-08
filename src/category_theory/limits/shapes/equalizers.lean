@@ -6,7 +6,7 @@ Authors: Scott Morrison, Markus Himmel
 import category_theory.epi_mono
 import category_theory.eq_to_hom
 import category_theory.limits.limits
-import data.fintype.basic
+-- import data.fintype.basic
 
 /-!
 # Equalizers and coequalizers
@@ -57,10 +57,6 @@ universes v u
 @[derive decidable_eq, derive inhabited] inductive walking_parallel_pair : Type v
 | zero | one
 
-instance fintype_walking_parallel_pair : fintype walking_parallel_pair :=
-{ elems := [walking_parallel_pair.zero, walking_parallel_pair.one].to_finset,
-  complete := λ x, by { cases x; simp } }
-
 open walking_parallel_pair
 
 /-- The type family of morphisms for the diagram indexing a (co)equalizer. -/
@@ -75,13 +71,6 @@ instance : inhabited (walking_parallel_pair_hom zero one) :=
 { default := walking_parallel_pair_hom.left }
 
 open walking_parallel_pair_hom
-
-instance (j j' : walking_parallel_pair) : fintype (walking_parallel_pair_hom j j') :=
-{ elems := walking_parallel_pair.rec_on j
-    (walking_parallel_pair.rec_on j' [walking_parallel_pair_hom.id zero].to_finset
-      [left, right].to_finset)
-    (walking_parallel_pair.rec_on j' ∅ [walking_parallel_pair_hom.id one].to_finset),
-  complete := by tidy }
 
 /-- Composition of morphisms in the indexing diagram for (co)equalizers. -/
 def walking_parallel_pair_hom.comp :

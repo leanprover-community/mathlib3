@@ -228,7 +228,7 @@ lemma epi_of_target_iso_zero {X Y : C} (f : X ⟶ Y) (i : Y ≅ 0) : epi f :=
 ⟨λ Z g h w, by rw [zero_of_source_iso_zero g i, zero_of_source_iso_zero h i]⟩
 
 /--
-An object `X` has `𝟙 X = 0` if and only if it is isomorphisc to the zero object.
+An object `X` has `𝟙 X = 0` if and only if it is isomorphic to the zero object.
 
 Because `X ≅ 0` contains data (even if a subsingleton), we express this `↔` as an `≃`.
 -/

@@ -1443,6 +1443,13 @@ def equiv_of_unique_of_unique [unique α] [unique β] : α ≃ β :=
 def equiv_punit_of_unique [unique α] : α ≃ punit.{v} :=
 equiv_of_unique_of_unique
 
+/-- If `α` is a subsingleton, then it is equivalent to `α × α`. -/
+def subsingleton_prod_self_equiv {α : Type*} [subsingleton α] : α × α ≃ α :=
+{ to_fun := λ p, p.1,
+  inv_fun := λ a, (a, a),
+  left_inv := λ p, subsingleton.elim _ _,
+  right_inv := λ p, subsingleton.elim _ _, }
+
 /-- To give an equivalence between two subsingleton types, it is sufficient to give any two
     functions between them. -/
 def equiv_of_subsingleton_of_subsingleton [subsingleton α] [subsingleton β]

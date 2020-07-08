@@ -3,9 +3,9 @@ Copyright (c) 2017 Simon Hudon All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 
-Basic machinery for defining general coinductive types
+M types are potentially infinite tree-like structures. Their shape
+is given by a polynomial functor.
 
-Work in progress
 -/
 import data.pfun tactic.interactive
        data.qpf.univariate.basic

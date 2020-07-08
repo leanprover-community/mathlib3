@@ -9,7 +9,7 @@ import ring_theory.ideal_operations
 import ring_theory.free_ring
 
 noncomputable theory
-local attribute [instance, priority 100] classical.prop_decidable
+open_locale classical
 
 universes u v
 
@@ -69,7 +69,7 @@ free_abelian_group.lift.sub _ _ _
 @[simp] lemma lift_mul (x y) : lift f (x * y) = lift f x * lift f y :=
 begin
   refine free_abelian_group.induction_on y (mul_zero _).symm _ _ _,
-  { intros s2, conv_lhs { dsimp only [(*), distrib.mul, ring.mul, comm_ring.mul, semigroup.mul] },
+  { intros s2, conv_lhs { dsimp only [free_abelian_group.mul_def] },
     rw [free_abelian_group.lift.of, lift, free_abelian_group.lift.of],
     refine free_abelian_group.induction_on x (zero_mul _).symm _ _ _,
     { intros s1, iterate 3 { rw free_abelian_group.lift.of },

@@ -3,6 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import tactic.suggest
 import data.nat.basic
 
 /- Turn off trace messages so they don't pollute the test build: -/
@@ -182,4 +183,10 @@ begin
   },
   library_search!,
 end
+
+constant f : ℕ → ℕ
+axiom F (a b : ℕ) : f a ≤ f b ↔ a ≤ b
+
+example (a b : ℕ) (h : a ≤ b) : f a ≤ f b := by library_search
+
 end test.library_search

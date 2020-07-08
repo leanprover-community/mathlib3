@@ -3,8 +3,6 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
-import data.ulift
-import data.fintype.basic
 import category_theory.eq_to_hom
 
 namespace category_theory
@@ -28,12 +26,6 @@ variables {α : Type u₁}
 
 instance [inhabited α] : inhabited (discrete α) :=
 by { dsimp [discrete], apply_instance }
-
-instance [fintype α] : fintype (discrete α) :=
-by { dsimp [discrete], apply_instance }
-
-instance fintype_fun [decidable_eq α] (X Y : discrete α) : fintype (X ⟶ Y) :=
-by { apply ulift.fintype }
 
 instance [subsingleton α] : subsingleton (discrete α) :=
 by { dsimp [discrete], apply_instance }
@@ -95,6 +87,11 @@ lemma nat_iso_app {I : Type u₁} {F G : discrete I ⥤ C}
   (f : Π i : discrete I, F.obj i ≅ G.obj i) (i : I) :
   (discrete.nat_iso f).app i = f i :=
 by tidy
+
+/-- Every functor `F` from a discrete category is naturally isomorphic (actually, equal) to
+  `discrete.functor (F.obj)`. -/
+def nat_iso_functor {I : Type u₁} {F : discrete I ⥤ C} : F ≅ discrete.functor (F.obj) :=
+nat_iso $ λ i, iso.refl _
 
 /--
 We can promote a type-level `equiv` to

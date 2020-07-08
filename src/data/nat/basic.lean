@@ -3,8 +3,10 @@ Copyright (c) 2014 Floris van Doorn (c) 2016 Microsoft Corporation. All rights r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
+import tactic.finish
 import algebra.ordered_ring
 import algebra.order_functions
+import data.set.basic
 
 /-!
 # Basic operations on the natural numbers
@@ -21,8 +23,8 @@ universes u v
 
 attribute [protected] nat.pow_zero nat.pow_succ
 
-instance : nonzero ℕ :=
-{ zero_ne_one := nat.zero_ne_one }
+instance : nontrivial ℕ :=
+⟨⟨0, 1, nat.zero_ne_one⟩⟩
 
 instance : comm_semiring nat :=
 { add            := nat.add,
@@ -76,13 +78,20 @@ instance : canonically_ordered_comm_semiring ℕ :=
 { le_iff_exists_add := assume a b,
   ⟨assume h, let ⟨c, hc⟩ := nat.le.dest h in ⟨c, hc.symm⟩,
     assume ⟨c, hc⟩, hc.symm ▸ nat.le_add_right _ _⟩,
-  zero_ne_one       := ne_of_lt zero_lt_one,
   eq_zero_or_eq_zero_of_mul_eq_zero   := assume a b, nat.eq_zero_of_mul_eq_zero,
   bot               := 0,
   bot_le            := nat.zero_le,
+  .. nat.nontrivial,
   .. (infer_instance : ordered_add_comm_monoid ℕ),
   .. (infer_instance : linear_ordered_semiring ℕ),
   .. (infer_instance : comm_semiring ℕ) }
+
+instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred s] [h : nonempty s] :
+  semilattice_sup_bot s :=
+{ bot := ⟨nat.find (nonempty_subtype.1 h), nat.find_spec (nonempty_subtype.1 h)⟩,
+  bot_le := λ x, nat.find_min' _ x.2,
+  ..subtype.linear_order s,
+  ..lattice_of_decidable_linear_order }
 
 namespace nat
 variables {m n k : ℕ}

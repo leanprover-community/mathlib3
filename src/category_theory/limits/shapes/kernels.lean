@@ -73,6 +73,9 @@ by rw [←fork.app_zero_left, kernel_fork.condition]
 abbreviation kernel_fork.of_ι {Z : C} (ι : Z ⟶ X) (w : ι ≫ f = 0) : kernel_fork f :=
 fork.of_ι ι $ by rw [w, has_zero_morphisms.comp_zero]
 
+@[simp] lemma kernel_fork.ι_of_ι {X Y P : C} (f : X ⟶ Y) (ι : P ⟶ X) (w : ι ≫ f = 0) :
+  fork.ι (kernel_fork.of_ι ι w) = ι := rfl
+
 /-- If `s` is a limit kernel fork and `k : W ⟶ X` satisfies ``k ≫ f = 0`, then there is some
     `l : W ⟶ s.X` sich that `l ≫ fork.ι s = k`. -/
 def kernel_fork.is_limit.lift' {s : kernel_fork f} (hs : is_limit s) {W : C} (k : W ⟶ X)
@@ -214,6 +217,9 @@ by rw [←cofork.left_app_one, cokernel_cofork.condition]
 /-- A morphism `π` satisfying `f ≫ π = 0` determines a cokernel cofork on `f`. -/
 abbreviation cokernel_cofork.of_π {Z : C} (π : Y ⟶ Z) (w : f ≫ π = 0) : cokernel_cofork f :=
 cofork.of_π π $ by rw [w, has_zero_morphisms.zero_comp]
+
+@[simp] lemma cokernel_cofork.π_of_π {X Y P : C} (f : X ⟶ Y) (π : Y ⟶ P) (w : f ≫ π = 0) :
+  cofork.π (cokernel_cofork.of_π π w) = π := rfl
 
 /-- If `s` is a colimit cokernel cofork, then every `k : Y ⟶ W` satisfying `f ≫ k = 0` induces
     `l : s.X ⟶ W` such that `cofork.π s ≫ l = k`. -/
@@ -378,13 +384,5 @@ class has_cokernels :=
 (has_colimit : Π {X Y : C} (f : X ⟶ Y), has_cokernel f)
 
 attribute [instance, priority 100] has_kernels.has_limit has_cokernels.has_colimit
-
-/-- Kernels are finite limits, so if `C` has all finite limits, it also has all kernels -/
-def has_kernels_of_has_finite_limits [has_finite_limits C] : has_kernels C :=
-{ has_limit := infer_instance }
-
-/-- Cokernels are finite limits, so if `C` has all finite colimits, it also has all cokernels -/
-def has_cokernels_of_has_finite_colimits [has_finite_colimits C] : has_cokernels C :=
-{ has_colimit := infer_instance }
 
 end category_theory.limits

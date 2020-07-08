@@ -145,7 +145,7 @@ show (a₁, a₂) ∈ {p:α×α | p.1 ≤ p.2},
 lemma le_of_tendsto_of_tendsto' {f g : β → α} {b : filter β} {a₁ a₂ : α} (hb : b ≠ ⊥)
   (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) (h : ∀ x, f x ≤ g x) :
   a₁ ≤ a₂ :=
-le_of_tendsto_of_tendsto hb hf hg (eventually_of_forall _ h)
+le_of_tendsto_of_tendsto hb hf hg (eventually_of_forall h)
 
 lemma le_of_tendsto {f : β → α} {a b : α} {x : filter β}
   (nt : x ≠ ⊥) (lim : tendsto f x (𝓝 a)) (h : ∀ᶠ c in x, f c ≤ b) : a ≤ b :=
@@ -153,7 +153,7 @@ le_of_tendsto_of_tendsto nt lim tendsto_const_nhds h
 
 lemma le_of_tendsto' {f : β → α} {a b : α} {x : filter β}
   (nt : x ≠ ⊥) (lim : tendsto f x (𝓝 a)) (h : ∀ c, f c ≤ b) : a ≤ b :=
-le_of_tendsto nt lim (eventually_of_forall _ h)
+le_of_tendsto nt lim (eventually_of_forall h)
 
 lemma ge_of_tendsto {f : β → α} {a b : α} {x : filter β}
   (nt : x ≠ ⊥) (lim : tendsto f x (𝓝 a)) (h : ∀ᶠ c in x, b ≤ f c) : b ≤ a :=
@@ -161,7 +161,7 @@ le_of_tendsto_of_tendsto nt tendsto_const_nhds lim h
 
 lemma ge_of_tendsto' {f : β → α} {a b : α} {x : filter β}
   (nt : x ≠ ⊥) (lim : tendsto f x (𝓝 a)) (h : ∀ c, b ≤ f c) : b ≤ a :=
-ge_of_tendsto nt lim (eventually_of_forall _ h)
+ge_of_tendsto nt lim (eventually_of_forall h)
 
 @[simp]
 lemma closure_le_eq [topological_space β] {f g : β → α} (hf : continuous f) (hg : continuous g) :
@@ -442,7 +442,7 @@ lemma tendsto_of_tendsto_of_tendsto_of_le_of_le {f g h : β → α} {b : filter 
   (hg : tendsto g b (𝓝 a)) (hh : tendsto h b (𝓝 a)) (hgf : g ≤ f) (hfh : f ≤ h) :
   tendsto f b (𝓝 a) :=
 tendsto_of_tendsto_of_tendsto_of_le_of_le' hg hh
-  (eventually_of_forall _ hgf) (eventually_of_forall _ hfh)
+  (eventually_of_forall hgf) (eventually_of_forall hfh)
 
 lemma nhds_order_unbounded {a : α} (hu : ∃u, a < u) (hl : ∃l, l < a) :
   𝓝 a = (⨅l (h₂ : l < a) u (h₂ : a < u), 𝓟 (Ioo l u)) :=
@@ -1691,7 +1691,7 @@ variables [semilattice_sup α] [topological_space α] [order_topology α]
 
 lemma is_bounded_le_nhds (a : α) : (𝓝 a).is_bounded (≤) :=
 match forall_le_or_exists_lt_sup a with
-| or.inl h := ⟨a, eventually_of_forall _ h⟩
+| or.inl h := ⟨a, eventually_of_forall h⟩
 | or.inr ⟨b, hb⟩ := ⟨b, ge_mem_nhds hb⟩
 end
 
@@ -1716,7 +1716,7 @@ variables [semilattice_inf α] [topological_space α] [order_topology α]
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma is_bounded_ge_nhds (a : α) : (𝓝 a).is_bounded (≥) :=
 match forall_le_or_exists_lt_inf a with
-| or.inl h := ⟨a, eventually_of_forall _ h⟩
+| or.inl h := ⟨a, eventually_of_forall h⟩
 | or.inr ⟨b, hb⟩ := ⟨b, le_mem_nhds hb⟩
 end
 
@@ -1870,7 +1870,7 @@ tendsto_nhds_unique at_top_ne_bot (tendsto_at_top_infi_nat f hf)
 /-- $\lim_{x\to+\infty}|x|=+\infty$ -/
 lemma tendsto_abs_at_top_at_top [decidable_linear_ordered_add_comm_group α] :
   tendsto (abs : α → α) at_top at_top :=
-tendsto_at_top_mono _ (λ n, le_abs_self _) tendsto_id
+tendsto_at_top_mono (λ n, le_abs_self _) tendsto_id
 
 local notation `|` x `|` := abs x
 
@@ -1910,3 +1910,37 @@ begin
       have : ∀ b, f b < a' ↔ f b - a < ε, by { intro b, simp [lt_sub_iff_add_lt] },
       simpa only [this] }}
 end
+
+/-!
+Here is a counter-example to a version of the following with `conditionally_complete_lattice α`.
+Take `α = [0, 1) → ℝ` with the natural lattice structure, `ι = ℕ`. Put `f n x = -x^n`. Then
+`⨆ n, f n = 0` while none of `f n` is strictly greater than the constant function `-0.5`.
+-/
+
+lemma tendsto_at_top_csupr {ι α : Type*} [preorder ι] [topological_space α]
+  [conditionally_complete_linear_order α] [order_topology α]
+  {f : ι → α} (h_mono : monotone f) (hbdd : bdd_above $ range f) :
+  tendsto f at_top (𝓝 (⨆i, f i)) :=
+begin
+  by_cases hi : nonempty ι,
+  { resetI,
+    rw tendsto_order,
+    split,
+    { intros a h,
+      cases exists_lt_of_lt_csupr h with N hN,
+      apply eventually.mono (mem_at_top N),
+      exact λ i hi, lt_of_lt_of_le hN (h_mono hi) },
+    { exact λ a h, eventually_of_forall (λ n, lt_of_le_of_lt (le_csupr hbdd n) h) } },
+  { exact tendsto_of_not_nonempty hi }
+end
+
+lemma tendsto_at_top_supr {ι α : Type*} [preorder ι] [topological_space α]
+  [complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : monotone f) :
+  tendsto f at_top (𝓝 (⨆i, f i)) :=
+tendsto_at_top_csupr h_mono (order_top.bdd_above _)
+
+lemma tendsto_of_monotone {ι α : Type*} [preorder ι] [topological_space α]
+  [conditionally_complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : monotone f) :
+  tendsto f at_top at_top ∨ (∃ l, tendsto f at_top (𝓝 l)) :=
+if H : bdd_above (range f) then or.inr ⟨_, tendsto_at_top_csupr h_mono H⟩
+else or.inl $ tendsto_at_top_at_top_of_monotone' h_mono H

@@ -59,28 +59,9 @@ apply_nolint gt_iff_lt ge_or_gt
 apply_nolint discrete_linear_ordered_field doc_blame
 apply_nolint linear_ordered_field doc_blame
 
--- algebra/pointwise.lean
-apply_nolint set.add_comm_monoid doc_blame
-apply_nolint set.comm_monoid doc_blame
-apply_nolint set.pointwise_add doc_blame
-apply_nolint set.pointwise_add_add_monoid doc_blame
-apply_nolint set.pointwise_add_add_semigroup doc_blame
-apply_nolint set.pointwise_add_fintype doc_blame
-apply_nolint set.pointwise_inv doc_blame
-apply_nolint set.pointwise_mul doc_blame
-apply_nolint set.pointwise_mul_comm_semiring doc_blame
-apply_nolint set.pointwise_mul_fintype doc_blame
-apply_nolint set.pointwise_mul_monoid doc_blame
-apply_nolint set.pointwise_mul_semigroup doc_blame
-apply_nolint set.pointwise_mul_semiring doc_blame
-apply_nolint set.pointwise_neg doc_blame
-apply_nolint set.pointwise_one doc_blame
-apply_nolint set.pointwise_zero doc_blame
-
 -- algebra/ring.lean
 apply_nolint comm_ring doc_blame
 apply_nolint comm_semiring doc_blame
-apply_nolint distrib doc_blame
 apply_nolint integral_domain doc_blame
 apply_nolint ring doc_blame
 apply_nolint ring_hom has_inhabited_instance
@@ -1495,14 +1476,6 @@ apply_nolint filter.rmap doc_blame
 apply_nolint filter.rtendsto doc_blame
 apply_nolint filter.rtendsto' doc_blame
 
--- order/filter/pointwise.lean
-apply_nolint filter.pointwise_add doc_blame
-apply_nolint filter.pointwise_add_add_monoid doc_blame
-apply_nolint filter.pointwise_mul doc_blame
-apply_nolint filter.pointwise_mul_monoid doc_blame
-apply_nolint filter.pointwise_one doc_blame
-apply_nolint filter.pointwise_zero doc_blame
-
 -- order/fixed_points.lean
 apply_nolint fixed_points.next doc_blame
 apply_nolint fixed_points.next_fixed doc_blame
@@ -1518,15 +1491,17 @@ apply_nolint lex doc_blame
 -- order/order_iso.lean
 apply_nolint order_embedding has_inhabited_instance
 apply_nolint order_embedding.lt_embedding_of_le_embedding doc_blame
-apply_nolint order_embedding.nat_gt doc_blame ge_or_gt
-apply_nolint order_embedding.nat_lt doc_blame
 apply_nolint order_embedding.refl doc_blame
 apply_nolint order_embedding.trans doc_blame
-apply_nolint order_embedding.well_founded_iff_no_descending_seq ge_or_gt
 apply_nolint order_iso has_inhabited_instance
 apply_nolint order_iso.prod_lex_congr doc_blame
 apply_nolint order_iso.sum_lex_congr doc_blame
 apply_nolint subrel.order_embedding doc_blame
+
+-- order/order_iso_nat.lean
+apply_nolint order_embedding.nat_gt doc_blame ge_or_gt
+apply_nolint order_embedding.nat_lt doc_blame
+apply_nolint order_embedding.well_founded_iff_no_descending_seq ge_or_gt
 
 -- order/pilex.lean
 apply_nolint pi.lex doc_blame
@@ -1805,7 +1780,6 @@ apply_nolint tactic.explode.entries.head doc_blame
 apply_nolint tactic.explode.entries.size doc_blame
 apply_nolint tactic.explode.entry doc_blame
 apply_nolint tactic.explode.format_aux doc_blame
-apply_nolint tactic.explode.head' doc_blame
 apply_nolint tactic.explode.may_be_proof doc_blame
 apply_nolint tactic.explode.pad_right doc_blame
 apply_nolint tactic.explode.status doc_blame
@@ -2278,6 +2252,10 @@ apply_nolint continuous_map.compact_open.gen doc_blame
 apply_nolint continuous_map.ev doc_blame
 apply_nolint continuous_map.induced doc_blame
 
+-- topology/compacts.lean
+apply_nolint topological_space.closeds has_inhabited_instance
+apply_nolint topological_space.nonempty_compacts has_inhabited_instance
+
 -- topology/homeomorph.lean
 apply_nolint homeomorph has_inhabited_instance
 
@@ -2311,11 +2289,6 @@ apply_nolint isometric has_inhabited_instance
 apply_nolint premetric_space doc_blame
 
 -- topology/opens.lean
-apply_nolint continuous.comap doc_blame
-apply_nolint topological_space.closeds has_inhabited_instance
-apply_nolint topological_space.nonempty_compacts has_inhabited_instance
-apply_nolint topological_space.opens.gi doc_blame
-apply_nolint topological_space.opens.interior doc_blame
 apply_nolint topological_space.opens.is_basis doc_blame
 
 -- topology/sheaves/presheaf.lean

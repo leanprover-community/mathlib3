@@ -429,11 +429,11 @@ open_locale classical
 
 variables {K : Type*} [field K] {g : fraction_map R K}
 
-instance : nonzero (fractional_ideal g) :=
-{ zero_ne_one := λ h,
+instance : nontrivial (fractional_ideal g) :=
+⟨⟨0, 1, λ h,
   have this : (1 : K) ∈ (0 : fractional_ideal g) :=
     by rw ←g.to_map.map_one; convert coe_mem_one _,
-  one_ne_zero (mem_zero_iff.mp this) }
+  one_ne_zero (mem_zero_iff.mp this) ⟩⟩
 
 lemma fractional_div_of_nonzero {I J : fractional_ideal g} (h : J ≠ 0) :
   is_fractional g (I.1 / J.1) :=
@@ -477,7 +477,7 @@ by { rw inv_nonzero h, refl }
 
 @[simp] lemma div_one {I : fractional_ideal g} : I / 1 = I :=
 begin
-  rw [div_nonzero (@one_ne_zero (fractional_ideal g) _ _ _)],
+  rw [div_nonzero (@one_ne_zero (fractional_ideal g) _ _)],
   ext,
   split; intro h,
   { convert mem_div_iff_forall_mul_mem.mp h 1
@@ -491,7 +491,7 @@ begin
 end
 
 lemma ne_zero_of_mul_eq_one (I J : fractional_ideal g) (h : I * J = 1) : I ≠ 0 :=
-λ hI, @zero_ne_one (fractional_ideal g) _ _ _ (by { convert h, simp [hI], })
+λ hI, @zero_ne_one (fractional_ideal g) _ _ (by { convert h, simp [hI], })
 
 /-- `I⁻¹` is the inverse of `I` if `I` has an inverse. -/
 theorem right_inverse_eq (I J : fractional_ideal g) (h : I * J = 1) :
@@ -559,7 +559,7 @@ lemma is_principal_iff (I : fractional_ideal f) :
   λ ⟨x, hx⟩, { principal := ⟨x, trans (congr_arg _ hx) (coe_span_singleton x)⟩ } ⟩
 
 @[simp] lemma span_singleton_zero : span_singleton (0 : f.codomain) = 0 :=
-by { ext, simp [submodule.mem_span_singleton, eq_comm] }
+by { ext, simp [submodule.mem_span_singleton, eq_comm, -singleton_zero] }
 
 lemma span_singleton_eq_zero_iff {y : f.codomain} : span_singleton y = 0 ↔ y = 0 :=
 ⟨ λ h, span_eq_bot.mp (by simpa using congr_arg subtype.val h : span R {y} = ⊥) y (mem_singleton y),

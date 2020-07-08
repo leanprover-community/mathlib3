@@ -72,6 +72,25 @@ variables (R)
 
 theorem two_smul : (2 : R) • x = x + x := by rw [bit0, add_smul, one_smul]
 
+/-- Pullback a `semimodule` structure along an injective additive monoid homomorphism. -/
+protected def function.injective.semimodule [add_comm_monoid M₂] [has_scalar R M₂] (f : M₂ →+ M)
+  (hf : injective f) (smul : ∀ (c : R) x, f (c • x) = c • f x) :
+  semimodule R M₂ :=
+{ smul := (•),
+  add_smul := λ c₁ c₂ x, hf $ by simp only [smul, f.map_add, add_smul],
+  zero_smul := λ x, hf $ by simp only [smul, zero_smul, f.map_zero],
+  .. hf.distrib_mul_action f smul }
+
+/-- Pushforward a `semimodule` structure along a surjective additive monoid homomorphism. -/
+protected def function.surjective.semimodule [add_comm_monoid M₂] [has_scalar R M₂] (f : M →+ M₂)
+  (hf : surjective f) (smul : ∀ (c : R) x, f (c • x) = c • f x) :
+  semimodule R M₂ :=
+{ smul := (•),
+  add_smul := λ c₁ c₂ x, by { rcases hf x with ⟨x, rfl⟩,
+    simp only [add_smul, ← smul, ← f.map_add] },
+  zero_smul := λ x, by { rcases hf x with ⟨x, rfl⟩, simp only [← f.map_zero, ← smul, zero_smul] },
+  .. hf.distrib_mul_action f smul }
+
 variable (M)
 
 /-- `(•)` as an `add_monoid_hom`. -/

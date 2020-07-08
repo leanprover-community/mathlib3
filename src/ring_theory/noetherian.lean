@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Kevin Buzzard
 -/
 import ring_theory.ideal_operations
 import linear_algebra.basis
+import order.order_iso_nat
 
 /-!
 # Noetherian rings and modules
@@ -339,7 +340,7 @@ lemma well_founded_submodule_gt (R M) [ring R] [add_comm_group M] [module R M] :
   ∀ [is_noetherian R M], well_founded ((>) : submodule R M → submodule R M → Prop) :=
 is_noetherian_iff_well_founded.mp
 
-lemma finite_of_linear_independent {R M} [comm_ring R] [nonzero R] [add_comm_group M] [module R M]
+lemma finite_of_linear_independent {R M} [comm_ring R] [nontrivial R] [add_comm_group M] [module R M]
   [is_noetherian R M] {s : set M} (hs : linear_independent R (coe : s → M)) : s.finite :=
 begin
   refine classical.by_contradiction (λ hf, order_embedding.well_founded_iff_no_descending_seq.1
@@ -505,11 +506,9 @@ namespace submodule
 variables {R : Type*} {A : Type*} [comm_ring R] [ring A] [algebra R A]
 variables (M N : submodule R A)
 
-local attribute [instance] set.pointwise_mul_semiring
-
 theorem fg_mul (hm : M.fg) (hn : N.fg) : (M * N).fg :=
 let ⟨m, hfm, hm⟩ := fg_def.1 hm, ⟨n, hfn, hn⟩ := fg_def.1 hn in
-fg_def.2 ⟨m * n, set.pointwise_mul_finite hfm hfn, span_mul_span R m n ▸ hm ▸ hn ▸ rfl⟩
+fg_def.2 ⟨m * n, hfm.mul hfn, span_mul_span R m n ▸ hm ▸ hn ▸ rfl⟩
 
 lemma fg_pow (h : M.fg) (n : ℕ) : (M ^ n).fg :=
 nat.rec_on n

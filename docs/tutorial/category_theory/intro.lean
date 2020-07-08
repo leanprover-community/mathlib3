@@ -11,11 +11,6 @@ We cover how the basic theory of categories, functors and natural transformation
 Most of the below is not hard to read off from the files `category_theory/category.lean`,
 `category_theory/functor.lean` and `category_theory/natural_transformation.lean`.
 
-First a word of warning. In `mathlib`, in the `/src` directory, there is a subdirectory called
-`category`. This is *not* where categories, in the sense of mathematics, are defined; it's for use
-by computer scientists. The directory we will be concerned with here is the `category_theory`
-subdirectory.
-
 ## Overview
 
 A category is a collection of objects, and a collection of morphisms (also known as arrows) between

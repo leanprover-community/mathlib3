@@ -93,7 +93,7 @@ meta def mono_head_candidates : ℕ → list expr → expr → tactic mono_key
          | (x::xs) := mono_head_candidates n xs (h.pis [x])
          end
 
-meta def monotonicity.check (lm_n : name) (prio : ℕ) : tactic mono_key :=
+meta def monotonicity.check (lm_n : name) : tactic mono_key :=
 do lm ← mk_const lm_n,
    lm_t ← infer_type lm,
    lm_t ← expr.dsimp lm_t { fail_if_unchanged := ff } tt [] [simp_arg_type.expr ``(monotone)],
@@ -134,7 +134,7 @@ meta def monotonicity.attr : user_attribute
          (native.rb_lmap.mk mono_key _)  }
 , after_set := some $ λ n prio p,
   do { (none,v) ← monotonicity.attr.get_param n | pure (),
-       k ← monotonicity.check n prio,
+       k ← monotonicity.check n,
        monotonicity.attr.set n (some k,v) p }
 , parser := prod.mk none <$> side }
 

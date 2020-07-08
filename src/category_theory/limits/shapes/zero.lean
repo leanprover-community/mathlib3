@@ -27,6 +27,7 @@ zero object provides zero morphisms, as the unique morphisms factoring through t
 universes v u
 
 open category_theory
+open category_theory.category
 
 namespace category_theory.limits
 
@@ -158,6 +159,8 @@ by rw [(has_zero_object.unique_from X).uniq f, (has_zero_object.unique_from X).u
 lemma from_zero_ext {X : C} (f g : 0 ⟶ X) : f = g :=
 by rw [(has_zero_object.unique_to X).uniq f, (has_zero_object.unique_to X).uniq g]
 
+instance (X : C) : subsingleton (X ≅ 0) := by tidy
+
 instance {X : C} (f : 0 ⟶ X) : mono f :=
 { right_cancellation := λ Z g h w, by ext, }
 
@@ -178,20 +181,6 @@ def zero_morphisms_of_zero_object : has_zero_morphisms C :=
   zero_comp' := λ X Y Z f, by { dunfold has_zero.zero, rw category.assoc, congr, },
   comp_zero' := λ X Y Z f, by { dunfold has_zero.zero, rw ←category.assoc, congr, }}
 
-section
-variable [has_zero_morphisms C]
-
-/--  An arrow ending in the zero object is zero -/
--- This can't be a `simp` lemma because the left hand side would be a metavariable.
-lemma zero_of_to_zero {X : C} (f : X ⟶ 0) : f = 0 :=
-by ext
-
-/-- An arrow starting at the zero object is zero -/
-lemma zero_of_from_zero {X : C} (f : 0 ⟶ X) : f = 0 :=
-by ext
-
-end
-
 /-- A zero object is in particular initial. -/
 def has_initial : has_initial C :=
 has_initial_of_unique 0
@@ -200,6 +189,115 @@ def has_terminal : has_terminal C :=
 has_terminal_of_unique 0
 
 end has_zero_object
+
+section
+variables [has_zero_object C] [has_zero_morphisms C]
+local attribute [instance] has_zero_object.has_zero
+
+@[simp]
+lemma id_zero : 𝟙 (0 : C) = (0 : 0 ⟶ 0) :=
+by ext
+
+/--  An arrow ending in the zero object is zero -/
+-- This can't be a `simp` lemma because the left hand side would be a metavariable.
+lemma zero_of_to_zero {X : C} (f : X ⟶ 0) : f = 0 :=
+by ext
+
+lemma zero_of_target_iso_zero {X Y : C} (f : X ⟶ Y) (i : Y ≅ 0) : f = 0 :=
+begin
+  have h : f = f ≫ i.hom ≫ 𝟙 0 ≫ i.inv := by simp only [iso.hom_inv_id, id_comp, comp_id],
+  simpa using h,
+end
+
+/-- An arrow starting at the zero object is zero -/
+lemma zero_of_from_zero {X : C} (f : 0 ⟶ X) : f = 0 :=
+by ext
+
+lemma zero_of_source_iso_zero {X Y : C} (f : X ⟶ Y) (i : X ≅ 0) : f = 0 :=
+begin
+  have h : f = i.hom ≫ 𝟙 0 ≫ i.inv ≫ f := by simp only [iso.hom_inv_id_assoc, id_comp, comp_id],
+  simpa using h,
+end
+
+lemma mono_of_source_iso_zero {X Y : C} (f : X ⟶ Y) (i : X ≅ 0) : mono f :=
+⟨λ Z g h w, by rw [zero_of_target_iso_zero g i, zero_of_target_iso_zero h i]⟩
+
+lemma epi_of_target_iso_zero {X Y : C} (f : X ⟶ Y) (i : Y ≅ 0) : epi f :=
+⟨λ Z g h w, by rw [zero_of_source_iso_zero g i, zero_of_source_iso_zero h i]⟩
+
+/--
+An object `X` has `𝟙 X = 0` if and only if it is isomorphic to the zero object.
+
+Because `X ≅ 0` contains data (even if a subsingleton), we express this `↔` as an `≃`.
+-/
+def id_zero_equiv_iso_zero (X : C) : (𝟙 X = 0) ≃ (X ≅ 0) :=
+{ to_fun    := λ h, { hom := 0, inv := 0, },
+  inv_fun   := λ i, zero_of_target_iso_zero (𝟙 X) i,
+  left_inv  := by tidy,
+  right_inv := by tidy, }
+
+@[simp]
+lemma id_zero_equiv_iso_zero_apply_hom (X : C) (h : 𝟙 X = 0) :
+  ((id_zero_equiv_iso_zero X) h).hom = 0 := rfl
+
+@[simp]
+lemma id_zero_equiv_iso_zero_apply_inv (X : C) (h : 𝟙 X = 0) :
+  ((id_zero_equiv_iso_zero X) h).inv = 0 := rfl
+
+end
+
+section is_iso
+variables [has_zero_morphisms C]
+
+/--
+A zero morphism `0 : X ⟶ Y` is an isomorphism if and only if
+the identities on both `X` and `Y` are zero.
+-/
+@[simps]
+def is_iso_zero_equiv (X Y : C) : is_iso (0 : X ⟶ Y) ≃ (𝟙 X = 0 ∧ 𝟙 Y = 0) :=
+{ to_fun := begin introsI i, rw ←is_iso.hom_inv_id (0 : X ⟶ Y), rw ←is_iso.inv_hom_id (0 : X ⟶ Y), simp, end,
+  inv_fun := λ h, { inv := (0 : Y ⟶ X), },
+  left_inv := by tidy,
+  right_inv := by tidy, }
+
+/--
+A zero morphism `0 : X ⟶ X` is an isomorphism if and only if
+the identity on `X` is zero.
+-/
+def is_iso_zero_self_equiv (X : C) : is_iso (0 : X ⟶ X) ≃ (𝟙 X = 0) :=
+by simpa using is_iso_zero_equiv X X
+
+variables [has_zero_object C]
+local attribute [instance] has_zero_object.has_zero
+
+/--
+A zero morphism `0 : X ⟶ Y` is an isomorphism if and only if
+`X` and `Y` are isomorphic to the zero object.
+-/
+def is_iso_zero_equiv_iso_zero (X Y : C) : is_iso (0 : X ⟶ Y) ≃ (X ≅ 0) × (Y ≅ 0) :=
+begin
+  -- This is lame, because `prod` can't cope with `Prop`, so we can't use `equiv.prod_congr`.
+  refine (is_iso_zero_equiv X Y).trans _,
+  symmetry,
+  fsplit,
+  { rintros ⟨eX, eY⟩, fsplit,
+    exact (id_zero_equiv_iso_zero X).symm eX,
+    exact (id_zero_equiv_iso_zero Y).symm eY, },
+  { rintros ⟨hX, hY⟩, fsplit,
+    exact (id_zero_equiv_iso_zero X) hX,
+    exact (id_zero_equiv_iso_zero Y) hY, },
+  { tidy, },
+  { tidy, },
+end
+
+/--
+A zero morphism `0 : X ⟶ X` is an isomorphism if and only if
+`X` is isomorphic to the zero object.
+-/
+def is_iso_zero_self_equiv_iso_zero (X : C) : is_iso (0 : X ⟶ X) ≃ (X ≅ 0) :=
+(is_iso_zero_equiv_iso_zero X X).trans subsingleton_prod_self_equiv
+
+end is_iso
 
 /-- If there are zero morphisms, any initial object is a zero object. -/
 @[priority 50]
@@ -226,6 +324,62 @@ instance has_zero_object_of_has_terminal_object
     ... = 0 ≫ f : by congr
     ... = 0     : has_zero_morphisms.zero_comp _ _
   ⟩ }
+
+
+section image
+
+variables [has_zero_morphisms C] [has_zero_object C]
+local attribute [instance] has_zero_object.has_zero
+
+/--
+The zero morphism has a `mono_factorisation` through the zero object.
+-/
+@[simps]
+def mono_factorisation_zero (X Y : C) : mono_factorisation (0 : X ⟶ Y) :=
+{ I := 0, m := 0, e := 0, }
+
+/--
+Any zero morphism has an image.
+We don't set this as an instance, as it is only intended for use inside the following proofs.
+-/
+def has_image.zero (X Y : C) : has_image (0 : X ⟶ Y) :=
+{ F := mono_factorisation_zero X Y,
+  is_image :=
+  { lift := λ F', 0 }}
+
+/-- The image of a zero morphism is the zero object. -/
+def image_zero {X Y : C} [has_image (0 : X ⟶ Y)] : image (0 : X ⟶ Y) ≅ 0 :=
+is_image.iso_ext (image.is_image (0 : X ⟶ Y)) (has_image.zero X Y).is_image
+
+/-- The image of a morphism which is equal to zero is the zero object. -/
+def image_zero' {X Y : C} {f : X ⟶ Y} (h : f = 0) [has_image f] : image f ≅ 0 :=
+begin
+  haveI := has_image.zero X Y,
+  exact image.eq_to_iso h ≪≫ image_zero,
+end
+
+@[simp]
+lemma image.ι_zero {X Y : C} [has_image (0 : X ⟶ Y)] : image.ι (0 : X ⟶ Y) = 0 :=
+begin
+  rw ←image.lift_fac (mono_factorisation_zero X Y),
+  simp,
+end
+
+/--
+If we know `f = 0`,
+it requires a little work to conclude `image.ι f = 0`,
+because `f = g` only implies `image f ≅ image g`.
+-/
+@[simp]
+lemma image.ι_zero' [has_equalizers C] {X Y : C} {f : X ⟶ Y} (h : f = 0) [has_image f] :
+  image.ι f = 0 :=
+begin
+  haveI := has_image.zero X Y,
+  rw image.eq_fac h,
+  simp,
+end
+
+end image
 
 /-- In the presence of zero morphisms, coprojections into a coproduct are (split) monomorphisms. -/
 instance split_mono_sigma_ι

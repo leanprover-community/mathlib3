@@ -1491,15 +1491,17 @@ apply_nolint lex doc_blame
 -- order/order_iso.lean
 apply_nolint order_embedding has_inhabited_instance
 apply_nolint order_embedding.lt_embedding_of_le_embedding doc_blame
-apply_nolint order_embedding.nat_gt doc_blame ge_or_gt
-apply_nolint order_embedding.nat_lt doc_blame
 apply_nolint order_embedding.refl doc_blame
 apply_nolint order_embedding.trans doc_blame
-apply_nolint order_embedding.well_founded_iff_no_descending_seq ge_or_gt
 apply_nolint order_iso has_inhabited_instance
 apply_nolint order_iso.prod_lex_congr doc_blame
 apply_nolint order_iso.sum_lex_congr doc_blame
 apply_nolint subrel.order_embedding doc_blame
+
+-- order/order_iso_nat.lean
+apply_nolint order_embedding.nat_gt doc_blame ge_or_gt
+apply_nolint order_embedding.nat_lt doc_blame
+apply_nolint order_embedding.well_founded_iff_no_descending_seq ge_or_gt
 
 -- order/pilex.lean
 apply_nolint pi.lex doc_blame

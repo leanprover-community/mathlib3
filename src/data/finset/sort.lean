@@ -179,7 +179,7 @@ end
 
 /-- Any increasing map between `fin k` and a finset of cardinality `k` has to coincide with
 the increasing bijection `mono_of_fin s h`. -/
-lemma mono_of_fin_unique' [decidable_linear_order α] {s : finset α} {k : ℕ} (h : s.card = k)
+lemma mono_of_fin_unique' {s : finset α} {k : ℕ} (h : s.card = k)
   {f : fin k → α} (fmap : set.maps_to f set.univ ↑s) (hmono : strict_mono f) :
   f = s.mono_of_fin h :=
 begin

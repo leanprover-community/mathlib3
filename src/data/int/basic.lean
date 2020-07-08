@@ -155,6 +155,9 @@ theorem add_one_le_iff {a b : ℤ} : a + 1 ≤ b ↔ a < b := iff.rfl
 theorem lt_add_one_iff {a b : ℤ} : a < b + 1 ↔ a ≤ b :=
 @add_le_add_iff_right _ _ a b 1
 
+lemma le_add_one {a b : ℤ} (h : a ≤ b) : a ≤ b + 1 :=
+le_of_lt (int.lt_add_one_iff.mpr h)
+
 theorem sub_one_lt_iff {a b : ℤ} : a - 1 < b ↔ a ≤ b :=
 sub_lt_iff_lt_add.trans lt_add_one_iff
 
@@ -870,6 +873,10 @@ theorem to_nat_eq_max : ∀ (a : ℤ), (to_nat a : ℤ) = max a 0
 | (n : ℕ) := (max_eq_left (coe_zero_le n)).symm
 | -[1+ n] := (max_eq_right (le_of_lt (neg_succ_lt_zero n))).symm
 
+@[simp] lemma to_nat_zero : (0 : ℤ).to_nat = 0 := rfl
+
+@[simp] lemma to_nat_one : (1 : ℤ).to_nat = 1 := rfl
+
 @[simp] theorem to_nat_of_nonneg {a : ℤ} (h : 0 ≤ a) : (to_nat a : ℤ) = a :=
 by rw [to_nat_eq_max, max_eq_left h]
 
@@ -877,6 +884,8 @@ by rw [to_nat_eq_max, max_eq_left h]
 int.to_nat_of_nonneg (sub_nonneg_of_le h)
 
 @[simp] theorem to_nat_coe_nat (n : ℕ) : to_nat ↑n = n := rfl
+
+@[simp] lemma to_nat_coe_nat_add_one {n : ℕ} : ((n : ℤ) + 1).to_nat = n + 1 := rfl
 
 theorem le_to_nat (a : ℤ) : a ≤ to_nat a :=
 by rw [to_nat_eq_max]; apply le_max_left
@@ -897,6 +906,17 @@ theorem to_nat_lt_to_nat {a b : ℤ} (hb : 0 < b) : to_nat a < to_nat b ↔ a < 
 
 theorem lt_of_to_nat_lt {a b : ℤ} (h : to_nat a < to_nat b) : a < b :=
 (to_nat_lt_to_nat $ lt_to_nat.1 $ lt_of_le_of_lt (nat.zero_le _) h).1 h
+
+lemma to_nat_add {a b : ℤ} (ha : 0 ≤ a) (hb : 0 ≤ b) :
+  (a + b).to_nat = a.to_nat + b.to_nat :=
+begin
+  lift a to ℕ using ha,
+  lift b to ℕ using hb,
+  norm_cast,
+end
+
+lemma to_nat_add_one {a : ℤ} (h : 0 ≤ a) : (a + 1).to_nat = a.to_nat + 1 :=
+to_nat_add h (zero_le_one)
 
 def to_nat' : ℤ → option ℕ
 | (n : ℕ) := some n

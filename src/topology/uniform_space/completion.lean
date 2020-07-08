@@ -345,7 +345,7 @@ begin
   have : (λx:α×α, ((x.1 : completion α), (x.2 : completion α))) =
     (λx:(Cauchy α)×(Cauchy α), (⟦x.1⟧, ⟦x.2⟧)) ∘ (λx:α×α, (pure_cauchy x.1, pure_cauchy x.2)),
   { ext ⟨a, b⟩; simp; refl },
-  rw [this, ← filter.comap_comap_comp],
+  rw [this, ← filter.comap_comap],
   change filter.comap _ (filter.comap _ (𝓤 $ quotient $ separation_setoid $ Cauchy α)) = 𝓤 α,
   rw [comap_quotient_eq_uniformity, uniform_embedding_pure_cauchy.comap_uniformity]
 end

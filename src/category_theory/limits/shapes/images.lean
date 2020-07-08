@@ -196,10 +196,12 @@ begin
                  ... = b ≫ image.ι f : by simp,
   exact (cancel_mono (image.ι f)).1 w',
 end
+
 lemma has_image.uniq
   (F' : mono_factorisation f) (l : image f ⟶ F'.I) (w : l ≫ F'.m = image.ι f) :
   l = image.lift F' :=
 (cancel_mono F'.m).1 (by simp [w])
+
 end
 
 section
@@ -228,11 +230,13 @@ begin
   rw [←category.assoc, iso.hom_inv_id, category.id_comp],
 end
 
--- This is the proof from https://en.wikipedia.org/wiki/Image_(category_theory), which is taken from:
+-- This is the proof that `factor_thru_image f` is an epimorphism
+-- from https://en.wikipedia.org/wiki/Image_(category_theory), which is in turn taken from:
 -- Mitchell, Barry (1965), Theory of categories, MR 0202787, p.12, Proposition 10.1
-instance [Π {Z : C} (g h : image f ⟶ Z), has_limit (parallel_pair g h)] :
-  epi (factor_thru_image f) :=
-⟨λ Z g h w,
+@[ext]
+lemma image.ext {W : C} {g h : image f ⟶ W} [has_limit (parallel_pair g h)]
+  (w : factor_thru_image f ≫ g = factor_thru_image f ≫ h) :
+  g = h :=
 begin
   let q := equalizer.ι g h,
   let e' := equalizer.lift _ w,
@@ -243,7 +247,8 @@ begin
     e := e' },
   let v := image.lift F',
   have t₀ : v ≫ q ≫ image.ι f = image.ι f := image.lift_fac F',
-  have t : v ≫ q = 𝟙 (image f) := (cancel_mono_id (image.ι f)).1 (by { convert t₀ using 1, rw category.assoc }),
+  have t : v ≫ q = 𝟙 (image f) :=
+    (cancel_mono_id (image.ι f)).1 (by { convert t₀ using 1, rw category.assoc }),
   -- The proof from wikipedia next proves `q ≫ v = 𝟙 _`,
   -- and concludes that `equalizer g h ≅ image f`,
   -- but this isn't necessary.
@@ -252,7 +257,18 @@ begin
      ... = v ≫ q ≫ h       : by rw [equalizer.condition g h]
      ... = 𝟙 (image f) ≫ h : by rw [←category.assoc, t]
      ... = h                : by rw [category.id_comp]
-end⟩
+end
+
+instance [Π {Z : C} (g h : image f ⟶ Z), has_limit (parallel_pair g h)] :
+  epi (factor_thru_image f) :=
+⟨λ Z g h w, image.ext f w⟩
+
+lemma epi_image_of_epi {X Y : C} (f : X ⟶ Y) [has_image f] [E : epi f] : epi (image.ι f) :=
+begin
+  rw ←image.fac f at E,
+  resetI,
+  exact epi_of_epi (factor_thru_image f) (image.ι f),
+end
 
 lemma epi_of_epi_image {X Y : C} (f : X ⟶ Y) [has_image f]
   [epi (image.ι f)] [epi (factor_thru_image f)] : epi f :=
@@ -263,7 +279,10 @@ end
 section
 variables {f} {f' : X ⟶ Y} [has_image f] [has_image f']
 
-/-- An equation between morphisms gives a comparison map between the images (which momentarily we prove is an iso). -/
+/--
+An equation between morphisms gives a comparison map between the images
+(which momentarily we prove is an iso).
+-/
 def image.eq_to_hom (h : f = f') : image f ⟶ image f' :=
 image.lift
 { I := image f',
@@ -277,6 +296,15 @@ instance (h : f = f') : is_iso (image.eq_to_hom h) :=
 
 /-- An equation between morphisms gives an isomorphism between the images. -/
 def image.eq_to_iso (h : f = f') : image f ≅ image f' := as_iso (image.eq_to_hom h)
+
+/--
+As long as the category has equalizers,
+the image inclusion maps commute with `image.eq_to_iso`.
+-/
+lemma image.eq_fac [has_equalizers C] (h : f = f') :
+  image.ι f = (image.eq_to_iso h).hom ≫ image.ι f' :=
+by { ext, simp [image.eq_to_iso, image.eq_to_hom], }
+
 end
 
 section
@@ -298,7 +326,8 @@ agrees with the one step comparison map
 lemma image.pre_comp_comp {W : C} (h : Z ⟶ W)
   [has_image (g ≫ h)] [has_image (f ≫ g ≫ h)]
   [has_image h] [has_image ((f ≫ g) ≫ h)] :
-image.pre_comp f (g ≫ h) ≫ image.pre_comp g h = image.eq_to_hom (category.assoc f g h).symm ≫ (image.pre_comp (f ≫ g) h) :=
+  image.pre_comp f (g ≫ h) ≫ image.pre_comp g h =
+    image.eq_to_hom (category.assoc f g h).symm ≫ (image.pre_comp (f ≫ g) h) :=
 begin
   apply (cancel_mono (image.ι h)).1,
   simp [image.pre_comp, image.eq_to_hom],

@@ -20,8 +20,8 @@ A new version of prime factorisation and some facts about lattice isomorphisms
 
 ## Implementation Notes
 - `factor_finsupp` is based on `pnat.factor_multiset`.
-- Many facts about it are proved by constructing a lattice isomorphism between multisets
-  and finsupps to ℕ.
+- Many facts about it are proved by constructing a lattice isomorphism between `multiset`s
+  and `finsupp`s to ℕ.
 
 -/
 

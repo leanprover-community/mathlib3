@@ -10,7 +10,7 @@ import data.sigma
 /-!
 # Multivariate polynomial functors.
 
-Multivariate polynomial functors are used for defining M-types and W-types. 
+Multivariate polynomial functors are used for defining M-types and W-types.
 They map a type vector `α` to the type `Σ a : A, B a ⟹ α`, with `A : Type` and
 `B : A → typevec n`. They interact well with Lean's inductive definitions because
 they guarantee that occurrences of `α` are positive.
@@ -57,6 +57,10 @@ theorem id_map {α : typevec n} : ∀ x : P.obj α, typevec.id <$$> x = x
 theorem comp_map {α β γ : typevec n} (f : α ⟹ β) (g : β ⟹ γ) :
   ∀ x : P.obj α, (g ⊚ f) <$$> x = g <$$> (f <$$> x)
 | ⟨a, h⟩ := rfl
+
+instance : is_lawful_mvfunctor P.obj :=
+{ id_map := @id_map _ P,
+  comp_map := @comp_map _ P }
 
 /-- Constant functor where the input object does not affect the output -/
 def const (n : ℕ) (A : Type u) : mvpfunctor n :=

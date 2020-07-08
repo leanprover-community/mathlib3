@@ -44,7 +44,7 @@ inductive tree (a : Type)
 ```
 
 An unordered tree. This is currently not supported by Lean because it nests
-an inductive type inside of a quotient. We can go further and define 
+an inductive type inside of a quotient. We can go further and define
 unordered, possibly infinite trees:
 
 ```lean

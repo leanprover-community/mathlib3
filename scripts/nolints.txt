@@ -1899,8 +1899,8 @@ apply_nolint tactic.interactive.mono_cfg doc_blame
 apply_nolint tactic.interactive.mono_head_candidates doc_blame
 apply_nolint tactic.interactive.mono_key doc_blame
 apply_nolint tactic.interactive.mono_selection doc_blame
-apply_nolint tactic.interactive.monotoncity.check doc_blame unused_arguments
-apply_nolint tactic.interactive.monotoncity.check_rel doc_blame unused_arguments
+apply_nolint tactic.interactive.monotonicity.check doc_blame 
+apply_nolint tactic.interactive.monotonicity.check_rel doc_blame 
 apply_nolint tactic.interactive.monotonicity.attr doc_blame
 apply_nolint tactic.interactive.same_operator doc_blame
 apply_nolint tactic.interactive.side doc_blame

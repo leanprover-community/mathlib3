@@ -342,11 +342,11 @@ include Is I's
 
 lemma mfderiv_within_zero_of_not_mdifferentiable_within_at
   (h : ¬ mdifferentiable_within_at I I' f s x) : mfderiv_within I I' f s x = 0 :=
-by simp [mfderiv_within, h]
+by simp only [mfderiv_within, h, dif_neg, not_false_iff]
 
 lemma mfderiv_zero_of_not_mdifferentiable_at
   (h : ¬ mdifferentiable_at I I' f x) : mfderiv I I' f x = 0 :=
-by simp [mfderiv, h]
+by simp only [mfderiv, h, dif_neg, not_false_iff]
 
 theorem has_mfderiv_within_at.mono (h : has_mfderiv_within_at I I' f t x f') (hst : s ⊆ t) :
   has_mfderiv_within_at I I' f s x f' :=
@@ -367,7 +367,7 @@ lemma has_mfderiv_at.mdifferentiable_at (h : has_mfderiv_at I I' f x f') :
 
 @[simp, mfld_simps] lemma has_mfderiv_within_at_univ :
   has_mfderiv_within_at I I' f univ x f' ↔ has_mfderiv_at I I' f x f' :=
-by simp [has_mfderiv_within_at, has_mfderiv_at, continuous_within_at_univ]
+by simp only [has_mfderiv_within_at, has_mfderiv_at, continuous_within_at_univ] with mfld_simps
 
 theorem has_mfderiv_at_unique
   (h₀ : has_mfderiv_at I I' f x f₀') (h₁ : has_mfderiv_at I I' f x f₁') : f₀' = f₁' :=
@@ -399,7 +399,7 @@ begin
   split,
   { exact continuous_within_at.union hs.1 ht.1 },
   { convert has_fderiv_within_at.union hs.2 ht.2,
-    simp [union_inter_distrib_right] }
+    simp only [union_inter_distrib_right, preimage_union] }
 end
 
 lemma has_mfderiv_within_at.nhds_within (h : has_mfderiv_within_at I I' f s x f')
@@ -422,7 +422,7 @@ lemma mdifferentiable_within_at.mfderiv_within (h : mdifferentiable_within_at I 
   (mfderiv_within I I' f s x) =
   fderiv_within 𝕜 (written_in_ext_chart_at I I' x f : _) ((ext_chart_at I x).symm ⁻¹' s ∩ range I)
   ((ext_chart_at I x) x) :=
-by simp [mfderiv_within, h]
+by simp only [mfderiv_within, h, dif_pos]
 
 lemma mdifferentiable_at.has_mfderiv_at (h : mdifferentiable_at I I' f x) :
   has_mfderiv_at I I' f x (mfderiv I I' f x) :=
@@ -435,7 +435,7 @@ end
 lemma mdifferentiable_at.mfderiv (h : mdifferentiable_at I I' f x) :
   (mfderiv I I' f x) =
   fderiv_within 𝕜 (written_in_ext_chart_at I I' x f : _) (range I) ((ext_chart_at I x) x) :=
-by simp [mfderiv, h]
+by simp only [mfderiv, h, dif_pos]
 
 lemma has_mfderiv_at.mfderiv (h : has_mfderiv_at I I' f x f') :
   mfderiv I I' f x = f' :=
@@ -468,7 +468,8 @@ lemma mdifferentiable_within_at.mono (hst : s ⊆ t)
 
 lemma mdifferentiable_within_at_univ :
   mdifferentiable_within_at I I' f univ x ↔ mdifferentiable_at I I' f x :=
-by simp [mdifferentiable_within_at, mdifferentiable_at, continuous_within_at_univ]
+by simp only [mdifferentiable_within_at, mdifferentiable_at, continuous_within_at_univ]
+  with mfld_simps
 
 lemma mdifferentiable_within_at_inter (ht : t ∈ 𝓝 x) :
   mdifferentiable_within_at I I' f (s ∩ t) x ↔ mdifferentiable_within_at I I' f s x :=
@@ -695,7 +696,7 @@ begin
   assume y hy,
   simp only with mfld_simps,
   rw (chart_at H' (f x)).left_inv,
-  simpa only [] with mfld_simps using hy
+  simpa only with mfld_simps using hy
 end
 
 variable (x)
@@ -973,7 +974,7 @@ begin
   have B := A.differentiable_on le_top (I ((chart_at H x : M → H) x)) mem,
   simp only with mfld_simps at B,
   rw [inter_comm, differentiable_within_at_inter] at B,
-  { simpa only [] with mfld_simps },
+  { simpa only with mfld_simps },
   { apply mem_nhds_sets (I.continuous_symm _ (local_homeomorph.open_source _)) mem.1 }
 end
 
@@ -996,7 +997,7 @@ begin
   have B := A.differentiable_on le_top (I x) mem,
   simp only with mfld_simps at B,
   rw [inter_comm, differentiable_within_at_inter] at B,
-  { simpa only [] with mfld_simps },
+  { simpa only with mfld_simps },
   { apply (mem_nhds_sets (I.continuous_symm _ (local_homeomorph.open_source _)) mem.1) }
 end
 
@@ -1057,7 +1058,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 lemma unique_mdiff_within_at_iff_unique_diff_within_at :
   unique_mdiff_within_at (model_with_corners_self 𝕜 E) s x ↔ unique_diff_within_at 𝕜 s x :=
-by simp [unique_mdiff_within_at]
+by simp only [unique_mdiff_within_at] with mfld_simps
 
 lemma unique_mdiff_on_iff_unique_diff_on :
   unique_mdiff_on (model_with_corners_self 𝕜 E) s ↔ unique_diff_on 𝕜 s :=
@@ -1321,10 +1322,7 @@ begin
   simp only [hz.left.left, hz.left.right, hz.right, unique_mdiff_within_at] with mfld_simps at ⊢ T,
   convert T using 1,
   rw @preimage_comp _ _ _ _ (chart_at H x).symm,
-  -- it remains to show that `(a ∩ b) ∩ c` = `(b ∩ c) ∩ a`, which finish can do but very slowly
-  ext p,
-  split;
-  { assume hp, simp only with mfld_simps at hp, simp only [hp] with mfld_simps }
+  mfld_set_eq_tac
 end
 
 /-- When considering functions between manifolds, this statement shows up often. It entails
@@ -1356,7 +1354,7 @@ begin
   reduce the situation to the model space, where we can use the fact that products respect
   unique differentiability. -/
   assume p hp,
-  replace hp : p.fst ∈ s, by simpa only [] with mfld_simps using hp,
+  replace hp : p.fst ∈ s, by simpa only with mfld_simps using hp,
   let e₀ := chart_at H p.1,
   let e := chart_at (model_prod H F) p,
   -- It suffices to prove unique differentiability in a chart

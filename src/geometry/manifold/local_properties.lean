@@ -46,6 +46,8 @@ We do not use dot notation for properties of the lifted property. For instance, 
 in the namespace associated to `local_invariant_prop`, not in the one for `lift_prop_at`.
 -/
 
+
+
 noncomputable theory
 open_locale classical manifold topological_space
 universes u
@@ -236,9 +238,8 @@ begin
   conv_lhs { rw hG.is_local B C },
   conv_rhs { rw hG.is_local B C },
   congr' 2,
-  ext y,
-  split;
-  { assume hy, simp only with mfld_simps at hy, simp only [hy, ost _] with mfld_simps }
+  have : ∀ y, y ∈ o ∩ s → y ∈ t := ost,
+  mfld_set_eq_tac
 end
 
 lemma lift_prop_within_at_inter (ht : t ∈ 𝓝 x) :
@@ -298,22 +299,47 @@ end
 
 omit hG
 
-lemma lift_prop_at_chart [has_groupoid M G]
+lemma lift_prop_at_of_mem_maximal_atlas [has_groupoid M G]
   (hG : G.local_invariant_prop G Q) (hQ : ∀ y, Q id univ y)
-  (he : e ∈ maximal_atlas M G) (hx : x ∈ e.source) :
-  lift_prop_at Q e x :=
+  (he : e ∈ maximal_atlas M G) (hx : x ∈ e.source) : lift_prop_at Q e x :=
 begin
   suffices h : Q (e ∘ e.symm) e.target (e x),
   { rw [lift_prop_at, hG.lift_prop_within_at_indep_chart he hx G.id_mem_maximal_atlas (mem_univ _)],
     refine ⟨(e.continuous_at hx).continuous_within_at, _⟩,
     simpa only with mfld_simps },
   have A : Q id e.target (e x),
-  { have Z := hQ (e x),
-    have : e x ∈ e.target, by simp only [hx] with mfld_simps,
-    have T := hG.is_local e.open_target this,
-  },
+  { have : e x ∈ e.target, by simp only [hx] with mfld_simps,
+    simpa only with mfld_simps using (hG.is_local e.open_target this).1 (hQ (e x)) },
+  apply hG.congr _ _ A;
+  simp only [hx] with mfld_simps {contextual := tt}
 end
 
+lemma lift_prop_at_symm_of_mem_maximal_atlas [has_groupoid M G] {x : H}
+  (hG : G.local_invariant_prop G Q) (hQ : ∀ y, Q id univ y)
+  (he : e ∈ maximal_atlas M G) (hx : x ∈ e.target) : lift_prop_at Q e.symm x :=
+begin
+  suffices h : Q (e ∘ e.symm) e.target x,
+  { have A : e.symm ⁻¹' e.to_local_equiv.source ∩ e.to_local_equiv.target = e.target,
+      by mfld_set_eq_tac,
+    have : e.symm x ∈ e.source, by simp only [hx] with mfld_simps,
+    rw [lift_prop_at, hG.lift_prop_within_at_indep_chart G.id_mem_maximal_atlas (mem_univ _) he this],
+    refine ⟨(e.symm.continuous_at hx).continuous_within_at, _⟩,
+    simp only with mfld_simps,
+    rwa [hG.is_local e.open_target hx, A] },
+  have A : Q id e.target x,
+    by simpa only with mfld_simps using (hG.is_local e.open_target hx).1 (hQ x),
+  apply hG.congr _ _ A;
+  simp only [hx] with mfld_simps {contextual := tt}
+end
+
+lemma lift_prop_at_chart [has_groupoid M G]
+  (hG : G.local_invariant_prop G Q) (hQ : ∀ y, Q id univ y) : lift_prop_at Q (chart_at H x) x :=
+hG.lift_prop_at_of_mem_maximal_atlas hQ (chart_mem_maximal_atlas G x) (mem_chart_source H x)
+
+lemma lift_prop_at_chart_symm [has_groupoid M G]
+  (hG : G.local_invariant_prop G Q) (hQ : ∀ y, Q id univ y) :
+  lift_prop_at Q (chart_at H x).symm ((chart_at H x) x) :=
+hG.lift_prop_at_symm_of_mem_maximal_atlas hQ (chart_mem_maximal_atlas G x) (by simp)
 
 end local_invariant_prop
 
@@ -351,27 +377,22 @@ end local_invariant_mono_prop
 
 end structure_groupoid
 
-#exit
-
-
-
-
-
-#exit
-
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
 {E' : Type*} [normed_group E'] [normed_space 𝕜 E'] (I' : model_with_corners 𝕜 E' H')
 
+def differentiable_within_at_prop (f s x) : Prop :=
+differentiable_within_at 𝕜 (I' ∘ f ∘ I.symm) (range I ∩ I.symm ⁻¹' s) (I x)
+
 lemma differentiable_within_at_invariant :
-  (times_cont_diff_groupoid ∞ I).invariant_prop_fun_set_pt (times_cont_diff_groupoid ∞ I')
-  (λ f s x, differentiable_within_at 𝕜 (I' ∘ f ∘ I.symm) (range I ∩ I.symm ⁻¹' s) (I x)) :=
+  (times_cont_diff_groupoid ∞ I).local_invariant_prop (times_cont_diff_groupoid ∞ I')
+  (differentiable_within_at_prop I I') :=
 { is_local :=
   begin
     assume s x u f u_open xu,
     have : range I ∩ I.symm ⁻¹' (s ∩ u) = (range I ∩ I.symm ⁻¹' s) ∩ I.symm ⁻¹' u,
       by simp [inter_assoc],
-    rw this,
+    rw [differentiable_within_at_prop, differentiable_within_at_prop, this],
     symmetry,
     apply differentiable_within_at_inter,
     have : u ∈ 𝓝 (I.symm (I x)),
@@ -381,13 +402,14 @@ lemma differentiable_within_at_invariant :
   right_invariance :=
   begin
     assume s x f e he hx h,
+    rw [differentiable_within_at_prop] at ⊢ h,
     have : I x = (I ∘ e.symm ∘ I.symm) (I (e x)), by simp only [hx] with mfld_simps,
     rw this at h,
     have : I (e x) ∈ (I.symm) ⁻¹' e.target ∩ range ⇑I, by simp only [hx] with mfld_simps,
     have := ((mem_groupoid_of_pregroupoid.2 he).2.times_cont_diff_within_at this).differentiable_within_at le_top,
     convert h.comp' _ this using 1,
-    { ext y, simp only with mfld_simps },
-    { ext y, split; { assume hy, simp only with mfld_simps at hy, simp only [hy] with mfld_simps } },
+    { ext y, simp only [differentiable_within_at_prop] with mfld_simps },
+    { mfld_set_eq_tac },
   end,
   congr :=
   begin
@@ -402,6 +424,7 @@ lemma differentiable_within_at_invariant :
   left_invariance :=
   begin
     assume s x f e' he' hs hx h,
+    rw differentiable_within_at_prop at h ⊢,
     have A : (I' ∘ f ∘ I.symm) (I x) ∈ (I'.symm ⁻¹' e'.source ∩ range I'),
       by simp only [hx] with mfld_simps,
     have := ((mem_groupoid_of_pregroupoid.2 he').1.times_cont_diff_within_at A).differentiable_within_at le_top,
@@ -411,15 +434,18 @@ lemma differentiable_within_at_invariant :
   end }
 
 
+def times_cont_diff_within_at_prop (n : ℕ) (f s x) : Prop :=
+times_cont_diff_within_at 𝕜 n (I' ∘ f ∘ I.symm) (range I ∩ I.symm ⁻¹' s) (I x)
+
 lemma times_cont_diff_within_at_invariant (n : ℕ) :
-  (times_cont_diff_groupoid ∞ I).invariant_prop_fun_set_pt (times_cont_diff_groupoid ∞ I')
-  (λ f s x, times_cont_diff_within_at 𝕜 n (I' ∘ f ∘ I.symm) (range I ∩ I.symm ⁻¹' s) (I x)) :=
+  (times_cont_diff_groupoid ∞ I).local_invariant_prop (times_cont_diff_groupoid ∞ I')
+  (times_cont_diff_within_at_prop I I' n) :=
 { is_local :=
   begin
     assume s x u f u_open xu,
     have : range I ∩ I.symm ⁻¹' (s ∩ u) = (range I ∩ I.symm ⁻¹' s) ∩ I.symm ⁻¹' u,
       by simp [inter_assoc],
-    rw this,
+    rw [times_cont_diff_within_at_prop, times_cont_diff_within_at_prop, this],
     symmetry,
     apply times_cont_diff_within_at_inter,
     have : u ∈ 𝓝 (I.symm (I x)),
@@ -429,26 +455,28 @@ lemma times_cont_diff_within_at_invariant (n : ℕ) :
   right_invariance :=
   begin
     assume s x f e he hx h,
+    rw times_cont_diff_within_at_prop at h ⊢,
     have : I x = (I ∘ e.symm ∘ I.symm) (I (e x)), by simp only [hx] with mfld_simps,
     rw this at h,
     have : I (e x) ∈ (I.symm) ⁻¹' e.target ∩ range ⇑I, by simp only [hx] with mfld_simps,
     have := ((mem_groupoid_of_pregroupoid.2 he).2.times_cont_diff_within_at this).of_le le_top,
     convert h.comp' this using 1,
     { ext y, simp only with mfld_simps },
-    { ext y, split; { assume hy, simp only with mfld_simps at hy, simp only [hy] with mfld_simps } }
+    { mfld_set_eq_tac }
   end,
   congr :=
   begin
     assume s x f g h hx hf,
-    apply hf.congr_of_eventually_eq (filter.eventually_eq_of_mem self_mem_nhds_within _),
+    apply hf.congr,
     { assume y hy,
-      simp only [(∘)],
-      rw h,
-      exact hy.2 }
+      simp only with mfld_simps at hy,
+      simp only [h, hy] with mfld_simps },
+    { simp only [hx] with mfld_simps }
   end,
   left_invariance :=
   begin
     assume s x f e' he' hs hx h,
+    rw times_cont_diff_within_at_prop at h ⊢,
     have A : (I' ∘ f ∘ I.symm) (I x) ∈ (I'.symm ⁻¹' e'.source ∩ range I'),
       by simp only [hx] with mfld_simps,
     have := ((mem_groupoid_of_pregroupoid.2 he').1.times_cont_diff_within_at A).of_le le_top,

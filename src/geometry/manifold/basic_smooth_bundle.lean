@@ -5,6 +5,8 @@ Authors: Sébastien Gouëzel
 -/
 import topology.topological_fiber_bundle
 import geometry.manifold.smooth_manifold_with_corners
+import tactic.basic
+
 /-!
 # Basic smooth bundles
 
@@ -178,16 +180,11 @@ def chart {e : local_homeomorph M H} (he : e ∈ atlas H M) :
 
 @[simp, mfld_simps] lemma chart_source (e : local_homeomorph M H) (he : e ∈ atlas H M) :
   (Z.chart he).source = Z.to_topological_fiber_bundle_core.proj ⁻¹' e.source :=
-by { ext p, simp only [chart, mem_prod, and_self] with mfld_simps }
+by { simp only [chart, mem_prod], mfld_set_eq_tac }
 
 @[simp, mfld_simps] lemma chart_target (e : local_homeomorph M H) (he : e ∈ atlas H M) :
   (Z.chart he).target = e.target.prod univ :=
-begin
-  simp only [chart] with mfld_simps,
-  ext p,
-  split;
-  simp {contextual := tt}
-end
+by { simp only [chart], mfld_set_eq_tac }
 
 /-- The total space of a basic smooth bundle is endowed with a charted space structure, where the
 charts are in bijection with the charts of the basis. -/
@@ -236,11 +233,7 @@ begin
   { assume e e' he he',
     have : J.symm ⁻¹' ((chart Z he).symm.trans (chart Z he')).source ∩ range J =
       (I.symm ⁻¹' (e.symm.trans e').source ∩ range I).prod univ,
-    { ext p,
-      simp only [J, chart, model_with_corners.prod] with mfld_simps,
-      split,
-      { tauto },
-      { exact λ⟨⟨hx1, hx2⟩, hx3⟩, ⟨⟨⟨hx1, e.map_target hx1⟩, hx2⟩, hx3⟩ } },
+      by { simp only [J, chart, model_with_corners.prod], mfld_set_eq_tac },
     rw this,
     -- check separately that the two components of the coordinate change are smooth
     apply times_cont_diff_on.prod,
@@ -529,8 +522,7 @@ topological_fiber_bundle_core.is_open_map_proj _
 @[simp, mfld_simps] lemma tangent_bundle_model_space_chart_at (p : tangent_bundle I H) :
   (chart_at (model_prod H E) p).to_local_equiv = local_equiv.refl (model_prod H E) :=
 begin
-  have A : ∀ x_fst, fderiv_within 𝕜 (I ∘ I.symm) (range I) (I x_fst)
-           = continuous_linear_map.id 𝕜 E,
+  have A : ∀ x_fst, fderiv_within 𝕜 (I ∘ I.symm) (range I) (I x_fst) = continuous_linear_map.id 𝕜 E,
   { assume x_fst,
     have : fderiv_within 𝕜 (I ∘ I.symm) (range I) (I x_fst)
          = fderiv_within 𝕜 id (range I) (I x_fst),
@@ -541,8 +533,8 @@ begin
   show (chart_at (model_prod H E) p : tangent_bundle I H → model_prod H E) x = (local_equiv.refl (model_prod H E)) x,
   { cases x,
     simp only [chart_at, basic_smooth_bundle_core.chart, topological_fiber_bundle_core.local_triv,
-      topological_fiber_bundle_core.local_triv', tangent_bundle_core, A, continuous_linear_map.coe_id',
-      basic_smooth_bundle_core.to_topological_fiber_bundle_core] with mfld_simps },
+      topological_fiber_bundle_core.local_triv', tangent_bundle_core, continuous_linear_map.coe_id',
+      basic_smooth_bundle_core.to_topological_fiber_bundle_core, A] with mfld_simps },
   show ∀ x, ((chart_at (model_prod H E) p).to_local_equiv).symm x = (local_equiv.refl (model_prod H E)).symm x,
   { rintros ⟨x_fst, x_snd⟩,
     simp only [chart_at, basic_smooth_bundle_core.chart, topological_fiber_bundle_core.local_triv,

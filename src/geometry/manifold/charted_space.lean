@@ -115,6 +115,18 @@ set.inter_subset_left set.mem_prod set.range_id and_self set.mem_range_self
 eq_self_iff_true forall_const forall_true_iff set.inter_univ set.preimage_id function.comp.right_id
 not_false_iff and_imp
 
+namespace tactic.interactive
+
+/-- A very basic tactic to show that sets showing up in manifolds coincide. -/
+meta def mfld_set_eq_tac : tactic unit :=
+`[ext my_y,
+  split;
+  { assume h_my_y,
+    try { simp only [*, -h_my_y] with mfld_simps at h_my_y },
+    simp only [*] with mfld_simps } ]
+
+end tactic.interactive
+
 noncomputable theory
 open_locale classical
 universes u

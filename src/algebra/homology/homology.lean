@@ -162,17 +162,20 @@ namespace cochain_complex
 
 variables [has_images V] [has_equalizers V] [has_cokernels V]
 
+/-- The `i`-th cohomology group of the chain complex `C`. -/
 abbreviation cohomology (C : cochain_complex V) (i : ℤ) : V :=
 homological_complex.homology C i
 
 variables [has_image_maps V]
 
+/-- A chain map induces a morphism in cohomology at every degree. -/
 abbreviation cohomology_map {C C' : cochain_complex V} (f : C ⟶ C') (i : ℤ) :
   C.cohomology i ⟶ C'.cohomology i :=
 homological_complex.homology_map f i
 
 variables (V)
 
+/-- The cohomology functor from `β` graded cochain complexes to `β` graded objects in `V`. -/
 abbreviation cohomology_functor : cochain_complex V ⥤ graded_object ℤ V :=
 homological_complex.homology_functor V
 

@@ -217,7 +217,7 @@ protected def s_mk (x : F.apply $ M F) : Π n, cofix_a F n
  | 0 :=  cofix_a.continue
  | (succ n) := cofix_a.intro x.1 (λ i, (x.2 i).approx n)
 
-protected def P_mk  (x : F.apply $ M F)
+protected lemma P_mk  (x : F.apply $ M F)
 : all_agree (approx.s_mk x)
  | 0 := by { constructor }
  | (succ n) := by { constructor, introv,
@@ -488,7 +488,7 @@ section bisim
   variable (R : M F → M F → Prop)
   local infix ~ := R
 
-  structure is_bisimulation :=
+  structure is_bisimulation : Prop :=
   (head : ∀ {a a'} {f f'}, M.mk ⟨a,f⟩ ~ M.mk ⟨a',f'⟩ → a = a')
   (tail : ∀ {a} {f f' : F.B a → M F},
     M.mk ⟨a,f⟩ ~ M.mk ⟨a,f'⟩ →

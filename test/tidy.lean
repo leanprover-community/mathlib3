@@ -13,10 +13,7 @@ meta def interactive_simp := `[simp]
 
 def tidy_test_0 : ∀ x : unit, x = unit.star :=
 begin
-  success_if_fail { chain [ interactive_simp ] },
-  intro1,
-  induction x,
-  refl
+  simp
 end
 def tidy_test_1 (a : string) : ∀ x : unit, x = unit.star :=
 begin

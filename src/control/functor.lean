@@ -172,6 +172,22 @@ instance : applicative (comp F G) :=
 
 end comp
 
+variables {F : Type u → Type u} [functor F]
+
+def liftp {α : Type u} (p : α → Prop) (x : F α) : Prop :=
+∃ u : F (subtype p), subtype.val <$> u = x
+
+def liftr {α : Type u} (r : α → α → Prop) (x y : F α) : Prop :=
+∃ u : F {p : α × α // r p.fst p.snd},
+  (λ t : {p : α × α // r p.fst p.snd}, t.val.fst) <$> u = x ∧
+  (λ t : {p : α × α // r p.fst p.snd}, t.val.snd) <$> u = y
+
+def supp {α : Type u} (x : F α) : set α := { y : α | ∀ ⦃p⦄, liftp p x → p y }
+
+theorem of_mem_supp {α : Type u} {x : F α} {p : α → Prop} (h : liftp p x) :
+  ∀ y ∈ supp x, p y :=
+λ y hy, hy h
+
 end functor
 
 namespace ulift

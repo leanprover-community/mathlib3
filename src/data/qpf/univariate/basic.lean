@@ -9,28 +9,6 @@ Polynomial functors. Also expresses the W-type construction as a polynomial func
 import tactic.interactive data.multiset
 universe u
 
-/- TODO (Jeremy): move this. -/
-
-namespace functor
-
-variables {F : Type u → Type u} [functor F]
-
-def liftp {α : Type u} (p : α → Prop) : F α → Prop :=
-λ x, ∃ u : F (subtype p), subtype.val <$> u = x
-
-def liftr {α : Type u} (r : α → α → Prop) : F α → F α → Prop :=
-λ x y, ∃ u : F {p : α × α // r p.fst p.snd},
-  (λ t : {p : α × α // r p.fst p.snd}, t.val.fst) <$> u = x ∧
-  (λ t : {p : α × α // r p.fst p.snd}, t.val.snd) <$> u = y
-
-def supp {α : Type u} (x : F α) : set α := { y : α | ∀ ⦃p⦄, liftp p x → p y }
-
-theorem of_mem_supp {α : Type u} {x : F α} {p : α → Prop} (h : liftp p x) :
-  ∀ y ∈ supp x, p y :=
-λ y hy, hy h
-
-end functor
-
 /-
 A polynomial functor `P` is given by a type `A` and a family `B` of types over `A`. `P` maps
 any type `α` to a new type `P.apply α`.

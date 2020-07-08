@@ -6,8 +6,6 @@ Authors: Scott Morrison
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.images
 import category_theory.epi_mono
-import category_theory.punit
-import category_theory.discrete_category
 
 /-!
 # Zero morphisms and zero objects

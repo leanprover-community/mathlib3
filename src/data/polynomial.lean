@@ -11,6 +11,7 @@ import algebra.gcd_domain
 import ring_theory.euclidean_domain
 import ring_theory.multiplicity
 import data.finset.nat_antidiagonal
+import data.finset.sort
 
 /-!
 # Theory of univariate polynomials

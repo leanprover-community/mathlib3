@@ -5,6 +5,7 @@ Author: Mario Carneiro
 -/
 import data.finset.lattice
 import data.multiset.sort
+import tactic.suggest
 
 /-!
 # Construct a sorted list from a finset.
@@ -90,6 +91,7 @@ def mono_of_fin (s : finset α) {k : ℕ} (h : s.card = k) (i : fin k) : α :=
 have A : (i : ℕ) < (s.sort (≤)).length, by simpa [h] using i.2,
 (s.sort (≤)).nth_le i A
 
+
 lemma mono_of_fin_strict_mono (s : finset α) {k : ℕ} (h : s.card = k) :
   strict_mono (s.mono_of_fin h) :=
 begin
@@ -173,6 +175,21 @@ begin
       by { convert IH j.1 ji (lt_trans ji hi), rw fin.ext_iff },
     rw this at hj,
     exact (ne_of_lt (mono_of_fin_strict_mono s h ji) hj).elim }
+end
+
+/-- Any increasing map between `fin k` and a finset of cardinality `k` has to coincide with
+the increasing bijection `mono_of_fin s h`. -/
+lemma mono_of_fin_unique' [decidable_linear_order α] {s : finset α} {k : ℕ} (h : s.card = k)
+  {f : fin k → α} (fmap : set.maps_to f set.univ ↑s) (hmono : strict_mono f) :
+  f = s.mono_of_fin h :=
+begin
+  have finj : set.inj_on f set.univ := hmono.injective.inj_on _,
+  apply mono_of_fin_unique h (set.bij_on.mk fmap finj (λ y hy, _)) hmono,
+  simp only [set.image_univ, set.mem_range],
+  rcases surj_on_of_inj_on_of_card_le (λ i (hi : i ∈ finset.fin_range k), f i)
+    (λ i hi, fmap (set.mem_univ i)) (λ i j hi hj hij, finj (set.mem_univ i) (set.mem_univ j) hij)
+    (by simp [h]) y hy with ⟨x, _, hx⟩,
+  exact ⟨x, hx.symm⟩
 end
 
 /-- Two parametrizations `mono_of_fin` of the same set take the same value on `i` and `j` if and

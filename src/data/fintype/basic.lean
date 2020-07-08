@@ -5,8 +5,8 @@ Author: Mario Carneiro
 
 Finite types.
 -/
-import data.finset.sort
 import data.finset.powerset
+import data.finset.lattice
 import data.finset.pi
 import data.array.lemmas
 
@@ -144,18 +144,6 @@ quot.rec_on_subsingleton (@univ α _).1
 theorem exists_equiv_fin (α) [fintype α] : ∃ n, nonempty (α ≃ fin n) :=
 by haveI := classical.dec_eq α; exact ⟨card α, nonempty_of_trunc (equiv_fin α)⟩
 
-/-- Given a linearly ordered fintype `α` of cardinal `k`, the equiv `mono_equiv_of_fin α h`
-is the increasing bijection between `fin k` and `α`. Here, `h` is a proof that
-the cardinality of `s` is `k`. We use this instead of a map `fin s.card → α` to avoid
-casting issues in further uses of this function. -/
-noncomputable def mono_equiv_of_fin (α) [fintype α] [decidable_linear_order α] {k : ℕ}
-  (h : fintype.card α = k) : fin k ≃ α :=
-equiv.of_bijective (mono_of_fin univ h) begin
-  apply set.bijective_iff_bij_on_univ.2,
-  rw ← @coe_univ α _,
-  exact mono_of_fin_bij_on (univ : finset α) h
-end
-
 instance (α : Type*) : subsingleton (fintype α) :=
 ⟨λ ⟨s₁, h₁⟩ ⟨s₂, h₂⟩, by congr; simp [finset.ext_iff, h₁, h₂]⟩
 
@@ -266,7 +254,7 @@ lemma finset.card_univ_diff [fintype α] [decidable_eq α] (s : finset α) :
 finset.card_sdiff (subset_univ s)
 
 instance (n : ℕ) : fintype (fin n) :=
-⟨⟨list.fin_range n, list.nodup_fin_range n⟩, list.mem_fin_range⟩
+⟨finset.fin_range n, finset.mem_fin_range⟩
 
 @[simp] theorem fintype.card_fin (n : ℕ) : fintype.card (fin n) = n :=
 list.length_fin_range n
@@ -293,21 +281,6 @@ begin
     rw fin.cast_succ_cast_lt },
   { left,
     exact fin.eq_last_of_not_lt h }
-end
-
-/-- Any increasing map between `fin k` and a finset of cardinality `k` has to coincide with
-the increasing bijection `mono_of_fin s h`. -/
-lemma finset.mono_of_fin_unique' [decidable_linear_order α] {s : finset α} {k : ℕ} (h : s.card = k)
-  {f : fin k → α} (fmap : set.maps_to f set.univ ↑s) (hmono : strict_mono f) :
-  f = s.mono_of_fin h :=
-begin
-  have finj : set.inj_on f set.univ := hmono.injective.inj_on _,
-  apply mono_of_fin_unique h (set.bij_on.mk fmap finj (λ y hy, _)) hmono,
-  simp only [set.image_univ, set.mem_range],
-  rcases surj_on_of_inj_on_of_card_le (λ i (hi : i ∈ finset.univ), f i)
-    (λ i hi, fmap (set.mem_univ i)) (λ i j hi hj hij, finj (set.mem_univ i) (set.mem_univ j) hij)
-    (by simp [h]) y hy with ⟨x, _, hx⟩,
-  exact ⟨x, hx.symm⟩
 end
 
 @[instance, priority 10] def unique.fintype {α : Type*} [unique α] : fintype α :=

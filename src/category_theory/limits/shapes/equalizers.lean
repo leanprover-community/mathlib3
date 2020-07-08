@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Markus Himmel
 -/
 import category_theory.epi_mono
-import category_theory.eq_to_hom
 import category_theory.limits.limits
--- import data.fintype.basic
 
 /-!
 # Equalizers and coequalizers

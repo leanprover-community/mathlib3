@@ -7,7 +7,6 @@ import category_theory.limits.shapes.terminal
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.images
-import category_theory.epi_mono
 
 /-!
 # Zero morphisms and zero objects

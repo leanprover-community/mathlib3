@@ -157,7 +157,7 @@ def factor {α : Type*} (r s: α → α → Prop) (h : ∀ x y, r x y → s x y)
   quot r → quot s :=
 quot.lift (quot.mk s) (λ x y rxy, quot.sound (h x y rxy))
 
-def factor_mk_eq {α : Type*} (r s: α → α → Prop) (h : ∀ x y, r x y → s x y) :
+lemma factor_mk_eq {α : Type*} (r s: α → α → Prop) (h : ∀ x y, r x y → s x y) :
   factor r s h ∘ quot.mk _= quot.mk _ := rfl
 
 end quot

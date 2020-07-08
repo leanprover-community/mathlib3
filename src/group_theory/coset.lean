@@ -3,6 +3,8 @@ Copyright (c) 2018 Mitchell Rowett. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mitchell Rowett, Scott Morrison
 -/
+-- remove me
+import tactic
 import group_theory.subgroup
 open set function
 
@@ -212,8 +214,8 @@ calc α ≃ Σ L : quotient s, {x : α // (x : quotient s) = L} :
   equiv.sigma_congr_right (λ L,
     begin
       rw ← eq_class_eq_left_coset,
-      show {x // quotient.mk' x = L} ≃ {x : α // quotient.mk' x = quotient.mk' _},
-      simp [-quotient.eq']
+      show _root_.subtype (λ x : α, quotient.mk' x = L) ≃ _root_.subtype (λ x : α, quotient.mk' x = quotient.mk' _),
+      simp [-quotient.eq'],
     end)
     ... ≃ Σ L : quotient s, s :
   equiv.sigma_congr_right (λ L, left_coset_equiv_subgroup _)

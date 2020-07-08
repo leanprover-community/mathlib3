@@ -6,25 +6,24 @@ Author: Aaron Anderson.
 
 import data.finsupp
 import data.pnat.factors
-import order.conditionally_complete_lattice
 import order.lattice
 import order.order_iso
-import tactic.pi_instances
 
 /-!
 # Factor Finsupps
 
 A new version of prime factorisation and some facts about lattice isomorphisms
 
-## Notations
+## Main Definitions
+- `factor_finsupp` sends a `pnat` to its prime factorization,
+  expressed as a function from the primes to their multiplicities.
 
 ## Implementation Notes
-factor_finsupp is similar to pnat.factor_multiset, but a finsupp of exponents
-Most of the sorries will be solved by proving some facts about lattice isomorphisms.
+- `factor_finsupp` is based on `pnat.factor_multiset`.
+- Many facts about it are proved by constructing a lattice isomorphism between multisets
+  and finsupps to ℕ.
 
-## References
-
- -/
+-/
 
 set_option old_structure_cmd true
 
@@ -36,14 +35,10 @@ noncomputable theory
 
 section basics
 
-/-- Changes the domain to ℕ+. -/
-def finsupp.primes_to_pnat : (nat.primes →₀ ℕ) → ℕ+ →₀ ℕ := finsupp.map_domain coe
-
-@[instance]
 instance finsupp.coe_primes_to_pnat : has_coe (nat.primes →₀ ℕ) (ℕ+ →₀ ℕ) :=
-⟨finsupp.primes_to_pnat⟩
+⟨finsupp.map_domain coe⟩
 
-lemma finsupp.coe_primes_to_pnat_to_multiset (x : nat.primes →₀ ℕ) :
+lemma prime_multiset.to_pnat_multiset_to_multiset (x : nat.primes →₀ ℕ) :
   prime_multiset.to_pnat_multiset x.to_multiset = (x : ℕ+ →₀ ℕ).to_multiset :=
 finsupp.to_multiset_map x coe
 
@@ -69,7 +64,7 @@ lemma finsupp.primes_prod_pow_eq_prod_to_multiset (x : nat.primes →₀ ℕ) :
   x.primes_prod_pow= prime_multiset.prod x.to_multiset :=
 begin
   rw [prime_multiset.prod, finsupp.primes_prod_pow_eq_coe_prod_pow,
-    ← finsupp.prod_to_multiset, ← finsupp.coe_primes_to_pnat_to_multiset], refl
+    ← finsupp.prod_to_multiset, ← prime_multiset.to_pnat_multiset_to_multiset], refl
 end
 
 /-- The value of this finsupp at a prime is the multiplicity of that prime in n. -/
@@ -144,9 +139,6 @@ begin
   rw ← sup_eq_bot_iff, intro h, rw ← h, refl,
 end
 
-
-
-@[instance]
 instance finsupp.lattice : lattice (α →₀ ℕ) :=
 begin
   refine lattice.mk has_sup.sup has_le.le has_lt.lt _ _ _ _ _ _ _ has_inf.inf _ _ _,
@@ -170,7 +162,6 @@ begin
     rw finsupp.inf_apply, apply le_inf, apply a_1 s H, apply a_2 s H }
 end
 
-@[instance]
 instance finsupp.semilattice_inf_bot : semilattice_inf_bot (α →₀ ℕ) :=
 { bot := 0,
   bot_le := by { intro a, simp [finsupp.le_iff] },
@@ -234,7 +225,6 @@ begin
   conv_lhs {rw [← order_iso.symm_apply_apply f a₁, ← order_iso.symm_apply_apply f a₂]},
   apply f.symm.to_order_embedding.le_map_sup
 end
-
 
 end lattice_isos
 

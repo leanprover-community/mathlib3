@@ -221,7 +221,7 @@ end coeff
 
 section C
 /-- `C a` is the constant polynomial `a`. -/
-def C : R →+* polynomial R := add_monoid_algebra.algebra_map'
+def C : R →+* polynomial R := add_monoid_algebra.algebra_map' (ring_hom.id R)
 
 @[simp] lemma monomial_zero_left (a : R) : monomial 0 a = C a := rfl
 
@@ -561,7 +561,18 @@ variables [comm_semiring R] {p q r : polynomial R}
 local attribute [instance] coeff_coe_to_fun
 
 instance : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
-instance : algebra R (polynomial R) := add_monoid_algebra.algebra
+
+section
+variables [semiring A] [algebra R A]
+
+/-- Note that this instance also provides `algebra R (polynomial R)`. -/
+instance algebra_of_algebra : algebra R (polynomial A) := add_monoid_algebra.algebra
+
+lemma algebra_map_apply (r : R) :
+  algebra_map R (polynomial A) r = C (algebra_map R A r) :=
+rfl
+
+end
 
 section eval
 variable {x : R}

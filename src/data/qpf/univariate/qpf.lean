@@ -787,4 +787,4 @@ begin
     { intros, simp [*,f,g,if_pos] } }
 end
 end ex
-l
+

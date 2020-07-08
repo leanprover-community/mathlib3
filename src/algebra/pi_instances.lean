@@ -157,7 +157,7 @@ by refine_struct { mul := (*), one := (1 : Π i, f i), le := (≤), lt := (<), .
 @[to_additive ordered_add_comm_group]
 instance ordered_comm_group [∀ i, ordered_comm_group $ f i] :
   ordered_comm_group (Π i : I, f i) :=
-{ mul_le_mul_left := λ x y hxy c i, mul_le_mul_left' (hxy i),
+{ mul_le_mul_left := λ x y hxy c i, mul_le_mul_left' (hxy i) _,
   ..pi.comm_group,
   ..pi.partial_order }
 

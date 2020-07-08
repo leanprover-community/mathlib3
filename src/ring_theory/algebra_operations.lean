@@ -5,15 +5,14 @@ Authors: Kenny Lau
 
 Multiplication and division of submodules of an algebra.
 -/
+import tactic.chain
 import ring_theory.algebra
 import ring_theory.ideals
 import algebra.pointwise
 
 universes u v
 
-open algebra
-
-local attribute [instance] set.pointwise_mul_semiring
+open algebra set
 
 namespace submodule
 
@@ -67,11 +66,11 @@ begin
   { rw mul_le, intros a ha b hb,
     apply span_induction ha,
     work_on_goal 0 { intros, apply span_induction hb,
-      work_on_goal 0 { intros, exact subset_span ⟨_, ‹_›, _, ‹_›, rfl⟩ } },
+      work_on_goal 0 { intros, exact subset_span ⟨_, _, ‹_›, ‹_›, rfl⟩ } },
     all_goals { intros, simp only [mul_zero, zero_mul, zero_mem,
         left_distrib, right_distrib, mul_smul_comm, smul_mul_assoc],
       try {apply add_mem _ _ _}, try {apply smul_mem _ _ _} }, assumption' },
-  { rw span_le, rintros _ ⟨a, ha, b, hb, rfl⟩,
+  { rw span_le, rintros _ ⟨a, b, ha, hb, rfl⟩,
     exact mul_mem_mul (subset_span ha) (subset_span hb) }
 end
 variables {R}
@@ -119,12 +118,8 @@ le_antisymm (mul_le.2 $ λ mn hmn p hp, let ⟨m, hm, n, hn, hmn⟩ := mem_sup.1
   mem_sup.2 ⟨_, mul_mem_mul hm hp, _, mul_mem_mul hn hp, hmn ▸ (add_mul m n p).symm⟩)
 (sup_le (mul_le_mul_left le_sup_left) (mul_le_mul_left le_sup_right))
 
-lemma mul_subset_mul :
-  (↑M : set A) * (↑N : set A) ⊆ (↑(M * N) : set A) :=
-begin
-  rintros _ ⟨i, hi, j, hj, rfl⟩,
-  exact mul_mem_mul hi hj
-end
+lemma mul_subset_mul : (↑M : set A) * (↑N : set A) ⊆ (↑(M * N) : set A) :=
+by { rintros _ ⟨i, j, hi, hj, rfl⟩, exact mul_mem_mul hi hj }
 
 lemma map_mul {A'} [ring A'] [algebra R A'] (f : A →ₐ[R] A') :
   map f.to_linear_map (M * N) = map f.to_linear_map M * map f.to_linear_map N :=
@@ -163,24 +158,23 @@ instance : semiring (submodule R A) :=
 
 variables (M)
 
-lemma pow_subset_pow {n : ℕ} :
-  (↑M : set A)^n ⊆ ↑(M^n : submodule R A) :=
+lemma pow_subset_pow {n : ℕ} : (↑M : set A)^n ⊆ ↑(M^n : submodule R A) :=
 begin
   induction n with n ih,
   { erw [pow_zero, pow_zero, set.singleton_subset_iff], rw [mem_coe, ← one_le], exact le_refl _ },
   { rw [pow_succ, pow_succ],
-    refine set.subset.trans (set.pointwise_mul_subset_mul (set.subset.refl _) ih) _,
+    refine set.subset.trans (set.mul_subset_mul (subset.refl _) ih) _,
     apply mul_subset_mul }
 end
 
 /-- `span` is a semiring homomorphism (recall multiplication is pointwise multiplication of subsets on either side). -/
-def span.ring_hom : set A →+* submodule R A :=
+def span.ring_hom : set_semiring A →+* submodule R A :=
 { to_fun := submodule.span R,
   map_zero' := span_empty,
-  map_one' := show _ = map _ ⊤,
-    by erw [← ideal.span_singleton_one, ← span_image, set.image_singleton, alg_hom.map_one]; refl,
+  map_one' := show _ = map _ ⊤, by { erw [← ideal.span_singleton_one, ← span_image,
+      set.image_singleton, alg_hom.map_one], refl },
   map_add' := span_union,
-  map_mul' := λ s t, by erw [span_mul_span, set.pointwise_mul_eq_image] }
+  map_mul' := λ s t, by erw [span_mul_span, ← image_mul_prod] }
 
 end ring
 
@@ -203,12 +197,12 @@ instance : comm_semiring (submodule R A) :=
 
 variables (R A)
 
-instance semimodule_set : semimodule (set A) (submodule R A) :=
+instance semimodule_set : semimodule (set_semiring A) (submodule R A) :=
 { smul := λ s P, span R s * P,
   smul_add := λ _ _ _, mul_add _ _ _,
   add_smul := λ s t P, show span R (s ⊔ t) * P = _, by { erw [span_union, right_distrib] },
   mul_smul := λ s t P, show _ = _ * (_ * _),
-    by { rw [← mul_assoc, span_mul_span, set.pointwise_mul_eq_image] },
+    by { rw [← mul_assoc, span_mul_span, ← image_mul_prod] },
   one_smul := λ P, show span R {(1 : A)} * P = _,
     by { conv_lhs {erw ← span_eq P}, erw [span_mul_span, one_mul, span_eq] },
   zero_smul := λ P, show span R ∅ * P = ⊥, by erw [span_empty, bot_mul],
@@ -217,31 +211,27 @@ instance semimodule_set : semimodule (set A) (submodule R A) :=
 
 variables {R A}
 
-lemma smul_def {s : set A} {P : submodule R A} :
-  s • P = span R s * P := rfl
+lemma smul_def {s : set_semiring A} {P : submodule R A} : s • P = span R s * P := rfl
 
-lemma smul_le_smul {s t : set A} {M N : submodule R A} (h₁ : s ≤ t) (h₂ : M ≤ N) :
-  s • M ≤ t • N :=
+lemma smul_le_smul {s t : set_semiring A} {M N : submodule R A} (h₁ : s.down ≤ t.down)
+  (h₂ : M ≤ N) : s • M ≤ t • N :=
 mul_le_mul (span_mono h₁) h₂
 
 lemma smul_singleton (a : A) (M : submodule R A) :
-  ({a} : set A) • M = M.map (lmul_left _ _ a) :=
+  ({a} : set A).up • M = M.map (lmul_left _ _ a) :=
 begin
   conv_lhs {rw ← span_eq M},
   change span _ _ * span _ _ = _,
   rw [span_mul_span],
   apply le_antisymm,
   { rw span_le,
-    rintros _ ⟨b, hb, m, hm, rfl⟩,
-    erw [mem_map, set.mem_singleton_iff.mp hb],
+    rintros _ ⟨b, m, hb, hm, rfl⟩,
+    rw [mem_coe, mem_map, set.mem_singleton_iff.mp hb],
     exact ⟨m, hm, rfl⟩ },
-  { rintros _ ⟨m, hm, rfl⟩,
-    exact subset_span ⟨a, set.mem_singleton a, m, hm, rfl⟩ }
+  { rintros _ ⟨m, hm, rfl⟩, exact subset_span ⟨a, m, set.mem_singleton a, hm, rfl⟩ }
 end
 
 section quotient
-
-local attribute [instance] set.smul_set_action
 
 /-- The elements of `I / J` are the `x` such that `x • J ⊆ I`.
 
@@ -263,8 +253,8 @@ lemma mem_div_iff_forall_mul_mem {x : A} {I J : submodule R A} :
 iff.refl _
 
 lemma mem_div_iff_smul_subset {x : A} {I J : submodule R A} : x ∈ I / J ↔ x • (J : set A) ⊆ I :=
-⟨ λ h y ⟨y', hy', y_eq_xy'⟩, by { rw y_eq_xy', apply h, assumption },
-  λ h y hy, h (set.smul_mem_smul_set _ hy)⟩
+⟨ λ h y ⟨y', hy', xy'_eq_y⟩, by { rw ← xy'_eq_y, apply h, assumption },
+  λ h y hy, h (set.smul_mem_smul_set hy) ⟩
 
 lemma le_div_iff {I J K : submodule R A} : I ≤ J / K ↔ ∀ (x ∈ I) (z ∈ K), x * z ∈ J := iff.refl _
 end quotient

@@ -6,7 +6,7 @@ Author: Jeremy Avigad
 Polynomial functors. Also expresses the W-type construction as a polynomial functor.
 (For the M-type construction, see Mtype.lean.)
 -/
-import tactic.interactive data.multiset
+import tactic.interactive data.multiset data.W
 universe u
 
 /-
@@ -47,8 +47,7 @@ theorem comp_map {α β γ : Type*} (f : α → β) (g : β → γ) :
 instance : is_lawful_functor P.apply :=
 {id_map := @id_map P, comp_map := @comp_map P}
 
-inductive W
-| mk (a : P.A) (f : P.B a → W) : W
+def W := _root_.W P.B
 
 def W_dest : W P → P.apply (W P)
 | ⟨a, f⟩ := ⟨a, f⟩

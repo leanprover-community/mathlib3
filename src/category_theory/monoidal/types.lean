@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Jendrusch, Scott Morrison
 -/
 import category_theory.monoidal.of_has_finite_products
+import category_theory.limits.shapes.finite_products
 
 open category_theory
 open tactic

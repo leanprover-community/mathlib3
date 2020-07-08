@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Markus Himmel
 -/
 import category_theory.epi_mono
-import category_theory.limits.shapes.finite_limits
+import category_theory.eq_to_hom
+import category_theory.limits.limits
+import data.fintype.basic
 
 /-!
 # Equalizers and coequalizers
@@ -95,8 +97,6 @@ instance walking_parallel_pair_hom_category : small_category walking_parallel_pa
 { hom  := walking_parallel_pair_hom,
   id   := walking_parallel_pair_hom.id,
   comp := walking_parallel_pair_hom.comp }
-
-instance : fin_category walking_parallel_pair := { }
 
 @[simp]
 lemma walking_parallel_pair_hom_id (X : walking_parallel_pair) :
@@ -583,15 +583,6 @@ class has_coequalizers :=
 (has_colimits_of_shape : has_colimits_of_shape walking_parallel_pair C)
 
 attribute [instance] has_equalizers.has_limits_of_shape has_coequalizers.has_colimits_of_shape
-
-/-- Equalizers are finite limits, so if `C` has all finite limits, it also has all equalizers -/
-def has_equalizers_of_has_finite_limits [has_finite_limits C] : has_equalizers C :=
-{ has_limits_of_shape := infer_instance }
-
-/-- Coequalizers are finite colimits, of if `C` has all finite colimits, it also has all
-    coequalizers -/
-def has_coequalizers_of_has_finite_colimits [has_finite_colimits C] : has_coequalizers C :=
-{ has_colimits_of_shape := infer_instance }
 
 /-- If `C` has all limits of diagrams `parallel_pair f g`, then it has all equalizers -/
 def has_equalizers_of_has_limit_parallel_pair

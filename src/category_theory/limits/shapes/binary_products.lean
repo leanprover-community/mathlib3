@@ -3,6 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
+-- import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.terminal
 
 /-!
@@ -33,10 +34,6 @@ inductive walking_pair : Type v
 | left | right
 
 open walking_pair
-
-instance fintype_walking_pair : fintype walking_pair :=
-{ elems := {left, right},
-  complete := λ x, by { cases x; simp } }
 
 /--
 The equivalence swapping left and right.
@@ -413,13 +410,6 @@ class has_binary_coproducts :=
 (has_colimits_of_shape : has_colimits_of_shape (discrete walking_pair) C)
 
 attribute [instance] has_binary_products.has_limits_of_shape has_binary_coproducts.has_colimits_of_shape
-
-@[priority 200] -- see Note [lower instance priority]
-instance [has_finite_products C] : has_binary_products.{v} C :=
-{ has_limits_of_shape := by apply_instance }
-@[priority 200] -- see Note [lower instance priority]
-instance [has_finite_coproducts C] : has_binary_coproducts.{v} C :=
-{ has_colimits_of_shape := by apply_instance }
 
 /-- If `C` has all limits of diagrams `pair X Y`, then it has all binary products -/
 def has_binary_products_of_has_limit_pair [Π {X Y : C}, has_limit (pair X Y)] :

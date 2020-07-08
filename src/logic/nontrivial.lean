@@ -97,7 +97,27 @@ end
 instance option.nontrivial [nonempty α] : nontrivial (option α) :=
 by { inhabit α, use [none, some (default α)] }
 
+instance function.nontrivial [nonempty α] [nontrivial β] : nontrivial (α → β) :=
+begin
+  rcases exists_pair_ne β with ⟨x, y, h⟩,
+  use [λ _, x, λ _, y],
+  contrapose! h,
+  inhabit α,
+  exact congr_fun h (default α)
+end
+
 /-- Pushforward a `nontrivial` instance along an injective function. -/
 protected lemma function.injective.nontrivial [nontrivial α]
   {f : α → β} (hf : function.injective f) : nontrivial β :=
 let ⟨x, y, h⟩ := exists_pair_ne α in ⟨⟨f x, f y, hf.ne h⟩⟩
+
+/-- Pullback a `nontrivial` instance along a surjective function. -/
+protected lemma function.surjective.nontrivial [nontrivial β]
+  {f : α → β} (hf : function.surjective f) : nontrivial α :=
+begin
+  rcases exists_pair_ne β with ⟨x, y, h⟩,
+  rcases hf x with ⟨x', hx'⟩,
+  rcases hf y with ⟨y', hy'⟩,
+  have : x' ≠ y', by { contrapose! h, rw [← hx', ← hy', h] },
+  exact ⟨⟨x', y', this⟩⟩
+end

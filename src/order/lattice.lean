@@ -103,11 +103,6 @@ sup_le_sup h₁ (le_refl _)
 theorem le_of_sup_eq (h : a ⊔ b = b) : a ≤ b :=
 by { rw ← h, simp }
 
-/-- A monotone function on a sup-semilattice is directed. -/
-lemma directed_of_mono (f : α → β) {r : β → β → Prop}
-  (H : ∀ ⦃i j⦄, i ≤ j → r (f i) (f j)) : directed r f :=
-λ a b, ⟨a ⊔ b, H le_sup_left, H le_sup_right⟩
-
 lemma sup_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : p b) : p (a ⊔ b) :=
 (is_total.total a b).elim (λ h : a ≤ b, by rwa sup_eq_right.2 h) (λ h, by rwa sup_eq_left.2 h)
 
@@ -165,10 +160,6 @@ begin
   casesI A, casesI B,
   injection this; congr'
 end
-
-lemma directed_of_sup {β : Type*} {r : β → β → Prop} {f : α → β}
-  (hf : ∀a₁ a₂, a₁ ≤ a₂ → r (f a₁) (f a₂)) : directed r f :=
-assume x y, ⟨x ⊔ y, hf _ _ le_sup_left, hf _ _ le_sup_right⟩
 
 end semilattice_sup
 
@@ -299,11 +290,6 @@ begin
   casesI A, casesI B,
   injection this; congr'
 end
-
-/-- An antimonotone function on an inf-semilattice is directed. -/
-lemma directed_of_inf {r : β → β → Prop} {f : α → β}
-  (hf : ∀a₁ a₂, a₁ ≤ a₂ → r (f a₂) (f a₁)) : directed r f :=
-assume x y, ⟨x ⊓ y, hf _ _ inf_le_left, hf _ _ inf_le_right⟩
 
 end semilattice_inf
 

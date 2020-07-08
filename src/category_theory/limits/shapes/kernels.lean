@@ -9,10 +9,10 @@ import category_theory.limits.shapes.equalizers
 /-!
 # Kernels and cokernels
 
-In a category with zero morphisms, the kernel of a morphism `f : X ⟶ Y` is just the equalizer of `f`
+In a category with zero morphisms, the kernel of a morphism `f : X ⟶ Y` is the equalizer of `f`
 and `0 : X ⟶ Y`. (Similarly the cokernel is the coequalizer.)
 
-We don't yet prove much here, just provide
+The basic definitions are
 * `kernel : (X ⟶ Y) → C`
 * `kernel.ι : kernel f ⟶ X`
 * `kernel.condition : kernel.ι f ≫ f = 0` and
@@ -20,13 +20,19 @@ We don't yet prove much here, just provide
 
 ## Main statements
 
-Besides the definition and lifts,
+Besides the definition and lifts, we prove
 * `kernel.ι_zero_is_iso`: a kernel map of a zero morphism is an isomorphism
+* `kernel.eq_zero_of_epi_kernel`: if `kernel.ι f` is an epimorphism, then `f = 0`
+* `kernel.of_mono`: the kernel of a monomorphism is the zero object
+* `kernel.lift_mono`: the lift of a monomorphism `k : W ⟶ X` such that `k ≫ f = 0`
+  is still a monomorphism
 * `kernel.is_limit_cone_zero_cone`: if our category has a zero object, then the map from the zero
   obect is a kernel map of any monomorphism
+* `kernel.ι_of_zero`: `kernel.ι (0 : X ⟶ Y)` is an isomorphism
+
+and the corresponding dual statements.
 
 ## Future work
-* TODO: images and coimages, and then abelian categories.
 * TODO: connect this with existing working in the group theory and ring theory libraries.
 
 ## Implementation notes
@@ -105,13 +111,25 @@ limit.lift (parallel_pair f 0) (kernel_fork.of_ι k h)
 lemma kernel.lift_ι {W : C} (k : W ⟶ X) (h : k ≫ f = 0) : kernel.lift f k h ≫ kernel.ι f = k :=
 limit.lift_π _ _
 
+@[simp]
+lemma kernel.lift_zero {W : C} {h} : kernel.lift f (0 : W ⟶ X) h = 0 :=
+by { ext, simp, }
+
+instance kernel.lift_mono {W : C} (k : W ⟶ X) (h : k ≫ f = 0) [mono k] : mono (kernel.lift f k h) :=
+⟨λ Z g g' w,
+begin
+  replace w := w =≫ kernel.ι f,
+  simp only [category.assoc, kernel.lift_ι] at w,
+  exact (cancel_mono k).1 w,
+end⟩
+
 /-- Any morphism `k : W ⟶ X` satisfying `k ≫ f = 0` induces a morphism `l : W ⟶ kernel f` such that
     `l ≫ kernel.ι f = k`. -/
 def kernel.lift' {W : C} (k : W ⟶ X) (h : k ≫ f = 0) : {l : W ⟶ kernel f // l ≫ kernel.ι f = k} :=
 ⟨kernel.lift f k h, kernel.lift_ι _ _ _⟩
 
 /-- Every kernel of the zero morphism is an isomorphism -/
-def kernel.ι_zero_is_iso [has_kernel (0 : X ⟶ Y)] :
+instance kernel.ι_zero_is_iso [has_kernel (0 : X ⟶ Y)] :
   is_iso (kernel.ι (0 : X ⟶ Y)) :=
 equalizer.ι_of_self _
 
@@ -144,7 +162,7 @@ fork.is_limit.mk _ (λ s, 0)
   (λ s, by { erw has_zero_morphisms.zero_comp,
     convert (zero_of_comp_mono f _).symm,
     exact kernel_fork.condition _ })
-  (λ _ _ _, has_zero_object.zero_of_to_zero _)
+  (λ _ _ _, zero_of_to_zero _)
 
 /-- The kernel of a monomorphism is isomorphic to the zero object -/
 def kernel.of_mono [has_kernel f] [mono f] : kernel f ≅ 0 :=
@@ -153,8 +171,7 @@ functor.map_iso (cones.forget _) $ is_limit.unique_up_to_iso
 
 /-- The kernel morphism of a monomorphism is a zero morphism -/
 lemma kernel.ι_of_mono [has_kernel f] [mono f] : kernel.ι f = 0 :=
-by rw [←category.id_comp (kernel.ι f), ←iso.hom_inv_id (kernel.of_mono f), category.assoc,
-  has_zero_object.zero_of_to_zero (kernel.of_mono f).hom, has_zero_morphisms.zero_comp]
+zero_of_source_iso_zero _ (kernel.of_mono f)
 
 end has_zero_object
 
@@ -251,6 +268,18 @@ lemma cokernel.π_desc {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) :
   cokernel.π f ≫ cokernel.desc f k h = k :=
 colimit.ι_desc _ _
 
+@[simp]
+lemma cokernel.desc_zero {W : C} {h} : cokernel.desc f (0 : Y ⟶ W) h = 0 :=
+by { ext, simp, }
+
+instance cokernel.desc_epi {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) [epi k] : epi (cokernel.desc f k h) :=
+⟨λ Z g g' w,
+begin
+  replace w := cokernel.π f ≫= w,
+  simp only [cokernel.π_desc_assoc] at w,
+  exact (cancel_epi k).1 w,
+end⟩
+
 /-- Any morphism `k : Y ⟶ W` satisfying `f ≫ k = 0` induces `l : cokernel f ⟶ W` such that
     `cokernel.π f ≫ l = k`. -/
 def cokernel.desc' {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) :
@@ -258,7 +287,7 @@ def cokernel.desc' {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) :
 ⟨cokernel.desc f k h, cokernel.π_desc _ _ _⟩
 
 /-- The cokernel of the zero morphism is an isomorphism -/
-def cokernel.π_zero_is_iso [has_colimit (parallel_pair (0 : X ⟶ Y) 0)] :
+instance cokernel.π_zero_is_iso [has_colimit (parallel_pair (0 : X ⟶ Y) 0)] :
   is_iso (cokernel.π (0 : X ⟶ Y)) :=
 coequalizer.π_of_self _
 
@@ -291,17 +320,16 @@ cofork.is_colimit.mk _ (λ s, 0)
   (λ s, by { erw has_zero_morphisms.zero_comp,
     convert (zero_of_epi_comp f _).symm,
     exact cokernel_cofork.condition _ })
-  (λ _ _ _, has_zero_object.zero_of_from_zero _)
+  (λ _ _ _, zero_of_from_zero _)
 
 /-- The cokernel of an epimorphism is isomorphic to the zero object -/
 def cokernel.of_epi [has_cokernel f] [epi f] : cokernel f ≅ 0 :=
 functor.map_iso (cocones.forget _) $ is_colimit.unique_up_to_iso
   (colimit.is_colimit (parallel_pair f 0)) (cokernel.is_colimit_cocone_zero_cocone f)
 
-/-- The cokernel morphism if an epimorphism is a zero morphism -/
+/-- The cokernel morphism of an epimorphism is a zero morphism -/
 lemma cokernel.π_of_epi [has_cokernel f] [epi f] : cokernel.π f = 0 :=
-by rw [←category.comp_id (cokernel.π f), ←iso.hom_inv_id (cokernel.of_epi f), ←category.assoc,
-  has_zero_object.zero_of_from_zero (cokernel.of_epi f).inv, has_zero_morphisms.comp_zero]
+zero_of_target_iso_zero _ (cokernel.of_epi f)
 
 end has_zero_object
 
@@ -384,13 +412,5 @@ class has_cokernels :=
 (has_colimit : Π {X Y : C} (f : X ⟶ Y), has_cokernel f)
 
 attribute [instance, priority 100] has_kernels.has_limit has_cokernels.has_colimit
-
-/-- Kernels are finite limits, so if `C` has all finite limits, it also has all kernels -/
-def has_kernels_of_has_finite_limits [has_finite_limits C] : has_kernels C :=
-{ has_limit := infer_instance }
-
-/-- Cokernels are finite limits, so if `C` has all finite colimits, it also has all cokernels -/
-def has_cokernels_of_has_finite_colimits [has_finite_colimits C] : has_cokernels C :=
-{ has_colimit := infer_instance }
 
 end category_theory.limits

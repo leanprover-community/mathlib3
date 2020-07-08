@@ -8,6 +8,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 import order.complete_boolean_algebra
 import data.sigma.basic
 import order.galois_connection
+import order.directed
 
 open function tactic set auto
 
@@ -17,13 +18,7 @@ variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {ι' : Sort y}
 namespace set
 
 instance lattice_set : complete_lattice (set α) :=
-{ le     := (⊆),
-  lt     := (⊂),
-  sup    := (∪),
-  inf    := (∩),
-  top    := univ,
-  bot    := ∅,
-  Sup    := λs, {a | ∃ t ∈ s, a ∈ t },
+{ Sup    := λs, {a | ∃ t ∈ s, a ∈ t },
   Inf    := λs, {a | ∀ t ∈ s, a ∈ t },
 
   le_Sup := assume s t t_in a a_in, ⟨t, ⟨t_in, a_in⟩⟩,
@@ -31,16 +26,9 @@ instance lattice_set : complete_lattice (set α) :=
 
   le_Inf := assume s t h a a_in t' t'_in, h t' t'_in a_in,
   Inf_le := assume s t t_in a h, h _ t_in,
+
+  .. set.boolean_algebra,
   .. (infer_instance : complete_lattice (α → Prop)) }
-
-instance : distrib_lattice (set α) :=
-{ le_sup_inf := λ s t u x, or_and_distrib_left.2, ..set.lattice_set }
-
-@[simp] lemma bot_eq_empty : (⊥ : set α) = ∅ := rfl
-@[simp] lemma sup_eq_union (s t : set α) : s ⊔ t = s ∪ t := rfl
-@[simp] lemma inf_eq_inter (s t : set α) : s ⊓ t = s ∩ t := rfl
-@[simp] lemma le_eq_subset (s t : set α) : s ≤ t = (s ⊆ t) := rfl
-@[simp] lemma lt_eq_ssubset (s t : set α) : s < t = (s ⊂ t) := rfl
 
 /-- Image is monotone. See `set.image_image` for the statement in terms of `⊆`. -/
 lemma monotone_image {f : α → β} : monotone (image f) :=
@@ -541,10 +529,6 @@ set.ext $ λ x, by simp [bool.forall_bool, and_comm]
 instance : complete_boolean_algebra (set α) :=
 { compl               := compl,
   sdiff               := (\),
-  le_sup_inf          := distrib_lattice.le_sup_inf,
-  inf_compl_eq_bot    := assume s, ext $ assume x, ⟨assume ⟨h, nh⟩, nh h, false.elim⟩,
-  sup_compl_eq_top    := assume s, ext $ assume x, ⟨assume h, trivial, assume _, classical.em $ x ∈ s⟩,
-  sdiff_eq            := assume x y, rfl,
   infi_sup_le_sup_Inf := assume s t x, show x ∈ (⋂ b ∈ t, s ∪ b) → x ∈ s ∪ (⋂₀ t),
     by simp; exact assume h,
       or.imp_right
@@ -552,7 +536,7 @@ instance : complete_boolean_algebra (set α) :=
         (classical.em $ x ∈ s),
   inf_Sup_le_supr_inf := assume s t x, show x ∈ s ∩ (⋃₀ t) → x ∈ (⋃ b ∈ t, s ∩ b),
     by simp [-and_imp, and.left_comm],
-  ..set.lattice_set }
+  .. set.boolean_algebra, .. set.lattice_set }
 
 lemma sInter_union_sInter {S T : set (set α)} :
   (⋂₀S) ∪ (⋂₀T) = (⋂p ∈ set.prod S T, (p : (set α) × (set α)).1 ∪ p.2) :=

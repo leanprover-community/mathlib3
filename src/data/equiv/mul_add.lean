@@ -129,6 +129,12 @@ lemma map_ne_one_iff {M N} [monoid M] [monoid N] (h : M ≃* N) {x : M} :
   h x ≠ 1 ↔ x ≠ 1 :=
 ⟨mt h.map_eq_one_iff.2, mt h.map_eq_one_iff.1⟩
 
+@[to_additive]
+noncomputable def of_bijective {M N} [monoid M] [monoid N] (f : M →* N)
+  (hf : function.bijective f) : M ≃* N :=
+{ map_mul' := f.map_mul',
+  ..equiv.of_bijective f hf }
+
 /--
 Extract the forward direction of a multiplicative equivalence
 as a multiplication preserving function.

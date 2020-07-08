@@ -327,7 +327,7 @@ instance : has_bot (subgroup G) :=
 @[to_additive]
 instance : inhabited (subgroup G) := ⟨⊥⟩
 
-@[simp, to_additive] lemma mem_bot {x : G} : x ∈ (⊥ : subgroup G) ↔ x = 1 := set.mem_singleton_iff
+@[simp, to_additive] lemma mem_bot {x : G} : x ∈ (⊥ : subgroup G) ↔ x = 1 := iff.rfl
 
 @[simp, to_additive] lemma mem_top (x : G) : x ∈ (⊤ : subgroup G) := set.mem_univ x
 
@@ -872,6 +872,9 @@ iff.rfl
 @[to_additive] lemma range_eq_map (f : G →* N) : f.range = (⊤ : subgroup G).map f :=
 by ext; simp
 
+@[to_additive] def to_range (f : G →* N) : G →* f.range :=
+monoid_hom.mk' (λ g, ⟨f g, ⟨g, rfl⟩⟩) $ λ a b, by {ext, exact f.map_mul' _ _}
+
 @[to_additive]
 lemma map_range (g : N →* P) (f : G →* N) : f.range.map g = (g.comp f).range :=
 by rw [range_eq_map, range_eq_map]; exact (⊤ : subgroup G).map_map g f
@@ -894,10 +897,18 @@ such that `f x = 0`"]
 def ker (f : G →* N) := (⊥ : subgroup N).comap f
 
 @[to_additive]
-lemma mem_ker {f : G →* N} {x : G} : x ∈ f.ker ↔ f x = 1 := subgroup.mem_bot
+lemma mem_ker {f : G →* N} {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
 
 @[to_additive]
 lemma comap_ker (g : N →* P) (f : G →* N) : g.ker.comap f = (g.comp f).ker := rfl
+
+@[to_additive] lemma to_range_ker (f : G →* N) : ker (to_range f) = ker f :=
+begin
+  ext,
+  change (⟨f x, _⟩ : range f) = ⟨1, _⟩ ↔ f x = 1,
+  simp only [],
+end
+
 
 /-- The subgroup of elements `x : G` such that `f x = g x` -/
 @[to_additive "The additive subgroup of elements `x : G` such that `f x = g x`"]

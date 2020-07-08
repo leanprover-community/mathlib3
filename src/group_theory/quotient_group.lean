@@ -107,41 +107,37 @@ end
 
 variables (φ : G →* H) (HN : ∀x∈N, φ x = 1)
 
-open function is_group_hom -- up to here -- is there a group_hom namespace??
+open function monoid_hom
 
 /-- The induced map from the quotient by the kernel to the codomain. -/
 @[to_additive quotient_add_group.ker_lift]
-def ker_lift : quotient (monoid_hom.ker φ) → H :=
-lift _ φ $ λ g, (mem_ker φ).mp
+def ker_lift : quotient (ker φ) →* H :=
+lift _ φ $ λ g, mem_ker.mp
 
 @[simp, to_additive quotient_add_group.ker_lift_mk]
-lemma ker_lift_mk (g : G) : (ker_lift φ) g = φ g :=
+lemma ker_lift_mk (g : G) : (ker_lift N φ) g = φ g :=
 lift_mk _ _ _
 
 @[simp, to_additive quotient_add_group.ker_lift_mk']
-lemma ker_lift_mk' (g : G) : (ker_lift φ) (mk g) = φ g :=
+lemma ker_lift_mk' (g : G) : (ker_lift N φ) (mk g) = φ g :=
 lift_mk' _ _ _
 
-@[to_additive quotient_add_group.ker_lift_is_add_group_hom]
-instance ker_lift_is_group_hom : is_group_hom (ker_lift φ) :=
-quotient_group.is_group_hom_quotient_lift _ _ _
-
 @[to_additive quotient_add_group.injective_ker_lift]
-lemma ker_lift_injective : injective (ker_lift φ) :=
-assume a b, quotient.induction_on₂' a b $ assume a b (h : φ a = φ b), quotient.sound' $
-show a⁻¹ * b ∈ ker φ, by rw [mem_ker φ,
+lemma ker_lift_injective : injective (ker_lift N φ) :=
+assume a b, quotient.induction_on₂' a b $
+  assume a b (h : φ a = φ b), quotient.sound' $
+show a⁻¹ * b ∈ ker φ, by rw [mem_ker,
   is_mul_hom.map_mul φ, ← h, is_group_hom.map_inv φ, inv_mul_self]
 
---@[to_additive quotient_add_group.quotient_ker_equiv_range]
-noncomputable def quotient_ker_equiv_range : (quotient (ker φ)) ≃ set.range φ :=
-equiv.of_bijective (λ x, ⟨lift (ker φ) φ
-  (by simp [mem_ker]) x, by exact quotient.induction_on' x (λ x, ⟨x, rfl⟩)⟩)
-⟨λ a b h, ker_lift_injective _ (subtype.mk.inj h),
-  λ ⟨x, y, hy⟩, ⟨mk y, subtype.eq hy⟩⟩
+@[to_additive quotient_add_group.quotient_ker_equiv_range]
+noncomputable def quotient_ker_equiv_range : (quotient (ker φ)) ≃* range φ :=
+mul_equiv.of_bijective
+  (lift (ker φ) (to_range _) (λ x hx, show (⟨φ x, _⟩ : range φ) = ⟨1, _⟩, by simp [mem_ker.1 hx, hx]))
+  ⟨λ a b h, ker_lift_injective N _ sorry, λ ⟨x, y, hy⟩, ⟨mk y, subtype.eq hy⟩⟩
 
 noncomputable def quotient_ker_equiv_of_surjective (hφ : function.surjective φ) :
   (quotient (ker φ)) ≃ H :=
-calc (quotient_group.quotient (is_group_hom.ker φ)) ≃ set.range φ : quotient_ker_equiv_range _
+calc (quotient_group.quotient (ker φ)) ≃ set.range φ : begin sorry end -- quotient_ker_equiv_range _
 ... ≃ H : ⟨λ a, a.1, λ b, ⟨b, hφ b⟩, λ ⟨_, _⟩, rfl, λ _, rfl⟩
 
 end quotient_group

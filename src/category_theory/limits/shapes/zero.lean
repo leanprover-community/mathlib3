@@ -3,12 +3,10 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import tactic.equiv_rw
+import category_theory.limits.shapes.terminal
 import category_theory.limits.shapes.binary_products
+import category_theory.limits.shapes.products
 import category_theory.limits.shapes.images
-import category_theory.epi_mono
-import category_theory.punit
-import category_theory.discrete_category
 
 /-!
 # Zero morphisms and zero objects

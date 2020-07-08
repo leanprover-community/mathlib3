@@ -413,20 +413,4 @@ class has_cokernels :=
 
 attribute [instance, priority 100] has_kernels.has_limit has_cokernels.has_colimit
 
-@[priority 100]
-instance has_kernels_of_has_equalizers [has_equalizers C] : has_kernels C :=
-{ has_limit := infer_instance }
-
-@[priority 100]
-instance has_cokernels_of_has_coequalizers [has_coequalizers C] : has_cokernels C :=
-{ has_colimit := infer_instance }
-
-/-- Kernels are finite limits, so if `C` has all finite limits, it also has all kernels -/
-def has_kernels_of_has_finite_limits [has_finite_limits C] : has_kernels C :=
-{ has_limit := infer_instance }
-
-/-- Cokernels are finite limits, so if `C` has all finite colimits, it also has all cokernels -/
-def has_cokernels_of_has_finite_colimits [has_finite_colimits C] : has_cokernels C :=
-{ has_colimit := infer_instance }
-
 end category_theory.limits

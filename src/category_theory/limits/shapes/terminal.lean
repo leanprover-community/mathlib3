@@ -3,8 +3,8 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.limits.shapes.finite_products
 import category_theory.pempty
+import category_theory.limits.limits
 
 /-!
 # Initial and terminal objects in a category.
@@ -32,14 +32,6 @@ class has_initial :=
 (has_colimits_of_shape : has_colimits_of_shape (discrete pempty) C)
 
 attribute [instance] has_terminal.has_limits_of_shape has_initial.has_colimits_of_shape
-
-@[priority 100] -- see Note [lower instance priority]
-instance [has_finite_products C] : has_terminal C :=
-{ has_limits_of_shape := by apply_instance }
-
-@[priority 100] -- see Note [lower instance priority]
-instance [has_finite_coproducts C] : has_initial C :=
-{ has_colimits_of_shape := by apply_instance }
 
 abbreviation terminal [has_terminal C] : C := limit (functor.empty C)
 abbreviation initial [has_initial C] : C := colimit (functor.empty C)

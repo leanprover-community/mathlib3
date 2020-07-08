@@ -3,12 +3,10 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import tactic.equiv_rw
+import category_theory.limits.shapes.terminal
 import category_theory.limits.shapes.binary_products
+import category_theory.limits.shapes.products
 import category_theory.limits.shapes.images
-import category_theory.epi_mono
-import category_theory.punit
-import category_theory.discrete_category
 
 /-!
 # Zero morphisms and zero objects
@@ -228,7 +226,7 @@ lemma epi_of_target_iso_zero {X Y : C} (f : X ⟶ Y) (i : Y ≅ 0) : epi f :=
 ⟨λ Z g h w, by rw [zero_of_source_iso_zero g i, zero_of_source_iso_zero h i]⟩
 
 /--
-An object `X` has `𝟙 X = 0` if and only if it is isomorphisc to the zero object.
+An object `X` has `𝟙 X = 0` if and only if it is isomorphic to the zero object.
 
 Because `X ≅ 0` contains data (even if a subsingleton), we express this `↔` as an `≃`.
 -/

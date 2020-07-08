@@ -374,7 +374,7 @@ real.sqrt_nonneg _
 @[simp] lemma abs_eq_zero {z : ℂ} : abs z = 0 ↔ z = 0 :=
 (real.sqrt_eq_zero $ norm_sq_nonneg _).trans norm_sq_eq_zero
 
-@[simp] lemma abs_ne_zero {z : ℂ} : abs z ≠ 0 ↔ z ≠ 0 :=
+lemma abs_ne_zero {z : ℂ} : abs z ≠ 0 ↔ z ≠ 0 :=
 not_congr abs_eq_zero
 
 @[simp] lemma abs_conj (z : ℂ) : abs (conj z) = abs z :=

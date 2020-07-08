@@ -11,17 +11,18 @@ universes u v
 
 namespace quotient_group
 
-variables {G : Type u} [group G] (N : set G) [normal_subgroup N] {H : Type v} [group H]
+variables {G : Type u} [group G] (N : subgroup G) [n : N.normal] {H : Type v} [group H]
+include n
 
 @[to_additive quotient_add_group.add_group]
 instance : group (quotient N) :=
 { one := (1 : G),
   mul := quotient.map₂' (*)
   (λ a₁ b₁ hab₁ a₂ b₂ hab₂,
-    ((is_subgroup.mul_mem_cancel_right N (is_subgroup.inv_mem hab₂)).1
+    ((N.mul_mem_cancel_right (N.inv_mem hab₂)).1
         (by rw [mul_inv_rev, mul_inv_rev, ← mul_assoc (a₂⁻¹ * a₁⁻¹),
           mul_assoc _ b₂, ← mul_assoc b₂, mul_inv_self, one_mul, mul_assoc (a₂⁻¹)];
-          exact normal_subgroup.normal _ hab₁ _))),
+          exact n.conj_mem _ hab₁ _))),
   mul_assoc := λ a b c, quotient.induction_on₃' a b c
     (λ a b c, congr_arg mk (mul_assoc a b c)),
   one_mul := λ a, quotient.induction_on' a
@@ -32,7 +33,7 @@ instance : group (quotient N) :=
     (λ a b hab, quotient.sound' begin
       show a⁻¹⁻¹ * b⁻¹ ∈ N,
       rw ← mul_inv_rev,
-      exact is_subgroup.inv_mem (is_subgroup.mem_norm_comm hab)
+      exact N.inv_mem (is_subgroup.mem_norm_comm hab)
     end),
   mul_left_inv := λ a, quotient.induction_on' a
     (λ a, congr_arg mk (mul_left_inv a)) }

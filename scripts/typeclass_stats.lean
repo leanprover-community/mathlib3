@@ -100,8 +100,8 @@ do
   (where the conclusion is a class applied to a variable) -/
 meta def print_content : tactic unit :=
 do curr_env ← get_env,
-   o ← (curr_env.fold [] list.cons).mmap (λ x, parse_decl curr_env x <|> pure none),
-   let (ns, es) := o.reduce_option.partition_map id,
+   o ← (curr_env.fold [] list.cons).mmap_filter (λ x, parse_decl curr_env x <|> pure none),
+   let (ns, es) := o.partition_map id,
    trace "{ \"nodes\" : \n",
    trace (to_string ns),
    trace ",\n  \"edges\" :\n",

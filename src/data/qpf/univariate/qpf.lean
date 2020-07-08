@@ -704,7 +704,7 @@ by simp [foo.mk]; split; intro h; [replace h := quot.exact _ h, rw h];
    rw relation.eqv_gen_iff_of_equivalence at h;
    [exact h.2 rfl, apply equivalence_foo.R]
 
-def supp_mk_ff₀ {α} (x y : α) (h : ¬ x = y) : functor.supp (foo.mk ff x) = {} :=
+lemma supp_mk_ff₀ {α} (x y : α) (h : ¬ x = y) : functor.supp (foo.mk ff x) = {} :=
 begin
   dsimp [functor.supp], ext z, simp, -- split; intro h,
   classical, by_cases x = z,
@@ -718,7 +718,7 @@ begin
     simp }
 end
 
-def supp_mk_ff₁ {α} (x : α) (h : ∀ z, x = z) : functor.supp (foo.mk ff x) = {x} :=
+lemma supp_mk_ff₁ {α} (x : α) (h : ∀ z, x = z) : functor.supp (foo.mk ff x) = {x} :=
 begin
   dsimp [functor.supp], ext y, simp, split; intro h',
   { apply @h' (= x), dsimp [functor.liftp],
@@ -729,7 +729,7 @@ begin
     rw [h'], apply h },
 end
 
-def supp_mk_tt {α} (x : α) : functor.supp (foo.mk tt x) = {x} :=
+lemma supp_mk_tt {α} (x : α) : functor.supp (foo.mk tt x) = {x} :=
 begin
   dsimp [functor.supp], ext y, simp, split; intro h',
   { apply @h' (= x), dsimp [functor.liftp],
@@ -746,7 +746,7 @@ end
 -- def supp_eq_iff {α} (x : α) : qpf.supp' (foo.mk ff x) = {} :=
 -- _
 
-def supp_mk_ff' {α} (x : α) : qpf.supp' (foo.mk ff x) = {} :=
+lemma supp_mk_ff' {α} (x : α) : qpf.supp' (foo.mk ff x) = {} :=
 begin
   dsimp [qpf.supp'], ext, simp, dsimp [qpf.box],
   use ∅, simp [foo.mk], intros, apply quot.sound,
@@ -773,7 +773,7 @@ end
 -- end
 
 
-def supp_mk_tt' {α} (x : α) : qpf.supp' (foo.mk tt x) = {x} :=
+lemma supp_mk_tt' {α} (x : α) : qpf.supp' (foo.mk tt x) = {x} :=
 begin
   dsimp [qpf.supp'], ext, simp, dsimp [qpf.box], split; intro h,
   { specialize h {x} _, { simp at h, assumption },
@@ -787,3 +787,4 @@ begin
     { intros, simp [*,f,g,if_pos] } }
 end
 end ex
+l

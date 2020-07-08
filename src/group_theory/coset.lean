@@ -3,8 +3,6 @@ Copyright (c) 2018 Mitchell Rowett. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mitchell Rowett, Scott Morrison
 -/
--- remove me
-import tactic
 import group_theory.subgroup
 open set function
 

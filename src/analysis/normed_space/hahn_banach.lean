@@ -49,6 +49,8 @@ end basic
 section complex
 variables {F : Type*} [normed_group F] [normed_space ℂ F]
 
+-- Inlining the following two definitions causes a type mismatch between
+-- subspace ℝ (module.restrict_scalars ℝ ℂ F) and subspace ℂ F.
 /-- Restrict a ℂ-subspace to an ℝ-subspace. -/
 noncomputable def restrict_scalars (p: subspace ℂ F) : subspace ℝ F := p.restrict_scalars ℝ ℂ F
 
@@ -73,29 +75,24 @@ begin
   use g.extend_to_ℂ,
 
   -- It is an extension of `f`.
-  have h1 : ∀ x : p, g.extend_to_ℂ x = f x,
-  {
-    intros,
+  have h : ∀ x : p, g.extend_to_ℂ x = f x,
+  { intros,
     change (⟨g x, -g ((I • x) : p)⟩ : ℂ) = f x,
     ext; dsimp only; rw [hextends, fr_apply],
     rw [continuous_linear_map.map_smul, algebra.id.smul_eq_mul, mul_re, I_re, I_im],
-    ring,
-  },
+    ring },
 
-  split,
-  assumption,
+  refine ⟨h, _⟩,
 
   -- And we derive the equality of the norms by bounding on both sides.
   refine le_antisymm _ _,
-  {
-    calc ∥g.extend_to_ℂ∥
+  { calc ∥g.extend_to_ℂ∥
         ≤ ∥g∥ : g.extend_to_ℂ.op_norm_le_bound g.op_norm_nonneg (norm_bound _)
     ... = ∥fr∥ : hnormeq
     ... ≤ ∥continuous_linear_map.re∥ * ∥f∥ : continuous_linear_map.op_norm_comp_le _ _
-    ... = ∥f∥ : by rw [complex.continuous_linear_map.re_norm, one_mul],
-  },
+    ... = ∥f∥ : by rw [complex.continuous_linear_map.re_norm, one_mul] },
 
-  exact f.op_norm_le_bound g.extend_to_ℂ.op_norm_nonneg (λ x, h1 x ▸ g.extend_to_ℂ.le_op_norm x),
+  { exact f.op_norm_le_bound g.extend_to_ℂ.op_norm_nonneg (λ x, h x ▸ g.extend_to_ℂ.le_op_norm x) },
 end
 
 end complex

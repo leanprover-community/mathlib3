@@ -112,7 +112,7 @@ def I : ℂ := ⟨0, 1⟩
 @[simp] lemma I_im : I.im = 1 := rfl
 
 @[simp] lemma I_mul_I : I * I = -1 := ext_iff.2 $ by simp
-lemma I_mul (a b : ℝ) : I * ⟨b, -a⟩ = ⟨a, b⟩ :=
+lemma I_mul (z : ℂ) : I * z = ⟨-z.im, z.re⟩ :=
 ext_iff.2 $ by simp
 
 lemma I_ne_zero : (I : ℂ) ≠ 0 := mt (congr_arg im) zero_ne_one.symm
@@ -373,6 +373,9 @@ real.sqrt_nonneg _
 
 @[simp] lemma abs_eq_zero {z : ℂ} : abs z = 0 ↔ z = 0 :=
 (real.sqrt_eq_zero $ norm_sq_nonneg _).trans norm_sq_eq_zero
+
+@[simp] lemma abs_ne_zero {z : ℂ} : abs z ≠ 0 ↔ z ≠ 0 :=
+not_congr abs_eq_zero
 
 @[simp] lemma abs_conj (z : ℂ) : abs (conj z) = abs z :=
 by simp [abs]

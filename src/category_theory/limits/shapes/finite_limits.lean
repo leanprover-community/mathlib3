@@ -3,7 +3,6 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.fintype.basic
 import category_theory.limits.shapes.products
 
 universes v u
@@ -20,12 +19,6 @@ class fin_category (J : Type v) [small_category J] :=
 
 attribute [instance] fin_category.decidable_eq_obj fin_category.fintype_obj
                      fin_category.decidable_eq_hom fin_category.fintype_hom
-
-instance discrete_fintype {α : Type*} [fintype α] : fintype (discrete α) :=
-by { dsimp [discrete], apply_instance }
-
-instance discrete_hom_fintype {α : Type*} [decidable_eq α] (X Y : discrete α) : fintype (X ⟶ Y) :=
-by { apply ulift.fintype }
 
 -- We need a `decidable_eq` instance here to construct `fintype` on the morphism spaces.
 instance fin_category_discrete_of_decidable_fintype (J : Type v) [fintype J] [decidable_eq J] :

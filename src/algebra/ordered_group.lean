@@ -333,13 +333,14 @@ instance [add_comm_semigroup α] : add_comm_semigroup (with_top α) :=
 instance [add_monoid α] : add_monoid (with_top α) :=
 { zero := some 0,
   add := (+),
-  ..@additive.add_monoid _ $ @with_zero.monoid (multiplicative α) _ }
+  ..@additive.add_monoid _ $ @monoid_with_zero.to_monoid _ $
+    @with_zero.monoid_with_zero (multiplicative α) _ }
 
 instance [add_comm_monoid α] : add_comm_monoid (with_top α) :=
 { zero := 0,
   add := (+),
-  ..@additive.add_comm_monoid _ $
-    @with_zero.comm_monoid (multiplicative α) _ }
+  ..@additive.add_comm_monoid _ $ @comm_monoid_with_zero.to_comm_monoid _ $
+    @with_zero.comm_monoid_with_zero (multiplicative α) _ }
 
 instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_top α) :=
 begin
@@ -381,13 +382,7 @@ lemma add_eq_top [ordered_add_comm_monoid α] (a b : with_top α) : a + b = ⊤ 
 by cases a; cases b; simp [none_eq_top, some_eq_coe, coe_add.symm]
 
 lemma add_lt_top [ordered_add_comm_monoid α] (a b : with_top α) : a + b < ⊤ ↔ a < ⊤ ∧ b < ⊤ :=
-begin
-  apply not_iff_not.1,
-  simp [lt_top_iff_ne_top, add_eq_top],
-  finish,
-  apply classical.dec _,
-  apply classical.dec _,
-end
+by simp [lt_top_iff_ne_top, add_eq_top, not_or_distrib]
 
 end with_top
 

@@ -242,6 +242,16 @@ begin
       ⟨u, ⟨u, subset.refl u, uo, au⟩, v, ⟨v, subset.refl v, vo, bv⟩, h⟩⟩)
 end
 
+/-- Given an open neighborhood `s` of `(x, x)`, then `(x, x)` has a square open neighborhood
+  that is a subset of `s`. -/
+lemma exists_nhds_square {s : set (α × α)} (hs : is_open s) {x : α} (hx : (x, x) ∈ s) :
+  ∃U, is_open U ∧ x ∈ U ∧ set.prod U U ⊆ s :=
+begin
+  rcases is_open_prod_iff.mp hs x x hx with ⟨u, v, hu, hv, h1x, h2x, h2s⟩,
+  refine ⟨u ∩ v, is_open_inter hu hv, ⟨h1x, h2x⟩, subset.trans _ h2s⟩,
+  simp only [prod_subset_prod_iff, inter_subset_left, true_or, inter_subset_right, and_self],
+end
+
 /-- The first projection in a product of topological spaces sends open sets to open sets. -/
 lemma is_open_map_fst : is_open_map (@prod.fst α β) :=
 begin

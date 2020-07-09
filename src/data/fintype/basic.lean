@@ -39,6 +39,14 @@ by ext; simp
 
 theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 
+instance : order_top (finset α) :=
+{ top := univ,
+  le_top := subset_univ,
+  .. finset.partial_order }
+
+instance [decidable_eq α] : bounded_distrib_lattice (finset α) :=
+{ .. finset.distrib_lattice, .. finset.semilattice_inf_bot, .. finset.order_top }
+
 theorem eq_univ_iff_forall {s : finset α} : s = univ ↔ ∀ x, x ∈ s :=
 by simp [ext_iff]
 
@@ -501,7 +509,7 @@ finset.subtype.fintype s
 @[simp] lemma fintype.card_coe (s : finset α) :
   fintype.card (↑s : set α) = s.card := card_attach
 
-lemma finset.attach_eq_univ {s : finset α} : s.attach = finset.univ := rfl
+@[simp] lemma finset.attach_eq_univ {s : finset α} : s.attach = finset.univ := rfl
 
 lemma finset.card_le_one_iff {s : finset α} :
   s.card ≤ 1 ↔ ∀ {x y}, x ∈ s → y ∈ s → x = y :=

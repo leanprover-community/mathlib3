@@ -9,12 +9,7 @@ section box
 variables (F)
 
 /-- apply a functor to a set of values. taken from
-
-Fürer B., Lochbihler A., Schneider J., Traytel D. (2020) Quotients of
-Bounded Natural Functors. In: Peltier N., Sofronie-Stokkermans
-V. (eds) Automated Reasoning. IJCAR 2020. Lecture Notes in Computer
-Science, vol 12167. Springer, Cham
-
+ [Basil Fürer, Andreas Lochbihler, Joshua Schneider, Dmitriy Traytel *Quotients of Bounded Natural Functors*][fuerer-lochbihler-schneider-traytel2020]
 henceforth referred to as the QBNF paper
  -/
 def box {α} (A : set α) : set (F α) :=
@@ -136,6 +131,19 @@ begin
     rcases hp with ⟨⟨z,z',hz⟩,hp⟩,
     simp at hp, convert hz,
     rw [h'], apply h },
+end
+
+/--
+Such a QPF is not uniform
+-/
+lemma foo_not_uniform : ¬ @qpf.is_uniform foo _ qpf.foo :=
+begin
+  simp only [qpf.is_uniform, foo, qpf.foo, set.image_univ, classical.not_forall, classical.not_imp],
+  existsi [bool,ff,ff,λ a : unit, tt,λ a : unit, ff], split,
+  { apply quot.sound, simp [foo.R,qpf.abs,qpf._match_1], },
+  { simp! only [set.range,set.ext_iff], simp,
+    intro h, specialize (h tt), simp at h,
+    apply h () }
 end
 
 /-- intuitive consequence of original definition of `supp`. -/

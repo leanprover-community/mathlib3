@@ -2,6 +2,13 @@
 Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad
+-/
+import tactic.interactive data.multiset tactic.basic tactic.apply
+import data.qpf.univariate.pfunctor control.bifunctor
+
+/-!
+
+# Quotients of Polynomial Functors
 
 We assume the following:
 
@@ -21,9 +28,15 @@ The main goal is to construct:
 
 We also show that the composition of qpfs is a qpf, and that the quotient of a qpf
 is a qpf.
+
+The present theory focuses on the univariate case for qpfs
+
+## References
+
+* [Jeremy Avigad, Mario M. Carneiro and Simon Hudon, *Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
+
 -/
-import tactic.interactive data.multiset tactic.basic tactic.apply
-import data.qpf.univariate.pfunctor control.bifunctor
+
 universe u
 
 /--

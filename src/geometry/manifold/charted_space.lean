@@ -766,7 +766,7 @@ lemma singleton_charted_space_one_chart (h : e.source = set.univ) (e' : local_ho
 /-- Given a local homeomorphism `e` from a space `α` into `H`, if its sources covers the whole
 space `α`, then the induced charted space structure on `α` is `has_groupoid G` for any structure `G`
 which is closed under restrictions. -/
-def singleton_has_groupoid (h : e.source = set.univ) (G : structure_groupoid H)
+lemma singleton_has_groupoid (h : e.source = set.univ) (G : structure_groupoid H)
   [closed_under_restriction G] : @has_groupoid _ _ _ _ (singleton_charted_space h) G :=
 { compatible := begin
     intros e' e'' he' he'',

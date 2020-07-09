@@ -157,7 +157,7 @@ lemma uniform_embedding_subtype_emb (p : α → Prop) {e : α → β} (ue : unif
 lemma uniform_embedding.prod {α' : Type*} {β' : Type*} [uniform_space α'] [uniform_space β']
   {e₁ : α → α'} {e₂ : β → β'} (h₁ : uniform_embedding e₁) (h₂ : uniform_embedding e₂) :
   uniform_embedding (λp:α×β, (e₁ p.1, e₂ p.2)) :=
-{ inj := h₁.inj.prod h₂.inj,
+{ inj := h₁.inj.prod_map h₂.inj,
   ..h₁.to_uniform_inducing.prod h₂.to_uniform_inducing }
 
 lemma is_complete_of_complete_image {m : α → β} {s : set α} (hm : uniform_inducing m)

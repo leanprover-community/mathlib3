@@ -59,7 +59,7 @@ begin
   refine ⟨_, λ h, h.mul k⟩,
   simp only [pythagorean_triple],
   intro h,
-  rw ← domain.mul_left_inj (mul_ne_zero hk hk),
+  rw ← mul_left_inj' (mul_ne_zero hk hk),
   convert h using 1; ring,
 end
 

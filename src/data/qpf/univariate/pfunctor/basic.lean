@@ -6,14 +6,16 @@ Author: Jeremy Avigad
 Polynomial functors. Also expresses the W-type construction as a polynomial functor.
 (For the M-type construction, see Mtype.lean.)
 -/
-import tactic.interactive data.multiset data.W
+import tactic.interactive
+import data.multiset
+import data.W
 universe u
 
 /--
 A polynomial functor `P` is given by a type `A` and a family `B` of types over `A`. `P` maps
-any type `α` to a new type `P.apply α`.
+any type `α` to a new type `P.obj α`, which is defined as the sigma type `Σ x, P.B x → α`.
 
-An element of `P.apply α` is a pair `⟨a, f⟩`, where `a` is an element of a type `A` and
+An element of `P.obj α` is a pair `⟨a, f⟩`, where `a` is an element of a type `A` and
 `f : B a → α`. Think of `a` as the shape of the object and `f` as an index to the relevant
 elements of `α`.
 -/
@@ -24,7 +26,7 @@ structure pfunctor :=
 namespace pfunctor
 
 instance : inhabited pfunctor :=
-⟨ ⟨ default _, default _ ⟩ ⟩
+⟨⟨default _, default _⟩⟩
 
 variables (P : pfunctor) {α β : Type u}
 
@@ -39,14 +41,14 @@ instance obj.inhabited [inhabited P.A] [inhabited α] : inhabited (P.obj α) :=
 ⟨ ⟨ default _, λ _, default _ ⟩ ⟩
 instance : functor P.obj := {map := @map P}
 
-theorem map_eq {α β : Type*} (f : α → β) (a : P.A) (g : P.B a → α) :
+protected theorem map_eq {α β : Type*} (f : α → β) (a : P.A) (g : P.B a → α) :
   @functor.map P.obj _ _ _ f ⟨a, g⟩ = ⟨a, f ∘ g⟩ :=
 rfl
 
-theorem id_map {α : Type*} : ∀ x : P.obj α, id <$> x = id x :=
+protected theorem id_map {α : Type*} : ∀ x : P.obj α, id <$> x = id x :=
 λ ⟨a, b⟩, rfl
 
-theorem comp_map {α β γ : Type*} (f : α → β) (g : β → γ) :
+protected theorem comp_map {α β γ : Type*} (f : α → β) (g : β → γ) :
   ∀ x : P.obj α, (g ∘ f) <$> x = g <$> (f <$> x) :=
 λ ⟨a, b⟩, rfl
 
@@ -63,7 +65,7 @@ such that `P.B a` is empty to yield a finite tree -/
 attribute [nolint has_inhabited_instance] W
 
 /-- destructor for W-types -/
-def W_dest : W P → P.obj (W P)
+def W.dest : W P → P.obj (W P)
 | ⟨a, f⟩ := ⟨a, f⟩
 
 /-- constructor for W-types -/

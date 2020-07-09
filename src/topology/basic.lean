@@ -655,6 +655,10 @@ theorem mem_closure_iff_nhds {s : set α} {a : α} :
   a ∈ closure s ↔ ∀ t ∈ 𝓝 a, (t ∩ s).nonempty :=
 mem_closure_iff_cluster_pt.trans cluster_pt_principal_iff
 
+theorem mem_closure_iff_nhds' {s : set α} {a : α} :
+  a ∈ closure s ↔ ∀ t ∈ 𝓝 a, ∃ y : s, ↑y ∈ t :=
+by simp only [mem_closure_iff_nhds, set.nonempty_inter_iff_exists_right]
+
 theorem mem_closure_iff_nhds_basis {a : α} {p : β → Prop} {s : β → set α} (h : (𝓝 a).has_basis p s)
   {t : set α} :
   a ∈ closure t ↔ ∀ i, p i → ∃ y ∈ t, y ∈ s i :=

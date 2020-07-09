@@ -471,6 +471,17 @@ lemma mem_nhds_sets {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
   s ∈ 𝓝 a :=
 mem_nhds_sets_iff.2 ⟨s, subset.refl _, hs, ha⟩
 
+lemma nhds_basis_opens' (a : α) : (𝓝 a).has_basis (λ s : set α, s ∈ 𝓝 a ∧ is_open s) (λ x, x) :=
+begin
+  convert nhds_basis_opens a,
+  ext s,
+  split,
+  { rintros ⟨s_in, s_op⟩,
+    exact ⟨mem_of_nhds s_in, s_op⟩ },
+  { rintros ⟨a_in, s_op⟩,
+    exact ⟨mem_nhds_sets s_op a_in, s_op⟩ },
+end
+
 /-- If a predicate is true in a neighbourhood of `a`, then for `y` sufficiently close
 to `a` this predicate is true in a neighbourhood of `y`. -/
 lemma filter.eventually.eventually_nhds {p : α → Prop} {a : α} (h : ∀ᶠ y in 𝓝 a, p y) :

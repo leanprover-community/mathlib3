@@ -267,6 +267,14 @@ begin
   exact ⟨c, c_in, hc ha⟩
 end
 
+theorem bInter_mono {s : set α} {t t' : α → set β} (h : ∀ x ∈ s, t x ⊆ t' x) :
+  (⋂ x ∈ s, t x) ⊆ (⋂ x ∈ s, t' x) :=
+begin
+  intros x x_in,
+  simp only [mem_Inter] at *,
+  exact λ a a_in, h a a_in (x_in a a_in),
+end
+
 theorem bUnion_mono {s : set α} {t t' : α → set β} (h : ∀ x ∈ s, t x ⊆ t' x) :
   (⋃ x ∈ s, t x) ⊆ (⋃ x ∈ s, t' x) :=
 bUnion_subset_bUnion (λ x x_in, ⟨x, x_in, h x x_in⟩)
@@ -279,7 +287,7 @@ theorem bInter_eq_Inter (s : set α) (t : Π x ∈ s, set β) :
   (⋂ x ∈ s, t x ‹_›) = (⋂ x : s, t x x.2) :=
 infi_subtype'
 
-theorem bInter_empty (u : α → set β) : (⋂ x ∈ (∅ : set α), u x) = univ :=
+@[simp] theorem bInter_empty (u : α → set β) : (⋂ x ∈ (∅ : set α), u x) = univ :=
 show (⨅x ∈ (∅ : set α), u x) = ⊤, -- simplifier should be able to rewrite x ∈ ∅ to false.
   from infi_emptyset
 

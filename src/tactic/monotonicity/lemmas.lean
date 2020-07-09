@@ -5,6 +5,7 @@ Author: Simon Hudon
 -/
 import tactic.monotonicity.basic
 import data.set.lattice
+import order.bounds
 
 variables {α : Type*}
 
@@ -69,4 +70,10 @@ end
 
 open set
 
-attribute [mono] monotone_inter monotone_union bUnion_mono sUnion_mono seq_mono monotone_prod
+attribute [mono] monotone_inter monotone_union
+                 sUnion_mono bUnion_mono sInter_subset_sInter bInter_mono
+                 image_subset preimage_mono prod_mono monotone_prod seq_mono
+attribute [mono] upper_bounds_mono_set lower_bounds_mono_set
+                 upper_bounds_mono_mem  lower_bounds_mono_mem
+                 upper_bounds_mono  lower_bounds_mono
+                 bdd_above.mono bdd_below.mono

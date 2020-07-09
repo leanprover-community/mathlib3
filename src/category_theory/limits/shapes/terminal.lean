@@ -42,7 +42,7 @@ abbreviation terminal [has_terminal C] : C := limit (functor.empty C)
 /--
 The chosen initial object, if it exists.
 You can use the notation `⊥_ C`.
-This object is characterized by having a unique morphism from any object.
+This object is characterized by having a unique morphism to any object.
 -/
 abbreviation initial [has_initial C] : C := colimit (functor.empty C)
 

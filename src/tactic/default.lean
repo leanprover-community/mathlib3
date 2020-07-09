@@ -20,7 +20,6 @@ As (non-exhaustive) examples, these includes things like:
 import tactic.basic -- ensure basic tactics are available
 import tactic.abel
 import tactic.ring_exp
-import tactic.ring2
 import tactic.noncomm_ring
 import tactic.linarith
 import tactic.omega

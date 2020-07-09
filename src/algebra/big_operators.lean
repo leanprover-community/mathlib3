@@ -11,7 +11,6 @@ import data.finset.powerset
 import data.finset.pi
 import data.equiv.mul_add
 import tactic.abel
-import tactic.simp_rw
 import data.nat.enat
 
 /-!

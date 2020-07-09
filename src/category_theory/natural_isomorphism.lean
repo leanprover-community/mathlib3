@@ -5,7 +5,6 @@ Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.functor_category
 import category_theory.isomorphism
-import tactic.localized
 
 open category_theory
 

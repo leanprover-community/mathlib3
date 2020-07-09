@@ -6,9 +6,7 @@ Author: Patrick Massot, Simon Hudon
 A tactic pushing negations into an expression
 -/
 
-
-
-import tactic.interactive
+import logic.basic
 import algebra.order
 
 open tactic expr

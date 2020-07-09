@@ -5,7 +5,6 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import tactic.ring_exp
 import tactic.chain
-import tactic.converter.apply_congr
 import data.monoid_algebra
 import algebra.gcd_domain
 import ring_theory.euclidean_domain

@@ -1945,6 +1945,18 @@ lemma exists_smaller_set (A : finset α) (i : ℕ) (h₁ : i ≤ card A) :
   ∃ (B : finset α), B ⊆ A ∧ card B = i :=
 let ⟨B, _, x₁, x₂⟩ := exists_intermediate_set i (by simpa) (empty_subset A) in ⟨B, x₁, x₂⟩
 
+/-- `finset.fin_range k` is the finset `{0, 1, ..., k-1}`, as a `finset (fin k)`. -/
+def fin_range (k : ℕ) : finset (fin k) :=
+⟨list.fin_range k, list.nodup_fin_range k⟩
+
+@[simp]
+lemma fin_range_card {k : ℕ} : (fin_range k).card = k :=
+by simp [fin_range]
+
+@[simp]
+lemma mem_fin_range {k : ℕ} (m : fin k) : m ∈ fin_range k :=
+list.mem_fin_range m
+
 /-- Given a finset `s` of `ℕ` contained in `{0,..., n-1}`, the corresponding finset in `fin n`
 is `s.attach_fin h` where `h` is a proof that all elements of `s` are less than `n`. -/
 def attach_fin (s : finset ℕ) {n : ℕ} (h : ∀ m ∈ s, m < n) : finset (fin n) :=

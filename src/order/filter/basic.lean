@@ -1386,7 +1386,7 @@ begin
     simp [univ_mem_sets] },
 end
 
-lemma comap_comap_comp {m : γ → β} {n : β → α} : comap m (comap n f) = comap (n ∘ m) f :=
+lemma comap_comap {m : γ → β} {n : β → α} : comap m (comap n f) = comap (n ∘ m) f :=
 le_antisymm
   (assume c ⟨b, hb, (h : preimage (n ∘ m) b ⊆ c)⟩, ⟨preimage n b, preimage_mem_comap hb, h⟩)
   (assume c ⟨b, ⟨a, ha, (h₁ : preimage n a ⊆ b)⟩, (h₂ : preimage m b ⊆ c)⟩,
@@ -1535,7 +1535,7 @@ lemma subtype_coe_map_comap_prod (s : set α) (f : filter (α × α)) :
 let φ (x : s × s) : s.prod s := ⟨⟨x.1.1, x.2.1⟩, ⟨x.1.2, x.2.2⟩⟩ in
 begin
   rw show (coe : s × s → α × α) = coe ∘ φ, by ext x; cases x; refl,
-  rw [← filter.map_map, ← filter.comap_comap_comp],
+  rw [← filter.map_map, ← filter.comap_comap],
   rw map_comap_of_surjective,
   exact subtype_coe_map_comap _ _,
   exact λ ⟨⟨a, b⟩, ⟨ha, hb⟩⟩, ⟨⟨⟨a, ha⟩, ⟨b, hb⟩⟩, rfl⟩
@@ -1975,7 +1975,7 @@ lemma comap_eq_of_inverse {f : filter α} {g : filter β} {φ : α → β} (ψ :
   (eq : ψ ∘ φ = id) (hφ : tendsto φ f g) (hψ : tendsto ψ g f) : comap φ g = f :=
 begin
   refine le_antisymm (le_trans (comap_mono $ map_le_iff_le_comap.1 hψ) _) (map_le_iff_le_comap.1 hφ),
-  rw [comap_comap_comp, eq, comap_id],
+  rw [comap_comap, eq, comap_id],
   exact le_refl _
 end
 
@@ -2095,7 +2095,7 @@ end
 
 lemma comap_prod (f : α → β × γ) (b : filter β) (c : filter γ) :
   comap f (b ×ᶠ c) = (comap (prod.fst ∘ f) b) ⊓ (comap (prod.snd ∘ f) c) :=
-by erw [comap_inf, filter.comap_comap_comp, filter.comap_comap_comp]
+by erw [comap_inf, filter.comap_comap, filter.comap_comap]
 
 lemma eventually_prod_iff {p : α × β → Prop} {f : filter α} {g : filter β} :
   (∀ᶠ x in f ×ᶠ g, p x) ↔ ∃ (pa : α → Prop) (ha : ∀ᶠ x in f, pa x)
@@ -2148,10 +2148,10 @@ inf_le_inf (comap_mono hf) (comap_mono hg)
 lemma prod_comap_comap_eq {α₁ : Type u} {α₂ : Type v} {β₁ : Type w} {β₂ : Type x}
   {f₁ : filter α₁} {f₂ : filter α₂} {m₁ : β₁ → α₁} {m₂ : β₂ → α₂} :
   (comap m₁ f₁) ×ᶠ (comap m₂ f₂) = comap (λp:β₁×β₂, (m₁ p.1, m₂ p.2)) (f₁ ×ᶠ f₂) :=
-by simp only [filter.prod, comap_comap_comp, eq_self_iff_true, comap_inf]
+by simp only [filter.prod, comap_comap, eq_self_iff_true, comap_inf]
 
 lemma prod_comm' : f ×ᶠ g = comap (prod.swap) (g ×ᶠ f) :=
-by simp only [filter.prod, comap_comap_comp, (∘), inf_comm, prod.fst_swap,
+by simp only [filter.prod, comap_comap, (∘), inf_comm, prod.fst_swap,
   eq_self_iff_true, prod.snd_swap, comap_inf]
 
 lemma prod_comm : f ×ᶠ g = map (λp:β×α, (p.2, p.1)) (g ×ᶠ f) :=

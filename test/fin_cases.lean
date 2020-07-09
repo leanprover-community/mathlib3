@@ -15,6 +15,15 @@ begin
   simp, assumption,
 end
 
+example (f : ℕ → Prop) (p : fin 0) : f p.val :=
+by fin_cases *
+
+example (f : ℕ → Prop) (p : fin 1) (h : f 0) : f p.val :=
+begin
+  fin_cases p,
+  assumption
+end
+
 example (x2 : fin 2) (x3 : fin 3) (n : nat) (y : fin n) : x2.val * x3.val = x3.val * x2.val :=
 begin
   fin_cases x2;

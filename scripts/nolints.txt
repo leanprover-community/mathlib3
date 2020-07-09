@@ -1491,15 +1491,17 @@ apply_nolint lex doc_blame
 -- order/order_iso.lean
 apply_nolint order_embedding has_inhabited_instance
 apply_nolint order_embedding.lt_embedding_of_le_embedding doc_blame
-apply_nolint order_embedding.nat_gt doc_blame ge_or_gt
-apply_nolint order_embedding.nat_lt doc_blame
 apply_nolint order_embedding.refl doc_blame
 apply_nolint order_embedding.trans doc_blame
-apply_nolint order_embedding.well_founded_iff_no_descending_seq ge_or_gt
 apply_nolint order_iso has_inhabited_instance
 apply_nolint order_iso.prod_lex_congr doc_blame
 apply_nolint order_iso.sum_lex_congr doc_blame
 apply_nolint subrel.order_embedding doc_blame
+
+-- order/order_iso_nat.lean
+apply_nolint order_embedding.nat_gt doc_blame ge_or_gt
+apply_nolint order_embedding.nat_lt doc_blame
+apply_nolint order_embedding.well_founded_iff_no_descending_seq ge_or_gt
 
 -- order/pilex.lean
 apply_nolint pi.lex doc_blame
@@ -1899,9 +1901,9 @@ apply_nolint tactic.interactive.mono_cfg doc_blame
 apply_nolint tactic.interactive.mono_head_candidates doc_blame
 apply_nolint tactic.interactive.mono_key doc_blame
 apply_nolint tactic.interactive.mono_selection doc_blame
-apply_nolint tactic.interactive.monotoncity.check doc_blame unused_arguments
-apply_nolint tactic.interactive.monotoncity.check_rel doc_blame unused_arguments
 apply_nolint tactic.interactive.monotonicity.attr doc_blame
+apply_nolint tactic.interactive.monotonicity.check doc_blame
+apply_nolint tactic.interactive.monotonicity.check_rel doc_blame
 apply_nolint tactic.interactive.same_operator doc_blame
 apply_nolint tactic.interactive.side doc_blame
 
@@ -1930,7 +1932,7 @@ apply_nolint tactic.interactive.fold_assoc doc_blame
 apply_nolint tactic.interactive.fold_assoc1 doc_blame
 apply_nolint tactic.interactive.hide_meta_vars' doc_blame
 apply_nolint tactic.interactive.list.minimum_on doc_blame
-apply_nolint tactic.interactive.match_ac doc_blame unused_arguments
+apply_nolint tactic.interactive.match_ac doc_blame
 apply_nolint tactic.interactive.match_ac' doc_blame
 apply_nolint tactic.interactive.match_chaining_rules doc_blame
 apply_nolint tactic.interactive.match_prefix doc_blame
@@ -1940,7 +1942,7 @@ apply_nolint tactic.interactive.mk_congr_law doc_blame
 apply_nolint tactic.interactive.mk_fun_app doc_blame
 apply_nolint tactic.interactive.mk_pattern doc_blame
 apply_nolint tactic.interactive.mk_rel doc_blame
-apply_nolint tactic.interactive.mono_aux doc_blame unused_arguments
+apply_nolint tactic.interactive.mono_aux doc_blame
 apply_nolint tactic.interactive.mono_function doc_blame
 apply_nolint tactic.interactive.mono_function.to_tactic_format doc_blame
 apply_nolint tactic.interactive.mono_law doc_blame

@@ -28,7 +28,7 @@ lemma uniform_inducing.comp {g : β → γ} (hg : uniform_inducing g)
   {f : α → β} (hf : uniform_inducing f) : uniform_inducing (g ∘ f) :=
 ⟨ by rw [show (λ (x : α × α), ((g ∘ f) x.1, (g ∘ f) x.2)) =
          (λ y : β × β, (g y.1, g y.2)) ∘ (λ x : α × α, (f x.1, f x.2)), by ext ; simp,
-        ← filter.comap_comap_comp, hg.1, hf.1]⟩
+        ← filter.comap_comap, hg.1, hf.1]⟩
 
 structure uniform_embedding (f : α → β) extends uniform_inducing f : Prop :=
 (inj : function.injective f)
@@ -45,7 +45,7 @@ uniform_embedding_subtype_val
 lemma uniform_embedding_set_inclusion {s t : set α} (hst : s ⊆ t) :
   uniform_embedding (inclusion hst) :=
 { comap_uniformity :=
-    by { erw [uniformity_subtype, uniformity_subtype, comap_comap_comp], congr },
+    by { erw [uniformity_subtype, uniformity_subtype, comap_comap], congr },
   inj := inclusion_injective hst }
 
 lemma uniform_embedding.comp {g : β → γ} (hg : uniform_embedding g)
@@ -96,7 +96,7 @@ lemma uniform_inducing.prod {α' : Type*} {β' : Type*} [uniform_space α'] [uni
   {e₁ : α → α'} {e₂ : β → β'} (h₁ : uniform_inducing e₁) (h₂ : uniform_inducing e₂) :
   uniform_inducing (λp:α×β, (e₁ p.1, e₂ p.2)) :=
 ⟨by simp [(∘), uniformity_prod, h₁.comap_uniformity.symm, h₂.comap_uniformity.symm,
-           comap_inf, comap_comap_comp]⟩
+           comap_inf, comap_comap]⟩
 
 lemma uniform_inducing.dense_inducing {f : α → β} (h : uniform_inducing f) (hd : dense_range f) :
   dense_inducing f :=
@@ -150,7 +150,7 @@ have ∀b', (b, b') ∈ t → b' ∈ closure (e '' {a' | (a, a') ∈ s}),
 
 lemma uniform_embedding_subtype_emb (p : α → Prop) {e : α → β} (ue : uniform_embedding e)
   (de : dense_embedding e) : uniform_embedding (dense_embedding.subtype_emb p e) :=
-{ comap_uniformity := by simp [comap_comap_comp, (∘), dense_embedding.subtype_emb,
+{ comap_uniformity := by simp [comap_comap, (∘), dense_embedding.subtype_emb,
            uniformity_subtype, ue.comap_uniformity.symm],
   inj := (de.subtype p).inj }
 
@@ -346,9 +346,9 @@ let ⟨c, (hc : tendsto (f ∘ subtype.val) (comap (dense_embedding.subtype_emb 
   uniformly_extend_exists ue'.to_uniform_inducing de'.dense hf _ in
 begin
   rw [nhds_subtype_eq_comap] at hc,
-  simp [comap_comap_comp] at hc,
+  simp [comap_comap] at hc,
   change (tendsto (f ∘ @subtype.val α p) (comap (e ∘ @subtype.val α p) (𝓝 b)) (𝓝 c)) at hc,
-  rw [←comap_comap_comp, tendsto_comap'_iff] at hc,
+  rw [←comap_comap, tendsto_comap'_iff] at hc,
   exact ⟨c, hc⟩,
   exact ⟨_, hb, assume x,
     begin

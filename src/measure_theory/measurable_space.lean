@@ -185,6 +185,36 @@ end
   have s₁ = s₂, from funext $ assume x, propext $ h x,
   by subst this
 
+/-- A typeclass mixin for `measurable_space`s such that each singleton is measurable. -/
+class measurable_singleton_class (α : Type*) [measurable_space α] : Prop :=
+(is_measurable_singleton : ∀ x, is_measurable ({x} : set α))
+
+export measurable_singleton_class (is_measurable_singleton)
+
+attribute [simp] is_measurable_singleton
+
+section measurable_singleton_class
+
+variables [measurable_space α] [measurable_singleton_class α]
+
+lemma is_measurable.insert {s : set α} (hs : is_measurable s) (a : α) :
+  is_measurable (insert a s) :=
+(is_measurable_singleton a).union hs
+
+@[simp] lemma is_measurable_insert {a : α} {s : set α} :
+  is_measurable (insert a s) ↔ is_measurable s :=
+⟨λ h, if ha : a ∈ s then by rwa ← insert_eq_of_mem ha
+  else insert_diff_self_of_not_mem ha ▸ h.diff (is_measurable_singleton _),
+  λ h, h.insert a⟩
+
+lemma set.finite.is_measurable {s : set α} (hs : finite s) : is_measurable s :=
+finite.induction_on hs is_measurable.empty $ λ a s ha hsf hsm, hsm.insert _
+
+lemma finset.is_measurable (s : finset α) : is_measurable (↑s : set α) :=
+s.finite_to_set.is_measurable
+
+end measurable_singleton_class
+
 namespace measurable_space
 
 section complete_lattice

@@ -16,7 +16,9 @@ Reference:
 * Bourbaki: General Topology (1995), Chapter 3 §5 (Infinite sums in commutative groups)
 
 -/
+import tactic.where
 import topology.instances.real
+import data.indicator_function
 
 noncomputable theory
 open finset filter function classical
@@ -63,16 +65,71 @@ lemma summable_zero : summable (λb, 0 : β → α) := has_sum_zero.summable
 lemma tsum_eq_zero_of_not_summable (h : ¬ summable f) : (∑'b, f b) = 0 :=
 by simp [tsum, h]
 
-/-- If a function `f` vanishes outside of a finite set `s`, then it `has_sum` `∑ b in s, f b`. -/
-lemma has_sum_sum_of_ne_finset_zero (hf : ∀b∉s, f b = 0) : has_sum f (∑ b in s, f b) :=
-tendsto_infi' s $ tendsto.congr'
-  (assume t (ht : s ⊆ t), show ∑ b in s, f b = ∑ b in t, f b, from sum_subset ht $ assume x _, hf _)
-  tendsto_const_nhds
+lemma map_at_top_finset_sum_le_of_sum_eq {g : γ → α}
+  (h_eq : ∀u:finset γ, ∃v:finset β, ∀v', v ⊆ v' → ∃u', u ⊆ u' ∧ ∑ x in u', g x = ∑ b in v', f b) :
+  at_top.map (λs:finset β, ∑ b in s, f b) ≤ at_top.map (λs:finset γ, ∑ x in s, g x) :=
+by rw [map_at_top_eq, map_at_top_eq];
+from (le_infi $ assume b, let ⟨v, hv⟩ := h_eq b in infi_le_of_le v $
+  by simp [set.image_subset_iff]; exact hv)
+
+lemma has_sum.has_sum_of_sum_eq {g : γ → α}
+  (h_eq : ∀u:finset γ, ∃v:finset β, ∀v', v ⊆ v' → ∃u', u ⊆ u' ∧ ∑ x in u', g x = ∑ b in v', f b)
+  (hf : has_sum g a) :
+  has_sum f a :=
+le_trans (map_at_top_finset_sum_le_of_sum_eq h_eq) hf
+
+lemma has_sum_iff_has_sum {g : γ → α}
+  (h₁ : ∀u:finset γ, ∃v:finset β, ∀v', v ⊆ v' → ∃u', u ⊆ u' ∧ ∑ x in u', g x = ∑ b in v', f b)
+  (h₂ : ∀v:finset β, ∃u:finset γ, ∀u', u ⊆ u' → ∃v', v ⊆ v' ∧ ∑ b in v', f b = ∑ x in u', g x) :
+  has_sum f a ↔ has_sum g a :=
+⟨has_sum.has_sum_of_sum_eq h₂, has_sum.has_sum_of_sum_eq h₁⟩
+
+lemma function.embedding.map_at_top_finset_sum_eq (g : γ ↪ β) (hf : ∀ x ∉ set.range g, f x = 0) :
+  map (λ s, ∑ i in s, f (g i)) at_top = map (λ s, ∑ i in s, f i) at_top :=
+begin
+  apply le_antisymm; refine map_at_top_finset_sum_le_of_sum_eq (λ s, _),
+  { refine ⟨s.preimage (g.injective.inj_on _), λ t ht, _⟩,
+    refine ⟨t.map g ∪ s, finset.subset_union_right _ _, _⟩,
+    rw ← sum_map,
+    refine (sum_subset (subset_union_left _ _) _).symm,
+    simp only [finset.mem_union, finset.mem_map],
+    refine λ y hy hyt, hf y (mt _ hyt),
+    rintros ⟨x, rfl⟩,
+    exact ⟨x, ht (mem_preimage.2 $ hy.resolve_left hyt), rfl⟩ },
+  { refine ⟨s.map g, λ t ht, _⟩,
+    simp only [← sum_preimage _ _ (g.injective.inj_on _) _ (λ x _, hf x)],
+    exact ⟨_, map_subset_iff_subset_preimage.1 ht, rfl⟩ }
+end
+
+lemma function.embedding.has_sum_iff (g : γ ↪ β) (hf : ∀ x ∉ set.range g, f x = 0) :
+  has_sum (f ∘ g) a ↔ has_sum f a :=
+by simp only [has_sum, tendsto, g.map_at_top_finset_sum_eq hf]
+
+lemma function.injective.has_sum_iff {g : γ → β} (hg : injective g)
+  (hf : ∀ x ∉ set.range g, f x = 0) :
+  has_sum (f ∘ g) a ↔ has_sum f a :=
+function.embedding.has_sum_iff ⟨g, hg⟩ hf
+
+lemma function.injective.summable_iff {g : γ → β} (hg : injective g)
+  (hf : ∀ x ∉ set.range g, f x = 0) :
+  summable (f ∘ g) ↔ summable f :=
+exists_congr $ λ _, hg.has_sum_iff hf
+
+lemma has_sum_subtype {s : set β} (hf : support f ⊆ s) :
+  has_sum (f ∘ coe : s → α) a ↔ has_sum f a :=
+(function.embedding.subtype s).has_sum_iff $ by simpa using support_subset_iff'.1 hf
+
+@[simp] lemma has_sum_subtype_support : has_sum (f ∘ coe : support f → α) a ↔ has_sum f a :=
+has_sum_subtype $ set.subset.refl _
 
 lemma has_sum_fintype [fintype β] (f : β → α) : has_sum f (∑ b, f b) :=
-has_sum_sum_of_ne_finset_zero $ λ a h, h.elim (mem_univ _)
+tendsto_le_right (pure_le_nhds _) (order_top.tendsto_at_top _)
 
-lemma summable_sum_of_ne_finset_zero (hf : ∀b∉s, f b = 0) : summable f :=
+/-- If a function `f` vanishes outside of a finite set `s`, then it `has_sum` `∑ b in s, f b`. -/
+lemma has_sum_sum_of_ne_finset_zero (hf : ∀b∉s, f b = 0) : has_sum f (∑ b in s, f b) :=
+(has_sum_subtype $ support_subset_iff'.2 hf).1 $ by { rw ← sum_attach, exact has_sum_fintype _ }
+
+lemma summable_of_ne_finset_zero (hf : ∀b∉s, f b = 0) : summable f :=
 (has_sum_sum_of_ne_finset_zero hf).summable
 
 lemma has_sum_single {f : β → α} (b : β) (hf : ∀b' ≠ b, f b' = 0) :
@@ -89,51 +146,42 @@ begin
   exact if_neg hb'
 end
 
-lemma has_sum_of_iso {j : γ → β} {i : β → γ}
-  (hf : has_sum f a) (h₁ : ∀x, i (j x) = x) (h₂ : ∀x, j (i x) = x) : has_sum (f ∘ j) a :=
-have ∀x y, j x = j y → x = y,
-  from assume x y h,
-  have i (j x) = i (j y), by rw [h],
-  by rwa [h₁, h₁] at this,
-have (λs:finset γ, ∑ x in s, f (j x)) = (λs:finset β, ∑ b in s, f b) ∘ (λs:finset γ, s.image j),
-  from funext $ assume s, (sum_image $ assume x _ y _, this x y).symm,
-show tendsto (λs:finset γ, ∑ x in s, f (j x)) at_top (𝓝 a),
-   by rw [this]; apply hf.comp (tendsto_finset_image_at_top_at_top h₂)
-
-lemma has_sum_iff_has_sum_of_iso {j : γ → β} (i : β → γ)
-  (h₁ : ∀x, i (j x) = x) (h₂ : ∀x, j (i x) = x) :
-  has_sum (f ∘ j) a ↔ has_sum f a :=
-iff.intro
-  (assume hfj,
-    have has_sum ((f ∘ j) ∘ i) a, from has_sum_of_iso hfj h₂ h₁,
-    by simp [(∘), h₂] at this; assumption)
-  (assume hf, has_sum_of_iso hf h₁ h₂)
-
 lemma equiv.has_sum_iff (e : γ ≃ β) :
   has_sum (f ∘ e) a ↔ has_sum f a :=
-has_sum_iff_has_sum_of_iso e.symm e.left_inv e.right_inv
+e.to_embedding.has_sum_iff $ by simp
 
 lemma equiv.summable_iff (e : γ ≃ β) :
   summable (f ∘ e) ↔ summable f :=
-⟨λ H, (e.has_sum_iff.1 H.has_sum).summable, λ H, (e.has_sum_iff.2 H.has_sum).summable⟩
+exists_congr $ λ a, e.has_sum_iff
 
-lemma has_sum_hom (g : α → γ) [add_comm_monoid γ] [topological_space γ]
-  [is_add_monoid_hom g] (h₃ : continuous g) (hf : has_sum f a) :
+lemma equiv.has_sum_iff_of_support {g : γ → α} (e : support f ≃ support g)
+  (he : ∀ x : support f, g (e x) = f x) :
+  has_sum f a ↔ has_sum g a :=
+have (g ∘ coe) ∘ e = f ∘ coe, from funext he,
+by rw [← has_sum_subtype_support, ← this, e.has_sum_iff, has_sum_subtype_support]
+
+lemma equiv.summable_iff_of_support {g : γ → α} (e : support f ≃ support g)
+  (he : ∀ x : support f, g (e x) = f x) :
+  summable f ↔ summable g :=
+exists_congr $ λ _, e.has_sum_iff_of_support he
+
+protected lemma has_sum.map [add_comm_monoid γ] [topological_space γ] (hf : has_sum f a)
+  (g : α →+ γ) (h₃ : continuous g) :
   has_sum (g ∘ f) (g a) :=
-have (λs:finset β, ∑ b in s, g (f b)) = g ∘ (λs:finset β, ∑ b in s, f b),
-  from funext $ assume s, s.sum_hom g,
+have g ∘ (λs:finset β, ∑ b in s, f b) = (λs:finset β, ∑ b in s, g (f b)),
+  from funext $ g.map_sum _,
 show tendsto (λs:finset β, ∑ b in s, g (f b)) at_top (𝓝 (g a)),
-  by rw [this]; exact tendsto.comp (continuous_iff_continuous_at.mp h₃ a) hf
+  from this ▸ (h₃.tendsto a).comp hf
 
 /-- If `f : ℕ → α` has sum `a`, then the partial sums `∑_{i=0}^{n-1} f i` converge to `a`. -/
 lemma has_sum.tendsto_sum_nat {f : ℕ → α} (h : has_sum f a) :
   tendsto (λn:ℕ, ∑ i in range n, f i) at_top (𝓝 a) :=
-@tendsto.comp _ _ _ finset.range (λ s : finset ℕ, ∑ n in s, f n) _ _ _ h tendsto_finset_range
+h.comp tendsto_finset_range
 
 lemma has_sum_unique {a₁ a₂ : α} [t2_space α] : has_sum f a₁ → has_sum f a₂ → a₁ = a₂ :=
 tendsto_nhds_unique at_top_ne_bot
 
-lemma has_sum_iff_tendsto_nat_of_summable [t2_space α] {f : ℕ → α} {a : α} (hf : summable f) :
+lemma summable.has_sum_iff_tendsto_nat [t2_space α] {f : ℕ → α} {a : α} (hf : summable f) :
   has_sum f a ↔ tendsto (λn:ℕ, ∑ i in range n, f i) at_top (𝓝 a) :=
 begin
   refine ⟨λ h, h.tendsto_sum_nat, λ h, _⟩,
@@ -206,138 +254,31 @@ lemma summable.sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) 
   (ha : summable f) (hf : ∀b, summable (λc, f ⟨b, c⟩)) : summable (λb, ∑'c, f ⟨b, c⟩) :=
 (ha.has_sum.sigma (assume b, (hf b).has_sum)).summable
 
-lemma has_sum.sigma_of_has_sum [regular_space α] {γ : β → Type*} {f : (Σ b:β, γ b) → α} {g : β → α} {a : α}
-  (ha : has_sum g a) (hf : ∀b, has_sum (λc, f ⟨b, c⟩) (g b))  (hf' : summable f) : has_sum f a :=
+lemma has_sum.sigma_of_has_sum [regular_space α] {γ : β → Type*} {f : (Σ b:β, γ b) → α} {g : β → α}
+  {a : α} (ha : has_sum g a) (hf : ∀b, has_sum (λc, f ⟨b, c⟩) (g b)) (hf' : summable f) :
+  has_sum f a :=
 by simpa [has_sum_unique (hf'.has_sum.sigma hf) ha] using hf'.has_sum
 
 end has_sum
-
-section has_sum_iff_has_sum_of_iso_ne_zero
-variables [add_comm_monoid α] [topological_space α]
-variables {f : β → α} {g : γ → α} {a : α}
-
-lemma has_sum.has_sum_of_sum_eq
-  (h_eq : ∀u:finset γ, ∃v:finset β, ∀v', v ⊆ v' → ∃u', u ⊆ u' ∧ ∑ x in u', g x = ∑ b in v', f b)
-  (hf : has_sum g a) : has_sum f a :=
-suffices at_top.map (λs:finset β, ∑ b in s, f b) ≤ at_top.map (λs:finset γ, ∑ x in s, g x),
-  from le_trans this hf,
-by rw [map_at_top_eq, map_at_top_eq];
-from (le_infi $ assume b, let ⟨v, hv⟩ := h_eq b in infi_le_of_le v $
-  by simp [set.image_subset_iff]; exact hv)
-
-lemma has_sum_iff_has_sum
-  (h₁ : ∀u:finset γ, ∃v:finset β, ∀v', v ⊆ v' → ∃u', u ⊆ u' ∧ ∑ x in u', g x = ∑ b in v', f b)
-  (h₂ : ∀v:finset β, ∃u:finset γ, ∀u', u ⊆ u' → ∃v', v ⊆ v' ∧ ∑ b in v', f b = ∑ x in u', g x) :
-  has_sum f a ↔ has_sum g a :=
-⟨has_sum.has_sum_of_sum_eq h₂, has_sum.has_sum_of_sum_eq h₁⟩
-
-variables
-  (i : Π⦃c⦄, g c ≠ 0 → β) (hi : ∀⦃c⦄ (h : g c ≠ 0), f (i h) ≠ 0)
-  (j : Π⦃b⦄, f b ≠ 0 → γ) (hj : ∀⦃b⦄ (h : f b ≠ 0), g (j h) ≠ 0)
-  (hji : ∀⦃c⦄ (h : g c ≠ 0), j (hi h) = c)
-  (hij : ∀⦃b⦄ (h : f b ≠ 0), i (hj h) = b)
-  (hgj : ∀⦃b⦄ (h : f b ≠ 0), g (j h) = f b)
-include hi hj hji hij hgj
-
--- FIXME this causes a deterministic timeout with `-T50000`
-lemma has_sum.has_sum_ne_zero : has_sum g a → has_sum f a :=
-have j_inj : ∀x y (hx : f x ≠ 0) (hy : f y ≠ 0), (j hx = j hy ↔ x = y),
-  from assume x y hx hy,
-  ⟨assume h,
-    have i (hj hx) = i (hj hy), by simp [h],
-    by rwa [hij, hij] at this; assumption,
-  by simp {contextual := tt}⟩,
-let ii : finset γ → finset β := λu, u.bind $ λc, if h : g c = 0 then ∅ else {i h} in
-let jj : finset β → finset γ := λv, v.bind $ λb, if h : f b = 0 then ∅ else {j h} in
-has_sum.has_sum_of_sum_eq $ assume u, exists.intro (ii u) $
-  assume v hv, exists.intro (u ∪ jj v) $ and.intro (subset_union_left _ _) $
-  have ∀c:γ, c ∈ u ∪ jj v → c ∉ jj v → g c = 0,
-    from assume c hc hnc, classical.by_contradiction $ assume h : g c ≠ 0,
-    have c ∈ u,
-      from (finset.mem_union.1 hc).resolve_right hnc,
-    have i h ∈ v,
-      from hv $ by simp [mem_bind]; existsi c; simp [h, this],
-    have j (hi h) ∈ jj v,
-      by simp [mem_bind]; existsi i h; simp [h, hi, this],
-    by rw [hji h] at this; exact hnc this,
-  calc ∑ x in u ∪ jj v, g x = ∑ x in jj v, g x : (sum_subset (subset_union_right _ _) this).symm
-    ... = ∑ x in v, _ : sum_bind $ by intros x _ y _ _; by_cases f x = 0; by_cases f y = 0; simp [*]; cc
-    ... = ∑ x in v, f x : sum_congr rfl $ by intros x hx; by_cases f x = 0; simp [*]
-
-lemma has_sum_iff_has_sum_of_ne_zero : has_sum f a ↔ has_sum g a :=
-iff.intro
-  (has_sum.has_sum_ne_zero j hj i hi hij hji $ assume b hb, by rw [←hgj (hi _), hji])
-  (has_sum.has_sum_ne_zero i hi j hj hji hij hgj)
-
-lemma summable_iff_summable_ne_zero : summable g ↔ summable f :=
-exists_congr $
-  assume a, has_sum_iff_has_sum_of_ne_zero j hj i hi hij hji $
-    assume b hb, by rw [←hgj (hi _), hji]
-
-end has_sum_iff_has_sum_of_iso_ne_zero
-
-section has_sum_iff_has_sum_of_bij_ne_zero
-variables [add_comm_monoid α] [topological_space α]
-variables {f : β → α} {g : γ → α} {a : α}
-  (i : Π⦃c⦄, g c ≠ 0 → β)
-  (h₁ : ∀⦃c₁ c₂⦄ (h₁ : g c₁ ≠ 0) (h₂ : g c₂ ≠ 0), i h₁ = i h₂ → c₁ = c₂)
-  (h₂ : ∀⦃b⦄, f b ≠ 0 → ∃c (h : g c ≠ 0), i h = b)
-  (h₃ : ∀⦃c⦄ (h : g c ≠ 0), f (i h) = g c)
-include i h₁ h₂ h₃
-
-lemma has_sum_iff_has_sum_of_ne_zero_bij : has_sum f a ↔ has_sum g a :=
-have hi : ∀⦃c⦄ (h : g c ≠ 0), f (i h) ≠ 0,
-  from assume c h, by simp [h₃, h],
-let j : Π⦃b⦄, f b ≠ 0 → γ := λb h, some $ h₂ h in
-have hj : ∀⦃b⦄ (h : f b ≠ 0), ∃(h : g (j h) ≠ 0), i h = b,
-  from assume b h, some_spec $ h₂ h,
-have hj₁ : ∀⦃b⦄ (h : f b ≠ 0), g (j h) ≠ 0,
-  from assume b h, let ⟨h₁, _⟩ := hj h in h₁,
-have hj₂ : ∀⦃b⦄ (h : f b ≠ 0), i (hj₁ h) = b,
-  from assume b h, let ⟨h₁, h₂⟩ := hj h in h₂,
-has_sum_iff_has_sum_of_ne_zero i hi j hj₁
-  (assume c h, h₁ (hj₁ _) h $ hj₂ _) hj₂ (assume b h, by rw [←h₃ (hj₁ _), hj₂])
-
-lemma summable_iff_summable_ne_zero_bij : summable f ↔ summable g :=
-exists_congr $
-  assume a, has_sum_iff_has_sum_of_ne_zero_bij @i h₁ h₂ h₃
-
-end has_sum_iff_has_sum_of_bij_ne_zero
-
-section subtype
-variables [add_comm_monoid α] [topological_space α] {s : finset β} {f : β → α} {a : α}
-
-lemma has_sum_subtype_iff_of_eq_zero (h : ∀ x ∈ s, f x = 0) :
-  has_sum (λ b : {b // b ∉ s}, f b) a ↔ has_sum f a :=
-begin
-  symmetry,
-  apply has_sum_iff_has_sum_of_ne_zero_bij (λ (b : {b // b ∉ s}) hb, (b : β)),
-  { exact λ c₁ c₂ h₁ h₂ H, subtype.eq H },
-  { assume b hb,
-    have : b ∉ s := λ H, hb (h b H),
-    exact ⟨⟨b, this⟩, hb, rfl⟩ },
-  { dsimp, simp }
-end
-end subtype
 
 section tsum
 variables [add_comm_monoid α] [topological_space α] [t2_space α]
 variables {f g : β → α} {a a₁ a₂ : α}
 
-lemma tsum_eq_has_sum (ha : has_sum f a) : (∑'b, f b) = a :=
+lemma has_sum.tsum_eq (ha : has_sum f a) : (∑'b, f b) = a :=
 has_sum_unique (summable.has_sum ⟨a, ha⟩) ha
 
 lemma summable.has_sum_iff (h : summable f) : has_sum f a ↔ (∑'b, f b) = a :=
-iff.intro tsum_eq_has_sum (assume eq, eq ▸ h.has_sum)
+iff.intro has_sum.tsum_eq (assume eq, eq ▸ h.has_sum)
 
-@[simp] lemma tsum_zero : (∑'b:β, 0:α) = 0 := tsum_eq_has_sum has_sum_zero
+@[simp] lemma tsum_zero : (∑'b:β, 0:α) = 0 := has_sum_zero.tsum_eq
 
 lemma tsum_eq_sum {f : β → α} {s : finset β} (hf : ∀b∉s, f b = 0)  :
   (∑'b, f b) = ∑ b in s, f b :=
-tsum_eq_has_sum $ has_sum_sum_of_ne_finset_zero hf
+(has_sum_sum_of_ne_finset_zero hf).tsum_eq
 
 lemma tsum_fintype [fintype β] (f : β → α) : (∑'b, f b) = ∑ b, f b :=
-tsum_eq_has_sum $ has_sum_fintype f
+(has_sum_fintype f).tsum_eq
 
 @[simp] lemma tsum_subtype_eq_sum {f : β → α} {s : finset β} :
   (∑'x : {x // x ∈ s}, f x) = ∑ x in s, f x :=
@@ -345,10 +286,10 @@ by { rw [tsum_fintype], conv_rhs { rw ← finset.sum_attach }, refl }
 
 lemma tsum_eq_single {f : β → α} (b : β) (hf : ∀b' ≠ b, f b' = 0)  :
   (∑'b, f b) = f b :=
-tsum_eq_has_sum $ has_sum_single b hf
+(has_sum_single b hf).tsum_eq
 
 @[simp] lemma tsum_ite_eq (b : β) (a : α) : (∑'b', if b' = b then a else 0) = a :=
-tsum_eq_has_sum (has_sum_ite_eq b a)
+(has_sum_ite_eq b a).tsum_eq
 
 lemma tsum_eq_tsum_of_has_sum_iff_has_sum {f : β → α} {g : γ → α}
   (h : ∀{a}, has_sum f a ↔ has_sum g a) : (∑'b, f b) = (∑'c, g c) :=
@@ -356,7 +297,7 @@ by_cases
   (assume : ∃a, has_sum f a,
     let ⟨a, hfa⟩ := this in
     have hga : has_sum g a, from h.mp hfa,
-    by rw [tsum_eq_has_sum hfa, tsum_eq_has_sum hga])
+    by rw [hfa.tsum_eq, hga.tsum_eq])
   (assume hf : ¬ summable f,
     have hg : ¬ summable g, from assume ⟨a, hga⟩, hf ⟨a, h.mpr hga⟩,
     by simp [tsum, hf, hg])
@@ -378,26 +319,21 @@ lemma tsum_eq_tsum_of_ne_zero_bij {f : β → α} {g : γ → α}
   (∑'i, f i) = (∑'j, g j) :=
 tsum_eq_tsum_of_has_sum_iff_has_sum $ assume a, has_sum_iff_has_sum_of_ne_zero_bij i h₁ h₂ h₃
 
-lemma tsum_eq_tsum_of_iso (j : γ → β) (i : β → γ)
-  (h₁ : ∀x, i (j x) = x) (h₂ : ∀x, j (i x) = x) :
-  (∑'c, f (j c)) = (∑'b, f b) :=
-tsum_eq_tsum_of_has_sum_iff_has_sum $ assume a, has_sum_iff_has_sum_of_iso i h₁ h₂
-
 lemma tsum_equiv (j : γ ≃ β) : (∑'c, f (j c)) = (∑'b, f b) :=
-tsum_eq_tsum_of_iso j j.symm (by simp) (by simp)
+tsum_eq_tsum_of_has_sum_iff_has_sum $ λ a, j.has_sum_iff
 
 variable [topological_add_monoid α]
 
 lemma tsum_add (hf : summable f) (hg : summable g) : (∑'b, f b + g b) = (∑'b, f b) + (∑'b, g b) :=
-tsum_eq_has_sum $ hf.has_sum.add hg.has_sum
+(hf.has_sum.add hg.has_sum).tsum_eq
 
 lemma tsum_sum {f : γ → β → α} {s : finset γ} (hf : ∀i∈s, summable (f i)) :
   (∑'b, ∑ i in s, f i b) = ∑ i in s, ∑'b, f i b :=
-tsum_eq_has_sum $ has_sum_sum $ assume i hi, (hf i hi).has_sum
+(has_sum_sum $ assume i hi, (hf i hi).has_sum).tsum_eq
 
 lemma tsum_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
   (h₁ : ∀b, summable (λc, f ⟨b, c⟩)) (h₂ : summable f) : (∑'p, f p) = (∑'b c, f ⟨b, c⟩) :=
-(tsum_eq_has_sum $ h₂.has_sum.sigma (assume b, (h₁ b).has_sum)).symm
+(h₂.has_sum.sigma (assume b, (h₁ b).has_sum)).tsum_eq.symm
 
 end tsum
 
@@ -405,8 +341,9 @@ section topological_group
 variables [add_comm_group α] [topological_space α] [topological_add_group α]
 variables {f g : β → α} {a a₁ a₂ : α}
 
-lemma has_sum.neg : has_sum f a → has_sum (λb, - f b) (- a) :=
-has_sum_hom has_neg.neg continuous_neg
+-- `by simpa using` speeds up elaboration. Why?
+lemma has_sum.neg (h : has_sum f a) : has_sum (λb, - f b) (- a) :=
+by simpa only [] using h.map (-add_monoid_hom.id α) continuous_neg
 
 lemma summable.neg (hf : summable f) : summable (λb, - f b) :=
 hf.has_sum.neg.summable
@@ -421,18 +358,18 @@ section tsum
 variables [t2_space α]
 
 lemma tsum_neg (hf : summable f) : (∑'b, - f b) = - (∑'b, f b) :=
-tsum_eq_has_sum $ hf.has_sum.neg
+hf.has_sum.neg.tsum_eq
 
 lemma tsum_sub (hf : summable f) (hg : summable g) : (∑'b, f b - g b) = (∑'b, f b) - (∑'b, g b) :=
-tsum_eq_has_sum $ hf.has_sum.sub hg.has_sum
+(hf.has_sum.sub hg.has_sum).tsum_eq
 
 lemma tsum_eq_zero_add {f : ℕ → α} (hf : summable f) : (∑'b, f b) = f 0 + (∑'b, f (b + 1)) :=
 begin
-  let f₁ : ℕ → α := λ n, nat.rec (f 0) (λ _ _, 0) n,
-  let f₂ : ℕ → α := λ n, nat.rec 0 (λ k _, f (k+1)) n,
+  let f₁ : ℕ → α := λ n, nat.cases_on n (f 0) (λ _, 0),
+  let f₂ : ℕ → α := λ n, nat.cases_on n 0 (λ k, f (k+1)),
   have : f = λ n, f₁ n + f₂ n, { ext n, symmetry, cases n, apply add_zero, apply zero_add },
   have hf₁ : summable f₁,
-  { fapply summable_sum_of_ne_finset_zero,
+  { fapply summable_of_ne_finset_zero,
     { exact {0} },
     { rintros (_ | n) hn,
       { exfalso,
@@ -499,14 +436,14 @@ begin
     split_ifs,
     { exact false.elim (hb h) },
     { refl } },
-  have : (λ b : {b // b ∉ s}, f b) = (λ b : {b // b ∉ s}, g b),
+  have : (λ b : {b // b ∉ s}, f b) = g ∘ coe,
   { ext i,
     simp [g],
     split_ifs,
     { exact false.elim (i.2 h) },
     { refl } },
-  rw [this, has_sum_subtype_iff_of_eq_zero g_zero, f_sum_iff],
-  exact ⟨λ H, H.add gs_sum, λ H, by simpa using H.sub gs_sum⟩,
+  rw [this, has_sum_subtype, f_sum_iff],
+  exacts [⟨λ H, H.add gs_sum, λ H, by simpa using H.sub gs_sum⟩, λ b, mt (g_zero b)]
 end
 
 lemma has_sum_subtype_iff' :
@@ -554,12 +491,11 @@ section topological_semiring
 variables [semiring α] [topological_space α] [topological_semiring α]
 variables {f g : β → α} {a a₁ a₂ : α}
 
-lemma has_sum.mul_left (a₂) : has_sum f a₁ → has_sum (λb, a₂ * f b) (a₂ * a₁) :=
-has_sum_hom _ (continuous_const.mul continuous_id)
+lemma has_sum.mul_left (a₂) (h : has_sum f a₁) : has_sum (λb, a₂ * f b) (a₂ * a₁) :=
+by simpa only [] using h.map (add_monoid_hom.mul_left a₂) (continuous_const.mul continuous_id)
 
 lemma has_sum.mul_right (a₂) (hf : has_sum f a₁) : has_sum (λb, f b * a₂) (a₁ * a₂) :=
-@has_sum_hom _ _ _ _ _ f a₁ (λa, a * a₂) _ _ _
-  (continuous_id.mul continuous_const) hf
+by simpa only [] using hf.map (add_monoid_hom.mul_right a₂) (continuous_id.mul continuous_const)
 
 lemma summable.mul_left (a) (hf : summable f) : summable (λb, a * f b) :=
 (hf.has_sum.mul_left _).summable
@@ -571,10 +507,10 @@ section tsum
 variables [t2_space α]
 
 lemma tsum_mul_left (a) (hf : summable f) : (∑'b, a * f b) = a * (∑'b, f b) :=
-tsum_eq_has_sum $ hf.has_sum.mul_left _
+(hf.has_sum.mul_left _).tsum_eq
 
 lemma tsum_mul_right (a) (hf : summable f) : (∑'b, f b * a) = (∑'b, f b) * a :=
-tsum_eq_has_sum $ hf.has_sum.mul_right _
+(hf.has_sum.mul_right _).tsum_eq
 
 end tsum
 
@@ -610,14 +546,18 @@ lemma has_sum_le_inj {g : γ → α} (i : β → γ) (hi : injective i) (hs : �
   (h : ∀b, f b ≤ g (i b)) (hf : has_sum f a₁) (hg : has_sum g a₂) : a₁ ≤ a₂ :=
 have has_sum (λc, (partial_inv i c).cases_on' 0 f) a₁,
 begin
-  refine (has_sum_iff_has_sum_of_ne_zero_bij (λb _, i b) _ _ _).2 hf,
-  { assume c₁ c₂ h₁ h₂ eq, exact hi eq },
-  { assume c hc,
+  refine (equiv.has_sum_iff_of_support (equiv.of_bijective _ ⟨_, _⟩) _).1 hf,
+  { refine λ c, ⟨i c, _⟩,
+    rw [mem_support, partial_inv_left hi],
+    exact c.2 },
+  { assume c₁ c₂ eq, exact subtype.ext (hi $ subtype.ext_iff.1 eq) },
+  { rintro ⟨c, hc⟩,
+    rw [mem_support] at hc,
     cases eq : partial_inv i c with b; rw eq at hc,
     { contradiction },
     { rw [partial_inv_of_injective hi] at eq,
-      exact ⟨b, hc, eq⟩ } },
-  { assume c hc, rw [partial_inv_left hi, option.cases_on'] }
+      exact ⟨⟨b, hc⟩, subtype.eq eq⟩ } },
+  { assume c, simp [partial_inv_left hi, option.cases_on'] }
 end,
 begin
   refine has_sum_le (assume c, _) this hg,
@@ -706,7 +646,8 @@ lemma summable_iff_vanishing :
 by rw [summable_iff_cauchy_seq_finset, cauchy_seq_finset_iff_vanishing]
 
 /- TODO: generalize to monoid with a uniform continuous subtraction operator: `(a + b) - b = a` -/
-lemma summable.summable_of_eq_zero_or_self (hf : summable f) (h : ∀b, g b = 0 ∨ g b = f b) : summable g :=
+lemma summable.summable_of_eq_zero_or_self (hf : summable f) (h : ∀b, g b = 0 ∨ g b = f b) :
+  summable g :=
 summable_iff_vanishing.2 $
   assume e he,
   let ⟨s, hs⟩ := summable_iff_vanishing.1 hf e he in
@@ -723,24 +664,23 @@ summable_iff_vanishing.2 $
         end,
     eq ▸ hs _ $ finset.disjoint_of_subset_left (finset.filter_subset _) ht⟩
 
-lemma summable.summable_comp_of_injective {i : γ → β} (hf : summable f) (hi : injective i) :
+protected lemma summable.indicator (hf : summable f) (s : set β) :
+  summable (s.indicator f) :=
+hf.summable_of_eq_zero_or_self $ λ b,
+  if hb : b ∈ s then or.inr (set.indicator_of_mem hb _)
+  else or.inl (set.indicator_of_not_mem hb _)
+
+lemma summable.comp_injective {i : γ → β} (hf : summable f) (hi : injective i) :
   summable (f ∘ i) :=
-suffices summable (λb, if b ∈ set.range i then f b else 0),
 begin
-  refine (summable_iff_summable_ne_zero_bij (λc _, i c) _ _ _).1 this,
-  { assume c₁ c₂ hc₁ hc₂ eq, exact hi eq },
-  { assume b hb,
-    split_ifs at hb,
-    { rcases h with ⟨c, rfl⟩,
-      exact ⟨c, hb, rfl⟩ },
-    { contradiction } },
-  { assume c hc, exact if_pos (set.mem_range_self _) }
-end,
-hf.summable_of_eq_zero_or_self $ assume b, by by_cases b ∈ set.range i; simp [h]
+  simpa only [set.indicator_range_comp]
+    using (hi.summable_iff _).2 (hf.indicator (set.range i)),
+  exact λ x hx, set.indicator_of_not_mem hx _
+end
 
 lemma summable.sigma_factor {γ : β → Type*} {f : (Σb:β, γ b) → α}
   (ha : summable f) (b : β) : summable (λc, f ⟨b, c⟩) :=
-ha.summable_comp_of_injective (λ x y hxy, by simpa using hxy)
+ha.comp_injective (λ x y hxy, by simpa using hxy)
 
 lemma summable.sigma' [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
   (ha : summable f) : summable (λb, ∑'c, f ⟨b, c⟩) :=
@@ -809,7 +749,7 @@ begin
   refine le_trans (dist_le_Ico_sum_of_dist_le hnm (λ k _ _, hf k)) _,
   rw [sum_Ico_eq_sum_range],
   refine sum_le_tsum (range _) (λ _ _, le_trans dist_nonneg (hf _)) _,
-  exact hd.summable_comp_of_injective (add_right_injective n)
+  exact hd.comp_injective (add_right_injective n)
 end
 
 lemma dist_le_tsum_of_dist_le_of_tendsto₀ [metric_space α] {f : ℕ → α} (d : ℕ → ℝ)

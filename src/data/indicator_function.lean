@@ -51,6 +51,10 @@ lemma eq_on_indicator : eq_on (indicator s f) f s := λ x hx, indicator_of_mem h
 lemma support_indicator : function.support (s.indicator f) ⊆ s :=
 λ x hx, hx.imp_symm (λ h, indicator_of_not_mem h f)
 
+@[simp] lemma indicator_range_comp {ι : Sort*} (f : ι → α) (g : α → β) :
+  indicator (range f) g ∘ f = g ∘ f :=
+piecewise_range_comp _ _ _
+
 lemma indicator_congr (h : ∀ a ∈ s, f a = g a) : indicator s f = indicator s g :=
 funext $ λx, by { simp only [indicator], split_ifs, { exact h _ h_1 }, refl }
 

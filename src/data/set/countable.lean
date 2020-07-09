@@ -32,11 +32,13 @@ lemma countable_iff_exists_injective {s : set α} :
 ⟨λ ⟨h⟩, by exactI ⟨encode, encode_injective⟩,
  λ ⟨f, h⟩, ⟨⟨f, partial_inv f, partial_inv_left h⟩⟩⟩
 
+/-- A set `s : set α` is countable if and only if there exists a function `α → ℕ` injective
+on `s`. -/
 lemma countable_iff_exists_inj_on {s : set α} :
   countable s ↔ ∃ f : α → ℕ, inj_on f s :=
 countable_iff_exists_injective.trans
 ⟨λ ⟨f, hf⟩, ⟨λ a, if h : a ∈ s then f ⟨a, h⟩ else 0,
-   λ a b as bs h, congr_arg subtype.val $
+   λ a as b bs h, congr_arg subtype.val $
      hf $ by simpa [as, bs] using h⟩,
  λ ⟨f, hf⟩, ⟨_, inj_on_iff_injective.1 hf⟩⟩
 

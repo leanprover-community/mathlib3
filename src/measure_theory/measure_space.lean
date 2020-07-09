@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
+import tactic.squeeze
 import measure_theory.outer_measure
 import order.filter.countable_Inter
 
@@ -861,8 +862,20 @@ le_trans
   (by exact le_infi (λ i, le_to_outer_measure_caratheodory _))
   (outer_measure.le_sum_caratheodory _)
 
+@[simp] lemma sum_apply {ι : Type*} (f : ι → measure α) {s : set α} (hs : is_measurable s) :
+  sum f s = ∑' i, f i s :=
+to_measure_apply _ _ hs
+
 /-- Counting measure on any measurable space. -/
 def count : measure α := sum dirac
+
+lemma count_apply {s : set α} (hs : is_measurable s) :
+  count s = ∑' i : s, 1 :=
+by simp only [count, hs, sum_apply, dirac_apply]
+
+lemma count_apply [measurable_singleton_class α] (s : finset α) :
+  count (↑s : set α) = s.card :=
+by squeeze_simp [count, s.is_measurable]
 
 /-- A measure is complete if every null set is also measurable.
   A null set is a subset of a measurable set with measure `0`.
@@ -874,9 +887,23 @@ def count : measure α := sum dirac
 /-- The "almost everywhere" filter of co-null sets. -/
 def ae (μ : measure α) : filter α :=
 { sets := {s | μ sᶜ = 0},
-  univ_sets := by simp [measure_empty],
-  inter_sets := λ s t hs ht, by simp [compl_inter]; exact measure_union_null hs ht,
+  univ_sets := by simp,
+  inter_sets := λ s t hs ht, by simp only [compl_inter, mem_set_of_eq];
+    exact measure_union_null hs ht,
   sets_of_superset := λ s t hs hst, measure_mono_null (set.compl_subset_compl.2 hst) hs }
+
+/-- -/
+def cofinite (μ : measure α) : filter α :=
+{ sets := {s | μ sᶜ < ⊤},
+  univ_sets := by simp,
+  inter_sets := λ s t hs ht, by { simp only [compl_inter, mem_set_of_eq],
+    calc μ (sᶜ ∪ tᶜ) ≤ μ sᶜ + μ tᶜ : measure_union_le _ _
+                ... < ⊤ : ennreal.add_lt_top.2 ⟨hs, ht⟩ },
+  sets_of_superset := λ s t hs hst, lt_of_le_of_lt (measure_mono $ compl_subset_compl.2 hst) hs }
+
+lemma mem_cofinite {μ : measure α} {s : set α} : s ∈ μ.cofinite ↔ μ sᶜ < ⊤ := iff.rfl
+
+lemma eventually_cofinite {μ :  : ∀̂
 
 end measure
 

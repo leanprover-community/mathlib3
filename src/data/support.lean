@@ -33,6 +33,14 @@ lemma mem_support [has_zero A] {f : α → A} {x : α} :
   x ∈ support f ↔ f x ≠ 0 :=
 iff.rfl
 
+lemma support_subset_iff [has_zero A] {f : α → A} {s : set α} :
+  support f ⊆ s ↔ ∀ x, f x ≠ 0 → x ∈ s :=
+iff.rfl
+
+lemma support_subset_iff' [has_zero A] {f : α → A} {s : set α} :
+  support f ⊆ s ↔ ∀ x ∉ s, f x = 0 :=
+forall_congr $ λ x, by classical; exact not_imp_comm
+
 lemma support_binop_subset [has_zero A] (op : A → A → A) (op0 : op 0 0 = 0) (f g : α → A) :
   support (λ x, op (f x) (g x)) ⊆ support f ∪ support g :=
 λ x hx, classical.by_cases

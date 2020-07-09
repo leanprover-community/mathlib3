@@ -106,7 +106,9 @@ protected def some {α} : α ↪ option α :=
 
 /-- Embedding of a `subtype`. -/
 def subtype {α} (p : α → Prop) : subtype p ↪ α :=
-⟨subtype.val, λ _ _, subtype.ext_val⟩
+⟨coe, λ _ _, subtype.ext_val⟩
+
+@[simp] lemma coe_subtype {α} (p : α → Prop) : ⇑(subtype p) = coe := rfl
 
 /-- Choosing an element `b : β` gives an embedding of `punit` into `β`. -/
 def punit {β : Sort*} (b : β) : punit ↪ β :=
@@ -127,12 +129,10 @@ def cod_restrict {α β} (p : set β) (f : α ↪ β) (H : ∀ a, f a ∈ p) : �
 @[simp] theorem cod_restrict_apply {α β} (p) (f : α ↪ β) (H a) :
   cod_restrict p f H a = ⟨f a, H a⟩ := rfl
 
-def prod_congr {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : α × γ ↪ β × δ :=
-⟨assume ⟨a, b⟩, (e₁ a, e₂ b),
-  assume ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ h,
-  have a₁ = a₂ ∧ b₁ = b₂, from
-    (prod.mk.inj h).imp (assume h, e₁.injective h) (assume h, e₂.injective h),
-  this.left ▸ this.right ▸ rfl⟩
+/-- If `e₁` and `e₂` are embeddings, then so is `prod.map e₁ e₂ : (a, b) ↦ (e₁ a, e₂ b)`. -/
+def prod_map {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : α × γ ↪ β × δ :=
+⟨prod.map e₁ e₂, λ x y h, prod.ext (e₁.injective (prod.ext_iff.1 h).1)
+  (e₂.injective (prod.ext_iff.1 h).2)⟩
 
 section sum
 open sum

@@ -3,13 +3,15 @@ Copyright (c) 2017 Simon Hudon All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 
-M types are potentially infinite tree-like structures. Their shape
-is given by a polynomial functor.
+M types are potentially infinite tree-like structures. They are defined
+as the greatest fixpoint of a polynomial functor.
 
 -/
-import data.pfun tactic.interactive
-       data.qpf.univariate.pfunctor.basic
-       meta.coinductive_predicates
+import data.pfun
+import data.qpf.univariate.pfunctor.basic
+import meta.coinductive_predicates
+import tactic.interactive
+import tactic.squeeze
 universes u v w
 
 open nat function list (hiding head')
@@ -94,7 +96,7 @@ begin
   { refl },
   { cases h with _ _ _ _ _ h₀ h₁,
     cases h,
-    simp [truncate,exists_imp_distrib,(∘)],
+    simp only [truncate, function.comp, true_and, eq_self_iff_true, heq_iff_eq],
     ext y, apply n_ih,
     apply h₁ }
 end
@@ -113,7 +115,6 @@ begin
   induction n with n generalizing i,
   constructor,
   cases h : f i with y g,
-  simp [s_corec,h] at ⊢ n_ih,
   constructor,
   introv,
   apply n_ih,
@@ -137,7 +138,7 @@ begin
   clear m n, intro,
   cases h₀ : x (succ n) with _ i₀ f₀,
   cases h₁ : x 1 with _ i₁ f₁,
-  simp [head'],
+  dsimp only [head'],
   induction n with n,
   { rw h₁ at h₀, cases h₀, trivial },
   { have H := Hconsistent (succ n),
@@ -146,7 +147,7 @@ begin
     apply n_ih (truncate ∘ f₀),
     rw h₂,
     cases H,
-    congr, funext j, dsimp [comp],
+    congr, funext j, dsimp only [comp_app],
     rw truncate_eq_of_agree,
     apply H_a_1 }
 end
@@ -203,7 +204,7 @@ head' (x.1 1)
 /-- return all the subtrees of the root of a tree `x : M F` -/
 def children (x : M F) (i : F.B (head x)) : M F :=
    let H := λ n : ℕ, @head_succ' _ n 0 x.1 x.2 in
-   { approx := λ n, children' (x.1 _) (cast (congr_arg _ $ by simp [head,H]; refl) i),
+   { approx := λ n, children' (x.1 _) (cast (congr_arg _ $ by simp only [head,H]; refl) i),
      consistent :=
      begin
        intro,
@@ -220,7 +221,7 @@ def children (x : M F) (i : F.B (head x)) : M F :=
 -/
 def ichildren [inhabited (M F)] [decidable_eq F.A] (i : F.Idx) (x : M F) : M F :=
 if H' : i.1 = head x
-  then children x (cast (congr_arg _ $ by simp [head,H']; refl) i.2)
+  then children x (cast (congr_arg _ $ by simp only [head,H']; refl) i.2)
   else default _
 
 lemma head_succ (n m : ℕ) (x : M F) :
@@ -278,11 +279,11 @@ lemma dest_mk (x : F.obj $ M F) :
   dest (M.mk x) = x :=
 begin
   funext i,
-  dsimp [M.mk,dest],
+  dsimp only [M.mk,dest],
   cases x with x ch, congr, ext i,
   cases h : ch i,
-  simp [children,M.approx.s_mk,children',cast_eq],
-  dsimp [M.approx.s_mk,children'],
+  simp  only [children,M.approx.s_mk,children',cast_eq],
+  dsimp only [M.approx.s_mk,children'],
   congr, rw h,
 end
 
@@ -290,15 +291,15 @@ end
   M.mk (dest x) = x :=
 begin
   apply ext', intro n,
-  dsimp [M.mk],
+  dsimp only [M.mk],
   induction n with n,
-  { dsimp [head], ext },
-  dsimp [approx.s_mk,dest,head],
+  { ext },
+  dsimp only [approx.s_mk,dest,head],
   cases h : x.approx (succ n) with _ hd ch,
   have h' : hd = head' (x.approx 1),
   { rw [← head_succ' n,h,head'], apply x.consistent },
   revert ch, rw h', intros, congr,
-  { ext a, dsimp [children],
+  { ext a, dsimp only [children],
     h_generalize! hh : a == a'',
     rw h, intros, cases hh, refl },
 end
@@ -359,12 +360,12 @@ end
 lemma cases_mk {r : M F → Sort*} (x : F.obj $ M F) (f : Π (x : F.obj $ M F), r (M.mk x)) :
   pfunctor.M.cases f (M.mk x) = f x :=
 begin
-  dsimp [M.mk,pfunctor.M.cases,dest,head,approx.s_mk,head'],
-  cases x, dsimp [approx.s_mk],
+  dsimp only [M.mk,pfunctor.M.cases,dest,head,approx.s_mk,head'],
+  cases x, dsimp only [approx.s_mk],
   apply eq_of_heq,
   apply rec_heq_of_heq, congr,
-  ext, dsimp [children,approx.s_mk,children'],
-  cases h : x_snd x, dsimp [head],
+  ext, dsimp only [children,approx.s_mk,children'],
+  cases h : x_snd x, dsimp only [head],
   congr, ext,
   change (x_snd (x)).approx x_1 = _,
   rw h
@@ -429,9 +430,10 @@ begin
   { exfalso, apply h, constructor },
   { cases ps_hd with a i,
     induction x using pfunctor.M.cases_on',
-    simp [iselect,isubtree] at ps_ih ⊢,
+    simp only [iselect,isubtree] at ps_ih ⊢,
     by_cases h'' : a = x_a, subst x_a,
-    { simp *, rw ps_ih, intro h', apply h,
+    { simp only [dif_pos, eq_self_iff_true, cases_on_mk'],
+      rw ps_ih, intro h', apply h,
       constructor; try { refl }, apply h' },
     { simp * } }
 end
@@ -450,9 +452,9 @@ by apply ext'; intro n; refl
 @[simp]
 lemma ichildren_mk [decidable_eq F.A] [inhabited (M F)] (x : F.obj (M F)) (i : F.Idx) :
   ichildren i (M.mk x) = x.iget i :=
-by { dsimp [ichildren,pfunctor.obj.iget],
+by { dsimp only [ichildren,pfunctor.obj.iget],
      congr, ext, apply ext',
-     dsimp [children',M.mk,approx.s_mk],
+     dsimp only [children',M.mk,approx.s_mk],
      intros, refl }
 
 @[simp]
@@ -473,12 +475,12 @@ by simp only [iselect,isubtree_cons]
 lemma corec_def {X} (f : X → F.obj X) (x₀ : X) :
   M.corec f x₀ = M.mk (M.corec f <$> f x₀)  :=
 begin
-  dsimp [M.corec,M.mk],
+  dsimp only [M.corec,M.mk],
   congr, ext n,
   cases n with n,
-  { dsimp [s_corec,approx.s_mk], refl, },
-  { dsimp [s_corec,approx.s_mk], cases h : (f x₀),
-    dsimp [(<$>),pfunctor.map],
+  { dsimp only [s_corec,approx.s_mk], refl, },
+  { dsimp only [s_corec,approx.s_mk], cases h : (f x₀),
+    dsimp only [(<$>),pfunctor.map],
     congr, }
 end
 
@@ -502,18 +504,17 @@ begin
     replace hx_a_2 := mk_inj hx_a_2, cases hx_a_2,
     replace hy_a_1 := mk_inj hy_a_1, cases hy_a_1,
     replace hy_a_2 := mk_inj hy_a_2, cases hy_a_2,
-    simp [approx_mk], ext i, apply n_ih,
+    simp only [approx_mk, true_and, eq_self_iff_true, heq_iff_eq],
+    ext i, apply n_ih,
     { apply hx_a_3 }, { apply hy_a_3 },
     introv h, specialize hrec (⟨_,i⟩ :: ps) (congr_arg _ h),
-    simp [iselect_cons] at hrec, exact hrec }
+    simp only [iselect_cons] at hrec, exact hrec }
 end
 
 open pfunctor.approx
 
 -- variables (F : pfunctor.{v})
 variables {F}
-
-local prefix `♯`:0 := cast (by simp [*] <|> cc <|> solve_by_elim)
 
 local attribute [instance, priority 0] classical.prop_decidable
 
@@ -529,7 +530,7 @@ begin
     { rw ← agree_iff_agree', apply x.consistent },
     { rw [← agree_iff_agree',i_ih], apply y.consistent },
     introv H',
-    simp [iselect] at H,
+    dsimp only [iselect] at H,
     cases H',
     apply H ps }
 end
@@ -565,7 +566,7 @@ variable (R : M F → M F → Prop)
       cases i with a' i,
       have : a = a',
       { cases hh; cases is_path_cons hh; refl },
-      subst a', dsimp [iselect] at ps_ih ⊢,
+      subst a', dsimp only [iselect] at ps_ih ⊢,
       have h₁ := bisim.tail h₀ i,
       induction h : (f i) using pfunctor.M.cases_on' with a₀ f₀,
       induction h' : (f' i) using pfunctor.M.cases_on' with a₁ f₁,
@@ -692,7 +693,8 @@ lemma M_bisim (R : M P → M P → Prop)
 begin
   intros,
   bisim with x y ih generalizing x y,
-  rcases h _ _ ih with ⟨ a', f, f', h₀, h₁, h₂ ⟩, clear h, dsimp [M_dest] at h₀ h₁,
+  rcases h _ _ ih with ⟨ a', f, f', h₀, h₁, h₂ ⟩, clear h,
+  dsimp only [M_dest] at h₀ h₁,
   existsi [a',f,f'], split,
   { intro, existsi [f i,f' i,h₂ _,rfl], refl },
   split,

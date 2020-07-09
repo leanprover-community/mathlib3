@@ -552,10 +552,11 @@ assume a s hs, mem_pure_sets.2 $ mem_of_nhds hs
 
 lemma tendsto_pure_nhds {α : Type*} [topological_space β] (f : α → β) (a : α) :
   tendsto f (pure a) (𝓝 (f a)) :=
-begin
-  rw [tendsto, filter.map_pure],
-  exact pure_le_nhds (f a)
-end
+tendsto_le_right (pure_le_nhds _) (tendsto_pure_pure f a)
+
+lemma order_top.tendsto_at_top {α : Type*} [order_top α] [topological_space β] (f : α → β) :
+  tendsto f at_top (𝓝 $ f ⊤) :=
+tendsto_le_right (pure_le_nhds _) $ tendsto_at_top_pure f
 
 @[simp] lemma nhds_ne_bot {a : α} : 𝓝 a ≠ ⊥ :=
 ne_bot_of_le_ne_bot pure_ne_bot (pure_le_nhds a)

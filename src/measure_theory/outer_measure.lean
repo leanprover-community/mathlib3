@@ -289,7 +289,7 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑'i, m (f i) in
   Union_nat := assume s, ennreal.le_of_forall_epsilon_le $ begin
     assume ε hε (hb : (∑'i, μ (s i)) < ⊤),
     rcases ennreal.exists_pos_sum_of_encodable (ennreal.coe_lt_coe.2 hε) ℕ with ⟨ε', hε', hl⟩,
-    refine le_trans _ (add_le_add_left' (le_of_lt hl)),
+    refine le_trans _ (add_le_add_left (le_of_lt hl) _),
     rw ← ennreal.tsum_add,
     choose f hf using show
       ∀i, ∃f:ℕ → set α, s i ⊆ (⋃i, f i) ∧ (∑'i, m (f i)) < μ (s i) + ε' i,
@@ -388,9 +388,9 @@ C_iff_le.2 $ λ t, begin
   { convert m.Union (λ i, t ∩ s i),
     { rw inter_Union },
     { simp [ennreal.tsum_eq_supr_nat, C_sum m h hd] } },
-  refine le_trans (add_le_add_right' hp) _,
+  refine le_trans (add_le_add_right hp _) _,
   rw ennreal.supr_add,
-  refine supr_le (λ n, le_trans (add_le_add_left' _)
+  refine supr_le (λ n, le_trans (add_le_add_left _ _)
     (ge_of_eq (C_Union_lt m (λ i _, h i) _))),
   refine m.mono (diff_subset_diff_right _),
   exact bUnion_subset (λ i _, subset_Union _ i),

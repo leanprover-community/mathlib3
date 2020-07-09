@@ -103,6 +103,8 @@ instance : inhabited (con M) :=
 @[to_additive "A coercion from an additive congruence relation to its underlying binary relation."]
 instance : has_coe_to_fun (con M) := ⟨_, λ c, λ x y, c.r x y⟩
 
+@[simp, to_additive] lemma rel_eq_coe (c : con M) : c.r = c := rfl
+
 /-- Congruence relations are reflexive. -/
 @[to_additive "Additive congruence relations are reflexive."]
 protected lemma refl (x) : c x x := c.2.1 x
@@ -441,12 +443,10 @@ additive congruence relation containing the supremum of the set's image under th
 underlying binary relation."]
 lemma Sup_def {S : set (con M)} : Sup S = con_gen (Sup (r '' S)) :=
 begin
-  rw Sup_eq_con_gen,
+  rw [Sup_eq_con_gen, Sup_image],
   congr,
   ext x y,
-  erw [Sup_image, supr_apply, supr_apply, supr_Prop_eq],
-  simp only [Sup_image, supr_Prop_eq, supr_apply, supr_Prop_eq, exists_prop],
-  refl,
+  simp only [Sup_image, supr_apply, supr_Prop_eq, exists_prop, rel_eq_coe]
 end
 
 variables (M)

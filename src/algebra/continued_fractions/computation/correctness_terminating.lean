@@ -122,7 +122,7 @@ begin
       -- use the IH and the fact that ifp_n.fr⁻¹ = ⌊ifp_n.fr⁻¹⌋ to prove this case
       obtain ⟨ifp_n', nth_stream_eq', ifp_n_fract_inv_eq_floor⟩ :
         ∃ ifp_n, int_fract_pair.stream v n = some ifp_n ∧ ifp_n.fr⁻¹ = ⌊ifp_n.fr⁻¹⌋, from
-          int_fract_pair.obtain_succ_nth_stream_of_fr_zero succ_nth_stream_eq ifp_succ_n_fr_eq_zero,
+          int_fract_pair.exists_succ_nth_stream_of_fr_zero succ_nth_stream_eq ifp_succ_n_fr_eq_zero,
       have : ifp_n' = ifp_n, by injection (eq.trans (nth_stream_eq').symm nth_stream_eq),
       cases this,
       have s_nth_eq : g.s.nth n = some ⟨1, ⌊ifp_n.fr⁻¹⌋⟩, from
@@ -171,11 +171,9 @@ begin
       ac_refl } }
 end
 
-/--
-Shows the correctness of `comp_exact_value` in case the `int_fract_pair.stream` of the corresponding
-to the continued fraction terminated.
--/
-lemma comp_exact_value_correctness_of_stream_eq_none
+/-- The convergent of `gcf.of v` at step `n - 1` is exactly `v` if the `int_fract_pair.stream` of
+the corresponding continued fraction terminated at step `n`. -/
+lemma of_correctness_of_nth_stream_eq_none
   (nth_stream_eq_none : int_fract_pair.stream v n = none) :
   v = (gcf.of v).convergents (n - 1) :=
 begin
@@ -207,7 +205,7 @@ theorem of_correctness_of_terminated_at (terminated_at_n : (gcf.of v).terminated
   v = (gcf.of v).convergents n :=
 have int_fract_pair.stream v (n + 1) = none, from
   gcf.of_terminated_at_n_iff_succ_nth_int_fract_pair_stream_eq_none.elim_left terminated_at_n,
-comp_exact_value_correctness_of_stream_eq_none this
+ of_correctness_of_nth_stream_eq_none this
 
 /-- If `gcf.of v` terminates, then there is `n : ℕ` such that the `n`th convergent is exactly `v`. -/
 lemma of_correctness_of_terminates (terminates : (gcf.of v).terminates) :

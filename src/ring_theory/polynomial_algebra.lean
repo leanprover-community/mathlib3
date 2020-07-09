@@ -161,7 +161,6 @@ end
 (Implementation detail).
 The algebra homomorphism `A ⊗[R] polynomial R →ₐ[R] polynomial A`.
 -/
--- TODO This takes about 8 seconds to elaborate. Suggestions welcome.
 def to_fun_alg_hom : A ⊗[R] polynomial R →ₐ[R] polynomial A :=
 alg_hom_of_linear_map_tensor_product
   (to_fun_linear R A)

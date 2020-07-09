@@ -165,7 +165,7 @@ have a * b = 0, from subtype.ext_iff_val.1 h,
 
 instance : integral_domain ℤ_[p] :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := padic_int.eq_zero_or_eq_zero_of_mul_eq_zero,
-  zero_ne_one := padic_int.zero_ne_one,
+  exists_pair_ne := ⟨0, 1, padic_int.zero_ne_one⟩,
   ..padic_int.comm_ring }
 
 end instances
@@ -232,7 +232,7 @@ local attribute [reducible] padic_int
 lemma mul_inv : ∀ {z : ℤ_[p]}, ∥z∥ = 1 → z * z.inv = 1
 | ⟨k, _⟩ h :=
   begin
-    have hk : k ≠ 0, from λ h', @zero_ne_one ℚ_[p] _ _ _ (by simpa [h'] using h),
+    have hk : k ≠ 0, from λ h', @zero_ne_one ℚ_[p] _ _ (by simpa [h'] using h),
     unfold padic_int.inv, split_ifs,
     { change (⟨k * (1/k), _⟩ : ℤ_[p]) = 1,
       simp [hk], refl },

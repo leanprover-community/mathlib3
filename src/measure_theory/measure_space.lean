@@ -729,7 +729,7 @@ lemma measure_zero_iff_ae_nmem {s : set α} : μ s = 0 ↔ ∀ₘ a ∂ μ, a �
 by simp only [ae_iff, not_not, set_of_mem_eq]
 
 lemma ae_of_all {p : α → Prop} (μ : measure α) : (∀a, p a) → ∀ₘ a ∂ μ, p a :=
-eventually_of_forall _
+eventually_of_forall
 
 instance : countable_Inter_filter μ.ae :=
 ⟨begin

@@ -6,6 +6,7 @@ Authors: Sébastien Gouëzel
 import linear_algebra.basic
 import tactic.omega
 import data.fintype.card
+import data.fintype.sort
 
 /-!
 # Multilinear maps

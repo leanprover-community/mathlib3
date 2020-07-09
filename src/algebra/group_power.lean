@@ -3,6 +3,7 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
+import algebra.opposites
 import data.int.basic
 import data.equiv.basic
 import deprecated.ring
@@ -522,7 +523,7 @@ mt pow_eq_zero h
 
 theorem nsmul_nonneg [ordered_add_comm_monoid R] {a : R} (H : 0 ≤ a) : ∀ n : ℕ, 0 ≤ n •ℕ a
 | 0     := le_refl _
-| (n+1) := add_nonneg' H (nsmul_nonneg n)
+| (n+1) := add_nonneg H (nsmul_nonneg n)
 
 lemma pow_abs [decidable_linear_ordered_comm_ring R] (a : R) (n : ℕ) : (abs a)^n = abs (a^n) :=
 by induction n with n ih; [exact (abs_one).symm,
@@ -537,7 +538,7 @@ variable [ordered_add_comm_monoid A]
 theorem nsmul_le_nsmul {a : A} {n m : ℕ} (ha : 0 ≤ a) (h : n ≤ m) : n •ℕ a ≤ m •ℕ a :=
 let ⟨k, hk⟩ := nat.le.dest h in
 calc n •ℕ a = n •ℕ a + 0 : (add_zero _).symm
-  ... ≤ n •ℕ a + k •ℕ a : add_le_add_left' (nsmul_nonneg ha _)
+  ... ≤ n •ℕ a + k •ℕ a : add_le_add_left (nsmul_nonneg ha _) _
   ... = m •ℕ a : by rw [← hk, add_nsmul]
 
 lemma nsmul_le_nsmul_of_le_right {a b : A} (hab : a ≤ b) : ∀ i : ℕ, i •ℕ a ≤ i •ℕ b
@@ -911,5 +912,22 @@ lemma conj_pow (u : units M) (x : M) (n : ℕ) : (↑u * x * ↑(u⁻¹))^n = u 
 
 lemma conj_pow' (u : units M) (x : M) (n : ℕ) : (↑(u⁻¹) * x * u)^n = ↑(u⁻¹) * x^n * u:=
 (u⁻¹).conj_pow x n
+
+open opposite
+
+/-- Moving to the opposite monoid commutes with taking powers. -/
+@[simp] lemma op_pow (x : M) (n : ℕ) : op (x ^ n) = (op x) ^ n :=
+begin
+  induction n with n h,
+  { simp },
+  { rw [pow_succ', op_mul, h, pow_succ] }
+end
+
+@[simp] lemma unop_pow (x : Mᵒᵖ) (n : ℕ) : unop (x ^ n) = (unop x) ^ n :=
+begin
+  induction n with n h,
+  { simp },
+  { rw [pow_succ', unop_mul, h, pow_succ] }
+end
 
 end units

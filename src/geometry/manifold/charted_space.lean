@@ -752,7 +752,7 @@ variables {α : Type*} [topological_space α]
 variables {e : local_homeomorph α H}
 
 /-- If a single local homeomorphism `e` from a space `α` into `H` has source covering the whole
-space `α`, then that local homeomorphism induces an `H`-charted space structure on `alpha`.
+space `α`, then that local homeomorphism induces an `H`-charted space structure on `α`.
 (This condition is equivalent to `e` being an open embedding of `α` into `H`.) -/
 def singleton_charted_space (h : e.source = set.univ) : charted_space H α :=
 { atlas := λ e', e' = e,
@@ -763,9 +763,9 @@ def singleton_charted_space (h : e.source = set.univ) : charted_space H α :=
 lemma singleton_charted_space_one_chart (h : e.source = set.univ) (e' : local_homeomorph α H)
   (h' : e' ∈ (singleton_charted_space h).atlas) : e' = e := h'
 
-/-- Given a local homeomorphism `e` from a space `α` into `H`, if its sources covers the whole
-space `α`, then the induced charted space structure on `α` is `has_groupoid G` for any structure `G`
-which is closed under restrictions. -/
+/-- Given a local homeomorphism `e` from a space `α` into `H`, if its source covers the whole
+space `α`, then the induced charted space structure on `α` is `has_groupoid G` for any structure
+groupoid `G` which is closed under restrictions. -/
 lemma singleton_has_groupoid (h : e.source = set.univ) (G : structure_groupoid H)
   [closed_under_restriction G] : @has_groupoid _ _ _ _ (singleton_charted_space h) G :=
 { compatible := begin

@@ -604,7 +604,6 @@ attribute [nolint doc_blame] R.functional R
 
 open ulift
 
-@[nolint def_lemma]
 lemma R_is_bisimulation : is_bisimulation (R F) :=
 begin
   constructor; introv hr,

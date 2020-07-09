@@ -12,7 +12,7 @@ namespace int
   perfect square, and is positive, it returns the largest `k:ℤ` such
   that `k*k ≤ n`. If it is negative, it returns 0. For example,
   `sqrt 2 = 1` and `sqrt 1 = 1` and `sqrt (-1) = 0` -/
-def sqrt (n : ℤ) : ℤ :=
+@[pp_nodot] def sqrt (n : ℤ) : ℤ :=
 nat.sqrt $ int.to_nat n
 
 theorem sqrt_eq (n : ℤ) : sqrt (n*n) = n.nat_abs :=

@@ -14,7 +14,7 @@ section prio
 set_option default_priority 100 -- see Note [default priority]
 set_option old_structure_cmd true
 @[protect_proj without mul_left_not_lt r_well_founded]
-class euclidean_domain (α : Type u) extends comm_ring α :=
+class euclidean_domain (α : Type u) extends comm_ring α, nontrivial α :=
 (quotient : α → α → α)
 (quotient_zero : ∀ a, quotient a 0 = 0)
 (remainder : α → α → α)
@@ -32,7 +32,6 @@ class euclidean_domain (α : Type u) extends comm_ring α :=
   function from weak to strong. I've currently divided the lemmas into
   strong and weak depending on whether they require `val_le_mul_left` or not. -/
 (mul_left_not_lt : ∀ a {b}, b ≠ 0 → ¬r (a * b) a)
-(zero_ne_one : (0 : α) ≠ 1)
 end prio
 
 namespace euclidean_domain
@@ -40,9 +39,6 @@ variable {α : Type u}
 variables [euclidean_domain α]
 
 local infix ` ≺ `:50 := euclidean_domain.r
-
-@[priority 70] -- see Note [lower instance priority]
-instance : nonzero α := ⟨euclidean_domain.zero_ne_one⟩
 
 @[priority 70] -- see Note [lower instance priority]
 instance : has_div α := ⟨euclidean_domain.quotient⟩
@@ -287,7 +283,7 @@ begin
   suffices : x * y ∣ z * gcd x y,
   { cases this with p hp, use p,
     generalize_hyp : gcd x y = g at hxy hs hp ⊢, subst hs,
-    rw [mul_left_comm, mul_div_cancel_left _ hxy, ← domain.mul_left_inj hxy, hp],
+    rw [mul_left_comm, mul_div_cancel_left _ hxy, ← mul_left_inj' hxy, hp],
     rw [← mul_assoc], simp only [mul_right_comm] },
   rw [gcd_eq_gcd_ab, mul_add], apply dvd_add,
   { rw mul_left_comm, exact mul_dvd_mul_left _ (dvd_mul_of_dvd_left hyz _) },
@@ -351,7 +347,7 @@ instance int.euclidean_domain : euclidean_domain ℤ :=
     by rw [← mul_one a.nat_abs, int.nat_abs_mul];
     exact mul_le_mul_of_nonneg_left (int.nat_abs_pos_of_ne_zero b0) (nat.zero_le _),
   .. int.comm_ring,
-  .. int.nonzero }
+  .. int.nontrivial }
 
 @[priority 100] -- see Note [lower instance priority]
 instance field.to_euclidean_domain {K : Type u} [field K] : euclidean_domain K :=

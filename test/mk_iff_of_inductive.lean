@@ -2,7 +2,7 @@ import tactic.mk_iff_of_inductive_prop
 
 import data.list
 import data.list.perm
-import data.multiset
+import data.multiset.basic
 
 mk_iff_of_inductive_prop list.chain test.chain_iff
 

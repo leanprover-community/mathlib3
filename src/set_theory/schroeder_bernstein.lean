@@ -21,26 +21,26 @@ variables {α : Type u} {β : Type v}
 
 theorem schroeder_bernstein {f : α → β} {g : β → α}
   (hf : function.injective f) (hg : function.injective g) : ∃h:α→β, bijective h :=
-let s : set α := lfp $ λs, - (g '' - (f '' s)) in
-have hs : s = - (g '' - (f '' s)),
+let s : set α := lfp $ λs, (g '' (f '' s)ᶜ)ᶜ in
+have hs : s = (g '' (f '' s)ᶜ)ᶜ,
   from lfp_eq $ assume s t h,
     compl_subset_compl.mpr $ image_subset _ $
     compl_subset_compl.mpr $ image_subset _ h,
 
-have hns : - s = g '' - (f '' s),
+have hns : sᶜ = g '' (f '' s)ᶜ,
   from compl_injective $ by simp [hs.symm],
 
 let g' := λa, @inv_fun β ⟨f a⟩ α g a in
 have g'g : g' ∘ g = id,
   from funext $ assume b, @left_inverse_inv_fun _ ⟨f (g b)⟩ _ _ hg b,
-have hg'ns : g' '' (-s) = - (f '' s),
+have hg'ns : g' '' sᶜ = (f '' s)ᶜ,
   by rw [hns, ←image_comp, g'g, image_id],
 
 let h := λa, if a ∈ s then f a else g' a in
 
 have h '' univ = univ,
-  from calc h '' univ = h '' s ∪ h '' (- s) : by rw [←image_union, union_compl_self]
-    ... = f '' s ∪ g' '' (-s) :
+  from calc h '' univ = h '' s ∪ h '' sᶜ : by rw [←image_union, union_compl_self]
+    ... = f '' s ∪ g' '' sᶜ :
       congr (congr_arg (∪)
         (image_congr $ by simp [h, if_pos] {contextual := tt}))
         (image_congr $ by simp [h, if_neg] {contextual := tt})
@@ -53,7 +53,7 @@ have surjective h,
 
 have split : ∀x∈s, ∀y∉s, h x = h y → false,
   from assume x hx y hy eq,
-  have y ∈ g '' - (f '' s), by rwa [←hns],
+  have y ∈ g '' (f '' s)ᶜ, by rwa [←hns],
   let ⟨y', hy', eq_y'⟩ := this in
   have f x = y',
     from calc f x = g' y : by simp [h, hx, hy, if_pos, if_neg] at eq; assumption
@@ -70,9 +70,9 @@ have function.injective h,
     (assume hx : x ∉ s, by_cases
       (assume hy : y ∈ s, (split y hy x hx eq.symm).elim)
       (assume hy : y ∉ s,
-        have x ∈ g '' - (f '' s), by rwa [←hns],
+        have x ∈ g '' (f '' s)ᶜ, by rwa [←hns],
         let ⟨x', hx', eqx⟩ := this in
-        have y ∈ g '' - (f '' s), by rwa [←hns],
+        have y ∈ g '' (f '' s)ᶜ, by rwa [←hns],
         let ⟨y', hy', eqy⟩ := this in
         have g' x = g' y, by simp [h, hx, hy, if_pos, if_neg] at eq; assumption,
         have (g' ∘ g) x' = (g' ∘ g) y', by simp [(∘), eqx, eqy, this],

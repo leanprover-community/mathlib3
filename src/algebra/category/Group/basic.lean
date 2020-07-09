@@ -58,7 +58,7 @@ instance : has_one Group := ⟨Group.of punit⟩
 instance : inhabited Group := ⟨1⟩
 
 @[to_additive]
-instance : unique (1 : Group.{u}) :=
+instance : unique (1 : Group) :=
 { default := 1,
   uniq := λ a, begin cases a, refl, end }
 
@@ -116,7 +116,7 @@ instance comm_group_instance (G : CommGroup) : comm_group G := G.str
 @[to_additive] instance : inhabited CommGroup := ⟨1⟩
 
 @[to_additive]
-instance : unique (1 : CommGroup.{u}) :=
+instance : unique (1 : CommGroup) :=
 { default := 1,
   uniq := λ a, begin cases a, refl, end }
 
@@ -156,8 +156,9 @@ namespace AddCommGroup
 
 /-- Any element of an abelian group gives a unique morphism from `ℤ` sending
 `1` to that element. -/
--- TODO allow other universe levels
--- this will require writing a `ulift_instances.lean` file
+-- Note that because `ℤ : Type 0`, this forces `G : AddCommGroup.{0}`,
+-- so we write this explicitly to be clear.
+-- TODO generalize this, requiring a `ulift_instances.lean` file
 def as_hom {G : AddCommGroup.{0}} (g : G) : (AddCommGroup.of ℤ) ⟶ G :=
 gmultiples_hom G g
 
@@ -219,7 +220,7 @@ namespace category_theory.iso
 /-- Build a `mul_equiv` from an isomorphism in the category `Group`. -/
 @[to_additive AddGroup_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category
 `AddGroup`."]
-def Group_iso_to_mul_equiv {X Y : Group.{u}} (i : X ≅ Y) : X ≃* Y :=
+def Group_iso_to_mul_equiv {X Y : Group} (i : X ≅ Y) : X ≃* Y :=
 { to_fun    := i.hom,
   inv_fun   := i.inv,
   left_inv  := by tidy,
@@ -231,7 +232,7 @@ attribute [simps] Group_iso_to_mul_equiv AddGroup_iso_to_add_equiv
 /-- Build a `mul_equiv` from an isomorphism in the category `CommGroup`. -/
 @[to_additive AddCommGroup_iso_to_add_equiv "Build an `add_equiv` from an isomorphism
 in the category `AddCommGroup`."]
-def CommGroup_iso_to_mul_equiv {X Y : CommGroup.{u}} (i : X ≅ Y) : X ≃* Y :=
+def CommGroup_iso_to_mul_equiv {X Y : CommGroup} (i : X ≅ Y) : X ≃* Y :=
 { to_fun    := i.hom,
   inv_fun   := i.inv,
   left_inv  := by tidy,

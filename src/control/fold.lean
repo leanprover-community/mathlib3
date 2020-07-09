@@ -352,12 +352,15 @@ end
 
 variables {m : Type u → Type u} [monad m] [is_lawful_monad m]
 
+section
+local attribute [semireducible] opposite
 lemma mfoldl_to_list {f : α → β → m α} {x : α} {xs : t β} :
   mfoldl f x xs = list.mfoldl f x (to_list xs) :=
 begin
   change _ = unop (mfoldl.of_free_monoid f (to_list xs)) x,
   simp only [mfoldl, to_list_spec, fold_map_hom_free (mfoldl.of_free_monoid f),
     mfoldl.of_free_monoid_comp_free_mk, mfoldl.get]
+end
 end
 
 lemma mfoldr_to_list (f : α → β → m β) (x : β) (xs : t α) :

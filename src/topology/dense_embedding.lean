@@ -185,7 +185,7 @@ let ⟨s'', hs''₁, hs''₂, hs''₃⟩ := nhds_is_closed hs in
 let ⟨s', hs'₁, (hs'₂ : i ⁻¹' s' ⊆ f ⁻¹' s'')⟩ := mem_of_nhds hφ hs''₁ in
 let ⟨t, (ht₁ : t ⊆ φ ∩ s'), ht₂, ht₃⟩ := mem_nhds_sets_iff.mp $ inter_mem_sets hφ hs'₁ in
 have h₁ : closure (f '' (i ⁻¹' s')) ⊆ s'',
-  by rw [closure_subset_iff_subset_of_is_closed hs''₃, image_subset_iff]; exact hs'₂,
+  by rw [hs''₃.closure_subset_iff, image_subset_iff]; exact hs'₂,
 have h₂ : t ⊆ di.extend f ⁻¹' closure (f '' (i ⁻¹' t)), from
   assume b' hb',
   have 𝓝 b' ≤ 𝓟 t, by simp; exact mem_nhds_sets ht₂ hb',
@@ -262,22 +262,22 @@ protected lemma prod {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_embedd
 /-- The dense embedding of a subtype inside its closure. -/
 def subtype_emb {α : Type*} (p : α → Prop) (e : α → β) (x : {x // p x}) :
   {x // x ∈ closure (e '' {x | p x})} :=
-⟨e x.1, subset_closure $ mem_image_of_mem e x.2⟩
+⟨e x, subset_closure $ mem_image_of_mem e x.prop⟩
 
 protected lemma subtype (p : α → Prop) : dense_embedding (subtype_emb p e) :=
 { dense_embedding .
   dense   := assume ⟨x, hx⟩, closure_subtype.mpr $
-    have (λ (x : {x // p x}), e (x.val)) = e ∘ subtype.val, from rfl,
+    have (λ (x : {x // p x}), e x) = e ∘ coe, from rfl,
     begin
       rw ← image_univ,
       simp [(image_comp _ _ _).symm, (∘), subtype_emb, -image_univ],
-      rw [this, image_comp, subtype.val_image],
+      rw [this, image_comp, subtype.coe_image],
       simp,
       assumption
     end,
   inj     := assume ⟨x, hx⟩ ⟨y, hy⟩ h, subtype.eq $ de.inj $ @@congr_arg subtype.val h,
   induced := (induced_iff_nhds_eq _).2 (assume ⟨x, hx⟩,
-    by simp [subtype_emb, nhds_subtype_eq_comap, de.to_inducing.nhds_eq_comap, comap_comap_comp, (∘)]) }
+    by simp [subtype_emb, nhds_subtype_eq_comap, de.to_inducing.nhds_eq_comap, comap_comap, (∘)]) }
 
 end dense_embedding
 
@@ -287,7 +287,7 @@ lemma is_closed_property [topological_space β] {e : α → β} {p : β → Prop
 have univ ⊆ {b | p b},
   from calc univ = closure (range e) : he.closure_range.symm
     ... ⊆ closure {b | p b} : closure_mono $ range_subset_iff.mpr h
-    ... = _ : closure_eq_of_is_closed hp,
+    ... = _ : hp.closure_eq,
 assume b, this trivial
 
 lemma is_closed_property2 [topological_space β] {e : α → β} {p : β → β → Prop}

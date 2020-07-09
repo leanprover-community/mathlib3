@@ -292,7 +292,7 @@ classical.by_cases (assume : lcm a b = 0, by rw [this, normalize_zero]) $
     rintros ⟨rfl, rfl⟩; left; refl) h_lcm,
   have h2 : normalize (gcd a b * lcm a b) = gcd a b * lcm a b,
     by rw [gcd_mul_lcm, normalize_idem],
-  by simpa only [normalize_mul, normalize_gcd, one_mul, domain.mul_right_inj h1] using h2
+  by simpa only [normalize_mul, normalize_gcd, one_mul, mul_right_inj' h1] using h2
 
 theorem lcm_comm (a b : α) : lcm a b = lcm b a :=
 dvd_antisymm_of_normalize_eq (normalize_lcm _ _) (normalize_lcm _ _)

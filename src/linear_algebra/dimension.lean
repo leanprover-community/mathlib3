@@ -5,6 +5,7 @@ Author: Mario Carneiro, Johannes Hölzl, Sander Dahmen
 -/
 import linear_algebra.basis
 import set_theory.ordinal
+
 /-!
 # Dimension of modules and vector spaces
 
@@ -48,7 +49,7 @@ variables {K V}
 open vector_space
 
 section
-theorem is_basis.le_span (zero_ne_one : (0 : K) ≠ 1) {v : ι → V} {J : set V} (hv : is_basis K v)
+theorem is_basis.le_span {v : ι → V} {J : set V} (hv : is_basis K v)
    (hJ : span K J = ⊤) : cardinal.mk (range v) ≤ cardinal.mk J :=
 begin
   cases le_or_lt cardinal.omega (cardinal.mk J) with oJ oJ,
@@ -63,10 +64,11 @@ begin
       rw hJ at this,
       replace : hv.repr (v i) ∈ (finsupp.supported K K (⋃ j, S j)) := this trivial,
       rw [hv.repr_eq_single, finsupp.mem_supported,
-        finsupp.support_single_ne_zero zero_ne_one.symm] at this,
-      subst b,
-      rcases mem_Union.1 (this (finset.mem_singleton_self _)) with ⟨j, hj⟩,
-      exact mem_Union.2 ⟨j, (mem_image _ _ _).2 ⟨i, hj, rfl⟩⟩ },
+        finsupp.support_single_ne_zero one_ne_zero] at this,
+      { subst b,
+        rcases mem_Union.1 (this (finset.mem_singleton_self _)) with ⟨j, hj⟩,
+        exact mem_Union.2 ⟨j, (mem_image _ _ _).2 ⟨i, hj, rfl⟩⟩ },
+      { apply_instance } },
     refine le_of_not_lt (λ IJ, _),
     suffices : cardinal.mk (⋃ j, S' j) < cardinal.mk (range v),
     { exact not_le_of_lt this ⟨set.embedding_of_subset _ _ hs⟩ },
@@ -90,12 +92,12 @@ begin
   rw ←cardinal.lift_inj.{(max w w') u'},
   rw [cardinal.lift_lift, cardinal.lift_lift],
   apply le_antisymm,
-  { convert cardinal.lift_le.{u' (max w w')}.2 (hv.le_span zero_ne_one hv'.2),
+  { convert cardinal.lift_le.{u' (max w w')}.2 (hv.le_span hv'.2),
     { rw cardinal.lift_max.{w u' w'},
       apply (cardinal.mk_range_eq_of_injective (hv.injective zero_ne_one)).symm, },
     { rw cardinal.lift_max.{w' u' w},
       apply (cardinal.mk_range_eq_of_injective (hv'.injective zero_ne_one)).symm, }, },
-  { convert cardinal.lift_le.{u' (max w w')}.2 (hv'.le_span zero_ne_one hv.2),
+  { convert cardinal.lift_le.{u' (max w w')}.2 (hv'.le_span hv.2),
     { rw cardinal.lift_max.{w' u' w},
       apply (cardinal.mk_range_eq_of_injective (hv'.injective zero_ne_one)).symm, },
     { rw cardinal.lift_max.{w u' w'},
@@ -145,7 +147,7 @@ by rw [←cardinal.lift_inj, ← (is_basis_span hv).mk_eq_dim,
 
 lemma dim_span_set {s : set V} (hs : linear_independent K (λ x, x : s → V)) :
   dim K ↥(span K s) = cardinal.mk s :=
-by rw [← @set_of_mem_eq _ s, ← subtype.val_range]; exact dim_span hs
+by { rw [← @set_of_mem_eq _ s, ← subtype.range_coe_subtype], exact dim_span hs }
 
 lemma cardinal_le_dim_of_linear_independent
   {ι : Type u'} {v : ι → V} (hv : linear_independent K v) :
@@ -163,7 +165,7 @@ lemma cardinal_le_dim_of_linear_independent'
 begin
   -- extend s to a basis
   obtain ⟨b, ss, h⟩ := exists_subset_is_basis hs,
-  rw [←h.mk_range_eq_dim, range_coe_subtype],
+  rw [←h.mk_range_eq_dim, subtype.range_coe],
   apply cardinal.mk_le_of_injective (inclusion_injective ss),
 end
 
@@ -250,7 +252,7 @@ by { rw [dim_eq_of_injective f h], exact dim_submodule_le _ }
 
 lemma dim_le_of_submodule (s t : submodule K V) (h : s ≤ t) : dim K s ≤ dim K t :=
 dim_le_of_injective (of_le h) $ assume ⟨x, hx⟩ ⟨y, hy⟩ eq,
-  subtype.eq $ show x = y, from subtype.ext.1 eq
+  subtype.eq $ show x = y, from subtype.ext_iff_val.1 eq
 
 section
 variables [add_comm_group V₃] [vector_space K V₃]
@@ -356,9 +358,9 @@ begin
   exact (h $ bot_unique $ assume s hs, (submodule.mem_bot K).2 $ this s hs)
 end
 
-lemma exists_mem_ne_zero_of_dim_pos {s : submodule K V} (h : vector_space.dim K s > 0) :
+lemma exists_mem_ne_zero_of_dim_pos {s : submodule K V} (h : 0 < vector_space.dim K s) :
   ∃ b : V, b ∈ s ∧ b ≠ 0 :=
-exists_mem_ne_zero_of_ne_bot $ assume eq, by rw [(>), eq, dim_bot] at h; exact lt_irrefl _ h
+exists_mem_ne_zero_of_ne_bot $ assume eq, by rw [eq, dim_bot] at h; exact lt_irrefl _ h
 
 lemma exists_is_basis_fintype (h : dim K V < cardinal.omega) :
   ∃ s : (set V), (is_basis K (subtype.val : s → V)) ∧ nonempty (fintype s) :=
@@ -396,7 +398,7 @@ by rw [rank, linear_map.range_zero, dim_bot]
 lemma rank_finset_sum_le {η} (s : finset η) (f : η → V →ₗ[K] V₂) :
   rank (∑ d in s, f d) ≤ ∑ d in s, rank (f d) :=
 @finset.sum_hom_rel _ _ _ _ _ (λa b, rank a ≤ b) f (λ d, rank (f d)) s (le_of_eq rank_zero)
-      (λ i g c h, le_trans (rank_add_le _ _) (add_le_add_left' h))
+      (λ i g c h, le_trans (rank_add_le _ _) (add_le_add_left h _))
 
 variables [add_comm_group V₃] [vector_space K V₃]
 
@@ -418,7 +420,7 @@ begin
   { intros h x,
     cases exists_is_basis K V with w hw,
     have card_mk_range := hw.mk_range_eq_dim,
-    rw [h, cardinal.mk_emptyc_iff, set.range_coe_subtype] at card_mk_range,
+    rw [h, cardinal.mk_emptyc_iff, subtype.range_coe] at card_mk_range,
     simpa [card_mk_range] using hw.mem_span x },
   { intro h,
     have : (⊤ : submodule K V) = ⊥,
@@ -426,11 +428,22 @@ begin
     rw [←dim_top, this, dim_bot] }
 end
 
-lemma dim_pos_iff_exists_ne_zero : 0 < vector_space.dim K V  ↔ ∃ x : V, x ≠ 0 :=
+lemma dim_pos_iff_exists_ne_zero : 0 < vector_space.dim K V ↔ ∃ x : V, x ≠ 0 :=
 begin
   rw ←not_iff_not,
   simpa using dim_zero_iff_forall_zero
 end
+
+lemma dim_pos_iff_nontrivial : 0 < vector_space.dim K V ↔ nontrivial V :=
+begin
+  rw dim_pos_iff_exists_ne_zero,
+  split,
+  { rintros ⟨x, h⟩, exact ⟨⟨x, 0, h⟩⟩ },
+  { introsI, exact exists_ne 0 }
+end
+
+lemma dim_pos [h : nontrivial V] : 0 < vector_space.dim K V :=
+dim_pos_iff_nontrivial.2 h
 
 end vector_space
 

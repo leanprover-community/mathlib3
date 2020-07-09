@@ -605,13 +605,8 @@ lemma has_antimono_basis {f : filter α} (h : f.is_countably_generated) :
  ∃ x : ℕ → set α, f.has_antimono_basis (λ _, true) x :=
 begin
   rcases h.exists_antimono_seq with ⟨x, x_dec, rfl⟩,
-  use x,
-  constructor,
-  apply has_basis_infi_principal,
-  apply directed_of_mono, apply x_dec,
-  use 0,
-  simpa using x_dec,
-  exact monotone_const
+  refine ⟨x, has_basis_infi_principal _ ⟨0⟩, _, monotone_const⟩,
+  exacts [directed_of_sup x_dec, λ i j _ _, x_dec i j]
 end
 
 end is_countably_generated
@@ -623,7 +618,7 @@ begin
   use [range y, countable_range _],
   rw (has_basis_infi_principal _ _).eq_generate,
   { simp [range] },
-  { apply directed_of_mono, apply am },
+  { exact directed_of_sup am },
   { use 0 },
 end
 
@@ -680,7 +675,7 @@ begin
     subst gbasis,
     rw mem_infi,
     { simp only [set.mem_Union, iff_self, filter.mem_principal_sets] },
-    { exact directed_of_mono _ (λ i j h, principal_mono.mpr $ gmon _ _ h) },
+    { exact directed_of_sup (λ i j h, principal_mono.mpr $ gmon _ _ h) },
     { apply_instance } },
   classical, contrapose,
   simp only [not_forall, not_imp, not_exists, subset_def, @tendsto_def _ _ f, gbasis],
@@ -716,7 +711,7 @@ begin
   have lim_uφ : tendsto (u ∘ φ) at_top f,
     from h.tendsto φ_in,
   have lim_φ : tendsto φ at_top at_top,
-    from (tendsto_at_top_mono _ φ_ge tendsto_id),
+    from (tendsto_at_top_mono φ_ge tendsto_id),
   obtain ⟨ψ, hψ, hψφ⟩ : ∃ ψ : ℕ → ℕ, strict_mono ψ ∧ strict_mono (φ ∘ ψ),
     from strict_mono_subseq_of_tendsto_at_top lim_φ,
   exact ⟨φ ∘ ψ, hψφ, lim_uφ.comp $ strict_mono_tendsto_at_top hψ⟩,

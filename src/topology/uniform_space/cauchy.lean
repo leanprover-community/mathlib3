@@ -208,7 +208,7 @@ lemma cauchy_prod [uniform_space β] {f : filter α} {g : filter β} :
 | ⟨f_proper, hf⟩ ⟨g_proper, hg⟩ := ⟨filter.prod_ne_bot.2 ⟨f_proper, g_proper⟩,
   let p_α := λp:(α×β)×(α×β), (p.1.1, p.2.1), p_β := λp:(α×β)×(α×β), (p.1.2, p.2.2) in
   suffices (f.prod f).comap p_α ⊓ (g.prod g).comap p_β ≤ (𝓤 α).comap p_α ⊓ (𝓤 β).comap p_β,
-    by simpa [uniformity_prod, filter.prod, filter.comap_inf, filter.comap_comap_comp, (∘),
+    by simpa [uniformity_prod, filter.prod, filter.comap_inf, filter.comap_comap, (∘),
         inf_assoc, inf_comm, inf_left_comm],
   inf_le_inf (filter.comap_mono hf) (filter.comap_mono hg)⟩
 
@@ -259,10 +259,10 @@ theorem cauchy_seq.tendsto_lim [semilattice_sup β] [complete_space α] [nonempt
   tendsto u at_top (𝓝 $ lim at_top u) :=
 h.le_nhds_Lim
 
-lemma is_complete_of_is_closed [complete_space α] {s : set α}
+lemma is_closed.is_complete [complete_space α] {s : set α}
   (h : is_closed s) : is_complete s :=
 λ f cf fs, let ⟨x, hx⟩ := complete_space.complete cf in
-⟨x, is_closed_iff_nhds.mp h x (ne_bot_of_le_ne_bot cf.left (le_inf hx fs)), hx⟩
+⟨x, is_closed_iff_cluster_pt.mp h x (ne_bot_of_le_ne_bot cf.left (le_inf hx fs)), hx⟩
 
 /-- A set `s` is totally bounded if for every entourage `d` there is a finite
   set of points `t` such that every element of `s` is `d`-near to some element of `t`. -/
@@ -314,7 +314,7 @@ assume t ht,
 let ⟨t', ht', hct', htt'⟩ := mem_uniformity_is_closed ht, ⟨c, hcf, hc⟩ := h t' ht' in
 ⟨c, hcf,
   calc closure s ⊆ closure (⋃ (y : α) (H : y ∈ c), {x : α | (x, y) ∈ t'}) : closure_mono hc
-    ... = _ : closure_eq_of_is_closed $ is_closed_bUnion hcf $ assume i hi,
+    ... = _ : is_closed.closure_eq $ is_closed_bUnion hcf $ assume i hi,
       continuous_iff_is_closed.mp (continuous_id.prod_mk continuous_const) _ hct'
     ... ⊆ _ : bUnion_subset $ assume i hi, subset.trans (assume x, @htt' (x, i))
       (subset_bUnion_of_mem hi)⟩
@@ -385,9 +385,9 @@ lemma totally_bounded_iff_filter {s : set α} :
     from assume y' hy',
       show  y' ∈ (⋃y'∈({y}:set α), {x | (x, y') ∈ d}),
         by simp; exact @hmd (y', y) ⟨hy', hym⟩,
-  have c ≤ 𝓟 (s - ys),
+  have c ≤ 𝓟 (s \ ys),
     from le_trans hc₁ $ infi_le_of_le ⟨{y}, finite_singleton _⟩ $ le_refl _,
-  have (s - ys) ∩ (m ∩ s) ∈ c.sets,
+  have (s \ ys) ∩ (m ∩ s) ∈ c.sets,
     from inter_mem_sets (le_principal_iff.mp this) ‹m ∩ s ∈ c.sets›,
   have ∅ ∈ c.sets,
     from c.sets_of_superset this $ assume x ⟨⟨hxs, hxys⟩, hxm, _⟩, hxys $ ‹m ⊆ ys› hxm,
@@ -418,7 +418,7 @@ instance complete_of_compact {α : Type u} [uniform_space α] [compact_space α]
 
 lemma compact_of_totally_bounded_is_closed [complete_space α] {s : set α}
   (ht : totally_bounded s) (hc : is_closed s) : compact s :=
-(@compact_iff_totally_bounded_complete α _ s).2 ⟨ht, is_complete_of_is_closed hc⟩
+(@compact_iff_totally_bounded_complete α _ s).2 ⟨ht, hc.is_complete⟩
 
 /-!
 ### Sequentially complete space

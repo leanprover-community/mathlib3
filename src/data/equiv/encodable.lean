@@ -8,6 +8,8 @@ Note that every encodable Type is countable.
 -/
 import data.equiv.nat
 import order.order_iso
+import order.directed
+
 open option list nat function
 
 /-- An encodable type is a "constructively countable" type. This is where

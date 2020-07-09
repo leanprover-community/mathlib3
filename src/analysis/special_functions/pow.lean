@@ -501,7 +501,7 @@ begin
   { convert (has_deriv_at_exp _).comp x ((has_deriv_at_log (ne_of_gt h)).mul_const p) using 1,
     field_simp [rpow_def_of_pos h, mul_sub, exp_sub, exp_log h, ne_of_gt h],
     ring },
-  apply this.congr_of_mem_nhds,
+  apply this.congr_of_eventually_eq,
   have : set.Ioi (0 : ℝ) ∈ 𝓝 x := mem_nhds_sets is_open_Ioi h,
   exact filter.eventually_of_mem this (λ y hy, rpow_def_of_pos hy _)
 end
@@ -514,7 +514,7 @@ begin
       using 1,
     field_simp [rpow_def_of_neg h, mul_sub, exp_sub, sub_mul, cos_sub, exp_log_of_neg h, ne_of_lt h],
     ring },
-  apply this.congr_of_mem_nhds,
+  apply this.congr_of_eventually_eq,
   have : set.Iio (0 : ℝ) ∈ 𝓝 x := mem_nhds_sets is_open_Iio h,
   exact filter.eventually_of_mem this (λ y hy, rpow_def_of_neg hy _)
 end
@@ -843,7 +843,7 @@ lemma continuous_at_rpow {x : ℝ≥0} {y : ℝ} (h : x ≠ 0 ∨ 0 < y) :
 begin
   have : (λp:ℝ≥0×ℝ, p.1^p.2) = nnreal.of_real ∘ (λp:ℝ×ℝ, p.1^p.2) ∘ (λp:ℝ≥0 × ℝ, (p.1.1, p.2)),
   { ext p,
-    rw [← nnreal.coe_eq, coe_rpow, nnreal.coe_of_real _ (real.rpow_nonneg_of_nonneg p.1.2 _)],
+    rw [coe_rpow, nnreal.coe_of_real _ (real.rpow_nonneg_of_nonneg p.1.2 _)],
     refl },
   rw this,
   refine nnreal.continuous_of_real.continuous_at.comp (continuous_at.comp _ _),

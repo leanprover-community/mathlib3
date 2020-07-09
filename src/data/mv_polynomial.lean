@@ -129,7 +129,12 @@ local attribute [instance] coeff_coe_to_fun
 def monomial (s : σ →₀ ℕ) (a : α) : mv_polynomial σ α := single s a
 
 /-- `C a` is the constant polynomial with value `a` -/
-def C (a : α) : mv_polynomial σ α := monomial 0 a
+def C : α →+* mv_polynomial σ α :=
+{ to_fun := monomial 0,
+  map_zero' := by simp [monomial],
+  map_one' := rfl,
+  map_add' := λ a a', single_add,
+  map_mul' := λ a a', by simp [monomial, single_mul_single] }
 
 /-- `X n` is the degree `1` monomial `1*n` -/
 def X (n : σ) : mv_polynomial σ α := monomial (single n 1) 1
@@ -147,12 +152,6 @@ by simp [C, monomial, single_mul_single]
 
 @[simp] lemma C_pow (a : α) (n : ℕ) : (C (a^n) : mv_polynomial σ α) = (C a)^n :=
 by induction n; simp [pow_succ, *]
-
-instance : is_semiring_hom (C : α → mv_polynomial σ α) :=
-{ map_zero := C_0,
-  map_one := C_1,
-  map_add := λ a a', C_add,
-  map_mul := λ a a', C_mul }
 
 lemma C_injective (σ : Type*) (R : Type*) [comm_ring R] :
   function.injective (C : R → mv_polynomial σ R) :=
@@ -181,7 +180,7 @@ by rw [X_pow_eq_single, monomial, monomial, monomial, single_mul_single]; simp
 
 lemma single_eq_C_mul_X {s : σ} {a : α} {n : ℕ} :
   monomial (single s n) a = C a * (X s)^n :=
-by rw [← zero_add (single s n), monomial_add_single, C]
+by { rw [← zero_add (single s n), monomial_add_single, C], refl }
 
 @[simp] lemma monomial_add {s : σ →₀ ℕ} {a b : α} :
   monomial s a + monomial s b = monomial s (a + b) :=
@@ -317,7 +316,7 @@ by rw [coeff_X', if_pos rfl]
 
 @[simp] lemma coeff_C_mul (m) (a : α) (p : mv_polynomial σ α) : coeff m (C a * p) = a * coeff m p :=
 begin
-  rw [mul_def, C, monomial],
+  rw [mul_def], simp only [C, monomial], dsimp, rw [monomial],
   rw sum_single_index,
   { simp only [zero_add],
     convert sum_apply,
@@ -846,7 +845,7 @@ by rw [← C_0]; exact total_degree_C (0 : α)
 @[simp] lemma total_degree_one : (1 : mv_polynomial σ α).total_degree = 0 :=
 total_degree_C (1 : α)
 
-@[simp] lemma total_degree_X {α} [comm_semiring α] [nonzero α] (s : σ) :
+@[simp] lemma total_degree_X {α} [comm_semiring α] [nontrivial α] (s : σ) :
   (X s : mv_polynomial σ α).total_degree = 1 :=
 begin
   rw [total_degree, X, monomial, finsupp.support_single_ne_zero (one_ne_zero : (1 : α) ≠ 0)],
@@ -928,6 +927,39 @@ end
 
 end total_degree
 
+section aeval
+
+/-! ### The algebra of multivariate polynomials -/
+
+variables (R : Type u) (A : Type v) (f : σ → A)
+variables [comm_semiring R] [comm_semiring A] [algebra R A]
+
+/-- A map `σ → A` where `A` is an algebra over `R` generates an `R`-algebra homomorphism
+from multivariate polynomials over `σ` to `A`. -/
+def aeval : mv_polynomial σ R →ₐ[R] A :=
+{ commutes' := λ r, eval₂_C _ _ _
+  .. eval₂_hom (algebra_map R A) f }
+
+theorem aeval_def (p : mv_polynomial σ R) : aeval R A f p = eval₂ (algebra_map R A) f p := rfl
+
+@[simp] lemma aeval_X (s : σ) : aeval R A f (X s) = f s := eval₂_X _ _ _
+
+@[simp] lemma aeval_C (r : R) : aeval R A f (C r) = algebra_map R A r := eval₂_C _ _ _
+
+theorem eval_unique (φ : mv_polynomial σ R →ₐ[R] A) :
+  φ = aeval R A (φ ∘ X) :=
+begin
+  ext p,
+  apply mv_polynomial.induction_on p,
+  { intro r, rw aeval_C, exact φ.commutes r },
+  { intros f g ih1 ih2,
+    rw [φ.map_add, ih1, ih2, alg_hom.map_add] },
+  { intros p j ih,
+    rw [φ.map_mul, alg_hom.map_mul, aeval_X, ih] }
+end
+
+end aeval
+
 end comm_semiring
 
 section comm_ring
@@ -961,8 +993,10 @@ begin
   { exact (mul_zero $ mv_polynomial.C a).trans (@smul_zero α (mv_polynomial σ α) _ _ _ a).symm },
   intros p b f haf hb0 ih,
   rw [mul_add, ih, @smul_add α (mv_polynomial σ α) _ _ _ a], congr' 1,
-  rw [add_monoid_algebra.mul_def, finsupp.smul_single, mv_polynomial.C, mv_polynomial.monomial],
-  rw [finsupp.sum_single_index, finsupp.sum_single_index, zero_add, smul_eq_mul],
+  rw [add_monoid_algebra.mul_def, finsupp.smul_single],
+  simp only [mv_polynomial.C],
+  dsimp [mv_polynomial.monomial],
+  rw [finsupp.sum_single_index, finsupp.sum_single_index, zero_add],
   { rw [mul_zero, finsupp.single_zero] },
   { rw finsupp.sum_single_index,
     all_goals { rw [zero_mul, finsupp.single_zero] }, }
@@ -1067,39 +1101,6 @@ calc (a - b).total_degree = (a + -b).total_degree                : by rw sub_eq_
                       ... = max a.total_degree b.total_degree    : by rw total_degree_neg
 
 end total_degree
-
-section aeval
-
-/-- The algebra of multivariate polynomials. -/
-
-variables (R : Type u) (A : Type v) (f : σ → A)
-variables [comm_ring R] [comm_ring A] [algebra R A]
-
-/-- A map `σ → A` where `A` is an algebra over `R` generates an `R`-algebra homomorphism
-from multivariate polynomials over `σ` to `A`. -/
-def aeval : mv_polynomial σ R →ₐ[R] A :=
-{ commutes' := λ r, eval₂_C _ _ _
-  .. eval₂_hom (algebra_map R A) f }
-
-theorem aeval_def (p : mv_polynomial σ R) : aeval R A f p = eval₂ (algebra_map R A) f p := rfl
-
-@[simp] lemma aeval_X (s : σ) : aeval R A f (X s) = f s := eval₂_X _ _ _
-
-@[simp] lemma aeval_C (r : R) : aeval R A f (C r) = algebra_map R A r := eval₂_C _ _ _
-
-theorem eval_unique (φ : mv_polynomial σ R →ₐ[R] A) :
-  φ = aeval R A (φ ∘ X) :=
-begin
-  ext p,
-  apply mv_polynomial.induction_on p,
-  { intro r, rw aeval_C, exact φ.commutes r },
-  { intros f g ih1 ih2,
-    rw [φ.map_add, ih1, ih2, alg_hom.map_add] },
-  { intros p j ih,
-    rw [φ.map_mul, alg_hom.map_mul, aeval_X, ih] }
-end
-
-end aeval
 
 end comm_ring
 
@@ -1355,7 +1356,7 @@ eval₂ (C ∘ C) (λbc, sum.rec_on bc X (C ∘ X))
 
 instance is_semiring_hom_C_C :
   is_semiring_hom (C ∘ C : α → mv_polynomial β (mv_polynomial γ α)) :=
-@is_semiring_hom.comp _ _ _ _ C mv_polynomial.is_semiring_hom _ _ C mv_polynomial.is_semiring_hom
+@is_semiring_hom.comp _ _ _ _ C _ _ _ C _
 
 instance is_semiring_hom_sum_to_iter : is_semiring_hom (sum_to_iter α β γ) :=
 eval₂.is_semiring_hom _ _
@@ -1422,10 +1423,10 @@ begin
       apply_instance,
       apply @is_semiring_hom.comp _ _ _ _ _ _ _ _ _ _,
       apply_instance,
-      { apply @mv_polynomial.is_semiring_hom },
+      { apply_instance, },
       { apply mv_polynomial.is_semiring_hom_iter_to_sum α β γ },
       { apply mv_polynomial.is_semiring_hom_sum_to_iter α β γ } },
-    { apply mv_polynomial.is_semiring_hom },
+    { apply_instance, },
     { assume a, rw [iter_to_sum_C_C α β γ, sum_to_iter_C α β γ] },
     { assume c, rw [iter_to_sum_C_X α β γ, sum_to_iter_Xr α β γ] } },
   { assume b, rw [iter_to_sum_X α β γ, sum_to_iter_Xl α β γ] },

@@ -72,6 +72,25 @@ variables (R)
 
 theorem two_smul : (2 : R) • x = x + x := by rw [bit0, add_smul, one_smul]
 
+/-- Pullback a `semimodule` structure along an injective additive monoid homomorphism. -/
+protected def function.injective.semimodule [add_comm_monoid M₂] [has_scalar R M₂] (f : M₂ →+ M)
+  (hf : injective f) (smul : ∀ (c : R) x, f (c • x) = c • f x) :
+  semimodule R M₂ :=
+{ smul := (•),
+  add_smul := λ c₁ c₂ x, hf $ by simp only [smul, f.map_add, add_smul],
+  zero_smul := λ x, hf $ by simp only [smul, zero_smul, f.map_zero],
+  .. hf.distrib_mul_action f smul }
+
+/-- Pushforward a `semimodule` structure along a surjective additive monoid homomorphism. -/
+protected def function.surjective.semimodule [add_comm_monoid M₂] [has_scalar R M₂] (f : M →+ M₂)
+  (hf : surjective f) (smul : ∀ (c : R) x, f (c • x) = c • f x) :
+  semimodule R M₂ :=
+{ smul := (•),
+  add_smul := λ c₁ c₂ x, by { rcases hf x with ⟨x, rfl⟩,
+    simp only [add_smul, ← smul, ← f.map_add] },
+  zero_smul := λ x, by { rcases hf x with ⟨x, rfl⟩, simp only [← f.map_zero, ← smul, zero_smul] },
+  .. hf.distrib_mul_action f smul }
+
 variable (M)
 
 /-- `(•)` as an `add_monoid_hom`. -/
@@ -486,10 +505,10 @@ instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
 instance : inhabited p := ⟨0⟩
 instance : has_scalar R p := ⟨λ c x, ⟨c • x.1, smul_mem _ c x.2⟩⟩
 
-@[simp] lemma mk_eq_zero {x} (h : x ∈ p) : (⟨x, h⟩ : p) = 0 ↔ x = 0 := subtype.ext
+@[simp] lemma mk_eq_zero {x} (h : x ∈ p) : (⟨x, h⟩ : p) = 0 ↔ x = 0 := subtype.ext_iff_val
 
 variables {p}
-@[simp, norm_cast] lemma coe_eq_coe {x y : p} : (x : M) = y ↔ x = y := subtype.ext.symm
+@[simp, norm_cast] lemma coe_eq_coe {x y : p} : (x : M) = y ↔ x = y := subtype.ext_iff_val.symm
 @[simp, norm_cast] lemma coe_eq_zero {x : p} : (x : M) = 0 ↔ x = 0 := @coe_eq_coe _ _ _ _ _ _ x 0
 @[simp, norm_cast] lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : p) : M) = 0 := rfl

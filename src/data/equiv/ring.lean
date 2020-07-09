@@ -199,26 +199,12 @@ end ring_equiv
 
 namespace mul_equiv
 
-/-- Gives an `is_semiring_hom` instance from a `mul_equiv` of semirings that preserves addition. -/
-protected lemma to_semiring_hom {R : Type*} {S : Type*} [semiring R] [semiring S]
-  (h : R ≃* S) (H : ∀ x y : R, h (x + y) = h x + h y) : is_semiring_hom h :=
-⟨add_equiv.map_zero $ add_equiv.mk' h.to_equiv H, h.map_one, H, h.5⟩
-
 /-- Gives a `ring_equiv` from a `mul_equiv` preserving addition.-/
 def to_ring_equiv {R : Type*} {S : Type*} [has_add R] [has_add S] [has_mul R] [has_mul S]
   (h : R ≃* S) (H : ∀ x y : R, h (x + y) = h x + h y) : R ≃+* S :=
 {..h.to_equiv, ..h, ..add_equiv.mk' h.to_equiv H }
 
 end mul_equiv
-
-namespace add_equiv
-
-/-- Gives an `is_semiring_hom` instance from a `mul_equiv` of semirings that preserves addition. -/
-protected lemma to_semiring_hom {R : Type*} {S : Type*} [semiring R] [semiring S]
-  (h : R ≃+ S) (H : ∀ x y : R, h (x * y) = h x * h y) : is_semiring_hom h :=
-⟨h.map_zero, mul_equiv.map_one $ mul_equiv.mk' h.to_equiv H, h.5, H⟩
-
-end add_equiv
 
 namespace ring_equiv
 
@@ -253,7 +239,8 @@ protected lemma is_integral_domain {A : Type*} (B : Type*) [ring A] [ring B]
     have e x * e y = 0, by rw [← e.map_mul, hxy, e.map_zero],
     (hB.eq_zero_or_eq_zero_of_mul_eq_zero _ _ this).imp (λ hx, by simpa using congr_arg e.symm hx)
       (λ hy, by simpa using congr_arg e.symm hy),
-  zero_ne_one := λ H, hB.zero_ne_one $ by rw [← e.map_zero, ← e.map_one, H] }
+  exists_pair_ne := ⟨e.symm 0, e.symm 1,
+    by { haveI : nontrivial B := hB.to_nontrivial, exact e.symm.injective.ne zero_ne_one }⟩ }
 
 /-- If two rings are isomorphic, and the second is an integral domain, then so is the first. -/
 protected def integral_domain {A : Type*} (B : Type*) [ring A] [integral_domain B]

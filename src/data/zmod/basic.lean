@@ -429,11 +429,11 @@ begin
   { apply fin.val_mul }
 end
 
-instance nonzero (n : ℕ) [fact (1 < n)] : nonzero (zmod n) :=
-{ zero_ne_one := assume h, zero_ne_one $
+instance nontrivial (n : ℕ) [fact (1 < n)] : nontrivial (zmod n) :=
+⟨⟨0, 1, assume h, zero_ne_one $
    calc 0 = (0 : zmod n).val : by rw val_zero
       ... = (1 : zmod n).val : congr_arg zmod.val h
-      ... = 1                : val_one n }
+      ... = 1                : val_one n ⟩⟩
 
 /-- The inversion on `zmod n`.
 It is setup in such a way that `a * a⁻¹` is equal to `gcd a.val n`.
@@ -542,8 +542,8 @@ calc fintype.card (units (zmod n)) = fintype.card {x : zmod n // x.val.coprime n
 ... = φ n :
 begin
   apply finset.card_congr (λ (a : {x : zmod n // x.val.coprime n}) _, a.1.val),
-  { intro a, simp [a.1.val_lt, a.2.symm] {contextual := tt}, },
-  { intros _ _ _ _ h, rw subtype.ext, apply val_injective, exact h, },
+  { intro a, simp [(a : zmod n).val_lt, a.prop.symm] {contextual := tt} },
+  { intros _ _ _ _ h, rw subtype.ext_iff_val, apply val_injective, exact h, },
   { intros b hb,
     rw [finset.mem_filter, finset.mem_range] at hb,
     refine ⟨⟨b, _⟩, finset.mem_univ _, _⟩,
@@ -754,8 +754,8 @@ instance : field (zmod p) :=
 { mul_inv_cancel := mul_inv_cancel_aux p,
   inv_zero := inv_zero p,
   .. zmod.comm_ring p,
-  .. zmod.nonzero p,
-  .. zmod.has_inv p }
+  .. zmod.has_inv p,
+  .. zmod.nontrivial p }
 
 end zmod
 

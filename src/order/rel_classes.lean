@@ -3,11 +3,8 @@ Copyright (c) 2020 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro, Yury G. Kudryashov
 -/
-import tactic.simpa
-import tactic.rcases
-import tactic.lint.misc
-import algebra.order
-import order.basic
+import tactic.localized
+import data.set.basic
 
 /-!
 # Unbundled relation classes

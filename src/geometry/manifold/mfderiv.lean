@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import geometry.manifold.basic_smooth_bundle
+import geometry.manifold.local_invariant_properties
 
 /-!
 # The derivative of functions between smooth manifolds
@@ -174,6 +175,12 @@ def mdifferentiable (f : M → M') :=
 def local_homeomorph.mdifferentiable (f : local_homeomorph M M') :=
 (mdifferentiable_on I I' f f.source) ∧ (mdifferentiable_on I' I f.symm f.target)
 
+/-- Prop registering the differentiability of a function on the model space. Differentiability
+in the manifold corresponds to the lift of this property to the manifold, from which one can deduce
+several properties of differentiability from general considerations. -/
+def differentiable_within_at_prop (f : H → H') (s : set H) (x : H) : Prop :=
+differentiable_within_at 𝕜 (I' ∘ f ∘ I.symm) (range I ∩ I.symm ⁻¹' s) (I x)
+
 variables [smooth_manifold_with_corners I M] [smooth_manifold_with_corners I' M']
 
 /-- `has_mfderiv_within_at I I' f s x f'` indicates that the function `f` between manifolds
@@ -252,6 +259,58 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {s t : set M}
 {g : M' → M''}
 {u : set M'}
+
+/-- Differentiability of a function on the model space is a local invariant property, from
+which many properties of differentiability for functions between manifolds follow from general
+considerations. -/
+lemma differentiable_within_at_invariant :
+  (times_cont_diff_groupoid ∞ I).local_invariant_prop (times_cont_diff_groupoid ∞ I')
+  (differentiable_within_at_prop I I') :=
+{ is_local :=
+  begin
+    assume s x u f u_open xu,
+    have : range I ∩ I.symm ⁻¹' (s ∩ u) = (range I ∩ I.symm ⁻¹' s) ∩ I.symm ⁻¹' u,
+      by simp [inter_assoc],
+    rw [differentiable_within_at_prop, differentiable_within_at_prop, this],
+    symmetry,
+    apply differentiable_within_at_inter,
+    have : u ∈ 𝓝 (I.symm (I x)),
+      by { rw [model_with_corners.left_inv], exact mem_nhds_sets u_open xu },
+    apply continuous_at.preimage_mem_nhds I.continuous_symm.continuous_at this,
+  end,
+  right_invariance :=
+  begin
+    assume s x f e he hx h,
+    rw [differentiable_within_at_prop] at ⊢ h,
+    have : I x = (I ∘ e.symm ∘ I.symm) (I (e x)), by simp only [hx] with mfld_simps,
+    rw this at h,
+    have : I (e x) ∈ (I.symm) ⁻¹' e.target ∩ range ⇑I, by simp only [hx] with mfld_simps,
+    have := ((mem_groupoid_of_pregroupoid.2 he).2.times_cont_diff_within_at this).differentiable_within_at le_top,
+    convert h.comp' _ this using 1,
+    { ext y, simp only [differentiable_within_at_prop] with mfld_simps },
+    { mfld_set_eq_tac },
+  end,
+  congr :=
+  begin
+    assume s x f g h hx hf,
+    apply hf.congr_of_eventually_eq (filter.eventually_eq_of_mem self_mem_nhds_within _),
+    { simp only [hx] with mfld_simps },
+    { assume y hy,
+      simp only [(∘)],
+      rw h,
+      exact hy.2 }
+  end,
+  left_invariance :=
+  begin
+    assume s x f e' he' hs hx h,
+    rw differentiable_within_at_prop at h ⊢,
+    have A : (I' ∘ f ∘ I.symm) (I x) ∈ (I'.symm ⁻¹' e'.source ∩ range I'),
+      by simp only [hx] with mfld_simps,
+    have := ((mem_groupoid_of_pregroupoid.2 he').1.times_cont_diff_within_at A).differentiable_within_at le_top,
+    convert this.comp _ h _,
+    { ext y, simp only with mfld_simps },
+    { assume y hy, simp only with mfld_simps at hy, simpa only [hy] with mfld_simps using hs hy.2 }
+  end }
 
 lemma unique_mdiff_within_at_univ : unique_mdiff_within_at I univ x :=
 begin

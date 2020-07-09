@@ -5,7 +5,6 @@ Authors: Sébastien Gouëzel
 -/
 
 import geometry.manifold.mfderiv
-import geometry.manifold.local_properties
 
 /-!
 # Smooth functions between smooth manifolds
@@ -57,6 +56,58 @@ def times_cont_mdiff (n : with_top ℕ) (f : M → M') :=
 continuous f ∧
 ∀(x : M) (y : M'), times_cont_diff_on 𝕜 n ((ext_chart_at I' y) ∘ f ∘ (ext_chart_at I x).symm)
   ((ext_chart_at I x).target ∩ (ext_chart_at I x).symm ⁻¹' (f ⁻¹' (ext_chart_at I' y).source))
+
+
+def times_cont_diff_within_at_prop (n : ℕ) (f s x) : Prop :=
+times_cont_diff_within_at 𝕜 n (I' ∘ f ∘ I.symm) (range I ∩ I.symm ⁻¹' s) (I x)
+
+lemma times_cont_diff_within_at_invariant (n : ℕ) :
+  (times_cont_diff_groupoid ∞ I).local_invariant_prop (times_cont_diff_groupoid ∞ I')
+  (times_cont_diff_within_at_prop I I' n) :=
+{ is_local :=
+  begin
+    assume s x u f u_open xu,
+    have : range I ∩ I.symm ⁻¹' (s ∩ u) = (range I ∩ I.symm ⁻¹' s) ∩ I.symm ⁻¹' u,
+      by simp [inter_assoc],
+    rw [times_cont_diff_within_at_prop, times_cont_diff_within_at_prop, this],
+    symmetry,
+    apply times_cont_diff_within_at_inter,
+    have : u ∈ 𝓝 (I.symm (I x)),
+      by { rw [model_with_corners.left_inv], exact mem_nhds_sets u_open xu },
+    apply continuous_at.preimage_mem_nhds I.continuous_symm.continuous_at this,
+  end,
+  right_invariance :=
+  begin
+    assume s x f e he hx h,
+    rw times_cont_diff_within_at_prop at h ⊢,
+    have : I x = (I ∘ e.symm ∘ I.symm) (I (e x)), by simp only [hx] with mfld_simps,
+    rw this at h,
+    have : I (e x) ∈ (I.symm) ⁻¹' e.target ∩ range ⇑I, by simp only [hx] with mfld_simps,
+    have := ((mem_groupoid_of_pregroupoid.2 he).2.times_cont_diff_within_at this).of_le le_top,
+    convert h.comp' this using 1,
+    { ext y, simp only with mfld_simps },
+    { mfld_set_eq_tac }
+  end,
+  congr :=
+  begin
+    assume s x f g h hx hf,
+    apply hf.congr,
+    { assume y hy,
+      simp only with mfld_simps at hy,
+      simp only [h, hy] with mfld_simps },
+    { simp only [hx] with mfld_simps }
+  end,
+  left_invariance :=
+  begin
+    assume s x f e' he' hs hx h,
+    rw times_cont_diff_within_at_prop at h ⊢,
+    have A : (I' ∘ f ∘ I.symm) (I x) ∈ (I'.symm ⁻¹' e'.source ∩ range I'),
+      by simp only [hx] with mfld_simps,
+    have := ((mem_groupoid_of_pregroupoid.2 he').1.times_cont_diff_within_at A).of_le le_top,
+    convert this.comp h _,
+    { ext y, simp only with mfld_simps },
+    { assume y hy, simp only with mfld_simps at hy, simpa only [hy] with mfld_simps using hs hy.2 }
+  end }
 
 /-! ### Basic properties of smooth functions between manifolds -/
 

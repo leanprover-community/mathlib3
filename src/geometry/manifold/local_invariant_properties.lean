@@ -24,9 +24,6 @@ restriction, intersection, is local, and so on.
 * `local_invariant_prop G G' P` says that a property `P` of a triple `(g, s, x)` is local, and
   invariant under composition by elements of the groupoids `G` and `G'` of `H` and `H'`
   respectively.
-* `local_invariant_mono_prop G G' P` requires additionally that the property is invariant under
-  arbitrary restriction, i.e., if it holds for `(g, s, x)`, then it holds for `(g, t, x)` when
-  `t` is a subset of `s`.
 * `charted_space.lift_prop_within_at` (resp. `lift_prop_at`, `lift_prop_on` and `lift_prop`):
   given a property `P` of `(g, s, x)` where `g : H → H'`, define the corresponding property
   for functions `M → M'` where `M` and `M'` are charted spaces modelled respectively on `H` and
@@ -68,10 +65,6 @@ structure local_invariant_prop (P : (H → H') → (set H) → H → Prop) : Pro
 (congr : ∀ {s x} {f g : H → H'}, (∀ y ∈ s, f y = g y) → (f x = g x) → P f s x → P g s x)
 (left_invariance : ∀ {s x f} {e' : local_homeomorph H' H'}, e' ∈ G' → s ⊆ f ⁻¹' (e'.source) →
                      f x ∈ e'.source → P f s x → P (e' ∘ f) s x)
-
-structure local_invariant_mono_prop (P : (H → H') → (set H) → H → Prop)
-  extends local_invariant_prop G G' P : Prop :=
-(mono : ∀ {s x t} {f : H → H'}, t ⊆ s → P f s x → P f t x)
 
 end structure_groupoid
 
@@ -297,6 +290,38 @@ begin
   exact hG.lift_prop_within_at_congr h (λ y hy, ht _ hy.2) hx
 end
 
+lemma lift_prop_within_at_mono
+  (mono : ∀ ⦃s x t⦄ ⦃f : H → H'⦄, t ⊆ s → P f s x → P f t x)
+  (h : lift_prop_within_at P g t x) (hst : s ⊆ t) :
+  lift_prop_within_at P g s x :=
+begin
+  refine ⟨h.1.mono hst, _⟩,
+  apply mono (λ y hy, _) h.2,
+  simp only with mfld_simps at hy,
+  simp only [hy, hst _] with mfld_simps,
+end
+
+lemma lift_prop_within_at_of_lift_prop_at
+  (mono : ∀ ⦃s x t⦄ ⦃f : H → H'⦄, t ⊆ s → P f s x → P f t x) (h : lift_prop_at P g x) :
+  lift_prop_within_at P g s x :=
+begin
+  rw ← lift_prop_within_at_univ at h,
+  exact hG.lift_prop_within_at_mono mono h (subset_univ _),
+end
+
+lemma lift_prop_on_mono
+  (mono : ∀ ⦃s x t⦄ ⦃f : H → H'⦄, t ⊆ s → P f s x → P f t x) (h : lift_prop_on P g t) (hst : s ⊆ t) :
+  lift_prop_on P g s :=
+λ x hx, hG.lift_prop_within_at_mono mono (h x (hst hx)) hst
+
+lemma lift_prop_on_of_lift_prop
+  (mono : ∀ ⦃s x t⦄ ⦃f : H → H'⦄, t ⊆ s → P f s x → P f t x) (h : lift_prop P g) :
+  lift_prop_on P g s :=
+begin
+  rw ← lift_prop_on_univ at h,
+  exact hG.lift_prop_on_mono mono h (subset_univ _)
+end
+
 omit hG
 
 lemma lift_prop_at_of_mem_maximal_atlas [has_groupoid M G]
@@ -345,142 +370,8 @@ end local_invariant_prop
 
 namespace local_invariant_mono_prop
 
-variable (hG : G.local_invariant_mono_prop G' P)
-include hG
 
-lemma lift_prop_within_at_mono (h : lift_prop_within_at P g t x) (hst : s ⊆ t) :
-  lift_prop_within_at P g s x :=
-begin
-  refine ⟨h.1.mono hst, _⟩,
-  apply hG.mono (λ y hy, _) h.2,
-  simp only with mfld_simps at hy,
-  simp only [hy, hst _] with mfld_simps,
-end
-
-lemma lift_prop_within_at_of_lift_prop_at (h : lift_prop_at P g x) : lift_prop_within_at P g s x :=
-begin
-  rw ← lift_prop_within_at_univ at h,
-  exact hG.lift_prop_within_at_mono h (subset_univ _),
-end
-
-lemma lift_prop_on_mono (h : lift_prop_on P g t) (hst : s ⊆ t) :
-  lift_prop_on P g s :=
-λ x hx, hG.lift_prop_within_at_mono (h x (hst hx)) hst
-
-lemma lift_prop_on_of_lift_prop (h : lift_prop P g) : lift_prop_on P g s :=
-begin
-  rw ← lift_prop_on_univ at h,
-  exact hG.lift_prop_on_mono h (subset_univ _)
-end
 
 end local_invariant_mono_prop
 
 end structure_groupoid
-
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
-{E' : Type*} [normed_group E'] [normed_space 𝕜 E'] (I' : model_with_corners 𝕜 E' H')
-
-def differentiable_within_at_prop (f s x) : Prop :=
-differentiable_within_at 𝕜 (I' ∘ f ∘ I.symm) (range I ∩ I.symm ⁻¹' s) (I x)
-
-lemma differentiable_within_at_invariant :
-  (times_cont_diff_groupoid ∞ I).local_invariant_prop (times_cont_diff_groupoid ∞ I')
-  (differentiable_within_at_prop I I') :=
-{ is_local :=
-  begin
-    assume s x u f u_open xu,
-    have : range I ∩ I.symm ⁻¹' (s ∩ u) = (range I ∩ I.symm ⁻¹' s) ∩ I.symm ⁻¹' u,
-      by simp [inter_assoc],
-    rw [differentiable_within_at_prop, differentiable_within_at_prop, this],
-    symmetry,
-    apply differentiable_within_at_inter,
-    have : u ∈ 𝓝 (I.symm (I x)),
-      by { rw [model_with_corners.left_inv], exact mem_nhds_sets u_open xu },
-    apply continuous_at.preimage_mem_nhds I.continuous_symm.continuous_at this,
-  end,
-  right_invariance :=
-  begin
-    assume s x f e he hx h,
-    rw [differentiable_within_at_prop] at ⊢ h,
-    have : I x = (I ∘ e.symm ∘ I.symm) (I (e x)), by simp only [hx] with mfld_simps,
-    rw this at h,
-    have : I (e x) ∈ (I.symm) ⁻¹' e.target ∩ range ⇑I, by simp only [hx] with mfld_simps,
-    have := ((mem_groupoid_of_pregroupoid.2 he).2.times_cont_diff_within_at this).differentiable_within_at le_top,
-    convert h.comp' _ this using 1,
-    { ext y, simp only [differentiable_within_at_prop] with mfld_simps },
-    { mfld_set_eq_tac },
-  end,
-  congr :=
-  begin
-    assume s x f g h hx hf,
-    apply hf.congr_of_eventually_eq (filter.eventually_eq_of_mem self_mem_nhds_within _),
-    { simp only [hx] with mfld_simps },
-    { assume y hy,
-      simp only [(∘)],
-      rw h,
-      exact hy.2 }
-  end,
-  left_invariance :=
-  begin
-    assume s x f e' he' hs hx h,
-    rw differentiable_within_at_prop at h ⊢,
-    have A : (I' ∘ f ∘ I.symm) (I x) ∈ (I'.symm ⁻¹' e'.source ∩ range I'),
-      by simp only [hx] with mfld_simps,
-    have := ((mem_groupoid_of_pregroupoid.2 he').1.times_cont_diff_within_at A).differentiable_within_at le_top,
-    convert this.comp _ h _,
-    { ext y, simp only with mfld_simps },
-    { assume y hy, simp only with mfld_simps at hy, simpa only [hy] with mfld_simps using hs hy.2 }
-  end }
-
-
-def times_cont_diff_within_at_prop (n : ℕ) (f s x) : Prop :=
-times_cont_diff_within_at 𝕜 n (I' ∘ f ∘ I.symm) (range I ∩ I.symm ⁻¹' s) (I x)
-
-lemma times_cont_diff_within_at_invariant (n : ℕ) :
-  (times_cont_diff_groupoid ∞ I).local_invariant_prop (times_cont_diff_groupoid ∞ I')
-  (times_cont_diff_within_at_prop I I' n) :=
-{ is_local :=
-  begin
-    assume s x u f u_open xu,
-    have : range I ∩ I.symm ⁻¹' (s ∩ u) = (range I ∩ I.symm ⁻¹' s) ∩ I.symm ⁻¹' u,
-      by simp [inter_assoc],
-    rw [times_cont_diff_within_at_prop, times_cont_diff_within_at_prop, this],
-    symmetry,
-    apply times_cont_diff_within_at_inter,
-    have : u ∈ 𝓝 (I.symm (I x)),
-      by { rw [model_with_corners.left_inv], exact mem_nhds_sets u_open xu },
-    apply continuous_at.preimage_mem_nhds I.continuous_symm.continuous_at this,
-  end,
-  right_invariance :=
-  begin
-    assume s x f e he hx h,
-    rw times_cont_diff_within_at_prop at h ⊢,
-    have : I x = (I ∘ e.symm ∘ I.symm) (I (e x)), by simp only [hx] with mfld_simps,
-    rw this at h,
-    have : I (e x) ∈ (I.symm) ⁻¹' e.target ∩ range ⇑I, by simp only [hx] with mfld_simps,
-    have := ((mem_groupoid_of_pregroupoid.2 he).2.times_cont_diff_within_at this).of_le le_top,
-    convert h.comp' this using 1,
-    { ext y, simp only with mfld_simps },
-    { mfld_set_eq_tac }
-  end,
-  congr :=
-  begin
-    assume s x f g h hx hf,
-    apply hf.congr,
-    { assume y hy,
-      simp only with mfld_simps at hy,
-      simp only [h, hy] with mfld_simps },
-    { simp only [hx] with mfld_simps }
-  end,
-  left_invariance :=
-  begin
-    assume s x f e' he' hs hx h,
-    rw times_cont_diff_within_at_prop at h ⊢,
-    have A : (I' ∘ f ∘ I.symm) (I x) ∈ (I'.symm ⁻¹' e'.source ∩ range I'),
-      by simp only [hx] with mfld_simps,
-    have := ((mem_groupoid_of_pregroupoid.2 he').1.times_cont_diff_within_at A).of_le le_top,
-    convert this.comp h _,
-    { ext y, simp only with mfld_simps },
-    { assume y hy, simp only with mfld_simps at hy, simpa only [hy] with mfld_simps using hs hy.2 }
-  end }

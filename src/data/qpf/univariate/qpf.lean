@@ -49,7 +49,7 @@ open functor (liftp liftr)
 /-
 Show that every qpf is a lawful functor.
 
-Note: every functor has a field, map_comp, and is_lawful_functor has the defining
+Note: every functor has a field, `map_const`, and is_lawful_functor has the defining
 characterization. We can only propagate the assumption.
 -/
 
@@ -193,9 +193,8 @@ begin
 end
 
 /--
-Define the fixed point as the quotient of trees under the equivalence relation.
+Define the fixed point as the quotient of trees under the equivalence relation `Wequiv`.
 -/
-
 def W_setoid : setoid q.P.W :=
 ⟨Wequiv, @Wequiv.refl _ _ _, @Wequiv.symm _ _ _, @Wequiv.trans _ _ _⟩
 
@@ -300,7 +299,7 @@ end
 end qpf
 
 /-
-Construct the final coalebra to a qpf.
+Construct the final coalgebra to a qpf.
 -/
 
 namespace qpf

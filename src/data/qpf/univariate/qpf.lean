@@ -26,7 +26,7 @@ import tactic.interactive data.multiset tactic.basic tactic.apply
 import data.qpf.univariate.pfunctor control.bifunctor
 universe u
 
-/-
+/--
 Quotients of polynomial functors.
 
 Roughly speaking, saying that `F` is a quotient of a polynomial functor means that for each `α`,
@@ -36,10 +36,10 @@ elements of `F α` are represented by pairs `⟨a, f⟩`, where `a` is the shape
 
 class qpf (F : Type u → Type u) [functor F] :=
 (P         : pfunctor.{u})
-(abs       : Π {α}, P.apply α → F α)
-(repr      : Π {α}, F α → P.apply α)
+(abs       : Π {α}, P.obj α → F α)
+(repr      : Π {α}, F α → P.obj α)
 (abs_repr  : ∀ {α} (x : F α), abs (repr x) = x)
-(abs_map   : ∀ {α β} (f : α → β) (p : P.apply α), abs (f <$> p) = f <$> abs p)
+(abs_map   : ∀ {α β} (f : α → β) (p : P.obj α), abs (f <$> p) = f <$> abs p)
 
 namespace qpf
 variables {F : Type u → Type u} [functor F] [q : qpf F]
@@ -88,7 +88,7 @@ begin
 end
 
 theorem liftp_iff' {α : Type u} (p : α → Prop) (x : F α) :
-  liftp p x ↔ ∃ u : q.P.apply α, abs u = x ∧ ∀ i, p (u.snd i) :=
+  liftp p x ↔ ∃ u : q.P.obj α, abs u = x ∧ ∀ i, p (u.snd i) :=
 begin
   split,
   { rintros ⟨y, hy⟩, cases h : repr y with a f,
@@ -192,7 +192,7 @@ begin
   apply Wequiv.ind, exact ih
 end
 
-/-
+/--
 Define the fixed point as the quotient of trees under the equivalence relation.
 -/
 
@@ -201,16 +201,22 @@ def W_setoid : setoid q.P.W :=
 
 local attribute [instance] W_setoid
 
-def fix (F : Type u → Type u) [functor F] [q : qpf F]:= quotient (W_setoid : setoid q.P.W)
+/-- inductive type defined as initial algebra of a Quotient of Polynomial Functor -/
+@[nolint has_inhabited_instance]
+def fix (F : Type u → Type u) [functor F] [q : qpf F] := quotient (W_setoid : setoid q.P.W)
 
+/-- recursor of a type defined by a qpf -/
 def fix.rec {α : Type*} (g : F α → α) : fix F → α :=
 quot.lift (recF g) (recF_eq_of_Wequiv g)
 
+/-- access the underlying W-type of a fixpoint data type -/
 def fix_to_W : fix F → q.P.W :=
 quotient.lift Wrepr (recF_eq_of_Wequiv (λ x, q.P.W_mk (repr x)))
 
+/-- constructor of a type defined by a qpf -/
 def fix.mk (x : F (fix F)) : fix F := quot.mk _ (q.P.W_mk (fix_to_W <$> repr x))
 
+/-- destructor of a type defined by a qpf -/
 def fix.dest : fix F → F (fix F) := fix.rec (functor.map fix.mk)
 
 theorem fix.rec_eq {α : Type*} (g : F α → α) (x : F (fix F)) :
@@ -312,20 +318,25 @@ by rw [corecF, pfunctor.M_dest_corec]
 
 /- Equivalence -/
 
-/- A pre-congruence on q.P.M *viewed as an F-coalgebra*. Not necessarily symmetric. -/
+/-- A pre-congruence on q.P.M *viewed as an F-coalgebra*. Not necessarily symmetric. -/
 def is_precongr (r : q.P.M → q.P.M → Prop) : Prop :=
   ∀ ⦃x y⦄, r x y →
     abs (quot.mk r <$> pfunctor.M_dest x) = abs (quot.mk r <$> pfunctor.M_dest y)
 
-/- The maximal congruence on q.P.M -/
+/-- The maximal congruence on q.P.M -/
 def Mcongr : q.P.M → q.P.M → Prop :=
 λ x y, ∃ r, is_precongr r ∧ r x y
 
+/-- coinductive type defined as the final coalgebra of a qpf -/
 def cofix (F : Type u → Type u) [functor F] [q : qpf F]:= quot (@Mcongr F _ q)
 
-def cofix.corec {α : Type*} (g : α → F α) : α → cofix F :=
-λ x, quot.mk  _ (corecF g x)
+instance [inhabited q.P.A] : inhabited (cofix F) := ⟨ quot.mk _ (default _) ⟩
 
+/-- corecursor for type defined by `cofix` -/
+def cofix.corec {α : Type*} (g : α → F α) (x : α) : cofix F :=
+quot.mk  _ (corecF g x)
+
+/-- destructor for type defined by `cofix` -/
 def cofix.dest : cofix F → F (cofix F) :=
 quot.lift
   (λ x, quot.mk Mcongr <$> (abs (pfunctor.M_dest x)))
@@ -436,6 +447,7 @@ variables {F₂ : Type u → Type u} [functor F₂] [q₂ : qpf F₂]
 variables {F₁ : Type u → Type u} [functor F₁] [q₁ : qpf F₁]
 include q₂ q₁
 
+/-- composition of qpfs gives another qpf  -/
 def comp : qpf (functor.comp F₂ F₁) :=
 { P := pfunctor.comp (q₂.P) (q₁.P),
   abs := λ α,
@@ -503,6 +515,10 @@ variables {G : Type u → Type u} [functor G]
 variable  {FG_abs  : Π {α}, F α → G α}
 variable  {FG_repr : Π {α}, G α → F α}
 
+/-- Given a qpf `F` and a well-behaved surjection `FG_abs` from F α to
+functor G α, `G` is a qpf. We can consider `G` a quotient on `F` where
+elements `x y : F α` are in the same equivalence class if
+`FG_abs x = FG_abs y`  -/
 def quotient_qpf
     (FG_abs_repr : Π {α} (x : G α), FG_abs (FG_repr x) = x)
     (FG_abs_map  : ∀ {α β} (f : α → β) (x : F α), FG_abs (f <$> x) = f <$> FG_abs x) :
@@ -569,6 +585,8 @@ end
 
 variable (q)
 
+/-- A qpf is said to be uniform if every polynomial functor
+representing a single value all have the same range. -/
 def is_uniform : Prop := ∀ ⦃α : Type u⦄ (a a' : q.P.A)
     (f : q.P.B a → α) (f' : q.P.B a' → α),
   abs ⟨a, f⟩ = abs ⟨a', f'⟩ → f '' univ = f' '' univ
@@ -605,46 +623,45 @@ begin
   rw [supp_eq_of_is_uniform h, supp_eq_of_is_uniform h, image_comp]
 end
 
+section box
+omit q
 variables (F)
+
+/-- apply a functor to a set of values. taken from
+
+Fürer B., Lochbihler A., Schneider J., Traytel D. (2020) Quotients of
+Bounded Natural Functors. In: Peltier N., Sofronie-Stokkermans
+V. (eds) Automated Reasoning. IJCAR 2020. Lecture Notes in Computer
+Science, vol 12167. Springer, Cham
+
+henceforth referred to as the QBNF paper
+ -/
 def box {α} (A : set α) : set (F α) :=
 { x | ∀ β (f g : α → β), (∀ a ∈ A, f a = g a) → f <$> x = g <$> x }
 
--- lemma box_empty {α} : box F (∅ : set α) = ∅ :=
--- begin
---   ext, simp [box],
--- end
-
--- lemma box_inter {α} (A B : set α) : box F (A ∩ B) = box F A ∩ box F B :=
--- begin
---   ext, dsimp [box], simp only [← forall_and_distrib],
---   split; intros h,
---   { intros β f g, split,
---     { intro h', apply h, intros,
---       apply h' _ H.1 },
---     { intro h', apply h, intros,
---       apply h' _ H.2 } },
---   { introv h', specialize h _ f g,
---     cases h with h₀ h₁, apply h₀, },
---   repeat { apply forall_congr, intro, },
---   split; intros h; [split, skip]; intros h',
---   { apply h, introv h₁, apply h' _ h₁.1 },
---   { apply h, introv h₁, apply h' _ h₁.2 },
---   { apply h.1, },
---   apply' forall_congr, intro,
--- end
-
 variables {F}
 
+/--
+Alternate notion of support set based on `box`.
+Taken from the QBNF paper
+-/
 def supp' {α} (x : F α) : set α :=
 ⋂ A ∈ { A : set α | x ∈ box F A}, A
 
+/--
+Alternate notion of predicate lifting based on `box`.
+Taken from the QBNF paper
+-/
 def liftp' {α} (x : F α) (p : α → Prop) : Prop :=
 ∀ a ∈ supp' x, p a
+
+end box
 
 end qpf
 
 namespace ex
 
+/-- polynomial functor isomorph to `α × _` for some `α` -/
 def prod.pfunctor (α : Type) : pfunctor :=
 ⟨ α, λ _, unit ⟩
 
@@ -655,6 +672,7 @@ instance {α} : qpf (prod α) :=
   abs_repr := λ β ⟨x,y⟩, rfl,
   abs_map := λ β γ f ⟨a,g⟩, rfl }
 
+/-- example relation for products -/
 def foo.R (α : Type) (x y : bool × α) : Prop :=
 x.1 = y.1 ∧ (x.1 → x.2 = y.2)
 
@@ -670,9 +688,13 @@ begin
     rwa ← ha }
 end
 
+/-- example of a qpf -/
 def foo (α : Type) :=
 quot $ foo.R α
 
+instance {α} [inhabited α] : inhabited (foo α) := ⟨ quot.mk _ (default _) ⟩
+
+/-- functor operation of `foo` -/
 def foo.map {α β} (f : α → β) (x : foo α) : foo β :=
 quot.lift_on x (λ x : bool × α, quot.mk (foo.R β) $ f <$> x)
   (λ ⟨a₀,a₁⟩ ⟨b₀,b₁⟩ h, quot.sound ⟨h.1,λ h', show f a₁ = f b₁, from congr_arg f (h.2 h')⟩)
@@ -690,6 +712,7 @@ noncomputable instance qpf.foo : qpf foo :=
   (by simp)
   (by intros; simp)
 
+/-- constructor for `foo` -/
 def foo.mk {α} (b : bool) (x : α) : foo α := quot.mk _ (b, x)
 
 @[simp]
@@ -704,6 +727,8 @@ by simp [foo.mk]; split; intro h; [replace h := quot.exact _ h, rw h];
    rw relation.eqv_gen_iff_of_equivalence at h;
    [exact h.2 rfl, apply equivalence_foo.R]
 
+/-- consequence of original definition of `supp`. If there exists more than
+one value of type `α`, then the support of `foo.mk ff x` is empty -/
 lemma supp_mk_ff₀ {α} (x y : α) (h : ¬ x = y) : functor.supp (foo.mk ff x) = {} :=
 begin
   dsimp [functor.supp], ext z, simp, -- split; intro h,
@@ -718,6 +743,8 @@ begin
     simp }
 end
 
+/-- consequence of original definition of `supp`. If there exists only
+one value of type `α`, then the support of `foo.mk ff x` contains that value -/
 lemma supp_mk_ff₁ {α} (x : α) (h : ∀ z, x = z) : functor.supp (foo.mk ff x) = {x} :=
 begin
   dsimp [functor.supp], ext y, simp, split; intro h',
@@ -729,6 +756,7 @@ begin
     rw [h'], apply h },
 end
 
+/-- intuitive consequence of original definition of `supp`. -/
 lemma supp_mk_tt {α} (x : α) : functor.supp (foo.mk tt x) = {x} :=
 begin
   dsimp [functor.supp], ext y, simp, split; intro h',
@@ -743,9 +771,7 @@ begin
     exact hz }
 end
 
--- def supp_eq_iff {α} (x : α) : qpf.supp' (foo.mk ff x) = {} :=
--- _
-
+/-- simple consequence of the definition of `supp` from the QBNF paper -/
 lemma supp_mk_ff' {α} (x : α) : qpf.supp' (foo.mk ff x) = {} :=
 begin
   dsimp [qpf.supp'], ext, simp, dsimp [qpf.box],
@@ -753,26 +779,7 @@ begin
   dsimp [foo.R], split, refl, rintro ⟨ ⟩
 end
 
--- def supp_mk_ff' {α} (x : α) : qpf.supp' (foo.mk ff x) = {x} :=
--- begin
---   dsimp [qpf.supp'], ext y, simp, dsimp [qpf.box],
---   split; intro h,
---   { specialize h {x} _, simp at h,
---     exact h, introv h', simp,
---     apply quot.sound, split, refl,
---     intro h, cases h },
---   { introv h₀, classical, subst y,
---     let f : α → α ⊕ bool := λ x, if x ∈ i then sum.inl x else sum.inr tt,
---     let g : α → α ⊕ bool := λ x, if x ∈ i then sum.inl x else sum.inr ff,
---     specialize h₀ _ f g _,
---     { simp [f,g] at h₀, split_ifs at h₀,
---       assumption, replace h₀ := quot.exact _ h₀,
---       rw relation.eqv_gen_iff_of_equivalence (equivalence_foo.R _) at h₀,
---       cases h₀ with h₀ h₁, admit },
---     { intros, simp [*,f,g,if_pos] } }
--- end
-
-
+/-- simple consequence of the definition of `supp` from the QBNF paper -/
 lemma supp_mk_tt' {α} (x : α) : qpf.supp' (foo.mk tt x) = {x} :=
 begin
   dsimp [qpf.supp'], ext, simp, dsimp [qpf.box], split; intro h,
@@ -787,4 +794,3 @@ begin
     { intros, simp [*,f,g,if_pos] } }
 end
 end ex
-

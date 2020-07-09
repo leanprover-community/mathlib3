@@ -9,7 +9,7 @@ Polynomial functors. Also expresses the W-type construction as a polynomial func
 import tactic.interactive data.multiset data.W
 universe u
 
-/-
+/--
 A polynomial functor `P` is given by a type `A` and a family `B` of types over `A`. `P` maps
 any type `α` to a new type `P.apply α`.
 
@@ -23,62 +23,86 @@ structure pfunctor :=
 
 namespace pfunctor
 
+instance : inhabited pfunctor :=
+⟨ ⟨ default _, default _ ⟩ ⟩
+
 variables (P : pfunctor) {α β : Type u}
 
--- TODO: generalize to psigma?
-def apply (α : Type*) := Σ x : P.A, P.B x → α
+/-- Applying `P` to an object of `Type` -/
+def obj (α : Type*) := Σ x : P.A, P.B x → α
 
-def map {α β : Type*} (f : α → β) : P.apply α → P.apply β :=
+/-- Applying `P` to a morphism of `Type` -/
+def map {α β : Type*} (f : α → β) : P.obj α → P.obj β :=
 λ ⟨a, g⟩, ⟨a, f ∘ g⟩
 
-instance : functor P.apply := {map := @map P}
+instance obj.inhabited [inhabited P.A] [inhabited α] : inhabited (P.obj α) :=
+⟨ ⟨ default _, λ _, default _ ⟩ ⟩
+instance : functor P.obj := {map := @map P}
 
 theorem map_eq {α β : Type*} (f : α → β) (a : P.A) (g : P.B a → α) :
-  @functor.map P.apply _ _ _ f ⟨a, g⟩ = ⟨a, f ∘ g⟩ :=
+  @functor.map P.obj _ _ _ f ⟨a, g⟩ = ⟨a, f ∘ g⟩ :=
 rfl
 
-theorem id_map {α : Type*} : ∀ x : P.apply α, id <$> x = id x :=
+theorem id_map {α : Type*} : ∀ x : P.obj α, id <$> x = id x :=
 λ ⟨a, b⟩, rfl
 
 theorem comp_map {α β γ : Type*} (f : α → β) (g : β → γ) :
-  ∀ x : P.apply α, (g ∘ f) <$> x = g <$> (f <$> x) :=
+  ∀ x : P.obj α, (g ∘ f) <$> x = g <$> (f <$> x) :=
 λ ⟨a, b⟩, rfl
 
-instance : is_lawful_functor P.apply :=
+instance : is_lawful_functor P.obj :=
 {id_map := @id_map P, comp_map := @comp_map P}
 
+/-- re-export existing definition of W-types and
+adapt it to a packaged definition of polynomial functor -/
 def W := _root_.W P.B
 
-def W_dest : W P → P.apply (W P)
+/- inhabitants of W types is awkward to encode as an instance
+assumption because there needs to be a value `a : P.A`
+such that `P.B a` is empty to yield a finite tree -/
+attribute [nolint has_inhabited_instance] W
+
+/-- destructor for W-types -/
+def W_dest : W P → P.obj (W P)
 | ⟨a, f⟩ := ⟨a, f⟩
 
-def W_mk : P.apply (W P) → W P
+/-- constructor for W-types -/
+def W_mk : P.obj (W P) → W P
 | ⟨a, f⟩ := ⟨a, f⟩
 
-@[simp] theorem W_dest_W_mk (p : P.apply (W P)) : P.W_dest (P.W_mk p) = p :=
+@[simp] theorem W_dest_W_mk (p : P.obj (W P)) : P.W_dest (P.W_mk p) = p :=
 by cases p; reflexivity
 
 @[simp] theorem W_mk_W_dest (p : W P) : P.W_mk (P.W_dest p) = p :=
 by cases p; reflexivity
 
+/-- `Idx` identifies a location inside the application of a pfunctor.
+For `F : pfunctor`, `x : F.obj α` and `i : F.Idx`, `i` can designate
+one part of `x` or is invalid, if `i.1 ≠ x.1` -/
 def Idx := Σ x : P.A, P.B x
+
+instance Idx.inhabited [inhabited P.A] [inhabited (P.B (default _))] : inhabited P.Idx :=
+⟨ ⟨default _, default _⟩ ⟩
+
 variables {P}
 
-def apply.iget [decidable_eq P.A] {α} [inhabited α] (x : P.apply α) (i : P.Idx) : α :=
+/-- `x.iget i` takes the component of `x` designated by `i` if any is or returns
+a default value -/
+def obj.iget [decidable_eq P.A] {α} [inhabited α] (x : P.obj α) (i : P.Idx) : α :=
 if h : i.1 = x.1
   then x.2 (cast (congr_arg _ h) i.2)
   else default _
 
 @[simp]
-lemma fst_map {α β : Type u} (x : P.apply α) (f : α → β) :
+lemma fst_map {α β : Type u} (x : P.obj α) (f : α → β) :
   (f <$> x).1 = x.1 := by { cases x; refl }
 
 @[simp]
 lemma iget_map [decidable_eq P.A] {α β : Type u} [inhabited α] [inhabited β]
-  (x : P.apply α) (f : α → β) (i : P.Idx)
+  (x : P.obj α) (f : α → β) (i : P.Idx)
   (h : i.1 = x.1) :
   (f <$> x).iget i = f (x.iget i) :=
-by { simp [apply.iget],
+by { simp [obj.iget],
      rw [dif_pos h,dif_pos];
      cases x, refl, rw h }
 
@@ -90,19 +114,17 @@ Composition of polynomial functors.
 
 namespace pfunctor
 
-/-
-def comp : pfunctor.{u} → pfunctor.{u} → pfunctor.{u}
-| ⟨A₂, B₂⟩ ⟨A₁, B₁⟩ := ⟨Σ a₂ : A₂, B₂ a₂ → A₁, λ ⟨a₂, a₁⟩, Σ u : B₂ a₂, B₁ (a₁ u)⟩
--/
-
+/-- functor composition for polynomial functors -/
 def comp (P₂ P₁ : pfunctor.{u}) : pfunctor.{u} :=
 ⟨ Σ a₂ : P₂.1, P₂.2 a₂ → P₁.1,
   λ a₂a₁, Σ u : P₂.2 a₂a₁.1, P₁.2 (a₂a₁.2 u) ⟩
 
-def comp.mk (P₂ P₁ : pfunctor.{u}) {α : Type} (x : P₂.apply (P₁.apply α)) : (comp P₂ P₁).apply α :=
+/-- constructor for composition -/
+def comp.mk (P₂ P₁ : pfunctor.{u}) {α : Type} (x : P₂.obj (P₁.obj α)) : (comp P₂ P₁).obj α :=
 ⟨ ⟨ x.1, sigma.fst ∘ x.2 ⟩, λ a₂a₁, (x.2 a₂a₁.1).2 a₂a₁.2  ⟩
 
-def comp.get (P₂ P₁ : pfunctor.{u}) {α : Type} (x : (comp P₂ P₁).apply α) : P₂.apply (P₁.apply α) :=
+/-- destructor for composition -/
+def comp.get (P₂ P₁ : pfunctor.{u}) {α : Type} (x : (comp P₂ P₁).obj α) : P₂.obj (P₁.obj α) :=
 ⟨ x.1.1, λ a₂, ⟨x.1.2 a₂, λ a₁, x.2 ⟨a₂,a₁⟩ ⟩ ⟩
 
 end pfunctor
@@ -115,7 +137,7 @@ namespace pfunctor
 variables {P : pfunctor.{u}}
 open functor
 
-theorem liftp_iff {α : Type u} (p : α → Prop) (x : P.apply α) :
+theorem liftp_iff {α : Type u} (p : α → Prop) (x : P.obj α) :
   liftp p x ↔ ∃ a f, x = ⟨a, f⟩ ∧ ∀ i, p (f i) :=
 begin
   split,
@@ -127,7 +149,7 @@ begin
   rw [xeq], reflexivity
 end
 
-theorem liftr_iff {α : Type u} (r : α → α → Prop) (x y : P.apply α) :
+theorem liftr_iff {α : Type u} (r : α → α → Prop) (x y : P.obj α) :
   liftr r x y ↔ ∃ a f₀ f₁, x = ⟨a, f₀⟩ ∧ y = ⟨a, f₁⟩ ∧ ∀ i, r (f₀ i) (f₁ i) :=
 begin
   split,
@@ -153,11 +175,12 @@ TODO (Jeremy): move these somewhere.
 
 namespace quot
 
+/-- weaken the relation of a quotient -/
 def factor {α : Type*} (r s: α → α → Prop) (h : ∀ x y, r x y → s x y) :
   quot r → quot s :=
 quot.lift (quot.mk s) (λ x y rxy, quot.sound (h x y rxy))
 
 lemma factor_mk_eq {α : Type*} (r s: α → α → Prop) (h : ∀ x y, r x y → s x y) :
-  factor r s h ∘ quot.mk _= quot.mk _ := rfl
+  factor r s h ∘ quot.mk _ = quot.mk _ := rfl
 
 end quot

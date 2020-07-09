@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2020 Alex J. Best. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Alex J. Best
+-/
 import algebra.archimedean
 import data.real.basic
 import data.equiv.ring
@@ -7,14 +12,22 @@ import tactic.basic
 import topology.instances.real
 import analysis.special_functions.pow
 
-/-
+/-!
+# Conditionally complete linear ordered fields
 
-  Here we prove that the reals are unique, or rather given a field satisfying the axioms of the reals
-  (conditionally complete, linearly ordered) that there is an isomorphism preserving these properties
-  to the reals (it might be interesting to later prove that this isomorphism is unique, i.e the reals
-  have no automorphisms respecting this structure)
+This file shows that the reals are unique, or, more formally, given a type satisfying the common
+axioms of the reals (field, conditionally complete, linearly ordered) that there is an equivalence
+preserving these properties to the reals. This is `ordered_ring_equiv`.
 
-https://mathoverflow.net/questions/362991/who-first-characterized-the-real-numbers-as-the-unique-complete-ordered-field -/
+We introduce definitions of Conditionally complete linear ordered fields, show all such are
+archimedean, and define equivalences between these fields. We also construct the natural map from a
+`linear_ordered_field` to such a field.
+
+https://mathoverflow.net/questions/362991/who-first-characterized-the-real-numbers-as-the-unique-complete-ordered-field
+
+## Tags
+reals, conditionally complete, ordered field
+-/
 
 noncomputable theory
 open_locale classical
@@ -128,11 +141,13 @@ instance : conditionally_complete_linear_ordered_field ℝ := {
   ..real.discrete_linear_ordered_field,
   ..real.conditionally_complete_linear_order }
 
+set_option pp.generalized_field_notation false
+
 -- TODO really this should come from something very general, for any cts function R to R and open subset of image there
 -- exists a rat whose image is in open
--- TODO assumption could be only 0 < y?
+-- TODO this could be generalised to only assume 0 < y?
 -- TODO a pow version of this?
-theorem exists_rat_sqr_btwn_rat {x y : ℚ} (h : x < y) (hy : 0 ≤ x) : ∃ q : ℚ, 0 ≤ q ∧ x < q^2 ∧ q^2 < y :=
+theorem exists_rat_sqr_btwn_rat {x y : ℚ} (h : x < y) (hx : 0 ≤ x) : ∃ q : ℚ, 0 ≤ q ∧ x < q^2 ∧ q^2 < y :=
 begin
   suffices : ∃ q : ℚ, x < q^2 ∧ q^2 < y,
   begin
@@ -177,7 +192,7 @@ begin
       use ((x + y)/2) ^ (1/2 : ℝ),
       dsimp,
       rw pow_two,
-      have :  0 < ((x : ℝ) + y)/2 := begin
+      have : 0 < ((x : ℝ) + y)/2 := begin
         norm_cast,
         linarith,
       end,

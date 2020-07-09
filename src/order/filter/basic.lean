@@ -1541,10 +1541,15 @@ begin
   exact λ ⟨⟨a, b⟩, ⟨ha, hb⟩⟩, ⟨⟨⟨a, ha⟩, ⟨b, hb⟩⟩, rfl⟩
 end
 
-lemma comap_ne_bot {f : filter β} {m : α → β} (hm : ∀t∈ f, ∃a, m a ∈ t) :
-  comap m f ≠ ⊥ :=
-forall_sets_nonempty_iff_ne_bot.mp $ assume s ⟨t, ht, t_s⟩,
-  set.nonempty.mono t_s (hm t ht)
+lemma comap_ne_bot_iff {f : filter β} {m : α → β} : comap m f ≠ ⊥ ↔ ∀ t ∈ f, ∃ a, m a ∈ t :=
+begin
+  rw ← forall_sets_nonempty_iff_ne_bot,
+  exact ⟨λ h t t_in, h (m ⁻¹' t) ⟨t, t_in, subset.refl _⟩,
+         λ h s ⟨u, u_in, hu⟩, let ⟨x, hx⟩ := h u u_in in ⟨x, hu hx⟩⟩,
+end
+
+lemma comap_ne_bot {f : filter β} {m : α → β} (hm : ∀t∈ f, ∃a, m a ∈ t) : comap m f ≠ ⊥ :=
+comap_ne_bot_iff.mpr hm
 
 lemma comap_ne_bot_of_range_mem {f : filter β} {m : α → β}
   (hf : f ≠ ⊥) (hm : range m ∈ f) : comap m f ≠ ⊥ :=

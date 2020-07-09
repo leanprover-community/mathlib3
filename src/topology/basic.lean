@@ -660,6 +660,10 @@ theorem mem_closure_iff_nhds' {s : set α} {a : α} :
   a ∈ closure s ↔ ∀ t ∈ 𝓝 a, ∃ y : s, ↑y ∈ t :=
 by simp only [mem_closure_iff_nhds, set.nonempty_inter_iff_exists_right]
 
+theorem mem_closure_iff_comap_ne_bot {A : set α} {x : α} :
+  x ∈ closure A ↔ comap (coe : A → α) (𝓝 x) ≠ ⊥ :=
+by simp_rw [mem_closure_iff_nhds, comap_ne_bot_iff, set.nonempty_inter_iff_exists_right]
+
 theorem mem_closure_iff_nhds_basis {a : α} {p : β → Prop} {s : β → set α} (h : (𝓝 a).has_basis p s)
   {t : set α} :
   a ∈ closure t ↔ ∀ i, p i → ∃ y ∈ t, y ∈ s i :=

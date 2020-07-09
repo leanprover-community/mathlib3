@@ -1319,7 +1319,7 @@ theorem image_subset_image {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁.im
 by simp only [subset_def, image_val, subset_erase_dup', erase_dup_subset',
   multiset.map_subset_map h]
 
-theorem image_subset_iff {s : finset α} {t : finset β} {f : α → β} : 
+theorem image_subset_iff {s : finset α} {t : finset β} {f : α → β} :
   s.image f ⊆ t ↔ ∀ x ∈ s, f x ∈ t :=
 calc s.image f ⊆ t ↔ f '' ↑s ⊆ ↑t : by norm_cast
                ... ↔ _ : set.image_subset_iff

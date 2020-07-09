@@ -375,7 +375,7 @@ class closed_under_restriction (G : structure_groupoid H) : Prop :=
 /-- The trivial restriction-closed groupoid, containing only local homeomorphisms equivalent to the
 restriction of the identity to the various open subsets. -/
 def id_restr_groupoid : structure_groupoid H :=
-{ members := λ e, ∃ {s : set H} (h : is_open s), e ≈ local_homeomorph.of_set s h,
+{ members := {e | ∃ {s : set H} (h : is_open s), e ≈ local_homeomorph.of_set s h},
   trans' := begin
     rintros e e' ⟨s, hs, hse⟩ ⟨s', hs', hse'⟩,
     refine ⟨s ∩ s', is_open_inter hs hs', _⟩,
@@ -755,7 +755,7 @@ variables {e : local_homeomorph α H}
 space `α`, then that local homeomorphism induces an `H`-charted space structure on `α`.
 (This condition is equivalent to `e` being an open embedding of `α` into `H`.) -/
 def singleton_charted_space (h : e.source = set.univ) : charted_space H α :=
-{ atlas := λ e', e' = e,
+{ atlas := {e},
   chart_at := λ _, e,
   mem_chart_source := λ _, by {rw h, simp},
   chart_mem_atlas := λ _, by tauto }

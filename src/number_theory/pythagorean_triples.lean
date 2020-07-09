@@ -68,7 +68,7 @@ include h
 /-- A pythogorean triple `x, y, z` is “classified” if there exist integers `k, m, n` such that either
  * `x = k * (m ^ 2 - n ^ 2)` and `y = k * (2 * m * n)`, or
  * `(x = k * (2 * m * n)` and `y = k * (m ^ 2 - n ^ 2)`. -/
-def is_classified := ∃ (k m n : ℤ),
+@[nolint unused_arguments] def is_classified := ∃ (k m n : ℤ),
   ((x = k * (m ^ 2 - n ^ 2) ∧ y = k * (2 * m * n))
     ∨ (x = k * (2 * m * n) ∧ y = k * (m ^ 2 - n ^ 2)))
   ∧ int.gcd m n = 1
@@ -78,7 +78,7 @@ def is_classified := ∃ (k m n : ℤ),
  * `x = m ^ 2 - n ^ 2` and `y = 2 * m * n`, or
  * `x = 2 * m * n` and `y = m ^ 2 - n ^ 2`.
 -/
-def is_primitive_classified := ∃ (m n : ℤ),
+@[nolint unused_arguments] def is_primitive_classified := ∃ (m n : ℤ),
   ((x = m ^ 2 - n ^ 2 ∧ y = 2 * m * n)
     ∨ (x = 2 * m * n ∧ y = m ^ 2 - n ^ 2))
   ∧ int.gcd m n = 1
@@ -326,6 +326,15 @@ begin
   apply coprime_pow_two_sub_mul_of_even_odd _ hn hm, rwa [int.gcd_comm]
 end
 
+private lemma coprime_pow_two_sub_mul {m n : ℤ} (h : int.gcd m n = 1)
+  (hmn : (m % 2 = 0 ∧ n % 2 = 1) ∨ (m % 2 = 1 ∧ n % 2 = 0)) :
+  int.gcd (m ^ 2 - n ^ 2) (2 * m * n) = 1 :=
+begin
+  cases hmn with h1 h2,
+  { exact coprime_pow_two_sub_mul_of_even_odd h h1.left h1.right },
+  { exact coprime_pow_two_sub_mul_of_odd_even h h2.left h2.right }
+end
+
 private lemma coprime_pow_two_sub_pow_two_sum_of_odd_odd {m n : ℤ} (h : int.gcd m n = 1)
   (hm : m % 2 = 1) (hn : n % 2 = 1) :
   2 ∣ m ^ 2 + n ^ 2
@@ -505,25 +514,10 @@ begin
       { rw [pow_two, ← h.left.eq], ring },
       simpa using eq_or_eq_neg_of_pow_two_eq_pow_two _ _ this } },
   { rintro ⟨m, n, ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩, rfl | rfl, co, pp⟩;
-    delta pythagorean_triple,
-    { split, { ring },
-      cases pp with pp pp,
-      { apply coprime_pow_two_sub_mul_of_even_odd co pp.left pp.right },
-      { apply coprime_pow_two_sub_mul_of_odd_even co pp.left pp.right } },
-    { split, { ring },
-      cases pp with pp pp,
-      { apply coprime_pow_two_sub_mul_of_even_odd co pp.left pp.right },
-      { apply coprime_pow_two_sub_mul_of_odd_even co pp.left pp.right } },
-    { split, { ring },
-      rw int.gcd_comm,
-      cases pp with pp pp,
-      { apply coprime_pow_two_sub_mul_of_even_odd co pp.left pp.right },
-      { apply coprime_pow_two_sub_mul_of_odd_even co pp.left pp.right } },
-    { split, { ring },
-      rw int.gcd_comm,
-      cases pp with pp pp,
-      { apply coprime_pow_two_sub_mul_of_even_odd co pp.left pp.right },
-      { apply coprime_pow_two_sub_mul_of_odd_even co pp.left pp.right } } }
+    delta pythagorean_triple;
+    { split, { ring }, exact coprime_pow_two_sub_mul co pp }
+    <|>
+    { split, { ring }, rw int.gcd_comm, exact coprime_pow_two_sub_mul co pp } }
 end
 
 theorem classification :

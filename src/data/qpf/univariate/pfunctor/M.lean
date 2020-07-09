@@ -216,9 +216,8 @@ def children (x : M F) (i : F.B (head x)) : M F :=
        apply cast_heq,
      end }
 
-/--
-
--/
+/-- select a subtree using a `i : F.Idx` or return an arbitrary tree if
+`i` designates no subtree of `x` -/
 def ichildren [inhabited (M F)] [decidable_eq F.A] (i : F.Idx) (x : M F) : M F :=
 if H' : i.1 = head x
   then children x (cast (congr_arg _ $ by simp only [head,H']; refl) i.2)
@@ -334,7 +333,8 @@ rfl
 
 @[simp] lemma agree'_refl {n : ℕ} (x : M F) :
   agree' n x x :=
-by { induction n generalizing x; induction x using pfunctor.M.cases_on'; constructor; try { refl }, intros, apply n_ih }
+by { induction n generalizing x; induction x using pfunctor.M.cases_on';
+     constructor; try { refl }, intros, apply n_ih }
 
 lemma agree_iff_agree' {n : ℕ} (x y : M F) :
   agree (x.approx n) (y.approx $ n+1) ↔ agree' n x y :=
@@ -513,7 +513,6 @@ end
 
 open pfunctor.approx
 
--- variables (F : pfunctor.{v})
 variables {F}
 
 local attribute [instance, priority 0] classical.prop_decidable
@@ -669,122 +668,95 @@ end tactic.interactive
 
 namespace pfunctor
 
-open M
+namespace M
 
 variables {P : pfunctor.{u}} {α : Type u}
 
-/-- re-export M.dest -/
-def M_dest : M P → P.obj (M P) := dest
+lemma dest_corec (g : α → P.obj α) (x : α) :
+  M.dest (M.corec g x) = M.corec g <$> g x :=
+by rw [corec_def,dest_mk]
 
-/-- re-export M.corec -/
-def M_corec : (α → P.obj α) → (α → M P) := M.corec
-
-lemma M_dest_corec (g : α → P.obj α) (x : α) :
-  M_dest (M_corec g x) = M_corec g <$> g x :=
-by rw [M_corec,M_dest,corec_def,dest_mk]
-
-lemma M_bisim (R : M P → M P → Prop)
+lemma bisim (R : M P → M P → Prop)
     (h : ∀ x y, R x y → ∃ a f f',
-      M_dest x = ⟨a, f⟩ ∧
-      M_dest y = ⟨a, f'⟩ ∧
+      M.dest x = ⟨a, f⟩ ∧
+      M.dest y = ⟨a, f'⟩ ∧
       ∀ i, R (f i) (f' i)) :
   ∀ x y, R x y → x = y :=
 begin
   intros,
   bisim with x y ih generalizing x y,
   rcases h _ _ ih with ⟨ a', f, f', h₀, h₁, h₂ ⟩, clear h,
-  dsimp only [M_dest] at h₀ h₁,
   existsi [a',f,f'], split,
   { intro, existsi [f i,f' i,h₂ _,rfl], refl },
   split,
-  { rw [← h₀,mk_dest] },
+  { simp [← h₀,mk_dest] },
   { rw [← h₁,mk_dest] },
 end
 
-theorem M_bisim' {α : Type*} (Q : α → Prop) (u v : α → M P)
+theorem bisim' {α : Type*} (Q : α → Prop) (u v : α → M P)
     (h : ∀ x, Q x → ∃ a f f',
-      M_dest (u x) = ⟨a, f⟩ ∧
-      M_dest (v x) = ⟨a, f'⟩ ∧
+      M.dest (u x) = ⟨a, f⟩ ∧
+      M.dest (v x) = ⟨a, f'⟩ ∧
       ∀ i, ∃ x', Q x' ∧ f i = u x' ∧ f' i = v x') :
   ∀ x, Q x → u x = v x :=
 λ x Qx,
 let R := λ w z : M P, ∃ x', Q x' ∧ w = u x' ∧ z = v x' in
-@M_bisim P R
+@M.bisim P R
   (λ x y ⟨x', Qx', xeq, yeq⟩,
     let ⟨a, f, f', ux'eq, vx'eq, h'⟩ := h x' Qx' in
       ⟨a, f, f', xeq.symm ▸ ux'eq, yeq.symm ▸ vx'eq, h'⟩)
   _ _ ⟨x, Qx, rfl, rfl⟩
 
--- for the record, show M_bisim follows from M_bisim'
-theorem M_bisim_equiv (R : M P → M P → Prop)
+-- for the record, show M_bisim follows from _bisim'
+theorem bisim_equiv (R : M P → M P → Prop)
     (h : ∀ x y, R x y → ∃ a f f',
-      M_dest x = ⟨a, f⟩ ∧
-      M_dest y = ⟨a, f'⟩ ∧
+      M.dest x = ⟨a, f⟩ ∧
+      M.dest y = ⟨a, f'⟩ ∧
       ∀ i, R (f i) (f' i)) :
   ∀ x y, R x y → x = y :=
 λ x y Rxy,
 let Q : M P × M P → Prop := λ p, R p.fst p.snd in
-M_bisim' Q prod.fst prod.snd
+bisim' Q prod.fst prod.snd
   (λ p Qp,
     let ⟨a, f, f', hx, hy, h'⟩ := h p.fst p.snd Qp in
     ⟨a, f, f', hx, hy, λ i, ⟨⟨f i, f' i⟩, h' i, rfl, rfl⟩⟩)
   ⟨x, y⟩ Rxy
 
-theorem M_corec_unique (g : α → P.obj α) (f : α → M P)
-    (hyp : ∀ x, M_dest (f x) = f <$> (g x)) :
-  f = M_corec g :=
+theorem corec_unique (g : α → P.obj α) (f : α → M P)
+    (hyp : ∀ x, M.dest (f x) = f <$> (g x)) :
+  f = M.corec g :=
 begin
   ext x,
-  apply M_bisim' (λ x, true) _ _ _ _ trivial,
+  apply bisim' (λ x, true) _ _ _ _ trivial,
   clear x,
   intros x _,
   cases gxeq : g x with a f',
-  have h₀ : M_dest (f x) = ⟨a, f ∘ f'⟩,
+  have h₀ : M.dest (f x) = ⟨a, f ∘ f'⟩,
   { rw [hyp, gxeq, pfunctor.map_eq] },
-  have h₁ : M_dest (M_corec g x) = ⟨a, M_corec g ∘ f'⟩,
-  { rw [M_dest_corec, gxeq, pfunctor.map_eq], },
+  have h₁ : M.dest (M.corec g x) = ⟨a, M.corec g ∘ f'⟩,
+  { rw [dest_corec, gxeq, pfunctor.map_eq], },
   refine ⟨_, _, _, h₀, h₁, _⟩,
   intro i,
   exact ⟨f' i, trivial, rfl, rfl⟩
 end
 
-/-- constructor for M-types -/
-def M_mk : P.obj (M P) → M P := M_corec (λ x, M_dest <$> x)
-
-theorem M_mk_M_dest (x : M P) : M_mk (M_dest x) = x :=
-begin
-  apply M_bisim' (λ x, true) (M_mk ∘ M_dest) _ _ _ trivial,
-  clear x,
-  intros x _,
-  cases Mxeq : M_dest x with a f',
-  have : M_dest (M_mk (M_dest x)) = ⟨a, _⟩,
-  { rw [M_mk, M_dest_corec, Mxeq, pfunctor.map_eq, pfunctor.map_eq] },
-  refine ⟨_, _, _, this, rfl, _⟩,
-  intro i,
-  exact ⟨f' i, trivial, rfl, rfl⟩
-end
-
-theorem M_dest_M_mk (x : P.obj (M P)) : M_dest (M_mk x) = x :=
-begin
-  have : M_mk ∘ M_dest = id := funext M_mk_M_dest,
-  rw [M_mk, M_dest_corec, ←comp_map, ←M_mk, this, pfunctor.id_map, id]
-end
-
 /-- corecursor where the state of the computation can be sent downstream
 in the form of a recursive call -/
 def corec₁ {α : Type u} (F : Π X, (α → X) → α → P.obj X) : α → M P :=
-M_corec (F _ id)
+M.corec (F _ id)
 
 /-- corecursor where it is possible to return a fully formed value at any point
 of the computation -/
-def M_corec' {α : Type u} (F : Π {X : Type u}, (α → X) → α → M P ⊕ P.obj X) (x : α) : M P :=
+def corec' {α : Type u} (F : Π {X : Type u}, (α → X) → α → M P ⊕ P.obj X) (x : α) : M P :=
 corec₁
 (λ X rec (a : M P ⊕ α),
      let y := a >>= F (rec ∘ sum.inr) in
      match y with
      | sum.inr y := y
-     | sum.inl y := (rec ∘ sum.inl) <$> M_dest y
+     | sum.inl y := (rec ∘ sum.inl) <$> M.dest y
      end )
 (@sum.inr (M P) _ x)
+
+end M
 
 end pfunctor

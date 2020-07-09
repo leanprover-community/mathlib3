@@ -322,18 +322,18 @@ open functor (liftp liftr)
 
 /-- does recursion on `q.P.M` using `g : α → F α` rather than `g : α → P α` -/
 def corecF {α : Type*} (g : α → F α) : α → q.P.M :=
-pfunctor.M_corec (λ x, repr (g x))
+pfunctor.M.corec (λ x, repr (g x))
 
 theorem corecF_eq {α : Type*} (g : α → F α) (x : α) :
-  pfunctor.M_dest (corecF g x) = corecF g <$> repr (g x) :=
-by rw [corecF, pfunctor.M_dest_corec]
+  pfunctor.M.dest (corecF g x) = corecF g <$> repr (g x) :=
+by rw [corecF, pfunctor.M.dest_corec]
 
 /- Equivalence -/
 
 /-- A pre-congruence on q.P.M *viewed as an F-coalgebra*. Not necessarily symmetric. -/
 def is_precongr (r : q.P.M → q.P.M → Prop) : Prop :=
   ∀ ⦃x y⦄, r x y →
-    abs (quot.mk r <$> pfunctor.M_dest x) = abs (quot.mk r <$> pfunctor.M_dest y)
+    abs (quot.mk r <$> pfunctor.M.dest x) = abs (quot.mk r <$> pfunctor.M.dest y)
 
 /-- The maximal congruence on q.P.M -/
 def Mcongr : q.P.M → q.P.M → Prop :=
@@ -351,7 +351,7 @@ quot.mk  _ (corecF g x)
 /-- destructor for type defined by `cofix` -/
 def cofix.dest : cofix F → F (cofix F) :=
 quot.lift
-  (λ x, quot.mk Mcongr <$> (abs (pfunctor.M_dest x)))
+  (λ x, quot.mk Mcongr <$> (abs (pfunctor.M.dest x)))
   begin
     rintros x y ⟨r, pr, rxy⟩, dsimp,
     have : ∀ x y, r x y → Mcongr x y,
@@ -380,8 +380,8 @@ begin
   let r' := λ x y, r (quot.mk _ x) (quot.mk _ y),
   have : is_precongr r',
   { intros a b r'ab,
-    have  h₀: quot.mk r <$> quot.mk Mcongr <$> abs (pfunctor.M_dest a) =
-              quot.mk r <$> quot.mk Mcongr <$> abs (pfunctor.M_dest b) := h _ _ r'ab,
+    have  h₀: quot.mk r <$> quot.mk Mcongr <$> abs (pfunctor.M.dest a) =
+              quot.mk r <$> quot.mk Mcongr <$> abs (pfunctor.M.dest b) := h _ _ r'ab,
     have h₁ : ∀ u v : q.P.M, Mcongr u v → quot.mk r' u = quot.mk r' v,
     { intros u v cuv, apply quot.sound, dsimp [r'], rw quot.sound cuv, apply h' },
     let f : quot r → quot r' := quot.lift (quot.lift (quot.mk r') h₁)

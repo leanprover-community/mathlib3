@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.equiv.basic
+import data.sigma
 
 /-!
 # Injective functions
@@ -131,24 +132,26 @@ def cod_restrict {α β} (p : set β) (f : α ↪ β) (H : ∀ a, f a ∈ p) : �
 
 /-- If `e₁` and `e₂` are embeddings, then so is `prod.map e₁ e₂ : (a, b) ↦ (e₁ a, e₂ b)`. -/
 def prod_map {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : α × γ ↪ β × δ :=
-⟨prod.map e₁ e₂, λ x y h, prod.ext (e₁.injective (prod.ext_iff.1 h).1)
-  (e₂.injective (prod.ext_iff.1 h).2)⟩
+⟨prod.map e₁ e₂, e₁.injective.prod_map e₂.injective⟩
+
+@[simp] lemma coe_prod_map {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) :
+  ⇑(e₁.prod_map e₂) = prod.map e₁ e₂ :=
+rfl
 
 section sum
 open sum
 
-def sum_congr {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : α ⊕ γ ↪ β ⊕ δ :=
-⟨assume s, match s with inl a := inl (e₁ a) | inr b := inr (e₂ b) end,
+/-- If `e₁` and `e₂` are embeddings, then so is `sum.map e₁ e₂`. -/
+def sum_map {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : α ⊕ γ ↪ β ⊕ δ :=
+⟨sum.map e₁ e₂,
     assume s₁ s₂ h, match s₁, s₂, h with
     | inl a₁, inl a₂, h := congr_arg inl $ e₁.injective $ inl.inj h
     | inr b₁, inr b₂, h := congr_arg inr $ e₂.injective $ inr.inj h
     end⟩
 
-@[simp] theorem sum_congr_apply_inl {α β γ δ}
-  (e₁ : α ↪ β) (e₂ : γ ↪ δ) (a) : sum_congr e₁ e₂ (inl a) = inl (e₁ a) := rfl
-
-@[simp] theorem sum_congr_apply_inr {α β γ δ}
-  (e₁ : α ↪ β) (e₂ : γ ↪ δ) (b) : sum_congr e₁ e₂ (inr b) = inr (e₂ b) := rfl
+@[simp] theorem coe_sum_map {α β γ δ} (e₁ : α ↪ β) (e₂ : γ ↪ δ) :
+  ⇑(sum_map e₁ e₂) = sum.map e₁ e₂ :=
+rfl
 
 /-- The embedding of `α` into the sum `α ⊕ β`. -/
 def inl {α β : Type*} : α ↪ α ⊕ β :=
@@ -161,14 +164,18 @@ def inr {α β : Type*} : β ↪ α ⊕ β :=
 end sum
 
 section sigma
-open sigma
 
-def sigma_congr_right {α : Type*} {β γ : α → Type*} (e : ∀ a, β a ↪ γ a) : sigma β ↪ sigma γ :=
-⟨λ ⟨a, b⟩, ⟨a, e a b⟩, λ ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ h, begin
-  injection h with h₁ h₂, subst a₂,
-  congr,
-  exact (e a₁).2 (eq_of_heq h₂)
-end⟩
+variables {α α' : Type*} {β : α → Type*} {β' : α' → Type*}
+
+/-- If `f : α ↪ α'` is an embedding and `g : Π a, β α ↪ β' (f α)` is a family
+of embeddings, then `sigma.map f g` is an embedding. -/
+def sigma_map (f : α ↪ α') (g : Π a, β a ↪ β' (f a)) :
+  (Σ a, β a) ↪ Σ a', β' a' :=
+⟨sigma.map f (λ a, g a), f.injective.sigma_map (λ a, (g a).injective)⟩
+
+@[simp] lemma coe_sigma_map (f : α ↪ α') (g : Π a, β a ↪ β' (f a)) :
+  ⇑(f.sigma_map g) = sigma.map f (λ a, g a) :=
+rfl
 
 end sigma
 

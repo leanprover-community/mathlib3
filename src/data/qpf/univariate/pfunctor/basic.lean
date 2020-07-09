@@ -2,13 +2,18 @@
 Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad
-
-Polynomial functors. Also expresses the W-type construction as a polynomial functor.
-(For the M-type construction, see Mtype.lean.)
 -/
 import tactic.interactive
-import data.multiset
 import data.W
+
+/-!
+# Polynomial functors
+
+This file defines polynomial functors and the W-type construction as a
+polynomial functor.  (For the M-type construction, see
+pfunctor/M.lean.)
+-/
+
 universe u
 
 /--

@@ -2,16 +2,21 @@
 Copyright (c) 2017 Simon Hudon All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
-
-M types are potentially infinite tree-like structures. They are defined
-as the greatest fixpoint of a polynomial functor.
-
 -/
 import data.pfun
 import data.qpf.univariate.pfunctor.basic
 import meta.coinductive_predicates
 import tactic.interactive
 import tactic.squeeze
+
+/-!
+# M-types
+
+M types are potentially infinite tree-like structures. They are defined
+as the greatest fixpoint of a polynomial functor.
+
+-/
+
 universes u v w
 
 open nat function list (hiding head')

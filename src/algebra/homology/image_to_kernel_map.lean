@@ -55,7 +55,6 @@ lemma image_to_kernel_map_zero_left [has_zero_object V] {w} :
   image_to_kernel_map (0 : A ⟶ B) g w = 0 :=
 by simp [image_to_kernel_map]
 
-@[simp]
 lemma image_to_kernel_map_zero_right {w} :
   image_to_kernel_map f (0 : B ⟶ C) w = image.ι f ≫ inv (kernel.ι (0 : B ⟶ C)) :=
 begin

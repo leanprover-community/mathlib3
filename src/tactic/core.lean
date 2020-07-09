@@ -2210,6 +2210,12 @@ then do
   tac
 else fail msg
 
+@[user_command]
+meta def unneeded_cmd (_ : parse $ tk "#unneeded") : lean.parser unit :=
+show tactic unit, from
+do ds ← all_unneeded,
+   ds.to_list.mmap' $ λ ⟨n,_⟩, trace!"#print {n}"
+
 end tactic
 
 /--

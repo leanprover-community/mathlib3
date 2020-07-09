@@ -1563,6 +1563,52 @@ add_tactic_doc
 
 attribute [higher_order map_comp_pure] map_pure
 
+
+/-- Put a definition in the `tactic.interactive` namespace to make it usable
+in proof scripts
+-/
+@[user_attribute]
+meta def interactive_attr : user_attribute :=
+{ name := `interactive,
+  descr :=
+"Put a definition in the `tactic.interactive` namespace to make it usable
+in proof scripts.",
+  after_set := some $ λ tac _ _, add_interactive [tac] }
+
+add_tactic_doc
+{ name                     := "interactive",
+  category                 := doc_category.attr,
+  decl_names               := [``tactic.interactive_attr],
+  tags                     := ["environment"] }
+
+@[user_attribute]
+meta def needed_attr : user_attribute :=
+{ name := `needed,
+  descr := "tag essential declarations to help identify unused definitions" }
+
+meta def unneeded : name → name_map declaration → tactic (name_map declaration)
+| n m :=
+  do d ← get_decl n,
+     if m.contains n then do
+       let m := m.erase n,
+       let ns := d.value.list_constant.union d.type.list_constant,
+       ns.mfold m unneeded
+     else pure m
+
+meta def all_unneeded : tactic (name_map declaration) :=
+do ds ← local_decls,
+   ls ← ds.keys.mfilter (succeeds ∘ user_attribute.get_param_untyped needed_attr),
+   ds ← ls.mfoldl (flip unneeded) ds,
+   ds.mfilter $ λ n d, do
+     e ← get_env,
+     return $ !d.is_auto_generated e &&
+       !(n.get_prefix.last = "equations") &&
+       !(n.last = "_sunfold") &&
+       !(string.is_prefix_of "_match_" n.last) &&
+       !(string.is_prefix_of "_proof_" n.last) &&
+       !(string.is_prefix_of "_main" n.last) &&
+       !(name.is_suffix_of `_main._meta_aux n)
+
 /--
 Use `refine` to partially discharge the goal,
 or call `fconstructor` and try again.

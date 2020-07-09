@@ -12,7 +12,13 @@ import tactic
 # Pythagorean Triples
 The main result is the classification of pythagorean triples. The final result is for general
 pythagorean triples. It follows from the more interesting relatively prime case. We use the
-"rational parametrization of the circle" method for the proof.
+"rational parametrization of the circle" method for the proof. The parametrization maps the point
+`(x / z, y / z)` to the slope of the line through `(-1 , 0)` and `(x / z, y / z)`. This quickly
+shows that `(x / z, y / z) = (2 * m * n / (m ^ 2 + n ^ 2), (m ^ 2 - n ^ 2) / (m ^ 2 + n ^ 2))` where
+`m / n` is the slope. In order to identify numerators and denominators we now need results showing
+that these are coprime. This is easy except for the prime 2. In order to deal with that we have to
+analyze the parity of `x`, `y`, `m` and `n` and eliminate all the impossible cases. This takes up
+the bulk of the proof below.
 -/
 
 noncomputable theory
@@ -513,8 +519,8 @@ begin
       have : z ^ 2 = (m ^ 2 + n ^ 2) ^ 2,
       { rw [pow_two, ← h.left.eq], ring },
       simpa using eq_or_eq_neg_of_pow_two_eq_pow_two _ _ this } },
-  { rintro ⟨m, n, ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩, rfl | rfl, co, pp⟩;
-    delta pythagorean_triple;
+  { delta pythagorean_triple,
+    rintro ⟨m, n, ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩, rfl | rfl, co, pp⟩;
     { split, { ring }, exact coprime_pow_two_sub_mul co pp }
     <|>
     { split, { ring }, rw int.gcd_comm, exact coprime_pow_two_sub_mul co pp } }

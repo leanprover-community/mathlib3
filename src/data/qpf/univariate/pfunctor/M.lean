@@ -35,7 +35,6 @@ protected def cofix_a.default [inhabited F.A] : Π n, cofix_a F n
 
 instance [inhabited F.A] {n} : inhabited (cofix_a F n) := ⟨ cofix_a.default F n ⟩
 
-@[ext]
 lemma cofix_a_eq_zero : ∀ x y : cofix_a F 0, x = y
 | cofix_a.continue cofix_a.continue := rfl
 
@@ -292,7 +291,7 @@ begin
   apply ext', intro n,
   dsimp only [M.mk],
   induction n with n,
-  { ext },
+  { apply subsingleton.elim },
   dsimp only [approx.s_mk,dest,head],
   cases h : x.approx (succ n) with _ hd ch,
   have h' : hd = head' (x.approx 1),
@@ -497,7 +496,7 @@ begin
     induction x using pfunctor.M.cases_on', induction y using pfunctor.M.cases_on',
     simp only [iselect_nil] at hrec, subst hrec,
     simp only [approx_mk, true_and, eq_self_iff_true, heq_iff_eq],
-    ext, },
+    apply subsingleton.elim },
   { cases hx, cases hy,
     induction x using pfunctor.M.cases_on', induction y using pfunctor.M.cases_on',
     subst z,

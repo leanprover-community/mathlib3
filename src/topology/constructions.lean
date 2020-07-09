@@ -744,7 +744,7 @@ end
 lemma embedding_sigma_map {τ : ι → Type*} [Π i, topological_space (τ i)]
   {f : Π i, σ i → τ i} (hf : ∀ i, embedding (f i)) : embedding (sigma.map id f) :=
 begin
-  refine ⟨⟨_⟩, sigma_map_injective function.injective_id (λ i, (hf i).inj)⟩,
+  refine ⟨⟨_⟩, function.injective_id.sigma_map (λ i, (hf i).inj)⟩,
   refine le_antisymm
     (continuous_iff_le_induced.mp (continuous_sigma_map (λ i, (hf i).continuous))) _,
   intros s hs,

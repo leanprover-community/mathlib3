@@ -5,7 +5,6 @@ Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import tactic.finish
 import algebra.ordered_ring
-import algebra.order_functions
 import data.set.basic
 
 /-!

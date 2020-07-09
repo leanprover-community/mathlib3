@@ -7,6 +7,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 import data.nat.sqrt
 import data.nat.gcd
 import algebra.group_power
+import tactic.wlog
 
 /-!
 # Prime numbers

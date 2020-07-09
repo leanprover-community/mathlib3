@@ -7,6 +7,7 @@ import algebra.group
 import deprecated.group
 import data.nat.basic
 import order.rel_classes
+import algebra.order_functions
 
 /-!
 # Basic properties of lists

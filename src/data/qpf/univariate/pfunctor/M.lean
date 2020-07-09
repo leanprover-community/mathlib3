@@ -113,7 +113,7 @@ begin
   induction n with n generalizing i,
   constructor,
   cases h : f i with y g,
-  simp [s_corec,h,s_corec._match_1] at ⊢ n_ih,
+  simp [s_corec,h] at ⊢ n_ih,
   constructor,
   introv,
   apply n_ih,
@@ -478,7 +478,7 @@ begin
   cases n with n,
   { dsimp [s_corec,approx.s_mk], refl, },
   { dsimp [s_corec,approx.s_mk], cases h : (f x₀),
-    dsimp [s_corec._match_1,(<$>),pfunctor.map],
+    dsimp [(<$>),pfunctor.map],
     congr, }
 end
 
@@ -766,7 +766,7 @@ end
 theorem M_dest_M_mk (x : P.obj (M P)) : M_dest (M_mk x) = x :=
 begin
   have : M_mk ∘ M_dest = id := funext M_mk_M_dest,
-  rw [M_mk, M_dest_corec, ←comp_map, ←M_mk, this, id_map, id]
+  rw [M_mk, M_dest_corec, ←comp_map, ←M_mk, this, pfunctor.id_map, id]
 end
 
 /-- corecursor where the state of the computation can be sent downstream

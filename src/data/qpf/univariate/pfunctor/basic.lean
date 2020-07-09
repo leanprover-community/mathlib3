@@ -53,7 +53,7 @@ protected theorem comp_map {α β γ : Type*} (f : α → β) (g : β → γ) :
 λ ⟨a, b⟩, rfl
 
 instance : is_lawful_functor P.obj :=
-{id_map := @id_map P, comp_map := @comp_map P}
+{id_map := @pfunctor.id_map P, comp_map := @pfunctor.comp_map P}
 
 /-- re-export existing definition of W-types and
 adapt it to a packaged definition of polynomial functor -/
@@ -63,20 +63,23 @@ def W := _root_.W P.B
 assumption because there needs to be a value `a : P.A`
 such that `P.B a` is empty to yield a finite tree -/
 attribute [nolint has_inhabited_instance] W
+variables {P}
 
 /-- destructor for W-types -/
 def W.dest : W P → P.obj (W P)
 | ⟨a, f⟩ := ⟨a, f⟩
 
 /-- constructor for W-types -/
-def W_mk : P.obj (W P) → W P
+def W.mk : P.obj (W P) → W P
 | ⟨a, f⟩ := ⟨a, f⟩
 
-@[simp] theorem W_dest_W_mk (p : P.obj (W P)) : P.W_dest (P.W_mk p) = p :=
+@[simp] theorem W.dest_mk (p : P.obj (W P)) : W.dest (W.mk p) = p :=
 by cases p; reflexivity
 
-@[simp] theorem W_mk_W_dest (p : W P) : P.W_mk (P.W_dest p) = p :=
+@[simp] theorem W.mk_dest (p : W P) : W.mk (W.dest p) = p :=
 by cases p; reflexivity
+
+variables (P)
 
 /-- `Idx` identifies a location inside the application of a pfunctor.
 For `F : pfunctor`, `x : F.obj α` and `i : F.Idx`, `i` can designate
@@ -145,7 +148,7 @@ begin
   split,
   { rintros ⟨y, hy⟩, cases h : y with a f,
     refine ⟨a, λ i, (f i).val, _, λ i, (f i).property⟩,
-    rw [←hy, h, map_eq] },
+    rw [←hy, h, pfunctor.map_eq] },
   rintros ⟨a, f, xeq, pf⟩,
   use ⟨a, λ i, ⟨f i, pf i⟩⟩,
   rw [xeq], reflexivity

@@ -129,7 +129,7 @@ def recF {α : Type*} (g : F α → α) : q.P.W → α
 | ⟨a, f⟩ := g (abs ⟨a, λ x, recF (f x)⟩)
 
 theorem recF_eq {α : Type*} (g : F α → α) (x : q.P.W) :
-  recF g x = g (abs (recF g <$> q.P.W_dest x)) :=
+  recF g x = g (abs (recF g <$> x.dest)) :=
 by cases x; reflexivity
 
 theorem recF_eq' {α : Type*} (g : F α → α) (a : q.P.A) (f : q.P.B a → q.P.W) :
@@ -158,7 +158,7 @@ begin
     { exact eq.trans ih₁ ih₂ }
 end
 
-theorem Wequiv.abs' (x y : q.P.W) (h : abs (q.P.W_dest x) = abs (q.P.W_dest y)) :
+theorem Wequiv.abs' (x y : q.P.W) (h : abs x.dest = abs y.dest) :
   Wequiv x y :=
 by { cases x, cases y, apply Wequiv.abs, apply h }
 
@@ -178,16 +178,16 @@ begin
 end
 
 /-- maps every element of the W type to a canonical representative -/
-def Wrepr : q.P.W → q.P.W := recF (q.P.W_mk ∘ repr)
+def Wrepr : q.P.W → q.P.W := recF (pfunctor.W.mk ∘ repr)
 
 theorem Wrepr_equiv (x : q.P.W) : Wequiv (Wrepr x) x :=
 begin
   induction x with a f ih,
   apply Wequiv.trans,
-  { change Wequiv (Wrepr ⟨a, f⟩) (q.P.W_mk (Wrepr <$> ⟨a, f⟩)),
+  { change Wequiv (Wrepr ⟨a, f⟩) (pfunctor.W.mk (Wrepr <$> ⟨a, f⟩)),
     apply Wequiv.abs',
-    have : Wrepr ⟨a, f⟩ = q.P.W_mk (repr (abs (Wrepr <$> ⟨a, f⟩))) := rfl,
-    rw [this, pfunctor.W_dest_W_mk, abs_repr],
+    have : Wrepr ⟨a, f⟩ = pfunctor.W.mk (repr (abs (Wrepr <$> ⟨a, f⟩))) := rfl,
+    rw [this, pfunctor.W.dest_mk, abs_repr],
     reflexivity },
   apply Wequiv.ind, exact ih
 end
@@ -210,10 +210,10 @@ quot.lift (recF g) (recF_eq_of_Wequiv g)
 
 /-- access the underlying W-type of a fixpoint data type -/
 def fix_to_W : fix F → q.P.W :=
-quotient.lift Wrepr (recF_eq_of_Wequiv (λ x, q.P.W_mk (repr x)))
+quotient.lift Wrepr (recF_eq_of_Wequiv (λ x, @pfunctor.W.mk q.P (repr x)))
 
 /-- constructor of a type defined by a qpf -/
-def fix.mk (x : F (fix F)) : fix F := quot.mk _ (q.P.W_mk (fix_to_W <$> repr x))
+def fix.mk (x : F (fix F)) : fix F := quot.mk _ (pfunctor.W.mk (fix_to_W <$> repr x))
 
 /-- destructor of a type defined by a qpf -/
 def fix.dest : fix F → F (fix F) := fix.rec (functor.map fix.mk)
@@ -222,11 +222,11 @@ theorem fix.rec_eq {α : Type*} (g : F α → α) (x : F (fix F)) :
   fix.rec g (fix.mk x) = g (fix.rec g <$> x) :=
 have recF g ∘ fix_to_W = fix.rec g,
   by { apply funext, apply quotient.ind, intro x, apply recF_eq_of_Wequiv,
-       apply Wrepr_equiv },
+       rw fix_to_W, apply Wrepr_equiv },
 begin
   conv { to_lhs, rw [fix.rec, fix.mk], dsimp },
   cases h : repr x with a f,
-  rw [pfunctor.map_eq, recF_eq, ←pfunctor.map_eq, pfunctor.W_dest_W_mk, ←pfunctor.comp_map,
+  rw [pfunctor.map_eq, recF_eq, ←pfunctor.map_eq, pfunctor.W.dest_mk, ←pfunctor.comp_map,
       abs_map, ←h, abs_repr, this]
 end
 
@@ -235,8 +235,8 @@ theorem fix.ind_aux (a : q.P.A) (f : q.P.B a → q.P.W) :
 have fix.mk (abs ⟨a, λ x, ⟦f x⟧⟩) = ⟦Wrepr ⟨a, f⟩⟧,
   begin
     apply quot.sound, apply Wequiv.abs',
-    rw [pfunctor.W_dest_W_mk, abs_map, abs_repr, ←abs_map, pfunctor.map_eq],
-    conv { to_rhs, simp only [Wrepr, recF_eq, pfunctor.W_dest_W_mk, abs_repr] },
+    rw [pfunctor.W.dest_mk, abs_map, abs_repr, ←abs_map, pfunctor.map_eq],
+    conv { to_rhs, simp only [Wrepr, recF_eq, pfunctor.W.dest_mk, abs_repr] },
     reflexivity
   end,
 by { rw this, apply quot.sound, apply Wrepr_equiv }

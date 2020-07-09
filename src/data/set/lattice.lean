@@ -267,6 +267,18 @@ begin
   exact ⟨c, c_in, hc ha⟩
 end
 
+theorem bInter_mono' {s s' : set α} {t t' : α → set β} (hs : s ⊆ s') (h : ∀ x ∈ s, t x ⊆ t' x) :
+  (⋂ x ∈ s', t x) ⊆ (⋂ x ∈ s, t' x) :=
+begin
+  intros x x_in,
+  simp only [mem_Inter] at *,
+  exact λ a a_in, h a a_in $ x_in _ (hs a_in)
+end
+
+theorem bInter_mono {s : set α} {t t' : α → set β} (h : ∀ x ∈ s, t x ⊆ t' x) :
+  (⋂ x ∈ s, t x) ⊆ (⋂ x ∈ s, t' x) :=
+bInter_mono' (subset.refl s) h
+
 theorem bUnion_mono {s : set α} {t t' : α → set β} (h : ∀ x ∈ s, t x ⊆ t' x) :
   (⋃ x ∈ s, t x) ⊆ (⋃ x ∈ s, t' x) :=
 bUnion_subset_bUnion (λ x x_in, ⟨x, x_in, h x x_in⟩)
@@ -903,10 +915,12 @@ lemma sigma_to_Union_bijective (h : ∀i j, i ≠ j → disjoint (t i) (t j)) :
   bijective (sigma_to_Union t) :=
 ⟨sigma_to_Union_injective t h, sigma_to_Union_surjective t⟩
 
+/-- Equivalence between a disjoint union and a dependent sum. -/
 noncomputable def Union_eq_sigma_of_disjoint {t : α → set β}
   (h : ∀i j, i ≠ j → disjoint (t i) (t j)) : (⋃i, t i) ≃ (Σi, t i) :=
 (equiv.of_bijective _ $ sigma_to_Union_bijective t h).symm
 
+/-- Equivalence between a disjoint bounded union and a dependent sum. -/
 noncomputable def bUnion_eq_sigma_of_disjoint {s : set α} {t : α → set β}
   (h : pairwise_on s (disjoint on t)) : (⋃i∈s, t i) ≃ (Σi:s, t i.val) :=
 equiv.trans (equiv.set_congr (bUnion_eq_Union _ _)) $ Union_eq_sigma_of_disjoint $

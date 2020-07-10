@@ -12,17 +12,16 @@ open topological_space
 universe u
 
 /-- The category of topological spaces and continuous maps. -/
-@[derive has_coe_to_sort]
 def Top : Type (u+1) := bundled topological_space
 
 namespace Top
 
-instance topological_space_unbundled (x : Top) : topological_space x := x.str
-
 instance : unbundled_hom @continuous :=
 ⟨@continuous_id, @continuous.comp⟩
 
-attribute [derive [large_category, concrete_category]] Top
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] Top
+
+instance topological_space_unbundled (x : Top) : topological_space x := x.str
 
 instance hom_has_coe_to_fun (X Y : Top.{u}) : has_coe_to_fun (X ⟶ Y) :=
 { F := _, coe := subtype.val }

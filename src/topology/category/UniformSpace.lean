@@ -21,21 +21,20 @@ universes u
 open category_theory
 
 /-- A (bundled) uniform space. -/
-@[derive has_coe_to_sort]
 def UniformSpace : Type (u+1) := bundled uniform_space
 
 namespace UniformSpace
-
-instance (x : UniformSpace) : uniform_space x := x.str
-
-/-- Construct a bundled `UniformSpace` from the underlying type and the typeclass. -/
-def of (α : Type u) [uniform_space α] : UniformSpace := ⟨α⟩
 
 /-- The information required to build morphisms for `UniformSpace`. -/
 instance : unbundled_hom @uniform_continuous :=
 ⟨@uniform_continuous_id, @uniform_continuous.comp⟩
 
-attribute [derive [large_category, concrete_category]] UniformSpace
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] UniformSpace
+
+instance (x : UniformSpace) : uniform_space x := x.str
+
+/-- Construct a bundled `UniformSpace` from the underlying type and the typeclass. -/
+def of (α : Type u) [uniform_space α] : UniformSpace := ⟨α⟩
 
 instance (X Y : UniformSpace) : has_coe_to_fun (X ⟶ Y) :=
 { F := λ _, X → Y, coe := category_theory.functor.map (forget UniformSpace) }

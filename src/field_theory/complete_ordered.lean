@@ -141,32 +141,34 @@ instance : conditionally_complete_linear_ordered_field ℝ := {
   ..real.discrete_linear_ordered_field,
   ..real.conditionally_complete_linear_order }
 
-set_option pp.generalized_field_notation false
-
-
-lemma exists_rat_sqr_btwn_rat_aux (x y : ℝ) (h : x < y) (hx : 0 ≤ x) : ∃ q : ℚ, 0 ≤ q ∧ x < q^2 ∧ ↑q^2 < y :=
+lemma exists_rat_sqr_btwn_rat_aux (x y : ℝ) (h : x < y) (hx : 0 ≤ x) :
+  ∃ q : ℚ, 0 ≤ q ∧ x < q^2 ∧ ↑q^2 < y :=
 begin
-  have : x.sqrt < y.sqrt, rw real.sqrt_eq_rpow,
-  apply real.rpow_lt_rpow; { assumption <|> norm_num },
-  replace this := exists_rat_btwn this,
-  rcases this with ⟨q, hqx, hqy⟩, use q,
+  have : x.sqrt < y.sqrt :=
+  begin
+    rw real.sqrt_eq_rpow,
+    apply real.rpow_lt_rpow hx h one_half_pos,
+  end,
+  obtain ⟨q, hqx, hqy⟩ := exists_rat_btwn this,
   have hy : (0 : ℝ) ≤ y := by linarith,
-  have hq : (0 : ℝ) ≤ q,
-  { suffices : (0 : ℝ) ≤ q, revert this, simp,
+  have hq : (0 : ℝ) ≤ q :=
+  begin
     transitivity x.sqrt,
     exact real.sqrt_nonneg x,
-    linarith },
+    exact le_of_lt hqx,
+  end,
   have hq2 := pow_nonneg hq 2,
-  split, assumption_mod_cast,
-  split; try { rw ← real.sqrt_lt, any_goals {assumption} },
-  { convert hqx, exact real.sqrt_sqr hq },
-  convert hqy, exact real.sqrt_sqr hq,
+  refine ⟨q, _, _, _⟩,
+  { assumption_mod_cast, },
+  { rw ← real.sqrt_lt hx hq2, rw real.sqrt_sqr hq, exact hqx },
+  { rw ← real.sqrt_lt hq2 hy, rw real.sqrt_sqr hq, exact hqy },
 end
 
 theorem exists_rat_sqr_btwn_rat {x y : ℚ} (h : x < y) (hx : 0 ≤ x) : ∃ q : ℚ, 0 ≤ q ∧ x < q^2 ∧ q^2 < y :=
 begin
   have := exists_rat_sqr_btwn_rat_aux x y,
-  norm_cast at this, apply this; assumption,
+  norm_cast at this,
+  apply this; assumption,
 end
 
 -- example {F : Type u_1} -- TODO library_search output has too many args

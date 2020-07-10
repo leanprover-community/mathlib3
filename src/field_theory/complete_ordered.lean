@@ -171,6 +171,29 @@ begin
   apply this; assumption,
 end
 
+/-- There is a rational square between any two elements of an archimedean ordered field -/
+theorem exists_rat_sqr_btwn {F : Type*} [linear_ordered_field F] [archimedean F] {x y : F}
+(h : x < y) (hx : 0 ≤ x) : ∃ q : ℚ, 0 ≤ q ∧ x < q^2 ∧ (q^2 : F) < y :=
+begin
+  obtain ⟨q1, hq1x, hq1y⟩ := exists_rat_btwn h,
+  obtain ⟨q2, hq2x, hq1q2⟩ := exists_rat_btwn hq1x,
+  norm_cast at hq1q2,
+  have : (0 : F) ≤ q2 :=
+  begin
+    transitivity x,
+    exact hx,
+    exact (le_of_lt hq2x),
+  end,
+  obtain ⟨q, hqpos, hq⟩ := exists_rat_sqr_btwn_rat hq1q2 (by exact_mod_cast this),
+  refine ⟨q, hqpos, _, _⟩,
+  { transitivity (q2 : F),
+    exact hq2x,
+    exact_mod_cast hq.1, },
+  { transitivity (q1 : F),
+    exact_mod_cast hq.2,
+    exact hq1y, }
+end
+
 -- example {F : Type u_1} -- TODO library_search output has too many args
 --   [ordered_add_comm_monoid F]
 --   (A B : set F)
@@ -479,7 +502,7 @@ begin
     rcases ha with ⟨q, rfl, ha⟩,
     by_cases hq : 0 ≤ (q : K),
     { have : 0 ≤ (q : F) := by exact_mod_cast hq,
-      obtain ⟨q2, hqpos, hq21, hq22⟩ := exists_rat_sqr_btwn_rat ha this,
+      obtain ⟨q2, hqpos, hq21, hq22⟩ := exists_rat_sqr_btwn ha this,
       rw pow_two at hq22,
       have : (q2 : F) < x := lt_of_mul_self_lt_mul_self (rat.cast_nonneg.mpr hqpos) hpos hq22,
       rw ← @mem_cut_image_iff' F K at this,
@@ -496,7 +519,7 @@ begin
       exact mul_self_nonneg (Sup (cut_image F K x)), }, },
   { intros y hy,
     by_cases hypos : 0 ≤ y,
-    { obtain ⟨q2, hqpos, hq21, hq22⟩ := exists_rat_sqr_btwn_rat hy hypos,
+    { obtain ⟨q2, hqpos, hq21, hq22⟩ := exists_rat_sqr_btwn hy hypos,
       rw pow_two at hq22,
       have : (q2 : K) < _ := lt_of_mul_self_lt_mul_self _ _ hq22,
       use (q2 : K)^2,

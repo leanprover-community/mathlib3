@@ -143,92 +143,30 @@ instance : conditionally_complete_linear_ordered_field ℝ := {
 
 set_option pp.generalized_field_notation false
 
--- TODO really this should come from something very general, for any cts function R to R and open subset of image there
--- exists a rat whose image is in open
--- TODO this could be generalised to only assume 0 < y?
--- TODO a pow version of this?
-theorem exists_rat_sqr_btwn_rat {x y : ℚ} (h : x < y) (hx : 0 ≤ x) : ∃ q : ℚ, 0 ≤ q ∧ x < q^2 ∧ q^2 < y :=
+
+lemma exists_rat_sqr_btwn_rat_aux (x y : ℝ) (h : x < y) (hx : 0 ≤ x) : ∃ q : ℚ, 0 ≤ q ∧ x < q^2 ∧ ↑q^2 < y :=
 begin
-  suffices : ∃ q : ℚ, x < q^2 ∧ q^2 < y,
-  begin
-    cases this with q hq,
-    by_cases h : 0 ≤ q,
-    { use [q, h, hq], },
-    { refine ⟨-q, le_of_lt _, _⟩,
-      linarith,
-      simpa only [neg_square], },
-  end,
-  suffices : ∃ (S : set ℝ), S.nonempty ∧ is_open S ∧ ((^ 2) '' S) ⊆ Ioo x y,
-  begin
-    rcases this with ⟨S, Sne, So, Sc⟩,
-    suffices : ∃ q : ℚ, (q : ℝ) ∈ S,
-    begin
-      cases this with q hq,
-      use q,
-      have := Sc (mem_image_of_mem _ hq),
-      rw mem_Ioo at this,
-      exact_mod_cast this,
-    end,
-    have : closure (set.range (coe : ℚ → ℝ)) = univ :=
-    begin
-      rw eq_univ_iff_forall,
-      exact dense_embedding_of_rat.to_dense_inducing.dense,
-    end,
-    obtain ⟨q, ⟨hq, ⟨q, rfl⟩⟩⟩ := dense_iff_inter_open.mp this _ So Sne,
-    exact ⟨q, hq⟩,
-  end,
-  have : continuous ((^ 2) : ℝ → ℝ) := begin
-    change continuous (λ x, x^2),
-    simp only [pow_two],
-    change continuous ((λ x : ℝ × ℝ, x.1 * x.2) ∘ (λ x : ℝ, (⟨x, x⟩ : ℝ × ℝ))),
-    apply continuous.comp _ _,
-    exact prod.topological_space,
-    exact continuous_mul,
-    apply continuous.prod_mk (continuous_id) (continuous_id),
-  end,
-  refine ⟨_, _, this (Ioo x y) is_open_Ioo, _⟩,
-  { have : ∃ a, (λ x : ℝ, x ^ 2) a ∈ Ioo (x : ℝ) y :=
-    begin
-      use ((x + y)/2) ^ (1/2 : ℝ),
-      dsimp,
-      rw pow_two,
-      have : 0 < ((x : ℝ) + y)/2 := begin
-        norm_cast,
-        linarith,
-      end,
-      rw ← real.rpow_add this (1/2) (1/2),
-      norm_num,
-      split; norm_cast; linarith,
-    end,
-    cases this with a ha,
-    rw ← mem_preimage at ha,
-    use [a, ha], },
-  exact image_preimage_subset _ (Ioo x y),
+  have : x.sqrt < y.sqrt, rw real.sqrt_eq_rpow,
+  apply real.rpow_lt_rpow; { assumption <|> norm_num },
+  replace this := exists_rat_btwn this,
+  rcases this with ⟨q, hqx, hqy⟩, use q,
+  have hy : (0 : ℝ) ≤ y := by linarith,
+  have hq : (0 : ℝ) ≤ q,
+  { suffices : (0 : ℝ) ≤ q, revert this, simp,
+    transitivity x.sqrt,
+    exact real.sqrt_nonneg x,
+    linarith },
+  have hq2 := pow_nonneg hq 2,
+  split, assumption_mod_cast,
+  split; try { rw ← real.sqrt_lt, any_goals {assumption} },
+  { convert hqx, exact real.sqrt_sqr hq },
+  convert hqy, exact real.sqrt_sqr hq,
 end
 
--- TODO a pow version of this?
-
-/-- There is a rational square between any two elements of an archimedean ordered field -/
-theorem exists_rat_sqr_btwn {F : Type*} [linear_ordered_field F] [archimedean F] {x y : F}
-(h : x < y) (hx : 0 ≤ x) : ∃ q : ℚ, 0 ≤ q ∧ x < q^2 ∧ (q^2 : F) < y :=
+theorem exists_rat_sqr_btwn_rat {x y : ℚ} (h : x < y) (hx : 0 ≤ x) : ∃ q : ℚ, 0 ≤ q ∧ x < q^2 ∧ q^2 < y :=
 begin
-  obtain ⟨q1, hq1x, hq1y⟩ := exists_rat_btwn h,
-  obtain ⟨q2, hq2x, hq1q2⟩ := exists_rat_btwn hq1x,
-  norm_cast at hq1q2,
-  have : (0 : F) ≤ q2 :=
-  begin
-    transitivity x,
-    exact hx,
-    exact (le_of_lt hq2x),
-  end,
-  obtain ⟨q, hqpos, hq⟩ := exists_rat_sqr_btwn_rat hq1q2 (by exact_mod_cast this),
-  refine ⟨q, hqpos, _, _⟩,
-  { transitivity (q2 : F),
-    exact hq2x,
-    exact_mod_cast hq.1, },
-  { transitivity (q1 : F),
-    exact_mod_cast hq.2,
-    exact hq1y, }
+  have := exists_rat_sqr_btwn_rat_aux x y,
+  norm_cast at this, apply this; assumption,
 end
 
 -- example {F : Type u_1} -- TODO library_search output has too many args

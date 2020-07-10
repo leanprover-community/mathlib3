@@ -78,6 +78,7 @@ instance [add_monoid α]      : add_monoid      (mv_power_series σ α) := pi.ad
 instance [add_group α]       : add_group       (mv_power_series σ α) := pi.add_group
 instance [add_comm_monoid α] : add_comm_monoid (mv_power_series σ α) := pi.add_comm_monoid
 instance [add_comm_group α]  : add_comm_group  (mv_power_series σ α) := pi.add_comm_group
+instance [nontrivial α]      : nontrivial      (mv_power_series σ α) := function.nontrivial
 
 section add_monoid
 variables [add_monoid α]
@@ -380,6 +381,15 @@ instance : semimodule α (mv_power_series σ α) :=
   add_smul := λ a b φ, by simp only [ring_hom.map_add, add_mul],
   zero_smul := λ φ, by simp only [zero_mul, ring_hom.map_zero] }
 
+lemma X_inj [nontrivial α] {s t : σ} : (X s : mv_power_series σ α) = X t ↔ s = t :=
+⟨begin
+  intro h, replace h := congr_arg (coeff α (single s 1)) h, rw [coeff_X, if_pos rfl, coeff_X] at h,
+  split_ifs at h with H,
+  { rw finsupp.single_eq_single_iff at H,
+    cases H, { exact H.1 }, { exfalso, exact one_ne_zero H.1 } },
+  { exfalso, exact one_ne_zero h }
+end, congr_arg X⟩
+
 end semiring
 
 instance [comm_ring α] : algebra α (mv_power_series σ α) :=
@@ -599,11 +609,9 @@ end ring
 section comm_ring
 variable [comm_ring α]
 
-/-- Multivariate formal power series over a local ring form a local ring.-/
+/-- Multivariate formal power series over a local ring form a local ring. -/
 instance is_local_ring [local_ring α] : local_ring (mv_power_series σ α) :=
-{ zero_ne_one := by { have H : (0:α) ≠ 1 := ‹local_ring α›.zero_ne_one, contrapose! H,
-    simpa using congr_arg (constant_coeff σ α) H },
-  is_local := by { intro φ, rcases local_ring.is_local (constant_coeff σ α φ) with ⟨u,h⟩|⟨u,h⟩;
+{ is_local := by { intro φ, rcases local_ring.is_local (constant_coeff σ α φ) with ⟨u,h⟩|⟨u,h⟩;
     [left, right];
     { refine is_unit_of_mul_eq_one _ _ (mul_inv_of_unit _ u _),
       simpa using h.symm } } }
@@ -611,23 +619,6 @@ instance is_local_ring [local_ring α] : local_ring (mv_power_series σ α) :=
 -- TODO(jmc): once adic topology lands, show that this is complete
 
 end comm_ring
-
-section nonzero
-variables [semiring α] [nonzero α]
-
-instance : nonzero (mv_power_series σ α) :=
-{ zero_ne_one := assume h, zero_ne_one $ show (0:α) = 1, from congr_arg (constant_coeff σ α) h }
-
-lemma X_inj {s t : σ} : (X s : mv_power_series σ α) = X t ↔ s = t :=
-⟨begin
-  intro h, replace h := congr_arg (coeff α (single s 1)) h, rw [coeff_X, if_pos rfl, coeff_X] at h,
-  split_ifs at h with H,
-  { rw finsupp.single_eq_single_iff at H,
-    cases H, { exact H.1 }, { exfalso, exact one_ne_zero H.1 } },
-  { exfalso, exact one_ne_zero h }
-end, congr_arg X⟩
-
-end nonzero
 
 section local_ring
 variables {β : Type*} [comm_ring α] [comm_ring β] (f : α →+* β)
@@ -651,8 +642,7 @@ end⟩
 variables [local_ring α] [local_ring β]
 
 instance : local_ring (mv_power_series σ α) :=
-{ zero_ne_one := zero_ne_one,
-  is_local := local_ring.is_local }
+{ is_local := local_ring.is_local }
 
 end local_ring
 
@@ -776,7 +766,7 @@ instance [semiring α]        : semiring        (power_series α) := by apply_in
 instance [comm_semiring α]   : comm_semiring   (power_series α) := by apply_instance
 instance [ring α]            : ring            (power_series α) := by apply_instance
 instance [comm_ring α]       : comm_ring       (power_series α) := by apply_instance
-instance [semiring α] [nonzero α] : nonzero    (power_series α) := by apply_instance
+instance [nontrivial α]      : nontrivial      (power_series α) := by apply_instance
 instance [semiring α]        : semimodule α    (power_series α) := by apply_instance
 instance [comm_ring α]       : algebra α       (power_series α) := by apply_instance
 
@@ -1150,8 +1140,8 @@ end
 
 instance : integral_domain (power_series α) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero,
-  .. power_series.comm_ring,
-  .. power_series.nonzero }
+  .. power_series.nontrivial,
+  .. power_series.comm_ring }
 
 /-- The ideal spanned by the variable in the power series ring
  over an integral domain is a prime ideal.-/
@@ -1419,7 +1409,7 @@ by rw [order_monomial, if_neg h]
 end order_basic
 
 section order_zero_ne_one
-variables [comm_semiring α] [nonzero α]
+variables [comm_semiring α] [nontrivial α]
 
 /-- The order of the formal power series `1` is `0`.-/
 @[simp] lemma order_one : order (1 : power_series α) = 0 :=

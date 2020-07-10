@@ -239,7 +239,8 @@ protected lemma is_integral_domain {A : Type*} (B : Type*) [ring A] [ring B]
     have e x * e y = 0, by rw [← e.map_mul, hxy, e.map_zero],
     (hB.eq_zero_or_eq_zero_of_mul_eq_zero _ _ this).imp (λ hx, by simpa using congr_arg e.symm hx)
       (λ hy, by simpa using congr_arg e.symm hy),
-  zero_ne_one := λ H, hB.zero_ne_one $ by rw [← e.map_zero, ← e.map_one, H] }
+  exists_pair_ne := ⟨e.symm 0, e.symm 1,
+    by { haveI : nontrivial B := hB.to_nontrivial, exact e.symm.injective.ne zero_ne_one }⟩ }
 
 /-- If two rings are isomorphic, and the second is an integral domain, then so is the first. -/
 protected def integral_domain {A : Type*} (B : Type*) [ring A] [integral_domain B]

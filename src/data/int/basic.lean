@@ -5,14 +5,17 @@ Authors: Jeremy Avigad
 
 The integers, with addition, multiplication, and subtraction.
 -/
-import tactic.lift
 import algebra.char_zero
-import algebra.ring
 import data.list.range
 
 open nat
 
 namespace int
+
+instance : inhabited ℤ := ⟨int.zero⟩
+
+instance : nontrivial ℤ :=
+⟨⟨0, 1, int.zero_ne_one⟩⟩
 
 instance : comm_ring int :=
 { add            := int.add,
@@ -47,17 +50,11 @@ instance : semiring int           := by apply_instance
 instance : ring int               := by apply_instance
 instance : distrib int            := by apply_instance
 
-instance : nonzero ℤ :=
-{ zero_ne_one := int.zero_ne_one }
-
-instance : inhabited ℤ := ⟨int.zero⟩
-
 instance : decidable_linear_ordered_comm_ring int :=
 { add_le_add_left := @int.add_le_add_left,
-  zero_ne_one     := int.zero_ne_one,
   mul_pos         := @int.mul_pos,
   zero_lt_one     := int.zero_lt_one,
-  ..int.comm_ring, ..int.decidable_linear_order }
+  .. int.comm_ring, .. int.decidable_linear_order, .. int.nontrivial }
 
 instance : decidable_linear_ordered_add_comm_group int :=
 by apply_instance
@@ -156,6 +153,9 @@ theorem add_one_le_iff {a b : ℤ} : a + 1 ≤ b ↔ a < b := iff.rfl
 theorem lt_add_one_iff {a b : ℤ} : a < b + 1 ↔ a ≤ b :=
 @add_le_add_iff_right _ _ a b 1
 
+lemma le_add_one {a b : ℤ} (h : a ≤ b) : a ≤ b + 1 :=
+le_of_lt (int.lt_add_one_iff.mpr h)
+
 theorem sub_one_lt_iff {a b : ℤ} : a - 1 < b ↔ a ≤ b :=
 sub_lt_iff_lt_add.trans lt_add_one_iff
 
@@ -215,7 +215,8 @@ theorem nat_abs_neg_of_nat (n : ℕ) : nat_abs (neg_of_nat n) = n :=
 by cases n; refl
 
 theorem nat_abs_mul (a b : ℤ) : nat_abs (a * b) = (nat_abs a) * (nat_abs b) :=
-by cases a; cases b; simp only [(*), int.mul, nat_abs_neg_of_nat, eq_self_iff_true, int.nat_abs]
+by cases a; cases b;
+  simp only [← int.mul_def, int.mul, nat_abs_neg_of_nat, eq_self_iff_true, int.nat_abs]
 
 @[simp] lemma nat_abs_mul_self' (a : ℤ) : (nat_abs a * nat_abs a : ℤ) = a * a :=
 by rw [← int.coe_nat_mul, nat_abs_mul_self]
@@ -870,6 +871,10 @@ theorem to_nat_eq_max : ∀ (a : ℤ), (to_nat a : ℤ) = max a 0
 | (n : ℕ) := (max_eq_left (coe_zero_le n)).symm
 | -[1+ n] := (max_eq_right (le_of_lt (neg_succ_lt_zero n))).symm
 
+@[simp] lemma to_nat_zero : (0 : ℤ).to_nat = 0 := rfl
+
+@[simp] lemma to_nat_one : (1 : ℤ).to_nat = 1 := rfl
+
 @[simp] theorem to_nat_of_nonneg {a : ℤ} (h : 0 ≤ a) : (to_nat a : ℤ) = a :=
 by rw [to_nat_eq_max, max_eq_left h]
 
@@ -877,6 +882,8 @@ by rw [to_nat_eq_max, max_eq_left h]
 int.to_nat_of_nonneg (sub_nonneg_of_le h)
 
 @[simp] theorem to_nat_coe_nat (n : ℕ) : to_nat ↑n = n := rfl
+
+@[simp] lemma to_nat_coe_nat_add_one {n : ℕ} : ((n : ℤ) + 1).to_nat = n + 1 := rfl
 
 theorem le_to_nat (a : ℤ) : a ≤ to_nat a :=
 by rw [to_nat_eq_max]; apply le_max_left
@@ -897,6 +904,17 @@ theorem to_nat_lt_to_nat {a b : ℤ} (hb : 0 < b) : to_nat a < to_nat b ↔ a < 
 
 theorem lt_of_to_nat_lt {a b : ℤ} (h : to_nat a < to_nat b) : a < b :=
 (to_nat_lt_to_nat $ lt_to_nat.1 $ lt_of_le_of_lt (nat.zero_le _) h).1 h
+
+lemma to_nat_add {a b : ℤ} (ha : 0 ≤ a) (hb : 0 ≤ b) :
+  (a + b).to_nat = a.to_nat + b.to_nat :=
+begin
+  lift a to ℕ using ha,
+  lift b to ℕ using hb,
+  norm_cast,
+end
+
+lemma to_nat_add_one {a : ℤ} (h : 0 ≤ a) : (a + 1).to_nat = a.to_nat + 1 :=
+to_nat_add h (zero_le_one)
 
 def to_nat' : ℤ → option ℕ
 | (n : ℕ) := some n
@@ -942,8 +960,8 @@ by cases m with m m; cases n with n n; unfold has_add.add;
   simp [int.add, -of_nat_eq_coe, bool.bxor_comm]
 
 @[simp] lemma bodd_mul (m n : ℤ) : bodd (m * n) = bodd m && bodd n :=
-by cases m with m m; cases n with n n; unfold has_mul.mul;
-  simp [int.mul, -of_nat_eq_coe, bool.bxor_comm]
+by cases m with m m; cases n with n n;
+  simp [← int.mul_def, int.mul, -of_nat_eq_coe, bool.bxor_comm]
 
 theorem bodd_add_div2 : ∀ n, cond (bodd n) 1 0 + 2 * div2 n = n
 | (n : ℕ) :=
@@ -1210,7 +1228,7 @@ end
 @[simp, norm_cast] theorem cast_one [add_monoid α] [has_one α] [has_neg α] :
   ((1 : ℤ) : α) = 1 := nat.cast_one
 
-@[simp, norm_cast] theorem cast_sub_nat_nat [add_group α] [has_one α] (m n) :
+@[simp] theorem cast_sub_nat_nat [add_group α] [has_one α] (m n) :
   ((int.sub_nat_nat m n : ℤ) : α) = m - n :=
 begin
   unfold sub_nat_nat, cases e : n - m,

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.epi_mono
+import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.binary_products
 import category_theory.preadditive
 import algebra.big_operators
@@ -11,7 +12,7 @@ import algebra.big_operators
 /-!
 # Biproducts and binary biproducts
 
-We introduce the notion of biproducts and binary biproducts.
+We introduce the notion of (finite) biproducts and binary biproducts.
 
 These are slightly unusual relative to the other shapes in the library,
 as they are simultaneously limits and colimits.

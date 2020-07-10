@@ -267,6 +267,53 @@ is_open_compl_iff.mpr $ is_open_iff_forall_mem_open.mpr $ assume x hx,
     subset_compl_comm.mp (subset.trans su (subset_compl_iff_disjoint.mpr uv)),
 ⟨v, this, vo, by simpa using xv⟩
 
+lemma compact.inter [t2_space α] {s t : set α} (hs : compact s) (ht : compact t) :
+  compact (s ∩ t) :=
+hs.inter_right $ ht.is_closed
+
+/-- If a compact set is covered by two open sets, then we can cover it by two compact subsets. -/
+lemma compact.binary_compact_cover [t2_space α] {K U V : set α} (hK : compact K)
+  (hU : is_open U) (hV : is_open V) (h2K : K ⊆ U ∪ V) :
+  ∃ K₁ K₂ : set α, compact K₁ ∧ compact K₂ ∧ K₁ ⊆ U ∧ K₂ ⊆ V ∧ K = K₁ ∪ K₂ :=
+begin
+  rcases compact_compact_separated (compact_diff hK hU) (compact_diff hK hV)
+    (by rwa [diff_inter_diff, diff_eq_empty]) with ⟨O₁, O₂, h1O₁, h1O₂, h2O₁, h2O₂, hO⟩,
+  refine ⟨_, _, compact_diff hK h1O₁, compact_diff hK h1O₂,
+    by rwa [diff_subset_comm], by rwa [diff_subset_comm], by rw [← diff_inter, hO, diff_empty]⟩
+end
+
+section
+open finset function
+/-- For every finite open cover `Uᵢ` of a compact set, there exists a compact cover `Kᵢ ⊆ Uᵢ`. -/
+lemma compact.finite_compact_cover [t2_space α] {s : set α} (hs : compact s) {ι} (t : finset ι)
+  (U : ι → set α) (hU : ∀ i ∈ t, is_open (U i)) (hsC : s ⊆ ⋃ i ∈ t, U i) :
+  ∃ K : ι → set α, (∀ i ∈ t, compact (K i) ∧ K i ⊆ U i) ∧ s = ⋃ i ∈ t, K i :=
+begin
+  classical,
+  induction t using finset.induction with x t hx ih generalizing U hU s hs hsC,
+  { refine ⟨λ _, ∅, λ i _, ⟨compact_empty, empty_subset _⟩, _⟩, simpa only [subset_empty_iff,
+      finset.not_mem_empty, Union_neg, Union_empty, not_false_iff] using hsC },
+  simp only [finset.bUnion_insert] at hsC,
+  simp only [finset.mem_insert] at hU,
+  have hU' : ∀ i ∈ t, is_open (U i) := λ i hi, hU i (or.inr hi),
+  rcases hs.binary_compact_cover (hU x (or.inl rfl)) (is_open_bUnion hU') hsC
+    with ⟨K₁, K₂, h1K₁, h1K₂, h2K₁, h2K₂, hK⟩,
+  rcases ih U hU' h1K₂ h2K₂ with ⟨K, h1K, h2K⟩,
+  refine ⟨update K x K₁, _, _⟩,
+  { intros i hi, simp only [finset.mem_insert] at hi, rcases hi with rfl|hi,
+    simpa only [update_same, h1K₁, true_and] using h2K₁,
+    rw [update_noteq], exact h1K i hi, rintro rfl, exact hx hi },
+  { ext y, simp only [exists_prop, mem_Union, mem_union_eq, finset.bUnion_insert, update_same, hK],
+    split,
+    { rintro (hy|hy), exact or.inl hy,
+      simp only [h2K, mem_Union, subtype.exists] at hy, rcases hy with ⟨i, h1i, h2i⟩,
+      refine or.inr ⟨i, h1i, _⟩, rw [update_noteq], exact h2i, rintro rfl, exact hx h1i },
+    { rintro (hy|⟨i, h1i, h2i⟩), exact or.inl hy,
+      rw [h2K], simp only [exists_prop, mem_Union], rw [update_noteq] at h2i,
+      exact or.inr ⟨i, h1i, h2i⟩, rintro rfl, exact hx h1i }}
+end
+end
+
 lemma locally_compact_of_compact_nhds [t2_space α] (h : ∀ x : α, ∃ s, s ∈ 𝓝 x ∧ compact s) :
   locally_compact_space α :=
 ⟨assume x n hn,
@@ -291,6 +338,32 @@ lemma locally_compact_of_compact_nhds [t2_space α] (h : ∀ x : α, ∃ s, s �
 instance locally_compact_of_compact [t2_space α] [compact_space α] : locally_compact_space α :=
 locally_compact_of_compact_nhds (assume x, ⟨univ, mem_nhds_sets is_open_univ trivial, compact_univ⟩)
 
+/-- In a locally compact T₂ space, every point has an open neighborhood with compact closure -/
+lemma exists_open_with_compact_closure [locally_compact_space α] [t2_space α] (x : α) :
+  ∃ (U : set α), is_open U ∧ x ∈ U ∧ compact (closure U) :=
+begin
+  rcases locally_compact_space.local_compact_nhds x set.univ filter.univ_mem_sets with
+    ⟨K, h1K, _, h2K⟩,
+  rw [mem_nhds_sets_iff] at h1K, rcases h1K with ⟨t, h1t, h2t, h3t⟩,
+  exact ⟨t, h2t, h3t, compact_of_is_closed_subset h2K is_closed_closure $
+    closure_minimal h1t $ h2K.is_closed⟩
+end
+
+/-- In a locally compact T₂ space, every compact set is contained in the interior of a compact
+  set. -/
+lemma exists_compact_superset [locally_compact_space α] [t2_space α] {K : set α}
+  (hK : compact K) : ∃ (K' : set α), compact K' ∧ K ⊆ interior K' :=
+begin
+  choose U hU using λ x : K, exists_open_with_compact_closure (x : α),
+  rcases hK.elim_finite_subcover U (λ x, (hU x).1) (λ x hx, ⟨_, ⟨⟨x, hx⟩, rfl⟩, (hU ⟨x, hx⟩).2.1⟩) with
+    ⟨s, hs⟩,
+  refine ⟨⋃ (i : K) (H : i ∈ s), closure (U i), _, _⟩,
+  exact (finite_mem_finset s).compact_bUnion (λ x hx, (hU x).2.2),
+  refine subset.trans hs _, rw subset_interior_iff_subset_of_open,
+  exact bUnion_subset_bUnion_right (λ x hx, subset_closure),
+  exact is_open_bUnion (λ x hx, (hU x).1)
+end
+
 end separation
 
 section regularity
@@ -314,6 +387,11 @@ let ⟨t, ht₁, ht₂, ht₃⟩ := this in
   mem_sets_of_eq_bot $ by rwa [compl_compl],
   subset.trans (compl_subset_comm.1 ht₂) h₁,
   is_closed_compl_iff.mpr ht₁⟩
+
+lemma closed_nhds_basis [regular_space α] (a : α) :
+  (𝓝 a).has_basis (λ s : set α, s ∈ 𝓝 a ∧ is_closed s) id :=
+⟨λ t, ⟨λ t_in, let ⟨s, s_in, h_st, h⟩ := nhds_is_closed t_in in ⟨s, ⟨s_in, h⟩, h_st⟩,
+       λ ⟨s, ⟨s_in, hs⟩, hst⟩, mem_sets_of_superset s_in hst⟩⟩
 
 instance subtype.regular_space [regular_space α] {p : α → Prop} : regular_space (subtype p) :=
 ⟨begin

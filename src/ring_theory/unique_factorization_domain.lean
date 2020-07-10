@@ -314,7 +314,8 @@ begin
   apply function.hfunext,
   { have : a ~ᵤ 0 ↔ b ~ᵤ 0, from
       iff.intro (assume ha0, hab.symm.trans ha0) (assume hb0, hab.trans hb0),
-    simp [quotient_mk_eq_mk, mk_eq_zero, ← associated_zero_iff_eq_zero, this] },
+    simp only [associated_zero_iff_eq_zero] at this,
+    simp only [quotient_mk_eq_mk, this, mk_eq_zero] },
   exact (assume ha hb eq, heq_of_eq $ congr_arg some $ factors'_cong _ _ hab)
 end
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Chris Hughes, Michael Howes
 -/
 import algebra.group.hom
-import tactic.rewrite
+
 /-!
 # Conjugacy of group elements
 -/

@@ -43,11 +43,6 @@ instance [ring R] [ring S] : ring (R × S) :=
 instance [comm_ring R] [comm_ring S] : comm_ring (R × S) :=
 { .. prod.ring, .. prod.comm_monoid }
 
-/-- Product of two commutative rings is a nonzero commutative ring provided that the first
-ring is a nonzero ring. -/
-instance [has_zero R] [has_one R] [nonzero R] [has_zero S] [has_one S] : nonzero (R × S) :=
-{ zero_ne_one := mt (congr_arg prod.fst) zero_ne_one }
-
 end prod
 
 namespace ring_hom

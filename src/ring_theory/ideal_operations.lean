@@ -779,7 +779,7 @@ lemma ker_eq_bot_iff_eq_zero : ker f = ⊥ ↔ ∀ x, f x = 0 → x = 0 :=
 by rw [submodule.ext'_iff, ker_eq]; exact is_add_group_hom.trivial_ker_iff_eq_zero f
 
 /-- If the target is not the zero ring, then one is not in the kernel.-/
-lemma not_one_mem_ker [nonzero S] (f : R →+* S) : (1:R) ∉ ker f :=
+lemma not_one_mem_ker [nontrivial S] (f : R →+* S) : (1:R) ∉ ker f :=
 by { rw [mem_ker, f.map_one], exact one_ne_zero }
 
 end comm_ring

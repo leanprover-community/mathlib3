@@ -5,12 +5,12 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import tactic.ring_exp
 import tactic.chain
-import tactic.converter.apply_congr
 import data.monoid_algebra
 import algebra.gcd_domain
 import ring_theory.euclidean_domain
 import ring_theory.multiplicity
 import data.finset.nat_antidiagonal
+import data.finset.sort
 
 /-!
 # Theory of univariate polynomials
@@ -221,7 +221,7 @@ end coeff
 
 section C
 /-- `C a` is the constant polynomial `a`. -/
-def C : R →+* polynomial R := add_monoid_algebra.algebra_map'
+def C : R →+* polynomial R := add_monoid_algebra.algebra_map' (ring_hom.id R)
 
 @[simp] lemma monomial_zero_left (a : R) : monomial 0 a = C a := rfl
 
@@ -561,7 +561,18 @@ variables [comm_semiring R] {p q r : polynomial R}
 local attribute [instance] coeff_coe_to_fun
 
 instance : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
-instance : algebra R (polynomial R) := add_monoid_algebra.algebra
+
+section
+variables [semiring A] [algebra R A]
+
+/-- Note that this instance also provides `algebra R (polynomial R)`. -/
+instance algebra_of_algebra : algebra R (polynomial A) := add_monoid_algebra.algebra
+
+lemma algebra_map_apply (r : R) :
+  algebra_map R (polynomial A) r = C (algebra_map R A r) :=
+rfl
+
+end
 
 section eval
 variable {x : R}
@@ -1016,7 +1027,7 @@ lemma monic.ne_zero_of_zero_ne_one (h : (0:R) ≠ 1) {p : polynomial R} (hp : p.
   p ≠ 0 :=
 by { contrapose! h, rwa [h] at hp }
 
-lemma monic.ne_zero {R : Type*} [semiring R] [nonzero R] {p : polynomial R} (hp : p.monic) :
+lemma monic.ne_zero {R : Type*} [semiring R] [nontrivial R] {p : polynomial R} (hp : p.monic) :
   p ≠ 0 :=
 hp.ne_zero_of_zero_ne_one zero_ne_one
 
@@ -1501,13 +1512,13 @@ have zn0 : (0 : R) ≠ 1, from λ h, by haveI := subsingleton_of_zero_eq_one h;
 end comm_semiring
 
 section nonzero_semiring
-variables [semiring R] [nonzero R] {p q : polynomial R}
+variables [semiring R] [nontrivial R] {p q : polynomial R}
 
-instance : nonzero (polynomial R) :=
-{ zero_ne_one := λ (h : (0 : polynomial R) = 1), zero_ne_one $
+instance : nontrivial (polynomial R) :=
+⟨⟨0, 1, λ (h : (0 : polynomial R) = 1), zero_ne_one $
     calc (0 : R) = eval 0 0 : eval_zero.symm
       ... = eval 0 1 : congr_arg _ h
-      ... = 1 : eval_C }
+      ... = 1 : eval_C⟩⟩
 
 @[simp] lemma degree_one : degree (1 : polynomial R) = (0 : with_bot ℕ) :=
 degree_C (show (1 : R) ≠ 0, from zero_ne_one.symm)
@@ -1540,7 +1551,7 @@ lemma ne_zero_of_monic (h : monic p) : p ≠ 0 :=
 λ h₁, @not_monic_zero R _ _ (h₁ ▸ h)
 
 theorem not_is_unit_X : ¬ is_unit (X : polynomial R) :=
-λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ _ $ by erw [← coeff_one_zero, ← hgf, coeff_mul_X_zero]
+λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ $ by erw [← coeff_one_zero, ← hgf, coeff_mul_X_zero]
 
 end nonzero_semiring
 
@@ -1582,9 +1593,9 @@ lemma div_X_eq_zero_iff : div_X p = 0 ↔ p = C (p.coeff 0) :=
 lemma div_X_add : div_X (p + q) = div_X p + div_X q :=
 ext $ by simp [div_X]
 
-theorem nonzero.of_polynomial_ne (h : p ≠ q) : nonzero R :=
-{ zero_ne_one := λ h01 : 0 = 1, h $
-    by rw [← mul_one p, ← mul_one q, ← C_1, ← h01, C_0, mul_zero, mul_zero] }
+theorem nonzero.of_polynomial_ne (h : p ≠ q) : nontrivial R :=
+⟨⟨0, 1, λ h01 : 0 = 1, h $
+    by rw [← mul_one p, ← mul_one q, ← C_1, ← h01, C_0, mul_zero, mul_zero] ⟩⟩
 
 lemma degree_lt_degree_mul_X (hp : p ≠ 0) : p.degree < (p * X).degree :=
 by haveI := nonzero.of_polynomial_ne hp; exact
@@ -1810,17 +1821,21 @@ section comm_semiring
 variables [comm_semiring R] {p q : polynomial R}
 
 section aeval
-/-- `R[X]` is the generator of the category `R-Alg`. -/
-instance polynomial (R : Type u) [comm_semiring R] : algebra R (polynomial R) :=
-{ commutes' := λ _ _, mul_comm _ _,
-  smul_def' := λ c p, (polynomial.C_mul' c p).symm,
-  .. polynomial.semimodule, .. ring_hom.of polynomial.C }
+instance algebra' (R : Type u) [comm_semiring R] (A : Type v) [semiring A] [algebra R A] :
+  algebra R (polynomial A) :=
+{ smul := λ r p, algebra_map R A r • p,
+  commutes' := λ c p, ext $ λ n,
+    show (C (algebra_map R A c) * p).coeff n = (p * C (algebra_map R A c)).coeff n,
+    by rw [coeff_C_mul, coeff_mul_C, algebra.commutes],
+  smul_def' := λ c p, (C_mul' _ _).symm,
+  .. C.comp (algebra_map R A) }
 
 variables (R) (A)
 
 -- TODO this could be generalized: there's no need for `A` to be commutative,
 -- we just need that `x` is central.
-variables [comm_ring A] [algebra R A]
+variables [comm_semiring A] [algebra R A]
+variables {B : Type*} [comm_semiring B] [algebra R B]
 variables (x : A)
 
 /-- Given a valuation `x` of the variable in an `R`-algebra `A`, `aeval R A x` is
@@ -1848,6 +1863,12 @@ begin
     rw [pow_succ', ← mul_assoc, φ.map_mul, eval₂_mul (algebra_map R A), eval₂_X, ih] }
 end
 
+theorem aeval_alg_hom (f : A →ₐ[R] B) (x : A) : aeval R B (f x) = f.comp (aeval R A x) :=
+alg_hom.ext $ λ p, by rw [eval_unique (f.comp (aeval R A x)), alg_hom.comp_apply, aeval_X, aeval_def]
+
+theorem aeval_alg_hom_apply (f : A →ₐ[R] B) (x : A) (p) : aeval R B (f x) p = f (aeval R A x p) :=
+alg_hom.ext_iff.1 (aeval_alg_hom f x) p
+
 variables [comm_ring S] {f : R →+* S}
 
 lemma is_root_of_eval₂_map_eq_zero
@@ -1863,7 +1884,7 @@ lemma is_root_of_aeval_algebra_map_eq_zero [algebra R S] {p : polynomial R}
   {r : R} (hr : aeval R S (algebra_map R S r) p = 0) : p.is_root r :=
 is_root_of_eval₂_map_eq_zero inj hr
 
-lemma dvd_term_of_dvd_eval_of_dvd_terms {z p : A} {f : polynomial A} (i : ℕ)
+lemma dvd_term_of_dvd_eval_of_dvd_terms {z p : S} {f : polynomial S} (i : ℕ)
   (dvd_eval : p ∣ f.eval z) (dvd_terms : ∀ (j ≠ i), p ∣ f.coeff j * z ^ j) :
   p ∣ f.coeff i * z ^ i :=
 begin
@@ -1880,7 +1901,7 @@ begin
     exact finsupp.not_mem_support_iff.mp hi }
 end
 
-lemma dvd_term_of_is_root_of_dvd_terms {r p : A} {f : polynomial A} (i : ℕ)
+lemma dvd_term_of_is_root_of_dvd_terms {r p : S} {f : polynomial S} (i : ℕ)
   (hr : f.is_root r) (h : ∀ (j ≠ i), p ∣ f.coeff j * r ^ j) : p ∣ f.coeff i * r ^ i :=
 dvd_term_of_dvd_eval_of_dvd_terms i (eq.symm hr ▸ dvd_zero p) h
 
@@ -2121,7 +2142,7 @@ begin
   { haveI := subsingleton_of_zero_eq_one h01,
     rw [subsingleton.elim (f /ₘ g) 0, subsingleton.elim f 0, subsingleton.elim g 0,
         nat_degree_zero] },
-  haveI : nonzero R := ⟨h01⟩,
+  haveI : nontrivial R := ⟨⟨0, 1, h01⟩⟩,
   by_cases hfg : f /ₘ g = 0,
   { rw [hfg, nat_degree_zero], rw div_by_monic_eq_zero_iff hg hg.ne_zero at hfg,
     rw nat.sub_eq_zero_of_le (nat_degree_le_nat_degree $ le_of_lt hfg) },
@@ -2230,7 +2251,7 @@ by rw [is_root.def, eval_sub, eval_X, eval_C, sub_eq_zero_iff_eq, eq_comm]
 end comm_ring
 
 section nonzero_ring
-variables [ring R] [nonzero R] {p q : polynomial R}
+variables [ring R] [nontrivial R] {p q : polynomial R}
 
 @[simp] lemma degree_X_sub_C (a : R) : degree (X - C a) = 1 :=
 begin
@@ -2305,10 +2326,10 @@ end
 end ring
 
 section nonzero_ring
-variables [ring R] [nonzero R]
+variables [ring R] [nontrivial R]
 
 theorem not_is_unit_X_sub_C {r : R} : ¬ is_unit (X - C r) :=
-λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ _ $ by erw [← eval_mul_X_sub_C, hgf, eval_one]
+λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ $ by erw [← eval_mul_X_sub_C, hgf, eval_one]
 
 end nonzero_ring
 
@@ -2320,7 +2341,7 @@ variables [comm_ring R] {p q : polynomial R}
   p %ₘ (X - C a) = C (p.eval a) :=
 if h0 : (0 : R) = 1 then by letI := subsingleton_of_zero_eq_one h0; exact subsingleton.elim _ _
 else
-by letI : nonzero R := nonzero.of_ne h0; exact
+by haveI : nontrivial R := nontrivial_of_ne 0 1 h0; exact
 have h : (p %ₘ (X - C a)).eval a = p.eval a :=
   by rw [mod_by_monic_eq_sub_mul_div _ (monic_X_sub_C a), eval_sub, eval_mul,
     eval_sub, eval_X, eval_C, sub_self, zero_mul, sub_zero],
@@ -2364,7 +2385,7 @@ lemma multiplicity_X_sub_C_finite (a : R) (h0 : p ≠ 0) :
 multiplicity_finite_of_degree_pos_of_monic
   (have (0 : R) ≠ 1, from (λ h, by haveI := subsingleton_of_zero_eq_one h;
       exact h0 (subsingleton.elim _ _)),
-    by haveI : nonzero R := ⟨this⟩; rw degree_X_sub_C; exact dec_trivial)
+    by haveI : nontrivial R := ⟨⟨0, 1, this⟩⟩; rw degree_X_sub_C; exact dec_trivial)
     (monic_X_sub_C _) h0
 
 def root_multiplicity (a : R) (p : polynomial R) : ℕ :=
@@ -2399,7 +2420,7 @@ lemma eval_div_by_monic_pow_root_multiplicity_ne_zero
   {p : polynomial R} (a : R) (hp : p ≠ 0) :
   (p /ₘ ((X - C a) ^ root_multiplicity a p)).eval a ≠ 0 :=
 begin
-  haveI : nonzero R := nonzero.of_polynomial_ne hp,
+  haveI : nontrivial R := nonzero.of_polynomial_ne hp,
   rw [ne.def, ← is_root.def, ← dvd_iff_is_root],
   rintros ⟨q, hq⟩,
   have := div_by_monic_mul_pow_root_multiplicity_eq p a,
@@ -2453,7 +2474,7 @@ instance : integral_domain (polynomial R) :=
     erw [← leading_coeff_eq_zero, ← leading_coeff_eq_zero],
     exact eq_zero_or_eq_zero_of_mul_eq_zero this
   end,
-  ..polynomial.nonzero,
+  ..polynomial.nontrivial,
   ..polynomial.comm_ring }
 
 lemma nat_degree_mul_eq (hp : p ≠ 0) (hq : q ≠ 0) : nat_degree (p * q) =
@@ -2794,7 +2815,7 @@ instance : euclidean_domain (polynomial R) :=
   remainder_lt := λ p q hq, remainder_lt_aux _ hq,
   mul_left_not_lt := λ p q hq, not_lt_of_ge (degree_le_mul_left _ hq),
   .. polynomial.comm_ring,
-  .. polynomial.nonzero }
+  .. polynomial.nontrivial }
 
 lemma mod_eq_self_iff (hq0 : q ≠ 0) : p % q = p ↔ degree p < degree q :=
 ⟨λ h, h ▸ euclidean_domain.mod_lt _ hq0,

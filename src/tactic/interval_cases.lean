@@ -188,11 +188,14 @@ an `Ico` interval corresponding to a lower and an upper bound.
 
 Here `hl` should be an expression of the form `a ≤ n`, for some explicit `a`, and
 `hu` should be of the form `n < b`, for some explicit `b`.
+
+`n` if provided is the name of the hypothesis added. If an automatically generated name is wanted,
+pass in `none` as `n`.
 -/
 meta def interval_cases_using (hl hu : expr) (n : option name) : tactic unit :=
 to_expr ``(mem_set_elems (Ico _ _) ⟨%%hl, %%hu⟩) >>=
-(if hn : n.is_some then (do
-  note (option.get hn))
+(if hn : n.is_some then
+  note (option.get hn)
 else
   note_anon none) >>= fin_cases_at none
 
@@ -218,9 +221,12 @@ end
 after `interval_cases n`, the goals are `3 = 3 ∨ 3 = 4` and `4 = 3 ∨ 4 = 4`.
 
 You can also explicitly specify a lower and upper bound to use,
-as `interval_cases using hl hu`.
+as `interval_cases n using hl hu`.
 The hypotheses should be in the form `hl : a ≤ n` and `hu : n < b`,
 in which case `interval_cases` calls `fin_cases` on the resulting fact `n ∈ set.Ico a b`.
+
+You can also explicitly specify a name to use for the hypothesis added,
+as `interval_cases n with hn` or `interval_cases n using hl hu with hn`.
 -/
 meta def interval_cases (n : parse texpr?) (bounds : parse (tk "using" *> (prod.mk <$> ident <*> ident))?) (lname : parse (tk "with" *> ident)?) : tactic unit :=
 do
@@ -251,9 +257,12 @@ end
 after `interval_cases n`, the goals are `3 = 3 ∨ 3 = 4` and `4 = 3 ∨ 4 = 4`.
 
 You can also explicitly specify a lower and upper bound to use,
-as `interval_cases using hl hu`.
+as `interval_cases n using hl hu`.
 The hypotheses should be in the form `hl : a ≤ n` and `hu : n < b`,
 in which case `interval_cases` calls `fin_cases` on the resulting fact `n ∈ set.Ico a b`.
+
+You can also explicitly specify a name to use for the hypothesis added,
+as `interval_cases n with hn` or `interval_cases n using hl hu with hn`.
 
 In particular, `interval_cases n`
 1) inspects hypotheses looking for lower and upper bounds of the form `a ≤ n` and `n < b`

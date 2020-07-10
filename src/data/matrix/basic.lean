@@ -74,6 +74,8 @@ by { ext, simp, }
 
 end matrix
 
+/-- The `add_monoid_hom` between spaces of matrices induced by an `add_monoid_hom` between their
+coefficients. -/
 def add_monoid_hom.map_matrix [add_monoid α] {β : Type w} [add_monoid β] (f : α →+ β) :
   matrix m n α →+ matrix m n β :=
 { to_fun := λ M, M.map f,
@@ -360,6 +362,8 @@ end semiring
 
 end matrix
 
+/-- The `ring_hom` between spaces of square matrices induced by a `ring_hom` between their
+coefficients. -/
 def ring_hom.map_matrix [decidable_eq m] [semiring α] {β : Type w} [semiring β] (f : α →+* β) :
   matrix m m α →+* matrix m m β :=
 { to_fun := λ M, M.map f,

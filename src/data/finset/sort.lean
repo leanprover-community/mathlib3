@@ -5,7 +5,6 @@ Author: Mario Carneiro
 -/
 import data.finset.lattice
 import data.multiset.sort
-import tactic.suggest
 
 /-!
 # Construct a sorted list from a finset.

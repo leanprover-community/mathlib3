@@ -10,9 +10,17 @@ import linear_algebra.nonsingular_inverse
 import tactic.squeeze
 
 /-!
-# The Cayley-Hamilton theorem, over a commutative ring.
+# Characteristic polynomials and the Cayley-Hamilton theorem
 
-We use a nice proof from http://drorbn.net/AcademicPensieve/2015-12/CayleyHamilton.pdf
+We define characteristic polynomials of matrices and prove the Cayley–Hamilton theorem over arbitrary commutative rings.
+
+## Main definitions
+
+* `char_poly` is the characteristic polynomial of a matrix.
+
+## Implementation details
+
+We follow a nice proof from http://drorbn.net/AcademicPensieve/2015-12/CayleyHamilton.pdf
 -/
 
 noncomputable theory

@@ -42,7 +42,7 @@ variables {R A}
 
 /-- A subalgebra is algebraic if and only if it is algebraic an algebra. -/
 lemma subalgebra.is_algebraic_iff (S : subalgebra R A) :
-  S.is_algebraic ↔ @algebra.is_algebraic R S _ _ (by convert S.algebra) :=
+  S.is_algebraic ↔ @algebra.is_algebraic R S _ _ (S.algebra) :=
 begin
   delta algebra.is_algebraic subalgebra.is_algebraic,
   rw [subtype.forall'],
@@ -51,12 +51,7 @@ begin
   apply and_congr iff.rfl,
   have h : function.injective (S.val) := subtype.val_injective,
   conv_rhs { rw [← h.eq_iff, alg_hom.map_zero], },
-  apply eq_iff_eq_cancel_right.mpr,
-  symmetry,
-  -- TODO: add an `aeval`-specific version of `hom_eval₂`
-  simp only [aeval_def],
-  convert hom_eval₂ p (algebra_map R S) ↑S.val ⟨x, hx⟩,
-  refl
+  rw [← aeval_alg_hom_apply, S.val_apply, subtype.val_eq_coe],
 end
 
 /-- An algebra is algebraic if and only if it is algebraic as a subalgebra. -/

@@ -39,6 +39,14 @@ by ext; simp
 
 theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 
+instance : order_top (finset α) :=
+{ top := univ,
+  le_top := subset_univ,
+  .. finset.partial_order }
+
+instance [decidable_eq α] : bounded_distrib_lattice (finset α) :=
+{ .. finset.distrib_lattice, .. finset.semilattice_inf_bot, .. finset.order_top }
+
 theorem eq_univ_iff_forall {s : finset α} : s = univ ↔ ∀ x, x ∈ s :=
 by simp [ext_iff]
 

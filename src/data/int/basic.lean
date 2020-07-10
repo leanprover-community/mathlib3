@@ -5,7 +5,6 @@ Authors: Jeremy Avigad
 
 The integers, with addition, multiplication, and subtraction.
 -/
-import tactic.lift
 import data.nat.basic
 import algebra.order_functions
 

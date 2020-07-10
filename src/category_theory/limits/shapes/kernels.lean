@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Markus Himmel
 -/
 import category_theory.limits.shapes.zero
-import category_theory.limits.shapes.equalizers
 
 /-!
 # Kernels and cokernels

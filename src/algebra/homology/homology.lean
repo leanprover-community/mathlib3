@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Markus Himmel
 -/
 import algebra.homology.chain_complex
-import category_theory.limits.shapes.images
 import category_theory.limits.shapes.kernels
 
 /-!

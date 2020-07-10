@@ -7,9 +7,6 @@ Neil Strickland
 import algebra.group.hom
 import algebra.group.units
 import algebra.group_with_zero
-import tactic.alias
-import tactic.norm_cast
-import tactic.split_ifs
 
 /-!
 # Properties and homomorphisms of semirings and rings

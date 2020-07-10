@@ -7,6 +7,7 @@ Euclidean domains and Euclidean algorithm (extended to come)
 A lot is based on pre-existing code in mathlib for natural number gcds
 -/
 import data.int.basic
+import algebra.field
 
 universe u
 

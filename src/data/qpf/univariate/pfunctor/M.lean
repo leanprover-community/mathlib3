@@ -90,8 +90,8 @@ end
 
 /-- `truncate a` turns `a` into a more limited approximation -/
 def truncate : ∀ {n : ℕ}, cofix_a F (n+1) → cofix_a F n
- | 0 (cofix_a.intro _ _) := cofix_a.continue
- | (succ n) (cofix_a.intro i f) := cofix_a.intro i $ truncate ∘ f
+| 0 (cofix_a.intro _ _) := cofix_a.continue
+| (succ n) (cofix_a.intro i f) := cofix_a.intro i $ truncate ∘ f
 
 lemma truncate_eq_of_agree {n : ℕ} (x : cofix_a F n) (y : cofix_a F (succ n)) (h : agree x y) :
   truncate y = x :=

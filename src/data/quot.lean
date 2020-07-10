@@ -49,11 +49,11 @@ protected def map_right {ra' : α → α → Prop} (h : ∀a₁ a₂, ra a₁ a�
 quot.map id h
 
 /-- weaken the relation of a quotient -/
-def factor {α : Type*} (r s: α → α → Prop) (h : ∀ x y, r x y → s x y) :
+def factor {α : Type*} (r s : α → α → Prop) (h : ∀ x y, r x y → s x y) :
   quot r → quot s :=
 quot.lift (quot.mk s) (λ x y rxy, quot.sound (h x y rxy))
 
-lemma factor_mk_eq {α : Type*} (r s: α → α → Prop) (h : ∀ x y, r x y → s x y) :
+lemma factor_mk_eq {α : Type*} (r s : α → α → Prop) (h : ∀ x y, r x y → s x y) :
   factor r s h ∘ quot.mk _ = quot.mk _ := rfl
 
 end quot

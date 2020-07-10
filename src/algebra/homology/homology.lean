@@ -24,7 +24,7 @@ with a differential with grading `b : β`.
 Thus we're simultaneously doing homology and cohomology groups
 (and in future, e.g., enabling computing homologies for successive pages of spectral sequences).
 
-At the end of the file we set up abbreviations `cohomology` and `cohomology_functor`,
+At the end of the file we set up abbreviations `cohomology` and `graded_cohomology`,
 so that when you're working with a `C : cochain_complex V`, you can write `C.cohomology i`
 rather than the confusing `C.homology i`.
 -/
@@ -155,15 +155,15 @@ def homology (i : β) : homological_complex V b ⥤ V :=
 
 /-- The homology functor from `β` graded complexes to `β` graded objects in `V`. -/
 @[simps]
-def homology_functor : homological_complex V b ⥤ graded_object β V :=
+def graded_homology : homological_complex V b ⥤ graded_object β V :=
 { obj := λ C i, C.homology_group i,
   map := λ C C' f i, homology_map f i }
 
 end homological_complex
 
 /-!
-We now set up abbreviations so that you can write `C.cohomology i` or `(cohomology_functor V).map f`
-when `C` is a cochain complex.
+We now set up abbreviations so that you can write `C.cohomology i` or `(graded_cohomology V).map f`,
+etc., when `C` is a cochain complex.
 -/
 
 namespace cochain_complex
@@ -189,7 +189,7 @@ homological_complex.homology V i
 
 
 /-- The cohomology functor from cochain complexes to `ℤ`-graded objects in `V`. -/
-abbreviation cohomology_functor : cochain_complex V ⥤ graded_object ℤ V :=
-homological_complex.homology_functor V
+abbreviation graded_cohomology : cochain_complex V ⥤ graded_object ℤ V :=
+homological_complex.graded_homology V
 
 end cochain_complex

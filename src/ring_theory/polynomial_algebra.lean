@@ -278,7 +278,7 @@ lemma mat_poly_equiv_coeff_apply_aux_1 (i j : n) (k : ℕ) (x : R) :
     monomial k (std_basis_matrix i j x) :=
 begin
   simp only [mat_poly_equiv, alg_equiv.trans_apply,
-    matrix_equiv_tensor_apply_elementary],
+    matrix_equiv_tensor_apply_std_basis],
   apply (poly_equiv_tensor R (matrix n n R)).injective,
   simp only [alg_equiv.apply_symm_apply],
   convert algebra.tensor_product.comm_tmul _ _ _ _ _,

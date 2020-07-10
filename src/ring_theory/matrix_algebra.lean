@@ -22,14 +22,15 @@ open algebra.tensor_product
 open matrix
 
 variables {R : Type u} [comm_ring R]
-variables {A : Type v} [comm_ring A] [algebra R A]
+variables {A : Type v} [ring A] [algebra R A]
 variables {n : Type w} [fintype n]
 
 section
 variables [decidable_eq n]
 
 instance : algebra R (matrix n n A) :=
-{ commutes' := λ r x, begin ext, simp [matrix.scalar], end,
+{ commutes' := λ r x,
+  begin ext, simp [matrix.scalar, matrix.mul_val, matrix.one_val, algebra.commutes], end,
   smul_def' := λ r x, begin ext, simp [matrix.scalar, algebra.smul_def'' r], end,
   ..((matrix.scalar n).comp (algebra_map R A)) }
 
@@ -65,7 +66,7 @@ def to_fun_right_linear (a : A) : matrix n n R →ₗ[R] matrix n n A :=
     ext,
     simp only [matrix.smul_val, pi.smul_apply, ring_hom.map_mul,
       algebra.id.smul_eq_mul, ring_hom.map_mul],
-    rw [algebra.smul_def r, mul_left_comm],
+    rw [algebra.smul_def r, ←_root_.mul_assoc, ←_root_.mul_assoc, algebra.commutes],
   end, }
 
 /--
@@ -96,10 +97,13 @@ alg_hom_of_linear_map_tensor_product
 (to_fun_linear R A n)
 begin
   intros, ext,
-  simp only [to_fun_linear, to_fun_bilinear, to_fun_right_linear, to_fun, lift.tmul,
-    linear_map.coe_mk, matrix.mul_mul_left, matrix.smul_val, matrix.mul_eq_mul,
-    matrix.mul_mul_right, ring_hom.map_matrix_mul],
-  rw [←_root_.mul_assoc, mul_comm a₁ a₂],
+  simp_rw [to_fun_linear, to_fun_bilinear, lift.tmul],
+  dsimp,
+  simp_rw [to_fun_right_linear],
+  dsimp,
+  simp_rw [to_fun, matrix.mul_mul_left, matrix.smul_val, matrix.mul_val, ←_root_.mul_assoc _ a₂ _,
+    algebra.commutes, _root_.mul_assoc a₂ _ _, ←finset.mul_sum, ring_hom.map_sum, ring_hom.map_mul,
+    _root_.mul_assoc],
 end
 begin
   intros, ext,

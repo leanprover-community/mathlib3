@@ -7,6 +7,7 @@ import tactic.apply_fun
 import ring_theory.matrix_algebra
 import ring_theory.polynomial_algebra
 import linear_algebra.nonsingular_inverse
+import tactic.squeeze
 
 /-!
 # The Cayley-Hamilton theorem, over a commutative ring.
@@ -31,15 +32,17 @@ The "characteristic matrix" of `M : matrix n n R` is the matrix of polynomials $
 The determinant of this matrix is the characteristic polynomial.
 -/
 def char_matrix (M : matrix n n R) : matrix n n (polynomial R) :=
-matrix.scalar n (X : polynomial R) - (λ i j, C (M i j))
+matrix.scalar n (X : polynomial R) - (C : R →+* polynomial R).map_matrix M
 
 @[simp] lemma char_matrix_apply_eq (M : matrix n n R) (i : n) :
   char_matrix M i i = (X : polynomial R) - C (M i i) :=
-by simp only [char_matrix, sub_left_inj, pi.sub_apply, scalar_apply_eq]
+by simp only [char_matrix, sub_left_inj, pi.sub_apply, scalar_apply_eq,
+  ring_hom.map_matrix_apply, map_apply]
 
 @[simp] lemma char_matrix_apply_ne (M : matrix n n R) (i j : n) (h : i ≠ j) :
   char_matrix M i j = - C (M i j) :=
-by simp only [char_matrix, pi.sub_apply, scalar_apply_ne _ _ _ h, zero_sub]
+by simp only [char_matrix, pi.sub_apply, scalar_apply_ne _ _ _ h, zero_sub,
+  ring_hom.map_matrix_apply, map_apply]
 
 lemma mat_poly_equiv_char_matrix (M : matrix n n R) :
   mat_poly_equiv (char_matrix M) = X - C M :=

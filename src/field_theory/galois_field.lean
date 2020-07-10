@@ -25,6 +25,18 @@ section
 open function
 variables {K L : Type*} [field K] [field L]
 
+/-- The canonical isomorphism between a field and the splitting field of a polynomial that splits-/
+def ring_equiv_splitting_field_of_splits {f : polynomial K}
+  (h : polynomial.splits (ring_hom.id K) f) :
+  (K ≃+* f.splitting_field) :=
+begin
+  apply ring_equiv.of _,
+  { refine equiv.mk (algebra_map K f.splitting_field) (polynomial.splitting_field.lift f h) _ _,
+    swap, apply right_inverse_of_injective_of_left_inverse, apply ring_hom.injective,
+    iterate 2 {intro, simp}, },
+  apply_instance,
+end
+
 lemma ring_hom.char_p_iff (f : K →+* L) (p : ℕ) :
   char_p K p ↔ char_p L p :=
 begin
@@ -69,5 +81,20 @@ sorry
 
 lemma card : fintype.card (galois_field p n) = p ^ n :=
 sorry
+
+variable {n}
+theorem zmod_p_splits_X_pow_p_sub_X : splits (ring_hom.id (zmod p)) (X ^ p - X) :=
+begin
+  apply splits_of_exists_multiset, swap, apply finset.univ.val, apply_instance,
+  simp only [ring_hom.id_apply, map_id, map_sub],
+  conv_rhs {rw [sub_eq_add_neg, add_comm]},
+  rw [leading_coeff_add_of_degree_lt, leading_coeff_X_pow, C_1, one_mul], swap,
+  { rw [degree_X_pow, degree_neg, degree_X], apply with_bot.coe_lt_coe.2,
+    apply nat.prime.one_lt, apply _inst_1, },
+  sorry,
+end
+
+def equiv_zmod_p : zmod p ≃+* galois_field p 1 :=
+ring_equiv_splitting_field_of_splits (by { rw nat.pow_one, apply zmod_p_splits_X_pow_p_sub_X p, })
 
 end galois_field

@@ -189,8 +189,12 @@ an `Ico` interval corresponding to a lower and an upper bound.
 Here `hl` should be an expression of the form `a ≤ n`, for some explicit `a`, and
 `hu` should be of the form `n < b`, for some explicit `b`.
 -/
-meta def interval_cases_using (hl hu : expr) : tactic unit :=
-to_expr ``(mem_set_elems (Ico _ _) ⟨%%hl, %%hu⟩) >>= note_anon none >>= fin_cases_at none
+meta def interval_cases_using (hl hu : expr) (n : option name) : tactic unit :=
+to_expr ``(mem_set_elems (Ico _ _) ⟨%%hl, %%hu⟩) >>=
+(if hn : n.is_some then (do
+  note (option.get hn))
+else
+  note_anon none) >>= fin_cases_at none
 
 setup_tactic_parser
 
@@ -218,16 +222,16 @@ as `interval_cases using hl hu`.
 The hypotheses should be in the form `hl : a ≤ n` and `hu : n < b`,
 in which case `interval_cases` calls `fin_cases` on the resulting fact `n ∈ set.Ico a b`.
 -/
-meta def interval_cases (n : parse texpr?) (bounds : parse (tk "using" *> (prod.mk <$> ident <*> ident))?) : tactic unit :=
+meta def interval_cases (n : parse texpr?) (bounds : parse (tk "using" *> (prod.mk <$> ident <*> ident))?) (lname : parse (tk "with" *> ident)?) : tactic unit :=
 do
   if h : n.is_some then (do
     guard bounds.is_none <|> fail "Do not use the `using` keyword if specifying the variable explicitly.",
     n ← to_expr (option.get h),
     (hl, hu) ← get_bounds n,
-    tactic.interval_cases_using hl hu)
+    tactic.interval_cases_using hl hu lname)
   else if h' : bounds.is_some then (do
     [hl, hu] ← [(option.get h').1, (option.get h').2].mmap get_local,
-    tactic.interval_cases_using hl hu)
+    tactic.interval_cases_using hl hu lname)
   else
     fail "Call `interval_cases n` (specifying a variable), or `interval_cases lb ub` (specifying a lower bound and upper bound on the same variable)."
 

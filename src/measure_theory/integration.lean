@@ -626,7 +626,7 @@ begin
   have : f ⁻¹' {⊤} = {a : α | f a < ⊤}ᶜ, { ext, simp },
   have vol_top : volume (f ⁻¹' {⊤}) = 0, { rw [this, ← mem_ae_iff], exact h₁ },
   by_cases hat : a = ⊤,
-  { dsimp at hat, rw [hat, vol_top, mul_zero], exact with_top.zero_lt_top },
+  { rw [hat, vol_top, mul_zero], exact with_top.zero_lt_top },
   { by_cases haz : a = 0,
     { rw [haz, zero_mul], exact with_top.zero_lt_top },
     apply mul_lt_top,

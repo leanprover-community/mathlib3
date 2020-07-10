@@ -553,7 +553,7 @@ lemma Hausdorff_dist_le_of_inf_dist {r : ℝ} (hr : r ≥ 0)
   Hausdorff_dist s t ≤ r :=
 begin
   by_cases h1 : Hausdorff_edist s t = ⊤,
-    by { dsimp at h1, rwa [Hausdorff_dist, h1, ennreal.top_to_real] },
+    by rwa [Hausdorff_dist, h1, ennreal.top_to_real],
   cases s.eq_empty_or_nonempty with hs hs,
     by rwa [hs, Hausdorff_dist_empty'],
   cases t.eq_empty_or_nonempty with ht ht,
@@ -662,7 +662,7 @@ begin
   { have Dtu : Hausdorff_edist t u < ⊤ := calc
       Hausdorff_edist t u ≤ Hausdorff_edist t s + Hausdorff_edist s u : Hausdorff_edist_triangle
       ... = Hausdorff_edist s t + Hausdorff_edist s u : by simp [Hausdorff_edist_comm]
-      ... < ⊤ : by {dsimp at h, simp [ennreal.add_lt_top], simp [ennreal.lt_top_iff_ne_top, h, fin]},
+      ... < ⊤ : by simp  [ennreal.add_lt_top]; simp [ennreal.lt_top_iff_ne_top, h, fin],
     rw [Hausdorff_dist, Hausdorff_dist, Hausdorff_dist,
         ← ennreal.to_real_add fin (lt_top_iff_ne_top.1 Dtu), ennreal.to_real_le_to_real h],
     { exact Hausdorff_edist_triangle },

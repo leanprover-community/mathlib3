@@ -424,7 +424,7 @@ end
   such that `KV ⊆ U`. -/
 @[to_additive "Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of `0`
   such that `K + V ⊆ U`."]
-lemma compact_open_separated_mul {K U : set α} (hK : compact K) (hU : is_open U) (hKU : K ⊆ U) :
+lemma compact_open_separated_mul {K U : set α} (hK : is_compact K) (hU : is_open U) (hKU : K ⊆ U) :
   ∃ V : set α, is_open V ∧ (1 : α) ∈ V ∧ K * V ⊆ U :=
 begin
   let W : α → set α := λ x, (λ y, x * y) ⁻¹' U,
@@ -447,11 +447,11 @@ end
   with non-empty interior. -/
 @[to_additive "A compact set is covered by finitely many left additive translates of a set
   with non-empty interior."]
-lemma compact_covered_by_mul_left_translates {K V : set α} (hK : compact K)
+lemma compact_covered_by_mul_left_translates {K V : set α} (hK : is_compact K)
   (hV : (interior V).nonempty) : ∃ t : finset α, K ⊆ ⋃ g ∈ t, (λ h, g * h) ⁻¹' V :=
 begin
   cases hV with g₀ hg₀,
-  rcases compact.elim_finite_subcover hK (λ x : α, interior $ (λ h, x * h) ⁻¹' V) _ _ with ⟨t, ht⟩,
+  rcases is_compact.elim_finite_subcover hK (λ x : α, interior $ (λ h, x * h) ⁻¹' V) _ _ with ⟨t, ht⟩,
   { refine ⟨t, subset.trans ht _⟩,
     apply Union_subset_Union, intro g, apply Union_subset_Union, intro hg, apply interior_subset },
   { intro g, apply is_open_interior },

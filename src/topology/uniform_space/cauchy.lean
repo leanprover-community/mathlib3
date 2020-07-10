@@ -402,7 +402,7 @@ lemma totally_bounded_iff_ultrafilter {s : set α} :
   ⟨ultrafilter_of f, ultrafilter_of_le, this⟩⟩
 
 lemma compact_iff_totally_bounded_complete {s : set α} :
-  compact s ↔ totally_bounded s ∧ is_complete s :=
+  is_compact s ↔ totally_bounded s ∧ is_complete s :=
 ⟨λ hs, ⟨totally_bounded_iff_ultrafilter.2 (λ f hf1 hf2,
     let ⟨x, xs, fx⟩ := compact_iff_ultrafilter_le_nhds.1 hs f hf1 hf2 in
     cauchy_downwards (cauchy_nhds) (hf1.1) fx),
@@ -417,7 +417,7 @@ instance complete_of_compact {α : Type u} [uniform_space α] [compact_space α]
 ⟨λf hf, by simpa [principal_univ] using (compact_iff_totally_bounded_complete.1 compact_univ).2 f hf⟩
 
 lemma compact_of_totally_bounded_is_closed [complete_space α] {s : set α}
-  (ht : totally_bounded s) (hc : is_closed s) : compact s :=
+  (ht : totally_bounded s) (hc : is_closed s) : is_compact s :=
 (@compact_iff_totally_bounded_complete α _ s).2 ⟨ht, hc.is_complete⟩
 
 /-!

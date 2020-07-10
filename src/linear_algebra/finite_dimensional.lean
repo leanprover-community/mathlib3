@@ -454,6 +454,16 @@ lemma findim_quotient_le [finite_dimensional K V] (s : submodule K V) :
   findim K s.quotient ≤ findim K V :=
 by { rw ← s.findim_quotient_add_findim, exact nat.le_add_right _ _ }
 
+/-- The sum of the dimensions of s + t and s ∩ t is the sum of the dimensions of s and t -/
+theorem dim_sup_add_dim_inf_eq [finite_dimensional K V] (s t : submodule K V) :
+  findim K ↥(s ⊔ t) + findim K ↥(s ⊓ t) = findim K ↥s + findim K ↥t :=
+begin
+  have key : dim K ↥(s ⊔ t) + dim K ↥(s ⊓ t) = dim K s + dim K t := dim_sup_add_dim_inf_eq s t,
+  repeat { rw ←findim_eq_dim at key },
+  norm_cast at key,
+  exact key
+end
+
 end submodule
 
 namespace linear_equiv

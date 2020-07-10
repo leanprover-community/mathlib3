@@ -4,13 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
+import algebra.opposites
 import data.finset.intervals
 import data.finset.fold
 import data.finset.powerset
 import data.finset.pi
-import data.nat.enat
 import data.equiv.mul_add
 import tactic.abel
+import data.nat.enat
 
 /-!
 # Big operators
@@ -648,7 +649,6 @@ begin
   apply hs, intros a ha, apply p_s, simp [ha],
 end
 
-
 /-- For any product along `{0, ..., n-1}` of a commutative-monoid-valued function, we can verify that
 it's equal to a different function just by checking ratios of adjacent terms.
 This is a multiplicative discrete analogue of the fundamental theorem of calculus. -/
@@ -675,12 +675,21 @@ lemma sum_range_sub {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
   ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
 by { apply sum_range_induction; abel, simp }
 
+lemma sum_range_sub' {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
+  ∑ i in range n, (f i - f (i+1)) = f 0 - f n :=
+by { apply sum_range_induction; abel, simp }
 
 /-- A telescoping product along `{0, ..., n-1}` of a commutative group valued function
 reduces to the ratio of the last and first factors.-/
+@[to_additive]
 lemma prod_range_div {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
-  ∏ i in range n, (f (i+1) * (f i)⁻¹ ) = f n * (f 0)⁻¹ :=
+  ∏ i in range n, (f (i+1) * (f i)⁻¹) = f n * (f 0)⁻¹ :=
 by apply @sum_range_sub (additive M)
+
+@[to_additive]
+lemma prod_range_div' {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
+  ∏ i in range n, (f i * (f (i+1))⁻¹) = (f 0) * (f n)⁻¹ :=
+by apply @sum_range_sub' (additive M)
 
 /-- A telescoping sum along `{0, ..., n-1}` of an `ℕ`-valued function reduces to the difference of
 the last and first terms when the function we are summing is monotone. -/
@@ -1100,11 +1109,6 @@ calc (∑ x in s, f x) / b = ∑ x in s, f x * (1 / b) : by rw [div_eq_mul_one_d
 section comm_semiring
 variables [comm_semiring β]
 
-lemma prod_eq_zero (ha : a ∈ s) (h : f a = 0) : (∏ x in s, f x) = 0 :=
-by haveI := classical.dec_eq α;
-calc (∏ x in s, f x) = ∏ x in insert a (erase s a), f x : by rw insert_erase ha
-                 ... = 0 : by rw [prod_insert (not_mem_erase _ _), h, zero_mul]
-
 /-- The product over a sum can be written as a sum over the product of sets, `finset.pi`.
   `finset.prod_univ_sum` is an alternative statement when the product is over `univ`. -/
 lemma prod_sum {δ : α → Type*} [decidable_eq α] [∀a, decidable_eq (δ a)]
@@ -1194,8 +1198,15 @@ end
 
 end comm_semiring
 
-section integral_domain /- add integral_semi_domain to support nat and ennreal -/
-variables [integral_domain β]
+section prod_eq_zero
+variables [comm_monoid_with_zero β]
+
+lemma prod_eq_zero (ha : a ∈ s) (h : f a = 0) : (∏ x in s, f x) = 0 :=
+by haveI := classical.dec_eq α;
+calc (∏ x in s, f x) = ∏ x in insert a (erase s a), f x : by rw insert_erase ha
+                 ... = 0 : by rw [prod_insert (not_mem_erase _ _), h, zero_mul]
+
+variables [nontrivial β] [no_zero_divisors β]
 
 lemma prod_eq_zero_iff : (∏ x in s, f x) = 0 ↔ (∃a∈s, f a = 0) :=
 begin
@@ -1209,7 +1220,7 @@ end
 theorem prod_ne_zero_iff : (∏ x in s, f x) ≠ 0 ↔ (∀ a ∈ s, f a ≠ 0) :=
 by { rw [ne, prod_eq_zero_iff], push_neg }
 
-end integral_domain
+end prod_eq_zero
 
 section ordered_add_comm_monoid
 variables [ordered_add_comm_monoid β]
@@ -1235,7 +1246,7 @@ lemma sum_le_sum_of_subset_of_nonneg
   (h : s₁ ⊆ s₂) (hf : ∀x∈s₂, x ∉ s₁ → 0 ≤ f x) : (∑ x in s₁, f x) ≤ (∑ x in s₂, f x) :=
 by classical;
 calc (∑ x in s₁, f x) ≤ (∑ x in s₂ \ s₁, f x) + (∑ x in s₁, f x) :
-    le_add_of_nonneg_left' $ sum_nonneg $ by simpa only [mem_sdiff, and_imp]
+    le_add_of_nonneg_left $ sum_nonneg $ by simpa only [mem_sdiff, and_imp]
   ... = ∑ x in s₂ \ s₁ ∪ s₁, f x : (sum_union sdiff_disjoint).symm
   ... = (∑ x in s₂, f x)         : by rw [sdiff_union_of_subset h]
 
@@ -1526,5 +1537,16 @@ begin
   simp only [← lt_top_iff_ne_top],
   exact sum_lt_top_iff
 end
+
+open opposite
+
+/-- Moving to the opposite additive commutative monoid commutes with summing. -/
+@[simp] lemma op_sum [add_comm_monoid β] {s : finset α} (f : α → β) :
+  op (∑ x in s, f x) = ∑ x in s, op (f x) :=
+(@op_add_hom β _).map_sum _ _
+
+@[simp] lemma unop_sum [add_comm_monoid β] {s : finset α} (f : α → βᵒᵖ) :
+  unop (∑ x in s, f x) = ∑ x in s, unop (f x) :=
+(@unop_add_hom β _).map_sum _ _
 
 end with_top

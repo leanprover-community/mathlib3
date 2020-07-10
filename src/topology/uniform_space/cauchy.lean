@@ -208,7 +208,7 @@ lemma cauchy_prod [uniform_space β] {f : filter α} {g : filter β} :
 | ⟨f_proper, hf⟩ ⟨g_proper, hg⟩ := ⟨filter.prod_ne_bot.2 ⟨f_proper, g_proper⟩,
   let p_α := λp:(α×β)×(α×β), (p.1.1, p.2.1), p_β := λp:(α×β)×(α×β), (p.1.2, p.2.2) in
   suffices (f.prod f).comap p_α ⊓ (g.prod g).comap p_β ≤ (𝓤 α).comap p_α ⊓ (𝓤 β).comap p_β,
-    by simpa [uniformity_prod, filter.prod, filter.comap_inf, filter.comap_comap_comp, (∘),
+    by simpa [uniformity_prod, filter.prod, filter.comap_inf, filter.comap_comap, (∘),
         inf_assoc, inf_comm, inf_left_comm],
   inf_le_inf (filter.comap_mono hf) (filter.comap_mono hg)⟩
 

@@ -469,7 +469,7 @@ lemma exp_ne_zero : exp x ≠ 0 :=
 λ h, zero_ne_one $ by rw [← exp_zero, ← add_neg_self x, exp_add, h]; simp
 
 lemma exp_neg : exp (-x) = (exp x)⁻¹ :=
-by rw [← domain.mul_right_inj (exp_ne_zero x), ← exp_add];
+by rw [← mul_right_inj' (exp_ne_zero x), ← exp_add];
   simp [mul_inv_cancel (exp_ne_zero x)]
 
 lemma exp_sub : exp (x - y) = exp x / exp y :=
@@ -513,10 +513,10 @@ private lemma sinh_add_aux {a b c d : ℂ} :
 
 lemma sinh_add : sinh (x + y) = sinh x * cosh y + cosh x * sinh y :=
 begin
-  rw [← domain.mul_right_inj (@two_ne_zero' ℂ _ _ _), two_sinh,
+  rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), two_sinh,
       exp_add, neg_add, exp_add, eq_comm,
       mul_add, ← mul_assoc, two_sinh, mul_left_comm, two_sinh,
-      ← domain.mul_right_inj (@two_ne_zero' ℂ _ _ _), mul_add,
+      ← mul_right_inj' (@two_ne_zero' ℂ _ _ _), mul_add,
       mul_left_comm, two_cosh, ← mul_assoc, two_cosh],
   exact sinh_add_aux
 end
@@ -531,10 +531,10 @@ private lemma cosh_add_aux {a b c d : ℂ} :
 
 lemma cosh_add : cosh (x + y) = cosh x * cosh y + sinh x * sinh y :=
 begin
-  rw [← domain.mul_right_inj (@two_ne_zero' ℂ _ _ _), two_cosh,
+  rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), two_cosh,
       exp_add, neg_add, exp_add, eq_comm,
       mul_add, ← mul_assoc, two_cosh, ← mul_assoc, two_sinh,
-      ← domain.mul_right_inj (@two_ne_zero' ℂ _ _ _), mul_add,
+      ← mul_right_inj' (@two_ne_zero' ℂ _ _ _), mul_add,
       mul_left_comm, two_cosh, mul_left_comm, two_sinh],
   exact cosh_add_aux
 end
@@ -597,14 +597,14 @@ by rw [← of_real_tanh_of_real_re, of_real_im]
 lemma tanh_of_real_re (x : ℝ) : (tanh x).re = real.tanh x := rfl
 
 lemma cosh_add_sinh : cosh x + sinh x = exp x :=
-by rw [← domain.mul_right_inj (@two_ne_zero' ℂ _ _ _), mul_add,
+by rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), mul_add,
        two_cosh, two_sinh, add_add_sub_cancel, two_mul]
 
 lemma sinh_add_cosh : sinh x + cosh x = exp x :=
 by rw [add_comm, cosh_add_sinh]
 
 lemma cosh_sub_sinh : cosh x - sinh x = exp (-x) :=
-by rw [← domain.mul_right_inj (@two_ne_zero' ℂ _ _ _), mul_sub,
+by rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), mul_sub,
        two_cosh, two_sinh, add_sub_sub_cancel, two_mul]
 
 lemma cosh_sq_sub_sinh_sq : cosh x ^ 2 - sinh x ^ 2 = 1 :=
@@ -622,16 +622,16 @@ lemma two_cos : 2 * cos x = exp (x * I) + exp (-x * I) :=
 mul_div_cancel' _ two_ne_zero'
 
 lemma sinh_mul_I : sinh (x * I) = sin x * I :=
-by rw [← domain.mul_right_inj (@two_ne_zero' ℂ _ _ _), two_sinh,
+by rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), two_sinh,
        ← mul_assoc, two_sin, mul_assoc, I_mul_I, mul_neg_one,
        neg_sub, neg_mul_eq_neg_mul]
 
 lemma cosh_mul_I : cosh (x * I) = cos x :=
-by rw [← domain.mul_right_inj (@two_ne_zero' ℂ _ _ _), two_cosh,
+by rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), two_cosh,
        two_cos, neg_mul_eq_neg_mul]
 
 lemma sin_add : sin (x + y) = sin x * cos y + cos x * sin y :=
-by rw [← domain.mul_left_inj I_ne_zero, ← sinh_mul_I,
+by rw [← mul_left_inj' I_ne_zero, ← sinh_mul_I,
        add_mul, add_mul, mul_right_comm, ← sinh_mul_I,
        mul_assoc, ← sinh_mul_I, ← cosh_mul_I, ← cosh_mul_I, sinh_add]
 
@@ -656,7 +656,7 @@ lemma cos_sub : cos (x - y) = cos x * cos y + sin x * sin y :=
 by simp [sub_eq_add_neg, cos_add, sin_neg, cos_neg]
 
 lemma sin_conj : sin (conj x) = conj (sin x) :=
-by rw [← domain.mul_left_inj I_ne_zero, ← sinh_mul_I,
+by rw [← mul_left_inj' I_ne_zero, ← sinh_mul_I,
        ← conj_neg_I, ← conj.map_mul, ← conj.map_mul, sinh_conj,
        mul_neg_eq_neg_mul_symm, sinh_neg, sinh_mul_I, mul_neg_eq_neg_mul_symm]
 
@@ -823,10 +823,10 @@ lemma sin_sq_add_cos_sq : sin x ^ 2 + cos x ^ 2 = 1 :=
 of_real_inj.1 $ by simpa using sin_sq_add_cos_sq x
 
 lemma sin_sq_le_one : sin x ^ 2 ≤ 1 :=
-by rw ← sin_sq_add_cos_sq x; exact le_add_of_nonneg_right' (pow_two_nonneg _)
+by rw ← sin_sq_add_cos_sq x; exact le_add_of_nonneg_right (pow_two_nonneg _)
 
 lemma cos_sq_le_one : cos x ^ 2 ≤ 1 :=
-by rw ← sin_sq_add_cos_sq x; exact le_add_of_nonneg_left' (pow_two_nonneg _)
+by rw ← sin_sq_add_cos_sq x; exact le_add_of_nonneg_left (pow_two_nonneg _)
 
 lemma abs_sin_le_one : abs' (sin x) ≤ 1 :=
 (mul_self_le_mul_self_iff (_root_.abs_nonneg (sin x)) (by exact zero_le_one)).2 $
@@ -979,8 +979,8 @@ calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m.fact : α)
     from mul_ne_zero (nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 (nat.fact_pos _)))
     (nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 hn)),
   have h₄ : (n.succ - 1 : α) = n, by simp,
-  by rw [← geom_series_def, geom_sum_inv h₁ h₂, eq_div_iff_mul_eq _ _ h₃,
-      mul_comm _ (n.fact * n : α), ← mul_assoc (n.fact⁻¹ : α), ← mul_inv', h₄,
+  by rw [← geom_series_def, geom_sum_inv h₁ h₂, eq_div_iff_mul_eq h₃,
+      mul_comm _ (n.fact * n : α), ← mul_assoc (n.fact⁻¹ : α), ← mul_inv_rev', h₄,
       ← mul_assoc (n.fact * n : α), mul_comm (n : α) n.fact, mul_inv_cancel h₃];
     simp [mul_add, add_mul, mul_assoc, mul_comm]
 ... ≤ n.succ / (n.fact * n) :

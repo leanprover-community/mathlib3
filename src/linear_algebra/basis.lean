@@ -1286,9 +1286,7 @@ begin
   apply (is_basis_fun₀ R η).comp (λ i, ⟨i, punit.star⟩),
   apply bijective_iff_has_inverse.2,
   use sigma.fst,
-  suffices : ∀ (a : η) (b : unit), punit.star = b,
-  { simpa [function.left_inverse, function.right_inverse] },
-  exact λ _, punit_eq _
+  simp [function.left_inverse, function.right_inverse]
 end
 
 end

@@ -117,7 +117,7 @@ def to_preorder : preorder R := preorder.lift v
 begin
   split ; intro h,
   { contrapose! h,
-    exact unit_ne_zero (units.map (v : K →* Γ₀) $ units.mk0 _ h) },
+    exact ((is_unit.mk0 _ h).map (v : K →* Γ₀)).ne_zero },
   { exact h.symm ▸ v.map_zero },
 end
 
@@ -130,12 +130,12 @@ not_iff_not_of_iff v.zero_iff
 begin
   by_cases h : x = 0,
   { subst h, rw [inv_zero, v.map_zero, inv_zero] },
-  { apply eq_inv_of_mul_right_eq_one',
+  { apply eq_inv_of_mul_right_eq_one,
     rw [← v.map_mul, mul_inv_cancel h, v.map_one] }
 end
 
 lemma map_units_inv (x : units R) : v (x⁻¹ : units R) = (v x)⁻¹ :=
-eq_inv_of_mul_right_eq_one' _ _ $ by rw [← v.map_mul, units.mul_inv, v.map_one]
+eq_inv_of_mul_right_eq_one $ by rw [← v.map_mul, units.mul_inv, v.map_one]
 
 @[simp] theorem unit_map_eq (u : units R) :
   (units.map (v : R →* Γ₀) u : Γ₀) = v u := rfl
@@ -267,7 +267,7 @@ begin
   intros x y,
   by_cases hy : y = 0, { simp [hy, zero_iff], },
   rw show y = 1 * y, by rw one_mul,
-  rw [← (inv_mul_cancel_assoc_left x y hy)],
+  rw [← (inv_mul_cancel_right' hy x)],
   iterate 2 {rw [v.map_mul _ y, v'.map_mul _ y]},
   rw [v.map_one, v'.map_one],
   split; intro H,

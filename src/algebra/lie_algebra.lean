@@ -466,8 +466,8 @@ def lie_subalgebra_of_subalgebra (A : Type v) [ring A] [algebra R A]
 { lie_mem := λ x y hx hy, by {
     change ⁅x, y⁆ ∈ A', change x ∈ A' at hx, change y ∈ A' at hy,
     rw lie_ring.of_associative_ring_bracket,
-    have hxy := subalgebra.mul_mem A' x y hx hy,
-    have hyx := subalgebra.mul_mem A' y x hy hx,
+    have hxy := A'.mul_mem hx hy,
+    have hyx := A'.mul_mem hy hx,
     exact submodule.sub_mem A'.to_submodule hxy hyx, },
   ..A'.to_submodule }
 

@@ -446,9 +446,13 @@ lemma nhds_le_of_le {f a} {s : set α} (h : a ∈ s) (o : is_open s) (sf : 𝓟 
 by rw nhds_def; exact infi_le_of_le s (infi_le_of_le ⟨h, o⟩ sf)
 
 lemma mem_nhds_sets_iff {a : α} {s : set α} :
- s ∈ 𝓝 a ↔ ∃t⊆s, is_open t ∧ a ∈ t :=
+  s ∈ 𝓝 a ↔ ∃t⊆s, is_open t ∧ a ∈ t :=
 (nhds_basis_opens a).mem_iff.trans
   ⟨λ ⟨t, ⟨hat, ht⟩, hts⟩, ⟨t, hts, ht, hat⟩, λ ⟨t, hts, ht, hat⟩, ⟨t, ⟨hat, ht⟩, hts⟩⟩
+
+lemma eventually_nhds_iff {a : α} {p : α → Prop} :
+  (∀ᶠ x in 𝓝 a, p x) ↔ ∃ (t : set α), (∀ x ∈ t, p x) ∧ is_open t ∧ a ∈ t :=
+mem_nhds_sets_iff.trans $ by simp only [subset_def, exists_prop, mem_set_of_eq]
 
 lemma map_nhds {a : α} {f : α → β} :
   map f (𝓝 a) = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 (image f s)) :=
@@ -464,20 +468,56 @@ lemma filter.eventually.self_of_nhds {p : α → Prop} {a : α}
 mem_of_nhds h
 
 lemma mem_nhds_sets {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
- s ∈ 𝓝 a :=
+  s ∈ 𝓝 a :=
 mem_nhds_sets_iff.2 ⟨s, subset.refl _, hs, ha⟩
+
+lemma nhds_basis_opens' (a : α) : (𝓝 a).has_basis (λ s : set α, s ∈ 𝓝 a ∧ is_open s) (λ x, x) :=
+begin
+  convert nhds_basis_opens a,
+  ext s,
+  split,
+  { rintros ⟨s_in, s_op⟩,
+    exact ⟨mem_of_nhds s_in, s_op⟩ },
+  { rintros ⟨a_in, s_op⟩,
+    exact ⟨mem_nhds_sets s_op a_in, s_op⟩ },
+end
+
+/-- If a predicate is true in a neighbourhood of `a`, then for `y` sufficiently close
+to `a` this predicate is true in a neighbourhood of `y`. -/
+lemma filter.eventually.eventually_nhds {p : α → Prop} {a : α} (h : ∀ᶠ y in 𝓝 a, p y) :
+  ∀ᶠ y in 𝓝 a, ∀ᶠ x in 𝓝 y, p x :=
+let ⟨t, htp, hto, ha⟩ := eventually_nhds_iff.1 h in
+eventually_nhds_iff.2 ⟨t, λ x hx, eventually_nhds_iff.2 ⟨t, htp, hto, hx⟩, hto, ha⟩
+
+@[simp] lemma eventually_eventually_nhds {p : α → Prop} {a : α} :
+  (∀ᶠ y in 𝓝 a, ∀ᶠ x in 𝓝 y, p x) ↔ ∀ᶠ x in 𝓝 a, p x :=
+⟨λ h, h.self_of_nhds, λ h, h.eventually_nhds⟩
+
+@[simp] lemma nhds_bind_nhds : (𝓝 a).bind 𝓝 = 𝓝 a := filter.ext $ λ s, eventually_eventually_nhds
+
+@[simp] lemma eventually_eventually_eq_nhds {f g : α → β} {a : α} :
+  (∀ᶠ y in 𝓝 a, f =ᶠ[𝓝 y] g) ↔ f =ᶠ[𝓝 a] g :=
+eventually_eventually_nhds
+
+@[simp] lemma eventually_eventually_le_nhds [has_le β] {f g : α → β} {a : α} :
+  (∀ᶠ y in 𝓝 a, f ≤ᶠ[𝓝 y] g) ↔ f ≤ᶠ[𝓝 a] g :=
+eventually_eventually_nhds
+
+/-- If two functions are equal in a neighbourhood of `a`, then for `y` sufficiently close
+to `a` these functions are equal in a neighbourhood of `y`. -/
+lemma filter.eventually_eq.eventually_eq_nhds {f g : α → β} {a : α} (h : f =ᶠ[𝓝 a] g) :
+  ∀ᶠ y in 𝓝 a, f =ᶠ[𝓝 y] g :=
+h.eventually_nhds
+
+/-- If `f x ≤ g x` in a neighbourhood of `a`, then for `y` sufficiently close to `a` we have
+`f x ≤ g x` in a neighbourhood of `y`. -/
+lemma filter.eventually_le.eventually_le_nhds [has_le β] {f g : α → β} {a : α} (h : f ≤ᶠ[𝓝 a] g) :
+  ∀ᶠ y in 𝓝 a, f ≤ᶠ[𝓝 y] g :=
+h.eventually_nhds
 
 theorem all_mem_nhds (x : α) (P : set α → Prop) (hP : ∀ s t, s ⊆ t → P s → P t) :
   (∀ s ∈ 𝓝 x, P s) ↔ (∀ s, is_open s → x ∈ s → P s) :=
-iff.intro
-  (λ h s os xs, h s (mem_nhds_sets os xs))
-  (λ h t,
-    begin
-      change t ∈ 𝓝 x → P t,
-      rw mem_nhds_sets_iff,
-      rintros ⟨s, hs, opens, xs⟩,
-      exact hP _ _ hs (h s opens xs),
-    end)
+((nhds_basis_opens x).forall_iff hP).trans $ by simp only [and_comm (x ∈ _), and_imp]
 
 theorem all_mem_nhds_filter (x : α) (f : set α → set β) (hf : ∀ s t, s ⊆ t → f s ⊆ f t)
     (l : filter β) :
@@ -512,10 +552,11 @@ assume a s hs, mem_pure_sets.2 $ mem_of_nhds hs
 
 lemma tendsto_pure_nhds {α : Type*} [topological_space β] (f : α → β) (a : α) :
   tendsto f (pure a) (𝓝 (f a)) :=
-begin
-  rw [tendsto, filter.map_pure],
-  exact pure_le_nhds (f a)
-end
+tendsto_le_right (pure_le_nhds _) (tendsto_pure_pure f a)
+
+lemma order_top.tendsto_at_top {α : Type*} [order_top α] [topological_space β] (f : α → β) :
+  tendsto f at_top (𝓝 $ f ⊤) :=
+tendsto_le_right (pure_le_nhds _) $ tendsto_at_top_pure f
 
 @[simp] lemma nhds_ne_bot {a : α} : 𝓝 a ≠ ⊥ :=
 ne_bot_of_le_ne_bot pure_ne_bot (pure_le_nhds a)
@@ -533,7 +574,13 @@ def cluster_pt (x : α) (F : filter α) : Prop := 𝓝 x ⊓ F ≠ ⊥
 
 lemma cluster_pt_iff {x : α} {F : filter α} :
   cluster_pt x F ↔ ∀ {U V : set α}, U ∈ 𝓝 x → V ∈ F → (U ∩ V).nonempty :=
-by rw [cluster_pt, inf_ne_bot_iff]
+inf_ne_bot_iff
+
+/-- `x` is a cluster point of a set `s` if every neighbourhood of `x` meets `s` on a nonempty
+set. -/
+lemma cluster_pt_principal_iff {x : α} {s : set α} :
+  cluster_pt x (𝓟 s) ↔ ∀ U ∈ 𝓝 x, (U ∩ s).nonempty :=
+inf_principal_ne_bot_iff
 
 lemma cluster_pt.of_le_nhds {x : α} {f : filter α} (H : f ≤ 𝓝 x) (h : f ≠ ⊥) : cluster_pt x f :=
 by rwa [cluster_pt, inf_comm, inf_eq_left.mpr H]
@@ -603,15 +650,19 @@ calc closure s = (interior sᶜ)ᶜ : closure_eq_compl_interior_compl
       (by simp only [inf_principal, inter_compl_self, principal_empty])).symm
 
 theorem mem_closure_iff_cluster_pt {s : set α} {a : α} : a ∈ closure s ↔ cluster_pt a (𝓟 s) :=
-by simpa only [closure_eq_cluster_pts]
+by simp only [closure_eq_cluster_pts, mem_set_of_eq]
 
 theorem mem_closure_iff_nhds {s : set α} {a : α} :
   a ∈ closure s ↔ ∀ t ∈ 𝓝 a, (t ∩ s).nonempty :=
-mem_closure_iff.trans
-⟨λ H t ht, nonempty.mono
-  (inter_subset_inter_left _ interior_subset)
-  (H _ is_open_interior (mem_interior_iff_mem_nhds.2 ht)),
- λ H o oo ao, H _ (mem_nhds_sets oo ao)⟩
+mem_closure_iff_cluster_pt.trans cluster_pt_principal_iff
+
+theorem mem_closure_iff_nhds' {s : set α} {a : α} :
+  a ∈ closure s ↔ ∀ t ∈ 𝓝 a, ∃ y : s, ↑y ∈ t :=
+by simp only [mem_closure_iff_nhds, set.nonempty_inter_iff_exists_right]
+
+theorem mem_closure_iff_comap_ne_bot {A : set α} {x : α} :
+  x ∈ closure A ↔ comap (coe : A → α) (𝓝 x) ≠ ⊥ :=
+by simp_rw [mem_closure_iff_nhds, comap_ne_bot_iff, set.nonempty_inter_iff_exists_right]
 
 theorem mem_closure_iff_nhds_basis {a : α} {p : β → Prop} {s : β → set α} (h : (𝓝 a).has_basis p s)
   {t : set α} :
@@ -791,6 +842,10 @@ open_locale topological_space
   of every open set is open. -/
 def continuous (f : α → β) := ∀s, is_open s → is_open (f ⁻¹' s)
 
+lemma is_open.preimage {f : α → β} (hf : continuous f) {s : set β} (h : is_open s) :
+  is_open (f ⁻¹' s) :=
+hf s h
+
 /-- A function between topological spaces is continuous at a point `x₀`
 if `f x` tends to `f x₀` when `x` tends to `x₀`. -/
 def continuous_at (f : α → β) (x : α) := tendsto f (𝓝 x) (𝓝 (f x))
@@ -859,6 +914,10 @@ lemma continuous_iff_is_closed {f : α → β} :
   continuous f ↔ (∀s, is_closed s → is_closed (f ⁻¹' s)) :=
 ⟨assume hf s hs, hf sᶜ hs,
   assume hf s, by rw [←is_closed_compl_iff, ←is_closed_compl_iff]; exact hf _⟩
+
+lemma is_closed.preimage {f : α → β} (hf : continuous f) {s : set β} (h : is_closed s) :
+  is_closed (f ⁻¹' s) :=
+continuous_iff_is_closed.mp hf s h
 
 lemma continuous_at_iff_ultrafilter {f : α → β} (x) : continuous_at f x ↔
   ∀ g, is_ultrafilter g → g ≤ 𝓝 x → g.map f ≤ 𝓝 (f x) :=

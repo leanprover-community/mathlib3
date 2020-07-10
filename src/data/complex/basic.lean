@@ -269,7 +269,7 @@ by rw [inv_def, ← mul_assoc, mul_conj, ← of_real_mul,
 
 noncomputable instance : field ℂ :=
 { inv := has_inv.inv,
-  zero_ne_one := mt (congr_arg re) zero_ne_one,
+  exists_pair_ne := ⟨0, 1, mt (congr_arg re) zero_ne_one⟩,
   mul_inv_cancel := @complex.mul_inv_cancel,
   inv_zero := complex.inv_zero,
   ..complex.comm_ring }
@@ -280,10 +280,10 @@ lemma div_im (z w : ℂ) : (z / w).im = z.im * w.re / norm_sq w - z.re * w.im / 
 by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, add_comm]
 
 @[simp, norm_cast] lemma of_real_div (r s : ℝ) : ((r / s : ℝ) : ℂ) = r / s :=
-ring_hom.map_div of_real
+of_real.map_div r s
 
 @[simp, norm_cast] lemma of_real_fpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : ℂ) = (r : ℂ) ^ n :=
-ring_hom.map_fpow of_real r n
+of_real.map_fpow r n
 
 @[simp] lemma div_I (z : ℂ) : z / I = -(z * I) :=
 (div_eq_iff_mul_eq I_ne_zero).2 $ by simp [mul_assoc]
@@ -293,7 +293,7 @@ by simp [inv_eq_one_div]
 
 @[simp] lemma norm_sq_inv (z : ℂ) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
 if h : z = 0 then by simp [h] else
-(domain.mul_left_inj (mt norm_sq_eq_zero.1 h)).1 $
+mul_right_cancel' (mt norm_sq_eq_zero.1 h) $
 by rw [← norm_sq_mul]; simp [h, -norm_sq_mul]
 
 @[simp] lemma norm_sq_div (z w : ℂ) : norm_sq (z / w) = norm_sq z / norm_sq w :=

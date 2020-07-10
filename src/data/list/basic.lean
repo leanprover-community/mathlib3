@@ -3,7 +3,6 @@ Copyright (c) 2014 Parikshit Khanna. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
-import algebra.group
 import deprecated.group
 import data.nat.basic
 import order.rel_classes
@@ -321,6 +320,8 @@ end
 
 lemma append_eq_has_append {L₁ L₂ : list α} : list.append L₁ L₂ = L₁ ++ L₂ := rfl
 
+@[simp] lemma singleton_append {x : α} {l : list α} : [x] ++ l = x :: l := rfl
+
 theorem append_ne_nil_of_ne_nil_left (s t : list α) : s ≠ [] → s ++ t ≠ [] :=
 by induction s; intros; contradiction
 
@@ -475,6 +476,9 @@ by induction n; [refl, simp only [*, repeat, join, append_nil]]
 @[simp] theorem bind_append (f : α → list β) (l₁ l₂ : list α) :
   (l₁ ++ l₂).bind f = l₁.bind f ++ l₂.bind f :=
 append_bind _ _ _
+
+@[simp] theorem bind_singleton (f : α → list β) (x : α) : [x].bind f = f x :=
+append_nil (f x)
 
 /-! ### concat -/
 
@@ -1856,7 +1860,7 @@ begin
   { exfalso, exact lt_irrefl _ h },
   { by_cases h' : f x < g x, exact ⟨x, mem_cons_self _ _, h'⟩,
     rcases l_ih _ with ⟨y, h1y, h2y⟩, refine ⟨y, mem_cons_of_mem x h1y, h2y⟩, simp at h,
-    exact lt_of_add_lt_add_left' (lt_of_lt_of_le h $ add_le_add_right (le_of_not_gt h') _) }
+    exact lt_of_add_lt_add_left (lt_of_lt_of_le h $ add_le_add_right (le_of_not_gt h') _) }
 end
 
 lemma exists_le_of_sum_le [decidable_linear_ordered_cancel_add_comm_monoid β] {l : list α}
@@ -1867,7 +1871,7 @@ begin
   { by_cases h' : f x ≤ g x, exact ⟨x, mem_cons_self _ _, h'⟩,
     rcases exists_lt_of_sum_lt f g _ with ⟨y, h1y, h2y⟩,
     exact ⟨y, mem_cons_of_mem x h1y, le_of_lt h2y⟩, simp at h,
-    exact lt_of_add_lt_add_left' (lt_of_le_of_lt h $ add_lt_add_right (lt_of_not_ge h') _) }
+    exact lt_of_add_lt_add_left (lt_of_le_of_lt h $ add_lt_add_right (lt_of_not_ge h') _) }
 end
 
 -- Several lemmas about sum/head/tail for `list ℕ`.

@@ -76,86 +76,22 @@ instance has_limit_discrete : has_limit F :=
 
 end has_limit
 
-namespace has_colimit
-variables [fintype J]
+section
 
-/--
-The map from the cartesian product of a finite family of abelian groups
-to any cocone over that family.
--/
-def desc (s : cocone F) :
-  AddCommGroup.of (Π j, F.obj j) ⟶ s.X :=
-{ to_fun := λ f, ∑ j, s.ι.app j (f j),
-  map_zero' :=
-  begin
-    conv_lhs { apply_congr, skip, simp [@pi.zero_apply _ (λ j, F.obj j) x _], },
-    simp,
-  end,
-  map_add' := λ x y,
-  begin
-    conv_lhs { apply_congr, skip, simp [pi.add_apply x y _], },
-    simp [finset.sum_add_distrib],
-  end, }
-
-@[simp] lemma desc_apply (s : cocone F) (f : Π j, F.obj j) :
-  (desc F s) f = ∑ j, s.ι.app j (f j) := rfl
-
-variables [decidable_eq J]
-
-instance has_colimit_discrete : has_colimit F :=
-{ cocone :=
-  { X := AddCommGroup.of (Π j, F.obj j),
-    ι := discrete.nat_trans (λ j, add_monoid_hom.single (λ j, F.obj j) j), },
-  is_colimit :=
-  { desc := desc F,
-    fac' := λ s j,
-    begin
-      dsimp, ext,
-      dsimp [add_monoid_hom.single],
-      simp only [pi.single, add_monoid_hom.coe_mk, desc_apply, coe_comp],
-      rw finset.sum_eq_single j,
-      { simp, },
-      { intros b _ h, simp only [dif_neg h, add_monoid_hom.map_zero], },
-      { simp, },
-    end,
-    uniq' := λ s m w,
-    begin
-      dsimp at *,
-      convert @add_monoid_hom.functions_ext
-        (discrete J) _ (λ j, F.obj j) _ _ s.X _ m (eq_to_hom rfl ≫ desc F s) _,
-      intros j x,
-      dsimp [desc],
-      simp,
-      rw finset.sum_eq_single j,
-      { -- FIXME what prevents either of these `erw`s working by `simp`?
-        erw [pi.single_eq_same], rw ←w, simp,
-        erw add_monoid_hom.single_apply, },
-      { intros j' _ h, simp only [pi.single_eq_of_ne h, add_monoid_hom.map_zero], },
-      { intros h, exfalso, simpa using h, },
-    end, }, }.
-
-end has_colimit
-
-open has_limit has_colimit
+open has_limit
 
 variables [decidable_eq J] [fintype J]
 
 instance (f : J → AddCommGroup.{u}) : has_biproduct f :=
-{ bicone :=
-  { X := AddCommGroup.of (Π j, f j),
-    ι := λ j, add_monoid_hom.single (λ j, f j) j,
-    π := λ j, add_monoid_hom.apply (λ j, f j) j,
-    ι_π := λ j j',
-    begin
-      ext, split_ifs,
-      { subst h, simp, },
-      { rw [eq_comm] at h, simp [h], },
-    end, },
-  is_limit := limit.is_limit (discrete.functor f),
-  is_colimit := colimit.is_colimit (discrete.functor f), }.
+has_biproduct.of_has_product _
 
 -- We verify that the underlying type of the biproduct we've just defined is definitionally
 -- the dependent function type:
 example (f : J → AddCommGroup.{u}) : ((⨁ f : AddCommGroup) : Type u) = (Π j, f j) := rfl
+
+end
+
+instance : has_finite_biproducts AddCommGroup :=
+⟨λ J _ _, { has_biproduct := λ f, by exactI infer_instance }⟩
 
 end AddCommGroup

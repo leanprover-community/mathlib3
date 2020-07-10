@@ -6,7 +6,6 @@ Authors: Scott Morrison
 
 import linear_algebra.tensor_product
 import ring_theory.algebra
-import tactic
 
 universes u v₁ v₂ v₃ v₄
 
@@ -27,10 +26,12 @@ is written and compiles, but takes longer than the `-T100000` time limit,
 so is currently commented out.
 -/
 
-namespace algebra.tensor_product
+namespace algebra
 
 open_locale tensor_product
 open tensor_product
+
+namespace tensor_product
 
 section ring
 
@@ -296,12 +297,11 @@ We now build the structure maps for the symmetric monoidal category of `R`-algeb
 section monoidal
 
 section
-variables {R : Type u} {rR : comm_ring R}
-variables {A : Type v₁} {rA : ring A} {aA : algebra R A}
-variables {B : Type v₂} {rB : ring B} {aB : algebra R B}
-variables {C : Type v₃} {rC : ring C} {aC : algebra R C}
-variables {D : Type v₄} {rD : ring D} {aD : algebra R D}
-include aA aB aC
+variables {R : Type u} [comm_ring R]
+variables {A : Type v₁} [ring A] [algebra R A]
+variables {B : Type v₂} [ring B] [algebra R B]
+variables {C : Type v₃} [ring C] [algebra R C]
+variables {D : Type v₄} [ring D] [algebra R D]
 
 /--
 Build an algebra morphism from a linear map out of a tensor product,
@@ -353,7 +353,6 @@ def alg_equiv_of_linear_equiv_tensor_product
 lemma alg_equiv_of_linear_equiv_tensor_product_apply (f w₁ w₂ x) :
   (alg_equiv_of_linear_equiv_tensor_product f w₁ w₂ : A ⊗[R] B ≃ₐ[R] C) x = f x := rfl
 
-include aD
 /--
 Build an algebra equivalence from a linear equivalence out of a triple tensor product,
 and evidence of multiplicativity on pure tensors.
@@ -519,4 +518,6 @@ end
 
 end monoidal
 
-end algebra.tensor_product
+end tensor_product
+
+end algebra

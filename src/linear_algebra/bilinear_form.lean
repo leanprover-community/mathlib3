@@ -80,7 +80,7 @@ lemma zero_left (x : M) :
 B 0 x = 0 := by {rw [←@zero_smul R _ _ _ _ (0 : M), smul_left, zero_mul]}
 
 lemma zero_right (x : M) :
-B x 0 = 0 := by rw [←@zero_smul _ _ _ _ _ (0 : M), smul_right, ring.zero_mul]
+B x 0 = 0 := by rw [←@zero_smul _ _ _ _ _ (0 : M), smul_right, zero_mul]
 
 lemma neg_left (x y : M) :
 B (-x) y = -(B x y) := by rw [←@neg_one_smul R _ _, smul_left, neg_one_mul]
@@ -273,7 +273,7 @@ theorem ortho_smul_left {x y : M} {a : R₃} (ha : a ≠ 0) :
 begin
   dunfold is_ortho,
   split; intro H,
-  { rw [smul_left, H, ring.mul_zero] },
+  { rw [smul_left, H, mul_zero] },
   { rw [smul_left, mul_eq_zero] at H,
     cases H,
     { trivial },
@@ -285,7 +285,7 @@ theorem ortho_smul_right {x y : M} {a : R₃} (ha : a ≠ 0) :
 begin
   dunfold is_ortho,
   split; intro H,
-  { rw [smul_right, H, ring.mul_zero] },
+  { rw [smul_right, H, mul_zero] },
   { rw [smul_right, mul_eq_zero] at H,
     cases H,
     { trivial },

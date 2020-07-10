@@ -819,7 +819,7 @@ lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_add_comm_monoid β]
   f s.sum ≤ (s.map f).sum :=
 multiset.induction_on s (le_of_eq h_zero) $
   assume a s ih, by rw [sum_cons, map_cons, sum_cons];
-    from le_trans (h_add a s.sum) (add_le_add_left' ih)
+    from le_trans (h_add a s.sum) (add_le_add_left ih _)
 
 lemma abs_sum_le_sum_abs [discrete_linear_ordered_field α] {s : multiset α} :
   abs s.sum ≤ (s.map abs).sum :=

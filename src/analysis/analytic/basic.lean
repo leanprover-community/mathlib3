@@ -606,7 +606,8 @@ end
 convergence.-/
 lemma change_origin_radius : p.radius - nnnorm x ≤ (p.change_origin x).radius :=
 begin
-  by_cases h : p.radius ≤ nnnorm x,
+  -- TODO(gabriel): `by_cases` fails hilariously here
+  cases (classical.or_not : p.radius ≤ nnnorm x ∨ ¬ p.radius ≤ nnnorm x) with h,
   { have : radius p - ↑(nnnorm x) = 0 := ennreal.sub_eq_zero_of_le h,
     rw this,
     exact zero_le _ },

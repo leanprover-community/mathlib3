@@ -46,21 +46,20 @@ handlers, which will fail on `def`s.
 λ cls new_decl_name,
 do env ← get_env,
 if env.is_inductive new_decl_name then return ff else
-do new_decl_type ← declaration.type <$> get_decl new_decl_name,
+do new_decl ← get_decl new_decl_name,
    new_decl_pexpr ← resolve_name new_decl_name,
-   tgt ← to_expr $ apply_under_pis cls new_decl_pexpr new_decl_type,
-   (_, inst) ← solve_aux tgt $ delta_instance [new_decl_name],
+   arity ← get_pexpr_arg_arity_with_tgt cls new_decl.type,
+   tgt ← to_expr $ apply_under_n_pis cls new_decl_pexpr new_decl.type (new_decl.type.pi_arity - arity),
+   (_, inst) ← solve_aux tgt $ tactic.delta_instance [new_decl_name],
    inst ← instantiate_mvars inst,
    inst ← replace_univ_metas_with_univ_params inst,
    tgt ← instantiate_mvars tgt,
-   nm ← get_unused_decl_name $ new_decl_name ++
+   nm ← get_unused_decl_name $ new_decl_name <.>
      match cls with
-     -- the postfix is needed because we can't protect this name. using nm.last directly can
-     -- conflict with open namespaces
-     | (expr.const nm _) := (nm.last ++ "_1" : string)
+     | (expr.const nm _) := nm.last
      | _ := "inst"
      end,
-   add_decl $ mk_definition nm inst.collect_univ_params tgt inst,
+   add_protected_decl $ declaration.defn nm inst.collect_univ_params tgt inst new_decl.reducibility_hints new_decl.is_trusted,
    set_basic_attribute `instance nm tt,
    return tt
 

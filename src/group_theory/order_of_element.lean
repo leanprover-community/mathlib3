@@ -6,6 +6,8 @@ Authors: Johannes Hölzl
 import group_theory.coset
 import data.nat.totient
 import data.set.finite
+import deprecated.subgroup
+
 open function
 open_locale big_operators
 
@@ -54,20 +56,20 @@ fintype.card_eq_one_iff.2
 
 variables [fintype α] [dec : decidable_eq α]
 
-instance quotient_group.fintype (s : set α) [is_subgroup s] [d : decidable_pred s] :
+instance quotient_group.fintype (s : subgroup α) [d : decidable_pred (λ a, a ∈ s)] :
   fintype (quotient s) :=
 @quotient.fintype _ _ (left_rel s) (λ _ _, d _)
 
-lemma card_eq_card_quotient_mul_card_subgroup (s : set α) [hs : is_subgroup s] [fintype s]
-  [decidable_pred s] : fintype.card α = fintype.card (quotient s) * fintype.card s :=
+lemma card_eq_card_quotient_mul_card_subgroup (s : subgroup α) [fintype s]
+  [decidable_pred (λ a, a ∈ s)] : fintype.card α = fintype.card (quotient s) * fintype.card s :=
 by rw ← fintype.card_prod;
-  exact fintype.card_congr (is_subgroup.group_equiv_quotient_times_subgroup hs)
+  exact fintype.card_congr (subgroup.group_equiv_quotient_times_subgroup)
 
-lemma card_subgroup_dvd_card (s : set α) [is_subgroup s] [fintype s] :
+lemma card_subgroup_dvd_card (s : subgroup α) [fintype s] :
   fintype.card s ∣ fintype.card α :=
 by haveI := classical.prop_decidable; simp [card_eq_card_quotient_mul_card_subgroup s]
 
-lemma card_quotient_dvd_card (s : set α) [is_subgroup s] [decidable_pred s] [fintype s] :
+lemma card_quotient_dvd_card (s : subgroup α) [decidable_pred (λ a, a ∈ s)] [fintype s] :
   fintype.card (quotient s) ∣ fintype.card α :=
 by simp [card_eq_card_quotient_mul_card_subgroup s]
 
@@ -203,19 +205,20 @@ section classical
 open_locale classical
 open quotient_group
 
+-- TODO when we remove the `deprecated.subgroup` import, the `subgroup.` prefixes can be removed here.
 /- TODO: use cardinal theory, introduce `card : set α → ℕ`, or setup decidability for cosets -/
 lemma order_of_dvd_card_univ : order_of a ∣ fintype.card α :=
-have ft_prod : fintype (quotient (gpowers a) × (gpowers a)),
-  from fintype.of_equiv α (gpowers.is_subgroup a).group_equiv_quotient_times_subgroup,
+have ft_prod : fintype (quotient (subgroup.gpowers a) × (subgroup.gpowers a)),
+  from fintype.of_equiv α subgroup.group_equiv_quotient_times_subgroup,
 have ft_s : fintype (gpowers a),
   from @fintype.fintype_prod_right _ _ _ ft_prod _,
-have ft_cosets : fintype (quotient (gpowers a)),
-  from @fintype.fintype_prod_left _ _ _ ft_prod ⟨⟨1, is_submonoid.one_mem⟩⟩,
-have ft : fintype (quotient (gpowers a) × (gpowers a)),
+have ft_cosets : fintype (quotient (subgroup.gpowers a)),
+  from @fintype.fintype_prod_left _ _ _ ft_prod ⟨⟨1, (subgroup.gpowers a).one_mem⟩⟩,
+have ft : fintype (quotient (subgroup.gpowers a) × (subgroup.gpowers a)),
   from @prod.fintype _ _ ft_cosets ft_s,
 have eq₁ : fintype.card α = @fintype.card _ ft_cosets * @fintype.card _ ft_s,
   from calc fintype.card α = @fintype.card _ ft_prod :
-      @fintype.card_congr _ _ _ ft_prod (gpowers.is_subgroup a).group_equiv_quotient_times_subgroup
+      @fintype.card_congr _ _ _ ft_prod subgroup.group_equiv_quotient_times_subgroup
     ... = @fintype.card _ (@prod.fintype _ _ ft_cosets ft_s) :
       congr_arg (@fintype.card _) $ subsingleton.elim _ _
     ... = @fintype.card _ ft_cosets * @fintype.card _ ft_s :
@@ -223,7 +226,7 @@ have eq₁ : fintype.card α = @fintype.card _ ft_cosets * @fintype.card _ ft_s,
 have eq₂ : order_of a = @fintype.card _ ft_s,
   from calc order_of a = _ : order_eq_card_gpowers
     ... = _ : congr_arg (@fintype.card _) $ subsingleton.elim _ _,
-dvd.intro (@fintype.card (quotient (gpowers a)) ft_cosets) $
+dvd.intro (@fintype.card (quotient (subgroup.gpowers a)) ft_cosets) $
   by rw [eq₁, eq₂, mul_comm]
 
 omit dec

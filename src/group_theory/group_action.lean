@@ -271,7 +271,7 @@ instance (H : subgroup α) : mul_action α (quotient H) :=
 
 instance mul_left_cosets_comp_subtype_val (H I : subgroup α)  :
   mul_action I (quotient H) :=
-mul_action.comp_hom (quotient H) (subtype.val : I → α)
+mul_action.comp_hom (quotient H) (subgroup.subtype I)
 
 end mul_action
 

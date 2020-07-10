@@ -6,8 +6,6 @@ Authors: Kevin Buzzard, Patrick Massot.
 This file is to a certain extent based on `quotient_module.lean` by Johannes Hölzl.
 -/
 import group_theory.coset
-import tactic
-#eval "remove this import"
 
 universes u v
 
@@ -105,7 +103,8 @@ begin
   exact h hx,
 end
 
-variables (φ : G →* H) (HN : ∀x∈N, φ x = 1)
+omit nN
+variables (φ : G →* H)
 
 open function monoid_hom
 
@@ -115,15 +114,15 @@ def ker_lift : quotient (ker φ) →* H :=
 lift _ φ $ λ g, mem_ker.mp
 
 @[simp, to_additive quotient_add_group.ker_lift_mk]
-lemma ker_lift_mk (g : G) : (ker_lift N φ) g = φ g :=
+lemma ker_lift_mk (g : G) : (ker_lift φ) g = φ g :=
 lift_mk _ _ _
 
 @[simp, to_additive quotient_add_group.ker_lift_mk']
-lemma ker_lift_mk' (g : G) : (ker_lift N φ) (mk g) = φ g :=
+lemma ker_lift_mk' (g : G) : (ker_lift φ) (mk g) = φ g :=
 lift_mk' _ _ _
 
 @[to_additive quotient_add_group.injective_ker_lift]
-lemma ker_lift_injective : injective (ker_lift N φ) :=
+lemma ker_lift_injective : injective (ker_lift φ) :=
 assume a b, quotient.induction_on₂' a b $
   assume a b (h : φ a = φ b), quotient.sound' $
 show a⁻¹ * b ∈ ker φ, by rw [mem_ker,
@@ -133,31 +132,19 @@ show a⁻¹ * b ∈ ker φ, by rw [mem_ker,
 noncomputable def quotient_ker_equiv_range : (quotient (ker φ)) ≃* range φ :=
 mul_equiv.of_bijective
   (lift (ker φ) (to_range _) (λ x hx, show (⟨φ x, _⟩ : range φ) = ⟨1, _⟩, by simp [mem_ker.1 hx, hx]))
-  ⟨λ a b h, ker_lift_injective N _ sorry, λ ⟨x, y, hy⟩, ⟨mk y, subtype.eq hy⟩⟩
+  ⟨λ a b h, ker_lift_injective _ begin dsimp [ker_lift], sorry end, λ ⟨x, y, hy⟩, ⟨mk y, subtype.eq hy⟩⟩
 
+@[to_additive quotient_add_group.quotient_ker_equiv_of_surjective]
 noncomputable def quotient_ker_equiv_of_surjective (hφ : function.surjective φ) :
-  (quotient (ker φ)) ≃ H :=
-calc (quotient_group.quotient (ker φ)) ≃ set.range φ : begin sorry end -- quotient_ker_equiv_range _
-... ≃ H : ⟨λ a, a.1, λ b, ⟨b, hφ b⟩, λ ⟨_, _⟩, rfl, λ _, rfl⟩
+  (quotient (ker φ)) ≃* H :=
+begin
+  -- TODO golf. We can't use `calc` because it doesn't like mul_equiv.
+  apply @mul_equiv.trans _ _ _ _ _,
+  exact quotient_ker_equiv_range φ,
+  rw range_top_of_surjective _ hφ,
+  show ↥(⊤ : subgroup H) ≃* H,
+    sorry -- this should be proved elsewhere.
+end
+
 
 end quotient_group
-
-namespace quotient_add_group
-open is_add_group_hom
-
-variables {G : Type u} [_root_.add_group G] (N : set G) [normal_add_subgroup N] {H : Type v} [_root_.add_group H]
-variables (φ : G → H) [_root_.is_add_group_hom φ]
-
-noncomputable def quotient_ker_equiv_range : (quotient (ker φ)) ≃ set.range φ :=
-@quotient_group.quotient_ker_equiv_range (multiplicative G) _ (multiplicative H) _ φ
-  (multiplicative.is_group_hom _)
-
-noncomputable def quotient_ker_equiv_of_surjective (hφ : function.surjective φ) :
-  (quotient (ker φ)) ≃ H :=
-@quotient_group.quotient_ker_equiv_of_surjective (multiplicative G) _ (multiplicative H) _ φ
-  (multiplicative.is_group_hom _) hφ
-
-attribute [to_additive quotient_add_group.quotient_ker_equiv_range] quotient_group.quotient_ker_equiv_range
-attribute [to_additive quotient_add_group.quotient_ker_equiv_of_surjective] quotient_group.quotient_ker_equiv_of_surjective
-
-end quotient_add_group

@@ -228,6 +228,52 @@ def map_mk (I J : ideal α) : ideal I.quotient :=
   smul_mem' := by rintro ⟨c⟩ _ ⟨x, hx, rfl⟩;
     exact ⟨c * x, J.mul_mem_left hx, rfl⟩ }
 
+/-- The preimage of an ideal J under the quotient map `R → R/I`. -/
+def comap_mk (I : ideal α) (j : ideal I.quotient) : ideal α :=
+{ carrier := mk I ⁻¹' j,
+  zero_mem' := j.zero_mem,
+  add_mem' := λ _ _ hx hy, j.add_mem hx hy,
+  smul_mem' := λ c _ hx, by simp [j.mul_mem_left hx] }
+
+@[simp] lemma map_mk_top {I : ideal α} : map_mk I ⊤ = ⊤ :=
+le_antisymm le_top (by rintro ⟨x⟩ hx; use ⟨x, hx, rfl⟩)
+
+lemma map_mk_comap_mk_left_inverse {I : ideal α} : left_inverse (map_mk I) (comap_mk I) :=
+by refine λ J, le_antisymm
+  (by rintro ⟨x⟩ hx; exact Exists.rec_on ((set.mem_image _ _ _).mp hx)
+    (λ w hw, hw.right ▸ hw.left))
+  (by rintro ⟨x⟩ hx; exact ⟨x, ⟨hx, rfl⟩⟩)
+
+-- TODO: is this even worth making into a lemma?
+lemma map_mk_le_iff_le_comap_mk {I J : ideal α} {j : ideal I.quotient} :
+  map_mk I J ≤ j ↔ J ≤ comap_mk I j := set.image_subset_iff
+
+lemma le_map_mk_of_comap_mk_le {I J : ideal α} {j : ideal I.quotient} :
+  comap_mk I j ≤ J → j ≤ map_mk I J :=
+by rintros h ⟨x⟩ hx; exact ⟨x, ⟨h hx, rfl⟩⟩
+
+-- This isn't just the contra of the last statement, because ideals are only partially ordered
+lemma lt_comap_mk_of_map_mk_lt {I J : ideal α} {j : ideal I.quotient} :
+  map_mk I J < j → J < comap_mk I j :=
+λ h, lt_of_le_of_ne
+  (map_mk_le_iff_le_comap_mk.mp (le_of_lt h))
+  (λ heq, (ne_of_lt (by rwa [heq, map_mk_comap_mk_left_inverse] at h)) (rfl : j = j)),
+
+lemma top_or_maximal_of_maximal {I J : ideal α} (h : is_maximal J) :
+  (map_mk I J = ⊤) ∨ (is_maximal (map_mk I J)) :=
+begin
+  rw classical.or_iff_not_imp_left,
+  refine λ htop, ⟨htop, λ k hk, _⟩,
+  have := congr_arg (map_mk I) (h.right _ (lt_comap_mk_of_map_mk_lt hk)),
+  rwa [map_mk_comap_mk_left_inverse, map_mk_top] at this,
+end
+
+lemma mk_map_Inf {S : set (ideal α)} :
+  quotient.map_mk I (Inf S) = Inf (quotient.map_mk I '' S) :=
+begin
+  sorry
+end
+
 @[simp] lemma mk_zero (I : ideal α) : mk I 0 = 0 := rfl
 @[simp] lemma mk_add (I : ideal α) (a b : α) : mk I (a + b) = mk I a + mk I b := rfl
 @[simp] lemma mk_neg (I : ideal α) (a : α) : mk I (-a : α) = -mk I a := rfl
@@ -327,6 +373,10 @@ end
 lemma eq_bot_of_prime {K : Type u} [field K] (I : ideal K) [h : I.is_prime] :
   I = ⊥ :=
 classical.or_iff_not_imp_right.mp I.eq_bot_or_top h.1
+
+lemma bot_is_maximal {K : Type u} [field K] : is_maximal (⊥ : ideal K) :=
+⟨λ h, absurd ((eq_top_iff_one (⊤ : ideal K)).mp rfl) (by rw ← h; simp),
+λ I hI, or_iff_not_imp_left.mp (eq_bot_or_top I) (ne_of_gt hI)⟩
 
 end ideal
 

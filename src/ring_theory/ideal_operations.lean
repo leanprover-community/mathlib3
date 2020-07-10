@@ -655,10 +655,16 @@ variables {R : Type u} [comm_ring R]
 def jacobson (I : ideal R) : ideal R :=
 Inf {J : ideal R | I ≤ J ∧ is_maximal J}
 
+lemma le_jacobson {I : ideal R} : I ≤ jacobson I :=
+λ x hx, mem_Inf.mpr (λ J hJ, hJ.left hx)
+
 theorem jacobson_eq_top_iff {I : ideal R} : jacobson I = ⊤ ↔ I = ⊤ :=
 ⟨λ H, classical.by_contradiction $ λ hi, let ⟨M, hm, him⟩ := exists_le_maximal I hi in
   lt_top_iff_ne_top.1 (lt_of_le_of_lt (show jacobson I ≤ M, from Inf_le ⟨him, hm⟩) $ lt_top_iff_ne_top.2 hm.1) H,
 λ H, eq_top_iff.2 $ le_Inf $ λ J ⟨hij, hj⟩, H ▸ hij⟩
+
+lemma jacobson_bot {I : ideal R} : jacobson I = ⊥ → I = ⊥ :=
+λ h, eq_bot_iff.mpr (h ▸ le_jacobson)
 
 theorem mem_jacobson_iff {I : ideal R} {x : R} :
   x ∈ jacobson I ↔ ∀ y, ∃ z, x * y * z + z - 1 ∈ I :=
@@ -679,6 +685,24 @@ theorem mem_jacobson_iff {I : ideal R} {x : R} :
     (by rw [← one_mul z, ← mul_assoc, ← add_mul, mul_one, mul_neg_eq_neg_mul_symm, neg_add_eq_sub, ← neg_sub,
         neg_mul_eq_neg_mul_symm, neg_mul_eq_mul_neg, mul_comm x y]; exact M.mul_mem_right hy)
     (him hz)⟩
+
+-- TODO: Kind of a crutch, shouldn't need this long term
+lemma mem_jacobson {I : ideal R} {x : R}
+  : x ∈ jacobson I ↔ ∀ J ∈ {J : ideal R | I ≤ J ∧ J.is_maximal}, x ∈ J :=
+by dunfold ideal.jacobson; rw mem_Inf
+
+lemma eq_jacobson_iff_ge_jacobson {I : ideal R} : jacobson I = I ↔ jacobson I ≤ I :=
+⟨λ h, le_of_eq h, λ h, le_antisymm h le_jacobson⟩
+
+lemma jacobson_mono {I J : ideal R} : I ≤ J → I.jacobson ≤ J.jacobson :=
+begin
+  intros h x hx,
+  erw mem_Inf at ⊢ hx,
+  exact λ K ⟨hK, hK_max⟩, hx ⟨trans h hK, hK_max⟩
+end
+
+lemma comap_jacobson {S : Type u} [comm_ring S] (e : S ≃+* R) {I : ideal R}
+    : comap e.to_ring_hom (jacobson I) = jacobson (comap e.to_ring_hom I) := sorry
 
 end jacobson
 

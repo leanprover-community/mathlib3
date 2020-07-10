@@ -75,9 +75,7 @@ begin
   congr' 1,
   rw [← mul_div_assoc, eq_div_iff],
   { rw [mul_comm ((n+1 : ℕ) : ℚ)],
-    rw_mod_cast nat.choose_mul_succ_eq n k,
-    rw [int.coe_nat_mul],
     have hk' : k ≤ n + 1, by linarith,
-    rw [int.coe_nat_sub hk', int.sub_nat_nat_eq_coe] },
+    rw_mod_cast nat.choose_mul_succ_eq n k },
   { contrapose! hk with H, rw sub_eq_zero at H, norm_cast at H, linarith }
 end

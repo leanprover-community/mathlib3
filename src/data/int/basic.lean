@@ -1230,7 +1230,7 @@ end
 @[simp, norm_cast] theorem cast_one [add_monoid α] [has_one α] [has_neg α] :
   ((1 : ℤ) : α) = 1 := nat.cast_one
 
-@[simp, norm_cast] theorem cast_sub_nat_nat [add_group α] [has_one α] (m n) :
+@[simp] theorem cast_sub_nat_nat [add_group α] [has_one α] (m n) :
   ((int.sub_nat_nat m n : ℤ) : α) = m - n :=
 begin
   unfold sub_nat_nat, cases e : n - m,

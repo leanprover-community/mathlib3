@@ -12,7 +12,8 @@ import tactic.squeeze
 /-!
 # Characteristic polynomials and the Cayley-Hamilton theorem
 
-We define characteristic polynomials of matrices and prove the Cayley–Hamilton theorem over arbitrary commutative rings.
+We define characteristic polynomials of matrices and
+prove the Cayley–Hamilton theorem over arbitrary commutative rings.
 
 ## Main definitions
 
@@ -78,7 +79,7 @@ applied to the matrix itself, is zero.
 This holds over any commutative ring.
 -/
 -- This proof follows http://drorbn.net/AcademicPensieve/2015-12/CayleyHamilton.pdf
-theorem cayley_hamilton (M : matrix n n R) :
+theorem char_poly_map_eval_self (M : matrix n n R) :
   ((char_poly M).map (algebra_map R (matrix n n R))).eval M = 0 :=
 begin
   -- We begin with the fact $χ_M(t) I = adjugate (t I - M) * (t I - M)$,

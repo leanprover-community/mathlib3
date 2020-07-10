@@ -318,7 +318,7 @@ lemma of_set_target : (of_set s hs).target = s := rfl
 @[simp, mfld_simps] lemma of_set_coe : (of_set s hs : α → α) = id := rfl
 @[simp, mfld_simps] lemma of_set_symm : (of_set s hs).symm = of_set s hs := rfl
 
-lemma refl_eq_of_set : local_homeomorph.refl α = of_set univ is_open_univ :=
+@[simp] lemma of_set_univ_eq_refl : of_set univ is_open_univ = local_homeomorph.refl α :=
 by ext; simp
 
 end

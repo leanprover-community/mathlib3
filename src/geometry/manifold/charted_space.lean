@@ -388,7 +388,7 @@ def id_restr_groupoid : structure_groupoid H :=
     rw [← of_set_symm],
     exact local_homeomorph.eq_on_source.symm' hse,
   end,
-  id_mem' := ⟨univ, is_open_univ, by rw refl_eq_of_set⟩,
+  id_mem' := ⟨univ, is_open_univ, by simp⟩,
   locality' := begin
     intros e h,
     refine ⟨e.source, e.open_source, by simp, _⟩,

@@ -28,13 +28,15 @@ def Mon : Type (u+1) := bundled monoid
 /-- The category of additive monoids and monoid morphisms. -/
 add_decl_doc AddMon
 
+attribute [derive [has_coe_to_sort]] Mon AddMon
+
 namespace Mon
 
 /-- Construct a bundled `Mon` from the underlying type and typeclass. -/
 @[to_additive]
 def of (M : Type u) [monoid M] : Mon := bundled.of M
 
-/-- Construct a bundled Mon from the underlying type and typeclass. -/
+/-- Construct a bundled `Mon` from the underlying type and typeclass. -/
 add_decl_doc AddMon.of
 
 @[to_additive]
@@ -61,12 +63,14 @@ def CommMon : Type (u+1) := bundled comm_monoid
 /-- The category of additive commutative monoids and monoid morphisms. -/
 add_decl_doc AddCommMon
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommMon AddCommMon
+attribute [derive [has_coe_to_sort]] CommMon AddCommMon
 
 namespace CommMon
 
 @[to_additive]
 instance : bundled_hom.parent_projection comm_monoid.to_monoid := ⟨⟩
+
+attribute [derive [large_category, concrete_category]] CommMon AddCommMon
 
 /-- Construct a bundled `CommMon` from the underlying type and typeclass. -/
 @[to_additive]

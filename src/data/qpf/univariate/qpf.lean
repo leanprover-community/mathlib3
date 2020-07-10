@@ -3,8 +3,12 @@ Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad
 -/
-import tactic.interactive data.multiset tactic.basic tactic.apply
-import data.qpf.univariate.pfunctor control.bifunctor
+import tactic.interactive
+import data.multiset
+import tactic.basic
+import tactic.apply
+import data.qpf.univariate.pfunctor
+import control.bifunctor
 
 /-!
 

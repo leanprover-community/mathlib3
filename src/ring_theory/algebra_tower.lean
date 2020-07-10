@@ -185,6 +185,7 @@ variables [comm_semiring R] [comm_semiring S] [semiring A]
 variables [algebra R S] [algebra S A] [algebra R A] [is_algebra_tower R S A]
 
 variables (R) {S A}
+/-- Restricting the scalars of submodules in an algebra tower. -/
 def restrict_scalars' (U : submodule S A) : submodule R A :=
 { smul_mem' := λ r x hx, algebra_map_smul S r x ▸ U.smul_mem _ hx, .. U }
 

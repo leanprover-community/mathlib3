@@ -72,7 +72,7 @@ lemma order_top.at_top_eq (α) [order_top α] : (at_top : filter α) = pure ⊤ 
 le_antisymm (le_pure_iff.2 $ mem_sets_of_superset (mem_at_top ⊤) $ λ b, top_unique)
   (le_infi $ λ b, le_principal_iff.2 le_top)
 
-lemma order_top.tendsto_at_top {α} [order_top α] (f : α → β) :
+lemma tendsto_at_top_pure {α} [order_top α] (f : α → β) :
   tendsto f at_top (pure $ f ⊤) :=
 (order_top.at_top_eq α).symm ▸ tendsto_pure_pure _ _
 

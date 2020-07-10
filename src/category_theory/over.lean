@@ -12,7 +12,7 @@ import category_theory.reflect_isomorphisms
 
 Over (and under) categories are special cases of comma categories.
 * If `L` is the identity functor and `R` is a constant functor, then `comma L R` is the "slice" or
-  "over" category over the object `R` maps to. (This is developed in `over.lean`)
+  "over" category over the object `R` maps to.
 * Conversely, if `L` is a constant functor and `R` is the identity functor, then `comma L R` is the
   "coslice" or "under" category under the object `L` maps to.
 

@@ -5,9 +5,10 @@ Authors: Chris Hughes, Joey van Langen, Casper Putz
 -/
 import tactic.apply_fun
 import data.equiv.ring
-import data.zmod.basic
+import data.zmod.algebra
 import linear_algebra.basis
 import ring_theory.integral_domain
+import field_theory.splitting_field
 
 /-!
 # Finite fields
@@ -116,6 +117,11 @@ calc a ^ (fintype.card K - 1) = (units.mk0 a ha ^ (fintype.card K - 1) : units K
     by rw [units.coe_pow, units.coe_mk0]
   ... = 1 : by { classical, rw [← card_units, pow_card_eq_one], refl }
 
+lemma pow_card_eq_one (x : K) : x ^ fintype.card K = x :=
+begin
+  sorry
+end
+
 variable (K)
 
 theorem card (p : ℕ) [char_p K p] : ∃ (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
@@ -201,6 +207,37 @@ begin
     ... = ∑ x : units K, x ^ i : by { rw [← this, univ.sum_map φ], refl }
     ... = 0 : by { rw [sum_pow_units K i, if_neg], exact hiq, }
 end
+
+section is_splitting_field
+open polynomial
+variables (p : ℕ) [fact p.prime] [char_p K p]
+
+lemma roots_X_pow_card_sub_X : roots (X^q - X : polynomial K) = finset.univ :=
+begin
+  have aux : (X^q - X : polynomial K) ≠ 0,
+  { rw [ne.def, sub_eq_zero], sorry },
+  simp_rw [eq_univ_iff_forall, mem_roots aux, is_root.def, eval_sub, eval_pow, eval_X, sub_eq_zero],
+  exact pow_card_eq_one
+end
+
+instance : is_splitting_field (zmod p) K (X^q - X) :=
+{ splits :=
+  begin
+    -- build lemma `splits_of_degree_eq_card_roots`
+    -- that says: f has degree q and q distinct roots, hence splits
+    sorry
+  end,
+  adjoin_roots :=
+  begin
+    calc _ = algebra.adjoin (zmod p) ↑(roots (X^q - X : polynomial K)) : _
+    ... = _ : _,
+    { simp only [map_pow, map_X, map_sub], },
+    { rw [roots_X_pow_card_sub_X, coe_univ],
+      -- todo, extract lemma
+       }
+  end }
+
+end is_splitting_field
 
 end finite_field
 

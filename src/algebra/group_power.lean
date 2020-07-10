@@ -911,6 +911,12 @@ h.cast_int_mul_cast_int_mul m n
 
 variables (a) (m n : ℤ)
 
+@[simp] lemma cast_int_left : commute (m : R) a :=
+by { rw [← mul_one (m : R)], exact (one_left a).cast_int_mul_left m }
+
+@[simp] lemma cast_int_right : commute a m :=
+by { rw [← mul_one (m : R)], exact (one_right a).cast_int_mul_right m }
+
 @[simp] theorem self_cast_int_mul : commute a (n * a) := (commute.refl a).cast_int_mul_right n
 
 @[simp] theorem cast_int_mul_self : commute ((n : R) * a) a := (commute.refl a).cast_int_mul_left n

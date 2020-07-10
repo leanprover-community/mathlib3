@@ -4,7 +4,6 @@ Authors: Johan Commelin
 -/
 
 import field_theory.finite
-import field_theory.splitting_field
 
 /-!
 # Galois fields

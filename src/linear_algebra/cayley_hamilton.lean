@@ -58,7 +58,7 @@ begin
 end
 
 /--
-The characteristic polynomial of a matrix `M` is given by $det (t I - M)$.
+The characteristic polynomial of a matrix `M` is given by $\det (t I - M)$.
 -/
 def char_poly (M : matrix n n R) : polynomial R :=
 (char_matrix M).det
@@ -75,10 +75,9 @@ theorem cayley_hamilton (M : matrix n n R) :
 begin
   -- We begin with the fact $χ_M(t) I = adjugate (t I - M) * (t I - M)$,
   -- as an identity in `matrix n n (polynomial R)`.
-  have h := calc
-    (char_poly M) • (1 : matrix n n (polynomial R))
-         = (char_matrix M).det • (1 : matrix n n (polynomial R)) : rfl
-     ... = adjugate (char_matrix M) * (char_matrix M)            : (adjugate_mul _).symm,
+  have h : (char_poly M) • (1 : matrix n n (polynomial R)) =
+    adjugate (char_matrix M) * (char_matrix M) :=
+    (adjugate_mul _).symm,
   -- Using the algebra isomorphism `matrix n n (polynomial R) ≃ₐ[R] polynomial (matrix n n R)`,
   -- we have the same identity in `polynomial (matrix n n R)`.
   apply_fun mat_poly_equiv at h,

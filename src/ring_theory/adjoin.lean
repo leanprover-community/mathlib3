@@ -37,6 +37,9 @@ variables (R A)
 @[simp] theorem adjoin_empty : adjoin R (∅ : set A) = ⊥ :=
 eq_bot_iff.2 $ adjoin_le $ set.empty_subset _
 
+@[simp] theorem adjoin_univ : adjoin R (set.univ : set A) = ⊤ :=
+eq_top_iff.2 $ λ x, subset_adjoin $ set.mem_univ _
+
 variables (R) {A} (s)
 theorem adjoin_eq_span : (adjoin R s : submodule R A) = span R (monoid.closure s) :=
 begin

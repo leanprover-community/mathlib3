@@ -229,12 +229,9 @@ instance : is_splitting_field (zmod p) K (X^q - X) :=
   end,
   adjoin_roots :=
   begin
-    calc _ = algebra.adjoin (zmod p) ↑(roots (X^q - X : polynomial K)) : _
-    ... = _ : _,
+    transitivity algebra.adjoin (zmod p) ↑(roots (X^q - X : polynomial K)),
     { simp only [map_pow, map_X, map_sub], },
-    { rw [roots_X_pow_card_sub_X, coe_univ],
-      -- todo, extract lemma
-       }
+    { rw [roots_X_pow_card_sub_X, coe_univ, algebra.adjoin_univ], }
   end }
 
 end is_splitting_field

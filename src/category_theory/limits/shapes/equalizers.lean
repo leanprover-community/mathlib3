@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Markus Himmel
 -/
 import category_theory.epi_mono
-import category_theory.limits.shapes.finite_limits
+import category_theory.limits.limits
 
 /-!
 # Equalizers and coequalizers
@@ -55,10 +55,6 @@ universes v u
 @[derive decidable_eq, derive inhabited] inductive walking_parallel_pair : Type v
 | zero | one
 
-instance fintype_walking_parallel_pair : fintype walking_parallel_pair :=
-{ elems := [walking_parallel_pair.zero, walking_parallel_pair.one].to_finset,
-  complete := λ x, by { cases x; simp } }
-
 open walking_parallel_pair
 
 /-- The type family of morphisms for the diagram indexing a (co)equalizer. -/
@@ -74,13 +70,6 @@ instance : inhabited (walking_parallel_pair_hom zero one) :=
 
 open walking_parallel_pair_hom
 
-instance (j j' : walking_parallel_pair) : fintype (walking_parallel_pair_hom j j') :=
-{ elems := walking_parallel_pair.rec_on j
-    (walking_parallel_pair.rec_on j' [walking_parallel_pair_hom.id zero].to_finset
-      [left, right].to_finset)
-    (walking_parallel_pair.rec_on j' ∅ [walking_parallel_pair_hom.id one].to_finset),
-  complete := by tidy }
-
 /-- Composition of morphisms in the indexing diagram for (co)equalizers. -/
 def walking_parallel_pair_hom.comp :
   Π (X Y Z : walking_parallel_pair)
@@ -95,8 +84,6 @@ instance walking_parallel_pair_hom_category : small_category walking_parallel_pa
 { hom  := walking_parallel_pair_hom,
   id   := walking_parallel_pair_hom.id,
   comp := walking_parallel_pair_hom.comp }
-
-instance : fin_category walking_parallel_pair := { }
 
 @[simp]
 lemma walking_parallel_pair_hom_id (X : walking_parallel_pair) :
@@ -583,15 +570,6 @@ class has_coequalizers :=
 (has_colimits_of_shape : has_colimits_of_shape walking_parallel_pair C)
 
 attribute [instance] has_equalizers.has_limits_of_shape has_coequalizers.has_colimits_of_shape
-
-/-- Equalizers are finite limits, so if `C` has all finite limits, it also has all equalizers -/
-def has_equalizers_of_has_finite_limits [has_finite_limits C] : has_equalizers C :=
-{ has_limits_of_shape := infer_instance }
-
-/-- Coequalizers are finite colimits, of if `C` has all finite colimits, it also has all
-    coequalizers -/
-def has_coequalizers_of_has_finite_colimits [has_finite_colimits C] : has_coequalizers C :=
-{ has_colimits_of_shape := infer_instance }
 
 /-- If `C` has all limits of diagrams `parallel_pair f g`, then it has all equalizers -/
 def has_equalizers_of_has_limit_parallel_pair

@@ -11,7 +11,6 @@ import data.finset.powerset
 import data.finset.pi
 import data.equiv.mul_add
 import tactic.abel
-import tactic.simp_rw
 import data.nat.enat
 
 /-!
@@ -650,7 +649,6 @@ begin
   apply hs, intros a ha, apply p_s, simp [ha],
 end
 
-
 /-- For any product along `{0, ..., n-1}` of a commutative-monoid-valued function, we can verify that
 it's equal to a different function just by checking ratios of adjacent terms.
 This is a multiplicative discrete analogue of the fundamental theorem of calculus. -/
@@ -685,7 +683,7 @@ by { apply sum_range_induction; abel, simp }
 reduces to the ratio of the last and first factors.-/
 @[to_additive]
 lemma prod_range_div {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
-  ∏ i in range n, (f (i+1) * (f i)⁻¹ ) = f n * (f 0)⁻¹ :=
+  ∏ i in range n, (f (i+1) * (f i)⁻¹) = f n * (f 0)⁻¹ :=
 by apply @sum_range_sub (additive M)
 
 @[to_additive]

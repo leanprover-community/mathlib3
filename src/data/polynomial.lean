@@ -5,12 +5,12 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import tactic.ring_exp
 import tactic.chain
-import tactic.converter.apply_congr
 import data.monoid_algebra
 import algebra.gcd_domain
 import ring_theory.euclidean_domain
 import ring_theory.multiplicity
 import data.finset.nat_antidiagonal
+import data.finset.sort
 
 /-!
 # Theory of univariate polynomials
@@ -221,7 +221,7 @@ end coeff
 
 section C
 /-- `C a` is the constant polynomial `a`. -/
-def C : R →+* polynomial R := add_monoid_algebra.algebra_map'
+def C : R →+* polynomial R := add_monoid_algebra.algebra_map' (ring_hom.id R)
 
 @[simp] lemma monomial_zero_left (a : R) : monomial 0 a = C a := rfl
 
@@ -561,7 +561,18 @@ variables [comm_semiring R] {p q r : polynomial R}
 local attribute [instance] coeff_coe_to_fun
 
 instance : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
-instance : algebra R (polynomial R) := add_monoid_algebra.algebra
+
+section
+variables [semiring A] [algebra R A]
+
+/-- Note that this instance also provides `algebra R (polynomial R)`. -/
+instance algebra_of_algebra : algebra R (polynomial A) := add_monoid_algebra.algebra
+
+lemma algebra_map_apply (r : R) :
+  algebra_map R (polynomial A) r = C (algebra_map R A r) :=
+rfl
+
+end
 
 section eval
 variable {x : R}
@@ -1810,17 +1821,21 @@ section comm_semiring
 variables [comm_semiring R] {p q : polynomial R}
 
 section aeval
-/-- `R[X]` is the generator of the category `R-Alg`. -/
-instance polynomial (R : Type u) [comm_semiring R] : algebra R (polynomial R) :=
-{ commutes' := λ _ _, mul_comm _ _,
-  smul_def' := λ c p, (polynomial.C_mul' c p).symm,
-  .. polynomial.semimodule, .. ring_hom.of polynomial.C }
+instance algebra' (R : Type u) [comm_semiring R] (A : Type v) [semiring A] [algebra R A] :
+  algebra R (polynomial A) :=
+{ smul := λ r p, algebra_map R A r • p,
+  commutes' := λ c p, ext $ λ n,
+    show (C (algebra_map R A c) * p).coeff n = (p * C (algebra_map R A c)).coeff n,
+    by rw [coeff_C_mul, coeff_mul_C, algebra.commutes],
+  smul_def' := λ c p, (C_mul' _ _).symm,
+  .. C.comp (algebra_map R A) }
 
 variables (R) (A)
 
 -- TODO this could be generalized: there's no need for `A` to be commutative,
 -- we just need that `x` is central.
-variables [comm_ring A] [algebra R A]
+variables [comm_semiring A] [algebra R A]
+variables {B : Type*} [comm_semiring B] [algebra R B]
 variables (x : A)
 
 /-- Given a valuation `x` of the variable in an `R`-algebra `A`, `aeval R A x` is
@@ -1848,6 +1863,12 @@ begin
     rw [pow_succ', ← mul_assoc, φ.map_mul, eval₂_mul (algebra_map R A), eval₂_X, ih] }
 end
 
+theorem aeval_alg_hom (f : A →ₐ[R] B) (x : A) : aeval R B (f x) = f.comp (aeval R A x) :=
+alg_hom.ext $ λ p, by rw [eval_unique (f.comp (aeval R A x)), alg_hom.comp_apply, aeval_X, aeval_def]
+
+theorem aeval_alg_hom_apply (f : A →ₐ[R] B) (x : A) (p) : aeval R B (f x) p = f (aeval R A x p) :=
+alg_hom.ext_iff.1 (aeval_alg_hom f x) p
+
 variables [comm_ring S] {f : R →+* S}
 
 lemma is_root_of_eval₂_map_eq_zero
@@ -1863,7 +1884,7 @@ lemma is_root_of_aeval_algebra_map_eq_zero [algebra R S] {p : polynomial R}
   {r : R} (hr : aeval R S (algebra_map R S r) p = 0) : p.is_root r :=
 is_root_of_eval₂_map_eq_zero inj hr
 
-lemma dvd_term_of_dvd_eval_of_dvd_terms {z p : A} {f : polynomial A} (i : ℕ)
+lemma dvd_term_of_dvd_eval_of_dvd_terms {z p : S} {f : polynomial S} (i : ℕ)
   (dvd_eval : p ∣ f.eval z) (dvd_terms : ∀ (j ≠ i), p ∣ f.coeff j * z ^ j) :
   p ∣ f.coeff i * z ^ i :=
 begin
@@ -1880,7 +1901,7 @@ begin
     exact finsupp.not_mem_support_iff.mp hi }
 end
 
-lemma dvd_term_of_is_root_of_dvd_terms {r p : A} {f : polynomial A} (i : ℕ)
+lemma dvd_term_of_is_root_of_dvd_terms {r p : S} {f : polynomial S} (i : ℕ)
   (hr : f.is_root r) (h : ∀ (j ≠ i), p ∣ f.coeff j * r ^ j) : p ∣ f.coeff i * r ^ i :=
 dvd_term_of_dvd_eval_of_dvd_terms i (eq.symm hr ▸ dvd_zero p) h
 

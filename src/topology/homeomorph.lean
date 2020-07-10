@@ -78,10 +78,10 @@ le_antisymm
 protected lemma embedding (h : α ≃ₜ β) : embedding h :=
 ⟨⟨h.induced_eq.symm⟩, h.to_equiv.injective⟩
 
-lemma compact_image {s : set α} (h : α ≃ₜ β) : compact (h '' s) ↔ compact s :=
+lemma compact_image {s : set α} (h : α ≃ₜ β) : is_compact (h '' s) ↔ is_compact s :=
 h.embedding.compact_iff_compact_image.symm
 
-lemma compact_preimage {s : set β} (h : α ≃ₜ β) : compact (h ⁻¹' s) ↔ compact s :=
+lemma compact_preimage {s : set β} (h : α ≃ₜ β) : is_compact (h ⁻¹' s) ↔ is_compact s :=
 by rw ← image_symm; exact h.symm.compact_image
 
 protected lemma dense_embedding (h : α ≃ₜ β) : dense_embedding h :=

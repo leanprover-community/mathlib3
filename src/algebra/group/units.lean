@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johannes Hölzl, Chris Hughes, Jens Wagemaker
 -/
 import algebra.group.basic
-import tactic.ext
-import tactic.norm_cast
 
 /-!
 # Units (i.e., invertible elements) of a multiplicative monoid

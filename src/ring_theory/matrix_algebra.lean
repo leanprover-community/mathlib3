@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import tactic.tidy
-import tactic.squeeze
 import ring_theory.tensor_product
 import data.matrix.basic
 

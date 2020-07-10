@@ -25,15 +25,15 @@ variables {α : Type*} {β : Type*} [decidable_linear_order β]
 def argmax₂ (f : α → β) (a : option α) (b : α) : option α :=
 option.cases_on a (some b) (λ c, if f b ≤ f c then some c else some b)
 
-/-- `argmax f l` returns `some a`, where `a` of `l` that maximises `f a`. If there are `a b` such that
-  `f a = f b`, it returns whichever of `a` or `b` comes first in the list.
-  `argmax f []` = none` -/
+/-- `argmax f l` returns `some a`, where `a` of `l` that maximises `f a`. If there are `a b` such
+that `f a = f b`, it returns whichever of `a` or `b` comes first in the list.
+`argmax f []` = none` -/
 def argmax (f : α → β) (l : list α) : option α :=
 l.foldl (argmax₂ f) none
 
-/-- `argmin f l` returns `some a`, where `a` of `l` that minimises `f a`. If there are `a b` such that
-  `f a = f b`, it returns whichever of `a` or `b` comes first in the list.
-  `argmin f []` = none` -/
+/-- `argmin f l` returns `some a`, where `a` of `l` that minimises `f a`. If there are `a b` such
+that `f a = f b`, it returns whichever of `a` or `b` comes first in the list.
+`argmin f []` = none` -/
 def argmin (f : α → β) (l : list α) :=
 @argmax _ (order_dual β) _ f l
 

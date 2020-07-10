@@ -30,6 +30,7 @@ absolute value, uniform spaces
 -/
 
 open set function filter uniform_space
+open_locale filter
 
 namespace is_absolute_value
 variables {𝕜 : Type*} [discrete_linear_ordered_field 𝕜]
@@ -37,7 +38,7 @@ variables {R : Type*} [comm_ring R] (abv : R → 𝕜) [is_absolute_value abv]
 
 /-- The uniformity coming from an absolute value. -/
 def uniform_space_core : uniform_space.core R :=
-{ uniformity := (⨅ ε>0, principal {p:R×R | abv (p.2 - p.1) < ε}),
+{ uniformity := (⨅ ε>0, 𝓟 {p:R×R | abv (p.2 - p.1) < ε}),
   refl := le_infi $ assume ε, le_infi $ assume ε_pos, principal_mono.2
     (λ ⟨x, y⟩ h, by simpa [show x = y, from h, abv_zero abv]),
   symm := tendsto_infi.2 $ assume ε, tendsto_infi.2 $ assume h,
@@ -58,11 +59,12 @@ def uniform_space_core : uniform_space.core R :=
 def uniform_space : uniform_space R :=
 uniform_space.of_core (uniform_space_core abv)
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem mem_uniformity {s : set (R×R)} :
   s ∈ (uniform_space_core abv).uniformity ↔
   (∃ε>0, ∀{a b:R}, abv (b - a) < ε → (a, b) ∈ s) :=
 begin
-  suffices : s ∈ (⨅ ε: {ε : 𝕜 // ε > 0}, principal {p:R×R | abv (p.2 - p.1) < ε.val}) ↔ _,
+  suffices : s ∈ (⨅ ε: {ε : 𝕜 // ε > 0}, 𝓟 {p:R×R | abv (p.2 - p.1) < ε.val}) ↔ _,
   { rw infi_subtype at this,
     exact this },
   rw mem_infi,

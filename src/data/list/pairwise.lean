@@ -74,7 +74,8 @@ pairwise.iff_of_mem (by simp only [true_and, iff_self, forall_2_true_iff] {conte
 
 theorem pairwise.imp_mem {l : list α} :
   pairwise R l ↔ pairwise (λ x y, x ∈ l → y ∈ l → R x y) l :=
-pairwise.iff_of_mem (by simp only [forall_prop_of_true, iff_self, forall_2_true_iff] {contextual := tt})
+pairwise.iff_of_mem
+  (by simp only [forall_prop_of_true, iff_self, forall_2_true_iff] {contextual := tt})
 
 theorem pairwise_of_sublist : Π {l₁ l₂ : list α}, l₁ <+ l₂ → pairwise R l₂ → pairwise R l₁
 | ._ ._ sublist.slnil h := h
@@ -202,7 +203,8 @@ from λ R l, ⟨λ p, reverse_reverse l ▸ this p, this⟩,
     pairwise.nil, mem_reverse, mem_singleton, forall_eq, true_and] using h]
 
 theorem pairwise_iff_nth_le {R} : ∀ {l : list α},
-  pairwise R l ↔ ∀ i j (h₁ : j < length l) (h₂ : i < j), R (nth_le l i (lt_trans h₂ h₁)) (nth_le l j h₁)
+  pairwise R l ↔ ∀ i j (h₁ : j < length l) (h₂ : i < j),
+    R (nth_le l i (lt_trans h₂ h₁)) (nth_le l j h₁)
 | [] := by simp only [pairwise.nil, true_iff]; exact λ i j h, (not_lt_zero j).elim h
 | (a::l) := begin
   rw [pairwise_cons, pairwise_iff_nth_le],

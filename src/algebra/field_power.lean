@@ -15,14 +15,6 @@ universe u
 | (n : ℕ) := f.map_pow a n
 | -[1+n] := by simp only [fpow_neg_succ_of_nat, f.map_pow, f.map_inv, f.map_one]
 
-namespace is_ring_hom
-
-lemma map_fpow {K L : Type*} [division_ring K] [division_ring L] (f : K → L) [is_ring_hom f]
-  (a : K) : ∀ (n : ℤ), f (a ^ n) = f a ^ n :=
-(ring_hom.of f).map_fpow a
-
-end is_ring_hom
-
 section ordered_field_power
 open int
 
@@ -126,21 +118,30 @@ end
   x ^ m ≤ x ^ n ↔ m ≤ n :=
 (fpow_strict_mono hx).le_iff_le
 
-lemma injective_fpow {x : K} (h₀ : 0 < x) (h₁ : x ≠ 1) :
+@[simp] lemma pos_div_pow_pos {a b : K} (ha : 0 < a) (hb : 0 < b) (k : ℕ) : 0 < a/b^k :=
+div_pos ha (pow_pos hb k)
+
+@[simp] lemma div_pow_le {a b : K} (ha : 0 < a) (hb : 1 ≤ b) (k : ℕ) : a/b^k ≤ a :=
+(div_le_iff $ pow_pos (lt_of_lt_of_le zero_lt_one hb) k).mpr
+(calc a = a * 1 : (mul_one a).symm
+   ...  ≤ a*b^k : (mul_le_mul_left ha).mpr $ one_le_pow_of_one_le hb _)
+
+lemma fpow_injective {x : K} (h₀ : 0 < x) (h₁ : x ≠ 1) :
   function.injective ((^) x : ℤ → K) :=
 begin
   intros m n h,
   rcases lt_trichotomy x 1 with H|rfl|H,
   { apply (fpow_strict_mono (one_lt_inv h₀ H)).injective,
     show x⁻¹ ^ m = x⁻¹ ^ n,
-    rw [← fpow_inv, ← fpow_mul, ← fpow_mul, mul_comm _ m, mul_comm _ n, fpow_mul, fpow_mul, h], },
+    rw [← fpow_neg_one, ← fpow_mul, ← fpow_mul, mul_comm _ m, mul_comm _ n, fpow_mul, fpow_mul,
+      h], },
   { contradiction },
   { exact (fpow_strict_mono H).injective h, },
 end
 
 @[simp] lemma fpow_inj {x : K} (h₀ : 0 < x) (h₁ : x ≠ 1) {m n : ℤ} :
   x ^ m = x ^ n ↔ m = n :=
-(injective_fpow h₀ h₁).eq_iff
+(fpow_injective h₀ h₁).eq_iff
 
 end ordered
 

@@ -82,7 +82,7 @@ namespace.
 
 * Declare notation which is localized to a namespace using:
   ```lean
-  localized \"infix ` ⊹ `:60 := my_add\" in my.add
+  localized "infix ` ⊹ `:60 := my_add" in my.add
   ```
 
 * After this command it will be available in the same section/namespace/file, just as if you wrote
@@ -101,7 +101,7 @@ namespace.
 
 * You can also declare other localized commands, like local attributes
   ```lean
-  localized \"attribute [simp] le_refl\" in le
+  localized "attribute [simp] le_refl" in le
   ```
 
 * To see all localized commands in a given namespace, run:
@@ -133,8 +133,12 @@ add_tactic_doc
 meta def print_localized_commands (ns : list name) : tactic unit :=
 do cmds ← get_localized ns, cmds.mmap' trace
 
--- you can run `open_locale classical` to get the decidability of all propositions.
+-- you can run `open_locale classical` to get the decidability of all propositions, and downgrade
+-- the priority of decidability instances that make Lean run through all the algebraic hierarchy
+-- whenever it wants to solve a decidability question
 localized "attribute [instance, priority 9] classical.prop_decidable" in classical
+localized "attribute [instance, priority 8] eq.decidable decidable_eq_of_decidable_le" in classical
+
 
 localized "postfix `?`:9001 := optional" in parser
 localized "postfix *:9001 := lean.parser.many" in parser

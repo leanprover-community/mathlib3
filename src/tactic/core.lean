@@ -9,6 +9,7 @@ import meta.expr
 import meta.rb_map
 import data.bool
 import tactic.lean_core_docs
+import tactic.interactive_expr
 
 universe variable u
 
@@ -66,6 +67,15 @@ with initial value `a`. -/
 meta def mfoldl {α : Type} {m} [monad m] (f : α → expr → m α) : α → expr → m α
 | x e := prod.snd <$> (state_t.run (e.traverse $ λ e',
     (get >>= monad_lift ∘ flip f e' >>= put) $> e') x : m _)
+
+/-- `kreplace e old new` replaces all occurrences of the expression `old` in `e`
+with `new`. The occurrences of `old` in `e` are determined using keyed matching
+with transparency `md`; see `kabstract` for details. If `unify` is true,
+we may assign metavariables in `e` as we match subterms of `e` against `old`. -/
+meta def kreplace (e old new : expr) (md := semireducible) (unify := tt)
+  : tactic expr := do
+  e ← kabstract e old md unify,
+  pure $ e.instantiate_var new
 
 end expr
 
@@ -847,7 +857,7 @@ do h ← get_local hyp,
    tp ← infer_type h,
    olde ← to_expr olde, newe ← to_expr newe,
    let repl_tp := tp.replace (λ a n, if a = olde then some newe else none),
-   change_core repl_tp (some h)
+   when (repl_tp ≠ tp) $ change_core repl_tp (some h)
 
 /-- Returns a list of all metavariables in the current partial proof. This can differ from
 the list of goals, since the goals can be manually edited. -/
@@ -1906,7 +1916,7 @@ do e ← pformat_macro () s,
 
 reserve prefix `trace! `:100
 /--
-The combination of `pformat` and `fail`.
+The combination of `pformat` and `trace`.
 -/
 @[user_notation]
 meta def trace_macro (_ : parse $ tk "trace!") (s : string) : parser pexpr :=
@@ -1979,7 +1989,7 @@ private meta def get_pexpr_arg_arity_with_tgt (func : pexpr) (tgt : expr) : tact
 lock_tactic_state $ do
   mv ← mk_mvar,
   solve_aux tgt $ intros >> to_expr ``(%%func %%mv),
-  expr.pi_arity <$> (instantiate_mvars mv >>= infer_type)
+  expr.pi_arity <$> (infer_type mv >>= instantiate_mvars)
 
 /--
 Tries to derive instances by unfolding the newly introduced type and applying type class resolution.
@@ -2105,3 +2115,12 @@ add_tactic_doc
   tags                     := ["simplification"] }
 
 end tactic
+
+/--
+`find_defeq red m e` looks for a key in `m` that is defeq to `e` (up to transparency `red`),
+and returns the value associated with this key if it exists.
+Otherwise, it fails.
+-/
+meta def list.find_defeq (red : tactic.transparency) {v} (m : list (expr × v)) (e : expr) :
+  tactic (expr × v) :=
+m.mfind $ λ ⟨e', val⟩, tactic.is_def_eq e e' red

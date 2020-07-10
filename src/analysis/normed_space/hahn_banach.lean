@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury Kudryashov All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury Kudryashov
+Authors: Yury Kudryashov, Heather Macbeth
 -/
 import analysis.normed_space.operator_norm
 import analysis.convex.cone
@@ -12,12 +12,15 @@ import analysis.convex.cone
 In this file we prove a version of Hahn-Banach theorem for continuous linear
 functions on normed spaces.
 
+We also prove a standard corollary, needed for the isometric inclusion in the double dual.
+
 ## TODO
 
-Prove some corollaries
+Prove more corollaries
 
 -/
 
+section basic
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
 
 /-- Hahn-Banach theorem for continuous linear functions. -/
@@ -39,3 +42,49 @@ begin
   { simp only [← mul_add],
     exact mul_le_mul_of_nonneg_left (norm_add_le x y) (norm_nonneg f) }
 end
+
+end basic
+
+section dual_vector
+variables {E : Type*} [normed_group E] [normed_space ℝ E]
+
+open continuous_linear_equiv
+open_locale classical
+
+lemma coord_self' (x : E) (h : x ≠ 0) : (∥x∥ • (coord ℝ x h))
+  ⟨x, submodule.mem_span_singleton_self x⟩ = ∥x∥ :=
+calc (∥x∥ • (coord ℝ x h)) ⟨x, submodule.mem_span_singleton_self x⟩
+    = ∥x∥ • (linear_equiv.coord ℝ E x h) ⟨x, submodule.mem_span_singleton_self x⟩ : rfl
+... = ∥x∥ • 1 : by rw linear_equiv.coord_self ℝ E x h
+... = ∥x∥ : mul_one _
+
+lemma coord_norm' (x : E) (h : x ≠ 0) : ∥∥x∥ • coord ℝ x h∥ = 1 :=
+by rw [norm_smul, norm_norm, coord_norm, mul_inv_cancel (mt norm_eq_zero.mp h)]
+
+/-- Corollary of Hahn-Banach.  Given a nonzero element `x` of a normed space, there exists an
+    element of the dual space, of norm 1, whose value on `x` is `∥x∥`. -/
+theorem exists_dual_vector (x : E) (h : x ≠ 0) : ∃ g : E →L[ℝ] ℝ, ∥g∥ = 1 ∧ g x = ∥x∥ :=
+begin
+  cases exists_extension_norm_eq (submodule.span ℝ {x}) (∥x∥ • coord ℝ x h) with g hg,
+  use g, split,
+  { rw [hg.2, coord_norm'] },
+  { calc g x = g (⟨x, submodule.mem_span_singleton_self x⟩ : submodule.span ℝ {x}) : by simp
+  ... = (∥x∥ • coord ℝ x h) (⟨x, submodule.mem_span_singleton_self x⟩ : submodule.span ℝ {x}) : by rw ← hg.1
+  ... = ∥x∥ : by rw coord_self' }
+end
+
+/-- Variant of the above theorem, eliminating the hypothesis that `x` be nonzero, and choosing
+    the dual element arbitrarily when `x = 0`. -/
+theorem exists_dual_vector' [nontrivial E] (x : E) : ∃ g : E →L[ℝ] ℝ,
+  ∥g∥ = 1 ∧ g x = ∥x∥ :=
+begin
+  by_cases hx : x = 0,
+  { rcases exists_ne (0 : E) with ⟨y, hy⟩,
+    cases exists_dual_vector y hy with g hg,
+    use g, refine ⟨hg.left, _⟩, simp [hx] },
+  { exact exists_dual_vector x hx }
+end
+
+-- TODO: These corollaries are also true over ℂ.
+
+end dual_vector

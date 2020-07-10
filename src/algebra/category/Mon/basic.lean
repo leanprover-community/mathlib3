@@ -52,11 +52,17 @@ open category_theory
 @[to_additive AddMon]
 def Mon : Type (u+1) := bundled monoid
 
+/-- The category of additive monoids and monoid morphisms. -/
+add_decl_doc AddMon
+
 namespace Mon
 
-/-- Construct a bundled Mon from the underlying type and typeclass. -/
+/-- Construct a bundled `Mon` from the underlying type and typeclass. -/
 @[to_additive]
 def of (M : Type u) [monoid M] : Mon := bundled.of M
+
+/-- Construct a bundled Mon from the underlying type and typeclass. -/
+add_decl_doc AddMon.of
 
 @[to_additive]
 instance : inhabited Mon :=
@@ -88,14 +94,20 @@ end Mon
 @[to_additive AddCommMon]
 def CommMon : Type (u+1) := bundled comm_monoid
 
+/-- The category of additive commutative monoids and monoid morphisms. -/
+add_decl_doc AddCommMon
+
 namespace CommMon
 
 @[to_additive]
 instance : bundled_hom.parent_projection comm_monoid.to_monoid := ⟨⟩
 
-/-- Construct a bundled CommMon from the underlying type and typeclass. -/
+/-- Construct a bundled `CommMon` from the underlying type and typeclass. -/
 @[to_additive]
 def of (M : Type u) [comm_monoid M] : CommMon := bundled.of M
+
+/-- Construct a bundled `AddCommMon` from the underlying type and typeclass. -/
+add_decl_doc AddCommMon.of
 
 @[to_additive]
 instance : inhabited CommMon :=
@@ -179,7 +191,7 @@ namespace category_theory.iso
 /-- Build a `mul_equiv` from an isomorphism in the category `Mon`. -/
 @[to_additive AddMond_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category
 `AddMon`."]
-def Mon_iso_to_mul_equiv {X Y : Mon.{u}} (i : X ≅ Y) : X ≃* Y :=
+def Mon_iso_to_mul_equiv {X Y : Mon} (i : X ≅ Y) : X ≃* Y :=
 { to_fun    := i.hom,
   inv_fun   := i.inv,
   left_inv  := by tidy,
@@ -189,7 +201,7 @@ def Mon_iso_to_mul_equiv {X Y : Mon.{u}} (i : X ≅ Y) : X ≃* Y :=
 /-- Build a `mul_equiv` from an isomorphism in the category `CommMon`. -/
 @[to_additive AddCommMon_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category
 `AddCommMon`."]
-def CommMon_iso_to_mul_equiv {X Y : CommMon.{u}} (i : X ≅ Y) : X ≃* Y :=
+def CommMon_iso_to_mul_equiv {X Y : CommMon} (i : X ≅ Y) : X ≃* Y :=
 { to_fun    := i.hom,
   inv_fun   := i.inv,
   left_inv  := by tidy,

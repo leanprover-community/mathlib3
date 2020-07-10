@@ -31,7 +31,7 @@ The solution is to extend `topological_module` instead.
 -/
 
 open filter
-open_locale topological_space
+open_locale topological_space big_operators
 
 universes u v w u'
 
@@ -266,7 +266,7 @@ by { refine {zero := 0, add := (+), ..}; intros; ext;
   apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm] }
 
 lemma sum_apply {ι : Type*} (t : finset ι) (f : ι → M →L[R] M₂) (b : M) :
-  t.sum f b = t.sum (λd, f d b) :=
+  (∑ d in t, f d) b = ∑ d in t, f d b :=
 begin
   haveI : is_add_monoid_hom (λ (g : M →L[R] M₂), g b) :=
     { map_add := λ f g, continuous_linear_map.add_apply f g b, map_zero := by simp },
@@ -344,7 +344,7 @@ continuous_iff_is_closed.1 f.cont _ is_closed_singleton
 lemma is_complete_ker {M' : Type*} [uniform_space M'] [complete_space M'] [add_comm_monoid M']
   [semimodule R M'] [t1_space M₂] (f : M' →L[R] M₂) :
   is_complete (f.ker : set M') :=
-is_complete_of_is_closed f.is_closed_ker
+f.is_closed_ker.is_complete
 
 instance complete_space_ker {M' : Type*} [uniform_space M'] [complete_space M'] [add_comm_monoid M']
   [semimodule R M'] [t1_space M₂] (f : M' →L[R] M₂) :
@@ -548,12 +548,12 @@ rfl
 @[simp] lemma proj_ker_of_right_inverse_apply_idem [topological_add_group M]
   (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h : function.right_inverse f₂ f₁) (x : f₁.ker) :
   f₁.proj_ker_of_right_inverse f₂ h x = x :=
-subtype.coe_ext.2 $ by simp
+subtype.ext_iff_val.2 $ by simp
 
 @[simp] lemma proj_ker_of_right_inverse_comp_inv [topological_add_group M]
   (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h : function.right_inverse f₂ f₁) (y : M₂) :
   f₁.proj_ker_of_right_inverse f₂ h (f₂ y) = 0 :=
-subtype.coe_ext.2 $ by simp [h y]
+subtype.ext_iff_val.2 $ by simp [h y]
 
 end ring
 
@@ -630,7 +630,7 @@ instance : has_coe_to_fun (M ≃L[R] M₂) := ⟨λ _, M → M₂, λ f, f⟩
 @[ext] lemma ext {f g : M ≃L[R] M₂} (h : (f : M → M₂) = g) : f = g :=
 begin
   cases f; cases g,
-  simp only [],
+  simp only,
   ext x,
   induction h,
   refl
@@ -918,7 +918,7 @@ end
 ⟨0, λ x, by simp only [zero_apply, eq_zero_of_bot_submodule x]⟩
 
 @[simp] lemma closed_complemented_top : closed_complemented (⊤ : submodule R M) :=
-⟨(id R M).cod_restrict ⊤ (λ x, trivial), λ x, subtype.coe_ext.2 $ by simp⟩
+⟨(id R M).cod_restrict ⊤ (λ x, trivial), λ x, subtype.ext_iff_val.2 $ by simp⟩
 
 end submodule
 

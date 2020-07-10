@@ -89,7 +89,7 @@ begin
   have : range g = univ := univ_subset_iff.1 hg,
   use coe ∘ g,
   rw [range_comp, this],
-  simp
+  simp only [image_univ, subtype.range_coe, mem_def]
 end
 
 @[simp] lemma countable_empty : countable (∅ : set α) :=
@@ -119,8 +119,8 @@ lemma countable_Union {t : α → set β} [encodable α] (ht : ∀a, countable (
 by haveI := (λ a, (ht a).to_encodable);
    rw Union_eq_range_sigma; apply countable_range
 
-lemma countable.bUnion {s : set α} {t : α → set β} (hs : countable s) (ht : ∀a∈s, countable (t a)) :
-  countable (⋃a∈s, t a) :=
+lemma countable.bUnion {s : set α} {t : Π x ∈ s, set β} (hs : countable s) (ht : ∀a∈s, countable (t a ‹_›)) :
+  countable (⋃a∈s, t a ‹_›) :=
 begin
   rw bUnion_eq_Union,
   haveI := hs.to_encodable,
@@ -152,7 +152,7 @@ begin
   resetI,
   refine countable.mono _ (countable_range
     (λ t : finset s, {a | ∃ h:a ∈ s, subtype.mk a h ∈ t})),
-  rintro t ⟨⟨ht⟩, ts⟩,
+  rintro t ⟨⟨ht⟩, ts⟩, resetI,
   refine ⟨finset.univ.map (embedding_of_subset _ _ ts),
     set.ext $ λ a, _⟩,
   suffices : a ∈ s ∧ a ∈ t ↔ a ∈ t, by simpa,
@@ -176,8 +176,7 @@ begin
   haveI : encodable t := ht.to_encodable,
   haveI : encodable (s × t) := by apply_instance,
   have : range (λp, ⟨p.1, p.2⟩ : s × t → α × β) = set.prod s t,
-  { ext z,
-    rcases z with ⟨x, y⟩,
+  { ext ⟨x, y⟩,
     simp only [exists_prop, set.mem_range, set_coe.exists, prod.mk.inj_iff,
                set.prod_mk_mem_set_prod_eq, subtype.coe_mk, prod.exists],
     split,

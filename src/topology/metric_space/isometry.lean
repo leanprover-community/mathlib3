@@ -5,7 +5,7 @@ Isometries of emetric and metric spaces
 Authors: Sébastien Gouëzel
 -/
 import topology.bounded_continuous_function
-import topology.opens
+import topology.compacts
 
 /-!
 # Isometries
@@ -96,7 +96,7 @@ lemma isometry.ediam_range (hf : isometry f) :
 by { rw ← image_univ, exact hf.ediam_image univ }
 
 /-- The injection from a subtype is an isometry -/
-lemma isometry_subtype_val {s : set α} : isometry (subtype.val : s → α) :=
+lemma isometry_subtype_coe {s : set α} : isometry (coe : s → α) :=
 λx y, rfl
 
 end emetric_isometry --section
@@ -212,6 +212,26 @@ protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
   h.to_homeomorph.to_equiv = h.to_equiv :=
 rfl
 
+/-- The group of isometries. -/
+instance : group (α ≃ᵢ α) :=
+  { one := isometric.refl _,
+    mul := λ e₁ e₂, e₁.trans e₂,
+    inv := isometric.symm,
+    mul_assoc := λ e₁ e₂ e₃, rfl,
+    one_mul := λ e, ext $ λ _, rfl,
+    mul_one := λ e, ext $ λ _, rfl,
+    mul_left_inv := λ e, ext e.apply_symm_apply }
+
+@[simp] lemma coe_one : ⇑(1 : α ≃ᵢ α) = id := rfl
+
+@[simp] lemma coe_mul (e₁ e₂ : α ≃ᵢ α) : ⇑(e₁ * e₂) = e₂ ∘ e₁ := rfl
+
+lemma mul_apply (e₁ e₂ : α ≃ᵢ α) (x : α) : (e₁ * e₂) x = e₂ (e₁ x) := rfl
+
+@[simp] lemma inv_apply_self (e : α ≃ᵢ α) (x: α) : e⁻¹ (e x) = x := e.symm_apply_apply x
+
+@[simp] lemma apply_inv_self (e : α ≃ᵢ α) (x: α) : e (e⁻¹ x) = x := e.apply_symm_apply x
+
 section normed_group
 
 variables {G : Type*} [normed_group G]
@@ -307,11 +327,9 @@ lemma embedding_of_subset_dist_le (a b : α) :
   dist (embedding_of_subset x a) (embedding_of_subset x b) ≤ dist a b :=
 begin
   refine (dist_le dist_nonneg).2 (λn, _),
-  have A : dist a (x n) + (dist (x 0) (x n) + (-dist b (x n) + -dist (x 0) (x n)))
-    = dist a (x n) - dist b (x n), by ring,
-  simp only [embedding_of_subset_coe, real.dist_eq, A, add_comm, neg_add_rev, _root_.neg_neg,
-             sub_eq_add_neg, add_left_comm],
-  exact abs_dist_sub_le _ _ _
+  simp only [embedding_of_subset_coe, real.dist_eq],
+  convert abs_dist_sub_le a b (x n) using 2,
+  ring
 end
 
 /-- When the reference set is dense, the embedding map is an isometry on its image. -/

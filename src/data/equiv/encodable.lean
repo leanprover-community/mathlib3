@@ -8,6 +8,8 @@ Note that every encodable Type is countable.
 -/
 import data.equiv.nat
 import order.order_iso
+import order.directed
+
 open option list nat function
 
 /-- An encodable type is a "constructively countable" type. This is where
@@ -305,7 +307,8 @@ Choice function for encodable types and decidable predicates.
 We provide the following API
 
 choose      {α : Type*} {p : α → Prop} [c : encodable α] [d : decidable_pred p] : (∃ x, p x) → α :=
-choose_spec {α : Type*} {p : α → Prop} [c : encodable α] [d : decidable_pred p] (ex : ∃ x, p x) : p (choose ex) :=
+choose_spec {α : Type*} {p : α → Prop} [c : encodable α] [d : decidable_pred p] (ex : ∃ x, p x) :
+  p (choose ex) :=
 -/
 
 namespace encodable

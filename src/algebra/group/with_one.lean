@@ -3,7 +3,6 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johan Commelin
 -/
-import algebra.group.hom
 import algebra.ring
 
 universes u v
@@ -22,6 +21,9 @@ instance : has_one (with_one α) := ⟨none⟩
 
 @[to_additive]
 instance : inhabited (with_one α) := ⟨1⟩
+
+@[to_additive]
+instance [nonempty α] : nontrivial (with_one α) := option.nontrivial
 
 @[to_additive]
 instance : has_coe_t α (with_one α) := ⟨some⟩
@@ -117,9 +119,6 @@ namespace with_zero
 instance [one : has_one α] : has_one (with_zero α) :=
 { ..one }
 
-instance [has_one α] : nonzero (with_zero α) :=
-{ zero_ne_one := λ h, option.no_confusion h }
-
 lemma coe_one [has_one α] : ((1 : α) : with_zero α) = 1 := rfl
 
 instance [has_mul α] : mul_zero_class (with_zero α) :=
@@ -148,7 +147,7 @@ instance [comm_semigroup α] : comm_semigroup (with_zero α) :=
     end,
   ..with_zero.semigroup }
 
-instance [monoid α] : monoid (with_zero α) :=
+instance [monoid α] : monoid_with_zero (with_zero α) :=
 { one_mul := λ a, match a with
     | none   := rfl
     | some a := congr_arg some $ one_mul _
@@ -157,12 +156,12 @@ instance [monoid α] : monoid (with_zero α) :=
     | none   := rfl
     | some a := congr_arg some $ mul_one _
     end,
+  ..with_zero.mul_zero_class,
   ..with_zero.has_one,
-  ..with_zero.nonzero,
   ..with_zero.semigroup }
 
-instance [comm_monoid α] : comm_monoid (with_zero α) :=
-{ ..with_zero.monoid, ..with_zero.comm_semigroup }
+instance [comm_monoid α] : comm_monoid_with_zero (with_zero α) :=
+{ ..with_zero.monoid_with_zero, ..with_zero.comm_semigroup }
 
 definition inv [has_inv α] (x : with_zero α) : with_zero α :=
 do a ← x, return a⁻¹
@@ -260,7 +259,7 @@ instance [semiring α] : semiring (with_zero α) :=
   end,
   ..with_zero.add_comm_monoid,
   ..with_zero.mul_zero_class,
-  ..with_zero.monoid }
+  ..with_zero.monoid_with_zero }
 
 end semiring
 

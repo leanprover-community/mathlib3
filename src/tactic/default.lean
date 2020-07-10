@@ -17,6 +17,7 @@ As (non-exhaustive) examples, these includes things like:
 * data.equiv.encodable
 * order.complete_lattice
 -/
+import tactic.basic -- ensure basic tactics are available
 import tactic.abel
 import tactic.ring_exp
 import tactic.noncomm_ring
@@ -28,3 +29,7 @@ import tactic.interval_cases
 import tactic.reassoc_axiom -- most likely useful only for category_theory
 import tactic.slice
 import tactic.subtype_instance
+import tactic.group
+import tactic.cancel_denoms
+import tactic.zify
+import tactic.transport

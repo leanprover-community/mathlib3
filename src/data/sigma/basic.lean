@@ -21,7 +21,7 @@ instance [h₁ : decidable_eq α] [h₂ : ∀a, decidable_eq (β a)] : decidable
   | a₁, _, a₂, _, is_false n := is_false (assume h, sigma.no_confusion h (λe₁ e₂, n e₁))
   end
 
-lemma injective_sigma_mk {i : α} : function.injective (@sigma.mk α β i)
+lemma sigma_mk_injective {i : α} : function.injective (@sigma.mk α β i)
 | _ _ rfl := rfl
 
 @[simp, nolint simp_nf] -- sometimes the built-in injectivity support does not work
@@ -46,7 +46,7 @@ variables {α₁ : Type*} {α₂ : Type*} {β₁ : α₁ → Type*} {β₂ : α�
 def sigma.map (f₁ : α₁ → α₂) (f₂ : Πa, β₁ a → β₂ (f₁ a)) : sigma β₁ → sigma β₂
 | ⟨a, b⟩ := ⟨f₁ a, f₂ a b⟩
 
-lemma injective_sigma_map {f₁ : α₁ → α₂} {f₂ : Πa, β₁ a → β₂ (f₁ a)}
+lemma sigma_map_injective {f₁ : α₁ → α₂} {f₂ : Πa, β₁ a → β₂ (f₁ a)}
   (h₁ : function.injective f₁) (h₂ : ∀ a, function.injective (f₂ a)) :
   function.injective (sigma.map f₁ f₂)
 | ⟨i, x⟩ ⟨j, y⟩ h :=

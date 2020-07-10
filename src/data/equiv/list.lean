@@ -6,6 +6,7 @@ Author: Mario Carneiro
 Additional equiv and encodable instances for lists, finsets, and fintypes.
 -/
 import data.equiv.denumerable
+import data.finset.sort
 
 open nat list
 
@@ -123,7 +124,8 @@ finset.univ.sort (encodable.encode' α ⁻¹'o (≤))
 theorem mem_sorted_univ {α} [fintype α] [encodable α] (x : α) : x ∈ sorted_univ α :=
 (finset.mem_sort _).2 (finset.mem_univ _)
 
-theorem length_sorted_univ {α} [fintype α] [encodable α] : (sorted_univ α).length = fintype.card α :=
+theorem length_sorted_univ {α} [fintype α] [encodable α] :
+  (sorted_univ α).length = fintype.card α :=
 finset.length_sort _
 
 theorem sorted_univ_nodup {α} [fintype α] [encodable α] : (sorted_univ α).nodup :=
@@ -275,7 +277,7 @@ namespace equiv
 def list_unit_equiv : list unit ≃ ℕ :=
 { to_fun := list.length,
   inv_fun := list.repeat (),
-  left_inv := λ u, list.injective_length (by simp),
+  left_inv := λ u, list.length_injective (by simp),
   right_inv := λ n, list.length_repeat () n }
 
 def list_nat_equiv_nat : list ℕ ≃ ℕ := denumerable.eqv _

@@ -3,7 +3,9 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import control.equiv_functor
+import tactic.simp_result
+import tactic.clear
+import control.equiv_functor.instances
 
 /-!
 # The `equiv_rw` tactic transports goals or hypotheses along equivalences.
@@ -172,7 +174,8 @@ do
   -- Check that we actually used the equivalence `eq`
   -- (`equiv_rw_type_core` will always find `equiv.refl`, but hopefully only after all other possibilities)
   new_eqv ← instantiate_mvars new_eqv,
-  guard (eqv.occurs new_eqv) <|> (do
+  -- We previously had `guard (eqv.occurs new_eqv)` here, but `kdepends_on` is more reliable.
+  kdepends_on new_eqv eqv >>= guardb <|> (do
     eqv_pp ← pp eqv,
     ty_pp ← pp ty,
     fail format!"Could not construct an equivalence from {eqv_pp} of the form: {ty_pp} ≃ _"),
@@ -209,16 +212,15 @@ dsimp_result (do
   -- Reintroduce `x` (now of type `b`), and the hypothesis `h`.
   intro x,
   h ← intro1,
-  -- We may need to unfreeze `x` before we can `subst` or `clear` it.
-  unfreeze x',
   -- Finally, if we're working on properties, substitute along `h`, then do some cleanup,
   -- and if we're working on data, just throw out the old `x`.
   b ← target >>= is_prop,
   if b then do
     subst h,
-    `[try { simp only [] with equiv_rw_simp }]
+    `[try { simp only with equiv_rw_simp }]
   else
-    clear' tt [x'] <|>
+    -- We may need to unfreeze `x` before we can `clear` it.
+    unfreezing_hyp x' (clear' tt [x']) <|>
       fail format!"equiv_rw expected to be able to clear the original hypothesis {x}, but couldn't.",
   skip)
   {fail_if_unchanged := ff} tt -- call `dsimp_result` with `no_defaults := tt`.

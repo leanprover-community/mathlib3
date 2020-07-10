@@ -18,7 +18,7 @@ variables {C : Type u} [category.{v} C]
 variables {J : Type v} [small_category J]
 variable (F : J ⥤ Cᵒᵖ)
 
-instance has_limit_of_has_colimit_left_op [has_colimit.{v} F.left_op] : has_limit.{v} F :=
+instance has_limit_of_has_colimit_left_op [has_colimit F.left_op] : has_limit F :=
 { cone := cone_of_cocone_left_op (colimit.cocone F.left_op),
   is_limit :=
   { lift := λ s, (colimit.desc F.left_op (cocone_left_op_of_cone s)).op,
@@ -41,14 +41,14 @@ instance has_limit_of_has_colimit_left_op [has_colimit.{v} F.left_op] : has_limi
       refl,
     end } }
 
-instance has_limits_of_shape_op_of_has_colimits_of_shape [has_colimits_of_shape.{v} Jᵒᵖ C] :
-  has_limits_of_shape.{v} J Cᵒᵖ :=
+instance has_limits_of_shape_op_of_has_colimits_of_shape [has_colimits_of_shape Jᵒᵖ C] :
+  has_limits_of_shape J Cᵒᵖ :=
 { has_limit := λ F, by apply_instance }
 
-instance has_limits_op_of_has_colimits [has_colimits.{v} C] : has_limits.{v} Cᵒᵖ :=
+instance has_limits_op_of_has_colimits [has_colimits C] : has_limits Cᵒᵖ :=
 { has_limits_of_shape := λ J 𝒥, by { resetI, apply_instance } }
 
-instance has_colimit_of_has_limit_left_op [has_limit.{v} F.left_op] : has_colimit.{v} F :=
+instance has_colimit_of_has_limit_left_op [has_limit F.left_op] : has_colimit F :=
 { cocone := cocone_of_cone_left_op (limit.cone F.left_op),
   is_colimit :=
   { desc := λ s, (limit.lift F.left_op (cone_left_op_of_cocone s)).op,
@@ -68,11 +68,11 @@ instance has_colimit_of_has_limit_left_op [has_limit.{v} F.left_op] : has_colimi
       refl,
     end } }
 
-instance has_colimits_of_shape_op_of_has_limits_of_shape [has_limits_of_shape.{v} Jᵒᵖ C] :
-  has_colimits_of_shape.{v} J Cᵒᵖ :=
+instance has_colimits_of_shape_op_of_has_limits_of_shape [has_limits_of_shape Jᵒᵖ C] :
+  has_colimits_of_shape J Cᵒᵖ :=
 { has_colimit := λ F, by apply_instance }
 
-instance has_colimits_op_of_has_limits [has_limits.{v} C] : has_colimits.{v} Cᵒᵖ :=
+instance has_colimits_op_of_has_limits [has_limits C] : has_colimits Cᵒᵖ :=
 { has_colimits_of_shape := λ J 𝒥, by { resetI, apply_instance } }
 
 variables (X : Type v)

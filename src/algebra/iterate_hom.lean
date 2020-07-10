@@ -16,6 +16,12 @@ a monoid structure on the endomorphisms, quite often we do not want to convert f
 `M →* M` to (not yet defined) `monoid.End M` and from `f^[n]` to `f^n` just to apply a simple lemma.
 
 So, we restate standard `*_hom.map_*` lemmas under names `*_hom.iterate_map_*`.
+
+We also prove formulas for iterates of add/mul left/right.
+
+## Tags
+
+homomorphism, iterate
 -/
 
 open function
@@ -109,3 +115,19 @@ theorem iterate_map_gsmul (n : ℕ) (m : ℤ) (x : R) :
 f.to_add_monoid_hom.iterate_map_gsmul n m x
 
 end ring_hom
+
+@[simp] lemma mul_left_iterate [monoid M] (a : M) (n : ℕ) : ((*) a)^[n] = (*) (a^n) :=
+nat.rec_on n (funext $ λ x, by simp) $ λ n ihn,
+funext $ λ x, by simp [iterate_succ, ihn, pow_succ', mul_assoc]
+
+@[simp] lemma add_left_iterate [add_monoid M] (a : M) (n : ℕ) : ((+) a)^[n] = (+) (n •ℕ a) :=
+@mul_left_iterate (multiplicative M) _ a n
+
+@[simp] lemma mul_right_iterate [monoid M] (a : M) (n : ℕ) :
+  (λ x, x * a)^[n] = (λ x, x * a^n) :=
+nat.rec_on n (funext $ λ x, by simp) $ λ n ihn,
+funext $ λ x, by simp [iterate_succ, ihn, pow_succ, mul_assoc]
+
+@[simp] lemma add_right_iterate [add_monoid M] (a : M) (n : ℕ) :
+  (λ x, x + a)^[n] = λ x, x + (n •ℕ a) :=
+@mul_right_iterate (multiplicative M) _ a n

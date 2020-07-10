@@ -101,7 +101,7 @@ it matches the head symbol `hs` for the current goal.
 -- It turns out `apply` is so fast, it's better to just try them all.
 meta def process_declaration (hs : name) (d : declaration) : option decl_data :=
 let n := d.to_name in
-if ¬ d.is_trusted ∨ n.is_internal then
+if !d.is_trusted || n.is_internal then
   none
 else
   (λ m, ⟨d, n, m, n.length⟩) <$> match_head_symbol hs d.type
@@ -109,52 +109,78 @@ else
 /-- Retrieve all library definitions with a given head symbol. -/
 meta def library_defs (hs : name) : tactic (list decl_data) :=
 do env ← get_env,
-   return $ env.decl_filter_map (process_declaration hs)
+   let defs := env.decl_filter_map (process_declaration hs),
+   -- Sort by length; people like short proofs
+   let defs := defs.qsort(λ d₁ d₂, d₁.l ≤ d₂.l),
+   trace_if_enabled `suggest format!"Found {defs.length} relevant lemmas:",
+   trace_if_enabled `suggest $ defs.map (λ ⟨d, n, m, l⟩, (n, m.to_string)),
+   return defs
+
+/--
+We unpack any element of a list of `decl_data` corresponding to an `↔` statement that could apply
+in both directions into two separate elements.
+
+This ensures that both directions can be independently returned by `suggest`,
+and avoids a problem where the application of one direction prevents
+the application of the other direction. (See `exp_le_exp` in the tests.)
+-/
+meta def unpack_iff_both : list decl_data → list decl_data
+| []                     := []
+| (⟨d, n, both, l⟩ :: L) := ⟨d, n, mp, l⟩ :: ⟨d, n, mpr, l⟩ :: unpack_iff_both L
+| (⟨d, n, m, l⟩ :: L)    := ⟨d, n, m, l⟩ :: unpack_iff_both L
 
 /--
 Apply the lemma `e`, then attempt to close all goals using
 `solve_by_elim opt`, failing if `close_goals = tt`
 and there are any goals remaining.
+
+Returns the number of subgoals which were closed using `solve_by_elim`.
 -/
 -- Implementation note: as this is used by both `library_search` and `suggest`,
--- we first run `solve_by_elim` separately on a subset of the goals,
+-- we first run `solve_by_elim` separately on the independent goals,
 -- whether or not `close_goals` is set,
--- and then if `close_goals = tt`, require that `solve_by_elim { all_goals := tt }` succeeds
--- on the remaining goals.
-meta def apply_and_solve (close_goals : bool) (opt : opt := { }) (e : expr) : tactic unit :=
-opt.apply e >>
--- Phase 1
--- Run `solve_by_elim` on each "safe" goal separately, not worrying about failures.
--- (We only attempt the "safe" goals in this way in Phase 1. In Phase 2 we will do
--- backtracking search across all goals, allowing us to guess solutions that involve data, or
--- unify metavariables, but only as long as we can finish all goals.)
-try (any_goals (independent_goal >> solve_by_elim opt)) >>
--- Phase 2
-(done <|>
-  -- If there were any goals that we did not attempt solving in the first phase
-  -- (because they weren't propositional, or contained a metavariable)
-  -- as a second phase we attempt to solve all remaining goals at once
-  -- (with backtracking across goals).
-  any_goals (success_if_fail independent_goal) >>
-  solve_by_elim { backtrack_all_goals := tt, ..opt } <|>
-  -- and fail unless `close_goals = ff`
-  guard ¬ close_goals)
+-- and then run `solve_by_elim { all_goals := tt }`,
+-- requiring that it succeeds if `close_goals = tt`.
+meta def apply_and_solve (close_goals : bool) (opt : opt := { }) (e : expr) : tactic ℕ :=
+do
+  trace_if_enabled `suggest format!"Trying to apply lemma: {e}",
+  opt.apply e,
+  trace_if_enabled `suggest format!"Applied lemma: {e}",
+  ng ← num_goals,
+  -- Phase 1
+  -- Run `solve_by_elim` on each "safe" goal separately, not worrying about failures.
+  -- (We only attempt the "safe" goals in this way in Phase 1. In Phase 2 we will do
+  -- backtracking search across all goals, allowing us to guess solutions that involve data, or
+  -- unify metavariables, but only as long as we can finish all goals.)
+  try (any_goals (independent_goal >> solve_by_elim opt)),
+  -- Phase 2
+  (done >> return ng) <|> (do
+    -- If there were any goals that we did not attempt solving in the first phase
+    -- (because they weren't propositional, or contained a metavariable)
+    -- as a second phase we attempt to solve all remaining goals at once
+    -- (with backtracking across goals).
+    (any_goals (success_if_fail independent_goal) >>
+    solve_by_elim { backtrack_all_goals := tt, ..opt }) <|>
+    -- and fail unless `close_goals = ff`
+    guard ¬ close_goals,
+    ng' ← num_goals,
+    return (ng - ng'))
 
 /--
 Apply the declaration `d` (or the forward and backward implications separately, if it is an `iff`),
-and then attempt to solve the goal using `apply_and_solve`.
+and then attempt to solve the subgoal using `apply_and_solve`.
+
+Returns the number of subgoals successfully closed.
 -/
 meta def apply_declaration (close_goals : bool) (opt : opt := { }) (d : decl_data) :
-  tactic unit :=
+  tactic ℕ :=
 let tac := apply_and_solve close_goals opt in
 do (e, t) ← decl_mk_const d.d,
    match d.m with
    | ex   := tac e
    | mp   := do l ← iff_mp_core e t, tac l
    | mpr  := do l ← iff_mpr_core e t, tac l
-   | both :=
-      (do l ← iff_mp_core e t, tac l) <|>
-      (do l ← iff_mpr_core e t, tac l)
+   | both := undefined -- we use `unpack_iff_both` to ensure this isn't reachable
    end
 
 /--
@@ -234,11 +260,7 @@ do g :: _ ← get_goals,
    (do
    -- Collect all definitions with the correct head symbol
    t ← infer_type g,
-   defs ← library_defs (head_symbol t),
-   -- Sort by length; people like short proofs
-   let defs := defs.qsort(λ d₁ d₂, d₁.l ≤ d₂.l),
-   trace_if_enabled `suggest format!"Found {defs.length} relevant lemmas:",
-   trace_if_enabled `suggest $ defs.map (λ ⟨d, n, m, l⟩, (n, m.to_string)),
+   defs ← unpack_iff_both <$> library_defs (head_symbol t),
 
    let defs : mllist tactic _ := mllist.of_list defs,
 
@@ -399,6 +421,11 @@ matches the goal, and then discharge any new goals using `solve_by_elim`.
 If it succeeds, it prints a trace message `exact ...` which can replace the invocation
 of `library_search`.
 
+By default `library_search` only unfolds `reducible` definitions
+when attempting to match lemmas against the goal.
+Previously, it would unfold most definitions, sometimes giving surprising answers, or slow answers.
+The old behaviour is still available via `library_search!`.
+
 You can add additional lemmas to be used along with local hypotheses
 after the application of a library lemma,
 using the same syntax as for `solve_by_elim`, e.g.
@@ -408,19 +435,43 @@ begin
   library_search [add_lt_add], -- Says: `exact max_eq_left_of_lt (add_lt_add h₁ h₂)`
 end
 ```
-You can also use `suggest with attr` to include all lemmas with the attribute `attr`.
+You can also use `library_search with attr` to include all lemmas with the attribute `attr`.
 -/
-meta def library_search (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
+meta def library_search (semireducible : parse $ optional (tk "!"))
+  (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
   (opt : opt := { }) : tactic unit :=
 do asms ← mk_assumption_set ff hs attr_names,
-   tactic.library_search
-     {backtrack_all_goals := tt,
-      lemma_thunks := return asms,
-      ..opt} >>=
+   (tactic.library_search
+     { backtrack_all_goals := tt,
+       lemma_thunks := return asms,
+       apply := λ e, tactic.apply e { md := if semireducible.is_some then
+         tactic.transparency.semireducible else tactic.transparency.reducible },
+       ..opt } >>=
    if is_trace_enabled_for `silence_library_search then
      (λ _, skip)
    else
-     trace
+     trace) <|>
+   fail
+"`library_search` failed.
+If you aren't sure what to do next, you can also
+try `library_search!`, `suggest`, or `hint`.
+
+Possible reasons why `library_search` failed:
+* `library_search` will only apply a single lemma from the library,
+  and then try to fill in its hypotheses from local hypotheses.
+* If you haven't already, try stating the theorem you want in its own lemma.
+* Sometimes the library has one version of a lemma
+  but not a very similar version obtained by permuting arguments.
+  Try replacing `a + b` with `b + a`, or `a - b < c` with `a < b + c`,
+  to see if maybe the lemma exists but isn't stated quite the way you would like.
+* Make sure that you have all the side conditions for your theorem to be true.
+  For example you won't find `a - b + b = a` for natural numbers in the library because it's false!
+  Search for `b ≤ a → a - b + b = a` instead.
+* If a definition you made is in the goal,
+  you won't find any theorems about it in the library.
+  Try unfolding the definition using `unfold my_definition`.
+* If all else fails, ask on https://leanprover.zulipchat.com/,
+  and maybe we can improve the library and/or `library_search` for next time."
 
 /--
 `library_search` is a tactic to identify existing lemmas in the library. It tries to close the

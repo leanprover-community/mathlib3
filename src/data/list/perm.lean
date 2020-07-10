@@ -430,8 +430,8 @@ theorem perm_inv_core {a : α} {l₁ l₂ r₁ r₂ : list α} : l₁++a::r₁ ~
 begin
   generalize e₁ : l₁++a::r₁ = s₁, generalize e₂ : l₂++a::r₂ = s₂,
   intro p, revert l₁ l₂ r₁ r₂ e₁ e₂,
-  refine perm_induction_on p _ (λ x t₁ t₂ p IH, _) (λ x y t₁ t₂ p IH, _) (λ t₁ t₂ t₃ p₁ p₂ IH₁ IH₂, _);
-    intros l₁ l₂ r₁ r₂ e₁ e₂,
+  refine perm_induction_on p _ (λ x t₁ t₂ p IH, _) (λ x y t₁ t₂ p IH, _)
+    (λ t₁ t₂ t₃ p₁ p₂ IH₁ IH₂, _); intros l₁ l₂ r₁ r₂ e₁ e₂,
   { apply (not_mem_nil a).elim, rw ← e₁, simp },
   { cases l₁ with y l₁; cases l₂ with z l₂;
       dsimp at e₁ e₂; injections; subst x,
@@ -870,7 +870,8 @@ theorem permutations_aux2_fst (t : α) (ts : list α) (r : list β) : ∀ (ys : 
 @[simp] theorem permutations_aux2_snd_nil (t : α) (ts : list α) (r : list β) (f : list α → β) :
   (permutations_aux2 t ts r [] f).2 = r := rfl
 
-@[simp] theorem permutations_aux2_snd_cons (t : α) (ts : list α) (r : list β) (y : α) (ys : list α) (f : list α → β) :
+@[simp] theorem permutations_aux2_snd_cons (t : α) (ts : list α) (r : list β) (y : α) (ys : list α)
+  (f : list α → β) :
   (permutations_aux2 t ts r (y::ys) f).2 = f (t :: y :: ys ++ ts) ::
     (permutations_aux2 t ts r ys (λx : list α, f (y::x))).2 :=
 match _, permutations_aux2_fst t ts r _ _ : ∀ o : list α × list β, o.1 = ys ++ ts →
@@ -909,7 +910,8 @@ theorem length_permutations_aux2 (t : α) (ts : list α) (ys : list α) (f : lis
 by induction ys generalizing f; simp *
 
 theorem foldr_permutations_aux2 (t : α) (ts : list α) (r L : list (list α)) :
-  foldr (λy r, (permutations_aux2 t ts r y id).2) r L = L.bind (λ y, (permutations_aux2 t ts [] y id).2) ++ r :=
+  foldr (λy r, (permutations_aux2 t ts r y id).2) r L =
+    L.bind (λ y, (permutations_aux2 t ts [] y id).2) ++ r :=
 by induction L with l L ih; [refl, {simp [ih], rw ← permutations_aux2_append}]
 
 theorem mem_foldr_permutations_aux2 {t : α} {ts : list α} {r L : list (list α)} {l' : list α} :
@@ -960,8 +962,8 @@ theorem perm_of_mem_permutations {l₁ l₂ : list α}
 (eq_or_mem_of_mem_cons h).elim (λ e, e ▸ perm.refl _)
   (λ m, append_nil l₂ ▸ perm_of_mem_permutations_aux m)
 
-theorem length_permutations_aux :
-  ∀ ts is : list α, length (permutations_aux ts is) + is.length.fact = (length ts + length is).fact :=
+theorem length_permutations_aux : ∀ ts is : list α,
+  length (permutations_aux ts is) + is.length.fact = (length ts + length is).fact :=
 begin
   refine permutations_aux.rec (by simp) _,
   intros t ts is IH1 IH2,

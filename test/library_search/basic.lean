@@ -3,6 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import tactic.suggest
 import data.nat.basic
 
 /- Turn off trace messages so they don't pollute the test build: -/
@@ -114,7 +115,7 @@ example (a : ℕ) (h : P a) : a < 0 := by library_search -- says `exact lemma_wi
 example (a b : ℕ) (h1 : a < b) (h2 : P a) : false := by library_search
 -- says `exact lemma_with_false_in_head a b h1 h2`
 
-example (a b : ℕ) (h1 : a < b) : ¬ (P a) := by library_search
+example (a b : ℕ) (h1 : a < b) : ¬ (P a) := by library_search!
 -- says `exact lemma_with_false_in_head a b h1`
 
 end synonym
@@ -122,7 +123,7 @@ end synonym
 -- We even find `iff` results:
 
 example : ∀ P : Prop, ¬(P ↔ ¬P) :=
-by library_search -- says: `λ (a : Prop), (iff_not_self a).mp`
+by library_search! -- says: `λ (a : Prop), (iff_not_self a).mp`
 
 example {a b c : ℕ} (ha : a > 0) (w : b ∣ c) : a * b ∣ a * c :=
 by library_search -- exact mul_dvd_mul_left a w
@@ -152,7 +153,6 @@ attribute [ex] add_lt_add
 
 example {a b c d: nat} (h₁ : a < c) (h₂ : b < d) : max (c + d) (a + b) = (c + d) :=
 begin
-  suggest with ex,
   library_search with ex, -- Says: `exact max_eq_left_of_lt (add_lt_add h₁ h₂)`
 end
 
@@ -181,6 +181,12 @@ begin
   success_if_fail {
     library_search { apply := λ e, tactic.apply e { md := tactic.transparency.reducible } },
   },
-  library_search,
+  library_search!,
 end
+
+constant f : ℕ → ℕ
+axiom F (a b : ℕ) : f a ≤ f b ↔ a ≤ b
+
+example (a b : ℕ) (h : a ≤ b) : f a ≤ f b := by library_search
+
 end test.library_search

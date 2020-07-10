@@ -18,13 +18,17 @@ This is a concrete implementation that is useful for simplicity and computabilit
 
 * `is_absolute_value`: a type class stating that `f : β → α` satisfies the axioms of an abs val
 * `is_cau_seq`: a predicate that says `f : ℕ → β` is Cauchy.
+* `cau_seq`: the type of Cauchy sequences valued in type `β` with respect to an absolute value
+  function `abv`.
 
 ## Tags
 
 sequence, cauchy, abs val, absolute value
 -/
 
-/-- A function f is an absolute value if it is nonnegative, zero only at 0, additive, and
+open_locale big_operators
+
+/-- A function `f` is an absolute value if it is nonnegative, zero only at 0, additive, and
 multiplicative. -/
 class is_absolute_value {α} [discrete_linear_ordered_field α]
   {β} [ring β] (f : β → α) : Prop :=
@@ -40,7 +44,7 @@ variables {α : Type*} [discrete_linear_ordered_field α]
 theorem abv_zero : abv 0 = 0 := (abv_eq_zero abv).2 rfl
 
 theorem abv_one' (h : (1:β) ≠ 0) : abv 1 = 1 :=
-(domain.mul_right_inj $ mt (abv_eq_zero abv).1 h).1 $
+(mul_right_inj' $ mt (abv_eq_zero abv).1 h).1 $
 by rw [← abv_mul abv, mul_one, mul_one]
 
 theorem abv_one
@@ -62,7 +66,7 @@ theorem abv_inv
   (a : β) : abv a⁻¹ = (abv a)⁻¹ :=
 classical.by_cases
   (λ h : a = 0, by simp [h, abv_zero abv])
-  (λ h, (domain.mul_left_inj (mt (abv_eq_zero abv).1 h)).1 $
+  (λ h, mul_right_cancel' (mt (abv_eq_zero abv).1 h) $
     by rw [← abv_mul abv]; simp [h, mt (abv_eq_zero abv).1 h, abv_one abv])
 
 theorem abv_div
@@ -83,7 +87,7 @@ abs_sub_le_iff.2 ⟨sub_abv_le_abv_sub abv _ _,
 
 lemma abv_pow {β : Type*} [domain β] (abv : β → α) [is_absolute_value abv]
   (a : β) (n : ℕ) : abv (a ^ n) = abv a ^ n :=
-by induction n; simp [abv_mul abv, _root_.pow_succ, abv_one abv, *]
+by induction n; simp [abv_mul abv, pow_succ, abv_one abv, *]
 
 end is_absolute_value
 
@@ -96,6 +100,7 @@ instance abs_is_absolute_value {α} [discrete_linear_ordered_field α] :
 
 open is_absolute_value
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem exists_forall_ge_and {α} [linear_order α] {P Q : α → Prop} :
   (∃ i, ∀ j ≥ i, P j) → (∃ i, ∀ j ≥ i, Q j) →
   ∃ i, ∀ j ≥ i, P j ∧ Q j
@@ -106,6 +111,7 @@ section
 variables {α : Type*} [discrete_linear_ordered_field α]
   {β : Type*} [ring β] (abv : β → α) [is_absolute_value abv]
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem rat_add_continuous_lemma
   {ε : α} (ε0 : 0 < ε) : ∃ δ > 0, ∀ {a₁ a₂ b₁ b₂ : β},
   abv (a₁ - b₁) < δ → abv (a₂ - b₂) < δ → abv (a₁ + a₂ - (b₁ + b₂)) < ε :=
@@ -113,6 +119,7 @@ theorem rat_add_continuous_lemma
   by simpa [add_halves, sub_eq_add_neg, add_comm, add_left_comm, add_assoc]
     using lt_of_le_of_lt (abv_add abv _ _) (add_lt_add h₁ h₂)⟩
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem rat_mul_continuous_lemma
   {ε K₁ K₂ : α} (ε0 : 0 < ε) :
   ∃ δ > 0, ∀ {a₁ a₂ b₁ b₂ : β}, abv a₁ < K₁ → abv b₂ < K₂ →
@@ -131,6 +138,7 @@ begin
     using lt_of_le_of_lt (abv_add abv _ _) this
 end
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem rat_inv_continuous_lemma
   {β : Type*} [field β] (abv : β → α) [is_absolute_value abv]
   {ε K : α} (ε0 : 0 < ε) (K0 : 0 < K) :
@@ -153,14 +161,15 @@ end
 
 /-- A sequence is Cauchy if the distance between its entries tends to zero. -/
 def is_cau_seq {α : Type*} [discrete_linear_ordered_field α]
-  {β : Type*} [ring β] (abv : β → α) (f : ℕ → β) :=
+  {β : Type*} [ring β] (abv : β → α) (f : ℕ → β) : Prop :=
 ∀ ε > 0, ∃ i, ∀ j ≥ i, abv (f j - f i) < ε
 
 namespace is_cau_seq
 variables {α : Type*} [discrete_linear_ordered_field α]
   {β : Type*} [ring β] {abv : β → α} [is_absolute_value abv] {f : ℕ → β}
 
-theorem cauchy₂ (hf : is_cau_seq abv f) {ε:α} (ε0 : ε > 0) :
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem cauchy₂ (hf : is_cau_seq abv f) {ε : α} (ε0 : ε > 0) :
   ∃ i, ∀ j k ≥ i, abv (f j - f k) < ε :=
 begin
   refine (hf _ (half_pos ε0)).imp (λ i hi j k ij ik, _),
@@ -169,14 +178,17 @@ begin
   rw abv_sub abv, exact hi _ ik
 end
 
-theorem cauchy₃ (hf : is_cau_seq abv f) {ε:α} (ε0 : ε > 0) :
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem cauchy₃ (hf : is_cau_seq abv f) {ε : α} (ε0 : ε > 0) :
   ∃ i, ∀ j ≥ i, ∀ k ≥ j, abv (f k - f j) < ε :=
 let ⟨i, H⟩ := hf.cauchy₂ ε0 in ⟨i, λ j ij k jk, H _ _ (le_trans ij jk) ij⟩
 
 end is_cau_seq
 
+/-- `cau_seq β abv` is the type of `β`-valued Cauchy sequences, with respect to the absolute value
+function `abv`. -/
 def cau_seq {α : Type*} [discrete_linear_ordered_field α]
-  (β : Type*) [ring β] (abv : β → α) :=
+  (β : Type*) [ring β] (abv : β → α) : Type* :=
 {f : ℕ → β // is_cau_seq abv f}
 
 namespace cau_seq
@@ -195,24 +207,29 @@ subtype.eq (funext h)
 
 theorem is_cau (f : cau_seq β abv) : is_cau_seq abv f := f.2
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem cauchy (f : cau_seq β abv) :
   ∀ {ε}, ε > 0 → ∃ i, ∀ j ≥ i, abv (f j - f i) < ε := f.2
 
+/-- Given a Cauchy sequence `f`, create a Cauchy sequence from a sequence `g` with
+the same values as `f`. -/
 def of_eq (f : cau_seq β abv) (g : ℕ → β) (e : ∀ i, f i = g i) : cau_seq β abv :=
 ⟨g, λ ε, by rw [show g = f, from (funext e).symm]; exact f.cauchy⟩
 
 variable [is_absolute_value abv]
 
-theorem cauchy₂ (f : cau_seq β abv) {ε:α} : ε > 0 →
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem cauchy₂ (f : cau_seq β abv) {ε} : ε > 0 →
   ∃ i, ∀ j k ≥ i, abv (f j - f k) < ε := f.2.cauchy₂
 
-theorem cauchy₃ (f : cau_seq β abv) {ε:α} : ε > 0 →
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem cauchy₃ (f : cau_seq β abv) {ε} : ε > 0 →
   ∃ i, ∀ j ≥ i, ∀ k ≥ j, abv (f k - f j) < ε := f.2.cauchy₃
 
 theorem bounded (f : cau_seq β abv) : ∃ r, ∀ i, abv (f i) < r :=
 begin
   cases f.cauchy zero_lt_one with i h,
-  let R := (finset.range (i+1)).sum (λ j, abv (f j)),
+  let R := ∑ j in finset.range (i+1), abv (f j),
   have : ∀ j ≤ i, abv (f j) ≤ R,
   { intros j ij, change (λ j, abv (f j)) j ≤ R,
     apply finset.single_le_sum,
@@ -226,6 +243,7 @@ begin
     rw [add_sub, add_comm] at this, simpa }
 end
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem bounded' (f : cau_seq β abv) (x : α) : ∃ r > x, ∀ i, abv (f i) < r :=
 let ⟨r, h⟩ := f.bounded in
 ⟨max r (x+1), lt_of_lt_of_le (lt_add_one _) (le_max_right _ _),
@@ -289,7 +307,8 @@ instance : ring (cau_seq β abv) :=
 by refine {neg := has_neg.neg, add := (+), zero := 0, mul := (*), one := 1, ..};
    { intros, apply ext, simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm] }
 
-instance {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv] : comm_ring (cau_seq β abv) :=
+instance {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv] :
+  comm_ring (cau_seq β abv) :=
 { mul_comm := by intros; apply ext; simp [mul_left_comm, mul_comm],
   ..cau_seq.ring }
 
@@ -299,7 +318,7 @@ by rw [sub_eq_add_neg, const_add, const_neg, sub_eq_add_neg]
 @[simp] theorem sub_apply (f g : cau_seq β abv) (i : ℕ) : (f - g) i = f i - g i := rfl
 
 /-- `lim_zero f` holds when `f` approaches 0. -/
-def lim_zero (f : cau_seq β abv) := ∀ ε > 0, ∃ i, ∀ j ≥ i, abv (f j) < ε
+def lim_zero {abv : β → α} (f : cau_seq β abv) : Prop := ∀ ε > 0, ∃ i, ∀ j ≥ i, abv (f j) < ε
 
 theorem add_lim_zero {f g : cau_seq β abv}
   (hf : lim_zero f) (hg : lim_zero g) : lim_zero (f + g)
@@ -347,7 +366,8 @@ instance equiv : setoid (cau_seq β abv) :=
  λ f g h, by simpa using neg_lim_zero h,
  λ f g h fg gh, by simpa [sub_eq_add_neg, add_assoc] using add_lim_zero fg gh⟩⟩
 
-theorem equiv_def₃ {f g : cau_seq β abv} (h : f ≈ g) {ε:α} (ε0 : 0 < ε) :
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem equiv_def₃ {f g : cau_seq β abv} (h : f ≈ g) {ε : α} (ε0 : 0 < ε) :
   ∃ i, ∀ j ≥ i, ∀ k ≥ j, abv (f k - g j) < ε :=
 (exists_forall_ge_and (h _ $ half_pos ε0) (f.cauchy₃ $ half_pos ε0)).imp $
 λ i H j ij k jk, let ⟨h₁, h₂⟩ := H _ ij in
@@ -358,6 +378,7 @@ theorem lim_zero_congr {f g : cau_seq β abv} (h : f ≈ g) : lim_zero f ↔ lim
 ⟨λ l, by simpa using add_lim_zero (setoid.symm h) l,
  λ l, by simpa using add_lim_zero h l⟩
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem abv_pos_of_not_lim_zero {f : cau_seq β abv} (hf : ¬ lim_zero f) :
   ∃ K > 0, ∃ i, ∀ j ≥ i, K ≤ abv (f j) :=
 begin
@@ -450,6 +471,7 @@ end integral_domain
 section field
 variables {β : Type*} [field β] {abv : β → α} [is_absolute_value abv]
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem inv_aux {f : cau_seq β abv} (hf : ¬ lim_zero f) :
   ∀ ε > 0, ∃ i, ∀ j ≥ i, abv ((f j)⁻¹ - (f i)⁻¹) < ε | ε ε0 :=
 let ⟨K, K0, HK⟩ := abv_pos_of_not_lim_zero hf,
@@ -457,7 +479,9 @@ let ⟨K, K0, HK⟩ := abv_pos_of_not_lim_zero hf,
     ⟨i, H⟩ := exists_forall_ge_and HK (f.cauchy₃ δ0) in
 ⟨i, λ j ij, let ⟨iK, H'⟩ := H _ (le_refl _) in Hδ (H _ ij).1 iK (H' _ ij)⟩
 
-def inv (f) (hf : ¬ lim_zero f) : cau_seq β abv := ⟨_, inv_aux hf⟩
+/-- Given a Cauchy sequence `f` with nonzero limit, create a Cauchy sequence with values equal to
+the inverses of the values of `f`. -/
+def inv (f : cau_seq β abv) (hf : ¬ lim_zero f) : cau_seq β abv := ⟨_, inv_aux hf⟩
 
 @[simp] theorem inv_apply {f : cau_seq β abv} (hf i) : inv f hf i = (f i)⁻¹ := rfl
 
@@ -467,7 +491,8 @@ theorem inv_mul_cancel {f : cau_seq β abv} (hf) : inv f hf * f ≈ 1 :=
   by simpa [(abv_pos abv).1 (lt_of_lt_of_le K0 (H _ ij)),
     abv_zero abv] using ε0⟩
 
-theorem const_inv {x : β} (hx : x ≠ 0) : const abv (x⁻¹) = inv (const abv x) (by rwa const_lim_zero) :=
+theorem const_inv {x : β} (hx : x ≠ 0) :
+  const abv (x⁻¹) = inv (const abv x) (by rwa const_lim_zero) :=
 ext (assume n, by simp[inv_apply, const_apply])
 
 end field

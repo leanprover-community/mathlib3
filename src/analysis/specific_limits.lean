@@ -8,6 +8,7 @@ A collection of specific limit computations.
 import analysis.normed_space.basic
 import algebra.geom_sum
 import topology.instances.ennreal
+import tactic.ring_exp
 
 noncomputable theory
 open_locale classical topological_space
@@ -146,12 +147,24 @@ suffices tendsto (λ n : ℕ, 1 / (↑(n + 1) : ℝ)) at_top (𝓝 0), by simpa,
 
 /-! ### Powers -/
 
-lemma tendsto_pow_at_top_at_top_of_gt_1 {r : ℝ} (h : 1 < r) :
+lemma tendsto_add_one_pow_at_top_at_top_of_pos [linear_ordered_semiring α] [archimedean α] {r : α}
+  (h : 0 < r) :
+  tendsto (λ n:ℕ, (r + 1)^n) at_top at_top :=
+tendsto_at_top_at_top_of_monotone' (λ n m, pow_le_pow (le_add_of_nonneg_left (le_of_lt h))) $
+  not_bdd_above_iff.2 $ λ x, set.exists_range_iff.2 $ add_one_pow_unbounded_of_pos _ h
+
+lemma tendsto_pow_at_top_at_top_of_one_lt [linear_ordered_ring α] [archimedean α]
+  {r : α} (h : 1 < r) :
   tendsto (λn:ℕ, r ^ n) at_top at_top :=
-(tendsto_at_top_at_top _).2 $ assume p,
-  let ⟨n, hn⟩ := pow_unbounded_of_one_lt p h in
-  ⟨n, λ m hnm, le_of_lt $
-    lt_of_lt_of_le hn (pow_le_pow (le_of_lt h) hnm)⟩
+sub_add_cancel r 1 ▸ tendsto_add_one_pow_at_top_at_top_of_pos (sub_pos.2 h)
+
+lemma nat.tendsto_pow_at_top_at_top_of_one_lt {m : ℕ} (h : 1 < m) :
+  tendsto (λn:ℕ, m ^ n) at_top at_top :=
+begin
+  simp only [← nat.pow_eq_pow],
+  exact nat.sub_add_cancel (le_of_lt h) ▸
+    tendsto_add_one_pow_at_top_at_top_of_pos (nat.sub_pos_of_lt h)
+end
 
 lemma lim_norm_zero' {𝕜 : Type*} [normed_group 𝕜] :
   tendsto (norm : 𝕜 → ℝ) (nhds_within 0 {x | x ≠ 0}) (nhds_within 0 (set.Ioi 0)) :=
@@ -168,8 +181,41 @@ by_cases
   (assume : r ≠ 0,
     have tendsto (λn, (r⁻¹ ^ n)⁻¹) at_top (𝓝 0),
       from tendsto_inv_at_top_zero.comp
-        (tendsto_pow_at_top_at_top_of_gt_1 $ one_lt_inv (lt_of_le_of_ne h₁ this.symm) h₂),
+        (tendsto_pow_at_top_at_top_of_one_lt $ one_lt_inv (lt_of_le_of_ne h₁ this.symm) h₂),
     tendsto.congr' (univ_mem_sets' $ by simp *) this)
+
+lemma geom_lt {u : ℕ → ℝ} {k : ℝ} (hk : 0 < k) {n : ℕ} (h : ∀ m ≤ n, k*u m < u (m + 1)) :
+  k^(n + 1) *u 0 < u (n + 1) :=
+begin
+ induction n with n ih,
+ { simpa using h 0 (le_refl _) },
+ have : (∀ (m : ℕ), m ≤ n → k * u m < u (m + 1)),
+   intros m hm, apply h, exact nat.le_succ_of_le hm,
+ specialize ih this,
+ change k ^ (n + 2) * u 0 < u (n + 2),
+ replace h : k * u (n + 1) < u (n + 2) := h (n+1) (le_refl _),
+ calc k ^ (n + 2) * u 0 = k*(k ^ (n + 1) * u 0) : by ring_exp
+  ... < k*(u (n + 1)) : mul_lt_mul_of_pos_left ih hk
+  ... < u (n + 2) : h,
+end
+
+/-- If a sequence `v` of real numbers satisfies `k*v n < v (n+1)` with `1 < k`,
+then it goes to +∞. -/
+lemma tendsto_at_top_of_geom_lt {v : ℕ → ℝ} {k : ℝ} (h₀ : 0 < v 0) (hk : 1 < k)
+  (hu : ∀ n, k*v n < v (n+1)) : tendsto v at_top at_top :=
+begin
+  apply tendsto_at_top_mono,
+  show ∀ n, k^n*v 0 ≤ v n,
+  { intro n,
+    induction n with n ih,
+    { simp },
+    calc
+    k ^ (n + 1) * v 0 = k*(k^n*v 0) : by ring_exp
+                  ... ≤ k*v n       : mul_le_mul_of_nonneg_left ih (by linarith)
+                  ... ≤ v (n + 1)   : le_of_lt (hu n) },
+  apply tendsto_at_top_mul_right h₀,
+  exact tendsto_pow_at_top_at_top_of_one_lt hk,
+end
 
 lemma nnreal.tendsto_pow_at_top_nhds_0_of_lt_1 {r : nnreal} (hr : r < 1) :
   tendsto (λ n:ℕ, r^n) at_top (𝓝 0) :=
@@ -185,25 +231,17 @@ begin
   apply nnreal.tendsto_pow_at_top_nhds_0_of_lt_1 hr
 end
 
-lemma tendsto_pow_at_top_nhds_0_of_norm_lt_1 {K : Type*} [normed_field K] {ξ : K}
-  (_ : ∥ξ∥ < 1) : tendsto (λ n : ℕ, ξ^n) at_top (𝓝 0) :=
+/-- In a normed ring, the powers of an element x with `∥x∥ < 1` tend to zero. -/
+lemma tendsto_pow_at_top_nhds_0_of_norm_lt_1 {R : Type*} [normed_ring R] {x : R}
+  (h : ∥x∥ < 1) : tendsto (λ (n : ℕ), x ^ n) at_top (𝓝 0) :=
 begin
-  rw [tendsto_iff_norm_tendsto_zero],
-  convert tendsto_pow_at_top_nhds_0_of_lt_1 (norm_nonneg ξ) ‹∥ξ∥ < 1›,
-  ext n,
-  simp
+  apply squeeze_zero_norm' (eventually_norm_pow_le x),
+  exact tendsto_pow_at_top_nhds_0_of_lt_1 (norm_nonneg _) h,
 end
 
 lemma tendsto_pow_at_top_nhds_0_of_abs_lt_1 {r : ℝ} (h : abs r < 1) :
   tendsto (λn:ℕ, r^n) at_top (𝓝 0) :=
 tendsto_pow_at_top_nhds_0_of_norm_lt_1 h
-
-lemma tendsto_pow_at_top_at_top_of_gt_1_nat {k : ℕ} (h : 1 < k) :
-  tendsto (λn:ℕ, k ^ n) at_top at_top :=
-tendsto_coe_nat_real_at_top_iff.1 $
-  have hr : 1 < (k : ℝ), by rw [← nat.cast_one, nat.cast_lt]; exact h,
-  by simpa using tendsto_pow_at_top_at_top_of_gt_1 hr
-
 
 /-! ### Geometric series-/
 section geometric
@@ -233,6 +271,14 @@ lemma summable_geometric_two : summable (λn:ℕ, ((1:ℝ)/2) ^ n) :=
 
 lemma tsum_geometric_two : (∑'n:ℕ, ((1:ℝ)/2) ^ n) = 2 :=
 tsum_eq_has_sum has_sum_geometric_two
+
+lemma sum_geometric_two_le (n : ℕ) : ∑ (i : ℕ) in range n, (1 / (2 : ℝ)) ^ i ≤ 2 :=
+begin
+  have : ∀ i, 0 ≤ (1 / (2 : ℝ)) ^ i,
+  { intro i, apply pow_nonneg, norm_num },
+  convert sum_le_tsum (range n) (λ i _, this i) summable_geometric_two,
+  exact tsum_geometric_two.symm
+end
 
 lemma has_sum_geometric_two' (a : ℝ) : has_sum (λn:ℕ, (a / 2) / 2 ^ n) a :=
 begin
@@ -480,7 +526,7 @@ end
 /-- If `∥f n∥ ≤ C * r ^ n` for all `n : ℕ` and some `r < 1`, then the partial sums of `f` form a
 Cauchy sequence. This lemma does not assume `0 ≤ r` or `0 ≤ C`. -/
 lemma cauchy_seq_finset_of_geometric_bound (hr : r < 1) (hf : ∀n, ∥f n∥ ≤ C * r^n) :
-  cauchy_seq (λ s : finset (ℕ), s.sum f) :=
+  cauchy_seq (λ s : finset (ℕ), ∑ x in s, f x) :=
 cauchy_seq_finset_of_norm_bounded _
   (aux_has_sum_of_le_geometric hr (dist_partial_sum_le_of_le_geometric hf)).summable hf
 
@@ -489,7 +535,7 @@ distance `C * r ^ n / (1 - r)` of the sum of the series. This lemma does not ass
 `0 ≤ C`. -/
 lemma norm_sub_le_of_geometric_bound_of_has_sum (hr : r < 1) (hf : ∀n, ∥f n∥ ≤ C * r^n)
   {a : α} (ha : has_sum f a) (n : ℕ) :
-  ∥(finset.range n).sum f - a∥ ≤ (C * r ^ n) / (1 - r) :=
+  ∥(∑ x in finset.range n, f x) - a∥ ≤ (C * r ^ n) / (1 - r) :=
 begin
   rw ← dist_eq_norm,
   apply dist_le_of_le_geometric_of_tendsto r C hr (dist_partial_sum_le_of_le_geometric hf),
@@ -497,6 +543,56 @@ begin
 end
 
 end summable_le_geometric
+
+section normed_ring_geometric
+variables {R : Type*} [normed_ring R] [complete_space R]
+
+open normed_space
+
+/-- A geometric series in a complete normed ring is summable.
+Proved above (same name, different namespace) for not-necessarily-complete normed fields. -/
+lemma normed_ring.summable_geometric_of_norm_lt_1
+  (x : R) (h : ∥x∥ < 1) : summable (λ (n:ℕ), x ^ n) :=
+begin
+  have h1 : summable (λ (n:ℕ), ∥x∥ ^ n) := summable_geometric_of_lt_1 (norm_nonneg _) h,
+  refine summable_of_norm_bounded_eventually _ h1 _,
+  rw nat.cofinite_eq_at_top,
+  exact eventually_norm_pow_le x,
+end
+
+lemma geom_series_mul_neg (x : R) (h : ∥x∥ < 1) :
+  (∑' (i:ℕ), x ^ i) * (1 - x) = 1 :=
+begin
+  have := has_sum_of_bounded_monoid_hom_of_summable
+    (normed_ring.summable_geometric_of_norm_lt_1 x h) (∥1 - x∥)
+    (mul_right_bound (1 - x)),
+  refine tendsto_nhds_unique at_top_ne_bot this.tendsto_sum_nat _,
+  have : tendsto (λ (n : ℕ), 1 - x ^ n) at_top (nhds 1),
+  { simpa using tendsto_const_nhds.sub
+      (tendsto_pow_at_top_nhds_0_of_norm_lt_1 h) },
+  convert ← this,
+  ext n,
+  rw [←geom_sum_mul_neg, geom_series_def, finset.sum_mul],
+  simp,
+end
+
+lemma mul_neg_geom_series (x : R) (h : ∥x∥ < 1) :
+  (1 - x) * (∑' (i:ℕ), x ^ i) = 1 :=
+begin
+  have := has_sum_of_bounded_monoid_hom_of_summable
+    (normed_ring.summable_geometric_of_norm_lt_1 x h) (∥1 - x∥)
+    (mul_left_bound (1 - x)),
+  refine tendsto_nhds_unique at_top_ne_bot this.tendsto_sum_nat _,
+  have : tendsto (λ (n : ℕ), 1 - x ^ n) at_top (nhds 1),
+  { simpa using tendsto_const_nhds.sub
+      (tendsto_pow_at_top_nhds_0_of_norm_lt_1 h) },
+  convert ← this,
+  ext n,
+  rw [←mul_neg_geom_sum, geom_series_def, finset.mul_sum],
+  simp,
+end
+
+end normed_ring_geometric
 
 /-! ### Positive sequences with small sums on encodable types -/
 
@@ -539,3 +635,72 @@ begin
 end
 
 end ennreal
+
+/-!
+### Harmonic series
+
+Here we define the harmonic series and prove some basic lemmas about it,
+leading to a proof of its divergence to +∞ -/
+
+/-- The harmonic series `1 + 1/2 + 1/3 + ... + 1/n`-/
+def harmonic_series (n : ℕ) : ℝ :=
+∑ i in range n, 1/(i+1 : ℝ)
+
+lemma mono_harmonic : monotone harmonic_series :=
+begin
+  intros p q hpq,
+  apply sum_le_sum_of_subset_of_nonneg,
+  rwa range_subset,
+  intros x h _,
+  exact le_of_lt nat.one_div_pos_of_nat,
+end
+
+lemma half_le_harmonic_double_sub_harmonic (n : ℕ) (hn : 0 < n) :
+  1/2 ≤ harmonic_series (2*n) - harmonic_series n :=
+begin
+  suffices : harmonic_series n + 1 / 2 ≤ harmonic_series (n + n),
+  { rw two_mul,
+    linarith },
+  have : harmonic_series n + ∑ k in Ico n (n + n), 1/(k + 1 : ℝ) = harmonic_series (n + n) :=
+    sum_range_add_sum_Ico _ (show n ≤ n+n, by linarith),
+  rw [← this,  add_le_add_iff_left],
+  have : ∑ k in Ico n (n + n), 1/(n+n : ℝ) = 1/2,
+  { have : (n : ℝ) + n ≠ 0,
+    { norm_cast, linarith },
+    rw [sum_const, Ico.card],
+    field_simp [this],
+    ring },
+  rw ← this,
+  apply sum_le_sum,
+  intros x hx,
+  rw one_div_le_one_div,
+  { exact_mod_cast nat.succ_le_of_lt (Ico.mem.mp hx).2 },
+  { norm_cast, linarith },
+  { exact_mod_cast nat.zero_lt_succ x }
+end
+
+lemma self_div_two_le_harmonic_two_pow (n : ℕ) : (n / 2 : ℝ) ≤ harmonic_series (2^n) :=
+begin
+  induction n with n hn,
+  unfold harmonic_series,
+  simp only [one_div_eq_inv, nat.cast_zero, euclidean_domain.zero_div, nat.cast_succ, sum_singleton,
+    inv_one, zero_add, nat.pow_zero, range_one, zero_le_one],
+  have : harmonic_series (2^n) + 1 / 2 ≤ harmonic_series (2^(n+1)),
+  { have := half_le_harmonic_double_sub_harmonic (2^n) (by {apply nat.pow_pos, linarith}),
+    rw [nat.mul_comm, ← nat.pow_succ] at this,
+    linarith },
+  apply le_trans _ this,
+  rw (show (n.succ / 2 : ℝ) = (n/2 : ℝ) + (1/2), by field_simp),
+  linarith,
+end
+
+/-- The harmonic series diverges to +∞ -/
+theorem harmonic_tendsto_at_top : tendsto harmonic_series at_top at_top :=
+begin
+  suffices : tendsto (λ n : ℕ, harmonic_series (2^n)) at_top at_top, by
+  { exact tendsto_at_top_of_monotone_of_subseq mono_harmonic at_top_ne_bot this },
+  apply tendsto_at_top_mono self_div_two_le_harmonic_two_pow,
+  apply tendsto_at_top_div,
+  norm_num,
+  exact tendsto_coe_nat_real_at_top_at_top
+end

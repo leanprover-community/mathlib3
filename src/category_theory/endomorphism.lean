@@ -15,14 +15,13 @@ namespace category_theory
 
 /-- Endomorphisms of an object in a category. Arguments order in multiplication agrees with
 `function.comp`, not with `category.comp`. -/
-def End {C : Type u} [𝒞_struct : category_struct.{v} C] (X : C) := X ⟶ X
+def End {C : Type u} [category_struct.{v} C] (X : C) := X ⟶ X
 
 namespace End
 
 section struct
 
-variables {C : Type u} [𝒞_struct : category_struct.{v} C] (X : C)
-include 𝒞_struct
+variables {C : Type u} [category_struct.{v} C] (X : C)
 
 instance has_one : has_one (End X) := ⟨𝟙 X⟩
 
@@ -61,7 +60,7 @@ namespace Aut
 instance : group (Aut X) :=
 by refine { one := iso.refl X,
             inv := iso.symm,
-            mul := flip iso.trans, .. } ; dunfold flip; obviously
+            mul := flip iso.trans, .. } ; simp [flip, (*), has_one.one]
 
 /--
 Units in the monoid of endomorphisms of an object

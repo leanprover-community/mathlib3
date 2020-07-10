@@ -114,7 +114,7 @@ Bochner integral, simple function, function space, Lebesgue dominated convergenc
 -/
 
 noncomputable theory
-open_locale classical topological_space
+open_locale classical topological_space big_operators
 
 namespace measure_theory
 
@@ -209,12 +209,12 @@ variables [normed_space ℝ γ]
     the integral of a simple function with type `α → ennreal`.
     The name `bintegral` stands for Bochner integral. -/
 def bintegral [normed_space ℝ β] (f : α →ₛ β) : β :=
-f.range.sum (λ x, (ennreal.to_real (volume (f ⁻¹' {x}))) • x)
+∑ x in f.range, (ennreal.to_real (volume (f ⁻¹' {x}))) • x
 
 /-- Calculate the integral of `g ∘ f : α →ₛ γ`, where `f` is an integrable function from `α` to `β`
     and `g` is a function from `β` to `γ`. We require `g 0 = 0` so that `g ∘ f` is integrable. -/
 lemma map_bintegral (f : α →ₛ β) (g : β → γ) (hf : integrable f) (hg : g 0 = 0) :
-  (f.map g).bintegral = f.range.sum (λ x, (ennreal.to_real (volume (f ⁻¹' {x}))) • (g x)) :=
+  (f.map g).bintegral = ∑ x in f.range, (ennreal.to_real (volume (f ⁻¹' {x}))) • (g x) :=
 begin
   /- Just a complicated calculation with `finset.sum`. Real work is done by
      `map_preimage_singleton`, `simple_func.volume_bUnion_preimage` and `ennreal.to_real_sum`  -/
@@ -225,9 +225,9 @@ begin
   let s' := f.range.filter (λb, g b = g (f a)),
   calc (ennreal.to_real (volume ((f.map g) ⁻¹' {g (f a)}))) • (g (f a)) =
       (ennreal.to_real (volume (⋃b∈s', f ⁻¹' {b}))) • (g (f a)) : by rw map_preimage_singleton
-  ... = (ennreal.to_real (s'.sum (λb, volume (f ⁻¹' {b})))) • (g (f a)) :
+  ... = (ennreal.to_real ∑ b in s', volume (f ⁻¹' {b})) • (g (f a)) :
     by rw volume_bUnion_preimage
-  ... = (s'.sum (λb, ennreal.to_real (volume (f ⁻¹' {b})))) • (g (f a)) :
+  ... = (∑ b in s', ennreal.to_real (volume (f ⁻¹' {b}))) • (g (f a)) :
   begin
     by_cases h : g (f a) = 0,
     { rw [h, smul_zero, smul_zero] },
@@ -238,8 +238,8 @@ begin
       apply hf,
       assumption }
   end
-  ... = s'.sum (λb, (ennreal.to_real (volume (f ⁻¹' {b}))) • (g (f a))) : finset.sum_smul
-  ... = s'.sum (λb, (ennreal.to_real (volume (f ⁻¹' {b}))) • (g b)) :
+  ... = ∑ b in s', (ennreal.to_real (volume (f ⁻¹' {b}))) • (g (f a)) : finset.sum_smul
+  ... = ∑ b in s', (ennreal.to_real (volume (f ⁻¹' {b}))) • (g b) :
     finset.sum_congr rfl $ by { assume x, simp only [mem_filter], rintro ⟨_, h⟩, rw h }
 end
 
@@ -284,7 +284,7 @@ begin
   by_cases eq : f a = g a,
   { dsimp only [pair_apply], rw eq },
   { have : volume ((pair f g) ⁻¹' {(f a, g a)}) = 0,
-    { refine volume_mono_null (assume a' ha', _) h,
+    { refine measure_mono_null (assume a' ha', _) h,
       simp only [set.mem_preimage, mem_singleton_iff, pair_apply, prod.mk.inj_iff] at ha',
       show f a' ≠ g a',
       rwa [ha'.1, ha'.2] },
@@ -316,21 +316,21 @@ by rw [bintegral_eq_integral' hf h_pos, ← lintegral_eq_integral]
 
 lemma bintegral_add {f g : α →ₛ β} (hf : integrable f) (hg : integrable g) :
   bintegral (f + g) = bintegral f + bintegral g :=
-calc bintegral (f + g) = (pair f g).range.sum
-       (λx, ennreal.to_real (volume ((pair f g) ⁻¹' {x})) • (x.fst + x.snd)) :
+calc bintegral (f + g) = ∑ x in (pair f g).range,
+       ennreal.to_real (volume ((pair f g) ⁻¹' {x})) • (x.fst + x.snd) :
 begin
   rw [add_eq_map₂, map_bintegral (pair f g)],
   { exact integrable_pair hf hg },
   { simp only [add_zero, prod.fst_zero, prod.snd_zero] }
 end
-... = (pair f g).range.sum
-        (λx, ennreal.to_real (volume ((pair f g) ⁻¹' {x})) • x.fst +
-             ennreal.to_real (volume ((pair f g) ⁻¹' {x})) • x.snd) :
+... = ∑ x in (pair f g).range,
+        (ennreal.to_real (volume ((pair f g) ⁻¹' {x})) • x.fst +
+         ennreal.to_real (volume ((pair f g) ⁻¹' {x})) • x.snd) :
   finset.sum_congr rfl $ assume a ha, smul_add _ _ _
-... = (simple_func.range (pair f g)).sum
-        (λ (x : β × β), ennreal.to_real (volume ((pair f g) ⁻¹' {x})) • x.fst) +
-      (simple_func.range (pair f g)).sum
-        (λ (x : β × β), ennreal.to_real (volume ((pair f g) ⁻¹' {x})) • x.snd) :
+... = ∑ x in (pair f g).range,
+        ennreal.to_real (volume ((pair f g) ⁻¹' {x})) • x.fst +
+      ∑ x in (pair f g).range,
+        ennreal.to_real (volume ((pair f g) ⁻¹' {x})) • x.snd :
   by rw finset.sum_add_distrib
 ... = ((pair f g).map prod.fst).bintegral + ((pair f g).map prod.snd).bintegral :
 begin
@@ -359,9 +359,9 @@ end
 
 lemma bintegral_smul (r : ℝ) {f : α →ₛ β} (hf : integrable f) :
   bintegral (r • f) = r • bintegral f :=
-calc bintegral (r • f) = f.range.sum (λx, ennreal.to_real (volume (f ⁻¹' {x})) • r • x) :
+calc bintegral (r • f) = ∑ x in f.range, ennreal.to_real (volume (f ⁻¹' {x})) • r • x :
   by rw [smul_eq_map r f, map_bintegral f _ hf (smul_zero _)]
-... = f.range.sum (λ (x : β), ((ennreal.to_real (volume (f ⁻¹' {x}))) * r) • x) :
+... = ∑ x in f.range, ((ennreal.to_real (volume (f ⁻¹' {x}))) * r) • x :
   finset.sum_congr rfl $ λb hb, by apply smul_smul
 ... = r • bintegral f :
 begin
@@ -375,10 +375,10 @@ lemma norm_bintegral_le_bintegral_norm (f : α →ₛ β) (hf : integrable f) :
 begin
   rw map_bintegral f norm hf norm_zero,
   rw bintegral,
-  calc ∥f.range.sum (λx, ennreal.to_real (volume (f ⁻¹' {x})) • x)∥ ≤
-       f.range.sum (λx, ∥ennreal.to_real (volume (f ⁻¹' {x})) • x∥) :
+  calc ∥∑ x in f.range, ennreal.to_real (volume (f ⁻¹' {x})) • x∥ ≤
+       ∑ x in f.range, ∥ennreal.to_real (volume (f ⁻¹' {x})) • x∥ :
     norm_sum_le _ _
-    ... = f.range.sum (λx, ennreal.to_real (volume (f ⁻¹' {x})) • ∥x∥) :
+    ... = ∑ x in f.range, ennreal.to_real (volume (f ⁻¹' {x})) • ∥x∥ :
     begin
       refine finset.sum_congr rfl (λb hb, _),
       rw [norm_smul, smul_eq_mul, real.norm_eq_abs, abs_of_nonneg to_real_nonneg]
@@ -514,17 +514,7 @@ protected def semimodule : semimodule 𝕜 (α →₁ₛ β) :=
   add_smul  := λx y f, simple_func.eq (by { simp only [coe_smul], exact add_smul _ _ _ }),
   zero_smul := λf, simple_func.eq (by { simp only [coe_smul], exact zero_smul _ _ }) }
 
-/-- Not declared as an instance as `α →₁ₛ β` will only be useful in the construction of the bochner
-  integral. -/
-protected def module : module 𝕜 (α →₁ₛ β) :=
-{ .. simple_func.semimodule }
-
-/-- Not declared as an instance as `α →₁ₛ β` will only be useful in the construction of the bochner
-  integral. -/
-protected def vector_space : vector_space 𝕜 (α →₁ₛ β) :=
-{ .. simple_func.semimodule }
-
-local attribute [instance] simple_func.vector_space simple_func.normed_group
+local attribute [instance] simple_func.normed_group simple_func.semimodule
 
 /-- Not declared as an instance as `α →₁ₛ β` will only be useful in the construction of the bochner
   integral. -/
@@ -674,7 +664,7 @@ lemma dist_to_simple_func (f g : α →₁ₛ β) : dist f g =
   ennreal.to_real (∫⁻ x, edist (f.to_simple_func x) (g.to_simple_func x)) :=
 begin
   rw [dist_eq, l1.dist_to_fun, ennreal.to_real_eq_to_real],
-  { rw lintegral_rw₂, repeat { exact all_ae_eq_symm (to_simple_func_eq_to_fun _) } },
+  { rw lintegral_rw₂, repeat { exact ae_eq_symm (to_simple_func_eq_to_fun _) } },
   { exact l1.lintegral_edist_to_fun_lt_top _ _ },
   { exact lintegral_edist_to_simple_func_lt_top _ _ }
 end
@@ -715,7 +705,8 @@ end
 end to_simple_func
 
 section coe_to_l1
-/-! The embedding of integrable simple functions `α →₁ₛ β` into L1 is a uniform and dense embedding. -/
+/-! The embedding of integrable simple functions `α →₁ₛ β` into L1 is a uniform and dense
+embedding. -/
 
 lemma exists_simple_func_near (f : α →₁ β) {ε : ℝ} (ε0 : 0 < ε) :
   ∃ s : α →₁ₛ β, dist f s < ε :=
@@ -765,8 +756,8 @@ variables (α β)
 /-- The uniform and dense embedding of L1 simple functions into L1 functions. -/
 def coe_to_l1 : (α →₁ₛ β) →L[𝕜] (α →₁ β) :=
 { to_fun := (coe : (α →₁ₛ β) → (α →₁ β)),
-  add := λf g, rfl,
-  smul := λk f, rfl,
+  map_add' := λf g, rfl,
+  map_smul' := λk f, rfl,
   cont := l1.simple_func.uniform_continuous.continuous, }
 
 variables {α β 𝕜}
@@ -1288,7 +1279,7 @@ classical.by_cases
 
 lemma integral_finset_sum {ι} (s : finset ι) {f : ι → α → β}
   (hfm : ∀ i, measurable (f i)) (hfi : ∀ i, integrable (f i)) :
-  (∫ a, s.sum (λ i, f i a)) = s.sum (λ i, ∫ a, f i a) :=
+  (∫ a, ∑ i in s, f i a) = ∑ i in s, ∫ a, f i a :=
 begin
   refine finset.induction_on s _ _,
   { simp only [integral_zero, finset.sum_empty] },

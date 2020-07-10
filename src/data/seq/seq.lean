@@ -516,7 +516,7 @@ theorem map_comp (f : α → β) (g : β → γ) : ∀ (s : seq α), map (g ∘ 
   apply subtype.eq; dsimp [map],
   rw stream.map_map,
   apply congr_arg (λ f : _ → option γ, stream.map f s),
-  funext x, cases x with x; refl
+  ext ⟨⟩; refl
 end
 
 @[simp] theorem map_append (f : α → β) (s t) : map f (append s t) = append (map f s) (map f t) :=
@@ -594,7 +594,7 @@ end
   of_list (a :: l) = cons a (of_list l) :=
 begin
   apply subtype.eq, simp [of_list, cons],
-  funext n, cases n; simp [list.nth, stream.cons]
+  ext ⟨⟩; simp [list.nth, stream.cons]
 end
 
 @[simp] theorem of_stream_cons (a : α) (s) :

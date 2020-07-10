@@ -104,10 +104,10 @@ quotient.induction_on₂ a b $ λ f g,
 instance : linear_ordered_comm_ring ℝ :=
 { add_le_add_left := λ a b h c,
     (le_iff_le_iff_lt_iff_lt.2 $ real.add_lt_add_iff_left c).2 h,
-  zero_ne_one := ne_of_lt real.zero_lt_one,
-  mul_pos := @real.mul_pos,
+  exists_pair_ne  := ⟨0, 1, ne_of_lt real.zero_lt_one⟩,
+  mul_pos     := @real.mul_pos,
   zero_lt_one := real.zero_lt_one,
-  ..real.comm_ring, ..real.linear_order, ..real.semiring }
+  .. real.comm_ring, .. real.linear_order, .. real.semiring }
 
 /- Extra instances to short-circuit type class resolution -/
 instance : linear_ordered_ring ℝ        := by apply_instance
@@ -141,7 +141,7 @@ noncomputable instance : decidable_linear_ordered_add_comm_group ℝ := by apply
 noncomputable instance field : field ℝ := by apply_instance
 noncomputable instance : division_ring ℝ           := by apply_instance
 noncomputable instance : integral_domain ℝ         := by apply_instance
-instance : nonzero ℝ                               := by apply_instance
+instance : nontrivial ℝ                            := by apply_instance
 noncomputable instance : decidable_linear_order ℝ  := by apply_instance
 noncomputable instance : distrib_lattice ℝ := by apply_instance
 noncomputable instance : lattice ℝ         := by apply_instance
@@ -149,6 +149,9 @@ noncomputable instance : semilattice_inf ℝ := by apply_instance
 noncomputable instance : semilattice_sup ℝ := by apply_instance
 noncomputable instance : has_inf ℝ         := by apply_instance
 noncomputable instance : has_sup ℝ         := by apply_instance
+noncomputable instance decidable_lt (a b : ℝ) : decidable (a < b) := by apply_instance
+noncomputable instance decidable_le (a b : ℝ) : decidable (a ≤ b) := by apply_instance
+noncomputable instance decidable_eq (a b : ℝ) : decidable (a = b) := by apply_instance
 
 lemma le_of_forall_epsilon_le {a b : real} (h : ∀ε, ε > 0 → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ assume x hxb,
@@ -473,7 +476,7 @@ begin
      }
 end -/
 
-noncomputable def sqrt (x : ℝ) : ℝ :=
+@[pp_nodot] noncomputable def sqrt (x : ℝ) : ℝ :=
 classical.some (sqrt_exists (le_max_left 0 x))
 /-quotient.lift_on x
   (λ f, mk ⟨sqrt_aux f, (sqrt_aux_converges f).fst⟩)

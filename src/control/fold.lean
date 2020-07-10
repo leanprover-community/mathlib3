@@ -179,8 +179,8 @@ open function (hiding const) is_monoid_hom
 def map_fold [monoid α] [monoid β] (f : α → β) [is_monoid_hom f] :
   applicative_transformation (const α) (const β) :=
 { app := λ x, f,
-  preserves_seq'  := by { intros, simp only [map_mul f], },
-  preserves_pure' := by { intros, simp only [map_one f] } }
+  preserves_seq'  := by { intros, simp only [map_mul f, (<*>)], },
+  preserves_pure' := by { intros, simp only [map_one f, pure] } }
 
 def free.mk : α → free_monoid α := list.ret
 
@@ -216,7 +216,7 @@ lemma mfoldl.unop_of_free_monoid  (f : β → α → m β) (xs : free_monoid α)
 instance fold_mfoldl (f : β → α → m β) :
   is_monoid_hom (mfoldl.of_free_monoid f) :=
 { map_one := rfl,
-  map_mul := by intros; apply unop_inj; ext; apply list.mfoldl_append }
+  map_mul := by intros; apply unop_injective; ext; apply list.mfoldl_append }
 
 instance fold_mfoldr (f : α → β → m β) :
   is_monoid_hom (mfoldr.of_free_monoid f) :=
@@ -352,12 +352,15 @@ end
 
 variables {m : Type u → Type u} [monad m] [is_lawful_monad m]
 
+section
+local attribute [semireducible] opposite
 lemma mfoldl_to_list {f : α → β → m α} {x : α} {xs : t β} :
   mfoldl f x xs = list.mfoldl f x (to_list xs) :=
 begin
   change _ = unop (mfoldl.of_free_monoid f (to_list xs)) x,
   simp only [mfoldl, to_list_spec, fold_map_hom_free (mfoldl.of_free_monoid f),
     mfoldl.of_free_monoid_comp_free_mk, mfoldl.get]
+end
 end
 
 lemma mfoldr_to_list (f : α → β → m β) (x : β) (xs : t α) :

@@ -207,6 +207,9 @@ by { rw [log, dif_pos hx], exact classical.some_spec (exists_exp_eq_of_pos ((abs
 lemma exp_log (hx : 0 < x) : exp (log x) = x :=
 by { rw exp_log_eq_abs (ne_of_gt hx), exact abs_of_pos hx }
 
+lemma exp_log_of_neg (hx : x < 0) : exp (log x) = -x :=
+by { rw exp_log_eq_abs (ne_of_lt hx), exact abs_of_neg hx }
+
 @[simp] lemma log_exp (x : ℝ) : log (exp x) = x :=
 exp_injective $ exp_log (exp_pos x)
 
@@ -231,6 +234,13 @@ by rw [← log_abs x, ← log_abs (-x), abs_neg]
 lemma log_mul (hx : x ≠ 0) (hy : y ≠ 0) : log (x * y) = log x + log y :=
 exp_injective $
 by rw [exp_log_eq_abs (mul_ne_zero hx hy), exp_add, exp_log_eq_abs hx, exp_log_eq_abs hy, abs_mul]
+
+@[simp] lemma log_inv (x : ℝ) : log (x⁻¹) = -log x :=
+begin
+  by_cases hx : x = 0, { simp [hx] },
+  apply eq_neg_of_add_eq_zero,
+  rw [← log_mul (inv_ne_zero hx) hx, inv_mul_cancel hx, log_one]
+end
 
 lemma log_le_log (h : 0 < x) (h₁ : 0 < y) : real.log x ≤ real.log y ↔ x ≤ y :=
 ⟨λ h₂, by rwa [←real.exp_le_exp, real.exp_log h, real.exp_log h₁] at h₂, λ h₂,
@@ -299,9 +309,9 @@ begin
     have : f₁ = λ h:{h:ℝ // 0 < h}, log x.1 + log h.1,
       ext h, rw ← log_mul (ne_of_gt x.2) (ne_of_gt h.2),
     simp only [this, log_mul (ne_of_gt x.2) one_ne_zero, log_one],
-    exact tendsto_const_nhds.add (tendsto.comp tendsto_log_one_zero continuous_at_subtype_val),
+    exact tendsto_const_nhds.add (tendsto.comp tendsto_log_one_zero continuous_at_subtype_coe),
   have H2 : tendsto f₂ (𝓝 x) (𝓝 ⟨x.1⁻¹ * x.1, mul_pos (inv_pos.2 x.2) x.2⟩),
-    rw tendsto_subtype_rng, exact tendsto_const_nhds.mul continuous_at_subtype_val,
+    rw tendsto_subtype_rng, exact tendsto_const_nhds.mul continuous_at_subtype_coe,
   suffices h : tendsto (f₁ ∘ f₂) (𝓝 x) (𝓝 (log x.1)),
   begin
     convert h, ext y,
@@ -523,8 +533,8 @@ begin
       end
     ... ≤ abs x ^ (i+1) / (0 + 1) :
       begin
-        apply_rules [div_le_div_of_le_left, pow_nonneg, abs_nonneg,
-                     add_le_add_right (nat.cast_nonneg i)],
+        apply_rules [div_le_div_of_le_left, pow_nonneg, abs_nonneg, add_le_add_right,
+          i.cast_nonneg],
         norm_num,
       end
     ... ≤ abs x ^ i :

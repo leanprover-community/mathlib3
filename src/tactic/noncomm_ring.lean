@@ -3,7 +3,6 @@ Copyright (c) 2020 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Oliver Nash
 -/
-import tactic.doc_commands
 import tactic.abel
 
 namespace tactic
@@ -29,7 +28,7 @@ meta def noncomm_ring :=
              -- Pull `gsmul n` out the front so `abel` can see them.
              ←mul_gsmul_assoc, ←mul_gsmul_left,
              -- Pull out negations.
-             neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm];
+             neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm] {fail_if_unchanged := ff};
   abel]
 
 add_tactic_doc

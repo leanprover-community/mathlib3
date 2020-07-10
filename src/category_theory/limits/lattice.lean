@@ -3,8 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.limits.limits
-import category_theory.limits.shapes.finite_products
+import category_theory.limits.shapes.finite_limits
 import order.complete_lattice
 
 universes u
@@ -17,7 +16,7 @@ variables {α : Type u}
 
 @[priority 100] -- see Note [lower instance priority]
 instance has_finite_limits_of_semilattice_inf_top [semilattice_inf_top α] :
-  has_finite_limits.{u} α :=
+  has_finite_limits α :=
 { has_limits_of_shape := λ J 𝒥₁ 𝒥₂, by exactI
   { has_limit := λ F,
     { cone :=
@@ -27,7 +26,7 @@ instance has_finite_limits_of_semilattice_inf_top [semilattice_inf_top α] :
 
 @[priority 100] -- see Note [lower instance priority]
 instance has_finite_colimits_of_semilattice_sup_bot [semilattice_sup_bot α] :
-  has_finite_colimits.{u} α :=
+  has_finite_colimits α :=
 { has_colimits_of_shape := λ J 𝒥₁ 𝒥₂, by exactI
   { has_colimit := λ F,
     { cocone :=
@@ -38,7 +37,7 @@ instance has_finite_colimits_of_semilattice_sup_bot [semilattice_sup_bot α] :
 -- It would be nice to only use the `Inf` half of the complete lattice, but
 -- this seems not to have been described separately.
 @[priority 100] -- see Note [lower instance priority]
-instance has_limits_of_complete_lattice [complete_lattice α] : has_limits.{u} α :=
+instance has_limits_of_complete_lattice [complete_lattice α] : has_limits α :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F,
     { cone :=
@@ -50,7 +49,7 @@ instance has_limits_of_complete_lattice [complete_lattice α] : has_limits.{u} �
         begin rintros _ ⟨j, rfl⟩, exact (s.π.app j).down.down, end⟩⟩ } } } }
 
 @[priority 100] -- see Note [lower instance priority]
-instance has_colimits_of_complete_lattice [complete_lattice α] : has_colimits.{u} α :=
+instance has_colimits_of_complete_lattice [complete_lattice α] : has_colimits α :=
 { has_colimits_of_shape := λ J 𝒥, by exactI
   { has_colimit := λ F,
     { cocone :=

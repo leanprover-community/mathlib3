@@ -120,8 +120,7 @@ let ⟨c, hc⟩ := finite_dimensional.exists_is_basis_finset K A in
 finite_dimensional.of_finite_basis $ hb.smul hc
 
 /-- Tower law. -/
-theorem findim_mul_findim
-  [finite_dimensional F K] [finite_dimensional K A] [finite_dimensional F A] :
+theorem findim_mul_findim [finite_dimensional F K] [finite_dimensional K A] :
   findim F K * findim K A = findim F A :=
 let ⟨b, hb⟩ := finite_dimensional.exists_is_basis_finset F K in
 let ⟨c, hc⟩ := finite_dimensional.exists_is_basis_finset K A in

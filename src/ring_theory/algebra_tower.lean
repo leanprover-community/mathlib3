@@ -34,8 +34,7 @@ theorem algebra_map_eq :
 ring_hom.ext $ λ x, by simp_rw [ring_hom.comp_apply, algebra.algebra_map_eq_smul_one,
     smul_assoc, one_smul]
 
-theorem algebra_map_apply [is_algebra_tower R S A] (x : R) :
-  algebra_map R A x = algebra_map S A (algebra_map R S x) :=
+theorem algebra_map_apply (x : R) : algebra_map R A x = algebra_map S A (algebra_map R S x) :=
 by rw [algebra_map_eq R S A, ring_hom.comp_apply]
 
 variables {R} (S) {A}

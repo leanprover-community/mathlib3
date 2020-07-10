@@ -21,7 +21,15 @@ section semiring
 variables [comm_semiring R] [comm_semiring S] [semiring A] [semiring B]
 variables [algebra R S] [algebra S A] [algebra R A] [algebra S B] [algebra R B]
 
-theorem algebra_map_eq [is_algebra_tower R S A] :
+variables {R S A}
+theorem of_algebra_map_eq (h : ∀ x, algebra_map R A x = algebra_map S A (algebra_map R S x)) :
+  is_algebra_tower R S A :=
+⟨λ x y z, by simp_rw [algebra.smul_def, ring_hom.map_mul, mul_assoc, h]⟩
+
+variables [is_algebra_tower R S A] [is_algebra_tower R S B]
+
+variables (R S A)
+theorem algebra_map_eq :
   algebra_map R A = (algebra_map S A).comp (algebra_map R S) :=
 ring_hom.ext $ λ x, by simp_rw [ring_hom.comp_apply, algebra.algebra_map_eq_smul_one,
     smul_assoc, one_smul]
@@ -30,10 +38,14 @@ theorem algebra_map_apply [is_algebra_tower R S A] (x : R) :
   algebra_map R A x = algebra_map S A (algebra_map R S x) :=
 by rw [algebra_map_eq R S A, ring_hom.comp_apply]
 
+variables {R} (S) {A}
+theorem algebra_map_smul (r : R) (x : A) : algebra_map R S r • x = r • x :=
+by rw [algebra.algebra_map_eq_smul_one, smul_assoc, one_smul]
+
 variables {R S A}
-theorem of_algebra_map_eq (h : ∀ x, algebra_map R A x = algebra_map S A (algebra_map R S x)) :
-  is_algebra_tower R S A :=
-⟨λ x y z, by simp_rw [algebra.smul_def, ring_hom.map_mul, mul_assoc, h]⟩
+theorem smul_left_comm (r : R) (s : S) (x : A) : r • s • x = s • r • x :=
+by simp_rw [algebra.smul_def, ← mul_assoc, algebra_map_apply R S A,
+    ← (algebra_map S A).map_mul, mul_comm s]
 
 @[ext] lemma algebra.ext {S : Type u} {A : Type v} [comm_semiring S] [semiring A]
   (h1 h2 : algebra S A) (h : ∀ {r : S} {x : A}, (by clear h2; exact r • x) = r • x) : h1 = h2 :=
@@ -42,8 +54,6 @@ begin
   cases f1, cases f2, congr', { ext r x, exact h },
   ext r, erw [← mul_one (g1 r), ← h12, ← mul_one (g2 r), ← h22, h], refl }
 end
-
-variables [is_algebra_tower R S A] [is_algebra_tower R S B]
 
 variables (R S A)
 theorem comap_eq : algebra.comap.algebra R S A = ‹_› :=
@@ -167,3 +177,28 @@ le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin h
   (subalgebra.map_le.2 $ adjoin_le $ λ y hy, subset_adjoin ⟨y, hy, rfl⟩)
 
 end algebra
+
+namespace submodule
+
+open is_algebra_tower
+
+variables [comm_semiring R] [comm_semiring S] [semiring A]
+variables [algebra R S] [algebra S A] [algebra R A] [is_algebra_tower R S A]
+
+variables (R) {S A}
+def restrict_scalars' (U : submodule S A) : submodule R A :=
+{ smul_mem' := λ r x hx, algebra_map_smul S r x ▸ U.smul_mem _ hx, .. U }
+
+variables (R S A)
+theorem restrict_scalars'_top : restrict_scalars' R (⊤ : submodule S A) = ⊤ := rfl
+
+variables {R S A}
+theorem restrict_scalars'_injective (U₁ U₂ : submodule S A)
+  (h : restrict_scalars' R U₁ = restrict_scalars' R U₂) : U₁ = U₂ :=
+ext $ by convert set.ext_iff.1 (ext'_iff.1 h); refl
+
+theorem restrict_scalars'_inj {U₁ U₂ : submodule S A} :
+  restrict_scalars' R U₁ = restrict_scalars' R U₂ ↔ U₁ = U₂ :=
+⟨restrict_scalars'_injective U₁ U₂, congr_arg _⟩
+
+end submodule

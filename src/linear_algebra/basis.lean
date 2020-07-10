@@ -101,6 +101,14 @@ linear_independent_iff.trans
 λ hf l hl, finsupp.ext $ λ i, classical.by_contradiction $ λ hni, hni $ hf _ _ hl _ $
   finsupp.mem_support_iff.2 hni⟩
 
+theorem linear_independent_iff'' :
+  linear_independent R v ↔ ∀ (s : finset ι) (g : ι → R) (hg : ∀ i ∉ s, g i = 0),
+    ∑ i in s, g i • v i = 0 → ∀ i ∈ s, g i = 0 :=
+linear_independent_iff'.trans ⟨λ H s g hg, H s g,
+λ H s g hg i hi, by { convert H s (λ j, if j ∈ s then g j else 0) (λ j hj, if_neg hj)
+    (by simp_rw [ite_smul, zero_smul, finset.sum_extend_by_zero, hg]) i hi,
+  exact (if_pos hi).symm }⟩
+
 theorem linear_dependent_iff : ¬ linear_independent R v ↔
   ∃ s : finset ι, ∃ g : ι → R, s.sum (λ i, g i • v i) = 0 ∧ (∃ i ∈ s, g i ≠ 0) :=
 begin

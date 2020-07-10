@@ -165,11 +165,10 @@ end
     supremum of the set's image under the map to the underlying binary operation. -/
 lemma Sup_def {s : set (setoid α)} : Sup s = eqv_gen.setoid (Sup (rel '' s)) :=
 begin
-  rw Sup_eq_eqv_gen,
+  rw [Sup_eq_eqv_gen, Sup_image],
   congr,
   ext x y,
-  erw [Sup_image, supr_apply, supr_apply, supr_Prop_eq],
-  simp only [Sup_image, supr_Prop_eq, supr_apply, supr_Prop_eq, exists_prop]
+  simp only [supr_apply, supr_Prop_eq, exists_prop]
 end
 
 /-- The equivalence closure of an equivalence relation r is r. -/
@@ -249,9 +248,9 @@ variables (r : setoid α) (f : α → β)
 noncomputable def quotient_ker_equiv_range :
   quotient (ker f) ≃ set.range f :=
 equiv.of_bijective (@quotient.lift _ (set.range f) (ker f)
-  (λ x, ⟨f x, set.mem_range_self x⟩) $ λ _ _ h, subtype.eq' h)
+  (λ x, ⟨f x, set.mem_range_self x⟩) $ λ _ _ h, subtype.ext_val h)
   ⟨λ x y h, ker_lift_injective f $ by rcases x; rcases y; injections,
-   λ ⟨w, z, hz⟩, ⟨@quotient.mk _ (ker f) z, by rw quotient.lift_beta; exact subtype.ext.2 hz⟩⟩
+   λ ⟨w, z, hz⟩, ⟨@quotient.mk _ (ker f) z, by rw quotient.lift_beta; exact subtype.ext_iff_val.2 hz⟩⟩
 
 /-- The quotient of α by the kernel of a surjective function f bijects with f's codomain. -/
 noncomputable def quotient_ker_equiv_of_surjective (hf : surjective f) :
@@ -322,7 +321,7 @@ def correspondence (r : setoid α) : ((≤) : {s // r ≤ s} → {s // r ≤ s} 
   ((≤) : setoid (quotient r) → setoid (quotient r) → Prop) :=
 { to_fun := λ s, map_of_surjective s.1 quotient.mk ((ker_mk_eq r).symm ▸ s.2) exists_rep,
   inv_fun := λ s, ⟨comap quotient.mk s, λ x y h, show s.rel ⟦x⟧ ⟦y⟧, by rw eq_rel.2 h⟩,
-  left_inv := λ s, subtype.ext.2 $ ext' $ λ _ _,
+  left_inv := λ s, subtype.ext_iff_val.2 $ ext' $ λ _ _,
     ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in
       s.1.trans' (s.1.symm' $ s.2 $ eq_rel.1 hx) $ s.1.trans' H $ s.2 $ eq_rel.1 hy,
      λ h, ⟨_, _, rfl, rfl, h⟩⟩,

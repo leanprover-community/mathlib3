@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Simon Hudon, Mario Carneiro
 -/
 import algebra.group.to_additive
-import tactic.protected
+import tactic.basic
 
 /-!
 # Typeclasses for (semi)groups and monoid

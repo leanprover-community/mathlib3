@@ -71,8 +71,6 @@ section topological_vector_space
 variables [add_comm_group E] [vector_space ℝ E] [topological_space E]
   [topological_add_group E] [topological_vector_space ℝ E]
 
-local attribute [instance] set.pointwise_add set.smul_set
-
 /-- In a topological vector space, the interior of a convex set is convex. -/
 lemma convex.interior {s : set E} (hs : convex s) : convex (interior s) :=
 convex_iff_pointwise_add_subset.mpr $ λ a b ha hb hab,
@@ -80,17 +78,13 @@ convex_iff_pointwise_add_subset.mpr $ λ a b ha hb hab,
   or.elim (classical.em (a = 0))
   (λ heq,
     have hne : b ≠ 0, by { rw [heq, zero_add] at hab, rw hab, exact one_ne_zero },
-    (smul_set_eq_image b (interior s)).symm ▸
-    (is_open_pointwise_add_left ((is_open_map_smul_of_ne_zero hne _) is_open_interior)))
+    by { rw ← image_smul, apply is_open_add_left,
+         exact is_open_map_smul_of_ne_zero hne _ is_open_interior } )
   (λ hne,
-    (smul_set_eq_image a (interior s)).symm ▸
-    (is_open_pointwise_add_right ((is_open_map_smul_of_ne_zero hne _) is_open_interior))),
+    by { rw ← image_smul, apply is_open_add_right,
+         exact is_open_map_smul_of_ne_zero hne _ is_open_interior }),
   (subset_interior_iff_subset_of_open h).mpr $ subset.trans
-    begin
-      apply pointwise_add_subset_add;
-      rw [smul_set_eq_image, smul_set_eq_image];
-      exact image_subset _ interior_subset
-    end
+    (by { simp only [← image_smul], apply add_subset_add; exact image_subset _ interior_subset })
     (convex_iff_pointwise_add_subset.mp hs ha hb hab)
 
 /-- In a topological vector space, the closure of a convex set is convex. -/
@@ -116,7 +110,7 @@ end
 /-- Convex hull of a finite set is closed. -/
 lemma set.finite.is_closed_convex_hull [t2_space E] {s : set E} (hs : finite s) :
   is_closed (convex_hull s) :=
-closed_of_compact _ hs.compact_convex_hull
+hs.compact_convex_hull.is_closed
 
 end topological_vector_space
 

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Sébastien Gouëzel
 -/
 import algebra.quadratic_discriminant
+import linear_algebra.bilinear_form
 import tactic.apply_fun
 import tactic.monotonicity
 import topology.metric_space.pi_Lp
@@ -258,6 +259,28 @@ inner_product_space.smul_left _ _ _
 lemma inner_smul_right {x y : α} {r : ℝ} : inner x (r • y) = r * inner x y :=
 by { rw [inner_comm, inner_smul_left, inner_comm] }
 
+variables (α)
+
+/-- The inner product as a bilinear form. -/
+def bilin_form_of_inner : bilin_form ℝ α :=
+{ bilin := inner,
+  bilin_add_left := λ x y z, inner_add_left,
+  bilin_smul_left := λ a x y, inner_smul_left,
+  bilin_add_right := λ x y z, inner_add_right,
+  bilin_smul_right := λ a x y, inner_smul_right }
+
+variables {α}
+
+/-- An inner product with a sum on the left. -/
+lemma sum_inner {ι : Type*} (s : finset ι) (f : ι → α) (x : α) :
+  inner (∑ i in s, f i) x = ∑ i in s, inner (f i) x :=
+bilin_form.map_sum_left (bilin_form_of_inner α) _ _ _
+
+/-- An inner product with a sum on the right. -/
+lemma inner_sum {ι : Type*} (s : finset ι) (f : ι → α) (x : α) :
+  inner x (∑ i in s, f i) = ∑ i in s, inner x (f i) :=
+bilin_form.map_sum_right (bilin_form_of_inner α) _ _ _
+
 @[simp] lemma inner_zero_left {x : α} : inner 0 x = 0 :=
 by { rw [← zero_smul ℝ (0:α), inner_smul_left, zero_mul] }
 
@@ -504,11 +527,7 @@ begin
       norm_num at h },
     refine and.intro hr0 _,
     have h2 : ∥r • x∥ ^ 2 = ∥t + r • x∥ ^ 2,
-    { congr' 1,
-      refine eq_of_div_eq_one _ _ h,
-      intro h0,
-      rw [h0, div_zero] at h,
-      norm_num at h },
+    { rw [eq_of_div_eq_one h] },
     rw [pow_two, pow_two, ←inner_self_eq_norm_square, ←inner_self_eq_norm_square,
         inner_add_add_self] at h2,
     conv_rhs at h2 {
@@ -576,6 +595,20 @@ begin
     rw hy,
     exact inner_div_norm_mul_norm_eq_neg_one_of_ne_zero_of_neg_mul hx hr }
 end
+
+/-- The inner product of two weighted sums, where the weights in each
+sum add to 0, in terms of the norms of pairwise differences. -/
+lemma inner_sum_smul_sum_smul_of_sum_eq_zero {ι₁ : Type*} {s₁ : finset ι₁} {w₁ : ι₁ → ℝ}
+    (v₁ : ι₁ → α) (h₁ : ∑ i in s₁, w₁ i = 0) {ι₂ : Type*} {s₂ : finset ι₂} {w₂ : ι₂ → ℝ}
+    (v₂ : ι₂ → α) (h₂ : ∑ i in s₂, w₂ i = 0) :
+  inner (∑ i₁ in s₁, w₁ i₁ • v₁ i₁) (∑ i₂ in s₂, w₂ i₂ • v₂ i₂) =
+    (-∑ i₁ in s₁, ∑ i₂ in s₂, w₁ i₁ * w₂ i₂ * (∥v₁ i₁ - v₂ i₂∥ * ∥v₁ i₁ - v₂ i₂∥)) / 2 :=
+by simp_rw [sum_inner, inner_sum, inner_smul_left, inner_smul_right,
+            inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two,
+            ←div_sub_div_same, ←div_add_div_same, mul_sub_left_distrib, left_distrib,
+            finset.sum_sub_distrib, finset.sum_add_distrib, ←finset.mul_sum, ←finset.sum_mul,
+            h₁, h₂, zero_mul, mul_zero, finset.sum_const_zero, zero_add, zero_sub, finset.mul_sum,
+            neg_div, finset.sum_div, mul_div_assoc, mul_assoc]
 
 end norm
 
@@ -871,7 +904,7 @@ begin
     let w'' := -w + v,
     have : w'' ∈ K := submodule.add_mem _ (submodule.neg_mem _ hw) hv,
     have h₁ := h w'' this,
-    have h₂ : w'' - v = -w, simp only [neg_inj', add_neg_cancel_right, sub_eq_add_neg],
+    have h₂ : w'' - v = -w, simp only [neg_inj, add_neg_cancel_right, sub_eq_add_neg],
     rw [h₂, inner_neg_right] at h₁,
     linarith,
     exact le_antisymm le ge

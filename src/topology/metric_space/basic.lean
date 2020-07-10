@@ -15,7 +15,7 @@ import topology.algebra.ordered
 open set filter classical topological_space
 noncomputable theory
 
-open_locale uniformity topological_space big_operators
+open_locale uniformity topological_space big_operators filter
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -27,7 +27,7 @@ def uniform_space_of_dist
   (dist_comm : ∀ x y : α, dist x y = dist y x)
   (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z) : uniform_space α :=
 uniform_space.of_core {
-  uniformity := (⨅ ε>0, principal {p:α×α | dist p.1 p.2 < ε}),
+  uniformity := (⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε}),
   refl       := le_infi $ assume ε, le_infi $
     by simp [set.subset_def, id_rel, dist_self, (>)] {contextual := tt},
   comp       := le_infi $ assume ε, le_infi $ assume h, lift'_le
@@ -69,7 +69,7 @@ class metric_space (α : Type u) extends has_dist α : Type u :=
 (edist : α → α → ennreal := λx y, ennreal.of_real (dist x y))
 (edist_dist : ∀ x y : α, edist x y = ennreal.of_real (dist x y) . control_laws_tac)
 (to_uniform_space : uniform_space α := uniform_space_of_dist dist dist_self dist_comm dist_triangle)
-(uniformity_dist : 𝓤 α = ⨅ ε>0, principal {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
+(uniformity_dist : 𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
 end prio
 
 variables [metric_space α]
@@ -419,6 +419,16 @@ theorem uniform_continuous_iff [metric_space β] {f : α → β} :
 uniformity_basis_dist.uniform_continuous_iff uniformity_basis_dist
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma uniform_continuous_on_iff [metric_space β] {f : α → β} {s : set α} :
+  uniform_continuous_on f s ↔ ∀ ε > 0, ∃ δ > 0, ∀ x y ∈ s, dist x y < δ → dist (f x) (f y) < ε :=
+begin
+  dsimp [uniform_continuous_on],
+  rw (metric.uniformity_basis_dist.inf_principal (s.prod s)).tendsto_iff metric.uniformity_basis_dist,
+  simp only [and_imp, exists_prop, prod.forall, mem_inter_eq, gt_iff_lt, mem_set_of_eq, mem_prod],
+  finish,
+end
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem uniform_embedding_iff [metric_space β] {f : α → β} :
   uniform_embedding f ↔ function.injective f ∧ uniform_continuous f ∧
     ∀ δ > 0, ∃ ε > 0, ∀ {a b : α}, dist (f a) (f b) < ε → dist a b < δ :=
@@ -531,6 +541,7 @@ lemma tendsto_uniformly_iff {ι : Type*}
   tendsto_uniformly F f p ↔ ∀ ε > 0, ∀ᶠ n in p, ∀ x, dist (f x) (F n x) < ε :=
 by { rw [← tendsto_uniformly_on_univ, tendsto_uniformly_on_iff], simp }
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 protected lemma cauchy_iff {f : filter α} :
   cauchy f ↔ f ≠ ⊥ ∧ ∀ ε > 0, ∃ t ∈ f, ∀ x y ∈ t, dist x y < ε :=
 uniformity_basis_dist.cauchy_iff
@@ -538,6 +549,7 @@ uniformity_basis_dist.cauchy_iff
 theorem nhds_basis_ball : (𝓝 x).has_basis (λ ε:ℝ, 0 < ε) (ball x) :=
 nhds_basis_uniformity uniformity_basis_dist
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem mem_nhds_iff : s ∈ 𝓝 x ↔ ∃ε>0, ball x ε ⊆ s :=
 nhds_basis_ball.mem_iff
 
@@ -552,6 +564,7 @@ theorem nhds_basis_ball_inv_nat_pos :
   (𝓝 x).has_basis (λ n, 0<n) (λ n:ℕ, ball x (1 / ↑n)) :=
 nhds_basis_uniformity uniformity_basis_dist_inv_nat_pos
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem is_open_iff : is_open s ↔ ∀x∈s, ∃ε>0, ball x ε ⊆ s :=
 by simp only [is_open_iff_mem_nhds, mem_nhds_iff]
 
@@ -560,6 +573,9 @@ is_open_iff.2 $ λ y, exists_ball_subset_ball
 
 theorem ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
 mem_nhds_sets is_open_ball (mem_ball_self ε0)
+
+theorem closed_ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : closed_ball x ε ∈ 𝓝 x :=
+mem_sets_of_superset (ball_mem_nhds x ε0) ball_subset_closed_ball
 
 theorem nhds_within_basis_ball {s : set α} :
   (nhds_within x s).has_basis (λ ε:ℝ, 0 < ε) (λ ε, ball x ε ∩ s) :=
@@ -613,6 +629,7 @@ theorem continuous_iff [metric_space β] {f : α → β} :
   ∀b (ε > 0), ∃ δ > 0, ∀a, dist a b < δ → dist (f a) (f b) < ε :=
 continuous_iff_continuous_at.trans $ forall_congr $ λ b, tendsto_nhds_nhds
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem tendsto_nhds {f : filter β} {u : β → α} {a : α} :
   tendsto u f (𝓝 a) ↔ ∀ ε > 0, ∀ᶠ x in f, dist (u x) a < ε :=
 nhds_basis_ball.tendsto_right_iff
@@ -676,7 +693,7 @@ protected lemma metric.uniformity_basis_edist :
 end⟩
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-theorem metric.uniformity_edist : 𝓤 α = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
+theorem metric.uniformity_edist : 𝓤 α = (⨅ ε>0, 𝓟 {p:α×α | edist p.1 p.2 < ε}) :=
 metric.uniformity_basis_edist.eq_binfi
 
 /-- A metric space induces an emetric space -/
@@ -717,6 +734,10 @@ lemma metric.emetric_closed_ball_nnreal {x : α} {ε : nnreal} :
   emetric.closed_ball x ε = closed_ball x ε :=
 by { convert metric.emetric_closed_ball ε.2, simp }
 
+/-- Build a new metric space from an old one where the bundled uniform structure is provably
+(but typically non-definitionaly) equal to some given uniform structure.
+See Note [forgetful inheritance].
+-/
 def metric_space.replace_uniformity {α} [U : uniform_space α] (m : metric_space α)
   (H : @uniformity _ U = @uniformity _ emetric_space.to_uniform_space') :
   metric_space α :=
@@ -818,11 +839,17 @@ lemma closed_ball_Icc {x r : ℝ} : closed_ball x r = Icc (x-r) (x+r) :=
 by ext y; rw [mem_closed_ball, dist_comm, real.dist_eq,
   abs_sub_le_iff, mem_Icc, ← sub_le_iff_le_add', sub_le]
 
+/-- Special case of the sandwich theorem; see `tendsto_of_tendsto_of_tendsto_of_le_of_le'` for the
+general case. -/
+lemma squeeze_zero' {α} {f g : α → ℝ} {t₀ : filter α} (hf : ∀ᶠ t in t₀, 0 ≤ f t)
+  (hft : ∀ᶠ t in t₀, f t ≤ g t) (g0 : tendsto g t₀ (nhds 0)) : tendsto f t₀ (nhds 0) :=
+tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds g0 hf hft
+
 /-- Special case of the sandwich theorem; see `tendsto_of_tendsto_of_tendsto_of_le_of_le`
 and  `tendsto_of_tendsto_of_tendsto_of_le_of_le'` for the general case. -/
 lemma squeeze_zero {α} {f g : α → ℝ} {t₀ : filter α} (hf : ∀t, 0 ≤ f t) (hft : ∀t, f t ≤ g t)
   (g0 : tendsto g t₀ (𝓝 0)) : tendsto f t₀ (𝓝 0) :=
-tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds g0 hf hft
+squeeze_zero' (eventually_of_forall hf) (eventually_of_forall hft) g0
 
 theorem metric.uniformity_eq_comap_nhds_zero :
   𝓤 α = comap (λp:α×α, dist p.1 p.2) (𝓝 (0 : ℝ)) :=
@@ -934,6 +961,8 @@ lemma cauchy_seq_iff_le_tendsto_0 {s : ℕ → α} : cauchy_seq s ↔ ∃ b : �
 
 end cauchy_seq
 
+/-- Metric space structure pulled back by an injective function. Injectivity is necessary to
+ensure that `dist x y = 0` only if `x = y`. -/
 def metric_space.induced {α β} (f : α → β) (hf : function.injective f)
   (m : metric_space β) : metric_space α :=
 { dist               := λ x y, dist (f x) (f y),
@@ -957,7 +986,7 @@ def metric_space.induced {α β} (f : α → β) (hf : function.injective f)
 
 instance subtype.metric_space {α : Type*} {p : α → Prop} [t : metric_space α] :
   metric_space (subtype p) :=
-metric_space.induced coe (λ x y, subtype.coe_ext.2) t
+metric_space.induced coe (λ x y, subtype.ext) t
 
 theorem subtype.dist_eq {p : α → Prop} (x y : subtype p) : dist x y = dist (x : α) y := rfl
 
@@ -1049,7 +1078,7 @@ theorem filter.tendsto.dist {f g : β → α} {x : filter β} {a b : α}
 
 lemma nhds_comap_dist (a : α) : (𝓝 (0 : ℝ)).comap (λa', dist a' a) = 𝓝 a :=
 by simp only [@nhds_eq_comap_uniformity α, metric.uniformity_eq_comap_nhds_zero,
-  comap_comap_comp, (∘), dist_comm]
+  comap_comap, (∘), dist_comm]
 
 lemma tendsto_iff_dist_tendsto_zero {f : β → α} {x : filter β} {a : α} :
   (tendsto f x (𝓝 a)) ↔ (tendsto (λb, dist (f b) a) x (𝓝 0)) :=
@@ -1080,6 +1109,9 @@ variables {x y z : α} {ε ε₁ ε₂ : ℝ} {s : set α}
 
 theorem is_closed_ball : is_closed (closed_ball x ε) :=
 is_closed_le (continuous_id.dist continuous_const) continuous_const
+
+@[simp] theorem closure_closed_ball : closure (closed_ball x ε) = closed_ball x ε :=
+is_closed_ball.closure_eq
 
 theorem closure_ball_subset_closed_ball : closure (ball x ε) ⊆ closed_ball x ε :=
 closure_minimal ball_subset_closed_ball is_closed_ball
@@ -1113,7 +1145,7 @@ lemma mem_closure_range_iff_nat {α : Type u} [metric_space α] {e : β → α} 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem mem_of_closed' {α : Type u} [metric_space α] {s : set α} (hs : is_closed s)
   {a : α} : a ∈ s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
-by simpa only [closure_eq_of_is_closed hs] using @mem_closure_iff _ _ s a
+by simpa only [hs.closure_eq] using @mem_closure_iff _ _ s a
 
 end metric
 
@@ -1142,7 +1174,7 @@ begin
   { assume x y,
     have : sup univ (λ (b : β), edist (x b) (y b)) = ↑(sup univ (λ (b : β), nndist (x b) (y b))),
     { simp [edist_nndist],
-      refine eq.symm (comp_sup_eq_sup_comp _ _ _),
+      refine eq.symm (comp_sup_eq_sup_comp_of_is_total _ _ _),
       exact (assume x y h, ennreal.coe_le_coe.2 h), refl },
     rw this,
     refl }
@@ -1446,7 +1478,7 @@ begin
     exact this (x, y) (mk_mem_prod x_in y_in) },
   intros p p_in,
   have := mem_closure continuous_dist p_in h,
-  rwa closure_eq_of_is_closed (is_closed_le' C) at this
+  rwa (is_closed_le' C).closure_eq at this
 end
 
 alias bounded_closure_of_bounded ← bounded.closure
@@ -1502,7 +1534,7 @@ compact_univ.bounded.subset (subset_univ _)
 In a proper space, a set is compact if and only if it is closed and bounded -/
 lemma compact_iff_closed_bounded [proper_space α] :
   compact s ↔ is_closed s ∧ bounded s :=
-⟨λ h, ⟨closed_of_compact _ h, h.bounded⟩, begin
+⟨λ h, ⟨h.is_closed, h.bounded⟩, begin
   rintro ⟨hc, hb⟩,
   cases s.eq_empty_or_nonempty with h h, {simp [h, compact_empty]},
   rcases h with ⟨x, hx⟩,
@@ -1518,7 +1550,7 @@ begin
   apply proper_space_of_compact_closed_ball_of_le 0 (λx₀ r hr, _),
   let K := f ⁻¹' (closed_ball x₀ r),
   have A : is_closed K :=
-    continuous_iff_is_closed.1 f_cont (closed_ball x₀ r) (is_closed_ball),
+    continuous_iff_is_closed.1 f_cont (closed_ball x₀ r) is_closed_ball,
   have B : bounded K := ⟨max C 0 * (r + r), λx y hx hy, calc
     dist x y ≤ C * dist (f x) (f y) : hC x y
     ... ≤ max C 0 * dist (f x) (f y) : mul_le_mul_of_nonneg_right (le_max_left _ _) (dist_nonneg)

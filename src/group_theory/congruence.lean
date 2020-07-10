@@ -103,6 +103,8 @@ instance : inhabited (con M) :=
 @[to_additive "A coercion from an additive congruence relation to its underlying binary relation."]
 instance : has_coe_to_fun (con M) := ⟨_, λ c, λ x y, c.r x y⟩
 
+@[simp, to_additive] lemma rel_eq_coe (c : con M) : c.r = c := rfl
+
 /-- Congruence relations are reflexive. -/
 @[to_additive "Additive congruence relations are reflexive."]
 protected lemma refl (x) : c x x := c.2.1 x
@@ -441,12 +443,10 @@ additive congruence relation containing the supremum of the set's image under th
 underlying binary relation."]
 lemma Sup_def {S : set (con M)} : Sup S = con_gen (Sup (r '' S)) :=
 begin
-  rw Sup_eq_con_gen,
+  rw [Sup_eq_con_gen, Sup_image],
   congr,
   ext x y,
-  erw [Sup_image, supr_apply, supr_apply, supr_Prop_eq],
-  simp only [Sup_image, supr_Prop_eq, supr_apply, supr_Prop_eq, exists_prop],
-  refl,
+  simp only [Sup_image, supr_apply, supr_Prop_eq, exists_prop, rel_eq_coe]
 end
 
 variables (M)
@@ -519,7 +519,7 @@ def correspondence : ((≤) : {d // c ≤ d} → {d // c ≤ d} → Prop) ≃o
     (by rw mul_ker_mk_eq; exact d.2) $ @exists_rep _ c.to_setoid,
   inv_fun := λ d, ⟨comap (coe : M → c.quotient) (λ x y, rfl) d, λ _ _ h,
     show d _ _, by rw c.eq.2 h; exact d.refl _ ⟩,
-  left_inv := λ d, subtype.ext.2 $ ext $ λ _ _,
+  left_inv := λ d, subtype.ext_iff_val.2 $ ext $ λ _ _,
     ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in
       d.1.trans (d.1.symm $ d.2 $ c.eq.1 hx) $ d.1.trans H $ d.2 $ c.eq.1 hy,
      λ h, ⟨_, _, rfl, rfl, h⟩⟩,

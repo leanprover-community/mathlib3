@@ -6,7 +6,6 @@ Authors: Scott Morrison
 
 import linear_algebra.tensor_product
 import ring_theory.algebra
-import tactic
 
 universes u v₁ v₂ v₃ v₄
 
@@ -27,10 +26,12 @@ is written and compiles, but takes longer than the `-T100000` time limit,
 so is currently commented out.
 -/
 
-namespace algebra.tensor_product
+namespace algebra
 
 open_locale tensor_product
 open tensor_product
+
+namespace tensor_product
 
 section ring
 
@@ -160,9 +161,19 @@ instance : ring (A ⊗[R] B) :=
   .. (by apply_instance : semiring (A ⊗[R] B)) }.
 
 @[simp]
-lemma mul_tmul (a₁ a₂ : A) (b₁ b₂ : B) :
+lemma tmul_mul_tmul (a₁ a₂ : A) (b₁ b₂ : B) :
   (a₁ ⊗ₜ[R] b₁) * (a₂ ⊗ₜ[R] b₂) = (a₁ * a₂) ⊗ₜ[R] (b₁ * b₂) :=
 rfl
+
+@[simp]
+lemma tmul_pow (a : A) (b : B) (k : ℕ) :
+  (a ⊗ₜ[R] b)^k = (a^k) ⊗ₜ[R] (b^k) :=
+begin
+  induction k with k ih,
+  { simp [one_def], },
+  { simp [pow_succ, ih], }
+end
+
 
 /--
 The algebra map `R →+* (A ⊗[R] B)` giving `A ⊗[R] B` the structure of an `R`-algebra.
@@ -180,7 +191,7 @@ instance : algebra R (A ⊗[R] B) :=
     apply tensor_product.induction_on A B x,
     { simp, },
     { intros a b, simp [tensor_algebra_map, algebra.commutes], },
-    { intros, simp [mul_add, add_mul, *], },
+    { intros y y' h h', simp at h h', simp [mul_add, add_mul, h, h'], },
   end,
   smul_def' := λ r x,
   begin
@@ -218,6 +229,9 @@ def include_left : A →ₐ[R] A ⊗[R] B :=
   map_mul' := by simp,
   commutes' := by simp, }
 
+@[simp]
+lemma include_left_apply (a : A) : (include_left : A →ₐ[R] A ⊗[R] B) a = a ⊗ₜ 1 := rfl
+
 /-- The algebra morphism `B →ₐ[R] A ⊗[R] B` sending `b` to `1 ⊗ₜ b`. -/
 def include_right : B →ₐ[R] A ⊗[R] B :=
 { to_fun := λ b, 1 ⊗ₜ b,
@@ -232,6 +246,9 @@ def include_right : B →ₐ[R] A ⊗[R] B :=
     { rw [←tmul_smul, algebra.smul_def], simp, },
     { simp [algebra.smul_def], },
   end, }
+
+@[simp]
+lemma include_right_apply (b : B) : (include_right : B →ₐ[R] A ⊗[R] B) b = 1 ⊗ₜ b := rfl
 
 end ring
 
@@ -280,12 +297,11 @@ We now build the structure maps for the symmetric monoidal category of `R`-algeb
 section monoidal
 
 section
-variables {R : Type u} {rR : comm_ring R}
-variables {A : Type v₁} {rA : ring A} {aA : algebra R A}
-variables {B : Type v₂} {rB : ring B} {aB : algebra R B}
-variables {C : Type v₃} {rC : ring C} {aC : algebra R C}
-variables {D : Type v₄} {rD : ring D} {aD : algebra R D}
-include aA aB aC
+variables {R : Type u} [comm_ring R]
+variables {A : Type v₁} [ring A] [algebra R A]
+variables {B : Type v₂} [ring B] [algebra R B]
+variables {C : Type v₃} [ring C] [algebra R C]
+variables {D : Type v₄} [ring D] [algebra R D]
 
 /--
 Build an algebra morphism from a linear map out of a tensor product,
@@ -317,6 +333,10 @@ def alg_hom_of_linear_map_tensor_product
   commutes' := λ r, by simp [w₂],
   .. f }
 
+@[simp]
+lemma alg_hom_of_linear_map_tensor_product_apply (f w₁ w₂ x) :
+  (alg_hom_of_linear_map_tensor_product f w₁ w₂ : A ⊗[R] B →ₐ[R] C) x = f x := rfl
+
 /--
 Build an algebra equivalence from a linear equivalence out of a tensor product,
 and evidence of multiplicativity on pure tensors.
@@ -333,7 +353,6 @@ def alg_equiv_of_linear_equiv_tensor_product
 lemma alg_equiv_of_linear_equiv_tensor_product_apply (f w₁ w₂ x) :
   (alg_equiv_of_linear_equiv_tensor_product f w₁ w₂ : A ⊗[R] B ≃ₐ[R] C) x = f x := rfl
 
-include aD
 /--
 Build an algebra equivalence from a linear equivalence out of a triple tensor product,
 and evidence of multiplicativity on pure tensors.
@@ -499,4 +518,6 @@ end
 
 end monoidal
 
-end algebra.tensor_product
+end tensor_product
+
+end algebra

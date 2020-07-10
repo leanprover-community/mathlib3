@@ -110,7 +110,7 @@ But it makes a more systematic use of the filter library.
 -/
 
 open set filter classical
-open_locale classical topological_space
+open_locale classical topological_space filter
 
 set_option eqn_compiler.zeta true
 
@@ -189,7 +189,7 @@ end
   for constructions of uniform spaces, when the topology is derived from the uniform space. -/
 structure uniform_space.core (α : Type u) :=
 (uniformity : filter (α × α))
-(refl       : principal id_rel ≤ uniformity)
+(refl       : 𝓟 id_rel ≤ uniformity)
 (symm       : tendsto prod.swap uniformity uniformity)
 (comp       : uniformity.lift' (λs, s ○ s) ≤ uniformity)
 
@@ -337,7 +337,7 @@ lemma is_open_uniformity {s : set α} :
   is_open s ↔ (∀x∈s, { p : α × α | p.1 = x → p.2 ∈ s } ∈ 𝓤 α) :=
 uniform_space.is_open_uniformity s
 
-lemma refl_le_uniformity : principal id_rel ≤ 𝓤 α :=
+lemma refl_le_uniformity : 𝓟 id_rel ≤ 𝓤 α :=
 (@uniform_space.to_core α _).refl
 
 lemma refl_mem_uniformity {x : α} {s : set (α × α)} (h : s ∈ 𝓤 α) :
@@ -436,7 +436,7 @@ calc (𝓤 α).lift' (λd, d ○ (d ○ d)) =
     exact (assume x, monotone_comp_rel monotone_id monotone_const),
   end
   ... ≤ (𝓤 α).lift (λs, (𝓤 α).lift' (λt:set(α×α), s ○ t)) :
-    lift_mono' $ assume s hs, @uniformity_lift_le_comp α _ _ (principal ∘ (○) s) $
+    lift_mono' $ assume s hs, @uniformity_lift_le_comp α _ _ (𝓟 ∘ (○) s) $
       monotone_principal.comp (monotone_comp_rel monotone_const monotone_id)
   ... = (𝓤 α).lift' (λs:set(α×α), s ○ s) :
     lift_lift'_same_eq_lift'
@@ -550,11 +550,16 @@ lemma mem_nhds_uniformity_iff_left {x : α} {s : set α} :
   s ∈ 𝓝 x ↔ {p : α × α | p.2 = x → p.1 ∈ s} ∈ 𝓤 α :=
 by { rw [uniformity_eq_symm, mem_nhds_uniformity_iff_right], refl }
 
-lemma nhds_eq_comap_uniformity {x : α} : 𝓝 x = (𝓤 α).comap (prod.mk x) :=
-by ext s; rw [mem_nhds_uniformity_iff_right, mem_comap_sets]; from iff.intro
+lemma nhds_eq_comap_uniformity_aux  {α : Type u} {x : α} {s : set α} {F : filter (α × α)} :
+  {p : α × α | p.fst = x → p.snd ∈ s} ∈ F ↔ s ∈ comap (prod.mk x) F :=
+by rw mem_comap_sets ; from iff.intro
   (assume hs, ⟨_, hs, assume x hx, hx rfl⟩)
-  (assume ⟨t, h, ht⟩, (𝓤 α).sets_of_superset h $
+  (assume ⟨t, h, ht⟩, F.sets_of_superset h $
     assume ⟨p₁, p₂⟩ hp (h : p₁ = x), ht $ by simp [h.symm, hp])
+
+
+lemma nhds_eq_comap_uniformity {x : α} : 𝓝 x = (𝓤 α).comap (prod.mk x) :=
+by { ext s, rw [mem_nhds_uniformity_iff_right], exact nhds_eq_comap_uniformity_aux }
 
 lemma is_open_iff_ball_subset {s : set α} : is_open s ↔ ∀ x ∈ s, ∃ V ∈ 𝓤 α, ball x V ⊆ s :=
 begin
@@ -654,7 +659,7 @@ lemma nhds_nhds_eq_uniformity_uniformity_prod {a b : α} :
     set.prod {y : α | (y, a) ∈ s} {y : α | (b, y) ∈ t})) :=
 begin
   rw [prod_def],
-  show (𝓝 a).lift (λs:set α, (𝓝 b).lift (λt:set α, principal (set.prod s t))) = _,
+  show (𝓝 a).lift (λs:set α, (𝓝 b).lift (λt:set α, 𝓟 (set.prod s t))) = _,
   rw [lift_nhds_right],
   apply congr_arg, funext s,
   rw [lift_nhds_left],
@@ -693,6 +698,20 @@ match this with
     is_open_Union $ assume (p:α×α), is_open_Union $ assume hp, (ht p hp).right.left,
     assume ⟨a, b⟩ hp, begin simp; exact ⟨a, b, hp, (ht (a,b) hp).right.right⟩ end,
     Union_subset $ assume p, Union_subset $ assume hp, (ht p hp).left⟩
+end
+
+/-- Entourages are neighborhoods of the diagonal. -/
+lemma nhds_le_uniformity : (⨆ x : α, 𝓝 (x, x)) ≤ 𝓤 α :=
+begin
+  apply supr_le _,
+  intros x V V_in,
+  rcases comp_symm_mem_uniformity_sets V_in with ⟨w, w_in, w_symm, w_sub⟩,
+  have : (ball x w).prod (ball x w) ∈ 𝓝 (x, x),
+  { rw nhds_prod_eq,
+    exact prod_mem_prod (ball_mem_nhds x w_in) (ball_mem_nhds x w_in) },
+  apply mem_sets_of_superset this,
+  rintros ⟨u, v⟩ ⟨u_in, v_in⟩,
+  exact w_sub (mem_comp_of_mem_ball w_symm u_in v_in)
 end
 
 /-!
@@ -740,7 +759,7 @@ lemma uniformity_has_basis_closure : has_basis (𝓤 α) (λ V : set (α × α),
   { rintros ⟨r, ⟨r_in, r_closed⟩, r_sub⟩,
     use [r, r_in],
     convert r_sub,
-    rw closure_eq_of_is_closed r_closed,
+    rw r_closed.closure_eq,
     refl },
   { rintros ⟨r, r_in, r_sub⟩,
     exact ⟨closure r, ⟨mem_sets_of_superset r_in subset_closure, is_closed_closure⟩, r_sub⟩ }
@@ -749,15 +768,15 @@ end⟩
 lemma closure_eq_inter_uniformity {t : set (α×α)} :
   closure t = (⋂ d ∈ 𝓤 α, d ○ (t ○ d)) :=
 set.ext $ assume ⟨a, b⟩,
-calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ principal t ≠ ⊥) : by simp [closure_eq_nhds]
+calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ 𝓟 t ≠ ⊥) : by simp [closure_eq_cluster_pts, cluster_pt]
   ... ↔ (((@prod.swap α α) <$> 𝓤 α).lift'
-      (λ (s : set (α × α)), set.prod {x : α | (x, a) ∈ s} {y : α | (b, y) ∈ s}) ⊓ principal t ≠ ⊥) :
+      (λ (s : set (α × α)), set.prod {x : α | (x, a) ∈ s} {y : α | (b, y) ∈ s}) ⊓ 𝓟 t ≠ ⊥) :
     by rw [←uniformity_eq_symm, nhds_eq_uniformity_prod]
   ... ↔ ((map (@prod.swap α α) (𝓤 α)).lift'
-      (λ (s : set (α × α)), set.prod {x : α | (x, a) ∈ s} {y : α | (b, y) ∈ s}) ⊓ principal t ≠ ⊥) :
+      (λ (s : set (α × α)), set.prod {x : α | (x, a) ∈ s} {y : α | (b, y) ∈ s}) ⊓ 𝓟 t ≠ ⊥) :
     by refl
   ... ↔ ((𝓤 α).lift'
-      (λ (s : set (α × α)), set.prod {y : α | (a, y) ∈ s} {x : α | (x, b) ∈ s}) ⊓ principal t ≠ ⊥) :
+      (λ (s : set (α × α)), set.prod {y : α | (a, y) ∈ s} {x : α | (x, b) ∈ s}) ⊓ 𝓟 t ≠ ⊥) :
   begin
     rw [map_lift'_eq2],
     simp [image_swap_eq_preimage_swap, function.comp],
@@ -851,6 +870,13 @@ as `(x, y)` tends to the diagonal. In other words, if `x` is sufficiently close 
 def uniform_continuous [uniform_space β] (f : α → β) :=
 tendsto (λx:α×α, (f x.1, f x.2)) (𝓤 α) (𝓤 β)
 
+/-- A function `f : α → β` is *uniformly continuous* on `s : set α` if `(f x, f y)` tends to
+the diagonal as `(x, y)` tends to the diagonal while remaining in `s.prod s`.
+In other words, if `x` is sufficiently close to `y`, then `f x` is close to
+`f y` no matter where `x` and `y` are located in `s`.-/
+def uniform_continuous_on [uniform_space β] (f : α → β) (s : set α) : Prop :=
+tendsto (λ x : α × α, (f x.1, f x.2)) (𝓤 α ⊓ principal (s.prod s)) (𝓤 β)
+
 theorem uniform_continuous_def [uniform_space β] {f : α → β} :
   uniform_continuous f ↔ ∀ r ∈ 𝓤 β, { x : α × α | (f x.1, f x.2) ∈ r} ∈ 𝓤 α :=
 iff.rfl
@@ -917,7 +943,7 @@ instance : has_top (uniform_space α) :=
 
 instance : has_bot (uniform_space α) :=
 ⟨{ to_topological_space := ⊥,
-  uniformity  := principal id_rel,
+  uniformity  := 𝓟 id_rel,
   refl        := le_refl _,
   symm        := by simp [tendsto]; apply subset.refl,
   comp        :=
@@ -1000,9 +1026,9 @@ by { rw h, refl }
 lemma uniform_space_comap_id {α : Type*} : uniform_space.comap (id : α → α) = id :=
 by ext u ; dsimp [uniform_space.comap] ; rw [prod.id_prod, filter.comap_id]
 
-lemma uniform_space.comap_comap_comp {α β γ} [uγ : uniform_space γ] {f : α → β} {g : β → γ} :
+lemma uniform_space.comap_comap {α β γ} [uγ : uniform_space γ] {f : α → β} {g : β → γ} :
   uniform_space.comap (g ∘ f) uγ = uniform_space.comap f (uniform_space.comap g uγ) :=
-by ext ; dsimp [uniform_space.comap] ; rw filter.comap_comap_comp
+by ext ; dsimp [uniform_space.comap] ; rw filter.comap_comap
 
 lemma uniform_continuous_iff {α β} [uα : uniform_space α] [uβ : uniform_space β] {f : α → β} :
   uniform_continuous f ↔ uα ≤ uβ.comap f :=
@@ -1096,11 +1122,22 @@ lemma uniform_continuous_subtype_mk {p : α → Prop} [uniform_space α] [unifor
   uniform_continuous (λx, ⟨f x, h x⟩ : β → subtype p) :=
 uniform_continuous_comap' hf
 
+lemma uniform_continuous_on_iff_restrict [uniform_space α] [uniform_space β] (f : α → β) (s : set α) :
+  uniform_continuous_on f s ↔ uniform_continuous (s.restrict f) :=
+begin
+  unfold uniform_continuous_on set.restrict uniform_continuous tendsto,
+  rw [show (λ x : s × s, (f x.1, f x.2)) = prod.map f f ∘ coe, by ext x; cases x; refl,
+      uniformity_comap rfl,
+      show prod.map subtype.val subtype.val = (coe : s × s → α × α), by ext x; cases x; refl],
+  conv in (map _ (comap _ _)) { rw ← filter.map_map },
+  rw subtype_coe_map_comap_prod, refl,
+end
+
 lemma tendsto_of_uniform_continuous_subtype
   [uniform_space α] [uniform_space β] {f : α → β} {s : set α} {a : α}
   (hf : uniform_continuous (λx:s, f x.val)) (ha : s ∈ 𝓝 a) :
   tendsto f (𝓝 a) (𝓝 (f a)) :=
-by rw [(@map_nhds_subtype_val_eq α _ s a (mem_of_nhds ha) ha).symm]; exact
+by rw [(@map_nhds_subtype_coe_eq α _ s a (mem_of_nhds ha) ha).symm]; exact
 tendsto_map' (continuous_iff_continuous_at.mp hf.continuous _)
 
 
@@ -1128,7 +1165,7 @@ have map (λp:(α×α)×(β×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))) =
   comap (λp:(α×β)×(α×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))),
   from funext $ assume f, map_eq_comap_of_inverse
     (funext $ assume ⟨⟨_, _⟩, ⟨_, _⟩⟩, rfl) (funext $ assume ⟨⟨_, _⟩, ⟨_, _⟩⟩, rfl),
-by rw [this, uniformity_prod, filter.prod, comap_inf, comap_comap_comp, comap_comap_comp]
+by rw [this, uniformity_prod, filter.prod, comap_inf, comap_comap, comap_comap]
 
 lemma mem_map_sets_iff' {α : Type*} {β : Type*} {f : filter α} {m : α → β} {t : set β} :
   t ∈ (map m f).sets ↔ (∃s∈f, m '' s ⊆ t) :=

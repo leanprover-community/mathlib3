@@ -27,12 +27,12 @@ namespace Algebra
 instance : has_coe_to_sort (Algebra R) :=
 { S := Type u, coe := Algebra.carrier }
 
-instance : category (Algebra.{u} R) :=
+instance : category (Algebra R) :=
 { hom   := λ A B, A →ₐ[R] B,
   id    := λ A, alg_hom.id R A,
   comp  := λ A B C f g, g.comp f }
 
-instance : concrete_category (Algebra.{u} R) :=
+instance : concrete_category (Algebra R) :=
 { forget := { obj := λ R, R, map := λ R S f, (f : R → S) },
   forget_faithful := { } }
 
@@ -88,7 +88,7 @@ namespace category_theory.iso
 
 /-- Build a `alg_equiv` from an isomorphism in the category `Algebra R`. -/
 @[simps]
-def to_alg_equiv {X Y : Algebra.{u} R} (i : X ≅ Y) : X ≃ₐ[R] Y :=
+def to_alg_equiv {X Y : Algebra R} (i : X ≅ Y) : X ≃ₐ[R] Y :=
 { to_fun    := i.hom,
   inv_fun   := i.inv,
   left_inv  := by tidy,

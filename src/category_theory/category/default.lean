@@ -117,14 +117,24 @@ by { convert w (𝟙 X), tidy }
 lemma id_of_comp_right_id (f : X ⟶ X) (w : ∀ {Y : C} (g : Y ⟶ X), g ≫ f = g) : f = 𝟙 X :=
 by { convert w (𝟙 X), tidy }
 
+lemma comp_dite {P : Prop} [decidable P]
+  {X Y Z : C} (f : X ⟶ Y) (g : P → (Y ⟶ Z)) (g' : ¬P → (Y ⟶ Z)) :
+  (f ≫ if h : P then g h else g' h) = (if h : P then f ≫ g h else f ≫ g' h) :=
+by { split_ifs; refl }
+
+lemma dite_comp {P : Prop} [decidable P]
+  {X Y Z : C} (f : P → (X ⟶ Y)) (f' : ¬P → (X ⟶ Y)) (g : Y ⟶ Z) :
+  (if h : P then f h else f' h) ≫ g = (if h : P then f h ≫ g else f' h ≫ g) :=
+by { split_ifs; refl }
+
 class epi  (f : X ⟶ Y) : Prop :=
 (left_cancellation : Π {Z : C} (g h : Y ⟶ Z) (w : f ≫ g = f ≫ h), g = h)
 class mono (f : X ⟶ Y) : Prop :=
 (right_cancellation : Π {Z : C} (g h : Z ⟶ X) (w : g ≫ f = h ≫ f), g = h)
 
-instance (X : C) : epi.{v} (𝟙 X) :=
+instance (X : C) : epi (𝟙 X) :=
 ⟨λ Z g h w, by simpa using w⟩
-instance (X : C) : mono.{v} (𝟙 X) :=
+instance (X : C) : mono (𝟙 X) :=
 ⟨λ Z g h w, by simpa using w⟩
 
 lemma cancel_epi (f : X ⟶ Y) [epi f]  {g h : Y ⟶ Z} : (f ≫ g = f ≫ h) ↔ g = h :=

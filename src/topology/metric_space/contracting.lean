@@ -156,7 +156,7 @@ theorem exists_fixed_point' {s : set α} (hsc : is_complete s) (hsf : maps_to f 
 begin
   haveI := hsc.complete_space_coe,
   rcases hf.exists_fixed_point ⟨x, hxs⟩ hx with ⟨y, hfy, h_tendsto, hle⟩,
-  refine ⟨y, y.2, subtype.ext.1 hfy, _, λ n, _⟩,
+  refine ⟨y, y.2, subtype.ext_iff_val.1 hfy, _, λ n, _⟩,
   { convert (continuous_subtype_coe.tendsto _).comp h_tendsto, ext n,
     simp only [(∘), maps_to.iterate_restrict, maps_to.coe_restrict_apply, subtype.coe_mk] },
   { convert hle n,

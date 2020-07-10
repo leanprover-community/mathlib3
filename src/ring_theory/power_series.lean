@@ -78,6 +78,7 @@ instance [add_monoid α]      : add_monoid      (mv_power_series σ α) := pi.ad
 instance [add_group α]       : add_group       (mv_power_series σ α) := pi.add_group
 instance [add_comm_monoid α] : add_comm_monoid (mv_power_series σ α) := pi.add_comm_monoid
 instance [add_comm_group α]  : add_comm_group  (mv_power_series σ α) := pi.add_comm_group
+instance [nontrivial α]      : nontrivial      (mv_power_series σ α) := function.nontrivial
 
 section add_monoid
 variables [add_monoid α]
@@ -380,6 +381,15 @@ instance : semimodule α (mv_power_series σ α) :=
   add_smul := λ a b φ, by simp only [ring_hom.map_add, add_mul],
   zero_smul := λ φ, by simp only [zero_mul, ring_hom.map_zero] }
 
+lemma X_inj [nontrivial α] {s t : σ} : (X s : mv_power_series σ α) = X t ↔ s = t :=
+⟨begin
+  intro h, replace h := congr_arg (coeff α (single s 1)) h, rw [coeff_X, if_pos rfl, coeff_X] at h,
+  split_ifs at h with H,
+  { rw finsupp.single_eq_single_iff at H,
+    cases H, { exact H.1 }, { exfalso, exact one_ne_zero H.1 } },
+  { exfalso, exact one_ne_zero h }
+end, congr_arg X⟩
+
 end semiring
 
 instance [comm_ring α] : algebra α (mv_power_series σ α) :=
@@ -424,7 +434,7 @@ end map
 section trunc
 variables [comm_semiring α] (n : σ →₀ ℕ)
 
--- Auxiliary definition for the truncation function.
+/-- Auxiliary definition for the truncation function. -/
 def trunc_fun (φ : mv_power_series σ α) : mv_polynomial σ α :=
 { support := (n.antidiagonal.support.image prod.fst).filter (λ m, coeff α m φ ≠ 0),
   to_fun := λ m, if m ≤ n then coeff α m φ else 0,
@@ -599,44 +609,25 @@ end ring
 section comm_ring
 variable [comm_ring α]
 
-/-- Multivariate formal power series over a local ring form a local ring.-/
-lemma is_local_ring (h : is_local_ring α) : is_local_ring (mv_power_series σ α) :=
-begin
-  split,
-  { have H : (0:α) ≠ 1 := ‹is_local_ring α›.1, contrapose! H,
-    simpa using congr_arg (constant_coeff σ α) H },
-  { intro φ, rcases ‹is_local_ring α›.2 (constant_coeff σ α φ) with ⟨u,h⟩|⟨u,h⟩; [left, right];
+/-- Multivariate formal power series over a local ring form a local ring. -/
+instance is_local_ring [local_ring α] : local_ring (mv_power_series σ α) :=
+{ is_local := by { intro φ, rcases local_ring.is_local (constant_coeff σ α φ) with ⟨u,h⟩|⟨u,h⟩;
+    [left, right];
     { refine is_unit_of_mul_eq_one _ _ (mul_inv_of_unit _ u _),
-      simpa using h.symm } }
-end
+      simpa using h.symm } } }
 
 -- TODO(jmc): once adic topology lands, show that this is complete
 
 end comm_ring
 
-section nonzero
-variables [semiring α] [nonzero α]
-
-instance : nonzero (mv_power_series σ α) :=
-{ zero_ne_one := assume h, zero_ne_one $ show (0:α) = 1, from congr_arg (constant_coeff σ α) h }
-
-lemma X_inj {s t : σ} : (X s : mv_power_series σ α) = X t ↔ s = t :=
-⟨begin
-  intro h, replace h := congr_arg (coeff α (single s 1)) h, rw [coeff_X, if_pos rfl, coeff_X] at h,
-  split_ifs at h with H,
-  { rw finsupp.single_eq_single_iff at H,
-    cases H, { exact H.1 }, { exfalso, exact one_ne_zero H.1 } },
-  { exfalso, exact one_ne_zero h }
-end, congr_arg X⟩
-
-end nonzero
-
 section local_ring
-variables {β : Type*} [local_ring α] [local_ring β] (f : α →+* β) [is_local_ring_hom f]
+variables {β : Type*} [comm_ring α] [comm_ring β] (f : α →+* β)
+  [is_local_ring_hom f]
 
-instance : local_ring (mv_power_series σ α) :=
-local_of_is_local_ring $ is_local_ring ⟨zero_ne_one, local_ring.is_local⟩
+-- Thanks to the linter for informing us that  this instance does
+-- not actually need α and β to be local rings!
 
+/-- The map `A[[X]] → B[[X]]` induced by a local ring hom `A → B` is local -/
 instance map.is_local_ring_hom : is_local_ring_hom (map σ f) :=
 ⟨begin
   rintros φ ⟨ψ, h⟩,
@@ -648,11 +639,17 @@ instance map.is_local_ring_hom : is_local_ring_hom (map σ f) :=
   exact is_unit_of_mul_eq_one φ (inv_of_unit φ c) (mul_inv_of_unit φ c hc.symm)
 end⟩
 
+variables [local_ring α] [local_ring β]
+
+instance : local_ring (mv_power_series σ α) :=
+{ is_local := local_ring.is_local }
+
 end local_ring
 
 section field
 variables [field α]
 
+/-- The inverse `1/f` of a multivariable power series `f` over a field -/
 protected def inv (φ : mv_power_series σ α) : mv_power_series σ α :=
 inv.aux (constant_coeff σ α φ)⁻¹ φ
 
@@ -736,15 +733,17 @@ coe_monomial _ _
   ((X s : mv_polynomial σ α) : mv_power_series σ α) = mv_power_series.X s :=
 coe_monomial _ _
 
-namespace coe_to_mv_power_series
-
-instance : is_semiring_hom (coe : mv_polynomial σ α → mv_power_series σ α) :=
-{ map_zero := coe_zero,
-  map_one := coe_one,
-  map_add := coe_add,
-  map_mul := coe_mul }
-
-end coe_to_mv_power_series
+/--
+The coercion from multivariable polynomials to multivariable power series
+as a ring homomorphism.
+-/
+-- TODO as an algebra homomorphism?
+def coe_to_mv_power_series.ring_hom : mv_polynomial σ α →+* mv_power_series σ α :=
+{ to_fun := (coe : mv_polynomial σ α → mv_power_series σ α),
+  map_zero' := coe_zero,
+  map_one' := coe_one,
+  map_add' := coe_add,
+  map_mul' := coe_mul }
 
 end mv_polynomial
 
@@ -767,7 +766,7 @@ instance [semiring α]        : semiring        (power_series α) := by apply_in
 instance [comm_semiring α]   : comm_semiring   (power_series α) := by apply_instance
 instance [ring α]            : ring            (power_series α) := by apply_instance
 instance [comm_ring α]       : comm_ring       (power_series α) := by apply_instance
-instance [semiring α] [nonzero α] : nonzero    (power_series α) := by apply_instance
+instance [nontrivial α]      : nontrivial      (power_series α) := by apply_instance
 instance [semiring α]        : semimodule α    (power_series α) := by apply_instance
 instance [comm_ring α]       : algebra α       (power_series α) := by apply_instance
 
@@ -1051,6 +1050,7 @@ end comm_semiring
 section ring
 variables [ring α]
 
+/-- Auxiliary function used for computing inverse of a power series -/
 protected def inv.aux : α → power_series α → power_series α :=
 mv_power_series.inv.aux
 
@@ -1140,8 +1140,8 @@ end
 
 instance : integral_domain (power_series α) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero,
-  .. power_series.comm_ring,
-  .. power_series.nonzero }
+  .. power_series.nontrivial,
+  .. power_series.comm_ring }
 
 /-- The ideal spanned by the variable in the power series ring
  over an integral domain is a prime ideal.-/
@@ -1164,29 +1164,23 @@ end
 end integral_domain
 
 section local_ring
-variables [comm_ring α]
+variables {β : Type*} [comm_ring α] [comm_ring β]
+  (f : α →+* β) [is_local_ring_hom f]
 
-lemma is_local_ring (h : is_local_ring α) :
-  is_local_ring (power_series α) :=
-mv_power_series.is_local_ring h
+instance map.is_local_ring_hom : is_local_ring_hom (map f) :=
+mv_power_series.map.is_local_ring_hom f
 
-end local_ring
-
-section local_ring
-variables {β : Type*} [local_ring α] [local_ring β] (f : α →+* β) [is_local_ring_hom f]
+variables [local_ring α] [local_ring β]
 
 instance : local_ring (power_series α) :=
 mv_power_series.local_ring
-
-instance map.is_local_ring_hom :
-  is_local_ring_hom (map f) :=
-mv_power_series.map.is_local_ring_hom f
 
 end local_ring
 
 section field
 variables [field α]
 
+/-- The inverse 1/f of a power series f defined over a field -/
 protected def inv : power_series α → power_series α :=
 mv_power_series.inv
 
@@ -1415,7 +1409,7 @@ by rw [order_monomial, if_neg h]
 end order_basic
 
 section order_zero_ne_one
-variables [comm_semiring α] [nonzero α]
+variables [comm_semiring α] [nontrivial α]
 
 /-- The order of the formal power series `1` is `0`.-/
 @[simp] lemma order_one : order (1 : power_series α) = 0 :=
@@ -1492,13 +1486,16 @@ end
   ((X : polynomial α) : power_series α) = power_series.X :=
 coe_monomial _ _
 
-namespace coe_to_mv_power_series
+/--
+The coercion from polynomials to power series
+as a ring homomorphism.
+-/
+-- TODO as an algebra homomorphism?
+def coe_to_power_series.ring_hom : polynomial α →+* power_series α  :=
+{ to_fun := (coe : polynomial α → power_series α),
+  map_zero' := coe_zero,
+  map_one' := coe_one,
+  map_add' := coe_add,
+  map_mul' := coe_mul }
 
-instance : is_semiring_hom (coe : polynomial α → power_series α) :=
-{ map_zero := coe_zero,
-  map_one := coe_one,
-  map_add := coe_add,
-  map_mul := coe_mul }
-
-end coe_to_mv_power_series
 end polynomial

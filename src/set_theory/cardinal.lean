@@ -110,12 +110,15 @@ not_iff_comm.1
 
 instance : has_one cardinal.{u} := ⟨⟦punit⟧⟩
 
-instance : nonzero cardinal.{u} :=
-{ zero_ne_one := ne.symm $ ne_zero_iff_nonempty.2 ⟨punit.star⟩ }
+instance : nontrivial cardinal.{u} :=
+⟨⟨1, 0, ne_zero_iff_nonempty.2 ⟨punit.star⟩⟩⟩
 
 theorem le_one_iff_subsingleton {α : Type u} : mk α ≤ 1 ↔ subsingleton α :=
 ⟨λ ⟨f⟩, ⟨λ a b, f.injective (subsingleton.elim _ _)⟩,
  λ ⟨h⟩, ⟨⟨λ a, punit.star, λ a b _, h _ _⟩⟩⟩
+
+theorem one_lt_iff_nontrivial {α : Type u} : 1 < mk α ↔ nontrivial α :=
+by { rw [← not_iff_not, not_nontrivial_iff_subsingleton, ← le_one_iff_subsingleton], simp }
 
 instance : has_add cardinal.{u} :=
 ⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, mk (α ⊕ β)) $ assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
@@ -240,7 +243,7 @@ lemma zero_power_le (c : cardinal.{u}) : (0 : cardinal.{u}) ^ c ≤ 1 :=
 by { by_cases h : c = 0, rw [h, power_zero], rw [zero_power h], apply zero_le }
 
 theorem add_le_add : ∀{a b c d : cardinal}, a ≤ b → c ≤ d → a + c ≤ b + d :=
-by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨embedding.sum_congr e₁ e₂⟩
+by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.sum_map e₂⟩
 
 theorem add_le_add_left (a) {b c : cardinal} : b ≤ c → a + b ≤ a + c :=
 add_le_add (le_refl _)
@@ -255,7 +258,7 @@ theorem le_add_left (a b : cardinal) : a ≤ b + a :=
 by simpa using add_le_add_right a (zero_le b)
 
 theorem mul_le_mul : ∀{a b c d : cardinal}, a ≤ b → c ≤ d → a * c ≤ b * d :=
-by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨embedding.prod_congr e₁ e₂⟩
+by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.prod_map e₂⟩
 
 theorem mul_le_mul_left (a) {b c : cardinal} : b ≤ c → a * b ≤ a * c :=
 mul_le_mul (le_refl _)
@@ -280,10 +283,10 @@ quotient.induction_on₃ a b c $ assume α β γ ⟨e⟩, ⟨embedding.arrow_con
 
 theorem le_iff_exists_add {a b : cardinal} : a ≤ b ↔ ∃ c, b = a + c :=
 ⟨quotient.induction_on₂ a b $ λ α β ⟨⟨f, hf⟩⟩,
-  have (α ⊕ ↥-range f) ≃ β, from
+  have (α ⊕ ((range f)ᶜ : set β)) ≃ β, from
     (equiv.sum_congr (equiv.set.range f hf) (equiv.refl _)).trans $
     (equiv.set.sum_compl (range f)),
-  ⟨⟦(-range f : set β)⟧, quotient.sound ⟨this.symm⟩⟩,
+  ⟨⟦↥(range f)ᶜ⟧, quotient.sound ⟨this.symm⟩⟩,
  λ ⟨c, e⟩, add_zero a ▸ e.symm ▸ add_le_add_left _ (zero_le _)⟩
 
 end order_properties
@@ -391,7 +394,7 @@ quotient.induction_on a $ λ α, by simp; exact
   quotient.sound ⟨equiv.sigma_equiv_prod _ _⟩
 
 theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f ≤ sum g :=
-⟨embedding.sigma_congr_right $ λ i, classical.choice $
+⟨(embedding.refl _).sigma_map $ λ i, classical.choice $
   by have := H i; rwa [← quot.out_eq (f i), ← quot.out_eq (g i)] at this⟩
 
 /-- The indexed supremum of cardinals is the smallest cardinal above
@@ -927,11 +930,16 @@ theorem mk_union_add_mk_inter {α : Type u} {S T : set α} :
   mk (S ∪ T : set α) + mk (S ∩ T : set α) = mk S + mk T :=
 quot.sound ⟨equiv.set.union_sum_inter S T⟩
 
+/-- The cardinality of a union is at most the sum of the cardinalities
+of the two sets. -/
+lemma mk_union_le {α : Type u} (S T : set α) : mk (S ∪ T : set α) ≤ mk S + mk T :=
+@mk_union_add_mk_inter α S T ▸ le_add_right (mk (S ∪ T : set α)) (mk (S ∩ T : set α))
+
 theorem mk_union_of_disjoint {α : Type u} {S T : set α} (H : disjoint S T) :
   mk (S ∪ T : set α) = mk S + mk T :=
 quot.sound ⟨equiv.set.union H⟩
 
-lemma mk_sum_compl {α} (s : set α) : #s + #(-s : set α) = #α :=
+lemma mk_sum_compl {α} (s : set α) : #s + #(sᶜ : set α) = #α :=
 quotient.sound ⟨equiv.set.sum_compl s⟩
 
 lemma mk_le_mk_of_subset {α} {s t : set α} (h : s ⊆ t) : mk s ≤ mk t :=

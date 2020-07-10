@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Kevin Buzzard
 -/
 import ring_theory.ideal_operations
 import linear_algebra.basis
+import order.order_iso_nat
 
 /-!
 # Noetherian rings and modules
@@ -339,22 +340,22 @@ lemma well_founded_submodule_gt (R M) [ring R] [add_comm_group M] [module R M] :
   ∀ [is_noetherian R M], well_founded ((>) : submodule R M → submodule R M → Prop) :=
 is_noetherian_iff_well_founded.mp
 
-lemma finite_of_linear_independent {R M} [comm_ring R] [nonzero R] [add_comm_group M] [module R M]
-  [is_noetherian R M] {s : set M} (hs : linear_independent R (subtype.val : s → M)) : s.finite :=
+lemma finite_of_linear_independent {R M} [comm_ring R] [nontrivial R] [add_comm_group M] [module R M]
+  [is_noetherian R M] {s : set M} (hs : linear_independent R (coe : s → M)) : s.finite :=
 begin
   refine classical.by_contradiction (λ hf, order_embedding.well_founded_iff_no_descending_seq.1
     (well_founded_submodule_gt R M) ⟨_⟩),
   have f : ℕ ↪ s, from @infinite.nat_embedding s ⟨λ f, hf ⟨f⟩⟩,
-  have : ∀ n, (subtype.val ∘ f) '' {m | m ≤ n} ⊆ s,
+  have : ∀ n, (coe ∘ f) '' {m | m ≤ n} ⊆ s,
   { rintros n x ⟨y, hy₁, hy₂⟩, subst hy₂, exact (f y).2 },
   have : ∀ a b : ℕ, a ≤ b ↔
-    span R ((subtype.val ∘ f) '' {m | m ≤ a}) ≤ span R ((subtype.val ∘ f) '' {m | m ≤ b}),
+    span R ((coe ∘ f) '' {m | m ≤ a}) ≤ span R ((coe ∘ f) '' {m | m ≤ b}),
   { assume a b,
     rw [span_le_span_iff zero_ne_one hs (this a) (this b),
-      set.image_subset_image_iff (subtype.val_injective.comp f.injective),
+      set.image_subset_image_iff (subtype.coe_injective.comp f.injective),
       set.subset_def],
     exact ⟨λ hab x (hxa : x ≤ a), le_trans hxa hab, λ hx, hx a (le_refl a)⟩ },
-  exact ⟨⟨λ n, span R ((subtype.val ∘ f) '' {m | m ≤ n}),
+  exact ⟨⟨λ n, span R ((coe ∘ f) '' {m | m ≤ n}),
       λ x y, by simp [le_antisymm_iff, (this _ _).symm] {contextual := tt}⟩,
     by dsimp [gt]; simp only [lt_iff_le_not_le, (this _ _).symm]; tauto⟩
 end
@@ -375,7 +376,7 @@ by letI := classical.dec; exact
 ⟨assume s, ⟨to_finset s, by rw [set.coe_to_finset, submodule.span_eq]⟩⟩
 
 theorem ring.is_noetherian_of_zero_eq_one {R} [ring R] (h01 : (0 : R) = 1) : is_noetherian_ring R :=
-by haveI := subsingleton_of_zero_eq_one R h01;
+by haveI := subsingleton_of_zero_eq_one h01;
    haveI := fintype.of_subsingleton (0:R);
    exact ring.is_noetherian_of_fintype _ _
 
@@ -505,11 +506,9 @@ namespace submodule
 variables {R : Type*} {A : Type*} [comm_ring R] [ring A] [algebra R A]
 variables (M N : submodule R A)
 
-local attribute [instance] set.pointwise_mul_semiring
-
 theorem fg_mul (hm : M.fg) (hn : N.fg) : (M * N).fg :=
 let ⟨m, hfm, hm⟩ := fg_def.1 hm, ⟨n, hfn, hn⟩ := fg_def.1 hn in
-fg_def.2 ⟨m * n, set.pointwise_mul_finite hfm hfn, span_mul_span R m n ▸ hm ▸ hn ▸ rfl⟩
+fg_def.2 ⟨m * n, hfm.mul hfn, span_mul_span R m n ▸ hm ▸ hn ▸ rfl⟩
 
 lemma fg_pow (h : M.fg) (n : ℕ) : (M ^ n).fg :=
 nat.rec_on n

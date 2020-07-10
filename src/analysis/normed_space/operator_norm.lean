@@ -302,13 +302,13 @@ lemma norm_id_le : ∥id 𝕜 E∥ ≤ 1 :=
 op_norm_le_bound _ zero_le_one (λx, by simp)
 
 /-- If a space is non-trivial, then the norm of the identity equals `1`. -/
-lemma norm_id (h : ∃ x : E, x ≠ 0) : ∥id 𝕜 E∥ = 1 :=
-le_antisymm norm_id_le $ let ⟨x, hx⟩ := h in
+lemma norm_id [nontrivial E] : ∥id 𝕜 E∥ = 1 :=
+le_antisymm norm_id_le $ let ⟨x, hx⟩ := exists_ne (0 : E) in
 have _ := (id 𝕜 E).ratio_le_op_norm x,
 by rwa [id_apply, div_self (ne_of_gt $ norm_pos_iff.2 hx)] at this
 
 @[simp] lemma norm_id_field : ∥id 𝕜 𝕜∥ = 1 :=
-norm_id ⟨1, one_ne_zero⟩
+norm_id
 
 @[simp] lemma norm_id_field' : ∥(1 : 𝕜 →L[𝕜] 𝕜)∥ = 1 :=
 norm_id_field
@@ -336,6 +336,18 @@ lemma op_norm_comp_le (f : E →L[𝕜] F) : ∥h.comp f∥ ≤ ∥h∥ * ∥f�
 (Inf_le _ bounds_bdd_below
   ⟨mul_nonneg (op_norm_nonneg _) (op_norm_nonneg _), λ x,
     by { rw mul_assoc, exact h.le_op_norm_of_le (f.le_op_norm x) } ⟩)
+
+/-- Continuous linear maps form a normed ring with respect to the operator norm. -/
+instance to_normed_ring : normed_ring (E →L[𝕜] E) :=
+{ norm_mul := op_norm_comp_le,
+  .. continuous_linear_map.to_normed_group }
+
+/-- For a nonzero normed space `E`, continuous linear endomorphisms form a normed algebra with
+respect to the operator norm. -/
+instance to_normed_algebra [nontrivial E] : normed_algebra 𝕜 (E →L[𝕜] E) :=
+{ norm_algebra_map_eq := λ c, show ∥c • id 𝕜 E∥ = ∥c∥,
+    by {rw [norm_smul, norm_id], simp},
+  .. continuous_linear_map.algebra }
 
 /-- A continuous linear map is automatically uniformly continuous. -/
 protected theorem uniform_continuous : uniform_continuous f :=
@@ -470,7 +482,7 @@ begin
         apply add_le_add_right,
         simpa [dist_eq_norm] using b_bound n 0 0 (zero_le _) (zero_le _)
       end },
-    exact le_of_tendsto at_top_ne_bot (hG v).norm (eventually_of_forall _ A) },
+    exact le_of_tendsto at_top_ne_bot (hG v).norm (eventually_of_forall A) },
   -- Thus `G` is continuous, and we propose that as the limit point of our original Cauchy sequence.
   let Gcont := Glin.mk_continuous _ Gnorm,
   use Gcont,
@@ -594,6 +606,26 @@ begin
       ... ≤ ∥smul_right c f∥ * ∥x∥ : le_op_norm _ _ } },
 end
 
+/-- Left-multiplication in a normed algebra, considered as a continuous linear map. -/
+def lmul_left (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
+  [h : normed_algebra 𝕜 𝕜'] : 𝕜' → (𝕜' →L[𝕜] 𝕜') :=
+λ x, (algebra.lmul_left 𝕜 𝕜' x).mk_continuous ∥x∥
+(λ y, by {rw algebra.lmul_left_apply, exact norm_mul_le x y})
+
+@[simp] lemma lmul_left_apply {𝕜 : Type*} (𝕜' : Type*) [normed_field 𝕜]
+  [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] (x y : 𝕜') :
+  lmul_left 𝕜 𝕜' x y = x * y := rfl
+
+/-- Right-multiplication in a normed algebra, considered as a continuous linear map. -/
+def lmul_right (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜]
+  [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] : 𝕜' → (𝕜' →L[𝕜] 𝕜') :=
+λ x, (algebra.lmul_right 𝕜 𝕜' x).mk_continuous ∥x∥
+(λ y, by {rw [algebra.lmul_right_apply, mul_comm], exact norm_mul_le y x})
+
+@[simp] lemma lmul_right_apply {𝕜 : Type*} (𝕜' : Type*) [normed_field 𝕜]
+  [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] (x y : 𝕜') :
+  lmul_right 𝕜 𝕜' x y = y * x := rfl
+
 section restrict_scalars
 
 variable (𝕜)
@@ -618,6 +650,21 @@ def restrict_scalars (f : E' →L[𝕜'] F') : E' →L[𝕜] F' :=
 end restrict_scalars
 
 end continuous_linear_map
+
+variables {ι : Type*}
+
+/-- Applying a continuous linear map commutes with taking an (infinite) sum. -/
+lemma continuous_linear_map.has_sum {f : ι → E} (φ : E →L[𝕜] F) {x : E} (hf : has_sum f x) :
+  has_sum (λ (b:ι), φ (f b)) (φ x) :=
+begin
+  unfold has_sum,
+  convert φ.continuous.continuous_at.tendsto.comp hf,
+  ext s, rw [function.comp_app, finset.sum_hom s φ],
+end
+
+lemma continuous_linear_map.has_sum_of_summable {f : ι → E} (φ : E →L[𝕜] F) (hf : summable f) :
+  has_sum (λ (b:ι), φ (f b)) (φ (∑'b, f b)) :=
+continuous_linear_map.has_sum φ hf.has_sum
 
 namespace continuous_linear_equiv
 
@@ -649,22 +696,26 @@ e.is_O_comp_rev _ _
 lemma uniform_embedding : uniform_embedding e :=
 e.antilipschitz.uniform_embedding e.lipschitz.uniform_continuous
 
-lemma one_le_norm_mul_norm_symm (h : ∃ x : E, x ≠ 0) :
+lemma one_le_norm_mul_norm_symm [nontrivial E] :
   1 ≤ ∥(e : E →L[𝕜] F)∥ * ∥(e.symm : F →L[𝕜] E)∥ :=
 begin
   rw [mul_comm],
   convert (e.symm : F →L[𝕜] E).op_norm_comp_le (e : E →L[𝕜] F),
-  rw [e.coe_symm_comp_coe, continuous_linear_map.norm_id h]
+  rw [e.coe_symm_comp_coe, continuous_linear_map.norm_id]
 end
 
-lemma norm_pos (h : ∃ x : E, x ≠ 0) : 0 < ∥(e : E →L[𝕜] F)∥ :=
-pos_of_mul_pos_right (lt_of_lt_of_le zero_lt_one (e.one_le_norm_mul_norm_symm h)) (norm_nonneg _)
+lemma norm_pos [nontrivial E] : 0 < ∥(e : E →L[𝕜] F)∥ :=
+pos_of_mul_pos_right (lt_of_lt_of_le zero_lt_one e.one_le_norm_mul_norm_symm) (norm_nonneg _)
 
-lemma norm_symm_pos (h : ∃ x : E, x ≠ 0) : 0 < ∥(e.symm : F →L[𝕜] E)∥ :=
-pos_of_mul_pos_left (lt_of_lt_of_le zero_lt_one (e.one_le_norm_mul_norm_symm h)) (norm_nonneg _)
+lemma norm_symm_pos [nontrivial E] : 0 < ∥(e.symm : F →L[𝕜] E)∥ :=
+pos_of_mul_pos_left (lt_of_lt_of_le zero_lt_one e.one_le_norm_mul_norm_symm) (norm_nonneg _)
 
 lemma subsingleton_or_norm_symm_pos : subsingleton E ∨ 0 < ∥(e.symm : F →L[𝕜] E)∥ :=
-(subsingleton_or_exists_ne (0 : E)).imp id (λ hE, e.norm_symm_pos hE)
+begin
+  rcases subsingleton_or_nontrivial E with _i|_i; resetI,
+  { left, apply_instance },
+  { right, exact e.norm_symm_pos }
+end
 
 lemma subsingleton_or_nnnorm_symm_pos : subsingleton E ∨ 0 < (nnnorm $ (e.symm : F →L[𝕜] E)) :=
 subsingleton_or_norm_symm_pos e
@@ -719,6 +770,55 @@ begin
     have : (coord 𝕜 x h) y = (to_span_nonzero_singleton 𝕜 x h).symm y := rfl,
     rw this, apply homothety_inverse, exact hx, exact to_span_nonzero_singleton_homothety 𝕜 x h, }
 end
+
+variable (E)
+
+/-- The continuous linear equivalences from `E` to itself form a group under composition. -/
+instance automorphism_group : group (E ≃L[𝕜] E) :=
+{ mul          := λ f g, g.trans f,
+  one          := continuous_linear_equiv.refl 𝕜 E,
+  inv          := λ f, f.symm,
+  mul_assoc    := λ f g h, by {ext, refl},
+  mul_one      := λ f, by {ext, refl},
+  one_mul      := λ f, by {ext, refl},
+  mul_left_inv := λ f, by {ext, exact f.left_inv x} }
+
+variables {𝕜 E}
+
+/-- An invertible continuous linear map `f` determines a continuous equivalence from `E` to itself.
+-/
+def of_unit (f : units (E →L[𝕜] E)) : (E ≃L[𝕜] E) :=
+{ to_linear_equiv :=
+  { to_fun    := f.val,
+    map_add'  := by simp,
+    map_smul' := by simp,
+    inv_fun   := f.inv,
+    left_inv  := λ x, show (f.inv * f.val) x = x, by {rw f.inv_val, simp},
+    right_inv := λ x, show (f.val * f.inv) x = x, by {rw f.val_inv, simp}, },
+  continuous_to_fun  := f.val.continuous,
+  continuous_inv_fun := f.inv.continuous }
+
+/-- A continuous equivalence from `E` to itself determines an invertible continuous linear map. -/
+def to_unit (f : (E ≃L[𝕜] E)) : units (E →L[𝕜] E) :=
+{ val     := f,
+  inv     := f.symm,
+  val_inv := by {ext, simp},
+  inv_val := by {ext, simp} }
+
+variables (𝕜 E)
+
+/-- The units of the algebra of continuous `𝕜`-linear endomorphisms of `E` is multiplicatively
+equivalent to the type of continuous linear equivalences between `E` and itself. -/
+def units_equiv : units (E →L[𝕜] E) ≃* (E ≃L[𝕜] E) :=
+{ to_fun    := of_unit,
+  inv_fun   := to_unit,
+  left_inv  := λ f, by {ext, refl},
+  right_inv := λ f, by {ext, refl},
+  map_mul'  := λ x y, by {ext, refl} }
+
+@[simp] lemma units_equiv_to_continuous_linear_map
+  (f : units (E →L[𝕜] E)) :
+  (units_equiv 𝕜 E f : E →L[𝕜] E) = f := by {ext, refl}
 
 end continuous_linear_equiv
 

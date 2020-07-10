@@ -1,4 +1,4 @@
-/-
+  /-
 Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad, Andrew Zipperer, Haitao Zhang, Minchao Wu, Yury Kudryashov
@@ -49,7 +49,7 @@ lemma restrict_eq (f : α → β) (s : set α) : s.restrict f = f ∘ coe := rfl
 @[simp] lemma restrict_apply (f : α → β) (s : set α) (x : s) : restrict f s x = f x := rfl
 
 @[simp] lemma range_restrict (f : α → β) (s : set α) : set.range (restrict f s) = f '' s :=
-range_comp.trans $ congr_arg (('') f) s.range_coe_subtype
+range_comp.trans $ congr_arg (('') f) subtype.range_coe
 
 /-- Restrict codomain of a function `f` to a set `s`. Same as `subtype.coind` but this version
 has codomain `↥s` instead of `subtype s`. -/
@@ -87,6 +87,10 @@ image_congr heq
 
 lemma eq_on.mono (hs : s₁ ⊆ s₂) (hf : eq_on f₁ f₂ s₂) : eq_on f₁ f₂ s₁ :=
 λ x hx, hf (hs hx)
+
+lemma comp_eq_of_eq_on_range {ι : Sort*} {f : ι → α} {g₁ g₂ : α → β} (h : eq_on g₁ g₂ (range f)) :
+  g₁ ∘ f = g₂ ∘ f :=
+funext $ λ x, h $ mem_range_self _
 
 /-! ### maps to -/
 
@@ -129,7 +133,7 @@ theorem maps_to.iterate_restrict {f : α → α} {s : set α} (h : maps_to f s s
   (h.restrict f s s^[n]) = (h.iterate n).restrict _ _ _ :=
 begin
   funext x,
-  rw [subtype.coe_ext, maps_to.coe_restrict_apply],
+  rw [subtype.ext_iff, maps_to.coe_restrict_apply],
   induction n with n ihn generalizing x,
   { refl },
   { simp [nat.iterate, ihn] }
@@ -443,10 +447,24 @@ by simp [piecewise, hi]
 lemma piecewise_eq_of_not_mem {i : α} (hi : i ∉ s) : s.piecewise f g i = g i :=
 by simp [piecewise, hi]
 
+lemma piecewise_eq_on (f g : α → β) : eq_on (s.piecewise f g) f s :=
+λ _, piecewise_eq_of_mem _ _ _
+
+lemma piecewise_eq_on_compl (f g : α → β) : eq_on (s.piecewise f g) g sᶜ :=
+λ _, piecewise_eq_of_not_mem _ _ _
+
 @[simp, priority 990]
 lemma piecewise_insert_of_ne {i j : α} (h : i ≠ j) [∀i, decidable (i ∈ insert j s)] :
   (insert j s).piecewise f g i = s.piecewise f g i :=
 by simp [piecewise, h]
+
+@[simp] lemma piecewise_compl [∀ i, decidable (i ∈ sᶜ)] : sᶜ.piecewise f g = s.piecewise g f :=
+funext $ λ x, if hx : x ∈ s then by simp [hx] else by simp [hx]
+
+@[simp] lemma piecewise_range_comp {ι : Sort*} (f : ι → α) [Π j, decidable (j ∈ range f)]
+  (g₁ g₂ : α → β) :
+  (range f).piecewise g₁ g₂ ∘ f = g₁ ∘ f :=
+comp_eq_of_eq_on_range $ piecewise_eq_on _ _ _
 
 end set
 

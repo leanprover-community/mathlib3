@@ -197,6 +197,9 @@ by simp [(≠), mul_eq_top] {contextual := tt}
 lemma mul_lt_top {a b : ennreal}  : a < ⊤ → b < ⊤ → a * b < ⊤ :=
 by simpa only [ennreal.lt_top_iff_ne_top] using mul_ne_top
 
+@[simp] lemma mul_pos {a b : ennreal} : 0 < a * b ↔ 0 < a ∧ 0 < b :=
+by simp only [zero_lt_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
+
 lemma pow_eq_top : ∀ n:ℕ, a^n=∞ → a=∞
 | 0 := by simp
 | (n+1) := λ o, (mul_eq_top.1 o).elim (λ h, pow_eq_top n h.2) and.left
@@ -427,9 +430,6 @@ lemma mul_lt_mul_left : a ≠ 0 → a ≠ ⊤ → (a * b < a * c ↔ b < c) :=
 lemma mul_lt_mul_right : c ≠ 0 → c ≠ ∞ → (a * c < b * c ↔ a < b) :=
 mul_comm c a ▸ mul_comm c b ▸ mul_lt_mul_left
 
-lemma mul_eq_zero {a b : ennreal} : a * b = 0 ↔ a = 0 ∨ b = 0 :=
-canonically_ordered_comm_semiring.mul_eq_zero_iff _ _
-
 end mul
 
 section sub
@@ -500,7 +500,7 @@ by { rw sub_add_self_eq_max, exact le_max_left a b }
 iff.intro
   (assume h : a - b ≤ c,
     calc a ≤ (a - b) + b : le_sub_add_self
-      ... ≤ c + b : add_le_add_right' h)
+      ... ≤ c + b : add_le_add_right h _)
   (assume h : a ≤ c + b,
     calc a - b ≤ (c + b) - b : sub_le_sub h (le_refl _)
       ... ≤ c : Inf_le (le_refl (c + b)))
@@ -542,7 +542,7 @@ begin
 end
 
 lemma sub_le_self (a b : ennreal) : a - b ≤ a :=
-ennreal.sub_le_iff_le_add.2 $ le_add_of_nonneg_right' $ zero_le _
+ennreal.sub_le_iff_le_add.2 $ le_add_right (le_refl a)
 
 @[simp] lemma sub_zero : a - 0 = a :=
 eq.trans (add_zero (a - 0)).symm $ by simp
@@ -551,7 +551,7 @@ eq.trans (add_zero (a - 0)).symm $ by simp
 lemma sub_le_sub_add_sub : a - c ≤ a - b + (b - c) :=
 ennreal.sub_le_iff_le_add.2 $
 calc a ≤ a - b + b : le_sub_add_self
-... ≤ a - b + ((b - c) + c) : add_le_add_left' le_sub_add_self
+... ≤ a - b + ((b - c) + c) : add_le_add_left le_sub_add_self _
 ... = a - b + (b - c) + c : (add_assoc _ _ _).symm
 
 lemma sub_sub_cancel (h : a < ∞) (h2 : b ≤ a) : a - (a - b) = b :=
@@ -755,6 +755,12 @@ ennreal.inv_involutive.bijective
 inv_zero ▸ inv_eq_inv
 
 lemma inv_ne_top : a⁻¹ ≠ ∞ ↔ a ≠ 0 := by simp
+
+@[simp] lemma inv_lt_top {x : ennreal} : x⁻¹ < ⊤ ↔ 0 < x :=
+by { simp only [lt_top_iff_ne_top, inv_ne_top, zero_lt_iff_ne_zero] }
+
+lemma div_lt_top {x y : ennreal} (h1 : x < ⊤) (h2 : 0 < y) : x / y < ⊤ :=
+mul_lt_top h1 (inv_lt_top.mpr h2)
 
 @[simp] lemma inv_eq_zero : a⁻¹ = 0 ↔ a = ∞ :=
 inv_top ▸ inv_eq_inv
@@ -1165,6 +1171,23 @@ finset.induction_on s (by simp) $ assume a s ha ih,
     ⟨k, add_le_add (hk a (finset.mem_insert_self _ _)).left $ finset.sum_le_sum $
       assume a ha, (hk _ $ finset.mem_insert_of_mem ha).right⟩,
   by simp [ha, ih.symm, infi_add_infi this]
+
+
+lemma infi_mul {ι} [nonempty ι] {f : ι → ennreal} {x : ennreal} (h : x ≠ ⊤) :
+  infi f * x = ⨅i, f i * x :=
+begin
+  by_cases h2 : x = 0, simp only [h2, mul_zero, infi_const],
+  refine le_antisymm
+    (le_infi $ λ i, mul_right_mono $ infi_le _ _)
+    ((div_le_iff_le_mul (or.inl h2) $ or.inl h).mp $ le_infi $
+      λ i, (div_le_iff_le_mul (or.inl h2) $ or.inl h).mpr $ infi_le _ _)
+end
+
+lemma mul_infi {ι} [nonempty ι] {f : ι → ennreal} {x : ennreal} (h : x ≠ ⊤) :
+  x * infi f = ⨅i, x * f i :=
+by { rw [mul_comm, infi_mul h], simp only [mul_comm], assumption }
+
+/-! `supr_mul`, `mul_supr` and variants are in `topology.instances.ennreal`. -/
 
 end infi
 

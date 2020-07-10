@@ -10,7 +10,6 @@ Includes the Prop and fun instances.
 import order.lattice
 import data.option.basic
 import tactic.pi_instances
-import tactic.norm_cast
 
 set_option old_structure_cmd true
 
@@ -187,17 +186,6 @@ end semilattice_sup_bot
 instance nat.semilattice_sup_bot : semilattice_sup_bot ℕ :=
 { bot := 0, bot_le := nat.zero_le, .. nat.distrib_lattice }
 
-private def bot_aux (s : set ℕ) [decidable_pred s] [h : nonempty s] : s :=
-have ∃ x, x ∈ s, from nonempty.elim h (λ x, ⟨x.1, x.2⟩),
-⟨nat.find this, nat.find_spec this⟩
-
-instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred s] [h : nonempty s] :
-  semilattice_sup_bot s :=
-{ bot := bot_aux s,
-  bot_le := λ x, nat.find_min' _ x.2,
-  ..subtype.linear_order s,
-  ..lattice_of_decidable_linear_order }
-
 section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- A `semilattice_inf_top` is a semilattice with top and meet. -/
@@ -292,9 +280,8 @@ lemma inf_eq_bot_iff_le_compl {α : Type u} [bounded_distrib_lattice α] {a b c 
       ... = ⊥ : h₂⟩
 
 /- Prop instance -/
-instance bounded_lattice_Prop : bounded_lattice Prop :=
-{ bounded_lattice .
-  le           := λa b, a → b,
+instance bounded_distrib_lattice_Prop : bounded_distrib_lattice Prop :=
+{ le           := λa b, a → b,
   le_refl      := assume _, id,
   le_trans     := assume a b c f g, g ∘ f,
   le_antisymm  := assume a b Hab Hba, propext ⟨Hab, Hba⟩,
@@ -308,6 +295,8 @@ instance bounded_lattice_Prop : bounded_lattice Prop :=
   inf_le_left  := @and.left,
   inf_le_right := @and.right,
   le_inf       := assume a b c Hab Hac Ha, and.intro (Hab Ha) (Hac Ha),
+  le_sup_inf   := assume a b c H, classical.or_iff_not_imp_left.2 $
+    λ Ha, ⟨H.1.resolve_left Ha, H.2.resolve_left Ha⟩,
 
   top          := true,
   le_top       := assume a Ha, true.intro,
@@ -330,14 +319,64 @@ end logic
 
 /- Function lattices -/
 
-/- TODO:
- * build up the lattice hierarchy for `fun`-functor piecewise. semilattic_*, bounded_lattice,
-   lattice ...
- * can this be generalized to the dependent function space?
--/
-instance pi.bounded_lattice {α : Type u} {β : Type v} [bounded_lattice β] :
-  bounded_lattice (α → β) :=
-by pi_instance
+instance pi.has_sup {ι : Type*} {α : ι → Type*} [Π i, has_sup (α i)] : has_sup (Π i, α i) :=
+⟨λ f g i, f i ⊔ g i⟩
+
+@[simp] lemma sup_apply {ι : Type*} {α : ι → Type*} [Π i, has_sup (α i)] (f g : Π i, α i) (i : ι) :
+  (f ⊔ g) i = f i ⊔ g i :=
+rfl
+
+instance pi.has_inf {ι : Type*} {α : ι → Type*} [Π i, has_inf (α i)] : has_inf (Π i, α i) :=
+⟨λ f g i, f i ⊓ g i⟩
+
+@[simp] lemma inf_apply {ι : Type*} {α : ι → Type*} [Π i, has_inf (α i)] (f g : Π i, α i) (i : ι) :
+  (f ⊓ g) i = f i ⊓ g i :=
+rfl
+
+instance pi.has_bot {ι : Type*} {α : ι → Type*} [Π i, has_bot (α i)] : has_bot (Π i, α i) :=
+⟨λ i, ⊥⟩
+
+@[simp] lemma bot_apply {ι : Type*} {α : ι → Type*} [Π i, has_bot (α i)] (i : ι) :
+  (⊥ : Π i, α i) i = ⊥ :=
+rfl
+
+instance pi.has_top {ι : Type*} {α : ι → Type*} [Π i, has_top (α i)] : has_top (Π i, α i) :=
+⟨λ i, ⊤⟩
+
+@[simp] lemma top_apply {ι : Type*} {α : ι → Type*} [Π i, has_top (α i)] (i : ι) :
+  (⊤ : Π i, α i) i = ⊤ :=
+rfl
+
+instance pi.semilattice_sup {ι : Type*} {α : ι → Type*} [Π i, semilattice_sup (α i)] :
+  semilattice_sup (Π i, α i) :=
+by refine_struct { sup := (⊔), .. pi.partial_order }; tactic.pi_instance_derive_field
+
+instance pi.semilattice_inf {ι : Type*} {α : ι → Type*} [Π i, semilattice_inf (α i)] :
+  semilattice_inf (Π i, α i) :=
+by refine_struct { inf := (⊓), .. pi.partial_order }; tactic.pi_instance_derive_field
+
+instance pi.semilattice_inf_bot {ι : Type*} {α : ι → Type*} [Π i, semilattice_inf_bot (α i)] :
+  semilattice_inf_bot (Π i, α i) :=
+by refine_struct { inf := (⊓), bot := ⊥, .. pi.partial_order }; tactic.pi_instance_derive_field
+
+instance pi.semilattice_inf_top {ι : Type*} {α : ι → Type*} [Π i, semilattice_inf_top (α i)] :
+  semilattice_inf_top (Π i, α i) :=
+by refine_struct { inf := (⊓), top := ⊤, .. pi.partial_order }; tactic.pi_instance_derive_field
+
+instance pi.semilattice_sup_bot {ι : Type*} {α : ι → Type*} [Π i, semilattice_sup_bot (α i)] :
+  semilattice_sup_bot (Π i, α i) :=
+by refine_struct { sup := (⊔), bot := ⊥, .. pi.partial_order }; tactic.pi_instance_derive_field
+
+instance pi.semilattice_sup_top {ι : Type*} {α : ι → Type*} [Π i, semilattice_sup_top (α i)] :
+  semilattice_sup_top (Π i, α i) :=
+by refine_struct { sup := (⊔), top := ⊤, .. pi.partial_order }; tactic.pi_instance_derive_field
+
+instance pi.lattice {ι : Type*} {α : ι → Type*} [Π i, lattice (α i)] : lattice (Π i, α i) :=
+{ .. pi.semilattice_sup, .. pi.semilattice_inf }
+
+instance pi.bounded_lattice {ι : Type*} {α : ι → Type*} [Π i, bounded_lattice (α i)] :
+  bounded_lattice (Π i, α i) :=
+{ .. pi.semilattice_sup_top, .. pi.semilattice_inf_bot }
 
 /-- Attach `⊥` to a type. -/
 def with_bot (α : Type*) := option α
@@ -739,6 +778,55 @@ lemma lt_iff_exists_coe_btwn [partial_order α] [densely_ordered α] [no_top_ord
  λ ⟨x, hx⟩, lt_trans hx.1 hx.2⟩
 
 end with_top
+
+namespace subtype
+
+/-- A subtype forms a `⊔`-semilattice if `⊔` preserves the property. -/
+protected def semilattice_sup [semilattice_sup α] {P : α → Prop}
+  (Psup : ∀⦃x y⦄, P x → P y → P (x ⊔ y)) : semilattice_sup {x : α // P x} :=
+{ sup := λ x y, ⟨x.1 ⊔ y.1, Psup x.2 y.2⟩,
+  le_sup_left := λ x y, @le_sup_left _ _ (x : α) y,
+  le_sup_right := λ x y, @le_sup_right _ _ (x : α) y,
+  sup_le := λ x y z h1 h2, @sup_le α _ _ _ _ h1 h2,
+  ..subtype.partial_order P }
+
+/-- A subtype forms a `⊓`-semilattice if `⊓` preserves the property. -/
+protected def semilattice_inf [semilattice_inf α] {P : α → Prop}
+  (Pinf : ∀⦃x y⦄, P x → P y → P (x ⊓ y)) : semilattice_inf {x : α // P x} :=
+{ inf := λ x y, ⟨x.1 ⊓ y.1, Pinf x.2 y.2⟩,
+  inf_le_left := λ x y, @inf_le_left _ _ (x : α) y,
+  inf_le_right := λ x y, @inf_le_right _ _ (x : α) y,
+  le_inf := λ x y z h1 h2, @le_inf α _ _ _ _ h1 h2,
+  ..subtype.partial_order P }
+
+/-- A subtype forms a `⊔`-`⊥`-semilattice if `⊥` and `⊔` preserve the property. -/
+protected def semilattice_sup_bot [semilattice_sup_bot α] {P : α → Prop}
+  (Pbot : P ⊥) (Psup : ∀⦃x y⦄, P x → P y → P (x ⊔ y)) : semilattice_sup_bot {x : α // P x} :=
+{ bot := ⟨⊥, Pbot⟩,
+  bot_le := λ x, @bot_le α _ x,
+  ..subtype.semilattice_sup Psup }
+
+/-- A subtype forms a `⊓`-`⊥`-semilattice if `⊥` and `⊓` preserve the property. -/
+protected def semilattice_inf_bot [semilattice_inf_bot α] {P : α → Prop}
+  (Pbot : P ⊥) (Pinf : ∀⦃x y⦄, P x → P y → P (x ⊓ y)) : semilattice_inf_bot {x : α // P x} :=
+{ bot := ⟨⊥, Pbot⟩,
+  bot_le := λ x, @bot_le α _ x,
+  ..subtype.semilattice_inf Pinf }
+
+/-- A subtype forms a `⊓`-`⊤`-semilattice if `⊤` and `⊓` preserve the property. -/
+protected def semilattice_inf_top [semilattice_inf_top α] {P : α → Prop}
+  (Ptop : P ⊤) (Pinf : ∀{{x y}}, P x → P y → P (x ⊓ y)) : semilattice_inf_top {x : α // P x} :=
+{ top := ⟨⊤, Ptop⟩,
+  le_top := λ x, @le_top α _ x,
+  ..subtype.semilattice_inf Pinf }
+
+/-- A subtype forms a lattice if `⊔` and `⊓` preserve the property. -/
+protected def lattice [lattice α] {P : α → Prop}
+  (Psup : ∀⦃x y⦄, P x → P y → P (x ⊔ y)) (Pinf : ∀⦃x y⦄, P x → P y → P (x ⊓ y)) :
+  lattice {x : α // P x} :=
+{ ..subtype.semilattice_inf Pinf, ..subtype.semilattice_sup Psup }
+
+end subtype
 
 namespace order_dual
 variable (α)

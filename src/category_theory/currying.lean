@@ -13,6 +13,9 @@ variables {C : Type u₁} [category.{v₁} C]
           {D : Type u₂} [category.{v₂} D]
           {E : Type u₃} [category.{v₃} E]
 
+/--
+The uncurrying functor, taking a functor `C ⥤ (D ⥤ E)` and producing a functor `(C × D) ⥤ E`.
+-/
 def uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E) :=
 { obj := λ F,
   { obj := λ X, (F.obj X.1).obj X.2,
@@ -38,12 +41,18 @@ def uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E) :=
       rw category.assoc,
     end } }.
 
+/--
+The object level part of the currying functor. (See `curry` for the functorial version.)
+-/
 def curry_obj (F : (C × D) ⥤ E) : C ⥤ (D ⥤ E) :=
 { obj := λ X,
     { obj := λ Y, F.obj (X, Y),
       map := λ Y Y' g, F.map (𝟙 X, g) },
     map := λ X X' f, { app := λ Y, F.map (f, 𝟙 Y) } }
 
+/--
+The currying functor, taking a functor `(C × D) ⥤ E` and producing a functor `C ⥤ (D ⥤ E)`.
+-/
 def curry : ((C × D) ⥤ E) ⥤ (C ⥤ (D ⥤ E)) :=
 { obj := λ F, curry_obj F,
   map := λ F G T,
@@ -77,6 +86,9 @@ def curry : ((C × D) ⥤ E) ⥤ (C ⥤ (D ⥤ E)) :=
 @[simp] lemma curry.map_app_app {F G : (C × D) ⥤ E} {α : F ⟶ G} {X} {Y} :
   ((curry.map α).app X).app Y = α.app (X, Y) := rfl
 
+/--
+The equivalence of functor categories given by currying/uncurrying.
+-/
 def currying : (C ⥤ (D ⥤ E)) ≌ ((C × D) ⥤ E) :=
 equivalence.mk uncurry curry
   (nat_iso.of_components (λ F, nat_iso.of_components

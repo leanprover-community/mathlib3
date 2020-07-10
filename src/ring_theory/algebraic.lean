@@ -42,7 +42,7 @@ variables {R A}
 
 /-- A subalgebra is algebraic if and only if it is algebraic an algebra. -/
 lemma subalgebra.is_algebraic_iff (S : subalgebra R A) :
-  S.is_algebraic ↔ @algebra.is_algebraic R S _ _ (by convert S.algebra) :=
+  S.is_algebraic ↔ @algebra.is_algebraic R S _ _ (S.algebra) :=
 begin
   delta algebra.is_algebraic subalgebra.is_algebraic,
   rw [subtype.forall'],
@@ -51,12 +51,7 @@ begin
   apply and_congr iff.rfl,
   have h : function.injective (S.val) := subtype.val_injective,
   conv_rhs { rw [← h.eq_iff, alg_hom.map_zero], },
-  apply eq_iff_eq_cancel_right.mpr,
-  symmetry,
-  -- TODO: add an `aeval`-specific version of `hom_eval₂`
-  simp only [aeval_def],
-  convert hom_eval₂ p (algebra_map R S) ↑S.val ⟨x, hx⟩,
-  refl
+  rw [← aeval_alg_hom_apply, S.val_apply, subtype.val_eq_coe],
 end
 
 /-- An algebra is algebraic if and only if it is algebraic as a subalgebra. -/
@@ -69,7 +64,7 @@ end
 end
 
 section zero_ne_one
-variables (R : Type u) {A : Type v} [comm_ring R] [nonzero R] [comm_ring A] [algebra R A]
+variables (R : Type u) {A : Type v} [comm_ring R] [nontrivial R] [comm_ring A] [algebra R A]
 
 /-- An integral element of an algebra is algebraic.-/
 lemma is_integral.is_algebraic {x : A} (h : is_integral R x) : is_algebraic R x :=
@@ -95,12 +90,12 @@ end field
 namespace algebra
 variables {K : Type*} {L : Type*} {A : Type*}
 variables [field K] [field L] [comm_ring A]
-variables [algebra K L] [algebra L A]
+variables [algebra K L] [algebra L A] [algebra K A] [is_algebra_tower K L A]
 
 /-- If L is an algebraic field extension of K and A is an algebraic algebra over L,
 then A is algebraic over K. -/
 lemma is_algebraic_trans (L_alg : is_algebraic K L) (A_alg : is_algebraic L A) :
-  is_algebraic K (comap K L A) :=
+  is_algebraic K A :=
 begin
   simp only [is_algebraic, is_algebraic_iff_is_integral] at L_alg A_alg ⊢,
   exact is_integral_trans L_alg A_alg,
@@ -130,5 +125,5 @@ begin
       monic_integral_normalization p_ne_zero,
       integral_normalization_aeval_eq_zero p_ne_zero px inj ⟩,
   refine ⟨⟨_, x_integral⟩, ⟨_, y_integral⟩, _, rfl⟩,
-  exact λ h, a_ne_zero (inj _ (subtype.ext.mp h))
+  exact λ h, a_ne_zero (inj _ (subtype.ext_iff_val.mp h))
 end

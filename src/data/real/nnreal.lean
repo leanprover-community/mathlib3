@@ -6,6 +6,7 @@ Authors: Johan Commelin
 Nonnegative real numbers.
 -/
 import algebra.linear_ordered_comm_group_with_zero
+import data.finset.lattice
 import data.real.basic
 
 noncomputable theory
@@ -59,7 +60,7 @@ instance : has_bot ℝ≥0   := ⟨0⟩
 instance : inhabited ℝ≥0 := ⟨0⟩
 
 @[simp, norm_cast] protected lemma coe_eq {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) = r₂ ↔ r₁ = r₂ :=
-subtype.ext.symm
+subtype.ext_iff_val.symm
 @[simp, norm_cast] protected lemma coe_zero : ((0 : ℝ≥0) : ℝ) = 0 := rfl
 @[simp, norm_cast] protected lemma coe_one  : ((1 : ℝ≥0) : ℝ) = 1 := rfl
 @[simp, norm_cast] protected lemma coe_add (r₁ r₂ : ℝ≥0) : ((r₁ + r₂ : ℝ≥0) : ℝ) = r₁ + r₂ := rfl
@@ -92,7 +93,7 @@ def to_real_hom : ℝ≥0 →+* ℝ :=
 @[simp] lemma coe_to_real_hom : ⇑to_real_hom = coe := rfl
 
 instance : comm_group_with_zero ℝ≥0 :=
-{ zero_ne_one    := assume h, zero_ne_one $ nnreal.eq_iff.2 h,
+{ exists_pair_ne := ⟨0, 1, assume h, zero_ne_one $ nnreal.eq_iff.2 h⟩,
   inv_zero       := nnreal.eq $ show (0⁻¹ : ℝ) = 0, from inv_zero,
   mul_inv_cancel := assume x h, nnreal.eq $ mul_inv_cancel $ ne_iff.2 h,
   .. (by apply_instance : has_inv ℝ≥0),
@@ -190,17 +191,16 @@ instance : linear_ordered_semiring ℝ≥0 :=
   .. nnreal.canonically_ordered_add_monoid,
   .. nnreal.comm_semiring }
 
-instance : canonically_ordered_comm_semiring ℝ≥0 :=
-{ zero_ne_one     := assume h, zero_ne_one $ congr_arg subtype.val $ h,
-  mul_eq_zero_iff := assume a b, nnreal.eq_iff.symm.trans $ mul_eq_zero.trans $ by simp,
-  .. nnreal.linear_ordered_semiring,
-  .. nnreal.canonically_ordered_add_monoid,
-  .. nnreal.comm_semiring }
-
 instance : linear_ordered_comm_group_with_zero ℝ≥0 :=
 { mul_le_mul_left := assume a b h c, mul_le_mul (le_refl c) h (zero_le a) (zero_le c),
   zero_le_one := zero_le 1,
   .. nnreal.linear_ordered_semiring,
+  .. nnreal.comm_group_with_zero }
+
+instance : canonically_ordered_comm_semiring ℝ≥0 :=
+{ .. nnreal.canonically_ordered_add_monoid,
+  .. nnreal.comm_semiring,
+  .. (show no_zero_divisors ℝ≥0, by apply_instance),
   .. nnreal.comm_group_with_zero }
 
 instance : densely_ordered ℝ≥0 :=
@@ -375,7 +375,7 @@ section mul
 lemma mul_eq_mul_left {a b c : nnreal} (h : a ≠ 0) : (a * b = a * c ↔ b = c) :=
 begin
   rw [← nnreal.eq_iff, ← nnreal.eq_iff, nnreal.coe_mul, nnreal.coe_mul], split,
-  { exact eq_of_mul_eq_mul_left (mt (@nnreal.eq_iff a 0).1 h) },
+  { exact mul_left_cancel' (mt (@nnreal.eq_iff a 0).1 h) },
   { assume h, rw [h] }
 end
 
@@ -480,7 +480,7 @@ mul_pos hr (inv_pos.2 hp)
 
 @[simp] lemma div_one {r : ℝ≥0} : r / 1 = r := by rw [div_def, inv_one, mul_one]
 
-protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv' _ _
+protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv_rev' _ _
 
 protected lemma inv_pow {r : ℝ≥0} {n : ℕ} : (r^n)⁻¹ = (r⁻¹)^n :=
 nnreal.eq $ by { push_cast, exact (inv_pow' _ _).symm }

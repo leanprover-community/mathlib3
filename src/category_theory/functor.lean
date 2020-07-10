@@ -55,6 +55,8 @@ protected def id : C ⥤ C :=
 
 notation `𝟭` := functor.id
 
+instance : inhabited (C ⥤ C) := ⟨functor.id C⟩
+
 variable {C}
 
 @[simp] lemma id_obj (X : C) : (𝟭 C).obj X = X := rfl
@@ -84,19 +86,6 @@ infixr ` ⋙ `:80 := comp
 -- Natural isomorphisms are also provided in `whiskering.lean`.
 protected lemma comp_id (F : C ⥤ D) : F ⋙ (𝟭 D) = F := by cases F; refl
 protected lemma id_comp (F : C ⥤ D) : (𝟭 C) ⋙ F = F := by cases F; refl
-
-end
-
-section
-variables (C : Type u₁) [category.{v₁} C]
-
-@[simp] def ulift_down : (ulift.{u₂} C) ⥤ C :=
-{ obj := λ X, X.down,
-  map := λ X Y f, f }
-
-@[simp] def ulift_up : C ⥤ (ulift.{u₂} C) :=
-{ obj := λ X, ⟨ X ⟩,
-  map := λ X Y f, f }
 
 end
 

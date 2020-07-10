@@ -397,7 +397,7 @@ begin
   haveI := hs.to_encodable,
   rw [← measure_Union, bUnion_eq_Union],
   { rintro ⟨i, hi⟩ ⟨j, hj⟩ ij x ⟨h₁, h₂⟩,
-    exact hd i hi j hj (mt subtype.eq' ij:_) ⟨h₁, h₂⟩ },
+    exact hd i hi j hj (mt subtype.ext_val ij:_) ⟨h₁, h₂⟩ },
   { simpa }
 end
 
@@ -646,36 +646,17 @@ have μ.to_outer_measure ≤ Inf (to_outer_measure '' m) :=
   le_Inf $ ball_image_of_ball $ assume μ hμ, to_outer_measure_le.2 $ h _ hμ,
 assume s hs, by rw [Inf_apply hs, ← to_outer_measure_apply]; exact this s
 
-instance : has_Sup (measure α) := ⟨λs, Inf {μ' | ∀μ∈s, μ ≤ μ' }⟩
-private lemma le_Sup (h : μ ∈ m) : μ ≤ Sup m := le_Inf $ assume μ' h', h' _ h
-private lemma Sup_le (h : ∀μ' ∈ m, μ' ≤ μ) : Sup m ≤ μ := Inf_le h
+instance : complete_lattice (measure α) :=
+{ bot := 0,
+  bot_le := assume a s hs, by exact bot_le,
+/- Adding an explicit `top` makes `leanchecker` fail, see lean#364, disable for now
 
-instance : order_bot (measure α) :=
-{ bot := 0, bot_le := assume a s hs, by exact bot_le, .. measure.partial_order }
-
-instance : order_top (measure α) :=
-{ top := (⊤ : outer_measure α).to_measure (by rw [outer_measure.top_caratheodory]; exact le_top),
+  top := (⊤ : outer_measure α).to_measure (by rw [outer_measure.top_caratheodory]; exact le_top),
   le_top := assume a s hs,
     by cases s.eq_empty_or_nonempty with h  h;
       simp [h, to_measure_apply ⊤ _ hs, outer_measure.top_apply],
-  .. measure.partial_order }
-
-instance : complete_lattice (measure α) :=
-{ Inf          := Inf,
-  Sup          := Sup,
-  inf          := λa b, Inf {a, b},
-  sup          := λa b, Sup {a, b},
-  le_Sup       := assume s μ h, le_Sup h,
-  Sup_le       := assume s μ h, Sup_le h,
-  Inf_le       := assume s μ h, Inf_le h,
-  le_Inf       := assume s μ h, le_Inf h,
-  le_sup_left  := assume a b, le_Sup $ by simp,
-  le_sup_right := assume a b, le_Sup $ by simp,
-  sup_le       := assume a b c hac hbc, Sup_le $ by simp [*, or_imp_distrib] {contextual := tt},
-  inf_le_left  := assume a b, Inf_le $ by simp,
-  inf_le_right := assume a b, Inf_le $ by simp,
-  le_inf       := assume a b c hac hbc, le_Inf $ by simp [*, or_imp_distrib] {contextual := tt},
-  .. measure.partial_order, .. measure.order_top, .. measure.order_bot }
+-/
+  .. complete_lattice_of_Inf (measure α) (λ ms, ⟨λ _, Inf_le, λ _, le_Inf⟩) }
 
 end
 
@@ -729,7 +710,7 @@ def count : measure α := sum dirac
 
 /-- The "almost everywhere" filter of co-null sets. -/
 def ae (μ : measure α) : filter α :=
-{ sets := {s | μ (-s) = 0},
+{ sets := {s | μ sᶜ = 0},
   univ_sets := by simp [measure_empty],
   inter_sets := λ s t hs ht, by simp [compl_inter]; exact measure_union_null hs ht,
   sets_of_superset := λ s t hs hst, measure_mono_null (set.compl_subset_compl.2 hst) hs }
@@ -740,7 +721,7 @@ variables {α : Type*} {β : Type*} [measurable_space α] {μ : measure α}
 
 notation `∀ₘ` binders `∂` μ `, ` r:(scoped P, μ.ae.eventually P) := r
 
-lemma mem_ae_iff (s : set α) : s ∈ μ.ae.sets ↔ μ (- s) = 0 := iff.rfl
+lemma mem_ae_iff (s : set α) : s ∈ μ.ae.sets ↔ μ sᶜ = 0 := iff.rfl
 
 lemma ae_iff {p : α → Prop} : (∀ₘ a ∂ μ, p a) ↔ μ { a | ¬ p a } = 0 := iff.rfl
 
@@ -748,7 +729,7 @@ lemma measure_zero_iff_ae_nmem {s : set α} : μ s = 0 ↔ ∀ₘ a ∂ μ, a �
 by simp only [ae_iff, not_not, set_of_mem_eq]
 
 lemma ae_of_all {p : α → Prop} (μ : measure α) : (∀a, p a) → ∀ₘ a ∂ μ, p a :=
-eventually_of_forall _
+eventually_of_forall
 
 instance : countable_Inter_filter μ.ae :=
 ⟨begin
@@ -879,7 +860,7 @@ end
 
 theorem is_null_measurable.compl {s : set α}
   (hs : is_null_measurable μ s) :
-  is_null_measurable μ (-s) :=
+  is_null_measurable μ sᶜ :=
 begin
   rcases hs with ⟨t, z, rfl, ht, hz⟩,
   rw compl_union,

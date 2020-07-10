@@ -671,7 +671,7 @@ def center : subgroup G :=
   mul_mem' := λ a b (ha : ∀ g, g * a = a * g) (hb : ∀ g, g * b = b * g) g,
     by assoc_rw [ha, hb g],
   inv_mem' := λ a (ha : ∀ g, g * a = a * g) g,
-    by rw [← inv_inj', mul_inv_rev, inv_inv, ← ha, mul_inv_rev, inv_inv] }
+    by rw [← inv_inj, mul_inv_rev, inv_inv, ← ha, mul_inv_rev, inv_inv] }
 
 variable {G}
 
@@ -817,8 +817,8 @@ open set
 
 lemma gsmul_mem (H : add_subgroup A) {x : A} (hx : x ∈ H) :
   ∀ n : ℤ, gsmul n x ∈ H
-| (int.of_nat n) := add_submonoid.smul_mem H.to_add_submonoid hx n
-| -[1+ n]        := H.neg_mem' $ H.add_mem hx $ add_submonoid.smul_mem H.to_add_submonoid hx n
+| (int.of_nat n) := add_submonoid.nsmul_mem H.to_add_submonoid hx n
+| -[1+ n]        := H.neg_mem' $ H.add_mem hx $ add_submonoid.nsmul_mem H.to_add_submonoid hx n
 
 lemma sub_mem (H : add_subgroup A) {x y : A} (hx : x ∈ H) (hy : y ∈ H) : x - y ∈ H :=
 H.add_mem hx (H.neg_mem hy)

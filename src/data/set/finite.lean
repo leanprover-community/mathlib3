@@ -249,7 +249,7 @@ end
 theorem finite_of_finite_image {s : set α} {f : α → β} (hi : set.inj_on f s) :
   finite (f '' s) → finite s | ⟨h⟩ :=
 ⟨@fintype.of_injective _ _ h (λa:s, ⟨f a.1, mem_image_of_mem f a.2⟩) $
-  assume a b eq, subtype.eq $ hi a.2 b.2 $ subtype.ext.1 eq⟩
+  assume a b eq, subtype.eq $ hi a.2 b.2 $ subtype.ext_iff_val.1 eq⟩
 
 theorem finite_image_iff {s : set α} {f : α → β} (hi : inj_on f s) :
   finite (f '' s) ↔ finite s :=
@@ -300,6 +300,15 @@ fintype.of_finset (s.to_finset.product t.to_finset) $ by simp
 
 lemma finite.prod {s : set α} {t : set β} : finite s → finite t → finite (set.prod s t)
 | ⟨hs⟩ ⟨ht⟩ := by exactI ⟨set.fintype_prod s t⟩
+
+/-- `image2 f s t` is finitype if `s` and `t` are. -/
+instance fintype_image2 [decidable_eq γ] (f : α → β → γ) (s : set α) (t : set β)
+  [hs : fintype s] [ht : fintype t] : fintype (image2 f s t : set γ) :=
+by { rw ← image_prod, apply set.fintype_image }
+
+lemma finite.image2 (f : α → β → γ) {s : set α} {t : set β} (hs : finite s) (ht : finite t) :
+  finite (image2 f s t) :=
+by { rw ← image_prod, exact (hs.prod ht).image _ }
 
 /-- If `s : set α` is a set with `fintype` instance and `f : α → set β` is a function such that
 each `f a`, `a ∈ s`, has a `fintype` structure, then `s >>= f` has a `fintype` structure. -/

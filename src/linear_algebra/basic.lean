@@ -108,6 +108,13 @@ linear_map.ext $ λ x, rfl
 theorem comp_assoc (g : M₂ →ₗ[R] M₃) (h : M₃ →ₗ[R] M₄) : (h.comp g).comp f = h.comp (g.comp f) :=
 rfl
 
+/-- The restriction of a linear map `f : M → M₂` to a submodule `p ⊆ M` gives a linear map
+`p → M₂`. -/
+def dom_restrict (f : M →ₗ[R] M₂) (p : submodule R M) : p →ₗ[R] M₂ := f.comp p.subtype
+
+@[simp] lemma dom_restrict_apply (f : M →ₗ[R] M₂) (p : submodule R M) (x : p) :
+  f.dom_restrict p x = f x := rfl
+
 /-- A linear map `f : M₂ → M` whose values lie in a submodule `p ⊆ M` can be restricted to a
 linear map M₂ → p. -/
 def cod_restrict (p : submodule R M) (f : M₂ →ₗ[R] M) (h : ∀c, f c ∈ p) : M₂ →ₗ[R] p :=
@@ -984,7 +991,7 @@ open submodule
 
 theorem map_cod_restrict (p : submodule R M) (f : M₂ →ₗ[R] M) (h p') :
   submodule.map (cod_restrict p f h) p' = comap p.subtype (p'.map f) :=
-submodule.ext $ λ ⟨x, hx⟩, by simp [subtype.coe_ext]
+submodule.ext $ λ ⟨x, hx⟩, by simp [subtype.ext_iff_val]
 
 theorem comap_cod_restrict (p : submodule R M) (f : M₂ →ₗ[R] M) (hf p') :
   submodule.comap (cod_restrict p f hf) p' = submodule.comap f (map p.subtype p') :=
@@ -1315,7 +1322,7 @@ open linear_map
 @[simp] theorem comap_bot (f : M →ₗ[R] M₂) : comap f ⊥ = ker f := rfl
 
 @[simp] theorem ker_subtype : p.subtype.ker = ⊥ :=
-ker_eq_bot_of_injective $ λ x y, subtype.eq'
+ker_eq_bot_of_injective $ λ x y, subtype.ext_val
 
 @[simp] theorem range_subtype : p.subtype.range = p :=
 by simpa using map_comap_subtype p ⊤
@@ -1396,7 +1403,7 @@ def map_subtype.order_iso :
 { to_fun    := λ p', ⟨map p.subtype p', map_subtype_le p _⟩,
   inv_fun   := λ q, comap p.subtype q,
   left_inv  := λ p', comap_map_eq_self $ by simp,
-  right_inv := λ ⟨q, hq⟩, subtype.eq' $ by simp [map_comap_subtype p, inf_of_le_right hq],
+  right_inv := λ ⟨q, hq⟩, subtype.ext_val $ by simp [map_comap_subtype p, inf_of_le_right hq],
   ord'      := λ p₁ p₂, (map_le_map_iff' (ker_subtype p)).symm }
 
 /-- If `p ⊆ M` is a submodule, the ordering of submodules of `p` is embedded in the ordering of
@@ -1492,7 +1499,7 @@ def comap_mkq.order_iso :
 { to_fun    := λ p', ⟨comap p.mkq p', le_comap_mkq p _⟩,
   inv_fun   := λ q, map p.mkq q,
   left_inv  := λ p', map_comap_eq_self $ by simp,
-  right_inv := λ ⟨q, hq⟩, subtype.eq' $ by simpa [comap_map_mkq p],
+  right_inv := λ ⟨q, hq⟩, subtype.ext_val $ by simpa [comap_map_mkq p],
   ord'      := λ p₁ p₂, (comap_le_comap_iff $ range_mkq _).symm }
 
 /-- The ordering on submodules of the quotient of `M` by `p` embeds into the ordering on submodules
@@ -1530,6 +1537,9 @@ structure linear_equiv (R : Type u) (M : Type v) (M₂ : Type w)
   [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂]
   extends M →ₗ[R] M₂, M ≃ M₂
 end
+
+attribute [nolint doc_blame] linear_equiv.to_linear_map
+attribute [nolint doc_blame] linear_equiv.to_equiv
 
 infix ` ≃ₗ ` := linear_equiv _
 notation M ` ≃ₗ[`:50 R `] ` M₂ := linear_equiv R M M₂
@@ -1636,6 +1646,22 @@ e.to_equiv.image_eq_preimage s
 lemma map_eq_comap {p : submodule R M} : (p.map e : submodule R M₂) = p.comap e.symm :=
 submodule.coe_injective $ by simp [e.image_eq_preimage]
 
+/-- A linear equivalence of two modules restricts to a linear equivalence from any submodule
+of the domain onto the image of the submodule. -/
+def of_submodule (p : submodule R M) : p ≃ₗ[R] ↥(p.map ↑e : submodule R M₂) :=
+{ inv_fun   := λ y, ⟨e.symm y, by {
+    rcases y with ⟨y', hy⟩, rw submodule.mem_map at hy, rcases hy with ⟨x, hx, hxy⟩, subst hxy,
+    simp only [symm_apply_apply, submodule.coe_mk, coe_coe, hx], }⟩,
+  left_inv  := λ x, by simp,
+  right_inv := λ y, by { apply set_coe.ext, simp, },
+  ..((e : M →ₗ[R] M₂).dom_restrict p).cod_restrict (p.map ↑e) (λ x, ⟨x, by simp⟩) }
+
+@[simp] lemma of_submodule_apply (p : submodule R M) (x : p) :
+  ↑(e.of_submodule p x) = e x := rfl
+
+@[simp] lemma of_submodule_symm_apply (p : submodule R M) (x : (p.map ↑e : submodule R M₂)) :
+  ↑((e.of_submodule p).symm x) = e.symm x := rfl
+
 end
 
 section prod
@@ -1657,8 +1683,7 @@ lemma prod_symm : (e₁.prod e₂).symm = e₁.symm.prod e₂.symm := rfl
   e₁.prod e₂ p = (e₁ p.1, e₂ p.2) := rfl
 
 @[simp, norm_cast] lemma coe_prod :
-  (e₁.prod e₂ : (M × M₃) →ₗ[R] (M₂ × M₄)) = (e₁ : M →ₗ[R] M₂).prod_map (e₂ : M₃ →ₗ[R] M₄) :=
-rfl
+  (e₁.prod e₂ : (M × M₃) →ₗ[R] (M₂ × M₄)) = (e₁ : M →ₗ[R] M₂).prod_map (e₂ : M₃ →ₗ[R] M₄) := rfl
 
 end prod
 
@@ -1695,6 +1720,17 @@ variables {p q}
 @[simp] lemma coe_of_eq_apply (h : p = q) (x : p) : (of_eq p q h x : M) = x := rfl
 
 @[simp] lemma of_eq_symm (h : p = q) : (of_eq p q h).symm = of_eq q p h.symm := rfl
+
+/-- A linear equivalence which maps a submodule of one module onto another, restricts to a linear
+equivalence of the two submodules. -/
+def of_submodules (p : submodule R M) (q : submodule R M₂) (h : p.map ↑e = q) : p ≃ₗ[R] q :=
+(e.of_submodule p).trans (linear_equiv.of_eq _ _ h)
+
+@[simp] lemma of_submodules_apply {p : submodule R M} {q : submodule R M₂}
+  (h : p.map ↑e = q) (x : p) : ↑(e.of_submodules p q h x) = e x := rfl
+
+@[simp] lemma of_submodules_symm_apply {p : submodule R M} {q : submodule R M₂}
+  (h : p.map ↑e = q) (x : q) : ↑((e.of_submodules p q h).symm x) = e.symm x := rfl
 
 variable (p)
 
@@ -1782,6 +1818,9 @@ noncomputable def of_injective (h : f.ker = ⊥) : M ≃ₗ[R] f.range :=
 { .. (equiv.set.range f $ linear_map.ker_eq_bot.1 h).trans (equiv.set.of_eq f.range_coe.symm),
   .. f.cod_restrict f.range (λ x, f.mem_range_self x) }
 
+@[simp] theorem of_injective_apply {h : f.ker = ⊥} (x : M) :
+  ↑(of_injective f h x) = f x := rfl
+
 /-- A bijective linear map is a linear equivalence. Here, bijectivity is described by saying that
 the kernel of `f` is `{0}` and the range is the universal set. -/
 noncomputable def of_bijective (hf₁ : f.ker = ⊥) (hf₂ : f.range = ⊤) : M ≃ₗ[R] M₂ :=
@@ -1845,12 +1884,22 @@ def congr_right (f : M₂ ≃ₗ[R] M₃) : (M →ₗ[R] M₂) ≃ₗ (M →ₗ 
 themselves are linearly isomorphic. -/
 def conj (e : M ≃ₗ[R] M₂) : (module.End R M) ≃ₗ[R] (module.End R M₂) := arrow_congr e e
 
-@[simp] lemma conj_apply (e : M ≃ₗ[R] M₂) (f : module.End R M) (x : M₂) :
-  (e.conj f) x = e (f (e.symm x)) :=
-rfl
+lemma conj_apply (e : M ≃ₗ[R] M₂) (f : module.End R M) :
+  e.conj f = ((↑e : M →ₗ[R] M₂).comp f).comp e.symm := rfl
+
+lemma symm_conj_apply (e : M ≃ₗ[R] M₂) (f : module.End R M₂) :
+  e.symm.conj f = ((↑e.symm : M₂ →ₗ[R] M).comp f).comp e := rfl
+
+lemma conj_comp (e : M ≃ₗ[R] M₂) (f g : module.End R M) :
+  e.conj (g.comp f) = (e.conj g).comp (e.conj f) :=
+arrow_congr_comp e e e f g
+
+lemma conj_trans (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃) :
+  e₁.conj.trans e₂.conj = (e₁.trans e₂).conj :=
+by { ext f x, refl, }
 
 @[simp] lemma conj_id (e : M ≃ₗ[R] M₂) : e.conj linear_map.id = linear_map.id :=
-by { ext, rw [conj_apply, id_apply, id_apply, apply_symm_apply], }
+by { ext, simp [conj_apply], }
 
 end comm_ring
 
@@ -1937,6 +1986,13 @@ namespace submodule
 
 variables [comm_ring R] [add_comm_group M] [add_comm_group M₂] [module R M] [module R M₂]
 variables (p : submodule R M) (q : submodule R M₂)
+
+@[simp] lemma mem_map_equiv {e : M ≃ₗ[R] M₂} {x : M₂} : x ∈ p.map (e : M →ₗ[R] M₂) ↔ e.symm x ∈ p :=
+begin
+  rw submodule.mem_map, split,
+  { rintros ⟨y, hy, hx⟩, simp [←hx, hy], },
+  { intros hx, refine ⟨e.symm x, hx, by simp⟩, },
+end
 
 lemma comap_le_comap_smul (f : M →ₗ[R] M₂) (c : R) :
   comap f q ≤ comap (c • f) q :=
@@ -2135,10 +2191,10 @@ begin
     assume j hjJ,
     have : j ∉ I := assume hjI, hd ⟨hjI, hjJ⟩,
     rw [dif_neg this, zero_apply] },
-  { simp only [pi_comp, comp_assoc, subtype_comp_cod_restrict, proj_pi, dif_pos, subtype.val_prop'],
+  { simp only [pi_comp, comp_assoc, subtype_comp_cod_restrict, proj_pi, dif_pos, subtype.coe_prop],
     ext b ⟨j, hj⟩, refl },
-  { ext ⟨b, hb⟩,
-    apply subtype.coe_ext.2,
+  { ext1 ⟨b, hb⟩,
+    apply subtype.ext,
     ext j,
     have hb : ∀i ∈ J, b i = 0,
     { simpa only [mem_infi, mem_ker, proj_apply] using (mem_infi _).1 hb },

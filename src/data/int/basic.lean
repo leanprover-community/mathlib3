@@ -505,6 +505,12 @@ end
 @[simp] theorem mod_mod (a b : ℤ) : a % b % b = a % b :=
 by conv {to_rhs, rw [← mod_add_div a b, add_mul_mod_self_left]}
 
+lemma sub_mod (a b n : ℤ) : (a - b) % n = ((a % n) - (b % n)) % n :=
+begin
+  apply (mod_add_cancel_right b).mp,
+  rw [sub_add_cancel, ← add_mod_mod, sub_add_cancel, mod_mod]
+end
+
 /- properties of / and % -/
 
 @[simp] theorem mul_div_mul_of_pos {a : ℤ} (b c : ℤ) (H : 0 < a) : a * b / (a * c) = b / c :=

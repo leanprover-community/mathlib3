@@ -642,4 +642,31 @@ begin
     rw [int.cast_mul, mul_comm, mul_div_cancel _ hn, rat.coe_int_denom] }
 end
 
+lemma num_div_eq_of_coprime {a b : ℤ} (hb0 : 0 < b) (h : nat.coprime a.nat_abs b.nat_abs) :
+  (a / b : ℚ).num = a :=
+begin
+  lift b to ℕ using le_of_lt hb0,
+  norm_cast at hb0 h,
+  rw [← rat.mk_eq_div, ← rat.mk_pnat_eq a b hb0, rat.mk_pnat_num, pnat.mk_coe, h.gcd_eq_one,
+    int.coe_nat_one, int.div_one]
+end
+
+lemma denom_div_eq_of_coprime {a b : ℤ} (hb0 : 0 < b) (h : nat.coprime a.nat_abs b.nat_abs) :
+  ((a / b : ℚ).denom : ℤ) = b :=
+begin
+  lift b to ℕ using le_of_lt hb0,
+  norm_cast at hb0 h,
+  rw [← rat.mk_eq_div, ← rat.mk_pnat_eq a b hb0, rat.mk_pnat_denom, pnat.mk_coe, h.gcd_eq_one,
+    nat.div_one]
+end
+
+lemma div_int_inj {a b c d : ℤ} (hb0 : 0 < b) (hd0 : 0 < d)
+  (h1 : nat.coprime a.nat_abs b.nat_abs) (h2 : nat.coprime c.nat_abs d.nat_abs)
+  (h : (a : ℚ) / b = (c : ℚ) / d) : a = c ∧ b = d :=
+begin
+  apply and.intro,
+  { rw [← (num_div_eq_of_coprime hb0 h1), h, num_div_eq_of_coprime hd0 h2] },
+  { rw [← (denom_div_eq_of_coprime hb0 h1), h, denom_div_eq_of_coprime hd0 h2] }
+end
+
 end rat

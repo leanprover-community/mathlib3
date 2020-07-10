@@ -24,9 +24,12 @@ open category_theory
 /-- The category of semirings. -/
 def SemiRing : Type (u+1) := bundled semiring
 
-attribute [derive [has_coe_to_sort]] SemiRing
-
 namespace SemiRing
+
+instance bundled_hom : bundled_hom @ring_hom :=
+⟨@ring_hom.to_fun, @ring_hom.id, @ring_hom.comp, @ring_hom.coe_inj⟩
+
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] SemiRing
 
 /-- Construct a bundled SemiRing from the underlying type and typeclass. -/
 def of (R : Type u) [semiring R] : SemiRing := bundled.of R
@@ -34,11 +37,6 @@ def of (R : Type u) [semiring R] : SemiRing := bundled.of R
 instance : inhabited SemiRing := ⟨of punit⟩
 
 instance (R : SemiRing) : semiring R := R.str
-
-instance bundled_hom : bundled_hom @ring_hom :=
-⟨@ring_hom.to_fun, @ring_hom.id, @ring_hom.comp, @ring_hom.coe_inj⟩
-
-attribute [derive [large_category, concrete_category]] SemiRing
 
 instance has_forget_to_Mon : has_forget₂ SemiRing Mon :=
 bundled_hom.mk_has_forget₂
@@ -56,11 +54,11 @@ end SemiRing
 /-- The category of rings. -/
 def Ring : Type (u+1) := bundled ring
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] Ring
-
 namespace Ring
 
 instance : bundled_hom.parent_projection @ring.to_semiring := ⟨⟩
+
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] Ring
 
 /-- Construct a bundled Ring from the underlying type and typeclass. -/
 def of (R : Type u) [ring R] : Ring := bundled.of R
@@ -68,9 +66,6 @@ def of (R : Type u) [ring R] : Ring := bundled.of R
 instance : inhabited Ring := ⟨of punit⟩
 
 instance (R : Ring) : ring R := R.str
-
-instance has_forget_to_SemiRing : has_forget₂ Ring SemiRing :=
-by dsimp_result { delta Ring, apply_instance, }
 
 instance has_forget_to_SemiRing : has_forget₂ Ring SemiRing := bundled_hom.forget₂ _ _
 instance has_forget_to_AddCommGroup : has_forget₂ Ring AddCommGroup :=
@@ -84,11 +79,11 @@ end Ring
 /-- The category of commutative semirings. -/
 def CommSemiRing : Type (u+1) := bundled comm_semiring
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommSemiRing
-
 namespace CommSemiRing
 
 instance : bundled_hom.parent_projection @comm_semiring.to_semiring := ⟨⟩
+
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommSemiRing
 
 /-- Construct a bundled CommSemiRing from the underlying type and typeclass. -/
 def of (R : Type u) [comm_semiring R] : CommSemiRing := bundled.of R
@@ -96,9 +91,6 @@ def of (R : Type u) [comm_semiring R] : CommSemiRing := bundled.of R
 instance : inhabited CommSemiRing := ⟨of punit⟩
 
 instance (R : CommSemiRing) : comm_semiring R := R.str
-
-instance : category CommSemiRing := infer_instance -- short-circuit type class inference
-instance : concrete_category CommSemiRing := infer_instance -- short-circuit type class inference
 
 instance has_forget_to_SemiRing : has_forget₂ CommSemiRing SemiRing := bundled_hom.forget₂ _ _
 
@@ -113,11 +105,11 @@ end CommSemiRing
 /-- The category of commutative rings. -/
 def CommRing : Type (u+1) := bundled comm_ring
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommRing
-
 namespace CommRing
 
 instance : bundled_hom.parent_projection @comm_ring.to_ring := ⟨⟩
+
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommRing
 
 /-- Construct a bundled CommRing from the underlying type and typeclass. -/
 def of (R : Type u) [comm_ring R] : CommRing := bundled.of R
@@ -125,9 +117,6 @@ def of (R : Type u) [comm_ring R] : CommRing := bundled.of R
 instance : inhabited CommRing := ⟨of punit⟩
 
 instance (R : CommRing) : comm_ring R := R.str
-
-instance : category CommRing := infer_instance -- short-circuit type class inference
-instance : concrete_category CommRing := infer_instance -- short-circuit type class inference
 
 instance has_forget_to_Ring : has_forget₂ CommRing Ring := bundled_hom.forget₂ _ _
 

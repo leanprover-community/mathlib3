@@ -28,23 +28,18 @@ def Group : Type (u+1) := bundled group
 /-- The category of additive groups and group morphisms -/
 add_decl_doc AddGroup
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] Group AddGroup
-
 namespace Group
 
 @[to_additive]
 instance : bundled_hom.parent_projection group.to_monoid := ⟨⟩
+
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] Group AddGroup
 
 /-- Construct a bundled `Group` from the underlying type and typeclass. -/
 @[to_additive] def of (X : Type u) [group X] : Group := bundled.of X
 
 /-- Construct a bundled `AddGroup` from the underlying type and typeclass. -/
 add_decl_doc AddGroup.of
-
-local attribute [reducible] Group
-
-@[to_additive]
-instance : has_coe_to_sort Group := infer_instance -- short-circuit type class inference
 
 @[to_additive add_group]
 instance (G : Group) : group G := G.str
@@ -81,8 +76,6 @@ def CommGroup : Type (u+1) := bundled comm_group
 /-- The category of additive commutative groups and group morphisms. -/
 add_decl_doc AddCommGroup
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommGroup AddCommGroup
-
 /-- `Ab` is an abbreviation for `AddCommGroup`, for the sake of mathematicians' sanity. -/
 abbreviation Ab := AddCommGroup
 
@@ -91,16 +84,13 @@ namespace CommGroup
 @[to_additive]
 instance : bundled_hom.parent_projection comm_group.to_group := ⟨⟩
 
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommGroup AddCommGroup
+
 /-- Construct a bundled `CommGroup` from the underlying type and typeclass. -/
 @[to_additive] def of (G : Type u) [comm_group G] : CommGroup := bundled.of G
 
 /-- Construct a bundled `AddCommGroup` from the underlying type and typeclass. -/
 add_decl_doc AddCommGroup.of
-
-local attribute [reducible] CommGroup
-
-@[to_additive]
-instance : has_coe_to_sort CommGroup := infer_instance -- short-circuit type class inference
 
 @[to_additive add_comm_group_instance]
 instance comm_group_instance (G : CommGroup) : comm_group G := G.str
@@ -116,12 +106,6 @@ instance : unique (1 : CommGroup) :=
 
 @[simp, to_additive]
 lemma one_apply (G H : CommGroup) (g : G) : (1 : G ⟶ H) g = 1 := rfl
-
-@[to_additive]
-instance : category CommGroup := infer_instance -- short-circuit type class inference
-
-@[to_additive]
-instance : concrete_category CommGroup := infer_instance -- short-circuit type class inference
 
 @[to_additive,ext]
 lemma ext (G H : CommGroup) (f₁ f₂ : G ⟶ H) (w : ∀ x, f₁ x = f₂ x) : f₁ = f₂ :=

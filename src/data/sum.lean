@@ -1,13 +1,16 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro
+Authors: Mario Carneiro, Yury G. Kudryashov
+-/
+import tactic.lint
 
-More theorems about the sum type.
+/-!
+# More theorems about the sum type
 -/
 
-universes u v
-variables {α : Type u} {β : Type v}
+universes u v w x
+variables {α : Type u} {α' : Type w} {β : Type v} {β' : Type x}
 open sum
 
 attribute [derive decidable_eq] sum
@@ -26,20 +29,37 @@ end⟩
 
 namespace sum
 
-protected def map {α α' β β'} (f : α → α') (g : β → β')  : α ⊕ β → α' ⊕ β'
+/-- Map `α ⊕ β` to `α' ⊕ β'` sending `α` to `α'` and `β` to `β'`. -/
+protected def map (f : α → α') (g : β → β')  : α ⊕ β → α' ⊕ β'
 | (sum.inl x) := sum.inl (f x)
 | (sum.inr x) := sum.inr (g x)
 
-@[simp] theorem inl.inj_iff {a b} : (inl a : α ⊕ β) = inl b ↔ a = b :=
+@[simp] lemma map_inl (f : α → α') (g : β → β') (x : α) : (inl x).map f g = inl (f x) := rfl
+@[simp] lemma map_inr (f : α → α') (g : β → β') (x : β) : (inr x).map f g = inr (g x) := rfl
+
+@[simp] lemma map_map {α'' β''} (f' : α' → α'') (g' : β' → β'') (f : α → α') (g : β → β') :
+  ∀ x : α ⊕ β, (x.map f g).map f' g' = x.map (f' ∘ f) (g' ∘ g)
+| (inl a) := rfl
+| (inr b) := rfl
+
+@[simp] lemma map_comp_map {α'' β''} (f' : α' → α'') (g' : β' → β'') (f : α → α') (g : β → β') :
+  (sum.map f' g') ∘ (sum.map f g) = sum.map (f' ∘ f) (g' ∘ g) :=
+funext $ map_map f' g' f g
+
+@[simp] lemma map_id_id (α β) : sum.map (@id α) (@id β) = id :=
+funext $ λ x, sum.rec_on x (λ _, rfl) (λ _, rfl)
+
+theorem inl.inj_iff {a b} : (inl a : α ⊕ β) = inl b ↔ a = b :=
 ⟨inl.inj, congr_arg _⟩
 
-@[simp] theorem inr.inj_iff {a b} : (inr a : α ⊕ β) = inr b ↔ a = b :=
+theorem inr.inj_iff {a b} : (inr a : α ⊕ β) = inr b ↔ a = b :=
 ⟨inr.inj, congr_arg _⟩
 
-@[simp] theorem inl_ne_inr {a : α} {b : β} : inl a ≠ inr b.
+theorem inl_ne_inr {a : α} {b : β} : inl a ≠ inr b.
 
-@[simp] theorem inr_ne_inl {a : α} {b : β} : inr b ≠ inl a.
+theorem inr_ne_inl {a : α} {b : β} : inr b ≠ inl a.
 
+/-- Define a function on `α ⊕ β` by giving separate definitions on `α` and `β`. -/
 protected def elim {α β γ : Sort*} (f : α → γ) (g : β → γ) : α ⊕ β → γ := λ x, sum.rec_on x f g
 
 @[simp] lemma elim_inl {α β γ : Sort*} (f : α → γ) (g : β → γ) (x : α) :
@@ -68,10 +88,10 @@ section
   variables {ra rb}
 
   @[simp] theorem lex_inl_inl {a₁ a₂} : lex ra rb (inl a₁) (inl a₂) ↔ ra a₁ a₂ :=
-  ⟨λ h, by cases h; assumption, lex.inl _⟩
+  ⟨λ h, by cases h; assumption, lex.inl⟩
 
   @[simp] theorem lex_inr_inr {b₁ b₂} : lex ra rb (inr b₁) (inr b₂) ↔ rb b₁ b₂ :=
-  ⟨λ h, by cases h; assumption, lex.inr _⟩
+  ⟨λ h, by cases h; assumption, lex.inr⟩
 
   @[simp] theorem lex_inr_inl {b a} : ¬ lex ra rb (inr b) (inl a) :=
   λ h, by cases h
@@ -119,3 +139,19 @@ swap_swap
 swap_swap
 
 end sum
+
+namespace function
+
+open sum
+
+lemma injective.sum_map {f : α → β} {g : α' → β'} (hf : injective f) (hg : injective g) :
+  injective (sum.map f g)
+| (inl x) (inl y) h := congr_arg inl $ hf $ inl.inj h
+| (inr x) (inr y) h := congr_arg inr $ hg $ inr.inj h
+
+lemma surjective.sum_map {f : α → β} {g : α' → β'} (hf : surjective f) (hg : surjective g) :
+  surjective (sum.map f g)
+| (inl y) := let ⟨x, hx⟩ := hf y in ⟨inl x, congr_arg inl hx⟩
+| (inr y) := let ⟨x, hx⟩ := hg y in ⟨inr x, congr_arg inr hx⟩
+
+end function

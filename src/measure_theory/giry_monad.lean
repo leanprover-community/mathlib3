@@ -20,7 +20,7 @@ monad to an honest monad of the functor `Measure : Meas ⥤ Meas`.
 
 ## References
 
-* https://ncatlab.org/nlab/show/Giry+monad
+* <https://ncatlab.org/nlab/show/Giry+monad>
 
 ## Tags
 
@@ -28,9 +28,9 @@ giry monad
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical big_operators
 
-open classical set lattice filter
+open classical set filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ε : Type*}
 
@@ -64,25 +64,24 @@ lemma measurable_dirac :
   measurable (measure.dirac : α → measure α) :=
 measurable_of_measurable_coe _ $ assume s hs,
   begin
-    simp [hs, lattice.supr_eq_if],
+    simp [hs, supr_eq_if],
     exact measurable_const.if hs measurable_const
   end
 
 lemma measurable_integral (f : α → ennreal) (hf : measurable f) :
   measurable (λμ : measure α, μ.integral f) :=
 suffices measurable (λμ : measure α,
-  (⨆n:ℕ, @simple_func.integral α { μ := μ } (simple_func.eapprox f n)) : _ → ennreal),
+  (⨆n:ℕ, @simple_func.integral α { volume := μ } (simple_func.eapprox f n)) : _ → ennreal),
 begin
   convert this,
   funext μ,
-  exact @lintegral_eq_supr_eapprox_integral α {μ := μ} f hf
+  exact @lintegral_eq_supr_eapprox_integral α {volume := μ} f hf
 end,
-measurable.supr $ assume n,
+measurable_supr $ assume n,
   begin
     dunfold simple_func.integral,
-    refine measurable_finset_sum (simple_func.eapprox f n).range _,
-    assume i,
-    refine ennreal.measurable_mul measurable_const _,
+    refine finset.measurable_sum (simple_func.eapprox f n).range (λ i, _),
+    refine measurable_const.ennreal_mul _,
     exact measurable_coe ((simple_func.eapprox f n).preimage_measurable _)
   end
 
@@ -114,8 +113,8 @@ begin
   apply lintegral_eq_supr_eapprox_integral,
   { exact hf },
   have : ∀n x,
-    @volume α { μ := join m} (⇑(simple_func.eapprox (λ (a : α), f a) n) ⁻¹' {x}) =
-    m.integral (λμ, @volume α { μ := μ } ((⇑(simple_func.eapprox (λ (a : α), f a) n) ⁻¹' {x}))) :=
+    @volume α { volume := join m} (⇑(simple_func.eapprox (λ (a : α), f a) n) ⁻¹' {x}) =
+    m.integral (λμ, @volume α { volume := μ } ((⇑(simple_func.eapprox (λ (a : α), f a) n) ⁻¹' {x}))) :=
     assume n x, join_apply (simple_func.measurable_sn _ _),
   conv {
     to_lhs,
@@ -125,31 +124,31 @@ begin
   simp [this],
   transitivity,
   have : ∀(s : ℕ → finset ennreal) (f : ℕ → ennreal → measure α → ennreal)
-    (hf : ∀n r, measurable (f n r)) (hm : monotone (λn μ, (s n).sum (λ r, r * f n r μ))),
-    (⨆n:ℕ, (s n).sum (λr, r * integral m (f n r))) =
-    integral m (λμ, ⨆n:ℕ, (s n).sum (λr, r * f n r μ)),
+    (hf : ∀n r, measurable (f n r)) (hm : monotone (λn μ, ∑ r in s n, r * f n r μ)),
+    (⨆n:ℕ, ∑ r in s n, r * integral m (f n r)) =
+    integral m (λμ, ⨆n:ℕ, ∑ r in s n, r * f n r μ),
   { assume s f hf hm,
     symmetry,
     transitivity,
     apply lintegral_supr,
-    { exact assume n,
-        measurable_finset_sum _ (assume r, ennreal.measurable_mul measurable_const (hf _ _)) },
+    { assume n,
+      exact finset.measurable_sum _ (assume r, measurable_const.ennreal_mul (hf _ _)) },
     { exact hm },
     congr, funext n,
     transitivity,
     apply lintegral_finset_sum,
-    { exact assume r, ennreal.measurable_mul measurable_const (hf _ _) },
+    { assume r, exact measurable_const.ennreal_mul (hf _ _) },
     congr, funext r,
     apply lintegral_const_mul,
     exact hf _ _ },
   specialize this (λn, simple_func.range (simple_func.eapprox f n)),
   specialize this
-    (λn r μ, @volume α { μ := μ } (⇑(simple_func.eapprox (λ (a : α), f a) n) ⁻¹' {r})),
+    (λn r μ, @volume α { volume := μ } (⇑(simple_func.eapprox (λ (a : α), f a) n) ⁻¹' {r})),
   refine this _ _; clear this,
   { assume n r,
     apply measurable_coe,
     exact simple_func.measurable_sn _ _ },
-  { change monotone (λn μ, @simple_func.integral α {μ := μ} (simple_func.eapprox f n)),
+  { change monotone (λn μ, @simple_func.integral α {volume := μ} (simple_func.eapprox f n)),
     assume n m h μ,
     apply simple_func.integral_le_integral,
     apply simple_func.monotone_eapprox,

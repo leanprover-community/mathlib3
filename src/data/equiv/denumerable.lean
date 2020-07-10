@@ -7,14 +7,20 @@ Denumerable (countably infinite) types, as a typeclass extending
 encodable. This is used to provide explicit encode/decode functions
 from nat, where the functions are known inverses of each other.
 -/
-import data.equiv.encodable data.sigma data.fintype data.list.min_max
+import data.equiv.encodable
+import data.sigma
+import data.fintype.basic
+import data.list.min_max
 open nat
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A denumerable type is one which is (constructively) bijective with ℕ.
   Although we already have a name for this property, namely `α ≃ ℕ`,
   we are here interested in using it as a typeclass. -/
 class denumerable (α : Type*) extends encodable α :=
 (decode_inv : ∀ n, ∃ a ∈ decode n, encode a = n)
+end prio
 
 namespace denumerable
 
@@ -22,15 +28,16 @@ section
 variables {α : Type*} {β : Type*} [denumerable α] [denumerable β]
 open encodable
 
-@[simp] theorem decode_is_some (α) [denumerable α] (n : ℕ) :
+theorem decode_is_some (α) [denumerable α] (n : ℕ) :
   (decode α n).is_some :=
 option.is_some_iff_exists.2 $
-(decode_inv α n).imp $ λ a, Exists.fst
+(decode_inv n).imp $ λ a, Exists.fst
 
 def of_nat (α) [f : denumerable α] (n : ℕ) : α :=
 option.get (decode_is_some α n)
 
-@[simp] theorem decode_eq_of_nat (α) [denumerable α] (n : ℕ) :
+@[simp, priority 900]
+theorem decode_eq_of_nat (α) [denumerable α] (n : ℕ) :
   decode α n = some (of_nat α n) :=
 option.eq_some_of_is_some _
 
@@ -39,7 +46,7 @@ option.eq_some_of_is_some _
 option.some.inj $ (decode_eq_of_nat _ _).symm.trans h
 
 @[simp] theorem encode_of_nat (n) : encode (of_nat α n) = n :=
-let ⟨a, h, e⟩ := decode_inv α n in
+let ⟨a, h, e⟩ := decode_inv n in
 by rwa [of_nat_of_decode h]
 
 @[simp] theorem of_nat_encode (a) : of_nat α (encode a) = a :=
@@ -114,9 +121,12 @@ end
 end denumerable
 
 namespace nat.subtype
-open function encodable lattice
+open function encodable
 
-variables {s : set ℕ} [decidable_pred s] [infinite s]
+variables {s : set ℕ} [infinite s]
+
+section classical
+open_locale classical
 
 lemma exists_succ (x : s) : ∃ n, x.1 + n + 1 ∈ s :=
 classical.by_contradiction $ λ h,
@@ -127,7 +137,11 @@ infinite.not_fintype
   ⟨(((multiset.range x.1.succ).filter (∈ s)).pmap
       (λ (y : ℕ) (hy : y ∈ s), subtype.mk y hy)
       (by simp [-multiset.range_succ])).to_finset,
-    by simpa [subtype.ext, multiset.mem_filter, -multiset.range_succ]⟩
+    by simpa [subtype.ext_iff_val, multiset.mem_filter, -multiset.range_succ]⟩
+
+end classical
+
+variable [decidable_pred s]
 
 def succ (x : s) : s :=
 have h : ∃ m, x.1 + m + 1 ∈ s, from exists_succ x,
@@ -165,7 +179,7 @@ lemma of_nat_surjective_aux : ∀ {x : ℕ} (hx : x ∈ s), ∃ n, of_nat s n = 
 | x := λ hx, let t : list s := ((list.range x).filter (λ y, y ∈ s)).pmap
   (λ (y : ℕ) (hy : y ∈ s), ⟨y, hy⟩) (by simp) in
 have hmt : ∀ {y : s}, y ∈ t ↔ y < ⟨x, hx⟩,
-  by simp [list.mem_filter, subtype.ext, t]; intros; refl,
+  by simp [list.mem_filter, subtype.ext_iff_val, t]; intros; refl,
 have wf : ∀ m : s, list.maximum t = m → m.1 < x,
   from λ m hmax, by simpa [hmt] using list.maximum_mem hmax,
 begin
@@ -206,7 +220,7 @@ have h₁ : (of_nat s n : ℕ) ∉ (range (of_nat s n)).filter s, by simp,
 have h₂ : (range (succ (of_nat s n))).filter s =
     insert (of_nat s n) ((range (of_nat s n)).filter s),
   begin
-    simp only [finset.ext, mem_insert, mem_range, mem_filter],
+    simp only [finset.ext_iff, mem_insert, mem_range, mem_filter],
     assume m,
     exact ⟨λ h, by simp only [h.2, and_true]; exact or.symm
         (lt_or_eq_of_le ((@lt_succ_iff_le _ _ _ ⟨m, h.2⟩ _).1 h.1)),

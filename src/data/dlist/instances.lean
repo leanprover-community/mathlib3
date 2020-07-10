@@ -5,7 +5,9 @@ Authors: Simon Hudon
 
 Traversable instance for dlists.
 -/
-import data.dlist category.traversable.equiv category.traversable.instances
+import data.dlist
+import control.traversable.equiv
+import control.traversable.instances
 
 namespace dlist
 
@@ -22,5 +24,7 @@ equiv.traversable list_equiv_dlist
 
 instance : is_lawful_traversable dlist :=
 equiv.is_lawful_traversable list_equiv_dlist
+
+instance {α} : inhabited (dlist α) := ⟨dlist.empty⟩
 
 end dlist

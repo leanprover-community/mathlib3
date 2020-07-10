@@ -4,7 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.category.CommRing.basic
-import category_theory.limits.limits
+
+/-!
+# The category of commutative rings has all colimits.
+
+This file uses a "pre-automated" approach, just as for `Mon/colimits.lean`.
+It is a very uniform approach, that conceivably could be synthesised directly
+by a tactic that analyses the shape of `comm_ring` and `ring_hom`.
+-/
 
 universes u v
 
@@ -39,34 +46,51 @@ comm_ring.right_distrib : ∀ {α : Type u} [c : comm_ring α] (a b c_1 : α), (
 -/
 
 namespace CommRing.colimits
+/-!
+We build the colimit of a diagram in `CommRing` by constructing the
+free commutative ring on the disjoint union of all the commutative rings in the diagram,
+then taking the quotient by the commutative ring laws within each commutative ring,
+and the identifications given by the morphisms in the diagram.
+-/
 
 variables {J : Type v} [small_category J] (F : J ⥤ CommRing.{v})
 
+/--
+An inductive type representing all commutative ring expressions (without relations)
+on a collection of types indexed by the objects of `J`.
+-/
 inductive prequotient
 -- There's always `of`
-| of : Π (j : J) (x : (F.obj j).α), prequotient
+| of : Π (j : J) (x : F.obj j), prequotient
 -- Then one generator for each operation
-| zero {} : prequotient
-| one {} : prequotient
+| zero : prequotient
+| one : prequotient
 | neg : prequotient → prequotient
 | add : prequotient → prequotient → prequotient
 | mul : prequotient → prequotient → prequotient
 
+instance : inhabited (prequotient F) := ⟨prequotient.zero⟩
+
 open prequotient
 
+/--
+The relation on `prequotient` saying when two expressions are equal
+because of the commutative ring laws, or
+because one element is mapped to another by a morphism in the diagram.
+-/
 inductive relation : prequotient F → prequotient F → Prop
 -- Make it an equivalence relation:
 | refl : Π (x), relation x x
 | symm : Π (x y) (h : relation x y), relation y x
 | trans : Π (x y z) (h : relation x y) (k : relation y z), relation x z
 -- There's always a `map` relation
-| map : Π (j j' : J) (f : j ⟶ j') (x : (F.obj j).α), relation (of j' ((F.map f) x)) (of j x)
+| map : Π (j j' : J) (f : j ⟶ j') (x : F.obj j), relation (of j' (F.map f x)) (of j x)
 -- Then one relation per operation, describing the interaction with `of`
 | zero : Π (j), relation (of j 0) zero
 | one : Π (j), relation (of j 1) one
-| neg : Π (j) (x : (F.obj j).α), relation (of j (-x)) (neg (of j x))
-| add : Π (j) (x y : (F.obj j).α), relation (of j (x + y)) (add (of j x) (of j y))
-| mul : Π (j) (x y : (F.obj j).α), relation (of j (x * y)) (mul (of j x) (of j y))
+| neg : Π (j) (x : F.obj j), relation (of j (-x)) (neg (of j x))
+| add : Π (j) (x y : F.obj j), relation (of j (x + y)) (add (of j x) (of j y))
+| mul : Π (j) (x y : F.obj j), relation (of j (x * y)) (mul (of j x) (of j y))
 -- Then one relation per argument of each operation
 | neg_1 : Π (x x') (r : relation x x'), relation (neg x) (neg x')
 | add_1 : Π (x x' y) (r : relation x x'), relation (add x y) (add x' y)
@@ -86,10 +110,17 @@ inductive relation : prequotient F → prequotient F → Prop
 | left_distrib  : Π (x y z), relation (mul x (add y z)) (add (mul x y) (mul x z))
 | right_distrib : Π (x y z), relation (mul (add x y) z) (add (mul x z) (mul y z))
 
+/--
+The setoid corresponding to commutative expressions modulo monoid relations and identifications.
+-/
 def colimit_setoid : setoid (prequotient F) :=
 { r := relation F, iseqv := ⟨relation.refl, relation.symm, relation.trans⟩ }
 attribute [instance] colimit_setoid
 
+/--
+The underlying type of the colimit of a diagram in `CommRing`.
+-/
+@[derive inhabited]
 def colimit_type : Type v := quotient (colimit_setoid F)
 
 instance : comm_ring (colimit_type F) :=
@@ -261,31 +292,20 @@ instance : comm_ring (colimit_type F) :=
 @[simp] lemma quot_add (x y) : quot.mk setoid.r (add x y) = ((quot.mk setoid.r x) + (quot.mk setoid.r y) : colimit_type F) := rfl
 @[simp] lemma quot_mul (x y) : quot.mk setoid.r (mul x y) = ((quot.mk setoid.r x) * (quot.mk setoid.r y) : colimit_type F) := rfl
 
-def colimit : CommRing := ⟨colimit_type F, by apply_instance⟩
+/-- The bundled commutative ring giving the colimit of a diagram. -/
+def colimit : CommRing := CommRing.of (colimit_type F)
 
-def cocone_fun (j : J) (x : (F.obj j).α) : colimit_type F :=
+/-- The function from a given commutative ring in the diagram to the colimit commutative ring. -/
+def cocone_fun (j : J) (x : F.obj j) : colimit_type F :=
 quot.mk _ (of j x)
 
-instance cocone_is_hom (j : J) : is_ring_hom (cocone_fun F j) :=
-{ map_one :=
-  begin
-    apply quot.sound,
-    apply relation.one,
-  end,
-  map_mul := λ x y,
-  begin
-    apply quot.sound,
-    apply relation.mul,
-  end,
-  map_add := λ x y,
-  begin
-    apply quot.sound,
-    apply relation.add,
-  end }
-
+/-- The ring homomorphism from a given commutative ring in the diagram to the colimit commutative ring. -/
 def cocone_morphism (j : J) : F.obj j ⟶ colimit F :=
-{ val := cocone_fun F j,
-  property := by apply_instance }
+{ to_fun := cocone_fun F j,
+  map_one' := by apply quot.sound; apply relation.one,
+  map_mul' := by intros; apply quot.sound; apply relation.mul,
+  map_zero' := by apply quot.sound; apply relation.zero,
+  map_add' := by intros; apply quot.sound; apply relation.add }
 
 @[simp] lemma cocone_naturality {j j' : J} (f : j ⟶ j') :
   F.map f ≫ (cocone_morphism F j') = cocone_morphism F j :=
@@ -299,11 +319,13 @@ end
   (cocone_morphism F j') (F.map f x) = (cocone_morphism F j) x :=
 by { rw ←cocone_naturality F f, refl }
 
+/-- The cocone over the proposed colimit commutative ring. -/
 def colimit_cocone : cocone F :=
 { X := colimit F,
   ι :=
   { app := cocone_morphism F } }.
 
+/-- The function from the free commutative ring on the diagram to the cone point of any other cocone. -/
 @[simp] def desc_fun_lift (s : cocone F) : prequotient F → s.X
 | (of j x)  := (s.ι.app j) x
 | zero      := 0
@@ -312,10 +334,7 @@ def colimit_cocone : cocone F :=
 | (add x y) := desc_fun_lift x + desc_fun_lift y
 | (mul x y) := desc_fun_lift x * desc_fun_lift y
 
-@[simp] lemma naturality_bundled {G : J ⥤ CommRing} (s : cocone G) {j j' : J} (f : j ⟶ j') (x : G.obj j) :
-  (s.ι.app j') ((G.map f) x) = (s.ι.app j) x :=
-congr_fun (congr_arg (λ k : G.obj j ⟶ s.X, (k : G.obj j → s.X)) (s.ι.naturality f)) x
-
+/-- The function from the colimit commutative ring to the cone point of any other cocone. -/
 def desc_fun (s : cocone F) : colimit_type F → s.X :=
 begin
   fapply quot.lift,
@@ -329,17 +348,17 @@ begin
     -- trans
     { exact eq.trans r_ih_h r_ih_k },
     -- map
-    { rw naturality_bundled, },
+    { simp, },
     -- zero
-    { erw is_ring_hom.map_zero ⇑((s.ι).app r), refl },
+    { simp, },
     -- one
-    { erw is_ring_hom.map_one ⇑((s.ι).app r), refl },
+    { simp, },
     -- neg
-    { rw is_ring_hom.map_neg ⇑((s.ι).app r_j) },
+    { simp, },
     -- add
-    { rw is_ring_hom.map_add ⇑((s.ι).app r_j) },
+    { simp, },
     -- mul
-    { rw is_ring_hom.map_mul ⇑((s.ι).app r_j) },
+    { simp, },
     -- neg_1
     { rw r_ih, },
     -- add_1
@@ -375,27 +394,16 @@ begin
   }
 end
 
-instance desc_fun_is_morphism (s : cocone F) : is_ring_hom (desc_fun F s) :=
-{ map_one := rfl,
-  map_add := λ x y,
-  begin
-    induction x, induction y,
-    refl,
-    refl,
-    refl,
-  end,
-  map_mul := λ x y,
-  begin
-    induction x, induction y,
-    refl,
-    refl,
-    refl,
-  end, }
+/-- The ring homomorphism from the colimit commutative ring to the cone point of any other cocone. -/
+@[simps]
+def desc_morphism (s : cocone F) : colimit F ⟶ s.X :=
+{ to_fun := desc_fun F s,
+  map_one' := rfl,
+  map_zero' := rfl,
+  map_add' := λ x y, by { induction x; induction y; refl },
+  map_mul' := λ x y, by { induction x; induction y; refl }, }
 
-@[simp] def desc_morphism (s : cocone F) : colimit F ⟶ s.X :=
-{ val := desc_fun F s,
-  property := by apply_instance }
-
+/-- Evidence that the proposed colimit is the colimit. -/
 def colimit_is_colimit : is_colimit (colimit_cocone F) :=
 { desc := λ s, desc_morphism F s,
   uniq' := λ s m w,
@@ -406,28 +414,15 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
     { have w' := congr_fun (congr_arg (λ f : F.obj x_j ⟶ s.X, (f : F.obj x_j → s.X)) (w x_j)) x_x,
       erw w',
       refl, },
-    { simp only [desc_morphism, quot_zero],
-      erw is_ring_hom.map_zero ⇑m,
-      refl, },
-    { simp only [desc_morphism, quot_one],
-      erw is_ring_hom.map_one ⇑m,
-      refl, },
-    { simp only [desc_morphism, quot_neg],
-      erw is_ring_hom.map_neg ⇑m,
-      rw [x_ih],
-      refl, },
-    { simp only [desc_morphism, quot_add],
-      erw is_ring_hom.map_add ⇑m,
-      rw [x_ih_a, x_ih_a_1],
-      refl, },
-    { simp only [desc_morphism, quot_mul],
-      erw is_ring_hom.map_mul ⇑m,
-      rw [x_ih_a, x_ih_a_1],
-      refl, },
+    { simp, },
+    { simp, },
+    { simp *, },
+    { simp *, },
+    { simp *, },
     refl
   end }.
 
-instance has_colimits_CommRing : has_colimits.{v} CommRing.{v} :=
+instance has_colimits_CommRing : has_colimits CommRing :=
 { has_colimits_of_shape := λ J 𝒥,
   { has_colimit := λ F, by exactI
     { cocone := colimit_cocone F,

@@ -9,7 +9,7 @@ Generation function for iff rules for inductives, like for `list.chain`:
       chain R a l ↔ l = [] ∨ ∃{b : α} {l' : list α}, R a b ∧ chain R b l ∧ l = b :: l'
 
 -/
-import meta.coinductive_predicates
+import tactic.core
 
 namespace tactic
 
@@ -110,13 +110,13 @@ match s.length with
   focus ((cs.zip (r.zip s)).map $ λ⟨constr_name, h, bs, e⟩, do
     let n := (bs.filter_map id).length,
     match e with
-    | sum.inl e := elim_gen_prod (n - 1) h [] >> skip
+    | sum.inl e := elim_gen_prod (n - 1) h [] [] >> skip
     | sum.inr 0 := do
-      (hs, h) ← elim_gen_prod n h [],
+      (hs, h, _) ← elim_gen_prod n h [] [],
       clear h
     | sum.inr (e + 1) := do
-      (hs, h) ← elim_gen_prod n h [],
-      (es, eq) ← elim_gen_prod e h [],
+      (hs, h, _) ← elim_gen_prod n h [] [],
+      (es, eq, _) ← elim_gen_prod e h [] [],
       let es := es ++ [eq],
       /- `es.mmap' subst`: fails when we have dependent equalities (heq). `subst will change the
         dependent hypotheses, so that the uniq local names in `es` are wrong afterwards. Instead
@@ -135,20 +135,22 @@ match s.length with
   done
 end
 
-/-- `mk_iff_of_inductive_prop i r` makes a iff rule for the inductively defined proposition `i`.
-  The new rule `r` has the shape `∀ps is, i as ↔ ⋁_j, ∃cs, is = cs`, where `ps` are the type
-  parameters, `is` are the indices, `j` ranges over all possible constructors, the `cs` are the
-  parameters for each constructors, the equalities `is = cs` are the instantiations for each
-  constructor for each of the indices to the inductive type `i`.
+/--
+`mk_iff_of_inductive_prop i r` makes an iff rule for the inductively defined proposition `i`.
+The new rule `r` has the shape `∀ps is, i as ↔ ⋁_j, ∃cs, is = cs`, where `ps` are the type
+parameters, `is` are the indices, `j` ranges over all possible constructors, the `cs` are the
+parameters for each constructors, the equalities `is = cs` are the instantiations for each
+constructor for each of the indices to the inductive type `i`.
 
-  In each case, we remove constructor parameters (i.e. `cs`) when the corresponding equality would
-  be just `c = i` for some index `i`.
+In each case, we remove constructor parameters (i.e. `cs`) when the corresponding equality would
+be just `c = i` for some index `i`.
 
-  For example: `mk_iff_of_inductive_prop` on `list.chain` produces:
+For example: `mk_iff_of_inductive_prop` on `list.chain` produces:
 
-    ∀{α : Type*} (R : α → α → Prop) (a : α) (l : list α),
-      chain R a l ↔ l = [] ∨ ∃{b : α} {l' : list α}, R a b ∧ chain R b l ∧ l = b :: l'
-
+```lean
+∀ {α : Type*} (R : α → α → Prop) (a : α) (l : list α),
+  chain R a l ↔ l = [] ∨ ∃{b : α} {l' : list α}, R a b ∧ chain R b l ∧ l = b :: l'
+```
 -/
 meta def mk_iff_of_inductive_prop (i : name) (r : name) : tactic unit := do
   e ← get_env,
@@ -172,7 +174,38 @@ meta def mk_iff_of_inductive_prop (i : name) (r : name) : tactic unit := do
   add_theorem_by r univ_names ((mk_iff lhs (mk_or_lst rhss)).pis g) (do
     gs ← intro_lst (g.map local_pp_name),
     split,
-    focus [to_cases shape, intro1 >>= to_inductive constrs (gs.take params) shape]),
+    focus' [to_cases shape, intro1 >>= to_inductive constrs (gs.take params) shape]),
   skip
 
 end tactic
+
+section
+setup_tactic_parser
+
+/--
+`mk_iff_of_inductive_prop i r` makes an iff rule for the inductively defined proposition `i`.
+The new rule `r` has the shape `∀ps is, i as ↔ ⋁_j, ∃cs, is = cs`, where `ps` are the type
+parameters, `is` are the indices, `j` ranges over all possible constructors, the `cs` are the
+parameters for each constructors, the equalities `is = cs` are the instantiations for each
+constructor for each of the indices to the inductive type `i`.
+
+In each case, we remove constructor parameters (i.e. `cs`) when the corresponding equality would
+be just `c = i` for some index `i`.
+
+For example: `mk_iff_of_inductive_prop` on `list.chain` produces:
+
+```lean
+∀ {α : Type*} (R : α → α → Prop) (a : α) (l : list α),
+  chain R a l ↔ l = [] ∨ ∃{b : α} {l' : list α}, R a b ∧ chain R b l ∧ l = b :: l'
+```
+-/
+@[user_command] meta def mk_iff_of_inductive_prop_cmd (_ : parse (tk "mk_iff_of_inductive_prop")) :
+  parser unit :=
+do i ← ident, r ← ident, tactic.mk_iff_of_inductive_prop i r
+
+add_tactic_doc
+{ name        := "mk_iff_of_inductive_prop",
+  category    := doc_category.cmd,
+  decl_names  := [``mk_iff_of_inductive_prop_cmd],
+  tags        := ["logic", "environment"] }
+end

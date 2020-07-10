@@ -41,28 +41,28 @@ begin
     rw ← this, exact mul_nonneg h₂ (int.coe_zero_le _) },
 end
 
-protected def nonneg_add {a b} : rat.nonneg a → rat.nonneg b → rat.nonneg (a + b) :=
+protected lemma nonneg_add {a b} : rat.nonneg a → rat.nonneg b → rat.nonneg (a + b) :=
 num_denom_cases_on' a $ λ n₁ d₁ h₁,
 num_denom_cases_on' b $ λ n₂ d₂ h₂,
 begin
   have d₁0 : 0 < (d₁:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₁),
   have d₂0 : 0 < (d₂:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₂),
-  simp [d₁0, d₂0, h₁, h₂, mul_pos' d₁0 d₂0],
+  simp [d₁0, d₂0, h₁, h₂, mul_pos d₁0 d₂0],
   intros n₁0 n₂0,
   apply add_nonneg; apply mul_nonneg; {assumption <|> apply int.coe_zero_le},
 end
 
-protected def nonneg_mul {a b} : rat.nonneg a → rat.nonneg b → rat.nonneg (a * b) :=
+protected lemma nonneg_mul {a b} : rat.nonneg a → rat.nonneg b → rat.nonneg (a * b) :=
 num_denom_cases_on' a $ λ n₁ d₁ h₁,
 num_denom_cases_on' b $ λ n₂ d₂ h₂,
 begin
   have d₁0 : 0 < (d₁:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₁),
   have d₂0 : 0 < (d₂:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₂),
-  simp [d₁0, d₂0, h₁, h₂, mul_pos' d₁0 d₂0],
+  simp [d₁0, d₂0, h₁, h₂, mul_pos d₁0 d₂0],
   exact mul_nonneg
 end
 
-protected def nonneg_antisymm {a} : rat.nonneg a → rat.nonneg (-a) → a = 0 :=
+protected lemma nonneg_antisymm {a} : rat.nonneg a → rat.nonneg (-a) → a = 0 :=
 num_denom_cases_on' a $ λ n d h,
 begin
   have d0 : 0 < (d:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h),
@@ -70,7 +70,7 @@ begin
   exact λ h₁ h₂, le_antisymm h₂ h₁
 end
 
-protected def nonneg_total : rat.nonneg a ∨ rat.nonneg (-a) :=
+protected lemma nonneg_total : rat.nonneg a ∨ rat.nonneg (-a) :=
 by cases a with n; exact
 or.imp_right neg_nonneg_of_nonpos (le_total 0 n)
 
@@ -86,9 +86,11 @@ instance decidable_le : decidable_rel ((≤) : ℚ → ℚ → Prop)
 
 protected theorem le_def {a b c d : ℤ} (b0 : 0 < b) (d0 : 0 < d) :
   a /. b ≤ c /. d ↔ a * d ≤ c * b :=
-show rat.nonneg _ ↔ _,
-by simpa [ne_of_gt b0, ne_of_gt d0, mul_pos' b0 d0, mul_comm]
-   using @sub_nonneg _ _ (b * c) (a * d)
+begin
+  show rat.nonneg _ ↔ _,
+  rw ← sub_nonneg,
+  simp [sub_eq_add_neg, ne_of_gt b0, ne_of_gt d0, mul_pos d0 b0]
+end
 
 protected theorem le_refl : a ≤ a :=
 show rat.nonneg (a - a), by rw sub_self; exact le_refl (0 : ℤ)
@@ -102,7 +104,7 @@ by have := eq_neg_of_add_eq_zero (rat.nonneg_antisymm hba $ by simpa);
 
 protected theorem le_trans {a b c : ℚ} (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c :=
 have rat.nonneg (b - a + (c - b)), from rat.nonneg_add hab hbc,
-by simpa
+by simpa [sub_eq_add_neg, add_comm, add_left_comm]
 
 instance : decidable_linear_order ℚ :=
 { le              := rat.le,
@@ -114,29 +116,27 @@ instance : decidable_linear_order ℚ :=
   decidable_le    := assume a b, rat.decidable_nonneg (b - a) }
 
 /- Extra instances to short-circuit type class resolution -/
-instance : has_lt ℚ                  := by apply_instance
-instance : lattice.distrib_lattice ℚ := by apply_instance
-instance : lattice.lattice ℚ         := by apply_instance
-instance : lattice.semilattice_inf ℚ := by apply_instance
-instance : lattice.semilattice_sup ℚ := by apply_instance
-instance : lattice.has_inf ℚ         := by apply_instance
-instance : lattice.has_sup ℚ         := by apply_instance
-instance : linear_order ℚ            := by apply_instance
-instance : partial_order ℚ           := by apply_instance
-instance : preorder ℚ                := by apply_instance
+instance : has_lt ℚ          := by apply_instance
+instance : distrib_lattice ℚ := by apply_instance
+instance : lattice ℚ         := by apply_instance
+instance : semilattice_inf ℚ := by apply_instance
+instance : semilattice_sup ℚ := by apply_instance
+instance : has_inf ℚ         := by apply_instance
+instance : has_sup ℚ         := by apply_instance
+instance : linear_order ℚ    := by apply_instance
+instance : partial_order ℚ   := by apply_instance
+instance : preorder ℚ        := by apply_instance
 
-protected lemma le_def' {p q : ℚ} (p_pos : 0 < p) (q_pos : 0 < q) :
-  p ≤ q ↔ p.num * q.denom ≤ q.num * p.denom :=
+protected lemma le_def' {p q : ℚ} : p ≤ q ↔ p.num * q.denom ≤ q.num * p.denom :=
 begin
   rw [←(@num_denom q), ←(@num_denom p)],
   conv_rhs { simp only [num_denom] },
   exact rat.le_def (by exact_mod_cast p.pos) (by exact_mod_cast q.pos)
 end
 
-protected lemma lt_def {p q : ℚ} (p_pos : 0 < p) (q_pos : 0 < q) :
-  p < q ↔ p.num * q.denom < q.num * p.denom :=
+protected lemma lt_def {p q : ℚ} : p < q ↔ p.num * q.denom < q.num * p.denom :=
 begin
-  rw [lt_iff_le_and_ne, (rat.le_def' p_pos q_pos)],
+  rw [lt_iff_le_and_ne, rat.le_def'],
   suffices : p ≠ q ↔ p.num * q.denom ≠ q.num * p.denom, by {
     split; intro h,
     { exact lt_iff_le_and_ne.elim_right ⟨h.left, (this.elim_left h.right)⟩ },
@@ -159,13 +159,12 @@ by rw ← nonneg_iff_zero_le at ha hb ⊢; exact rat.nonneg_mul ha hb
 instance : discrete_linear_ordered_field ℚ :=
 { zero_lt_one     := dec_trivial,
   add_le_add_left := assume a b ab c, rat.add_le_add_left.2 ab,
-  add_lt_add_left := assume a b ab c, lt_of_not_ge $ λ ba,
-    not_le_of_lt ab $ rat.add_le_add_left.1 ba,
-  mul_nonneg      := @rat.mul_nonneg,
   mul_pos         := assume a b ha hb, lt_of_le_of_ne
     (rat.mul_nonneg (le_of_lt ha) (le_of_lt hb))
     (mul_ne_zero (ne_of_lt ha).symm (ne_of_lt hb).symm).symm,
-  ..rat.discrete_field, ..rat.decidable_linear_order }
+  ..rat.field,
+  ..rat.decidable_linear_order,
+  ..rat.semiring }
 
 /- Extra instances to short-circuit type class resolution -/
 instance : linear_ordered_field ℚ                := by apply_instance
@@ -176,10 +175,10 @@ instance : ordered_ring ℚ                        := by apply_instance
 instance : decidable_linear_ordered_semiring ℚ   := by apply_instance
 instance : linear_ordered_semiring ℚ             := by apply_instance
 instance : ordered_semiring ℚ                    := by apply_instance
-instance : decidable_linear_ordered_comm_group ℚ := by apply_instance
-instance : ordered_comm_group ℚ                  := by apply_instance
-instance : ordered_cancel_comm_monoid ℚ          := by apply_instance
-instance : ordered_comm_monoid ℚ                 := by apply_instance
+instance : decidable_linear_ordered_add_comm_group ℚ := by apply_instance
+instance : ordered_add_comm_group ℚ              := by apply_instance
+instance : ordered_cancel_add_comm_monoid ℚ      := by apply_instance
+instance : ordered_add_comm_monoid ℚ             := by apply_instance
 
 attribute [irreducible] rat.le
 
@@ -200,7 +199,7 @@ end
 lemma lt_one_iff_num_lt_denom {q : ℚ} : q < 1 ↔ q.num < q.denom :=
 begin
   cases decidable.em (0 < q) with q_pos q_nonpos,
-  { simp [(rat.lt_def q_pos zero_lt_one)] },
+  { simp [rat.lt_def] },
   { replace q_nonpos : q ≤ 0, from not_lt.elim_left q_nonpos,
     have : q.num < q.denom, by
     { have : ¬0 < q.num ↔ ¬0 < q, from not_iff_not.elim_right num_pos_iff_pos,
@@ -225,7 +224,7 @@ end
 
 section sqrt
 
-def sqrt (q : ℚ) : ℚ := rat.mk (int.sqrt q.num) (nat.sqrt q.denom)
+@[pp_nodot] def sqrt (q : ℚ) : ℚ := rat.mk (int.sqrt q.num) (nat.sqrt q.denom)
 
 theorem sqrt_eq (q : ℚ) : rat.sqrt (q*q) = abs q :=
 by rw [sqrt, mul_self_num, mul_self_denom, int.sqrt_eq, nat.sqrt_eq, abs_def]

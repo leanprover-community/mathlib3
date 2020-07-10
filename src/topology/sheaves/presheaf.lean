@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Mario Carneiro, Reid Barton
 -/
 import topology.category.Top.opens
-import category_theory.whiskering
 
 universes v u
 
@@ -49,7 +48,7 @@ by { dsimp [id], simp, }
 
 local attribute [tidy] tactic.op_induction'
 
-@[simp] lemma id_hom_app (U) :
+@[simp, priority 990] lemma id_hom_app (U) :
   (id ℱ).hom.app U = ℱ.map (eq_to_hom (opens.op_map_id_obj U)) := by tidy
 
 @[simp] lemma id_inv_app' (U) (p) : (id ℱ).inv.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=

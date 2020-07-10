@@ -3,15 +3,14 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-
 import category_theory.concrete_category
 
 /-!
 # Category of categories
 
-This file contains definition of category `Cat` of all categories.  In
-this category objects are categories and morphisms are functors
-between these categories.
+This file contains the definition of the category `Cat` of all categories.
+In this category objects are categories and
+morphisms are functors between these categories.
 
 ## Implementation notes
 
@@ -28,9 +27,12 @@ def Cat := bundled category.{v u}
 
 namespace Cat
 
+instance : inhabited Cat := ⟨⟨Type u, category_theory.types⟩⟩
+
 instance str (C : Cat.{v u}) : category.{v u} C.α := C.str
 
-def of (C : Type u) [category.{v} C] : Cat.{v u} := mk_ob C
+/-- Construct a bundled `Cat` from the underlying type and the typeclass. -/
+def of (C : Type u) [category.{v} C] : Cat.{v u} := bundled.of C
 
 /-- Category structure on `Cat` -/
 instance category : large_category.{max v u} Cat.{v u} :=

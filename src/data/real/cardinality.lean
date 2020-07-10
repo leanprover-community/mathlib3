@@ -5,8 +5,10 @@ Authors: Floris van Doorn
 
 The cardinality of the reals.
 -/
-
-import data.real.basic set_theory.ordinal analysis.specific_limits data.rat.denumerable
+import set_theory.ordinal
+import analysis.specific_limits
+import data.rat.denumerable
+import data.set.intervals.image_preimage
 
 open nat set
 noncomputable theory
@@ -31,16 +33,16 @@ by simp [cantor_function_aux, h]
 
 lemma cantor_function_aux_succ (f : ℕ → bool) :
   (λ n, cantor_function_aux c f (n + 1)) = λ n, c * cantor_function_aux c (λ n, f (n + 1)) n :=
-by { ext n, cases h : f (n + 1); simp [h, _root_.pow_succ] }
+by { ext n, cases h : f (n + 1); simp [h, pow_succ] }
 
 lemma summable_cantor_function (f : ℕ → bool) (h1 : 0 ≤ c) (h2 : c < 1) :
   summable (cantor_function_aux c f) :=
 begin
-  apply summable_of_summable_of_sub _ _ (summable_geometric h1 h2),
+  apply (summable_geometric_of_lt_1 h1 h2).summable_of_eq_zero_or_self,
   intro n, cases h : f n; simp [h]
 end
 
-def cantor_function (c : ℝ) (f : ℕ → bool) : ℝ := ∑ n, cantor_function_aux c f n
+def cantor_function (c : ℝ) (f : ℕ → bool) : ℝ := ∑' n, cantor_function_aux c f n
 
 lemma cantor_function_le (h1 : 0 ≤ c) (h2 : c < 1) (h3 : ∀ n, f n → g n) :
   cantor_function c f ≤ cantor_function c g :=
@@ -71,14 +73,13 @@ begin
     { intros n hn, cases n, rw [gn], apply rfl, contradiction },
     apply lt_of_le_of_lt (cantor_function_le (le_of_lt h1) h3 hf_max),
     apply lt_of_lt_of_le _ (cantor_function_le (le_of_lt h1) h3 hg_min),
-    have : c * (1 / (1 - c)) < 1,
-    { have : 1 / (1 - c) ≤ 2,
-      { rw [div_le_iff, ←div_le_iff', le_sub_iff_add_le, ←le_sub_iff_add_le'],
-        convert le_of_lt h2, norm_num, norm_num, rw [sub_pos], exact h3 },
-      convert mul_lt_mul h2 this _ _, norm_num,
-      apply div_pos, norm_num, rw [sub_pos], exact h3, norm_num },
+    have : c / (1 - c) < 1,
+    { rw [div_lt_one_iff_lt, lt_sub_iff_add_lt],
+      { convert add_lt_add h2 h2, norm_num },
+      rwa sub_pos },
     convert this,
-    { rw [cantor_function_succ _ (le_of_lt h1) h3, ←tsum_geometric (le_of_lt h1) h3],
+    { rw [cantor_function_succ _ (le_of_lt h1) h3, div_eq_mul_inv,
+          ←tsum_geometric_of_lt_1 (le_of_lt h1) h3],
       apply zero_add },
     { apply tsum_eq_single 0, intros n hn, cases n, contradiction, refl, apply_instance }},
   rw [cantor_function_succ f (le_of_lt h1) h3, cantor_function_succ g (le_of_lt h1) h3],
@@ -86,7 +87,7 @@ begin
   apply add_lt_add_left, rw mul_lt_mul_left h1, exact ih (λ k hk, hn _ $ succ_lt_succ hk) fn gn
 end
 
-lemma injective_cantor_function (h1 : 0 < c) (h2 : c < 1 / 2) :
+lemma cantor_function_injective (h1 : 0 < c) (h2 : c < 1 / 2) :
   function.injective (cantor_function c) :=
 begin
   intros f g hfg, classical, by_contra h, revert hfg,
@@ -102,16 +103,88 @@ begin
     apply eq_ff_of_not_eq_tt, rw [←fn], apply ne.symm, exact nat.find_spec this }
 end
 
+/-- The cardinality of the reals, as a type. -/
 lemma mk_real : mk ℝ = 2 ^ omega.{0} :=
 begin
   apply le_antisymm,
   { dsimp [real], apply le_trans mk_quotient_le, apply le_trans (mk_subtype_le _),
     rw [←power_def, mk_nat, mk_rat, power_self_eq (le_refl _)] },
-  { convert mk_le_of_injective (injective_cantor_function _ _),
+  { convert mk_le_of_injective (cantor_function_injective _ _),
     rw [←power_def, mk_bool, mk_nat], exact 1 / 3, norm_num, norm_num }
 end
 
+/-- The cardinality of the reals, as a set. -/
+lemma mk_univ_real : mk (set.univ : set ℝ) = 2 ^ omega.{0} :=
+by rw [mk_univ, mk_real]
+
+/-- The reals are not countable. -/
 lemma not_countable_real : ¬ countable (set.univ : set ℝ) :=
-by { rw [countable_iff, not_le, mk_univ, mk_real], apply cantor }
+by { rw [countable_iff, not_le, mk_univ_real], apply cantor }
+
+/-- The cardinality of the interval (a, ∞). -/
+lemma mk_Ioi_real (a : ℝ) : mk (Ioi a) = 2 ^ omega.{0} :=
+begin
+  refine le_antisymm (mk_real ▸ mk_set_le _) _,
+  by_contradiction h,
+  rw not_le at h,
+  refine ne_of_lt _ mk_univ_real,
+  have hu : Iio a ∪ {a} ∪ Ioi a = set.univ,
+  { convert Iic_union_Ioi,
+    exact Iio_union_right },
+  rw ←hu,
+  refine lt_of_le_of_lt (mk_union_le _ _) _,
+  refine lt_of_le_of_lt (add_le_add_right _ (mk_union_le _ _)) _,
+  have h2 : (λ x, a + a - x) '' Ioi a = Iio a,
+  { convert image_const_sub_Ioi _ _,
+    simp },
+  rw ←h2,
+  refine add_lt_of_lt (le_of_lt (cantor _)) _ h,
+  refine add_lt_of_lt (le_of_lt (cantor _)) (lt_of_le_of_lt mk_image_le h) _,
+  rw mk_singleton,
+  exact lt_trans one_lt_omega (cantor _)
+end
+
+/-- The cardinality of the interval [a, ∞). -/
+lemma mk_Ici_real (a : ℝ) : mk (Ici a) = 2 ^ omega.{0} :=
+le_antisymm (mk_real ▸ mk_set_le _) (mk_Ioi_real a ▸ mk_le_mk_of_subset Ioi_subset_Ici_self)
+
+/-- The cardinality of the interval (-∞, a). -/
+lemma mk_Iio_real (a : ℝ) : mk (Iio a) = 2 ^ omega.{0} :=
+begin
+  refine le_antisymm (mk_real ▸ mk_set_le _) _,
+  have h2 : (λ x, a + a - x) '' Iio a = Ioi a,
+  { convert image_const_sub_Iio _ _,
+    simp },
+  exact mk_Ioi_real a ▸ h2 ▸ mk_image_le
+end
+
+/-- The cardinality of the interval (-∞, a]. -/
+lemma mk_Iic_real (a : ℝ) : mk (Iic a) = 2 ^ omega.{0} :=
+le_antisymm (mk_real ▸ mk_set_le _) (mk_Iio_real a ▸ mk_le_mk_of_subset Iio_subset_Iic_self)
+
+/-- The cardinality of the interval (a, b). -/
+lemma mk_Ioo_real {a b : ℝ} (h : a < b) : mk (Ioo a b) = 2 ^ omega.{0} :=
+begin
+  refine le_antisymm (mk_real ▸ mk_set_le _) _,
+  have h1 : mk ((λ x, x - a) '' Ioo a b) ≤ mk (Ioo a b) := mk_image_le,
+  refine le_trans _ h1,
+  rw [image_sub_const_Ioo, sub_self],
+  replace h := sub_pos_of_lt h,
+  have h2 : mk (has_inv.inv '' Ioo 0 (b - a)) ≤ mk (Ioo 0 (b - a)) := mk_image_le,
+  refine le_trans _ h2,
+  rw [image_inv_Ioo_0_left h, mk_Ioi_real]
+end
+
+/-- The cardinality of the interval [a, b). -/
+lemma mk_Ico_real {a b : ℝ} (h : a < b) : mk (Ico a b) = 2 ^ omega.{0} :=
+le_antisymm (mk_real ▸ mk_set_le _) (mk_Ioo_real h ▸ mk_le_mk_of_subset Ioo_subset_Ico_self)
+
+/-- The cardinality of the interval [a, b]. -/
+lemma mk_Icc_real {a b : ℝ} (h : a < b) : mk (Icc a b) = 2 ^ omega.{0} :=
+le_antisymm (mk_real ▸ mk_set_le _) (mk_Ioo_real h ▸ mk_le_mk_of_subset Ioo_subset_Icc_self)
+
+/-- The cardinality of the interval (a, b]. -/
+lemma mk_Ioc_real {a b : ℝ} (h : a < b) : mk (Ioc a b) = 2 ^ omega.{0} :=
+le_antisymm (mk_real ▸ mk_set_le _) (mk_Ioo_real h ▸ mk_le_mk_of_subset Ioo_subset_Ioc_self)
 
 end cardinal

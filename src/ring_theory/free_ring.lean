@@ -3,8 +3,7 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Johan Commelin
 -/
-
-import group_theory.free_abelian_group data.equiv.algebra data.polynomial
+import data.polynomial
 
 universes u v
 
@@ -16,6 +15,8 @@ namespace free_ring
 variables (α : Type u)
 
 instance : ring (free_ring α) := free_abelian_group.ring _
+
+instance : inhabited (free_ring α) := ⟨0⟩
 
 variables {α}
 def of (x : α) : free_ring α :=
@@ -39,7 +40,7 @@ section lift
 variables {β : Type v} [ring β] (f : α → β)
 
 def lift : free_ring α → β :=
-free_abelian_group.lift $ λ L, (L.map f).prod
+free_abelian_group.lift $ λ L, (list.map f L).prod
 
 @[simp] lemma lift_zero : lift f 0 = 0 := rfl
 
@@ -61,7 +62,8 @@ free_abelian_group.lift.sub _ _ _
 @[simp] lemma lift_mul (x y) : lift f (x * y) = lift f x * lift f y :=
 begin
   refine free_abelian_group.induction_on y (mul_zero _).symm _ _ _,
-  { intros L2, conv { to_lhs, dsimp only [(*), mul_zero_class.mul, semiring.mul, ring.mul, semigroup.mul] },
+  { intros L2,
+    conv_lhs { dsimp only [free_abelian_group.mul_def] },
     rw [free_abelian_group.lift.of, lift, free_abelian_group.lift.of],
     refine free_abelian_group.induction_on x (zero_mul _).symm _ _ _,
     { intros L1, iterate 3 { rw free_abelian_group.lift.of },

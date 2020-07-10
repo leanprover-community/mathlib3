@@ -3,33 +3,30 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 
-Multiplication of submodules of an algebra.
+Multiplication and division of submodules of an algebra.
 -/
-
-import ring_theory.algebra algebra.pointwise
-import tactic.chain
-import tactic.monotonicity.basic
+import ring_theory.algebra
+import ring_theory.ideals
+import algebra.pointwise
 
 universes u v
 
-open lattice algebra
-
-local attribute [instance] set.pointwise_mul_semiring
+open algebra set
 
 namespace submodule
 
-variables {R : Type u} [comm_ring R]
+variables {R : Type u} [comm_semiring R]
 
 section ring
 
-variables {A : Type v} [ring A] [algebra R A]
+variables {A : Type v} [semiring A] [algebra R A]
 variables (S T : set A) {M N P Q : submodule R A} {m n : A}
 
 instance : has_one (submodule R A) :=
-⟨submodule.map (of_id R A).to_linear_map (⊤ : ideal R)⟩
+⟨submodule.map (of_id R A).to_linear_map (⊤ : submodule R R)⟩
 
 theorem one_eq_map_top :
-  (1 : submodule R A) = submodule.map (of_id R A).to_linear_map (⊤ : ideal R) := rfl
+  (1 : submodule R A) = submodule.map (of_id R A).to_linear_map (⊤ : submodule R R) := rfl
 
 theorem one_eq_span : (1 : submodule R A) = span R {1} :=
 begin
@@ -44,10 +41,8 @@ end
 theorem one_le : (1 : submodule R A) ≤ P ↔ (1 : A) ∈ P :=
 by simpa only [one_eq_span, span_le, set.singleton_subset_iff]
 
-set_option class.instance_max_depth 50
 instance : has_mul (submodule R A) :=
 ⟨λ M N, ⨆ s : M, N.map $ algebra.lmul R A s.1⟩
-set_option class.instance_max_depth 32
 
 theorem mul_mem_mul (hm : m ∈ M) (hn : n ∈ N) : m * n ∈ M * N :=
 (le_supr _ ⟨m, hm⟩ : _ ≤ M * N) ⟨n, hn, rfl⟩
@@ -70,17 +65,16 @@ begin
   { rw mul_le, intros a ha b hb,
     apply span_induction ha,
     work_on_goal 0 { intros, apply span_induction hb,
-      work_on_goal 0 { intros, exact subset_span ⟨_, ‹_›, _, ‹_›, rfl⟩ } },
+      work_on_goal 0 { intros, exact subset_span ⟨_, _, ‹_›, ‹_›, rfl⟩ } },
     all_goals { intros, simp only [mul_zero, zero_mul, zero_mem,
         left_distrib, right_distrib, mul_smul_comm, smul_mul_assoc],
       try {apply add_mem _ _ _}, try {apply smul_mem _ _ _} }, assumption' },
-  { rw span_le, rintros _ ⟨a, ha, b, hb, rfl⟩,
+  { rw span_le, rintros _ ⟨a, b, ha, hb, rfl⟩,
     exact mul_mem_mul (subset_span ha) (subset_span hb) }
 end
 variables {R}
 
 variables (M N P Q)
-set_option class.instance_max_depth 50
 protected theorem mul_assoc : (M * N) * P = M * (N * P) :=
 le_antisymm (mul_le.2 $ λ mn hmn p hp, suffices M * N ≤ (M * (N * P)).comap ((algebra.lmul R A).flip p), from this hmn,
   mul_le.2 $ λ m hm n hn, show m * n * p ∈ M * (N * P), from
@@ -88,7 +82,6 @@ le_antisymm (mul_le.2 $ λ mn hmn p hp, suffices M * N ≤ (M * (N * P)).comap (
 (mul_le.2 $ λ m hm np hnp, suffices N * P ≤ (M * N * P).comap (algebra.lmul R A m), from this hnp,
   mul_le.2 $ λ n hn p hp, show m * (n * p) ∈ M * N * P, from
   mul_assoc m n p ▸ mul_mem_mul (mul_mem_mul hm hn) hp)
-set_option class.instance_max_depth 32
 
 @[simp] theorem mul_bot : M * ⊥ = ⊥ :=
 eq_bot_iff.2 $ mul_le.2 $ λ m hm n hn, by rw [submodule.mem_bot] at hn ⊢; rw [hn, mul_zero]
@@ -124,12 +117,29 @@ le_antisymm (mul_le.2 $ λ mn hmn p hp, let ⟨m, hm, n, hn, hmn⟩ := mem_sup.1
   mem_sup.2 ⟨_, mul_mem_mul hm hp, _, mul_mem_mul hn hp, hmn ▸ (add_mul m n p).symm⟩)
 (sup_le (mul_le_mul_left le_sup_left) (mul_le_mul_left le_sup_right))
 
-lemma mul_subset_mul :
-  (↑M : set A) * (↑N : set A) ⊆ (↑(M * N) : set A) :=
-begin
-  rintros _ ⟨i, hi, j, hj, rfl⟩,
-  exact mul_mem_mul hi hj
-end
+lemma mul_subset_mul : (↑M : set A) * (↑N : set A) ⊆ (↑(M * N) : set A) :=
+by { rintros _ ⟨i, j, hi, hj, rfl⟩, exact mul_mem_mul hi hj }
+
+lemma map_mul {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') :
+  map f.to_linear_map (M * N) = map f.to_linear_map M * map f.to_linear_map N :=
+calc map f.to_linear_map (M * N)
+    = ⨆ (i : M), (N.map (lmul R A i)).map f.to_linear_map : map_supr _ _
+... = map f.to_linear_map M * map f.to_linear_map N  :
+  begin
+    apply congr_arg Sup,
+    ext S,
+    split; rintros ⟨y, hy⟩,
+    { use [f y, mem_map.mpr ⟨y.1, y.2, rfl⟩],
+      refine trans _ hy,
+      ext,
+      simp },
+    { obtain ⟨y', hy', fy_eq⟩ := mem_map.mp y.2,
+      use [y', hy'],
+      refine trans _ hy,
+      rw f.to_linear_map_apply at fy_eq,
+      ext,
+      simp [fy_eq] }
+  end
 
 variables {M N P}
 
@@ -141,34 +151,35 @@ instance : semiring (submodule R A) :=
   mul_zero      := mul_bot,
   left_distrib  := mul_sup,
   right_distrib := sup_mul,
-  ..submodule.add_comm_monoid,
+  ..submodule.add_comm_monoid_submodule,
   ..submodule.has_one,
   ..submodule.has_mul }
 
 variables (M)
 
-lemma pow_subset_pow {n : ℕ} :
-  (↑M : set A)^n ⊆ ↑(M^n : submodule R A) :=
+lemma pow_subset_pow {n : ℕ} : (↑M : set A)^n ⊆ ↑(M^n : submodule R A) :=
 begin
   induction n with n ih,
   { erw [pow_zero, pow_zero, set.singleton_subset_iff], rw [mem_coe, ← one_le], exact le_refl _ },
   { rw [pow_succ, pow_succ],
-    refine set.subset.trans (set.pointwise_mul_subset_mul (set.subset.refl _) ih) _,
+    refine set.subset.trans (set.mul_subset_mul (subset.refl _) ih) _,
     apply mul_subset_mul }
 end
 
-instance span.is_semiring_hom : is_semiring_hom (submodule.span R : set A → submodule R A) :=
-{ map_zero := span_empty,
-  map_one := show _ = map _ ⊤,
-    by erw [← ideal.span_singleton_one, ← span_image, set.image_singleton, alg_hom.map_one]; refl,
-  map_add := span_union,
-  map_mul := λ s t, by erw [span_mul_span, set.pointwise_mul_eq_image] }
+/-- `span` is a semiring homomorphism (recall multiplication is pointwise multiplication of subsets on either side). -/
+def span.ring_hom : set_semiring A →+* submodule R A :=
+{ to_fun := submodule.span R,
+  map_zero' := span_empty,
+  map_one' := le_antisymm (span_le.2 $ singleton_subset_iff.2 ⟨1, ⟨⟩, (algebra_map R A).map_one⟩)
+    (map_le_iff_le_comap.2 $ λ r _, mem_span_singleton.2 ⟨r, (algebra_map_eq_smul_one r).symm⟩),
+  map_add' := span_union,
+  map_mul' := λ s t, by erw [span_mul_span, ← image_mul_prod] }
 
 end ring
 
 section comm_ring
 
-variables {A : Type v} [comm_ring A] [algebra R A]
+variables {A : Type v} [comm_semiring A] [algebra R A]
 variables {M N : submodule R A} {m n : A}
 
 theorem mul_mem_mul_rev (hm : m ∈ M) (hn : n ∈ N) : n * m ∈ M * N :=
@@ -185,42 +196,67 @@ instance : comm_semiring (submodule R A) :=
 
 variables (R A)
 
-instance semimodule_set : semimodule (set A) (submodule R A) :=
+instance semimodule_set : semimodule (set_semiring A) (submodule R A) :=
 { smul := λ s P, span R s * P,
   smul_add := λ _ _ _, mul_add _ _ _,
   add_smul := λ s t P, show span R (s ⊔ t) * P = _, by { erw [span_union, right_distrib] },
   mul_smul := λ s t P, show _ = _ * (_ * _),
-    by { rw [← mul_assoc, span_mul_span, set.pointwise_mul_eq_image] },
+    by { rw [← mul_assoc, span_mul_span, ← image_mul_prod] },
   one_smul := λ P, show span R {(1 : A)} * P = _,
     by { conv_lhs {erw ← span_eq P}, erw [span_mul_span, one_mul, span_eq] },
   zero_smul := λ P, show span R ∅ * P = ⊥, by erw [span_empty, bot_mul],
   smul_zero := λ _, mul_bot _ }
 
-set_option class.instance_max_depth 45
 
 variables {R A}
 
-lemma smul_def {s : set A} {P : submodule R A} :
-  s • P = span R s * P := rfl
+lemma smul_def {s : set_semiring A} {P : submodule R A} : s • P = span R s * P := rfl
 
-lemma smul_le_smul {s t : set A} {M N : submodule R A} (h₁ : s ≤ t) (h₂ : M ≤ N) :
-  s • M ≤ t • N :=
+lemma smul_le_smul {s t : set_semiring A} {M N : submodule R A} (h₁ : s.down ≤ t.down)
+  (h₂ : M ≤ N) : s • M ≤ t • N :=
 mul_le_mul (span_mono h₁) h₂
 
 lemma smul_singleton (a : A) (M : submodule R A) :
-  ({a} : set A) • M = M.map (lmul_left _ _ a) :=
+  ({a} : set A).up • M = M.map (lmul_left _ _ a) :=
 begin
   conv_lhs {rw ← span_eq M},
   change span _ _ * span _ _ = _,
   rw [span_mul_span],
   apply le_antisymm,
   { rw span_le,
-    rintros _ ⟨b, hb, m, hm, rfl⟩,
-    erw [mem_map, set.mem_singleton_iff.mp hb],
+    rintros _ ⟨b, m, hb, hm, rfl⟩,
+    rw [mem_coe, mem_map, set.mem_singleton_iff.mp hb],
     exact ⟨m, hm, rfl⟩ },
-  { rintros _ ⟨m, hm, rfl⟩,
-    exact subset_span ⟨a, set.mem_singleton a, m, hm, rfl⟩ }
+  { rintros _ ⟨m, hm, rfl⟩, exact subset_span ⟨a, m, set.mem_singleton a, hm, rfl⟩ }
 end
+
+section quotient
+
+/-- The elements of `I / J` are the `x` such that `x • J ⊆ I`.
+
+In fact, we define `x ∈ I / J` to be `∀ y ∈ J, x * y ∈ I` (see `mem_div_iff_forall_mul_mem`),
+which is equivalent to `x • J ⊆ I` (see `mem_div_iff_smul_subset`), but nicer to use in proofs.
+
+This is the general form of the ideal quotient, traditionally written $I : J$.
+-/
+instance : has_div (submodule R A) :=
+⟨ λ I J, {
+  carrier   := { x | ∀ y ∈ J, x * y ∈ I },
+  zero_mem' := λ y hy, by { rw zero_mul, apply submodule.zero_mem },
+  add_mem'  := λ a b ha hb y hy, by { rw add_mul, exact submodule.add_mem _ (ha _ hy) (hb _ hy) },
+  smul_mem' := λ r x hx y hy, by { rw algebra.smul_mul_assoc,
+    exact submodule.smul_mem _ _ (hx _ hy) } } ⟩
+
+lemma mem_div_iff_forall_mul_mem {x : A} {I J : submodule R A} :
+  x ∈ I / J ↔ ∀ y ∈ J, x * y ∈ I :=
+iff.refl _
+
+lemma mem_div_iff_smul_subset {x : A} {I J : submodule R A} : x ∈ I / J ↔ x • (J : set A) ⊆ I :=
+⟨ λ h y ⟨y', hy', xy'_eq_y⟩, by { rw ← xy'_eq_y, apply h, assumption },
+  λ h y hy, h (set.smul_mem_smul_set hy) ⟩
+
+lemma le_div_iff {I J K : submodule R A} : I ≤ J / K ↔ ∀ (x ∈ I) (z ∈ K), x * z ∈ J := iff.refl _
+end quotient
 
 end comm_ring
 

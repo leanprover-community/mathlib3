@@ -5,30 +5,39 @@ Authors: Patrick Massot, Johannes Hölzl
 
 Theory of topological rings.
 -/
+import topology.algebra.group
+import ring_theory.ideals
 
-import topology.algebra.group ring_theory.ideals
-
-open classical set lattice filter topological_space
+open classical set filter topological_space
 open_locale classical
 
 section topological_ring
 universes u v w
 variables (α : Type u) [topological_space α]
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A topological semiring is a semiring where addition and multiplication are continuous. -/
 class topological_semiring [semiring α]
   extends topological_add_monoid α, topological_monoid α : Prop
+end prio
 
 variables [ring α]
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A topological ring is a ring where the ring operations are continuous. -/
 class topological_ring extends topological_add_monoid α, topological_monoid α : Prop :=
 (continuous_neg : continuous (λa:α, -a))
+end prio
 
 variables [t : topological_ring α]
+@[priority 100] -- see Note [lower instance priority]
 instance topological_ring.to_topological_semiring : topological_semiring α := {..t}
 
+@[priority 100] -- see Note [lower instance priority]
 instance topological_ring.to_topological_add_group : topological_add_group α := {..t}
+
 end topological_ring
 
 section topological_comm_ring
@@ -36,11 +45,11 @@ variables {α : Type*} [topological_space α] [comm_ring α] [topological_ring �
 
 def ideal.closure (S : ideal α) : ideal α :=
 { carrier := closure S,
-  zero := subset_closure S.zero_mem,
-  add  := assume x y hx hy,
-    mem_closure2 continuous_add' hx hy $ assume a b, S.add_mem,
-  smul  := assume c x hx,
-    have continuous (λx:α, c * x) := continuous_mul continuous_const continuous_id,
+  zero_mem' := subset_closure S.zero_mem,
+  add_mem'  := assume x y hx hy,
+    mem_closure2 continuous_add hx hy $ assume a b, S.add_mem,
+  smul_mem'  := assume c x hx,
+    have continuous (λx:α, c * x) := continuous_const.mul continuous_id,
     mem_closure this hx $ assume a, S.mul_mem_left }
 
 @[simp] lemma ideal.coe_closure (S : ideal α) :
@@ -80,10 +89,9 @@ end
 lemma quotient_ring.quotient_map_coe_coe : quotient_map (λ p : α × α, (mk N p.1, mk N p.2)) :=
 begin
   apply is_open_map.to_quotient_map,
-  { exact is_open_map.prod (quotient_ring.is_open_map_coe N) (quotient_ring.is_open_map_coe N) },
-  { apply continuous.prod_mk,
-    { exact continuous_quot_mk.comp continuous_fst },
-    { exact continuous_quot_mk.comp continuous_snd } },
+  { exact (quotient_ring.is_open_map_coe N).prod (quotient_ring.is_open_map_coe N) },
+  { exact (continuous_quot_mk.comp continuous_fst).prod_mk
+          (continuous_quot_mk.comp continuous_snd) },
   { rintro ⟨⟨x⟩, ⟨y⟩⟩,
     exact ⟨(x, y), rfl⟩ }
 end
@@ -91,12 +99,12 @@ end
 instance topological_ring_quotient : topological_ring N.quotient :=
 { continuous_add :=
     have cont : continuous (mk N ∘ (λ (p : α × α), p.fst + p.snd)) :=
-      continuous_quot_mk.comp continuous_add',
+      continuous_quot_mk.comp continuous_add,
     (quotient_map.continuous_iff (quotient_ring.quotient_map_coe_coe N)).2 cont,
-  continuous_neg := continuous_quotient_lift _ (continuous_quot_mk.comp continuous_neg'),
+  continuous_neg := continuous_quotient_lift _ (continuous_quot_mk.comp continuous_neg),
   continuous_mul :=
     have cont : continuous (mk N ∘ (λ (p : α × α), p.fst * p.snd)) :=
-      continuous_quot_mk.comp continuous_mul',
+      continuous_quot_mk.comp continuous_mul,
     (quotient_map.continuous_iff (quotient_ring.quotient_map_coe_coe N)).2 cont }
 
 end topological_ring

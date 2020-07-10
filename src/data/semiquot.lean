@@ -10,7 +10,7 @@ element of `S`. This can be used to model nondeterministic functions,
 which return something in a range of values (represented by the
 predicate `S`) but are not completely determined.
 -/
-import data.set.lattice data.quot
+import data.set.lattice
 
 /-- A member of `semiquot α` is classically a nonempty `set α`,
   and in the VM is represented by an element of `α`; the relation
@@ -27,6 +27,7 @@ variables {α : Type*} {β : Type*}
 
 instance : has_mem α (semiquot α) := ⟨λ a q, a ∈ q.s⟩
 
+/-- Construct a `semiquot α` from `h : a ∈ s` where `s : set α`. -/
 def mk {a : α} {s : set α} (h : a ∈ s) : semiquot α :=
 ⟨s, trunc.mk ⟨a, h⟩⟩
 
@@ -35,7 +36,7 @@ theorem ext_s {q₁ q₂ : semiquot α} : q₁ = q₂ ↔ q₁.s = q₂.s :=
  λ h, by cases q₁; cases q₂; congr; exact h⟩
 
 theorem ext {q₁ q₂ : semiquot α} : q₁ = q₂ ↔ ∀ a, a ∈ q₁ ↔ a ∈ q₂ :=
-ext_s.trans (set.ext_iff _ _)
+ext_s.trans set.ext_iff
 
 theorem exists_mem (q : semiquot α) : ∃ a, a ∈ q :=
 let ⟨⟨a, h⟩, h₂⟩ := q.2.exists_rep in ⟨a, h⟩
@@ -43,18 +44,20 @@ let ⟨⟨a, h⟩, h₂⟩ := q.2.exists_rep in ⟨a, h⟩
 theorem eq_mk_of_mem {q : semiquot α} {a : α} (h : a ∈ q) :
   q = @mk _ a q.1 h := ext_s.2 rfl
 
-theorem ne_empty (q : semiquot α) : q.s ≠ ∅ :=
-let ⟨a, h⟩ := q.exists_mem in set.ne_empty_of_mem h
+theorem nonempty (q : semiquot α) : q.s.nonempty := q.exists_mem
 
+/-- `pure a` is `a` reinterpreted as an unspecified element of `{a}`. -/
 protected def pure (a : α) : semiquot α := mk (set.mem_singleton a)
 
 @[simp] theorem mem_pure' {a b : α} : a ∈ semiquot.pure b ↔ a = b :=
 set.mem_singleton_iff
 
+/-- Replace `s` in a `semiquot` with a superset. -/
 def blur' (q : semiquot α) {s : set α} (h : q.s ⊆ s) : semiquot α :=
 ⟨s, trunc.lift (λ a : q.s, trunc.mk ⟨a.1, h a.2⟩)
   (λ _ _, trunc.eq _ _) q.2⟩
 
+/-- Replace `s` in a `q : semiquot α` with a union `s ∪ q.s` -/
 def blur (s : set α) (q : semiquot α) : semiquot α :=
 blur' q (set.subset_union_right s q.s)
 
@@ -65,12 +68,16 @@ by unfold blur; congr; exact set.union_eq_self_of_subset_right h
 @[simp] theorem mem_blur' (q : semiquot α) {s : set α} (h : q.s ⊆ s)
   {a : α} : a ∈ blur' q h ↔ a ∈ s := iff.rfl
 
+/-- Convert a `trunc α` to a `semiquot α`. -/
 def of_trunc (q : trunc α) : semiquot α :=
 ⟨set.univ, q.map (λ a, ⟨a, trivial⟩)⟩
 
+/-- Convert a `semiquot α` to a `trunc α`. -/
 def to_trunc (q : semiquot α) : trunc α :=
 q.2.map subtype.val
 
+/-- If `f` is a constant on `q.s`, then `q.lift_on f` is the value of `f`
+at any point of `q`. -/
 def lift_on (q : semiquot α) (f : α → β) (h : ∀ a b ∈ q, f a = f b) : β :=
 trunc.lift_on q.2 (λ x, f x.1) (λ x y, h _ _ x.2 y.2)
 
@@ -90,12 +97,15 @@ def bind (q : semiquot α) (f : α → semiquot β) : semiquot β :=
  q.2.bind (λ a, (f a.1).2.map (λ b, ⟨b.1, set.mem_bUnion a.2 b.2⟩))⟩
 
 @[simp] theorem mem_bind (q : semiquot α) (f : α → semiquot β) (b : β) :
-  b ∈ bind q f ↔ ∃ a, a ∈ q ∧ b ∈ f a := set.mem_bUnion_iff
+  b ∈ bind q f ↔ ∃ a ∈ q, b ∈ f a := set.mem_bUnion_iff
 
 instance : monad semiquot :=
 { pure := @semiquot.pure,
   map := @semiquot.map,
   bind := @semiquot.bind }
+
+@[simp] lemma map_def {β} : ((<$>) : (α → β) → semiquot α → semiquot β) = map := rfl
+@[simp] lemma bind_def {β} : ((>>=) : semiquot α → (α → semiquot β) → semiquot β) = bind := rfl
 
 @[simp] theorem mem_pure {a b : α} : a ∈ (pure b : semiquot α) ↔ a = b :=
 set.mem_singleton_iff
@@ -122,7 +132,7 @@ instance : partial_order (semiquot α) :=
   le_trans := λ s t u, set.subset.trans,
   le_antisymm := λ s t h₁ h₂, ext_s.2 (set.subset.antisymm h₁ h₂) }
 
-instance : lattice.semilattice_sup (semiquot α) :=
+instance : semilattice_sup (semiquot α) :=
 { sup := λ s, blur s.s,
   le_sup_left := λ s t, set.subset_union_left _ _,
   le_sup_right := λ s t, set.subset_union_right _ _,
@@ -134,7 +144,7 @@ set.singleton_subset_iff
 
 def is_pure (q : semiquot α) := ∀ a b ∈ q, a = b
 
-def get (q) (h : @is_pure α q) : α := lift_on q id h
+def get (q : semiquot α) (h : q.is_pure) : α := lift_on q id h
 
 theorem get_mem {q : semiquot α} (p) : get q p ∈ q :=
 let ⟨a, h⟩ := exists_mem q in
@@ -162,8 +172,11 @@ theorem is_pure.min {s t : semiquot α} (h : is_pure t) : s ≤ t ↔ s = t :=
 theorem is_pure_of_subsingleton [subsingleton α] (q : semiquot α) : is_pure q
 | a b aq bq := subsingleton.elim _ _
 
+/-- `univ : semiquot α` represents an unspecified element of `univ : set α`. -/
 def univ [inhabited α] : semiquot α :=
 mk $ set.mem_univ (default _)
+
+instance [inhabited α] : inhabited (semiquot α) := ⟨univ⟩
 
 @[simp] theorem mem_univ [inhabited α] : ∀ a, a ∈ @univ α _ :=
 @set.mem_univ α
@@ -174,13 +187,13 @@ ext.2 $ by simp
 @[simp] theorem is_pure_univ [inhabited α] : @is_pure α univ ↔ subsingleton α :=
 ⟨λ h, ⟨λ a b, h a b trivial trivial⟩, λ ⟨h⟩ a b _ _, h a b⟩
 
-instance [inhabited α] : lattice.order_top (semiquot α) :=
+instance [inhabited α] : order_top (semiquot α) :=
 { top := univ,
   le_top := λ s, set.subset_univ _,
   ..semiquot.partial_order }
 
-instance [inhabited α] : lattice.semilattice_sup_top (semiquot α) :=
-{ ..semiquot.lattice.order_top,
-  ..semiquot.lattice.semilattice_sup }
+instance [inhabited α] : semilattice_sup_top (semiquot α) :=
+{ ..semiquot.order_top,
+  ..semiquot.semilattice_sup }
 
 end semiquot

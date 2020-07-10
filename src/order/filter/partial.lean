@@ -6,11 +6,12 @@ Authors: Jeremy Avigad
 Extends `tendsto` to relations and partial functions.
 -/
 import order.filter.basic
-import data.pfun
 
 universes u v w
 namespace filter
 variables {α : Type u} {β : Type v} {γ : Type w}
+
+open_locale filter
 
 /-
 Relations.
@@ -27,7 +28,7 @@ theorem rmap_sets (r : rel α β) (f : filter α) : (rmap r f).sets = r.core ⁻
 @[simp]
 theorem mem_rmap (r : rel α β) (l : filter α) (s : set β) :
   s ∈ l.rmap r ↔ r.core s ∈ l :=
-iff.refl _
+iff.rfl
 
 @[simp]
 theorem rmap_rmap (r : rel α β) (s : rel β γ) (l : filter α) :
@@ -43,7 +44,7 @@ def rtendsto (r : rel α β) (l₁ : filter α) (l₂ : filter β) := l₁.rmap 
 
 theorem rtendsto_def (r : rel α β) (l₁ : filter α) (l₂ : filter β) :
   rtendsto r l₁ l₂ ↔ ∀ s ∈ l₂, r.core s ∈ l₁ :=
-iff.refl _
+iff.rfl
 
 def rcomap (r : rel α β) (f : filter β) : filter α :=
 { sets             := rel.image (λ s t, r.core s ⊆ t) f.sets,
@@ -101,7 +102,7 @@ def rcomap' (r : rel α β) (f : filter β) : filter α :=
 @[simp]
 lemma mem_rcomap' (r : rel α β) (l : filter β) (s : set α) :
   s ∈ l.rcomap' r ↔ ∃ t ∈ l, rel.preimage r t ⊆ s :=
-iff.refl _
+iff.rfl
 
 theorem rcomap'_sets (r : rel α β) (f : filter β) :
   (rcomap' r f).sets = rel.image (λ s t, r.preimage s ⊆ t) f.sets := rfl
@@ -149,20 +150,20 @@ filter.rmap f.graph' l
 
 @[simp]
 lemma mem_pmap (f : α →. β) (l : filter α) (s : set β) : s ∈ l.pmap f ↔ f.core s ∈ l :=
-iff.refl _
+iff.rfl
 
 def ptendsto (f : α →. β) (l₁ : filter α) (l₂ : filter β) := l₁.pmap f ≤ l₂
 
 theorem ptendsto_def (f : α →. β) (l₁ : filter α) (l₂ : filter β) :
   ptendsto f l₁ l₂ ↔ ∀ s ∈ l₂, f.core s ∈ l₁ :=
-iff.refl _
+iff.rfl
 
 theorem ptendsto_iff_rtendsto (l₁ : filter α) (l₂ : filter β) (f : α →. β) :
   ptendsto f l₁ l₂ ↔ rtendsto f.graph' l₁ l₂ :=
-iff.refl _
+iff.rfl
 
 theorem pmap_res (l : filter α) (s : set α) (f : α → β) :
-  pmap (pfun.res f s) l = map f (l ⊓ principal s) :=
+  pmap (pfun.res f s) l = map f (l ⊓ 𝓟 s) :=
 filter_eq $
 begin
   apply set.ext, intro t, simp [pfun.core_res], split,
@@ -174,7 +175,7 @@ begin
 end
 
 theorem tendsto_iff_ptendsto (l₁ : filter α) (l₂ : filter β) (s : set α) (f : α → β) :
-  tendsto f (l₁ ⊓ principal s) l₂ ↔ ptendsto (pfun.res f s) l₁ l₂ :=
+  tendsto f (l₁ ⊓ 𝓟 s) l₂ ↔ ptendsto (pfun.res f s) l₁ l₂ :=
 by simp only [tendsto, ptendsto, pmap_res]
 
 theorem tendsto_iff_ptendsto_univ (l₁ : filter α) (l₂ : filter β) (f : α → β) :

@@ -1,4 +1,5 @@
 import tactic.push_neg
+import data.int.basic
 
 example (h : ∃ p: ℕ, ¬ ∀ n : ℕ, n > p) (h' : ∃ p: ℕ, ¬ ∃ n : ℕ, n < p) : ¬ ∀ n : ℕ, n = 0 :=
 begin
@@ -73,6 +74,6 @@ end
 example : ∀ x : ℕ, x = x :=
 begin
   success_if_fail_with_msg { contrapose }
-    "contrapose only applies to nondependent arrows between decidable props",
+    "contrapose only applies to nondependent arrows between props",
   intro, refl
 end

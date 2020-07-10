@@ -2,22 +2,40 @@
 Copyright (c) 2018 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp
+-/
+import algebra.pi_instances
 
-Basic properties of holors.
+/-!
+# Basic properties of holors
 
 Holors are indexed collections of tensor coefficients. Confusingly,
 they are often called tensors in physics and in the neural network
 community.
 
-Based on the tensor library found in https://www.isa-afp.org/entries/Deep_Learning.html.
+A holor is simply a multidimensional array of values. The size of a
+holor is specified by a `list ℕ`, whose length is called the dimension
+of the holor.
+
+The tensor product of `x₁ : holor α ds₁` and `x₂ : holor α ds₂` is the
+holor given by `(x₁ ⊗ x₂) (i₁ ++ i₂) = x₁ i₁ * x₂ i₂`. A holor is "of
+rank at most 1" if it is a tensor product of one-dimensional holors.
+The CP rank of a holor `x` is the smallest N such that `x` is the sum
+of N holors of rank at most 1.
+
+Based on the tensor library found in <https://www.isa-afp.org/entries/Deep_Learning.html>
+
+## References
+
+* <https://en.wikipedia.org/wiki/Tensor_rank_decomposition>
 -/
-import algebra.pi_instances
 
 universes u
 
 open list
 
-/-- `holor_index ds` is the type of valid index tuples to identify an entry of a holor of dimenstions `ds` -/
+open_locale big_operators
+
+/-- `holor_index ds` is the type of valid index tuples to identify an entry of a holor of dimensions `ds` -/
 def holor_index (ds : list ℕ) : Type := { is : list ℕ // forall₂ (<) is ds}
 
 namespace holor_index
@@ -54,7 +72,7 @@ lemma drop_take :
 lemma drop_drop :
   ∀ t : holor_index (ds₁ ++ ds₂ ++ ds₃),
   t.assoc_right.drop.drop = t.drop
-| ⟨ is , h ⟩ := subtype.eq (by simp [assoc_right,drop, cast_type, list.drop_drop])
+| ⟨ is , h ⟩ := subtype.eq (by simp [add_comm, assoc_right, drop, cast_type, list.drop_drop])
 
 end holor_index
 
@@ -87,12 +105,9 @@ instance [add_comm_group α] : add_comm_group (holor α ds) := by pi_instance
 instance [has_mul α] : has_scalar α (holor α ds) :=
   ⟨λ a x, λ t, a * x t⟩
 
-instance [ring α] : module α (holor α ds) := pi.module α
+instance [semiring α] : semimodule α (holor α ds) := pi.semimodule _ _ _
 
-instance [discrete_field α] : vector_space α (holor α ds) := ⟨α, holor α ds⟩
-
-/- tensor product -/
-
+/-- The tensor product of two holors. -/
 def mul [s : has_mul α] (x : holor α ds₁) (y : holor α ds₂) : holor α (ds₁ ++ ds₂) :=
   λ t, x (t.take) * y (t.drop)
 
@@ -153,6 +168,7 @@ by simp [mul, has_scalar.smul, holor_index.take, holor_index.drop]
 def slice (x : holor α (d :: ds)) (i : ℕ) (h : i < d) : holor α ds :=
   (λ is : holor_index ds, x ⟨ i :: is.1, forall₂.cons h is.2⟩)
 
+/-- The 1-dimensional "unit" holor with 1 in the `j`th position. -/
 def unit_vec [monoid α] [add_monoid α] (d : ℕ) (j : ℕ) : holor α [d] :=
   λ ti, if ti.1 = [j] then 1 else 0
 
@@ -189,7 +205,7 @@ lemma slice_zero [has_zero α] (i : ℕ) (hid : i < d)  :
 
 lemma slice_sum [add_comm_monoid α] {β : Type}
   (i : ℕ) (hid : i < d) (s : finset β) (f : β → holor α (d :: ds)) :
-  finset.sum s (λ x, slice (f x) i hid) = slice (finset.sum s f) i hid :=
+  ∑ x in s, slice (f x) i hid = slice (∑ x in s, f x) i hid :=
 begin
   letI := classical.dec_eq β,
   refine finset.induction_on s _ _,
@@ -200,23 +216,19 @@ end
 
 /-- The original holor can be recovered from its slices by multiplying with unit vectors and summing up. -/
 @[simp] lemma sum_unit_vec_mul_slice [ring α] (x : holor α (d :: ds)) :
-  (finset.range d).attach.sum
-    (λ i, unit_vec d i.1 ⊗ slice x i.1 (nat.succ_le_of_lt (finset.mem_range.1 i.2))) = x :=
+  ∑ i in (finset.range d).attach,
+    unit_vec d i ⊗ slice x i (nat.succ_le_of_lt (finset.mem_range.1 i.prop)) = x :=
 begin
   apply slice_eq _ _ _,
   ext i hid,
   rw [←slice_sum],
   simp only [slice_unit_vec_mul hid],
-  rw finset.sum_eq_single (subtype.mk i _),
-  { simp, refl },
+  rw finset.sum_eq_single (subtype.mk i $ finset.mem_range.2 hid),
+  { simp },
   { assume (b : {x // x ∈ finset.range d}) (hb : b ∈ (finset.range d).attach) (hbi : b ≠ ⟨i, _⟩),
-    have hbi' : i ≠ b.val,
-    { apply not.imp hbi,
-      { assume h0 : i = b.val,
-        apply subtype.eq,
-        simp only [h0] },
-      { exact finset.mem_range.2 hid } },
-    simp [hbi']},
+    have hbi' : i ≠ b,
+    { simpa only [ne.def, subtype.ext_iff, subtype.coe_mk] using hbi.symm },
+    simp [hbi'] },
   { assume hid' : subtype.mk i _ ∉ finset.attach (finset.range d),
     exfalso,
     exact absurd (finset.mem_attach _ _) hid'
@@ -225,12 +237,16 @@ end
 
 /- CP rank -/
 
+/-- `cprank_max1 x` means `x` has CP rank at most 1, that is,
+  it is the tensor product of 1-dimensional holors. -/
 inductive cprank_max1 [has_mul α]: Π {ds}, holor α ds → Prop
 | nil (x : holor α []) :
     cprank_max1 x
 | cons {d} {ds} (x : holor α [d]) (y : holor α ds) :
     cprank_max1 y → cprank_max1 (x ⊗ y)
 
+/-- `cprank_max N x` means `x` has CP rank at most `N`, that is,
+  it can be written as the sum of N holors of rank at most 1. -/
 inductive cprank_max [has_mul α] [add_monoid α] : ℕ → Π {ds}, holor α ds → Prop
 | zero {ds} :
     cprank_max 0 (0 : holor α ds)
@@ -271,7 +287,7 @@ begin
 end
 
 lemma cprank_max_sum [ring α] {β} {n : ℕ} (s : finset β) (f : β → holor α ds) :
-  (∀ x ∈ s, cprank_max n (f x)) → cprank_max (s.card * n) (finset.sum s f) :=
+  (∀ x ∈ s, cprank_max n (f x)) → cprank_max (s.card * n) (∑ x in s, f x) :=
 by letI := classical.dec_eq β;
 exact finset.induction_on s
   (by simp [cprank_max.zero])
@@ -280,7 +296,7 @@ exact finset.induction_on s
     simp only [finset.sum_insert h_x_notin_s,finset.card_insert_of_not_mem h_x_notin_s],
     rw nat.right_distrib,
     simp only [nat.one_mul, nat.add_comm],
-    have ih' : cprank_max (finset.card s * n) (finset.sum s f),
+    have ih' : cprank_max (finset.card s * n) (∑ x in s, f x),
     {
       apply ih,
       assume (x : β) (h_x_in_s: x ∈ s),
@@ -299,12 +315,10 @@ have h_summands : Π (i : {x // x ∈ finset.range d}),
 have h_dds_prod : (list.cons d ds).prod = finset.card (finset.range d) * prod ds,
   by simp [finset.card_range],
 have cprank_max (finset.card (finset.attach (finset.range d)) * prod ds)
-  (finset.sum (finset.attach (finset.range d))
-  (λ (i : {x // x ∈ finset.range d}), unit_vec d (i.val)⊗slice x (i.val) (mem_range.1 i.2))),
+  (∑ i in finset.attach (finset.range d), unit_vec d (i.val)⊗slice x (i.val) (mem_range.1 i.2)),
   from cprank_max_sum (finset.range d).attach _ (λ i _, h_summands i),
 have h_cprank_max_sum : cprank_max (finset.card (finset.range d) * prod ds)
-  (finset.sum (finset.attach (finset.range d))
-  (λ (i : {x // x ∈ finset.range d}), unit_vec d (i.val)⊗slice x (i.val) (mem_range.1 i.2))),
+  (∑ i in finset.attach (finset.range d), unit_vec d (i.val)⊗slice x (i.val) (mem_range.1 i.2)),
   by rwa [finset.card_attach] at this,
 begin
   rw [←sum_unit_vec_mul_slice x],
@@ -312,6 +326,8 @@ begin
   exact h_cprank_max_sum,
 end
 
+/-- The CP rank of a holor `x`: the smallest N such that
+  `x` can be written as the sum of N holors of rank at most 1. -/
 noncomputable def cprank [ring α] (x : holor α ds) : nat :=
 @nat.find (λ n, cprank_max n x) (classical.dec_pred _) ⟨ds.prod, cprank_max_upper_bound x⟩
 

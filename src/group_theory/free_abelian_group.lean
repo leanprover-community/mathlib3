@@ -19,6 +19,8 @@ additive $ abelianization $ free_group α
 instance : add_comm_group (free_abelian_group α) :=
 @additive.add_comm_group _ $ abelianization.comm_group _
 
+instance : inhabited (free_abelian_group α) := ⟨0⟩
+
 variable {α}
 
 namespace free_abelian_group
@@ -45,7 +47,7 @@ is_add_group_hom.map_neg _ _
 
 @[simp] protected lemma sub (x y : free_abelian_group α) :
   lift f (x - y) = lift f x - lift f y :=
-by simp
+by simp [sub_eq_add_neg]
 
 @[simp] protected lemma zero : lift f 0 = 0 :=
 is_add_group_hom.map_zero _
@@ -73,19 +75,30 @@ lemma map_hom {α β γ} [add_comm_group β] [add_comm_group γ]
   g (a.lift f) = a.lift (g ∘ f) :=
 show (g ∘ lift f) a = a.lift (g ∘ f),
 begin
+  haveI : is_add_group_hom (g ∘ lift f) := is_add_group_hom.comp _ _,
   apply @lift.unique,
   assume a,
   simp only [(∘), lift.of]
 end
 
-def universal : (α → β) ≃ { f : free_abelian_group α → β // is_add_group_hom f } :=
-{ to_fun := λ f, ⟨_, lift.is_add_group_hom f⟩,
-  inv_fun := λ f, f.1 ∘ of,
-  left_inv := λ f, funext $ λ x, lift.of f x,
-  right_inv := λ f, subtype.eq $ funext $ λ x, eq.symm $ by letI := f.2; from
-    lift.unique _ _ (λ _, rfl) }
-
 end lift
+
+section
+variables (X : Type*) (G : Type*) [add_comm_group G]
+
+/-- The bijection underlying the free-forgetful adjunction for abelian groups.-/
+def hom_equiv : (free_abelian_group X →+ G) ≃ (X → G) :=
+{ to_fun := λ f, f.1 ∘ of,
+  inv_fun := λ f, add_monoid_hom.of (lift f),
+  left_inv := λ f, begin ext, simp, exact (lift.unique _ _ (λ x, rfl)).symm, end,
+  right_inv := λ f, funext $ λ x, lift.of f x }
+
+@[simp]
+lemma hom_equiv_apply (f) (x) : ((hom_equiv X G) f) x = f (of x) := rfl
+@[simp]
+lemma hom_equiv_symm_apply (f) (x) : ((hom_equiv X G).symm f) x = (lift f) x := rfl
+
+end
 
 local attribute [instance] quotient_group.left_rel normal_subgroup.to_is_subgroup
 
@@ -149,6 +162,19 @@ lift.neg _ _
 
 @[simp] lemma map_sub (f : α → β) (x y : free_abelian_group α) : f <$> (x - y) = f <$> x - f <$> y :=
 lift.sub _ _ _
+
+@[simp] lemma map_of (f : α → β) (y : α) : f <$> of y = of (f y) := rfl
+
+lemma lift_comp {α} {β} {γ} [add_comm_group γ]
+  (f : α → β) (g : β → γ) (x : free_abelian_group α) :
+  lift (g ∘ f) x = lift g (f <$> x) :=
+begin
+  apply free_abelian_group.induction_on x,
+  { simp only [lift.zero, map_zero], },
+  { intro y, simp [lift.of, map_of, function.comp_app], },
+  { intros x w, simp only [w, neg_inj, lift.neg, map_neg], },
+  { intros x y w₁ w₂, simp only [w₁, w₂, lift.add, add_right_inj, map_add], },
+end
 
 @[simp] lemma pure_bind (f : α → free_abelian_group β) (x) : pure x >>= f = f x :=
 lift.of _ _
@@ -235,6 +261,9 @@ instance [monoid α] : semigroup (free_abelian_group α) :=
     { intros z1 z2 ih1 ih2, iterate 2 { rw lift.add }, rw [ih1, ih2],
       exact (lift.add _ _ _).symm }
   end }
+
+lemma mul_def [monoid α] (x y : free_abelian_group α) :
+  x * y = lift (λ x₂, lift (λ x₁, of (x₁ * x₂)) x) y := rfl
 
 instance [monoid α] : ring (free_abelian_group α) :=
 { one := free_abelian_group.of 1,

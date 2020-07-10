@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 Computational realization of filters (experimental).
 -/
-import order.filter.basic
+import order.filter.cofinite
 open set filter
 
 /-- A `cfilter α σ` is a realization of a filter (base) on `α`,
@@ -129,7 +129,8 @@ filter_eq $ set.ext $ λ x, by simp [cfilter.to_filter]; rw F.mem_sets; exact
 exists_congr (λ s, image_subset_iff)⟩
 
 @[simp] theorem map_σ (m : α → β) {f : filter α} (F : f.realizer) : (F.map m).σ = F.σ := rfl
-@[simp] theorem map_F (m : α → β) {f : filter α} (F : f.realizer) (s) : (F.map m).F s = image m (F.F s) := rfl
+@[simp] theorem map_F (m : α → β) {f : filter α} (F : f.realizer) (s) :
+  (F.map m).F s = image m (F.F s) := rfl
 
 /-- Construct a realizer for `comap m f` given a realizer for `f` -/
 protected def comap (m : α → β) {f : filter β} (F : f.realizer) : (comap m f).realizer := ⟨F.σ,
@@ -172,13 +173,14 @@ protected def cofinite [decidable_eq α] : (@cofinite α).realizer := ⟨finset 
   inf          := (∪),
   inf_le_left  := λ s t a, mt (finset.mem_union_left _),
   inf_le_right := λ s t a, mt (finset.mem_union_right _) },
-filter_eq $ set.ext $ λ x, by simp [cfilter.to_filter]; exactI
-⟨λ ⟨s, h⟩, finite_subset (finite_mem_finset s) (compl_subset_comm.1 h),
- λ ⟨fs⟩, ⟨(-x).to_finset, λ a (h : a ∉ (-x).to_finset),
+filter_eq $ set.ext $ λ x,
+⟨λ ⟨s, h⟩, s.finite_to_set.subset (compl_subset_comm.1 h),
+ λ ⟨fs⟩, by exactI ⟨xᶜ.to_finset, λ a (h : a ∉ xᶜ.to_finset),
   classical.by_contradiction $ λ h', h (mem_to_finset.2 h')⟩⟩⟩
 
 /-- Construct a realizer for filter bind -/
-protected def bind {f : filter α} {m : α → filter β} (F : f.realizer) (G : ∀ i, (m i).realizer) : (f.bind m).realizer :=
+protected def bind {f : filter α} {m : α → filter β} (F : f.realizer) (G : ∀ i, (m i).realizer) :
+  (f.bind m).realizer :=
 ⟨Σ s : F.σ, Π i ∈ F.F s, (G i).σ,
 { f            := λ ⟨s, f⟩, ⋃ i ∈ F.F s, (G i).F (f i H),
   pt           := ⟨F.F.pt, λ i H, (G i).F.pt⟩,
@@ -223,11 +225,13 @@ theorem tendsto_iff (f : α → β) {l₁ : filter α} {l₂ : filter β} (L₁ 
 (le_iff (L₁.map f) L₂).trans $ forall_congr $ λ b, exists_congr $ λ a, image_subset_iff
 
 theorem ne_bot_iff {f : filter α} (F : f.realizer) :
-  f ≠ ⊥ ↔ ∀ a : F.σ, F.F a ≠ ∅ :=
-by haveI := classical.prop_decidable;
-   rw [not_iff_comm, ← lattice.le_bot_iff,
-       F.le_iff realizer.bot]; simp [not_forall]; exact
-⟨λ ⟨x, e⟩ _, ⟨x, le_of_eq e⟩,
- λ h, let ⟨x, h⟩ := h () in ⟨x, lattice.le_bot_iff.1 h⟩⟩
+  f ≠ ⊥ ↔ ∀ a : F.σ, (F.F a).nonempty :=
+begin
+  classical,
+  rw [not_iff_comm, ← le_bot_iff, F.le_iff realizer.bot, not_forall],
+  simp only [set.not_nonempty_iff_eq_empty],
+  exact ⟨λ ⟨x, e⟩ _, ⟨x, le_of_eq e⟩,
+    λ h, let ⟨x, h⟩ := h () in ⟨x, le_bot_iff.1 h⟩⟩
+end
 
 end filter.realizer

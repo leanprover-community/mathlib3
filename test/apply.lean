@@ -7,7 +7,9 @@ example : ∀ n m : ℕ, n + m = m + n :=
 begin
   apply' nat.rec,
   -- refine nat.rec _ _,
-  admit, admit
+  { intros n h m,
+    ring, },
+  { intro m, ring }
 end
 
 instance : partial_order unit :=
@@ -33,8 +35,8 @@ begin
 end
 example : continuous (λ (x : ℝ), x + x) :=
 begin
-  apply' continuous_add,
-  guard_target' continuous (λ (x : ℝ), x), admit,
-  guard_target' continuous (λ (x : ℝ), x), admit,
+  apply' continuous.add,
+  guard_target' continuous (λ (x : ℝ), x), apply @continuous_id ℝ _,
+  guard_target' continuous (λ (x : ℝ), x), apply @continuous_id ℝ _,
   -- guard_target' topological_add_monoid ℝ, admit,
 end

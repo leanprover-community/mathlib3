@@ -3,7 +3,8 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import group_theory.perm.sign group_theory.order_of_element
+import group_theory.perm.sign
+import group_theory.order_of_element
 
 namespace equiv.perm
 open equiv function finset
@@ -67,7 +68,7 @@ lemma cycle_of_apply [fintype α] (f : perm α) (x y : α) :
 
 lemma cycle_of_inv [fintype α] (f : perm α) (x : α) :
   (cycle_of f x)⁻¹ = cycle_of f⁻¹ x :=
-equiv.ext _ _ $ λ y, begin
+equiv.ext $ λ y, begin
   rw [inv_eq_iff_eq, cycle_of_apply, cycle_of_apply];
   split_ifs; simp [*, same_cycle_inv, same_cycle_inv_apply] at *
 end
@@ -82,8 +83,8 @@ end
 @[simp] lemma cycle_of_gpow_apply_self [fintype α] (f : perm α) (x : α) :
   ∀ n : ℤ, (cycle_of f x ^ n) x = (f ^ n) x
 | (n : ℕ) := cycle_of_pow_apply_self f x n
-| -[1+ n] := by rw [gpow_neg_succ, ← inv_pow, cycle_of_inv,
-  gpow_neg_succ, ← inv_pow, cycle_of_pow_apply_self]
+| -[1+ n] := by rw [gpow_neg_succ_of_nat, ← inv_pow, cycle_of_inv,
+  gpow_neg_succ_of_nat, ← inv_pow, cycle_of_pow_apply_self]
 
 lemma cycle_of_apply_of_same_cycle [fintype α] {f : perm α} {x y : α} (h : same_cycle f x y) :
   cycle_of f x y = f y := dif_pos h
@@ -96,12 +97,12 @@ lemma cycle_of_apply_of_not_same_cycle [fintype α] {f : perm α} {x y : α} (h 
 
 lemma cycle_of_cycle [fintype α] {f : perm α} (hf : is_cycle f) {x : α} (hx : f x ≠ x) :
   cycle_of f x = f :=
-equiv.ext _ _ $ λ y,
+equiv.ext $ λ y,
   if h : same_cycle f x y then by rw [cycle_of_apply_of_same_cycle h]
   else by rw [cycle_of_apply_of_not_same_cycle h, not_not.1 (mt ((same_cycle_cycle hx).1 hf).2 h)]
 
 lemma cycle_of_one [fintype α] (x : α) : cycle_of 1 x = 1 :=
-by rw [cycle_of, subtype_perm_one (same_cycle 1 x), of_subtype_one]
+by rw [cycle_of, subtype_perm_one (same_cycle 1 x), of_subtype.map_one]
 
 lemma is_cycle_cycle_of [fintype α] (f : perm α) {x : α} (hx : f x ≠ x) : is_cycle (cycle_of f x) :=
 have cycle_of f x x ≠ x, by rwa [cycle_of_apply_of_same_cycle (same_cycle.refl _ _)],
@@ -130,7 +131,7 @@ else let ⟨m, hm₁, hm₂, hm₃⟩ := cycle_factors_aux l ((cycle_of f x)⁻�
           have hxy : same_cycle f x y := not_not.1 (mt cycle_of_apply_of_not_same_cycle hfy),
           have hgm : g :: m.erase g ~ m := list.cons_perm_iff_perm_erase.2 ⟨hg, list.perm.refl _⟩,
           have ∀ h ∈ m.erase g, disjoint g h,
-            from (list.pairwise_cons.1 ((list.perm_pairwise (λ a b (h : disjoint a b), h.symm) hgm).2 hm₃)).1,
+            from (list.pairwise_cons.1 ((hgm.pairwise_iff (λ a b (h : disjoint a b), h.symm)).2 hm₃)).1,
           classical.by_cases id $ λ hgy : g y ≠ y,
             (disjoint_prod_right _ this y).resolve_right $
             have hsc : same_cycle f⁻¹ x (f y), by rwa [same_cycle_inv, same_cycle_apply],

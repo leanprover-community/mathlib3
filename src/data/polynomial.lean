@@ -943,6 +943,9 @@ le_antisymm (max_eq_right_of_lt h ▸ degree_add_le _ _) $ degree_le_degree $
     exact mt leading_coeff_eq_zero.1 (ne_zero_of_degree_gt h)
   end
 
+lemma degree_add_eq_of_degree_lt' (h : degree p < degree q) : degree (q + p) = degree q :=
+add_comm p q ▸ degree_add_eq_of_degree_lt h
+
 lemma degree_add_C (hp : 0 < degree p) : degree (p + C a) = degree p :=
 add_comm (C a) p ▸ degree_add_eq_of_degree_lt $ lt_of_le_of_lt degree_C_le hp
 
@@ -1802,6 +1805,12 @@ eval₂_sub _
 lemma coeff_mul_X_sub_C {p : polynomial R} {r : R} {a : ℕ} :
   coeff (p * (X - C r)) (a + 1) = coeff p a - coeff p (a + 1) * r :=
 by simp [mul_sub]
+
+lemma degree_sub_eq_of_degree_lt (h : degree p < degree q) : degree (q - p) = degree q :=
+by rw sub_eq_add_neg q p; rw ← degree_neg p at h; exact degree_add_eq_of_degree_lt' h
+
+lemma degree_sub_eq_of_degree_lt' (h : degree p < degree q) : degree (p - q) = degree q :=
+by rw sub_eq_add_neg p q; rw ← degree_neg q at h; exact degree_neg q ▸ degree_add_eq_of_degree_lt h
 
 end ring
 

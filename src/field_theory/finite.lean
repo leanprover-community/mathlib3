@@ -214,8 +214,10 @@ variables (p : ℕ) [fact p.prime] [char_p K p]
 
 lemma roots_X_pow_card_sub_X : roots (X^q - X : polynomial K) = finset.univ :=
 begin
+  have hk : 2 ≤ q := sorry,
   have aux : (X^q - X : polynomial K) ≠ 0,
-  { rw [ne.def, sub_eq_zero], sorry },
+  { apply ne_zero_of_degree_gt (_ : 1 < degree _),
+    rw [degree_sub_eq_of_degree_lt]; simp [hk]; exact_mod_cast hk, },
   simp_rw [eq_univ_iff_forall, mem_roots aux, is_root.def, eval_sub, eval_pow, eval_X, sub_eq_zero],
   exact pow_card_eq_one
 end

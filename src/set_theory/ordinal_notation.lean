@@ -5,7 +5,7 @@ Author: Mario Carneiro
 
 Ordinal notations (constructive ordinal arithmetic for ordinals < ε₀).
 -/
-import set_theory.ordinal data.pnat.basic
+import set_theory.ordinal
 open ordinal
 open_locale ordinal -- get notation for `ω`
 
@@ -365,15 +365,15 @@ instance add_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ + o₂)
   have nf := onote.add_NF a o,
   conv at nf in (_+o) {simp [(+)]},
   conv in (_+o) {simp [(+), add]},
-  cases add a o with e' n' a'; simp [add, h'.symm],
-  have := h₁.fst, have := nf.fst, have ee := cmp_compares e e',
+  cases add a o with e' n' a'; simp [add, h'.symm, add_assoc],
+  have := h₁.fst, haveI := nf.fst, have ee := cmp_compares e e',
   cases cmp e e'; simp [add],
   { rw [← add_assoc, @add_absorp _ (repr e') (ω ^ repr e' * (n':ℕ))],
     { have := (h₁.below_of_lt ee).repr_lt, unfold repr at this,
       exact lt_of_le_of_lt (le_add_right _ _) this },
     { simpa using (mul_le_mul_iff_left $
         power_pos (repr e') omega_pos).2 (nat_cast_le.2 n'.pos) } },
-  { change e = e' at ee, subst e',
+  { change e = e' at ee, substI e',
     rw [← add_assoc, ← ordinal.mul_add, ← nat.cast_add] }
 end
 
@@ -411,7 +411,7 @@ instance sub_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ - o₂)
   cases cmp e₁ e₂,
   { rw [sub_eq_zero_iff_le.2], {refl},
     exact le_of_lt (oadd_lt_oadd_1 h₁ h₂ ee) },
-  { change e₁ = e₂ at ee, subst e₂, unfold sub._match_1,
+  { change e₁ = e₂ at ee, substI e₂, unfold sub._match_1,
     cases mn : (n₁:ℕ) - n₂; dsimp only [sub._match_2],
     { by_cases en : n₁ = n₂,
       { simp [en], rwa [add_sub_add_cancel] },
@@ -571,7 +571,7 @@ theorem NF_repr_split' : ∀ {o o' m} [NF o], split' o = (o', m) → NF o' ∧ r
       refine IH₁.below_of_lt' ((mul_lt_mul_iff_left omega_pos).1 $
         lt_of_le_of_lt (le_add_right _ m') _),
       rw [← this, ← IH₂], exact h.snd'.repr_lt },
-    { rw this, simp [ordinal.mul_add, mul_assoc] } }
+    { rw this, simp [ordinal.mul_add, mul_assoc, add_assoc] } }
 end
 
 theorem scale_eq_mul (x) [NF x] : ∀ o [NF o], scale x o = oadd x 1 0 * o
@@ -635,13 +635,13 @@ begin
   have na := (NF_repr_split e₁).1,
   cases e₂ : split' o₂ with b' k,
   haveI := (NF_repr_split' e₂).1,
-  cases a with a0 n a',
+  casesI a with a0 n a',
   { cases m with m,
     { by_cases o₂ = 0; simp [pow, power, e₁, h]; apply_instance },
     { by_cases m = 0; simp [pow, power, e₁, e₂, h]; apply_instance } },
   { simp [pow, power, e₁, e₂, split_eq_scale_split' e₂],
     have := na.fst,
-    cases k with k; simp [succ_eq_add_one, power]; apply_instance }
+    cases k with k; simp [succ_eq_add_one, power]; resetI; apply_instance }
 end
 
 theorem scale_power_aux (e a0 a : onote) [NF e] [NF a0] [NF a] :
@@ -709,7 +709,7 @@ begin
     have e0 := pos_iff_ne_zero.2 e0,
     have rr0 := lt_of_lt_of_le e0 (le_add_left _ _),
     apply add_lt_omega_power,
-    { simp [power_mul, ω0, power_add],
+    { simp [power_mul, ω0, power_add, mul_assoc],
       rw [mul_lt_mul_iff_left ω00, ← ordinal.power_add],
       have := (No.below_of_lt _).repr_lt, unfold repr at this,
       refine mul_lt_omega_power rr0 this (nat_lt_omega _),
@@ -764,9 +764,9 @@ begin
     cases e₂ : split' o₂ with b' k,
     cases NF_repr_split' e₂ with _ r₂,
     simp [power_def, power, e₁, r₁, split_eq_scale_split' e₂],
-    cases k with k,
-    { simp [power, r₂, power_mul, repr_power_aux₁ a00 al aa] },
-    { simp [succ_eq_add_one, power, r₂, power_add, power_mul, mul_assoc],
+    cases k with k; resetI,
+    { simp [power, r₂, power_mul, repr_power_aux₁ a00 al aa, add_assoc] },
+    { simp [succ_eq_add_one, power, r₂, power_add, power_mul, mul_assoc, add_assoc],
       rw [repr_power_aux₁ a00 al aa, scale_power_aux], simp [power_mul],
       rw [← ordinal.mul_add, ← add_assoc (ω ^ repr a0 * (n:ℕ))], congr' 1,
       rw [← power_succ],

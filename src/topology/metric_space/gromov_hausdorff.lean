@@ -3,9 +3,10 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Sébastien Gouëzel
 -/
-
-import topology.metric_space.closeds set_theory.cardinal topology.metric_space.gromov_hausdorff_realized
-  topology.metric_space.completion
+import topology.metric_space.closeds
+import set_theory.cardinal
+import topology.metric_space.gromov_hausdorff_realized
+import topology.metric_space.completion
 
 /-!
 # Gromov-Hausdorff distance
@@ -44,7 +45,6 @@ universes u v w
 open classical set function topological_space filter metric quotient
 open bounded_continuous_function nat Kuratowski_embedding
 open sum (inl inr)
-set_option class.instance_max_depth 50
 
 local attribute [instance] metric_space_sum
 
@@ -76,7 +76,7 @@ definition GH_space : Type := quotient (isometry_rel.setoid)
 definition to_GH_space (α : Type u) [metric_space α] [compact_space α] [nonempty α] : GH_space :=
   ⟦nonempty_compacts.Kuratowski_embedding α⟧
 
-instance : inhabited GH_space := ⟨quot.mk _ ⟨{0}, by simp⟩⟩
+instance : inhabited GH_space := ⟨quot.mk _ ⟨{0}, by simp [-singleton_zero]⟩⟩
 
 /-- A metric space representative of any abstract point in `GH_space` -/
 definition GH_space.rep (p : GH_space) : Type := (quot.out p).val
@@ -91,8 +91,8 @@ begin
     have f := (Kuratowski_embedding.isometry α).isometric_on_range.trans e,
     use λx, f x,
     split,
-    { apply isometry_subtype_val.comp f.isometry },
-    { rw [range_comp, f.range_coe, set.image_univ, set.range_coe_subtype] } },
+    { apply isometry_subtype_coe.comp f.isometry },
+    { rw [range_comp, f.range_coe, set.image_univ, subtype.range_coe] } },
   { rintros ⟨Ψ, ⟨isomΨ, rangeΨ⟩⟩,
     have f := ((Kuratowski_embedding.isometry α).isometric_on_range.symm.trans
                isomΨ.isometric_on_range).symm,
@@ -104,8 +104,8 @@ end
 
 lemma eq_to_GH_space {p : nonempty_compacts ℓ_infty_ℝ} : ⟦p⟧ = to_GH_space p.val :=
 begin
- refine eq_to_GH_space_iff.2 ⟨((λx, x) : p.val → ℓ_infty_ℝ), _, subtype.val_range⟩,
- apply isometry_subtype_val
+ refine eq_to_GH_space_iff.2 ⟨((λx, x) : p.val → ℓ_infty_ℝ), _, subtype.range_coe⟩,
+ apply isometry_subtype_coe
 end
 
 section
@@ -200,7 +200,7 @@ begin
   have ΨΨ' : Ψ = subtype.val ∘ Ψ', by { funext, refl },
   have : Hausdorff_dist (range Φ) (range Ψ) = Hausdorff_dist (range Φ') (range Ψ'),
   { rw [ΦΦ', ΨΨ', range_comp, range_comp],
-    exact Hausdorff_dist_image (isometry_subtype_val) },
+    exact Hausdorff_dist_image (isometry_subtype_coe) },
   rw this,
   -- Embed `s` in `ℓ^∞(ℝ)` through its Kuratowski embedding
   let F := Kuratowski_embedding (subtype s),
@@ -275,10 +275,10 @@ begin
       repeat {split},
       { exact λx y, calc
         F (inl x, inl y) = dist (Φ x) (Φ y) : rfl
-        ... = dist x y : Φisom.dist_eq },
+        ... = dist x y : Φisom.dist_eq x y },
       { exact λx y, calc
         F (inr x, inr y) = dist (Ψ x) (Ψ y) : rfl
-        ... = dist x y : Ψisom.dist_eq },
+        ... = dist x y : Ψisom.dist_eq x y },
       { exact λx y, dist_comm _ _ },
       { exact λx y z, dist_triangle _ _ _ },
       { exact λx y, calc
@@ -307,7 +307,7 @@ begin
       have : z ∈ range Ψ, by rwa [← Ψrange] at zq,
       rcases mem_range.1 this with ⟨y, hy⟩,
       calc infi (λy:β, Fb (inl x, inr y)) ≤ Fb (inl x, inr y) :
-          cinfi_le (by simpa using HD_below_aux1 0)
+          cinfi_le (by simpa using HD_below_aux1 0) y
         ... = dist (Φ x) (Ψ y) : rfl
         ... = dist (f (inl x)) z : by rw hy
         ... ≤ r : le_of_lt hz },
@@ -320,7 +320,7 @@ begin
       have : z ∈ range Φ, by rwa [← Φrange] at zq,
       rcases mem_range.1 this with ⟨x, hx⟩,
       calc infi (λx:α, Fb (inl x, inr y)) ≤ Fb (inl x, inr y) :
-          cinfi_le (by simpa using HD_below_aux2 0)
+          cinfi_le (by simpa using HD_below_aux2 0) x
         ... = dist (Φ x) (Ψ y) : rfl
         ... = dist z (f (inr y)) : by rw hx
         ... ≤ r : le_of_lt hz },
@@ -362,7 +362,7 @@ begin
     exact (Hausdorff_dist_image (Kuratowski_embedding.isometry _)).symm },
 end
 
--- without the next two lines, `{ exact closed_of_compact (range Φ) hΦ }` in the next
+-- without the next two lines, `{ exact hΦ.is_closed }` in the next
 -- proof is very slow, as the `t2_space` instance is very hard to find
 local attribute [instance, priority 10] order_topology.t2_space
 local attribute [instance, priority 10] order_closed_topology.to_t2_space
@@ -397,8 +397,8 @@ instance GH_space_metric_space : metric_space GH_space :=
     { have hΦ : compact (range Φ) := compact_range Φisom.continuous,
       have hΨ : compact (range Ψ) := compact_range Ψisom.continuous,
       apply (Hausdorff_dist_zero_iff_eq_of_closed _ _ _).1 (DΦΨ.symm),
-      { exact closed_of_compact (range Φ) hΦ },
-      { exact closed_of_compact (range Ψ) hΨ },
+      { exact hΦ.is_closed },
+      { exact hΨ.is_closed },
       { exact Hausdorff_edist_ne_top_of_nonempty_of_bounded (range_nonempty _)
           (range_nonempty _) hΦ.bounded hΨ.bounded } },
     have T : ((range Ψ) ≃ᵢ y.rep) = ((range Φ) ≃ᵢ y.rep), by rw this,
@@ -480,11 +480,11 @@ variables {α : Type u} [metric_space α]
 theorem GH_dist_le_nonempty_compacts_dist (p q : nonempty_compacts α) :
   dist p.to_GH_space q.to_GH_space ≤ dist p q :=
 begin
-  have ha : isometry (subtype.val : p.val → α) := isometry_subtype_val,
-  have hb : isometry (subtype.val : q.val → α) := isometry_subtype_val,
+  have ha : isometry (coe : p.val → α) := isometry_subtype_coe,
+  have hb : isometry (coe : q.val → α) := isometry_subtype_coe,
   have A : dist p q = Hausdorff_dist p.val q.val := rfl,
-  have I : p.val = range (subtype.val : p.val → α), by simp,
-  have J : q.val = range (subtype.val : q.val → α), by simp,
+  have I : p.val = range (coe : p.val → α), by simp,
+  have J : q.val = range (coe : q.val → α), by simp,
   rw [I, J] at A,
   rw A,
   exact GH_dist_le_Hausdorff_dist ha hb

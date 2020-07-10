@@ -3,7 +3,6 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
-
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.shapes.pullbacks
@@ -45,8 +44,8 @@ local attribute [instance] has_limit_cospan_of_has_limit_pair_of_has_limit_paral
     As usual, this is not an instance, since there may be a more direct way to construct
     pullbacks. -/
 def has_pullbacks_of_has_binary_products_of_has_equalizers
-  (C : Type u) [𝒞 : category.{v} C] [has_binary_products.{v} C] [has_equalizers.{v} C] :
-  has_pullbacks.{v} C :=
+  (C : Type u) [𝒞 : category.{v} C] [has_binary_products C] [has_equalizers C] :
+  has_pullbacks C :=
 has_pullbacks_of_has_limit_cospan C
 
 end
@@ -77,8 +76,8 @@ local attribute [instance] has_colimit_span_of_has_colimit_pair_of_has_colimit_p
     As usual, this is not an instance, since there may be a more direct way to construct
     pushouts. -/
 def has_pushouts_of_has_binary_coproducts_of_has_coequalizers
-  (C : Type u) [𝒞 : category.{v} C] [has_binary_coproducts.{v} C] [has_coequalizers.{v} C] :
-  has_pushouts.{v} C :=
+  (C : Type u) [𝒞 : category.{v} C] [has_binary_coproducts C] [has_coequalizers C] :
+  has_pushouts C :=
 has_pushouts_of_has_colimit_span C
 
 end

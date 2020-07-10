@@ -3,8 +3,8 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import data.set.basic algebra.field order.conditionally_complete_lattice
-  algebra.big_operators
+import order.conditionally_complete_lattice
+import algebra.big_operators
 
 /-!
 # Support of a function
@@ -15,6 +15,7 @@ In this file we define `function.support f = {x | f x ≠ 0}` and prove its basi
 universes u v w x y
 
 open set
+open_locale big_operators
 namespace function
 
 variables {α : Type u} {β : Type v} {ι : Sort w} {A : Type x} {B : Type y}
@@ -25,6 +26,10 @@ def support [has_zero A] (f : α → A) : set α := {x | f x ≠ 0}
 lemma nmem_support [has_zero A] {f : α → A} {x : α} :
   x ∉ support f ↔ f x = 0 :=
 classical.not_not
+
+lemma mem_support [has_zero A] {f : α → A} {x : α} :
+  x ∈ support f ↔ f x ≠ 0 :=
+iff.rfl
 
 lemma support_binop_subset [has_zero A] (op : A → A → A) (op0 : op 0 0 = 0) (f g : α → A) :
   support (λ x, op (f x) (g x)) ⊆ support f ∪ support g :=
@@ -44,14 +49,9 @@ lemma support_sub [add_group A] (f g : α → A) :
   support (λ x, f x - g x) ⊆ support f ∪ support g :=
 support_binop_subset (has_sub.sub) (sub_self _) f g
 
-@[simp] lemma support_mul [domain A] (f g : α → A) :
+@[simp] lemma support_mul [mul_zero_class A] [no_zero_divisors A] (f g : α → A) :
   support (λ x, f x * g x) = support f ∩ support g :=
 set.ext $ λ x, by simp only [support, ne.def, mul_eq_zero, mem_set_of_eq,
-  mem_inter_iff, not_or_distrib]
-
-@[simp] lemma support_mul' {A} [group_with_zero A] (f g : α → A) :
-  support (λ x, f x * g x) = support f ∩ support g :=
-set.ext $ λ x, by simp only [support, ne.def, mul_eq_zero_iff', mem_set_of_eq,
   mem_inter_iff, not_or_distrib]
 
 @[simp] lemma support_inv [division_ring A] (f : α → A) :
@@ -93,7 +93,7 @@ lemma support_infi [has_zero A] [conditionally_complete_lattice A] [nonempty ι]
 @support_supr _ _ (order_dual A) ⟨(0:A)⟩ _ _ f
 
 lemma support_sum [add_comm_monoid A] (s : finset α) (f : α → β → A) :
-  support (λ x, s.sum (λ i, f i x)) ⊆ ⋃ i ∈ s, support (f i) :=
+  support (λ x, ∑ i in s, f i x) ⊆ ⋃ i ∈ s, support (f i) :=
 begin
   intros x hx,
   classical,
@@ -102,10 +102,14 @@ begin
   exact finset.sum_eq_zero hx
 end
 
--- TODO: Drop `classical` once #2332 is merged
-lemma support_prod [integral_domain A] (s : finset α) (f : α → β → A) :
-  support (λ x, s.prod (λ i, f i x)) = ⋂ i ∈ s, support (f i) :=
-set.ext $ λ x, by classical;
+lemma support_prod_subset [comm_monoid_with_zero A] (s : finset α) (f : α → β → A) :
+  support (λ x, ∏ i in s, f i x) ⊆ ⋂ i ∈ s, support (f i) :=
+λ x hx, mem_bInter_iff.2 $ λ i hi H, hx $ finset.prod_eq_zero hi H
+
+lemma support_prod [comm_monoid_with_zero A] [no_zero_divisors A] [nontrivial A]
+  (s : finset α) (f : α → β → A) :
+  support (λ x, ∏ i in s, f i x) = ⋂ i ∈ s, support (f i) :=
+set.ext $ λ x, by
   simp only [support, ne.def, finset.prod_eq_zero_iff, mem_set_of_eq, set.mem_Inter, not_exists]
 
 lemma support_comp [has_zero A] [has_zero B] (g : A → B) (hg : g 0 = 0) (f : α → A) :

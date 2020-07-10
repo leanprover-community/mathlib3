@@ -51,6 +51,7 @@ return $ let illegal := [`gt, `ge] in if d.type.pi_codomain.contains_constant (�
 /-- A linter for checking whether illegal constants (≥, >) appear in a declaration's type. -/
 @[linter] meta def linter.ge_or_gt : linter :=
 { test := ge_or_gt_in_statement,
+  auto_decls := ff,
   no_errors_found := "Not using ≥/> in declarations",
   errors_found := "USING ≥/> IN DECLARATIONS",
   is_fast := ff }
@@ -63,8 +64,6 @@ such as `∀ ε > 0`. Such statements should be marked with the attribute `nolin
 failures.
 -/
 library_note "nolint_ge"
-
-
 
 /-!
 ## Linter for duplicate namespaces
@@ -80,6 +79,7 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) ∨ is_inst then n
 /-- A linter for checking whether a declaration has a namespace twice consecutively in its name. -/
 @[linter] meta def linter.dup_namespace : linter :=
 { test := dup_namespace,
+  auto_decls := ff,
   no_errors_found := "No declarations have a duplicate namespace",
   errors_found := "DUPLICATED NAMESPACES IN NAME" }
 
@@ -130,6 +130,7 @@ private meta def unused_arguments (d : declaration) : tactic (option string) := 
 /-- A linter object for checking for unused arguments. This is in the default linter set. -/
 @[linter] meta def linter.unused_arguments : linter :=
 { test := unused_arguments,
+  auto_decls := ff,
   no_errors_found := "No unused arguments",
   errors_found := "UNUSED ARGUMENTS" }
 
@@ -156,12 +157,14 @@ private meta def doc_blame_report_thm : declaration → tactic (option string)
 @[linter] meta def linter.doc_blame : linter :=
 { test := λ d, mcond (bnot <$> has_attribute' `instance d.to_name)
     (doc_blame_report_defn d) (return none),
+  auto_decls := ff,
   no_errors_found := "No definitions are missing documentation.",
   errors_found := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS" }
 
 /-- A linter for checking theorem doc strings. This is not in the default linter set. -/
 meta def linter.doc_blame_thm : linter :=
 { test := doc_blame_report_thm,
+  auto_decls := ff,
   no_errors_found := "No theorems are missing documentation.",
   errors_found := "THEOREMS ARE MISSING DOCUMENTATION STRINGS",
   is_fast := ff }
@@ -194,6 +197,7 @@ private meta def incorrect_def_lemma (d : declaration) : tactic (option string) 
 has been used. -/
 @[linter] meta def linter.def_lemma : linter :=
 { test := incorrect_def_lemma,
+  auto_decls := ff,
   no_errors_found := "All declarations correctly marked as def/lemma",
   errors_found := "INCORRECT DEF/LEMMA" }
 

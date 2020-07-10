@@ -7,7 +7,7 @@ An efficient binary implementation of a (sqrt n) function that
 returns s s.t.
     s*s ≤ n ≤ s*s + s + s
 -/
-import data.nat.basic algebra.ordered_group algebra.ring tactic.alias
+import data.int.basic
 
 namespace nat
 
@@ -31,7 +31,7 @@ def sqrt_aux : ℕ → ℕ → ℕ → ℕ
 
 /-- `sqrt n` is the square root of a natural number `n`. If `n` is not a
   perfect square, it returns the largest `k:ℕ` such that `k*k ≤ n`. -/
-def sqrt (n : ℕ) : ℕ :=
+@[pp_nodot] def sqrt (n : ℕ) : ℕ :=
 match size n with
 | 0      := 0
 | succ s := sqrt_aux (shiftl 1 (bit0 (div2 s))) 0 n
@@ -72,7 +72,8 @@ begin
   have lb : n - r * r < 2 * r * 2^m + 2^m * 2^m ↔
             n < (r+2^m)*(r+2^m), {
     rw [nat.sub_lt_right_iff_lt_add h₁],
-    simp [left_distrib, right_distrib, two_mul, mul_comm, mul_assoc, add_comm, add_left_comm] },
+    simp [left_distrib, right_distrib, two_mul, mul_comm, mul_assoc,
+      add_comm, add_assoc, add_left_comm] },
   have re : div2 (2 * r * 2^m) = r * 2^m, {
     rw [div2_val, mul_assoc,
         nat.mul_div_cancel_left _ (dec_trivial:2>0)] },
@@ -85,7 +86,7 @@ begin
     apply eq.symm, apply nat.sub_eq_of_eq_add,
     rw [← add_assoc, (_ : r*r + _ = _)],
     exact (nat.add_sub_cancel' hl).symm,
-    simp [left_distrib, right_distrib, two_mul, mul_comm, mul_assoc] },
+    simp [left_distrib, right_distrib, two_mul, mul_comm, mul_assoc, add_assoc] },
 end
 
 private lemma sqrt_aux_is_sqrt (n) : ∀ m r,
@@ -96,15 +97,15 @@ private lemma sqrt_aux_is_sqrt (n) : ∀ m r,
 | (m+1) r h₁ h₂ := begin
     apply sqrt_aux_is_sqrt_lemma
       (m+1) r n h₁ (2^m * 2^m)
-      (by simp [shiftr, pow_succ, div2_val, mul_comm, mul_left_comm];
+      (by simp [shiftr, nat.pow_succ, div2_val, mul_comm, mul_left_comm];
           repeat {rw @nat.mul_div_cancel_left _ 2 dec_trivial});
       intros,
     { have := sqrt_aux_is_sqrt m r h₁ a,
-      simpa [pow_succ, mul_comm, mul_assoc] },
-    { rw [pow_succ, mul_two, ← add_assoc] at h₂,
+      simpa [nat.pow_succ, mul_comm, mul_assoc] },
+    { rw [nat.pow_succ, mul_two, ← add_assoc] at h₂,
       have := sqrt_aux_is_sqrt m (r + 2^(m+1)) a h₂,
       rwa show (r + 2^(m + 1)) * 2^(m+1) = 2 * (r + 2^(m + 1)) * 2^m,
-          by simp [pow_succ, mul_comm, mul_left_comm] }
+          by simp [nat.pow_succ, mul_comm, mul_left_comm] }
   end
 
 private lemma sqrt_is_sqrt (n : ℕ) : is_sqrt n (sqrt n) :=

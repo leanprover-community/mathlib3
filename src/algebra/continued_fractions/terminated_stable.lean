@@ -14,14 +14,14 @@ We show that the continuants and convergents of a gcf stabilise once the gcf ter
 
 namespace generalized_continued_fraction
 open generalized_continued_fraction as gcf
-variables {α : Type*} {g : gcf α} {n m : ℕ}
+variables {K : Type*} {g : gcf K} {n m : ℕ}
 
 /-- If a gcf terminated at position `n`, it also terminated at `m ≥ n`.-/
 lemma terminated_stable (n_le_m : n ≤ m) (terminated_at_n : g.terminated_at n) :
   g.terminated_at m :=
 g.s.terminated_stable n_le_m terminated_at_n
 
-variable [division_ring α]
+variable [division_ring K]
 
 lemma continuants_aux_stable_step_of_terminated (terminated_at_n : g.terminated_at n) :
   g.continuants_aux (n + 2) = g.continuants_aux (n + 1) :=
@@ -45,7 +45,7 @@ begin
     exact (eq.trans this IH) }
 end
 
-lemma convergents'_aux_stable_step_of_terminated {s : seq $ gcf.pair α}
+lemma convergents'_aux_stable_step_of_terminated {s : seq $ gcf.pair K}
   (terminated_at_n : s.terminated_at n) :
   convergents'_aux s (n + 1) = convergents'_aux s n :=
 begin
@@ -58,10 +58,10 @@ begin
     case option.none { simp only [convergents'_aux, s_head_eq] },
     case option.some
     { have : s.tail.terminated_at n, by simp only [seq.terminated_at, s.nth_tail, terminated_at_n],
-      simp only [convergents'_aux, s_head_eq, (IH this)] }}
+      simp only [convergents'_aux, s_head_eq, (IH this)] } }
 end
 
-lemma convergents'_aux_stable_of_terminated {s : seq $ gcf.pair α} (n_le_m : n ≤ m)
+lemma convergents'_aux_stable_of_terminated {s : seq $ gcf.pair K} (n_le_m : n ≤ m)
   (terminated_at_n : s.terminated_at n) :
   convergents'_aux s m = convergents'_aux s n :=
 begin
@@ -76,7 +76,7 @@ begin
       have : s.tail.terminated_at n, by
         simpa only [seq.terminated_at, seq.nth_tail] using (s.le_stable n.le_succ terminated_at_n),
       have : convergents'_aux s.tail m = convergents'_aux s.tail n, from IH this,
-      simp only [convergents'_aux, s_head_eq, this] }}
+      simp only [convergents'_aux, s_head_eq, this] } }
 end
 
 lemma continuants_stable_of_terminated (n_le_m : n ≤ m) (terminated_at_n : g.terminated_at n) :

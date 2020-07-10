@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import topology.category.Top.opens
-import category_theory.full_subcategory
 
 open category_theory
 open topological_space

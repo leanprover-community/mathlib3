@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Robert Y. Lewis, Gabriel Ebner
 -/
 
-import tactic.lint system.io  -- these are required
+import tactic.lint
+import system.io  -- these are required
 import all   -- then import everything, to parse the library for failing linters
 
 /-!

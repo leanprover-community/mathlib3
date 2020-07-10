@@ -3,7 +3,7 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import logic.basic tactic.solve_by_elim tactic.hint
+import tactic.hint
 
 namespace tactic
 
@@ -17,8 +17,8 @@ open tactic.interactive ( casesm constructor_matching )
 meta def distrib_not : tactic unit :=
 do hs ← local_context,
    hs.for_each $ λ h,
-    all_goals $
-    iterate_at_most 3 $
+    all_goals' $
+    iterate_at_most' 3 $
       do h ← get_local h.local_pp_name,
          e ← infer_type h,
          match e with

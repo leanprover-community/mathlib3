@@ -6,20 +6,17 @@ Authors: Kenny Lau, Mario Carneiro
 Tensor product of modules over commutative rings.
 
 -/
-
 import group_theory.free_abelian_group
 import linear_algebra.direct_sum_module
 
-variables {R : Type*} [comm_ring R]
-variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
-variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q] [add_comm_group S]
-variables [module R M] [module R N] [module R P] [module R Q] [module R S]
-include R
-
-
-set_option class.instance_max_depth 100
-
 namespace linear_map
+
+variables {R : Type*} [comm_semiring R]
+variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
+
+variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q] [add_comm_monoid S]
+variables [semimodule R M] [semimodule R N] [semimodule R P] [semimodule R Q] [semimodule R S]
+include R
 
 variables (R)
 def mk₂ (f : M → N → P)
@@ -36,18 +33,20 @@ variables {R}
   (f : M → N → P) {H1 H2 H3 H4} (m : M) (n : N) :
   (mk₂ R f H1 H2 H3 H4 : M →ₗ[R] N →ₗ P) m n = f m n := rfl
 
-variables (f : M →ₗ[R] N →ₗ[R] P)
-
 theorem ext₂ {f g : M →ₗ[R] N →ₗ[R] P}
   (H : ∀ m n, f m n = g m n) : f = g :=
 linear_map.ext (λ m, linear_map.ext $ λ n, H m n)
 
-def flip : N →ₗ M →ₗ P :=
+/-- Given a linear map from `M` to linear maps from `N` to `P`, i.e., a bilinear map from `M × N` to
+`P`, change the order of variables and get a linear map from `N` to linear maps from `M` to `P`. -/
+def flip (f : M →ₗ[R] N →ₗ[R] P) : N →ₗ M →ₗ P :=
 mk₂ R (λ n m, f m n)
   (λ n₁ n₂ m, (f m).map_add _ _)
   (λ c n m, (f m).map_smul _ _)
   (λ n m₁ m₂, by rw f.map_add; refl)
   (λ c n m, by rw f.map_smul; refl)
+
+variable (f : M →ₗ[R] N →ₗ[R] P)
 
 @[simp] theorem flip_apply (m : M) (n : N) : flip f n m = f m n := rfl
 
@@ -64,15 +63,20 @@ variables {R M N P}
 
 theorem map_zero₂ (y) : f 0 y = 0 := (flip f y).map_zero
 
-theorem map_neg₂ (x y) : f (-x) y = -f x y := (flip f y).map_neg _
+theorem map_neg₂ {R : Type*} [comm_ring R] {M N P : Type*}
+  [add_comm_group M] [add_comm_group N] [add_comm_group P]
+  [module R M] [module R N] [module R P] (f : M →ₗ[R] N →ₗ[R] P) (x y) :
+  f (-x) y = -f x y :=
+(flip f y).map_neg _
 
 theorem map_add₂ (x₁ x₂ y) : f (x₁ + x₂) y = f x₁ y + f x₂ y := (flip f y).map_add _ _
 
 theorem map_smul₂ (r:R) (x y) : f (r • x) y = r • f x y := (flip f y).map_smul _ _
 
 variables (R P)
-def lcomp (f : M →ₗ[R] N) : (N →ₗ P) →ₗ M →ₗ P :=
-flip $ (flip id).comp f
+def lcomp (f : M →ₗ[R] N) : (N →ₗ[R] P) →ₗ[R] M →ₗ[R] P :=
+flip $ linear_map.comp (flip id) f
+
 variables {R P}
 
 @[simp] theorem lcomp_apply (f : M →ₗ[R] N) (g : N →ₗ P) (x : M) :
@@ -110,6 +114,13 @@ variables {R M}
 @[simp] theorem lsmul_apply (r : R) (m : M) : lsmul R M r m = r • m := rfl
 
 end linear_map
+
+variables {R : Type*} [comm_ring R]
+variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
+
+variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q] [add_comm_group S]
+variables [module R M] [module R N] [module R P] [module R Q] [module R S]
+include R
 
 variables (M N)
 
@@ -201,7 +212,7 @@ protected theorem smul_add (r : R) (x y : M ⊗[R] N) :
   r • (x + y) = r • x + r • y :=
 is_add_hom.map_add _ _ _
 
-instance : module R (M ⊗ N) := module.of_core
+instance : semimodule R (M ⊗ N) := semimodule.of_core
 { smul := (•),
   smul_add := tensor_product.smul_add,
   add_smul := begin
@@ -235,16 +246,48 @@ instance : module R (M ⊗ N) := module.of_core
 (smul_tmul _ _ _).symm
 
 variables (R M N)
-def mk : M →ₗ N →ₗ M ⊗ N :=
+def mk : M →ₗ N →ₗ M ⊗[R] N :=
 linear_map.mk₂ R (⊗ₜ) add_tmul (λ c m n, by rw [smul_tmul, tmul_smul]) tmul_add tmul_smul
 variables {R M N}
 
 @[simp] lemma mk_apply (m : M) (n : N) : mk R M N m n = m ⊗ₜ n := rfl
 
+@[simp]
 lemma zero_tmul (n : N) : (0 ⊗ₜ[R] n : M ⊗ N) = 0 := (mk R M N).map_zero₂ _
+@[simp]
 lemma tmul_zero (m : M) : (m ⊗ₜ[R] 0 : M ⊗ N) = 0 := (mk R M N _).map_zero
 lemma neg_tmul (m : M) (n : N) : (-m) ⊗ₜ n = -(m ⊗ₜ[R] n) := (mk R M N).map_neg₂ _ _
 lemma tmul_neg (m : M) (n : N) : m ⊗ₜ (-n) = -(m ⊗ₜ[R] n) := (mk R M N _).map_neg _
+
+lemma ite_tmul (x₁ : M) (x₂ : N) (P : Prop) [decidable P] :
+  ((if P then x₁ else 0) ⊗ₜ[R] x₂) = if P then (x₁ ⊗ₜ x₂) else 0 :=
+by { split_ifs; simp }
+
+lemma tmul_ite (x₁ : M) (x₂ : N) (P : Prop) [decidable P] :
+  (x₁ ⊗ₜ[R] (if P then x₂ else 0)) = if P then (x₁ ⊗ₜ x₂) else 0 :=
+by { split_ifs; simp }
+
+section
+open_locale big_operators
+
+lemma sum_tmul {α : Type*} (s : finset α) (m : α → M) (n : N) :
+  ((∑ a in s, m a) ⊗ₜ[R] n) = ∑ a in s, m a ⊗ₜ[R] n :=
+begin
+  classical,
+  induction s using finset.induction with a s has ih h,
+  { simp, },
+  { simp [finset.sum_insert has, add_tmul, ih], },
+end
+
+lemma tmul_sum (m : M) {α : Type*} (s : finset α) (n : α → N) :
+  (m ⊗ₜ[R] (∑ a in s, n a)) = ∑ a in s, m ⊗ₜ[R] n a :=
+begin
+  classical,
+  induction s using finset.induction with a s has ih h,
+  { simp, },
+  { simp [finset.sum_insert has, tmul_add, ih], },
+end
+end
 
 end module
 
@@ -294,8 +337,8 @@ tensor_product.induction_on _ _ x (smul_zero _).symm
 variable (f)
 def lift : M ⊗ N →ₗ P :=
 { to_fun := lift_aux f,
-  add := lift_aux.add,
-  smul := lift_aux.smul }
+  map_add' := lift_aux.add,
+  map_smul' := lift_aux.smul }
 variable {f}
 
 @[simp] lemma lift.tmul (x y) : lift f (x ⊗ₜ y) = f x y :=
@@ -321,7 +364,7 @@ theorem lift_compr₂ (g : P →ₗ Q) : lift (f.compr₂ g) = g.comp (lift f) :
 eq.symm $ lift.unique $ λ x y, by simp
 
 theorem lift_mk_compr₂ (f : M ⊗ N →ₗ P) : lift ((mk R M N).compr₂ f) = f :=
-by rw [lift_compr₂, lift_mk, linear_map.comp_id]
+by rw [lift_compr₂ f, lift_mk, linear_map.comp_id]
 
 @[ext]
 theorem ext {g h : (M ⊗[R] N) →ₗ[R] P}
@@ -336,8 +379,8 @@ example : M → N → (M → N → P) → P :=
 λ m, flip $ λ f, f m
 
 variables (R M N P)
-def uncurry : (M →ₗ N →ₗ[R] P) →ₗ M ⊗ N →ₗ P :=
-linear_map.flip $ lift $ (linear_map.lflip _ _ _ _).comp linear_map.id.flip
+def uncurry : (M →ₗ[R] N →ₗ[R] P) →ₗ[R] M ⊗[R] N →ₗ[R] P :=
+linear_map.flip $ lift $ (linear_map.lflip _ _ _ _).comp (linear_map.flip linear_map.id)
 variables {R M N P}
 
 @[simp] theorem uncurry_apply (f : M →ₗ[R] N →ₗ[R] P) (m : M) (n : N) :
@@ -368,8 +411,10 @@ theorem ext_threefold {g h : (M ⊗[R] N) ⊗[R] P →ₗ[R] Q}
 begin
   let e := linear_equiv.to_equiv (lift.equiv R (M ⊗[R] N) P Q),
   apply e.symm.injective,
-  ext x y z,
-  exact H x y z,
+  refine ext _,
+  intros x y,
+  ext z,
+  exact H x y z
 end
 
 -- We'll need this one for checking the pentagon identity!
@@ -378,7 +423,7 @@ theorem ext_fourfold {g h : ((M ⊗[R] N) ⊗[R] P) ⊗[R] Q →ₗ[R] S}
 begin
   let e := linear_equiv.to_equiv (lift.equiv R ((M ⊗[R] N) ⊗[R] P) Q S),
   apply e.symm.injective,
-  apply ext_threefold,
+  refine ext_threefold _,
   intros x y z,
   ext w,
   exact H x y z w,
@@ -416,6 +461,14 @@ protected def comm : M ⊗ N ≃ₗ N ⊗ M :=
 linear_equiv.of_linear (lift (mk R N M).flip) (lift (mk R M N).flip)
   (ext $ λ m n, rfl)
   (ext $ λ m n, rfl)
+
+@[simp] theorem comm_tmul (m : M) (n : N) :
+  ((tensor_product.comm R M N) : (M ⊗ N → N ⊗ M)) (m ⊗ₜ n) = n ⊗ₜ m :=
+begin
+  dsimp [tensor_product.comm],
+  simp,
+end
+
 end
 
 section
@@ -457,19 +510,25 @@ end
 rfl
 
 /-- The tensor product of a pair of linear maps between modules. -/
-def map (f : M →ₗ[R] P) (g : N →ₗ Q) : M ⊗ N →ₗ P ⊗ Q :=
+def map (f : M →ₗ[R] P) (g : N →ₗ Q) : M ⊗ N →ₗ[R] P ⊗ Q :=
 lift $ comp (compl₂ (mk _ _ _) g) f
 
 @[simp] theorem map_tmul (f : M →ₗ[R] P) (g : N →ₗ[R] Q) (m : M) (n : N) :
   map f g (m ⊗ₜ n) = f m ⊗ₜ g n :=
 rfl
 
+/-- If M and P are linearly equivalent and N and Q are linearly equivalent
+then M ⊗ N and P ⊗ Q are linearly equivalent. -/
 def congr (f : M ≃ₗ[R] P) (g : N ≃ₗ[R] Q) : M ⊗ N ≃ₗ[R] P ⊗ Q :=
 linear_equiv.of_linear (map f g) (map f.symm g.symm)
   (ext $ λ m n, by simp; simp only [linear_equiv.apply_symm_apply])
   (ext $ λ m n, by simp; simp only [linear_equiv.symm_apply_apply])
 
-variables (ι₁ : Type*) (ι₂ : Type*)
+@[simp] theorem congr_tmul (f : M ≃ₗ[R] P) (g : N ≃ₗ[R] Q) (m : M) (n : N) :
+  congr f g (m ⊗ₜ n) = f m ⊗ₜ g n :=
+rfl
+
+variables (R) (ι₁ : Type*) (ι₂ : Type*)
 variables [decidable_eq ι₁] [decidable_eq ι₂]
 variables (M₁ : ι₁ → Type*) (M₂ : ι₂ → Type*)
 variables [Π i₁, add_comm_group (M₁ i₁)] [Π i₂, add_comm_group (M₂ i₂)]
@@ -491,5 +550,10 @@ begin
     rw curry_apply },
   cases i; refl
 end
+
+@[simp] theorem direct_sum_lof_tmul_lof (i₁ : ι₁) (m₁ : M₁ i₁) (i₂ : ι₂) (m₂ : M₂ i₂) :
+  direct_sum R ι₁ ι₂ M₁ M₂ (direct_sum.lof R ι₁ M₁ i₁ m₁ ⊗ₜ direct_sum.lof R ι₂ M₂ i₂ m₂) =
+  direct_sum.lof R (ι₁ × ι₂) (λ i, M₁ i.1 ⊗[R] M₂ i.2) (i₁, i₂) (m₁ ⊗ₜ m₂) :=
+by simp [direct_sum]
 
 end tensor_product

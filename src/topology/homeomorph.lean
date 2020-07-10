@@ -3,7 +3,7 @@ Copyright (c) 2019 Reid Barton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Sébastien Gouëzel, Zhouhang Zhou, Reid Barton
 -/
-import topology.subset_properties topology.dense_embedding
+import topology.dense_embedding
 
 open set
 
@@ -103,6 +103,12 @@ begin
   exact continuous_iff_is_closed.1 (h.symm.continuous) _
 end
 
+@[simp] lemma is_open_preimage (h : α ≃ₜ β) {s : set β} : is_open (h ⁻¹' s) ↔ is_open s :=
+begin
+  refine ⟨λ hs, _, h.continuous_to_fun s⟩,
+  rw [← (image_preimage_eq h.to_equiv.surjective : _ = s)], exact h.is_open_map _ hs
+end
+
 /-- If an bijective map `e : α ≃ β` is continuous and open, then it is a homeomorphism. -/
 def homeomorph_of_continuous_open (e : α ≃ β) (h₁ : continuous e) (h₂ : is_open_map e) :
   α ≃ₜ β :=
@@ -138,6 +144,14 @@ def set_congr {s t : set α} (h : s = t) : s ≃ₜ t :=
   continuous_inv_fun := continuous_subtype_mk _ continuous_subtype_val,
   .. equiv.set_congr h }
 
+/-- Sum of two homeomorphisms. -/
+def sum_congr (h₁ : α ≃ₜ β) (h₂ : γ ≃ₜ δ) : α ⊕ γ ≃ₜ β ⊕ δ :=
+{ continuous_to_fun  :=
+    continuous_sum_rec (continuous_inl.comp h₁.continuous) (continuous_inr.comp h₂.continuous),
+  continuous_inv_fun :=
+    continuous_sum_rec (continuous_inl.comp h₁.symm.continuous) (continuous_inr.comp h₂.symm.continuous),
+  .. h₁.to_equiv.sum_congr h₂.to_equiv }
+
 /-- Product of two homeomorphisms. -/
 def prod_congr (h₁ : α ≃ₜ β) (h₂ : γ ≃ₜ δ) : α × γ ≃ₜ β × δ :=
 { continuous_to_fun  :=
@@ -167,7 +181,31 @@ def prod_assoc : (α × β) × γ ≃ₜ α × (β × γ) :=
 
 end
 
+/-- `ulift α` is homeomorphic to `α`. -/
+def {u v} ulift {α : Type u} [topological_space α] : ulift.{v u} α ≃ₜ α :=
+{ continuous_to_fun := continuous_ulift_down,
+  continuous_inv_fun := continuous_ulift_up,
+  .. equiv.ulift }
+
 section distrib
+
+/-- `(α ⊕ β) × γ` is homeomorphic to `α × γ ⊕ β × γ`. -/
+def sum_prod_distrib : (α ⊕ β) × γ ≃ₜ α × γ ⊕ β × γ :=
+homeomorph.symm $
+homeomorph.homeomorph_of_continuous_open (equiv.sum_prod_distrib α β γ).symm
+  (continuous_sum_rec
+    ((continuous_inl.comp continuous_fst).prod_mk continuous_snd)
+    ((continuous_inr.comp continuous_fst).prod_mk continuous_snd))
+  (is_open_map_sum
+    (open_embedding_inl.prod open_embedding_id).is_open_map
+    (open_embedding_inr.prod open_embedding_id).is_open_map)
+
+/-- `α × (β ⊕ γ)` is homeomorphic to `α × β ⊕ α × γ`. -/
+def prod_sum_distrib : α × (β ⊕ γ) ≃ₜ α × β ⊕ α × γ :=
+(prod_comm _ _).trans $
+sum_prod_distrib.trans $
+sum_congr (prod_comm _ _) (prod_comm _ _)
+
 variables {ι : Type*} {σ : ι → Type*} [Π i, topological_space (σ i)]
 
 /-- `(Σ i, σ i) × β` is homeomorphic to `Σ i, (σ i × β)`. -/

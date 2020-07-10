@@ -3,6 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import tactic.suggest
 import data.nat.basic
 
 /- Turn off trace messages so they don't pollute the test build: -/
@@ -70,19 +71,122 @@ by library_search -- says: `exact add_pos ha hb`
 example (a b : ℕ) : 0 < a → 0 < b → 0 < a + b :=
 by library_search -- says: `exact add_pos`
 
+section synonym
+
+-- Synonym `>` for `<` in the goal
+example (a b : ℕ) : 0 < a → 0 < b → a + b > 0 :=
+by library_search -- says: `exact add_pos`
+
+-- Synonym `>` for `<` in another part of the goal
+example (a b : ℕ) : a > 0 → 0 < b → 0 < a + b :=
+by library_search -- says: `exact add_pos`
+
+-- Synonym `>` for `<` in another part of the goal
+example (a b : ℕ) (ha : a > 0) (hb : 0 < b) : 0 < a + b :=
+by library_search -- says: `exact add_pos ha hb`
+
 example (a b : ℕ) (h : a ∣ b) (w : b > 0) : a ≤ b :=
 by library_search -- says: `exact nat.le_of_dvd w h`
 
+example (a b : ℕ) (h : a ∣ b) (w : b > 0) : b ≥ a :=
+by library_search -- says: `exact nat.le_of_dvd w h`
+
+-- A lemma with head symbol `¬` can be used to prove `¬ p` or `⊥`
+example (a : ℕ) : ¬ (a < 0) := by library_search -- says `exact not_lt_bot`
+
+example (a : ℕ) (h : a < 0) : false := by library_search -- says `exact not_lt_bot h`
+
+-- An inductive type hides the constructor's arguments enough
+-- so that `library_search` doesn't accidentally close the goal.
+inductive P : ℕ → Prop
+| gt_in_head {n : ℕ} : n < 0 → P n
+
+-- This lemma with `>` as its head symbol should also be found for goals with head symbol `<`.
+lemma lemma_with_gt_in_head (a : ℕ) (h : P a) : 0 > a := by { cases h, assumption }
+
+-- This lemma with `false` as its head symbols should also be found for goals with head symbol `¬`.
+lemma lemma_with_false_in_head (a b : ℕ) (h1 : a < b) (h2 : P a) : false :=
+by { apply nat.not_lt_zero, cases h2, assumption }
+
+example (a : ℕ) (h : P a) : 0 > a := by library_search -- says `exact lemma_with_gt_in_head a h`
+
+example (a : ℕ) (h : P a) : a < 0 := by library_search -- says `exact lemma_with_gt_in_head a h`
+
+example (a b : ℕ) (h1 : a < b) (h2 : P a) : false := by library_search
+-- says `exact lemma_with_false_in_head a b h1 h2`
+
+example (a b : ℕ) (h1 : a < b) : ¬ (P a) := by library_search!
+-- says `exact lemma_with_false_in_head a b h1`
+
+end synonym
 
 -- We even find `iff` results:
 
 example : ∀ P : Prop, ¬(P ↔ ¬P) :=
-by library_search -- says: `λ (a : Prop), (iff_not_self a).mp`
+by library_search! -- says: `λ (a : Prop), (iff_not_self a).mp`
 
 example {a b c : ℕ} (ha : a > 0) (w : b ∣ c) : a * b ∣ a * c :=
 by library_search -- exact mul_dvd_mul_left a w
 
 example {a b c : ℕ} (h₁ : a ∣ c) (h₂ : a ∣ b + c) : a ∣ b :=
 by library_search -- says `exact (nat.dvd_add_left h₁).mp h₂`
+
+-- We have control of how `library_search` uses `solve_by_elim`.
+
+-- In particular, we can add extra lemmas to the `solve_by_elim` step
+-- (i.e. for `library_search` to use to attempt to discharge subgoals
+-- after successfully applying a lemma from the library.)
+example {a b c d: nat} (h₁ : a < c) (h₂ : b < d) : max (c + d) (a + b) = (c + d) :=
+begin
+  library_search [add_lt_add], -- Says: `exact max_eq_left_of_lt (add_lt_add h₁ h₂)`
+end
+
+-- We can also use attributes:
+meta def ex_attr : user_attribute := {
+  name := `ex,
+  descr := "A lemma that should be applied by `library_search` when discharging subgoals."
+}
+
+run_cmd attribute.register ``ex_attr
+
+attribute [ex] add_lt_add
+
+example {a b c d: nat} (h₁ : a < c) (h₂ : b < d) : max (c + d) (a + b) = (c + d) :=
+begin
+  library_search with ex, -- Says: `exact max_eq_left_of_lt (add_lt_add h₁ h₂)`
+end
+
+example (a b : ℕ) (h : 0 < b) : (a * b) / b = a :=
+by library_search -- Says: `exact nat.mul_div_left a h`
+
+example (a b : ℕ) (h : b ≠ 0) : (a * b) / b = a :=
+begin
+  success_if_fail { library_search },
+  library_search [nat.pos_iff_ne_zero.mpr],
+end
+
+-- Checking examples from issue #2220
+example {α : Sort*} (h : empty) : α :=
+by library_search
+
+example {α : Type*} (h : empty) : α :=
+by library_search
+
+def map_from_sum {A B C : Type} (f : A → C) (g : B → C) : (A ⊕ B) → C := by library_search
+
+-- Test that we can provide custom `apply` tactics,
+-- e.g. to change how aggressively we unfold definitions in trying to apply lemmas.
+lemma bind_singleton {α β} (x : α) (f : α → list β) : list.bind [x] f = f x :=
+begin
+  success_if_fail {
+    library_search { apply := λ e, tactic.apply e { md := tactic.transparency.reducible } },
+  },
+  library_search!,
+end
+
+constant f : ℕ → ℕ
+axiom F (a b : ℕ) : f a ≤ f b ↔ a ≤ b
+
+example (a b : ℕ) (h : a ≤ b) : f a ≤ f b := by library_search
 
 end test.library_search

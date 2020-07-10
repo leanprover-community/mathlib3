@@ -5,7 +5,6 @@ Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monad.adjunction
 import category_theory.adjunction.limits
-import category_theory.limits.creates
 
 namespace category_theory
 open category
@@ -15,12 +14,10 @@ universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.c
 
 namespace monad
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
-include 𝒞
-variables {T : C ⥤ C} [monad.{v₁} T]
+variables {C : Type u₁} [category.{v₁} C]
+variables {T : C ⥤ C} [monad T]
 
-variables {J : Type v₁} [𝒥 : small_category J]
-include 𝒥
+variables {J : Type v₁} [small_category J]
 
 namespace forget_creates_limits
 
@@ -96,7 +93,6 @@ def lifted_cone_is_limit : is_limit (lifted_cone D c t) :=
 
 end forget_creates_limits
 
-omit 𝒥
 -- Theorem 5.6.5 from [Riehl][riehl2017]
 /-- The forgetful functor from the Eilenberg-Moore category creates limits. -/
 instance forget_creates_limits : creates_limits (forget T) :=
@@ -106,7 +102,6 @@ instance forget_creates_limits : creates_limits (forget T) :=
     { lifted_cone := forget_creates_limits.lifted_cone D c t,
       valid_lift := cones.ext (iso.refl _) (λ j, (id_comp _).symm),
       makes_limit := forget_creates_limits.lifted_cone_is_limit _ _ _ } ) } }
-include 𝒥
 
 /-- `D ⋙ forget T` has a limit, then `D` has a limit. -/
 def has_limit_of_comp_forget_has_limit (D : J ⥤ algebra T) [has_limit (D ⋙ forget T)] : has_limit D :=
@@ -250,42 +245,36 @@ has_colimit_of_created D (forget T)
 
 end monad
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₁} [𝒟 : category.{v₁} D]
-include 𝒞 𝒟
-variables {J : Type v₁} [𝒥 : small_category J]
-
-include 𝒥
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₁} [category.{v₁} D]
+variables {J : Type v₁} [small_category J]
 
 instance comp_comparison_forget_has_limit
-  (F : J ⥤ D) (R : D ⥤ C) [monadic_right_adjoint R] [has_limit.{v₁} (F ⋙ R)] :
+  (F : J ⥤ D) (R : D ⥤ C) [monadic_right_adjoint R] [has_limit (F ⋙ R)] :
   has_limit ((F ⋙ monad.comparison R) ⋙ monad.forget ((left_adjoint R) ⋙ R)) :=
 (@has_limit_of_iso _ _ _ _ (F ⋙ R) _ _ (iso_whisker_left F (monad.comparison_forget R).symm))
 
 instance comp_comparison_has_limit
-  (F : J ⥤ D) (R : D ⥤ C) [monadic_right_adjoint R] [has_limit.{v₁} (F ⋙ R)] :
+  (F : J ⥤ D) (R : D ⥤ C) [monadic_right_adjoint R] [has_limit (F ⋙ R)] :
   has_limit (F ⋙ monad.comparison R) :=
 monad.has_limit_of_comp_forget_has_limit (F ⋙ monad.comparison R)
 
 /-- Any monadic functor creates limits. -/
-def monadic_creates_limits (F : J ⥤ D) (R : D ⥤ C) [monadic_right_adjoint R] [has_limit.{v₁} (F ⋙ R)] :
+def monadic_creates_limits (F : J ⥤ D) (R : D ⥤ C) [monadic_right_adjoint R] [has_limit (F ⋙ R)] :
   has_limit F :=
 adjunction.has_limit_of_comp_equivalence _ (monad.comparison R)
-
-omit 𝒥
 
 section
 
 /-- If C has limits then any reflective subcategory has limits -/
-def has_limits_of_reflective (R : D ⥤ C) [has_limits.{v₁} C] [reflective R] : has_limits.{v₁} D :=
+def has_limits_of_reflective (R : D ⥤ C) [has_limits C] [reflective R] : has_limits D :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, monadic_creates_limits F R } }
 
 local attribute [instance] has_limits_of_reflective
-include 𝒥
 
 -- We verify that, even jumping through these monadic hoops,
 -- the limit is actually calculated in the obvious way:
-example (R : D ⥤ C) [reflective R] [has_limits.{v₁} C] (F : J ⥤ D) :
+example (R : D ⥤ C) [reflective R] [has_limits C] (F : J ⥤ D) :
 limit F = (left_adjoint R).obj (limit (F ⋙ R)) := rfl
 
 end

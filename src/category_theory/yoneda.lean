@@ -3,7 +3,6 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.opposites
 import category_theory.hom_functor
 
 /-!
@@ -20,8 +19,7 @@ open opposite
 
 universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
-include 𝒞
+variables {C : Type u₁} [category.{v₁} C]
 
 @[simps] def yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁) :=
 { obj := λ X,
@@ -49,12 +47,12 @@ by obviously
 
 @[simp] lemma naturality {X Y : C} (α : yoneda.obj X ⟶ yoneda.obj Y)
   {Z Z' : C} (f : Z ⟶ Z') (h : Z' ⟶ X) : f ≫ α.app (op Z') h = α.app (op Z) (f ≫ h) :=
-begin erw [functor_to_types.naturality], refl end
+(functor_to_types.naturality _ _ α f.op h).symm
 
 instance yoneda_full : full (@yoneda C _) :=
 { preimage := λ X Y f, (f.app (op X)) (𝟙 X) }
 instance yoneda_faithful : faithful (@yoneda C _) :=
-{ injectivity' := λ X Y f g p,
+{ map_injective' := λ X Y f g p,
   begin
     injection p with h,
     convert (congr_fun (congr_fun h (op X)) (𝟙 X)); dsimp; simp,
@@ -89,7 +87,7 @@ begin erw [functor_to_types.naturality], refl end
 instance coyoneda_full : full (@coyoneda C _) :=
 { preimage := λ X Y f, ((f.app (unop X)) (𝟙 _)).op }
 instance coyoneda_faithful : faithful (@coyoneda C _) :=
-{ injectivity' := λ X Y f g p,
+{ map_injective' := λ X Y f g p,
   begin
     injection p with h,
     have t := (congr_fun (congr_fun h (unop X)) (𝟙 _)),
@@ -115,8 +113,7 @@ universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.catego
 
 open opposite
 
-variables (C : Type u₁) [𝒞 : category.{v₁} C]
-include 𝒞
+variables (C : Type u₁) [category.{v₁} C]
 
 -- We need to help typeclass inference with some awkward universe levels here.
 instance prod_category_instance_1 : category ((Cᵒᵖ ⥤ Type v₁) × Cᵒᵖ) :=
@@ -147,11 +144,8 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
     naturality' :=
     begin
       intros X Y f, ext, dsimp,
-      erw [category.id_comp,
-           ←functor_to_types.naturality,
-           obj_map_id,
-           functor_to_types.naturality,
-           functor_to_types.map_id_apply]
+      erw [category.id_comp, ←functor_to_types.naturality],
+      simp only [category.comp_id, yoneda_obj_map],
     end },
   inv :=
   { app := λ F x,
@@ -170,10 +164,9 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
   begin
     ext, dsimp,
     erw [←functor_to_types.naturality,
-         obj_map_id,
-         functor_to_types.naturality,
-         functor_to_types.map_id_apply],
-    refl,
+         obj_map_id],
+    simp only [yoneda_map_app, has_hom.hom.unop_op],
+    erw [category.id_comp],
   end,
   inv_hom_id' :=
   begin
@@ -187,7 +180,6 @@ variables {C}
   (yoneda.obj X ⟶ F) ≅ ulift.{u₁} (F.obj (op X)) :=
 (yoneda_lemma C).app (op X, F)
 
-omit 𝒞
 @[simp] def yoneda_sections_small {C : Type u₁} [small_category C] (X : C) (F : Cᵒᵖ ⥤ Type u₁) :
   (yoneda.obj X ⟶ F) ≅ F.obj (op X) :=
 yoneda_sections X F ≪≫ ulift_trivial _

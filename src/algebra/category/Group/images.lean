@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.category.Group
-import category_theory.limits.shapes.images
-import group_theory.subgroup
-import algebra.group_power
 
 /-!
 # The category of commutative additive groups has images.
@@ -19,9 +16,11 @@ universe u
 
 namespace AddCommGroup
 
+-- Note that because `injective_of_mono` is currently only proved in `Type 0`,
+-- we restrict to the lowest universe here for now.
 variables {G H : AddCommGroup.{0}} (f : G ⟶ H)
 
-local attribute [ext] subtype.eq'
+local attribute [ext] subtype.ext_val
 
 section -- implementation details of `has_image` for AddCommGroup; use the API, not these
 /-- the image of a morphism in AddCommGroup is just the bundling of `set.range f` -/

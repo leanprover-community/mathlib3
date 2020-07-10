@@ -3,7 +3,9 @@ Copyright (c) 2020 Yury Kudryashov All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import linear_algebra.linear_pmap analysis.convex.basic order.zorn
+import linear_algebra.linear_pmap
+import analysis.convex.basic
+import order.zorn
 
 /-!
 # Convex cones
@@ -151,7 +153,7 @@ instance : complete_lattice (convex_cone E) :=
   Sup_le       := λ s p hs x hx, mem_Inf.1 hx p hs,
   le_Inf       := λ s a ha x hx, mem_Inf.2 $ λ t ht, ha t ht hx,
   Inf_le       := λ s a ha x hx, mem_Inf.1 hx _ ha,
-  .. partial_order.lift (coe : convex_cone E → set E) (λ a b, ext') (by apply_instance) }
+  .. partial_order.lift (coe : convex_cone E → set E) (λ a b, ext') }
 
 instance : inhabited (convex_cone E) := ⟨⊥⟩
 
@@ -191,15 +193,13 @@ end convex_cone
 
 namespace convex
 
-local attribute [instance] smul_set
-
 /-- The set of vectors proportional to those in a convex set forms a convex cone. -/
 def to_cone (s : set E) (hs : convex s) : convex_cone E :=
 begin
   apply convex_cone.mk (⋃ c > 0, (c : ℝ) • s);
     simp only [mem_Union, mem_smul_set],
   { rintros c c_pos _ ⟨c', c'_pos, x, hx, rfl⟩,
-    exact ⟨c * c', mul_pos c_pos c'_pos, x, hx, smul_smul _ _ _⟩ },
+    exact ⟨c * c', mul_pos c_pos c'_pos, x, hx, (smul_smul _ _ _).symm⟩ },
   { rintros _ ⟨cx, cx_pos, x, hx, rfl⟩ _ ⟨cy, cy_pos, y, hy, rfl⟩,
     have : 0 < cx + cy, from add_pos cx_pos cy_pos,
     refine ⟨_, this, _, convex_iff_div.1 hs hx hy (le_of_lt cx_pos) (le_of_lt cy_pos) this, _⟩,
@@ -210,7 +210,7 @@ variables {s : set E} (hs : convex s) {x : E}
 
 @[nolint ge_or_gt]
 lemma mem_to_cone : x ∈ hs.to_cone s ↔ ∃ (c > 0) (y ∈ s), (c : ℝ) • y = x :=
-by simp only [to_cone, convex_cone.mem_mk, mem_Union, mem_smul_set, eq_comm]
+by simp only [to_cone, convex_cone.mem_mk, mem_Union, mem_smul_set, eq_comm, exists_prop]
 
 @[nolint ge_or_gt]
 lemma mem_to_cone' : x ∈ hs.to_cone s ↔ ∃ c > 0, (c : ℝ) • x ∈ s :=
@@ -369,13 +369,10 @@ theorem riesz_extension (s : convex_cone E) (f : linear_pmap ℝ E ℝ)
 begin
   rcases riesz_extension.exists_top s f nonneg dense with ⟨⟨g_dom, g⟩, ⟨hpg, hfg⟩, htop, hgs⟩,
   clear hpg,
-  dsimp at hfg hgs htop ⊢,
   refine ⟨g.comp (linear_equiv.of_top _ htop).symm, _, _⟩;
-    simp only [comp_apply, linear_equiv.coe_apply, linear_equiv.of_top_symm_apply],
-  { intro s, refine (hfg _).symm, refl },
-  { intros x hx,
-    apply hgs,
-    exact hx }
+    simp only [comp_apply, linear_equiv.coe_coe, linear_equiv.of_top_symm_apply],
+  { exact λ x, (hfg (submodule.coe_mk _ _).symm).symm },
+  { exact λ x hx, hgs ⟨x, _⟩ hx }
 end
 
 /-- Hahn-Banach theorem: if `N : E → ℝ` is a sublinear map, `f` is a linear map

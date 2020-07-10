@@ -3,9 +3,6 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Patrick Massot, Scott Morrison
 -/
-
-import category_theory.concrete_category.unbundled_hom
-import category_theory.full_subcategory
 import category_theory.monad.limits
 import topology.uniform_space.completion
 import topology.category.Top.basic
@@ -64,7 +61,7 @@ structure CpltSepUniformSpace :=
 (α : Type u)
 [is_uniform_space : uniform_space α]
 [is_complete_space : complete_space α]
-[is_separated : separated α]
+[is_separated : separated_space α]
 
 namespace CpltSepUniformSpace
 
@@ -77,10 +74,10 @@ def to_UniformSpace (X : CpltSepUniformSpace) : UniformSpace :=
 UniformSpace.of X
 
 instance (X : CpltSepUniformSpace) : complete_space ((to_UniformSpace X).α) := CpltSepUniformSpace.is_complete_space X
-instance (X : CpltSepUniformSpace) : separated ((to_UniformSpace X).α) := CpltSepUniformSpace.is_separated X
+instance (X : CpltSepUniformSpace) : separated_space ((to_UniformSpace X).α) := CpltSepUniformSpace.is_separated X
 
 /-- Construct a bundled `UniformSpace` from the underlying type and the appropriate typeclasses. -/
-def of (X : Type u) [uniform_space X] [complete_space X] [separated X] : CpltSepUniformSpace := ⟨X⟩
+def of (X : Type u) [uniform_space X] [complete_space X] [separated_space X] : CpltSepUniformSpace := ⟨X⟩
 
 /-- The category instance on `CpltSepUniformSpace`. -/
 instance category : large_category CpltSepUniformSpace :=
@@ -142,8 +139,7 @@ adjunction.mk_of_hom_equiv
     right_inv := λ f,
     begin
       apply subtype.eq, funext x, cases f,
-      change completion.extension f_val _ = f_val x,
-      erw completion.extension_coe, assumption
+      exact @completion.extension_coe _ _ _ _ _ (CpltSepUniformSpace.separated_space _) f_property _
     end },
   hom_equiv_naturality_left_symm' := λ X X' Y f g,
   begin

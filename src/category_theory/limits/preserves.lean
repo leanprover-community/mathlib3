@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison, Reid Barton
+Authors: Scott Morrison, Reid Barton, Bhavik Mehta
 -/
 import category_theory.limits.limits
 
@@ -38,9 +38,8 @@ namespace category_theory.limits
 
 universes v u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u₁} [𝒞 : category.{v} C]
-variables {D : Type u₂} [𝒟 : category.{v} D]
-include 𝒞 𝒟
+variables {C : Type u₁} [category.{v} C]
+variables {D : Type u₂} [category.{v} D]
 
 variables {J : Type v} [small_category J] {K : J ⥤ C}
 
@@ -50,13 +49,13 @@ class preserves_colimit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves : Π {c : cocone K}, is_colimit c → is_colimit (F.map_cocone c))
 
 /-- A functor which preserves limits preserves chosen limits up to isomorphism. -/
-def preserves_limit_iso (K : J ⥤ C) [has_limit.{v} K] (F : C ⥤ D) [has_limit.{v} (K ⋙ F)] [preserves_limit K F] :
+def preserves_limit_iso (K : J ⥤ C) [has_limit K] (F : C ⥤ D) [has_limit (K ⋙ F)] [preserves_limit K F] :
   F.obj (limit K) ≅ limit (K ⋙ F) :=
 is_limit.cone_point_unique_up_to_iso (preserves_limit.preserves (limit.is_limit K)) (limit.is_limit (K ⋙ F))
 /-- A functor which preserves colimits preserves chosen colimits up to isomorphism. -/
-def preserves_colimit_iso (K : J ⥤ C) [has_colimit.{v} K] (F : C ⥤ D) [has_colimit.{v} (K ⋙ F)] [preserves_colimit K F] :
+def preserves_colimit_iso (K : J ⥤ C) [has_colimit K] (F : C ⥤ D) [has_colimit (K ⋙ F)] [preserves_colimit K F] :
   F.obj (colimit K) ≅ colimit (K ⋙ F) :=
-is_colimit.cone_point_unique_up_to_iso (preserves_colimit.preserves (colimit.is_colimit K)) (colimit.is_colimit (K ⋙ F))
+is_colimit.cocone_point_unique_up_to_iso (preserves_colimit.preserves (colimit.is_colimit K)) (colimit.is_colimit (K ⋙ F))
 
 class preserves_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves_limit : Π {K : J ⥤ C}, preserves_limit K F)
@@ -89,7 +88,6 @@ by { split, intros, cases a, cases b, cc }
 instance preserves_colimits_subsingleton (F : C ⥤ D) : subsingleton (preserves_colimits F) :=
 by { split, intros, cases a, cases b, cc }
 
-omit 𝒟
 instance id_preserves_limits : preserves_limits (𝟭 C) :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ K, by exactI ⟨λ c h,
@@ -103,7 +101,6 @@ instance id_preserves_colimits : preserves_colimits (𝟭 C) :=
   ⟨λ s, h.desc ⟨s.X, λ j, s.ι.app j, λ j j' f, s.ι.naturality f⟩,
    by cases K; rcases c with ⟨_, _, _⟩; intros s j; cases s; exact h.fac _ j,
    by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩; exact h.uniq _ m w⟩⟩ } }
-include 𝒟
 
 section
 variables {E : Type u₃} [ℰ : category.{v} E]
@@ -127,11 +124,43 @@ def preserves_limit_of_preserves_limit_cone {F : C ⥤ D} {t : cone K}
   (h : is_limit t) (hF : is_limit (F.map_cone t)) : preserves_limit K F :=
 ⟨λ t' h', is_limit.of_iso_limit hF (functor.map_iso _ (is_limit.unique_up_to_iso h h'))⟩
 
+/-- Transfer preservation of limits along a natural isomorphism in the shape. -/
+def preserves_limit_of_iso {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K₂) [preserves_limit K₁ F] :
+  preserves_limit K₂ F :=
+{ preserves := λ c t,
+  begin
+    have t' := is_limit.of_cone_equiv (cones.postcompose_equivalence h).inverse t,
+    let hF := iso_whisker_right h F,
+    have := is_limit.of_cone_equiv (cones.postcompose_equivalence hF).functor
+              (preserves_limit.preserves t'),
+    apply is_limit.of_iso_limit this,
+    refine cones.ext (iso.refl _) (λ j, _),
+    dsimp,
+    rw [← F.map_comp],
+    simp,
+  end }
+
 /-- If F preserves one colimit cocone for the diagram K,
   then it preserves any colimit cocone for K. -/
 def preserves_colimit_of_preserves_colimit_cocone {F : C ⥤ D} {t : cocone K}
   (h : is_colimit t) (hF : is_colimit (F.map_cocone t)) : preserves_colimit K F :=
 ⟨λ t' h', is_colimit.of_iso_colimit hF (functor.map_iso _ (is_colimit.unique_up_to_iso h h'))⟩
+
+/-- Transfer preservation of colimits along a natural isomorphism in the shape. -/
+def preserves_colimit_of_iso {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K₂) [preserves_colimit K₁ F] :
+  preserves_colimit K₂ F :=
+{ preserves := λ c t,
+  begin
+    have t' := is_colimit.of_cocone_equiv (cocones.precompose_equivalence h).functor t,
+    let hF := iso_whisker_right h F,
+    have := is_colimit.of_cocone_equiv (cocones.precompose_equivalence hF).inverse
+              (preserves_colimit.preserves t'),
+    apply is_colimit.of_iso_colimit this,
+    refine cocones.ext (iso.refl _) (λ j, _),
+    dsimp,
+    rw [← F.map_comp],
+    simp,
+  end }
 
 /-
 A functor F : C → D reflects limits if whenever the image of a cone
@@ -190,7 +219,6 @@ instance reflects_colimits_of_shape_of_reflects_colimits (F : C ⥤ D)
   [H : reflects_colimits F] : reflects_colimits_of_shape J F :=
 reflects_colimits.reflects_colimits_of_shape
 
-omit 𝒟
 instance id_reflects_limits : reflects_limits (𝟭 C) :=
 { reflects_limits_of_shape := λ J 𝒥,
   { reflects_limit := λ K, by exactI ⟨λ c h,
@@ -204,7 +232,6 @@ instance id_reflects_colimits : reflects_colimits (𝟭 C) :=
   ⟨λ s, h.desc ⟨s.X, λ j, s.ι.app j, λ j j' f, s.ι.naturality f⟩,
    by cases K; rcases c with ⟨_, _, _⟩; intros s j; cases s; exact h.fac _ j,
    by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩; exact h.uniq _ m w⟩⟩ } }
-include 𝒟
 
 section
 variables {E : Type u₃} [ℰ : category.{v} E]
@@ -219,5 +246,31 @@ instance comp_reflects_colimit [reflects_colimit K F] [reflects_colimit (K ⋙ F
 ⟨λ c h, reflects_colimit.reflects (reflects_colimit.reflects h)⟩
 
 end
+
+variable (F : C ⥤ D)
+
+/-- A fully faithful functor reflects limits. -/
+def fully_faithful_reflects_limits [full F] [faithful F] : reflects_limits F :=
+{ reflects_limits_of_shape := λ J 𝒥₁, by exactI
+  { reflects_limit := λ K,
+    { reflects := λ c t,
+      is_limit.mk_cone_morphism (λ s, (cones.functoriality K F).preimage (t.lift_cone_morphism _)) $
+      begin
+        apply (λ s m, (cones.functoriality K F).map_injective _),
+        rw [functor.image_preimage],
+        apply t.uniq_cone_morphism,
+      end } } }
+
+/-- A fully faithful functor reflects colimits. -/
+def fully_faithful_reflects_colimits [full F] [faithful F] : reflects_colimits F :=
+{ reflects_colimits_of_shape := λ J 𝒥₁, by exactI
+  { reflects_colimit := λ K,
+    { reflects := λ c t,
+      is_colimit.mk_cocone_morphism (λ s, (cocones.functoriality K F).preimage (t.desc_cocone_morphism _)) $
+      begin
+        apply (λ s m, (cocones.functoriality K F).map_injective _),
+        rw [functor.image_preimage],
+        apply t.uniq_cocone_morphism,
+      end } } }
 
 end category_theory.limits

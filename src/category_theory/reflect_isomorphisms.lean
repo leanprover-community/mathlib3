@@ -3,8 +3,7 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.limits.limits
-import category_theory.limits.preserves
+import category_theory.limits.cones
 
 open category_theory category_theory.limits
 
@@ -12,12 +11,10 @@ namespace category_theory
 
 universes v₁ v₂ u₁ u₂
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
-include 𝒞
+variables {C : Type u₁} [category.{v₁} C]
 
 section reflects_iso
-variables {D : Type u₂} [𝒟 : category.{v₂} D]
-include 𝒟
+variables {D : Type u₂} [category.{v₂} D]
 
 /--
 Define what it means for a functor `F : C ⥤ D` to reflect isomorphisms: for any
@@ -57,8 +54,7 @@ def cocone_iso_of_hom_iso {K : J ⥤ C} {c d : cocone K} (f : c ⟶ d) [i : is_i
   { hom := i.inv,
     w' := λ j, (as_iso f.hom).comp_inv_eq.2 (f.w j).symm } }
 
-variables {D : Type u₂} [𝒟 : category.{v₁} D]
-include 𝒟
+variables {D : Type u₂} [category.{v₁} D]
 
 /--
 If `F` reflects isomorphisms, then `cones.functoriality F` reflects isomorphisms

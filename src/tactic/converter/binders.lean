@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Binder elimination
 -/
-import order tactic.converter.old_conv
+import order
 
 namespace old_conv
 open tactic monad
@@ -136,10 +136,6 @@ meta def binder_eq_elim.old_conv (b : binder_eq_elim) : old_conv unit := do
   x ← mk_local' n bi d,
   b.check x (bd.instantiate_var x),
   b.adapt_rel b.push
-
-theorem {u v} exists_comm {α : Sort u} {β : Sort v} (p : α → β → Prop) :
-  (∃a b, p a b) ↔ (∃b a, p a b) :=
-⟨λ⟨a, ⟨b, h⟩⟩, ⟨b, ⟨a, h⟩⟩, λ⟨a, ⟨b, h⟩⟩, ⟨b, ⟨a, h⟩⟩⟩
 
 theorem {u v} exists_elim_eq_left {α : Sort u} (a : α) (p : Π(a':α), a' = a → Prop) :
   (∃(a':α)(h : a' = a), p a' h) ↔ p a rfl :=

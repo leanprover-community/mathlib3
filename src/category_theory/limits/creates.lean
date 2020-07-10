@@ -3,8 +3,7 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.limits.limits
-import category_theory.reflect_isomorphisms
+import category_theory.limits.preserves
 
 open category_theory category_theory.limits
 
@@ -12,12 +11,10 @@ namespace category_theory
 
 universes v u₁ u₂ u₃
 
-variables {C : Type u₁} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u₁} [category.{v} C]
 
 section creates
-variables {D : Type u₂} [𝒟 : category.{v} D]
-include 𝒟
+variables {D : Type u₂} [category.{v} D]
 
 variables {J : Type v} [small_category J] {K : J ⥤ C}
 
@@ -33,7 +30,6 @@ Note this definition is really only useful when `c` is a limit already.
 structure liftable_cone (K : J ⥤ C) (F : C ⥤ D) (c : cone (K ⋙ F)) :=
 (lifted_cone : cone K)
 (valid_lift : F.map_cone lifted_cone ≅ c)
-
 
 /--
 Define the lift of a cocone: For a cocone `c` for `K ⋙ F`, give a cocone for
@@ -196,6 +192,26 @@ def creates_limit_of_reflects_iso {K : J ⥤ C} {F : C ⥤ D} [reflects_isomorph
       exact is_limit.of_iso_limit hd' (as_iso f).symm,
     end } }
 
+/-- `F` preserves the limit of `K` if it creates the limit and `K ⋙ F` has the limit. -/
+instance preserves_limit_of_creates_limit_and_has_limit (K : J ⥤ C) (F : C ⥤ D)
+  [creates_limit K F] [has_limit (K ⋙ F)] :
+preserves_limit K F :=
+{ preserves := λ c t, is_limit.of_iso_limit (limit.is_limit _)
+    ((lifted_limit_maps_to_original (limit.is_limit _)).symm ≪≫
+      ((cones.functoriality K F).map_iso ((lifted_limit_is_limit (limit.is_limit _)).unique_up_to_iso t))) }
+
+/-- `F` preserves the limit of shape `J` if it creates these limits and `D` has them. -/
+instance preserves_limit_of_shape_of_creates_limits_of_shape_and_has_limits_of_shape (F : C ⥤ D)
+  [creates_limits_of_shape J F] [has_limits_of_shape J D] :
+preserves_limits_of_shape J F :=
+{ preserves_limit := λ K, category_theory.preserves_limit_of_creates_limit_and_has_limit K F }
+
+/-- `F` preserves limits if it creates limits and `D` has limits. -/
+instance preserves_limits_of_creates_limits_and_has_limits (F : C ⥤ D) [creates_limits F] [has_limits D] :
+  preserves_limits F :=
+{ preserves_limits_of_shape := λ J 𝒥,
+  by exactI category_theory.preserves_limit_of_shape_of_creates_limits_of_shape_and_has_limits_of_shape F }
+
 /--
 If `F` reflects isomorphisms and we can lift any limit cocone to a limit cocone,
 then `F` creates colimits.
@@ -218,6 +234,26 @@ def creates_colimit_of_reflects_iso {K : J ⥤ C} {F : C ⥤ D} [reflects_isomor
       exact is_colimit.of_iso_colimit hd' (as_iso f),
     end } }
 
+/-- `F` preserves the colimit of `K` if it creates the colimit and `K ⋙ F` has the colimit. -/
+instance preserves_colimit_of_creates_colimit_and_has_colimit (K : J ⥤ C) (F : C ⥤ D)
+  [creates_colimit K F] [has_colimit (K ⋙ F)] :
+preserves_colimit K F :=
+{ preserves := λ c t, is_colimit.of_iso_colimit (colimit.is_colimit _)
+    ((lifted_colimit_maps_to_original (colimit.is_colimit _)).symm ≪≫
+      ((cocones.functoriality K F).map_iso ((lifted_colimit_is_colimit (colimit.is_colimit _)).unique_up_to_iso t))) }
+
+/-- `F` preserves the colimit of shape `J` if it creates these colimits and `D` has them. -/
+instance preserves_colimit_of_shape_of_creates_colimits_of_shape_and_has_colimits_of_shape (F : C ⥤ D)
+  [creates_colimits_of_shape J F] [has_colimits_of_shape J D] :
+preserves_colimits_of_shape J F :=
+{ preserves_colimit := λ K, category_theory.preserves_colimit_of_creates_colimit_and_has_colimit K F }
+
+/-- `F` preserves limits if it creates limits and `D` has limits. -/
+instance preserves_colimits_of_creates_colimits_and_has_colimits (F : C ⥤ D) [creates_colimits F] [has_colimits D] :
+  preserves_colimits F :=
+{ preserves_colimits_of_shape := λ J 𝒥,
+  by exactI category_theory.preserves_colimit_of_shape_of_creates_colimits_of_shape_and_has_colimits_of_shape F }
+
 -- For the inhabited linter later.
 /-- If F creates the limit of K, any cone lifts to a limit. -/
 def lifts_to_limit_of_creates (K : J ⥤ C) (F : C ⥤ D)
@@ -236,7 +272,6 @@ def lifts_to_colimit_of_creates (K : J ⥤ C) (F : C ⥤ D)
   valid_lift := lifted_colimit_maps_to_original t,
   makes_colimit := lifted_colimit_is_colimit t }
 
-omit 𝒟
 /-- Any cone lifts through the identity functor. -/
 def id_lifts_cone (c : cone (K ⋙ 𝟭 C)) : liftable_cone K (𝟭 C) c :=
 { lifted_cone :=
@@ -266,7 +301,6 @@ instance inhabited_liftable_cone (c : cone (K ⋙ 𝟭 C)) : inhabited (liftable
 ⟨id_lifts_cone c⟩
 instance inhabited_liftable_cocone (c : cocone (K ⋙ 𝟭 C)) : inhabited (liftable_cocone K (𝟭 C) c) :=
 ⟨id_lifts_cocone c⟩
-include 𝒟
 
 /-- Satisfy the inhabited linter -/
 instance inhabited_lifts_to_limit (K : J ⥤ C) (F : C ⥤ D)

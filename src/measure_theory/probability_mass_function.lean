@@ -5,10 +5,10 @@ Author: Johannes Hölzl
 
 Probability mass function -- discrete probability measures
 -/
-import topology.instances.nnreal topology.instances.ennreal topology.algebra.infinite_sum
+import topology.instances.ennreal
 noncomputable theory
 variables {α : Type*} {β : Type*} {γ : Type*}
-open_locale classical
+open_locale classical big_operators
 
 /-- Probability mass functions, i.e. discrete probability measures -/
 def {u} pmf (α : Type u) : Type u := { f : α → nnreal // has_sum f 1 }
@@ -24,7 +24,7 @@ lemma has_sum_coe_one (p : pmf α) : has_sum p 1 := p.2
 
 lemma summable_coe (p : pmf α) : summable p := (p.has_sum_coe_one).summable
 
-@[simp] lemma tsum_coe (p : pmf α) : (∑a, p a) = 1 := tsum_eq_has_sum p.has_sum_coe_one
+@[simp] lemma tsum_coe (p : pmf α) : (∑'a, p a) = 1 := tsum_eq_has_sum p.has_sum_coe_one
 
 def support (p : pmf α) : set α := {a | p.1 a ≠ 0}
 
@@ -45,7 +45,7 @@ begin
 end
 
 def bind (p : pmf α) (f : α → pmf β) : pmf β :=
-⟨λb, (∑a, p a * f a b),
+⟨λb, (∑'a, p a * f a b),
   begin
     apply ennreal.has_sum_coe.1,
     simp only [ennreal.coe_tsum (bind.summable p f _)],
@@ -54,10 +54,10 @@ def bind (p : pmf α) (f : α → pmf β) : pmf β :=
       (ennreal.coe_tsum p.summable_coe).symm]
   end⟩
 
-@[simp] lemma bind_apply (p : pmf α) (f : α → pmf β) (b : β) : p.bind f b = (∑a, p a * f a b) := rfl
+@[simp] lemma bind_apply (p : pmf α) (f : α → pmf β) (b : β) : p.bind f b = (∑'a, p a * f a b) := rfl
 
 lemma coe_bind_apply (p : pmf α) (f : α → pmf β) (b : β) :
-  (p.bind f b : ennreal) = (∑a, p a * f a b) :=
+  (p.bind f b : ennreal) = (∑'a, p a * f a b) :=
 eq.trans (ennreal.coe_tsum $ bind.summable p f b) $ by simp
 
 @[simp] lemma pure_bind (a : α) (f : α → pmf β) : (pure a).bind f = f a :=
@@ -73,7 +73,7 @@ by ext b; simp [this]
 @[simp] lemma bind_bind (p : pmf α) (f : α → pmf β) (g : β → pmf γ) :
   (p.bind f).bind g = p.bind (λa, (f a).bind g) :=
 begin
-  ext b,
+  ext1 b,
   simp only [ennreal.coe_eq_coe.symm, coe_bind_apply, ennreal.tsum_mul_left.symm,
              ennreal.tsum_mul_right.symm],
   rw [ennreal.tsum_comm],
@@ -83,7 +83,7 @@ end
 lemma bind_comm (p : pmf α) (q : pmf β) (f : α → β → pmf γ) :
   p.bind (λa, q.bind (f a)) = q.bind (λb, p.bind (λa, f a b)) :=
 begin
-  ext b,
+  ext1 b,
   simp only [ennreal.coe_eq_coe.symm, coe_bind_apply, ennreal.tsum_mul_left.symm,
              ennreal.tsum_mul_right.symm],
   rw [ennreal.tsum_comm],
@@ -106,9 +106,9 @@ def seq (f : pmf (α → β)) (p : pmf α) : pmf β := f.bind (λm, p.bind $ λa
 
 def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
 ⟨λa, s.count a / s.card,
-  have s.to_finset.sum (λa, (s.count a : ℝ) / s.card) = 1,
-    by simp [div_eq_inv_mul', finset.mul_sum.symm, (finset.sum_nat_cast _ _).symm, hs],
-  have s.to_finset.sum (λa, (s.count a : nnreal) / s.card) = 1,
+  have ∑ a in s.to_finset, (s.count a : ℝ) / s.card = 1,
+    by simp [div_eq_inv_mul, finset.mul_sum.symm, (finset.sum_nat_cast _ _).symm, hs],
+  have ∑ a in s.to_finset, (s.count a : nnreal) / s.card = 1,
     by rw [← nnreal.eq_iff, nnreal.coe_one, ← this, nnreal.coe_sum]; simp,
   begin
     rw ← this,
@@ -116,7 +116,7 @@ def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
     simp {contextual := tt},
   end⟩
 
-def of_fintype [fintype α] (f : α → nnreal) (h : finset.univ.sum f = 1) : pmf α :=
+def of_fintype [fintype α] (f : α → nnreal) (h : ∑ x, f x = 1) : pmf α :=
 ⟨f, h ▸ has_sum_sum_of_ne_finset_zero (by simp)⟩
 
 def bernoulli (p : nnreal) (h : p ≤ 1) : pmf bool :=

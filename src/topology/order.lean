@@ -42,7 +42,7 @@ finer, coarser, induced topology, coinduced topology
 -/
 
 open set filter classical
-open_locale classical topological_space
+open_locale classical topological_space filter
 
 universes u v w
 
@@ -64,7 +64,7 @@ def generate_from (g : set (set α)) : topological_space α :=
   is_open_sUnion := generate_open.sUnion  }
 
 lemma nhds_generate_from {g : set (set α)} {a : α} :
-  @nhds α (generate_from g) a = (⨅s∈{s | a ∈ s ∧ s ∈ g}, principal s) :=
+  @nhds α (generate_from g) a = (⨅s∈{s | a ∈ s ∧ s ∈ g}, 𝓟 s) :=
 by rw nhds_def; exact le_antisymm
   (infi_le_infi $ assume s, infi_le_infi_const $ assume ⟨as, sg⟩, ⟨as, generate_open.basic _ sg⟩)
   (le_infi $ assume s, le_infi $ assume ⟨as, hs⟩,
@@ -76,10 +76,10 @@ by rw nhds_def; exact le_antisymm
       { rw [principal_univ],
         exact assume _, le_top },
       case generate_open.inter : s t hs' ht' hs ht
-      { exact assume ⟨has, hat⟩, calc _ ≤ principal s ⊓ principal t : le_inf (hs has) (ht hat)
+      { exact assume ⟨has, hat⟩, calc _ ≤ 𝓟 s ⊓ 𝓟 t : le_inf (hs has) (ht hat)
           ... = _ : inf_principal },
       case generate_open.sUnion : k hk' hk
-      { exact λ ⟨t, htk, hat⟩, calc _ ≤ principal t : hk t htk hat
+      { exact λ ⟨t, htk, hat⟩, calc _ ≤ 𝓟 t : hk t htk hat
           ... ≤ _ : le_principal_iff.2 $ subset_sUnion_of_mem htk }
     end)
 
@@ -202,7 +202,8 @@ class discrete_topology (α : Type*) [t : topological_space α] : Prop :=
   is_closed s :=
 (discrete_topology.eq_bot α).symm ▸ trivial
 
-lemma continuous_of_discrete_topology [topological_space α] [discrete_topology α] [topological_space β] {f : α → β} : continuous f :=
+lemma continuous_of_discrete_topology [topological_space α] [discrete_topology α]
+  [topological_space β] {f : α → β} : continuous f :=
 λs hs, is_open_discrete _
 
 lemma nhds_bot (α : Type*) : (@nhds α ⊥) = pure :=
@@ -259,9 +260,9 @@ iff.rfl
 
 lemma is_closed_induced_iff [t : topological_space β] {s : set α} {f : α → β} :
   @is_closed α (t.induced f) s ↔ (∃t, is_closed t ∧ s = f ⁻¹' t) :=
-⟨assume ⟨t, ht, heq⟩, ⟨-t, is_closed_compl_iff.2 ht,
+⟨assume ⟨t, ht, heq⟩, ⟨tᶜ, is_closed_compl_iff.2 ht,
     by simp only [preimage_compl, heq, compl_compl]⟩,
-  assume ⟨t, ht, heq⟩, ⟨-t, ht, by simp only [preimage_compl, heq.symm]⟩⟩
+  assume ⟨t, ht, heq⟩, ⟨tᶜ, ht, by simp only [preimage_compl, heq.symm]⟩⟩
 
 /-- Given `f : α → β` and a topology on `α`, the coinduced topology on `β` is defined
   such that `s:set β` is open if the preimage of `s` is open. This is the finest topology that
@@ -538,7 +539,7 @@ variables {α : Type*} {β : Type*}
 variables [t : topological_space β] {f : α → β}
 
 theorem is_open_induced_eq {s : set α} :
-  @_root_.is_open _ (induced f t) s ↔ s ∈ preimage f '' {s | is_open s} :=
+  @is_open _ (induced f t) s ↔ s ∈ preimage f '' {s | is_open s} :=
 iff.rfl
 
 theorem is_open_induced {s : set β} (h : is_open s) : (induced f t).is_open (f ⁻¹' s) :=
@@ -551,22 +552,22 @@ by rw [nhds_induced, filter.map_comap h]
 lemma closure_induced [t : topological_space β] {f : α → β} {a : α} {s : set α}
   (hf : ∀x y, f x = f y → x = y) :
   a ∈ @closure α (topological_space.induced f t) s ↔ f a ∈ closure (f '' s) :=
-have comap f (𝓝 (f a) ⊓ principal (f '' s)) ≠ ⊥ ↔ 𝓝 (f a) ⊓ principal (f '' s) ≠ ⊥,
+have comap f (𝓝 (f a) ⊓ 𝓟 (f '' s)) ≠ ⊥ ↔ 𝓝 (f a) ⊓ 𝓟 (f '' s) ≠ ⊥,
   from ⟨assume h₁ h₂, h₁ $ h₂.symm ▸ comap_bot,
     assume h,
     forall_sets_nonempty_iff_ne_bot.mp $
       assume s₁ ⟨s₂, hs₂, (hs : f ⁻¹' s₂ ⊆ s₁)⟩,
-      have f '' s ∈ 𝓝 (f a) ⊓ principal (f '' s),
+      have f '' s ∈ 𝓝 (f a) ⊓ 𝓟 (f '' s),
         from mem_inf_sets_of_right $ by simp [subset.refl],
-      have s₂ ∩ f '' s ∈ 𝓝 (f a) ⊓ principal (f '' s),
+      have s₂ ∩ f '' s ∈ 𝓝 (f a) ⊓ 𝓟 (f '' s),
         from inter_mem_sets hs₂ this,
       let ⟨b, hb₁, ⟨a, ha, ha₂⟩⟩ := nonempty_of_mem_sets h this in
       ⟨_, hs $ by rwa [←ha₂] at hb₁⟩⟩,
 calc a ∈ @closure α (topological_space.induced f t) s
-    ↔ (@nhds α (topological_space.induced f t) a) ⊓ principal s ≠ ⊥ : by rw [closure_eq_nhds]; refl
-  ... ↔ comap f (𝓝 (f a)) ⊓ principal (f ⁻¹' (f '' s)) ≠ ⊥ : by rw [nhds_induced, preimage_image_eq _ hf]
-  ... ↔ comap f (𝓝 (f a) ⊓ principal (f '' s)) ≠ ⊥ : by rw [comap_inf, ←comap_principal]
-  ... ↔ _ : by rwa [closure_eq_nhds]
+    ↔ (@nhds α (topological_space.induced f t) a) ⊓ 𝓟 s ≠ ⊥ : by rw [closure_eq_cluster_pts]; refl
+  ... ↔ comap f (𝓝 (f a)) ⊓ 𝓟 (f ⁻¹' (f '' s)) ≠ ⊥ : by rw [nhds_induced, preimage_image_eq _ hf]
+  ... ↔ comap f (𝓝 (f a) ⊓ 𝓟 (f '' s)) ≠ ⊥ : by rw [comap_inf, ←comap_principal]
+  ... ↔ _ : by rwa [closure_eq_cluster_pts]
 
 end induced
 

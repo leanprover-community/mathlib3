@@ -3,8 +3,9 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-
-import analysis.convex.basic analysis.normed_space.bounded_linear_maps analysis.specific_limits
+import analysis.convex.basic
+import analysis.normed_space.bounded_linear_maps
+import analysis.specific_limits
 
 /-!
 # Tangent cone
@@ -34,7 +35,6 @@ variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
 variables {G : Type*} [normed_group G] [normed_space ℝ G]
 
-set_option class.instance_max_depth 50
 open filter set
 open_locale topological_space
 
@@ -72,7 +72,7 @@ begin
   rcases exists_one_lt_norm 𝕜 with ⟨w, hw⟩,
   refine ⟨λn, w^n, λn, (w^n)⁻¹ • y, univ_mem_sets' (λn, mem_univ _),  _, _⟩,
   { simp only [norm_pow],
-    exact tendsto_pow_at_top_at_top_of_gt_1 hw },
+    exact tendsto_pow_at_top_at_top_of_one_lt hw },
   { convert tendsto_const_nhds,
     ext n,
     have : w ^ n * (w ^ n)⁻¹ = 1,
@@ -232,7 +232,7 @@ begin
   { have : (λ (n : ℕ), ∥c n∥) = c,
       by { ext n, exact abs_of_nonneg (pow_nonneg (by norm_num) _) },
     rw this,
-    exact tendsto_pow_at_top_at_top_of_gt_1 (by norm_num) },
+    exact tendsto_pow_at_top_at_top_of_one_lt (by norm_num) },
   show filter.tendsto (λ (n : ℕ), c n • d n) filter.at_top (𝓝 (y - x)),
   { have : (λ (n : ℕ), c n • d n) = (λn, y - x),
     { ext n,
@@ -317,7 +317,7 @@ begin
   have : _ ⊆ tangent_cone_at 𝕜 (s.prod t) (x, y) :=
     union_subset (subset_tangent_cone_prod_left ht.2) (subset_tangent_cone_prod_right hs.2),
   refine subset.trans _ (closure_mono $ submodule.span_mono this),
-  rw [linear_map.span_inl_union_inr, submodule.prod_coe, closure_prod_eq,
+  erw [linear_map.span_inl_union_inr, submodule.prod_coe, closure_prod_eq,
     hs.1, ht.1, univ_prod_univ]
 end
 

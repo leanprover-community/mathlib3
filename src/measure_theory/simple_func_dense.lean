@@ -3,7 +3,6 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-
 import measure_theory.l1_space
 
 /-!
@@ -22,14 +21,14 @@ variables {α : Type u} {β : Type v} {ι : Type*}
 
 namespace measure_theory
 open ennreal nat metric
-open_locale measure_theory
+
 variables [measure_space α] [normed_group β] [second_countable_topology β]
   [measurable_space β] [borel_space β]
 
 local infixr ` →ₛ `:25 := simple_func
 
--- FIXME this monolithic proof causes a deterministic timeout with `-T50000`
--- It should be broken in a sequence of more manageable pieces.
+-- FIXME this monolithic proof used to cause a deterministic timeout with `-T50000`
+-- It no longer does, but it should still be broken up into a sequence of more manageable pieces.
 lemma simple_func_sequence_tendsto {f : α → β} (hf : measurable f) :
   ∃ (F : ℕ → (α →ₛ β)), ∀ x : α, tendsto (λ n, F n x) at_top (𝓝 (f x)) ∧
   ∀ n, ∥F n x∥ ≤ ∥f x∥ + ∥f x∥ :=
@@ -83,7 +82,7 @@ have x_mem_A' : ∀ {N x}, (x ∈ ⋃ M ≤ N, ⋃ k ≤ N, A M k) → x ∈ A' 
 have F_finite : ∀ {N}, finite (range (F N)) :=
 begin
   assume N, apply finite_range_ite,
-  { rw range_comp, apply finite_image, exact finite_range_find_greatest },
+  { rw range_comp, exact finite_range_find_greatest.image _ },
   { exact finite_range_const }
 end,
 -- prove that for all N, (F N) is a measurable function
@@ -96,12 +95,12 @@ begin
   apply measurable.comp measurable_from_nat, apply measurable_find_greatest,
   assume k' k'_le_N, by_cases k'_eq_0 : k' = 0,
   -- if k' = 0
-  have : {x | k N x = 0} = (-⋃ (M : ℕ) (H : M ≤ N) (k : ℕ) (H : k ≤ N), A M k) ∪
-                    (⋃ (m ≤ N), A m 0 - ⋃ m' (hmm' : m < m') (hm'N : m' ≤ N) (k ≤ N), A m' k),
+  have : {x | k N x = 0} = (⋃ (M : ℕ) (H : M ≤ N) (k : ℕ) (H : k ≤ N), A M k)ᶜ ∪
+                    (⋃ (m ≤ N), A m 0 \ ⋃ m' (hmm' : m < m') (hm'N : m' ≤ N) (k ≤ N), A m' k),
   { ext, split,
     { rw [mem_set_of_eq, mem_union_eq, or_iff_not_imp_left, mem_compl_eq, not_not_mem],
       assume k_eq_0 x_mem,
-      simp only [not_exists, exists_prop, mem_Union, not_and, sub_eq_diff, mem_diff],
+      simp only [not_exists, exists_prop, mem_Union, not_and, mem_diff],
       refine ⟨M N x, ⟨nat.find_greatest_le, ⟨by { rw ← k_eq_0, exact x_mem_A x_mem} , _⟩⟩⟩,
       assume m hMm hmN k k_le_N,
       have := nat.find_greatest_is_greatest _ m ⟨hMm, hmN⟩,
@@ -114,7 +113,7 @@ begin
           { simp only [mem_Union], use [M N x, nat.find_greatest_le, k, k_le_N, hx] },
         contradiction },
       { rw not_not_mem at x_mem, assume h, cases h, contradiction,
-        simp only [not_exists, exists_prop, mem_Union, not_and, sub_eq_diff, mem_diff] at h,
+        simp only [not_exists, exists_prop, mem_Union, not_and, mem_diff] at h,
         rcases h with ⟨m, ⟨m_le_N, ⟨hx, hm⟩⟩⟩,
         by_cases m_lt_M : m < M N x,
         { have := hm (M N x) m_lt_M nat.find_greatest_le (k N x) nat.find_greatest_le,
@@ -134,14 +133,14 @@ begin
     simp [is_measurable.Union, is_measurable.Union_Prop, is_measurable_A] },
   { simp [is_measurable.Union, is_measurable.Union_Prop, is_measurable.diff, is_measurable_A] },
   -- if k' ≠ 0
-  have : {x | k N x = k'} = ⋃(m ≤ N), A m k' - ⋃m' (hmm' : m < m') (hm'N : m' ≤ N) (k ≤ N), A m' k,
+  have : {x | k N x = k'} = ⋃(m ≤ N), A m k' \ ⋃m' (hmm' : m < m') (hm'N : m' ≤ N) (k ≤ N), A m' k,
   { ext, split,
     { rw [mem_set_of_eq],
       assume k_eq_k',
       have x_mem : x ∈ ⋃ (M : ℕ) (H : M ≤ N) (k : ℕ) (H : k ≤ N), A M k,
       { have := find_greatest_of_ne_zero k_eq_k' k'_eq_0,
         simp only [mem_Union], use [M N x, nat.find_greatest_le, k', k'_le_N, this] },
-      simp only [not_exists, exists_prop, mem_Union, not_and, sub_eq_diff, mem_diff],
+      simp only [not_exists, exists_prop, mem_Union, not_and, mem_diff],
       refine ⟨M N x, ⟨nat.find_greatest_le, ⟨by { rw ← k_eq_k', exact x_mem_A x_mem} , _⟩⟩⟩,
       assume m hMm hmN k k_le_N,
       have := nat.find_greatest_is_greatest _ m ⟨hMm, hmN⟩,
@@ -149,10 +148,10 @@ begin
       exact ⟨M N x, ⟨nat.find_greatest_le, x_mem_Union_k x_mem⟩⟩ },
     { simp only [mem_set_of_eq, mem_union_eq, mem_compl_eq], assume h,
       have x_mem : x ∈ ⋃ (M : ℕ) (H : M ≤ N) (k : ℕ) (H : k ≤ N), A M k,
-        { simp only [not_exists, exists_prop, mem_Union, not_and, sub_eq_diff, mem_diff] at h,
+        { simp only [not_exists, exists_prop, mem_Union, not_and, mem_diff] at h,
           rcases h with ⟨m, hm, hx, _⟩,
           simp only [mem_Union], use [m, hm,  k', k'_le_N, hx] },
-      simp only [not_exists, exists_prop, mem_Union, not_and, sub_eq_diff, mem_diff] at h,
+      simp only [not_exists, exists_prop, mem_Union, not_and, mem_diff] at h,
       rcases h with ⟨m, ⟨m_le_N, ⟨hx, hm⟩⟩⟩,
       by_cases m_lt_M : m < M N x,
       { have := hm (M N x) m_lt_M nat.find_greatest_le (k N x) nat.find_greatest_le,
@@ -247,7 +246,7 @@ have hF_meas : ∀ n, measurable (G n) := λ n, measurable.comp measurable_coe $
   (F n).measurable.nndist hfm,
 have hg_meas : measurable g := measurable.comp measurable_coe $ measurable.add
   (measurable.add hfm.nnnorm hfm.nnnorm) hfm.nnnorm,
-have h_bound : ∀ n, ∀ₘ x, G n x ≤ g x := λ n, all_ae_of_all $ λ x, coe_le_coe.2 $
+have h_bound : ∀ n, ∀ₘ x, G n x ≤ g x := λ n, ae_of_all _ $ λ x, coe_le_coe.2 $
   calc
     nndist (F n x) (f x) ≤ nndist (F n x) 0 + nndist 0 (f x) : nndist_triangle _ _ _
     ... = nnnorm (F n x) + nnnorm (f x) : by simp [nndist_eq_nnnorm]
@@ -260,7 +259,7 @@ have h_finite : lintegral g < ⊤ :=
     by { rw [lintegral_add, lintegral_nnnorm_add],
       exacts [hfm, hfm, hfm.ennnorm.add hfm.ennnorm, hfm.ennnorm] }
     ... < ⊤ : by { simp only [and_self, add_lt_top], exact hfi},
-have h_lim : ∀ₘ x, tendsto (λ n, G n x) at_top (𝓝 0) := all_ae_of_all $ λ x,
+have h_lim : ∀ₘ x, tendsto (λ n, G n x) at_top (𝓝 0) := ae_of_all _ $ λ x,
   begin
     apply (@tendsto_coe ℕ at_top (λ n, nndist (F n x) (f x)) 0).2,
     apply (@nnreal.tendsto_coe ℕ at_top (λ n, nndist (F n x) (f x)) 0).1,

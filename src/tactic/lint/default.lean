@@ -3,11 +3,10 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 -/
-
 import tactic.lint.frontend
-  tactic.lint.simp
-  tactic.lint.type_classes
-  tactic.lint.misc
+import tactic.lint.simp
+import tactic.lint.type_classes
+import tactic.lint.misc
 
 open tactic
 

@@ -28,11 +28,11 @@ namespace AddCommGroup
 
 variables {J : Type u} [small_category J]
 
-instance add_comm_group_obj (F : J ⥤ AddCommGroup.{u}) (j) :
+instance add_comm_group_obj (F : J ⥤ AddCommGroup) (j) :
   add_comm_group ((F ⋙ forget AddCommGroup).obj j) :=
 by { change add_comm_group (F.obj j), apply_instance }
 
-instance sections_add_submonoid (F : J ⥤ AddCommGroup.{u}) :
+instance sections_add_submonoid (F : J ⥤ AddCommGroup) :
   is_add_submonoid (F ⋙ forget AddCommGroup).sections :=
 { zero_mem := λ j j' f,
   begin
@@ -49,7 +49,7 @@ instance sections_add_submonoid (F : J ⥤ AddCommGroup.{u}) :
     refl,
   end }
 
-instance sections_add_subgroup (F : J ⥤ AddCommGroup.{u}) :
+instance sections_add_subgroup (F : J ⥤ AddCommGroup) :
   is_add_subgroup (F ⋙ forget AddCommGroup).sections :=
 { neg_mem := λ a ah j j' f,
   begin
@@ -60,13 +60,13 @@ instance sections_add_subgroup (F : J ⥤ AddCommGroup.{u}) :
   end,
   ..(AddCommGroup.sections_add_submonoid F) }
 
-instance limit_add_comm_group (F : J ⥤ AddCommGroup.{u}) :
+instance limit_add_comm_group (F : J ⥤ AddCommGroup) :
   add_comm_group (limit (F ⋙ forget AddCommGroup)) :=
 @subtype.add_comm_group ((Π (j : J), (F ⋙ forget _).obj j)) (by apply_instance) _
   (by convert (AddCommGroup.sections_add_subgroup F))
 
 /-- `limit.π (F ⋙ forget AddCommGroup) j` as a `add_monoid_hom`. -/
-def limit_π_add_monoid_hom (F : J ⥤ AddCommGroup.{u}) (j) :
+def limit_π_add_monoid_hom (F : J ⥤ AddCommGroup) (j) :
   limit (F ⋙ forget AddCommGroup) →+ (F ⋙ forget AddCommGroup).obj j :=
 { to_fun := limit.π (F ⋙ forget AddCommGroup) j,
   map_zero' := by { simp only [types.types_limit_π], refl },
@@ -81,7 +81,7 @@ namespace AddCommGroup_has_limits
 Construction of a limit cone in `AddCommGroup`.
 (Internal use only; use the limits API.)
 -/
-def limit (F : J ⥤ AddCommGroup.{u}) : cone F :=
+def limit (F : J ⥤ AddCommGroup) : cone F :=
 { X := ⟨limit (F ⋙ forget _), by apply_instance⟩,
   π :=
   { app := limit_π_add_monoid_hom F,
@@ -92,7 +92,7 @@ def limit (F : J ⥤ AddCommGroup.{u}) : cone F :=
 Witness that the limit cone in `AddCommGroup` is a limit cone.
 (Internal use only; use the limits API.)
 -/
-def limit_is_limit (F : J ⥤ AddCommGroup.{u}) : is_limit (limit F) :=
+def limit_is_limit (F : J ⥤ AddCommGroup) : is_limit (limit F) :=
 begin
   refine is_limit.of_faithful
     (forget AddCommGroup) (limit.is_limit _)
@@ -107,7 +107,7 @@ end AddCommGroup_has_limits
 open AddCommGroup_has_limits
 
 /-- The category of abelian groups has all limits. -/
-instance AddCommGroup_has_limits : has_limits.{u} AddCommGroup.{u} :=
+instance AddCommGroup_has_limits : has_limits AddCommGroup :=
 { has_limits_of_shape := λ J 𝒥,
   { has_limit := λ F, by exactI
     { cone     := limit F,
@@ -117,7 +117,7 @@ instance AddCommGroup_has_limits : has_limits.{u} AddCommGroup.{u} :=
 The forgetful functor from abelian groups to types preserves all limits. (That is, the underlying
 types could have been computed instead as limits in the category of types.)
 -/
-instance forget_preserves_limits : preserves_limits (forget AddCommGroup.{u}) :=
+instance forget_preserves_limits : preserves_limits (forget AddCommGroup) :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ F,
     by exactI preserves_limit_of_preserves_limit_cone

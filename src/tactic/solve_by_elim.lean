@@ -164,19 +164,27 @@ open solve_by_elim
 /--
 `solve_by_elim` repeatedly tries `apply`ing a lemma
 from the list of assumptions (passed via the `opt` argument),
-recursively operating on any generated subgoals.
+recursively operating on any generated subgoals, backtracking as necessary.
 
-It succeeds only if it discharges the first goal
-(or with `backtrack_all_goals := tt`, if it discharges all goals.)
+`solve_by_elim` succeeds only if it discharges the goal.
+(By default, `solve_by_elim` focuses on the first goal, and only attempts to solve that.
+With the option `backtrack_all_goals := tt`,
+it attempts to solve all goals, and only succeeds if it does so.
+With `backtrack_all_goals := tt`, `solve_by_elim` will backtrack a solution it has found for
+one goal if it then can't discharge other goals.)
 
 If passed an empty list of assumptions, `solve_by_elim` builds a default set
 as per the interactive tactic, using the `local_context` along with
 `rfl`, `trivial`, `congr_arg`, and `congr_fun`.
 
 To pass a particular list of assumptions, use the `lemmas` field
-in the configuration argument. This expects an `option (list (tactic expr))`.
-We provide lemmas as `tactic expr` thunks to allow for regenerating metavariables
-for each application.
+in the configuration argument. This expects an
+`option (list expr)`. In certain situations it may be necessary to instead use the
+`lemma_thunks` field, which expects a `option (list (tactic expr))`.
+This allows for regenerating metavariables
+for each application, which might otherwise get stuck.
+
+See also the simpler tactic `apply_rules`, which does not perform backtracking.
 -/
 meta def solve_by_elim (opt : opt := { }) : tactic unit :=
 do
@@ -184,7 +192,8 @@ do
   lemmas ← opt.get_lemma_thunks,
   (if opt.backtrack_all_goals then id else focus1) $ (do
     gs ← get_goals,
-    solve_by_elim_aux opt.to_basic_opt gs lemmas opt.max_depth)
+    solve_by_elim_aux opt.to_basic_opt gs lemmas opt.max_depth <|>
+    fail "solve_by_elim failed; try increasing `max_depth`?")
 
 open interactive lean.parser interactive.types
 local postfix `?`:9001 := optional

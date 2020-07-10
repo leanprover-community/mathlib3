@@ -3,7 +3,8 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.dlist tactic.core
+import data.dlist
+import tactic.core
 
 open lean lean.parser
 
@@ -395,7 +396,7 @@ uses the following recursive grammar:
 
 ```lean
 patt ::= (patt_list "|")* patt_list
-patt_list ::= id | "_" | "⟨" (patt ",")* patt "⟩"
+patt_list ::= id | "rfl" | "_" | "⟨" (patt ",")* patt "⟩"
 ```
 
 A pattern like `⟨a, b, c⟩ | ⟨d, e⟩` will do a split over the inductive datatype,
@@ -407,6 +408,10 @@ such as `⟨⟨a⟩, b | c⟩ | d` then these will cause more case splits as nec
 If there are too many arguments, such as `⟨a, b, c⟩` for splitting on
 `∃ x, ∃ y, p x`, then it will be treated as `⟨a, ⟨b, c⟩⟩`, splitting the last
 parameter as necessary.
+
+If `rcases` results in an expression of the form `x = a`, then using `rfl`
+in the pattern will have the same effect as writing `h` and then
+following the `rcases` with a `subst h`.
 
 `rcases` also has special support for quotient types: quotient induction into Prop works like
 matching on the constructor `quot.mk`.

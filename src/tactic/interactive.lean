@@ -42,7 +42,7 @@ add_tactic_doc
 { name       := "substs",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.substs],
-  tags       := ["rewrite"] }
+  tags       := ["rewriting"] }
 
 /-- Unfold coercion-related definitions -/
 meta def unfold_coes (loc : parse location) : tactic unit :=
@@ -78,6 +78,40 @@ meta def continue (tac : itactic) : tactic unit :=
 λ s, result.cases_on (tac s)
  (λ a, result.success ())
  (λ e ref, result.success ())
+
+/-- `id { tac }` is the same as `tac`, but it is useful for creating a block scope without
+requiring the goal to be solved at the end like `{ tac }`. It can also be used to enclose a
+non-interactive tactic for patterns like `tac1; id {tac2}` where `tac2` is non-interactive. -/
+@[inline] protected meta def id (tac : itactic) : tactic unit := tac
+
+/--
+`work_on_goal n { tac }` creates a block scope for the `n`-goal (indexed from zero),
+and does not require that the goal be solved at the end
+(any remaining subgoals are inserted back into the list of goals).
+
+Typically usage might look like:
+````
+intros,
+simp,
+apply lemma_1,
+work_on_goal 2 {
+  dsimp,
+  simp
+},
+refl
+````
+
+See also `id { tac }`, which is equivalent to `work_on_goal 0 { tac }`.
+-/
+meta def work_on_goal : parse small_nat → itactic → tactic unit
+| n t := do
+  goals ← get_goals,
+  let earlier_goals := goals.take n,
+  let later_goals := goals.drop (n+1),
+  set_goals (goals.nth n).to_list,
+  t,
+  new_goals ← get_goals,
+  set_goals (earlier_goals ++ new_goals ++ later_goals)
 
 /--
 `swap n` will move the `n`th goal to the front.
@@ -420,6 +454,15 @@ meta def guard_hyp' (n : parse ident) (p : parse $ tk ":=" *> texpr) : tactic un
 do h ← get_local n >>= infer_type >>= instantiate_mvars, guard_expr_eq h p
 
 /--
+`match_hyp h := t` fails if the hypothesis `h` does not match the type `t` (which may be a pattern).
+We use this tactic for writing tests.
+-/
+meta def match_hyp (n : parse ident) (p : parse $ tk ":=" *> texpr) (m := reducible) : tactic (list expr) :=
+do
+  h ← get_local n >>= infer_type >>= instantiate_mvars,
+  match_expr p h m
+
+/--
 `guard_expr_strict t := e` fails if the expr `t` is not equal to `e`. By contrast
 to `guard_expr`, this tests strict (syntactic) equality.
 We use this tactic for writing tests.
@@ -700,6 +743,11 @@ begin
   field_simp [hx, hy],
   ring
 end
+
+See also the `cancel_denoms` tactic, which tries to do a similar simplification for expressions
+that have numerals in denominators.
+The tactics are not related: `cancel_denoms` will only handle numeric denominators, and will try to
+entirely remove (numeric) division from the expression by multiplying by a factor.
 ```
 -/
 meta def field_simp (no_dflt : parse only_flag) (hs : parse simp_arg_list)
@@ -928,16 +976,15 @@ end
 meta def set (h_simp : parse (tk "!")?) (a : parse ident) (tp : parse ((tk ":") >> texpr)?)
   (_ : parse (tk ":=")) (pv : parse texpr)
   (rev_name : parse opt_dir_with) :=
-do let vt := match tp with | some t := t | none := pexpr.mk_placeholder end,
-   let pv := ``(%%pv : %%vt),
-   v ← to_expr pv,
-   tp ← infer_type v,
-   definev a tp v,
-   when h_simp.is_none $ change' pv (some (expr.const a [])) loc.wildcard,
+do tp ← i_to_expr $ tp.get_or_else pexpr.mk_placeholder,
+   pv ← to_expr ``(%%pv : %%tp),
+   tp ← instantiate_mvars tp,
+   definev a tp pv,
+   when h_simp.is_none $ change' ``(%%pv) (some (expr.const a [])) $ interactive.loc.wildcard,
    match rev_name with
    | some (flip, id) :=
      do nv ← get_local a,
-        pf ← to_expr (cond flip ``(%%pv = %%nv) ``(%%nv = %%pv)) >>= assert id,
+        mk_app `eq (cond flip [pv, nv] [nv, pv]) >>= assert id,
         reflexivity
    | none := skip
    end
@@ -1094,14 +1141,17 @@ end
 -/
 meta def inhabit (t : parse parser.pexpr) (inst_name : parse ident?) : tactic unit :=
 do ty ← i_to_expr t,
-   nm ← get_unused_name `inst,
-   mcond (target >>= is_prop)
-   (do mk_mapp `nonempty.elim_to_inhabited [ty, none] >>= tactic.apply <|>
-         fail "could not infer nonempty instance",
-       introI $ inst_name.get_or_else nm)
-   (do mk_mapp `classical.inhabited_of_nonempty' [ty, none] >>= note nm none <|>
-         fail "could not infer nonempty instance",
-       resetI)
+   nm ← returnopt inst_name <|> get_unused_name `inst,
+   tgt ← target,
+   tgt_is_prop ← is_prop tgt,
+   if tgt_is_prop then do
+     decorate_error "could not infer nonempty instance:" $
+       mk_mapp ``nonempty.elim_to_inhabited [ty, none, tgt] >>= tactic.apply,
+     introI nm
+   else do
+     decorate_error "could not infer nonempty instance:" $
+      mk_mapp ``classical.inhabited_of_nonempty' [ty, none] >>= note nm none,
+     resetI
 
 add_tactic_doc
 { name       := "inhabit",

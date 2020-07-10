@@ -3,7 +3,8 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl, Reid Barton, Sean Leather, Yury Kudryashov
 -/
-import category_theory.types category_theory.full_subcategory
+import category_theory.types
+import category_theory.full_subcategory
 
 /-!
 # Concrete categories
@@ -81,7 +82,7 @@ local attribute [instance] concrete_category.has_coe_to_fun
 /-- In any concrete category, we can test equality of morphisms by pointwise evaluations.-/
 lemma concrete_category.hom_ext {X Y : C} (f g : X ⟶ Y) (w : ∀ x : X, f x  = g x) : f = g :=
 begin
-  apply faithful.injectivity (forget C),
+  apply faithful.map_injective (forget C),
   ext,
   exact w x,
 end

@@ -3,10 +3,11 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
+import order.filter.extr
+import topology.continuous_on
 
-import order.filter.extr topology.continuous_on
-
-/-! # Local extrema of functions on topological spaces
+/-!
+# Local extrema of functions on topological spaces
 
 ## Main definitions
 
@@ -35,7 +36,7 @@ universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x} [topological_space α]
 
 open set filter
-open_locale topological_space
+open_locale topological_space filter
 
 section preorder
 
@@ -111,11 +112,11 @@ lemma is_extr_on.localize (hf : is_extr_on f s a) : is_local_extr_on f s a :=
 hf.filter_mono $ inf_le_right
 
 lemma is_local_min_on.is_local_min (hf : is_local_min_on f s a) (hs : s ∈ 𝓝 a) : is_local_min f a :=
-have 𝓝 a ≤ principal s, from le_principal_iff.2 hs,
+have 𝓝 a ≤ 𝓟 s, from le_principal_iff.2 hs,
 hf.filter_mono $ le_inf (le_refl _) this
 
 lemma is_local_max_on.is_local_max (hf : is_local_max_on f s a) (hs : s ∈ 𝓝 a) : is_local_max f a :=
-have 𝓝 a ≤ principal s, from le_principal_iff.2 hs,
+have 𝓝 a ≤ 𝓟 s, from le_principal_iff.2 hs,
 hf.filter_mono $ le_inf (le_refl _) this
 
 lemma is_local_extr_on.is_local_extr (hf : is_local_extr_on f s a) (hs : s ∈ 𝓝 a) : is_local_extr f a :=

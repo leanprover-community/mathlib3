@@ -5,10 +5,12 @@ Authors: Johannes Hölzl
 
 Lebesgue measure on the real line
 -/
-import measure_theory.measure_space measure_theory.borel_space
+import measure_theory.measure_space
+import measure_theory.borel_space
 noncomputable theory
 open classical set filter
 open nnreal (of_real)
+open_locale big_operators
 
 namespace measure_theory
 
@@ -92,11 +94,11 @@ outer_measure.of_function_le _ _ _
 
 lemma lebesgue_length_subadditive {a b : ℝ} {c d : ℕ → ℝ}
   (ss : Icc a b ⊆ ⋃i, Ioo (c i) (d i)) :
-  (of_real (b - a) : ennreal) ≤ ∑ i, of_real (d i - c i) :=
+  (of_real (b - a) : ennreal) ≤ ∑' i, of_real (d i - c i) :=
 begin
   suffices : ∀ (s:finset ℕ) b
     (cv : Icc a b ⊆ ⋃ i ∈ (↑s:set ℕ), Ioo (c i) (d i)),
-    (of_real (b - a) : ennreal) ≤ s.sum (λ i, of_real (d i - c i)),
+    (of_real (b - a) : ennreal) ≤ ∑ i in s, of_real (d i - c i),
   { rcases compact_Icc.elim_finite_subcover_image (λ (i : ℕ) (_ : i ∈ univ),
       @is_open_Ioo _ _ _ _ (c i) (d i)) (by simpa using ss) with ⟨s, su, hf, hs⟩,
     have e : (⋃ i ∈ (↑hf.to_finset:set ℕ),
@@ -113,7 +115,7 @@ begin
   rw [← finset.insert_erase is] at cv ⊢,
   rw [finset.coe_insert, bUnion_insert] at cv,
   rw [finset.sum_insert (finset.not_mem_erase _ _)],
-  refine le_trans _ (add_le_add_left' (IH _ (finset.erase_ssubset is) (c i) _)),
+  refine le_trans _ (add_le_add_left (IH _ (finset.erase_ssubset is) (c i) _) _),
   { rw [← ennreal.coe_add, ennreal.coe_le_coe],
     refine le_trans (nnreal.of_real_le_of_real _) nnreal.of_real_add_le,
     rw sub_add_sub_cancel,
@@ -131,7 +133,7 @@ begin
     ennreal.le_of_forall_epsilon_le $ λ ε ε0 h, _),
   rcases ennreal.exists_pos_sum_of_encodable
     (ennreal.zero_lt_coe_iff.2 ε0) ℕ with ⟨ε', ε'0, hε⟩,
-  refine le_trans _ (add_le_add_left' (le_of_lt hε)),
+  refine le_trans _ (add_le_add_left (le_of_lt hε) _),
   rw ← ennreal.tsum_add,
   choose g hg using show
     ∀ i, ∃ p:ℝ×ℝ, f i ⊆ Ioo p.1 p.2 ∧ (of_real (p.2 - p.1) : ennreal) < lebesgue_length (f i) + ε' i,
@@ -156,8 +158,8 @@ begin
   have := @nnreal.of_real_add_le (b - a - ε) ε,
   rw [← ennreal.coe_le_coe, ennreal.coe_add, sub_add_cancel, sub_right_comm,
     ← lebesgue_outer_Icc a (b-ε), nnreal.of_real_coe] at this,
-  exact le_trans this (add_le_add_right' $ lebesgue_outer.mono $
-    Icc_subset_Ico_right $ (sub_lt_self_iff _).2 ε0)
+  exact le_trans this (add_le_add_right (lebesgue_outer.mono $
+    Icc_subset_Ico_right $ (sub_lt_self_iff _).2 ε0) _)
 end
 
 @[simp] lemma lebesgue_outer_Ioo (a b : ℝ) :
@@ -168,15 +170,15 @@ begin
   have := @nnreal.of_real_add_le (b - a - ε) ε,
   rw [← ennreal.coe_le_coe, ennreal.coe_add, sub_add_cancel, sub_sub,
     ← lebesgue_outer_Ico (a+ε) b, nnreal.of_real_coe] at this,
-  exact le_trans this (add_le_add_right' $ lebesgue_outer.mono $
-    Ico_subset_Ioo_left $ (lt_add_iff_pos_right _).2 ε0)
+  exact le_trans this (add_le_add_right (lebesgue_outer.mono $
+    Ico_subset_Ioo_left $ (lt_add_iff_pos_right _).2 ε0) _)
 end
 
 lemma is_lebesgue_measurable_Iio {c : ℝ} :
   lebesgue_outer.caratheodory.is_measurable (Iio c) :=
 outer_measure.caratheodory_is_measurable $ λ t,
 le_infi $ λ a, le_infi $ λ b, le_infi $ λ h, begin
-  refine le_trans (add_le_add'
+  refine le_trans (add_le_add
     (lebesgue_length_mono $ inter_subset_inter_left _ h)
     (lebesgue_length_mono $ diff_subset_diff_left h)) _,
   cases le_total a c with hac hca; cases le_total b c with hbc hcb;
@@ -197,7 +199,7 @@ begin
     ennreal.le_of_forall_epsilon_le $ λ ε ε0 h, _),
   rcases ennreal.exists_pos_sum_of_encodable
     (ennreal.zero_lt_coe_iff.2 ε0) ℕ with ⟨ε', ε'0, hε⟩,
-  refine le_trans _ (add_le_add_left' (le_of_lt hε)),
+  refine le_trans _ (add_le_add_left (le_of_lt hε) _),
   rw ← ennreal.tsum_add,
   choose g hg using show
     ∀ i, ∃ s, f i ⊆ s ∧ is_measurable s ∧ lebesgue_outer s ≤ lebesgue_length (f i) + of_real (ε' i),
@@ -231,7 +233,7 @@ instance : measure_space ℝ :=
   trimmed := lebesgue_outer_trim }⟩
 
 @[simp] theorem lebesgue_to_outer_measure :
-  (measure_space.μ : measure ℝ).to_outer_measure = lebesgue_outer := rfl
+  (volume : measure ℝ).to_outer_measure = lebesgue_outer := rfl
 
 end measure_theory
 
@@ -262,7 +264,7 @@ lemma real.volume_lt_top_of_bounded {s : set ℝ} (h : bounded s) : volume s < �
 begin
   rw [real.bounded_iff_bdd_below_bdd_above, bdd_below_bdd_above_iff_subset_interval] at h,
   rcases h with ⟨a, b, h⟩,
-  calc volume s ≤ volume [a, b] : volume_mono h
+  calc volume s ≤ volume [a, b] : measure_mono h
     ... < ⊤ : by { rw real.volume_interval, exact ennreal.coe_lt_top }
 end
 

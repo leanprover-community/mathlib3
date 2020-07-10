@@ -3,9 +3,9 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro, Shing Tak Lam
 -/
-
-import algebra.ring
-import data.finsupp data.polynomial data.equiv.ring data.equiv.fin
+import data.polynomial
+import data.equiv.ring
+import data.equiv.fin
 import tactic.omega
 
 /-!
@@ -92,9 +92,11 @@ polynomial, multivariate polynomial, multivariable polynomial
 -/
 
 noncomputable theory
-local attribute [instance, priority 100] classical.prop_decidable
+
+open_locale classical big_operators
 
 open set function finsupp add_monoid_algebra
+open_locale big_operators
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
@@ -113,6 +115,9 @@ instance decidable_eq_mv_polynomial [decidable_eq σ] [decidable_eq α] :
   decidable_eq (mv_polynomial σ α) := finsupp.decidable_eq
 instance : comm_semiring (mv_polynomial σ α) := add_monoid_algebra.comm_semiring
 instance : inhabited (mv_polynomial σ α) := ⟨0⟩
+instance : has_scalar α (mv_polynomial σ α) := add_monoid_algebra.has_scalar
+instance : semimodule α (mv_polynomial σ α) := add_monoid_algebra.semimodule
+instance : algebra α (mv_polynomial σ α) := add_monoid_algebra.algebra
 
 /-- the coercion turning an `mv_polynomial` into the function which reports the coefficient of a given monomial -/
 def coeff_coe_to_fun : has_coe_to_fun (mv_polynomial σ α) :=
@@ -124,7 +129,12 @@ local attribute [instance] coeff_coe_to_fun
 def monomial (s : σ →₀ ℕ) (a : α) : mv_polynomial σ α := single s a
 
 /-- `C a` is the constant polynomial with value `a` -/
-def C (a : α) : mv_polynomial σ α := monomial 0 a
+def C : α →+* mv_polynomial σ α :=
+{ to_fun := monomial 0,
+  map_zero' := by simp [monomial],
+  map_one' := rfl,
+  map_add' := λ a a', single_add,
+  map_mul' := λ a a', by simp [monomial, single_mul_single] }
 
 /-- `X n` is the degree `1` monomial `1*n` -/
 def X (n : σ) : mv_polynomial σ α := monomial (single n 1) 1
@@ -143,11 +153,13 @@ by simp [C, monomial, single_mul_single]
 @[simp] lemma C_pow (a : α) (n : ℕ) : (C (a^n) : mv_polynomial σ α) = (C a)^n :=
 by induction n; simp [pow_succ, *]
 
-instance : is_semiring_hom (C : α → mv_polynomial σ α) :=
-{ map_zero := C_0,
-  map_one := C_1,
-  map_add := λ a a', C_add,
-  map_mul := λ a a', C_mul }
+lemma C_injective (σ : Type*) (R : Type*) [comm_ring R] :
+  function.injective (C : R → mv_polynomial σ R) :=
+finsupp.single_injective _
+
+@[simp] lemma C_inj {σ : Type*} (R : Type*) [comm_ring R] (r s : R) :
+  (C r : mv_polynomial σ R) = C s ↔ r = s :=
+(C_injective σ R).eq_iff
 
 lemma C_eq_coe_nat (n : ℕ) : (C ↑n : mv_polynomial σ α) = n :=
 by induction n; simp [nat.succ_eq_add_one, *]
@@ -168,7 +180,7 @@ by rw [X_pow_eq_single, monomial, monomial, monomial, single_mul_single]; simp
 
 lemma single_eq_C_mul_X {s : σ} {a : α} {n : ℕ} :
   monomial (single s n) a = C a * (X s)^n :=
-by rw [← zero_add (single s n), monomial_add_single, C]
+by { rw [← zero_add (single s n), monomial_add_single, C], refl }
 
 @[simp] lemma monomial_add {s : σ →₀ ℕ} {a b : α} :
   monomial s a + monomial s b = monomial s (a + b) :=
@@ -253,8 +265,8 @@ lemma ext (p q : mv_polynomial σ α) :
   (∀ m, coeff m p = coeff m q) → p = q := ext
 
 lemma ext_iff (p q : mv_polynomial σ α) :
-  (∀ m, coeff m p = coeff m q) ↔ p = q :=
-⟨ext p q, λ h m, by rw h⟩
+  p = q ↔ (∀ m, coeff m p = coeff m q) :=
+⟨ λ h m, by rw h, ext p q⟩
 
 @[simp] lemma coeff_add (m : σ →₀ ℕ) (p q : mv_polynomial σ α) :
   coeff m (p + q) = coeff m p + coeff m q := add_apply
@@ -271,7 +283,7 @@ instance coeff.is_add_monoid_hom (m : σ →₀ ℕ) :
   map_zero := coeff_zero m }
 
 lemma coeff_sum {X : Type*} (s : finset X) (f : X → mv_polynomial σ α) (m : σ →₀ ℕ) :
-  coeff m (s.sum f) = s.sum (λ x, coeff m (f x)) :=
+  coeff m (∑ x in s, f x) = ∑ x in s, coeff m (f x) :=
 (s.sum_hom _).symm
 
 lemma monic_monomial_eq (m) : monomial m (1:α) = (m.prod $ λn e, X n ^ e : mv_polynomial σ α) :=
@@ -304,7 +316,7 @@ by rw [coeff_X', if_pos rfl]
 
 @[simp] lemma coeff_C_mul (m) (a : α) (p : mv_polynomial σ α) : coeff m (C a * p) = a * coeff m p :=
 begin
-  rw [mul_def, C, monomial],
+  rw [mul_def], simp only [C, monomial], dsimp, rw [monomial],
   rw sum_single_index,
   { simp only [zero_add],
     convert sum_apply,
@@ -318,7 +330,7 @@ begin
 end
 
 lemma coeff_mul (p q : mv_polynomial σ α) (n : σ →₀ ℕ) :
-  coeff n (p * q) = finset.sum (antidiagonal n).support (λ x, coeff x.1 p * coeff x.2 q) :=
+  coeff n (p * q) = ∑ x in (antidiagonal n).support, coeff x.1 p * coeff x.2 q :=
 begin
   rw mul_def,
   have := @finset.sum_sigma (σ →₀ ℕ) α _ _ p.support (λ _, q.support)
@@ -340,13 +352,12 @@ begin
     rw [← finset.sum_sdiff (finset.filter_subset _), finset.sum_eq_zero, zero_add], swap,
     { intros x hx,
       rw [finset.mem_sdiff, not_iff_not_of_iff (finset.mem_filter), not_and] at hx,
-      rw if_neg,
-      exact hx.2 hx.1 },
+      simp only [if_neg (hx.2 hx.1)] },
     { apply finset.sum_bij, swap 5,
       { intros x hx, exact (x.1, x.2) },
       { intros x hx, rw [finset.mem_filter, finset.mem_sigma] at hx,
         simpa [finset.mem_filter, mem_antidiagonal_support] using hx.symm },
-      { intros x hx, rw finset.mem_filter at hx, rw if_pos hx.2 },
+      { intros x hx, rw finset.mem_filter at hx, simp only [if_pos hx.2], },
       { rintros ⟨i,j⟩ ⟨k,l⟩ hij hkl, simpa using and.intro },
       { rintros ⟨i,j⟩ hij, refine ⟨⟨i,j⟩, _, _⟩, { apply_instance },
         { rw [finset.mem_filter, mem_antidiagonal_support] at hij,
@@ -392,10 +403,10 @@ end coeff
 section as_sum
 
 @[simp]
-lemma support_sum_monomial_coeff (p : mv_polynomial σ α) : p.support.sum (λ v, monomial v (coeff v p)) = p :=
+lemma support_sum_monomial_coeff (p : mv_polynomial σ α) : ∑ v in p.support, monomial v (coeff v p) = p :=
 finsupp.sum_single p
 
-lemma as_sum (p : mv_polynomial σ α) : p = p.support.sum (λ v, monomial v (coeff v p)) :=
+lemma as_sum (p : mv_polynomial σ α) : p = ∑ v in p.support, monomial v (coeff v p) :=
 (support_sum_monomial_coeff p).symm
 
 end as_sum
@@ -408,6 +419,14 @@ variables (f : α → β) (g : σ → β)
   and a ring hom `f` from the scalar ring to the target -/
 def eval₂ (p : mv_polynomial σ α) : β :=
 p.sum (λs a, f a * s.prod (λn e, g n ^ e))
+
+lemma eval₂_eq (g : α →+* β) (x : σ → β) (f : mv_polynomial σ α) :
+  f.eval₂ g x = ∑ d in f.support, g (f.coeff d) * ∏ i in d.support, x i ^ d i :=
+rfl
+
+lemma eval₂_eq' [fintype σ] (g : α →+* β) (x : σ → β) (f : mv_polynomial σ α) :
+  f.eval₂ g x = ∑ d in f.support, g (f.coeff d) * ∏ i, x i ^ d i :=
+by { simp only [eval₂_eq, ← finsupp.prod_pow], refl }
 
 @[simp] lemma eval₂_zero : (0 : mv_polynomial σ α).eval₂ f g = 0 :=
 finsupp.sum_zero_index
@@ -503,11 +522,11 @@ end
 variables [is_semiring_hom f]
 
 @[simp] lemma eval₂_prod (s : finset γ) (p : γ → mv_polynomial σ α) :
-  eval₂ f g (s.prod p) = s.prod (λ x, eval₂ f g $ p x) :=
+  eval₂ f g (∏ x in s, p x) = ∏ x in s, eval₂ f g (p x) :=
 (s.prod_hom _).symm
 
 @[simp] lemma eval₂_sum (s : finset γ) (p : γ → mv_polynomial σ α) :
-  eval₂ f g (s.sum p) = s.sum (λ x, eval₂ f g $ p x) :=
+  eval₂ f g (∑ x in s, p x) = ∑ x in s, eval₂ f g (p x) :=
 (s.sum_hom _).symm
 
 attribute [to_additive] eval₂_prod
@@ -524,7 +543,17 @@ variables {f : σ → α}
 /-- Evaluate a polynomial `p` given a valuation `f` of all the variables -/
 def eval (f : σ → α) : mv_polynomial σ α → α := eval₂ id f
 
+lemma eval_eq (x : σ → α) (f : mv_polynomial σ α) :
+  f.eval x = ∑ d in f.support, f.coeff d * ∏ i in d.support, x i ^ d i :=
+rfl
+
+lemma eval_eq' [fintype σ] (x : σ → α) (f : mv_polynomial σ α) :
+f.eval x = ∑ d in f.support, f.coeff d * ∏ i, x i ^ d i :=
+eval₂_eq' (ring_hom.id α) x f
+
 @[simp] lemma eval_zero : (0 : mv_polynomial σ α).eval f = 0 := eval₂_zero _ _
+
+@[simp] lemma eval_one : (1 : mv_polynomial σ α).eval f = 1 := eval₂_one _ _
 
 @[simp] lemma eval_add : (p + q).eval f = p.eval f + q.eval f := eval₂_add _ _
 
@@ -537,8 +566,19 @@ eval₂_monomial _ _
 
 @[simp] lemma eval_mul : (p * q).eval f = p.eval f * q.eval f := eval₂_mul _ _
 
+@[simp] lemma eval_pow (n : ℕ) : (p ^ n).eval f = (p.eval f) ^ n := eval₂_pow _ _
+
 instance eval.is_semiring_hom : is_semiring_hom (eval f) :=
 eval₂.is_semiring_hom _ _
+
+lemma eval_sum {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ α) (g : σ → α) :
+  eval g (∑ i in s, f i) = ∑ i in s, eval g (f i) :=
+eval₂_sum (ring_hom.id α) g s f
+
+@[to_additive]
+lemma eval_prod {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ α) (g : σ → α) :
+  eval g (∏ i in s, f i) = ∏ i in s, eval g (f i) :=
+eval₂_prod (ring_hom.id α) g s f
 
 theorem eval_assoc {τ}
   (f : σ → mv_polynomial τ α) (g : τ → α)
@@ -638,12 +678,11 @@ end
 
 lemma map_injective (hf : function.injective f) :
   function.injective (map f : mv_polynomial σ α → mv_polynomial σ β) :=
-λ p q h, ext _ _ $ λ m, hf $
 begin
-  rw ← ext_iff at h,
-  specialize h m,
-  rw [coeff_map, coeff_map] at h,
-  exact h
+  intros p q h,
+  simp only [ext_iff, coeff_map] at h ⊢,
+  intro m,
+  exact hf (h m),
 end
 
 end map
@@ -664,15 +703,14 @@ lemma degrees_monomial (s : σ →₀ ℕ) (a : α) : degrees (monomial s a) ≤
 finset.sup_le $ assume t h,
 begin
   have := finsupp.support_single_subset h,
-  rw [finset.singleton_eq_singleton, finset.mem_singleton] at this,
+  rw [finset.mem_singleton] at this,
   rw this
 end
 
 lemma degrees_monomial_eq (s : σ →₀ ℕ) (a : α) (ha : a ≠ 0) :
   degrees (monomial s a) = s.to_multiset :=
 le_antisymm (degrees_monomial s a) $ finset.le_sup $
-  by rw [monomial, finsupp.support_single_ne_zero ha,
-    finset.singleton_eq_singleton, finset.mem_singleton]
+  by rw [monomial, finsupp.support_single_ne_zero ha, finset.mem_singleton]
 
 lemma degrees_C (a : α) : degrees (C a : mv_polynomial σ α) = 0 :=
 multiset.le_zero.1 $ degrees_monomial _ _
@@ -695,7 +733,7 @@ begin
 end
 
 lemma degrees_sum {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ α) :
-  (s.sum f).degrees ≤ s.sup (λi, (f i).degrees) :=
+  (∑ i in s, f i).degrees ≤ s.sup (λi, (f i).degrees) :=
 begin
   refine s.induction _ _,
   { simp only [finset.sum_empty, finset.sup_empty, degrees_zero], exact le_refl _ },
@@ -708,14 +746,14 @@ lemma degrees_mul (p q : mv_polynomial σ α) : (p * q).degrees ≤ p.degrees + 
 begin
   refine finset.sup_le (assume b hb, _),
   have := support_mul p q hb,
-  simp only [finset.mem_bind, finset.singleton_eq_singleton, finset.mem_singleton] at this,
+  simp only [finset.mem_bind, finset.mem_singleton] at this,
   rcases this with ⟨a₁, h₁, a₂, h₂, rfl⟩,
   rw [finsupp.to_multiset_add],
   exact add_le_add (finset.le_sup h₁) (finset.le_sup h₂)
 end
 
 lemma degrees_prod {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ α) :
-  (s.prod f).degrees ≤ s.sum (λi, (f i).degrees) :=
+  (∏ i in s, f i).degrees ≤ ∑ i in s, (f i).degrees :=
 begin
   refine s.induction _ _,
   { simp only [finset.prod_empty, finset.sum_empty, degrees_one] },
@@ -725,7 +763,7 @@ begin
 end
 
 lemma degrees_pow (p : mv_polynomial σ α) :
-  ∀(n : ℕ), (p^n).degrees ≤ add_monoid.smul n p.degrees
+  ∀(n : ℕ), (p^n).degrees ≤ n •ℕ p.degrees
 | 0       := begin rw [pow_zero, degrees_one], exact multiset.zero_le _ end
 | (n + 1) := le_trans (degrees_mul _ _) (add_le_add_left (degrees_pow n) _)
 
@@ -748,7 +786,7 @@ by rw [vars, degrees_monomial_eq _ _ h, finsupp.to_finset_to_multiset]
 by rw [vars, degrees_C, multiset.to_finset_zero]
 
 @[simp] lemma vars_X (h : 0 ≠ (1 : α)) : (X n : mv_polynomial σ α).vars = {n} :=
-by rw [X, vars_monomial h.symm, finsupp.support_single_ne_zero zero_ne_one.symm]
+by rw [X, vars_monomial h.symm, finsupp.support_single_ne_zero (one_ne_zero : 1 ≠ 0)]
 
 lemma mem_support_not_mem_vars_zero {f : mv_polynomial σ α} {x : σ →₀ ℕ} (H : x ∈ f.support) {v : σ} (h : v ∉ vars f) :
   x v = 0 :=
@@ -792,20 +830,27 @@ begin
   exact finset.sup_le (assume s hs, multiset.card_le_of_le $ finset.le_sup hs)
 end
 
-lemma total_degree_C (a : α) : (C a : mv_polynomial σ α).total_degree = 0 :=
+@[simp] lemma total_degree_C (a : α) : (C a : mv_polynomial σ α).total_degree = 0 :=
 nat.eq_zero_of_le_zero $ finset.sup_le $ assume n hn,
   have _ := finsupp.support_single_subset hn,
   begin
-    rw [finset.singleton_eq_singleton, finset.mem_singleton] at this,
+    rw [finset.mem_singleton] at this,
     subst this,
     exact le_refl _
   end
 
-lemma total_degree_zero : (0 : mv_polynomial σ α).total_degree = 0 :=
+@[simp] lemma total_degree_zero : (0 : mv_polynomial σ α).total_degree = 0 :=
 by rw [← C_0]; exact total_degree_C (0 : α)
 
-lemma total_degree_one : (1 : mv_polynomial σ α).total_degree = 0 :=
+@[simp] lemma total_degree_one : (1 : mv_polynomial σ α).total_degree = 0 :=
 total_degree_C (1 : α)
+
+@[simp] lemma total_degree_X {α} [comm_semiring α] [nontrivial α] (s : σ) :
+  (X s : mv_polynomial σ α).total_degree = 1 :=
+begin
+  rw [total_degree, X, monomial, finsupp.support_single_ne_zero (one_ne_zero : (1 : α) ≠ 0)],
+  simp only [finset.sup, sum_single_index, finset.fold_singleton, sup_bot_eq],
+end
 
 lemma total_degree_add (a b : mv_polynomial σ α) :
   (a + b).total_degree ≤ max a.total_degree b.total_degree :=
@@ -823,13 +868,24 @@ lemma total_degree_mul (a b : mv_polynomial σ α) :
 finset.sup_le $ assume n hn,
   have _ := add_monoid_algebra.support_mul a b hn,
   begin
-    simp only [finset.mem_bind, finset.mem_singleton, finset.singleton_eq_singleton] at this,
+    simp only [finset.mem_bind, finset.mem_singleton] at this,
     rcases this with ⟨a₁, h₁, a₂, h₂, rfl⟩,
     rw [finsupp.sum_add_index],
     { exact add_le_add (finset.le_sup h₁) (finset.le_sup h₂) },
     { assume a, refl },
     { assume a b₁ b₂, refl }
   end
+
+lemma total_degree_pow (a : mv_polynomial σ α) (n : ℕ) :
+  (a ^ n).total_degree ≤ n * a.total_degree :=
+begin
+  induction n with n ih,
+  { simp only [nat.nat_zero_eq_zero, zero_mul, pow_zero, total_degree_one] },
+  rw pow_succ,
+  calc total_degree (a * a ^ n) ≤ a.total_degree + (a^n).total_degree : total_degree_mul _ _
+    ... ≤ a.total_degree + n * a.total_degree : add_le_add_left ih _
+    ... = (n+1) * a.total_degree : by rw [add_mul, one_mul, add_comm]
+end
 
 lemma total_degree_list_prod :
   ∀(s : list (mv_polynomial σ α)), s.prod.total_degree ≤ (s.map mv_polynomial.total_degree).sum
@@ -850,14 +906,59 @@ end
 
 lemma total_degree_finset_prod {ι : Type*}
   (s : finset ι) (f : ι → mv_polynomial σ α) :
-  (s.prod f).total_degree ≤ s.sum (λi, (f i).total_degree) :=
+  (s.prod f).total_degree ≤ ∑ i in s, (f i).total_degree :=
 begin
   refine le_trans (total_degree_multiset_prod _) _,
   rw [multiset.map_map],
   refl
 end
 
+lemma exists_degree_lt [fintype σ] (f : mv_polynomial σ α) (n : ℕ)
+  (h : f.total_degree < n * fintype.card σ) {d : σ →₀ ℕ} (hd : d ∈ f.support) :
+  ∃ i, d i < n :=
+begin
+  contrapose! h,
+  calc n * fintype.card σ
+        = ∑ s:σ, n         : by rw [finset.sum_const, nat.nsmul_eq_mul, mul_comm, finset.card_univ]
+    ... ≤ ∑ s, d s         : finset.sum_le_sum (λ s _, h s)
+    ... ≤ d.sum (λ i e, e) : by { rw [finsupp.sum_fintype], intros, refl }
+    ... ≤ f.total_degree   : finset.le_sup hd,
+end
+
 end total_degree
+
+section aeval
+
+/-! ### The algebra of multivariate polynomials -/
+
+variables (R : Type u) (A : Type v) (f : σ → A)
+variables [comm_semiring R] [comm_semiring A] [algebra R A]
+
+/-- A map `σ → A` where `A` is an algebra over `R` generates an `R`-algebra homomorphism
+from multivariate polynomials over `σ` to `A`. -/
+def aeval : mv_polynomial σ R →ₐ[R] A :=
+{ commutes' := λ r, eval₂_C _ _ _
+  .. eval₂_hom (algebra_map R A) f }
+
+theorem aeval_def (p : mv_polynomial σ R) : aeval R A f p = eval₂ (algebra_map R A) f p := rfl
+
+@[simp] lemma aeval_X (s : σ) : aeval R A f (X s) = f s := eval₂_X _ _ _
+
+@[simp] lemma aeval_C (r : R) : aeval R A f (C r) = algebra_map R A r := eval₂_C _ _ _
+
+theorem eval_unique (φ : mv_polynomial σ R →ₐ[R] A) :
+  φ = aeval R A (φ ∘ X) :=
+begin
+  ext p,
+  apply mv_polynomial.induction_on p,
+  { intro r, rw aeval_C, exact φ.commutes r },
+  { intros f g ih1 ih2,
+    rw [φ.map_add, ih1, ih2, alg_hom.map_add] },
+  { intros p j ih,
+    rw [φ.map_mul, alg_hom.map_mul, aeval_X, ih] }
+end
+
+end aeval
 
 end comm_semiring
 
@@ -866,8 +967,6 @@ variable [comm_ring α]
 variables {p q : mv_polynomial σ α}
 
 instance : comm_ring (mv_polynomial σ α) := add_monoid_algebra.comm_ring
-instance : has_scalar α (mv_polynomial σ α) := finsupp.has_scalar
-instance : module α (mv_polynomial σ α) := finsupp.module (σ →₀ ℕ) α
 
 instance C.is_ring_hom : is_ring_hom (C : α → mv_polynomial σ α) :=
 by apply is_ring_hom.of_semiring
@@ -894,8 +993,10 @@ begin
   { exact (mul_zero $ mv_polynomial.C a).trans (@smul_zero α (mv_polynomial σ α) _ _ _ a).symm },
   intros p b f haf hb0 ih,
   rw [mul_add, ih, @smul_add α (mv_polynomial σ α) _ _ _ a], congr' 1,
-  rw [add_monoid_algebra.mul_def, finsupp.smul_single, mv_polynomial.C, mv_polynomial.monomial],
-  rw [finsupp.sum_single_index, finsupp.sum_single_index, zero_add, smul_eq_mul],
+  rw [add_monoid_algebra.mul_def, finsupp.smul_single],
+  simp only [mv_polynomial.C],
+  dsimp [mv_polynomial.monomial],
+  rw [finsupp.sum_single_index, finsupp.sum_single_index, zero_add],
   { rw [mul_zero, finsupp.single_zero] },
   { rw finsupp.sum_single_index,
     all_goals { rw [zero_mul, finsupp.single_zero] }, }
@@ -987,43 +1088,19 @@ eval₂.is_ring_hom _ _
 
 end map
 
-section aeval
+section total_degree
 
-/-- The algebra of multivariate polynomials. -/
--- FIXME this causes a deterministic timeout with `-T50000` (but `-T60000` seems okay)
-instance mv_polynomial (R : Type u) [comm_ring R] (σ : Type v) : algebra R (mv_polynomial σ R) :=
-{ commutes' := λ _ _, mul_comm _ _,
-  smul_def' := λ c p, (mv_polynomial.C_mul' c p).symm,
-  .. ring_hom.of mv_polynomial.C, .. mv_polynomial.module }
+@[simp] lemma total_degree_neg (a : mv_polynomial σ α) :
+  (-a).total_degree = a.total_degree :=
+by simp only [total_degree, finsupp.support_neg]
 
-variables (R : Type u) (A : Type v) (f : σ → A)
-variables [comm_ring R] [comm_ring A] [algebra R A]
+lemma total_degree_sub (a b : mv_polynomial σ α) :
+  (a - b).total_degree ≤ max a.total_degree b.total_degree :=
+calc (a - b).total_degree = (a + -b).total_degree                : by rw sub_eq_add_neg
+                      ... ≤ max a.total_degree (-b).total_degree : total_degree_add a (-b)
+                      ... = max a.total_degree b.total_degree    : by rw total_degree_neg
 
-/-- A map `σ → A` where `A` is an algebra over `R` generates an `R`-algebra homomorphism
-from multivariate polynomials over `σ` to `A`. -/
-def aeval : mv_polynomial σ R →ₐ[R] A :=
-{ commutes' := λ r, eval₂_C _ _ _
-  .. eval₂_hom (algebra_map R A) f }
-
-theorem aeval_def (p : mv_polynomial σ R) : aeval R A f p = eval₂ (algebra_map R A) f p := rfl
-
-@[simp] lemma aeval_X (s : σ) : aeval R A f (X s) = f s := eval₂_X _ _ _
-
-@[simp] lemma aeval_C (r : R) : aeval R A f (C r) = algebra_map R A r := eval₂_C _ _ _
-
-theorem eval_unique (φ : mv_polynomial σ R →ₐ[R] A) :
-  φ = aeval R A (φ ∘ X) :=
-begin
-  ext p,
-  apply mv_polynomial.induction_on p,
-  { intro r, rw aeval_C, exact φ.commutes r },
-  { intros f g ih1 ih2,
-    rw [φ.map_add, ih1, ih2, alg_hom.map_add] },
-  { intros p j ih,
-    rw [φ.map_mul, alg_hom.map_mul, aeval_X, ih] }
-end
-
-end aeval
+end total_degree
 
 end comm_ring
 
@@ -1111,13 +1188,13 @@ begin
   exact assume a b c, pow_add _ _ _
 end
 
-lemma injective_rename (f : β → γ) (hf : function.injective f) :
+lemma rename_injective (f : β → γ) (hf : function.injective f) :
   function.injective (rename f : mv_polynomial β α → mv_polynomial γ α) :=
 have (rename f : mv_polynomial β α → mv_polynomial γ α) =
   finsupp.map_domain (finsupp.map_domain f) := funext (rename_eq f),
 begin
   rw this,
-  exact finsupp.injective_map_domain (finsupp.injective_map_domain hf)
+  exact finsupp.map_domain_injective (finsupp.map_domain_injective hf)
 end
 
 lemma total_degree_rename_le (f : β → γ) (p : mv_polynomial β α) :
@@ -1183,7 +1260,7 @@ theorem exists_fin_rename (p : mv_polynomial γ α) :
 begin
   obtain ⟨s, q, rfl⟩ := exists_finset_rename p,
   obtain ⟨n, ⟨e⟩⟩ := fintype.exists_equiv_fin {x // x ∈ s},
-  refine ⟨n, coe ∘ e.symm, injective_comp subtype.val_injective e.symm.injective, q.rename e, _⟩,
+  refine ⟨n, coe ∘ e.symm, subtype.val_injective.comp e.symm.injective, q.rename e, _⟩,
   rw [← rename_rename, rename_rename e],
   simp only [function.comp, equiv.symm_apply_apply, rename_rename]
 end
@@ -1279,7 +1356,7 @@ eval₂ (C ∘ C) (λbc, sum.rec_on bc X (C ∘ X))
 
 instance is_semiring_hom_C_C :
   is_semiring_hom (C ∘ C : α → mv_polynomial β (mv_polynomial γ α)) :=
-@is_semiring_hom.comp _ _ _ _ C mv_polynomial.is_semiring_hom _ _ C mv_polynomial.is_semiring_hom
+@is_semiring_hom.comp _ _ _ _ C _ _ _ C _
 
 instance is_semiring_hom_sum_to_iter : is_semiring_hom (sum_to_iter α β γ) :=
 eval₂.is_semiring_hom _ _
@@ -1346,10 +1423,10 @@ begin
       apply_instance,
       apply @is_semiring_hom.comp _ _ _ _ _ _ _ _ _ _,
       apply_instance,
-      { apply @mv_polynomial.is_semiring_hom },
+      { apply_instance, },
       { apply mv_polynomial.is_semiring_hom_iter_to_sum α β γ },
       { apply mv_polynomial.is_semiring_hom_sum_to_iter α β γ } },
-    { apply mv_polynomial.is_semiring_hom },
+    { apply_instance, },
     { assume a, rw [iter_to_sum_C_C α β γ, sum_to_iter_C α β γ] },
     { assume c, rw [iter_to_sum_C_X α β γ, sum_to_iter_Xr α β γ] } },
   { assume b, rw [iter_to_sum_X α β γ, sum_to_iter_Xl α β γ] },

@@ -28,3 +28,8 @@ open category_theory
 
 -- Test that `delta_instance` works in the presence of universe metavariables.
 attribute [derive large_category] Mon
+
+-- test deriving instances on function types
+@[derive monad]
+meta def my_tactic : Type → Type :=
+tactic

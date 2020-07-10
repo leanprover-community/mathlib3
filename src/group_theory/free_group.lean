@@ -13,10 +13,8 @@ and proof that its join is an equivalence relation.
 
 Then we introduce `free_group α` as a quotient over `free_group.red.step`.
 -/
-import logic.relation
-import algebra.group_power
 import data.fintype.basic
-import group_theory.subgroup
+import deprecated.subgroup
 open relation
 
 universes u v w
@@ -270,7 +268,7 @@ begin
   { exact ⟨0, rfl⟩ },
   { rcases ih with ⟨n, eq⟩,
     existsi (1 + n),
-    simp [mul_add, eq, (step.length h₂₃).symm] }
+    simp [mul_add, eq, (step.length h₂₃).symm, add_assoc] }
 end
 
 theorem antisymm (h₁₂ : red L₁ L₂) : red L₂ L₁ → L₁ = L₂ :=

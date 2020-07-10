@@ -3,7 +3,8 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.calculus.mean_value analysis.complex.exponential
+import analysis.calculus.mean_value
+import analysis.special_functions.exp_log
 
 /-!
 # Grönwall's inequality
@@ -55,8 +56,8 @@ begin
     convert ((has_deriv_at_id x).const_mul ε).const_add δ,
     rw [mul_one] },
   { simp only [gronwall_bound_of_K_ne_0 hK],
-    convert (((has_deriv_at_id x).const_mul K).rexp.const_mul δ).add
-      ((((has_deriv_at_id x).const_mul K).rexp.sub_const 1).const_mul (ε / K)) using 1,
+    convert (((has_deriv_at_id x).const_mul K).exp.const_mul δ).add
+      ((((has_deriv_at_id x).const_mul K).exp.sub_const 1).const_mul (ε / K)) using 1,
     simp only [id, mul_add, (mul_assoc _ _ _).symm, mul_comm _ K, mul_div_cancel' _ hK],
     ring }
 end

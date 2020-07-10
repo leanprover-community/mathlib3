@@ -3,8 +3,9 @@ Copyright (c) 2020 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-
-import group_theory.group_action algebra.pi_instances data.set.disjointed data.support
+import algebra.pi_instances
+import data.set.disjointed
+import data.support
 
 /-!
 # Indicator function
@@ -24,7 +25,7 @@ indicator, characteristic
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical big_operators
 
 namespace set
 
@@ -45,8 +46,14 @@ lemma indicator_apply (s : set α) (f : α → β) (a : α) :
 
 @[simp] lemma indicator_of_not_mem (h : a ∉ s) (f : α → β) : indicator s f a = 0 := if_neg h
 
+lemma eq_on_indicator : eq_on (indicator s f) f s := λ x hx, indicator_of_mem hx f
+
 lemma support_indicator : function.support (s.indicator f) ⊆ s :=
 λ x hx, hx.imp_symm (λ h, indicator_of_not_mem h f)
+
+@[simp] lemma indicator_range_comp {ι : Sort*} (f : ι → α) (g : α → β) :
+  indicator (range f) g ∘ f = g ∘ f :=
+piecewise_range_comp _ _ _
 
 lemma indicator_congr (h : ∀ a ∈ s, f a = g a) : indicator s f = indicator s g :=
 funext $ λx, by { simp only [indicator], split_ifs, { exact h _ h_1 }, refl }
@@ -77,8 +84,17 @@ begin
 end
 
 lemma indicator_preimage (s : set α) (f : α → β) (B : set β) :
-  (indicator s f)⁻¹' B = s ∩ f ⁻¹' B ∪ (-s) ∩ (λa:α, (0:β)) ⁻¹' B :=
+  (indicator s f)⁻¹' B = s ∩ f ⁻¹' B ∪ sᶜ ∩ (λa:α, (0:β)) ⁻¹' B :=
 by { rw [indicator, if_preimage] }
+
+lemma indicator_preimage_of_not_mem (s : set α) (f : α → β) {t : set β} (ht : (0:β) ∉ t) :
+  (indicator s f)⁻¹' t = s ∩ f ⁻¹' t :=
+by simp [indicator_preimage, set.preimage_const_of_not_mem ht]
+
+lemma mem_range_indicator {r : β} {s : set α} {f : α → β} :
+  r ∈ range (indicator s f) ↔ (r = 0 ∧ s ≠ univ) ∨ (r ∈ f '' s) :=
+by simp [indicator, ite_eq_iff, exists_or_distrib, eq_univ_iff_forall, and_comm, or_comm,
+  @eq_comm _ r 0]
 
 end has_zero
 
@@ -127,7 +143,7 @@ lemma indicator_sub (s : set α) (f g : α → β) :
   indicator s (λa, f a - g a) = λa, indicator s f a - indicator s g a :=
 show indicator s (f - g) = indicator s f - indicator s g, from is_add_group_hom.map_sub _ _ _
 
-lemma indicator_compl (s : set α) (f : α → β) : indicator (-s) f = λ a, f a - indicator s f a :=
+lemma indicator_compl (s : set α) (f : α → β) : indicator sᶜ f = λ a, f a - indicator s f a :=
 begin
   funext,
   simp only [indicator],
@@ -138,7 +154,7 @@ begin
 end
 
 lemma indicator_finset_sum {β} [add_comm_monoid β] {ι : Type*} (I : finset ι) (s : set α) (f : ι → α → β) :
-  indicator s (I.sum f) = I.sum (λ i, indicator s (f i)) :=
+  indicator s (∑ i in I, f i) = ∑ i in I, indicator s (f i) :=
 begin
   convert (finset.sum_hom _ _).symm,
   split,
@@ -147,7 +163,7 @@ end
 
 lemma indicator_finset_bUnion {β} [add_comm_monoid β] {ι} (I : finset ι)
   (s : ι → set α) {f : α → β} : (∀ (i ∈ I) (j ∈ I), i ≠ j → s i ∩ s j = ∅) →
-  indicator (⋃ i ∈ I, s i) f = λ a, I.sum (λ i, indicator (s i) f a) :=
+  indicator (⋃ i ∈ I, s i) f = λ a, ∑ i in I, indicator (s i) f a :=
 begin
   refine finset.induction_on I _ _,
   assume h,
@@ -191,7 +207,7 @@ by { rw indicator_apply, split_ifs with as, { exact h as }, refl }
 lemma indicator_nonpos (h : ∀ a ∈ s, f a ≤ 0) : ∀ a, indicator s f a ≤ 0 :=
 λ a, indicator_nonpos' (h a)
 
-lemma indicator_le_indicator (h : f a ≤ g a) : indicator s f a ≤ indicator s g a :=
+@[mono] lemma indicator_le_indicator (h : f a ≤ g a) : indicator s f a ≤ indicator s g a :=
 by { simp only [indicator], split_ifs with ha, { exact h }, refl }
 
 lemma indicator_le_indicator_of_subset (h : s ⊆ t) (hf : ∀a, 0 ≤ f a) (a : α) :

@@ -5,7 +5,6 @@ Author: Seul Baek
 Subtraction elimination for linear natural number arithmetic.
 Works by repeatedly rewriting goals of the preform `P[t-s]` into
 `P[x] ∧ (t = s + x ∨ (t ≤ s ∧ x = 0))`, where `x` is fresh. -/
-
 import tactic.omega.nat.form
 
 namespace omega

@@ -3,8 +3,8 @@ Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Johannes Hölzl
 -/
-
-import order.filter order.conditionally_complete_lattice order.bounds
+import order.filter.partial
+import order.filter.at_top_bot
 
 /-!
 # liminfs and limsups of functions and filters
@@ -35,6 +35,7 @@ In complete lattices, however, it coincides with the `Inf Sup` definition.
 -/
 
 open filter set
+open_locale filter
 
 variables {α : Type*} {β : Type*}
 namespace filter
@@ -62,7 +63,7 @@ iff.intro
 /-- A bounded function `u` is in particular eventually bounded. -/
 lemma is_bounded_under_of {f : filter β} {u : β → α} :
   (∃b, ∀x, r (u x) b) → f.is_bounded_under r u
-| ⟨b, hb⟩ := ⟨b, show ∀ᶠ x in f, r (u x) b, from eventually_of_forall _ hb⟩
+| ⟨b, hb⟩ := ⟨b, show ∀ᶠ x in f, r (u x) b, from eventually_of_forall hb⟩
 
 lemma is_bounded_bot : is_bounded r ⊥ ↔ nonempty α :=
 by simp [is_bounded, exists_true_iff_nonempty]
@@ -70,7 +71,7 @@ by simp [is_bounded, exists_true_iff_nonempty]
 lemma is_bounded_top : is_bounded r ⊤ ↔ (∃t, ∀x, r x t) :=
 by simp [is_bounded, eq_univ_iff_forall]
 
-lemma is_bounded_principal (s : set α) : is_bounded r (principal s) ↔ (∃t, ∀x∈s, r x t) :=
+lemma is_bounded_principal (s : set α) : is_bounded r (𝓟 s) ↔ (∃t, ∀x∈s, r x t) :=
 by simp [is_bounded, subset_def]
 
 lemma is_bounded_sup [is_trans α r] (hr : ∀b₁ b₂, ∃b, r b₁ b ∧ r b₂ b) :
@@ -125,7 +126,7 @@ lemma is_cobounded_top : is_cobounded r ⊤ ↔ nonempty α :=
 by simp [is_cobounded, eq_univ_iff_forall, exists_true_iff_nonempty] {contextual := tt}
 
 lemma is_cobounded_principal (s : set α) :
-  (principal s).is_cobounded r↔ (∃b, ∀a, (∀x∈s, r x a) → r b a) :=
+  (𝓟 s).is_cobounded r↔ (∃b, ∀a, (∀x∈s, r x a) → r b a) :=
 by simp [is_cobounded, subset_def]
 
 lemma is_cobounded_of_le (h : f ≤ g) : f.is_cobounded r → g.is_cobounded r
@@ -146,11 +147,11 @@ lemma is_cobounded_ge_of_top [order_top α] {f : filter α} : f.is_cobounded (�
 ⟨⊤, assume a h, le_top⟩
 
 lemma is_bounded_le_of_top [order_top α] {f : filter α} : f.is_bounded (≤) :=
-⟨⊤, eventually_of_forall _ $ λ _, le_top⟩
+⟨⊤, eventually_of_forall $ λ _, le_top⟩
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma is_bounded_ge_of_bot [order_bot α] {f : filter α} : f.is_bounded (≥) :=
-⟨⊥, eventually_of_forall _ $ λ _, bot_le⟩
+⟨⊥, eventually_of_forall $ λ _, bot_le⟩
 
 lemma is_bounded_under_sup [semilattice_sup α] {f : filter β} {u v : β → α} :
   f.is_bounded_under (≤) u → f.is_bounded_under (≤) v → f.is_bounded_under (≤) (λa, u a ⊔ v a)
@@ -264,11 +265,11 @@ Liminf_le_Liminf hu hv $ assume b (hb : ∀ᶠ a in f, b ≤ u a), show ∀ᶠ a
   by filter_upwards [hb, h] assume a, le_trans
 
 theorem Limsup_principal {s : set α} (h : bdd_above s) (hs : s.nonempty) :
-  (principal s).Limsup = Sup s :=
+  (𝓟 s).Limsup = Sup s :=
 by simp [Limsup]; exact cInf_upper_bounds_eq_cSup h hs
 
 theorem Liminf_principal {s : set α} (h : bdd_below s) (hs : s.nonempty) :
-  (principal s).Liminf = Inf s :=
+  (𝓟 s).Liminf = Inf s :=
 by simp [Liminf]; exact cSup_lower_bounds_eq_cInf h hs
 
 lemma limsup_congr {α : Type*} [conditionally_complete_lattice β] {f : filter α} {u v : α → β}

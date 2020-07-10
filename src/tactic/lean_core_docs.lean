@@ -9,7 +9,8 @@ import tactic.doc_commands
 
 # Core tactic documentation
 
-This file adds the majority of the interactive tactics from core Lean (i.e. pre-mathlib) to the API documentation.
+This file adds the majority of the interactive tactics from core Lean (i.e. pre-mathlib) to
+the API documentation.
 
 ## TODO
 
@@ -30,8 +31,8 @@ add_tactic_doc
   decl_names := [`tactic.interactive.abstract],
   tags       := ["core", "proof extraction"] }
 
-/-- Proves a goal of the form `s = t` when `s` and `t` are expressions built up out of a binary operation,
-and equality can be proved using associativity and commutativity of that operation. -/
+/-- Proves a goal of the form `s = t` when `s` and `t` are expressions built up out of a binary
+operation, and equality can be proved using associativity and commutativity of that operation. -/
 add_tactic_doc
 { name       := "ac_refl",
   category   := doc_category.tactic,
@@ -105,10 +106,14 @@ add_tactic_doc
   tags       := ["core", "goal management", "combinator", "proof extraction"] }
 
 /--
-`by_cases p` splits the main goal into two cases, assuming `h : p` in the first branch, and `h : ¬ p` in the second branch. You can specify the name of the new hypothesis using the syntax `by_cases h : p`.
+`by_cases p` splits the main goal into two cases, assuming `h : p` in the first branch, and
+`h : ¬ p` in the second branch. You can specify the name of the new hypothesis using the syntax
+`by_cases h : p`.
 
-This tactic requires that `p` is decidable. To ensure that all propositions are decidable via classical reasoning, use
-`open_locale classical` (or `local attribute [instance, priority 10] classical.prop_decidable` if you are not using mathlib).
+This tactic requires that `p` is decidable. To ensure that all propositions are decidable via
+classical reasoning, use `open_locale classical`
+(or `local attribute [instance, priority 10] classical.prop_decidable` if you are not using
+mathlib).
 -/
 add_tactic_doc
 { name       := "by_cases",
@@ -117,10 +122,14 @@ add_tactic_doc
   tags       := ["core", "basic", "logic", "case bashing"] }
 
 /--
-If the target of the main goal is a proposition `p`, `by_contra h` reduces the goal to proving `false` using the additional hypothesis `h : ¬ p`. If `h` is omitted, a name is generated automatically.
+If the target of the main goal is a proposition `p`, `by_contra h` reduces the goal to proving
+`false` using the additional hypothesis `h : ¬ p`. If `h` is omitted, a name is generated
+automatically.
 
-This tactic requires that `p` is decidable. To ensure that all propositions are decidable via classical reasoning, use
- `open_locale classical` (or `local attribute [instance, priority 10] classical.prop_decidable` if you are not using mathlib).
+This tactic requires that `p` is decidable. To ensure that all propositions are decidable via
+classical reasoning, use `open_locale classical`
+(or `local attribute [instance, priority 10] classical.prop_decidable` if you are not using
+mathlib).
 -/
 add_tactic_doc
 { name       := "by_contra / by_contradiction",
@@ -147,7 +156,8 @@ if `type` matches the pattern `p`.
 `cases_matching [p_1, ..., p_n]` applies the `cases` tactic to a hypothesis `h : type`
 if `type` matches one of the given patterns.
 
-`cases_matching* p` is a more efficient and compact version of `focus1 { repeat { cases_matching p } }`.
+`cases_matching* p` is a more efficient and compact version
+of `focus1 { repeat { cases_matching p } }`.
 It is more efficient because the pattern is compiled once.
 
 `casesm` is shorthand for `cases_matching`.
@@ -164,10 +174,11 @@ add_tactic_doc
   tags       := ["core", "induction", "context management"] }
 
 /--
-`cases_type I` applies the `cases` tactic to a hypothesis `h : (I ...)`
-`cases_type I_1 ... I_n` applies the `cases` tactic to a hypothesis `h : (I_1 ...)` or ... or `h : (I_n ...)`
-`cases_type* I` is shorthand for `focus1 { repeat { cases_type I } }`
-`cases_type! I` only applies `cases` if the number of resulting subgoals is <= 1.
+* `cases_type I` applies the `cases` tactic to a hypothesis `h : (I ...)`
+* `cases_type I_1 ... I_n` applies the `cases` tactic to a hypothesis
+  `h : (I_1 ...)` or ... or `h : (I_n ...)`
+* `cases_type* I` is shorthand for `focus1 { repeat { cases_type I } }`
+* `cases_type! I` only applies `cases` if the number of resulting subgoals is <= 1.
 
 Example: The following tactic destructs all conjunctions and disjunctions in the current context.
 ```
@@ -193,9 +204,9 @@ add_tactic_doc
   tags       := ["core", "context management"] }
 
 /--
-Close goals of the form `n ≠ m` when `n` and `m` have type `nat`, `char`, `string`, `int` or `fin sz`,
-and they are literals. It also closes goals of the form `n < m`, `n > m`, `n ≤ m` and `n ≥ m` for `nat`.
-If the goal is of the form `n = m`, then it tries to close it using reflexivity.
+Close goals of the form `n ≠ m` when `n` and `m` have type `nat`, `char`, `string`, `int`
+or `fin sz`, and they are literals. It also closes goals of the form `n < m`, `n > m`, `n ≤ m` and
+`n ≥ m` for `nat`. If the goal is of the form `n = m`, then it tries to close it using reflexivity.
 
 In mathlib, consider using `norm_num` instead for numeric types.
 -/
@@ -302,7 +313,10 @@ add_tactic_doc
   tags       := ["core", "basic", "logic"] }
 
 /--
-`existsi e` will instantiate an existential quantifier in the target with `e` and leave the instantiated body as the new target. More generally, it applies to any inductive type with one constructor and at least two arguments, applying the constructor with `e` as the first argument and leaving the remaining arguments as goals.
+`existsi e` will instantiate an existential quantifier in the target with `e` and leave the
+instantiated body as the new target. More generally, it applies to any inductive type with one
+constructor and at least two arguments, applying the constructor with `e` as the first argument
+and leaving the remaining arguments as goals.
 
 `existsi [e₁, ..., eₙ]` iteratively does the same for each expression in the list.
 
@@ -341,11 +355,13 @@ add_tactic_doc
 
 /--
 Apply function extensionality and introduce new hypotheses.
-The tactic `funext` will keep applying new the `funext` lemma until the goal target is not reducible to
+The tactic `funext` will keep applying new the `funext` lemma until the goal target is not reducible
+to
 ```
   |-  ((fun x, ...) = (fun x, ...))
 ```
-The variant `funext h₁ ... hₙ` applies `funext` `n` times, and uses the given identifiers to name the new hypotheses.
+The variant `funext h₁ ... hₙ` applies `funext` `n` times, and uses the given identifiers to name
+the new hypotheses.
 
 Note also the mathlib tactic `ext`, which applies as many extensionality lemmas as possible.
 -/
@@ -398,17 +414,23 @@ add_tactic_doc
   tags       := ["core", "structures", "induction"] }
 
 /--
-If the current goal is a Pi/forall `∀ x : t, u` (resp. `let x := t in u`) then `intro` puts `x : t` (resp. `x := t`) in the local context. The new subgoal target is `u`.
+If the current goal is a Pi/forall `∀ x : t, u` (resp. `let x := t in u`) then `intro` puts
+`x : t` (resp. `x := t`) in the local context. The new subgoal target is `u`.
 
-If the goal is an arrow `t → u`, then it puts `h : t` in the local context and the new goal target is `u`.
+If the goal is an arrow `t → u`, then it puts `h : t` in the local context and the new goal
+target is `u`.
 
-If the goal is neither a Pi/forall nor begins with a let binder, the tactic `intro` applies the tactic `whnf` until an introduction can be applied or the goal is not head reducible. In the latter case, the tactic fails.
+If the goal is neither a Pi/forall nor begins with a let binder, the tactic `intro` applies the
+tactic `whnf` until an introduction can be applied or the goal is not head reducible. In the latter
+case, the tactic fails.
 
 The variant `intro z` uses the identifier `z` to name the new hypothesis.
 
-The variant `intros` will keep introducing new hypotheses until the goal target is not a Pi/forall or let binder.
+The variant `intros` will keep introducing new hypotheses until the goal target is not a Pi/forall
+or let binder.
 
-The variant `intros h₁ ... hₙ` introduces `n` new hypotheses using the given identifiers to name them.
+The variant `intros h₁ ... hₙ` introduces `n` new hypotheses using the given identifiers to name
+them.
 -/
 
 add_tactic_doc
@@ -430,7 +452,8 @@ add_tactic_doc
   tags       := ["core", "combinator"] }
 
 /--
-`left` applies the first constructor when the type of the target is an inductive data type with two constructors.
+`left` applies the first constructor when the type of the target is an inductive data type with
+two constructors.
 
 Similarly, `right` applies the second constructor.
 -/
@@ -441,9 +464,12 @@ add_tactic_doc
   tags       := ["core", "basic", "logic"] }
 
 /--
-`let h : t := p` adds the hypothesis `h : t := p` to the current goal if `p` a term of type `t`. If `t` is omitted, it will be inferred.
+`let h : t := p` adds the hypothesis `h : t := p` to the current goal if `p` a term of type `t`.
+If `t` is omitted, it will be inferred.
 
-`let h : t` adds the hypothesis `h : t := ?M` to the current goal and opens a new subgoal `?M : t`. The new subgoal becomes the main goal. If `t` is omitted, it will be replaced by a fresh metavariable.
+`let h : t` adds the hypothesis `h : t := ?M` to the current goal and opens a new subgoal `?M : t`.
+The new subgoal becomes the main goal. If `t` is omitted, it will be replaced by a fresh
+metavariable.
 
 If `h` is omitted, the name `this` is used.
 
@@ -564,7 +590,7 @@ add_tactic_doc
 { name       := "specialize",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.specialize],
-  tags       := ["core", "hypothesis management", "lemma application"] }
+  tags       := ["core", "context management", "lemma application"] }
 
 add_tactic_doc
 { name       := "split",
@@ -576,13 +602,13 @@ add_tactic_doc
 { name       := "subst",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.subst],
-  tags       := ["core", "rewrite"] }
+  tags       := ["core", "rewriting"] }
 
 add_tactic_doc
 { name       := "subst_vars",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.subst_vars],
-  tags       := ["core", "rewrite"] }
+  tags       := ["core", "rewriting"] }
 
 add_tactic_doc
 { name       := "success_if_fail",

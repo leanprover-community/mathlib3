@@ -5,8 +5,8 @@ Authors: Chris Hughes
 
 Natural numbers with infinity, represented as roption ℕ.
 -/
-import data.pfun algebra.ordered_group
-import tactic.norm_cast tactic.norm_num
+import data.pfun
+import tactic.norm_num
 
 open roption
 
@@ -188,7 +188,7 @@ begin
 end
 
 protected lemma add_lt_add_iff_right {x y z : enat} (hz : z ≠ ⊤) : x + z < y + z ↔ x < y :=
-⟨lt_of_add_lt_add_right', λ h, enat.add_lt_add_right h hz⟩
+⟨lt_of_add_lt_add_right, λ h, enat.add_lt_add_right h hz⟩
 
 protected lemma add_lt_add_iff_left {x y z : enat} (hz : z ≠ ⊤) : z + x < z + y ↔ x < y :=
 by rw [add_comm z, add_comm z, enat.add_lt_add_iff_right hz]

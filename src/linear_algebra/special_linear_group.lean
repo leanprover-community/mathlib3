@@ -5,10 +5,8 @@
 
   The Special Linear group $SL(n, R)$
 -/
-import linear_algebra.basic
 import linear_algebra.matrix
 import linear_algebra.nonsingular_inverse
-import tactic.norm_cast
 
 /-!
 # The Special Linear group $SL(n, R)$
@@ -47,7 +45,6 @@ universes u v
 open_locale matrix
 open linear_map
 
-set_option class.instance_max_depth 60
 
 section
 
@@ -78,7 +75,7 @@ instance coe_fun : has_coe_to_fun (special_linear_group n R) :=
 def to_lin (A : special_linear_group n R) := matrix.to_lin A
 
 lemma ext_iff (A B : special_linear_group n R) : A = B ↔ (∀ i j, A i j = B i j) :=
-iff.trans subtype.ext ⟨(λ h i j, congr_fun (congr_fun h i) j), matrix.ext⟩
+iff.trans subtype.ext_iff_val ⟨(λ h i j, congr_fun (congr_fun h i) j), matrix.ext⟩
 
 @[ext] lemma ext (A B : special_linear_group n R) : (∀ i j, A i j = B i j) → A = B :=
 (special_linear_group.ext_iff A B).mpr

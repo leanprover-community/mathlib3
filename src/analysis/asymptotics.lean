@@ -3,8 +3,8 @@ Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Yury Kudryashov
 -/
-
-import analysis.normed_space.basic topology.local_homeomorph tactic.alias
+import analysis.normed_space.basic
+import topology.local_homeomorph
 
 /-!
 # Asymptotics
@@ -43,7 +43,7 @@ the Fréchet derivative.)
 -/
 
 open filter set
-open_locale topological_space
+open_locale topological_space big_operators classical
 
 namespace asymptotics
 
@@ -113,6 +113,10 @@ lemma is_o.def {f : α → E} {g : α → F} {l : filter α} (h : is_o f g l) {c
   ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥ :=
 h hc
 
+lemma is_o.def' {f : α → E} {g : α → F} {l : filter α} (h : is_o f g l) {c : ℝ} (hc : 0 < c) :
+  is_O_with c f g l :=
+h hc
+
 end defs
 
 /-! ### Conversions -/
@@ -146,7 +150,7 @@ let ⟨c, hc⟩ := h in hc.exists_nonneg
 /-! ### Congruence -/
 
 theorem is_O_with_congr {c₁ c₂} {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
-  (hc : c₁ = c₂) (hf : ∀ᶠ x in l, f₁ x = f₂ x) (hg : ∀ᶠ x in l, g₁ x = g₂ x) :
+  (hc : c₁ = c₂) (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
   is_O_with c₁ f₁ g₁ l ↔ is_O_with c₂ f₂ g₂ l :=
 begin
   subst c₂,
@@ -158,7 +162,7 @@ begin
 end
 
 theorem is_O_with.congr' {c₁ c₂} {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
-  (hc : c₁ = c₂) (hf : ∀ᶠ x in l, f₁ x = f₂ x) (hg : ∀ᶠ x in l, g₁ x = g₂ x) :
+  (hc : c₁ = c₂) (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
   is_O_with c₁ f₁ g₁ l → is_O_with c₂ f₂ g₂ l :=
 (is_O_with_congr hc hf hg).mp
 
@@ -180,12 +184,12 @@ theorem is_O_with.congr_const {c₁ c₂} {l : filter α} (hc : c₁ = c₂) :
 is_O_with.congr hc (λ _, rfl) (λ _, rfl)
 
 theorem is_O_congr {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
-    (hf : ∀ᶠ x in l, f₁ x = f₂ x) (hg : ∀ᶠ x in l, g₁ x = g₂ x) :
+    (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
   is_O f₁ g₁ l ↔ is_O f₂ g₂ l :=
 exists_congr $ λ c, is_O_with_congr rfl hf hg
 
 theorem is_O.congr' {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
-  (hf : ∀ᶠ x in l, f₁ x = f₂ x) (hg : ∀ᶠ x in l, g₁ x = g₂ x) :
+    (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
   is_O f₁ g₁ l → is_O f₂ g₂ l :=
 (is_O_congr hf hg).mp
 
@@ -203,12 +207,12 @@ theorem is_O.congr_right {g₁ g₂ : α → E} {l : filter α} (hg : ∀ x, g�
 is_O.congr (λ _, rfl) hg
 
 theorem is_o_congr {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
-    (hf : ∀ᶠ x in l, f₁ x = f₂ x) (hg : ∀ᶠ x in l, g₁ x = g₂ x) :
+    (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
   is_o f₁ g₁ l ↔ is_o f₂ g₂ l :=
 ball_congr (λ c hc, is_O_with_congr (eq.refl c) hf hg)
 
 theorem is_o.congr' {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
-  (hf : ∀ᶠ x in l, f₁ x = f₂ x) (hg : ∀ᶠ x in l, g₁ x = g₂ x) :
+    (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
   is_o f₁ g₁ l → is_o f₂ g₂ l :=
 (is_o_congr hf hg).mp
 
@@ -627,15 +631,18 @@ end is_oO_as_rel
 
 section zero_const
 
-variables (g' l)
+variables (g g' l)
 
 theorem is_o_zero : is_o (λ x, (0 : E')) g' l :=
 λ c hc, univ_mem_sets' $ λ x, by simpa using mul_nonneg (le_of_lt hc) (norm_nonneg $ g' x)
 
-theorem is_O_with_zero (hc : 0 < c) : is_O_with c (λ x, (0 : E')) g' l :=
-(is_o_zero g' l) hc
+theorem is_O_with_zero (hc : 0 ≤ c) : is_O_with c (λ x, (0 : E')) g' l :=
+univ_mem_sets' $ λ x, by simpa using mul_nonneg hc (norm_nonneg $ g' x)
 
-theorem is_O_zero : is_O (λ x, (0 : E')) g' l := (is_o_zero g' l).is_O
+theorem is_O_with_zero' : is_O_with 0 (λ x, (0 : E')) g l :=
+univ_mem_sets' $ λ x, by simp
+
+theorem is_O_zero : is_O (λ x, (0 : E')) g l := ⟨0, is_O_with_zero' _ _⟩
 
 theorem is_O_refl_left : is_O (λ x, f' x - f' x) g' l :=
 (is_O_zero g' l).congr_left $ λ x, (sub_self _).symm
@@ -643,7 +650,7 @@ theorem is_O_refl_left : is_O (λ x, f' x - f' x) g' l :=
 theorem is_o_refl_left : is_o (λ x, f' x - f' x) g' l :=
 (is_o_zero g' l).congr_left $ λ x, (sub_self _).symm
 
-variables {g' l}
+variables {g g' l}
 
 theorem is_O_with_zero_right_iff :
   is_O_with c f' (λ x, (0 : F')) l ↔ ∀ᶠ x in l, f' x = 0 :=
@@ -767,7 +774,7 @@ theorem is_O_with_self_const_mul (c : 𝕜) (hc : c ≠ 0) (f : α → 𝕜) (l 
 
 theorem is_O_self_const_mul' {c : R} (hc : is_unit c) (f : α → R) (l : filter α) :
   is_O f (λ x, c * f x) l :=
-let ⟨u, hu⟩ := hc in hu.symm ▸ (is_O_with_self_const_mul' u f l).is_O
+let ⟨u, hu⟩ := hc in hu ▸ (is_O_with_self_const_mul' u f l).is_O
 
 theorem is_O_self_const_mul (c : 𝕜) (hc : c ≠ 0) (f : α → 𝕜) (l : filter α) :
   is_O f (λ x, c * f x) l :=
@@ -972,6 +979,41 @@ by refine ((h₁.norm_norm.mul h₂.norm_norm).congr _ _).of_norm_norm;
 
 end smul
 
+/-! ### Sum -/
+
+section sum
+
+variables {ι : Type*} {A : ι → α → E'} {C : ι → ℝ} {s : finset ι}
+
+theorem is_O_with.sum (h : ∀ i ∈ s, is_O_with (C i) (A i) g l) :
+  is_O_with (∑ i in s, C i) (λ x, ∑ i in s, A i x) g l :=
+begin
+  induction s using finset.induction_on with i s is IH,
+  { simp only [is_O_with_zero', finset.sum_empty, forall_true_iff] },
+  { simp only [is, finset.sum_insert, not_false_iff],
+    exact (h _ (finset.mem_insert_self i s)).add (IH (λ j hj, h _ (finset.mem_insert_of_mem hj))) }
+end
+
+theorem is_O.sum (h : ∀ i ∈ s, is_O (A i) g l) :
+  is_O (λ x, ∑ i in s, A i x) g l :=
+begin
+  induction s using finset.induction_on with i s is IH,
+  { simp only [is_O_zero, finset.sum_empty, forall_true_iff] },
+  { simp only [is, finset.sum_insert, not_false_iff],
+    exact (h _ (finset.mem_insert_self i s)).add (IH (λ j hj, h _ (finset.mem_insert_of_mem hj))) }
+end
+
+theorem is_o.sum (h : ∀ i ∈ s, is_o (A i) g' l) :
+  is_o (λ x, ∑ i in s, A i x) g' l :=
+begin
+  induction s using finset.induction_on with i s is IH,
+  { simp only [is_o_zero, finset.sum_empty, forall_true_iff] },
+  { simp only [is, finset.sum_insert, not_false_iff],
+    exact (h _ (finset.mem_insert_self i s)).add (IH (λ j hj, h _ (finset.mem_insert_of_mem hj))) }
+end
+
+end sum
+
 /-! ### Relation between `f = o(g)` and `f / g → 0` -/
 
 theorem is_o.tendsto_0 {f g : α → 𝕜} {l : filter α} (h : is_o f g l) :
@@ -992,7 +1034,6 @@ have eq₂ : is_o (λ x, f x / g x * g x) g l,
 have eq₃ : is_O f (λ x, f x / g x * g x) l,
   begin
     refine is_O_of_le _ (λ x, _),
-    classical,
     by_cases H : g x = 0,
     { simp only [H, hgf _ H, mul_zero] },
     { simp only [div_mul_cancel _ H] }
@@ -1034,8 +1075,16 @@ end
 
 theorem is_O_with.right_le_add_of_lt_1 {f₁ f₂ : α → E'} (h : is_O_with c f₁ f₂ l) (hc : c < 1) :
   is_O_with (1 / (1 - c)) f₂ (λx, f₁ x + f₂ x) l :=
-(h.neg_right.right_le_sub_of_lt_1 hc).neg_right.neg_left.congr rfl (λ x, neg_neg _)
+(h.neg_right.right_le_sub_of_lt_1 hc).neg_right.of_neg_left.congr rfl (λ x, rfl)
   (λ x, by rw [neg_sub, sub_neg_eq_add])
+
+theorem is_o.right_is_O_sub {f₁ f₂ : α → E'} (h : is_o f₁ f₂ l) :
+  is_O f₂ (λx, f₂ x - f₁ x) l :=
+((h.def' one_half_pos).right_le_sub_of_lt_1 one_half_lt_one).is_O
+
+theorem is_o.right_is_O_add {f₁ f₂ : α → E'} (h : is_o f₁ f₂ l) :
+  is_O f₂ (λx, f₁ x + f₂ x) l :=
+((h.def' one_half_pos).right_le_add_of_lt_1 one_half_lt_one).is_O
 
 end asymptotics
 
@@ -1050,21 +1099,21 @@ open asymptotics
 /-- Transfer `is_O_with` over a `local_homeomorph`. -/
 lemma is_O_with_congr (e : local_homeomorph α β) {b : β} (hb : b ∈ e.target)
   {f : β → E} {g : β → F} {C : ℝ} :
-  is_O_with C f g (𝓝 b) ↔ is_O_with C (f ∘ e.to_fun) (g ∘ e.to_fun) (𝓝 (e.inv_fun b)) :=
+  is_O_with C f g (𝓝 b) ↔ is_O_with C (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
 ⟨λ h, h.comp_tendsto $
-  by { convert e.continuous_at_to_fun (e.map_target hb), exact (e.right_inv hb).symm },
-  λ h, (h.comp_tendsto (e.continuous_at_inv_fun hb)).congr' rfl
+  by { convert e.continuous_at (e.map_target hb), exact (e.right_inv hb).symm },
+  λ h, (h.comp_tendsto (e.continuous_at_symm hb)).congr' rfl
     ((e.eventually_right_inverse hb).mono $ λ x hx, congr_arg f hx)
     ((e.eventually_right_inverse hb).mono $ λ x hx, congr_arg g hx)⟩
 
 /-- Transfer `is_O` over a `local_homeomorph`. -/
 lemma is_O_congr (e : local_homeomorph α β) {b : β} (hb : b ∈ e.target) {f : β → E} {g : β → F} :
-  is_O f g (𝓝 b) ↔ is_O (f ∘ e.to_fun) (g ∘ e.to_fun) (𝓝 (e.inv_fun b)) :=
+  is_O f g (𝓝 b) ↔ is_O (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
 exists_congr $ λ C, e.is_O_with_congr hb
 
 /-- Transfer `is_o` over a `local_homeomorph`. -/
 lemma is_o_congr (e : local_homeomorph α β) {b : β} (hb : b ∈ e.target) {f : β → E} {g : β → F} :
-  is_o f g (𝓝 b) ↔ is_o (f ∘ e.to_fun) (g ∘ e.to_fun) (𝓝 (e.inv_fun b)) :=
+  is_o f g (𝓝 b) ↔ is_o (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
 forall_congr $ λ c, forall_congr $ λ hc, e.is_O_with_congr hb
 
 end local_homeomorph

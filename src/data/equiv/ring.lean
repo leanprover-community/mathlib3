@@ -3,8 +3,10 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
-
-import data.equiv.mul_add algebra.field
+import data.equiv.mul_add
+import algebra.field
+import algebra.opposites
+import deprecated.ring
 
 /-!
 # (Semi)ring equivs
@@ -50,6 +52,8 @@ variables [has_mul R] [has_add R] [has_mul S] [has_add S] [has_mul S'] [has_add 
 
 instance : has_coe_to_fun (R ≃+* S) := ⟨_, ring_equiv.to_fun⟩
 
+@[simp] lemma to_fun_eq_coe_fun (f : R ≃+* S) : f.to_fun = f := rfl
+
 instance has_coe_to_mul_equiv : has_coe (R ≃+* S) (R ≃* S) := ⟨ring_equiv.to_mul_equiv⟩
 
 instance has_coe_to_add_equiv : has_coe (R ≃+* S) (R ≃+ S) := ⟨ring_equiv.to_add_equiv⟩
@@ -65,6 +69,12 @@ variable (R)
 /-- The identity map is a ring isomorphism. -/
 @[refl] protected def refl : R ≃+* R := { .. mul_equiv.refl R, .. add_equiv.refl R }
 
+@[simp] lemma refl_apply (x : R) : ring_equiv.refl R x = x := rfl
+
+@[simp] lemma coe_add_equiv_refl : (ring_equiv.refl R : R ≃+ R) = add_equiv.refl R := rfl
+
+@[simp] lemma coe_mul_equiv_refl : (ring_equiv.refl R : R ≃* R) = mul_equiv.refl R := rfl
+
 variables {R}
 
 /-- The inverse of a ring isomorphism is a ring isomorphism. -/
@@ -75,6 +85,10 @@ variables {R}
 @[trans] protected def trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') : R ≃+* S' :=
 { .. (e₁.to_mul_equiv.trans e₂.to_mul_equiv), .. (e₁.to_add_equiv.trans e₂.to_add_equiv) }
 
+protected lemma bijective (e : R ≃+* S) : function.bijective e := e.to_equiv.bijective
+protected lemma injective (e : R ≃+* S) : function.injective e := e.to_equiv.injective
+protected lemma surjective (e : R ≃+* S) : function.surjective e := e.to_equiv.surjective
+
 @[simp] lemma apply_symm_apply (e : R ≃+* S) : ∀ x, e (e.symm x) = x := e.to_equiv.apply_symm_apply
 @[simp] lemma symm_apply_apply (e : R ≃+* S) : ∀ x, e.symm (e x) = x := e.to_equiv.symm_apply_apply
 
@@ -82,6 +96,25 @@ lemma image_eq_preimage (e : R ≃+* S) (s : set R) : e '' s = e.symm ⁻¹' s :
 e.to_equiv.image_eq_preimage s
 
 end basic
+
+section comm_semiring
+open opposite
+
+variables (R) [comm_semiring R]
+
+/-- A commutative ring is isomorphic to its opposite. -/
+def to_opposite : R ≃+* Rᵒᵖ :=
+{ map_add' := λ x y, rfl,
+  map_mul' := λ x y, mul_comm (op y) (op x),
+  ..equiv_to_opposite }
+
+@[simp]
+lemma to_opposite_apply (r : R) : to_opposite R r = op r := rfl
+
+@[simp]
+lemma to_opposite_symm_apply (r : Rᵒᵖ) : (to_opposite R).symm r = unop r := rfl
+
+end comm_semiring
 
 section
 
@@ -142,6 +175,15 @@ def of (e : R ≃ S) [is_semiring_hom e] : R ≃+* S :=
 instance (e : R ≃+* S) : is_semiring_hom e := e.to_ring_hom.is_semiring_hom
 
 @[simp]
+lemma to_ring_hom_refl : (ring_equiv.refl R).to_ring_hom = ring_hom.id R := rfl
+
+@[simp]
+lemma to_monoid_hom_refl : (ring_equiv.refl R).to_monoid_hom = monoid_hom.id R := rfl
+
+@[simp]
+lemma to_add_monoid_hom_refl : (ring_equiv.refl R).to_add_monoid_hom = add_monoid_hom.id R := rfl
+
+@[simp]
 lemma to_ring_hom_apply_symm_to_ring_hom_apply {R S} [semiring R] [semiring S] (e : R ≃+* S) :
   ∀ (y : S), e.to_ring_hom (e.symm.to_ring_hom y) = y :=
 e.to_equiv.apply_symm_apply
@@ -157,26 +199,12 @@ end ring_equiv
 
 namespace mul_equiv
 
-/-- Gives an `is_semiring_hom` instance from a `mul_equiv` of semirings that preserves addition. -/
-protected lemma to_semiring_hom {R : Type*} {S : Type*} [semiring R] [semiring S]
-  (h : R ≃* S) (H : ∀ x y : R, h (x + y) = h x + h y) : is_semiring_hom h :=
-⟨add_equiv.map_zero $ add_equiv.mk' h.to_equiv H, h.map_one, H, h.5⟩
-
 /-- Gives a `ring_equiv` from a `mul_equiv` preserving addition.-/
 def to_ring_equiv {R : Type*} {S : Type*} [has_add R] [has_add S] [has_mul R] [has_mul S]
   (h : R ≃* S) (H : ∀ x y : R, h (x + y) = h x + h y) : R ≃+* S :=
 {..h.to_equiv, ..h, ..add_equiv.mk' h.to_equiv H }
 
 end mul_equiv
-
-namespace add_equiv
-
-/-- Gives an `is_semiring_hom` instance from a `mul_equiv` of semirings that preserves addition. -/
-protected lemma to_semiring_hom {R : Type*} {S : Type*} [semiring R] [semiring S]
-  (h : R ≃+ S) (H : ∀ x y : R, h (x * y) = h x * h y) : is_semiring_hom h :=
-⟨h.map_zero, mul_equiv.map_one $ mul_equiv.mk' h.to_equiv H, h.5, H⟩
-
-end add_equiv
 
 namespace ring_equiv
 
@@ -197,7 +225,7 @@ end ring_hom
 @[ext] lemma ext {R S : Type*} [has_mul R] [has_add R] [has_mul S] [has_add S]
   {f g : R ≃+* S} (h : ∀ x, f x = g x) : f = g :=
 begin
-  have h₁ := equiv.ext f.to_equiv g.to_equiv h,
+  have h₁ : f.to_equiv = g.to_equiv := equiv.ext h,
   cases f, cases g, congr,
   { exact (funext h) },
   { exact congr_arg equiv.inv_fun h₁ }
@@ -211,7 +239,8 @@ protected lemma is_integral_domain {A : Type*} (B : Type*) [ring A] [ring B]
     have e x * e y = 0, by rw [← e.map_mul, hxy, e.map_zero],
     (hB.eq_zero_or_eq_zero_of_mul_eq_zero _ _ this).imp (λ hx, by simpa using congr_arg e.symm hx)
       (λ hy, by simpa using congr_arg e.symm hy),
-  zero_ne_one := λ H, hB.zero_ne_one $ by rw [← e.map_zero, ← e.map_one, H] }
+  exists_pair_ne := ⟨e.symm 0, e.symm 1,
+    by { haveI : nontrivial B := hB.to_nontrivial, exact e.symm.injective.ne zero_ne_one }⟩ }
 
 /-- If two rings are isomorphic, and the second is an integral domain, then so is the first. -/
 protected def integral_domain {A : Type*} (B : Type*) [ring A] [integral_domain B]
@@ -221,7 +250,7 @@ protected def integral_domain {A : Type*} (B : Type*) [ring A] [integral_domain 
 end ring_equiv
 
 /-- The group of ring automorphisms. -/
-def ring_aut (R : Type*) [has_mul R] [has_add R] := ring_equiv R R
+@[reducible] def ring_aut (R : Type*) [has_mul R] [has_add R] := ring_equiv R R
 
 namespace ring_aut
 
@@ -260,7 +289,7 @@ namespace equiv
 variables (K : Type*) [division_ring K]
 
 def units_equiv_ne_zero : units K ≃ {a : K | a ≠ 0} :=
-⟨λ a, ⟨a.1, units.ne_zero _⟩, λ a, units.mk0 _ a.2, λ ⟨_, _, _, _⟩, units.ext rfl, λ ⟨_, _⟩, rfl⟩
+⟨λ a, ⟨a.1, a.coe_ne_zero⟩, λ a, units.mk0 _ a.2, λ ⟨_, _, _, _⟩, units.ext rfl, λ ⟨_, _⟩, rfl⟩
 
 variable {K}
 

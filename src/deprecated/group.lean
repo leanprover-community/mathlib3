@@ -1,4 +1,11 @@
-import algebra.group.type_tags algebra.group.is_unit
+/-
+Copyright (c) 2019 Yury Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Yury Kudryashov
+-/
+import algebra.group.type_tags
+import algebra.group.units_hom
+import algebra.ring
 
 /-!
 # Unbundled monoid and group homomorphisms (deprecated)
@@ -22,9 +29,10 @@ as `map_mul`; a separate constructor `monoid_hom.mk'` will construct
 group homs (i.e. monoid homs between groups) given only a proof
 that multiplication is preserved,
 
-Throughout the `monoid_hom` section implicit `{}` brackets are often used instead of type class `[]` brackets.
-This is done when the instances can be inferred because they are implicit arguments to the type `monoid_hom`.
-When they can be inferred from the type it is faster to use this method than to use type class inference.
+Throughout the `monoid_hom` section implicit `{}` brackets are often used instead of type class `[]`
+brackets.  This is done when the instances can be inferred because they are implicit arguments to
+the type `monoid_hom`.  When they can be inferred from the type it is faster to use this method than
+to use type class inference.
 
 ## Tags
 

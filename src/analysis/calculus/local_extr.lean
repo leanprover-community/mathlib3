@@ -3,10 +3,11 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
+import topology.local_extr
+import analysis.calculus.deriv
 
-import topology.local_extr analysis.calculus.deriv
-
-/-! # Local extrema of smooth functions
+/-!
+# Local extrema of smooth functions
 
 ## Main definitions
 
@@ -93,7 +94,7 @@ begin
     { apply inv_le_one, apply one_le_pow_of_one_le, norm_num },
     { simp only [d, sub_smul, smul_sub, one_smul], abel } },
   show tendsto c at_top at_top,
-  { exact tendsto_pow_at_top_at_top_of_gt_1 one_lt_two },
+  { exact tendsto_pow_at_top_at_top_of_one_lt one_lt_two },
   show filter.tendsto (λ (n : ℕ), c n • d n) filter.at_top (𝓝 (y - x)),
   { have : (λ (n : ℕ), c n • d n) = (λn, y - x),
     { ext n,
@@ -120,7 +121,7 @@ lemma is_local_max_on.has_fderiv_within_at_nonpos {s : set E} (h : is_local_max_
 begin
   rcases hy with ⟨c, d, hd, hc, hcd⟩,
   have hc' : tendsto (λ n, ∥c n∥) at_top at_top,
-    from tendsto_at_top_mono _ (λ n, le_abs_self _) hc,
+    from tendsto_at_top_mono (λ n, le_abs_self _) hc,
   refine le_of_tendsto at_top_ne_bot (hf.lim at_top hd hc' hcd) _,
   replace hd : tendsto (λ n, a + d n) at_top (nhds_within (a + 0) s),
   from tendsto_inf.2 ⟨tendsto_const_nhds.add (tangent_cone_at.lim_zero _ hc' hcd),

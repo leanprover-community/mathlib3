@@ -5,8 +5,10 @@ Authors: Mario Carneiro
 
 Additional theorems about the `vector` type.
 -/
-import data.vector data.list.nodup data.list.of_fn
-import category.traversable.basic data.set.basic tactic.tauto
+import data.vector
+import data.list.nodup
+import data.list.of_fn
+import control.applicative
 
 universes u
 variables {n : ℕ}
@@ -21,6 +23,15 @@ instance [inhabited α] : inhabited (vector α n) :=
 
 theorem to_list_injective : function.injective (@to_list α n) :=
 subtype.val_injective
+
+@[simp] theorem cons_val (a : α) : ∀ (v : vector α n), (a :: v).val = a :: v.val
+| ⟨_, _⟩ := rfl
+
+@[simp] theorem cons_head (a : α) : ∀ (v : vector α n), (a :: v).head = a
+| ⟨_, _⟩ := rfl
+
+@[simp] theorem cons_tail (a : α) : ∀ (v : vector α n), (a :: v).tail = v
+| ⟨_, _⟩ := rfl
 
 @[simp] theorem to_list_of_fn : ∀ {n} (f : fin n → α), to_list (of_fn f) = list.of_fn f
 | 0     f := rfl
@@ -56,6 +67,9 @@ end
 @[simp] theorem nth_tail : ∀ (v : vector α n.succ) (i : fin n),
   nth (tail v) i = nth v i.succ
 | ⟨a::l, e⟩ ⟨i, h⟩ := by simp [nth_eq_nth_le]; refl
+
+@[simp] theorem tail_val : ∀ (v : vector α n.succ), v.tail.val = v.val.tail
+| ⟨a::l, e⟩ := rfl
 
 @[simp] theorem tail_of_fn {n : ℕ} (f : fin n.succ → α) :
   tail (of_fn f) = of_fn (λ i, f i.succ) :=
@@ -165,11 +179,11 @@ lemma remove_nth_insert_nth_ne {v : vector α (n+1)} :
   begin
     have : i ≠ j := fin.vne_of_ne ne,
     refine subtype.eq _,
-    dsimp [insert_nth, remove_nth, fin.pred_above, fin.cast_lt],
+    dsimp [insert_nth, remove_nth, fin.pred_above, fin.cast_lt, -subtype.val_eq_coe],
     rcases lt_trichotomy i j with h | h | h,
     { have h_nji : ¬ j < i := lt_asymm h,
       have j_pos : 0 < j := lt_of_le_of_lt (zero_le i) h,
-      simp [h, h_nji, fin.lt_iff_val_lt_val],
+      simp [h, h_nji, fin.lt_iff_val_lt_val, -subtype.val_eq_coe],
       rw [show j.pred = j - 1, from rfl, list.insert_nth_remove_nth_of_ge, nat.sub_add_cancel j_pos],
       { rw [v.2], exact lt_of_lt_of_le h (nat.le_of_succ_le_succ hj) },
       { exact nat.le_sub_right_of_add_le h } },

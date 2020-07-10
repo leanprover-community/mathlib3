@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl
 -/
 import algebra.category.Group
-import category_theory.adjunction.basic
 import group_theory.free_abelian_group
 
 /-!
@@ -23,10 +22,10 @@ namespace AddCommGroup
 open_locale classical
 
 /--
-The free functor `Type u ⥤ AddCommGroup.{u}` sending a type `X` to the
+The free functor `Type u ⥤ AddCommGroup` sending a type `X` to the
 free abelian group with generators `x : X`.
 -/
-def free : Type u ⥤ AddCommGroup.{u} :=
+def free : Type u ⥤ AddCommGroup :=
 { obj := λ α, of (free_abelian_group α),
   map := λ X Y f, add_monoid_hom.of (λ x : free_abelian_group X, f <$> x),
   map_id' := λ X, add_monoid_hom.ext $ by simp [types_id],

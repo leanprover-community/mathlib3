@@ -16,7 +16,7 @@ namespace list
 
 /- chain relation (conjunction of R a b ∧ R b c ∧ R c d ...) -/
 
-run_cmd tactic.mk_iff_of_inductive_prop `list.chain `list.chain_iff
+mk_iff_of_inductive_prop list.chain list.chain_iff
 
 variable {R : α → α → Prop}
 
@@ -171,8 +171,38 @@ theorem chain'.tail : ∀ {l} (h : chain' R l), chain' R l.tail
 | [x]           _ := trivial
 | (x :: y :: l) h := (chain'_cons.mp h).right
 
+theorem chain'.rel_head {x y l} (h : chain' R (x :: y :: l)) : R x y :=
+rel_of_chain_cons h
+
+theorem chain'.rel_head' {x l} (h : chain' R (x :: l)) ⦃y⦄ (hy : y ∈ head' l) : R x y :=
+by { rw ← cons_head'_tail hy at h, exact h.rel_head }
+
+theorem chain'.cons' {x} :
+  ∀ {l : list α},  chain' R l → (∀ y ∈ l.head', R x y) → chain' R (x :: l)
+| [] _ _ := chain'_singleton x
+| (a :: l) hl H := hl.cons $ H _ rfl
+
+theorem chain'_cons' {x l} : chain' R (x :: l) ↔ (∀ y ∈ head' l, R x y) ∧ chain' R l :=
+⟨λ h, ⟨h.rel_head', h.tail⟩, λ ⟨h₁, h₂⟩, h₂.cons' h₁⟩
+
+theorem chain'.append : ∀ {l₁ l₂ : list α} (h₁ : chain' R l₁) (h₂ : chain' R l₂)
+  (h : ∀ (x ∈ l₁.last') (y ∈ l₂.head'), R x y),
+  chain' R (l₁ ++ l₂)
+| [] l₂ h₁ h₂ h := h₂
+| [a] l₂ h₁ h₂ h := h₂.cons' $ h _ rfl
+| (a::b::l) l₂ h₁ h₂ h :=
+  begin
+    simp only [last'] at h,
+    have : chain' R (b::l) := h₁.tail,
+    exact (this.append h₂ h).cons h₁.rel_head
+  end
+
 theorem chain'_pair {x y} : chain' R [x, y] ↔ R x y :=
 by simp only [chain'_singleton, chain'_cons, and_true]
+
+theorem chain'.imp_head {x y} (h : ∀ {z}, R x z → R y z) {l} (hl : chain' R (x :: l)) :
+  chain' R (y :: l) :=
+hl.tail.cons' $ λ z hz, h $ hl.rel_head' hz
 
 theorem chain'_reverse : ∀ {l}, chain' R (reverse l) ↔ chain' (flip R) l
 | [] := iff.rfl

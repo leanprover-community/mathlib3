@@ -3,7 +3,6 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-
 import order.conditionally_complete_lattice
 
 /-!
@@ -29,7 +28,7 @@ def bounded_lattice.copy (c : bounded_lattice α)
   bounded_lattice α :=
 begin
   refine { le := le, top := top, bot := bot, sup := sup, inf := inf, .. },
-  all_goals { subst_vars, unfreezeI, cases c, assumption }
+  all_goals { abstract { subst_vars, casesI c, assumption } }
 end
 
 /-- A function to create a provable equal copy of a distributive lattice
@@ -41,7 +40,7 @@ def distrib_lattice.copy (c : distrib_lattice α)
   distrib_lattice α :=
 begin
   refine { le := le, sup := sup, inf := inf, .. },
-  all_goals { subst_vars, unfreezeI, cases c, assumption }
+  all_goals { abstract { subst_vars, casesI c, assumption } }
 end
 
 /-- A function to create a provable equal copy of a complete lattice
@@ -60,7 +59,7 @@ begin
     .. bounded_lattice.copy (@complete_lattice.to_bounded_lattice α c)
       le eq_le top eq_top bot eq_bot sup eq_sup inf eq_inf,
     .. },
-  all_goals { subst_vars, unfreezeI, cases c, assumption }
+  all_goals { abstract { subst_vars, casesI c, assumption } }
 end
 
 /-- A function to create a provable equal copy of a complete distributive lattice
@@ -79,7 +78,7 @@ begin
     .. complete_lattice.copy (@complete_distrib_lattice.to_complete_lattice α c)
       le eq_le top eq_top bot eq_bot sup eq_sup inf eq_inf Sup eq_Sup Inf eq_Inf,
     .. },
-  all_goals { subst_vars, unfreezeI, cases c, assumption }
+  all_goals { abstract { subst_vars, casesI c, assumption } }
 end
 
 /-- A function to create a provable equal copy of a conditionally complete lattice
@@ -93,6 +92,5 @@ def conditionally_complete_lattice.copy (c : conditionally_complete_lattice α)
   conditionally_complete_lattice α :=
 begin
   refine { le := le, sup := sup, inf := inf, Sup := Sup, Inf := Inf, ..},
-  all_goals { subst_vars, unfreezeI, cases c, assumption }
+  all_goals { abstract { subst_vars, casesI c, assumption } }
 end
-

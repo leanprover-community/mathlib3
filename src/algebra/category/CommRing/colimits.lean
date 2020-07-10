@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.category.CommRing.basic
-import category_theory.limits.limits
-import category_theory.limits.concrete_category
 
 /-!
 # The category of commutative rings has all colimits.
@@ -49,9 +47,9 @@ comm_ring.right_distrib : ∀ {α : Type u} [c : comm_ring α] (a b c_1 : α), (
 
 namespace CommRing.colimits
 /-!
-We build the colimit of a diagram in `Mon` by constructing the
-free monoid on the disjoint union of all the monoids in the diagram,
-then taking the quotient by the monoid laws within each monoid,
+We build the colimit of a diagram in `CommRing` by constructing the
+free commutative ring on the disjoint union of all the commutative rings in the diagram,
+then taking the quotient by the commutative ring laws within each commutative ring,
 and the identifications given by the morphisms in the diagram.
 -/
 
@@ -350,17 +348,17 @@ begin
     -- trans
     { exact eq.trans r_ih_h r_ih_k },
     -- map
-    { rw cocone.naturality_concrete, },
+    { simp, },
     -- zero
-    { erw ring_hom.map_zero ((s.ι).app r) },
+    { simp, },
     -- one
-    { erw ring_hom.map_one ((s.ι).app r) },
+    { simp, },
     -- neg
-    { rw ring_hom.map_neg ((s.ι).app r_j) },
+    { simp, },
     -- add
-    { rw ring_hom.map_add ((s.ι).app r_j) },
+    { simp, },
     -- mul
-    { rw ring_hom.map_mul ((s.ι).app r_j) },
+    { simp, },
     -- neg_1
     { rw r_ih, },
     -- add_1
@@ -416,28 +414,15 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
     { have w' := congr_fun (congr_arg (λ f : F.obj x_j ⟶ s.X, (f : F.obj x_j → s.X)) (w x_j)) x_x,
       erw w',
       refl, },
-    { simp only [desc_morphism, quot_zero],
-      erw ring_hom.map_zero m,
-      refl, },
-    { simp only [desc_morphism, quot_one],
-      erw ring_hom.map_one m,
-      refl, },
-    { simp only [desc_morphism, quot_neg],
-      erw ring_hom.map_neg m,
-      rw [x_ih],
-      refl, },
-    { simp only [desc_morphism, quot_add],
-      erw ring_hom.map_add m,
-      rw [x_ih_a, x_ih_a_1],
-      refl, },
-    { simp only [desc_morphism, quot_mul],
-      erw ring_hom.map_mul m,
-      rw [x_ih_a, x_ih_a_1],
-      refl, },
+    { simp, },
+    { simp, },
+    { simp *, },
+    { simp *, },
+    { simp *, },
     refl
   end }.
 
-instance has_colimits_CommRing : has_colimits.{v} CommRing.{v} :=
+instance has_colimits_CommRing : has_colimits CommRing :=
 { has_colimits_of_shape := λ J 𝒥,
   { has_colimit := λ F, by exactI
     { cocone := colimit_cocone F,

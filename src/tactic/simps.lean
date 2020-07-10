@@ -17,6 +17,8 @@ structures, projections, simp, simplifier, generates declarations
 
 open tactic expr
 
+declare_trace simps.verbose
+
 /-- Add a lemma with `nm` stating that `lhs = rhs`. `type` is the type of both `lhs` and `rhs`,
   `args` is the list of local constants occurring, and `univs` is the list of universe variables.
   If `add_simp` then we make the resulting lemma a simp-lemma. -/
@@ -29,8 +31,10 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
   let decl_value := refl_ap.lambdas args,
   let decl := declaration.thm decl_name univs decl_type (pure decl_value),
   add_decl decl <|> fail format!"failed to add projection lemma {decl_name}.",
-  when add_simp $
-    set_basic_attribute `simp decl_name tt >> set_basic_attribute `_refl_lemma decl_name tt
+  when_tracing `simps.verbose trace!"[simps] > adding projection\n        > {decl_name} : {decl_type}",
+  when add_simp $ do
+    set_basic_attribute `_refl_lemma decl_name tt,
+    set_basic_attribute `simp decl_name tt
 
 /-- Derive lemmas specifying the projections of the declaration.
   If `todo` is non-empty, it will generate exactly the names in `todo`. -/
@@ -152,6 +156,9 @@ derives two simp-lemmas:
 * `@[simps]` reduces let-expressions where necessary.
 * If one of the fields is a partially applied constructor, we will eta-expand it
   (this likely never happens).
+* When option `trace.simps.verbose` is true, `simps` will print the name and type of the
+  lemmas it generates.
+
   -/
 @[user_attribute] meta def simps_attr : user_attribute unit (bool × bool × list string) :=
 { name := `simps,

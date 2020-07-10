@@ -11,8 +11,7 @@ universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `categor
 
 open nat_trans category category_theory.functor
 
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
+variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]
 
 local attribute [simp] vcomp_app
 /--
@@ -29,7 +28,7 @@ instance functor.category : category.{(max u₁ v₂)} (C ⥤ D) :=
   id      := λ F, nat_trans.id F,
   comp    := λ _ _ _ α β, vcomp α β }
 
-variables {C D} {E : Type u₃} [ℰ : category.{v₃} E]
+variables {C D} {E : Type u₃} [category.{v₃} E]
 variables {F G H I : C ⥤ D}
 
 namespace nat_trans
@@ -43,8 +42,6 @@ lemma congr_app {α β : F ⟶ G} (h : α = β) (X : C) : α.app X = β.app X :=
 @[simp] lemma id_app (F : C ⥤ D) (X : C) : (𝟙 F : F ⟶ F).app X = 𝟙 (F.obj X) := rfl
 @[simp] lemma comp_app {F G H : C ⥤ D} (α : F ⟶ G) (β : G ⟶ H) (X : C) :
   (α ≫ β).app X = α.app X ≫ β.app X := rfl
-
-include ℰ
 
 lemma app_naturality {F G : C ⥤ (D ⥤ E)} (T : F ⟶ G) (X : C) {Y Z : D} (f : Y ⟶ Z) :
   ((F.obj X).map f) ≫ ((T.app X).app Z) = ((T.app X).app Y) ≫ ((G.obj X).map f) :=
@@ -81,8 +78,7 @@ end nat_trans
 open nat_trans
 namespace functor
 
-include ℰ
-
+/-- Flip the arguments of a bifunctor. See also `currying.lean`. -/
 protected def flip (F : C ⥤ (D ⥤ E)) : D ⥤ (C ⥤ E) :=
 { obj := λ k,
   { obj := λ j, (F.obj j).obj k,

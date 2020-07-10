@@ -6,7 +6,10 @@ Author: Leonardo de Moura, Mario Carneiro
 Type class for encodable Types.
 Note that every encodable Type is countable.
 -/
-import data.equiv.nat order.order_iso
+import data.equiv.nat
+import order.order_iso
+import order.directed
+
 open option list nat function
 
 /-- An encodable type is a "constructively countable" type. This is where
@@ -17,6 +20,8 @@ class encodable (α : Type*) :=
 (encode : α → nat)
 (decode [] : nat → option α)
 (encodek : ∀ a, decode (encode a) = some a)
+
+attribute [simp] encodable.encodek
 
 namespace encodable
 variables {α : Type*} {β : Type*}
@@ -225,6 +230,10 @@ if h : P a then some ⟨a, h⟩ else none
 instance subtype : encodable {a : α // P a} :=
 ⟨encode_subtype, decode_subtype,
  λ ⟨v, h⟩, by simp [encode_subtype, decode_subtype, encodek, h]⟩
+
+lemma subtype.encode_eq (a : subtype P) : encode a = encode a.val :=
+by cases a; refl
+
 end subtype
 
 instance fin (n) : encodable (fin n) :=
@@ -244,12 +253,62 @@ of_left_injection f (partial_inv f) (λ x, (partial_inv_of_injective hf _ _).2 r
 
 end encodable
 
+section ulower
+local attribute [instance, priority 100] encodable.decidable_range_encode
+
+/--
+`ulower α : Type 0` is an equivalent type in the lowest universe, given `encodable α`.
+-/
+@[derive decidable_eq, derive encodable]
+def ulower (α : Type*) [encodable α] : Type :=
+set.range (encodable.encode : α → ℕ)
+
+end ulower
+
+namespace ulower
+variables (α : Type*) [encodable α]
+
+/--
+The equivalence between the encodable type `α` and `ulower α : Type 0`.
+-/
+def equiv : α ≃ ulower α :=
+encodable.equiv_range_encode α
+
+variables {α}
+
+/--
+Lowers an `a : α` into `ulower α`.
+-/
+def down (a : α) : ulower α := equiv α a
+
+instance [inhabited α] : inhabited (ulower α) := ⟨down (default _)⟩
+
+/--
+Lifts an `a : ulower α` into `α`.
+-/
+def up (a : ulower α) : α := (equiv α).symm a
+
+@[simp] lemma down_up {a : ulower α} : down a.up = a := equiv.right_inv _ _
+@[simp] lemma up_down {a : α} : (down a).up = a := equiv.left_inv _ _
+
+@[simp] lemma up_eq_up {a b : ulower α} : a.up = b.up ↔ a = b :=
+equiv.apply_eq_iff_eq _ _ _
+
+@[simp] lemma down_eq_down {a b : α} : down a = down b ↔ a = b :=
+equiv.apply_eq_iff_eq _ _ _
+
+@[ext] protected lemma ext {a b : ulower α} : a.up = b.up → a = b :=
+up_eq_up.1
+
+end ulower
+
 /-
 Choice function for encodable types and decidable predicates.
 We provide the following API
 
 choose      {α : Type*} {p : α → Prop} [c : encodable α] [d : decidable_pred p] : (∃ x, p x) → α :=
-choose_spec {α : Type*} {p : α → Prop} [c : encodable α] [d : decidable_pred p] (ex : ∃ x, p x) : p (choose ex) :=
+choose_spec {α : Type*} {p : α → Prop} [c : encodable α] [d : decidable_pred p] (ex : ∃ x, p x) :
+  p (choose ex) :=
 -/
 
 namespace encodable

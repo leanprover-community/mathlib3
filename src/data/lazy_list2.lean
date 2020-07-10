@@ -5,8 +5,9 @@ Authors: Simon Hudon
 
 Traversable instance for lazy_lists.
 -/
-
-import category.traversable.equiv category.traversable.instances data.lazy_list
+import control.traversable.equiv
+import control.traversable.instances
+import data.lazy_list
 
 universes u
 

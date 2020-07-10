@@ -39,8 +39,8 @@ theorem eq_of_sorted_of_perm [is_antisymm α r]
   {l₁ l₂ : list α} (p : l₁ ~ l₂) (s₁ : sorted r l₁) (s₂ : sorted r l₂) : l₁ = l₂ :=
 begin
   induction s₁ with a l₁ h₁ s₁ IH generalizing l₂,
-  { rw eq_nil_of_perm_nil p },
-  { have : a ∈ l₂ := perm_subset p (mem_cons_self _ _),
+  { exact p.nil_eq },
+  { have : a ∈ l₂ := p.subset (mem_cons_self _ _),
     rcases mem_split this with ⟨u₂, v₂, rfl⟩,
     have p' := (perm_cons a).1 (p.trans perm_middle),
     have := IH p' (pairwise_of_sublist (by simp) s₂), subst l₁,
@@ -103,19 +103,19 @@ theorem perm_ordered_insert (a) : ∀ l : list α, ordered_insert a l ~ a :: l
 | []       := perm.refl _
 | (b :: l) := by by_cases a ≼ b; [simp [ordered_insert, h],
   simpa [ordered_insert, h] using
-    (perm.skip _ (perm_ordered_insert l)).trans (perm.swap _ _ _)]
+    ((perm_ordered_insert l).cons _).trans (perm.swap _ _ _)]
 
 theorem ordered_insert_count [decidable_eq α] (L : list α) (a b : α) :
   count a (L.ordered_insert r b) = count a L + if (a = b) then 1 else 0 :=
 begin
-  rw [perm_count (L.perm_ordered_insert r b), count_cons],
+  rw [(L.perm_ordered_insert r b).count_eq, count_cons],
   split_ifs; simp only [nat.succ_eq_add_one, add_zero],
 end
 
 theorem perm_insertion_sort : ∀ l : list α, insertion_sort l ~ l
 | []       := perm.nil
 | (b :: l) := by simpa [insertion_sort] using
-  (perm_ordered_insert _ _ _).trans (perm.skip b (perm_insertion_sort l))
+  (perm_ordered_insert _ _ _).trans ((perm_insertion_sort l).cons b)
 
 section total_and_transitive
 variables [is_total α r] [is_trans α r]
@@ -129,7 +129,7 @@ theorem sorted_ordered_insert (a : α) : ∀ l, sorted r l → sorted r (ordered
     { simpa [ordered_insert, h', sorted_ordered_insert l (sorted_of_sorted_cons h)] },
     intros b' bm,
     cases (show b' = a ∨ b' ∈ l, by simpa using
-      perm_subset (perm_ordered_insert _ _ _) bm) with be bm,
+      (perm_ordered_insert _ _ _).subset bm) with be bm,
     { subst b', exact (total_of r _ _).resolve_left h' },
     { exact rel_of_sorted_cons h _ bm } }
 end
@@ -184,7 +184,7 @@ theorem perm_split : ∀ {l l₁ l₂ : list α}, split l = (l₁, l₂) → l ~
 | (a::l) l₁' l₂' h   := begin
   cases e : split l with l₁ l₂,
   injection (split_cons_of_eq _ e).symm.trans h, substs l₁' l₂',
-  exact perm.skip a ((perm_split e).trans perm_app_comm),
+  exact ((perm_split e).trans perm_append_comm).cons a,
 end
 
 /-- Merge two sorted lists into one in linear time.
@@ -228,9 +228,9 @@ theorem perm_merge : ∀ (l l' : list α), merge l l' ~ l ++ l'
 | (a :: l) []        := by simp [merge]
 | (a :: l) (b :: l') := begin
   by_cases a ≼ b,
-  { simpa [merge, h] using skip _ (perm_merge _ _) },
+  { simpa [merge, h] using perm_merge _ _ },
   { suffices : b :: merge r (a :: l) l' ~ a :: (l ++ b :: l'), {simpa [merge, h]},
-    exact (skip _ (perm_merge _ _)).trans ((swap _ _ _).trans (skip _ perm_middle.symm)) }
+    exact ((perm_merge _ _).cons _).trans ((swap _ _ _).trans (perm_middle.symm.cons _)) }
 end
 
 theorem perm_merge_sort : ∀ l : list α, merge_sort l ~ l
@@ -241,14 +241,14 @@ theorem perm_merge_sort : ∀ l : list α, merge_sort l ~ l
   cases length_split_lt e with h₁ h₂,
   rw [merge_sort_cons_cons r e],
   apply (perm_merge r _ _).trans,
-  exact (perm_app (perm_merge_sort l₁) (perm_merge_sort l₂)).trans (perm_split e).symm
+  exact ((perm_merge_sort l₁).append (perm_merge_sort l₂)).trans (perm_split e).symm
 end
 using_well_founded {
   rel_tac := λ_ _, `[exact ⟨_, inv_image.wf length nat.lt_wf⟩],
   dec_tac := tactic.assumption }
 
 @[simp] lemma length_merge_sort (l : list α) : (merge_sort l).length = l.length :=
-perm_length (perm_merge_sort _)
+(perm_merge_sort _).length_eq
 
 section total_and_transitive
 variables [is_total α r] [is_trans α r]
@@ -263,7 +263,7 @@ theorem sorted_merge : ∀ {l l' : list α}, sorted r l → sorted r l' → sort
     { simpa [merge, h, sorted_merge (sorted_of_sorted_cons h₁) h₂] },
     intros b' bm,
     rcases (show b' = b ∨ b' ∈ l ∨ b' ∈ l', by simpa [or.left_comm] using
-      perm_subset (perm_merge _ _ _) bm) with be | bl | bl',
+      (perm_merge _ _ _).subset bm) with be | bl | bl',
     { subst b', assumption },
     { exact rel_of_sorted_cons h₁ _ bl },
     { exact trans h (rel_of_sorted_cons h₂ _ bl') } },
@@ -272,7 +272,7 @@ theorem sorted_merge : ∀ {l l' : list α}, sorted r l → sorted r l' → sort
     intros b' bm,
     have ba : b ≼ a := (total_of r _ _).resolve_left h,
     rcases (show b' = a ∨ b' ∈ l ∨ b' ∈ l', by simpa using
-      perm_subset (perm_merge _ _ _) bm) with be | bl | bl',
+      (perm_merge _ _ _).subset bm) with be | bl | bl',
     { subst b', assumption },
     { exact trans ba (rel_of_sorted_cons h₁ _ bl) },
     { exact rel_of_sorted_cons h₂ _ bl' } }

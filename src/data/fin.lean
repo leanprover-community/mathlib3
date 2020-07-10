@@ -3,7 +3,7 @@ Copyright (c) 2017 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Keeley Hoek
 -/
-import data.nat.basic
+import data.nat.cast
 /-!
 # The finite type with `n` elements
 
@@ -46,8 +46,8 @@ We define the following operations:
 * `tail` : the tail of an `n+1` tuple, i.e., its last `n` entries;
 * `cons` : adding an element at the beginning of an `n`-tuple, to get an `n+1`-tuple;
 * `init` : the beginning of an `n+1` tuple, i.e., its first `n` entries;
-* `snoc` : adding an element at the end of an `n`-tuple, to get an `n+1`-tuple. The name `snoc` comes
-  from `cons` (i.e., adding an element to the left of a tuple) read in reverse order.
+* `snoc` : adding an element at the end of an `n`-tuple, to get an `n+1`-tuple. The name `snoc`
+  comes from `cons` (i.e., adding an element to the left of a tuple) read in reverse order.
 * `find p` : returns the first index `n` where `p n` is satisfied, and `none` if it is never
   satisfied.
 
@@ -74,7 +74,7 @@ attribute [ext] eq_of_veq
 protected lemma ext_iff (a b : fin n) : a = b ↔ a.val = b.val :=
 iff.intro (congr_arg _) fin.eq_of_veq
 
-lemma injective_val {n : ℕ} : injective (val : fin n → ℕ) := λ _ _, fin.eq_of_veq
+lemma val_injective {n : ℕ} : injective (val : fin n → ℕ) := λ _ _, fin.eq_of_veq
 
 lemma eq_iff_veq (a b : fin n) : a = b ↔ a.1 = b.1 :=
 ⟨veq_of_eq, eq_of_veq⟩
@@ -98,6 +98,61 @@ attribute [simp] val_zero
 @[simp] lemma coe_one  {n : ℕ} : ((1 : fin (n+2)) : ℕ) = 1 := rfl
 @[simp] lemma coe_two  {n : ℕ} : ((2 : fin (n+3)) : ℕ) = 2 := rfl
 
+/-- `a < b` as natural numbers if and only if `a < b` in `fin n`. -/
+@[norm_cast, simp] lemma coe_fin_lt {n : ℕ} {a b : fin n} : (a : ℕ) < (b : ℕ) ↔ a < b :=
+iff.rfl
+
+/-- `a ≤ b` as natural numbers if and only if `a ≤ b` in `fin n`. -/
+@[norm_cast, simp] lemma coe_fin_le {n : ℕ} {a b : fin n} : (a : ℕ) ≤ (b : ℕ) ↔ a ≤ b :=
+iff.rfl
+
+lemma val_add {n : ℕ} : ∀ a b : fin n, (a + b).val = (a.val + b.val) % n
+| ⟨_, _⟩ ⟨_, _⟩ := rfl
+
+lemma val_mul {n : ℕ} :  ∀ a b : fin n, (a * b).val = (a.val * b.val) % n
+| ⟨_, _⟩ ⟨_, _⟩ := rfl
+
+lemma one_val {n : ℕ} : (1 : fin (n+1)).val = 1 % (n+1) := rfl
+
+@[simp] lemma zero_val (n : ℕ) : (0 : fin (n+1)).val = 0 := rfl
+
+@[simp]
+lemma of_nat_eq_coe (n : ℕ) (a : ℕ) : (of_nat a : fin (n+1)) = a :=
+begin
+  induction a with a ih, { refl },
+  ext, show (a+1) % (n+1) = fin.val (a+1 : fin (n+1)),
+  { rw [val_add, ← ih, of_nat],
+    exact add_mod _ _ _ }
+end
+
+/-- Converting an in-range number to `fin (n + 1)` produces a result
+whose value is the original number.  -/
+lemma coe_val_of_lt {n : ℕ} {a : ℕ} (h : a < n + 1) :
+  (a : fin (n + 1)).val = a :=
+begin
+  rw ←of_nat_eq_coe,
+  exact nat.mod_eq_of_lt h
+end
+
+/-- Converting the value of a `fin (n + 1)` to `fin (n + 1)` results
+in the same value.  -/
+@[simp] lemma coe_val_eq_self {n : ℕ} (a : fin (n + 1)) : (a.val : fin (n + 1)) = a :=
+begin
+  rw fin.eq_iff_veq,
+  exact coe_val_of_lt a.is_lt
+end
+
+/-- Coercing an in-range number to `fin (n + 1)`, and converting back
+to `ℕ`, results in that number. -/
+lemma coe_coe_of_lt {n : ℕ} {a : ℕ} (h : a < n + 1) :
+  ((a : fin (n + 1)) : ℕ) = a :=
+coe_val_of_lt h
+
+/-- Converting a `fin (n + 1)` to `ℕ` and back results in the same
+value. -/
+@[simp] lemma coe_coe_eq_self {n : ℕ} (a : fin (n + 1)) : ((a : ℕ) : fin (n + 1)) = a :=
+coe_val_eq_self a
+
 /-- Assume `k = l`. If two functions defined on `fin k` and `fin l` are equal on each element,
 then they coincide (in the heq sense). -/
 protected lemma heq_fun_iff {α : Type*} {k l : ℕ} (h : k = l) {f : fin k → α} {g : fin l → α} :
@@ -109,7 +164,7 @@ protected lemma heq_ext_iff {k l : ℕ} (h : k = l) {i : fin k} {j : fin l} :
 by { induction h, simp [fin.ext_iff] }
 
 instance {n : ℕ} : decidable_linear_order (fin n) :=
-decidable_linear_order.lift fin.val (@fin.eq_of_veq _) (by apply_instance)
+decidable_linear_order.lift fin.val (@fin.eq_of_veq _)
 
 lemma exists_iff {p : fin n → Prop} : (∃ i, p i) ↔ ∃ i h, p ⟨i, h⟩ :=
 ⟨λ h, exists.elim h (λ ⟨i, hi⟩ hpi, ⟨i, hi, hpi⟩),
@@ -133,7 +188,7 @@ by cases a; cases b; exact eq_of_veq (nat.succ.inj (veq_of_eq p))
 @[simp] lemma succ_inj {a b : fin n} : a.succ = b.succ ↔ a = b :=
 ⟨λh, succ.inj h, λh, by rw h⟩
 
-lemma injective_succ (n : ℕ) : injective (@fin.succ n) :=
+lemma succ_injective (n : ℕ) : injective (@fin.succ n) :=
 λa b, succ.inj
 
 lemma succ_ne_zero {n} : ∀ k : fin n, fin.succ k ≠ 0
@@ -247,11 +302,11 @@ def clamp (n m : ℕ) : fin (m + 1) := fin.of_nat $ min n m
 @[simp] lemma clamp_val (n m : ℕ) : (clamp n m).val = min n m :=
 nat.mod_eq_of_lt $ nat.lt_succ_iff.mpr $ min_le_right _ _
 
-lemma injective_cast_le {n₁ n₂ : ℕ} (h : n₁ ≤ n₂) : injective (fin.cast_le h)
+lemma cast_le_injective {n₁ n₂ : ℕ} (h : n₁ ≤ n₂) : injective (fin.cast_le h)
 | ⟨i₁, h₁⟩ ⟨i₂, h₂⟩ eq := fin.eq_of_veq $ show i₁ = i₂, from fin.veq_of_eq eq
 
-lemma injective_cast_succ (n : ℕ) : injective (@fin.cast_succ n) :=
-injective_cast_le (le_add_right n 1)
+lemma cast_succ_injective (n : ℕ) : injective (@fin.cast_succ n) :=
+cast_le_injective (le_add_right n 1)
 
 theorem succ_above_ne (p : fin (n+1)) (i : fin n) : p.succ_above i ≠ p :=
 begin
@@ -261,7 +316,8 @@ begin
     simpa [lt_irrefl, nat.lt_succ_self, eq.symm] using h
 end
 
-@[simp] lemma succ_above_descend : ∀(p i : fin (n+1)) (h : i ≠ p), p.succ_above (p.pred_above i h) = i
+@[simp] lemma succ_above_descend :
+  ∀(p i : fin (n+1)) (h : i ≠ p), p.succ_above (p.pred_above i h) = i
 | ⟨p, hp⟩ ⟨0,   hi⟩ h := fin.eq_of_veq $ by simp [succ_above, pred_above]; split_ifs; simp * at *
 | ⟨p, hp⟩ ⟨i+1, hi⟩ h := fin.eq_of_veq
   begin
@@ -414,7 +470,8 @@ begin
       rw [update_noteq h', update_noteq this, cons_succ] } }
 end
 
-/-- Adding an element at the beginning of a tuple and then updating it amounts to adding it directly. -/
+/-- Adding an element at the beginning of a tuple and then updating it amounts to adding it
+directly. -/
 lemma update_cons_zero : update (cons x p) 0 z = cons z p :=
 begin
   ext j,
@@ -448,7 +505,7 @@ begin
   ext j,
   by_cases h : j = i,
   { rw h, simp [tail] },
-  { simp [tail, (fin.injective_succ n).ne h, h] }
+  { simp [tail, (fin.succ_injective n).ne h, h] }
 end
 
 lemma comp_cons {α : Type*} {β : Type*} (g : α → β) (y : α) (q : fin n → α) :
@@ -469,8 +526,8 @@ by { ext j, simp [tail] }
 end tuple
 
 section tuple_right
-/-! In the previous section, we have discussed inserting or removing elements on the left of a tuple.
-In this section, we do the same on the right. A difference is that `fin (n+1)` is constructed
+/-! In the previous section, we have discussed inserting or removing elements on the left of a
+tuple. In this section, we do the same on the right. A difference is that `fin (n+1)` is constructed
 inductively from `fin n` starting from the left, not from the right. This implies that Lean needs
 more help to realize that elements belong to the right types, i.e., we need to insert casts at
 several places. -/
@@ -538,7 +595,8 @@ begin
     simp [ne.symm (cast_succ_ne_last i)] }
 end
 
-/-- Adding an element at the beginning of a tuple and then updating it amounts to adding it directly. -/
+/-- Adding an element at the beginning of a tuple and then updating it amounts to adding it
+directly. -/
 lemma update_snoc_last : update (snoc p x) (last n) z = snoc p z :=
 begin
   ext j,
@@ -656,10 +714,9 @@ lemma is_some_find_iff : Π {n : ℕ} {p : fin n → Prop} [decidable_pred p],
   by exactI (find p).is_some ↔ ∃ i, p i
 | 0     p _ := iff_of_false (λ h, bool.no_confusion h) (λ ⟨i, _⟩, fin.elim0 i)
 | (n+1) p _ := ⟨λ h, begin
-  resetI,
   rw [option.is_some_iff_exists] at h,
   cases h with i hi,
-  exact ⟨i, find_spec _ hi⟩
+  exactI ⟨i, find_spec _ hi⟩
 end, λ ⟨⟨i, hin⟩, hi⟩,
 begin
   resetI,
@@ -669,7 +726,7 @@ begin
     { exact option.is_some_some },
     { have := (@is_some_find_iff n (λ x, p (x.cast_lt (nat.lt_succ_of_lt x.2))) _).2
         ⟨⟨i, lt_of_le_of_ne (nat.le_of_lt_succ hin)
-        (λ h, by clear_aux_decl; subst h; exact hl hi)⟩, hi⟩,
+        (λ h, by clear_aux_decl; cases h; exact hl hi)⟩, hi⟩,
       rw h at this,
       exact this } },
   { simp }

@@ -3,7 +3,8 @@ Copyright (c) 2018  Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Chris Hughes, Michael Howes
 -/
-import tactic.basic algebra.group.hom
+import algebra.group.hom
+
 /-!
 # Conjugacy of group elements
 -/
@@ -13,6 +14,7 @@ variables {α : Type u} {β : Type v}
 
 variables [group α] [group β]
 
+/-- We say that `a` is conjugate to `b` if for some `c` we have `c * a * c⁻¹ = b`. -/
 def is_conj (a b : α) := ∃ c : α, c * a * c⁻¹ = b
 
 @[refl] lemma is_conj_refl (a : α) : is_conj a a :=

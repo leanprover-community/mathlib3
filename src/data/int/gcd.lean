@@ -3,7 +3,7 @@ Copyright (c) 2018 Guy Leroy. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sangwoo Jo (aka Jason), Guy Leroy, Johannes Hölzl, Mario Carneiro
 -/
-import data.int.basic data.nat.prime
+import data.nat.prime
 /-!
 # Extended GCD and divisibility over ℤ
 
@@ -32,7 +32,7 @@ def xgcd_aux : ℕ → ℤ → ℤ → ℕ → ℤ → ℤ → ℕ × ℤ × ℤ
 @[simp] theorem xgcd_zero_left {s t r' s' t'} : xgcd_aux 0 s t r' s' t' = (r', s', t') :=
 by simp [xgcd_aux]
 
-@[simp] theorem xgcd_aux_rec {r s t r' s' t'} (h : 0 < r) :
+theorem xgcd_aux_rec {r s t r' s' t'} (h : 0 < r) :
   xgcd_aux r s t r' s' t' = xgcd_aux (r' % r) (s' - (r' / r) * s) (t' - (r' / r) * t) r s t :=
 by cases r; [exact absurd h (lt_irrefl _), {simp only [xgcd_aux], refl}]
 
@@ -48,7 +48,7 @@ def gcd_b (x y : ℕ) : ℤ := (xgcd x y).2
 
 @[simp] theorem xgcd_aux_fst (x y) : ∀ s t s' t',
   (xgcd_aux x s t y s' t').1 = gcd x y :=
-gcd.induction x y (by simp) (λ x y h IH s t s' t', by simp [h, IH]; rw ← gcd_rec)
+gcd.induction x y (by simp) (λ x y h IH s t s' t', by simp [xgcd_aux_rec, h, IH]; rw ← gcd_rec)
 
 theorem xgcd_aux_val (x y) : xgcd_aux x 1 0 y 0 1 = (gcd x y, xgcd x y) :=
 by rw [xgcd, ← xgcd_aux_fst x y 1 0 0 1]; cases xgcd_aux x 1 0 y 0 1; refl
@@ -68,7 +68,7 @@ gcd.induction r r' (by simp) $ λ a b h IH s t s' t' p p', begin
   rw [xgcd_aux_rec h], refine IH _ p, dsimp [P] at *,
   rw [int.mod_def], generalize : (b / a : ℤ) = k,
   rw [p, p'],
-  simp [mul_add, mul_comm, mul_left_comm, add_comm, add_left_comm, sub_eq_neg_add]
+  simp [mul_add, mul_comm, mul_left_comm, add_comm, add_left_comm, sub_eq_neg_add, mul_assoc]
 end
 
 /-- Bézout's lemma: given `x y : ℕ`, `gcd x y = x * a + y * b`, where `a = gcd_a x y` and
@@ -113,7 +113,7 @@ hsd.elim
   (λ hsd2, or.inr begin apply int.dvd_nat_abs.1, apply int.coe_nat_dvd.2 hsd2 end)
 
 theorem dvd_of_mul_dvd_mul_left {i j k : ℤ} (k_non_zero : k ≠ 0) (H : k * i ∣ k * j) : i ∣ j :=
-dvd.elim H (λl H1, by rw mul_assoc at H1; exact ⟨_, eq_of_mul_eq_mul_left k_non_zero H1⟩)
+dvd.elim H (λl H1, by rw mul_assoc at H1; exact ⟨_, mul_left_cancel' k_non_zero H1⟩)
 
 theorem dvd_of_mul_dvd_mul_right {i j k : ℤ} (k_non_zero : k ≠ 0) (H : i * k ∣ j * k) : i ∣ j :=
 by rw [mul_comm i k, mul_comm j k] at H; exact dvd_of_mul_dvd_mul_left k_non_zero H

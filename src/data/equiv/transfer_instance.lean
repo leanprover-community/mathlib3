@@ -3,8 +3,9 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-
-import data.equiv.basic algebra.field
+import data.equiv.basic
+import algebra.field
+import algebra.group.type_tags
 
 /-!
 # Transfer algebraic structures across `equiv`s
@@ -139,29 +140,20 @@ protected def comm_ring [comm_ring β] : comm_ring α :=
 { ..equiv.comm_monoid e,
   ..equiv.ring e }
 
-/-- Transfer `zero_ne_one_class` across an `equiv` -/
-protected def zero_ne_one_class [zero_ne_one_class β] : zero_ne_one_class α :=
-{ zero_ne_one := by simp [zero_def, one_def],
-  ..equiv.has_zero e,
-  ..equiv.has_one e }
-
-/-- Transfer `nonzero_comm_ring` across an `equiv` -/
-protected def nonzero_comm_ring [nonzero_comm_ring β] : nonzero_comm_ring α :=
-{ ..equiv.zero_ne_one_class e,
-  ..equiv.comm_ring e }
+/-- Transfer `nonzero` across an `equiv` -/
+protected theorem nontrivial [nontrivial β] : nontrivial α :=
+let ⟨x, y, h⟩ := exists_pair_ne β in ⟨⟨e.symm x, e.symm y, e.symm.injective.ne h⟩⟩
 
 /-- Transfer `domain` across an `equiv` -/
 protected def domain [domain β] : domain α :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := by simp [mul_def, zero_def, equiv.eq_symm_apply],
-  ..equiv.has_zero e,
-  ..equiv.zero_ne_one_class e,
-  ..equiv.has_mul e,
-  ..equiv.ring e }
+  ..equiv.ring e,
+  ..equiv.nontrivial e }
 
 /-- Transfer `integral_domain` across an `equiv` -/
 protected def integral_domain [integral_domain β] : integral_domain α :=
 { ..equiv.domain e,
-  ..equiv.nonzero_comm_ring e }
+  ..equiv.comm_ring e }
 
 /-- Transfer `division_ring` across an `equiv` -/
 protected def division_ring [division_ring β] : division_ring α :=

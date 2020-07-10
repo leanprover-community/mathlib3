@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import logic.basic data.bool data.option.defs tactic.basic
+import tactic.basic
 
 namespace option
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -26,14 +26,17 @@ theorem get_of_mem {a : α} : ∀ {o : option α} (h : is_some o), a ∈ o → o
 
 @[simp] lemma get_or_else_some (x y : α) : option.get_or_else (some x) y = x := rfl
 
+lemma get_or_else_of_ne_none {x : option α} (hx : x ≠ none) (y : α) : some (x.get_or_else y) = x :=
+by cases x; [contradiction, rw get_or_else_some]
+
 theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a = b :=
 option.some.inj $ ha.symm.trans hb
 
-theorem injective_some (α : Type*) : function.injective (@some α) :=
+theorem some_injective (α : Type*) : function.injective (@some α) :=
 λ _ _, some_inj.mp
 
 /-- `option.map f` is injective if `f` is injective. -/
-theorem injective_map {f : α → β} (Hf : function.injective f) : function.injective (option.map f)
+theorem map_injective {f : α → β} (Hf : function.injective f) : function.injective (option.map f)
 | none      none      H := rfl
 | (some a₁) (some a₂) H := by rw Hf (option.some.inj H)
 
@@ -57,10 +60,12 @@ theorem eq_none_iff_forall_not_mem {o : option α} :
 @[simp] theorem bind_some : ∀ x : option α, x >>= some = x :=
 @bind_pure α option _ _
 
-@[simp] theorem bind_eq_some {α β} {x : option α} {f : α → option β} {b : β} : x >>= f = some b ↔ ∃ a, x = some a ∧ f a = some b :=
+@[simp] theorem bind_eq_some {α β} {x : option α} {f : α → option β} {b : β} :
+  x >>= f = some b ↔ ∃ a, x = some a ∧ f a = some b :=
 by cases x; simp
 
-@[simp] theorem bind_eq_some' {x : option α} {f : α → option β} {b : β} : x.bind f = some b ↔ ∃ a, x = some a ∧ f a = some b :=
+@[simp] theorem bind_eq_some' {x : option α} {f : α → option β} {b : β} :
+  x.bind f = some b ↔ ∃ a, x = some a ∧ f a = some b :=
 by cases x; simp
 
 @[simp] theorem bind_eq_none' {o : option α} {f : α → option β} :
@@ -86,10 +91,12 @@ lemma bind_assoc (x : option α) (f : α → option β) (g : β → option γ) :
 
 @[simp] theorem map_some' {a : α} {f : α → β} : option.map f (some a) = some (f a) := rfl
 
-@[simp] theorem map_eq_some {α β} {x : option α} {f : α → β} {b : β} : f <$> x = some b ↔ ∃ a, x = some a ∧ f a = b :=
+@[simp] theorem map_eq_some {α β} {x : option α} {f : α → β} {b : β} :
+  f <$> x = some b ↔ ∃ a, x = some a ∧ f a = b :=
 by cases x; simp
 
-@[simp] theorem map_eq_some' {x : option α} {f : α → β} {b : β} : x.map f = some b ↔ ∃ a, x = some a ∧ f a = b :=
+@[simp] theorem map_eq_some' {x : option α} {f : α → β} {b : β} :
+  x.map f = some b ↔ ∃ a, x = some a ∧ f a = b :=
 by cases x; simp
 
 @[simp] theorem map_id' : option.map (@id α) = id := map_id

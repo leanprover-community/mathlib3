@@ -3,7 +3,6 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johan Commelin
 -/
-
 import ring_theory.integral_closure
 
 /-!
@@ -111,7 +110,7 @@ begin
   have ndeg_eq_zero : nat_degree (minimal_polynomial hx) = 0,
   { simpa using congr_arg nat_degree (eq_C_of_degree_eq_zero deg_eq_zero) },
   have eq_one : minimal_polynomial hx = 1,
-  { rw eq_C_of_degree_eq_zero deg_eq_zero, congr,
+  { rw eq_C_of_degree_eq_zero deg_eq_zero, convert C_1,
     simpa [ndeg_eq_zero.symm] using (monic hx).leading_coeff },
   simpa [eq_one, aeval_def] using aeval hx
 end
@@ -195,14 +194,14 @@ begin
   { rw (minimal_polynomial hx).as_sum at h,
     apply eq_neg_of_add_eq_zero,
     simpa only [ndeg_one, coeff_one, C_1, eval_C, eval_X, eval_add, mul_one, one_mul, pow_zero, pow_one,
-      is_root.def, finset.sum_range_succ, finset.insert_empty_eq_singleton, finset.sum_singleton, finset.range_one] using h, },
+      is_root.def, finset.sum_range_succ, finset.sum_singleton, finset.range_one] using h, },
   subst y,
   rw [ring_hom.map_neg, neg_eq_iff_add_eq_zero],
   have H := aeval hx,
   rw (minimal_polynomial hx).as_sum at H,
   simpa only [ndeg_one, coeff_one, aeval_def, C_1, eval₂_add, eval₂_C, eval₂_X,
     mul_one, one_mul, pow_one, pow_zero, add_comm,
-    finset.sum_range_succ, finset.insert_empty_eq_singleton, finset.sum_singleton, finset.range_one] using H,
+    finset.sum_range_succ, finset.sum_singleton, finset.range_one] using H,
 end
 
 /--The constant coefficient of the minimal polynomial of x is 0
@@ -213,7 +212,7 @@ begin
   { intro h,
     have zero_root := polynomial.zero_is_root_of_coeff_zero_eq_zero h,
     rw ← root hx zero_root,
-    exact is_ring_hom.map_zero _ },
+    exact ring_hom.map_zero _ },
   { rintro rfl, simp }
 end
 

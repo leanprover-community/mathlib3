@@ -1,4 +1,5 @@
 import tactic.lint
+import algebra.ring
 
 def foo1 (n m : ℕ) : ℕ := n + 1
 def foo2 (n m : ℕ) : m = m := by refl
@@ -53,6 +54,7 @@ return $ if d.to_name.last = "foo" then some "gotcha!" else none
 
 meta def linter.dummy_linter : linter :=
 { test := dummy_check,
+  auto_decls := ff,
   no_errors_found := "found nothing",
   errors_found := "found something" }
 
@@ -93,22 +95,11 @@ def foo_has_mul {α} [has_mul α] : has_mul α := infer_instance
 local attribute [instance, priority 1] foo_has_mul
 run_cmd do
   d ← get_decl `has_mul,
-  some s ← fails_quickly 500 d,
+  some s ← fails_quickly 20 d,
   guard $ s = "type-class inference timed out"
 local attribute [instance, priority 10000] foo_has_mul
 run_cmd do
   d ← get_decl `has_mul,
-  some s ← fails_quickly 3000 d,
-  guard $ "maximum class-instance resolution depth has been reached".is_prefix_of s
-end
-
-section
-def foo_instance {α} (R : setoid α) : has_coe α (quotient R) := ⟨quotient.mk⟩
-local attribute [instance, priority 1] foo_instance
-run_cmd do
-  d ← get_decl `foo_instance,
-  some "illegal instance" ← linter.has_coe_variable.test d,
-  d ← get_decl `has_coe_to_fun,
   some s ← fails_quickly 3000 d,
   guard $ "maximum class-instance resolution depth has been reached".is_prefix_of s
 end

@@ -611,9 +611,8 @@ by rw [← int.cast_coe_nat, coe_int_num]
 @[simp, norm_cast] theorem coe_nat_denom (n : ℕ) : (n : ℚ).denom = 1 :=
 by rw [← int.cast_coe_nat, coe_int_denom]
 
--- The linter complained that this was provable `by simp only [int.cast_inj]`,
--- but that's not the case.
-@[nolint simp_nf, simp, norm_cast]
+-- Will be subsumed by `int.coe_inj` after we have defined
+-- `discrete_linear_ordered_field ℚ` (which implies characteristic zero).
 lemma coe_int_inj (m n : ℤ) : (m : ℚ) = n ↔ m = n :=
 ⟨λ h, by simpa using congr_arg num h, congr_arg _⟩
 

@@ -5,7 +5,6 @@ Authors: Scott Morrison, Reid Barton, Simon Hudon, Kenny Lau
 
 Opposites.
 -/
-import data.list.defs
 import data.equiv.basic
 
 universes v u -- declare the `v` first; see `category_theory.category` for an explanation

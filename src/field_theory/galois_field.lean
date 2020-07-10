@@ -21,6 +21,29 @@ It is a finite field with `p ^ n` elements.
 
 noncomputable theory
 
+-- move this
+section
+open function
+variables {K L : Type*} [field K] [field L]
+
+lemma ring_hom.char_p_iff (f : K →+* L) (p : ℕ) :
+  char_p K p ↔ char_p L p :=
+begin
+  split; introI; constructor; intro n,
+  { rw [← f.map_nat_cast, f.map_eq_zero],
+    apply char_p.cast_eq_zero_iff },
+  { rw [← f.injective.eq_iff, f.map_nat_cast, f.map_zero],
+    apply char_p.cast_eq_zero_iff }
+end
+
+variables (K L) [algebra K L]
+
+lemma algebra.char_p_iff (p : ℕ) :
+  char_p K p ↔ char_p L p :=
+(algebra_map K L).char_p_iff p
+
+end
+
 open polynomial
 
 /-- A finite field with `p ^ n` elements.
@@ -40,7 +63,7 @@ instance : is_splitting_field (zmod p) (galois_field p n) (X^(p^n) - X) :=
 polynomial.is_splitting_field_splitting_field _
 
 instance : char_p (galois_field p n) p :=
-sorry
+(algebra.char_p_iff (zmod p) (galois_field p n) p).mp (by apply_instance)
 
 instance : fintype (galois_field p n) :=
 sorry

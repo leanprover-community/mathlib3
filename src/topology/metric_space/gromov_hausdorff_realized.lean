@@ -232,7 +232,7 @@ begin
 end
 
 /-- Compactness of candidates (in bounded_continuous_functions) follows -/
-private lemma compact_candidates_b : compact (candidates_b α β) :=
+private lemma compact_candidates_b : is_compact (candidates_b α β) :=
 begin
   refine arzela_ascoli₂ (Icc 0 (max_var α β)) compact_Icc (candidates_b α β) closed_candidates_b _ _,
   { rintros f ⟨x1, x2⟩ hf,

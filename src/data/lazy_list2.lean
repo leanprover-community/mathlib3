@@ -5,8 +5,22 @@ Authors: Simon Hudon
 
 Traversable instance for lazy_lists.
 -/
+import control.traversable.equiv
+import control.traversable.instances
+import data.lazy_list
 
-import category.traversable.equiv category.traversable.instances data.lazy_list
+universes u
+
+namespace thunk
+
+/-- Creates a thunk with a (non-lazy) constant value. -/
+def mk {α} (x : α) : thunk α := λ _, x
+
+instance {α : Type u} [decidable_eq α] : decidable_eq (thunk α) | a b :=
+have a = b ↔ a () = b (), from ⟨by cc, by intro; ext x; cases x; assumption⟩,
+by rw this; apply_instance
+
+end thunk
 
 namespace lazy_list
 
@@ -19,13 +33,27 @@ def list_equiv_lazy_list (α : Type*) : list α ≃ lazy_list α :=
                     ext, cases x, refl },
   left_inv := by { intro, induction x, refl, simp! [*] } }
 
-universes u
-def thunk.mk {α} (x : α) : thunk α := λ _, x
+instance {α : Type u} : inhabited (lazy_list α) := ⟨nil⟩
+
+instance {α : Type u} [decidable_eq α] : decidable_eq (lazy_list α)
+| nil nil := is_true rfl
+| (cons x xs) (cons y ys) :=
+  if h : x = y then
+    match decidable_eq (xs ()) (ys ()) with
+    | is_false h2 := is_false (by intro; cc)
+    | is_true h2 :=
+      have xs = ys, by ext u; cases u; assumption,
+      is_true (by cc)
+    end
+  else
+    is_false (by intro; cc)
+| nil (cons _ _) := is_false (by cc)
+| (cons _ _) nil := is_false (by cc)
 
 protected def traverse {m : Type u → Type u} [applicative m] {α β : Type u}
     (f : α → m β) : lazy_list α → m (lazy_list β)
 | lazy_list.nil := pure lazy_list.nil
-| (lazy_list.cons x xs):= lazy_list.cons <$> f x <*> (thunk.mk <$> traverse (xs ()))
+| (lazy_list.cons x xs) := lazy_list.cons <$> f x <*> (thunk.mk <$> traverse (xs ()))
 
 instance : traversable lazy_list :=
 { map := @lazy_list.traverse id _,

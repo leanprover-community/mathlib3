@@ -2,6 +2,11 @@ import tactic.local_cache
 
 open tactic
 
+def do_trace : bool := ff
+
+meta def trace_cache_regenerating : tactic unit :=
+if do_trace then trace "(test/local_cache): cache regenerating" else skip
+
 namespace block_local
 
 section example_tactic
@@ -11,7 +16,7 @@ def TEST_NS_2 : name := `my_other_tactic
 
 -- Example "expensive" function
 meta def generate_some_data : tactic (list ℕ) :=
-do trace "cache regenerating",
+do trace_cache_regenerating,
    return [1, 2, 3, 4]
 
 meta def my_tactic : tactic unit :=
@@ -229,7 +234,7 @@ def TEST_NS_2 : name := `my_other_tactic
 
 -- Example "expensive" function
 meta def generate_some_data : tactic (list ℕ) :=
-do trace "cache regenerating",
+do trace_cache_regenerating,
    return [1, 2, 3, 4]
 
 meta def my_tactic : tactic unit :=
@@ -441,7 +446,7 @@ def TEST_NS : name := `my_tactic
 
 -- Example "expensive" function
 meta def generate_some_data : tactic (list ℕ) :=
-do trace "cache regenerating",
+do trace_cache_regenerating,
    return [1, 2, 3, 4]
 
 meta def tac_block : tactic unit :=

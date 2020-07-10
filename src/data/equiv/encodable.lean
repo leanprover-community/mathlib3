@@ -7,6 +7,9 @@ Type class for encodable Types.
 Note that every encodable Type is countable.
 -/
 import data.equiv.nat
+import order.order_iso
+import order.directed
+
 open option list nat function
 
 /-- An encodable type is a "constructively countable" type. This is where
@@ -14,7 +17,11 @@ open option list nat function
   `decode : nat → option α`. This makes the range of `encode` decidable,
   although it is not decidable if `α` is finite or not. -/
 class encodable (α : Type*) :=
-(encode : α → nat) (decode : nat → option α) (encodek : ∀ a, decode (encode a) = some a)
+(encode : α → nat)
+(decode [] : nat → option α)
+(encodek : ∀ a, decode (encode a) = some a)
+
+attribute [simp] encodable.encodek
 
 namespace encodable
 variables {α : Type*} {β : Type*}
@@ -39,6 +46,7 @@ def of_left_inverse [encodable α]
   (f : β → α) (finv : α → β) (linv : ∀ b, finv (f b) = b) : encodable β :=
 of_left_injection f (some ∘ finv) (λ b, congr_arg some (linv b))
 
+/-- If `α` is encodable and `β ≃ α`, then so is `β` -/
 def of_equiv (α) [encodable α] (e : β ≃ α) : encodable β :=
 of_left_inverse e e.symm e.left_inv
 
@@ -99,6 +107,24 @@ encode_injective $ (mem_decode2.1 h₁).trans (mem_decode2.1 h₂).symm
 
 theorem encodek2 [encodable α] (a : α) : decode2 α (encode a) = some a :=
 mem_decode2.2 rfl
+
+def decidable_range_encode (α : Type*) [encodable α] : decidable_pred (set.range (@encode α _)) :=
+λ x, decidable_of_iff (option.is_some (decode2 α x))
+  ⟨λ h, ⟨option.get h, by rw [← decode2_is_partial_inv (option.get h), option.some_get]⟩,
+  λ ⟨n, hn⟩, by rw [← hn, encodek2]; exact rfl⟩
+
+def equiv_range_encode (α : Type*) [encodable α] : α ≃ set.range (@encode α _) :=
+{ to_fun := λ a : α, ⟨encode a, set.mem_range_self _⟩,
+  inv_fun := λ n, option.get (show is_some (decode2 α n.1),
+    by cases n.2 with x hx; rw [← hx, encodek2]; exact rfl),
+  left_inv := λ a, by dsimp;
+    rw [← option.some_inj, option.some_get, encodek2],
+  right_inv := λ ⟨n, x, hx⟩, begin
+    apply subtype.eq,
+    dsimp,
+    conv {to_rhs, rw ← hx},
+    rw [encode_injective.eq_iff, ← option.some_inj, option.some_get, ← hx, encodek2],
+  end }
 
 section sum
 variables [encodable α] [encodable β]
@@ -204,6 +230,10 @@ if h : P a then some ⟨a, h⟩ else none
 instance subtype : encodable {a : α // P a} :=
 ⟨encode_subtype, decode_subtype,
  λ ⟨v, h⟩, by simp [encode_subtype, decode_subtype, encodek, h]⟩
+
+lemma subtype.encode_eq (a : subtype P) : encode a = encode a.val :=
+by cases a; refl
+
 end subtype
 
 instance fin (n) : encodable (fin n) :=
@@ -223,12 +253,62 @@ of_left_injection f (partial_inv f) (λ x, (partial_inv_of_injective hf _ _).2 r
 
 end encodable
 
+section ulower
+local attribute [instance, priority 100] encodable.decidable_range_encode
+
+/--
+`ulower α : Type 0` is an equivalent type in the lowest universe, given `encodable α`.
+-/
+@[derive decidable_eq, derive encodable]
+def ulower (α : Type*) [encodable α] : Type :=
+set.range (encodable.encode : α → ℕ)
+
+end ulower
+
+namespace ulower
+variables (α : Type*) [encodable α]
+
+/--
+The equivalence between the encodable type `α` and `ulower α : Type 0`.
+-/
+def equiv : α ≃ ulower α :=
+encodable.equiv_range_encode α
+
+variables {α}
+
+/--
+Lowers an `a : α` into `ulower α`.
+-/
+def down (a : α) : ulower α := equiv α a
+
+instance [inhabited α] : inhabited (ulower α) := ⟨down (default _)⟩
+
+/--
+Lifts an `a : ulower α` into `α`.
+-/
+def up (a : ulower α) : α := (equiv α).symm a
+
+@[simp] lemma down_up {a : ulower α} : down a.up = a := equiv.right_inv _ _
+@[simp] lemma up_down {a : α} : (down a).up = a := equiv.left_inv _ _
+
+@[simp] lemma up_eq_up {a b : ulower α} : a.up = b.up ↔ a = b :=
+equiv.apply_eq_iff_eq _ _ _
+
+@[simp] lemma down_eq_down {a b : α} : down a = down b ↔ a = b :=
+equiv.apply_eq_iff_eq _ _ _
+
+@[ext] protected lemma ext {a b : ulower α} : a.up = b.up → a = b :=
+up_eq_up.1
+
+end ulower
+
 /-
 Choice function for encodable types and decidable predicates.
 We provide the following API
 
 choose      {α : Type*} {p : α → Prop} [c : encodable α] [d : decidable_pred p] : (∃ x, p x) → α :=
-choose_spec {α : Type*} {p : α → Prop} [c : encodable α] [d : decidable_pred p] (ex : ∃ x, p x) : p (choose ex) :=
+choose_spec {α : Type*} {p : α → Prop} [c : encodable α] [d : decidable_pred p] (ex : ∃ x, p x) :
+  p (choose ex) :=
 -/
 
 namespace encodable
@@ -269,22 +349,84 @@ theorem skolem {α : Type*} {β : α → Type*} {P : Π x, β x → Prop}
   (∀x, ∃y, P x y) ↔ ∃f : Π a, β a, (∀x, P x (f x)) :=
 ⟨axiom_of_choice, λ ⟨f, H⟩ x, ⟨_, H x⟩⟩
 
+/-
+There is a total ordering on the elements of an encodable type, induced by the map to ℕ.
+-/
+
+/-- The `encode` function, viewed as an embedding. -/
+def encode' (α) [encodable α] : α ↪ nat :=
+⟨encodable.encode, encodable.encode_injective⟩
+
+instance {α} [encodable α] : is_trans _ (encode' α ⁻¹'o (≤)) :=
+(order_embedding.preimage _ _).is_trans
+instance {α} [encodable α] : is_antisymm _ (encodable.encode' α ⁻¹'o (≤)) :=
+(order_embedding.preimage _ _).is_antisymm
+instance {α} [encodable α] : is_total _ (encodable.encode' α ⁻¹'o (≤)) :=
+(order_embedding.preimage _ _).is_total
+
 end encodable
 
-namespace quot
+namespace directed
+
 open encodable
+
+variables {α : Type*} {β : Type*} [encodable α] [inhabited α]
+
+/-- Given a `directed r` function `f : α → β` defined on an encodable inhabited type,
+construct a noncomputable sequence such that `r (f (x n)) (f (x (n + 1)))`
+and `r (f a) (f (x (encode a + 1))`. -/
+protected noncomputable def sequence {r : β → β → Prop} (f : α → β) (hf : directed r f) : ℕ → α
+| 0       := default α
+| (n + 1) :=
+  let p := sequence n in
+  match decode α n with
+  | none     := classical.some (hf p p)
+  | (some a) := classical.some (hf p a)
+  end
+
+lemma sequence_mono_nat {r : β → β → Prop} {f : α → β} (hf : directed r f) (n : ℕ) :
+  r (f (hf.sequence f n)) (f (hf.sequence f (n+1))) :=
+begin
+  dsimp [directed.sequence],
+  generalize eq : hf.sequence f n = p,
+  cases h : decode α n with a,
+  { exact (classical.some_spec (hf p p)).1 },
+  { exact (classical.some_spec (hf p a)).1 }
+end
+
+lemma rel_sequence {r : β → β → Prop} {f : α → β} (hf : directed r f) (a : α) :
+  r (f a) (f (hf.sequence f (encode a + 1))) :=
+begin
+  simp only [directed.sequence, encodek],
+  exact (classical.some_spec (hf _ a)).2
+end
+
+variables [preorder β] {f : α → β} (hf : directed (≤) f)
+
+lemma sequence_mono : monotone (f ∘ (hf.sequence f)) :=
+monotone_of_monotone_nat $ hf.sequence_mono_nat
+
+lemma le_sequence (a : α) : f a ≤ f (hf.sequence f (encode a + 1)) :=
+hf.rel_sequence a
+
+end directed
+
+section quotient
+open encodable quotient
 variables {α : Type*} {s : setoid α} [@decidable_rel α (≈)] [encodable α]
 
--- Choose equivalence class representative
-def rep (q : quotient s) : α :=
+/-- Representative of an equivalence class. This is a computable version of `quot.out` for a setoid
+on an encodable type. -/
+def quotient.rep (q : quotient s) : α :=
 choose (exists_rep q)
 
-theorem rep_spec (q : quotient s) : ⟦rep q⟧ = q :=
+theorem quotient.rep_spec (q : quotient s) : ⟦q.rep⟧ = q :=
 choose_spec (exists_rep q)
 
+/-- The quotient of an encodable space by a decidable equivalence relation is encodable. -/
 def encodable_quotient : encodable (quotient s) :=
-⟨λ q, encode (rep q),
+⟨λ q, encode q.rep,
  λ n, quotient.mk <$> decode α n,
- by rintros ⟨l⟩; rw encodek; exact congr_arg some (rep_spec _)⟩
+ by rintros ⟨l⟩; rw encodek; exact congr_arg some ⟦l⟧.rep_spec⟩
 
-end quot
+end quotient

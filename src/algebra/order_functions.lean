@@ -3,9 +3,19 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.ordered_group order.lattice
+import algebra.ordered_ring
 
-open lattice
+/-!
+# strictly monotone functions, max, min and abs
+
+This file proves basic properties about strictly monotone functions,
+maxima and minima on a `decidable_linear_order`, and the absolute value
+function on linearly ordered add_comm_groups, semirings and rings.
+
+## Tags
+
+min, max, abs
+-/
 
 universes u v
 variables {α : Type u} {β : Type v}
@@ -28,9 +38,13 @@ lemma max_min_distrib_left : max a (min b c) = min (max a b) (max a c) := sup_in
 lemma max_min_distrib_right : max (min a b) c = min (max a c) (max b c) := sup_inf_right
 lemma min_max_distrib_left : min a (max b c) = max (min a b) (min a c) := inf_sup_left
 lemma min_max_distrib_right : min (max a b) c = max (min a c) (min b c) := inf_sup_right
+lemma min_le_max : min a b ≤ max a b := le_trans (min_le_left a b) (le_max_left a b)
 
-instance max_idem : is_idempotent α max := by apply_instance
-instance min_idem : is_idempotent α min := by apply_instance
+/-- An instance asserting that `max a a = a` -/
+instance max_idem : is_idempotent α max := by apply_instance -- short-circuit type class inference
+
+/-- An instance asserting that `min a a = a` -/
+instance min_idem : is_idempotent α min := by apply_instance -- short-circuit type class inference
 
 @[simp] lemma min_le_iff : min a b ≤ c ↔ a ≤ c ∨ b ≤ c :=
 have a ≤ b → (a ≤ c ∨ b ≤ c ↔ a ≤ c),
@@ -73,10 +87,10 @@ left_comm max max_comm max_assoc a b c
 theorem max.right_comm (a b c : α) : max (max a b) c = max (max a c) b :=
 right_comm max max_comm max_assoc a b c
 
-lemma max_distrib_of_monotone (hf : monotone f) : f (max a b) = max (f a) (f b) :=
+lemma monotone.map_max (hf : monotone f) : f (max a b) = max (f a) (f b) :=
 by cases le_total a b; simp [h, hf h]
 
-lemma min_distrib_of_monotone (hf : monotone f) : f (min a b) = min (f a) (f b) :=
+lemma monotone.map_min (hf : monotone f) : f (min a b) = min (f a) (f b) :=
 by cases le_total a b; simp [h, hf h]
 
 theorem min_choice (a b : α) : min a b = a ∨ min a b = b :=
@@ -93,7 +107,7 @@ le_trans (le_max_right _ _) h
 
 end
 
-lemma min_add {α : Type u} [decidable_linear_ordered_comm_group α] (a b c : α) :
+lemma min_add {α : Type u} [decidable_linear_ordered_add_comm_group α] (a b c : α) :
       min a b + c = min (a + c) (b + c) :=
 if hle : a ≤ b then
   have a - c ≤ b - c, from sub_le_sub hle (le_refl _),
@@ -102,16 +116,35 @@ else
   have b - c ≤ a - c, from sub_le_sub (le_of_lt (lt_of_not_ge hle)) (le_refl _),
   by simp * at *
 
-lemma min_sub {α : Type u} [decidable_linear_ordered_comm_group α] (a b c : α) :
+lemma min_sub {α : Type u} [decidable_linear_ordered_add_comm_group α] (a b c : α) :
       min a b - c = min (a - c) (b - c) :=
 by simp [min_add, sub_eq_add_neg]
 
-section decidable_linear_ordered_comm_group
-variables [decidable_linear_ordered_comm_group α] {a b c : α}
+
+/- Some lemmas about types that have an ordering and a binary operation, with no
+  rules relating them. -/
+lemma fn_min_add_fn_max [decidable_linear_order α] [add_comm_semigroup β] (f : α → β) (n m : α) :
+  f (min n m) + f (max n m) = f n + f m :=
+by { cases le_total n m with h h; simp [h, add_comm] }
+
+lemma min_add_max [decidable_linear_order α] [add_comm_semigroup α] (n m : α) :
+  min n m + max n m = n + m :=
+fn_min_add_fn_max id n m
+
+lemma fn_min_mul_fn_max [decidable_linear_order α] [comm_semigroup β] (f : α → β) (n m : α) :
+  f (min n m) * f (max n m) = f n * f m :=
+by { cases le_total n m with h h; simp [h, mul_comm] }
+
+lemma min_mul_max [decidable_linear_order α] [comm_semigroup α] (n m : α) :
+  min n m * max n m = n * m :=
+fn_min_mul_fn_max id n m
+
+section decidable_linear_ordered_add_comm_group
+variables [decidable_linear_ordered_add_comm_group α] {a b c : α}
 
 attribute [simp] abs_zero abs_neg
 
-def abs_add := @abs_add_le_abs_add_abs
+lemma abs_add (a b : α) : abs (a + b) ≤ abs a + abs b := abs_add_le_abs_add_abs a b
 
 theorem abs_le : abs a ≤ b ↔ - b ≤ a ∧ a ≤ b :=
 ⟨assume h, ⟨neg_le_of_neg_le $ le_trans (neg_le_abs_self _) h, le_trans (le_abs_self _) h⟩,
@@ -121,18 +154,20 @@ lemma abs_lt : abs a < b ↔ - b < a ∧ a < b :=
 ⟨assume h, ⟨neg_lt_of_neg_lt $ lt_of_le_of_lt (neg_le_abs_self _) h, lt_of_le_of_lt (le_abs_self _) h⟩,
   assume ⟨h₁, h₂⟩, abs_lt_of_lt_of_neg_lt h₂ $ neg_lt_of_neg_lt h₁⟩
 
+lemma lt_abs : a < abs b ↔ a < b ∨ a < -b := lt_max_iff
+
 lemma abs_sub_le_iff : abs (a - b) ≤ c ↔ a - b ≤ c ∧ b - a ≤ c :=
 by rw [abs_le, neg_le_sub_iff_le_add, @sub_le_iff_le_add' _ _ b, and_comm]
 
 lemma abs_sub_lt_iff : abs (a - b) < c ↔ a - b < c ∧ b - a < c :=
 by rw [abs_lt, neg_lt_sub_iff_lt_add, @sub_lt_iff_lt_add' _ _ b, and_comm]
 
-def sub_abs_le_abs_sub := @abs_sub_abs_le_abs_sub
+lemma sub_abs_le_abs_sub (a b : α) : abs a - abs b ≤ abs (a - b) := abs_sub_abs_le_abs_sub a b
 
 lemma abs_abs_sub_le_abs_sub (a b : α) : abs (abs a - abs b) ≤ abs (a - b) :=
 abs_sub_le_iff.2 ⟨sub_abs_le_abs_sub _ _, by rw abs_sub; apply sub_abs_le_abs_sub⟩
 
-lemma abs_eq (hb : b ≥ 0) : abs a = b ↔ a = b ∨ a = -b :=
+lemma abs_eq (hb : 0 ≤ b) : abs a = b ↔ a = b ∨ a = -b :=
 iff.intro
   begin
     cases le_total a 0 with a_nonpos a_nonneg,
@@ -147,12 +182,15 @@ iff.intro
 lemma abs_pos_iff {a : α} : 0 < abs a ↔ a ≠ 0 :=
 ⟨λ h, mt abs_eq_zero.2 (ne_of_gt h), abs_pos_of_ne_zero⟩
 
+@[simp] lemma abs_nonpos_iff {a : α} : abs a ≤ 0 ↔ a = 0 :=
+by rw [← not_lt, abs_pos_iff, not_not]
+
 lemma abs_le_max_abs_abs (hab : a ≤ b)  (hbc : b ≤ c) : abs b ≤ max (abs a) (abs c) :=
 abs_le_of_le_of_neg_le
   (by simp [le_max_iff, le_trans hbc (le_abs_self c)])
   (by simp [le_max_iff, le_trans (neg_le_neg hab) (neg_le_abs_self a)])
 
-theorem abs_le_abs {α : Type*} [decidable_linear_ordered_comm_group α] {a b : α}
+theorem abs_le_abs {α : Type*} [decidable_linear_ordered_add_comm_group α] {a b : α}
   (h₀ : a ≤ b) (h₁ : -a ≤ b) :
   abs a ≤ abs b :=
 calc  abs a
@@ -172,21 +210,62 @@ calc
 lemma max_le_add_of_nonneg {a b : α} (ha : a ≥ 0) (hb : b ≥ 0) : max a b ≤ a + b :=
 max_le_iff.2 (by split; simpa)
 
-end decidable_linear_ordered_comm_group
+lemma max_zero_sub_eq_self (a : α) : max a 0 - max (-a) 0 = a :=
+begin
+  rcases le_total a 0,
+  { rw [max_eq_right h, max_eq_left, zero_sub, neg_neg], { rwa [le_neg, neg_zero] } },
+  { rw [max_eq_left, max_eq_right, sub_zero], { rwa [neg_le, neg_zero] }, exact h }
+end
+
+lemma abs_max_sub_max_le_abs (a b c : α) : abs (max a c - max b c) ≤ abs (a - b) :=
+begin
+  simp only [max],
+  split_ifs,
+  { rw [sub_self, abs_zero], exact abs_nonneg _ },
+  { calc abs (c - b) = - (c - b) : abs_of_neg (sub_neg_of_lt (lt_of_not_ge h_1))
+      ... = b - c : neg_sub _ _
+      ... ≤ b - a : by { rw sub_le_sub_iff_left, exact h }
+      ... = - (a - b) : by rw neg_sub
+      ... ≤ abs (a - b) : neg_le_abs_self _ },
+  { calc abs (a - c) = a - c : abs_of_pos (sub_pos_of_lt (lt_of_not_ge h))
+      ... ≤ a - b : by { rw sub_le_sub_iff_left, exact h_1 }
+      ... ≤ abs (a - b) : le_abs_self _ },
+  { refl }
+end
+
+lemma max_sub_min_eq_abs' (a b : α) : max a b - min a b = abs (a - b) :=
+begin
+  cases le_total a b with ab ba,
+  { rw [max_eq_right ab, min_eq_left ab, abs_of_nonpos, neg_sub], rwa sub_nonpos },
+  { rw [max_eq_left ba, min_eq_right ba, abs_of_nonneg], exact sub_nonneg_of_le ba }
+end
+
+lemma max_sub_min_eq_abs (a b : α) : max a b - min a b = abs (b - a) :=
+by { rw [abs_sub], exact max_sub_min_eq_abs' _ _ }
+
+end decidable_linear_ordered_add_comm_group
+
+section decidable_linear_ordered_semiring
+variables [decidable_linear_ordered_semiring α] {a b c d : α}
+
+lemma mul_max_of_nonneg (b c : α) (ha : 0 ≤ a) : a * max b c = max (a * b) (a * c) :=
+(monotone_mul_left_of_nonneg ha).map_max
+
+lemma mul_min_of_nonneg (b c : α) (ha : 0 ≤ a) : a * min b c = min (a * b) (a * c) :=
+(monotone_mul_left_of_nonneg ha).map_min
+
+lemma max_mul_of_nonneg (a b : α) (hc : 0 ≤ c) : max a b * c = max (a * c) (b * c) :=
+(monotone_mul_right_of_nonneg hc).map_max
+
+lemma min_mul_of_nonneg (a b : α) (hc : 0 ≤ c) : min a b * c = min (a * c) (b * c) :=
+(monotone_mul_right_of_nonneg hc).map_min
+
+end decidable_linear_ordered_semiring
 
 section decidable_linear_ordered_comm_ring
 variables [decidable_linear_ordered_comm_ring α] {a b c d : α}
 
 @[simp] lemma abs_one : abs (1 : α) = 1 := abs_of_pos zero_lt_one
-
-lemma monotone_mul_of_nonneg (ha : 0 ≤ a) : monotone (λ x, a*x) :=
-assume b c b_le_c, mul_le_mul_of_nonneg_left b_le_c ha
-
-lemma mul_max_of_nonneg (b c : α) (ha : 0 ≤ a) : a * max b c = max (a * b) (a * c) :=
-max_distrib_of_monotone (monotone_mul_of_nonneg ha)
-
-lemma mul_min_of_nonneg (b c : α) (ha : 0 ≤ a) : a * min b c = min (a * b) (a * c) :=
-min_distrib_of_monotone (monotone_mul_of_nonneg ha)
 
 lemma max_mul_mul_le_max_mul_max (b c : α) (ha : 0 ≤ a) (hd: 0 ≤ d) :
   max (a * b) (d * c) ≤ max a c * max d b :=

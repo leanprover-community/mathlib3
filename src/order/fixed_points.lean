@@ -2,17 +2,18 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau
-
-Fixed point construction on complete lattices.
 -/
 import order.complete_lattice
+import dynamics.fixed_points.basic
+
+/-!
+# Fixed point construction on complete lattices
+-/
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-namespace lattice
-
-def fixed_points (f : α → α) : set α := { x | f x = x }
+open function (fixed_points)
 
 section fixedpoint
 variables [complete_lattice α] {f : α → α}
@@ -84,7 +85,7 @@ variables [complete_lattice α] [complete_lattice β] {f : β → α} {g : α �
 -- Rolling rule
 theorem lfp_comp (m_f : monotone f) (m_g : monotone g) : lfp (f ∘ g) = f (lfp (g ∘ f)) :=
 le_antisymm
-  (lfp_le $ m_f $ ge_of_eq $ lfp_eq $ monotone_comp m_f m_g)
+  (lfp_le $ m_f $ ge_of_eq $ lfp_eq $ m_g.comp m_f)
   (le_lfp $ assume a fg_le,
     le_trans (m_f $ lfp_le $ show (g ∘ f) (g a) ≤ g a, from m_g fg_le) fg_le)
 
@@ -92,14 +93,14 @@ theorem gfp_comp (m_f : monotone f) (m_g : monotone g) : gfp (f ∘ g) = f (gfp 
 le_antisymm
   (gfp_le $ assume a fg_le,
     le_trans fg_le $ m_f $ le_gfp $ show g a ≤ (g ∘ f) (g a), from m_g fg_le)
-  (le_gfp $ m_f $ le_of_eq $ gfp_eq $ monotone_comp m_f m_g)
+  (le_gfp $ m_f $ le_of_eq $ gfp_eq $ m_g.comp m_f)
 
 -- Diagonal rule
 theorem lfp_lfp {h : α → α → α} (m : ∀⦃a b c d⦄, a ≤ b → c ≤ d → h a c ≤ h b d) :
   lfp (lfp ∘ h) = lfp (λx, h x x) :=
 let f := lfp (lfp ∘ h) in
 have f_eq : f = lfp (h f),
-  from lfp_eq $ monotone_comp (assume a b h x, m h (le_refl _)) monotone_lfp,
+  from lfp_eq $ monotone.comp monotone_lfp (assume a b h x, m h (le_refl _)) ,
 le_antisymm
   (lfp_le $ lfp_le $ ge_of_eq $ lfp_eq $ assume a b h, m h h)
   (lfp_le $ ge_of_eq $
@@ -111,7 +112,7 @@ theorem gfp_gfp {h : α → α → α} (m : ∀⦃a b c d⦄, a ≤ b → c ≤ 
   gfp (gfp ∘ h) = gfp (λx, h x x) :=
 let f := gfp (gfp ∘ h) in
 have f_eq : f = gfp (h f),
-  from gfp_eq $ monotone_comp (assume a b h x, m h (le_refl _)) monotone_gfp,
+  from gfp_eq $ monotone.comp monotone_gfp (assume a b h x, m h (le_refl _)),
 le_antisymm
   (le_gfp $ le_of_eq $
     calc f = gfp (h f)       : f_eq
@@ -134,9 +135,9 @@ theorem prev_le {x : α} : prev f x ≤ x := gfp_le $ λ z hz, le_trans hz inf_l
 
 lemma prev_eq (hf : monotone f) {a : α} (h : f a ≤ a) : prev f a = f (prev f a) :=
 calc prev f a = a ⊓ f (prev f a) :
-    gfp_eq $ show monotone (λz, a ⊓ f z), from assume x y h, inf_le_inf (le_refl _) (hf h)
+    gfp_eq $ show monotone (λz, a ⊓ f z), from assume x y h, inf_le_inf_left _ (hf h)
   ... = f (prev f a) :
-    by rw [inf_of_le_right]; exact le_trans (hf prev_le) h
+    inf_of_le_right $ le_trans (hf prev_le) h
 
 def prev_fixed (hf : monotone f) (a : α) (h : f a ≤ a) : fixed_points f :=
 ⟨prev f a, (prev_eq hf h).symm⟩
@@ -144,10 +145,10 @@ def prev_fixed (hf : monotone f) (a : α) (h : f a ≤ a) : fixed_points f :=
 theorem next_le {x : α} : x ≤ next f x := le_lfp $ λ z hz, le_trans le_sup_left hz
 
 lemma next_eq (hf : monotone f) {a : α} (h : a ≤ f a) : next f a = f (next f a) :=
-calc next f a = a ⊔ f (next f a):
-    lfp_eq $ show monotone (λz, a ⊔ f z), from assume x y h, sup_le_sup (le_refl _) (hf h)
- ... = f (next f a):
-    by rw [sup_of_le_right]; exact le_trans h (hf next_le)
+calc next f a = a ⊔ f (next f a) :
+    lfp_eq $ show monotone (λz, a ⊔ f z), from assume x y h, sup_le_sup_left (hf h) _
+ ... = f (next f a) :
+    sup_of_le_right $ le_trans h (hf next_le)
 
 def next_fixed (hf : monotone f) (a : α) (h : a ≤ f a) : fixed_points f :=
 ⟨next f a, (next_eq hf h).symm⟩
@@ -170,7 +171,9 @@ Sup_le $ λ x hxA, (HA hxA) ▸ (hf $ le_Sup hxA)
 theorem f_le_Inf_of_fixed_points (A : set α) (HA : A ⊆ fixed_points f) : f (Inf A) ≤ Inf A :=
 le_Inf $ λ x hxA, (HA hxA) ▸ (hf $ Inf_le hxA)
 
-instance : complete_lattice (fixed_points f) :=
+/-- The fixed points of `f` form a complete lattice.
+This cannot be an instance, since it depends on the monotonicity of `f`. -/
+protected def complete_lattice : complete_lattice (fixed_points f) :=
 { le           := λx y, x.1 ≤ y.1,
   le_refl      := λ x, le_refl x,
   le_trans     := λ x y z, le_trans,
@@ -207,5 +210,3 @@ instance : complete_lattice (fixed_points f) :=
     (Inf_le $ show x.1 ∈ subtype.val '' A, from ⟨x, hxA, rfl⟩) }
 
 end fixed_points
-
-end lattice

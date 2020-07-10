@@ -6,7 +6,6 @@ Authors: Mario Carneiro, Robert Y. Lewis
 Generalizes the Cauchy completion of (ℚ, abs) to the completion of a
 commutative ring with absolute value.
 -/
-
 import data.real.cau_seq
 
 namespace cau_seq.completion
@@ -40,7 +39,8 @@ by have : mk f = 0 ↔ lim_zero (f - 0) := quotient.eq;
 instance : has_add Cauchy :=
 ⟨λ x y, quotient.lift_on₂ x y (λ f g, mk (f + g)) $
   λ f₁ g₁ f₂ g₂ hf hg, quotient.sound $
-  by simpa [(≈), setoid.r] using add_lim_zero hf hg⟩
+  by simpa [(≈), setoid.r, sub_eq_add_neg, add_comm, add_left_comm, add_assoc]
+    using add_lim_zero hf hg⟩
 
 @[simp] theorem mk_add (f g : cau_seq β abv) : mk f + mk g = mk (f + g) := rfl
 
@@ -54,7 +54,7 @@ instance : has_neg Cauchy :=
 instance : has_mul Cauchy :=
 ⟨λ x y, quotient.lift_on₂ x y (λ f g, mk (f * g)) $
   λ f₁ g₁ f₂ g₂ hf hg, quotient.sound $
-  by simpa [(≈), setoid.r, mul_add, mul_comm] using
+  by simpa [(≈), setoid.r, mul_add, mul_comm, add_assoc, sub_eq_add_neg] using
     add_lim_zero (mul_lim_zero_right g₁ hf) (mul_lim_zero_right f₂ hg)⟩
 
 @[simp] theorem mk_mul (f g : cau_seq β abv) : mk f * mk g = mk (f * g) := rfl
@@ -76,18 +76,18 @@ instance : comm_ring Cauchy :=
 by refine { neg := has_neg.neg,
     add := (+), zero := 0, mul := (*), one := 1, .. };
   { repeat {refine λ a, quotient.induction_on a (λ _, _)},
-    simp [zero_def, one_def, mul_left_comm, mul_comm, mul_add] }
+    simp [zero_def, one_def, mul_left_comm, mul_comm, mul_add, add_comm, add_left_comm] }
 
 theorem of_rat_sub (x y : β) : of_rat (x - y) = of_rat x - of_rat y :=
 congr_arg mk (const_sub _ _)
 
 end
 
-local attribute [instance] classical.prop_decidable
+open_locale classical
 section
 
 parameters {α : Type*} [discrete_linear_ordered_field α]
-parameters {β : Type*} [discrete_field β] {abv : β → α} [is_absolute_value abv]
+parameters {β : Type*} [field β] {abv : β → α} [is_absolute_value abv]
 local notation `Cauchy` := @Cauchy _ _ _ _ abv _
 
 noncomputable instance : has_inv Cauchy :=
@@ -126,16 +126,14 @@ quotient.induction_on x $ λ f hf, begin
   exact quotient.sound (cau_seq.inv_mul_cancel hf)
 end
 
-noncomputable def discrete_field : discrete_field Cauchy :=
+noncomputable def field : field Cauchy :=
 { inv              := has_inv.inv,
-  inv_mul_cancel   := @cau_seq.completion.inv_mul_cancel,
   mul_inv_cancel   := λ x x0, by rw [mul_comm, cau_seq.completion.inv_mul_cancel x0],
-  zero_ne_one      := zero_ne_one,
+  exists_pair_ne   := ⟨0, 1, zero_ne_one⟩,
   inv_zero         := inv_zero,
-  has_decidable_eq := by apply_instance,
   ..cau_seq.completion.comm_ring }
 
-local attribute [instance] discrete_field
+local attribute [instance] field
 
 theorem of_rat_inv (x : β) : of_rat (x⁻¹) = ((of_rat x)⁻¹ : Cauchy) :=
 congr_arg mk $ by split_ifs with h; try {simp [const_lim_zero.1 h]}; refl
@@ -190,7 +188,7 @@ lemma lim_mul_lim (f g : cau_seq β abv) : lim f * lim g = lim (f * g) :=
 eq_lim_of_const_equiv $ show lim_zero (const abv (lim f * lim g) - f * g),
   from have h : const abv (lim f * lim g) - f * g = (const abv (lim f) - f) * g
       + const abv (lim f) * (const abv (lim g) - g) :=
-    by simp [const_mul (lim f), mul_add, add_mul],
+    by simp [const_mul (lim f), mul_add, add_mul, sub_eq_add_neg, add_comm, add_left_comm],
   by rw h; exact add_lim_zero (mul_lim_zero_left _ (setoid.symm (equiv_lim _)))
     (mul_lim_zero_right _ (setoid.symm (equiv_lim _)))
 
@@ -214,7 +212,7 @@ assume h,
 end
 
 section
-variables {β : Type*} [discrete_field β] {abv : β → α} [is_absolute_value abv] [is_complete β abv]
+variables {β : Type*} [field β] {abv : β → α} [is_absolute_value abv] [is_complete β abv]
 
 lemma lim_inv {f : cau_seq β abv} (hf : ¬ lim_zero f) : lim (inv f hf) = (lim f)⁻¹ :=
 have hl : lim f ≠ 0 := by rwa ← lim_eq_zero_iff at hf,

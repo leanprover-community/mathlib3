@@ -1,4 +1,5 @@
-import data.qpf.univariate.qpf
+import data.qpf.univariate.basic
+import control.bifunctor
 
 universes u
 variables {F : Type u → Type u} [functor F]

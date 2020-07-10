@@ -539,58 +539,60 @@ begin
 end
 
 section bisim
+
 variable (R : M F → M F → Prop)
-  local infix ~ := R
+local infix ~ := R
 
-  /-- Bisimulation is the standard proof technique for equality between
-  infinite tree-like structures -/
-  structure is_bisimulation : Prop :=
-  (head : ∀ {a a'} {f f'}, M.mk ⟨a,f⟩ ~ M.mk ⟨a',f'⟩ → a = a')
-  (tail : ∀ {a} {f f' : F.B a → M F},
-    M.mk ⟨a,f⟩ ~ M.mk ⟨a,f'⟩ →
-    (∀ (i : F.B a), f i ~ f' i) )
+/-- Bisimulation is the standard proof technique for equality between
+infinite tree-like structures -/
+structure is_bisimulation : Prop :=
+(head : ∀ {a a'} {f f'}, M.mk ⟨a,f⟩ ~ M.mk ⟨a',f'⟩ → a = a')
+(tail : ∀ {a} {f f' : F.B a → M F},
+  M.mk ⟨a,f⟩ ~ M.mk ⟨a,f'⟩ →
+  (∀ (i : F.B a), f i ~ f' i) )
 
-  theorem nth_of_bisim [inhabited (M F)] (bisim : is_bisimulation R) (s₁ s₂) (ps : path F) :
-       s₁ ~ s₂ →
-         is_path ps s₁ ∨ is_path ps s₂ →
-         iselect ps s₁ = iselect ps s₂ ∧
-         ∃ a (f f' : F.B a → M F),
-           isubtree ps s₁ = M.mk ⟨a,f⟩ ∧
-           isubtree ps s₂ = M.mk ⟨a,f'⟩ ∧
-         ∀ (i : F.B a), f i ~ f' i :=
-  begin
-    intros h₀ hh,
-    induction s₁ using pfunctor.M.cases_on' with a f,
-      induction s₂ using pfunctor.M.cases_on' with a' f',
-      have : a = a' := bisim.head h₀, subst a',
-      induction ps with i ps generalizing a f f',
-      { existsi [rfl,a,f,f',rfl,rfl],
-        apply bisim.tail h₀ },
-      cases i with a' i,
-      have : a = a',
-      { cases hh; cases is_path_cons hh; refl },
-      subst a', dsimp only [iselect] at ps_ih ⊢,
-      have h₁ := bisim.tail h₀ i,
-      induction h : (f i) using pfunctor.M.cases_on' with a₀ f₀,
-      induction h' : (f' i) using pfunctor.M.cases_on' with a₁ f₁,
-      simp only [h,h',isubtree_cons] at ps_ih ⊢,
-      rw [h,h'] at h₁,
-      have : a₀ = a₁ := bisim.head h₁, subst a₁,
-      apply (ps_ih _ _ _ h₁),
-      rw [← h,← h'], apply or_of_or_of_imp_of_imp hh is_path_cons' is_path_cons'
-  end
+theorem nth_of_bisim [inhabited (M F)] (bisim : is_bisimulation R) (s₁ s₂) (ps : path F) :
+     s₁ ~ s₂ →
+       is_path ps s₁ ∨ is_path ps s₂ →
+       iselect ps s₁ = iselect ps s₂ ∧
+       ∃ a (f f' : F.B a → M F),
+         isubtree ps s₁ = M.mk ⟨a,f⟩ ∧
+         isubtree ps s₂ = M.mk ⟨a,f'⟩ ∧
+       ∀ (i : F.B a), f i ~ f' i :=
+begin
+  intros h₀ hh,
+  induction s₁ using pfunctor.M.cases_on' with a f,
+  induction s₂ using pfunctor.M.cases_on' with a' f',
+  have : a = a' := bisim.head h₀, subst a',
+  induction ps with i ps generalizing a f f',
+  { existsi [rfl,a,f,f',rfl,rfl],
+    apply bisim.tail h₀ },
+  cases i with a' i,
+  have : a = a',
+  { cases hh; cases is_path_cons hh; refl },
+  subst a', dsimp only [iselect] at ps_ih ⊢,
+  have h₁ := bisim.tail h₀ i,
+  induction h : (f i) using pfunctor.M.cases_on' with a₀ f₀,
+  induction h' : (f' i) using pfunctor.M.cases_on' with a₁ f₁,
+  simp only [h,h',isubtree_cons] at ps_ih ⊢,
+  rw [h,h'] at h₁,
+  have : a₀ = a₁ := bisim.head h₁, subst a₁,
+  apply (ps_ih _ _ _ h₁),
+  rw [← h,← h'], apply or_of_or_of_imp_of_imp hh is_path_cons' is_path_cons'
+end
 
-  theorem eq_of_bisim [nonempty (M F)] (bisim : is_bisimulation R) : ∀ s₁ s₂, s₁ ~ s₂ → s₁ = s₂ :=
-  begin
-    inhabit (M F),
-    introv Hr, apply ext,
-    introv,
-    by_cases h : is_path ps s₁ ∨ is_path ps s₂,
-    { have H := nth_of_bisim R bisim _ _ ps Hr h,
-      exact H.left },
-    { rw not_or_distrib at h, cases h with h₀ h₁,
-      simp only [iselect_eq_default,*,not_false_iff] }
-  end
+theorem eq_of_bisim [nonempty (M F)] (bisim : is_bisimulation R) : ∀ s₁ s₂, s₁ ~ s₂ → s₁ = s₂ :=
+begin
+  inhabit (M F),
+  introv Hr, apply ext,
+  introv,
+  by_cases h : is_path ps s₁ ∨ is_path ps s₂,
+  { have H := nth_of_bisim R bisim _ _ ps Hr h,
+    exact H.left },
+  { rw not_or_distrib at h, cases h with h₀ h₁,
+    simp only [iselect_eq_default,*,not_false_iff] }
+end
+
 end bisim
 
 section coinduction

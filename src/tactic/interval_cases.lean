@@ -221,7 +221,7 @@ end
 after `interval_cases n`, the goals are `3 = 3 ∨ 3 = 4` and `4 = 3 ∨ 4 = 4`.
 
 You can also explicitly specify a lower and upper bound to use,
-as `interval_cases n using hl hu`.
+as `interval_cases using hl hu`.
 The hypotheses should be in the form `hl : a ≤ n` and `hu : n < b`,
 in which case `interval_cases` calls `fin_cases` on the resulting fact `n ∈ set.Ico a b`.
 
@@ -257,7 +257,7 @@ end
 after `interval_cases n`, the goals are `3 = 3 ∨ 3 = 4` and `4 = 3 ∨ 4 = 4`.
 
 You can also explicitly specify a lower and upper bound to use,
-as `interval_cases n using hl hu`.
+as `interval_cases using hl hu`.
 The hypotheses should be in the form `hl : a ≤ n` and `hu : n < b`,
 in which case `interval_cases` calls `fin_cases` on the resulting fact `n ∈ set.Ico a b`.
 

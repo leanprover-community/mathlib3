@@ -5,6 +5,7 @@ Author: Mario Carneiro
 
 Finite types.
 -/
+import tactic.wlog
 import data.finset.powerset
 import data.finset.lattice
 import data.finset.pi

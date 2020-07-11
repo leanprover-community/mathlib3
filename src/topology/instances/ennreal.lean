@@ -305,7 +305,7 @@ begin
   { rcases h H.1 H.2 with ⟨i, hi⟩,
     rw [H.2, mul_zero, ← bot_eq_zero, infi_eq_bot],
     exact λ b hb, ⟨i, by rwa [hi, mul_zero, ← bot_eq_zero]⟩ },
-  { push_neg at H,
+  { rw not_and_distrib at H,
     exact (map_infi_of_continuous_at_of_monotone' (ennreal.continuous_at_const_mul H)
       ennreal.mul_left_mono).symm }
 end

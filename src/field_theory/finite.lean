@@ -117,13 +117,9 @@ calc a ^ (fintype.card K - 1) = (units.mk0 a ha ^ (fintype.card K - 1) : units K
     by rw [units.coe_pow, units.coe_mk0]
   ... = 1 : by { classical, rw [← card_units, pow_card_eq_one], refl }
 
-lemma one_lt_card : 1 < q := by { rw fintype.one_lt_card_iff_nontrivial, apply_instance }
-
-lemma two_le_card : 2 ≤ q := one_lt_card
-
 lemma pow_card_eq_self (x : K) : x ^ fintype.card K = x :=
 begin
-  have pos : 0 < fintype.card K, transitivity 1, norm_num, apply one_lt_card,
+  have pos : 0 < fintype.card K, transitivity 1, norm_num, apply fintype.one_lt_card,
   rw [← nat.succ_pred_eq_of_pos (gt_iff_lt.1 pos), nat.pred_eq_sub_one, pow_succ],
   classical, by_cases x = 0, rw [h, zero_mul],
   rw [pow_card_sub_one_eq_one _ h, mul_one],

@@ -42,6 +42,8 @@ instance unbundled_hom : unbundled_hom @measurable := ⟨@measurable_id, @measur
 
 attribute [derive [large_category, concrete_category]] Meas
 
+instance : inhabited Meas := ⟨Meas.of empty⟩
+
 /-- `Measure X` is the measurable space of measures over the measurable space `X`. It is the
 weakest measurable space, s.t. λμ, μ s is measurable for all measurable sets `s` in `X`. An
 important purpose is to assign a monadic structure on it, the Giry monad. In the Giry monad,

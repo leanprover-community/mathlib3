@@ -36,6 +36,8 @@ instance (x : UniformSpace) : uniform_space x := x.str
 /-- Construct a bundled `UniformSpace` from the underlying type and the typeclass. -/
 def of (α : Type u) [uniform_space α] : UniformSpace := ⟨α⟩
 
+instance : inhabited UniformSpace := ⟨UniformSpace.of empty⟩
+
 instance (X Y : UniformSpace) : has_coe_to_fun (X ⟶ Y) :=
 { F := λ _, X → Y, coe := category_theory.functor.map (forget UniformSpace) }
 
@@ -77,6 +79,12 @@ instance (X : CpltSepUniformSpace) : separated_space ((to_UniformSpace X).α) :=
 
 /-- Construct a bundled `UniformSpace` from the underlying type and the appropriate typeclasses. -/
 def of (X : Type u) [uniform_space X] [complete_space X] [separated_space X] : CpltSepUniformSpace := ⟨X⟩
+
+instance : inhabited CpltSepUniformSpace :=
+begin
+  haveI : separated_space empty := separated_iff_t2.mpr (by apply_instance),
+  exact ⟨CpltSepUniformSpace.of empty⟩
+end
 
 /-- The category instance on `CpltSepUniformSpace`. -/
 instance category : large_category CpltSepUniformSpace :=

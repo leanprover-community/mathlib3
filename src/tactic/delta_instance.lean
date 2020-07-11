@@ -23,6 +23,10 @@ dsimp_result
 namespace interactive
 setup_tactic_parser
 
+/--
+`delta_instance id₁ id₂ ...` tries to solve the goal by calling `apply_instance`,
+first unfolding the definitions in `idᵢ`.
+-/
 meta def delta_instance (ids : parse ident*) : itactic :=
 tactic.delta_instance ids
 end interactive

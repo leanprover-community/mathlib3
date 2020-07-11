@@ -28,30 +28,30 @@ namespace topological_space
 def closeds := {s : set α // is_closed s}
 
 /-- The compact sets of a topological space. See also `nonempty_compacts`. -/
-def compacts : Type* := { s : set α // compact s }
+def compacts : Type* := { s : set α // is_compact s }
 
 /-- The type of non-empty compact subsets of a topological space. The
 non-emptiness will be useful in metric spaces, as we will be able to put
 a distance (and not merely an edistance) on this space. -/
-def nonempty_compacts := {s : set α // s.nonempty ∧ compact s}
+def nonempty_compacts := {s : set α // s.nonempty ∧ is_compact s}
 
 /-- The compact sets with nonempty interior of a topological space. See also `compacts` and
   `nonempty_compacts`. -/
 @[nolint has_inhabited_instance]
-def positive_compacts: Type* := { s : set α // compact s ∧ (interior s).nonempty  }
+def positive_compacts: Type* := { s : set α // is_compact s ∧ (interior s).nonempty  }
 
 variables {α}
 
 namespace compacts
 
 instance : semilattice_sup_bot (compacts α) :=
-subtype.semilattice_sup_bot compact_empty (λ K₁ K₂, compact.union)
+subtype.semilattice_sup_bot compact_empty (λ K₁ K₂, is_compact.union)
 
 instance [t2_space α]: semilattice_inf_bot (compacts α) :=
-subtype.semilattice_inf_bot compact_empty (λ K₁ K₂, compact.inter)
+subtype.semilattice_inf_bot compact_empty (λ K₁ K₂, is_compact.inter)
 
 instance [t2_space α] : lattice (compacts α) :=
-subtype.lattice (λ K₁ K₂, compact.union) (λ K₁ K₂, compact.inter)
+subtype.lattice (λ K₁ K₂, is_compact.union) (λ K₁ K₂, is_compact.inter)
 
 @[simp] lemma bot_val : (⊥ : compacts α).1 = ∅ := rfl
 

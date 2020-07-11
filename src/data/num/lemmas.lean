@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
 import data.num.bitwise
-import data.int.basic
+import data.int.char_zero
 import data.nat.gcd
 
 /-!

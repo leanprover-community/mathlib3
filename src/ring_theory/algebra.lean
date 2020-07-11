@@ -3,7 +3,6 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
-import tactic.simps
 import data.matrix.basic
 import linear_algebra.tensor_product
 import ring_theory.subsemiring
@@ -723,9 +722,15 @@ instance to_algebra {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A
   [algebra R A] (S : subalgebra R A) : algebra S A :=
 algebra.of_subsemiring _
 
+-- todo: standardize on the names these morphisms
+-- compare with submodule.subtype
+
 /-- Embedding of a subalgebra into the algebra. -/
 def val : S →ₐ[R] A :=
-by refine_struct { to_fun := subtype.val }; intros; refl
+by refine_struct { to_fun := (coe : S → A) }; intros; refl
+
+@[simp]
+lemma val_apply (x : S) : S.val x = (x : A) := rfl
 
 /-- Convert a `subalgebra` to `submodule` -/
 def to_submodule : submodule R A :=

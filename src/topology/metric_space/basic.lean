@@ -1220,7 +1220,7 @@ section compact
 /-- Any compact set in a metric space can be covered by finitely many balls of a given positive
 radius -/
 lemma finite_cover_balls_of_compact {α : Type u} [metric_space α] {s : set α}
-  (hs : compact s) {e : ℝ} (he : 0 < e) :
+  (hs : is_compact s) {e : ℝ} (he : 0 < e) :
   ∃t ⊆ s, finite t ∧ s ⊆ ⋃x∈t, ball x e :=
 begin
   apply hs.elim_finite_subcover_image,
@@ -1230,7 +1230,7 @@ begin
     exact ⟨x, ⟨xs, by simpa⟩⟩ }
 end
 
-alias finite_cover_balls_of_compact ← compact.finite_cover_balls
+alias finite_cover_balls_of_compact ← is_compact.finite_cover_balls
 
 end compact
 
@@ -1239,12 +1239,12 @@ open metric
 
 /-- A metric space is proper if all closed balls are compact. -/
 class proper_space (α : Type u) [metric_space α] : Prop :=
-(compact_ball : ∀x:α, ∀r, compact (closed_ball x r))
+(compact_ball : ∀x:α, ∀r, is_compact (closed_ball x r))
 
 /-- If all closed balls of large enough radius are compact, then the space is proper. Especially
 useful when the lower bound for the radius is 0. -/
 lemma proper_space_of_compact_closed_ball_of_le
-  (R : ℝ) (h : ∀x:α, ∀r, R ≤ r → compact (closed_ball x r)) :
+  (R : ℝ) (h : ∀x:α, ∀r, R ≤ r → is_compact (closed_ball x r)) :
   proper_space α :=
 ⟨begin
   assume x r,
@@ -1401,7 +1401,7 @@ end metric
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma lebesgue_number_lemma_of_metric
-  {s : set α} {ι} {c : ι → set α} (hs : compact s)
+  {s : set α} {ι} {c : ι → set α} (hs : is_compact s)
   (hc₁ : ∀ i, is_open (c i)) (hc₂ : s ⊆ ⋃ i, c i) :
   ∃ δ > 0, ∀ x ∈ s, ∃ i, ball x δ ⊆ c i :=
 let ⟨n, en, hn⟩ := lebesgue_number_lemma hs hc₁ hc₂,
@@ -1411,7 +1411,7 @@ let ⟨n, en, hn⟩ := lebesgue_number_lemma hs hc₁ hc₂,
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma lebesgue_number_lemma_of_metric_sUnion
-  {s : set α} {c : set (set α)} (hs : compact s)
+  {s : set α} {c : set (set α)} (hs : is_compact s)
   (hc₁ : ∀ t ∈ c, is_open t) (hc₂ : s ⊆ ⋃₀ c) :
   ∃ δ > 0, ∀ x ∈ s, ∃ t ∈ c, ball x δ ⊆ t :=
 by rw sUnion_eq_Union at hc₂;
@@ -1504,17 +1504,17 @@ finite.induction_on H (by simp) $ λ x I _ _ IH,
 by simp [or_imp_distrib, forall_and_distrib, IH]
 
 /-- A compact set is bounded -/
-lemma bounded_of_compact {s : set α} (h : compact s) : bounded s :=
+lemma bounded_of_compact {s : set α} (h : is_compact s) : bounded s :=
 -- We cover the compact set by finitely many balls of radius 1,
 -- and then argue that a finite union of bounded sets is bounded
 let ⟨t, ht, fint, subs⟩ := finite_cover_balls_of_compact h zero_lt_one in
 bounded.subset subs $ (bounded_bUnion fint).2 $ λ i hi, bounded_ball
 
-alias bounded_of_compact ← compact.bounded
+alias bounded_of_compact ← is_compact.bounded
 
 /-- A finite set is bounded -/
 lemma bounded_of_finite {s : set α} (h : finite s) : bounded s :=
-h.compact.bounded
+h.is_compact.bounded
 
 /-- A singleton is bounded -/
 lemma bounded_singleton {x : α} : bounded ({x} : set α) :=
@@ -1533,7 +1533,7 @@ compact_univ.bounded.subset (subset_univ _)
 /-- The Heine–Borel theorem:
 In a proper space, a set is compact if and only if it is closed and bounded -/
 lemma compact_iff_closed_bounded [proper_space α] :
-  compact s ↔ is_closed s ∧ bounded s :=
+  is_compact s ↔ is_closed s ∧ bounded s :=
 ⟨λ h, ⟨h.is_closed, h.bounded⟩, begin
   rintro ⟨hc, hb⟩,
   cases s.eq_empty_or_nonempty with h h, {simp [h, compact_empty]},
@@ -1560,8 +1560,8 @@ begin
       simp only [mem_closed_ball, mem_preimage] at hx hy,
       exact mul_le_mul_of_nonneg_left (add_le_add hx hy) (le_max_right _ _)
     end⟩,
-  have : compact K := compact_iff_closed_bounded.2 ⟨A, B⟩,
-  have C : compact (f '' K) := this.image f_cont,
+  have : is_compact K := compact_iff_closed_bounded.2 ⟨A, B⟩,
+  have C : is_compact (f '' K) := this.image f_cont,
   have : f '' K = closed_ball x₀ r,
     by { rw image_preimage_eq_of_subset, rw hf, exact subset_univ _ },
   rwa this at C

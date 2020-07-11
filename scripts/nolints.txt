@@ -244,10 +244,6 @@ apply_nolint category_theory.limits.sigma.desc doc_blame
 apply_nolint category_theory.limits.sigma.map doc_blame
 apply_nolint category_theory.limits.sigma.ι doc_blame
 
--- category_theory/limits/shapes/terminal.lean
-apply_nolint category_theory.limits.initial doc_blame
-apply_nolint category_theory.limits.terminal doc_blame
-
 -- category_theory/monad/adjunction.lean
 apply_nolint category_theory.monad.comparison doc_blame
 apply_nolint category_theory.monad.comparison_forget doc_blame
@@ -1148,10 +1144,6 @@ apply_nolint wseq.think_congr unused_arguments
 -- data/set/enumerate.lean
 apply_nolint set.enumerate doc_blame
 
--- data/set/lattice.lean
-apply_nolint set.Union_eq_sigma_of_disjoint doc_blame
-apply_nolint set.bUnion_eq_sigma_of_disjoint doc_blame
-
 -- data/string/basic.lean
 apply_nolint string.ltb doc_blame
 
@@ -1369,11 +1361,8 @@ apply_nolint function.embedding.arrow_congr_left doc_blame
 apply_nolint function.embedding.arrow_congr_right doc_blame
 apply_nolint function.embedding.congr doc_blame
 apply_nolint function.embedding.of_not_nonempty doc_blame
-apply_nolint function.embedding.prod_congr doc_blame
 apply_nolint function.embedding.refl doc_blame
-apply_nolint function.embedding.sigma_congr_right doc_blame
 apply_nolint function.embedding.subtype_map doc_blame
-apply_nolint function.embedding.sum_congr doc_blame
 apply_nolint function.embedding.trans doc_blame
 
 -- logic/relation.lean
@@ -1676,7 +1665,6 @@ apply_nolint tactic.alias.mk_iff_mp_app doc_blame
 apply_nolint tactic.abstract_if_success doc_blame
 apply_nolint tactic.chain doc_blame
 apply_nolint tactic.chain_core doc_blame
-apply_nolint tactic.interactive.work_on_goal doc_blame
 apply_nolint tactic.trace_output doc_blame unused_arguments
 
 -- tactic/converter/binders.lean

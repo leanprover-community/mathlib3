@@ -749,7 +749,7 @@ end maximal_atlas
 
 section singleton
 variables {α : Type*} [topological_space α]
-variables {e : local_homeomorph α H}
+variables (e : local_homeomorph α H)
 
 /-- If a single local homeomorphism `e` from a space `α` into `H` has source covering the whole
 space `α`, then that local homeomorphism induces an `H`-charted space structure on `α`.
@@ -761,17 +761,17 @@ def singleton_charted_space (h : e.source = set.univ) : charted_space H α :=
   chart_mem_atlas := λ _, by tauto }
 
 lemma singleton_charted_space_one_chart (h : e.source = set.univ) (e' : local_homeomorph α H)
-  (h' : e' ∈ (singleton_charted_space h).atlas) : e' = e := h'
+  (h' : e' ∈ (singleton_charted_space e h).atlas) : e' = e := h'
 
 /-- Given a local homeomorphism `e` from a space `α` into `H`, if its source covers the whole
 space `α`, then the induced charted space structure on `α` is `has_groupoid G` for any structure
 groupoid `G` which is closed under restrictions. -/
 lemma singleton_has_groupoid (h : e.source = set.univ) (G : structure_groupoid H)
-  [closed_under_restriction G] : @has_groupoid _ _ _ _ (singleton_charted_space h) G :=
+  [closed_under_restriction G] : @has_groupoid _ _ _ _ (singleton_charted_space e h) G :=
 { compatible := begin
     intros e' e'' he' he'',
-    rw singleton_charted_space_one_chart h e' he',
-    rw singleton_charted_space_one_chart h e'' he'',
+    rw singleton_charted_space_one_chart e h e' he',
+    rw singleton_charted_space_one_chart e h e'' he'',
     refine G.eq_on_source _ e.trans_symm_self,
     have hle : id_restr_groupoid ≤ G := (closed_under_restriction_iff_id_le G).mp (by assumption),
     exact structure_groupoid.le_iff.mp hle _ (id_restr_groupoid_mem _),

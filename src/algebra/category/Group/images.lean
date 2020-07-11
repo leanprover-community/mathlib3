@@ -85,7 +85,21 @@ noncomputable instance : has_image f :=
   { lift := image.lift,
     lift_fac' := image.lift_fac } }
 
-noncomputable instance : has_images.{0} AddCommGroup.{0} :=
+noncomputable instance : has_images AddCommGroup.{0} :=
 { has_image := infer_instance }
+
+-- We'll later get this as a consequence of `[abelian AddCommGroup]`,
+-- but I'd like it now, in order to be able to demonstrate cohomology calculations.
+-- It would be good to verify that any such generated instance had the same definitional behaviour.
+noncomputable instance : has_image_maps AddCommGroup.{0} :=
+{ has_image_map := λ f g st,
+  { map :=
+    { to_fun := image.map ((forget AddCommGroup).map_arrow.map st),
+      map_zero' := by { ext, simp, },
+      map_add' := λ x y, by { ext, simp, refl, } } } }
+
+@[simp] lemma image_map {f g : arrow AddCommGroup.{0}} (st : f ⟶ g) (x : image f.hom):
+  (image.map st x).val = st.right x.1 :=
+rfl
 
 end AddCommGroup

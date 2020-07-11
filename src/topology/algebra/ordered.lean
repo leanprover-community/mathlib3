@@ -72,7 +72,7 @@ vs `order_topology`, `preorder` vs `partial_order` vs `linear_order` etc) see th
 
 ### Miscellaneous facts
 
-* `compact.exists_forall_le`, `compact.exists_forall_ge` : extreme value theorem, a continuous
+* `is_compact.exists_forall_le`, `is_compact.exists_forall_ge` : extreme value theorem, a continuous
   function on a compact set takes its minimum and maximum values.
 * `is_closed.Icc_subset_of_forall_mem_nhds_within` : “Continuous induction” principle;
   if `s ∩ [a, b]` is closed, `a ∈ s`, and for each `x ∈ [a, b) ∩ s` some of its right neighborhoods
@@ -1089,8 +1089,8 @@ lemma mem_of_is_glb_of_is_closed {a : α} {s : set α} (ha : is_glb s a) (hs : s
 by rw ←sc.closure_eq; exact mem_closure_of_is_glb ha hs
 
 /-- A compact set is bounded below -/
-lemma compact.bdd_below {α : Type u} [topological_space α] [linear_order α]
-  [order_closed_topology α] [nonempty α] {s : set α} (hs : compact s) : bdd_below s :=
+lemma is_compact.bdd_below {α : Type u} [topological_space α] [linear_order α]
+  [order_closed_topology α] [nonempty α] {s : set α} (hs : is_compact s) : bdd_below s :=
 begin
   by_contra H,
   letI := classical.DLO α,
@@ -1104,9 +1104,9 @@ begin
 end
 
 /-- A compact set is bounded above -/
-lemma compact.bdd_above {α : Type u} [topological_space α] [linear_order α]
-  [order_topology α] : Π [nonempty α] {s : set α}, compact s → bdd_above s :=
-@compact.bdd_below (order_dual α) _ _ _
+lemma is_compact.bdd_above {α : Type u} [topological_space α] [linear_order α]
+  [order_topology α] : Π [nonempty α] {s : set α}, is_compact s → bdd_above s :=
+@is_compact.bdd_below (order_dual α) _ _ _
 
 end order_topology
 
@@ -1609,55 +1609,55 @@ is_preconnected_Icc.intermediate_value (right_mem_Icc.2 hab) (left_mem_Icc.2 hab
 
 end densely_ordered
 
-lemma compact.Inf_mem {s : set α} (hs : compact s) (ne_s : s.nonempty) :
+lemma is_compact.Inf_mem {s : set α} (hs : is_compact s) (ne_s : s.nonempty) :
   Inf s ∈ s :=
 hs.is_closed.cInf_mem ne_s hs.bdd_below
 
-lemma compact.Sup_mem {s : set α} (hs : compact s) (ne_s : s.nonempty) :
+lemma is_compact.Sup_mem {s : set α} (hs : is_compact s) (ne_s : s.nonempty) :
   Sup s ∈ s :=
-@compact.Inf_mem (order_dual α) _ _ _ _ hs ne_s
+@is_compact.Inf_mem (order_dual α) _ _ _ _ hs ne_s
 
-lemma compact.is_glb_Inf {s : set α} (hs : compact s) (ne_s : s.nonempty) :
+lemma is_compact.is_glb_Inf {s : set α} (hs : is_compact s) (ne_s : s.nonempty) :
   is_glb s (Inf s) :=
 is_glb_cInf ne_s hs.bdd_below
 
-lemma compact.is_lub_Sup {s : set α} (hs : compact s) (ne_s : s.nonempty) :
+lemma is_compact.is_lub_Sup {s : set α} (hs : is_compact s) (ne_s : s.nonempty) :
   is_lub s (Sup s) :=
-@compact.is_glb_Inf (order_dual α) _ _ _ _ hs ne_s
+@is_compact.is_glb_Inf (order_dual α) _ _ _ _ hs ne_s
 
-lemma compact.is_least_Inf {s : set α} (hs : compact s) (ne_s : s.nonempty) :
+lemma is_compact.is_least_Inf {s : set α} (hs : is_compact s) (ne_s : s.nonempty) :
   is_least s (Inf s) :=
 ⟨hs.Inf_mem ne_s, (hs.is_glb_Inf ne_s).1⟩
 
-lemma compact.is_greatest_Sup {s : set α} (hs : compact s) (ne_s : s.nonempty) :
+lemma is_compact.is_greatest_Sup {s : set α} (hs : is_compact s) (ne_s : s.nonempty) :
   is_greatest s (Sup s) :=
-@compact.is_least_Inf (order_dual α) _ _ _ _ hs ne_s
+@is_compact.is_least_Inf (order_dual α) _ _ _ _ hs ne_s
 
-lemma compact.exists_is_least {s : set α} (hs : compact s) (ne_s : s.nonempty) :
+lemma is_compact.exists_is_least {s : set α} (hs : is_compact s) (ne_s : s.nonempty) :
   ∃ x, is_least s x :=
 ⟨_, hs.is_least_Inf ne_s⟩
 
-lemma compact.exists_is_greatest {s : set α} (hs : compact s) (ne_s : s.nonempty) :
+lemma is_compact.exists_is_greatest {s : set α} (hs : is_compact s) (ne_s : s.nonempty) :
   ∃ x, is_greatest s x :=
 ⟨_, hs.is_greatest_Sup ne_s⟩
 
-lemma compact.exists_is_glb {s : set α} (hs : compact s) (ne_s : s.nonempty) :
+lemma is_compact.exists_is_glb {s : set α} (hs : is_compact s) (ne_s : s.nonempty) :
   ∃ x ∈ s, is_glb s x :=
 ⟨_, hs.Inf_mem ne_s, hs.is_glb_Inf ne_s⟩
 
-lemma compact.exists_is_lub {s : set α} (hs : compact s) (ne_s : s.nonempty) :
+lemma is_compact.exists_is_lub {s : set α} (hs : is_compact s) (ne_s : s.nonempty) :
   ∃ x ∈ s, is_lub s x :=
 ⟨_, hs.Sup_mem ne_s, hs.is_lub_Sup ne_s⟩
 
-lemma compact.exists_Inf_image_eq {α : Type u} [topological_space α]
-  {s : set α} (hs : compact s) (ne_s : s.nonempty) {f : α → β} (hf : continuous_on f s) :
+lemma is_compact.exists_Inf_image_eq {α : Type u} [topological_space α]
+  {s : set α} (hs : is_compact s) (ne_s : s.nonempty) {f : α → β} (hf : continuous_on f s) :
   ∃ x ∈ s,  Inf (f '' s) = f x :=
 let ⟨x, hxs, hx⟩ := (hs.image_of_continuous_on hf).Inf_mem (ne_s.image f)
 in ⟨x, hxs, hx.symm⟩
 
 /-- The extreme value theorem: a continuous function realizes its minimum on a compact set -/
-lemma compact.exists_forall_le {α : Type u} [topological_space α]
-  {s : set α} (hs : compact s) (ne_s : s.nonempty) {f : α → β} (hf : continuous_on f s) :
+lemma is_compact.exists_forall_le {α : Type u} [topological_space α]
+  {s : set α} (hs : is_compact s) (ne_s : s.nonempty) {f : α → β} (hf : continuous_on f s) :
   ∃x∈s, ∀y∈s, f x ≤ f y :=
 begin
   rcases hs.exists_Inf_image_eq ne_s hf with ⟨x, hxs, hx⟩,
@@ -1667,17 +1667,17 @@ begin
 end
 
 /-- The extreme value theorem: a continuous function realizes its maximum on a compact set -/
-lemma compact.exists_forall_ge {α : Type u} [topological_space α]:
-  ∀ {s : set α}, compact s → s.nonempty → ∀ {f : α → β}, continuous_on f s →
+lemma is_compact.exists_forall_ge {α : Type u} [topological_space α]:
+  ∀ {s : set α}, is_compact s → s.nonempty → ∀ {f : α → β}, continuous_on f s →
   ∃x∈s, ∀y∈s, f y ≤ f x :=
-@compact.exists_forall_le (order_dual β) _ _ _ _ _
+@is_compact.exists_forall_le (order_dual β) _ _ _ _ _
 
-lemma compact.exists_Sup_image_eq {α : Type u} [topological_space α]:
-  ∀ {s : set α}, compact s → s.nonempty → ∀ {f : α → β}, continuous_on f s →
+lemma is_compact.exists_Sup_image_eq {α : Type u} [topological_space α]:
+  ∀ {s : set α}, is_compact s → s.nonempty → ∀ {f : α → β}, continuous_on f s →
   ∃ x ∈ s,  Sup (f '' s) = f x :=
-@compact.exists_Inf_image_eq (order_dual β) _ _ _ _ _
+@is_compact.exists_Inf_image_eq (order_dual β) _ _ _ _ _
 
-lemma eq_Icc_of_connected_compact {s : set α} (h₁ : is_connected s) (h₂ : compact s) :
+lemma eq_Icc_of_connected_compact {s : set α} (h₁ : is_connected s) (h₂ : is_compact s) :
   s = Icc (Inf s) (Sup s) :=
 eq_Icc_cInf_cSup_of_connected_bdd_closed h₁ h₂.bdd_below h₂.bdd_above
   h₂.is_closed

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Markus Himmel
 -/
 import category_theory.limits.shapes.zero
-import category_theory.limits.shapes.equalizers
 
 /-!
 # Kernels and cokernels
@@ -412,5 +411,13 @@ class has_cokernels :=
 (has_colimit : Π {X Y : C} (f : X ⟶ Y), has_cokernel f)
 
 attribute [instance, priority 100] has_kernels.has_limit has_cokernels.has_colimit
+
+@[priority 100]
+instance has_kernels_of_has_equalizers [has_equalizers C] : has_kernels C :=
+{ has_limit := infer_instance }
+
+@[priority 100]
+instance has_cokernels_of_has_coequalizers [has_coequalizers C] : has_cokernels C :=
+{ has_colimit := infer_instance }
 
 end category_theory.limits

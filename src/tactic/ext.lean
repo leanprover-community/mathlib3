@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 import tactic.rcases
-import data.sum
+import data.sum logic.function.basic
 universes u₁ u₂
 
 open interactive interactive.types
@@ -340,7 +340,7 @@ add_tactic_doc
   tags                     := ["rewrite", "logic"] }
 
 -- We mark some existing extensionality lemmas.
-attribute [ext] array.ext propext
+attribute [ext] array.ext propext function.hfunext
 attribute [ext [(→),thunk]] _root_.funext
 
 -- We create some extensionality lemmas for existing structures.

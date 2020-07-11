@@ -3,13 +3,9 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import tactic.alias
-import tactic.push_neg
-import tactic.localized
-import logic.unique
+import logic.nontrivial
 import algebra.group.commute
 import algebra.group.units_hom
-import logic.nontrivial
 import algebra.group.inj_surj
 
 /-!

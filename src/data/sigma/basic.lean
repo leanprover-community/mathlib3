@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl
 -/
-import tactic.lint
+import tactic.lint tactic.ext
 
 section sigma
 variables {α : Type*} {β : α → Type*}
@@ -31,6 +31,13 @@ by simp
 
 @[simp] theorem sigma.eta : ∀ x : Σ a, β a, sigma.mk x.1 x.2 = x
 | ⟨i, x⟩ := rfl
+
+@[ext]
+lemma ext {x₀ x₁ : sigma β}
+  (h₀ : x₀.1 = x₁.1)
+  (h₁ : x₀.1 = x₁.1 → x₀.2 == x₁.2) :
+  x₀ = x₁ :=
+by casesm* sigma _; cases h₀; cases h₁ h₀; refl
 
 @[simp] theorem sigma.forall {p : (Σ a, β a) → Prop} :
   (∀ x, p x) ↔ (∀ a b, p ⟨a, b⟩) :=

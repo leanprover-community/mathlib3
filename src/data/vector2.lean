@@ -5,12 +5,10 @@ Authors: Mario Carneiro
 
 Additional theorems about the `vector` type.
 -/
-import tactic.tauto
 import data.vector
 import data.list.nodup
 import data.list.of_fn
 import control.applicative
-import control.traversable.basic
 
 universes u
 variables {n : ℕ}

@@ -123,8 +123,8 @@ begin
   set r := n % 2 with hr,
   have h2 : r < 2 := nat.mod_lt _ (dec_trivial),
   interval_cases r with hrv,
-  { left, assumption },
-  { right, assumption }
+  { left, exact hrv },
+  { right, exact hrv }
 end
 
 /-

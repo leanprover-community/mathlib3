@@ -72,7 +72,7 @@ lemma span_eq_bot {s : set α} : span s = ⊥ ↔ ∀ x ∈ s, (x:α) = 0 := sub
 
 @[simp] lemma span_singleton_eq_bot {x} : span ({x} : set α) = ⊥ ↔ x = 0 := submodule.span_singleton_eq_bot
 
-@[simp] lemma span_zero : span ({0} : set α) = ⊥ := by simp
+@[simp] lemma span_zero : span ({0} : set α) = ⊥ := by rw span_singleton_eq_bot
 
 lemma span_singleton_eq_top {x} : span ({x} : set α) = ⊤ ↔ is_unit x :=
 by rw [is_unit_iff_dvd_one, ← span_singleton_le_span_singleton, singleton_one, span_singleton_one,

@@ -6,7 +6,7 @@ Authors: Chris Hughes, Joey van Langen, Casper Putz
 import tactic.apply_fun
 import data.equiv.ring
 import data.zmod.algebra
-import linear_algebra.basis
+import linear_algebra.finite_dimensional
 import ring_theory.integral_domain
 import field_theory.splitting_field
 
@@ -117,9 +117,16 @@ calc a ^ (fintype.card K - 1) = (units.mk0 a ha ^ (fintype.card K - 1) : units K
     by rw [units.coe_pow, units.coe_mk0]
   ... = 1 : by { classical, rw [← card_units, pow_card_eq_one], refl }
 
-lemma pow_card_eq_one (x : K) : x ^ fintype.card K = x :=
+lemma one_lt_card : 1 < q := by { rw fintype.one_lt_card_iff_nontrivial, apply_instance }
+
+lemma two_le_card : 2 ≤ q := one_lt_card
+
+lemma pow_card_eq_self (x : K) : x ^ fintype.card K = x :=
 begin
-  sorry
+  have pos : 0 < fintype.card K, transitivity 1, norm_num, apply one_lt_card,
+  rw [← nat.succ_pred_eq_of_pos (gt_iff_lt.1 pos), nat.pred_eq_sub_one, pow_succ],
+  classical, by_cases x = 0, rw [h, zero_mul],
+  rw [pow_card_sub_one_eq_one _ h, mul_one],
 end
 
 variable (K)
@@ -214,12 +221,11 @@ variables (p : ℕ) [fact p.prime] [char_p K p]
 
 lemma roots_X_pow_card_sub_X : roots (X^q - X : polynomial K) = finset.univ :=
 begin
-  have hk : 2 ≤ q := sorry,
   have aux : (X^q - X : polynomial K) ≠ 0,
-  { apply ne_zero_of_degree_gt (_ : 1 < degree _),
-    rw [degree_sub_eq_of_degree_lt]; simp [hk]; exact_mod_cast hk, },
+  { apply ne_zero_of_degree_gt (_ : 1 < degree _), rw [degree_sub_eq_of_degree_lt];
+    simp [two_le_card]; exact_mod_cast two_le_card; apply_instance, },
   simp_rw [eq_univ_iff_forall, mem_roots aux, is_root.def, eval_sub, eval_pow, eval_X, sub_eq_zero],
-  exact pow_card_eq_one
+  exact pow_card_eq_self,
 end
 
 instance : is_splitting_field (zmod p) K (X^q - X) :=
@@ -294,3 +300,22 @@ begin
   simpa only [-zmod.pow_totient, nat.succ_eq_add_one, nat.cast_pow, units.coe_one,
     nat.cast_one, cast_unit_of_coprime, units.coe_pow],
 end
+
+namespace finite_dimensional
+
+variables {V : Type*} [add_comm_group V] [vector_space K V]
+
+noncomputable instance [finite_dimensional K V] : fintype V :=
+begin
+  have b := classical.some_spec (finite_dimensional.exists_is_basis_finset K V),
+  apply module.fintype_of_fintype b,
+end
+
+lemma card_of_findim [finite_dimensional K V] :
+  fintype.card V = q ^ (finite_dimensional.findim K V) :=
+begin
+  have b := classical.some_spec (finite_dimensional.exists_is_basis_finset K V),
+  rw [module.card_fintype b, ← finite_dimensional.findim_eq_card_basis b],
+end
+
+end finite_dimensional

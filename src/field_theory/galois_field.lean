@@ -4,6 +4,7 @@ Authors: Johan Commelin
 -/
 
 import field_theory.finite
+import linear_algebra.finite_dimensional
 
 /-!
 # Galois fields
@@ -25,18 +26,6 @@ section
 open function
 variables {K L : Type*} [field K] [field L]
 
-/-- The canonical isomorphism between a field and the splitting field of a polynomial that splits-/
-def ring_equiv_splitting_field_of_splits {f : polynomial K}
-  (h : polynomial.splits (ring_hom.id K) f) :
-  (K ≃+* f.splitting_field) :=
-begin
-  apply ring_equiv.of _,
-  { refine equiv.mk (algebra_map K f.splitting_field) (polynomial.splitting_field.lift f h) _ _,
-    swap, apply right_inverse_of_injective_of_left_inverse, apply ring_hom.injective,
-    iterate 2 {intro, simp}, },
-  apply_instance,
-end
-
 lemma ring_hom.char_p_iff (f : K →+* L) (p : ℕ) :
   char_p K p ↔ char_p L p :=
 begin
@@ -57,6 +46,26 @@ end
 
 open polynomial
 
+section splitting_field_facts
+
+variables {K : Type*} [field K] {f : polynomial K}
+/-- The canonical isomorphism between a field and the splitting field of a polynomial that splits-/
+def ring_equiv_splitting_field_of_splits (h : polynomial.splits (ring_hom.id K) f) :
+  (K ≃+* f.splitting_field) :=
+begin
+  apply ring_equiv.of _,
+  { refine equiv.mk (algebra_map K f.splitting_field) (polynomial.splitting_field.lift f h) _ _,
+    swap, apply function.right_inverse_of_injective_of_left_inverse, apply ring_hom.injective,
+    iterate 2 {intro, simp}, },
+  apply_instance,
+end
+
+instance is_splitting_field.finite_dimensional {L : Type*} [field L] [algebra K L]
+  [is_splitting_field K L f] : finite_dimensional K L :=
+sorry
+
+end splitting_field_facts
+
 /-- A finite field with `p ^ n` elements.
 Every field with the same cardinality is (non-canonically)
 isomorphic to this field. -/
@@ -76,11 +85,25 @@ polynomial.is_splitting_field_splitting_field _
 instance : char_p (galois_field p n) p :=
 (algebra.char_p_iff (zmod p) (galois_field p n) p).mp (by apply_instance)
 
+-- should be able to apply_instance from finite_dimensional.fintype on finite.lean
 instance : fintype (galois_field p n) :=
-sorry
+begin
+  have b := classical.some_spec
+    (finite_dimensional.exists_is_basis_finset (zmod p) (galois_field p n)),
+  apply module.fintype_of_fintype b,
+end
+
+lemma findim : finite_dimensional.findim (zmod p) (galois_field p n) = n :=
+begin
+  sorry,
+end
 
 lemma card : fintype.card (galois_field p n) = p ^ n :=
-sorry
+begin
+  have b := classical.some_spec
+    (finite_dimensional.exists_is_basis_finset (zmod p) (galois_field p n)),
+  rw [module.card_fintype b, ← finite_dimensional.findim_eq_card_basis b, zmod.card, findim],
+end
 
 variable {n}
 theorem zmod_p_splits_X_pow_p_sub_X : splits (ring_hom.id (zmod p)) (X ^ p - X) :=

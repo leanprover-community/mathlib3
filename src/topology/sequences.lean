@@ -302,7 +302,6 @@ begin
   cases hu with u_in hu,
   use [u, u_in], clear u_in,
   intros x x_in φ,
-  rw ← imp_iff_not_or,
   intros hφ huφ,
   obtain ⟨N, hN⟩ : ∃ N, ∀ p q, p ≥ N → q ≥ N → (u (φ p), u (φ q)) ∈ V,
     from (cauchy_seq_of_tendsto_nhds _ huφ).mem_entourage V_in,

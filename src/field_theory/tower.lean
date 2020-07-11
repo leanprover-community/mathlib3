@@ -70,13 +70,15 @@ theorem linear_independent_smul {ι : Type v₁} {b : ι → S} {κ : Type w₁}
   (hb : linear_independent R b) (hc : linear_independent S c) :
   linear_independent R (λ p : ι × κ, b p.1 • c p.2) :=
 begin
-  rw linear_independent_iff' at hb hc, rw linear_independent_iff'', rintros s g hg hsg ⟨i, k⟩ hik,
-  have h1 : ∑ i in (s.image prod.fst).product (s.image prod.snd), g i • b i.1 • c i.2 = 0,
-  { rw ← hsg, exact (finset.sum_subset finset.subset_product $ λ p _ hp,
-      show g p • b p.1 • c p.2 = 0, by rw [hg p hp, zero_smul]).symm },
-  rw [finset.sum_product, finset.sum_comm] at h1,
-  simp_rw [← is_algebra_tower.smul_assoc, ← finset.sum_smul] at h1,
-  exact hb _ _ (hc _ _ h1 k (finset.mem_image_of_mem _ hik)) i (finset.mem_image_of_mem _ hik),
+  rw linear_independent_iff' at hb hc, rw linear_independent_iff'', rintros s g hg hsg ⟨i, k⟩,
+  by_cases hik : (i, k) ∈ s,
+  { have h1 : ∑ i in (s.image prod.fst).product (s.image prod.snd), g i • b i.1 • c i.2 = 0,
+    { rw ← hsg, exact (finset.sum_subset finset.subset_product $ λ p _ hp,
+        show g p • b p.1 • c p.2 = 0, by rw [hg p hp, zero_smul]).symm },
+    rw [finset.sum_product, finset.sum_comm] at h1,
+    simp_rw [← is_algebra_tower.smul_assoc, ← finset.sum_smul] at h1,
+    exact hb _ _ (hc _ _ h1 k (finset.mem_image_of_mem _ hik)) i (finset.mem_image_of_mem _ hik) },
+  exact hg _ hik
 end
 
 theorem is_basis.smul {ι : Type v₁} {b : ι → S} {κ : Type w₁} {c : κ → A}

@@ -104,9 +104,9 @@ linear_independent_iff.trans
 theorem linear_independent_iff'' :
   linear_independent R v ↔ ∀ (s : finset ι) (g : ι → R) (hg : ∀ i ∉ s, g i = 0),
     ∑ i in s, g i • v i = 0 → ∀ i, g i = 0 :=
-linear_independent_iff'.trans ⟨λ H s g hg, H s g,
+linear_independent_iff'.trans ⟨λ H s g hg hv i, if his : i ∈ s then H s g hv i his else hg i his,
 λ H s g hg i hi, by { convert H s (λ j, if j ∈ s then g j else 0) (λ j hj, if_neg hj)
-    (by simp_rw [ite_smul, zero_smul, finset.sum_extend_by_zero, hg]) i hi,
+    (by simp_rw [ite_smul, zero_smul, finset.sum_extend_by_zero, hg]) i,
   exact (if_pos hi).symm }⟩
 
 theorem linear_dependent_iff : ¬ linear_independent R v ↔

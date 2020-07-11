@@ -47,13 +47,13 @@ end
 
 open polynomial
 
-lemma galois_poly_separable {K : Type*} [field K] (p q : ℕ) [char_p K p]
-  [fact p.prime] (h : p ∣ q) :
+lemma galois_poly_separable {K : Type*} [field K] (p q : ℕ) [char_p K p] (h : p ∣ q) :
   separable (X ^ q - X : polynomial K) :=
 begin
-  unfold separable, unfold is_coprime, use 1, use (X ^ q - X - 1),
-  rw [← _inst_2.cast_eq_zero_iff, ← C_inj, C_eq_nat_cast] at h,
-  simp [derivative_pow, h],
+  use [1, (X ^ q - X - 1)],
+  rw [← char_p.cast_eq_zero_iff (polynomial K) p] at h,
+  rw [derivative_sub, derivative_pow, derivative_X, h],
+  ring,
 end
 
 section polynomial_facts
@@ -61,15 +61,29 @@ section polynomial_facts
 open_locale big_operators
 open finset
 
-variables {R : Type*} [integral_domain R] [decidable_eq R]
+variables {R : Type*} [integral_domain R]
 
-lemma roots_prod_linear (s : finset R) : (∏ i in s, (X - C i)).roots = s :=
+@[simp] lemma roots_one : roots (1 : polynomial R) = ∅ :=
 begin
-  apply s.induction_on, ext, simp,
-  intros a s' has' ih, rw [finset.prod_insert has', roots_mul, ih], ext, simp,
-  intro con, cases eq_zero_or_eq_zero_of_mul_eq_zero con, swap,
-  rw finset.prod_eq_zero_iff at h, cases h with x h, cases h with i j,
-  repeat { apply polynomial.ne_zero_of_monic (monic_X_sub_C _), assumption, apply_instance, },
+  ext r,
+  simp only [mem_roots, ne.def, one_ne_zero, is_root.def, eval_one, not_mem_empty, not_false_iff],
+end
+
+variables  [decidable_eq R]
+
+-- move this
+lemma roots_prod_X_sub_C (s : finset R) : (∏ i in s, (X - C i)).roots = s :=
+begin
+  apply s.induction_on,
+  { simp only [prod_empty, roots_one], },
+  intros a s' has' ih,
+  rw [finset.prod_insert has', roots_mul, ih, roots_X_sub_C],
+  { ext, simp only [mem_union, mem_insert, mem_singleton], },
+  { intro con, cases eq_zero_or_eq_zero_of_mul_eq_zero con with h h,
+    work_on_goal 1
+    { rw finset.prod_eq_zero_iff at h, rcases h with ⟨x, hx, h⟩, },
+    all_goals
+    { exact polynomial.ne_zero_of_monic (monic_X_sub_C _) h, } }
 end
 
 end polynomial_facts
@@ -111,6 +125,7 @@ end
 
 open_locale big_operators
 variables {α : Type*} [decidable_eq α] (s : finset α) (g : α → polynomial K)
+
 -- I have a proof in another project, hope to PR soon - Aaron Anderson
 lemma nat_degree_prod_eq' (h : ∏ i in s, (g i).leading_coeff ≠ 0) :
   (s.prod g).nat_degree = ∑ i in s, (g i).nat_degree :=
@@ -118,16 +133,52 @@ begin
   sorry
 end
 
+-- move this, generalise to integral domain
+lemma roots_C_mul (x : K) (hx : x ≠ 0) (f : polynomial K) :
+  roots (C x * f) = roots f :=
+begin
+  classical, by_cases hf : f = 0,
+  { simp only [hf, mul_zero] },
+  { have aux : C x * f ≠ 0,
+    { apply mul_ne_zero _ hf, rwa [← C_0, ne.def, C_inj] },
+    ext y,
+    rw [mem_roots aux, mem_roots hf],
+    simp only [hx, eval_C, false_or, is_root.def, eval_mul, mul_eq_zero], }
+end
+
+-- move this
+lemma not_separable_zero : ¬ separable (0 : polynomial K) :=
+begin
+  rintro ⟨x, y, h⟩,
+  simpa only [add_zero, derivative_zero, zero_ne_one, mul_zero, zero_ne_one] using h,
+end
+
+-- move this, generalise
+lemma nat_degree_C_mul (x : K) (hx : x ≠ 0) (f : polynomial K) :
+  nat_degree (C x * f) = nat_degree f :=
+begin
+  classical, by_cases hf : f = 0,
+  { simp only [hf, mul_zero] },
+  { rw [nat_degree_mul_eq _ hf, nat_degree_C, zero_add],
+    rwa [← C_0, ne.def, C_inj] }
+end
+
 -- monic should be removed eventually
-lemma card_roots_eq_of_splits_monic (m : monic f) [decidable_eq K]
-  (sep: separable f) (sp : polynomial.splits (ring_hom.id K) f) :
+lemma card_roots_eq_of_separable_of_splits
+  (sep : separable f) (sp : polynomial.splits (ring_hom.id K) f) :
   f.roots.card = f.nat_degree :=
 begin
+  classical,
+  have hf : f ≠ 0, { rintro rfl, exact not_separable_zero sep },
+  have hflc : f.leading_coeff ≠ 0, { rwa [ne.def, leading_coeff_eq_zero] },
   cases (exists_finset_of_splits (ring_hom.id K) sep sp) with s hs,
   simp only [ring_hom.id_apply, map_id] at hs, rw hs,
-  rw [m.leading_coeff, C_1, one_mul] at *,
-  rw roots_prod_linear s, rw nat_degree_prod_eq', simp,
-  simp_rw (monic_X_sub_C _).leading_coeff, simp,
+  -- rw [m.leading_coeff, C_1, one_mul] at *,
+  rw [roots_C_mul _ hflc, roots_prod_X_sub_C, nat_degree_C_mul _ hflc],
+  rw nat_degree_prod_eq',
+  { simp only [mul_one, nat_degree_X_sub_C, nat.cast_id, finset.sum_const, nsmul_eq_mul], },
+  { simp only [(monic_X_sub_C _).leading_coeff, finset.prod_const_one,
+                ne.def, not_false_iff, one_ne_zero] }
 end
 
 instance is_splitting_field.finite_dimensional  [algebra K L] [is_splitting_field K L f] :
@@ -175,15 +226,15 @@ begin
   rw [module.card_fintype b, ← finite_dimensional.findim_eq_card_basis b, zmod.card, findim],
 end
 
-theorem zmod_p_splits_X_pow_p_sub_X : splits (ring_hom.id (zmod p)) (X ^ p - X) :=
+theorem splits_zmod_X_pow_sub_X : splits (ring_hom.id (zmod p)) (X ^ p - X) :=
 begin
-  apply splits_of_exists_multiset, swap, apply finset.univ.val, apply_instance,
+  refine @splits_of_exists_multiset _ _ _ _ _ _ finset.univ.1 _,
   simp only [ring_hom.id_apply, map_id, map_sub],
-  conv_rhs {rw [sub_eq_add_neg, add_comm]},
-  rw [leading_coeff_add_of_degree_lt, leading_coeff_X_pow, C_1, one_mul], swap,
-  { rw [degree_X_pow, degree_neg, degree_X], apply with_bot.coe_lt_coe.2,
-    apply nat.prime.one_lt, apply _inst_1, },
-  sorry,
+  conv_rhs { rw [sub_eq_add_neg, add_comm] },
+  rw [leading_coeff_add_of_degree_lt, leading_coeff_X_pow, C_1, one_mul],
+  swap,
+  { rw [degree_X_pow, degree_neg, degree_X], norm_cast, exact nat.prime.one_lt' _, },
+  { sorry },
 end
 
 def equiv_zmod_p : galois_field p 1 ≃ₐ[zmod p] (zmod p) :=

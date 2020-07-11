@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import topology.local_homeomorph
+import tactic
 
 /-!
 # Charted spaces
@@ -388,10 +389,10 @@ def id_restr_groupoid : structure_groupoid H :=
     rw [← of_set_symm],
     exact local_homeomorph.eq_on_source.symm' hse,
   end,
-  id_mem' := ⟨univ, is_open_univ, by simp⟩,
+  id_mem' := ⟨univ, is_open_univ, by simp only with mfld_simps⟩,
   locality' := begin
     intros e h,
-    refine ⟨e.source, e.open_source, by simp, _⟩,
+    refine ⟨e.source, e.open_source, by simp only with mfld_simps, _⟩,
     intros x hx,
     rcases h x hx with ⟨s, hs, hxs, s', hs', hes'⟩,
     have hes : x ∈ (e.restr s).source,
@@ -427,16 +428,16 @@ begin
   { intros _i,
     apply structure_groupoid.le_iff.mpr,
     rintros e ⟨s, hs, hes⟩,
-    refine G.eq_on_source' _ _ _ hes,
+    refine G.eq_on_source _ hes,
     have h := _i.closed_under_restriction,
-    convert h G.id_mem' s hs,
+    convert h G.id_mem s hs,
     rw interior_eq_of_open hs,
-    simp },
+    simp only with mfld_simps },
   { intros h,
     split,
     intros e he s hs,
     rw ← of_set_trans (e : local_homeomorph H H) hs,
-    refine G.trans' _ _ _ he,
+    refine G.trans _ he,
     apply structure_groupoid.le_iff.mp h,
     exact id_restr_groupoid_mem hs },
 end
@@ -757,7 +758,7 @@ space `α`, then that local homeomorphism induces an `H`-charted space structure
 def singleton_charted_space (h : e.source = set.univ) : charted_space H α :=
 { atlas := {e},
   chart_at := λ _, e,
-  mem_chart_source := λ _, by {rw h, simp},
+  mem_chart_source := λ _, by simp only [h] with mfld_simps,
   chart_mem_atlas := λ _, by tauto }
 
 lemma singleton_charted_space_one_chart (h : e.source = set.univ) (e' : local_homeomorph α H)

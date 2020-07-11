@@ -183,6 +183,16 @@ lemma equiv.has_sum_iff_of_support {g : γ → α} (e : support f ≃ support g)
 have (g ∘ coe) ∘ e = f ∘ coe, from funext he,
 by rw [← has_sum_subtype_support, ← this, e.has_sum_iff, has_sum_subtype_support]
 
+lemma has_sum_iff_has_sum_of_ne_zero_bij {g : γ → α} (i : support g → β)
+  (hi : ∀ ⦃x y⦄, i x = i y → (x : γ) = y)
+  (hf : support f ⊆ set.range i) (hfg : ∀ x, f (i x) = g x) :
+  has_sum f a ↔ has_sum g a :=
+iff.symm $ equiv.has_sum_iff_of_support
+  (equiv.of_bijective (λ x, ⟨i x, λ hx, x.coe_prop $ hfg x ▸ hx⟩)
+    ⟨λ x y h, subtype.ext $ hi $ subtype.ext_iff.1 h,
+      λ y, (hf y.coe_prop).imp $ λ x hx, subtype.ext hx⟩)
+  hfg
+
 lemma equiv.summable_iff_of_support {g : γ → α} (e : support f ≃ support g)
   (he : ∀ x : support f, g (e x) = f x) :
   summable f ↔ summable g :=
@@ -365,6 +375,17 @@ lemma tsum_eq_tsum_of_has_sum_iff_has_sum {f : β → α} {g : γ → α}
 
 lemma equiv.tsum_eq (j : γ ≃ β) (f : β → α) : (∑'c, f (j c)) = (∑'b, f b) :=
 tsum_eq_tsum_of_has_sum_iff_has_sum $ λ a, j.has_sum_iff
+
+lemma equiv.tsum_eq_tsum_of_support {f : β → α} {g : γ → α} (e : support f ≃ support g)
+  (he : ∀ x, g (e x) = f x) :
+  (∑' x, f x) = ∑' y, g y :=
+tsum_eq_tsum_of_has_sum_iff_has_sum $ λ _, e.has_sum_iff_of_support he
+
+lemma tsum_eq_tsum_of_ne_zero_bij {g : γ → α} (i : support g → β)
+  (hi : ∀ ⦃x y⦄, i x = i y → (x : γ) = y)
+  (hf : support f ⊆ set.range i) (hfg : ∀ x, f (i x) = g x) :
+  (∑' x, f x)  = ∑' y, g y :=
+tsum_eq_tsum_of_has_sum_iff_has_sum $ λ _, has_sum_iff_has_sum_of_ne_zero_bij i hi hf hfg
 
 variable [topological_add_monoid α]
 
@@ -563,17 +584,14 @@ lemma has_sum_le_inj {g : γ → α} (i : β → γ) (hi : injective i) (hs : �
   (h : ∀b, f b ≤ g (i b)) (hf : has_sum f a₁) (hg : has_sum g a₂) : a₁ ≤ a₂ :=
 have has_sum (λc, (partial_inv i c).cases_on' 0 f) a₁,
 begin
-  refine (equiv.has_sum_iff_of_support (equiv.of_bijective _ ⟨_, _⟩) _).1 hf,
-  { refine λ c, ⟨i c, _⟩,
-    rw [mem_support, partial_inv_left hi],
-    exact c.2 },
-  { assume c₁ c₂ eq, exact subtype.ext (hi $ subtype.ext_iff.1 eq) },
-  { rintro ⟨c, hc⟩,
+  refine (has_sum_iff_has_sum_of_ne_zero_bij (i ∘ coe) _ _ _).2 hf,
+  { exact assume c₁ c₂ eq, hi eq },
+  { intros c hc,
     rw [mem_support] at hc,
     cases eq : partial_inv i c with b; rw eq at hc,
     { contradiction },
     { rw [partial_inv_of_injective hi] at eq,
-      exact ⟨⟨b, hc⟩, subtype.eq eq⟩ } },
+      exact ⟨⟨b, hc⟩, eq⟩ } },
   { assume c, simp [partial_inv_left hi, option.cases_on'] }
 end,
 begin

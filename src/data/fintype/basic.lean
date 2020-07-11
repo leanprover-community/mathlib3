@@ -464,7 +464,7 @@ lemma fintype.exists_pair_of_one_lt_card [fintype α] (h : 1 < fintype.card α) 
   ∃ (a b : α), a ≠ b :=
 by { haveI : nontrivial α := fintype.one_lt_card_iff_nontrivial.1 h, exact exists_pair_ne α }
 
-lemma one_lt_card [fintype α] [h : nontrivial α] : 1 < fintype.card α :=
+lemma fintype.one_lt_card [fintype α] [h : nontrivial α] : 1 < fintype.card α :=
 fintype.one_lt_card_iff_nontrivial.mpr h
 
 lemma fintype.injective_iff_surjective [fintype α] {f : α → α} : injective f ↔ surjective f :=

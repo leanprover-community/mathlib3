@@ -80,12 +80,21 @@ variables {K : Type*} {L : Type*} [field K] [field L] {f : polynomial K}
 /-- The canonical isomorphism between a field and the splitting field of a polynomial that splits-/
 def ring_equiv_splitting_field_of_splits (h : polynomial.splits (ring_hom.id K) f) :
   (K ≃+* f.splitting_field) :=
+-- move this
+section splitting_field_facts
+
+variables {K : Type*} [field K] {f : polynomial K}
+
+/-- The canonical isomorphism between
+the splitting field of a polynomial that splits and the base field. -/
+def equiv_of_splits (h : polynomial.splits (ring_hom.id K) f) :
+  f.splitting_field ≃ₐ[K] K :=
 begin
-  apply ring_equiv.of _,
-  { refine equiv.mk (algebra_map K f.splitting_field) (polynomial.splitting_field.lift f h) _ _,
-    swap, apply function.right_inverse_of_injective_of_left_inverse, apply ring_hom.injective,
-    iterate 2 {intro, simp}, },
-  apply_instance,
+  -- apply ring_equiv.of _,
+  -- { refine equiv.mk (algebra_map K f.splitting_field) (polynomial.splitting_field.lift f h) _ _,
+  --   swap, apply function.right_inverse_of_injective_of_left_inverse, apply ring_hom.injective,
+  --   iterate 2 {intro, simp}, },
+  -- apply_instance,
 end
 
 -- Needs one more step, showing basically that separable implies squarefree
@@ -166,7 +175,6 @@ begin
   rw [module.card_fintype b, ← finite_dimensional.findim_eq_card_basis b, zmod.card, findim],
 end
 
-variable {n}
 theorem zmod_p_splits_X_pow_p_sub_X : splits (ring_hom.id (zmod p)) (X ^ p - X) :=
 begin
   apply splits_of_exists_multiset, swap, apply finset.univ.val, apply_instance,
@@ -178,7 +186,7 @@ begin
   sorry,
 end
 
-def equiv_zmod_p : zmod p ≃+* galois_field p 1 :=
-ring_equiv_splitting_field_of_splits (by { rw nat.pow_one, apply zmod_p_splits_X_pow_p_sub_X p, })
+def equiv_zmod_p : galois_field p 1 ≃ₐ[zmod p] (zmod p) :=
+equiv_of_splits (by { rw nat.pow_one, apply zmod_p_splits_X_pow_p_sub_X p, })
 
 end galois_field

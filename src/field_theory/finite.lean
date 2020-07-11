@@ -119,10 +119,11 @@ calc a ^ (fintype.card K - 1) = (units.mk0 a ha ^ (fintype.card K - 1) : units K
 
 lemma pow_card_eq_self (x : K) : x ^ fintype.card K = x :=
 begin
-  have pos : 0 < fintype.card K, transitivity 1, norm_num, apply fintype.one_lt_card,
-  rw [← nat.succ_pred_eq_of_pos (gt_iff_lt.1 pos), nat.pred_eq_sub_one, pow_succ],
-  classical, by_cases x = 0, rw [h, zero_mul],
-  rw [pow_card_sub_one_eq_one _ h, mul_one],
+  have pos : 0 < fintype.card K := lt_trans zero_lt_one fintype.one_lt_card,
+  rw [← nat.succ_pred_eq_of_pos pos, nat.pred_eq_sub_one, pow_succ],
+  classical, by_cases h : x = 0,
+  { rw [h, zero_mul] },
+  { rw [pow_card_sub_one_eq_one _ h, mul_one], }
 end
 
 variable (K)
@@ -218,8 +219,10 @@ variables (p : ℕ) [fact p.prime] [char_p K p]
 lemma roots_X_pow_card_sub_X : roots (X^q - X : polynomial K) = finset.univ :=
 begin
   have aux : (X^q - X : polynomial K) ≠ 0,
-  { apply ne_zero_of_degree_gt (_ : 1 < degree _), rw [degree_sub_eq_of_degree_lt];
-    simp [two_le_card]; exact_mod_cast two_le_card; apply_instance, },
+  { apply ne_zero_of_degree_gt (_ : 1 < degree _), rw [degree_sub_eq_of_degree_lt],
+    all_goals
+    { simp only [nat.cast_with_bot, nsmul_one, degree_pow_eq, degree_X],
+      norm_cast, exact fintype.one_lt_card, }, },
   simp_rw [eq_univ_iff_forall, mem_roots aux, is_root.def, eval_sub, eval_pow, eval_X, sub_eq_zero],
   exact pow_card_eq_self,
 end
@@ -297,21 +300,24 @@ begin
     nat.cast_one, cast_unit_of_coprime, units.coe_pow],
 end
 
-namespace finite_dimensional
+section
 
 variables {V : Type*} [add_comm_group V] [vector_space K V]
 
-noncomputable instance [finite_dimensional K V] : fintype V :=
+noncomputable def fintype_of_finite_dimensional [finite_dimensional K V] : fintype V :=
 begin
   have b := classical.some_spec (finite_dimensional.exists_is_basis_finset K V),
   apply module.fintype_of_fintype b,
 end
 
-lemma card_of_findim [finite_dimensional K V] :
+-- should this go in a namespace?
+-- finite_dimensional would be natural,
+-- but we don't assume it...
+lemma card_eq_pow_findim [fintype V] :
   fintype.card V = q ^ (finite_dimensional.findim K V) :=
 begin
   have b := classical.some_spec (finite_dimensional.exists_is_basis_finset K V),
   rw [module.card_fintype b, ← finite_dimensional.findim_eq_card_basis b],
 end
 
-end finite_dimensional
+end

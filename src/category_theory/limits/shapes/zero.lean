@@ -3,12 +3,10 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import tactic.equiv_rw
+import category_theory.limits.shapes.terminal
 import category_theory.limits.shapes.binary_products
+import category_theory.limits.shapes.products
 import category_theory.limits.shapes.images
-import category_theory.epi_mono
-import category_theory.punit
-import category_theory.discrete_category
 
 /-!
 # Zero morphisms and zero objects
@@ -227,18 +225,34 @@ lemma mono_of_source_iso_zero {X Y : C} (f : X ⟶ Y) (i : X ≅ 0) : mono f :=
 lemma epi_of_target_iso_zero {X Y : C} (f : X ⟶ Y) (i : Y ≅ 0) : epi f :=
 ⟨λ Z g h w, by rw [zero_of_source_iso_zero g i, zero_of_source_iso_zero h i]⟩
 
-@[simps]
+/--
+An object `X` has `𝟙 X = 0` if and only if it is isomorphic to the zero object.
+
+Because `X ≅ 0` contains data (even if a subsingleton), we express this `↔` as an `≃`.
+-/
 def id_zero_equiv_iso_zero (X : C) : (𝟙 X = 0) ≃ (X ≅ 0) :=
 { to_fun    := λ h, { hom := 0, inv := 0, },
   inv_fun   := λ i, zero_of_target_iso_zero (𝟙 X) i,
   left_inv  := by tidy,
   right_inv := by tidy, }
 
+@[simp]
+lemma id_zero_equiv_iso_zero_apply_hom (X : C) (h : 𝟙 X = 0) :
+  ((id_zero_equiv_iso_zero X) h).hom = 0 := rfl
+
+@[simp]
+lemma id_zero_equiv_iso_zero_apply_inv (X : C) (h : 𝟙 X = 0) :
+  ((id_zero_equiv_iso_zero X) h).inv = 0 := rfl
+
 end
 
 section is_iso
 variables [has_zero_morphisms C]
 
+/--
+A zero morphism `0 : X ⟶ Y` is an isomorphism if and only if
+the identities on both `X` and `Y` are zero.
+-/
 @[simps]
 def is_iso_zero_equiv (X Y : C) : is_iso (0 : X ⟶ Y) ≃ (𝟙 X = 0 ∧ 𝟙 Y = 0) :=
 { to_fun := begin introsI i, rw ←is_iso.hom_inv_id (0 : X ⟶ Y), rw ←is_iso.inv_hom_id (0 : X ⟶ Y), simp, end,
@@ -246,12 +260,20 @@ def is_iso_zero_equiv (X Y : C) : is_iso (0 : X ⟶ Y) ≃ (𝟙 X = 0 ∧ 𝟙 
   left_inv := by tidy,
   right_inv := by tidy, }
 
+/--
+A zero morphism `0 : X ⟶ X` is an isomorphism if and only if
+the identity on `X` is zero.
+-/
 def is_iso_zero_self_equiv (X : C) : is_iso (0 : X ⟶ X) ≃ (𝟙 X = 0) :=
 by simpa using is_iso_zero_equiv X X
 
 variables [has_zero_object C]
 local attribute [instance] has_zero_object.has_zero
 
+/--
+A zero morphism `0 : X ⟶ Y` is an isomorphism if and only if
+`X` and `Y` are isomorphic to the zero object.
+-/
 def is_iso_zero_equiv_iso_zero (X Y : C) : is_iso (0 : X ⟶ Y) ≃ (X ≅ 0) × (Y ≅ 0) :=
 begin
   -- This is lame, because `prod` can't cope with `Prop`, so we can't use `equiv.prod_congr`.
@@ -268,6 +290,10 @@ begin
   { tidy, },
 end
 
+/--
+A zero morphism `0 : X ⟶ X` is an isomorphism if and only if
+`X` is isomorphic to the zero object.
+-/
 def is_iso_zero_self_equiv_iso_zero (X : C) : is_iso (0 : X ⟶ X) ≃ (X ≅ 0) :=
 (is_iso_zero_equiv_iso_zero X X).trans subsingleton_prod_self_equiv
 
@@ -305,10 +331,17 @@ section image
 variables [has_zero_morphisms C] [has_zero_object C]
 local attribute [instance] has_zero_object.has_zero
 
+/--
+The zero morphism has a `mono_factorisation` through the zero object.
+-/
 @[simps]
 def mono_factorisation_zero (X Y : C) : mono_factorisation (0 : X ⟶ Y) :=
 { I := 0, m := 0, e := 0, }
 
+/--
+Any zero morphism has an image.
+We don't set this as an instance, as it is only intended for use inside the following proofs.
+-/
 def has_image.zero (X Y : C) : has_image (0 : X ⟶ Y) :=
 { F := mono_factorisation_zero X Y,
   is_image :=

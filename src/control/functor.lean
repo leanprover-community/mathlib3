@@ -172,6 +172,27 @@ instance : applicative (comp F G) :=
 
 end comp
 
+variables {F : Type u → Type u} [functor F]
+
+/-- If we consider `x : F α` to, in some sense, contain values of type `α`, 
+predicate `liftp p x` holds iff, every value contained by `x` satisfies `p` -/
+def liftp {α : Type u} (p : α → Prop) (x : F α) : Prop :=
+∃ u : F (subtype p), subtype.val <$> u = x
+
+/-- `liftr r x y` relates `x` and `y` iff `x` and `y` have the same shape and that 
+we can pair values `a` from `x` and `b` from `y` so that `r a b` holds -/
+def liftr {α : Type u} (r : α → α → Prop) (x y : F α) : Prop :=
+∃ u : F {p : α × α // r p.fst p.snd},
+  (λ t : {p : α × α // r p.fst p.snd}, t.val.fst) <$> u = x ∧
+  (λ t : {p : α × α // r p.fst p.snd}, t.val.snd) <$> u = y
+
+/-- `supp x` is the set of values of type `α` that `x` contains -/
+def supp {α : Type u} (x : F α) : set α := { y : α | ∀ ⦃p⦄, liftp p x → p y }
+
+theorem of_mem_supp {α : Type u} {x : F α} {p : α → Prop} (h : liftp p x) :
+  ∀ y ∈ supp x, p y :=
+λ y hy, hy h
+
 end functor
 
 namespace ulift

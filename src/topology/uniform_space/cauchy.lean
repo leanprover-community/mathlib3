@@ -208,7 +208,7 @@ lemma cauchy_prod [uniform_space β] {f : filter α} {g : filter β} :
 | ⟨f_proper, hf⟩ ⟨g_proper, hg⟩ := ⟨filter.prod_ne_bot.2 ⟨f_proper, g_proper⟩,
   let p_α := λp:(α×β)×(α×β), (p.1.1, p.2.1), p_β := λp:(α×β)×(α×β), (p.1.2, p.2.2) in
   suffices (f.prod f).comap p_α ⊓ (g.prod g).comap p_β ≤ (𝓤 α).comap p_α ⊓ (𝓤 β).comap p_β,
-    by simpa [uniformity_prod, filter.prod, filter.comap_inf, filter.comap_comap_comp, (∘),
+    by simpa [uniformity_prod, filter.prod, filter.comap_inf, filter.comap_comap, (∘),
         inf_assoc, inf_comm, inf_left_comm],
   inf_le_inf (filter.comap_mono hf) (filter.comap_mono hg)⟩
 
@@ -402,7 +402,7 @@ lemma totally_bounded_iff_ultrafilter {s : set α} :
   ⟨ultrafilter_of f, ultrafilter_of_le, this⟩⟩
 
 lemma compact_iff_totally_bounded_complete {s : set α} :
-  compact s ↔ totally_bounded s ∧ is_complete s :=
+  is_compact s ↔ totally_bounded s ∧ is_complete s :=
 ⟨λ hs, ⟨totally_bounded_iff_ultrafilter.2 (λ f hf1 hf2,
     let ⟨x, xs, fx⟩ := compact_iff_ultrafilter_le_nhds.1 hs f hf1 hf2 in
     cauchy_downwards (cauchy_nhds) (hf1.1) fx),
@@ -417,7 +417,7 @@ instance complete_of_compact {α : Type u} [uniform_space α] [compact_space α]
 ⟨λf hf, by simpa [principal_univ] using (compact_iff_totally_bounded_complete.1 compact_univ).2 f hf⟩
 
 lemma compact_of_totally_bounded_is_closed [complete_space α] {s : set α}
-  (ht : totally_bounded s) (hc : is_closed s) : compact s :=
+  (ht : totally_bounded s) (hc : is_closed s) : is_compact s :=
 (@compact_iff_totally_bounded_complete α _ s).2 ⟨ht, hc.is_complete⟩
 
 /-!

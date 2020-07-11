@@ -5,7 +5,6 @@ Authors: Kenny Lau
 
 Multiplication and division of submodules of an algebra.
 -/
-import tactic.chain
 import ring_theory.algebra
 import ring_theory.ideals
 import algebra.pointwise
@@ -16,18 +15,18 @@ open algebra set
 
 namespace submodule
 
-variables {R : Type u} [comm_ring R]
+variables {R : Type u} [comm_semiring R]
 
 section ring
 
-variables {A : Type v} [ring A] [algebra R A]
+variables {A : Type v} [semiring A] [algebra R A]
 variables (S T : set A) {M N P Q : submodule R A} {m n : A}
 
 instance : has_one (submodule R A) :=
-⟨submodule.map (of_id R A).to_linear_map (⊤ : ideal R)⟩
+⟨submodule.map (of_id R A).to_linear_map (⊤ : submodule R R)⟩
 
 theorem one_eq_map_top :
-  (1 : submodule R A) = submodule.map (of_id R A).to_linear_map (⊤ : ideal R) := rfl
+  (1 : submodule R A) = submodule.map (of_id R A).to_linear_map (⊤ : submodule R R) := rfl
 
 theorem one_eq_span : (1 : submodule R A) = span R {1} :=
 begin
@@ -121,7 +120,7 @@ le_antisymm (mul_le.2 $ λ mn hmn p hp, let ⟨m, hm, n, hn, hmn⟩ := mem_sup.1
 lemma mul_subset_mul : (↑M : set A) * (↑N : set A) ⊆ (↑(M * N) : set A) :=
 by { rintros _ ⟨i, j, hi, hj, rfl⟩, exact mul_mem_mul hi hj }
 
-lemma map_mul {A'} [ring A'] [algebra R A'] (f : A →ₐ[R] A') :
+lemma map_mul {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') :
   map f.to_linear_map (M * N) = map f.to_linear_map M * map f.to_linear_map N :=
 calc map f.to_linear_map (M * N)
     = ⨆ (i : M), (N.map (lmul R A i)).map f.to_linear_map : map_supr _ _
@@ -171,8 +170,8 @@ end
 def span.ring_hom : set_semiring A →+* submodule R A :=
 { to_fun := submodule.span R,
   map_zero' := span_empty,
-  map_one' := show _ = map _ ⊤, by { erw [← ideal.span_singleton_one, ← span_image,
-      set.image_singleton, alg_hom.map_one], refl },
+  map_one' := le_antisymm (span_le.2 $ singleton_subset_iff.2 ⟨1, ⟨⟩, (algebra_map R A).map_one⟩)
+    (map_le_iff_le_comap.2 $ λ r _, mem_span_singleton.2 ⟨r, (algebra_map_eq_smul_one r).symm⟩),
   map_add' := span_union,
   map_mul' := λ s t, by erw [span_mul_span, ← image_mul_prod] }
 
@@ -180,7 +179,7 @@ end ring
 
 section comm_ring
 
-variables {A : Type v} [comm_ring A] [algebra R A]
+variables {A : Type v} [comm_semiring A] [algebra R A]
 variables {M N : submodule R A} {m n : A}
 
 theorem mul_mem_mul_rev (hm : m ∈ M) (hn : n ∈ N) : n * m ∈ M * N :=

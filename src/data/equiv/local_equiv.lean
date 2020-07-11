@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import data.equiv.basic
-import tactic.tauto
-import tactic.simps
 
 /-!
 # Local equivalences

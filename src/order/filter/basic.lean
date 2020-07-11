@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Jeremy Avigad
 import order.zorn
 import order.copy
 import data.set.finite
+import tactic.monotonicity
 
 /-!
 # Theory of filters on sets
@@ -442,7 +443,7 @@ show (∀{t}, s ⊆ t → t ∈ f) ↔ s ∈ f,
 lemma principal_mono {s t : set α} : 𝓟 s ≤ 𝓟 t ↔ s ⊆ t :=
 by simp only [le_principal_iff, iff_self, mem_principal_sets]
 
-lemma monotone_principal : monotone (𝓟 : set α → filter α) :=
+@[mono] lemma monotone_principal : monotone (𝓟 : set α → filter α) :=
 λ _ _, principal_mono.2
 
 @[simp] lemma principal_eq_iff_eq {s t : set α} : 𝓟 s = 𝓟 t ↔ s = t :=
@@ -1386,7 +1387,7 @@ begin
     simp [univ_mem_sets] },
 end
 
-lemma comap_comap_comp {m : γ → β} {n : β → α} : comap m (comap n f) = comap (n ∘ m) f :=
+lemma comap_comap {m : γ → β} {n : β → α} : comap m (comap n f) = comap (n ∘ m) f :=
 le_antisymm
   (assume c ⟨b, hb, (h : preimage (n ∘ m) b ⊆ c)⟩, ⟨preimage n b, preimage_mem_comap hb, h⟩)
   (assume c ⟨b, ⟨a, ha, (h₁ : preimage n a ⊆ b)⟩, (h₂ : preimage m b ⊆ c)⟩,
@@ -1403,8 +1404,8 @@ lemma map_le_iff_le_comap : map m f ≤ g ↔ f ≤ comap m g :=
 lemma gc_map_comap (m : α → β) : galois_connection (map m) (comap m) :=
 assume f g, map_le_iff_le_comap
 
-lemma map_mono : monotone (map m) := (gc_map_comap m).monotone_l
-lemma comap_mono : monotone (comap m) := (gc_map_comap m).monotone_u
+@[mono] lemma map_mono : monotone (map m) := (gc_map_comap m).monotone_l
+@[mono] lemma comap_mono : monotone (comap m) := (gc_map_comap m).monotone_u
 
 @[simp] lemma map_bot : map m ⊥ = ⊥ := (gc_map_comap m).l_bot
 @[simp] lemma map_sup : map m (f₁ ⊔ f₂) = map m f₁ ⊔ map m f₂ := (gc_map_comap m).l_sup
@@ -1535,16 +1536,21 @@ lemma subtype_coe_map_comap_prod (s : set α) (f : filter (α × α)) :
 let φ (x : s × s) : s.prod s := ⟨⟨x.1.1, x.2.1⟩, ⟨x.1.2, x.2.2⟩⟩ in
 begin
   rw show (coe : s × s → α × α) = coe ∘ φ, by ext x; cases x; refl,
-  rw [← filter.map_map, ← filter.comap_comap_comp],
+  rw [← filter.map_map, ← filter.comap_comap],
   rw map_comap_of_surjective,
   exact subtype_coe_map_comap _ _,
   exact λ ⟨⟨a, b⟩, ⟨ha, hb⟩⟩, ⟨⟨⟨a, ha⟩, ⟨b, hb⟩⟩, rfl⟩
 end
 
-lemma comap_ne_bot {f : filter β} {m : α → β} (hm : ∀t∈ f, ∃a, m a ∈ t) :
-  comap m f ≠ ⊥ :=
-forall_sets_nonempty_iff_ne_bot.mp $ assume s ⟨t, ht, t_s⟩,
-  set.nonempty.mono t_s (hm t ht)
+lemma comap_ne_bot_iff {f : filter β} {m : α → β} : comap m f ≠ ⊥ ↔ ∀ t ∈ f, ∃ a, m a ∈ t :=
+begin
+  rw ← forall_sets_nonempty_iff_ne_bot,
+  exact ⟨λ h t t_in, h (m ⁻¹' t) ⟨t, t_in, subset.refl _⟩,
+         λ h s ⟨u, u_in, hu⟩, let ⟨x, hx⟩ := h u u_in in ⟨x, hu hx⟩⟩,
+end
+
+lemma comap_ne_bot {f : filter β} {m : α → β} (hm : ∀t∈ f, ∃a, m a ∈ t) : comap m f ≠ ⊥ :=
+comap_ne_bot_iff.mpr hm
 
 lemma comap_ne_bot_of_range_mem {f : filter β} {m : α → β}
   (hf : f ≠ ⊥) (hm : range m ∈ f) : comap m f ≠ ⊥ :=
@@ -1717,7 +1723,7 @@ lemma le_seq {f : filter (α → β)} {g : filter α} {h : filter β}
 assume s ⟨t, ht, u, hu, hs⟩, mem_sets_of_superset (hh _ ht _ hu) $
   assume b ⟨m, hm, a, ha, eq⟩, eq ▸ hs _ hm _ ha
 
-lemma seq_mono {f₁ f₂ : filter (α → β)} {g₁ g₂ : filter α}
+@[mono] lemma seq_mono {f₁ f₂ : filter (α → β)} {g₁ g₂ : filter α}
   (hf : f₁ ≤ f₂) (hg : g₁ ≤ g₂) : f₁.seq g₁ ≤ f₂.seq g₂ :=
 le_seq $ assume s hs t ht, seq_mem_seq_sets (hf hs) (hg ht)
 
@@ -1975,7 +1981,7 @@ lemma comap_eq_of_inverse {f : filter α} {g : filter β} {φ : α → β} (ψ :
   (eq : ψ ∘ φ = id) (hφ : tendsto φ f g) (hψ : tendsto ψ g f) : comap φ g = f :=
 begin
   refine le_antisymm (le_trans (comap_mono $ map_le_iff_le_comap.1 hψ) _) (map_le_iff_le_comap.1 hφ),
-  rw [comap_comap_comp, eq, comap_id],
+  rw [comap_comap, eq, comap_id],
   exact le_refl _
 end
 
@@ -2095,7 +2101,7 @@ end
 
 lemma comap_prod (f : α → β × γ) (b : filter β) (c : filter γ) :
   comap f (b ×ᶠ c) = (comap (prod.fst ∘ f) b) ⊓ (comap (prod.snd ∘ f) c) :=
-by erw [comap_inf, filter.comap_comap_comp, filter.comap_comap_comp]
+by erw [comap_inf, filter.comap_comap, filter.comap_comap]
 
 lemma eventually_prod_iff {p : α × β → Prop} {f : filter α} {g : filter β} :
   (∀ᶠ x in f ×ᶠ g, p x) ↔ ∃ (pa : α → Prop) (ha : ∀ᶠ x in f, pa x)
@@ -2141,17 +2147,17 @@ lemma prod_infi_right {f : filter α} {g : ι → filter β} (i : ι) :
   f ×ᶠ (⨅i, g i) = (⨅i, f ×ᶠ (g i)) :=
 by rw [filter.prod, comap_infi, inf_infi i]; simp only [filter.prod, eq_self_iff_true]
 
-lemma prod_mono {f₁ f₂ : filter α} {g₁ g₂ : filter β} (hf : f₁ ≤ f₂) (hg : g₁ ≤ g₂) :
+@[mono] lemma prod_mono {f₁ f₂ : filter α} {g₁ g₂ : filter β} (hf : f₁ ≤ f₂) (hg : g₁ ≤ g₂) :
   f₁ ×ᶠ g₁ ≤ f₂ ×ᶠ g₂ :=
 inf_le_inf (comap_mono hf) (comap_mono hg)
 
 lemma prod_comap_comap_eq {α₁ : Type u} {α₂ : Type v} {β₁ : Type w} {β₂ : Type x}
   {f₁ : filter α₁} {f₂ : filter α₂} {m₁ : β₁ → α₁} {m₂ : β₂ → α₂} :
   (comap m₁ f₁) ×ᶠ (comap m₂ f₂) = comap (λp:β₁×β₂, (m₁ p.1, m₂ p.2)) (f₁ ×ᶠ f₂) :=
-by simp only [filter.prod, comap_comap_comp, eq_self_iff_true, comap_inf]
+by simp only [filter.prod, comap_comap, eq_self_iff_true, comap_inf]
 
 lemma prod_comm' : f ×ᶠ g = comap (prod.swap) (g ×ᶠ f) :=
-by simp only [filter.prod, comap_comap_comp, (∘), inf_comm, prod.fst_swap,
+by simp only [filter.prod, comap_comap, (∘), inf_comm, prod.fst_swap,
   eq_self_iff_true, prod.snd_swap, comap_inf]
 
 lemma prod_comm : f ×ᶠ g = map (λp:β×α, (p.2, p.1)) (g ×ᶠ f) :=

@@ -5,7 +5,6 @@ Author: Mario Carneiro
 -/
 import data.fintype.basic
 import data.nat.choose
-import tactic.ring
 
 /-!
 Results about "big operations" over a `fintype`, and consequent

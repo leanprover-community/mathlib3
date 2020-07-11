@@ -317,6 +317,9 @@ by simp [subset.antisymm_iff]
 theorem eq_empty_of_subset_empty {s : set α} : s ⊆ ∅ → s = ∅ :=
 subset_empty_iff.1
 
+theorem eq_empty_of_not_nonempty (h : ¬nonempty α) (s : set α) : s = ∅ :=
+eq_empty_of_subset_empty $ λ x hx, h ⟨x⟩
+
 lemma not_nonempty_iff_eq_empty {s : set α} : ¬s.nonempty ↔ s = ∅ :=
 by simp only [set.nonempty, eq_empty_iff_forall_not_mem, not_exists]
 
@@ -958,6 +961,10 @@ begin
     simp [h, h', this] },
   { simp [h, h'] }
 end
+
+lemma insert_diff_self_of_not_mem {a : α} {s : set α} (h : a ∉ s) :
+  insert a s \ {a} = s :=
+ext $ λ x, by simp [and_iff_left_of_imp (λ hx : x ∈ s, show x ≠ a, from λ hxa, h $ hxa ▸ hx)]
 
 theorem union_diff_self {s t : set α} : s ∪ (t \ s) = s ∪ t :=
 by finish [ext_iff, iff_def]

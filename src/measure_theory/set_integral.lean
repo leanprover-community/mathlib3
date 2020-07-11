@@ -310,7 +310,7 @@ lemma integral_on_Union (s : ℕ → set α) (f : α → β) (hm : ∀i, is_meas
   (hd : ∀ i j, i ≠ j → s i ∩ s j = ∅) (hfm : measurable_on (Union s) f) (hfi : integrable_on (Union s) f) :
   (∫ a in (Union s), f a) = ∑'i, ∫ a in s i, f a :=
 suffices h : tendsto (λn:finset ℕ, ∑ i in n, ∫ a in s i, f a) at_top (𝓝 $ (∫ a in (Union s), f a)),
-  by { rwa tsum_eq_has_sum },
+  by { rwa has_sum.tsum_eq },
 begin
   have : (λn:finset ℕ, ∑ i in n, ∫ a in s i, f a) = λn:finset ℕ, ∫ a in (⋃i∈n, s i), f a,
   { funext,

@@ -3,8 +3,10 @@ Test cases for omega. Most of the examples are from John Harrison's
 Handbook of Practical Logic and Automated Reasoning.
 -/
 
+import data.fintype.basic
 import tactic.omega
 
+example (n : ℤ) : n - 1 ≠ n := by omega
 example (x : int) : (x = 5 ∨ x = 7) → 2 < x := by omega
 example (x : int) : x ≤ -x → x ≤ 0 := by omega
 example : ∀ x y : int, (x ≤ 5 ∧ y ≤ 3) → x + y ≤ 8 := by omega
@@ -32,14 +34,26 @@ example (x y : nat) :  x ≤ 3 * y → 3 * x ≤ 9 * y := by omega
 example (x y z : nat) : (x ≤ y) → (z > y) → (x - z = 0) := by omega
 example (x y z : nat) : x - 5 > 122 → y ≤ 127 → y < x := by omega
 example : ∀ (x y : nat), x ≤ y ↔ x - y = 0 := by omega
+example (k : nat) (h : 1 * 1 + 1 * 1 + 1 = 1 * 1 * k) : k = 3 := by omega
+example (a b : ℕ) (h : a < b + 1) (ha : a.prime) : a ≤ b := by omega
+example (a b c : ℕ) (h : a < b + 1) (ha : c.prime) : a ≤ b := by omega
+example (a b : ℕ) (h : a < b + 1) (p : fin a) : a ≤ b := by omega
+example : nat.zero = nat.zero := by omega
+example : 3 < 4 := by omega
+example {X : Type} [fintype X] (n k : ℕ) (hk : k + 1 ≤ n) : n - k = n - (k + 1) + 1 := by omega
+example (n : ℕ) (G_C G_L : list ℤ) (hG : G_C.length + G_L.length = n + 1)
+  (iv : ℕ) (hi : iv < G_C.length) : iv + (G_C.length - iv - 1) + G_L.length = n := by omega
 
 /-
-Use `omega manual` to disable automatic reverts,
-and `omega int` or `omega nat` to specify the domain.
+Use `omega T` to specify the domain, where `T = int` or `T = nat`.
 -/
 example (i : int) (n : nat) (h1 : n = 0) (h2 : i < i) : false := by omega int
 example (i : int) (n : nat) (h1 : i = 0) (h2 : n < n) : false := by omega nat
+
+/-
+Use `omega manual T` to disable automatic reverts, where `T = int` or `T = nat`.
+-/
 example (x y z w : int) (h1 : 3 * y ≥ x) (h2 : z > 19 * w) : 3 * x ≤ 9 * y :=
-by {revert h1 x y, omega manual}
+by {revert h1, omega manual int}
 example (n : nat) (h1 : n < 34) (i : int) (h2 : i * 9 = -72) : i = -8 :=
-by {revert h2 i, omega manual int}
+by {revert h2, omega manual int}

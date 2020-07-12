@@ -1,11 +1,8 @@
-/-
-Copyright (c) 2019 Seul Baek. All rights reserved.
+/- Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
-Linear natural number arithmetic terms in pre-normalized form.
--/
-
+Linear natural number arithmetic terms in pre-normalized form. -/
 import tactic.omega.term
 
 open tactic
@@ -13,23 +10,39 @@ open tactic
 namespace omega
 namespace nat
 
-@[derive has_reflect, derive decidable_eq]
+/-- The shadow syntax for arithmetic terms. All constants are reified to `cst`
+(e.g., `5` is reified to `cst 5`) and all other atomic terms are reified to
+`exp` (e.g., `5 * (list.length l)` is reified to `exp 5 \`(list.length l)`).
+`exp` accepts a coefficient of type `nat` as its first argument because
+multiplication by constant is allowed by the omega test. -/
+meta inductive exprterm : Type
+| cst : nat → exprterm
+| exp : nat → expr → exprterm
+| add : exprterm → exprterm → exprterm
+| sub : exprterm → exprterm → exprterm
+
+/-- Similar to `exprterm`, except that all exprs are now replaced with
+de Brujin indices of type `nat`. This is akin to generalizing over
+the terms represented by the said exprs. -/
+@[derive has_reflect, derive decidable_eq, derive inhabited]
 inductive preterm : Type
 | cst : nat → preterm
 | var : nat → nat → preterm
 | add : preterm → preterm → preterm
 | sub : preterm → preterm → preterm
 
-local notation `&` k := preterm.cst k
-local infix ` ** ` : 300 := preterm.var
-local notation t ` +* ` s := preterm.add t s
-local notation t ` -* ` s := preterm.sub t s
+localized "notation `&` k := omega.nat.preterm.cst k" in omega.nat
+localized "infix ` ** ` : 300 := omega.nat.preterm.var" in omega.nat
+localized "notation t ` +* ` s := omega.nat.preterm.add t s" in omega.nat
+localized "notation t ` -* ` s := omega.nat.preterm.sub t s" in omega.nat
 
 namespace preterm
 
+/-- Helper tactic for proof by induction over preterms -/
 meta def induce (tac : tactic unit := tactic.skip) : tactic unit :=
 `[ intro t, induction t with m m n t s iht ihs t s iht ihs; tac]
 
+/-- Preterm evaluation -/
 def val (v : nat → nat) : preterm → nat
 | (& i) := i
 | (i ** n) :=
@@ -56,13 +69,16 @@ end
 @[simp] lemma val_sub {v : nat → nat} {t s : preterm} :
   (t -* s).val v = t.val v - s.val v := rfl
 
+/-- Fresh de Brujin index not used by any variable in argument -/
 def fresh_index : preterm → nat
 | (& _)      := 0
 | (i ** n)   := n + 1
 | (t1 +* t2) := max t1.fresh_index t2.fresh_index
 | (t1 -* t2) := max t1.fresh_index t2.fresh_index
 
-def val_constant (v w : nat → nat) :
+/-- If variable assignments `v` and `w` agree on all variables that occur
+in term `t`, the value of `t` under `v` and `w` are identical. -/
+lemma val_constant (v w : nat → nat) :
   ∀ t : preterm, (∀ x < t.fresh_index, v x = w x) →
   t.val v = t.val w
 | (& n)      h1 := rfl
@@ -99,6 +115,7 @@ def repr : preterm → string
 
 @[simp] def add_one (t : preterm) : preterm := t +* (&1)
 
+/-- Preterm is free of subtractions -/
 def sub_free : preterm → Prop
 | (& m)    := true
 | (m ** n) := true
@@ -107,8 +124,10 @@ def sub_free : preterm → Prop
 
 end preterm
 
-local notation as ` {` m ` ↦ ` a `}` := list.func.set a as m
+open_locale list.func -- get notation for list.func.set
 
+/-- Return a term (which is in canonical form by definition)
+    that is equivalent to the input preterm -/
 @[simp] def canonize : preterm → term
 | (& m)    := ⟨↑m, []⟩
 | (m ** n) := ⟨0, [] {n ↦ ↑m}⟩

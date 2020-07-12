@@ -1,35 +1,62 @@
--- Copyright (c) 2018 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison
-
+/-
+Copyright (c) 2018 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison, Bhavik Mehta
+-/
 import category_theory.const
+import category_theory.discrete_category
 
-universes v w u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory
 
-instance punit_category : small_category punit :=
-{ hom  := λ X Y, punit,
-  id   := λ _, punit.star,
-  comp := λ _ _ _ _ _, punit.star }
-
 namespace functor
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C]
 
-/-- The constant functor. For `X : C`, `of.obj X` is the functor `punit ⥤ C`
-  that maps `punit.star` to `X`. -/
-def of : C ⥤ (punit.{w+1} ⥤ C) := const punit
+/-- The constant functor sending everything to `punit.star`. -/
+def star : C ⥤ discrete punit :=
+(functor.const _).obj punit.star
 
-namespace of
-@[simp] lemma obj_obj (X : C) : (of.obj X).obj = λ _, X := rfl
-@[simp] lemma obj_map (X : C) : (of.obj X).map = λ _ _ _, 𝟙 X := rfl
-@[simp] lemma map_app {X Y : C} (f : X ⟶ Y) : (of.map f).app = λ _, f := rfl
-end of
+variable {C}
+/-- Any two functors to `discrete punit` are isomorphic. -/
+def punit_ext (F G : C ⥤ discrete punit) : F ≅ G :=
+nat_iso.of_components (λ _, eq_to_iso dec_trivial) (λ _ _ _, dec_trivial)
 
-def star : C ⥤ punit.{w+1} := (const C).obj punit.star
-@[simp] lemma star_obj (X : C) : star.obj X = punit.star := rfl
-@[simp] lemma star_map {X Y : C} (f : X ⟶ Y) : star.map f = 𝟙 _ := rfl
+/--
+Any two functors to `discrete punit` are *equal*.
+You probably want to use `punit_ext` instead of this.
+-/
+lemma punit_ext' (F G : C ⥤ discrete punit) : F = G :=
+functor.ext (λ _, dec_trivial) (λ _ _ _, dec_trivial)
+
+/-- The functor from `discrete punit` sending everything to the given object. -/
+abbreviation from_punit (X : C) : discrete punit ⥤ C :=
+(functor.const _).obj X
+
+/-- Functors from `discrete punit` are equivalent to the category itself. -/
+@[simps]
+def equiv : (discrete punit ⥤ C) ≌ C :=
+{ functor :=
+  { obj := λ F, F.obj punit.star,
+    map := λ F G θ, θ.app punit.star },
+  inverse := functor.const _,
+  unit_iso :=
+  begin
+    apply nat_iso.of_components _ _,
+    intro X,
+    apply discrete.nat_iso,
+    rintro ⟨⟩,
+    apply iso.refl _,
+    intros,
+    ext ⟨⟩,
+    simp,
+  end,
+  counit_iso :=
+  begin
+    refine nat_iso.of_components iso.refl _,
+    intros X Y f,
+    dsimp, simp,
+  end }
 
 end functor
 

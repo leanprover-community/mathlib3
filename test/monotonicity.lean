@@ -3,11 +3,10 @@ Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Simon Hudon
 -/
-import tactic.monotonicity tactic.norm_num
-
+import tactic.monotonicity
+import tactic.norm_num
 import algebra.ordered_ring
-
-import data.list.basic
+import data.list.defs
 
 open list tactic tactic.interactive
 
@@ -285,7 +284,7 @@ example (x y z k m n i j : ℕ)
 : (m + x + n + i) * z + k = z * (j + n + m + y) + k :=
 begin
   ac_mono^3,
-  simp [h₁],
+  cc
 end
 
 example (x y z k m n i j : ℕ)
@@ -301,7 +300,7 @@ example (x y z k m n i j : ℕ)
 : (m + x + n + i) * z + k = z * (j + n + m + y) + k :=
 begin
   ac_mono*,
-  simp [h₁],
+  cc,
 end
 
 example (x y : ℕ)

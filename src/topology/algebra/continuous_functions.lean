@@ -1,10 +1,9 @@
--- Copyright (c) 2019 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison
-
-import topology.basic
+/-
+Copyright (c) 2019 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import topology.algebra.ring
-import ring_theory.subring
 
 universes u v
 
@@ -15,12 +14,12 @@ instance continuous_submonoid (α : Type u) (β : Type v) [topological_space α]
   [monoid β] [topological_monoid β] : is_submonoid { f : α → β | continuous f } :=
 { one_mem := @continuous_const _ _ _ _ 1,
   mul_mem :=
-  λ f g fc gc, continuous.comp (topological_monoid.continuous_mul β) (continuous.prod_mk fc gc) }.
+  λ f g fc gc, continuous.comp topological_monoid.continuous_mul (continuous.prod_mk fc gc) }.
 
 @[to_additive continuous_add_subgroup]
 instance continuous_subgroup (α : Type u) (β : Type v) [topological_space α] [topological_space β]
   [group β] [topological_group β] : is_subgroup { f : α → β | continuous f } :=
-{ inv_mem := λ f fc, continuous.comp (topological_group.continuous_inv β) fc,
+{ inv_mem := λ f fc, continuous.comp topological_group.continuous_inv fc,
   ..continuous_submonoid α β, }.
 
 @[to_additive continuous_add_monoid]

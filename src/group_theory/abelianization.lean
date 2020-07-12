@@ -7,7 +7,6 @@ The functor Grp → Ab which is the left adjoint
 of the forgetful functor Ab → Grp.
 
 -/
-
 import group_theory.quotient_group
 
 universes u v
@@ -32,13 +31,15 @@ instance : comm_group (abelianization α) :=
     (group.subset_normal_closure ⟨b⁻¹,a⁻¹, by simp [mul_inv_rev, inv_inv, mul_assoc]⟩),
 .. quotient_group.group _}
 
+instance : inhabited (abelianization α) := ⟨1⟩
+
 variable {α}
 
 def of (x : α) : abelianization α :=
 quotient.mk x
 
 instance of.is_group_hom : is_group_hom (@of α _) :=
-⟨λ _ _, rfl⟩
+{ map_mul := λ _ _, rfl }
 
 section lift
 
@@ -46,7 +47,7 @@ variables {β : Type v} [comm_group β] (f : α → β) [is_group_hom f]
 
 lemma commutator_subset_ker : commutator α ⊆ is_group_hom.ker f  :=
 group.normal_closure_subset (λ x ⟨p,q,w⟩, (is_group_hom.mem_ker f).2
-  (by {rw ←w, simp [is_group_hom.map_mul f, is_group_hom.map_inv f, mul_comm]}))
+  (by {rw ←w, simp [is_mul_hom.map_mul f, is_group_hom.map_inv f, mul_comm]}))
 
 def lift : abelianization α → β :=
 quotient_group.lift _ f (λ x h, (is_group_hom.mem_ker f).1 (commutator_subset_ker f h))

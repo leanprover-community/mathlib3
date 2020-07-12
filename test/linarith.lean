@@ -1,8 +1,46 @@
 import tactic.linarith
 
+example {α : Type} (_inst : Π (a : Prop), decidable a)
+  [linear_ordered_field α]
+  {a b c : α}
+  (ha : a < 0)
+  (hb : ¬b = 0)
+  (hc' : c = 0)
+  (h : (1 - a) * (b * b) ≤ 0)
+  (hc : 0 ≤ 0)
+  (this : -(a * -b * -b + b * -b + 0) = (1 - a) * (b * b))
+  (h : (1 - a) * (b * b) ≤ 0) :
+  0 < 1 - a :=
+begin
+  linarith
+end
+
 example (e b c a v0 v1 : ℚ) (h1 : v0 = 5*a) (h2 : v1 = 3*b) (h3 : v0 + v1 + c = 10) :
   v0 + 5 + (v1 - 3) + (c - 2) = 10 :=
 by linarith
+
+example (u v r s t : ℚ) (h : 0 < u*(t*v + t*r + s)) : 0 < (t*(r + v) + s)*3*u :=
+by linarith
+
+example (A B : ℚ) (h : 0 < A * B) : 0 < 8*A*B :=
+begin
+  linarith
+end
+
+example (A B : ℚ) (h : 0 < A * B) : 0 < A*8*B :=
+begin
+  linarith
+end
+
+example (A B : ℚ) (h : 0 < A * B) : 0 < A*B/8 :=
+begin
+  linarith
+end
+
+example (A B : ℚ) (h : 0 < A * B) : 0 < A/8*B :=
+begin
+  linarith
+end
 
 example (ε : ℚ) (h1 : ε > 0) : ε / 2 + ε / 3 + ε / 7 < ε :=
  by linarith
@@ -96,7 +134,8 @@ example (x y : ℚ) (h : 6 + ((x + 4) * x + (6 + 3 * y) * y) = 3) (h' : (x + 4) 
   (h'' : (6 + 3 * y) * y ≥ 0)  : false :=
 by linarith
 
-example (x y : ℕ) (h : 6 + ((x + 4) * x + (6 + 3 * y) * y) = 3) : false :=
+example (x y : ℚ)
+  (h : 6 + ((x + 4) * x + (6 + 3 * y) * y) = 3 ∧ (x + 4) * x ≥ 0 ∧ (6 + 3 * y) * y ≥ 0) : false :=
 by linarith
 
 example (a b i : ℕ) (h1 :  ¬ a < i) (h2 : b < i) (h3 : a ≤ b) : false :=
@@ -137,3 +176,174 @@ by linarith only [hx, hx2]
 
 example (x y z : ℚ) (hx : x < 5) (hy : y < 5000000000) (hz : z > 34*y) : x ≤ 5 :=
 by linarith only [hx]
+
+example (x y : ℚ) (h : x < y) : x ≠ y := by linarith
+
+example (x y : ℚ) (h : x < y) : ¬ x = y := by linarith
+
+example (u v x y A B : ℚ)
+(a : 0 < A)
+(a_1 : 0 <= 1 - A)
+(a_2 : 0 <= B - 1)
+(a_3 : 0 <= B - x)
+(a_4 : 0 <= B - y)
+(a_5 : 0 <= u)
+(a_6 : 0 <= v)
+(a_7 : 0 < A - u)
+(a_8 : 0 < A - v) :
+ u * y + v * x + u * v < 3 * A * B :=
+ by nlinarith
+
+example (u v x y A B : ℚ) : (0 < A) → (A ≤ 1) → (1 ≤ B)
+→ (x ≤ B) → ( y ≤ B)
+→ (0 ≤ u ) → (0 ≤ v )
+→ (u < A) → ( v < A)
+→ (u * y + v * x + u * v < 3 * A * B) :=
+begin
+  intros,
+  nlinarith
+end
+
+example (u v x y A B : ℚ)
+(a : 0 < A)
+(a_1 : 0 <= 1 - A)
+(a_2 : 0 <= B - 1)
+(a_3 : 0 <= B - x)
+(a_4 : 0 <= B - y)
+(a_5 : 0 <= u)
+(a_6 : 0 <= v)
+(a_7 : 0 < A - u)
+(a_8 : 0 < A - v) :
+ (0 < A * A)
+-> (0 <= A * (1 - A))
+-> (0 <= A * (B - 1))
+-> (0 <= A * (B - x))
+-> (0 <= A * (B - y))
+-> (0 <= A * u)
+-> (0 <= A * v)
+-> (0 < A * (A - u))
+-> (0 < A * (A - v))
+-> (0 <= (1 - A) * A)
+-> (0 <= (1 - A) * (1 - A))
+-> (0 <= (1 - A) * (B - 1))
+-> (0 <= (1 - A) * (B - x))
+-> (0 <= (1 - A) * (B - y))
+-> (0 <= (1 - A) * u)
+-> (0 <= (1 - A) * v)
+-> (0 <= (1 - A) * (A - u))
+-> (0 <= (1 - A) * (A - v))
+-> (0 <= (B - 1) * A)
+-> (0 <= (B - 1) * (1 - A))
+-> (0 <= (B - 1) * (B - 1))
+-> (0 <= (B - 1) * (B - x))
+-> (0 <= (B - 1) * (B - y))
+-> (0 <= (B - 1) * u)
+-> (0 <= (B - 1) * v)
+-> (0 <= (B - 1) * (A - u))
+-> (0 <= (B - 1) * (A - v))
+-> (0 <= (B - x) * A)
+-> (0 <= (B - x) * (1 - A))
+-> (0 <= (B - x) * (B - 1))
+-> (0 <= (B - x) * (B - x))
+-> (0 <= (B - x) * (B - y))
+-> (0 <= (B - x) * u)
+-> (0 <= (B - x) * v)
+-> (0 <= (B - x) * (A - u))
+-> (0 <= (B - x) * (A - v))
+-> (0 <= (B - y) * A)
+-> (0 <= (B - y) * (1 - A))
+-> (0 <= (B - y) * (B - 1))
+-> (0 <= (B - y) * (B - x))
+-> (0 <= (B - y) * (B - y))
+-> (0 <= (B - y) * u)
+-> (0 <= (B - y) * v)
+-> (0 <= (B - y) * (A - u))
+-> (0 <= (B - y) * (A - v))
+-> (0 <= u * A)
+-> (0 <= u * (1 - A))
+-> (0 <= u * (B - 1))
+-> (0 <= u * (B - x))
+-> (0 <= u * (B - y))
+-> (0 <= u * u)
+-> (0 <= u * v)
+-> (0 <= u * (A - u))
+-> (0 <= u * (A - v))
+-> (0 <= v * A)
+-> (0 <= v * (1 - A))
+-> (0 <= v * (B - 1))
+-> (0 <= v * (B - x))
+-> (0 <= v * (B - y))
+-> (0 <= v * u)
+-> (0 <= v * v)
+-> (0 <= v * (A - u))
+-> (0 <= v * (A - v))
+-> (0 < (A - u) * A)
+-> (0 <= (A - u) * (1 - A))
+-> (0 <= (A - u) * (B - 1))
+-> (0 <= (A - u) * (B - x))
+-> (0 <= (A - u) * (B - y))
+-> (0 <= (A - u) * u)
+-> (0 <= (A - u) * v)
+-> (0 < (A - u) * (A - u))
+-> (0 < (A - u) * (A - v))
+-> (0 < (A - v) * A)
+-> (0 <= (A - v) * (1 - A))
+-> (0 <= (A - v) * (B - 1))
+-> (0 <= (A - v) * (B - x))
+-> (0 <= (A - v) * (B - y))
+-> (0 <= (A - v) * u)
+-> (0 <= (A - v) * v)
+-> (0 < (A - v) * (A - u))
+-> (0 < (A - v) * (A - v))
+->
+ u * y + v * x + u * v < 3 * A * B :=
+ begin
+  intros,
+  linarith
+ end
+
+example (A B : ℚ) : (0 < A) → (1 ≤ B) → (0 < A / 8 * B) :=
+begin
+  intros, nlinarith
+end
+
+example (x y : ℚ) : 0 ≤ x ^2 + y ^2 :=
+by nlinarith
+
+example (x y : ℚ) : 0 ≤ x*x + y*y :=
+by nlinarith
+
+example (x y : ℚ) : x = 0 → y = 0 → x*x + y*y = 0 :=
+by intros; nlinarith
+
+lemma norm_eq_zero_iff {x y : ℚ} : x * x + y * y = 0 ↔ x = 0 ∧ y = 0 :=
+begin
+  split,
+  { intro, split; nlinarith },
+  { intro, nlinarith }
+end
+
+lemma norm_nonpos_right {x y : ℚ} (h1 : x * x + y * y ≤ 0) : y = 0 :=
+by nlinarith
+
+lemma norm_nonpos_left (x y : ℚ) (h1 : x * x + y * y ≤ 0) : x = 0 :=
+by nlinarith
+
+variables {E : Type*} [add_group E]
+example (f : ℤ → E) (h : 0 = f 0) : 1 ≤ 2 := by nlinarith
+example (a : E) (h : a = a) : 1 ≤ 2  := by nlinarith
+
+-- test that the apply bug doesn't affect linarith preprocessing
+
+constant α : Type
+def leα : α → α → Prop := λ a b, ∀ c : α, true
+
+noncomputable instance : discrete_linear_ordered_field α :=
+by refine_struct { le := leα }; admit
+
+example (a : α) (ha : a < 2) : a ≤ a :=
+by linarith
+
+example (p q r s t u v w : ℕ) (h1 : p + u = q + t) (h2 : r + w = s + v) :
+  p * r + q * s + (t * w + u * v) = p * s + q * r + (t * v + u * w) :=
+by nlinarith

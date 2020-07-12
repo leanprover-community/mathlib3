@@ -3,6 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import tactic.doc_commands
 
 namespace tactic
 namespace interactive
@@ -11,13 +12,18 @@ open interactive interactive.types expr lean.parser
 local postfix `?`:9001 := optional
 
 /--
-This is a "finishing" tactic modification of `simp`.
+This is a "finishing" tactic modification of `simp`. It has two forms.
 
 * `simpa [rules, ...] using e` will simplify the goal and the type of
   `e` using `rules`, then try to close the goal using `e`.
 
-* `simpa [rules, ...]` will simplify the goal using `rules`, then try
-  to close it using `assumption`. -/
+  Simplifying the type of `e` makes it more likely to match the goal
+  (which has also been simplified). This construction also tends to be
+  more robust under changes to the simp lemma set.
+
+* `simpa [rules, ...]` will simplify the goal and the type of a
+  hypothesis `this` if present in the context, then try to close the goal using
+  the `assumption` tactic. -/
 meta def simpa (use_iota_eqn : parse $ (tk "!")?) (no_dflt : parse only_flag)
   (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
   (tgt : parse (tk "using" *> texpr)?) (cfg : simp_config_ext := {}) : tactic unit :=
@@ -42,6 +48,12 @@ match tgt with
     assertv `this t e >> simp_at [some `this, none] (get_local `this >>= tactic.exact)
   end
 end
+
+add_tactic_doc
+{ name       := "simpa",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.simpa],
+  tags       := ["simplification"] }
 
 end interactive
 end tactic

@@ -3,7 +3,7 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import logic.basic tactic.solve_by_elim
+import tactic.hint
 
 namespace tactic
 
@@ -17,8 +17,8 @@ open tactic.interactive ( casesm constructor_matching )
 meta def distrib_not : tactic unit :=
 do hs ← local_context,
    hs.for_each $ λ h,
-    all_goals $
-    iterate_at_most 3 $
+    all_goals' $
+    iterate_at_most' 3 $
       do h ← get_local h.local_pp_name,
          e ← infer_type h,
          match e with
@@ -187,13 +187,13 @@ do when c classical,
       try (assumption_with r);
       repeat (do
         gs ← get_goals,
-        () <$ tactic.intros;
+        repeat (() <$ tactic.intro1);
         distrib_not;
         casesm (some ()) [``(_ ∧ _),``(_ ∨ _),``(Exists _),``(false)];
         try (contradiction_with r);
         try (target >>= match_or >> refine ``( or_iff_not_imp_left.mpr _));
         try (target >>= match_or >> refine ``( or_iff_not_imp_right.mpr _));
-        () <$ tactic.intros;
+        repeat (() <$ tactic.intro1);
         constructor_matching (some ()) [``(_ ∧ _),``(_ ↔ _),``(true)];
         try (assumption_with r),
         gs' ← get_goals,
@@ -211,12 +211,46 @@ local postfix `?`:9001 := optional
 /--
 `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
 and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
-using `reflexivity` or `solve_by_elim`
+using `reflexivity` or `solve_by_elim`.
+This is a finishing tactic: it either closes the goal or raises an error.
+The variant `tautology!` uses the law of excluded middle.
 -/
 meta def tautology (c : parse $ (tk "!")?) := tactic.tautology c.is_some
 
-/-- Shorter name for the tactic `tautology`. -/
+-- Now define a shorter name for the tactic `tautology`.
+
+/--
+`tauto` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
+and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
+using `reflexivity` or `solve_by_elim`.
+This is a finishing tactic: it either closes the goal or raises an error.
+The variant `tauto!` uses the law of excluded middle.
+-/
 meta def tauto (c : parse $ (tk "!")?) := tautology c
+
+add_hint_tactic "tauto"
+
+/--
+This tactic (with shorthand `tauto`) breaks down assumptions of the form
+`_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
+and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
+using `reflexivity` or `solve_by_elim`. This is a finishing tactic: it
+either closes the goal or raises an error.
+
+The variants `tautology!` and `tauto!` use the law of excluded middle.
+
+For instance, one can write:
+```lean
+example (p q r : Prop) [decidable p] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (r ∨ p ∨ r) := by tauto
+```
+and the decidability assumptions can be dropped if `tauto!` is used
+instead of `tauto`.
+-/
+add_tactic_doc
+{ name       := "tautology",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.tautology, `tactic.interactive.tauto],
+  tags       := ["logic", "decision procedure"] }
 
 end interactive
 end tactic

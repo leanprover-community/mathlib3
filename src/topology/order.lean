@@ -2,20 +2,54 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
-
-Order on topological structures. Lattice structure, Galois connection, and applications.
 -/
 import topology.basic
 
-open set filter lattice classical
-local attribute [instance] prop_decidable
+/-!
+# Ordering on topologies and (co)induced topologies
+
+Topologies on a fixed type `α` are ordered, by reverse inclusion.
+That is, for topologies `t₁` and `t₂` on `α`, we write `t₁ ≤ t₂`
+if every set open in `t₂` is also open in `t₁`.
+(One also calls `t₁` finer than `t₂`, and `t₂` coarser than `t₁`.)
+
+Any function `f : α → β` induces
+       `induced f : topological_space β → topological_space α`
+and  `coinduced f : topological_space α → topological_space β`.
+Continuity, the ordering on topologies and (co)induced topologies are
+related as follows:
+* The identity map (α, t₁) → (α, t₂) is continuous iff t₁ ≤ t₂.
+* A map f : (α, t) → (β, u) is continuous
+    iff             t ≤ induced f u   (`continuous_iff_le_induced`)
+    iff coinduced f t ≤ u             (`continuous_iff_coinduced_le`).
+
+Topologies on α form a complete lattice, with ⊥ the discrete topology
+and ⊤ the indiscrete topology.
+
+For a function f : α → β, (coinduced f, induced f) is a Galois connection
+between topologies on α and topologies on β.
+
+## Implementation notes
+
+There is a Galois insertion between topologies on α (with the inclusion ordering)
+and all collections of sets in α. The complete lattice structure on topologies
+on α is defined as the reverse of the one obtained via this Galois insertion.
+
+## Tags
+
+finer, coarser, induced topology, coinduced topology
+
+-/
+
+open set filter classical
+open_locale classical topological_space filter
 
 universes u v w
 
 namespace topological_space
 variables {α : Type u}
 
-/-- The least topology containing a collection of basic sets. -/
+/-- The open sets of the least topology containing a collection of basic sets. -/
 inductive generate_open (g : set (set α)) : set α → Prop
 | basic  : ∀s∈g, generate_open s
 | univ   : generate_open univ
@@ -25,12 +59,12 @@ inductive generate_open (g : set (set α)) : set α → Prop
 /-- The smallest topological space containing the collection `g` of basic sets -/
 def generate_from (g : set (set α)) : topological_space α :=
 { is_open        := generate_open g,
-  is_open_univ   := generate_open.univ g,
+  is_open_univ   := generate_open.univ,
   is_open_inter  := generate_open.inter,
   is_open_sUnion := generate_open.sUnion  }
 
 lemma nhds_generate_from {g : set (set α)} {a : α} :
-  @nhds α (generate_from g) a = (⨅s∈{s | a ∈ s ∧ s ∈ g}, principal s) :=
+  @nhds α (generate_from g) a = (⨅s∈{s | a ∈ s ∧ s ∈ g}, 𝓟 s) :=
 by rw nhds_def; exact le_antisymm
   (infi_le_infi $ assume s, infi_le_infi_const $ assume ⟨as, sg⟩, ⟨as, generate_open.basic _ sg⟩)
   (le_infi $ assume s, le_infi $ assume ⟨as, hs⟩,
@@ -42,10 +76,10 @@ by rw nhds_def; exact le_antisymm
       { rw [principal_univ],
         exact assume _, le_top },
       case generate_open.inter : s t hs' ht' hs ht
-      { exact assume ⟨has, hat⟩, calc _ ≤ principal s ⊓ principal t : le_inf (hs has) (ht hat)
+      { exact assume ⟨has, hat⟩, calc _ ≤ 𝓟 s ⊓ 𝓟 t : le_inf (hs has) (ht hat)
           ... = _ : inf_principal },
       case generate_open.sUnion : k hk' hk
-      { exact λ ⟨t, htk, hat⟩, calc _ ≤ principal t : hk t htk hat
+      { exact λ ⟨t, htk, hat⟩, calc _ ≤ 𝓟 t : hk t htk hat
           ... ≤ _ : le_principal_iff.2 $ subset_sUnion_of_mem htk }
     end)
 
@@ -54,6 +88,7 @@ lemma tendsto_nhds_generate_from {β : Type*} {m : α → β} {f : filter α} {g
 by rw [nhds_generate_from]; exact
   (tendsto_infi.2 $ assume s, tendsto_infi.2 $ assume ⟨hbs, hsg⟩, tendsto_principal.2 $ h s hsg hbs)
 
+/-- Construct a topology on α given the filter of neighborhoods of each point of α. -/
 protected def mk_of_nhds (n : α → filter α) : topological_space α :=
 { is_open        := λs, ∀a∈s, s ∈ n a,
   is_open_univ   := assume x h, univ_mem_sets,
@@ -67,7 +102,7 @@ begin
   letI := topological_space.mk_of_nhds n,
   refine le_antisymm (assume s hs, _) (assume s hs, _),
   { have h₀ : {b | s ∈ n b} ⊆ s := assume b hb, mem_pure_sets.1 $ h₀ b hb,
-    have h₁ : {b | s ∈ n b} ∈ nhds a,
+    have h₁ : {b | s ∈ n b} ∈ 𝓝 a,
     { refine mem_nhds_sets (assume b (hb : s ∈ n b), _) hs,
       rcases h₁ hb with ⟨t, ht, hts, h⟩,
       exact mem_sets_of_superset ht h },
@@ -82,11 +117,9 @@ section lattice
 
 variables {α : Type u} {β : Type v}
 
-/- The following partial order will be convenient in order to get a complete
+/-- The inclusion ordering on topologies on α. We use it to get a complete
    lattice instance via the Galois insertion method, but the partial order
-   that will be used elsewhere is the dual one, defined at the end of this
-   section. -/
-
+   that we will eventually impose on `topological_space α` is the reverse one. -/
 def tmp_order : partial_order (topological_space α) :=
 { le          := λt s, t.is_open ≤ s.is_open,
   le_antisymm := assume t s h₁ h₂, topological_space_eq $ le_antisymm h₁ h₂,
@@ -95,6 +128,7 @@ def tmp_order : partial_order (topological_space α) :=
 
 local attribute [instance] tmp_order
 
+/- We'll later restate this lemma in terms of the correct order on `topological_space α`. -/
 private lemma generate_from_le_iff_subset_is_open {g : set (set α)} {t : topological_space α} :
   topological_space.generate_from g ≤ t ↔ g ⊆ {s | t.is_open s} :=
 iff.intro
@@ -102,10 +136,12 @@ iff.intro
   (assume hg s hs, hs.rec_on (assume v hv, hg hv)
     t.is_open_univ (assume u v _ _, t.is_open_inter u v) (assume k _, t.is_open_sUnion k))
 
+/-- If `s` equals the collection of open sets in the topology it generates,
+  then `s` defines a topology. -/
 protected def mk_of_closure (s : set (set α))
   (hs : {u | (topological_space.generate_from s).is_open u} = s) : topological_space α :=
 { is_open        := λu, u ∈ s,
-  is_open_univ   := hs ▸ topological_space.generate_open.univ _,
+  is_open_univ   := hs ▸ topological_space.generate_open.univ,
   is_open_inter  := hs ▸ topological_space.generate_open.inter,
   is_open_sUnion := hs ▸ topological_space.generate_open.sUnion }
 
@@ -114,6 +150,9 @@ lemma mk_of_closure_sets {s : set (set α)}
   mk_of_closure s hs = topological_space.generate_from s :=
 topological_space_eq hs.symm
 
+/-- The Galois insertion between `set (set α)` and `topological_space α` whose lower part
+  sends a collection of subsets of α to the topology they generate, and whose upper part
+  sends a topology to its collection of open subsets. -/
 def gi_generate_from (α : Type*) :
   galois_insertion topological_space.generate_from (λt:topological_space α, {s | t.is_open s}) :=
 { gc        := assume g t, generate_from_le_iff_subset_is_open,
@@ -126,10 +165,13 @@ lemma generate_from_mono {α} {g₁ g₂ : set (set α)} (h : g₁ ⊆ g₂) :
   topological_space.generate_from g₁ ≤ topological_space.generate_from g₂ :=
 (gi_generate_from _).gc.monotone_l h
 
+/-- The complete lattice of topological spaces, but built on the inclusion ordering. -/
 def tmp_complete_lattice {α : Type u} : complete_lattice (topological_space α) :=
 (gi_generate_from α).lift_complete_lattice
 
 
+/-- The ordering on topologies on the type `α`.
+  `t ≤ s` if every set open in `s` is also open in `t` (`t` is finer than `s`). -/
 instance : partial_order (topological_space α) :=
 { le          := λ t s, s.is_open ≤ t.is_open,
   le_antisymm := assume t s h₁ h₂, topological_space_eq $ le_antisymm h₂ h₁,
@@ -140,26 +182,35 @@ lemma le_generate_from_iff_subset_is_open {g : set (set α)} {t : topological_sp
   t ≤ topological_space.generate_from g ↔ g ⊆ {s | t.is_open s} :=
 generate_from_le_iff_subset_is_open
 
+/-- Topologies on `α` form a complete lattice, with `⊥` the discrete topology
+  and `⊤` the indiscrete topology. The infimum of a collection of topologies
+  is the topology generated by all their open sets, while the supremem is the
+  topology whose open sets are those sets open in every member of the collection. -/
 instance : complete_lattice (topological_space α) :=
-@order_dual.lattice.complete_lattice _ tmp_complete_lattice
+@order_dual.complete_lattice _ tmp_complete_lattice
 
+/-- A topological space is discrete if every set is open, that is,
+  its topology equals the discrete topology `⊥`. -/
 class discrete_topology (α : Type*) [t : topological_space α] : Prop :=
-(eq_bot : t = ⊥)
+(eq_bot [] : t = ⊥)
 
 @[simp] lemma is_open_discrete [topological_space α] [discrete_topology α] (s : set α) :
   is_open s :=
 (discrete_topology.eq_bot α).symm ▸ trivial
 
-lemma continuous_of_discrete_topology [topological_space α] [discrete_topology α] [topological_space β] {f : α → β} : continuous f :=
+@[simp] lemma is_closed_discrete [topological_space α] [discrete_topology α] (s : set α) :
+  is_closed s :=
+(discrete_topology.eq_bot α).symm ▸ trivial
+
+lemma continuous_of_discrete_topology [topological_space α] [discrete_topology α]
+  [topological_space β] {f : α → β} : continuous f :=
 λs hs, is_open_discrete _
 
 lemma nhds_bot (α : Type*) : (@nhds α ⊥) = pure :=
 begin
-  ext a s,
-  rw [mem_nhds_sets_iff, mem_pure_iff],
-  split,
-  { exact assume ⟨t, ht, _, hta⟩, ht hta },
-  { exact assume h, ⟨{a}, set.singleton_subset_iff.2 h, trivial, set.mem_singleton a⟩ }
+  refine le_antisymm _ (@pure_le_nhds α ⊥),
+  assume a s hs,
+  exact @mem_nhds_sets α ⊥ a s trivial hs
 end
 
 lemma nhds_discrete (α : Type*) [topological_space α] [discrete_topology α] : (@nhds α _) = pure :=
@@ -177,9 +228,7 @@ le_antisymm
   (le_of_nhds_le_nhds $ assume x, le_of_eq $ (h x).symm)
 
 lemma eq_bot_of_singletons_open {t : topological_space α} (h : ∀ x, t.is_open {x}) : t = ⊥ :=
-bot_unique  $ le_of_nhds_le_nhds $ assume x,
-  have nhds x ≤ pure x, from nhds_le_of_le (mem_singleton _) (h x) (by simp),
-  le_trans this (@pure_le_nhds _ ⊥ x)
+bot_unique $ λ s hs, bUnion_of_singleton s ▸ is_open_bUnion (λ x _, h x)
 
 end lattice
 
@@ -207,13 +256,13 @@ def topological_space.induced {α : Type u} {β : Type v} (f : α → β) (t : t
 
 lemma is_open_induced_iff [t : topological_space β] {s : set α} {f : α → β} :
   @is_open α (t.induced f) s ↔ (∃t, is_open t ∧ f ⁻¹' t = s) :=
-iff.refl _
+iff.rfl
 
 lemma is_closed_induced_iff [t : topological_space β] {s : set α} {f : α → β} :
   @is_closed α (t.induced f) s ↔ (∃t, is_closed t ∧ s = f ⁻¹' t) :=
-⟨assume ⟨t, ht, heq⟩, ⟨-t, is_closed_compl_iff.2 ht,
-    by simp only [preimage_compl, heq, lattice.neg_neg]⟩,
-  assume ⟨t, ht, heq⟩, ⟨-t, ht, by simp only [preimage_compl, heq.symm]⟩⟩
+⟨assume ⟨t, ht, heq⟩, ⟨tᶜ, is_closed_compl_iff.2 ht,
+    by simp only [preimage_compl, heq, compl_compl]⟩,
+  assume ⟨t, ht, heq⟩, ⟨tᶜ, ht, by simp only [preimage_compl, heq.symm]⟩⟩
 
 /-- Given `f : α → β` and a topology on `α`, the coinduced topology on `β` is defined
   such that `s:set β` is open if the preimage of `s` is open. This is the finest topology that
@@ -229,7 +278,7 @@ def topological_space.coinduced {α : Type u} {β : Type v} (f : α → β) (t :
 
 lemma is_open_coinduced {t : topological_space α} {s : set β} {f : α → β} :
   @is_open β (topological_space.coinduced f t) s ↔ is_open (f ⁻¹' s) :=
-iff.refl _
+iff.rfl
 
 variables {t t₁ t₂ : topological_space α} {t' : topological_space β} {f : α → β} {g : β → α}
 
@@ -273,7 +322,7 @@ lemma induced_id [t : topological_space α] : t.induced id = t :=
 topological_space_eq $ funext $ assume s, propext $
   ⟨assume ⟨s', hs, h⟩, h ▸ hs, assume hs, ⟨s, hs, rfl⟩⟩
 
-lemma induced_compose [tβ : topological_space β] [tγ : topological_space γ]
+lemma induced_compose [tγ : topological_space γ]
   {f : α → β} {g : β → γ} : (tγ.induced g).induced f = tγ.induced (g ∘ f) :=
 topological_space_eq $ funext $ assume s, propext $
   ⟨assume ⟨s', ⟨s, hs, h₂⟩, h₁⟩, h₁ ▸ h₂ ▸ ⟨s, hs, rfl⟩,
@@ -297,6 +346,11 @@ variables {α : Type u} {β : Type v}
 instance inhabited_topological_space {α : Type u} : inhabited (topological_space α) :=
 ⟨⊤⟩
 
+@[priority 100]
+instance subsingleton.discrete_topology [topological_space α] [subsingleton α] :
+  discrete_topology α :=
+⟨eq_bot_of_singletons_open $ λ x, subsingleton.set_cases is_open_empty is_open_univ ({x} : set α)⟩
+
 instance : topological_space empty := ⊥
 instance : discrete_topology empty := ⟨rfl⟩
 instance : topological_space unit := ⊥
@@ -311,85 +365,6 @@ instance : discrete_topology ℤ := ⟨rfl⟩
 instance sierpinski_space : topological_space Prop :=
 generate_from {{true}}
 
-instance {p : α → Prop} [t : topological_space α] : topological_space (subtype p) :=
-induced subtype.val t
-
-instance {r : α → α → Prop} [t : topological_space α] : topological_space (quot r) :=
-coinduced (quot.mk r) t
-
-instance {s : setoid α} [t : topological_space α] : topological_space (quotient s) :=
-coinduced quotient.mk t
-
-instance [t₁ : topological_space α] [t₂ : topological_space β] : topological_space (α × β) :=
-induced prod.fst t₁ ⊓ induced prod.snd t₂
-
-instance [t₁ : topological_space α] [t₂ : topological_space β] : topological_space (α ⊕ β) :=
-coinduced sum.inl t₁ ⊔ coinduced sum.inr t₂
-
-instance {β : α → Type v} [t₂ : Πa, topological_space (β a)] : topological_space (sigma β) :=
-⨆a, coinduced (sigma.mk a) (t₂ a)
-
-instance Pi.topological_space {β : α → Type v} [t₂ : Πa, topological_space (β a)] :
-  topological_space (Πa, β a) :=
-⨅a, induced (λf, f a) (t₂ a)
-
-instance [topological_space α] : topological_space (list α) :=
-topological_space.mk_of_nhds (traverse nhds)
-
-lemma nhds_list [topological_space α] (as : list α) : nhds as = traverse nhds as :=
-begin
-  refine nhds_mk_of_nhds _ _ _ _,
-  { assume l, induction l,
-    case list.nil { exact le_refl _ },
-    case list.cons : a l ih {
-      suffices : list.cons <$> pure a <*> pure l ≤ list.cons <$> nhds a <*> traverse nhds l,
-      { simpa only [-filter.pure_def] with functor_norm using this },
-      exact filter.seq_mono (filter.map_mono $ pure_le_nhds a) ih } },
-  { assume l s hs,
-    rcases (mem_traverse_sets_iff _ _).1 hs with ⟨u, hu, hus⟩, clear as hs,
-    have : ∃v:list (set α), l.forall₂ (λa s, is_open s ∧ a ∈ s) v ∧ sequence v ⊆ s,
-    { induction hu generalizing s,
-      case list.forall₂.nil : hs this { existsi [], simpa only [list.forall₂_nil_left_iff, exists_eq_left] },
-      case list.forall₂.cons : a s as ss ht h ih t hts {
-        rcases mem_nhds_sets_iff.1 ht with ⟨u, hut, hu⟩,
-        rcases ih (subset.refl _) with ⟨v, hv, hvss⟩,
-        exact ⟨u::v, list.forall₂.cons hu hv,
-          subset.trans (set.seq_mono (set.image_subset _ hut) hvss) hts⟩ } },
-    rcases this with ⟨v, hv, hvs⟩,
-    refine ⟨sequence v, mem_traverse_sets _ _ _, hvs, _⟩,
-    { exact hv.imp (assume a s ⟨hs, ha⟩, mem_nhds_sets hs ha) },
-    { assume u hu,
-      have hu := (list.mem_traverse _ _).1 hu,
-      have : list.forall₂ (λa s, is_open s ∧ a ∈ s) u v,
-      { refine list.forall₂.flip _,
-        replace hv := hv.flip,
-        simp only [list.forall₂_and_left, flip] at ⊢ hv,
-        exact ⟨hv.1, hu.flip⟩ },
-      refine mem_sets_of_superset _ hvs,
-      exact mem_traverse_sets _ _ (this.imp $ assume a s ⟨hs, ha⟩, mem_nhds_sets hs ha) } }
-end
-
-lemma nhds_nil [topological_space α] : nhds ([] : list α) = pure [] :=
-by rw [nhds_list, list.traverse_nil _]; apply_instance
-
-lemma nhds_cons [topological_space α] (a : α) (l : list α) :
-  nhds (a :: l) = list.cons <$> nhds a <*> nhds l  :=
-by rw [nhds_list, list.traverse_cons _, ← nhds_list]; apply_instance
-
-lemma quotient_dense_of_dense [setoid α] [topological_space α] {s : set α} (H : ∀ x, x ∈ closure s) :
-  closure (quotient.mk '' s) = univ :=
-eq_univ_of_forall $ λ x, begin
-  rw mem_closure_iff,
-  intros U U_op x_in_U,
-  let V := quotient.mk ⁻¹' U,
-  cases quotient.exists_rep x with y y_x,
-  have y_in_V : y ∈ V, by simp only [mem_preimage, y_x, x_in_U],
-  have V_op : is_open V := U_op,
-  have : V ∩ s ≠ ∅ := mem_closure_iff.1 (H y) V V_op y_in_V,
-  rcases exists_mem_of_ne_empty this with ⟨w, w_in_V, w_in_range⟩,
-  exact ne_empty_of_mem ⟨w_in_V, mem_image_of_mem quotient.mk w_in_range⟩
-end
-
 lemma le_generate_from {t : topological_space α} { g : set (set α) } (h : ∀s∈g, is_open s) :
   t ≤ generate_from g :=
 le_generate_from_iff_subset_is_open.2 h
@@ -401,6 +376,8 @@ le_antisymm
   (coinduced_le_iff_le_induced.1 $ le_generate_from $ assume s hs,
     generate_open.basic _ $ mem_image_of_mem _ hs)
 
+/-- This construction is left adjoint to the operation sending a topology on `α`
+  to its neighborhood filter at a fixed point `a : α`. -/
 protected def topological_space.nhds_adjoint (a : α) (f : filter α) : topological_space α :=
 { is_open        := λs, a ∈ s → s ∈ f,
   is_open_univ   := assume s, univ_mem_sets,
@@ -424,19 +401,6 @@ lemma nhds_inf {t₁ t₂ : topological_space α} {a : α} :
   @nhds α (t₁ ⊓ t₂) a = @nhds α t₁ a ⊓ @nhds α t₂ a := (gc_nhds a).u_inf
 
 lemma nhds_top {a : α} : @nhds α ⊤ a = ⊤ := (gc_nhds a).u_top
-
-instance {p : α → Prop} [topological_space α] [discrete_topology α] :
-  discrete_topology (subtype p) :=
-⟨bot_unique $ assume s hs,
-  ⟨subtype.val '' s, is_open_discrete _, (set.preimage_image_eq _ subtype.val_injective)⟩⟩
-
-instance sum.discrete_topology [topological_space α] [topological_space β]
-  [hα : discrete_topology α] [hβ : discrete_topology β] : discrete_topology (α ⊕ β) :=
-⟨by unfold sum.topological_space; simp [hα.eq_bot, hβ.eq_bot]⟩
-
-instance sigma.discrete_topology {β : α → Type v} [Πa, topological_space (β a)]
-  [h : Πa, discrete_topology (β a)] : discrete_topology (sigma β) :=
-⟨by { unfold sigma.topological_space, simp [λ a, (h a).eq_bot] }⟩
 
 local notation `cont` := @continuous _ _
 local notation `tspace` := topological_space
@@ -541,12 +505,12 @@ continuous_iff_le_induced.2 $ bot_le
 lemma continuous_top {t : tspace α} : cont t ⊤ f :=
 continuous_iff_coinduced_le.2 $ le_top
 
-/- nhds in the induced topology -/
+/- 𝓝 in the induced topology -/
 
 theorem mem_nhds_induced [T : topological_space α] (f : β → α) (a : β) (s : set β) :
-  s ∈ @nhds β (topological_space.induced f T) a ↔ ∃ u ∈ nhds (f a), f ⁻¹' u ⊆ s :=
+  s ∈ @nhds β (topological_space.induced f T) a ↔ ∃ u ∈ 𝓝 (f a), f ⁻¹' u ⊆ s :=
 begin
-  simp only [nhds_sets, is_open_induced_iff, exists_prop, set.mem_set_of_eq],
+  simp only [mem_nhds_sets_iff, is_open_induced_iff, exists_prop, set.mem_set_of_eq],
   split,
   { rintros ⟨u, usub, ⟨v, openv, ueq⟩, au⟩,
     exact ⟨v, ⟨v, set.subset.refl v, openv, by rwa ←ueq at au⟩, by rw ueq; exact usub⟩ },
@@ -555,295 +519,17 @@ begin
 end
 
 theorem nhds_induced [T : topological_space α] (f : β → α) (a : β) :
-  @nhds β (topological_space.induced f T) a = comap f (nhds (f a)) :=
+  @nhds β (topological_space.induced f T) a = comap f (𝓝 (f a)) :=
 filter_eq $ by ext s; rw mem_nhds_induced; rw mem_comap_sets
 
+lemma induced_iff_nhds_eq [tα : topological_space α] [tβ : topological_space β] (f : β → α) :
+tβ = tα.induced f ↔ ∀ b, 𝓝 b = comap f (𝓝 $ f b) :=
+⟨λ h a, h.symm ▸ nhds_induced f a, λ h, eq_of_nhds_eq_nhds $ λ x, by rw [h, nhds_induced]⟩
+
 theorem map_nhds_induced_of_surjective [T : topological_space α]
-    {f : β → α} (hf : function.surjective f) (a : β) (s : set α) :
-  map f (@nhds β (topological_space.induced f T) a) = nhds (f a) :=
+    {f : β → α} (hf : function.surjective f) (a : β) :
+  map f (@nhds β (topological_space.induced f T) a) = 𝓝 (f a) :=
 by rw [nhds_induced, map_comap_of_surjective hf]
-
-section topα
-
-variable [topological_space α]
-
-/-
-The nhds filter and the subspace topology.
--/
-
-theorem mem_nhds_subtype (s : set α) (a : {x // x ∈ s}) (t : set {x // x ∈ s}) :
-  t ∈ nhds a ↔ ∃ u ∈ nhds a.val, (@subtype.val α s) ⁻¹' u ⊆ t :=
-by rw mem_nhds_induced
-
-theorem nhds_subtype (s : set α) (a : {x // x ∈ s}) :
-  nhds a = comap subtype.val (nhds a.val) :=
-by rw nhds_induced
-
-theorem principal_subtype (s : set α) (t : set {x // x ∈ s}) :
-  principal t = comap subtype.val (principal (subtype.val '' t)) :=
-by rw comap_principal; rw set.preimage_image_eq; apply subtype.val_injective
-
-/-
-nhds_within and subtypes
--/
-
-theorem mem_nhds_within_subtype (s : set α) (a : {x // x ∈ s}) (t u : set {x // x ∈ s}) :
-  t ∈ nhds_within a u ↔
-    t ∈ comap (@subtype.val _ s) (nhds_within a.val (subtype.val '' u)) :=
-by rw [nhds_within, nhds_subtype, principal_subtype, ←comap_inf, ←nhds_within]
-
-theorem nhds_within_subtype (s : set α) (a : {x // x ∈ s}) (t : set {x // x ∈ s}) :
-  nhds_within a t = comap (@subtype.val _ s) (nhds_within a.val (subtype.val '' t)) :=
-filter_eq $ by ext u; rw mem_nhds_within_subtype
-
-theorem nhds_within_eq_map_subtype_val {s : set α} {a : α} (h : a ∈ s) :
-  nhds_within a s = map subtype.val (nhds ⟨a, h⟩) :=
-have h₀ : s ∈ nhds_within a s,
-  by { rw [mem_nhds_within], existsi set.univ, simp [set.diff_eq] },
-have h₁ : ∀ y ∈ s, ∃ x, @subtype.val _ s x = y,
-  from λ y h, ⟨⟨y, h⟩, rfl⟩,
-begin
-  rw [←nhds_within_univ, nhds_within_subtype, subtype.val_image_univ],
-  exact (map_comap_of_surjective' h₀ h₁).symm,
-end
-
-theorem tendsto_nhds_within_iff_subtype {s : set α} {a : α} (h : a ∈ s) (f : α → β) (l : filter β) :
-  tendsto f (nhds_within a s) l ↔ tendsto (function.restrict f s) (nhds ⟨a, h⟩) l :=
-by rw [tendsto, tendsto, function.restrict, nhds_within_eq_map_subtype_val h,
-    ←(@filter.map_map _ _ _ _ subtype.val)]
-
-variables [tspace β] [tspace γ]
-
-theorem continuous_within_at_univ (f : α → β) (x : α) :
-   continuous_within_at f set.univ x ↔ continuous_at f x :=
-by rw [continuous_at, continuous_within_at, nhds_within_univ]
-
-theorem continuous_within_at_iff_continuous_at_restrict (f : α → β) {x : α} {s : set α} (h : x ∈ s) :
-  continuous_within_at f s x ↔ continuous_at (function.restrict f s) ⟨x, h⟩ :=
-tendsto_nhds_within_iff_subtype h f _
-
-theorem continuous_within_at.tendsto_nhds_within_image {f : α → β} {x : α} {s : set α}
-  (h : continuous_within_at f s x) :
-  tendsto f (nhds_within x s) (nhds_within (f x) (f '' s)) :=
-tendsto_inf.2 ⟨h, tendsto_principal.2 $
-  mem_inf_sets_of_right $ mem_principal_sets.2 $
-  λ x, mem_image_of_mem _⟩
-
-theorem continuous_on_iff {f : α → β} {s : set α} :
-  continuous_on f s ↔ ∀ x ∈ s, ∀ t : set β, is_open t → f x ∈ t → ∃ u, is_open u ∧ x ∈ u ∧
-    u ∩ s ⊆ f ⁻¹' t :=
-by simp only [continuous_on, continuous_within_at, tendsto_nhds, mem_nhds_within]
-
-theorem continuous_on_iff_continuous_restrict {f : α → β} {s : set α} :
-  continuous_on f s ↔ continuous (function.restrict f s) :=
-begin
-  rw [continuous_on, continuous_iff_continuous_at], split,
-  { rintros h ⟨x, xs⟩,
-    exact (continuous_within_at_iff_continuous_at_restrict f xs).mp (h x xs) },
-  intros h x xs,
-  exact (continuous_within_at_iff_continuous_at_restrict f xs).mpr (h ⟨x, xs⟩)
-end
-
-theorem continuous_on_iff' {f : α → β} {s : set α} :
-  continuous_on f s ↔ ∀ t : set β, is_open t → ∃ u, is_open u ∧ f ⁻¹' t ∩ s = u ∩ s :=
-have ∀ t, is_open (function.restrict f s ⁻¹' t) ↔ ∃ (u : set α), is_open u ∧ f ⁻¹' t ∩ s = u ∩ s,
-  begin
-    intro t,
-    rw [is_open_induced_iff, function.restrict_eq, set.preimage_comp],
-    simp only [subtype.preimage_val_eq_preimage_val_iff],
-    split; { rintros ⟨u, ou, useq⟩, exact ⟨u, ou, useq.symm⟩ }
-  end,
-by rw [continuous_on_iff_continuous_restrict, continuous]; simp only [this]
-
-theorem continuous_on_iff_is_closed  {f : α → β} {s : set α} :
-  continuous_on f s ↔ ∀ t : set β, is_closed t → ∃ u, is_closed u ∧ f ⁻¹' t ∩ s = u ∩ s :=
-have ∀ t, is_closed (function.restrict f s ⁻¹' t) ↔ ∃ (u : set α), is_closed u ∧ f ⁻¹' t ∩ s = u ∩ s,
-  begin
-    intro t,
-    rw [is_closed_induced_iff, function.restrict_eq, set.preimage_comp],
-    simp only [subtype.preimage_val_eq_preimage_val_iff]
-  end,
-by rw [continuous_on_iff_continuous_restrict, continuous_iff_is_closed]; simp only [this]
-
-theorem nhds_within_le_comap {x : α} {s : set α} {f : α → β} (ctsf : continuous_within_at f s x) :
-  nhds_within x s ≤ comap f (nhds_within (f x) (f '' s)) :=
-map_le_iff_le_comap.1 ctsf.tendsto_nhds_within_image
-
-theorem continuous_within_at_iff_ptendsto_res (f : α → β) {x : α} {s : set α} (xs : x ∈ s) :
-  continuous_within_at f s x ↔ ptendsto (pfun.res f s) (nhds x) (nhds (f x)) :=
-tendsto_iff_ptendsto _ _ _ _
-
-def continuous_iff_continuous_on_univ {f : α → β} : continuous f ↔ continuous_on f univ :=
-by simp [continuous_iff_continuous_at, continuous_on, continuous_at, continuous_within_at,
-         nhds_within_univ]
-
-lemma continuous_within_at.mono {f : α → β} {s t : set α} {x : α} (h : continuous_within_at f t x)
-  (hs : s ⊆ t) : continuous_within_at f s x :=
-tendsto_le_left (nhds_within_mono x hs) h
-
-lemma continuous_within_at_inter' {f : α → β} {s t : set α} {x : α} (h : t ∈ nhds_within x s) :
-  continuous_within_at f (s ∩ t) x ↔ continuous_within_at f s x :=
-by simp [continuous_within_at, nhds_within_restrict'' s h]
-
-lemma continuous_within_at_inter {f : α → β} {s t : set α} {x : α} (h : t ∈ nhds x) :
-  continuous_within_at f (s ∩ t) x ↔ continuous_within_at f s x :=
-by simp [continuous_within_at, nhds_within_restrict' s h]
-
-lemma continuous_on.congr_mono {f g : α → β} {s s₁ : set α} (h : continuous_on f s)
-  (h' : ∀x ∈ s₁, g x = f x) (h₁ : s₁ ⊆ s) : continuous_on g s₁ :=
-begin
-  assume x hx,
-  unfold continuous_within_at,
-  have A := (h x (h₁ hx)).mono h₁,
-  unfold continuous_within_at at A,
-  rw ← h' x hx at A,
-  have : {x : α | g x = f x} ∈ nhds_within x s₁ := mem_inf_sets_of_right h',
-  apply tendsto.congr' _ A,
-  convert this,
-  ext,
-  finish
-end
-
-lemma continuous_at.continuous_within_at {f : α → β} {s : set α} {x : α} (h : continuous_at f x) :
-  continuous_within_at f s x :=
-continuous_within_at.mono ((continuous_within_at_univ f x).2 h) (subset_univ _)
-
-lemma continuous_within_at.continuous_at {f : α → β} {s : set α} {x : α}
-  (h : continuous_within_at f s x) (hs : s ∈ nhds x) : continuous_at f x :=
-begin
-  have : s = univ ∩ s, by rw univ_inter,
-  rwa [this, continuous_within_at_inter hs, continuous_within_at_univ] at h
-end
-
-lemma continuous_within_at.comp {g : β → γ} {f : α → β} {s : set α} {t : set β} {x : α}
-  (hg : continuous_within_at g t (f x)) (hf : continuous_within_at f s x) (h : f '' s ⊆ t) :
-  continuous_within_at (g ∘ f) s x :=
-begin
-  have : tendsto f (principal s) (principal t),
-    by { rw tendsto_principal_principal, exact λx hx, h (mem_image_of_mem _ hx) },
-  have : tendsto f (nhds_within x s) (principal t) :=
-    tendsto_le_left lattice.inf_le_right this,
-  have : tendsto f (nhds_within x s) (nhds_within (f x) t) :=
-    tendsto_inf.2 ⟨hf, this⟩,
-  exact tendsto.comp hg this
-end
-
-lemma continuous_at.comp {g : β → γ} {f : α → β} {x : α}
-  (hg : continuous_at g (f x)) (hf : continuous_at f x) :
-  continuous_at (g ∘ f) x :=
-begin
-  rw ← continuous_within_at_univ at *,
-  exact continuous_within_at.comp hg hf (subset_univ _)
-end
-
-lemma continuous_on.comp {g : β → γ} {f : α → β} {s : set α} {t : set β}
-  (hg : continuous_on g t) (hf : continuous_on f s) (h : f '' s ⊆ t) :
-  continuous_on (g ∘ f) s :=
-λx hx, continuous_within_at.comp (hg _ (h (mem_image_of_mem _ hx))) (hf x hx) h
-
-lemma continuous_on.mono {f : α → β} {s t : set α} (hf : continuous_on f s) (h : t ⊆ s)  :
-  continuous_on f t :=
-λx hx, tendsto_le_left (nhds_within_mono _ h) (hf x (h hx))
-
-lemma continuous.continuous_on {f : α → β} {s : set α} (h : continuous f) :
-  continuous_on f s :=
-begin
-  rw continuous_iff_continuous_on_univ at h,
-  exact h.mono (subset_univ _)
-end
-
-lemma continuous.comp_continuous_on {g : β → γ} {f : α → β} {s : set α}
-  (hg : continuous g) (hf : continuous_on f s) :
-  continuous_on (g ∘ f) s :=
-hg.continuous_on.comp hf (subset_univ _)
-
-lemma continuous.continuous_at {f : α → β} {x : α} (h : continuous f) :
-  continuous_at f x :=
-begin
-  have := continuous_iff_continuous_on_univ.1 h x (mem_univ _),
-  rwa continuous_within_at_univ at this,
-end
-
-lemma continuous_at.preimage_mem_nhds {f : α → β} {x : α} {t : set β} (h : continuous_at f x)
-  (ht : t ∈ nhds (f x)) : f ⁻¹' t ∈ nhds x :=
-h ht
-
-lemma continuous_within_at.preimage_mem_nhds_within {f : α → β} {x : α} {s : set α} {t : set β}
-  (h : continuous_within_at f s x) (ht : t ∈ nhds (f x)) : f ⁻¹' t ∈ nhds_within x s :=
-h ht
-
-lemma continuous_within_at.congr_of_mem_nhds_within {f f₁ : α → β} {s : set α} {x : α}
-  (h : continuous_within_at f s x) (h₁ : {y | f₁ y = f y} ∈ nhds_within x s) (hx : f₁ x = f x) :
-  continuous_within_at f₁ s x :=
-by rwa [continuous_within_at, filter.tendsto, hx, filter.map_cong h₁]
-
-lemma continuous_on_const {s : set α} {c : β} : continuous_on (λx, c) s :=
-continuous_const.continuous_on
-
-lemma continuous_on_open_iff {f : α → β} {s : set α} (hs : is_open s) :
-  continuous_on f s ↔ (∀t, _root_.is_open t → is_open (s ∩ f⁻¹' t)) :=
-begin
-  rw continuous_on_iff',
-  split,
-  { assume h t ht,
-    rcases h t ht with ⟨u, u_open, hu⟩,
-    rw [inter_comm, hu],
-    apply is_open_inter u_open hs },
-  { assume h t ht,
-    refine ⟨s ∩ f ⁻¹' t, h t ht, _⟩,
-    rw [@inter_comm _ s (f ⁻¹' t), inter_assoc, inter_self] }
-end
-
-lemma continuous_on.preimage_open_of_open {f : α → β} {s : set α} {t : set β}
-  (hf : continuous_on f s) (hs : is_open s) (ht : is_open t) : is_open (s ∩ f⁻¹' t) :=
-(continuous_on_open_iff hs).1 hf t ht
-
-lemma continuous_on.preimage_closed_of_closed {f : α → β} {s : set α} {t : set β}
-  (hf : continuous_on f s) (hs : is_closed s) (ht : is_closed t) : is_closed (s ∩ f⁻¹' t) :=
-begin
-  rcases continuous_on_iff_is_closed.1 hf t ht with ⟨u, hu⟩,
-  rw [inter_comm, hu.2],
-  apply is_closed_inter hu.1 hs
-end
-
-lemma continuous_on.preimage_interior_subset_interior_preimage {f : α → β} {s : set α} {t : set β}
-  (hf : continuous_on f s) (hs : is_open s) : s ∩ f⁻¹' (interior t) ⊆ s ∩ interior (f⁻¹' t) :=
-calc s ∩ f ⁻¹' (interior t)
-     = interior (s ∩ f ⁻¹' (interior t)) :
-       (interior_eq_of_open (hf.preimage_open_of_open hs is_open_interior)).symm
-    ... ⊆ interior (s ∩ f ⁻¹' t) :
-        interior_mono (inter_subset_inter (subset.refl _) (preimage_mono interior_subset))
-    ... = s ∩ interior (f ⁻¹' t) :
-      by rw [interior_inter, interior_eq_of_open hs]
-
-lemma continuous_on_of_locally_continuous_on {f : α → β} {s : set α}
-  (h : ∀x∈s, ∃t, is_open t ∧ x ∈ t ∧ continuous_on f (s ∩ t)) : continuous_on f s :=
-begin
-  assume x xs,
-  rcases h x xs with ⟨t, open_t, xt, ct⟩,
-  have := ct x ⟨xs, xt⟩,
-  rwa [continuous_within_at, ← nhds_within_restrict _ xt open_t] at this
-end
-
-lemma continuous_on_open_of_generate_from {β : Type*} {s : set α} {T : set (set β)} {f : α → β}
-  (hs : is_open s) (h : ∀t ∈ T, is_open (s ∩ f⁻¹' t)) :
-  @continuous_on α β _ (topological_space.generate_from T) f s :=
-begin
-  rw continuous_on_open_iff,
-  assume t ht,
-  induction ht with u hu u v Tu Tv hu hv U hU hU',
-  { exact h u hu },
-  { simp only [preimage_univ, inter_univ], exact hs },
-  { have : s ∩ f ⁻¹' (u ∩ v) = (s ∩ f ⁻¹' u) ∩ (s ∩ f ⁻¹' v),
-      by { ext x, simp, split, finish, finish },
-    rw this,
-    exact is_open_inter hu hv },
-  { rw [preimage_sUnion, inter_bUnion],
-    exact is_open_bUnion hU' },
-  { exact hs }
-end
-
-end topα
 
 end constructions
 
@@ -853,42 +539,35 @@ variables {α : Type*} {β : Type*}
 variables [t : topological_space β] {f : α → β}
 
 theorem is_open_induced_eq {s : set α} :
-  @_root_.is_open _ (induced f t) s ↔ s ∈ preimage f '' {s | is_open s} :=
-iff.refl _
+  @is_open _ (induced f t) s ↔ s ∈ preimage f '' {s | is_open s} :=
+iff.rfl
 
 theorem is_open_induced {s : set β} (h : is_open s) : (induced f t).is_open (f ⁻¹' s) :=
 ⟨s, h, rfl⟩
 
-lemma nhds_induced_eq_comap {a : α} : @nhds α (induced f t) a = comap f (nhds (f a)) :=
-calc @nhds α (induced f t) a = (⨅ s (x : s ∈ preimage f '' set_of is_open ∧ a ∈ s), principal s) :
-    by simp [nhds, is_open_induced_eq, -mem_image, and_comm]
-  ... = (⨅ s (x : is_open s ∧ f a ∈ s), principal (f ⁻¹' s)) :
-    by simp only [infi_and, infi_image]; refl
-  ... = _ : by simp [nhds, comap_infi, and_comm]
-
-lemma map_nhds_induced_eq {a : α} (h : range f ∈ nhds (f a)) :
-  map f (@nhds α (induced f t) a) = nhds (f a) :=
-by rw [nhds_induced_eq_comap, filter.map_comap h]
+lemma map_nhds_induced_eq {a : α} (h : range f ∈ 𝓝 (f a)) :
+  map f (@nhds α (induced f t) a) = 𝓝 (f a) :=
+by rw [nhds_induced, filter.map_comap h]
 
 lemma closure_induced [t : topological_space β] {f : α → β} {a : α} {s : set α}
   (hf : ∀x y, f x = f y → x = y) :
   a ∈ @closure α (topological_space.induced f t) s ↔ f a ∈ closure (f '' s) :=
-have comap f (nhds (f a) ⊓ principal (f '' s)) ≠ ⊥ ↔ nhds (f a) ⊓ principal (f '' s) ≠ ⊥,
+have comap f (𝓝 (f a) ⊓ 𝓟 (f '' s)) ≠ ⊥ ↔ 𝓝 (f a) ⊓ 𝓟 (f '' s) ≠ ⊥,
   from ⟨assume h₁ h₂, h₁ $ h₂.symm ▸ comap_bot,
     assume h,
-    forall_sets_neq_empty_iff_neq_bot.mp $
+    forall_sets_nonempty_iff_ne_bot.mp $
       assume s₁ ⟨s₂, hs₂, (hs : f ⁻¹' s₂ ⊆ s₁)⟩,
-      have f '' s ∈ nhds (f a) ⊓ principal (f '' s),
+      have f '' s ∈ 𝓝 (f a) ⊓ 𝓟 (f '' s),
         from mem_inf_sets_of_right $ by simp [subset.refl],
-      have s₂ ∩ f '' s ∈ nhds (f a) ⊓ principal (f '' s),
+      have s₂ ∩ f '' s ∈ 𝓝 (f a) ⊓ 𝓟 (f '' s),
         from inter_mem_sets hs₂ this,
-      let ⟨b, hb₁, ⟨a, ha, ha₂⟩⟩ := inhabited_of_mem_sets h this in
-      ne_empty_of_mem $ hs $ by rwa [←ha₂] at hb₁⟩,
+      let ⟨b, hb₁, ⟨a, ha, ha₂⟩⟩ := nonempty_of_mem_sets h this in
+      ⟨_, hs $ by rwa [←ha₂] at hb₁⟩⟩,
 calc a ∈ @closure α (topological_space.induced f t) s
-    ↔ (@nhds α (topological_space.induced f t) a) ⊓ principal s ≠ ⊥ : by rw [closure_eq_nhds]; refl
-  ... ↔ comap f (nhds (f a)) ⊓ principal (f ⁻¹' (f '' s)) ≠ ⊥ : by rw [nhds_induced_eq_comap, preimage_image_eq _ hf]
-  ... ↔ comap f (nhds (f a) ⊓ principal (f '' s)) ≠ ⊥ : by rw [comap_inf, ←comap_principal]
-  ... ↔ _ : by rwa [closure_eq_nhds]
+    ↔ (@nhds α (topological_space.induced f t) a) ⊓ 𝓟 s ≠ ⊥ : by rw [closure_eq_cluster_pts]; refl
+  ... ↔ comap f (𝓝 (f a)) ⊓ 𝓟 (f ⁻¹' (f '' s)) ≠ ⊥ : by rw [nhds_induced, preimage_image_eq _ hf]
+  ... ↔ comap f (𝓝 (f a) ⊓ 𝓟 (f '' s)) ≠ ⊥ : by rw [comap_inf, ←comap_principal]
+  ... ↔ _ : by rwa [closure_eq_cluster_pts]
 
 end induced
 

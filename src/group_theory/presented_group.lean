@@ -5,8 +5,8 @@ Authors: Michael Howes
 
 Defining a group given by generators and relations
 -/
-
-import group_theory.free_group group_theory.quotient_group
+import group_theory.free_group
+import group_theory.quotient_group
 
 variables {α : Type}
 
@@ -56,7 +56,7 @@ quotient_group.is_group_hom_quotient_lift _ _ _
 @[simp] lemma to_group.of {x : α} : to_group h (of x) = f x := free_group.to_group.of
 
 @[simp] lemma to_group.mul {x y} : to_group h (x * y) = to_group h x * to_group h y :=
-is_group_hom.map_mul _ _ _
+is_mul_hom.map_mul _ _ _
 
 @[simp] lemma to_group.one : to_group h 1 = 1 :=
 is_group_hom.map_one _
@@ -66,6 +66,7 @@ is_group_hom.map_inv _ _
 
 theorem to_group.unique (g : presented_group rels → β) [is_group_hom g]
   (hg : ∀ x : α, g (of x) = f x) : ∀ {x}, g x = to_group h x :=
+have is_group_hom (λ x, g (quotient_group.mk x)) := is_group_hom.comp _ _, by exactI
 λ x, quotient_group.induction_on x
     (λ _, free_group.to_group.unique (λ (x : free_group α), g (quotient_group.mk x)) hg)
 

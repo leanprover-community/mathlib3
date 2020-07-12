@@ -5,10 +5,12 @@ Author: Mario Carneiro
 
 Topology of the complex numbers.
 -/
-import data.complex.basic topology.metric_space.basic topology.instances.real
+import data.complex.basic
+import topology.instances.real
 
 noncomputable theory
 open filter metric
+open_locale topological_space
 
 namespace complex
 
@@ -17,7 +19,7 @@ namespace complex
 instance : metric_space ℂ :=
 { dist               := λx y, (x - y).abs,
   dist_self          := by simp [abs_zero],
-  eq_of_dist_eq_zero := by simp [add_neg_eq_zero],
+  eq_of_dist_eq_zero := by simp [sub_eq_zero],
   dist_comm          := assume x y, complex.abs_sub _ _,
   dist_triangle      := assume x y z, complex.abs_sub_le _ _ _ }
 
@@ -35,7 +37,7 @@ metric.uniform_continuous_iff.2 $ λ ε ε0, ⟨_, ε0, λ a b h,
 instance : uniform_add_group ℂ :=
 uniform_add_group.mk' uniform_continuous_add uniform_continuous_neg
 
-instance : topological_add_group ℂ := by apply_instance
+instance : topological_add_group ℂ := by apply_instance -- short-circuit type class inference
 
 lemma uniform_continuous_inv (s : set ℂ) {r : ℝ} (r0 : 0 < r) (H : ∀ x ∈ s, r ≤ abs x) :
   uniform_continuous (λp:s, p.1⁻¹) :=
@@ -50,20 +52,20 @@ metric.uniform_continuous_iff.2 $ λ ε ε0,
 lemma continuous_abs : continuous (abs : ℂ → ℝ) :=
 uniform_continuous_abs.continuous
 
-lemma tendsto_inv {r : ℂ} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (nhds r) (nhds r⁻¹) :=
+lemma tendsto_inv {r : ℂ} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=
 by rw ← abs_pos at r0; exact
 tendsto_of_uniform_continuous_subtype
   (uniform_continuous_inv {x | abs r / 2 < abs x} (half_pos r0) (λ x h, le_of_lt h))
   (mem_nhds_sets (continuous_abs _ $ is_open_lt' (abs r / 2)) (half_lt_self r0))
 
-lemma continuous_inv' : continuous (λa:{r:ℂ // r ≠ 0}, a.val⁻¹) :=
+lemma continuous_inv : continuous (λa:{r:ℂ // r ≠ 0}, a.val⁻¹) :=
 continuous_iff_continuous_at.mpr $ assume ⟨r, hr⟩,
   tendsto.comp (tendsto_inv hr) (continuous_iff_continuous_at.mp continuous_subtype_val _)
 
-lemma continuous_inv {α} [topological_space α] {f : α → ℂ} (h : ∀a, f a ≠ 0) (hf : continuous f) :
+lemma continuous.inv {α} [topological_space α] {f : α → ℂ} (h : ∀a, f a ≠ 0) (hf : continuous f) :
   continuous (λa, (f a)⁻¹) :=
 show continuous ((has_inv.inv ∘ @subtype.val ℂ (λr, r ≠ 0)) ∘ λa, ⟨f a, h a⟩),
-  from continuous_inv'.comp (continuous_subtype_mk _ hf)
+  from continuous_inv.comp (continuous_subtype_mk _ hf)
 
 lemma uniform_continuous_mul_const {x : ℂ} : uniform_continuous ((*) x) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0, begin
@@ -75,11 +77,10 @@ metric.uniform_continuous_iff.2 $ λ ε ε0, begin
 end
 
 lemma uniform_continuous_mul (s : set (ℂ × ℂ))
-  {r₁ r₂ : ℝ} (r₁0 : 0 < r₁) (r₂0 : 0 < r₂)
-  (H : ∀ x ∈ s, abs (x : ℂ × ℂ).1 < r₁ ∧ abs x.2 < r₂) :
+  {r₁ r₂ : ℝ} (H : ∀ x ∈ s, abs (x : ℂ × ℂ).1 < r₁ ∧ abs x.2 < r₂) :
   uniform_continuous (λp:s, p.1.1 * p.1.2) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0,
-let ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abs ε0 r₁0 r₂0 in
+let ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abs ε0 in
 ⟨δ, δ0, λ a b h,
   let ⟨h₁, h₂⟩ := max_lt_iff.1 h in Hδ (H _ a.2).1 (H _ b.2).2 h₁ h₂⟩
 
@@ -88,8 +89,6 @@ continuous_iff_continuous_at.2 $ λ ⟨a₁, a₂⟩,
 tendsto_of_uniform_continuous_subtype
   (uniform_continuous_mul
     ({x | abs x < abs a₁ + 1}.prod {x | abs x < abs a₂ + 1})
-    (lt_of_le_of_lt (abs_nonneg _) (lt_add_one _))
-    (lt_of_le_of_lt (abs_nonneg _) (lt_add_one _))
     (λ x, id))
   (mem_nhds_sets
     (is_open_prod
@@ -119,22 +118,22 @@ lemma continuous_of_real : continuous of_real := uniform_continuous_of_real.cont
 instance : topological_ring ℂ :=
 { continuous_mul := complex.continuous_mul, ..complex.topological_add_group }
 
-instance : topological_semiring ℂ := by apply_instance
+instance : topological_semiring ℂ := by apply_instance -- short-circuit type class inference
 
-def real_prod_homeo : homeomorph ℂ (ℝ × ℝ) :=
-{ to_equiv := real_prod_equiv,
-  continuous_to_fun := continuous.prod_mk continuous_re continuous_im,
+/-- `ℂ` is homeomorphic to the real plane with `max` norm. -/
+def real_prod_homeo : ℂ ≃ₜ (ℝ × ℝ) :=
+{ to_equiv := equiv_real_prod,
+  continuous_to_fun := continuous_re.prod_mk continuous_im,
   continuous_inv_fun := show continuous (λ p : ℝ × ℝ, complex.mk p.1 p.2),
     by simp only [mk_eq_add_mul_I]; exact
-    continuous_add
-      (continuous_of_real.comp continuous_fst)
-      (continuous_mul (continuous_of_real.comp continuous_snd) continuous_const) }
+      (continuous_of_real.comp continuous_fst).add
+      ((continuous_of_real.comp continuous_snd).mul continuous_const) }
 
 instance : proper_space ℂ :=
 ⟨λx r, begin
   refine real_prod_homeo.symm.compact_preimage.1
     (compact_of_is_closed_subset
-      (compact_prod _ _ (proper_space.compact_ball x.re r) (proper_space.compact_ball x.im r))
+      ((proper_space.compact_ball x.re r).prod (proper_space.compact_ball x.im r))
       (continuous_iff_is_closed.1 real_prod_homeo.symm.continuous _ is_closed_ball) _),
   exact λ p h, ⟨
     le_trans (abs_re_le_abs (⟨p.1, p.2⟩ - x)) h,

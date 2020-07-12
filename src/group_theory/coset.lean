@@ -3,23 +3,21 @@ Copyright (c) 2018 Mitchell Rowett. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mitchell Rowett, Scott Morrison
 -/
-import group_theory.subgroup data.equiv.basic data.quot
+import deprecated.subgroup
 open set function
 
 variable {α : Type*}
 
 @[to_additive left_add_coset]
 def left_coset [has_mul α] (a : α) (s : set α) : set α := (λ x, a * x) '' s
-attribute [to_additive left_add_coset.equations._eqn_1] left_coset.equations._eqn_1
 
 @[to_additive right_add_coset]
 def right_coset [has_mul α] (s : set α) (a : α) : set α := (λ x, x * a) '' s
-attribute [to_additive right_add_coset.equations._eqn_1] right_coset.equations._eqn_1
 
-local infix ` *l `:70 := left_coset
-local infix ` +l `:70 := left_add_coset
-local infix ` *r `:70 := right_coset
-local infix ` +r `:70 := right_add_coset
+localized "infix ` *l `:70 := left_coset" in coset
+localized "infix ` +l `:70 := left_add_coset" in coset
+localized "infix ` *r `:70 := right_coset" in coset
+localized "infix ` +r `:70 := right_add_coset" in coset
 
 section coset_mul
 variable [has_mul α]
@@ -72,8 +70,8 @@ attribute [to_additive right_add_coset_zero] right_coset_one
 end coset_monoid
 
 section coset_submonoid
-open is_submonoid
-variables [monoid α] (s : set α) [is_submonoid s]
+open submonoid
+variables [monoid α] (s : submonoid α)
 
 @[to_additive mem_own_left_add_coset]
 lemma mem_own_left_coset (a : α) : a ∈ a *l s :=
@@ -81,17 +79,17 @@ suffices a * 1 ∈ a *l s, by simpa,
 mem_left_coset a (one_mem s)
 
 @[to_additive mem_own_right_add_coset]
-lemma mem_own_right_coset (a : α) : a ∈ s *r a :=
-suffices 1 * a ∈ s *r a, by simpa,
+lemma mem_own_right_coset (a : α) : a ∈ (s : set α) *r a :=
+suffices 1 * a ∈ (s : set α) *r a, by simpa,
 mem_right_coset a (one_mem s)
 
 @[to_additive mem_left_add_coset_left_add_coset]
 lemma mem_left_coset_left_coset {a : α} (ha : a *l s = s) : a ∈ s :=
-by rw [←ha]; exact mem_own_left_coset s a
+by rw [←submonoid.mem_coe, ←ha]; exact mem_own_left_coset s a
 
 @[to_additive mem_right_add_coset_right_add_coset]
-lemma mem_right_coset_right_coset {a : α} (ha : s *r a = s) : a ∈ s :=
-by rw [←ha]; exact mem_own_right_coset s a
+lemma mem_right_coset_right_coset {a : α} (ha : (s : set α) *r a = s) : a ∈ s :=
+by rw [←submonoid.mem_coe, ←ha]; exact mem_own_right_coset s a
 
 end coset_submonoid
 
@@ -113,17 +111,17 @@ iff.intro
 end coset_group
 
 section coset_subgroup
-open is_submonoid
+open submonoid
 open is_subgroup
 variables [group α] (s : set α) [is_subgroup s]
 
 @[to_additive left_add_coset_mem_left_add_coset]
 lemma left_coset_mem_left_coset {a : α} (ha : a ∈ s) : a *l s = s :=
-set.ext $ by simp [mem_left_coset_iff, mul_mem_cancel_right s (inv_mem ha)]
+set.ext $ by simp [mem_left_coset_iff, mul_mem_cancel_left s (inv_mem ha)]
 
 @[to_additive right_add_coset_mem_right_add_coset]
 lemma right_coset_mem_right_coset {a : α} (ha : a ∈ s) : s *r a = s :=
-set.ext $ assume b, by simp [mem_right_coset_iff, mul_mem_cancel_left s (inv_mem ha)]
+set.ext $ assume b, by simp [mem_right_coset_iff, mul_mem_cancel_right s (inv_mem ha)]
 
 @[to_additive normal_of_eq_add_cosets]
 theorem normal_of_eq_cosets [normal_subgroup s] (g : α) : g *l s = s *r g :=
@@ -140,8 +138,11 @@ theorem normal_iff_eq_cosets : normal_subgroup s ↔ ∀ g, g *l s = s *r g :=
 
 end coset_subgroup
 
+run_cmd to_additive.map_namespace `quotient_group `quotient_add_group
+
 namespace quotient_group
 
+@[to_additive]
 def left_rel [group α] (s : set α) [is_subgroup s] : setoid α :=
 ⟨λ x y, x⁻¹ * y ∈ s,
   assume x, by simp [is_submonoid.one_mem],
@@ -151,49 +152,40 @@ def left_rel [group α] (s : set α) [is_subgroup s] : setoid α :=
   assume x y z hxy hyz,
   have x⁻¹ * y * (y⁻¹ * z) ∈ s, from is_submonoid.mul_mem hxy hyz,
   by simpa [mul_assoc] using this⟩
-attribute [to_additive quotient_add_group.left_rel._proof_1] left_rel._proof_1
-attribute [to_additive quotient_add_group.left_rel] left_rel
-attribute [to_additive quotient_add_group.left_rel.equations._eqn_1] left_rel.equations._eqn_1
 
 /-- `quotient s` is the quotient type representing the left cosets of `s`.
   If `s` is a normal subgroup, `quotient s` is a group -/
+@[to_additive]
 def quotient [group α] (s : set α) [is_subgroup s] : Type* := quotient (left_rel s)
-attribute [to_additive quotient_add_group.quotient] quotient
-attribute [to_additive quotient_add_group.quotient.equations._eqn_1] quotient.equations._eqn_1
 
 variables [group α] {s : set α} [is_subgroup s]
 
-@[to_additive quotient_add_group.mk]
+@[to_additive]
 def mk (a : α) : quotient s :=
 quotient.mk' a
-attribute [to_additive quotient_add_group.mk.equations._eqn_1] mk.equations._eqn_1
 
-@[elab_as_eliminator, to_additive quotient_add_group.induction_on]
+@[elab_as_eliminator, to_additive]
 lemma induction_on {C : quotient s → Prop} (x : quotient s)
   (H : ∀ z, C (quotient_group.mk z)) : C x :=
 quotient.induction_on' x H
-attribute [elab_as_eliminator] quotient_add_group.induction_on
 
-@[to_additive quotient_add_group.has_coe]
-instance : has_coe α (quotient s) := ⟨mk⟩
-attribute [to_additive quotient_add_group.has_coe.equations._eqn_1] has_coe.equations._eqn_1
+@[to_additive]
+instance : has_coe_t α (quotient s) := ⟨mk⟩ -- note [use has_coe_t]
 
-@[elab_as_eliminator, to_additive quotient_add_group.induction_on']
+@[elab_as_eliminator, to_additive]
 lemma induction_on' {C : quotient s → Prop} (x : quotient s)
   (H : ∀ z : α, C z) : C x :=
 quotient.induction_on' x H
-attribute [elab_as_eliminator] quotient_add_group.induction_on'
 
-@[to_additive quotient_add_group.inhabited]
+@[to_additive]
 instance [group α] (s : set α) [is_subgroup s] : inhabited (quotient s) :=
 ⟨((1 : α) : quotient s)⟩
-attribute [to_additive quotient_add_group.inhabited.equations._eqn_1] inhabited.equations._eqn_1
 
 @[to_additive quotient_add_group.eq]
 protected lemma eq {a b : α} : (a : quotient s) = b ↔ a⁻¹ * b ∈ s :=
 quotient.eq'
 
-@[to_additive quotient_add_group.eq_class_eq_left_coset]
+@[to_additive]
 lemma eq_class_eq_left_coset [group α] (s : set α) [is_subgroup s] (g : α) :
   {x : α | (x : quotient s) = g} = left_coset g s :=
 set.ext $ λ z, by rw [mem_left_coset_iff, set.mem_set_of_eq, eq_comm, quotient_group.eq]
@@ -204,26 +196,18 @@ namespace is_subgroup
 open quotient_group
 variables [group α] {s : set α}
 
+@[to_additive]
 def left_coset_equiv_subgroup (g : α) : left_coset g s ≃ s :=
 ⟨λ x, ⟨g⁻¹ * x.1, (mem_left_coset_iff _).1 x.2⟩,
  λ x, ⟨g * x.1, x.1, x.2, rfl⟩,
  λ ⟨x, hx⟩, subtype.eq $ by simp,
  λ ⟨g, hg⟩, subtype.eq $ by simp⟩
-attribute [to_additive is_add_subgroup.left_add_coset_equiv_subgroup._match_2] left_coset_equiv_subgroup._match_2
-attribute [to_additive is_add_subgroup.left_add_coset_equiv_subgroup._match_1] left_coset_equiv_subgroup._match_1
-attribute [to_additive is_add_subgroup.left_add_coset_equiv_subgroup._proof_4] left_coset_equiv_subgroup._proof_4
-attribute [to_additive is_add_subgroup.left_add_coset_equiv_subgroup._proof_3] left_coset_equiv_subgroup._proof_3
-attribute [to_additive is_add_subgroup.left_add_coset_equiv_subgroup._proof_2] left_coset_equiv_subgroup._proof_2
-attribute [to_additive is_add_subgroup.left_add_coset_equiv_subgroup._proof_1] left_coset_equiv_subgroup._proof_1
-attribute [to_additive is_add_subgroup.left_add_coset_equiv_subgroup] left_coset_equiv_subgroup
-attribute [to_additive is_add_subgroup.left_add_coset_equiv_subgroup.equations._eqn_1] left_coset_equiv_subgroup.equations._eqn_1
-attribute [to_additive is_add_subgroup.left_add_coset_equiv_subgroup._match_1.equations._eqn_1] left_coset_equiv_subgroup._match_1.equations._eqn_1
-attribute [to_additive is_add_subgroup.left_add_coset_equiv_subgroup._match_2.equations._eqn_1] left_coset_equiv_subgroup._match_2.equations._eqn_1
 
+@[to_additive]
 noncomputable def group_equiv_quotient_times_subgroup (hs : is_subgroup s) :
-  α ≃ (quotient s × s) :=
+  α ≃ quotient s × s :=
 calc α ≃ Σ L : quotient s, {x : α // (x : quotient s)= L} :
-  equiv.equiv_fib quotient_group.mk
+  (equiv.sigma_preimage_equiv quotient_group.mk).symm
     ... ≃ Σ L : quotient s, left_coset (quotient.out' L) s :
   equiv.sigma_congr_right (λ L,
     begin rw ← eq_class_eq_left_coset,
@@ -232,12 +216,8 @@ calc α ≃ Σ L : quotient s, {x : α // (x : quotient s)= L} :
     end)
     ... ≃ Σ L : quotient s, s :
   equiv.sigma_congr_right (λ L, left_coset_equiv_subgroup _)
-    ... ≃ (quotient s × s) :
+    ... ≃ quotient s × s :
   equiv.sigma_equiv_prod _ _
-attribute [to_additive is_add_subgroup.add_group_equiv_quotient_times_subgroup._proof_2] group_equiv_quotient_times_subgroup._proof_2
-attribute [to_additive is_add_subgroup.add_group_equiv_quotient_times_subgroup._proof_1] group_equiv_quotient_times_subgroup._proof_1
-attribute [to_additive is_add_subgroup.add_group_equiv_quotient_times_subgroup] group_equiv_quotient_times_subgroup
-attribute [to_additive is_add_subgroup.add_group_equiv_quotient_times_subgroup.equations._eqn_1] group_equiv_quotient_times_subgroup.equations._eqn_1
 
 end is_subgroup
 
@@ -246,7 +226,7 @@ namespace quotient_group
 variables [group α]
 
 noncomputable def preimage_mk_equiv_subgroup_times_set
-  (s : set α) [is_subgroup s] (t : set (quotient s)) : quotient_group.mk ⁻¹' t ≃ (s × t) :=
+  (s : set α) [is_subgroup s] (t : set (quotient s)) : quotient_group.mk ⁻¹' t ≃ s × t :=
 have h : ∀ {x : quotient s} {a : α}, x ∈ t → a ∈ s →
   (quotient.mk' (quotient.out' x * a) : quotient s) = quotient.mk' (quotient.out' x) :=
     λ x a hx ha, quotient.sound' (show (quotient.out' x * a)⁻¹ * quotient.out' x ∈ s,
@@ -261,3 +241,11 @@ have h : ∀ {x : quotient s} {a : α}, x ∈ t → a ∈ s →
   right_inv := λ ⟨⟨a, ha⟩, ⟨x, hx⟩⟩, show (_, _) = _, by simp [h hx ha] }
 
 end quotient_group
+
+/--
+We use the class `has_coe_t` instead of `has_coe` if the first argument is a variable,
+or if the second argument is a variable not occurring in the first.
+Using `has_coe` would cause looping of type-class inference. See
+<https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/remove.20all.20instances.20with.20variable.20domain>
+-/
+library_note "use has_coe_t"

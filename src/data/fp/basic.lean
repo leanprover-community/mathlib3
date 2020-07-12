@@ -5,8 +5,8 @@ Authors: Mario Carneiro
 
 Implementation of floating-point numbers (experimental).
 -/
-
-import data.rat.basic data.semiquot
+import data.rat
+import data.semiquot
 
 def int.shift2 (a b : ℕ) : ℤ → ℕ × ℕ
 | (int.of_nat e) := (a.shiftl e, b)
@@ -14,12 +14,13 @@ def int.shift2 (a b : ℕ) : ℤ → ℕ × ℕ
 
 namespace fp
 
+@[derive inhabited]
 inductive rmode
 | NE -- round to nearest even
 
 class float_cfg :=
 (prec emax : ℕ)
-(prec_pos : prec > 0)
+(prec_pos : 0 < prec)
 (prec_max : prec ≤ emax)
 
 variable [C : float_cfg]
@@ -57,12 +58,21 @@ theorem float.zero.valid : valid_finite emin 0 :=
   apply sub_nonneg_of_le,
   apply int.coe_nat_le_coe_nat_of_le,
   exact C.prec_pos
-end, by simpa [emin] using show (prec : ℤ) ≤ emax + float_cfg.emax,
-  from le_trans (int.coe_nat_le.2 C.prec_max) (le_add_of_nonneg_left (int.coe_zero_le _)),
-by rw max_eq_right; simp⟩
+end,
+suffices prec ≤ 2 * emax,
+begin
+  rw ← int.coe_nat_le at this,
+  rw ← sub_nonneg at *,
+  simp only [emin, emax] at *,
+  ring,
+  assumption
+end, le_trans C.prec_max (nat.le_mul_of_pos_left dec_trivial),
+by rw max_eq_right; simp [sub_eq_add_neg]⟩
 
 def float.zero (s : bool) : float :=
 float.finite s emin 0 float.zero.valid
+
+instance : inhabited float := ⟨float.zero tt⟩
 
 protected def float.sign' : float → semiquot bool
 | (float.inf s) := pure s

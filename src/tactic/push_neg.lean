@@ -6,9 +6,7 @@ Author: Patrick Massot, Simon Hudon
 A tactic pushing negations into an expression
 -/
 
-
-
-import tactic.interactive
+import logic.basic
 import algebra.order
 
 open tactic expr
@@ -21,9 +19,9 @@ variable  {α : Sort u}
 variables (p q : Prop)
 variable  (s : α → Prop)
 
-local attribute [instance] classical.prop_decidable
+local attribute [instance, priority 10] classical.prop_decidable
 theorem not_not_eq : (¬ ¬ p) = p := propext not_not
-theorem not_and_eq : (¬ (p ∧ q)) = (¬ p ∨ ¬ q) := propext not_and_distrib
+theorem not_and_eq : (¬ (p ∧ q)) = (p → ¬ q) := propext not_and
 theorem not_or_eq : (¬ (p ∨ q)) = (¬ p ∧ ¬ q) := propext not_or_distrib
 theorem not_forall_eq : (¬ ∀ x, s x) = (∃ x, ¬ s x) := propext not_forall
 theorem not_exists_eq : (¬ ∃ x, s x) = (∀ x, ¬ s x) := propext not_exists
@@ -52,7 +50,7 @@ do e ← whnf_reducible e,
       | `(¬ %%a)      := do pr ← mk_app ``not_not_eq [a],
                             return (some (a, pr))
       | `(%%a ∧ %%b)  := do pr ← mk_app ``not_and_eq [a, b],
-                            return (some (`(¬ %%a ∨ ¬ %%b), pr))
+                            return (some (`((%%a : Prop) → ¬ %%b), pr))
       | `(%%a ∨ %%b)  := do pr ← mk_app ``not_or_eq [a, b],
                             return (some (`(¬ %%a ∧ ¬ %%b), pr))
       | `(%%a ≤ %%b)  := do e ← to_expr ``(%%b < %%a),
@@ -123,8 +121,25 @@ open push_neg
 
 /--
 Push negations in the goal of some assumption.
-For instance, given `h : ¬ ∀ x, ∃ y, x ≤ y`, will be transformed by `push_neg at h` into
+
+For instance, a hypothesis `h : ¬ ∀ x, ∃ y, x ≤ y` will be transformed by `push_neg at h` into
 `h : ∃ x, ∀ y, y < x`. Variables names are conserved.
+
+This tactic pushes negations inside expressions. For instance, given an assumption
+```lean
+h : ¬ ∀ ε > 0, ∃ δ > 0, ∀ x, |x - x₀| ≤ δ → |f x - y₀| ≤ ε)
+```
+writing `push_neg at h` will turn `h` into
+```lean
+h : ∃ ε, ε > 0 ∧ ∀ δ, δ > 0 → (∃ x, |x - x₀| ≤ δ ∧ ε < |f x - y₀|),
+```
+
+(the pretty printer does *not* use the abreviations `∀ δ > 0` and `∃ ε > 0` but this issue
+has nothing to do with `push_neg`).
+Note that names are conserved by this tactic, contrary to what would happen with `simp`
+using the relevant lemmas. One can also use this tactic at the goal using `push_neg`,
+at every assumption and the goal using `push_neg at *` or at selected assumptions and the goal
+using say `push_neg at h h' ⊢` as usual.
 -/
 meta def tactic.interactive.push_neg : parse location → tactic unit
 | (loc.ns loc_l) := loc_l.mmap'
@@ -139,21 +154,39 @@ meta def tactic.interactive.push_neg : parse location → tactic unit
     local_context >>= mmap' (λ h, push_neg_at_hyp (local_pp_name h)) ,
     try `[simp only [push_neg.not_eq] at * { eta := ff }]
 
-lemma imp_of_not_imp_not (P Q : Prop) [decidable Q] : (¬ Q → ¬ P) → (P → Q) :=
-λ h hP, by_contradiction (λ h', h h' hP)
+add_tactic_doc
+{ name       := "push_neg",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.push_neg],
+  tags       := ["logic"] }
+
+lemma imp_of_not_imp_not (P Q : Prop) : (¬ Q → ¬ P) → (P → Q) :=
+λ h hP, classical.by_contradiction (λ h', h h' hP)
+
+/-- Matches either an identifier "h" or a pair of identifiers "h with k" -/
+meta def name_with_opt : lean.parser (name × option name) :=
+prod.mk <$> ident <*> (some <$> (tk "with" >> ident) <|> return none)
 
 /--
 Transforms the goal into its contrapositive.
-`contrapose`     turns a goal `P → Q` into `¬ Q → ¬ P`
-`contrapose!`    turns a goal `P → Q` into `¬ Q → ¬ P` and pushes negations inside `P` and `Q`
-                 using `push_neg`
-`contrapose h`   first reverts the local assumption `h`, and then uses `contrapose` and `intro h`
-`contrapose! h`  first reverts the local assumption `h`, and then uses `contrapose!` and `intro h`
+
+* `contrapose`     turns a goal `P → Q` into `¬ Q → ¬ P`
+* `contrapose!`    turns a goal `P → Q` into `¬ Q → ¬ P` and pushes negations inside `P` and `Q`
+  using `push_neg`
+* `contrapose h`   first reverts the local assumption `h`, and then uses `contrapose` and `intro h`
+* `contrapose! h`  first reverts the local assumption `h`, and then uses `contrapose!` and `intro h`
+* `contrapose h with new_h` uses the name `new_h` for the introduced hypothesis
 -/
-meta def tactic.interactive.contrapose (push : parse (tk "!" )?) : parse ident? → tactic unit
-| (some h) := get_local h >>= revert >> tactic.interactive.contrapose none >> intro h >> skip
+meta def tactic.interactive.contrapose (push : parse (tk "!" )?) : parse name_with_opt? → tactic unit
+| (some (h, h')) := get_local h >>= revert >> tactic.interactive.contrapose none >> intro (h'.get_or_else h) >> skip
 | none :=
   do `(%%P → %%Q) ← target | fail "The goal is not an implication, and you didn't specify an assumption",
-  cp ← mk_mapp `imp_of_not_imp_not [P, Q, none] <|> fail "contrapose only applies to nondependent arrows between decidable props",
+  cp ← mk_mapp ``imp_of_not_imp_not [P, Q] <|> fail "contrapose only applies to nondependent arrows between props",
   apply cp,
   when push.is_some $ try (tactic.interactive.push_neg (loc.ns [none]))
+
+add_tactic_doc
+{ name       := "contrapose",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.contrapose],
+  tags       := ["logic"] }

@@ -1,11 +1,12 @@
 /-
 Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Leonardo de Moura, Keeley Hoek
+Authors: Lucas Allen, Keeley Hoek, Leonardo de Moura
 
 Converter monad for building simplifiers.
 -/
-import tactic.core tactic.converter.old_conv
+import tactic.core
+import tactic.converter.old_conv
 
 namespace old_conv
 meta def save_info (p : pos) : old_conv unit :=
@@ -88,8 +89,28 @@ namespace interactive
 open interactive
 open tactic.interactive (rw_rules)
 
+/-- The `conv` tactic provides a `conv` within a `conv`. It allows the user to return to a
+previous state of the outer conv block to continue editing an expression without having to
+start a new conv block. -/
+protected meta def conv (t : conv.interactive.itactic) : conv unit :=
+do transitivity,
+   a :: rest ← get_goals,
+   set_goals [a],
+   t,
+   all_goals reflexivity,
+   set_goals rest
+
 meta def erw (q : parse rw_rules) (cfg : rewrite_cfg := {md := semireducible}) : conv unit :=
 rw q cfg
+
+open interactive.types
+
+/--
+`guard_target t` fails if the target of the conv goal is not `t`.
+We use this tactic for writing tests.
+-/
+meta def guard_target (p : parse texpr) : conv unit :=
+do `(%%t = _) ← target, tactic.interactive.guard_expr_eq t p
 
 end interactive
 end conv

@@ -21,18 +21,22 @@ universes u
 open category_theory
 
 /-- A (bundled) uniform space. -/
-@[reducible] def UniformSpace : Type (u+1) := bundled uniform_space
+def UniformSpace : Type (u+1) := bundled uniform_space
 
 namespace UniformSpace
+
+/-- The information required to build morphisms for `UniformSpace`. -/
+instance : unbundled_hom @uniform_continuous :=
+⟨@uniform_continuous_id, @uniform_continuous.comp⟩
+
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] UniformSpace
 
 instance (x : UniformSpace) : uniform_space x := x.str
 
 /-- Construct a bundled `UniformSpace` from the underlying type and the typeclass. -/
 def of (α : Type u) [uniform_space α] : UniformSpace := ⟨α⟩
 
-/-- The information required to build morphisms for `UniformSpace`. -/
-instance concrete_category_uniform_continuous : unbundled_hom @uniform_continuous :=
-⟨@uniform_continuous_id, @uniform_continuous.comp⟩
+instance : inhabited UniformSpace := ⟨UniformSpace.of empty⟩
 
 instance (X Y : UniformSpace) : has_coe_to_fun (X ⟶ Y) :=
 { F := λ _, X → Y, coe := category_theory.functor.map (forget UniformSpace) }
@@ -76,8 +80,14 @@ instance (X : CpltSepUniformSpace) : separated_space ((to_UniformSpace X).α) :=
 /-- Construct a bundled `UniformSpace` from the underlying type and the appropriate typeclasses. -/
 def of (X : Type u) [uniform_space X] [complete_space X] [separated_space X] : CpltSepUniformSpace := ⟨X⟩
 
+instance : inhabited CpltSepUniformSpace :=
+begin
+  haveI : separated_space empty := separated_iff_t2.mpr (by apply_instance),
+  exact ⟨CpltSepUniformSpace.of empty⟩
+end
+
 /-- The category instance on `CpltSepUniformSpace`. -/
-instance category : category CpltSepUniformSpace :=
+instance category : large_category CpltSepUniformSpace :=
 induced_category.category to_UniformSpace
 
 /-- The concrete category instance on `CpltSepUniformSpace`. -/
@@ -101,7 +111,7 @@ noncomputable def completion_functor : UniformSpace ⥤ CpltSepUniformSpace :=
   map_id' := λ X, subtype.eq completion.map_id,
   map_comp' := λ X Y Z f g, subtype.eq (completion.map_comp g.property f.property).symm, }.
 
-/-- The inclusion of any uniform spaces into its completion. -/
+/-- The inclusion of a uniform space into its completion. -/
 def completion_hom (X : UniformSpace) :
   X ⟶ (forget₂ CpltSepUniformSpace UniformSpace).obj (completion_functor.obj X) :=
 { val := (coe : X → completion X),

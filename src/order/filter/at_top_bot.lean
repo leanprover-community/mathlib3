@@ -262,12 +262,12 @@ variables [ordered_cancel_add_comm_monoid β] {l : filter α} {f g : α → β}
 lemma tendsto_at_top_of_add_const_left (C : β) (hf : tendsto (λ x, C + f x) l at_top) :
   tendsto f l at_top :=
 (tendsto_at_top _ l).2 $ assume b,
-  ((tendsto_at_top _ _).1 hf (C + b)).mono (λ x, le_of_add_le_add_left) 
+  ((tendsto_at_top _ _).1 hf (C + b)).mono (λ x, le_of_add_le_add_left)
 
 lemma tendsto_at_top_of_add_const_right (C : β) (hf : tendsto (λ x, f x + C) l at_top) :
   tendsto f l at_top :=
 (tendsto_at_top _ l).2 $ assume b,
-  ((tendsto_at_top _ _).1 hf (b + C)).mono (λ x, le_of_add_le_add_right) 
+  ((tendsto_at_top _ _).1 hf (b + C)).mono (λ x, le_of_add_le_add_right)
 
 lemma tendsto_at_top_of_add_bdd_above_left' (C) (hC : ∀ᶠ x in l, f x ≤ C)
   (h : tendsto (λ x, f x + g x) l at_top) :
@@ -410,7 +410,7 @@ begin
     inhabit β₂,
     simp [at_top, prod_infi_left (default β₁), prod_infi_right (default β₂), infi_prod],
     exact infi_comm },
-  { push_neg at ne,
+  { rw not_and_distrib at ne,
     cases ne;
     { have : ¬ (nonempty (β₁ × β₂)), by simp [ne],
       rw [at_top.filter_eq_bot_of_not_nonempty ne, at_top.filter_eq_bot_of_not_nonempty this],

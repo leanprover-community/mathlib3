@@ -85,7 +85,7 @@ variables (α β)
 
 /-- The equivalence relation of being almost everywhere equal -/
 instance ae_eq_fun.setoid : setoid { f : α → β // measurable f } :=
-⟨λf g, ∀ₘ a, f.1 a = g.1 a, λ f, ae_eq_refl f, λ f g, ae_eq_symm, λ f g h, ae_eq_trans⟩
+⟨λf g, ∀ᵐ a, f.1 a = g.1 a, λ f, ae_eq_refl f, λ f g, ae_eq_symm, λ f g h, ae_eq_trans⟩
 
 /-- The space of equivalence classes of measurable functions, where two measurable functions are
     equivalent if they agree almost everywhere, i.e., they differ on a set of measure `0`.  -/
@@ -116,17 +116,17 @@ instance : has_coe (α →ₘ β) (α → β) := ⟨λf, f.to_fun⟩
 by cases f; refl
 
 @[simp] lemma mk_eq_mk (f g : α → β) (hf hg) :
-  mk f hf = mk g hg ↔ (∀ₘ a, f a = g a) :=
+  mk f hf = mk g hg ↔ (∀ᵐ a, f a = g a) :=
 ⟨quotient.exact, assume h, quotient.sound h⟩
 
 @[ext] lemma ext (f g : α →ₘ β) (f' g' : α → β) (hf' hg') (hf : mk f' hf' = f)
-  (hg : mk g' hg' = g) (h : ∀ₘ a, f' a = g' a) : f = g :=
+  (hg : mk g' hg' = g) (h : ∀ᵐ a, f' a = g' a) : f = g :=
 by { rw [← hf, ← hg], rw mk_eq_mk, assumption }
 
 lemma self_eq_mk (f : α →ₘ β) : f = mk (f.to_fun) f.measurable :=
 by simp [mk, ae_eq_fun.to_fun]
 
-lemma all_ae_mk_to_fun (f : α → β) (hf) : ∀ₘ a, (mk f hf).to_fun a = f a :=
+lemma all_ae_mk_to_fun (f : α → β) (hf) : ∀ᵐ a, (mk f hf).to_fun a = f a :=
 by rw [← mk_eq_mk _ f _ hf, ← self_eq_mk (mk f hf)]
 
 /-- Given a measurable function `g : β → γ`, and an almost everywhere equal function `[f] : α →ₘ β`,
@@ -145,7 +145,7 @@ lemma comp_eq_mk_to_fun {γ : Type*} [measurable_space γ] (g : β → γ) (hg :
 by conv_lhs { rw [self_eq_mk f, comp_mk] }
 
 lemma comp_to_fun {γ : Type*} [measurable_space γ] (g : β → γ) (hg : measurable g) (f : α →ₘ β) :
-  ∀ₘ a, (comp g hg f).to_fun a = (g ∘ f.to_fun) a :=
+  ∀ᵐ a, (comp g hg f).to_fun a = (g ∘ f.to_fun) a :=
 by { rw comp_eq_mk_to_fun, apply all_ae_mk_to_fun }
 
 /-- Given a measurable function `g : β → γ → δ`, and almost everywhere equal functions
@@ -177,13 +177,13 @@ by conv_lhs { rw [self_eq_mk f₁, self_eq_mk f₂, comp₂_mk_mk] }
 
 lemma comp₂_to_fun {γ δ : Type*} [measurable_space γ] [measurable_space δ]
   (g : β → γ → δ) (hg : measurable (λp:β×γ, g p.1 p.2)) (f₁ : α →ₘ β) (f₂ : α →ₘ γ) :
-  ∀ₘ a, (comp₂ g hg f₁ f₂).to_fun a = g (f₁.to_fun a) (f₂.to_fun a) :=
+  ∀ᵐ a, (comp₂ g hg f₁ f₂).to_fun a = g (f₁.to_fun a) (f₂.to_fun a) :=
 by { rw comp₂_eq_mk_to_fun, apply all_ae_mk_to_fun }
 
 /-- Given a predicate `p` and an equivalence class `[f]`, return true if `p` holds of `f a`
     for almost all `a` -/
 def lift_pred (p : β → Prop) (f : α →ₘ β) : Prop :=
-quotient.lift_on f (λf, ∀ₘ a, p (f.1 a))
+quotient.lift_on f (λf, ∀ᵐ a, p (f.1 a))
 begin
   assume f g h, dsimp, refine propext (eventually_congr _),
   filter_upwards [h], simp {contextual := tt}
@@ -197,11 +197,11 @@ lift_pred (λp:β×γ, r p.1 p.2)
     (measurable.fst measurable_id) (measurable.snd measurable_id)) f g)
 
 lemma lift_rel_mk_mk {γ : Type*} [measurable_space γ] (r : β → γ → Prop)
-  (f : α → β) (g : α → γ) (hf hg) : lift_rel r (mk f hf) (mk g hg) ↔ ∀ₘ a, r (f a) (g a) :=
+  (f : α → β) (g : α → γ) (hf hg) : lift_rel r (mk f hf) (mk g hg) ↔ ∀ᵐ a, r (f a) (g a) :=
 iff.rfl
 
 lemma lift_rel_iff_to_fun {γ : Type*} [measurable_space γ] (r : β → γ → Prop) (f : α →ₘ β)
-  (g : α →ₘ γ) : lift_rel r f g ↔ ∀ₘ a, r (f.to_fun a) (g.to_fun a) :=
+  (g : α →ₘ γ) : lift_rel r f g ↔ ∀ᵐ a, r (f.to_fun a) (g.to_fun a) :=
 by conv_lhs { rw [self_eq_mk f, self_eq_mk g, lift_rel_mk_mk] }
 
 section order
@@ -215,10 +215,10 @@ instance [preorder β] : preorder (α →ₘ β) :=
     filter_upwards [hfg, hgh] assume a, le_trans
   end }
 
-lemma mk_le_mk [preorder β] {f g : α → β} (hf hg) : mk f hf ≤ mk g hg ↔ ∀ₘ a, f a ≤ g a :=
+lemma mk_le_mk [preorder β] {f g : α → β} (hf hg) : mk f hf ≤ mk g hg ↔ ∀ᵐ a, f a ≤ g a :=
 iff.rfl
 
-lemma le_iff_to_fun_le [preorder β] {f g : α →ₘ β} : f ≤ g ↔ ∀ₘ a, f.to_fun a ≤ g.to_fun a :=
+lemma le_iff_to_fun_le [preorder β] {f g : α →ₘ β} : f ≤ g ↔ ∀ᵐ a, f.to_fun a ≤ g.to_fun a :=
 lift_rel_iff_to_fun _ _ _
 
 instance [partial_order β] : partial_order (α →ₘ β) :=
@@ -244,18 +244,18 @@ variable (α)
     being almost everywhere equal -/
 def const (b : β) : α →ₘ β := mk (λa:α, b) measurable_const
 
-lemma const_to_fun (b : β) : ∀ₘ a, (const α b).to_fun a = b := all_ae_mk_to_fun _ _
+lemma const_to_fun (b : β) : ∀ᵐ a, (const α b).to_fun a = b := all_ae_mk_to_fun _ _
 variable {α}
 
 instance [inhabited β] : inhabited (α →ₘ β) := ⟨const _ (default _)⟩
 
 instance [has_zero β] : has_zero (α →ₘ β) := ⟨const α 0⟩
 lemma zero_def [has_zero β] : (0 : α →ₘ β) = mk (λa:α, 0) measurable_const := rfl
-lemma zero_to_fun [has_zero β] : ∀ₘ a, (0 : α →ₘ β).to_fun a = 0 := const_to_fun _ _
+lemma zero_to_fun [has_zero β] : ∀ᵐ a, (0 : α →ₘ β).to_fun a = 0 := const_to_fun _ _
 
 instance [has_one β] : has_one (α →ₘ β) := ⟨const α 1⟩
 lemma one_def [has_one β] : (1 : α →ₘ β) = mk (λa:α, 1) measurable_const := rfl
-lemma one_to_fun [has_one β] : ∀ₘ a, (1 : α →ₘ β).to_fun a = 1 := const_to_fun _ _
+lemma one_to_fun [has_one β] : ∀ᵐ a, (1 : α →ₘ β).to_fun a = 1 := const_to_fun _ _
 
 section add_monoid
 variables {γ : Type*}
@@ -267,7 +267,7 @@ instance : has_add (α →ₘ γ) := ⟨comp₂ (+) measurable_add⟩
 @[simp] lemma mk_add_mk (f g : α → γ) (hf hg) :
    (mk f hf) + (mk g hg) = mk (f + g) (measurable.add hf hg) := rfl
 
-lemma add_to_fun (f g : α →ₘ γ) : ∀ₘ a, (f + g).to_fun a = f.to_fun a + g.to_fun a :=
+lemma add_to_fun (f g : α →ₘ γ) : ∀ᵐ a, (f + g).to_fun a = f.to_fun a + g.to_fun a :=
 comp₂_to_fun _ _ _ _
 
 instance : add_monoid (α →ₘ γ) :=
@@ -300,7 +300,7 @@ instance : has_neg (α →ₘ γ) := ⟨comp has_neg.neg measurable_id.neg⟩
 
 @[simp] lemma neg_mk (f : α → γ) (hf) : -(mk f hf) = mk (-f) (measurable.neg hf) := rfl
 
-lemma neg_to_fun (f : α →ₘ γ) : ∀ₘ a, (-f).to_fun a = - f.to_fun a := comp_to_fun _ _ _
+lemma neg_to_fun (f : α →ₘ γ) : ∀ᵐ a, (-f).to_fun a = - f.to_fun a := comp_to_fun _ _ _
 
 variables [second_countable_topology γ]
 instance : add_group (α →ₘ γ) :=
@@ -311,7 +311,7 @@ instance : add_group (α →ₘ γ) :=
 @[simp] lemma mk_sub_mk (f g : α → γ) (hf hg) :
    (mk f hf) - (mk g hg) = mk (λa, (f a) - (g a)) (measurable.sub hf hg) := rfl
 
-lemma sub_to_fun (f g : α →ₘ γ) : ∀ₘ a, (f - g).to_fun a = f.to_fun a - g.to_fun a :=
+lemma sub_to_fun (f g : α →ₘ γ) : ∀ᵐ a, (f - g).to_fun a = f.to_fun a - g.to_fun a :=
 begin
   rw sub_eq_add_neg,
   filter_upwards [add_to_fun f (-g), neg_to_fun g],
@@ -347,7 +347,7 @@ instance : has_scalar 𝕜 (α →ₘ γ) :=
   c • (mk f hf) = mk (c • f) (hf.const_smul _) :=
 rfl
 
-lemma smul_to_fun (c : 𝕜) (f : α →ₘ γ) : ∀ₘ a, (c • f).to_fun a = c • f.to_fun a :=
+lemma smul_to_fun (c : 𝕜) (f : α →ₘ γ) : ∀ᵐ a, (c • f).to_fun a = c • f.to_fun a :=
 comp_to_fun _ _ _
 
 variables [second_countable_topology γ] [topological_add_monoid γ]
@@ -417,7 +417,7 @@ variables {γ : Type*} [emetric_space γ] [second_countable_topology γ] [measur
 def comp_edist (f g : α →ₘ γ) : α →ₘ ennreal := comp₂ edist measurable_edist f g
 
 lemma comp_edist_to_fun (f g : α →ₘ γ) :
-  ∀ₘ a, (comp_edist f g).to_fun a = edist (f.to_fun a) (g.to_fun a) :=
+  ∀ᵐ a, (comp_edist f g).to_fun a = edist (f.to_fun a) (g.to_fun a) :=
 comp₂_to_fun _ _ _ _
 
 lemma comp_edist_self : ∀ (f : α →ₘ γ), comp_edist f f = 0 :=
@@ -453,7 +453,7 @@ lemma edist_zero_to_fun [has_zero γ] (f : α →ₘ γ) : edist f 0 = ∫⁻ x,
 begin
   rw edist_to_fun,
   apply lintegral_congr_ae,
-  have : ∀ₘ a:α, (0 : α →ₘ γ).to_fun a = 0 := zero_to_fun,
+  have : ∀ᵐ a:α, (0 : α →ₘ γ).to_fun a = 0 := zero_to_fun,
   filter_upwards [this],
   assume a h,
   simp only [mem_set_of_eq] at *,
@@ -524,7 +524,7 @@ variables {γ : Type*} [topological_space γ] [decidable_linear_order γ] [order
 def pos_part (f : α →ₘ γ) : α →ₘ γ :=
 comp₂ max (measurable_id.fst.max measurable_id.snd) f 0
 
-lemma pos_part_to_fun (f : α →ₘ γ) : ∀ₘ a, (pos_part f).to_fun a = max (f.to_fun a) (0:γ) :=
+lemma pos_part_to_fun (f : α →ₘ γ) : ∀ᵐ a, (pos_part f).to_fun a = max (f.to_fun a) (0:γ) :=
 begin
   filter_upwards [comp₂_to_fun max (measurable_id.fst.max measurable_id.snd) f 0,
     @ae_eq_fun.zero_to_fun α γ],

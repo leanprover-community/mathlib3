@@ -72,7 +72,7 @@ have eq : (λa, edist (f a) 0) = (λa, (nnnorm(f a) : ennreal)),
   by { funext, rw edist_eq_coe_nnnorm },
 iff.intro (by { rw eq, exact λh, h }) $ by { rw eq, exact λh, h }
 
-lemma integrable_iff_of_real {f : α → ℝ} (h : ∀ₘ a, 0 ≤ f a) :
+lemma integrable_iff_of_real {f : α → ℝ} (h : ∀ᵐ a, 0 ≤ f a) :
   integrable f ↔ (∫⁻ a, ennreal.of_real (f a)) < ⊤ :=
 have lintegral_eq :  (∫⁻ a, ennreal.of_real ∥f a∥) = (∫⁻ a, ennreal.of_real (f a)) :=
 begin
@@ -85,7 +85,7 @@ begin
 end,
 by rw [integrable_iff_norm, lintegral_eq]
 
-lemma integrable_of_ae_eq {f g : α → β} (hf : integrable f) (h : ∀ₘ a, f a = g a) : integrable g :=
+lemma integrable_of_ae_eq {f g : α → β} (hf : integrable f) (h : ∀ᵐ a, f a = g a) : integrable g :=
 begin
   simp only [integrable] at *,
   have : (∫⁻ (a : α), ↑(nnnorm (f a))) = (∫⁻ (a : α), ↑(nnnorm (g a))),
@@ -98,10 +98,10 @@ begin
   rwa ← this
 end
 
-lemma integrable_congr_ae {f g : α → β} (h : ∀ₘ a, f a = g a) : integrable f ↔ integrable g :=
+lemma integrable_congr_ae {f g : α → β} (h : ∀ᵐ a, f a = g a) : integrable f ↔ integrable g :=
 iff.intro (λhf, integrable_of_ae_eq hf h) (λhg, integrable_of_ae_eq hg (ae_eq_symm h))
 
-lemma integrable_of_le_ae {f : α → β} {g : α → γ} (h : ∀ₘ a, ∥f a∥ ≤ ∥g a∥) (hg : integrable g) :
+lemma integrable_of_le_ae {f : α → β} {g : α → γ} (h : ∀ᵐ a, ∥f a∥ ≤ ∥g a∥) (hg : integrable g) :
   integrable f :=
 begin
   simp only [integrable_iff_norm] at *,
@@ -219,8 +219,8 @@ have eq : (λa, (nnnorm ∥f a∥ : ennreal)) = λa, (nnnorm (f a) : ennreal),
 by { rw [integrable, integrable, eq] }
 
 lemma integrable_of_integrable_bound {f : α → β} {bound : α → ℝ} (h : integrable bound)
-  (h_bound : ∀ₘ a, ∥f a∥ ≤ bound a) : integrable f :=
-have h₁ : ∀ₘ a, (nnnorm (f a) : ennreal) ≤ ennreal.of_real (bound a),
+  (h_bound : ∀ᵐ a, ∥f a∥ ≤ bound a) : integrable f :=
+have h₁ : ∀ᵐ a, (nnnorm (f a) : ennreal) ≤ ennreal.of_real (bound a),
 begin
   filter_upwards [h_bound],
   simp only [mem_set_of_eq],
@@ -238,18 +238,18 @@ section dominated_convergence
 
 variables {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
 
-lemma all_ae_of_real_F_le_bound (h : ∀ n, ∀ₘ a, ∥F n a∥ ≤ bound a) :
-  ∀ n, ∀ₘ a, ennreal.of_real ∥F n a∥ ≤ ennreal.of_real (bound a) :=
+lemma all_ae_of_real_F_le_bound (h : ∀ n, ∀ᵐ a, ∥F n a∥ ≤ bound a) :
+  ∀ n, ∀ᵐ a, ennreal.of_real ∥F n a∥ ≤ ennreal.of_real (bound a) :=
 λn, by filter_upwards [h n] λ a h, ennreal.of_real_le_of_real h
 
-lemma all_ae_tendsto_of_real_norm (h : ∀ₘ a, tendsto (λ n, F n a) at_top $ 𝓝 $ f a) :
-  ∀ₘ a, tendsto (λn, ennreal.of_real ∥F n a∥) at_top $ 𝓝 $ ennreal.of_real ∥f a∥ :=
+lemma all_ae_tendsto_of_real_norm (h : ∀ᵐ a, tendsto (λ n, F n a) at_top $ 𝓝 $ f a) :
+  ∀ᵐ a, tendsto (λn, ennreal.of_real ∥F n a∥) at_top $ 𝓝 $ ennreal.of_real ∥f a∥ :=
 by filter_upwards [h]
   λ a h, tendsto_of_real $ tendsto.comp (continuous.tendsto continuous_norm _) h
 
-lemma all_ae_of_real_f_le_bound (h_bound : ∀ n, ∀ₘ a, ∥F n a∥ ≤ bound a)
-  (h_lim : ∀ₘ a, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
-  ∀ₘ a, ennreal.of_real ∥f a∥ ≤ ennreal.of_real (bound a) :=
+lemma all_ae_of_real_f_le_bound (h_bound : ∀ n, ∀ᵐ a, ∥F n a∥ ≤ bound a)
+  (h_lim : ∀ᵐ a, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
+  ∀ᵐ a, ennreal.of_real ∥f a∥ ≤ ennreal.of_real (bound a) :=
 begin
   have F_le_bound := all_ae_of_real_F_le_bound h_bound,
   rw ← ae_all_iff at F_le_bound,
@@ -260,8 +260,8 @@ end
 
 lemma integrable_of_dominated_convergence {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
   (bound_integrable : integrable bound)
-  (h_bound : ∀ n, ∀ₘ a, ∥F n a∥ ≤ bound a)
-  (h_lim : ∀ₘ a, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
+  (h_bound : ∀ n, ∀ᵐ a, ∥F n a∥ ≤ bound a)
+  (h_lim : ∀ᵐ a, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
   integrable f :=
 /- `∥F n a∥ ≤ bound a` and `∥F n a∥ --> ∥f a∥` implies `∥f a∥ ≤ bound a`,
   and so `∫ ∥f∥ ≤ ∫ bound < ⊤` since `bound` is integrable -/
@@ -283,13 +283,13 @@ lemma tendsto_lintegral_norm_of_dominated_convergence [measurable_space β]
   (F_measurable : ∀ n, measurable (F n))
   (f_measurable : measurable f)
   (bound_integrable : integrable bound)
-  (h_bound : ∀ n, ∀ₘ a, ∥F n a∥ ≤ bound a)
-  (h_lim : ∀ₘ a, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
+  (h_bound : ∀ n, ∀ᵐ a, ∥F n a∥ ≤ bound a)
+  (h_lim : ∀ᵐ a, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
   tendsto (λn, ∫⁻ a, ennreal.of_real ∥F n a - f a∥) at_top (𝓝 0) :=
 let b := λa, 2 * ennreal.of_real (bound a) in
 /- `∥F n a∥ ≤ bound a` and `F n a --> f a` implies `∥f a∥ ≤ bound a`, and thus by the
   triangle inequality, have `∥F n a - f a∥ ≤ 2 * (bound a). -/
-have hb : ∀ n, ∀ₘ a, ennreal.of_real ∥F n a - f a∥ ≤ b a,
+have hb : ∀ n, ∀ᵐ a, ennreal.of_real ∥F n a - f a∥ ≤ b a,
 begin
   assume n,
   filter_upwards [all_ae_of_real_F_le_bound h_bound n, all_ae_of_real_f_le_bound h_bound h_lim],
@@ -304,9 +304,9 @@ begin
     ... = b a : by rw ← two_mul
 end,
 /- On the other hand, `F n a --> f a` implies that `∥F n a - f a∥ --> 0`  -/
-have h : ∀ₘ a, tendsto (λ n, ennreal.of_real ∥F n a - f a∥) at_top (𝓝 0),
+have h : ∀ᵐ a, tendsto (λ n, ennreal.of_real ∥F n a - f a∥) at_top (𝓝 0),
 begin
-  suffices h : ∀ₘ a, tendsto (λ n, ennreal.of_real ∥F n a - f a∥) at_top (𝓝 $ ennreal.of_real 0),
+  suffices h : ∀ᵐ a, tendsto (λ n, ennreal.of_real ∥F n a - f a∥) at_top (𝓝 $ ennreal.of_real 0),
   { rwa ennreal.of_real_zero at h },
   filter_upwards [h_lim],
   assume a h,
@@ -572,7 +572,7 @@ def of_fun (f : α → β) (hfm : measurable f) (hfi : integrable f) : (α →�
 lemma of_fun_eq_mk (f : α → β) (hfm hfi) : (of_fun f hfm hfi : α →ₘ β) = mk f hfm := rfl
 
 lemma of_fun_eq_of_fun (f g : α → β) (hfm hfi hgm hgi) :
-  of_fun f hfm hfi = of_fun g hgm hgi ↔ ∀ₘ a, f a = g a :=
+  of_fun f hfm hfi = of_fun g hgm hgi ↔ ∀ᵐ a, f a = g a :=
 by { rw ← l1.eq_iff, simp only [of_fun_eq_mk, mk_eq_mk] }
 
 lemma of_fun_zero :
@@ -627,19 +627,19 @@ end
 lemma mk_to_fun (f : α →₁ β) : mk (f.to_fun) f.measurable = f :=
 by { rw ← of_fun_eq_mk, rw l1.eq_iff, exact of_fun_to_fun f }
 
-lemma to_fun_of_fun (f : α → β) (hfm hfi) : ∀ₘ a, (of_fun f hfm hfi).to_fun a = f a :=
+lemma to_fun_of_fun (f : α → β) (hfm hfi) : ∀ᵐ a, (of_fun f hfm hfi).to_fun a = f a :=
 (all_ae_mk_to_fun f hfm).mono $ assume a, id
 
 variables (α β)
-lemma zero_to_fun : ∀ₘ a, (0 : α →₁ β).to_fun a = 0 := ae_eq_fun.zero_to_fun
+lemma zero_to_fun : ∀ᵐ a, (0 : α →₁ β).to_fun a = 0 := ae_eq_fun.zero_to_fun
 variables {α β}
 
-lemma add_to_fun (f g : α →₁ β) : ∀ₘ a, (f + g).to_fun a = f.to_fun a + g.to_fun a :=
+lemma add_to_fun (f g : α →₁ β) : ∀ᵐ a, (f + g).to_fun a = f.to_fun a + g.to_fun a :=
 ae_eq_fun.add_to_fun _ _
 
-lemma neg_to_fun (f : α →₁ β) : ∀ₘ a, (-f).to_fun a = -f.to_fun a := ae_eq_fun.neg_to_fun _
+lemma neg_to_fun (f : α →₁ β) : ∀ᵐ a, (-f).to_fun a = -f.to_fun a := ae_eq_fun.neg_to_fun _
 
-lemma sub_to_fun (f g : α →₁ β) : ∀ₘ a, (f - g).to_fun a = f.to_fun a - g.to_fun a :=
+lemma sub_to_fun (f g : α →₁ β) : ∀ᵐ a, (f - g).to_fun a = f.to_fun a - g.to_fun a :=
 ae_eq_fun.sub_to_fun _ _
 
 lemma dist_to_fun (f g : α →₁ β) :
@@ -661,7 +661,7 @@ end
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-lemma smul_to_fun (c : 𝕜) (f : α →₁ β) : ∀ₘ a, (c • f).to_fun a = c • f.to_fun a :=
+lemma smul_to_fun (c : 𝕜) (f : α →₁ β) : ∀ᵐ a, (c • f).to_fun a = c • f.to_fun a :=
 ae_eq_fun.smul_to_fun _ _
 
 end to_fun
@@ -681,10 +681,10 @@ def neg_part (f : α →₁ ℝ) : α →₁ ℝ := pos_part (-f)
 
 @[norm_cast] lemma coe_pos_part (f : α →₁ ℝ) : (f.pos_part : α →ₘ ℝ) = (f : α →ₘ ℝ).pos_part := rfl
 
-lemma pos_part_to_fun (f : α →₁ ℝ) : ∀ₘ a, (pos_part f).to_fun a = max (f.to_fun a) 0 :=
+lemma pos_part_to_fun (f : α →₁ ℝ) : ∀ᵐ a, (pos_part f).to_fun a = max (f.to_fun a) 0 :=
 ae_eq_fun.pos_part_to_fun _
 
-lemma neg_part_to_fun_eq_max (f : α →₁ ℝ) : ∀ₘ a, (neg_part f).to_fun a = max (- f.to_fun a) 0 :=
+lemma neg_part_to_fun_eq_max (f : α →₁ ℝ) : ∀ᵐ a, (neg_part f).to_fun a = max (- f.to_fun a) 0 :=
 begin
   rw neg_part,
   filter_upwards [pos_part_to_fun (-f), neg_to_fun f],
@@ -693,7 +693,7 @@ begin
   rw [h₁, h₂]
 end
 
-lemma neg_part_to_fun_eq_min (f : α →₁ ℝ) : ∀ₘ a, (neg_part f).to_fun a = - min (f.to_fun a) 0 :=
+lemma neg_part_to_fun_eq_min (f : α →₁ ℝ) : ∀ᵐ a, (neg_part f).to_fun a = - min (f.to_fun a) 0 :=
 begin
   filter_upwards [neg_part_to_fun_eq_max f],
   simp only [mem_set_of_eq],
@@ -701,7 +701,7 @@ begin
   rw [h, min_eq_neg_max_neg_neg, _root_.neg_neg, neg_zero],
 end
 
-lemma norm_le_norm_of_ae_le {f g : α →₁ β} (h : ∀ₘ a, ∥f.to_fun a∥ ≤ ∥g.to_fun a∥) : ∥f∥ ≤ ∥g∥ :=
+lemma norm_le_norm_of_ae_le {f g : α →₁ β} (h : ∀ᵐ a, ∥f.to_fun a∥ ≤ ∥g.to_fun a∥) : ∥f∥ ≤ ∥g∥ :=
 begin
   simp only [l1.norm_eq_norm_to_fun],
   rw to_real_le_to_real,

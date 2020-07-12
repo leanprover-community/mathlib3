@@ -482,7 +482,8 @@ lemma mem_Sup_of_directed_on {S : set (subsemiring R)} (Sne : S.nonempty)
 begin
   haveI : nonempty S := Sne.to_subtype,
   rw [Sup_eq_supr, supr_subtype', mem_supr_of_directed, subtype.exists],
-  exact (directed_on_iff_directed _).1 hS
+  { simp only [subtype.coe_mk] },
+  { exact hS.directed_coe }
 end
 
 lemma coe_Sup_of_directed_on {S : set (subsemiring R)} (Sne : S.nonempty) (hS : directed_on (≤) S) :

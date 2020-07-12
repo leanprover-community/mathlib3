@@ -210,7 +210,7 @@ lemma is_measurable.insert {s : set α} (hs : is_measurable s) (a : α) :
 lemma set.finite.is_measurable {s : set α} (hs : finite s) : is_measurable s :=
 finite.induction_on hs is_measurable.empty $ λ a s ha hsf hsm, hsm.insert _
 
-lemma finset.is_measurable (s : finset α) : is_measurable (↑s : set α) :=
+protected lemma finset.is_measurable (s : finset α) : is_measurable (↑s : set α) :=
 s.finite_to_set.is_measurable
 
 end measurable_singleton_class

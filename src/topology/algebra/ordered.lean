@@ -1797,16 +1797,26 @@ variables [complete_linear_order α] [topological_space α] [order_topology α]
 /-- If the liminf and the limsup of a function coincide, then the limit of the function
 exists and has the same value -/
 theorem tendsto_of_liminf_eq_limsup {f : filter β} {u : β → α} {a : α}
-  (h : liminf f u = a ∧ limsup f u = a) : tendsto u f (𝓝 a) :=
-  le_nhds_of_Limsup_eq_Liminf is_bounded_le_of_top is_bounded_ge_of_bot h.2 h.1
+  (hinf : liminf f u = a) (hsup : limsup f u = a) : tendsto u f (𝓝 a) :=
+le_nhds_of_Limsup_eq_Liminf is_bounded_le_of_top is_bounded_ge_of_bot hsup hinf
+
+/-- If the liminf and the limsup of a function coincide, then the limit of the function
+exists and has the same value -/
+theorem tendsto_of_le_liminf_of_limsup_le {f : filter β} {u : β → α} {a : α}
+  (hinf : a ≤ liminf f u) (hsup : limsup f u ≤ a) :
+  tendsto u f (𝓝 a) :=
+if hf : f = ⊥ then hf.symm ▸ tendsto_bot
+else tendsto_of_liminf_eq_limsup
+  (le_antisymm (le_trans (liminf_le_limsup hf) hsup) hinf)
+  (le_antisymm hsup (le_trans hinf (liminf_le_limsup hf)))
 
 /-- If a function has a limit, then its limsup coincides with its limit-/
-theorem limsup_eq_of_tendsto {f : filter β} {u : β → α} {a : α} (hf : f ≠ ⊥)
+theorem filter.tendsto.limsup_eq {f : filter β} {u : β → α} {a : α} (hf : f ≠ ⊥)
   (h : tendsto u f (𝓝 a)) : limsup f u = a :=
-  Limsup_eq_of_le_nhds (map_ne_bot hf) h
+Limsup_eq_of_le_nhds (map_ne_bot hf) h
 
 /-- If a function has a limit, then its liminf coincides with its limit-/
-theorem liminf_eq_of_tendsto {f : filter β} {u : β → α} {a : α} (hf : f ≠ ⊥)
+theorem filter.tendsto.liminf_eq {f : filter β} {u : β → α} {a : α} (hf : f ≠ ⊥)
   (h : tendsto u f (𝓝 a)) : liminf f u = a :=
   Liminf_eq_of_le_nhds (map_ne_bot hf) h
 

@@ -338,26 +338,6 @@ lemma has_sum.tsum_eq (ha : has_sum f a) : (∑'b, f b) = a :=
 lemma summable.has_sum_iff (h : summable f) : has_sum f a ↔ (∑'b, f b) = a :=
 iff.intro has_sum.tsum_eq (assume eq, eq ▸ h.has_sum)
 
-@[simp] lemma tsum_zero : (∑'b:β, 0:α) = 0 := has_sum_zero.tsum_eq
-
-lemma tsum_eq_sum {f : β → α} {s : finset β} (hf : ∀b∉s, f b = 0)  :
-  (∑'b, f b) = ∑ b in s, f b :=
-(has_sum_sum_of_ne_finset_zero hf).tsum_eq
-
-lemma tsum_fintype [fintype β] (f : β → α) : (∑'b, f b) = ∑ b, f b :=
-(has_sum_fintype f).tsum_eq
-
-@[simp] lemma finset.tsum_subtype (s : finset β) (f : β → α) :
-  (∑'x : {x // x ∈ s}, f x) = ∑ x in s, f x :=
-(s.has_sum f).tsum_eq
-
-lemma tsum_eq_single {f : β → α} (b : β) (hf : ∀b' ≠ b, f b' = 0)  :
-  (∑'b, f b) = f b :=
-(has_sum_single b hf).tsum_eq
-
-@[simp] lemma tsum_ite_eq (b : β) (a : α) : (∑'b', if b' = b then a else 0) = a :=
-(has_sum_ite_eq b a).tsum_eq
-
 lemma equiv.tsum_eq_tsum_of_has_sum_iff_has_sum {α' : Type*} [add_comm_monoid α']
   [topological_space α'] (e : α' ≃ α) (h0 : e 0 = 0) {f : β → α} {g : γ → α'}
   (h : ∀ {a}, has_sum f (e a) ↔ has_sum g a) :
@@ -372,6 +352,30 @@ lemma tsum_eq_tsum_of_has_sum_iff_has_sum {f : β → α} {g : γ → α}
   (h : ∀{a}, has_sum f a ↔ has_sum g a) :
   (∑'b, f b) = (∑'c, g c) :=
 (equiv.refl α).tsum_eq_tsum_of_has_sum_iff_has_sum rfl @h
+
+@[simp] lemma tsum_zero : (∑'b:β, 0:α) = 0 := has_sum_zero.tsum_eq
+
+lemma tsum_eq_sum {f : β → α} {s : finset β} (hf : ∀b∉s, f b = 0)  :
+  (∑'b, f b) = ∑ b in s, f b :=
+(has_sum_sum_of_ne_finset_zero hf).tsum_eq
+
+lemma tsum_fintype [fintype β] (f : β → α) : (∑'b, f b) = ∑ b, f b :=
+(has_sum_fintype f).tsum_eq
+
+@[simp] protected lemma finset.tsum_subtype (s : finset β) (f : β → α) :
+  (∑'x : (↑s : set β), f x) = ∑ x in s, f x :=
+(s.has_sum f).tsum_eq
+
+lemma tsum_subtype (s : set β) (f : β → α) :
+  (∑' x : s, f x) = ∑' x, s.indicator f x :=
+tsum_eq_tsum_of_has_sum_iff_has_sum $ λ _, has_sum_subtype_iff_indicator
+
+lemma tsum_eq_single {f : β → α} (b : β) (hf : ∀b' ≠ b, f b' = 0)  :
+  (∑'b, f b) = f b :=
+(has_sum_single b hf).tsum_eq
+
+@[simp] lemma tsum_ite_eq (b : β) (a : α) : (∑'b', if b' = b then a else 0) = a :=
+(has_sum_ite_eq b a).tsum_eq
 
 lemma equiv.tsum_eq (j : γ ≃ β) (f : β → α) : (∑'c, f (j c)) = (∑'b, f b) :=
 tsum_eq_tsum_of_has_sum_iff_has_sum $ λ a, j.has_sum_iff
@@ -452,15 +456,15 @@ lemma summable.summable_compl_iff {s : set β} (hf : summable (f ∘ coe : s →
   λ ⟨a, ha⟩, (hf.has_sum.has_sum_iff_compl.1 ha).summable⟩
 
 protected lemma finset.has_sum_compl_iff (s : finset β) :
-  has_sum (λ x : {x // x ∉ s}, f x) a ↔ has_sum f (a + ∑ i in s, f i) :=
+  has_sum (λ x : (↑s : set β)ᶜ, f x) a ↔ has_sum f (a + ∑ i in s, f i) :=
 (s.has_sum f).has_sum_compl_iff.trans $ by rw [add_comm]
 
 protected lemma finset.has_sum_iff_compl (s : finset β) :
-  has_sum f a ↔ has_sum (λ x : {x // x ∉ s}, f x) (a - ∑ i in s, f i) :=
+  has_sum f a ↔ has_sum (λ x : (↑s : set β)ᶜ, f x) (a - ∑ i in s, f i) :=
 (s.has_sum f).has_sum_iff_compl
 
 protected lemma finset.summable_compl_iff (s : finset β) :
-  summable (λ x : {x // x ∉ s}, f x) ↔ summable f :=
+  summable (λ x : (↑s : set β)ᶜ, f x) ↔ summable f :=
 (s.summable f).summable_compl_iff
 
 lemma set.finite.summable_compl_iff {s : set β} (hs : s.finite) :

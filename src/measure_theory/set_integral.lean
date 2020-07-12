@@ -101,7 +101,7 @@ def integrable_on (s : set α) (f : α → β) : Prop := integrable (s.indicator
 lemma integrable_on_congr (h : ∀x, x ∈ s → f x = g x) : integrable_on s f ↔ integrable_on s g :=
 by simp only [integrable_on, indicator_congr h]
 
-lemma integrable_on_congr_ae (h : ∀ₘ x, x ∈ s → f x = g x) :
+lemma integrable_on_congr_ae (h : ∀ᵐ x, x ∈ s → f x = g x) :
   integrable_on s f ↔ integrable_on s g :=
 by { apply integrable_congr_ae, exact indicator_congr_ae h }
 
@@ -197,11 +197,11 @@ lemma integral_on_congr (h : ∀ a ∈ s, f a = g a) : (∫ a in s, f a) = (∫ 
 by simp only [indicator_congr h]
 
 lemma integral_on_congr_of_ae_eq (hf : measurable_on s f) (hg : measurable_on s g)
-  (h : ∀ₘ a, a ∈ s → f a = g a) : (∫ a in s, f a) = (∫ a in s, g a) :=
+  (h : ∀ᵐ a, a ∈ s → f a = g a) : (∫ a in s, f a) = (∫ a in s, g a) :=
 integral_congr_ae hf hg (indicator_congr_ae h)
 
 lemma integral_on_congr_of_set (hsm : measurable_on s f) (htm : measurable_on t f)
-  (h : ∀ₘ a, a ∈ s ↔ a ∈ t) : (∫ a in s, f a) = (∫ a in t, f a) :=
+  (h : ∀ᵐ a, a ∈ s ↔ a ∈ t) : (∫ a in s, f a) = (∫ a in t, f a) :=
 integral_congr_ae hsm htm $ indicator_congr_of_set h
 
 variables (s t)
@@ -232,7 +232,7 @@ lemma integral_on_sub (hfm : measurable_on s f) (hfi : integrable_on s f) (hgm :
 by { simp only [indicator_sub], exact integral_sub hfm hfi hgm hgi }
 
 lemma integral_on_le_integral_on_ae {f g : α → ℝ} (hfm : measurable_on s f) (hfi : integrable_on s f)
-  (hgm : measurable_on s g) (hgi : integrable_on s g) (h : ∀ₘ a, a ∈ s → f a ≤ g a) :
+  (hgm : measurable_on s g) (hgi : integrable_on s g) (h : ∀ᵐ a, a ∈ s → f a ≤ g a) :
   (∫ a in s, f a) ≤ (∫ a in s, g a) :=
 begin
   apply integral_le_integral_ae hfm hfi hgm hgi,
@@ -251,7 +251,7 @@ lemma integral_on_union (hsm : measurable_on s f) (hsi : integrable_on s f)
 by { rw [indicator_union_of_disjoint h, integral_add hsm hsi htm hti] }
 
 lemma integral_on_union_ae (hs : is_measurable s) (ht : is_measurable t) (hsm : measurable_on s f)
-  (hsi : integrable_on s f) (htm : measurable_on t f) (hti : integrable_on t f) (h : ∀ₘ a, a ∉ s ∩ t) :
+  (hsi : integrable_on s f) (htm : measurable_on t f) (hti : integrable_on t f) (h : ∀ᵐ a, a ∉ s ∩ t) :
   (∫ a in (s ∪ t), f a) = (∫ a in s, f a) + (∫ a in t, f a) :=
 begin
   have := integral_congr_ae _ _ (indicator_union_ae h f),
@@ -260,13 +260,13 @@ begin
   { exact measurable.add hsm htm }
 end
 
-lemma integral_on_nonneg_of_ae {f : α → ℝ} (hf : ∀ₘ a, a ∈ s → 0 ≤ f a) : (0:ℝ) ≤ (∫ a in s, f a) :=
+lemma integral_on_nonneg_of_ae {f : α → ℝ} (hf : ∀ᵐ a, a ∈ s → 0 ≤ f a) : (0:ℝ) ≤ (∫ a in s, f a) :=
 integral_nonneg_of_ae $ by { filter_upwards [hf] λ a h, indicator_nonneg' h }
 
 lemma integral_on_nonneg {f : α → ℝ} (hf : ∀ a, a ∈ s → 0 ≤ f a) : (0:ℝ) ≤ (∫ a in s, f a) :=
 integral_on_nonneg_of_ae $ univ_mem_sets' hf
 
-lemma integral_on_nonpos_of_ae {f : α → ℝ} (hf : ∀ₘ a, a ∈ s → f a ≤ 0) : (∫ a in s, f a) ≤ 0 :=
+lemma integral_on_nonpos_of_ae {f : α → ℝ} (hf : ∀ᵐ a, a ∈ s → f a ≤ 0) : (∫ a in s, f a) ≤ 0 :=
 integral_nonpos_of_nonpos_ae $ by { filter_upwards [hf] λ a h, indicator_nonpos' h }
 
 lemma integral_on_nonpos {f : α → ℝ} (hf : ∀ a, a ∈ s → f a ≤ 0) : (∫ a in s, f a) ≤ 0 :=

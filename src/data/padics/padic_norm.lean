@@ -458,7 +458,7 @@ begin
   { intros p hp hpn,
     rw [finset.mem_filter, finset.mem_range] at hp,
     haveI Hp : fact p.prime := hp.2,
-    rw [padic_val_nat_eq_factors_count, multiset.coe_count, pow_eq_pow], congr }
+    rw [padic_val_nat_eq_factors_count, multiset.coe_count, pow_eq_pow] }
 end
 
 end padic_val_nat

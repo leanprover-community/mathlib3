@@ -11,16 +11,16 @@ variables {R : Type u}
 variables {α : Type w} [decidable_eq α]
 
 open finset
+variables (s : finset α)
 
 namespace polynomial
 
 section poly_big_ops
 
-variables (s : finset α) (f : α → polynomial R)
-
 section comm_semiring
 
-variable [comm_semiring R]
+variables [comm_semiring R] (f : α → polynomial R)
+
 
 lemma nat_degree_prod_le : (s.prod f).nat_degree ≤ ∑ i in s, (f i).nat_degree :=
 begin
@@ -61,8 +61,9 @@ end comm_semiring
 
 section integral_domain
 
-variable [integral_domain R]
-lemma nat_degree_prod_eq (h : ∀ i : α, i ∈ s → f i ≠ 0) :
+variables [integral_domain R] (f : α → polynomial R)
+
+lemma nat_degree_prod_eq (h : ∀ i ∈ s, f i ≠ 0) :
   (s.prod f).nat_degree = ∑ i in s, (f i).nat_degree :=
 begin
   apply nat_degree_prod_eq', rw prod_ne_zero_iff, sorry,

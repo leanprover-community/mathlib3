@@ -14,7 +14,6 @@ noncomputable theory
 
 open_locale classical big_operators
 
-
 /-- Nonnegative real numbers. -/
 def nnreal := {r : ℝ // 0 ≤ r}
 localized "notation ` ℝ≥0 ` := nnreal" in nnreal

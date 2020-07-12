@@ -7,7 +7,7 @@ universes u w
 open polynomial
 open_locale big_operators
 
-variables {R : Type u} [comm_ring R]
+variables {R : Type u} [comm_semiring R]
 variables {α : Type w} [decidable_eq α]
 
 open finset

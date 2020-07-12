@@ -13,11 +13,41 @@ universes u w
 
 
 variables {R : Type u} {α : Type w} [decidable_eq α]
-variables (s : finset α)
 
 namespace polynomial
 
+section comm_semiring_homs
+
+variable [comm_semiring R]
+
+def eval_ring_hom : R → (polynomial R →+* R) := eval₂_ring_hom (ring_hom.id R)
+
+@[simp]
+lemma coe_eval_ring_hom (r : R) (p : polynomial R) : eval_ring_hom r p = eval r p := rfl
+
+def coeff_zero_ring_hom : polynomial R →+* R := eval_ring_hom 0
+
+@[simp]
+lemma coe_coeff_zero_ring_hom (p : polynomial R) : coeff_zero_ring_hom p = p.coeff 0 :=
+by { rw coeff_zero_eq_eval_zero p, refl }
+
+end comm_semiring_homs
+
+section integral_domain_homs
+
+variable [integral_domain R]
+
+def leading_coeff_monoid_hom : polynomial R →* R :=
+{to_fun := leading_coeff, map_one' := by simp, map_mul' := leading_coeff_mul}
+
+@[simp] lemma coe_leading_coeff_monoid_hom (p : polynomial R) :
+  leading_coeff_monoid_hom p = leading_coeff p := rfl
+
+end integral_domain_homs
+
 section poly_big_ops
+
+variable (s : finset α)
 
 section comm_semiring
 variables [comm_semiring R] (f : α → polynomial R)
@@ -59,7 +89,6 @@ begin
   rw prod_eq_one, intros, apply h, assumption,
 end
 
-
 end comm_semiring
 
 section integral_domain
@@ -73,21 +102,9 @@ begin
   intros x hx, simp [h x hx],
 end
 
-def leading_coeff_monoid_hom : polynomial R →* R :=
-{to_fun := leading_coeff, map_one' := by simp, map_mul' := leading_coeff_mul}
-
-@[simp] lemma coe_leading_coeff_monoid_hom (p : polynomial R) :
-  leading_coeff_monoid_hom p = leading_coeff p := rfl
-
 lemma leading_coeff_prod :
   (∏ i in s, f i).leading_coeff = ∏ i in s, (f i).leading_coeff :=
-begin
-  --induction s using finset.induction with x s hx hs, { simp },
-  --rw prod_insert hx,
-  --rw leading_coeff_mul, rw hs,
-  --rw prod_insert hx,
-  rw ← coe_leading_coeff_monoid_hom, apply monoid_hom.map_prod,
-end
+by { rw ← coe_leading_coeff_monoid_hom, apply monoid_hom.map_prod }
 
 end integral_domain
 end poly_big_ops

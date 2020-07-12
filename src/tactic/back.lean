@@ -251,11 +251,11 @@ meta def back_state.init (goals : list expr) (lemmas : list back_lemma) (limit l
 
 -- keep only uninstantiable metavariables
 meta def partition_mvars (L : list expr) : tactic (list expr × list expr) :=
-(list.partition (λ e, e.is_meta_var)) <$>
+(list.partition (λ e, e.is_mvar)) <$>
   (L.mmap (λ e, instantiate_mvars e))
 
 meta def partition_apply_state_mvars (L : list apply_state) : tactic (list apply_state × list apply_state) :=
-(list.partition (λ as, as.goal.is_meta_var)) <$>
+(list.partition (λ as, as.goal.is_mvar)) <$>
   (L.mmap (λ as, do e' ← instantiate_mvars as.goal, return { goal := e', ..as }))
 
 /--
@@ -312,7 +312,7 @@ do set_goals [g],
     /- We apply the lemma, and then eagerly discharge propositional subgoals not containing metavariables, using the facts.
        It's important we leave other subgoals for the outside machinery, so that we can back out of incorrect choices. -/
    seq (apply_iff e.lem >> skip)
-       ((do [g] ← get_goals,
+       (λ _, (do [g] ← get_goals,
           is_proof g >>= guardb,
           (list.empty ∘ expr.list_meta_vars) <$> infer_type g >>= guardb,
           s.facts.mfirst (λ f, exact f.lem)) <|> skip),
@@ -582,7 +582,7 @@ do (extra_pr_lemmas, extra_fi_lemmas, gex, hex, all_hyps) ← decode_back_arg_li
    return $ progress_lemmas ++ finishing_lemmas ++ environment_lemmas
 
 meta def replace_mvars (e : expr) : expr :=
-e.replace (λ e' _, if e'.is_meta_var then some (unchecked_cast pexpr.mk_placeholder) else none)
+e.replace (λ e' _, if e'.is_mvar then some (unchecked_cast pexpr.mk_placeholder) else none)
 
 end back
 

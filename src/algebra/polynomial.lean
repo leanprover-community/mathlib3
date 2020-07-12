@@ -27,11 +27,13 @@ section comm_semiring_homs
 
 variable [comm_semiring R]
 
+/-- `polynomial.eval` bundled as a ring_hom -/
 def eval_ring_hom : R → (polynomial R →+* R) := eval₂_ring_hom (ring_hom.id R)
 
 @[simp]
 lemma coe_eval_ring_hom (r : R) (p : polynomial R) : eval_ring_hom r p = eval r p := rfl
 
+/-- A ring hom returning the constant term -/
 def coeff_zero_ring_hom : polynomial R →+* R := eval_ring_hom 0
 
 @[simp]
@@ -44,6 +46,7 @@ section integral_domain_homs
 
 variable [integral_domain R]
 
+/-- `leading_coeff` bundled as a monoid hom-/
 def leading_coeff_monoid_hom : polynomial R →* R :=
 {to_fun := leading_coeff, map_one' := by simp, map_mul' := leading_coeff_mul}
 

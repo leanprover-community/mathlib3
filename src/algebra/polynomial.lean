@@ -72,10 +72,6 @@ begin
   apply nat_degree_prod_eq', rw prod_ne_zero_iff,
   intros x hx, simp [h x hx],
 end
-/-
-Really the next lemma should be an application of
-monoid_hom.map_prod
--/
 
 def leading_coeff_monoid_hom : polynomial R →* R :=
 {to_fun := leading_coeff, map_one' := by simp, map_mul' := leading_coeff_mul}

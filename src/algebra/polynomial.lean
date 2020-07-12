@@ -140,102 +140,12 @@ begin
   simp,
 end
 
-
-lemma quux {α : Type} [decidable_eq α] (a : α) (s : finset α) :
-  card (filter (λ x , x = a) s) = 1 ↔ a ∈ s :=
-begin
-  set t := (filter (λ x , x = a) s),
-  rw card_eq_one,
-  have : ∀ b ∈ t, b = a, { dsimp [t], simp },
-  have hts : t ⊆ s, { simp },
-  split; intro h,
-  { cases h with b hb, apply hts,
-    rw [hb, this b], { simp },
-    rw hb, simp },
-  use a, ext b, split; intro hb,
-  { rw this b, simp, exact hb,  },
-  rw mem_singleton at hb, rw hb, dsimp [t], simpa,
-end
-
-
 lemma monic.nat_degree_mul_eq [nontrivial R] {p q : polynomial R} (hp : p.monic) (hq : q.monic) :
 (p * q).nat_degree = p.nat_degree + q.nat_degree :=
-begin
-  suffices : p.nat_degree + q.nat_degree ≤ (p*q).nat_degree,
-  have : (p*q).nat_degree ≤ p.nat_degree + q.nat_degree, exact nat_degree_mul_le,
-  linarith,
-
-  apply le_nat_degree_of_ne_zero,
-  suffices : (p * q).coeff (p.nat_degree + q.nat_degree) = 1,
-  { rw this, simp },
-  rw coeff_mul,
-  transitivity ∑ (x : ℕ × ℕ) in _, ite (x = ⟨p.nat_degree, q.nat_degree⟩) (1:R) 0,
-  { apply sum_congr, refl,
-    intros x hx,
-    simp only [nat.mem_antidiagonal] at hx,
-    split_ifs with h, rw h, dsimp,
-    iterate 2 {rw [← leading_coeff, monic.leading_coeff]}; try {assumption <|> simp},
-    by_cases h1 : x.fst < p.nat_degree,
-    { suffices : q.coeff x.snd = 0, simp [this],
-      apply coeff_eq_zero_of_nat_degree_lt,
-      linarith,},
-    suffices : p.coeff x.fst = 0, simp [this],
-    apply coeff_eq_zero_of_nat_degree_lt,
-    have key : p.nat_degree ≠ x.fst,
-    { contrapose! h, ext, { dsimp, rw h }, linarith },
-    omega },
-  rw sum_ite, rw sum_const_zero, rw sum_const,
-  suffices : (filter (λ (x : ℕ × ℕ), x = (p.nat_degree, q.nat_degree)) (nat.antidiagonal (p.nat_degree + q.nat_degree))).card = 1,
-  { rw this, simp },
-  rw quux, simp,
-end
+by { apply nat_degree_mul_eq', rw [hp.leading_coeff, hq.leading_coeff], simp }
 
 /-- The second-highest coefficient, or 0 for constants -/
 def next_coeff (p : polynomial R) : R := ite (p.nat_degree = 0) 0 p.coeff (p.nat_degree - 1)
-
-lemma add_smul_X_pow_erase (p : polynomial R) :
-p = p.leading_coeff • X ^ p.nat_degree + finsupp.erase p.nat_degree p :=
-begin
-  ext,
-  by_cases n = p.nat_degree,
-  { rw h,
-    rw coeff_add,
-    unfold leading_coeff,
-    simp only [coeff_smul, mul_one, coeff_X_pow, if_true, eq_self_iff_true],
-    unfold coeff,
-    change p.to_fun p.nat_degree = p.to_fun p.nat_degree + (finsupp.erase p.nat_degree p) p.nat_degree,
-    rw finsupp.erase_same,
-    rw add_zero },
-  { rw coeff_add,
-    simp only [mul_boole, coeff_smul, coeff_X_pow],
-    rw if_neg h,
-    unfold coeff,
-    change p.to_fun n = 0 + (finsupp.erase p.nat_degree p) n,
-    rw finsupp.erase_ne h,
-    rw zero_add,
-    refl }
-end
-
-lemma monic_add_X_pow_erase {p : polynomial R} (hp : p.monic) :
-p = X ^ p.nat_degree + finsupp.erase p.nat_degree p :=
-begin
-  conv_lhs {rw add_smul_X_pow_erase p},
-  rw monic.leading_coeff, simpa,
-end
-
-lemma next_coeff_erase (p : polynomial R) :
-(finsupp.erase p.nat_degree p) (p.nat_degree - 1) = next_coeff p :=
-begin
-  unfold next_coeff,
-  split_ifs,
-  { have h0 : p.nat_degree - 1 = 0 := by omega,
-    rw h0, rw h, rw finsupp.erase_same, refl,
-  },
-  {
-    have h0 : p.nat_degree - 1 ≠ p.nat_degree := by omega,
-    rw finsupp.erase_ne h0, refl,
-  }
-end
 
 lemma next_coeff_mul_monic {p q : polynomial R} (hp : monic p) (hq : monic q) :
 next_coeff (p * q) = next_coeff p + next_coeff q :=

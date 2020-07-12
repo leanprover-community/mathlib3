@@ -8,7 +8,7 @@ begin
   let M := fact N + 1,
   let p := min_fac M,
 
-  have pp : prime p := begin show_term { /- suggest -/ refine min_fac_prime _, apply ne_of_gt, apply succ_lt_succ, library_search, } end,
+  have pp : prime p := begin show_term { /- suggest -/ refine min_fac_prime _, apply ne_of_gt, apply succ_lt_succ, library_search, }, end,
 
   use p,
   split,

@@ -43,9 +43,9 @@ end
 lemma leading_coeff_prod' (h : ∏ i in s, (f i).leading_coeff ≠ 0) :
   (∏ i in s, f i).leading_coeff = ∏ i in s, (f i).leading_coeff :=
 begin
-  revert h, apply s.induction_on, simp, intros a s anins ih,
-  repeat {rw prod_insert anins},
-  intro nz, rw polynomial.leading_coeff_mul'; rwa ih, repeat {apply right_ne_zero_of_mul nz},
+  revert h, induction s using finset.induction with a s ha hs, { simp },
+  repeat { rw prod_insert ha },
+  intro h, rw polynomial.leading_coeff_mul'; { rwa hs, apply right_ne_zero_of_mul h },
 end
 
 lemma nat_degree_prod_eq' (h : ∏ i in s, (f i).leading_coeff ≠ 0) :
@@ -92,9 +92,8 @@ def leading_coeff_monoid_hom : polynomial R →* R :=
 
 lemma leading_coeff_prod :
   (∏ i in s, f i).leading_coeff = ∏ i in s, (f i).leading_coeff :=
-begin
-  rw ← coe_leading_coeff_monoid_hom, apply monoid_hom.map_prod,
-end
+by { rw ← coe_leading_coeff_monoid_hom, apply monoid_hom.map_prod }
+
 
 end integral_domain
 end poly_big_ops

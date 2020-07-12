@@ -47,10 +47,18 @@ begin
   rwa polynomial.leading_coeff_prod', apply right_ne_zero_of_mul nz,
 end
 
-
 lemma monic_prod_monic :
   (∀ a : α, a ∈ s → monic (f a)) → monic (s.prod f) :=
 by { apply prod_induction, apply monic_mul, apply monic_one }
+
+lemma nat_degree_prod_eq_of_monic [nontrivial R] (h : ∀ i : α, i ∈ s → (f i).monic) :
+  (s.prod f).nat_degree = ∑ i in s, (f i).nat_degree :=
+begin
+  apply nat_degree_prod_eq',
+  suffices : ∏ (i : α) in s, (f i).leading_coeff = 1, { rw this, simp },
+  rw prod_eq_one, intros, apply h, assumption,
+end
+
 
 end comm_semiring
 
@@ -74,14 +82,6 @@ begin
 end
 
 
-lemma nat_degree_prod_eq_of_monic [nontrivial R] (h : ∀ i : α, i ∈ s → (f i).monic) :
-  (s.prod f).nat_degree = ∑ i in s, (f i).nat_degree :=
-begin
-  apply nat_degree_prod_eq',
-  rw prod_ne_zero_iff,
-  intros, rw monic.leading_coeff, { simp },
-  apply h, assumption,
-end
 
 end integral_domain
 

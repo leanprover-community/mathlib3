@@ -12,8 +12,7 @@ begin
 
   use p,
   split,
-  { by_contradiction h,
-    push_neg at h,
+  { by_contradiction,
     have h₁ : p ∣ M := by library_search,
     have h₂ : p ∣ fact N := begin /- suggest -/ refine pp.dvd_fact.mpr _, library_search, end,
     have h : p ∣ 1 := by library_search,

@@ -320,6 +320,20 @@ end padic_val_rat
 section padic_val_nat
 
 /--
+A rewrite lemma for `padic_val_nat p (q * r)` with conditions `q ≠ 0`, `r ≠ 0`.
+-/
+protected lemma mul (p : ℕ) [p_prime : fact p.prime] {q r : ℕ} (hq : q ≠ 0) (hr : r ≠ 0) :
+  padic_val_nat p (q * r) = padic_val_nat p q + padic_val_nat p r :=
+begin
+  apply int.coe_nat_inj,
+  simp only [padic_val_rat_of_nat, nat.cast_mul],
+  rw padic_val_rat.mul,
+  norm_cast,
+  exact cast_ne_zero.mpr hq,
+  exact cast_ne_zero.mpr hr,
+end
+
+/--
 Dividing out by a prime factor reduces the padic_val_nat by 1.
 -/
 lemma padic_val_nat_div {p : ℕ} [p_prime : fact p.prime] {b : ℕ} (dvd : p ∣ b) :
@@ -379,9 +393,7 @@ lemma padic_val_nat_div' {p : ℕ} [p_prime : fact p.prime] :
     rcases dvd with ⟨c, rfl⟩,
     rw [mul_div_right c (nat.succ_pos _)],by_cases hc : c = 0,
     { rw [hc, mul_zero] },
-    { apply int.coe_nat_inj,
-      simp only [padic_val_rat_of_nat, nat.cast_mul],
-      rw [padic_val_rat.mul]; norm_cast, -- we really need padic_val_nat_mul
+    { rw mul,
       { suffices : ¬ p ∣ (n+1),
         { rw [padic_val_nat_of_not_dvd this, zero_add] },
         contrapose! cpm,
@@ -389,9 +401,6 @@ lemma padic_val_nat_div' {p : ℕ} [p_prime : fact p.prime] :
       { exact nat.succ_ne_zero _ },
       { exact hc } },
   end
-
-open_locale big_operators
-open_locale classical
 
 lemma padic_val_nat_eq_factors_count (p : ℕ) [hp : fact p.prime] :
   ∀ (n : ℕ), padic_val_nat p n = (factors n).count p
@@ -407,12 +416,19 @@ begin
   show padic_val_nat p n = list.count p (q :: (factors (n / q))),
   rw [list.count_cons', ← padic_val_nat_eq_factors_count],
   split_ifs with h,
-  { rw [← h],
-    sorry },
+  have p_dvd_n : p ∣ n,
+    { have: q ∣ n := nat.min_fac_dvd n,
+      cc },
+  { rw [←h, padic_val_nat_div],
+    { have: 1 ≤ padic_val_nat p n := one_le_padic_val_nat_of_dvd (by linarith) p_dvd_n,
+      exact (nat.sub_eq_iff_eq_add this).mp rfl, },
+    { exact p_dvd_n, }, },
   { suffices : p.coprime q,
     { rw [padic_val_nat_div' this (min_fac_dvd n), add_zero], },
     rwa nat.coprime_primes hp hq, },
 end
+
+open_locale big_operators
 
 lemma prod_pow_prime_padic_val_nat (n : nat) (hn : n ≠ 0) (m : nat) (pr : n < m) :
   ∏ p in finset.filter nat.prime (finset.range m), p ^ (padic_val_nat p n) = n :=

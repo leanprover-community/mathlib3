@@ -1529,7 +1529,7 @@ begin
 end
 
 @[simp]
-lemma div_div_div : ∀ {a b c : ℕ} (dvd : b ∣ a) (dvd2 : a ∣ c), (c / (a / b)) / b = c / a
+lemma div_div_div_eq_div : ∀ {a b c : ℕ} (dvd : b ∣ a) (dvd2 : a ∣ c), (c / (a / b)) / b = c / a
 | 0 _ := by simp
 | (a + 1) 0 := λ _ dvd _, by simpa using dvd
 | (a + 1) (c + 1) :=

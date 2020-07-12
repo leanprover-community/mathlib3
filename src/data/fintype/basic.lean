@@ -644,6 +644,10 @@ set_fintype _
   (set.univ : set α).to_finset = finset.univ :=
 by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
 
+@[simp] lemma set.to_finset_empty [fintype α] :
+  (∅ : set α).to_finset = ∅ :=
+by { ext, simp only [set.mem_empty_eq, set.mem_to_finset, not_mem_empty] }
+
 theorem fintype.card_subtype_le [fintype α] (p : α → Prop) [decidable_pred p] :
   fintype.card {x // p x} ≤ fintype.card α :=
 by rw fintype.subtype_card; exact card_le_of_subset (subset_univ _)

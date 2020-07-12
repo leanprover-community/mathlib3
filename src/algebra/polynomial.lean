@@ -5,12 +5,24 @@ Authors: Aaron Anderson, Jalex Stark.
 -/
 import data.polynomial
 open polynomial finset
-open_locale big_operators
+
+/-
+# Foos and bars
+
+Here we have utility lemmas for polynomials.
+For results that are useful for programming, see data/polynomial.lean
+
+## Main results
+
+- `exists_foo`: the main existence theorem of `foo`s.
+- `bar_of_foo`: a construction of a `bar`, given a `foo`.
+- `bar_eq`    : the main classification theorem of `bar`s.
+-/
 
 noncomputable theory
+open_locale big_operators
 
 universes u w
-
 
 variables {R : Type u} {α : Type w} [decidable_eq α]
 variables (s : finset α)

@@ -84,7 +84,7 @@ try_for timeout $
 retrieve $ do
 g ← mk_meta_var d.type,
 set_goals [g],
-unfreezing (intros *> skip),
+unfreezing intros,
 (lhs, rhs) ← target >>= simp_lhs_rhs,
 sls ← simp_lemmas.mk_default,
 let sls' := sls.erase [d.to_name],

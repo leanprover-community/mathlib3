@@ -129,4 +129,18 @@ noncomputable instance : has_image f :=
 noncomputable instance : has_images (Type u) :=
 { has_image := infer_instance }
 
+noncomputable instance : has_image_maps (Type u) :=
+{ has_image_map := λ f g st,
+  { map := λ x, ⟨st.right x.1, ⟨st.left (classical.some x.2),
+      begin
+        have p := st.w,
+        replace p := congr_fun p (classical.some x.2),
+        simp only [functor.id_map, types_comp_apply, subtype.val_eq_coe] at p,
+        erw [p, classical.some_spec x.2],
+      end⟩⟩ } }
+
+@[simp] lemma image_map {f g : arrow (Type u)} (st : f ⟶ g) (x : image f.hom) :
+  (image.map st x).val = st.right x.1 :=
+rfl
+
 end category_theory.limits.types

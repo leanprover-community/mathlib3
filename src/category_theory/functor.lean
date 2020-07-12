@@ -53,7 +53,7 @@ protected def id : C ⥤ C :=
 { obj := λ X, X,
   map := λ _ _ f, f }
 
-notation `𝟭` := functor.id
+notation `𝟭` := functor.id -- Type this as `\sb1`
 
 instance : inhabited (C ⥤ C) := ⟨functor.id C⟩
 

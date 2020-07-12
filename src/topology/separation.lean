@@ -253,28 +253,28 @@ by rw [eq_empty_iff_forall_not_mem, subset_compl_comm,
        diagonal_eq_range_diagonal_map, range_subset_iff]; simp
 
 lemma compact_compact_separated [t2_space α] {s t : set α}
-  (hs : compact s) (ht : compact t) (hst : s ∩ t = ∅) :
+  (hs : is_compact s) (ht : is_compact t) (hst : s ∩ t = ∅) :
   ∃u v : set α, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ u ∩ v = ∅ :=
 by simp only [prod_subset_compl_diagonal_iff_disjoint.symm] at ⊢ hst;
    exact generalized_tube_lemma hs ht is_closed_diagonal hst
 
-lemma compact.is_closed [t2_space α] {s : set α} (hs : compact s) : is_closed s :=
+lemma is_compact.is_closed [t2_space α] {s : set α} (hs : is_compact s) : is_closed s :=
 is_open_compl_iff.mpr $ is_open_iff_forall_mem_open.mpr $ assume x hx,
   let ⟨u, v, uo, vo, su, xv, uv⟩ :=
-    compact_compact_separated hs (compact_singleton : compact {x})
+    compact_compact_separated hs (compact_singleton : is_compact {x})
       (by rwa [inter_comm, ←subset_compl_iff_disjoint, singleton_subset_iff]) in
   have v ⊆ sᶜ, from
     subset_compl_comm.mp (subset.trans su (subset_compl_iff_disjoint.mpr uv)),
 ⟨v, this, vo, by simpa using xv⟩
 
-lemma compact.inter [t2_space α] {s t : set α} (hs : compact s) (ht : compact t) :
-  compact (s ∩ t) :=
+lemma is_compact.inter [t2_space α] {s t : set α} (hs : is_compact s) (ht : is_compact t) :
+  is_compact (s ∩ t) :=
 hs.inter_right $ ht.is_closed
 
 /-- If a compact set is covered by two open sets, then we can cover it by two compact subsets. -/
-lemma compact.binary_compact_cover [t2_space α] {K U V : set α} (hK : compact K)
+lemma is_compact.binary_compact_cover [t2_space α] {K U V : set α} (hK : is_compact K)
   (hU : is_open U) (hV : is_open V) (h2K : K ⊆ U ∪ V) :
-  ∃ K₁ K₂ : set α, compact K₁ ∧ compact K₂ ∧ K₁ ⊆ U ∧ K₂ ⊆ V ∧ K = K₁ ∪ K₂ :=
+  ∃ K₁ K₂ : set α, is_compact K₁ ∧ is_compact K₂ ∧ K₁ ⊆ U ∧ K₂ ⊆ V ∧ K = K₁ ∪ K₂ :=
 begin
   rcases compact_compact_separated (compact_diff hK hU) (compact_diff hK hV)
     (by rwa [diff_inter_diff, diff_eq_empty]) with ⟨O₁, O₂, h1O₁, h1O₂, h2O₁, h2O₂, hO⟩,
@@ -285,9 +285,9 @@ end
 section
 open finset function
 /-- For every finite open cover `Uᵢ` of a compact set, there exists a compact cover `Kᵢ ⊆ Uᵢ`. -/
-lemma compact.finite_compact_cover [t2_space α] {s : set α} (hs : compact s) {ι} (t : finset ι)
+lemma is_compact.finite_compact_cover [t2_space α] {s : set α} (hs : is_compact s) {ι} (t : finset ι)
   (U : ι → set α) (hU : ∀ i ∈ t, is_open (U i)) (hsC : s ⊆ ⋃ i ∈ t, U i) :
-  ∃ K : ι → set α, (∀ i ∈ t, compact (K i) ∧ K i ⊆ U i) ∧ s = ⋃ i ∈ t, K i :=
+  ∃ K : ι → set α, (∀ i ∈ t, is_compact (K i) ∧ K i ⊆ U i) ∧ s = ⋃ i ∈ t, K i :=
 begin
   classical,
   induction t using finset.induction with x t hx ih generalizing U hU s hs hsC,
@@ -314,7 +314,7 @@ begin
 end
 end
 
-lemma locally_compact_of_compact_nhds [t2_space α] (h : ∀ x : α, ∃ s, s ∈ 𝓝 x ∧ compact s) :
+lemma locally_compact_of_compact_nhds [t2_space α] (h : ∀ x : α, ∃ s, s ∈ 𝓝 x ∧ is_compact s) :
   locally_compact_space α :=
 ⟨assume x n hn,
   let ⟨u, un, uo, xu⟩ := mem_nhds_sets_iff.mp hn in
@@ -340,7 +340,7 @@ locally_compact_of_compact_nhds (assume x, ⟨univ, mem_nhds_sets is_open_univ t
 
 /-- In a locally compact T₂ space, every point has an open neighborhood with compact closure -/
 lemma exists_open_with_compact_closure [locally_compact_space α] [t2_space α] (x : α) :
-  ∃ (U : set α), is_open U ∧ x ∈ U ∧ compact (closure U) :=
+  ∃ (U : set α), is_open U ∧ x ∈ U ∧ is_compact (closure U) :=
 begin
   rcases locally_compact_space.local_compact_nhds x set.univ filter.univ_mem_sets with
     ⟨K, h1K, _, h2K⟩,
@@ -352,7 +352,7 @@ end
 /-- In a locally compact T₂ space, every compact set is contained in the interior of a compact
   set. -/
 lemma exists_compact_superset [locally_compact_space α] [t2_space α] {K : set α}
-  (hK : compact K) : ∃ (K' : set α), compact K' ∧ K ⊆ interior K' :=
+  (hK : is_compact K) : ∃ (K' : set α), is_compact K' ∧ K ⊆ interior K' :=
 begin
   choose U hU using λ x : K, exists_open_with_compact_closure (x : α),
   rcases hK.elim_finite_subcover U (λ x, (hU x).1) (λ x hx, ⟨_, ⟨⟨x, hx⟩, rfl⟩, (hU ⟨x, hx⟩).2.1⟩) with
@@ -387,6 +387,11 @@ let ⟨t, ht₁, ht₂, ht₃⟩ := this in
   mem_sets_of_eq_bot $ by rwa [compl_compl],
   subset.trans (compl_subset_comm.1 ht₂) h₁,
   is_closed_compl_iff.mpr ht₁⟩
+
+lemma closed_nhds_basis [regular_space α] (a : α) :
+  (𝓝 a).has_basis (λ s : set α, s ∈ 𝓝 a ∧ is_closed s) id :=
+⟨λ t, ⟨λ t_in, let ⟨s, s_in, h_st, h⟩ := nhds_is_closed t_in in ⟨s, ⟨s_in, h⟩, h_st⟩,
+       λ ⟨s, ⟨s_in, hs⟩, hst⟩, mem_sets_of_superset s_in hst⟩⟩
 
 instance subtype.regular_space [regular_space α] {p : α → Prop} : regular_space (subtype p) :=
 ⟨begin

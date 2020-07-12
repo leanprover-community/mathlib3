@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import data.fintype.basic
+import data.finset.sort
 import algebra.big_operators
 
 universes u v

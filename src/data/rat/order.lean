@@ -224,7 +224,7 @@ end
 
 section sqrt
 
-def sqrt (q : ℚ) : ℚ := rat.mk (int.sqrt q.num) (nat.sqrt q.denom)
+@[pp_nodot] def sqrt (q : ℚ) : ℚ := rat.mk (int.sqrt q.num) (nat.sqrt q.denom)
 
 theorem sqrt_eq (q : ℚ) : rat.sqrt (q*q) = abs q :=
 by rw [sqrt, mul_self_num, mul_self_denom, int.sqrt_eq, nat.sqrt_eq, abs_def]

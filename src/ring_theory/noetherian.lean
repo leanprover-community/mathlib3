@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Kevin Buzzard
 -/
 import ring_theory.ideal_operations
 import linear_algebra.basis
+import order.order_iso_nat
 
 /-!
 # Noetherian rings and modules
@@ -418,8 +419,8 @@ begin
   rintro ⟨n, hn⟩, change n ∈ N at hn,
   rw [← hs, ← set.image_id ↑s, finsupp.mem_span_iff_total] at hn,
   rcases hn with ⟨l, hl1, hl2⟩,
-  refine ⟨λ x, l x.1, subtype.eq _⟩,
-  change ∑ i in s.attach, l i.1 • i.1 = n,
+  refine ⟨λ x, l x, subtype.ext _⟩,
+  change ∑ i in s.attach, l i • (i : M) = n,
   rw [@finset.sum_attach M M s _ (λ i, l i • i), ← hl2,
       finsupp.total_apply, finsupp.sum, eq_comm],
   refine finset.sum_subset hl1 (λ x _ hx, _),

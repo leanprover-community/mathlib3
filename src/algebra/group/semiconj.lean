@@ -6,7 +6,6 @@ Authors: Yury Kudryashov
 Some proofs and docs came from `algebra/commute` (c) Neil Strickland
 -/
 import algebra.group.units
-import tactic.rewrite
 
 /-!
 # Semiconjugate elements of a semigroup

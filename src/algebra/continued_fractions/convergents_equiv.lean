@@ -386,7 +386,7 @@ begin
       have : ∀ ⦃b⦄, g.partial_denominators.nth n = some b → b ≠ 0, by
       { assume b nth_part_denom_eq,
         obtain ⟨gp, s_nth_eq, ⟨refl⟩⟩ : ∃ gp, g.s.nth n = some gp ∧ gp.b = b, from
-          obtain_s_b_of_part_denom nth_part_denom_eq,
+          exists_s_b_of_part_denom nth_part_denom_eq,
         exact (ne_of_lt (s_pos (lt_add_one n) s_nth_eq).right).symm },
       exact succ_nth_convergent_eq_squash_gcf_nth_convergent this } }
 end

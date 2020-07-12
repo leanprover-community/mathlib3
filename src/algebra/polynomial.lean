@@ -75,19 +75,22 @@ end
 /-
 Really the next lemma should be an application of
 monoid_hom.map_prod
+-/
 
-def leading_coeff.monoid_hom : polynomial R →* R :=
+def leading_coeff_monoid_hom : polynomial R →* R :=
 {to_fun := leading_coeff, map_one' := by simp, map_mul' := leading_coeff_mul}
 
+@[simp] lemma coe_leading_coeff_monoid_hom (p : polynomial R) :
+  leading_coeff_monoid_hom p = leading_coeff p := rfl
 
--/
 lemma leading_coeff_prod :
   (∏ i in s, f i).leading_coeff = ∏ i in s, (f i).leading_coeff :=
 begin
-  induction s using finset.induction with x s hx hs, { simp },
-  rw prod_insert hx,
-  rw leading_coeff_mul, rw hs,
-  rw prod_insert hx,
+  --induction s using finset.induction with x s hx hs, { simp },
+  --rw prod_insert hx,
+  --rw leading_coeff_mul, rw hs,
+  --rw prod_insert hx,
+  rw ← coe_leading_coeff_monoid_hom, apply monoid_hom.map_prod,
 end
 
 end integral_domain

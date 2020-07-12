@@ -516,4 +516,14 @@ lemma tendsto_at_top_of_monotone_of_subseq {ι ι' α : Type*} [preorder ι] [pr
   tendsto u at_top at_top :=
 tendsto_at_top_of_monotone_of_filter h (map_ne_bot hl) (tendsto_map' H)
 
+open_locale big_operators
+
+@[to_additive]
+lemma map_at_top_finset_prod_le_of_prod_eq [comm_monoid α] {f : β → α} {g : γ → α}
+  (h_eq : ∀u:finset γ, ∃v:finset β, ∀v', v ⊆ v' → ∃u', u ⊆ u' ∧ ∏ x in u', g x = ∏ b in v', f b) :
+  at_top.map (λs:finset β, ∏ b in s, f b) ≤ at_top.map (λs:finset γ, ∏ x in s, g x) :=
+by rw [map_at_top_eq, map_at_top_eq];
+from (le_infi $ assume b, let ⟨v, hv⟩ := h_eq b in infi_le_of_le v $
+  by simp [set.image_subset_iff]; exact hv)
+
 end filter

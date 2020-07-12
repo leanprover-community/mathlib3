@@ -281,6 +281,10 @@ C.is_semiring_hom
 
 lemma C_pow : C (a ^ n) = C a ^ n := C.map_pow a n
 
+@[simp] lemma C_bit0 : C (bit0 a) = bit0 (C a) := C_add
+
+@[simp] lemma C_bit1 : C (bit1 a) = bit1 (C a) := by simp [bit1, C_bit0]
+
 @[simp]
 lemma C_eq_nat_cast (n : ℕ) : C (n : R) = (n : polynomial R) :=
 C.map_nat_cast n

@@ -276,14 +276,14 @@ lemma C_mul : C (a * b) = C a * C b := C.map_mul a b
 
 lemma C_add : C (a + b) = C a + C b := C.map_add a b
 
+@[simp] lemma C_bit0 : C (bit0 a) = bit0 (C a) := C_add
+
+@[simp] lemma C_bit1 : C (bit1 a) = bit1 (C a) := by simp [bit1, C_bit0]
+
 instance C.is_semiring_hom : is_semiring_hom (C : R → polynomial R) :=
 C.is_semiring_hom
 
 lemma C_pow : C (a ^ n) = C a ^ n := C.map_pow a n
-
-@[simp] lemma C_bit0 : C (bit0 a) = bit0 (C a) := C_add
-
-@[simp] lemma C_bit1 : C (bit1 a) = bit1 (C a) := by simp [bit1, C_bit0]
 
 @[simp]
 lemma C_eq_nat_cast (n : ℕ) : C (n : R) = (n : polynomial R) :=
@@ -398,6 +398,12 @@ finsupp.sum_add_index
 @[simp] lemma eval₂_one : (1 : polynomial R).eval₂ f x = 1 :=
 by rw [← C_1, eval₂_C, f.map_one]
 
+@[simp] lemma eval₂_bit0 : (bit0 p).eval₂ f x = bit0 (p.eval₂ f x) :=
+by rw [bit0, eval₂_add, bit0]
+
+@[simp] lemma eval₂_bit1 : (bit1 p).eval₂ f x = bit1 (p.eval₂ f x) :=
+by rw [bit1, eval₂_add, eval₂_bit0, eval₂_one, bit1]
+
 @[simp] lemma eval₂_smul (g : R →+* S) (p : polynomial R) (x : S) {s : R} :
   eval₂ g x (s • p) = g s • eval₂ g x p :=
 begin
@@ -445,6 +451,10 @@ eval₂_monomial _ _
 @[simp] lemma eval_add : (p + q).eval x = p.eval x + q.eval x := eval₂_add _ _
 
 @[simp] lemma eval_one : (1 : polynomial R).eval x = 1 := eval₂_one _ _
+
+@[simp] lemma eval_bit0 : (bit0 p).eval x = bit0 (p.eval x) := eval₂_bit0 _ _
+
+@[simp] lemma eval_bit1 : (bit1 p).eval x = bit1 (p.eval x) := eval₂_bit1 _ _
 
 @[simp] lemma eval_smul (p : polynomial R) (x : R) {s : R} :
   (s • p).eval x = s • p.eval x :=

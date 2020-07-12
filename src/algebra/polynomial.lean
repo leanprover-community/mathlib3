@@ -69,7 +69,8 @@ variables [integral_domain R] (f : α → polynomial R)
 lemma nat_degree_prod_eq (h : ∀ i ∈ s, f i ≠ 0) :
   (s.prod f).nat_degree = ∑ i in s, (f i).nat_degree :=
 begin
-  apply nat_degree_prod_eq', rw prod_ne_zero_iff, sorry,
+  apply nat_degree_prod_eq', rw prod_ne_zero_iff,
+  intros a ha con, apply h a ha, rw leading_coeff_eq_zero at con, apply con,
 end
 
 lemma leading_coeff_prod :

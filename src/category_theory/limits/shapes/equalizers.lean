@@ -466,6 +466,10 @@ as_iso (equalizer.ι f f)
   (equalizer.iso_source_of_self f).hom = equalizer.ι f f :=
 rfl
 
+@[simp] lemma equalizer.iso_source_of_self_inv [has_limit (parallel_pair f f)] :
+  (equalizer.iso_source_of_self f).inv = equalizer.lift (𝟙 X) (by simp) :=
+rfl
+
 section
 variables [has_colimit (parallel_pair f g)]
 
@@ -570,6 +574,10 @@ coequalizer.π_of_eq rfl
 /-- The coequalizer of a morphism with itself is isomorphic to the target. -/
 def coequalizer.iso_target_of_self [has_colimit (parallel_pair f f)] : coequalizer f f ≅ Y :=
 (as_iso (coequalizer.π f f)).symm
+
+@[simp] lemma coequalizer.iso_target_of_self_hom [has_colimit (parallel_pair f f)] :
+  (coequalizer.iso_target_of_self f).hom = coequalizer.desc (𝟙 Y) (by simp) :=
+rfl
 
 @[simp] lemma coequalizer.iso_target_of_self_inv [has_colimit (parallel_pair f f)] :
   (coequalizer.iso_target_of_self f).inv = coequalizer.π f f :=

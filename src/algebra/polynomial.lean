@@ -51,10 +51,11 @@ end
 lemma nat_degree_prod_eq' (h : ∏ i in s, (f i).leading_coeff ≠ 0) :
   (s.prod f).nat_degree = ∑ i in s, (f i).nat_degree :=
 begin
-  revert h, apply s.induction_on, simp, intros a s anins ih,
-  rw [prod_insert anins, prod_insert anins, sum_insert anins],
-  intro nz, rw polynomial.nat_degree_mul_eq', rw ih, apply right_ne_zero_of_mul nz,
-  rwa polynomial.leading_coeff_prod', apply right_ne_zero_of_mul nz,
+  revert h, induction s using finset.induction with a s ha hs, { simp },
+  rw [prod_insert ha, prod_insert ha, sum_insert ha],
+  intro h, rw polynomial.nat_degree_mul_eq', rw hs,
+  apply right_ne_zero_of_mul h,
+  rwa polynomial.leading_coeff_prod', apply right_ne_zero_of_mul h,
 end
 
 lemma monic_prod_monic :

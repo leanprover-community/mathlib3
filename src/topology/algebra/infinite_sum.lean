@@ -80,23 +80,6 @@ lemma has_sum_iff_has_sum {g : γ → α}
   has_sum f a ↔ has_sum g a :=
 ⟨has_sum.has_sum_of_sum_eq h₂, has_sum.has_sum_of_sum_eq h₁⟩
 
-lemma function.embedding.map_at_top_finset_sum_eq (g : γ ↪ β) (hf : ∀ x ∉ set.range g, f x = 0) :
-  map (λ s, ∑ i in s, f (g i)) at_top = map (λ s, ∑ i in s, f i) at_top :=
-begin
-  apply le_antisymm; refine map_at_top_finset_sum_le_of_sum_eq (λ s, _),
-  { refine ⟨s.preimage (g.injective.inj_on _), λ t ht, _⟩,
-    refine ⟨t.map g ∪ s, finset.subset_union_right _ _, _⟩,
-    rw ← sum_map,
-    refine (sum_subset (subset_union_left _ _) _).symm,
-    simp only [finset.mem_union, finset.mem_map],
-    refine λ y hy hyt, hf y (mt _ hyt),
-    rintros ⟨x, rfl⟩,
-    exact ⟨x, ht (mem_preimage.2 $ hy.resolve_left hyt), rfl⟩ },
-  { refine ⟨s.map g, λ t ht, _⟩,
-    simp only [← sum_preimage _ _ (g.injective.inj_on _) _ (λ x _, hf x)],
-    exact ⟨_, map_subset_iff_subset_preimage.1 ht, rfl⟩ }
-end
-
 lemma function.embedding.has_sum_iff (g : γ ↪ β) (hf : ∀ x ∉ set.range g, f x = 0) :
   has_sum (f ∘ g) a ↔ has_sum f a :=
 by simp only [has_sum, tendsto, g.map_at_top_finset_sum_eq hf]

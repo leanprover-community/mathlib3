@@ -19,7 +19,7 @@ Then we prove many lemmas like “if `f → +∞`, then `f ± c → +∞`”.
 variables {α β γ : Type*}
 
 open set
-open_locale classical filter
+open_locale classical filter big_operators
 
 namespace filter
 /-- `at_top` is the filter representing the limit `→ ∞` on an ordered set.
@@ -516,8 +516,6 @@ lemma tendsto_at_top_of_monotone_of_subseq {ι ι' α : Type*} [preorder ι] [pr
   tendsto u at_top at_top :=
 tendsto_at_top_of_monotone_of_filter h (map_ne_bot hl) (tendsto_map' H)
 
-open_locale big_operators
-
 @[to_additive]
 lemma map_at_top_finset_prod_le_of_prod_eq [comm_monoid α] {f : β → α} {g : γ → α}
   (h_eq : ∀u:finset γ, ∃v:finset β, ∀v', v ⊆ v' → ∃u', u ⊆ u' ∧ ∏ x in u', g x = ∏ b in v', f b) :
@@ -527,3 +525,24 @@ from (le_infi $ assume b, let ⟨v, hv⟩ := h_eq b in infi_le_of_le v $
   by simp [set.image_subset_iff]; exact hv)
 
 end filter
+
+open filter finset
+
+@[to_additive]
+lemma function.embedding.map_at_top_finset_prod_eq [comm_monoid α] (g : γ ↪ β) {f : β → α}
+  (hf : ∀ x ∉ set.range g, f x = 1) :
+  map (λ s, ∏ i in s, f (g i)) at_top = map (λ s, ∏ i in s, f i) at_top :=
+begin
+  apply le_antisymm; refine map_at_top_finset_prod_le_of_prod_eq (λ s, _),
+  { refine ⟨s.preimage (g.injective.inj_on _), λ t ht, _⟩,
+    refine ⟨t.map g ∪ s, finset.subset_union_right _ _, _⟩,
+    rw ← finset.prod_map,
+    refine (prod_subset (subset_union_left _ _) _).symm,
+    simp only [finset.mem_union, finset.mem_map],
+    refine λ y hy hyt, hf y (mt _ hyt),
+    rintros ⟨x, rfl⟩,
+    exact ⟨x, ht (finset.mem_preimage.2 $ hy.resolve_left hyt), rfl⟩ },
+  { refine ⟨s.map g, λ t ht, _⟩,
+    simp only [← prod_preimage _ _ (g.injective.inj_on _) _ (λ x _, hf x)],
+    exact ⟨_, map_subset_iff_subset_preimage.1 ht, rfl⟩ }
+end

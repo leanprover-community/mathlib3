@@ -114,6 +114,8 @@ end arrow
 
 namespace functor
 
+universes v₁ v₂ u₁ u₂
+
 variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 
 @[simps]

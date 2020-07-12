@@ -7,16 +7,14 @@ import data.polynomial
 open polynomial finset
 
 /-
-# Foos and bars
+# Polynomials
 
 Here we have utility lemmas for polynomials.
 For results that are useful for programming, see data/polynomial.lean
 
 ## Main results
 
-- `exists_foo`: the main existence theorem of `foo`s.
-- `bar_of_foo`: a construction of a `bar`, given a `foo`.
-- `bar_eq`    : the main classification theorem of `bar`s.
+- `nat_degree_prod_eq_of_monic`: needed for reasoning about the characteristic polynomial
 -/
 
 noncomputable theory
@@ -87,15 +85,19 @@ end
 /-
 Really the next lemma should be an application of
 monoid_hom.map_prod
-
+-/
 def leading_coeff.monoid_hom : polynomial R →* R :=
 {to_fun := leading_coeff, map_one' := by simp, map_mul' := leading_coeff_mul}
 
 
--/
+
+#check monoid_hom.map_list_prod
+
 lemma leading_coeff_prod :
   (∏ i in s, f i).leading_coeff = ∏ i in s, (f i).leading_coeff :=
 begin
+  -- why doesn't the following work?
+  -- rw monoid_hom.map_prod leading_coeff.monoid_hom,
   induction s using finset.induction with x s hx hs, { simp },
   rw prod_insert hx,
   rw leading_coeff_mul, rw hs,

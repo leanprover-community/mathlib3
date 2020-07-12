@@ -139,6 +139,9 @@ lemma eq_zero_of_epi_kernel [epi (kernel.ι f)] : f = 0 :=
 def kernel_zero_iso_source [has_kernel (0 : X ⟶ Y)] : kernel (0 : X ⟶ Y) ≅ X :=
 equalizer.iso_source_of_self 0
 
+@[simp] lemma kernel_zero_iso_source_hom [has_kernel (0 : X ⟶ Y)] :
+  kernel_zero_iso_source.hom = kernel.ι (0 : X ⟶ Y) := rfl
+
 /-- If two morphisms are known to be equal, then their kernels are isomorphic. -/
 def kernel_iso_of_eq {f g : X ⟶ Y} [has_kernel f] [has_kernel g] (h : f = g) :
   kernel f ≅ kernel g :=
@@ -315,6 +318,9 @@ lemma eq_zero_of_mono_cokernel [mono (cokernel.π f)] : f = 0 :=
 /-- The cokernel of a zero morphism is isomorphic to the target. -/
 def cokernel_zero_iso_target [has_cokernel (0 : X ⟶ Y)] : cokernel (0 : X ⟶ Y) ≅ Y :=
 coequalizer.iso_target_of_self 0
+
+@[simp] lemma cokernel_zero_iso_target_inv [has_cokernel (0 : X ⟶ Y)] :
+  cokernel_zero_iso_target.inv = cokernel.π (0 : X ⟶ Y) := rfl
 
 /-- If two morphisms are known to be equal, then their cokernels are isomorphic. -/
 def cokernel_iso_of_eq {f g : X ⟶ Y} [has_cokernel f] [has_cokernel g] (h : f = g) :

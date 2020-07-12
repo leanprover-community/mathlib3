@@ -218,6 +218,8 @@ lemma inv_def (e₁ : mul_aut M) : e₁⁻¹ = e₁.symm := rfl
 def to_perm : mul_aut M →* equiv.perm M :=
 by refine_struct { to_fun := mul_equiv.to_equiv }; intros; refl
 
+/-- group conjugation as a group homomorphism into the automorphism group.
+  `conj g h = g * h * g⁻¹` -/
 def conj [group G] : G →* mul_aut G :=
 { to_fun := λ g,
   { to_fun := λ h, g * h * g⁻¹,

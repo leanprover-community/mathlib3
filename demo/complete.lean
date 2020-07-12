@@ -13,7 +13,6 @@ begin
   use p,
   split,
   { by_contradiction,
-    simp at a,
     have h₁ : p ∣ M := min_fac_dvd M,
     have h₂ : p ∣ fact N := dvd_fact (prime.pos pp) (le_of_lt a),
     have h : p ∣ 1 := (nat.dvd_add_iff_right h₂).mpr h₁,

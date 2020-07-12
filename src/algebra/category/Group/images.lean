@@ -88,9 +88,13 @@ noncomputable instance : has_image f :=
 noncomputable instance : has_images AddCommGroup.{0} :=
 { has_image := infer_instance }
 
--- We'll later get this as a consequence of `[abelian AddCommGroup]`,
--- but I'd like it now, in order to be able to demonstrate cohomology calculations.
--- It would be good to verify that any such generated instance had the same definitional behaviour.
+-- We'll later get this as a consequence of `[abelian AddCommGroup]`.
+-- Nevertheless this instance has the desired definitional behaviour,
+-- and is useful in the meantime for doing cohomology.
+
+-- When the `[abelian AddCommGroup]` instance is available
+-- this instance should be reviewed, and ideally removed if the `[abelian]` instance
+-- provides something definitionally equivalent.
 noncomputable instance : has_image_maps AddCommGroup.{0} :=
 { has_image_map := λ f g st,
   { map :=

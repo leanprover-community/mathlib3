@@ -135,6 +135,25 @@ equalizer.ι_of_self _
 lemma eq_zero_of_epi_kernel [epi (kernel.ι f)] : f = 0 :=
 (cancel_epi (kernel.ι f)).1 (by simp)
 
+/-- The kernel of a zero morphism is isomorphic to the source. -/
+def kernel_zero_iso_source [has_kernel (0 : X ⟶ Y)] : kernel (0 : X ⟶ Y) ≅ X :=
+equalizer.iso_source_of_self 0
+
+/-- If two morphisms are known to be equal, then their kernels are isomorphic. -/
+def kernel_iso_of_eq {f g : X ⟶ Y} [has_kernel f] [has_kernel g] (h : f = g) :
+  kernel f ≅ kernel g :=
+has_limit.iso_of_nat_iso (by simp[h])
+
+@[simp]
+lemma kernel_iso_of_eq_refl {h : f = f} : kernel_iso_of_eq h = iso.refl (kernel f) :=
+by { ext, simp [kernel_iso_of_eq], }
+
+@[simp]
+lemma kernel_iso_of_eq_trans {f g h : X ⟶ Y} [has_kernel f] [has_kernel g] [has_kernel h]
+  (w₁ : f = g) (w₂ : g = h) :
+  kernel_iso_of_eq w₁ ≪≫ kernel_iso_of_eq w₂ = kernel_iso_of_eq (w₁.trans w₂) :=
+by { unfreezingI { induction w₁, induction w₂, }, ext, simp [kernel_iso_of_eq], }
+
 variables {f}
 
 lemma kernel_not_epi_of_nonzero (w : f ≠ 0) : ¬epi (kernel.ι f) :=
@@ -292,6 +311,25 @@ coequalizer.π_of_self _
 
 lemma eq_zero_of_mono_cokernel [mono (cokernel.π f)] : f = 0 :=
 (cancel_mono (cokernel.π f)).1 (by simp)
+
+/-- The cokernel of a zero morphism is isomorphic to the target. -/
+def cokernel_zero_iso_target [has_cokernel (0 : X ⟶ Y)] : cokernel (0 : X ⟶ Y) ≅ Y :=
+coequalizer.iso_target_of_self 0
+
+/-- If two morphisms are known to be equal, then their cokernels are isomorphic. -/
+def cokernel_iso_of_eq {f g : X ⟶ Y} [has_cokernel f] [has_cokernel g] (h : f = g) :
+  cokernel f ≅ cokernel g :=
+has_colimit.iso_of_nat_iso (by simp[h])
+
+@[simp]
+lemma cokernel_iso_of_eq_refl {h : f = f} : cokernel_iso_of_eq h = iso.refl (cokernel f) :=
+by { ext, simp [cokernel_iso_of_eq], }
+
+@[simp]
+lemma cokernel_iso_of_eq_trans {f g h : X ⟶ Y} [has_cokernel f] [has_cokernel g] [has_cokernel h]
+  (w₁ : f = g) (w₂ : g = h) :
+  cokernel_iso_of_eq w₁ ≪≫ cokernel_iso_of_eq w₂ = cokernel_iso_of_eq (w₁.trans w₂) :=
+by { unfreezingI { induction w₁, induction w₂, }, ext, simp [cokernel_iso_of_eq], }
 
 variables {f}
 

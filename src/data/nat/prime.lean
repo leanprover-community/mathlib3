@@ -376,6 +376,10 @@ begin
   { simp only [this, nat.factors, nat.div_self (nat.prime.pos hp)], },
 end
 
+/-- `factors` can be constructed inductively by extracting `min_fac`, for sufficiently large `n`. -/
+lemma factors_add_two (n : ℕ) :
+  factors (n+2) = (min_fac (n+2)) :: (factors ((n+2) / (min_fac (n+2)))) := rfl
+
 theorem prime.coprime_iff_not_dvd {p n : ℕ} (pp : prime p) : coprime p n ↔ ¬ p ∣ n :=
 ⟨λ co d, pp.not_dvd_one $ co.dvd_of_dvd_mul_left (by simp [d]),
  λ nd, coprime_of_dvd $ λ m m2 mp, ((dvd_prime_two_le pp m2).1 mp).symm ▸ nd⟩

@@ -8,6 +8,7 @@ import algebra.field_power
 import ring_theory.multiplicity
 import data.real.cau_seq
 import tactic.ring_exp
+import tactic.basic
 
 /-!
 # p-adic norm
@@ -391,15 +392,6 @@ lemma padic_val_nat_div' {p : ℕ} [p_prime : fact p.prime] :
 
 open_locale big_operators
 open_locale classical
-
--- move this
-lemma finset.prod_multiset_count {M : Type*} [comm_monoid M] (s : multiset M) :
-  s.prod = ∏ m in s.to_finset, m ^ (s.count m) :=
-sorry
-
--- move this
-lemma factors_add_two (n : ℕ) :
-  factors (n+2) = (min_fac (n+2)) :: (factors ((n+2) / (min_fac (n+2)))) := rfl
 
 lemma padic_val_nat_eq_factors_count (p : ℕ) [hp : fact p.prime] :
   ∀ (n : ℕ), padic_val_nat p n = (factors n).count p

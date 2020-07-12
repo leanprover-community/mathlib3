@@ -957,7 +957,7 @@ lemma sum_comap_domain {α₁ α₂ β γ : Type*} [has_zero β] [add_comm_monoi
   (comap_domain f l hf.inj_on).sum (g ∘ f) = l.sum g :=
 begin
   simp [sum],
-  simp [comap_domain, finset.sum_preimage f _ _ (λ (x : α₂), g x (l x))]
+  simp [comap_domain, finset.sum_preimage_of_bij f _ _ (λ (x : α₂), g x (l x))]
 end
 
 lemma eq_zero_of_comap_domain_eq_zero {α₁ α₂ γ : Type*} [add_comm_monoid γ]
@@ -1806,7 +1806,7 @@ begin
   have f_im : set.finite (f '' {m | m ≤ n}) := set.finite.of_fintype _,
   suffices f_inj : set.inj_on f {m | m ≤ n},
   { exact set.finite_of_finite_image f_inj f_im },
-  intros m₁ m₂ h₁ h₂ h,
+  intros m₁ h₁ m₂ h₂ h,
   ext i,
   by_cases hi : i ∈ n.support,
   { replace h := congr_fun h ⟨i, hi⟩,

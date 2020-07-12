@@ -9,12 +9,14 @@ open polynomial finset
 /-
 # Polynomials
 
-Here we have utility lemmas for polynomials.
-For results that are useful for programming, see data/polynomial.lean
+Lemmas for the interaction between polynomials and ∑ and ∏.
 
 ## Main results
 
-- `nat_degree_prod_eq_of_monic`: needed for reasoning about the characteristic polynomial
+- `nat_degree_prod_eq_of_monic` : the degree of a product of monic polynomials is the product of degrees
+    we prove this only for [comm_semiring R], but it ought to be true for [semiring R] and list.prod
+- `nat_degree_prod_eq` : for polynomials over an integral domain,
+    the degree of the product is the sum of degrees
 -/
 
 noncomputable theory

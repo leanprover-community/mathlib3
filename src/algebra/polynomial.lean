@@ -82,26 +82,17 @@ begin
   apply nat_degree_prod_eq', rw prod_ne_zero_iff,
   intros x hx, simp [h x hx],
 end
-/-
-Really the next lemma should be an application of
-monoid_hom.map_prod
--/
-def leading_coeff.monoid_hom : polynomial R →* R :=
+
+def leading_coeff_monoid_hom : polynomial R →* R :=
 {to_fun := leading_coeff, map_one' := by simp, map_mul' := leading_coeff_mul}
 
-
-
-#check monoid_hom.map_list_prod
+@[simp] lemma coe_leading_coeff_monoid_hom (p : polynomial R) :
+  leading_coeff_monoid_hom p = leading_coeff p := rfl
 
 lemma leading_coeff_prod :
   (∏ i in s, f i).leading_coeff = ∏ i in s, (f i).leading_coeff :=
 begin
-  -- why doesn't the following work?
-  -- rw monoid_hom.map_prod leading_coeff.monoid_hom,
-  induction s using finset.induction with x s hx hs, { simp },
-  rw prod_insert hx,
-  rw leading_coeff_mul, rw hs,
-  rw prod_insert hx,
+  rw ← coe_leading_coeff_monoid_hom, apply monoid_hom.map_prod,
 end
 
 end integral_domain

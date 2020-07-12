@@ -1,16 +1,18 @@
+/-
+Copyright (c) 2020 Aaron Anderson. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Aaron Anderson, Jalex Stark.
+-/
 import data.polynomial
+open polynomial finset
+open_locale big_operators
 
 noncomputable theory
 
 universes u w
 
-open polynomial
-open_locale big_operators
 
-variables {R : Type u}
-variables {α : Type w} [decidable_eq α]
-
-open finset
+variables {R : Type u} {α : Type w} [decidable_eq α]
 variables (s : finset α)
 
 namespace polynomial
@@ -18,9 +20,7 @@ namespace polynomial
 section poly_big_ops
 
 section comm_semiring
-
 variables [comm_semiring R] (f : α → polynomial R)
-
 
 lemma nat_degree_prod_le : (s.prod f).nat_degree ≤ ∑ i in s, (f i).nat_degree :=
 begin
@@ -69,9 +69,18 @@ variables [integral_domain R] (f : α → polynomial R)
 lemma nat_degree_prod_eq (h : ∀ i ∈ s, f i ≠ 0) :
   (s.prod f).nat_degree = ∑ i in s, (f i).nat_degree :=
 begin
-  apply nat_degree_prod_eq', rw prod_ne_zero_iff, sorry,
+  apply nat_degree_prod_eq', rw prod_ne_zero_iff,
+  intros x hx, simp [h x hx],
 end
+/-
+Really the next lemma should be an application of
+monoid_hom.map_prod
 
+def leading_coeff.monoid_hom : polynomial R →* R :=
+{to_fun := leading_coeff, map_one' := by simp, map_mul' := leading_coeff_mul}
+
+
+-/
 lemma leading_coeff_prod :
   (∏ i in s, f i).leading_coeff = ∏ i in s, (f i).leading_coeff :=
 begin
@@ -81,10 +90,6 @@ begin
   rw prod_insert hx,
 end
 
-
-
 end integral_domain
-
 end poly_big_ops
-
 end polynomial

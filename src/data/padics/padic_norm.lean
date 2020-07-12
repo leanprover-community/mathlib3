@@ -175,7 +175,7 @@ end
 lemma padic_val_nat_zero (m : nat) : padic_val_nat m 0 = 0 := by simpa
 
 @[simp]
-lemma padic_val_nat_one (m : nat) : padic_val_nat m 1 = 0 := by simpa [padic_val_nat]
+lemma padic_val_nat_one (m : nat) : padic_val_nat m 1 = 0 := by simp [padic_val_nat]
 
 end padic_val_nat
 

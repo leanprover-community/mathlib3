@@ -216,8 +216,7 @@ begin
     rw next_coeff_mul_monic (monic a (finset.mem_insert_self a s)), swap,
     { apply monic_prod_monic, intros b bs,
       apply monic, apply finset.mem_insert_of_mem bs },
-    {
-      refine congr rfl (hs _),
+    { refine congr rfl (hs _),
       intros b bs, apply monic, apply finset.mem_insert_of_mem bs }}
 end
 
@@ -226,10 +225,9 @@ lemma card_pred_coeff_prod_X_sub_C' [nontrivial R] {s : finset α} (f : α → R
 next_coeff ∏ i in s, (X - C (f i)) = -s.sum f :=
 by { rw next_coeff_prod_monic; { simp [monic_X_sub_C] } }
 
-lemma card_pred_coeff_prod_X_sub_C [nontrivial R] (s : finset α) (f : α → R) :
-  0 < s.card → (∏ i in s, (X - C (f i))).coeff (s.card - 1) = -s.sum f :=
+lemma card_pred_coeff_prod_X_sub_C [nontrivial R] (s : finset α) (f : α → R) (hs : 0 < s.card) :
+(∏ i in s, (X - C (f i))).coeff (s.card - 1) = -s.sum f :=
 begin
-  intro hs,
   convert card_pred_coeff_prod_X_sub_C' (by assumption),
   rw next_coeff, split_ifs,
   { rw nat_degree_prod_eq_of_monic at h,
@@ -247,4 +245,3 @@ end
 
 
 end polynomial
-#lint

@@ -7,6 +7,16 @@ import data.list.defs
 import data.option.basic
 import order.lexicographic
 
+namespace native.rb_map
+
+open native
+
+meta def insert_cons {α β} [has_lt α] [decidable_rel ((<) : α → α → Prop)]
+  (k : α) (x : β) (m : rb_map α (list β)) : rb_map α (list β) :=
+m.insert k (x :: m.find_def [] k)
+
+end native.rb_map
+
 namespace tactic
 open native
 

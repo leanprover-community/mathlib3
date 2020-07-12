@@ -1,4 +1,4 @@
-import .setup
+import data.nat.prime
 
 open nat
 

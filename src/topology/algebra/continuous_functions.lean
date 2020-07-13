@@ -126,7 +126,7 @@ obtained by requiring that `A` be both a `topological_semimodule` and a `topolog
 (by now we require `topological_ring`: see TODO below).-/
 
 variables {α : Type*} [topological_space α]
-{R : Type*} [comm_semiring R] [topological_space R]
+{R : Type*} [comm_semiring R]
 {A : Type*} [topological_space A] [ring A]
 [algebra R A] [topological_ring A]
 
@@ -138,7 +138,7 @@ def C : R →+* { f : α → A | continuous f } :=
   map_zero' := by ext x; exact (algebra_map R A).map_zero,
   map_add'  := λ c₁ c₂, by ext x; exact (algebra_map R A).map_add _ _ }
 
-variable  [topological_semimodule R A]
+variables [topological_space R] [topological_semimodule R A]
 
 instance : algebra R { f : α → A | continuous f } :=
 { to_ring_hom := C,

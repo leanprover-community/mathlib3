@@ -455,11 +455,7 @@ begin
   ext v,
   rw [submodule.mem_coe, ←submodule.neg_mem_iff, ←submodule.mem_coe,
       coe_direction_eq_vsub_set_right hp, set.mem_set_of_eq, set.mem_set_of_eq],
-  conv_lhs {
-    congr,
-    funext,
-    rw [←neg_vsub_eq_vsub_rev, neg_inj]
-  }
+  conv_lhs { congr, funext, rw [←neg_vsub_eq_vsub_rev, neg_inj] }
 end
 
 /-- Given a point in an affine subspace, a vector is in its direction

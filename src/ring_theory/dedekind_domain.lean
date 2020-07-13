@@ -419,13 +419,16 @@ open finsupp polynomial
 lemma maximal_ideal_invertible_of_dedekind (h : is_dedekind_domain f) {M : ideal R}
 (hM : ideal.is_maximal M) : is_unit (M : fractional_ideal f) :=
 begin
-have M1 := {x : K | ∀ y ∈ M, f.is_integer (x * f.to_map y)},
+let M1 := {x : K | ∀ y ∈ M, f.is_integer (x * f.to_map y)},
 -- have hM1 : is_fractional f (M1), --sorry,
 have M1 : fractional_ideal f, --sorry,
 {use M1,
-  sorry,
-  intros a b ha hb,
-  sorry,
+  {intros y h,simp,use 0,simp,},
+  {intros a b ha hb,intros y h,rw add_mul a b (f.to_map y),
+  apply localization_map.is_integer_add,apply ha,exact h,apply hb,exact h,},
+  {intros c x h y h,
+  --have p : f.is_integer(x*f.to_map y),sorry,
+  apply localization_map.is_integer_smul,}
   sorry,
   sorry,},
 -- rcases M1 with ⟨I, aI, haI, hI⟩,

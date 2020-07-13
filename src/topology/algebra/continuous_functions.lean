@@ -18,9 +18,6 @@ variables {f g : {f : α → β | continuous f }}
 
 instance : has_coe_to_fun {f : α → β | continuous f } :=  ⟨_, subtype.val⟩
 
-@[ext] lemma ext (H : ∀x, f x = g x) : f = g :=
-subtype.eq $ funext H
-
 end continuous_functions
 
 section group_structure
@@ -86,6 +83,8 @@ instance continuous_comm_ring {α : Type u} {R : Type v} [topological_space α] 
 
 end ring_structure
 
+local attribute [ext] subtype.eq
+
 section semimodule_structure
 
 /-!
@@ -109,10 +108,10 @@ instance continuous_semimodule {α : Type*} [topological_space α]
   semimodule R { f : α → M | continuous f } :=
   semimodule.of_core $
 { smul     := (•),
-  smul_add := λ c f g, continuous_functions.ext $ λ x, smul_add c (f x) (g x),
-  add_smul := λ c₁ c₂ f, continuous_functions.ext $ λ x, add_smul c₁ c₂ (f x),
-  mul_smul := λ c₁ c₂ f, continuous_functions.ext $ λ x, mul_smul c₁ c₂ (f x),
-  one_smul := λ f, continuous_functions.ext $ λ x, one_smul R (f x) }
+  smul_add := λ c f g, by ext x; exact smul_add c (f x) (g x),
+  add_smul := λ c₁ c₂ f, by ext x; exact add_smul c₁ c₂ (f x),
+  mul_smul := λ c₁ c₂ f, by ext x; exact mul_smul c₁ c₂ (f x),
+  one_smul := λ f, by ext x; exact one_smul R (f x) }
 
 end semimodule_structure
 
@@ -132,15 +131,15 @@ variables {α : Type*} [topological_space α]
 /-- Continuous constant functions as a `ring_hom`. -/
 def C : R →+* { f : α → A | continuous f } :=
 { to_fun    := λ c : R, ⟨λ x: α, ((algebra_map R A) c), continuous_const⟩,
-  map_one'  := continuous_functions.ext $ λ x, (algebra_map R A).map_one,
-  map_mul'  := λ c₁ c₂, continuous_functions.ext $ λ x, (algebra_map R A).map_mul _ _,
-  map_zero' := continuous_functions.ext $ λ x, (algebra_map R A).map_zero,
-  map_add'  := λ c₁ c₂, continuous_functions.ext $ λ x, (algebra_map R A).map_add _ _ }
+  map_one'  := by ext x; exact (algebra_map R A).map_one,
+  map_mul'  := λ c₁ c₂, by ext x; exact (algebra_map R A).map_mul _ _,
+  map_zero' := by ext x; exact (algebra_map R A).map_zero,
+  map_add'  := λ c₁ c₂, by ext x; exact (algebra_map R A).map_add _ _ }
 
 instance : algebra R { f : α → A | continuous f } :=
 { to_ring_hom := C,
-  commutes' := λ c f, continuous_functions.ext $ λ x, algebra.commutes' _ _,
-  smul_def' := λ c f, continuous_functions.ext $ λ x, algebra.smul_def' _ _,
+  commutes' := λ c f, by ext x; exact algebra.commutes' _ _,
+  smul_def' := λ c f, by ext x; exact algebra.smul_def' _ _,
   ..continuous_semimodule,
   ..continuous_ring }
 
@@ -176,9 +175,9 @@ instance continuous_module' {α : Type*} [topological_space α]
   : module { f : α → R | continuous f } { f : α → M | continuous f } :=
   semimodule.of_core $
 { smul     := (•),
-  smul_add := λ c f g, continuous_functions.ext $ λ x, smul_add (c x) (f x) (g x),
-  add_smul := λ c₁ c₂ f, continuous_functions.ext $ λ x, add_smul (c₁ x) (c₂ x) (f x),
-  mul_smul := λ c₁ c₂ f, continuous_functions.ext $ λ x, mul_smul (c₁ x) (c₂ x) (f x),
-  one_smul := λ f, continuous_functions.ext $ λ x, one_smul R (f x) }
+  smul_add := λ c f g, by ext x; exact smul_add (c x) (f x) (g x),
+  add_smul := λ c₁ c₂ f, by ext x; exact add_smul (c₁ x) (c₂ x) (f x),
+  mul_smul := λ c₁ c₂ f, by ext x; exact mul_smul (c₁ x) (c₂ x) (f x),
+  one_smul := λ f, by ext x; exact one_smul R (f x) }
 
 end module_over_continuous_functions

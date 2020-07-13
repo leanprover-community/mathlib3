@@ -572,8 +572,6 @@ end ring
 section comm_semiring
 variables [comm_semiring R] {p q r : polynomial R}
 
-local attribute [instance] coeff_coe_to_fun
-
 instance : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
 
 section
@@ -586,7 +584,47 @@ lemma algebra_map_apply (r : R) :
   algebra_map R (polynomial A) r = C (algebra_map R A r) :=
 rfl
 
+/--
+When we have `[comm_ring R]`, the function `C` is the same as `algebra_map R (polynomial R)`.
+
+(But note that `C` is defined when `R` is not necessarily commutative, in which case
+`algebra_map` is not available.)
+-/
+lemma C_eq_algebra_map {R : Type*} [comm_ring R] (r : R) :
+  C r = algebra_map R (polynomial R) r :=
+rfl
+
 end
+
+@[simp]
+lemma alg_hom_eval₂_algebra_map {R A B : Type*} [comm_ring R] [ring A] [ring B] [algebra R A] [algebra R B]
+  (p : polynomial R) (f : A →ₐ[R] B) (a : A) :
+  f (eval₂ (algebra_map R A) a p) = eval₂ (algebra_map R B) (f a) p :=
+begin
+  dsimp [eval₂, finsupp.sum],
+  simp only [f.map_sum, f.map_mul, f.map_pow, ring_hom.eq_int_cast, ring_hom.map_int_cast, alg_hom.commutes],
+end
+
+@[simp]
+lemma eval₂_algebra_map_X {R A : Type*} [comm_ring R] [ring A] [algebra R A] (p : polynomial R) (f : polynomial R →ₐ[R] A) :
+  eval₂ (algebra_map R A) (f X) p = f p :=
+begin
+  conv_rhs { rw [←polynomial.sum_C_mul_X_eq p], },
+  dsimp [eval₂, finsupp.sum],
+  simp only [f.map_sum, f.map_mul, f.map_pow, ring_hom.eq_int_cast, ring_hom.map_int_cast],
+  simp [polynomial.C_eq_algebra_map],
+end
+
+@[simp]
+lemma ring_hom_eval₂_algebra_map_int {R S : Type*} [ring R] [ring S] (p : polynomial ℤ) (f : R →+* S) (r : R) :
+  f (eval₂ (algebra_map ℤ R) r p) = eval₂ (algebra_map ℤ S) (f r) p :=
+alg_hom_eval₂_algebra_map p f.to_int_alg_hom r
+
+@[simp]
+lemma eval₂_algebra_map_int_X {R : Type*} [ring R] (p : polynomial ℤ) (f : polynomial ℤ →+* R) :
+  eval₂ (algebra_map ℤ R) (f X) p = f p :=
+-- Unfortunately `f.to_int_alg_hom` doesn't work here, as typeclasses don't match up correctly.
+eval₂_algebra_map_X p { commutes' := λ n, by simp, .. f }
 
 section eval
 variable {x : R}

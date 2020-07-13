@@ -697,7 +697,7 @@ bring it into a convenient form to apply derivative lemmas. -/
 lemma ext_chart_preimage_inter_eq :
   ((ext_chart_at I x).symm ⁻¹' (s ∩ t) ∩ range I)
   = ((ext_chart_at I x).symm ⁻¹' s ∩ range I) ∩ ((ext_chart_at I x).symm ⁻¹' t) :=
-by mfld_set_eq_tac
+by mfld_set_tac
 
 end extended_charts
 

@@ -107,26 +107,6 @@ In the locale `manifold`, we denote the composition of local homeomorphisms with
 composition of local equivs with `≫`.
 -/
 
--- register in the simpset `mfld_simps` several lemmas that are often useful
-attribute [mfld_simps] id.def function.comp.left_id set.mem_set_of_eq set.image_eq_empty
-set.univ_inter set.preimage_univ set.prod_mk_mem_set_prod_eq and_true set.mem_univ
-set.mem_image_of_mem true_and set.mem_inter_eq set.mem_preimage function.comp_app
-set.inter_subset_left set.mem_prod set.range_id and_self set.mem_range_self
-eq_self_iff_true forall_const forall_true_iff set.inter_univ set.preimage_id function.comp.right_id
-not_false_iff and_imp set.prod_inter_prod set.univ_prod_univ true_or or_true
-
-namespace tactic.interactive
-
-/-- A very basic tactic to show that sets showing up in manifolds coincide. -/
-meta def mfld_set_eq_tac : tactic unit :=
-`[ext my_y,
-  split;
-  { assume h_my_y,
-    try { simp only [*, -h_my_y] with mfld_simps at h_my_y },
-    simp only [*] with mfld_simps } ]
-
-end tactic.interactive
-
 noncomputable theory
 open_locale classical
 universes u
@@ -245,12 +225,12 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
         exact ⟨hx, xs⟩ },
       cases hs,
       { replace hs : local_homeomorph.restr e s = local_homeomorph.refl H,
-          by simpa using hs,
+          by simpa only using hs,
         have : (e.restr s).source = univ, by { rw hs, simp },
         change (e.to_local_equiv).source ∩ interior s = univ at this,
         have : univ ⊆ interior s, by { rw ← this, exact inter_subset_right _ _ },
         have : s = univ, by rwa [interior_eq_of_open open_s, univ_subset_iff] at this,
-        simpa [this, restr_univ] using hs },
+        simpa only [this, restr_univ] using hs },
       { exfalso,
         rw mem_set_of_eq at hs,
         rwa hs at x's } },

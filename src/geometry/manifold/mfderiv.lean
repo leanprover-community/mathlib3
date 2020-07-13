@@ -693,10 +693,7 @@ begin
   apply @filter.mem_sets_of_superset _ _
     ((f ∘ (ext_chart_at I x).symm)⁻¹' (ext_chart_at I' (f x)).source) _
     (ext_chart_preimage_mem_nhds_within I x (h.preimage_mem_nhds_within (ext_chart_at_source_mem_nhds _ _))),
-  assume y hy,
-  simp only with mfld_simps,
-  rw (chart_at H' (f x)).left_inv,
-  simpa only with mfld_simps using hy
+  mfld_set_tac,
 end
 
 variable (x)
@@ -806,9 +803,8 @@ lemma tangent_map_comp_at (p : tangent_bundle I M)
   (hg : mdifferentiable_at I' I'' g (f p.1)) (hf : mdifferentiable_at I I' f p.1) :
   tangent_map I I'' (g ∘ f) p = tangent_map I' I'' g (tangent_map I I' f p) :=
 begin
-  rcases p with ⟨x, v⟩,
   simp only [tangent_map],
-  rw mfderiv_comp x hg hf,
+  rw mfderiv_comp p.1 hg hf,
   refl
 end
 
@@ -838,8 +834,7 @@ begin
   have : ∀ᶠ y in nhds_within ((ext_chart_at I x) x) (range (I)),
     ((ext_chart_at I x) ∘ (ext_chart_at I x).symm) y = id y,
   { apply filter.mem_sets_of_superset (ext_chart_at_target_mem_nhds_within I x),
-    assume y hy,
-    simp only [-ext_chart_at, hy] with mfld_simps },
+    mfld_set_tac },
   apply has_fderiv_within_at.congr_of_eventually_eq (has_fderiv_within_at_id _ _) this,
   simp only with mfld_simps
 end
@@ -1169,9 +1164,7 @@ begin
   rw ← this,
   apply filter.eventually_eq.mfderiv_eq,
   have : e.source ∈ 𝓝 x := mem_nhds_sets e.open_source hx,
-  apply filter.mem_sets_of_superset this,
-  assume p hp,
-  simp only [hp] with mfld_simps
+  exact filter.mem_sets_of_superset this (by mfld_set_tac)
 end
 
 lemma comp_symm_deriv {x : M'} (hx : x ∈ e.target) :
@@ -1280,10 +1273,8 @@ begin
   have D₁ : has_fderiv_within_at G G' (range I) (F z) :=
     A.has_fderiv_within_at,
   have D₂ : has_fderiv_within_at G G'
-    (F.symm ⁻¹' (s ∩ (e.source ∩ e ⁻¹' ((ext_chart_at I' x).source))) ∩ F.target) (F z),
-  { apply D₁.mono,
-    refine subset.trans (inter_subset_right _ _) _,
-    simp only [F] with mfld_simps },
+      (F.symm ⁻¹' (s ∩ (e.source ∩ e ⁻¹' ((ext_chart_at I' x).source))) ∩ F.target) (F z) :=
+    D₁.mono (by mfld_set_tac),
   -- The derivative `G'` is onto, as it is the derivative of a local diffeomorphism, the composition
   -- of the two charts and of `e`.
   have C₁ : range (G' : E → E') = univ,
@@ -1303,9 +1294,7 @@ begin
     (ext_chart_at I' x).symm ⁻¹' e.target ∩ (ext_chart_at I' x).symm ⁻¹' (e.symm ⁻¹' s) ∩
       range (I'),
   rw image_subset_iff,
-  assume p hp,
-  simp only with mfld_simps at hp,
-  simp only [hp] with mfld_simps,
+  mfld_set_tac
 end
 
 /-- If a set in a manifold has the unique derivative property, then its pullback by any extended
@@ -1322,7 +1311,7 @@ begin
   simp only [hz.left.left, hz.left.right, hz.right, unique_mdiff_within_at] with mfld_simps at ⊢ T,
   convert T using 1,
   rw @preimage_comp _ _ _ _ (chart_at H x).symm,
-  mfld_set_eq_tac
+  mfld_set_tac
 end
 
 /-- When considering functions between manifolds, this statement shows up often. It entails
@@ -1376,15 +1365,11 @@ begin
   have : (λ (p : E × F), (I.symm p.1, p.snd)) ⁻¹' e.target ∩
          (λ (p : E × F), (I.symm p.1, p.snd)) ⁻¹' (e.symm ⁻¹' (prod.fst ⁻¹' s)) ∩
          ((range I).prod univ)
-    = set.prod (I.symm ⁻¹' (e₀.target ∩ e₀.symm⁻¹' s) ∩ range I) univ,
-  { ext q,
-    split;
-    { assume hq,
-      simp only with mfld_simps at hq,
-      simp only [hq] with mfld_simps } },
+        = set.prod (I.symm ⁻¹' (e₀.target ∩ e₀.symm⁻¹' s) ∩ range I) univ,
+    by mfld_set_tac,
   assume q hq,
   replace hq : q.1 ∈ (chart_at H p.1).target ∧ ((chart_at H p.1).symm : H → M) q.1 ∈ s,
-    by simpa only [] with mfld_simps using hq,
+    by simpa only with mfld_simps using hq,
   simp only [unique_mdiff_within_at, model_with_corners.prod, preimage_inter, this] with mfld_simps,
   -- apply unique differentiability of products to conclude
   apply unique_diff_on.prod _ unique_diff_on_univ,

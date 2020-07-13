@@ -300,7 +300,7 @@ def Icc_right_chart (x y : ℝ) [fact (x < y)] :
   end }
 
 /--
-Charted space structure on `[x, y]`, using only two charts tkaing values in `euclidean_half_space 1`.
+Charted space structure on `[x, y]`, using only two charts taking values in `euclidean_half_space 1`.
 -/
 instance Icc_manifold (x y : ℝ) [fact (x < y)] : charted_space (euclidean_half_space 1) (Icc x y) :=
 { atlas := {Icc_left_chart x y, Icc_right_chart x y},
@@ -367,3 +367,6 @@ begin
   end,
   constructor
 end
+
+/- Register an instance of `0 < 1` to be able to use freely the manifold structure on `Icc 0 1`. -/
+instance : fact ((0 : ℝ) < 1) := zero_lt_one

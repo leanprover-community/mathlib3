@@ -257,7 +257,7 @@ begin
   conv_rhs { rw hG.is_local B C },
   congr' 2,
   have : ∀ y, y ∈ o ∩ s → y ∈ t := ost,
-  mfld_set_eq_tac
+  mfld_set_tac
 end
 
 lemma lift_prop_within_at_inter (ht : t ∈ 𝓝 x) :
@@ -427,8 +427,8 @@ lemma lift_prop_at_symm_of_mem_maximal_atlas [has_groupoid M G] {x : H}
   (he : e ∈ maximal_atlas M G) (hx : x ∈ e.target) : lift_prop_at Q e.symm x :=
 begin
   suffices h : Q (e ∘ e.symm) e.target x,
-  { have A : e.symm ⁻¹' e.to_local_equiv.source ∩ e.to_local_equiv.target = e.target,
-      by mfld_set_eq_tac,
+  { have A : e.symm ⁻¹' e.source ∩ e.target = e.target,
+      by mfld_set_tac,
     have : e.symm x ∈ e.source, by simp only [hx] with mfld_simps,
     rw [lift_prop_at, hG.lift_prop_within_at_indep_chart G.id_mem_maximal_atlas (mem_univ _) he this],
     refine ⟨(e.symm.continuous_at hx).continuous_within_at, _⟩,
@@ -481,7 +481,7 @@ begin
     refine hG.congr (λ y hy, _) (by simp) H,
     simp only with mfld_simps at hy,
     simp only [hy] with mfld_simps },
-  have : t = univ ∩ (chart_at H x).target, by mfld_set_eq_tac,
+  have : t = univ ∩ (chart_at H x).target, by mfld_set_tac,
   rw this,
   exact (hG.is_local (chart_at H x).open_target (by simp)).1 (hQ _)
 end

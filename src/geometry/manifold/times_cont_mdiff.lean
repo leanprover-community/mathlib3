@@ -95,7 +95,7 @@ lemma times_cont_diff_within_at_local_invariant_prop (n : with_top ℕ) :
     have := ((mem_groupoid_of_pregroupoid.2 he).2.times_cont_diff_within_at this).of_le le_top,
     convert h.comp' this using 1,
     { ext y, simp only with mfld_simps },
-    { mfld_set_eq_tac }
+    { mfld_set_tac }
   end,
   congr :=
   begin
@@ -200,14 +200,14 @@ begin
     convert (((times_cont_diff_within_at_local_invariant_prop I I' n).lift_prop_within_at_indep_chart
       (structure_groupoid.chart_mem_maximal_atlas _ x) w1
       (structure_groupoid.chart_mem_maximal_atlas _ y) w2).1 h).2 using 1,
-    { mfld_set_eq_tac },
+    { mfld_set_tac },
     { simp only [w, hz] with mfld_simps } },
   { rintros ⟨hcont, hdiff⟩ x hx,
     refine ⟨hcont x hx, _⟩,
     have Z := hdiff x (f x) (ext_chart_at I x x) (by simp only [hx] with mfld_simps),
     dsimp [times_cont_diff_within_at_prop],
     convert Z using 1,
-    mfld_set_eq_tac }
+    mfld_set_tac }
 end
 
 /-- One can reformulate smoothness as continuity and smoothness in any extended chart. -/
@@ -284,9 +284,8 @@ begin
     apply (hf.1).preimage_mem_nhds_within,
     exact mem_nhds_sets (ext_chart_at_open_source I' (f x)) (mem_ext_chart_source I' (f x)) },
   rw mdifferentiable_within_at_iff,
-  refine ⟨hf.1.mono (inter_subset_left _ _), (hf.2.differentiable_within_at hn).mono (λ y hy, _)⟩,
-  simp only with mfld_simps at hy,
-  simp only [hy] with mfld_simps,
+  exact ⟨hf.1.mono (inter_subset_left _ _),
+    (hf.2.differentiable_within_at hn).mono (by mfld_set_tac)⟩,
 end
 
 lemma times_cont_mdiff_at.mdifferentiable_at (hf : times_cont_mdiff_at I I' n f x) (hn : 1 ≤ n) :
@@ -897,7 +896,7 @@ begin
       rw ho at this,
       exact this.1 },
     { have : tangent_bundle.proj I M ⁻¹' s ∩ tangent_bundle.proj I M ⁻¹' (o ∩ l.source) = s'_lift,
-      { dsimp only [s'_lift, s'], rw [ho], mfld_set_eq_tac },
+      { dsimp only [s'_lift, s'], rw [ho], mfld_set_tac },
       rw this,
       exact h } },
   /- Second step: check that all functions are smooth, and use the chain rule to write the bundled
@@ -910,9 +909,8 @@ begin
     exact hs.inter o_open },
   have U'l : unique_mdiff_on I s'l :=
     U'.unique_mdiff_on_preimage (mdifferentiable_chart _ _),
-  have diff_f : times_cont_mdiff_on I I' n f s',
-  { apply hf.mono (λx hx, _),
-    simp only [s'] with mfld_simps at hx, simp only [hx] },
+  have diff_f : times_cont_mdiff_on I I' n f s' :=
+    hf.mono (by mfld_set_tac),
   have diff_r : times_cont_mdiff_on I' I' n r r.source :=
     times_cont_mdiff_on_chart,
   have diff_rf : times_cont_mdiff_on I I' n (r ∘ f) s',
@@ -921,11 +919,10 @@ begin
   have diff_l : times_cont_mdiff_on I I n l.symm s'l,
   { have A : times_cont_mdiff_on I I n l.symm l.target :=
       times_cont_mdiff_on_chart_symm,
-    refine A.mono (λx hx, _),
-    simp only [s'l] with mfld_simps at hx, simp only [hx] },
+    exact A.mono (by mfld_set_tac) },
   have diff_rfl : times_cont_mdiff_on I I' n (r ∘ f ∘ l.symm) s'l,
-  { apply times_cont_mdiff_on.comp diff_rf diff_l (λx hx, _),
-    simp only [s'l] with mfld_simps at hx, simp only [hx] with mfld_simps },
+  { apply times_cont_mdiff_on.comp diff_rf diff_l,
+    mfld_set_tac },
   have diff_rfl_lift : times_cont_mdiff_on I.tangent I'.tangent m
       (tangent_map_within I I' (r ∘ f ∘ l.symm) s'l) s'l_lift :=
     diff_rfl.times_cont_mdiff_on_tangent_map_within_aux hmn U'l,
@@ -1005,9 +1002,9 @@ begin
       rw [this, tangent_map_chart, local_homeomorph.left_inv];
       simp only [hq] with mfld_simps },
     have M : tangent_map_within I I' f s' q = tangent_map_within I I' f s q,
-    { apply tangent_map_within_subset _ U'q _,
-      { assume r hr, simp only [s'] with mfld_simps at hr, simp only [hr] with mfld_simps },
-      { apply hf.mdifferentiable_on one_le_n, simp only [hq] with mfld_simps } },
+    { refine tangent_map_within_subset (by mfld_set_tac) U'q _,
+      apply hf.mdifferentiable_on one_le_n,
+      simp only [hq] with mfld_simps },
     simp only [il, ir, A, B, C, D, M.symm] with mfld_simps },
   exact diff_DrirrflilDl.congr eq_comp,
 end

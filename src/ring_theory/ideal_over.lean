@@ -11,7 +11,7 @@ import ring_theory.algebraic
 
 This file concerns ideals lying over other ideals.
 Let `f : R →+* S` be a ring homomorphism (typically a ring extension), `I` an ideal of `R` and
-`J` an ideal of `S`. We say `J` lies over `I` (and vice versa) if `I` is the `f`-preimage of `J`.
+`J` an ideal of `S`. We say `J` lies over `I` (and `I` under `J`) if `I` is the `f`-preimage of `J`.
 This is expressed here by writing `I = J.comap f`.
 -/
 

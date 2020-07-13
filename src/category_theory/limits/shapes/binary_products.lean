@@ -3,7 +3,8 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
-import category_theory.limits.shapes.terminal
+import category_theory.limits.limits
+import category_theory.discrete_category
 
 /-!
 # Binary (co)products
@@ -34,9 +35,33 @@ inductive walking_pair : Type v
 
 open walking_pair
 
-instance fintype_walking_pair : fintype walking_pair :=
-{ elems := {left, right},
-  complete := λ x, by { cases x; simp } }
+/--
+The equivalence swapping left and right.
+-/
+def walking_pair.swap : walking_pair ≃ walking_pair :=
+{ to_fun := λ j, walking_pair.rec_on j right left,
+  inv_fun := λ j, walking_pair.rec_on j right left,
+  left_inv := λ j, by { cases j; refl, },
+  right_inv := λ j, by { cases j; refl, }, }
+
+@[simp] lemma walking_pair.swap_apply_left : walking_pair.swap left = right := rfl
+@[simp] lemma walking_pair.swap_apply_right : walking_pair.swap right = left := rfl
+@[simp] lemma walking_pair.swap_symm_apply_tt : walking_pair.swap.symm left = right := rfl
+@[simp] lemma walking_pair.swap_symm_apply_ff : walking_pair.swap.symm right = left := rfl
+
+/--
+An equivalence from `walking_pair` to `bool`, sometimes useful when reindexing limits.
+-/
+def walking_pair.equiv_bool : walking_pair ≃ bool :=
+{ to_fun := λ j, walking_pair.rec_on j tt ff, -- to match equiv.sum_equiv_sigma_bool
+  inv_fun := λ b, bool.rec_on b right left,
+  left_inv := λ j, by { cases j; refl, },
+  right_inv := λ b, by { cases b; refl, }, }
+
+@[simp] lemma walking_pair.equiv_bool_apply_left : walking_pair.equiv_bool left = tt := rfl
+@[simp] lemma walking_pair.equiv_bool_apply_right : walking_pair.equiv_bool right = ff := rfl
+@[simp] lemma walking_pair.equiv_bool_symm_apply_tt : walking_pair.equiv_bool.symm tt = left := rfl
+@[simp] lemma walking_pair.equiv_bool_symm_apply_ff : walking_pair.equiv_bool.symm ff = right := rfl
 
 variables {C : Type u} [category.{v} C]
 
@@ -143,126 +168,160 @@ def binary_cofan.is_colimit.desc' {W X Y : C} {s : binary_cofan X Y} (h : is_col
   (g : Y ⟶ W) : {l : s.X ⟶ W // s.inl ≫ l = f ∧ s.inr ≫ l = g} :=
 ⟨h.desc $ binary_cofan.mk f g, h.fac _ _, h.fac _ _⟩
 
+/-- An abbreviation for `has_limit (pair X Y)`. -/
+abbreviation has_binary_product (X Y : C) := has_limit (pair X Y)
+/-- An abbreviation for `has_colimit (pair X Y)`. -/
+abbreviation has_binary_coproduct (X Y : C) := has_colimit (pair X Y)
+
 /-- If we have chosen a product of `X` and `Y`, we can access it using `prod X Y` or
     `X ⨯ Y`. -/
-abbreviation prod (X Y : C) [has_limit (pair X Y)] := limit (pair X Y)
+abbreviation prod (X Y : C) [has_binary_product X Y] := limit (pair X Y)
 
 /-- If we have chosen a coproduct of `X` and `Y`, we can access it using `coprod X Y ` or
     `X ⨿ Y`. -/
-abbreviation coprod (X Y : C) [has_colimit (pair X Y)] := colimit (pair X Y)
+abbreviation coprod (X Y : C) [has_binary_coproduct X Y] := colimit (pair X Y)
 
 notation X ` ⨯ `:20 Y:20 := prod X Y
 notation X ` ⨿ `:20 Y:20 := coprod X Y
 
 /-- The projection map to the first component of the product. -/
-abbreviation prod.fst {X Y : C} [has_limit (pair X Y)] : X ⨯ Y ⟶ X :=
+abbreviation prod.fst {X Y : C} [has_binary_product X Y] : X ⨯ Y ⟶ X :=
 limit.π (pair X Y) walking_pair.left
 
 /-- The projecton map to the second component of the product. -/
-abbreviation prod.snd {X Y : C} [has_limit (pair X Y)] : X ⨯ Y ⟶ Y :=
+abbreviation prod.snd {X Y : C} [has_binary_product X Y] : X ⨯ Y ⟶ Y :=
 limit.π (pair X Y) walking_pair.right
 
 /-- The inclusion map from the first component of the coproduct. -/
-abbreviation coprod.inl {X Y : C} [has_colimit (pair X Y)] : X ⟶ X ⨿ Y :=
+abbreviation coprod.inl {X Y : C} [has_binary_coproduct X Y] : X ⟶ X ⨿ Y :=
 colimit.ι (pair X Y) walking_pair.left
 
 /-- The inclusion map from the second component of the coproduct. -/
-abbreviation coprod.inr {X Y : C} [has_colimit (pair X Y)] : Y ⟶ X ⨿ Y :=
+abbreviation coprod.inr {X Y : C} [has_binary_coproduct X Y] : Y ⟶ X ⨿ Y :=
 colimit.ι (pair X Y) walking_pair.right
 
-@[ext] lemma prod.hom_ext {W X Y : C} [has_limit (pair X Y)] {f g : W ⟶ X ⨯ Y}
+@[ext] lemma prod.hom_ext {W X Y : C} [has_binary_product X Y] {f g : W ⟶ X ⨯ Y}
   (h₁ : f ≫ prod.fst = g ≫ prod.fst) (h₂ : f ≫ prod.snd = g ≫ prod.snd) : f = g :=
 binary_fan.is_limit.hom_ext (limit.is_limit _) h₁ h₂
 
-@[ext] lemma coprod.hom_ext {W X Y : C} [has_colimit (pair X Y)] {f g : X ⨿ Y ⟶ W}
+@[ext] lemma coprod.hom_ext {W X Y : C} [has_binary_coproduct X Y] {f g : X ⨿ Y ⟶ W}
   (h₁ : coprod.inl ≫ f = coprod.inl ≫ g) (h₂ : coprod.inr ≫ f = coprod.inr ≫ g) : f = g :=
 binary_cofan.is_colimit.hom_ext (colimit.is_colimit _) h₁ h₂
 
 /-- If the product of `X` and `Y` exists, then every pair of morphisms `f : W ⟶ X` and `g : W ⟶ Y`
     induces a morphism `prod.lift f g : W ⟶ X ⨯ Y`. -/
-abbreviation prod.lift {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ Y) : W ⟶ X ⨯ Y :=
+abbreviation prod.lift {W X Y : C} [has_binary_product X Y] (f : W ⟶ X) (g : W ⟶ Y) : W ⟶ X ⨯ Y :=
 limit.lift _ (binary_fan.mk f g)
 
 /-- If the coproduct of `X` and `Y` exists, then every pair of morphisms `f : X ⟶ W` and
     `g : Y ⟶ W` induces a morphism `coprod.desc f g : X ⨿ Y ⟶ W`. -/
-abbreviation coprod.desc {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g : Y ⟶ W) : X ⨿ Y ⟶ W :=
+abbreviation coprod.desc {W X Y : C} [has_binary_coproduct X Y] (f : X ⟶ W) (g : Y ⟶ W) : X ⨿ Y ⟶ W :=
 colimit.desc _ (binary_cofan.mk f g)
 
 @[simp, reassoc]
-lemma prod.lift_fst {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ Y) :
+lemma prod.lift_fst {W X Y : C} [has_binary_product X Y] (f : W ⟶ X) (g : W ⟶ Y) :
   prod.lift f g ≫ prod.fst = f :=
 limit.lift_π _ _
 
 @[simp, reassoc]
-lemma prod.lift_snd {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ Y) :
+lemma prod.lift_snd {W X Y : C} [has_binary_product X Y] (f : W ⟶ X) (g : W ⟶ Y) :
   prod.lift f g ≫ prod.snd = g :=
 limit.lift_π _ _
 
 /- The redundant simp lemma linter says that simp can prove the reassoc version of this lemma. -/
 @[reassoc, simp]
-lemma prod.lift_comp_comp {V W X Y : C} [has_limit (pair X Y)] (f : V ⟶ W) (g : W ⟶ X) (h : W ⟶ Y) :
+lemma prod.lift_comp_comp {V W X Y : C} [has_binary_product X Y] (f : V ⟶ W) (g : W ⟶ X) (h : W ⟶ Y) :
   prod.lift (f ≫ g) (f ≫ h) = f ≫ prod.lift g h :=
 by tidy
 
 @[simp, reassoc]
-lemma coprod.inl_desc {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g : Y ⟶ W) :
+lemma coprod.inl_desc {W X Y : C} [has_binary_coproduct X Y] (f : X ⟶ W) (g : Y ⟶ W) :
   coprod.inl ≫ coprod.desc f g = f :=
 colimit.ι_desc _ _
 
 @[simp, reassoc]
-lemma coprod.inr_desc {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g : Y ⟶ W) :
+lemma coprod.inr_desc {W X Y : C} [has_binary_coproduct X Y] (f : X ⟶ W) (g : Y ⟶ W) :
   coprod.inr ≫ coprod.desc f g = g :=
 colimit.ι_desc _ _
 
 /- The redundant simp lemma linter says that simp can prove the reassoc version of this lemma. -/
 @[reassoc, simp]
-lemma coprod.desc_comp_comp {V W X Y : C} [has_colimit (pair X Y)] (f : V ⟶ W) (g : X ⟶ V)
+lemma coprod.desc_comp_comp {V W X Y : C} [has_binary_coproduct X Y] (f : V ⟶ W) (g : X ⟶ V)
   (h : Y ⟶ V) : coprod.desc (g ≫ f) (h ≫ f) = coprod.desc g h ≫ f :=
 by tidy
 
-instance prod.mono_lift_of_mono_left {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ Y)
+instance prod.mono_lift_of_mono_left {W X Y : C} [has_binary_product X Y] (f : W ⟶ X) (g : W ⟶ Y)
   [mono f] : mono (prod.lift f g) :=
 mono_of_mono_fac $ prod.lift_fst _ _
 
-instance prod.mono_lift_of_mono_right {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ Y)
+instance prod.mono_lift_of_mono_right {W X Y : C} [has_binary_product X Y] (f : W ⟶ X) (g : W ⟶ Y)
   [mono g] : mono (prod.lift f g) :=
 mono_of_mono_fac $ prod.lift_snd _ _
 
-instance coprod.epi_desc_of_epi_left {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g : Y ⟶ W)
+instance coprod.epi_desc_of_epi_left {W X Y : C} [has_binary_coproduct X Y] (f : X ⟶ W) (g : Y ⟶ W)
   [epi f] : epi (coprod.desc f g) :=
 epi_of_epi_fac $ coprod.inl_desc _ _
 
-instance coprod.epi_desc_of_epi_right {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g : Y ⟶ W)
+instance coprod.epi_desc_of_epi_right {W X Y : C} [has_binary_coproduct X Y] (f : X ⟶ W) (g : Y ⟶ W)
   [epi g] : epi (coprod.desc f g) :=
 epi_of_epi_fac $ coprod.inr_desc _ _
 
 /-- If the product of `X` and `Y` exists, then every pair of morphisms `f : W ⟶ X` and `g : W ⟶ Y`
     induces a morphism `l : W ⟶ X ⨯ Y` satisfying `l ≫ prod.fst = f` and `l ≫ prod.snd = g`. -/
-def prod.lift' {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ Y) :
+def prod.lift' {W X Y : C} [has_binary_product X Y] (f : W ⟶ X) (g : W ⟶ Y) :
   {l : W ⟶ X ⨯ Y // l ≫ prod.fst = f ∧ l ≫ prod.snd = g} :=
 ⟨prod.lift f g, prod.lift_fst _ _, prod.lift_snd _ _⟩
 
 /-- If the coproduct of `X` and `Y` exists, then every pair of morphisms `f : X ⟶ W` and
     `g : Y ⟶ W` induces a morphism `l : X ⨿ Y ⟶ W` satisfying `coprod.inl ≫ l = f` and
     `coprod.inr ≫ l = g`. -/
-def coprod.desc' {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g : Y ⟶ W) :
+def coprod.desc' {W X Y : C} [has_binary_coproduct X Y] (f : X ⟶ W) (g : Y ⟶ W) :
   {l : X ⨿ Y ⟶ W // coprod.inl ≫ l = f ∧ coprod.inr ≫ l = g} :=
 ⟨coprod.desc f g, coprod.inl_desc _ _, coprod.inr_desc _ _⟩
 
 /-- If the products `W ⨯ X` and `Y ⨯ Z` exist, then every pair of morphisms `f : W ⟶ Y` and
     `g : X ⟶ Z` induces a morphism `prod.map f g : W ⨯ X ⟶ Y ⨯ Z`. -/
-abbreviation prod.map {W X Y Z : C} [has_limits_of_shape.{v} (discrete walking_pair) C]
+abbreviation prod.map {W X Y Z : C} [has_limits_of_shape (discrete walking_pair) C]
   (f : W ⟶ Y) (g : X ⟶ Z) : W ⨯ X ⟶ Y ⨯ Z :=
 lim.map (map_pair f g)
 
+/-- If the products `W ⨯ X` and `Y ⨯ Z` exist, then every pair of isomorphisms `f : W ≅ Y` and
+    `g : X ≅ Z` induces a isomorphism `prod.map_iso f g : W ⨯ X ≅ Y ⨯ Z`. -/
+abbreviation prod.map_iso {W X Y Z : C} [has_limits_of_shape.{v} (discrete walking_pair) C]
+  (f : W ≅ Y) (g : X ≅ Z) : W ⨯ X ≅ Y ⨯ Z :=
+lim.map_iso (map_pair_iso f g)
+
+-- Note that the next two `simp` lemmas are proved by `simp`,
+-- but nevertheless are useful,
+-- because they state the right hand side in terms of `prod.map`
+-- rather than `lim.map`.
+@[simp] lemma prod.map_iso_hom {W X Y Z : C} [has_limits_of_shape.{v} (discrete walking_pair) C]
+  (f : W ≅ Y) (g : X ≅ Z) : (prod.map_iso f g).hom = prod.map f.hom g.hom := by simp
+
+@[simp] lemma prod.map_iso_inv {W X Y Z : C} [has_limits_of_shape.{v} (discrete walking_pair) C]
+  (f : W ≅ Y) (g : X ≅ Z) : (prod.map_iso f g).inv = prod.map f.inv g.inv := by simp
+
 /-- If the coproducts `W ⨿ X` and `Y ⨿ Z` exist, then every pair of morphisms `f : W ⟶ Y` and
     `g : W ⟶ Z` induces a morphism `coprod.map f g : W ⨿ X ⟶ Y ⨿ Z`. -/
-abbreviation coprod.map {W X Y Z : C} [has_colimits_of_shape.{v} (discrete walking_pair) C]
+abbreviation coprod.map {W X Y Z : C} [has_colimits_of_shape (discrete walking_pair) C]
   (f : W ⟶ Y) (g : X ⟶ Z) : W ⨿ X ⟶ Y ⨿ Z :=
 colim.map (map_pair f g)
 
+/-- If the coproducts `W ⨿ X` and `Y ⨿ Z` exist, then every pair of isomorphisms `f : W ≅ Y` and
+    `g : W ≅ Z` induces a isomorphism `coprod.map_iso f g : W ⨿ X ≅ Y ⨿ Z`. -/
+abbreviation coprod.map_iso {W X Y Z : C} [has_colimits_of_shape.{v} (discrete walking_pair) C]
+  (f : W ≅ Y) (g : X ≅ Z) : W ⨿ X ≅ Y ⨿ Z :=
+colim.map_iso (map_pair_iso f g)
+
+@[simp] lemma coprod.map_iso_hom {W X Y Z : C} [has_colimits_of_shape.{v} (discrete walking_pair) C]
+  (f : W ≅ Y) (g : X ≅ Z) : (coprod.map_iso f g).hom = coprod.map f.hom g.hom := by simp
+
+@[simp] lemma coprod.map_iso_inv {W X Y Z : C} [has_colimits_of_shape.{v} (discrete walking_pair) C]
+  (f : W ≅ Y) (g : X ≅ Z) : (coprod.map_iso f g).inv = coprod.map f.inv g.inv := by simp
+
+
 section prod_lemmas
-variable [has_limits_of_shape.{v} (discrete walking_pair) C]
+variable [has_limits_of_shape (discrete walking_pair) C]
 
 @[reassoc]
 lemma prod.map_fst {W X Y Z : C}
@@ -301,7 +360,7 @@ by tidy
 end prod_lemmas
 
 section coprod_lemmas
-variable [has_colimits_of_shape.{v} (discrete walking_pair) C]
+variable [has_colimits_of_shape (discrete walking_pair) C]
 
 @[reassoc]
 lemma coprod.inl_map {W X Y Z : C}
@@ -344,35 +403,26 @@ variables (C)
 
 /-- `has_binary_products` represents a choice of product for every pair of objects. -/
 class has_binary_products :=
-(has_limits_of_shape : has_limits_of_shape.{v} (discrete walking_pair) C)
+(has_limits_of_shape : has_limits_of_shape (discrete walking_pair) C)
 
 /-- `has_binary_coproducts` represents a choice of coproduct for every pair of objects. -/
 class has_binary_coproducts :=
-(has_colimits_of_shape : has_colimits_of_shape.{v} (discrete walking_pair) C)
+(has_colimits_of_shape : has_colimits_of_shape (discrete walking_pair) C)
 
 attribute [instance] has_binary_products.has_limits_of_shape has_binary_coproducts.has_colimits_of_shape
 
-@[priority 200] -- see Note [lower instance priority]
-instance [has_finite_products.{v} C] : has_binary_products.{v} C :=
-{ has_limits_of_shape := by apply_instance }
-@[priority 200] -- see Note [lower instance priority]
-instance [has_finite_coproducts.{v} C] : has_binary_coproducts.{v} C :=
-{ has_colimits_of_shape := by apply_instance }
-
 /-- If `C` has all limits of diagrams `pair X Y`, then it has all binary products -/
 def has_binary_products_of_has_limit_pair [Π {X Y : C}, has_limit (pair X Y)] :
-  has_binary_products.{v} C :=
+  has_binary_products C :=
 { has_limits_of_shape := { has_limit := λ F, has_limit_of_iso (diagram_iso_pair F).symm } }
 
 /-- If `C` has all colimits of diagrams `pair X Y`, then it has all binary coproducts -/
 def has_binary_coproducts_of_has_colimit_pair [Π {X Y : C}, has_colimit (pair X Y)] :
-  has_binary_coproducts.{v} C :=
+  has_binary_coproducts C :=
 { has_colimits_of_shape := { has_colimit := λ F, has_colimit_of_iso (diagram_iso_pair F) } }
 
-section
-
-variables {C} [has_binary_products.{v} C]
-variables {D : Type u₂} [category.{v} D] [has_binary_products.{v} D]
+section prod_functor
+variables {C} [has_binary_products C]
 
 -- FIXME deterministic timeout with `-T50000`
 /-- The binary product functor. -/
@@ -381,54 +431,12 @@ def prod_functor : C ⥤ C ⥤ C :=
 { obj := λ X, { obj := λ Y, X ⨯ Y, map := λ Y Z, prod.map (𝟙 X) },
   map := λ Y Z f, { app := λ T, prod.map f (𝟙 T) }}
 
-/-- The braiding isomorphism which swaps a binary product. -/
-@[simps] def prod.braiding (P Q : C) : P ⨯ Q ≅ Q ⨯ P :=
-{ hom := prod.lift prod.snd prod.fst,
-  inv := prod.lift prod.snd prod.fst }
+end prod_functor
 
-/-- The braiding isomorphism can be passed through a map by swapping the order. -/
-@[reassoc] lemma braid_natural {W X Y Z : C} (f : X ⟶ Y) (g : Z ⟶ W) :
-  prod.map f g ≫ (prod.braiding _ _).hom = (prod.braiding _ _).hom ≫ prod.map g f :=
-by tidy
+section prod_comparison
+variables {C} [has_binary_products C]
 
-@[simp, reassoc] lemma prod.symmetry' (P Q : C) :
-  prod.lift prod.snd prod.fst ≫ prod.lift prod.snd prod.fst = 𝟙 (P ⨯ Q) :=
-by tidy
-
-/-- The braiding isomorphism is symmetric. -/
-@[reassoc] lemma prod.symmetry (P Q : C) :
-  (prod.braiding P Q).hom ≫ (prod.braiding Q P).hom = 𝟙 _ :=
-by simp
-
-/-- The associator isomorphism for binary products. -/
-@[simps] def prod.associator
-  (P Q R : C) : (P ⨯ Q) ⨯ R ≅ P ⨯ (Q ⨯ R) :=
-{ hom :=
-  prod.lift
-    (prod.fst ≫ prod.fst)
-    (prod.lift (prod.fst ≫ prod.snd) prod.snd),
-  inv :=
-  prod.lift
-    (prod.lift prod.fst (prod.snd ≫ prod.fst))
-    (prod.snd ≫ prod.snd) }
-
-/-- The product functor can be decomposed. -/
-def prod_functor_left_comp (X Y : C) :
-  prod_functor.obj (X ⨯ Y) ≅ prod_functor.obj Y ⋙ prod_functor.obj X :=
-nat_iso.of_components (prod.associator _ _) (by tidy)
-
-@[reassoc]
-lemma prod.pentagon (W X Y Z : C) :
-  prod.map ((prod.associator W X Y).hom) (𝟙 Z) ≫
-      (prod.associator W (X ⨯ Y) Z).hom ≫ prod.map (𝟙 W) ((prod.associator X Y Z).hom) =
-    (prod.associator (W ⨯ X) Y Z).hom ≫ (prod.associator W X (Y ⨯ Z)).hom :=
-by tidy
-
-@[reassoc]
-lemma prod.associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (f₃ : X₃ ⟶ Y₃) :
-  prod.map (prod.map f₁ f₂) f₃ ≫ (prod.associator Y₁ Y₂ Y₃).hom =
-    (prod.associator X₁ X₂ X₃).hom ≫ prod.map f₁ (prod.map f₂ f₃) :=
-by tidy
+variables {D : Type u₂} [category.{v} D] [has_binary_products D]
 
 /--
 The product comparison morphism.
@@ -474,106 +482,6 @@ lemma prod_comparison_inv_natural (F : C ⥤ D) {A A' B B' : C} (f : A ⟶ A') (
 by { erw [(as_iso (prod_comparison F A' B')).eq_comp_inv, category.assoc,
     (as_iso (prod_comparison F A B)).inv_comp_eq, prod_comparison_natural], refl }
 
-variables [has_terminal.{v} C]
-
-/-- The left unitor isomorphism for binary products with the terminal object. -/
-@[simps] def prod.left_unitor
-  (P : C) : ⊤_ C ⨯ P ≅ P :=
-{ hom := prod.snd,
-  inv := prod.lift (terminal.from P) (𝟙 _) }
-
-/-- The right unitor isomorphism for binary products with the terminal object. -/
-@[simps] def prod.right_unitor
-  (P : C) : P ⨯ ⊤_ C ≅ P :=
-{ hom := prod.fst,
-  inv := prod.lift (𝟙 _) (terminal.from P) }
-
-@[reassoc]
-lemma prod_left_unitor_hom_naturality (f : X ⟶ Y):
-  prod.map (𝟙 _) f ≫ (prod.left_unitor Y).hom = (prod.left_unitor X).hom ≫ f :=
-prod.map_snd _ _
-
-@[reassoc]
-lemma prod_left_unitor_inv_naturality (f : X ⟶ Y):
-  (prod.left_unitor X).inv ≫ prod.map (𝟙 _) f = f ≫ (prod.left_unitor Y).inv :=
-by rw [iso.inv_comp_eq, ← category.assoc, iso.eq_comp_inv, prod_left_unitor_hom_naturality]
-
-@[reassoc]
-lemma prod_right_unitor_hom_naturality (f : X ⟶ Y):
-  prod.map f (𝟙 _) ≫ (prod.right_unitor Y).hom = (prod.right_unitor X).hom ≫ f :=
-prod.map_fst _ _
-
-@[reassoc]
-lemma prod_right_unitor_inv_naturality (f : X ⟶ Y):
-  (prod.right_unitor X).inv ≫ prod.map f (𝟙 _) = f ≫ (prod.right_unitor Y).inv :=
-by rw [iso.inv_comp_eq, ← category.assoc, iso.eq_comp_inv, prod_right_unitor_hom_naturality]
-
-lemma prod.triangle (X Y : C) :
-  (prod.associator X (⊤_ C) Y).hom ≫ prod.map (𝟙 X) ((prod.left_unitor Y).hom) =
-    prod.map ((prod.right_unitor X).hom) (𝟙 Y) :=
-by tidy
-
-end
-
-section
-variables {C} [has_binary_coproducts.{v} C]
-
-/-- The braiding isomorphism which swaps a binary coproduct. -/
-@[simps] def coprod.braiding (P Q : C) : P ⨿ Q ≅ Q ⨿ P :=
-{ hom := coprod.desc coprod.inr coprod.inl,
-  inv := coprod.desc coprod.inr coprod.inl }
-
-@[simp] lemma coprod.symmetry' (P Q : C) :
-  coprod.desc coprod.inr coprod.inl ≫ coprod.desc coprod.inr coprod.inl = 𝟙 (P ⨿ Q) :=
-by tidy
-
-/-- The braiding isomorphism is symmetric. -/
-lemma coprod.symmetry (P Q : C) :
-  (coprod.braiding P Q).hom ≫ (coprod.braiding Q P).hom = 𝟙 _ :=
-by simp
-
-/-- The associator isomorphism for binary coproducts. -/
-@[simps] def coprod.associator
-  (P Q R : C) : (P ⨿ Q) ⨿ R ≅ P ⨿ (Q ⨿ R) :=
-{ hom :=
-  coprod.desc
-    (coprod.desc coprod.inl (coprod.inl ≫ coprod.inr))
-    (coprod.inr ≫ coprod.inr),
-  inv :=
-  coprod.desc
-    (coprod.inl ≫ coprod.inl)
-    (coprod.desc (coprod.inr ≫ coprod.inl) coprod.inr) }
-
-lemma coprod.pentagon (W X Y Z : C) :
-  coprod.map ((coprod.associator W X Y).hom) (𝟙 Z) ≫
-      (coprod.associator W (X ⨿ Y) Z).hom ≫ coprod.map (𝟙 W) ((coprod.associator X Y Z).hom) =
-    (coprod.associator (W ⨿ X) Y Z).hom ≫ (coprod.associator W X (Y ⨿ Z)).hom :=
-by tidy
-
-lemma coprod.associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (f₃ : X₃ ⟶ Y₃) :
-  coprod.map (coprod.map f₁ f₂) f₃ ≫ (coprod.associator Y₁ Y₂ Y₃).hom =
-    (coprod.associator X₁ X₂ X₃).hom ≫ coprod.map f₁ (coprod.map f₂ f₃) :=
-by tidy
-
-variables [has_initial.{v} C]
-
-/-- The left unitor isomorphism for binary coproducts with the initial object. -/
-@[simps] def coprod.left_unitor
-  (P : C) : ⊥_ C ⨿ P ≅ P :=
-{ hom := coprod.desc (initial.to P) (𝟙 _),
-  inv := coprod.inr }
-
-/-- The right unitor isomorphism for binary coproducts with the initial object. -/
-@[simps] def coprod.right_unitor
-  (P : C) : P ⨿ ⊥_ C ≅ P :=
-{ hom := coprod.desc (𝟙 _) (initial.to P),
-  inv := coprod.inl }
-
-lemma coprod.triangle (X Y : C) :
-  (coprod.associator X (⊥_ C) Y).hom ≫ coprod.map (𝟙 X) ((coprod.left_unitor Y).hom) =
-    coprod.map ((coprod.right_unitor X).hom) (𝟙 Y) :=
-by tidy
-
-end
+end prod_comparison
 
 end category_theory.limits

@@ -49,11 +49,11 @@ class preserves_colimit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves : Π {c : cocone K}, is_colimit c → is_colimit (F.map_cocone c))
 
 /-- A functor which preserves limits preserves chosen limits up to isomorphism. -/
-def preserves_limit_iso (K : J ⥤ C) [has_limit.{v} K] (F : C ⥤ D) [has_limit.{v} (K ⋙ F)] [preserves_limit K F] :
+def preserves_limit_iso (K : J ⥤ C) [has_limit K] (F : C ⥤ D) [has_limit (K ⋙ F)] [preserves_limit K F] :
   F.obj (limit K) ≅ limit (K ⋙ F) :=
 is_limit.cone_point_unique_up_to_iso (preserves_limit.preserves (limit.is_limit K)) (limit.is_limit (K ⋙ F))
 /-- A functor which preserves colimits preserves chosen colimits up to isomorphism. -/
-def preserves_colimit_iso (K : J ⥤ C) [has_colimit.{v} K] (F : C ⥤ D) [has_colimit.{v} (K ⋙ F)] [preserves_colimit K F] :
+def preserves_colimit_iso (K : J ⥤ C) [has_colimit K] (F : C ⥤ D) [has_colimit (K ⋙ F)] [preserves_colimit K F] :
   F.obj (colimit K) ≅ colimit (K ⋙ F) :=
 is_colimit.cocone_point_unique_up_to_iso (preserves_colimit.preserves (colimit.is_colimit K)) (colimit.is_colimit (K ⋙ F))
 
@@ -246,5 +246,31 @@ instance comp_reflects_colimit [reflects_colimit K F] [reflects_colimit (K ⋙ F
 ⟨λ c h, reflects_colimit.reflects (reflects_colimit.reflects h)⟩
 
 end
+
+variable (F : C ⥤ D)
+
+/-- A fully faithful functor reflects limits. -/
+def fully_faithful_reflects_limits [full F] [faithful F] : reflects_limits F :=
+{ reflects_limits_of_shape := λ J 𝒥₁, by exactI
+  { reflects_limit := λ K,
+    { reflects := λ c t,
+      is_limit.mk_cone_morphism (λ s, (cones.functoriality K F).preimage (t.lift_cone_morphism _)) $
+      begin
+        apply (λ s m, (cones.functoriality K F).map_injective _),
+        rw [functor.image_preimage],
+        apply t.uniq_cone_morphism,
+      end } } }
+
+/-- A fully faithful functor reflects colimits. -/
+def fully_faithful_reflects_colimits [full F] [faithful F] : reflects_colimits F :=
+{ reflects_colimits_of_shape := λ J 𝒥₁, by exactI
+  { reflects_colimit := λ K,
+    { reflects := λ c t,
+      is_colimit.mk_cocone_morphism (λ s, (cocones.functoriality K F).preimage (t.desc_cocone_morphism _)) $
+      begin
+        apply (λ s m, (cocones.functoriality K F).map_injective _),
+        rw [functor.image_preimage],
+        apply t.uniq_cocone_morphism,
+      end } } }
 
 end category_theory.limits

@@ -64,6 +64,12 @@ it may be worth it to reverse the fold.
 meta def sdiff {α} (s1 s2 : rb_set α) : rb_set α :=
 s2.fold s1 $ λ v s, s.erase v
 
+/--
+`insert_list s l` inserts each element of `l` into `s`.
+-/
+meta def insert_list {key} (s : rb_set key) (l : list key) : rb_set key :=
+l.foldl rb_set.insert s
+
 end rb_set
 
 /-! ### Declarations about `rb_map` -/

@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Scott Morrison
 -/
 import algebra.module
 import data.fintype.card
+import data.multiset.antidiagonal
 
 /-!
 
@@ -810,18 +811,22 @@ lemma multiset_sum_sum [has_zero β] [add_comm_monoid γ] {f : α →₀ β} {h 
 section map_range
 variables
   [add_comm_monoid β₁] [add_comm_monoid β₂]
-  (f : β₁ → β₂) [hf : is_add_monoid_hom f]
+  (f : β₁ →+ β₂)
 
-instance is_add_monoid_hom_map_range :
-  is_add_monoid_hom (map_range f hf.map_zero : (α →₀ β₁) → (α →₀ β₂)) :=
-{ map_zero := map_range_zero, map_add := λ a b, map_range_add hf.map_add _ _ }
+/--
+Composition with a fixed additive homomorphism is itself an additive homomorphism on functions.
+-/
+def map_range.add_monoid_hom : (α →₀ β₁) →+ (α →₀ β₂) :=
+{ to_fun := (map_range f f.map_zero : (α →₀ β₁) → (α →₀ β₂)),
+  map_zero' := map_range_zero,
+  map_add' := λ a b, map_range_add f.map_add _ _ }
 
 lemma map_range_multiset_sum (m : multiset (α →₀ β₁)) :
-  map_range f hf.map_zero m.sum = (m.map $ λx, map_range f hf.map_zero x).sum :=
-(m.sum_hom (map_range f hf.map_zero)).symm
+  map_range f f.map_zero m.sum = (m.map $ λx, map_range f f.map_zero x).sum :=
+(m.sum_hom (map_range.add_monoid_hom f)).symm
 
 lemma map_range_finset_sum {ι : Type*} (s : finset ι) (g : ι → (α →₀ β₁))  :
-  map_range f hf.map_zero (∑ x in s, g x) = ∑ x in s, map_range f hf.map_zero (g x) :=
+  map_range f f.map_zero (∑ x in s, g x) = ∑ x in s, map_range f f.map_zero (g x) :=
 by rw [finset.sum.equations._eqn_1, map_range_multiset_sum, multiset.map_map]; refl
 
 end map_range
@@ -952,7 +957,7 @@ lemma sum_comap_domain {α₁ α₂ β γ : Type*} [has_zero β] [add_comm_monoi
   (comap_domain f l hf.inj_on).sum (g ∘ f) = l.sum g :=
 begin
   simp [sum],
-  simp [comap_domain, finset.sum_preimage f _ _ (λ (x : α₂), g x (l x))]
+  simp [comap_domain, finset.sum_preimage_of_bij f _ _ (λ (x : α₂), g x (l x))]
 end
 
 lemma eq_zero_of_comap_domain_eq_zero {α₁ α₂ γ : Type*} [add_comm_monoid γ]
@@ -1486,7 +1491,7 @@ end
   (b • v) a = b • (v a) :=
 rfl
 
-lemma sum_smul_index [ring β] [add_comm_monoid γ] {g : α →₀ β} {b : β} {h : α → β → γ}
+lemma sum_smul_index [semiring β] [add_comm_monoid γ] {g : α →₀ β} {b : β} {h : α → β → γ}
   (h0 : ∀i, h i 0 = 0) : (b • g).sum h = g.sum (λi a, h i (b * a)) :=
 finsupp.sum_map_range_index h0
 
@@ -1508,7 +1513,7 @@ by simp only [finsupp.sum, finset.mul_sum]
 
 protected lemma eq_zero_of_zero_eq_one
   (zero_eq_one : (0 : β) = 1) (l : α →₀ β) : l = 0 :=
-by ext i; simp only [eq_zero_of_zero_eq_one β zero_eq_one (l i), finsupp.zero_apply]
+by ext i; simp only [eq_zero_of_zero_eq_one zero_eq_one (l i), finsupp.zero_apply]
 
 end
 
@@ -1801,7 +1806,7 @@ begin
   have f_im : set.finite (f '' {m | m ≤ n}) := set.finite.of_fintype _,
   suffices f_inj : set.inj_on f {m | m ≤ n},
   { exact set.finite_of_finite_image f_inj f_im },
-  intros m₁ m₂ h₁ h₂ h,
+  intros m₁ h₁ m₂ h₂ h,
   ext i,
   by_cases hi : i ∈ n.support,
   { replace h := congr_fun h ⟨i, hi⟩,

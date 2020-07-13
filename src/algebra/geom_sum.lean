@@ -11,7 +11,7 @@ import algebra.big_operators
 universe u
 variable {α : Type u}
 
-open finset
+open finset opposite
 
 open_locale big_operators
 
@@ -28,6 +28,9 @@ theorem geom_series_def [semiring α] (x : α) (n : ℕ) :
 @[simp] theorem geom_series_one [semiring α] (x : α) :
   geom_series x 1 = 1 :=
 by { rw [geom_series_def, sum_range_one, pow_zero] }
+
+@[simp] lemma op_geom_series [ring α] (x : α) (n : ℕ) : op (geom_series x n) = geom_series (op x) n :=
+by simp [geom_series_def]
 
 /-- Sum of the finite geometric series $\sum_{i=0}^{n-1} x^i y^{n-1-i}$. -/
 def geom_series₂ [semiring α] (x y : α) (n : ℕ) :=
@@ -120,12 +123,26 @@ begin
   exact this
 end
 
+lemma mul_geom_sum [ring α] (x : α) (n : ℕ) :
+  (x - 1) * (geom_series x n) = x ^ n - 1 :=
+begin
+  rw ← op_inj_iff,
+  simpa using geom_sum_mul (op x) n,
+end
+
 theorem geom_sum_mul_neg [ring α] (x : α) (n : ℕ) :
   (geom_series x n) * (1 - x) = 1 - x ^ n :=
 begin
   have := congr_arg has_neg.neg (geom_sum_mul x n),
   rw [neg_sub, ← mul_neg_eq_neg_mul_symm, neg_sub] at this,
   exact this
+end
+
+lemma mul_neg_geom_sum [ring α] (x : α) (n : ℕ) :
+  (1 - x) * (geom_series x n) = 1 - x ^ n :=
+begin
+  rw ← op_inj_iff,
+  simpa using geom_sum_mul_neg (op x) n,
 end
 
 theorem geom_sum [division_ring α] {x : α} (h : x ≠ 1) (n : ℕ) :
@@ -155,9 +172,10 @@ have h₂ : x⁻¹ - 1 ≠ 0, from mt sub_eq_zero.1 h₁,
 have h₃ : x - 1 ≠ 0, from mt sub_eq_zero.1 hx1,
 have h₄ : x * (x ^ n)⁻¹ = (x ^ n)⁻¹ * x :=
   nat.rec_on n (by simp)
-  (λ n h, by rw [pow_succ, mul_inv', ←mul_assoc, h, mul_assoc, mul_inv_cancel hx0, mul_assoc, inv_mul_cancel hx0]),
+  (λ n h, by rw [pow_succ, mul_inv_rev', ←mul_assoc, h, mul_assoc, mul_inv_cancel hx0, mul_assoc,
+    inv_mul_cancel hx0]),
 begin
-  rw [geom_sum h₁, div_eq_iff_mul_eq h₂, ← domain.mul_right_inj h₃,
+  rw [geom_sum h₁, div_eq_iff_mul_eq h₂, ← mul_right_inj' h₃,
     ← mul_assoc, ← mul_assoc, mul_inv_cancel h₃],
   simp [mul_add, add_mul, mul_inv_cancel hx0, mul_assoc, h₄, sub_eq_add_neg, add_comm, add_left_comm],
 end
@@ -166,8 +184,8 @@ variables {β : Type*}
 
 theorem ring_hom.map_geom_series [semiring α] [semiring β] (x : α) (n : ℕ) (f : α →+* β) :
   f (geom_series x n) = geom_series (f x) n :=
-by { rw [geom_series_def, geom_series_def, ← finset.sum_hom _ f], simp_rw [f.map_mul, f.map_pow] }
+by simp [geom_series_def, f.map_sum]
 
 theorem ring_hom.map_geom_series₂ [semiring α] [semiring β] (x y : α) (n : ℕ) (f : α →+* β) :
   f (geom_series₂ x y n) = geom_series₂ (f x) (f y) n :=
-by { rw [geom_series₂_def, geom_series₂_def, ← finset.sum_hom _ f], simp_rw [f.map_mul, f.map_pow] }
+by simp [geom_series₂_def, f.map_sum]

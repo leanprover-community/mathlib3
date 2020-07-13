@@ -8,6 +8,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 import order.complete_boolean_algebra
 import data.sigma.basic
 import order.galois_connection
+import order.directed
 
 open function tactic set auto
 
@@ -17,13 +18,7 @@ variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {ι' : Sort y}
 namespace set
 
 instance lattice_set : complete_lattice (set α) :=
-{ le     := (⊆),
-  lt     := (⊂),
-  sup    := (∪),
-  inf    := (∩),
-  top    := univ,
-  bot    := ∅,
-  Sup    := λs, {a | ∃ t ∈ s, a ∈ t },
+{ Sup    := λs, {a | ∃ t ∈ s, a ∈ t },
   Inf    := λs, {a | ∀ t ∈ s, a ∈ t },
 
   le_Sup := assume s t t_in a a_in, ⟨t, ⟨t_in, a_in⟩⟩,
@@ -31,16 +26,9 @@ instance lattice_set : complete_lattice (set α) :=
 
   le_Inf := assume s t h a a_in t' t'_in, h t' t'_in a_in,
   Inf_le := assume s t t_in a h, h _ t_in,
+
+  .. set.boolean_algebra,
   .. (infer_instance : complete_lattice (α → Prop)) }
-
-instance : distrib_lattice (set α) :=
-{ le_sup_inf := λ s t u x, or_and_distrib_left.2, ..set.lattice_set }
-
-@[simp] lemma bot_eq_empty : (⊥ : set α) = ∅ := rfl
-@[simp] lemma sup_eq_union (s t : set α) : s ⊔ t = s ∪ t := rfl
-@[simp] lemma inf_eq_inter (s t : set α) : s ⊓ t = s ∩ t := rfl
-@[simp] lemma le_eq_subset (s t : set α) : s ≤ t = (s ⊆ t) := rfl
-@[simp] lemma lt_eq_ssubset (s t : set α) : s < t = (s ⊂ t) := rfl
 
 /-- Image is monotone. See `set.image_image` for the statement in terms of `⊆`. -/
 lemma monotone_image {f : α → β} : monotone (image f) :=
@@ -145,19 +133,19 @@ theorem Inter_const [nonempty ι] (s : set β) : (⋂ i:ι, s) = s :=
 ext $ by simp
 
 @[simp] -- complete_boolean_algebra
-theorem compl_Union (s : ι → set β) : - (⋃ i, s i) = (⋂ i, - s i) :=
+theorem compl_Union (s : ι → set β) : (⋃ i, s i)ᶜ = (⋂ i, (s i)ᶜ) :=
 ext (by simp)
 
 -- classical -- complete_boolean_algebra
-theorem compl_Inter (s : ι → set β) : -(⋂ i, s i) = (⋃ i, - s i) :=
+theorem compl_Inter (s : ι → set β) : (⋂ i, s i)ᶜ = (⋃ i, (s i)ᶜ) :=
 ext (λ x, by simp [classical.not_forall])
 
 -- classical -- complete_boolean_algebra
-theorem Union_eq_comp_Inter_comp (s : ι → set β) : (⋃ i, s i) = - (⋂ i, - s i) :=
+theorem Union_eq_comp_Inter_comp (s : ι → set β) : (⋃ i, s i) = (⋂ i, (s i)ᶜ)ᶜ :=
 by simp [compl_Inter, compl_compl]
 
 -- classical -- complete_boolean_algebra
-theorem Inter_eq_comp_Union_comp (s : ι → set β) : (⋂ i, s i) = - (⋃ i, -s i) :=
+theorem Inter_eq_comp_Union_comp (s : ι → set β) : (⋂ i, s i) = (⋃ i, (s i)ᶜ)ᶜ :=
 by simp [compl_compl]
 
 theorem inter_Union (s : set β) (t : ι → set β) :
@@ -279,6 +267,18 @@ begin
   exact ⟨c, c_in, hc ha⟩
 end
 
+theorem bInter_mono' {s s' : set α} {t t' : α → set β} (hs : s ⊆ s') (h : ∀ x ∈ s, t x ⊆ t' x) :
+  (⋂ x ∈ s', t x) ⊆ (⋂ x ∈ s, t' x) :=
+begin
+  intros x x_in,
+  simp only [mem_Inter] at *,
+  exact λ a a_in, h a a_in $ x_in _ (hs a_in)
+end
+
+theorem bInter_mono {s : set α} {t t' : α → set β} (h : ∀ x ∈ s, t x ⊆ t' x) :
+  (⋂ x ∈ s, t x) ⊆ (⋂ x ∈ s, t' x) :=
+bInter_mono' (subset.refl s) h
+
 theorem bUnion_mono {s : set α} {t t' : α → set β} (h : ∀ x ∈ s, t x ⊆ t' x) :
   (⋃ x ∈ s, t x) ⊆ (⋃ x ∈ s, t' x) :=
 bUnion_subset_bUnion (λ x x_in, ⟨x, x_in, h x x_in⟩)
@@ -348,11 +348,11 @@ theorem bUnion_pair (a b : α) (s : α → set β) :
 by simp [union_comm]
 
 @[simp] -- complete_boolean_algebra
-theorem compl_bUnion (s : set α) (t : α → set β) : - (⋃ i ∈ s, t i) = (⋂ i ∈ s, - t i) :=
+theorem compl_bUnion (s : set α) (t : α → set β) : (⋃ i ∈ s, t i)ᶜ = (⋂ i ∈ s, (t i)ᶜ) :=
 ext (λ x, by simp)
 
 -- classical -- complete_boolean_algebra
-theorem compl_bInter (s : set α) (t : α → set β) : -(⋂ i ∈ s, t i) = (⋃ i ∈ s, - t i) :=
+theorem compl_bInter (s : set α) (t : α → set β) : (⋂ i ∈ s, t i)ᶜ = (⋃ i ∈ s, (t i)ᶜ) :=
 ext (λ x, by simp [classical.not_forall])
 
 theorem inter_bUnion (s : set α) (t : α → set β) (u : set β) :
@@ -453,7 +453,7 @@ lemma sUnion_eq_univ_iff {c : set (set α)} :
  λ H, set.univ_subset_iff.1 $ λ x hx, let ⟨b, hm, hb⟩ := H x in set.mem_sUnion_of_mem hb hm⟩
 
 theorem compl_sUnion (S : set (set α)) :
-  - ⋃₀ S = ⋂₀ (compl '' S) :=
+  (⋃₀ S)ᶜ = ⋂₀ (compl '' S) :=
 set.ext $ assume x,
   ⟨assume : ¬ (∃s∈S, x ∈ s), assume s h,
     match s, h with
@@ -464,17 +464,17 @@ set.ext $ assume x,
 
 -- classical
 theorem sUnion_eq_compl_sInter_compl (S : set (set α)) :
-  ⋃₀ S = - ⋂₀ (compl '' S) :=
+  ⋃₀ S = (⋂₀ (compl '' S))ᶜ :=
 by rw [←compl_compl (⋃₀ S), compl_sUnion]
 
 -- classical
 theorem compl_sInter (S : set (set α)) :
-  - ⋂₀ S = ⋃₀ (compl '' S) :=
+  (⋂₀ S)ᶜ = ⋃₀ (compl '' S) :=
 by rw [sUnion_eq_compl_sInter_compl, compl_compl_image]
 
 -- classical
 theorem sInter_eq_comp_sUnion_compl (S : set (set α)) :
-   ⋂₀ S = -(⋃₀ (compl '' S)) :=
+   ⋂₀ S = (⋃₀ (compl '' S))ᶜ :=
 by rw [←compl_compl (⋂₀ S), compl_sInter]
 
 theorem inter_empty_of_inter_sUnion_empty {s t : set α} {S : set (set α)} (hs : t ∈ S)
@@ -539,12 +539,8 @@ lemma inter_eq_Inter {s₁ s₂ : set α} : s₁ ∩ s₂ = ⋂ b : bool, cond b
 set.ext $ λ x, by simp [bool.forall_bool, and_comm]
 
 instance : complete_boolean_algebra (set α) :=
-{ neg                 := compl,
-  sub                 := (\),
-  le_sup_inf          := distrib_lattice.le_sup_inf,
-  inf_compl_eq_bot      := assume s, ext $ assume x, ⟨assume ⟨h, nh⟩, nh h, false.elim⟩,
-  sup_compl_eq_top      := assume s, ext $ assume x, ⟨assume h, trivial, assume _, classical.em $ x ∈ s⟩,
-  sub_eq              := assume x y, rfl,
+{ compl               := compl,
+  sdiff               := (\),
   infi_sup_le_sup_Inf := assume s t x, show x ∈ (⋂ b ∈ t, s ∪ b) → x ∈ s ∪ (⋂₀ t),
     by simp; exact assume h,
       or.imp_right
@@ -552,7 +548,7 @@ instance : complete_boolean_algebra (set α) :=
         (classical.em $ x ∈ s),
   inf_Sup_le_supr_inf := assume s t x, show x ∈ s ∩ (⋃₀ t) → x ∈ (⋃ b ∈ t, s ∩ b),
     by simp [-and_imp, and.left_comm],
-  ..set.lattice_set }
+  .. set.boolean_algebra, .. set.lattice_set }
 
 lemma sInter_union_sInter {S T : set (set α)} :
   (⋂₀S) ∪ (⋂₀T) = (⋂p ∈ set.prod S T, (p : (set α) × (set α)).1 ∪ p.2) :=
@@ -617,8 +613,6 @@ begin
   { rintro ⟨i, hx⟩, cases hf i ⟨x, hx⟩ with y hy, refine ⟨y, ⟨i, congr_arg subtype.val hy⟩⟩ }
 end
 
-@[simp] theorem sub_eq_diff (s t : set α) : s - t = s \ t := rfl
-
 section
 
 variables {p : Prop} {μ : p → set α}
@@ -670,6 +664,19 @@ supr_image
 infi_image
 
 end image
+
+section image2
+
+variables (f : α → β → γ) {s : set α} {t : set β}
+
+lemma Union_image_left : (⋃ a ∈ s, f a '' t) = image2 f s t :=
+by { ext y, split; simp only [mem_Union]; rintros ⟨a, ha, x, hx, ax⟩; exact ⟨a, x, ha, hx, ax⟩ }
+
+lemma Union_image_right : (⋃ b ∈ t, (λ a, f a b) '' s) = image2 f s t :=
+by { ext y, split; simp only [mem_Union]; rintros ⟨a, b, c, d, e⟩, exact ⟨c, a, d, b, e⟩,
+     exact ⟨b, d, a, c, e⟩ }
+
+end image2
 
 section preimage
 
@@ -838,7 +845,7 @@ disjoint_of_subset_left h1 $ disjoint_of_subset_right h2 d
 theorem disjoint_diff {a b : set α} : disjoint a (b \ a) :=
 disjoint_iff.2 (inter_diff_self _ _)
 
-theorem disjoint_compl (s : set α) : disjoint s (-s) := assume a ⟨h₁, h₂⟩, h₂ h₁
+theorem disjoint_compl (s : set α) : disjoint s sᶜ := assume a ⟨h₁, h₂⟩, h₂ h₁
 
 theorem disjoint_singleton_left {a : α} {s : set α} : disjoint {a} s ↔ a ∉ s :=
 by simp [set.disjoint_iff, subset_def]; exact iff.rfl
@@ -908,10 +915,12 @@ lemma sigma_to_Union_bijective (h : ∀i j, i ≠ j → disjoint (t i) (t j)) :
   bijective (sigma_to_Union t) :=
 ⟨sigma_to_Union_injective t h, sigma_to_Union_surjective t⟩
 
+/-- Equivalence between a disjoint union and a dependent sum. -/
 noncomputable def Union_eq_sigma_of_disjoint {t : α → set β}
   (h : ∀i j, i ≠ j → disjoint (t i) (t j)) : (⋃i, t i) ≃ (Σi, t i) :=
 (equiv.of_bijective _ $ sigma_to_Union_bijective t h).symm
 
+/-- Equivalence between a disjoint bounded union and a dependent sum. -/
 noncomputable def bUnion_eq_sigma_of_disjoint {s : set α} {t : α → set β}
   (h : pairwise_on s (disjoint on t)) : (⋃i∈s, t i) ≃ (Σi:s, t i.val) :=
 equiv.trans (equiv.set_congr (bUnion_eq_Union _ _)) $ Union_eq_sigma_of_disjoint $

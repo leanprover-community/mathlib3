@@ -151,7 +151,7 @@ theorem ortho_smul_left {x y : M} {a : R} (ha : a ≠ 0) :
 begin
   dunfold is_ortho,
   split; intro H,
-  { rw [smul_left, H, ring.mul_zero] },
+  { rw [smul_left, H, mul_zero] },
   { rw [smul_left, mul_eq_zero] at H,
     cases H,
     { trivial },
@@ -163,7 +163,7 @@ theorem ortho_smul_right {x y : M} {a : R} (ha : a ≠ 0) :
 begin
   dunfold is_ortho,
   split; intro H,
-  { rw [smul_right, H, ring.mul_zero] },
+  { rw [smul_right, H, mul_zero] },
   { rw [smul_right, mul_eq_zero] at H,
     cases H,
     { exfalso,

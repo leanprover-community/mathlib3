@@ -25,7 +25,7 @@ def limit_is_limit_ (F : J ⥤ Type u) : is_limit (limit_ F) :=
 { lift := λ s v, ⟨λ j, s.π.app j v, λ j j' f, congr_fun (cone.w s f) _⟩,
   uniq' := by { intros, ext x j, exact congr_fun (w j) x } }
 
-instance : has_limits.{u} (Type u) :=
+instance : has_limits (Type u) :=
 { has_limits_of_shape := λ J 𝒥,
   { has_limit := λ F, by exactI { cone := limit_ F, is_limit := limit_is_limit_ F } } }
 
@@ -59,7 +59,7 @@ def colimit_is_colimit_ (F : J ⥤ Type u) : is_colimit (colimit_ F) :=
 { desc := λ s, quot.lift (λ (p : Σ j, F.obj j), s.ι.app p.1 p.2)
     (assume ⟨j, x⟩ ⟨j', x'⟩ ⟨f, hf⟩, by rw hf; exact (congr_fun (cocone.w s f) x).symm) }
 
-instance : has_colimits.{u} (Type u) :=
+instance : has_colimits (Type u) :=
 { has_colimits_of_shape := λ J 𝒥,
   { has_colimit := λ F, by exactI { cocone := colimit_ F, is_colimit := colimit_is_colimit_ F } } }
 
@@ -126,7 +126,21 @@ noncomputable instance : has_image f :=
   { lift := image.lift,
     lift_fac' := image.lift_fac } }
 
-noncomputable instance : has_images.{u} (Type u) :=
+noncomputable instance : has_images (Type u) :=
 { has_image := infer_instance }
+
+noncomputable instance : has_image_maps (Type u) :=
+{ has_image_map := λ f g st,
+  { map := λ x, ⟨st.right x.1, ⟨st.left (classical.some x.2),
+      begin
+        have p := st.w,
+        replace p := congr_fun p (classical.some x.2),
+        simp only [functor.id_map, types_comp_apply, subtype.val_eq_coe] at p,
+        erw [p, classical.some_spec x.2],
+      end⟩⟩ } }
+
+@[simp] lemma image_map {f g : arrow (Type u)} (st : f ⟶ g) (x : image f.hom) :
+  (image.map st x).val = st.right x.1 :=
+rfl
 
 end category_theory.limits.types

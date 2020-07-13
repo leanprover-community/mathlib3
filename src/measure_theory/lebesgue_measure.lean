@@ -115,7 +115,7 @@ begin
   rw [← finset.insert_erase is] at cv ⊢,
   rw [finset.coe_insert, bUnion_insert] at cv,
   rw [finset.sum_insert (finset.not_mem_erase _ _)],
-  refine le_trans _ (add_le_add_left' (IH _ (finset.erase_ssubset is) (c i) _)),
+  refine le_trans _ (add_le_add_left (IH _ (finset.erase_ssubset is) (c i) _) _),
   { rw [← ennreal.coe_add, ennreal.coe_le_coe],
     refine le_trans (nnreal.of_real_le_of_real _) nnreal.of_real_add_le,
     rw sub_add_sub_cancel,
@@ -133,7 +133,7 @@ begin
     ennreal.le_of_forall_epsilon_le $ λ ε ε0 h, _),
   rcases ennreal.exists_pos_sum_of_encodable
     (ennreal.zero_lt_coe_iff.2 ε0) ℕ with ⟨ε', ε'0, hε⟩,
-  refine le_trans _ (add_le_add_left' (le_of_lt hε)),
+  refine le_trans _ (add_le_add_left (le_of_lt hε) _),
   rw ← ennreal.tsum_add,
   choose g hg using show
     ∀ i, ∃ p:ℝ×ℝ, f i ⊆ Ioo p.1 p.2 ∧ (of_real (p.2 - p.1) : ennreal) < lebesgue_length (f i) + ε' i,
@@ -158,8 +158,8 @@ begin
   have := @nnreal.of_real_add_le (b - a - ε) ε,
   rw [← ennreal.coe_le_coe, ennreal.coe_add, sub_add_cancel, sub_right_comm,
     ← lebesgue_outer_Icc a (b-ε), nnreal.of_real_coe] at this,
-  exact le_trans this (add_le_add_right' $ lebesgue_outer.mono $
-    Icc_subset_Ico_right $ (sub_lt_self_iff _).2 ε0)
+  exact le_trans this (add_le_add_right (lebesgue_outer.mono $
+    Icc_subset_Ico_right $ (sub_lt_self_iff _).2 ε0) _)
 end
 
 @[simp] lemma lebesgue_outer_Ioo (a b : ℝ) :
@@ -170,8 +170,8 @@ begin
   have := @nnreal.of_real_add_le (b - a - ε) ε,
   rw [← ennreal.coe_le_coe, ennreal.coe_add, sub_add_cancel, sub_sub,
     ← lebesgue_outer_Ico (a+ε) b, nnreal.of_real_coe] at this,
-  exact le_trans this (add_le_add_right' $ lebesgue_outer.mono $
-    Ico_subset_Ioo_left $ (lt_add_iff_pos_right _).2 ε0)
+  exact le_trans this (add_le_add_right (lebesgue_outer.mono $
+    Ico_subset_Ioo_left $ (lt_add_iff_pos_right _).2 ε0) _)
 end
 
 lemma is_lebesgue_measurable_Iio {c : ℝ} :
@@ -199,7 +199,7 @@ begin
     ennreal.le_of_forall_epsilon_le $ λ ε ε0 h, _),
   rcases ennreal.exists_pos_sum_of_encodable
     (ennreal.zero_lt_coe_iff.2 ε0) ℕ with ⟨ε', ε'0, hε⟩,
-  refine le_trans _ (add_le_add_left' (le_of_lt hε)),
+  refine le_trans _ (add_le_add_left (le_of_lt hε) _),
   rw ← ennreal.tsum_add,
   choose g hg using show
     ∀ i, ∃ s, f i ⊆ s ∧ is_measurable s ∧ lebesgue_outer s ≤ lebesgue_length (f i) + of_real (ε' i),
@@ -268,7 +268,7 @@ begin
     ... < ⊤ : by { rw real.volume_interval, exact ennreal.coe_lt_top }
 end
 
-lemma real.volume_lt_top_of_compact {s : set ℝ} (h : compact s) : volume s < ⊤ :=
+lemma real.volume_lt_top_of_compact {s : set ℝ} (h : is_compact s) : volume s < ⊤ :=
 real.volume_lt_top_of_bounded (bounded_of_compact h)
 
 end volume

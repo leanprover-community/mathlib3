@@ -574,6 +574,9 @@ is_open_iff.2 $ λ y, exists_ball_subset_ball
 theorem ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
 mem_nhds_sets is_open_ball (mem_ball_self ε0)
 
+theorem closed_ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : closed_ball x ε ∈ 𝓝 x :=
+mem_sets_of_superset (ball_mem_nhds x ε0) ball_subset_closed_ball
+
 theorem nhds_within_basis_ball {s : set α} :
   (nhds_within x s).has_basis (λ ε:ℝ, 0 < ε) (λ ε, ball x ε ∩ s) :=
 nhds_within_has_basis nhds_basis_ball s
@@ -836,11 +839,17 @@ lemma closed_ball_Icc {x r : ℝ} : closed_ball x r = Icc (x-r) (x+r) :=
 by ext y; rw [mem_closed_ball, dist_comm, real.dist_eq,
   abs_sub_le_iff, mem_Icc, ← sub_le_iff_le_add', sub_le]
 
+/-- Special case of the sandwich theorem; see `tendsto_of_tendsto_of_tendsto_of_le_of_le'` for the
+general case. -/
+lemma squeeze_zero' {α} {f g : α → ℝ} {t₀ : filter α} (hf : ∀ᶠ t in t₀, 0 ≤ f t)
+  (hft : ∀ᶠ t in t₀, f t ≤ g t) (g0 : tendsto g t₀ (nhds 0)) : tendsto f t₀ (nhds 0) :=
+tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds g0 hf hft
+
 /-- Special case of the sandwich theorem; see `tendsto_of_tendsto_of_tendsto_of_le_of_le`
 and  `tendsto_of_tendsto_of_tendsto_of_le_of_le'` for the general case. -/
 lemma squeeze_zero {α} {f g : α → ℝ} {t₀ : filter α} (hf : ∀t, 0 ≤ f t) (hft : ∀t, f t ≤ g t)
   (g0 : tendsto g t₀ (𝓝 0)) : tendsto f t₀ (𝓝 0) :=
-tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds g0 hf hft
+squeeze_zero' (eventually_of_forall hf) (eventually_of_forall hft) g0
 
 theorem metric.uniformity_eq_comap_nhds_zero :
   𝓤 α = comap (λp:α×α, dist p.1 p.2) (𝓝 (0 : ℝ)) :=
@@ -1069,7 +1078,7 @@ theorem filter.tendsto.dist {f g : β → α} {x : filter β} {a b : α}
 
 lemma nhds_comap_dist (a : α) : (𝓝 (0 : ℝ)).comap (λa', dist a' a) = 𝓝 a :=
 by simp only [@nhds_eq_comap_uniformity α, metric.uniformity_eq_comap_nhds_zero,
-  comap_comap_comp, (∘), dist_comm]
+  comap_comap, (∘), dist_comm]
 
 lemma tendsto_iff_dist_tendsto_zero {f : β → α} {x : filter β} {a : α} :
   (tendsto f x (𝓝 a)) ↔ (tendsto (λb, dist (f b) a) x (𝓝 0)) :=
@@ -1100,6 +1109,9 @@ variables {x y z : α} {ε ε₁ ε₂ : ℝ} {s : set α}
 
 theorem is_closed_ball : is_closed (closed_ball x ε) :=
 is_closed_le (continuous_id.dist continuous_const) continuous_const
+
+@[simp] theorem closure_closed_ball : closure (closed_ball x ε) = closed_ball x ε :=
+is_closed_ball.closure_eq
 
 theorem closure_ball_subset_closed_ball : closure (ball x ε) ⊆ closed_ball x ε :=
 closure_minimal ball_subset_closed_ball is_closed_ball
@@ -1133,7 +1145,7 @@ lemma mem_closure_range_iff_nat {α : Type u} [metric_space α] {e : β → α} 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem mem_of_closed' {α : Type u} [metric_space α] {s : set α} (hs : is_closed s)
   {a : α} : a ∈ s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
-by simpa only [closure_eq_of_is_closed hs] using @mem_closure_iff _ _ s a
+by simpa only [hs.closure_eq] using @mem_closure_iff _ _ s a
 
 end metric
 
@@ -1208,7 +1220,7 @@ section compact
 /-- Any compact set in a metric space can be covered by finitely many balls of a given positive
 radius -/
 lemma finite_cover_balls_of_compact {α : Type u} [metric_space α] {s : set α}
-  (hs : compact s) {e : ℝ} (he : 0 < e) :
+  (hs : is_compact s) {e : ℝ} (he : 0 < e) :
   ∃t ⊆ s, finite t ∧ s ⊆ ⋃x∈t, ball x e :=
 begin
   apply hs.elim_finite_subcover_image,
@@ -1218,7 +1230,7 @@ begin
     exact ⟨x, ⟨xs, by simpa⟩⟩ }
 end
 
-alias finite_cover_balls_of_compact ← compact.finite_cover_balls
+alias finite_cover_balls_of_compact ← is_compact.finite_cover_balls
 
 end compact
 
@@ -1227,12 +1239,12 @@ open metric
 
 /-- A metric space is proper if all closed balls are compact. -/
 class proper_space (α : Type u) [metric_space α] : Prop :=
-(compact_ball : ∀x:α, ∀r, compact (closed_ball x r))
+(compact_ball : ∀x:α, ∀r, is_compact (closed_ball x r))
 
 /-- If all closed balls of large enough radius are compact, then the space is proper. Especially
 useful when the lower bound for the radius is 0. -/
 lemma proper_space_of_compact_closed_ball_of_le
-  (R : ℝ) (h : ∀x:α, ∀r, R ≤ r → compact (closed_ball x r)) :
+  (R : ℝ) (h : ∀x:α, ∀r, R ≤ r → is_compact (closed_ball x r)) :
   proper_space α :=
 ⟨begin
   assume x r,
@@ -1389,7 +1401,7 @@ end metric
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma lebesgue_number_lemma_of_metric
-  {s : set α} {ι} {c : ι → set α} (hs : compact s)
+  {s : set α} {ι} {c : ι → set α} (hs : is_compact s)
   (hc₁ : ∀ i, is_open (c i)) (hc₂ : s ⊆ ⋃ i, c i) :
   ∃ δ > 0, ∀ x ∈ s, ∃ i, ball x δ ⊆ c i :=
 let ⟨n, en, hn⟩ := lebesgue_number_lemma hs hc₁ hc₂,
@@ -1399,7 +1411,7 @@ let ⟨n, en, hn⟩ := lebesgue_number_lemma hs hc₁ hc₂,
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma lebesgue_number_lemma_of_metric_sUnion
-  {s : set α} {c : set (set α)} (hs : compact s)
+  {s : set α} {c : set (set α)} (hs : is_compact s)
   (hc₁ : ∀ t ∈ c, is_open t) (hc₂ : s ⊆ ⋃₀ c) :
   ∃ δ > 0, ∀ x ∈ s, ∃ t ∈ c, ball x δ ⊆ t :=
 by rw sUnion_eq_Union at hc₂;
@@ -1466,7 +1478,7 @@ begin
     exact this (x, y) (mk_mem_prod x_in y_in) },
   intros p p_in,
   have := mem_closure continuous_dist p_in h,
-  rwa closure_eq_of_is_closed (is_closed_le' C) at this
+  rwa (is_closed_le' C).closure_eq at this
 end
 
 alias bounded_closure_of_bounded ← bounded.closure
@@ -1492,17 +1504,17 @@ finite.induction_on H (by simp) $ λ x I _ _ IH,
 by simp [or_imp_distrib, forall_and_distrib, IH]
 
 /-- A compact set is bounded -/
-lemma bounded_of_compact {s : set α} (h : compact s) : bounded s :=
+lemma bounded_of_compact {s : set α} (h : is_compact s) : bounded s :=
 -- We cover the compact set by finitely many balls of radius 1,
 -- and then argue that a finite union of bounded sets is bounded
 let ⟨t, ht, fint, subs⟩ := finite_cover_balls_of_compact h zero_lt_one in
 bounded.subset subs $ (bounded_bUnion fint).2 $ λ i hi, bounded_ball
 
-alias bounded_of_compact ← compact.bounded
+alias bounded_of_compact ← is_compact.bounded
 
 /-- A finite set is bounded -/
 lemma bounded_of_finite {s : set α} (h : finite s) : bounded s :=
-h.compact.bounded
+h.is_compact.bounded
 
 /-- A singleton is bounded -/
 lemma bounded_singleton {x : α} : bounded ({x} : set α) :=
@@ -1521,8 +1533,8 @@ compact_univ.bounded.subset (subset_univ _)
 /-- The Heine–Borel theorem:
 In a proper space, a set is compact if and only if it is closed and bounded -/
 lemma compact_iff_closed_bounded [proper_space α] :
-  compact s ↔ is_closed s ∧ bounded s :=
-⟨λ h, ⟨closed_of_compact _ h, h.bounded⟩, begin
+  is_compact s ↔ is_closed s ∧ bounded s :=
+⟨λ h, ⟨h.is_closed, h.bounded⟩, begin
   rintro ⟨hc, hb⟩,
   cases s.eq_empty_or_nonempty with h h, {simp [h, compact_empty]},
   rcases h with ⟨x, hx⟩,
@@ -1538,7 +1550,7 @@ begin
   apply proper_space_of_compact_closed_ball_of_le 0 (λx₀ r hr, _),
   let K := f ⁻¹' (closed_ball x₀ r),
   have A : is_closed K :=
-    continuous_iff_is_closed.1 f_cont (closed_ball x₀ r) (is_closed_ball),
+    continuous_iff_is_closed.1 f_cont (closed_ball x₀ r) is_closed_ball,
   have B : bounded K := ⟨max C 0 * (r + r), λx y hx hy, calc
     dist x y ≤ C * dist (f x) (f y) : hC x y
     ... ≤ max C 0 * dist (f x) (f y) : mul_le_mul_of_nonneg_right (le_max_left _ _) (dist_nonneg)
@@ -1548,8 +1560,8 @@ begin
       simp only [mem_closed_ball, mem_preimage] at hx hy,
       exact mul_le_mul_of_nonneg_left (add_le_add hx hy) (le_max_right _ _)
     end⟩,
-  have : compact K := compact_iff_closed_bounded.2 ⟨A, B⟩,
-  have C : compact (f '' K) := this.image f_cont,
+  have : is_compact K := compact_iff_closed_bounded.2 ⟨A, B⟩,
+  have C : is_compact (f '' K) := this.image f_cont,
   have : f '' K = closed_ball x₀ r,
     by { rw image_preimage_eq_of_subset, rw hf, exact subset_univ _ },
   rwa this at C

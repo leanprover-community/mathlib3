@@ -9,15 +9,14 @@ Tensor product of modules over commutative rings.
 import group_theory.free_abelian_group
 import linear_algebra.direct_sum_module
 
-variables {R : Type*} [comm_ring R]
-variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
-variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q] [add_comm_group S]
-variables [module R M] [module R N] [module R P] [module R Q] [module R S]
-include R
-
-
-
 namespace linear_map
+
+variables {R : Type*} [comm_semiring R]
+variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
+
+variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q] [add_comm_monoid S]
+variables [semimodule R M] [semimodule R N] [semimodule R P] [semimodule R Q] [semimodule R S]
+include R
 
 variables (R)
 def mk₂ (f : M → N → P)
@@ -64,7 +63,11 @@ variables {R M N P}
 
 theorem map_zero₂ (y) : f 0 y = 0 := (flip f y).map_zero
 
-theorem map_neg₂ (x y) : f (-x) y = -f x y := (flip f y).map_neg _
+theorem map_neg₂ {R : Type*} [comm_ring R] {M N P : Type*}
+  [add_comm_group M] [add_comm_group N] [add_comm_group P]
+  [module R M] [module R N] [module R P] (f : M →ₗ[R] N →ₗ[R] P) (x y) :
+  f (-x) y = -f x y :=
+(flip f y).map_neg _
 
 theorem map_add₂ (x₁ x₂ y) : f (x₁ + x₂) y = f x₁ y + f x₂ y := (flip f y).map_add _ _
 
@@ -111,6 +114,13 @@ variables {R M}
 @[simp] theorem lsmul_apply (r : R) (m : M) : lsmul R M r m = r • m := rfl
 
 end linear_map
+
+variables {R : Type*} [comm_ring R]
+variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
+
+variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q] [add_comm_group S]
+variables [module R M] [module R N] [module R P] [module R Q] [module R S]
+include R
 
 variables (M N)
 
@@ -236,7 +246,7 @@ instance : semimodule R (M ⊗ N) := semimodule.of_core
 (smul_tmul _ _ _).symm
 
 variables (R M N)
-def mk : M →ₗ N →ₗ M ⊗ N :=
+def mk : M →ₗ N →ₗ M ⊗[R] N :=
 linear_map.mk₂ R (⊗ₜ) add_tmul (λ c m n, by rw [smul_tmul, tmul_smul]) tmul_add tmul_smul
 variables {R M N}
 
@@ -249,6 +259,13 @@ lemma tmul_zero (m : M) : (m ⊗ₜ[R] 0 : M ⊗ N) = 0 := (mk R M N _).map_zero
 lemma neg_tmul (m : M) (n : N) : (-m) ⊗ₜ n = -(m ⊗ₜ[R] n) := (mk R M N).map_neg₂ _ _
 lemma tmul_neg (m : M) (n : N) : m ⊗ₜ (-n) = -(m ⊗ₜ[R] n) := (mk R M N _).map_neg _
 
+lemma ite_tmul (x₁ : M) (x₂ : N) (P : Prop) [decidable P] :
+  ((if P then x₁ else 0) ⊗ₜ[R] x₂) = if P then (x₁ ⊗ₜ x₂) else 0 :=
+by { split_ifs; simp }
+
+lemma tmul_ite (x₁ : M) (x₂ : N) (P : Prop) [decidable P] :
+  (x₁ ⊗ₜ[R] (if P then x₂ else 0)) = if P then (x₁ ⊗ₜ x₂) else 0 :=
+by { split_ifs; simp }
 
 section
 open_locale big_operators
@@ -347,7 +364,7 @@ theorem lift_compr₂ (g : P →ₗ Q) : lift (f.compr₂ g) = g.comp (lift f) :
 eq.symm $ lift.unique $ λ x y, by simp
 
 theorem lift_mk_compr₂ (f : M ⊗ N →ₗ P) : lift ((mk R M N).compr₂ f) = f :=
-by rw [lift_compr₂, lift_mk, linear_map.comp_id]
+by rw [lift_compr₂ f, lift_mk, linear_map.comp_id]
 
 @[ext]
 theorem ext {g h : (M ⊗[R] N) →ₗ[R] P}
@@ -493,7 +510,7 @@ end
 rfl
 
 /-- The tensor product of a pair of linear maps between modules. -/
-def map (f : M →ₗ[R] P) (g : N →ₗ Q) : M ⊗ N →ₗ P ⊗ Q :=
+def map (f : M →ₗ[R] P) (g : N →ₗ Q) : M ⊗ N →ₗ[R] P ⊗ Q :=
 lift $ comp (compl₂ (mk _ _ _) g) f
 
 @[simp] theorem map_tmul (f : M →ₗ[R] P) (g : N →ₗ[R] Q) (m : M) (n : N) :

@@ -20,7 +20,7 @@ open category_theory category_theory.category
 
 namespace category_theory.limits
 
-variables {C : Type u} [category.{v} C] [has_binary_products.{v} C] [has_pullbacks.{v} C]
+variables {C : Type u} [category.{v} C] [has_binary_products C] [has_pullbacks C]
 
 -- We hide the "implementation details" inside a namespace
 namespace has_equalizers_of_pullbacks_and_binary_products
@@ -74,7 +74,7 @@ open has_equalizers_of_pullbacks_and_binary_products
 /-- Any category with pullbacks and binary products, has equalizers. -/
 -- This is not an instance, as it is not always how one wants to construct equalizers!
 def has_equalizers_of_pullbacks_and_binary_products :
-  has_equalizers.{v} C :=
+  has_equalizers C :=
 { has_limits_of_shape :=
   { has_limit := λ F,
     { cone := equalizer_cone F,

@@ -623,7 +623,7 @@ lemma integral_lt_top_of_fin_vol_supp {f : α →ₛ ennreal} (h₁ : ∀ₘ a, 
 begin
   rw integral, apply sum_lt_top,
   intros a ha,
-  have : f ⁻¹' {⊤} = -{a : α | f a < ⊤}, { ext, simp },
+  have : f ⁻¹' {⊤} = {a : α | f a < ⊤}ᶜ, { ext, simp },
   have vol_top : volume (f ⁻¹' {⊤}) = 0, { rw [this, ← mem_ae_iff], exact h₁ },
   by_cases hat : a = ⊤,
   { rw [hat, vol_top, mul_zero], exact with_top.zero_lt_top },
@@ -921,10 +921,10 @@ lemma lintegral_le_lintegral_ae {f g : α → ennreal} (h : ∀ₘ a, f a ≤ g 
   (∫⁻ a, f a) ≤ (∫⁻ a, g a) :=
 begin
   rcases exists_is_measurable_superset_of_measure_eq_zero h with ⟨t, hts, ht, ht0⟩,
-  have : - t ∈ (@volume α _).ae,
+  have : tᶜ ∈ (@volume α _).ae,
   { rw [mem_ae_iff, compl_compl, ht0] },
   refine (supr_le $ assume s, supr_le $ assume hfs,
-    le_supr_of_le (s.restrict (- t)) $ le_supr_of_le _ _),
+    le_supr_of_le (s.restrict tᶜ) $ le_supr_of_le _ _),
   { assume a,
     by_cases a ∈ t;
       simp [h, restrict_apply, ht.compl],
@@ -1009,7 +1009,7 @@ let g := λ n a, if a ∈ s then 0 else f n a in
 have g_eq_f : ∀ₘ a, ∀n, g n a = f n a,
   begin
     have := hs.2.2, rw [← compl_compl s] at this,
-    filter_upwards [(mem_ae_iff (-s)).2 this] assume a ha n, if_neg ha
+    filter_upwards [(mem_ae_iff sᶜ).2 this] assume a ha n, if_neg ha
   end,
 calc
   (∫⁻ a, ⨆n, f n a) = (∫⁻ a, ⨆n, g n a) :

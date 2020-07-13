@@ -127,7 +127,7 @@ begin
   cases b with b; simp [mk, mk_nat] at h,
   { simp [mt (congr_arg int.of_nat) b0] at h,
     exact this h },
-  { apply neg_inj, simp [this h] }
+  { apply neg_injective, simp [this h] }
 end
 
 theorem mk_eq : ∀ {a b c d : ℤ} (hb : b ≠ 0) (hd : d ≠ 0),
@@ -141,10 +141,10 @@ begin
     simp [mt (congr_arg int.of_nat) hd],
     all_goals { rw this, try {refl} } },
   { change a * ↑(d.succ) = -c * ↑b ↔ a * -(d.succ) = c * b,
-    constructor; intro h; apply neg_inj; simpa [left_distrib, neg_add_eq_iff_eq_add,
+    constructor; intro h; apply neg_injective; simpa [left_distrib, neg_add_eq_iff_eq_add,
       eq_neg_iff_add_eq_zero, neg_eq_iff_add_eq_zero] using h },
   { change -a * ↑d = c * b.succ ↔ a * d = c * -b.succ,
-    constructor; intro h; apply neg_inj; simpa [left_distrib, eq_comm] using h },
+    constructor; intro h; apply neg_injective; simpa [left_distrib, eq_comm] using h },
   { change -a * d.succ = -c * b.succ ↔ a * -d.succ = c * -b.succ,
     simp [left_distrib, sub_eq_add_neg], cc }
 end,
@@ -164,7 +164,7 @@ begin
     have m0 : (a.nat_abs.gcd b * c.nat_abs.gcd d : ℤ) ≠ 0, {
       refine int.coe_nat_ne_zero.2 (ne_of_gt _),
       apply mul_pos; apply nat.gcd_pos_of_pos_right; assumption },
-    apply eq_of_mul_eq_mul_right m0,
+    apply mul_right_cancel' m0,
     simpa [mul_comm, mul_left_comm] using
       congr (congr_arg (*) ha.symm) (congr_arg coe hb) },
   { suffices : ∀ a c, a * d = c * b →
@@ -427,7 +427,7 @@ instance : field ℚ :=
   mul_assoc        := rat.mul_assoc,
   left_distrib     := rat.mul_add,
   right_distrib    := rat.add_mul,
-  zero_ne_one      := rat.zero_ne_one,
+  exists_pair_ne   := ⟨0, 1, rat.zero_ne_one⟩,
   mul_inv_cancel   := rat.mul_inv_cancel,
   inv_zero         := rfl }
 
@@ -436,7 +436,7 @@ instance : division_ring ℚ      := by apply_instance
 instance : integral_domain ℚ    := by apply_instance
 -- TODO(Mario): this instance slows down data.real.basic
 --instance : domain ℚ           := by apply_instance
-instance : nonzero ℚ            := by apply_instance
+instance : nontrivial ℚ         := by apply_instance
 instance : comm_ring ℚ          := by apply_instance
 --instance : ring ℚ             := by apply_instance
 instance : comm_semiring ℚ      := by apply_instance
@@ -611,7 +611,9 @@ by rw [← int.cast_coe_nat, coe_int_num]
 @[simp, norm_cast] theorem coe_nat_denom (n : ℕ) : (n : ℚ).denom = 1 :=
 by rw [← int.cast_coe_nat, coe_int_denom]
 
-@[simp, norm_cast] lemma coe_int_inj (m n : ℤ) : (m : ℚ) = n ↔ m = n :=
+-- Will be subsumed by `int.coe_inj` after we have defined
+-- `discrete_linear_ordered_field ℚ` (which implies characteristic zero).
+lemma coe_int_inj (m n : ℤ) : (m : ℚ) = n ↔ m = n :=
 ⟨λ h, by simpa using congr_arg num h, congr_arg _⟩
 
 end casts
@@ -635,9 +637,36 @@ begin
   { intro h,
     lift ((m : ℚ) / n) to ℤ using h with k hk,
     use k,
-    rwa [eq_div_iff_mul_eq _ _ hn, ← int.cast_mul, mul_comm, eq_comm, coe_int_inj] at hk },
+    rwa [eq_div_iff_mul_eq hn, ← int.cast_mul, mul_comm, eq_comm, coe_int_inj] at hk },
   { rintros ⟨d, rfl⟩,
     rw [int.cast_mul, mul_comm, mul_div_cancel _ hn, rat.coe_int_denom] }
+end
+
+lemma num_div_eq_of_coprime {a b : ℤ} (hb0 : 0 < b) (h : nat.coprime a.nat_abs b.nat_abs) :
+  (a / b : ℚ).num = a :=
+begin
+  lift b to ℕ using le_of_lt hb0,
+  norm_cast at hb0 h,
+  rw [← rat.mk_eq_div, ← rat.mk_pnat_eq a b hb0, rat.mk_pnat_num, pnat.mk_coe, h.gcd_eq_one,
+    int.coe_nat_one, int.div_one]
+end
+
+lemma denom_div_eq_of_coprime {a b : ℤ} (hb0 : 0 < b) (h : nat.coprime a.nat_abs b.nat_abs) :
+  ((a / b : ℚ).denom : ℤ) = b :=
+begin
+  lift b to ℕ using le_of_lt hb0,
+  norm_cast at hb0 h,
+  rw [← rat.mk_eq_div, ← rat.mk_pnat_eq a b hb0, rat.mk_pnat_denom, pnat.mk_coe, h.gcd_eq_one,
+    nat.div_one]
+end
+
+lemma div_int_inj {a b c d : ℤ} (hb0 : 0 < b) (hd0 : 0 < d)
+  (h1 : nat.coprime a.nat_abs b.nat_abs) (h2 : nat.coprime c.nat_abs d.nat_abs)
+  (h : (a : ℚ) / b = (c : ℚ) / d) : a = c ∧ b = d :=
+begin
+  apply and.intro,
+  { rw [← (num_div_eq_of_coprime hb0 h1), h, num_div_eq_of_coprime hd0 h2] },
+  { rw [← (denom_div_eq_of_coprime hb0 h1), h, denom_div_eq_of_coprime hd0 h2] }
 end
 
 end rat

@@ -35,9 +35,8 @@ do {
   end,
   clear hyp,
   hyp ← note hyp.local_pp_name none prf,
-
   -- let's try to force β-reduction at `h`
-  try $ tactic.dsimp_hyp hyp none [] { eta := false, beta := true }
+  try $ tactic.dsimp_hyp hyp simp_lemmas.mk [] { eta := false, beta := true }
 }
 
 namespace interactive

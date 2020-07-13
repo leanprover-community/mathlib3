@@ -501,6 +501,9 @@ end equality
 section quantifiers
 variables {α : Sort*} {β : Sort*} {p q : α → Prop} {b : Prop}
 
+lemma forall_imp (h : ∀ a, p a → q a) : (∀ a, p a) → ∀ a, q a :=
+λ h' a, h a (h' a)
+
 lemma Exists.imp (h : ∀ a, (p a → q a)) (p : ∃ a, p a) : ∃ a, q a := exists_imp_exists h p
 
 lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a))

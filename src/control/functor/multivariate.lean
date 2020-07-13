@@ -21,12 +21,14 @@ Features:
 
 universes u v w
 
+open_locale mvfunctor
+
 /-- multivariate functors, i.e. functor between the category of type vectors
 and the category of Type -/
 class mvfunctor {n : ℕ} (F : typevec n → Type*) :=
 (map : Π {α β : typevec n}, (α ⟹ β) → (F α → F β))
 
-infixr ` <$$> `:100 := mvfunctor.map
+localized "infixr ` <$$> `:100 := mvfunctor.map" in mvfunctor
 
 variables {n : ℕ}
 

@@ -47,7 +47,7 @@ variable {n : ℕ}
 /-- arrow in the category of `typevec` -/
 def arrow (α β : typevec n) := Π i : fin2 n, α i → β i
 
-infixl ` ⟹ `:40 := arrow
+localized "infixl ` ⟹ `:40 := typevec.arrow" in mvfunctor
 
 instance arrow.inhabited (α β : typevec n) [Π i, inhabited (β i)] : inhabited (α ⟹ β) :=
 ⟨ λ _ _, default _ ⟩
@@ -59,7 +59,7 @@ def id {α : typevec n} : α ⟹ α := λ i x, x
 def comp {α β γ : typevec n} (g : β ⟹ γ) (f : α ⟹ β) : α ⟹ γ :=
 λ i x, g i (f i x)
 
-infixr ` ⊚ `:80 := typevec.comp   -- type as \oo
+localized "infixr ` ⊚ `:80 := typevec.comp" in mvfunctor -- type as \oo
 
 @[simp] theorem id_comp {α β : typevec n} (f : α ⟹ β) : id ⊚ f = f :=
 rfl
@@ -69,24 +69,6 @@ rfl
 
 theorem comp_assoc {α β γ δ : typevec n} (h : γ ⟹ δ) (g : β ⟹ γ) (f : α ⟹ β) :
   (h ⊚ g) ⊚ f = h ⊚ g ⊚ f := rfl
-
-end typevec
-
-namespace eq
-
-theorem mp_mpr {α β : Type*} (h : α = β) (x : β) :
-  eq.mp h (eq.mpr h x) = x :=
-by induction h; reflexivity
-
-theorem mpr_mp {α β : Type*} (h : α = β) (x : α) :
-  eq.mpr h (eq.mp h x) = x :=
-by induction h; reflexivity
-
-end eq
-
-namespace typevec
-
-variable {n : ℕ}
 
 /--
 Support for extending a typevec by one element.
@@ -343,7 +325,7 @@ def prod : Π {n} (α β : typevec.{u} n), typevec n
 | 0 α β := fin2.elim0
 | (n+1) α β := prod (drop α) (drop β) ::: (last α × last β)
 
-infix ` ⊗ `:45 := prod
+infix ` ⊗ `:45 := typevec.prod
 
 /-- `const x α` is an arrow that ignores its source and constructs a `typevec` that
 contains nothing but `x` -/
@@ -480,12 +462,14 @@ def of_subtype : Π {n} {α : typevec.{u} n} (p : α ⟹ repeat n Prop), subtype
 | (succ n) α p fin2.fz x := x
 
 /-- similar to `to_subtype` adapted to relations (i.e. predicate on product) -/
-def to_subtype' : Π {n} {α : typevec.{u} n} (p : α ⊗ α ⟹ repeat n Prop), (λ (i : fin2 n), { x : α i × α i // of_repeat $ p i (prod.mk _ x.1 x.2) }) ⟹ subtype_ p
+def to_subtype' : Π {n} {α : typevec.{u} n} (p : α ⊗ α ⟹ repeat n Prop),
+  (λ (i : fin2 n), { x : α i × α i // of_repeat $ p i (prod.mk _ x.1 x.2) }) ⟹ subtype_ p
 | (succ n) α p (fin2.fs i) x := to_subtype' (drop_fun p) i x
 | (succ n) α p fin2.fz x := ⟨x.val,cast (by congr; simp [prod.mk]) x.property⟩
 
 /-- similar to `of_subtype` adapted to relations (i.e. predicate on product) -/
-def of_subtype' : Π {n} {α : typevec.{u} n} (p : α ⊗ α ⟹ repeat n Prop), subtype_ p ⟹ (λ (i : fin2 n), { x : α i × α i // of_repeat $ p i (prod.mk _ x.1 x.2) })
+def of_subtype' : Π {n} {α : typevec.{u} n} (p : α ⊗ α ⟹ repeat n Prop),
+  subtype_ p ⟹ (λ (i : fin2 n), { x : α i × α i // of_repeat $ p i (prod.mk _ x.1 x.2) })
 | ._ α p (fin2.fs i) x := of_subtype' _ i x
 | ._ α p fin2.fz x := ⟨x.val,cast (by congr; simp [prod.mk]) x.property⟩
 

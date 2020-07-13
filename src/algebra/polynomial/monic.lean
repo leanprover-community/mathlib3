@@ -46,15 +46,6 @@ lemma nat_degree_mul_eq [nontrivial R] {p q : polynomial R} (hp : p.monic) (hq :
 (p * q).nat_degree = p.nat_degree + q.nat_degree :=
 by { apply nat_degree_mul_eq', rw [hp.leading_coeff, hq.leading_coeff], simp }
 
-lemma next_coeff_mul_aux_calc {x : ℕ × ℕ} {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0)
-  (hx : x.fst + x.snd = a + b - 1)
-  (hx2 : x ≠ (a - 1, b))
-  (hx1 : x ≠ (a, b - 1)) :
-a < x.fst ∨ b < x.snd :=
-begin
-  sorry
-end
-
 lemma next_coeff_mul {p q : polynomial R} (hp : monic p) (hq : monic q) :
 next_coeff (p * q) = next_coeff p + next_coeff q :=
 begin
@@ -67,11 +58,14 @@ begin
   split_ifs; try { tauto <|> simp [h_1, h_2] },
   rename h_1 hp0, rename h_2 hq0, clear h,
   rw ← degree_one at hp0 hq0, assumption',
-  -- we've reduced to the case where the degrees are nonzero; we now call them dp and dq.
+  -- we've reduced to the case where the degrees dp and dq are nonzero
   set dp := p.nat_degree, set dq := q.nat_degree,
   rw coeff_mul,
   have : {(dp, dq - 1), (dp - 1, dq)} ⊆ nat.antidiagonal (dp + dq - 1),
-  { sorry },
+  { rw insert_subset, split,
+    work_on_goal 0 { rw [nat.mem_antidiagonal, nat.add_sub_assoc] },
+    work_on_goal 1 { simp only [singleton_subset_iff, nat.mem_antidiagonal], apply nat.sub_add_eq_add_sub },
+    all_goals { apply nat.succ_le_of_lt, apply nat.pos_of_ne_zero, assumption } },
   rw ← sum_subset this,
   { rw [sum_insert, sum_singleton], iterate 2 { rw coeff_nat_degree }, ring, assumption',
     suffices : dp ≠ dp - 1, { rw mem_singleton, simp [this] }, omega }, clear this,
@@ -80,7 +74,10 @@ begin
   suffices : dp < x.fst ∨ dq < x.snd, cases this,
   { left,  apply coeff_eq_zero_of_nat_degree_lt, assumption },
   { right, apply coeff_eq_zero_of_nat_degree_lt, assumption },
-  apply next_coeff_mul_aux_calc; tauto,
+  by_cases h : dp < x.fst, { tauto }, push_neg at h, right,
+  have : x.fst ≠ dp - 1, { contrapose! hx1, right, ext, assumption, dsimp, omega },
+  have : x.fst ≠ dp,     { contrapose! hx1, left,  ext, assumption, dsimp, omega },
+  omega,
 end
 
 lemma next_coeff_prod

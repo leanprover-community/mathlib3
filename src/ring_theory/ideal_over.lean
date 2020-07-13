@@ -74,6 +74,10 @@ lemma integral_closure.comap_ne_bot [nontrivial R] {I : ideal (integral_closure 
 let ⟨x, x_mem, x_ne_zero⟩ := I.ne_bot_iff.mp I_ne_bot in
 comap_ne_bot_of_integral_mem x_ne_zero x_mem (integral_closure.is_integral x)
 
+lemma integral_closure.eq_bot_of_comap_eq_bot [nontrivial R] {I : ideal (integral_closure R S)} :
+  I.comap (algebra_map R (integral_closure R S)) = ⊥ → I = ⊥ :=
+imp_of_not_imp_not _ _ integral_closure.comap_ne_bot
+
 end integral_domain
 
 end ideal

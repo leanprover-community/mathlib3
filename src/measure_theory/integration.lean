@@ -111,28 +111,28 @@ protected theorem measurable [measurable_space β] (f : α →ₛ β) : measurab
 λ s _, is_measurable_preimage f s
 
 /-- If-then-else as a `simple_func`. -/
-def ite (s : set α) (hs : is_measurable s) (f g : α →ₛ β) : α →ₛ β :=
+def piecewise (s : set α) (hs : is_measurable s) (f g : α →ₛ β) : α →ₛ β :=
 ⟨s.piecewise f g,
  λ x, by letI : measurable_space β := ⊤; exact
-   measurable.if hs f.measurable g.measurable _ trivial,
+   f.measurable.piecewise hs g.measurable trivial,
  (f.finite_range.union g.finite_range).subset range_ite_subset⟩
 
-@[simp] theorem coe_ite {s : set α} (hs : is_measurable s) (f g : α →ₛ β) :
-  ⇑(ite s hs f g) = s.piecewise f g :=
+@[simp] theorem coe_piecewise {s : set α} (hs : is_measurable s) (f g : α →ₛ β) :
+  ⇑(piecewise s hs f g) = s.piecewise f g :=
 rfl
 
-theorem ite_apply {s : set α} (hs : is_measurable s) (f g : α →ₛ β) (a) :
-  ite s hs f g a = if a ∈ s then f a else g a :=
+theorem piecewise_apply {s : set α} (hs : is_measurable s) (f g : α →ₛ β) (a) :
+  piecewise s hs f g a = if a ∈ s then f a else g a :=
 rfl
 
-@[simp] lemma ite_compl {s : set α} (hs : is_measurable sᶜ) (f g : α →ₛ β) :
-  ite sᶜ hs f g = ite s hs.of_compl g f :=
+@[simp] lemma piecewise_compl {s : set α} (hs : is_measurable sᶜ) (f g : α →ₛ β) :
+  piecewise sᶜ hs f g = piecewise s hs.of_compl g f :=
 coe_injective $ by simp [hs]
 
-@[simp] lemma ite_univ (f g : α →ₛ β) : ite univ is_measurable.univ f g = f :=
+@[simp] lemma piecewise_univ (f g : α →ₛ β) : piecewise univ is_measurable.univ f g = f :=
 coe_injective $ by simp
 
-@[simp] lemma ite_empty (f g : α →ₛ β) : ite ∅ is_measurable.empty f g = g :=
+@[simp] lemma piecewise_empty (f g : α →ₛ β) : piecewise ∅ is_measurable.empty f g = g :=
 coe_injective $ by simp
 
 /-- If `f : α →ₛ β` is a simple function and `g : β → α →ₛ γ` is a family of simple functions,
@@ -313,7 +313,7 @@ variables [has_zero β]
 /-- Restrict a simple function `f : α →ₛ β` to a set `s`. If `s` is measurable,
 then `f.restrict s a = if a ∈ s then f a else 0`, otherwise `f.restrict s = const α 0`. -/
 def restrict (f : α →ₛ β) (s : set α) : α →ₛ β :=
-if hs : is_measurable s then ite s hs f 0 else 0
+if hs : is_measurable s then piecewise s hs f 0 else 0
 
 theorem restrict_of_not_measurable {f : α →ₛ β} {s : set α}
   (hs : ¬is_measurable s) :
@@ -395,7 +395,7 @@ begin
   funext k,
   rw [restrict_apply],
   refl,
-  exact (hf.preimage is_measurable_Ici)
+  exact (hf is_measurable_Ici)
 end
 
 lemma monotone_approx (i : ℕ → β) (f : α → β) : monotone (approx i f) :=
@@ -855,7 +855,7 @@ begin
           rw [measure_Union_eq_supr_nat _ (mono x), ennreal.mul_supr],
           { assume i,
             refine ((rs.map c).is_measurable_preimage _).inter _,
-            exact (hf i).preimage is_measurable_Ici }
+            exact hf i is_measurable_Ici }
         end)
     ... ≤ ⨆n, ∑ r in (rs.map c).range, r * μ ((rs.map c) ⁻¹' {r} ∩ {a | r ≤ f n a}) :
       begin
@@ -1049,7 +1049,7 @@ lintegral_congr_ae $ h₁.mp $ h₂.mono $ λ _ h₂ h₁, by rw [h₁, h₂]
 lemma mul_meas_ge_le_lintegral {f : α → ennreal} (hf : measurable f) (ε : ennreal) :
   ε * μ {x | ε ≤ f x} ≤ ∫⁻ a, f a ∂μ :=
 begin
-  have : is_measurable {a : α | ε ≤ f a }, from hf.preimage is_measurable_Ici,
+  have : is_measurable {a : α | ε ≤ f a }, from hf is_measurable_Ici,
   rw [← simple_func.restrict_const_lintegral _ this, ← simple_func.lintegral_eq_lintegral],
   refine lintegral_mono (le_refl μ) (λ a, _),
   simp only [restrict_apply _ this],
@@ -1100,7 +1100,7 @@ calc
   lintegral_congr_ae $ g_eq_f.mono $ λ a ha, by simp only [ha]
   ... = ⨆n, (∫⁻ a, g n a ∂μ) :
   lintegral_supr
-    (assume n, measurable.if hs.2.1 measurable_const (hf n))
+    (assume n, measurable_const.piecewise hs.2.1 (hf n))
     (monotone_of_monotone_nat $ assume n a, classical.by_cases
       (assume h : a ∈ s, by simp [g, if_pos h])
       (assume h : a ∉ s,

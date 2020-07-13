@@ -1116,6 +1116,10 @@ H.mono $ λ _, eq.symm
   f =ᶠ[l] h :=
 H₂.rw (λ x y, f x = y) H₁
 
+lemma eventually_eq.prod_mk {l} {f f' : α → β} (hf : f =ᶠ[l] f') {g g' : α → γ} (hg : g =ᶠ[l] g') :
+  (λ x, (f x, g x)) =ᶠ[l] (λ x, (f' x, g' x)) :=
+hf.mp $ hg.mono $ by { intros, simp only * }
+
 lemma eventually_eq.fun_comp {f g : α → β} {l : filter α} (H : f =ᶠ[l] g) (h : β → γ) :
   (h ∘ f) =ᶠ[l] (h ∘ g) :=
 H.mono $ λ x hx, congr_arg h hx
@@ -1123,7 +1127,7 @@ H.mono $ λ x hx, congr_arg h hx
 lemma eventually_eq.comp₂ {δ} {f f' : α → β} {g g' : α → γ} {l} (Hf : f =ᶠ[l] f') (h : β → γ → δ)
   (Hg : g =ᶠ[l] g') :
   (λ x, h (f x) (g x)) =ᶠ[l] (λ x, h (f' x) (g' x)) :=
-Hf.mp $ Hg.mono $ by { intros, simp only * }
+(Hf.prod_mk Hg).fun_comp (function.uncurry h)
 
 @[to_additive]
 lemma eventually_eq.mul [has_mul β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)

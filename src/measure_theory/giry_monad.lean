@@ -32,7 +32,7 @@ open_locale classical big_operators
 
 open classical set filter
 
-variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ε : Type*}
+variables {α β γ δ ε : Type*}
 
 namespace measure_theory
 
@@ -45,52 +45,44 @@ instance : measurable_space (measure α) :=
 ⨆ (s : set α) (hs : is_measurable s), (borel ennreal).comap (λμ, μ s)
 
 lemma measurable_coe {s : set α} (hs : is_measurable s) : measurable (λμ : measure α, μ s) :=
-measurable_space.comap_le_iff_le_map.1 $ le_supr_of_le s $ le_supr_of_le hs $ le_refl _
+measurable.of_comap_le $ le_supr_of_le s $ le_supr_of_le hs $ le_refl _
 
 lemma measurable_of_measurable_coe (f : β → measure α)
   (h : ∀(s : set α) (hs : is_measurable s), measurable (λb, f b s)) :
   measurable f :=
-supr_le $ assume s, supr_le $ assume hs, measurable_space.comap_le_iff_le_map.2 $
+measurable.of_le_map $ supr_le $ assume s, supr_le $ assume hs, measurable_space.comap_le_iff_le_map.2 $
   by rw [measurable_space.map_comp]; exact h s hs
 
 lemma measurable_map (f : α → β) (hf : measurable f) :
-  measurable (λμ : measure α, μ.map f) :=
+  measurable (λμ : measure α, map f μ) :=
 measurable_of_measurable_coe _ $ assume s hs,
   suffices measurable (λ (μ : measure α), μ (f ⁻¹' s)),
     by simpa [map_apply, hs, hf],
-  measurable_coe (hf.preimage hs)
+  measurable_coe (hf hs)
 
 lemma measurable_dirac :
   measurable (measure.dirac : α → measure α) :=
 measurable_of_measurable_coe _ $ assume s hs,
   begin
-    simp [hs, supr_eq_if],
-    exact measurable_const.if hs measurable_const
+    simp only [dirac_apply, hs],
+    exact measurable_one.indicator hs
   end
 
-lemma measurable_integral (f : α → ennreal) (hf : measurable f) :
-  measurable (λμ : measure α, μ.integral f) :=
-suffices measurable (λμ : measure α,
-  (⨆n:ℕ, @simple_func.integral α { volume := μ } (simple_func.eapprox f n)) : _ → ennreal),
+lemma measurable_lintegral (f : α → ennreal) (hf : measurable f) :
+  measurable (λμ : measure α, ∫⁻ x, f x ∂μ) :=
 begin
-  convert this,
-  funext μ,
-  exact @lintegral_eq_supr_eapprox_integral α {volume := μ} f hf
-end,
-measurable_supr $ assume n,
-  begin
-    dunfold simple_func.integral,
-    refine finset.measurable_sum (simple_func.eapprox f n).range (λ i, _),
+  simp only [lintegral_eq_supr_eapprox_lintegral, hf, simple_func.lintegral],
+  refine measurable_supr (λ n, finset.measurable_sum _ (λ i, _)),
     refine measurable_const.ennreal_mul _,
-    exact measurable_coe ((simple_func.eapprox f n).preimage_measurable _)
-  end
+    exact measurable_coe ((simple_func.eapprox f n).is_measurable_preimage _)
+end
 
 /-- Monadic join on `measure` in the category of measurable spaces and measurable
 functions. -/
 def join (m : measure (measure α)) : measure α :=
 measure.of_measurable
-  (λs hs, m.integral (λμ, μ s))
-  (by simp [integral])
+  (λs hs, ∫⁻ μ, μ s ∂m)
+  (by simp [lintegral])
   begin
     assume f hf h,
     simp [measure_Union h hf],

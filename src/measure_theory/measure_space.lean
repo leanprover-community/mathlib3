@@ -756,7 +756,7 @@ to_measure_apply _ _ hs
 def map (f : α → β) : measure α →ₗ[ennreal] measure β :=
 if hf : measurable f then
   lift_linear (outer_measure.map f) $ λ μ s hs t,
-    le_to_outer_measure_caratheodory μ _ (hf _ hs) (f ⁻¹' t)
+    le_to_outer_measure_caratheodory μ _ (hf hs) (f ⁻¹' t)
 else 0
 
 variables {μ ν : measure α}
@@ -771,7 +771,7 @@ ext $ λ s, map_apply measurable_id
 lemma map_map {g : β → γ} {f : α → β} (hg : measurable g) (hf : measurable f) :
   map g (map f μ) = map (g ∘ f) μ :=
 ext $ λ s hs,
-by simp [hf, hg, hs, hg.preimage hs, hg.comp hf, ← preimage_comp]
+by simp [hf, hg, hs, hg hs, hg.comp hf, ← preimage_comp]
 
 /-- Pullback of a `measure`. If `f` sends each `measurable` set to a `measurable` set, then for each
 measurable set `s` we have `comap f μ s = μ (f '' s)`. -/
@@ -860,8 +860,8 @@ lemma map_comap_subtype_coe {s : set α} (hs : is_measurable s) :
 begin
   ext1 μ, ext1 t ht,
   rw [restrict_apply ht, linear_map.comp_apply, map_apply measurable_subtype_coe ht,
-    comap_apply (coe : s → α) subtype.val_injective (λ _, is_measurable_subtype_image hs) _
-      (measurable_subtype_coe.preimage ht), subtype.image_preimage_coe],
+    comap_apply (coe : s → α) subtype.val_injective (λ _, hs.subtype_image) _
+      (measurable_subtype_coe ht), subtype.image_preimage_coe],
 end
 
 /-- Restriction of a measure to a subset is monotone
@@ -980,15 +980,14 @@ lemma ae_ball_iff {ι} {S : set ι} (hS : countable S) {p : Π (x : α) (i ∈ S
   (∀ᵐ x ∂ μ, ∀ i ∈ S, p x i ‹_›) ↔ ∀ i ∈ S, ∀ᵐ x ∂ μ, p x i ‹_› :=
 eventually_countable_ball hS
 
-lemma ae_eq_refl (f : α → β) : ∀ᵐ a ∂ μ, f a = f a :=
-ae_of_all μ $ λ a, rfl
+lemma ae_eq_refl (f : α → β) : f =ᵐ[μ] f := eventually_eq.refl _ _
 
-lemma ae_eq_symm {f g : α → β} (h : ∀ᵐ a ∂ μ, f a = g a) : (∀ᵐ a ∂ μ, g a = f a) :=
-h.mono $ λ a, eq.symm
+lemma ae_eq_symm {f g : α → β} (h : f =ᵐ[μ] g) : g =ᵐ[μ] f :=
+h.symm
 
-lemma ae_eq_trans {f g h: α → β} (h₁ : ∀ᵐ a ∂ μ, f a = g a) (h₂ : ∀ᵐ a ∂ μ, g a = h a) :
-  ∀ᵐ a ∂ μ, f a = h a :=
-by { filter_upwards [h₁, h₂], intro a, exact eq.trans }
+lemma ae_eq_trans {f g h: α → β} (h₁ : f =ᵐ[μ] g) (h₂ : g =ᵐ[μ] h) :
+  f =ᵐ[μ] h :=
+h₁.trans h₂
 
 lemma mem_ae_map_iff [measurable_space β] {f : α → β} (hf : measurable f)
   {s : set β} (hs : is_measurable s) :

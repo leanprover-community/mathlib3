@@ -82,7 +82,7 @@ end
 
 lemma indicator_preimage (s : set α) (f : α → β) (B : set β) :
   (indicator s f)⁻¹' B = s ∩ f ⁻¹' B ∪ sᶜ ∩ (λa:α, (0:β)) ⁻¹' B :=
-by { rw [indicator, if_preimage] }
+piecewise_preimage s f 0 B
 
 lemma indicator_preimage_of_not_mem (s : set α) (f : α → β) {t : set β} (ht : (0:β) ∉ t) :
   (indicator s f)⁻¹' t = s ∩ f ⁻¹' t :=

@@ -25,9 +25,26 @@ add_tactic_doc
   decl_names := [`tactic.interactive.fconstructor],
   tags       := ["logic", "goal management"] }
 
-/-- `try_for n { tac }` executes `tac` for `n` ticks, otherwise uses `sorry` to close the goal.
-Never fails. Useful for debugging. -/
+/--
+`try_for n { tac }` executes `tac` for `n` ticks, and otherwise fails.
+Useful for limiting the run-time of potentially expensive tactics.
+
+See also `try_for_sorry`.
+-/
 meta def try_for (max : parse parser.pexpr) (tac : itactic) : tactic unit :=
+do max ← i_to_expr_strict max >>= tactic.eval_expr nat,
+  λ s, match _root_.try_for max (tac s) with
+  | some r := r
+  | none   := (tactic.fail "try_for timeout") s
+  end
+
+/--
+`try_for_sorry n { tac }` executes `tac` for `n` ticks, otherwise uses `sorry` to close the goal.
+Never fails. Useful for debugging.
+
+See also `try_for`.
+-/
+meta def try_for_sorry (max : parse parser.pexpr) (tac : itactic) : tactic unit :=
 do max ← i_to_expr_strict max >>= tactic.eval_expr nat,
   λ s, match _root_.try_for max (tac s) with
   | some r := r

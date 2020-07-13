@@ -106,7 +106,9 @@ end functor_to_types
 The isomorphism between a `Type` which has been `ulift`ed to the same universe,
 and the original type.
 -/
-def ulift_trivial (V : Type u) : ulift.{u} V ≅ V := by tidy
+def ulift_trivial (V : Type u) : ulift.{u} V ≅ V :=
+{ hom := ulift.down,
+  inv := ulift.up, }
 
 /--
 The functor embedding `Type u` into `Type (max u v)`.

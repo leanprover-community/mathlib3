@@ -25,10 +25,20 @@ add_tactic_doc
 
 run_cmd attribute.register ``tidy_attribute
 
+/--
+Find the first tactic with attribute `@[tidy]` that succeeds,
+returning its return value.
+-/
 meta def run_tactics : tactic string :=
 do names ← attribute.get_instances `tidy,
    first (names.map name_to_tactic) <|> fail "no @[tidy] tactics succeeded"
 
+/--
+When we run `ext1` as part of `tidy`, we want to use `{apply_cfg . new_goals := new_goals.all}`.
+In order to avoid having to include this in the generated tactic script unless it is necessary,
+we define here a wrapper for `ext1` that checks the number of new goals and produces
+an appropriate tactic script.
+-/
 @[hint_tactic]
 meta def ext1_wrapper : tactic string :=
 do ng ← num_goals,
@@ -38,8 +48,26 @@ do ng ← num_goals,
      "tactic.ext1 [] {new_goals := tactic.new_goals.all}"
    else "ext1"
 
+/--
+The default list of tactics used by the `tidy` tactic.
+This list can be overridden using `tidy { tactics := ... }`.
+
+This is a list of `tactic string`s,
+each of which is expected to report a tactic invocation which reproduces its effect.
+-/
 meta def default_tactics : list (tactic string) :=
-[ reflexivity                                 >> pure "refl",
+[ /-
+  We have mixed feelings about `refl`.
+  On the one hand, including it near the top of `default_tactics` list saves
+  about 60s in compiling mathlib (as of July 2020).
+  On the other hand, it potentially makes `tidy` very slow, as it is willing to tackle "heavy `rfl`"
+  problems, even when other tactics would be more advisable.
+
+  As a compromise, we run `refl` inside a `try_for` wrapper.
+  The time limit was chosen as a smallest value for which we get the full compilation time benefits
+  (in fact a slight overall improvement).
+  -/
+  `[try_for 25 { refl }]                      >> pure "refl",
   `[exact dec_trivial]                        >> pure "exact dec_trivial",
   propositional_goal >> assumption            >> pure "assumption",
   intros1                                     >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
@@ -56,6 +84,13 @@ meta def default_tactics : list (tactic string) :=
   `[unfold_aux]                               >> pure "unfold_aux",
   tidy.run_tactics ]
 
+/--
+The configuration settings for `tidy`.
+
+The main use is overriding the list of tactics used, via `tidy { tactics := ... }`.
+(The list must be a `list` of `tactic string`, so that `tidy?`
+can report a usable tactic script.)
+-/
 meta structure cfg :=
 (trace_result : bool            := ff)
 (trace_result_prefix : string   := "Try this: ")
@@ -63,6 +98,10 @@ meta structure cfg :=
 
 declare_trace tidy
 
+/--
+The non-interactive implementation of the `tidy` tactic,
+returning a list of strings representing the discovered tactic script.
+-/
 meta def core (cfg : cfg := {}) : tactic (list string) :=
 do
   results ← chain cfg.tactics,
@@ -72,6 +111,10 @@ do
 
 end tidy
 
+/--
+A non-interactive version of the tidy tactic, as a `tactic unit`,
+suitable for use as an `auto_param`.
+-/
 meta def tidy (cfg : tidy.cfg := {}) := tactic.tidy.core cfg >> skip
 
 namespace interactive

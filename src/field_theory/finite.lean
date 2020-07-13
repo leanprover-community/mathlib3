@@ -8,6 +8,7 @@ import data.equiv.ring
 import data.zmod.basic
 import linear_algebra.basis
 import ring_theory.integral_domain
+import field_theory.separable
 
 /-!
 # Finite fields
@@ -257,4 +258,31 @@ begin
   apply_fun (coe : units (zmod (n+1)) → zmod (n+1)) at this,
   simpa only [-zmod.pow_totient, nat.succ_eq_add_one, nat.cast_pow, units.coe_one,
     nat.cast_one, cast_unit_of_coprime, units.coe_pow],
+end
+
+variables {p : ℕ} [fact p.prime]
+lemma nat.prime.totient : φ p = p - 1 :=
+begin
+  sorry
+end
+
+lemma zmod.frobenius_fixed (a : zmod p) : a ^ p = a :=
+begin
+  have posp : 0 < p, { apply nat.prime.pos, assumption, },
+  by_cases a = 0, rw h, rw zero_pow posp,
+  conv_rhs {rw ← one_mul a, rw ← pow_one a},
+  rw [← units.coe_one, ← zmod.pow_totient (units.mk0 a h), nat.prime.totient],
+  simp only [units.coe_mk0, units.coe_pow],
+  rw ← pow_add, refine congr rfl _, symmetry, apply nat.succ_pred_eq_of_pos posp,
+end
+
+open polynomial
+lemma poly_pow_p_char_p (f : polynomial (zmod p)) :
+f ^ p = expand (zmod p) p f :=
+begin
+  rw ← frobenius_def, apply polynomial.induction_on' f,
+  { intros f1 f2 h1 h2, simp [h1, h2], },
+  { intros n a,
+    rw [frobenius_def, single_eq_C_mul_X, mul_pow, ← C.map_pow, zmod.frobenius_fixed,
+      ← pow_mul, mul_comm n p, pow_mul], simp, },
 end

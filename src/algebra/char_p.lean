@@ -93,6 +93,24 @@ begin
   rw [pow_zero, nat.sub_zero, one_mul, nat.choose_zero_right, nat.cast_one, mul_one]
 end
 
+theorem add_pow_char_of_commute (α : Type u) [ring α] {p : ℕ} [fact p.prime]
+  [char_p α p] (x y : α) :
+  commute x y → (x + y)^p = x^p + y^p :=
+begin
+  intro comm,
+  rw [commute.add_pow comm, finset.sum_range_succ, nat.sub_self, pow_zero, nat.choose_self],
+  rw [nat.cast_one, mul_one, mul_one, add_right_inj],
+  transitivity,
+  { refine finset.sum_eq_single 0 _ _,
+    { intros b h1 h2,
+      have := nat.prime.dvd_choose_self (nat.pos_of_ne_zero h2)
+        (finset.mem_range.1 h1) (by assumption),
+      rw [← nat.div_mul_cancel this, nat.cast_mul, char_p.cast_eq_zero α p],
+      simp only [mul_zero], },
+    { intro H, contrapose! H, rw finset.mem_range, apply nat.prime.pos, assumption, } },
+  rw [pow_zero, nat.sub_zero, one_mul, nat.choose_zero_right, nat.cast_one, mul_one]
+end
+
 lemma eq_iff_modeq_int (R : Type*) [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
   (a : R) = b ↔ a ≡ b [ZMOD p] :=
 by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,

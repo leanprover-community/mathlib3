@@ -885,6 +885,7 @@ end
 @[simp] theorem map_nat_cast (n : ℕ) : (n : polynomial R).map f = n :=
 nat.rec_on n rfl $ λ n ih, by rw [n.cast_succ, map_add, ih, map_one, n.cast_succ]
 
+@[simp]
 lemma coeff_map (n : ℕ) : coeff (p.map f) n = f (coeff p n) :=
 begin
   rw [map, eval₂, coeff_sum],

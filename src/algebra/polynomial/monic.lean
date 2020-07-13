@@ -5,8 +5,8 @@ Authors: Aaron Anderson, Jalex Stark.
 -/
 import algebra.polynomial.basic
 import algebra.polynomial.big_operators
+import tactic.tidy
 open polynomial finset
-
 /-
 # Monic polynomials
 
@@ -46,45 +46,41 @@ lemma nat_degree_mul_eq [nontrivial R] {p q : polynomial R} (hp : p.monic) (hq :
 (p * q).nat_degree = p.nat_degree + q.nat_degree :=
 by { apply nat_degree_mul_eq', rw [hp.leading_coeff, hq.leading_coeff], simp }
 
+lemma next_coeff_mul_aux_calc {x : ℕ × ℕ} {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0)
+  (hx : x.fst + x.snd = a + b - 1)
+  (hx2 : x ≠ (a - 1, b))
+  (hx1 : x ≠ (a, b - 1)) :
+a < x.fst ∨ b < x.snd :=
+begin
+  sorry
+end
+
 lemma next_coeff_mul {p q : polynomial R} (hp : monic p) (hq : monic q) :
 next_coeff (p * q) = next_coeff p + next_coeff q :=
 begin
   classical,
   by_cases h : nontrivial R, swap,
   { rw nontrivial_iff at h, push_neg at h, apply h, },
-  letI := h,
+  haveI := h, clear h,
   have := monic.nat_degree_mul_eq hp hq,
   dsimp [next_coeff], rw this, simp [hp, hq], clear this,
-  split_ifs; try {tauto <|> simp *},
-  rename h_2 hp0, rename h_3 hq0, clear h_1,
-  rw ← degree_one at hp0 hq0, any_goals {assumption},
+  split_ifs; try { tauto <|> simp [h_1, h_2] },
+  rename h_1 hp0, rename h_2 hq0, clear h,
+  rw ← degree_one at hp0 hq0, assumption',
+  -- we've reduced to the case where the degrees are nonzero; we now call them dp and dq.
+  set dp := p.nat_degree, set dq := q.nat_degree,
   rw coeff_mul,
-  transitivity ∑ (x : ℕ × ℕ) in _, ite (x.fst = p.nat_degree ∨ x.snd = q.nat_degree) (p.coeff x.fst * q.coeff x.snd) 0,
-  { apply sum_congr rfl,
-    intros x hx, split_ifs with hx1, refl,
-    simp only [nat.mem_antidiagonal] at hx,
-    push_neg at hx1, cases hx1 with hxp hxq,
-    by_cases h_deg : x.fst < p.nat_degree,
-    { suffices : q.coeff x.snd = 0, simp [this],
-      apply coeff_eq_zero_of_nat_degree_lt, omega },
-    suffices : p.coeff x.fst = 0, simp [this],
-    apply coeff_eq_zero_of_nat_degree_lt, omega,
-  },
-  rw sum_ite, simp,
-  have : filter (λ (x : ℕ × ℕ), x.fst = p.nat_degree ∨ x.snd = q.nat_degree) (nat.antidiagonal (p.nat_degree + q.nat_degree - 1))
-    = {(p.nat_degree - 1, q.nat_degree),(p.nat_degree, q.nat_degree - 1)},
-  { ext, rw mem_filter, simp only [mem_insert, mem_singleton, nat.mem_antidiagonal],
-    split; intro ha,
-    { rcases ha with ⟨ha, _ | _ ⟩,
-      { right, ext, assumption, omega, },
-      left, ext, omega, assumption },
-    split, cases ha; { rw ha, ring, omega },
-    cases ha; { rw ha, simp }},
-  rw [this, sum_insert, sum_singleton],
-  { dsimp, iterate 2 { rw coeff_nat_degree }, ring, assumption' },
-
-  suffices : p.nat_degree - 1 ≠ p.nat_degree, { simp [this] },
-  omega,
+  have : {(dp, dq - 1), (dp - 1, dq)} ⊆ nat.antidiagonal (dp + dq - 1),
+  { sorry },
+  rw ← sum_subset this,
+  { rw [sum_insert, sum_singleton], iterate 2 { rw coeff_nat_degree }, ring, assumption',
+    suffices : dp ≠ dp - 1, { rw mem_singleton, simp [this] }, omega }, clear this,
+  intros x hx hx1, simp only [nat.mem_antidiagonal] at hx, simp only [mem_insert, mem_singleton] at hx1,
+  suffices : p.coeff x.fst = 0 ∨ q.coeff x.snd = 0, cases this; simp [this],
+  suffices : dp < x.fst ∨ dq < x.snd, cases this,
+  { left,  apply coeff_eq_zero_of_nat_degree_lt, assumption },
+  { right, apply coeff_eq_zero_of_nat_degree_lt, assumption },
+  apply next_coeff_mul_aux_calc; tauto,
 end
 
 lemma next_coeff_prod

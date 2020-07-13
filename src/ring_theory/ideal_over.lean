@@ -62,7 +62,7 @@ variables [algebra R S]
 
 lemma comap_ne_bot_of_algebraic_mem {I : ideal S} {x : S}
   (x_ne_zero : x ≠ 0) (x_mem : x ∈ I) (hx : is_algebraic R x) : I.comap (algebra_map R S) ≠ ⊥ :=
-  let ⟨p, p_ne_zero, hp⟩ := hx
+let ⟨p, p_ne_zero, hp⟩ := hx
 in comap_ne_bot_of_root_mem x_ne_zero x_mem p_ne_zero hp
 
 lemma comap_ne_bot_of_integral_mem [nontrivial R] {I : ideal S} {x : S}

@@ -515,7 +515,7 @@ variables  {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   (M : Type*) [topological_space M] [charted_space H M]
 
 /-- The maximal atlas of `M` for the smooth manifold with corners structure corresponding to the
-modle with corners `I`. -/
+model with corners `I`. -/
 def maximal_atlas := (times_cont_diff_groupoid ∞ I).maximal_atlas M
 
 variable {M}

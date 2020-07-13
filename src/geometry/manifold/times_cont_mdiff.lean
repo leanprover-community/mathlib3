@@ -47,7 +47,7 @@ follow definitionally the setup of local invariant properties. Still, we recast 
 in terms of extended charts in `times_cont_mdiff_on_iff` and `times_cont_mdiff_iff`.
 -/
 
-open set charted_space
+open set charted_space smooth_manifold_with_corners
 open_locale topological_space manifold
 
 /-! ### Definition of smooth functions between manifolds -/
@@ -615,16 +615,14 @@ include Is
 
 /-- An atlas member is `C^n` for any `n`. -/
 lemma times_cont_mdiff_on_of_mem_maximal_atlas
-  (h : e ∈ (times_cont_diff_groupoid ∞ I).maximal_atlas M) :
-  times_cont_mdiff_on I I n e e.source :=
+  (h : e ∈ maximal_atlas I M) : times_cont_mdiff_on I I n e e.source :=
 times_cont_mdiff_on.of_le
   ((times_cont_diff_within_at_local_invariant_prop I I ∞).lift_prop_on_of_mem_maximal_atlas
     (times_cont_diff_within_at_local_invariant_prop_id I) h) le_top
 
 /-- The inverse of an atlas member is `C^n` for any `n`. -/
 lemma times_cont_mdiff_on_symm_of_mem_maximal_atlas
-  (h : e ∈ (times_cont_diff_groupoid ∞ I).maximal_atlas M) :
-  times_cont_mdiff_on I I n e.symm e.target :=
+  (h : e ∈ maximal_atlas I M) : times_cont_mdiff_on I I n e.symm e.target :=
 times_cont_mdiff_on.of_le
   ((times_cont_diff_within_at_local_invariant_prop I I ∞).lift_prop_on_symm_of_mem_maximal_atlas
     (times_cont_diff_within_at_local_invariant_prop_id I) h) le_top

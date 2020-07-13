@@ -597,7 +597,8 @@ rfl
 end
 
 @[simp]
-lemma alg_hom_eval₂_algebra_map {R A B : Type*} [comm_ring R] [ring A] [ring B] [algebra R A] [algebra R B]
+lemma alg_hom_eval₂_algebra_map
+  {R A B : Type*} [comm_ring R] [ring A] [ring B] [algebra R A] [algebra R B]
   (p : polynomial R) (f : A →ₐ[R] B) (a : A) :
   f (eval₂ (algebra_map R A) a p) = eval₂ (algebra_map R B) (f a) p :=
 begin
@@ -606,7 +607,8 @@ begin
 end
 
 @[simp]
-lemma eval₂_algebra_map_X {R A : Type*} [comm_ring R] [ring A] [algebra R A] (p : polynomial R) (f : polynomial R →ₐ[R] A) :
+lemma eval₂_algebra_map_X {R A : Type*} [comm_ring R] [ring A] [algebra R A]
+  (p : polynomial R) (f : polynomial R →ₐ[R] A) :
   eval₂ (algebra_map R A) (f X) p = f p :=
 begin
   conv_rhs { rw [←polynomial.sum_C_mul_X_eq p], },
@@ -616,7 +618,8 @@ begin
 end
 
 @[simp]
-lemma ring_hom_eval₂_algebra_map_int {R S : Type*} [ring R] [ring S] (p : polynomial ℤ) (f : R →+* S) (r : R) :
+lemma ring_hom_eval₂_algebra_map_int {R S : Type*} [ring R] [ring S]
+  (p : polynomial ℤ) (f : R →+* S) (r : R) :
   f (eval₂ (algebra_map ℤ R) r p) = eval₂ (algebra_map ℤ S) (f r) p :=
 alg_hom_eval₂_algebra_map p f.to_int_alg_hom r
 

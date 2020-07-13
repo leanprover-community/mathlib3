@@ -435,7 +435,7 @@ have hprod : ↑M*M1=1, --sorry,
     apply fractional_ideal.mul_le.mpr,
       intros x hx y hy,
       rw [mul_comm], sorry, sorry,
-      -- sto copiando la prova da theorem right_inverse_eq di fractional_ideal.lean
+      -- sto copiando la prova dal teorema right_inverse_eq di fractional_ideal.lean
       -- exact (mem_div_iff_of_nonzero hI).mp hy x hx,},
     --   {rw [←h],
     --   apply mul_left_mono I,

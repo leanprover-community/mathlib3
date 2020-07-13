@@ -53,7 +53,9 @@ variable [integral_domain R]
 /-- `polynomial.leading_coeff` bundled as a `monoid_hom` when `R` is an `integral_domain`, and thus
   `leading_coeff` is multiplicative -/
 def leading_coeff_monoid_hom : polynomial R →* R :=
-{to_fun := leading_coeff, map_one' := by simp, map_mul' := leading_coeff_mul}
+{ to_fun := leading_coeff,
+  map_one' := by simp,
+  map_mul' := leading_coeff_mul }
 
 @[simp] lemma coe_leading_coeff_monoid_hom (p : polynomial R) :
   leading_coeff_monoid_hom p = leading_coeff p := rfl

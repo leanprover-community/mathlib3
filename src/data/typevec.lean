@@ -325,7 +325,7 @@ def prod : Π {n} (α β : typevec.{u} n), typevec n
 | 0 α β := fin2.elim0
 | (n+1) α β := prod (drop α) (drop β) ::: (last α × last β)
 
-infix ` ⊗ `:45 := typevec.prod
+localized "infix ` ⊗ `:45 := typevec.prod" in mvfunctor
 
 /-- `const x α` is an arrow that ignores its source and constructs a `typevec` that
 contains nothing but `x` -/
@@ -415,18 +415,18 @@ def prod.mk : Π {n} {α β : typevec.{u} n} (i : fin2 n), α i → β i → (α
 | (succ n) α β fin2.fz := _root_.prod.mk
 
 /-- `prod` is functorial -/
-def prod.map : Π {n} {α α' β β' : typevec.{u} n}, (α ⟹ β) → (α' ⟹ β') → α ⊗ α' ⟹ β ⊗ β'
+protected def prod.map : Π {n} {α α' β β' : typevec.{u} n}, (α ⟹ β) → (α' ⟹ β') → α ⊗ α' ⟹ β ⊗ β'
 | (succ n) α α' β β' x y (fin2.fs i) a := @prod.map _ (drop α) (drop α') (drop β) (drop β') (drop_fun x) (drop_fun y) _ a
 | (succ n) α α' β β' x y fin2.fz a := (x _ a.1,y _ a.2)
 
-infix ` ⊗ `:45 := prod.map
+localized "infix ` ⊗' `:45 := prod.map" in mvfunctor
 
 theorem fst_prod_mk {α α' β β' : typevec n} (f : α ⟹ β) (g : α' ⟹ β') :
-  typevec.prod.fst ⊚ (f ⊗ g) = f ⊚ typevec.prod.fst :=
+  typevec.prod.fst ⊚ (f ⊗' g) = f ⊚ typevec.prod.fst :=
 by ext i; induction i; [refl, apply i_ih]
 
 theorem snd_prod_mk {α α' β β' : typevec n} (f : α ⟹ β) (g : α' ⟹ β') :
-  typevec.prod.snd ⊚ (f ⊗ g) = g ⊚ typevec.prod.snd :=
+  typevec.prod.snd ⊚ (f ⊗' g) = g ⊚ typevec.prod.snd :=
 by ext i; induction i; [refl, apply i_ih]
 
 theorem fst_diag {α : typevec n} : typevec.prod.fst ⊚ (prod.diag : α ⟹ _) = id :=
@@ -486,7 +486,7 @@ lemma diag_sub_val {n} {α : typevec.{u} n} :
   subtype_val (repeat_eq α) ⊚ diag_sub = prod.diag :=
 by ext i; induction i; [refl, apply i_ih]
 
-lemma prod_id : Π {n} {α β : typevec.{u} n}, (id ⊗ id) = (id : α ⊗ β ⟹ _) :=
+lemma prod_id : Π {n} {α β : typevec.{u} n}, (id ⊗' id) = (id : α ⊗ β ⟹ _) :=
 begin
   intros, ext i a, induction i,
   { cases a, refl },
@@ -497,7 +497,7 @@ lemma append_prod_append_fun {n} {α α' β β' : typevec.{u} n}
   {φ φ' ψ ψ' : Type u}
   {f₀ : α ⟹ α'} {g₀ : β ⟹ β'}
   {f₁ : φ → φ'}  {g₁ : ψ → ψ'} :
-  (f₀ ⊗ g₀) ::: _root_.prod.map f₁ g₁ = ((f₀ ::: f₁) ⊗ (g₀ ::: g₁)) :=
+  (f₀ ⊗' g₀) ::: _root_.prod.map f₁ g₁ = ((f₀ ::: f₁) ⊗' (g₀ ::: g₁)) :=
 by ext i a; cases i; [cases a, skip]; refl
 
 end liftp'

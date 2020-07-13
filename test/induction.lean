@@ -169,18 +169,87 @@ begin
   }
 end
 
--- This example tests automatic generalisation.
+-- By default, induction' generates the most general possible induction
+-- hypothesis.
 example {n m : ℕ} : n + m = m + n :=
 begin
   induction' m,
-  case zero {
-    simp
-  },
+  case zero { simp },
   case succ : k IH {
     guard_hyp k := ℕ,
     guard_hyp n := ℕ,
     guard_hyp IH := ∀ {n}, n + k = k + n,
     ac_refl
+  }
+end
+
+-- If we don't want a hypothesis to be generalised, we can say so with a
+-- "fixing" clause.
+example {n m : ℕ} : n + m = m + n :=
+begin
+  induction' m fixing n,
+  case zero { simp },
+  case succ : k IH {
+    guard_hyp k := ℕ,
+    guard_hyp n := ℕ,
+    guard_hyp IH := n + k = k + n,
+    ac_refl
+  }
+end
+
+-- We can also fix all hypotheses. This gives us the behaviour of stock
+-- `induction`. Hypotheses which depend on the eliminee still get generalised.
+example {n m k : ℕ} (h : n + m = k) : n + m = k :=
+begin
+  induction' n fixing *,
+  case zero { simp [*] },
+  case succ : n IH {
+    guard_hyp n := ℕ,
+    guard_hyp m := ℕ,
+    guard_hyp k := ℕ,
+    guard_hyp h := n.succ + m = k,
+    guard_hyp IH := n + m = k → n + m = k,
+    -- Neither m nor k were generalised.
+    exact h
+  }
+end
+
+-- We can also generalise only certain hypotheses using a `generalizing`
+-- clause. This gives us the behaviour of stock `induction ... generalizing`.
+-- Hypotheses which depend on the eliminee get generalised even if they are not
+-- mentioned in the `generalizing` clause.
+example {n m k : ℕ} (h : n + m = k) : n + m = k :=
+begin
+  induction' n generalizing k,
+  case zero { simp [*] },
+  case succ : n IH {
+    guard_hyp n := ℕ,
+    guard_hyp m := ℕ,
+    guard_hyp k := ℕ,
+    guard_hyp h := n.succ + m = k,
+    guard_hyp IH := ∀ {k}, n + m = k → n + m = k,
+    -- k was generalised, but m was not.
+    exact h
+  }
+end
+
+-- Sometimes generalising a hypothesis H does not give us a more general
+-- induction hypothesis. In such cases, induction' should not generalise H. The
+-- following example is not realistic, but situations like this can occur in
+-- practice; see accufact_1_eq_fact below.
+example (n m k : ℕ) : m + k = k + m :=
+begin
+  induction' m,
+  case zero { simp },
+  case succ {
+    guard_hyp ih := ∀ k, m + k = k + m,
+    -- k was generalised because this makes the IH more general.
+    -- n was not generalised -- if it had been, the IH would be
+    --
+    --     ∀ n k, m + k = k + m
+    --
+    -- with one useless additional argument.
+    linarith
   }
 end
 
@@ -226,26 +295,6 @@ begin
   success_if_fail { induction' x },
   success_if_fail { induction' f },
   exact ()
-end
-
--- Sometimes generalising a hypothesis H does not give us a more general
--- induction hypothesis. In such cases, induction' should not generalise H. The
--- following example is not realistic, but situations like this can occur in
--- practice; see accufact_1_eq_fact below.
-example (n m k : ℕ) : m + k = k + m :=
-begin
-  induction' m,
-  case zero { simp },
-  case succ {
-    guard_hyp ih := ∀ k, m + k = k + m,
-    -- k was generalised because this makes the IH more general.
-    -- n was not generalised -- if it had been, the IH would be
-    --
-    --     ∀ n k, m + k = k + m
-    --
-    -- with one useless additional argument.
-    linarith
-  }
 end
 
 -- The following example used to trigger a bug where eliminate would generate

@@ -863,8 +863,45 @@ meta def revert_lst'' (hs : name_set) : tactic (ℕ × list expr) := do
 meta def revert_lst' (hs : list expr) : tactic (ℕ × list expr) :=
 revert_lst'' $ name_set.of_list $ hs.map expr.local_uniq_name
 
--- precond: fixed contains only locals
-meta def generalize_hyps (eliminee : expr) (fixed : list expr) : tactic (ℕ × list expr) := do
+/--
+A value of `generalization_mode` describes the behaviour of the
+auto-generalization functionality:
+
+- `generalize_all_except hs` means that the `hs` remain fixed and all other
+  hypotheses are generalised. However, there are two exceptions:
+
+  * Hypotheses mentioning any `h` in `hs` also remain fixed. If we were to
+    generalise them, we would have to generalise `h` as well.
+  * Hypotheses which do not occur in the target and which do not mention the
+    eliminee or its dependencies are never generalised. Generalising them would
+    not lead to a more general induction hypothesis.
+
+- `generalize_only hs` means that the only the `hs` are generalised. Exception:
+  hypotheses which mention the eliminee are generalised even if they do not
+  appear in `hs`.
+-/
+@[derive has_reflect]
+inductive generalization_mode
+| generalize_all_except (hs : list name) : generalization_mode
+| generalize_only (hs : list name) : generalization_mode
+
+namespace generalization_mode
+
+/--
+Given the eliminee and a generalization_mode, this function returns the
+unique names of the hypotheses that should be generalized. See
+`generalization_mode` for what these are.
+-/
+meta def to_generalize (eliminee : expr)
+  : generalization_mode → tactic name_set
+| (generalize_only ns) := do
+  deps ← kdependencies eliminee,
+  -- TODO replace kdependencies with a variant that takes local defs into account
+  let deps := name_set.of_list $ deps.map local_uniq_name,
+  ns ← ns.mmap (functor.map local_uniq_name ∘ get_local),
+  pure $ deps.insert_list ns
+| (generalize_all_except fixed) := do
+  fixed ← fixed.mmap get_local,
   tgt ← target,
   let tgt_dependencies := tgt.local_unique_names,
   eliminee_type ← infer_type eliminee,
@@ -884,7 +921,18 @@ meta def generalize_hyps (eliminee : expr) (fixed : list expr) : tactic (ℕ × 
     -- overapproximation seems to work okay in practice as well.)
     pure $ if rev then some h_name else none
   },
-  revert_lst'' $ name_set.of_list to_revert
+  pure $ name_set.of_list to_revert
+
+end generalization_mode
+
+/--
+Generalize hypotheses for the given eliminee and generalization mode. See
+`generalization_mode` and `to_generalize`.
+-/
+meta def generalize_hyps (eliminee : expr) (gm : generalization_mode)
+  : tactic (ℕ × list expr) := do
+  to_revert ← gm.to_generalize eliminee,
+  revert_lst'' to_revert
 
 meta def intron_fresh : ℕ → tactic (list expr)
 | 0 := pure []
@@ -1376,7 +1424,8 @@ meta def revert_all_except (hyp_unique_names : name_set) : tactic ℕ := do
   revert_lst ctx
 
 meta def eliminate_hyp (generate_ihs : bool) (eliminee : expr)
-  (fixed : list name := []) (with_names : list name := []) : tactic unit :=
+  (gm := generalization_mode.generalize_all_except [])
+  (with_names : list name := []) : tactic unit :=
 focus1 $ do
   einfo ← get_eliminee_info eliminee,
   let eliminee := einfo.eexpr,
@@ -1398,15 +1447,8 @@ focus1 $ do
   (eliminee, num_index_vars, index_var_names, structure_field_names) ←
     generalize_complex_index_args eliminee (eliminee_args.drop iinfo.num_params) generate_ihs,
 
-  -- Generalise all generalisable hypotheses except those mentioned in a "fixing"
-  -- clause.
-  -- TODO This is only needed in 'induction' mode, though it doesn't do any harm
-  -- in 'cases' mode.
-  fix_exprs ← fixed.mmap get_local,
-  (num_generalized, generalized_hyps) ←
-    generalize_hyps eliminee fix_exprs,
-  let generalized_names :=
-    name_set.of_list $ generalized_hyps.map expr.local_pp_name,
+  -- Generalise hypotheses according to the given generalization_mode.
+  (num_generalized, generalized_hyps) ← generalize_hyps eliminee gm,
 
   -- NOTE: The previous step may have changed the unique names of all hyps in
   -- the context.
@@ -1511,7 +1553,7 @@ focus1 $ do
   pure ()
 
 meta def eliminate_expr (generate_induction_hyps : bool) (eliminee : expr)
-  (eq_name : option name := none) (fixed : list name := [])
+  (eq_name : option name := none) (gm := generalization_mode.generalize_all_except [])
   (with_names : list name := [])
   : tactic unit := do
   num_reverted ← revert_kdeps eliminee,
@@ -1529,7 +1571,7 @@ meta def eliminate_expr (generate_induction_hyps : bool) (eliminee : expr)
               generalize' eliminee x
       end,
   intron num_reverted,
-  eliminate_hyp generate_induction_hyps hyp fixed with_names
+  eliminate_hyp generate_induction_hyps hyp gm with_names
 
 end tactic
 
@@ -1538,21 +1580,32 @@ namespace tactic.interactive
 
 open tactic interactive interactive.types lean.parser
 
+meta def generalisation_mode_parser : lean.parser generalization_mode :=
+  (tk "fixing" *>
+    ((tk "*" *> pure (generalization_mode.generalize_only []))
+      <|>
+      generalization_mode.generalize_all_except <$> many ident))
+  <|>
+  (tk "generalizing" *> generalization_mode.generalize_only <$> many ident)
+  <|>
+  pure (generalization_mode.generalize_all_except [])
+
 precedence `fixing`:0
 
 meta def induction' (eliminee : parse cases_arg_p)
-  (fixed : parse (optional (tk "fixing" *> many ident)))
+  (gm : parse generalisation_mode_parser)
   (with_names : parse (optional with_ident_list))
   : tactic unit := do
   let ⟨eq_name, e⟩ := eliminee,
   e ← to_expr e,
-  eliminate_expr tt e eq_name (fixed.get_or_else []) (with_names.get_or_else [])
+  eliminate_expr tt e eq_name gm (with_names.get_or_else [])
 
 meta def cases' (eliminee : parse cases_arg_p)
   (with_names : parse (optional with_ident_list))
   : tactic unit := do
   let ⟨eq_name, e⟩ := eliminee,
   e ← to_expr e,
-  eliminate_expr ff e eq_name [] (with_names.get_or_else [])
+  eliminate_expr ff e eq_name (generalization_mode.generalize_only [])
+    (with_names.get_or_else [])
 
 end tactic.interactive

@@ -17,6 +17,8 @@ Lemmas for the interaction between polynomials and ∑ and ∏.
     we prove this only for [comm_semiring R], but it ought to be true for [semiring R] and list.prod
 - `nat_degree_prod_eq` : for polynomials over an integral domain,
     the degree of the product is the sum of degrees
+- `leading_coeff_prod` : for polynomials over an integral domain,
+    the leading coefficient is the product of leading coefficients
 -/
 
 open_locale big_operators

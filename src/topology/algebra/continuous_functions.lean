@@ -26,7 +26,7 @@ section group_structure
 ### Group stucture
 
 In this section we show that continuous functions valued in a topological group inherit
-a structure of topological group.
+a structure of group.
 -/
 
 @[to_additive continuous_add_submonoid]
@@ -65,7 +65,7 @@ section ring_structure
 ### Ring stucture
 
 In this section we show that continuous functions valued in a topological ring `R` inherit
-a structure of topological ring.
+a structure of ring.
 -/
 
 instance continuous_subring (α : Type u) (R : Type v) [topological_space α] [topological_space R]
@@ -91,7 +91,7 @@ section semimodule_structure
 ### Semiodule stucture
 
 In this section we show that continuous functions valued in a topological semimodule `M` over a
-topological semiring `R` inherit a structure of topological semimodule.
+topological semiring `R` inherit a structure of semimodule.
 -/
 
 instance coninuous_has_scalar {α : Type*} [topological_space α]
@@ -121,7 +121,7 @@ section algebra_structure
 ### Algebra structure
 
 In this section we show that continuous functions valued in a topological algebra `A` over a
-topological ring `R` inherit a structure of topological algebra. -/
+topological ring `R` inherit a structure of algebra. -/
 
 variables {α : Type*} [topological_space α]
 {R : Type*} [comm_semiring R] [topological_space R] [topological_semiring R]

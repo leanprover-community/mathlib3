@@ -37,10 +37,10 @@ variables [comm_semiring R] (f : α → polynomial R)
 lemma nat_degree_prod_le : (s.prod f).nat_degree ≤ ∑ i in s, (f i).nat_degree :=
 begin
   classical,
-  apply s.induction_on, simp,intros a s anins ih,
-  rw [prod_insert anins, sum_insert anins],
+  induction s using finset.induction with a s ha hs, { simp },
+  rw [prod_insert ha, sum_insert ha],
   transitivity (f a).nat_degree + (∏ (x : α) in s, (f x)).nat_degree,
-  apply polynomial.nat_degree_mul_le, apply add_le_add_left ih,
+  apply polynomial.nat_degree_mul_le, linarith,
 end
 
 lemma leading_coeff_prod' (h : ∏ i in s, (f i).leading_coeff ≠ 0) :

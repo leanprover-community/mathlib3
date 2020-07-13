@@ -320,6 +320,7 @@ add_tactic_doc
   category   := doc_category.tactic,
   decl_names :=
    [``squeeze_simp,
+    ``squeeze_dsimp,
     ``squeeze_simpa,
     ``squeeze_scope],
   tags       := ["simplification", "Try this"],

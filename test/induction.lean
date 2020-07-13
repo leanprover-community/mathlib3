@@ -114,7 +114,7 @@ example {α : Sort u} {x y n m} {xs : Vec α n} {ys : Vec α m}
 begin
   intro h,
   induction' h,
-  exact h
+  exact h_1
 end
 
 -- It also works with cases'.
@@ -124,7 +124,7 @@ example {α : Sort u} {x y n m} {xs : Vec α n} {ys : Vec α m}
 begin
   intro h,
   cases' h,
-  exact h
+  exact h_1
 end
 
 -- This example requires elimination of cyclic generalised index equations.
@@ -147,6 +147,26 @@ begin
   induction' k,
   induction' i,
   exact (n + m)
+end
+
+-- For constructor arguments that are propositions, the default name is "h".
+-- For non-propositions, it is "x".
+inductive nat_or_positive
+| nat : ℕ' → nat_or_positive
+| positive (n : ℕ) : n > 0 → nat_or_positive
+
+example (n : nat_or_positive) : unit :=
+begin
+  cases' n,
+  case nat {
+    guard_hyp x := ℕ',
+    exact ()
+  },
+  case positive {
+    guard_hyp n := ℕ,
+    guard_hyp h := n > 0,
+    exact ()
+  }
 end
 
 -- This example tests automatic generalisation.

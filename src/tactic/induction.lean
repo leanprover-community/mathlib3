@@ -742,8 +742,12 @@ if ! arg_dep && arg_name.is_likely_generated_name
   then failed
   else pure [arg_name]
 
-meta def constructor_argument_naming_rule_type : constructor_argument_naming_rule := λ i, do
+meta def constructor_argument_naming_rule_type : constructor_argument_naming_rule := λ i,
 typical_variable_names i.ainfo.type
+
+meta def constructor_argument_naming_rule_prop : constructor_argument_naming_rule := λ i, do
+  (sort level.zero) ← infer_type i.ainfo.type,
+  pure [`h]
 
 meta def default_constructor_argument_name : name := `x
 
@@ -759,7 +763,8 @@ apply_constructor_argument_naming_rules info
   [ constructor_argument_naming_rule_rec
   , constructor_argument_naming_rule_index
   , constructor_argument_naming_rule_named
-  , constructor_argument_naming_rule_type ]
+  , constructor_argument_naming_rule_type
+  , constructor_argument_naming_rule_prop ]
 
 -- TODO this only works with simple names
 meta def ih_name (arg_name : name) : name :=

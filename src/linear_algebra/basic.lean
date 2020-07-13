@@ -438,6 +438,13 @@ instance : order_bot (submodule R M) :=
   bot_le := λ p x, by simp {contextual := tt},
   ..submodule.partial_order }
 
+protected lemma eq_bot_iff (p : submodule R M) : p = ⊥ ↔ ∀ x ∈ p, x = (0 : M) :=
+⟨ λ h, h.symm ▸ λ x hx, (mem_bot R).mp hx,
+  λ h, eq_bot_iff.mpr (λ x hx, (mem_bot R).mpr (h x hx)) ⟩
+
+protected lemma ne_bot_iff (p : submodule R M) : p ≠ ⊥ ↔ ∃ x ∈ p, x ≠ (0 : M) :=
+by { haveI := classical.prop_decidable, simp_rw [ne.def, p.eq_bot_iff, not_forall] }
+
 /-- The universal set is the top element of the lattice of submodules. -/
 instance : has_top (submodule R M) :=
 ⟨{ carrier := univ, smul_mem' := λ _ _ _, trivial, .. (⊤ : add_submonoid M)}⟩

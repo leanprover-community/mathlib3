@@ -38,7 +38,7 @@ section integral_domain
 variables {S : Type*} [integral_domain S] {f : R →+* S} {I : ideal S}
 
 lemma exists_coeff_ne_zero_mem_comap_of_root_mem {r : S} (r_ne_zero : r ≠ 0) (hr : r ∈ I)
-  {p : polynomial R} : Π (p_ne_zero : p ≠ 0) (hp : p.eval₂ f r = 0),
+  {p : polynomial R} : ∀ (p_ne_zero : p ≠ 0) (hp : p.eval₂ f r = 0),
   ∃ i, p.coeff i ≠ 0 ∧ p.coeff i ∈ I.comap f :=
 begin
   refine p.rec_on_horner _ _ _,

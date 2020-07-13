@@ -27,6 +27,8 @@ Let `M ` and `M'` be two smooth manifolds, with respect to model with corners `I
   of a `Cⁿ` function in a domain is `Cᵐ` when `m + 1 ≤ n`.
 * `times_cont_mdiff.times_cont_mdiff_tangent_map` states that the bundled derivative
   of a `Cⁿ` function is `Cᵐ` when `m + 1 ≤ n`.
+* `times_cont_mdiff_iff_times_cont_diff` states that, for functions between vector spaces,
+  manifold-smoothness is equivalent to usual smoothness.
 
 We also give many basic properties of smooth functions between manifolds, following the API of
 smooth functions between vector spaces.

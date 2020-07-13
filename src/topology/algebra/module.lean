@@ -88,6 +88,13 @@ abbreviation topological_vector_space (R : Type u) (M : Type v)
 topological_module R M
 end prio
 
+/-- A topological algebra, over a semiring which is topological semiring, is an algebra that is
+both a topological semimodule and a topological semiring. -/
+class topological_algebra (R : Type u) (A : Type v)
+  [comm_semiring R] [topological_space R] [topological_semiring R]
+  [topological_space A] [semiring A] [algebra R A]
+extends topological_semimodule R A, topological_semiring A : Prop
+
 section
 
 variables {R : Type*} {M : Type*}

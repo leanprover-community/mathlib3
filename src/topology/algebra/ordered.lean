@@ -1945,6 +1945,22 @@ lemma tendsto_of_monotone {ι α : Type*} [preorder ι] [topological_space α]
 if H : bdd_above (range f) then or.inr ⟨_, tendsto_at_top_csupr h_mono H⟩
 else or.inl $ tendsto_at_top_at_top_of_monotone' h_mono H
 
+lemma tendsto_neg_nhds {α : Type*} [decidable_linear_ordered_add_comm_group α]
+  [no_bot_order α] [no_top_order α] [topological_space α] [densely_ordered α]
+  [order_topology α] {a : α} :
+  tendsto has_neg.neg (nhds a) (nhds (-a)) :=
+begin
+  intros s hs,
+  rw mem_map,
+  rw mem_nhds_iff_exists_Ioo_subset at *,
+  rcases hs with ⟨ l, u, halu, hlus ⟩,
+  exact
+  ⟨ -u,
+    -l,
+    ⟨ neg_lt.1 halu.2, lt_neg.1 halu.1 ⟩,
+    λ x hx, hlus $ ⟨ lt_neg.1 hx.2, neg_lt.1 hx.1 ⟩ ⟩,
+end
+
 lemma tendsto_neg_nhds_within_Ioi {α : Type*} [decidable_linear_ordered_add_comm_group α]
   [no_bot_order α] [no_top_order α] [topological_space α] [densely_ordered α]
   [order_topology α] {a : α} :

@@ -77,7 +77,7 @@ theorem mono' (m : outer_measure α) {s₁ s₂}
 protected theorem Union (m : outer_measure α)
   {β} [encodable β] (s : β → set α) :
   m (⋃i, s i) ≤ (∑'i, m (s i)) :=
-supr_R_tsum m m.empty (≤) m.Union_nat s
+rel_supr_tsum m m.empty (≤) m.Union_nat s
 
 lemma Union_null (m : outer_measure α)
   {β} [encodable β] {s : β → set α} (h : ∀ i, m (s i) = 0) : m (⋃i, s i) = 0 :=
@@ -85,11 +85,11 @@ by simpa [h] using m.Union s
 
 protected lemma Union_finset (m : outer_measure α) (s : β → set α) (t : finset β) :
   m (⋃i ∈ t, s i) ≤ ∑ i in t, m (s i) :=
-supr_R_sum m m.empty (≤) m.Union_nat s t
+rel_supr_sum m m.empty (≤) m.Union_nat s t
 
 protected lemma union (m : outer_measure α) (s₁ s₂ : set α) :
   m (s₁ ∪ s₂) ≤ m s₁ + m s₂ :=
-sup_R_add m m.empty (≤) m.Union_nat s₁ s₂
+rel_sup_add m m.empty (≤) m.Union_nat s₁ s₂
 
 lemma le_inter_add_diff {m : outer_measure α} {t : set α} (s : set α) :
   m t ≤ m (t ∩ s) + m (t \ s) :=

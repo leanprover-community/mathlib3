@@ -129,7 +129,7 @@ lemma measure'_Union
   (hd : pairwise (disjoint on f)) (hm : ∀i, is_measurable (f i)) :
   measure' (⋃i, f i) = (∑'i, measure' (f i)) :=
 begin
-  rw [encodable.Union_decode2, tsum_Union_decode2],
+  rw [encodable.Union_decode2, ← tsum_Union_decode2],
   { exact measure'_Union_nat _ _
       (λ n, encodable.Union_decode2_cases is_measurable.empty hm)
       (mU _ (encodable.Union_decode2_disjoint_on hd)) },

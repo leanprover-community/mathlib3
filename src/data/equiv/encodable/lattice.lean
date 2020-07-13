@@ -25,10 +25,10 @@ namespace encodable
 variables {α : Type*} {β : Type*} [encodable β]
 
 lemma supr_decode2 [complete_lattice α] (f : β → α) :
-  (⨆ b, f b) = ⨆ (i : ℕ) (b ∈ decode2 β i), f b :=
+  (⨆ (i : ℕ) (b ∈ decode2 β i), f b) = (⨆ b, f b) :=
 by { rw [supr_comm], simp [mem_decode2] }
 
-lemma Union_decode2 (f : β → set α) : (⋃ b, f b) = ⋃ (i : ℕ) (b ∈ decode2 β i), f b :=
+lemma Union_decode2 (f : β → set α) : (⋃ (i : ℕ) (b ∈ decode2 β i), f b) = (⋃ b, f b) :=
 supr_decode2 f
 
 @[elab_as_eliminator] lemma Union_decode2_cases
@@ -52,6 +52,10 @@ begin
   exact mt (congr_arg _) ij
 end
 
+end encodable
+
+namespace finset
+
 lemma nonempty_encodable {α} (t : finset α) : nonempty $ encodable {i // i ∈ t} :=
 begin
   classical, induction t using finset.induction with x t hx ih,
@@ -59,4 +63,4 @@ begin
   { cases ih with ih, exactI ⟨encodable.of_equiv _ (finset.subtype_insert_equiv_option hx)⟩ }
 end
 
-end encodable
+end finset

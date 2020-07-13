@@ -646,6 +646,59 @@ def lt_order_embedding_of_surjective :
 
 end surjective
 
+section bijective
+
+variables (hf : function.bijective f)
+include hf
+
+private lemma le_comap_bot_of_bijective : comap f ⊥ ≤ I :=
+begin
+  refine le_trans (λ x hx, _) bot_le,
+  rw [mem_comap, submodule.mem_bot, ← ring_hom.map_zero f] at hx,
+  exact eq.symm (hf.left hx) ▸ (submodule.zero_mem ⊥)
+end
+
+def order_iso_of_bijective :
+  ((≤) : ideal S → ideal S → Prop) ≃o ((≤) : ideal R → ideal R → Prop):=
+{ to_fun := comap f,
+  inv_fun := map f,
+  left_inv := (order_iso_of_surjective f hf.right).left_inv,
+  right_inv := λ J, subtype.ext_iff.1
+    ((order_iso_of_surjective f hf.right).right_inv ⟨J, le_comap_bot_of_bijective f hf⟩),
+  ord' := (order_iso_of_surjective f hf.right).ord' }
+
+theorem comap_le_iff_map_le : comap f K ≤ I ↔ K ≤ map f I :=
+⟨λ h, ((order_iso_of_bijective f hf).left_inv K) ▸ map_mono h,
+ λ h, ((order_iso_of_bijective f hf).right_inv I) ▸ comap_mono h⟩
+
+lemma map.is_maximal (H : is_maximal I) : is_maximal (map f I) :=
+begin
+  refine ⟨λ h, H.left _, λ J hJ, _⟩,
+  { have : comap f (map f I) = ⊤ := eq.trans (congr_arg (comap f) h) comap_top,
+    rwa ← (order_iso_of_bijective f hf).right_inv I },
+  {
+    refine (order_iso_of_bijective f hf).injective
+      (eq.trans (H.right (comap f J) (lt_of_le_of_ne _ _)) comap_top.symm),
+    { exact (map_le_iff_le_comap).1 (le_of_lt hJ) },
+    { exact λ h, hJ.right ((comap_le_iff_map_le f hf).1 (le_of_eq h.symm)) }
+  }
+end
+
+lemma comap.is_maximal (H : is_maximal K) : is_maximal (comap f K) :=
+begin
+  refine ⟨λ h, H.left _, λ J hJ, _⟩,
+  { have : map f (comap f K) = ⊤ := eq.trans (congr_arg (map f) h) (map_top _),
+    rwa ← (order_iso_of_bijective f hf).left_inv K },
+  {
+    refine (order_iso_of_bijective f hf).symm.injective
+      (eq.trans (H.right (map f J) (lt_of_le_of_ne _ _)) (map_top f).symm),
+    { exact (comap_le_iff_map_le f hf).1 (le_of_lt hJ) },
+    { exact λ h, hJ.right ((map_le_iff_le_comap).1 (le_of_eq h.symm)) }
+  }
+end
+
+end bijective
+
 end map_and_comap
 
 section jacobson
@@ -662,6 +715,10 @@ theorem jacobson_eq_top_iff {I : ideal R} : jacobson I = ⊤ ↔ I = ⊤ :=
 ⟨λ H, classical.by_contradiction $ λ hi, let ⟨M, hm, him⟩ := exists_le_maximal I hi in
   lt_top_iff_ne_top.1 (lt_of_le_of_lt (show jacobson I ≤ M, from Inf_le ⟨him, hm⟩) $ lt_top_iff_ne_top.2 hm.1) H,
 λ H, eq_top_iff.2 $ le_Inf $ λ J ⟨hij, hj⟩, H ▸ hij⟩
+
+lemma jacobson.is_maximal {I : ideal R} : is_maximal I → is_maximal (jacobson I) :=
+λ h, ⟨λ htop, h.left (jacobson_eq_top_iff.1 htop),
+  λ J hJ, h.right _ (lt_of_le_of_lt le_jacobson hJ)⟩
 
 lemma jacobson_bot {I : ideal R} : jacobson I = ⊥ → I = ⊥ :=
 λ h, eq_bot_iff.mpr (h ▸ le_jacobson)
@@ -686,11 +743,6 @@ theorem mem_jacobson_iff {I : ideal R} {x : R} :
         neg_mul_eq_neg_mul_symm, neg_mul_eq_mul_neg, mul_comm x y]; exact M.mul_mem_right hy)
     (him hz)⟩
 
--- TODO: Kind of a crutch, shouldn't need this long term
-lemma mem_jacobson {I : ideal R} {x : R}
-  : x ∈ jacobson I ↔ ∀ J ∈ {J : ideal R | I ≤ J ∧ J.is_maximal}, x ∈ J :=
-by dunfold ideal.jacobson; rw mem_Inf
-
 lemma eq_jacobson_iff_ge_jacobson {I : ideal R} : jacobson I = I ↔ jacobson I ≤ I :=
 ⟨λ h, le_of_eq h, λ h, le_antisymm h le_jacobson⟩
 
@@ -702,32 +754,30 @@ begin
 end
 
 lemma comap_jacobson {S : Type u} [comm_ring S] (e : S ≃+* R) {I : ideal R}
-    : comap e.to_ring_hom (jacobson I) = jacobson (comap e.to_ring_hom I) := sorry
--- begin
---   let bij : function.bijective ⇑(e.to_ring_hom) := equiv.bijective e.to_equiv,
---     apply le_antisymm,
---     {
---         intros x hx,
---         rw mem_jacobson,
---         intros J hJ,
---         rw [mem_comap, mem_jacobson] at hx,
---         specialize hx (map e.to_ring_hom J) ⟨_, _⟩,
---         exact (mem_map_of_bijective bij).mp hx,
---         exact (comap_le_iff_le_map_of_bijective bij).mp hJ.left,
---         refine map.is_maximal bij.right ⟨hJ.right, _⟩,
---         rw [map_lt_iff_comap_le_of_bijective bij, comap_top],
---         exact lt_of_le_of_ne le_top hJ.right.left,
---     },
---     {
---         intros x hx,
---         rw [mem_comap, mem_jacobson],
---         intros J hJ,
---         rw mem_jacobson at hx,
---         specialize hx (comap e.to_ring_hom J)
---             ⟨comap_mono hJ.left, comap.is_maximal bij hJ.right⟩,
---         exact mem_comap.mp hx,
---     }
--- end
+    : comap e.to_ring_hom (jacobson I) = jacobson (comap e.to_ring_hom I) :=
+begin
+  have he : function.bijective e := equiv.bijective e.to_equiv,
+  let iso := order_iso_of_bijective (e.to_ring_hom) he,
+  refine le_antisymm _ _,
+  {
+    intros x hx,
+    erw mem_Inf,
+    intros J hJ,
+    erw [mem_comap, mem_Inf] at hx,
+    cases iso.surjective J with K hK,
+    rw ← hK,
+    refine hx ⟨_, _⟩,
+    exact iso.ord.2 (hK.symm ▸ hJ.left),
+    rw ← iso.left_inv K,
+    exact map.is_maximal _ he (hK.symm ▸ hJ.right : (iso K).is_maximal)
+  },
+  {
+    intros x hx,
+    erw [mem_comap, mem_Inf],
+    erw mem_Inf at hx,
+    exact λ J hJ, hx ⟨comap_mono hJ.left, comap.is_maximal _ he hJ.right⟩
+  }
+end
 
 end jacobson
 

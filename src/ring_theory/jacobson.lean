@@ -20,14 +20,14 @@ begin
   { exact λ h I hI, h I (is_prime.radical hI) },
   {
     intros h I hI,
-    refine le_antisymm _ (λ x hx, mem_jacobson.mpr (λ _ hJ, hJ.left hx)),
+    refine le_antisymm _ (λ x hx, mem_Inf.mpr (λ _ hJ, hJ.left hx)),
     intros x hx,
-    rw mem_jacobson at hx,
+    erw mem_Inf at hx,
     rw [← hI, radical_eq_Inf I, mem_Inf],
     intros P hP,
     rw set.mem_set_of_eq at hP,
-    rw [← h P hP.right, mem_jacobson],
-    exact λ J hJ, hx _ ⟨le_trans hP.left hJ.left, hJ.right⟩
+    erw [← h P hP.right, mem_Inf],
+    exact λ J hJ, hx ⟨le_trans hP.left hJ.left, hJ.right⟩
   }
 end
 
@@ -108,14 +108,14 @@ begin
   },
 end
 
-lemma is_jacobson_polynomial (H : is_jacobson R) : is_jacobson (polynomial R) := sorry
+-- lemma is_jacobson_polynomial (H : is_jacobson R) : is_jacobson (polynomial R) := sorry
 
-lemma is_jacobson_mv_polynomial (H : is_jacobson R) (n : ℕ) :
-  is_jacobson (mv_polynomial (fin n) R) := nat.rec_on n
-((is_jacobson_iso ((mv_polynomial.ring_equiv_of_equiv R (equiv.equiv_pempty $ fin.elim0)).trans
-                    (mv_polynomial.pempty_ring_equiv R))).mpr H)
-(λ n hn, (is_jacobson_iso (mv_polynomial.fin_succ_equiv R n)).mpr
-                    (@ideal.is_jacobson_polynomial _ _ hn))
+-- lemma is_jacobson_mv_polynomial (H : is_jacobson R) (n : ℕ) :
+--   is_jacobson (mv_polynomial (fin n) R) := nat.rec_on n
+-- ((is_jacobson_iso ((mv_polynomial.ring_equiv_of_equiv R (equiv.equiv_pempty $ fin.elim0)).trans
+--                     (mv_polynomial.pempty_ring_equiv R))).mpr H)
+-- (λ n hn, (is_jacobson_iso (mv_polynomial.fin_succ_equiv R n)).mpr
+--                     (@ideal.is_jacobson_polynomial _ _ hn))
 
 end is_jacobson
 end ideal

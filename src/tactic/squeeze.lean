@@ -94,15 +94,6 @@ meta def parse_config : option pexpr → tactic (simp_config_ext × format)
      prod.mk <$> eval_expr simp_config_ext e
              <*> struct.to_tactic_format cfg
 
-/-- translate a `pexpr` into a `dsimp` configuration -/
-meta def parse_dsimp_config : option pexpr → tactic (dsimp_config × format)
-| none := pure ({}, "")
-| (some cfg) :=
-  do e ← to_expr ``(%%cfg : simp_config_ext),
-     fmt ← has_to_tactic_format.to_tactic_format cfg,
-     prod.mk <$> eval_expr dsimp_config e
-             <*> struct.to_tactic_format cfg
-
 /-- `same_result proof tac` runs tactic `tac` and checks if the proof
 produced by `tac` is equivalent to `proof`. -/
 meta def same_result (pr : proof_state) (tac : tactic unit) : tactic bool :=
@@ -293,30 +284,12 @@ do (cfg',c) ← parse_config cfg,
           sformat!"Try this: simpa{use_iota_eqn} only "
           sformat!"{attrs}{tgt'}{c}" args)
 
-/-- see `squeeze_simp` -/
-meta def squeeze_dsimp
-  (key : parse cur_pos)
-  (use_iota_eqn : parse (tk "!")?)
-  (no_dflt : parse only_flag) (hs : parse simp_arg_list)
-  (attr_names : parse with_ident_list) (locat : parse location)
-  (cfg : parse struct_inst?) : tactic unit :=
-do (cfg',c) ← parse_dsimp_config cfg,
-   squeeze_simp_core no_dflt hs
-     (λ l_no_dft l_args, dsimp l_no_dft l_args attr_names locat cfg')
-     (λ args,
-        let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
-            attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
-            loc := loc.to_string locat in
-        mk_suggestion (key.move_left 1)
-          sformat!"Try this: dsimp{use_iota_eqn} only "
-          sformat!"{attrs}{loc}{c}" args)
-
 end interactive
 end tactic
 
 open tactic.interactive
 add_tactic_doc
-{ name       := "squeeze_simp / squeeze_simpa / squeeze_dsimp / squeeze_scope",
+{ name       := "squeeze_simp / squeeze_simpa / squeeze_scope",
   category   := doc_category.tactic,
   decl_names :=
    [``squeeze_simp,

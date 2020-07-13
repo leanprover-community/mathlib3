@@ -17,6 +17,9 @@ basic properties of these notions.
 Let `M ` and `M'` be two smooth manifolds, with respect to model with corners `I` and `I'`. Let
 `f : M → M'`.
 
+* `times_cont_mdiff_within_at I I' n f s x` states that the function `f` is `Cⁿ` within the set `s`
+  around the point `x`.
+* `times_cont_mdiff_at I I' n f x` states that the function `f` is `Cⁿ` around `x`.
 * `times_cont_mdiff_on I I' n f s` states that the function `f` is `Cⁿ` on the set `s`
 * `times_cont_mdiff I I' n f` states that the function `f` is `Cⁿ`.
 * `times_cont_mdiff_on.comp` gives the invariance of the `Cⁿ` property under composition
@@ -24,6 +27,21 @@ Let `M ` and `M'` be two smooth manifolds, with respect to model with corners `I
   of a `Cⁿ` function in a domain is `Cᵐ` when `m + 1 ≤ n`.
 * `times_cont_mdiff.times_cont_mdiff_tangent_map` states that the bundled derivative
   of a `Cⁿ` function is `Cᵐ` when `m + 1 ≤ n`.
+
+We also give many basic properties of smooth functions between manifolds, following the API of
+smooth functions between vector spaces.
+
+## Implementation details
+
+Many properties follow for free from the corresponding properties of functions in vector spaces,
+as being `Cⁿ` is a local property invariant under the smooth groupoid. We take advantage of the
+general machinery developed in `local_invariant_properties.lean` to get these properties
+automatically. For instance, the fact that being `Cⁿ` does not depend on the chart one considers
+is given by `lift_prop_within_at_indep_chart`.
+
+For this to work, the definition of `times_cont_mdiff_within_at` and friends has to
+follow definitionally the setup of local invariant properties. Still, we recast the definition
+in terms of extended charts in `times_cont_mdiff_on_iff` and `times_cont_mdiff_iff`.
 -/
 
 open set charted_space
@@ -54,7 +72,7 @@ lemma times_cont_diff_within_at_local_invariant_prop (n : with_top ℕ) :
   begin
     assume s x u f u_open xu,
     have : range I ∩ I.symm ⁻¹' (s ∩ u) = (range I ∩ I.symm ⁻¹' s) ∩ I.symm ⁻¹' u,
-      by simp [inter_assoc],
+      by simp only [inter_assoc, preimage_inter],
     rw [times_cont_diff_within_at_prop, times_cont_diff_within_at_prop, this],
     symmetry,
     apply times_cont_diff_within_at_inter,
@@ -503,9 +521,8 @@ begin
   have x'_source : x' ∈ (ext_chart_at I x).source := (ext_chart_at I x).map_target hz.1,
   obtain ⟨o, o_open, zo, o_subset⟩ : ∃ o, is_open o ∧ z ∈ o ∧
     o ∩ (((ext_chart_at I x).symm ⁻¹' s ∩ range I)) ⊆
-      (ext_chart_at I x).symm ⁻¹' (f ⁻¹' (ext_chart_at I' (f x')).source) :=
-  begin
-    have x'z : (ext_chart_at I x) x' = z, by simp only [x', hz.1, -ext_chart_at] with mfld_simps,
+      (ext_chart_at I x).symm ⁻¹' (f ⁻¹' (ext_chart_at I' (f x')).source),
+  { have x'z : (ext_chart_at I x) x' = z, by simp only [x', hz.1, -ext_chart_at] with mfld_simps,
     have : continuous_within_at f s x' := hf.1 _ hz.2.1,
     have : f ⁻¹' (ext_chart_at I' (f x')).source ∈ nhds_within x' s :=
       this.preimage_mem_nhds_within
@@ -514,8 +531,7 @@ begin
       nhds_within ((ext_chart_at I x) x') ((ext_chart_at I x).symm ⁻¹' s ∩ range I) :=
       ext_chart_preimage_mem_nhds_within' _ _ x'_source this,
     rw x'z at this,
-    exact mem_nhds_within.1 this
-  end,
+    exact mem_nhds_within.1 this },
   refine ⟨o, o_open, zo, _⟩,
   let u := ((ext_chart_at I x).target ∩
          (ext_chart_at I x).symm ⁻¹' (s ∩ g ∘ f ⁻¹' (ext_chart_at I'' y).source) ∩ o),
@@ -552,16 +568,37 @@ begin
 end
 
 /-- The composition of `C^n` functions within domains at points is `C^n`. -/
-lemma times_cont_within_at.comp {t : set M'} {g : M' → M''}
+lemma times_cont_mdiff_within_at.comp {t : set M'} {g : M' → M''}
   (hg : times_cont_mdiff_within_at I' I'' n g t (f x))
   (hf : times_cont_mdiff_within_at I I' n f s x)
   (st : s ⊆ f ⁻¹' t) : times_cont_mdiff_within_at I I'' n (g ∘ f) s x :=
 begin
   apply times_cont_mdiff_within_at_iff_nat.2 (λ m hm, _),
+  rcases times_cont_mdiff_within_at_iff_times_cont_mdiff_on_nhds.1 (hg.of_le hm) with ⟨v, v_nhds, hv⟩,
+  rcases times_cont_mdiff_within_at_iff_times_cont_mdiff_on_nhds.1 (hf.of_le hm) with ⟨u, u_nhds, hu⟩,
+  apply times_cont_mdiff_within_at_iff_times_cont_mdiff_on_nhds.2 ⟨_, _, hv.comp' hu⟩,
+  apply filter.inter_mem_sets u_nhds,
+  suffices h : v ∈ nhds_within (f x) (f '' s),
+  { convert mem_nhds_within_insert (hf.continuous_within_at.preimage_mem_nhds_within' h),
+    rw insert_eq_of_mem,
+    apply mem_of_mem_nhds_within (mem_insert (f x) t) v_nhds },
+  apply nhds_within_mono _ _ v_nhds,
+  rw image_subset_iff,
+  exact subset.trans st (preimage_mono (subset_insert _ _))
 end
 
+/-- The composition of `C^n` functions within domains at points is `C^n`. -/
+lemma times_cont_mdiff_within_at.comp' {t : set M'} {g : M' → M''}
+  (hg : times_cont_mdiff_within_at I' I'' n g t (f x))
+  (hf : times_cont_mdiff_within_at I I' n f s x) :
+  times_cont_mdiff_within_at I I'' n (g ∘ f) (s ∩ f⁻¹' t) x :=
+hg.comp (hf.mono (inter_subset_left _ _)) (inter_subset_right _ _)
 
-#exit
+/-- The composition of `C^n` functions at points is `C^n`. -/
+lemma times_cont_mdiff_at.comp {g : M' → M''}
+  (hg : times_cont_mdiff_at I' I'' n g (f x)) (hf : times_cont_mdiff_at I I' n f x) :
+  times_cont_mdiff_at I I'' n (g ∘ f) x :=
+hg.comp hf subset_preimage_univ
 
 end composition
 
@@ -600,10 +637,7 @@ times_cont_mdiff_on_symm_of_mem_maximal_atlas
 end atlas
 
 /-! ### The identity is smooth -/
-
 section id
-
-include Is
 
 lemma times_cont_mdiff_id : times_cont_mdiff I I n (id : M → M) :=
 times_cont_mdiff.of_le ((times_cont_diff_within_at_local_invariant_prop I I ∞).lift_prop_id
@@ -620,14 +654,65 @@ times_cont_mdiff_at_id.times_cont_mdiff_within_at
 
 end id
 
+/-! ### Constants are smooth -/
+section id
+
+variable {c : M'}
+
+lemma times_cont_mdiff_const : times_cont_mdiff I I' n (λ (x : M), c) :=
+begin
+  assume x,
+  refine ⟨continuous_within_at_const, _⟩,
+  simp only [times_cont_diff_within_at_prop, (∘)],
+  exact times_cont_diff_within_at_const,
+end
+
+lemma times_cont_mdiff_on_const : times_cont_mdiff_on I I' n (λ (x : M), c) s :=
+times_cont_mdiff_const.times_cont_mdiff_on
+
+lemma times_cont_mdiff_at_const : times_cont_mdiff_at I I' n (λ (x : M), c) x :=
+times_cont_mdiff_const.times_cont_mdiff_at
+
+lemma times_cont_mdiff_within_at_const : times_cont_mdiff_within_at I I' n (λ (x : M), c) s x :=
+times_cont_mdiff_at_const.times_cont_mdiff_within_at
+
+end id
+
 /-! ### Equivalence with the basic definition for functions between vector spaces -/
 
+section vector_space
 
+lemma times_cont_mdiff_within_at_iff_times_cont_diff_within_at {f : E → E'} {s : set E} {x : E} :
+  times_cont_mdiff_within_at (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') n f s x
+  ↔ times_cont_diff_within_at 𝕜 n f s x :=
+begin
+  simp only [times_cont_mdiff_within_at, lift_prop_within_at, times_cont_diff_within_at_prop,
+    iff_def] with mfld_simps {contextual := tt},
+  exact times_cont_diff_within_at.continuous_within_at
+end
 
+lemma times_cont_mdiff_at_iff_times_cont_diff_at {f : E → E'} {x : E} :
+  times_cont_mdiff_at (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') n f x
+  ↔ times_cont_diff_at 𝕜 n f x :=
+by rw [← times_cont_mdiff_within_at_univ,
+  times_cont_mdiff_within_at_iff_times_cont_diff_within_at, times_cont_diff_within_at_univ]
 
-/-! ### The bundled derivative of a smooth function is smooth -/
+lemma times_cont_mdiff_on_iff_times_cont_diff_on {f : E → E'} {s : set E} :
+  times_cont_mdiff_on (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') n f s
+  ↔ times_cont_diff_on 𝕜 n f s :=
+forall_congr $ by simp [times_cont_mdiff_within_at_iff_times_cont_diff_within_at]
 
-section bundle_derivative
+lemma times_cont_mdiff_iff_times_cont_diff {f : E → E'} :
+  times_cont_mdiff (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') n f
+  ↔ times_cont_diff 𝕜 n f :=
+by rw [← times_cont_diff_on_univ, ← times_cont_mdiff_on_univ,
+  times_cont_mdiff_on_iff_times_cont_diff_on]
+
+end vector_space
+
+/-! ### The tangent map of a smooth function is smooth -/
+
+section tangent_map
 
 /-- If a function is `C^n` with `1 ≤ n` on a domain with unique derivatives, then its bundled
 derivative is continuous. In this auxiliary lemma, we prove this fact when the source and target
@@ -697,12 +782,12 @@ lemma times_cont_mdiff_on.times_cont_mdiff_on_tangent_map_within_aux
 begin
   have m_le_n : m ≤ n,
   { apply le_trans _ hmn,
-    have : m + 0 ≤ m + 1 := add_le_add_left' bot_le,
+    have : m + 0 ≤ m + 1 := add_le_add_left (zero_le _) _,
     simpa only [add_zero] using this },
   have one_le_n : 1 ≤ n,
   { apply le_trans _ hmn,
     change 0 + 1 ≤ m + 1,
-    refine add_le_add_right' bot_le },
+    exact add_le_add_right (zero_le _) _ },
   have U': unique_diff_on 𝕜 (range I ∩ I.symm ⁻¹' s),
   { assume y hy,
     simpa only [unique_mdiff_on, unique_mdiff_within_at, hy.1, inter_comm] with mfld_simps
@@ -772,18 +857,18 @@ begin
   ```
   where `Dr^{-1}` and `Dl^{-1}` denote the charts on `TM` and `TM'` (they are smooth, by definition
   of charts) and `ir` and `il` are charts of `TH` and `TH'`, also smooth (they are the identity,
-  between two Types which are defeq but which carry two manifold structures which are not defeq a
+  between two types which are defeq but which carry two manifold structures which are not defeq a
   priori, which is why they are needed here). The composition of all these maps is `Df`, and is
   therefore smooth as a composition of smooth maps.
   -/
   have m_le_n : m ≤ n,
   { apply le_trans _ hmn,
-    have : m + 0 ≤ m + 1 := add_le_add_left' bot_le,
-    simpa },
+    have : m + 0 ≤ m + 1 := add_le_add_left (zero_le _) _,
+    simpa only [add_zero] },
   have one_le_n : 1 ≤ n,
   { apply le_trans _ hmn,
     change 0 + 1 ≤ m + 1,
-    exact add_le_add_right' bot_le },
+    exact add_le_add_right (zero_le _) _ },
   /- First step: local reduction on the space, to a set `s'` which is contained in chart domains. -/
   refine times_cont_mdiff_on_of_locally_times_cont_mdiff_on (λp hp, _),
   have hf' := times_cont_mdiff_on_iff.1 hf,
@@ -808,10 +893,10 @@ begin
       have : p.1 ∈ f ⁻¹' r.source ∩ s, by simp [hp],
       rw ho at this,
       exact this.1 },
-    have : tangent_bundle.proj I M ⁻¹' s ∩ tangent_bundle.proj I M ⁻¹' (o ∩ l.source) = s'_lift,
-    { dsimp only [s'_lift, s'], rw [ho], mfld_set_eq_tac },
-    rw this,
-    exact h },
+    { have : tangent_bundle.proj I M ⁻¹' s ∩ tangent_bundle.proj I M ⁻¹' (o ∩ l.source) = s'_lift,
+      { dsimp only [s'_lift, s'], rw [ho], mfld_set_eq_tac },
+      rw this,
+      exact h } },
   /- Second step: check that all functions are smooth, and use the chain rule to write the bundled
   derivative as a composition of a function between model spaces and of charts. -/
   have U' : unique_mdiff_on I s',
@@ -955,4 +1040,4 @@ begin
   rw tangent_map_within_univ
 end
 
-end bundle_derivative
+end tangent_map

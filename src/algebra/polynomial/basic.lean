@@ -13,9 +13,7 @@ Eventually, much of data/polynomial.lean should land here.
 
 ## Main results
 
-We define two `ring_hom`s of type `polynomial R →+* R`,
-- `eval_ring_hom`
-- `coeff_zero_ring_hom`
+We relate `eval` and the constant coefficient map to `aeval`, so we can use `alg_hom` properties.
 
 We define a `monoid_hom` of type `polynomial R →* R`,
 - `leading_coeff_monoid_hom`
@@ -32,18 +30,10 @@ namespace polynomial
 section comm_semiring
 variables [comm_semiring R]
 
-/-- A `ring_hom` which evaluates polynomials at a particular value -/
-def eval_ring_hom : R → (polynomial R →+* R) := eval₂_ring_hom (ring_hom.id R)
+lemma coe_aeval_eq_eval (r : R) : (aeval R R r: polynomial R → R) = eval r := rfl
 
-@[simp]
-lemma coe_eval_ring_hom (r : R) (p : polynomial R) : eval_ring_hom r p = eval r p := rfl
-
-/-- A `ring_hom` returning the constant term, by evaluating at 0 -/
-def coeff_zero_ring_hom : polynomial R →+* R := eval_ring_hom 0
-
-@[simp]
-lemma coe_coeff_zero_ring_hom (p : polynomial R) : coeff_zero_ring_hom p = p.coeff 0 :=
-by { rw coeff_zero_eq_eval_zero p, refl }
+lemma coeff_zero_eq_aeval_zero (p : polynomial R) : p.coeff 0 = aeval R R 0 p :=
+by { rw coeff_zero_eq_eval_zero, rw coe_aeval_eq_eval, }
 
 end comm_semiring
 

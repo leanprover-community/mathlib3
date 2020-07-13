@@ -1049,6 +1049,7 @@ meta def decompose_structure_equation (h : parse ident) : tactic unit := do
 end interactive
 
 meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr)
+  (generate_ihs : bool)
   : tactic (expr × ℕ × list name × name_set) := do
   let (locals, nonlocals) :=
     index_args.partition (λ arg : expr, arg.is_local_constant),
@@ -1065,7 +1066,8 @@ meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr
 
   -- Generate fresh names for the index variables and equations
   -- TODO better names?
-  let generalizes_args := nonlocals.map $ λ arg, (`index, some `index_eq, arg),
+  let index_eq_name := if generate_ihs then `induction_eq else `cases_eq,
+  let generalizes_args := nonlocals.map $ λ arg, (`index, some index_eq_name, arg),
 
   -- Generalise the complex index arguments
   index_vars_eqs ← generalizes_intro generalizes_args,
@@ -1083,7 +1085,7 @@ meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr
   -- Decompose the index equations equating elements of structures.
   -- Note: Each step in the following loop may change the unique names of
   -- hypotheses in the context, so we go by pretty names. `generalizes_intro`
-  -- and decompose_structure_equation_hyp make sure that these are unique.
+  -- and `decompose_structure_equation_hyp` make sure that these are unique.
   fields ← index_equations.mmap (get_local >=> decompose_structure_equation_hyp),
   let fields := name_set.merge_many fields,
 
@@ -1404,7 +1406,7 @@ meta def revert_all_except (hyp_unique_names : name_set) : tactic ℕ := do
   let ctx := ctx.filter (λ h, ¬ hyp_unique_names.contains h.local_uniq_name),
   revert_lst ctx
 
-meta def eliminate_hyp (generate_induction_hyps : bool) (eliminee : expr)
+meta def eliminate_hyp (generate_ihs : bool) (eliminee : expr)
   (fixed : list name := []) (with_names : list name := []) : tactic unit :=
 focus1 $ do
   einfo ← get_eliminee_info eliminee,
@@ -1425,7 +1427,7 @@ focus1 $ do
 
   -- Generalise complex indices
   (eliminee, num_index_vars, index_var_names, structure_field_names) ←
-    generalize_complex_index_args eliminee (eliminee_args.drop iinfo.num_params),
+    generalize_complex_index_args eliminee (eliminee_args.drop iinfo.num_params) generate_ihs,
 
   -- Generalise all generalisable hypotheses except those mentioned in a "fixing"
   -- clause.
@@ -1447,8 +1449,8 @@ focus1 $ do
 
   -- Apply the recursor. We first try the nondependent recursor, then the
   -- dependent recursor (if available).
-  let rec_suffix := if generate_induction_hyps then "rec_on" else "cases_on",
-  let drec_suffix := if generate_induction_hyps then "drec_on" else "dcases_on",
+  let rec_suffix := if generate_ihs then "rec_on" else "cases_on",
+  let drec_suffix := if generate_ihs then "drec_on" else "dcases_on",
   rec ← mk_const $ iname ++ rec_suffix,
   drec ← try_core $ mk_const $ iname ++ drec_suffix,
   interactive.apply ``(%%rec %%eliminee)
@@ -1495,7 +1497,7 @@ focus1 $ do
 
       -- Introduce the constructor arguments
       (constructor_arg_names, ih_names) ←
-        constructor_intros generate_induction_hyps iinfo cinfo,
+        constructor_intros generate_ihs iinfo cinfo,
 
       -- Introduce any hypotheses we've previously generalised
       generalized_hyps ← intron' num_generalized,
@@ -1524,8 +1526,8 @@ focus1 $ do
       -- hypotheses in the context, and therefore more of the desired
       -- names may be free.
       (constructor_arg_hyps, ih_hyps) ←
-        constructor_renames generate_induction_hyps einfo iinfo cinfo
-          with_names constructor_arg_names ih_names,
+        constructor_renames generate_ihs einfo iinfo cinfo with_names
+          constructor_arg_names ih_names,
 
       -- Return the constructor name and the renamable new hypotheses. These are
       -- the hypotheses that can later be renamed by the `case` tactic. Note

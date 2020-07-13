@@ -1741,6 +1741,25 @@ meta def success_if_fail_with_msg {α : Type u} (t : tactic α) (msg : string) :
    mk_exception "success_if_fail_with_msg combinator failed, given tactic succeeded" none s
 end
 
+
+/--
+Replace any metavariables in the expression with underscores, in preparation for printing
+`refine ...` statements.
+-/
+meta def replace_mvars (e : expr) : expr :=
+e.replace (λ e' _, if e'.is_mvar then some (unchecked_cast pexpr.mk_placeholder) else none)
+
+/--
+Construct a `refine ...` or `exact ...` string which would construct `g`.
+-/
+meta def tactic_statement (g : expr) : tactic string :=
+do g ← instantiate_mvars g,
+   g ← head_beta g,
+   r ← pp (replace_mvars g),
+   if g.has_meta_var
+   then return (sformat!"Try this: refine {r}")
+   else return (sformat!"Try this: exact {r}")
+
 /-- `with_local_goals gs tac` runs `tac` on the goals `gs` and then restores the
 initial goals and returns the goals `tac` ended on. -/
 meta def with_local_goals {α} (gs : list expr) (tac : tactic α) : tactic (α × list expr) :=

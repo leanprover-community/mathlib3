@@ -38,26 +38,28 @@ charted spaces. For instance, `hG.lift_prop_within_at_inter` says that `P g s x`
 ## Implementation notes
 
 We do not use dot notation for properties of the lifted property. For instance, we have
-`hG.lift_prop_within_at_of_lift_prop_at` saying that if `lift_prop_at P g x` holds, then
-`lift_prop_within_at P g s x` holds. We can't call it `lift_prop_at.lift_prop_within_at` as it is
-in the namespace associated to `local_invariant_prop`, not in the one for `lift_prop_at`.
+`hG.lift_prop_within_at_congr` saying that if `lift_prop_within_at P g s x` holds, and `g` and `g'`
+coincide on `s`, then `lift_prop_within_at P g' s x` holds. We can't call it
+`lift_prop_within_at.congr` as it is in the namespace associated to `local_invariant_prop`, not
+in the one for `lift_prop_within_at`.
 -/
-
-
 
 noncomputable theory
 open_locale classical manifold topological_space
-universes u
 
 open set
 
-variables {H : Type u} {M : Type*} [topological_space H] [topological_space M] [charted_space H M]
+variables {H : Type*} {M : Type*} [topological_space H] [topological_space M] [charted_space H M]
 {H' : Type*} {M' : Type*} [topological_space H'] [topological_space M'] [charted_space H' M']
 
 namespace structure_groupoid
 
 variables (G : structure_groupoid H) (G' : structure_groupoid H')
 
+/-- Structure recording good behavior of a property of a triple `(f, s, x)` where `f` is a function,
+`s` a set and `x` a point. Good behavior here means locality and invariance under given groupoids
+(both in the source and in the target). Given such a good behavior, the lift of this property
+to charted spaces admitting these groupoids will inherit the good behavior. -/
 structure local_invariant_prop (P : (H → H') → (set H) → H → Prop) : Prop :=
 (is_local : ∀ {s x u} {f : H → H'}, is_open u → x ∈ u → (P f s x ↔ P f (s ∩ u) x))
 (right_invariance : ∀ {s x f} {e : local_homeomorph H H}, e ∈ G → x ∈ e.source → P f s x →
@@ -68,8 +70,12 @@ structure local_invariant_prop (P : (H → H') → (set H) → H → Prop) : Pro
 
 end structure_groupoid
 
-/-- If one can define a property of germs of functions and sets in the model space, then one define
-a corresponding property in the manifold, by requiring that it holds for all preferred charts. -/
+/-- Given a property of germs of functions and sets in the model space, then one defines
+a corresponding property in a charted space, by requiring that it holds at the preferred chart at
+this point. (When the property is local and invariant, it will in fact hold using any chart, see
+`lift_prop_within_at_indep_chart`). We require continuity in the lifted property, as otherwise one
+single chart might fail to capture the behavior of the function.
+-/
 def charted_space.lift_prop_within_at (P : (H → H') → set H → H → Prop)
   (f : M → M') (s : set M) (x : M) : Prop :=
 continuous_within_at f s x ∧
@@ -77,12 +83,21 @@ P ((chart_at H' (f x)) ∘ f ∘ (chart_at H x).symm)
   ((chart_at H x).target ∩ (chart_at H x).symm ⁻¹' (s ∩ f ⁻¹' (chart_at H' (f x)).source))
   (chart_at H x x)
 
+/-- Given a property of germs of functions and sets in the model space, then one defines
+a corresponding property of functions on sets in a charted space, by requiring that it holds
+around each point of the set, in the preferred charts. -/
 def charted_space.lift_prop_on (P : (H → H') → set H → H → Prop) (f : M → M') (s : set M) :=
 ∀ x ∈ s, charted_space.lift_prop_within_at P f s x
 
+/-- Given a property of germs of functions and sets in the model space, then one defines
+a corresponding property of a function at a point in a charted space, by requiring that it holds
+in the preferred chart. -/
 def charted_space.lift_prop_at (P : (H → H') → set H → H → Prop) (f : M → M') (x : M) :=
 charted_space.lift_prop_within_at P f univ x
 
+/-- Given a property of germs of functions and sets in the model space, then one defines
+a corresponding property of a function in a charted space, by requiring that it holds
+in the preferred chart around every point. -/
 def charted_space.lift_prop (P : (H → H') → set H → H → Prop) (f : M → M') :=
 ∀ x, charted_space.lift_prop_at P f x
 
@@ -203,6 +218,18 @@ lemma lift_prop_within_at_indep_chart [has_groupoid M G] [has_groupoid M' G']
   hG.lift_prop_within_at_indep_chart_aux he xe (chart_mem_maximal_atlas _ _) (mem_chart_source _ _) hf xf
   (chart_mem_maximal_atlas _ _) (mem_chart_source _ _) H.1 H.2⟩⟩
 
+lemma lift_prop_on_indep_chart [has_groupoid M G] [has_groupoid M' G']
+  (he : e ∈ G.maximal_atlas M) (hf : f ∈ G'.maximal_atlas M') (h : lift_prop_on P g s) :
+  ∀ y ∈ e.target ∩ e.symm ⁻¹' (s ∩ g ⁻¹' f.source),
+  P (f ∘ g ∘ e.symm) (e.target ∩ e.symm ⁻¹' (s ∩ g ⁻¹' f.source)) y :=
+begin
+  assume y hy,
+  simp only with mfld_simps at hy,
+  have : e.symm y ∈ s, by simp only [hy] with mfld_simps,
+  convert ((hG.lift_prop_within_at_indep_chart he _ hf _).1 (h _ this)).2,
+  repeat { simp only [hy] with mfld_simps },
+end
+
 lemma lift_prop_within_at_inter' (ht : t ∈ nhds_within x s) :
   lift_prop_within_at P g (s ∩ t) x ↔ lift_prop_within_at P g s x :=
 begin
@@ -239,11 +266,18 @@ lemma lift_prop_within_at_inter (ht : t ∈ 𝓝 x) :
   lift_prop_within_at P g (s ∩ t) x ↔ lift_prop_within_at P g s x :=
 hG.lift_prop_within_at_inter' (mem_nhds_within_of_mem_nhds ht)
 
-lemma lift_prop_within_at_to_lift_prop_at (h : lift_prop_within_at P g s x) (hs : s ∈ 𝓝 x) :
+lemma lift_prop_at_of_lift_prop_within_at (h : lift_prop_within_at P g s x) (hs : s ∈ 𝓝 x) :
   lift_prop_at P g x :=
 begin
   have : s = univ ∩ s, by rw univ_inter,
   rwa [this, hG.lift_prop_within_at_inter hs] at h,
+end
+
+lemma lift_prop_within_at_of_lift_prop_at_of_mem_nhds (h : lift_prop_at P g x) (hs : s ∈ 𝓝 x) :
+  lift_prop_within_at P g s x :=
+begin
+  have : s = univ ∩ s, by rw univ_inter,
+  rwa [this, hG.lift_prop_within_at_inter hs],
 end
 
 lemma lift_prop_on_of_locally_lift_prop_on
@@ -255,6 +289,15 @@ begin
   have := hu x ⟨hx, xu⟩,
   rwa hG.lift_prop_within_at_inter at this,
   exact mem_nhds_sets u_open xu,
+end
+
+lemma lift_prop_of_locally_lift_prop_on
+  (h : ∀x, ∃u, is_open u ∧ x ∈ u ∧ lift_prop_on P g u) :
+  lift_prop P g :=
+begin
+  rw ← lift_prop_on_univ,
+  apply hG.lift_prop_on_of_locally_lift_prop_on (λ x hx, _),
+  simp [h x],
 end
 
 lemma lift_prop_within_at_congr
@@ -281,6 +324,11 @@ begin
   { simp only [hx] with mfld_simps }
 end
 
+lemma lift_prop_within_at_congr_iff (h₁ : ∀ y ∈ s, g' y = g y) (hx : g' x = g x) :
+  lift_prop_within_at P g' s x ↔ lift_prop_within_at P g s x :=
+⟨λ h, hG.lift_prop_within_at_congr h (λ y hy, (h₁ y hy).symm) hx.symm,
+ λ h, hG.lift_prop_within_at_congr h h₁ hx⟩
+
 lemma lift_prop_within_at_congr_of_eventually_eq
   (h : lift_prop_within_at P g s x) (h₁ : g' =ᶠ[nhds_within x s] g) (hx : g' x = g x) :
   lift_prop_within_at P g' s x :=
@@ -289,6 +337,35 @@ begin
   rw ← hG.lift_prop_within_at_inter' t_nhd at h ⊢,
   exact hG.lift_prop_within_at_congr h (λ y hy, ht _ hy.2) hx
 end
+
+lemma lift_prop_within_at_congr_iff_of_eventually_eq
+  (h₁ : g' =ᶠ[nhds_within x s] g) (hx : g' x = g x) :
+  lift_prop_within_at P g' s x ↔ lift_prop_within_at P g s x :=
+⟨λ h, hG.lift_prop_within_at_congr_of_eventually_eq h h₁.symm hx.symm,
+ λ h, hG.lift_prop_within_at_congr_of_eventually_eq h h₁ hx⟩
+
+lemma lift_prop_at_congr_of_eventually_eq (h : lift_prop_at P g x) (h₁ : g' =ᶠ[𝓝 x] g) :
+  lift_prop_at P g' x :=
+begin
+  apply hG.lift_prop_within_at_congr_of_eventually_eq h _ h₁.eq_of_nhds,
+  convert h₁,
+  rw nhds_within_univ
+end
+
+lemma lift_prop_at_congr_iff_of_eventually_eq
+  (h₁ : g' =ᶠ[𝓝 x] g) : lift_prop_at P g' x ↔ lift_prop_at P g x :=
+⟨λ h, hG.lift_prop_at_congr_of_eventually_eq h h₁.symm,
+ λ h, hG.lift_prop_at_congr_of_eventually_eq h h₁⟩
+
+lemma lift_prop_on_congr (h : lift_prop_on P g s) (h₁ : ∀ y ∈ s, g' y = g y) :
+  lift_prop_on P g' s :=
+λ x hx, hG.lift_prop_within_at_congr (h x hx) h₁ (h₁ x hx)
+
+lemma lift_prop_on_congr_iff (h₁ : ∀ y ∈ s, g' y = g y) :
+  lift_prop_on P g' s ↔ lift_prop_on P g s :=
+⟨λ h, hG.lift_prop_on_congr h (λ y hy, (h₁ y hy).symm), λ h, hG.lift_prop_on_congr h h₁⟩
+
+omit hG
 
 lemma lift_prop_within_at_mono
   (mono : ∀ ⦃s x t⦄ ⦃f : H → H'⦄, t ⊆ s → P f s x → P f t x)
@@ -306,23 +383,21 @@ lemma lift_prop_within_at_of_lift_prop_at
   lift_prop_within_at P g s x :=
 begin
   rw ← lift_prop_within_at_univ at h,
-  exact hG.lift_prop_within_at_mono mono h (subset_univ _),
+  exact lift_prop_within_at_mono mono h (subset_univ _),
 end
 
 lemma lift_prop_on_mono
   (mono : ∀ ⦃s x t⦄ ⦃f : H → H'⦄, t ⊆ s → P f s x → P f t x) (h : lift_prop_on P g t) (hst : s ⊆ t) :
   lift_prop_on P g s :=
-λ x hx, hG.lift_prop_within_at_mono mono (h x (hst hx)) hst
+λ x hx, lift_prop_within_at_mono mono (h x (hst hx)) hst
 
 lemma lift_prop_on_of_lift_prop
   (mono : ∀ ⦃s x t⦄ ⦃f : H → H'⦄, t ⊆ s → P f s x → P f t x) (h : lift_prop P g) :
   lift_prop_on P g s :=
 begin
   rw ← lift_prop_on_univ at h,
-  exact hG.lift_prop_on_mono mono h (subset_univ _)
+  exact lift_prop_on_mono mono h (subset_univ _)
 end
-
-omit hG
 
 lemma lift_prop_at_of_mem_maximal_atlas [has_groupoid M G]
   (hG : G.local_invariant_prop G Q) (hQ : ∀ y, Q id univ y)
@@ -337,6 +412,16 @@ begin
     simpa only with mfld_simps using (hG.is_local e.open_target this).1 (hQ (e x)) },
   apply hG.congr _ _ A;
   simp only [hx] with mfld_simps {contextual := tt}
+end
+
+lemma lift_prop_on_of_mem_maximal_atlas [has_groupoid M G]
+  (hG : G.local_invariant_prop G Q) (hQ : ∀ y, Q id univ y) (he : e ∈ maximal_atlas M G) :
+  lift_prop_on Q e e.source :=
+begin
+  assume x hx,
+  apply hG.lift_prop_within_at_of_lift_prop_at_of_mem_nhds
+    (hG.lift_prop_at_of_mem_maximal_atlas hQ he hx),
+  apply mem_nhds_sets e.open_source hx,
 end
 
 lemma lift_prop_at_symm_of_mem_maximal_atlas [has_groupoid M G] {x : H}
@@ -357,21 +442,52 @@ begin
   simp only [hx] with mfld_simps {contextual := tt}
 end
 
+lemma lift_prop_on_symm_of_mem_maximal_atlas [has_groupoid M G]
+  (hG : G.local_invariant_prop G Q) (hQ : ∀ y, Q id univ y) (he : e ∈ maximal_atlas M G) :
+  lift_prop_on Q e.symm e.target :=
+begin
+  assume x hx,
+  apply hG.lift_prop_within_at_of_lift_prop_at_of_mem_nhds
+    (hG.lift_prop_at_symm_of_mem_maximal_atlas hQ he hx),
+  apply mem_nhds_sets e.open_target hx,
+end
+
 lemma lift_prop_at_chart [has_groupoid M G]
   (hG : G.local_invariant_prop G Q) (hQ : ∀ y, Q id univ y) : lift_prop_at Q (chart_at H x) x :=
 hG.lift_prop_at_of_mem_maximal_atlas hQ (chart_mem_maximal_atlas G x) (mem_chart_source H x)
+
+lemma lift_prop_on_chart [has_groupoid M G]
+  (hG : G.local_invariant_prop G Q) (hQ : ∀ y, Q id univ y) :
+  lift_prop_on Q (chart_at H x) (chart_at H x).source :=
+hG.lift_prop_on_of_mem_maximal_atlas hQ (chart_mem_maximal_atlas G x)
 
 lemma lift_prop_at_chart_symm [has_groupoid M G]
   (hG : G.local_invariant_prop G Q) (hQ : ∀ y, Q id univ y) :
   lift_prop_at Q (chart_at H x).symm ((chart_at H x) x) :=
 hG.lift_prop_at_symm_of_mem_maximal_atlas hQ (chart_mem_maximal_atlas G x) (by simp)
 
+lemma lift_prop_on_chart_symm [has_groupoid M G]
+  (hG : G.local_invariant_prop G Q) (hQ : ∀ y, Q id univ y) :
+  lift_prop_on Q (chart_at H x).symm (chart_at H x).target :=
+hG.lift_prop_on_symm_of_mem_maximal_atlas hQ (chart_mem_maximal_atlas G x)
+
+lemma lift_prop_id (hG : G.local_invariant_prop G Q) (hQ : ∀ y, Q id univ y) :
+  lift_prop Q (id : M → M) :=
+begin
+  assume x,
+  dsimp [lift_prop_at, lift_prop_within_at],
+  refine ⟨continuous_within_at_id, _⟩,
+  let t := ((chart_at H x).target ∩ (chart_at H x).symm ⁻¹' (chart_at H x).source),
+  suffices H : Q id t ((chart_at H x) x),
+  { simp only with mfld_simps,
+    refine hG.congr (λ y hy, _) (by simp) H,
+    simp only with mfld_simps at hy,
+    simp only [hy] with mfld_simps },
+  have : t = univ ∩ (chart_at H x).target, by mfld_set_eq_tac,
+  rw this,
+  exact (hG.is_local (chart_at H x).open_target (by simp)).1 (hQ _)
+end
+
 end local_invariant_prop
-
-namespace local_invariant_mono_prop
-
-
-
-end local_invariant_mono_prop
 
 end structure_groupoid

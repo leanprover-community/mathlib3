@@ -749,6 +749,46 @@ funext $ λ x, deriv_neg
 
 end neg
 
+section neg2
+/-! ### Derivative of the negation function (i.e `has_neg.neg`) -/
+
+variables (s x L)
+
+theorem has_deriv_at_filter_neg : has_deriv_at_filter has_neg.neg (-1) x L :=
+has_deriv_at_filter.neg $ has_deriv_at_filter_id _ _
+
+theorem has_deriv_within_at_neg : has_deriv_within_at has_neg.neg (-1) s x :=
+has_deriv_at_filter_neg _ _
+
+theorem has_deriv_at_neg : has_deriv_at has_neg.neg (-1) x :=
+has_deriv_at_filter_neg _ _
+
+theorem has_deriv_at_neg' : has_deriv_at (λ x, -x) (-1) x :=
+has_deriv_at_filter_neg _ _
+
+theorem has_strict_deriv_at_neg : has_strict_deriv_at has_neg.neg (-1) x :=
+has_strict_deriv_at.neg $ has_strict_deriv_at_id _
+
+lemma deriv_neg2 : deriv has_neg.neg x = -1 :=
+has_deriv_at.deriv (has_deriv_at_neg x)
+
+@[simp] lemma deriv_neg2' : deriv (has_neg.neg : 𝕜 → 𝕜) = λ _, -1 :=
+funext deriv_neg2
+
+@[simp] lemma deriv_neg2'' : deriv (λ x : 𝕜, -x) x = -1 :=
+deriv_neg2 x
+
+lemma deriv_within_neg2 (hxs : unique_diff_within_at 𝕜 s x) : deriv_within has_neg.neg s x = -1 :=
+(has_deriv_within_at_neg x s).deriv_within hxs
+
+lemma differentiable_neg : differentiable 𝕜 (has_neg.neg : 𝕜 → 𝕜) :=
+differentiable.neg differentiable_id
+
+lemma differentiable_on_neg : differentiable_on 𝕜 (has_neg.neg : 𝕜 → 𝕜) s :=
+differentiable_on.neg differentiable_on_id
+
+end neg2
+
 section sub
 /-! ### Derivative of the difference of two functions -/
 

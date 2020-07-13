@@ -1944,3 +1944,65 @@ lemma tendsto_of_monotone {ι α : Type*} [preorder ι] [topological_space α]
   tendsto f at_top at_top ∨ (∃ l, tendsto f at_top (𝓝 l)) :=
 if H : bdd_above (range f) then or.inr ⟨_, tendsto_at_top_csupr h_mono H⟩
 else or.inl $ tendsto_at_top_at_top_of_monotone' h_mono H
+
+lemma tendsto_neg_nhds_within_Ioi {α : Type*} [decidable_linear_ordered_add_comm_group α]
+  [no_bot_order α] [no_top_order α] [topological_space α] [densely_ordered α]
+  [order_topology α] {a : α} :
+  tendsto has_neg.neg (nhds_within a (Ioi a)) (nhds_within (-a) (Iio (-a))) :=
+begin
+  intros s hs,
+  rw mem_map,
+  rw mem_nhds_within_Iio_iff_exists_Ico_subset at hs,
+  rw mem_nhds_within_Ioi_iff_exists_Ioc_subset,
+  rcases hs with ⟨l, hl, hs⟩,
+  rw mem_Iio at hl,
+  use -l,
+  split,
+  rw mem_Ioi,
+  exact lt_neg.1 hl,
+  intros x hx,
+  apply hs,
+  rw mem_Ioc at hx,
+  rw mem_Ico,
+  exact ⟨ le_neg.2 hx.2, neg_lt_neg hx.1 ⟩
+end
+
+lemma tendsto_neg_nhds_within_Iio {α : Type*}  [decidable_linear_ordered_add_comm_group α]
+  [no_bot_order α] [no_top_order α] [topological_space α] [densely_ordered α]
+  [order_topology α] {a : α} :
+  tendsto has_neg.neg (nhds_within a (Iio a)) (nhds_within (-a) (Ioi (-a))) :=
+begin
+  intros s hs,
+  rw mem_map,
+  rw mem_nhds_within_Ioi_iff_exists_Ioc_subset at hs,
+  rw mem_nhds_within_Iio_iff_exists_Ico_subset,
+  rcases hs with ⟨l, hl, hs⟩,
+  rw mem_Ioi at hl,
+  use -l,
+  split,
+  rw mem_Iio,
+  exact neg_lt.1 hl,
+  intros x hx,
+  apply hs,
+  rw mem_Ico at hx,
+  rw mem_Ioc,
+  exact ⟨ neg_lt_neg hx.2, neg_le.1 hx.1 ⟩
+end
+
+lemma tendsto_neg_nhds_within_Ioi_neg {α : Type*} [decidable_linear_ordered_add_comm_group α]
+  [no_bot_order α] [no_top_order α] [topological_space α] [densely_ordered α]
+  [order_topology α] {a : α} :
+  tendsto has_neg.neg (nhds_within (-a) (Ioi (-a))) (nhds_within a (Iio a)) :=
+begin
+  rw (show (nhds_within a (Iio a)) = (nhds_within (- -a) (Iio (- -a))), by simp),
+  exact tendsto_neg_nhds_within_Ioi
+end
+
+lemma tendsto_neg_nhds_within_Iio_neg {α : Type*}  [decidable_linear_ordered_add_comm_group α]
+  [no_bot_order α] [no_top_order α] [topological_space α] [densely_ordered α]
+  [order_topology α] {a : α} :
+  tendsto has_neg.neg (nhds_within (-a) (Iio (-a))) (nhds_within a (Ioi a)) :=
+begin
+  rw (show (nhds_within a (Ioi a)) = (nhds_within (- -a) (Ioi (- -a))), by simp),
+  exact tendsto_neg_nhds_within_Iio
+end

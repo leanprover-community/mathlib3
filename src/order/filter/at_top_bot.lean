@@ -516,4 +516,16 @@ lemma tendsto_at_top_of_monotone_of_subseq {ι ι' α : Type*} [preorder ι] [pr
   tendsto u at_top at_top :=
 tendsto_at_top_of_monotone_of_filter h (map_ne_bot hl) (tendsto_map' H)
 
+lemma tendsto_neg_at_top_at_bot {α : Type*} [nonempty α] [decidable_linear_ordered_add_comm_group α] : tendsto (has_neg.neg : α → α) at_top at_bot :=
+(tendsto_at_top_at_bot has_neg.neg).2 (λ b, ⟨ -b, λ a ha, ge_iff_le.2 $ neg_le.1 ha⟩)
+
+lemma tendsto_neg_at_bot_at_top {α : Type*} [decidable_linear_ordered_add_comm_group α] : tendsto (has_neg.neg : α → α) at_bot at_top :=
+begin
+  rw tendsto_at_top,
+  intros b,
+  rw eventually_iff,
+  rw (show {a : α | b ≤ -a} = {a : α | a ≤ -b}, by {ext, simp only [mem_set_of_eq], exact le_neg}),
+  exact mem_at_bot _,
+end
+
 end filter

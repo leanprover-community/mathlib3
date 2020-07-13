@@ -112,8 +112,8 @@ end mvfunctor
 
 /-- laws for `mvfunctor` -/
 class is_lawful_mvfunctor {n : ℕ} (F : typevec n → Type*) [mvfunctor F] : Prop :=
-(id_map       : Π {α : typevec n} (x : F α), typevec.id <$$> x = x)
-(comp_map     : Π {α β γ : typevec n} (g : α ⟹ β) (h : β ⟹ γ) (x : F α),
+(id_map       : ∀ {α : typevec n} (x : F α), typevec.id <$$> x = x)
+(comp_map     : ∀ {α β γ : typevec n} (g : α ⟹ β) (h : β ⟹ γ) (x : F α),
                     (h ⊚ g) <$$> x = h <$$> g <$$> x)
 
 namespace mvfunctor
@@ -142,7 +142,7 @@ end mvfunctor
 
 namespace eq
 
-theorem mp_mpr {α β : Type*} (h : α = β) (x : β) :
+theorem mp_mpr {α β : Sort*} (h : α = β) (x : β) :
   eq.mp h (eq.mpr h x) = x :=
 by induction h; reflexivity
 
@@ -321,7 +321,7 @@ run_cmd do
 local prefix `♯`:0 := cast (by try { simp }; congr' 1; try { simp })
 
 /-- cases distinction for 0-length type vector -/
-def typevec_cases_nil {β : typevec 0 → Sort*} (f : β fin2.elim0) :
+protected def cases_nil {β : typevec 0 → Sort*} (f : β fin2.elim0) :
   Π v, β v :=
 λ v, ♯ f
 
@@ -428,8 +428,6 @@ open function (uncurry)
 def repeat_eq : Π {n} (α : typevec n), α ⊗ α ⟹ repeat _ Prop
 | 0 α := nil_fun
 | (succ n) α := repeat_eq (drop α) ::: uncurry eq
--- | (succ n) α (fin2.fs i) := repeat_eq (drop α) _
--- | (succ n) α fin2.fz := λ x, x.1 = x.2
 
 lemma const_append1 {β γ} (x : γ) {n} (α : typevec n) : typevec.const x (α ::: β) = append_fun (typevec.const x α) (λ _, x) :=
 by ext i : 1; cases i; refl
@@ -473,20 +471,10 @@ def drop_repeat (α : Type*) : Π {n}, drop (repeat (succ n) α) ⟹ repeat n α
 | (succ n) (fin2.fs i) := drop_repeat i
 | (succ n) fin2.fz := _root_.id
 
--- This definition bypasses the equation compiler to make sure we
--- recurse on the `fin2 n` argument and not the `ℕ` argument. This
--- matters because of how definitional equality is used with
--- `of_repeat`
 /-- projection for a repeat vector -/
 def of_repeat {α : Sort*} : Π {n i}, repeat n α i → α
 | ._ fin2.fz := _root_.id
 | ._ (fin2.fs i) := @of_repeat _ i
-
--- begin
---   induction i with n i IH,
---   { exact _root_.id }
---   { exact IH },
--- end
 
 lemma const_iff_true {α : typevec n} {i x p} : of_repeat (typevec.const p α i x) ↔ p :=
 by induction i; [refl, erw [typevec.const,@i_ih (drop α) x]]
@@ -538,25 +526,11 @@ by ext i; induction i; [refl, apply i_ih]
 lemma repeat_eq_iff_eq {α : typevec n} {i x y} : of_repeat (repeat_eq α i (prod.mk _ x y)) ↔ x = y :=
 by induction i; [refl, erw [repeat_eq,@i_ih (drop α) x y]]
 
--- -- This definition bypasses the equation compiler to make sure we
--- -- recurse on the `fin2 n` argument and not the `ℕ` argument. This
--- -- matters because of how definitional equality is used with
--- -- `subtype_`
--- def subtype_ {n} {α : typevec.{u} n} (p : α ⟹ repeat n Prop) : typevec n :=
--- λ i, begin
---   induction i with _ n i IH generalizing α p,
---   { exact _root_.subtype (λ x, p fin2.fz x) },
---   { exact @IH (drop α) (drop_fun p) },
--- end
-
 /-- given a predicate vector `p` over vector `α`, `subtype_ p` is the type of vectors
 that contain an `α` that satisfies `p` -/
 def subtype_ : Π {n} {α : typevec.{u} n} (p : α ⟹ repeat n Prop), typevec n
 | ._ α p fin2.fz := _root_.subtype (λ x, p fin2.fz x)
 | ._ α p (fin2.fs i) := subtype_ (drop_fun p) i
-
--- def subtype_val : Π {n} {α : typevec.{u} n} (p : α ⟹ repeat n Prop), subtype_ p ⟹ α :=
--- by intros n α p i; induction i; [exact _root_.subtype.val, apply i_ih (drop_fun p)]
 
 /-- projection on `subtype_` -/
 def subtype_val : Π {n} {α : typevec.{u} n} (p : α ⟹ repeat n Prop), subtype_ p ⟹ α
@@ -575,41 +549,10 @@ def of_subtype : Π {n} {α : typevec.{u} n} (p : α ⟹ repeat n Prop), subtype
 | (succ n) α p (fin2.fs i) x := of_subtype _ i x
 | (succ n) α p fin2.fz x := x
 
-
--- def to_subtype' : Π {n} {α : typevec.{u} n} (p : α ⊗ α ⟹ repeat n Prop), (λ (i : fin2 n), { x : α i × α i // of_repeat $ p i (prod.mk _ x.1 x.2) }) ⟹ subtype_ p :=
--- by {
---   intros n α p i x,
---   induction i,
---   { exact ⟨x.val,cast (by congr; simp [prod.mk]) x.property⟩ },
---   { exact i_ih (drop_fun p) x } }
-
--- @[simp]
--- lemma to_subtype'_eqn_1 {n} {α : typevec.{u} (succ n)} (p : α ⊗ α ⟹ repeat (succ n) Prop) (x) :
---   to_subtype' p fin2.fz x = ⟨x.val,cast (by congr; simp [prod.mk]) x.property⟩ := rfl
-
--- @[simp]
--- lemma to_subtype'_eqn_2 {n} {α : typevec.{u} (succ n)} (p : α ⊗ α ⟹ repeat (succ n) Prop) (i : fin2 n) (x) :
---   to_subtype' p (fin2.fs i) x = @to_subtype' n _ (drop_fun p) _ x := rfl
-
 /-- similar to `to_subtype` adapted to relations (i.e. predicate on product) -/
 def to_subtype' : Π {n} {α : typevec.{u} n} (p : α ⊗ α ⟹ repeat n Prop), (λ (i : fin2 n), { x : α i × α i // of_repeat $ p i (prod.mk _ x.1 x.2) }) ⟹ subtype_ p
 | (succ n) α p (fin2.fs i) x := to_subtype' (drop_fun p) i x
 | (succ n) α p fin2.fz x := ⟨x.val,cast (by congr; simp [prod.mk]) x.property⟩
-
--- def of_subtype' : Π {n} {α : typevec.{u} n} (p : α ⊗ α ⟹ repeat n Prop), subtype_ p ⟹ (λ (i : fin2 n), { x : α i × α i // of_repeat $ p i (prod.mk _ x.1 x.2) }) :=
--- by {
---   intros n α p i x,
---   induction i,
---   { exact ⟨x.val,cast (by congr; simp [prod.mk]) x.property⟩, },
---   { apply i_ih (drop_fun p) x }, }
-
--- @[simp]
--- lemma of_subtype'_eqn_1 {n} {α : typevec.{u} (succ n)} (p : α ⊗ α ⟹ repeat (succ n) Prop) (x) :
---   of_subtype' p fin2.fz x = ⟨x.val,cast (by congr; simp [prod.mk]) x.property⟩ := rfl
-
--- @[simp]
--- lemma of_subtype'_eqn_2 {n} {α : typevec.{u} (succ n)} (p : α ⊗ α ⟹ repeat (succ n) Prop) (i : fin2 n) (x) :
---   of_subtype' p (fin2.fs i) x = @of_subtype' n _ (drop_fun p) _ x := rfl
 
 /-- similar to `of_subtype` adapted to relations (i.e. predicate on product) -/
 def of_subtype' : Π {n} {α : typevec.{u} n} (p : α ⊗ α ⟹ repeat n Prop), subtype_ p ⟹ (λ (i : fin2 n), { x : α i × α i // of_repeat $ p i (prod.mk _ x.1 x.2) })

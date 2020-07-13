@@ -121,12 +121,14 @@ section algebra_structure
 ### Algebra structure
 
 In this section we show that continuous functions valued in a topological algebra `A` over a
-topological ring `R` inherit a structure of algebra. -/
+topological ring `R` inherit a structure of algebra. Note that the hypothesis that `A` is a
+topologial algebra is obtained by requiring that `A` be both a `topological_semimodule` and a
+`topological_semiring` (by now we require `topological_ring`: see TODO below).-/
 
 variables {α : Type*} [topological_space α]
 {R : Type*} [comm_semiring R] [topological_space R] [topological_semiring R]
 {A : Type*} [topological_space A] [ring A]
-[algebra R A] [topological_algebra R A] [topological_ring A]
+[algebra R A] [topological_semimodule R A] [topological_ring A]
 
 /-- Continuous constant functions as a `ring_hom`. -/
 def C : R →+* { f : α → A | continuous f } :=

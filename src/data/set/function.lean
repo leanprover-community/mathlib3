@@ -156,31 +156,31 @@ theorem maps_to_range (f : set α) (s : set α) : maps_to f s (range f) :=
 
 /-- `f` is injective on `a` if the restriction of `f` to `a` is injective. -/
 @[reducible] def inj_on (f : α → β) (s : set α) : Prop :=
-∀⦃x₁ x₂ : α⦄, x₁ ∈ s → x₂ ∈ s → f x₁ = f x₂ → x₁ = x₂
+∀ ⦃x₁ : α⦄, x₁ ∈ s → ∀ ⦃x₂ : α⦄, x₂ ∈ s → f x₁ = f x₂ → x₁ = x₂
 
 theorem inj_on_empty (f : α → β) : inj_on f ∅ :=
-λ _ _ h₁ _ _, false.elim h₁
+λ _ h₁, false.elim h₁
 
 theorem inj_on.congr (h₁ : inj_on f₁ s) (h : eq_on f₁ f₂ s) :
   inj_on f₂ s :=
-λ x y hx hy, h hx ▸ h hy ▸ h₁ hx hy
+λ x hx y hy, h hx ▸ h hy ▸ h₁ hx hy
 
 theorem eq_on.inj_on_iff (H : eq_on f₁ f₂ s) : inj_on f₁ s ↔ inj_on f₂ s :=
 ⟨λ h, h.congr H, λ h, h.congr H.symm⟩
 
 theorem inj_on.mono (h : s₁ ⊆ s₂) (ht : inj_on f s₂) : inj_on f s₁ :=
-λ x y hx hy H, ht (h hx) (h hy) H
+λ x hx y hy H, ht (h hx) (h hy) H
 
 lemma injective_iff_inj_on_univ : injective f ↔ inj_on f univ :=
-⟨λ h x y hx hy hxy, h hxy, λ h _ _ heq, h trivial trivial heq⟩
+⟨λ h x hx y hy hxy, h hxy, λ h _ _ heq, h trivial trivial heq⟩
 
 theorem inj_on.comp (hg : inj_on g t) (hf: inj_on f s) (h : maps_to f s t) :
   inj_on (g ∘ f) s :=
-λ x y hx hy heq, hf hx hy $ hg (h hx) (h hy) heq
+λ x hx y hy heq, hf hx hy $ hg (h hx) (h hy) heq
 
 lemma inj_on_iff_injective : inj_on f s ↔ injective (restrict f s) :=
 ⟨λ H a b h, subtype.eq $ H a.2 b.2 h,
- λ H a b as bs h, congr_arg subtype.val $ @H ⟨a, as⟩ ⟨b, bs⟩ h⟩
+ λ H a as b bs h, congr_arg subtype.val $ @H ⟨a, as⟩ ⟨b, bs⟩ h⟩
 
 lemma inj_on.inv_fun_on_image [nonempty α] (h : inj_on f s₂) (ht : s₁ ⊆ s₂) :
   (inv_fun_on f s₂) '' (f '' s₁) = s₁ :=
@@ -191,15 +191,15 @@ end
 
 lemma inj_on_preimage {B : set (set β)} (hB : B ⊆ powerset (range f)) :
   inj_on (preimage f) B :=
-begin
-  intros s t hs ht hst,
-  rw [←image_preimage_eq_of_subset (hB hs), ←image_preimage_eq_of_subset (hB ht), hst]
-end
+λ s hs t ht hst, (preimage_eq_preimage' (hB hs) (hB ht)).1 hst
 
 /-! ### Surjectivity on a set -/
 
 /-- `f` is surjective from `a` to `b` if `b` is contained in the image of `a`. -/
 @[reducible] def surj_on (f : α → β) (s : set α) (t : set β) : Prop := t ⊆ f '' s
+
+theorem surj_on.subset_range (h : surj_on f s t) : t ⊆ range f :=
+subset.trans h $ image_subset_range f s
 
 theorem surj_on_empty (f : α → β) (s : set α) : surj_on f s ∅ := empty_subset _
 
@@ -248,6 +248,9 @@ lemma bij_on.mk (h₁ : maps_to f s t) (h₂ : inj_on f s) (h₃ : surj_on f s t
 lemma bij_on_empty (f : α → β) : bij_on f ∅ ∅ :=
 ⟨maps_to_empty f ∅, inj_on_empty f, surj_on_empty f ∅⟩
 
+theorem bij_on.subset_range (h : bij_on f s t) : t ⊆ range f :=
+h.surj_on.subset_range
+
 lemma inj_on.bij_on_image (h : inj_on f s) : bij_on f s (f '' s) :=
 bij_on.mk (maps_to_image f s) h (subset.refl _)
 
@@ -292,7 +295,7 @@ theorem left_inv_on.congr_right (h₁ : left_inv_on f₁' f₁ s) (heq : eq_on f
 λ x hx, heq hx ▸ h₁ hx
 
 theorem left_inv_on.inj_on (h : left_inv_on f₁' f s) : inj_on f s :=
-λ x₁ x₂ h₁ h₂ heq,
+λ x₁ h₁ x₂ h₂ heq,
 calc
   x₁    = f₁' (f x₁) : eq.symm $ h h₁
   ...   = f₁' (f x₂) : congr_arg f₁' heq
@@ -509,7 +512,7 @@ by { rw ← image_univ, exact h.surj_on_image (ha.surj_on univ) }
 lemma inj_on_image (h : semiconj f fa fb) (ha : inj_on fa s) (hf : inj_on f (fa '' s)) :
   inj_on fb (f '' s) :=
 begin
-  rintros _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩ H,
+  rintros _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ H,
   simp only [← h.eq] at H,
   exact congr_arg f (ha hx hy $ hf (mem_image_of_mem fa hx) (mem_image_of_mem fa hy) H)
 end
@@ -538,7 +541,7 @@ lemma inj_on_preimage (h : semiconj f fa fb) {s : set β} (hb : inj_on fb s)
   (hf : inj_on f (f ⁻¹' s)) :
   inj_on fa (f ⁻¹' s) :=
 begin
-  intros x y hx hy H,
+  intros x hx y hy H,
   have := congr_arg f H,
   rw [h.eq, h.eq] at this,
   exact hf hx hy (hb hx hy this)

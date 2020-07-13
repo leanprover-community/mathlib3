@@ -1319,6 +1319,11 @@ theorem image_subset_image {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁.im
 by simp only [subset_def, image_val, subset_erase_dup', erase_dup_subset',
   multiset.map_subset_map h]
 
+theorem image_subset_iff {s : finset α} {t : finset β} {f : α → β} :
+  s.image f ⊆ t ↔ ∀ x ∈ s, f x ∈ t :=
+calc s.image f ⊆ t ↔ f '' ↑s ⊆ ↑t : by norm_cast
+               ... ↔ _ : set.image_subset_iff
+
 theorem image_mono (f : α → β) : monotone (finset.image f) := λ _ _, image_subset_image
 
 theorem coe_image_subset_range : ↑(s.image f) ⊆ set.range f :=

@@ -47,7 +47,7 @@ def leading_coeff_monoid_hom : polynomial R →* R :=
   map_one' := by simp,
   map_mul' := leading_coeff_mul }
 
-@[simp] lemma coe_leading_coeff_monoid_hom (p : polynomial R) :
+@[simp] lemma leading_coeff_monoid_hom_apply (p : polynomial R) :
   leading_coeff_monoid_hom p = leading_coeff p := rfl
 
 end integral_domain

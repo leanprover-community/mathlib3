@@ -235,22 +235,22 @@ run_cmd do
 local prefix `♯`:0 := cast (by try { simp }; congr' 1; try { simp })
 
 /-- cases distinction for 0-length type vector -/
-def typevec_cases_nil {β : typevec 0 → Sort*} (f : β fin2.elim0) :
+protected def cases_nil {β : typevec 0 → Sort*} (f : β fin2.elim0) :
   Π v, β v :=
 λ v, ♯ f
 
 /-- cases distinction for (n+1)-length type vector -/
-def typevec_cases_cons (n : ℕ) {β : typevec (n+1) → Sort*} (f : Π t (v : typevec n), β (v ::: t)) :
+protected def cases_cons (n : ℕ) {β : typevec (n+1) → Sort*} (f : Π t (v : typevec n), β (v ::: t)) :
   Π v, β v :=
 λ v : typevec (n+1), ♯ f v.last v.drop
 
-lemma typevec_cases_nil_append1 {β : typevec 0 → Sort*} (f : β fin2.elim0) :
-  typevec_cases_nil f fin2.elim0 = f := rfl
+protected lemma cases_nil_append1 {β : typevec 0 → Sort*} (f : β fin2.elim0) :
+  typevec.cases_nil f fin2.elim0 = f := rfl
 
-lemma typevec_cases_cons_append1 (n : ℕ) {β : typevec (n+1) → Sort*}
+protected lemma cases_cons_append1 (n : ℕ) {β : typevec (n+1) → Sort*}
       (f : Π t (v : typevec n), β (v ::: t))
       (v : typevec n) (α) :
-  typevec_cases_cons n f (v ::: α) = f α v := rfl
+  typevec.cases_cons n f (v ::: α) = f α v := rfl
 
 /-- cases distinction for an arrow in the category of 0-length type vectors -/
 def typevec_cases_nil₃ {β : Π v v' : typevec 0, v ⟹ v' → Sort*} (f : β fin2.elim0 fin2.elim0 nil_fun) :

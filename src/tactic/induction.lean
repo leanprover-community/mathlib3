@@ -1143,15 +1143,15 @@ do {
 } <|>
 pure not_simplified
 
-meta def get_sizeof (type : expr) : tactic (name × pexpr) := do
+meta def get_sizeof (type : expr) : tactic pexpr := do
   n ← get_inductive_name type,
   let sizeof_name := n ++ `sizeof,
-  sizeof_const ← resolve_name $ sizeof_name,
-  pure (sizeof_name, sizeof_const)
+  sizeof ← resolve_name $ sizeof_name,
+  pure sizeof
 
 meta def simplify_cyclic_equation_aux (equ type lhs rhs : expr) : tactic unit :=
 solve1 $ do
-  (sizeof_name, sizeof) ← get_sizeof type,
+  sizeof ← get_sizeof type,
   hyp_type ← to_expr ``(@eq ℕ (%%sizeof %%lhs) (%%sizeof %%rhs)),
   hyp_body ← to_expr ``(@congr_arg %%type ℕ %%lhs %%rhs %%sizeof %%equ),
   hyp_name ← mk_fresh_name,
@@ -1173,41 +1173,11 @@ do {
 } <|>
 pure not_simplified
 
-meta def dedup_single (hyp : expr) : tactic expr := do
-  ctx ← local_context,
-  let old_name := hyp.local_pp_name,
-  let dup := ctx.any (λ h, h ≠ hyp ∧ h.local_pp_name = old_name),
-  tt ← pure dup | pure hyp,
-  new_name ← get_unused_name old_name,
-  n ← revert_after hyp,
-  revert hyp,
-  hyp ← intro new_name,
-  intron n,
-  pure hyp
-
-meta def decompose_and : expr → tactic (list expr) := λ h, do
-  t ← infer_type h,
-  match t with
-  | `(%%P ∧ %%Q) := do
-    h₁ ← to_expr ``(@and.elim_left %%P %%Q %%h),
-    h₂ ← to_expr ``(@and.elim_right %%P %%Q %%h),
-    let h_name := h.local_pp_name,
-    h₁ ← note h_name P h₁,
-    h₂ ← note h_name Q h₂,
-    clear h,
-    h₂ ← dedup_single h₂,
-    h₁ ← dedup_single h₁,
-    hs₁ ← decompose_and h₁,
-    hs₂ ← decompose_and h₂,
-    pure $ hs₁ ++ hs₂
-  | _ := pure [h]
-  end
-
 meta def simplify_constructor_equation (equ type lhs rhs : expr)
   : tactic simplification_result :=
 do {
-  (const f _, lhs_args) ← decompose_app_normalizing lhs,
-  (const g _, rhs_args) ← decompose_app_normalizing rhs,
+  (const f _) ← pure $ get_app_fn lhs,
+  (const g _) ← pure $ get_app_fn rhs,
   env ← get_env,
   guard $ env.is_constructor f,
   guard $ env.is_constructor g,
@@ -1216,11 +1186,9 @@ do {
       solve1 $ cases equ,
       pure goal_solved
     else do
-      inj ← resolve_name (f ++ "inj"),
-      p ← to_expr ``(%%inj %%equ),
-      equ ← replace' equ p,
-      equs ← decompose_and equ,
-      pure $ simplified $ equs.map (λ h, h.local_pp_name)
+      next_hyps ← injection equ,
+      -- TODO better names for the new hyps produced by injection
+      pure $ simplified $ next_hyps.map expr.local_pp_name
 } <|>
 pure not_simplified
 
@@ -1242,11 +1210,13 @@ meta def simplify_homogeneous_index_equation (equ type lhs rhs : expr)
     , simplify_cyclic_equation equ type lhs rhs
     ]
 
-meta def simplify_index_equation_once (equ : name) : tactic simplification_result := do
+meta def simplify_index_equation (equ : name) : tactic simplification_result := do
   equ ← get_local equ,
   t ← infer_type equ,
   match t with
-  | `(@eq %%type %%lhs %%rhs) :=
+  | `(@eq %%type %%lhs %%rhs) := do
+    lhs ← whnf lhs,
+    rhs ← whnf rhs,
     simplify_homogeneous_index_equation equ type lhs rhs
   | `(@heq %%lhs_type %%lhs %%rhs_type %%rhs) := do
     simplify_heterogeneous_index_equation equ lhs_type rhs_type lhs rhs
@@ -1256,7 +1226,7 @@ meta def simplify_index_equation_once (equ : name) : tactic simplification_resul
 meta def simplify_index_equations : list name → tactic bool
 | [] := pure ff
 | (h :: hs) := do
-  res ← simplify_index_equation_once h,
+  res ← simplify_index_equation h,
   match res with
   | simplified hs' := simplify_index_equations $ hs' ++ hs
   | not_simplified := simplify_index_equations hs

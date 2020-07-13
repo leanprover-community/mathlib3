@@ -848,7 +848,7 @@ begin
   cases h1 with p1 hp1,
   cases h2 with p2 hp2,
   rw submodule.lt_iff_le_and_exists,
-  use [direction_sup s1 s2, p2 -ᵥ p1,
+  use [sup_direction_le s1 s2, p2 -ᵥ p1,
        vsub_mem_direction ((le_sup_right : s2 ≤ s1 ⊔ s2) hp2) ((le_sup_left : s1 ≤ s1 ⊔ s2) hp1)],
   intro h,
   rw submodule.mem_sup at h,

@@ -68,7 +68,7 @@ def CommRing_yoneda : TopCommRing.{u} ⥤ (Top.{u}ᵒᵖ ⥤ CommRing.{u}) :=
     map := λ X Y f, continuous_functions.pullback f R },
   map := λ R S φ,
   { app := λ X, continuous_functions.map X φ, },
-  map_comp' := by { intros X Y Z f g, ext1 V f, refl }, }
+  map_comp' := by { intros X Y Z f g, ext V h, dsimp, refl, }, }
 
 /-- The presheaf (of commutative rings), consisting of functions on an open set `U ⊆ X` with
 values in some topological commutative ring `T`. -/

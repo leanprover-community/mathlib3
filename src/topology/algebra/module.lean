@@ -929,5 +929,3 @@ lemma continuous_linear_map.closed_complemented_ker_of_right_inverse {R : Type*}
   (h : function.right_inverse f₂ f₁) :
   f₁.ker.closed_complemented :=
 ⟨f₁.proj_ker_of_right_inverse f₂ h, f₁.proj_ker_of_right_inverse_apply_idem f₂ h⟩
-
-#lint

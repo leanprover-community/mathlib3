@@ -90,20 +90,14 @@ def mmap_with_index_aux (f : ℕ → α → m β) : ℕ → list α → m (list 
 def mmap_with_index (f : ℕ → α → m β) (as : list α) : m (list β) :=
 mmap_with_index_aux f 0 as
 
-end mmap_with_index
-
-section mmap_with_index'
-
-variables {m : Type → Type v} [applicative m]
-
-def mmap_with_index'_aux (f : ℕ → α → m unit) : ℕ → list α → m unit
-| _ [] := pure ()
+def mmap_with_index'_aux (f : ℕ → α → m punit) : ℕ → list α → m punit
+| _ [] := pure ⟨⟩
 | i (a :: as) := f i a *> mmap_with_index'_aux (i + 1) as
 
-def mmap_with_index' (f : ℕ → α → m unit) (as : list α) : m unit :=
+def mmap_with_index' (f : ℕ → α → m punit) (as : list α) : m punit :=
 mmap_with_index'_aux f 0 as
 
-end mmap_with_index'
+end mmap_with_index
 
 def to_rbmap : list α → rbmap ℕ α :=
 foldl_with_index (λ i mapp a, mapp.insert i a) (mk_rbmap ℕ α)

@@ -257,21 +257,16 @@ lemma lt_comap_mk_of_map_mk_lt {I J : ideal α} {j : ideal I.quotient} :
   map_mk I J < j → J < comap_mk I j :=
 λ h, lt_of_le_of_ne
   (map_mk_le_iff_le_comap_mk.mp (le_of_lt h))
-  (λ heq, (ne_of_lt (by rwa [heq, map_mk_comap_mk_left_inverse] at h)) (rfl : j = j)),
+  (λ heq, (ne_of_lt (by rwa [heq, map_mk_comap_mk_left_inverse] at h)) (rfl : j = j))
 
 lemma top_or_maximal_of_maximal {I J : ideal α} (h : is_maximal J) :
   (map_mk I J = ⊤) ∨ (is_maximal (map_mk I J)) :=
 begin
   rw classical.or_iff_not_imp_left,
   refine λ htop, ⟨htop, λ k hk, _⟩,
-  have := congr_arg (map_mk I) (h.right _ (lt_comap_mk_of_map_mk_lt hk)),
+  have : map_mk I (comap_mk I k) = map_mk I ⊤ :=
+    congr_arg (map_mk I) (h.right _ (lt_comap_mk_of_map_mk_lt hk)),
   rwa [map_mk_comap_mk_left_inverse, map_mk_top] at this,
-end
-
-lemma mk_map_Inf {S : set (ideal α)} :
-  quotient.map_mk I (Inf S) = Inf (quotient.map_mk I '' S) :=
-begin
-  sorry
 end
 
 @[simp] lemma mk_zero (I : ideal α) : mk I 0 = 0 := rfl
@@ -300,6 +295,46 @@ not_congr zero_eq_one_iff
 
 protected theorem nontrivial {I : ideal α} (hI : I ≠ ⊤) : nontrivial I.quotient :=
 ⟨⟨0, 1, zero_ne_one_iff.2 hI⟩⟩
+
+lemma map_mk_bot {I J : ideal α} (h : J ≤ I) : map_mk I J = ⊥ :=
+begin
+  refine le_antisymm _ bot_le,
+  rintros ⟨x⟩ ⟨y, hy⟩,
+  rw [submodule.mem_bot, ← hy.right, eq_zero_iff_mem],
+  exact h hy.left,
+end
+
+lemma map_mk_self {I : ideal α} : map_mk I I = ⊥ := map_mk_bot (le_of_eq rfl)
+
+lemma comap_mk_ge {I : ideal α} {j : ideal I.quotient} : I ≤ quotient.comap_mk I j :=
+map_mk_le_iff_le_comap_mk.1 ((eq.symm (@map_mk_self _ _ I)) ▸ bot_le)
+
+lemma map_mk_Inf {I : ideal α} {S : set (ideal α)} (h : ∀ J ∈ S, I ≤ J) :
+  quotient.map_mk I (Inf S) = Inf (quotient.map_mk I '' S) :=
+begin
+  refine le_antisymm (le_Inf _) _,
+  {
+    rintros j hj ⟨x⟩ ⟨y, hy⟩,
+    cases (set.mem_image _ _ _).mp hj with J hJ,
+    exact (hJ.right) ▸ ⟨y, (Inf_le_of_le hJ.left (le_of_eq rfl)) hy.left, hy.right⟩
+  },
+  {
+    rintros ⟨x⟩ hx,
+    refine ⟨x, _, rfl⟩,
+    rw Inf_eq_infi at ⊢ hx,
+    simp at ⊢ hx,
+    intros J hJ,
+    cases hx (map_mk I J) J hJ rfl with x' hx',
+    have : x - x' ∈ J, {
+      apply h J hJ,
+      rw [← eq_zero_iff_mem, mk_sub, hx'.right, sub_eq_zero],
+      refl
+    },
+    have := J.add_mem this hx'.left,
+    ring at this,
+    exact this
+  }
+end
 
 instance (I : ideal α) [hI : I.is_prime] : integral_domain I.quotient :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b,

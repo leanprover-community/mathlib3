@@ -703,6 +703,31 @@ end
 
 lemma comap_jacobson {S : Type u} [comm_ring S] (e : S ≃+* R) {I : ideal R}
     : comap e.to_ring_hom (jacobson I) = jacobson (comap e.to_ring_hom I) := sorry
+-- begin
+--   let bij : function.bijective ⇑(e.to_ring_hom) := equiv.bijective e.to_equiv,
+--     apply le_antisymm,
+--     {
+--         intros x hx,
+--         rw mem_jacobson,
+--         intros J hJ,
+--         rw [mem_comap, mem_jacobson] at hx,
+--         specialize hx (map e.to_ring_hom J) ⟨_, _⟩,
+--         exact (mem_map_of_bijective bij).mp hx,
+--         exact (comap_le_iff_le_map_of_bijective bij).mp hJ.left,
+--         refine map.is_maximal bij.right ⟨hJ.right, _⟩,
+--         rw [map_lt_iff_comap_le_of_bijective bij, comap_top],
+--         exact lt_of_le_of_ne le_top hJ.right.left,
+--     },
+--     {
+--         intros x hx,
+--         rw [mem_comap, mem_jacobson],
+--         intros J hJ,
+--         rw mem_jacobson at hx,
+--         specialize hx (comap e.to_ring_hom J)
+--             ⟨comap_mono hJ.left, comap.is_maximal bij hJ.right⟩,
+--         exact mem_comap.mp hx,
+--     }
+-- end
 
 end jacobson
 

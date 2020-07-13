@@ -1,5 +1,6 @@
 import ring_theory.ideals
 import ring_theory.ideal_operations
+import data.mv_polynomial
 
 universe u
 
@@ -59,7 +60,6 @@ begin
   { rw is_top, exact submodule.mem_top }
 end
 
--- TODO: Would it be better to derive this as a special case
 theorem is_jacobson_iso {S : Type u} [comm_ring S] (e : S ≃+* R)
   : is_jacobson S ↔ is_jacobson R :=
 begin
@@ -79,7 +79,7 @@ begin
   }
 end
 
-theorem is_jacobson_quotient [h : is_jacobson R] : is_jacobson (quotient I) :=
+theorem is_jacobson_quotient [H : is_jacobson R] : is_jacobson (quotient I) :=
 begin
   introsI p hp,
   rw eq_jacobson_iff_Inf_maximal,
@@ -87,23 +87,35 @@ begin
   use quotient.map_mk I '' S,
   split,
   {
-    intros j hj,
-    rw set.mem_image at hj,
-    rcases hj with ⟨J, hJ, hmap⟩,
+    rintros j ⟨J, hJ, hmap⟩,
     refine ⟨hmap ▸ quotient.le_map_mk_of_comap_mk_le hJ.left, _⟩,
     exact hmap ▸ or.symm (quotient.top_or_maximal_of_maximal hJ.right)
   },
   {
-    refine le_antisymm
-    (le_Inf (λ j hj, (Exists.rec_on ((set.mem_image _ _ _).mp hj)
-        (λ J ⟨hJ, hJj⟩, (hJj ▸ quotient.le_map_mk_of_comap_mk_le hJ.left)))))
-    _,
-    {
-      rw ← quotient.mk_map_Inf,
-      sorry
-    }
+    have : quotient.map_mk I ((quotient.comap_mk I p).jacobson) = p, {
+      specialize H (quotient.comap_mk I p) (le_antisymm _ le_radical),
+      exact (eq.symm (H)) ▸ (quotient.map_mk_comap_mk_left_inverse p),
+      {
+        rw ← quotient.map_mk_le_iff_le_comap_mk,
+        rintros ⟨x⟩ ⟨y, ⟨⟨n, hy⟩, hxy⟩⟩,
+        rw [← hxy, ← hp],
+        use n,
+        rw ← quotient.mk_pow,
+        use hy,
+      }
+    },
+    exact this ▸ (quotient.map_mk_Inf (λ J hJ, le_trans (quotient.comap_mk_ge) hJ.left))
   },
 end
+
+lemma is_jacobson_polynomial (H : is_jacobson R) : is_jacobson (polynomial R) := sorry
+
+lemma is_jacobson_mv_polynomial (H : is_jacobson R) (n : ℕ) :
+  is_jacobson (mv_polynomial (fin n) R) := nat.rec_on n
+((is_jacobson_iso ((mv_polynomial.ring_equiv_of_equiv R (equiv.equiv_pempty $ fin.elim0)).trans
+                    (mv_polynomial.pempty_ring_equiv R))).mpr H)
+(λ n hn, (is_jacobson_iso (mv_polynomial.fin_succ_equiv R n)).mpr
+                    (@ideal.is_jacobson_polynomial _ _ hn))
 
 end is_jacobson
 end ideal

@@ -6,12 +6,19 @@ Authors: Aaron Anderson, Jalex Stark.
 import data.polynomial
 open polynomial finset
 
-/-
+/-!
 # Polynomials
+
 Eventually, much of data/polynomial.lean should land here.
+
 ## Main results
-- We define two ring homs : polynomial R → R,
-- `coeff_zero_ring_hom` and `leading_coeff_monoid_hom`
+
+We define two `ring_hom`s of type `polynomial R →+* R`,
+- `eval_ring_hom`
+- `coeff_zero_ring_hom`
+
+We define a `monoid_hom` of type `polynomial R →* R`,
+- `leading_coeff_monoid_hom`
 -/
 
 universes u w
@@ -23,13 +30,13 @@ namespace polynomial
 section comm_semiring
 variables [comm_semiring R]
 
-/-- `polynomial.eval` bundled as a ring_hom -/
+/-- A `ring_hom` which evaluates polynomials at a particular value -/
 noncomputable def eval_ring_hom : R → (polynomial R →+* R) := eval₂_ring_hom (ring_hom.id R)
 
 @[simp]
 lemma coe_eval_ring_hom (r : R) (p : polynomial R) : eval_ring_hom r p = eval r p := rfl
 
-/-- A ring hom returning the constant term -/
+/-- A `ring_hom` returning the constant term, by evaluating at 0 -/
 noncomputable def coeff_zero_ring_hom : polynomial R →+* R := eval_ring_hom 0
 
 @[simp]
@@ -41,7 +48,8 @@ end comm_semiring
 section integral_domain
 variable [integral_domain R]
 
-/-- `leading_coeff` bundled as a monoid hom-/
+/-- `polynomial.leading_coeff` bundled as a `monoid_hom` when `R` is an `integral_domain`, and thus
+  `leading_coeff` is multiplicative -/
 noncomputable def leading_coeff_monoid_hom : polynomial R →* R :=
 {to_fun := leading_coeff, map_one' := by simp, map_mul' := leading_coeff_mul}
 

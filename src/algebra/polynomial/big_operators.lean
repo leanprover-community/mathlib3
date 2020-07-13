@@ -6,7 +6,7 @@ Authors: Aaron Anderson, Jalex Stark.
 import algebra.polynomial.basic
 open polynomial finset
 
-/-
+/-!
 # Polynomials
 
 Lemmas for the interaction between polynomials and ∑ and ∏.

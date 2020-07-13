@@ -830,7 +830,7 @@ end
 
 /-- The sup of the directions of two affine subspaces is less than or
 equal to the direction of their sup. -/
-lemma direction_sup (s1 s2 : affine_subspace k V P) :
+lemma sup_direction_le (s1 s2 : affine_subspace k V P) :
   s1.direction ⊔ s2.direction ≤ (s1 ⊔ s2).direction :=
 begin
   repeat { rw [direction_eq_vector_span, vector_span_def] },

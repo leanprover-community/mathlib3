@@ -44,8 +44,8 @@ begin
   apply polynomial.nat_degree_mul_le, linarith,
 end
 
-/-- This requires that the product of the `leading_coeff`s is nonzero, while `leading_coeff_prod`
-  requires an `integral_domain` instance. -/
+/-- The primed `leading_coeff_prod'` requires that the product of the `leading_coeff`s is nonzero.
+  The un-primed `leading_coeff_prod` instead requires an `integral_domain` instance. -/
 lemma leading_coeff_prod' (h : ∏ i in s, (f i).leading_coeff ≠ 0) :
   (∏ i in s, f i).leading_coeff = ∏ i in s, (f i).leading_coeff :=
 begin
@@ -55,8 +55,8 @@ begin
   intro h, rw polynomial.leading_coeff_mul'; { rwa hs, apply right_ne_zero_of_mul h },
 end
 
-/-- This requires that the product of the `leading_coeff`s is nonzero, while `nat_degree_prod_eq`
-  requires an `integral_domain` instance. -/
+/-- The primed `leading_coeff_prod'` requires that the product of the `leading_coeff`s is nonzero.
+  The un-primed `leading_coeff_prod` instead requires an `integral_domain` instance. -/
 lemma nat_degree_prod_eq' (h : ∏ i in s, (f i).leading_coeff ≠ 0) :
   (∏ i in s, f i).nat_degree = ∑ i in s, (f i).nat_degree :=
 begin

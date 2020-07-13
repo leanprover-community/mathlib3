@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import geometry.manifold.basic_smooth_bundle
-import geometry.manifold.local_invariant_properties
 
 /-!
 # The derivative of functions between smooth manifolds
@@ -174,12 +173,6 @@ def mdifferentiable (f : M → M') :=
 /-- Prop registering if a local homeomorphism is a local diffeomorphism on its source -/
 def local_homeomorph.mdifferentiable (f : local_homeomorph M M') :=
 (mdifferentiable_on I I' f f.source) ∧ (mdifferentiable_on I' I f.symm f.target)
-
-/-- Prop registering the differentiability of a function on the model space. Differentiability
-in the manifold corresponds to the lift of this property to the manifold, from which one can deduce
-several properties of differentiability from general considerations. -/
-def differentiable_within_at_prop (f : H → H') (s : set H) (x : H) : Prop :=
-differentiable_within_at 𝕜 (I' ∘ f ∘ I.symm) (range I ∩ I.symm ⁻¹' s) (I x)
 
 variables [smooth_manifold_with_corners I M] [smooth_manifold_with_corners I' M']
 

@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 
 import geometry.manifold.mfderiv
+import geometry.manifold.local_invariant_properties
 
 /-!
 # Smooth functions between smooth manifolds
@@ -67,6 +68,8 @@ functions between manifolds. -/
 def times_cont_diff_within_at_prop (n : with_top ℕ) (f s x) : Prop :=
 times_cont_diff_within_at 𝕜 n (I' ∘ f ∘ I.symm) (range I ∩ I.symm ⁻¹' s) (I x)
 
+/-- Being `Cⁿ` in the model space is a local property, invariant under smooth maps. Therefore,
+it will lift nicely to manifolds. -/
 lemma times_cont_diff_within_at_local_invariant_prop (n : with_top ℕ) :
   (times_cont_diff_groupoid ∞ I).local_invariant_prop (times_cont_diff_groupoid ∞ I')
   (times_cont_diff_within_at_prop I I' n) :=
@@ -900,7 +903,9 @@ begin
       rw this,
       exact h } },
   /- Second step: check that all functions are smooth, and use the chain rule to write the bundled
-  derivative as a composition of a function between model spaces and of charts. -/
+  derivative as a composition of a function between model spaces and of charts.
+  Convention: statements about the differentiability of `a ∘ b ∘ c` are named `diff_abc`. Statements
+  about differentiability in the bundle have a `_lift` suffix. -/
   have U' : unique_mdiff_on I s',
   { apply unique_mdiff_on.inter _ l.open_source,
     rw [ho, inter_comm],

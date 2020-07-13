@@ -1946,7 +1946,7 @@ if H : bdd_above (range f) then or.inr ⟨_, tendsto_at_top_csupr h_mono H⟩
 else or.inl $ tendsto_at_top_at_top_of_monotone' h_mono H
 
 lemma tendsto_neg_nhds {α : Type*} [decidable_linear_ordered_add_comm_group α]
-  [no_bot_order α] [no_top_order α] [topological_space α] [densely_ordered α]
+  [no_bot_order α] [no_top_order α] [topological_space α]
   [order_topology α] {a : α} :
   tendsto has_neg.neg (nhds a) (nhds (-a)) :=
 begin

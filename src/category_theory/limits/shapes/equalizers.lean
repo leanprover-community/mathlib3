@@ -454,11 +454,11 @@ is_iso_limit_cone_parallel_pair_of_eq ((cancel_epi _).1 (fork.condition c)) h
 
 end
 
-/-- The equalizer of `(f, f)` is an isomorphism. -/
+/-- The equalizer inclusion for `(f, f)` is an isomorphism. -/
 instance equalizer.ι_of_self [has_limit (parallel_pair f f)] : is_iso (equalizer.ι f f) :=
 equalizer.ι_of_eq rfl
 
-/-- The equalizer of a morphism with itself is isomorphic to the target. -/
+/-- The equalizer of a morphism with itself is isomorphic to the source. -/
 def equalizer.iso_source_of_self [has_limit (parallel_pair f f)] : equalizer f f ≅ X :=
 as_iso (equalizer.ι f f)
 
@@ -567,7 +567,7 @@ is_iso_colimit_cocone_parallel_pair_of_eq ((cancel_mono _).1 (cofork.condition c
 
 end
 
-/-- The coequalizer of `(f, f)` is an isomorphism. -/
+/-- The coequalizer projection for `(f, f)` is an isomorphism. -/
 instance coequalizer.π_of_self [has_colimit (parallel_pair f f)] : is_iso (coequalizer.π f f) :=
 coequalizer.π_of_eq rfl
 

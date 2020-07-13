@@ -63,13 +63,27 @@ class is_lawful_mvfunctor {n : ℕ} (F : typevec n → Type*) [mvfunctor F] : Pr
 (comp_map     : ∀ {α β γ : typevec n} (g : α ⟹ β) (h : β ⟹ γ) (x : F α),
                     (h ⊚ g) <$$> x = h <$$> g <$$> x)
 
+open nat typevec
+
 namespace mvfunctor
 
 export is_lawful_mvfunctor (comp_map)
 open is_lawful_mvfunctor
 
 variables {α β γ : typevec.{u} n}
-variables {F : typevec.{u} n → Type v} [mvfunctor F] [is_lawful_mvfunctor F]
+variables {F : typevec.{u} n → Type v} [mvfunctor F]
+
+variables (p : α ⟹ repeat n Prop) (r : α ⊗ α ⟹ repeat n Prop)
+
+/-- adapt `mvfunctor.liftp` to accept predicates as arrows -/
+def liftp' : F α → Prop :=
+mvfunctor.liftp $ λ i x, of_repeat $ p i x
+
+/-- adapt `mvfunctor.liftp` to accept relations as arrows -/
+def liftr' : F α → F α → Prop :=
+mvfunctor.liftr $ λ i x y, of_repeat $ r i $ typevec.prod.mk _ x y
+
+variables [is_lawful_mvfunctor F]
 
 @[simp]
 lemma id_map (x : F α) :
@@ -86,17 +100,6 @@ lemma map_map (g : α ⟹ β) (h : β ⟹ γ) (x : F α) :
 eq.symm $ comp_map _ _ _
 
 section liftp'
-open nat typevec
-
-variables (p : α ⟹ repeat n Prop) (r : α ⊗ α ⟹ repeat n Prop)
-
-/-- adapt `mvfunctor.liftp` to accept predicates as arrows -/
-def liftp' : F α → Prop :=
-mvfunctor.liftp $ λ i x, of_repeat $ p i x
-
-/-- adapt `mvfunctor.liftp` to accept relations as arrows -/
-def liftr' : F α → F α → Prop :=
-mvfunctor.liftr $ λ i x y, of_repeat $ r i $ typevec.prod.mk _ x y
 
 variables (F)
 

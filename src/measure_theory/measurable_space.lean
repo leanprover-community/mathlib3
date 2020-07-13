@@ -105,10 +105,10 @@ by rwa ← h
 
 lemma is_measurable.Union [encodable β] {f : β → set α} (h : ∀b, is_measurable (f b)) :
   is_measurable (⋃b, f b) :=
-by rw encodable.Union_decode2; exact
+by { rw ← encodable.Union_decode2, exact
 ‹measurable_space α›.is_measurable_Union
   (λ n, ⋃ b ∈ decode2 β n, f b)
-  (λ n, encodable.Union_decode2_cases is_measurable.empty h)
+  (λ n, encodable.Union_decode2_cases is_measurable.empty h) }
 
 lemma is_measurable.bUnion {f : β → set α} {s : set β} (hs : countable s)
   (h : ∀b∈s, is_measurable (f b)) : is_measurable (⋃b∈s, f b) :=
@@ -888,9 +888,9 @@ by simpa using d.has_compl d.has_empty
 
 theorem has_Union {β} [encodable β] {f : β → set α}
   (hd : pairwise (disjoint on f)) (h : ∀i, d.has (f i)) : d.has (⋃i, f i) :=
-by rw encodable.Union_decode2; exact
+by { rw ← encodable.Union_decode2, exact
 d.has_Union_nat (Union_decode2_disjoint_on hd)
-  (λ n, encodable.Union_decode2_cases d.has_empty h)
+  (λ n, encodable.Union_decode2_cases d.has_empty h) }
 
 theorem has_union {s₁ s₂ : set α}
   (h₁ : d.has s₁) (h₂ : d.has s₂) (h : s₁ ∩ s₂ ⊆ ∅) : d.has (s₁ ∪ s₂) :=

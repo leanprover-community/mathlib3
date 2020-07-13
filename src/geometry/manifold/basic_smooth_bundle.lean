@@ -5,7 +5,6 @@ Authors: Sébastien Gouëzel
 -/
 import topology.topological_fiber_bundle
 import geometry.manifold.smooth_manifold_with_corners
-import tactic.basic
 
 /-!
 # Basic smooth bundles

@@ -7,8 +7,6 @@ import order.filter.ultrafilter
 import order.filter.partial
 import order.filter.bases
 
-import tactic.basic
-
 /-!
 # Basic theory of topological spaces.
 

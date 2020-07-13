@@ -158,6 +158,14 @@ begin
   rw [xeq], reflexivity
 end
 
+theorem liftp_iff' {α : Type u} (p : α → Prop) (a : P.A) (f : P.B a → α) :
+  @liftp.{u} P.obj _ α p ⟨a,f⟩ ↔ ∀ i, p (f i) :=
+begin
+  simp only [liftp_iff, sigma.mk.inj_iff]; split; intro,
+  { casesm* [Exists _, _ ∧ _], subst_vars, assumption },
+  repeat { constructor <|> assumption }
+end
+
 theorem liftr_iff {α : Type u} (r : α → α → Prop) (x y : P.obj α) :
   liftr r x y ↔ ∃ a f₀ f₁, x = ⟨a, f₀⟩ ∧ y = ⟨a, f₁⟩ ∧ ∀ i, r (f₀ i) (f₁ i) :=
 begin
@@ -172,6 +180,18 @@ begin
   dsimp, split,
   { rw [xeq], refl },
   rw [yeq], refl
+end
+
+open set
+
+theorem supp_eq {α : Type u} (a : P.A) (f : P.B a → α) :
+  @supp.{u} P.obj _ α  (⟨a,f⟩ : P.obj α) = f '' univ :=
+begin
+  ext, simp [supp], split; intro h,
+  { apply @h (λ x, ∃ (y : P.B a), f y = x),
+    rw liftp_iff', intro, refine ⟨_,rfl⟩ },
+  { simp [liftp_iff'], cases h, subst x,
+    tauto }
 end
 
 end pfunctor

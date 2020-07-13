@@ -217,8 +217,8 @@ end
 
 /-- Heine-Cantor: a continuous function on a compact separated set of a uniform space is
 uniformly continuous. -/
-lemma compact.uniform_continuous_on_of_continuous' {s : set α} {f : α → β}
-  (hs : compact s) (hs' : is_separated s) (hf : continuous_on f s) : uniform_continuous_on f s :=
+lemma is_compact.uniform_continuous_on_of_continuous' {s : set α} {f : α → β}
+  (hs : is_compact s) (hs' : is_separated s) (hf : continuous_on f s) : uniform_continuous_on f s :=
 begin
   rw uniform_continuous_on_iff_restrict,
   rw is_separated_iff_induced at hs',
@@ -230,6 +230,6 @@ end
 
 /-- Heine-Cantor: a continuous function on a compact set of a separated uniform space
 is uniformly continuous. -/
-lemma compact.uniform_continuous_on_of_continuous [separated_space α] {s : set α} {f : α → β}
-  (hs : compact s) (hf : continuous_on f s) : uniform_continuous_on f s :=
+lemma is_compact.uniform_continuous_on_of_continuous [separated_space α] {s : set α} {f : α → β}
+  (hs : is_compact s) (hf : continuous_on f s) : uniform_continuous_on f s :=
 hs.uniform_continuous_on_of_continuous' (is_separated_of_separated_space s) hf

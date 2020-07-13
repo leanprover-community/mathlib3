@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johannes Hölzl, Chris Hughes, Jens Wagemaker
 -/
 import algebra.group.basic
-import tactic.ext
-import tactic.norm_cast
 
 /-!
 # Units (i.e., invertible elements) of a multiplicative monoid
@@ -251,6 +249,9 @@ iff.intro
     have is_unit (a * ↑u * ↑u⁻¹), by existsi v * u⁻¹; rw [←hv, units.coe_mul],
     by rwa [mul_assoc, units.mul_inv, mul_one] at this)
   (assume ⟨v, hv⟩, hv ▸ ⟨v * u, (units.coe_mul v u).symm⟩)
+
+lemma is_unit.mul [monoid M] {x y : M} : is_unit x → is_unit y → is_unit (x * y) :=
+by { rintros ⟨x, rfl⟩ ⟨y, rfl⟩, exact ⟨x * y, units.coe_mul _ _⟩ }
 
 @[to_additive is_add_unit_of_add_is_add_unit_left]
 theorem is_unit_of_mul_is_unit_left [comm_monoid M] {x y : M}

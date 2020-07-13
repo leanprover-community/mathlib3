@@ -36,9 +36,9 @@ def compact_open.gen (s : set α) (u : set β) : set C(α,β) := {f | f '' s ⊆
 -- The compact-open topology on the space of continuous maps α → β.
 instance compact_open : topological_space C(α, β) :=
 topological_space.generate_from
-  {m | ∃ (s : set α) (hs : compact s) (u : set β) (hu : is_open u), m = compact_open.gen s u}
+  {m | ∃ (s : set α) (hs : is_compact s) (u : set β) (hu : is_open u), m = compact_open.gen s u}
 
-private lemma is_open_gen {s : set α} (hs : compact s) {u : set β} (hu : is_open u) :
+private lemma is_open_gen {s : set α} (hs : is_compact s) {u : set β} (hu : is_open u) :
   is_open (compact_open.gen s u) :=
 topological_space.generate_open.basic _ (by dsimp [mem_set_of_eq]; tauto)
 
@@ -48,7 +48,7 @@ variables {g : β → γ} (hg : continuous g)
 
 def induced (f : C(α, β)) : C(α, γ) := ⟨g ∘ f, hg.comp f.property⟩
 
-private lemma preimage_gen {s : set α} (hs : compact s) {u : set γ} (hu : is_open u) :
+private lemma preimage_gen {s : set α} (hs : is_compact s) {u : set γ} (hu : is_open u) :
   continuous_map.induced hg ⁻¹' (compact_open.gen s u) = compact_open.gen s (g ⁻¹' u) :=
 begin
   ext ⟨f, _⟩,

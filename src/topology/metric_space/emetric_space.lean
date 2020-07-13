@@ -132,7 +132,7 @@ lemma edist_triangle4 (x y z t : α) :
   edist x t ≤ edist x y + edist y z + edist z t :=
 calc
   edist x t ≤ edist x z + edist z t : edist_triangle x z t
-... ≤ (edist x y + edist y z) + edist z t : add_le_add_right' (edist_triangle x y z)
+... ≤ (edist x y + edist y z) + edist z t : add_le_add_right (edist_triangle x y z) _
 
 /-- The triangle (polygon) inequality for sequences of points; `finset.Ico` version. -/
 lemma edist_le_Ico_sum_edist (f : ℕ → α) {m n} (h : m ≤ n) :
@@ -646,7 +646,7 @@ theorem totally_bounded_iff' {s : set α} :
 section compact
 
 /-- A compact set in an emetric space is separable, i.e., it is the closure of a countable set -/
-lemma countable_closure_of_compact {α : Type u} [emetric_space α] {s : set α} (hs : compact s) :
+lemma countable_closure_of_compact {α : Type u} [emetric_space α] {s : set α} (hs : is_compact s) :
   ∃ t ⊆ s, (countable t ∧ s = closure t) :=
 begin
   have A : ∀ (e:ennreal), e > 0 → ∃ t ⊆ s, (finite t ∧ s ⊆ (⋃x∈t, ball x e)) :=

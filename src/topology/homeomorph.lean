@@ -78,10 +78,10 @@ le_antisymm
 protected lemma embedding (h : α ≃ₜ β) : embedding h :=
 ⟨⟨h.induced_eq.symm⟩, h.to_equiv.injective⟩
 
-lemma compact_image {s : set α} (h : α ≃ₜ β) : compact (h '' s) ↔ compact s :=
+lemma compact_image {s : set α} (h : α ≃ₜ β) : is_compact (h '' s) ↔ is_compact s :=
 h.embedding.compact_iff_compact_image.symm
 
-lemma compact_preimage {s : set β} (h : α ≃ₜ β) : compact (h ⁻¹' s) ↔ compact s :=
+lemma compact_preimage {s : set β} (h : α ≃ₜ β) : is_compact (h ⁻¹' s) ↔ is_compact s :=
 by rw ← image_symm; exact h.symm.compact_image
 
 protected lemma dense_embedding (h : α ≃ₜ β) : dense_embedding h :=
@@ -101,6 +101,12 @@ begin
   assume s,
   rw ← h.preimage_symm,
   exact continuous_iff_is_closed.1 (h.symm.continuous) _
+end
+
+@[simp] lemma is_open_preimage (h : α ≃ₜ β) {s : set β} : is_open (h ⁻¹' s) ↔ is_open s :=
+begin
+  refine ⟨λ hs, _, h.continuous_to_fun s⟩,
+  rw [← (image_preimage_eq h.to_equiv.surjective : _ = s)], exact h.is_open_map _ hs
 end
 
 /-- If an bijective map `e : α ≃ β` is continuous and open, then it is a homeomorphism. -/

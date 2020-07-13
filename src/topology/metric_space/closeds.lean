@@ -51,11 +51,11 @@ begin
   calc inf_edist x (s.val) ≤ inf_edist x (t.val) + Hausdorff_edist (t.val) (s.val) :
     inf_edist_le_inf_edist_add_Hausdorff_edist
   ... ≤ (inf_edist y (t.val) + edist x y) + Hausdorff_edist (t.val) (s.val) :
-    add_le_add_right' inf_edist_le_inf_edist_add_edist
+    add_le_add_right inf_edist_le_inf_edist_add_edist _
   ... = inf_edist y (t.val) + (edist x y + Hausdorff_edist (s.val) (t.val)) :
     by simp [add_comm, add_left_comm, Hausdorff_edist_comm, -subtype.val_eq_coe]
   ... ≤ inf_edist y (t.val) + (edist (x, s) (y, t) + edist (x, s) (y, t)) :
-    add_le_add_left' (add_le_add (by simp [edist, le_refl]) (by simp [edist, le_refl]))
+    add_le_add_left (add_le_add (le_max_left _ _) (le_max_right _ _)) _
   ... = inf_edist y (t.val) + 2 * edist (x, s) (y, t) :
     by rw [← mul_two, mul_comm]
 end
@@ -217,7 +217,7 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
   -- `F` is ε-dense
   { assume u _,
     rcases main u.val with ⟨t0, t0s, Dut0⟩,
-    have : is_closed t0 := (fs.subset t0s).compact.is_closed,
+    have : is_closed t0 := (fs.subset t0s).is_compact.is_closed,
     let t : closeds α := ⟨t0, this⟩,
     have : t ∈ F := t0s,
     have : edist u t < ε := lt_of_le_of_lt Dut0 δlt,
@@ -247,7 +247,7 @@ isometry.uniform_embedding $ λx y, rfl
 lemma nonempty_compacts.is_closed_in_closeds [complete_space α] :
   is_closed (range $ @nonempty_compacts.to_closeds α _ _) :=
 begin
-  have : range nonempty_compacts.to_closeds = {s : closeds α | s.val.nonempty ∧ compact s.val},
+  have : range nonempty_compacts.to_closeds = {s : closeds α | s.val.nonempty ∧ is_compact s.val},
     from range_inclusion _,
   rw this,
   refine is_closed_of_closure_subset (λs hs, ⟨_, _⟩),
@@ -366,7 +366,7 @@ begin
       have hc : c.nonempty,
         from nonempty_of_Hausdorff_edist_ne_top t.property.1 (ne_top_of_lt Dtc),
       -- let `d` be the version of `c` in the type `nonempty_compacts α`
-      let d : nonempty_compacts α := ⟨c, ⟨hc, ‹finite c›.compact⟩⟩,
+      let d : nonempty_compacts α := ⟨c, ⟨hc, ‹finite c›.is_compact⟩⟩,
       have : c ⊆ s,
       { assume x hx,
         rcases (mem_image _ _ _).1 hx.1 with ⟨y, ⟨ya, yx⟩⟩,

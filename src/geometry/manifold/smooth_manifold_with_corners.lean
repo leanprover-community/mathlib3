@@ -474,6 +474,16 @@ begin
     exact h3, }
 end
 
+/-- The `C^n` groupoid is closed under restriction. -/
+instance : closed_under_restriction (times_cont_diff_groupoid n I) :=
+(closed_under_restriction_iff_id_le _).mpr
+begin
+  apply structure_groupoid.le_iff.mpr,
+  rintros e ⟨s, hs, hes⟩,
+  apply (times_cont_diff_groupoid n I).eq_on_source' _ _ _ hes,
+  exact of_set_mem_times_cont_diff_groupoid n I hs,
+end
+
 end times_cont_diff_groupoid
 
 end model_with_corners

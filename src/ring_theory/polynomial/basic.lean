@@ -260,7 +260,8 @@ is_noetherian_submodule_left.1 (is_noetherian_of_fg_of_noetherian _
 end ideal
 
 /-- Hilbert basis theorem: a polynomial ring over a noetherian ring is a noetherian ring. -/
-protected theorem polynomial.is_noetherian_ring [is_noetherian_ring R] : is_noetherian_ring (polynomial R) :=
+protected theorem polynomial.is_noetherian_ring [is_noetherian_ring R] :
+  is_noetherian_ring (polynomial R) :=
 ⟨assume I : ideal (polynomial R),
 let L := I.leading_coeff in
 let M := well_founded.min (is_noetherian_iff_well_founded.1 (by apply_instance))
@@ -288,7 +289,7 @@ from hs ▸ λ x hx, submodule.span_induction hx (λ _ hx, ideal.subset_span hx)
     have : (0 : R) ≠ 1,
     { intro h, apply hp0, ext i, refine (mul_one _).symm.trans _,
       rw [← h, mul_zero], refl },
-    haveI : nonzero R := ⟨this⟩,
+    haveI : nontrivial R := ⟨⟨0, 1, this⟩⟩,
     have : p.leading_coeff ∈ I.leading_coeff_nth N,
     { rw HN, exact hm2 k ((I.mem_leading_coeff_nth _ _).2
         ⟨_, hp, hn ▸ polynomial.degree_le_nat_degree, rfl⟩) },
@@ -318,6 +319,24 @@ from hs ▸ λ x hx, submodule.span_induction hx (λ _ hx, ideal.subset_span hx)
 end⟩⟩
 
 attribute [instance] polynomial.is_noetherian_ring
+
+namespace polynomial
+
+theorem exists_irreducible_of_degree_pos {R : Type u} [integral_domain R] [is_noetherian_ring R]
+  {f : polynomial R} (hf : 0 < f.degree) : ∃ g, irreducible g ∧ g ∣ f :=
+is_noetherian_ring.exists_irreducible_factor
+  (λ huf, ne_of_gt hf $ degree_eq_zero_of_is_unit huf)
+  (λ hf0, not_lt_of_lt hf $ hf0.symm ▸ (@degree_zero R _).symm ▸ with_bot.bot_lt_coe _)
+
+theorem exists_irreducible_of_nat_degree_pos {R : Type u} [integral_domain R] [is_noetherian_ring R]
+  {f : polynomial R} (hf : 0 < f.nat_degree) : ∃ g, irreducible g ∧ g ∣ f :=
+exists_irreducible_of_degree_pos $ by { contrapose! hf, exact nat_degree_le_of_degree_le hf }
+
+theorem exists_irreducible_of_nat_degree_ne_zero {R : Type u} [integral_domain R] [is_noetherian_ring R]
+  {f : polynomial R} (hf : f.nat_degree ≠ 0) : ∃ g, irreducible g ∧ g ∣ f :=
+exists_irreducible_of_nat_degree_pos $ nat.pos_of_ne_zero hf
+
+end polynomial
 
 namespace mv_polynomial
 
@@ -398,14 +417,13 @@ end
 instance {R : Type u} {σ : Type v} [integral_domain R] :
   integral_domain (mv_polynomial σ R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := mv_polynomial.eq_zero_or_eq_zero_of_mul_eq_zero,
-  zero_ne_one :=
+  exists_pair_ne := ⟨0, 1, λ H,
   begin
-    intro H,
     have : eval₂ id (λ s, (0:R)) (0 : mv_polynomial σ R) =
       eval₂ id (λ s, (0:R)) (1 : mv_polynomial σ R),
     { congr, exact H },
     simpa,
-  end,
+  end⟩,
   .. (by apply_instance : comm_ring (mv_polynomial σ R)) }
 
 end mv_polynomial

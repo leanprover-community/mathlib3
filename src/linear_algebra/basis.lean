@@ -258,11 +258,11 @@ begin
     use i,
     rw [mem_preimage, hi],
     exact ⟨hx, rfl⟩ },
-  apply finsupp.eq_zero_of_comap_domain_eq_zero v l,
+  apply finsupp.eq_zero_of_comap_domain_eq_zero v l h_bij,
   apply linear_independent_iff.1 hv,
-  rw [finsupp.total_comap_domain, finset.sum_preimage v l.support h_bij (λ (x : M), l x • x)],
-  rw [finsupp.total_apply, finsupp.sum] at hl₂,
-  apply hl₂
+  rw [finsupp.total_comap_domain, finset.sum_preimage_of_bij v l.support h_bij
+    (λ (x : M), l x • x)],
+  rwa [finsupp.total_apply, finsupp.sum] at hl₂
 end
 
 lemma linear_independent.of_subtype_range (hv : injective v)
@@ -1286,9 +1286,7 @@ begin
   apply (is_basis_fun₀ R η).comp (λ i, ⟨i, punit.star⟩),
   apply bijective_iff_has_inverse.2,
   use sigma.fst,
-  suffices : ∀ (a : η) (b : unit), punit.star = b,
-  { simpa [function.left_inverse, function.right_inverse] },
-  exact λ _, punit_eq _
+  simp [function.left_inverse, function.right_inverse]
 end
 
 end

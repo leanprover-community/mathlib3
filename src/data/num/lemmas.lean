@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
 import data.num.bitwise
-import data.int.basic
+import data.int.char_zero
 import data.nat.gcd
 
 /-!
@@ -1027,7 +1027,7 @@ instance : decidable_linear_ordered_comm_ring znum :=
   left_distrib     := by {transfer, simp [mul_add]},
   right_distrib    := by {transfer, simp [mul_add, mul_comm]},
   mul_comm         := by transfer,
-  zero_ne_one      := dec_trivial,
+  exists_pair_ne   := ⟨0, 1, dec_trivial⟩,
   add_le_add_left  := by {intros a b h c, revert h, transfer_rw, exact λ h, add_le_add_left h c},
   mul_pos          := λ a b, show 0 < a → 0 < b → 0 < a * b, by {transfer_rw, apply mul_pos},
   zero_lt_one      := dec_trivial,

@@ -68,6 +68,14 @@ lemma eventually_at_top {α} [semilattice_sup α] [nonempty α] {p : α → Prop
   (∀ᶠ x in at_top, p x) ↔ (∃ a, ∀ b ≥ a, p b) :=
 by simp only [filter.eventually, filter.mem_at_top_sets, mem_set_of_eq]
 
+lemma order_top.at_top_eq (α) [order_top α] : (at_top : filter α) = pure ⊤ :=
+le_antisymm (le_pure_iff.2 $ mem_sets_of_superset (mem_at_top ⊤) $ λ b, top_unique)
+  (le_infi $ λ b, le_principal_iff.2 le_top)
+
+lemma tendsto_at_top_pure {α} [order_top α] (f : α → β) :
+  tendsto f at_top (pure $ f ⊤) :=
+(order_top.at_top_eq α).symm ▸ tendsto_pure_pure _ _
+
 @[nolint ge_or_gt]
 lemma eventually.exists_forall_of_at_top {α} [semilattice_sup α] [nonempty α] {p : α → Prop}
   (h : ∀ᶠ x in at_top, p x) : ∃ a, ∀ b ≥ a, p b :=
@@ -105,11 +113,10 @@ calc map f (⨅a, 𝓟 {a' | a ≤ a'}) = (⨅a, map f $ 𝓟 {a' | a ≤ a'}) :
   ... = (⨅a, 𝓟 $ f '' {a' | a ≤ a'}) : by simp only [map_principal, eq_self_iff_true]
 
 lemma tendsto_at_top [preorder β] (m : α → β) (f : filter α) :
-  tendsto m f at_top ↔ (∀b, {a | b ≤ m a} ∈ f) :=
-by simp only [at_top, tendsto_infi, tendsto_principal]; refl
+  tendsto m f at_top ↔ (∀b, ∀ᶠ a in f, b ≤ m a) :=
+by simp only [at_top, tendsto_infi, tendsto_principal, mem_set_of_eq]
 
-lemma tendsto_at_top_mono' [preorder β] (l : filter α) ⦃f₁ f₂ : α → β⦄
-  (h : ∀ᶠ x in l, f₁ x ≤ f₂ x) :
+lemma tendsto_at_top_mono' [preorder β] (l : filter α) ⦃f₁ f₂ : α → β⦄ (h : f₁ ≤ᶠ[l] f₂) :
   tendsto f₁ l at_top → tendsto f₂ l at_top :=
 assume h₁, (tendsto_at_top _ _).2 $ λ b, mp_sets ((tendsto_at_top _ _).1 h₁ b)
   (monotone_mem_sets (λ a ha ha₁, le_trans ha₁ ha) h)
@@ -226,72 +233,78 @@ lemma strict_mono_tendsto_at_top {φ : ℕ → ℕ} (h : strict_mono φ) :
   tendsto φ at_top at_top :=
 tendsto_at_top_mono h.id_le tendsto_id
 
-section ordered_add_monoid
+section ordered_add_comm_monoid
 
-variables [ordered_cancel_add_comm_monoid β] (l : filter α) {f g : α → β}
+variables [ordered_add_comm_monoid β] {l : filter α} {f g : α → β}
 
-lemma tendsto_at_top_add_nonneg_left' (hf : {x | 0 ≤ f x} ∈ l) (hg : tendsto g l at_top) :
+lemma tendsto_at_top_add_nonneg_left' (hf : ∀ᶠ x in l, 0 ≤ f x) (hg : tendsto g l at_top) :
   tendsto (λ x, f x + g x) l at_top :=
-tendsto_at_top_mono' l (monotone_mem_sets (λ x, le_add_of_nonneg_left) hf) hg
+tendsto_at_top_mono' l (hf.mono (λ x, le_add_of_nonneg_left)) hg
 
 lemma tendsto_at_top_add_nonneg_left (hf : ∀ x, 0 ≤ f x) (hg : tendsto g l at_top) :
   tendsto (λ x, f x + g x) l at_top :=
-tendsto_at_top_add_nonneg_left' l (univ_mem_sets' hf) hg
+tendsto_at_top_add_nonneg_left' (eventually_of_forall hf) hg
 
-lemma tendsto_at_top_add_nonneg_right' (hf : tendsto f l at_top) (hg : {x | 0 ≤ g x} ∈ l) :
+lemma tendsto_at_top_add_nonneg_right' (hf : tendsto f l at_top) (hg : ∀ᶠ x in l, 0 ≤ g x) :
   tendsto (λ x, f x + g x) l at_top :=
 tendsto_at_top_mono' l (monotone_mem_sets (λ x, le_add_of_nonneg_right) hg) hf
 
 lemma tendsto_at_top_add_nonneg_right (hf : tendsto f l at_top) (hg : ∀ x, 0 ≤ g x) :
   tendsto (λ x, f x + g x) l at_top :=
-tendsto_at_top_add_nonneg_right' l hf (univ_mem_sets' hg)
+tendsto_at_top_add_nonneg_right' hf (eventually_of_forall hg)
+
+end ordered_add_comm_monoid
+
+section ordered_cancel_add_comm_monoid
+
+variables [ordered_cancel_add_comm_monoid β] {l : filter α} {f g : α → β}
 
 lemma tendsto_at_top_of_add_const_left (C : β) (hf : tendsto (λ x, C + f x) l at_top) :
   tendsto f l at_top :=
 (tendsto_at_top _ l).2 $ assume b,
-  monotone_mem_sets (λ x, le_of_add_le_add_left) ((tendsto_at_top _ _).1 hf (C + b))
+  ((tendsto_at_top _ _).1 hf (C + b)).mono (λ x, le_of_add_le_add_left)
 
 lemma tendsto_at_top_of_add_const_right (C : β) (hf : tendsto (λ x, f x + C) l at_top) :
   tendsto f l at_top :=
 (tendsto_at_top _ l).2 $ assume b,
-  monotone_mem_sets (λ x, le_of_add_le_add_right) ((tendsto_at_top _ _).1 hf (b + C))
+  ((tendsto_at_top _ _).1 hf (b + C)).mono (λ x, le_of_add_le_add_right)
 
-lemma tendsto_at_top_of_add_bdd_above_left' (C) (hC : {x | f x ≤ C} ∈ l)
+lemma tendsto_at_top_of_add_bdd_above_left' (C) (hC : ∀ᶠ x in l, f x ≤ C)
   (h : tendsto (λ x, f x + g x) l at_top) :
   tendsto g l at_top :=
-tendsto_at_top_of_add_const_left l C
-  (tendsto_at_top_mono' l (monotone_mem_sets (λ x (hx : f x ≤ C), add_le_add_right hx (g x)) hC) h)
+tendsto_at_top_of_add_const_left C
+  (tendsto_at_top_mono' l (hC.mono (λ x hx, add_le_add_right hx (g x))) h)
 
 lemma tendsto_at_top_of_add_bdd_above_left (C) (hC : ∀ x, f x ≤ C) :
   tendsto (λ x, f x + g x) l at_top → tendsto g l at_top :=
-tendsto_at_top_of_add_bdd_above_left' l C (univ_mem_sets' hC)
+tendsto_at_top_of_add_bdd_above_left' C (univ_mem_sets' hC)
 
-lemma tendsto_at_top_of_add_bdd_above_right' (C) (hC : {x | g x ≤ C} ∈ l)
+lemma tendsto_at_top_of_add_bdd_above_right' (C) (hC : ∀ᶠ x in l, g x ≤ C)
   (h : tendsto (λ x, f x + g x) l at_top) :
   tendsto f l at_top :=
-tendsto_at_top_of_add_const_right l C
-  (tendsto_at_top_mono' l (monotone_mem_sets (λ x (hx : g x ≤ C), add_le_add_left hx (f x)) hC) h)
+tendsto_at_top_of_add_const_right C
+  (tendsto_at_top_mono' l (hC.mono (λ x hx, add_le_add_left hx (f x))) h)
 
 lemma tendsto_at_top_of_add_bdd_above_right (C) (hC : ∀ x, g x ≤ C) :
   tendsto (λ x, f x + g x) l at_top → tendsto f l at_top :=
-tendsto_at_top_of_add_bdd_above_right' l C (univ_mem_sets' hC)
+tendsto_at_top_of_add_bdd_above_right' C (univ_mem_sets' hC)
 
-end ordered_add_monoid
+end ordered_cancel_add_comm_monoid
 
 section ordered_group
 
 variables [ordered_add_comm_group β] (l : filter α) {f g : α → β}
 
-lemma tendsto_at_top_add_left_of_le' (C : β) (hf : {x | C ≤ f x} ∈ l) (hg : tendsto g l at_top) :
+lemma tendsto_at_top_add_left_of_le' (C : β) (hf : ∀ᶠ x in l, C ≤ f x) (hg : tendsto g l at_top) :
   tendsto (λ x, f x + g x) l at_top :=
 @tendsto_at_top_of_add_bdd_above_left' _ _ _ l (λ x, -(f x)) (λ x, f x + g x) (-C)
-  (by simp [hf]) (by simp [hg])
+  (by simpa) (by simpa)
 
 lemma tendsto_at_top_add_left_of_le (C : β) (hf : ∀ x, C ≤ f x) (hg : tendsto g l at_top) :
   tendsto (λ x, f x + g x) l at_top :=
 tendsto_at_top_add_left_of_le' l C (univ_mem_sets' hf) hg
 
-lemma tendsto_at_top_add_right_of_le' (C : β) (hf : tendsto f l at_top) (hg : {x | C ≤ g x} ∈ l) :
+lemma tendsto_at_top_add_right_of_le' (C : β) (hf : tendsto f l at_top) (hg : ∀ᶠ x in l, C ≤ g x) :
   tendsto (λ x, f x + g x) l at_top :=
 @tendsto_at_top_of_add_bdd_above_right' _ _ _ l (λ x, f x + g x) (λ x, -(g x)) (-C)
   (by simp [hg]) (by simp [hf])
@@ -397,7 +410,7 @@ begin
     inhabit β₂,
     simp [at_top, prod_infi_left (default β₁), prod_infi_right (default β₂), infi_prod],
     exact infi_comm },
-  { push_neg at ne,
+  { rw not_and_distrib at ne,
     cases ne;
     { have : ¬ (nonempty (β₁ × β₂)), by simp [ne],
       rw [at_top.filter_eq_bot_of_not_nonempty ne, at_top.filter_eq_bot_of_not_nonempty this],
@@ -465,7 +478,6 @@ map_at_top_eq_of_gc (λb, b * k + (k - 1)) 1
   (assume b _,
     calc b = (b * k) / k : by rw [nat.mul_div_cancel b hk]
       ... ≤ (b * k + (k - 1)) / k : nat.div_le_div_right $ nat.le_add_right _ _)
-
 
 /-- If `u` is a monotone function with linear ordered codomain and the range of `u` is not bounded
 above, then `tendsto u at_top at_top`. -/

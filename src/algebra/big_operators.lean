@@ -4,13 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
+import algebra.opposites
 import data.finset.intervals
 import data.finset.fold
 import data.finset.powerset
 import data.finset.pi
 import data.equiv.mul_add
 import tactic.abel
-import tactic.simp_rw
 import data.nat.enat
 
 /-!
@@ -322,13 +322,18 @@ have ∏ x in s₂ \ s₁, f x = ∏ x in s₂ \ s₁, 1,
   from prod_congr rfl $ by simpa only [mem_sdiff, and_imp],
 by rw [←prod_sdiff h]; simp only [this, prod_const_one, one_mul]
 
+@[to_additive]
+lemma prod_filter_of_ne {p : α → Prop} [decidable_pred p] (hp : ∀ x ∈ s, f x ≠ 1 → p x) :
+  (∏ x in (s.filter p), f x) = (∏ x in s, f x) :=
+prod_subset (filter_subset _) $ λ x,
+  by { classical, rw [not_imp_comm, mem_filter], exact λ h₁ h₂, ⟨h₁, hp _ h₁ h₂⟩ }
+
 -- If we use `[decidable_eq β]` here, some rewrites fail because they find a wrong `decidable`
 -- instance first; `{∀x, decidable (f x ≠ 1)}` doesn't work with `rw ← prod_filter_ne_one`
 @[to_additive]
 lemma prod_filter_ne_one [∀ x, decidable (f x ≠ 1)] :
   (∏ x in (s.filter $ λx, f x ≠ 1), f x) = (∏ x in s, f x) :=
-prod_subset (filter_subset _) $ λ x,
-  by { classical, rw [not_imp_comm, mem_filter], exact and.intro }
+prod_filter_of_ne $ λ _ _, id
 
 @[to_additive]
 lemma prod_filter (p : α → Prop) [decidable_pred p] (f : α → β) :
@@ -360,7 +365,7 @@ from classical.by_cases
       prod_const_one.trans (h₁ this).symm)
 
 @[to_additive]
-lemma prod_attach {f : α → β} : (∏ x in s.attach, f x.val) = (∏ x in s, f x) :=
+lemma prod_attach {f : α → β} : (∏ x in s.attach, f x) = (∏ x in s, f x) :=
 by haveI := classical.dec_eq α; exact
   calc (∏ x in s.attach, f x.val) = (∏ x in (s.attach).image subtype.val, f x) :
     by rw [prod_image]; exact assume x _ y _, subtype.eq
@@ -649,7 +654,6 @@ begin
   apply hs, intros a ha, apply p_s, simp [ha],
 end
 
-
 /-- For any product along `{0, ..., n-1}` of a commutative-monoid-valued function, we can verify that
 it's equal to a different function just by checking ratios of adjacent terms.
 This is a multiplicative discrete analogue of the fundamental theorem of calculus. -/
@@ -684,7 +688,7 @@ by { apply sum_range_induction; abel, simp }
 reduces to the ratio of the last and first factors.-/
 @[to_additive]
 lemma prod_range_div {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
-  ∏ i in range n, (f (i+1) * (f i)⁻¹ ) = f n * (f 0)⁻¹ :=
+  ∏ i in range n, (f (i+1) * (f i)⁻¹) = f n * (f 0)⁻¹ :=
 by apply @sum_range_sub (additive M)
 
 @[to_additive]
@@ -1110,11 +1114,6 @@ calc (∑ x in s, f x) / b = ∑ x in s, f x * (1 / b) : by rw [div_eq_mul_one_d
 section comm_semiring
 variables [comm_semiring β]
 
-lemma prod_eq_zero (ha : a ∈ s) (h : f a = 0) : (∏ x in s, f x) = 0 :=
-by haveI := classical.dec_eq α;
-calc (∏ x in s, f x) = ∏ x in insert a (erase s a), f x : by rw insert_erase ha
-                 ... = 0 : by rw [prod_insert (not_mem_erase _ _), h, zero_mul]
-
 /-- The product over a sum can be written as a sum over the product of sets, `finset.pi`.
   `finset.prod_univ_sum` is an alternative statement when the product is over `univ`. -/
 lemma prod_sum {δ : α → Type*} [decidable_eq α] [∀a, decidable_eq (δ a)]
@@ -1204,8 +1203,15 @@ end
 
 end comm_semiring
 
-section integral_domain /- add integral_semi_domain to support nat and ennreal -/
-variables [integral_domain β]
+section prod_eq_zero
+variables [comm_monoid_with_zero β]
+
+lemma prod_eq_zero (ha : a ∈ s) (h : f a = 0) : (∏ x in s, f x) = 0 :=
+by haveI := classical.dec_eq α;
+calc (∏ x in s, f x) = ∏ x in insert a (erase s a), f x : by rw insert_erase ha
+                 ... = 0 : by rw [prod_insert (not_mem_erase _ _), h, zero_mul]
+
+variables [nontrivial β] [no_zero_divisors β]
 
 lemma prod_eq_zero_iff : (∏ x in s, f x) = 0 ↔ (∃a∈s, f a = 0) :=
 begin
@@ -1219,7 +1225,7 @@ end
 theorem prod_ne_zero_iff : (∏ x in s, f x) ≠ 0 ↔ (∀ a ∈ s, f a ≠ 0) :=
 by { rw [ne, prod_eq_zero_iff], push_neg }
 
-end integral_domain
+end prod_eq_zero
 
 section ordered_add_comm_monoid
 variables [ordered_add_comm_monoid β]
@@ -1245,7 +1251,7 @@ lemma sum_le_sum_of_subset_of_nonneg
   (h : s₁ ⊆ s₂) (hf : ∀x∈s₂, x ∉ s₁ → 0 ≤ f x) : (∑ x in s₁, f x) ≤ (∑ x in s₂, f x) :=
 by classical;
 calc (∑ x in s₁, f x) ≤ (∑ x in s₂ \ s₁, f x) + (∑ x in s₁, f x) :
-    le_add_of_nonneg_left' $ sum_nonneg $ by simpa only [mem_sdiff, and_imp]
+    le_add_of_nonneg_left $ sum_nonneg $ by simpa only [mem_sdiff, and_imp]
   ... = ∑ x in s₂ \ s₁ ∪ s₁, f x : (sum_union sdiff_disjoint).symm
   ... = (∑ x in s₂, f x)         : by rw [sdiff_union_of_subset h]
 
@@ -1536,5 +1542,16 @@ begin
   simp only [← lt_top_iff_ne_top],
   exact sum_lt_top_iff
 end
+
+open opposite
+
+/-- Moving to the opposite additive commutative monoid commutes with summing. -/
+@[simp] lemma op_sum [add_comm_monoid β] {s : finset α} (f : α → β) :
+  op (∑ x in s, f x) = ∑ x in s, op (f x) :=
+(@op_add_hom β _).map_sum _ _
+
+@[simp] lemma unop_sum [add_comm_monoid β] {s : finset α} (f : α → βᵒᵖ) :
+  unop (∑ x in s, f x) = ∑ x in s, unop (f x) :=
+(@unop_add_hom β _).map_sum _ _
 
 end with_top

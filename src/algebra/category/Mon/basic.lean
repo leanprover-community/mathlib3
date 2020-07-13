@@ -15,34 +15,7 @@ We introduce the bundled categories:
 * `CommMon`
 * `AddCommMon`
 along with the relevant forgetful functors between them.
-
-## Implementation notes
-
-See the note [locally reducible category instances].
 -/
-
-/--
-We make SemiRing (and the other categories) locally reducible in order
-to define its instances. This is because writing, for example,
-
-```
-instance : concrete_category SemiRing := by { delta SemiRing, apply_instance }
-```
-
-results in an instance of the form `id (bundled_hom.concrete_category _)`
-and this `id`, not being [reducible], prevents a later instance search
-(once SemiRing is no longer reducible) from seeing that the morphisms of
-SemiRing are really semiring morphisms (`→+*`), and therefore have a coercion
-to functions, for example. It's especially important that the `has_coe_to_sort`
-instance not contain an extra `id` as we want the `semiring ↥R` instance to
-also apply to `semiring R.α` (it seems to be impractical to guarantee that
-we always access `R.α` through the coercion rather than directly).
-
-TODO: Probably @[derive] should be able to create instances of the
-required form (without `id`), and then we could use that instead of
-this obscure `local attribute [reducible]` method.
--/
-library_note "locally reducible category instances"
 
 universes u v
 
@@ -57,11 +30,17 @@ add_decl_doc AddMon
 
 namespace Mon
 
+@[to_additive]
+instance bundled_hom : bundled_hom @monoid_hom :=
+⟨@monoid_hom.to_fun, @monoid_hom.id, @monoid_hom.comp, @monoid_hom.coe_inj⟩
+
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] Mon AddMon
+
 /-- Construct a bundled `Mon` from the underlying type and typeclass. -/
 @[to_additive]
 def of (M : Type u) [monoid M] : Mon := bundled.of M
 
-/-- Construct a bundled Mon from the underlying type and typeclass. -/
+/-- Construct a bundled `Mon` from the underlying type and typeclass. -/
 add_decl_doc AddMon.of
 
 @[to_additive]
@@ -70,23 +49,8 @@ instance : inhabited Mon :=
 -- which breaks to_additive.
 ⟨@of punit $ @group.to_monoid _ $ @comm_group.to_group _ punit.comm_group⟩
 
-local attribute [reducible] Mon
-
-@[to_additive]
-instance : has_coe_to_sort Mon := infer_instance -- short-circuit type class inference
-
 @[to_additive add_monoid]
 instance (M : Mon) : monoid M := M.str
-
-@[to_additive]
-instance bundled_hom : bundled_hom @monoid_hom :=
-⟨@monoid_hom.to_fun, @monoid_hom.id, @monoid_hom.comp, @monoid_hom.coe_inj⟩
-
-@[to_additive]
-instance : category Mon := infer_instance -- short-circuit type class inference
-
-@[to_additive]
-instance : concrete_category Mon := infer_instance -- short-circuit type class inference
 
 end Mon
 
@@ -102,6 +66,8 @@ namespace CommMon
 @[to_additive]
 instance : bundled_hom.parent_projection comm_monoid.to_monoid := ⟨⟩
 
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommMon AddCommMon
+
 /-- Construct a bundled `CommMon` from the underlying type and typeclass. -/
 @[to_additive]
 def of (M : Type u) [comm_monoid M] : CommMon := bundled.of M
@@ -115,19 +81,8 @@ instance : inhabited CommMon :=
 -- which breaks to_additive.
 ⟨@of punit $ @comm_group.to_comm_monoid _ punit.comm_group⟩
 
-local attribute [reducible] CommMon
-
-@[to_additive]
-instance : has_coe_to_sort CommMon := infer_instance -- short-circuit type class inference
-
 @[to_additive add_comm_monoid]
 instance (M : CommMon) : comm_monoid M := M.str
-
-@[to_additive]
-instance : category CommMon := infer_instance -- short-circuit type class inference
-
-@[to_additive]
-instance : concrete_category CommMon := infer_instance -- short-circuit type class inference
 
 @[to_additive has_forget_to_AddMon]
 instance has_forget_to_Mon : has_forget₂ CommMon Mon := bundled_hom.forget₂ _ _

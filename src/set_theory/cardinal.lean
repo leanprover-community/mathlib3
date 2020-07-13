@@ -110,12 +110,15 @@ not_iff_comm.1
 
 instance : has_one cardinal.{u} := ⟨⟦punit⟧⟩
 
-instance : nonzero cardinal.{u} :=
-{ zero_ne_one := ne.symm $ ne_zero_iff_nonempty.2 ⟨punit.star⟩ }
+instance : nontrivial cardinal.{u} :=
+⟨⟨1, 0, ne_zero_iff_nonempty.2 ⟨punit.star⟩⟩⟩
 
 theorem le_one_iff_subsingleton {α : Type u} : mk α ≤ 1 ↔ subsingleton α :=
 ⟨λ ⟨f⟩, ⟨λ a b, f.injective (subsingleton.elim _ _)⟩,
  λ ⟨h⟩, ⟨⟨λ a, punit.star, λ a b _, h _ _⟩⟩⟩
+
+theorem one_lt_iff_nontrivial {α : Type u} : 1 < mk α ↔ nontrivial α :=
+by { rw [← not_iff_not, not_nontrivial_iff_subsingleton, ← le_one_iff_subsingleton], simp }
 
 instance : has_add cardinal.{u} :=
 ⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, mk (α ⊕ β)) $ assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
@@ -240,7 +243,7 @@ lemma zero_power_le (c : cardinal.{u}) : (0 : cardinal.{u}) ^ c ≤ 1 :=
 by { by_cases h : c = 0, rw [h, power_zero], rw [zero_power h], apply zero_le }
 
 theorem add_le_add : ∀{a b c d : cardinal}, a ≤ b → c ≤ d → a + c ≤ b + d :=
-by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨embedding.sum_congr e₁ e₂⟩
+by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.sum_map e₂⟩
 
 theorem add_le_add_left (a) {b c : cardinal} : b ≤ c → a + b ≤ a + c :=
 add_le_add (le_refl _)
@@ -255,7 +258,7 @@ theorem le_add_left (a b : cardinal) : a ≤ b + a :=
 by simpa using add_le_add_right a (zero_le b)
 
 theorem mul_le_mul : ∀{a b c d : cardinal}, a ≤ b → c ≤ d → a * c ≤ b * d :=
-by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨embedding.prod_congr e₁ e₂⟩
+by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.prod_map e₂⟩
 
 theorem mul_le_mul_left (a) {b c : cardinal} : b ≤ c → a * b ≤ a * c :=
 mul_le_mul (le_refl _)
@@ -391,7 +394,7 @@ quotient.induction_on a $ λ α, by simp; exact
   quotient.sound ⟨equiv.sigma_equiv_prod _ _⟩
 
 theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f ≤ sum g :=
-⟨embedding.sigma_congr_right $ λ i, classical.choice $
+⟨(embedding.refl _).sigma_map $ λ i, classical.choice $
   by have := H i; rwa [← quot.out_eq (f i), ← quot.out_eq (g i)] at this⟩
 
 /-- The indexed supremum of cardinals is the smallest cardinal above

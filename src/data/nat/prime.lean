@@ -7,6 +7,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 import data.nat.sqrt
 import data.nat.gcd
 import algebra.group_power
+import tactic.wlog
 
 /-!
 # Prime numbers
@@ -33,6 +34,7 @@ open decidable
 
 /-- `prime p` means that `p` is a prime number, that is, a natural number
   at least 2 whose only divisors are `p` and `1`. -/
+@[pp_nodot]
 def prime (p : ℕ) := 2 ≤ p ∧ ∀ m ∣ p, m = 1 ∨ m = p
 
 theorem prime.two_le {p : ℕ} : prime p → 2 ≤ p := and.left
@@ -379,6 +381,19 @@ theorem prime.coprime_iff_not_dvd {p n : ℕ} (pp : prime p) : coprime p n ↔ �
 
 theorem prime.dvd_iff_not_coprime {p n : ℕ} (pp : prime p) : p ∣ n ↔ ¬ coprime p n :=
 iff_not_comm.2 pp.coprime_iff_not_dvd
+
+theorem prime.not_coprime_iff_dvd {m n : ℕ} :
+  ¬ coprime m n ↔ ∃p, prime p ∧ p ∣ m ∧ p ∣ n :=
+begin
+  apply iff.intro,
+  { intro h,
+    exact ⟨min_fac (gcd m n), min_fac_prime h,
+      (dvd.trans (min_fac_dvd (gcd m n)) (gcd_dvd_left m n)),
+      (dvd.trans (min_fac_dvd (gcd m n)) (gcd_dvd_right m n))⟩ },
+  { intro h,
+    cases h with p hp,
+    apply nat.not_coprime_of_dvd_of_dvd (prime.one_lt hp.1) hp.2.1 hp.2.2 }
+end
 
 theorem prime.dvd_mul {p m n : ℕ} (pp : prime p) : p ∣ m * n ↔ p ∣ m ∨ p ∣ n :=
 ⟨λ H, or_iff_not_imp_left.2 $ λ h,

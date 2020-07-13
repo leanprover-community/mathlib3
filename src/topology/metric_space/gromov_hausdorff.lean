@@ -76,7 +76,7 @@ definition GH_space : Type := quotient (isometry_rel.setoid)
 definition to_GH_space (α : Type u) [metric_space α] [compact_space α] [nonempty α] : GH_space :=
   ⟦nonempty_compacts.Kuratowski_embedding α⟧
 
-instance : inhabited GH_space := ⟨quot.mk _ ⟨{0}, by simp⟩⟩
+instance : inhabited GH_space := ⟨quot.mk _ ⟨{0}, by simp [-singleton_zero]⟩⟩
 
 /-- A metric space representative of any abstract point in `GH_space` -/
 definition GH_space.rep (p : GH_space) : Type := (quot.out p).val
@@ -192,9 +192,9 @@ begin
   let Ψ' : β → subtype s := λy, ⟨Ψ y, mem_union_right _ (mem_range_self _)⟩,
   have IΦ' : isometry Φ' := λx y, ha x y,
   have IΨ' : isometry Ψ' := λx y, hb x y,
-  have : compact s, from (compact_range ha.continuous).union (compact_range hb.continuous),
+  have : is_compact s, from (compact_range ha.continuous).union (compact_range hb.continuous),
   letI : metric_space (subtype s) := by apply_instance,
-  haveI : compact_space (subtype s) := ⟨compact_iff_compact_univ.1 ‹compact s›⟩,
+  haveI : compact_space (subtype s) := ⟨compact_iff_compact_univ.1 ‹is_compact s›⟩,
   haveI : nonempty (subtype s) := ⟨Φ' xα⟩,
   have ΦΦ' : Φ = subtype.val ∘ Φ', by { funext, refl },
   have ΨΨ' : Ψ = subtype.val ∘ Ψ', by { funext, refl },
@@ -394,8 +394,8 @@ instance GH_space_metric_space : metric_space GH_space :=
     rcases GH_dist_eq_Hausdorff_dist x.rep y.rep with ⟨Φ, Ψ, Φisom, Ψisom, DΦΨ⟩,
     rw [← dist_GH_dist, hxy] at DΦΨ,
     have : range Φ = range Ψ,
-    { have hΦ : compact (range Φ) := compact_range Φisom.continuous,
-      have hΨ : compact (range Ψ) := compact_range Ψisom.continuous,
+    { have hΦ : is_compact (range Φ) := compact_range Φisom.continuous,
+      have hΨ : is_compact (range Ψ) := compact_range Ψisom.continuous,
       apply (Hausdorff_dist_zero_iff_eq_of_closed _ _ _).1 (DΦΨ.symm),
       { exact hΦ.is_closed },
       { exact hΨ.is_closed },

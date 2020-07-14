@@ -30,7 +30,8 @@ namespace polynomial
 section comm_semiring
 variables [comm_semiring R]
 
-lemma coe_aeval_eq_eval (r : R) : (aeval R R r: polynomial R → R) = eval r := rfl
+@[simp] lemma coe_aeval_eq_eval (r : R) :
+  (aeval R R r : polynomial R → R) = eval r := rfl
 
 lemma coeff_zero_eq_aeval_zero (p : polynomial R) : p.coeff 0 = aeval R R 0 p :=
 by { rw coeff_zero_eq_eval_zero, rw coe_aeval_eq_eval, }

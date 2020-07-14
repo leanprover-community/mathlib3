@@ -149,7 +149,7 @@ end
 
 -- If le is preserved by an order embedding of preorders, then lt is too
 def lt_embedding_of_le_embedding [preorder α] [preorder β]
-  (f : (has_le.le : α → α → Prop) ≼o (has_le.le : β → β → Prop)) :
+  (f : ((≤)  : α → α → Prop) ≼o ((≤) : β → β → Prop)) :
 (has_lt.lt : α → α → Prop) ≼o (has_lt.lt : β → β → Prop) :=
 { ord' := by intros; simp [lt_iff_le_not_le,f.ord], .. f }
 
@@ -342,24 +342,24 @@ def order_embedding.cod_restrict (p : set β) (f : r ≼o s) (H : ∀ a, f a ∈
 section lattice_isos
 
 lemma order_iso.map_bot [order_bot α] [order_bot β]
-  (f : (has_le.le : α → α → Prop) ≃o (has_le.le : β → β → Prop)) :
+  (f : ((≤) : α → α → Prop) ≃o ((≤) : β → β → Prop)) :
   f ⊥ = ⊥ :=
 by { rw [eq_bot_iff, ← f.apply_symm_apply ⊥, ← f.ord], apply bot_le, }
 
 lemma order_iso.map_top [order_top α] [order_top β]
-  (f : (has_le.le : α → α → Prop) ≃o (has_le.le : β → β → Prop)) :
+  (f : ((≤) : α → α → Prop) ≃o ((≤) : β → β → Prop)) :
   f ⊤ = ⊤ :=
 by { rw [eq_top_iff, ← f.apply_symm_apply ⊤, ← f.ord], apply le_top, }
 
 variables {a₁ a₂ : α}
 
 lemma order_embedding.map_inf_le [semilattice_inf α] [semilattice_inf β]
-  (f : (has_le.le : α → α → Prop) ≼o (has_le.le : β → β → Prop)) :
+  (f : ((≤) : α → α → Prop) ≼o ((≤) : β → β → Prop)) :
   f (a₁ ⊓ a₂) ≤ f a₁ ⊓ f a₂ :=
-by { apply le_inf; rw ← f.ord; simp }
+by simp [← f.ord]
 
 lemma order_iso.map_inf [semilattice_inf α] [semilattice_inf β]
-  (f : (has_le.le : α → α → Prop) ≃o (has_le.le : β → β → Prop)) :
+  (f : ((≤) : α → α → Prop) ≃o ((≤) : β → β → Prop)) :
   f (a₁ ⊓ a₂) = f a₁ ⊓ f a₂ :=
 begin
   apply le_antisymm, { apply f.to_order_embedding.map_inf_le },
@@ -369,12 +369,13 @@ begin
 end
 
 lemma order_embedding.le_map_sup [semilattice_sup α] [semilattice_sup β]
-  (f : (has_le.le : α → α → Prop) ≼o (has_le.le : β → β → Prop)) :
+  (f : ((≤) : α → α → Prop) ≼o ((≤) : β → β → Prop)) :
   f a₁ ⊔ f a₂ ≤ f (a₁ ⊔ a₂) :=
-by { apply sup_le; rw ← f.ord; simp }
+by simp [← f.ord]
+
 
 lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β]
-  (f : (has_le.le : α → α → Prop) ≃o (has_le.le : β → β → Prop)) :
+  (f : ((≤) : α → α → Prop) ≃o ((≤) : β → β → Prop)) :
   f (a₁ ⊔ a₂) = f a₁ ⊔ f a₂ :=
 begin
   apply le_antisymm, swap, { apply f.to_order_embedding.le_map_sup },

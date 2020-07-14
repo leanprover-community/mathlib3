@@ -111,9 +111,8 @@ lemma iget_map [decidable_eq P.A] {α β : Type u} [inhabited α] [inhabited β]
   (x : P.obj α) (f : α → β) (i : P.Idx)
   (h : i.1 = x.1) :
   (f <$> x).iget i = f (x.iget i) :=
-by { simp [obj.iget],
-     rw [dif_pos h,dif_pos];
-     cases x, refl, rw h }
+by { simp only [obj.iget, fst_map, *, dif_pos, eq_self_iff_true],
+     cases x, refl }
 
 end pfunctor
 
@@ -177,7 +176,7 @@ begin
     intro i, exact (f i).property },
   rintros ⟨a, f₀, f₁, xeq, yeq, h⟩,
   use ⟨a, λ i, ⟨(f₀ i, f₁ i), h i⟩⟩,
-  dsimp, split,
+  split,
   { rw [xeq], refl },
   rw [yeq], refl
 end
@@ -187,10 +186,11 @@ open set
 theorem supp_eq {α : Type u} (a : P.A) (f : P.B a → α) :
   @supp.{u} P.obj _ α  (⟨a,f⟩ : P.obj α) = f '' univ :=
 begin
-  ext, simp [supp], split; intro h,
+  ext, simp only [supp, image_univ, mem_range, mem_set_of_eq],
+  split; intro h,
   { apply @h (λ x, ∃ (y : P.B a), f y = x),
     rw liftp_iff', intro, refine ⟨_,rfl⟩ },
-  { simp [liftp_iff'], cases h, subst x,
+  { simp only [liftp_iff'], cases h, subst x,
     tauto }
 end
 

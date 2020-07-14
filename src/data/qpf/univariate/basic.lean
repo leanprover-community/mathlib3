@@ -657,13 +657,14 @@ begin
   split; intro h,
   { rintros α p ⟨a,f⟩,
     have h' := h, rw supp_preservation_iff_uniform at h',
-    dsimp [supp_preservation,supp] at h,
+    dsimp only [supp_preservation,supp] at h,
     rwa [liftp_iff_of_is_uniform,supp_eq_of_is_uniform,pfunctor.liftp_iff'];
       try { assumption },
-    { simp, split; intros; subst_vars; solve_by_elim } },
+    { simp only [image_univ, mem_range, exists_imp_distrib],
+      split; intros; subst_vars; solve_by_elim } },
   { rintros α ⟨a,f⟩,
-    simp [liftp_preservation] at h,
-    simp [supp,h] }
+    simp only [liftp_preservation] at h,
+    simp only [supp,h] }
 end
 
 theorem liftp_preservation_iff_uniform :

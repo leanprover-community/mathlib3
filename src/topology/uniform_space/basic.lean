@@ -1026,9 +1026,9 @@ by { rw h, refl }
 lemma uniform_space_comap_id {α : Type*} : uniform_space.comap (id : α → α) = id :=
 by ext u ; dsimp [uniform_space.comap] ; rw [prod.id_prod, filter.comap_id]
 
-lemma uniform_space.comap_comap_comp {α β γ} [uγ : uniform_space γ] {f : α → β} {g : β → γ} :
+lemma uniform_space.comap_comap {α β γ} [uγ : uniform_space γ] {f : α → β} {g : β → γ} :
   uniform_space.comap (g ∘ f) uγ = uniform_space.comap f (uniform_space.comap g uγ) :=
-by ext ; dsimp [uniform_space.comap] ; rw filter.comap_comap_comp
+by ext ; dsimp [uniform_space.comap] ; rw filter.comap_comap
 
 lemma uniform_continuous_iff {α β} [uα : uniform_space α] [uβ : uniform_space β] {f : α → β} :
   uniform_continuous f ↔ uα ≤ uβ.comap f :=
@@ -1165,7 +1165,7 @@ have map (λp:(α×α)×(β×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))) =
   comap (λp:(α×β)×(α×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))),
   from funext $ assume f, map_eq_comap_of_inverse
     (funext $ assume ⟨⟨_, _⟩, ⟨_, _⟩⟩, rfl) (funext $ assume ⟨⟨_, _⟩, ⟨_, _⟩⟩, rfl),
-by rw [this, uniformity_prod, filter.prod, comap_inf, comap_comap_comp, comap_comap_comp]
+by rw [this, uniformity_prod, filter.prod, comap_inf, comap_comap, comap_comap]
 
 lemma mem_map_sets_iff' {α : Type*} {β : Type*} {f : filter α} {m : α → β} {t : set β} :
   t ∈ (map m f).sets ↔ (∃s∈f, m '' s ⊆ t) :=
@@ -1350,7 +1350,7 @@ end constructions
 -- see topology/sequences.lean
 
 lemma lebesgue_number_lemma {α : Type u} [uniform_space α] {s : set α} {ι} {c : ι → set α}
-  (hs : compact s) (hc₁ : ∀ i, is_open (c i)) (hc₂ : s ⊆ ⋃ i, c i) :
+  (hs : is_compact s) (hc₁ : ∀ i, is_open (c i)) (hc₂ : s ⊆ ⋃ i, c i) :
   ∃ n ∈ 𝓤 α, ∀ x ∈ s, ∃ i, {y | (x, y) ∈ n} ⊆ c i :=
 begin
   let u := λ n, {x | ∃ i (m ∈ 𝓤 α), {y | (x, y) ∈ m ○ n} ⊆ c i},
@@ -1376,7 +1376,7 @@ begin
 end
 
 lemma lebesgue_number_lemma_sUnion {α : Type u} [uniform_space α] {s : set α} {c : set (set α)}
-  (hs : compact s) (hc₁ : ∀ t ∈ c, is_open t) (hc₂ : s ⊆ ⋃₀ c) :
+  (hs : is_compact s) (hc₁ : ∀ t ∈ c, is_open t) (hc₂ : s ⊆ ⋃₀ c) :
   ∃ n ∈ 𝓤 α, ∀ x ∈ s, ∃ t ∈ c, ∀ y, (x, y) ∈ n → y ∈ t :=
 by rw sUnion_eq_Union at hc₂;
    simpa using lebesgue_number_lemma hs (by simpa) hc₂

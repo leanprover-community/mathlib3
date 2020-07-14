@@ -318,6 +318,9 @@ lemma of_set_target : (of_set s hs).target = s := rfl
 @[simp, mfld_simps] lemma of_set_coe : (of_set s hs : α → α) = id := rfl
 @[simp, mfld_simps] lemma of_set_symm : (of_set s hs).symm = of_set s hs := rfl
 
+@[simp, mfld_simps] lemma of_set_univ_eq_refl : of_set univ is_open_univ = local_homeomorph.refl α :=
+by ext; simp
+
 end
 
 /-- Composition of two local homeomorphisms when the target of the first and the source of
@@ -403,6 +406,13 @@ local_homeomorph.ext _ _ (λx, rfl) (λx, rfl) $
 lemma of_set_trans' {s : set α} (hs : is_open s) :
   (of_set s hs).trans e = e.restr (e.source ∩ s) :=
 by rw [of_set_trans, restr_source_inter]
+
+@[simp, mfld_simps] lemma of_set_trans_of_set {s : set α} (hs : is_open s) {s' : set α} (hs' : is_open s') :
+  (of_set s hs).trans (of_set s' hs') = of_set (s ∩ s') (is_open_inter hs hs')  :=
+begin
+  rw (of_set s hs).trans_of_set hs',
+  ext; simp [interior_eq_of_open hs']
+end
 
 lemma restr_trans (s : set α) :
   (e.restr s).trans e' = (e.trans e').restr s :=

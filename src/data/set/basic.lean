@@ -3,11 +3,6 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
-import tactic.push_neg
-import tactic.split_ifs
-import tactic.simpa
-import tactic.finish
-import tactic.tauto
 import logic.unique
 import order.boolean_algebra
 
@@ -286,6 +281,12 @@ lemma nonempty.inr (ht : t.nonempty) : (s ∪ t).nonempty := ht.imp $ λ _, or.i
 lemma nonempty.left (h : (s ∩ t).nonempty) : s.nonempty := h.imp $ λ _, and.left
 
 lemma nonempty.right (h : (s ∩ t).nonempty) : t.nonempty := h.imp $ λ _, and.right
+
+lemma nonempty_inter_iff_exists_right : (s ∩ t).nonempty ↔ ∃ x : t, ↑x ∈ s :=
+⟨λ ⟨x, xs, xt⟩, ⟨⟨x, xt⟩, xs⟩, λ ⟨⟨x, xt⟩, xs⟩, ⟨x, xs, xt⟩⟩
+
+lemma nonempty_inter_iff_exists_left : (s ∩ t).nonempty ↔ ∃ x : s, ↑x ∈ t :=
+⟨λ ⟨x, xs, xt⟩, ⟨⟨x, xs⟩, xt⟩, λ ⟨⟨x, xt⟩, xs⟩, ⟨x, xt, xs⟩⟩
 
 lemma nonempty_iff_univ_nonempty : nonempty α ↔ (univ : set α).nonempty :=
 ⟨λ ⟨x⟩, ⟨x, trivial⟩, λ ⟨x, _⟩, ⟨x⟩⟩

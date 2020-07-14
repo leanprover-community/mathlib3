@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import tactic.ext
+import tactic.basic
 
 /-!
 # Extra facts about `prod`
@@ -111,9 +111,10 @@ end prod
 
 open function
 
-lemma function.injective.prod {f : α → γ} {g : β → δ} (hf : injective f) (hg : injective g) :
-  injective (λ p : α × β, (f p.1, g p.2)) :=
-assume ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ h,
-  have a₁ = a₂, from hf (by cc),
-  have b₁ = b₂, from hg (by cc),
-  by cc
+lemma function.injective.prod_map {f : α → γ} {g : β → δ} (hf : injective f) (hg : injective g) :
+  injective (prod.map f g) :=
+λ x y h, prod.ext (hf (prod.ext_iff.1 h).1) (hg $ (prod.ext_iff.1 h).2)
+
+lemma function.surjective.prod_map {f : α → γ} {g : β → δ} (hf : surjective f) (hg : surjective g) :
+  surjective (prod.map f g) :=
+λ p, let ⟨x, hx⟩ := hf p.1 in let ⟨y, hy⟩ := hg p.2 in ⟨(x, y), prod.ext hx hy⟩

@@ -68,6 +68,14 @@ lemma eventually_at_top {α} [semilattice_sup α] [nonempty α] {p : α → Prop
   (∀ᶠ x in at_top, p x) ↔ (∃ a, ∀ b ≥ a, p b) :=
 by simp only [filter.eventually, filter.mem_at_top_sets, mem_set_of_eq]
 
+lemma order_top.at_top_eq (α) [order_top α] : (at_top : filter α) = pure ⊤ :=
+le_antisymm (le_pure_iff.2 $ mem_sets_of_superset (mem_at_top ⊤) $ λ b, top_unique)
+  (le_infi $ λ b, le_principal_iff.2 le_top)
+
+lemma tendsto_at_top_pure {α} [order_top α] (f : α → β) :
+  tendsto f at_top (pure $ f ⊤) :=
+(order_top.at_top_eq α).symm ▸ tendsto_pure_pure _ _
+
 @[nolint ge_or_gt]
 lemma eventually.exists_forall_of_at_top {α} [semilattice_sup α] [nonempty α] {p : α → Prop}
   (h : ∀ᶠ x in at_top, p x) : ∃ a, ∀ b ≥ a, p b :=
@@ -254,12 +262,12 @@ variables [ordered_cancel_add_comm_monoid β] {l : filter α} {f g : α → β}
 lemma tendsto_at_top_of_add_const_left (C : β) (hf : tendsto (λ x, C + f x) l at_top) :
   tendsto f l at_top :=
 (tendsto_at_top _ l).2 $ assume b,
-  ((tendsto_at_top _ _).1 hf (C + b)).mono (λ x, le_of_add_le_add_left) 
+  ((tendsto_at_top _ _).1 hf (C + b)).mono (λ x, le_of_add_le_add_left)
 
 lemma tendsto_at_top_of_add_const_right (C : β) (hf : tendsto (λ x, f x + C) l at_top) :
   tendsto f l at_top :=
 (tendsto_at_top _ l).2 $ assume b,
-  ((tendsto_at_top _ _).1 hf (b + C)).mono (λ x, le_of_add_le_add_right) 
+  ((tendsto_at_top _ _).1 hf (b + C)).mono (λ x, le_of_add_le_add_right)
 
 lemma tendsto_at_top_of_add_bdd_above_left' (C) (hC : ∀ᶠ x in l, f x ≤ C)
   (h : tendsto (λ x, f x + g x) l at_top) :
@@ -402,7 +410,7 @@ begin
     inhabit β₂,
     simp [at_top, prod_infi_left (default β₁), prod_infi_right (default β₂), infi_prod],
     exact infi_comm },
-  { push_neg at ne,
+  { rw not_and_distrib at ne,
     cases ne;
     { have : ¬ (nonempty (β₁ × β₂)), by simp [ne],
       rw [at_top.filter_eq_bot_of_not_nonempty ne, at_top.filter_eq_bot_of_not_nonempty this],

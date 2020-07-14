@@ -268,7 +268,7 @@ begin
     ... < ⊤ : by { rw real.volume_interval, exact ennreal.coe_lt_top }
 end
 
-lemma real.volume_lt_top_of_compact {s : set ℝ} (h : compact s) : volume s < ⊤ :=
+lemma real.volume_lt_top_of_compact {s : set ℝ} (h : is_compact s) : volume s < ⊤ :=
 real.volume_lt_top_of_bounded (bounded_of_compact h)
 
 end volume

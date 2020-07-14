@@ -301,7 +301,7 @@ lemma closure_of_rat_image_le_le_eq {a b : ℚ} (hab : a ≤ b) :
   closure (of_rat '' {q:ℚ | a ≤ q ∧ q ≤ b}) = {r:ℝ | of_rat a ≤ r ∧ r ≤ of_rat b} :=
 _-/
 
-lemma compact_Icc {a b : ℝ} : compact (Icc a b) :=
+lemma compact_Icc {a b : ℝ} : is_compact (Icc a b) :=
 compact_of_totally_bounded_is_closed
   (real.totally_bounded_Icc a b)
   (is_closed_inter (is_closed_ge' a) (is_closed_le' b))

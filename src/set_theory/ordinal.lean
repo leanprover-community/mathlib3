@@ -723,7 +723,7 @@ by rw [one_le_iff_pos, pos_iff_ne_zero]
 theorem add_le_add_left {a b : ordinal} : a ≤ b → ∀ c, c + a ≤ c + b :=
 induction_on a $ λ α₁ r₁ _, induction_on b $ λ α₂ r₂ _ ⟨⟨⟨f, fo⟩, fi⟩⟩ c,
 induction_on c $ λ β s _,
-⟨⟨⟨(embedding.refl _).sum_congr f,
+⟨⟨⟨(embedding.refl _).sum_map f,
   λ a b, match a, b with
     | sum.inl a, sum.inl b := sum.lex_inl_inl.trans sum.lex_inl_inl.symm
     | sum.inl a, sum.inr b := by apply iff_of_true; apply sum.lex.sep
@@ -904,7 +904,7 @@ induction_on a $ λ α₁ r₁ hr₁, induction_on b $ λ α₂ r₂ hr₂ ⟨�
 induction_on c $ λ β s hs, (@type_le' _ _ _ _
   (@sum.lex.is_well_order _ _ _ _ hr₁ hs)
   (@sum.lex.is_well_order _ _ _ _ hr₂ hs)).2
-⟨⟨embedding.sum_congr f (embedding.refl _), λ a b, begin
+⟨⟨f.sum_map (embedding.refl _), λ a b, begin
   split; intro H,
   { cases H; constructor; [rwa ← fo, assumption] },
   { cases a with a a; cases b with b b; cases H; constructor; [rwa fo, assumption] }

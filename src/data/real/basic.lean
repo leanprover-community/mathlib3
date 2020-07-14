@@ -476,7 +476,7 @@ begin
      }
 end -/
 
-noncomputable def sqrt (x : ℝ) : ℝ :=
+@[pp_nodot] noncomputable def sqrt (x : ℝ) : ℝ :=
 classical.some (sqrt_exists (le_max_left 0 x))
 /-quotient.lift_on x
   (λ f, mk ⟨sqrt_aux f, (sqrt_aux_converges f).fst⟩)

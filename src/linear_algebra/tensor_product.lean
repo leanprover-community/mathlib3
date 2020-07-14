@@ -124,7 +124,7 @@ section
 end
 
 /-- Composing a linear map `Q → N` and a bilinear map `M → N → P` to
-form a blinear map `M → Q → P`. -/
+form a bilinear map `M → Q → P`. -/
 def compl₂ (g : Q →ₗ N) : M →ₗ Q →ₗ P := (lcomp R _ g).comp f
 
 @[simp] theorem compl₂_apply (g : Q →ₗ[R] N) (m : M) (q : Q) :

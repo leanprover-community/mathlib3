@@ -103,14 +103,14 @@ end monic
 
 open monic
 --sort of a special case of Vieta?
-lemma card_pred_coeff_prod_X_sub_C' [nontrivial R] {s : finset α} (f : α → R) :
+lemma next_coeff_prod_X_sub_C [nontrivial R] {s : finset α} (f : α → R) :
 next_coeff ∏ i in s, (X - C (f i)) = -s.sum f :=
 by { rw next_coeff_prod; { simp [monic_X_sub_C] } }
 
 lemma card_pred_coeff_prod_X_sub_C [nontrivial R] (s : finset α) (f : α → R) (hs : 0 < s.card) :
 (∏ i in s, (X - C (f i))).coeff (s.card - 1) = -s.sum f :=
 begin
-  convert card_pred_coeff_prod_X_sub_C' (by assumption),
+  convert next_coeff_prod_X_sub_C (by assumption),
   rw next_coeff, split_ifs,
   { rw nat_degree_prod_eq_of_monic at h,
     swap, { intros, apply monic_X_sub_C },

@@ -658,6 +658,7 @@ begin
   exact eq.symm (hf.left hx) ▸ (submodule.zero_mem ⊥)
 end
 
+/- Special case of the correspondence theorem for isomorphic rings -/
 def order_iso_of_bijective :
   ((≤) : ideal S → ideal S → Prop) ≃o ((≤) : ideal R → ideal R → Prop):=
 { to_fun := comap f,
@@ -667,34 +668,30 @@ def order_iso_of_bijective :
     ((order_iso_of_surjective f hf.right).right_inv ⟨J, le_comap_bot_of_bijective f hf⟩),
   ord' := (order_iso_of_surjective f hf.right).ord' }
 
-theorem comap_le_iff_map_le : comap f K ≤ I ↔ K ≤ map f I :=
+lemma comap_le_iff_map_le : comap f K ≤ I ↔ K ≤ map f I :=
 ⟨λ h, ((order_iso_of_bijective f hf).left_inv K) ▸ map_mono h,
  λ h, ((order_iso_of_bijective f hf).right_inv I) ▸ comap_mono h⟩
 
-lemma map.is_maximal (H : is_maximal I) : is_maximal (map f I) :=
+theorem map.is_maximal (H : is_maximal I) : is_maximal (map f I) :=
 begin
   refine ⟨λ h, H.left _, λ J hJ, _⟩,
   { have : comap f (map f I) = ⊤ := eq.trans (congr_arg (comap f) h) comap_top,
     rwa ← (order_iso_of_bijective f hf).right_inv I },
-  {
-    refine (order_iso_of_bijective f hf).injective
+  { refine (order_iso_of_bijective f hf).injective
       (eq.trans (H.right (comap f J) (lt_of_le_of_ne _ _)) comap_top.symm),
     { exact (map_le_iff_le_comap).1 (le_of_lt hJ) },
-    { exact λ h, hJ.right ((comap_le_iff_map_le f hf).1 (le_of_eq h.symm)) }
-  }
+    { exact λ h, hJ.right ((comap_le_iff_map_le f hf).1 (le_of_eq h.symm)) } }
 end
 
-lemma comap.is_maximal (H : is_maximal K) : is_maximal (comap f K) :=
+theorem comap.is_maximal (H : is_maximal K) : is_maximal (comap f K) :=
 begin
   refine ⟨λ h, H.left _, λ J hJ, _⟩,
   { have : map f (comap f K) = ⊤ := eq.trans (congr_arg (map f) h) (map_top _),
     rwa ← (order_iso_of_bijective f hf).left_inv K },
-  {
-    refine (order_iso_of_bijective f hf).symm.injective
+  { refine (order_iso_of_bijective f hf).symm.injective
       (eq.trans (H.right (map f J) (lt_of_le_of_ne _ _)) (map_top f).symm),
     { exact (comap_le_iff_map_le f hf).1 (le_of_lt hJ) },
-    { exact λ h, hJ.right ((map_le_iff_le_comap).1 (le_of_eq h.symm)) }
-  }
+    { exact λ h, hJ.right ((map_le_iff_le_comap).1 (le_of_eq h.symm)) } }
 end
 
 end bijective
@@ -716,12 +713,12 @@ theorem jacobson_eq_top_iff {I : ideal R} : jacobson I = ⊤ ↔ I = ⊤ :=
   lt_top_iff_ne_top.1 (lt_of_le_of_lt (show jacobson I ≤ M, from Inf_le ⟨him, hm⟩) $ lt_top_iff_ne_top.2 hm.1) H,
 λ H, eq_top_iff.2 $ le_Inf $ λ J ⟨hij, hj⟩, H ▸ hij⟩
 
+lemma jacobson_bot {I : ideal R} : jacobson I = ⊥ → I = ⊥ :=
+λ h, eq_bot_iff.mpr (h ▸ le_jacobson)
+
 lemma jacobson.is_maximal {I : ideal R} : is_maximal I → is_maximal (jacobson I) :=
 λ h, ⟨λ htop, h.left (jacobson_eq_top_iff.1 htop),
   λ J hJ, h.right _ (lt_of_le_of_lt le_jacobson hJ)⟩
-
-lemma jacobson_bot {I : ideal R} : jacobson I = ⊥ → I = ⊥ :=
-λ h, eq_bot_iff.mpr (h ▸ le_jacobson)
 
 theorem mem_jacobson_iff {I : ideal R} {x : R} :
   x ∈ jacobson I ↔ ∀ y, ∃ z, x * y * z + z - 1 ∈ I :=
@@ -743,9 +740,6 @@ theorem mem_jacobson_iff {I : ideal R} {x : R} :
         neg_mul_eq_neg_mul_symm, neg_mul_eq_mul_neg, mul_comm x y]; exact M.mul_mem_right hy)
     (him hz)⟩
 
-lemma eq_jacobson_iff_ge_jacobson {I : ideal R} : jacobson I = I ↔ jacobson I ≤ I :=
-⟨λ h, le_of_eq h, λ h, le_antisymm h le_jacobson⟩
-
 lemma jacobson_mono {I J : ideal R} : I ≤ J → I.jacobson ≤ J.jacobson :=
 begin
   intros h x hx,
@@ -766,8 +760,7 @@ begin
     erw [mem_comap, mem_Inf] at hx,
     cases iso.surjective J with K hK,
     rw ← hK,
-    refine hx ⟨_, _⟩,
-    exact iso.ord.2 (hK.symm ▸ hJ.left),
+    refine hx ⟨(iso.ord.2 (hK.symm ▸ hJ.left) : I ≤ K), _⟩,
     rw ← iso.left_inv K,
     exact map.is_maximal _ he (hK.symm ▸ hJ.right : (iso K).is_maximal)
   },
@@ -775,7 +768,7 @@ begin
     intros x hx,
     erw [mem_comap, mem_Inf],
     erw mem_Inf at hx,
-    exact λ J hJ, hx ⟨comap_mono hJ.left, comap.is_maximal _ he hJ.right⟩
+    exact λ J hJ, (hx) ⟨comap_mono hJ.left, comap.is_maximal _ he hJ.right⟩
   }
 end
 

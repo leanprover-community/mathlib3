@@ -239,14 +239,15 @@ def comap_mk (I : ideal α) (j : ideal I.quotient) : ideal α :=
 le_antisymm le_top (by rintro ⟨x⟩ hx; use ⟨x, hx, rfl⟩)
 
 lemma map_mk_comap_mk_left_inverse {I : ideal α} : left_inverse (map_mk I) (comap_mk I) :=
-by refine λ J, le_antisymm
+λ J, le_antisymm
   (by rintro ⟨x⟩ hx; exact Exists.rec_on ((set.mem_image _ _ _).mp hx)
     (λ w hw, hw.right ▸ hw.left))
   (by rintro ⟨x⟩ hx; exact ⟨x, ⟨hx, rfl⟩⟩)
 
 -- TODO: is this even worth making into a lemma?
 lemma map_mk_le_iff_le_comap_mk {I J : ideal α} {j : ideal I.quotient} :
-  map_mk I J ≤ j ↔ J ≤ comap_mk I j := set.image_subset_iff
+  map_mk I J ≤ j ↔ J ≤ comap_mk I j :=
+set.image_subset_iff
 
 lemma le_map_mk_of_comap_mk_le {I J : ideal α} {j : ideal I.quotient} :
   comap_mk I j ≤ J → j ≤ map_mk I J :=
@@ -262,8 +263,7 @@ lemma lt_comap_mk_of_map_mk_lt {I J : ideal α} {j : ideal I.quotient} :
 lemma top_or_maximal_of_maximal {I J : ideal α} (h : is_maximal J) :
   (map_mk I J = ⊤) ∨ (is_maximal (map_mk I J)) :=
 begin
-  rw classical.or_iff_not_imp_left,
-  refine λ htop, ⟨htop, λ k hk, _⟩,
+  refine classical.or_iff_not_imp_left.2 (λ htop, ⟨htop, λ k hk, _⟩),
   have : map_mk I (comap_mk I k) = map_mk I ⊤ :=
     congr_arg (map_mk I) (h.right _ (lt_comap_mk_of_map_mk_lt hk)),
   rwa [map_mk_comap_mk_left_inverse, map_mk_top] at this,
@@ -304,22 +304,21 @@ begin
   exact h hy.left,
 end
 
-lemma map_mk_self {I : ideal α} : map_mk I I = ⊥ := map_mk_bot (le_of_eq rfl)
+lemma map_mk_self {I : ideal α} : map_mk I I = ⊥ :=
+map_mk_bot (le_of_eq rfl)
 
 lemma comap_mk_ge {I : ideal α} {j : ideal I.quotient} : I ≤ quotient.comap_mk I j :=
 map_mk_le_iff_le_comap_mk.1 ((eq.symm (@map_mk_self _ _ I)) ▸ bot_le)
 
+-- TODO: is this a special case of a fact about map_mk respecting the lattice structure?
 lemma map_mk_Inf {I : ideal α} {S : set (ideal α)} (h : ∀ J ∈ S, I ≤ J) :
   quotient.map_mk I (Inf S) = Inf (quotient.map_mk I '' S) :=
 begin
   refine le_antisymm (le_Inf _) _,
-  {
-    rintros j hj ⟨x⟩ ⟨y, hy⟩,
+  { rintros j hj ⟨x⟩ ⟨y, hy⟩,
     cases (set.mem_image _ _ _).mp hj with J hJ,
-    exact (hJ.right) ▸ ⟨y, (Inf_le_of_le hJ.left (le_of_eq rfl)) hy.left, hy.right⟩
-  },
-  {
-    rintros ⟨x⟩ hx,
+    exact (hJ.right) ▸ ⟨y, (Inf_le_of_le hJ.left (le_of_eq rfl)) hy.left, hy.right⟩ },
+  { rintros ⟨x⟩ hx,
     refine ⟨x, _, rfl⟩,
     rw Inf_eq_infi at ⊢ hx,
     simp at ⊢ hx,
@@ -332,8 +331,7 @@ begin
     },
     have := J.add_mem this hx'.left,
     ring at this,
-    exact this
-  }
+    exact this }
 end
 
 instance (I : ideal α) [hI : I.is_prime] : integral_domain I.quotient :=

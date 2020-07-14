@@ -44,7 +44,8 @@ begin
   apply polynomial.nat_degree_mul_le, linarith,
 end
 
-/-- The primed `leading_coeff_prod'` requires that the product of the `leading_coeff`s is nonzero.
+/-- The leading coefficient of a product of polynomials is equal to the product of the leading coefficients, provided that this product is nonzero.
+See `leading_coeff_prod` (without the `'`) for a version for integral domains, where this condition is automatically satisfied.
   The un-primed `leading_coeff_prod` instead requires an `integral_domain` instance. -/
 lemma leading_coeff_prod' (h : ∏ i in s, (f i).leading_coeff ≠ 0) :
   (∏ i in s, f i).leading_coeff = ∏ i in s, (f i).leading_coeff :=

@@ -149,7 +149,7 @@ end
 
 -- If le is preserved by an order embedding of preorders, then lt is too
 def lt_embedding_of_le_embedding [preorder α] [preorder β]
-  (f : ((≤)  : α → α → Prop) ≼o ((≤) : β → β → Prop)) :
+  (f : ((≤) : α → α → Prop) ≼o ((≤) : β → β → Prop)) :
 (has_lt.lt : α → α → Prop) ≼o (has_lt.lt : β → β → Prop) :=
 { ord' := by intros; simp [lt_iff_le_not_le,f.ord], .. f }
 

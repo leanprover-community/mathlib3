@@ -296,6 +296,17 @@ end
 lemma map_injective (hf : function.injective f): function.injective (map f) :=
 λ p q h, ext $ λ m, hf $ by rw [← coeff_map f, ← coeff_map f, h]
 
+
+variables {f}
+
+lemma map_monic_eq_zero_iff (hp : p.monic) : p.map f = 0 ↔ ∀ x, f x = 0 :=
+⟨ λ hfp x, calc f x = f x * f p.leading_coeff : by simp [hp]
+                ... = f x * (p.map f).coeff p.nat_degree : by { congr, apply (coeff_map _ _).symm }
+                ... = 0 : by simp [hfp],
+  λ h, ext (λ n, trans (coeff_map f n) (h _)) ⟩
+
+variables (f)
+
 open is_semiring_hom
 
 -- If the rings were commutative, we could prove this just using `eval₂_mul`.

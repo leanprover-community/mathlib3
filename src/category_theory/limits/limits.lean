@@ -754,7 +754,7 @@ def has_limit.iso_of_nat_iso {F G : J ⥤ C} [has_limit F] [has_limit G] (w : F 
   limit F ≅ limit G :=
 is_limit.cone_points_iso_of_nat_iso (limit.is_limit F) (limit.is_limit G) w
 
-@[simp]
+@[simp, reassoc]
 lemma has_limit.iso_of_nat_iso_hom_π {F G : J ⥤ C} [has_limit F] [has_limit G]
   (w : F ≅ G) (j : J) :
   (has_limit.iso_of_nat_iso w).hom ≫ limit.π G j = limit.π F j ≫ w.hom.app j :=
@@ -1108,8 +1108,8 @@ def has_colimit.iso_of_nat_iso {F G : J ⥤ C} [has_colimit F] [has_colimit G] (
   colimit F ≅ colimit G :=
 is_colimit.cocone_points_iso_of_nat_iso (colimit.is_colimit F) (colimit.is_colimit G) w
 
-@[simp]
-lemma has_colimit.iso_of_nat_iso_hom_π {F G : J ⥤ C} [has_colimit F] [has_colimit G]
+@[simp, reassoc]
+lemma has_colimit.iso_of_nat_iso_ι_hom {F G : J ⥤ C} [has_colimit F] [has_colimit G]
   (w : F ≅ G) (j : J) :
   colimit.ι F j ≫ (has_colimit.iso_of_nat_iso w).hom = w.hom.app j ≫ colimit.ι G j :=
 by simp [has_colimit.iso_of_nat_iso, is_colimit.cocone_points_iso_of_nat_iso_inv]

@@ -547,6 +547,4 @@ begin
   exact mem_at_bot _
 end
 
-#check tendsto_at_top_at_bot
-
 end filter

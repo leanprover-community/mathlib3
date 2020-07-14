@@ -6,6 +6,7 @@ import tactic.squeeze
 open_locale classical
 noncomputable theory
 variables {α : Type*} {β : Type*} [has_zero β] {μ : Type*} [canonically_ordered_add_monoid μ]
+variables {γ : Type*} [canonically_linear_ordered_add_monoid γ]
 
 namespace finsupp
 
@@ -60,9 +61,9 @@ begin
     intro con, cases nd (f a) (g a) _, apply h.left h_1, apply h.right h_1, rw con }
 end
 
-lemma nat.support_inf {f g : α →₀ ℕ} : (f ⊓ g).support = f.support ∩ g.support :=
+lemma support_inf {f g : α →₀ γ} : (f ⊓ g).support = f.support ∩ g.support :=
 begin
-  unfold has_inf.inf, apply support_inf_of_non_disjoint nat.zero_le _,
+  unfold has_inf.inf, apply support_inf_of_non_disjoint zero_le _,
   intros x y, change ite (x ≤ y) x y = 0 → x = 0 ∨ y = 0,
   by_cases x ≤ y; simp only [h, if_true, if_false]; tauto,
 end
@@ -80,7 +81,7 @@ lemma sup_apply [semilattice_sup β] {a : α} {f g : α →₀ β} : (f ⊔ g) a
 
 @[simp]
 lemma support_sup [semilattice_sup_bot β] [canonically_ordered_add_monoid β]
-  {f g : α →₀ ℕ} : (f ⊔ g).support = f.support ∪ g.support :=
+  {f g : α →₀ β} : (f ⊔ g).support = f.support ∪ g.support :=
 begin
   change (binary_op_pointwise sup_idem f g).support = f.support ∪ g.support,
   unfold binary_op_pointwise, dsimp, rw finset.filter_true_of_mem,
@@ -103,16 +104,13 @@ begin
     apply finsupp.equiv_multiset.symm.injective h }
 end
 
-lemma nat.bot_eq_zero : (⊥ : α →₀ ℕ) = 0 := rfl
-lemma enat.bot_eq_zero : (⊥ : α →₀ ℕ) = 0 := rfl
-lemma nnreal.bot_eq_zero : (⊥ : α →₀ ℕ) = 0 := rfl
-lemma ennreal.bot_eq_zero : (⊥ : α →₀ ℕ) = 0 := rfl
+lemma bot_eq_zero : (⊥ : α →₀ γ) = 0 := rfl
 
 @[simp]
-lemma nat.disjoint_iff {x y : α →₀ ℕ} : disjoint x y ↔ disjoint x.support y.support :=
+lemma disjoint_iff {x y : α →₀ γ} : disjoint x y ↔ disjoint x.support y.support :=
 begin
   unfold disjoint, repeat {rw le_bot_iff},
-  rw [finsupp.nat.bot_eq_zero, ← finsupp.support_eq_empty, finsupp.nat.support_inf], refl,
+  rw [finsupp.bot_eq_zero, ← finsupp.support_eq_empty, finsupp.support_inf], refl,
 end
 
 /-- The lattice of finsupps to ℕ is order isomorphic to that of multisets.  -/

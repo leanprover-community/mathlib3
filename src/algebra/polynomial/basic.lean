@@ -40,7 +40,6 @@ if p.nat_degree = 0 then 0 else p.coeff (p.nat_degree - 1)
 lemma next_coeff_C_eq_zero (c : R) :
 next_coeff (C c) = 0 := by { rw next_coeff, simp }
 
-
 lemma next_coeff_of_pos_nat_degree (p : polynomial R) (hp : 0 < p.nat_degree) :
   next_coeff p = p.coeff (p.nat_degree - 1) :=
 by { rw [next_coeff, if_neg], contrapose! hp, simpa }

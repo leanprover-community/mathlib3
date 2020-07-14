@@ -131,7 +131,7 @@ def compl₂ (g : Q →ₗ N) : M →ₗ Q →ₗ P := (lcomp R _ g).comp f
   f.compl₂ g m q = f m (g q) := rfl
 
 /-- Composing a linear map `P → Q` and a bilinear map `M × N → P` to
-form a blinear map `M → N → Q`. -/
+form a bilinear map `M → N → Q`. -/
 def compr₂ (g : P →ₗ Q) : M →ₗ N →ₗ Q :=
 linear_map.comp (llcomp R N P Q g) f
 

@@ -778,9 +778,8 @@ meta def get_unused_name'_aux (n : name) (reserved : name_set)
         end,
       get_unused_name'_aux new_suffix
 
-/- Precond: ns is nonempty. -/
 meta def get_unused_name' (ns : list name) (reserved : name_set) : tactic name := do
-  let fallback := if ns.empty then `x else ns.head,
+  let fallback := match ns with | [] := `x | x :: _ := x end,
   (first $ ns.map $ λ n, do {
     guard (¬ reserved.contains n),
     fail_if_success (resolve_name n),
@@ -952,8 +951,6 @@ meta def constructor_intros (generate_induction_hyps : bool)
   tt ← pure generate_induction_hyps | pure (arg_hyp_names, []),
 
   let rec_args := arg_hyp_names.filter $ λ x, x.2.is_recursive,
-    -- TODO the information whether an arg is recursive should be in
-    -- constructor_argument_info.
   ih_hyps ← intron_fresh cinfo.num_rec_args,
   let ih_hyp_names :=
     list.map₂

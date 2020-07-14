@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import data.list.chain
-import category_theory.const
-import category_theory.discrete_category
-import category_theory.eq_to_hom
 import category_theory.punit
 
 /-!

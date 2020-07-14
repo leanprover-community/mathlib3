@@ -93,7 +93,7 @@ begin
     rw finset.prod_insert ha,
     rw finset.sum_insert ha,
     rw next_coeff_mul (monic a (finset.mem_insert_self a s)), swap,
-    { apply monic_prod_monic, intros b bs,
+    { apply monic_prod_of_monic, intros b bs,
       apply monic, apply finset.mem_insert_of_mem bs },
     { refine congr rfl (hs _),
       intros b bs, apply monic, apply finset.mem_insert_of_mem bs }}

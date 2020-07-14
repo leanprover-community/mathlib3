@@ -213,7 +213,7 @@ by { rw indicator_apply, split_ifs with as, { exact h as }, refl }
 lemma indicator_nonpos (h : ∀ a ∈ s, f a ≤ 0) : ∀ a, indicator s f a ≤ 0 :=
 λ a, indicator_nonpos' (h a)
 
-lemma indicator_le (hfg : ∀ a ∈ s, f a ≤ g a) (hg : ∀ a ∉ s, 0 ≤ g a) :
+lemma indicator_le' (hfg : ∀ a ∈ s, f a ≤ g a) (hg : ∀ a ∉ s, 0 ≤ g a) :
   indicator s f ≤ g :=
 λ a, if ha : a ∈ s then by simpa [ha] using hfg a ha else by simpa [ha] using hg a ha
 
@@ -230,6 +230,18 @@ begin
   { exact hf a },
   { refl }
 end
+
+lemma indicator_le_self' (hf : ∀ x ∉ s, 0 ≤ f x) : indicator s f ≤ f :=
+indicator_le' (λ _ _, le_refl _) hf
+
+lemma indicator_le_self {β} [canonically_ordered_add_monoid β] (s : set α) (f : α → β) :
+  indicator s f ≤ f :=
+indicator_le_self' $ λ _ _, zero_le _
+
+lemma indicator_le {β} [canonically_ordered_add_monoid β] {s : set α}
+  {f g : α → β} (hfg : ∀ a ∈ s, f a ≤ g a) :
+  indicator s f ≤ g :=
+indicator_le' hfg $ λ _ _, zero_le _
 
 end order
 

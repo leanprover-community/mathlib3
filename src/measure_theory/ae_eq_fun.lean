@@ -80,15 +80,17 @@ variables {α β γ δ : Type*} [measurable_space α]
 section measurable_space
 variables [measurable_space β]
 
-variables (α β)
+variable (β)
 
 /-- The equivalence relation of being almost everywhere equal -/
-def ae_eq_fun.setoid (μ : measure α) : setoid { f : α → β // measurable f } :=
+def measure.ae_eq_setoid (μ : measure α) : setoid { f : α → β // measurable f } :=
 ⟨λf g, (f : α → β) =ᵐ[μ] g, λ f, ae_eq_refl f, λ f g, ae_eq_symm, λ f g h, ae_eq_trans⟩
+
+variable (α)
 
 /-- The space of equivalence classes of measurable functions, where two measurable functions are
     equivalent if they agree almost everywhere, i.e., they differ on a set of measure `0`.  -/
-def ae_eq_fun (μ : measure α) : Type* := quotient (ae_eq_fun.setoid α β μ)
+def ae_eq_fun (μ : measure α) : Type* := quotient (μ.ae_eq_setoid β)
 
 variables {α β}
 
@@ -110,8 +112,8 @@ instance : has_coe_to_fun (α →ₘ[μ] β) :=
 protected lemma measurable (f : α →ₘ[μ] β) : measurable f :=
 (quotient.out' f).2
 
-@[simp] lemma quotient_mk'_eq_mk (f : α → β) (hf) :
-  (quotient.mk' ⟨f, hf⟩ : α →ₘ[μ] β) = mk f hf :=
+@[simp] lemma quot_mk_eq_mk (f : α → β) (hf) :
+  (quot.mk (@setoid.r _ $ μ.ae_eq_setoid β) ⟨f, hf⟩ : α →ₘ[μ] β) = mk f hf :=
 rfl
 
 @[simp] lemma quotient_out'_eq_coe_fn (f : α →ₘ[μ] β) :
@@ -129,7 +131,7 @@ by simpa using quotient.out_eq' f
 by rwa [← f.mk_coe_fn, ← g.mk_coe_fn, mk_eq_mk]
 
 lemma coe_fn_mk (f : α → β) (hf) : (mk f hf : α →ₘ[μ] β) =ᵐ[μ] f :=
-@quotient.mk_out' _ (ae_eq_fun.setoid α β μ) (⟨f, hf⟩ : {f // measurable f})
+@quotient.mk_out' _ (μ.ae_eq_setoid β) (⟨f, hf⟩ : {f // measurable f})
 
 @[elab_as_eliminator]
 lemma induction_on (f : α →ₘ[μ] β) {p : (α →ₘ[μ] β) → Prop} (H : ∀ f hf, p (mk f hf)) : p f :=
@@ -355,6 +357,7 @@ lemma coe_fn_sub (f g : α →ₘ[μ] γ) : ⇑(f - g) =ᵐ[μ] f - g :=
 
 end add_group
 
+@[to_additive add_comm_group]
 instance [topological_space γ] [borel_space γ] [comm_group γ] [topological_group γ]
   [second_countable_topology γ] : comm_group (α →ₘ[μ] γ) :=
 { .. ae_eq_fun.group, .. ae_eq_fun.comm_monoid }
@@ -432,7 +435,7 @@ instance : emetric_space (α →ₘ[μ] γ) :=
   edist_comm          := λ f g, congr_arg lintegral $ f.edist_comm g,
   edist_triangle      := λ f g h, induction_on₃ f g h $ λ f hf g hg h hh,
     calc ∫⁻ a, edist (f a) (h a) ∂μ ≤ ∫⁻ a, edist (f a) (g a) + edist (g a) (h a) ∂μ :
-      measure_theory.lintegral_mono (le_refl μ) (λ a, edist_triangle (f a) (g a) (h a))
+      measure_theory.lintegral_mono (λ a, edist_triangle (f a) (g a) (h a))
     ... = ∫⁻ a, edist (f a) (g a) ∂μ + ∫⁻ a, edist (g a) (h a) ∂μ :
       measure_theory.lintegral_add (hf.edist hg) (hg.edist hh),
   eq_of_edist_eq_zero := λ f g, induction_on₂ f g $ λ f hf g hg H, mk_eq_mk.2 $
@@ -485,13 +488,13 @@ variables [topological_space γ] [decidable_linear_order γ] [order_closed_topol
 
 /-- Positive part of an `ae_eq_fun`. -/
 def pos_part (f : α →ₘ[μ] γ) : α →ₘ[μ] γ :=
-comp (max 0) (measurable_const.max measurable_id) f
+comp (λ x, max x 0) (measurable_id.max measurable_const) f
 
 @[simp] lemma pos_part_mk (f : α → γ) (hf) :
-  pos_part (mk f hf : α →ₘ[μ] γ) = mk (λ x, max 0 (f x)) (measurable_const.max hf) :=
+  pos_part (mk f hf : α →ₘ[μ] γ) = mk (λ x, max (f x) 0) (hf.max measurable_const) :=
 rfl
 
-lemma coe_fn_pos_part (f : α →ₘ[μ] γ) : ⇑(pos_part f) =ᵐ[μ] (λ a, max 0 (f a)) :=
+lemma coe_fn_pos_part (f : α →ₘ[μ] γ) : ⇑(pos_part f) =ᵐ[μ] (λ a, max (f a) 0) :=
 coe_fn_comp _ _ _
 
 end pos_part

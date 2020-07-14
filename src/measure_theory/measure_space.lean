@@ -879,12 +879,22 @@ def dirac (a : α) : measure α :=
 (outer_measure.dirac a).to_measure (by simp)
 
 lemma dirac_apply' (a : α) {s : set α} (hs : is_measurable s) :
-  (dirac a : measure α) s = ⨆ h : a ∈ s, 1 :=
+  dirac a s = ⨆ h : a ∈ s, 1 :=
 to_measure_apply _ _ hs
 
 @[simp] lemma dirac_apply (a : α) {s : set α} (hs : is_measurable s) :
-  (dirac a : measure α) s = s.indicator 1 a :=
+  dirac a s = s.indicator 1 a :=
 (dirac_apply' a hs).trans $ by { by_cases h : a ∈ s; simp [h] }
+
+lemma dirac_apply_of_mem {a : α} {s : set α} (h : a ∈ s) :
+  dirac a s = 1 :=
+begin
+  rw [measure_eq_infi, infi_subtype', infi_subtype'],
+  convert infi_const,
+  { ext1 ⟨⟨t, hst⟩, ht⟩,
+    simp only [dirac_apply _ ht, indicator_of_mem (hst h), pi.one_apply] },
+  { exact ⟨⟨⟨set.univ, subset_univ _⟩, is_measurable.univ⟩⟩ }
+end
 
 /-- Sum of an indexed family of measures. -/
 def sum {ι : Type*} (f : ι → measure α) : measure α :=
@@ -954,7 +964,7 @@ notation `∀ᵐ` binders `∂` μ `, ` r:(scoped P, μ.ae.eventually P) := r
 notation f ` =ᵐ[`:50 μ:50 `] `:0 g:50 := f =ᶠ[μ.ae] g
 notation f ` ≤ᵐ[`:50 μ:50 `] `:0 g:50 := f ≤ᶠ[μ.ae] g
 
-lemma mem_ae_iff (s : set α) : s ∈ μ.ae ↔ μ sᶜ = 0 := iff.rfl
+lemma mem_ae_iff {s : set α} : s ∈ μ.ae ↔ μ sᶜ = 0 := iff.rfl
 
 lemma ae_iff {p : α → Prop} : (∀ᵐ a ∂ μ, p a) ↔ μ { a | ¬ p a } = 0 := iff.rfl
 
@@ -1007,6 +1017,36 @@ begin
     not_imp, and_comm (_ ∈ s)],
   refl
 end
+
+lemma mem_dirac_ae_iff {a : α} {s : set α} (hs : is_measurable s) :
+  s ∈ (measure.dirac a).ae ↔ a ∈ s :=
+by by_cases a ∈ s; simp [mem_ae_iff, measure.dirac_apply, hs.compl, indicator_apply, *]
+
+lemma eventually_dirac {a : α} {p : α → Prop} (hp : is_measurable {x | p x}) :
+  (∀ᵐ x ∂(measure.dirac a), p x) ↔ p a :=
+mem_dirac_ae_iff hp
+
+lemma eventually_eq_dirac [measurable_space β] [measurable_singleton_class β] {a : α} {f : α → β}
+  (hf : measurable f) :
+  f =ᵐ[measure.dirac a] const α (f a) :=
+(eventually_dirac $ show is_measurable (f ⁻¹' {f a}), from hf $ is_measurable_singleton _).2 rfl
+
+lemma dirac_ae_eq [measurable_singleton_class α] (a : α) : (measure.dirac a).ae = pure a :=
+begin
+  ext s,
+  simp only [mem_ae_iff, mem_pure_sets],
+  by_cases ha : a ∈ s,
+  { simp only [ha, iff_true],
+    rw [← set.singleton_subset_iff, ← compl_subset_compl] at ha,
+    refine measure_mono_null ha _,
+    simp [measure.dirac_apply a (is_measurable_singleton a).compl] },
+  { simp only [ha, iff_false, measure.dirac_apply_of_mem (mem_compl ha)],
+    exact one_ne_zero }
+end
+
+lemma eventually_eq_dirac' [measurable_singleton_class α] {a : α} (f : α → β) :
+  f =ᵐ[measure.dirac a] const α (f a) :=
+by { rw [dirac_ae_eq], show f a = f a, refl }
 
 lemma measure_diff_of_ae_imp {s t : set α} (H : ∀ᵐ x ∂μ, x ∈ s → x ∈ t) :
   μ (s \ t) = 0 :=

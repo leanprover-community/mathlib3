@@ -375,7 +375,7 @@ lemma measurable.of_inv [group α] [topological_group α] {f : δ → α}
   (hf : measurable (λ a, (f a)⁻¹)) : measurable f :=
 by simpa only [inv_inv] using hf.inv
 
-@[to_additive]
+@[simp, to_additive]
 lemma measurable_inv_iff [group α] [topological_group α] {f : δ → α} :
   measurable (λ a, (f a)⁻¹) ↔ measurable f :=
 ⟨measurable.of_inv, measurable.inv⟩

@@ -5,7 +5,10 @@ Author: Jeremy Avigad
 
 The initial algebra of a multivariate qpf is again a qpf.
 -/
-import ..mvpfunctor.M .basic data.prod
+import data.pfunctor.indexed.M
+import data.qpf.indexed.basic
+import data.prod
+
 universe u
 
 namespace mvqpf
@@ -109,7 +112,7 @@ def cofix.map ⦃α β : fam I⦄ (g : α ⟶ β) : cofix F α ⟶ cofix F β :=
 fam.quot.lift _ (q.P.Mp.map g ≫ fam.quot.mk (Mcongr F β))
   begin
     rintros i a ⟨a',ha⟩,
-    have := @fam.quot.sound _ _ _ (Mcongr F β) (a ≫ fam.prod.map (pfunctor.map (mvpfunctor.Mp (P F)) g) (pfunctor.map (mvpfunctor.Mp (P F)) g)) _,
+    have := @fam.quot.sound _ _ _ (Mcongr F β) (a ≫ fam.prod.map (pfunctor.map (pfunctor.Mp (P F)) g) (pfunctor.map (pfunctor.Mp (P F)) g)) _,
     { simp at this, exact this },
     let map := fam.prod.map (q.P.Mp.map g) (q.P.Mp.map g),
     existsi a' ≫ fam.subtype.map _ _ map _,
@@ -135,7 +138,7 @@ fam.quot.lift _ (q.P.Mp.map g ≫ fam.quot.mk (Mcongr F β))
       { let k : unit j ⟶ subtype r := λ i y, (classical.some (c y).2),
         existsi k, rw hr', ext j y : 2, refine classical.some_spec (c y).2, },
       cases hh with k hh,
-      rw [← hh], simp [map,mvpfunctor.M_dest_map_assoc],
+      rw [← hh], simp [map,pfunctor.M_dest_map_assoc],
       have hh' : k ≫ fam.subtype.val ⊨ r,
       { existsi k, refl, },
       clear_except hh' hu h,
@@ -151,7 +154,7 @@ fam.quot.lift _ (q.P.M_dest ≫ abs _ _ ≫ F.map (append_fun (𝟙 _) (fam.quot
 begin
   rintros i a h,
   obtain ⟨r,hr,hr'⟩ := Mcongr_elim _ h,
-  have : ∀ i (f : unit i ⟶ mvpfunctor.M (P F) α ⊗ mvpfunctor.M (P F) α), f ⊨ r → f ⊨ Mcongr F α,
+  have : ∀ i (f : unit i ⟶ pfunctor.M (P F) α ⊗ pfunctor.M (P F) α), f ⊨ r → f ⊨ Mcongr F α,
   { rintros i f ⟨a, h⟩, refine ⟨a ≫ foo _ hr,_⟩,
     simp [h], },
   rw ← quot.indexed.factor_mk_eq _ _ this,
@@ -336,10 +339,10 @@ end
 
 example {I J : Type u} {F : fam (I ⊕ J) ⥤ fam J} [q : mvqpf F] {α : fam I}
   {i : J}
-  (f : unit i ⟶ mvpfunctor.M (P F) α ⊗ mvpfunctor.M (P F) α ⊗ mvpfunctor.M (P F) α)
-  (r₀ : Pred (mvpfunctor.M (P F) α ⊗ mvpfunctor.M (P F) α)) (ha₀ : is_precongr r₀)
+  (f : unit i ⟶ pfunctor.M (P F) α ⊗ pfunctor.M (P F) α ⊗ pfunctor.M (P F) α)
+  (r₀ : Pred (pfunctor.M (P F) α ⊗ pfunctor.M (P F) α)) (ha₀ : is_precongr r₀)
   (hb₀ : f ≫ quot.lpair ⊨ r₀)
-  (r₁ : Pred (mvpfunctor.M (P F) α ⊗ mvpfunctor.M (P F) α)) (ha₁ : is_precongr r₁)
+  (r₁ : Pred (pfunctor.M (P F) α ⊗ pfunctor.M (P F) α)) (ha₁ : is_precongr r₁)
   (hb₁ : f ≫ quot.rpair ⊨ r₁) :
   f ≫ quot.sides ⊨ r₀ ≫ᵣ r₁ :=
 begin
@@ -420,7 +423,7 @@ begin
     simp [cofix.dest] at h,
     rw [← functor.map_comp, ← abs_map,← append_fun_comp_right] at h,
     let f := fam.quot.lift r (fam.quot.lift (Mcongr F α) (fam.quot.mk $ r.map map) _) _,
-    show ∀ {i : J} (a : unit i ⟶ mvpfunctor.M (P F) α ⊗ mvpfunctor.M (P F) α),
+    show ∀ {i : J} (a : unit i ⟶ pfunctor.M (P F) α ⊗ pfunctor.M (P F) α),
               a ⊨ Mcongr F α →
                a ≫ fam.prod.fst ≫ fam.quot.mk (r.map map) =
                a ≫ fam.prod.snd ≫ fam.quot.mk (r.map map),
@@ -527,7 +530,7 @@ begin
   { simp [xeq,*], },
   { simp [xeq,*], },
   { rintro (i|i) a, dsimp [rel_last,uncurry], refl,
-    dsimp [rel_last,uncurry,R,mvpfunctor.append_contents,split_fun],
+    dsimp [rel_last,uncurry,R,pfunctor.append_contents,split_fun],
     rcases h' _ (value i _ a) with ⟨x',Qx',ueq,veq⟩, clear h',
     refine ⟨_,Qx',_⟩, apply fam.prod.ext; simp;
     [rw ← ueq,rw ← veq]; ext _ ⟨ ⟩; refl },

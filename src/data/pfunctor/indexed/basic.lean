@@ -1,20 +1,21 @@
 
 /-
-Copyright (c) 2018 Jeremy Avigad. All rights reserved.
+Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad
-
-Polynomial functors. Also expresses the W-type construction as a polynomial functor.
-(For the M-type construction, see Mtype.lean.)
+Author: Simon Hudon
 -/
 import tactic.interactive tactic.mk_constructive
-import data.multiset
-import data.qpf.indexed.pfunctor.family
+import control.family
+import control.functor.indexed
 
--- import for_mathlib
+/-!
+
+Polynomial functors between indexed type families
+
+-/
 universes v v' u u'
 
-/- TODO (Jeremy): move this. -/
+/- TODO (Simon): move this. -/
 
 namespace category_theory
 
@@ -133,59 +134,6 @@ if h : j.1 = x.1
   else default _
 
 end pfunc
-
-variables (P : pfunctor I I)
-
--- theorem id_map {α : Type*} : ∀ x : P.apply α, id <$> x = id x :=
--- λ ⟨a, b⟩, rfl
-
--- theorem comp_map {α β γ : Type*} (f : α → β) (g : β → γ) :
---   ∀ x : P.apply α, (g ∘ f) <$> x = g <$> (f <$> x) :=
--- λ ⟨a, b⟩, rfl
-
--- instance : is_lawful_functor P.apply :=
--- {id_map := @id_map P, comp_map := @comp_map P}
-
-inductive W : I → Type u
--- | mk {i : I} (a : P.A i) (f : ∀ j : I, P.B i a j → W j) : W i
-| mk {i : I} (a : P.A i) (f : P.B i a ⟶ W) : W i
-
--- inductive W' : I -> Type u
--- | mk {a : A} : (∀ k : K a, W' (f a k)) → W' (g a)
-
-def W_dest (P : pfunctor I I) {i} : W P i → P.obj (W P) i
-| ⟨a, f⟩ := ⟨a, f⟩
-
-def W_mk {i} : P.obj (W P) i → W P i
-| ⟨a, f⟩ := ⟨a, f⟩
-
-@[simp] theorem W_dest_W_mk {i} (p : P.obj (W P) i) : P.W_dest (P.W_mk p) = p :=
-by cases p; reflexivity
-
-@[simp] theorem W_mk_W_dest {i} (p : W P i) : P.W_mk (P.W_dest p) = p :=
-by cases p; reflexivity
-
-variables {P}
-
--- theorem Wp_ind {α : fam I} {C : Π i (x : P.A i), (P.B i x ⟶ α) → Prop}
---   (ih : ∀ i (a : P.A i) (f : P.B i a ⟶ P.W)
---     (f' : P.B i a ⟶ α),
---       (∀ j (x : P.B _ a j), C j ((f : Π j, P.B i a j → P.W j) x) x) → C i ⟨a, f⟩ f') :
---   Π i (x : P.last.W i) (f' : P.W_path x ⟶ α), C i x f'
-
-
--- @[simp]
--- lemma fst_map {α β : fam I} (x : P.apply.obj α _) (f : α ⟶ β) :
---   (f <$> x).1 = x.1 := by { cases x; refl }
-
--- @[simp]
--- lemma iget_map [decidable_eq P.A] {α β : Type u} [inhabited α] [inhabited β]
---   (x : P.apply α) (f : α → β) (i : P.Idx)
---   (h : i.1 = x.1) :
---   (f <$> x).iget i = f (x.iget i) :=
--- by { simp [apply.iget],
---      rw [dif_pos h,dif_pos];
---      cases x, refl, rw h, refl }
 
 end pfunctor
 
@@ -315,3 +263,31 @@ def factor_mk_eq {I} {α : fam I} (r s: fam.Pred (α ⊗ α))
   fam.quot.mk _ ≫ factor r s h = fam.quot.mk _ := rfl
 
 end quot.indexed
+
+/-
+Decomposing an n+1-ary pfunctor.
+-/
+
+namespace pfunctor
+variables {I J : Type u} (P : pfunctor.{u} (J⊕I) I)
+
+def drop : pfunctor J I :=
+{ A := P.A, B := λ i a, (P.B i a).drop }
+
+def last : pfunctor I I :=
+{ A := P.A, B := λ i a, (P.B i a).last }
+
+@[reducible] def append_contents {α : fam J} {β : fam I}
+    {i} {a : P.A i} (f' : P.drop.B i a ⟶ α) (f : P.last.B i a ⟶ β) :
+  P.B i a ⟶ α.append1 β :=
+fam.split_fun f' f
+
+variables {j : I} {a a' : P.A j} {α α' : fam J} {β β' : fam I}
+  (f₀ : P.drop.B j a ⟶ α) (f₁ : α ⟶ α')
+  (g₀ : P.last.B j a ⟶ β) (g₁ : β ⟶ β')
+
+lemma append_contents_comp :
+  append_contents _ (f₀ ≫ f₁) (g₀ ≫ g₁) = append_contents _ f₀ g₀ ≫ fam.split_fun f₁ g₁ :=
+by rw [append_contents,append_contents,← fam.split_fun_comp]
+
+end pfunctor

@@ -1,6 +1,6 @@
 
-import data.qpf.indexed.mvpfunctor.basic
-import data.qpf.indexed.constructions.basic
+import data.pfunctor.indexed.basic
+import data.qpf.indexed.basic
 
 import category_theory.products
 
@@ -172,7 +172,7 @@ open category_theory
 
 
 namespace prod
-open mvfunctor mvpfunctor
+open mvfunctor pfunctor
 variables {F G} {α β : fam J} (f : α ⟶ β)
 
 include q q'

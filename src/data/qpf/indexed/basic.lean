@@ -5,12 +5,12 @@ Author: Jeremy Avigad
 
 Multivariate quotients of polynomial functors.
 -/
-import data.qpf.indexed.mvpfunctor.W
+import data.pfunctor.indexed.W
 import tactic.mk_opaque
 universe u
 
 class mvqpf {I J : Type u} (F : fam I ⥤ fam J) :=
-(P         : mvpfunctor.{u} I J)
+(P         : pfunctor.{u} I J)
 (abs []    : Π α, P.obj α ⟶ F.obj α)
 (repr []   : Π α, F.obj α ⟶ P.obj α)
 (abs_repr  : ∀ α, repr α ≫ abs α = 𝟙 _)

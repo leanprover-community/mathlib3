@@ -8,7 +8,7 @@ Basic machinery for defining general coinductive types
 Work in progress
 -/
 import data.pfun
-import data.qpf.indexed.pfunctor.basic
+import data.pfunctor.indexed.basic
 import tactic.wlog meta.coinductive_predicates
 import tactic.interactive
 
@@ -20,7 +20,7 @@ variables {I J : Type u} (F : pfunctor.{u} I I)
 
 local prefix `♯`:0 := cast (by simp [*] <|> cc <|> solve_by_elim)
 
-namespace pfunctor
+namespace pfunctor.simple
 namespace approx
 
 inductive cofix_a : ℕ → I → Type u
@@ -299,22 +299,22 @@ by refl
 
 lemma agree'_refl {i} {n : ℕ} (x : M F i) :
   agree' n x x :=
-by { resetI, induction n generalizing i x; induction x using pfunctor.M.cases_on'; constructor; try { refl }, intros, apply n_ih }
+by { resetI, induction n generalizing i x; induction x using pfunctor.simple.M.cases_on'; constructor; try { refl }, intros, apply n_ih }
 
 lemma agree_iff_agree' {i} {n : ℕ} (x y : M F i) :
   agree (x.approx n) (y.approx $ n+1) ↔ agree' n x y :=
 begin
   split; intros h,
   { induction n generalizing i x y, constructor,
-    { induction x using pfunctor.M.cases_on',
-      induction y using pfunctor.M.cases_on',
+    { induction x using pfunctor.simple.M.cases_on',
+      induction y using pfunctor.simple.M.cases_on',
       simp only [approx_mk] at h, cases h,
       constructor; try { refl },
       intros j a, apply n_ih, apply h_a_1 } },
   { induction n generalizing x y i, constructor,
     { cases h,
-      induction x using pfunctor.M.cases_on',
-      induction y using pfunctor.M.cases_on',
+      induction x using pfunctor.simple.M.cases_on',
+      induction y using pfunctor.simple.M.cases_on',
       simp only [approx_mk],
       replace h_a_1 := mk_inj h_a_1, cases h_a_1, clear h_a_1,
       replace h_a_2 := mk_inj h_a_2, cases h_a_2, clear h_a_2 i,
@@ -324,9 +324,9 @@ end
 
 @[simp]
 lemma cases_mk {r : Π {i}, M F i → Sort*} {i} (x : F.obj (M F) i) (f : Π i (x : F.obj (M F) i), r (M.mk x))
-: pfunctor.M.cases f (M.mk x) = f _ x :=
+: pfunctor.simple.M.cases f (M.mk x) = f _ x :=
 begin
-  dsimp [M.mk,pfunctor.M.cases,from_cofix,head,approx.s_mk,head'],
+  dsimp [M.mk,pfunctor.simple.M.cases,from_cofix,head,approx.s_mk,head'],
   cases x, dsimp [approx.s_mk],
   apply eq_of_heq,
   apply rec_heq_of_heq, congr,
@@ -339,12 +339,12 @@ end
 
 @[simp]
 lemma cases_on_mk {r : Π {i}, M F i → Sort*} {i} (x : F.obj (M F) i) (f : Π i (x : F.obj (M F) i), r (M.mk x))
-: pfunctor.M.cases_on (M.mk x) f = f _ x :=
+: pfunctor.simple.M.cases_on (M.mk x) f = f _ x :=
 cases_mk x f
 
 @[simp]
 lemma cases_on_mk' {r : Π {i}, M F i → Sort*} {i a} (x : F.B i a ⟶ M F) (f : Π {i} a (f : F.B i a ⟶ M F), r (M.mk ⟨a,f⟩))
-: pfunctor.M.cases_on' (M.mk ⟨a,x⟩) @f = f a x :=
+: pfunctor.simple.M.cases_on' (M.mk ⟨a,x⟩) @f = f a x :=
 cases_mk ⟨_,x⟩ _
 
 inductive is_path : Π {i}, path F → M F i → Prop
@@ -482,7 +482,7 @@ begin
   induction ps generalizing i j x t,
   { constructor },
   { rcases ps_hd with ⟨i',a,j,b⟩,
-    induction x using pfunctor.M.cases_on',
+    induction x using pfunctor.simple.M.cases_on',
     classical,
     by_cases h'' : @sigma.mk _ F.A i' a = ⟨x_i,x_a⟩, cases h'',
     { rw [isubtree_cons] at h', -- rw ps_ih, intro h', apply h,
@@ -522,13 +522,13 @@ lemma ext_aux {n : ℕ} {i} (x y z : M F i)
 begin
   induction n with n generalizing i x y z,
   { specialize hrec [] (head x) rfl,
-    induction x using pfunctor.M.cases_on', induction y using pfunctor.M.cases_on',
+    induction x using pfunctor.simple.M.cases_on', induction y using pfunctor.simple.M.cases_on',
     simp only [iselect_nil,head_mk] at hrec { constructor_eq := ff },
     cases hrec.1 rfl,
     simp only [approx_mk, true_and, eq_self_iff_true, heq_iff_eq],
     ext, },
   { cases hx, cases hy,
-    induction x using pfunctor.M.cases_on', induction y using pfunctor.M.cases_on',
+    induction x using pfunctor.simple.M.cases_on', induction y using pfunctor.simple.M.cases_on',
     subst z,
     replace hx_a_2 := mk_inj hx_a_2, cases hx_a_2,
     replace hy_a_1 := mk_inj hy_a_1, cases hy_a_1,
@@ -539,7 +539,7 @@ begin
     simp [iselect_cons] at hrec, exact hrec }
 end
 
-open pfunctor.approx
+open pfunctor.simple.approx
 
 -- variables (F : pfunctor.{v})
 variables {F}
@@ -586,8 +586,8 @@ section bisim
          ∀ {k} (x : F.B j a k), f x ~ f' x :=
   begin
     intros hh,
-    induction s₁ using pfunctor.M.cases_on' with i a f,
-    induction s₂ using pfunctor.M.cases_on' with i' a' f',
+    induction s₁ using pfunctor.simple.M.cases_on' with i a f,
+    induction s₂ using pfunctor.simple.M.cases_on' with i' a' f',
     have : a = a' := bisim.head hh, subst a',
     induction ps with p ps generalizing i' a f f',
     { intro, existsi [_,a,f,f'], simp [isubtree_nil],
@@ -598,8 +598,8 @@ section bisim
     { cases hh'; cases is_path_cons hh'; refl },
     cases this, simp only [isubtree_cons] at ⊢,
     have h₁ := bisim.tail hh d,
-    induction h : (f d) using pfunctor.M.cases_on' with i₀ a₀ f₀,
-    induction h' : (f' d) using pfunctor.M.cases_on' with i₁ a₁ f₁,
+    induction h : (f d) using pfunctor.simple.M.cases_on' with i₀ a₀ f₀,
+    induction h' : (f' d) using pfunctor.simple.M.cases_on' with i₁ a₁ f₁,
     rw [h,h'] at h₁,
     have : a₀ = a₁ := bisim.head h₁, subst a₁,
     apply (ps_ih _ _ _ h₁),
@@ -717,18 +717,18 @@ M.corec f x₀
 
 end M
 
-end pfunctor
+end pfunctor.simple
 
 namespace tactic.interactive
 open tactic (hiding coinduction) lean.parser interactive interactive.types
 
 meta def bisim (ns : parse with_ident_list) (g : parse $ optional (tk "generalizing" *> many ident)) : tactic unit :=
-do applyc ``pfunctor.M.coinduction,
-   coinduction ``pfunctor.M.R.corec_on ns g
+do applyc ``pfunctor.simple.M.coinduction,
+   coinduction ``pfunctor.simple.M.R.corec_on ns g
 
 end tactic.interactive
 
-namespace pfunctor
+namespace pfunctor.simple
 
 open M
 
@@ -968,7 +968,7 @@ theorem M_mk_M_dest' : M_dest ≫ M_mk = 𝟙 (M P) :=
 funext (λ i, funext $ λ i, M_mk_M_dest _)
 
 theorem M_dest_M_mk : M_mk ≫ M_dest = 𝟙 (P.obj (M P)) :=
-by rw [M_mk,M_dest_corec',←map_comp, ←M_mk, M_mk_M_dest', map_id]
+by rw [M_mk,M_dest_corec',←pfunctor.map_comp, ←M_mk, M_mk_M_dest', pfunctor.map_id]
 
 theorem M_dest_M_mk' {i} (x : P.obj (M P) i) : M_dest (M_mk x) = x :=
 show (M_mk ≫ M_dest) x = x,
@@ -986,5 +986,193 @@ by rw M_dest_M_mk; refl
 --      | sum.inl y := (rec ∘ sum.inl) <$> M_dest y
 --      end )
 -- (@sum.inr (M P) _ x)
+
+end pfunctor.simple
+
+namespace pfunctor
+
+variables (P : pfunctor (I ⊕ J) J)
+
+inductive M_path : Π {i : J}, pfunctor.simple.M P.last i → I → Type u
+| root {i} (x : pfunctor.simple.M P.last i) (a : P.A i) (f : P.last.B i a ⟶ simple.M P.last) (h : pfunctor.simple.M_dest x = ⟨a, f⟩)
+       (j : I) (c : P.drop.B i a j) :
+    M_path x j
+| child {i} (x : pfunctor.simple.M P.last i) (a : P.A i) (f : P.last.B i a ⟶ simple.M P.last)
+        (h : pfunctor.simple.M_dest x = ⟨a, f⟩)
+        (j : J) (a : P.last.B i a j) {i'} (c : M_path (f a) i') :
+    M_path x i'
+
+def Mp : pfunctor I J :=
+{ A := simple.M P.last, B := λ _, P.M_path }
+
+def M (α : fam I) : fam J := P.Mp.obj α
+
+-- instance mvfunctor_M : mvfunctor P.M := by delta M; apply_instance
+
+def M_corec_shape {β : fam J}
+    (g₀ : β ⟶ P.A)
+    (g₂ : Π {i} (b : β i), P.last.B i (g₀ b) ⟶ β) :
+  β ⟶ pfunctor.simple.M P.last :=
+pfunctor.simple.M_corec (λ j b, ⟨g₀ b, g₂ _⟩)
+
+def cast_dropB {i} : Π {a a' : P.A i} (h : a = a'), P.drop.B i a ⟶ P.drop.B i a'
+| _ _ rfl i b := b
+
+def cast_lastB {i} : Π {a a' : P.A i} (h : a = a'), P.last.B i a ⟶ P.last.B i a'
+| _ _ rfl i b := b
+
+def M_corec_contents {α : fam I} {β : fam J}
+    (g₀ : β ⟶ P.A)
+    (g₁ : Π ⦃i⦄ (b : β i), P.drop.B i (g₀ b) ⟶ α)
+    (g₂ : Π ⦃i⦄ (b : β i), P.last.B i (g₀ b) ⟶ β) :
+  Π {j} x (b : β j), x = P.M_corec_shape g₀ g₂ b → (P.M_path x ⟶ α)
+| j ._ b h ._ (M_path.root x a f h' i c)    :=
+  have a = g₀ b,
+    by { rw [h, M_corec_shape, pfunctor.simple.M_dest_corec] at h', cases h', refl },
+  g₁ b (P.cast_dropB this c)
+| j ._ b h ._ (M_path.child x a f h' j' i c) :=
+  have h₀ : a = g₀ b,
+    by { rw [h, M_corec_shape, pfunctor.simple.M_dest_corec] at h', cases h', refl },
+  have h₁ : f i = M_corec_shape P g₀ g₂ (g₂ b (cast_lastB P h₀ i)),
+    by { rw [h, M_corec_shape, pfunctor.simple.M_dest_corec] at h', cases h', refl },
+  M_corec_contents (f i) (g₂ b (P.cast_lastB h₀ _)) h₁ c
+
+def M_corec' {α : fam I} {β : fam J}
+    (g₀ : β ⟶ P.A)
+    (g₁ : Π ⦃i⦄ (b : β i), P.drop.B i (g₀ b) ⟶ α) :
+  Π (g₂ : Π ⦃i⦄ (b : β i), P.last.B i (g₀ b) ⟶ β),
+  β ⟶ P.M α
+| g₂ j b := ⟨M_corec_shape P g₀ g₂ b, M_corec_contents P g₀ g₁ g₂ _ _ rfl⟩
+
+open fam
+
+def M_corec {α : fam I} {β : fam J} (g : β ⟶ P.obj (α.append1 β)) :
+  β ⟶ P.M α :=
+M_corec' P
+  (λ i b, (g b).fst)
+  (λ i b, drop_fun (g b).snd)
+  (λ i b, last_fun (g b).snd)
+
+def M_path_dest_left {α : fam I} {j} {x : pfunctor.simple.M P.last j}
+    {a : P.A j} {f : P.last.B j a ⟶ simple.M P.last} (h : pfunctor.simple.M_dest x = ⟨a, f⟩)
+    (f' : P.M_path x ⟶ α) :
+  P.drop.B j a ⟶ α :=
+λ i c, f' (M_path.root x a f h i c)
+
+def M_path_dest_right {α : fam I} {j} {x : pfunctor.simple.M P.last j}
+    {a : P.A j} {f : P.last.B j a ⟶ simple.M P.last} (h : pfunctor.simple.M_dest x = ⟨a, f⟩)
+    (f' : P.M_path x ⟶ α) :
+  Π {i} j : P.last.B _ a i, P.M_path (f j) ⟶ α :=
+λ j i k c, f' (M_path.child x a f h j i c)
+
+def M_dest' {α : fam I}
+    {i} {x : pfunctor.simple.M P.last i} {a : P.A i}
+    {f : P.last.B i a ⟶ simple.M P.last} (h : pfunctor.simple.M_dest x = ⟨a, f⟩)
+    (f' : P.M_path x ⟶ α) :
+  P.obj (α.append1 (P.M α)) _ :=
+⟨a, split_fun (P.M_path_dest_left h f') (λ j x, ⟨f x, P.M_path_dest_right h f' x⟩)⟩
+
+def M_dest : Π {α : fam I}, P.M α ⟶ P.obj (α.append1 (P.M α))
+| α i x := P.M_dest' (sigma.eta $ pfunctor.simple.M_dest x.fst).symm x.snd
+
+def M_mk : Π {α : fam I}, P.obj (α.append1 (P.M α)) ⟶ P.M α
+| α := M_corec _ (P.map $ append_fun (𝟙 _) $ M_dest P)
+
+theorem M_dest'_eq_dest' {α : fam I} {i} {x : pfunctor.simple.M P.last i}
+    {a₁ : P.A i} {f₁ : P.last.B _ a₁ ⟶ simple.M P.last} (h₁ : pfunctor.simple.M_dest x = ⟨a₁, f₁⟩)
+    {a₂ : P.A i} {f₂ : P.last.B _ a₂ ⟶ simple.M P.last} (h₂ : pfunctor.simple.M_dest x = ⟨a₂, f₂⟩)
+    (f' : P.M_path x ⟶ α) : M_dest' P h₁ f' = M_dest' P h₂ f' :=
+by cases h₁.symm.trans h₂; refl
+
+theorem M_dest_eq_dest' {α : fam I} {i} {x : pfunctor.simple.M P.last i}
+    {a : P.A i} {f : P.last.B i a ⟶ simple.M P.last} (h : pfunctor.simple.M_dest x = ⟨a, f⟩)
+    (f' : P.M_path x ⟶ α) : M_dest P ⟨x, f'⟩ = M_dest' P h f' :=
+M_dest'_eq_dest' _ _ _ _
+
+theorem M_dest_corec' {α : fam I} {β : fam J}
+    (g₀ : β ⟶ P.A)
+    (g₁ : Π ⦃i⦄ (b : β i), P.drop.B i (g₀ b) ⟶ α)
+    (g₂ : Π ⦃i⦄ (b : β i), P.last.B i (g₀ b) ⟶ β)
+    {i} (x : β i) :
+  P.M_dest (P.M_corec' g₀ g₁ g₂ x) =
+    ⟨g₀ x, split_fun (g₁ x) (g₂ x ≫ P.M_corec' g₀ g₁ g₂)⟩ :=
+rfl
+
+theorem M_dest_corec {α : fam I} {β : fam J}
+  (g : β ⟶ P.obj (α.append1 β)) {i} (x : β i) :
+  P.M_dest (P.M_corec g x) = P.map (append_fun (𝟙 _) (P.M_corec g)) (g x) :=
+begin
+  transitivity, apply M_dest_corec',
+  cases g x with a f, dsimp,
+  rw pfunctor.map_eq', congr,
+  conv { to_rhs, rw [←split_drop_fun_last_fun f, mvfunctor.append_fun_comp_split_fun] },
+  refl
+end
+
+@[reassoc]
+theorem M_dest_corec'' {α : fam I} {β : fam J}
+  (g : β ⟶ P.obj (α.append1 β)) :
+  P.M_corec g ≫ P.M_dest = g ≫ P.map (append_fun (𝟙 _) (P.M_corec g)) :=
+by ext : 2; simp [M_dest_corec]
+
+lemma M_bisim_lemma {α : fam I}
+  {i} {a₁ : (Mp P).A i} {f₁ : (Mp P).B _ a₁ ⟶ α}
+  {a' : P.A i} {f' : (P.B _ a').drop ⟶ α} {f₁' : (P.B _ a').last ⟶ M P α}
+  (e₁ : M_dest P ⟨a₁, f₁⟩ = ⟨a', split_fun f' f₁'⟩) :
+  ∃ g₁' (e₁' : pfunctor.simple.M_dest a₁ = ⟨a', g₁'⟩),
+    f' = M_path_dest_left P e₁' f₁ ∧
+    f₁' = λ i (x : (last P).B _ a' _),
+      ⟨g₁' x, M_path_dest_right P e₁' f₁ x⟩ :=
+begin
+  generalize_hyp ef : @split_fun _ _ _ (append1 α (M P α)) f' f₁' = ff at e₁,
+  cases e₁' : pfunctor.simple.M_dest a₁ with a₁' g₁',
+  rw M_dest_eq_dest' _ e₁' at e₁,
+  cases e₁, exact ⟨_, e₁', mvfunctor.split_fun_inj ef⟩,
+end
+
+theorem M_bisim {α : fam I} (R : Π ⦃j⦄, P.M α j → P.M α j → Prop)
+  (h : ∀ j (x y : P.M α j), R x y → ∃ a f f₁ f₂,
+    P.M_dest x = ⟨a, split_fun f f₁⟩ ∧
+    P.M_dest y = ⟨a, split_fun f f₂⟩ ∧
+    ∀ i x, @R i (f₁ x) (f₂ x))
+  {j} (x y) (r : @R j x y) : x = y :=
+begin
+  cases x with a₁ f₁,
+  cases y with a₂ f₂,
+  dsimp [Mp] at *,
+  have : a₁ = a₂, {
+    refine pfunctor.simple.M_bisim
+      (λ i (a₁ a₂ : pfunctor.simple.M (last P) i), ∃ x y, @R i x y ∧ x.1 = a₁ ∧ y.1 = a₂) _ _ _ _
+      ⟨⟨a₁, f₁⟩, ⟨a₂, f₂⟩, r, rfl, rfl⟩,
+    rintro _ _ _ ⟨⟨a₁, f₁⟩, ⟨a₂, f₂⟩, r, rfl, rfl⟩,
+    rcases h _ _ _ r with ⟨a', f', f₁', f₂', e₁, e₂, h'⟩,
+    rcases M_bisim_lemma P e₁ with ⟨g₁', e₁', rfl, rfl⟩,
+    rcases M_bisim_lemma P e₂ with ⟨g₂', e₂', _, rfl⟩,
+    rw [e₁', e₂'],
+    exact ⟨_, _, _, rfl, rfl, λ i b, ⟨_, _, h' _ b, rfl, rfl⟩⟩ },
+  subst this, congr, ext i p,
+  induction p with x i' a f h' i j c x a f h' i j c p IH generalizing f₁ f₂,
+  all_goals {
+    rcases h _ _ _ r with ⟨i, a', f', f₁', e₁, e₂, h''⟩,
+    rcases M_bisim_lemma P e₁ with ⟨g₁', e₁', rfl, rfl⟩,
+    rcases M_bisim_lemma P e₂ with ⟨g₂', e₂', e₃, rfl⟩,
+    cases h'.symm.trans e₁',
+    cases h'.symm.trans e₂' },
+  { exact (congr_fun (congr_fun e₃ i) _ : _) },
+  { exact IH _ _ (h'' _ _) }
+end
+
+open pfunctor mvfunctor
+
+@[reassoc]
+theorem M_dest_map {α β : fam I} (g : α ⟶ β) :
+  P.Mp.map g ≫ P.M_dest = P.M_dest ≫ P.map (append_fun g (P.Mp.map g)) :=
+begin
+  ext i x : 2,
+  cases x with a f,
+  simp [map_eq],
+  conv { to_rhs, rw [M_dest, M_dest', map_eq', append_fun_comp_split_fun] },
+  reflexivity,
+end
 
 end pfunctor

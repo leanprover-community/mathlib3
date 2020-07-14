@@ -1,7 +1,6 @@
 
-import data.qpf.indexed.mvpfunctor.basic
-import data.qpf.indexed.constructions.basic
-
+import data.pfunctor.indexed.basic
+import data.qpf.indexed.basic
 import category_theory.products
 
 universes u
@@ -18,7 +17,7 @@ open category_theory
 -- λ k : K, F.obj (λ i : I, (G i).obj v k) _
 
 namespace comp
-open mvfunctor mvpfunctor
+open mvfunctor pfunctor
 variables {F G} {α β : fam J} (f : α ⟶ β)
 
 -- protected def mk (x : F $ λ i, G i α) : (comp F G) α := x

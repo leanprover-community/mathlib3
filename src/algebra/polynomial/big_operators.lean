@@ -68,7 +68,7 @@ begin
   rwa polynomial.leading_coeff_prod', apply right_ne_zero_of_mul h,
 end
 
-lemma monic_prod_monic :
+lemma monic_prod_of_monic :
   (∀ a : α, a ∈ s → monic (f a)) → monic (∏ i in s, f i) :=
 by { apply prod_induction, apply monic_mul, apply monic_one }
 

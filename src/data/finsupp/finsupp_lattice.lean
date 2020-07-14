@@ -79,7 +79,7 @@ instance [semilattice_sup β] : semilattice_sup (α →₀ β) :=
 lemma sup_apply [semilattice_sup β] {a : α} {f g : α →₀ β} : (f ⊔ g) a = f a ⊔ g a := rfl
 
 @[simp]
-lemma support_sup_of_zero_le [semilattice_sup_bot β] [canonically_ordered_add_monoid β]
+lemma support_sup [semilattice_sup_bot β] [canonically_ordered_add_monoid β]
   {f g : α →₀ ℕ} : (f ⊔ g).support = f.support ∪ g.support :=
 begin
   change (binary_op_pointwise sup_idem f g).support = f.support ∪ g.support,
@@ -92,9 +92,7 @@ instance lattice [lattice β] : lattice (α →₀ β) :=
 { .. finsupp.semilattice_inf, .. finsupp.semilattice_sup}
 
 instance semilattice_inf_bot : semilattice_inf_bot (α →₀ ℕ) :=
-{ bot := 0,
-  bot_le := by { intro a, simp [finsupp.le_iff] },
-..finsupp.lattice}
+{ ..finsupp.order_bot, ..finsupp.lattice}
 
 lemma of_multiset_strict_mono : strict_mono (@finsupp.of_multiset α) :=
 begin
@@ -106,6 +104,9 @@ begin
 end
 
 lemma nat.bot_eq_zero : (⊥ : α →₀ ℕ) = 0 := rfl
+lemma enat.bot_eq_zero : (⊥ : α →₀ ℕ) = 0 := rfl
+lemma nnreal.bot_eq_zero : (⊥ : α →₀ ℕ) = 0 := rfl
+lemma ennreal.bot_eq_zero : (⊥ : α →₀ ℕ) = 0 := rfl
 
 @[simp]
 lemma nat.disjoint_iff {x y : α →₀ ℕ} : disjoint x y ↔ disjoint x.support y.support :=

@@ -16,7 +16,8 @@ Eventually, much of data/polynomial.lean should land here.
 We relate `eval` and the constant coefficient map to `aeval`, so we can use `alg_hom` properties.
 
 We define a `monoid_hom` of type `polynomial R →* R`,
-- `leading_coeff_monoid_hom`
+under the assumption that `R` is an integral domain.
+- `leading_coeff_hom`
 -/
 
 universes u w

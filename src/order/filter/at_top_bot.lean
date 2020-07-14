@@ -116,6 +116,10 @@ lemma tendsto_at_top [preorder β] (m : α → β) (f : filter α) :
   tendsto m f at_top ↔ (∀b, ∀ᶠ a in f, b ≤ m a) :=
 by simp only [at_top, tendsto_infi, tendsto_principal, mem_set_of_eq]
 
+lemma tendsto_at_bot [preorder β] (m : α → β) (f : filter α) :
+  tendsto m f at_bot ↔ (∀b, ∀ᶠ a in f, m a ≤ b) :=
+by simp only [at_bot, tendsto_infi, tendsto_principal, mem_set_of_eq]
+
 lemma tendsto_at_top_mono' [preorder β] (l : filter α) ⦃f₁ f₂ : α → β⦄ (h : f₁ ≤ᶠ[l] f₂) :
   tendsto f₁ l at_top → tendsto f₂ l at_top :=
 assume h₁, (tendsto_at_top _ _).2 $ λ b, mp_sets ((tendsto_at_top _ _).1 h₁ b)
@@ -516,18 +520,24 @@ lemma tendsto_at_top_of_monotone_of_subseq {ι ι' α : Type*} [preorder ι] [pr
   tendsto u at_top at_top :=
 tendsto_at_top_of_monotone_of_filter h (map_ne_bot hl) (tendsto_map' H)
 
-lemma tendsto_neg_at_top_at_bot {α : Type*} [nonempty α] [decidable_linear_ordered_add_comm_group α] :
+lemma tendsto_neg_at_top_at_bot {α : Type*} [ordered_add_comm_group α] :
   tendsto (has_neg.neg : α → α) at_top at_bot :=
-(tendsto_at_top_at_bot has_neg.neg).2 (λ b, ⟨ -b, λ a ha, ge_iff_le.2 $ neg_le.1 ha⟩)
+begin
+  rw tendsto_at_bot,
+  intros b,
+  rw eventually_iff,
+  rw (show {a : α | -a ≤ b} = {a : α | -b ≤ a}, by {ext, simp only [mem_set_of_eq], exact neg_le}),
+  exact mem_at_top _
+end
 
-lemma tendsto_neg_at_bot_at_top {α : Type*} [decidable_linear_ordered_add_comm_group α] :
+lemma tendsto_neg_at_bot_at_top {α : Type*} [ordered_add_comm_group α] :
   tendsto (has_neg.neg : α → α) at_bot at_top :=
 begin
   rw tendsto_at_top,
   intros b,
   rw eventually_iff,
   rw (show {a : α | b ≤ -a} = {a : α | a ≤ -b}, by {ext, simp only [mem_set_of_eq], exact le_neg}),
-  exact mem_at_bot _,
+  exact mem_at_bot _
 end
 
 end filter

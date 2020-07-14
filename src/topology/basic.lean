@@ -1006,7 +1006,7 @@ have ∀ (a : α), cluster_pt a (𝓟 s) → cluster_pt (f a) (𝓟 (f '' s)),
   have h₂ : map f (𝓝 a ⊓ 𝓟 s) ≤ 𝓝 (f a) ⊓ 𝓟 (f '' s),
     from le_inf
       (le_trans (map_mono inf_le_left) $ by rw [continuous_iff_continuous_at] at h; exact h a)
-      (le_trans (map_mono inf_le_right) $ by simp; exact subset.refl _),
+      (le_trans (map_mono inf_le_right) $ by simp [subset_preimage_image] ),
   ne_bot_of_le_ne_bot h₁ h₂,
 by simp [image_subset_iff, closure_eq_cluster_pts]; assumption
 

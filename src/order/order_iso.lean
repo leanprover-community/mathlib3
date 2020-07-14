@@ -377,13 +377,13 @@ end
 
 lemma order_iso.bot_eq [order_bot α] [order_bot β]
   (f : (has_le.le : α → α → Prop) ≃o (has_le.le : β → β → Prop))
-  {a₁ a₂ : α}:
+  {a₁ a₂ : α} :
   f ⊥ = ⊥ :=
 by { rw [eq_bot_iff, ← f.apply_symm_apply ⊥, ← f.ord], apply bot_le, }
 
 lemma order_iso.top_eq [order_top α] [order_top β]
   (f : (has_le.le : α → α → Prop) ≃o (has_le.le : β → β → Prop))
-  {a₁ a₂ : α}:
+  {a₁ a₂ : α} :
   f ⊤ = ⊤ :=
 by { rw [eq_top_iff, ← f.apply_symm_apply ⊤, ← f.ord], apply le_top, }
 

@@ -2,13 +2,36 @@
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro
-
-Tensor product of modules over commutative rings.
-
 -/
+
 import group_theory.congruence
 import group_theory.free_abelian_group
 import linear_algebra.direct_sum_module
+
+/-!
+# Tensor product of semimodules over commutative semirings.
+
+This file constructs the tensor product of semimodules over commutative semirings. Given a semiring
+`R` and semimodules over it `M` and `N`, the standard construction of the tensor product is
+`tensor_product R M N`. It is also a semimodule over `R`.
+
+It comes with a canonical bilinear map `M → N → tensor_product R M N`.
+
+Given any bilinear map `M → N → P`, there is a unique linear map `tensor_product R M N → P` whose
+composition with the canonical bilinear map `M → N → tensor_product R M N` is the given bilinear
+map `M → N → P`.
+
+We start by proving basic lemmas about bilinear maps.
+
+## Notations
+
+This file uses the localized notation `M ⊗ N` and `M ⊗[R] N` for `tensor_product R M N`, as well
+as `m ⊗ₜ n` and `m ⊗ₜ[R] n` for `tensor_product.tmul R m n`.
+
+## Tags
+
+bilinear, tensor, tensor product
+-/
 
 namespace linear_map
 
@@ -20,6 +43,7 @@ variables [semimodule R M] [semimodule R N] [semimodule R P] [semimodule R Q] [s
 include R
 
 variables (R)
+/-- Create a bilinear map from a function that is linear in each component. -/
 def mk₂ (f : M → N → P)
   (H1 : ∀ m₁ m₂ n, f (m₁ + m₂) n = f m₁ n + f m₂ n)
   (H2 : ∀ (c:R) m n, f (c • m) n = c • f m n)
@@ -56,6 +80,8 @@ theorem flip_inj {f g : M →ₗ[R] N →ₗ P} (H : flip f = flip g) : f = g :=
 ext₂ $ λ m n, show flip f n m = flip g n m, by rw H
 
 variables (R M N P)
+/-- Given a linear map from `M` to linear maps from `N` to `P`, i.e., a bilinear map `M → N → P`,
+change the order of variables and get a linear map from `N` to linear maps from `M` to `P`. -/
 def lflip : (M →ₗ[R] N →ₗ P) →ₗ[R] N →ₗ M →ₗ P :=
 ⟨flip, λ _ _, rfl, λ _ _, rfl⟩
 variables {R M N P}
@@ -75,6 +101,7 @@ theorem map_add₂ (x₁ x₂ y) : f (x₁ + x₂) y = f x₁ y + f x₂ y := (f
 theorem map_smul₂ (r:R) (x y) : f (r • x) y = r • f x y := (flip f y).map_smul _ _
 
 variables (R P)
+/-- Composing a linear map `M → N` and a linear map `N → P` to form a linear map `M → P`. -/
 def lcomp (f : M →ₗ[R] N) : (N →ₗ[R] P) →ₗ[R] M →ₗ[R] P :=
 flip $ linear_map.comp (flip id) f
 
@@ -84,6 +111,7 @@ variables {R P}
   lcomp R P f g x = g (f x) := rfl
 
 variables (R M N P)
+/-- Composing a linear map `M → N` and a linear map `N → P` to form a linear map `M → P`. -/
 def llcomp : (N →ₗ[R] P) →ₗ[R] (M →ₗ[R] N) →ₗ M →ₗ P :=
 flip ⟨lcomp R P,
   λ f f', ext₂ $ λ g x, g.map_add _ _,
@@ -95,11 +123,15 @@ section
   llcomp R M N P f g x = f (g x) := rfl
 end
 
+/-- Composing a linear map `Q → N` and a bilinear map `M → N → P` to
+form a blinear map `M → Q → P`. -/
 def compl₂ (g : Q →ₗ N) : M →ₗ Q →ₗ P := (lcomp R _ g).comp f
 
 @[simp] theorem compl₂_apply (g : Q →ₗ[R] N) (m : M) (q : Q) :
   f.compl₂ g m q = f m (g q) := rfl
 
+/-- Composing a linear map `P → Q` and a bilinear map `M × N → P` to
+form a blinear map `M → N → Q`. -/
 def compr₂ (g : P →ₗ Q) : M →ₗ N →ₗ Q :=
 linear_map.comp (llcomp R N P Q g) f
 
@@ -107,6 +139,7 @@ linear_map.comp (llcomp R N P Q g) f
   f.compr₂ g m n = g (f m n) := rfl
 
 variables (R M)
+/-- Scalar multiplication as a bilinear map `R → M → M`. -/
 def lsmul : R →ₗ M →ₗ M :=
 mk₂ R (•) add_smul (λ _ _ _, mul_smul _ _ _) smul_add
 (λ r s m, by simp only [smul_smul, smul_eq_mul, mul_comm])
@@ -131,6 +164,9 @@ namespace tensor_product
 section
 -- open free_add_monoid
 variables (R)
+
+/-- The relation on `free_add_monoid (M × N)` that generates a congruence whose quotient is
+the tensor product. -/
 inductive eqv : free_add_monoid (M × N) → free_add_monoid (M × N) → Prop
 | of_zero_left : ∀ n : N, eqv (free_add_monoid.of (0, n)) 0
 | of_zero_right : ∀ m : M, eqv (free_add_monoid.of (m, 0)) 0
@@ -146,6 +182,9 @@ end
 end tensor_product
 
 variables (R)
+
+/-- The tensor product of two semimodules `M` and `N` over the same commutative semiring `R`.
+The localized notations are `M ⊗ N` and `M ⊗[R] N`, accessed by `open_locale tensor_product`. -/
 def tensor_product : Type* :=
 (add_con_gen (tensor_product.eqv R M N)).quotient
 
@@ -166,6 +205,8 @@ instance : add_comm_monoid (M ⊗[R] N) :=
 instance : inhabited (M ⊗[R] N) := ⟨0⟩
 
 variables (R) {M N}
+/-- The canonical function `M → N → M ⊗ N`. The localized notations are `m ⊗ₜ n` and `m ⊗ₜ[R] n`,
+accessed by `open_locale tensor_product`. -/
 def tmul (m : M) (n : N) : M ⊗[R] N := add_con.mk' _ $ free_add_monoid.of (m, n)
 variables {R}
 
@@ -201,6 +242,7 @@ eq.symm $ quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_add_right _ _ _
 lemma smul_tmul (r : R) (m : M) (n : N) : (r • m) ⊗ₜ n = m ⊗ₜ[R] (r • n) :=
 quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_smul _ _ _
 
+/-- Auxiliary function to defining scalar multiplication on tensor product. -/
 def smul.aux (r : R) : free_add_monoid (M × N) →+ M ⊗[R] N :=
 free_add_monoid.lift $ λ p : M × N, (r • p.1) ⊗ₜ p.2
 
@@ -261,6 +303,7 @@ instance : semimodule R (M ⊗[R] N) :=
 (smul_tmul _ _ _).symm
 
 variables (R M N)
+/-- The canonical bilinear map `M → N → M ⊗[R] N`. -/
 def mk : M →ₗ N →ₗ M ⊗[R] N :=
 linear_map.mk₂ R (⊗ₜ) add_tmul (λ c m n, by rw [smul_tmul, tmul_smul]) tmul_add tmul_smul
 variables {R M N}
@@ -304,6 +347,9 @@ section UMP
 variables {M N P Q}
 variables (f : M →ₗ[R] N →ₗ[R] P)
 
+/-- Auxiliary function to constructing a linear map `M ⊗ N → P` given a bilinear map `M → N → P`
+with the property that its composition with the canonical bilinear map `M → N → M ⊗ N` is
+the given bilinear map `M → N → P`. -/
 def lift_aux : (M ⊗[R] N) →+ P :=
 (add_con_gen (tensor_product.eqv R M N)).lift (free_add_monoid.lift $ λ p : M × N, f p.1 p.2) $
 add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
@@ -332,6 +378,9 @@ tensor_product.induction_on x (smul_zero _).symm
   (λ p q ih1 ih2, by rw [smul_add, (lift_aux f).map_add, ih1, ih2, (lift_aux f).map_add, smul_add])
 
 variable (f)
+/-- Constructing a linear map `M ⊗ N → P` given a bilinear map `M → N → P` with the property that
+its composition with the canonical bilinear map `M → N → M ⊗ N` is
+the given bilinear map `M → N → P`. -/
 def lift : M ⊗ N →ₗ P :=
 { map_smul' := lift_aux.smul,
   .. lift_aux f }
@@ -370,6 +419,9 @@ example : M → N → (M → N → P) → P :=
 λ m, flip $ λ f, f m
 
 variables (R M N P)
+/-- Linearly constructing a linear map `M ⊗ N → P` given a bilinear map `M → N → P`
+with the property that its composition with the canonical bilinear map `M → N → M ⊗ N` is
+the given bilinear map `M → N → P`. -/
 def uncurry : (M →ₗ[R] N →ₗ[R] P) →ₗ[R] M ⊗[R] N →ₗ[R] P :=
 linear_map.flip $ lift $ (linear_map.lflip _ _ _ _).comp (linear_map.flip linear_map.id)
 variables {R M N P}
@@ -379,12 +431,17 @@ variables {R M N P}
 by rw [uncurry, linear_map.flip_apply, lift.tmul]; refl
 
 variables (R M N P)
+/-- A linear equivalence constructing a linear map `M ⊗ N → P` given a bilinear map `M → N → P`
+with the property that its composition with the canonical bilinear map `M → N → M ⊗ N` is
+the given bilinear map `M → N → P`. -/
 def lift.equiv : (M →ₗ N →ₗ P) ≃ₗ (M ⊗ N →ₗ P) :=
 { inv_fun := λ f, (mk R M N).compr₂ f,
   left_inv := λ f, linear_map.ext₂ $ λ m n, lift.tmul _ _,
   right_inv := λ f, ext $ λ m n, lift.tmul _ _,
   .. uncurry R M N P }
 
+/-- Given a linear map `M ⊗ N → P`, compose it with the canonical bilinear map `M → N → M ⊗ N` to
+form a bilinear map `M → N → P`. -/
 def lcurry : (M ⊗[R] N →ₗ[R] P) →ₗ[R] M →ₗ[R] N →ₗ[R] P :=
 (lift.equiv R M N P).symm
 variables {R M N P}
@@ -392,6 +449,8 @@ variables {R M N P}
 @[simp] theorem lcurry_apply (f : M ⊗[R] N →ₗ[R] P) (m : M) (n : N) :
   lcurry R M N P f m n = f (m ⊗ₜ n) := rfl
 
+/-- Given a linear map `M ⊗ N → P`, compose it with the canonical bilinear map `M → N → M ⊗ N` to
+form a bilinear map `M → N → P`. -/
 def curry (f : M ⊗ N →ₗ P) : M →ₗ N →ₗ P := lcurry R M N P f
 
 @[simp] theorem curry_apply (f : M ⊗ N →ₗ[R] P) (m : M) (n : N) :
@@ -554,6 +613,8 @@ variables (M₁ : ι₁ → Type*) (M₂ : ι₂ → Type*)
 variables [Π i₁, add_comm_group (M₁ i₁)] [Π i₂, add_comm_group (M₂ i₂)]
 variables [Π i₁, module R (M₁ i₁)] [Π i₂, module R (M₂ i₂)]
 
+/-- The linear equivalence `(⊕ i₁, M₁ i₁) ⊗ (⊕ i₂, M₂ i₂) ≃ (⊕ i₁, ⊕ i₂, M₁ i₁ ⊗ M₂ i₂)`, i.e.
+"tensor product distributes over direct sum". -/
 def direct_sum : direct_sum ι₁ M₁ ⊗[R] direct_sum ι₂ M₂
   ≃ₗ[R] direct_sum (ι₁ × ι₂) (λ i, M₁ i.1 ⊗[R] M₂ i.2) :=
 begin

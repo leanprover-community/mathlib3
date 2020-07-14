@@ -45,7 +45,7 @@ matrix inverse, cramer, cramer's rule, adjugate
 
 namespace matrix
 universes u v
-variables {n m : Type u} [fintype n] [decidable_eq n] [fintype m] [decidable_eq m] {α : Type v}
+variables {n m : Type u} [fintype n] [fintype m]  {α : Type v}
 open_locale matrix big_operators
 open equiv equiv.perm finset
 
@@ -53,53 +53,58 @@ open equiv equiv.perm finset
 section update
 
 /-- Update, i.e. replace the `i`th row of matrix `A` with the values in `b`. -/
-def update_row (A : matrix n m α) (i : n) (b : m → α) : matrix n m α :=
+def update_row [decidable_eq n] (A : matrix n m α) (i : n) (b : m → α) : matrix n m α :=
 function.update A i b
 
 /-- Update, i.e. replace the `i`th column of matrix `A` with the values in `b`. -/
-def update_column (A : matrix n m α) (j : m) (b : n → α) : matrix n m α :=
+def update_column [decidable_eq m] (A : matrix n m α) (j : m) (b : n → α) : matrix n m α :=
 λ i, function.update (A i) j (b i)
 
 variables {A : matrix n m α} {i : n} {j : m} {b : m → α} {c : n → α}
 
-@[simp] lemma update_row_self : update_row A i b i = b := function.update_same i b A
+@[simp] lemma update_row_self [decidable_eq n] : update_row A i b i = b :=
+function.update_same i b A
 
-@[simp] lemma update_column_self : update_column A j c i j = c i := function.update_same j (c i) (A i)
+@[simp] lemma update_column_self [decidable_eq m] : update_column A j c i j = c i :=
+function.update_same j (c i) (A i)
 
-@[simp] lemma update_row_ne {i' : n} (i_ne : i' ≠ i) : update_row A i b i' = A i' :=
-function.update_noteq i_ne b A
+@[simp] lemma update_row_ne [decidable_eq n] {i' : n} (i_ne : i' ≠ i) :
+  update_row A i b i' = A i' := function.update_noteq i_ne b A
 
-@[simp] lemma update_column_ne {j' : m} (j_ne : j' ≠ j) : update_column A j c i j' = A i j' :=
-function.update_noteq j_ne (c i) (A i)
+@[simp] lemma update_column_ne [decidable_eq m] {j' : m} (j_ne : j' ≠ j) :
+  update_column A j c i j' = A i j' := function.update_noteq j_ne (c i) (A i)
 
-lemma update_row_val {i' : n} : update_row A i b i' j = if i' = i then b j else A i' j :=
+lemma update_row_val [decidable_eq n] {i' : n} :
+  update_row A i b i' j = if i' = i then b j else A i' j :=
 begin
   by_cases i' = i,
   { rw [h, update_row_self, if_pos rfl] },
-  { rw [update_row_ne h, if_neg h] }
+  { rwa [update_row_ne h, if_neg h] }
 end
 
-lemma update_column_val {j' : m} : update_column A j c i j' = if j' = j then c i else A i j' :=
+lemma update_column_val [decidable_eq m] {j' : m} : update_column A j c i j' = if j' = j then c i else A i j' :=
 begin
   by_cases j' = j,
   { rw [h, update_column_self, if_pos rfl] },
-  { rw [update_column_ne h, if_neg h] }
+  { rwa [update_column_ne h, if_neg h] }
 end
 
-lemma update_row_transpose : update_row Aᵀ j c = (update_column A j c)ᵀ :=
+lemma update_row_transpose [decidable_eq m] : update_row Aᵀ j c = (update_column A j c)ᵀ :=
 begin
   ext i' j,
   rw [transpose_val, update_row_val, update_column_val],
   refl
 end
 
-lemma update_column_transpose : update_column Aᵀ i b = (update_row A i b)ᵀ :=
+lemma update_column_transpose [decidable_eq n] : update_column Aᵀ i b = (update_row A i b)ᵀ :=
 begin
   ext i' j,
   rw [transpose_val, update_row_val, update_column_val],
   refl
 end
 end update
+
+variables [decidable_eq n] [decidable_eq m]
 
 section cramer
 /-!
@@ -177,7 +182,7 @@ begin
   { -- i = j: this entry should be `A.det`
     rw [if_pos h, ←h],
     congr, ext i',
-    by_cases h : i' = i, { rw [h, update_row_self] }, { rw [update_row_ne h]} },
+    by_cases h : i' = i, { rw [h, update_row_self] }, { rwa [update_row_ne h] } },
   { -- i ≠ j: this entry should be 0
     rw [if_neg h],
     apply det_zero_of_column_eq h,

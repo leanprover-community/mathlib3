@@ -364,8 +364,7 @@ lemma order_iso.map_inf [semilattice_inf α] [semilattice_inf β]
 begin
   apply le_antisymm, { apply f.to_order_embedding.map_inf_le },
   rw [f.symm.ord, order_iso.symm_apply_apply],
-  conv_rhs {rw [← order_iso.symm_apply_apply f a₁, ← order_iso.symm_apply_apply f a₂]},
-  apply f.symm.to_order_embedding.map_inf_le
+  convert f.symm.to_order_embedding.map_inf_le; simp,
 end
 
 lemma order_embedding.le_map_sup [semilattice_sup α] [semilattice_sup β]
@@ -380,8 +379,7 @@ lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β]
 begin
   apply le_antisymm, swap, { apply f.to_order_embedding.le_map_sup },
   rw [f.symm.ord, order_iso.symm_apply_apply],
-  conv_lhs {rw [← order_iso.symm_apply_apply f a₁, ← order_iso.symm_apply_apply f a₂]},
-  apply f.symm.to_order_embedding.le_map_sup
+  convert f.symm.to_order_embedding.le_map_sup; simp,
 end
 
 end lattice_isos

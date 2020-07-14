@@ -154,7 +154,7 @@ begin
   have : ∀ i (f : unit i ⟶ mvpfunctor.M (P F) α ⊗ mvpfunctor.M (P F) α), f ⊨ r → f ⊨ Mcongr F α,
   { rintros i f ⟨a, h⟩, refine ⟨a ≫ foo _ hr,_⟩,
     simp [h], },
-  rw ← quot.factor_mk_eq _ _ this,
+  rw ← quot.indexed.factor_mk_eq _ _ this,
   specialize hr hr', reassoc! hr,
     conv { to_lhs,
       rw [append_fun_comp_right, functor.map_comp, ←abs_map_assoc, hr, abs_map_assoc,
@@ -476,7 +476,7 @@ begin
     { intro hr,
       have : ∀ (i : J) (a : unit i ⟶ cofix F α ⊗ cofix F α), a ⊨ r → a ⊨ r',
       { introv h, apply unionr h },
-      rw ←quot.factor_mk_eq r r' this,
+      rw ←quot.indexed.factor_mk_eq r r' this,
       specialize h _ hr, reassoc! h,
       rw [append_fun_comp_right,functor.map_comp,h], } },
   { apply unionr rxy }

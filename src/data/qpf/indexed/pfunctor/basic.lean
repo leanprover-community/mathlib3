@@ -1,3 +1,4 @@
+
 /-
 Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
@@ -300,7 +301,7 @@ Facts about the general quotient needed to construct final coalgebras.
 TODO (Jeremy): move these somewhere.
 -/
 
-namespace quot
+namespace quot.indexed
 
 def factor {I} {α : fam I} (r s: fam.Pred (α ⊗ α))
   (h : ∀ i (a : fam.unit i ⟶ α ⊗ α), a ⊨ r → a ⊨ s) :
@@ -313,4 +314,4 @@ def factor_mk_eq {I} {α : fam I} (r s: fam.Pred (α ⊗ α))
   (h : ∀ i (a : fam.unit i ⟶ α ⊗ α), a ⊨ r → a ⊨ s) :
   fam.quot.mk _ ≫ factor r s h = fam.quot.mk _ := rfl
 
-end quot
+end quot.indexed

@@ -33,3 +33,4 @@ import tactic.group
 import tactic.cancel_denoms
 import tactic.zify
 import tactic.transport
+import tactic.unfold_cases

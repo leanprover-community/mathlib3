@@ -33,7 +33,7 @@ section semiring
 variables [semiring R]
 
 /-- The second-highest coefficient, or 0 for constants -/
-def next_coeff [semiring R] (p : polynomial R) : R := ite (p.nat_degree = 0) 0 p.coeff (p.nat_degree - 1)
+def next_coeff (p : polynomial R) : R := ite (p.nat_degree = 0) 0 p.coeff (p.nat_degree - 1)
 
 @[simp]
 lemma next_coeff_C_eq_zero (c : R) :

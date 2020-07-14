@@ -358,10 +358,17 @@ lemma tendsto_at_top_at_top [nonempty α] [semilattice_sup α] [preorder β] (f 
   tendsto f at_top at_top ↔ ∀ b : β, ∃ i : α, ∀ a : α, i ≤ a → b ≤ f a :=
 iff.trans tendsto_infi $ forall_congr $ assume b, tendsto_at_top_principal
 
-@[nolint ge_or_gt]
-lemma tendsto_at_top_at_bot [nonempty α] [decidable_linear_order α] [preorder β] (f : α → β) :
-  tendsto f at_top at_bot ↔ ∀ (b : β), ∃ (i : α), ∀ (a : α), i ≤ a → b ≥ f a :=
+lemma tendsto_at_top_at_bot [nonempty α] [semilattice_sup α] [preorder β] (f : α → β) :
+  tendsto f at_top at_bot ↔ ∀ (b : β), ∃ (i : α), ∀ (a : α), i ≤ a → f a ≤ b :=
 @tendsto_at_top_at_top α (order_dual β) _ _ _ f
+
+lemma tendsto_at_bot_at_top [nonempty α] [semilattice_inf α] [preorder β] (f : α → β) :
+  tendsto f at_bot at_top ↔ ∀ (b : β), ∃ (i : α), ∀ (a : α), a ≤ i → b ≤ f a :=
+@tendsto_at_top_at_top (order_dual α) β _ _ _ f
+
+lemma tendsto_at_bot_at_bot [nonempty α] [semilattice_inf α] [preorder β] (f : α → β) :
+  tendsto f at_bot at_bot ↔ ∀ (b : β), ∃ (i : α), ∀ (a : α), a ≤ i → f a ≤ b :=
+@tendsto_at_top_at_top (order_dual α) (order_dual β) _ _ _ f
 
 lemma tendsto_at_top_at_top_of_monotone [preorder α] [preorder β] {f : α → β} (hf : monotone f)
   (h : ∀ b, ∃ a, b ≤ f a) :
@@ -539,5 +546,7 @@ begin
   rw (show {a : α | b ≤ -a} = {a : α | a ≤ -b}, by {ext, simp only [mem_set_of_eq], exact le_neg}),
   exact mem_at_bot _
 end
+
+#check tendsto_at_top_at_bot
 
 end filter

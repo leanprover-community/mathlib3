@@ -12,6 +12,7 @@ import data.pfunctor.univariate
 import data.sigma
 
 universes u v
+open_locale mvfunctor
 
 /--
 multivariate polynomial functors

@@ -3,7 +3,7 @@ Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad
 -/
-import data.pfunctor.multivariate.W
+import data.pfunctor.multivariate.basic
 universe u
 
 /-!
@@ -26,6 +26,8 @@ each proves that some operations on functors preserves the QPF structure
  * [Jeremy Avigad, Mario M. Carneiro and Simon Hudon, *Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
 
 -/
+
+open_locale mvfunctor
 
 /--
 Multivariate quotients of polynomial functors.

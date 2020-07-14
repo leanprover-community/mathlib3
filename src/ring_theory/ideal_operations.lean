@@ -691,6 +691,7 @@ begin
     simpa using J.add_mem (hIJ (quotient.eq.mp x_eq.symm)) x_mem },
   { intro x_mem,
     exact ⟨x, x_mem, rfl⟩ }
+
 end
 
 section injective

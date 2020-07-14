@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
 import tactic.tfae
 import order.liminf_limsup
-import data.set.intervals
+import data.set.intervals.image_preimage
 import topology.algebra.group
 
 /-!
@@ -1946,79 +1946,68 @@ if H : bdd_above (range f) then or.inr ⟨_, tendsto_at_top_csupr h_mono H⟩
 else or.inl $ tendsto_at_top_at_top_of_monotone' h_mono H
 
 lemma tendsto_neg_nhds {α : Type*} [decidable_linear_ordered_add_comm_group α]
-  [no_bot_order α] [no_top_order α] [topological_space α]
-  [order_topology α] {a : α} :
+  [topological_space α] [topological_add_group α] {a : α} :
   tendsto has_neg.neg (nhds a) (nhds (-a)) :=
 begin
   intros s hs,
   rw mem_map,
-  rw mem_nhds_iff_exists_Ioo_subset at *,
-  rcases hs with ⟨ l, u, halu, hlus ⟩,
+  rw mem_nhds_sets_iff at *,
+  rcases hs with ⟨ t, tsubs, topen, hat ⟩,
   exact
-  ⟨ -u,
-    -l,
-    ⟨ neg_lt.1 halu.2, lt_neg.1 halu.1 ⟩,
-    λ x hx, hlus $ ⟨ lt_neg.1 hx.2, neg_lt.1 hx.1 ⟩ ⟩,
+  ⟨ -t,
+    (λ x hx, tsubs hx),
+    continuous_neg _ topen,
+    hat ⟩,
 end
 
 lemma tendsto_neg_nhds_within_Ioi {α : Type*} [decidable_linear_ordered_add_comm_group α]
-  [no_bot_order α] [no_top_order α] [topological_space α] [densely_ordered α]
-  [order_topology α] {a : α} :
+  [topological_space α] [topological_add_group α] {a : α} :
   tendsto has_neg.neg (nhds_within a (Ioi a)) (nhds_within (-a) (Iio (-a))) :=
 begin
   intros s hs,
   rw mem_map,
-  rw mem_nhds_within_Iio_iff_exists_Ico_subset at hs,
-  rw mem_nhds_within_Ioi_iff_exists_Ioc_subset,
-  rcases hs with ⟨l, hl, hs⟩,
-  rw mem_Iio at hl,
-  use -l,
-  split,
-  rw mem_Ioi,
-  exact lt_neg.1 hl,
-  intros x hx,
-  apply hs,
-  rw mem_Ioc at hx,
-  rw mem_Ico,
-  exact ⟨ le_neg.2 hx.2, neg_lt_neg hx.1 ⟩
+  rw mem_nhds_within at *,
+  rcases hs with ⟨ u, uopen, hau, uinter⟩,
+  exact
+  ⟨ -u,
+    continuous_neg _ uopen,
+    hau,
+    by
+    { rw (show Ioi a = -(Iio $ -a), by simp only [preimage_neg_Iio, neg_neg]),
+      rw ← inter_neg,
+      exact λ x hx, uinter hx } ⟩
 end
 
 lemma tendsto_neg_nhds_within_Iio {α : Type*}  [decidable_linear_ordered_add_comm_group α]
-  [no_bot_order α] [no_top_order α] [topological_space α] [densely_ordered α]
-  [order_topology α] {a : α} :
+  [topological_space α] [topological_add_group α] {a : α} :
   tendsto has_neg.neg (nhds_within a (Iio a)) (nhds_within (-a) (Ioi (-a))) :=
 begin
   intros s hs,
   rw mem_map,
-  rw mem_nhds_within_Ioi_iff_exists_Ioc_subset at hs,
-  rw mem_nhds_within_Iio_iff_exists_Ico_subset,
-  rcases hs with ⟨l, hl, hs⟩,
-  rw mem_Ioi at hl,
-  use -l,
-  split,
-  rw mem_Iio,
-  exact neg_lt.1 hl,
-  intros x hx,
-  apply hs,
-  rw mem_Ico at hx,
-  rw mem_Ioc,
-  exact ⟨ neg_lt_neg hx.2, neg_le.1 hx.1 ⟩
+  rw mem_nhds_within at *,
+  rcases hs with ⟨ u, uopen, hau, uinter⟩,
+  exact
+  ⟨ -u,
+    continuous_neg _ uopen,
+    hau,
+    by
+    { rw (show Iio a = -(Ioi $ -a), by simp only [preimage_neg_Ioi, neg_neg]),
+      rw ← inter_neg,
+      exact λ x hx, uinter hx } ⟩
 end
 
 lemma tendsto_neg_nhds_within_Ioi_neg {α : Type*} [decidable_linear_ordered_add_comm_group α]
-  [no_bot_order α] [no_top_order α] [topological_space α] [densely_ordered α]
-  [order_topology α] {a : α} :
+  [topological_space α] [topological_add_group α] {a : α} :
   tendsto has_neg.neg (nhds_within (-a) (Ioi (-a))) (nhds_within a (Iio a)) :=
 begin
-  rw (show (nhds_within a (Iio a)) = (nhds_within (- -a) (Iio (- -a))), by simp),
+  rw (show (nhds_within a (Iio a)) = (nhds_within (- -a) (Iio (- -a))), by simp only [neg_neg]),
   exact tendsto_neg_nhds_within_Ioi
 end
 
 lemma tendsto_neg_nhds_within_Iio_neg {α : Type*}  [decidable_linear_ordered_add_comm_group α]
-  [no_bot_order α] [no_top_order α] [topological_space α] [densely_ordered α]
-  [order_topology α] {a : α} :
+  [topological_space α] [topological_add_group α] {a : α} :
   tendsto has_neg.neg (nhds_within (-a) (Iio (-a))) (nhds_within a (Ioi a)) :=
 begin
-  rw (show (nhds_within a (Ioi a)) = (nhds_within (- -a) (Ioi (- -a))), by simp),
+  rw (show (nhds_within a (Ioi a)) = (nhds_within (- -a) (Ioi (- -a))), by simp only [neg_neg]),
   exact tendsto_neg_nhds_within_Iio
 end

@@ -7,60 +7,9 @@ open_locale classical
 noncomputable theory
 variables {α : Type*} {β : Type*} [has_zero β] {μ : Type*} [canonically_ordered_add_monoid μ]
 
-def choice_sub  (a b : μ) : μ :=
-dite (b < a) (λ h, classical.some (exists_pos_add_of_lt h)) (λ h, 0)
-
-lemma choice_sub_add_cancel_of_le {a b : μ} (h : b ≤ a) :
-  b + choice_sub a b = a :=
-begin
-  rw le_iff_eq_or_lt at h, unfold choice_sub, cases h,
-  { rw dif_neg; rw h, rw add_zero, apply lt_irrefl },
-  { rw dif_pos h, have q := classical.some_spec (exists_pos_add_of_lt h), cases q, rw q_h, }
-end
-
-lemma choice_sub_ne_zero_iff {a b : μ} :
-  choice_sub a b = 0 ↔ ¬ b < a :=
-begin
-  unfold choice_sub, symmetry, split, intro h, rw dif_neg h,
-  contrapose, rw classical.not_not, intro h, rw dif_pos h,
-  have H := classical.some_spec (exists_pos_add_of_lt h), cases H,
-  contrapose H_w, rw classical.not_not at H_w, rw H_w, apply gt_irrefl,
-end
-
-@[simp]
-lemma choice_sub_self_eq_zero  {a : μ} :
-  choice_sub a a = 0 := by { unfold choice_sub, rw dif_neg, apply lt_irrefl }
-
 namespace finsupp
 
 lemma le_def [has_zero β] [partial_order β] {a b : α →₀ β} : a ≤ b ↔ ∀ (s : α), a s ≤ b s := by refl
-
-theorem le_iff_exists_add  :
-  ∀ (a b : α →₀ μ), a ≤ b ↔ ∃ (c : α →₀ μ), b = a + c :=
-begin
-  intros a b, unfold has_le.le, unfold preorder.le,
-  split,
-  { intro H,
-    existsi finsupp.mk (b.support.filter (λ s, a s < b s)) (λ s, choice_sub (b s) (a s)) _,
-    { ext, dsimp, symmetry, apply choice_sub_add_cancel_of_le (H a_1), },
-    { intro s, rw finset.mem_filter, rw finsupp.mem_support_iff, dsimp,
-      rw choice_sub_ne_zero_iff, rw classical.not_not, apply and_iff_right_of_imp,
-      intro h, apply zero_lt_iff_ne_zero.1 (lt_of_le_of_lt (zero_le _) h) } },
-  { intros h s, cases h with c hc, rw le_iff_exists_add, use c s, rw hc, dsimp, refl }
-end
-
-instance :
-  canonically_ordered_add_monoid (α →₀ μ) :=
-{ bot := 0,
-  le_iff_exists_add := finsupp.le_iff_exists_add,
-  add_le_add_left := by { intros a b h c, rw finsupp.le_iff_exists_add at *,
-    cases h with d hd, use d, rw hd, rw add_assoc, },
-  lt_of_add_lt_add_left := by { intros a b c h, rw lt_iff_le_and_ne at *, cases h with hle hne,
-    split, rw finsupp.le_iff at *, intros s h,
-  },
-  bot_le := by { intro a, dsimp, rw finsupp.le_iff_exists_add, use a,
-    rw @zero_add (_) finsupp.add_monoid a, },
-.. finsupp.add_comm_monoid, .. finsupp.partial_order, }
 
 variable [has_zero β]
 

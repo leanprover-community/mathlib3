@@ -1960,7 +1960,7 @@ begin
     hat ⟩,
 end
 
-lemma tendsto_neg_nhds_within_Ioi {α : Type*} [decidable_linear_ordered_add_comm_group α]
+lemma tendsto_neg_nhds_within_Ioi {α : Type*} [ordered_add_comm_group α]
   [topological_space α] [topological_add_group α] {a : α} :
   tendsto has_neg.neg (nhds_within a (Ioi a)) (nhds_within (-a) (Iio (-a))) :=
 begin
@@ -1978,7 +1978,7 @@ begin
       exact λ x hx, uinter hx } ⟩
 end
 
-lemma tendsto_neg_nhds_within_Iio {α : Type*}  [decidable_linear_ordered_add_comm_group α]
+lemma tendsto_neg_nhds_within_Iio {α : Type*}  [ordered_add_comm_group α]
   [topological_space α] [topological_add_group α] {a : α} :
   tendsto has_neg.neg (nhds_within a (Iio a)) (nhds_within (-a) (Ioi (-a))) :=
 begin
@@ -1996,7 +1996,7 @@ begin
       exact λ x hx, uinter hx } ⟩
 end
 
-lemma tendsto_neg_nhds_within_Ioi_neg {α : Type*} [decidable_linear_ordered_add_comm_group α]
+lemma tendsto_neg_nhds_within_Ioi_neg {α : Type*} [ordered_add_comm_group α]
   [topological_space α] [topological_add_group α] {a : α} :
   tendsto has_neg.neg (nhds_within (-a) (Ioi (-a))) (nhds_within a (Iio a)) :=
 begin
@@ -2004,7 +2004,7 @@ begin
   exact tendsto_neg_nhds_within_Ioi
 end
 
-lemma tendsto_neg_nhds_within_Iio_neg {α : Type*}  [decidable_linear_ordered_add_comm_group α]
+lemma tendsto_neg_nhds_within_Iio_neg {α : Type*}  [ordered_add_comm_group α]
   [topological_space α] [topological_add_group α] {a : α} :
   tendsto has_neg.neg (nhds_within (-a) (Iio (-a))) (nhds_within a (Ioi a)) :=
 begin

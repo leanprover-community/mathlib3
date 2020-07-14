@@ -21,8 +21,8 @@ open tensor_product
 open algebra.tensor_product
 open matrix
 
-variables {R : Type u} [comm_ring R]
-variables {A : Type v} [ring A] [algebra R A]
+variables {R : Type u} [comm_semiring R]
+variables {A : Type v} [semiring A] [algebra R A]
 variables {n : Type w} [fintype n]
 
 section
@@ -158,7 +158,7 @@ end
 
 lemma left_inv (M : A ⊗[R] matrix n n R) : inv_fun R A n (to_fun_alg_hom R A n M) = M :=
 begin
-  apply tensor_product.induction_on _ _ M,
+  apply tensor_product.induction_on M,
   { simp, },
   { intros a m, simp, },
   { intros x y hx hy, simp [alg_hom.map_sum, hx, hy], },

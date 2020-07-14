@@ -1877,14 +1877,6 @@ section comm_semiring
 variables [comm_semiring R] {p q : polynomial R}
 
 section aeval
-instance algebra' (R : Type u) [comm_semiring R] (A : Type v) [semiring A] [algebra R A] :
-  algebra R (polynomial A) :=
-{ smul := λ r p, algebra_map R A r • p,
-  commutes' := λ c p, ext $ λ n,
-    show (C (algebra_map R A c) * p).coeff n = (p * C (algebra_map R A c)).coeff n,
-    by rw [coeff_C_mul, coeff_mul_C, algebra.commutes],
-  smul_def' := λ c p, (C_mul' _ _).symm,
-  .. C.comp (algebra_map R A) }
 
 variables (R) (A)
 

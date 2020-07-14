@@ -341,13 +341,25 @@ def order_embedding.cod_restrict (p : set β) (f : r ≼o s) (H : ∀ a, f a ∈
 
 section lattice_isos
 
+lemma order_iso.map_bot [order_bot α] [order_bot β]
+  (f : (has_le.le : α → α → Prop) ≃o (has_le.le : β → β → Prop)) :
+  f ⊥ = ⊥ :=
+by { rw [eq_bot_iff, ← f.apply_symm_apply ⊥, ← f.ord], apply bot_le, }
+
+lemma order_iso.map_top [order_top α] [order_top β]
+  (f : (has_le.le : α → α → Prop) ≃o (has_le.le : β → β → Prop)) :
+  f ⊤ = ⊤ :=
+by { rw [eq_top_iff, ← f.apply_symm_apply ⊤, ← f.ord], apply le_top, }
+
+variables {a₁ a₂ : α}
+
 lemma order_embedding.map_inf_le [semilattice_inf α] [semilattice_inf β]
-  (f : (has_le.le : α → α → Prop) ≼o (has_le.le : β → β → Prop)) {a₁ a₂ : α} :
+  (f : (has_le.le : α → α → Prop) ≼o (has_le.le : β → β → Prop)) :
   f (a₁ ⊓ a₂) ≤ f a₁ ⊓ f a₂ :=
 by { apply le_inf; rw ← f.ord; simp }
 
 lemma order_iso.map_inf [semilattice_inf α] [semilattice_inf β]
-  (f : (has_le.le : α → α → Prop) ≃o (has_le.le : β → β → Prop)) {a₁ a₂ : α} :
+  (f : (has_le.le : α → α → Prop) ≃o (has_le.le : β → β → Prop)) :
   f (a₁ ⊓ a₂) = f a₁ ⊓ f a₂ :=
 begin
   apply le_antisymm, { apply f.to_order_embedding.map_inf_le },
@@ -357,12 +369,12 @@ begin
 end
 
 lemma order_embedding.le_map_sup [semilattice_sup α] [semilattice_sup β]
-  (f : (has_le.le : α → α → Prop) ≼o (has_le.le : β → β → Prop)) {a₁ a₂ : α} :
+  (f : (has_le.le : α → α → Prop) ≼o (has_le.le : β → β → Prop)) :
   f a₁ ⊔ f a₂ ≤ f (a₁ ⊔ a₂) :=
 by { apply sup_le; rw ← f.ord; simp }
 
 lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β]
-  (f : (has_le.le : α → α → Prop) ≃o (has_le.le : β → β → Prop)) {a₁ a₂ : α} :
+  (f : (has_le.le : α → α → Prop) ≃o (has_le.le : β → β → Prop)) :
   f (a₁ ⊔ a₂) = f a₁ ⊔ f a₂ :=
 begin
   apply le_antisymm, swap, { apply f.to_order_embedding.le_map_sup },
@@ -370,15 +382,5 @@ begin
   conv_lhs {rw [← order_iso.symm_apply_apply f a₁, ← order_iso.symm_apply_apply f a₂]},
   apply f.symm.to_order_embedding.le_map_sup
 end
-
-lemma order_iso.map_bot [order_bot α] [order_bot β]
-  (f : (has_le.le : α → α → Prop) ≃o (has_le.le : β → β → Prop)) {a₁ a₂ : α} :
-  f ⊥ = ⊥ :=
-by { rw [eq_bot_iff, ← f.apply_symm_apply ⊥, ← f.ord], apply bot_le, }
-
-lemma order_iso.map_top [order_top α] [order_top β]
-  (f : (has_le.le : α → α → Prop) ≃o (has_le.le : β → β → Prop)) {a₁ a₂ : α} :
-  f ⊤ = ⊤ :=
-by { rw [eq_top_iff, ← f.apply_symm_apply ⊤, ← f.ord], apply le_top, }
 
 end lattice_isos

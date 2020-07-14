@@ -1945,21 +1945,6 @@ lemma tendsto_of_monotone {ι α : Type*} [preorder ι] [topological_space α]
 if H : bdd_above (range f) then or.inr ⟨_, tendsto_at_top_csupr h_mono H⟩
 else or.inl $ tendsto_at_top_at_top_of_monotone' h_mono H
 
-lemma tendsto_neg_nhds {α : Type*} [decidable_linear_ordered_add_comm_group α]
-  [topological_space α] [topological_add_group α] {a : α} :
-  tendsto has_neg.neg (nhds a) (nhds (-a)) :=
-begin
-  intros s hs,
-  rw mem_map,
-  rw mem_nhds_sets_iff at *,
-  rcases hs with ⟨ t, tsubs, topen, hat ⟩,
-  exact
-  ⟨ -t,
-    (λ x hx, tsubs hx),
-    continuous_neg _ topen,
-    hat ⟩,
-end
-
 lemma tendsto_neg_nhds_within_Ioi {α : Type*} [ordered_add_comm_group α]
   [topological_space α] [topological_add_group α] {a : α} :
   tendsto has_neg.neg (nhds_within a (Ioi a)) (nhds_within (-a) (Iio (-a))) :=
@@ -1978,7 +1963,7 @@ begin
       exact λ x hx, uinter hx } ⟩
 end
 
-lemma tendsto_neg_nhds_within_Iio {α : Type*}  [ordered_add_comm_group α]
+lemma tendsto_neg_nhds_within_Iio {α : Type*} [ordered_add_comm_group α]
   [topological_space α] [topological_add_group α] {a : α} :
   tendsto has_neg.neg (nhds_within a (Iio a)) (nhds_within (-a) (Ioi (-a))) :=
 begin
@@ -2004,7 +1989,7 @@ begin
   exact tendsto_neg_nhds_within_Ioi
 end
 
-lemma tendsto_neg_nhds_within_Iio_neg {α : Type*}  [ordered_add_comm_group α]
+lemma tendsto_neg_nhds_within_Iio_neg {α : Type*} [ordered_add_comm_group α]
   [topological_space α] [topological_add_group α] {a : α} :
   tendsto has_neg.neg (nhds_within (-a) (Iio (-a))) (nhds_within a (Ioi a)) :=
 begin

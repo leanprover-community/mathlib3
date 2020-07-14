@@ -208,10 +208,11 @@ do none ← squeeze_loc_attr.get_param ``squeeze_loc_attr_carrier | pure (),
          mk_suggestion p pre post (suggs.foldl list.union []) tt, pure () }
 
 /--
-`squeeze_simp` and `squeeze_simpa` perform the same task with
-the difference that `squeeze_simp` relates to `simp` while
-`squeeze_simpa` relates to `simpa`. The following applies to both
-`squeeze_simp` and `squeeze_simpa`.
+`squeeze_simp`, `squeeze_simpa` and `squeeze_dsimp` perform the same
+task with the difference that `squeeze_simp` relates to `simp` while
+`squeeze_simpa` relates to `simpa` and `squeeze_dsimp` relates to
+`dsimp`. The following applies to `squeeze_simp`, `squeeze_simpa` and
+`squeeze_dsimp`.
 
 `squeeze_simp` behaves like `simp` (including all its arguments)
 and prints a `simp only` invokation to skip the search through the

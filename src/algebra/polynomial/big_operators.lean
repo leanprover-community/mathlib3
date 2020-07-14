@@ -45,8 +45,7 @@ begin
 end
 
 /-- The leading coefficient of a product of polynomials is equal to the product of the leading coefficients, provided that this product is nonzero.
-See `leading_coeff_prod` (without the `'`) for a version for integral domains, where this condition is automatically satisfied.
-  The un-primed `leading_coeff_prod` instead requires an `integral_domain` instance. -/
+See `leading_coeff_prod` (without the `'`) for a version for integral domains, where this condition is automatically satisfied. -/
 lemma leading_coeff_prod' (h : ∏ i in s, (f i).leading_coeff ≠ 0) :
   (∏ i in s, f i).leading_coeff = ∏ i in s, (f i).leading_coeff :=
 begin
@@ -56,8 +55,8 @@ begin
   intro h, rw polynomial.leading_coeff_mul'; { rwa hs, apply right_ne_zero_of_mul h },
 end
 
-/-- The primed `leading_coeff_prod'` requires that the product of the `leading_coeff`s is nonzero.
-  The un-primed `leading_coeff_prod` instead requires an `integral_domain` instance. -/
+/-- The degree of a product of polynomials is equal to the product of the degrees, provided that the product of leading coefficients is nonzero.
+See `nat_degree_prod_eq` (without the `'`) for a version for integral domains, where this condition is automatically satisfied. -/
 lemma nat_degree_prod_eq' (h : ∏ i in s, (f i).leading_coeff ≠ 0) :
   (∏ i in s, f i).nat_degree = ∑ i in s, (f i).nat_degree :=
 begin
@@ -95,7 +94,7 @@ end
 
 lemma leading_coeff_prod :
   (∏ i in s, f i).leading_coeff = ∏ i in s, (f i).leading_coeff :=
-by { rw ← leading_coeff_monoid_hom_apply, apply monoid_hom.map_prod }
+by { rw ← leading_coeff_hom_apply, apply monoid_hom.map_prod }
 
 end integral_domain
 end polynomial

@@ -7,6 +7,35 @@ import data.mv_polynomial
 import ring_theory.ideals
 import ring_theory.ideal_operations
 
+/-!
+# Jacobson rings
+
+The following conditions are equivalent for a ring `R`:
+1. Every radical ideal `I` is equal to its jacobson radical
+2. Every radical ideal `I` can be written as an intersection of maximal ideals
+3. Every prime ideal `I` is equal to its jacobson radical
+
+Any ring satisfying any of these three conditions is said to be Jacobson.
+
+## Main definitions
+
+Let `R` be a commutative ring. Jacobson Rings are defined using the first of the above conditions
+
+* `is_jacobson R` is the proposition that `R` is a Jacobson ring. It is a class,
+  implemented as the predicate that for any ideal, `I.radical = I` implies `I.jacobson = I`.
+
+## Main statements
+
+* `is_jacobson_iff_prime_eq` is the equivalence between conditions 1 and 3 above.
+
+* `is_jacobson_iff_Inf_maximal` is the equivalence between conditions 1 and 2 above.
+
+## Tags
+
+Jacobson, Jacobson Ring
+
+-/
+
 universes u v
 
 namespace ideal
@@ -18,7 +47,7 @@ variables {R : Type u} [comm_ring R] {I : ideal R}
     ∀ (I : ideal R), I.radical = I → I.jacobson = I
 
 /- Defining jacobson rings in terms of prime ideals is completely equivalent -/
-lemma is_jacobson_iff : is_jacobson R ↔ ∀ P : ideal R, is_prime P → P.jacobson = P :=
+lemma is_jacobson_iff_prime_eq : is_jacobson R ↔ ∀ P : ideal R, is_prime P → P.jacobson = P :=
 begin
   split,
   { exact λ h I hI, h I (is_prime.radical hI) },
@@ -29,6 +58,23 @@ begin
     rw set.mem_set_of_eq at hP,
     erw [← h P hP.right, mem_Inf],
     exact λ J hJ, hx ⟨le_trans hP.left hJ.left, hJ.right⟩ }
+end
+
+/- I equals its jacobson iff it can be written as an Inf of maximal ideals -/
+lemma is_jacobson_iff_Inf_maximal : is_jacobson R ↔
+    ∀ {I : ideal R}, I.radical = I → ∃ M ⊆ {J : ideal R | J.is_maximal ∨ J = ⊤}, I = Inf M :=
+begin
+  use λ H I h, ⟨{J : ideal R | I ≤ J ∧ J.is_maximal}, ⟨λ _ hJ, or.inl hJ.right, eq.symm (H _ h)⟩⟩,
+  intros H I hI,
+  rcases H hI with ⟨M, hM, hInf⟩,
+  refine le_antisymm _ le_jacobson,
+  intros x hx,
+  rw hInf,
+  erw mem_Inf at ⊢ hx,
+  intros I hI,
+  cases hM hI with is_max is_top,
+  { refine hx ⟨le_Inf_iff.1 (le_of_eq hInf) I hI, is_max⟩ },
+  { rw is_top, exact submodule.mem_top }
 end
 
 lemma radical_eq_jacobson (H : is_jacobson R) (I : ideal R) : I.radical = I.jacobson :=
@@ -43,76 +89,41 @@ theorem is_jacobson_field {K : Type u} [field K] : is_jacobson K :=
   ((eq.symm h) ▸ bot_le))
 (λ h, by rw [h, jacobson_eq_top_iff])
 
-/- I equals its jacobson iff it can be written as an Inf of maximal ideals -/
-lemma eq_jacobson_iff_Inf_maximal : jacobson I = I ↔
-    ∃ M ⊆ {J : ideal R | I ≤ J ∧ (J.is_maximal ∨ J = ⊤)}, I = Inf M :=
-begin
-  use λ h, ⟨{J : ideal R | I ≤ J ∧ J.is_maximal}, ⟨(λ _ hJ, ⟨hJ.left, or.inl hJ.right⟩), eq.symm h⟩⟩,
-  rintro ⟨M, hM, hInf⟩,
-  refine le_antisymm _ le_jacobson,
-  intros x hx,
-  rw hInf,
-  erw mem_Inf at *,
-  intros I hI,
-  specialize hM hI,
-  cases hM.right with is_max is_top,
-  { exact hx ⟨hM.left, is_max⟩ },
-  { rw is_top, exact submodule.mem_top }
-end
-
 -- TODO: Can this be rewritten as a special case of a statement about images?
 theorem is_jacobson_iso {S : Type u} [comm_ring S] (e : S ≃+* R)
   : is_jacobson S ↔ is_jacobson R :=
 begin
-  split, swap,
+  split,
+  swap,
   replace e := e.symm, -- After this swap both proofs are identical
   all_goals {
-    intros h I hI,
-    specialize h (comap e.to_ring_hom I),
-    rw ← comap_radical at h,
-    specialize h (congr_arg _ hI),
-    rw ← comap_jacobson at h,
-    replace h := congr_arg (map e.to_ring_hom) h,
-    rw map_comap_of_surjective (e.to_ring_hom) _ I at h,
-    rw map_comap_of_surjective (e.to_ring_hom) _ I.jacobson at h,
-    exact h,
-    all_goals { apply equiv.surjective e.to_equiv }
+    let iso := order_iso_of_bijective e.to_ring_hom (equiv.bijective e.to_equiv),
+    exact λ H I hI, iso.injective ((comap_jacobson e).trans (H _ (by rw [← comap_radical, hI]))),
   }
 end
 
 theorem is_jacobson_quotient [H : is_jacobson R] : is_jacobson (quotient I) :=
 begin
-  introsI p hp,
-  rw eq_jacobson_iff_Inf_maximal,
-  let S := {J : ideal R | quotient.comap_mk I p ≤ J ∧ J.is_maximal},
-  use quotient.map_mk I '' S,
-  split,
-  { rintros j ⟨J, hJ, hmap⟩,
-    refine ⟨hmap ▸ quotient.le_map_mk_of_comap_mk_le hJ.left, _⟩,
-    exact hmap ▸ or.symm (quotient.top_or_maximal_of_maximal hJ.right) },
-  { have : quotient.map_mk I ((quotient.comap_mk I p).jacobson) = p, {
-      specialize H (quotient.comap_mk I p) (le_antisymm _ le_radical),
-      exact (eq.symm (H)) ▸ (quotient.map_mk_comap_mk_left_inverse p),
-      {
-        rw ← quotient.map_mk_le_iff_le_comap_mk,
-        rintros ⟨x⟩ ⟨y, ⟨⟨n, hy⟩, hxy⟩⟩,
-        rw [← hxy, ← hp],
-        use n,
-        rw ← quotient.mk_pow,
-        use hy,
-      }
-    },
-    exact this ▸ (quotient.map_mk_Inf (λ J hJ, le_trans (quotient.comap_mk_ge) hJ.left)) }
+  rw is_jacobson_iff_Inf_maximal,
+  intros p hp,
+  use quotient.map_mk I '' {J : ideal R | quotient.comap_mk I p ≤ J ∧ J.is_maximal},
+  use λ j ⟨J, hJ, hmap⟩, hmap ▸ or.symm (quotient.top_or_maximal_of_maximal hJ.right),
+  have : p = quotient.map_mk I ((quotient.comap_mk I p).jacobson),
+  from (H (quotient.comap_mk I p) (by rw [comap_mk_eq_comap, ← comap_radical, hp])).symm
+    ▸ (quotient.map_mk_comap_mk_left_inverse p).symm,
+  exact eq.trans this (quotient.map_mk_Inf (λ J ⟨hJ, _⟩, le_trans (quotient.comap_mk_ge) hJ))
 end
 
 -- lemma is_jacobson_polynomial (H : is_jacobson R) : is_jacobson (polynomial R) := sorry
 
 -- lemma is_jacobson_mv_polynomial (H : is_jacobson R) (n : ℕ) :
---   is_jacobson (mv_polynomial (fin n) R) := nat.rec_on n
--- ((is_jacobson_iso ((mv_polynomial.ring_equiv_of_equiv R (equiv.equiv_pempty $ fin.elim0)).trans
---                     (mv_polynomial.pempty_ring_equiv R))).mpr H)
--- (λ n hn, (is_jacobson_iso (mv_polynomial.fin_succ_equiv R n)).mpr
---                     (@ideal.is_jacobson_polynomial _ _ hn))
+--   is_jacobson (mv_polynomial (fin n) R) :=
+-- nat.rec_on n
+--   ((is_jacobson_iso
+--     ((mv_polynomial.ring_equiv_of_equiv R (equiv.equiv_pempty $ fin.elim0)).trans
+--     (mv_polynomial.pempty_ring_equiv R))).mpr H)
+--   (λ n hn, (is_jacobson_iso (mv_polynomial.fin_succ_equiv R n)).2 (ideal.is_jacobson_polynomial hn))
 
 end is_jacobson
+
 end ideal

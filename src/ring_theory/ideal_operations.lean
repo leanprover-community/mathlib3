@@ -556,6 +556,17 @@ le_antisymm (λ r ⟨n, hfrnk⟩, ⟨n, show f (r ^ n) ∈ K,
 eq_bot_iff.2 $ ideal.map_le_iff_le_comap.2 $ λ x hx,
 (submodule.mem_bot I.quotient).2 $ ideal.quotient.eq_zero_iff_mem.2 hx
 
+lemma comap_mk_eq_comap {j : ideal I.quotient} :
+  quotient.comap_mk I j = comap (quotient.mk_hom I) j :=
+by refl
+
+lemma map_mk_eq_map :
+  quotient.map_mk I J = map (quotient.mk_hom I) J :=
+begin
+  refine ideal.ext (λ x, ⟨λ h, _, λ h, _⟩),
+  sorry, sorry,
+end
+
 variables {I J K L}
 
 theorem map_inf_le : map f (I ⊓ J) ≤ map f I ⊓ map f J :=
@@ -753,8 +764,7 @@ begin
   have he : function.bijective e := equiv.bijective e.to_equiv,
   let iso := order_iso_of_bijective (e.to_ring_hom) he,
   refine le_antisymm _ _,
-  {
-    intros x hx,
+  { intros x hx,
     erw mem_Inf,
     intros J hJ,
     erw [mem_comap, mem_Inf] at hx,
@@ -762,14 +772,11 @@ begin
     rw ← hK,
     refine hx ⟨(iso.ord.2 (hK.symm ▸ hJ.left) : I ≤ K), _⟩,
     rw ← iso.left_inv K,
-    exact map.is_maximal _ he (hK.symm ▸ hJ.right : (iso K).is_maximal)
-  },
-  {
-    intros x hx,
+    exact map.is_maximal _ he (hK.symm ▸ hJ.right : (iso K).is_maximal) },
+  { intros x hx,
     erw [mem_comap, mem_Inf],
     erw mem_Inf at hx,
-    exact λ J hJ, (hx) ⟨comap_mono hJ.left, comap.is_maximal _ he hJ.right⟩
-  }
+    exact λ J hJ, (hx) ⟨comap_mono hJ.left, comap.is_maximal _ he hJ.right⟩ }
 end
 
 end jacobson

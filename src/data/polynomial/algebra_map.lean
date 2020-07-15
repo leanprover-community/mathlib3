@@ -123,11 +123,13 @@ lemma root_mul_right_of_is_root {p : polynomial R} (q : polynomial R) :
 end eval
 
 section comp
-
+-- #check polynomial.as_sum
 lemma eval₂_comp [comm_semiring S] (f : R →+* S) {x : S} :
-  (p.comp q).eval₂ f x = p.eval₂ f (q.eval₂ f x) := sorry
---   show (p.sum (λ e a, C a * q ^ e)).eval₂ f x = p.eval₂ f (eval₂ f x q),
--- by simp only [eval₂_mul, eval₂_C, eval₂_pow, eval₂_sum]; refl
+  (p.comp q).eval₂ f x = p.eval₂ f (q.eval₂ f x) :=
+begin
+  rw [comp, p.as_sum],
+  simp [eval₂_mul, eval₂_C, eval₂_pow, eval₂_sum, finset.eval₂_sum],
+end
 
 
 lemma eval_comp : (p.comp q).eval a = p.eval (q.eval a) := eval₂_comp _

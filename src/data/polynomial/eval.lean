@@ -18,8 +18,8 @@ open finsupp finset add_monoid_algebra
 open_locale big_operators
 
 namespace polynomial
-universes u v w
-variables {R : Type u} {S : Type v} {T : Type w} {a b : R} {m n : ℕ}
+universes u v w y
+variables {R : Type u} {S : Type v} {T : Type w} {ι : Type y} {a b : R} {m n : ℕ}
 
 section semiring
 variables [semiring R] {p q r : polynomial R}
@@ -89,6 +89,15 @@ lemma eval₂_sum (p : polynomial S) (g : ℕ → S → polynomial R) (x : S) :
   (p.sum g).eval₂ f x = p.sum (λ n a, (g n a).eval₂ f x) :=
 finsupp.sum_sum_index (by simp [is_add_monoid_hom.map_zero f])
   (by intros; simp [right_distrib, is_add_monoid_hom.map_add f])
+
+
+lemma finset.eval₂_sum (s : finset ι) (g : ι → polynomial R) (x : S) :
+  (∑ i in s, g i).eval₂ f x = ∑ i in s, (g i).eval₂ f x :=
+begin
+  classical,
+  induction s using finset.induction with p hp s hs, simp,
+  rw [sum_insert, eval₂_add, hs, sum_insert]; assumption,
+end
 
 end
 

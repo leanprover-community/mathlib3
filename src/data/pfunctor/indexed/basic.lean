@@ -21,25 +21,26 @@ namespace category_theory
 
 namespace functor
 open category_theory
+
+section map_comp
+
 variables {C : Type u} {D : Type u'} [category.{v} C] [category.{v'} D] (F : C ⥤ D)
 
 @[reassoc]
 lemma map_comp_map {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) : F.map f ≫ F.map g = F.map (f ≫ g) :=
 (category_theory.functor.map_comp _ _ _).symm
 
-end functor
+end map_comp
 
-end category_theory
-
-namespace pfunctor
+namespace fam
 
 variables {I J : Type u} {F G : fam I ⥤ fam J}
 
-def liftp {α : fam I} (p : fam.Pred α) {X : fam J} : (X ⟶ F.obj α) → Prop :=
-λ x, ∃ u : X ⟶ F.obj (fam.subtype p), u ≫ F.map fam.subtype.val = x
+def liftp {α : fam I} (p : fam.Pred α) {X : fam J} (x : X ⟶ F.obj α) : Prop :=
+∃ u : X ⟶ F.obj (fam.subtype p), u ≫ F.map fam.subtype.val = x
 
-def liftr {α β : fam I} (r : fam.Pred (α ⊗ β)) {X : fam J} : (X ⟶ F.obj α) → (X ⟶ F.obj β) → Prop :=
-λ x y, ∃ u : X ⟶ F.obj (fam.subtype r),
+def liftr {α β : fam I} (r : fam.Pred (α ⊗ β)) {X : fam J} (x : X ⟶ F.obj α) (y : X ⟶ F.obj β) : Prop :=
+∃ u : X ⟶ F.obj (fam.subtype r),
   u ≫ F.map (fam.subtype.val ≫ fam.prod.fst) = x ∧
   u ≫ F.map (fam.subtype.val ≫ fam.prod.snd) = y
 
@@ -49,8 +50,6 @@ theorem of_mem_supp {α : fam I} {X : fam J} {x : X ⟶ F.obj α} {p : fam.Pred 
   ∀ y ∈ supp x, p _ (sigma.snd y) :=
 λ y hy, hy h
 
-open category_theory
-
 lemma liftp_comp {α : fam I} {X : fam J} {p : Π i, α i → Prop}
   (x : X ⟶ F.obj α) (h : F ⟶ G) :
   liftp p x → liftp p (x ≫ h.app _)
@@ -58,7 +57,7 @@ lemma liftp_comp {α : fam I} {X : fam J} {p : Π i, α i → Prop}
 
 lemma liftp_comp' {α : fam I} {X : fam J} {p : Π i, α i → Prop}
   (x : X ⟶ F.obj α) (T : F ⟶ G) (T' : G ⟶ F)
-  (h_inv : ∀ {α}, T.app α ≫ T'.app α = 𝟙 _):
+  (h_inv : ∀ {α}, T.app α ≫ T'.app α = 𝟙 _) :
   liftp p x ↔ liftp p (x ≫ T.app _) :=
 ⟨ liftp_comp x T,
  λ ⟨u,h'⟩, ⟨u ≫ T'.app _,by rw [category.assoc,← nat_trans.naturality,← category.assoc,h',category.assoc,h_inv,category.comp_id]⟩ ⟩
@@ -70,7 +69,12 @@ lemma liftr_comp {α : fam I} {X : fam J} (p : fam.Pred (α ⊗ α)) (x y : X �
   by { reassoc! h h',
        rw ← h'; simp only [category.assoc, (nat_trans.naturality _ _).symm,*,eq_self_iff_true, and_self] }⟩
 
-end pfunctor
+end fam
+
+end functor
+
+end category_theory
+
 
 /-
 A polynomial functor `P` is given by a type `A` and a family `B` of types over `A`. `P` maps
@@ -81,15 +85,17 @@ An element of `P.apply α` is a pair `⟨a, f⟩`, where `a` is an element of a 
 elements of `α`.
 -/
 
-structure pfunctor (I J : Type u) :=
+structure ipfunctor (I J : Type u) :=
 (A : fam J) (B : Π i, A i → fam I)
 
-namespace pfunctor
+def ipfunctor₀ (I : Type u) := ipfunctor I I
+
+namespace ipfunctor
 
 variables {I J : Type u} {α β : Type u}
 
 section pfunc
-variables (P : pfunctor I J)
+variables (P : ipfunctor I J)
 
 -- TODO: generalize to psigma?
 def apply : fam I ⥤ fam J :=
@@ -135,22 +141,22 @@ if h : j.1 = x.1
 
 end pfunc
 
-end pfunctor
+end ipfunctor
 
 /-
 Composition of polynomial functors.
 -/
 
-namespace pfunctor
+namespace ipfunctor
 
 /-
-def comp : pfunctor.{u} → pfunctor.{u} → pfunctor.{u}
+def comp : ipfunctor.{u} → ipfunctor.{u} → ipfunctor.{u}
 | ⟨A₂, B₂⟩ ⟨A₁, B₁⟩ := ⟨Σ a₂ : A₂, B₂ a₂ → A₁, λ ⟨a₂, a₁⟩, Σ u : B₂ a₂, B₁ (a₁ u)⟩
 -/
 
-variables {I J K : Type u} (P₂ : pfunctor.{u} J K) (P₁ : pfunctor.{u} I J)
+variables {I J K : Type u} (P₂ : ipfunctor.{u} J K) (P₁ : ipfunctor.{u} I J)
 
-def comp : pfunctor.{u} I K :=
+def comp : ipfunctor.{u} I K :=
 ⟨ λ i, Σ a₂ : P₂.1 i, P₂.2 _ a₂ ⟶ P₁.1,
 -- ⟨ Σ a₂ : P₂.1 _, P₂.2 _ a₂ → P₁.1, ²
   λ k a₂a₁ i, Σ j (u : P₂.2 _ a₂a₁.1 j), P₁.2 _ (a₂a₁.2 u) i ⟩
@@ -184,15 +190,15 @@ lemma comp.map_mk : Π {α β : fam I} (f : α ⟶ β), map _ (map _ f) ≫ comp
 λ α β f,
 @category_theory.mono.right_cancellation _ _ _ _ (comp.get P₂ P₁ β) _ _ _ _ (by simp)
 
-end pfunctor
+end ipfunctor
 
 /-
 Lifting predicates and relations.
 -/
 
-namespace pfunctor
-variables {I J : Type u} {P : pfunctor.{u} I J}
-open functor
+namespace ipfunctor
+variables {I J : Type u} {P : ipfunctor.{u} I J}
+open category_theory.functor.fam
 
 @[simp]
 lemma then_def {X Y Z : fam I} (f : X ⟶ Y) (g : Y ⟶ Z) {i} (x : X i) : (f ≫ g) x = g (f x) := rfl
@@ -203,8 +209,8 @@ begin
   split,
   { rintros ⟨y, hy⟩ j z, cases h : y z with a f,
     refine ⟨a, λ i a, subtype.val (f a), _, λ i a, subtype.property (f a)⟩, --, λ i, (f i).property⟩,
-    fold pfunctor.map pfunctor.obj at *,
-    -- rw [← pfunctor.map, ← pfunctor.obj] at h,
+    fold ipfunctor.map ipfunctor.obj at *,
+    -- rw [← ipfunctor.map, ← ipfunctor.obj] at h,
     simp [hy.symm, (≫), h, map_eq'],
     simp [(∘),fam.subtype.val], },
   introv hv, dsimp [liftp],
@@ -232,7 +238,7 @@ begin
   let F₀ := λ j k, (hv j k).1,
   let F₁ : Π j k, P.B j (F₀ j k) ⟶ α := λ j k, (hv j k).2.1,
   let F₂ : Π j k, P.B j (F₀ j k) ⟶ β := λ j k, (hv j k).2.2.1,
-  fold pfunctor.map,
+  fold ipfunctor.map,
   have F₃ : ∀ j k, x k = ⟨F₀ j k,F₁ j k⟩ := λ j k, (hv j k).2.2.2.1,
   have F₄ : ∀ j k, y k = ⟨F₀ j k,F₂ j k⟩ := λ j k, (hv j k).2.2.2.2.1,
   have F₅ : ∀ j k i a, r i (F₁ j k a, F₂ j k a) := λ j k, (hv j k).2.2.2.2.2,
@@ -241,12 +247,12 @@ begin
   split; ext : 2; [rw F₃,rw F₄]; refl,
 end
 
-end pfunctor
+end ipfunctor
 
 /-
 Facts about the general quotient needed to construct final coalgebras.
 
-TODO (Jeremy): move these somewhere.
+TODO (Simon): move these somewhere.
 -/
 
 namespace quot.indexed
@@ -265,16 +271,16 @@ def factor_mk_eq {I} {α : fam I} (r s: fam.Pred (α ⊗ α))
 end quot.indexed
 
 /-
-Decomposing an n+1-ary pfunctor.
+Decomposing an n+1-ary ipfunctor.
 -/
 
-namespace pfunctor
-variables {I J : Type u} (P : pfunctor.{u} (J⊕I) I)
+namespace ipfunctor
+variables {I J : Type u} (P : ipfunctor.{u} (J⊕I) I)
 
-def drop : pfunctor J I :=
+def drop : ipfunctor J I :=
 { A := P.A, B := λ i a, (P.B i a).drop }
 
-def last : pfunctor I I :=
+def last : ipfunctor₀ I :=
 { A := P.A, B := λ i a, (P.B i a).last }
 
 @[reducible] def append_contents {α : fam J} {β : fam I}
@@ -290,4 +296,4 @@ lemma append_contents_comp :
   append_contents _ (f₀ ≫ f₁) (g₀ ≫ g₁) = append_contents _ f₀ g₀ ≫ fam.split_fun f₁ g₁ :=
 by rw [append_contents,append_contents,← fam.split_fun_comp]
 
-end pfunctor
+end ipfunctor

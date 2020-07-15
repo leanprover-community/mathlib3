@@ -11,11 +11,11 @@ import data.prod
 
 universe u
 
-namespace mvqpf
+namespace iqpf
 
-open pfunctor (liftp liftr) fam category_theory
+open category_theory.functor.fam (liftp liftr) fam category_theory
 
-variables {I J : Type u} {F : fam (I⊕J) ⥤ fam J} [q : mvqpf F]
+variables {I J : Type u} {F : fam (I⊕J) ⥤ fam J} [q : iqpf F]
 include q
 
 def corecF {α : fam I} {β : fam J} (g : β ⟶ F.obj (α.append1 β)) : β ⟶ q.P.M α :=
@@ -51,39 +51,8 @@ lemma Mcongr_intro {α : fam I} (r : fam.Pred (q.P.M α ⊗ q.P.M α)) (hr : is_
   f ⊨ r → f ⊨ Mcongr F α
 | ⟨g,h⟩ := ⟨g ≫ foo _ hr, by rw [category.assoc,foo_val,h] ⟩
 
--- lemma Mcongr_is_precongr {α : fam I} : is_precongr (@Mcongr _ _ F q α) :=
--- begin
---   intros β f h, cases h with f' h, rw h,
---   ext i x, simp,
---   rcases f' x with ⟨⟨a,b⟩,hh⟩, dsimp [fam.subtype.val,fam.prod.fst,fam.prod.snd],
---   rcases hh with ⟨r,hh₀,hh₁⟩,
---   have : value i (q.P.M α ⊗ q.P.M α) (a,b) ⊨ r,
---   { refine ⟨value i _ ⟨_,hh₁⟩,_⟩, ext _ ⟨⟨rfl⟩⟩ : 2, refl },
---   replace hh₀ := congr_fun (congr_fun (hh₀ this) _) ⟨⟨rfl⟩⟩,
---   simp [fam.prod.fst,fam.prod.snd] at hh₀,
---   rw [abs_map,← fam.prod.map_fst_assoc,← fam.prod.map_fst_assoc,fam.prod.map_comp_assoc],
---   rw [← fam.prod.map_snd_assoc,← fam.prod.map_snd_assoc,fam.prod.map_comp_assoc],
--- end
-
-def cofix (F : fam (I ⊕ J) ⥤ fam J) [q : mvqpf F] (α : fam I) : fam J :=
+def cofix (F : fam (I ⊕ J) ⥤ fam J) [q : iqpf F] (α : fam I) : fam J :=
 fam.quot (Mcongr F α)
-
--- lemma foo_Mcongr {α : fam I} (h : is_precongr (Mcongr F α)) : foo (Mcongr F α) h = 𝟙 _ :=
--- by ext _ ⟨a,h'⟩; refl
-
--- omit q
-
--- def d {α : fam I} (r r' : Pred (α ⊗ α)) (f : ∀ i a, r i a → r' i a) : quot r ⟶ quot r' :=
--- λ i, quot.lift (λ x, quot.mk _ x) (λ a b (h : r i (a,b)), quot.sound (f i _ h))
-
--- lemma dd {α : fam I} (r r' : Pred (α ⊗ α)) (f : ∀ i a, r i a → r' i a) :
---   fam.quot.mk r' = fam.quot.mk r ≫ d r r' f :=
--- by { ext, simp [d,quot.lift_beta],
---      (do `(_ = quot.lift _ %%t _) ← tactic.target, tactic.note `t none t),
---      symmetry, apply quot.lift_beta _ t _, }
-
--- include q
--- set_option trace.app_builder true
 
 lemma Mcongr_elim {α : fam I} {j} (a : unit j ⟶ q.P.M α ⊗ q.P.M α) (h : a ⊨ Mcongr F α) :
   ∃ r, is_precongr r ∧ a ⊨ r :=
@@ -96,7 +65,6 @@ begin
   rw h, ext i ⟨ ⟨ rfl ⟩ ⟩ : 2, refl
 end
 
--- #exit
 lemma dude' {α : fam I} {j} (a : unit j ⟶ subtype (Mcongr F α)) :
   ∃ r hr x, x ≫ foo r hr = a :=
 begin
@@ -112,7 +80,7 @@ def cofix.map ⦃α β : fam I⦄ (g : α ⟶ β) : cofix F α ⟶ cofix F β :=
 fam.quot.lift _ (q.P.Mp.map g ≫ fam.quot.mk (Mcongr F β))
   begin
     rintros i a ⟨a',ha⟩,
-    have := @fam.quot.sound _ _ _ (Mcongr F β) (a ≫ fam.prod.map (pfunctor.map (pfunctor.Mp (P F)) g) (pfunctor.map (pfunctor.Mp (P F)) g)) _,
+    have := @fam.quot.sound _ _ _ (Mcongr F β) (a ≫ fam.prod.map (ipfunctor.map (ipfunctor.Mp (P F)) g) (ipfunctor.map (ipfunctor.Mp (P F)) g)) _,
     { simp at this, exact this },
     let map := fam.prod.map (q.P.Mp.map g) (q.P.Mp.map g),
     existsi a' ≫ fam.subtype.map _ _ map _,
@@ -138,7 +106,7 @@ fam.quot.lift _ (q.P.Mp.map g ≫ fam.quot.mk (Mcongr F β))
       { let k : unit j ⟶ subtype r := λ i y, (classical.some (c y).2),
         existsi k, rw hr', ext j y : 2, refine classical.some_spec (c y).2, },
       cases hh with k hh,
-      rw [← hh], simp [map,pfunctor.M_dest_map_assoc],
+      rw [← hh], simp [map,ipfunctor.M_dest_map_assoc],
       have hh' : k ≫ fam.subtype.val ⊨ r,
       { existsi k, refl, },
       clear_except hh' hu h,
@@ -154,7 +122,7 @@ fam.quot.lift _ (q.P.M_dest ≫ abs _ _ ≫ F.map (append_fun (𝟙 _) (fam.quot
 begin
   rintros i a h,
   obtain ⟨r,hr,hr'⟩ := Mcongr_elim _ h,
-  have : ∀ i (f : unit i ⟶ pfunctor.M (P F) α ⊗ pfunctor.M (P F) α), f ⊨ r → f ⊨ Mcongr F α,
+  have : ∀ i (f : unit i ⟶ ipfunctor.M (P F) α ⊗ ipfunctor.M (P F) α), f ⊨ r → f ⊨ Mcongr F α,
   { rintros i f ⟨a, h⟩, refine ⟨a ≫ foo _ hr,_⟩,
     simp [h], },
   rw ← quot.indexed.factor_mk_eq _ _ this,
@@ -289,10 +257,6 @@ end
 attribute [simp] diag_map diag_map_assoc diag_map_comp diag_map_comp_assoc
                  diag_map_fst_snd diag_map_fst_snd_assoc diag_map_fst_snd_comp diag_map_fst_snd_comp_assoc
 
--- def quot_rcomp : fam.quot r ⟶ fam.quot (r ≫ᵣ r') :=
--- fam.quot.lift _ (fam.quot.mk _) $ λ i x h,
---   fam.quot.sound _ sorry
-
 def quot_rcompl' : fam.quot r ⟶ fam.quot (r ≫ᵣ r' ∪ᵣ r ∪ᵣ r') :=
 fam.quot.lift _ (fam.quot.mk _) $ λ i x h,
   fam.quot.sound _ (unionl $ unionr h)
@@ -300,9 +264,6 @@ fam.quot.lift _ (fam.quot.mk _) $ λ i x h,
 def quot_rcompr' : fam.quot r' ⟶ fam.quot (r ≫ᵣ r' ∪ᵣ r ∪ᵣ r') :=
 fam.quot.lift _ (fam.quot.mk _) $ λ i x h,
   fam.quot.sound _ (unionr h)
-
--- lemma quot_mk_rcomp : fam.quot.mk (r ≫ᵣ r') = fam.quot.mk r ≫ quot_rcomp :=
--- by dunfold quot_rcomp; simp
 
 lemma quot_mk_rcompr' : fam.quot.mk (r ≫ᵣ r' ∪ᵣ r ∪ᵣ r') = fam.quot.mk r' ≫ quot_rcompr' :=
 by dunfold quot_rcompr'; simp
@@ -326,8 +287,6 @@ by dunfold quot_trans_unionr; simp
 
 end rel
 
--- #exit
-
 end eq
 
 lemma eq_is_precongr {α : fam I} : is_precongr (fam.eq (q.P.M α)) :=
@@ -335,21 +294,18 @@ begin
   intros i a h, replace h := fst_eq_snd_of_sat_eq _ h,
   reassoc h, rw h,
 end
--- #print sat_rcomp_ind
 
-example {I J : Type u} {F : fam (I ⊕ J) ⥤ fam J} [q : mvqpf F] {α : fam I}
+example {I J : Type u} {F : fam (I ⊕ J) ⥤ fam J} [q : iqpf F] {α : fam I}
   {i : J}
-  (f : unit i ⟶ pfunctor.M (P F) α ⊗ pfunctor.M (P F) α ⊗ pfunctor.M (P F) α)
-  (r₀ : Pred (pfunctor.M (P F) α ⊗ pfunctor.M (P F) α)) (ha₀ : is_precongr r₀)
+  (f : unit i ⟶ ipfunctor.M (P F) α ⊗ ipfunctor.M (P F) α ⊗ ipfunctor.M (P F) α)
+  (r₀ : Pred (ipfunctor.M (P F) α ⊗ ipfunctor.M (P F) α)) (ha₀ : is_precongr r₀)
   (hb₀ : f ≫ quot.lpair ⊨ r₀)
-  (r₁ : Pred (pfunctor.M (P F) α ⊗ pfunctor.M (P F) α)) (ha₁ : is_precongr r₁)
+  (r₁ : Pred (ipfunctor.M (P F) α ⊗ ipfunctor.M (P F) α)) (ha₁ : is_precongr r₁)
   (hb₁ : f ≫ quot.rpair ⊨ r₁) :
   f ≫ quot.sides ⊨ r₀ ≫ᵣ r₁ :=
 begin
   apply rcomp_intro; assumption,
 end
-
--- #exit
 
 lemma Mcongr_eqv {α} : fam.quot.equiv (Mcongr F α) :=
 { refl := Mcongr_intro (fam.eq _) eq_is_precongr eq_refl,
@@ -357,14 +313,14 @@ lemma Mcongr_eqv {α} : fam.quot.equiv (Mcongr F α) :=
                apply Mcongr_intro (r.map quot.prod.swap),
                { intros j a h'', replace h'' := sat_map₁ _ _ _ h'',
                  specialize h h'', simp only [abs_map, quot.prod.swap_snd_assoc, quot.prod.swap_fst_assoc, category.assoc] at h, reassoc! h,
-                 simp only [h, append_fun_comp_right, mvqpf.quot_mk_map_swap, mvqpf.abs_map, category_theory.functor.map_comp] },
-               { apply sat_map₀, simp only [h', category_theory.category.comp_id, mvqpf.swap_swap, category_theory.category.assoc], } },
+                 simp only [h, append_fun_comp_right, iqpf.quot_mk_map_swap, iqpf.abs_map, category_theory.functor.map_comp] },
+               { apply sat_map₀, simp only [h', category_theory.category.comp_id, iqpf.swap_swap, category_theory.category.assoc], } },
   trans := by { introv h₀ h₁, rcases Mcongr_elim _ h₀ with ⟨r₀,ha₀,hb₀⟩,
                 rcases Mcongr_elim _ h₁ with ⟨r₁,ha₁,hb₁⟩, clear h₀ h₁,
                 apply Mcongr_intro (r₀ ≫ᵣ r₁ ∪ᵣ r₀ ∪ᵣ r₁),
-                { intros i a h, apply mvqpf.sat_union_ind h,
-                  clear h, intro h, apply mvqpf.sat_union_ind h,
-                  clear h, intro h, apply mvqpf.sat_rcomp_ind h,
+                { intros i a h, apply iqpf.sat_union_ind h,
+                  clear h, intro h, apply iqpf.sat_union_ind h,
+                  clear h, intro h, apply iqpf.sat_rcomp_ind h,
                   { introv hy₀ hy₁,
                     specialize ha₀ hy₀, simp only [abs_map, category.assoc] at ha₀, reassoc! ha₀,
                     specialize ha₁ hy₁, simp only [prod.map_fst_assoc, abs_map, prod.map_snd_assoc, category.id_comp, category.assoc] at ha₁, reassoc! ha₁,
@@ -376,15 +332,13 @@ lemma Mcongr_eqv {α} : fam.quot.equiv (Mcongr F α) :=
                   { clear h, intro hr,
                     specialize ha₀ hr, simp only [abs_map] at ha₀, reassoc! ha₀,
                     rw [quot_mk_rcompl',append_fun_comp_right],
-                    simp only [ha₀, mvqpf.abs_map, category_theory.functor.map_comp] },
+                    simp only [ha₀, iqpf.abs_map, category_theory.functor.map_comp] },
                   { clear h, intro hr,
                     specialize ha₁ hr, simp only [abs_map] at ha₁, reassoc! ha₁,
                     rw [quot_mk_rcompr',append_fun_comp_right],
-                    simp only [ha₁, mvqpf.abs_map, category_theory.functor.map_comp], } },
+                    simp only [ha₁, iqpf.abs_map, category_theory.functor.map_comp], } },
                 { apply unionl, apply unionl,
                   apply rcomp_intro; assumption } } }
-
--- #exit
 
 section
 
@@ -423,7 +377,7 @@ begin
     simp [cofix.dest] at h,
     rw [← functor.map_comp, ← abs_map,← append_fun_comp_right] at h,
     let f := fam.quot.lift r (fam.quot.lift (Mcongr F α) (fam.quot.mk $ r.map map) _) _,
-    show ∀ {i : J} (a : unit i ⟶ pfunctor.M (P F) α ⊗ pfunctor.M (P F) α),
+    show ∀ {i : J} (a : unit i ⟶ ipfunctor.M (P F) α ⊗ ipfunctor.M (P F) α),
               a ⊨ Mcongr F α →
                a ≫ fam.prod.fst ≫ fam.quot.mk (r.map map) =
                a ≫ fam.prod.snd ≫ fam.quot.mk (r.map map),
@@ -443,14 +397,13 @@ begin
     dsimp [r'], rw ← d,
     { reassoc h,
       conv in (append_fun _ _) { rw [← category.assoc,append_fun_comp_right] },
-      rw [pfunctor.map_comp,category.assoc,abs_map,h], clear_except, congr' 3,
-      rw [← abs_map,← pfunctor.map_comp_assoc, ← append_fun_comp_right], refl } },
+      rw [ipfunctor.map_comp,category.assoc,abs_map,h], clear_except, congr' 3,
+      rw [← abs_map,← ipfunctor.map_comp_assoc, ← append_fun_comp_right], refl } },
   apply Mcongr_intro _ this,
   apply sat_map₀,
   simp [hx₀.symm,hx₁.symm,h₀],
 end
 
--- #exit
 section
 
 omit q
@@ -485,23 +438,23 @@ begin
   { apply unionr rxy }
 end
 
-open mvfunctor (rel_last)
+open category_theory.functor
 
 theorem cofix.bisim {α : fam I}
     (r : Pred $ cofix F α ⊗ cofix F α)
     (h : ∀ {i} x : unit i ⟶ cofix F α ⊗ cofix F α, x ⊨ r  →
-           liftr (rel_last α r) (x ≫ fam.prod.fst ≫ cofix.dest) (x ≫ fam.prod.snd ≫ cofix.dest)) :
+           liftr (fam.rel_last α r) (x ≫ fam.prod.fst ≫ cofix.dest) (x ≫ fam.prod.snd ≫ cofix.dest)) :
   ∀ {X} x y : X ⟶ cofix F α, diag ≫ (x ⊗ y) ⊨ r → x = y :=
 begin
   intros x y,
   apply cofix.bisim_rel,
   intros i x rxy,
-  have := (liftr_iff' (rel_last α r) _ _).mp (h x rxy),
-  rcases (liftr_iff' (rel_last α r) _ _).mp (h x rxy)  with ⟨a, f₀, f₁, dxeq, dyeq, h'⟩,
+  have := (liftr_iff' (fam.rel_last α r) _ _).mp (h x rxy),
+  rcases (liftr_iff' (fam.rel_last α r) _ _).mp (h x rxy)  with ⟨a, f₀, f₁, dxeq, dyeq, h'⟩,
   reassoc! dxeq, reassoc! dyeq,
-  rw [dxeq, dyeq, ← abs_map, pfunctor.map_eq_assoc, pfunctor.map_eq_assoc],
+  rw [dxeq, dyeq, ← abs_map, ipfunctor.map_eq_assoc, ipfunctor.map_eq_assoc],
   rw [←split_drop_fun_last_fun f₀, ←split_drop_fun_last_fun f₁],
-  rw [mvfunctor.append_fun_comp_split_fun, mvfunctor.append_fun_comp_split_fun],
+  rw [fam.append_fun_comp_split_fun, fam.append_fun_comp_split_fun],
   erw [category.comp_id, category.comp_id],
   congr' 3, ext i j, cases i with _ i; simp [split_fun],
   { apply h' _ j },
@@ -529,8 +482,8 @@ begin
   refine ⟨a,q.P.append_contents f' f₀,q.P.append_contents f' f₁,_,_,_⟩,
   { simp [xeq,*], },
   { simp [xeq,*], },
-  { rintro (i|i) a, dsimp [rel_last,uncurry], refl,
-    dsimp [rel_last,uncurry,R,pfunctor.append_contents,split_fun],
+  { rintro (i|i) a, dsimp [fam.rel_last,uncurry], refl,
+    dsimp [fam.rel_last,uncurry,R,ipfunctor.append_contents,split_fun],
     rcases h' _ (value i _ a) with ⟨x',Qx',ueq,veq⟩, clear h',
     refine ⟨_,Qx',_⟩, apply fam.prod.ext; simp;
     [rw ← ueq,rw ← veq]; ext _ ⟨ ⟩; refl },
@@ -564,7 +517,7 @@ def pCofix : fam I ⥤ fam J :=
 { obj := cofix F,
   map := cofix.map }
 
-noncomputable instance mvqpf_cofix : mvqpf (pCofix F) :=
+noncomputable instance iqpf_cofix : iqpf (pCofix F) :=
 { P         := q.P.Mp,
   abs       := λ α, fam.quot.mk (Mcongr F α),
   repr     := λ α, fam.quot.out _,
@@ -572,4 +525,4 @@ noncomputable instance mvqpf_cofix : mvqpf (pCofix F) :=
   abs_map   := λ α β g, rfl
 }
 
-end mvqpf
+end iqpf

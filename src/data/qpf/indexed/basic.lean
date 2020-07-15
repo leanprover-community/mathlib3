@@ -9,8 +9,8 @@ import data.pfunctor.indexed.W
 import tactic.mk_opaque
 universe u
 
-class mvqpf {I J : Type u} (F : fam I ⥤ fam J) :=
-(P         : pfunctor.{u} I J)
+class iqpf {I J : Type u} (F : fam I ⥤ fam J) :=
+(P         : ipfunctor.{u} I J)
 (abs []    : Π α, P.obj α ⟶ F.obj α)
 (repr []   : Π α, F.obj α ⟶ P.obj α)
 (abs_repr  : ∀ α, repr α ≫ abs α = 𝟙 _)
@@ -18,18 +18,14 @@ class mvqpf {I J : Type u} (F : fam I ⥤ fam J) :=
 -- (box_inter : ∀ (α : fam I) (A B : Π j, set (fam.unit j ⟶ α)) i,
 --   mvfunctor.box F (λ i, A i ∩ B i) i = mvfunctor.box F A i ∩ mvfunctor.box F B i)
 
-namespace mvqpf
-variables {I J : Type u} {F : fam I ⥤ fam J} [q : mvqpf F]
-open pfunctor (liftp liftr)
+namespace iqpf
+variables {I J : Type u} {F : fam I ⥤ fam J} [q : iqpf F]
+open category_theory.functor.fam (liftp liftr)
 
 /-
-Show that every mvqpf is a lawful mvfunctor.
+Show that every iqpf is a lawful mvfunctor.
 -/
 include q
-
--- lemma box_inter' {α : fam I} (A B : Π i, set (fam.unit i ⟶ α)) :
---   mvfunctor.box F (λ i, A i ∩ B i) = λ i, mvfunctor.box F A i ∩ mvfunctor.box F B i :=
--- funext $ λ i, box_inter _ _ _ _
 
 attribute [simp, reassoc] abs_map abs_repr
 
@@ -57,9 +53,9 @@ theorem trade  {α : fam I} {X : fam J} (f : (P F).obj α ⟶ X) (g : F.obj α �
   (h : f = abs F α ≫ g) : repr F α ≫ f = g :=
 by rw [h,← category.assoc,abs_repr,category.id_comp]
 
-open pfunctor (map_eq')
+open ipfunctor (map_eq')
 
-open mvqpf (abs_map)
+open iqpf (abs_map)
 
 theorem liftp_iff {α : fam I} {X : fam J} (p : Π i, α i → Prop) (x : X ⟶ F.obj α) :
   liftp p x ↔ ∀ j (y : X j), ∃ a f, x y = abs F α ⟨a,f⟩ ∧ ∀ i a, p i (f a) :=
@@ -67,7 +63,7 @@ begin
   split,
   { rintros ⟨y, hy⟩ j z, cases h : repr F _ (y z) with a f,
     use [a,f ≫ fam.subtype.val], split,
-    { rw [← pfunctor.map_eq', ← h, abs_map', abs_repr', ← hy], reflexivity },
+    { rw [← ipfunctor.map_eq', ← h, abs_map', abs_repr', ← hy], reflexivity },
     intros i j, apply (f j).property },
   rintros f,
   mk_constructive f,
@@ -89,9 +85,9 @@ begin
   split,
   { rintros ⟨y, hy⟩ j z, cases h : repr F _ (y z) with a f,
     use [a,f ≫ fam.subtype.val ≫ fam.prod.fst,f ≫ fam.subtype.val ≫ fam.prod.snd], split,
-    { rw [← pfunctor.map_eq', ← h, abs_map', abs_repr', ← hy.1], reflexivity },
+    { rw [← ipfunctor.map_eq', ← h, abs_map', abs_repr', ← hy.1], reflexivity },
     split,
-    { rw [← pfunctor.map_eq', ← h, abs_map', abs_repr', ← hy.2], reflexivity },
+    { rw [← ipfunctor.map_eq', ← h, abs_map', abs_repr', ← hy.2], reflexivity },
     intros i j, convert (f j).property, simp [fam.prod.fst,fam.prod.snd,fam.subtype.val], },
   rintros f,
   mk_constructive f,
@@ -108,7 +104,7 @@ begin
     erw [← abs_map',← abs_map',map_eq'], refl },
   mk_opaque g,
   refine ⟨g ≫ abs F _, _⟩,
-  simp only [h.symm,h'.symm,pfunctor.map_comp,abs_map,abs_map_assoc,
+  simp only [h.symm,h'.symm,ipfunctor.map_comp,abs_map,abs_map_assoc,
     category.assoc,and_self,eq_self_iff_true,category_theory.functor.map_comp],
 end
 open fam
@@ -126,4 +122,4 @@ begin
     rw hx, refl, rw hy, refl }
 end
 
-end mvqpf
+end iqpf

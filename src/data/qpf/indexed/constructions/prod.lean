@@ -6,35 +6,34 @@ import category_theory.products
 
 universes u
 
-namespace mvfunctor
+namespace category_theory.functor.fam
 
 variables {I I' J J' : Type u}
   (F : fam I  ⥤ fam J )
   (G : fam I' ⥤ fam J')
 
-def prod.fst (X : fam (I ⊕ I')) : fam I
+def prod_fst (X : fam (I ⊕ I')) : fam I
 | i := X $ sum.inl i
 
-def prod.snd (X : fam (I ⊕ I')) : fam I'
+def prod_snd (X : fam (I ⊕ I')) : fam I'
 | i := X $ sum.inr i
 
 protected def prod.obj (X : fam (I ⊕ I')) : fam (J ⊕ J')
-| (sum.inl j) := F.obj (prod.fst X) j
-| (sum.inr j) := G.obj (prod.snd X) j
+| (sum.inl j) := F.obj (prod_fst X) j
+| (sum.inr j) := G.obj (prod_snd X) j
 
-protected def prod.map.fst ⦃X Y : fam (I ⊕ I')⦄ : (X ⟶ Y) → (prod.fst X ⟶ prod.fst Y)
+protected def prod.map.fst ⦃X Y : fam (I ⊕ I')⦄ : (X ⟶ Y) → (prod_fst X ⟶ prod_fst Y)
 | f i x := f x
 
-protected def prod.map.snd ⦃X Y : fam (I ⊕ I')⦄ : (X ⟶ Y) → (prod.snd X ⟶ prod.snd Y)
+protected def prod.map.snd ⦃X Y : fam (I ⊕ I')⦄ : (X ⟶ Y) → (prod_snd X ⟶ prod_snd Y)
 | f i x := f x
 
 protected def prod.map ⦃X Y : fam (I ⊕ I')⦄ : (X ⟶ Y) → (prod.obj F G X ⟶ prod.obj F G Y)
 | f (sum.inl j) := λ x, F.map (map.fst f) x
 | f (sum.inr j) := λ x, G.map (map.snd f) x
--- | f (sum.inr j) := λ x, G.map (λ i y, f ‹ _ ›) x
 
 protected def prod.map' ⦃X Y : fam (I ⊕ I')⦄ :
-  (prod.fst X ⟶ prod.fst Y) → (prod.snd X ⟶ prod.snd Y) → (X ⟶ Y)
+  (prod_fst X ⟶ prod_fst Y) → (prod_snd X ⟶ prod_snd Y) → (X ⟶ Y)
 | f g (sum.inl i) x := f x
 | f g (sum.inr i) x := g x
 
@@ -52,17 +51,17 @@ def prod : fam (I ⊕ I') ⥤ fam (J ⊕ J') :=
 { obj := prod.obj F G,
   map := prod.map F G,
   map_id' := by { intros, ext ⟨ ⟩ ⟨ ⟩; simp [prod.map,prod.obj]; refl },
-  map_comp' := by { intros, ext ⟨ ⟩ ⟨ ⟩; simp [prod.map,- pfunctor.then_def]; refl } }
+  map_comp' := by { intros, ext ⟨ ⟩ ⟨ ⟩; simp [prod.map,- ipfunctor.then_def]; refl } }
 
 def prod_obj (X : fam I) (Y : fam I') : fam (I ⊕ I')
 | (sum.inl i) := X i
 | (sum.inr i) := Y i
 
-def prod_mk : Π X : fam (I ⊕ I'), prod_obj (F.obj $ prod.fst X) (G.obj $ prod.snd X) ⟶ (prod F G).obj X
+def prod_mk : Π X : fam (I ⊕ I'), prod_obj (F.obj $ prod_fst X) (G.obj $ prod_snd X) ⟶ (prod F G).obj X
 | X (sum.inl j) x := x
 | X (sum.inr j) x := x
 
-def prod_get : Π X : fam (I ⊕ I'), (prod F G).obj X ⟶ prod_obj (F.obj $ prod.fst X) (G.obj $ prod.snd X)
+def prod_get : Π X : fam (I ⊕ I'), (prod F G).obj X ⟶ prod_obj (F.obj $ prod_fst X) (G.obj $ prod_snd X)
 | X (sum.inl j) x := x
 | X (sum.inr j) x := x
 
@@ -82,89 +81,91 @@ by ext1 ⟨ ⟩; refl
 
 @[simp]
 lemma prod_map_id {X : fam I} {X' : fam I'} :
-  mvfunctor.prod_map (𝟙 X) (𝟙 X') = 𝟙 _ :=
+  prod_map (𝟙 X) (𝟙 X') = 𝟙 _ :=
 by ext1 ⟨ ⟩; refl
 
 @[simp,reassoc]
 lemma prod_map_comp_map {X Y Z : fam I} {X' Y' Z' : fam I'} (f : X ⟶ Y) (g : Y ⟶ Z) (f' : X' ⟶ Y') (g' : Y' ⟶ Z') :
-  mvfunctor.prod_map f f' ≫ mvfunctor.prod_map g g' = mvfunctor.prod_map (f ≫ g) (f' ≫ g') :=
+  prod_map f f' ≫ prod_map g g' = prod_map (f ≫ g) (f' ≫ g') :=
 by ext1 ⟨ ⟩; refl
 
 @[simp,reassoc]
 lemma prod_mk_nat {X Y : fam (I⊕I')}
   (f : X ⟶ Y)  :
   prod_mk F G _ ≫ (prod F G).map f =
-  mvfunctor.prod_map (F.map $ mvfunctor.prod.map.fst f) (G.map $ mvfunctor.prod.map.snd f) ≫ prod_mk F G _ :=
+  prod_map (F.map $ prod.map.fst f) (G.map $ prod.map.snd f) ≫ prod_mk F G _ :=
 by ext1 ⟨ ⟩; refl
 
-end mvfunctor
+end category_theory.functor.fam
 
-namespace pfunctor
+namespace ipfunctor
 
 variables {I I' J J' : Type u}
-  (F : pfunctor I  J)
-  (G : pfunctor I' J')
+  (F : ipfunctor I  J)
+  (G : ipfunctor I' J')
 
 def boo : Π (i : J ⊕ J'), sum.elim (F.A) (G.A) i → fam (I ⊕ I')
 | (sum.inl i) x (sum.inl j) := F.B i x j
 | (sum.inr i) x (sum.inr j) := G.B i x j
 | _ _ _ := pempty
 
-open mvfunctor (prod_obj prod.fst prod.snd)
+open category_theory.functor.fam (prod_obj prod_fst prod_snd prod.map')
+open category_theory.functor
 
 def fst_boo {X : fam I} : Π (i : J') (x : (G.A) i),
-  mvfunctor.prod.fst (boo F G (sum.inr i) x) ⟶ X .
+  prod_fst (boo F G (sum.inr i) x) ⟶ X .
 
 def snd_boo {X : fam I'} : Π (i : J) (x : (F.A) i),
-  mvfunctor.prod.snd (boo F G (sum.inl i) x) ⟶ X .
+  prod_snd (boo F G (sum.inl i) x) ⟶ X .
 
-def prod : pfunctor (I ⊕ I') (J ⊕ J') :=
+def prod : ipfunctor (I ⊕ I') (J ⊕ J') :=
 ⟨ sum.elim F.A G.A, boo F G ⟩
 
-def prod_mk : Π X : fam (I ⊕ I'), prod_obj (F.obj $ mvfunctor.prod.fst X) (G.obj $ mvfunctor.prod.snd X) ⟶ (prod F G).obj X
-| X (sum.inl j) ⟨x,f⟩ := ⟨x,mvfunctor.prod.map' f (snd_boo F G _ _)⟩
-| X (sum.inr j) ⟨x,f⟩ := ⟨x,mvfunctor.prod.map' (fst_boo F G _ _) f⟩
+def prod_mk : Π X : fam (I ⊕ I'), prod_obj (F.obj $ prod_fst X) (G.obj $ prod_snd X) ⟶ (prod F G).obj X
+| X (sum.inl j) ⟨x,f⟩ := ⟨x,prod.map' f (snd_boo F G _ _)⟩
+| X (sum.inr j) ⟨x,f⟩ := ⟨x,prod.map' (fst_boo F G _ _) f⟩
 
-def prod_get : Π X : fam (I ⊕ I'), (prod F G).obj X ⟶ prod_obj (F.obj $ mvfunctor.prod.fst X) (G.obj $ mvfunctor.prod.snd X)
-| X (sum.inl j) x := ⟨x.1,mvfunctor.prod.map.fst x.2⟩
-| X (sum.inr j) x := ⟨x.1,mvfunctor.prod.map.snd x.2⟩
+def prod_get : Π X : fam (I ⊕ I'), (prod F G).obj X ⟶ prod_obj (F.obj $ prod_fst X) (G.obj $ prod_snd X)
+| X (sum.inl j) x := ⟨x.1,fam.prod.map.fst x.2⟩
+| X (sum.inr j) x := ⟨x.1,fam.prod.map.snd x.2⟩
 
 @[simp,reassoc]
 lemma prod_mk_get {X : fam (I ⊕ I')} :
   prod_mk F G X ≫ prod_get F G X = 𝟙 _ :=
-by { ext1 ⟨ ⟩, ext ⟨_,_ ⟩; intros, refl, cases a, simp, ext _ ⟨ ⟩, dsimp [prod_get,prod_mk,mvfunctor.prod.map.fst,mvfunctor.prod.map'], ext, refl,
-     ext ⟨ ⟩, refl, rintros ⟨ ⟩, dsimp [prod_get,prod_mk,mvfunctor.prod.map.fst,mvfunctor.prod.map'], ext, refl, rintros _ _ ⟨ ⟩,
-     simp [prod_get,prod_mk,mvfunctor.prod.map.fst,mvfunctor.prod.map'], ext, refl }
+by { ext1 ⟨ ⟩, ext ⟨_,_ ⟩; intros, refl, cases a, simp, ext _ ⟨ ⟩,
+     dsimp [prod_get,prod_mk,fam.prod.map.fst,fam.prod.map'], ext, refl,
+     ext ⟨ ⟩, refl, rintros ⟨ ⟩, dsimp [prod_get,prod_mk,fam.prod.map.fst,fam.prod.map'], ext, refl, rintros _ _ ⟨ ⟩,
+     simp [prod_get,prod_mk,fam.prod.map.fst,fam.prod.map'], ext, refl }
 
 @[simp,reassoc]
 lemma prod_get_mk {X : fam (I ⊕ I')} :
   prod_get F G X ≫ prod_mk F G X = 𝟙 _ :=
-by { ext1 ⟨ ⟩; ext1 ⟨_,_ ⟩, dsimp [prod_mk,prod_get,mvfunctor.prod.map',mvfunctor.prod.map.fst],
+by { ext1 ⟨ ⟩; ext1 ⟨_,_ ⟩, dsimp [prod_mk,prod_get,fam.prod.map',fam.prod.map.fst],
      refine congr_arg _ _, ext ⟨ ⟩ : 2, refl, ext ⟨ ⟩, ext ⟨ ⟩ ⟨ ⟩, refl, rintro ⟨ ⟩, simp, ext1 ⟨ ⟩, ext1 ⟨ ⟩,
-     dsimp [prod_get,prod_mk,mvfunctor.prod.map.snd], ext, refl, }
+     dsimp [prod_get,prod_mk,fam.prod.map.snd], ext, refl, }
 
 @[simp]
 lemma prod_map_id {X : fam I} {X' : fam I'} :
-  mvfunctor.prod_map (𝟙 X) (𝟙 X') = 𝟙 _ :=
+  fam.prod_map (𝟙 X) (𝟙 X') = 𝟙 _ :=
 by ext ⟨ ⟩; refl
 
 @[simp,reassoc]
 lemma prod_map_comp_map {X Y Z : fam I} {X' Y' Z' : fam I'} (f : X ⟶ Y) (g : Y ⟶ Z) (f' : X' ⟶ Y') (g' : Y' ⟶ Z') :
-  mvfunctor.prod_map f f' ≫ mvfunctor.prod_map g g' = mvfunctor.prod_map (f ≫ g) (f' ≫ g') :=
+  fam.prod_map f f' ≫ fam.prod_map g g' = fam.prod_map (f ≫ g) (f' ≫ g') :=
 by ext ⟨ ⟩; refl
 
 @[simp,reassoc]
 lemma prod_get_nat {X Y : fam (I⊕I')} (f : X ⟶ Y) :
   (prod F G).map f ≫ prod_get F G _ =
-  prod_get F G _ ≫ mvfunctor.prod_map (F.map $ mvfunctor.prod.map.fst f) (G.map $ mvfunctor.prod.map.snd f) :=
+  prod_get F G _ ≫ fam.prod_map (F.map $ fam.prod.map.fst f) (G.map $ fam.prod.map.snd f) :=
 by { ext1 ⟨ ⟩; ext1 ⟨ ⟩; intros; refl }
 
-end pfunctor
+end ipfunctor
 
-namespace mvqpf
+namespace iqpf
 variables {I I' J J' : Type u}
-  (F : fam I  ⥤ fam J ) [q  : mvqpf F]
-  (G : fam I' ⥤ fam J') [q' : mvqpf G]
+  (F : fam I  ⥤ fam J ) [q  : iqpf F]
+  (G : fam I' ⥤ fam J') [q' : iqpf G]
 
 attribute [ext fam] funext
 
@@ -172,7 +173,7 @@ open category_theory
 
 
 namespace prod
-open mvfunctor pfunctor
+open category_theory.functor.fam ipfunctor
 variables {F G} {α β : fam J} (f : α ⟶ β)
 
 include q q'
@@ -180,16 +181,16 @@ include q q'
 local attribute [simp] category_theory.functor.map_comp_map category_theory.functor.map_comp_map_assoc
 local attribute [-simp] functor.map_comp
 
-open mvfunctor.prod (fst snd)
+open fam.prod (fst snd)
 
-instance : mvqpf (prod F G) :=
-{ P         := pfunctor.prod (P F) (P G),
-  abs       := λ α, pfunctor.prod_get _ _ _ ≫ prod_map (abs _ (fst α)) (abs _ (snd α)) ≫ prod_mk F G _,
-  repr      := λ α, prod_get _ _ _ ≫ prod_map (repr _ _) (repr _ _) ≫ pfunctor.prod_mk _ _ _,
+instance : iqpf (prod F G) :=
+{ P         := ipfunctor.prod (P F) (P G),
+  abs       := λ α, ipfunctor.prod_get _ _ _ ≫ prod_map (abs _ (prod_fst α)) (abs _ (prod_snd α)) ≫ prod_mk F G _,
+  repr      := λ α, prod_get _ _ _ ≫ prod_map (repr _ _) (repr _ _) ≫ ipfunctor.prod_mk _ _ _,
   abs_repr  := by { intros, simp, },
   abs_map   := by { intros, simp, },
  }
 
 end prod
 
-end mvqpf
+end iqpf

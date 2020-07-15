@@ -1,7 +1,19 @@
+/-
+Copyright (c) 2020 Aaron Anderson. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Aaron Anderson
+-/
 import data.finsupp
 import tactic.squeeze
---import algebra.ordered_group
+import algebra.ordered_group
 --open finsupp
+
+/-!
+# Lattice structure on finsupps
+
+This file provides instances of ordered structures on finsupps.
+
+-/
 
 open_locale classical
 noncomputable theory
@@ -92,7 +104,7 @@ end
 instance lattice [lattice β] : lattice (α →₀ β) :=
 { .. finsupp.semilattice_inf, .. finsupp.semilattice_sup}
 
-instance semilattice_inf_bot : semilattice_inf_bot (α →₀ ℕ) :=
+instance semilattice_inf_bot : semilattice_inf_bot (α →₀ γ) :=
 { ..finsupp.order_bot, ..finsupp.lattice}
 
 lemma of_multiset_strict_mono : strict_mono (@finsupp.of_multiset α) :=

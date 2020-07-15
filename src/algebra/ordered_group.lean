@@ -533,6 +533,15 @@ instance with_top.canonically_ordered_add_monoid : canonically_ordered_add_monoi
 
 end canonically_ordered_add_monoid
 
+/-- A canonically ordered monoid is an ordered commutative monoid
+  in which the ordering coincides with the divisibility relation,
+  which is to say, `a ≤ b` iff there exists `c` with `b = a + c`.
+  This is satisfied by the natural numbers, for example, but not
+  the integers or other ordered groups. -/
+@[protect_proj]
+class canonically_linear_ordered_add_monoid (α : Type*)
+      extends canonically_ordered_add_monoid α, decidable_linear_order α
+
 /-- An ordered cancellative additive commutative monoid
 is an additive commutative monoid with a partial order,
 in which addition is cancellative and strictly monotone. -/

@@ -62,7 +62,7 @@ instance coeff.is_add_monoid_hom {n : ℕ} : is_add_monoid_hom (λ p : polynomia
   map_zero := coeff_zero _ }
 
 variable (R)
--- i don't understand where this linear map is used
+/-- The nth coefficient, as a linear map. -/
 def lcoeff (n : ℕ) : polynomial R →ₗ[R] R :=
 { to_fun := λ f, coeff f n,
   map_add' := λ f g, coeff_add f g n,
@@ -383,18 +383,14 @@ lemma C_eq_int_cast (n : ℤ) : C ↑n = (n : polynomial R) :=
 @[simp] lemma degree_neg (p : polynomial R) : degree (-p) = degree p :=
 by unfold degree; rw support_neg
 
-end ring
-
-
-section nonzero_ring
-variables [ring R] [nontrivial R] {p q : polynomial R}
-
 @[simp] lemma nat_degree_neg (p : polynomial R) : nat_degree (-p) = nat_degree p :=
 by simp [nat_degree]
 
 @[simp] lemma nat_degree_int_cast (n : ℤ) : nat_degree (n : polynomial R) = 0 :=
 by simp only [←C_eq_int_cast, nat_degree_C]
 
-end nonzero_ring
+end ring
+
 
 end polynomial
+#lint

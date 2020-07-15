@@ -24,6 +24,8 @@ universes u v w y z
 variables {R : Type u} {S : Type v} {T : Type w} {ι : Type y} {A : Type z} {a b : R} {n : ℕ}
 
 section derivative
+
+section semiring
 variables [semiring R]
 
 /-- `derivative p` is the formal derivative of the polynomial `p` -/
@@ -91,9 +93,9 @@ instance : is_add_monoid_hom (derivative : polynomial R → polynomial R) :=
 @[simp] lemma derivative_smul (r : R) (p : polynomial R) : derivative (r • p) = r • derivative p :=
 by { ext, simp only [coeff_derivative, mul_assoc, coeff_smul], }
 
-end derivative
+end semiring
 
-section derivative
+section comm_semiring
 variables [comm_semiring R]
 
 @[simp] lemma derivative_mul {f g : polynomial R} :
@@ -203,6 +205,7 @@ begin
   rw [← C_inj, this, C_0],
 end
 
+end comm_semiring
 
 section domain
 variables [integral_domain R]

@@ -196,6 +196,7 @@ end eval
 
 section comp
 
+/-- The composition of polynomials as a polynomial. -/
 def comp (p q : polynomial R) : polynomial R := p.eval₂ C q
 
 @[simp] lemma comp_X : p.comp X = p :=
@@ -429,3 +430,4 @@ instance eval.is_ring_hom {x : R} : is_ring_hom (eval x) := eval₂.is_ring_hom 
 end comm_ring
 
 end polynomial
+#lint

@@ -6,10 +6,7 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 import tactic.ring_exp
 import tactic.chain
 import data.monoid_algebra
-import algebra.gcd_domain
-import ring_theory.euclidean_domain
-import ring_theory.multiplicity
-import data.finset.nat_antidiagonal
+-- import algebra.gcd_domain
 import data.finset.sort
 
 /-!
@@ -21,7 +18,6 @@ Polynomials are represented as `add_monoid_algebra R ℕ`, where `R` is a commut
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
-local attribute [instance, priority 10] is_semiring_hom.comp is_ring_hom.comp
 
 /-- `polynomial R` is the type of univariate polynomials over `R`.
 
@@ -33,12 +29,11 @@ open finsupp finset add_monoid_algebra
 open_locale big_operators
 
 namespace polynomial
-universes u v w x y z
-variables {R : Type u} {S : Type v} {T : Type w} {ι : Type x} {k : Type y} {A : Type z}
-  {a b : R} {m n : ℕ}
+universes u
+variables {R : Type u} {a : R} {m n : ℕ}
 
 section semiring
-variables [semiring R] {p q r : polynomial R}
+variables [semiring R] {p q : polynomial R}
 
 instance : inhabited (polynomial R) := finsupp.inhabited
 instance : semiring (polynomial R) := add_monoid_algebra.semiring

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.monic
+import ring_theory.euclidean_domain
+import ring_theory.multiplicity
 
 /-!
 # Theory of univariate polynomials
@@ -26,7 +28,7 @@ variables {R : Type u} {S : Type v} {T : Type w} {A : Type z} {a b : R} {n : ℕ
 section semiring
 variables [semiring R] {p q : polynomial R}
 
-/-- `dix_X p` return a polynomial `q` such that `q * X + C (p.coeff 0) = p`.
+/-- `div_X p` return a polynomial `q` such that `q * X + C (p.coeff 0) = p`.
   It can be used in a semiring where the usual division algorithm is not possible -/
 def div_X (p : polynomial R) : polynomial R :=
 { to_fun := λ n, p.coeff (n + 1),

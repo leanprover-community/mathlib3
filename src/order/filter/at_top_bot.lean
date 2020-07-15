@@ -516,6 +516,10 @@ lemma tendsto_at_top_of_monotone_of_subseq {ι ι' α : Type*} [preorder ι] [pr
   tendsto u at_top at_top :=
 tendsto_at_top_of_monotone_of_filter h (map_ne_bot hl) (tendsto_map' H)
 
+/-- Let `f` and `g` be two maps to the same commutative monoid. This lemma gives a sufficient
+condition for comparison of the filter `at_top.map (λ s, ∏ b in s, f b)` with
+`at_top.map (λ s, ∏ b in s, g b)`. This is useful to compare the set of limit points of
+`Π b in s, f b` as `s → at_top` with the similar set for `g`. -/
 @[to_additive]
 lemma map_at_top_finset_prod_le_of_prod_eq [comm_monoid α] {f : β → α} {g : γ → α}
   (h_eq : ∀u:finset γ, ∃v:finset β, ∀v', v ⊆ v' → ∃u', u ⊆ u' ∧ ∏ x in u', g x = ∏ b in v', f b) :
@@ -528,21 +532,35 @@ end filter
 
 open filter finset
 
+/-- Let `g : γ → β` be an injective function and `f : β → α` be a function from the codomain of `g`
+to a commutative monoid. Suppose that `f x = 1` outside of the range of `g`. Then the filters
+`at_top.map (λ s, ∏ i in s, f (g i))` and `at_top.map (λ s, ∏ i in s, f i)` coincide.
+
+The additive version of this lemma is used to prove the equality `∑' x, f (g x) = ∑' y, f y` under
+the same assumptions.-/
 @[to_additive]
-lemma function.embedding.map_at_top_finset_prod_eq [comm_monoid α] (g : γ ↪ β) {f : β → α}
-  (hf : ∀ x ∉ set.range g, f x = 1) :
+lemma function.injective.map_at_top_finset_prod_eq [comm_monoid α] {g : γ → β}
+  (hg : function.injective g) {f : β → α} (hf : ∀ x ∉ set.range g, f x = 1) :
   map (λ s, ∏ i in s, f (g i)) at_top = map (λ s, ∏ i in s, f i) at_top :=
 begin
   apply le_antisymm; refine map_at_top_finset_prod_le_of_prod_eq (λ s, _),
-  { refine ⟨s.preimage (g.injective.inj_on _), λ t ht, _⟩,
-    refine ⟨t.map g ∪ s, finset.subset_union_right _ _, _⟩,
-    rw ← finset.prod_map,
+  { refine ⟨s.preimage (hg.inj_on _), λ t ht, _⟩,
+    refine ⟨t.image g ∪ s, finset.subset_union_right _ _, _⟩,
+    rw [← finset.prod_image (hg.inj_on _)],
     refine (prod_subset (subset_union_left _ _) _).symm,
-    simp only [finset.mem_union, finset.mem_map],
+    simp only [finset.mem_union, finset.mem_image],
     refine λ y hy hyt, hf y (mt _ hyt),
     rintros ⟨x, rfl⟩,
     exact ⟨x, ht (finset.mem_preimage.2 $ hy.resolve_left hyt), rfl⟩ },
-  { refine ⟨s.map g, λ t ht, _⟩,
-    simp only [← prod_preimage _ _ (g.injective.inj_on _) _ (λ x _, hf x)],
-    exact ⟨_, map_subset_iff_subset_preimage.1 ht, rfl⟩ }
+  { refine ⟨s.image g, λ t ht, _⟩,
+    simp only [← prod_preimage _ _ (hg.inj_on _) _ (λ x _, hf x)],
+    exact ⟨_, (image_subset_iff_subset_preimage _).1 ht, rfl⟩ }
 end
+
+/-- Let `g : γ → β` be an injective function and `f : β → α` be a function from the codomain of `g`
+to an additive commutative monoid. Suppose that `f x = 0` outside of the range of `g`. Then the
+filters `at_top.map (λ s, ∑ i in s, f (g i))` and `at_top.map (λ s, ∑ i in s, f i)` coincide.
+
+This lemma is used to prove the equality `∑' x, f (g x) = ∑' y, f y` under
+the same assumptions.-/
+add_decl_doc function.injective.map_at_top_finset_sum_eq

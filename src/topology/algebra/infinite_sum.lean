@@ -3,7 +3,6 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import tactic.where
 import topology.instances.real
 import data.indicator_function
 
@@ -80,14 +79,10 @@ lemma has_sum_iff_has_sum {g : γ → α}
   has_sum f a ↔ has_sum g a :=
 ⟨has_sum.has_sum_of_sum_eq h₂, has_sum.has_sum_of_sum_eq h₁⟩
 
-lemma function.embedding.has_sum_iff (g : γ ↪ β) (hf : ∀ x ∉ set.range g, f x = 0) :
-  has_sum (f ∘ g) a ↔ has_sum f a :=
-by simp only [has_sum, tendsto, g.map_at_top_finset_sum_eq hf]
-
 lemma function.injective.has_sum_iff {g : γ → β} (hg : injective g)
   (hf : ∀ x ∉ set.range g, f x = 0) :
   has_sum (f ∘ g) a ↔ has_sum f a :=
-by simpa only using function.embedding.has_sum_iff ⟨g, hg⟩ hf
+by simp only [has_sum, tendsto, hg.map_at_top_finset_sum_eq hf]
 
 lemma function.injective.summable_iff {g : γ → β} (hg : injective g)
   (hf : ∀ x ∉ set.range g, f x = 0) :
@@ -96,7 +91,7 @@ exists_congr $ λ _, hg.has_sum_iff hf
 
 lemma has_sum_subtype_iff_of_support_subset {s : set β} (hf : support f ⊆ s) :
   has_sum (f ∘ coe : s → α) a ↔ has_sum f a :=
-(function.embedding.subtype s).has_sum_iff $ by simpa using support_subset_iff'.1 hf
+subtype.coe_injective.has_sum_iff $ by simpa using support_subset_iff'.1 hf
 
 lemma has_sum_subtype_iff_indicator {s : set β} :
   has_sum (f ∘ coe : s → α) a ↔ has_sum (s.indicator f) a :=
@@ -144,7 +139,7 @@ end
 
 lemma equiv.has_sum_iff (e : γ ≃ β) :
   has_sum (f ∘ e) a ↔ has_sum f a :=
-e.to_embedding.has_sum_iff $ by simp
+e.injective.has_sum_iff $ by simp
 
 lemma equiv.summable_iff (e : γ ≃ β) :
   summable (f ∘ e) ↔ summable f :=
@@ -378,7 +373,7 @@ lemma tsum_sigma' [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) →
 
 lemma tsum_prod' [regular_space α] {f : β × γ → α} (h : summable f)
   (h₁ : ∀b, summable (λc, f (b, c))) :
-  (∑'p, f p) = (∑'b c, f ⟨b, c⟩) :=
+  (∑'p, f p) = (∑'b c, f (b, c)) :=
 (h.has_sum.prod_fiberwise (assume b, (h₁ b).has_sum)).tsum_eq.symm
 
 lemma tsum_comm' [regular_space α] {f : β → γ → α} (h : summable (function.uncurry f))

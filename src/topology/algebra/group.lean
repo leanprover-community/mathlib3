@@ -493,20 +493,4 @@ lemma nhds_is_mul_hom : is_mul_hom (λx:α, 𝓝 x) := ⟨λ_ _, nhds_mul _ _⟩
 
 end
 
-@[to_additive]
-lemma tendsto_inv_nhds {α : Type*} [group α]
-  [topological_space α] [topological_group α] {a : α} :
-  tendsto has_inv.inv (nhds a) (nhds (a⁻¹)) :=
-begin
-  intros s hs,
-  rw mem_map,
-  rw mem_nhds_sets_iff at *,
-  rcases hs with ⟨ t, tsubs, topen, hat ⟩,
-  exact
-  ⟨ t⁻¹,
-    (λ x hx, tsubs hx),
-    continuous_inv _ topen,
-    hat ⟩,
-end
-
 end filter_mul

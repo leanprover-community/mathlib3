@@ -1948,51 +1948,19 @@ else or.inl $ tendsto_at_top_at_top_of_monotone' h_mono H
 lemma tendsto_neg_nhds_within_Ioi {α : Type*} [ordered_add_comm_group α]
   [topological_space α] [topological_add_group α] {a : α} :
   tendsto has_neg.neg (nhds_within a (Ioi a)) (nhds_within (-a) (Iio (-a))) :=
-begin
-  intros s hs,
-  rw mem_map,
-  rw mem_nhds_within at *,
-  rcases hs with ⟨ u, uopen, hau, uinter⟩,
-  exact
-  ⟨ -u,
-    continuous_neg _ uopen,
-    hau,
-    by
-    { rw (show Ioi a = -(Iio $ -a), by simp only [preimage_neg_Iio, neg_neg]),
-      rw ← inter_neg,
-      exact λ x hx, uinter hx } ⟩
-end
+(continuous_neg.tendsto a).inf $ by simp [tendsto_principal_principal]
 
 lemma tendsto_neg_nhds_within_Iio {α : Type*} [ordered_add_comm_group α]
   [topological_space α] [topological_add_group α] {a : α} :
   tendsto has_neg.neg (nhds_within a (Iio a)) (nhds_within (-a) (Ioi (-a))) :=
-begin
-  intros s hs,
-  rw mem_map,
-  rw mem_nhds_within at *,
-  rcases hs with ⟨ u, uopen, hau, uinter⟩,
-  exact
-  ⟨ -u,
-    continuous_neg _ uopen,
-    hau,
-    by
-    { rw (show Iio a = -(Ioi $ -a), by simp only [preimage_neg_Ioi, neg_neg]),
-      rw ← inter_neg,
-      exact λ x hx, uinter hx } ⟩
-end
+(continuous_neg.tendsto a).inf $ by simp [tendsto_principal_principal]
 
 lemma tendsto_neg_nhds_within_Ioi_neg {α : Type*} [ordered_add_comm_group α]
   [topological_space α] [topological_add_group α] {a : α} :
   tendsto has_neg.neg (nhds_within (-a) (Ioi (-a))) (nhds_within a (Iio a)) :=
-begin
-  rw (show (nhds_within a (Iio a)) = (nhds_within (- -a) (Iio (- -a))), by simp only [neg_neg]),
-  exact tendsto_neg_nhds_within_Ioi
-end
+by simpa only [neg_neg] using @tendsto_neg_nhds_within_Ioi _ _ _ _ (-a)
 
 lemma tendsto_neg_nhds_within_Iio_neg {α : Type*} [ordered_add_comm_group α]
   [topological_space α] [topological_add_group α] {a : α} :
   tendsto has_neg.neg (nhds_within (-a) (Iio (-a))) (nhds_within a (Ioi a)) :=
-begin
-  rw (show (nhds_within a (Ioi a)) = (nhds_within (- -a) (Ioi (- -a))), by simp only [neg_neg]),
-  exact tendsto_neg_nhds_within_Iio
-end
+by simpa only [neg_neg] using @tendsto_neg_nhds_within_Iio _ _ _ _ (-a)

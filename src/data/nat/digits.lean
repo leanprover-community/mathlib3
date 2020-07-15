@@ -292,6 +292,10 @@ begin
   exact lt_base_pow_len_digits',
 end
 
+lemma of_digits_digits_append_digits {b m n : ℕ} :
+  of_digits b (digits b n ++ digits b m) = n + b ^ (digits b n).length * m:=
+by rw [of_digits_append, of_digits_digits, of_digits_digits]
+
 -- This is really a theorem about polynomials.
 lemma dvd_of_digits_sub_of_digits {α : Type*} [comm_ring α]
   {a b k : α} (h : k ∣ a - b) (L : list ℕ) :

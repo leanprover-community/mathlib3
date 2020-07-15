@@ -355,7 +355,6 @@ open ae_eq_fun
 
 variables
   [normed_group E] [second_countable_topology E] [measurable_space E] [borel_space E]
-  [normed_space ℝ E]
   [normed_group F] [second_countable_topology F] [measurable_space F] [borel_space F]
   {μ : measure α}
 
@@ -365,7 +364,7 @@ variables (α E μ)
 /-- `l1.simple_func` is a subspace of L1 consisting of equivalence classes of an integrable simple
     function. -/
 def simple_func : Type* :=
-↥({ carrier := { f : α →₁[μ] E | ∃ (s : α →ₛ E), (ae_eq_fun.mk s s.measurable : α →ₘ[μ] E) = f},
+↥({ carrier := {f : α →₁[μ] E | ∃ (s : α →ₛ E), (ae_eq_fun.mk s s.measurable : α →ₘ[μ] E) = f},
   zero_mem' := ⟨0, rfl⟩,
   add_mem' := λ f g ⟨s, hs⟩ ⟨t, ht⟩,
     ⟨s + t, by simp only [coe_add, ← hs, ← ht, mk_add_mk, ← simple_func.coe_add]⟩,
@@ -749,7 +748,7 @@ def integral_clm : (α →₁ₛ[μ] E) →L[ℝ] E :=
 linear_map.mk_continuous ⟨integral, integral_add, integral_smul⟩
   1 (λf, le_trans (norm_integral_le_norm _) $ by rw one_mul)
 
-local notation `Integral` := @integral_clm α E _ _ _ _ _ _ μ _
+local notation `Integral` := @integral_clm α E _ _ _ _ _ μ _
 
 open continuous_linear_map
 
@@ -879,8 +878,8 @@ map_sub integral_clm f g
 lemma integral_smul (r : ℝ) (f : α →₁[μ] E) : integral (r • f) = r • integral f :=
 map_smul r integral_clm f
 
-local notation `Integral` := @integral_clm α E _ _ _ _ _ _ μ _ _
-local notation `sIntegral` := @simple_func.integral_clm α E _ _ _ _ _ _ μ _
+local notation `Integral` := @integral_clm α E _ _ _ _ _ μ _ _
+local notation `sIntegral` := @simple_func.integral_clm α E _ _ _ _ _ μ _
 
 lemma norm_Integral_le_one : ∥Integral∥ ≤ 1 :=
 calc ∥Integral∥ ≤ (1 : nnreal) * ∥sIntegral∥ :

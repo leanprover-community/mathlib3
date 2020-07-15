@@ -82,7 +82,7 @@ def is_measurable : set α → Prop := ‹measurable_space α›.is_measurable
 @[simp] lemma is_measurable.empty : is_measurable (∅ : set α) :=
 ‹measurable_space α›.is_measurable_empty
 
-@[simp] lemma is_measurable.compl : is_measurable s → is_measurable sᶜ :=
+lemma is_measurable.compl : is_measurable s → is_measurable sᶜ :=
 ‹measurable_space α›.is_measurable_compl s
 
 lemma is_measurable.of_compl (h : is_measurable sᶜ) : is_measurable s :=

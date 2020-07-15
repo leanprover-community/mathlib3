@@ -98,6 +98,17 @@ begin
   simp only [add_comm, coeff_X_pow, coeff_C_mul, finset.mem_range,
     finset.sum_mul_boole, finset_sum_coeff, ite_le_nat_degree_coeff],
 end
+lemma smul_eq_C_mul (r : R) : (C r) * p = r • p :=
+begin
+  ext, rw coeff_C_mul, rw coeff_smul,
+end
+
+lemma as_sum' (p : polynomial R) :
+  p = ∑ i in range (p.nat_degree + 1), monomial i (p.coeff i) :=
+begin
+  conv_lhs { rw p.as_sum }, apply sum_congr, { simp },
+  simp_rw [monomial_eq_smul_X, smul_eq_C_mul], simp,
+end
 
 /--
 We can reexpress a sum over `p.support` as a sum over `range n`,

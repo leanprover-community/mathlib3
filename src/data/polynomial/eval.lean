@@ -85,7 +85,8 @@ instance eval₂.is_add_monoid_hom : is_add_monoid_hom (eval₂ f x) :=
 @[simp] lemma eval₂_nat_cast (n : ℕ) : (n : polynomial R).eval₂ f x = n :=
 nat.rec_on n rfl $ λ n ih, by rw [n.cast_succ, eval₂_add, ih, eval₂_one, n.cast_succ]
 
-lemma eval₂_sum (p : polynomial S) (g : ℕ → S → polynomial R) (x : S) :
+variables [semiring T]
+lemma eval₂_sum (p : polynomial T) (g : ℕ → T → polynomial R) (x : S) :
   (p.sum g).eval₂ f x = p.sum (λ n a, (g n a).eval₂ f x) :=
 finsupp.sum_sum_index (by simp [is_add_monoid_hom.map_zero f])
   (by intros; simp [right_distrib, is_add_monoid_hom.map_add f])

@@ -6,9 +6,9 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 import data.polynomial.basic
 
 /-!
-# Theory of univariate monomials
+# Univariate monomials
 
-
+Preparatory lemmas for degree_basic.
 -/
 
 noncomputable theory
@@ -61,16 +61,11 @@ end C
 
 section coeff
 
-
-lemma apply_eq_coeff : p n = coeff p n := rfl
-
-
 @[simp] lemma coeff_X_one : coeff (X : polynomial R) 1 = 1 := coeff_single
 
 @[simp] lemma coeff_X_zero : coeff (X : polynomial R) 0 = 0 := coeff_single
 
 lemma coeff_X : coeff (X : polynomial R) n = if 1 = n then 1 else 0 := coeff_single
-
 
 lemma coeff_C : coeff (C a) n = ite (n = 0) a 0 :=
 by { convert coeff_single using 2, simp [eq_comm], }
@@ -80,7 +75,6 @@ by { convert coeff_single using 2, simp [eq_comm], }
 theorem nonzero.of_polynomial_ne (h : p ≠ q) : nontrivial R :=
 ⟨⟨0, 1, λ h01 : 0 = 1, h $
     by rw [← mul_one p, ← mul_one q, ← C_1, ← h01, C_0, mul_zero, mul_zero] ⟩⟩
-
 
 lemma single_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
 | 0     := (mul_one _).symm

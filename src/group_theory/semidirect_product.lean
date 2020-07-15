@@ -174,10 +174,7 @@ end
   with both `inl` and `inr` -/
 lemma hom_ext {f g : (N ⋊[φ] G) →* H} (hl : f.comp inl = g.comp inl)
   (hr : f.comp inr = g.comp inr) : f = g :=
-begin
-  rw [lift_unique f, lift_unique g],
-  congr; assumption
-end
+by { rw [lift_unique f, lift_unique g], simp only * }
 
 end lift
 

@@ -9,7 +9,7 @@ import data.polynomial.derivative
 /-!
 # Theory of univariate polynomials
 
-Here is a bunch of stuff leftover from the old data/polynomial.lean.
+The main def is `binom_expansion`.
 -/
 
 noncomputable theory

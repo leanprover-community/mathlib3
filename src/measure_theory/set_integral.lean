@@ -10,6 +10,8 @@ import measure_theory.lebesgue_measure
 /-!
 # Set integral
 
+This file is temporarily commented out because of an ongoing refactor.
+
 Integrate a function over a subset of a measure space.
 
 ## Main definitions
@@ -20,6 +22,8 @@ Integrate a function over a subset of a measure space.
 
 `∫ a in s, f a` is `measure_theory.integral (s.indicator f)`
 -/
+
+/-
 
 noncomputable theory
 open set filter topological_space measure_theory
@@ -187,3 +191,4 @@ begin
 end
 
 end integral_on
+-/

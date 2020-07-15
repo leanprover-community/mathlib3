@@ -14,7 +14,7 @@ import data.polynomial.field_division
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
--- local attribute [instance, priority 10] is_semiring_hom.comp is_ring_hom.comp
+local attribute [instance, priority 10] is_semiring_hom.comp is_ring_hom.comp
 
 open finsupp finset add_monoid_algebra
 open_locale big_operators
@@ -34,12 +34,13 @@ lemma coeff_derivative (p : polynomial R) (n : ℕ) :
 begin
   rw [derivative],
   simp only [coeff_X_pow, coeff_sum, coeff_C_mul],
-  rw [finsupp.sum, finset.sum_eq_single (n + 1)], erw apply_eq_coeff,
-  { rw [if_pos (nat.add_sub_cancel _ _).symm, mul_one, nat.cast_add, nat.cast_one] },
+  rw [finsupp.sum, finset.sum_eq_single (n + 1)],
+  simp only [nat.add_succ_sub_one, add_zero, mul_one, if_true, eq_self_iff_true], norm_cast,
+  swap, { rw [if_pos (nat.add_sub_cancel _ _).symm, mul_one, nat.cast_add, nat.cast_one, mem_support_iff],
+    intro h, push_neg at h, simp [h], },
   { assume b, cases b,
-    { intros, rw [nat.cast_zero, mul_zero, zero_mul] },
-    { intros _ H, rw [nat.succ_sub_one b, if_neg (mt (congr_arg nat.succ) H.symm), mul_zero] } },
-  { intro H, rw [not_mem_support_iff.1 H, zero_mul, zero_mul] }
+    { intros, rw [nat.cast_zero, mul_zero, zero_mul], },
+    { intros _ H, rw [nat.succ_sub_one b, if_neg (mt (congr_arg nat.succ) H.symm), mul_zero] } }
 end
 
 @[simp] lemma derivative_zero : derivative (0 : polynomial R) = 0 :=
@@ -205,12 +206,18 @@ end
 
 section domain
 variables [integral_domain R]
-
+-- TODO: golf this, dunno how i broke it so bad
 lemma mem_support_derivative [char_zero R] (p : polynomial R) (n : ℕ) :
   n ∈ (derivative p).support ↔ n + 1 ∈ p.support :=
-suffices (¬(coeff p (n + 1) = 0 ∨ ((n + 1:ℕ) : R) = 0)) ↔ coeff p (n + 1) ≠ 0,
-  by simpa only [coeff_derivative, apply_eq_coeff, mem_support_iff, ne.def, mul_eq_zero],
-by rw [nat.cast_eq_zero]; simp only [nat.succ_ne_zero, or_false]
+begin
+rw finsupp.mem_support_iff, split; intro h,
+suffices h1 : p.coeff (n+1) ≠ 0, simp; tauto, contrapose! h,
+convert coeff_derivative _ _, simp [h],
+contrapose! h, simp,
+suffices : p.to_fun (n + 1) * (n + 1) = 0, simp only [mul_eq_zero] at this, cases this,
+{ exact this }, { norm_cast at this },
+erw ← h, symmetry, convert coeff_derivative _ _,
+end
 
 @[simp] lemma degree_derivative_eq [char_zero R] (p : polynomial R) (hp : 0 < nat_degree p) :
   degree (derivative p) = (nat_degree p - 1 : ℕ) :=
@@ -235,3 +242,4 @@ le_antisymm
 end domain
 
 end derivative
+end polynomial

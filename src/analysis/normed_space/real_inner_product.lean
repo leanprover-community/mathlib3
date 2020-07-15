@@ -921,4 +921,66 @@ begin
   exacts [submodule.convex _, hv]
 end
 
+/-- The subspace of vectors orthogonal to a given subspace. -/
+def submodule.orthogonal (K : submodule ℝ α) : submodule ℝ α :=
+{ carrier := {v | ∀ u ∈ K, inner u v = 0},
+  zero_mem' := λ _ _, inner_zero_right,
+  add_mem' := λ x y hx hy u hu, by rw [inner_add_right, hx u hu, hy u hu, add_zero],
+  smul_mem' := λ c x hx u hu, by rw [inner_smul_right, hx u hu, mul_zero] }
+
+/-- When a vector is in `K.orthogonal`. -/
+lemma submodule.mem_orthogonal (K : submodule ℝ α) (v : α) :
+  v ∈ K.orthogonal ↔ ∀ u ∈ K, inner u v = 0 :=
+iff.rfl
+
+/-- When a vector is in `K.orthogonal`, with the inner product the
+other way round. -/
+lemma submodule.mem_orthogonal' (K : submodule ℝ α) (v : α) :
+  v ∈ K.orthogonal ↔ ∀ u ∈ K, inner v u = 0 :=
+by simp_rw [submodule.mem_orthogonal, inner_comm]
+
+/-- A vector in `K` is orthogonal to one in `K.orthogonal`. -/
+lemma submodule.inner_right_of_mem_orthogonal {u v : α} {K : submodule ℝ α} (hu : u ∈ K)
+    (hv : v ∈ K.orthogonal) : inner u v = 0 :=
+(K.mem_orthogonal v).1 hv u hu
+
+/-- A vector in `K.orthogonal` is orthogonal to one in `K`. -/
+lemma submodule.inner_left_of_mem_orthogonal {u v : α} {K : submodule ℝ α} (hu : u ∈ K)
+    (hv : v ∈ K.orthogonal) : inner v u = 0 :=
+inner_comm u v ▸ submodule.inner_right_of_mem_orthogonal hu hv
+
+/-- `K` and `K.orthogonal` have trivial intersection. -/
+lemma submodule.orthogonal_disjoint (K : submodule ℝ α) : disjoint K K.orthogonal :=
+begin
+  simp_rw [submodule.disjoint_def, submodule.mem_orthogonal],
+  exact λ x hx ho, inner_self_eq_zero.1 (ho x hx)
+end
+
+/-- `K` is contained in `K.orthogonal.orthogonal`. -/
+lemma submodule.le_orthogonal_orthogonal (K : submodule ℝ α) : K ≤ K.orthogonal.orthogonal :=
+λ u hu v hv, submodule.inner_left_of_mem_orthogonal hu hv
+
+/-- If `K` is complete, `K` and `K.orthogonal` span the whole
+space. -/
+lemma submodule.sup_orthogonal_of_is_complete {K : submodule ℝ α} (h : is_complete (K : set α)) :
+  K ⊔ K.orthogonal = ⊤ :=
+begin
+  rw submodule.eq_top_iff',
+  intro x,
+  rw submodule.mem_sup,
+  rcases exists_norm_eq_infi_of_complete_subspace K h x with ⟨v, hv, hvm⟩,
+  rw norm_eq_infi_iff_inner_eq_zero K hv at hvm,
+  use [v, hv, x - v],
+  split,
+  { rw submodule.mem_orthogonal',
+    exact hvm },
+  { exact add_sub_cancel'_right _ _ }
+end
+
+/-- If `K` is complete, `K` and `K.orthogonal` are complements of each
+other. -/
+lemma submodule.is_compl_orthogonal_of_is_complete {K : submodule ℝ α}
+    (h : is_complete (K : set α)) : is_compl K K.orthogonal :=
+⟨K.orthogonal_disjoint, le_of_eq (submodule.sup_orthogonal_of_is_complete h).symm⟩
+
 end orthogonal

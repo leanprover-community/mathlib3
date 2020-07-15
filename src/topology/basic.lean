@@ -499,6 +499,9 @@ eventually_nhds_iff.2 ⟨t, λ x hx, eventually_nhds_iff.2 ⟨t, htp, hto, hx⟩
   (∀ᶠ y in 𝓝 a, f =ᶠ[𝓝 y] g) ↔ f =ᶠ[𝓝 a] g :=
 eventually_eventually_nhds
 
+lemma filter.eventually_eq.eq_of_nhds {f g : α → β} {a : α} (h : f =ᶠ[𝓝 a] g) : f a = g a :=
+let ⟨u, hu, H⟩ := h.exists_mem in H _ (mem_of_nhds hu)
+
 @[simp] lemma eventually_eventually_le_nhds [has_le β] {f g : α → β} {a : α} :
   (∀ᶠ y in 𝓝 a, f ≤ᶠ[𝓝 y] g) ↔ f ≤ᶠ[𝓝 a] g :=
 eventually_eventually_nhds

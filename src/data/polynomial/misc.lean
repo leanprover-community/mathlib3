@@ -4,13 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.algebra_map
--- import data.polynomial.division
 import data.polynomial.derivative
 
 /-!
 # Theory of univariate polynomials
 
-Polynomials are represented as `add_monoid_algebra R ℕ`, where `R` is a commutative semiring.
+Here is a bunch of stuff leftover from the old data/polynomial.lean.
 -/
 
 noncomputable theory

@@ -10,9 +10,11 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 
 
 /-!
-# Theory of univariate monomials
+# Theory of monic polynomials
 
-
+Right now, the main results are
+`monic_mul`
+`eq_one_of_is_unit_of_monic`
 -/
 
 noncomputable theory
@@ -50,7 +52,6 @@ begin
 end
 
 lemma monic_map [semiring S] (f : R →+* S) (hp : monic p) : monic (p.map f) :=
--- sorry
 if h : (0 : S) = 1 then
   by haveI := subsingleton_of_zero_eq_one h;
   exact subsingleton.elim _ _

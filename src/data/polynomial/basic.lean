@@ -48,9 +48,8 @@ monomial `X^n` -/
 def coeff_coe_to_fun : has_coe_to_fun (polynomial R) :=
 finsupp.has_coe_to_fun
 
-instance : has_coe_to_fun (polynomial R) := coeff_coe_to_fun
-
 local attribute [instance] coeff_coe_to_fun
+
 
 @[simp] lemma support_zero : (0 : polynomial R).support = ∅ := rfl
 
@@ -89,6 +88,8 @@ by rw [mul_assoc, X_pow_mul, ←mul_assoc]
 
 /-- coeff p n is the coefficient of X^n in p -/
 def coeff (p : polynomial R) := p.to_fun
+
+lemma apply_eq_coeff : p n = coeff p n := rfl
 
 
 @[simp] lemma coeff_mk (s) (f) (h) : coeff (finsupp.mk s f h : polynomial R) = f := rfl

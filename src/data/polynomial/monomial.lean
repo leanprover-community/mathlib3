@@ -66,9 +66,7 @@ section coeff
 
 
 lemma apply_eq_coeff : p.to_fun n = coeff p n := rfl
-lemma apply_eq_coeff : coe_fn p = coeff p := begin
 
-end
 
 @[simp] lemma coeff_X_one : coeff (X : polynomial R) 1 = 1 := coeff_single
 

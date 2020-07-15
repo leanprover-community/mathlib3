@@ -584,4 +584,3 @@ end multiplicity
 end comm_ring
 
 end polynomial
-#lint

@@ -66,30 +66,6 @@ polynomial.induction_on p (h_monomial 0) h_add
 
 section coeff
 
-lemma coeff_C_mul_X (x : R) (k n : ℕ) :
-  coeff (C x * X^k : polynomial R) n = if n = k then x else 0 :=
-by rw [← single_eq_C_mul_X]; simp [monomial, single, eq_comm, coeff]; congr
-
-@[simp] lemma coeff_C_mul (p : polynomial R) : coeff (C a * p) n = a * coeff p n :=
-begin
-  conv in (a * _) { rw [← @sum_single _ _ _ p, coeff_sum] },
-  rw [mul_def, ←monomial_zero_left, sum_single_index],
-  { simp [coeff_single, finsupp.mul_sum, coeff_sum],
-    apply sum_congr rfl,
-    assume i hi, by_cases i = n; simp [h] },
-  { simp [finsupp.sum] }
-end
-
-@[simp] lemma coeff_mul_C (p : polynomial R) (n : ℕ) (a : R) :
-  coeff (p * C a) n = coeff p n * a :=
-begin
-  conv_rhs { rw [← @finsupp.sum_single _ _ _ p, coeff_sum] },
-  rw [mul_def, ←monomial_zero_left], simp_rw [sum_single_index],
-  { simp [coeff_single, finsupp.sum_mul, coeff_sum],
-    apply sum_congr rfl,
-    assume i hi, by_cases i = n; simp [h], },
-end
-
 theorem coeff_mul_monomial (p : polynomial R) (n d : ℕ) (r : R) :
   coeff (p * monomial n r) (d + n) = coeff p d * r :=
 by rw [single_eq_C_mul_X, ←X_pow_mul, ←mul_assoc, coeff_mul_C, coeff_mul_X_pow]

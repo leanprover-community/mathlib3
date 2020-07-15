@@ -237,8 +237,8 @@ classical.by_cases
   by { simp only [F_eq_0, norm_zero], exact add_nonneg (norm_nonneg _) (norm_nonneg _) } )⟩⟩
 
 lemma simple_func_sequence_tendsto' {μ : measure α} {f : α → β} (hfm : measurable f)
-  (hfi : integrable μ f) :
-    ∃ (F : ℕ → (α →ₛ β)), (∀n, integrable μ (F n)) ∧
+  (hfi : integrable f μ) :
+    ∃ (F : ℕ → (α →ₛ β)), (∀n, integrable (F n) μ) ∧
    tendsto (λ n, ∫⁻ x,  nndist (F n x) (f x) ∂μ) at_top  (𝓝 0) :=
 let ⟨F, hF⟩ := simple_func_sequence_tendsto hfm in
 let G : ℕ → α → ennreal := λn x, nndist (F n x) (f x) in

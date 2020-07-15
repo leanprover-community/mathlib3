@@ -58,20 +58,20 @@ open set filter topological_space ennreal emetric
 open_locale big_operators
 
 universes u v w
-variables {α : Type u} [measurable_space α] {μ : measure α}
+variables {α : Type u} [measurable_space α] {μ ν : measure α}
 variables {β : Type v} [normed_group β] {γ : Type w} [normed_group γ]
 
 /-- A function is `integrable` if the integral of its pointwise norm is less than infinity. -/
-def integrable (μ : measure α) (f : α → β) : Prop := ∫⁻ a, nnnorm (f a) ∂μ < ⊤
+def integrable (f : α → β) (μ : measure α) : Prop := ∫⁻ a, nnnorm (f a) ∂μ < ⊤
 
-lemma integrable_iff_norm (f : α → β) : integrable μ f ↔ ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ < ⊤ :=
+lemma integrable_iff_norm (f : α → β) : integrable f μ ↔ ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ < ⊤ :=
 by simp only [integrable, of_real_norm_eq_coe_nnnorm]
 
-lemma integrable_iff_edist (f : α → β) : integrable μ  f ↔ ∫⁻ a, edist (f a) 0 ∂μ < ⊤ :=
+lemma integrable_iff_edist (f : α → β) : integrable f μ ↔ ∫⁻ a, edist (f a) 0 ∂μ < ⊤ :=
 by simp only [integrable_iff_norm, edist_dist, dist_zero_right]
 
 lemma integrable_iff_of_real {f : α → ℝ} (h : 0 ≤ᵐ[μ] f) :
-  integrable μ f ↔ ∫⁻ a, ennreal.of_real (f a) ∂μ < ⊤ :=
+  integrable f μ ↔ ∫⁻ a, ennreal.of_real (f a) ∂μ < ⊤ :=
 have lintegral_eq : ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ = ∫⁻ a, ennreal.of_real (f a) ∂μ :=
 begin
   refine lintegral_congr_ae (h.mono $ λ a h, _),
@@ -79,24 +79,52 @@ begin
 end,
 by rw [integrable_iff_norm, lintegral_eq]
 
-lemma integrable.congr {f g : α → β} (hf : integrable μ f) (h : f =ᵐ[μ] g) : integrable μ g :=
+lemma integrable.congr {f g : α → β} (hf : integrable f μ) (h : f =ᵐ[μ] g) : integrable g μ :=
 begin
   simp only [integrable],
   convert hf using 1,
   exact lintegral_rw₁ (h.symm.fun_comp _) _
 end
 
-lemma integrable_congr {f g : α → β} (h : f =ᵐ[μ] g) : integrable μ f ↔ integrable μ g :=
+lemma integrable_congr {f g : α → β} (h : f =ᵐ[μ] g) : integrable f μ ↔ integrable g μ :=
 ⟨λ hf, hf.congr h, λ hg, hg.congr h.symm⟩
 
-lemma integrable.mono {f : α → β} {g : α → γ} (hg : integrable μ g) (h : ∀ᵐ a ∂μ, ∥f a∥ ≤ ∥g a∥) :
-  integrable μ f :=
+lemma integrable.mono {f : α → β} {g : α → γ} (hg : integrable g μ) (h : ∀ᵐ a ∂μ, ∥f a∥ ≤ ∥g a∥) :
+  integrable f μ :=
 begin
   simp only [integrable_iff_norm] at *,
   calc ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ ≤ ∫⁻ (a : α), (ennreal.of_real ∥g a∥) ∂μ :
     lintegral_mono_ae (h.mono $ assume a h, of_real_le_of_real h)
     ... < ⊤ : hg
 end
+
+lemma integrable.mono_meas {f : α → β} (h : integrable f ν) (hμ : μ ≤ ν) :
+  integrable f μ :=
+lt_of_le_of_lt (lintegral_mono' hμ (le_refl _)) h
+
+lemma integrable.add_meas {f : α → β} (hμ : integrable f μ) (hν : integrable f ν) :
+  integrable f (μ + ν) :=
+begin
+  simp only [integrable, lintegral_add_meas] at *,
+  exact add_lt_top.2 ⟨hμ, hν⟩
+end
+
+lemma integrable.smul_meas {f : α → β} (h : integrable f μ) {c : ennreal} (hc : c < ⊤) :
+  integrable f (c • μ) :=
+begin
+  simp only [integrable, lintegral_smul_meas] at *,
+  exact mul_lt_top hc h
+end
+
+lemma integrable.mono_set {f : α → β} {s t : set α} (h : integrable f (μ.restrict t))
+  (hst : s ⊆ t) :
+  integrable f (μ.restrict s) :=
+h.mono_meas $ measure.restrict_mono hst (le_refl μ)
+
+lemma integrable.union {f : α → β} {s t : set α} (hs : integrable f (μ.restrict s))
+  (ht : integrable f (μ.restrict t)) :
+  integrable f (μ.restrict (s ∪ t)) :=
+(hs.add_meas ht).mono_meas $ measure.restrict_union_le _ _
 
 lemma lintegral_nnnorm_eq_lintegral_edist (f : α → β) :
   ∫⁻ a, nnnorm (f a) ∂μ = ∫⁻ a, edist (f a) 0 ∂μ :=
@@ -118,7 +146,7 @@ end
 
 lemma lintegral_edist_lt_top [second_countable_topology β] [measurable_space β]
   [opens_measurable_space β] {f g : α → β}
-  (hfm : measurable f) (hfi : integrable μ f) (hgm : measurable g) (hgi : integrable μ g) :
+  (hfm : measurable f) (hfi : integrable f μ) (hgm : measurable g) (hgi : integrable g μ) :
   ∫⁻ a, edist (f a) (g a) ∂μ < ⊤ :=
 lt_of_le_of_lt
   (lintegral_edist_triangle hfm hgm (measurable_const : measurable (λa, (0 : β))))
@@ -127,7 +155,7 @@ lt_of_le_of_lt
 lemma lintegral_nnnorm_zero : ∫⁻ a : α, nnnorm (0 : β) ∂μ = 0 := by simp
 
 variables (α β μ)
-@[simp] lemma integrable_zero : integrable μ (λa:α, (0:β)) :=
+@[simp] lemma integrable_zero : integrable (λa:α, (0:β)) μ :=
 by simp [integrable]
 variables {α β μ}
 
@@ -138,9 +166,9 @@ lemma lintegral_nnnorm_add [measurable_space β] [opens_measurable_space β]
 lintegral_add hf.ennnorm hg.ennnorm
 
 lemma integrable.add [measurable_space β] [opens_measurable_space β]
-  {f g : α → β} (hfm : measurable f) (hfi : integrable μ f)
-  (hgm : measurable g) (hgi : integrable μ g) :
-  integrable μ (f + g) :=
+  {f g : α → β} (hfm : measurable f) (hfi : integrable f μ)
+  (hgm : measurable g) (hgi : integrable g μ) :
+  integrable (f + g) μ :=
 calc
   ∫⁻ a, nnnorm (f a + g a) ∂μ ≤ ∫⁻ a, nnnorm (f a) + nnnorm (g a) ∂μ :
     lintegral_mono
@@ -151,8 +179,8 @@ calc
 
 lemma integrable_finset_sum {ι} [measurable_space β] [borel_space β]
   [second_countable_topology β] (s : finset ι) {f : ι → α → β}
-  (hfm : ∀ i, measurable (f i)) (hfi : ∀ i, integrable μ (f i)) :
-  integrable μ (λ a, ∑ i in s, f i a) :=
+  (hfm : ∀ i, measurable (f i)) (hfi : ∀ i, integrable (f i) μ) :
+  integrable (λ a, ∑ i in s, f i a) μ :=
 begin
   refine finset.induction_on s _ _,
   { simp only [finset.sum_empty, integrable_zero] },
@@ -165,16 +193,16 @@ lemma lintegral_nnnorm_neg {f : α → β} :
   ∫⁻ a, nnnorm ((-f) a) ∂μ = ∫⁻ a, nnnorm (f a) ∂μ :=
 by simp only [pi.neg_apply, nnnorm_neg]
 
-lemma integrable.neg {f : α → β} (hfi : integrable μ f) : integrable μ (-f) :=
+lemma integrable.neg {f : α → β} (hfi : integrable f μ) : integrable (-f) μ :=
 calc _ = _ : lintegral_nnnorm_neg
    ... < ⊤ : hfi
 
-@[simp] lemma integrable_neg_iff {f : α → β} : integrable μ (-f) ↔ integrable μ f :=
+@[simp] lemma integrable_neg_iff {f : α → β} : integrable (-f) μ ↔ integrable f μ :=
 ⟨λ h, neg_neg f ▸ h.neg, integrable.neg⟩
 
 lemma integrable.sub [measurable_space β] [opens_measurable_space β]
-  {f g : α → β} (hfm : measurable f) (hfi : integrable μ f) (hgm : measurable g)
-  (hgi : integrable μ g) : integrable μ (f - g) :=
+  {f g : α → β} (hfm : measurable f) (hfi : integrable f μ) (hgm : measurable g)
+  (hgi : integrable g μ) : integrable (f - g) μ :=
 calc
   ∫⁻ a, nnnorm (f a - g a) ∂μ ≤ ∫⁻ a, nnnorm (f a) + nnnorm (-g a) ∂μ :
     lintegral_mono (assume a, by exact_mod_cast nnnorm_add_le _ _ )
@@ -182,18 +210,18 @@ calc
     by { simp only [nnnorm_neg], exact lintegral_nnnorm_add hfm hgm }
   ... < ⊤ : add_lt_top.2 ⟨hfi, hgi⟩
 
-lemma integrable.norm {f : α → β} (hfi : integrable μ f) : integrable μ (λa, ∥f a∥) :=
+lemma integrable.norm {f : α → β} (hfi : integrable f μ) : integrable (λa, ∥f a∥) μ :=
 have eq : (λa, (nnnorm ∥f a∥ : ennreal)) = λa, (nnnorm (f a) : ennreal),
   by { funext, rw nnnorm_norm },
 by { rwa [integrable, eq] }
 
-lemma integrable_norm_iff (f : α → β) : integrable μ (λa, ∥f a∥) ↔ integrable μ f :=
+lemma integrable_norm_iff (f : α → β) : integrable (λa, ∥f a∥) μ ↔ integrable f μ :=
 have eq : (λa, (nnnorm ∥f a∥ : ennreal)) = λa, (nnnorm (f a) : ennreal),
   by { funext, rw nnnorm_norm },
 by { rw [integrable, integrable, eq] }
 
-lemma integrable_of_integrable_bound {f : α → β} {bound : α → ℝ} (h : integrable μ bound)
-  (h_bound : ∀ᵐ a ∂μ, ∥f a∥ ≤ bound a) : integrable μ f :=
+lemma integrable_of_integrable_bound {f : α → β} {bound : α → ℝ} (h : integrable bound μ)
+  (h_bound : ∀ᵐ a ∂μ, ∥f a∥ ≤ bound a) : integrable f μ :=
 have h₁ : ∀ᵐ a ∂μ, (nnnorm (f a) : ennreal) ≤ ennreal.of_real (bound a),
 begin
   filter_upwards [h_bound],
@@ -233,10 +261,10 @@ begin
 end
 
 lemma integrable_of_dominated_convergence {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
-  (bound_integrable : integrable μ bound)
+  (bound_integrable : integrable bound μ)
   (h_bound : ∀ n, ∀ᵐ a ∂μ, ∥F n a∥ ≤ bound a)
   (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
-  integrable μ f :=
+  integrable f μ :=
 /- `∥F n a∥ ≤ bound a` and `∥F n a∥ --> ∥f a∥` implies `∥f a∥ ≤ bound a`,
   and so `∫ ∥f∥ ≤ ∫ bound < ⊤` since `bound` is integrable -/
 begin
@@ -256,7 +284,7 @@ lemma tendsto_lintegral_norm_of_dominated_convergence [measurable_space β]
   {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
   (F_measurable : ∀ n, measurable (F n))
   (f_measurable : measurable f)
-  (bound_integrable : integrable μ bound)
+  (bound_integrable : integrable bound μ)
   (h_bound : ∀ n, ∀ᵐ a ∂μ, ∥F n a∥ ≤ bound a)
   (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
   tendsto (λn, ∫⁻ a, (ennreal.of_real ∥F n a - f a∥) ∂μ) at_top (𝓝 0) :=
@@ -280,13 +308,9 @@ end,
 /- On the other hand, `F n a --> f a` implies that `∥F n a - f a∥ --> 0`  -/
 have h : ∀ᵐ a ∂μ, tendsto (λ n, ennreal.of_real ∥F n a - f a∥) at_top (𝓝 0),
 begin
-  suffices h : ∀ᵐ a ∂μ, tendsto (λ n, ennreal.of_real ∥F n a - f a∥) at_top (𝓝 $ ennreal.of_real 0),
-  { rwa ennreal.of_real_zero at h },
-  filter_upwards [h_lim],
-  assume a h,
-  refine tendsto.comp (continuous.tendsto continuous_of_real _) _,
-  rw ← tendsto_iff_norm_tendsto_zero,
-  exact h
+  rw ← ennreal.of_real_zero,
+  refine h_lim.mono (λ a h, (continuous_of_real.tendsto _).comp _),
+  rwa ← tendsto_iff_norm_tendsto_zero
 end,
 /- Therefore, by the dominated convergence theorem for nonnegative integration, have
   ` ∫ ∥f a - F n a∥ --> 0 ` -/
@@ -312,7 +336,7 @@ end dominated_convergence
 section pos_part
 /-! Lemmas used for defining the positive part of a `L¹` function -/
 
-lemma integrable.max_zero {f : α → ℝ} (hf : integrable μ f) : integrable μ (λa, max (f a) 0) :=
+lemma integrable.max_zero {f : α → ℝ} (hf : integrable f μ) : integrable (λa, max (f a) 0) μ :=
 begin
   simp only [integrable_iff_norm] at *,
   calc ∫⁻ a, (ennreal.of_real ∥max (f a) 0∥) ∂μ ≤ ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ :
@@ -327,7 +351,7 @@ begin
     ... < ⊤ : hf
 end
 
-lemma integrable.min_zero {f : α → ℝ} (hf : integrable μ f) : integrable μ (λa, min (f a) 0) :=
+lemma integrable.min_zero {f : α → ℝ} (hf : integrable f μ) : integrable (λa, min (f a) 0) μ :=
 begin
   have : (λa, min (f a) 0) = (λa, - max (-f a) 0),
   { funext, rw [min_eq_neg_max_neg_neg, neg_zero] },
@@ -340,7 +364,7 @@ end pos_part
 section normed_space
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-lemma integrable.smul (c : 𝕜) {f : α → β} : integrable μ f → integrable μ (c • f) :=
+lemma integrable.smul (c : 𝕜) {f : α → β} : integrable f μ → integrable (c • f) μ :=
 begin
   simp only [integrable], assume hfi,
   calc
@@ -354,7 +378,7 @@ begin
 end
 
 lemma integrable_smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) :
-  integrable μ (c • f) ↔ integrable μ f :=
+  integrable (c • f) μ ↔ integrable f μ :=
 begin
   split,
   { assume h,
@@ -379,10 +403,10 @@ variable [opens_measurable_space β]
 def integrable (f : α →ₘ[μ] β) : Prop := f ∈ ball (0 : α →ₘ[μ] β) ⊤
 
 lemma integrable_mk {f : α → β} (hf : measurable f) :
-  (integrable (mk f hf : α →ₘ[μ] β)) ↔ measure_theory.integrable μ f :=
+  (integrable (mk f hf : α →ₘ[μ] β)) ↔ measure_theory.integrable f μ :=
 by simp [integrable, zero_def, edist_mk_mk', measure_theory.integrable, nndist_eq_nnnorm]
 
-lemma integrable_coe_fn (f : α →ₘ[μ] β) : (measure_theory.integrable μ f) ↔ integrable f :=
+lemma integrable_coe_fn (f : α →ₘ[μ] β) : (measure_theory.integrable f μ) ↔ integrable f :=
 by rw [← integrable_mk, mk_coe_fn]
 
 local attribute [simp] integrable_mk
@@ -517,7 +541,7 @@ end normed_space
 section of_fun
 
 /-- Construct the equivalence class `[f]` of a measurable and integrable function `f`. -/
-def of_fun (f : α → β) (hfm : measurable f) (hfi : integrable μ f) : (α →₁[μ] β) :=
+def of_fun (f : α → β) (hfm : measurable f) (hfi : integrable f μ) : (α →₁[μ] β) :=
 ⟨mk f hfm, by { rw integrable_mk, exact hfi }⟩
 
 @[simp] lemma of_fun_eq_mk (f : α → β) (hfm hfi) :
@@ -554,7 +578,7 @@ by { rw [norm_of_fun, lintegral_norm_eq_lintegral_edist] }
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-lemma of_fun_smul (f : α → β) (hfm : measurable f) (hfi : integrable μ f) (k : 𝕜) :
+lemma of_fun_smul (f : α → β) (hfm : measurable f) (hfi : integrable f μ) (k : 𝕜) :
   of_fun (λa, k • f a) (hfm.const_smul _) (hfi.smul _) = k • of_fun f hfm hfi := rfl
 
 end of_fun
@@ -567,7 +591,7 @@ protected def to_fun (f : α →₁[μ] β) : α → β := (f : α →ₘ[μ] β
 
 protected lemma measurable (f : α →₁[μ] β) : measurable f.to_fun := f.1.measurable
 
-protected lemma integrable (f : α →₁[μ] β) : integrable μ f.to_fun :=
+protected lemma integrable (f : α →₁[μ] β) : integrable f.to_fun μ :=
 by { rw [l1.to_fun, integrable_coe_fn], exact f.2 }
 
 lemma of_fun_to_fun (f : α →₁[μ] β) : of_fun (f.to_fun) f.measurable f.integrable = f :=

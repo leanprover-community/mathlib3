@@ -568,12 +568,12 @@ calc (restrict f s).lintegral μ = ∑ r in f.range, r * μ (restrict f s ⁻¹'
     else by rw [restrict_preimage_singleton _ hs hb, inter_comm]
 
 lemma lintegral_restrict (f : α →ₛ ennreal) (s : set α) (μ : measure α) :
-  f.lintegral (measure.restrict s μ) = ∑ y in f.range, y * μ (f ⁻¹' {y} ∩ s) :=
+  f.lintegral (μ.restrict s) = ∑ y in f.range, y * μ (f ⁻¹' {y} ∩ s) :=
 by simp only [lintegral, measure.restrict_apply, f.is_measurable_preimage]
 
 lemma restrict_lintegral_eq_lintegral_restrict (f : α →ₛ ennreal) {s : set α}
   (hs : is_measurable s) :
-  (restrict f s).lintegral μ = f.lintegral (measure.restrict s μ) :=
+  (restrict f s).lintegral μ = f.lintegral (μ.restrict s) :=
 by rw [f.restrict_lintegral hs, lintegral_restrict]
 
 lemma const_lintegral (c : ennreal) : (const α c).lintegral μ = c * μ univ :=
@@ -585,7 +585,7 @@ begin
 end
 
 lemma const_lintegral_restrict (c : ennreal) (s : set α) :
-  (const α c).lintegral (measure.restrict s μ) = c * μ s :=
+  (const α c).lintegral (μ.restrict s) = c * μ s :=
 by rw [const_lintegral, measure.restrict_apply is_measurable.univ, univ_inter]
 
 lemma restrict_const_lintegral (c : ennreal) {s : set α} (hs : is_measurable s) :
@@ -754,8 +754,8 @@ def lintegral (μ : measure α) (f : α → ennreal) : ennreal :=
 ⨆ (g : α →ₛ ennreal) (hf : ⇑g ≤ f), g.lintegral μ
 
 notation `∫⁻` binders ` in ` s `, ` r:(scoped:60 f, f) ` ∂` μ:70 :=
-  lintegral (measure.restrict s μ) r
-notation `∫⁻` binders ` in ` s `, ` r:(scoped:60 f, lintegral (measure.restrict s volume) f) := r
+  lintegral (measure.restrict μ s) r
+notation `∫⁻` binders ` in ` s `, ` r:(scoped:60 f, lintegral (measure.restrict volume s) f) := r
 
 notation `∫⁻` binders `, ` r:(scoped:60 f, f) ` ∂` μ:70 := lintegral μ r
 notation `∫⁻` binders `, ` r:(scoped:60 f, lintegral volume f) := r
@@ -1329,6 +1329,13 @@ lemma lintegral_Union [encodable β] {s : β → set α} (hm : ∀ i, is_measura
   (hd : pairwise (disjoint on s)) (f : α → ennreal) :
   ∫⁻ a in ⋃ i, s i, f a ∂μ = ∑' i, ∫⁻ a in s i, f a ∂μ :=
 by simp only [measure.restrict_Union hd hm, lintegral_sum_meas]
+
+lemma lintegral_Union_le [encodable β] (s : β → set α) (f : α → ennreal) :
+  ∫⁻ a in ⋃ i, s i, f a ∂μ ≤ ∑' i, ∫⁻ a in s i, f a ∂μ :=
+begin
+  rw [← lintegral_sum_meas],
+  exact lintegral_mono' restrict_Union_le (le_refl _)
+end
 
 lemma lintegral_map [measurable_space β] {f : β → ennreal} {g : α → β}
   (hf : measurable f) (hg : measurable g) :

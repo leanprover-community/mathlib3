@@ -7,6 +7,7 @@ Outer measures -- overapproximations of measures
 -/
 import analysis.specific_limits
 import measure_theory.measurable_space
+import topology.algebra.infinite_sum
 
 /-!
 # Outer Measures
@@ -284,7 +285,7 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑'i, m (f i) in
           (by simpa using hε' i),
       simpa [μ, infi_lt_iff] },
     refine le_trans _ (ennreal.tsum_le_tsum $ λ i, le_of_lt (hf i).2),
-    rw [← ennreal.tsum_prod, ← tsum_equiv equiv.nat_prod_nat_equiv_nat.symm],
+    rw [← ennreal.tsum_prod, ← equiv.nat_prod_nat_equiv_nat.symm.tsum_eq],
     swap, {apply_instance},
     refine infi_le_of_le _ (infi_le _ _),
     exact Union_subset (λ i, subset.trans (hf i).1 $

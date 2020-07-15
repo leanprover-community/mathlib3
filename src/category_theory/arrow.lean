@@ -112,4 +112,24 @@ end
 
 end arrow
 
+namespace functor
+
+universes v₁ v₂ u₁ u₂
+
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
+
+/-- A functor `C ⥤ D` induces a functor between the corresponding arrow categories. -/
+@[simps]
+def map_arrow (F : C ⥤ D) : arrow C ⥤ arrow D :=
+{ obj := λ a,
+  { left := F.obj a.left,
+    right := F.obj a.right,
+    hom := F.map a.hom, },
+  map := λ a b f,
+  { left := F.map f.left,
+    right := F.map f.right,
+    w' := by { have w := f.w, simp only [id_map] at w, dsimp, simp only [←F.map_comp, w], } } }
+
+end functor
+
 end category_theory

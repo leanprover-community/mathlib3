@@ -276,6 +276,10 @@ lemma C_mul : C (a * b) = C a * C b := C.map_mul a b
 
 lemma C_add : C (a + b) = C a + C b := C.map_add a b
 
+@[simp] lemma C_bit0 : C (bit0 a) = bit0 (C a) := C_add
+
+@[simp] lemma C_bit1 : C (bit1 a) = bit1 (C a) := by simp [bit1, C_bit0]
+
 instance C.is_semiring_hom : is_semiring_hom (C : R → polynomial R) :=
 C.is_semiring_hom
 
@@ -394,6 +398,12 @@ finsupp.sum_add_index
 @[simp] lemma eval₂_one : (1 : polynomial R).eval₂ f x = 1 :=
 by rw [← C_1, eval₂_C, f.map_one]
 
+@[simp] lemma eval₂_bit0 : (bit0 p).eval₂ f x = bit0 (p.eval₂ f x) :=
+by rw [bit0, eval₂_add, bit0]
+
+@[simp] lemma eval₂_bit1 : (bit1 p).eval₂ f x = bit1 (p.eval₂ f x) :=
+by rw [bit1, eval₂_add, eval₂_bit0, eval₂_one, bit1]
+
 @[simp] lemma eval₂_smul (g : R →+* S) (p : polynomial R) (x : S) {s : R} :
   eval₂ g x (s • p) = g s • eval₂ g x p :=
 begin
@@ -441,6 +451,10 @@ eval₂_monomial _ _
 @[simp] lemma eval_add : (p + q).eval x = p.eval x + q.eval x := eval₂_add _ _
 
 @[simp] lemma eval_one : (1 : polynomial R).eval x = 1 := eval₂_one _ _
+
+@[simp] lemma eval_bit0 : (bit0 p).eval x = bit0 (p.eval x) := eval₂_bit0 _ _
+
+@[simp] lemma eval_bit1 : (bit1 p).eval x = bit1 (p.eval x) := eval₂_bit1 _ _
 
 @[simp] lemma eval_smul (p : polynomial R) (x : R) {s : R} :
   (s • p).eval x = s • p.eval x :=
@@ -558,8 +572,6 @@ end ring
 section comm_semiring
 variables [comm_semiring R] {p q r : polynomial R}
 
-local attribute [instance] coeff_coe_to_fun
-
 instance : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
 
 section
@@ -572,7 +584,50 @@ lemma algebra_map_apply (r : R) :
   algebra_map R (polynomial A) r = C (algebra_map R A r) :=
 rfl
 
+/--
+When we have `[comm_ring R]`, the function `C` is the same as `algebra_map R (polynomial R)`.
+
+(But note that `C` is defined when `R` is not necessarily commutative, in which case
+`algebra_map` is not available.)
+-/
+lemma C_eq_algebra_map {R : Type*} [comm_ring R] (r : R) :
+  C r = algebra_map R (polynomial R) r :=
+rfl
+
 end
+
+@[simp]
+lemma alg_hom_eval₂_algebra_map
+  {R A B : Type*} [comm_ring R] [ring A] [ring B] [algebra R A] [algebra R B]
+  (p : polynomial R) (f : A →ₐ[R] B) (a : A) :
+  f (eval₂ (algebra_map R A) a p) = eval₂ (algebra_map R B) (f a) p :=
+begin
+  dsimp [eval₂, finsupp.sum],
+  simp only [f.map_sum, f.map_mul, f.map_pow, ring_hom.eq_int_cast, ring_hom.map_int_cast, alg_hom.commutes],
+end
+
+@[simp]
+lemma eval₂_algebra_map_X {R A : Type*} [comm_ring R] [ring A] [algebra R A]
+  (p : polynomial R) (f : polynomial R →ₐ[R] A) :
+  eval₂ (algebra_map R A) (f X) p = f p :=
+begin
+  conv_rhs { rw [←polynomial.sum_C_mul_X_eq p], },
+  dsimp [eval₂, finsupp.sum],
+  simp only [f.map_sum, f.map_mul, f.map_pow, ring_hom.eq_int_cast, ring_hom.map_int_cast],
+  simp [polynomial.C_eq_algebra_map],
+end
+
+@[simp]
+lemma ring_hom_eval₂_algebra_map_int {R S : Type*} [ring R] [ring S]
+  (p : polynomial ℤ) (f : R →+* S) (r : R) :
+  f (eval₂ (algebra_map ℤ R) r p) = eval₂ (algebra_map ℤ S) (f r) p :=
+alg_hom_eval₂_algebra_map p f.to_int_alg_hom r
+
+@[simp]
+lemma eval₂_algebra_map_int_X {R : Type*} [ring R] (p : polynomial ℤ) (f : polynomial ℤ →+* R) :
+  eval₂ (algebra_map ℤ R) (f X) p = f p :=
+-- Unfortunately `f.to_int_alg_hom` doesn't work here, as typeclasses don't match up correctly.
+eval₂_algebra_map_X p { commutes' := λ n, by simp, .. f }
 
 section eval
 variable {x : R}
@@ -871,6 +926,7 @@ end
 @[simp] theorem map_nat_cast (n : ℕ) : (n : polynomial R).map f = n :=
 nat.rec_on n rfl $ λ n ih, by rw [n.cast_succ, map_add, ih, map_one, n.cast_succ]
 
+@[simp]
 lemma coeff_map (n : ℕ) : coeff (p.map f) n = f (coeff p n) :=
 begin
   rw [map, eval₂, coeff_sum],
@@ -1821,14 +1877,6 @@ section comm_semiring
 variables [comm_semiring R] {p q : polynomial R}
 
 section aeval
-instance algebra' (R : Type u) [comm_semiring R] (A : Type v) [semiring A] [algebra R A] :
-  algebra R (polynomial A) :=
-{ smul := λ r p, algebra_map R A r • p,
-  commutes' := λ c p, ext $ λ n,
-    show (C (algebra_map R A c) * p).coeff n = (p * C (algebra_map R A c)).coeff n,
-    by rw [coeff_C_mul, coeff_mul_C, algebra.commutes],
-  smul_def' := λ c p, (C_mul' _ _).symm,
-  .. C.comp (algebra_map R A) }
 
 variables (R) (A)
 

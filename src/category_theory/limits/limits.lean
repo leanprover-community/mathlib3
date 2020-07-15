@@ -222,7 +222,7 @@ def map_cone_equiv {D : Type u'} [category.{v} D] {K : J ⥤ C} {F G : C ⥤ D} 
     slice_lhs 2 3 {erw ← h.hom.naturality (c.π.app j)},
     slice_lhs 1 2 {erw t.fac ((cones.postcompose (iso_whisker_left K h).inv).obj s) j},
     dsimp,
-    slice_lhs 2 3 {rw nat_iso.inv_hom_id_app},
+    slice_lhs 2 3 {rw iso.inv_hom_id_app},
     rw category.comp_id,
   end,
   uniq' := λ s m J,
@@ -233,7 +233,7 @@ def map_cone_equiv {D : Type u'} [category.{v} D] {K : J ⥤ C} {F G : C ⥤ D} 
     dsimp,
     slice_lhs 2 3 {erw ← h.inv.naturality (c.π.app j)},
     slice_lhs 1 2 {erw J j},
-    conv_rhs {congr, rw [category.assoc, nat_iso.hom_inv_id_app, comp_id]},
+    conv_rhs {congr, rw [category.assoc, iso.hom_inv_id_app, comp_id]},
     apply (t.fac ((cones.postcompose (iso_whisker_left K h).inv).obj s) j).symm
   end }
 

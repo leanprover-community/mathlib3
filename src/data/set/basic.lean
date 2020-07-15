@@ -1263,7 +1263,7 @@ lemma nonempty.of_image {f : α → β} {s : set α} : (f '' s).nonempty → s.n
 ⟨nonempty.of_image, λ h, h.image f⟩
 
 /-- image and preimage are a Galois connection -/
-theorem image_subset_iff {s : set α} {t : set β} {f : α → β} :
+@[simp] theorem image_subset_iff {s : set α} {t : set β} {f : α → β} :
   f '' s ⊆ t ↔ s ⊆ f ⁻¹' t :=
 ball_image_iff
 

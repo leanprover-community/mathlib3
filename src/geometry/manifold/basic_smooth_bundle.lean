@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import topology.topological_fiber_bundle
 import geometry.manifold.smooth_manifold_with_corners
+
 /-!
 # Basic smooth bundles
 
@@ -82,6 +83,7 @@ noncomputable theory
 universe u
 
 open topological_space set
+open_locale manifold
 
 /-- Core structure used to create a smooth bundle above `M` (a manifold over the model with
 corner `I`) with fiber the normed vector space `F` over `𝕜`, which is trivial in the chart domains
@@ -101,7 +103,7 @@ structure basic_smooth_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜
   ∀ x ∈ ((i.1.symm.trans j.1).trans (j.1.symm.trans k.1)).source, ∀ v,
   (coord_change j k ((i.1.symm.trans j.1) x)) (coord_change i j x v) = coord_change i k x v)
 (coord_change_smooth : ∀ i j : atlas H M,
-  times_cont_diff_on 𝕜 ⊤ (λp : E × F, coord_change i j (I.symm p.1) p.2)
+  times_cont_diff_on 𝕜 ∞ (λp : E × F, coord_change i j (I.symm p.1) p.2)
   ((I '' (i.1.symm.trans j.1).source).prod (univ : set F)))
 
 
@@ -177,16 +179,11 @@ def chart {e : local_homeomorph M H} (he : e ∈ atlas H M) :
 
 @[simp, mfld_simps] lemma chart_source (e : local_homeomorph M H) (he : e ∈ atlas H M) :
   (Z.chart he).source = Z.to_topological_fiber_bundle_core.proj ⁻¹' e.source :=
-by { ext p, simp only [chart, mem_prod, and_self] with mfld_simps }
+by { simp only [chart, mem_prod], mfld_set_tac }
 
 @[simp, mfld_simps] lemma chart_target (e : local_homeomorph M H) (he : e ∈ atlas H M) :
   (Z.chart he).target = e.target.prod univ :=
-begin
-  simp only [chart] with mfld_simps,
-  ext p,
-  split;
-  simp {contextual := tt}
-end
+by { simp only [chart], mfld_set_tac }
 
 /-- The total space of a basic smooth bundle is endowed with a charted space structure, where the
 charts are in bijection with the charts of the basis. -/
@@ -229,32 +226,28 @@ begin
   suffices to prove the first statement in A below, and then glue back the pieces at the end. -/
   let J := model_with_corners.to_local_equiv (I.prod (model_with_corners_self 𝕜 F)),
   have A : ∀ (e e' : local_homeomorph M H) (he : e ∈ atlas H M) (he' : e' ∈ atlas H M),
-    times_cont_diff_on 𝕜 ⊤
+    times_cont_diff_on 𝕜 ∞
     (J ∘ ((Z.chart he).symm.trans (Z.chart he')) ∘ J.symm)
     (J.symm ⁻¹' ((Z.chart he).symm.trans (Z.chart he')).source ∩ range J),
   { assume e e' he he',
     have : J.symm ⁻¹' ((chart Z he).symm.trans (chart Z he')).source ∩ range J =
       (I.symm ⁻¹' (e.symm.trans e').source ∩ range I).prod univ,
-    { ext p,
-      simp only [J, chart, model_with_corners.prod] with mfld_simps,
-      split,
-      { tauto },
-      { exact λ⟨⟨hx1, hx2⟩, hx3⟩, ⟨⟨⟨hx1, e.map_target hx1⟩, hx2⟩, hx3⟩ } },
+      by { simp only [J, chart, model_with_corners.prod], mfld_set_tac },
     rw this,
     -- check separately that the two components of the coordinate change are smooth
     apply times_cont_diff_on.prod,
-    show times_cont_diff_on 𝕜 ⊤ (λ (p : E × F), (I ∘ e' ∘ e.symm ∘ I.symm) p.1)
+    show times_cont_diff_on 𝕜 ∞ (λ (p : E × F), (I ∘ e' ∘ e.symm ∘ I.symm) p.1)
          ((I.symm ⁻¹' (e.symm.trans e').source ∩ range I).prod (univ : set F)),
     { -- the coordinate change on the base is just a coordinate change for `M`, smooth since
       -- `M` is smooth
-      have A : times_cont_diff_on 𝕜 ⊤ (I ∘ (e.symm.trans e') ∘ I.symm)
+      have A : times_cont_diff_on 𝕜 ∞ (I ∘ (e.symm.trans e') ∘ I.symm)
         (I.symm ⁻¹' (e.symm.trans e').source ∩ range I) :=
-      (has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) he he').1,
-      have B : times_cont_diff_on 𝕜 ⊤ (λp : E × F, p.1)
+      (has_groupoid.compatible (times_cont_diff_groupoid ∞ I) he he').1,
+      have B : times_cont_diff_on 𝕜 ∞ (λp : E × F, p.1)
         ((I.symm ⁻¹' (e.symm.trans e').source ∩ range I).prod univ) :=
       times_cont_diff_fst.times_cont_diff_on,
       exact times_cont_diff_on.comp A B (prod_subset_preimage_fst _ _) },
-    show times_cont_diff_on 𝕜 ⊤ (λ (p : E × F),
+    show times_cont_diff_on 𝕜 ∞ (λ (p : E × F),
       Z.coord_change ⟨chart_at H (e.symm (I.symm p.1)), _⟩ ⟨e', he'⟩
          ((chart_at H (e.symm (I.symm p.1)) : M → H) (e.symm (I.symm p.1)))
       (Z.coord_change ⟨e, he⟩ ⟨chart_at H (e.symm (I.symm p.1)), _⟩
@@ -276,7 +269,7 @@ begin
       have := Z.coord_change_comp ⟨e, he⟩ ⟨f, chart_mem_atlas _ _⟩ ⟨e', he'⟩ (I.symm x) A v,
       simpa only [] using this } },
   haveI : has_groupoid Z.to_topological_fiber_bundle_core.total_space
-         (times_cont_diff_groupoid ⊤ (I.prod (model_with_corners_self 𝕜 F))) :=
+         (times_cont_diff_groupoid ∞ (I.prod (model_with_corners_self 𝕜 F))) :=
   begin
     split,
     assume e₀ e₀' he₀ he₀',
@@ -307,13 +300,13 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
     /- To check that the coordinate change of the bundle is smooth, one should just use the
     smoothness of the charts, and thus the smoothness of their derivatives. -/
     rw model_with_corners.image,
-    have A : times_cont_diff_on 𝕜 ⊤
+    have A : times_cont_diff_on 𝕜 ∞
       (I ∘ (i.1.symm.trans j.1) ∘ I.symm)
       (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) :=
-      (has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) i.2 j.2).1,
+      (has_groupoid.compatible (times_cont_diff_groupoid ∞ I) i.2 j.2).1,
     have B : unique_diff_on 𝕜 (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) :=
       I.unique_diff_preimage_source,
-    have C : times_cont_diff_on 𝕜 ⊤
+    have C : times_cont_diff_on 𝕜 ∞
       (λ (p : E × E), (fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
             (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) p.1 : E → E) p.2)
       ((I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I).prod univ) :=
@@ -390,10 +383,10 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
       show differentiable_within_at 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
         (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
         (I x),
-      { have A : times_cont_diff_on 𝕜 ⊤
+      { have A : times_cont_diff_on 𝕜 ∞
           (I ∘ (i.1.symm.trans j.1) ∘ I.symm)
           (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) :=
-        (has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) i.2 j.2).1,
+        (has_groupoid.compatible (times_cont_diff_groupoid ∞ I) i.2 j.2).1,
         have B : differentiable_on 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
           (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I),
         { apply (A.differentiable_on le_top).mono,
@@ -405,10 +398,10 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
       show differentiable_within_at 𝕜 (I ∘ u.1 ∘ j.1.symm ∘ I.symm)
         (I.symm ⁻¹' (j.1.symm.trans u.1).source ∩ range I)
         ((I ∘ j.1 ∘ i.1.symm ∘ I.symm) (I x)),
-      { have A : times_cont_diff_on 𝕜 ⊤
+      { have A : times_cont_diff_on 𝕜 ∞
           (I ∘ (j.1.symm.trans u.1) ∘ I.symm)
           (I.symm ⁻¹' (j.1.symm.trans u.1).source ∩ range I) :=
-        (has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) j.2 u.2).1,
+        (has_groupoid.compatible (times_cont_diff_groupoid ∞ I) j.2 u.2).1,
         apply A.differentiable_on le_top,
         rw [local_homeomorph.trans_source] at hx,
         simp only with mfld_simps,
@@ -528,8 +521,7 @@ topological_fiber_bundle_core.is_open_map_proj _
 @[simp, mfld_simps] lemma tangent_bundle_model_space_chart_at (p : tangent_bundle I H) :
   (chart_at (model_prod H E) p).to_local_equiv = local_equiv.refl (model_prod H E) :=
 begin
-  have A : ∀ x_fst, fderiv_within 𝕜 (I ∘ I.symm) (range I) (I x_fst)
-           = continuous_linear_map.id 𝕜 E,
+  have A : ∀ x_fst, fderiv_within 𝕜 (I ∘ I.symm) (range I) (I x_fst) = continuous_linear_map.id 𝕜 E,
   { assume x_fst,
     have : fderiv_within 𝕜 (I ∘ I.symm) (range I) (I x_fst)
          = fderiv_within 𝕜 id (range I) (I x_fst),
@@ -540,8 +532,8 @@ begin
   show (chart_at (model_prod H E) p : tangent_bundle I H → model_prod H E) x = (local_equiv.refl (model_prod H E)) x,
   { cases x,
     simp only [chart_at, basic_smooth_bundle_core.chart, topological_fiber_bundle_core.local_triv,
-      topological_fiber_bundle_core.local_triv', tangent_bundle_core, A, continuous_linear_map.coe_id',
-      basic_smooth_bundle_core.to_topological_fiber_bundle_core] with mfld_simps },
+      topological_fiber_bundle_core.local_triv', tangent_bundle_core, continuous_linear_map.coe_id',
+      basic_smooth_bundle_core.to_topological_fiber_bundle_core, A] with mfld_simps },
   show ∀ x, ((chart_at (model_prod H E) p).to_local_equiv).symm x = (local_equiv.refl (model_prod H E)).symm x,
   { rintros ⟨x_fst, x_snd⟩,
     simp only [chart_at, basic_smooth_bundle_core.chart, topological_fiber_bundle_core.local_triv,

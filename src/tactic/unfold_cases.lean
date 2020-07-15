@@ -7,6 +7,8 @@ Authors: Dany Fabian
 import tactic.split_ifs
 namespace tactic
 
+
+
 open expr
 /-!
   # Unfold cases tactic
@@ -22,6 +24,70 @@ open expr
   where we know that `f x = y` is provably true, but does not hold definitionally. In that
   case the `unfold_cases` tactic will continue unfolding `f` and introducing `cases` where
   necessary until the left hand side becomes definitionally equal to the right hand side.
+
+  Consider a definition as follows:
+
+  ```lean
+  def myand : bool → bool → bool
+  | ff _ := ff
+  | _ ff := ff
+  | _ _ := tt
+  ```
+
+  The equation compiler generates 4 equation lemmas for us:
+  ```lean
+  myand ff ff = ff
+  myand ff tt = ff
+  myand tt ff = ff
+  myand tt tt = tt
+  ```
+
+  This is not in line with what one might expect looking at the definition.
+  Whilst it is provably true, that `∀ x, myand ff x = ff` and `∀ x, myand x ff = ff`,
+  we do not get these stronger lemmas from the compiler for free but must in fact
+  prove them using `cases` or some other local reasoning.
+
+  In other words, the following does not constitute a proof that lean accepts.
+  ```lean
+  example : ∀ x, myand ff x = ff :=
+  begin
+    intros, refl
+  end
+  ```
+
+  However, you can use `unfold_cases { refl }` to prove `∀ x, myand ff x = ff` and
+  `∀ x, myand x ff = ff`. For definitions with many cases, the savings can be very
+  significant.
+
+  The term that gets generated for the above definition looks like this:
+  ```lean
+  λ (a a_1 : bool),
+  a.cases_on
+    (a_1.cases_on (id_rhs bool ff) (id_rhs bool ff))
+    (a_1.cases_on (id_rhs bool ff) (id_rhs bool tt))
+  ```
+
+  When the tactic tries to prove the goal `∀ x, myand ff x = ff`, it starts by `intros`,
+  followed by unfolding the definition:
+  ```lean
+  ⊢ ff.cases_on
+    (x.cases_on (id_rhs bool ff) (id_rhs bool ff))
+    (x.cases_on (id_rhs bool ff) (id_rhs bool tt)) = ff
+  ```
+
+  At this point, it can make progress using `dsimp`. But then it gets stuck:
+  ```lean
+  ⊢ bool.rec (id_rhs bool ff) (id_rhs bool ff) x = ff
+  ```
+
+  Next, it can introduce a case split on `x`. At this point, it has to prove two
+  goals:
+  ```lean
+  ⊢ bool.rec (id_rhs bool ff) (id_rhs bool ff) ff = ff
+  ⊢ bool.rec (id_rhs bool ff) (id_rhs bool ff) tt = ff
+  ```
+
+  Now, however, both goals can be discharged using `refl`.
 -/
 namespace unfold_cases
 /--

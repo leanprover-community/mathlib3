@@ -217,8 +217,8 @@ begin
   exact le_refl _
 end
 
-lemma nat_degree_eq_of_degree_eq
-  (h : degree p = degree q) : nat_degree p = nat_degree q :=
+lemma nat_degree_eq_of_degree_eq [semiring S] {q : polynomial S} (h : degree p = degree q) :
+nat_degree p = nat_degree q :=
 by unfold nat_degree; rw h
 
 lemma le_degree_of_ne_zero (h : coeff p n ≠ 0) : (n : with_bot ℕ) ≤ degree p :=

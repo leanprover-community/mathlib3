@@ -50,17 +50,20 @@ begin
 end
 
 lemma monic_map [semiring S] (f : R →+* S) (hp : monic p) : monic (p.map f) :=
-sorry
--- if h : (0 : S) = 1 then
---   by haveI := subsingleton_of_zero_eq_one h;
---   exact subsingleton.elim _ _
--- else
--- have f (leading_coeff p) ≠ 0,
---   by rwa [show _ = _, from hp, is_semiring_hom.map_one f, ne.def, eq_comm],
--- by erw [monic, leading_coeff, nat_degree_eq_of_degree_eq
---     (degree_map_eq_of_leading_coeff_ne_zero _ this), coeff_map,
---     ← leading_coeff, show _ = _, from hp, is_semiring_hom.map_one f]
-
+-- sorry
+if h : (0 : S) = 1 then
+  by haveI := subsingleton_of_zero_eq_one h;
+  exact subsingleton.elim _ _
+else
+have f (leading_coeff p) ≠ 0,
+  by rwa [show _ = _, from hp, is_semiring_hom.map_one f, ne.def, eq_comm],
+by
+begin
+  rw [monic, leading_coeff, coeff_map],
+  suffices : p.coeff (map f p).nat_degree = 1, simp [this],
+  suffices : (map f p).nat_degree = p.nat_degree, rw this, exact hp,
+  rwa nat_degree_eq_of_degree_eq (degree_map_eq_of_leading_coeff_ne_zero _ _),
+end
 theorem monic_of_degree_le (n : ℕ) (H1 : degree p ≤ n) (H2 : coeff p n = 1) : monic p :=
 decidable.by_cases
   (assume H : degree p < n, eq_of_zero_eq_one

@@ -106,6 +106,9 @@ inr_injective.eq_iff
 lemma inl_aut (g : G) (n : N) : (inl (φ g n) : N ⋊[φ] G) = inr g * inl n * inr g⁻¹ :=
 by ext; simp
 
+@[simp] lemma mk_eq_inl_mul_inr (g : G) (n : N) : (⟨n, g⟩ : N ⋊[φ] G) = inl n * inr g :=
+by ext; simp 
+
 lemma inl_left_mul_inr_right (x : N ⋊[φ] G) : inl x.left * inr x.right = x :=
 by ext; simp
 
@@ -165,6 +168,16 @@ begin
   ext,
   simp only [lift, monoid_hom.comp_apply, monoid_hom.coe_mk],
   rw [← F.map_mul, inl_left_mul_inr_right],
+end
+
+/-- Two maps out of the semidirect product are equal if they're equal after composition
+  with both `inl` and `inr` -/
+lemma hom_ext {f g : (N ⋊[φ] G) →* H} (hl : f.comp inl = g.comp inl)
+  (hr : f.comp inr = g.comp inr) : f = g :=
+begin
+  ext,
+  cases x with n g,
+  simp only [mk_eq_inl_mul_inr,monoid_hom.map_mul, ← monoid_hom.comp_apply, hl, hr]
 end
 
 end lift

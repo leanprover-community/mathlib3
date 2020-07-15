@@ -1,6 +1,3 @@
-import data.polynomial.basic
-
-
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
@@ -65,7 +62,7 @@ end C
 section coeff
 
 
-lemma apply_eq_coeff : p.to_fun n = coeff p n := rfl
+lemma apply_eq_coeff : p n = coeff p n := rfl
 
 
 @[simp] lemma coeff_X_one : coeff (X : polynomial R) 1 = 1 := coeff_single

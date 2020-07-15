@@ -9,7 +9,11 @@ import data.finset.nat_antidiagonal
 /-!
 # Theory of univariate polynomials
 
-Polynomials are represented as `add_monoid_algebra R ℕ`, where `R` is a commutative semiring.
+The definitions include
+`degree`, `monic`, `leading_coeff`
+The theorems include formulas for computing coefficients, such as
+`coeff_add`, `coeff_sum`, `coeff_mul`
+
 -/
 
 noncomputable theory

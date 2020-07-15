@@ -1,16 +1,19 @@
-import data.polynomial.eval
-
-
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
+import data.polynomial.eval
 
 
 /-!
-# Theory of univariate monomials
+# Theory of degrees of polynomials
 
+Some of the main results include
+- `degree_mul_eq` : The degree of the product is the sum of degrees
+- `leading_coeff_add_of_degree_eq` and `leading_coeff_add_of_degree_lt` :
+    The leading_coefficient of a sum is determined by the leading coefficients and degrees
+- `nat_degree_comp_le` : The degree of the composition is at most the product of degrees
 
 -/
 

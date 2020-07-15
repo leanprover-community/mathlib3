@@ -440,7 +440,7 @@ theorem rel_supr_sum [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
   (s : δ → β) (t : finset δ) :
   R (m (⨆ d ∈ t, s d)) (∑ d in t, m (s d)) :=
 by { cases t.nonempty_encodable, rw [supr_subtype'], convert rel_supr_tsum m m0 R m_supr _,
-     rw [← finset.tsum_subtype], refl, assumption }
+     rw [← finset.tsum_subtype], assumption }
 
 /-- If a function is countably sub-additive then it is binary sub-additive -/
 theorem rel_sup_add [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)

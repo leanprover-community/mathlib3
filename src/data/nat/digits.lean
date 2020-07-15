@@ -184,7 +184,7 @@ end
 lemma of_digits_lt_base_pow_len {b : ℕ} {l : list ℕ} (hb : 2 ≤ b) (hl : ∀ x ∈ l, x < b) :
   of_digits b l < b^l.length :=
 begin
-  rcases b with _ | _ | b;  try { linarith },
+  rcases b with _ | _ | b; try { linarith },
   exact of_digits_lt_base_pow_len' hl,
 end
 

@@ -164,7 +164,29 @@ end
 
 end semiring
 
+section domain
 variables [integral_domain R]
+
+/-- `nth_roots n a` noncomputably returns the solutions to `x ^ n = a`-/
+def nth_roots {R : Type*} [integral_domain R] (n : ℕ) (a : R) : finset R :=
+roots ((X : polynomial R) ^ n - C a)
+
+@[simp] lemma mem_nth_roots {R : Type*} [integral_domain R] {n : ℕ} (hn : 0 < n) {a x : R} :
+  x ∈ nth_roots n a ↔ x ^ n = a :=
+by rw [nth_roots, mem_roots (X_pow_sub_C_ne_zero hn a),
+  is_root.def, eval_sub, eval_C, eval_pow, eval_X, sub_eq_zero_iff_eq]
+
+lemma card_nth_roots {R : Type*} [integral_domain R] (n : ℕ) (a : R) :
+  (nth_roots n a).card ≤ n :=
+if hn : n = 0
+then if h : (X : polynomial R) ^ n - C a = 0
+  then by simp only [nat.zero_le, nth_roots, roots, h, dif_pos rfl, card_empty]
+  else with_bot.coe_le_coe.1 (le_trans (card_roots h)
+   (by rw [hn, pow_zero, ← C_1, ← @is_ring_hom.map_sub _ _ _ _ (@C R _)];
+      exact degree_C_le))
+else by rw [← with_bot.coe_le_coe, ← degree_X_pow_sub_C (nat.pos_of_ne_zero hn) a];
+  exact card_roots (X_pow_sub_C_ne_zero (nat.pos_of_ne_zero hn) a)
+
 
 @[simp] lemma support_integral_normalization {f : polynomial R} (hf : f ≠ 0) :
   (integral_normalization f).support = f.support :=
@@ -221,7 +243,7 @@ lemma integral_normalization_aeval_eq_zero [algebra R S] {f : polynomial R} (hf 
   {z : S} (hz : aeval R S z f = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
   aeval R S (z * algebra_map R S f.leading_coeff) (integral_normalization f) = 0 :=
 integral_normalization_eval₂_eq_zero hf (algebra_map R S) hz inj
-
+end domain
 end integral_normalization
 
 end polynomial

@@ -287,7 +287,7 @@ private lemma Sup_aux (c : set (linear_pmap R E F)) (hc : directed_on (≤) c) :
 begin
   cases c.eq_empty_or_nonempty with ceq cne, { subst c, simp },
   have hdir : directed_on (≤) (domain '' c),
-    from (directed_on_image _).2 (hc.mono _ domain_mono.monotone),
+    from directed_on_image.2 (hc.mono domain_mono.monotone),
   have P : Π x : Sup (domain '' c), {p : c // (x : E) ∈ p.val.domain },
   { rintros x,
     apply classical.indefinite_description,

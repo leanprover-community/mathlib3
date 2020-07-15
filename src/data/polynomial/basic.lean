@@ -48,6 +48,8 @@ monomial `X^n` -/
 def coeff_coe_to_fun : has_coe_to_fun (polynomial R) :=
 finsupp.has_coe_to_fun
 
+instance : has_coe_to_fun (polynomial R) := coeff_coe_to_fun
+
 local attribute [instance] coeff_coe_to_fun
 
 @[simp] lemma support_zero : (0 : polynomial R).support = ∅ := rfl

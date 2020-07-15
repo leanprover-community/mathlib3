@@ -393,4 +393,3 @@ end ring
 
 
 end polynomial
-#lint

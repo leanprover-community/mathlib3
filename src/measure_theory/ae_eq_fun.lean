@@ -172,6 +172,7 @@ lemma coe_fn_comp (g : β → γ) (hg : measurable g) (f : α →ₘ[μ] β) :
   comp g hg f =ᵐ[μ] g ∘ f :=
 by { rw [comp_eq_mk], apply coe_fn_mk }
 
+/-- The class of `x ↦ (f x, g x)`. -/
 def pair (f : α →ₘ[μ] β) (g : α →ₘ[μ] γ) : α →ₘ[μ] β × γ :=
 quotient.lift_on₂' f g (λ f g, mk (λ x, (f.1 x, g.1 x)) (f.2.prod_mk g.2)) $
   λ f g f' g' Hf Hg, mk_eq_mk.2 $ Hf.prod_mk Hg

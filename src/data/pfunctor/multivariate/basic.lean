@@ -2,14 +2,19 @@
 Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad
-
-Multivariate polynomial functors.
-
-Note: eventually the W and M constructions as multivariate polynomial functors will go here.
 -/
 import control.functor.multivariate
 import data.pfunctor.univariate
 import data.sigma
+
+/-!
+# Multivariate polynomial functors.
+
+Multivariate polynomial functors are used for defining M-types and W-types. 
+They map a type vector `α` to the type `Σ a : A, B a ⟹ α`, with `A : Type` and
+`B : A → typevec n`. They interact well with Lean's inductive definitions because
+they guarantee that occurrences of `α` are positive.
+-/
 
 universes u v
 open_locale mvfunctor

@@ -3,7 +3,6 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl
 -/
-import control.functor
 import category_theory.fully_faithful
 import data.equiv.basic
 
@@ -100,6 +99,11 @@ variables {D : Type u'} [𝒟 : category.{u'} D] (I J : D ⥤ C) (ρ : I ⟶ J) 
 congr_fun (F.map_iso f).hom_inv_id x
 @[simp] lemma map_hom_map_inv_apply (f : X ≅ Y) (y : F.obj Y) : F.map f.hom (F.map f.inv y) = y :=
 congr_fun (F.map_iso f).inv_hom_id y
+
+@[simp] lemma hom_inv_id_app_apply (α : F ≅ G) (X) (x) : α.inv.app X (α.hom.app X x) = x :=
+congr_fun (α.hom_inv_id_app X) x
+@[simp] lemma inv_hom_id_app_apply (α : F ≅ G) (X) (x) : α.hom.app X (α.inv.app X x) = x :=
+congr_fun (α.inv_hom_id_app X) x
 
 end functor_to_types
 

@@ -5,7 +5,6 @@ Authors: Patrick Massot, Kevin Buzzard, Scott Morrison, Johan Commelin, Chris Hu
   Johannes Hölzl, Yury Kudryashov
 -/
 import algebra.group.commute
-import tactic.ext
 
 /-!
 # monoid and group homomorphisms

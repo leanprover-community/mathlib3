@@ -23,34 +23,6 @@ This tactic is used by the `tidy` tactic.
 -- describing what that tactic did as an interactive tactic.
 variable {α : Type}
 
-/-
-Because chain sometimes pauses work on the first goal and works on later goals, we need a method
-for combining a list of results generated while working on a later goal into a single result.
-This enables `tidy {trace_result := tt}` to output faithfully reproduces its operation, e.g.
-````
-intros,
-simp,
-apply lemma_1,
-work_on_goal 2 {
-  dsimp,
-  simp
-},
-refl
-````
--/
-
-namespace interactive
-open lean.parser
-meta def work_on_goal : parse small_nat → itactic → tactic unit
-| n t := do goals ← get_goals,
-            let earlier_goals := goals.take n,
-            let later_goals := goals.drop (n+1),
-            set_goals (goals.nth n).to_list,
-            t,
-            new_goals ← get_goals,
-            set_goals (earlier_goals ++ new_goals ++ later_goals)
-end interactive
-
 inductive tactic_script (α : Type) : Type
 | base : α → tactic_script
 | work (index : ℕ) (first : α) (later : list tactic_script) (closed : bool) : tactic_script

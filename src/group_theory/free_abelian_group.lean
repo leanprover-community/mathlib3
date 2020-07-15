@@ -262,6 +262,9 @@ instance [monoid α] : semigroup (free_abelian_group α) :=
       exact (lift.add _ _ _).symm }
   end }
 
+lemma mul_def [monoid α] (x y : free_abelian_group α) :
+  x * y = lift (λ x₂, lift (λ x₁, of (x₁ * x₂)) x) y := rfl
+
 instance [monoid α] : ring (free_abelian_group α) :=
 { one := free_abelian_group.of 1,
   mul_one := λ x, begin

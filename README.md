@@ -49,7 +49,7 @@ welcomed.
 
 * Jeremy Avigad (@avigad): analysis
 * Reid Barton (@rwbarton): category theory, topology
-* Mario Carneiro (@digama0): all (lead maintainer)
+* Mario Carneiro (@digama0): all
 * Bryan Gin-ge Chen (@bryangingechen): documentation, infrastructure
 * Johan Commelin (@jcommelin): algebra
 * Floris van Doorn (@fpvandoorn): all

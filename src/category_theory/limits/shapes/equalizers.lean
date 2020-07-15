@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Markus Himmel
 -/
 import category_theory.epi_mono
-import category_theory.limits.shapes.finite_limits
+import category_theory.limits.limits
 
 /-!
 # Equalizers and coequalizers
@@ -30,7 +30,7 @@ Each of these has a dual.
 ## Main statements
 
 * `equalizer.ι_mono` states that every equalizer map is a monomorphism
-* `is_limit_cone_parallel_pair_self` states that the identity on the domain of `f` is an equalizer
+* `is_iso_limit_cone_parallel_pair_of_self` states that the identity on the domain of `f` is an equalizer
   of `f` and `f`.
 
 ## Implementation notes
@@ -55,10 +55,6 @@ universes v u
 @[derive decidable_eq, derive inhabited] inductive walking_parallel_pair : Type v
 | zero | one
 
-instance fintype_walking_parallel_pair : fintype walking_parallel_pair :=
-{ elems := [walking_parallel_pair.zero, walking_parallel_pair.one].to_finset,
-  complete := λ x, by { cases x; simp } }
-
 open walking_parallel_pair
 
 /-- The type family of morphisms for the diagram indexing a (co)equalizer. -/
@@ -74,13 +70,6 @@ instance : inhabited (walking_parallel_pair_hom zero one) :=
 
 open walking_parallel_pair_hom
 
-instance (j j' : walking_parallel_pair) : fintype (walking_parallel_pair_hom j j') :=
-{ elems := walking_parallel_pair.rec_on j
-    (walking_parallel_pair.rec_on j' [walking_parallel_pair_hom.id zero].to_finset
-      [left, right].to_finset)
-    (walking_parallel_pair.rec_on j' ∅ [walking_parallel_pair_hom.id one].to_finset),
-  complete := by tidy }
-
 /-- Composition of morphisms in the indexing diagram for (co)equalizers. -/
 def walking_parallel_pair_hom.comp :
   Π (X Y Z : walking_parallel_pair)
@@ -95,8 +84,6 @@ instance walking_parallel_pair_hom_category : small_category walking_parallel_pa
 { hom  := walking_parallel_pair_hom,
   id   := walking_parallel_pair_hom.id,
   comp := walking_parallel_pair_hom.comp }
-
-instance : fin_category walking_parallel_pair := { }
 
 @[simp]
 lemma walking_parallel_pair_hom_id (X : walking_parallel_pair) :
@@ -467,9 +454,21 @@ is_iso_limit_cone_parallel_pair_of_eq ((cancel_epi _).1 (fork.condition c)) h
 
 end
 
-/-- The equalizer of `(f, f)` is an isomorphism. -/
-def equalizer.ι_of_self [has_limit (parallel_pair f f)] : is_iso (equalizer.ι f f) :=
+/-- The equalizer inclusion for `(f, f)` is an isomorphism. -/
+instance equalizer.ι_of_self [has_limit (parallel_pair f f)] : is_iso (equalizer.ι f f) :=
 equalizer.ι_of_eq rfl
+
+/-- The equalizer of a morphism with itself is isomorphic to the source. -/
+def equalizer.iso_source_of_self [has_limit (parallel_pair f f)] : equalizer f f ≅ X :=
+as_iso (equalizer.ι f f)
+
+@[simp] lemma equalizer.iso_source_of_self_hom [has_limit (parallel_pair f f)] :
+  (equalizer.iso_source_of_self f).hom = equalizer.ι f f :=
+rfl
+
+@[simp] lemma equalizer.iso_source_of_self_inv [has_limit (parallel_pair f f)] :
+  (equalizer.iso_source_of_self f).inv = equalizer.lift (𝟙 X) (by simp) :=
+rfl
 
 section
 variables [has_colimit (parallel_pair f g)]
@@ -568,9 +567,21 @@ is_iso_colimit_cocone_parallel_pair_of_eq ((cancel_mono _).1 (cofork.condition c
 
 end
 
-/-- The coequalizer of `(f, f)` is an isomorphism. -/
-def coequalizer.π_of_self [has_colimit (parallel_pair f f)] : is_iso (coequalizer.π f f) :=
+/-- The coequalizer projection for `(f, f)` is an isomorphism. -/
+instance coequalizer.π_of_self [has_colimit (parallel_pair f f)] : is_iso (coequalizer.π f f) :=
 coequalizer.π_of_eq rfl
+
+/-- The coequalizer of a morphism with itself is isomorphic to the target. -/
+def coequalizer.iso_target_of_self [has_colimit (parallel_pair f f)] : coequalizer f f ≅ Y :=
+(as_iso (coequalizer.π f f)).symm
+
+@[simp] lemma coequalizer.iso_target_of_self_hom [has_colimit (parallel_pair f f)] :
+  (coequalizer.iso_target_of_self f).hom = coequalizer.desc (𝟙 Y) (by simp) :=
+rfl
+
+@[simp] lemma coequalizer.iso_target_of_self_inv [has_colimit (parallel_pair f f)] :
+  (coequalizer.iso_target_of_self f).inv = coequalizer.π f f :=
+rfl
 
 variables (C)
 
@@ -583,15 +594,6 @@ class has_coequalizers :=
 (has_colimits_of_shape : has_colimits_of_shape walking_parallel_pair C)
 
 attribute [instance] has_equalizers.has_limits_of_shape has_coequalizers.has_colimits_of_shape
-
-/-- Equalizers are finite limits, so if `C` has all finite limits, it also has all equalizers -/
-def has_equalizers_of_has_finite_limits [has_finite_limits C] : has_equalizers C :=
-{ has_limits_of_shape := infer_instance }
-
-/-- Coequalizers are finite colimits, of if `C` has all finite colimits, it also has all
-    coequalizers -/
-def has_coequalizers_of_has_finite_colimits [has_finite_colimits C] : has_coequalizers C :=
-{ has_colimits_of_shape := infer_instance }
 
 /-- If `C` has all limits of diagrams `parallel_pair f g`, then it has all equalizers -/
 def has_equalizers_of_has_limit_parallel_pair

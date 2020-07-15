@@ -38,15 +38,29 @@ meta inductive sf : Type
 | compose : sf →  sf →  sf
 | of_string : string →  sf
 
-private meta def to_simple : eformat → sf
-| (tag ⟨ea,e⟩ m) := sf.tag_expr ea e $ to_simple m
-| (group m) := to_simple m
-| (nest i m) := to_simple m
-| (highlight i m) := to_simple m
-| (of_format f) := sf.of_string $ format.to_string f
-| (compose x y) := sf.compose (to_simple x) (to_simple y)
+/-- Prints a debugging representation of an `sf` object. -/
+meta def sf.repr : sf → format
+| (sf.tag_expr addr e a) := format.group $ format.nest 2 $
+  "(tag_expr " ++ to_fmt addr ++ format.line ++
+    "`(" ++ to_fmt e ++ ")" ++ format.line ++ a.repr ++ ")"
+| (sf.compose a b) := a.repr ++ format.line ++ b.repr
+| (sf.of_string s) := repr s
 
-private meta def sf.flatten : sf → sf
+meta instance : has_to_format sf := ⟨sf.repr⟩
+meta instance : has_to_string sf := ⟨λ s, s.repr.to_string⟩
+meta instance : has_repr sf := ⟨λ s, s.repr.to_string⟩
+
+/-- Constructs an `sf` from an `eformat` by forgetting grouping, nesting, etc. -/
+meta def sf.of_eformat : eformat → sf
+| (tag ⟨ea,e⟩ m) := sf.tag_expr ea e $ sf.of_eformat m
+| (group m) := sf.of_eformat m
+| (nest i m) := sf.of_eformat m
+| (highlight i m) := sf.of_eformat m
+| (of_format f) := sf.of_string $ format.to_string f
+| (compose x y) := sf.compose (sf.of_eformat x) (sf.of_eformat y)
+
+/-- Flattens an `sf`, i.e. merges adjacent `of_string` constructors. -/
+meta def sf.flatten : sf → sf
 | (sf.tag_expr e ea m) := (sf.tag_expr e ea $ sf.flatten m)
 | (sf.compose x y) :=
   match (sf.flatten x), (sf.flatten y) with
@@ -99,7 +113,7 @@ meta def view {γ} (tooltip_component : tc subexpr (action γ)) (click_address :
 /-- Make an interactive expression. -/
 meta def mk {γ} (tooltip : tc subexpr γ) : tc expr γ :=
 let tooltip_comp :=
-   component.with_props_eq (λ (x y : tactic_state × expr × expr.address), x.2.2 = y.2.2)
+   component.with_should_update (λ (x y : tactic_state × expr × expr.address), x.2.2 ≠ y.2.2)
    $ component.map_action (action.on_tooltip_action) tooltip in
 tc.mk_simple
   (action γ)
@@ -116,7 +130,7 @@ tc.mk_simple
   )
   (λ e ⟨ca, sa⟩, do
     ts ← tactic.read,
-    let m : sf  := sf.flatten $ to_simple $ tactic_state.pp_tagged ts e,
+    let m : sf  := sf.flatten $ sf.of_eformat $ tactic_state.pp_tagged ts e,
     let m : sf  := sf.tag_expr [] e m, -- [hack] in pp.cpp I forgot to add an expr-boundary for the root expression.
     v ← view tooltip_comp (prod.snd <$> ca) (prod.snd <$> sa) ⟨e, []⟩ m,
     pure $
@@ -286,13 +300,13 @@ tc.mk_simple
     gs ← get_goals,
     hs ← gs.mmap (λ g, do set_goals [g], flip tc.to_html ft $ tactic_view_goal local_c target_c),
     set_goals gs,
-    let goal_message :=
+    let goal_message : html γ :=
       if gs.length = 0 then
-        "goals accomplished 🎉"
+        h "div" [cn "f5"] ["goals accomplished 🎉"]
       else if gs.length = 1 then
         "1 goal"
       else
-        to_string gs.length ++ " goals",
+        html.of_string $ to_string gs.length ++ " goals",
     let goal_message : html γ := h "strong" [cn "goal-goals"] [goal_message],
     let goals : html γ := h "ul" [className "list pl0"]
         $ list.map_with_index (λ i x,
@@ -328,19 +342,19 @@ tc.stateless (λ lc, do
 /--
 Renders the current tactic state.
 -/
-meta def tactic_render : tc unit string :=
+meta def tactic_render : tc unit empty :=
 component.ignore_action $ tactic_view_component show_local_collection_component show_type_component
 
 /--
 Component showing the current tactic state.
 -/
-meta def tactic_state_widget : component tactic_state string :=
+meta def tactic_state_widget : component tactic_state empty :=
 tc.to_component tactic_render
 
 /--
 Widget used to display term-proof goals.
 -/
-meta def term_goal_widget : component tactic_state string :=
+meta def term_goal_widget : component tactic_state empty :=
 (tactic_view_term_goal show_local_collection_component show_type_component).to_component
 
 end widget_override

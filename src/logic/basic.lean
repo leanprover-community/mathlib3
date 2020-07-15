@@ -35,6 +35,9 @@ def empty.elim {C : Sort*} : empty → C.
 
 instance : subsingleton empty := ⟨λa, a.elim⟩
 
+instance subsingleton.prod {α β : Type*} [subsingleton α] [subsingleton β] : subsingleton (α × β) :=
+⟨by { intros a b, cases a, cases b, congr, }⟩
+
 instance : decidable_eq empty := λa, a.elim
 
 instance sort.inhabited : inhabited (Sort*) := ⟨punit⟩
@@ -46,6 +49,10 @@ instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) :=
 @[priority 10] instance decidable_eq_of_subsingleton
   {α} [subsingleton α] : decidable_eq α
 | a b := is_true (subsingleton.elim a b)
+
+@[simp] lemma eq_iff_true_of_subsingleton [subsingleton α] (x y : α) :
+  x = y ↔ true :=
+by cc
 
 /-- Add an instance to "undo" coercion transitivity into a chain of coercions, because
    most simp lemmas are stated with respect to simple coercions and will not match when
@@ -493,6 +500,9 @@ end equality
 
 section quantifiers
 variables {α : Sort*} {β : Sort*} {p q : α → Prop} {b : Prop}
+
+lemma forall_imp (h : ∀ a, p a → q a) : (∀ a, p a) → ∀ a, q a :=
+λ h' a, h a (h' a)
 
 lemma Exists.imp (h : ∀ a, (p a → q a)) (p : ∃ a, p a) : ∃ a, q a := exists_imp_exists h p
 

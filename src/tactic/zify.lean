@@ -5,7 +5,7 @@ Authors: Robert Y. Lewis
 -/
 
 import tactic.norm_cast
-import data.int.basic
+import data.int.cast
 
 /-!
 # A tactic to shift `ℕ` goals to `ℤ`

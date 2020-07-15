@@ -96,7 +96,7 @@ section
 variables (α)
 lemma uniformity_eq_comap_nhds_zero : 𝓤 α = comap (λx:α×α, x.2 - x.1) (𝓝 (0:α)) :=
 begin
-  rw [nhds_eq_comap_uniformity, filter.comap_comap_comp],
+  rw [nhds_eq_comap_uniformity, filter.comap_comap],
   refine le_antisymm (filter.map_le_iff_le_comap.1 _) _,
   { assume s hs,
     rcases mem_uniformity_of_uniform_continuous_invariant uniform_continuous_sub hs with ⟨t, ht, hts⟩,

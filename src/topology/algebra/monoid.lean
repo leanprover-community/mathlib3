@@ -14,29 +14,44 @@ import algebra.pi_instances
 open classical set filter topological_space
 open_locale classical topological_space big_operators
 
-universes u v w
-variables {α : Type u} {β : Type v} {γ : Type w}
+variables {α : Type*} {β : Type*} {γ : Type*}
 
-section topological_monoid
+class has_continuous_add (α : Type*) [topological_space α] [has_add α] : Prop :=
+(continuous_add : continuous (λp:α×α, p.1 + p.2))
 
-/-- A topological monoid is a monoid in which the multiplication is continuous as a function
-`α × α → α`. -/
-class topological_monoid (α : Type u) [topological_space α] [monoid α] : Prop :=
+@[to_additive]
+class has_continuous_mul (α : Type*) [topological_space α] [has_mul α] : Prop :=
 (continuous_mul : continuous (λp:α×α, p.1 * p.2))
+
+/-- A topological (additive) semigroup is a semigroup in which the addition is
+  continuous as a function `α × α → α`. -/
+class topological_add_semigroup (α : Type*) [topological_space α] [add_semigroup α]
+extends has_continuous_add α : Prop
+
+/-- A topological semigroup is a semigroup in which the multiplication is continuous as a function
+`α × α → α`. -/
+@[to_additive topological_add_semigroup]
+class topological_semigroup (α : Type*) [topological_space α] [semigroup α]
+extends has_continuous_mul α: Prop
 
 /-- A topological (additive) monoid is a monoid in which the addition is
   continuous as a function `α × α → α`. -/
-class topological_add_monoid (α : Type u) [topological_space α] [add_monoid α] : Prop :=
-(continuous_add : continuous (λp:α×α, p.1 + p.2))
+class topological_add_monoid (α : Type*) [topological_space α] [add_monoid α]
+extends topological_add_semigroup α : Prop
 
-attribute [to_additive topological_add_monoid] topological_monoid
+/-- A topological monoid is a monoid in which the multiplication is continuous as a function
+`α × α → α`. -/
+@[to_additive topological_add_monoid]
+class topological_monoid (α : Type*) [topological_space α] [monoid α]
+extends topological_semigroup α: Prop
 
-section
-variables [topological_space α] [monoid α] [topological_monoid α]
+section has_continuous_mul
+
+variables [topological_space α] [has_mul α] [has_continuous_mul α]
 
 @[to_additive]
 lemma continuous_mul : continuous (λp:α×α, p.1 * p.2) :=
-topological_monoid.continuous_mul
+has_continuous_mul.continuous_mul
 
 @[to_additive]
 lemma continuous.mul [topological_space β] {f : β → α} {g : β → α}
@@ -58,14 +73,9 @@ lemma continuous_on.mul [topological_space β] {f : β → α} {g : β → α} {
   continuous_on (λx, f x * g x) s :=
 (continuous_mul.comp_continuous_on (hf.prod hg) : _)
 
--- @[to_additive continuous_smul]
-lemma continuous_pow : ∀ n : ℕ, continuous (λ a : α, a ^ n)
-| 0 := by simpa using continuous_const
-| (k+1) := show continuous (λ (a : α), a * a ^ k), from continuous_id.mul (continuous_pow _)
-
 @[to_additive]
 lemma tendsto_mul {a b : α} : tendsto (λp:α×α, p.fst * p.snd) (𝓝 (a, b)) (𝓝 (a * b)) :=
-continuous_iff_continuous_at.mp topological_monoid.continuous_mul (a, b)
+continuous_iff_continuous_at.mp has_continuous_mul.continuous_mul (a, b)
 
 @[to_additive]
 lemma filter.tendsto.mul {f : β → α} {g : β → α} {x : filter β} {a b : α}
@@ -86,6 +96,19 @@ lemma continuous_within_at.mul [topological_space β] {f : β → α} {g : β �
 hf.mul hg
 
 @[to_additive]
+instance [topological_space β] [has_mul β] [has_continuous_mul β] : has_continuous_mul (α × β) :=
+⟨((continuous_fst.comp continuous_fst).mul (continuous_fst.comp continuous_snd)).prod_mk
+ ((continuous_snd.comp continuous_fst).mul (continuous_snd.comp continuous_snd))⟩
+
+attribute [instance] prod.has_continuous_mul
+
+end has_continuous_mul
+
+section topological_monoid
+
+variables [topological_space α] [monoid α] [topological_monoid α]
+
+@[to_additive]
 lemma tendsto_list_prod {f : γ → β → α} {x : filter β} {a : γ → α} :
   ∀l:list γ, (∀c∈l, tendsto (f c) x (𝓝 (a c))) →
     tendsto (λb, (l.map (λc, f c b)).prod) x (𝓝 ((l.map a).prod))
@@ -104,16 +127,15 @@ lemma continuous_list_prod [topological_space β] {f : γ → β → α} (l : li
 continuous_iff_continuous_at.2 $ assume x, tendsto_list_prod l $ assume c hc,
   continuous_iff_continuous_at.1 (h c hc) x
 
-@[to_additive topological_add_monoid]
-instance [topological_space β] [monoid β] [topological_monoid β] : topological_monoid (α × β) :=
-⟨((continuous_fst.comp continuous_fst).mul (continuous_fst.comp continuous_snd)).prod_mk
- ((continuous_snd.comp continuous_fst).mul (continuous_snd.comp continuous_snd))⟩
+-- @[to_additive continuous_smul]
+lemma continuous_pow : ∀ n : ℕ, continuous (λ a : α, a ^ n)
+| 0 := by simpa using continuous_const
+| (k+1) := show continuous (λ (a : α), a * a ^ k), from continuous_id.mul (continuous_pow _)
 
-attribute [instance] prod.topological_add_monoid
-
-end
+end topological_monoid
 
 section
+
 variables [topological_space α] [comm_monoid α]
 
 @[to_additive]
@@ -145,5 +167,3 @@ lemma continuous_finset_prod [topological_space β] {f : γ → β → α} (s : 
 continuous_multiset_prod _
 
 end
-
-end topological_monoid

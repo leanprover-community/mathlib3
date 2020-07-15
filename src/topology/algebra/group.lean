@@ -324,7 +324,7 @@ lemma nhds_zero_eq_Z : 𝓝 0 = Z α := by simp [nhds_eq]; exact filter.map_id
 
 @[priority 100] -- see Note [lower instance priority]
 instance : topological_add_monoid α :=
-⟨ continuous_iff_continuous_at.2 $ assume ⟨a, b⟩,
+{ continuous_add := continuous_iff_continuous_at.2 $ assume ⟨a, b⟩,
   begin
     rw [continuous_at, nhds_prod_eq, nhds_eq, nhds_eq, nhds_eq, filter.prod_map_map_eq,
       tendsto_map'_iff],
@@ -332,7 +332,7 @@ instance : topological_add_monoid α :=
       (map (λx:α, (a + b) + x) (Z α)),
     { simpa [(∘), add_comm, add_left_comm] },
     exact tendsto_map.comp add_Z
-  end⟩
+  end }
 
 @[priority 100] -- see Note [lower instance priority]
 instance : topological_add_group α :=

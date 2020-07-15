@@ -1063,12 +1063,6 @@ begin
   refl
 end
 
-lemma ae_restrict_eq_le (s : set α) : (μ.restrict s).ae ≤ μ.ae ⊓ 𝓟 s :=
-begin
-  intros t ht,
-  
-end
-
 lemma mem_dirac_ae_iff {a : α} {s : set α} (hs : is_measurable s) :
   s ∈ (measure.dirac a).ae ↔ a ∈ s :=
 by by_cases a ∈ s; simp [mem_ae_iff, measure.dirac_apply, hs.compl, indicator_apply, *]

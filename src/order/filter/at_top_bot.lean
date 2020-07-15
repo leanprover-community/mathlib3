@@ -337,6 +337,10 @@ lemma tendsto_at_top' [nonempty α] [semilattice_sup α] (f : α → β) (l : fi
   tendsto f at_top l ↔ (∀s ∈ l, ∃a, ∀b≥a, f b ∈ s) :=
 by simp only [tendsto_def, mem_at_top_sets]; refl
 
+lemma tendsto_at_bot' [nonempty α] [semilattice_inf α] (f : α → β) (l : filter β) :
+  tendsto f at_bot l ↔ (∀s ∈ l, ∃a, ∀b≤a, f b ∈ s) :=
+@tendsto_at_top' (order_dual α) _ _ _ _ _
+
 @[nolint ge_or_gt]
 theorem tendsto_at_top_principal [nonempty β] [semilattice_sup β] {f : β → α} {s : set α} :
   tendsto f at_top (𝓟 s) ↔ ∃N, ∀n≥N, f n ∈ s :=
@@ -536,6 +540,8 @@ begin
   simp only [tendsto_at_bot, neg_le],
   exact λ b, eventually_ge_at_top _
 end
+
+#lint
 
 lemma tendsto_neg_at_bot_at_top [ordered_add_comm_group α] :
   tendsto (has_neg.neg : α → α) at_bot at_top :=

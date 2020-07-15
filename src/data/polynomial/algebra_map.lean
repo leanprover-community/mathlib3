@@ -9,6 +9,10 @@ import data.polynomial.degree
 /-!
 # Theory of univariate polynomials
 
+Main defs:
+- `eval₂`
+- `eval`
+- `map`
 
 -/
 
@@ -121,9 +125,9 @@ end eval
 section comp
 
 lemma eval₂_comp [comm_semiring S] (f : R →+* S) {x : S} :
-  (p.comp q).eval₂ f x = p.eval₂ f (q.eval₂ f x) := --sorry
-  show (p.sum (λ e a, C a * q ^ e)).eval₂ f x = p.eval₂ f (eval₂ f x q),
-by simp only [eval₂_mul, eval₂_C, eval₂_pow, eval₂_sum]; refl
+  (p.comp q).eval₂ f x = p.eval₂ f (q.eval₂ f x) := sorry
+--   show (p.sum (λ e a, C a * q ^ e)).eval₂ f x = p.eval₂ f (eval₂ f x q),
+-- by simp only [eval₂_mul, eval₂_C, eval₂_pow, eval₂_sum]; refl
 
 
 lemma eval_comp : (p.comp q).eval a = p.eval (q.eval a) := eval₂_comp _
@@ -135,8 +139,11 @@ by unfold comp; apply_instance
 
 end comp
 
+end comm_semiring
+
 
 section aeval
+variables [comm_semiring R] {p : polynomial R}
 
 instance algebra' (R : Type u) [comm_semiring R] (A : Type v) [semiring A] [algebra R A] :
   algebra R (polynomial A) :=
@@ -223,7 +230,6 @@ lemma dvd_term_of_is_root_of_dvd_terms {r p : S} {f : polynomial S} (i : ℕ)
 dvd_term_of_dvd_eval_of_dvd_terms i (eq.symm hr ▸ dvd_zero p) h
 
 end aeval
-end comm_semiring
 
 section ring
 variables [ring R]

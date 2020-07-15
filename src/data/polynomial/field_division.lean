@@ -157,7 +157,7 @@ p.degree_map_eq_of_injective f.injective
 
 @[simp] lemma nat_degree_map [field k] (f : R →+* k) :
   nat_degree (p.map f) = nat_degree p :=
-sorry
+  sorry
 -- nat_degree_eq_of_degree_eq (degree_map _ f)
 
 @[simp] lemma leading_coeff_map [field k] (f : R →+* k) :

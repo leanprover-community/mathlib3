@@ -237,14 +237,15 @@ calc coeff (p.comp q) (nat_degree p * nat_degree q)
   begin
     assume b hbs hbp,
     have hq0 : q ≠ 0, from λ hq0, hqd0 (by rw [hq0, nat_degree_zero]),
-    have : coeff p b ≠ 0, rwa [← apply_eq_coeff, ← finsupp.mem_support_iff],
+    have : coeff p b ≠ 0,
+    rwa finsupp.mem_support_iff at hbs,
     dsimp [apply_eq_coeff],
     refine coeff_eq_zero_of_degree_lt _,
-    rw [degree_mul_eq, degree_C this, degree_pow_eq, zero_add, degree_eq_nat_degree hq0,
+    rw [degree_mul_eq], erw degree_C this,
+    rw [degree_pow_eq, zero_add, degree_eq_nat_degree hq0,
       ← with_bot.coe_nsmul, nsmul_eq_mul, with_bot.coe_lt_coe, nat.cast_id],
-    exact (mul_lt_mul_right (nat.pos_of_ne_zero hqd0)).2
-      (lt_of_le_of_ne (with_bot.coe_le_coe.1 (by rw ← degree_eq_nat_degree hp0; exact le_sup hbs))
-        hbp)
+    rw mul_lt_mul_right, apply lt_of_le_of_ne, assumption', swap, omega,
+    exact le_nat_degree_of_ne_zero this,
   end
   (by rw [finsupp.mem_support_iff, apply_eq_coeff, ← leading_coeff, ne.def, leading_coeff_eq_zero,
       classical.not_not]; simp {contextual := tt})

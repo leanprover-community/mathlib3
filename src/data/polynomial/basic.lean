@@ -6,13 +6,13 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 import tactic.ring_exp
 import tactic.chain
 import data.monoid_algebra
--- import algebra.gcd_domain
 import data.finset.sort
 
 /-!
 # Theory of univariate polynomials
 
 Polynomials are represented as `add_monoid_algebra R ℕ`, where `R` is a commutative semiring.
+In this file, we define `polynomial`, provide basic instances, and prove an `ext` lemma.
 -/
 
 noncomputable theory

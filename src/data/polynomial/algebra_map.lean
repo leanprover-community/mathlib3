@@ -9,11 +9,8 @@ import data.polynomial.degree
 /-!
 # Theory of univariate polynomials
 
-Main defs:
-- `eval₂`
-- `eval`
-- `map`
-
+We show that `polynomial A` is an R-algebra when `A` is an R-algebra.
+We promote `eval₂` to an algebra hom in `aeval`.
 -/
 
 noncomputable theory
@@ -123,7 +120,7 @@ lemma root_mul_right_of_is_root {p : polynomial R} (q : polynomial R) :
 end eval
 
 section comp
--- #check polynomial.as_sum
+
 lemma eval₂_comp [comm_semiring S] (f : R →+* S) {x : S} :
   (p.comp q).eval₂ f x = p.eval₂ f (q.eval₂ f x) :=
 begin

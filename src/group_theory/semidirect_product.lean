@@ -175,9 +175,8 @@ end
 lemma hom_ext {f g : (N ⋊[φ] G) →* H} (hl : f.comp inl = g.comp inl)
   (hr : f.comp inr = g.comp inr) : f = g :=
 begin
-  ext,
-  cases x with n g,
-  simp only [mk_eq_inl_mul_inr,monoid_hom.map_mul, ← monoid_hom.comp_apply, hl, hr]
+  rw [lift_unique f, lift_unique g],
+  congr; assumption
 end
 
 end lift

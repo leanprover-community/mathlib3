@@ -89,8 +89,8 @@ variables {n : ℕ} {F : typevec.{u} n → Type*} [mvfunctor F] [q : mvqpf F]
 include q
 open mvfunctor (liftp liftr)
 
-/-
-Show that every mvqpf is a lawful mvfunctor.
+/-!
+### Show that every mvqpf is a lawful mvfunctor.
 -/
 
 protected theorem id_map {α : typevec n} (x : F α) : typevec.id <$$> x = x :=

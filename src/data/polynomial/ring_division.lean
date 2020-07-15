@@ -205,26 +205,6 @@ calc ((roots ((X : polynomial R) ^ n - C a)).card : with_bot ℕ)
       ≤ degree ((X : polynomial R) ^ n - C a) : card_roots (X_pow_sub_C_ne_zero hn a)
   ... = n : degree_X_pow_sub_C hn a
 
--- /-- `nth_roots n a` noncomputably returns the solutions to `x ^ n = a`-/
--- def nth_roots {R : Type*} [integral_domain R] (n : ℕ) (a : R) : finset R :=
--- roots ((X : polynomial R) ^ n - C a)
-
--- @[simp] lemma mem_nth_roots {R : Type*} [integral_domain R] {n : ℕ} (hn : 0 < n) {a x : R} :
---   x ∈ nth_roots n a ↔ x ^ n = a :=
--- by rw [nth_roots, mem_roots (X_pow_sub_C_ne_zero hn a),
---   is_root.def, eval_sub, eval_C, eval_pow, eval_X, sub_eq_zero_iff_eq]
-
--- lemma card_nth_roots {R : Type*} [integral_domain R] (n : ℕ) (a : R) :
---   (nth_roots n a).card ≤ n :=
--- if hn : n = 0
--- then if h : (X : polynomial R) ^ n - C a = 0
---   then by simp only [nat.zero_le, nth_roots, roots, h, dif_pos rfl, card_empty]
---   else with_bot.coe_le_coe.1 (le_trans (card_roots h)
---    (by rw [hn, pow_zero, ← C_1, ← @is_ring_hom.map_sub _ _ _ _ (@C R _)];
---       exact degree_C_le))
--- else by rw [← with_bot.coe_le_coe, ← degree_X_pow_sub_C (nat.pos_of_ne_zero hn) a];
---   exact card_roots (X_pow_sub_C_ne_zero (nat.pos_of_ne_zero hn) a)
-
 lemma coeff_comp_degree_mul_degree (hqd0 : nat_degree q ≠ 0) :
   coeff (p.comp q) (nat_degree p * nat_degree q) =
   leading_coeff p * leading_coeff q ^ nat_degree p :=

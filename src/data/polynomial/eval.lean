@@ -430,4 +430,3 @@ instance eval.is_ring_hom {x : R} : is_ring_hom (eval x) := eval₂.is_ring_hom 
 end comm_ring
 
 end polynomial
-#lint

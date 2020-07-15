@@ -60,9 +60,12 @@ have h₁ : (leading_coeff q)⁻¹ ≠ 0 :=
   inv_ne_zero (mt leading_coeff_eq_zero.1 h),
 by rw [degree_mul_eq, degree_C h₁, add_zero]
 
+/-- Division of polynomials. See polynomial.div_by_monic for more details.-/
 def div (p q : polynomial R) :=
 C (leading_coeff q)⁻¹ * (p /ₘ (q * C (leading_coeff q)⁻¹))
 
+/-- Remainder of polynomial division, see the lemma `quotient_mul_add_remainder_eq_aux`.
+See polynomial.mod_by_monic for more details. -/
 def mod (p q : polynomial R) :=
 p %ₘ (q * C (leading_coeff q)⁻¹)
 

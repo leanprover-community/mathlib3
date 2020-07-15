@@ -90,7 +90,7 @@ calc (div_X p).degree < (div_X p * X + C (p.coeff 0)).degree :
     by rw [add_comm, degree_add_eq_of_degree_lt this];
       exact degree_lt_degree_mul_X hXp0
 ... = p.degree : by rw div_X_mul_X_add
-
+/-- An induction principle for polynomials, valued in Sort* instead of Prop. -/
 @[elab_as_eliminator] noncomputable def rec_on_horner
   {M : polynomial R → Sort*} : Π (p : polynomial R),
   M 0 →
@@ -202,6 +202,7 @@ else
   h.2
   (by rw [leading_coeff_mul' hpq, leading_coeff_monomial, monic.def.1 hq, mul_one])
 
+/-- See `div_by_monic`. -/
 noncomputable def div_mod_by_monic_aux : Π (p : polynomial R) {q : polynomial R},
   monic q → polynomial R × polynomial R
 | p := λ q hq, if h : degree q ≤ degree p ∧ p ≠ 0 then
@@ -516,7 +517,10 @@ lemma mod_by_monic_X (p : polynomial R) : p %ₘ X = C (p.eval 0) :=
 by rw [← mod_by_monic_X_sub_C_eq_C_eval, C_0, sub_zero]
 
 section multiplicity
-
+/-- An algorithm for deciding polynomial divisibility.
+The algorithm is "compute `p %ₘ q` and compare to `0`". `
+See `polynomial.mod_by_monic` for the algorithm that computes `%ₘ`.
+ -/
 def decidable_dvd_monic (p : polynomial R) (hq : monic q) : decidable (q ∣ p) :=
 decidable_of_iff (p %ₘ q = 0) (dvd_iff_mod_by_monic_eq_zero hq)
 
@@ -529,7 +533,8 @@ multiplicity_finite_of_degree_pos_of_monic
       exact h0 (subsingleton.elim _ _)),
     by haveI : nontrivial R := ⟨⟨0, 1, this⟩⟩; rw degree_X_sub_C; exact dec_trivial)
     (monic_X_sub_C _) h0
-
+/-- The largest power of `X - C a` which divides `p`.
+This is computable via the divisibility algorithm `decidable_dvd_monic`. -/
 def root_multiplicity (a : R) (p : polynomial R) : ℕ :=
 if h0 : p = 0 then 0
 else let I : decidable_pred (λ n : ℕ, ¬(X - C a) ^ (n + 1) ∣ p) :=
@@ -579,3 +584,4 @@ end multiplicity
 end comm_ring
 
 end polynomial
+#lint

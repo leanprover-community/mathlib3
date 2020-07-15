@@ -560,12 +560,8 @@ lemma comap_mk_eq_comap {j : ideal I.quotient} :
   quotient.comap_mk I j = comap (quotient.mk_hom I) j :=
 by refl
 
-lemma map_mk_eq_map :
-  quotient.map_mk I J = map (quotient.mk_hom I) J :=
-begin
-  refine ideal.ext (λ x, ⟨λ h, _, λ h, _⟩),
-  sorry, sorry,
-end
+lemma map_mk_eq_map : quotient.map_mk I J = map (quotient.mk_hom I) J :=
+ideal.ext (λ x, ⟨λ h, mem_Inf.mpr (λ j hj, hj h), λ h, span_le.mpr (set.subset.rfl) h⟩)
 
 variables {I J K L}
 

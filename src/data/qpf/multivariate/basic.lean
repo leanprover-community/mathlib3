@@ -9,7 +9,52 @@ universe u
 /-!
 # Multivariate quotients of polynomial functors.
 
-Basic definition of multivariant QPF
+Basic definition of multivariate QPF. QPFs form a compositional framework
+for defining inductive and coinductive types, their quotients and nesting.
+
+The idea is based on building ever larger functors. For instance, we can define
+a list using a shape functor:
+
+```lean
+inductive list_shape (a b : Type)
+| nil : list_shape
+| cons : a -> b -> list_shape
+```
+
+This shape can itself be decomposed as a sum of product which are themselves
+QPFs. It follows that the shape is a QPF and we can take its fixed point
+and create the list itself:
+
+```lean
+def list (a : Type) := fix list_shape a -- not the actual notation
+```
+
+We can continue and define the quotient on permutation of lists and create
+the multiset type:
+
+```lean
+def multiset (a : Type) := qpf.quot list.perm list a -- not the actual notion
+```
+
+And `multiset` is also a QPF. We can then create a novel data type (for Lean):
+
+```lean
+inductive tree (a : Type)
+| node : a -> multiset tree -> tree
+```
+
+An unordered tree. This is currently not supported by Lean because it nests
+an inductive type inside of a quotient. We can go further and define 
+unordered, possibly infinite trees:
+
+```lean
+coinductive tree' (a : Type)
+| node : a -> multiset tree' -> tree'
+```
+
+by using the `cofix` construct. Those options can all be mixed and
+matched because they preserve the properties of QPF. The latter example,
+`tree'`, combines fixed point, co-fixed point and quotients.
 
 ## Related modules
 

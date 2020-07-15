@@ -5,7 +5,8 @@ Authors: Johannes Hölzl
 -/
 import topology.instances.real
 import data.indicator_function
-
+import data.equiv.encodable.lattice
+import order.filter.at_top_bot
 /-!
 # Infinite sum over a topological monoid
 
@@ -26,7 +27,7 @@ noncomputable theory
 open finset filter function classical
 open_locale topological_space classical big_operators
 
-variables {α : Type*} {β : Type*} {γ : Type*}
+variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 section has_sum
 variables [add_comm_monoid α] [topological_space α]
@@ -358,6 +359,7 @@ lemma tsum_eq_tsum_of_ne_zero_bij {g : γ → α} (i : support g → β)
   (∑' x, f x)  = ∑' y, g y :=
 tsum_eq_tsum_of_has_sum_iff_has_sum $ λ _, has_sum_iff_has_sum_of_ne_zero_bij i hi hf hfg
 
+section topological_add_monoid
 variable [topological_add_monoid α]
 
 lemma tsum_add (hf : summable f) (hg : summable g) : (∑'b, f b + g b) = (∑'b, f b) + (∑'b, g b) :=
@@ -384,6 +386,74 @@ begin
   refl,
   assumption
 end
+
+end topological_add_monoid
+
+section encodable
+open encodable
+variable [encodable γ]
+
+/-- You can compute a sum over an encodably type by summing over the natural numbers and
+  taking a supremum. This is useful for outer measures. -/
+theorem tsum_supr_decode2 [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
+  (s : γ → β) : (∑' i : ℕ, m (⨆ b ∈ decode2 γ i, s b)) = (∑' b : γ, m (s b)) :=
+begin
+  have H : ∀ n, m (⨆ b ∈ decode2 γ n, s b) ≠ 0 → (decode2 γ n).is_some,
+  { intros n h,
+    cases decode2 γ n with b,
+    { refine (h $ by simp [m0]).elim },
+    { exact rfl } },
+  symmetry, refine tsum_eq_tsum_of_ne_zero_bij (λ a, option.get (H a.1 a.2)) _ _ _,
+  { rintros ⟨m, hm⟩ ⟨n, hn⟩ e,
+    have := mem_decode2.1 (option.get_mem (H n hn)),
+    rwa [← e, mem_decode2.1 (option.get_mem (H m hm))] at this },
+  { intros b h,
+    refine ⟨⟨encode b, _⟩, _⟩,
+    { simp only [mem_support, encodek2] at h ⊢, convert h, simp [set.ext_iff, encodek2] },
+    { exact option.get_of_mem _ (encodek2 _) } },
+  { rintros ⟨n, h⟩, dsimp only [subtype.coe_mk],
+    transitivity, swap,
+    rw [show decode2 γ n = _, from option.get_mem (H n h)],
+    congr, simp [ext_iff, -option.some_get] }
+end
+
+/-- `tsum_supr_decode2` specialized to the complete lattice of sets. -/
+theorem tsum_Union_decode2 (m : set β → α) (m0 : m ∅ = 0)
+  (s : γ → set β) : (∑' i, m (⋃ b ∈ decode2 γ i, s b)) = (∑' b, m (s b)) :=
+tsum_supr_decode2 m m0 s
+
+/-! Some properties about measure-like functions.
+  These could also be functions defined on complete sublattices of sets, with the property
+  that they are countably sub-additive.
+  `R` will probably be instantiated with `(≤)` in all applications.
+-/
+
+/-- If a function is countably sub-additive then it is sub-additive on encodable types -/
+theorem rel_supr_tsum [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
+  (R : α → α → Prop) (m_supr : ∀(s : ℕ → β), R (m (⨆ i, s i)) (∑' i, m (s i)))
+  (s : γ → β) : R (m (⨆ b : γ, s b)) (∑' b : γ, m (s b)) :=
+by { rw [← supr_decode2, ← tsum_supr_decode2 _ m0 s], exact m_supr _ }
+
+/-- If a function is countably sub-additive then it is sub-additive on finite sets -/
+theorem rel_supr_sum [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
+  (R : α → α → Prop) (m_supr : ∀(s : ℕ → β), R (m (⨆ i, s i)) (∑' i, m (s i)))
+  (s : δ → β) (t : finset δ) :
+  R (m (⨆ d ∈ t, s d)) (∑ d in t, m (s d)) :=
+by { cases t.nonempty_encodable, rw [supr_subtype'], convert rel_supr_tsum m m0 R m_supr _,
+     rw [← finset.tsum_subtype], refl, assumption }
+
+/-- If a function is countably sub-additive then it is binary sub-additive -/
+theorem rel_sup_add [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
+  (R : α → α → Prop) (m_supr : ∀(s : ℕ → β), R (m (⨆ i, s i)) (∑' i, m (s i)))
+  (s₁ s₂ : β) : R (m (s₁ ⊔ s₂)) (m s₁ + m s₂) :=
+begin
+  convert rel_supr_tsum m m0 R m_supr (λ b, cond b s₁ s₂),
+  { simp only [supr_bool_eq, cond] },
+  { rw tsum_fintype, simp only [finset.sum_insert, not_false_iff, fintype.univ_bool,
+      finset.mem_singleton, cond, finset.sum_singleton] }
+end
+
+end encodable
 
 end tsum
 
@@ -685,7 +755,7 @@ begin
 end
 
 lemma summable.subtype (hf : summable f) (s : set β) : summable (f ∘ coe : s → α) :=
-hf.comp_injective subtype.coe_injective 
+hf.comp_injective subtype.coe_injective
 
 lemma summable.sigma_factor {γ : β → Type*} {f : (Σb:β, γ b) → α}
   (ha : summable f) (b : β) : summable (λc, f ⟨b, c⟩) :=

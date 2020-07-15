@@ -7,6 +7,7 @@ Outer measures -- overapproximations of measures
 -/
 import analysis.specific_limits
 import measure_theory.measurable_space
+import topology.algebra.infinite_sum
 
 /-!
 # Outer Measures
@@ -61,55 +62,39 @@ structure outer_measure (α : Type*) :=
 
 namespace outer_measure
 
-instance {α} : has_coe_to_fun (outer_measure α) := ⟨_, λ m, m.measure_of⟩
-
 section basic
-variables {α : Type*} {ms : set (outer_measure α)} {m : outer_measure α}
+
+variables {α : Type*} {β : Type*} {ms : set (outer_measure α)} {m : outer_measure α}
+
+instance : has_coe_to_fun (outer_measure α) := ⟨_, λ m, m.measure_of⟩
+
+@[simp] lemma measure_of_eq_coe {m : outer_measure α} {s : set α} : m.measure_of s = m s := rfl
 
 @[simp] theorem empty' (m : outer_measure α) : m ∅ = 0 := m.empty
 
 theorem mono' (m : outer_measure α) {s₁ s₂}
   (h : s₁ ⊆ s₂) : m s₁ ≤ m s₂ := m.mono h
 
-theorem Union_aux (m : set α → ennreal) (m0 : m ∅ = 0)
-  {β} [encodable β] (s : β → set α) :
-  (∑' b, m (s b)) = ∑' i, m (⋃ b ∈ decode2 β i, s b) :=
-begin
-  have H : ∀ n, m (⋃ b ∈ decode2 β n, s b) ≠ 0 → (decode2 β n).is_some,
-  { intros n h,
-    cases decode2 β n with b,
-    { exact (h (by simp [m0])).elim },
-    { exact rfl } },
-  refine tsum_eq_tsum_of_ne_zero_bij (λ a, option.get (H a.1 a.2)) _ _ _,
-  { rintros ⟨m, hm⟩ ⟨n, hn⟩ e,
-    have := mem_decode2.1 (option.get_mem (H n hn)),
-    rwa [← e, mem_decode2.1 (option.get_mem (H m hm))] at this },
-  { intros b h,
-    refine ⟨⟨encode b, _⟩, _⟩,
-    { simp only [mem_support, encodek2] at h ⊢, convert h, simp [set.ext_iff, encodek2] },
-    { exact option.get_of_mem _ (encodek2 _) } },
-  { rintros ⟨n, h⟩, dsimp only [subtype.coe_mk],
-    transitivity, swap,
-    rw [show decode2 β n = _, from option.get_mem (H n h)],
-    congr, simp [set.ext_iff, -option.some_get] }
-end
-
 protected theorem Union (m : outer_measure α)
   {β} [encodable β] (s : β → set α) :
   m (⋃i, s i) ≤ (∑'i, m (s i)) :=
-by rw [Union_decode2, Union_aux _ m.empty' s]; exact m.Union_nat _
+rel_supr_tsum m m.empty (≤) m.Union_nat s
 
 lemma Union_null (m : outer_measure α)
   {β} [encodable β] {s : β → set α} (h : ∀ i, m (s i) = 0) : m (⋃i, s i) = 0 :=
 by simpa [h] using m.Union s
 
+protected lemma Union_finset (m : outer_measure α) (s : β → set α) (t : finset β) :
+  m (⋃i ∈ t, s i) ≤ ∑ i in t, m (s i) :=
+rel_supr_sum m m.empty (≤) m.Union_nat s t
+
 protected lemma union (m : outer_measure α) (s₁ s₂ : set α) :
   m (s₁ ∪ s₂) ≤ m s₁ + m s₂ :=
-begin
-  convert m.Union (λ b, cond b s₁ s₂),
-  { simp [union_eq_Union] },
-  { rw tsum_fintype, change _ = _ + _, simp }
-end
+rel_sup_add m m.empty (≤) m.Union_nat s₁ s₂
+
+lemma le_inter_add_diff {m : outer_measure α} {t : set α} (s : set α) :
+  m t ≤ m (t ∩ s) + m (t \ s) :=
+by { convert m.union _ _, rw inter_union_diff t s }
 
 lemma union_null (m : outer_measure α) {s₁ s₂ : set α}
   (h₁ : m s₁ = 0) (h₂ : m s₂ = 0) : m (s₁ ∪ s₂) = 0 :=
@@ -339,8 +324,7 @@ variables {s s₁ s₂ : set α}
 private def C (s : set α) : Prop := ∀t, m t = m (t ∩ s) + m (t \ s)
 
 private lemma C_iff_le {s : set α} : C s ↔ ∀t, m (t ∩ s) + m (t \ s) ≤ m t :=
-forall_congr $ λ t, le_antisymm_iff.trans $ and_iff_right $
-by convert m.union _ _; rw inter_union_diff t s
+forall_congr $ λ t, le_antisymm_iff.trans $ and_iff_right $ le_inter_add_diff _
 
 @[simp] private lemma C_empty : C ∅ := by simp [C, m.empty, diff_empty]
 

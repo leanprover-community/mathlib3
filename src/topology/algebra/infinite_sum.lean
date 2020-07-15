@@ -87,7 +87,7 @@ by simp only [has_sum, tendsto, g.map_at_top_finset_sum_eq hf]
 lemma function.injective.has_sum_iff {g : γ → β} (hg : injective g)
   (hf : ∀ x ∉ set.range g, f x = 0) :
   has_sum (f ∘ g) a ↔ has_sum f a :=
-by simpa only [] using function.embedding.has_sum_iff ⟨g, hg⟩ hf
+by simpa only using function.embedding.has_sum_iff ⟨g, hg⟩ hf
 
 lemma function.injective.summable_iff {g : γ → β} (hg : injective g)
   (hf : ∀ x ∉ set.range g, f x = 0) :
@@ -398,7 +398,7 @@ variables {f g : β → α} {a a₁ a₂ : α}
 
 -- `by simpa using` speeds up elaboration. Why?
 lemma has_sum.neg (h : has_sum f a) : has_sum (λb, - f b) (- a) :=
-by simpa only [] using h.map (-add_monoid_hom.id α) continuous_neg
+by simpa only using h.map (-add_monoid_hom.id α) continuous_neg
 
 lemma summable.neg (hf : summable f) : summable (λb, - f b) :=
 hf.has_sum.neg.summable
@@ -419,7 +419,7 @@ begin
 end
 
 lemma has_sum.has_sum_iff_compl {s : set β} (hf : has_sum (f ∘ coe : s → α) a₁) :
-  has_sum f a₂ ↔ has_sum (f ∘ coe : sᶜ → α) (a₂ - a₁)  :=
+  has_sum f a₂ ↔ has_sum (f ∘ coe : sᶜ → α) (a₂ - a₁) :=
 iff.symm $ hf.has_sum_compl_iff.trans $ by rw [add_sub_cancel'_right]
 
 lemma summable.summable_compl_iff {s : set β} (hf : summable (f ∘ coe : s → α)) :
@@ -506,10 +506,10 @@ section topological_semiring
 variables [semiring α] [topological_space α] [topological_semiring α]
 variables {f g : β → α} {a a₁ a₂ : α}
 lemma has_sum.mul_left (a₂) (h : has_sum f a₁) : has_sum (λb, a₂ * f b) (a₂ * a₁) :=
-by simpa only [] using h.map (add_monoid_hom.mul_left a₂) (continuous_const.mul continuous_id)
+by simpa only using h.map (add_monoid_hom.mul_left a₂) (continuous_const.mul continuous_id)
 
 lemma has_sum.mul_right (a₂) (hf : has_sum f a₁) : has_sum (λb, f b * a₂) (a₁ * a₂) :=
-by simpa only [] using hf.map (add_monoid_hom.mul_right a₂) (continuous_id.mul continuous_const)
+by simpa only using hf.map (add_monoid_hom.mul_right a₂) (continuous_id.mul continuous_const)
 
 lemma summable.mul_left (a) (hf : summable f) : summable (λb, a * f b) :=
 (hf.has_sum.mul_left _).summable

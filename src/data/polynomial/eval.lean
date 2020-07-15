@@ -9,7 +9,8 @@ import data.polynomial.induction
 /-!
 # Theory of univariate polynomials
 
-The main defs here are `eval₂` and `eval`
+The main defs here are `eval₂`, `eval`, and `map`.
+We give several lemmas about their interaction with each other and with module operations.
 -/
 
 noncomputable theory

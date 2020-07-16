@@ -819,6 +819,39 @@ protected meta def reducibility_hints : declaration → reducibility_hints
 | (declaration.defn _ _ _ _ red _) := red
 | _ := _root_.reducibility_hints.opaque
 
+/-- formats the arguments of a `declaration.thm` -/
+private meta def print_thm (nm : name) (tp : expr) (body : task expr) : tactic format :=
+do tp ← pp tp, body ← pp body.get,
+   return $ "<theorem " ++ to_fmt nm ++ " : " ++ tp ++ " := " ++ body ++ ">"
+
+/-- formats the arguments of a `declaration.defn` -/
+private meta def print_defn (nm : name) (tp : expr) (body : expr) (is_trusted : bool) :
+  tactic format :=
+do tp ← pp tp, body ← pp body,
+   return $ "<" ++ (if is_trusted then "def " else "meta def ") ++ to_fmt nm ++ " : " ++ tp ++ " := "
+     ++ body ++ ">"
+
+/-- formats the arguments of a `declaration.cnst` -/
+private meta def print_cnst (nm : name) (tp : expr) (is_trusted : bool) : tactic format :=
+do tp ← pp tp,
+   return $ "<" ++ (if is_trusted then "constant " else "meta constant ") ++ to_fmt nm ++ " : "
+     ++ tp ++ ">"
+
+/-- formats the arguments of a `declaration.ax` -/
+private meta def print_ax (nm : name) (tp : expr) : tactic format :=
+do tp ← pp tp,
+   return $ "<axiom " ++ to_fmt nm ++ " : " ++ tp ++ ">"
+
+/-- pretty-prints a `declaration` object. -/
+meta def to_tactic_format : declaration → tactic format
+| (declaration.thm nm _ tp bd) := print_thm nm tp bd
+| (declaration.defn nm _ tp bd _ is_trusted) := print_defn nm tp bd is_trusted
+| (declaration.cnst nm _ tp is_trusted) := print_cnst nm tp is_trusted
+| (declaration.ax nm _ tp) := print_ax nm tp
+
+meta instance : has_to_tactic_format declaration :=
+⟨to_tactic_format⟩
+
 end declaration
 
 meta instance pexpr.decidable_eq {elab} : decidable_eq (expr elab) :=

@@ -511,6 +511,10 @@ end
 @[simp] lemma nat_degree_X_sub_C (x : R) : (X - C x).nat_degree = 1 :=
 nat_degree_eq_of_degree_eq_some $ degree_X_sub_C x
 
+@[simp]
+lemma next_coeff_X_sub_C_eq (c : R) : next_coeff (X - C c) = - c :=
+by simp [next_coeff_of_pos_nat_degree]
+
 lemma degree_X_pow_sub_C {n : ℕ} (hn : 0 < n) (a : R) :
   degree ((X : polynomial R) ^ n - C a) = n :=
 have degree (-C a) < degree ((X : polynomial R) ^ n),

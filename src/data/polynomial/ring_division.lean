@@ -72,6 +72,16 @@ begin
       exact mul_ne_zero (mt leading_coeff_eq_zero.1 hp) (mt leading_coeff_eq_zero.1 hq) } }
 end
 
+/-- `polynomial.leading_coeff` bundled as a `monoid_hom` when `R` is an `integral_domain`, and thus
+  `leading_coeff` is multiplicative -/
+def leading_coeff_hom : polynomial R →* R :=
+{ to_fun := leading_coeff,
+  map_one' := by simp,
+  map_mul' := leading_coeff_mul }
+
+@[simp] lemma leading_coeff_hom_apply (p : polynomial R) :
+  leading_coeff_hom p = leading_coeff p := rfl
+
 @[simp] lemma leading_coeff_pow (p : polynomial R) (n : ℕ) :
   leading_coeff (p ^ n) = leading_coeff p ^ n :=
 by induction n; [simp only [pow_zero, leading_coeff_one],

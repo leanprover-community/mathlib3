@@ -8,9 +8,11 @@ import ring_theory.euclidean_domain
 import ring_theory.multiplicity
 
 /-!
-# Theory of univariate polynomials
+# Division of univariate polynomials
 
-
+The main defs are `div_by_monic` and `mod_by_monic`.
+The compatibility between these is given by `mod_by_monic_add_div`.
+We also define `root_multiplicity`.
 -/
 
 noncomputable theory

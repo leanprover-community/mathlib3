@@ -619,7 +619,7 @@ begin
   rwa [dist_comm, dist_eq_norm, add_sub_cancel'],
 end
 
-lemma tendsto_inv [normed_field α] {r : α} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=
+lemma tendsto_inv' [normed_field α] {r : α} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=
 begin
   refine (nhds_basis_closed_ball.tendsto_iff nhds_basis_closed_ball).2 (λε εpos, _),
   let δ := min (ε/2 * ∥r∥^2) (∥r∥/2),
@@ -657,11 +657,11 @@ begin
   ... = ε : by { rw [mul_inv_cancel (ne.symm (ne_of_lt norm_r_pos))], simp }
 end
 
-lemma continuous_on_inv [normed_field α] : continuous_on (λ(x:α), x⁻¹) {x | x ≠ 0} :=
+lemma continuous_on_inv' [normed_field α] : continuous_on (λ(x:α), x⁻¹) {x | x ≠ 0} :=
 begin
   assume x hx,
   apply continuous_at.continuous_within_at,
-  exact (tendsto_inv hx)
+  exact (tendsto_inv' hx)
 end
 
 end normed_field
@@ -680,7 +680,7 @@ groups. -/
 lemma filter.tendsto.inv' [normed_field α] {l : filter β} {f : β → α} {y : α}
   (hy : y ≠ 0) (h : tendsto f l (𝓝 y)) :
   tendsto (λx, (f x)⁻¹) l (𝓝 y⁻¹) :=
-(normed_field.tendsto_inv hy).comp h
+(normed_field.tendsto_inv' hy).comp h
 
 lemma filter.tendsto.div [normed_field α] {l : filter β} {f g : β → α} {x y : α}
   (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) (hy : y ≠ 0) :

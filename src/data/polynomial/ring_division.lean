@@ -50,16 +50,16 @@ end comm_ring
 section integral_domain
 variables [integral_domain R] {p q : polynomial R}
 
-@[simp] lemma degree_mul_eq : degree (p * q) = degree p + degree q :=
-if hp0 : p = 0 then by simp only [hp0, degree_zero, zero_mul, with_bot.bot_add]
-else if hq0 : q = 0 then  by simp only [hq0, degree_zero, mul_zero, with_bot.add_bot]
-else degree_mul_eq' $ mul_ne_zero (mt leading_coeff_eq_zero.1 hp0)
-    (mt leading_coeff_eq_zero.1 hq0)
+-- @[simp] lemma degree_mul_eq : degree (p * q) = degree p + degree q :=
+-- if hp0 : p = 0 then by simp only [hp0, degree_zero, zero_mul, with_bot.bot_add]
+-- else if hq0 : q = 0 then  by simp only [hq0, degree_zero, mul_zero, with_bot.add_bot]
+-- else degree_mul_eq' $ mul_ne_zero (mt leading_coeff_eq_zero.1 hp0)
+--     (mt leading_coeff_eq_zero.1 hq0)
 
-@[simp] lemma degree_pow_eq (p : polynomial R) (n : ℕ) :
-  degree (p ^ n) = n •ℕ (degree p) :=
-by induction n; [simp only [pow_zero, degree_one, zero_nsmul],
-simp only [*, pow_succ, succ_nsmul, degree_mul_eq]]
+-- @[simp] lemma degree_pow_eq (p : polynomial R) (n : ℕ) :
+--   degree (p ^ n) = n •ℕ (degree p) :=
+-- by induction n; [simp only [pow_zero, degree_one, zero_nsmul],
+-- simp only [*, pow_succ, succ_nsmul, degree_mul_eq]]
 
 @[simp] lemma leading_coeff_mul (p q : polynomial R) : leading_coeff (p * q) =
   leading_coeff p * leading_coeff q :=
@@ -84,8 +84,7 @@ def leading_coeff_hom : polynomial R →* R :=
 
 @[simp] lemma leading_coeff_pow (p : polynomial R) (n : ℕ) :
   leading_coeff (p ^ n) = leading_coeff p ^ n :=
-by induction n; [simp only [pow_zero, leading_coeff_one],
-simp only [*, pow_succ, leading_coeff_mul]]
+leading_coeff_hom.map_pow p n
 
 instance : integral_domain (polynomial R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h, begin

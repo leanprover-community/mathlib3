@@ -3,6 +3,7 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark.
 -/
+import data.polynomial.algebra_map
 import data.polynomial
 open polynomial finset
 
@@ -26,21 +27,21 @@ open_locale big_operators
 
 universes u w
 
-variables {R : Type u} {α : Type w}
+variables {R : Type u} {ι : Type w}
 
 namespace polynomial
-
-variable (s : finset α)
+#check monic_mul
+variable (s : finset ι)
 
 section comm_semiring
-variables [comm_semiring R] (f : α → polynomial R)
+variables [comm_semiring R] (f : ι → polynomial R)
 
 lemma nat_degree_prod_le : (∏ i in s, f i).nat_degree ≤ ∑ i in s, (f i).nat_degree :=
 begin
   classical,
   induction s using finset.induction with a s ha hs, { simp },
   rw [prod_insert ha, sum_insert ha],
-  transitivity (f a).nat_degree + (∏ (x : α) in s, (f x)).nat_degree,
+  transitivity (f a).nat_degree + (∏ x in s, (f x)).nat_degree,
   apply polynomial.nat_degree_mul_le, linarith,
 end
 
@@ -68,22 +69,42 @@ begin
   rwa polynomial.leading_coeff_prod', apply right_ne_zero_of_mul h,
 end
 
-lemma monic_prod_of_monic :
-  (∀ a : α, a ∈ s → monic (f a)) → monic (∏ i in s, f i) :=
-by { apply prod_induction, apply monic_mul, apply monic_one }
-
-lemma nat_degree_prod_eq_of_monic [nontrivial R] (h : ∀ i : α, i ∈ s → (f i).monic) :
+lemma nat_degree_prod_eq_of_monic [nontrivial R] (h : ∀ i ∈ s, (f i).monic) :
   (∏ i in s, f i).nat_degree = ∑ i in s, (f i).nat_degree :=
 begin
   apply nat_degree_prod_eq',
-  suffices : ∏ (i : α) in s, (f i).leading_coeff = 1, { rw this, simp },
+  suffices : ∏ i in s, (f i).leading_coeff = 1, { rw this, simp },
   rw prod_eq_one, intros, apply h, assumption,
 end
 
 end comm_semiring
 
+section comm_ring
+variables [comm_ring R]
+
+open monic
+--sort of a special case of Vieta?
+lemma next_coeff_prod_X_sub_C [nontrivial R] {s : finset ι} (f : ι → R) :
+next_coeff ∏ i in s, (X - C (f i)) = -s.sum f :=
+by { rw next_coeff_prod; { simp [monic_X_sub_C] } }
+
+lemma card_pred_coeff_prod_X_sub_C [nontrivial R] (s : finset ι) (f : ι → R) (hs : 0 < s.card) :
+(∏ i in s, (X - C (f i))).coeff (s.card - 1) = -s.sum f :=
+begin
+  convert next_coeff_prod_X_sub_C (by assumption),
+  rw next_coeff, split_ifs,
+  { rw nat_degree_prod_eq_of_monic at h,
+    swap, { intros, apply monic_X_sub_C },
+    rw sum_eq_zero_iff at h,
+    simp_rw nat_degree_X_sub_C at h, contrapose! h, norm_num,
+    exact multiset.card_pos_iff_exists_mem.mp hs },
+  congr, rw nat_degree_prod_eq_of_monic; { simp [nat_degree_X_sub_C, monic_X_sub_C] },
+end
+
+end comm_ring
+
 section integral_domain
-variables [integral_domain R] (f : α → polynomial R)
+variables [integral_domain R] (f : ι → polynomial R)
 
 lemma nat_degree_prod_eq (h : ∀ i ∈ s, f i ≠ 0) :
   (∏ i in s, f i).nat_degree = ∑ i in s, (f i).nat_degree :=

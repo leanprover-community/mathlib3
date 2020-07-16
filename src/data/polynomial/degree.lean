@@ -537,4 +537,44 @@ by { apply nat_degree_eq_of_degree_eq_some, simp [degree_X_pow_sub_C hn], }
 
 end nonzero_ring
 
+section integral_domain
+variables [integral_domain R] {p q : polynomial R}
+
+@[simp] lemma degree_mul_eq : degree (p * q) = degree p + degree q :=
+if hp0 : p = 0 then by simp only [hp0, degree_zero, zero_mul, with_bot.bot_add]
+else if hq0 : q = 0 then  by simp only [hq0, degree_zero, mul_zero, with_bot.add_bot]
+else degree_mul_eq' $ mul_ne_zero (mt leading_coeff_eq_zero.1 hp0)
+    (mt leading_coeff_eq_zero.1 hq0)
+
+@[simp] lemma degree_pow_eq (p : polynomial R) (n : ℕ) :
+  degree (p ^ n) = n •ℕ (degree p) :=
+by induction n; [simp only [pow_zero, degree_one, zero_nsmul],
+simp only [*, pow_succ, succ_nsmul, degree_mul_eq]]
+
+@[simp] lemma leading_coeff_mul (p q : polynomial R) : leading_coeff (p * q) =
+  leading_coeff p * leading_coeff q :=
+begin
+  by_cases hp : p = 0,
+  { simp only [hp, zero_mul, leading_coeff_zero] },
+  { by_cases hq : q = 0,
+    { simp only [hq, mul_zero, leading_coeff_zero] },
+    { rw [leading_coeff_mul'],
+      exact mul_ne_zero (mt leading_coeff_eq_zero.1 hp) (mt leading_coeff_eq_zero.1 hq) } }
+end
+
+/-- `polynomial.leading_coeff` bundled as a `monoid_hom` when `R` is an `integral_domain`, and thus
+  `leading_coeff` is multiplicative -/
+def leading_coeff_hom : polynomial R →* R :=
+{ to_fun := leading_coeff,
+  map_one' := by simp,
+  map_mul' := leading_coeff_mul }
+
+@[simp] lemma leading_coeff_hom_apply (p : polynomial R) :
+  leading_coeff_hom p = leading_coeff p := rfl
+
+@[simp] lemma leading_coeff_pow (p : polynomial R) (n : ℕ) :
+  leading_coeff (p ^ n) = leading_coeff p ^ n :=
+leading_coeff_hom.map_pow p n
+end integral_domain
+
 end polynomial

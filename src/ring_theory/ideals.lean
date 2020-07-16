@@ -244,7 +244,6 @@ lemma map_mk_comap_mk_left_inverse {I : ideal α} : left_inverse (map_mk I) (com
     (λ w hw, hw.right ▸ hw.left))
   (by rintro ⟨x⟩ hx; exact ⟨x, ⟨hx, rfl⟩⟩)
 
--- TODO: is this even worth making into a lemma?
 lemma map_mk_le_iff_le_comap_mk {I J : ideal α} {j : ideal I.quotient} :
   map_mk I J ≤ j ↔ J ≤ comap_mk I j :=
 set.image_subset_iff
@@ -260,7 +259,7 @@ lemma lt_comap_mk_of_map_mk_lt {I J : ideal α} {j : ideal I.quotient} :
   (map_mk_le_iff_le_comap_mk.mp (le_of_lt h))
   (λ heq, (ne_of_lt (by rwa [heq, map_mk_comap_mk_left_inverse] at h)) (rfl : j = j))
 
-lemma top_or_maximal_of_maximal {I J : ideal α} (h : is_maximal J) :
+lemma map_eq_top_or_is_maximal_of_is_maximal  {I J : ideal α} (h : is_maximal J) :
   (map_mk I J = ⊤) ∨ (is_maximal (map_mk I J)) :=
 begin
   refine classical.or_iff_not_imp_left.2 (λ htop, ⟨htop, λ k hk, _⟩),
@@ -296,7 +295,7 @@ not_congr zero_eq_one_iff
 protected theorem nontrivial {I : ideal α} (hI : I ≠ ⊤) : nontrivial I.quotient :=
 ⟨⟨0, 1, zero_ne_one_iff.2 hI⟩⟩
 
-lemma map_mk_bot {I J : ideal α} (h : J ≤ I) : map_mk I J = ⊥ :=
+lemma map_mk_eq_bot {I J : ideal α} (h : J ≤ I) : map_mk I J = ⊥ :=
 begin
   refine le_antisymm _ bot_le,
   rintros ⟨x⟩ ⟨y, hy⟩,
@@ -305,9 +304,9 @@ begin
 end
 
 lemma map_mk_self {I : ideal α} : map_mk I I = ⊥ :=
-map_mk_bot (le_of_eq rfl)
+map_mk_eq_bot (le_of_eq rfl)
 
-lemma comap_mk_ge {I : ideal α} {j : ideal I.quotient} : I ≤ quotient.comap_mk I j :=
+lemma le_comap_mk {I : ideal α} {j : ideal I.quotient} : I ≤ quotient.comap_mk I j :=
 map_mk_le_iff_le_comap_mk.1 ((eq.symm (@map_mk_self _ _ I)) ▸ bot_le)
 
 -- TODO: is this a special case of a fact about map_mk respecting the lattice structure?

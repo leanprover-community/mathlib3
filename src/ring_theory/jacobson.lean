@@ -107,11 +107,11 @@ begin
   rw is_jacobson_iff_Inf_maximal,
   intros p hp,
   use quotient.map_mk I '' {J : ideal R | quotient.comap_mk I p ≤ J ∧ J.is_maximal},
-  use λ j ⟨J, hJ, hmap⟩, hmap ▸ or.symm (quotient.top_or_maximal_of_maximal hJ.right),
+  use λ j ⟨J, hJ, hmap⟩, hmap ▸ or.symm (quotient.map_eq_top_or_is_maximal_of_is_maximal hJ.right),
   have : p = quotient.map_mk I ((quotient.comap_mk I p).jacobson),
   from (H (quotient.comap_mk I p) (by rw [comap_mk_eq_comap, ← comap_radical, hp])).symm
     ▸ (quotient.map_mk_comap_mk_left_inverse p).symm,
-  exact eq.trans this (quotient.map_mk_Inf (λ J ⟨hJ, _⟩, le_trans (quotient.comap_mk_ge) hJ))
+  exact eq.trans this (quotient.map_mk_Inf (λ J ⟨hJ, _⟩, le_trans (quotient.le_comap_mk) hJ))
 end
 
 -- lemma is_jacobson_polynomial (H : is_jacobson R) : is_jacobson (polynomial R) := sorry

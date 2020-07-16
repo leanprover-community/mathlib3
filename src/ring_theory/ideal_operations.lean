@@ -658,14 +658,14 @@ section bijective
 variables (hf : function.bijective f)
 include hf
 
-private lemma le_comap_bot_of_bijective : comap f ⊥ ≤ I :=
+lemma le_comap_bot_of_bijective : comap f ⊥ ≤ I :=
 begin
   refine le_trans (λ x hx, _) bot_le,
   rw [mem_comap, submodule.mem_bot, ← ring_hom.map_zero f] at hx,
   exact eq.symm (hf.left hx) ▸ (submodule.zero_mem ⊥)
 end
 
-/- Special case of the correspondence theorem for isomorphic rings -/
+/-- Special case of the correspondence theorem for isomorphic rings -/
 def order_iso_of_bijective :
   ((≤) : ideal S → ideal S → Prop) ≃o ((≤) : ideal R → ideal R → Prop):=
 { to_fun := comap f,
@@ -720,7 +720,7 @@ theorem jacobson_eq_top_iff {I : ideal R} : jacobson I = ⊤ ↔ I = ⊤ :=
   lt_top_iff_ne_top.1 (lt_of_le_of_lt (show jacobson I ≤ M, from Inf_le ⟨him, hm⟩) $ lt_top_iff_ne_top.2 hm.1) H,
 λ H, eq_top_iff.2 $ le_Inf $ λ J ⟨hij, hj⟩, H ▸ hij⟩
 
-lemma jacobson_bot {I : ideal R} : jacobson I = ⊥ → I = ⊥ :=
+lemma jacobson_eq_bot {I : ideal R} : jacobson I = ⊥ → I = ⊥ :=
 λ h, eq_bot_iff.mpr (h ▸ le_jacobson)
 
 lemma jacobson.is_maximal {I : ideal R} : is_maximal I → is_maximal (jacobson I) :=
@@ -747,18 +747,17 @@ theorem mem_jacobson_iff {I : ideal R} {x : R} :
         neg_mul_eq_neg_mul_symm, neg_mul_eq_mul_neg, mul_comm x y]; exact M.mul_mem_right hy)
     (him hz)⟩
 
-lemma jacobson_mono {I J : ideal R} : I ≤ J → I.jacobson ≤ J.jacobson :=
+@[mono] lemma jacobson_mono {I J : ideal R} : I ≤ J → I.jacobson ≤ J.jacobson :=
 begin
   intros h x hx,
   erw mem_Inf at ⊢ hx,
   exact λ K ⟨hK, hK_max⟩, hx ⟨trans h hK, hK_max⟩
 end
 
-lemma comap_jacobson {S : Type u} [comm_ring S] (e : S ≃+* R) {I : ideal R}
-    : comap e.to_ring_hom (jacobson I) = jacobson (comap e.to_ring_hom I) :=
+lemma comap_jacobson {S : Type v} [comm_ring S] (e : S ≃+* R) {I : ideal R}
+    : comap (e : S →+* R) (jacobson I) = jacobson (comap ↑e I) :=
 begin
-  have he : function.bijective e := equiv.bijective e.to_equiv,
-  let iso := order_iso_of_bijective (e.to_ring_hom) he,
+  let iso := order_iso_of_bijective (e : S →+* R) e.bijective,
   refine le_antisymm _ _,
   { intros x hx,
     erw mem_Inf,
@@ -768,11 +767,11 @@ begin
     rw ← hK,
     refine hx ⟨(iso.ord.2 (hK.symm ▸ hJ.left) : I ≤ K), _⟩,
     rw ← iso.left_inv K,
-    exact map.is_maximal _ he (hK.symm ▸ hJ.right : (iso K).is_maximal) },
+    exact map.is_maximal _ e.bijective (hK.symm ▸ hJ.right : (iso K).is_maximal) },
   { intros x hx,
     erw [mem_comap, mem_Inf],
     erw mem_Inf at hx,
-    exact λ J hJ, (hx) ⟨comap_mono hJ.left, comap.is_maximal _ he hJ.right⟩ }
+    exact λ J hJ, (hx) ⟨comap_mono hJ.left, comap.is_maximal _ e.bijective hJ.right⟩ }
 end
 
 end jacobson

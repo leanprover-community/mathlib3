@@ -1800,8 +1800,8 @@ theorem tendsto_of_liminf_eq_limsup {f : filter β} {u : β → α} {a : α}
   (hinf : liminf f u = a) (hsup : limsup f u = a) : tendsto u f (𝓝 a) :=
 le_nhds_of_Limsup_eq_Liminf is_bounded_le_of_top is_bounded_ge_of_bot hsup hinf
 
-/-- If the liminf and the limsup of a function coincide, then the limit of the function
-exists and has the same value -/
+/-- If a number `a` is less than or equal to the `liminf` of a function `f` at some filter
+and is greater than or equal to the `limsup` of `f`, then `f` tends to `a` along this filter. -/
 theorem tendsto_of_le_liminf_of_limsup_le {f : filter β} {u : β → α} {a : α}
   (hinf : a ≤ liminf f u) (hsup : limsup f u ≤ a) :
   tendsto u f (𝓝 a) :=
@@ -1818,7 +1818,7 @@ Limsup_eq_of_le_nhds (map_ne_bot hf) h
 /-- If a function has a limit, then its liminf coincides with its limit-/
 theorem filter.tendsto.liminf_eq {f : filter β} {u : β → α} {a : α} (hf : f ≠ ⊥)
   (h : tendsto u f (𝓝 a)) : liminf f u = a :=
-  Liminf_eq_of_le_nhds (map_ne_bot hf) h
+Liminf_eq_of_le_nhds (map_ne_bot hf) h
 
 end complete_linear_order
 

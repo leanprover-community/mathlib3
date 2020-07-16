@@ -215,7 +215,7 @@ task with the difference that `squeeze_simp` relates to `simp` while
 `squeeze_dsimp`.
 
 `squeeze_simp` behaves like `simp` (including all its arguments)
-and prints a `simp only` invokation to skip the search through the
+and prints a `simp only` invocation to skip the search through the
 `simp` lemma list.
 
 For instance, the following is easily solved with `simp`:

@@ -107,14 +107,6 @@ In the locale `manifold`, we denote the composition of local homeomorphisms with
 composition of local equivs with `≫`.
 -/
 
--- register in the simpset `mfld_simps` several lemmas that are often useful
-attribute [mfld_simps] id.def function.comp.left_id set.mem_set_of_eq set.image_eq_empty
-set.univ_inter set.preimage_univ set.prod_mk_mem_set_prod_eq and_true set.mem_univ
-set.mem_image_of_mem true_and set.mem_inter_eq set.mem_preimage function.comp_app
-set.inter_subset_left set.mem_prod set.range_id and_self set.mem_range_self
-eq_self_iff_true forall_const forall_true_iff set.inter_univ set.preimage_id function.comp.right_id
-not_false_iff and_imp
-
 noncomputable theory
 open_locale classical
 universes u
@@ -233,12 +225,12 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
         exact ⟨hx, xs⟩ },
       cases hs,
       { replace hs : local_homeomorph.restr e s = local_homeomorph.refl H,
-          by simpa using hs,
+          by simpa only using hs,
         have : (e.restr s).source = univ, by { rw hs, simp },
         change (e.to_local_equiv).source ∩ interior s = univ at this,
         have : univ ⊆ interior s, by { rw ← this, exact inter_subset_right _ _ },
         have : s = univ, by rwa [interior_eq_of_open open_s, univ_subset_iff] at this,
-        simpa [this, restr_univ] using hs },
+        simpa only [this, restr_univ] using hs },
       { exfalso,
         rw mem_set_of_eq at hs,
         rwa hs at x's } },
@@ -326,7 +318,7 @@ def pregroupoid.groupoid (PG : pregroupoid H) : structure_groupoid H :=
       refl }
   end }
 
-lemma mem_groupoid_of_pregroupoid (PG : pregroupoid H) (e : local_homeomorph H H) :
+lemma mem_groupoid_of_pregroupoid {PG : pregroupoid H} {e : local_homeomorph H H} :
   e ∈ PG.groupoid ↔ PG.property e e.source ∧ PG.property e.symm e.target :=
 iff.rfl
 
@@ -471,7 +463,7 @@ attribute [simp, mfld_simps] mem_chart_source chart_mem_atlas
 section charted_space
 
 /-- Any space is a charted_space modelled over itself, by just using the identity chart -/
-instance manifold_model_space (H : Type*) [topological_space H] : charted_space H H :=
+instance charted_space_self (H : Type*) [topological_space H] : charted_space H H :=
 { atlas            := {local_homeomorph.refl H},
   chart_at         := λx, local_homeomorph.refl H,
   mem_chart_source := λx, mem_univ x,
@@ -479,12 +471,13 @@ instance manifold_model_space (H : Type*) [topological_space H] : charted_space 
 
 /-- In the trivial charted_space structure of a space modelled over itself through the identity, the
 atlas members are just the identity -/
-@[simp, mfld_simps] lemma model_space_atlas {H : Type*} [topological_space H] {e : local_homeomorph H H} :
+@[simp, mfld_simps] lemma charted_space_self_atlas
+  {H : Type*} [topological_space H] {e : local_homeomorph H H} :
   e ∈ atlas H H ↔ e = local_homeomorph.refl H :=
 by simp [atlas, charted_space.atlas]
 
 /-- In the model space, chart_at is always the identity -/
-@[simp, mfld_simps] lemma chart_at_model_space_eq {H : Type*} [topological_space H] {x : H} :
+@[simp, mfld_simps] lemma chart_at_self_eq {H : Type*} [topological_space H] {x : H} :
   chart_at H x = local_homeomorph.refl H :=
 by simpa using chart_mem_atlas H x
 
@@ -673,7 +666,7 @@ lemma has_groupoid_of_pregroupoid (PG : pregroupoid H)
   (h : ∀{e e' : local_homeomorph M H}, e ∈ atlas H M → e' ∈ atlas H M
     → PG.property (e.symm ≫ₕ e') (e.symm ≫ₕ e').source) :
   has_groupoid M (PG.groupoid) :=
-⟨assume e e' he he', (mem_groupoid_of_pregroupoid PG _).mpr ⟨h he he', h he' he⟩⟩
+⟨assume e e' he he', mem_groupoid_of_pregroupoid.mpr ⟨h he he', h he' he⟩⟩
 
 /-- The trivial charted space structure on the model space is compatible with any groupoid -/
 instance has_groupoid_model_space (H : Type*) [topological_space H] (G : structure_groupoid H) :
@@ -681,7 +674,7 @@ instance has_groupoid_model_space (H : Type*) [topological_space H] (G : structu
 { compatible := λe e' he he', begin
     replace he : e ∈ atlas H H := he,
     replace he' : e' ∈ atlas H H := he',
-    rw model_space_atlas at he he',
+    rw charted_space_self_atlas at he he',
     simp [he, he', structure_groupoid.id_mem]
   end }
 
@@ -744,6 +737,12 @@ begin
     ... ≈ (e.symm ≫ₕ e').restr s : by simp [restr_trans],
   exact G.eq_on_source C (setoid.symm D),
 end
+
+variable (G)
+
+/-- In the model space, the identity is in any maximal atlas. -/
+lemma structure_groupoid.id_mem_maximal_atlas : local_homeomorph.refl H ∈ G.maximal_atlas H :=
+G.mem_maximal_atlas_of_mem_atlas (by simp)
 
 end maximal_atlas
 

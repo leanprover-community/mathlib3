@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.int.sqrt
-import data.equiv.encodable
+import data.equiv.encodable.basic
 import algebra.group
 import algebra.euclidean_domain
 import algebra.ordered_field

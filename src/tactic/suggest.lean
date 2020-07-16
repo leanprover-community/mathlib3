@@ -183,24 +183,6 @@ do (e, t) ← decl_mk_const d.d,
    | both := undefined -- we use `unpack_iff_both` to ensure this isn't reachable
    end
 
-/--
-Replace any metavariables in the expression with underscores, in preparation for printing
-`refine ...` statements.
--/
-meta def replace_mvars (e : expr) : expr :=
-e.replace (λ e' _, if e'.is_mvar then some (unchecked_cast pexpr.mk_placeholder) else none)
-
-/--
-Construct a `refine ...` or `exact ...` string which would construct `g`.
--/
-meta def tactic_statement (g : expr) : tactic string :=
-do g ← instantiate_mvars g,
-   g ← head_beta g,
-   r ← pp (replace_mvars g),
-   if g.has_meta_var
-   then return (sformat!"Try this: refine {r}")
-   else return (sformat!"Try this: exact {r}")
-
 /-- An `application` records the result of a successful application of a library lemma. -/
 meta structure application :=
 (state     : tactic_state)

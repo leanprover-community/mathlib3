@@ -682,7 +682,7 @@ end
 lemma filter.eventually_eq.fderiv_eq (hL : f₁ =ᶠ[𝓝 x] f) :
   fderiv 𝕜 f₁ x = fderiv 𝕜 f x :=
 begin
-  have A : f₁ x = f x := (mem_of_nhds hL : _),
+  have A : f₁ x = f x := hL.eq_of_nhds,
   rw [← fderiv_within_univ, ← fderiv_within_univ],
   rw ← nhds_within_univ at hL,
   exact hL.fderiv_within_eq unique_diff_within_at_univ A

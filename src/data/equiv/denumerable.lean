@@ -7,7 +7,7 @@ Denumerable (countably infinite) types, as a typeclass extending
 encodable. This is used to provide explicit encode/decode functions
 from nat, where the functions are known inverses of each other.
 -/
-import data.equiv.encodable
+import data.equiv.encodable.basic
 import data.sigma
 import data.fintype.basic
 import data.list.min_max

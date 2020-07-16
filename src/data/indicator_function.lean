@@ -115,6 +115,22 @@ lemma indicator_add (s : set α) (f g : α → β) :
   indicator s (λa, f a + g a) = λa, indicator s f a + indicator s g a :=
 by { funext, simp only [indicator], split_ifs, { refl }, rw add_zero }
 
+@[simp] lemma indicator_compl_add_self_apply (s : set α) (f : α → β) (a : α) :
+  indicator sᶜ f a + indicator s f a = f a :=
+classical.by_cases (λ ha : a ∈ s, by simp [ha]) (λ ha, by simp [ha])
+
+@[simp] lemma indicator_compl_add_self (s : set α) (f : α → β) :
+  indicator sᶜ f + indicator s f = f :=
+funext $ indicator_compl_add_self_apply s f
+
+@[simp] lemma indicator_self_add_compl_apply (s : set α) (f : α → β) (a : α) :
+  indicator s f a + indicator sᶜ f a = f a :=
+classical.by_cases (λ ha : a ∈ s, by simp [ha]) (λ ha, by simp [ha])
+
+@[simp] lemma indicator_self_add_compl (s : set α) (f : α → β) :
+  indicator s f + indicator sᶜ f = f :=
+funext $ indicator_self_add_compl_apply s f
+
 variables (β)
 instance is_add_monoid_hom.indicator (s : set α) : is_add_monoid_hom (λf:α → β, indicator s f) :=
 { map_add := λ _ _, indicator_add _ _ _,
@@ -143,15 +159,8 @@ lemma indicator_sub (s : set α) (f g : α → β) :
   indicator s (λa, f a - g a) = λa, indicator s f a - indicator s g a :=
 show indicator s (f - g) = indicator s f - indicator s g, from is_add_group_hom.map_sub _ _ _
 
-lemma indicator_compl (s : set α) (f : α → β) : indicator sᶜ f = λ a, f a - indicator s f a :=
-begin
-  funext,
-  simp only [indicator],
-  split_ifs with h₁ h₂,
-  { rw sub_zero },
-  { rw sub_self },
-  { rw ← mem_compl_iff at h₂, contradiction }
-end
+lemma indicator_compl (s : set α) (f : α → β) : indicator sᶜ f = f - indicator s f :=
+eq_sub_of_add_eq $ s.indicator_compl_add_self f
 
 lemma indicator_finset_sum {β} [add_comm_monoid β] {ι : Type*} (I : finset ι) (s : set α) (f : ι → α → β) :
   indicator s (∑ i in I, f i) = ∑ i in I, indicator s (f i) :=

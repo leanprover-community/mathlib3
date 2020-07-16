@@ -7,6 +7,7 @@ Measurable spaces -- σ-algberas
 -/
 import data.set.disjointed
 import data.set.countable
+import data.equiv.encodable.lattice
 
 /-!
 # Measurable spaces and measurable functions
@@ -102,25 +103,12 @@ lemma is_measurable.congr {s t : set α} (hs : is_measurable s) (h : s = t) :
   is_measurable t :=
 by rwa ← h
 
-lemma encodable.Union_decode2 {α} [encodable β] (f : β → set α) :
-  (⋃ b, f b) = ⋃ (i : ℕ) (b ∈ decode2 β i), f b :=
-ext $ by simp [mem_decode2, exists_swap]
-
-@[elab_as_eliminator] lemma encodable.Union_decode2_cases
-  {α} [encodable β] {f : β → set α} {C : set α → Prop}
-  (H0 : C ∅) (H1 : ∀ b, C (f b)) {n} :
-  C (⋃ b ∈ decode2 β n, f b) :=
-match decode2 β n with
-| none := by simp; apply H0
-| (some b) := by convert H1 b; simp [ext_iff]
-end
-
 lemma is_measurable.Union [encodable β] {f : β → set α} (h : ∀b, is_measurable (f b)) :
   is_measurable (⋃b, f b) :=
-by rw encodable.Union_decode2; exact
+by { rw ← encodable.Union_decode2, exact
 ‹measurable_space α›.is_measurable_Union
   (λ n, ⋃ b ∈ decode2 β n, f b)
-  (λ n, encodable.Union_decode2_cases is_measurable.empty h)
+  (λ n, encodable.Union_decode2_cases is_measurable.empty h) }
 
 lemma is_measurable.bUnion {f : β → set α} {s : set β} (hs : countable s)
   (h : ∀b∈s, is_measurable (f b)) : is_measurable (⋃b∈s, f b) :=
@@ -882,19 +870,6 @@ structure dynkin_system (α : Type*) :=
 (has_compl : ∀{a}, has a → has aᶜ)
 (has_Union_nat : ∀{f:ℕ → set α}, pairwise (disjoint on f) → (∀i, has (f i)) → has (⋃i, f i))
 
-theorem Union_decode2_disjoint_on
-  {β} [encodable β] {f : β → set α} (hd : pairwise (disjoint on f)) :
-  pairwise (disjoint on λ i, ⋃ b ∈ decode2 β i, f b) :=
-begin
-  rintro i j ij x ⟨h₁, h₂⟩,
-  revert h₁ h₂,
-  simp, intros b₁ e₁ h₁ b₂ e₂ h₂,
-  refine hd _ _ _ ⟨h₁, h₂⟩,
-  cases encodable.mem_decode2.1 e₁,
-  cases encodable.mem_decode2.1 e₂,
-  exact mt (congr_arg _) ij
-end
-
 namespace dynkin_system
 
 @[ext] lemma ext :
@@ -913,9 +888,9 @@ by simpa using d.has_compl d.has_empty
 
 theorem has_Union {β} [encodable β] {f : β → set α}
   (hd : pairwise (disjoint on f)) (h : ∀i, d.has (f i)) : d.has (⋃i, f i) :=
-by rw encodable.Union_decode2; exact
+by { rw ← encodable.Union_decode2, exact
 d.has_Union_nat (Union_decode2_disjoint_on hd)
-  (λ n, encodable.Union_decode2_cases d.has_empty h)
+  (λ n, encodable.Union_decode2_cases d.has_empty h) }
 
 theorem has_union {s₁ s₂ : set α}
   (h₁ : d.has s₁) (h₂ : d.has s₂) (h : s₁ ∩ s₂ ⊆ ∅) : d.has (s₁ ∪ s₂) :=

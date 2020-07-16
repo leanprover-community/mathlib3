@@ -516,6 +516,11 @@ lemma continuous_within_at.congr {f f₁ : α → β} {s : set α} {x : α}
   continuous_within_at f₁ s x :=
 h.congr_of_eventually_eq (mem_sets_of_superset self_mem_nhds_within h₁) hx
 
+lemma continuous_within_at.congr_mono {f g : α → β} {s s₁ : set α} {x : α}
+  (h : continuous_within_at f s x) (h' : eq_on g f s₁) (h₁ : s₁ ⊆ s) (hx : g x = f x):
+  continuous_within_at g s₁ x :=
+(h.mono h₁).congr h' hx
+
 lemma continuous_on_const {s : set α} {c : β} : continuous_on (λx, c) s :=
 continuous_const.continuous_on
 

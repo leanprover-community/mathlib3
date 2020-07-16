@@ -294,7 +294,9 @@ do (cfg',c) ← parse_config cfg,
           sformat!"Try this: simpa{use_iota_eqn} only "
           sformat!"{attrs}{tgt'}{c}" args)
 
-/-- see `squeeze_simp` -/
+/-- `squeeze_dsimp` behaves like `dsimp` (including all its arguments)
+and prints a `dsimp only` invocation to skip the search through the
+`simp` lemma list. See the doc string of `squeeze_simp` for examples. -/
 meta def squeeze_dsimp
   (key : parse cur_pos)
   (use_iota_eqn : parse (tk "!")?)

@@ -26,7 +26,7 @@ extension of the restricted measure.
 In the first part of the file we define operations on arbitrary functions defined on measurable
 sets.
 
-Measures on `α` form a complete lattice.
+Measures on `α` form a complete lattice, and are closed under scalar multiplication with `ennreal`.
 
 Given a measure, the null sets are the sets where `μ s = 0`, where `μ` denotes the corresponding
 outer measure (so `s` might not be measurable). We can then define the completion of `μ` as the
@@ -130,10 +130,10 @@ lemma measure'_Union
   (hd : pairwise (disjoint on f)) (hm : ∀i, is_measurable (f i)) :
   measure' (⋃i, f i) = (∑'i, measure' (f i)) :=
 begin
-  rw [encodable.Union_decode2, outer_measure.Union_aux],
+  rw [← encodable.Union_decode2, ← tsum_Union_decode2],
   { exact measure'_Union_nat _ _
       (λ n, encodable.Union_decode2_cases is_measurable.empty hm)
-      (mU _ (measurable_space.Union_decode2_disjoint_on hd)) },
+      (mU _ (encodable.Union_decode2_disjoint_on hd)) },
   { apply measure'_empty },
 end
 
@@ -230,7 +230,7 @@ by simp [infi_subtype, infi_and, trim_eq_infi]
 theorem trim_trim (m : outer_measure α) : m.trim.trim = m.trim :=
 le_antisymm (le_trim_iff.2 $ λ s hs, by simp [trim_eq _ hs, le_refl]) (trim_ge _)
 
-theorem trim_zero : (0 : outer_measure α).trim = 0 :=
+@[simp] theorem trim_zero : (0 : outer_measure α).trim = 0 :=
 ext $ λ s, le_antisymm
   (le_trans ((trim 0).mono (subset_univ s)) $
     le_of_eq $ trim_eq _ is_measurable.univ)
@@ -265,6 +265,53 @@ theorem trim_sum_ge {ι} (m : ι → outer_measure α) : sum (λ i, (m i).trim) 
 λ s, by simp [trim_eq_infi]; exact
 λ t st ht, ennreal.tsum_le_tsum (λ i,
   infi_le_of_le t $ infi_le_of_le st $ infi_le _ ht)
+
+lemma exists_is_measurable_superset_of_trim_eq_zero
+  {m : outer_measure α} {s : set α} (h : m.trim s = 0) :
+  ∃t, s ⊆ t ∧ is_measurable t ∧ m t = 0 :=
+begin
+  rw [trim_eq_infi] at h,
+  have h := (infi_eq_bot _).1 h,
+  choose t ht using show ∀n:ℕ, ∃t, s ⊆ t ∧ is_measurable t ∧ m t < n⁻¹,
+  { assume n,
+    have : (0 : ennreal) < n⁻¹ :=
+      (zero_lt_iff_ne_zero.2 $ ennreal.inv_ne_zero.2 $ ennreal.nat_ne_top _),
+    rcases h _ this with ⟨t, ht⟩,
+    use [t],
+    simpa [(>), infi_lt_iff, -add_comm] using ht },
+  refine ⟨⋂n, t n, subset_Inter (λn, (ht n).1), is_measurable.Inter (λn, (ht n).2.1), _⟩,
+  refine eq_of_le_of_forall_le_of_dense bot_le (assume r hr, _),
+  rcases ennreal.exists_inv_nat_lt (ne_of_gt hr) with ⟨n, hn⟩,
+  calc m (⋂n, t n) ≤ m (t n) : m.mono' (Inter_subset _ _)
+    ... ≤ n⁻¹ : le_of_lt (ht n).2.2
+    ... ≤ r : le_of_lt hn
+end
+
+/- Can this proof be simplified? Currently it's pretty ugly. -/
+lemma trim_smul (m : outer_measure α) (x : ennreal) : (x • m).trim = x • m.trim :=
+begin
+  ext1 s,
+  haveI : nonempty {t : set α // s ⊆ t ∧ is_measurable t} :=
+  ⟨⟨set.univ, subset_univ s, is_measurable.univ⟩⟩,
+  by_cases h : x = 0,
+  { simp only [h, zero_smul, zero_apply, trim_zero] },
+  simp only [smul_apply],
+  by_cases h2 : m.trim s = 0,
+  { rcases exists_is_measurable_superset_of_trim_eq_zero h2 with ⟨t, h1t, h2t, h3t⟩,
+    simp only [h2, mul_zero, ←le_zero_iff_eq],
+    refine le_trans (outer_measure.mono _ h1t) _,
+    simp only [trim_eq _ h2t, smul_apply, le_zero_iff_eq, measure_of_eq_coe, h3t, mul_zero] },
+  by_cases h3 : x = ⊤,
+  { simp only [h3, h2, with_top.top_mul, ne.def, not_false_iff],
+    simp only [trim_eq_infi, true_and, infi_eq_top, smul_apply, with_top.mul_eq_top_iff,
+      eq_self_iff_true, not_false_iff, ennreal.top_ne_zero, ← zero_lt_iff_ne_zero, true_and,
+      with_top.zero_lt_top],
+    intros t ht h2t, right, refine lt_of_lt_of_le (zero_lt_iff_ne_zero.mpr h2) _,
+    rw [← trim_eq m h2t], exact m.trim.mono ht },
+  simp only [trim_eq_infi, infi_and'],
+  simp only [infi_subtype'],
+  rw [ennreal.mul_infi], refl, exact h3
+end
 
 end outer_measure
 
@@ -370,23 +417,7 @@ by rw [← le_zero_iff_eq, ← h₂]; exact measure_mono h
 
 lemma exists_is_measurable_superset_of_measure_eq_zero {s : set α} (h : μ s = 0) :
   ∃t, s ⊆ t ∧ is_measurable t ∧ μ t = 0 :=
-begin
-  rw [measure_eq_infi] at h,
-  have h := (infi_eq_bot _).1 h,
-  choose t ht using show ∀n:ℕ, ∃t, s ⊆ t ∧ is_measurable t ∧ μ t < n⁻¹,
-  { assume n,
-    have : (0 : ennreal) < n⁻¹ :=
-      (zero_lt_iff_ne_zero.2 $ ennreal.inv_ne_zero.2 $ ennreal.nat_ne_top _),
-    rcases h _ this with ⟨t, ht⟩,
-    use [t],
-    simpa [(>), infi_lt_iff, -add_comm] using ht },
-  refine ⟨⋂n, t n, subset_Inter (λn, (ht n).1), is_measurable.Inter (λn, (ht n).2.1), _⟩,
-  refine eq_of_le_of_forall_le_of_dense bot_le (assume r hr, _),
-  rcases ennreal.exists_inv_nat_lt (ne_of_gt hr) with ⟨n, hn⟩,
-  calc μ (⋂n, t n) ≤ μ (t n) : measure_mono (Inter_subset _ _)
-    ... ≤ n⁻¹ : le_of_lt (ht n).2.2
-    ... ≤ r : le_of_lt hn
-end
+outer_measure.exists_is_measurable_superset_of_trim_eq_zero (by rw [← measure_eq_trim, h])
 
 lemma exists_is_measurable_superset_iff_measure_eq_zero {s : set α} :
   (∃ t, s ⊆ t ∧ is_measurable t ∧ μ t = 0) ↔ μ s = 0 :=
@@ -740,6 +771,27 @@ instance : complete_lattice (measure α) :=
       simp [h, to_measure_apply ⊤ _ hs, outer_measure.top_apply],
 -/
   .. complete_lattice_of_Inf (measure α) (λ ms, ⟨λ _, Inf_le, λ _, le_Inf⟩) }
+
+open outer_measure
+
+instance : has_scalar ennreal (measure α) :=
+⟨λ x m, {
+  m_Union := λ s hs h2s, by { simp only [measure_of_eq_coe, to_outer_measure_apply, smul_apply,
+    ennreal.tsum_mul_left, measure_Union h2s hs] },
+  trimmed := by { convert m.to_outer_measure.trim_smul x, ext1 s,
+    simp only [m.trimmed, smul_apply, measure_of_eq_coe] },
+  ..x • m.to_outer_measure }⟩
+
+@[simp] theorem smul_apply (a : ennreal) (m : measure α) (s : set α) : (a • m) s = a * m s := rfl
+
+instance : semimodule ennreal (measure α) :=
+{ smul_add := λ a m₁ m₂, ext $ λ s hs, mul_add _ _ _,
+  add_smul := λ a b m, ext $ λ s hs, add_mul _ _ _,
+  mul_smul := λ a b m, ext $ λ s hs, mul_assoc _ _ _,
+  one_smul := λ m, ext $ λ s hs, one_mul _,
+  zero_smul := λ m, ext $ λ s hs, zero_mul _,
+  smul_zero := λ a, ext $ λ s hs, mul_zero _,
+  ..measure.has_scalar }
 
 end
 

@@ -199,12 +199,16 @@ lemma is_measurable_interior : is_measurable (interior s) := is_open_interior.is
 lemma is_closed.is_measurable (h : is_closed s) : is_measurable s :=
 is_measurable.compl_iff.1 $ h.is_measurable
 
-instance opens_measurable_space.to_measurable_singleton_class [t1_space α] :
-  measurable_singleton_class α :=
-⟨λ x, is_closed_singleton.is_measurable⟩
+lemma is_compact.is_measurable [t2_space α] (h : is_compact s) : is_measurable s :=
+h.is_closed.is_measurable
 
 lemma is_measurable_closure : is_measurable (closure s) :=
 is_closed_closure.is_measurable
+
+@[priority 100] -- see Note [lower instance priority]
+instance opens_measurable_space.to_measurable_singleton_class [t1_space α] :
+  measurable_singleton_class α :=
+⟨λ x, is_closed_singleton.is_measurable⟩
 
 section order_closed_topology
 variables [preorder α] [order_closed_topology α] {a b : α}

@@ -113,4 +113,3 @@ lemma ext_iff {f g : direct_sum ι M} : f = g ↔
 ⟨λ h _, by rw h, ext R⟩
 
 end direct_sum
-#lint

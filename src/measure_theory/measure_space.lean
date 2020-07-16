@@ -3,7 +3,6 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import tactic.squeeze
 import measure_theory.outer_measure
 import order.filter.countable_Inter
 
@@ -247,20 +246,6 @@ ext $ λ s, begin
       (m₂.mono' (inter_subset_right _ _))⟩,
 end
 
-theorem trim_smul (c : ennreal) {m : outer_measure α}
-  (hm : ∀ s, m.trim s = 0 → ∃ t, s ⊆ t ∧ is_measurable t ∧ m t = 0) :
-  (c • m).trim = c • m.trim :=
-begin
-  ext1 s,
-  simp only [trim_eq_infi', smul_apply],
-  haveI : nonempty {t // s ⊆ t ∧ is_measurable t} := ⟨⟨univ, subset_univ _, is_measurable.univ⟩⟩,
-  apply ennreal.infi_mul_left,
-  rw [← trim_eq_infi'],
-  intros hc hs,
-  rcases hm s hs with ⟨t, hst, ht, ht0⟩,
-  exact ⟨⟨t, hst, ht⟩, ht0⟩
-end
-
 theorem trim_sum_ge {ι} (m : ι → outer_measure α) : sum (λ i, (m i).trim) ≤ (sum m).trim :=
 λ s, by simp [trim_eq_infi]; exact
 λ t st ht, ennreal.tsum_le_tsum (λ i,
@@ -270,47 +255,29 @@ lemma exists_is_measurable_superset_of_trim_eq_zero
   {m : outer_measure α} {s : set α} (h : m.trim s = 0) :
   ∃t, s ⊆ t ∧ is_measurable t ∧ m t = 0 :=
 begin
-  rw [trim_eq_infi] at h,
-  have h := (infi_eq_bot _).1 h,
+  erw [trim_eq_infi, infi_eq_bot] at h,
   choose t ht using show ∀n:ℕ, ∃t, s ⊆ t ∧ is_measurable t ∧ m t < n⁻¹,
   { assume n,
-    have : (0 : ennreal) < n⁻¹ :=
-      (zero_lt_iff_ne_zero.2 $ ennreal.inv_ne_zero.2 $ ennreal.nat_ne_top _),
+    have : (0 : ennreal) < n⁻¹ := (ennreal.inv_pos.2 $ ennreal.nat_ne_top _),
     rcases h _ this with ⟨t, ht⟩,
     use [t],
-    simpa [(>), infi_lt_iff, -add_comm] using ht },
+    simpa only [infi_lt_iff, exists_prop] using ht },
   refine ⟨⋂n, t n, subset_Inter (λn, (ht n).1), is_measurable.Inter (λn, (ht n).2.1), _⟩,
-  refine eq_of_le_of_forall_le_of_dense bot_le (assume r hr, _),
-  rcases ennreal.exists_inv_nat_lt (ne_of_gt hr) with ⟨n, hn⟩,
-  calc m (⋂n, t n) ≤ m (t n) : m.mono' (Inter_subset _ _)
-    ... ≤ n⁻¹ : le_of_lt (ht n).2.2
-    ... ≤ r : le_of_lt hn
+  refine le_antisymm _ (zero_le _),
+  refine le_of_tendsto_of_tendsto at_top_ne_bot tendsto_const_nhds
+    ennreal.tendsto_inv_nat_nhds_zero (eventually_of_forall $ assume n, _),
+  exact le_trans (m.mono' $ Inter_subset _ _) (le_of_lt (ht n).2.2)
 end
 
-/- Can this proof be simplified? Currently it's pretty ugly. -/
-lemma trim_smul (m : outer_measure α) (x : ennreal) : (x • m).trim = x • m.trim :=
+theorem trim_smul (c : ennreal) (m : outer_measure α) :
+  (c • m).trim = c • m.trim :=
 begin
   ext1 s,
-  haveI : nonempty {t : set α // s ⊆ t ∧ is_measurable t} :=
-  ⟨⟨set.univ, subset_univ s, is_measurable.univ⟩⟩,
-  by_cases h : x = 0,
-  { simp only [h, zero_smul, zero_apply, trim_zero] },
-  simp only [smul_apply],
-  by_cases h2 : m.trim s = 0,
-  { rcases exists_is_measurable_superset_of_trim_eq_zero h2 with ⟨t, h1t, h2t, h3t⟩,
-    simp only [h2, mul_zero, ←le_zero_iff_eq],
-    refine le_trans (outer_measure.mono _ h1t) _,
-    simp only [trim_eq _ h2t, smul_apply, le_zero_iff_eq, measure_of_eq_coe, h3t, mul_zero] },
-  by_cases h3 : x = ⊤,
-  { simp only [h3, h2, with_top.top_mul, ne.def, not_false_iff],
-    simp only [trim_eq_infi, true_and, infi_eq_top, smul_apply, with_top.mul_eq_top_iff,
-      eq_self_iff_true, not_false_iff, ennreal.top_ne_zero, ← zero_lt_iff_ne_zero, true_and,
-      with_top.zero_lt_top],
-    intros t ht h2t, right, refine lt_of_lt_of_le (zero_lt_iff_ne_zero.mpr h2) _,
-    rw [← trim_eq m h2t], exact m.trim.mono ht },
-  simp only [trim_eq_infi, infi_and'],
-  simp only [infi_subtype'],
-  rw [ennreal.mul_infi], refl, exact h3
+  simp only [trim_eq_infi', smul_apply],
+  haveI : nonempty {t // s ⊆ t ∧ is_measurable t} := ⟨⟨univ, subset_univ _, is_measurable.univ⟩⟩,
+  refine ennreal.infi_mul_left (assume hc hs, _),
+  rw ← trim_eq_infi' at hs,
+  simpa [and_assoc] using exists_is_measurable_superset_of_trim_eq_zero hs
 end
 
 end outer_measure
@@ -685,12 +652,7 @@ instance : has_scalar ennreal (measure α) :=
 ⟨λ c μ,
   { to_outer_measure := c • μ.to_outer_measure,
     m_Union := λ s hs hd, by simp [measure_Union, *, ennreal.tsum_mul_left],
-    trimmed :=
-      begin
-        rw [outer_measure.trim_smul, μ.trimmed],
-        intro s,
-        simpa only [μ.trimmed] using exists_is_measurable_superset_of_measure_eq_zero,
-      end }⟩
+    trimmed := by rw [outer_measure.trim_smul, μ.trimmed] }⟩
 
 @[simp] theorem smul_to_outer_measure (c : ennreal) (μ : measure α) :
   (c • μ).to_outer_measure = c • μ.to_outer_measure :=
@@ -773,25 +735,6 @@ instance : complete_lattice (measure α) :=
   .. complete_lattice_of_Inf (measure α) (λ ms, ⟨λ _, Inf_le, λ _, le_Inf⟩) }
 
 open outer_measure
-
-instance : has_scalar ennreal (measure α) :=
-⟨λ x m, {
-  m_Union := λ s hs h2s, by { simp only [measure_of_eq_coe, to_outer_measure_apply, smul_apply,
-    ennreal.tsum_mul_left, measure_Union h2s hs] },
-  trimmed := by { convert m.to_outer_measure.trim_smul x, ext1 s,
-    simp only [m.trimmed, smul_apply, measure_of_eq_coe] },
-  ..x • m.to_outer_measure }⟩
-
-@[simp] theorem smul_apply (a : ennreal) (m : measure α) (s : set α) : (a • m) s = a * m s := rfl
-
-instance : semimodule ennreal (measure α) :=
-{ smul_add := λ a m₁ m₂, ext $ λ s hs, mul_add _ _ _,
-  add_smul := λ a b m, ext $ λ s hs, add_mul _ _ _,
-  mul_smul := λ a b m, ext $ λ s hs, mul_assoc _ _ _,
-  one_smul := λ m, ext $ λ s hs, one_mul _,
-  zero_smul := λ m, ext $ λ s hs, zero_mul _,
-  smul_zero := λ a, ext $ λ s hs, mul_zero _,
-  ..measure.has_scalar }
 
 end
 
@@ -947,7 +890,6 @@ by rw [restrictₗ_apply, restrict_apply ht, linear_map.comp_apply,
   map_apply measurable_subtype_coe ht,
   comap_apply (coe : s → α) subtype.val_injective (λ _, hs.subtype_image) _
     (measurable_subtype_coe ht), subtype.image_preimage_coe]
-
 
 /-- Restriction of a measure to a subset is monotone
 both in set and in measure. -/

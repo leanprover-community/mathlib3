@@ -66,8 +66,6 @@ variables {α : Type*} {β : Type*} {ms : set (outer_measure α)} {m : outer_mea
 
 instance : has_coe_to_fun (outer_measure α) := ⟨_, λ m, m.measure_of⟩
 
-@[simp] lemma measure_of_eq_coe {m : outer_measure α} {s : set α} : m.measure_of s = m s := rfl
-
 @[simp] lemma measure_of_eq_coe (m : outer_measure α) : m.measure_of = m := rfl
 
 @[simp] theorem empty' (m : outer_measure α) : m ∅ = 0 := m.empty

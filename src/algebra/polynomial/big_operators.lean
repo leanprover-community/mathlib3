@@ -43,7 +43,7 @@ begin
   classical,
   induction s using finset.induction with a s ha hs, { simp },
   rw [prod_insert ha, sum_insert ha],
-  transitivity (f a).nat_degree + (∏ x in s, (f x)).nat_degree,
+  transitivity (f a).nat_degree + (∏ x in s, f x).nat_degree,
   apply polynomial.nat_degree_mul_le, linarith,
 end
 

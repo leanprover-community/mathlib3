@@ -211,8 +211,6 @@ begin
 end
 
 end monic
-
-
 end comm_ring
 
 section ring

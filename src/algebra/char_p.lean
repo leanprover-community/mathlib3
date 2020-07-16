@@ -78,7 +78,6 @@ unfold ring_char; exact char_p.cast_eq_zero_iff α (ring_char α)
 theorem ring_char.eq (α : Type u) [semiring α] {p : ℕ} (C : char_p α p) : p = ring_char α :=
 (classical.some_spec (char_p.exists_unique α)).2 p C
 
-
 theorem add_pow_char_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prime]
   [char_p R p] (x y : R) (h : commute x y):
 (x + y)^p = x^p + y^p :=
@@ -93,7 +92,6 @@ begin
   apply nat.prime.dvd_choose_self, assumption', { omega },
   rwa ← finset.mem_range
 end
-
 
 theorem add_pow_char (α : Type u) [comm_ring α] {p : ℕ} (hp : nat.prime p)
   [char_p α p] (x y : α) : (x + y)^p = x^p + y^p :=

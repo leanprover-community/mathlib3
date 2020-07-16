@@ -189,7 +189,6 @@ by simp [coeff_zero_eq_eval_zero]
 lemma pow_comp (p q : polynomial R) (k : ℕ) : (p ^ k).comp q = (p.comp q) ^ k :=
 by { unfold comp, rw ← coe_eval₂_ring_hom, apply ring_hom.map_pow }
 
-
 variables [comm_ring S] {f : R →+* S}
 
 lemma is_root_of_eval₂_map_eq_zero

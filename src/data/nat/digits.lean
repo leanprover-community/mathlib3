@@ -165,7 +165,7 @@ begin
 end
 
 /-- an n-digit number in base b + 2 is less than (b + 2)^n -/
-lemma of_digits_lt_base_pow_len' {b : ℕ} {l : list ℕ} (hl : ∀ x ∈ l, x < b+2) :
+lemma of_digits_lt_base_pow_length' {b : ℕ} {l : list ℕ} (hl : ∀ x ∈ l, x < b+2) :
   of_digits (b+2) l < (b+2)^(l.length) :=
 begin
   induction l with hd tl IH,
@@ -181,11 +181,11 @@ begin
 end
 
 /-- an n-digit number in base b is less than b^n if b ≥ 2 -/
-lemma of_digits_lt_base_pow_len {b : ℕ} {l : list ℕ} (hb : 2 ≤ b) (hl : ∀ x ∈ l, x < b) :
+lemma of_digits_lt_base_pow_length {b : ℕ} {l : list ℕ} (hb : 2 ≤ b) (hl : ∀ x ∈ l, x < b) :
   of_digits b l < b^l.length :=
 begin
   rcases b with _ | _ | b; try { linarith },
-  exact of_digits_lt_base_pow_len' hl,
+  exact of_digits_lt_base_pow_length' hl,
 end
 
 @[norm_cast] lemma coe_of_digits (α : Type*) [semiring α] (b : ℕ) (L : list ℕ) :
@@ -279,17 +279,17 @@ begin
 end
 
 /-- Any number m is less than (b+2)^(number of digits in the base b + 2 representation of m) -/
-lemma lt_base_pow_len_digits' {b m : ℕ} : m < (b + 2) ^ (digits (b + 2) m).length :=
+lemma lt_base_pow_length_digits' {b m : ℕ} : m < (b + 2) ^ (digits (b + 2) m).length :=
 begin
-  convert of_digits_lt_base_pow_len' (λ _, digits_lt_base'),
+  convert of_digits_lt_base_pow_length' (λ _, digits_lt_base'),
   rw of_digits_digits (b+2) m,
 end
 
 /-- Any number m is less than b^(number of digits in the base b representation of m) -/
-lemma lt_base_pow_len_digits {b m : ℕ} (hb : 2 ≤ b) : m < b^(digits b m).length :=
+lemma lt_base_pow_length_digits {b m : ℕ} (hb : 2 ≤ b) : m < b^(digits b m).length :=
 begin
   rcases b with _ | _ | b; try { linarith },
-  exact lt_base_pow_len_digits',
+  exact lt_base_pow_length_digits',
 end
 
 lemma of_digits_digits_append_digits {b m n : ℕ} :

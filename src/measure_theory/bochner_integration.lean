@@ -381,7 +381,9 @@ section instances
 /-! Simple functions in L1 space form a `normed_space`. -/
 
 instance : has_coe (α →₁ₛ[μ] E) (α →₁[μ] E) := coe_subtype
+instance : has_coe_to_fun (α →₁ₛ[μ] E) := ⟨λ f, α → E, λ f, ⇑(f : α →₁[μ] E)⟩
 
+@[simp, norm_cast] lemma coe_coe (f : α →₁ₛ[μ] E) : ⇑(f : α →₁[μ] E) = f := rfl
 protected lemma eq {f g : α →₁ₛ[μ] E} : (f : α →₁[μ] E) = (g : α →₁[μ] E) → f = g := subtype.eq
 protected lemma eq' {f g : α →₁ₛ[μ] E} : (f : α →ₘ[μ] E) = (g : α →ₘ[μ] E) → f = g := subtype.eq ∘ subtype.eq
 
@@ -405,6 +407,7 @@ protected def metric_space : metric_space (α →₁ₛ[μ] E) := subtype.metric
 
 local attribute [instance] simple_func.metric_space simple_func.emetric_space
 
+/-- Functions `α →₁ₛ[μ] E` form an additive commutative group. -/
 local attribute [instance, priority 10000]
 protected def add_comm_group : add_comm_group (α →₁ₛ[μ] E) := add_subgroup.to_add_comm_group _
 
@@ -528,12 +531,12 @@ lemma to_simple_func_of_simple_func (f : α →ₛ E) (hfi : integrable f μ) :
   (of_simple_func f hfi).to_simple_func =ᵐ[μ] f :=
 by { rw ← mk_eq_mk, exact classical.some_spec (of_simple_func f hfi).2 }
 
-lemma to_simple_func_eq_to_fun (f : α →₁ₛ[μ] E) : f.to_simple_func =ᵐ[μ] (f : α →₁[μ] E).to_fun :=
+lemma to_simple_func_eq_to_fun (f : α →₁ₛ[μ] E) : f.to_simple_func =ᵐ[μ] f :=
 begin
-  rw [← of_fun_eq_of_fun (f.to_simple_func) (f : α →₁[μ] E).to_fun f.measurable f.integrable
+  rw [← of_fun_eq_of_fun f.to_simple_func f f.measurable f.integrable
     (f : α →₁[μ] E).measurable (f : α →₁[μ] E).integrable, ← l1.eq_iff],
-  simp only [of_fun_eq_mk],
-  convert classical.some_spec f.2, rw mk_to_fun, refl
+  simp only [of_fun_eq_mk, ← coe_coe, mk_to_fun],
+  exact classical.some_spec f.coe_prop
 end
 
 variables (α E)
@@ -555,7 +558,7 @@ begin
   filter_upwards [to_simple_func_eq_to_fun (f + g), to_simple_func_eq_to_fun f,
     to_simple_func_eq_to_fun g, l1.add_to_fun (f : α →₁[μ] E) g],
   assume a,
-  simp only [mem_set_of_eq, coe_add, pi.add_apply],
+  simp only [mem_set_of_eq, ← coe_coe, coe_add, pi.add_apply],
   iterate 4 { assume h, rw h }
 end
 
@@ -564,7 +567,7 @@ begin
   filter_upwards [to_simple_func_eq_to_fun (-f), to_simple_func_eq_to_fun f,
     l1.neg_to_fun (f : α →₁[μ] E)],
   assume a,
-  simp only [mem_set_of_eq, pi.neg_apply, coe_neg],
+  simp only [mem_set_of_eq, pi.neg_apply, coe_neg, ← coe_coe],
   repeat { assume h, rw h }
 end
 
@@ -574,7 +577,7 @@ begin
   filter_upwards [to_simple_func_eq_to_fun (f - g), to_simple_func_eq_to_fun f,
     to_simple_func_eq_to_fun g, l1.sub_to_fun (f : α →₁[μ] E) g],
   assume a,
-  simp only [mem_set_of_eq, coe_sub, pi.sub_apply],
+  simp only [mem_set_of_eq, coe_sub, pi.sub_apply, ← coe_coe],
   repeat { assume h, rw h }
 end
 
@@ -586,7 +589,7 @@ begin
   filter_upwards [to_simple_func_eq_to_fun (k • f), to_simple_func_eq_to_fun f,
     l1.smul_to_fun k (f : α →₁[μ] E)],
   assume a,
-  simp only [mem_set_of_eq, pi.smul_apply, coe_smul],
+  simp only [mem_set_of_eq, pi.smul_apply, coe_smul, ← coe_coe],
   repeat { assume h, rw h }
 end
 
@@ -766,10 +769,8 @@ begin
       to_simple_func_eq_to_fun f],
     simp only [mem_set_of_eq],
     assume a h₁ h₂ h₃,
-    rw [h₁, coe_pos_part, h₂, ← h₃] },
-  filter_upwards [ae_eq],
-  simp only [mem_set_of_eq],
-  assume a h,
+    rw [h₁, ← coe_coe, coe_pos_part, h₂, coe_coe, ← h₃] },
+  refine ae_eq.mono (assume a h, _),
   rw [h, eq]
 end
 

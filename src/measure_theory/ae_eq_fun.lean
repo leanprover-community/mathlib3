@@ -219,6 +219,7 @@ lemma coe_fn_comp₂ {γ δ : Type*} [measurable_space γ] [measurable_space δ]
   comp₂ g hg f₁ f₂ =ᵐ[μ] λ a, g (f₁ a) (f₂ a) :=
 by { rw comp₂_eq_mk, apply coe_fn_mk }
 
+/-- Interpret `f : α →ₘ[μ] β` as a germ at `μ.ae` forgetting that `f` is measurable. -/
 def to_germ (f : α →ₘ[μ] β) : germ μ.ae β :=
 quotient.lift_on' f (λ f, ((f : α → β) : germ μ.ae β)) $ λ f g H, germ.coe_eq.2 H
 

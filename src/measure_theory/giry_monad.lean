@@ -177,7 +177,7 @@ measure.ext $ assume s hs, by rw [bind_apply hs hf, lintegral_dirac a ((measurab
 
 lemma dirac_bind {m : measure α} : bind m dirac = m :=
 measure.ext $ assume s hs,
-by simp [bind_apply hs measurable_dirac, dirac_apply _ hs, lintegral_indicator measurable_one hs]
+by simp [bind_apply hs measurable_dirac, dirac_apply _ hs, lintegral_indicator 1 hs]
 
 lemma map_dirac {f : α → β} (hf : measurable f) (a : α) :
   map f (dirac a) = dirac (f a) :=

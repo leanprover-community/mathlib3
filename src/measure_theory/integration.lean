@@ -1062,7 +1062,7 @@ lemma lintegral_rw₂ {f₁ f₁' : α → β} {f₂ f₂' : α → γ} (h₁ : 
   (∫⁻ a, g (f₁ a) (f₂ a) ∂μ) = (∫⁻ a, g (f₁' a) (f₂' a) ∂μ) :=
 lintegral_congr_ae $ h₁.mp $ h₂.mono $ λ _ h₂ h₁, by rw [h₁, h₂]
 
-@[simp] lemma lintegral_indicator {f : α → ennreal} (hf : measurable f) {s : set α} (hs : is_measurable s) :
+@[simp] lemma lintegral_indicator (f : α → ennreal) {s : set α} (hs : is_measurable s) :
   ∫⁻ a, s.indicator f a ∂μ = ∫⁻ a in s, f a ∂μ :=
 begin
   simp only [lintegral, ← restrict_lintegral_eq_lintegral_restrict _ hs, supr_subtype'],

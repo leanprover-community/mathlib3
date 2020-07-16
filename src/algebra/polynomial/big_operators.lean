@@ -21,6 +21,8 @@ Lemmas for the interaction between polynomials and ∑ and ∏.
     the degree of the product is the sum of degrees
 - `leading_coeff_prod` : for polynomials over an integral domain,
     the leading coefficient is the product of leading coefficients
+- `card_pred_coeff_prod_X_sub_C` carries most of the content for computing
+    the second coefficient of the characteristic polynomial.
 -/
 
 open_locale big_operators
@@ -30,7 +32,7 @@ universes u w
 variables {R : Type u} {ι : Type w}
 
 namespace polynomial
-#check monic_mul
+
 variable (s : finset ι)
 
 section comm_semiring

@@ -27,8 +27,7 @@ variables [comm_ring R]
 
 namespace monic
 
-lemma coeff_nat_degree {p : polynomial R} (hp : p.monic) : p.coeff (p.nat_degree) = 1 := by apply hp
-
+lemma coeff_nat_degree {p : polynomial R} (hp : p.monic) : p.coeff (p.nat_degree) = 1 := hp
 
 @[simp]
 lemma degree_one {p : polynomial R} (hp : p.monic) :

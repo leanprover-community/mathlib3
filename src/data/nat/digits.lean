@@ -155,6 +155,39 @@ end
   of_digits (1 : α) (h :: L) = h + of_digits 1 L :=
 by simp [of_digits]
 
+lemma of_digits_append {b : ℕ} {l1 l2 : list ℕ} :
+  of_digits b (l1 ++ l2) = of_digits b l1 + b^(l1.length) * of_digits b l2 :=
+begin
+  induction l1 with hd tl IH,
+  { simp [of_digits] },
+  { rw [of_digits, list.cons_append, of_digits, IH, list.length_cons, nat.pow_succ],
+    ring }
+end
+
+/-- an n-digit number in base b + 2 is less than (b + 2)^n -/
+lemma of_digits_lt_base_pow_length' {b : ℕ} {l : list ℕ} (hl : ∀ x ∈ l, x < b+2) :
+  of_digits (b+2) l < (b+2)^(l.length) :=
+begin
+  induction l with hd tl IH,
+  { simp [of_digits], },
+  { rw [of_digits, list.length_cons, nat.pow_succ, mul_comm],
+    have : (of_digits (b + 2) tl + 1) * (b+2) ≤ (b + 2) ^ tl.length * (b+2) :=
+      mul_le_mul (IH (λ x hx, hl _ (list.mem_cons_of_mem _ hx)))
+                 (by refl) dec_trivial (nat.zero_le _),
+    suffices : ↑hd < b + 2,
+    { linarith },
+    norm_cast,
+    exact hl hd (list.mem_cons_self _ _) }
+end
+
+/-- an n-digit number in base b is less than b^n if b ≥ 2 -/
+lemma of_digits_lt_base_pow_length {b : ℕ} {l : list ℕ} (hb : 2 ≤ b) (hl : ∀ x ∈ l, x < b) :
+  of_digits b l < b^l.length :=
+begin
+  rcases b with _ | _ | b; try { linarith },
+  exact of_digits_lt_base_pow_length' hl,
+end
+
 @[norm_cast] lemma coe_of_digits (α : Type*) [semiring α] (b : ℕ) (L : list ℕ) :
   ((of_digits b L : ℕ) : α) = of_digits (b : α) L :=
 begin
@@ -244,6 +277,24 @@ begin
   { refl, },
   { simp [of_digits, list.sum_cons, ih], }
 end
+
+/-- Any number m is less than (b+2)^(number of digits in the base b + 2 representation of m) -/
+lemma lt_base_pow_length_digits' {b m : ℕ} : m < (b + 2) ^ (digits (b + 2) m).length :=
+begin
+  convert of_digits_lt_base_pow_length' (λ _, digits_lt_base'),
+  rw of_digits_digits (b+2) m,
+end
+
+/-- Any number m is less than b^(number of digits in the base b representation of m) -/
+lemma lt_base_pow_length_digits {b m : ℕ} (hb : 2 ≤ b) : m < b^(digits b m).length :=
+begin
+  rcases b with _ | _ | b; try { linarith },
+  exact lt_base_pow_length_digits',
+end
+
+lemma of_digits_digits_append_digits {b m n : ℕ} :
+  of_digits b (digits b n ++ digits b m) = n + b ^ (digits b n).length * m:=
+by rw [of_digits_append, of_digits_digits, of_digits_digits]
 
 -- This is really a theorem about polynomials.
 lemma dvd_of_digits_sub_of_digits {α : Type*} [comm_ring α]

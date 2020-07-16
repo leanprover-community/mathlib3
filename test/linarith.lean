@@ -354,9 +354,6 @@ by nlinarith
 variables {R : Type*} [normed_ring R]
 
 example (t : R) (a b : ℝ) (h : a ≤ b) : ∥t^2∥ * a ≤ ∥t^2∥ * b :=
-mul_le_mul_of_nonneg_left h (norm_nonneg (t^2))
-
-example (t : R) (a b : ℝ) (h : a ≤ b) : ∥t^2∥ * a ≤ ∥t^2∥ * b :=
 by nlinarith [norm_nonneg (t^2)]
 
 example (t : R)  (a b : ℝ) (h : a ≤ b) : a ≤ ∥t^2∥ + b :=

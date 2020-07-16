@@ -98,7 +98,7 @@ end
 theorem add_pow_char (α : Type u) [comm_ring α] {p : ℕ} (hp : nat.prime p)
   [char_p α p] (x y : α) : (x + y)^p = x^p + y^p :=
 begin
-  haveI : fact p.prime := by apply hp,
+  haveI : fact p.prime := hp,
   apply add_pow_char_of_commute,
   apply commute.all,
 end

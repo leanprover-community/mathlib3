@@ -1139,26 +1139,14 @@ begin
     limsup at_top (λ (n : ℕ), lintegral (F n)) ≤ ∫⁻ (a : α), limsup at_top (λn, F n a) :
       limsup_lintegral_le hF_meas h_bound h_fin
     ... = lintegral f :
-      lintegral_congr_ae $
-          by filter_upwards [h_lim] assume a h, limsup_eq_of_tendsto at_top_ne_bot h,
+      lintegral_congr_ae $ h_lim.mono $ assume a h, h.limsup_eq at_top_ne_bot,
   have lintegral_le_liminf :=
   calc
     lintegral f = ∫⁻ (a : α), liminf at_top (λ (n : ℕ), F n a) :
-      lintegral_congr_ae $
-      by filter_upwards [h_lim] assume a h, (liminf_eq_of_tendsto at_top_ne_bot h).symm
+      lintegral_congr_ae $ h_lim.mono $ assume a h, (h.liminf_eq at_top_ne_bot).symm
     ... ≤ liminf at_top (λ n, lintegral (F n)) :
       lintegral_liminf_le hF_meas,
-  have liminf_eq_limsup :=
-    le_antisymm
-      (liminf_le_limsup (map_ne_bot at_top_ne_bot))
-      (le_trans limsup_le_lintegral lintegral_le_liminf),
-  have liminf_eq_lintegral : liminf at_top (λ n, lintegral (F n)) = lintegral f :=
-    le_antisymm (by convert limsup_le_lintegral) lintegral_le_liminf,
-  have limsup_eq_lintegral : limsup at_top (λ n, lintegral (F n)) = lintegral f :=
-    le_antisymm
-      limsup_le_lintegral
-      begin convert lintegral_le_liminf, exact liminf_eq_limsup.symm end,
-  exact tendsto_of_liminf_eq_limsup ⟨liminf_eq_lintegral, limsup_eq_lintegral⟩
+  exact tendsto_of_le_liminf_of_limsup_le lintegral_le_liminf limsup_le_lintegral
 end
 
 /-- Dominated convergence theorem for filters with a countable basis -/

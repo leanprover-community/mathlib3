@@ -67,6 +67,7 @@ by simp [coeff_zero_eq_eval_zero]
 lemma pow_comp (p q : polynomial R) (k : ℕ) : (p ^ k).comp q = (p.comp q) ^ k :=
 by { unfold comp, rw ← coe_eval₂_ring_hom, apply ring_hom.map_pow }
 
+by { rw coeff_zero_eq_eval_zero, rw coe_aeval_eq_eval, }
 
 end comm_semiring
 

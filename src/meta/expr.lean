@@ -305,6 +305,13 @@ meta def is_sort : expr → bool
 | (sort _) := tt
 | e         := ff
 
+/--
+Replace any metavariables in the expression with underscores, in preparation for printing
+`refine ...` statements.
+-/
+meta def replace_mvars (e : expr) : expr :=
+e.replace (λ e' _, if e'.is_mvar then some (unchecked_cast pexpr.mk_placeholder) else none)
+
 /-- If `e` is a local constant, `to_implicit_local_const e` changes the binder info of `e` to
  `implicit`. See also `to_implicit_binder`, which also changes lambdas and pis. -/
 meta def to_implicit_local_const : expr → expr

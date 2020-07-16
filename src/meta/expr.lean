@@ -370,6 +370,9 @@ e.fold mk_name_set $ λ e' _ l,
 meta def contains_constant (e : expr) (p : name → Prop) [decidable_pred p] : bool :=
 e.fold ff (λ e' _ b, if p (e'.const_name) then tt else b)
 
+/--
+Returns true if `e` contains a `sorry`.
+-/
 meta def contains_sorry (e : expr) : bool :=
 e.fold ff (λ e' _ b, if (is_sorry e').is_some then tt else b)
 

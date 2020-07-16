@@ -22,6 +22,7 @@ variables {R ι M}
 instance : semimodule R (direct_sum ι M) := dfinsupp.to_semimodule
 
 variables R ι M
+/-- This is like `mk`, but indexed by a finset. -/
 def lmk : Π s : finset ι, (Π i : (↑s : set ι), M i.val) →ₗ[R] direct_sum ι M :=
 dfinsupp.lmk M R
 
@@ -67,6 +68,10 @@ theorem to_module.ext (H : ∀ i, ψ.comp (lof R ι M i) = ψ'.comp (lof R ι M 
   ψ f = ψ' f :=
 by rw [to_module.unique R ψ, to_module.unique R ψ', funext H]
 
+/--
+The inclusion of the direct sum of a subset of the summands, as a linear map.
+The name seems kind of arcane?
+-/
 def lset_to_set (S T : set ι) (H : S ⊆ T) :
   direct_sum S (M ∘ subtype.val) →ₗ direct_sum T (M ∘ subtype.val) :=
 to_module R _ _ $ λ i, lof R T (M ∘ @subtype.val _ T) ⟨i.1, H i.2⟩

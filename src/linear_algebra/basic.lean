@@ -728,8 +728,7 @@ theorem mem_Sup_of_directed {s : set (submodule R M)}
   z ∈ Sup s ↔ ∃ y ∈ s, z ∈ y :=
 begin
   haveI : nonempty s := hs.to_subtype,
-  rw [Sup_eq_supr, supr_subtype', mem_supr_of_directed, subtype.exists],
-  exact (directed_on_iff_directed _).1 hdir
+  simp only [Sup_eq_supr', mem_supr_of_directed _ hdir.directed_coe, set_coe.exists, subtype.coe_mk]
 end
 
 section

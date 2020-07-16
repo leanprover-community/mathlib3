@@ -1741,14 +1741,6 @@ meta def success_if_fail_with_msg {α : Type u} (t : tactic α) (msg : string) :
    mk_exception "success_if_fail_with_msg combinator failed, given tactic succeeded" none s
 end
 
-
-/--
-Replace any metavariables in the expression with underscores, in preparation for printing
-`refine ...` statements.
--/
-meta def replace_mvars (e : expr) : expr :=
-e.replace (λ e' _, if e'.is_mvar then some (unchecked_cast pexpr.mk_placeholder) else none)
-
 /--
 Construct a `refine ...` or `exact ...` string which would construct `g`.
 -/

@@ -305,6 +305,13 @@ meta def is_sort : expr → bool
 | (sort _) := tt
 | e         := ff
 
+/--
+Replace any metavariables in the expression with underscores, in preparation for printing
+`refine ...` statements.
+-/
+meta def replace_mvars (e : expr) : expr :=
+e.replace (λ e' _, if e'.is_mvar then some (unchecked_cast pexpr.mk_placeholder) else none)
+
 /-- If `e` is a local constant, `to_implicit_local_const e` changes the binder info of `e` to
  `implicit`. See also `to_implicit_binder`, which also changes lambdas and pis. -/
 meta def to_implicit_local_const : expr → expr
@@ -362,6 +369,12 @@ e.fold mk_name_set $ λ e' _ l,
   Returns `true` if `p name.anonymous` is true. -/
 meta def contains_constant (e : expr) (p : name → Prop) [decidable_pred p] : bool :=
 e.fold ff (λ e' _ b, if p (e'.const_name) then tt else b)
+
+/--
+Returns true if `e` contains a `sorry`.
+-/
+meta def contains_sorry (e : expr) : bool :=
+e.fold ff (λ e' _ b, if (is_sorry e').is_some then tt else b)
 
 /--
 `app_symbol_in e l` returns true iff `e` is an application of a constant whose name is in `l`.

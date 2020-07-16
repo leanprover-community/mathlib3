@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 
-Direct sum of modules over commutative rings, indexed by a discrete type.
+Direct sum of modules over commutative rings, indexed by a discrete type ι.
 -/
 import algebra.direct_sum
 import linear_algebra.basic
@@ -22,9 +22,10 @@ variables {R ι M}
 instance : semimodule R (direct_sum ι M) := dfinsupp.to_semimodule
 
 variables R ι M
-def lmk : Π s : finset ι, (Π i : (↑s : set ι), M i.1) →ₗ[R] direct_sum ι M :=
+def lmk : Π s : finset ι, (Π i : (↑s : set ι), M i.val) →ₗ[R] direct_sum ι M :=
 dfinsupp.lmk M R
 
+/-- The inclusion from the product type to the direct sum, as a linear map. -/
 def lof : Π i : ι, M i →ₗ[R] direct_sum ι M :=
 dfinsupp.lsingle M R
 variables {ι M}
@@ -42,6 +43,7 @@ variables {N : Type u₁} [add_comm_group N] [semimodule R N]
 variables (φ : Π i, M i →ₗ[R] N)
 
 variables (ι N φ)
+/-- The structure map coming from the universal property of the coproduct. -/
 def to_module : direct_sum ι M →ₗ[R] N :=
 { to_fun := to_group (λ i, φ i),
   map_add' := to_group_add _,
@@ -75,6 +77,7 @@ protected def lid (M : Type v) [add_comm_group M] [semimodule R M] :
   .. to_module R punit M (λ i, linear_map.id) }
 
 variables (ι M)
+/-- The projection map onto one coordinate, as a linear map. -/
 def component (i : ι) : direct_sum ι M →ₗ[R] M i :=
 { to_fun := λ f, f i,
   map_add' := λ _ _, dfinsupp.add_apply,
@@ -105,3 +108,4 @@ lemma ext_iff {f g : direct_sum ι M} : f = g ↔
 ⟨λ h _, by rw h, ext R⟩
 
 end direct_sum
+#lint

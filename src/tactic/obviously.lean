@@ -10,10 +10,7 @@ and fail otherwise.
 meta def sorry_if_contains_sorry : tactic unit :=
 do
   g ← target,
-  lock_tactic_state -- so the metavariable type in `sorry : _` doesn't become a goal
-    -- we use `.replace_mvars` here to avoid unifying `sorry` with a goal whose type is a metavariable.
-    (to_expr ``(sorry : _) >>= kdepends_on g.replace_mvars >>= guardb) <|>
-    fail "goal does not contain `sorrry`",
+  guard g.contains_sorry <|> fail "goal does not contain `sorrry`",
   tactic.admit
 
 end tactic

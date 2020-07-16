@@ -123,10 +123,7 @@ section comp
 
 lemma eval₂_comp [comm_semiring S] (f : R →+* S) {x : S} :
   (p.comp q).eval₂ f x = p.eval₂ f (q.eval₂ f x) :=
-begin
-  rw [comp, p.as_sum],
-  simp [eval₂_mul, eval₂_C, eval₂_pow, eval₂_sum, finset.eval₂_sum],
-end
+by rw [comp, p.as_sum]; simp only [eval₂_mul, eval₂_C, eval₂_pow, eval₂_finset_sum, eval₂_X]
 
 
 lemma eval_comp : (p.comp q).eval a = p.eval (q.eval a) := eval₂_comp _

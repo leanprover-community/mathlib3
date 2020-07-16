@@ -93,7 +93,7 @@ finsupp.sum_sum_index (by simp [is_add_monoid_hom.map_zero f])
   (by intros; simp [right_distrib, is_add_monoid_hom.map_add f])
 
 
-lemma finset.eval₂_sum (s : finset ι) (g : ι → polynomial R) (x : S) :
+lemma eval₂_finset_sum (s : finset ι) (g : ι → polynomial R) (x : S) :
   (∑ i in s, g i).eval₂ f x = ∑ i in s, (g i).eval₂ f x :=
 begin
   classical,

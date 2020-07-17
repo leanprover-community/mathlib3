@@ -34,6 +34,7 @@ open decidable
 
 /-- `prime p` means that `p` is a prime number, that is, a natural number
   at least 2 whose only divisors are `p` and `1`. -/
+@[pp_nodot]
 def prime (p : ℕ) := 2 ≤ p ∧ ∀ m ∣ p, m = 1 ∨ m = p
 
 theorem prime.two_le {p : ℕ} : prime p → 2 ≤ p := and.left

@@ -365,7 +365,12 @@ end
 variables [separated_space γ]
 
 lemma uniformly_extend_of_ind (b : β) : ψ (e b) = f b :=
-dense_inducing.extend_e_eq _ b (continuous_iff_continuous_at.1 h_f.continuous b)
+dense_inducing.extend_eq_at _ b h_f.continuous.continuous_at
+
+lemma uniformly_extend_unique {g : α → γ} (hg : ∀ b, g (e b) = f b)
+  (hc : continuous g) :
+  ψ = g :=
+dense_inducing.extend_unique _ hg hc
 
 include h_f
 
@@ -380,7 +385,6 @@ begin
   { simp only [dense_inducing.extend, dif_neg ha],
     exact lim_spec (uniformly_extend_exists h_e h_dense h_f _) }
 end
-
 
 lemma uniform_continuous_uniformly_extend [cγ : complete_space γ] : uniform_continuous ψ :=
 assume d hd,

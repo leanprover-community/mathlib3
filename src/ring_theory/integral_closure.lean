@@ -235,6 +235,14 @@ theorem mem_integral_closure_iff_mem_fg {r : A} :
 ⟨λ hr, ⟨algebra.adjoin R {r}, fg_adjoin_singleton_of_integral _ hr, algebra.subset_adjoin rfl⟩,
 λ ⟨M, Hf, hrM⟩, is_integral_of_mem_of_fg M Hf _ hrM⟩
 
+variables {R} {A}
+
+lemma integral_closure.is_integral (x : integral_closure R A) : is_integral R x :=
+exists_imp_exists
+  (λ p, and.imp_right (λ hp, show aeval R (integral_closure R A) x p = 0,
+    from subtype.ext (trans (p.hom_eval₂ _ (integral_closure R A).val.to_ring_hom x) hp)))
+  x.2
+
 theorem integral_closure_idem : integral_closure (integral_closure R A : set A) A = ⊥ :=
 begin
   rw eq_bot_iff, intros r hr,

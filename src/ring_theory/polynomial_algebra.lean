@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import ring_theory.tensor_product
 import ring_theory.matrix_algebra
-import data.polynomial
+import data.polynomial.algebra_map
 
 /-!
 # Algebra isomorphism between matrices of polynomials and polynomials of matrices
@@ -37,13 +37,8 @@ open algebra.tensor_product (alg_hom_of_linear_map_tensor_product include_left)
 noncomputable theory
 
 variables (R A : Type*)
-variables [comm_ring R]
-variables [ring A] [algebra R A]
-
--- The instance set up in `data.polynomial` allows `[comm_semiring R]` and `[semiring A]`.
--- Here we provide a specialisation, as otherwise some typeclass inference problems below
--- cause deterministic timeouts. Suggestions for better fixes welcome.
-instance algebra_of_algebra' : algebra R (polynomial A) := polynomial.algebra_of_algebra
+variables [comm_semiring R]
+variables [semiring A] [algebra R A]
 
 namespace poly_equiv_tensor
 
@@ -73,7 +68,7 @@ def to_fun_linear_right (a : A) : polynomial R →ₗ[R] polynomial A :=
           ← mul_assoc],
       congr' 1,
       rw [← algebra.commutes, ← algebra.commutes],
-      simp only [ring_hom.map_mul, polynomial.algebra_map_apply, mul_assoc] },
+      simp only [ring_hom.map_mul, polynomial.algebra_map_apply, mul_assoc], },
     { intro i, simp only [ring_hom.map_zero, mul_zero, monomial_zero_right] },
   end,
   map_add' := λ p q,
@@ -189,7 +184,7 @@ by simp only [inv_fun, eval₂_add]
 lemma left_inv (x : A ⊗ polynomial R) :
   inv_fun R A ((to_fun_alg_hom R A) x) = x :=
 begin
-  apply tensor_product.induction_on _ _ x,
+  apply tensor_product.induction_on x,
   { simp [inv_fun], },
   { intros a p, dsimp only [inv_fun],
     rw [to_fun_alg_hom_apply_tmul, eval₂_sum],

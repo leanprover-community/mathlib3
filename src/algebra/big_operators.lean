@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.opposites
+import algebra.group.anti_hom
 import data.finset.intervals
 import data.finset.fold
 import data.finset.powerset

@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import data.fintype.card
 import data.finset.sort
+import tactic.omega
 
 /-!
 # Compositions

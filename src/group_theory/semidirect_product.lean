@@ -106,7 +106,10 @@ inr_injective.eq_iff
 lemma inl_aut (g : G) (n : N) : (inl (φ g n) : N ⋊[φ] G) = inr g * inl n * inr g⁻¹ :=
 by ext; simp
 
-lemma inl_left_mul_inr_right (x : N ⋊[φ] G) : inl x.left * inr x.right = x :=
+lemma inl_aut_inv (g : G) (n : N) : (inl ((φ g)⁻¹ n) : N ⋊[φ] G) = inr g⁻¹ * inl n * inr g :=
+by rw [← monoid_hom.map_inv, inl_aut, inv_inv]
+
+@[simp] lemma inl_left_mul_inr_right (x : N ⋊[φ] G) : inl x.left * inr x.right = x :=
 by ext; simp
 
 /-- The canonical projection map `N ⋊[φ] G →* G`, as a group hom. -/

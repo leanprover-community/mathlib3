@@ -332,7 +332,7 @@ begin
   -- argument of `cons`, but that argument is cleared by index unification. I
   -- find this a little strange, but `cases` also behaves like this.
   guard_hyp j := ℕ,
-  guard_hyp k := Vec ℕ 1,
+  guard_hyp k := Vec ℕ (nat.succ nat.zero),
   clear j k,
 
   cases' z with i j k l,
@@ -399,6 +399,14 @@ begin
   }
 end
 
+-- Index equation simplification can deal with equations that aren't in normal
+-- form.
+example {α} (x : α) (xs) : list.take 1 (x :: xs) ≠ [] :=
+begin
+  intro contra,
+  cases' contra
+end
+
 -- Index generalisation should leave early occurrences of complex index terms
 -- alone. This means that given the eliminee `e : E (f y) y` where `y` is a
 -- complex term, index generalisation should give us
@@ -423,8 +431,8 @@ def plus : ℕ₂ → ℕ₂ → ℕ₂
 example (x : ℕ₂) (h : plus zero x = zero) : x = zero :=
 begin
   cases' h,
-  guard_hyp cases_eq := plus zero x = zero,
-  guard_target x = plus zero x,
+  guard_target zero = plus zero zero,
+  refl
   -- If index generalisation blindly replaced all occurrences of zero, we would
   -- get
   --
@@ -435,7 +443,6 @@ begin
   --     plus index x = zero                        → x = plus index x
   --
   -- This leaves the goal provable, but very confusing.
-  refl
 end
 
 end ℕ₂

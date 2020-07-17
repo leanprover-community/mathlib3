@@ -817,7 +817,8 @@ by simp [linear_equiv.symm_conj_apply, matrix.lie_conj, matrix.comp_to_matrix_mu
 types is an equivalence of Lie algebras. -/
 def matrix.reindex_lie_equiv {m : Type w₁} [fintype m] [decidable_eq m]
   (e : n ≃ m) : matrix n n R ≃ₗ⁅R⁆ matrix m m R :=
-{ map_lie := λ M N, by simp [lie_ring.of_associative_ring_bracket, matrix.reindex_mul],
+{ map_lie := λ M N, by simp only [lie_ring.of_associative_ring_bracket, matrix.reindex_mul,
+    matrix.mul_eq_mul, linear_equiv.map_sub, linear_equiv.to_fun_apply],
 ..(matrix.reindex_linear_equiv e e) }
 
 @[simp] lemma matrix.reindex_lie_equiv_apply {m : Type w₁} [fintype m] [decidable_eq m]

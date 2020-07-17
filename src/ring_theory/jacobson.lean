@@ -15,7 +15,7 @@ The following conditions are equivalent for a ring `R`:
 2. Every radical ideal `I` can be written as an intersection of maximal ideals
 3. Every prime ideal `I` is equal to its jacobson radical
 
-Any ring satisfying any of these three conditions is said to be Jacobson.
+Any ring satisfying any of these equivalent conditions is said to be Jacobson.
 
 ## Main definitions
 
@@ -42,11 +42,11 @@ namespace ideal
 section is_jacobson
 variables {R : Type u} [comm_ring R] {I : ideal R}
 
-/- Definition of jacobson rings in terms of radical ideals -/
+/-- Definition of jacobson rings in terms of radical ideals -/
 @[class] def is_jacobson (R : Type u) [comm_ring R] :=
     ∀ (I : ideal R), I.radical = I → I.jacobson = I
 
-/- Defining jacobson rings in terms of prime ideals is completely equivalent -/
+/-- Defining jacobson rings in terms of prime ideals is completely equivalent -/
 lemma is_jacobson_iff_prime_eq : is_jacobson R ↔ ∀ P : ideal R, is_prime P → P.jacobson = P :=
 begin
   split,
@@ -60,7 +60,7 @@ begin
     exact λ J hJ, hx ⟨le_trans hP.left hJ.left, hJ.right⟩ }
 end
 
-/- I equals its jacobson iff it can be written as an Inf of maximal ideals -/
+/-- I equals its jacobson iff it can be written as an Inf of maximal ideals -/
 lemma is_jacobson_iff_Inf_maximal : is_jacobson R ↔
     ∀ {I : ideal R}, I.radical = I → ∃ M ⊆ {J : ideal R | J.is_maximal ∨ J = ⊤}, I = Inf M :=
 begin
@@ -81,7 +81,7 @@ lemma radical_eq_jacobson (H : is_jacobson R) (I : ideal R) : I.radical = I.jaco
 le_antisymm (le_Inf (λ J ⟨hJ, hJ_max⟩, (is_prime.radical_le_iff hJ_max.is_prime).mpr hJ))
             ((H I.radical (radical_idem I)) ▸ (jacobson_mono le_radical))
 
-/- Fields have only two ideals, and the condition holds for both of them -/
+/-- Fields have only two ideals, and the condition holds for both of them -/
 theorem is_jacobson_field {K : Type u} [field K] : is_jacobson K :=
 λ I hI, or.rec_on (eq_bot_or_top I)
 (λ h, le_antisymm

@@ -71,12 +71,14 @@ smooth_mul.comp (hf.prod_mk hg)
 lemma smooth_mul_left (a : G) : smooth I I (λ b : G, a * b) :=
 smooth_mul.comp (smooth_const.prod_mk smooth_id)
 
+/-- `L g` denotes left multiplication by `g` -/
 def L : G → G → G := λ g : G, λ x : G, g * x
 
 @[to_additive]
 lemma smooth_mul_right (a : G) : smooth I I (λ b : G, b * a) :=
 smooth_mul.comp (smooth_id.prod_mk smooth_const)
 
+/-- `R g` denotes right multiplication by `g` -/
 def R : G → G → G := λ g : G, λ x : G, x * g
 
 @[to_additive]
@@ -136,6 +138,7 @@ instance prod_Lie_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜] -/
     ((smooth_snd.comp smooth_fst).mul (smooth_snd.comp smooth_snd)),
   smooth_inv := smooth_fst.inv.prod_mk smooth_snd.inv, } -/
 
+/-- A morphism of Lie addictive groups is an additive group morphism that is also a smooth map. -/
 structure Lie_add_group_morphism (I : model_with_corners 𝕜 E E) (I' : model_with_corners 𝕜 E' E')
 (G : Type*) [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G]
 [add_group G] [Lie_add_group I G]
@@ -143,6 +146,7 @@ structure Lie_add_group_morphism (I : model_with_corners 𝕜 E E) (I' : model_w
 [add_group G'] [Lie_add_group I' G'] extends add_monoid_hom G G' :=
   (smooth_to_fun : smooth I I' to_fun)
 
+/-- A morphism of Lie groups is a group homomorphism that is also a smooth map. -/
 @[to_additive Lie_add_group_morphism]
 structure Lie_group_morphism (I : model_with_corners 𝕜 E E) (I' : model_with_corners 𝕜 E' E')
 (G : Type*) [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G] [group G]

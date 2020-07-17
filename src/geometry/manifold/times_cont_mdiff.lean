@@ -144,6 +144,7 @@ read in the preferred chart at this point. -/
 def times_cont_mdiff_within_at (n : with_top ℕ) (f : M → M') (s : set M) (x : M) :=
 lift_prop_within_at (times_cont_diff_within_at_prop I I' n) f s x
 
+/-- Abbreviation for `times_cont_mdiff_within_at I I' ⊤ f s x`. -/
 @[reducible] def smooth_within_at (f : M → M') (s : set M) (x : M) :=
   times_cont_mdiff_within_at I I' ⊤ f s x
 
@@ -153,6 +154,7 @@ read in the preferred chart at this point. -/
 def times_cont_mdiff_at (n : with_top ℕ) (f : M → M') (x : M) :=
 times_cont_mdiff_within_at I I' n f univ x
 
+/-- Abbreviation for `times_cont_mdiff_at I I' ⊤ f x`. -/
 @[reducible] def smooth_at (f : M → M') (x : M) := times_cont_mdiff_at I I' ⊤ f x
 
 /-- A function is `n` times continuously differentiable in a set of a manifold if it is continuous
@@ -161,6 +163,7 @@ around these points. -/
 def times_cont_mdiff_on (n : with_top ℕ) (f : M → M') (s : set M) :=
 ∀ x ∈ s, times_cont_mdiff_within_at I I' n f s x
 
+/-- Abbreviation for `times_cont_mdiff_on I I' ⊤ f s`. -/
 @[reducible] def smooth_on (f : M → M') (s : set M) := times_cont_mdiff_on I I' ⊤ f s
 
 /-- A function is `n` times continuously differentiable in a manifold if it is continuous
@@ -169,6 +172,7 @@ around these points. -/
 def times_cont_mdiff (n : with_top ℕ) (f : M → M') :=
 ∀ x, times_cont_mdiff_at I I' n f x
 
+/-- Abbreviation for `times_cont_mdiff I I' ⊤ f`. -/
 @[reducible] def smooth (f : M → M') := times_cont_mdiff I I' ⊤ f
 
 /-! ### Basic properties of smooth functions between manifolds -/

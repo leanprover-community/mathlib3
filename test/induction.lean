@@ -641,7 +641,7 @@ begin
 end
 
 /- The same proof, but this time the variable names clash. Also, this time we
-let `xinduction` generalize `z`. -/
+let `induction'` generalize `z`. -/
 
 lemma tc_pets₂ {α : Type} (r : α → α → Prop) (z : α) :
   ∀x y, tc r x y → r y z → tc r x z :=
@@ -760,26 +760,12 @@ begin
     exact ih_hw_1
   },
   case while_false {
-    apply hcond,
-    trivial
+    exact hcond trivial
   }
 end
 
-/- Desired proof script:
-
-lemma not_big_step_while_true {S s t} :
-  ¬ (while (λ_, true) S, s) ⟹ t :=
-begin
-  xinduction hw,
-  case while_true {
-    exact ih_hrest },
-  case while_false {
-    apply hcond,
-    apply true.intro }
-end -/
-
-/- The next version is fully curried. Ideally, both versions should behave more
-or less the same as far as induction is concerned. -/
+/- The same with an uncurried version of the predicate. It should make no
+difference whether a predicate is curried or uncurried. -/
 
 inductive curried_big_step : stmt → state → state → Prop
 | skip {s} :
@@ -836,12 +822,6 @@ inductive small_step : stmt × state → stmt × state → Prop
 | while {b : state → Prop} {S s} :
   small_step (while b S, s) (ite b (seq S (while b S)) skip, s)
 
-/- The next example yields unprovable subgoals, where the variables `S`, `s'`,
-`T`, and `T'` are not instantiated properly. The reason seems to be that
-`(S, s)` and `(T, t)` are replaced en bloc, and hence `(S, s')` and `(S, t')`
-are left alone. `cases` does the right thing but gives no induction
-hypothesis. -/
-
 lemma small_step_if_equal_states {S T s t s' t'}
     (hstep : small_step (S, s) (T, t)) (hs : s' = s) (ht : t' = t) :
   small_step (S, s') (T, t') :=
@@ -865,49 +845,6 @@ begin
   { rw [hs, ht],
     exact small_step.while,
   }
-end
-
-/- `cases` is better behaved. -/
-
-lemma small_step_if_equal_states₂ {S T s t s' t'}
-    (hstep : small_step (S, s) (T, t)) (hs : s' = s) (ht : t' = t) :
-  small_step (S, s') (T, t') :=
-begin
-  cases hstep,
-  case small_step.assign : x a {
-    change t' = s{x ↦ a s} at ht,  /- Change back! -/
-    clear hstep,
-    /- Desired state here. -/
-    rw [hs, ht],
-    exact small_step.assign },
-  case small_step.seq_step : S S' T s t hS {
-    clear hstep,
-    have ih : ∀s s' t t', s' = s → t' = t →
-      small_step (S, s') (S', t') := sorry,
-    /- Ideally the one-point rule shouldn't be used here. -/
-    /- Desired state here. -/
-    rw [hs, ht],
-    exact small_step.seq_step hS },
-  case small_step.seq_skip {
-    clear hstep,
-    /- Desired state here. -/
-    rw [hs, ht],
-    exact small_step.seq_skip },
-  case small_step.ite_true : _ _ _ _ hcond {
-    clear hstep,
-    /- Desired state here. -/
-    rw [hs, ht],
-    exact small_step.ite_true hcond },
-  case small_step.ite_false : _ _ _ _ hcond {
-    clear hstep,
-    /- Desired state here. -/
-    rw [hs, ht],
-    exact small_step.ite_false hcond },
-  case small_step.while : b S {
-    clear hstep,
-    /- Desired state here. -/
-    rw [hs, ht],
-    exact small_step.while }
 end
 
 end semantics

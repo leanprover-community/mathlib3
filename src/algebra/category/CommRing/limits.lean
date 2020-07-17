@@ -139,17 +139,14 @@ instance limit_comm_ring (F : J ⥤ CommRing) :
   (by convert (Ring.sections_subring (F ⋙ forget₂ CommRing Ring)))
 
 /--
-We show that the forgetful functor `CommRing ⥤ Ring` creates limits,
-by exhibiting a lift of the chosen limit cone in `Ring`.
+We show that the forgetful functor `CommRing ⥤ Ring` creates limits.
 
 All we need to do is notice that the limit point has a `comm_ring` instance available,
-and then reuse the existing cone maps.
+and then reuse the existing limit.
 -/
 instance (F : J ⥤ CommRing) : creates_limit F (forget₂ CommRing Ring) :=
-creates_limit_of_fully_faithful_of_has_limit
-{ X := CommRing.of (limit (F ⋙ forget _)),
-  π := { app := limit.π (F ⋙ forget₂ CommRing Ring), } }
-(iso.refl _)
+creates_limit_of_fully_faithful_of_iso
+  (CommRing.of (limit (F ⋙ forget _))) (iso.refl _)
 
 /-- The category of commutative rings has all limits. -/
 instance has_limits : has_limits CommRing :=

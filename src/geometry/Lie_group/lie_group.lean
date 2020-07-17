@@ -29,20 +29,25 @@ universes u v
 
 /-- A Lie (additive) group is a group and a smooth manifold at the same time in which
 the addition and negation operations are smooth. -/
-class Lie_add_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {E : Type*} [normed_group E]
-  [normed_space 𝕜 E] (I : model_with_corners 𝕜 E E) (G : Type*) [topological_space G]
-  [charted_space E G] [smooth_manifold_with_corners I G] [add_group G] : Prop :=
+class Lie_add_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E E)
+  (G : Type*) [add_group G] [topological_space G] [topological_add_group G]
+  [charted_space E G] [smooth_manifold_with_corners I G] : Prop :=
   (smooth_add : smooth (I.prod I) I (λ p : G×G, p.1 + p.2))
   (smooth_neg : smooth I I (λ a:G, -a))
 
 /-- A Lie group is a group and a smooth manifold at the same time in which
 the multiplication and inverse operations are smooth. -/
 @[to_additive Lie_add_group]
-class Lie_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {E : Type*} [normed_group E]
-  [normed_space 𝕜 E] (I : model_with_corners 𝕜 E E) (G : Type*) [topological_space G]
-  [charted_space E G] [smooth_manifold_with_corners I G] [group G] : Prop :=
+class Lie_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E]
+  [normed_space 𝕜 E] (I : model_with_corners 𝕜 E E)
+  (G : Type*) [group G] [topological_space G] [topological_group G]
+  [charted_space E G] [smooth_manifold_with_corners I G] : Prop :=
   (smooth_mul : smooth (I.prod I) I (λ p : G×G, p.1 * p.2))
   (smooth_inv : smooth I I (λ a:G, a⁻¹))
+
+class Lie_group.core
 
 section
 
@@ -50,7 +55,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E E}
 {F : Type*} [normed_group F] [normed_space 𝕜 F] {J : model_with_corners 𝕜 F F}
 {G : Type*} [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G] [group G]
-[Lie_group I G]
+[topological_group G] [Lie_group I G]
 {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {M : Type*} [topological_space M] [charted_space H' M] [smooth_manifold_with_corners I' M]
@@ -103,22 +108,6 @@ lemma smooth_on.inv {f : M → G} {s : set M}
   (hf : smooth_on I' I f s) : smooth_on I' I (λx, (f x)⁻¹) s :=
 smooth_inv.comp_smooth_on hf
 
-/- Coercion to topological group -/
-instance to_topological_add_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E E}
-(G : Type*) [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G]
-[add_group G] [h : Lie_add_group I G] : topological_add_group G :=
-{ continuous_add := h.smooth_add.continuous,
-  continuous_neg := h.smooth_neg.continuous, }
-
-@[to_additive to_topological_add_group]
-instance to_topological_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E E}
-(G : Type*) [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G]
-[group G] [h : Lie_group I G] : topological_group G :=
-{ continuous_mul := h.smooth_mul.continuous,
-  continuous_inv := h.smooth_inv.continuous, }
-
 /- Instance of product group -/
 /-
 PRODUCT GOT BROKEN AFTER `model_prod` WAS INTRODUCED.
@@ -138,25 +127,25 @@ instance prod_Lie_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜] -/
 
 structure Lie_add_group_morphism (I : model_with_corners 𝕜 E E) (I' : model_with_corners 𝕜 E' E')
 (G : Type*) [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G]
-[add_group G] [Lie_add_group I G]
+[add_group G] [topological_add_group G] [Lie_add_group I G]
 (G' : Type*) [topological_space G'] [charted_space E' G'] [smooth_manifold_with_corners I' G']
-[add_group G'] [Lie_add_group I' G'] extends add_monoid_hom G G' :=
+[add_group G'] [topological_add_group G'] [Lie_add_group I' G'] extends add_monoid_hom G G' :=
   (smooth_to_fun : smooth I I' to_fun)
 
 @[to_additive Lie_add_group_morphism]
 structure Lie_group_morphism (I : model_with_corners 𝕜 E E) (I' : model_with_corners 𝕜 E' E')
 (G : Type*) [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G] [group G]
-[Lie_group I G]
+[topological_group G] [Lie_group I G]
 (G' : Type*) [topological_space G'] [charted_space E' G'] [smooth_manifold_with_corners I' G']
-[group G'] [Lie_group I' G'] extends monoid_hom G G' :=
+[group G'] [topological_group G'] [Lie_group I' G'] extends monoid_hom G G' :=
   (smooth_to_fun : smooth I I' to_fun)
 
 @[to_additive]
 instance {I : model_with_corners 𝕜 E E} {I' : model_with_corners 𝕜 E' E'}
 {G : Type*} [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G]
-[group G] [h: Lie_group I G]
+[group G] [topological_group G] [h: Lie_group I G]
 {G' : Type*} [topological_space G'] [charted_space E' G'] [smooth_manifold_with_corners I' G']
-[group G'] [h' : Lie_group I' G'] :
+[group G'] [topological_group G'] [h' : Lie_group I' G'] :
 has_coe_to_fun (Lie_group_morphism I I' G G') := ⟨_, λ a, a.to_fun⟩
 
 end

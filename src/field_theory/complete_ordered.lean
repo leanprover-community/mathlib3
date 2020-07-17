@@ -23,6 +23,7 @@ We introduce definitions of Conditionally complete linear ordered fields, show a
 archimedean, and define equivalences between these fields. We also construct the natural map from a
 `linear_ordered_field` to such a field.
 
+As a proof outline this follows:
 https://mathoverflow.net/questions/362991/who-first-characterized-the-real-numbers-as-the-unique-complete-ordered-field
 
 ## Tags
@@ -31,19 +32,6 @@ reals, conditionally complete, ordered field
 
 noncomputable theory
 open_locale classical
-
-lemma map_mul_of_map_pow_two (R S : Type*) [comm_ring R] [integral_domain S] (h2 : (2 : S) ≠ 0)
-  (f : R →+ S) (h : ∀ x, f (x * x) = f x * f x) (x y : R) : f (x * y) = f x * f y :=
-begin
-  have hxy := h (x + y),
-  simp only [mul_add, add_mul, h x, h y, f.map_add] at hxy,
-  rw [← sub_eq_zero_iff_eq] at hxy,
-  ring at hxy,
-  rw [mul_comm y x, mul_assoc, mul_comm (f y)] at hxy,
-  rw [← two_mul, add_comm, ← sub_eq_add_neg, ← mul_sub, mul_eq_zero, sub_eq_zero_iff_eq] at hxy,
-  rw classical.or_iff_not_imp_left at hxy,
-  exact hxy h2,
-end
 
 open set
 

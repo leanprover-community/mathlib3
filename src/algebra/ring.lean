@@ -10,6 +10,9 @@ import algebra.group_with_zero
 import tactic.alias
 import tactic.norm_cast
 import tactic.split_ifs
+import tactic.where
+import tactic.ring
+
 
 /-!
 # Properties and homomorphisms of semirings and rings
@@ -717,6 +720,29 @@ exists_congr $ λ d, by rw [mul_right_comm, mul_left_inj' hc]
   one's additive inverse. -/
 lemma units.inv_eq_self_iff (u : units α) : u⁻¹ = u ↔ u = 1 ∨ u = -1 :=
 by { rw inv_eq_iff_mul_eq_one, simp only [units.ext_iff], push_cast, exact mul_self_eq_one_iff }
+
+/-- Makes a ring homomorphism from a additive group homomorphism of a commutative rings and an
+    integral domain that commutes with self multiplication. -/
+def ring_hom.mk_mul_self_of_two_ne_zero [comm_ring β] (f : β →+ α) (h : ∀ x, f (x * x) = f x * f x)
+  (h2 : (2 : β) ≠ 0) (h_one : f 1 = 1) : β →+* α :=
+{ map_one' := h_one,
+  map_mul' := begin
+    intros x y,
+    have hxy := h (x + y),
+    simp only [mul_add, add_mul, h x, h y, f.map_add] at hxy,
+    rw [← sub_eq_zero_iff_eq] at hxy,
+    ring at hxy,
+    rw [mul_comm y x, mul_assoc, mul_comm (f y), ← two_mul, add_comm, ← sub_eq_add_neg, ← mul_sub,
+      mul_eq_zero, sub_eq_zero_iff_eq, classical.or_iff_not_imp_left] at hxy,
+    exact hxy h2,
+  end,
+  ..f
+  }
+
+-- lemma (R S : Type*) [comm_ring R] [integral_domain S]
+--   (f : R →+ S)  (x y : R) : f (x * y) = f x * f y :=
+-- begin
+-- end
 
 end integral_domain
 

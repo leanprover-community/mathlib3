@@ -399,6 +399,47 @@ begin
   }
 end
 
+-- Index generalisation should leave early occurrences of complex index terms
+-- alone. This means that given the eliminee `e : E (f y) y` where `y` is a
+-- complex term, index generalisation should give us
+--
+--     e : E (f y) i,
+--
+-- *not*
+--
+--     e : E (f i) i.
+--
+-- Otherwise we get problems with examples like this:
+inductive ℕ₂ : Type
+| zero
+| succ (n : ℕ₂) : ℕ₂
+
+namespace ℕ₂
+
+def plus : ℕ₂ → ℕ₂ → ℕ₂
+| zero y := y
+| (succ x) y := succ (plus x y)
+
+example (x : ℕ₂) (h : plus zero x = zero) : x = zero :=
+begin
+  cases' h,
+  guard_hyp cases_eq := plus zero x = zero,
+  guard_target x = plus zero x,
+  -- If index generalisation blindly replaced all occurrences of zero, we would
+  -- get
+  --
+  --     index = zero        → plus index x = index → x = index
+  --
+  -- and after applying the recursor
+  --
+  --     plus index x = zero                        → x = plus index x
+  --
+  -- This leaves the goal provable, but very confusing.
+  refl
+end
+
+end ℕ₂
+
 --------------------------------------------------------------------------------
 -- Jasmin's original use cases
 --------------------------------------------------------------------------------

@@ -5,7 +5,7 @@ Author: Jannis Limperg
 -/
 
 import control.basic data.sum data.list.defs tactic.basic
-import tactic.generalizes tactic.linarith tactic.type_based_naming
+import tactic.linarith tactic.type_based_naming
 
 /--
 After elaboration, Lean does not have non-dependent function types with
@@ -184,6 +184,12 @@ lemma map₂_left_eq_map₂_left' {α β γ} (f : α → option β → γ)
 | [] bs := by simp!
 | (a :: as) [] := by { simp! only [*], cases (map₂_left' f as nil), simp!  }
 | (a :: as) (b :: bs) := by { simp! only [*], cases (map₂_left' f as bs), simp! }
+
+def fill_nones {α} : list (option α) → list α → list α
+| [] as' := []
+| ((some a) :: as) as' := a :: fill_nones as as'
+| (none :: as) [] := fill_nones as []
+| (none :: as) (a :: as') := a :: fill_nones as as'
 
 end list
 
@@ -846,19 +852,35 @@ meta def local_dependencies_of_local (h : expr) : tactic name_set := do
   let deps := deps.merge val.local_unique_names,
   pure deps
 
+/--
+The dependency closure of the local constants whose unique names appear in `hs`.
+This is the set of local constants which depend on any of the `hs` (including
+the `hs` themselves).
+-/
+meta def dependency_closure' (hs : name_set) : tactic (list expr) := do
+  ctx ← local_context,
+  ctx.mfilter $ λ h, local_depends_on_locals h hs
+
+/--
+The dependency closure of the local constants in `hs`. See `dependency_closure'`.
+-/
+meta def dependency_closure (hs : list expr) : tactic (list expr) :=
+dependency_closure' $ name_set.of_list $ hs.map expr.local_uniq_name
+
+/--
+Revert the local constants whose unique names appear in `hs`, as well as any
+hypotheses that depend on them. Returns the hypotheses that were reverted and
+their number.
+-/
 meta def revert_lst'' (hs : name_set) : tactic (ℕ × list expr) := do
-  ctx ← revertible_local_context,
-  -- We take the 'dependency closure' of hs: any hypothesis that depends on any
-  -- of the hypotheses in hs should get reverted. revert_lst can do this for us,
-  -- but it doesn't report which hypotheses were actually reverted (only how
-  -- many).
-  to_revert ← ctx.mmap_filter $ λ h, do {
-    dep_on_reverted ← local_depends_on_locals h hs,
-    pure $ if dep_on_reverted then some h else none
-  },
+  to_revert ← dependency_closure' hs,
   num_reverted ← revert_lst to_revert,
   pure (num_reverted, to_revert)
 
+/--
+Revert the local constants in `hs`, as well as any hypotheses that depend on
+them. See `revert_lst''`.
+-/
 meta def revert_lst' (hs : list expr) : tactic (ℕ × list expr) :=
 revert_lst'' $ name_set.of_list $ hs.map expr.local_uniq_name
 
@@ -1092,39 +1114,91 @@ meta def decompose_structure_equation (h : parse ident) : tactic unit := do
 
 end interactive
 
-meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr)
+meta def generalize_complex_index_args_aux (eliminee : expr)
+  (eliminee_head : expr) (eliminee_param_args eliminee_index_args : list expr)
+  (generate_ihs : bool)
+  : tactic (expr × list expr × list expr) :=
+focus1 $ do
+  let js := eliminee_index_args.filter $ λ a, ¬ a.is_local_constant,
+  ctx ← local_context,
+  tgt ← target,
+
+  -- Revert the hypotheses which depend on the complex index args (and their
+  -- dependencies).
+  relevant_ctx ← ctx.mfilter $ λ h, do {
+    H ← infer_type h,
+    js.mbany $ λ a, kdepends_on H a
+    -- TODO does kdepends_on respect local defs?
+  },
+  ⟨relevant_ctx_size, relevant_ctx⟩ ← revert_lst' relevant_ctx,
+  [eliminee_pos] ← pure $ relevant_ctx.indexes_of eliminee,
+
+  -- Create the local constants that will replace the complex index args. We
+  -- have to be careful to get the right types.
+  let go : expr → list expr → tactic (list expr) :=
+        λ j ks, do {
+          J ← infer_type j,
+          k ← mk_local' `index binder_info.default J,
+          ks ← ks.mmap $ λ k', kreplace k' j k,
+          pure $ k :: ks
+        },
+  ks ← js.mfoldr go [],
+
+  let jsks := js.zip ks,
+
+  -- Replace the complex index args in the relevant context and the target.
+  -- The eliminee is treated specially because we need to avoid spurious
+  -- replacements in the parameter arguments.
+  new_ctx ← relevant_ctx.mmap $ λ h,
+    if h ≠ eliminee
+      then jsks.mfoldr (λ ⟨j, k⟩ h, kreplace h j k) h
+      else do {
+        let new_index_args := eliminee_index_args.map $
+          λ a, if a.is_local_constant then some a else none,
+        let new_index_args := new_index_args.fill_nones ks,
+        let T := (eliminee_head.mk_app eliminee_param_args).mk_app new_index_args,
+        pure $ local_const h.local_uniq_name h.local_pp_name h.binding_info T
+      },
+  new_tgt ← jsks.mfoldr (λ ⟨j, k⟩ tgt, kreplace tgt j k) tgt,
+  let new_tgt := new_tgt.pis new_ctx,
+
+  -- Generate the index equations and their proofs.
+  let eq_name := if generate_ihs then `induction_eq else `cases_eq,
+  let step2_input := jsks.map $ λ ⟨j, k⟩, (eq_name, j, k),
+  eqs_and_proofs ← generalizes.step2 reducible step2_input,
+  let eqs := eqs_and_proofs.map prod.fst,
+  let eq_proofs := eqs_and_proofs.map prod.snd,
+
+  -- Assert the generalized goal and derive the current goal from it.
+  generalizes.step3 new_tgt js ks eqs eq_proofs,
+
+  -- Introduce the index variables, equations and new hyps.
+  let num_index_vars := js.length,
+  index_vars ← intron' num_index_vars,
+  index_equations ← intron' num_index_vars,
+  new_hyps ← intron' relevant_ctx_size,
+  let eliminee := new_hyps.inth eliminee_pos,
+  pure (eliminee, index_vars, index_equations)
+
+meta def generalize_complex_index_args (eliminee : expr) (num_params : ℕ)
   (generate_ihs : bool)
   : tactic (expr × ℕ × list name × name_set) := do
-  let (locals, nonlocals) :=
-    index_args.partition (λ arg : expr, arg.is_local_constant),
+  eliminee_type ← infer_type eliminee,
+  ⟨eliminee_head, eliminee_args⟩ ← decompose_app_normalizing eliminee_type,
+  let ⟨eliminee_param_args, eliminee_index_args⟩ :=
+    eliminee_args.split_at num_params,
 
   -- If there aren't any complex index arguments, we don't need to do anything.
-  (_ :: _) ← pure nonlocals | pure (eliminee, 0, [], mk_name_set),
-
-  -- Revert the eliminee (and any hypotheses depending on it).
-  num_reverted_eliminee ← revert eliminee,
-
-  -- Revert any hypotheses depending on one of the complex index arguments
-  num_reverted_args ← list.sum <$> nonlocals.mmap revert_kdeps,
-  -- TODO how does revert_kdeps interact with local defs?
-
-  -- Generate fresh names for the index variables and equations
-  -- TODO better names?
-  let index_eq_name := if generate_ihs then `induction_eq else `cases_eq,
-  let generalizes_args := nonlocals.map $ λ arg, (`index, some index_eq_name, arg),
+  let have_complex_index_args :=
+    eliminee_index_args.any $ λ h, ¬ h.is_local_constant,
+  tt ← pure have_complex_index_args | pure (eliminee, 0, [], mk_name_set),
 
   -- Generalise the complex index arguments
-  index_vars_eqs ← generalizes_intro generalizes_args,
-
-  -- Every second hypothesis introduced by `generalizes` is an index equation.
-  -- The other introduced hypotheses are the index variables.
-  let (index_vars, index_equations) :=
-    @list.foldr_with_index expr (list name × list name)
-      (λ i (h : expr) ⟨vars, eqs⟩,
-        let n := h.local_pp_name in
-        if i % 2 = 0 then (n :: vars, eqs) else (vars, n :: eqs))
-      ([], [])
-      index_vars_eqs,
+  ⟨eliminee, index_vars, index_equations⟩ ←
+    generalize_complex_index_args_aux eliminee eliminee_head
+      eliminee_param_args eliminee_index_args generate_ihs,
+  let index_vars := index_vars.map expr.local_pp_name,
+  let index_equations := index_equations.map expr.local_pp_name,
 
   -- Decompose the index equations equating elements of structures.
   -- Note: Each step in the following loop may change the unique names of
@@ -1133,18 +1207,11 @@ meta def generalize_complex_index_args (eliminee : expr) (index_args : list expr
   fields ← index_equations.mmap (get_local >=> decompose_structure_equation_hyp),
   let fields := name_set.merge_many fields,
 
-  -- Re-introduce the indices' dependencies
-  intron num_reverted_args,
-
-  -- Re-introduce the eliminee and its dependencies
-  intron (num_reverted_eliminee - 1),
-  eliminee ← intro1,
-
   -- Re-revert the index equations
-  index_var_equations ← index_equations.mmap get_local,
-  revert_lst index_var_equations,
+  index_equations ← index_equations.mmap get_local,
+  revert_lst index_equations,
 
-  pure (eliminee, nonlocals.length, index_vars, fields)
+  pure (eliminee, index_vars.length, index_vars, fields)
 
 meta def replace' (h : expr) (x : expr) (t : option expr := none) : tactic expr := do
   h' ← note h.local_pp_name t x,
@@ -1442,7 +1509,7 @@ focus1 $ do
 
   -- Generalise complex indices
   (eliminee, num_index_vars, index_var_names, structure_field_names) ←
-    generalize_complex_index_args eliminee (eliminee_args.drop iinfo.num_params) generate_ihs,
+    generalize_complex_index_args eliminee iinfo.num_params generate_ihs,
 
   -- Generalise hypotheses according to the given generalization_mode.
   (num_generalized, generalized_hyps) ← generalize_hyps eliminee gm,
@@ -1463,7 +1530,7 @@ focus1 $ do
   drec ← try_core $ mk_const $ iname ++ drec_suffix,
   interactive.apply ``(%%rec %%eliminee)
     <|> (do drec ← drec, interactive.apply ``(%%drec %%eliminee))
-    <|> fail! "Failed to apply the (dependent) recursor for {iname}.",
+    <|> fail! "Failed to apply the (dependent) recursor for {iname} on {eliminee}.",
 
   -- Prepare the "with" names for each constructor case.
   let with_names := prod.fst $

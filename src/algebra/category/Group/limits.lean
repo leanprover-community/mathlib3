@@ -34,6 +34,9 @@ instance comm_group_obj (F : J ⥤ CommGroup) (j) :
   comm_group ((F ⋙ forget CommGroup).obj j) :=
 by { change comm_group (F.obj j), apply_instance }
 
+/--
+The flat sections of a functor into `AddCommGroup` form a additive submonoid of all sections.
+-/
 @[to_additive AddCommGroup.sections_add_submonoid]
 def sections_submonoid (F : J ⥤ CommGroup) :
   submonoid (Π j, F.obj j) :=
@@ -46,6 +49,9 @@ def sections_submonoid (F : J ⥤ CommGroup) :
     rw [ah f, bh f],
   end }
 
+/--
+The flat sections of a functor into `AddCommGroup` form a additive subgroup of all sections.
+-/
 @[to_additive AddCommGroup.sections_add_subgroup]
 def sections_subgroup (F : J ⥤ CommGroup) :
   subgroup (Π j, F.obj j) :=

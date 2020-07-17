@@ -32,6 +32,9 @@ instance ring_obj (F : J ⥤ Ring) (j) :
   ring ((F ⋙ forget Ring).obj j) :=
 by { change ring (F.obj j), apply_instance }
 
+/--
+The flat sections of a functor into `Ring` form a multiplicative submonoid of all sections.
+-/
 def sections_submonoid (F : J ⥤ Ring) :
   submonoid (Π j, F.obj j) :=
 { carrier := (F ⋙ forget Ring).sections,

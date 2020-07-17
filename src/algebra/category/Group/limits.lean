@@ -74,7 +74,7 @@ Construction of a limit cone in `AddCommGroup`.
 (Internal use only; use the limits API.)
 -/
 def limit (F : J ⥤ AddCommGroup) : cone F :=
-{ X := ⟨limit (F ⋙ forget _), by apply_instance⟩,
+{ X := AddCommGroup.of (limit (F ⋙ forget _)),
   π :=
   { app := limit_π_add_monoid_hom F,
     naturality' := λ j j' f,

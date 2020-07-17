@@ -69,7 +69,7 @@ Construction of a limit cone in `CommRing`.
 (Internal use only; use the limits API.)
 -/
 def limit (F : J ⥤ CommRing) : cone F :=
-{ X := ⟨limit (F ⋙ forget _), by apply_instance⟩,
+{ X := CommRing.of (limit (F ⋙ forget _)),
   π :=
   { app := limit_π_ring_hom F,
     naturality' := λ j j' f,

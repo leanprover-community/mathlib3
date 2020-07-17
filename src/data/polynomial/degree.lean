@@ -10,7 +10,7 @@ import data.polynomial.eval
 # Theory of degrees of polynomials
 
 Some of the main results include
-- `degree_mul_eq` : The degree of the product is the sum of degrees
+- `degree_mul` : The degree of the product is the sum of degrees
 - `leading_coeff_add_of_degree_eq` and `leading_coeff_add_of_degree_lt` :
     The leading_coefficient of a sum is determined by the leading coefficients and degrees
 - `nat_degree_comp_le` : The degree of the composition is at most the product of degrees
@@ -207,7 +207,7 @@ calc coeff (p * q) (nat_degree p + nat_degree q) =
     { intro H, exfalso, apply H, rw nat.mem_antidiagonal }
   end
 
-lemma degree_mul_eq' (h : leading_coeff p * leading_coeff q ≠ 0) :
+lemma degree_mul' (h : leading_coeff p * leading_coeff q ≠ 0) :
   degree (p * q) = degree p + degree q :=
 have hp : p ≠ 0 := by refine mt _ h; exact λ hp, by rw [hp, leading_coeff_zero, zero_mul],
 have hq : q ≠ 0 := by refine mt _ h; exact λ hq, by rw [hq, leading_coeff_zero, mul_zero],
@@ -218,21 +218,21 @@ begin
   rwa coeff_mul_degree_add_degree
 end
 
-lemma nat_degree_mul_eq' (h : leading_coeff p * leading_coeff q ≠ 0) :
+lemma nat_degree_mul' (h : leading_coeff p * leading_coeff q ≠ 0) :
   nat_degree (p * q) = nat_degree p + nat_degree q :=
 have hp : p ≠ 0 := mt leading_coeff_eq_zero.2 (λ h₁, h $ by rw [h₁, zero_mul]),
 have hq : q ≠ 0 := mt leading_coeff_eq_zero.2 (λ h₁, h $ by rw [h₁, mul_zero]),
 have hpq : p * q ≠ 0 := λ hpq, by rw [← coeff_mul_degree_add_degree, hpq, coeff_zero] at h;
   exact h rfl,
 option.some_inj.1 (show (nat_degree (p * q) : with_bot ℕ) = nat_degree p + nat_degree q,
-  by rw [← degree_eq_nat_degree hpq, degree_mul_eq' h, degree_eq_nat_degree hp,
+  by rw [← degree_eq_nat_degree hpq, degree_mul' h, degree_eq_nat_degree hp,
     degree_eq_nat_degree hq])
 
 lemma leading_coeff_mul' (h : leading_coeff p * leading_coeff q ≠ 0) :
   leading_coeff (p * q) = leading_coeff p * leading_coeff q :=
 begin
   unfold leading_coeff,
-  rw [nat_degree_mul_eq' h, coeff_mul_degree_add_degree],
+  rw [nat_degree_mul' h, coeff_mul_degree_add_degree],
   refl
 end
 
@@ -255,7 +255,7 @@ have h₁ : leading_coeff p ^ n ≠ 0 := λ h₁, h $
   by rw [pow_succ, h₁, mul_zero],
 have h₂ : leading_coeff p * leading_coeff (p ^ n) ≠ 0 :=
   by rwa [pow_succ, ← leading_coeff_pow' h₁] at h,
-by rw [pow_succ, degree_mul_eq' h₂, succ_nsmul, degree_pow_eq' h₁]
+by rw [pow_succ, degree_mul' h₂, succ_nsmul, degree_pow_eq' h₁]
 
 lemma nat_degree_pow_eq' {n : ℕ} (h : leading_coeff p ^ n ≠ 0) :
   nat_degree (p ^ n) = n * nat_degree p :=
@@ -370,7 +370,7 @@ theorem degree_le_iff_coeff_zero (f : polynomial R) (n : with_bot ℕ) :
 lemma degree_lt_degree_mul_X (hp : p ≠ 0) : p.degree < (p * X).degree :=
 by haveI := nonzero.of_polynomial_ne hp; exact
 have leading_coeff p * leading_coeff X ≠ 0, by simpa,
-by erw [degree_mul_eq' this, degree_eq_nat_degree hp,
+by erw [degree_mul' this, degree_eq_nat_degree hp,
     degree_X, ← with_bot.coe_one, ← with_bot.coe_add, with_bot.coe_lt_coe];
   exact nat.lt_succ_self _
 
@@ -461,7 +461,7 @@ variables [semiring R] [nontrivial R] {p q : polynomial R}
 have h : leading_coeff (X : polynomial R) * leading_coeff (X ^ n) ≠ 0,
   by rw [leading_coeff_X, leading_coeff_X_pow n, one_mul];
     exact zero_ne_one.symm,
-by rw [pow_succ, degree_mul_eq' h, degree_X, degree_X_pow, add_comm]; refl
+by rw [pow_succ, degree_mul' h, degree_X, degree_X_pow, add_comm]; refl
 
 theorem not_is_unit_X : ¬ is_unit (X : polynomial R) :=
 λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ $ by erw [← coeff_one_zero, ← hgf, coeff_mul_X_zero]
@@ -540,16 +540,16 @@ end nonzero_ring
 section integral_domain
 variables [integral_domain R] {p q : polynomial R}
 
-@[simp] lemma degree_mul_eq : degree (p * q) = degree p + degree q :=
+@[simp] lemma degree_mul : degree (p * q) = degree p + degree q :=
 if hp0 : p = 0 then by simp only [hp0, degree_zero, zero_mul, with_bot.bot_add]
 else if hq0 : q = 0 then  by simp only [hq0, degree_zero, mul_zero, with_bot.add_bot]
-else degree_mul_eq' $ mul_ne_zero (mt leading_coeff_eq_zero.1 hp0)
+else degree_mul' $ mul_ne_zero (mt leading_coeff_eq_zero.1 hp0)
     (mt leading_coeff_eq_zero.1 hq0)
 
 @[simp] lemma degree_pow_eq (p : polynomial R) (n : ℕ) :
   degree (p ^ n) = n •ℕ (degree p) :=
 by induction n; [simp only [pow_zero, degree_one, zero_nsmul],
-simp only [*, pow_succ, succ_nsmul, degree_mul_eq]]
+simp only [*, pow_succ, succ_nsmul, degree_mul]]
 
 @[simp] lemma leading_coeff_mul (p q : polynomial R) : leading_coeff (p * q) =
   leading_coeff p * leading_coeff q :=

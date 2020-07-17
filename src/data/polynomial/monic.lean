@@ -126,7 +126,7 @@ have degree p ≤ 0,
     else have p.leading_coeff * u.leading_coeff ≠ 0,
         by rw [hm.leading_coeff, one_mul, ne.def, leading_coeff_eq_zero];
           exact hu0,
-      by rw [hu, degree_mul_eq' this];
+      by rw [hu, degree_mul' this];
         exact le_add_of_nonneg_right (degree_nonneg_iff_ne_zero.2 hu0)
   ... ≤ 0 : degree_one_le,
 by rw [eq_C_of_degree_le_zero this, ← nat_degree_eq_zero_iff_degree_le_zero.2 this,
@@ -153,9 +153,9 @@ begin
   rw this, convert C_1, rw ← h, apply hp,
 end
 
-lemma nat_degree_mul_eq [nontrivial R] {p q : polynomial R} (hp : p.monic) (hq : q.monic) :
+lemma nat_degree_mul [nontrivial R] {p q : polynomial R} (hp : p.monic) (hq : q.monic) :
 (p * q).nat_degree = p.nat_degree + q.nat_degree :=
-by { apply nat_degree_mul_eq', rw [hp.leading_coeff, hq.leading_coeff], simp }
+by { apply nat_degree_mul', rw [hp.leading_coeff, hq.leading_coeff], simp }
 
 lemma next_coeff_mul {p q : polynomial R} (hp : monic p) (hq : monic q) :
 next_coeff (p * q) = next_coeff p + next_coeff q :=
@@ -164,7 +164,7 @@ begin
   by_cases h : nontrivial R, swap,
   { rw nontrivial_iff at h, push_neg at h, apply h, },
   haveI := h, clear h,
-  have := monic.nat_degree_mul_eq hp hq,
+  have := monic.nat_degree_mul hp hq,
   dsimp [next_coeff], rw this, simp [hp, hq], clear this,
   split_ifs; try { tauto <|> simp [h_1, h_2] },
   rename h_1 hp0, rename h_2 hq0, clear h,

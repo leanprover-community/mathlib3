@@ -65,7 +65,7 @@ begin
   classical,
   revert h, induction s using finset.induction with a s ha hs, { simp },
   rw [prod_insert ha, prod_insert ha, sum_insert ha],
-  intro h, rw polynomial.nat_degree_mul_eq', rw hs,
+  intro h, rw polynomial.nat_degree_mul', rw hs,
   apply right_ne_zero_of_mul h,
   rwa polynomial.leading_coeff_prod', apply right_ne_zero_of_mul h,
 end
@@ -87,7 +87,7 @@ open monic
 -- Eventually this can be generalized with Vieta's formulas
 -- plus the connection between roots and factorization.
 lemma next_coeff_prod_X_sub_C [nontrivial R] {s : finset ι} (f : ι → R) :
-next_coeff ∏ i in s, (X - C (f i)) = - ∑ i in s, f i :=
+next_coeff ∏ i in s, (X - C (f i)) = -∑ i in s, f i :=
 by { rw next_coeff_prod; { simp [monic_X_sub_C] } }
 
 lemma card_pred_coeff_prod_X_sub_C [nontrivial R] (s : finset ι) (f : ι → R) (hs : 0 < s.card) :

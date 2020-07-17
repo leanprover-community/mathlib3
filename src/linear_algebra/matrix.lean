@@ -442,6 +442,16 @@ def reindex_linear_equiv [semiring R] (eₘ : m ≃ m') (eₙ : n ≃ n') :
   map_smul' := λ M N, rfl,
 ..(reindex eₘ eₙ)}
 
+@[simp] lemma reindex_linear_equiv_apply [semiring R]
+  (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m n R) :
+  reindex_linear_equiv eₘ eₙ M = λ i j, M (eₘ.symm i) (eₙ.symm j) :=
+rfl
+
+@[simp] lemma reindex_linear_equiv_symm_apply [semiring R]
+  (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m' n' R) :
+  (reindex_linear_equiv eₘ eₙ).symm M = λ i j, M (eₘ i) (eₙ j) :=
+rfl
+
 lemma reindex_mul [semiring R]
   (eₘ : m ≃ m') (eₙ : n ≃ n') (eₗ : l ≃ l') (M : matrix m n R) (N : matrix n l R) :
   (reindex_linear_equiv eₘ eₙ M) ⬝ (reindex_linear_equiv eₙ eₗ N) = reindex_linear_equiv eₘ eₗ (M ⬝ N) :=
@@ -449,17 +459,26 @@ begin
   ext i j,
   dsimp only [matrix.mul, matrix.dot_product],
   rw [←finset.univ_map_equiv_to_embedding eₙ, finset.sum_map finset.univ eₙ.to_embedding],
-  simp [reindex_linear_equiv],
+  simp,
 end
 
 /-- For square matrices, the natural map that reindexes a matrix's rows and columns with equivalent
 types is an equivalence of algebras. -/
 def reindex_alg_equiv [comm_semiring R] [decidable_eq m] [decidable_eq n]
   (e : m ≃ n) : matrix m m R ≃ₐ[R] matrix n n R :=
-{ map_mul'  := λ M N, by simp [reindex_mul],
-  commutes' := λ r, by { ext, simp [reindex_linear_equiv, algebra_map, algebra.to_ring_hom],
-                         by_cases h : i = j; simp [h], },
+{ map_mul'  := λ M N, by simp only [reindex_mul, linear_equiv.to_fun_apply, mul_eq_mul],
+  commutes' := λ r, by { ext, simp [algebra_map, algebra.to_ring_hom], by_cases h : i = j; simp [h], },
 ..(reindex_linear_equiv e e) }
+
+@[simp] lemma reindex_alg_equiv_apply [comm_semiring R] [decidable_eq m] [decidable_eq n]
+  (e : m ≃ n) (M : matrix m m R) :
+  reindex_alg_equiv e M = λ i j, M (e.symm i) (e.symm j) :=
+rfl
+
+@[simp] lemma reindex_alg_equiv_symm_apply [comm_semiring R] [decidable_eq m] [decidable_eq n]
+  (e : m ≃ n) (M : matrix n n R) :
+  (reindex_alg_equiv e).symm M = λ i j, M (e i) (e j) :=
+rfl
 
 end reindexing
 

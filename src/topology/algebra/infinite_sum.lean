@@ -359,6 +359,10 @@ lemma tsum_eq_tsum_of_ne_zero_bij {g : γ → α} (i : support g → β)
   (∑' x, f x)  = ∑' y, g y :=
 tsum_eq_tsum_of_has_sum_iff_has_sum $ λ _, has_sum_iff_has_sum_of_ne_zero_bij i hi hf hfg
 
+lemma tsum_subtype (s : set β) (f : β → α) :
+  (∑' x : s, f x) = ∑' x, s.indicator f x :=
+tsum_eq_tsum_of_has_sum_iff_has_sum $ λ _, has_sum_subtype_iff_indicator
+
 section topological_add_monoid
 variable [topological_add_monoid α]
 

@@ -86,6 +86,18 @@ begin
   exact lintegral_rw₁ (h.symm.fun_comp _) _
 end
 
+lemma integrable_const {c : β} : integrable (λ x : α, c) μ ↔ c = 0 ∨ μ univ < ⊤ :=
+begin
+  simp only [integrable, lintegral_const],
+  by_cases hc : c = 0,
+  { simp [hc] },
+  { simp only [hc, false_or],
+    refine ⟨λ h, _, λ h, mul_lt_top coe_lt_top h⟩,
+    replace h := mul_lt_top (@coe_lt_top $ (nnnorm c)⁻¹) h,
+    rwa [← mul_assoc, ← coe_mul, _root_.inv_mul_cancel, coe_one, one_mul] at h,
+    rwa [ne.def, nnnorm_eq_zero] }
+end
+
 lemma integrable_congr {f g : α → β} (h : f =ᵐ[μ] g) : integrable f μ ↔ integrable g μ :=
 ⟨λ hf, hf.congr h, λ hg, hg.congr h.symm⟩
 

@@ -1220,6 +1220,26 @@ begin
   exact simple_func.integral_congr hfi (l1.simple_func.to_simple_func_of_simple_func _ _).symm
 end
 
+@[simp] lemma integral_const (c : E) : ∫ x : α, c ∂μ = (μ univ).to_real • c :=
+begin
+  by_cases hμ : μ univ < ⊤,
+  { have : integrable (simple_func.const α c) μ := integrable_const.2 (or.inr hμ),
+    calc ∫ x : α, c ∂μ = (simple_func.const α c).integral μ :
+      ((simple_func.const α c).integral_eq_integral this).symm
+    ... = _ : _,
+    rw [simple_func.integral],
+    by_cases ha : nonempty α,
+    { resetI, simp [preimage_const_of_mem] },
+    { simp [μ.eq_zero_of_not_nonempty ha] } },
+  { by_cases hc : c = 0,
+    { simp [hc] },
+    { have : ¬integrable (λ x : α, c) μ,
+      { simp only [integrable_const, not_or_distrib],
+        exact ⟨hc, hμ⟩ },
+      simp only [not_lt, top_le_iff] at hμ,
+      simp [integral_non_integrable, *] } }
+end
+
 variable {ν : measure α}
 
 lemma integral_add_meas {f : α → E} (hfm : measurable f) (hfi : integrable f (μ + ν)) :

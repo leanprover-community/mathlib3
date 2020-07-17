@@ -6,9 +6,16 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 import data.rat.order
 import data.int.sqrt
+/-!
+# Square root on rational numbers
 
+This file defines the square root function on rational numbers, `rat.sqrt` and proves several theorems about it.
+
+-/
 namespace rat
 
+/-- Square root function on rational numbers, defined by taking the (integer) square root of the
+numerator and the square root (on natural numbers) of the denominator. -/
 @[pp_nodot] def sqrt (q : ℚ) : ℚ := rat.mk (int.sqrt q.num) (nat.sqrt q.denom)
 
 theorem sqrt_eq (q : ℚ) : rat.sqrt (q*q) = abs q :=

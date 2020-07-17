@@ -961,7 +961,8 @@ lemma integral_non_measurable (h : ¬ measurable f) : ∫ a, f a ∂μ = 0 :=
 integral_undef $ not_and_of_not_left _ h
 
 variables (α E)
-@[simp] lemma integral_zero : ∫ a : α, (0:E) ∂μ = 0 :=
+local attribute [simp] -- Follows from `integral_const` below
+lemma integral_zero : ∫ a : α, (0:E) ∂μ = 0 :=
 by rw [integral_eq, l1.of_fun_zero, l1.integral_zero]
 variables {α E}
 

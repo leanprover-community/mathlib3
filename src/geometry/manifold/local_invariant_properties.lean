@@ -490,18 +490,18 @@ end local_invariant_prop
 
 section local_structomorph
 
-variables (G) [closed_under_restriction G]
+variables (G)
 open local_homeomorph
 
-/- A function from a model space `H` to itself is a local structomorphism, with respect to a
+/-- A function from a model space `H` to itself is a local structomorphism, with respect to a
 structure groupoid `G` for `H`, relative to a set `s` in `H`, if for all points `x` in the set, the
 function agrees with a `G`-structomorphism on `s` in a neighbourhood of `x`. -/
 def is_local_structomorph_within_at (f : H → H) (s : set H) (x : H) : Prop :=
 (x ∈ s) → ∃ (e : local_homeomorph H H), e ∈ G ∧ eq_on f e.to_fun (s ∩ e.source) ∧ x ∈ e.source
 
-/- For a groupoid `G` which is `closed_under_restriction`, being a local structomorphism is a local
+/-- For a groupoid `G` which is `closed_under_restriction`, being a local structomorphism is a local
 invariant property. -/
-lemma is_local_structomorph_within_at_local_invariant_prop :
+lemma is_local_structomorph_within_at_local_invariant_prop [closed_under_restriction G] :
   local_invariant_prop G G (is_local_structomorph_within_at G) :=
 { is_local := begin
     intros s x u f hu hux,

@@ -39,11 +39,6 @@ lemma coeff_sum [semiring S] (n : ℕ) (f : ℕ → R → polynomial S) :
 @[simp] lemma coeff_smul (p : polynomial R) (r : R) (n : ℕ) :
 coeff (r • p) n = r * coeff p n := finsupp.smul_apply
 
--- TODO: bundle into a def instead of an instance?
-instance coeff.is_add_monoid_hom {n : ℕ} : is_add_monoid_hom (λ p : polynomial R, p.coeff n) :=
-{ map_add  := λ p q, coeff_add p q n,
-  map_zero := coeff_zero _ }
-
 variable (R)
 /-- The nth coefficient, as a linear map. -/
 def lcoeff (n : ℕ) : polynomial R →ₗ[R] R :=

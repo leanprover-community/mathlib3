@@ -13,9 +13,6 @@ The main def is `binom_expansion`.
 -/
 
 noncomputable theory
-local attribute [instance, priority 100] classical.prop_decidable
-
-local attribute [instance, priority 10] is_semiring_hom.comp is_ring_hom.comp
 
 open finsupp finset add_monoid_algebra
 open_locale big_operators
@@ -25,12 +22,10 @@ universes u v w x y z
 variables {R : Type u} {S : Type v} {T : Type w} {ι : Type x} {k : Type y} {A : Type z}
   {a b : R} {m n : ℕ}
 
-
-
 section identities
 
 /- @TODO: pow_add_expansion and pow_sub_pow_factor are not specific to polynomials.
-  These belong somewhere else. But not in group_power because they depend on tactic.ring
+  These belong somewhere else. But not in group_power because they depend on tactic.ring_exp
 
 Maybe use data.nat.choose to prove it.
  -/

@@ -17,17 +17,12 @@ This file starts looking like the ring theory of $ R[X] $
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
-local attribute [instance, priority 10] is_semiring_hom.comp is_ring_hom.comp
-
 open finsupp finset add_monoid_algebra
 open_locale big_operators
 
 namespace polynomial
 universes u v w y z
 variables {R : Type u} {S : Type v} {k : Type y} {A : Type z} {a b : R} {n : ℕ}
-
-
-
 
 section field
 variables [field R] {p q : polynomial R}

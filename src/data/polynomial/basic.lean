@@ -131,6 +131,7 @@ lemma coeff_sub (p q : polynomial R) (n : ℕ) : coeff (p - q) n = coeff p n - c
 end ring
 
 instance [comm_semiring R] : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
+instance [comm_ring R] : comm_ring (polynomial R) := add_monoid_algebra.comm_ring
 
 section nonzero_semiring
 

@@ -296,7 +296,11 @@ do (cfg',c) ← parse_config cfg,
 
 /-- `squeeze_dsimp` behaves like `dsimp` (including all its arguments)
 and prints a `dsimp only` invocation to skip the search through the
-`simp` lemma list. See the doc string of `squeeze_simp` for examples. -/
+`simp` lemma list. See the doc string of `squeeze_simp` for examples.
+
+Unlike `squeeze_simp`, `squeeze_dsimp`, tries every possible `simp` lemma
+proved with `rfl`. It makes `squeeze_dsimp` very slow.
+ -/
 meta def squeeze_dsimp
   (key : parse cur_pos)
   (use_iota_eqn : parse (tk "!")?)
@@ -304,7 +308,11 @@ meta def squeeze_dsimp
   (attr_names : parse with_ident_list) (locat : parse location)
   (cfg : parse struct_inst?) : tactic unit :=
 do (cfg',c) ← parse_dsimp_config cfg,
-   squeeze_simp_core no_dflt hs
+   simp_set ← attribute.get_instances `simp,
+   simp_set ← simp_set.mfilter $ has_attribute' `_refl_lemma,
+   trace $ simp_set.length,
+   simp_set ← simp_set.mmap $ resolve_name' >=> pure ∘ simp_arg_type.expr,
+   squeeze_simp_core no_dflt (hs ++ simp_set)
      (λ l_no_dft l_args, dsimp l_no_dft l_args attr_names locat cfg')
      (λ args,
         let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",

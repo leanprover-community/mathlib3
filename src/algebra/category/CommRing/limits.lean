@@ -31,6 +31,9 @@ instance comm_ring_obj (F : J ⥤ CommRing) (j) :
   comm_ring ((F ⋙ forget CommRing).obj j) :=
 by { change comm_ring (F.obj j), apply_instance }
 
+/--
+The flat sections of a functor into `CommRing` form a multiplicative submonoid of all sections.
+-/
 def sections_submonoid (F : J ⥤ CommRing) :
   submonoid (Π j, F.obj j) :=
 { carrier := (F ⋙ forget CommRing).sections,

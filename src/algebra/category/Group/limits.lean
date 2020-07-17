@@ -32,6 +32,9 @@ instance add_comm_group_obj (F : J ⥤ AddCommGroup) (j) :
   add_comm_group ((F ⋙ forget AddCommGroup).obj j) :=
 by { change add_comm_group (F.obj j), apply_instance }
 
+/--
+The flat sections of a functor into `AddCommGroup` form a additive submonoid of all sections.
+-/
 def sections_add_submonoid (F : J ⥤ AddCommGroup) :
   add_submonoid (Π j, F.obj j) :=
 { carrier := (F ⋙ forget AddCommGroup).sections,
@@ -43,6 +46,9 @@ def sections_add_submonoid (F : J ⥤ AddCommGroup) :
     rw [ah f, bh f],
   end }
 
+/--
+The flat sections of a functor into `AddCommGroup` form a additive subgroup of all sections.
+-/
 def sections_add_subgroup (F : J ⥤ AddCommGroup) :
   add_subgroup (Π j, F.obj j) :=
 { carrier := (F ⋙ forget AddCommGroup).sections,

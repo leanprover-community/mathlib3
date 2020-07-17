@@ -27,7 +27,6 @@ variables [semiring R] {p q r : polynomial R}
 
 section coeff
 
--- @[simp, priority 990]
 lemma coeff_one (n : ℕ) : coeff (1 : polynomial R) n = if 0 = n then 1 else 0 :=
 coeff_monomial
 

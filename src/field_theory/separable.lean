@@ -5,6 +5,7 @@ Authors: Kenny Lau.
 -/
 
 import ring_theory.polynomial
+import data.polynomial.derivative
 
 /-!
 

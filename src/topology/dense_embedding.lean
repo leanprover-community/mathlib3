@@ -161,17 +161,36 @@ variables [topological_space γ]
 def extend (di : dense_inducing i) (f : α → γ) (b : β) : γ :=
 @@lim _ ⟨f (di.dense.inhabited b).default⟩ (comap i (𝓝 b)) f
 
-lemma extend_eq [t2_space γ] {b : β} {c : γ} {f : α → γ} (hf : tendsto f (comap i (𝓝 b)) (𝓝 c)) :
+lemma extend_eq_of_tendsto [t2_space γ] {b : β} {c : γ} {f : α → γ}
+  (hf : tendsto f (comap i (𝓝 b)) (𝓝 c)) :
   di.extend f b = c :=
 hf.lim_eq di.comap_nhds_ne_bot
 
-lemma extend_e_eq [t2_space γ] {f : α → γ} (a : α) (hf : continuous_at f a) :
+lemma extend_eq_at [t2_space γ] {f : α → γ} (a : α) (hf : continuous_at f a) :
   di.extend f (i a) = f a :=
-extend_eq _ $ di.nhds_eq_comap a ▸ hf
+extend_eq_of_tendsto _ $ di.nhds_eq_comap a ▸ hf
 
-lemma extend_eq_of_cont [t2_space γ] {f : α → γ} (hf : continuous f) (a : α) :
+lemma extend_eq [t2_space γ] {f : α → γ} (hf : continuous f) (a : α) :
   di.extend f (i a) = f a :=
-di.extend_e_eq a (continuous_iff_continuous_at.1 hf a)
+di.extend_eq_at a hf.continuous_at
+
+lemma extend_unique_at [t2_space γ] {b : β} {f : α → γ} {g : β → γ} (di : dense_inducing i)
+  (hf : ∀ᶠ x in comap i (𝓝 b), g (i x) = f x) (hg : continuous_at g b) :
+  di.extend f b = g b :=
+begin
+  refine tendsto.lim_eq (λ s hs, mem_map.2 $ _) di.comap_nhds_ne_bot,
+  suffices : ∀ᶠ (x : α) in comap i (𝓝 b), g (i x) ∈ s,
+    from hf.mp (this.mono $ λ x hgx hfx, hfx ▸ hgx),
+  clear hf f,
+  refine eventually_comap.2 ((hg.eventually hs).mono _),
+  rintros _ hxs x rfl,
+  exact hxs
+end
+
+lemma extend_unique [t2_space γ] {f : α → γ} {g : β → γ} (di : dense_inducing i)
+  (hf : ∀ x, g (i x) = f x) (hg : continuous g) :
+  di.extend f = g :=
+funext $ λ b, extend_unique_at di (eventually_of_forall hf) hg.continuous_at
 
 lemma continuous_at_extend [regular_space γ] {b : β} {f : α → γ} (di : dense_inducing i)
   (hf : ∀ᶠ x in 𝓝 b, ∃c, tendsto f (comap i $ 𝓝 x) (𝓝 c)) :
@@ -187,7 +206,7 @@ begin
     rintros x ⟨c, hc⟩,
     change tendsto f (comap i (𝓝 x)) (𝓝 (φ x)),
     convert hc,
-    exact di.extend_eq hc },
+    exact hc.lim_eq di.comap_nhds_ne_bot },
   obtain ⟨V₂, V₂_in, V₂_op, hV₂⟩ : ∃ V₂ ∈ 𝓝 b, is_open V₂ ∧ ∀ x ∈ i ⁻¹' V₂, f x ∈ V',
   { simpa [and_assoc] using ((nhds_basis_opens' b).comap i).tendsto_left_iff.mp
                             (mem_of_nhds V₁_in : b ∈ V₁) V' V'_in },

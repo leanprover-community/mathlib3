@@ -27,10 +27,10 @@ indicator, characteristic
 noncomputable theory
 open_locale classical big_operators
 
-namespace set
-
 universes u v
 variables {α : Type u} {β : Type v}
+
+namespace set
 
 section has_zero
 variables [has_zero β] {s t : set α} {f g : α → β} {a : α}
@@ -73,19 +73,16 @@ lemma indicator_indicator (s t : set α) (f : α → β) : indicator s (indicato
 funext $ λx, by { simp only [indicator], split_ifs, repeat {simp * at * {contextual := tt}} }
 
 lemma indicator_comp_of_zero {γ} [has_zero γ] {g : β → γ} (hg : g 0 = 0) :
-  indicator s (g ∘ f) = λ a, indicator (f '' s) g (indicator s f a) :=
+  indicator s (g ∘ f) = g ∘ (indicator s f) :=
 begin
-  funext, simp only [indicator],
-  split_ifs with h h',
-  { refl },
-  { have := mem_image_of_mem _ h, contradiction },
-  { rwa eq_comm },
-  refl
+  funext,
+  simp only [indicator],
+  split_ifs; simp [*]
 end
 
 lemma indicator_preimage (s : set α) (f : α → β) (B : set β) :
   (indicator s f)⁻¹' B = s ∩ f ⁻¹' B ∪ sᶜ ∩ (λa:α, (0:β)) ⁻¹' B :=
-by { rw [indicator, if_preimage] }
+piecewise_preimage s f 0 B
 
 lemma indicator_preimage_of_not_mem (s : set α) (f : α → β) {t : set β} (ht : (0:β) ∉ t) :
   (indicator s f)⁻¹' t = s ∩ f ⁻¹' t :=
@@ -216,6 +213,10 @@ by { rw indicator_apply, split_ifs with as, { exact h as }, refl }
 lemma indicator_nonpos (h : ∀ a ∈ s, f a ≤ 0) : ∀ a, indicator s f a ≤ 0 :=
 λ a, indicator_nonpos' (h a)
 
+lemma indicator_le' (hfg : ∀ a ∈ s, f a ≤ g a) (hg : ∀ a ∉ s, 0 ≤ g a) :
+  indicator s f ≤ g :=
+λ a, if ha : a ∈ s then by simpa [ha] using hfg a ha else by simpa [ha] using hg a ha
+
 @[mono] lemma indicator_le_indicator (h : f a ≤ g a) : indicator s f a ≤ indicator s g a :=
 by { simp only [indicator], split_ifs with ha, { exact h }, refl }
 
@@ -230,6 +231,23 @@ begin
   { refl }
 end
 
+lemma indicator_le_self' (hf : ∀ x ∉ s, 0 ≤ f x) : indicator s f ≤ f :=
+indicator_le' (λ _ _, le_refl _) hf
+
+lemma indicator_le_self {β} [canonically_ordered_add_monoid β] (s : set α) (f : α → β) :
+  indicator s f ≤ f :=
+indicator_le_self' $ λ _ _, zero_le _
+
+lemma indicator_le {β} [canonically_ordered_add_monoid β] {s : set α}
+  {f g : α → β} (hfg : ∀ a ∈ s, f a ≤ g a) :
+  indicator s f ≤ g :=
+indicator_le' hfg $ λ _ _, zero_le _
+
 end order
 
 end set
+
+lemma add_monoid_hom.map_indicator {M N : Type*} [add_monoid M] [add_monoid N] (f : M →+ N)
+  (s : set α) (g : α → M) (x : α) :
+  f (s.indicator g x) = s.indicator (f ∘ g) x :=
+congr_fun (set.indicator_comp_of_zero f.map_zero).symm x

@@ -152,6 +152,10 @@ def of_nnreal_hom : nnreal →+* ennreal :=
 
 @[simp] lemma coe_of_nnreal_hom : ⇑of_nnreal_hom = coe := rfl
 
+@[simp, norm_cast] lemma coe_indicator {α} (s : set α) (f : α → nnreal) (a : α) :
+  ((s.indicator f a : nnreal) : ennreal) = s.indicator (λ x, f x) a :=
+(of_nnreal_hom : nnreal →+ ennreal).map_indicator _ _ _
+
 @[simp, norm_cast] lemma coe_pow (n : ℕ) : (↑(r^n) : ennreal) = r^n :=
 of_nnreal_hom.map_pow r n
 

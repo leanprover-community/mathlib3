@@ -55,7 +55,7 @@ the restriction of `Measure` to (sub-)probability space.)
 -/
 def Measure : Meas ⥤ Meas :=
 { obj      := λX, ⟨@measure_theory.measure X.1 X.2⟩,
-  map      := λX Y f, ⟨measure.map f, measure.measurable_map f f.2⟩,
+  map      := λX Y f, ⟨measure.map (f : X → Y), measure.measurable_map f f.2⟩,
   map_id'  := assume ⟨α, I⟩, subtype.eq $ funext $ assume μ, @measure.map_id α I μ,
   map_comp':=
     assume X Y Z ⟨f, hf⟩ ⟨g, hg⟩, subtype.eq $ funext $ assume μ, (measure.map_map hg hf).symm }
@@ -78,15 +78,12 @@ instance : category_theory.monad Measure.{u} :=
 nicely under the monad operations. -/
 def Integral : monad.algebra Measure :=
 { A      := Meas.of ennreal ,
-  a      := ⟨ λm:measure ennreal, m.integral id, measure.measurable_integral _ measurable_id ⟩,
-  unit'  := subtype.eq $ funext $ assume r:ennreal, measure.integral_dirac _ measurable_id,
+  a      := ⟨λm:measure ennreal, ∫⁻ x, x ∂m, measure.measurable_lintegral measurable_id ⟩,
+  unit'  := subtype.eq $ funext $ assume r:ennreal, lintegral_dirac _ measurable_id,
   assoc' := subtype.eq $ funext $ assume μ : measure (measure ennreal),
-    show μ.join.integral id = measure.integral (μ.map (λm:measure ennreal, m.integral id)) id, from
-    begin
-      rw [measure.integral_join measurable_id, measure.integral_map measurable_id],
-      refl,
-      exact measure.measurable_integral _ measurable_id
-    end }
+    show ∫⁻ x, x ∂ μ.join = ∫⁻ x, x ∂ (measure.map (λm:measure ennreal, ∫⁻ x, x ∂m) μ),
+    by rw [measure.lintegral_join, lintegral_map];
+      apply_rules [measurable_id, measure.measurable_lintegral] }
 
 end Meas
 

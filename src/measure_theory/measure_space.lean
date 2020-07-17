@@ -684,6 +684,12 @@ theorem le_iff' {μ₁ μ₂ : measure α} :
   μ₁ ≤ μ₂ ↔ ∀ s, μ₁ s ≤ μ₂ s :=
 to_outer_measure_le.symm
 
+theorem lt_iff {μ ν : measure α} : μ < ν ↔ μ ≤ ν ∧ ∃ s, is_measurable s ∧ μ s < ν s :=
+lt_iff_le_not_le.trans $ and_congr iff.rfl $ by simp only [le_iff, not_forall, not_le, exists_prop]
+
+theorem lt_iff' {μ ν : measure α} : μ < ν ↔ μ ≤ ν ∧ ∃ s, μ s < ν s :=
+lt_iff_le_not_le.trans $ and_congr iff.rfl $ by simp only [le_iff', not_forall, not_le]
+
 section
 variables {m : set (measure α)} {μ : measure α}
 
@@ -734,7 +740,19 @@ instance : complete_lattice (measure α) :=
 -/
   .. complete_lattice_of_Inf (measure α) (λ ms, ⟨λ _, Inf_le, λ _, le_Inf⟩) }
 
-open outer_measure
+-- TODO: add typeclasses for `∀ c, monotone ((*) c)` and `∀ c, monotone ((+) c)`
+
+protected lemma add_le_add_left {μ₁ μ₂ : measure α} (ν : measure α) (hμ : μ₁ ≤ μ₂) :
+  ν + μ₁ ≤ ν + μ₂ :=
+λ s hs, add_le_add_left (hμ s hs) _
+
+protected lemma add_le_add_right {μ₁ μ₂ : measure α} (hμ : μ₁ ≤ μ₂) (ν : measure α) :
+  μ₁ + ν ≤ μ₂ + ν :=
+λ s hs, add_le_add_right (hμ s hs) _
+
+protected lemma add_le_add {μ₁ μ₂ : measure α} (hμ : μ₁ ≤ μ₂) {ν₁ ν₂ : measure α} (hν : ν₁ ≤ ν₂) :
+  μ₁ + ν₁ ≤ μ₂ + ν₂ :=
+λ s hs, add_le_add (hμ s hs) (hν s hs)
 
 end
 

@@ -43,18 +43,10 @@ instance : semimodule R (polynomial R) := add_monoid_algebra.semimodule
 instance subsingleton [subsingleton R] : subsingleton (polynomial R) :=
 ⟨λ _ _, ext (λ _, subsingleton.elim _ _)⟩
 
-/-- The coercion turning a `polynomial` into the function which reports the coefficient of a given
-monomial `X^n` -/
-def coeff_coe_to_fun : has_coe_to_fun (polynomial R) :=
-finsupp.has_coe_to_fun
-
-local attribute [instance] coeff_coe_to_fun
-
-
 @[simp] lemma support_zero : (0 : polynomial R).support = ∅ := rfl
 
 /-- `monomial s a` is the monomial `a * X^s` -/
-@[reducible]
+-- @[reducible]
 def monomial (n : ℕ) (a : R) : polynomial R := finsupp.single n a
 
 @[simp] lemma monomial_zero_right (n : ℕ) :
@@ -64,6 +56,11 @@ by simp [monomial]
 lemma monomial_add (n : ℕ) (r s : R) :
   monomial n (r + s) = monomial n r + monomial n s :=
 by simp [monomial]
+
+lemma monomial_mul_monomial (n m : ℕ) (r s : R) :
+  monomial n r * monomial m s = monomial (n + m) (r * s) :=
+by simp only [monomial, single_mul_single]
+
 
 /-- `X` is the polynomial variable (aka indeterminant). -/
 def X : polynomial R := monomial 1 1
@@ -89,17 +86,21 @@ by rw [mul_assoc, X_pow_mul, ←mul_assoc]
 /-- coeff p n is the coefficient of X^n in p -/
 def coeff (p : polynomial R) := p.to_fun
 
-lemma apply_eq_coeff : p n = coeff p n := rfl
-
-
 @[simp] lemma coeff_mk (s) (f) (h) : coeff (finsupp.mk s f h : polynomial R) = f := rfl
 
+lemma coeff_monomial : coeff (monomial n a) m = if n = m then a else 0 :=
+by { dsimp [monomial, single, finsupp.single], congr, }
+
+/--
+This lemma is needed for occasions when we break through the abstraction from
+`polynomial` to `finsupp`; ideally it wouldn't be necessary at all.
+-/
 lemma coeff_single : coeff (single n a) m = if n = m then a else 0 :=
-by { dsimp [single, finsupp.single], congr, }
+coeff_monomial
 
 @[simp] lemma coeff_zero (n : ℕ) : coeff (0 : polynomial R) n = 0 := rfl
 
-@[simp] lemma coeff_one_zero : coeff (1 : polynomial R) 0 = 1 := coeff_single
+@[simp] lemma coeff_one_zero : coeff (1 : polynomial R) 0 = 1 := coeff_monomial
 
 
 instance [has_repr R] : has_repr (polynomial R) :=

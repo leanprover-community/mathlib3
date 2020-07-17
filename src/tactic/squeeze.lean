@@ -310,7 +310,6 @@ meta def squeeze_dsimp
 do (cfg',c) ← parse_dsimp_config cfg,
    simp_set ← attribute.get_instances `simp,
    simp_set ← simp_set.mfilter $ has_attribute' `_refl_lemma,
-   trace $ simp_set.length,
    simp_set ← simp_set.mmap $ resolve_name' >=> pure ∘ simp_arg_type.expr,
    squeeze_simp_core no_dflt (hs ++ simp_set)
      (λ l_no_dft l_args, dsimp l_no_dft l_args attr_names locat cfg')

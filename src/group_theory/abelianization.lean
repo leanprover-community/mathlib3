@@ -8,10 +8,13 @@ of the forgetful functor Ab → Grp.
 
 -/
 import group_theory.quotient_group
+import deprecated.subgroup
 
 universes u v
 
 variables (α : Type u) [group α]
+
+-- TODO this still uses unbundled subgroups, and needs to be updated.
 
 def commutator : set α :=
 group.normal_closure {x | ∃ p q, p * q * p⁻¹ * q⁻¹ = x}
@@ -20,7 +23,7 @@ instance : normal_subgroup (commutator α) :=
 group.normal_closure.is_normal
 
 def abelianization : Type u :=
-quotient_group.quotient $ commutator α
+quotient_group.quotient $ subgroup.of (commutator α)
 
 namespace abelianization
 

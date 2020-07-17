@@ -66,7 +66,7 @@ end
 
 end mul_action
 
-lemma quotient_group.card_preimage_mk [fintype G] (s : set G) [is_subgroup s]
+lemma quotient_group.card_preimage_mk [fintype G] (s : subgroup G)
   (t : set (quotient s)) : fintype.card (quotient_group.mk ⁻¹' t) =
   fintype.card s * fintype.card t :=
 by rw [← fintype.card_prod, fintype.card_congr
@@ -172,8 +172,8 @@ let ⟨a, ha⟩ := this in
 
 open is_subgroup is_submonoid is_group_hom mul_action
 
-lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : set G} [is_subgroup H] [fintype H]
-  {x : G} : (x : quotient H) ∈ fixed_points H (quotient H) ↔ x ∈ normalizer H :=
+lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : subgroup G} [fintype (H : set G)]
+  {x : G} : (x : quotient H) ∈ fixed_points H (quotient H) ↔ x ∈ normalizer (H : set G) :=
 ⟨λ hx, have ha : ∀ {y : quotient H}, y ∈ orbit H (x : quotient H) → y = x,
   from λ _, ((mem_fixed_points' _).1 hx _),
   (inv_mem_iff _).1 (mem_normalizer_fintype (λ n hn,
@@ -187,8 +187,8 @@ lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : set G} [is_subgro
   $ by rw hx at hb₂;
     simpa [mul_inv_rev, mul_assoc] using hb₂)⟩
 
-def fixed_points_mul_left_cosets_equiv_quotient (H : set G) [is_subgroup H] [fintype H] :
-  fixed_points H (quotient H) ≃ quotient (subtype.val ⁻¹' H : set (normalizer H)) :=
+def fixed_points_mul_left_cosets_equiv_quotient (H : subgroup G) [fintype (H : set G)] :
+  fixed_points H (quotient H) ≃ quotient (subtype.val ⁻¹' H : set (normalizer (H : set G)) :=
 @subtype_quotient_equiv_quotient_subtype G (normalizer H) (id _) (id _) (fixed_points _ _)
   (λ a, mem_fixed_points_mul_left_cosets_iff_mem_normalizer.symm) (by intros; refl)
 

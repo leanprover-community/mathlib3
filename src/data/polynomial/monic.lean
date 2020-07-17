@@ -142,7 +142,7 @@ namespace monic
 lemma coeff_nat_degree {p : polynomial R} (hp : p.monic) : p.coeff (p.nat_degree) = 1 := hp
 
 @[simp]
-lemma degree_one {p : polynomial R} (hp : p.monic) :
+lemma degree_eq_zero_iff_eq_one {p : polynomial R} (hp : p.monic) :
 p.nat_degree = 0 ↔ p = 1 :=
 begin
   split; intro h,
@@ -168,7 +168,7 @@ begin
   dsimp [next_coeff], rw this, simp [hp, hq], clear this,
   split_ifs; try { tauto <|> simp [h_1, h_2] },
   rename h_1 hp0, rename h_2 hq0, clear h,
-  rw ← degree_one at hp0 hq0, assumption',
+  rw ← degree_eq_zero_iff_eq_one at hp0 hq0, assumption',
   -- we've reduced to the case where the degrees dp and dq are nonzero
   set dp := p.nat_degree, set dq := q.nat_degree,
   rw coeff_mul,

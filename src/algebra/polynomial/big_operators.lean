@@ -13,10 +13,10 @@ Lemmas for the interaction between polynomials and ∑ and ∏.
 
 ## Main results
 
-- `nat_degree_prod_eq_of_monic` : the degree of a product of monic polynomials is the product of
+- `nat_degree_prod_of_monic` : the degree of a product of monic polynomials is the product of
     degrees. We prove this only for [comm_semiring R],
     but it ought to be true for [semiring R] and list.prod.
-- `nat_degree_prod_eq` : for polynomials over an integral domain,
+- `nat_degree_prod` : for polynomials over an integral domain,
     the degree of the product is the sum of degrees
 - `leading_coeff_prod` : for polynomials over an integral domain,
     the leading coefficient is the product of leading coefficients
@@ -87,20 +87,20 @@ open monic
 -- Eventually this can be generalized with Vieta's formulas
 -- plus the connection between roots and factorization.
 lemma next_coeff_prod_X_sub_C [nontrivial R] {s : finset ι} (f : ι → R) :
-next_coeff ∏ i in s, (X - C (f i)) = -s.sum f :=
+next_coeff ∏ i in s, (X - C (f i)) = - ∑ i in s, f i :=
 by { rw next_coeff_prod; { simp [monic_X_sub_C] } }
 
 lemma card_pred_coeff_prod_X_sub_C [nontrivial R] (s : finset ι) (f : ι → R) (hs : 0 < s.card) :
-(∏ i in s, (X - C (f i))).coeff (s.card - 1) = -s.sum f :=
+(∏ i in s, (X - C (f i))).coeff (s.card - 1) = - ∑ i in s, f i :=
 begin
   convert next_coeff_prod_X_sub_C (by assumption),
   rw next_coeff, split_ifs,
-  { rw nat_degree_prod_eq_of_monic at h,
+  { rw nat_degree_prod_of_monic at h,
     swap, { intros, apply monic_X_sub_C },
     rw sum_eq_zero_iff at h,
     simp_rw nat_degree_X_sub_C at h, contrapose! h, norm_num,
     exact multiset.card_pos_iff_exists_mem.mp hs },
-  congr, rw nat_degree_prod_eq_of_monic; { simp [nat_degree_X_sub_C, monic_X_sub_C] },
+  congr, rw nat_degree_prod_of_monic; { simp [nat_degree_X_sub_C, monic_X_sub_C] },
 end
 
 end comm_ring

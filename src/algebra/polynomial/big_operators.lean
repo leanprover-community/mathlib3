@@ -84,8 +84,8 @@ section comm_ring
 variables [comm_ring R]
 
 open monic
-/-- Eventually this can be generalized with Vieta's formulas
-plus the connection between roots and factorization. -/
+-- Eventually this can be generalized with Vieta's formulas
+-- plus the connection between roots and factorization.
 lemma next_coeff_prod_X_sub_C [nontrivial R] {s : finset ι} (f : ι → R) :
 next_coeff ∏ i in s, (X - C (f i)) = -s.sum f :=
 by { rw next_coeff_prod; { simp [monic_X_sub_C] } }

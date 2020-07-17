@@ -111,7 +111,7 @@ begin
     { simp } },
   have D : liminf at_top (λ n : ℕ, (r : ennreal) / ((C + 1)^(1/(n : ℝ)) : nnreal)) ≤ p.radius :=
     liminf_le_liminf B,
-  rw liminf_eq_of_tendsto filter.at_top_ne_bot L at D,
+  rw L.liminf_eq filter.at_top_ne_bot at D,
   simpa using D
 end
 

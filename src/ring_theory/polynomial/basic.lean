@@ -9,6 +9,7 @@ Main result: Hilbert basis theorem, that if a ring is noetherian then so is its 
 -/
 import algebra.char_p
 import data.mv_polynomial
+import data.polynomial.ring_division
 import ring_theory.noetherian
 
 noncomputable theory

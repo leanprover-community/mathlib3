@@ -84,6 +84,8 @@ import tactic.split_ifs
 
   Now, however, both goals can be discharged using `refl`.
 -/
+namespace tactic
+open expr
 namespace unfold_cases
 /--
   Given an equation `f x = y`, this tactic tries to infer an expression that can be

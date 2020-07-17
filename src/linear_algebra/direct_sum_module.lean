@@ -3,10 +3,26 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 
-Direct sum of modules over commutative rings, indexed by a discrete type ι.
+Direct sum of modules over commutative rings, indexed by a discrete type.
 -/
 import algebra.direct_sum
 import linear_algebra.basic
+
+/-!
+# Direct sum of modules over commutative rings, indexed by a discrete type.
+
+This file provides constructors for finite direct sums of modules.
+It provides a construction of the direct sum using the universal property and proves
+its uniqueness.
+
+## Implementation notes
+
+All of this file assumes that
+* `R` is a commutative ring,
+* `ι` is a discrete type,
+* `S` is a finite set in `ι`,
+* `M` is a family of `R` semimodules indexed over `ι`.
+-/
 
 universes u v w u₁
 

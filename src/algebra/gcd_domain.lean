@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Jens Wagemaker
 
 GCD domain and integral domains with normalization functions
 
-TODO: abstract the domains to to semi domains (i.e. domains on semirings) to include ℕ and ℕ[X] etc.
+TODO: abstract the domains to semi domains (i.e. domains on semirings) to include ℕ and ℕ[X] etc.
 -/
 import algebra.associated
 import data.nat.basic
@@ -489,6 +489,13 @@ theorem gcd_div {i j k : ℤ} (H1 : k ∣ i) (H2 : k ∣ j) :
 by rw [gcd, nat_abs_div i k H1, nat_abs_div j k H2];
 exact nat.gcd_div (nat_abs_dvd_abs_iff.mpr H1) (nat_abs_dvd_abs_iff.mpr H2)
 
+theorem gcd_div_gcd_div_gcd {i j : ℤ} (H : 0 < gcd i j) :
+  gcd (i / gcd i j) (j / gcd i j) = 1 :=
+begin
+  rw [gcd_div (gcd_dvd_left i j) (gcd_dvd_right i j)],
+  rw [nat_abs_of_nat, nat.div_self H]
+end
+
 theorem gcd_dvd_gcd_of_dvd_left {i k : ℤ} (j : ℤ) (H : i ∣ k) : gcd i j ∣ gcd k j :=
 int.coe_nat_dvd.1 $ dvd_gcd (dvd.trans (gcd_dvd_left i j) H) (gcd_dvd_right i j)
 
@@ -513,6 +520,32 @@ nat.dvd_antisymm (by unfold gcd; exact nat.gcd_dvd_left _ _)
 
 theorem gcd_eq_right {i j : ℤ} (H : j ∣ i) : gcd i j = nat_abs j :=
 by rw [gcd_comm, gcd_eq_left H]
+
+theorem ne_zero_of_gcd {x y : ℤ}
+  (hc : gcd x y ≠ 0) : x ≠ 0 ∨ y ≠ 0 :=
+begin
+  contrapose! hc,
+  rw [hc.left, hc.right, gcd_zero_right, nat_abs_zero]
+end
+
+theorem exists_gcd_one {m n : ℤ} (H : 0 < gcd m n) :
+  ∃ (m' n' : ℤ), gcd m' n' = 1 ∧ m = m' * gcd m n ∧ n = n' * gcd m n :=
+⟨_, _, gcd_div_gcd_div_gcd H,
+  (int.div_mul_cancel (gcd_dvd_left m n)).symm,
+  (int.div_mul_cancel (gcd_dvd_right m n)).symm⟩
+
+theorem exists_gcd_one' {m n : ℤ} (H : 0 < gcd m n) :
+  ∃ (g : ℕ) (m' n' : ℤ), 0 < g ∧ gcd m' n' = 1 ∧ m = m' * g ∧ n = n' * g :=
+let ⟨m', n', h⟩ := exists_gcd_one H in ⟨_, m', n', H, h⟩
+
+theorem pow_dvd_pow_iff {m n : ℤ} {k : ℕ} (k0 : 0 < k) : m ^ k ∣ n ^ k ↔ m ∣ n :=
+begin
+  refine ⟨λ h, _, λ h, pow_dvd_pow_of_dvd h _⟩,
+  apply int.nat_abs_dvd_abs_iff.mp,
+  apply (nat.pow_dvd_pow_iff k0).mp,
+  rw [← int.nat_abs_pow, ← int.nat_abs_pow],
+  exact int.nat_abs_dvd_abs_iff.mpr h
+end
 
 /- lcm -/
 
@@ -595,4 +628,30 @@ begin
     rw [int.coe_nat_abs_eq_normalize, normalize_idem] },
   { assume n, show int.nat_abs (normalize n) = n,
     rw [← int.coe_nat_abs_eq_normalize, int.nat_abs_of_nat, int.nat_abs_of_nat] }
+end
+
+lemma int.prime.dvd_mul {m n : ℤ} {p : ℕ}
+  (hp : nat.prime p) (h : (p : ℤ) ∣ m * n) : p ∣ m.nat_abs ∨ p ∣ n.nat_abs :=
+begin
+  apply (nat.prime.dvd_mul hp).mp,
+  rw ← int.nat_abs_mul,
+  exact int.coe_nat_dvd_left.mp h
+end
+
+lemma int.prime.dvd_mul' {m n : ℤ} {p : ℕ}
+  (hp : nat.prime p) (h : (p : ℤ) ∣ m * n) : (p : ℤ) ∣ m ∨ (p : ℤ) ∣ n :=
+begin
+  rw [int.coe_nat_dvd_left, int.coe_nat_dvd_left],
+  exact int.prime.dvd_mul hp h
+end
+
+lemma prime_two_or_dvd_of_dvd_two_mul_pow_self_two {m : ℤ} {p : ℕ}
+  (hp : nat.prime p) (h : (p : ℤ) ∣ 2 * m ^ 2) : p = 2 ∨ p ∣ int.nat_abs m :=
+begin
+  cases int.prime.dvd_mul hp h with hp2 hpp,
+  { apply or.intro_left,
+    exact le_antisymm (nat.le_of_dvd two_pos hp2) (nat.prime.two_le hp) },
+  { apply or.intro_right,
+    rw [pow_two, int.nat_abs_mul] at hpp,
+    exact (or_self _).mp ((nat.prime.dvd_mul hp).mp hpp)}
 end

@@ -111,7 +111,7 @@ begin
     { simp } },
   have D : liminf at_top (λ n : ℕ, (r : ennreal) / ((C + 1)^(1/(n : ℝ)) : nnreal)) ≤ p.radius :=
     liminf_le_liminf B,
-  rw liminf_eq_of_tendsto filter.at_top_ne_bot L at D,
+  rw L.liminf_eq filter.at_top_ne_bot at D,
   simpa using D
 end
 
@@ -304,7 +304,7 @@ begin
     have : 0 < i := bot_lt_iff_ne_bot.mpr hi,
     apply continuous_multilinear_map.map_coord_zero _ (⟨0, this⟩ : fin i),
     refl },
-  have A := has_sum_unique (hf.has_sum zero_mem) (has_sum_single _ this),
+  have A := (hf.has_sum zero_mem).unique (has_sum_single _ this),
   simpa [v_eq] using A.symm,
 end
 
@@ -441,7 +441,7 @@ lemma has_fpower_series_on_ball.sum [complete_space F] (h : has_fpower_series_on
 begin
   have A := h.has_sum hy,
   have B := (p.has_fpower_series_on_ball h.radius_pos).has_sum (lt_of_lt_of_le hy h.r_le),
-  simpa using has_sum_unique A B
+  simpa using A.unique B
 end
 
 /-- The sum of a converging power series is continuous in its disk of convergence. -/
@@ -589,7 +589,7 @@ begin
     ennreal.lt_iff_exists_add_pos_lt.mp h,
   have S : @summable ℝ _ _ _ ((λ ⟨n, s, hs⟩, ∥(p n).restr s hs x∥ * (r : ℝ) ^ k) :
     (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}) → ℝ),
-  { convert summable.summable_comp_of_injective (p.change_origin_summable_aux2 hr)
+  { convert (p.change_origin_summable_aux2 hr).comp_injective
       (change_origin_summable_aux_j_injective k),
     -- again, cleanup that could be done by `tidy`:
     ext ⟨_, ⟨_, _⟩⟩, refl },

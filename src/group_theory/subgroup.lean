@@ -490,8 +490,7 @@ lemma mem_Sup_of_directed_on {K : set (subgroup G)} (Kne : K.nonempty)
   x ∈ Sup K ↔ ∃ s ∈ K, x ∈ s :=
 begin
   haveI : nonempty K := Kne.to_subtype,
-  rw [Sup_eq_supr, supr_subtype', mem_supr_of_directed, subtype.exists],
-  exact (directed_on_iff_directed _).1 hK
+  simp only [Sup_eq_supr', mem_supr_of_directed hK.directed_coe, set_coe.exists, subtype.coe_mk]
 end
 
 variables {N : Type*} [group N] {P : Type*} [group P]

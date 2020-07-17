@@ -305,7 +305,7 @@ begin
   { rcases h H.1 H.2 with ⟨i, hi⟩,
     rw [H.2, mul_zero, ← bot_eq_zero, infi_eq_bot],
     exact λ b hb, ⟨i, by rwa [hi, mul_zero, ← bot_eq_zero]⟩ },
-  { push_neg at H,
+  { rw not_and_distrib at H,
     exact (map_infi_of_continuous_at_of_monotone' (ennreal.continuous_at_const_mul H)
       ennreal.mul_left_mono).symm }
 end
@@ -465,10 +465,10 @@ have (λs:finset α, ∑ a in s, ↑(f a)) = (coe : nnreal → ennreal) ∘ (λs
 by unfold has_sum; rw [this, tendsto_coe]
 
 protected lemma tsum_coe_eq {f : α → nnreal} (h : has_sum f r) : (∑'a, (f a : ennreal)) = r :=
-tsum_eq_has_sum $ ennreal.has_sum_coe.2 $ h
+(ennreal.has_sum_coe.2 h).tsum_eq
 
 protected lemma coe_tsum {f : α → nnreal} : summable f → ↑(tsum f) = (∑'a, (f a : ennreal))
-| ⟨r, hr⟩ := by rw [tsum_eq_has_sum hr, ennreal.tsum_coe_eq hr]
+| ⟨r, hr⟩ := by rw [hr.tsum_eq, ennreal.tsum_coe_eq hr]
 
 protected lemma has_sum : has_sum f (⨆s:finset α, ∑ a in s, f a) :=
 tendsto_order.2
@@ -494,7 +494,7 @@ begin
 end
 
 protected lemma tsum_eq_supr_sum : (∑'a, f a) = (⨆s:finset α, ∑ a in s, f a) :=
-tsum_eq_has_sum ennreal.has_sum
+ennreal.has_sum.tsum_eq
 
 protected lemma tsum_eq_supr_sum' {ι : Type*} (s : ι → finset α) (hs : ∀ t, ∃ i, t ⊆ s i) :
   (∑' a, f a) = ⨆ i, ∑ a in s i, f a :=
@@ -507,26 +507,17 @@ end
 
 protected lemma tsum_sigma {β : α → Type*} (f : Πa, β a → ennreal) :
   (∑'p:Σa, β a, f p.1 p.2) = (∑'a b, f a b) :=
-tsum_sigma (assume b, ennreal.summable) ennreal.summable
+tsum_sigma' (assume b, ennreal.summable) ennreal.summable
 
 protected lemma tsum_sigma' {β : α → Type*} (f : (Σ a, β a) → ennreal) :
   (∑'p:(Σa, β a), f p) = (∑'a b, f ⟨a, b⟩) :=
-tsum_sigma (assume b, ennreal.summable) ennreal.summable
+tsum_sigma' (assume b, ennreal.summable) ennreal.summable
 
 protected lemma tsum_prod {f : α → β → ennreal} : (∑'p:α×β, f p.1 p.2) = (∑'a, ∑'b, f a b) :=
-let j : α × β → (Σa:α, β) := λp, sigma.mk p.1 p.2 in
-let i : (Σa:α, β) → α × β := λp, (p.1, p.2) in
-let f' : (Σa:α, β) → ennreal := λp, f p.1 p.2 in
-calc (∑'p:α×β, f' (j p)) = (∑'p:Σa:α, β, f p.1 p.2) :
-    tsum_eq_tsum_of_iso j i (assume ⟨a, b⟩, rfl) (assume ⟨a, b⟩, rfl)
-   ... = (∑'a, ∑'b, f a b) : ennreal.tsum_sigma f
+tsum_prod' ennreal.summable $ λ _, ennreal.summable
 
 protected lemma tsum_comm {f : α → β → ennreal} : (∑'a, ∑'b, f a b) = (∑'b, ∑'a, f a b) :=
-let f' : α×β → ennreal := λp, f p.1 p.2 in
-calc (∑'a, ∑'b, f a b) = (∑'p:α×β, f' p) : ennreal.tsum_prod.symm
-  ... = (∑'p:β×α, f' (prod.swap p)) :
-    (tsum_eq_tsum_of_iso prod.swap (@prod.swap α β) (assume ⟨a, b⟩, rfl) (assume ⟨a, b⟩, rfl)).symm
-  ... = (∑'b, ∑'a, f' (prod.swap (b, a))) : @ennreal.tsum_prod β α (λb a, f' (prod.swap (b, a)))
+tsum_comm' ennreal.summable (λ _, ennreal.summable) (λ _, ennreal.summable)
 
 protected lemma tsum_add : (∑'a, f a + g a) = (∑'a, f a) + (∑'a, g a) :=
 tsum_add ennreal.summable ennreal.summable
@@ -562,7 +553,7 @@ have tendsto (λs:finset α, ∑ j in s, a * f j) at_top (𝓝 (a * (∑'i, f i)
   by rw [← show (*) a ∘ (λs:finset α, ∑ j in s, f j) = λs, ∑ j in s, a * f j,
          from funext $ λ s, finset.mul_sum];
   exact ennreal.tendsto.const_mul ennreal.summable.has_sum (or.inl sum_ne_0),
-tsum_eq_has_sum this
+has_sum.tsum_eq this
 
 protected lemma tsum_mul_right : (∑'i, f i * a) = (∑'i, f i) * a :=
 by simp [mul_comm, ennreal.tsum_mul_left]

@@ -19,7 +19,7 @@ Then we prove many lemmas like “if `f → +∞`, then `f ± c → +∞`”.
 variables {α β γ : Type*}
 
 open set
-open_locale classical filter
+open_locale classical filter big_operators
 
 namespace filter
 /-- `at_top` is the filter representing the limit `→ ∞` on an ordered set.
@@ -262,12 +262,12 @@ variables [ordered_cancel_add_comm_monoid β] {l : filter α} {f g : α → β}
 lemma tendsto_at_top_of_add_const_left (C : β) (hf : tendsto (λ x, C + f x) l at_top) :
   tendsto f l at_top :=
 (tendsto_at_top _ l).2 $ assume b,
-  ((tendsto_at_top _ _).1 hf (C + b)).mono (λ x, le_of_add_le_add_left) 
+  ((tendsto_at_top _ _).1 hf (C + b)).mono (λ x, le_of_add_le_add_left)
 
 lemma tendsto_at_top_of_add_const_right (C : β) (hf : tendsto (λ x, f x + C) l at_top) :
   tendsto f l at_top :=
 (tendsto_at_top _ l).2 $ assume b,
-  ((tendsto_at_top _ _).1 hf (b + C)).mono (λ x, le_of_add_le_add_right) 
+  ((tendsto_at_top _ _).1 hf (b + C)).mono (λ x, le_of_add_le_add_right)
 
 lemma tendsto_at_top_of_add_bdd_above_left' (C) (hC : ∀ᶠ x in l, f x ≤ C)
   (h : tendsto (λ x, f x + g x) l at_top) :
@@ -410,7 +410,7 @@ begin
     inhabit β₂,
     simp [at_top, prod_infi_left (default β₁), prod_infi_right (default β₂), infi_prod],
     exact infi_comm },
-  { push_neg at ne,
+  { rw not_and_distrib at ne,
     cases ne;
     { have : ¬ (nonempty (β₁ × β₂)), by simp [ne],
       rw [at_top.filter_eq_bot_of_not_nonempty ne, at_top.filter_eq_bot_of_not_nonempty this],
@@ -516,4 +516,51 @@ lemma tendsto_at_top_of_monotone_of_subseq {ι ι' α : Type*} [preorder ι] [pr
   tendsto u at_top at_top :=
 tendsto_at_top_of_monotone_of_filter h (map_ne_bot hl) (tendsto_map' H)
 
+/-- Let `f` and `g` be two maps to the same commutative monoid. This lemma gives a sufficient
+condition for comparison of the filter `at_top.map (λ s, ∏ b in s, f b)` with
+`at_top.map (λ s, ∏ b in s, g b)`. This is useful to compare the set of limit points of
+`Π b in s, f b` as `s → at_top` with the similar set for `g`. -/
+@[to_additive]
+lemma map_at_top_finset_prod_le_of_prod_eq [comm_monoid α] {f : β → α} {g : γ → α}
+  (h_eq : ∀u:finset γ, ∃v:finset β, ∀v', v ⊆ v' → ∃u', u ⊆ u' ∧ ∏ x in u', g x = ∏ b in v', f b) :
+  at_top.map (λs:finset β, ∏ b in s, f b) ≤ at_top.map (λs:finset γ, ∏ x in s, g x) :=
+by rw [map_at_top_eq, map_at_top_eq];
+from (le_infi $ assume b, let ⟨v, hv⟩ := h_eq b in infi_le_of_le v $
+  by simp [set.image_subset_iff]; exact hv)
+
 end filter
+
+open filter finset
+
+/-- Let `g : γ → β` be an injective function and `f : β → α` be a function from the codomain of `g`
+to a commutative monoid. Suppose that `f x = 1` outside of the range of `g`. Then the filters
+`at_top.map (λ s, ∏ i in s, f (g i))` and `at_top.map (λ s, ∏ i in s, f i)` coincide.
+
+The additive version of this lemma is used to prove the equality `∑' x, f (g x) = ∑' y, f y` under
+the same assumptions.-/
+@[to_additive]
+lemma function.injective.map_at_top_finset_prod_eq [comm_monoid α] {g : γ → β}
+  (hg : function.injective g) {f : β → α} (hf : ∀ x ∉ set.range g, f x = 1) :
+  map (λ s, ∏ i in s, f (g i)) at_top = map (λ s, ∏ i in s, f i) at_top :=
+begin
+  apply le_antisymm; refine map_at_top_finset_prod_le_of_prod_eq (λ s, _),
+  { refine ⟨s.preimage (hg.inj_on _), λ t ht, _⟩,
+    refine ⟨t.image g ∪ s, finset.subset_union_right _ _, _⟩,
+    rw [← finset.prod_image (hg.inj_on _)],
+    refine (prod_subset (subset_union_left _ _) _).symm,
+    simp only [finset.mem_union, finset.mem_image],
+    refine λ y hy hyt, hf y (mt _ hyt),
+    rintros ⟨x, rfl⟩,
+    exact ⟨x, ht (finset.mem_preimage.2 $ hy.resolve_left hyt), rfl⟩ },
+  { refine ⟨s.image g, λ t ht, _⟩,
+    simp only [← prod_preimage _ _ (hg.inj_on _) _ (λ x _, hf x)],
+    exact ⟨_, (image_subset_iff_subset_preimage _).1 ht, rfl⟩ }
+end
+
+/-- Let `g : γ → β` be an injective function and `f : β → α` be a function from the codomain of `g`
+to an additive commutative monoid. Suppose that `f x = 0` outside of the range of `g`. Then the
+filters `at_top.map (λ s, ∑ i in s, f (g i))` and `at_top.map (λ s, ∑ i in s, f i)` coincide.
+
+This lemma is used to prove the equality `∑' x, f (g x) = ∑' y, f y` under
+the same assumptions.-/
+add_decl_doc function.injective.map_at_top_finset_sum_eq

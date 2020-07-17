@@ -39,6 +39,7 @@ typeclass. We provide it as `[fact (x < y)]`.
 
 noncomputable theory
 open set
+open_locale manifold
 
 /--
 The half-space in `ℝ^n`, used to model manifolds with boundary. We only define it when
@@ -299,7 +300,7 @@ def Icc_right_chart (x y : ℝ) [fact (x < y)] :
   end }
 
 /--
-Charted space structure on `[x, y]`, using only two charts tkaing values in `euclidean_half_space 1`.
+Charted space structure on `[x, y]`, using only two charts taking values in `euclidean_half_space 1`.
 -/
 instance Icc_manifold (x y : ℝ) [fact (x < y)] : charted_space (euclidean_half_space 1) (Icc x y) :=
 { atlas := {Icc_left_chart x y, Icc_right_chart x y},
@@ -320,10 +321,10 @@ The manifold structure on `[x, y]` is smooth.
 instance Icc_smooth_manifold (x y : ℝ) [fact (x < y)] :
   smooth_manifold_with_corners (𝓡∂ 1) (Icc x y) :=
 begin
-  have M : times_cont_diff_on ℝ ⊤ (λz : euclidean_space (fin 1), - z + (λi, y - x)) univ,
+  have M : times_cont_diff_on ℝ ∞ (λz : euclidean_space (fin 1), - z + (λi, y - x)) univ,
   { rw times_cont_diff_on_univ,
     exact times_cont_diff_id.neg.add times_cont_diff_const  },
-  haveI : has_groupoid (Icc x y) (times_cont_diff_groupoid ⊤ (𝓡∂ 1)) :=
+  haveI : has_groupoid (Icc x y) (times_cont_diff_groupoid ∞ (𝓡∂ 1)) :=
   begin
     apply has_groupoid_of_pregroupoid,
     assume e e' he he',
@@ -333,7 +334,7 @@ begin
     -/
     rcases he with rfl | rfl; rcases he' with rfl | rfl,
     { -- `e = left chart`, `e' = left chart`
-      refine ((mem_groupoid_of_pregroupoid _ _).mpr _).1,
+      refine (mem_groupoid_of_pregroupoid.mpr _).1,
       exact symm_trans_mem_times_cont_diff_groupoid _ _ _ },
     { -- `e = left chart`, `e' = right chart`
       apply M.congr_mono _ (subset_univ _),
@@ -361,8 +362,11 @@ begin
         pi_Lp.add_apply, dif_pos, max_eq_left, pi_Lp.neg_apply] with mfld_simps,
       ring },
     { -- `e = right chart`, `e' = right chart`
-      refine ((mem_groupoid_of_pregroupoid _ _).mpr _).1,
+      refine (mem_groupoid_of_pregroupoid.mpr _).1,
       exact symm_trans_mem_times_cont_diff_groupoid _ _ _ }
   end,
   constructor
 end
+
+/- Register an instance of `0 < 1` to be able to use freely the manifold structure on `Icc 0 1`. -/
+instance : fact ((0 : ℝ) < 1) := zero_lt_one

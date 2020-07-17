@@ -300,13 +300,13 @@ tc.mk_simple
     gs ← get_goals,
     hs ← gs.mmap (λ g, do set_goals [g], flip tc.to_html ft $ tactic_view_goal local_c target_c),
     set_goals gs,
-    let goal_message :=
+    let goal_message : html γ :=
       if gs.length = 0 then
-        "goals accomplished 🎉"
+        h "div" [cn "f5"] ["goals accomplished 🎉"]
       else if gs.length = 1 then
         "1 goal"
       else
-        to_string gs.length ++ " goals",
+        html.of_string $ to_string gs.length ++ " goals",
     let goal_message : html γ := h "strong" [cn "goal-goals"] [goal_message],
     let goals : html γ := h "ul" [className "list pl0"]
         $ list.map_with_index (λ i x,

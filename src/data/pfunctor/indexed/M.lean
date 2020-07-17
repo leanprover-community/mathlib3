@@ -686,7 +686,7 @@ end ipfunctor₀
 namespace tactic.interactive
 open tactic (hiding coinduction) lean.parser interactive interactive.types
 
-meta def bisim (ns : parse with_ident_list) (g : parse $ optional (tk "generalizing" *> many ident)) : tactic unit :=
+meta def ibisim (ns : parse with_ident_list) (g : parse $ optional (tk "generalizing" *> many ident)) : tactic unit :=
 do applyc ``ipfunctor₀.M.coinduction,
    coinduction ``ipfunctor₀.M.R.corec_on ns g
 
@@ -718,7 +718,7 @@ lemma M_bisim (R : Π i, M P i → M P i → Prop)
   ∀ i x y, R i x y → x = y :=
 begin
   intros,
-  bisim with j _ _ ih generalizing i x y,
+  ibisim with j _ _ ih generalizing i x y,
   rcases h _ _ _ ih with ⟨ a', f, f', h₀, h₁, h₂ ⟩, clear h,
   existsi [a',f,f'], split,
   { intros, existsi [_,_,_,h₂ _ x], refl },

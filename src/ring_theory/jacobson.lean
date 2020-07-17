@@ -6,6 +6,7 @@ Authors: Devon Tuma
 import data.mv_polynomial
 import ring_theory.ideals
 import ring_theory.ideal_operations
+import ring_theory.jacobson_ideal
 
 /-!
 # Jacobson rings
@@ -113,16 +114,6 @@ begin
     ▸ (quotient.map_mk_comap_mk_left_inverse p).symm,
   exact eq.trans this (quotient.map_mk_Inf (λ J ⟨hJ, _⟩, le_trans (quotient.le_comap_mk) hJ))
 end
-
--- lemma is_jacobson_polynomial (H : is_jacobson R) : is_jacobson (polynomial R) := sorry
-
--- lemma is_jacobson_mv_polynomial (H : is_jacobson R) (n : ℕ) :
---   is_jacobson (mv_polynomial (fin n) R) :=
--- nat.rec_on n
---   ((is_jacobson_iso
---     ((mv_polynomial.ring_equiv_of_equiv R (equiv.equiv_pempty $ fin.elim0)).trans
---     (mv_polynomial.pempty_ring_equiv R))).mpr H)
---   (λ n hn, (is_jacobson_iso (mv_polynomial.fin_succ_equiv R n)).2 (ideal.is_jacobson_polynomial hn))
 
 end is_jacobson
 

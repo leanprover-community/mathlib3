@@ -705,105 +705,6 @@ end bijective
 
 end map_and_comap
 
-section jacobson
-variables {R : Type u} [comm_ring R]
-
-/-- The Jacobson radical of `I` is the infimum of all maximal ideals containing `I`. -/
-def jacobson (I : ideal R) : ideal R :=
-Inf {J : ideal R | I ≤ J ∧ is_maximal J}
-
-lemma le_jacobson {I : ideal R} : I ≤ jacobson I :=
-λ x hx, mem_Inf.mpr (λ J hJ, hJ.left hx)
-
-theorem jacobson_eq_top_iff {I : ideal R} : jacobson I = ⊤ ↔ I = ⊤ :=
-⟨λ H, classical.by_contradiction $ λ hi, let ⟨M, hm, him⟩ := exists_le_maximal I hi in
-  lt_top_iff_ne_top.1 (lt_of_le_of_lt (show jacobson I ≤ M, from Inf_le ⟨him, hm⟩) $ lt_top_iff_ne_top.2 hm.1) H,
-λ H, eq_top_iff.2 $ le_Inf $ λ J ⟨hij, hj⟩, H ▸ hij⟩
-
-lemma jacobson_eq_bot {I : ideal R} : jacobson I = ⊥ → I = ⊥ :=
-λ h, eq_bot_iff.mpr (h ▸ le_jacobson)
-
-lemma jacobson.is_maximal {I : ideal R} : is_maximal I → is_maximal (jacobson I) :=
-λ h, ⟨λ htop, h.left (jacobson_eq_top_iff.1 htop),
-  λ J hJ, h.right _ (lt_of_le_of_lt le_jacobson hJ)⟩
-
-theorem mem_jacobson_iff {I : ideal R} {x : R} :
-  x ∈ jacobson I ↔ ∀ y, ∃ z, x * y * z + z - 1 ∈ I :=
-⟨λ hx y, classical.by_cases
-  (assume hxy : I ⊔ span {x * y + 1} = ⊤,
-    let ⟨p, hpi, q, hq, hpq⟩ := submodule.mem_sup.1 ((eq_top_iff_one _).1 hxy) in
-    let ⟨r, hr⟩ := mem_span_singleton.1 hq in
-    ⟨r, by rw [← one_mul r, ← mul_assoc, ← add_mul, mul_one, ← hr, ← hpq, ← neg_sub, add_sub_cancel]; exact I.neg_mem hpi⟩)
-  (assume hxy : I ⊔ span {x * y + 1} ≠ ⊤,
-    let ⟨M, hm1, hm2⟩ := exists_le_maximal _ hxy in
-    suffices x ∉ M, from (this $ mem_Inf.1 hx ⟨le_trans le_sup_left hm2, hm1⟩).elim,
-    λ hxm, hm1.1 $ (eq_top_iff_one _).2 $ add_sub_cancel' (x * y) 1 ▸ M.sub_mem
-      (le_trans le_sup_right hm2 $ mem_span_singleton.2 $ dvd_refl _)
-      (M.mul_mem_right hxm)),
-λ hx, mem_Inf.2 $ λ M ⟨him, hm⟩, classical.by_contradiction $ λ hxm,
-  let ⟨y, hy⟩ := hm.exists_inv hxm, ⟨z, hz⟩ := hx (-y) in
-  hm.1 $ (eq_top_iff_one _).2 $ sub_sub_cancel (x * -y * z + z) 1 ▸ M.sub_mem
-    (by rw [← one_mul z, ← mul_assoc, ← add_mul, mul_one, mul_neg_eq_neg_mul_symm, neg_add_eq_sub, ← neg_sub,
-        neg_mul_eq_neg_mul_symm, neg_mul_eq_mul_neg, mul_comm x y]; exact M.mul_mem_right hy)
-    (him hz)⟩
-
-@[mono] lemma jacobson_mono {I J : ideal R} : I ≤ J → I.jacobson ≤ J.jacobson :=
-begin
-  intros h x hx,
-  erw mem_Inf at ⊢ hx,
-  exact λ K ⟨hK, hK_max⟩, hx ⟨trans h hK, hK_max⟩
-end
-
-lemma comap_jacobson {S : Type v} [comm_ring S] (e : S ≃+* R) {I : ideal R}
-    : comap (e : S →+* R) (jacobson I) = jacobson (comap ↑e I) :=
-begin
-  let iso := order_iso_of_bijective (e : S →+* R) e.bijective,
-  refine le_antisymm _ _,
-  { intros x hx,
-    rw mem_comap at hx,
-    erw mem_Inf at hx ⊢,
-    intros J hJ,
-    specialize hx ⟨(comap_le_iff_map_le (e : S →+* R) e.bijective).1 hJ.left,
-      map.is_maximal _ e.bijective hJ.right⟩,
-    exact (iso.right_inv J) ▸ (mem_comap.1 hx),
-  },
-  { intros x hx,
-    erw [mem_comap, mem_Inf],
-    erw mem_Inf at hx,
-    exact λ J hJ, (hx) ⟨comap_mono hJ.left, comap.is_maximal _ e.bijective hJ.right⟩ }
-end
-
-end jacobson
-
-section is_local
-variables {R : Type u} [comm_ring R]
-
-/-- An ideal `I` is local iff its Jacobson radical is maximal. -/
-@[class] def is_local (I : ideal R) : Prop :=
-is_maximal (jacobson I)
-
-theorem is_local_of_is_maximal_radical {I : ideal R} (hi : is_maximal (radical I)) : is_local I :=
-have radical I = jacobson I,
-from le_antisymm (le_Inf $ λ M ⟨him, hm⟩, hm.is_prime.radical_le_iff.2 him)
-  (Inf_le ⟨le_radical, hi⟩),
-show is_maximal (jacobson I), from this ▸ hi
-
-theorem is_local.le_jacobson {I J : ideal R} (hi : is_local I) (hij : I ≤ J) (hj : J ≠ ⊤) : J ≤ jacobson I :=
-let ⟨M, hm, hjm⟩ := exists_le_maximal J hj in
-le_trans hjm $ le_of_eq $ eq.symm $ hi.eq_of_le hm.1 $ Inf_le ⟨le_trans hij hjm, hm⟩
-
-theorem is_local.mem_jacobson_or_exists_inv {I : ideal R} (hi : is_local I) (x : R) :
-  x ∈ jacobson I ∨ ∃ y, y * x - 1 ∈ I :=
-classical.by_cases
-  (assume h : I ⊔ span {x} = ⊤,
-    let ⟨p, hpi, q, hq, hpq⟩ := submodule.mem_sup.1 ((eq_top_iff_one _).1 h) in
-    let ⟨r, hr⟩ := mem_span_singleton.1 hq in
-    or.inr ⟨r, by rw [← hpq, mul_comm, ← hr, ← neg_sub, add_sub_cancel]; exact I.neg_mem hpi⟩)
-  (assume h : I ⊔ span {x} ≠ ⊤,
-    or.inl $ le_trans le_sup_right (hi.le_jacobson le_sup_left h) $ mem_span_singleton.2 $ dvd_refl x)
-
-end is_local
-
 section is_primary
 variables {R : Type u} [comm_ring R]
 
@@ -834,16 +735,6 @@ begin
   { exact or.inr hyj },
   { rw hij at hyi, exact or.inr hyi }
 end⟩
-
-theorem is_primary_of_is_maximal_radical {I : ideal R} (hi : is_maximal (radical I)) : is_primary I :=
-have radical I = jacobson I,
-from le_antisymm (le_Inf $ λ M ⟨him, hm⟩, hm.is_prime.radical_le_iff.2 him)
-  (Inf_le ⟨le_radical, hi⟩),
-⟨ne_top_of_lt $ lt_of_le_of_lt le_radical (lt_top_iff_ne_top.2 hi.1),
-λ x y hxy, ((is_local_of_is_maximal_radical hi).mem_jacobson_or_exists_inv y).symm.imp
-  (λ ⟨z, hz⟩, by rw [← mul_one x, ← sub_sub_cancel (z * y) 1, mul_sub, mul_left_comm]; exact
-    I.sub_mem (I.mul_mem_left hxy) (I.mul_mem_left hz))
-  (this ▸ id)⟩
 
 end is_primary
 

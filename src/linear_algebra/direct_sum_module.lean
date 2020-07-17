@@ -22,11 +22,11 @@ variables {R ι M}
 instance : semimodule R (direct_sum ι M) := dfinsupp.to_semimodule
 
 variables R ι M
-/-- This is like `mk`, but indexed by a finset. -/
+/-- Create the direct sum given a family `M` of `R` semimodules indexed over `ι`. -/
 def lmk : Π s : finset ι, (Π i : (↑s : set ι), M i.val) →ₗ[R] direct_sum ι M :=
 dfinsupp.lmk M R
 
-/-- The inclusion from the product type to the direct sum, as a linear map. -/
+/-- Inclusion of each component into the direct sum. -/
 def lof : Π i : ι, M i →ₗ[R] direct_sum ι M :=
 dfinsupp.lsingle M R
 variables {ι M}
@@ -34,9 +34,11 @@ variables {ι M}
 lemma single_eq_lof (i : ι) (b : M i) :
   dfinsupp.single i b = lof R ι M i b := rfl
 
+/-- Scalar multiplication commutes with direct sums. -/
 theorem mk_smul (s : finset ι) (c : R) (x) : mk M s (c • x) = c • mk M s x :=
 (lmk R ι M s).map_smul c x
 
+/-- Scalar multiplication commutes with the inclusion of each component into the direct sum. -/
 theorem of_smul (i : ι) (c : R) (x) : of M i (c • x) = c • of M i x :=
 (lof R ι M i).map_smul c x
 
@@ -44,7 +46,7 @@ variables {N : Type u₁} [add_comm_group N] [semimodule R N]
 variables (φ : Π i, M i →ₗ[R] N)
 
 variables (ι N φ)
-/-- The structure map coming from the universal property of the coproduct. -/
+/-- The linear map construced using the universal property of the coproduct. -/
 def to_module : direct_sum ι M →ₗ[R] N :=
 { to_fun := to_group (λ i, φ i),
   map_add' := to_group_add _,
@@ -52,13 +54,18 @@ def to_module : direct_sum ι M →ₗ[R] N :=
     (by rw [smul_zero, to_group_zero, smul_zero])
     (λ i x, by rw [← of_smul, to_group_of, to_group_of, (φ i).map_smul c x])
     (λ x y ihx ihy, by rw [smul_add, to_group_add, ihx, ihy, to_group_add, smul_add]) }
+
 variables {ι N φ}
 
+/-- The map constructed using the universal property gives back the original maps when
+restricted to each component. -/
 @[simp] lemma to_module_lof (i) (x : M i) : to_module R ι N φ (lof R ι M i x) = φ i x :=
 to_group_of (λ i, φ i) i x
 
 variables (ψ : direct_sum ι M →ₗ[R] N)
 
+/-- Every linear map from a direct sum agrees with the one obtained by applying
+the universal property to each of its components. -/
 theorem to_module.unique (f : direct_sum ι M) : ψ f = to_module R ι N (λ i, ψ.comp $ lof R ι M i) f :=
 to_group.unique ψ f
 
@@ -82,7 +89,7 @@ protected def lid (M : Type v) [add_comm_group M] [semimodule R M] :
   .. to_module R punit M (λ i, linear_map.id) }
 
 variables (ι M)
-/-- The projection map onto one coordinate, as a linear map. -/
+/-- The projection map onto one component, as a linear map. -/
 def component (i : ι) : direct_sum ι M →ₗ[R] M i :=
 { to_fun := λ f, f i,
   map_add' := λ _ _, dfinsupp.add_apply,

@@ -124,6 +124,9 @@ instance has_forget_to_Ring : has_forget₂ CommRing Ring := bundled_hom.forget�
 instance has_forget_to_CommSemiRing : has_forget₂ CommRing CommSemiRing :=
 has_forget₂.mk' (λ R : CommRing, CommSemiRing.of R) (λ R, rfl) (λ R₁ R₂ f, f) (by tidy)
 
+instance : full (forget₂ CommRing CommSemiRing) :=
+{ preimage := λ X Y f, f, }
+
 end CommRing
 
 -- This example verifies an improvement possible in Lean 3.8.

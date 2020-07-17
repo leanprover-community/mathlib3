@@ -46,7 +46,6 @@ instance subsingleton [subsingleton R] : subsingleton (polynomial R) :=
 @[simp] lemma support_zero : (0 : polynomial R).support = ∅ := rfl
 
 /-- `monomial s a` is the monomial `a * X^s` -/
--- @[reducible]
 def monomial (n : ℕ) (a : R) : polynomial R := finsupp.single n a
 
 @[simp] lemma monomial_zero_right (n : ℕ) :

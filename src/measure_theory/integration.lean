@@ -649,7 +649,8 @@ lemma support_eq (f : α →ₛ β) : support f = ⋃ y ∈ f.range.filter (λ y
 set.ext $ λ x, by simp only [finset.bUnion_preimage_singleton, mem_support, set.mem_preimage,
   finset.mem_coe, mem_filter, mem_range_self, true_and]
 
-/-- A `simple_func` has finite measure support if it is equal to 0 -/
+/-- A `simple_func` has finite measure support if it is equal to `0` outside of a set of finite
+measure. -/
 protected def fin_meas_supp (f : α →ₛ β) (μ : measure α) : Prop :=
 f =ᶠ[μ.cofinite] 0
 
@@ -1194,9 +1195,6 @@ lemma lintegral_infi
   ∫⁻ a, ⨅n, f n a ∂μ = ⨅n, ∫⁻ a, f n a ∂μ :=
 lintegral_infi_ae h_meas (λ n, ae_of_all _ $ h_mono $ le_of_lt n.lt_succ_self) h_fin
 
-section priority
--- for some reason the next proof fails without changing the priority of this instance
-local attribute [instance, priority 1000] classical.prop_decidable
 /-- Known as Fatou's lemma -/
 lemma lintegral_liminf_le {f : ℕ → α → ennreal} (h_meas : ∀n, measurable (f n)) :
   ∫⁻ a, liminf at_top (λ n, f n a) ∂μ ≤ liminf at_top (λ n, ∫⁻ a, f n a ∂μ) :=
@@ -1210,7 +1208,6 @@ calc
   ... ≤ ⨆n:ℕ, ⨅i≥n, ∫⁻ a, f i a ∂μ :
     supr_le_supr $ λ n, le_infi2_lintegral _
   ... = liminf at_top (λ n, ∫⁻ a, f n a ∂μ) : liminf_eq_supr_infi_of_nat.symm
-end priority
 
 lemma limsup_lintegral_le {f : ℕ → α → ennreal} {g : α → ennreal}
   (hf_meas : ∀ n, measurable (f n)) (h_bound : ∀n, f n ≤ᵐ[μ] g) (h_fin : ∫⁻ a, g a ∂μ < ⊤) :

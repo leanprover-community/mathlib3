@@ -1,5 +1,4 @@
 import tactic.linarith
-import analysis.normed_space.basic
 
 example {α : Type} (_inst : Π (a : Prop), decidable a)
   [linear_ordered_field α]
@@ -351,13 +350,15 @@ by nlinarith
 
 -- Tests involving a norm, including that squares in a type where `pow_two_nonneg` does not apply
 -- do not cause an exception
-variables {R : Type*} [normed_ring R]
+variables {R : Type*} [ring R] (abs : R → ℚ)
 
-example (t : R) (a b : ℝ) (h : a ≤ b) : ∥t^2∥ * a ≤ ∥t^2∥ * b :=
-by nlinarith [norm_nonneg (t^2)]
+lemma abs_nonneg' : ∀ r, 0 ≤ abs r := sorry
 
-example (t : R)  (a b : ℝ) (h : a ≤ b) : a ≤ ∥t^2∥ + b :=
-by linarith [norm_nonneg (t^2)]
+example (t : R) (a b : ℚ) (h : a ≤ b) : abs (t^2) * a ≤ abs (t^2) * b :=
+by nlinarith [abs_nonneg' abs (t^2)]
 
-example (t : R) (a b : ℝ) (h : a ≤ b) : ∥t∥ * a ≤ ∥t∥ * b :=
-by nlinarith [norm_nonneg t]
+example (t : R)  (a b : ℚ) (h : a ≤ b) : a ≤ abs (t^2) + b :=
+by linarith [abs_nonneg' abs (t^2)]
+
+example (t : R) (a b : ℚ) (h : a ≤ b) : abs t * a ≤ abs t * b :=
+by nlinarith [abs_nonneg' abs t]

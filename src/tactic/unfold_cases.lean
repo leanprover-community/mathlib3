@@ -5,11 +5,6 @@ Authors: Dany Fabian
 -/
 
 import tactic.split_ifs
-namespace tactic
-
-
-
-open expr
 /-!
   # Unfold cases tactic
 

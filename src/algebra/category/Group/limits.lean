@@ -34,29 +34,21 @@ by { change add_comm_group (F.obj j), apply_instance }
 
 instance sections_add_submonoid (F : J ⥤ AddCommGroup) :
   is_add_submonoid (F ⋙ forget AddCommGroup).sections :=
-{ zero_mem := λ j j' f,
-  begin
-    erw [functor.comp_map, forget_map_eq_coe, (F.map f).map_zero],
-    refl,
-  end,
+{ zero_mem := λ j j' f, by simp,
   add_mem := λ a b ah bh j j' f,
   begin
-    erw [functor.comp_map, forget_map_eq_coe, (F.map f).map_add],
-    dsimp [functor.sections] at ah,
-    rw ah f,
-    dsimp [functor.sections] at bh,
-    rw bh f,
-    refl,
+    simp only [forget_map_eq_coe, functor.comp_map, add_monoid_hom.map_add, pi.add_apply],
+    dsimp [functor.sections] at ah bh,
+    rw [ah f, bh f],
   end }
 
 instance sections_add_subgroup (F : J ⥤ AddCommGroup) :
   is_add_subgroup (F ⋙ forget AddCommGroup).sections :=
 { neg_mem := λ a ah j j' f,
   begin
-    erw [functor.comp_map, forget_map_eq_coe, (F.map f).map_neg],
+    simp only [forget_map_eq_coe, functor.comp_map, pi.neg_apply, add_monoid_hom.map_neg, neg_inj],
     dsimp [functor.sections] at ah,
     rw ah f,
-    refl,
   end,
   ..(AddCommGroup.sections_add_submonoid F) }
 
@@ -96,11 +88,7 @@ def limit_is_limit (F : J ⥤ AddCommGroup) : is_limit (limit F) :=
 begin
   refine is_limit.of_faithful
     (forget AddCommGroup) (limit.is_limit _)
-    (λ s, ⟨_, _, _⟩) (λ s, rfl); dsimp,
-  { apply subtype.eq, funext, dsimp,
-    erw (s.π.app j).map_zero, refl },
-  { intros x y, apply subtype.eq, funext, dsimp,
-    erw (s.π.app j).map_add, refl }
+    (λ s, ⟨_, _, _⟩) (λ s, rfl); tidy,
 end
 
 end AddCommGroup_has_limits

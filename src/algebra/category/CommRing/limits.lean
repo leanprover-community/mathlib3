@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.category.CommRing.basic
+import algebra.category.Group.limits
 
 /-!
 # The category of commutative rings has all limits
@@ -31,53 +32,18 @@ by { change comm_ring (F.obj j), apply_instance }
 
 instance sections_submonoid (F : J ⥤ CommRing) :
   is_submonoid (F ⋙ forget CommRing).sections :=
-{ one_mem := λ j j' f,
-  begin
-    erw [functor.comp_map, forget_map_eq_coe, (F.map f).map_one],
-    refl
-  end,
+{ one_mem := λ j j' f, by simp,
   mul_mem := λ a b ah bh j j' f,
   begin
-    erw [functor.comp_map, forget_map_eq_coe, (F.map f).map_mul],
-    dsimp [functor.sections] at ah,
-    rw ah f,
-    dsimp [functor.sections] at bh,
-    rw bh f,
-    refl,
+    simp only [forget_map_eq_coe, functor.comp_map, ring_hom.map_mul, pi.mul_apply],
+    dsimp [functor.sections] at ah bh,
+    rw [ah f, bh f],
   end }
-
-instance sections_add_submonoid (F : J ⥤ CommRing) :
-  is_add_submonoid (F ⋙ forget CommRing).sections :=
-{ zero_mem := λ j j' f,
-  begin
-    erw [functor.comp_map, forget_map_eq_coe, (F.map f).map_zero],
-    refl,
-  end,
-  add_mem := λ a b ah bh j j' f,
-  begin
-    erw [functor.comp_map, forget_map_eq_coe, (F.map f).map_add],
-    dsimp [functor.sections] at ah,
-    rw ah f,
-    dsimp [functor.sections] at bh,
-    rw bh f,
-    refl,
-  end }
-
-instance sections_add_subgroup (F : J ⥤ CommRing) :
-  is_add_subgroup (F ⋙ forget CommRing).sections :=
-{ neg_mem := λ a ah j j' f,
-  begin
-    erw [functor.comp_map, forget_map_eq_coe, (F.map f).map_neg],
-    dsimp [functor.sections] at ah,
-    rw ah f,
-    refl,
-  end,
-  ..(CommRing.sections_add_submonoid F) }
 
 instance sections_subring (F : J ⥤ CommRing) :
   is_subring (F ⋙ forget CommRing).sections :=
 { ..(CommRing.sections_submonoid F),
-  ..(CommRing.sections_add_subgroup F) }
+  ..(AddCommGroup.sections_add_subgroup (F ⋙ forget₂ CommRing Ring ⋙ forget₂ Ring AddCommGroup)) }
 
 instance limit_comm_ring (F : J ⥤ CommRing) :
   comm_ring (limit (F ⋙ forget CommRing)) :=
@@ -117,11 +83,7 @@ def limit_is_limit (F : J ⥤ CommRing) : is_limit (limit F) :=
 begin
   refine is_limit.of_faithful
     (forget CommRing) (limit.is_limit _)
-    (λ s, ⟨_, _, _, _, _⟩) (λ s, rfl); dsimp,
-  { ext j, dsimp, rw (s.π.app j).map_one },
-  { intros x y, ext j, dsimp, rw (s.π.app j).map_mul },
-  { ext j, dsimp, rw (s.π.app j).map_zero, refl },
-  { intros x y, ext j, dsimp, rw (s.π.app j).map_add, refl }
+    (λ s, ⟨_, _, _, _, _⟩) (λ s, rfl); tidy
 end
 
 end CommRing_has_limits

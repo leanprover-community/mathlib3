@@ -490,8 +490,8 @@ variables
   {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂] [semimodule R M₂]
   {ι : Type*} {φ : ι → Type*} [∀i, topological_space (φ i)] [∀i, add_comm_monoid (φ i)] [∀i, semimodule R (φ i)]
 
-/-- `pi` construction for linear functions. From a family of linear functions it produces a linear
-function into a family of modules. -/
+/-- `pi` construction for continuous linear functions. From a family of continuous linear functions
+it produces a continuous linear function into a family of topological modules. -/
 def pi (f : Πi, M →L[R] φ i) : M →L[R] (Πi, φ i) :=
 ⟨linear_map.pi (λ i, (f i : M →ₗ[R] φ i)),
  continuous_pi (λ i, (f i).continuous)⟩
@@ -506,7 +506,7 @@ lemma pi_zero : pi (λi, 0 : Πi, M →L[R] φ i) = 0 := by ext; refl
 
 lemma pi_comp (f : Πi, M →L[R] φ i) (g : M₂ →L[R] M) : (pi f).comp g = pi (λi, (f i).comp g) := rfl
 
-/-- The projections from a family of modules are linear maps. -/
+/-- The projections from a family of topological modules are continuous linear maps. -/
 def proj (i : ι) : (Πi, φ i) →L[R] φ i :=
 ⟨linear_map.proj i, continuous_apply _⟩
 

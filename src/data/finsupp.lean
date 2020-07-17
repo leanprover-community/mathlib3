@@ -488,6 +488,19 @@ begin
   simp only [finsupp.not_mem_support_iff.mp ha, pow_zero]
 end
 
+/-- If `g` maps a second argument of 0 to 0, summing it over the
+result of `on_finset` is the same as summing it over the original
+`finset`. -/
+lemma on_finset_sum [has_zero β] [add_comm_monoid γ] {s : finset α} {f : α → β} {g : α → β → γ}
+    (hf : ∀a, f a ≠ 0 → a ∈ s) (hg : ∀ a, g a 0 = 0) :
+  (on_finset s f hf).sum g = ∑ a in s, g a (f a) :=
+begin
+  refine finset.sum_subset support_on_finset_subset _,
+  intros x hx hxs,
+  rw not_mem_support_iff.1 hxs,
+  exact hg _
+end
+
 section add_monoid
 variables [add_monoid β]
 

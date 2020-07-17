@@ -42,7 +42,7 @@ lemma le_nat_degree_of_map_eq_mul_X_pow {n : ℕ}
   (hq : map (mk_hom P) q = c * X ^ n) (hc0 : c.degree = 0) : n ≤ q.nat_degree :=
 with_bot.coe_le_coe.1
   (calc ↑n = degree (q.map (mk_hom P)) :
-      by rw [hq, degree_mul, hc0, zero_add, degree_pow_eq, degree_X, nsmul_one, nat.cast_with_bot]
+      by rw [hq, degree_mul, hc0, zero_add, degree_pow, degree_X, nsmul_one, nat.cast_with_bot]
       ... ≤ degree q : degree_map_le _
       ... ≤ nat_degree q : degree_le_nat_degree)
 

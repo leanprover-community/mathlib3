@@ -62,12 +62,12 @@ by rw [← with_bot.coe_eq_coe, ← degree_eq_nat_degree (mul_ne_zero hp hq),
     with_bot.coe_add, ← degree_eq_nat_degree hp,
     ← degree_eq_nat_degree hq, degree_mul]
 
-@[simp] lemma nat_degree_pow_eq (p : polynomial R) (n : ℕ) :
+@[simp] lemma nat_degree_pow (p : polynomial R) (n : ℕ) :
   nat_degree (p ^ n) = n * nat_degree p :=
 if hp0 : p = 0
 then if hn0 : n = 0 then by simp [hp0, hn0]
   else by rw [hp0, zero_pow (nat.pos_of_ne_zero hn0)]; simp
-else nat_degree_pow_eq'
+else nat_degree_pow'
   (by rw [← leading_coeff_pow, ne.def, leading_coeff_eq_zero]; exact pow_ne_zero _ hp0)
 
 lemma root_mul : is_root (p * q) a ↔ is_root p a ∨ is_root q a :=
@@ -213,7 +213,7 @@ calc coeff (p.comp q) (nat_degree p * nat_degree q)
     dsimp [apply_eq_coeff],
     refine coeff_eq_zero_of_degree_lt _,
     rw [degree_mul], erw degree_C this,
-    rw [degree_pow_eq, zero_add, degree_eq_nat_degree hq0,
+    rw [degree_pow, zero_add, degree_eq_nat_degree hq0,
       ← with_bot.coe_nsmul, nsmul_eq_mul, with_bot.coe_lt_coe, nat.cast_id],
     rw mul_lt_mul_right, apply lt_of_le_of_ne, assumption', swap, omega,
     exact le_nat_degree_of_ne_zero this,
@@ -225,7 +225,7 @@ calc coeff (p.comp q) (nat_degree p * nat_degree q)
   end
 ... = _ :
   have coeff (q ^ nat_degree p) (nat_degree p * nat_degree q) = leading_coeff (q ^ nat_degree p),
-    by rw [leading_coeff, nat_degree_pow_eq],
+    by rw [leading_coeff, nat_degree_pow],
   by rw [coeff_C_mul, this, leading_coeff_pow]
 
 lemma nat_degree_comp : nat_degree (p.comp q) = nat_degree p * nat_degree q :=

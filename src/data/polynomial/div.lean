@@ -173,7 +173,7 @@ have zn0 : (0 : R) ≠ 1, from λ h, by haveI := subsingleton_of_zero_eq_one h;
     exact hp,
   begin
     have := congr_arg nat_degree hr,
-    rw [nat_degree_mul' hpnr0,  nat_degree_pow_eq' hpn0', add_mul, add_assoc] at this,
+    rw [nat_degree_mul' hpnr0,  nat_degree_pow' hpn0', add_mul, add_assoc] at this,
     exact ne_of_lt (lt_add_of_le_of_pos (le_mul_of_one_le_right' (nat.zero_le _) hnp)
       (add_pos_of_pos_of_nonneg (by rwa one_mul) (nat.zero_le _))) this
   end⟩

@@ -246,7 +246,7 @@ have h₂ : leading_coeff p * leading_coeff (p ^ n) ≠ 0 :=
   by rwa [pow_succ, ← ih h₁] at h,
 by rw [pow_succ, pow_succ, leading_coeff_mul' h₂, ih h₁]
 
-lemma degree_pow_eq' : ∀ {n}, leading_coeff p ^ n ≠ 0 →
+lemma degree_pow' : ∀ {n}, leading_coeff p ^ n ≠ 0 →
   degree (p ^ n) = n •ℕ (degree p)
 | 0     := λ h, by rw [pow_zero, ← C_1] at *;
   rw [degree_C h, zero_nsmul]
@@ -255,9 +255,9 @@ have h₁ : leading_coeff p ^ n ≠ 0 := λ h₁, h $
   by rw [pow_succ, h₁, mul_zero],
 have h₂ : leading_coeff p * leading_coeff (p ^ n) ≠ 0 :=
   by rwa [pow_succ, ← leading_coeff_pow' h₁] at h,
-by rw [pow_succ, degree_mul' h₂, succ_nsmul, degree_pow_eq' h₁]
+by rw [pow_succ, degree_mul' h₂, succ_nsmul, degree_pow' h₁]
 
-lemma nat_degree_pow_eq' {n : ℕ} (h : leading_coeff p ^ n ≠ 0) :
+lemma nat_degree_pow' {n : ℕ} (h : leading_coeff p ^ n ≠ 0) :
   nat_degree (p ^ n) = n * nat_degree p :=
 if hp0 : p = 0 then
   if hn0 : n = 0 then by simp *
@@ -267,7 +267,7 @@ have hpn : p ^ n ≠ 0, from λ hpn0,  have h1 : _ := h,
   by rw [← leading_coeff_pow' h1, hpn0, leading_coeff_zero] at h;
   exact h rfl,
 option.some_inj.1 $ show (nat_degree (p ^ n) : with_bot ℕ) = (n * nat_degree p : ℕ),
-  by rw [← degree_eq_nat_degree hpn, degree_pow_eq' h, degree_eq_nat_degree hp0,
+  by rw [← degree_eq_nat_degree hpn, degree_pow' h, degree_eq_nat_degree hp0,
     ← with_bot.coe_nsmul]; simp
 
 @[simp] lemma leading_coeff_X_pow : ∀ n : ℕ, leading_coeff ((X : polynomial R) ^ n) = 1
@@ -546,7 +546,7 @@ else if hq0 : q = 0 then  by simp only [hq0, degree_zero, mul_zero, with_bot.add
 else degree_mul' $ mul_ne_zero (mt leading_coeff_eq_zero.1 hp0)
     (mt leading_coeff_eq_zero.1 hq0)
 
-@[simp] lemma degree_pow_eq (p : polynomial R) (n : ℕ) :
+@[simp] lemma degree_pow (p : polynomial R) (n : ℕ) :
   degree (p ^ n) = n •ℕ (degree p) :=
 by induction n; [simp only [pow_zero, degree_one, zero_nsmul],
 simp only [*, pow_succ, succ_nsmul, degree_mul]]

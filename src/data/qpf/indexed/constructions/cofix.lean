@@ -18,6 +18,7 @@ open category_theory.functor.fam (liftp liftr) fam category_theory
 variables {I J : Type u} {F : fam (I⊕J) ⥤ fam J} [q : iqpf F]
 include q
 
+/-- Corecursor for the M-type of `F` using `F` for the shape of the computation -/
 def corecF {α : fam I} {β : fam J} (g : β ⟶ F.obj (α.append1 β)) : β ⟶ q.P.M α :=
 q.P.M_corec (g ≫ repr _ _)
 
@@ -26,6 +27,7 @@ theorem corecF_eq {α : fam I} {β : fam J} (g : β ⟶ F.obj (α.append1 β)) :
   corecF g ≫ q.P.M_dest = g ≫ repr _ _ ≫ q.P.map (append_fun (𝟙 _) (corecF g)) :=
 by rw [corecF, q.P.M_dest_corec'', category.assoc]
 
+/-- A pre-congruence on q.P.M *viewed as an F-coalgebra*. Not necessarily symmetric. -/
 def is_precongr {α : fam I} (r : fam.Pred (q.P.M α ⊗ q.P.M α)) : Prop :=
   ∀ ⦃i⦄ ⦃x : unit i ⟶ q.P.M α ⊗ q.P.M α⦄, x ⊨ r →
     x ≫ fam.prod.fst ≫ q.P.M_dest ≫ q.P.map (append_fun (𝟙 _) (fam.quot.mk r)) ≫ abs _ _ =
@@ -33,24 +35,30 @@ def is_precongr {α : fam I} (r : fam.Pred (q.P.M α ⊗ q.P.M α)) : Prop :=
 
 section
 variables F
+
+/-- The maximal congruence on q.P.M -/
 def Mcongr (α : fam I) : Pred (q.P.M α ⊗ q.P.M α) :=
 λ i x, ∃ r : Pred (q.P.M α ⊗ q.P.M α), is_precongr r ∧ r i x
+
 end
 
-def foo {α : fam I} (r : fam.Pred (q.P.M α ⊗ q.P.M α)) (hr : is_precongr r) :
+/-- Convert a witness of a pre-congruence relation into a witness of the Mcongr
+relation -/
+def mk_Mcongr {α : fam I} (r : fam.Pred (q.P.M α ⊗ q.P.M α)) (hr : is_precongr r) :
   subtype r ⟶ subtype (Mcongr F α) :=
 λ i ⟨x,h⟩, ⟨x,r,hr,h⟩
 
 @[simp, reassoc]
-lemma foo_val  {α : fam I} (r : fam.Pred (q.P.M α ⊗ q.P.M α)) (hr : is_precongr r) :
-  foo r hr ≫ fam.subtype.val = fam.subtype.val :=
+lemma mk_Mcongr_val  {α : fam I} (r : fam.Pred (q.P.M α ⊗ q.P.M α)) (hr : is_precongr r) :
+  mk_Mcongr r hr ≫ fam.subtype.val = fam.subtype.val :=
 by ext _ ⟨ ⟩ : 2; refl
 
 lemma Mcongr_intro {α : fam I} (r : fam.Pred (q.P.M α ⊗ q.P.M α)) (hr : is_precongr r)
   {X} {f : X ⟶ q.P.M α ⊗ q.P.M α} :
   f ⊨ r → f ⊨ Mcongr F α
-| ⟨g,h⟩ := ⟨g ≫ foo _ hr, by rw [category.assoc,foo_val,h] ⟩
+| ⟨g,h⟩ := ⟨g ≫ mk_Mcongr _ hr, by rw [category.assoc,mk_Mcongr_val,h] ⟩
 
+/-- The greatest fixed point of functor `F` -/
 def cofix (F : fam (I ⊕ J) ⥤ fam J) [q : iqpf F] (α : fam I) : fam J :=
 fam.quot (Mcongr F α)
 
@@ -65,8 +73,8 @@ begin
   rw h, ext i ⟨ ⟨ rfl ⟩ ⟩ : 2, refl
 end
 
-lemma dude' {α : fam I} {j} (a : unit j ⟶ subtype (Mcongr F α)) :
-  ∃ r hr x, x ≫ foo r hr = a :=
+lemma exists_precongr {α : fam I} {j} (a : unit j ⟶ subtype (Mcongr F α)) :
+  ∃ r hr x, x ≫ mk_Mcongr r hr = a :=
 begin
   have := Mcongr_elim (a ≫ fam.subtype.val) _,
   { rcases this with ⟨r,hr,a',hr'⟩,
@@ -76,6 +84,7 @@ begin
   refine ⟨a,rfl⟩,
 end
 
+/-- `map` on `cofix F α` -/
 def cofix.map ⦃α β : fam I⦄ (g : α ⟶ β) : cofix F α ⟶ cofix F β :=
 fam.quot.lift _ (q.P.Mp.map g ≫ fam.quot.mk (Mcongr F β))
   begin
@@ -114,16 +123,18 @@ fam.quot.lift _ (q.P.Mp.map g ≫ fam.quot.mk (Mcongr F β))
       rw [← functor.map_comp,← append_fun_comp,hu,category.comp_id,← category.id_comp g,append_fun_comp,functor.map_comp,← abs_map_assoc,h] },
   end
 
+/-- Corecursor for `cofix F α` -/
 def cofix.corec {α : fam I} {β : fam J} (g : β ⟶ F.obj (α.append1 β)) : β ⟶ cofix F α :=
 corecF g ≫ fam.quot.mk _
 
+/-- Destructor for `cofix F α` -/
 def cofix.dest {α : fam I} : cofix F α ⟶ F.obj (α.append1 (cofix F α)) :=
 fam.quot.lift _ (q.P.M_dest ≫ abs _ _ ≫ F.map (append_fun (𝟙 _) (fam.quot.mk _)))
 begin
   rintros i a h,
   obtain ⟨r,hr,hr'⟩ := Mcongr_elim _ h,
   have : ∀ i (f : unit i ⟶ ipfunctor.M (P F) α ⊗ ipfunctor.M (P F) α), f ⊨ r → f ⊨ Mcongr F α,
-  { rintros i f ⟨a, h⟩, refine ⟨a ≫ foo _ hr,_⟩,
+  { rintros i f ⟨a, h⟩, refine ⟨a ≫ mk_Mcongr _ hr,_⟩,
     simp [h], },
   rw ← quot.indexed.factor_mk_eq _ _ this,
   specialize hr hr', reassoc! hr,
@@ -132,6 +143,9 @@ begin
          ←functor.map_comp, ← append_fun_comp_right] },
 end
 
+/-- Corecursor with escape hatch for `cofix F α`. The escape hatch allows
+a corecursive computation to yield a fully formed value rather than a
+recursive call embedded in a constructor application -/
 def cofix.corec' {α : fam I} {β : fam J} (g : β ⟶ F.obj (α.append1 (cofix F α ⊕' β))) : β ⟶ cofix F α :=
 fam.sum.inr ≫ cofix.corec (fam.sum.map (cofix.dest ≫ F.map (append_fun (𝟙 _) fam.sum.inl)) g ≫ codiag)
 
@@ -144,6 +158,7 @@ begin
   rw [corecF_eq_assoc, abs_map_assoc, abs_repr_assoc, ←functor.map_comp, ←append_fun_comp_right]
 end
 
+/-- Constructor for `cofix F α` -/
 def cofix.mk {α : fam I} : F.obj (α.append1 $ cofix F α) ⟶ cofix F α :=
 cofix.corec $ F.map $ append_fun (𝟙 _) cofix.dest
 
@@ -171,7 +186,10 @@ lemma swap_swap {α β : fam I} :
   fam.quot.prod.swap ≫ fam.quot.prod.swap = 𝟙 (α ⊗ β) :=
 by apply fam.prod.ext; simp
 
-def quot_swap {α : fam I} (r : Pred (α ⊗ α)) : fam.quot r ⟶ fam.quot (r.map fam.quot.prod.swap) :=
+/-- Convert a quotient around `r` into one around the
+inverse relation of `r` -/
+def quot_swap {α : fam I} (r : Pred (α ⊗ α)) :
+  fam.quot r ⟶ fam.quot (r.map fam.quot.prod.swap) :=
 fam.quot.lift _ (fam.quot.mk _) (λ i x h, eq.symm $
   fam.quot.sound'' (x ≫ fam.prod.snd) (x ≫ fam.prod.fst)
     (sat_map₀ _ _ _ (by simp [diag_map_comp,diag_map_fst_snd,h]))
@@ -187,12 +205,15 @@ section rel
 variables {α β γ : fam I} (r r' : Pred (α ⊗ α)) (r₀ : Pred (α ⊗ β)) (r₁ : Pred (β ⊗ γ))
 open relation function
 
+/-- Transitive closure of a relation defined as a `Pred (α ⊗ α)` -/
 def trans : Pred (α ⊗ α) :=
 λ i x, trans_gen (curry $ r i) x.1 x.2
 
+/-- Union of two relations defined as a `Pred (α ⊗ α)` -/
 def union : Pred (α ⊗ α) :=
 λ i x, r _ x ∨ r' _ x
 
+/-- Relational composition of two relations defined as a `Pred (α ⊗ α)` -/
 def rcomp : Pred (α ⊗ γ) :=
 λ i x, ∃ z, r₀ i (x.1, z) ∧ r₁ i (z, x.2)
 
@@ -257,10 +278,12 @@ end
 attribute [simp] diag_map diag_map_assoc diag_map_comp diag_map_comp_assoc
                  diag_map_fst_snd diag_map_fst_snd_assoc diag_map_fst_snd_comp diag_map_fst_snd_comp_assoc
 
+/-- Middle introduction into a union of relations -/
 def quot_rcompl' : fam.quot r ⟶ fam.quot (r ≫ᵣ r' ∪ᵣ r ∪ᵣ r') :=
 fam.quot.lift _ (fam.quot.mk _) $ λ i x h,
   fam.quot.sound _ (unionl $ unionr h)
 
+/-- Right introduction into a union of relations -/
 def quot_rcompr' : fam.quot r' ⟶ fam.quot (r ≫ᵣ r' ∪ᵣ r ∪ᵣ r') :=
 fam.quot.lift _ (fam.quot.mk _) $ λ i x h,
   fam.quot.sound _ (unionr h)
@@ -271,10 +294,12 @@ by dunfold quot_rcompr'; simp
 lemma quot_mk_rcompl' : fam.quot.mk (r ≫ᵣ r' ∪ᵣ r ∪ᵣ r') = fam.quot.mk r ≫ quot_rcompl' :=
 by dunfold quot_rcompl'; simp
 
+/-- Left introduction into the transitive closure of a relation -/
 def quot_trans_unionl : fam.quot r ⟶ fam.quot (trans $ union r r') :=
 fam.quot.lift _ (fam.quot.mk _) (λ i x h,
   fam.quot.sound'' (x ≫ fam.prod.fst) (x ≫ fam.prod.snd) (trans_base (unionl (by simp *))) (by simp) (by simp))
 
+/-- Right introduction into the transitive closure of a relation -/
 def quot_trans_unionr : fam.quot r' ⟶ fam.quot (trans $ union r r') :=
 fam.quot.lift _ (fam.quot.mk _) (λ i x h,
   fam.quot.sound'' (x ≫ fam.prod.fst) (x ≫ fam.prod.snd) (trans_base (unionr (by simp *))) (by simp) (by simp))
@@ -513,6 +538,7 @@ by rw [cofix.mk, cofix.dest_corec, ←functor.map_comp, ←cofix.mk, ← append_
 
 variables (F)
 
+/-- The co-fixed point of a QPF is a functor -/
 def pCofix : fam I ⥤ fam J :=
 { obj := cofix F,
   map := cofix.map }

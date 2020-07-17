@@ -19,18 +19,22 @@ variables {F G} {α β : fam J} (f : α ⟶ β)
 include q q'
 
 local attribute [simp] category_theory.functor.map_comp_map category_theory.functor.map_comp_map_assoc
-local attribute [-simp] functor.map_comp -- functor.map_comp_assoc
+local attribute [-simp] functor.map_comp
 
 section defs
 
 variables F G
 
-@[simp]
-def abs (α) : (ipfunctor.comp (P G) (P F)).obj α ⟶ (F ⋙ G).obj α :=
+/--
+Abstraction of the composition of qpfs
+-/
+@[simp] def abs (α) : (ipfunctor.comp (P G) (P F)).obj α ⟶ (F ⋙ G).obj α :=
 ipfunctor.comp.get _ _ α ≫ (P G).map (abs F _) ≫ abs G _ ≫ 𝟙 (G.obj (F.obj α))
 
-@[simp]
-def repr (α) : (F ⋙ G).obj α ⟶ (ipfunctor.comp (P G) (P F)).obj α :=
+/--
+Representation of the composition of qpfs
+-/
+@[simp] def repr (α) : (F ⋙ G).obj α ⟶ (ipfunctor.comp (P G) (P F)).obj α :=
 𝟙 (G.obj (F.obj α)) ≫ @repr _ _ G q' _ ≫ (P G).map (repr F α) ≫ ipfunctor.comp.mk _ _ _
 
 end defs

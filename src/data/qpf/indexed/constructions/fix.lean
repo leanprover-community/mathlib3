@@ -39,6 +39,10 @@ begin
   ext : 2, dsimp, rw ipfunctor.W_path_dest_right_W_path_cases_on, cases f x_2; refl,
 end
 
+/--
+The equivalence on W-types based on the equality of the abstraction function
+of the QPF
+-/
 inductive Wequiv : Π {i}, q.P.W α i → q.P.W α i → Prop
 | ind {i} (a : q.P.A i) (f' : q.P.drop.B i a ⟶ α) (f₀ f₁ : q.P.last.B i a ⟶ q.P.W α) :
     (∀ j (x : q.P.last.B i a j), Wequiv ((f₀ : Π j, q.P.last.B i a j → q.P.W α j) x) (f₁ x)) → Wequiv (q.P.W_mk a f' f₀) (q.P.W_mk a f' f₁)
@@ -102,13 +106,6 @@ theorem Wrepr_W_mk  ⦃i⦄
     q.P.W_mk' (repr _ _ (abs _ _ (q.P.map (fam.append_fun (𝟙 _) Wrepr) ⟨a, q.P.append_contents f' f⟩))) :=
 by simp only [Wrepr, recF_eq, split_fun_comp_right, ipfunctor.then_def]; refl
 
-theorem Wrepr_W_mk'  ⦃i⦄
-    (a : q.P.A i) (f' : q.P.drop.B i a ⟶ α) (f : q.P.last.B i a ⟶ q.P.W α) :
-  q.P.W_mk' ≫ Wrepr =
-     q.P.map (fam.append_fun (𝟙 _) Wrepr) ≫ abs _ _ ≫ repr _ (α.append1 _) ≫ q.P.W_mk' :=
-by { ext1, ext1 ⟨a,f⟩, simp only [ipfunctor.W_mk', Wrepr_W_mk, abs_map', ipfunctor.then_def], congr,
-     ext1 ⟨ ⟩; ext1; refl }
-
 theorem Wrepr_equiv ⦃i⦄ (x : q.P.W α i) : Wequiv (Wrepr x) x :=
 begin
   apply q.P.W_ind _ _ x, intros i a f' f ih,
@@ -136,14 +133,17 @@ end
 Define the fixed point as the quotient of trees under the equivalence relation.
 -/
 
+/-- setoid based on Wequiv -/
 def W_setoid (α : fam I) (i) : setoid (q.P.W α i) :=
 ⟨Wequiv, @Wequiv.refl _ _ _ _ _ _, @Wequiv.symm _ _ _ _ _ _, @Wequiv.trans _ _ _ _ _ _⟩
 
 local attribute [instance] W_setoid
 
+/-- least fixed point of a QPF -/
 def fix (F : fam (I⊕J) ⥤ fam J) [q : iqpf F] (α : fam I) : fam J
 | i := quotient (W_setoid α i : setoid (q.P.W α i))
 
+/-- map of the least fixed point of a QPF -/
 def fix.map {α β : fam I} : Π (g : α ⟶ β), fix F α ⟶ fix F β
 | g i :=
 quotient.lift (λ x : q.P.W α i, ⟦q.P.W_map g x⟧)
@@ -153,28 +153,26 @@ section
 
 variable (F)
 
+/-- The least fixed point of a QPF is a functor -/
 def pFix : fam I ⥤ fam J :=
 { obj := fix F,
   map := λ X Y f, fix.map f }
 
 end
 
-def Wequiv' : fam.Pred (q.P.W α ⊗ q.P.W α) :=
-λ i x, Wequiv x.1 x.2
-
-def pEq : fam.Pred (α ⊗ α) :=
-λ i x, x.1 = x.2
-
+/--  -/
 def fix.lift (f : q.P.W α ⟶ β) (h : ∀ {i} a b : q.P.W α i, Wequiv a b → f a = f b) : (fix F α ⟶ β) :=
 λ i x, quot.lift (@f i) h x
 
--- TODO: should this be quotient.lift?
+/-- Recursor for `fix F α` -/
 def fix.rec (g : F.obj (α.append1 β) ⟶ β) : fix F α ⟶ β :=
 fix.lift (recF g) (recF_eq_of_Wequiv α g)
 
-def fix_to_W : fix F α ⟶ q.P.W α :=
+/-- Destruct a `fix F α` into its underlying W-type -/
+def fix.quot.dest : fix F α ⟶ q.P.W α :=
 fix.lift Wrepr (recF_eq_of_Wequiv α (λ i x, q.P.W_mk' (repr _ _ x)))
 
+/-- Construct a `fix F α` from its underlying W-type -/
 def fix.quot.mk : q.P.W α ⟶ fix F α :=
 λ i (x : q.P.W α i), quot.mk _ x
 
@@ -184,30 +182,17 @@ lemma fix.quot.mk_lift {γ : fam J} (g : q.P.W α ⟶ γ)
   fix.quot.mk ≫ fix.lift g h = g :=
 by ext; simp only [fix.lift, fix.quot.mk, ipfunctor.then_def]
 
-@[simp]
-lemma fix.quot.lift_comp {γ : fam J} (f : q.P.W α ⟶ β) (g : β ⟶ γ)
-      (h : ∀ ⦃i : J⦄ (a b : ipfunctor.W (P F) α i), Wequiv a b → f a = f b) :
-  fix.lift f h ≫ g = fix.lift (f ≫ g) (λ i a b h', have _, from congr_arg (@g i) (h a b h'), this) :=
-by { ext, dsimp [fix.lift,(≫)], induction x_1 using quot.ind, refl }
-
+/-- Constructor for `fix F α` -/
 def fix.mk : F.obj (α.append1 (fix F α)) ⟶ fix F α :=
-repr _ _ ≫ q.P.map (fam.append_fun (𝟙 _) fix_to_W) ≫ q.P.W_mk' ≫ fix.quot.mk
+repr _ _ ≫ q.P.map (fam.append_fun (𝟙 _) fix.quot.dest) ≫ q.P.W_mk' ≫ fix.quot.mk
 
+/-- Destructor for `fix F α` -/
 def fix.dest : fix F α ⟶ F.obj (α.append1 (fix F α)) :=
 fix.rec (F.map $ fam.append_fun (𝟙 _) fix.mk)
 
-lemma fix_to_W_recF (g : F.obj (α.append1 β) ⟶ β) : fix_to_W ≫ recF g = fix.rec g :=
+lemma fix_to_W_recF (g : F.obj (α.append1 β) ⟶ β) : fix.quot.dest ≫ recF g = fix.rec g :=
 by { ext i a : 2, apply quotient.induction_on a, intro x,
      apply recF_eq_of_Wequiv, apply Wrepr_equiv }
-
-lemma fix.quot.lift_ext (f g : fix F α ⟶ β)
-      (hh : fix.quot.mk ≫ f = fix.quot.mk ≫ g) :
-  f = g :=
-begin
-  ext a b, apply quot.induction_on b,
-  replace hh := λ x, congr_fun (congr_fun hh x),
-  intro, apply hh
-end
 
 @[reassoc]
 theorem fix.rec_eq (g : F.obj (α.append1 β) ⟶ β) : -- ⦃i⦄ (x : F.obj (α.append1 (fix F α)) i) :
@@ -299,7 +284,7 @@ end
 instance iqpf_fix : iqpf (pFix F) :=
 { P         := q.P.Wp,
   abs       := λ α, fix.quot.mk,
-  repr      := λ α, fix_to_W,
+  repr      := λ α, fix.quot.dest,
   abs_repr  := by { intros α, ext i x, apply quot.induction_on x, intro a, apply quot.sound, apply Wrepr_equiv },
   abs_map   :=
     begin
@@ -309,175 +294,3 @@ instance iqpf_fix : iqpf (pFix F) :=
     end }
 
 end iqpf
-
-namespace ex
-local attribute [ext] fam.ext
-
-inductive vec_shape (α : Type) (rec : ℕ → Type) : ℕ → Type
-| nil : vec_shape 0
-| cons {n} : α → rec n → vec_shape (n + 1)
-
-inductive vec_branch (α : Type) :  Π i, vec_shape α (λ (_x : ℕ), unit) i → empty ⊕ ℕ → Type
-| cons (x) {n} : vec_branch (n+1) (vec_shape.cons x ()) (sum.inr n)
-
-def vec_shape.map (α : Type) (X Y : fam (empty ⊕ ℕ)) (f : X ⟶ Y) : Π i, vec_shape α (X ∘ sum.inr) i → vec_shape α (Y ∘ sum.inr) i
-| 0 vec_shape.nil := vec_shape.nil
-| (n+1) (vec_shape.cons x xs) := vec_shape.cons x (f xs)
-
-def vec_shape' (α : Type) : fam (empty ⊕ ℕ) ⥤ fam ℕ :=
-{ obj := λ f, vec_shape α (f ∘ sum.inr),
-  map := λ X Y f, vec_shape.map α X Y f,
-  map_id' := by intros; ext _ ⟨ ⟩; refl,
-  map_comp' := by intros; ext _ ⟨ ⟩; refl }
-
-def vec_P (α : Type) : ipfunctor (empty ⊕ ℕ) ℕ :=
-⟨ vec_shape α (λ _, unit), vec_branch α ⟩
-
-def unit' {I : Type} : fam I :=
-λ _, unit
-
-def abs {α} (f : fam (empty ⊕ ℕ)) : ipfunctor.obj (vec_P α) f ⟶ (vec_shape' α).obj f :=
-λ i x,
-       match i, x : Π i (x : ipfunctor.obj (vec_P α) f i), (vec_shape' α).obj f i with
-       | 0, ⟨a,b⟩ := vec_shape.map _ ((vec_P α).B 0 a) _ b _ vec_shape.nil
-       | j+1, ⟨a@(vec_shape.cons x ()),b⟩ := vec_shape.map _ ((vec_P α).B _ a) _ b _ (vec_shape.cons x $ @vec_branch.cons _ x j)
-       end
-
-def repr {α} (f : fam (empty ⊕ ℕ)) : (vec_shape' α).obj f ⟶ ipfunctor.obj (vec_P α) f :=
-λ i x, (⟨vec_shape.map α f unit' (λ _ _, ()) i x, λ a b,
-  match i, x, b with
-  | nat.succ j, (vec_shape.cons a_1 a_2), b :=
-    match a, b : Π a, vec_branch α (nat.succ j) (vec_shape.cons a_1 ()) a → f a with
-    | sum.inr _, vec_branch.cons x := a_2
-    end
-  end ⟩ : ipfunctor.obj (vec_P α) f i)
-
-instance {α} : iqpf (vec_shape' α) :=
-{ P := vec_P α,
-  abs := abs,
-  repr := repr,
-  abs_repr := by { intros, ext, cases x; refl },
-  abs_map := by { intros, ext, cases x; cases i; [refl, rcases x_fst with _|⟨_,_,⟨⟨ ⟩⟩⟩]; refl }, }
-
-def vec_t (α : Type) := iqpf.pFix (vec_shape' α)
-def vec (α : Type) (i : ℕ) : Type := (vec_t α).obj empty.elim i
-
-open nat
-
-def vec.nil {α} : vec α 0 := iqpf.fix.mk vec_shape.nil
-def vec.cons {α} {n} (x : α) (xs : vec α n) : vec α (succ n) := iqpf.fix.mk (vec_shape.cons x xs)
-
-def prod (α) (β : ℕ → Type) (n : ℕ) := vec α n × β n
-
-def rec' {α} {β : ℕ → Type} (f : β 0) (f' : Π {n} (x : α) (xs : vec α n), β n → β (n+1)) :
-  Π n, vec α n → prod α β n :=
-iqpf.fix.rec (λ n (x : vec_shape α (prod α β) n),
-  match n, x with
-  | 0, vec_shape.nil := (vec.nil,f)
-  | n+1, vec_shape.cons x xs := (vec.cons x xs.1, f' x xs.1 xs.2)
-  end )
-
-def rec {α} {β : ℕ → Type} (f : β 0) (f' : Π {n} (x : α) (xs : vec α n), β n → β (n+1))
-  (n) (v : vec α n) : β n :=
-(rec' f @f' n v).2
-
-def ind {α} {β : Π n, vec α n → Prop} (f : β 0 vec.nil) (f' : Π {n} (x : α) (xs : vec α n), β n xs → β (n+1) (vec.cons x xs))
-  (n) (v : vec α n) : β n v :=
-iqpf.fix.ind _ (λ i a b ⟨ ⟩,
-begin
-  clear _x _fun_match,
-  cases hh : a fam.unit.rfl, apply f, apply f',
-  cases b, replace b_h := congr_fun (congr_fun b_h _) fam.unit.rfl,
-  dsimp at b_h,
-  cases b_w fam.unit.rfl,
-  dsimp [vec_shape',vec_shape.map,fam.subtype.val,subtype.val] at b_h,
-  cases a_4, dsimp [fam.pred_last] at a_4_property,
-  have := eq.trans b_h hh,
-  cases this, exact a_4_property,
-end) _ v
-
-end ex
-
-namespace ex_mutual
-
-def pair (α) (β) : bool → Type
-| tt := α
-| ff := β
-
-def pair.map {X X' Y Y'} (f : X → Y) (g : X' → Y') : pair X X' ⟶ pair Y Y' :=
-λ b,
-  match b : Π b : bool, pair X X' b ⟶ pair Y Y' b with
-  | tt := f
-  | ff := g
-  end
-
-inductive child_shape (f : empty ⊕ bool → Type) : Type
-| nil : child_shape
-| cons : f (sum.inr tt) → f (sum.inr ff) → child_shape
-
-def child_shape.map {X Y : fam $ empty ⊕ bool} (f : X ⟶ Y) : child_shape X → child_shape Y
-| child_shape.nil := child_shape.nil
-| (child_shape.cons t xs) := child_shape.cons (f t) (f xs)
-
-inductive tree_shape (α : Type) (f : empty ⊕ bool → Type) : Type
-| node : α → f (sum.inr ff) → tree_shape
-
-def tree_shape.map {α} {X Y : fam $ empty ⊕ bool} (f : X ⟶ Y) : tree_shape α X → tree_shape α Y
-| (tree_shape.node x xs) := tree_shape.node x (f xs)
-
-def mut_shape (α : Type) (f : fam $ empty ⊕ bool) : fam bool :=
-pair (tree_shape α f) (child_shape f)
-
-def mut_shape.map (α : Type) (X Y : fam $ empty ⊕ bool) (f : X ⟶ Y) : mut_shape α X ⟶ mut_shape α Y :=
-pair.map (tree_shape.map f) (child_shape.map f)
-
-def mut_shape' (α : Type) : fam (empty ⊕ bool) ⥤ fam bool :=
-{ obj := mut_shape α,
-  map := mut_shape.map α,
-  map_id' := by intros; ext ⟨ ⟩ ⟨ ⟩; [refl, refl, skip]; ext ⟨ ⟩; refl,
-  map_comp' := by intros; ext ⟨ ⟩ ⟨ ⟩; [refl, refl, skip]; ext ⟨ ⟩; refl }
-
-inductive mut_children' (α : Type) : Π (i : bool), pair α bool i → (empty ⊕ bool) → Type u
--- | list_nil : mut_children ff ff _
-| list_obj : mut_children' ff ff (sum.inr tt)
-| list_tail : mut_children' ff ff (sum.inr ff)
-| child (x) : mut_children' tt x (sum.inr ff)
-
-def mut_P (α : Type) : ipfunctor (empty ⊕ bool) bool :=
-{ A := pair α bool,
-  B := mut_children' α }
-
-set_option pp.generalized_field_notation false
-
-def mut_P.abs {α} : Π (X : fam (empty ⊕ bool)), ipfunctor.obj (mut_P α) X ⟶ (mut_shape' α).obj X
-| X tt := λ i, tree_shape.node i.1 $ i.2 $ mut_children'.child _
-| X ff := λ i,
-  match i with
-  | ⟨tt,f⟩ := child_shape.nil
-  | ⟨ff,f⟩ := child_shape.cons (f mut_children'.list_obj) (f mut_children'.list_tail)
-  end
-
-def mut_P.repr {α} : Π (X : fam (empty ⊕ bool)), (mut_shape' α).obj X ⟶ ipfunctor.obj (mut_P α) X
-| X tt := λ i,
-  match i with
-  | tree_shape.node a b := ⟨a,λ j, sum.rec_on j
-    (λ e, empty.elim e) $ λ b', bool.rec_on b' (λ c, b) (by intro x; cases x)⟩
-  end
-| X ff := λ i,
-  match i with
-  | child_shape.nil := ⟨tt,λ j, by intro x; cases x⟩
-  | child_shape.cons x xs := ⟨ff,λ j a,
-    match j, a with
-    | sum.inr ff, mut_children'.list_tail := xs
-    | sum.inr tt, mut_children'.list_obj := x
-    end ⟩
-  end
-
-instance {α} : iqpf (mut_shape' α) :=
-{ P := mut_P α,
-  abs := mut_P.abs,
-  repr := mut_P.repr,
-  abs_repr := by intros; ext (_|_) (_|_); dsimp [(≫)]; try { refl }; ext1 x; cases x; refl,
-  abs_map := by intros; ext (_|_) (_|_); dsimp [(≫)]; try { refl }; ext1 x; cases x; refl, }
-
-end ex_mutual

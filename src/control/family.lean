@@ -5,6 +5,7 @@ universes u v w
 
 open category_theory
 
+/-- Type family indexed by `I` as a category -/
 @[reducible]
 def fam (I : Type u) := I → Type u
 
@@ -14,11 +15,6 @@ instance {I} : has_one (fam I) :=
 namespace fam
 
 variables  {I : Type u}
-
-def iProp : fam I
-| _ := Sort u
-
-def star (i : I) : (1 : fam I) i := punit.star
 
 def drop {α : Type u} : fam (I ⊕ α) → fam I :=
 λ x i, x (sum.inl i)
@@ -117,10 +113,10 @@ def unit.star (i : I) : unit i i := unit.rfl
 def value (i) (X : fam I) : X i → (unit i ⟶ X)
 | x j unit.rfl := x
 
-def value.get {i} {X : fam I} (f g : unit i ⟶ X) (h : f = g) : f unit.rfl = g unit.rfl :=
+theorem value.get {i} {X : fam I} (f g : unit i ⟶ X) (h : f = g) : f unit.rfl = g unit.rfl :=
 by rw h
 
-def value.ext {i} {X : fam I} (f g : unit i ⟶ X) (h : f unit.rfl = g unit.rfl) : f = g :=
+theorem value.ext {i} {X : fam I} (f g : unit i ⟶ X) (h : f unit.rfl = g unit.rfl) : f = g :=
 by ext _ ⟨ ⟩; exact h
 
 @[simp]
@@ -467,6 +463,7 @@ by ext; refl
 lemma prod.diag_snd : diag ≫ fam.prod.snd = 𝟙 α :=
 by ext; refl
 
+/-- swap the components of a product -/
 def prod.swap : α ⊗ β ⟶ β ⊗ α :=
 diag ≫ (prod.snd ⊗ prod.fst)
 
@@ -478,13 +475,23 @@ by simp [prod.swap]
 lemma prod.swap_snd : prod.swap ≫ fam.prod.snd = (fam.prod.fst : α ⊗ β ⟶ α) :=
 by simp [prod.swap]
 
+/-- reassociate the components of two nested products -/
 def prod.assoc : α ⊗ β ⊗ γ ⟶ α ⊗ (β ⊗ γ) :=
 diag ≫ (prod.fst ≫ prod.fst ⊗ diag ≫ (prod.fst ≫ prod.snd ⊗ prod.snd))
 
+/-- Projection from a product of three components to the
+two left-most components -/
 def lpair : α ⊗ β ⊗ γ ⟶ α ⊗ β := fam.prod.fst
+/-- Projection from a product of three components to the
+two right-most components -/
 def rpair : α ⊗ β ⊗ γ ⟶ β ⊗ γ := fam.prod.snd ⊗ 𝟙 _
+/-- Projection from a product of three components to the
+left-most and right-most components -/
 def sides : α ⊗ β ⊗ γ ⟶ α ⊗ γ := fam.prod.fst ⊗ 𝟙 _
 
+/--
+Definition of equivalence relations for predicates on products
+-/
 structure equiv (r : Pred (α ⊗ α)) : Prop :=
 (refl : diag ⊨ r)
 (symm : ∀ {i} (f : unit i ⟶ α ⊗ α), f ⊨ r → f ≫ prod.swap ⊨ r)

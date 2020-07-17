@@ -1,22 +1,25 @@
 /-
-Copyright (c) 2018 Jeremy Avigad. All rights reserved.
+Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad
-
-Multivariate quotients of polynomial functors.
+Author: Simon Hudon
 -/
 import data.pfunctor.indexed.W
 import tactic.mk_opaque
 universe u
 
+/-!
+
+Indexed quotients of polynomial functors.
+
+-/
+
+/-- Indexed Quotient of Polynomial Functor -/
 class iqpf {I J : Type u} (F : fam I ⥤ fam J) :=
 (P         : ipfunctor.{u} I J)
 (abs []    : Π α, P.obj α ⟶ F.obj α)
 (repr []   : Π α, F.obj α ⟶ P.obj α)
 (abs_repr  : ∀ α, repr α ≫ abs α = 𝟙 _)
 (abs_map   : ∀ {α β} (f : α ⟶ β), P.map f ≫ abs _ = abs _ ≫ F.map f)
--- (box_inter : ∀ (α : fam I) (A B : Π j, set (fam.unit j ⟶ α)) i,
---   mvfunctor.box F (λ i, A i ∩ B i) i = mvfunctor.box F A i ∩ mvfunctor.box F B i)
 
 namespace iqpf
 variables {I J : Type u} {F : fam I ⥤ fam J} [q : iqpf F]

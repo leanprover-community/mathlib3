@@ -483,6 +483,60 @@ by { ext, simp [mul_smul] }
 
 end semiring
 
+section pi
+variables
+  {R : Type*} [semiring R]
+  {M : Type*} [topological_space M] [add_comm_monoid M] [semimodule R M]
+  {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂] [semimodule R M₂]
+  {ι : Type*} {φ : ι → Type*} [∀i, topological_space (φ i)] [∀i, add_comm_monoid (φ i)] [∀i, semimodule R (φ i)]
+
+/-- `pi` construction for linear functions. From a family of linear functions it produces a linear
+function into a family of modules. -/
+def pi (f : Πi, M →L[R] φ i) : M →L[R] (Πi, φ i) :=
+⟨linear_map.pi (λ i, (f i : M →ₗ[R] φ i)),
+ continuous_pi (λ i, (f i).continuous)⟩
+
+@[simp] lemma pi_apply (f : Πi, M →L[R] φ i) (c : M) (i : ι) :
+  pi f c i = f i c := rfl
+
+lemma pi_eq_zero (f : Πi, M →L[R] φ i) : pi f = 0 ↔ (∀i, f i = 0) :=
+by simp only [ext_iff, pi_apply, function.funext_iff]; exact ⟨λh a b, h b a, λh a b, h b a⟩
+
+lemma pi_zero : pi (λi, 0 : Πi, M →L[R] φ i) = 0 := by ext; refl
+
+lemma pi_comp (f : Πi, M →L[R] φ i) (g : M₂ →L[R] M) : (pi f).comp g = pi (λi, (f i).comp g) := rfl
+
+/-- The projections from a family of modules are linear maps. -/
+def proj (i : ι) : (Πi, φ i) →L[R] φ i :=
+⟨linear_map.proj i, continuous_apply _⟩
+
+@[simp] lemma proj_apply (i : ι) (b : Πi, φ i) : (proj i : (Πi, φ i) →L[R] φ i) b = b i := rfl
+
+lemma proj_pi (f : Πi, M₂ →L[R] φ i) (i : ι) : (proj i).comp (pi f) = f i :=
+ext $ assume c, rfl
+
+lemma infi_ker_proj : (⨅i, ker (proj i) : submodule R (Πi, φ i)) = ⊥ :=
+linear_map.infi_ker_proj
+
+variables (R φ)
+
+/-- If `I` and `J` are disjoint index sets, the product of the kernels of the `J`th projections of
+`φ` is linearly equivalent to the product over `I`. -/
+def infi_ker_proj_equiv {I J : set ι} [decidable_pred (λi, i ∈ I)]
+  (hd : disjoint I J) (hu : set.univ ⊆ I ∪ J) :
+  (⨅i ∈ J, ker (proj i) : submodule R (Πi, φ i)) ≃L[R] (Πi:I, φ i) :=
+⟨ linear_map.infi_ker_proj_equiv R φ hd hu,
+  continuous_pi (λ i, begin
+    have := @continuous_subtype_coe _ _ (λ x, x ∈ (⨅i ∈ J, ker (proj i) : submodule R (Πi, φ i))),
+    have := continuous.comp (by exact continuous_apply i) this,
+    exact this
+  end),
+  continuous_subtype_mk _ (continuous_pi (λ i, begin
+    dsimp, split_ifs; [apply continuous_apply, exact continuous_const]
+  end)) ⟩
+
+end pi
+
 section ring
 
 variables

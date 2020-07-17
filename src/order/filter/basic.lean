@@ -744,7 +744,7 @@ lemma is_compl_principal (s : set α) : is_compl (𝓟 s) (𝓟 sᶜ) :=
 lemma inf_principal_eq_bot {f : filter α} {s : set α} (hs : sᶜ ∈ f) : f ⊓ 𝓟 s = ⊥ :=
 empty_in_sets_eq_bot.mp ⟨_, hs, s, mem_principal_self s, assume x ⟨h₁, h₂⟩, h₁ h₂⟩
 
-theorem mem_inf_principal (f : filter α) (s t : set α) :
+theorem mem_inf_principal {f : filter α} {s t : set α} :
   s ∈ f ⊓ 𝓟 t ↔ {x | x ∈ t → x ∈ s} ∈ f :=
 begin
   simp only [← le_principal_iff, (is_compl_principal s).le_left_iff, disjoint, inf_assoc,
@@ -920,6 +920,10 @@ mem_supr_sets
 lemma eventually_principal {a : set α} {p : α → Prop} :
   (∀ᶠ x in 𝓟 a, p x) ↔ (∀ x ∈ a, p x) :=
 iff.rfl
+
+theorem eventually_inf_principal {f : filter α} {p : α → Prop} {s : set α} :
+  (∀ᶠ x in f ⊓ 𝓟 s, p x) ↔ ∀ᶠ x in f, x ∈ s → p x :=
+mem_inf_principal
 
 /-! ### Frequently -/
 
@@ -1116,6 +1120,10 @@ H.mono $ λ _, eq.symm
   f =ᶠ[l] h :=
 H₂.rw (λ x y, f x = y) H₁
 
+lemma eventually_eq.prod_mk {l} {f f' : α → β} (hf : f =ᶠ[l] f') {g g' : α → γ} (hg : g =ᶠ[l] g') :
+  (λ x, (f x, g x)) =ᶠ[l] (λ x, (f' x, g' x)) :=
+hf.mp $ hg.mono $ by { intros, simp only * }
+
 lemma eventually_eq.fun_comp {f g : α → β} {l : filter α} (H : f =ᶠ[l] g) (h : β → γ) :
   (h ∘ f) =ᶠ[l] (h ∘ g) :=
 H.mono $ λ x hx, congr_arg h hx
@@ -1123,7 +1131,7 @@ H.mono $ λ x hx, congr_arg h hx
 lemma eventually_eq.comp₂ {δ} {f f' : α → β} {g g' : α → γ} {l} (Hf : f =ᶠ[l] f') (h : β → γ → δ)
   (Hg : g =ᶠ[l] g') :
   (λ x, h (f x) (g x)) =ᶠ[l] (λ x, h (f' x) (g' x)) :=
-Hf.mp $ Hg.mono $ by { intros, simp only * }
+(Hf.prod_mk Hg).fun_comp (function.uncurry h)
 
 @[to_additive]
 lemma eventually_eq.mul [has_mul β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)

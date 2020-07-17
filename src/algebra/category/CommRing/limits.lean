@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import algebra.category.CommRing.basic
 import algebra.category.Group.limits
+import deprecated.subgroup
 
 /-!
 # The category of commutative rings has all limits
@@ -30,20 +31,30 @@ instance comm_ring_obj (F : J ⥤ CommRing) (j) :
   comm_ring ((F ⋙ forget CommRing).obj j) :=
 by { change comm_ring (F.obj j), apply_instance }
 
-instance sections_submonoid (F : J ⥤ CommRing) :
-  is_submonoid (F ⋙ forget CommRing).sections :=
-{ one_mem := λ j j' f, by simp,
-  mul_mem := λ a b ah bh j j' f,
+def sections_submonoid (F : J ⥤ CommRing) :
+  submonoid (Π j, F.obj j) :=
+{ carrier := (F ⋙ forget CommRing).sections,
+  one_mem' := λ j j' f, by simp,
+  mul_mem' := λ a b ah bh j j' f,
   begin
     simp only [forget_map_eq_coe, functor.comp_map, ring_hom.map_mul, pi.mul_apply],
     dsimp [functor.sections] at ah bh,
     rw [ah f, bh f],
   end }
 
+-- We still don't have bundled subrings,
+-- so we need to convert the bundled sub-objects back to unbundled
+
+instance sections_submonoid' (F : J ⥤ CommRing) :
+  is_submonoid (F ⋙ forget CommRing).sections :=
+(sections_submonoid F).is_submonoid
+
+instance sections_add_subgroup' (F : J ⥤ CommRing) :
+  is_add_subgroup (F ⋙ forget CommRing).sections :=
+(AddCommGroup.sections_add_subgroup (F ⋙ forget₂ CommRing Ring ⋙ forget₂ Ring AddCommGroup)).is_subgroup
+
 instance sections_subring (F : J ⥤ CommRing) :
-  is_subring (F ⋙ forget CommRing).sections :=
-{ ..(CommRing.sections_submonoid F),
-  ..(AddCommGroup.sections_add_subgroup (F ⋙ forget₂ CommRing Ring ⋙ forget₂ Ring AddCommGroup)) }
+  is_subring (F ⋙ forget CommRing).sections := {}
 
 instance limit_comm_ring (F : J ⥤ CommRing) :
   comm_ring (limit (F ⋙ forget CommRing)) :=

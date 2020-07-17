@@ -32,19 +32,21 @@ instance add_comm_group_obj (F : J ⥤ AddCommGroup) (j) :
   add_comm_group ((F ⋙ forget AddCommGroup).obj j) :=
 by { change add_comm_group (F.obj j), apply_instance }
 
-instance sections_add_submonoid (F : J ⥤ AddCommGroup) :
-  is_add_submonoid (F ⋙ forget AddCommGroup).sections :=
-{ zero_mem := λ j j' f, by simp,
-  add_mem := λ a b ah bh j j' f,
+def sections_add_submonoid (F : J ⥤ AddCommGroup) :
+  add_submonoid (Π j, F.obj j) :=
+{ carrier := (F ⋙ forget AddCommGroup).sections,
+  zero_mem' := λ j j' f, by simp,
+  add_mem' := λ a b ah bh j j' f,
   begin
     simp only [forget_map_eq_coe, functor.comp_map, add_monoid_hom.map_add, pi.add_apply],
     dsimp [functor.sections] at ah bh,
     rw [ah f, bh f],
   end }
 
-instance sections_add_subgroup (F : J ⥤ AddCommGroup) :
-  is_add_subgroup (F ⋙ forget AddCommGroup).sections :=
-{ neg_mem := λ a ah j j' f,
+def sections_add_subgroup (F : J ⥤ AddCommGroup) :
+  add_subgroup (Π j, F.obj j) :=
+{ carrier := (F ⋙ forget AddCommGroup).sections,
+  neg_mem' := λ a ah j j' f,
   begin
     simp only [forget_map_eq_coe, functor.comp_map, pi.neg_apply, add_monoid_hom.map_neg, neg_inj],
     dsimp [functor.sections] at ah,
@@ -54,8 +56,10 @@ instance sections_add_subgroup (F : J ⥤ AddCommGroup) :
 
 instance limit_add_comm_group (F : J ⥤ AddCommGroup) :
   add_comm_group (limit (F ⋙ forget AddCommGroup)) :=
-@subtype.add_comm_group ((Π (j : J), (F ⋙ forget _).obj j)) (by apply_instance) _
-  (by convert (AddCommGroup.sections_add_subgroup F))
+begin
+  change add_comm_group (sections_add_subgroup F),
+  apply_instance,
+end
 
 /-- `limit.π (F ⋙ forget AddCommGroup) j` as a `add_monoid_hom`. -/
 def limit_π_add_monoid_hom (F : J ⥤ AddCommGroup) (j) :

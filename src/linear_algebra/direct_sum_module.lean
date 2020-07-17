@@ -62,7 +62,7 @@ variables {N : Type u₁} [add_comm_group N] [semimodule R N]
 variables (φ : Π i, M i →ₗ[R] N)
 
 variables (ι N φ)
-/-- The linear map construced using the universal property of the coproduct. -/
+/-- The linear map constructed using the universal property of the coproduct. -/
 def to_module : direct_sum ι M →ₗ[R] N :=
 { to_fun := to_group (λ i, φ i),
   map_add' := to_group_add _,

@@ -58,8 +58,8 @@ begin
 end
 
 /-- The degree of a product of polynomials is equal to the product of the degrees, provided that the product of leading coefficients is nonzero.
-See `nat_degree_prod_eq` (without the `'`) for a version for integral domains, where this condition is automatically satisfied. -/
-lemma nat_degree_prod_eq' (h : ∏ i in s, (f i).leading_coeff ≠ 0) :
+See `nat_degree_prod` (without the `'`) for a version for integral domains, where this condition is automatically satisfied. -/
+lemma nat_degree_prod' (h : ∏ i in s, (f i).leading_coeff ≠ 0) :
   (∏ i in s, f i).nat_degree = ∑ i in s, (f i).nat_degree :=
 begin
   classical,
@@ -70,10 +70,10 @@ begin
   rwa polynomial.leading_coeff_prod', apply right_ne_zero_of_mul h,
 end
 
-lemma nat_degree_prod_eq_of_monic [nontrivial R] (h : ∀ i ∈ s, (f i).monic) :
+lemma nat_degree_prod_of_monic [nontrivial R] (h : ∀ i ∈ s, (f i).monic) :
   (∏ i in s, f i).nat_degree = ∑ i in s, (f i).nat_degree :=
 begin
-  apply nat_degree_prod_eq',
+  apply nat_degree_prod',
   suffices : ∏ i in s, (f i).leading_coeff = 1, { rw this, simp },
   rw prod_eq_one, intros, apply h, assumption,
 end
@@ -108,10 +108,10 @@ end comm_ring
 section integral_domain
 variables [integral_domain R] (f : ι → polynomial R)
 
-lemma nat_degree_prod_eq (h : ∀ i ∈ s, f i ≠ 0) :
+lemma nat_degree_prod (h : ∀ i ∈ s, f i ≠ 0) :
   (∏ i in s, f i).nat_degree = ∑ i in s, (f i).nat_degree :=
 begin
-  apply nat_degree_prod_eq', rw prod_ne_zero_iff,
+  apply nat_degree_prod', rw prod_ne_zero_iff,
   intros x hx, simp [h x hx],
 end
 

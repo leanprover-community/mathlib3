@@ -150,17 +150,27 @@ lemma prod_empty {α : Type u} {f : α → β} : (∏ x in (∅:finset α), f x)
 lemma prod_insert [decidable_eq α] :
   a ∉ s → (∏ x in (insert a s), f x) = f a * ∏ x in s, f x := fold_insert
 
+/-- If a function applied at a point is 1 if that point is not in a
+`finset`, a product is unchanged by adding that point, whether or not
+present, to that `finset`. -/
+@[simp, to_additive "If a function applied at a point is 0 if that point is not in a
+`finset`, a sum is unchanged by adding that point, whether or not
+present, to that `finset`."]
+lemma prod_insert_of_eq_one_if_not_mem [decidable_eq α] (h : a ∉ s → f a = 1) :
+  ∏ x in insert a s, f x = ∏ x in s, f x :=
+begin
+  by_cases hm : a ∈ s,
+  { simp_rw insert_eq_of_mem hm },
+  { rw [prod_insert hm, h hm, one_mul] },
+end
+
 /-- If a function applied at a point is 1, a product is unchanged by
 adding that point, whether or not present, to a `finset`. -/
 @[simp, to_additive "If a function applied at a point is 0, a sum is unchanged by
 adding that point, whether or not present, to a `finset`."]
 lemma prod_insert_one [decidable_eq α] (h : f a = 1) :
   ∏ x in insert a s, f x = ∏ x in s, f x :=
-begin
-  by_cases hm : a ∈ s,
-  { simp_rw insert_eq_of_mem hm },
-  { rw [prod_insert hm, h, one_mul] },
-end
+prod_insert_of_eq_one_if_not_mem (λ _, h)
 
 @[simp, to_additive]
 lemma prod_singleton : (∏ x in (singleton a), f x) = f a :=

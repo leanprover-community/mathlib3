@@ -499,6 +499,9 @@ eventually_nhds_iff.2 ⟨t, λ x hx, eventually_nhds_iff.2 ⟨t, htp, hto, hx⟩
   (∀ᶠ y in 𝓝 a, f =ᶠ[𝓝 y] g) ↔ f =ᶠ[𝓝 a] g :=
 eventually_eventually_nhds
 
+lemma filter.eventually_eq.eq_of_nhds {f g : α → β} {a : α} (h : f =ᶠ[𝓝 a] g) : f a = g a :=
+let ⟨u, hu, H⟩ := h.exists_mem in H _ (mem_of_nhds hu)
+
 @[simp] lemma eventually_eventually_le_nhds [has_le β] {f g : α → β} {a : α} :
   (∀ᶠ y in 𝓝 a, f ≤ᶠ[𝓝 y] g) ↔ f ≤ᶠ[𝓝 a] g :=
 eventually_eventually_nhds
@@ -1006,7 +1009,7 @@ have ∀ (a : α), cluster_pt a (𝓟 s) → cluster_pt (f a) (𝓟 (f '' s)),
   have h₂ : map f (𝓝 a ⊓ 𝓟 s) ≤ 𝓝 (f a) ⊓ 𝓟 (f '' s),
     from le_inf
       (le_trans (map_mono inf_le_left) $ by rw [continuous_iff_continuous_at] at h; exact h a)
-      (le_trans (map_mono inf_le_right) $ by simp; exact subset.refl _),
+      (le_trans (map_mono inf_le_right) $ by simp [subset_preimage_image] ),
   ne_bot_of_le_ne_bot h₁ h₂,
 by simp [image_subset_iff, closure_eq_cluster_pts]; assumption
 

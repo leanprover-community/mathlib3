@@ -137,6 +137,10 @@ def map₂ (op : β → γ → δ) : germ l β → germ l γ → germ l δ :=
 quotient.map₂' (λ f g x, op (f x) (g x)) $ λ f f' Hf g g' Hg,
 Hg.mp $ Hf.mono $ λ x Hf Hg, by simp only [Hf, Hg]
 
+@[simp] lemma map₂_coe (op : β → γ → δ) (f : α → β) (g : α → γ) :
+  map₂ op (f : germ l β) g = λ x, op (f x) (g x) :=
+rfl
+
 /-- A germ at `l` of maps from `α` to `β` tends to `lb : filter β` if it is represented by a map
 which tends to `lb` along `l`. -/
 protected def tendsto (f : germ l β) (lb : filter β) : Prop :=

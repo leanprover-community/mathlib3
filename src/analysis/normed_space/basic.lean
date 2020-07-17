@@ -1099,12 +1099,11 @@ real function `g` which is summable, then `f` is summable. -/
 lemma summable_of_norm_bounded_eventually {f : ι → α} (g : ι → ℝ) (hg : summable g)
   (h : ∀ᶠ i in cofinite, ∥f i∥ ≤ g i) : summable f :=
 begin
-  let s : finset ι := (mem_cofinite.mp h).to_finset,
-  refine (summable_subtype_iff s).mp _,
-  refine summable_of_norm_bounded _ ((summable_subtype_iff s).mpr hg) _,
-  refine subtype.forall.mpr _,
-  intros a h',
-  simpa [s] using h',
+  replace h := mem_cofinite.1 h,
+  refine h.summable_compl_iff.mp _,
+  refine summable_of_norm_bounded _ (h.summable_compl_iff.mpr hg) _,
+  rintros ⟨a, h'⟩,
+  simpa using h'
 end
 
 lemma summable_of_nnnorm_bounded {f : ι → α} (g : ι → nnreal) (hg : summable g)

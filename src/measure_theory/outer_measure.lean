@@ -2,11 +2,10 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
-
-Outer measures -- overapproximations of measures
 -/
 import analysis.specific_limits
 import measure_theory.measurable_space
+import topology.algebra.infinite_sum
 
 /-!
 # Outer Measures
@@ -61,63 +60,49 @@ structure outer_measure (α : Type*) :=
 
 namespace outer_measure
 
-instance {α} : has_coe_to_fun (outer_measure α) := ⟨_, λ m, m.measure_of⟩
-
 section basic
-variables {α : Type*} {ms : set (outer_measure α)} {m : outer_measure α}
+
+variables {α : Type*} {β : Type*} {ms : set (outer_measure α)} {m : outer_measure α}
+
+instance : has_coe_to_fun (outer_measure α) := ⟨_, λ m, m.measure_of⟩
+
+@[simp] lemma measure_of_eq_coe (m : outer_measure α) : m.measure_of = m := rfl
 
 @[simp] theorem empty' (m : outer_measure α) : m ∅ = 0 := m.empty
 
 theorem mono' (m : outer_measure α) {s₁ s₂}
   (h : s₁ ⊆ s₂) : m s₁ ≤ m s₂ := m.mono h
 
-theorem Union_aux (m : set α → ennreal) (m0 : m ∅ = 0)
-  {β} [encodable β] (s : β → set α) :
-  (∑' b, m (s b)) = ∑' i, m (⋃ b ∈ decode2 β i, s b) :=
-begin
-  have H : ∀ n, m (⋃ b ∈ decode2 β n, s b) ≠ 0 → (decode2 β n).is_some,
-  { intros n h,
-    cases decode2 β n with b,
-    { exact (h (by simp [m0])).elim },
-    { exact rfl } },
-  refine tsum_eq_tsum_of_ne_zero_bij (λ n h, option.get (H n h)) _ _ _,
-  { intros m n hm hn e,
-    have := mem_decode2.1 (option.get_mem (H n hn)),
-    rwa [← e, mem_decode2.1 (option.get_mem (H m hm))] at this },
-  { intros b h,
-    refine ⟨encode b, _, _⟩,
-    { convert h, simp [set.ext_iff, encodek2] },
-    { exact option.get_of_mem _ (encodek2 _) } },
-  { intros n h,
-    transitivity, swap,
-    rw [show decode2 β n = _, from option.get_mem (H n h)],
-    congr, simp [set.ext_iff, -option.some_get] }
-end
-
 protected theorem Union (m : outer_measure α)
   {β} [encodable β] (s : β → set α) :
   m (⋃i, s i) ≤ (∑'i, m (s i)) :=
-by rw [Union_decode2, Union_aux _ m.empty' s]; exact m.Union_nat _
+rel_supr_tsum m m.empty (≤) m.Union_nat s
 
 lemma Union_null (m : outer_measure α)
   {β} [encodable β] {s : β → set α} (h : ∀ i, m (s i) = 0) : m (⋃i, s i) = 0 :=
 by simpa [h] using m.Union s
 
+protected lemma Union_finset (m : outer_measure α) (s : β → set α) (t : finset β) :
+  m (⋃i ∈ t, s i) ≤ ∑ i in t, m (s i) :=
+rel_supr_sum m m.empty (≤) m.Union_nat s t
+
 protected lemma union (m : outer_measure α) (s₁ s₂ : set α) :
   m (s₁ ∪ s₂) ≤ m s₁ + m s₂ :=
-begin
-  convert m.Union (λ b, cond b s₁ s₂),
-  { simp [union_eq_Union] },
-  { rw tsum_fintype, change _ = _ + _, simp }
-end
+rel_sup_add m m.empty (≤) m.Union_nat s₁ s₂
+
+lemma le_inter_add_diff {m : outer_measure α} {t : set α} (s : set α) :
+  m t ≤ m (t ∩ s) + m (t \ s) :=
+by { convert m.union _ _, rw inter_union_diff t s }
 
 lemma union_null (m : outer_measure α) {s₁ s₂ : set α}
   (h₁ : m s₁ = 0) (h₂ : m s₂ = 0) : m (s₁ ∪ s₂) = 0 :=
 by simpa [h₁, h₂] using m.union s₁ s₂
 
-@[ext] lemma ext : ∀{μ₁ μ₂ : outer_measure α},
-  (∀s, μ₁ s = μ₂ s) → μ₁ = μ₂
-| ⟨m₁, e₁, _, u₁⟩ ⟨m₂, e₂, _, u₂⟩ h := by congr; exact funext h
+lemma coe_fn_injective ⦃μ₁ μ₂ : outer_measure α⦄ (h : ⇑μ₁ = μ₂) : μ₁ = μ₂ :=
+by { cases μ₁, cases μ₂, congr, exact h }
+
+@[ext] lemma ext {μ₁ μ₂ : outer_measure α} (h : ∀ s, μ₁ s = μ₂ s) : μ₁ = μ₂ :=
+coe_fn_injective $ funext h
 
 instance : has_zero (outer_measure α) :=
 ⟨{ measure_of := λ_, 0,
@@ -125,7 +110,7 @@ instance : has_zero (outer_measure α) :=
    mono       := assume _ _ _, le_refl 0,
    Union_nat  := assume s, zero_le _ }⟩
 
-@[simp] theorem zero_apply (s : set α) : (0 : outer_measure α) s = 0 := rfl
+@[simp] theorem coe_zero : ⇑(0 : outer_measure α) = 0 := rfl
 
 instance : inhabited (outer_measure α) := ⟨0⟩
 
@@ -140,16 +125,31 @@ instance : has_add (outer_measure α) :=
           add_le_add (m₁.Union_nat s) (m₂.Union_nat s)
         ... = _ : ennreal.tsum_add.symm}⟩
 
-@[simp] theorem add_apply (m₁ m₂ : outer_measure α) (s : set α) :
-  (m₁ + m₂) s = m₁ s + m₂ s := rfl
+@[simp] theorem coe_add (m₁ m₂ : outer_measure α) : ⇑(m₁ + m₂) = m₁ + m₂ := rfl
+
+theorem add_apply (m₁ m₂ : outer_measure α) (s : set α) : (m₁ + m₂) s = m₁ s + m₂ s := rfl
 
 instance add_comm_monoid : add_comm_monoid (outer_measure α) :=
 { zero      := 0,
   add       := (+),
-  add_comm  := assume a b, ext $ assume s, add_comm _ _,
-  add_assoc := assume a b c, ext $ assume s, add_assoc _ _ _,
-  add_zero  := assume a, ext $ assume s, add_zero _,
-  zero_add  := assume a, ext $ assume s, by simp }
+  .. injective.add_comm_monoid (show outer_measure α → set α → ennreal, from coe_fn)
+    coe_fn_injective rfl (λ _ _, rfl) }
+
+instance : has_scalar ennreal (outer_measure α) :=
+⟨λ c m,
+  { measure_of := λ s, c * m s,
+    empty      := by simp,
+    mono       := λ s t h, ennreal.mul_left_mono $ m.mono h,
+    Union_nat  := λ s, by { rw [ennreal.tsum_mul_left], exact ennreal.mul_left_mono (m.Union _) } }⟩
+
+@[simp] lemma coe_smul (c : ennreal) (m : outer_measure α) : ⇑(c • m) = c • m := rfl
+
+lemma smul_apply (c : ennreal) (m : outer_measure α) (s : set α) : (c • m) s = c * m s := rfl
+
+instance : semimodule ennreal (outer_measure α) :=
+{ smul := (•),
+  .. injective.semimodule ennreal ⟨show outer_measure α → set α → ennreal, from coe_fn, coe_zero,
+    coe_add⟩ coe_fn_injective coe_smul }
 
 instance : has_bot (outer_measure α) := ⟨0⟩
 
@@ -196,12 +196,15 @@ by have := supr_apply (λ b, cond b m₁ m₂) s;
 end supremum
 
 /-- The pushforward of `m` along `f`. The outer measure on `s` is defined to be `m (f ⁻¹' s)`. -/
-def map {β} (f : α → β) (m : outer_measure α) : outer_measure β :=
-{ measure_of := λs, m (f ⁻¹' s),
-  empty := m.empty,
-  mono := λ s t h, m.mono (preimage_mono h),
-  Union_nat := λ s, by rw [preimage_Union]; exact
-    m.Union_nat (λ i, f ⁻¹' s i) }
+def map {β} (f : α → β) : outer_measure α →ₗ[ennreal] outer_measure β :=
+{ to_fun := λ m,
+    { measure_of := λs, m (f ⁻¹' s),
+      empty := m.empty,
+      mono := λ s t h, m.mono (preimage_mono h),
+      Union_nat := λ s, by rw [preimage_Union]; exact
+        m.Union_nat (λ i, f ⁻¹' s i) },
+  map_add' := λ m₁ m₂, coe_fn_injective rfl,
+  map_smul' := λ c m, coe_fn_injective rfl }
 
 @[simp] theorem map_apply {β} (f : α → β)
   (m : outer_measure α) (s : set β) : map f m s = m (f ⁻¹' s) := rfl
@@ -213,7 +216,7 @@ ext $ λ s, rfl
   (m : outer_measure α) : map g (map f m) = map (g ∘ f) m :=
 ext $ λ s, rfl
 
-instance : functor outer_measure := {map := λ α β, map}
+instance : functor outer_measure := {map := λ α β f, map f}
 
 instance : is_lawful_functor outer_measure :=
 { id_map := λ α, map_id,
@@ -242,29 +245,31 @@ def sum {ι} (f : ι → outer_measure α) : outer_measure α :=
 @[simp] theorem sum_apply {ι} (f : ι → outer_measure α) (s : set α) :
   sum f s = ∑' i, f i s := rfl
 
-instance : has_scalar ennreal (outer_measure α) :=
-⟨λ a m, {
-  measure_of := λs, a * m s,
-  empty := by simp,
-  mono := λ s t h, canonically_ordered_semiring.mul_le_mul (le_refl _) (m.mono' h),
-  Union_nat := λ s, by rw ennreal.tsum_mul_left; exact
-    canonically_ordered_semiring.mul_le_mul (le_refl _) (m.Union_nat _) }⟩
-
-@[simp] theorem smul_apply (a : ennreal) (m : outer_measure α) (s : set α) :
-  (a • m) s = a * m s := rfl
-
-instance : semimodule ennreal (outer_measure α) :=
-{ smul_add := λ a m₁ m₂, ext $ λ s, mul_add _ _ _,
-  add_smul := λ a b m, ext $ λ s, add_mul _ _ _,
-  mul_smul := λ a b m, ext $ λ s, mul_assoc _ _ _,
-  one_smul := λ m, ext $ λ s, one_mul _,
-  zero_smul := λ m, ext $ λ s, zero_mul _,
-  smul_zero := λ a, ext $ λ s, mul_zero _,
-  ..outer_measure.has_scalar }
-
 theorem smul_dirac_apply (a : ennreal) (b : α) (s : set α) :
   (a • dirac b) s = ⨆ h : b ∈ s, a :=
 by by_cases b ∈ s; simp [h]
+
+/-- Pullback of an `outer_measure`: `comap f μ s = μ (f '' s)`. -/
+def comap {β} (f : α → β) : outer_measure β →ₗ[ennreal] outer_measure α :=
+{ to_fun := λ m,
+    { measure_of := λ s, m (f '' s),
+      empty := by simp,
+      mono := λ s t h, m.mono $ image_subset f h,
+      Union_nat := λ s, by { rw [image_Union], apply m.Union_nat } },
+  map_add' := λ m₁ m₂, rfl,
+  map_smul' := λ c m, rfl }
+
+@[simp] lemma comap_apply {β} (f : α → β) (m : outer_measure β) (s : set α) :
+  comap f m s = m (f '' s) :=
+rfl
+
+/-- Restrict an `outer_measure` to a set. -/
+def restrict (s : set α) : outer_measure α →ₗ[ennreal] outer_measure α :=
+(map coe).comp (comap (coe : s → α))
+
+@[simp] lemma restrict_apply (s t : set α) (m : outer_measure α) :
+  restrict s m t = m (t ∩ s) :=
+by simp [restrict]
 
 theorem top_apply {s : set α} (h : s.nonempty) : (⊤ : outer_measure α) s = ⊤ :=
 let ⟨a, as⟩ := h in
@@ -300,7 +305,7 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑'i, m (f i) in
           (by simpa using hε' i),
       simpa [μ, infi_lt_iff] },
     refine le_trans _ (ennreal.tsum_le_tsum $ λ i, le_of_lt (hf i).2),
-    rw [← ennreal.tsum_prod, ← tsum_equiv equiv.nat_prod_nat_equiv_nat.symm],
+    rw [← ennreal.tsum_prod, ← equiv.nat_prod_nat_equiv_nat.symm.tsum_eq],
     swap, {apply_instance},
     refine infi_le_of_le _ (infi_le _ _),
     exact Union_subset (λ i, subset.trans (hf i).1 $
@@ -339,8 +344,7 @@ variables {s s₁ s₂ : set α}
 private def C (s : set α) : Prop := ∀t, m t = m (t ∩ s) + m (t \ s)
 
 private lemma C_iff_le {s : set α} : C s ↔ ∀t, m (t ∩ s) + m (t \ s) ≤ m t :=
-forall_congr $ λ t, le_antisymm_iff.trans $ and_iff_right $
-by convert m.union _ _; rw inter_union_diff t s
+forall_congr $ λ t, le_antisymm_iff.trans $ and_iff_right $ le_inter_add_diff _
 
 @[simp] private lemma C_empty : C ∅ := by simp [C, m.empty, diff_empty]
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import ring_theory.ideal_operations
-import data.polynomial
+import data.polynomial.ring_division
 import tactic.apply_fun
 import ring_theory.prime
 /-!

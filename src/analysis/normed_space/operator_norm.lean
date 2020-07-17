@@ -520,29 +520,27 @@ have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
 { to_fun := (h_e.dense_inducing h_dense).extend f,
   map_add' :=
   begin
-    refine is_closed_property2 h_dense (is_closed_eq _ _) _,
-    { exact cont.comp (continuous_fst.add continuous_snd) },
-    { exact (cont.comp continuous_fst).add (cont.comp continuous_snd) },
-    { assume x y, rw ← e.map_add, simp only [eq], exact f.map_add _ _  },
+    refine h_dense.induction_on₂ _ _,
+    { exact is_closed_eq (cont.comp continuous_add)
+        ((cont.comp continuous_fst).add (cont.comp continuous_snd)) },
+    { assume x y, simp only [eq, ← e.map_add], exact f.map_add _ _  },
   end,
   map_smul' := λk,
   begin
-    refine is_closed_property h_dense (is_closed_eq _ _) _,
-    { exact cont.comp (continuous_const.smul continuous_id)  },
-    { exact (continuous_const.smul continuous_id).comp cont },
+    refine (λ b, h_dense.induction_on b _ _),
+    { exact is_closed_eq (cont.comp (continuous_const.smul continuous_id))
+        ((continuous_const.smul continuous_id).comp cont) },
     { assume x, rw ← map_smul, simp only [eq], exact map_smul _ _ _  },
   end,
   cont := cont
 }
 
+lemma extend_unique (g : G →L[𝕜] F) (H : g.comp e = f) : extend f e h_dense h_e = g :=
+continuous_linear_map.coe_injective' $
+  uniformly_extend_unique h_e h_dense (continuous_linear_map.ext_iff.1 H) g.continuous
+
 @[simp] lemma extend_zero : extend (0 : E →L[𝕜] F) e h_dense h_e = 0 :=
-begin
-  apply ext,
-  refine is_closed_property h_dense (is_closed_eq _ _) _,
-  { exact (uniform_continuous_uniformly_extend h_e h_dense uniform_continuous_const).continuous },
-  { simp only [zero_apply], exact continuous_const },
-  { assume x, exact uniformly_extend_of_ind h_e h_dense uniform_continuous_const x }
-end
+extend_unique _ _ _ _ _ (zero_comp _)
 
 end
 

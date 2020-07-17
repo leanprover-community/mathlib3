@@ -13,6 +13,19 @@ import data.support
 
 We define simple functions and show that each Borel measurable function on `ennreal` can be
 approximated by a sequence of simple functions.
+
+## Notation
+
+We introduce the following notation for the lower Lebesgue integral of a function `f : α → ennreal`.
+
+* `∫⁻ x, f x ∂μ`: integral of a function `f : α → ennreal` with respect to a measure `μ`;
+* `∫⁻ x, f x`: integral of a function `f : α → ennreal` with respect to the canonical measure
+  `volume` on `α`;
+* `∫⁻ x in s, f x ∂μ`: integral of a function `f : α → ennreal` over a set `s` with respect
+  to a measure `μ`, defined as `∫⁻ x, f x ∂(μ.restrict s)`;
+* `∫⁻ x in s, f x`: integral of a function `f : α → ennreal` over a set `s` with respect
+  to the canonical measure `volume`, defined as `∫⁻ x, f x ∂(volume.restrict s)`.
+
 -/
 
 noncomputable theory
@@ -754,12 +767,11 @@ variables [measurable_space α] {μ : measure α}
 def lintegral (μ : measure α) (f : α → ennreal) : ennreal :=
 ⨆ (g : α →ₛ ennreal) (hf : ⇑g ≤ f), g.lintegral μ
 
+notation `∫⁻` binders `, ` r:(scoped:60 f, f) ` ∂` μ:70 := lintegral μ r
+notation `∫⁻` binders `, ` r:(scoped:60 f, lintegral volume f) := r
 notation `∫⁻` binders ` in ` s `, ` r:(scoped:60 f, f) ` ∂` μ:70 :=
   lintegral (measure.restrict μ s) r
 notation `∫⁻` binders ` in ` s `, ` r:(scoped:60 f, lintegral (measure.restrict volume s) f) := r
-
-notation `∫⁻` binders `, ` r:(scoped:60 f, f) ` ∂` μ:70 := lintegral μ r
-notation `∫⁻` binders `, ` r:(scoped:60 f, lintegral volume f) := r
 
 theorem simple_func.lintegral_eq_lintegral (f : α →ₛ ennreal) (μ : measure α) :
   ∫⁻ a, f a ∂ μ = f.lintegral μ :=

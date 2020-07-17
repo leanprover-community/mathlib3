@@ -109,7 +109,7 @@ by ext; simp
 lemma inl_aut_inv (g : G) (n : N) : (inl ((φ g)⁻¹ n) : N ⋊[φ] G) = inr g⁻¹ * inl n * inr g :=
 by rw [← monoid_hom.map_inv, inl_aut, inv_inv]
 
-lemma inl_left_mul_inr_right (x : N ⋊[φ] G) : inl x.left * inr x.right = x :=
+@[simp] lemma inl_left_mul_inr_right (x : N ⋊[φ] G) : inl x.left * inr x.right = x :=
 by ext; simp
 
 /-- The canonical projection map `N ⋊[φ] G →* G`, as a group hom. -/

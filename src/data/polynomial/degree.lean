@@ -464,7 +464,7 @@ have h : leading_coeff (X : polynomial R) * leading_coeff (X ^ n) ≠ 0,
 by rw [pow_succ, degree_mul_eq' h, degree_X, degree_X_pow, add_comm]; refl
 
 theorem not_is_unit_X : ¬ is_unit (X : polynomial R) :=
-λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ $ by erw [← coeff_one_zero, ← hgf, coeff_mul_X_zero]
+λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ $ by { rw [← coeff_one_zero, ← hgf], simp }
 
 end nonzero_semiring
 

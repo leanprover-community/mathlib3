@@ -15,7 +15,6 @@ The theorems include formulas for computing coefficients, such as
 -/
 
 noncomputable theory
-local attribute [instance, priority 100] classical.prop_decidable
 
 open finsupp finset add_monoid_algebra
 open_locale big_operators
@@ -24,12 +23,11 @@ namespace polynomial
 universes u v
 variables {R : Type u} {S : Type v} {a b : R} {n m : ℕ}
 
-section semiring
 variables [semiring R] {p q r : polynomial R}
 
 section coeff
 
-@[simp, priority 990]
+-- @[simp, priority 990]
 lemma coeff_one (n : ℕ) : coeff (1 : polynomial R) n = if 0 = n then 1 else 0 :=
 coeff_monomial
 
@@ -81,9 +79,11 @@ end
 @[simp] lemma mul_coeff_zero (p q : polynomial R) : coeff (p * q) 0 = coeff p 0 * coeff q 0 :=
 by simp [coeff_mul]
 
-@[simp] lemma coeff_mul_X_zero (p : polynomial R) : coeff (p * X) 0 = 0 :=
-by rw [coeff_mul, nat.antidiagonal_zero];
-simp only [polynomial.coeff_X_zero, finset.sum_singleton, mul_zero]
+lemma coeff_mul_X_zero (p : polynomial R) : coeff (p * X) 0 = 0 :=
+by simp
+
+lemma coeff_X_mul_zero (p : polynomial R) : coeff (X * p) 0 = 0 :=
+by simp
 
 lemma coeff_C_mul_X (x : R) (k n : ℕ) :
   coeff (C x * X^k : polynomial R) n = if n = k then x else 0 :=
@@ -123,9 +123,14 @@ begin
     ... = a • X^n  : by rw monomial_one_eq_X_pow
 end
 
-@[simp] lemma coeff_X_pow (k n : ℕ) :
+lemma coeff_X_pow (k n : ℕ) :
   coeff (X^k : polynomial R) n = if n = k then 1 else 0 :=
 by rw [← monomial_one_eq_X_pow]; simp [monomial, single, eq_comm, coeff]; congr
+
+@[simp]
+lemma coeff_X_pow_self (n : ℕ) :
+  coeff (X^n : polynomial R) n = 1 :=
+by simp [coeff_X_pow]
 
 theorem coeff_mul_X_pow (p : polynomial R) (n d : ℕ) :
   coeff (p * polynomial.X ^ n) (d + n) = coeff p d :=
@@ -146,8 +151,5 @@ theorem mul_X_pow_eq_zero {p : polynomial R} {n : ℕ}
 ext $ λ k, (coeff_mul_X_pow p n k).symm.trans $ ext_iff.1 H (k+n)
 
 end coeff
-
-end semiring
-
 
 end polynomial

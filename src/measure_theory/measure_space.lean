@@ -644,6 +644,8 @@ instance : has_add (measure α) :=
 
 @[simp, norm_cast] theorem coe_add (μ₁ μ₂ : measure α) : ⇑(μ₁ + μ₂) = μ₁ + μ₂ := rfl
 
+theorem add_apply (μ₁ μ₂ : measure α) (s) : (μ₁ + μ₂) s = μ₁ s + μ₂ s := rfl
+
 instance add_comm_monoid : add_comm_monoid (measure α) :=
 to_outer_measure_injective.add_comm_monoid to_outer_measure zero_to_outer_measure
   add_to_outer_measure
@@ -753,6 +755,14 @@ protected lemma add_le_add_right {μ₁ μ₂ : measure α} (hμ : μ₁ ≤ μ�
 protected lemma add_le_add {μ₁ μ₂ : measure α} (hμ : μ₁ ≤ μ₂) {ν₁ ν₂ : measure α} (hν : ν₁ ≤ ν₂) :
   μ₁ + ν₁ ≤ μ₂ + ν₂ :=
 λ s hs, add_le_add (hμ s hs) (hν s hs)
+
+protected lemma zero_le (μ : measure α) : 0 ≤ μ := bot_le
+
+protected lemma le_add_left {ν ν' : measure α} (h : μ ≤ ν) : μ ≤ ν' + ν :=
+λ s hs, le_add_left (h s hs)
+
+protected lemma le_add_right {ν ν' : measure α} (h : μ ≤ ν) : μ ≤ ν + ν' :=
+λ s hs, le_add_right (h s hs)
 
 end
 

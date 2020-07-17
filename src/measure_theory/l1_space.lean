@@ -109,6 +109,14 @@ begin
   exact add_lt_top.2 ⟨hμ, hν⟩
 end
 
+lemma integrable.left_of_add_meas {f : α → β} (h : integrable f (μ + ν)) :
+  integrable f μ :=
+h.mono_meas $ measure.le_add_right $ le_refl _
+
+lemma integrable.right_of_add_meas {f : α → β} (h : integrable f (μ + ν)) :
+  integrable f ν :=
+h.mono_meas $ measure.le_add_left $ le_refl _
+
 lemma integrable.smul_meas {f : α → β} (h : integrable f μ) {c : ennreal} (hc : c < ⊤) :
   integrable f (c • μ) :=
 begin

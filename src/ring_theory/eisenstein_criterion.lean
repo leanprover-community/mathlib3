@@ -42,7 +42,7 @@ lemma le_nat_degree_of_map_eq_mul_X_pow {n : ℕ}
   (hq : map (mk_hom P) q = c * X ^ n) (hc0 : c.degree = 0) : n ≤ q.nat_degree :=
 with_bot.coe_le_coe.1
   (calc ↑n = degree (q.map (mk_hom P)) :
-      by rw [hq, degree_mul_eq, hc0, zero_add, degree_pow_eq, degree_X, nsmul_one, nat.cast_with_bot]
+      by rw [hq, degree_mul, hc0, zero_add, degree_pow_eq, degree_X, nsmul_one, nat.cast_with_bot]
       ... ≤ degree q : degree_map_le _
       ... ≤ nat_degree q : degree_le_nat_degree)
 
@@ -100,13 +100,13 @@ begin
   have hq0 : q ≠ 0, from λ h, by simp only [*, eq_self_iff_true, not_true, ne.def, mul_zero] at *,
   have hbc0 : degree b = 0 ∧ degree c = 0,
   { apply_fun degree at hbc,
-    rwa [degree_C hpql0, degree_mul_eq, eq_comm, nat.with_bot.add_eq_zero_iff] at hbc },
+    rwa [degree_C hpql0, degree_mul, eq_comm, nat.with_bot.add_eq_zero_iff] at hbc },
   have hmp : m ≤ nat_degree p,
     from le_nat_degree_of_map_eq_mul_X_pow hP hp hbc0.1,
   have hnq : n ≤ nat_degree q,
     from le_nat_degree_of_map_eq_mul_X_pow hP hq hbc0.2,
   have hpmqn : p.nat_degree = m ∧ q.nat_degree = n,
-  { rw [nat_degree_mul_eq hp0 hq0] at hmnd,
+  { rw [nat_degree_mul hp0 hq0] at hmnd,
     clear_except hmnd hmp hnq,
     omega },
   obtain rfl | rfl : m = 0 ∨ n = 0,

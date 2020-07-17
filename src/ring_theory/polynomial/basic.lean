@@ -299,7 +299,7 @@ from hs ▸ λ x hx, submodule.span_induction hx (λ _ hx, ideal.subset_span hx)
     { intro H, rw [← polynomial.leading_coeff_eq_zero] at H,
       rw [hlqp, polynomial.leading_coeff_eq_zero] at H, exact hp0 H },
     have h1 : p.degree = (q * polynomial.X ^ (k - q.nat_degree)).degree,
-    { rw [polynomial.degree_mul_eq', polynomial.degree_X_pow],
+    { rw [polynomial.degree_mul', polynomial.degree_X_pow],
       rw [polynomial.degree_eq_nat_degree hp0, polynomial.degree_eq_nat_degree hq0],
       rw [← with_bot.coe_add, nat.add_sub_cancel', hn],
       { refine le_trans (polynomial.nat_degree_le_of_degree_le hdq) (le_of_lt h) },

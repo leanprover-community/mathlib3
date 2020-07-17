@@ -146,16 +146,23 @@ do e ← resolve_name' n, pure $ simp_arg_type.expr e
 /-- tactic combinator to create a `simp`-like tactic that minimizes its
 argument list.
 
+ * `slow`: should we use a slower, more accurate strategy?
  * `no_dflt`: did the user use the `only` keyword?
  * `args`:    list of `simp` arguments
  * `tac`:     how to invoke the underlying `simp` tactic
 
 -/
 meta def squeeze_simp_core
-  (no_dflt : bool) (args : list simp_arg_type)
+  (slow no_dflt : bool) (args : list simp_arg_type)
   (tac : Π (no_dflt : bool) (args : list simp_arg_type), tactic unit)
   (mk_suggestion : list simp_arg_type → tactic unit) : tactic unit :=
 do v ← target >>= mk_meta_var,
+   args ← if slow then do
+     simp_set ← attribute.get_instances `simp,
+     simp_set ← simp_set.mfilter $ has_attribute' `_refl_lemma,
+     simp_set ← simp_set.mmap $ resolve_name' >=> pure ∘ simp_arg_type.expr,
+     pure $ args ++ simp_set
+   else pure args,
    g ← retrieve $ do
    { g ← main_goal,
      tac no_dflt args,
@@ -258,14 +265,18 @@ Known limitation(s):
     It is likely that none of the suggestion is a good replacement but they can all be
     combined by concatenating their list of lemmas. `squeeze_scope` can be used to
     combine the suggestions: `by squeeze_scope { cases x; squeeze_simp }`
+  * sometimes, `simp` lemmas are also `_refl_lemma` and they can be used without appearing in the
+    resulting proof. `squeeze_simp` won't know to try that lemma unless it is called as `squeeze_simp?`
+
 -/
 meta def squeeze_simp
   (key : parse cur_pos)
+  (slow_and_accurate : parse (tk "?")?)
   (use_iota_eqn : parse (tk "!")?) (no_dflt : parse only_flag) (hs : parse simp_arg_list)
   (attr_names : parse with_ident_list) (locat : parse location)
   (cfg : parse struct_inst?) : tactic unit :=
 do (cfg',c) ← parse_config cfg,
-   squeeze_simp_core no_dflt hs
+   squeeze_simp_core slow_and_accurate.is_some no_dflt hs
      (λ l_no_dft l_args, simp use_iota_eqn l_no_dft l_args attr_names locat cfg')
      (λ args,
         let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
@@ -278,13 +289,14 @@ do (cfg',c) ← parse_config cfg,
 /-- see `squeeze_simp` -/
 meta def squeeze_simpa
   (key : parse cur_pos)
+  (slow_and_accurate : parse (tk "?")?)
   (use_iota_eqn : parse (tk "!")?) (no_dflt : parse only_flag) (hs : parse simp_arg_list)
   (attr_names : parse with_ident_list) (tgt : parse (tk "using" *> texpr)?)
   (cfg : parse struct_inst?) : tactic unit :=
 do (cfg',c) ← parse_config cfg,
    tgt' ← traverse (λ t, do t ← to_expr t >>= pp,
                             pure format!" using {t}") tgt,
-   squeeze_simp_core no_dflt hs
+   squeeze_simp_core slow_and_accurate.is_some no_dflt hs
      (λ l_no_dft l_args, simpa use_iota_eqn l_no_dft l_args attr_names tgt cfg')
      (λ args,
         let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
@@ -297,21 +309,16 @@ do (cfg',c) ← parse_config cfg,
 /-- `squeeze_dsimp` behaves like `dsimp` (including all its arguments)
 and prints a `dsimp only` invocation to skip the search through the
 `simp` lemma list. See the doc string of `squeeze_simp` for examples.
-
-Unlike `squeeze_simp`, `squeeze_dsimp`, tries every possible `simp` lemma
-proved with `rfl`. It makes `squeeze_dsimp` very slow.
  -/
 meta def squeeze_dsimp
   (key : parse cur_pos)
+  (slow_and_accurate : parse (tk "?")?)
   (use_iota_eqn : parse (tk "!")?)
   (no_dflt : parse only_flag) (hs : parse simp_arg_list)
   (attr_names : parse with_ident_list) (locat : parse location)
   (cfg : parse struct_inst?) : tactic unit :=
 do (cfg',c) ← parse_dsimp_config cfg,
-   simp_set ← attribute.get_instances `simp,
-   simp_set ← simp_set.mfilter $ has_attribute' `_refl_lemma,
-   simp_set ← simp_set.mmap $ resolve_name' >=> pure ∘ simp_arg_type.expr,
-   squeeze_simp_core no_dflt (hs ++ simp_set)
+   squeeze_simp_core slow_and_accurate.is_some no_dflt hs
      (λ l_no_dft l_args, dsimp l_no_dft l_args attr_names locat cfg')
      (λ args,
         let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",

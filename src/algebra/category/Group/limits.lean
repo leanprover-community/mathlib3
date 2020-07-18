@@ -3,9 +3,11 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.category.Group.basic
+import algebra.category.Group.preadditive
 import category_theory.limits.types
 import category_theory.limits.preserves
+import category_theory.limits.shapes.concrete_category
+import category_theory.over
 import algebra.pi_instances
 
 /-!
@@ -122,5 +124,42 @@ instance forget_preserves_limits : preserves_limits (forget AddCommGroup) :=
   { preserves_limit := λ F,
     by exactI preserves_limit_of_preserves_limit_cone
       (limit.is_limit F) (limit.is_limit (F ⋙ forget _)) } }
+
+
+/--
+The categorical kernel of a morphism in `AddCommGroup`
+agrees with the usual group-theoretical kernel.
+-/
+def kernel_iso_ker {G H : AddCommGroup} (f : G ⟶ H) :
+  kernel f ≅ AddCommGroup.of f.ker :=
+{ hom :=
+  { to_fun := λ g, ⟨kernel.ι f g,
+    begin
+      -- TODO where is this `has_coe_t_aux.coe` coming from? can we prevent it appearing?
+      change (kernel.ι f) g ∈ f.ker,
+      simp [add_monoid_hom.mem_ker],
+    end⟩,
+    map_zero' := rfl,
+    map_add' := λ g g', rfl, },
+  inv := kernel.lift f (add_subgroup.subtype f.ker) (by tidy), }.
+
+@[simp]
+lemma kernel_iso_ker_hom_comp_subtype {G H : AddCommGroup} (f : G ⟶ H) :
+  (kernel_iso_ker f).hom ≫ add_subgroup.subtype f.ker = kernel.ι f := rfl
+
+@[simp]
+lemma kernel_iso_ker_inv_comp_ι {G H : AddCommGroup} (f : G ⟶ H) :
+  (kernel_iso_ker f).inv ≫ kernel.ι f = add_subgroup.subtype f.ker := rfl
+
+/--
+The categorical kernel inclusion for `f : G ⟶ H`, as an object over `G`,
+agrees with the `subtype` map.
+-/
+@[simps]
+def kernel_iso_ker_over {G H : AddCommGroup} (f : G ⟶ H) :
+  over.mk (kernel.ι f) ≅ @over.mk _ _ G (AddCommGroup.of f.ker) (add_subgroup.subtype f.ker) :=
+-- TODO this would be cleaner if we made a `over.iso_mk`.
+{ hom := over.hom_mk (kernel_iso_ker f).hom (by simp),
+  inv := over.hom_mk (kernel_iso_ker f).inv (by simp), }.
 
 end AddCommGroup

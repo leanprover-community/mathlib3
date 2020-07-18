@@ -865,6 +865,16 @@ the list of goals, since the goals can be manually edited. -/
 meta def metavariables : tactic (list expr) :=
 expr.list_meta_vars <$> result
 
+/--
+`sorry_if_contains_sorry` will solve any goal already containing `sorry` in its type with `sorry`,
+and fail otherwise.
+-/
+meta def sorry_if_contains_sorry : tactic unit :=
+do
+  g ← target,
+  guard g.contains_sorry <|> fail "goal does not contain `sorrry`",
+  tactic.admit
+
 /-- Fail if the target contains a metavariable. -/
 meta def no_mvars_in_target : tactic unit :=
 expr.has_meta_var <$> target >>= guardb ∘ bnot
@@ -1740,14 +1750,6 @@ meta def success_if_fail_with_msg {α : Type u} (t : tactic α) (msg : string) :
 | (interaction_monad.result.success a s) :=
    mk_exception "success_if_fail_with_msg combinator failed, given tactic succeeded" none s
 end
-
-
-/--
-Replace any metavariables in the expression with underscores, in preparation for printing
-`refine ...` statements.
--/
-meta def replace_mvars (e : expr) : expr :=
-e.replace (λ e' _, if e'.is_mvar then some (unchecked_cast pexpr.mk_placeholder) else none)
 
 /--
 Construct a `refine ...` or `exact ...` string which would construct `g`.

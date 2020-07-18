@@ -806,7 +806,7 @@ lemma infi_subtype' {p : ι → Prop} {f : ∀ i, p i → α} :
 (@infi_subtype _ _ _ p (λ x, f x.val x.property)).symm
 
 lemma infi_subtype'' {ι} (s : set ι) (f : ι → α) :
-(⨅ i : s, f i) = ⨅ (t : ι) (H : t ∈ s), f t :=
+  (⨅ i : s, f i) = ⨅ (t : ι) (H : t ∈ s), f t :=
 infi_subtype
 
 lemma is_glb_binfi {s : set β} {f : β → α} : is_glb (f '' s) (⨅ x ∈ s, f x) :=
@@ -818,8 +818,11 @@ le_antisymm
   (supr_le $ assume i, supr_le $ assume : p i, le_supr _ _)
 
 lemma supr_subtype' {p : ι → Prop} {f : ∀ i, p i → α} :
-  (⨆ i (h : p i), f i h) = (⨆ x : subtype p, f x.val x.property) :=
+  (⨆ i (h : p i), f i h) = (⨆ x : subtype p, f x x.property) :=
 (@supr_subtype _ _ _ p (λ x, f x.val x.property)).symm
+
+lemma Sup_eq_supr' {s : set α} : Sup s = ⨆ x : s, (x : α) :=
+by rw [Sup_eq_supr, supr_subtype']; refl
 
 lemma is_lub_bsupr {s : set β} {f : β → α} : is_lub (f '' s) (⨆ x ∈ s, f x) :=
 by simpa only [range_comp, subtype.range_coe, supr_subtype'] using @is_lub_supr α s _ (f ∘ coe)
@@ -872,13 +875,11 @@ section complete_linear_order
 variables [complete_linear_order α]
 
 lemma supr_eq_top (f : ι → α) : supr f = ⊤ ↔ (∀b<⊤, ∃i, b < f i) :=
-by rw [← Sup_range, Sup_eq_top];
-from forall_congr (assume b, forall_congr (assume hb, set.exists_range_iff))
+by simp only [← Sup_range, Sup_eq_top, set.exists_range_iff]
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-lemma infi_eq_bot (f : ι → α) : infi f = ⊥ ↔ (∀b>⊥, ∃i, b > f i) :=
-by rw [← Inf_range, Inf_eq_bot];
-from forall_congr (assume b, forall_congr (assume hb, set.exists_range_iff))
+lemma infi_eq_bot (f : ι → α) : infi f = ⊥ ↔ (∀b>⊥, ∃i, f i < b) :=
+by simp only [← Inf_range, Inf_eq_bot, set.exists_range_iff]
 
 end complete_linear_order
 

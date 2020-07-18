@@ -201,6 +201,10 @@ classical.by_cases or.inl (λ h, or.inr (nonempty_of_ne_empty h))
 
 @[simp] lemma coe_empty : ↑(∅ : finset α) = (∅ : set α) := rfl
 
+/-- A `finset` for an empty type is empty. -/
+lemma eq_empty_of_not_nonempty (h : ¬ nonempty α) (s : finset α) : s = ∅ :=
+finset.eq_empty_of_forall_not_mem $ λ x, false.elim $ not_nonempty_iff_imp_false.1 h x
+
 /-! ### singleton -/
 /--
 `{a} : finset a` is the set `{a}` containing `a` and nothing else.

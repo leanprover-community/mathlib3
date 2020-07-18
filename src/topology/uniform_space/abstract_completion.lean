@@ -107,7 +107,7 @@ lemma extend_coe [t2_space β] (hf : uniform_continuous f) (a : α) :
 (pkg.extend f) (ι a) = f a :=
 begin
   rw pkg.extend_def hf,
-  exact pkg.dense_inducing.extend_eq_of_cont hf.continuous a
+  exact pkg.dense_inducing.extend_eq hf.continuous a
 end
 
 variables [complete_space β] [separated_space β]

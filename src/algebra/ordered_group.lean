@@ -1831,6 +1831,8 @@ instance : Π [partial_order α], partial_order (multiplicative α) := id
 instance : Π [partial_order α], partial_order (additive α) := id
 instance : Π [linear_order α], linear_order (multiplicative α) := id
 instance : Π [linear_order α], linear_order (additive α) := id
+instance : Π [decidable_linear_order α], decidable_linear_order (multiplicative α) := id
+instance : Π [decidable_linear_order α], decidable_linear_order (additive α) := id
 
 instance [ordered_add_comm_monoid α] : ordered_comm_monoid (multiplicative α) :=
 { mul_le_mul_left := @ordered_add_comm_monoid.add_le_add_left α _,

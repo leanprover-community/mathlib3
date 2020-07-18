@@ -350,7 +350,7 @@ begin
     refine ⟨linear_pmap.Sup c c_chain.directed_on, _, λ _, linear_pmap.le_Sup c_chain.directed_on⟩,
     rintros ⟨x, hx⟩ hxs,
     have hdir : directed_on (≤) (linear_pmap.domain '' c),
-      from (directed_on_image _).2 (c_chain.directed_on.mono _ linear_pmap.domain_mono.monotone),
+      from directed_on_image.2 (c_chain.directed_on.mono linear_pmap.domain_mono.monotone),
     rcases (mem_Sup_of_directed (cne.image _) hdir).1 hx with ⟨_, ⟨f, hfc, rfl⟩, hfx⟩,
     have : f ≤ linear_pmap.Sup c c_chain.directed_on, from linear_pmap.le_Sup _ hfc,
     convert ← hcs hfc ⟨x, hfx⟩ hxs,

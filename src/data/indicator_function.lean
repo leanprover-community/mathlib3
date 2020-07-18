@@ -46,7 +46,7 @@ lemma indicator_apply (s : set α) (f : α → β) (a : α) :
 
 @[simp] lemma indicator_of_not_mem (h : a ∉ s) (f : α → β) : indicator s f a = 0 := if_neg h
 
-/-- If an indicator function evaluates to nonzero at a point, that
+/-- If an indicator function is nonzero at a point, that
 point is in the set. -/
 lemma mem_of_indicator_ne_zero (h : indicator s f a ≠ 0) : a ∈ s :=
 not_imp_comm.1 (λ hn, indicator_of_not_mem hn f) h

@@ -168,6 +168,9 @@ lemma kernel_not_epi_of_nonzero (w : f ≠ 0) : ¬epi (kernel.ι f) :=
 lemma kernel_not_iso_of_nonzero (w : f ≠ 0) : (is_iso (kernel.ι f)) → false :=
 λ I, kernel_not_epi_of_nonzero w $ by { resetI, apply_instance }
 
+/--
+When `g` is an isomorphism, the kernel of `f ≫ g` is isomorphic to the kernel of `f`.
+-/
 @[simps]
 def kernel_comp_is_iso {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   [has_kernel (f ≫ g)] [has_kernel f] [is_iso g] :
@@ -175,6 +178,9 @@ def kernel_comp_is_iso {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
 { hom := kernel.lift _ (kernel.ι _) (by { rw [←cancel_mono g], simp, }),
   inv := kernel.lift _ (kernel.ι _) (by simp), }
 
+/--
+When `f` is an isomorphism, the kernel of `f ≫ g` is isomorphic to the kernel of `g`.
+-/
 @[simps]
 def kernel_is_iso_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   [has_kernel (f ≫ g)] [is_iso f] [has_kernel g] :
@@ -365,6 +371,9 @@ lemma cokernel_not_mono_of_nonzero (w : f ≠ 0) : ¬mono (cokernel.π f) :=
 lemma cokernel_not_iso_of_nonzero (w : f ≠ 0) : (is_iso (cokernel.π f)) → false :=
 λ I, cokernel_not_mono_of_nonzero w $ by { resetI, apply_instance }
 
+/--
+When `g` is an isomorphism, the cokernel of `f ≫ g` is isomorphic to the cokernel of `f`.
+-/
 @[simps]
 def cokernel_comp_is_iso {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   [has_cokernel (f ≫ g)] [has_cokernel f] [is_iso g] :
@@ -372,6 +381,9 @@ def cokernel_comp_is_iso {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
 { hom := cokernel.desc _ (inv g ≫ cokernel.π f) (by simp),
   inv := cokernel.desc _ (g ≫ cokernel.π (f ≫ g)) (by rw [←category.assoc, cokernel.condition]), }
 
+/--
+When `f` is an isomorphism, the cokernel of `f ≫ g` is isomorphic to the cokernel of `g`.
+-/
 @[simps]
 def cokernel_is_iso_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   [has_cokernel (f ≫ g)] [is_iso f] [has_cokernel g] :

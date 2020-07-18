@@ -26,7 +26,7 @@ section group_structure
 ### Group stucture
 
 In this section we show that continuous functions valued in a topological group inherit
-a structure of group.
+the structure of a group.
 -/
 
 @[to_additive continuous_add_submonoid]

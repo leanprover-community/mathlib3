@@ -92,8 +92,8 @@ theorem to_module.ext (H : ∀ i, ψ.comp (lof R ι M i) = ψ'.comp (lof R ι M 
 by rw [to_module.unique R ψ, to_module.unique R ψ', funext H]
 
 /--
-The inclusion of the direct sum of a subset of the summands, as a linear map.
-The name seems kind of arcane?
+The inclusion of a subset of the direct summands
+into a larger subset of the direct summands, as a linear map.
 -/
 def lset_to_set (S T : set ι) (H : S ⊆ T) :
   direct_sum S (M ∘ subtype.val) →ₗ direct_sum T (M ∘ subtype.val) :=

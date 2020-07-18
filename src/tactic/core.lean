@@ -865,6 +865,16 @@ the list of goals, since the goals can be manually edited. -/
 meta def metavariables : tactic (list expr) :=
 expr.list_meta_vars <$> result
 
+/--
+`sorry_if_contains_sorry` will solve any goal already containing `sorry` in its type with `sorry`,
+and fail otherwise.
+-/
+meta def sorry_if_contains_sorry : tactic unit :=
+do
+  g ← target,
+  guard g.contains_sorry <|> fail "goal does not contain `sorrry`",
+  tactic.admit
+
 /-- Fail if the target contains a metavariable. -/
 meta def no_mvars_in_target : tactic unit :=
 expr.has_meta_var <$> target >>= guardb ∘ bnot

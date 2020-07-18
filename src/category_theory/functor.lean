@@ -12,7 +12,6 @@ Introduces notations
   `C ⥤ D` for the type of all functors from `C` to `D`.
     (I would like a better arrow here, unfortunately ⇒ (`\functor`) is taken by core.)
 -/
-import category_theory.category
 import tactic.reassoc_axiom
 
 namespace category_theory

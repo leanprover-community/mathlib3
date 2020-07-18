@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark.
 -/
 import algebra.polynomial.basic
+import tactic.linarith
+
 open polynomial finset
 
 /-!

@@ -10,7 +10,6 @@ import topology.subset_properties
 # Continuous bundled map
 
 In this file we define the type `continuous_map` of continuous bundled maps.
-
 -/
 
 @[protect_proj]

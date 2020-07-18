@@ -6,19 +6,22 @@ Authors: Scott Morrison
 import tactic.tidy
 import tactic.replacer
 
-namespace tactic
+/-!
+# The `obviously` tactic
 
-/--
-`sorry_if_contains_sorry` will solve any goal already containing `sorry` in its type with `sorry`,
-and fail otherwise.
+This file sets up a tactic called `obviously`,
+which is subsequently used throughout the category theory library
+as an `auto_param` to discharge easy proof obligations when building structures.
+
+In this file, we set up `obviously` as a "replacer" tactic,
+whose implementation can be modified after the fact.
+Then we set the default implementation to be `tidy`.
+
+## Implementation note
+At present we don't actually take advantage of the replacer mechanism in mathlib.
+In the past it had been used by an external category theory library which wanted to incorporate
+`rewrite_search` as part of `obviously`.
 -/
-meta def sorry_if_contains_sorry : tactic unit :=
-do
-  g ← target,
-  guard g.contains_sorry <|> fail "goal does not contain `sorrry`",
-  tactic.admit
-
-end tactic
 
 /-
 The propositional fields of `category` are annotated with the auto_param `obviously`,

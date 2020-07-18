@@ -121,7 +121,7 @@ section algebra_structure
 ### Algebra structure
 
 In this section we show that continuous functions valued in a topological algebra `A` over a ring
-`R` inherit a structure of algebra. Note that the hypothesis that `A` is a topologial algebra is
+`R` inherit the structure of an algebra. Note that the hypothesis that `A` is a topological algebra is
 obtained by requiring that `A` be both a `topological_semimodule` and a `topological_semiring`
 (by now we require `topological_ring`: see TODO below).-/
 

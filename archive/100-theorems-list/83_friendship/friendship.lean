@@ -1,10 +1,9 @@
-import data.zmod.basic
-import .sym_matrix
+import .adjacency_matrix
 import .double_counting
 import .char_poly
 import data.int.modeq
-import tactic
 import number_theory.quadratic_reciprocity
+import tactic
 
 open_locale classical
 noncomputable theory

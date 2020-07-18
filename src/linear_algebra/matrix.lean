@@ -259,10 +259,10 @@ section trace
 
 variables {R : Type v} {M : Type w} [semiring R] [add_comm_monoid M] [semimodule R M]
 
+variables (n) (R) (M)
 /--
 The diagonal of a square matrix.
 -/
-variables (n) (R) (M)
 def diag : (matrix n n M) →ₗ[R] n → M :=
 { to_fun    := λ A i, A i i,
   map_add'  := by { intros, ext, refl, },
@@ -276,10 +276,10 @@ variables {n} {R} {M}
 
 @[simp] lemma diag_transpose (A : matrix n n M) : diag n R M Aᵀ = diag n R M A := rfl
 
+variables (n) (R) (M)
 /--
 The trace of a square matrix.
 -/
-variables (n) (R) (M)
 def trace : (matrix n n M) →ₗ[R] M :=
 { to_fun    := λ A, ∑ i, diag n R M A i,
   map_add'  := by { intros, apply finset.sum_add_distrib, },

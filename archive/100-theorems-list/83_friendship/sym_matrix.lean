@@ -25,7 +25,7 @@ def matrix_J : matrix m m R :=
 @[simp] lemma matrix_J_apply {i j : m} : matrix_J i j = (1 : R) := rfl
 
 lemma trace_J (m:Type*) [fintype m] :
-matrix.trace m R R (matrix_J R m) = fintype.card m :=
+matrix.trace m R R matrix_J = fintype.card m :=
 begin
   rw matrix.trace,
   rw matrix_J,

@@ -128,23 +128,47 @@ assume a b, quotient.induction_on₂' a b $
 show a⁻¹ * b ∈ ker φ, by rw [mem_ker,
   is_mul_hom.map_mul φ, ← h, is_group_hom.map_inv φ, inv_mul_self]
 
+-- **TODO**: Scott -- ker φ isn't definitionally ker (to_range φ) -- this is
+-- monoid_hom.to_range_ker. I found the first sorry annoying because of this.
+-- So I'm defining the map G/ker(φ) -> im(φ)
+-- and proving injectivity separately -- I can't figure out how to get injectivity
+-- from the previous lemma
+
+/-- The induced map from the quotient by the kernel to the range. -/
+@[to_additive quotient_add_group.range_ker_lift]
+def range_ker_lift : quotient (ker φ) →* φ.range :=
+lift _ (to_range φ) $ λ g hg, mem_ker.mp $ by rwa to_range_ker
+
+@[to_additive quotient_add_group.range_ker_lift_injective]
+lemma range_ker_lift_injective : injective (range_ker_lift φ) :=
+assume a b, quotient.induction_on₂' a b $
+  assume a b (h : to_range φ a = to_range φ b), quotient.sound' $
+show a⁻¹ * b ∈ ker φ, by rw [←to_range_ker, mem_ker,
+  is_mul_hom.map_mul (to_range φ), ← h, is_group_hom.map_inv (to_range φ), inv_mul_self]
+
+@[to_additive quotient_add_group.range_ker_lift_surjective]
+lemma range_ker_lift_surjective : surjective (range_ker_lift φ) :=
+begin
+  rintro ⟨_, g, rfl⟩,
+  use mk g,
+  refl,
+end
+
 @[to_additive quotient_add_group.quotient_ker_equiv_range]
 noncomputable def quotient_ker_equiv_range : (quotient (ker φ)) ≃* range φ :=
-mul_equiv.of_bijective
-  (lift (ker φ) (to_range _) (λ x hx, show (⟨φ x, _⟩ : range φ) = ⟨1, _⟩, by simp [mem_ker.1 hx, hx]))
-  ⟨λ a b h, ker_lift_injective _ begin dsimp [ker_lift], sorry end, λ ⟨x, y, hy⟩, ⟨mk y, subtype.eq hy⟩⟩
+mul_equiv.of_bijective (range_ker_lift φ) ⟨range_ker_lift_injective φ, range_ker_lift_surjective φ⟩
 
 @[to_additive quotient_add_group.quotient_ker_equiv_of_surjective]
 noncomputable def quotient_ker_equiv_of_surjective (hφ : function.surjective φ) :
   (quotient (ker φ)) ≃* H :=
-begin
-  -- TODO golf. We can't use `calc` because it doesn't like mul_equiv.
-  apply @mul_equiv.trans _ _ _ _ _,
-  exact quotient_ker_equiv_range φ,
-  rw range_top_of_surjective _ hφ,
-  show ↥(⊤ : subgroup H) ≃* H,
-    sorry -- this should be proved elsewhere.
-end
+mul_equiv.of_bijective (ker_lift φ) ⟨ker_lift_injective φ, begin
+  -- **TODO** : there must be a nicer proof
+  intro h,
+  rcases hφ h with ⟨g, rfl⟩,
+  use mk g,
+  refl
+end⟩
 
+-- **TODO** : ↥(⊤ : subgroup H) ≃* H ? Is it definitely not there?
 
 end quotient_group

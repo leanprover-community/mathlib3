@@ -1,14 +1,20 @@
 /-
 Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Nicolò Cavalleri
 -/
 import topology.algebra.module
 import topology.continuous_map
 
-/- TODO: change subtype of continuous functions into continuous bundled functions. -/
+/-!
+# Algebraic structures over continuous functions
 
-universes u v
+In this file we define instances of algebraic sturctures over continuous functions. Instances are
+present both in the case of the subtype of continuous functions and the type of continuous bundled
+functions. Both implementations have advantages and disadvantages, but many experienced people in
+Zulip have expressed a preference towards continuous bundled maps, so when there is no particular
+reason to use the subtype, continuous bundled functions should be used for the sake of uniformity.
+-/
 
 local attribute [elab_simple] continuous.comp
 
@@ -46,25 +52,25 @@ a structure of group.
 section subtype
 
 @[to_additive continuous_add_submonoid]
-instance continuous_submonoid (α : Type u) (β : Type v) [topological_space α] [topological_space β]
+instance continuous_submonoid (α : Type*) (β : Type*) [topological_space α] [topological_space β]
   [monoid β] [has_continuous_mul β] : is_submonoid { f : α → β | continuous f } :=
 { one_mem := @continuous_const _ _ _ _ 1,
   mul_mem := λ f g fc gc, continuous.comp
   has_continuous_mul.continuous_mul (continuous.prod_mk fc gc) }.
 
 @[to_additive continuous_add_subgroup]
-instance continuous_subgroup (α : Type u) (β : Type v) [topological_space α] [topological_space β]
+instance continuous_subgroup (α : Type*) (β : Type*) [topological_space α] [topological_space β]
   [group β] [topological_group β] : is_subgroup { f : α → β | continuous f } :=
 { inv_mem := λ f fc, continuous.comp topological_group.continuous_inv fc,
   ..continuous_submonoid α β, }.
 
 @[to_additive continuous_add_monoid]
-instance continuous_monoid {α : Type u} {β : Type v} [topological_space α] [topological_space β]
+instance continuous_monoid {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [monoid β] [has_continuous_mul β] : monoid { f : α → β | continuous f } :=
 subtype.monoid
 
 @[to_additive continuous_add_group]
-instance continuous_group {α : Type u} {β : Type v} [topological_space α] [topological_space β]
+instance continuous_group {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [group β] [topological_group β] : group { f : α → β | continuous f } :=
 subtype.group
 
@@ -128,16 +134,16 @@ a structure of ring.
 
 section subtype
 
-instance continuous_subring (α : Type u) (R : Type v) [topological_space α] [topological_space R]
+instance continuous_subring (α : Type*) (R : Type*) [topological_space α] [topological_space R]
   [ring R] [topological_ring R] : is_subring { f : α → R | continuous f } :=
 { ..continuous_add_subgroup α R,
   ..continuous_submonoid α R }.
 
-instance continuous_ring {α : Type u} {R : Type v} [topological_space α] [topological_space R]
+instance continuous_ring {α : Type*} {R : Type*} [topological_space α] [topological_space R]
   [ring R] [topological_ring R] : ring { f : α → R | continuous f } :=
 @subtype.ring _ _ _ (continuous_subring α R) -- infer_instance doesn't work?!
 
-instance continuous_comm_ring {α : Type u} {R : Type v} [topological_space α] [topological_space R]
+instance continuous_comm_ring {α : Type*} {R : Type*} [topological_space α] [topological_space R]
   [comm_ring R] [topological_ring R] : comm_ring { f : α → R | continuous f } :=
 @subtype.comm_ring _ _ _ (continuous_subring α R) -- infer_instance doesn't work?!
 

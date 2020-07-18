@@ -384,6 +384,12 @@ end has_zero_object
 
 section has_image
 
+/--
+The cokernel of the image inclusion of a morphism `f` is isomorphic to the cokernel of `f`.
+
+(This result requires that the factorisation through the image is an epimorphism.
+This holds in any category with equalizers.)
+-/
 @[simps]
 def cokernel_image_ι {X Y : C} (f : X ⟶ Y)
   [has_image f] [has_cokernel (image.ι f)] [has_cokernel f] [epi (factor_thru_image f)] :

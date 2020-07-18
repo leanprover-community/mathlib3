@@ -712,7 +712,7 @@ variables [nonempty α]
 variables {f : α → β} (h : open_embedding f)
 include f h
 
-/- An open embedding of `α` into `β`, with `α` nonempty, defines a local equivalence whose source
+/-- An open embedding of `α` into `β`, with `α` nonempty, defines a local equivalence whose source
 is all of `α`.  This is mainly an auxiliary lemma for the stronger result `to_local_homeomorph`. -/
 noncomputable def to_local_equiv : local_equiv α β :=
 set.inj_on.to_local_equiv f set.univ (set.injective_iff_inj_on_univ.mp h.to_embedding.inj)

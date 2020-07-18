@@ -752,7 +752,8 @@ variables (e : local_homeomorph α H)
 
 /-- If a single local homeomorphism `e` from a space `α` into `H` has source covering the whole
 space `α`, then that local homeomorphism induces an `H`-charted space structure on `α`.
-(This condition is equivalent to `e` being an open embedding of `α` into `H`.) -/
+(This condition is equivalent to `e` being an open embedding of `α` into `H`; see
+`local_homeomorph.to_open_embedding` and `open_embedding.to_local_homeomorph`.) -/
 def singleton_charted_space (h : e.source = set.univ) : charted_space H α :=
 { atlas := {e},
   chart_at := λ _, e,
@@ -780,10 +781,10 @@ end singleton
 
 section open_subset
 variables (G : structure_groupoid H) [h : closed_under_restriction G] [has_groupoid M G]
-variables {s : set M} [nonempty s] (hs : is_open s)
+variables {s : set M} (hs : is_open s)
 
 /-- An open subset of a charted space is naturally a charted space. -/
-def open_charted_subspace : charted_space H s :=
+def open_charted_subspace [nonempty s] : charted_space H s :=
 { atlas := set.range (λ (e : atlas H M), (e : local_homeomorph M H).subtype_restr hs),
   chart_at := λ x, (@chart_at H _ M _ _ x).subtype_restr hs,
   mem_chart_source := λ _, by simp only with mfld_simps,
@@ -794,7 +795,7 @@ f.preimage_open_of_open_symm (is_open_inter hs f.open_source)
 
 /- This auxiliary lemma characterizes the transition functions of the open subset in terms of the
 transition functions of the original space. -/
-lemma homeos_identity (e e' : local_homeomorph s H)
+lemma homeos_identity [nonempty s] (e e' : local_homeomorph s H)
   (f f' : local_homeomorph M H) (hf : e = f.subtype_restr hs) (hf' : e' = f'.subtype_restr hs) :
   e.symm.trans e' ≈ (f.symm.trans f').restr (f.target ∩ (f.symm) ⁻¹' (s ∩ f.source)) :=
 begin
@@ -815,7 +816,7 @@ include h
 
 /-- If a groupoid `G` is `closed_under_restriction`, then an open subset of a space which is
 `has_groupoid G` is naturally `has_groupoid G`. -/
-def open_subspace_has_groupoid : @has_groupoid _ _ _ _ (open_charted_subspace hs) G :=
+lemma open_subspace_has_groupoid [nonempty s] : @has_groupoid _ _ _ _ (open_charted_subspace hs) G :=
 { compatible := begin
     rintros e e' ⟨f, hf⟩ ⟨f', hf'⟩,
     refine G.eq_on_source _ (homeos_identity hs e e' f f' hf.symm hf'.symm),

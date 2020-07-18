@@ -47,7 +47,7 @@ section subtype
 
 @[to_additive continuous_add_submonoid]
 instance continuous_submonoid (α : Type u) (β : Type v) [topological_space α] [topological_space β]
-  [monoid β] [topological_monoid β] : is_submonoid { f : α → β | continuous f } :=
+  [monoid β] [has_continuous_mul β] : is_submonoid { f : α → β | continuous f } :=
 { one_mem := @continuous_const _ _ _ _ 1,
   mul_mem := λ f g fc gc, continuous.comp
   has_continuous_mul.continuous_mul (continuous.prod_mk fc gc) }.
@@ -60,7 +60,7 @@ instance continuous_subgroup (α : Type u) (β : Type v) [topological_space α] 
 
 @[to_additive continuous_add_monoid]
 instance continuous_monoid {α : Type u} {β : Type v} [topological_space α] [topological_space β]
-  [monoid β] [topological_monoid β] : monoid { f : α → β | continuous f } :=
+  [monoid β] [has_continuous_mul β] : monoid { f : α → β | continuous f } :=
 subtype.monoid
 
 @[to_additive continuous_add_group]

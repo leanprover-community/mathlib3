@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 
 Theory of topological monoids.
-
-TODO: generalize `topological_monoid` and `topological_add_monoid` to semigroups, or add a type class
-`topological_operator α (*)`.
 -/
+
 import topology.continuous_on
 import algebra.pi_instances
 
@@ -16,34 +14,18 @@ open_locale classical topological_space big_operators
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
+/-- Basic hypothesis to talk about a topological additive monoid or a topological additive
+semigroup. A topological additive monoid over α, for example, is obtained by requiring both the
+instances `add_monoid α` and `has_continuous_add α`. -/
 class has_continuous_add (α : Type*) [topological_space α] [has_add α] : Prop :=
 (continuous_add : continuous (λp:α×α, p.1 + p.2))
 
+/-- Basic hypothesis to talk about a topological monoid or a topological semigroup.
+A topological monoid over α, for example, is obtained by requiring both the instances `monoid α` and
+`has_continuous_mul α`. -/
 @[to_additive]
 class has_continuous_mul (α : Type*) [topological_space α] [has_mul α] : Prop :=
 (continuous_mul : continuous (λp:α×α, p.1 * p.2))
-
-/-- A topological (additive) semigroup is a semigroup in which the addition is
-  continuous as a function `α × α → α`. -/
-class topological_add_semigroup (α : Type*) [topological_space α] [add_semigroup α]
-extends has_continuous_add α : Prop
-
-/-- A topological semigroup is a semigroup in which the multiplication is continuous as a function
-`α × α → α`. -/
-@[to_additive topological_add_semigroup]
-class topological_semigroup (α : Type*) [topological_space α] [semigroup α]
-extends has_continuous_mul α: Prop
-
-/-- A topological (additive) monoid is a monoid in which the addition is
-  continuous as a function `α × α → α`. -/
-class topological_add_monoid (α : Type*) [topological_space α] [add_monoid α]
-extends topological_add_semigroup α : Prop
-
-/-- A topological monoid is a monoid in which the multiplication is continuous as a function
-`α × α → α`. -/
-@[to_additive topological_add_monoid]
-class topological_monoid (α : Type*) [topological_space α] [monoid α]
-extends topological_semigroup α: Prop
 
 section has_continuous_mul
 
@@ -104,9 +86,9 @@ attribute [instance] prod.has_continuous_mul
 
 end has_continuous_mul
 
-section topological_monoid
+section has_continuous_mul
 
-variables [topological_space α] [monoid α] [topological_monoid α]
+variables [topological_space α] [monoid α] [has_continuous_mul α]
 
 @[to_additive]
 lemma tendsto_list_prod {f : γ → β → α} {x : filter β} {a : γ → α} :
@@ -132,7 +114,7 @@ lemma continuous_pow : ∀ n : ℕ, continuous (λ a : α, a ^ n)
 | 0 := by simpa using continuous_const
 | (k+1) := show continuous (λ (a : α), a * a ^ k), from continuous_id.mul (continuous_pow _)
 
-end topological_monoid
+end has_continuous_mul
 
 section
 
@@ -143,7 +125,7 @@ lemma is_submonoid.mem_nhds_one (β : set α) [is_submonoid β] (oβ : is_open �
   β ∈ 𝓝 (1 : α) :=
 mem_nhds_sets_iff.2 ⟨β, (by refl), oβ, is_submonoid.one_mem⟩
 
-variable [topological_monoid α]
+variable [has_continuous_mul α]
 
 @[to_additive]
 lemma tendsto_multiset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : multiset γ) :

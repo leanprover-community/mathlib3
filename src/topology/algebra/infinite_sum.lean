@@ -200,7 +200,7 @@ lemma equiv.summable_iff_of_has_sum_iff {α' : Type*} [add_comm_monoid α']
   summable f ↔ summable g :=
 ⟨λ ⟨a, ha⟩, ⟨e.symm a, he.1 $ by rwa [e.apply_symm_apply]⟩, λ ⟨a, ha⟩, ⟨e a, he.2 ha⟩⟩
 
-variable [topological_add_monoid α]
+variable [has_continuous_add α]
 
 lemma has_sum.add (hf : has_sum f a) (hg : has_sum g b) : has_sum (λb, f b + g b) (a + b) :=
 by simp only [has_sum, sum_add_distrib]; exact hf.add hg
@@ -359,8 +359,12 @@ lemma tsum_eq_tsum_of_ne_zero_bij {g : γ → α} (i : support g → β)
   (∑' x, f x)  = ∑' y, g y :=
 tsum_eq_tsum_of_has_sum_iff_has_sum $ λ _, has_sum_iff_has_sum_of_ne_zero_bij i hi hf hfg
 
-section topological_add_monoid
-variable [topological_add_monoid α]
+lemma tsum_subtype (s : set β) (f : β → α) :
+  (∑' x : s, f x) = ∑' x, s.indicator f x :=
+tsum_eq_tsum_of_has_sum_iff_has_sum $ λ _, has_sum_subtype_iff_indicator
+
+section has_continuous_add
+variable [has_continuous_add α]
 
 lemma tsum_add (hf : summable f) (hg : summable g) : (∑'b, f b + g b) = (∑'b, f b) + (∑'b, g b) :=
 (hf.has_sum.add hg.has_sum).tsum_eq
@@ -387,7 +391,7 @@ begin
   assumption
 end
 
-end topological_add_monoid
+end has_continuous_add
 
 section encodable
 open encodable

@@ -5,6 +5,7 @@ Authors: Chris Hughes
 -/
 import data.fintype.basic
 import data.finset.sort
+import algebra.group.conj
 import algebra.big_operators
 
 universes u v

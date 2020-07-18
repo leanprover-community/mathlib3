@@ -11,7 +11,6 @@ import data.zmod.basic
 import number_theory.quadratic_reciprocity
 import tactic.squeeze
 import data.polynomial
-import algebra.polynomial.basic
 import algebra.polynomial.big_operators
 import field_theory.separable
 
@@ -106,7 +105,7 @@ begin
   rw ← sub_add_cancel (char_poly M) (∏ (i : n), (X - C (M i i))),
   have h1 : (∏ (i : n), (X - C (M i i))).degree = fintype.card n,
   { rw degree_eq_iff_nat_degree_eq_of_pos, swap, apply nat.pos_of_ne_zero h,
-    rw nat_degree_prod_eq', simp_rw nat_degree_X_sub_C, unfold fintype.card, simp,
+    rw nat_degree_prod', simp_rw nat_degree_X_sub_C, unfold fintype.card, simp,
     simp_rw (monic_X_sub_C _).leading_coeff, simp, },
   rw degree_add_eq_of_degree_lt, exact h1, rw h1,
   apply lt_trans (low_degree_char_poly_sub_diagonal M), rw with_bot.coe_lt_coe,
@@ -144,7 +143,7 @@ theorem trace_from_char_poly [nontrivial R] [inhabited n] (M: matrix n n R) :
 (matrix.trace n R R) M = -(char_poly M).coeff (fintype.card n - 1) :=
 begin
   rw high_coeff_char_poly_eq_coeff_prod_diag, swap, refl,
-  rw [fintype.card, card_pred_coeff_prod_X_sub_C univ (λ i : n, M i i)], simp,
+  rw [fintype.card, prod_X_sub_C_coeff_card_pred univ (λ i : n, M i i)], simp,
   rw [← fintype.card, fintype.card_pos_iff], apply_instance,
 end
 
@@ -152,7 +151,7 @@ lemma ring_hom_det {S : Type u_1} [comm_ring S] {M : matrix n n R} {f : R →+* 
   f M.det = matrix.det (f.map_matrix M) :=
 by { unfold matrix.det, simp [f.map_sum, f.map_prod] }
 
-lemma alg_hom_det {S : Type u_1} [comm_ring S] [algebra R S] {T : Type u_1} [comm_ring T] [algebra R T] 
+lemma alg_hom_det {S : Type u_1} [comm_ring S] [algebra R S] {T : Type u_1} [comm_ring T] [algebra R T]
   {M : matrix n n S} {f : S →ₐ[R] T} :
   f M.det = matrix.det ((f : S →+* T).map_matrix M) :=
 by { rw [← alg_hom.coe_to_ring_hom, ring_hom_det], }
@@ -269,7 +268,7 @@ begin
   unfold char_matrix,
   transitivity ((scalar n) X - C.map_matrix M) ^ p, swap, sorry,
   rw sub_pow_char_of_commute, swap, apply matrix.scalar.commute, rw ← C.map_matrix.map_pow, rw ← (scalar n).map_pow,
-  ext, refine congr (congr rfl _) rfl, by_cases i = j; simp [h], sorry, 
+  ext, refine congr (congr rfl _) rfl, by_cases i = j; simp [h], sorry,
   {
     refine congr rfl _, refine congr (congr _ rfl) rfl,
     refine congr (congr _ rfl) rfl, sorry,

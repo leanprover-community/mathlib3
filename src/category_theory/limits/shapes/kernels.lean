@@ -382,6 +382,27 @@ zero_of_target_iso_zero _ (cokernel.of_epi f)
 
 end has_zero_object
 
+section has_image
+
+@[simps]
+def cokernel_image_ι {X Y : C} (f : X ⟶ Y)
+  [has_image f] [has_cokernel (image.ι f)] [has_cokernel f] [epi (factor_thru_image f)] :
+  cokernel (image.ι f) ≅ cokernel f :=
+{ hom := cokernel.desc _ (cokernel.π f)
+  begin
+    have w := cokernel.condition f,
+    conv at w { to_lhs, congr, rw ←image.fac f, },
+    rw [←has_zero_morphisms.comp_zero (limits.factor_thru_image f), category.assoc, cancel_epi] at w,
+    exact w,
+  end,
+  inv := cokernel.desc _ (cokernel.π _)
+  begin
+    conv { to_lhs, congr, rw ←image.fac f, },
+    rw [category.assoc, cokernel.condition, has_zero_morphisms.comp_zero],
+  end, }
+
+end has_image
+
 section
 variables (X Y)
 

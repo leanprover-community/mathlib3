@@ -348,7 +348,7 @@ Mathematically it is the same as `α` but it has a different type.
 
 -/
 
-theorem univ_def : @univ α = {x | true} := rfl
+@[simp] theorem set_of_true : {x : α | true} = univ := rfl
 
 @[simp] theorem mem_univ (x : α) : x ∈ @univ α := trivial
 
@@ -1065,15 +1065,6 @@ theorem eq_preimage_subtype_val_iff {p : α → Prop} {s : set (subtype p)} {t :
   s = subtype.val ⁻¹' t ↔ (∀x (h : p x), (⟨x, h⟩ : subtype p) ∈ s ↔ x ∈ t) :=
 ⟨assume s_eq x h, by rw [s_eq]; simp,
  assume h, ext $ assume ⟨x, hx⟩, by simp [h]⟩
-
-lemma if_preimage (s : set α) [decidable_pred s] (f g : α → β) (t : set β) :
-  (λa, if a ∈ s then f a else g a)⁻¹' t = (s ∩ f ⁻¹' t) ∪ (sᶜ ∩ g ⁻¹' t) :=
-begin
-  ext,
-  simp only [mem_inter_eq, mem_union_eq, mem_preimage],
-  split_ifs;
-  simp [mem_def, h]
-end
 
 lemma preimage_coe_coe_diagonal {α : Type*} (s : set α) :
   (prod.map coe coe) ⁻¹' (diagonal α) = diagonal s :=

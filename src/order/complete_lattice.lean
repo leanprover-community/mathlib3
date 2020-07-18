@@ -875,13 +875,11 @@ section complete_linear_order
 variables [complete_linear_order α]
 
 lemma supr_eq_top (f : ι → α) : supr f = ⊤ ↔ (∀b<⊤, ∃i, b < f i) :=
-by rw [← Sup_range, Sup_eq_top];
-from forall_congr (assume b, forall_congr (assume hb, set.exists_range_iff))
+by simp only [← Sup_range, Sup_eq_top, set.exists_range_iff]
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-lemma infi_eq_bot (f : ι → α) : infi f = ⊥ ↔ (∀b>⊥, ∃i, b > f i) :=
-by rw [← Inf_range, Inf_eq_bot];
-from forall_congr (assume b, forall_congr (assume hb, set.exists_range_iff))
+lemma infi_eq_bot (f : ι → α) : infi f = ⊥ ↔ (∀b>⊥, ∃i, f i < b) :=
+by simp only [← Inf_range, Inf_eq_bot, set.exists_range_iff]
 
 end complete_linear_order
 

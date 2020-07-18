@@ -5,7 +5,7 @@ Authors: Johan Commelin, Chris Hughes
 -/
 
 import data.fintype.card
-import data.polynomial
+import data.polynomial.ring_division
 import group_theory.order_of_element
 import algebra.geom_sum
 

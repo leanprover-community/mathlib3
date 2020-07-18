@@ -65,7 +65,7 @@ section ring_structure
 ### Ring stucture
 
 In this section we show that continuous functions valued in a topological ring `R` inherit
-a structure of ring.
+the structure of a ring.
 -/
 
 instance continuous_subring (α : Type u) (R : Type v) [topological_space α] [topological_space R]

@@ -205,10 +205,19 @@ instance : has_coe (M →L[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
 -- see Note [function coercion]
 instance to_fun : has_coe_to_fun $ M →L[R] M₂ := ⟨λ _, M → M₂, λ f, f⟩
 
+@[simp] lemma coe_mk (f : M →ₗ[R] M₂) (h) : (mk f h : M →ₗ[R] M₂) = f := rfl
+@[simp] lemma coe_mk' (f : M →ₗ[R] M₂) (h) : (mk f h : M → M₂) = f := rfl
+
 protected lemma continuous (f : M →L[R] M₂) : continuous f := f.2
 
+theorem coe_injective : function.injective (coe : (M →L[R] M₂) → (M →ₗ[R] M₂)) :=
+by { intros f g H, cases f, cases g, congr' 1, exact H }
+
+theorem coe_injective' ⦃f g : M →L[R] M₂⦄ (H : (f : M → M₂) = g) : f = g :=
+coe_injective $ linear_map.coe_injective H
+
 @[ext] theorem ext {f g : M →L[R] M₂} (h : ∀ x, f x = g x) : f = g :=
-by cases f; cases g; congr' 1; ext x; apply h
+coe_injective' $ funext h
 
 theorem ext_iff {f g : M →L[R] M₂} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, by rw h, by ext⟩

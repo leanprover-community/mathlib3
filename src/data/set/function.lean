@@ -469,6 +469,10 @@ funext $ λ x, if hx : x ∈ s then by simp [hx] else by simp [hx]
   (range f).piecewise g₁ g₂ ∘ f = g₁ ∘ f :=
 comp_eq_of_eq_on_range $ piecewise_eq_on _ _ _
 
+lemma piecewise_preimage (f g : α → β) (t) :
+  s.piecewise f g ⁻¹' t = s ∩ f ⁻¹' t ∪ sᶜ ∩ g ⁻¹' t :=
+ext $ λ x, by by_cases x ∈ s; simp *
+
 end set
 
 namespace function

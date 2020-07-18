@@ -8,21 +8,21 @@ import linear_algebra.basic
 noncomputable theory
 
 universes u v
-variables {m : Type u} {α : Type v} [fintype m]
+variables {m : Type u} {R : Type v} [fintype m]
 
-def sym_matrix (M : matrix m m α) : Prop :=
+def sym_matrix (M : matrix m m R) : Prop :=
   M = M.transpose
 
-lemma sym_matrix_apply {M : matrix m m α} (h : sym_matrix M) (i j : m):
+lemma sym_matrix_apply {M : matrix m m R} (h : sym_matrix M) (i j : m):
   M i j = M j i :=
 by { unfold sym_matrix at h, conv_rhs {rw h}, refl, }
 
-variables (R : Type*) [semiring R]
+variables [ring R] --
 
-def matrix_J (m:Type*) [fintype m] : matrix m m R :=
-  λ (i j:m), 1
+def matrix_J : matrix m m R :=
+  λ (i j : m), (1 : R)
 
-@[simp] lemma matrix_J_apply (m:Type*) [fintype m] {i j : m} : matrix_J R m i j = 1 := rfl
+@[simp] lemma matrix_J_apply {i j : m} : matrix_J i j = (1 : R) := rfl
 
 lemma trace_J (m:Type*) [fintype m] :
 matrix.trace m R R (matrix_J R m) = fintype.card m :=

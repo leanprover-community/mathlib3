@@ -1,5 +1,5 @@
-import data.fintype.basic linear_algebra.matrix data.matrix.basic data.real.basic
-import sym_matrix
+import linear_algebra.matrix
+import .sym_matrix
 
 open_locale classical
 open finset matrix

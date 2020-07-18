@@ -35,7 +35,7 @@ instance comm_group_obj (F : J ⥤ CommGroup) (j) :
 by { change comm_group (F.obj j), apply_instance }
 
 /--
-The flat sections of a functor into `AddCommGroup` form a additive submonoid of all sections.
+The flat sections of a functor into `CommGroup` form a additive submonoid of all sections.
 -/
 @[to_additive AddCommGroup.sections_add_submonoid]
 def sections_submonoid (F : J ⥤ CommGroup) :
@@ -50,7 +50,7 @@ def sections_submonoid (F : J ⥤ CommGroup) :
   end }
 
 /--
-The flat sections of a functor into `AddCommGroup` form a additive subgroup of all sections.
+The flat sections of a functor into `CommGroup` form a additive subgroup of all sections.
 -/
 @[to_additive AddCommGroup.sections_add_subgroup]
 def sections_subgroup (F : J ⥤ CommGroup) :
@@ -89,7 +89,7 @@ namespace has_limits
 Construction of a limit cone in `CommGroup`.
 (Internal use only; use the limits API.)
 -/
-@[to_additive AddCommGroup_has_limits.limit]
+@[to_additive AddCommGroup.has_limits.limit]
 def limit (F : J ⥤ CommGroup) : cone F :=
 { X := CommGroup.of (limit (F ⋙ forget _)),
   π :=
@@ -101,7 +101,7 @@ def limit (F : J ⥤ CommGroup) : cone F :=
 Witness that the limit cone in `CommGroup` is a limit cone.
 (Internal use only; use the limits API.)
 -/
-@[to_additive AddCommGroup_has_limits.limit_is_limit]
+@[to_additive AddCommGroup.has_limits.limit_is_limit]
 def limit_is_limit (F : J ⥤ CommGroup) : is_limit (limit F) :=
 begin
   refine is_limit.of_faithful

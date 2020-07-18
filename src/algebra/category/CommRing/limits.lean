@@ -168,16 +168,16 @@ instance has_limits : has_limits CommRing :=
   { has_limit := λ F, has_limit_of_created F (forget₂ CommRing Ring) } }
 
 /--
-The forgetful functor from commutative rings to rings preserves all limits. (That is, the underlying
-types could have been computed instead as limits in the category of types.)
+The forgetful functor from commutative rings to rings preserves all limits.
+(That is, the underlying rings could have been computed instead as limits in the category of rings.)
 -/
 instance forget₂_Ring_preserves_limits : preserves_limits (forget₂ CommRing Ring) :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ F, by apply_instance } }
 
 /--
-The forgetful functor from commutative rings to types preserves all limits. (That is, the underlying
-types could have been computed instead as limits in the category of types.)
+The forgetful functor from commutative rings to types preserves all limits.
+(That is, the underlying types could have been computed instead as limits in the category of types.)
 -/
 instance forget_preserves_limits : preserves_limits (forget CommRing) :=
 { preserves_limits_of_shape := λ J 𝒥,

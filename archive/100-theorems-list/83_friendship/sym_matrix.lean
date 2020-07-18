@@ -22,16 +22,8 @@ variables [ring R] --
 def matrix_J : matrix m m R :=
   λ (i j : m), (1 : R)
 
-@[simp] lemma matrix_J_apply {i j : m} : matrix_J i j = (1 : R) := rfl
+@[simp] lemma matrix_J_apply (i j : m) : matrix_J i j = (1 : R) := rfl
 
 lemma trace_J (m:Type*) [fintype m] :
 matrix.trace m R R matrix_J = fintype.card m :=
-begin
-  rw matrix.trace,
-  rw matrix_J,
-  change (finset.univ.sum ∘ ⇑(matrix.diag m R R)) (λ (i j : m), 1) =
-    ↑(fintype.card m),
-  rw function.comp_apply,
-  rw fintype.card,
-  simp,
-end
+by rw [matrix.trace, matrix_J, fintype.card]; simp

@@ -196,6 +196,9 @@ def creates_limit_of_reflects_iso {K : J ⥤ C} {F : C ⥤ D} [reflects_isomorph
 When `F` is fully faithful, and `has_limit (K ⋙ F)`, to show that `F` creates the limit for `K`
 it suffices to exhibit a lift of the chosen limit cone for `K ⋙ F`.
 -/
+-- Notice however that even if the isomorphism is `iso.refl _`,
+-- this construction will insert additional identity morphisms in the cone maps,
+-- so the constructed limits may not be ideal, definitionally.
 def creates_limit_of_fully_faithful_of_lift {K : J ⥤ C} {F : C ⥤ D}
   [full F] [faithful F] [has_limit (K ⋙ F)]
   (c : cone K) (i : F.map_cone c ≅ limit.cone (K ⋙ F)) : creates_limit K F :=
@@ -209,6 +212,9 @@ creates_limit_of_reflects_iso (λ c' t,
 When `F` is fully faithful, and `has_limit (K ⋙ F)`, to show that `F` creates the limit for `K`
 it suffices to show that the chosen limit point is in the essential image of `F`.
 -/
+-- Notice however that even if the isomorphism is `iso.refl _`,
+-- this construction will insert additional identity morphisms in the cone maps,
+-- so the constructed limits may not be ideal, definitionally.
 def creates_limit_of_fully_faithful_of_iso {K : J ⥤ C} {F : C ⥤ D}
   [full F] [faithful F] [has_limit (K ⋙ F)]
   (X : C) (i : F.obj X ≅ limit (K ⋙ F)) : creates_limit K F :=

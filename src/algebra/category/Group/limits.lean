@@ -80,7 +80,7 @@ def limit_π_monoid_hom (F : J ⥤ CommGroup) (j) :
   map_one' := by { simp only [types.types_limit_π], refl },
   map_mul' := λ x y, by { simp only [types.types_limit_π], refl } }
 
-namespace CommGroup_has_limits
+namespace has_limits
 -- The next two definitions are used in the construction of `has_limits CommGroup`.
 -- After that, the limits should be constructed using the generic limits API,
 -- e.g. `limit F`, `limit.cone F`, and `limit.is_limit F`.
@@ -109,9 +109,9 @@ begin
     (λ s, ⟨_, _, _⟩) (λ s, rfl); tidy,
 end
 
-end CommGroup_has_limits
+end has_limits
 
-open CommGroup_has_limits
+open has_limits
 
 /-- The category of commutative groups has all limits. -/
 @[to_additive AddCommGroup.has_limits]

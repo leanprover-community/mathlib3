@@ -74,7 +74,7 @@ def limit_π_ring_hom (F : J ⥤ Ring) (j) :
   map_mul' := λ x y, by { simp only [types.types_limit_π], refl },
   map_add' := λ x y, by { simp only [types.types_limit_π], refl } }
 
-namespace Ring_has_limits
+namespace has_limits
 -- The next two definitions are used in the construction of `has_limits Ring`.
 -- After that, the limits should be constructed using the generic limits API,
 -- e.g. `limit F`, `limit.cone F`, and `limit.is_limit F`.
@@ -101,9 +101,9 @@ begin
     (λ s, ⟨_, _, _, _, _⟩) (λ s, rfl); tidy
 end
 
-end Ring_has_limits
+end has_limits
 
-open Ring_has_limits
+open has_limits
 
 /-- The category of rings has all limits. -/
 instance has_limits : has_limits Ring :=
@@ -145,8 +145,22 @@ All we need to do is notice that the limit point has a `comm_ring` instance avai
 and then reuse the existing limit.
 -/
 instance (F : J ⥤ CommRing) : creates_limit F (forget₂ CommRing Ring) :=
-creates_limit_of_fully_faithful_of_iso
-  (CommRing.of (limit (F ⋙ forget _))) (iso.refl _)
+/-
+A terse solution here would be
+```
+creates_limit_of_fully_faithful_of_iso (CommRing.of (limit (F ⋙ forget _))) (iso.refl _)
+```
+but it seems this would introduce additional identity morphisms in `limit.π`.
+-/
+creates_limit_of_reflects_iso (λ c' t,
+{ lifted_cone :=
+  { X := CommRing.of (limit (F ⋙ forget _)),
+    π :=
+    { app := Ring.limit_π_ring_hom (F ⋙ forget₂ CommRing Ring),
+      naturality' := (Ring.has_limits.limit (F ⋙ forget₂ _ _)).π.naturality, } },
+  valid_lift := is_limit.unique_up_to_iso (limit.is_limit _) t,
+  makes_limit := is_limit.of_faithful (forget₂ CommRing Ring) (limit.is_limit _)
+    (λ s, _) (λ s, rfl) })
 
 /-- The category of commutative rings has all limits. -/
 instance has_limits : has_limits CommRing :=

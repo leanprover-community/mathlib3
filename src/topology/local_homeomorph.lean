@@ -108,7 +108,7 @@ e.left_inv' h
 @[simp, mfld_simps] lemma right_inv {x : β} (h : x ∈ e.target) : e (e.symm x) = x :=
 e.right_inv' h
 
-lemma source_preimage_target : e.source ⊆ e ⁻¹' e.target := by mfld_set_tac
+lemma source_preimage_target : e.source ⊆ e ⁻¹' e.target := λ _ h, map_source e h
 
 lemma eq_of_local_equiv_eq {e e' : local_homeomorph α β}
   (h : e.to_local_equiv = e'.to_local_equiv) : e = e' :=

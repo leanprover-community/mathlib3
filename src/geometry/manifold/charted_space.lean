@@ -781,30 +781,27 @@ end singleton
 
 section open_subset
 variables (G : structure_groupoid H) [h : closed_under_restriction G] [has_groupoid M G]
-variables {s : set M} (hs : is_open s)
+variables {s : set M} (hs : is_open s) [nonempty s]
 
 /-- An open subset of a charted space is naturally a charted space. -/
-def open_charted_subspace [nonempty s] : charted_space H s :=
+def open_charted_subspace : charted_space H s :=
 { atlas := set.range (λ (e : atlas H M), (e : local_homeomorph M H).subtype_restr hs),
   chart_at := λ x, (@chart_at H _ M _ _ x).subtype_restr hs,
   mem_chart_source := λ _, by simp only with mfld_simps,
   chart_mem_atlas := λ x, by {use chart_at H x; simp only [subtype.coe_mk] with mfld_simps} }
 
-lemma opens_identity (f : local_homeomorph M H) : is_open (f.target ∩ (f.symm) ⁻¹' (s ∩ f.source)) :=
-f.preimage_open_of_open_symm (is_open_inter hs f.open_source)
-
 /- This auxiliary lemma characterizes the transition functions of the open subset in terms of the
 transition functions of the original space. -/
-lemma homeos_identity [nonempty s] (e e' : local_homeomorph s H)
+lemma homeos_identity (e e' : local_homeomorph s H)
   (f f' : local_homeomorph M H) (hf : e = f.subtype_restr hs) (hf' : e' = f'.subtype_restr hs) :
-  e.symm.trans e' ≈ (f.symm.trans f').restr (f.target ∩ (f.symm) ⁻¹' (s ∩ f.source)) :=
+  e.symm.trans e' ≈ (f.symm.trans f').restr (f.target ∩ (f.symm) ⁻¹' s) :=
 begin
   simp only [hf, hf', subtype_restr_def, trans_symm_eq_symm_trans_symm],
-  rw [← of_set_trans _ (opens_identity hs f), ← trans_assoc, ← trans_assoc],
+  rw [← of_set_trans _ (f.preimage_open_of_open_symm hs), ← trans_assoc, ← trans_assoc],
   refine eq_on_source.trans' _ (eq_on_source_refl _),
   -- f' has been eliminated !!!
-  have sets_identity : f.symm.source ∩ (f.target ∩ (f.symm) ⁻¹' (s ∩ f.source))
-    = f.symm.source ∩ f.symm ⁻¹' s := by mfld_set_tac,
+  have sets_identity : f.symm.source ∩ (f.target ∩ (f.symm) ⁻¹' s) = f.symm.source ∩ f.symm ⁻¹' s :=
+    by mfld_set_tac,
   rw [of_set_trans', sets_identity, ←trans_of_set' _ hs, trans_assoc],
   refine eq_on_source.trans' (eq_on_source_refl _) _,
   -- f has been eliminated !!!
@@ -816,14 +813,14 @@ include h
 
 /-- If a groupoid `G` is `closed_under_restriction`, then an open subset of a space which is
 `has_groupoid G` is naturally `has_groupoid G`. -/
-lemma open_subspace_has_groupoid [nonempty s] : @has_groupoid _ _ _ _ (open_charted_subspace hs) G :=
+lemma open_subspace_has_groupoid : @has_groupoid _ _ _ _ (open_charted_subspace hs) G :=
 { compatible := begin
     rintros e e' ⟨f, hf⟩ ⟨f', hf'⟩,
     refine G.eq_on_source _ (homeos_identity hs e e' f f' hf.symm hf'.symm),
     apply h.closed_under_restriction,
     { refine G.compatible _ _;
       simp only [subtype.coe_prop] },
-    { exact opens_identity hs f }
+    { exact (f : local_homeomorph M H).preimage_open_of_open_symm hs }
   end }
 
 end open_subset

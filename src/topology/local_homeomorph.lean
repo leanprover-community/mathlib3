@@ -108,7 +108,7 @@ e.left_inv' h
 @[simp, mfld_simps] lemma right_inv {x : β} (h : x ∈ e.target) : e (e.symm x) = x :=
 e.right_inv' h
 
-lemma source_preimage_target : e.source ⊆ e ⁻¹' e.target := λ _ h, map_source e h
+lemma source_preimage_target : e.source ⊆ e ⁻¹' e.target := by mfld_set_tac
 
 lemma eq_of_local_equiv_eq {e e' : local_homeomorph α β}
   (h : e.to_local_equiv = e'.to_local_equiv) : e = e' :=
@@ -670,7 +670,7 @@ def to_homeomorph_of_source_eq_univ_target_eq_univ (h : e.source = (univ : set �
   (h : e.source = (univ : set α)) (h' : e.target = univ) :
   ((e.to_homeomorph_of_source_eq_univ_target_eq_univ h h').symm : β → α) = e.symm := rfl
 
-/- A local homeomorphism whose source is all of `α` defines an open embedding of `α` into `β`.  The
+/-- A local homeomorphism whose source is all of `α` defines an open embedding of `α` into `β`.  The
 converse is also true; see `open_embedding.to_local_homeomorph`. -/
 lemma to_open_embedding (h : e.source = set.univ) : open_embedding e.to_fun :=
 begin
@@ -682,7 +682,7 @@ begin
     rw ← h,
     exact e.to_local_equiv.bij_on_source.inj_on },
   { intros U hU,
-    simpa [h] using e.image_open_of_open hU }
+    simpa only [h, subset_univ] with mfld_simps using e.image_open_of_open hU}
 end
 
 end local_homeomorph
@@ -717,10 +717,10 @@ is all of `α`.  This is mainly an auxiliary lemma for the stronger result `to_l
 noncomputable def to_local_equiv : local_equiv α β :=
 set.inj_on.to_local_equiv f set.univ (set.injective_iff_inj_on_univ.mp h.to_embedding.inj)
 
-@[simp] lemma to_local_equiv_eval : (h.to_local_equiv : α → β) = f := rfl
-@[simp] lemma to_local_equiv_source : h.to_local_equiv.source = set.univ := rfl
+@[simp, mfld_simps] lemma to_local_equiv_eval : (h.to_local_equiv : α → β) = f := rfl
+@[simp, mfld_simps] lemma to_local_equiv_source : h.to_local_equiv.source = set.univ := rfl
 
-@[simp] lemma to_local_equiv_target : h.to_local_equiv.target = set.range f :=
+@[simp, mfld_simps] lemma to_local_equiv_target : h.to_local_equiv.target = set.range f :=
 begin
   rw ←local_equiv.image_source_eq_target,
   ext,
@@ -729,18 +729,18 @@ begin
   { exact λ ⟨a, h'⟩, ⟨a, by trivial, h'⟩ }
 end
 
-lemma open_target : is_open h.to_local_equiv.target := by simpa using h.open_range
+lemma open_target : is_open h.to_local_equiv.target := by simpa only with mfld_simps using h.open_range
 
 lemma continuous_inv_fun : continuous_on h.to_local_equiv.inv_fun h.to_local_equiv.target :=
 begin
   apply (continuous_on_open_iff h.open_target).mpr,
   intros t ht,
-  simp only [to_local_equiv_target, local_equiv.inv_fun_as_coe],
+  simp only with mfld_simps,
   convert h.open_iff_image_open.mp ht,
   ext y,
   have hinv : ∀ x : α, (f x = y) → h.to_local_equiv.symm y = x :=
-    λ x hxy, by { rw ← hxy, simpa using h.to_local_equiv.left_inv },
-  simp only [mem_image, and_imp, mem_inter_eq, mem_range, mem_preimage, exists_imp_distrib],
+    λ x hxy, by { simpa only [hxy.symm] with mfld_simps using h.to_local_equiv.left_inv },
+  simp only [mem_image, mem_range] with mfld_simps,
   split,
   { rintros ⟨⟨x, hxy⟩, hy⟩,
     refine ⟨x, _, hxy⟩,
@@ -750,38 +750,39 @@ begin
     rwa ← (hinv x hxy) at hx }
 end
 
-/- An open embedding of `α` into `β`, with `α` nonempty, defines a local homeomorphism whose source
+/-- An open embedding of `α` into `β`, with `α` nonempty, defines a local homeomorphism whose source
 is all of `α`.  The converse is also true; see `local_homeomorph.to_open_embedding`. -/
 noncomputable def to_local_homeomorph : local_homeomorph α β :=
 { to_local_equiv := h.to_local_equiv,
   open_source := is_open_univ,
   open_target := h.open_target,
-  continuous_to_fun := by simpa using h.continuous.continuous_on,
+  continuous_to_fun := by simpa only with mfld_simps using h.continuous.continuous_on,
   continuous_inv_fun := h.continuous_inv_fun }
 
-@[simp] lemma to_local_homeomorph_eval : (h.to_local_homeomorph : α → β) = f := rfl
-@[simp] lemma source : h.to_local_homeomorph.source = set.univ := rfl
-@[simp] lemma target : h.to_local_homeomorph.target = set.range f := h.to_local_equiv_target
+@[simp, mfld_simps] lemma to_local_homeomorph_eval : (h.to_local_homeomorph : α → β) = f := rfl
+@[simp, mfld_simps] lemma source : h.to_local_homeomorph.source = set.univ := rfl
+@[simp, mfld_simps] lemma target : h.to_local_homeomorph.target = set.range f :=
+h.to_local_equiv_target
 
 end open_embedding
 
 namespace is_open
 variables {s : set α} [nonempty s] (hs : is_open s)
 
-/- The inclusion of an open subset `s` of a space `α` into `α` is a local homeomorphism from the
+/-- The inclusion of an open subset `s` of a space `α` into `α` is a local homeomorphism from the
 subtype `s` to `α`. -/
 noncomputable def local_homeomorph_subtype_coe : local_homeomorph s α :=
 (hs.open_embedding_subtype_coe).to_local_homeomorph
 
-@[simp] lemma local_homeomorph_subtype_eval : (hs.local_homeomorph_subtype_coe : s → α) = coe := rfl
-@[simp] lemma local_homeomorph_subtype_source : hs.local_homeomorph_subtype_coe.source = set.univ := rfl
+@[simp, mfld_simps] lemma local_homeomorph_subtype_eval : (hs.local_homeomorph_subtype_coe : s → α)
+  = coe := rfl
 
-@[simp] lemma local_homeomorph_subtype_target : hs.local_homeomorph_subtype_coe.target = s :=
-begin
-  change (hs.open_embedding_subtype_coe).to_local_homeomorph.target = s,
-  convert hs.open_embedding_subtype_coe.target,
-  simp
-end
+@[simp, mfld_simps] lemma local_homeomorph_subtype_source : hs.local_homeomorph_subtype_coe.source
+  = set.univ := rfl
+
+@[simp, mfld_simps] lemma local_homeomorph_subtype_target : hs.local_homeomorph_subtype_coe.target
+  = s :=
+by simp only [local_homeomorph_subtype_coe, subtype.range_coe_subtype, set_of_mem_eq] with mfld_simps
 
 end is_open
 
@@ -789,14 +790,16 @@ namespace local_homeomorph
 variables (e : local_homeomorph α β)
 variables {s : set α} [nonempty s] (hs : is_open s)
 
-noncomputable def subtype_restr :local_homeomorph s β := hs.local_homeomorph_subtype_coe.trans e
+/-- The restriction of a local homeomorphism `e` to an open subset `s` of the domain type produces a
+local homeomorphism whose domain is the subtype `s`.-/
+noncomputable def subtype_restr : local_homeomorph s β := hs.local_homeomorph_subtype_coe.trans e
 
 lemma subtype_restr_def : e.subtype_restr hs = hs.local_homeomorph_subtype_coe.trans e := rfl
 
-@[simp] lemma subtype_restr_eval :
-  ((e.subtype_restr hs : local_homeomorph s β) : s → β) = set.restrict (e : α → β) s := rfl
+@[simp, mfld_simps] lemma subtype_restr_eval : ((e.subtype_restr hs : local_homeomorph s β) : s → β)
+  = set.restrict (e : α → β) s := rfl
 
-@[simp] lemma subtype_restr_source : (e.subtype_restr hs).source = coe ⁻¹' e.source :=
-by simp [subtype_restr_def]
+@[simp, mfld_simps] lemma subtype_restr_source : (e.subtype_restr hs).source = coe ⁻¹' e.source :=
+by simp only [subtype_restr_def] with mfld_simps
 
 end local_homeomorph

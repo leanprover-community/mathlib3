@@ -12,6 +12,7 @@ import topology.subset_properties
 In this file we define the type `continuous_map` of continuous bundled maps.
 -/
 
+/-- Bundled continuous maps. -/
 @[protect_proj]
 structure continuous_map (α : Type*) (β : Type*)
 [topological_space α] [topological_space β] :=
@@ -36,6 +37,7 @@ instance [inhabited β] : inhabited C(α, β) :=
 
 protected lemma continuous (f : C(α, β)) : continuous f := f.continuous_to_fun
 
+/-- Takes `b` in input and gives the continuous bundled function constantly valued `b` in output. -/
 def const (b : β) : C(α, β) := ⟨λ x, b, continuous_const⟩
 
 end continuous_map

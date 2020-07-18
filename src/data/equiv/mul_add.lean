@@ -143,7 +143,7 @@ lemma to_monoid_hom_apply {M N} [monoid M] [monoid N] (e : M ≃* N) (x : M) :
 rfl
 
 /-- A multiplicative equivalence of groups preserves inversion. -/
-@[to_additive]
+@[simp, to_additive]
 lemma map_inv [group G] [group H] (h : G ≃* H) (x : G) : h x⁻¹ = (h x)⁻¹ :=
 h.to_monoid_hom.map_inv x
 

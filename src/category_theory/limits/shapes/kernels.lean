@@ -172,7 +172,7 @@ lemma kernel_not_iso_of_nonzero (w : f ≠ 0) : (is_iso (kernel.ι f)) → false
 def kernel_comp_is_iso {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   [has_kernel (f ≫ g)] [has_kernel f] [is_iso g] :
   kernel (f ≫ g) ≅ kernel f :=
-{ hom := kernel.lift _ (kernel.ι _) begin rw [←cancel_mono g], simp, end,
+{ hom := kernel.lift _ (kernel.ι _) (by { rw [←cancel_mono g], simp, }),
   inv := kernel.lift _ (kernel.ι _) (by simp), }
 
 @[simps]

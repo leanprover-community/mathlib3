@@ -9,8 +9,6 @@ import linear_algebra.matrix
 import ring_theory.polynomial.basic
 import data.zmod.basic
 import number_theory.quadratic_reciprocity
-import tactic.squeeze
-import data.polynomial
 import algebra.polynomial.big_operators
 import field_theory.separable
 

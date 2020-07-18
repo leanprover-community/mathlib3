@@ -91,7 +91,7 @@ section semimodule_structure
 ### Semiodule stucture
 
 In this section we show that continuous functions valued in a topological semimodule `M` over a
-topological semiring `R` inherit a structure of semimodule.
+topological semiring `R` inherit the structure of a semimodule.
 -/
 
 instance continuous_has_scalar {α : Type*} [topological_space α]

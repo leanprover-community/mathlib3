@@ -802,4 +802,22 @@ lemma subtype_restr_def : e.subtype_restr hs = hs.local_homeomorph_subtype_coe.t
 @[simp, mfld_simps] lemma subtype_restr_source : (e.subtype_restr hs).source = coe ⁻¹' e.source :=
 by simp only [subtype_restr_def] with mfld_simps
 
+/- This lemma characterizes the transition functions of an open subset in terms of the transition
+functions of the original space. -/
+lemma subtype_restr_symm_trans_subtype_restr (f f' : local_homeomorph α β) :
+  (f.subtype_restr hs).symm.trans (f'.subtype_restr hs) ≈ (f.symm.trans f').restr (f.target ∩ (f.symm) ⁻¹' s) :=
+begin
+  simp only [subtype_restr_def, trans_symm_eq_symm_trans_symm],
+  rw [← of_set_trans _ (f.preimage_open_of_open_symm hs), ← trans_assoc, ← trans_assoc],
+  refine eq_on_source.trans' _ (eq_on_source_refl _),
+  -- f' has been eliminated !!!
+  have sets_identity : f.symm.source ∩ (f.target ∩ (f.symm) ⁻¹' s) = f.symm.source ∩ f.symm ⁻¹' s :=
+    by mfld_set_tac,
+  rw [of_set_trans', sets_identity, ←trans_of_set' _ hs, trans_assoc],
+  refine eq_on_source.trans' (eq_on_source_refl _) _,
+  -- f has been eliminated !!!
+  refine setoid.trans (trans_symm_self hs.local_homeomorph_subtype_coe) _,
+  simp only with mfld_simps,
+end
+
 end local_homeomorph

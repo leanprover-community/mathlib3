@@ -1,6 +1,7 @@
 import data.polynomial.algebra_map
 import algebra.gcd_domain
-
+import tactic.omega
+import tactic.ring
 
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.

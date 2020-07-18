@@ -55,9 +55,8 @@ lemma continuous_on.inv [topological_group α] [topological_space β] {f : β �
   (hf : continuous_on f s) : continuous_on (λx, (f x)⁻¹) s :=
 continuous_inv.comp_continuous_on hf
 
-
 @[to_additive]
-lemma filter.tendsto_inv {α : Type*} [group α]
+lemma tendsto_inv {α : Type*} [group α]
   [topological_space α] [topological_group α] (a : α) :
   tendsto (λ x, x⁻¹) (nhds a) (nhds (a⁻¹)) :=
 continuous_inv.tendsto a

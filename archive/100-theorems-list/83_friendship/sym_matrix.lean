@@ -16,11 +16,13 @@ by { unfold sym_matrix at h, conv_rhs {rw h}, refl, }
 
 variables [ring R] -- change to semiring once we can
 
+variables (m) (R)
 def matrix_J : matrix m m R :=
   λ (i j : m), (1 : R)
+variables {m} {R}
 
-@[simp] lemma matrix_J_apply (i j : m) : matrix_J i j = (1 : R) := rfl
+@[simp] lemma matrix_J_apply (i j : m) : (matrix_J m R) i j = (1 : R) := rfl
 
 lemma trace_J (m:Type*) [fintype m] :
-  matrix.trace m R R matrix_J = fintype.card m :=
+  matrix.trace m R R (matrix_J m R) = fintype.card m :=
 by rw [matrix.trace, matrix_J, fintype.card]; simp

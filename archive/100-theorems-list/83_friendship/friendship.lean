@@ -2,6 +2,7 @@ import .adjacency_matrix
 import .double_counting
 import .char_poly
 import data.int.modeq
+import data.zmod.basic
 import number_theory.quadratic_reciprocity
 import tactic
 
@@ -15,7 +16,7 @@ begin
   tidy,
 end
 
-variables {V:Type} [fintype V] [inhabited V]
+variables {V : Type} [fintype V] [inhabited V]
 
 
 def is_friend (G : simple_graph V) (v w : V) (u : V) : Prop :=
@@ -193,7 +194,7 @@ variables {R : Type*} [ring R]
 
 theorem friendship_adj_sq_off_diag_eq_one
   (G:simple_graph V) (hG : friendship G) {v w : V} (hvw : v ≠ w) :
-((adjacency_matrix R G)^2) v w = 1 :=
+((adjacency_matrix G R)^2) v w = 1 :=
 begin
   rw [pow_two, adjacency_matrix_mul_apply, ← nat.cast_one, ← card_friends hG hvw, friends_eq_inter_neighbors],
   unfold neighbors, simp [finset.inter_filter],
@@ -336,7 +337,7 @@ end
 variable (R)
 theorem friendship_reg_adj_sq
   (G:simple_graph V) (d:ℕ) (pos : 0<d) (hG : friendship G) (hd : regular_graph G d) :
-(adjacency_matrix R G)^2 = matrix_J R V + (d-1:ℤ) • 1 :=
+(adjacency_matrix G R)^2 = (matrix_J V R) + (d-1:ℤ) • 1 :=
 begin
   ext,
   by_cases i=j,
@@ -438,9 +439,8 @@ end
 --def matrix_J_mod_p (V)[fintype V](p:ℕ): matrix V V (zmod p):=
 --  (matrix_mod V p) (matrix_J ℤ V)
 
-
 lemma matrix_J_sq :
-(matrix_J R V)^2 = (fintype.card V : R) • (matrix_J R V) :=
+(matrix_J V R)^2 = (fintype.card V : R) • matrix_J V R :=
 begin
   rw pow_two,
   rw matrix.mul_eq_mul, ext, rw matrix.mul_val,
@@ -451,7 +451,7 @@ end
 
 lemma matrix_J_mod_p_idem
   {p:ℕ} [char_p R p] (hp : ↑p ∣ (fintype.card V : ℤ ) - 1) :
-(matrix_J (zmod p) V) ^ 2 = matrix_J (zmod p) V :=
+(matrix_J V (zmod p)) ^ 2 = matrix_J V (zmod p) :=
 begin
   rw matrix_J_sq,
   have : (fintype.card V : zmod p) = 1, swap, simp [this], symmetry,
@@ -469,7 +469,7 @@ end
 lemma friendship_reg_adj_sq_mod_p
   {G:simple_graph V} {d:ℕ} {dpos:0<d} (hG : friendship G) (hd : regular_graph G d)
   {p:ℕ} (hp : ↑p ∣ (d: ℤ ) - 1) :
-(adjacency_matrix (zmod p) G)^2 = matrix_J (zmod p) V:=
+(adjacency_matrix G $ zmod p)^2 = matrix_J V (zmod p) :=
 begin
   rw friendship_reg_adj_sq (zmod p) G d dpos hG hd,
   have h : (d - 1 : ℤ) • (1 : matrix V V (zmod p)) = 0, swap, rw [h, add_zero],
@@ -480,13 +480,13 @@ end
 lemma friendship_reg_adj_mul_J
   {G:simple_graph V} {d:ℕ} {dpos:0<d} (hG : friendship G) (hd : regular_graph G d)
   :
-(adjacency_matrix R G) * (matrix_J R V) = (d : ℤ) • matrix_J R V :=
+(adjacency_matrix G R) * (matrix_J V R) = (d : ℤ) • matrix_J V R :=
 by { ext, unfold matrix_J, rw ← hd i, unfold degree, simp, }
 
 lemma friendship_reg_adj_mul_J_mod_p
   {G:simple_graph V} {d:ℕ} {dpos:0<d} (hG : friendship G) (hd : regular_graph G d)
   {p:ℕ} (hp : ↑p ∣ (d: ℤ ) - 1) :
-(adjacency_matrix (zmod p) G) * (matrix_J (zmod p) V) = matrix_J (zmod p) V:=
+(adjacency_matrix G $ zmod p) * (matrix_J V $ zmod p) = matrix_J V (zmod p) :=
 begin
   ext, symmetry, simp only [adjacency_matrix_mul_apply, finset.sum_apply, mul_one, matrix_J_apply, finset.sum_const, nsmul_eq_mul],
   rw [← degree, hd, ← nat.cast_one, zmod.eq_iff_modeq_nat, ← int.modeq.coe_nat_modeq_iff, int.modeq.modeq_iff_dvd], apply hp,
@@ -495,7 +495,7 @@ end
 lemma friendship_reg_adj_pow_mod_p
   {G:simple_graph V} {d:ℕ} {dpos:0<d} (hG : friendship G) (hd : regular_graph G d)
   {p:ℕ} (hp : ↑p ∣ (d: ℤ ) - 1) {k : ℕ} (hk : 2 ≤ k):
-(adjacency_matrix (zmod p) G) ^ k = matrix_J (zmod p) V :=
+(adjacency_matrix G (zmod p)) ^ k = matrix_J V (zmod p) :=
 begin
   iterate 2 {cases k with k, { exfalso, linarith,},},
   induction k with k hind,
@@ -521,7 +521,7 @@ begin
   have dpos : 0<d := by linarith,
   let p:ℕ:=(d-1).min_fac,
   have hadj:=friendship_reg_adj_sq (zmod p) G d dpos hG,
-  have traceless:=adj_mat_traceless (zmod p) G,
+  have traceless := adj_mat_traceless G (zmod p),
   have cardV:=friendship_reg_card' hG hd,
   have p_dvd_d_pred:p ∣ d-1:=(d-1).min_fac_dvd,
   have d_cast : coe (d - 1) = (d : ℤ) - 1 := by norm_cast,
@@ -531,8 +531,8 @@ begin
   have neq1 : d-1 ≠ 1 := by linarith,
   have pprime : p.prime := nat.min_fac_prime neq1,
   haveI : fact p.prime := pprime,
-  have trace_0:= tr_pow_p_mod_p (adjacency_matrix (zmod p) G),
-  have eq_J : (adjacency_matrix (zmod p) G) ^ p = (matrix_J (zmod p) V),
+  have trace_0:= tr_pow_p_mod_p (adjacency_matrix G (zmod p)),
+  have eq_J : (adjacency_matrix G (zmod p)) ^ p = (matrix_J V (zmod p)),
   { apply friendship_reg_adj_pow_mod_p hG hd,
     { rw [← d_cast, int.coe_nat_dvd],
       apply p_dvd_d_pred },
@@ -540,7 +540,7 @@ begin
     assumption },
   contrapose! trace_0, clear trace_0,
   rw eq_J,
-  rw trace_J (zmod p) V,
+  rw trace_J V,
   norm_num,
   have p_pos : 0 < p,
   linarith [nat.prime.two_le pprime],

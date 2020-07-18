@@ -1,5 +1,4 @@
-import data.fintype.basic data.finset data.prod algebra.big_operators
-import tactic
+import algebra.big_operators
 
 open_locale classical
 noncomputable theory
@@ -31,7 +30,7 @@ def swap_inputs (E:α → β → Prop): β → α → Prop:=
   swap_inputs E b a=E a b:=
 begin
   unfold swap_inputs,
-  simp only [eq_iff_iff], 
+  simp only [eq_iff_iff],
   unfold function.uncurry,
   unfold function.curry,
   simp,
@@ -86,9 +85,9 @@ lemma edges_swap (G:bigraph α β):
   edges G.swap = finset.image prod.swap (edges G):=
 begin
   ext, rw [finset.mem_image, mem_edges_swap],
-  split, 
+  split,
   { intro h1, use [a.swap, h1], simp },
-  rintro ⟨ _, _, h⟩, 
+  rintro ⟨ _, _, h⟩,
   rw ← h, rwa prod.swap_swap,
 end
 
@@ -96,7 +95,7 @@ lemma card_edges_symm (G:bigraph α β):
   card_edges (bigraph.swap G)=card_edges G:=
 begin
   change (edges (bigraph.swap G)).card=(edges G).card,
-  apply nat.le_antisymm, 
+  apply nat.le_antisymm,
   { rw edges_swap, apply finset.card_image_le },
   rw ← bigraph.swap_swap G,
   rw bigraph.swap_swap G.swap,
@@ -137,7 +136,7 @@ begin
   unfold left_fiber', tidy,
   -- here's a human proof that runs a little faster than tidy:
   -- simp only [exists_prop, mem_left_fiber, finset.mem_image],
-  -- split, 
+  -- split,
 
   -- simp only [and_imp, exists_imp_distrib],
   -- intros h1 h2 h3 h4,
@@ -146,7 +145,7 @@ begin
   -- simp,
   -- intros h1 h2 h3,
   -- use x.fst,
-  -- rw ← h2, 
+  -- rw ← h2,
   -- simp; tauto,
 end
 -- can the following be proven with swap and the above?
@@ -374,9 +373,9 @@ by { rwa [← card_edges_of_rreg _ hr, ← card_edges_of_lreg] }
 
 theorem card_eq_of_lunique_runique (hl : left_unique G) (hr : right_unique G ) :
 G.A.card = G.B.card :=
-begin 
+begin
   simp only [right_unique_one_reg, left_unique_one_reg] at hl hr,
-  have h := double_count_of_lreg_rreg _ hl hr, 
+  have h := double_count_of_lreg_rreg _ hl hr,
   revert h, simp,
 end
 

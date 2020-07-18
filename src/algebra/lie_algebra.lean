@@ -813,6 +813,24 @@ by simp [linear_equiv.conj_apply, matrix.lie_conj, matrix.comp_to_matrix_mul, to
   (P.lie_conj h).symm A = P⁻¹ ⬝ A ⬝ P :=
 by simp [linear_equiv.symm_conj_apply, matrix.lie_conj, matrix.comp_to_matrix_mul, to_lin_to_matrix]
 
+/-- For square matrices, the natural map that reindexes a matrix's rows and columns with equivalent
+types is an equivalence of Lie algebras. -/
+def matrix.reindex_lie_equiv {m : Type w₁} [fintype m] [decidable_eq m]
+  (e : n ≃ m) : matrix n n R ≃ₗ⁅R⁆ matrix m m R :=
+{ map_lie := λ M N, by simp only [lie_ring.of_associative_ring_bracket, matrix.reindex_mul,
+    matrix.mul_eq_mul, linear_equiv.map_sub, linear_equiv.to_fun_apply],
+..(matrix.reindex_linear_equiv e e) }
+
+@[simp] lemma matrix.reindex_lie_equiv_apply {m : Type w₁} [fintype m] [decidable_eq m]
+  (e : n ≃ m) (M : matrix n n R) :
+  matrix.reindex_lie_equiv e M = λ i j, M (e.symm i) (e.symm j) :=
+rfl
+
+@[simp] lemma matrix.reindex_lie_equiv_symm_apply {m : Type w₁} [fintype m] [decidable_eq m]
+  (e : n ≃ m) (M : matrix m m R) :
+  (matrix.reindex_lie_equiv e).symm M = λ i j, M (e i) (e j) :=
+rfl
+
 end matrices
 
 section skew_adjoint_endomorphisms

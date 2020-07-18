@@ -116,7 +116,7 @@ lemma is_closed_map_smul_of_unit (a : units R) : is_closed_map (λ (x : M), (a :
 /-- If `M` is a topological module over `R` and `0` is a limit of invertible elements of `R`, then
 `⊤` is the only submodule of `M` with a nonempty interior. See also
 `submodule.eq_top_of_nonempty_interior` for a `normed_space` version. -/
-lemma submodule.eq_top_of_nonempty_interior' [topological_add_monoid M]
+lemma submodule.eq_top_of_nonempty_interior' [has_continuous_add M]
   (h : nhds_within (0:R) {x | is_unit x} ≠ ⊥)
   (s : submodule R M) (hs : (interior (s:set M)).nonempty) :
   s = ⊤ :=
@@ -261,7 +261,7 @@ lemma id_apply : id R M x = x := rfl
 @[simp] lemma one_apply : (1 : M →L[R] M) x = x := rfl
 
 section add
-variables [topological_add_monoid M₂]
+variables [has_continuous_add M₂]
 
 instance : has_add (M →L[R] M₂) :=
 ⟨λ f g, ⟨f + g, f.2.add g.2⟩⟩
@@ -303,12 +303,12 @@ by { ext, simp }
 @[simp] theorem zero_comp : (0 : M₂ →L[R] M₃).comp f = 0 :=
 by { ext, simp }
 
-@[simp] lemma comp_add [topological_add_monoid M₂] [topological_add_monoid M₃]
+@[simp] lemma comp_add [has_continuous_add M₂] [has_continuous_add M₃]
   (g : M₂ →L[R] M₃) (f₁ f₂ : M →L[R] M₂) :
   g.comp (f₁ + f₂) = g.comp f₁ + g.comp f₂ :=
 by { ext, simp }
 
-@[simp] lemma add_comp [topological_add_monoid M₃]
+@[simp] lemma add_comp [has_continuous_add M₃]
   (g₁ g₂ : M₂ →L[R] M₃) (f : M →L[R] M₂) :
   (g₁ + g₂).comp f = g₁.comp f + g₂.comp f :=
 by { ext, simp }
@@ -440,16 +440,16 @@ rfl
 rfl
 
 /-- The continuous linear map given by `(x, y) ↦ f₁ x + f₂ y`. -/
-def coprod [topological_add_monoid M₃] (f₁ : M →L[R] M₃) (f₂ : M₂ →L[R] M₃) :
+def coprod [has_continuous_add M₃] (f₁ : M →L[R] M₃) (f₂ : M₂ →L[R] M₃) :
   (M × M₂) →L[R] M₃ :=
 ⟨linear_map.coprod f₁ f₂, (f₁.cont.comp continuous_fst).add (f₂.cont.comp continuous_snd)⟩
 
-@[norm_cast, simp] lemma coe_coprod [topological_add_monoid M₃]
+@[norm_cast, simp] lemma coe_coprod [has_continuous_add M₃]
   (f₁ : M →L[R] M₃) (f₂ : M₂ →L[R] M₃) :
   (f₁.coprod f₂ : (M × M₂) →ₗ[R] M₃) = linear_map.coprod f₁ f₂ :=
 rfl
 
-@[simp] lemma coprod_apply [topological_add_monoid M₃] (f₁ : M →L[R] M₃) (f₂ : M₂ →L[R] M₃) (x) :
+@[simp] lemma coprod_apply [has_continuous_add M₃] (f₁ : M →L[R] M₃) (f₂ : M₂ →L[R] M₃) (x) :
   f₁.coprod f₂ x = f₁ x.1 + f₂ x.2 := rfl
 
 variables [topological_space R] [topological_semimodule R M₂]

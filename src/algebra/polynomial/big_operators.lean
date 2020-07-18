@@ -22,7 +22,7 @@ Lemmas for the interaction between polynomials and ∑ and ∏.
     the degree of the product is the sum of degrees
 - `leading_coeff_prod` : for polynomials over an integral domain,
     the leading coefficient is the product of leading coefficients
-- `card_pred_coeff_prod_X_sub_C` carries most of the content for computing
+- `prod_X_sub_C_coeff_card_pred` carries most of the content for computing
     the second coefficient of the characteristic polynomial.
 -/
 
@@ -88,14 +88,14 @@ variables [comm_ring R]
 open monic
 -- Eventually this can be generalized with Vieta's formulas
 -- plus the connection between roots and factorization.
-lemma next_coeff_prod_X_sub_C [nontrivial R] {s : finset ι} (f : ι → R) :
+lemma prod_X_sub_C_next_coeff [nontrivial R] {s : finset ι} (f : ι → R) :
 next_coeff ∏ i in s, (X - C (f i)) = -∑ i in s, f i :=
 by { rw next_coeff_prod; { simp [monic_X_sub_C] } }
 
-lemma card_pred_coeff_prod_X_sub_C [nontrivial R] (s : finset ι) (f : ι → R) (hs : 0 < s.card) :
+lemma prod_X_sub_C_coeff_card_pred [nontrivial R] (s : finset ι) (f : ι → R) (hs : 0 < s.card) :
 (∏ i in s, (X - C (f i))).coeff (s.card - 1) = - ∑ i in s, f i :=
 begin
-  convert next_coeff_prod_X_sub_C (by assumption),
+  convert prod_X_sub_C_next_coeff (by assumption),
   rw next_coeff, split_ifs,
   { rw nat_degree_prod_of_monic at h,
     swap, { intros, apply monic_X_sub_C },

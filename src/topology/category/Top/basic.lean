@@ -12,14 +12,16 @@ open topological_space
 universe u
 
 /-- The category of topological spaces and continuous maps. -/
-@[reducible] def Top : Type (u+1) := bundled topological_space
+def Top : Type (u+1) := bundled topological_space
 
 namespace Top
 
-instance topological_space_unbundled (x : Top) : topological_space x := x.str
-
-instance concrete_category_continuous : unbundled_hom @continuous :=
+instance : unbundled_hom @continuous :=
 ⟨@continuous_id, @continuous.comp⟩
+
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] Top
+
+instance topological_space_unbundled (x : Top) : topological_space x := x.str
 
 instance hom_has_coe_to_fun (X Y : Top.{u}) : has_coe_to_fun (X ⟶ Y) :=
 { F := _, coe := subtype.val }
@@ -29,6 +31,8 @@ instance hom_has_coe_to_fun (X Y : Top.{u}) : has_coe_to_fun (X ⟶ Y) :=
 
 /-- Construct a bundled `Top` from the underlying type and the typeclass. -/
 def of (X : Type u) [topological_space X] : Top := ⟨X⟩
+
+instance : inhabited Top := ⟨Top.of empty⟩
 
 /-- The discrete topology on any type. -/
 def discrete : Type u ⥤ Top.{u} :=

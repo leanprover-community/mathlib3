@@ -85,7 +85,10 @@ lemma trans_eq_some (f : α ≃. β) (g : β ≃. γ) (a : α) (c : γ) :
 
 lemma trans_eq_none (f : α ≃. β) (g : β ≃. γ) (a : α) :
   f.trans g a = none ↔ (∀ b c, b ∉ f a ∨ c ∉ g b) :=
-by simp only [eq_none_iff_forall_not_mem, mem_trans]; push_neg; tauto
+begin
+  simp only [eq_none_iff_forall_not_mem, mem_trans, classical.imp_iff_not_or.symm],
+  push_neg, tauto
+end
 
 @[simp] lemma refl_trans (f : α ≃. β) : (pequiv.refl α).trans f = f :=
 by ext; dsimp [pequiv.trans]; refl
@@ -156,7 +159,8 @@ lemma trans_symm (f : α ≃. β) : f.trans f.symm = of_set {a | (f a).is_some} 
 begin
   ext,
   dsimp [pequiv.trans],
-  simp only [eq_some_iff f, option.is_some_iff_exists, option.mem_def, bind_eq_some', of_set_eq_some_iff],
+  simp only [eq_some_iff f, option.is_some_iff_exists, option.mem_def, bind_eq_some',
+    of_set_eq_some_iff],
   split,
   { rintros ⟨b, hb₁, hb₂⟩,
     exact ⟨pequiv.inj _ hb₂ hb₁, b, hb₂⟩ },
@@ -220,7 +224,8 @@ lemma trans_single_of_mem {a : α} {b : β} (c : γ) {f : α ≃. β} (h : b ∈
   f.trans (single b c) = single a c :=
 symm_injective $ single_trans_of_mem _ ((mem_iff_mem f).2 h)
 
-@[simp] lemma single_trans_single (a : α) (b : β) (c : γ) : (single a b).trans (single b c) = single a c :=
+@[simp]
+lemma single_trans_single (a : α) (b : β) (c : γ) : (single a b).trans (single b c) = single a c :=
 single_trans_of_mem _ (mem_single _ _)
 
 @[simp] lemma single_subsingleton_eq_refl [subsingleton α] (a b : α) : single a b = pequiv.refl α :=

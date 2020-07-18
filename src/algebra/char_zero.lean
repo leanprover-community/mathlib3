@@ -70,7 +70,7 @@ have ((2:ℕ):α) ≠ 0, from nat.cast_ne_zero.2 dec_trivial,
 by rwa [nat.cast_succ, nat.cast_one] at this
 
 section
-variables {α : Type*} [domain α] [char_zero α]
+variables {α : Type*} [semiring α] [no_zero_divisors α] [char_zero α]
 
 lemma add_self_eq_zero {a : α} : a + a = 0 ↔ a = 0 :=
 by simp only [(two_mul a).symm, mul_eq_zero, two_ne_zero', false_or]

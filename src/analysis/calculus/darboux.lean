@@ -43,7 +43,8 @@ begin
         (not_le_of_lt hma),
       have : b - a ∈ pos_tangent_cone_at (Icc a b) a,
         from mem_pos_tangent_cone_at_of_segment_subset (segment_eq_Icc hab ▸ subset.refl _),
-      simpa using hc.localize.has_fderiv_within_at_nonneg (hg a (left_mem_Icc.2 hab)) this },
+      simpa [-sub_nonneg, -continuous_linear_map.map_sub]
+        using hc.localize.has_fderiv_within_at_nonneg (hg a (left_mem_Icc.2 hab)) this },
     cases eq_or_lt_of_le cmem.2 with hbc hbc,
     -- Show that `c` can't be equal to `a`
     { subst c,
@@ -51,7 +52,8 @@ begin
         (not_le_of_lt hmb),
       have : a - b ∈ pos_tangent_cone_at (Icc a b) b,
         from mem_pos_tangent_cone_at_of_segment_subset (by rw [segment_symm, segment_eq_Icc hab]),
-      simpa using hc.localize.has_fderiv_within_at_nonneg (hg b (right_mem_Icc.2 hab)) this },
+      simpa [-sub_nonneg, -continuous_linear_map.map_sub]
+        using hc.localize.has_fderiv_within_at_nonneg (hg b (right_mem_Icc.2 hab)) this },
     exact ⟨hac, hbc⟩ },
   use [c, cmem],
   rw [← sub_eq_zero],
@@ -66,7 +68,7 @@ theorem exists_has_deriv_within_at_eq_of_lt_of_gt
   m ∈ f' '' (Icc a b) :=
 let ⟨c, cmem, hc⟩ := exists_has_deriv_within_at_eq_of_gt_of_lt hab (λ x hx, (hf x hx).neg)
   (neg_lt_neg hma) (neg_lt_neg hmb)
-in ⟨c, cmem, neg_inj hc⟩
+in ⟨c, cmem, neg_injective hc⟩
 
 /-- Darboux's theorem: the image of a convex set under `f'` is a convex set. -/
 theorem convex_image_has_deriv_at {s : set ℝ} (hs : convex s)

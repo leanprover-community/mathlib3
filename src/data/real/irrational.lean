@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Yury Kudryashov.
 -/
 import data.real.basic
+import data.rat.sqrt
 import algebra.gcd_domain
 import ring_theory.multiplicity
 /-!

@@ -35,6 +35,9 @@ def empty.elim {C : Sort*} : empty → C.
 
 instance : subsingleton empty := ⟨λa, a.elim⟩
 
+instance subsingleton.prod {α β : Type*} [subsingleton α] [subsingleton β] : subsingleton (α × β) :=
+⟨by { intros a b, cases a, cases b, congr, }⟩
+
 instance : decidable_eq empty := λa, a.elim
 
 instance sort.inhabited : inhabited (Sort*) := ⟨punit⟩
@@ -46,6 +49,10 @@ instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) :=
 @[priority 10] instance decidable_eq_of_subsingleton
   {α} [subsingleton α] : decidable_eq α
 | a b := is_true (subsingleton.elim a b)
+
+@[simp] lemma eq_iff_true_of_subsingleton [subsingleton α] (x y : α) :
+  x = y ↔ true :=
+by cc
 
 /-- Add an instance to "undo" coercion transitivity into a chain of coercions, because
    most simp lemmas are stated with respect to simple coercions and will not match when
@@ -494,6 +501,9 @@ end equality
 section quantifiers
 variables {α : Sort*} {β : Sort*} {p q : α → Prop} {b : Prop}
 
+lemma forall_imp (h : ∀ a, p a → q a) : (∀ a, p a) → ∀ a, q a :=
+λ h' a, h a (h' a)
+
 lemma Exists.imp (h : ∀ a, (p a → q a)) (p : ∃ a, p a) : ∃ a, q a := exists_imp_exists h p
 
 lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a))
@@ -866,6 +876,10 @@ theorem not_ball {α : Sort*} {p : α → Prop} {P : Π (x : α), p x → Prop} 
 
 end classical
 
+lemma ite_eq_iff {α} {p : Prop} [decidable p] {a b c : α} :
+  (if p then a else b) = c ↔ p ∧ a = c ∨ ¬p ∧ b = c :=
+by by_cases p; simp *
+
 /-! ### Declarations about `nonempty` -/
 
 section nonempty
@@ -964,3 +978,25 @@ instance {α β} [h : nonempty α] [h2 : nonempty β] : nonempty (α × β) :=
 h.elim $ λ g, h2.elim $ λ g2, ⟨⟨g, g2⟩⟩
 
 end nonempty
+
+section ite
+
+lemma apply_dite {α β : Type*} (f : α → β) (P : Prop) [decidable P] (x : P → α) (y : ¬P → α) :
+  f (dite P x y) = dite P (λ h, f (x h)) (λ h, f (y h)) :=
+by { by_cases h : P; simp [h], }
+
+lemma apply_ite {α β : Type*} (f : α → β) (P : Prop) [decidable P] (x y : α) :
+  f (ite P x y) = ite P (f x) (f y) :=
+apply_dite f P (λ _, x) (λ _, y)
+
+lemma dite_apply {α : Type*} {β : α → Type*} (P : Prop) [decidable P]
+  (f : P → Π a, β a) (g : ¬ P → Π a, β a) (x : α) :
+  (dite P f g) x = dite P (λ h, f h x) (λ h, g h x) :=
+by { by_cases h : P; simp [h], }
+
+lemma ite_apply {α : Type*} {β : α → Type*} (P : Prop) [decidable P]
+  (f g : Π a, β a) (x : α) :
+  (ite P f g) x = ite P (f x) (g x) :=
+dite_apply P (λ _, f) (λ _, g) x
+
+end ite

@@ -78,6 +78,7 @@ end nat_trans
 open nat_trans
 namespace functor
 
+/-- Flip the arguments of a bifunctor. See also `currying.lean`. -/
 protected def flip (F : C ⥤ (D ⥤ E)) : D ⥤ (C ⥤ E) :=
 { obj := λ k,
   { obj := λ j, (F.obj j).obj k,

@@ -201,7 +201,7 @@ theorem compares.eq_eq [preorder α] :
 | gt a b h := ⟨λ h, by injection h, λ h', (ne_of_gt h h').elim⟩
 
 theorem compares.eq_gt [preorder α] :
-  ∀ {o} {a b : α}, compares o a b → (o = gt ↔ a > b)
+  ∀ {o} {a b : α}, compares o a b → (o = gt ↔ b < a)
 | lt a b h := ⟨λ h, by injection h, λ h', (lt_asymm h h').elim⟩
 | eq a b h := ⟨λ h, by injection h, λ h', (ne_of_gt h' h).elim⟩
 | gt a b h := ⟨λ _, h, λ _, rfl⟩
@@ -211,6 +211,21 @@ theorem compares.inj [preorder α] {o₁} :
 | lt a b h₁ h₂ := h₁.eq_lt.2 h₂
 | eq a b h₁ h₂ := h₁.eq_eq.2 h₂
 | gt a b h₁ h₂ := h₁.eq_gt.2 h₂
+
+theorem compares_iff_of_compares_impl {β : Type*} [linear_order α] [preorder β] {a b : α}
+  {a' b' : β} (h : ∀ {o}, compares o a b → compares o a' b') (o) :
+  compares o a b ↔ compares o a' b' :=
+begin
+  refine ⟨h, λ ho, _⟩,
+  cases lt_trichotomy a b with hab hab,
+  { change compares ordering.lt a b at hab,
+    rwa [ho.inj (h hab)] },
+  { cases hab with hab hab,
+    { change compares ordering.eq a b at hab,
+      rwa [ho.inj (h hab)] },
+    { change compares ordering.gt a b at hab,
+      rwa [ho.inj (h hab)] } }
+end
 
 theorem swap_or_else (o₁ o₂) : (or_else o₁ o₂).swap = or_else o₁.swap o₂.swap :=
 by cases o₁; try {refl}; cases o₂; refl

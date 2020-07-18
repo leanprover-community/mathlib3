@@ -103,11 +103,6 @@ sup_le_sup h₁ (le_refl _)
 theorem le_of_sup_eq (h : a ⊔ b = b) : a ≤ b :=
 by { rw ← h, simp }
 
-/-- A monotone function on a sup-semilattice is directed. -/
-lemma directed_of_mono (f : α → β) {r : β → β → Prop}
-  (H : ∀ ⦃i j⦄, i ≤ j → r (f i) (f j)) : directed r f :=
-λ a b, ⟨a ⊔ b, H le_sup_left, H le_sup_right⟩
-
 lemma sup_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : p b) : p (a ⊔ b) :=
 (is_total.total a b).elim (λ h : a ≤ b, by rwa sup_eq_right.2 h) (λ h, by rwa sup_eq_left.2 h)
 
@@ -160,14 +155,11 @@ by simp only [sup_le_iff]; rw [← H, @sup_le_iff α A, H, H]
 theorem semilattice_sup.ext {α} {A B : semilattice_sup α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
 begin
-  haveI this := partial_order.ext H,
+  have := partial_order.ext H,
   have ss := funext (λ x, funext $ semilattice_sup.ext_sup H x),
-  cases A; cases B; injection this; congr'
+  casesI A, casesI B,
+  injection this; congr'
 end
-
-lemma directed_of_sup {β : Type*} {r : β → β → Prop} {f : α → β}
-  (hf : ∀a₁ a₂, a₁ ≤ a₂ → r (f a₁) (f a₂)) : directed r f :=
-assume x y, ⟨x ⊔ y, hf _ _ le_sup_left, hf _ _ le_sup_right⟩
 
 end semilattice_sup
 
@@ -293,15 +285,11 @@ by simp only [le_inf_iff]; rw [← H, @le_inf_iff α A, H, H]
 theorem semilattice_inf.ext {α} {A B : semilattice_inf α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
 begin
-  haveI this := partial_order.ext H,
+  have := partial_order.ext H,
   have ss := funext (λ x, funext $ semilattice_inf.ext_inf H x),
-  cases A; cases B; injection this; congr'
+  casesI A, casesI B,
+  injection this; congr'
 end
-
-/-- An antimonotone function on an inf-semilattice is directed. -/
-lemma directed_of_inf {r : β → β → Prop} {f : α → β}
-  (hf : ∀a₁ a₂, a₁ ≤ a₂ → r (f a₂) (f a₁)) : directed r f :=
-assume x y, ⟨x ⊓ y, hf _ _ inf_le_left, hf _ _ inf_le_right⟩
 
 end semilattice_inf
 
@@ -336,7 +324,8 @@ begin
   have SS : @lattice.to_semilattice_sup α A =
             @lattice.to_semilattice_sup α B := semilattice_sup.ext H,
   have II := semilattice_inf.ext H,
-  resetI, cases A; cases B; injection SS; injection II; congr'
+  casesI A, casesI B,
+  injection SS; injection II; congr'
 end
 
 end lattice
@@ -429,10 +418,24 @@ lemma le_map_sup [semilattice_sup α] [semilattice_sup β]
   f x ⊔ f y ≤ f (x ⊔ y) :=
 sup_le (h le_sup_left) (h le_sup_right)
 
+lemma map_sup [semilattice_sup α] [is_total α (≤)] [semilattice_sup β] {f : α → β}
+  (hf : monotone f) (x y : α) :
+  f (x ⊔ y) = f x ⊔ f y :=
+(is_total.total x y).elim
+  (λ h : x ≤ y, by simp only [h, hf h, sup_of_le_right])
+  (λ h, by simp only [h, hf h, sup_of_le_left])
+
 lemma map_inf_le [semilattice_inf α] [semilattice_inf β]
   {f : α → β} (h : monotone f) (x y : α) :
   f (x ⊓ y) ≤ f x ⊓ f y :=
 le_inf (h inf_le_left) (h inf_le_right)
+
+lemma map_inf [semilattice_inf α] [is_total α (≤)] [semilattice_inf β] {f : α → β}
+  (hf : monotone f) (x y : α) :
+  f (x ⊓ y) = f x ⊓ f y :=
+(is_total.total x y).elim
+  (λ h : x ≤ y, by simp only [h, hf h, inf_of_le_left])
+  (λ h, by simp only [h, hf h, inf_of_le_right])
 
 end monotone
 

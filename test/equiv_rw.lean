@@ -9,6 +9,12 @@ import control.equiv_functor.instances -- these make equiv_rw more powerful!
 -- Uncomment this line to observe the steps of constructing appropriate equivalences.
 -- set_option trace.equiv_rw_type true
 
+import tactic.equiv_rw
+
+-- This fails if we use `occurs` rather than `kdepends_on` in `equiv_rw_type`.
+instance : equiv_functor set :=
+{ map := λ α β e s, by { equiv_rw e.symm, assumption, } }
+
 -- Rewriting a hypothesis along an equivalence.
 example {α β : Type} (e : α ≃ β)
   (f : α → ℕ) (h : ∀ b : β, f (e.symm b) = 0) (i : α) : f i = 0 :=
@@ -203,7 +209,8 @@ begin
 end
 
 -- rewriting in the argument of a dependent function can't be done in one step
-example {α β γ : Type} (e : α ≃ β) (P : α → Type*) (h : Π a : α, (P a) × (option α)) (b : β) : option β :=
+example {α β γ : Type} (e : α ≃ β) (P : α → Type*) (h : Π a : α, (P a) × (option α)) (b : β) :
+  option β :=
 begin
   equiv_rw e at h,
   have t := h b,
@@ -291,18 +298,18 @@ begin
   refine_struct { .. },
   { have mul := S.mul, equiv_rw e at mul, exact mul, },
   { try { unfold_projs },
-    simp only [] with transport_simps,
+    simp only with transport_simps,
     have mul_assoc := S.mul_assoc,
     equiv_rw e at mul_assoc,
     solve_by_elim, },
   { have one := S.one, equiv_rw e at one, exact one, },
   { try { unfold_projs },
-    simp only [] with transport_simps,
+    simp only with transport_simps,
     have one_mul := S.one_mul,
     equiv_rw e at one_mul,
     solve_by_elim, },
   { try { unfold_projs },
-    simp only [] with transport_simps,
+    simp only with transport_simps,
     have mul_one := S.mul_one,
     equiv_rw e at mul_one,
     solve_by_elim, },

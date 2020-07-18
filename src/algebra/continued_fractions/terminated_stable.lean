@@ -58,7 +58,7 @@ begin
     case option.none { simp only [convergents'_aux, s_head_eq] },
     case option.some
     { have : s.tail.terminated_at n, by simp only [seq.terminated_at, s.nth_tail, terminated_at_n],
-      simp only [convergents'_aux, s_head_eq, (IH this)] }}
+      simp only [convergents'_aux, s_head_eq, (IH this)] } }
 end
 
 lemma convergents'_aux_stable_of_terminated {s : seq $ gcf.pair K} (n_le_m : n ≤ m)
@@ -76,7 +76,7 @@ begin
       have : s.tail.terminated_at n, by
         simpa only [seq.terminated_at, seq.nth_tail] using (s.le_stable n.le_succ terminated_at_n),
       have : convergents'_aux s.tail m = convergents'_aux s.tail n, from IH this,
-      simp only [convergents'_aux, s_head_eq, this] }}
+      simp only [convergents'_aux, s_head_eq, this] } }
 end
 
 lemma continuants_stable_of_terminated (n_le_m : n ≤ m) (terminated_at_n : g.terminated_at n) :

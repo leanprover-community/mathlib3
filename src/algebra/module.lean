@@ -21,7 +21,7 @@ In this file we define
 * `vector_space k M` : same as `semimodule k M` and `module k M` but assumes that `k` is a `field`
   and `M` is an additive commutative group.
 
-* `linear_map R M M₂`, `M →ₗ[R] M₂` : a linear map between two R-`module`s.
+* `linear_map R M M₂`, `M →ₗ[R] M₂` : a linear map between two R-`semimodule`s.
 
 * `is_linear_map R f` : predicate saying that `f : M → M₂` is a linear map.
 
@@ -32,9 +32,7 @@ In this file we define
 
 ## Implementation notes
 
-* `vector_space` is an abbreviation for `module R M` while the latter `extends semimodule R M`.
-  There were several attempts to make `module` an abbreviation of `semimodule` but this makes
-  class instance search too hard for Lean 3.
+* `vector_space` and `module` are abbreviations for `semimodule R M`.
 
 ## TODO
 
@@ -46,6 +44,7 @@ semimodule, module, vector space, submodule, subspace, linear map
 -/
 
 open function
+open_locale big_operators
 
 universes u u' v w x y z
 variables {R : Type u} {k : Type u'} {S : Type v} {M : Type w} {M₂ : Type x} {M₃ : Type y}
@@ -64,7 +63,7 @@ set_option default_priority 100 -- see Note [default priority]
 (zero_smul : ∀x : M, (0 : R) • x = 0)
 end prio
 
-section semimodule
+section add_comm_monoid
 variables [semiring R] [add_comm_monoid M] [semimodule R M] (r s : R) (x y : M)
 
 theorem add_smul : (r + s) • x = r • x + s • x := semimodule.add_smul r s x
@@ -72,6 +71,25 @@ variables (R)
 @[simp] theorem zero_smul : (0 : R) • x = 0 := semimodule.zero_smul x
 
 theorem two_smul : (2 : R) • x = x + x := by rw [bit0, add_smul, one_smul]
+
+/-- Pullback a `semimodule` structure along an injective additive monoid homomorphism. -/
+protected def function.injective.semimodule [add_comm_monoid M₂] [has_scalar R M₂] (f : M₂ →+ M)
+  (hf : injective f) (smul : ∀ (c : R) x, f (c • x) = c • f x) :
+  semimodule R M₂ :=
+{ smul := (•),
+  add_smul := λ c₁ c₂ x, hf $ by simp only [smul, f.map_add, add_smul],
+  zero_smul := λ x, hf $ by simp only [smul, zero_smul, f.map_zero],
+  .. hf.distrib_mul_action f smul }
+
+/-- Pushforward a `semimodule` structure along a surjective additive monoid homomorphism. -/
+protected def function.surjective.semimodule [add_comm_monoid M₂] [has_scalar R M₂] (f : M →+ M₂)
+  (hf : surjective f) (smul : ∀ (c : R) x, f (c • x) = c • f x) :
+  semimodule R M₂ :=
+{ smul := (•),
+  add_smul := λ c₁ c₂ x, by { rcases hf x with ⟨x, rfl⟩,
+    simp only [add_smul, ← smul, ← f.map_add] },
+  zero_smul := λ x, by { rcases hf x with ⟨x, rfl⟩, simp only [← f.map_zero, ← smul, zero_smul] },
+  .. hf.distrib_mul_action f smul }
 
 variable (M)
 
@@ -96,21 +114,67 @@ lemma multiset.sum_smul {l : multiset R} {x : M} : l.sum • x = (l.map (λ r, r
 ((smul_add_hom R M).flip x).map_multiset_sum l
 
 lemma finset.sum_smul {f : ι → R} {s : finset ι} {x : M} :
-  s.sum f • x = s.sum (λ r, (f r) • x) :=
+  (∑ i in s, f i) • x = (∑ i in s, (f i) • x) :=
 ((smul_add_hom R M).flip x).map_sum f s
 
-end semimodule
+end add_comm_monoid
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
-/-- A module is a generalization of vector spaces to a scalar ring.
-  It consists of a scalar ring `R` and an additive group of "vectors" `M`,
-  connected by a "scalar multiplication" operation `r • x : M`
-  (where `r : R` and `x : M`) with some natural associativity and
-  distributivity axioms similar to those on a ring. -/
-@[protect_proj]
-class module (R : Type u) (M : Type v) [ring R] [add_comm_group M] extends semimodule R M
-end prio
+section add_comm_group
+
+variables (R M) [semiring R] [add_comm_group M]
+
+/-- A structure containing most informations as in a semimodule, except the fields `zero_smul`
+and `smul_zero`. As these fields can be deduced from the other ones when `M` is an `add_comm_group`,
+this provides a way to construct a semimodule structure by checking less properties, in
+`semimodule.of_core`. -/
+@[nolint has_inhabited_instance]
+structure semimodule.core extends has_scalar R M :=
+(smul_add : ∀(r : R) (x y : M), r • (x + y) = r • x + r • y)
+(add_smul : ∀(r s : R) (x : M), (r + s) • x = r • x + s • x)
+(mul_smul : ∀(r s : R) (x : M), (r * s) • x = r • s • x)
+(one_smul : ∀x : M, (1 : R) • x = x)
+
+variables {R M}
+
+/-- Define `semimodule` without proving `zero_smul` and `smul_zero` by using an auxiliary
+structure `semimodule.core`, when the underlying space is an `add_comm_group`. -/
+def semimodule.of_core (H : semimodule.core R M) : semimodule R M :=
+by letI := H.to_has_scalar; exact
+{ zero_smul := λ x, (add_monoid_hom.mk' (λ r : R, r • x) (λ r s, H.add_smul r s x)).map_zero,
+  smul_zero := λ r, (add_monoid_hom.mk' ((•) r) (H.smul_add r)).map_zero,
+  ..H }
+
+variable [semimodule R M]
+
+@[simp] theorem smul_neg (r : R) (x : M) : r • (-x) = -(r • x) :=
+eq_neg_of_add_eq_zero (by simp [← smul_add])
+
+theorem smul_sub (r : R) (x y : M) : r • (x - y) = r • x - r • y :=
+by simp [smul_add, sub_eq_add_neg]; rw smul_neg
+
+end add_comm_group
+
+/--
+Modules are defined as an `abbreviation` for semimodules,
+if the base semiring is a ring.
+(A previous definition made `module` a structure
+defined to be `semimodule`.)
+This has as advantage that modules are completely transparent
+for type class inference, which means that all instances for semimodules
+are immediately picked up for modules as well.
+A cosmetic disadvantage is that one can not extend modules as such,
+in definitions such as `normed_space`.
+The solution is to extend `semimodule` instead.
+-/
+library_note "module definition"
+
+/-- A module is the same as a semimodule, except the scalar semiring is actually
+  a ring.
+  This is the traditional generalization of spaces like `ℤ^n`, which have a natural
+  addition operation and a way to multiply them by elements of a ring, but no multiplication
+  operation between vectors. -/
+abbreviation module (R : Type u) (M : Type v) [ring R] [add_comm_group M] :=
+semimodule R M
 
 /--
 To prove two module structures on a fixed `add_comm_group` agree,
@@ -122,28 +186,12 @@ lemma module_ext {R : Type*} [ring R] {M : Type*} [add_comm_group M] (P Q : modu
   (w : ∀ (r : R) (m : M), by { haveI := P, exact r • m } = by { haveI := Q, exact r • m }) :
   P = Q :=
 begin
-  resetI,
-  rcases P with ⟨⟨⟨⟨⟨P⟩⟩⟩⟩⟩, rcases Q with ⟨⟨⟨⟨⟨Q⟩⟩⟩⟩⟩, congr,
+  unfreezingI { rcases P with ⟨⟨⟨⟨P⟩⟩⟩⟩, rcases Q with ⟨⟨⟨⟨Q⟩⟩⟩⟩ },
+  congr,
   funext r m,
   exact w r m,
   all_goals { apply proof_irrel_heq },
 end
-
-/-- An auxiliary `structure` that is used to define `module`s without verifying
-`zero_smul` and `smul_zero`. -/
-structure module.core (R M) [ring R] [add_comm_group M] extends has_scalar R M :=
-(smul_add : ∀(r : R) (x y : M), r • (x + y) = r • x + r • y)
-(add_smul : ∀(r s : R) (x : M), (r + s) • x = r • x + s • x)
-(mul_smul : ∀(r s : R) (x : M), (r * s) • x = r • s • x)
-(one_smul : ∀x : M, (1 : R) • x = x)
-
-/-- Define `module` without proving `zero_smul` and `smul_zero` by using an auxiliary
-structure `module.core`. -/
-def module.of_core [ring R] [add_comm_group M] (Mc : module.core R M) : module R M :=
-by letI := Mc.to_has_scalar; exact
-{ zero_smul := λ x, (add_monoid_hom.mk' (λ r : R, r • x) (λ r s, Mc.add_smul r s x)).map_zero,
-  smul_zero := λ r, (add_monoid_hom.mk' ((•) r) (Mc.smul_add r)).map_zero,
-  ..Mc }
 
 section module
 variables [ring R] [add_comm_group M] [module R M] (r s : R) (x y : M)
@@ -154,12 +202,6 @@ eq_neg_of_add_eq_zero (by rw [← add_smul, add_left_neg, zero_smul])
 variables (R)
 theorem neg_one_smul (x : M) : (-1 : R) • x = -x := by simp
 variables {R}
-
-@[simp] theorem smul_neg : r • (-x) = -(r • x) :=
-by rw [← neg_one_smul R, ← mul_smul, mul_neg_one, neg_smul]
-
-theorem smul_sub (r : R) (x y : M) : r • (x - y) = r • x - r • y :=
-by simp [smul_add, sub_eq_add_neg]; rw smul_neg
 
 theorem sub_smul (r s : R) (y : M) : (r - s) • y = r • y - s • y :=
 by simp [add_smul, sub_eq_add_neg]
@@ -172,6 +214,8 @@ theorem smul_eq_zero {R E : Type*} [division_ring R] [add_comm_group E] [module 
 
 end module
 
+section
+set_option default_priority 910
 instance semiring.to_semimodule [semiring R] : semimodule R R :=
 { smul := (*),
   smul_add := mul_add,
@@ -180,13 +224,11 @@ instance semiring.to_semimodule [semiring R] : semimodule R R :=
   one_smul := one_mul,
   zero_smul := zero_mul,
   smul_zero := mul_zero }
+end
 
 @[simp] lemma smul_eq_mul [semiring R] {a a' : R} : a • a' = a * a' := rfl
 
-instance ring.to_module [ring R] : module R R :=
-{ to_semimodule := semiring.to_semimodule }
-
-/-- A ring homomorphism `f : R →+* S` defines a semimodule structure by `r • x = f r * x`. -/
+/-- A ring homomorphism `f : R →+* M` defines a module structure by `r • x = f r * x`. -/
 def ring_hom.to_semimodule [semiring R] [semiring S] (f : R →+* S) : semimodule R S :=
 { smul := λ r x, f r * x,
   smul_add := λ r x y, by unfold has_scalar.smul; rw [mul_add],
@@ -196,54 +238,70 @@ def ring_hom.to_semimodule [semiring R] [semiring S] (f : R →+* S) : semimodul
   zero_smul := λ x, show f 0 * x = 0, by rw [f.map_zero, zero_mul],
   smul_zero := λ r, mul_zero (f r) }
 
-/-- A ring homomorphism `f : R →+* S` defines a module structure by `r • x = f r * x`. -/
-def ring_hom.to_module [ring R] [ring S] (f : R →+* S) : module R S :=
-{ to_semimodule := f.to_semimodule }
-
-/-- A class saying that `f` is an `R` linear map. Though it is a class,
-it is used as an explicit argument in most lemmas. -/
-class is_linear_map (R : Type u) {M : Type v} {M₂ : Type w}
-  [ring R] [add_comm_group M] [add_comm_group M₂] [module R M] [module R M₂]
+/-- A map `f` between semimodules over a semiring is linear if it satisfies the two properties
+`f (x + y) = f x + f y` and `f (c • x) = c • f x`. The predicate `is_linear_map R f` asserts this
+property. A bundled version is available with `linear_map`, and should be favored over
+`is_linear_map` most of the time. -/
+structure is_linear_map (R : Type u) {M : Type v} {M₂ : Type w}
+  [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂]
   (f : M → M₂) : Prop :=
-(add [] : ∀ x y, f (x + y) = f x + f y)
-(smul [] : ∀ (c : R) x, f (c • x) = c • f x)
+(map_add : ∀ x y, f (x + y) = f x + f y)
+(map_smul : ∀ (c : R) x, f (c • x) = c • f x)
 
-/-- A bundled `R`-linear map from `M` to `M₂`. -/
+/-- A map `f` between semimodules over a semiring is linear if it satisfies the two properties
+`f (x + y) = f x + f y` and `f (c • x) = c • f x`. Elements of `linear_map R M M₂` (available under
+the notation `M →ₗ[R] M₂`) are bundled versions of such maps. An unbundled version is available with
+the predicate `is_linear_map`, but it should be avoided most of the time. -/
 structure linear_map (R : Type u) (M : Type v) (M₂ : Type w)
-  [ring R] [add_comm_group M] [add_comm_group M₂] [module R M] [module R M₂] :=
+  [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂] :=
 (to_fun : M → M₂)
-(add  : ∀x y, to_fun (x + y) = to_fun x + to_fun y)
-(smul : ∀(c : R) x, to_fun (c • x) = c • to_fun x)
+(map_add'  : ∀x y, to_fun (x + y) = to_fun x + to_fun y)
+(map_smul' : ∀(c : R) x, to_fun (c • x) = c • to_fun x)
 
 infixr ` →ₗ `:25 := linear_map _
-notation β ` →ₗ[`:25 α:25 `] `:0 γ:0 := linear_map α β γ
+notation M ` →ₗ[`:25 R:25 `] `:0 M₂:0 := linear_map R M M₂
 
 namespace linear_map
 
-variables [ring R] [add_comm_group M] [add_comm_group M₂]
+section add_comm_monoid
+
+variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
 
 section
-variables [module R M] [module R M₂]
-variables (f g : M →ₗ[R] M₂)
+variables [semimodule R M] [semimodule R M₂]
 
 instance : has_coe_to_fun (M →ₗ[R] M₂) := ⟨_, to_fun⟩
 
 @[simp] lemma coe_mk (f : M → M₂) (h₁ h₂) :
   ((linear_map.mk f h₁ h₂ : M →ₗ[R] M₂) : M → M₂) = f := rfl
+
+
+/-- Identity map as a `linear_map` -/
+def id : M →ₗ[R] M :=
+⟨id, λ _ _, rfl, λ _ _, rfl⟩
+
+@[simp] lemma id_apply (x : M) :
+  @id R M _ _ _ x = x := rfl
+
 end
 
+section
 -- We can infer the module structure implicitly from the linear maps,
 -- rather than via typeclass resolution.
-variables {module_M : module R M} {module_M₂ : module R M₂}
+variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
 variables (f g : M →ₗ[R] M₂)
 
 @[simp] lemma to_fun_eq_coe : f.to_fun = ⇑f := rfl
 
-theorem is_linear : is_linear_map R f := {..f}
+theorem is_linear : is_linear_map R f := ⟨f.2, f.3⟩
 
 variables {f g}
+
+lemma coe_injective (H : ⇑f = g) : f = g :=
+by cases f; cases g; congr'; exact  H
+
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
-by cases f; cases g; congr'; exact funext H
+coe_injective $ funext H
 
 lemma coe_fn_congr : Π {x x' : M}, x = x' → f x = f x'
 | _ _ rfl := rfl
@@ -253,14 +311,16 @@ theorem ext_iff : f = g ↔ ∀ x, f x = g x :=
 
 variables (f g)
 
-@[simp] lemma map_add (x y : M) : f (x + y) = f x + f y := f.add x y
+@[simp] lemma map_add (x y : M) : f (x + y) = f x + f y := f.map_add' x y
 
-@[simp] lemma map_smul (c : R) (x : M) : f (c • x) = c • f x := f.smul c x
+@[simp] lemma map_smul (c : R) (x : M) : f (c • x) = c • f x := f.map_smul' c x
 
 @[simp] lemma map_zero : f 0 = 0 :=
 by rw [← zero_smul R, map_smul f 0 0, zero_smul]
 
-instance : is_add_group_hom f := { map_add := map_add f }
+instance : is_add_monoid_hom f :=
+{ map_add := map_add f,
+  map_zero := map_zero f }
 
 /-- convert a linear map to an additive map -/
 def to_add_monoid_hom : M →+ M₂ :=
@@ -271,22 +331,16 @@ def to_add_monoid_hom : M →+ M₂ :=
 @[simp] lemma to_add_monoid_hom_coe :
   ((f.to_add_monoid_hom) : M → M₂) = f := rfl
 
-@[simp] lemma map_neg (x : M) : f (- x) = - f x :=
-f.to_add_monoid_hom.map_neg x
-
-@[simp] lemma map_sub (x y : M) : f (x - y) = f x - f y :=
-f.to_add_monoid_hom.map_sub x y
-
-@[simp] lemma map_sum {t : finset ι} {g : ι → M} :
-  f (t.sum g) = t.sum (λi, f (g i)) :=
+@[simp] lemma map_sum {ι} {t : finset ι} {g : ι → M} :
+  f (∑ i in t, g i) = (∑ i in t, f (g i)) :=
 f.to_add_monoid_hom.map_sum _ _
 
-end linear_map
+end
 
-namespace linear_map
-variables [ring R] [add_comm_group M] [add_comm_group M₂]
-variables [add_comm_group M₃]
-variables {module_M : module R M} {module_M₂ : module R M₂} {module_M₃ : module R M₃}
+section
+
+variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
+{semimodule_M₃ : semimodule R M₃}
 variables (f : M₂ →ₗ[R] M₃) (g : M →ₗ[R] M₂)
 
 /-- Composition of two linear maps is a linear map -/
@@ -294,28 +348,43 @@ def comp : M →ₗ[R] M₃ := ⟨f ∘ g, by simp, by simp⟩
 
 @[simp] lemma comp_apply (x : M) : f.comp g x = f (g x) := rfl
 
-/-- Identity map as a `linear_map` -/
-def id {R} {M} [ring R] [add_comm_group M] [module R M] : M →ₗ[R] M := ⟨id, λ _ _, rfl, λ _ _, rfl⟩
+end
 
-@[simp] lemma id_apply {R} {M} [ring R] [add_comm_group M] [module R M] (x : M) :
-  @id R M _ _ _ x = x := rfl
+end add_comm_monoid
+
+section add_comm_group
+
+variables [semiring R] [add_comm_group M] [add_comm_group M₂]
+variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
+variables (f : M →ₗ[R] M₂)
+
+@[simp] lemma map_neg (x : M) : f (- x) = - f x :=
+f.to_add_monoid_hom.map_neg x
+
+@[simp] lemma map_sub (x y : M) : f (x - y) = f x - f y :=
+f.to_add_monoid_hom.map_sub x y
+
+instance : is_add_group_hom f :=
+{ map_add := map_add f}
+
+end add_comm_group
 
 end linear_map
 
 namespace is_linear_map
-variables [ring R] [add_comm_group M] [add_comm_group M₂]
-variables [module R M] [module R M₂]
+
+section add_comm_monoid
+variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
+variables [semimodule R M] [semimodule R M₂]
+include R
 
 /-- Convert an `is_linear_map` predicate to a `linear_map` -/
-def mk' (f : M → M₂) (H : is_linear_map R f) : M →ₗ M₂ := {to_fun := f, ..H}
+def mk' (f : M → M₂) (H : is_linear_map R f) : M →ₗ M₂ := ⟨f, H.1, H.2⟩
 
 @[simp] theorem mk'_apply {f : M → M₂} (H : is_linear_map R f) (x : M) :
   mk' f H x = f x := rfl
 
-lemma is_linear_map_neg : is_linear_map R (λ (z : M), -z) :=
-is_linear_map.mk neg_add (λ x y, (smul_neg x y).symm)
-
-lemma is_linear_map_smul {R M : Type*} [comm_ring R] [add_comm_group M] [module R M] (c : R) :
+lemma is_linear_map_smul {R M : Type*} [comm_semiring R]  [add_comm_monoid M] [semimodule R M] (c : R) :
   is_linear_map R (λ (z : M), c • z) :=
 begin
   refine is_linear_map.mk (smul_add c) _,
@@ -324,7 +393,7 @@ begin
 end
 
 --TODO: move
-lemma is_linear_map_smul' (a : M) :
+lemma is_linear_map_smul' {R M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M] (a : M) :
   is_linear_map R (λ (c : R), c • a) :=
 is_linear_map.mk (λ x y, add_smul x y a) (λ x y, mul_smul x y a)
 
@@ -333,96 +402,104 @@ include M M₂ lin
 
 lemma map_zero : f (0 : M) = (0 : M₂) := (lin.mk' f).map_zero
 
-lemma map_add : ∀ x y, f (x + y) = f x + f y := lin.add
+end add_comm_monoid
 
-lemma map_neg (x) : f (- x) = - f x := (lin.mk' f).map_neg x
+section add_comm_group
+
+variables [semiring R] [add_comm_group M] [add_comm_group M₂]
+variables [semimodule R M] [semimodule R M₂]
+include R
+
+lemma is_linear_map_neg :
+  is_linear_map R (λ (z : M), -z) :=
+is_linear_map.mk neg_add (λ x y, (smul_neg x y).symm)
+
+variables {f : M → M₂} (lin : is_linear_map R f)
+include M M₂ lin
+
+lemma map_neg (x : M) : f (- x) = - f x := (lin.mk' f).map_neg x
 
 lemma map_sub (x y) : f (x - y) = f x - f y := (lin.mk' f).map_sub x y
 
-lemma map_smul (c : R) (x : M) : f (c • x) = c • f x := (lin.mk' f).map_smul c x
+end add_comm_group
 
 end is_linear_map
 
 /-- Ring of linear endomorphismsms of a module. -/
 abbreviation module.End (R : Type u) (M : Type v)
-  [comm_ring R] [add_comm_group M] [module R M] := M →ₗ[R] M
+  [semiring R] [add_comm_monoid M] [semimodule R M] := M →ₗ[R] M
+
+set_option old_structure_cmd true
 
 /-- A submodule of a module is one which is closed under vector operations.
   This is a sufficient condition for the subset of vectors in the submodule
   to themselves form a module. -/
-structure submodule (R : Type u) (M : Type v) [ring R]
-  [add_comm_group M] [module R M] : Type v :=
-(carrier : set M)
-(zero : (0:M) ∈ carrier)
-(add : ∀ {x y}, x ∈ carrier → y ∈ carrier → x + y ∈ carrier)
-(smul : ∀ (c:R) {x}, x ∈ carrier → c • x ∈ carrier)
+structure submodule (R : Type u) (M : Type v) [semiring R]
+  [add_comm_monoid M] [semimodule R M] extends add_submonoid M : Type v :=
+(smul_mem' : ∀ (c:R) {x}, x ∈ carrier → c • x ∈ carrier)
+
+/-- Reinterpret a `submodule` as an `add_submonoid`. -/
+add_decl_doc submodule.to_add_submonoid
 
 namespace submodule
-variables [ring R] [add_comm_group M]
 
-variables [module R M]
+variables [semiring R] [add_comm_monoid M] [semimodule R M]
 
-instance : has_coe (submodule R M) (set M) := ⟨submodule.carrier⟩
+instance : has_coe_t (submodule R M) (set M) := ⟨λ s, s.carrier⟩
 instance : has_mem M (submodule R M) := ⟨λ x p, x ∈ (p : set M)⟩
 instance : has_coe_to_sort (submodule R M) := ⟨_, λ p, {x : M // x ∈ p}⟩
+
+variables (p q : submodule R M)
+
+@[simp, norm_cast] theorem coe_sort_coe : ↥(p : set M) = p := rfl
+
+variables {p q}
+
+protected theorem «exists» {q : p → Prop} : (∃ x, q x) ↔ (∃ x ∈ p, q ⟨x, ‹_›⟩) := set_coe.exists
+
+protected theorem «forall» {q : p → Prop} : (∀ x, q x) ↔ (∀ x ∈ p, q ⟨x, ‹_›⟩) := set_coe.forall
+
+theorem coe_injective : injective (coe : submodule R M → set M) :=
+λ p q h, by cases p; cases q; congr'
+
+@[simp, norm_cast] theorem coe_set_eq : (p : set M) = q ↔ p = q := coe_injective.eq_iff
+
+theorem ext'_iff : p = q ↔ (p : set M) = q := coe_set_eq.symm
+
+@[ext] theorem ext (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := coe_injective $ set.ext h
+
+theorem to_add_submonoid_injective :
+  injective (to_add_submonoid : submodule R M → add_submonoid M) :=
+λ p q h, ext'_iff.2 $ add_submonoid.ext'_iff.1 h
+
+@[simp] theorem to_add_submonoid_eq : p.to_add_submonoid = q.to_add_submonoid ↔ p = q :=
+to_add_submonoid_injective.eq_iff
+
 end submodule
 
-protected theorem submodule.exists [ring R] [add_comm_group M] [module R M] {p : submodule R M}
-  {q : p → Prop} :
-  (∃ x, q x) ↔ (∃ x (hx : x ∈ p), q ⟨x, hx⟩) :=
-set_coe.exists
-
-protected theorem submodule.forall [ring R] [add_comm_group M] [module R M] {p : submodule R M}
-  {q : p → Prop} :
-  (∀ x, q x) ↔ (∀ x (hx : x ∈ p), q ⟨x, hx⟩) :=
-set_coe.forall
-
 namespace submodule
-variables [ring R] [add_comm_group M] [add_comm_group M₂]
+
+section add_comm_monoid
+
+variables [semiring R] [add_comm_monoid M]
 
 -- We can infer the module structure implicitly from the bundled submodule,
 -- rather than via typeclass resolution.
-variables {module_M : module R M}
+variables {semimodule_M : semimodule R M}
 variables {p q : submodule R M}
 variables {r : R} {x y : M}
-
-theorem ext' (h : (p : set M) = q) : p = q :=
-by cases p; cases q; congr'
-
-protected theorem ext'_iff : (p : set M) = q ↔ p = q :=
-⟨ext', λ h, h ▸ rfl⟩
-
-@[ext] theorem ext
-  (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := ext' $ set.ext h
 
 variables (p)
 @[simp] theorem mem_coe : x ∈ (p : set M) ↔ x ∈ p := iff.rfl
 
-@[simp] lemma zero_mem : (0 : M) ∈ p := p.zero
+@[simp] lemma zero_mem : (0 : M) ∈ p := p.zero_mem'
 
-lemma add_mem (h₁ : x ∈ p) (h₂ : y ∈ p) : x + y ∈ p := p.add h₁ h₂
+lemma add_mem (h₁ : x ∈ p) (h₂ : y ∈ p) : x + y ∈ p := p.add_mem' h₁ h₂
 
-lemma smul_mem (r : R) (h : x ∈ p) : r • x ∈ p := p.smul r h
+lemma smul_mem (r : R) (h : x ∈ p) : r • x ∈ p := p.smul_mem' r h
 
-lemma neg_mem (hx : x ∈ p) : -x ∈ p := by rw ← neg_one_smul R; exact p.smul_mem _ hx
-
-lemma sub_mem (hx : x ∈ p) (hy : y ∈ p) : x - y ∈ p := p.add_mem hx (p.neg_mem hy)
-
-@[simp] lemma neg_mem_iff : -x ∈ p ↔ x ∈ p :=
-⟨λ h, by simpa using neg_mem p h, neg_mem p⟩
-
-@[simp] lemma add_mem_iff_left (h₁ : y ∈ p) : x + y ∈ p ↔ x ∈ p :=
-⟨λ h₂, by simpa using sub_mem _ h₂ h₁, λ h₂, add_mem _ h₂ h₁⟩
-
-@[simp] lemma add_mem_iff_right (h₁ : x ∈ p) : x + y ∈ p ↔ y ∈ p :=
-⟨λ h₂, by simpa using sub_mem _ h₂ h₁, add_mem _ h₁⟩
-
-lemma sum_mem {t : finset ι} {f : ι → M} :
-  (∀c∈t, f c ∈ p) → t.sum f ∈ p :=
-begin
-  classical,
-  exact finset.induction_on t (by simp [p.zero_mem]) (by simp [p.add_mem] {contextual := tt})
-end
+lemma sum_mem {t : finset ι} {f : ι → M} : (∀c∈t, f c ∈ p) → (∑ i in t, f i) ∈ p :=
+p.to_add_submonoid.sum_mem
 
 @[simp] lemma smul_mem_iff' (u : units R) : (u:R) • x ∈ p ↔ x ∈ p :=
 ⟨λ h, by simpa only [smul_smul, u.inv_mul, one_smul] using p.smul_mem ↑u⁻¹ h, p.smul_mem u⟩
@@ -430,37 +507,27 @@ end
 instance : has_add p := ⟨λx y, ⟨x.1 + y.1, add_mem _ x.2 y.2⟩⟩
 instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
 instance : inhabited p := ⟨0⟩
-instance : has_neg p := ⟨λx, ⟨-x.1, neg_mem _ x.2⟩⟩
 instance : has_scalar R p := ⟨λ c x, ⟨c • x.1, smul_mem _ c x.2⟩⟩
 
-@[simp] lemma mk_eq_zero {x} (h : x ∈ p) : (⟨x, h⟩ : p) = 0 ↔ x = 0 := subtype.ext
+@[simp] lemma mk_eq_zero {x} (h : x ∈ p) : (⟨x, h⟩ : p) = 0 ↔ x = 0 := subtype.ext_iff_val
 
 variables {p}
-@[simp, norm_cast] lemma coe_eq_coe {x y : p} : (x : M) = y ↔ x = y := subtype.ext.symm
+@[simp, norm_cast] lemma coe_eq_coe {x y : p} : (x : M) = y ↔ x = y := subtype.ext_iff_val.symm
 @[simp, norm_cast] lemma coe_eq_zero {x : p} : (x : M) = 0 ↔ x = 0 := @coe_eq_coe _ _ _ _ _ _ x 0
 @[simp, norm_cast] lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : p) : M) = 0 := rfl
-@[simp, norm_cast] lemma coe_neg (x : p) : ((-x : p) : M) = -x := rfl
 @[simp, norm_cast] lemma coe_smul (r : R) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
 @[simp, norm_cast] lemma coe_mk (x : M) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : M) = x := rfl
 @[simp] lemma coe_mem (x : p) : (x : M) ∈ p := x.2
 
 @[simp] protected lemma eta (x : p) (hx : (x : M) ∈ p) : (⟨x, hx⟩ : p) = x := subtype.eta x hx
 
-instance : add_comm_group p :=
-by refine {add := (+), zero := 0, neg := has_neg.neg, ..};
-  { intros, apply set_coe.ext, simp [add_comm, add_left_comm] }
-
-instance submodule_is_add_subgroup : is_add_subgroup (p : set M) :=
-{ zero_mem := p.zero,
-  add_mem  := p.add,
-  neg_mem  := λ _, p.neg_mem }
-
-@[simp, norm_cast] lemma coe_sub (x y : p) : (↑(x - y) : M) = ↑x - ↑y := rfl
-
 variables (p)
 
-instance : module R p :=
+instance : add_comm_monoid p :=
+{ add := (+), zero := 0, .. p.to_add_submonoid.to_add_comm_monoid }
+
+instance : semimodule R p :=
 by refine {smul := (•), ..};
    { intros, apply set_coe.ext, simp [smul_add, add_smul, mul_smul] }
 
@@ -471,6 +538,44 @@ by refine {to_fun := coe, ..}; simp [coe_smul]
 @[simp] theorem subtype_apply (x : p) : p.subtype x = x := rfl
 
 lemma subtype_eq_val : ((submodule.subtype p) : p → M) = subtype.val := rfl
+
+end add_comm_monoid
+
+section add_comm_group
+
+variables [ring R] [add_comm_group M]
+variables {semimodule_M : semimodule R M}
+variables (p p' : submodule R M)
+variables {r : R} {x y : M}
+
+lemma neg_mem (hx : x ∈ p) : -x ∈ p := by rw ← neg_one_smul R; exact p.smul_mem _ hx
+
+/-- Reinterpret a submodule as an additive subgroup. -/
+def to_add_subgroup : add_subgroup M :=
+{ neg_mem' := λ _, p.neg_mem , .. p.to_add_submonoid }
+
+@[simp] lemma coe_to_add_subgroup : (p.to_add_subgroup : set M) = p := rfl
+
+lemma sub_mem (hx : x ∈ p) (hy : y ∈ p) : x - y ∈ p := p.add_mem hx (p.neg_mem hy)
+
+@[simp] lemma neg_mem_iff : -x ∈ p ↔ x ∈ p := p.to_add_subgroup.neg_mem_iff
+
+lemma add_mem_iff_left (h₁ : y ∈ p) : x + y ∈ p ↔ x ∈ p :=
+⟨λ h₂, by simpa using sub_mem _ h₂ h₁, λ h₂, add_mem _ h₂ h₁⟩
+
+lemma add_mem_iff_right (h₁ : x ∈ p) : x + y ∈ p ↔ y ∈ p :=
+⟨λ h₂, by simpa using sub_mem _ h₂ h₁, add_mem _ h₁⟩
+
+instance : has_neg p := ⟨λx, ⟨-x.1, neg_mem _ x.2⟩⟩
+
+@[simp, norm_cast] lemma coe_neg (x : p) : ((-x : p) : M) = -x := rfl
+
+instance : add_comm_group p :=
+{ add := (+), zero := 0, neg := has_neg.neg, ..p.to_add_subgroup.to_add_comm_group }
+
+@[simp, norm_cast] lemma coe_sub (x y : p) : (↑(x - y) : M) = ↑x - ↑y := rfl
+
+end add_comm_group
 
 end submodule
 
@@ -502,16 +607,16 @@ lemma mul_mem_right (h : a ∈ I) : a * b ∈ I := mul_comm b a ▸ I.mul_mem_le
 end ideal
 
 /--
-Vector spaces are defined as an `abbreviation` for modules,
+Vector spaces are defined as an `abbreviation` for semimodules,
 if the base ring is a field.
 (A previous definition made `vector_space` a structure
 defined to be `module`.)
 This has as advantage that vector spaces are completely transparent
-for type class inference, which means that all instances for modules
+for type class inference, which means that all instances for semimodules
 are immediately picked up for vector spaces as well.
-A cosmetic disadvantage is that one can not extend vector spaces an sich,
+A cosmetic disadvantage is that one can not extend vector spaces as such,
 in definitions such as `normed_space`.
-The solution is to extend `module` instead.
+The solution is to extend `semimodule` instead.
 -/
 library_note "vector space definition"
 
@@ -520,19 +625,13 @@ library_note "vector space definition"
   This is the traditional generalization of spaces like `ℝ^n`, which have a natural
   addition operation and a way to multiply them by real numbers, but no multiplication
   operation between vectors. -/
-abbreviation vector_space (k : Type u) (M : Type v) [field k] [add_comm_group M] :=
-module k M
-
-instance field.to_vector_space {k : Type*} [field k] : vector_space k k := ring.to_module
+abbreviation vector_space (R : Type u) (M : Type v) [field R] [add_comm_group M] :=
+semimodule R M
 
 /-- Subspace of a vector space. Defined to equal `submodule`. -/
-@[reducible] def subspace (k : Type u) (M : Type v)
-  [field k] [add_comm_group M] [vector_space k M] : Type v :=
-submodule k M
-
-instance subspace.vector_space {k M}
-  {f : field k} [add_comm_group M] [vector_space k M]
-  (p : subspace k M) : vector_space k p := p.module
+abbreviation subspace (R : Type u) (M : Type v)
+  [field R] [add_comm_group M] [vector_space R M] :=
+submodule R M
 
 namespace submodule
 
@@ -553,13 +652,13 @@ variables [add_comm_monoid M]
 -- We don't make this a global instance, as it results in too many instances,
 -- and confusing ambiguity in the notation `n • x` when `n : ℕ`.
 def nat_semimodule : semimodule ℕ M :=
-{ smul := smul,
-  smul_add := λ _ _ _, smul_add _ _ _,
-  add_smul := λ _ _ _, add_smul _ _ _,
-  mul_smul := λ _ _ _, mul_smul _ _ _,
-  one_smul := one_smul,
-  zero_smul := zero_smul,
-  smul_zero := smul_zero }
+{ smul := nsmul,
+  smul_add := λ _ _ _, nsmul_add _ _ _,
+  add_smul := λ _ _ _, add_nsmul _ _ _,
+  mul_smul := λ _ _ _, mul_nsmul _ _ _,
+  one_smul := one_nsmul,
+  zero_smul := zero_nsmul,
+  smul_zero := nsmul_zero }
 
 end add_comm_monoid
 
@@ -621,13 +720,13 @@ begin
     rw [add_smul, add_smul, one_smul, ih, one_smul] }
 end
 
-lemma semimodule.add_monoid_smul_eq_smul (R : Type*) [semiring R]
+lemma semimodule.nsmul_eq_smul (R : Type*) [semiring R]
   {M : Type*} [add_comm_monoid M] [semimodule R M] (n : ℕ) (b : M) :
-  add_monoid.smul n b = (n : R) • b :=
+  n •ℕ b = (n : R) • b :=
 semimodule.smul_eq_smul R n b
 
 lemma nat.smul_def {M : Type*} [add_comm_monoid M] (n : ℕ) (x : M) :
-  n • x = add_monoid.smul n x :=
+  n • x = n •ℕ x :=
 rfl
 
 end
@@ -637,13 +736,13 @@ local attribute [instance] add_comm_group.int_module
 
 lemma gsmul_eq_smul {M : Type*} [add_comm_group M] (n : ℤ) (x : M) : gsmul n x = n • x := rfl
 
-lemma module.gsmul_eq_smul_cast (R : Type*) [ring R] {β : Type*} [add_comm_group β] [module R β]
-  (n : ℤ) (b : β) : gsmul n b = (n : R) • b :=
+lemma module.gsmul_eq_smul_cast (R : Type*) [ring R] {M : Type*} [add_comm_group M] [module R M]
+  (n : ℤ) (b : M) : gsmul n b = (n : R) • b :=
 begin
   cases n,
-  { apply semimodule.add_monoid_smul_eq_smul, },
+  { apply semimodule.nsmul_eq_smul, },
   { dsimp,
-    rw semimodule.add_monoid_smul_eq_smul R,
+    rw semimodule.nsmul_eq_smul R,
     push_cast,
     rw neg_smul, }
 end
@@ -670,7 +769,7 @@ lemma add_monoid_hom.map_nat_cast_smul
   [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
   [semimodule R M] [semimodule R M₂] (f : M →+ M₂) (x : ℕ) (a : M) :
   f ((x : R) • a) = (x : R) • f a :=
-by simp only [← semimodule.add_monoid_smul_eq_smul, f.map_smul]
+by simp only [← semimodule.nsmul_eq_smul, f.map_nsmul]
 
 lemma add_monoid_hom.map_rat_cast_smul {R : Type*} [division_ring R] [char_zero R]
   {E : Type*} [add_comm_group E] [module R E] {F : Type*} [add_comm_group F] [module R F]
@@ -712,18 +811,18 @@ namespace finset
 variable (R)
 
 lemma sum_const' [semiring R] [add_comm_monoid M] [semimodule R M] {s : finset ι} (b : M) :
-  finset.sum s (λ (i : ι), b) = (finset.card s : R) • b :=
+  (∑ i in s, b) = (finset.card s : R) • b :=
 by rw [finset.sum_const, ← semimodule.smul_eq_smul]; refl
 
 variables {R} [decidable_linear_ordered_cancel_add_comm_monoid M]
   {s : finset ι} (f : ι → M)
 
 theorem exists_card_smul_le_sum (hs : s.nonempty) :
-  ∃ i ∈ s, s.card • f i ≤ s.sum f :=
+  ∃ i ∈ s, s.card • f i ≤ (∑ i in s, f i) :=
 exists_le_of_sum_le hs $ by rw [sum_const, ← nat.smul_def, smul_sum]
 
 theorem exists_card_smul_ge_sum (hs : s.nonempty) :
-  ∃ i ∈ s, s.sum f ≤ s.card • f i :=
+  ∃ i ∈ s, (∑ i in s, f i) ≤ s.card • f i :=
 exists_le_of_sum_le hs $ by rw [sum_const, ← nat.smul_def, smul_sum]
 
 end finset

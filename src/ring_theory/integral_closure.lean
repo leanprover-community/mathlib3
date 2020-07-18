@@ -3,20 +3,20 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import ring_theory.adjoin
+import ring_theory.algebra_tower
 
 /-!
 # Integral closure of a subring.
 -/
-universes u v
+universes u v w
 
 open_locale classical
 open polynomial submodule
 
 section
-variables (R : Type u) {A : Type v}
-variables [comm_ring R] [comm_ring A]
-variables [algebra R A]
+variables (R : Type u) {A : Type v} {B : Type w}
+variables [comm_ring R] [comm_ring A] [comm_ring B]
+variables [algebra R A] [algebra R B]
 
 /-- An element `x` of an algebra `A` over a commutative ring `R` is said to be *integral*,
 if it is a root of some monic polynomial `p : polynomial R`. -/
@@ -28,8 +28,11 @@ theorem is_integral_algebra_map {x : R} : is_integral R (algebra_map R A x) :=
 ⟨X - C x, monic_X_sub_C _,
 by rw [alg_hom.map_sub, aeval_def, aeval_def, eval₂_X, eval₂_C, sub_self]⟩
 
+theorem is_integral_alg_hom (f : A →ₐ[R] B) {x : A} (hx : is_integral R x) : is_integral R (f x) :=
+let ⟨p, hp, hpx⟩ := hx in ⟨p, hp, by rw [aeval_alg_hom_apply, hpx, f.map_zero]⟩
+
 theorem is_integral_of_subring {x : A} (T : set R) [is_subring T]
-  (hx : is_integral T (algebra.comap.to_comap T R A x)) : is_integral R (x : A) :=
+  (hx : is_integral T x) : is_integral R x :=
 let ⟨p, hpm, hpx⟩ := hx in
 ⟨⟨p.support, λ n, (p.to_fun n).1,
   λ n, finsupp.mem_support_iff.trans (not_iff_not_of_iff
@@ -38,8 +41,7 @@ let ⟨p, hpm, hpx⟩ := hx in
 have _ := congr_arg subtype.val hpm, this, hpx⟩
 
 theorem is_integral_iff_is_integral_closure_finite {r : A} :
-  is_integral R r ↔ ∃ s : set R, s.finite ∧
-    is_integral (ring.closure s) (algebra.comap.to_comap (ring.closure s) R A r) :=
+  is_integral R r ↔ ∃ s : set R, s.finite ∧ is_integral (ring.closure s) r :=
 begin
   split; intro hr,
   { rcases hr with ⟨p, hmp, hpr⟩,
@@ -77,15 +79,9 @@ end
 
 theorem fg_adjoin_of_finite {s : set A} (hfs : s.finite)
   (his : ∀ x ∈ s, is_integral R x) : (algebra.adjoin R s : submodule R A).fg :=
-set.finite.induction_on hfs (λ _, ⟨{1}, le_antisymm
-  (span_le.2 $ finset.singleton_subset_set_iff.2 $ is_submonoid.one_mem)
-  begin
-    rw submodule.le_def,
-    change ring.closure _ ⊆ _,
-    simp only [set.union_empty, finset.coe_singleton, span_singleton_eq_range,
-      algebra.smul_def, mul_one],
-    exact ring.closure_subset (set.subset.refl _)
-  end⟩)
+set.finite.induction_on hfs (λ _, ⟨{1}, submodule.ext $ λ x,
+  by { erw [algebra.adjoin_empty, finset.coe_singleton, ← one_eq_span, one_eq_map_top,
+      map_top, linear_map.mem_range, algebra.mem_bot], refl }⟩)
 (λ a s has hs ih his, by rw [← set.union_singleton, algebra.adjoin_union_coe_submodule]; exact
   fg_mul _ _ (ih $ λ i hi, his i $ set.mem_insert_of_mem a hi)
     (fg_adjoin_singleton_of_integral _ $ his a $ set.mem_insert a s)) his
@@ -140,66 +136,50 @@ begin
   obtain ⟨lx, hlx1, hlx2⟩ :
     ∃ (l : A →₀ R) (H : l ∈ finsupp.supported R R ↑y), (finsupp.total A A R id) l = x,
   { rwa [←(@finsupp.mem_span_iff_total A A R _ _ _ id ↑y x), set.image_id ↑y, hy] },
-  have : ∀ (jk : (↑(y.product y) : set (A × A))), jk.1.1 * jk.1.2 ∈ (span R ↑y : submodule R A),
-  { intros jk,
-    let j : ↥(↑y : set A) := ⟨jk.1.1, (finset.mem_product.1 jk.2).1⟩,
-    let k : ↥(↑y : set A) := ⟨jk.1.2, (finset.mem_product.1 jk.2).2⟩,
-    have hj : j.1 ∈ (span R ↑y : submodule R A) := subset_span j.2,
-    have hk : k.1 ∈ (span R ↑y : submodule R A) := subset_span k.2,
-    revert hj hk, rw hy, exact @is_submonoid.mul_mem A _ S _ j.1 k.1 },
-  rw ← set.image_id ↑y at this,
-  simp only [finsupp.mem_span_iff_total] at this,
+  have hyS : ∀ {p}, p ∈ y → p ∈ S := λ p hp, show p ∈ (S : submodule R A),
+    by { rw ← hy, exact subset_span hp },
+  have : ∀ (jk : (↑(y.product y) : set (A × A))), jk.1.1 * jk.1.2 ∈ (S : submodule R A) :=
+    λ jk, S.mul_mem (hyS (finset.mem_product.1 jk.2).1) (hyS (finset.mem_product.1 jk.2).2),
+  rw [← hy, ← set.image_id ↑y] at this, simp only [finsupp.mem_span_iff_total] at this,
   choose ly hly1 hly2,
-  let S₀' : finset R := lx.frange ∪ finset.bind finset.univ (finsupp.frange ∘ ly),
-  let S₀ : set R := ring.closure ↑S₀',
-  refine is_integral_of_subring (ring.closure ↑S₀') _,
-  letI : algebra S₀ (algebra.comap S₀ R A) := algebra.comap.algebra _ _ _,
-  letI hmod : module S₀ (algebra.comap S₀ R A) := algebra.to_module,
-  have : (span S₀ (insert 1 (↑y:set A) : set (algebra.comap S₀ R A)) : submodule S₀ (algebra.comap S₀ R A)) =
-      (algebra.adjoin S₀ ((↑y : set A) : set (algebra.comap S₀ R A)) : subalgebra S₀ (algebra.comap S₀ R A)),
-  { apply le_antisymm,
-    { rw [span_le, set.insert_subset, mem_coe], split,
-      change _ ∈ ring.closure _, exact is_submonoid.one_mem, exact algebra.subset_adjoin },
-    rw [algebra.adjoin_eq_span, span_le], intros r hr, refine monoid.in_closure.rec_on hr _ _ _,
-    { intros r hr, exact subset_span (set.mem_insert_of_mem _ hr) },
-    { exact subset_span (set.mem_insert _ _) },
-    intros r1 r2 hr1 hr2 ih1 ih2,
-    rw ← set.image_id (insert _ ↑y) at ih1 ih2,
-    simp only [mem_coe, finsupp.mem_span_iff_total] at ih1 ih2,
-    have ih1' := ih1, have ih2' := ih2,
-    rcases ih1' with ⟨l1, hl1, rfl⟩, rcases ih2' with ⟨l2, hl2, rfl⟩,
-    simp only [finsupp.total_apply, finsupp.sum_mul, finsupp.mul_sum, mem_coe],
-    rw [finsupp.sum], refine sum_mem _ _, intros r2 hr2,
-    rw [finsupp.sum], refine sum_mem _ _, intros r1 hr1,
-    rw [algebra.mul_smul_comm, algebra.smul_mul_assoc],
-    letI : module ↥S₀ A := hmod, refine smul_mem _ _ (smul_mem _ _ _),
-    rcases hl1 hr1 with rfl | hr1,
-    { change 1 * r2 ∈ _, rw one_mul r2, exact subset_span (hl2 hr2) },
-    rcases hl2 hr2 with rfl | hr2,
-    { change r1 * 1 ∈ _, rw mul_one, exact subset_span (set.mem_insert_of_mem _ hr1) },
-    let jk : ↥(↑(finset.product y y) : set (A × A)) := ⟨(r1, r2), finset.mem_product.2 ⟨hr1, hr2⟩⟩,
-    specialize hly2 jk, change _ = r1 * r2 at hly2, rw [id, id, ← hly2, finsupp.total_apply],
-    rw [finsupp.sum], refine sum_mem _ _, intros z hz,
-    have : ly jk z ∈ S₀,
-    { apply ring.subset_closure,
-      apply finset.mem_union_right, apply finset.mem_bind.2,
-      exact ⟨jk, finset.mem_univ _, by convert finset.mem_image_of_mem _ hz⟩ },
-    change @has_scalar.smul S₀ (algebra.comap S₀ R A) hmod.to_has_scalar ⟨ly jk z, this⟩ z ∈ _,
-    exact smul_mem _ _ (subset_span (set.mem_insert_of_mem _ (hly1 _ hz))) },
-  haveI : is_noetherian_ring ↥S₀ :=
-    is_noetherian_ring_closure _ (finset.finite_to_set _),
-  apply is_integral_of_noetherian
-    (algebra.adjoin S₀ ((↑y : set A) : set (algebra.comap S₀ R A)) : subalgebra S₀ (algebra.comap S₀ R A))
-    (is_noetherian_of_fg_of_noetherian _ ⟨insert 1 y, by rw finset.coe_insert; convert this⟩),
-  show x ∈ ((algebra.adjoin S₀ ((↑y : set A) : set (algebra.comap S₀ R A)) :
-      subalgebra S₀ (algebra.comap S₀ R A)) : submodule S₀ (algebra.comap S₀ R A)),
-  rw [← hlx2, finsupp.total_apply, finsupp.sum], refine sum_mem _ _, intros r hr,
-  rw ← this,
-  have : lx r ∈ ring.closure ↑S₀' :=
-    ring.subset_closure (finset.mem_union_left _ (by convert finset.mem_image_of_mem _ hr)),
-  change @has_scalar.smul S₀ (algebra.comap S₀ R A) hmod.to_has_scalar ⟨lx r, this⟩ r ∈ _,
+  let S₀ : set R := ring.closure ↑(lx.frange ∪ finset.bind finset.univ (finsupp.frange ∘ ly)),
+  refine is_integral_of_subring S₀ _,
+  have : span S₀ (insert 1 ↑y : set A) * span S₀ (insert 1 ↑y : set A) ≤ span S₀ (insert 1 ↑y : set A),
+  { rw span_mul_span, refine span_le.2 (λ z hz, _),
+    rcases set.mem_mul.1 hz with ⟨p, q, rfl | hp, hq, rfl⟩,
+    { rw one_mul, exact subset_span hq },
+    rcases hq with rfl | hq,
+    { rw mul_one, exact subset_span (or.inr hp) },
+    erw ← hly2 ⟨(p, q), finset.mem_product.2 ⟨hp, hq⟩⟩,
+    rw [finsupp.total_apply, finsupp.sum],
+    refine (span S₀ (insert 1 ↑y : set A)).sum_mem (λ t ht, _),
+    have : ly ⟨(p, q), finset.mem_product.2 ⟨hp, hq⟩⟩ t ∈ S₀ :=
+    ring.subset_closure (finset.mem_union_right _ $ finset.mem_bind.2
+      ⟨⟨(p, q), finset.mem_product.2 ⟨hp, hq⟩⟩, finset.mem_univ _,
+        finsupp.mem_frange.2 ⟨finsupp.mem_support_iff.1 ht, _, rfl⟩⟩),
+    change (⟨_, this⟩ : S₀) • t ∈ _, exact smul_mem _ _ (subset_span $ or.inr $ hly1 _ ht) },
+  haveI : is_subring (span S₀ (insert 1 ↑y : set A) : set A) :=
+  { one_mem := subset_span $ or.inl rfl,
+    mul_mem := λ p q hp hq, this $ mul_mem_mul hp hq,
+    zero_mem := (span S₀ (insert 1 ↑y : set A)).zero_mem,
+    add_mem := λ _ _, (span S₀ (insert 1 ↑y : set A)).add_mem,
+    neg_mem := λ _, (span S₀ (insert 1 ↑y : set A)).neg_mem },
+  have : span S₀ (insert 1 ↑y : set A) = algebra.adjoin S₀ (↑y : set A),
+  { refine le_antisymm (span_le.2 $ set.insert_subset.2
+        ⟨(algebra.adjoin S₀ ↑y).one_mem, algebra.subset_adjoin⟩) (λ z hz, _),
+    rw [subalgebra.mem_to_submodule, algebra.mem_adjoin_iff] at hz, rw ← submodule.mem_coe,
+    refine ring.closure_subset (set.union_subset (set.range_subset_iff.2 $ λ t, _)
+      (λ t ht, subset_span $ or.inr ht)) hz,
+    rw algebra.algebra_map_eq_smul_one,
+    exact smul_mem (span S₀ (insert 1 ↑y : set A)) _ (subset_span $ or.inl rfl) },
+  haveI : is_noetherian_ring ↥S₀ := is_noetherian_ring_closure _ (finset.finite_to_set _),
+  refine is_integral_of_noetherian (algebra.adjoin S₀ ↑y)
+    (is_noetherian_of_fg_of_noetherian _ ⟨insert 1 y, by rw [finset.coe_insert, this]⟩) _ _,
+  rw [← hlx2, finsupp.total_apply, finsupp.sum], refine subalgebra.sum_mem _ (λ r hr, _),
+  have : lx r ∈ S₀ := ring.subset_closure (finset.mem_union_left _ (finset.mem_image_of_mem _ hr)),
+  change (⟨_, this⟩ : S₀) • r ∈ _,
   rw finsupp.mem_supported at hlx1,
-  exact smul_mem _ _ (subset_span (set.mem_insert_of_mem _ (hlx1 hr))),
+  exact subalgebra.smul_mem _ (algebra.subset_adjoin $ hlx1 hr) _
 end
 
 theorem is_integral_of_mem_closure {x y z : A}
@@ -210,7 +190,7 @@ begin
   have := fg_mul _ _ (fg_adjoin_singleton_of_integral x hx) (fg_adjoin_singleton_of_integral y hy),
   rw [← algebra.adjoin_union_coe_submodule, set.singleton_union] at this,
   exact is_integral_of_mem_of_fg (algebra.adjoin R {x, y}) this z
-    (ring.closure_mono (set.subset_union_right _ _) hz)
+    (algebra.mem_adjoin_iff.2  $ ring.closure_mono (set.subset_union_right _ _) hz)
 end
 
 theorem is_integral_zero : is_integral R (0:A) :=
@@ -242,19 +222,26 @@ is_integral_of_mem_closure hx hy (is_submonoid.mul_mem
 
 variables (R A)
 def integral_closure : subalgebra R A :=
-{ carrier := { r | is_integral R r },
-  subring :=
-  { zero_mem := is_integral_zero,
-    one_mem := is_integral_one,
-    add_mem := λ _ _, is_integral_add,
-    neg_mem := λ _, is_integral_neg,
-    mul_mem := λ _ _, is_integral_mul },
-  range_le' := λ y ⟨x, hx⟩, hx ▸ is_integral_algebra_map }
+{ carrier :=
+  { carrier := { r | is_integral R r },
+    zero_mem' := is_integral_zero,
+    one_mem' := is_integral_one,
+    add_mem' := λ _ _, is_integral_add,
+    mul_mem' := λ _ _, is_integral_mul },
+  algebra_map_mem' := λ x, is_integral_algebra_map }
 
 theorem mem_integral_closure_iff_mem_fg {r : A} :
   r ∈ integral_closure R A ↔ ∃ M : subalgebra R A, (M : submodule R A).fg ∧ r ∈ M :=
 ⟨λ hr, ⟨algebra.adjoin R {r}, fg_adjoin_singleton_of_integral _ hr, algebra.subset_adjoin rfl⟩,
 λ ⟨M, Hf, hrM⟩, is_integral_of_mem_of_fg M Hf _ hrM⟩
+
+variables {R} {A}
+
+lemma integral_closure.is_integral (x : integral_closure R A) : is_integral R x :=
+exists_imp_exists
+  (λ p, and.imp_right (λ hp, show aeval R (integral_closure R A) x p = 0,
+    from subtype.ext (trans (p.hom_eval₂ _ (integral_closure R A).val.to_ring_hom x) hp)))
+  x.2
 
 theorem integral_closure_idem : integral_closure (integral_closure R A : set A) A = ⊥ :=
 begin
@@ -262,30 +249,27 @@ begin
   rcases is_integral_iff_is_integral_closure_finite.1 hr with ⟨s, hfs, hr⟩,
   apply algebra.mem_bot.2, refine ⟨⟨_, _⟩, rfl⟩,
   refine (mem_integral_closure_iff_mem_fg _ _).2 ⟨algebra.adjoin _ (subtype.val '' s ∪ {r}),
-    algebra.fg_trans
-      (fg_adjoin_of_finite (set.finite_image _ hfs)
-        (λ y ⟨x, hx, hxy⟩, hxy ▸ x.2))
-      _,
+    algebra.fg_trans (fg_adjoin_of_finite (hfs.image _) (λ y ⟨x, hx, hxy⟩, hxy ▸ x.2)) _,
     algebra.subset_adjoin (or.inr rfl)⟩,
   refine fg_adjoin_singleton_of_integral _ _,
   rcases hr with ⟨p, hmp, hpx⟩,
   refine ⟨to_subring (of_subring _ (of_subring _ p)) _ _, _, hpx⟩,
   { intros x hx, rcases finsupp.mem_frange.1 hx with ⟨h1, n, rfl⟩,
-    change (coeff p n).1.1 ∈ ring.closure _,
+    change (coeff p n).1.1 ∈ algebra.adjoin R (_ : set A),
     rcases ring.exists_list_of_mem_closure (coeff p n).2 with ⟨L, HL1, HL2⟩, rw ← HL2,
     clear HL2 hfs h1 hx n hmp hpx hr r p,
-    induction L with hd tl ih, { exact is_add_submonoid.zero_mem },
+    induction L with hd tl ih, { exact subalgebra.zero_mem _ },
     rw list.forall_mem_cons at HL1,
     rw [list.map_cons, list.sum_cons],
-    refine is_add_submonoid.add_mem _ (ih HL1.2),
+    refine subalgebra.add_mem _ _ (ih HL1.2),
     cases HL1 with HL HL', clear HL' ih tl,
-    induction hd with hd tl ih, { exact is_submonoid.one_mem },
+    induction hd with hd tl ih, { exact subalgebra.one_mem _ },
     rw list.forall_mem_cons at HL,
     rw list.prod_cons,
-    refine is_submonoid.mul_mem _ (ih HL.2),
+    refine subalgebra.mul_mem _ _ (ih HL.2),
     rcases HL.1 with hs | rfl,
     { exact algebra.subset_adjoin (set.mem_image_of_mem _ hs) },
-    exact is_add_subgroup.neg_mem (is_submonoid.one_mem) },
+    exact subalgebra.neg_mem _ (subalgebra.one_mem _) },
   replace hmp := congr_arg subtype.val hmp,
   replace hmp := congr_arg subtype.val hmp,
   exact subtype.eq hmp
@@ -297,72 +281,64 @@ section algebra
 open algebra
 variables {R : Type*} {A : Type*} {B : Type*}
 variables [comm_ring R] [comm_ring A] [comm_ring B]
-variables [algebra R A] [algebra A B]
+variables [algebra A B] [algebra R B]
 
-
-lemma is_integral_trans_aux (x : B) {p : polynomial A} (pmonic : monic p) (hp : aeval A B x p = 0)
-  (S : set (comap R A B))
-  (hS : S = (↑((finset.range (p.nat_degree + 1)).image
-    (λ i, to_comap R A B (p.coeff i))) : set (comap R A B))) :
-  is_integral (adjoin R S) (comap.to_comap R A B x) :=
+lemma is_integral_trans_aux (x : B) {p : polynomial A} (pmonic : monic p) (hp : aeval A B x p = 0) :
+  is_integral (adjoin R (↑(p.map $ algebra_map A B).frange : set B)) x :=
 begin
-  have coeffs_mem : ∀ i, coeff (map ↑(to_comap R A B) p) i ∈ adjoin R S,
-  { intro i,
-    by_cases hi : i ∈ finset.range (p.nat_degree + 1),
-    { apply algebra.subset_adjoin, subst S,
-      rw [finset.mem_coe, finset.mem_image, coeff_map],
-      exact ⟨i, hi, rfl⟩ },
-    { rw [finset.mem_range, not_lt] at hi,
-      rw [coeff_map, coeff_eq_zero_of_nat_degree_lt hi, ring_hom.map_zero],
-      exact submodule.zero_mem (adjoin R S : submodule R (comap R A B)) } },
-  obtain ⟨q, hq⟩ : ∃ q : polynomial (adjoin R S), q.map (algebra_map (adjoin R S) (comap R A B)) =
-      (p.map $ to_comap R A B),
-  { rw [← set.mem_range], dsimp only,
-    apply (polynomial.mem_map_range _).2,
-    { intros i, specialize coeffs_mem i, rw ← subalgebra.mem_coe at coeffs_mem,
-      convert coeffs_mem, exact subtype.val_range } },
+  generalize hS : (↑(p.map $ algebra_map A B).frange : set B) = S,
+  have coeffs_mem : ∀ i, (p.map $ algebra_map A B).coeff i ∈ adjoin R S,
+  { intro i, by_cases hi : (p.map $ algebra_map A B).coeff i = 0,
+    { rw hi, exact subalgebra.zero_mem _ },
+    rw ← hS, exact subset_adjoin (finsupp.mem_frange.2 ⟨hi, i, rfl⟩) },
+  obtain ⟨q, hq⟩ : ∃ q : polynomial (adjoin R S), q.map (algebra_map (adjoin R S) B) =
+      (p.map $ algebra_map A B),
+  { rw ← set.mem_range, exact (polynomial.mem_map_range _).2 (λ i, ⟨⟨_, coeffs_mem i⟩, rfl⟩) },
   use q,
   split,
-  { suffices h : (q.map (algebra_map (adjoin R S) (comap R A B))).monic,
+  { suffices h : (q.map (algebra_map (adjoin R S) B)).monic,
     { refine monic_of_injective _ h,
       exact subtype.val_injective },
     { rw hq, exact monic_map _ pmonic } },
   { convert hp using 1,
-    replace hq := congr_arg (eval (comap.to_comap R A B x)) hq,
+    replace hq := congr_arg (eval x) hq,
     convert hq using 1; symmetry; apply eval_map },
 end
+
+variables [algebra R A] [is_algebra_tower R A B]
 
 /-- If A is an R-algebra all of whose elements are integral over R,
 and x is an element of an A-algebra that is integral over A, then x is integral over R.-/
 lemma is_integral_trans (A_int : ∀ x : A, is_integral R x) (x : B) (hx : is_integral A x) :
-  is_integral R (comap.to_comap R A B x) :=
+  is_integral R x :=
 begin
   rcases hx with ⟨p, pmonic, hp⟩,
-  let S : set (comap R A B) :=
-    (↑((finset.range (p.nat_degree + 1)).image
-      (λ i, to_comap R A B (p.coeff i))) : set (comap R A B)),
-  refine is_integral_of_mem_of_fg (adjoin R (S ∪ {comap.to_comap R A B x})) _ _ _,
-  swap, { apply subset_adjoin, simp },
-  apply fg_trans,
-  { apply fg_adjoin_of_finite, { apply finset.finite_to_set },
-    intros x hx,
-    rw [finset.mem_coe, finset.mem_image] at hx,
-    rcases hx with ⟨i, hi, rfl⟩,
-    rcases A_int (p.coeff i) with ⟨q, hq, hqx⟩,
-    use [q, hq],
-    replace hqx := congr_arg (to_comap R A B : A → (comap R A B)) hqx,
-    rw alg_hom.map_zero at hqx,
-    convert hqx using 1,
-    symmetry, exact polynomial.hom_eval₂ _ _ _ _ },
+  let S : set B := ↑(p.map $ algebra_map A B).frange,
+  refine is_integral_of_mem_of_fg (adjoin R (S ∪ {x})) _ _ (subset_adjoin $ or.inr rfl),
+  refine fg_trans (fg_adjoin_of_finite (finset.finite_to_set _) (λ x hx, _)) _,
+  { rw [finset.mem_coe, finsupp.mem_frange] at hx, rcases hx with ⟨_, i, rfl⟩,
+    show is_integral R ((p.map $ algebra_map A B).coeff i), rw coeff_map,
+    convert is_integral_alg_hom (is_algebra_tower.to_alg_hom R A B) (A_int _) },
   { apply fg_adjoin_singleton_of_integral,
-    exact is_integral_trans_aux _ pmonic hp _ rfl }
+    exact is_integral_trans_aux _ pmonic hp }
 end
 
 /-- If A is an R-algebra all of whose elements are integral over R,
 and B is an A-algebra all of whose elements are integral over A,
 then all elements of B are integral over R.-/
 lemma algebra.is_integral_trans (A_int : ∀ x : A, is_integral R x)(B_int : ∀ x:B, is_integral A x) :
-  ∀ x:(comap R A B), is_integral R x :=
+  ∀ x:B, is_integral R x :=
 λ x, is_integral_trans A_int x (B_int x)
 
 end algebra
+
+section integral_domain
+variables {R S : Type*} [comm_ring R] [integral_domain S] [algebra R S]
+
+instance : integral_domain (integral_closure R S) :=
+{ exists_pair_ne := ⟨0, 1, mt subtype.ext_iff_val.mp zero_ne_one⟩,
+  eq_zero_or_eq_zero_of_mul_eq_zero := λ ⟨a, ha⟩ ⟨b, hb⟩ h,
+    or.imp subtype.ext_iff_val.mpr subtype.ext_iff_val.mpr (eq_zero_or_eq_zero_of_mul_eq_zero (subtype.ext_iff_val.mp h)),
+  ..(integral_closure R S).comm_ring R S }
+
+end integral_domain

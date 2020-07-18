@@ -305,9 +305,8 @@ forall_or_distrib_right not_ball
 
 private meta def has_coe_to_fun_linter (d : declaration) : tactic (option string) :=
 retrieve $ do
-reset_instance_cache,
 mk_meta_var d.type >>= set_goals ∘ pure,
-args ← intros,
+args ← unfreezing intros,
 expr.sort _ ← target | pure none,
 let ty : expr := (expr.const d.to_name d.univ_levels).mk_app args,
 some coe_fn_inst ←

@@ -11,7 +11,7 @@ set_option old_structure_cmd true
 
 variable {α : Type*}
 
-@[protect_proj] class linear_ordered_field (α : Type*) extends linear_ordered_ring α, field α
+@[protect_proj] class linear_ordered_field (α : Type*) extends linear_ordered_comm_ring α, field α
 
 section linear_ordered_field
 variables [linear_ordered_field α] {a b c d e : α}
@@ -295,7 +295,7 @@ by rw [sub_add_eq_sub_sub, sub_self, zero_sub]
 
 lemma add_self_div_two (a : α) : (a + a) / 2 = a :=
 eq.symm
-  (iff.mpr (eq_div_iff_mul_eq _ _ (ne_of_gt (add_pos (@zero_lt_one α _) zero_lt_one)))
+  (iff.mpr (eq_div_iff_mul_eq (ne_of_gt (add_pos (@zero_lt_one α _) zero_lt_one)))
            (begin unfold bit0, rw [left_distrib, mul_one] end))
 
 lemma mul_le_mul_of_mul_div_le {a b c d : α} (h : a * (b / c) ≤ d) (hc : c > 0) : b * a ≤ d * c :=
@@ -322,7 +322,7 @@ begin
   apply one_div_pos_of_pos he
 end
 
-lemma exists_add_lt_and_pos_of_lt {a b : α} (h : b < a) : ∃ c : α, b + c < a ∧ c > 0 :=
+lemma exists_add_lt_and_pos_of_lt {a b : α} (h : b < a) : ∃ c : α, b + c < a ∧ 0 < c :=
 begin
   apply exists.intro ((a - b) / (1 + 1)),
   split,
@@ -340,7 +340,7 @@ begin
   exact div_pos_of_pos_of_pos (sub_pos_of_lt h) two_pos
 end
 
-lemma ge_of_forall_ge_sub {a b : α} (h : ∀ ε : α, ε > 0 → a ≥ b - ε) : a ≥ b :=
+lemma le_of_forall_sub_le {a b : α} (h : ∀ ε > 0, b - ε ≤ a) : b ≤ a :=
 begin
   apply le_of_not_gt,
   intro hb,
@@ -440,12 +440,12 @@ lemma div_pos : 0 < a → 0 < b → 0 < a / b := div_pos_of_pos_of_pos
 
 @[simp] lemma inv_pos : ∀ {a : α}, 0 < a⁻¹ ↔ 0 < a :=
 suffices ∀ a : α, 0 < a → 0 < a⁻¹,
-from λ a, ⟨λ h, inv_inv'' a ▸ this _ h, this a⟩,
+from λ a, ⟨λ h, inv_inv' a ▸ this _ h, this a⟩,
 λ a, one_div_eq_inv a ▸ one_div_pos_of_pos
 
 @[simp] lemma inv_lt_zero : ∀ {a : α}, a⁻¹ < 0 ↔ a < 0 :=
 suffices ∀ a : α, a < 0 → a⁻¹ < 0,
-from λ a, ⟨λ h, inv_inv'' a ▸ this _ h, this a⟩,
+from λ a, ⟨λ h, inv_inv' a ▸ this _ h, this a⟩,
 λ a, one_div_eq_inv a ▸ one_div_neg_of_neg
 
 @[simp] lemma inv_nonneg : 0 ≤ a⁻¹ ↔ 0 ≤ a :=
@@ -521,6 +521,9 @@ lt_iff_lt_of_le_iff_le (le_inv hb ha)
 
 lemma one_div_lt (ha : 0 < a) (hb : 0 < b) : 1 / a < b ↔ 1 / b < a :=
 (one_div_eq_inv a).symm ▸ (one_div_eq_inv b).symm ▸ inv_lt ha hb
+
+lemma one_div_le (ha : 0 < a) (hb : 0 < b) : 1 / a ≤ b ↔ 1 / b ≤ a :=
+by simpa using inv_le ha hb
 
 lemma lt_inv (ha : 0 < a) (hb : 0 < b) : a < b⁻¹ ↔ b < a⁻¹ :=
 lt_iff_lt_of_le_iff_le (inv_le hb ha)
@@ -616,7 +619,7 @@ lemma one_le_inv (ha0 : 0 < a) (ha : a ≤ 1) : 1 ≤ a⁻¹ :=
 le_of_mul_le_mul_left (by simpa [mul_inv_cancel (ne.symm (ne_of_lt ha0))]) ha0
 
 lemma mul_self_inj_of_nonneg (a0 : 0 ≤ a) (b0 : 0 ≤ b) : a * a = b * b ↔ a = b :=
-(mul_self_eq_mul_self_iff a b).trans $ or_iff_left_of_imp $
+mul_self_eq_mul_self_iff.trans $ or_iff_left_of_imp $
 λ h, by subst a; rw [le_antisymm (neg_nonneg.1 a0) b0, neg_zero]
 
 lemma div_le_div_of_le_left (ha : 0 ≤ a) (hc : 0 < c) (h : c ≤ b) :
@@ -652,7 +655,7 @@ decidable.by_cases
   (assume h : b ≠ 0,
    have h₁ : abs b ≠ 0, from
      assume h₂, h (eq_zero_of_abs_eq_zero h₂),
-   eq_div_of_mul_eq _ _ h₁
+   eq_div_of_mul_eq h₁
    (show abs (a / b) * abs b = abs a, by rw [← abs_mul, div_mul_cancel _ h]))
 
 lemma abs_one_div (a : α) : abs (1 / a) = 1 / abs a :=

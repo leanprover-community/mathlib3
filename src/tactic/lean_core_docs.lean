@@ -590,7 +590,7 @@ add_tactic_doc
 { name       := "specialize",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.specialize],
-  tags       := ["core", "hypothesis management", "lemma application"] }
+  tags       := ["core", "context management", "lemma application"] }
 
 add_tactic_doc
 { name       := "split",

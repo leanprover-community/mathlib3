@@ -95,7 +95,7 @@ def foo_has_mul {α} [has_mul α] : has_mul α := infer_instance
 local attribute [instance, priority 1] foo_has_mul
 run_cmd do
   d ← get_decl `has_mul,
-  some s ← fails_quickly 100 d,
+  some s ← fails_quickly 20 d,
   guard $ s = "type-class inference timed out"
 local attribute [instance, priority 10000] foo_has_mul
 run_cmd do

@@ -83,8 +83,8 @@ end
 @[simp] lemma cycle_of_gpow_apply_self [fintype α] (f : perm α) (x : α) :
   ∀ n : ℤ, (cycle_of f x ^ n) x = (f ^ n) x
 | (n : ℕ) := cycle_of_pow_apply_self f x n
-| -[1+ n] := by rw [gpow_neg_succ, ← inv_pow, cycle_of_inv,
-  gpow_neg_succ, ← inv_pow, cycle_of_pow_apply_self]
+| -[1+ n] := by rw [gpow_neg_succ_of_nat, ← inv_pow, cycle_of_inv,
+  gpow_neg_succ_of_nat, ← inv_pow, cycle_of_pow_apply_self]
 
 lemma cycle_of_apply_of_same_cycle [fintype α] {f : perm α} {x y : α} (h : same_cycle f x y) :
   cycle_of f x y = f y := dif_pos h
@@ -102,7 +102,7 @@ equiv.ext $ λ y,
   else by rw [cycle_of_apply_of_not_same_cycle h, not_not.1 (mt ((same_cycle_cycle hx).1 hf).2 h)]
 
 lemma cycle_of_one [fintype α] (x : α) : cycle_of 1 x = 1 :=
-by rw [cycle_of, subtype_perm_one (same_cycle 1 x), of_subtype_one]
+by rw [cycle_of, subtype_perm_one (same_cycle 1 x), of_subtype.map_one]
 
 lemma is_cycle_cycle_of [fintype α] (f : perm α) {x : α} (hx : f x ≠ x) : is_cycle (cycle_of f x) :=
 have cycle_of f x x ≠ x, by rwa [cycle_of_apply_of_same_cycle (same_cycle.refl _ _)],

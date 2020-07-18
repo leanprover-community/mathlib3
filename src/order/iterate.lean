@@ -70,6 +70,42 @@ lemma iterate_pos_lt_iff_map_lt' (h : commute f g) (hf : strict_mono f)
   f^[n] x < (g^[n]) x ↔ f x < g x :=
 @iterate_pos_lt_iff_map_lt (order_dual α) _ _ _ h.symm hg.order_dual hf.order_dual x n hn
 
+lemma iterate_pos_le_iff_map_le (h : commute f g) (hf : monotone f)
+  (hg : strict_mono g) {x n} (hn : 0 < n) :
+  f^[n] x ≤ (g^[n]) x ↔ f x ≤ g x :=
+by simpa only [not_lt] using not_congr (h.symm.iterate_pos_lt_iff_map_lt' hg hf hn)
+
+lemma iterate_pos_le_iff_map_le' (h : commute f g) (hf : strict_mono f)
+  (hg : monotone g) {x n} (hn : 0 < n) :
+  f^[n] x ≤ (g^[n]) x ↔ f x ≤ g x :=
+by simpa only [not_lt] using not_congr (h.symm.iterate_pos_lt_iff_map_lt hg hf hn)
+
+lemma iterate_pos_eq_iff_map_eq (h : commute f g) (hf : monotone f)
+  (hg : strict_mono g) {x n} (hn : 0 < n) :
+  f^[n] x = (g^[n]) x ↔ f x = g x :=
+by simp only [le_antisymm_iff, h.iterate_pos_le_iff_map_le hf hg hn,
+  h.symm.iterate_pos_le_iff_map_le' hg hf hn]
+
 end commute
 
 end function
+
+namespace monotone
+
+variables [preorder α] {f g : α → α}
+
+open function
+
+/-- If `f ≤ g` and `f` is monotone, then `f^[n] ≤ g^[n]`. -/
+lemma iterate_le_of_le (hf : monotone f) (h : f ≤ g) (n : ℕ) :
+  f^[n] ≤ (g^[n]) :=
+nat.rec_on n (le_refl id) $ λ n ihn x,
+calc f^[n] (f x) ≤ (f^[n]) (g x) : hf.iterate n (h x)
+             ... ≤ (g^[n+1] x)   : ihn (g x)
+
+/-- If `f ≤ g` and `f` is monotone, then `f^[n] ≤ g^[n]`. -/
+lemma iterate_ge_of_ge (hg : monotone g) (h : f ≤ g) (n : ℕ) :
+  f^[n] ≤ (g^[n]) :=
+hg.order_dual.iterate_le_of_le h n
+
+end monotone

@@ -113,6 +113,9 @@ theorem mk_classes_classes (r : setoid α) :
 ext' $ λ x y, ⟨λ h, r.symm' (h {z | r.rel z x} (r.mem_classes x) $ r.refl' x),
   λ h b hb hx, eq_of_mem_classes (r.mem_classes x) (r.refl' x) hb hx ▸ r.symm' h⟩
 
+@[simp] theorem sUnion_classes (r : setoid α) : ⋃₀ r.classes = set.univ :=
+set.eq_univ_of_forall $ λ x, set.mem_sUnion.2 ⟨{ y | r.rel y x }, ⟨x, rfl⟩, setoid.refl _⟩
+
 section partition
 
 /-- A collection `c : set (set α)` of sets is a partition of `α` into pairwise
@@ -124,6 +127,18 @@ def is_partition (c : set (set α)) :=
 lemma nonempty_of_mem_partition {c : set (set α)} (hc : is_partition c) {s} (h : s ∈ c) :
   s.nonempty :=
 set.ne_empty_iff_nonempty.1 $ λ hs0, hc.1 $ hs0 ▸ h
+
+lemma is_partition_classes (r : setoid α) : is_partition r.classes :=
+⟨empty_not_mem_classes, classes_eqv_classes⟩
+
+lemma is_partition.pairwise_disjoint {c : set (set α)} (hc : is_partition c) :
+  c.pairwise_disjoint :=
+eqv_classes_disjoint hc.2
+
+lemma is_partition.sUnion_eq_univ {c : set (set α)} (hc : is_partition c) :
+  ⋃₀ c = set.univ :=
+set.eq_univ_of_forall $ λ x, set.mem_sUnion.2 $
+  let ⟨t, ht⟩ := hc.2 x in ⟨t, by clear_aux_decl; finish⟩
 
 /-- All elements of a partition of α are the equivalence class of some y ∈ α. -/
 lemma exists_of_mem_partition {c : set (set α)} (hc : is_partition c) {s} (hs : s ∈ c) :
@@ -155,7 +170,7 @@ instance partition.partial_order : partial_order (subtype (@is_partition α)) :=
   le_trans := λ _ _ _, @le_trans (setoid α) _ _ _ _,
   lt_iff_le_not_le := λ _ _, iff.rfl,
   le_antisymm := λ x y hx hy, let h := @le_antisymm (setoid α) _ _ _ hx hy in by
-    rw [subtype.ext, ←classes_mk_classes x.1 x.2, ←classes_mk_classes y.1 y.2, h] }
+    rw [subtype.ext_iff_val, ←classes_mk_classes x.1 x.2, ←classes_mk_classes y.1 y.2, h] }
 
 variables (α)
 
@@ -165,7 +180,7 @@ def partition.order_iso :
 { to_fun := λ r, ⟨r.classes, empty_not_mem_classes, classes_eqv_classes⟩,
   inv_fun := λ x, mk_classes x.1 x.2.2,
   left_inv := mk_classes_classes,
-  right_inv := λ x, by rw [subtype.ext, ←classes_mk_classes x.1 x.2],
+  right_inv := λ x, by rw [subtype.ext_iff_val, ←classes_mk_classes x.1 x.2],
   ord' := λ x y, by conv {to_lhs, rw [←mk_classes_classes x, ←mk_classes_classes y]}; refl }
 
 variables {α}

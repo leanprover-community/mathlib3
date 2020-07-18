@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import number_theory.pell
 import data.pfun
+import data.fin2
 
 universe u
 
@@ -21,80 +22,6 @@ begin
 end
 
 end int
-
-/-- An alternate definition of `fin n` defined as an inductive type
-  instead of a subtype of `nat`. This is useful for its induction
-  principle and different definitional equalities. -/
-inductive fin2 : ℕ → Type
-| fz {n} : fin2 (succ n)
-| fs {n} : fin2 n → fin2 (succ n)
-
-namespace fin2
-
-@[elab_as_eliminator]
-protected def cases' {n} {C : fin2 (succ n) → Sort u} (H1 : C fz) (H2 : Π n, C (fs n)) :
-  Π (i : fin2 (succ n)), C i
-| fz     := H1
-| (fs n) := H2 n
-
-def elim0 {C : fin2 0 → Sort u} : Π (i : fin2 0), C i.
-
-/-- convert a `fin2` into a `nat` -/
-def to_nat : Π {n}, fin2 n → ℕ
-| ._ (@fz n)   := 0
-| ._ (@fs n i) := succ (to_nat i)
-
-/-- convert a `nat` into a `fin2` if it is in range -/
-def opt_of_nat : Π {n} (k : ℕ), option (fin2 n)
-| 0 _ := none
-| (succ n) 0 := some fz
-| (succ n) (succ k) := fs <$> @opt_of_nat n k
-
-/-- `i + k : fin2 (n + k)` when `i : fin2 n` and `k : ℕ` -/
-def add {n} (i : fin2 n) : Π k, fin2 (n + k)
-| 0        := i
-| (succ k) := fs (add k)
-
-/-- `left k` is the embedding `fin2 n → fin2 (k + n)` -/
-def left (k) : Π {n}, fin2 n → fin2 (k + n)
-| ._ (@fz n)   := fz
-| ._ (@fs n i) := fs (left i)
-
-/-- `insert_perm a` is a permutation of `fin2 n` with the following properties:
-  * `insert_perm a i = i+1` if `i < a`
-  * `insert_perm a a = 0`
-  * `insert_perm a i = i` if `i > a` -/
-def insert_perm : Π {n}, fin2 n → fin2 n → fin2 n
-| ._ (@fz n)          (@fz ._)   := fz
-| ._ (@fz n)          (@fs ._ j) := fs j
-| ._ (@fs (succ n) i) (@fz ._)   := fs fz
-| ._ (@fs (succ n) i) (@fs ._ j) := match insert_perm i j with fz := fz | fs k := fs (fs k) end
-
-/-- `remap_left f k : fin2 (m + k) → fin2 (n + k)` applies the function
-  `f : fin2 m → fin2 n` to inputs less than `m`, and leaves the right part
-  on the right (that is, `remap_left f k (m + i) = n + i`). -/
-def remap_left {m n} (f : fin2 m → fin2 n) : Π k, fin2 (m + k) → fin2 (n + k)
-| 0        i          := f i
-| (succ k) (@fz ._)   := fz
-| (succ k) (@fs ._ i) := fs (remap_left _ i)
-
-/-- This is a simple type class inference prover for proof obligations
-  of the form `m < n` where `m n : ℕ`. -/
-class is_lt (m n : ℕ) := (h : m < n)
-instance is_lt.zero (n) : is_lt 0 (succ n) := ⟨succ_pos _⟩
-instance is_lt.succ (m n) [l : is_lt m n] : is_lt (succ m) (succ n) := ⟨succ_lt_succ l.h⟩
-
-/-- Use type class inference to infer the boundedness proof, so that we
-  can directly convert a `nat` into a `fin2 n`. This supports
-  notation like `&1 : fin 3`. -/
-def of_nat' : Π {n} m [is_lt m n], fin2 n
-| 0        m        ⟨h⟩ := absurd h (not_lt_zero _)
-| (succ n) 0        ⟨h⟩ := fz
-| (succ n) (succ m) ⟨h⟩ := fs (@of_nat' n m ⟨lt_of_succ_lt_succ h⟩)
-
-local prefix `&`:max := of_nat'
-
-end fin2
 
 open fin2
 
@@ -536,7 +463,7 @@ theorem or_dioph {S S' : set (α → ℕ)} : ∀ (d : dioph S) (d' : dioph S'), 
   begin
     refine iff.trans (or_congr ((pe v).trans _) ((qe v).trans _))
       (exists_or_distrib.symm.trans (exists_congr $ λt,
-      (@mul_eq_zero_iff_eq_zero_or_eq_zero _ _ (p ((v ⊗ t) ∘ (inl ⊗ inr ∘ inl)))
+      (@mul_eq_zero _ _ _ (p ((v ⊗ t) ∘ (inl ⊗ inr ∘ inl)))
         (q ((v ⊗ t) ∘ (inl ⊗ inr ∘ inr)))).symm)),
     exact inject_dummies_lem _ (some ⊗ (λ_, none)) (λx, rfl) _ _,
     exact inject_dummies_lem _ ((λ_, none) ⊗ some) (λx, rfl) _ _,
@@ -751,17 +678,17 @@ localized "infix ` D/ `:80 := dioph.div_dioph" in dioph
 omit df dg
 open pell
 
-theorem pell_dioph : dioph (λv:vector3 ℕ 4, ∃ h : v &0 > 1,
+theorem pell_dioph : dioph (λv:vector3 ℕ 4, ∃ h : 1 < v &0,
   xn h (v &1) = v &2 ∧ yn h (v &1) = v &3) :=
 have dioph {v : vector3 ℕ 4 |
-v &0 > 1 ∧ v &1 ≤ v &3 ∧
+1 < v &0 ∧ v &1 ≤ v &3 ∧
 (v &2 = 1 ∧ v &3 = 0 ∨
 ∃ (u w s t b : ℕ),
   v &2 * v &2 - (v &0 * v &0 - 1) * v &3 * v &3 = 1 ∧
   u * u - (v &0 * v &0 - 1) * w * w = 1 ∧
   s * s - (b * b - 1) * t * t = 1 ∧
-  b > 1 ∧ (b ≡ 1 [MOD 4 * v &3]) ∧ (b ≡ v &0 [MOD u]) ∧
-  w > 0 ∧ v &3 * v &3 ∣ w ∧
+  1 < b ∧ (b ≡ 1 [MOD 4 * v &3]) ∧ (b ≡ v &0 [MOD u]) ∧
+  0 < w ∧ v &3 * v &3 ∣ w ∧
   (s ≡ v &2 [MOD u]) ∧
   (t ≡ v &1 [MOD 4 * v &3]))}, from
 D.1 D< D&0 D∧ D&1 D≤ D&3 D∧
@@ -776,18 +703,18 @@ D.1 D< D&0 D∧ D&1 D≤ D&3 D∧
   (D≡ (D&1) (D&6) (D.4 D* D&8)))),
 dioph.ext this $ λv, matiyasevic.symm
 
-theorem xn_dioph : dioph_pfun (λv:vector3 ℕ 2, ⟨v &0 > 1, λh, xn h (v &1)⟩) :=
-have dioph (λv:vector3 ℕ 3, ∃ y, ∃ h : v &1 > 1, xn h (v &2) = v &0 ∧ yn h (v &2) = y), from
+theorem xn_dioph : dioph_pfun (λv:vector3 ℕ 2, ⟨1 < v &0, λh, xn h (v &1)⟩) :=
+have dioph (λv:vector3 ℕ 3, ∃ y, ∃ h : 1 < v &1, xn h (v &2) = v &0 ∧ yn h (v &2) = y), from
 let D_pell := @reindex_dioph _ (fin2 4) _ pell_dioph [&2, &3, &1, &0] in D∃3 D_pell,
 (dioph_pfun_vec _).2 $ dioph.ext this $ λv, ⟨λ⟨y, h, xe, ye⟩, ⟨h, xe⟩, λ⟨h, xe⟩, ⟨_, h, xe, rfl⟩⟩
 
 include df dg
 theorem pow_dioph : dioph_fn (λv, f v ^ g v) :=
 have dioph {v : vector3 ℕ 3 |
-v &2 = 0 ∧ v &0 = 1 ∨ v &2 > 0 ∧
-(v &1 = 0 ∧ v &0 = 0 ∨ v &1 > 0 ∧
+v &2 = 0 ∧ v &0 = 1 ∨ 0 < v &2 ∧
+(v &1 = 0 ∧ v &0 = 0 ∨ 0 < v &1 ∧
 ∃ (w a t z x y : ℕ),
-  (∃ (a1 : a > 1), xn a1 (v &2) = x ∧ yn a1 (v &2) = y) ∧
+  (∃ (a1 : 1 < a), xn a1 (v &2) = x ∧ yn a1 (v &2) = y) ∧
   (x ≡ y * (a - v &1) + v &0 [MOD t]) ∧
   2 * a * v &1 = t + (v &1 * v &1 + 1) ∧
   v &0 < t ∧ v &1 ≤ w ∧ v &2 ≤ w ∧

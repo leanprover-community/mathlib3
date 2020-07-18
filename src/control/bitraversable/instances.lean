@@ -76,7 +76,7 @@ instance bitraversable.flip : bitraversable (flip t) :=
 open is_lawful_bitraversable
 instance is_lawful_bitraversable.flip [is_lawful_bitraversable t]
   : is_lawful_bitraversable (flip t)  :=
-by constructor; introsI; casesm is_lawful_bitraversable t; apply_assumption
+by constructor; intros; unfreezingI { casesm is_lawful_bitraversable t }; tactic.apply_assumption
 
 open bitraversable functor
 

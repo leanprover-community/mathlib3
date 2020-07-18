@@ -159,16 +159,16 @@ instance {F : C ⥤ D} [full F] : full F.op :=
 { preimage := λ X Y f, (F.preimage f.unop).op }
 
 instance {F : C ⥤ D} [faithful F] : faithful F.op :=
-{ injectivity' := λ X Y f g h,
-    has_hom.hom.unop_inj $ by simpa using injectivity F (has_hom.hom.op_inj h) }
+{ map_injective' := λ X Y f g h,
+    has_hom.hom.unop_inj $ by simpa using map_injective F (has_hom.hom.op_inj h) }
 
 /-- If F is faithful then the right_op of F is also faithful. -/
 instance right_op_faithful {F : Cᵒᵖ ⥤ D} [faithful F] : faithful F.right_op :=
-{ injectivity' := λ X Y f g h, has_hom.hom.op_inj (injectivity F (has_hom.hom.op_inj h)) }
+{ map_injective' := λ X Y f g h, has_hom.hom.op_inj (map_injective F (has_hom.hom.op_inj h)) }
 
 /-- If F is faithful then the left_op of F is also faithful. -/
 instance left_op_faithful {F : C ⥤ Dᵒᵖ} [faithful F] : faithful F.left_op :=
-{ injectivity' := λ X Y f g h, has_hom.hom.unop_inj (injectivity F (has_hom.hom.unop_inj h)) }
+{ map_injective' := λ X Y f g h, has_hom.hom.unop_inj (map_injective F (has_hom.hom.unop_inj h)) }
 
 end
 
@@ -259,8 +259,8 @@ isomorphism between the original functors `F ≅ G`. -/
 protected definition op (α : F ≅ G) : G.op ≅ F.op :=
 { hom := nat_trans.op α.hom,
   inv := nat_trans.op α.inv,
-  hom_inv_id' := begin ext, dsimp, rw ←op_comp, rw inv_hom_id_app, refl, end,
-  inv_hom_id' := begin ext, dsimp, rw ←op_comp, rw hom_inv_id_app, refl, end }
+  hom_inv_id' := begin ext, dsimp, rw ←op_comp, rw α.inv_hom_id_app, refl, end,
+  inv_hom_id' := begin ext, dsimp, rw ←op_comp, rw α.hom_inv_id_app, refl, end }
 
 @[simp] lemma op_hom (α : F ≅ G) : (nat_iso.op α).hom = nat_trans.op α.hom := rfl
 @[simp] lemma op_inv (α : F ≅ G) : (nat_iso.op α).inv = nat_trans.op α.inv := rfl
@@ -270,8 +270,8 @@ between the opposite functors `F.op ≅ G.op`. -/
 protected definition unop (α : F.op ≅ G.op) : G ≅ F :=
 { hom := nat_trans.unop α.hom,
   inv := nat_trans.unop α.inv,
-  hom_inv_id' := begin ext, dsimp, rw ←unop_comp, rw inv_hom_id_app, refl, end,
-  inv_hom_id' := begin ext, dsimp, rw ←unop_comp, rw hom_inv_id_app, refl, end }
+  hom_inv_id' := begin ext, dsimp, rw ←unop_comp, rw α.inv_hom_id_app, refl, end,
+  inv_hom_id' := begin ext, dsimp, rw ←unop_comp, rw α.hom_inv_id_app, refl, end }
 
 @[simp] lemma unop_hom (α : F.op ≅ G.op) : (nat_iso.unop α).hom = nat_trans.unop α.hom := rfl
 @[simp] lemma unop_inv (α : F.op ≅ G.op) : (nat_iso.unop α).inv = nat_trans.unop α.inv := rfl

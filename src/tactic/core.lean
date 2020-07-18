@@ -9,6 +9,8 @@ import meta.expr
 import meta.rb_map
 import data.bool
 import tactic.lean_core_docs
+import tactic.interactive_expr
+import tactic.fix_by_cases
 
 universe variable u
 
@@ -66,6 +68,15 @@ with initial value `a`. -/
 meta def mfoldl {α : Type} {m} [monad m] (f : α → expr → m α) : α → expr → m α
 | x e := prod.snd <$> (state_t.run (e.traverse $ λ e',
     (get >>= monad_lift ∘ flip f e' >>= put) $> e') x : m _)
+
+/-- `kreplace e old new` replaces all occurrences of the expression `old` in `e`
+with `new`. The occurrences of `old` in `e` are determined using keyed matching
+with transparency `md`; see `kabstract` for details. If `unify` is true,
+we may assign metavariables in `e` as we match subterms of `e` against `old`. -/
+meta def kreplace (e old new : expr) (md := semireducible) (unify := tt)
+  : tactic expr := do
+  e ← kabstract e old md unify,
+  pure $ e.instantiate_var new
 
 end expr
 
@@ -847,12 +858,22 @@ do h ← get_local hyp,
    tp ← infer_type h,
    olde ← to_expr olde, newe ← to_expr newe,
    let repl_tp := tp.replace (λ a n, if a = olde then some newe else none),
-   change_core repl_tp (some h)
+   when (repl_tp ≠ tp) $ change_core repl_tp (some h)
 
 /-- Returns a list of all metavariables in the current partial proof. This can differ from
 the list of goals, since the goals can be manually edited. -/
 meta def metavariables : tactic (list expr) :=
 expr.list_meta_vars <$> result
+
+/--
+`sorry_if_contains_sorry` will solve any goal already containing `sorry` in its type with `sorry`,
+and fail otherwise.
+-/
+meta def sorry_if_contains_sorry : tactic unit :=
+do
+  g ← target,
+  guard g.contains_sorry <|> fail "goal does not contain `sorrry`",
+  tactic.admit
 
 /-- Fail if the target contains a metavariable. -/
 meta def no_mvars_in_target : tactic unit :=
@@ -1730,6 +1751,17 @@ meta def success_if_fail_with_msg {α : Type u} (t : tactic α) (msg : string) :
    mk_exception "success_if_fail_with_msg combinator failed, given tactic succeeded" none s
 end
 
+/--
+Construct a `refine ...` or `exact ...` string which would construct `g`.
+-/
+meta def tactic_statement (g : expr) : tactic string :=
+do g ← instantiate_mvars g,
+   g ← head_beta g,
+   r ← pp (replace_mvars g),
+   if g.has_meta_var
+   then return (sformat!"Try this: refine {r}")
+   else return (sformat!"Try this: exact {r}")
+
 /-- `with_local_goals gs tac` runs `tac` on the goals `gs` and then restores the
 initial goals and returns the goals `tac` ended on. -/
 meta def with_local_goals {α} (gs : list expr) (tac : tactic α) : tactic (α × list expr) :=
@@ -1906,7 +1938,7 @@ do e ← pformat_macro () s,
 
 reserve prefix `trace! `:100
 /--
-The combination of `pformat` and `fail`.
+The combination of `pformat` and `trace`.
 -/
 @[user_notation]
 meta def trace_macro (_ : parse $ tk "trace!") (s : string) : parser pexpr :=
@@ -1975,48 +2007,11 @@ Examples:
 * ```get_pexpr_arg_arity_with_tgt ``(monad) `(true)``` returns 1, since `monad` takes one argument of type `α → α`.
 * ```get_pexpr_arg_arity_with_tgt ``(module R) `(Π (R : Type), comm_ring R → true)``` returns 0
  -/
-private meta def get_pexpr_arg_arity_with_tgt (func : pexpr) (tgt : expr) : tactic ℕ :=
+meta def get_pexpr_arg_arity_with_tgt (func : pexpr) (tgt : expr) : tactic ℕ :=
 lock_tactic_state $ do
   mv ← mk_mvar,
   solve_aux tgt $ intros >> to_expr ``(%%func %%mv),
-  expr.pi_arity <$> (instantiate_mvars mv >>= infer_type)
-
-/--
-Tries to derive instances by unfolding the newly introduced type and applying type class resolution.
-
-For example,
-```lean
-@[derive ring] def new_int : Type := ℤ
-```
-adds an instance `ring new_int`, defined to be the instance of `ring ℤ` found by `apply_instance`.
-
-Multiple instances can be added with `@[derive [ring, module ℝ]]`.
-
-This derive handler applies only to declarations made using `def`, and will fail on such a
-declaration if it is unable to derive an instance. It is run with higher priority than the built-in
-handlers, which will fail on `def`s.
--/
-@[derive_handler, priority 2000] meta def delta_instance : derive_handler :=
-λ cls new_decl_name,
-do env ← get_env,
-if env.is_inductive new_decl_name then return ff else
-do new_decl ← get_decl new_decl_name,
-   new_decl_pexpr ← resolve_name new_decl_name,
-   arity ← get_pexpr_arg_arity_with_tgt cls new_decl.type,
-   tgt ← to_expr $ apply_under_n_pis cls new_decl_pexpr new_decl.type (new_decl.type.pi_arity - arity),
-   (_, inst) ← solve_aux tgt
-     (intros >> reset_instance_cache >> delta_target [new_decl_name]  >> apply_instance >> done),
-   inst ← instantiate_mvars inst,
-   inst ← replace_univ_metas_with_univ_params inst,
-   tgt ← instantiate_mvars tgt,
-   nm ← get_unused_decl_name $ new_decl_name <.>
-     match cls with
-     | (expr.const nm _) := nm.last
-     | _ := "inst"
-     end,
-   add_protected_decl $ declaration.defn nm inst.collect_univ_params tgt inst new_decl.reducibility_hints new_decl.is_trusted,
-   set_basic_attribute `instance nm tt,
-   return tt
+  expr.pi_arity <$> (infer_type mv >>= instantiate_mvars)
 
 /-- `find_private_decl n none` finds a private declaration named `n` in any of the imported files.
 
@@ -2105,3 +2100,12 @@ add_tactic_doc
   tags                     := ["simplification"] }
 
 end tactic
+
+/--
+`find_defeq red m e` looks for a key in `m` that is defeq to `e` (up to transparency `red`),
+and returns the value associated with this key if it exists.
+Otherwise, it fails.
+-/
+meta def list.find_defeq (red : tactic.transparency) {v} (m : list (expr × v)) (e : expr) :
+  tactic (expr × v) :=
+m.mfind $ λ ⟨e', val⟩, tactic.is_def_eq e e' red

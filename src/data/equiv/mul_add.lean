@@ -204,6 +204,7 @@ by refine_struct
 intros; ext; try { refl }; apply equiv.left_inv
 
 instance : inhabited (mul_aut M) := ⟨1⟩
+
 @[simp] lemma coe_mul (e₁ e₂ : mul_aut M) : ⇑(e₁ * e₂) = e₁ ∘ e₂ := rfl
 @[simp] lemma coe_one : ⇑(1 : mul_aut M) = id := rfl
 

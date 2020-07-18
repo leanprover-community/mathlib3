@@ -5,14 +5,14 @@ open_locale classical
 open finset matrix
 noncomputable theory
 
-lemma symm_iff {α : Type*} {r : α → α → Prop} (h : symmetric r) {a b : α} : r a b ↔ r b a :=
-by { split; apply h }
+universe u
 
-variable {V : Type*}
+open_locale big_operators
 
-section graph
+-- lemma symmetric.iff {α : Type*} {r : α → α → Prop} (h : symmetric r) {a b : α} : r a b ↔ r b a :=
+-- by split; apply h
 
-variable (V)
+variable (V : Type u)
 
 structure simple_graph :=
 (E : V → V → Prop)
@@ -20,11 +20,10 @@ structure simple_graph :=
 (undirected : symmetric E)
 
 
+namespace simple_graph
 variables {V} (G : simple_graph V)
-
-@[simp] lemma simple_graph.irrefl {v : V} : ¬ G.E v v := G.loopless v
-
-@[simp] lemma foo_symmetry {v : V} : (λ w : V, G.E w v) = G.E v := by { ext, apply symm_iff G.undirected, }
+-- this is just an alias for G.loopless, right?
+@[simp] lemma irrefl {v : V} : ¬ G.E v v := G.loopless v
 
 variable [fintype V]
 
@@ -38,8 +37,12 @@ def degree (v : V) : ℕ := (neighbors G v).card
 def regular_graph (d : ℕ) : Prop :=
  ∀ v : V, degree G v = d
 
-end graph
+lemma edge_symm (u v : V) : G.E u v ↔ G.E v u :=
+by split; apply G.undirected
 
+end simple_graph
+
+open simple_graph
 section adjacency_matrix
 
 variables {V} [fintype V] (G : simple_graph V) (R : Type*) [ring R]  -- R can be a semiring if we generalize trace
@@ -51,14 +54,13 @@ variable {R}
 
 @[simp] lemma adjacency_matrix_el_idem (i j : V) :
  (adjacency_matrix G R i j) * (adjacency_matrix G R i j) = adjacency_matrix G R i j :=
-by { unfold adjacency_matrix, by_cases G.E i j; simp [h], }
+by { unfold adjacency_matrix, split_ifs; simp [h] }
 
 theorem adjacency_matrix_sym :
  sym_matrix (adjacency_matrix G R) :=
 begin
-  unfold sym_matrix, ext,
-  unfold matrix.transpose, unfold adjacency_matrix,
-  rw symm_iff G.undirected,
+  ext, unfold adjacency_matrix,
+  rw edge_symm, simp,
 end
 
 @[simp]
@@ -67,21 +69,19 @@ lemma adjacency_matrix_apply {v w : V} :
 
 @[simp]
 lemma adjacency_matrix_dot_product {v : V} {vec : V → R} :
-  dot_product (adjacency_matrix G R v) vec = (neighbors G v).sum vec :=
-begin
-  unfold dot_product, unfold neighbors, simp [sum_filter],
-end
+  dot_product (adjacency_matrix G R v) vec = ∑ u in neighbors G v, vec u :=
+by simp [dot_product, neighbors, sum_filter]
 
 @[simp]
 lemma dot_product_adjacency_matrix {v : V} {vec : V → R} :
-  dot_product vec (adjacency_matrix G R v) = (neighbors G v).sum vec :=
-begin
-  unfold dot_product, unfold neighbors, simp [sum_filter],
-end
+  dot_product vec (adjacency_matrix G R v) = ∑ u in neighbors G v, vec u :=
+by simp [dot_product, neighbors, sum_filter]
 
 @[simp]
-lemma adjacency_matrix_mul_apply {M : matrix V V R} {v w : V} : (adjacency_matrix G R * M) v w = (neighbors G v).sum M w :=
-by { rw [mul_eq_mul, mul_val', adjacency_matrix_dot_product G, sum_apply] }
+lemma adjacency_matrix_mul_apply
+{M : matrix V V R} {v w : V} :
+(adjacency_matrix G R * M) v w = (neighbors G v).sum M w :=
+by rw [mul_eq_mul, mul_val', adjacency_matrix_dot_product G, sum_apply]
 
 @[simp]
 lemma mul_adjacency_matrix_apply {M : matrix V V R} {v w : V} : (M * adjacency_matrix G R) v w = (neighbors G w).sum (M v) :=
@@ -93,19 +93,13 @@ variable {R}
 
 theorem adj_mat_sq_apply_eq {i : V} :
   ((adjacency_matrix G R) * (adjacency_matrix G R)) i i = degree G i :=
-begin
-  unfold degree, simp only [filter_congr_decidable, adjacency_matrix_mul_apply, sum_boole, sum_apply, adjacency_matrix_apply],
-  refine congr rfl (congr rfl _), ext,
-  simp only [mem_filter, neighbor_iff_adjacent], rw symm_iff G.undirected, tauto,
-end
+by simp [degree]
 
 variable {G}
 
 lemma adj_mat_mul_vec_ones_apply_of_regular {d : ℕ} (reg : regular_graph G d) (i : V):
   (adjacency_matrix G R).mul_vec (λ j : V, 1) i = d :=
-begin
-  unfold matrix.mul_vec, rw adjacency_matrix_dot_product, simp only [mul_one, nsmul_eq_mul, sum_const],
-  rw ← reg i, refl,
-end
+by rw [←reg i, matrix.mul_vec, adjacency_matrix_dot_product]; simp [degree]
+
 
 end adjacency_matrix

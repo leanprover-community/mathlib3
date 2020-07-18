@@ -9,6 +9,8 @@ import tactic
 open_locale classical
 noncomputable theory
 
+open simple_graph
+
 lemma exists_unique_rewrite {X:Type*} {p: X → Prop} {q: X → Prop}:
   (∀ x:X, p x ↔ q x) → (∃!x : X, p x) → ∃!x:X, q x:=
 begin
@@ -431,14 +433,6 @@ begin
   { apply deg_two_friendship_has_pol hG hd, refl },
 end
 
-
---def matrix_mod (V : Type* ) [fintype V] (p:ℕ) : matrix V V ℤ →+* matrix V V (zmod p) :=
---matrix.ring_hom_apply (int.cast_ring_hom (zmod p))
-
-
---def matrix_J_mod_p (V)[fintype V](p:ℕ): matrix V V (zmod p):=
---  (matrix_mod V p) (matrix_J ℤ V)
-
 lemma matrix_J_sq :
 (matrix_J V R)^2 = (fintype.card V : R) • matrix_J V R :=
 begin
@@ -448,7 +442,6 @@ begin
   simp; refl,
 end
 
-
 lemma matrix_J_mod_p_idem
   {p:ℕ} [char_p R p] (hp : ↑p ∣ (fintype.card V : ℤ ) - 1) :
 (matrix_J V (zmod p)) ^ 2 = matrix_J V (zmod p) :=
@@ -457,14 +450,6 @@ begin
   have : (fintype.card V : zmod p) = 1, swap, simp [this], symmetry,
   rw [← nat.cast_one, zmod.eq_iff_modeq_nat, ← int.modeq.coe_nat_modeq_iff, int.modeq.modeq_iff_dvd], apply hp,
 end
-
---lemma trace_mod (p:ℕ) (M: matrix V V ℤ):
---matrix.trace V (zmod p) (zmod p) (matrix_mod V p M) = (matrix.trace V ℤ ℤ M : zmod p):=
---begin
---  rw matrix_mod,
---  rw matrix.ring_hom_apply.trace (int.cast_ring_hom (zmod p)) M,
---  refl,
---end
 
 lemma friendship_reg_adj_sq_mod_p
   {G:simple_graph V} {d:ℕ} {dpos:0<d} (hG : friendship G) (hd : regular_graph G d)

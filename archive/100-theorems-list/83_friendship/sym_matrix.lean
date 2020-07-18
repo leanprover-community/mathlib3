@@ -4,9 +4,6 @@ import data.polynomial
 import linear_algebra.determinant
 import linear_algebra.basic
 
--- open_locale classical
-noncomputable theory
-
 universes u v
 variables {m : Type u} {R : Type v} [fintype m]
 
@@ -17,7 +14,7 @@ lemma sym_matrix_apply {M : matrix m m R} (h : sym_matrix M) (i j : m):
   M i j = M j i :=
 by { unfold sym_matrix at h, conv_rhs {rw h}, refl, }
 
-variables [ring R] --
+variables [ring R] -- change to semiring once we can
 
 def matrix_J : matrix m m R :=
   λ (i j : m), (1 : R)
@@ -25,5 +22,5 @@ def matrix_J : matrix m m R :=
 @[simp] lemma matrix_J_apply (i j : m) : matrix_J i j = (1 : R) := rfl
 
 lemma trace_J (m:Type*) [fintype m] :
-matrix.trace m R R matrix_J = fintype.card m :=
+  matrix.trace m R R matrix_J = fintype.card m :=
 by rw [matrix.trace, matrix_J, fintype.card]; simp

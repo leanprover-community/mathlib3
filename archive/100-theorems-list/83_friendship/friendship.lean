@@ -1,5 +1,5 @@
 import .adjacency_matrix
-import .double_counting
+import .bigraph
 import .char_poly
 import data.int.modeq
 import data.zmod.basic
@@ -64,9 +64,8 @@ by { ext, erw finset.mem_filter, simp [is_friend] }
 lemma card_friends {G : simple_graph V} (friendG : friendship G) {v w : V} (hvw : v ≠ w) :
   (friends G v w).card = 1 :=
 begin
-  rw finset.card_eq_one,
-  rw finset.singleton_iff_unique_mem,
-  unfold friends, simp [friendship' friendG hvw],
+  rw [finset.card_eq_one, finset.singleton_iff_unique_mem],
+  simp [friends, friendship' friendG hvw],
 end
 
 lemma left_fiber_eq_nbrs_inter_A {G : simple_graph V} {A B : finset V} {v : V} :

@@ -124,7 +124,7 @@ do
   Given a target of the form `⊢ f x₁ ... xₙ = y`, unfolds `f` using a delta reduction.
 -/
 meta def unfold_tgt : expr → tactic unit
-| e@`(%%l@(app _ _) = %%r) :=
+| `(%%l@(app _ _) = %%r) :=
   match l.get_app_fn with
   | const n ls := delta_target [n]
   | e := fail!"couldn't unfold:\n{e}"

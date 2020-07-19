@@ -398,12 +398,11 @@ begin
       end
     ... ≤ Cq * (∏ i : fin c.length, Cp) * r0 ^ n :
       begin
-        apply_rules [mul_le_mul, bot_le, le_trans _ (hCq c.length), le_refl, finset.prod_le_prod'],
-        { assume i hi,
-          refine le_trans (mul_le_mul (le_refl _) _ bot_le bot_le) (hCp (c.blocks_fun i)),
-          exact pow_le_pow_of_le_left bot_le (min_le_left _ _) _ },
-        { refine mul_le_mul (le_refl _) _ bot_le bot_le,
-          exact pow_le_pow_of_le_left bot_le (min_le_left _ _) _ }
+        apply_rules [mul_le_mul, bot_le, le_trans _ (hCq c.length), le_refl, finset.prod_le_prod',
+          pow_le_pow_of_le_left, min_le_left],
+        assume i hi,
+        refine le_trans (mul_le_mul (le_refl _) _ bot_le bot_le) (hCp (c.blocks_fun i)),
+        exact pow_le_pow_of_le_left bot_le (min_le_left _ _) _
       end
     ... ≤ Cq * (max Cp 1) ^ n * r0 ^ n :
       begin

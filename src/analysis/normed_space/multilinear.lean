@@ -435,7 +435,7 @@ begin
           + ∥q - p∥ * ∏ i, ∥p.2 i∥ :
       by apply_rules [add_le_add, mul_le_mul, le_refl, le_trans (norm_fst_le q) A, nat.cast_nonneg,
         mul_nonneg, pow_le_pow_of_le_left, pow_nonneg, norm_snd_le (q - p), norm_nonneg,
-        norm_fst_le (q - p), norm_nonneg, prod_nonneg]
+        norm_fst_le (q - p), prod_nonneg]
     ... = ((∥p∥ + 1) * (fintype.card ι) * (∥p∥ + 1) ^ (fintype.card ι - 1)
               + (∏ i, ∥p.2 i∥)) * dist q p : by { rw dist_eq_norm, ring }
 end

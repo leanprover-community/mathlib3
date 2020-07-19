@@ -880,7 +880,7 @@ begin
     intro hi,
     simp [hi] },
   { refine top_unique (λ _ _, _),
-    simp [submodule.mem_span_singleton] }
+    simp only [mem_span_singleton, range_const, mul_one, exists_eq, smul_eq_mul] }
 end
 
 protected lemma linear_equiv.is_basis (hs : is_basis R v)

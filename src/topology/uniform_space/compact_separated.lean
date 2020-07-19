@@ -47,7 +47,7 @@ begin
     push_neg at H,
     simpa only [mem_supr_sets] using H },
   let F := 𝓤 α ⊓ 𝓟 Vᶜ,
-  haveI : ne_bot F := h, 
+  haveI : ne_bot F := h,
   obtain ⟨⟨x, y⟩, hx⟩ : ∃ (p : α × α), cluster_pt p F :=
     cluster_point_of_compact F,
   have : cluster_pt (x, y) (𝓤 α) :=

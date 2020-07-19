@@ -21,7 +21,7 @@ import tactic.monotonicity
 * `frequently` : `f.frequently p` means `{x | ¬p x} ∉ f`;
 * `filter_upwards [h₁, ..., hₙ]` : takes a list of proofs `hᵢ : sᵢ ∈ f`, and replaces a goal `s ∈ f`
   with `∀ x, x ∈ s₁ → ... → x ∈ sₙ → x ∈ s`;
-* `ne_bot f` : an utility class stating that `f` is a non-trivial filter. 
+* `ne_bot f` : an utility class stating that `f` is a non-trivial filter.
 
 Filters on a type `X` are sets of sets of `X` satisfying three conditions. They are mostly used to
 abstract two related kinds of ideas:

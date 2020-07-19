@@ -156,6 +156,14 @@ le_antisymm (smul_le.2 $ λ r hrS n hnT, span_induction hrS
 span_le.2 $ set.bUnion_subset $ λ r hrS, set.bUnion_subset $ λ n hnT, set.singleton_subset_iff.2 $
 smul_mem_smul (subset_span hrS) (subset_span hnT)
 
+variables {M' : Type w} [add_comm_group M'] [module R M']
+
+theorem map_smul'' (f : M →ₗ[R] M') : (I • N).map f = I • N.map f :=
+le_antisymm (map_le_iff_le_comap.2 $ smul_le.2 $ λ r hr n hn, show f (r • n) ∈ I • N.map f,
+    from (f.map_smul r n).symm ▸ smul_mem_smul hr (mem_map_of_mem hn)) $
+smul_le.2 $ λ r hr n hn, let ⟨p, hp, hfp⟩ := mem_map.1 hn in
+hfp ▸ f.map_smul r p ▸ mem_map_of_mem (smul_mem_smul hr hp)
+
 end submodule
 
 namespace ideal
@@ -413,6 +421,11 @@ instance : comm_semiring (ideal R) := submodule.comm_semiring
 @[simp] lemma zero_eq_bot : (0 : ideal R) = ⊥ := rfl
 @[simp] lemma one_eq_top : (1 : ideal R) = ⊤ :=
 by erw [submodule.one_eq_map_top, submodule.map_id]
+
+variables (R)
+theorem top_pow (n : ℕ) : (⊤ ^ n : ideal R) = ⊤ :=
+nat.rec_on n one_eq_top $ λ n ih, by rw [pow_succ, ih, top_mul]
+variables {R}
 
 variables (I)
 theorem radical_pow (n : ℕ) (H : n > 0) : radical (I^n) = radical I :=

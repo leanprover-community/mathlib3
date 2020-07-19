@@ -251,18 +251,12 @@ begin
   unfold commute, unfold semiconj_by, rw [sub_mul, mul_sub, h.eq],
 end
 
-#check matrix.mul_eq_mul
-#check monoid.pow
-#check @matrix.monoid
-
-@[simp] theorem matrix.pow_eq_pow [semiring α] (M : matrix n n α) (k : ℕ) :
+@[simp] lemma matrix.pow_eq_pow [semiring α] (M : matrix n n α) (k : ℕ) :
   M ^ k = monoid.pow M k :=
 begin
   induction k with d hd, refl,
   rw [pow_succ, hd, mul_eq_mul], refl,
 end
-
-#check matrix.monoid
 
 lemma char_poly_pow_p_char_p (M : matrix n n (zmod p)) :
 char_poly (M ^ p) = char_poly M :=
@@ -280,6 +274,7 @@ begin
   transitivity ((scalar n) X - C.map_matrix M) ^ p, simp,
   rw sub_pow_char_of_commute,
   swap, { apply matrix.scalar.commute },
+  unfold expand, dsimp, simp, rw eval₂_X_pow,
   -- convert sub_pow_char_of_commute _,
   -- rw sub_pow_char_of_commute,
   -- rw ← map_pow,

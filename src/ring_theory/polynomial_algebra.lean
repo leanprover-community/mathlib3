@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import ring_theory.tensor_product
 import ring_theory.matrix_algebra
-import data.polynomial.algebra_map
+import data.polynomial
 
 /-!
 # Algebra isomorphism between matrices of polynomials and polynomials of matrices
@@ -132,6 +132,8 @@ begin
   simp only [lift.tmul],
   dsimp [to_fun_bilinear, to_fun_linear_right, to_fun],
   ext k,
+  -- TODO This is a bit annoying: the polynomial API is breaking down.
+  have apply_eq_coeff : ∀ {p : ℕ →₀ R} {n : ℕ}, p n = coeff p n := by { intros, refl },
   simp_rw [coeff_sum, coeff_monomial, finsupp.sum, finset.sum_ite_eq', finsupp.mem_support_iff,
     ne.def, coeff_mul, finset_sum_coeff, coeff_monomial,
     finset.sum_ite_eq', finsupp.mem_support_iff, ne.def,

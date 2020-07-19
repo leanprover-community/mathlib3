@@ -267,6 +267,7 @@ def diag : (matrix n n M) →ₗ[R] n → M :=
 { to_fun    := λ A i, A i i,
   map_add'  := by { intros, ext, refl, },
   map_smul' := by { intros, ext, refl, } }
+
 variables {n} {R} {M}
 
 @[simp] lemma diag_apply (A : matrix n n M) (i : n) : diag n R M A i = A i i := rfl
@@ -277,6 +278,7 @@ variables {n} {R} {M}
 @[simp] lemma diag_transpose (A : matrix n n M) : diag n R M Aᵀ = diag n R M A := rfl
 
 variables (n) (R) (M)
+
 /--
 The trace of a square matrix.
 -/
@@ -284,6 +286,7 @@ def trace : (matrix n n M) →ₗ[R] M :=
 { to_fun    := λ A, ∑ i, diag n R M A i,
   map_add'  := by { intros, apply finset.sum_add_distrib, },
   map_smul' := by { intros, simp [finset.smul_sum], } }
+
 variables {n} {R} {M}
 
 @[simp] lemma trace_diag (A : matrix n n M) : trace n R M A = ∑ i, diag n R M A i := rfl

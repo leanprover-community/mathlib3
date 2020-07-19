@@ -12,6 +12,9 @@ This file gives a basic theory of bigraphs suitable for simple double counting a
 ## Implementation notes
 We considered extending `rel`. On a cursory inspection,
 it didn't seem like any of the API we provide overlapped with the API `rel` provides.
+
+We use `uncurried` under the hood to think of the data of a bigraph as a set of ordered pairs.
+`uncurried` should generally not appear in expressions in simp-normal form.
 -/
 open_locale classical big_operators
 noncomputable theory
@@ -29,8 +32,8 @@ variables {α} {β} (G : bigraph α β)
 namespace bigraph
 
 def uncurried : (α × β) → Prop := function.uncurry (G.adj)
--- simp normal form is curried, then. do we want that?
-@[simp] lemma recurry (x : α × β) : (uncurried G) x = G.adj x.fst x.snd:=
+
+@[simp] lemma uncurried_apply (x : α × β) : (uncurried G) x = G.adj x.fst x.snd:=
 by rw [uncurried, function.uncurry]
 
 def swap_inputs (E : α → β → Prop) : β → α → Prop :=

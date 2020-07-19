@@ -9,7 +9,7 @@ import tactic
 open_locale classical
 noncomputable theory
 
-open simple_graph
+namespace simple_graph
 universes u
 
 variables {V : Type u} [fintype V] [inhabited V] (G : simple_graph V)
@@ -18,33 +18,13 @@ variables {V : Type u} [fintype V] [inhabited V] (G : simple_graph V)
 def is_friend (v w : V) (u : V) : Prop :=
 G.E v u ∧ G.E w u
 
+def friends (G : simple_graph V) (v w : V) : finset V :=
+  finset.filter (is_friend G v w) (finset.univ:finset V)
+
 def friendship : Prop :=
 ∀ v w : V, v ≠ w → ∃!(u : V), is_friend G v w u
 
--- lemma friend_symm (u v w : V) :
---   G.E v u ∧ G.E u w ↔ G.E v u ∧ G.E w u :=
--- begin
---   split; try { intro a, cases a, split };
---   try {assumption};
---   { apply G.undirected, assumption },
--- end
-
--- def find_friend (G:simple_graph V)(friendG: friendship G)(v w:V)(vneqw:v ≠ w):V:=
---   fintype.choose (is_friend G v w) (friendG v w vneqw)
-
--- lemma find_friend_spec (G:simple_graph V)(friendG: friendship G)(v w:V)(vneqw: v ≠ w):
---   is_friend G v w (find_friend G friendG v w vneqw):= by apply fintype.choose_spec
-
--- lemma find_friend_unique (G:simple_graph V)(friendG: friendship G)(v w:V)(vneqw: v ≠ w):
---   ∀ y:V, is_friend G v w y → y=(find_friend G friendG v w vneqw):=
--- begin
---   intros y hy,
---   apply exists_unique.unique(friendG v w vneqw),
---   apply hy,
---   apply (find_friend_spec G friendG v w vneqw),
--- end
-
-lemma friendship' {G : simple_graph V} (friendG : friendship G) {v w : V} (hvw : v ≠ w) :
+lemma friendship' {G} (friendG : friendship G) {v w : V} (hvw : v ≠ w) :
 exists_unique (is_friend G v w) :=
 begin
   use fintype.choose (is_friend G v w) (friendG v w hvw),
@@ -54,10 +34,10 @@ begin
   apply fintype.choose_spec,
 end
 
-def exists_politician (G:simple_graph V) : Prop :=
-  ∃ v:V, ∀ w:V, v=w ∨ G.E v w
+def exists_politician : Prop :=
+  ∃ v : V, ∀ w : V, v=w ∨ G.E v w
 
-def no_pol (G : simple_graph V) : Prop :=
+def no_pol : Prop :=
   ∀ v : V, ∃ w : V, v ≠ w ∧ ¬ G.E v w
 
 lemma exists_pol_of_not_no_pol {G : simple_graph V}:
@@ -67,26 +47,19 @@ begin
   apply exists_congr, intro v, apply forall_congr, intro w, tauto,
 end
 
-def path_bigraph (G : simple_graph V) (A B:finset V) : bigraph V V:=
+def path_bigraph (A B : finset V) : bigraph V V :=
   bigraph.mk A B G.E
 
 lemma path_bigraph_swap {G : simple_graph V} {A B : finset V} :
   (path_bigraph G A B).swap = path_bigraph G B A:=
 begin
-  ext, {refl}, {refl},
+  ext, { refl }, { refl },
   split; apply G.undirected,
 end
 
-def friends (G : simple_graph V)(v w : V) : finset V :=
-  finset.filter (is_friend G v w) (finset.univ:finset V)
-
 lemma friends_eq_inter_neighbors {G : simple_graph V} {v w : V} :
   friends G v w = neighbors G v ∩ neighbors G w:=
-begin
-  ext,
-  rw finset.mem_inter, erw finset.mem_filter,
-  unfold is_friend, simp,
-end
+by { ext, erw finset.mem_filter, simp [is_friend] }
 
 lemma card_friends {G : simple_graph V} (friendG : friendship G) {v w : V} (hvw : v ≠ w) :
   (friends G v w).card = 1 :=
@@ -350,7 +323,7 @@ begin
 end
 variable {R}
 
-lemma subsingleton_graph_has_pol (G : simple_graph V) :
+lemma subsingleton_graph_has_pol :
   fintype.card V ≤ 1 → exists_politician G:=
 begin
   intro subsing,
@@ -371,11 +344,6 @@ begin
   apply subsingleton_graph_has_pol,
   apply le_one_of_pred_zero,
   linarith,
-end
-
-lemma ne_of_edge {G : simple_graph V} {a b : V} (hab : G.E a b) : a ≠ b :=
-begin
-  intro h, rw h at hab, apply G.loopless b, exact hab,
 end
 
 lemma deg_two_friendship_has_pol
@@ -405,7 +373,7 @@ begin
     rw neighbor_iff_adjacent,
     rw finset.mem_erase,
     intro h,
-    split, { symmetry, exact ne_of_edge h },
+    split, { symmetry, exact G.ne_of_edge h },
     apply finset.mem_univ },
 
   { rw herase,
@@ -554,3 +522,6 @@ begin
 
   apply three_le_deg_friendship_contra hG dreg, assumption,
 end
+
+
+end simple_graph

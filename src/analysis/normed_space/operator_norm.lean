@@ -121,7 +121,7 @@ begin
     { assume x,
       by_cases hx : f x = 0,
       { rw [hx, norm_zero],
-        apply_rules [mul_nonneg, norm_nonneg, inv_nonneg.2, norm_nonneg] },
+        apply_rules [mul_nonneg, norm_nonneg, inv_nonneg.2] },
       { let y := x₀ - (f x₀ * (f x)⁻¹ ) • x,
         have fy_zero : f y = 0, by calc
           f y = f x₀ - (f x₀ * (f x)⁻¹ ) * f x : by simp [y]

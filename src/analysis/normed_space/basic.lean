@@ -644,7 +644,7 @@ begin
   calc dist x⁻¹ r⁻¹ = ∥x⁻¹ - r⁻¹∥ : dist_eq_norm _ _
   ... ≤ ∥r-x∥ * ∥x∥⁻¹ * ∥r∥⁻¹ : by rw [this, norm_mul, norm_mul, norm_inv, norm_inv]
   ... ≤ (ε/2 * ∥r∥^2) * (2 * ∥r∥⁻¹) * (∥r∥⁻¹) : begin
-    apply_rules [mul_le_mul, inv_nonneg.2, le_of_lt A, norm_nonneg, inv_nonneg.2, mul_nonneg,
+    apply_rules [mul_le_mul, inv_nonneg.2, le_of_lt A, norm_nonneg, mul_nonneg,
                  (inv_le_inv norm_x_pos norm_r_pos).2, le_refl],
     show ∥r - x∥ ≤ ε / 2 * ∥r∥ ^ 2,
       by { rw [← dist_eq_norm, dist_comm], exact le_trans hx (min_le_left _ _) },

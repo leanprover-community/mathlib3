@@ -232,17 +232,18 @@ begin
   rw right_unique_one_reg at hr, rw left_unique_one_reg at hl,
   convert double_count_of_lreg_rreg _ hl hr; simp,
 end
-variables (adj : α → β → Prop)
+variables (adj : α → β → Prop) (A : finset α) {B1 B2 : finset β}
+-- The following lemmas may be generalized by saying stuff about lattice homormopshims.
 
-lemma edges_disjoint_of_eq_disj_eq {A : finset α} {B1 B2 : finset β} (h : disjoint B1 B2) :
+lemma edges_disjoint_of_eq_disj_eq (hB : disjoint B1 B2) :
   disjoint (edges ⟨A, B1, adj⟩) (edges ⟨A, B2, adj⟩) :=
 begin
   apply finset.disjoint_filter_filter,
   rw finset.disjoint_iff_ne,
   rintros a _ _ _ rfl,
   rw finset.mem_product at *,
-  rw finset.disjoint_iff_ne at h,
-  apply h a.snd _ a.snd; tauto,
+  rw finset.disjoint_iff_ne at hB,
+  apply hB a.snd _ a.snd; tauto,
 end
 
 lemma edges_union {A : finset α} {B1 B2 : finset β} :

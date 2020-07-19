@@ -23,7 +23,7 @@ section friendship_def
 variables (G : simple_graph V)
 
 def is_friend (v w : V) (u : V) : Prop :=
-G.E v u ∧ G.E w u
+G.adj v u ∧ G.adj w u
 
 def friends  (v w : V) : finset V :=
   finset.filter (is_friend G v w) (finset.univ:finset V)
@@ -32,10 +32,10 @@ def friendship : Prop :=
 ∀ v w : V, v ≠ w → ∃!(u : V), is_friend G v w u
 
 def exists_politician : Prop :=
-  ∃ v : V, ∀ w : V, v = w ∨ G.E v w
+  ∃ v : V, ∀ w : V, v = w ∨ G.adj v w
 
 def no_pol : Prop :=
-  ∀ v : V, ∃ w : V, v ≠ w ∧ ¬ G.E v w
+  ∀ v : V, ∃ w : V, v ≠ w ∧ ¬ G.adj v w
 
 lemma exists_pol_of_not_no_pol :
   (¬ no_pol G) ↔ exists_politician G :=
@@ -85,19 +85,19 @@ begin
   exact lunique_paths hG hv,
 end
 
-lemma counter_non_adj_deg_eq (hG' : no_pol G) {v w : V} (hvw : ¬ G.E v w) :
+lemma counter_non_adj_deg_eq (hG' : no_pol G) {v w : V} (hvw : ¬ G.adj v w) :
 degree G v = degree G w :=
 begin
   by_cases v=w, { rw h },
 
-  let b:= bigraph.mk (neighbors G v) (neighbors G w) (λ (x:V), λ (y:V), G.E x y),
+  let b:= bigraph.mk (neighbors G v) (neighbors G w) (λ (x:V), λ (y:V), G.adj x y),
 
   apply card_eq_of_lunique_runique b,
   { apply lunique_paths hG,
     rw neighbor_iff_adjacent,
     intro contra,
     apply hvw,
-    apply G.undirected contra },
+    apply G.sym contra },
   apply runique_paths hG,
   rw neighbor_iff_adjacent,
   apply hvw,
@@ -111,25 +111,25 @@ begin
   have v := arbitrary V,
   use degree G v,
   intro x,
-  by_cases hvx : G.E v x,
+  by_cases hvx : G.adj v x,
     swap, symmetry, apply counter_non_adj_deg_eq hG hG' hvx,
 
   rcases hG' v with ⟨w, hvw', hvw⟩,
   rcases hG' x with ⟨y, hxy', hxy⟩,
   have degvw:=counter_non_adj_deg_eq hG hG' hvw,
   have degxy:=counter_non_adj_deg_eq hG hG' hxy,
-  by_cases hxw : G.E x w,
+  by_cases hxw : G.adj x w,
     swap, {rw degvw, apply counter_non_adj_deg_eq hG hG' hxw},
   rw degxy,
-  by_cases hvy : G.E v y,
+  by_cases hvy : G.adj v y,
     swap, {symmetry, apply counter_non_adj_deg_eq hG hG' hvy},
   rw degvw,
   apply counter_non_adj_deg_eq hG hG',
   intro hcontra,
   apply hxy',
   apply exists_unique.unique (hG v w hvw'),
-  exact ⟨hvx, G.undirected hxw⟩,
-  exact ⟨hvy, G.undirected hcontra⟩,
+  exact ⟨hvx, G.sym hxw⟩,
+  exact ⟨hvy, G.sym hcontra⟩,
 end
 
 -- bad name

@@ -14,15 +14,15 @@ variables (α : Type u) (β : Type v)
 @[ext] structure bigraph :=
 (A : finset α)
 (B : finset β)
-(E : α → β → Prop)
+(adj : α → β → Prop)
 
 variables {α} {β} (G : bigraph α β)
 
 namespace bigraph
 
-def uncurried : (α × β) → Prop := function.uncurry (G.E)
+def uncurried : (α × β) → Prop := function.uncurry (G.adj)
 -- simp normal form is curried, then. do we want that?
-@[simp] lemma recurry (x : α × β) : (uncurried G) x = G.E x.fst x.snd:=
+@[simp] lemma recurry (x : α × β) : (uncurried G) x = G.adj x.fst x.snd:=
 by rw [uncurried, function.uncurry]
 
 def swap_inputs (E : α → β → Prop) : β → α → Prop :=
@@ -39,20 +39,20 @@ by ext; simp
 def swap : bigraph β α :=
 { A := G.B,
   B := G.A,
-  E := swap_inputs G.E }
+  adj := swap_inputs G.adj }
 
 @[simp] lemma A_swap : G.swap.A = G.B := rfl
 
 @[simp] lemma B_swap : G.swap.B = G.A := rfl
 
-@[simp] lemma E_swap : G.swap.E = swap_inputs G.E := rfl
+@[simp] lemma E_swap : G.swap.adj = swap_inputs G.adj := rfl
 
 @[simp] lemma swap_swap : G.swap.swap = G := by ext; simp [swap]
 
 def edges : finset (α × β) := finset.filter (uncurried G) (finset.product G.A G.B)
 
 -- i think mem_edges_iff is a more standard name in the library? not sure.
-@[simp] lemma mem_edges (x : α × β) : x ∈ edges G ↔ (x.fst ∈ G.A ∧ x.snd ∈ G.B) ∧ G.E x.fst x.snd :=
+@[simp] lemma mem_edges (x : α × β) : x ∈ edges G ↔ (x.fst ∈ G.A ∧ x.snd ∈ G.B) ∧ G.adj x.fst x.snd :=
 by { unfold edges, simp }
 
 def card_edges : ℕ := (edges G).card
@@ -88,10 +88,10 @@ def left_fiber' (b : β) : finset (α × β) := finset.image (λ a:α, (a,b)) (l
 def right_fiber' (a : α) : finset (α × β) := finset.image (λ b:β, (a,b)) (right_fiber G a)
 
 @[simp] lemma mem_left_fiber (b : β) {x : α} :
-x ∈ (left_fiber G b) ↔ x ∈ G.A ∧ G.E x b := by { unfold left_fiber, simp }
+x ∈ (left_fiber G b) ↔ x ∈ G.A ∧ G.adj x b := by { unfold left_fiber, simp }
 
 @[simp] lemma mem_right_fiber (a : α) {x : β} :
-x ∈ (right_fiber G a) ↔ x ∈ G.B ∧ G.E a x := by { unfold right_fiber, simp }
+x ∈ (right_fiber G a) ↔ x ∈ G.B ∧ G.adj a x := by { unfold right_fiber, simp }
 
 @[simp] lemma left_fiber_swap (a : α) :
 left_fiber G.swap a = right_fiber G a := by { ext, simp }
@@ -100,12 +100,12 @@ left_fiber G.swap a = right_fiber G a := by { ext, simp }
 right_fiber G.swap b = left_fiber G b := by { ext, simp }
 
 @[simp] lemma mem_left_fiber' (b : β) (x : α × β) :
-x ∈ (left_fiber' G b) ↔ (x.fst ∈ G.A ∧ x.snd = b) ∧ G.E x.fst x.snd :=
+x ∈ (left_fiber' G b) ↔ (x.fst ∈ G.A ∧ x.snd = b) ∧ G.adj x.fst x.snd :=
 by rw left_fiber'; tidy
 
 -- can the following be proven with swap and the above?
 @[simp] lemma mem_right_fiber' (a : α) (x : α × β) :
-x ∈ (right_fiber' G a) ↔ (x.fst = a ∧ x.snd ∈ G.B) ∧ G.E x.fst x.snd :=
+x ∈ (right_fiber' G a) ↔ (x.fst = a ∧ x.snd ∈ G.B) ∧ G.adj x.fst x.snd :=
 by rw right_fiber'; tidy
 
 -- i'm now confused about the properties of our simp normal form.
@@ -173,10 +173,10 @@ def right_regular (d : ℕ) : Prop:=
   ∀ a ∈ G.A, (right_fiber G a).card = d
 
 def left_unique : Prop :=
-  ∀ b ∈ G.B, ∃!(a : α), a ∈ G.A ∧ G.E a b
+  ∀ b ∈ G.B, ∃!(a : α), a ∈ G.A ∧ G.adj a b
 
 def right_unique : Prop :=
-  ∀ a ∈ G.A, ∃!(b : β), b ∈ G.B ∧ G.E a b
+  ∀ a ∈ G.A, ∃!(b : β), b ∈ G.B ∧ G.adj a b
 
 @[simp] lemma right_regular_swap (d  :ℕ) : right_regular G.swap d ↔ left_regular G d :=
 by simp [left_regular, right_regular]

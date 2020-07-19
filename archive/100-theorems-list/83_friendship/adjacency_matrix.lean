@@ -33,7 +33,7 @@ by apply gsmul_one
 section adjacency_matrix
 
 def adjacency_matrix : matrix V V R :=
-λ v w : V, if G.E v w then 1 else 0
+λ v w : V, if G.adj v w then 1 else 0
 
 variable {R}
 
@@ -48,7 +48,7 @@ by { ext, unfold adjacency_matrix, rw edge_symm, simp }
 
 @[simp]
 lemma adjacency_matrix_apply {v w : V} :
-  adjacency_matrix G R v w = ite (G.E v w) 1 0 := rfl
+  adjacency_matrix G R v w = ite (G.adj v w) 1 0 := rfl
 
 @[simp]
 lemma adjacency_matrix_dot_product {v : V} {vec : V → R} :

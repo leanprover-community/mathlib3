@@ -14,7 +14,6 @@ import field_theory.separable
 
 noncomputable theory
 
-
 universes u_1 u_2 u_3 u_4
 
 open polynomial matrix
@@ -184,10 +183,8 @@ end
 
 theorem det_from_char_poly (M: matrix n n R) :
 M.det = (-1)^(fintype.card n) * (char_poly M).coeff 0:=
-begin
-  rw [coeff_zero_eq_eval_zero, char_poly, eval_det, mat_poly_equiv_char_matrix, ← det_smul],
-  simp
-end
+by rw [coeff_zero_eq_eval_zero, char_poly, eval_det, mat_poly_equiv_char_matrix, ← det_smul]; simp
+
 
 section char_p
 
@@ -201,15 +198,15 @@ instance matrix.char_p [inhabited n] (p : ℕ) [char_p R p] : char_p (matrix n n
 { cast_eq_zero_iff :=
   begin
     intro k, rw ← char_p.cast_eq_zero_iff R p k,
-    rw ← nat.cast_zero, repeat {rw ← (scalar n).map_nat_cast},
-    rw matrix.scalar_inj, refl,
+    rw ← nat.cast_zero, rw ← (scalar n).map_nat_cast,
+    convert matrix.scalar_inj, simp, assumption,
   end }
 
 lemma det_pow (k : ℕ) (M : matrix n n R) :
 (M ^ k).det = (M.det) ^ k :=
 begin
-  induction k with k hk, simp,
-  repeat {rw pow_succ}, rw ← hk, squeeze_simp,
+  induction k with k hk, { simp },
+  simp [pow_succ, ← hk],
 end
 
 
@@ -274,7 +271,7 @@ begin
   transitivity ((scalar n) X - C.map_matrix M) ^ p, simp,
   rw sub_pow_char_of_commute,
   swap, { apply matrix.scalar.commute },
-  unfold expand, dsimp, simp, rw eval₂_X_pow,
+  unfold expand, dsimp, simp,
   -- convert sub_pow_char_of_commute _,
   -- rw sub_pow_char_of_commute,
   -- rw ← map_pow,

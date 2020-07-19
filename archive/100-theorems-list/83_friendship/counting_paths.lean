@@ -9,8 +9,6 @@ open simple_graph bigraph
 universes u
 variables {V : Type u} [fintype V] [inhabited V] (G : simple_graph V)
 
-
-
 def path_bigraph (A B : finset V) : bigraph V V :=
   bigraph.mk A B G.E
 
@@ -23,14 +21,11 @@ begin
   split; apply G.undirected,
 end
 
-lemma left_fiber_eq_nbrs_inter_A {A B : finset V} {v : V} :
-  v ∈ B → left_fiber (path_bigraph G A B) v = A ∩ (neighbors G v):=
+lemma left_fiber_eq_nbrs_inter_A {A B : finset V} {v : V} (hv : v ∈ B) :
+  left_fiber (path_bigraph G A B) v = A ∩ (neighbors G v):=
 begin
-  intro vB, ext,
-  simp only [neighbor_iff_adjacent, mem_left_fiber, finset.mem_inter],
-  change a ∈ A ∧ G.E a v ↔ a ∈ A ∧ G.E v a,
-  have h : G.E a v ↔ G.E v a, {split; apply G.undirected},
-  rw h,
+  ext, simp only [neighbor_iff_adjacent, mem_left_fiber, finset.mem_inter],
+  erw edge_symm, cc,
 end
 
 lemma right_fiber_eq_nbrs_inter_B {A B : finset V} {v : V} (hv : v ∈ A):
@@ -48,7 +43,6 @@ begin
   apply finset.inter_singleton_of_mem,
   rwa [neighbor_iff_adjacent, edge_symm, ← neighbor_iff_adjacent],
 end
-
 
 lemma reg_card_count_3 (hd : regular_graph G d) (v:V) :
 card_edges (path_bigraph G (neighbors G v) finset.univ) = d * d :=

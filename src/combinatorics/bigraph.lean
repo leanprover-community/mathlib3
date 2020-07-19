@@ -232,10 +232,10 @@ begin
   rw right_unique_one_reg at hr, rw left_unique_one_reg at hl,
   convert double_count_of_lreg_rreg _ hl hr; simp,
 end
-variables (E : α → β → Prop)
+variables (adj : α → β → Prop)
 
 lemma edges_disjoint_of_eq_disj_eq {A : finset α} {B1 B2 : finset β} (h : disjoint B1 B2) :
-  disjoint (edges ⟨A, B1, E⟩) (edges ⟨A, B2, E⟩) :=
+  disjoint (edges ⟨A, B1, adj⟩) (edges ⟨A, B2, adj⟩) :=
 begin
   apply finset.disjoint_filter_filter,
   rw finset.disjoint_iff_ne,
@@ -246,15 +246,15 @@ begin
 end
 
 lemma edges_union {A : finset α} {B1 B2 : finset β} :
-  edges ⟨ A, B1 ∪ B2, E⟩ = edges ⟨A, B1, E⟩ ∪ edges ⟨A, B2, E⟩ :=
+  edges ⟨ A, B1 ∪ B2, adj⟩ = edges ⟨A, B1, adj⟩ ∪ edges ⟨A, B2, adj⟩ :=
 begin
   erw ← finset.filter_union,
   suffices : A.product (B1 ∪ B2) = A.product B1 ∪ A.product B2, { rw ← this, refl },
   ext, simp [ finset.mem_union, finset.mem_product]; tauto,
 end
 
-theorem card_edges_add_of_eq_disj_union_eq {left_carrier : finset α} {B1 B2 : finset β} (h : disjoint B1 B2) (E : α → β → Prop) :
-card_edges ⟨left_carrier, B1 ∪ B2, E⟩ = card_edges ⟨left_carrier, B1, E⟩ + card_edges ⟨left_carrier, B2, E⟩ :=
+theorem card_edges_add_of_eq_disj_union_eq {A : finset α} {B1 B2 : finset β} (h : disjoint B1 B2) :
+card_edges ⟨A, B1 ∪ B2, adj⟩ = card_edges ⟨A, B1, adj⟩ + card_edges ⟨A, B2, adj⟩ :=
 by { rw [card_edges, edges_union], simp [edges_disjoint_of_eq_disj_eq, h], refl }
 
 end bigraph

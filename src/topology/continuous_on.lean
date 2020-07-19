@@ -40,7 +40,7 @@ filter.ext_iff.1 nhds_bind_nhds_within {x | p x}
 
 lemma eventually_nhds_within_iff {a : α} {s : set α} {p : α → Prop} :
   (∀ᶠ x in nhds_within a s, p x) ↔ ∀ᶠ x in 𝓝 a, x ∈ s → p x :=
-mem_inf_principal _ _ _
+eventually_inf_principal
 
 @[simp] lemma eventually_nhds_within_nhds_within {a : α} {s : set α} {p : α → Prop} :
   (∀ᶠ y in nhds_within a s, ∀ᶠ x in nhds_within y s, p x) ↔ ∀ᶠ x in nhds_within a s, p x :=

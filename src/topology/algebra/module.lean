@@ -205,10 +205,19 @@ instance : has_coe (M →L[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
 -- see Note [function coercion]
 instance to_fun : has_coe_to_fun $ M →L[R] M₂ := ⟨λ _, M → M₂, λ f, f⟩
 
+@[simp] lemma coe_mk (f : M →ₗ[R] M₂) (h) : (mk f h : M →ₗ[R] M₂) = f := rfl
+@[simp] lemma coe_mk' (f : M →ₗ[R] M₂) (h) : (mk f h : M → M₂) = f := rfl
+
 protected lemma continuous (f : M →L[R] M₂) : continuous f := f.2
 
+theorem coe_injective : function.injective (coe : (M →L[R] M₂) → (M →ₗ[R] M₂)) :=
+by { intros f g H, cases f, cases g, congr' 1, exact H }
+
+theorem coe_injective' ⦃f g : M →L[R] M₂⦄ (H : (f : M → M₂) = g) : f = g :=
+coe_injective $ linear_map.coe_injective H
+
 @[ext] theorem ext {f g : M →L[R] M₂} (h : ∀ x, f x = g x) : f = g :=
-by cases f; cases g; congr' 1; ext x; apply h
+coe_injective' $ funext h
 
 theorem ext_iff {f g : M →L[R] M₂} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, by rw h, by ext⟩
@@ -473,6 +482,60 @@ lemma smul_right_comp [topological_semimodule R R] {x : M₂} {c : R} :
 by { ext, simp [mul_smul] }
 
 end semiring
+
+section pi
+variables
+  {R : Type*} [semiring R]
+  {M : Type*} [topological_space M] [add_comm_monoid M] [semimodule R M]
+  {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂] [semimodule R M₂]
+  {ι : Type*} {φ : ι → Type*} [∀i, topological_space (φ i)] [∀i, add_comm_monoid (φ i)] [∀i, semimodule R (φ i)]
+
+/-- `pi` construction for continuous linear functions. From a family of continuous linear functions
+it produces a continuous linear function into a family of topological modules. -/
+def pi (f : Πi, M →L[R] φ i) : M →L[R] (Πi, φ i) :=
+⟨linear_map.pi (λ i, (f i : M →ₗ[R] φ i)),
+ continuous_pi (λ i, (f i).continuous)⟩
+
+@[simp] lemma pi_apply (f : Πi, M →L[R] φ i) (c : M) (i : ι) :
+  pi f c i = f i c := rfl
+
+lemma pi_eq_zero (f : Πi, M →L[R] φ i) : pi f = 0 ↔ (∀i, f i = 0) :=
+by simp only [ext_iff, pi_apply, function.funext_iff]; exact ⟨λh a b, h b a, λh a b, h b a⟩
+
+lemma pi_zero : pi (λi, 0 : Πi, M →L[R] φ i) = 0 := by ext; refl
+
+lemma pi_comp (f : Πi, M →L[R] φ i) (g : M₂ →L[R] M) : (pi f).comp g = pi (λi, (f i).comp g) := rfl
+
+/-- The projections from a family of topological modules are continuous linear maps. -/
+def proj (i : ι) : (Πi, φ i) →L[R] φ i :=
+⟨linear_map.proj i, continuous_apply _⟩
+
+@[simp] lemma proj_apply (i : ι) (b : Πi, φ i) : (proj i : (Πi, φ i) →L[R] φ i) b = b i := rfl
+
+lemma proj_pi (f : Πi, M₂ →L[R] φ i) (i : ι) : (proj i).comp (pi f) = f i :=
+ext $ assume c, rfl
+
+lemma infi_ker_proj : (⨅i, ker (proj i) : submodule R (Πi, φ i)) = ⊥ :=
+linear_map.infi_ker_proj
+
+variables (R φ)
+
+/-- If `I` and `J` are complementary index sets, the product of the kernels of the `J`th projections of
+`φ` is linearly equivalent to the product over `I`. -/
+def infi_ker_proj_equiv {I J : set ι} [decidable_pred (λi, i ∈ I)]
+  (hd : disjoint I J) (hu : set.univ ⊆ I ∪ J) :
+  (⨅i ∈ J, ker (proj i) : submodule R (Πi, φ i)) ≃L[R] (Πi:I, φ i) :=
+⟨ linear_map.infi_ker_proj_equiv R φ hd hu,
+  continuous_pi (λ i, begin
+    have := @continuous_subtype_coe _ _ (λ x, x ∈ (⨅i ∈ J, ker (proj i) : submodule R (Πi, φ i))),
+    have := continuous.comp (by exact continuous_apply i) this,
+    exact this
+  end),
+  continuous_subtype_mk _ (continuous_pi (λ i, begin
+    dsimp, split_ifs; [apply continuous_apply, exact continuous_const]
+  end)) ⟩
+
+end pi
 
 section ring
 

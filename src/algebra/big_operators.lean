@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.opposites
+import algebra.group.anti_hom
 import data.finset.intervals
 import data.finset.fold
 import data.finset.powerset
@@ -150,17 +151,26 @@ lemma prod_empty {α : Type u} {f : α → β} : (∏ x in (∅:finset α), f x)
 lemma prod_insert [decidable_eq α] :
   a ∉ s → (∏ x in (insert a s), f x) = f a * ∏ x in s, f x := fold_insert
 
-/-- If a function applied at a point is 1, a product is unchanged by
-adding that point, whether or not present, to a `finset`. -/
-@[simp, to_additive "If a function applied at a point is 0, a sum is unchanged by
-adding that point, whether or not present, to a `finset`."]
-lemma prod_insert_one [decidable_eq α] (h : f a = 1) :
+/--
+The product of `f` over `insert a s` is the same as the product over `s`, as long as `a` is in `s` or `f a = 1`.
+-/
+@[simp, to_additive "The sum of `f` over `insert a s` is the same as the sum over `s`, as long as `a` is in `s` or `f a = 0`.
+"]
+lemma prod_insert_of_eq_one_if_not_mem [decidable_eq α] (h : a ∉ s → f a = 1) :
   ∏ x in insert a s, f x = ∏ x in s, f x :=
 begin
   by_cases hm : a ∈ s,
   { simp_rw insert_eq_of_mem hm },
-  { rw [prod_insert hm, h, one_mul] },
+  { rw [prod_insert hm, h hm, one_mul] },
 end
+
+/--
+The product of `f` over `insert a s` is the same as the product over `s`, as long as `f a = 1`.
+-/
+@[simp, to_additive "The sum of `f` over `insert a s` is the same as the sum over `s`, as long as `f a = 0`."]
+lemma prod_insert_one [decidable_eq α] (h : f a = 1) :
+  ∏ x in insert a s, f x = ∏ x in s, f x :=
+prod_insert_of_eq_one_if_not_mem (λ _, h)
 
 @[simp, to_additive]
 lemma prod_singleton : (∏ x in (singleton a), f x) = f a :=

@@ -5,7 +5,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.div
-
+import tactic.omega
 
 /-!
 # Theory of univariate polynomials
@@ -24,8 +24,6 @@ namespace polynomial
 universes u v w z
 variables {R : Type u} {S : Type v} {T : Type w} {A : Type z} {a b : R} {n : ℕ}
 
-
-
 section comm_ring
 variables [comm_ring R] {p q : polynomial R}
 
@@ -43,37 +41,8 @@ nat_degree_pos_iff_degree_pos.mp (nat_degree_pos_of_aeval_root hp hz inj)
 
 end comm_ring
 
-
-
 section integral_domain
 variables [integral_domain R] {p q : polynomial R}
-
-@[simp] lemma degree_mul_eq : degree (p * q) = degree p + degree q :=
-if hp0 : p = 0 then by simp only [hp0, degree_zero, zero_mul, with_bot.bot_add]
-else if hq0 : q = 0 then  by simp only [hq0, degree_zero, mul_zero, with_bot.add_bot]
-else degree_mul_eq' $ mul_ne_zero (mt leading_coeff_eq_zero.1 hp0)
-    (mt leading_coeff_eq_zero.1 hq0)
-
-@[simp] lemma degree_pow_eq (p : polynomial R) (n : ℕ) :
-  degree (p ^ n) = n •ℕ (degree p) :=
-by induction n; [simp only [pow_zero, degree_one, zero_nsmul],
-simp only [*, pow_succ, succ_nsmul, degree_mul_eq]]
-
-@[simp] lemma leading_coeff_mul (p q : polynomial R) : leading_coeff (p * q) =
-  leading_coeff p * leading_coeff q :=
-begin
-  by_cases hp : p = 0,
-  { simp only [hp, zero_mul, leading_coeff_zero] },
-  { by_cases hq : q = 0,
-    { simp only [hq, mul_zero, leading_coeff_zero] },
-    { rw [leading_coeff_mul'],
-      exact mul_ne_zero (mt leading_coeff_eq_zero.1 hp) (mt leading_coeff_eq_zero.1 hq) } }
-end
-
-@[simp] lemma leading_coeff_pow (p : polynomial R) (n : ℕ) :
-  leading_coeff (p ^ n) = leading_coeff p ^ n :=
-by induction n; [simp only [pow_zero, leading_coeff_one],
-simp only [*, pow_succ, leading_coeff_mul]]
 
 instance : integral_domain (polynomial R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h, begin
@@ -85,18 +54,18 @@ instance : integral_domain (polynomial R) :=
   ..polynomial.nontrivial,
   ..polynomial.comm_ring }
 
-lemma nat_degree_mul_eq (hp : p ≠ 0) (hq : q ≠ 0) : nat_degree (p * q) =
+lemma nat_degree_mul (hp : p ≠ 0) (hq : q ≠ 0) : nat_degree (p * q) =
   nat_degree p + nat_degree q :=
 by rw [← with_bot.coe_eq_coe, ← degree_eq_nat_degree (mul_ne_zero hp hq),
     with_bot.coe_add, ← degree_eq_nat_degree hp,
-    ← degree_eq_nat_degree hq, degree_mul_eq]
+    ← degree_eq_nat_degree hq, degree_mul]
 
-@[simp] lemma nat_degree_pow_eq (p : polynomial R) (n : ℕ) :
+@[simp] lemma nat_degree_pow (p : polynomial R) (n : ℕ) :
   nat_degree (p ^ n) = n * nat_degree p :=
 if hp0 : p = 0
 then if hn0 : n = 0 then by simp [hp0, hn0]
   else by rw [hp0, zero_pow (nat.pos_of_ne_zero hn0)]; simp
-else nat_degree_pow_eq'
+else nat_degree_pow'
   (by rw [← leading_coeff_pow, ne.def, leading_coeff_eq_zero]; exact pow_ne_zero _ hp0)
 
 lemma root_mul : is_root (p * q) a ↔ is_root p a ∨ is_root q a :=
@@ -107,14 +76,14 @@ root_mul.1 h
 
 lemma degree_le_mul_left (p : polynomial R) (hq : q ≠ 0) : degree p ≤ degree (p * q) :=
 if hp : p = 0 then by simp only [hp, zero_mul, le_refl]
-else by rw [degree_mul_eq, degree_eq_nat_degree hp,
+else by rw [degree_mul, degree_eq_nat_degree hp,
     degree_eq_nat_degree hq];
   exact with_bot.coe_le_coe.2 (nat.le_add_right _ _)
 
 theorem nat_degree_le_of_dvd {p q : polynomial R} (h1 : p ∣ q) (h2 : q ≠ 0) : p.nat_degree ≤ q.nat_degree :=
 begin
   rcases h1 with ⟨q, rfl⟩, rw mul_ne_zero_iff at h2,
-  rw [nat_degree_mul_eq h2.1 h2.2], exact nat.le_add_right _ _
+  rw [nat_degree_mul h2.1 h2.2], exact nat.le_add_right _ _
 end
 
 lemma exists_finset_roots : ∀ {p : polynomial R} (hp : p ≠ 0),
@@ -238,8 +207,8 @@ calc coeff (p.comp q) (nat_degree p * nat_degree q)
     have hq0 : q ≠ 0, from λ hq0, hqd0 (by rw [hq0, nat_degree_zero]),
     have : coeff p b ≠ 0, rwa finsupp.mem_support_iff at hbs,
     refine coeff_eq_zero_of_degree_lt _,
-    rw [degree_mul_eq], erw degree_C this,
-    rw [degree_pow_eq, zero_add, degree_eq_nat_degree hq0,
+    rw [degree_mul], erw degree_C this,
+    rw [degree_pow, zero_add, degree_eq_nat_degree hq0,
       ← with_bot.coe_nsmul, nsmul_eq_mul, with_bot.coe_lt_coe, nat.cast_id],
     rw mul_lt_mul_right, apply lt_of_le_of_ne, assumption', swap, omega,
     exact le_nat_degree_of_ne_zero this,
@@ -251,7 +220,7 @@ calc coeff (p.comp q) (nat_degree p * nat_degree q)
   end
 ... = _ :
   have coeff (q ^ nat_degree p) (nat_degree p * nat_degree q) = leading_coeff (q ^ nat_degree p),
-    by rw [leading_coeff, nat_degree_pow_eq],
+    by rw [leading_coeff, nat_degree_pow],
   by rw [coeff_C_mul, this, leading_coeff_pow]
 
 lemma nat_degree_comp : nat_degree (p.comp q) = nat_degree p * nat_degree q :=
@@ -278,7 +247,7 @@ have hp0 : p ≠ 0, from λ hp0, by simpa [hp0] using hq,
 have hq0 : q ≠ 0, from λ hp0, by simpa [hp0] using hq,
 have nat_degree (1 : polynomial R) = nat_degree (p * q),
   from congr_arg _ hq,
-by rw [nat_degree_one, nat_degree_mul_eq hp0 hq0, eq_comm,
+by rw [nat_degree_one, nat_degree_mul hp0 hq0, eq_comm,
     _root_.add_eq_zero_iff, ← with_bot.coe_eq_coe,
     ← degree_eq_nat_degree hp0] at this;
   exact this.1
@@ -316,7 +285,7 @@ this.elim
   (λ h, have h₁ : degree (X - C x) = 1, from degree_X_sub_C x,
     have h₂ : degree (X - C x) = 0, from degree_eq_zero_of_is_unit h,
     by rw h₁ at h₂; exact absurd h₂ dec_trivial)
-  (λ hgu, by rw [hg, degree_mul_eq, degree_X_sub_C, degree_eq_zero_of_is_unit hgu, add_zero])
+  (λ hgu, by rw [hg, degree_mul, degree_X_sub_C, degree_eq_zero_of_is_unit hgu, add_zero])
 
 theorem prime_X_sub_C {r : R} : prime (X - C r) :=
 ⟨X_sub_C_ne_zero r, not_is_unit_X_sub_C,

@@ -28,6 +28,20 @@ variables {R : Type u} {S : Type v} {T : Type w} {A : Type z} {a b : R} {n : ℕ
 section semiring
 variables [semiring R] {p q : polynomial R}
 
+section
+/--
+The coercion turning a `polynomial` into the function which reports the coefficient of a given
+monomial `X^n`
+-/
+-- TODO we would like to completely remove this, but this requires fixing some proofs
+def coeff_coe_to_fun : has_coe_to_fun (polynomial R) :=
+finsupp.has_coe_to_fun
+
+local attribute [instance] coeff_coe_to_fun
+
+lemma apply_eq_coeff : p n = coeff p n := rfl
+end
+
 /-- `div_X p` return a polynomial `q` such that `q * X + C (p.coeff 0) = p`.
   It can be used in a semiring where the usual division algorithm is not possible -/
 def div_X (p : polynomial R) : polynomial R :=
@@ -82,7 +96,7 @@ calc (div_X p).degree < (div_X p * X + C (p.coeff 0)).degree :
          ... < 1 : dec_trivial
          ... = degree (X : polynomial R) : degree_X.symm
          ... ≤ degree (div_X p * X) :
-          by rw [← zero_add (degree X), degree_mul_eq' this];
+          by rw [← zero_add (degree X), degree_mul' this];
             exact add_le_add
               (by rw [zero_le_degree_iff, ne.def, div_X_eq_zero_iff];
                 exact λ h0, h (h0.symm ▸ degree_C_le))
@@ -171,7 +185,7 @@ have zn0 : (0 : R) ≠ 1, from λ h, by haveI := subsingleton_of_zero_eq_one h;
     exact hp,
   begin
     have := congr_arg nat_degree hr,
-    rw [nat_degree_mul_eq' hpnr0,  nat_degree_pow_eq' hpn0', add_mul, add_assoc] at this,
+    rw [nat_degree_mul' hpnr0,  nat_degree_pow' hpn0', add_mul, add_assoc] at this,
     exact ne_of_lt (lt_add_of_le_of_pos (le_mul_of_one_le_right' (nat.zero_le _) hnp)
       (add_pos_of_pos_of_nonneg (by rwa one_mul) (nat.zero_le _))) this
   end⟩
@@ -197,7 +211,7 @@ else
     (by rw [← degree_eq_nat_degree h.2, ← degree_eq_nat_degree hq0];
     exact h.1),
   degree_sub_lt
-  (by rw [degree_mul_eq' hpq, degree_monomial _ hp, degree_eq_nat_degree h.2,
+  (by rw [degree_mul' hpq, degree_monomial _ hp, degree_eq_nat_degree h.2,
       degree_eq_nat_degree hq0, ← with_bot.coe_add, nat.sub_add_cancel hlt])
   h.2
   (by rw [leading_coeff_mul' hpq, leading_coeff_monomial, monic.def.1 hq, mul_one])
@@ -346,10 +360,10 @@ have hlc : leading_coeff q * leading_coeff (p /ₘ q) ≠ 0 :=
   by rwa [monic.def.1 hq, one_mul, (≠), leading_coeff_eq_zero],
 have hmod : degree (p %ₘ q) < degree (q * (p /ₘ q)) :=
   calc degree (p %ₘ q) < degree q : degree_mod_by_monic_lt _ hq hq0
-  ... ≤ _ : by rw [degree_mul_eq' hlc, degree_eq_nat_degree hq0,
+  ... ≤ _ : by rw [degree_mul' hlc, degree_eq_nat_degree hq0,
       degree_eq_nat_degree hdiv0, ← with_bot.coe_add, with_bot.coe_le_coe];
     exact nat.le_add_right _ _,
-calc degree q + degree (p /ₘ q) = degree (q * (p /ₘ q)) : eq.symm (degree_mul_eq' hlc)
+calc degree q + degree (p /ₘ q) = degree (q * (p /ₘ q)) : eq.symm (degree_mul' hlc)
 ... = degree (p %ₘ q + q * (p /ₘ q)) : (degree_add_eq_of_degree_lt hmod).symm
 ... = _ : congr_arg _ (mod_by_monic_add_div _ hq)
 
@@ -423,7 +437,7 @@ else
               with_bot.coe_le_coe];
             exact nat.le_add_right _ _
         ... = degree (r - f %ₘ g) :
-          by rw [h₂, degree_mul_eq']; simpa [monic.def.1 hg]),
+          by rw [h₂, degree_mul']; simpa [monic.def.1 hg]),
   ⟨eq.symm $ eq_of_sub_eq_zero h₅,
     eq.symm $ eq_of_sub_eq_zero $ by simpa [h₅] using h₁⟩
 
@@ -469,7 +483,7 @@ lemma dvd_iff_mod_by_monic_eq_zero (hq : monic q) : p %ₘ q = 0 ↔ q ∣ p :=
       (by rw [hmod, leading_coeff_eq_zero.1 h, mul_zero, leading_coeff_zero]),
   have hlc : leading_coeff q * leading_coeff (r - p /ₘ q) ≠ 0 :=
     by rwa [monic.def.1 hq, one_mul],
-  by rw [degree_mul_eq' hlc, degree_eq_nat_degree hq0,
+  by rw [degree_mul' hlc, degree_eq_nat_degree hq0,
       degree_eq_nat_degree (mt leading_coeff_eq_zero.2 hrpq0)] at this;
     exact not_lt_of_ge (nat.le_add_right _ _) (with_bot.some_lt_some.1 this))⟩
 

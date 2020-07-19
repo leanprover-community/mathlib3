@@ -18,9 +18,10 @@ import tactic.monotonicity
 * `map`, `comap`, `prod` : operations on filters;
 * `tendsto` : limit with respect to filters;
 * `eventually` : `f.eventually p` means `{x | p x} ∈ f`;
-* `frequently` : `f.frequently p` means `{x | ¬p x} ∉ f`.
+* `frequently` : `f.frequently p` means `{x | ¬p x} ∉ f`;
 * `filter_upwards [h₁, ..., hₙ]` : takes a list of proofs `hᵢ : sᵢ ∈ f`, and replaces a goal `s ∈ f`
   with `∀ x, x ∈ s₁ → ... → x ∈ sₙ → x ∈ s`;
+* `ne_bot f` : an utility class stating that `f` is a non-trivial filter. 
 
 Filters on a type `X` are sets of sets of `X` satisfying three conditions. They are mostly used to
 abstract two related kinds of ideas:
@@ -45,8 +46,8 @@ The examples of filters appearing in the description of the two motivating ideas
 * `𝓝 x` : made of neighborhoods of `x` in a topological space (defined in topology.basic)
 * `𝓤 X` : made of entourages of a uniform space (those space are generalizations of metric spaces
   defined in topology.uniform_space.basic)
-* `μ.a_e` : made of sets whose complement has zero measure with respect to `μ` (defined in
-  measure_theory.measure_space)
+* `μ.ae` : made of sets whose complement has zero measure with respect to `μ` (defined in
+  `measure_theory.measure_space`)
 
 The general notion of limit of a map with respect to filters on the source and target types
 is `filter.tendsto`. It is defined in terms of the order and the push-forward operation.
@@ -75,7 +76,7 @@ which is a special case of `mem_closure_of_tendsto` from topology.basic.
 Important note: Bourbaki requires that a filter on `X` cannot contain all sets of `X`, which
 we do *not* require. This gives `filter X` better formal properties, in particular a bottom element
 `⊥` for its lattice structure, at the cost of including the assumption
-`f ≠ ⊥` in a number of lemmas and definitions.
+`[ne_bot f]` in a number of lemmas and definitions.
 -/
 
 open set
@@ -372,6 +373,10 @@ instance : complete_lattice (filter α) := original_complete_lattice.copy
 
 end complete_lattice
 
+/-- A filter is `ne_bot` if it is not equal to `⊥`, or equivalently the empty set
+does not belong to the filter. Bourbaki include this assumption in the definition
+of a filter but we prefer to have a `complete_lattice` structure on filter, so
+we use a typeclass argument in lemmas instead. -/
 @[class] def ne_bot (f : filter α) := f ≠ ⊥
 
 lemma ne_bot.ne {f : filter α} (hf : ne_bot f) : f ≠ ⊥ := hf

@@ -47,9 +47,19 @@ lemma continuous.inv [topological_group α] [topological_space β] {f : β → �
 continuous_inv.comp hf
 
 @[to_additive]
+lemma continuous_on_inv [topological_group α] {s : set α} : continuous_on (λx:α, x⁻¹) s :=
+continuous_inv.continuous_on
+
+@[to_additive]
 lemma continuous_on.inv [topological_group α] [topological_space β] {f : β → α} {s : set β}
   (hf : continuous_on f s) : continuous_on (λx, (f x)⁻¹) s :=
 continuous_inv.comp_continuous_on hf
+
+@[to_additive]
+lemma tendsto_inv {α : Type*} [group α]
+  [topological_space α] [topological_group α] (a : α) :
+  tendsto (λ x, x⁻¹) (nhds a) (nhds (a⁻¹)) :=
+continuous_inv.tendsto a
 
 /-- If a function converges to a value in a multiplicative topological group, then its inverse
 converges to the inverse of this value. For the version in normed fields assuming additionally

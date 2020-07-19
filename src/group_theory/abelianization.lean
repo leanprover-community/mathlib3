@@ -16,53 +16,53 @@ variables (α : Type u) [group α]
 
 -- TODO this still uses unbundled subgroups, and needs to be updated.
 
-def commutator : set α :=
-group.normal_closure {x | ∃ p q, p * q * p⁻¹ * q⁻¹ = x}
-
-instance : normal_subgroup (commutator α) :=
-group.normal_closure.is_normal
+@[derive subgroup.normal]
+def commutator : subgroup α :=
+subgroup.normal_closure {x | ∃ p q, p * q * p⁻¹ * q⁻¹ = x}
 
 def abelianization : Type u :=
-quotient_group.quotient $ subgroup.of (commutator α)
+quotient_group.quotient (commutator α)
 
 namespace abelianization
 
 local attribute [instance] quotient_group.left_rel normal_subgroup.to_is_subgroup
 
 instance : comm_group (abelianization α) :=
-{ mul_comm := λ x y, quotient.induction_on₂ x y $ λ a b, quotient.sound
-    (group.subset_normal_closure ⟨b⁻¹,a⁻¹, by simp [mul_inv_rev, inv_inv, mul_assoc]⟩),
-.. quotient_group.group _}
+{ mul_comm := λ x y, quotient.induction_on₂' x y $ λ a b,
+  begin
+    apply quotient.sound,
+    apply subgroup.subset_normal_closure,
+    use b⁻¹, use a⁻¹,
+    simp [mul_assoc],
+  end,
+.. quotient_group.group _ }
 
 instance : inhabited (abelianization α) := ⟨1⟩
 
 variable {α}
 
-def of (x : α) : abelianization α :=
-quotient.mk x
-
-instance of.is_group_hom : is_group_hom (@of α _) :=
-{ map_mul := λ _ _, rfl }
+def of : α →* abelianization α :=
+{ to_fun := quotient_group.mk,
+  map_one' := rfl,
+  map_mul' := λ x y, rfl }
 
 section lift
 
-variables {β : Type v} [comm_group β] (f : α → β) [is_group_hom f]
+variables {β : Type v} [comm_group β] (f : α →* β)
 
-lemma commutator_subset_ker : commutator α ⊆ is_group_hom.ker f  :=
+lemma commutator_subset_ker : commutator α ≤ f.ker :=
+-- FIXME I've fixed the statement, but this is still the proof of the old theorem.
 group.normal_closure_subset (λ x ⟨p,q,w⟩, (is_group_hom.mem_ker f).2
   (by {rw ←w, simp [is_mul_hom.map_mul f, is_group_hom.map_inv f, mul_comm]}))
 
-def lift : abelianization α → β :=
+def lift : abelianization α →* β :=
 quotient_group.lift _ f (λ x h, (is_group_hom.mem_ker f).1 (commutator_subset_ker f h))
-
-instance lift.is_group_hom : is_group_hom (lift f) :=
-quotient_group.is_group_hom_quotient_lift _ _ _
 
 @[simp] lemma lift.of (x : α) : lift f (of x) = f x :=
 rfl
 
 theorem lift.unique
-  (g : abelianization α → β) [is_group_hom g]
+  (g : abelianization α →* β)
   (hg : ∀ x, g (of x) = f x) {x} :
   g x = lift f x :=
 quotient_group.induction_on x hg

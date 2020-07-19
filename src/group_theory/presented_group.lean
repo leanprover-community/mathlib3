@@ -13,7 +13,7 @@ variables {α : Type}
 /-- Given a set of relations, rels, over a type α, presented_group constructs the group with
 generators α and relations rels as a quotient of free_group α.-/
 def presented_group (rels : set (free_group α)) : Type :=
-quotient_group.quotient $ group.normal_closure rels
+quotient_group.quotient $ subgroup.normal_closure rels
 
 namespace presented_group
 
@@ -48,7 +48,7 @@ lemma to_group_eq_one_of_mem_closure : ∀ x ∈ group.normal_closure rels, F x 
 /-- The extension of a map f : α → β that satisfies the given relations to a group homomorphism
 from presented_group rels → β. -/
 def to_group : presented_group rels → β :=
-quotient_group.lift (group.normal_closure rels) F (to_group_eq_one_of_mem_closure h)
+quotient_group.lift (subgroup.normal_closure rels) (monoid_hom.of F) (to_group_eq_one_of_mem_closure h)
 
 instance to_group.is_group_hom : is_group_hom (to_group h) :=
 quotient_group.is_group_hom_quotient_lift _ _ _

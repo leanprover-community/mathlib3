@@ -46,8 +46,9 @@ mem_infi_sets a $ subset.refl _
 lemma Iio_mem_at_bot [preorder α] [no_bot_order α] (x : α) : Iio x ∈ (at_bot : filter α) :=
 let ⟨z, hz⟩ := no_bot x in mem_sets_of_superset (mem_at_bot z) $ λ y h, lt_of_le_of_lt h hz
 
-@[simp] lemma at_top_ne_bot [nonempty α] [semilattice_sup α] : (at_top : filter α) ≠ ⊥ :=
-infi_ne_bot_of_directed (by apply_instance)
+@[instance]
+lemma at_top_ne_bot [nonempty α] [semilattice_sup α] : ne_bot (at_top : filter α) :=
+infi_ne_bot_of_directed
   (assume a b, ⟨a ⊔ b, by simp only [ge, le_principal_iff, forall_const, set_of_subset_set_of,
     mem_principal_sets, and_self, sup_le_iff, forall_true_iff] {contextual := tt}⟩)
   (assume a, principal_ne_bot_iff.2 nonempty_Ici)
@@ -131,8 +132,8 @@ tendsto_at_top_mono' l $ eventually_of_forall h
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma inf_map_at_top_ne_bot_iff [semilattice_sup α] [nonempty α] {F : filter β} {u : α → β} :
-  F ⊓ (map u at_top) ≠ ⊥ ↔ ∀ U ∈ F, ∀ N, ∃ n ≥ N, u n ∈ U :=
-by simp_rw [inf_ne_bot_iff_frequently_left, frequently_map, frequently_at_top] ; trivial
+  ne_bot (F ⊓ (map u at_top)) ↔ ∀ U ∈ F, ∀ N, ∃ n ≥ N, u n ∈ U :=
+by simp_rw [inf_ne_bot_iff_frequently_left, frequently_map, frequently_at_top]; refl
 
 lemma extraction_of_frequently_at_top' {P : ℕ → Prop} (h : ∀ N, ∃ n > N, P n) :
   ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, P (φ n) :=
@@ -151,7 +152,7 @@ end
 
 lemma extraction_of_eventually_at_top {P : ℕ → Prop} (h : ∀ᶠ n in at_top, P n) :
   ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, P (φ n) :=
-extraction_of_frequently_at_top (eventually.frequently at_top_ne_bot h)
+extraction_of_frequently_at_top h.frequently
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma exists_le_of_tendsto_at_top [semilattice_sup α] [preorder β] {u : α → β}
@@ -160,7 +161,7 @@ begin
   intros a b,
   have : ∀ᶠ x in at_top, a ≤ x ∧ b ≤ u x := inter_mem_sets (mem_at_top a) (h $ mem_at_top b),
   haveI : nonempty α := ⟨a⟩,
-  rcases this.exists at_top_ne_bot with ⟨a', ha, hb⟩,
+  rcases this.exists with ⟨a', ha, hb⟩,
   exact ⟨a', ha, hb⟩
 end
 
@@ -506,15 +507,15 @@ end
 /-- If a monotone function `u : ι → α` tends to `at_top` along *some* non-trivial filter `l`, then
 it tends to `at_top` along `at_top`. -/
 lemma tendsto_at_top_of_monotone_of_filter {ι α : Type*} [preorder ι] [preorder α] {l : filter ι}
-  {u : ι → α} (h : monotone u) (hl : l ≠ ⊥) (hu : tendsto u l at_top) :
+  {u : ι → α} (h : monotone u) [ne_bot l] (hu : tendsto u l at_top) :
   tendsto u at_top at_top :=
-h.tendsto_at_top_at_top $ λ b, (hu.eventually (mem_at_top b)).exists hl
+h.tendsto_at_top_at_top $ λ b, (hu.eventually (mem_at_top b)).exists
 
 lemma tendsto_at_top_of_monotone_of_subseq {ι ι' α : Type*} [preorder ι] [preorder α] {u : ι → α}
-  {φ : ι' → ι} (h : monotone u) {l : filter ι'} (hl : l ≠ ⊥)
+  {φ : ι' → ι} (h : monotone u) {l : filter ι'} [ne_bot l]
   (H : tendsto (u ∘ φ) l at_top) :
   tendsto u at_top at_top :=
-tendsto_at_top_of_monotone_of_filter h (map_ne_bot hl) (tendsto_map' H)
+tendsto_at_top_of_monotone_of_filter h (tendsto_map' H)
 
 /-- Let `f` and `g` be two maps to the same commutative monoid. This lemma gives a sufficient
 condition for comparison of the filter `at_top.map (λ s, ∏ b in s, f b)` with

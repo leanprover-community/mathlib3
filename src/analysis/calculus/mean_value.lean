@@ -100,7 +100,7 @@ begin
   change f x ≤ B x at hxB,
   cases lt_or_eq_of_le hxB with hxB hxB,
   { -- If `f x < B x`, then all we need is continuity of both sides
-    apply nonempty_of_mem_sets (nhds_within_Ioi_self_ne_bot x),
+    apply @nonempty_of_mem_sets _ (nhds_within x (Ioi x)),
     refine inter_mem_sets _ (Ioc_mem_nhds_within_Ioi ⟨le_refl x, hy⟩),
     have : ∀ᶠ x in nhds_within x (Icc a b), f x < B x,
       from A x (Ico_subset_Icc_self xab)

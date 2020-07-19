@@ -561,11 +561,11 @@ lemma order_top.tendsto_at_top {α : Type*} [order_top α] [topological_space β
   tendsto f at_top (𝓝 $ f ⊤) :=
 tendsto_le_right (pure_le_nhds _) $ tendsto_at_top_pure f
 
-@[simp] lemma nhds_ne_bot {a : α} : 𝓝 a ≠ ⊥ :=
-ne_bot_of_le_ne_bot pure_ne_bot (pure_le_nhds a)
+@[simp] instance nhds_ne_bot {a : α} : ne_bot (𝓝 a) :=
+ne_bot_of_le (pure_le_nhds a)
 
 /-!
-### Cluster points
+### Cluster points
 
 In this section we define [cluster points](https://en.wikipedia.org/wiki/Limit_point)
 (also known as limit points and accumulation points) of a filter and of a sequence.
@@ -573,7 +573,9 @@ In this section we define [cluster points](https://en.wikipedia.org/wiki/Limit_p
 
 /-- A point `x` is a cluster point of a filter `F` if 𝓝 x ⊓ F ≠ ⊥. Also known as
 an accumulation point or a limit point. -/
-def cluster_pt (x : α) (F : filter α) : Prop := 𝓝 x ⊓ F ≠ ⊥
+def cluster_pt (x : α) (F : filter α) : Prop := ne_bot (𝓝 x ⊓ F)
+
+lemma cluster_pt.ne_bot {x : α} {F : filter α} (h : cluster_pt x F) : ne_bot (𝓝 x ⊓ F) := h
 
 lemma cluster_pt_iff {x : α} {F : filter α} :
   cluster_pt x F ↔ ∀ {U V : set α}, U ∈ 𝓝 x → V ∈ F → (U ∩ V).nonempty :=
@@ -585,11 +587,15 @@ lemma cluster_pt_principal_iff {x : α} {s : set α} :
   cluster_pt x (𝓟 s) ↔ ∀ U ∈ 𝓝 x, (U ∩ s).nonempty :=
 inf_principal_ne_bot_iff
 
-lemma cluster_pt.of_le_nhds {x : α} {f : filter α} (H : f ≤ 𝓝 x) (h : f ≠ ⊥) : cluster_pt x f :=
-by rwa [cluster_pt, inf_comm, inf_eq_left.mpr H]
+lemma cluster_pt.of_le_nhds {x : α} {f : filter α} (H : f ≤ 𝓝 x) [ne_bot f] : cluster_pt x f :=
+by rwa [cluster_pt, inf_eq_right.mpr H]
+
+lemma cluster_pt.of_le_nhds' {x : α} {f : filter α} (H : f ≤ 𝓝 x) (hf : ne_bot f) :
+  cluster_pt x f :=
+cluster_pt.of_le_nhds H
 
 lemma cluster_pt.of_nhds_le {x : α} {f : filter α} (H : 𝓝 x ≤ f) : cluster_pt x f :=
-by simp [cluster_pt, inf_eq_left.mpr H]
+by simp only [cluster_pt, inf_eq_left.mpr H, nhds_ne_bot]
 
 lemma cluster_pt.mono {x : α} {f g : filter α} (H : cluster_pt x f) (h : f ≤ g) :
   cluster_pt x g :=
@@ -612,7 +618,7 @@ lemma map_cluster_pt_iff {ι :Type*} (x : α) (F : filter ι) (u : ι → α) :
 by { simp_rw [map_cluster_pt, cluster_pt, inf_ne_bot_iff_frequently_left, frequently_map], refl }
 
 lemma map_cluster_pt_of_comp {ι δ :Type*} {F : filter ι} {φ : δ → ι} {p : filter δ}
-  {x : α} {u : ι → α} (hp : p ≠ ⊥) (h : tendsto φ p F) (H : tendsto (u ∘ φ) p (𝓝 x)) :
+  {x : α} {u : ι → α} [ne_bot p] (h : tendsto φ p F) (H : tendsto (u ∘ φ) p (𝓝 x)) :
   map_cluster_pt x F u :=
 begin
   have := calc
@@ -620,11 +626,11 @@ begin
   ... ≤ map u F : map_mono h,
   have : map (u ∘ φ) p ≤ 𝓝 x ⊓ map u F,
     from le_inf H this,
-  exact ne_bot_of_le_ne_bot (map_ne_bot hp) this
+  exact ne_bot_of_le this
 end
 
 /-!
-### Interior, closure and frontier in terms of neighborhoods
+### Interior, closure and frontier in terms of neighborhoods
 -/
 
 lemma interior_eq_nhds {s : set α} : interior s = {a | 𝓝 a ≤ 𝓟 s} :=
@@ -664,7 +670,7 @@ theorem mem_closure_iff_nhds' {s : set α} {a : α} :
 by simp only [mem_closure_iff_nhds, set.nonempty_inter_iff_exists_right]
 
 theorem mem_closure_iff_comap_ne_bot {A : set α} {x : α} :
-  x ∈ closure A ↔ comap (coe : A → α) (𝓝 x) ≠ ⊥ :=
+  x ∈ closure A ↔ ne_bot (comap (coe : A → α) (𝓝 x)) :=
 by simp_rw [mem_closure_iff_nhds, comap_ne_bot_iff, set.nonempty_inter_iff_exists_right]
 
 theorem mem_closure_iff_nhds_basis {a : α} {p : β → Prop} {s : β → set α} (h : (𝓝 a).has_basis p s)
@@ -717,21 +723,17 @@ calc closure s \ closure t = (closure t)ᶜ ∩ closure s : by simp only [diff_e
   ... ⊆ closure (s \ t) : closure_mono $ diff_subset_diff (subset.refl s) subset_closure
 
 lemma mem_of_closed_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
-  (hb : b ≠ ⊥) (hf : tendsto f b (𝓝 a)) (hs : is_closed s) (h : f ⁻¹' s ∈ b) : a ∈ s :=
-have b.map f ≤ 𝓝 a ⊓ 𝓟 s,
-  from le_trans (le_inf (le_refl _) (le_principal_iff.mpr h)) (inf_le_inf_right _ hf),
-is_closed_iff_cluster_pt.mp hs a $ ne_bot_of_le_ne_bot (map_ne_bot hb) this
+  [ne_bot b] (hf : tendsto f b (𝓝 a)) (hs : is_closed s) (h : f ⁻¹' s ∈ b) : a ∈ s :=
+is_closed_iff_cluster_pt.mp hs a $ ne_bot_of_le $ le_inf hf (le_principal_iff.mpr h)
 
 lemma mem_of_closed_of_tendsto' {f : β → α} {x : filter β} {a : α} {s : set α}
-  (hf : tendsto f x (𝓝 a)) (hs : is_closed s) (h : x ⊓ 𝓟 (f ⁻¹' s) ≠ ⊥) : a ∈ s :=
-is_closed_iff_cluster_pt.mp hs _ $ ne_bot_of_le_ne_bot (@map_ne_bot _ _ _ f h) $
-  le_inf (le_trans (map_mono $ inf_le_left) hf) $
-    le_trans (map_mono $ inf_le_right_of_le $
-      by simp only [comap_principal, le_principal_iff]; exact subset.refl _) (@map_comap_le _ _ _ f)
+  (hf : tendsto f x (𝓝 a)) (hs : is_closed s) [ne_bot (x ⊓ 𝓟 (f ⁻¹' s))] : a ∈ s :=
+have tendsto f (x ⊓ 𝓟 (f ⁻¹' s)) (𝓝 a) := tendsto_inf_left hf,
+mem_of_closed_of_tendsto this hs $ mem_inf_sets_of_right $ mem_principal_self _
 
 lemma mem_closure_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
-  (hb : b ≠ ⊥) (hf : tendsto f b (𝓝 a)) (h : ∀ᶠ x in b, f x ∈ s) : a ∈ closure s :=
-mem_of_closed_of_tendsto hb hf (is_closed_closure) $
+  [ne_bot b] (hf : tendsto f b (𝓝 a)) (h : ∀ᶠ x in b, f x ∈ s) : a ∈ closure s :=
+mem_of_closed_of_tendsto hf is_closed_closure $
   filter.mem_sets_of_superset h (preimage_mono subset_closure)
 
 /-- Suppose that `f` sends the complement to `s` to a single point `a`, and `l` is some filter.

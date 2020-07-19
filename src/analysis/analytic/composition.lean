@@ -747,7 +747,7 @@ begin
           have := (le_trans (le_of_lt hy) (min_le_right _ _)),
           rwa [ennreal.coe_le_coe, ← nnreal.coe_le_coe, coe_nnnorm] at this
         end },
-    exact tendsto_nhds_of_cauchy_seq_of_subseq cau at_top_ne_bot
+    exact tendsto_nhds_of_cauchy_seq_of_subseq cau
           comp_partial_sum_target_tendsto_at_top C },
   -- Fifth step: the sum over `n` of `q.comp p n` can be expressed as a particular resummation of
   -- the sum over all compositions, by grouping together the compositions of the same

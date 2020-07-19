@@ -42,13 +42,14 @@ lemma compact_space_uniformity [compact_space α] [separated_space α] : 𝓤 α
 begin
   symmetry, refine le_antisymm nhds_le_uniformity _,
   by_contra H,
-  obtain ⟨V, hV, h⟩ : ∃ V : set (α × α), (∀ x : α, V ∈ 𝓝 (x, x)) ∧ 𝓤 α ⊓ 𝓟 Vᶜ ≠ ⊥,
+  obtain ⟨V, hV, h⟩ : ∃ V : set (α × α), (∀ x : α, V ∈ 𝓝 (x, x)) ∧ ne_bot (𝓤 α ⊓ 𝓟 Vᶜ),
   { rw le_iff_forall_inf_principal_compl at H,
     push_neg at H,
     simpa only [mem_supr_sets] using H },
   let F := 𝓤 α ⊓ 𝓟 Vᶜ,
+  haveI : ne_bot F := h, 
   obtain ⟨⟨x, y⟩, hx⟩ : ∃ (p : α × α), cluster_pt p F :=
-    cluster_point_of_compact h,
+    cluster_point_of_compact F,
   have : cluster_pt (x, y) (𝓤 α) :=
     hx.of_inf_left,
   have hxy : x = y := eq_of_uniformity_inf_nhds this,
@@ -104,8 +105,9 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
     rw le_iff_forall_inf_principal_compl,
     intros V V_in,
     by_contra H,
+    haveI : ne_bot (F ⊓ 𝓟 Vᶜ) := H,
     -- Hence compactness would give us a cluster point (x, y) for F ⊓ 𝓟 Vᶜ
-    obtain ⟨⟨x, y⟩, hxy⟩ : ∃ (p : α × α), cluster_pt p (F ⊓ 𝓟 Vᶜ) := cluster_point_of_compact H,
+    obtain ⟨⟨x, y⟩, hxy⟩ : ∃ (p : α × α), cluster_pt p (F ⊓ 𝓟 Vᶜ) := cluster_point_of_compact _,
     -- In particular (x, y) is a cluster point of 𝓟 Vᶜ, hence is not in the interior of V,
     -- and a fortiori not in Δ, so x ≠ y
     have clV : cluster_pt (x, y) (𝓟 $ Vᶜ) := hxy.of_inf_right,

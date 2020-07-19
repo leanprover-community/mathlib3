@@ -100,12 +100,12 @@ instance t2_space.t1_space [t2_space α] : t1_space α :=
 let ⟨u, v, hu, hv, hyu, hxv, huv⟩ := t2_separation (mt mem_singleton_of_eq hxy) in
 ⟨u, λ z hz1 hz2, (ext_iff.1 huv x).1 ⟨mem_singleton_iff.1 hz2 ▸ hz1, hxv⟩, hu, hyu⟩⟩
 
-lemma eq_of_nhds_ne_bot [ht : t2_space α] {x y : α} (h : 𝓝 x ⊓ 𝓝 y ≠ ⊥) : x = y :=
+lemma eq_of_nhds_ne_bot [ht : t2_space α] {x y : α} (h : ne_bot (𝓝 x ⊓ 𝓝 y)) : x = y :=
 classical.by_contradiction $ assume : x ≠ y,
 let ⟨u, v, hu, hv, hx, hy, huv⟩ := t2_space.t2 x y this in
 absurd huv $ (inf_ne_bot_iff.1 h (mem_nhds_sets hu hx) (mem_nhds_sets hv hy)).ne_empty
 
-lemma t2_iff_nhds : t2_space α ↔ ∀ {x y : α}, 𝓝 x ⊓ 𝓝 y ≠ ⊥ → x = y :=
+lemma t2_iff_nhds : t2_space α ↔ ∀ {x y : α}, ne_bot (𝓝 x ⊓ 𝓝 y) → x = y :=
 ⟨assume h, by exactI λ x y, eq_of_nhds_ne_bot,
  assume h, ⟨assume x y xy,
    have 𝓝 x ⊓ 𝓝 y = ⊥ := classical.by_contradiction (mt h xy),
@@ -117,9 +117,9 @@ lemma t2_iff_nhds : t2_space α ↔ ∀ {x y : α}, 𝓝 x ⊓ 𝓝 y ≠ ⊥ �
 lemma t2_iff_ultrafilter :
   t2_space α ↔ ∀ f {x y : α}, is_ultrafilter f → f ≤ 𝓝 x → f ≤ 𝓝 y → x = y :=
 t2_iff_nhds.trans
-  ⟨assume h f x y u fx fy, h $ ne_bot_of_le_ne_bot u.1 (le_inf fx fy),
+  ⟨assume h f x y u fx fy, h $ u.1.mono (le_inf fx fy),
    assume h x y xy,
-     let ⟨f, hf, uf⟩ := exists_ultrafilter xy in
+     let ⟨f, hf, uf⟩ := @@exists_ultrafilter _ xy in
      h f uf (le_trans hf inf_le_left) (le_trans hf inf_le_right)⟩
 
 lemma is_closed_diagonal [t2_space α] : is_closed (diagonal α) :=
@@ -163,8 +163,12 @@ end
 ⟨assume h, eq_of_nhds_ne_bot $ by rw [inf_of_le_left h]; exact nhds_ne_bot, assume h, h ▸ le_refl _⟩
 
 lemma tendsto_nhds_unique [t2_space α] {f : β → α} {l : filter β} {a b : α}
-  (hl : l ≠ ⊥) (ha : tendsto f l (𝓝 a)) (hb : tendsto f l (𝓝 b)) : a = b :=
-eq_of_nhds_ne_bot $ ne_bot_of_le_ne_bot (map_ne_bot hl) $ le_inf ha hb
+  [ne_bot l] (ha : tendsto f l (𝓝 a)) (hb : tendsto f l (𝓝 b)) : a = b :=
+eq_of_nhds_ne_bot $ ne_bot_of_le $ le_inf ha hb
+
+lemma tendsto_nhds_unique' [t2_space α] {f : β → α} {l : filter β} {a b : α}
+  (hl : ne_bot l) (ha : tendsto f l (𝓝 a)) (hb : tendsto f l (𝓝 b)) : a = b :=
+eq_of_nhds_ne_bot $ ne_bot_of_le $ le_inf ha hb
 
 section lim
 variables [t2_space α] {f : filter α}
@@ -176,28 +180,29 @@ In this section we use explicit `nonempty α` instances for `Lim` and `lim`. Thi
 are useful without a `nonempty α` instance.
 -/
 
-lemma Lim_eq {a : α} (hf : f ≠ ⊥) (h : f ≤ 𝓝 a) :
+lemma Lim_eq {a : α} [ne_bot f] (h : f ≤ 𝓝 a) :
   @Lim _ _ ⟨a⟩ f = a :=
-tendsto_nhds_unique hf (Lim_spec ⟨a, h⟩) h
+tendsto_nhds_unique (Lim_spec ⟨a, h⟩) h
 
 lemma filter.tendsto.lim_eq {a : α} {f : filter β} {g : β → α} (h : tendsto g f (𝓝 a))
-  (hf : f ≠ ⊥) :
+  [ne_bot f] :
   @lim _ _ _ ⟨a⟩ f g = a :=
-Lim_eq (map_ne_bot hf) h
+Lim_eq h
 
 lemma continuous.lim_eq [topological_space β] {f : β → α} (h : continuous f) (a : β) :
   @lim _ _ _ ⟨f a⟩ (𝓝 a) f = f a :=
-(h.tendsto a).lim_eq nhds_ne_bot
+(h.tendsto a).lim_eq
 
 @[simp] lemma Lim_nhds (a : α) : @Lim _ _ ⟨a⟩ (𝓝 a) = a :=
-Lim_eq nhds_ne_bot (le_refl _)
+Lim_eq (le_refl _)
 
 @[simp] lemma lim_nhds_id (a : α) : @lim _ _ _ ⟨a⟩ (𝓝 a) id = a :=
 Lim_nhds a
 
 @[simp] lemma Lim_nhds_within {a : α} {s : set α} (h : a ∈ closure s) :
   @Lim _ _ ⟨a⟩ (nhds_within a s) = a :=
-Lim_eq begin rw [closure_eq_cluster_pts] at h, exact h end inf_le_left
+by haveI : ne_bot (nhds_within a s) := mem_closure_iff_cluster_pt.1 h;
+exact Lim_eq inf_le_left
 
 @[simp] lemma lim_nhds_within_id {a : α} {s : set α} (h : a ∈ closure s) :
   @lim _ _ _ ⟨a⟩ (nhds_within a s) id = a :=

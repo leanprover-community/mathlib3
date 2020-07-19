@@ -970,8 +970,8 @@ noncomputable def classical.inhabited_of_nonempty' {α : Sort u} [h : nonempty �
 ⟨classical.choice h⟩
 
 /-- Using `classical.choice`, extracts a term from a `nonempty` type. -/
-protected noncomputable def nonempty.some {α : Sort u} (p : nonempty α) : α :=
-classical.choice p
+protected noncomputable def nonempty.some {α : Sort u} (h : nonempty α) : α :=
+classical.choice h
 
 /-- Given `f : α → β`, if `α` is nonempty then `β` is also nonempty.
   `nonempty` cannot be a `functor`, because `functor` is restricted to `Type`. -/

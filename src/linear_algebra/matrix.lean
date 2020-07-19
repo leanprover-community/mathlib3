@@ -413,6 +413,75 @@ by rw [@linear_equiv.findim_eq R (matrix m n R) _ _ _ _ _ _ (linear_equiv.uncurr
 
 end finite_dimensional
 
+section reindexing
+
+variables {l' m' n' : Type w} [fintype l'] [fintype m'] [fintype n']
+variables {R : Type v}
+
+/-- The natural map that reindexes a matrix's rows and columns with equivalent types is an
+equivalence. -/
+def reindex (eₘ : m ≃ m') (eₙ : n ≃ n') : matrix m n R ≃ matrix m' n' R :=
+{ to_fun    := λ M i j, M (eₘ.symm i) (eₙ.symm j),
+  inv_fun   := λ M i j, M (eₘ i) (eₙ j),
+  left_inv  := λ M, by simp,
+  right_inv := λ M, by simp, }
+
+@[simp] lemma reindex_apply (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m n R) :
+  reindex eₘ eₙ M = λ i j, M (eₘ.symm i) (eₙ.symm j) :=
+rfl
+
+@[simp] lemma reindex_symm_apply (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m' n' R) :
+  (reindex eₘ eₙ).symm M = λ i j, M (eₘ i) (eₙ j) :=
+rfl
+
+/-- The natural map that reindexes a matrix's rows and columns with equivalent types is a linear
+equivalence. -/
+def reindex_linear_equiv [semiring R] (eₘ : m ≃ m') (eₙ : n ≃ n') :
+  matrix m n R ≃ₗ[R] matrix m' n' R :=
+{ map_add'  := λ M N, rfl,
+  map_smul' := λ M N, rfl,
+..(reindex eₘ eₙ)}
+
+@[simp] lemma reindex_linear_equiv_apply [semiring R]
+  (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m n R) :
+  reindex_linear_equiv eₘ eₙ M = λ i j, M (eₘ.symm i) (eₙ.symm j) :=
+rfl
+
+@[simp] lemma reindex_linear_equiv_symm_apply [semiring R]
+  (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m' n' R) :
+  (reindex_linear_equiv eₘ eₙ).symm M = λ i j, M (eₘ i) (eₙ j) :=
+rfl
+
+lemma reindex_mul [semiring R]
+  (eₘ : m ≃ m') (eₙ : n ≃ n') (eₗ : l ≃ l') (M : matrix m n R) (N : matrix n l R) :
+  (reindex_linear_equiv eₘ eₙ M) ⬝ (reindex_linear_equiv eₙ eₗ N) = reindex_linear_equiv eₘ eₗ (M ⬝ N) :=
+begin
+  ext i j,
+  dsimp only [matrix.mul, matrix.dot_product],
+  rw [←finset.univ_map_equiv_to_embedding eₙ, finset.sum_map finset.univ eₙ.to_embedding],
+  simp,
+end
+
+/-- For square matrices, the natural map that reindexes a matrix's rows and columns with equivalent
+types is an equivalence of algebras. -/
+def reindex_alg_equiv [comm_semiring R] [decidable_eq m] [decidable_eq n]
+  (e : m ≃ n) : matrix m m R ≃ₐ[R] matrix n n R :=
+{ map_mul'  := λ M N, by simp only [reindex_mul, linear_equiv.to_fun_apply, mul_eq_mul],
+  commutes' := λ r, by { ext, simp [algebra_map, algebra.to_ring_hom], by_cases h : i = j; simp [h], },
+..(reindex_linear_equiv e e) }
+
+@[simp] lemma reindex_alg_equiv_apply [comm_semiring R] [decidable_eq m] [decidable_eq n]
+  (e : m ≃ n) (M : matrix m m R) :
+  reindex_alg_equiv e M = λ i j, M (e.symm i) (e.symm j) :=
+rfl
+
+@[simp] lemma reindex_alg_equiv_symm_apply [comm_semiring R] [decidable_eq m] [decidable_eq n]
+  (e : m ≃ n) (M : matrix n n R) :
+  (reindex_alg_equiv e).symm M = λ i j, M (e i) (e j) :=
+rfl
+
+end reindexing
+
 end matrix
 
 namespace linear_map

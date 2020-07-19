@@ -722,7 +722,7 @@ fail if none succeeds.
 -/
 meta def apply_list_expr : list (tactic expr) → tactic unit
 | []     := fail "no matching rule"
-| (h::t) := do e ← h, interactive.concat_tags (apply e) <|> apply_list_expr t
+| (h::t) := (do e ← h, interactive.concat_tags (apply e)) <|> apply_list_expr t
 
 /--
 Constructs a list of `tactic expr` given a list of p-expressions, as follows:

@@ -5,7 +5,6 @@ Authors: Kenny Lau, Mario Carneiro
 -/
 
 import group_theory.congruence
-import group_theory.free_abelian_group
 import linear_algebra.direct_sum_module
 
 /-!

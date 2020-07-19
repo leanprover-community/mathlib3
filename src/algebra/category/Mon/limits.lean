@@ -49,10 +49,7 @@ def sections_submonoid (F : J ⥤ Mon) :
 @[to_additive AddMon.limit_add_monoid]
 instance limit_monoid (F : J ⥤ Mon) :
   monoid (limit (F ⋙ forget Mon)) :=
-begin
-  change monoid (sections_submonoid F),
-  apply_instance,
-end
+(sections_submonoid F).to_monoid
 
 /-- `limit.π (F ⋙ forget Mon) j` as a `monoid_hom`. -/
 @[to_additive AddMon.limit_π_add_monoid_hom]
@@ -125,13 +122,11 @@ instance comm_monoid_obj (F : J ⥤ CommMon) (j) :
   comm_monoid ((F ⋙ forget CommMon).obj j) :=
 by { change comm_monoid (F.obj j), apply_instance }
 
--- TODO I haven't worked out how to do this without
--- going back to the deprecated `is_submonoid` setup.
 @[to_additive AddCommMon.limit_add_comm_monoid]
 instance limit_comm_monoid (F : J ⥤ CommMon) :
   comm_monoid (limit (F ⋙ forget CommMon)) :=
-@subtype.comm_monoid ((Π (j : J), (F ⋙ forget _).obj j)) (by apply_instance) _
-  (by convert (Mon.sections_submonoid (F ⋙ forget₂ CommMon Mon)).is_submonoid)
+@submonoid.to_comm_monoid (Π j, F.obj j) _
+  (Mon.sections_submonoid (F ⋙ forget₂ CommMon Mon))
 
 /--
 We show that the forgetful functor `CommMon ⥤ Mon` creates limits.

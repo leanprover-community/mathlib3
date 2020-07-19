@@ -106,13 +106,11 @@ instance comm_group_obj (F : J ⥤ CommGroup) (j) :
   comm_group ((F ⋙ forget CommGroup).obj j) :=
 by { change comm_group (F.obj j), apply_instance }
 
--- TODO I haven't worked out how to do this without
--- going back to the deprecated `is_submonoid` setup.
 @[to_additive AddCommGroup.limit_add_comm_monoid]
 instance limit_comm_group (F : J ⥤ CommGroup) :
   comm_group (limit (F ⋙ forget CommGroup)) :=
-@subtype.comm_group ((Π (j : J), (F ⋙ forget _).obj j)) (by apply_instance) _
-  (by convert (Group.sections_subgroup (F ⋙ forget₂ CommGroup Group)).is_subgroup)
+@subgroup.to_comm_group (Π j, F.obj j) _
+  (Group.sections_subgroup (F ⋙ forget₂ CommGroup Group))
 
 /--
 We show that the forgetful functor `CommGroup ⥤ Group` creates limits.

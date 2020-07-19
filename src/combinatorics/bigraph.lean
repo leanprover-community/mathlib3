@@ -52,11 +52,11 @@ def swap : bigraph β α :=
   right_carrier := G.left_carrier,
   adj := swap_inputs G.adj }
 
-@[simp] lemma A_swap : G.swap.left_carrier= G.right_carrier := rfl
+@[simp] lemma left_carrier_swap : G.swap.left_carrier= G.right_carrier := rfl
 
-@[simp] lemma B_swap : G.swap.right_carrier = G.left_carrier := rfl
+@[simp] lemma right_carrier_swap : G.swap.right_carrier = G.left_carrier := rfl
 
-@[simp] lemma E_swap : G.swap.adj = swap_inputs G.adj := rfl
+@[simp] lemma adj_swap : G.swap.adj = swap_inputs G.adj := rfl
 
 @[simp] lemma swap_swap : G.swap.swap = G := by ext; simp [swap]
 
@@ -160,7 +160,7 @@ lemma edges_eq_bind_right_fibers :
   edges G = (G.left_carrier).bind (λ (a : α), right_fiber' G a):=
 begin
   rw [← swap_swap G, edges_swap, edges_eq_bind_left_fibers, finset.bind_image],
-  simp only [B_swap, swap_swap, left_fiber'_swap],
+  simp only [right_carrier_swap, swap_swap, left_fiber'_swap],
   congr, ext, rw [finset.image_image, prod.swap_swap_eq, finset.image_id],
 end
 

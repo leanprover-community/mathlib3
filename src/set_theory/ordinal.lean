@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
 import set_theory.cardinal
+import tactic.omega
 
 /-!
 # Ordinal arithmetic
@@ -3259,5 +3260,143 @@ begin
     rwa [← lift_lt, ← h, mk_range_eq_lift, lift_lt], exact f.2 },
   { exact extend_function_finite f hα h }
 end
+
+section bit
+/-!
+This section proves some inequalities for `bit0` and `bit1`,
+enabling `simp` to solve `0 < n`, `0 ≤ n`, `1 < n` and `1 ≤ n` for numerals `n`.
+
+See `one_lt_two` for a general tactic solution for proving strict inequalities between numerals
+using the embedding of `ℕ`.
+-/
+
+@[simp] lemma bit0_ne_zero (a : cardinal) : ¬bit0 a = 0 ↔ ¬a = 0 :=
+by simp [bit0]
+
+@[simp] lemma bit1_ne_zero (a : cardinal) : ¬bit1 a = 0 :=
+by simp [bit1]
+
+@[simp] lemma zero_lt_bit0 (a : cardinal) : 0 < bit0 a ↔ 0 < a :=
+by { rw ←not_iff_not, simp [bit0], }
+
+@[simp] lemma zero_lt_bit1 (a : cardinal) : 0 < bit1 a :=
+lt_of_lt_of_le zero_lt_one (le_add_left _ _)
+
+@[simp] lemma one_le_bit0 (a : cardinal) : 1 ≤ bit0 a ↔ 0 < a :=
+⟨λ h, (zero_lt_bit0 a).mp (lt_of_lt_of_le zero_lt_one h),
+ λ h, le_trans (one_le_iff_pos.mpr h) (le_add_left a a)⟩
+
+@[simp] lemma one_le_bit1 (a : cardinal) : 1 ≤ bit1 a :=
+le_add_left _ _
+
+theorem bit0_eq_self {c : cardinal} (h : omega ≤ c) : bit0 c = c :=
+add_eq_self h
+
+@[simp] theorem bit0_lt_omega_iff {c : cardinal} : bit0 c < omega ↔ c < omega :=
+by simp [bit0, add_lt_omega_iff]
+
+@[simp] lemma bit0_le_bit0_iff {a b : cardinal} : bit0 a ≤ bit0 b ↔ a ≤ b :=
+begin
+  by_cases ha : omega ≤ a; by_cases hb : omega ≤ b,
+  { rw [bit0_eq_self ha, bit0_eq_self hb] },
+  { rw bit0_eq_self ha,
+    have I1 : ¬ (a ≤ b),
+    { assume h, apply hb, exact le_trans ha h },
+    have I2 : ¬ (a ≤ bit0 b),
+    { assume h,
+      have A : bit0 b < omega, by simpa using hb,
+      exact lt_irrefl _ (lt_of_lt_of_le (lt_of_lt_of_le A ha) h) },
+    simp [I1, I2] },
+  { rw [bit0_eq_self hb],
+    simp only [not_le] at ha,
+    have I1 : a ≤ b := le_of_lt (lt_of_lt_of_le ha hb),
+    have I2 : bit0 a ≤ b := le_trans (le_of_lt (bit0_lt_omega_iff.2 ha)) hb,
+    simp [I1, I2] },
+  { simp at ha hb,
+    rcases lt_omega.1 ha with ⟨m, rfl⟩,
+    rcases lt_omega.1 hb with ⟨n, rfl⟩,
+    norm_cast,
+    simp }
+end
+
+@[simp] theorem bit1_eq_self_iff {c : cardinal} : bit1 c = c ↔ omega ≤ c :=
+begin
+  by_cases h : omega ≤ c,
+  { simp only [bit1, bit0_eq_self h, h, eq_self_iff_true, add_one_of_omega_le] },
+  { simp only [h, iff_false],
+    apply ne_of_gt,
+    rcases lt_omega.1 (not_le.1 h) with ⟨n, rfl⟩,
+    norm_cast,
+    dsimp [bit1, bit0],
+    omega }
+end
+
+@[simp] theorem bit1_lt_omega_iff {c : cardinal} : bit1 c < omega ↔ c < omega :=
+by simp [bit1, bit0, add_lt_omega_iff, one_lt_omega]
+
+@[simp] lemma bit0_le_bit1_iff {a b : cardinal} : bit0 a ≤ bit1 b ↔ a ≤ b :=
+begin
+  by_cases ha : omega ≤ a; by_cases hb : omega ≤ b,
+  { rw [bit0_eq_self ha, bit1_eq_self_iff.2 hb], },
+  { rw bit0_eq_self ha,
+    have I1 : ¬ (a ≤ b),
+    { assume h, apply hb, exact le_trans ha h },
+    have I2 : ¬ (a ≤ bit1 b),
+    { assume h,
+      have A : bit1 b < omega, by simpa using hb,
+      exact lt_irrefl _ (lt_of_lt_of_le (lt_of_lt_of_le A ha) h) },
+    simp [I1, I2] },
+  { rw [bit1_eq_self_iff.2 hb],
+    simp only [not_le] at ha,
+    have I1 : a ≤ b := le_of_lt (lt_of_lt_of_le ha hb),
+    have I2 : bit0 a ≤ b := le_trans (le_of_lt (bit0_lt_omega_iff.2 ha)) hb,
+    simp [I1, I2] },
+  { simp at ha hb,
+    rcases lt_omega.1 ha with ⟨m, rfl⟩,
+    rcases lt_omega.1 hb with ⟨n, rfl⟩,
+    norm_cast,
+    simp }
+end
+
+@[simp] lemma bit1_le_bit1_iff {a b : cardinal} : bit1 a ≤ bit1 b ↔ a ≤ b :=
+begin
+  split,
+  { assume h,
+    apply bit0_le_bit1_iff.1 (le_trans ((bit0 a).le_add_right 1) h) },
+  { assume h,
+    calc a + a + 1 ≤ a + b + 1 : add_le_add_right 1 (add_le_add_left a h)
+           ... ≤ b + b + 1 : add_le_add_right 1 (add_le_add_right b h) }
+end
+
+lemma one_lt_two : (1 : cardinal) < 2 :=
+-- This strategy works generally to prove inequalities between numerals in `cardinality`.
+begin
+  suffices : ((1 : ℕ) : cardinal) < ((2 : ℕ) : cardinal), simpa,
+  norm_cast, simp,
+end
+
+@[simp] lemma one_lt_bit0 {a : cardinal} : 1 < bit0 a ↔ 0 < a :=
+begin
+  split,
+  { intro h,
+    by_contradiction p, simp at p, subst p,
+    simp at h,
+    exact lt_irrefl _ (lt_trans h zero_lt_one), },
+  { exact λ h, lt_of_lt_of_le one_lt_two (bit0_le_bit0_iff.2 (one_le_iff_pos.mpr h)), },
+end
+
+@[simp] lemma one_lt_bit1 (a : cardinal) : 1 < bit1 a ↔ 0 < a :=
+begin
+  split,
+  { intro h,
+    by_contradiction p, simp at p, subst p,
+    simp at h,
+    exact lt_irrefl _ h, },
+  { intro h,
+    apply lt_of_lt_of_le (one_lt_bit0.2 h),
+    exact le_add_right _ _, }
+end
+
+end bit
 
 end cardinal

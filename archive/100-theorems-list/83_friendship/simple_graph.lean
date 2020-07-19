@@ -10,8 +10,9 @@ import data.fintype.basic
 This file contains a definition of simple graphs.
 
 ## Implementation notes
-Though `Cat` is not a concrete category, we use `bundled` to define
-its carrier type.
+The theory is already interesting at the level of simple graphs,
+and the generalizations to e.g. multigraphs and directed graphs are more difficult.
+We hope this implementation is easy to extend
 -/
 
 open_locale classical

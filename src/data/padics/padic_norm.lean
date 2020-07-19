@@ -317,7 +317,7 @@ theorem min_le_padic_val_rat_add {q r : ℚ}
 
 end padic_val_rat
 
-section padic_val_nat
+namespace padic_val_nat
 
 /--
 A rewrite lemma for `padic_val_nat p (q * r)` with conditions `q ≠ 0`, `r ≠ 0`.
@@ -348,6 +348,10 @@ begin
     exact_mod_cast split_frac, }
 end
 
+end padic_val_nat
+
+section padic_val_nat
+
 /--
 If a prime doesn't appear in `n`, `padic_val_nat p n` is `0`.
 -/
@@ -374,7 +378,7 @@ protected lemma div' {p : ℕ} [p_prime : fact p.prime] :
     rcases dvd with ⟨c, rfl⟩,
     rw [mul_div_right c (nat.succ_pos _)],by_cases hc : c = 0,
     { rw [hc, mul_zero] },
-    { rw mul,
+    { rw padic_val_nat.mul,
       { suffices : ¬ p ∣ (n+1),
         { rw [padic_val_nat_of_not_dvd this, zero_add] },
         contrapose! cpm,
@@ -400,7 +404,7 @@ begin
   have p_dvd_n : p ∣ n,
     { have: q ∣ n := nat.min_fac_dvd n,
       cc },
-  { rw [←h, div],
+  { rw [←h, padic_val_nat.div],
     { have: 1 ≤ padic_val_nat p n := one_le_padic_val_nat_of_dvd (by linarith) p_dvd_n,
       exact (nat.sub_eq_iff_eq_add this).mp rfl, },
     { exact p_dvd_n, }, },

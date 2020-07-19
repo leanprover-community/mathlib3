@@ -68,7 +68,8 @@ lemma smooth_on.prod {f : M → M'} {g : M → M''} {s : set M}
 λ x hx, smooth_within_at.prod (hf x hx) (hg x hx)
 
 /- I do not know enough of Sebastien's tangent bundle to do this proof and in any case I am
-building my own tangent bundle but I'd be happy if this proof were there. -/
+building my own tangent bundle but I'd be happy if this proof were there. If it is hard I will
+remove this lemma. I do not need it. -/
 lemma tangent_bundle_proj_smooth : smooth I.tangent I (tangent_bundle.proj I M) :=
 begin
   delta smooth,

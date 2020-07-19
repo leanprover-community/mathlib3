@@ -183,14 +183,23 @@ lemma times_cont_mdiff.times_cont_mdiff_at (h : times_cont_mdiff I I' n f) :
   times_cont_mdiff_at I I' n f x :=
 h x
 
+lemma smooth.smooth_at (h : smooth I I' f) :
+  smooth_at I I' f x := times_cont_mdiff.times_cont_mdiff_at h
+
 lemma times_cont_mdiff_within_at_univ :
   times_cont_mdiff_within_at I I' n f univ x ↔ times_cont_mdiff_at I I' n f x :=
 iff.rfl
+
+lemma smooth_at_univ :
+ smooth_within_at I I' f univ x ↔ smooth_at I I' f x := times_cont_mdiff_within_at_univ
 
 lemma times_cont_mdiff_on_univ :
   times_cont_mdiff_on I I' n f univ ↔ times_cont_mdiff I I' n f :=
 by simp only [times_cont_mdiff_on, times_cont_mdiff, times_cont_mdiff_within_at_univ,
   forall_prop_of_true, mem_univ]
+
+lemma smooth_on_univ :
+  smooth_on I I' f univ ↔ smooth I I' f := times_cont_mdiff_on_univ
 
 include Is I's
 
@@ -274,17 +283,33 @@ lemma times_cont_mdiff_within_at.continuous_within_at
   (hf : times_cont_mdiff_within_at I I' n f s x) : continuous_within_at f s x :=
 hf.1
 
+lemma smooth_within_at.continuous_within_at
+  (hf : smooth_within_at I I' f s x) : continuous_within_at f s x :=
+times_cont_mdiff_within_at.continuous_within_at hf
+
 lemma times_cont_mdiff_at.continuous_at
   (hf : times_cont_mdiff_at I I' n f x) : continuous_at f x :=
 (continuous_within_at_univ _ _ ).1 $ times_cont_mdiff_within_at.continuous_within_at hf
+
+lemma smooth_at.continuous_at
+  (hf : smooth_at I I' f x) : continuous_at f x :=
+times_cont_mdiff_at.continuous_at hf
 
 lemma times_cont_mdiff_on.continuous_on
   (hf : times_cont_mdiff_on I I' n f s) : continuous_on f s :=
 λ x hx, (hf x hx).continuous_within_at
 
+lemma smooth_on.continuous_on
+  (hf : smooth_on I I' f s) : continuous_on f s :=
+times_cont_mdiff_on.continuous_on hf
+
 lemma times_cont_mdiff.continuous (hf : times_cont_mdiff I I' n f) :
   continuous f :=
 continuous_iff_continuous_at.2 $ λ x, (hf x).continuous_at
+
+lemma smooth.continuous (hf : smooth I I' f) :
+  continuous f :=
+times_cont_mdiff.continuous hf
 
 /-! ### Deducing differentiability from smoothness -/
 

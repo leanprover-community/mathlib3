@@ -46,6 +46,11 @@ lemma indicator_apply (s : set α) (f : α → β) (a : α) :
 
 @[simp] lemma indicator_of_not_mem (h : a ∉ s) (f : α → β) : indicator s f a = 0 := if_neg h
 
+/-- If an indicator function is nonzero at a point, that
+point is in the set. -/
+lemma mem_of_indicator_ne_zero (h : indicator s f a ≠ 0) : a ∈ s :=
+not_imp_comm.1 (λ hn, indicator_of_not_mem hn f) h
+
 lemma eq_on_indicator : eq_on (indicator s f) f s := λ x hx, indicator_of_mem hx f
 
 lemma support_indicator : function.support (s.indicator f) ⊆ s :=
@@ -92,6 +97,35 @@ lemma mem_range_indicator {r : β} {s : set α} {f : α → β} :
   r ∈ range (indicator s f) ↔ (r = 0 ∧ s ≠ univ) ∨ (r ∈ f '' s) :=
 by simp [indicator, ite_eq_iff, exists_or_distrib, eq_univ_iff_forall, and_comm, or_comm,
   @eq_comm _ r 0]
+
+/-- Consider a sum of `g i (f i)` over a `finset`.  Suppose `g` is a
+function such as multiplication, which maps a second argument of 0 to
+0.  (A typical use case would be a weighted sum of `f i * h i` or `f i
+• h i`, where `f` gives the weights that are multiplied by some other
+function `h`.)  Then if `f` is replaced by the corresponding indicator
+function, the `finset` may be replaced by a possibly larger `finset`
+without changing the value of the sum. -/
+lemma sum_indicator_subset_of_eq_zero {γ : Type*} [add_comm_monoid γ] (f : α → β)
+    (g : α → β → γ) {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) (hg : ∀ a, g a 0 = 0) :
+  ∑ i in s₁, g i (f i) = ∑ i in s₂, g i (indicator ↑s₁ f i) :=
+begin
+  rw ←finset.sum_subset h _,
+  { apply finset.sum_congr rfl,
+    intros i hi,
+    congr,
+    symmetry,
+    exact indicator_of_mem hi _ },
+  { refine λ i hi hn, _,
+    convert hg i,
+    exact indicator_of_not_mem hn _ }
+end
+
+/-- Summing an indicator function over a possibly larger `finset` is
+the same as summing the original function over the original
+`finset`. -/
+lemma sum_indicator_subset {γ : Type*} [add_comm_monoid γ] (f : α → γ) {s₁ s₂ : finset α}
+    (h : s₁ ⊆ s₂) : ∑ i in s₁, f i = ∑ i in s₂, indicator ↑s₁ f i :=
+sum_indicator_subset_of_eq_zero _ (λ a b, b) h (λ _, rfl)
 
 end has_zero
 

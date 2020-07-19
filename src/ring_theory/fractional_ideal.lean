@@ -562,7 +562,7 @@ lemma is_principal_iff (I : fractional_ideal f) :
 by { ext, simp [submodule.mem_span_singleton, eq_comm, -singleton_zero] }
 
 lemma span_singleton_eq_zero_iff {y : f.codomain} : span_singleton y = 0 ↔ y = 0 :=
-⟨ λ h, span_eq_bot.mp (by simpa using congr_arg subtype.val h) y (mem_singleton y),
+⟨ λ h, span_eq_bot.mp (by simpa using congr_arg subtype.val h : span R {y} = ⊥) y (mem_singleton y),
   λ h, by simp [h] ⟩
 
 @[simp] lemma span_singleton_one : span_singleton (1 : f.codomain) = 1 :=

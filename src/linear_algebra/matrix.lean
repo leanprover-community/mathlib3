@@ -257,9 +257,8 @@ linear_equiv_matrix_comp hb hb hb f g
 
 section trace
 
-variables {R : Type v} {M : Type w} [semiring R] [add_comm_monoid M] [semimodule R M]
+variables (n) (R : Type v) (M : Type w) [semiring R] [add_comm_monoid M] [semimodule R M]
 
-variables (n) (R) (M)
 /--
 The diagonal of a square matrix.
 -/

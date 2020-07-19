@@ -1,10 +1,18 @@
 /-
 Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author:  Aaron Anderson, Jalex Stark.
+Author: Aaron Anderson, Jalex Stark.
 -/
 import algebra.big_operators
 
+/-!
+# Bigraphs
+This file gives a basic theory of bigraphs suitable for simple double counting arguments.
+
+## Implementation notes
+We considered extending `rel`. On a cursory inspection,
+it didn't seem like any of the API we provide overlapped with the API `rel` provides.
+-/
 open_locale classical big_operators
 noncomputable theory
 
@@ -12,8 +20,8 @@ universes u v
 variables (α : Type u) (β : Type v)
 
 @[ext] structure bigraph :=
-(A : finset α)
-(B : finset β)
+(left_carrier : finset α)
+(right_carrier : finset β)
 (adj : α → β → Prop)
 
 variables {α} {β} (G : bigraph α β)
@@ -37,22 +45,22 @@ by simp [swap_inputs, function.uncurry, function.curry]
 by ext; simp
 
 def swap : bigraph β α :=
-{ A := G.B,
-  B := G.A,
+{ left_carrier:= G.right_carrier,
+  right_carrier := G.left_carrier,
   adj := swap_inputs G.adj }
 
-@[simp] lemma A_swap : G.swap.A = G.B := rfl
+@[simp] lemma A_swap : G.swap.left_carrier= G.right_carrier := rfl
 
-@[simp] lemma B_swap : G.swap.B = G.A := rfl
+@[simp] lemma B_swap : G.swap.right_carrier = G.left_carrier := rfl
 
 @[simp] lemma E_swap : G.swap.adj = swap_inputs G.adj := rfl
 
 @[simp] lemma swap_swap : G.swap.swap = G := by ext; simp [swap]
 
-def edges : finset (α × β) := finset.filter (uncurried G) (finset.product G.A G.B)
+def edges : finset (α × β) := finset.filter (uncurried G) (finset.product G.left_carrier G.right_carrier)
 
 -- i think mem_edges_iff is a more standard name in the library? not sure.
-@[simp] lemma mem_edges (x : α × β) : x ∈ edges G ↔ (x.fst ∈ G.A ∧ x.snd ∈ G.B) ∧ G.adj x.fst x.snd :=
+@[simp] lemma mem_edges (x : α × β) : x ∈ edges G ↔ (x.fst ∈ G.left_carrier ∧ x.snd ∈ G.right_carrier) ∧ G.adj x.fst x.snd :=
 by { unfold edges, simp }
 
 def card_edges : ℕ := (edges G).card
@@ -78,20 +86,20 @@ begin
 end
 
 def left_fiber (b : β) : finset α :=
-  finset.filter (λ (a1:α), (uncurried G) (a1, b)) G.A
+  finset.filter (λ (a1:α), (uncurried G) (a1, b)) G.left_carrier
 
 def right_fiber (a : α) : finset β :=
-  finset.filter (λ (b1 : β), (uncurried G) (a, b1)) G.B
+  finset.filter (λ (b1 : β), (uncurried G) (a, b1)) G.right_carrier
 
 def left_fiber' (b : β) : finset (α × β) := finset.image (λ a:α, (a,b)) (left_fiber G b)
 
 def right_fiber' (a : α) : finset (α × β) := finset.image (λ b:β, (a,b)) (right_fiber G a)
 
 @[simp] lemma mem_left_fiber (b : β) {x : α} :
-x ∈ (left_fiber G b) ↔ x ∈ G.A ∧ G.adj x b := by { unfold left_fiber, simp }
+x ∈ (left_fiber G b) ↔ x ∈ G.left_carrier ∧ G.adj x b := by { unfold left_fiber, simp }
 
 @[simp] lemma mem_right_fiber (a : α) {x : β} :
-x ∈ (right_fiber G a) ↔ x ∈ G.B ∧ G.adj a x := by { unfold right_fiber, simp }
+x ∈ (right_fiber G a) ↔ x ∈ G.right_carrier ∧ G.adj a x := by { unfold right_fiber, simp }
 
 @[simp] lemma left_fiber_swap (a : α) :
 left_fiber G.swap a = right_fiber G a := by { ext, simp }
@@ -100,12 +108,12 @@ left_fiber G.swap a = right_fiber G a := by { ext, simp }
 right_fiber G.swap b = left_fiber G b := by { ext, simp }
 
 @[simp] lemma mem_left_fiber' (b : β) (x : α × β) :
-x ∈ (left_fiber' G b) ↔ (x.fst ∈ G.A ∧ x.snd = b) ∧ G.adj x.fst x.snd :=
+x ∈ (left_fiber' G b) ↔ (x.fst ∈ G.left_carrier ∧ x.snd = b) ∧ G.adj x.fst x.snd :=
 by rw left_fiber'; tidy
 
 -- can the following be proven with swap and the above?
 @[simp] lemma mem_right_fiber' (a : α) (x : α × β) :
-x ∈ (right_fiber' G a) ↔ (x.fst = a ∧ x.snd ∈ G.B) ∧ G.adj x.fst x.snd :=
+x ∈ (right_fiber' G a) ↔ (x.fst = a ∧ x.snd ∈ G.right_carrier) ∧ G.adj x.fst x.snd :=
 by rw right_fiber'; tidy
 
 -- i'm now confused about the properties of our simp normal form.
@@ -137,7 +145,7 @@ end
 
 -- is this a useful simp lemma if reversed?
 lemma edges_eq_bind_left_fibers :
-  edges G = (G.B).bind (λ (b : β), left_fiber' G b) :=
+  edges G = (G.right_carrier).bind (λ (b : β), left_fiber' G b) :=
 begin
   ext, simp only [exists_prop, mem_left_fiber', mem_edges, finset.mem_bind],
   split, { rw and_imp, intros, use a.snd, tauto },
@@ -146,7 +154,7 @@ begin
 end
 
 lemma edges_eq_bind_right_fibers :
-  edges G = (G.A).bind (λ (a : α), right_fiber' G a):=
+  edges G = (G.left_carrier).bind (λ (a : α), right_fiber' G a):=
 begin
   rw [← swap_swap G, edges_swap, edges_eq_bind_left_fibers, finset.bind_image],
   simp only [B_swap, swap_swap, left_fiber'_swap],
@@ -154,7 +162,7 @@ begin
 end
 
 theorem sum_left_fibers :
-  card_edges G = ∑ b in G.B, (left_fiber G b).card :=
+  card_edges G = ∑ b in G.right_carrier, (left_fiber G b).card :=
 begin
   rw card_edges,
   convert finset.card_bind _,
@@ -163,25 +171,25 @@ begin
 end
 
 theorem sum_right_fibers :
-  card_edges G = ∑ a in G.A, (right_fiber G a).card :=
+  card_edges G = ∑ a in G.left_carrier, (right_fiber G a).card :=
 by { simp_rw ← left_fiber_swap, rw ← card_edges_symm, apply sum_left_fibers }
 
 def left_regular (d : ℕ) : Prop :=
-  ∀ b ∈ G.B, (left_fiber G b).card = d
+  ∀ b ∈ G.right_carrier, (left_fiber G b).card = d
 
-def right_regular (d : ℕ) : Prop:=
-  ∀ a ∈ G.A, (right_fiber G a).card = d
+def right_regular (d : ℕ) : Prop :=
+  ∀ a ∈ G.left_carrier, (right_fiber G a).card = d
 
 def left_unique : Prop :=
-  ∀ b ∈ G.B, ∃!(a : α), a ∈ G.A ∧ G.adj a b
+  ∀ b ∈ G.right_carrier, ∃!(a : α), a ∈ G.left_carrier ∧ G.adj a b
 
 def right_unique : Prop :=
-  ∀ a ∈ G.A, ∃!(b : β), b ∈ G.B ∧ G.adj a b
+  ∀ a ∈ G.left_carrier, ∃!(b : β), b ∈ G.right_carrier ∧ G.adj a b
 
-@[simp] lemma right_regular_swap (d  :ℕ) : right_regular G.swap d ↔ left_regular G d :=
+@[simp] lemma right_regular_swap (d : ℕ) : right_regular G.swap d ↔ left_regular G d :=
 by simp [left_regular, right_regular]
 
-@[simp] lemma left_regular_swap {d : ℕ} : left_regular G.swap d ↔ right_regular G d :=
+@[simp] lemma left_regular_swap (d : ℕ) : left_regular G.swap d ↔ right_regular G d :=
 by simp [left_regular, right_regular]
 
 @[simp] lemma right_unique_swap : right_unique G.swap ↔ left_unique G :=
@@ -199,24 +207,24 @@ end
 @[simp] lemma right_unique_one_reg : right_unique G ↔ right_regular G 1 :=
 by rw [← left_unique_swap, ← left_regular_swap]; apply left_unique_one_reg
 
-theorem card_edges_of_lreg {l : ℕ} (hl : left_regular G l) : card_edges G = l * G.B.card:=
+theorem card_edges_of_lreg {l : ℕ} (hl : left_regular G l) : card_edges G = l * G.right_carrier.card:=
 by rwa [sum_left_fibers, mul_comm l, finset.sum_const_nat]
 
-theorem card_edges_of_rreg {r : ℕ} (hr : right_regular G r) : card_edges G = r * G.A.card :=
+theorem card_edges_of_rreg {r : ℕ} (hr : right_regular G r) : card_edges G = r * G.left_carrier.card :=
 by rwa [sum_right_fibers, mul_comm r, finset.sum_const_nat]
 
-theorem card_edges_of_lunique (h : left_unique G) : card_edges G = G.B.card :=
+theorem card_edges_of_lunique (h : left_unique G) : card_edges G = G.right_carrier.card :=
 by { rw left_unique_one_reg at h, convert card_edges_of_lreg _ h, simp }
 
-theorem card_edges_of_runique (h : right_unique G) : card_edges G = G.A.card :=
+theorem card_edges_of_runique (h : right_unique G) : card_edges G = G.left_carrier.card :=
 by { rw right_unique_one_reg at h, convert card_edges_of_rreg _ h, simp }
 
 theorem double_count_of_lreg_rreg {l r : ℕ} (hl : left_regular G l) (hr : right_regular G r) :
-r * G.A.card = l * G.B.card :=
+r * G.left_carrier.card = l * G.right_carrier.card :=
 by rwa [← card_edges_of_rreg _ hr, ← card_edges_of_lreg]
 
 theorem card_eq_of_lunique_runique (hl : left_unique G) (hr : right_unique G ) :
-G.A.card = G.B.card :=
+G.left_carrier.card = G.right_carrier.card :=
 begin
   rw right_unique_one_reg at hr, rw left_unique_one_reg at hl,
   convert double_count_of_lreg_rreg _ hl hr; simp,
@@ -242,8 +250,8 @@ begin
   ext, simp [ finset.mem_union, finset.mem_product]; tauto,
 end
 
-theorem card_edges_add_of_eq_disj_union_eq {A : finset α} {B1 B2 : finset β} (h : disjoint B1 B2) (E : α → β → Prop) :
-card_edges ⟨A, B1 ∪ B2, E⟩ = card_edges ⟨A, B1, E⟩ + card_edges ⟨A, B2, E⟩ :=
+theorem card_edges_add_of_eq_disj_union_eq {left_carrier : finset α} {B1 B2 : finset β} (h : disjoint B1 B2) (E : α → β → Prop) :
+card_edges ⟨left_carrier, B1 ∪ B2, E⟩ = card_edges ⟨left_carrier, B1, E⟩ + card_edges ⟨left_carrier, B2, E⟩ :=
 by { rw [card_edges, edges_union], simp [edges_disjoint_of_eq_disj_eq, h], refl }
 
 end bigraph

@@ -3,8 +3,8 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author:  Aaron Anderson, Jalex Stark.
 -/
-import .bigraph
-import .simple_graph
+import combinatorics.bigraph
+import combinatorics.simple_graph
 
 open_locale classical
 noncomputable theory
@@ -50,8 +50,6 @@ lemma reg_card_count_3 (hd : regular_graph G d) (v : V) :
 card_edges (path_bigraph G (neighbors G v) finset.univ) = d * d :=
 begin
   unfold regular_graph degree at hd,
-  transitivity d * (neighbors G v).card,
-  swap, { rw hd },
-  apply card_edges_of_rreg,
-  intros a _, convert hd a,
+  transitivity d * (neighbors G v).card, swap, { rw hd },
+  apply card_edges_of_rreg, intros a _, convert hd a,
 end

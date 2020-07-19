@@ -6,8 +6,11 @@ Author: Aaron Anderson, Jalex Stark.
 import algebra.big_operators
 
 /-!
-# Bigraphs
-This file gives a basic theory of bigraphs suitable for simple double counting arguments.
+# Bipartite graphs (bigraphs)
+This file gives a basic theory of bipartite graphs suitable for simple double counting arguments.
+We use the abbreviation `bigraph`, which is also used in some combinatorics / set theory literature.
+There is a more sophisticated notion called [bigraph](https://en.wikipedia.org/wiki/Bigraph),
+which will probably not appear in mathlib in the near future.
 
 ## Implementation notes
 We considered extending `rel`. On a cursory inspection,

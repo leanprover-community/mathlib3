@@ -51,8 +51,8 @@ section lift
 variables {β : Type v} [comm_group β] (f : α →* β)
 
 lemma commutator_subset_ker : commutator α ≤ f.ker :=
--- FIXME I've fixed the statement, but this is still the proof of the old theorem.
-group.normal_closure_subset (λ x ⟨p,q,w⟩, (is_group_hom.mem_ker f).2
+-- FIXME why is the apply_instance needed?
+subgroup.normal_closure_le_normal (by apply_instance) (λ x ⟨p,q,w⟩, (is_group_hom.mem_ker f).2
   (by {rw ←w, simp [is_mul_hom.map_mul f, is_group_hom.map_inv f, mul_comm]}))
 
 def lift : abelianization α →* β :=

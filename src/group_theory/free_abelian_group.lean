@@ -50,7 +50,7 @@ by simp [sub_eq_add_neg]
 is_add_group_hom.map_zero _
 
 @[simp] protected lemma of (x : α) : lift f (of x) = f x :=
-by unfold of; unfold lift; simp
+by { unfold of, unfold lift, simp }
 
 protected theorem unique (g : free_abelian_group α →+ β)
   (hg : ∀ x, g (of x) = f x) {x} :

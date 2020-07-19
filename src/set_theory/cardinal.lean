@@ -646,14 +646,16 @@ theorem one_le_iff_ne_zero {c : cardinal} : 1 ≤ c ↔ c ≠ 0 :=
 by rw [one_le_iff_pos, pos_iff_ne_zero]
 
 section bit
--- This section proves the "easy" inequalities for `bit0` and `bit1`,
--- enabling `simp` to solve `0 < n`, `0 ≤ n`, `1 < n` and `1 ≤ n` for numerals `n`.
+/-! 
+This section proves the "easy" inequalities for `bit0` and `bit1`,
+enabling `simp` to solve `0 < n`, `0 ≤ n`, `1 < n` and `1 ≤ n` for numerals `n`.
 
--- See `one_lt_two` for a general tactic solution for proving inequalities between numerals
--- using the embedding of `ℕ`.
+See `one_lt_two` for a general tactic solution for proving inequalities between numerals
+using the embedding of `ℕ`.
 
--- To enable `simp` to solve all inequalities between numerals we'd need other results,
--- e.g. beginning with `bit0 a ≤ bit0 b → a ≤ b`.
+To enable `simp` to solve all inequalities between numerals we'd need other results,
+e.g. beginning with `bit0 a ≤ bit0 b → a ≤ b`.
+-/
 
 @[simp] lemma bit0_ne_zero (a : cardinal) : ¬bit0 a = 0 ↔ ¬a = 0 :=
 by simp [bit0]

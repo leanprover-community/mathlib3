@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2020 Aaron Anderson. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author:  Aaron Anderson, Jalex Stark.
+-/
 import linear_algebra.matrix
 import .sym_matrix
 import .simple_graph
@@ -11,18 +16,18 @@ variables {V : Type u} [fintype V] (G : simple_graph V)
 variables (R : Type v) [semiring R]
 
 -- instance quux : has_scalar ℕ R := by apply_instance
+-- I am having a hard time figuring out where in the library the above instance is defined
+@[simp]
+lemma nat.smul_one (d : ℕ) : d • (1 : R) = (d : R) :=
+begin
+  induction d with k hk, { simp },
+  rw nat.succ_eq_add_one, push_cast,
+  rw ← hk, simp [add_smul],
+end
 
--- @[simp]
--- lemma nat.smul_one (d : ℕ) : d • (1 : R) = (d : R) :=
--- begin
---   induction d with k hk, { simp },
---   rw nat.succ_eq_add_one, push_cast,
---   rw ← hk, simp [add_smul],
--- end
-
--- @[simp]
--- lemma int.smul_one (d : ℤ) (R : Type*) [ring R] : d • (1 : R) = (d : R) :=
--- by apply gsmul_one
+@[simp]
+lemma int.smul_one (d : ℤ) (R : Type*) [ring R] : d • (1 : R) = (d : R) :=
+by apply gsmul_one
 
 
 section adjacency_matrix
@@ -77,6 +82,6 @@ variable {G}
 
 lemma adj_mat_mul_vec_ones_apply_of_regular {d : ℕ} (reg : regular_graph G d) (i : V):
   (adjacency_matrix G R).mul_vec (λ j : V, 1) i = d :=
-by rw [←reg i, matrix.mul_vec, adjacency_matrix_dot_product]; simp [degree]
+by rw [← reg i, matrix.mul_vec, adjacency_matrix_dot_product]; simp [degree]
 
 end adjacency_matrix

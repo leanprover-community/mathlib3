@@ -14,7 +14,6 @@ universes u
 
 variables {V : Type u} [fintype V] [inhabited V] (G : simple_graph V)
 
-
 def is_friend (v w : V) (u : V) : Prop :=
 G.E v u ∧ G.E w u
 

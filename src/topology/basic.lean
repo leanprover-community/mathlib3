@@ -654,9 +654,7 @@ lemma closure_eq_cluster_pts {s : set α} : closure s = {a | cluster_pt a (𝓟 
 calc closure s = (interior sᶜ)ᶜ : closure_eq_compl_interior_compl
   ... = {a | ¬ 𝓝 a ≤ 𝓟 sᶜ} : by rw [interior_eq_nhds]; refl
   ... = {a | cluster_pt a (𝓟 s)} : set.ext $ assume a, not_congr
-    (inf_eq_bot_iff_le_compl
-      (show 𝓟 s ⊔ 𝓟 sᶜ = ⊤, by simp only [sup_principal, union_compl_self, principal_univ])
-      (by simp only [inf_principal, inter_compl_self, principal_empty])).symm
+    (is_compl_principal s).inf_left_eq_bot_iff.symm
 
 theorem mem_closure_iff_cluster_pt {s : set α} {a : α} : a ∈ closure s ↔ cluster_pt a (𝓟 s) :=
 by simp only [closure_eq_cluster_pts, mem_set_of_eq]

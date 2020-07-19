@@ -409,7 +409,7 @@ begin
       exact (nat.sub_eq_iff_eq_add this).mp rfl, },
     { exact p_dvd_n, }, },
   { suffices : p.coprime q,
-    { rw [div' this (min_fac_dvd n), add_zero], },
+    { rw [padic_val_nat.div' this (min_fac_dvd n), add_zero], },
     rwa nat.coprime_primes hp hq, },
 end
 

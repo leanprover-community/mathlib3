@@ -340,7 +340,6 @@ begin
   { exact deg_two_friendship_has_pol hG hd },
 end
 
-
 theorem friendship_theorem : exists_politician G :=
 begin
   rw ← exists_pol_of_not_no_pol,

@@ -6,10 +6,9 @@ Author:  Aaron Anderson, Jalex Stark.
 import data.fintype.basic
 
 /-!
-# Category of categories
-This file contains the definition of the category `Cat` of all categories.
-In this category objects are categories and
-morphisms are functors between these categories.
+# Simple graphs
+This file contains a definition of simple graphs.
+
 ## Implementation notes
 Though `Cat` is not a concrete category, we use `bundled` to define
 its carrier type.

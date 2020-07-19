@@ -15,13 +15,13 @@ universes u
 variables {V : Type u} [fintype V] [inhabited V] (G : simple_graph V)
 
 def path_bigraph (A B : finset V) : bigraph V V :=
-  bigraph.mk A B G.E
+  bigraph.mk A B G.adj
 
 variables {G}
 
 lemma path_bigraph_swap {A B : finset V} :
   (path_bigraph G A B).swap = path_bigraph G B A:=
-by { ext, { refl }, { refl }, split; apply G.undirected }
+by { ext, { refl }, { refl }, split; apply G.sym }
 
 lemma left_fiber_eq_nbrs_inter_A {A B : finset V} {v : V} (hv : v ∈ B) :
   left_fiber (path_bigraph G A B) v = A ∩ (neighbors G v):=

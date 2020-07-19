@@ -150,6 +150,32 @@ open unfold_cases
 
   The tactic expects a goal in the form of an equation, possibly universally quantified.
 
+  We can prove a theorem, even if the various case do not directly to function definition.
+  Here is an example application of the tactic:
+
+  ```lean
+  def foo : ℕ → ℕ → ℕ
+  | 0     0 := 17
+  | (n+2) 17 := 17
+  | 1     0 := 23
+  | 0     (n+18) := 15
+  | 0     17 := 17
+  | 1     17 := 17
+  | _     (n+18) := 27
+  | _     _ := 15
+
+  example : ∀ x, foo x 17 = 17 :=
+  begin
+    unfold_cases { refl },
+  end
+  ```
+
+  The compiler generates 57 cases for `foo`. However, when we look at the definition, we see
+  that whenever the function is applied to `17` in the second argument, it returns `17`.
+
+  Proving this property consists of merely considering all the cases, eliminating invalid ones
+  and applying `refl` of the ones which remain.
+
   Further examples can be found in `test/unfold_cases.lean`.
 -/
 meta def unfold_cases (inner : itactic) : tactic unit := focus1 $ do

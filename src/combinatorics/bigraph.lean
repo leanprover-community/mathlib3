@@ -13,7 +13,11 @@ See e.g. [mathworld](https://mathworld.wolfram.com/Bigraph.html)
 There is a more sophisticated notion called [bigraph](https://en.wikipedia.org/wiki/Bigraph),
 which will probably not appear in mathlib in the near future.
 
-Our `bigraph`s have specified left and right parts.
+Our `bigraph`s have distinguished left and right parts.
+In e.g. [Lovász, Szegedy 2010](https://link.springer.com/chapter/10.1007/978-3-642-14444-8_12),
+the distinction is made between a bigraph and a bipartite graph,
+where bipartite graphs forget the notions of left and right.
+
 
 ## Implementation notes
 We considered extending `rel`. On a cursory inspection,

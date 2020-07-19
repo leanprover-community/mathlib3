@@ -801,7 +801,7 @@ instance : charted_space H s :=
 instance [closed_under_restriction G] : has_groupoid s G :=
 { compatible := begin
     rintros e e' ⟨_, ⟨x, hc⟩, he⟩ ⟨_, ⟨x', hc'⟩, he'⟩,
-    have : nonempty s := ⟨x⟩, resetI,
+    haveI : nonempty s := ⟨x⟩,
     simp only [hc.symm, mem_singleton_iff, subtype.val_eq_coe] at he,
     simp only [hc'.symm, mem_singleton_iff, subtype.val_eq_coe] at he',
     rw [he, he'],

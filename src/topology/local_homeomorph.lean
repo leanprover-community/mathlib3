@@ -730,7 +730,8 @@ begin
   { exact λ ⟨a, h'⟩, ⟨a, by trivial, h'⟩ }
 end
 
-lemma open_target : is_open h.to_local_equiv.target := by simpa only with mfld_simps using h.open_range
+lemma open_target : is_open h.to_local_equiv.target := 
+by simpa only with mfld_simps using h.open_range
 
 lemma continuous_inv_fun : continuous_on h.to_local_equiv.inv_fun h.to_local_equiv.target :=
 begin

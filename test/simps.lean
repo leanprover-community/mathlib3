@@ -261,3 +261,24 @@ run_cmd do
   e ← get_env,
   e.get `pprod_equiv_prod_to_fun_fst,
   e.get `pprod_equiv_prod_inv_fun_snd
+
+/- Tests with universe levels -/
+universe variables v u
+class has_hom (obj : Type u) : Type (max u (v+1)) :=
+(hom : obj → obj → Type v)
+
+infixr ` ⟶ `:10 := has_hom.hom -- type as \h
+
+section prio
+set_option default_priority 100
+class category_struct (obj : Type u) extends has_hom.{v} obj : Type (max u (v+1)) :=
+(id       : Π X : obj, hom X X)
+(comp     : Π {X Y Z : obj}, (X ⟶ Y) → (Y ⟶ Z) → (X ⟶ Z))
+
+end prio
+
+-- test the universe levels in the category theory library
+@[simps] def types : category_struct (Type u) :=
+{ hom     := λ a b, (a → b),
+  id      := λ a, id,
+  comp    := λ _ _ _ f g, g ∘ f }

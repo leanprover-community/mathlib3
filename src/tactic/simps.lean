@@ -42,12 +42,15 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
   (rhs : expr) : tactic $ list $ expr × name × expr := do
   let str := tgt.get_app_fn.const_name,
   let params := get_app_args tgt, -- the parameters of the structure
+  let univ_levels := tgt.get_app_fn.univ_levels, -- the universe arguments of the structure
   projs ← e.structure_fields_full str,
   guard ((get_app_args rhs).take params.length = params) <|> fail "unreachable code (1)",
   let rhs_args := (get_app_args rhs).drop params.length, -- the fields of the structure
   guard (rhs_args.length = projs.length) <|> fail "unreachable code (2)",
-  -- cannot use `mk_app` here, since the resulting application is still a function.
-  proj_exprs ← projs.mmap $ λ proj, mk_mapp proj $ params.map some,
+  -- cannot use `tactic.mk_app` here, since the resulting application is still a function.
+  -- cannot use `tactic.mk_mapp` here, since the the given arguments here might not uniquely
+  -- specify the universe levels.
+  let proj_exprs := projs.map $ λ proj, (expr.const proj univ_levels).mk_app params,
   return $ proj_exprs.zip $ projs.zip rhs_args
 
 /-- Derive lemmas specifying the projections of the declaration.

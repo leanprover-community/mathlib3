@@ -276,6 +276,11 @@ meta def is_num_eq : expr → expr → bool
 | `(%%a/%%a') `(%%b/%%b') :=  a.is_num_eq b
 | _ _ := ff
 
+/-- Get the universe levels of a `const` expression -/
+meta def univ_levels : expr → list level
+| (const n ls) := ls
+| _            := []
+
 end expr
 
 /-! ### Declarations about `expr` -/

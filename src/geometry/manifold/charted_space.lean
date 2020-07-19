@@ -362,11 +362,11 @@ instance : order_top (structure_groupoid H) :=
 homeomorphisms to open subsets of the source. -/
 class closed_under_restriction (G : structure_groupoid H) : Prop :=
 (closed_under_restriction : ∀ {e : local_homeomorph H H}, e ∈ G → ∀ (s : set H), is_open s →
-  (e : local_homeomorph H H).restr s ∈ G)
+  e.restr s ∈ G)
 
 lemma closed_under_restriction' {G : structure_groupoid H} [closed_under_restriction G]
   {e : local_homeomorph H H} (he : e ∈ G) {s : set H} (hs : is_open s) :
-  (e : local_homeomorph H H).restr s ∈ G :=
+  e.restr s ∈ G :=
 closed_under_restriction.closed_under_restriction he s hs
 
 /-- The trivial restriction-closed groupoid, containing only local homeomorphisms equivalent to the
@@ -421,7 +421,7 @@ lemma closed_under_restriction_iff_id_le (G : structure_groupoid H) :
   closed_under_restriction G ↔ id_restr_groupoid ≤ G :=
 begin
   split,
-  { introsI _i, 
+  { introsI _i,
     apply structure_groupoid.le_iff.mpr,
     rintros e ⟨s, hs, hes⟩,
     refine G.eq_on_source _ hes,

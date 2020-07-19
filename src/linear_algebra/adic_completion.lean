@@ -52,7 +52,7 @@ is_Hausdorff I M ∧ is_precomplete I M
 
 /-- The completion of a module with respect to an ideal. This is not Hausdorff.
 In fact, this is only complete if the ideal is finitely generated. -/
-def completion : submodule R (Π n : ℕ, (I ^ n • ⊤ : submodule R M).quotient) :=
+def adic_completion : submodule R (Π n : ℕ, (I ^ n • ⊤ : submodule R M).quotient) :=
 { carrier := { f | ∀ {m n} (h : m ≤ n), liftq _ (mkq _)
     (by { rw ker_mkq, exact smul_mono (ideal.pow_le_pow h) (le_refl _) }) (f n) = f m },
   zero_mem' := λ m n hmn, by rw [pi.zero_apply, pi.zero_apply, linear_map.map_zero],
@@ -132,10 +132,10 @@ instance top : is_precomplete (⊤ : ideal R) M :=
 
 end is_precomplete
 
-namespace completion
+namespace adic_completion
 
 /-- The canonical linear map to the completion. -/
-def of : M →ₗ[R] completion I M :=
+def of : M →ₗ[R] adic_completion I M :=
 { to_fun    := λ x, ⟨λ n, mkq _ x, λ m n hmn, rfl⟩,
   map_add'  := λ x y, rfl,
   map_smul' := λ c x, rfl }
@@ -143,15 +143,15 @@ def of : M →ₗ[R] completion I M :=
 @[simp] lemma of_apply (x : M) (n : ℕ) : (of I M x).1 n = mkq _ x := rfl
 
 /-- Linearly evaluating a sequence in the completion at a given input. -/
-def eval (n : ℕ) : completion I M →ₗ[R] (I ^ n • ⊤ : submodule R M).quotient :=
+def eval (n : ℕ) : adic_completion I M →ₗ[R] (I ^ n • ⊤ : submodule R M).quotient :=
 { to_fun    := λ f, f.1 n,
   map_add'  := λ f g, rfl,
   map_smul' := λ c f, rfl }
 
 @[simp] lemma coe_eval (n : ℕ) :
-  (eval I M n : completion I M → (I ^ n • ⊤ : submodule R M).quotient) = λ f, f.1 n := rfl
+  (eval I M n : adic_completion I M → (I ^ n • ⊤ : submodule R M).quotient) = λ f, f.1 n := rfl
 
-lemma eval_apply (n : ℕ) (f : completion I M) : eval I M n f = f.1 n := rfl
+lemma eval_apply (n : ℕ) (f : adic_completion I M) : eval I M n f = f.1 n := rfl
 
 lemma eval_of (n : ℕ) (x : M) : eval I M n (of I M x) = mkq _ x := rfl
 
@@ -161,11 +161,11 @@ lemma eval_of (n : ℕ) (x : M) : eval I M n (of I M x) = mkq _ x := rfl
 linear_map.range_eq_top.2 $ λ x, quotient.induction_on' x $ λ x, ⟨of I M x, rfl⟩
 
 variables {I M}
-@[ext] lemma ext {x y : completion I M} (h : ∀ n, eval I M n x = eval I M n y) : x = y :=
+@[ext] lemma ext {x y : adic_completion I M} (h : ∀ n, eval I M n x = eval I M n y) : x = y :=
 subtype.eq $ funext h
 variables (I M)
 
-instance : is_Hausdorff I (completion I M) :=
+instance : is_Hausdorff I (adic_completion I M) :=
 λ x hx, ext $ λ n, smul_induction_on (smodeq.zero.1 $ hx n)
   (λ r hr x _, ((eval I M n).map_smul r x).symm ▸ quotient.induction_on' (eval I M n x)
     (λ x, smodeq.zero.2 $ smul_mem_smul hr mem_top))
@@ -173,7 +173,7 @@ instance : is_Hausdorff I (completion I M) :=
   (λ _ _ ih1 ih2, by rw [linear_map.map_add, ih1, ih2, linear_map.map_zero, add_zero])
   (λ c _ ih, by rw [linear_map.map_smul, ih, linear_map.map_zero, smul_zero])
 
-end completion
+end adic_completion
 
 namespace is_adic_complete
 

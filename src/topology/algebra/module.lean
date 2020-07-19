@@ -520,7 +520,7 @@ linear_map.infi_ker_proj
 
 variables (R φ)
 
-/-- If `I` and `J` are disjoint index sets, the product of the kernels of the `J`th projections of
+/-- If `I` and `J` are complementary index sets, the product of the kernels of the `J`th projections of
 `φ` is linearly equivalent to the product over `I`. -/
 def infi_ker_proj_equiv {I J : set ι} [decidable_pred (λi, i ∈ I)]
   (hd : disjoint I J) (hu : set.univ ⊆ I ∪ J) :

@@ -9,8 +9,11 @@ import algebra.big_operators
 # Bipartite graphs (bigraphs)
 This file gives a basic theory of bipartite graphs suitable for simple double counting arguments.
 We use the abbreviation `bigraph`, which is also used in some combinatorics / set theory literature.
+See e.g. [mathworld](https://mathworld.wolfram.com/Bigraph.html)
 There is a more sophisticated notion called [bigraph](https://en.wikipedia.org/wiki/Bigraph),
 which will probably not appear in mathlib in the near future.
+
+Our `bigraph`s have specified left and right parts.
 
 ## Implementation notes
 We considered extending `rel`. On a cursory inspection,
@@ -24,21 +27,29 @@ noncomputable theory
 
 universes u v
 variables (α : Type u) (β : Type v)
-
+/-- A bigraph consists of left and right `finset` carriers, plus a relation `adj` between them. -/
 @[ext] structure bigraph :=
 (left_carrier : finset α)
 (right_carrier : finset β)
 (adj : α → β → Prop)
 
+instance : inhabited $ bigraph α β :=
+{ default :=
+  { left_carrier := finset.empty,
+    right_carrier := finset.empty,
+    adj := λ _ _, true } }
+
 variables {α} {β} (G : bigraph α β)
 
 namespace bigraph
 
+/-- A way to think of a bigraph as a finset of pairs. -/
 def uncurried : (α × β) → Prop := function.uncurry (G.adj)
 
 @[simp] lemma uncurried_apply (x : α × β) : (uncurried G) x = G.adj x.fst x.snd:=
 by rw [uncurried, function.uncurry]
 
+/-- Auxiliary definition for bigraph.swap.  -/
 def swap_inputs (E : α → β → Prop) : β → α → Prop :=
   function.curry ((function.uncurry E) ∘ prod.swap)
 
@@ -50,6 +61,7 @@ by simp [swap_inputs, function.uncurry, function.curry]
   swap_inputs (swap_inputs E)=E:=
 by ext; simp
 
+/-- `G.swap` is obtained from `G` by swapping the left and right carriers. -/
 def swap : bigraph β α :=
 { left_carrier:= G.right_carrier,
   right_carrier := G.left_carrier,
@@ -63,12 +75,15 @@ def swap : bigraph β α :=
 
 @[simp] lemma swap_swap : G.swap.swap = G := by ext; simp [swap]
 
+/-- The edges of G as a finset of pairs. -/
 def edges : finset (α × β) := finset.filter (uncurried G) (finset.product G.left_carrier G.right_carrier)
 
 -- i think mem_edges_iff is a more standard name in the library? not sure.
 @[simp] lemma mem_edges (x : α × β) : x ∈ edges G ↔ (x.fst ∈ G.left_carrier ∧ x.snd ∈ G.right_carrier) ∧ G.adj x.fst x.snd :=
 by { unfold edges, simp }
 
+/-- This is the main definition for the method of double counting, which is to choose a bigraph `G`
+  such that computing `G.card_edges` answers a question of interest. -/
 def card_edges : ℕ := (edges G).card
 
 lemma mem_edges_swap (x : β × α) :
@@ -91,15 +106,19 @@ begin
   rw ← edges_swap, simp,
 end
 
-def left_fiber (b : β) : finset α :=
-  finset.filter (λ (a1:α), (uncurried G) (a1, b)) G.left_carrier
+/-- The finset of `left_carrier`s connected to a given `b : G.right_carrier` -/
+def left_fiber  (b : β) : finset α :=
+  finset.filter (λ a, (uncurried G) (a, b)) G.left_carrier
 
+/-- The finset of `right_carrier`s connected to a given `a : G.left_carrier` -/
 def right_fiber (a : α) : finset β :=
-  finset.filter (λ (b1 : β), (uncurried G) (a, b1)) G.right_carrier
+  finset.filter (λ b, (uncurried G) (a, b)) G.right_carrier
 
-def left_fiber' (b : β) : finset (α × β) := finset.image (λ a:α, (a,b)) (left_fiber G b)
+/-- Thinking of `G` as a finset of pairs, `G.left_fiber' b`  is the subset with `b` on the right. -/
+def left_fiber'  (b : β) : finset (α × β) := finset.image (λ a, (a, b)) (left_fiber G b)
 
-def right_fiber' (a : α) : finset (α × β) := finset.image (λ b:β, (a,b)) (right_fiber G a)
+/-- Thinking of `G` as a finset of pairs, `G.rightt_fiber' a` is the subset with `a` on the left. -/
+def right_fiber' (a : α) : finset (α × β) := finset.image (λ b, (a, b)) (right_fiber G a)
 
 @[simp] lemma mem_left_fiber (b : β) {x : α} :
 x ∈ (left_fiber G b) ↔ x ∈ G.left_carrier ∧ G.adj x b := by { unfold left_fiber, simp }
@@ -176,13 +195,17 @@ theorem sum_right_fibers :
   card_edges G = ∑ a in G.left_carrier, (right_fiber G a).card :=
 by { simp_rw ← left_fiber_swap, rw ← card_edges_symm, apply sum_left_fibers }
 
+/-- In a $d$-left-regular  bigraph, every right vertex sees $d$ left vertices. -/
 def left_regular (d : ℕ) : Prop := ∀ b ∈ G.right_carrier, (left_fiber G b).card = d
 
+/-- In a $d$-right-regular bigraph, every left vertex sees $d$ right vertices. -/
 def right_regular (d : ℕ) : Prop := ∀ a ∈ G.left_carrier, (right_fiber G a).card = d
 
+/-- G.left_unique is equivalent to G.left_regular 1. This is proved as `left_unique_one_reg`. -/
 def left_unique : Prop :=
   ∀ b ∈ G.right_carrier, ∃!(a : α), a ∈ G.left_carrier ∧ G.adj a b
 
+/-- G.right_unique is equivalent to G.right_regular 1. This is proved as `right_unique_one_reg`. -/
 def right_unique : Prop :=
   ∀ a ∈ G.left_carrier, ∃!(b : β), b ∈ G.right_carrier ∧ G.adj a b
 
@@ -192,10 +215,10 @@ by simp [left_regular, right_regular]
 @[simp] lemma left_regular_swap (d : ℕ) : left_regular G.swap d ↔ right_regular G d :=
 by simp [left_regular, right_regular]
 
-@[simp] lemma right_unique_swap : right_unique G.swap ↔ left_unique G :=
+lemma right_unique_swap : right_unique G.swap ↔ left_unique G :=
 by simp [left_unique, right_unique]
 
-@[simp] lemma left_unique_swap : left_unique G.swap ↔ right_unique G :=
+lemma left_unique_swap : left_unique G.swap ↔ right_unique G :=
 by simp [left_unique, right_unique]
 
 @[simp] lemma left_unique_one_reg : left_unique G ↔ left_regular G 1 :=

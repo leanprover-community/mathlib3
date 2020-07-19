@@ -226,10 +226,12 @@ begin
   rw right_unique_one_reg at hr, rw left_unique_one_reg at hl,
   convert double_count_of_lreg_rreg _ hl hr; simp,
 end
+
+section right
 variables (adj : α → β → Prop) (A : finset α) {B1 B2 : finset β}
 -- The following lemmas may be generalized by saying stuff about lattice homormopshims.
 
-lemma edges_disjoint_of_eq_disj_eq (hB : disjoint B1 B2) :
+lemma edges_disjoint_of_disjoint_right (hB : disjoint B1 B2) :
   disjoint (edges ⟨A, B1, adj⟩) (edges ⟨A, B2, adj⟩) :=
 begin
   apply finset.disjoint_filter_filter, rw finset.disjoint_iff_ne,
@@ -238,7 +240,9 @@ begin
   apply hB a.snd _ a.snd; tauto,
 end
 
-lemma edges_union {A : finset α} {B1 B2 : finset β} :
+variable {A}
+
+lemma edges_union_right :
   edges ⟨ A, B1 ∪ B2, adj⟩ = edges ⟨A, B1, adj⟩ ∪ edges ⟨A, B2, adj⟩ :=
 begin
   erw ← finset.filter_union,
@@ -246,8 +250,40 @@ begin
   ext, simp [ finset.mem_union, finset.mem_product]; tauto,
 end
 
-theorem card_edges_add_of_eq_disj_union_eq {A : finset α} {B1 B2 : finset β} (h : disjoint B1 B2) :
+theorem card_edges_add_of_disj_union_right (h : disjoint B1 B2) :
 card_edges ⟨A, B1 ∪ B2, adj⟩ = card_edges ⟨A, B1, adj⟩ + card_edges ⟨A, B2, adj⟩ :=
-by { rw [card_edges, edges_union], simp [edges_disjoint_of_eq_disj_eq, h], refl }
+by { rw [card_edges, edges_union_right], simp [edges_disjoint_of_disjoint_right, h], refl }
+
+end right
+
+section left
+variables (adj : α → β → Prop) {A1 A2 : finset α} (B : finset β)
+
+lemma edges_disjoint_of_disjoint_left (h : disjoint A1 A2) :
+  disjoint (edges ⟨A1, B, adj⟩) (edges ⟨A2, B, adj⟩) :=
+begin
+  apply finset.disjoint_filter_filter,
+  rw finset.disjoint_iff_ne,
+  rintros a _ _ _ rfl,
+  rw finset.mem_product at *,
+  rw finset.disjoint_iff_ne at h,
+  apply h a.fst _ a.fst; tauto,
+end
+
+variable {B}
+
+lemma edges_union_left :
+  edges ⟨ A1 ∪ A2, B, adj⟩ = edges ⟨A1, B, adj⟩ ∪ edges ⟨A2, B, adj⟩ :=
+begin
+  erw ← finset.filter_union,
+  suffices : (A1 ∪ A2).product B = A1.product B ∪ A2.product B, { rw ← this, refl },
+  ext, simp [ finset.mem_union, finset.mem_product]; tauto,
+end
+
+theorem card_edges_add_of_disj_union_left (h : disjoint A1 A2) :
+card_edges ⟨A1 ∪ A2, B, adj⟩ = card_edges ⟨A1, B, adj⟩ + card_edges ⟨A2, B, adj⟩ :=
+by { rw [card_edges, edges_union_left], simp [edges_disjoint_of_disjoint_left, h], refl }
+
+end left
 
 end bigraph

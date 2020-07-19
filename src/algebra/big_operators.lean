@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.opposites
+import algebra.group.anti_hom
 import data.finset.intervals
 import data.finset.fold
 import data.finset.powerset
@@ -150,17 +151,26 @@ lemma prod_empty {α : Type u} {f : α → β} : (∏ x in (∅:finset α), f x)
 lemma prod_insert [decidable_eq α] :
   a ∉ s → (∏ x in (insert a s), f x) = f a * ∏ x in s, f x := fold_insert
 
-/-- If a function applied at a point is 1, a product is unchanged by
-adding that point, whether or not present, to a `finset`. -/
-@[simp, to_additive "If a function applied at a point is 0, a sum is unchanged by
-adding that point, whether or not present, to a `finset`."]
-lemma prod_insert_one [decidable_eq α] (h : f a = 1) :
+/--
+The product of `f` over `insert a s` is the same as the product over `s`, as long as `a` is in `s` or `f a = 1`.
+-/
+@[simp, to_additive "The sum of `f` over `insert a s` is the same as the sum over `s`, as long as `a` is in `s` or `f a = 0`.
+"]
+lemma prod_insert_of_eq_one_if_not_mem [decidable_eq α] (h : a ∉ s → f a = 1) :
   ∏ x in insert a s, f x = ∏ x in s, f x :=
 begin
   by_cases hm : a ∈ s,
   { simp_rw insert_eq_of_mem hm },
-  { rw [prod_insert hm, h, one_mul] },
+  { rw [prod_insert hm, h hm, one_mul] },
 end
+
+/--
+The product of `f` over `insert a s` is the same as the product over `s`, as long as `f a = 1`.
+-/
+@[simp, to_additive "The sum of `f` over `insert a s` is the same as the sum over `s`, as long as `f a = 0`."]
+lemma prod_insert_one [decidable_eq α] (h : f a = 1) :
+  ∏ x in insert a s, f x = ∏ x in s, f x :=
+prod_insert_of_eq_one_if_not_mem (λ _, h)
 
 @[simp, to_additive]
 lemma prod_singleton : (∏ x in (singleton a), f x) = f a :=
@@ -322,13 +332,18 @@ have ∏ x in s₂ \ s₁, f x = ∏ x in s₂ \ s₁, 1,
   from prod_congr rfl $ by simpa only [mem_sdiff, and_imp],
 by rw [←prod_sdiff h]; simp only [this, prod_const_one, one_mul]
 
+@[to_additive]
+lemma prod_filter_of_ne {p : α → Prop} [decidable_pred p] (hp : ∀ x ∈ s, f x ≠ 1 → p x) :
+  (∏ x in (s.filter p), f x) = (∏ x in s, f x) :=
+prod_subset (filter_subset _) $ λ x,
+  by { classical, rw [not_imp_comm, mem_filter], exact λ h₁ h₂, ⟨h₁, hp _ h₁ h₂⟩ }
+
 -- If we use `[decidable_eq β]` here, some rewrites fail because they find a wrong `decidable`
 -- instance first; `{∀x, decidable (f x ≠ 1)}` doesn't work with `rw ← prod_filter_ne_one`
 @[to_additive]
 lemma prod_filter_ne_one [∀ x, decidable (f x ≠ 1)] :
   (∏ x in (s.filter $ λx, f x ≠ 1), f x) = (∏ x in s, f x) :=
-prod_subset (filter_subset _) $ λ x,
-  by { classical, rw [not_imp_comm, mem_filter], exact and.intro }
+prod_filter_of_ne $ λ _ _, id
 
 @[to_additive]
 lemma prod_filter (p : α → Prop) [decidable_pred p] (f : α → β) :
@@ -360,7 +375,7 @@ from classical.by_cases
       prod_const_one.trans (h₁ this).symm)
 
 @[to_additive]
-lemma prod_attach {f : α → β} : (∏ x in s.attach, f x.val) = (∏ x in s, f x) :=
+lemma prod_attach {f : α → β} : (∏ x in s.attach, f x) = (∏ x in s, f x) :=
 by haveI := classical.dec_eq α; exact
   calc (∏ x in s.attach, f x.val) = (∏ x in (s.attach).image subtype.val, f x) :
     by rw [prod_image]; exact assume x _ y _, subtype.eq

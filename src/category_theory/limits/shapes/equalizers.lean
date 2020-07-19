@@ -30,7 +30,7 @@ Each of these has a dual.
 ## Main statements
 
 * `equalizer.ι_mono` states that every equalizer map is a monomorphism
-* `is_limit_cone_parallel_pair_self` states that the identity on the domain of `f` is an equalizer
+* `is_iso_limit_cone_parallel_pair_of_self` states that the identity on the domain of `f` is an equalizer
   of `f` and `f`.
 
 ## Implementation notes
@@ -454,9 +454,21 @@ is_iso_limit_cone_parallel_pair_of_eq ((cancel_epi _).1 (fork.condition c)) h
 
 end
 
-/-- The equalizer of `(f, f)` is an isomorphism. -/
-def equalizer.ι_of_self [has_limit (parallel_pair f f)] : is_iso (equalizer.ι f f) :=
+/-- The equalizer inclusion for `(f, f)` is an isomorphism. -/
+instance equalizer.ι_of_self [has_limit (parallel_pair f f)] : is_iso (equalizer.ι f f) :=
 equalizer.ι_of_eq rfl
+
+/-- The equalizer of a morphism with itself is isomorphic to the source. -/
+def equalizer.iso_source_of_self [has_limit (parallel_pair f f)] : equalizer f f ≅ X :=
+as_iso (equalizer.ι f f)
+
+@[simp] lemma equalizer.iso_source_of_self_hom [has_limit (parallel_pair f f)] :
+  (equalizer.iso_source_of_self f).hom = equalizer.ι f f :=
+rfl
+
+@[simp] lemma equalizer.iso_source_of_self_inv [has_limit (parallel_pair f f)] :
+  (equalizer.iso_source_of_self f).inv = equalizer.lift (𝟙 X) (by simp) :=
+rfl
 
 section
 variables [has_colimit (parallel_pair f g)]
@@ -555,9 +567,21 @@ is_iso_colimit_cocone_parallel_pair_of_eq ((cancel_mono _).1 (cofork.condition c
 
 end
 
-/-- The coequalizer of `(f, f)` is an isomorphism. -/
-def coequalizer.π_of_self [has_colimit (parallel_pair f f)] : is_iso (coequalizer.π f f) :=
+/-- The coequalizer projection for `(f, f)` is an isomorphism. -/
+instance coequalizer.π_of_self [has_colimit (parallel_pair f f)] : is_iso (coequalizer.π f f) :=
 coequalizer.π_of_eq rfl
+
+/-- The coequalizer of a morphism with itself is isomorphic to the target. -/
+def coequalizer.iso_target_of_self [has_colimit (parallel_pair f f)] : coequalizer f f ≅ Y :=
+(as_iso (coequalizer.π f f)).symm
+
+@[simp] lemma coequalizer.iso_target_of_self_hom [has_colimit (parallel_pair f f)] :
+  (coequalizer.iso_target_of_self f).hom = coequalizer.desc (𝟙 Y) (by simp) :=
+rfl
+
+@[simp] lemma coequalizer.iso_target_of_self_inv [has_colimit (parallel_pair f f)] :
+  (coequalizer.iso_target_of_self f).inv = coequalizer.π f f :=
+rfl
 
 variables (C)
 

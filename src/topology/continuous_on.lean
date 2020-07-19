@@ -40,7 +40,7 @@ filter.ext_iff.1 nhds_bind_nhds_within {x | p x}
 
 lemma eventually_nhds_within_iff {a : α} {s : set α} {p : α → Prop} :
   (∀ᶠ x in nhds_within a s, p x) ↔ ∀ᶠ x in 𝓝 a, x ∈ s → p x :=
-mem_inf_principal _ _ _
+eventually_inf_principal
 
 @[simp] lemma eventually_nhds_within_nhds_within {a : α} {s : set α} {p : α → Prop} :
   (∀ᶠ y in nhds_within a s, ∀ᶠ x in nhds_within y s, p x) ↔ ∀ᶠ x in nhds_within a s, p x :=
@@ -515,6 +515,11 @@ lemma continuous_within_at.congr {f f₁ : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (h₁ : ∀y∈s, f₁ y = f y) (hx : f₁ x = f x) :
   continuous_within_at f₁ s x :=
 h.congr_of_eventually_eq (mem_sets_of_superset self_mem_nhds_within h₁) hx
+
+lemma continuous_within_at.congr_mono {f g : α → β} {s s₁ : set α} {x : α}
+  (h : continuous_within_at f s x) (h' : eq_on g f s₁) (h₁ : s₁ ⊆ s) (hx : g x = f x):
+  continuous_within_at g s₁ x :=
+(h.mono h₁).congr h' hx
 
 lemma continuous_on_const {s : set α} {c : β} : continuous_on (λx, c) s :=
 continuous_const.continuous_on

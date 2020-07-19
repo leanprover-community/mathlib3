@@ -19,8 +19,12 @@ def directed (f : ι → α) := ∀x y, ∃z, f x ≼ f z ∧ f y ≼ f z
   pair of elements in the set. -/
 def directed_on (s : set α) := ∀ (x ∈ s) (y ∈ s), ∃z ∈ s, x ≼ z ∧ y ≼ z
 
+variables {r}
+
 theorem directed_on_iff_directed {s} : @directed_on α r s ↔ directed r (coe : s → α) :=
 by simp [directed, directed_on]; refine ball_congr (λ x hx, by simp; refl)
+
+alias directed_on_iff_directed ↔ directed_on.directed_coe _
 
 theorem directed_on_image {s} {f : β → α} :
   directed_on r (f '' s) ↔ directed_on (f ⁻¹'o r) s :=
@@ -31,10 +35,8 @@ theorem directed_on.mono {s : set α} (h : directed_on r s)
   directed_on r' s :=
 λ x hx y hy, let ⟨z, zs, xz, yz⟩ := h x hx y hy in ⟨z, zs, H xz, H yz⟩
 
-theorem directed_comp {ι} (f : ι → β) (g : β → α) :
+theorem directed_comp {ι} {f : ι → β} {g : β → α} :
   directed r (g ∘ f) ↔ directed (g ⁻¹'o r) f := iff.rfl
-
-variable {r}
 
 theorem directed.mono {s : α → α → Prop} {ι} {f : ι → α}
   (H : ∀ a b, r a b → s a b) (h : directed r f) : directed s f :=
@@ -43,7 +45,7 @@ theorem directed.mono {s : α → α → Prop} {ι} {f : ι → α}
 theorem directed.mono_comp {ι} {rb : β → β → Prop} {g : α → β} {f : ι → α}
   (hg : ∀ ⦃x y⦄, x ≼ y → rb (g x) (g y)) (hf : directed r f) :
   directed rb (g ∘ f) :=
-(directed_comp rb f g).2 $ hf.mono hg
+directed_comp.2 $ hf.mono hg
 
 /-- A monotone function on a sup-semilattice is directed. -/
 lemma directed_of_sup [semilattice_sup α] {f : α → β} {r : β → β → Prop}

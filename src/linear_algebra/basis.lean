@@ -258,11 +258,11 @@ begin
     use i,
     rw [mem_preimage, hi],
     exact ⟨hx, rfl⟩ },
-  apply finsupp.eq_zero_of_comap_domain_eq_zero v l,
+  apply finsupp.eq_zero_of_comap_domain_eq_zero v l h_bij,
   apply linear_independent_iff.1 hv,
-  rw [finsupp.total_comap_domain, finset.sum_preimage v l.support h_bij (λ (x : M), l x • x)],
-  rw [finsupp.total_apply, finsupp.sum] at hl₂,
-  apply hl₂
+  rw [finsupp.total_comap_domain, finset.sum_preimage_of_bij v l.support h_bij
+    (λ (x : M), l x • x)],
+  rwa [finsupp.total_apply, finsupp.sum] at hl₂
 end
 
 lemma linear_independent.of_subtype_range (hv : injective v)
@@ -373,16 +373,13 @@ lemma linear_independent_sUnion_of_directed {s : set (set M)}
   (h : ∀ a ∈ s, linear_independent R (λ x, x : (a : set M) → M)) :
   linear_independent R (λ x, x : (⋃₀ s) → M) :=
 by rw sUnion_eq_Union; exact
-linear_independent_Union_of_directed
-  ((directed_on_iff_directed _).1 hs) (by simpa using h)
+linear_independent_Union_of_directed hs.directed_coe (by simpa using h)
 
 lemma linear_independent_bUnion_of_directed {η} {s : set η} {t : η → set M}
   (hs : directed_on (t ⁻¹'o (⊆)) s) (h : ∀a∈s, linear_independent R (λ x, x : t a → M)) :
   linear_independent R (λ x, x : (⋃a∈s, t a) → M) :=
 by rw bUnion_eq_Union; exact
-linear_independent_Union_of_directed
-  ((directed_comp _ _ _).2 $ (directed_on_iff_directed _).1 hs)
-  (by simpa using h)
+linear_independent_Union_of_directed (directed_comp.2 $ hs.directed_coe) (by simpa using h)
 
 lemma linear_independent_Union_finite_subtype {ι : Type*} {f : ι → set M}
   (hl : ∀i, linear_independent R (λ x, x : f i → M))

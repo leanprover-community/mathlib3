@@ -195,10 +195,10 @@ theorem inv_fun_on_mem (h : ∃a∈s, f a = b) : inv_fun_on f s b ∈ s := (inv_
 
 theorem inv_fun_on_eq (h : ∃a∈s, f a = b) : f (inv_fun_on f s b) = b := (inv_fun_on_pos h).right
 
-theorem inv_fun_on_eq' (h : ∀ x y ∈ s, f x = f y → x = y) (ha : a ∈ s) :
+theorem inv_fun_on_eq' (h : ∀ (x ∈ s) (y ∈ s), f x = f y → x = y) (ha : a ∈ s) :
   inv_fun_on f s (f a) = a :=
 have ∃a'∈s, f a' = f a, from ⟨a, ha, rfl⟩,
-h _ _ (inv_fun_on_mem this) ha (inv_fun_on_eq this)
+h _ (inv_fun_on_mem this) _ ha (inv_fun_on_eq this)
 
 theorem inv_fun_on_neg (h : ¬ ∃a∈s, f a = b) : inv_fun_on f s b = classical.choice n :=
 by rw [bex_def] at h; rw [inv_fun_on, dif_neg h]

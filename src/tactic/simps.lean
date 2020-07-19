@@ -99,7 +99,7 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
     when must_be_str $
       fail "Invalid `simps` attribute. Target is not a structure",
     when (todo ≠ [] ∧ todo ≠ [""] ∧ str ∉ [`prod, `pprod]) $
-        fail format!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo.head}. Projection {todo.head} doesn't exist, because target is not a structure.",
+        fail format!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo.head}. Projection {(todo.head.split_on '_').tail.head} doesn't exist, because target is not a structure.",
     simps_add_projection (nm.append_suffix suffix) tgt lhs_ap rhs_ap new_args univs add_simp
 
 /-- `simps_tac` derives simp-lemmas for all (nested) non-Prop projections of the declaration.

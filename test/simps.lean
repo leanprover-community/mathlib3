@@ -214,13 +214,13 @@ run_cmd do
   guard $ 12 = e.fold 0 -- there are no other lemmas generated
     (λ d n, n + if d.to_name.components.init.ilast = `specify then 1 else 0),
   success_if_fail_with_msg (simps_tac `specify.specify1 tt ff ["fst_fst"])
-    "Invalid simp-lemma specify.specify1_fst_fst. Too many projections given.",
+    "Invalid simp-lemma specify.specify1_fst_fst. Projection fst doesn't exist, because target is not a structure.",
   success_if_fail_with_msg (simps_tac `specify.specify1 tt ff ["foo_fst"])
     "Invalid simp-lemma specify.specify1_foo_fst. Projection foo doesn't exist.",
   success_if_fail_with_msg (simps_tac `specify.specify1 tt ff ["snd_bar"])
     "Invalid simp-lemma specify.specify1_snd_bar. Projection bar doesn't exist.",
   success_if_fail_with_msg (simps_tac `specify.specify5 tt ff ["snd_snd"])
-    "Invalid simp-lemma specify.specify5_snd_snd. Too many projections given."
+    "Invalid simp-lemma specify.specify5_snd_snd. The given definition is not a constructor application."
 
 
 /- We also eta-reduce if we explicitly specify the projection. -/

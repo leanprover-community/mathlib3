@@ -55,7 +55,7 @@ begin
 end
 
 /-- `limit.π (F ⋙ forget Mon) j` as a `monoid_hom`. -/
-@[to_additive AddCommGroup.limit_π_add_monoid_hom]
+@[to_additive AddMon.limit_π_add_monoid_hom]
 def limit_π_monoid_hom (F : J ⥤ Mon) (j) :
   limit (F ⋙ forget Mon) →* (F ⋙ forget Mon).obj j :=
 { to_fun := limit.π (F ⋙ forget Mon) j,

@@ -11,6 +11,11 @@ import algebra.category.Group.limits
 
 Further, these limits are preserved by the forgetful functor --- that is,
 the underlying types are just the limits in the category of types.
+
+## Implementation note
+
+We can't do semirings yet, as there is neither a bundled `subsemiring` or
+a deprecated `is_subsemiring`.
 -/
 
 open category_theory
@@ -49,10 +54,14 @@ instance limit_comm_ring (F : J ⥤ Ring) :
 def limit_π_ring_hom (F : J ⥤ Ring) (j) :
   limit (F ⋙ forget Ring) →+* (F ⋙ forget Ring).obj j :=
 { to_fun := limit.π (F ⋙ forget Ring) j,
-  map_one' := by { simp only [types.types_limit_π], refl },
-  map_zero' := by { simp only [types.types_limit_π], refl },
-  map_mul' := λ x y, by { simp only [types.types_limit_π], refl },
-  map_add' := λ x y, by { simp only [types.types_limit_π], refl } }
+  -- TODO repeat the proofs?:
+  -- map_one' := by { simp only [types.types_limit_π], refl },
+  -- map_zero' := by { simp only [types.types_limit_π], refl },
+  -- map_mul' := λ x y, by { simp only [types.types_limit_π], refl },
+  -- map_add' := λ x y, by { simp only [types.types_limit_π], refl },
+  -- TODO or copy them?:
+  ..Mon.limit_π_monoid_hom (F ⋙ forget₂ Ring SemiRing ⋙ forget₂ SemiRing Mon) j,
+  ..AddMon.limit_π_add_monoid_hom (F ⋙ forget₂ Ring AddCommGroup ⋙ forget₂ AddCommGroup AddCommMon ⋙ forget₂ AddCommMon AddMon) j, }
 
 namespace has_limits
 -- The next two definitions are used in the construction of `has_limits Ring`.
@@ -91,6 +100,25 @@ instance has_limits : has_limits Ring :=
   { has_limit := λ F, by exactI
     { cone     := limit F,
       is_limit := limit_is_limit F } } }
+
+/--
+The forgetful functor from rings to additive commutative groups preserves all limits.
+-/
+instance forget₂_AddCommGroup_preserves_limits : preserves_limits (forget₂ Ring AddCommGroup) :=
+{ preserves_limits_of_shape := λ J 𝒥,
+  { preserves_limit := λ F,
+    by exactI preserves_limit_of_preserves_limit_cone
+      (limit.is_limit F) (limit.is_limit (F ⋙ forget₂ Ring AddCommGroup)) } }
+
+/--
+The forgetful functor from rings to monoids preserves all limits.
+-/
+instance forget₂_Mon_preserves_limits :
+  preserves_limits (forget₂ Ring SemiRing ⋙ forget₂ SemiRing Mon) :=
+{ preserves_limits_of_shape := λ J 𝒥,
+  { preserves_limit := λ F,
+    by exactI preserves_limit_of_preserves_limit_cone
+      (limit.is_limit F) (limit.is_limit (F ⋙ forget₂ Ring SemiRing ⋙ forget₂ SemiRing Mon)) } }
 
 /--
 The forgetful functor from commutative rings to types preserves all limits. (That is, the underlying

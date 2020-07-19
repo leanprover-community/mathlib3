@@ -296,6 +296,10 @@ variables (f g : M →ₗ[R] M₂)
 theorem is_linear : is_linear_map R f := ⟨f.2, f.3⟩
 
 variables {f g}
+
+theorem coe_inj (h : (f : M → M₂) = g) : f = g :=
+by cases f; cases g; cases h; refl
+
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; congr'; exact funext H
 

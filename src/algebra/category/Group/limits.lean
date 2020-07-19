@@ -43,13 +43,13 @@ def sections_subgroup (F : J ⥤ Group) :
   end,
   ..(Mon.sections_submonoid (F ⋙ forget₂ Group Mon)) }
 
--- TODO I haven't worked out how to do this without
--- going back to the deprecated `is_subgroup` setup.
 @[to_additive AddGroup.limit_add_group]
 instance limit_group (F : J ⥤ Group) :
   group (limit (F ⋙ forget Group)) :=
-@subtype.group ((Π (j : J), (F ⋙ forget _).obj j)) (by apply_instance) _
-  (by convert (sections_subgroup F).is_subgroup)
+begin
+  change group (sections_subgroup F),
+  apply_instance,
+end
 
 /--
 We show that the forgetful functor `Group ⥤ Mon` creates limits.
@@ -69,14 +69,14 @@ creates_limit_of_reflects_iso (λ c' t,
   makes_limit := is_limit.of_faithful (forget₂ Group Mon) (limit.is_limit _)
     (λ s, _) (λ s, rfl) })
 
-/-- The category of commutative monoids has all limits. -/
+/-- The category of groups has all limits. -/
 @[to_additive AddGroup.has_limits]
 instance has_limits : has_limits Group :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit_of_created F (forget₂ Group Mon) } }
 
 /--
-The forgetful functor from commutative monoids to monoids preserves all limits.
+The forgetful functor from groups to monoids preserves all limits.
 (That is, the underlying monoid could have been computed instead as limits in the category of monoids.)
 -/
 @[to_additive AddGroup.forget₂_AddMon_preserves_limits]
@@ -85,7 +85,7 @@ instance forget₂_Mon_preserves_limits : preserves_limits (forget₂ Group Mon)
   { preserves_limit := λ F, by apply_instance } }
 
 /--
-The forgetful functor from commutative monoids to types preserves all limits. (That is, the underlying
+The forgetful functor from groups to types preserves all limits. (That is, the underlying
 types could have been computed instead as limits in the category of types.)
 -/
 @[to_additive AddCommMon.forget_preserves_limits]
@@ -127,9 +127,9 @@ creates_limit_of_reflects_iso (λ c' t,
   { X := CommGroup.of (limit (F ⋙ forget CommGroup)),
     π :=
     { app := Mon.limit_π_monoid_hom (F ⋙ forget₂ CommGroup Group ⋙ forget₂ Group Mon),
-      naturality' := (Mon.has_limits.limit (F ⋙ forget₂ _ _ ⋙ forget₂ _ _)).π.naturality, } },
+      naturality' := (Mon.has_limits.limit _).π.naturality, } },
   valid_lift := is_limit.unique_up_to_iso (limit.is_limit _) t,
-  makes_limit := is_limit.of_faithful (forget₂ CommGroup Group ⋙ forget₂ Group Mon) (limit.is_limit _)
+  makes_limit := is_limit.of_faithful (forget₂ _ Group ⋙ forget₂ _ Mon) (limit.is_limit _)
     (λ s, _) (λ s, rfl) })
 
 /-- The category of commutative groups has all limits. -/

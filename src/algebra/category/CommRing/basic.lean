@@ -74,6 +74,9 @@ instance has_forget_to_AddCommGroup : has_forget₂ Ring AddCommGroup :=
   { obj := λ R, AddCommGroup.of R,
     map := λ R₁ R₂ f, ring_hom.to_add_monoid_hom f } }
 
+instance : reflects_isomorphisms (forget₂ Ring AddCommGroup) :=
+{ reflects := λ R S f i, sorry }
+
 end Ring
 
 /-- The category of commutative semirings. -/

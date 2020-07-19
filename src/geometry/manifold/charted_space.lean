@@ -421,7 +421,7 @@ lemma closed_under_restriction_iff_id_le (G : structure_groupoid H) :
   closed_under_restriction G ↔ id_restr_groupoid ≤ G :=
 begin
   split,
-  { intros _i, resetI,
+  { introsI _i, 
     apply structure_groupoid.le_iff.mpr,
     rintros e ⟨s, hs, hes⟩,
     refine G.eq_on_source _ hes,

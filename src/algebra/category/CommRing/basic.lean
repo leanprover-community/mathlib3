@@ -74,9 +74,6 @@ instance has_forget_to_AddCommGroup : has_forget₂ Ring AddCommGroup :=
   { obj := λ R, AddCommGroup.of R,
     map := λ R₁ R₂ f, ring_hom.to_add_monoid_hom f } }
 
-instance : reflects_isomorphisms (forget₂ Ring AddCommGroup) :=
-{ reflects := λ R S f i, sorry }
-
 end Ring
 
 /-- The category of commutative semirings. -/
@@ -154,6 +151,16 @@ variables {X Y : Type u}
   inv := e.symm.to_ring_hom }
 
 end ring_equiv
+
+namespace Ring
+
+instance : reflects_isomorphisms (forget₂ Ring AddCommGroup) :=
+{ reflects := λ R S f i, by exactI
+  { ..ring_equiv.to_Ring_iso
+    { ..(as_iso ((forget₂ Ring AddCommGroup).map f)).AddCommGroup_iso_to_add_equiv,
+      ..f } } }
+
+end Ring
 
 namespace category_theory.iso
 

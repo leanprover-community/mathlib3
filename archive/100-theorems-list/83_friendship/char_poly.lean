@@ -209,7 +209,7 @@ lemma det_pow (k : ℕ) (M : matrix n n R) :
 (M ^ k).det = (M.det) ^ k :=
 begin
   induction k with k hk, simp,
-  repeat {rw pow_succ}, rw ← hk, simp,
+  repeat {rw pow_succ}, rw ← hk, squeeze_simp,
 end
 
 
@@ -251,6 +251,18 @@ begin
   unfold commute, unfold semiconj_by, rw [sub_mul, mul_sub, h.eq],
 end
 
+#check matrix.mul_eq_mul
+#check monoid.pow
+#check @matrix.monoid
+
+@[simp] theorem matrix.pow_eq_pow [semiring α] (M : matrix n n α) (k : ℕ) :
+  M ^ k = monoid.pow M k :=
+begin
+  induction k with d hd, refl,
+  rw [pow_succ, hd, mul_eq_mul], refl,
+end
+
+#check matrix.monoid
 
 lemma char_poly_pow_p_char_p (M : matrix n n (zmod p)) :
 char_poly (M ^ p) = char_poly M :=
@@ -262,15 +274,21 @@ begin
 
   apply frobenius_inj (polynomial (zmod p)) p, repeat {rw frobenius_def},
   rw ← zmod.expand_p,
-  unfold char_poly, rw alg_hom_det, rw ← det_pow, refine congr rfl _,
+  unfold char_poly, rw alg_hom_det, rw ← det_pow, simp,
+  congr,
   unfold char_matrix,
-  transitivity ((scalar n) X - C.map_matrix M) ^ p, swap, sorry,
-  rw sub_pow_char_of_commute, swap, apply matrix.scalar.commute, rw ← C.map_matrix.map_pow, rw ← (scalar n).map_pow,
-  ext, refine congr (congr rfl _) rfl, by_cases i = j; simp [h], sorry,
-  {
-    refine congr rfl _, refine congr (congr _ rfl) rfl,
-    refine congr (congr _ rfl) rfl, sorry,
-  }
+  transitivity ((scalar n) X - C.map_matrix M) ^ p, simp,
+  rw sub_pow_char_of_commute,
+  swap, { apply matrix.scalar.commute },
+  -- convert sub_pow_char_of_commute _,
+  -- rw sub_pow_char_of_commute,
+  -- rw ← map_pow,
+  -- rw ← C.map_matrix.map_pow, rw ← (scalar n).map_pow,
+  -- ext, refine congr (congr rfl _) rfl, by_cases i = j; simp [h], sorry,
+  -- {
+  --   refine congr rfl _, refine congr (congr _ rfl) rfl,
+  --   refine congr (congr _ rfl) rfl, sorry,
+  -- }
 end
 
 end char_p

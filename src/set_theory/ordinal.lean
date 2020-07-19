@@ -974,6 +974,7 @@ by simp only [le_antisymm_iff, add_le_add_iff_right]
   exact ⟨f punit.star⟩
 end, λ e, by simp only [e, card_zero]⟩
 
+
 theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonempty α :=
 (not_congr (@card_eq_zero (type r))).symm.trans ne_zero_iff_nonempty
 
@@ -3270,6 +3271,8 @@ See `one_lt_two` for a general tactic solution for proving strict inequalities b
 using the embedding of `ℕ`.
 -/
 
+
+
 @[simp] lemma bit0_ne_zero (a : cardinal) : ¬bit0 a = 0 ↔ ¬a = 0 :=
 by simp [bit0]
 
@@ -3295,6 +3298,9 @@ add_eq_self h
 @[simp] theorem bit0_lt_omega_iff {c : cardinal} : bit0 c < omega ↔ c < omega :=
 by simp [bit0, add_lt_omega_iff]
 
+@[simp] theorem omega_le_bit0_iff {c : cardinal} : omega ≤ bit0 c ↔ omega ≤ c :=
+by { rw ← not_iff_not, simp }
+
 @[simp] lemma bit0_le_bit0_iff {a b : cardinal} : bit0 a ≤ bit0 b ↔ a ≤ b :=
 begin
   by_cases ha : omega ≤ a; by_cases hb : omega ≤ b,
@@ -3305,12 +3311,37 @@ begin
     have I2 : ¬ (a ≤ bit0 b),
     { assume h,
       have A : bit0 b < omega, by simpa using hb,
+      linarith,
       exact lt_irrefl _ (lt_of_lt_of_le (lt_of_lt_of_le A ha) h) },
     simp [I1, I2] },
   { rw [bit0_eq_self hb],
     simp only [not_le] at ha,
     have I1 : a ≤ b := le_of_lt (lt_of_lt_of_le ha hb),
     have I2 : bit0 a ≤ b := le_trans (le_of_lt (bit0_lt_omega_iff.2 ha)) hb,
+    simp [I1, I2] },
+  { simp at ha hb,
+    rcases lt_omega.1 ha with ⟨m, rfl⟩,
+    rcases lt_omega.1 hb with ⟨n, rfl⟩,
+    norm_cast,
+    simp }
+end
+
+lemma bit0_lt_bit0_iff {a b : cardinal} : bit0 a < bit0 b ↔ a < b :=
+begin
+  by_cases ha : omega ≤ a; by_cases hb : omega ≤ b,
+  { rw [bit0_eq_self ha, bit0_eq_self hb] },
+  { rw bit0_eq_self ha,
+    have I1 : ¬ (a < b),
+    { assume h, apply hb, exact le_trans ha (le_of_lt h) },
+    have I2 : ¬ (a < bit0 b),
+    { assume h,
+      have A : bit0 b < omega, by simpa using hb,
+      exact lt_irrefl _ (lt_trans (lt_of_lt_of_le A ha) h) },
+    simp [I1, I2] },
+  { rw [bit0_eq_self hb],
+    simp only [not_le] at ha,
+    have I1 : a < b := lt_of_lt_of_le ha hb,
+    have I2 : bit0 a < b := lt_of_lt_of_le (bit0_lt_omega_iff.2 ha) hb,
     simp [I1, I2] },
   { simp at ha hb,
     rcases lt_omega.1 ha with ⟨m, rfl⟩,
@@ -3333,6 +3364,9 @@ end
 
 @[simp] theorem bit1_lt_omega_iff {c : cardinal} : bit1 c < omega ↔ c < omega :=
 by simp [bit1, bit0, add_lt_omega_iff, one_lt_omega]
+
+@[simp] theorem omega_le_bit1_iff {c : cardinal} : omega ≤ bit1 c ↔ omega ≤ c :=
+by { rw ← not_iff_not, simp }
 
 @[simp] lemma bit0_le_bit1_iff {a b : cardinal} : bit0 a ≤ bit1 b ↔ a ≤ b :=
 begin
@@ -3366,6 +3400,59 @@ begin
   { assume h,
     calc a + a + 1 ≤ a + b + 1 : add_le_add_right 1 (add_le_add_left a h)
            ... ≤ b + b + 1 : add_le_add_right 1 (add_le_add_right b h) }
+end
+
+lemma bit1_le_bit0_iff {a b : cardinal} : bit1 a ≤ bit0 b ↔ (a < b ∨ (a ≤ b ∧ omega ≤ a)) :=
+begin
+  by_cases ha : omega ≤ a; by_cases hb : omega ≤ b,
+  { simp only [bit1_eq_self_iff.mpr ha, bit0_eq_self hb, ha, and_true],
+    refine ⟨λ h, or.inr h, λ h, _⟩,
+    cases h,
+    { exact le_of_lt h },
+    { exact h } },
+  { rw bit1_eq_self_iff.2 ha,
+    have I1 : ¬ (a ≤ b),
+    { assume h, apply hb, exact le_trans ha h },
+    have I2 : ¬ (a ≤ bit0 b),
+    { assume h,
+      have A : bit0 b < omega, by simpa using hb,
+      exact lt_irrefl _ (lt_of_lt_of_le (lt_of_lt_of_le A ha) h) },
+    simp [I1, I2, le_of_not_ge I1] },
+  { rw [bit0_eq_self hb],
+    simp only [not_le] at ha,
+    have I1 : a < b := lt_of_lt_of_le ha hb,
+    have I2 : bit1 a ≤ b := le_trans (le_of_lt (bit1_lt_omega_iff.2 ha)) hb,
+    simp [I1, I2] },
+  { simp at ha hb,
+    rcases lt_omega.1 ha with ⟨m, rfl⟩,
+    rcases lt_omega.1 hb with ⟨n, rfl⟩,
+    norm_cast,
+    simp [not_le.mpr ha], }
+end
+
+lemma bit1_lt_bit1_iff {a b : cardinal } : bit1 a < bit1 b ↔ a < b :=
+begin
+  by_cases ha : omega ≤ a; by_cases hb : omega ≤ b,
+  { rw [bit1_eq_self_iff.2 ha, bit1_eq_self_iff.2 hb], },
+  { rw bit1_eq_self_iff.2 ha,
+    have I1 : ¬ (a < b),
+    { assume h, apply hb, exact le_of_lt (lt_of_le_of_lt ha h) },
+    have I2 : ¬ (a < bit1 b),
+    { assume h,
+      have A : bit1 b < omega, by simpa using hb,
+      linarith,
+      exact lt_irrefl _ (lt_of_lt_of_le (lt_of_lt_of_le A ha) h) },
+    simp [I1, I2] },
+  { rw [bit1_eq_self_iff.2 hb],
+    simp only [not_le] at ha,
+    have I1 : a ≤ b := le_of_lt (lt_of_lt_of_le ha hb),
+    have I2 : bit0 a ≤ b := le_trans (le_of_lt (bit0_lt_omega_iff.2 ha)) hb,
+    simp [I1, I2] },
+  { simp at ha hb,
+    rcases lt_omega.1 ha with ⟨m, rfl⟩,
+    rcases lt_omega.1 hb with ⟨n, rfl⟩,
+    norm_cast,
+    simp }
 end
 
 lemma one_lt_two : (1 : cardinal) < 2 :=

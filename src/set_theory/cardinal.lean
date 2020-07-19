@@ -649,7 +649,7 @@ theorem nat_lt_omega (n : ℕ) : (n : cardinal.{u}) < omega :=
 succ_le.1 $ by rw [← nat_succ, ← lift_mk_fin, omega, lift_mk_le.{0 0 u}]; exact
 ⟨⟨fin.val, λ a b, fin.eq_of_veq⟩⟩
 
-theorem one_lt_omega : 1 < omega :=
+@[simp] theorem one_lt_omega : 1 < omega :=
 by simpa using nat_lt_omega 1
 
 theorem lt_omega {c : cardinal.{u}} : c < omega ↔ ∃ n : ℕ, c = n :=

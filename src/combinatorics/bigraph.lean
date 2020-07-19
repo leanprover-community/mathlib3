@@ -160,7 +160,7 @@ lemma edges_eq_bind_right_fibers :
   edges G = (G.left_carrier).bind (λ (a : α), right_fiber' G a):=
 begin
   rw [← swap_swap G, edges_swap, edges_eq_bind_left_fibers, finset.bind_image],
-  simp only [B_swap, swap_swap, left_fiber'_swap],
+  simp only [right_carrier_swap, swap_swap, left_fiber'_swap],
   congr, ext, rw [finset.image_image, prod.swap_swap_eq, finset.image_id],
 end
 

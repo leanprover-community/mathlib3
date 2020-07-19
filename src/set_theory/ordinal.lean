@@ -3514,26 +3514,10 @@ begin
 end
 
 @[simp] lemma one_lt_bit0 {a : cardinal} : 1 < bit0 a ↔ 0 < a :=
-begin
-  split,
-  { intro h,
-    by_contradiction p, simp at p, subst p,
-    simp at h,
-    exact lt_irrefl _ (lt_trans h zero_lt_one), },
-  { exact λ h, lt_of_lt_of_le one_lt_two (bit0_le_bit0.2 (one_le_iff_pos.mpr h)), },
-end
+by simp [← bit1_zero]
 
 @[simp] lemma one_lt_bit1 (a : cardinal) : 1 < bit1 a ↔ 0 < a :=
-begin
-  split,
-  { intro h,
-    by_contradiction p, simp at p, subst p,
-    simp at h,
-    exact lt_irrefl _ h, },
-  { intro h,
-    apply lt_of_lt_of_le (one_lt_bit0.2 h),
-    exact le_add_right _ _, }
-end
+by simp [← bit1_zero]
 
 @[simp] lemma one_le_one : (1 : cardinal) ≤ 1 :=
 le_refl _

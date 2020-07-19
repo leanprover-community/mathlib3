@@ -1945,22 +1945,22 @@ lemma tendsto_of_monotone {ι α : Type*} [preorder ι] [topological_space α]
 if H : bdd_above (range f) then or.inr ⟨_, tendsto_at_top_csupr h_mono H⟩
 else or.inl $ tendsto_at_top_at_top_of_monotone' h_mono H
 
-lemma tendsto_neg_nhds_within_Ioi {α : Type*} [ordered_add_comm_group α]
-  [topological_space α] [topological_add_group α] {a : α} :
-  tendsto has_neg.neg (nhds_within a (Ioi a)) (nhds_within (-a) (Iio (-a))) :=
-(continuous_neg.tendsto a).inf $ by simp [tendsto_principal_principal]
+@[to_additive] lemma tendsto_inv_nhds_within_Ioi {α : Type*} [ordered_comm_group α]
+  [topological_space α] [topological_group α] {a : α} :
+  tendsto has_inv.inv (nhds_within a (Ioi a)) (nhds_within (a⁻¹) (Iio (a⁻¹))) :=
+(continuous_inv.tendsto a).inf $ by simp [tendsto_principal_principal]
 
-lemma tendsto_neg_nhds_within_Iio {α : Type*} [ordered_add_comm_group α]
-  [topological_space α] [topological_add_group α] {a : α} :
-  tendsto has_neg.neg (nhds_within a (Iio a)) (nhds_within (-a) (Ioi (-a))) :=
-(continuous_neg.tendsto a).inf $ by simp [tendsto_principal_principal]
+@[to_additive] lemma tendsto_inv_nhds_within_Iio {α : Type*} [ordered_comm_group α]
+  [topological_space α] [topological_group α] {a : α} :
+  tendsto has_inv.inv (nhds_within a (Iio a)) (nhds_within (a⁻¹) (Ioi (a⁻¹))) :=
+(continuous_inv.tendsto a).inf $ by simp [tendsto_principal_principal]
 
-lemma tendsto_neg_nhds_within_Ioi_neg {α : Type*} [ordered_add_comm_group α]
-  [topological_space α] [topological_add_group α] {a : α} :
-  tendsto has_neg.neg (nhds_within (-a) (Ioi (-a))) (nhds_within a (Iio a)) :=
-by simpa only [neg_neg] using @tendsto_neg_nhds_within_Ioi _ _ _ _ (-a)
+@[to_additive] lemma tendsto_inv_nhds_within_Ioi_inv {α : Type*} [ordered_comm_group α]
+  [topological_space α] [topological_group α] {a : α} :
+  tendsto has_inv.inv (nhds_within (a⁻¹) (Ioi (a⁻¹))) (nhds_within a (Iio a)) :=
+by simpa only [inv_inv] using @tendsto_inv_nhds_within_Ioi _ _ _ _ (a⁻¹)
 
-lemma tendsto_neg_nhds_within_Iio_neg {α : Type*} [ordered_add_comm_group α]
-  [topological_space α] [topological_add_group α] {a : α} :
-  tendsto has_neg.neg (nhds_within (-a) (Iio (-a))) (nhds_within a (Ioi a)) :=
-by simpa only [neg_neg] using @tendsto_neg_nhds_within_Iio _ _ _ _ (-a)
+@[to_additive] lemma tendsto_inv_nhds_within_Iio_inv {α : Type*} [ordered_comm_group α]
+  [topological_space α] [topological_group α] {a : α} :
+  tendsto has_inv.inv (nhds_within (a⁻¹) (Iio (a⁻¹))) (nhds_within a (Ioi a)) :=
+by simpa only [inv_inv] using @tendsto_inv_nhds_within_Iio _ _ _ _ (a⁻¹)

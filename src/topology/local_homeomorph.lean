@@ -718,7 +718,7 @@ is all of `α`.  This is mainly an auxiliary lemma for the stronger result `to_l
 noncomputable def to_local_equiv : local_equiv α β :=
 set.inj_on.to_local_equiv f set.univ (set.injective_iff_inj_on_univ.mp h.to_embedding.inj)
 
-@[simp, mfld_simps] lemma to_local_equiv_eval : (h.to_local_equiv : α → β) = f := rfl
+@[simp, mfld_simps] lemma to_local_equiv_coe : (h.to_local_equiv : α → β) = f := rfl
 @[simp, mfld_simps] lemma to_local_equiv_source : h.to_local_equiv.source = set.univ := rfl
 
 @[simp, mfld_simps] lemma to_local_equiv_target : h.to_local_equiv.target = set.range f :=
@@ -730,7 +730,7 @@ begin
   { exact λ ⟨a, h'⟩, ⟨a, by trivial, h'⟩ }
 end
 
-lemma open_target : is_open h.to_local_equiv.target := 
+lemma open_target : is_open h.to_local_equiv.target :=
 by simpa only with mfld_simps using h.open_range
 
 lemma continuous_inv_fun : continuous_on h.to_local_equiv.inv_fun h.to_local_equiv.target :=
@@ -761,7 +761,7 @@ noncomputable def to_local_homeomorph : local_homeomorph α β :=
   continuous_to_fun := by simpa only with mfld_simps using h.continuous.continuous_on,
   continuous_inv_fun := h.continuous_inv_fun }
 
-@[simp, mfld_simps] lemma to_local_homeomorph_eval : (h.to_local_homeomorph : α → β) = f := rfl
+@[simp, mfld_simps] lemma to_local_homeomorph_coe : (h.to_local_homeomorph : α → β) = f := rfl
 @[simp, mfld_simps] lemma source : h.to_local_homeomorph.source = set.univ := rfl
 @[simp, mfld_simps] lemma target : h.to_local_homeomorph.target = set.range f :=
 h.to_local_equiv_target
@@ -778,13 +778,13 @@ subtype `s` to `α`. -/
 noncomputable def local_homeomorph_subtype_coe : local_homeomorph s α :=
 open_embedding.to_local_homeomorph (s.2.open_embedding_subtype_coe)
 
-@[simp, mfld_simps] lemma local_homeomorph_subtype_eval :
+@[simp, mfld_simps] lemma local_homeomorph_subtype_coe_coe :
   (s.local_homeomorph_subtype_coe : s → α) = coe := rfl
 
-@[simp, mfld_simps] lemma local_homeomorph_subtype_source :
+@[simp, mfld_simps] lemma local_homeomorph_subtype_coe_source :
   s.local_homeomorph_subtype_coe.source = set.univ := rfl
 
-@[simp, mfld_simps] lemma local_homeomorph_subtype_target :
+@[simp, mfld_simps] lemma local_homeomorph_subtype_coe_target :
   s.local_homeomorph_subtype_coe.target = s :=
 by { simp only [local_homeomorph_subtype_coe, subtype.range_coe_subtype] with mfld_simps, refl }
 
@@ -802,7 +802,7 @@ noncomputable def subtype_restr : local_homeomorph s β := s.local_homeomorph_su
 
 lemma subtype_restr_def : e.subtype_restr s = s.local_homeomorph_subtype_coe.trans e := rfl
 
-@[simp, mfld_simps] lemma subtype_restr_eval : ((e.subtype_restr s : local_homeomorph s β) : s → β)
+@[simp, mfld_simps] lemma subtype_restr_coe : ((e.subtype_restr s : local_homeomorph s β) : s → β)
   = set.restrict (e : α → β) s := rfl
 
 @[simp, mfld_simps] lemma subtype_restr_source : (e.subtype_restr s).source = coe ⁻¹' e.source :=

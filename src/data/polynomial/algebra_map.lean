@@ -180,6 +180,15 @@ alg_hom.ext $ λ p, by rw [eval_unique (f.comp (aeval R A x)), alg_hom.comp_appl
 theorem aeval_alg_hom_apply (f : A →ₐ[R] B) (x : A) (p) : aeval R B (f x) p = f (aeval R A x p) :=
 alg_hom.ext_iff.1 (aeval_alg_hom f x) p
 
+@[simp] lemma coe_aeval_eq_eval (r : R) :
+  (aeval R R r : polynomial R → R) = eval r := rfl
+
+lemma coeff_zero_eq_aeval_zero (p : polynomial R) : p.coeff 0 = aeval R R 0 p :=
+by simp [coeff_zero_eq_eval_zero]
+
+lemma pow_comp (p q : polynomial R) (k : ℕ) : (p ^ k).comp q = (p.comp q) ^ k :=
+by { unfold comp, rw ← coe_eval₂_ring_hom, apply ring_hom.map_pow }
+
 variables [comm_ring S] {f : R →+* S}
 
 lemma is_root_of_eval₂_map_eq_zero

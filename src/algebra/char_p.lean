@@ -78,19 +78,27 @@ unfold ring_char; exact char_p.cast_eq_zero_iff α (ring_char α)
 theorem ring_char.eq (α : Type u) [semiring α] {p : ℕ} (C : char_p α p) : p = ring_char α :=
 (classical.some_spec (char_p.exists_unique α)).2 p C
 
+theorem add_pow_char_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prime]
+  [char_p R p] (x y : R) (h : commute x y):
+(x + y)^p = x^p + y^p :=
+begin
+  rw [commute.add_pow h, finset.sum_range_succ, nat.sub_self, pow_zero, nat.choose_self],
+  rw [nat.cast_one, mul_one, mul_one, add_right_inj],
+  convert finset.sum_eq_single 0 _ _, { simp },
+  swap, { intro h1, contrapose! h1, rw finset.mem_range, apply nat.prime.pos, assumption },
+  intros b h1 h2,
+  suffices : (p.choose b : R) = 0, { rw this, simp },
+  rw char_p.cast_eq_zero_iff R p,
+  apply nat.prime.dvd_choose_self, assumption', { omega },
+  rwa ← finset.mem_range
+end
+
 theorem add_pow_char (α : Type u) [comm_ring α] {p : ℕ} (hp : nat.prime p)
   [char_p α p] (x y : α) : (x + y)^p = x^p + y^p :=
 begin
-  rw [add_pow, finset.sum_range_succ, nat.sub_self, pow_zero, nat.choose_self],
-  rw [nat.cast_one, mul_one, mul_one, add_right_inj],
-  transitivity,
-  { refine finset.sum_eq_single 0 _ _,
-    { intros b h1 h2,
-      have := nat.prime.dvd_choose_self (nat.pos_of_ne_zero h2) (finset.mem_range.1 h1) hp,
-      rw [← nat.div_mul_cancel this, nat.cast_mul, char_p.cast_eq_zero α p],
-      simp only [mul_zero] },
-    { intro H, exfalso, apply H, exact finset.mem_range.2 hp.pos } },
-  rw [pow_zero, nat.sub_zero, one_mul, nat.choose_zero_right, nat.cast_one, mul_one]
+  haveI : fact p.prime := hp,
+  apply add_pow_char_of_commute,
+  apply commute.all,
 end
 
 lemma eq_iff_modeq_int (R : Type*) [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :

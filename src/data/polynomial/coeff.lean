@@ -31,7 +31,7 @@ section coeff
 
 @[simp, priority 990]
 lemma coeff_one (n : ℕ) : coeff (1 : polynomial R) n = if 0 = n then 1 else 0 :=
-coeff_single
+coeff_monomial
 
 @[simp]
 lemma coeff_add (p q : polynomial R) (n : ℕ) : coeff (p + q) n = coeff p n + coeff q n := rfl
@@ -64,7 +64,7 @@ have hite : ∀ a : ℕ × ℕ, ite (a.1 + a.2 = n) (coeff p (a.fst) * coeff q (
   (λ h, absurd (eq.refl (0 : R)) (by rwa if_neg h at ha)),
 calc coeff (p * q) n = ∑ a in p.support, ∑ b in q.support,
     ite (a + b = n) (coeff p a * coeff q b) 0 :
-  by simp only [mul_def, coeff_sum, coeff_single]; refl
+  by { simp only [mul_def, coeff_sum, coeff_single], refl }
 ... = ∑ v in p.support.product q.support, ite (v.1 + v.2 = n) (coeff p v.1 * coeff q v.2) 0 :
   by rw sum_product
 ... = ∑ x in nat.antidiagonal n, coeff p x.1 * coeff q x.2 :
@@ -92,8 +92,8 @@ by rw [← single_eq_C_mul_X]; simp [monomial, single, eq_comm, coeff]; congr
 @[simp] lemma coeff_C_mul (p : polynomial R) : coeff (C a * p) n = a * coeff p n :=
 begin
   conv in (a * _) { rw [← @sum_single _ _ _ p, coeff_sum] },
-  rw [mul_def, ←monomial_zero_left, sum_single_index],
-  { simp [coeff_single, finsupp.mul_sum, coeff_sum],
+  rw [mul_def, ←monomial_zero_left, monomial, sum_single_index],
+  { simp only [coeff_single, finsupp.mul_sum, coeff_sum],
     apply sum_congr rfl,
     assume i hi, by_cases i = n; simp [h] },
   { simp [finsupp.sum] }
@@ -104,7 +104,7 @@ end
 begin
   conv_rhs { rw [← @finsupp.sum_single _ _ _ p, coeff_sum] },
   rw [mul_def, ←monomial_zero_left], simp_rw [sum_single_index],
-  { simp [coeff_single, finsupp.sum_mul, coeff_sum],
+  { simp only [coeff_single, finsupp.sum_mul, coeff_sum],
     apply sum_congr rfl,
     assume i hi, by_cases i = n; simp [h], },
 end
@@ -112,7 +112,7 @@ end
 lemma monomial_one_eq_X_pow : ∀{n}, monomial n (1 : R) = X^n
 | 0     := rfl
 | (n+1) :=
-  calc monomial (n + 1) (1 : R) = monomial n 1 * X : by rw [X, single_mul_single, mul_one]
+  calc monomial (n + 1) (1 : R) = monomial n 1 * X : by rw [X, monomial_mul_monomial, mul_one]
     ... = X^n * X : by rw [monomial_one_eq_X_pow]
     ... = X^(n+1) : by simp only [pow_add, pow_one]
 

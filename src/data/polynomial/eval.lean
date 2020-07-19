@@ -209,7 +209,8 @@ begin
   refine ext (λ n, _),
   rw [comp, eval₂],
   conv in (C _ * _) { rw ← single_eq_C_mul_X },
-  rw finsupp.sum_single
+  congr,
+  convert finsupp.sum_single _,
 end
 
 @[simp] lemma X_comp : X.comp p = p := eval₂_X _ _

@@ -150,8 +150,8 @@ open unfold_cases
 
   The tactic expects a goal in the form of an equation, possibly universally quantified.
 
-  We can prove a theorem, even if the various case do not directly to function definition.
-  Here is an example application of the tactic:
+  We can prove a theorem, even if the various case do not directly correspond to the
+  function definition. Here is an example application of the tactic:
 
   ```lean
   def foo : ℕ → ℕ → ℕ
@@ -174,7 +174,7 @@ open unfold_cases
   that whenever the function is applied to `17` in the second argument, it returns `17`.
 
   Proving this property consists of merely considering all the cases, eliminating invalid ones
-  and applying `refl` of the ones which remain.
+  and applying `refl` on the ones which remain.
 
   Further examples can be found in `test/unfold_cases.lean`.
 -/

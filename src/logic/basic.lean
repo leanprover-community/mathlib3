@@ -519,6 +519,10 @@ theorem exists_swap {p : α → β → Prop} : (∃ x y, p x y) ↔ ∃ y x, p x
 @[simp] theorem exists_imp_distrib : ((∃ x, p x) → b) ↔ ∀ x, p x → b :=
 ⟨λ h x hpx, h ⟨x, hpx⟩, λ h ⟨x, hpx⟩, h x hpx⟩
 
+noncomputable abbreviation Exists.some {p : α → Prop} (P : ∃ a, p a) : α := classical.some P
+
+abbreviation Exists.some_spec {p : α → Prop} (P : ∃ a, p a) : p (P.some) := classical.some_spec P
+
 --theorem forall_not_of_not_exists (h : ¬ ∃ x, p x) : ∀ x, ¬ p x :=
 --forall_imp_of_exists_imp h
 

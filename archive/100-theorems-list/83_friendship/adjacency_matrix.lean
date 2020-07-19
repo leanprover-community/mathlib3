@@ -1,67 +1,30 @@
 import linear_algebra.matrix
 import .sym_matrix
+import .simple_graph
 
-open_locale classical
-open finset matrix
+open_locale classical big_operators
+open finset matrix simple_graph
 noncomputable theory
 
-universe u
+universes u v
+variables {V : Type u} [fintype V] (G : simple_graph V)
+variables (R : Type v) [ring R]  -- R can be a semiring if we generalize trace
 
-open_locale big_operators
-
--- lemma symmetric.iff {α : Type*} {r : α → α → Prop} (h : symmetric r) {a b : α} : r a b ↔ r b a :=
--- by split; apply h
-
-variable (V : Type u)
-
-structure simple_graph :=
-(E : V → V → Prop)
-(loopless : irreflexive E)
-(undirected : symmetric E)
-
-
-namespace simple_graph
-variables {V} (G : simple_graph V)
--- this is just an alias for G.loopless, right?
-@[simp] lemma irrefl {v : V} : ¬ G.E v v := G.loopless v
-
-variable [fintype V]
-
-def neighbors (v : V) : finset V := univ.filter (G.E v)
-
-@[simp] lemma neighbor_iff_adjacent (v w : V) :
- w ∈ neighbors G v ↔ G.E v w := by { unfold neighbors, simp }
-
-def degree (v : V) : ℕ := (neighbors G v).card
-
-def regular_graph (d : ℕ) : Prop :=
- ∀ v : V, degree G v = d
-
-lemma edge_symm (u v : V) : G.E u v ↔ G.E v u :=
-by split; apply G.undirected
-
-end simple_graph
-
-open simple_graph
 section adjacency_matrix
 
-variables {V} [fintype V] (G : simple_graph V) (R : Type*) [ring R]  -- R can be a semiring if we generalize trace
-
 def adjacency_matrix : matrix V V R :=
- λ v w : V, if G.E v w then 1 else 0
+λ v w : V, if G.E v w then 1 else 0
 
 variable {R}
 
+-- bad name
 @[simp] lemma adjacency_matrix_el_idem (i j : V) :
  (adjacency_matrix G R i j) * (adjacency_matrix G R i j) = adjacency_matrix G R i j :=
 by { unfold adjacency_matrix, split_ifs; simp [h] }
 
 theorem adjacency_matrix_sym :
  sym_matrix (adjacency_matrix G R) :=
-begin
-  ext, unfold adjacency_matrix,
-  rw edge_symm, simp,
-end
+by { ext, unfold adjacency_matrix, rw edge_symm, simp }
 
 @[simp]
 lemma adjacency_matrix_apply {v w : V} :

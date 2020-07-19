@@ -3,15 +3,15 @@ import algebra.big_operators
 open_locale classical
 noncomputable theory
 
-@[ext] structure bigraph (α β:Type*):=
-(A: finset α)
-(B: finset β)
-(E:α → β → Prop)
+universes u v
+variables (α : Type u) (β : Type v)
 
-variables {α :Type*} {β :Type*}
+@[ext] structure bigraph :=
+(A : finset α)
+(B : finset β)
+(E : α → β → Prop)
 
-
-
+variables {α} {β}
 
 def uncurried (G:bigraph α β):(α × β) → Prop:=
   function.uncurry (G.E)
@@ -282,10 +282,10 @@ end
 variable (G : bigraph α β)
 
 def left_regular (d : ℕ) : Prop :=
-  ∀ (b : β), b ∈ G.B→ (left_fiber G b).card = d
+  ∀ b ∈ G.B, (left_fiber G b).card = d
 
 def right_regular (d:ℕ):Prop:=
-  ∀ (a : α), a ∈ G.A → (right_fiber G a).card = d
+  ∀ a ∈ G.A, (right_fiber G a).card = d
 
 def left_unique : Prop :=
   ∀ (b : β), b ∈ G.B→∃!(a : α), a ∈ G.A ∧ G.E a b

@@ -10,53 +10,57 @@ open_locale classical
 noncomputable theory
 
 open simple_graph
+universes u
 
-lemma exists_unique_rewrite {X:Type*} {p: X → Prop} {q: X → Prop}:
-  (∀ x:X, p x ↔ q x) → (∃!x : X, p x) → ∃!x:X, q x:=
-begin
-  intro h, rw exists_unique_congr h,
-  tidy,
-end
-
-variables {V : Type} [fintype V] [inhabited V]
+variables {V : Type u} [fintype V] [inhabited V] (G : simple_graph V)
 
 
-def is_friend (G : simple_graph V) (v w : V) (u : V) : Prop :=
+def is_friend (v w : V) (u : V) : Prop :=
 G.E v u ∧ G.E w u
 
-def friendship (G : simple_graph V) : Prop :=
+def friendship : Prop :=
 ∀ v w : V, v ≠ w → ∃!(u : V), is_friend G v w u
 
-@[simp] lemma friend_symm {G : simple_graph V} {v w x:V} :
-  G.E v x ∧ G.E x w ↔ G.E v x ∧ G.E w x:=
+-- lemma friend_symm (u v w : V) :
+--   G.E v u ∧ G.E u w ↔ G.E v u ∧ G.E w u :=
+-- begin
+--   split; try { intro a, cases a, split };
+--   try {assumption};
+--   { apply G.undirected, assumption },
+-- end
+
+-- def find_friend (G:simple_graph V)(friendG: friendship G)(v w:V)(vneqw:v ≠ w):V:=
+--   fintype.choose (is_friend G v w) (friendG v w vneqw)
+
+-- lemma find_friend_spec (G:simple_graph V)(friendG: friendship G)(v w:V)(vneqw: v ≠ w):
+--   is_friend G v w (find_friend G friendG v w vneqw):= by apply fintype.choose_spec
+
+-- lemma find_friend_unique (G:simple_graph V)(friendG: friendship G)(v w:V)(vneqw: v ≠ w):
+--   ∀ y:V, is_friend G v w y → y=(find_friend G friendG v w vneqw):=
+-- begin
+--   intros y hy,
+--   apply exists_unique.unique(friendG v w vneqw),
+--   apply hy,
+--   apply (find_friend_spec G friendG v w vneqw),
+-- end
+
+lemma friendship' {G : simple_graph V} (friendG : friendship G) {v w : V} (hvw : v ≠ w) :
+exists_unique (is_friend G v w) :=
 begin
-  split; try { intro a, cases a, split };
-  try {assumption};
-  { apply G.undirected, assumption },
-end
-
-def find_friend (G:simple_graph V)(friendG: friendship G)(v w:V)(vneqw:v ≠ w):V:=
-  fintype.choose (is_friend G v w) (friendG v w vneqw)
-
-lemma find_friend_spec (G:simple_graph V)(friendG: friendship G)(v w:V)(vneqw: v ≠ w):
-  is_friend G v w (find_friend G friendG v w vneqw):= by apply fintype.choose_spec
-
-lemma find_friend_unique (G:simple_graph V)(friendG: friendship G)(v w:V)(vneqw: v ≠ w):
-  ∀ y:V, is_friend G v w y → y=(find_friend G friendG v w vneqw):=
-begin
-  intros y hy,
-  apply exists_unique.unique(friendG v w vneqw),
-  apply hy,
-  apply (find_friend_spec G friendG v w vneqw),
+  use fintype.choose (is_friend G v w) (friendG v w hvw),
+  split, { apply fintype.choose_spec },
+  intros x hx,
+  apply exists_unique.unique (friendG v w hvw) hx,
+  apply fintype.choose_spec,
 end
 
 def exists_politician (G:simple_graph V) : Prop :=
   ∃ v:V, ∀ w:V, v=w ∨ G.E v w
 
-def no_pol (G:simple_graph V) : Prop :=
-  ∀ v:V, ∃ w:V, v ≠ w ∧ ¬ G.E v w
+def no_pol (G : simple_graph V) : Prop :=
+  ∀ v : V, ∃ w : V, v ≠ w ∧ ¬ G.E v w
 
-lemma exists_pol_of_not_no_pol {G:simple_graph V}:
+lemma exists_pol_of_not_no_pol {G : simple_graph V}:
   (¬ no_pol G) ↔ exists_politician G:=
 begin
   unfold no_pol exists_politician, simp only [not_exists, not_and, classical.not_forall, ne.def, classical.not_not],
@@ -82,17 +86,6 @@ begin
   ext,
   rw finset.mem_inter, erw finset.mem_filter,
   unfold is_friend, simp,
-end
-
-lemma friendship' {G : simple_graph V} (friendG : friendship G) {v w : V} (hvw : v ≠ w):
-exists_unique (is_friend G v w) :=
-begin
-  use find_friend G friendG v w hvw,
-  split, exact find_friend_spec G friendG v w hvw,
-
-  intros x hx,
-  apply exists_unique.unique (friendG v w hvw) hx,
-  exact find_friend_spec G friendG v w hvw,
 end
 
 lemma card_friends {G : simple_graph V} (friendG : friendship G) {v w : V} (hvw : v ≠ w) :
@@ -200,6 +193,7 @@ theorem friendship_adj_sq_off_diag_eq_one
 begin
   rw [pow_two, adjacency_matrix_mul_apply, ← nat.cast_one, ← card_friends hG hvw, friends_eq_inter_neighbors],
   unfold neighbors, simp [finset.inter_filter],
+  congr, ext, rw edge_symm,
 end
 
 def two_path_from_v (G:simple_graph V) (v:V):(V × V → Prop):=

@@ -52,15 +52,6 @@ C.map_nat_cast n
 lemma sum_C_index {a} {β} [add_comm_monoid β] {f : ℕ → R → β} (h : f 0 0 = 0) :
   (C a).sum f = f 0 a :=
 sum_single_index h
-end C
-
-section coeff
-
-@[simp] lemma coeff_X_one : coeff (X : polynomial R) 1 = 1 := coeff_monomial
-
-@[simp] lemma coeff_X_zero : coeff (X : polynomial R) 0 = 0 := coeff_monomial
-
-lemma coeff_X : coeff (X : polynomial R) n = if 1 = n then 1 else 0 := coeff_monomial
 
 lemma coeff_C : coeff (C a) n = ite (n = 0) a 0 :=
 by { convert coeff_monomial using 2, simp [eq_comm], }

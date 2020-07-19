@@ -1,13 +1,12 @@
-import data.polynomial.algebra_map
-import algebra.gcd_domain
-import tactic.omega
-import tactic.ring
-
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
+import data.polynomial.algebra_map
+import algebra.gcd_domain
+import tactic.ring
+import tactic.omega
 
 /-!
 # Theory of monic polynomials

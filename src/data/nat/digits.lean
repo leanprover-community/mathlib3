@@ -423,8 +423,7 @@ lemma digits_len_le_digits_len_succ (b n : ℕ) : (digits b n).length ≤ (digit
 begin
   cases b,
   { -- base 0
-    cases n; simp,
-  },
+    cases n; simp, },
   { cases b,
     { -- base 1
       simp,

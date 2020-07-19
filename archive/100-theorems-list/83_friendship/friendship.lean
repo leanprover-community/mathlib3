@@ -22,20 +22,15 @@ variables {V : Type u} {R : Type v} [fintype V] [inhabited V] [ring R]
 section friendship_def
 variables (G : simple_graph V)
 
-def is_friend (v w : V) (u : V) : Prop :=
-G.E v u ∧ G.E w u
+def is_friend (v w : V) (u : V) : Prop := G.E v u ∧ G.E w u
 
-def friends  (v w : V) : finset V :=
-  finset.filter (is_friend G v w) (finset.univ:finset V)
+def friends  (v w : V) : finset V := finset.filter (is_friend G v w) finset.univ
 
-def friendship : Prop :=
-∀ v w : V, v ≠ w → ∃!(u : V), is_friend G v w u
+def friendship : Prop := ∀ v w : V, v ≠ w → ∃!(u : V), is_friend G v w u
 
-def exists_politician : Prop :=
-  ∃ v : V, ∀ w : V, v = w ∨ G.E v w
+def exists_politician : Prop := ∃ v : V, ∀ w : V, v = w ∨ G.E v w
 
-def no_pol : Prop :=
-  ∀ v : V, ∃ w : V, v ≠ w ∧ ¬ G.E v w
+def no_pol : Prop := ∀ v : V, ∃ w : V, v ≠ w ∧ ¬ G.E v w
 
 lemma exists_pol_of_not_no_pol :
   (¬ no_pol G) ↔ exists_politician G :=
@@ -88,7 +83,7 @@ end
 lemma counter_non_adj_deg_eq (hG' : no_pol G) {v w : V} (hvw : ¬ G.E v w) :
 degree G v = degree G w :=
 begin
-  by_cases v=w, { rw h },
+  by_cases v = w, { rw h },
 
   let b:= bigraph.mk (neighbors G v) (neighbors G w) (λ (x:V), λ (y:V), G.E x y),
 

@@ -13,6 +13,8 @@ variables (α : Type u) (β : Type v)
 
 variables {α} {β} (G : bigraph α β)
 
+namespace bigraph
+
 def uncurried (G : bigraph α β) : (α × β) → Prop:=
   function.uncurry (G.E)
 
@@ -31,24 +33,24 @@ by simp [swap_inputs, function.uncurry, function.curry]
   swap_inputs (swap_inputs E)=E:=
 by ext; simp
 
-def bigraph.swap (G : bigraph α β) : bigraph β α:=
+def swap (G : bigraph α β) : bigraph β α:=
 { A := G.B,
   B := G.A,
   E := swap_inputs G.E,
 }
 
-@[simp] lemma bigraph.A_swap (G:bigraph α β):
+@[simp] lemma A_swap (G:bigraph α β):
   G.swap.A=G.B:=rfl
 
-@[simp] lemma bigraph.B_swap (G:bigraph α β):
+@[simp] lemma B_swap (G:bigraph α β):
   G.swap.B=G.A:=rfl
 
-@[simp] lemma bigraph.E_swap (G:bigraph α β):
+@[simp] lemma E_swap (G:bigraph α β):
   G.swap.E=swap_inputs G.E:=rfl
 
-@[simp] lemma bigraph.swap_swap (G:bigraph α β):
+@[simp] lemma swap_swap (G:bigraph α β):
   G.swap.swap=G:=
-by ext; simp [bigraph.swap]
+by ext; simp [swap]
 
 def edges (G : bigraph α β) : finset (α × β):=
   finset.filter (uncurried G) (finset.product G.A G.B)
@@ -70,13 +72,13 @@ begin
 end
 
 lemma card_edges_symm (G:bigraph α β):
-  card_edges (bigraph.swap G)=card_edges G:=
+  card_edges (swap G)=card_edges G:=
 begin
-  change (edges (bigraph.swap G)).card=(edges G).card,
+  change (edges (swap G)).card=(edges G).card,
   apply nat.le_antisymm,
   { rw edges_swap, apply finset.card_image_le },
-  rw ← bigraph.swap_swap G,
-  rw bigraph.swap_swap G.swap,
+  rw ← swap_swap G,
+  rw swap_swap G.swap,
   rw edges_swap,
   apply finset.card_image_le,
 end
@@ -157,10 +159,9 @@ end
 lemma edges_eq_bind_right_fibers (G:bigraph α β):
   edges G=(G.A).bind (λ (a : α), right_fiber' G a):=
 begin
-  rw [← bigraph.swap_swap G, edges_swap, edges_eq_bind_left_fibers, finset.bind_image],
-  simp only [bigraph.B_swap, bigraph.swap_swap, left_fiber'_swap],
-  refine congr rfl _,
-  ext, rw [finset.image_image, prod.swap_swap_eq, finset.image_id],
+  rw [← swap_swap G, edges_swap, edges_eq_bind_left_fibers, finset.bind_image],
+  simp only [B_swap, swap_swap, left_fiber'_swap],
+  congr, ext, rw [finset.image_image, prod.swap_swap_eq, finset.image_id],
 end
 
 theorem sum_left_fibers (G:bigraph α β):
@@ -239,8 +240,9 @@ begin
   rw right_unique_one_reg at hr, rw left_unique_one_reg at hl,
   convert double_count_of_lreg_rreg _ hl hr; simp,
 end
+variables (E : α → β → Prop)
 
-lemma edges_disjoint_of_eq_disj_eq {A : finset α} {B1 B2 : finset β} (h : disjoint B1 B2) {E : α → β → Prop} :
+lemma edges_disjoint_of_eq_disj_eq {A : finset α} {B1 B2 : finset β} (h : disjoint B1 B2) :
   disjoint (edges ⟨A, B1, E⟩) (edges ⟨A, B2, E⟩) :=
 begin
   apply finset.disjoint_filter_filter, --dsimp,
@@ -251,7 +253,7 @@ begin
   apply h a.snd _ a.snd; tauto,
 end
 
-lemma edges_union_of_eq_union_eq {A : finset α} {B1 B2 : finset β} {E : α→ β→ Prop} :
+lemma edges_union {A : finset α} {B1 B2 : finset β} :
   edges ⟨ A, B1 ∪ B2, E⟩ = edges ⟨A, B1, E⟩ ∪ edges ⟨A, B2, E⟩ :=
 begin
   erw ← finset.filter_union,
@@ -263,7 +265,9 @@ end
 theorem card_edges_add_of_eq_disj_union_eq {A : finset α} {B1 B2 : finset β} (h : disjoint B1 B2) (E : α → β → Prop) :
 card_edges ⟨A, B1 ∪ B2, E⟩ = card_edges ⟨A, B1, E⟩ + card_edges ⟨A, B2, E⟩ :=
 begin
-  rw [card_edges, edges_union_of_eq_union_eq],
+  rw [card_edges, edges_union],
   apply finset.card_disjoint_union,
-  exact edges_disjoint_of_eq_disj_eq h,
+  exact edges_disjoint_of_eq_disj_eq E h,
 end
+
+end bigraph

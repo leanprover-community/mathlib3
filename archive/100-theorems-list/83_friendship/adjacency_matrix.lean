@@ -10,6 +10,20 @@ universes u v
 variables {V : Type u} [fintype V] (G : simple_graph V)
 variables (R : Type v) [ring R]  -- R can be a semiring if we generalize trace
 
+@[simp]
+lemma nat.smul_one (d : ℕ) (R : Type*) [ring R] : d • (1 : R) = (d : R) :=
+begin
+  induction d with k hk, simp,
+  rw nat.succ_eq_add_one, push_cast,
+  rw ← hk, rw add_smul, simp,
+end
+
+@[simp]
+lemma int.smul_one (d : ℤ) (R : Type*) [ring R] : d • (1 : R) = (d : R) :=
+begin
+  apply gsmul_one,
+end
+
 section adjacency_matrix
 
 def adjacency_matrix : matrix V V R :=

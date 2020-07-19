@@ -70,9 +70,10 @@ span_le.trans $ singleton_subset_iff.trans mem_span_singleton
 
 lemma span_eq_bot {s : set α} : span s = ⊥ ↔ ∀ x ∈ s, (x:α) = 0 := submodule.span_eq_bot
 
-@[simp] lemma span_singleton_eq_bot {x} : span ({x} : set α) = ⊥ ↔ x = 0 := submodule.span_singleton_eq_bot
+@[simp] lemma span_singleton_eq_bot {x} : span ({x} : set α) = ⊥ ↔ x = 0 :=
+submodule.span_singleton_eq_bot
 
-@[simp] lemma span_zero : span ({0} : set α) = ⊥ := by rw span_singleton_eq_bot
+@[simp] lemma span_zero : span (0 : set α) = ⊥ := by rw [←set.singleton_zero, span_singleton_eq_bot]
 
 lemma span_singleton_eq_top {x} : span ({x} : set α) = ⊤ ↔ is_unit x :=
 by rw [is_unit_iff_dvd_one, ← span_singleton_le_span_singleton, singleton_one, span_singleton_one,
@@ -141,7 +142,8 @@ theorem is_maximal.is_prime {I : ideal α} (H : I.is_maximal) : I.is_prime :=
 end⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_maximal.is_prime' (I : ideal α) : ∀ [H : I.is_maximal], I.is_prime := is_maximal.is_prime
+instance is_maximal.is_prime' (I : ideal α) : ∀ [H : I.is_maximal], I.is_prime :=
+is_maximal.is_prime
 
 theorem exists_le_maximal (I : ideal α) (hI : I ≠ ⊤) :
   ∃ M : ideal α, M.is_maximal ∧ I ≤ M :=

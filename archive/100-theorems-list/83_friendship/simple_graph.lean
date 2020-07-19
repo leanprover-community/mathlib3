@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author:  Aaron Anderson, Jalex Stark, Kyle Miller.
 -/
 import data.fintype.basic
+import data.sym2
 
 /-!
 # Category of categories
@@ -30,6 +31,13 @@ structure simple_graph :=
 
 namespace simple_graph
 variables {V} (G : simple_graph V)
+
+/--
+The edge set of a simple graph consists of all the unordered pairs
+that satisfy the adjacency relation.
+-/
+def E : set (sym2 V) :=
+sym2.from_rel (sym G)
 
 @[simp] lemma irrefl {v : V} : ¬ G.adj v v := G.loopless v
 

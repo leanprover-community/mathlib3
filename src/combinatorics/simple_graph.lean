@@ -8,12 +8,13 @@ import data.sym2
 
 /-!
 # Simple graphs
-This file contains a definition of simple graphs.
+This file contains a definition of simple graphs,
+together with a basic API for graphs with a fintype of vertices.
 
 ## Implementation notes
-The theory is already interesting at the level of simple graphs,
-and the generalizations to e.g. multigraphs and directed graphs are more difficult.
-We hope this implementation is easy to extend
+We give essentially the simplest notion of graph.
+This is bad in the sense that it starts at the "top of the combinatorics hierarchy".
+We make this tradeoff in order to start learning what the combinatorics hierarchy should look like.
 -/
 
 open_locale classical

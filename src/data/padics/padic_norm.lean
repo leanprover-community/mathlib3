@@ -369,7 +369,7 @@ lemma padic_val_nat_primes {p q : ℕ} [p_prime : fact p.prime] [q_prime : fact 
   padic_val_nat p q = 0 :=
 @padic_val_nat_of_not_dvd p p_prime q $ (not_congr (iff.symm (prime_dvd_prime_iff_eq p_prime q_prime))).mp neq
 
-protected lemma div' {p : ℕ} [p_prime : fact p.prime] :
+protected lemma padic_val_nat.div' {p : ℕ} [p_prime : fact p.prime] :
   ∀ {m : ℕ} (cpm : coprime p m) {b : ℕ} (dvd : m ∣ b), padic_val_nat p (b / m) = padic_val_nat p b
 | 0 := λ cpm b dvd, by { rw zero_dvd_iff at dvd, rw [dvd, nat.zero_div], }
 | (n + 1) :=

@@ -783,33 +783,35 @@ lemma singleton_has_groupoid (h : e.source = set.univ) (G : structure_groupoid H
 
 end singleton
 
-section open_subset
-variables (G : structure_groupoid H) [h : closed_under_restriction G] [has_groupoid M G]
-variables {s : set M} (hs : is_open s) [nonempty s]
+namespace topological_space.opens
+
+open topological_space
+variables (G : structure_groupoid H) [has_groupoid M G]
+variables (s : opens M)
 
 /-- An open subset of a charted space is naturally a charted space. -/
-def open_charted_subspace : charted_space H s :=
-{ atlas := (λ (f : local_homeomorph M H), f.subtype_restr hs) '' (atlas H M),
-  chart_at := λ x, (@chart_at H _ M _ _ x).subtype_restr hs,
-  mem_chart_source := λ _, by simp only with mfld_simps,
-  chart_mem_atlas := λ x, by {use chart_at H x; simp only [subtype.coe_mk] with mfld_simps} }
-
-include h
+instance : charted_space H s :=
+{ atlas := ⋃ (x : s), {@local_homeomorph.subtype_restr _ _ _ _ (chart_at H x.1) s ⟨x⟩},
+  chart_at := λ x, @local_homeomorph.subtype_restr _ _ _ _ (chart_at H x.1) s ⟨x⟩,
+  mem_chart_source := λ x, by { simp only with mfld_simps, exact (mem_chart_source H x.1) },
+  chart_mem_atlas := λ x, by { simp only [mem_Union, mem_singleton_iff], use x } }
 
 /-- If a groupoid `G` is `closed_under_restriction`, then an open subset of a space which is
 `has_groupoid G` is naturally `has_groupoid G`. -/
-lemma open_subspace_has_groupoid : @has_groupoid _ _ _ _ (open_charted_subspace hs) G :=
+instance [closed_under_restriction G] : has_groupoid s G :=
 { compatible := begin
-    rintros e e' ⟨f, hf⟩ ⟨f', hf'⟩,
-    rw [← hf.2, ← hf'.2],
-    convert G.eq_on_source _ (subtype_restr_symm_trans_subtype_restr hs f f'),
-    apply h.closed_under_restriction,
-    { refine G.compatible _ _;
-      simp only [hf.1, hf'.1, subtype.coe_prop] },
-    { exact f.preimage_open_of_open_symm hs }
+    rintros e e' ⟨_, ⟨x, hc⟩, he⟩ ⟨_, ⟨x', hc'⟩, he'⟩,
+    have : nonempty s := ⟨x⟩, resetI,
+    simp only [hc.symm, mem_singleton_iff, subtype.val_eq_coe] at he,
+    simp only [hc'.symm, mem_singleton_iff, subtype.val_eq_coe] at he',
+    rw [he, he'],
+    convert G.eq_on_source _ (subtype_restr_symm_trans_subtype_restr s (chart_at H x) (chart_at H x')),
+    apply closed_under_restriction',
+    { exact G.compatible (chart_mem_atlas H x) (chart_mem_atlas H x') },
+    { exact preimage_open_of_open_symm (chart_at H x) s.2 },
   end }
 
-end open_subset
+end topological_space.opens
 
 /-! ### Structomorphisms -/
 

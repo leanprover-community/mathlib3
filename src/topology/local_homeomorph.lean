@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import data.equiv.local_equiv
 import topology.homeomorph
+import topology.opens
 
 /-!
 # Local homeomorphisms
@@ -766,57 +767,64 @@ h.to_local_equiv_target
 
 end open_embedding
 
-namespace is_open
-variables {s : set α} [nonempty s] (hs : is_open s)
+namespace topological_space.opens
+
+open topological_space
+variables (s : opens α) [nonempty s]
 
 /-- The inclusion of an open subset `s` of a space `α` into `α` is a local homeomorphism from the
 subtype `s` to `α`. -/
 noncomputable def local_homeomorph_subtype_coe : local_homeomorph s α :=
-(hs.open_embedding_subtype_coe).to_local_homeomorph
+open_embedding.to_local_homeomorph (s.2.open_embedding_subtype_coe)
 
-@[simp, mfld_simps] lemma local_homeomorph_subtype_eval : (hs.local_homeomorph_subtype_coe : s → α)
-  = coe := rfl
+@[simp, mfld_simps] lemma local_homeomorph_subtype_eval :
+  (s.local_homeomorph_subtype_coe : s → α) = coe := rfl
 
-@[simp, mfld_simps] lemma local_homeomorph_subtype_source : hs.local_homeomorph_subtype_coe.source
-  = set.univ := rfl
+@[simp, mfld_simps] lemma local_homeomorph_subtype_source :
+  s.local_homeomorph_subtype_coe.source = set.univ := rfl
 
-@[simp, mfld_simps] lemma local_homeomorph_subtype_target : hs.local_homeomorph_subtype_coe.target
-  = s :=
-by simp only [local_homeomorph_subtype_coe, subtype.range_coe_subtype, set_of_mem_eq] with mfld_simps
+@[simp, mfld_simps] lemma local_homeomorph_subtype_target :
+  s.local_homeomorph_subtype_coe.target = s :=
+by { simp only [local_homeomorph_subtype_coe, subtype.range_coe_subtype] with mfld_simps, refl }
 
-end is_open
+end topological_space.opens
 
 namespace local_homeomorph
+
+open topological_space
 variables (e : local_homeomorph α β)
-variables {s : set α} [nonempty s] (hs : is_open s)
+variables (s : opens α) [nonempty s]
 
 /-- The restriction of a local homeomorphism `e` to an open subset `s` of the domain type produces a
 local homeomorphism whose domain is the subtype `s`.-/
-noncomputable def subtype_restr : local_homeomorph s β := hs.local_homeomorph_subtype_coe.trans e
+noncomputable def subtype_restr : local_homeomorph s β := s.local_homeomorph_subtype_coe.trans e
 
-lemma subtype_restr_def : e.subtype_restr hs = hs.local_homeomorph_subtype_coe.trans e := rfl
+lemma subtype_restr_def : e.subtype_restr s = s.local_homeomorph_subtype_coe.trans e := rfl
 
-@[simp, mfld_simps] lemma subtype_restr_eval : ((e.subtype_restr hs : local_homeomorph s β) : s → β)
+@[simp, mfld_simps] lemma subtype_restr_eval : ((e.subtype_restr s : local_homeomorph s β) : s → β)
   = set.restrict (e : α → β) s := rfl
 
-@[simp, mfld_simps] lemma subtype_restr_source : (e.subtype_restr hs).source = coe ⁻¹' e.source :=
+@[simp, mfld_simps] lemma subtype_restr_source : (e.subtype_restr s).source = coe ⁻¹' e.source :=
 by simp only [subtype_restr_def] with mfld_simps
 
 /- This lemma characterizes the transition functions of an open subset in terms of the transition
 functions of the original space. -/
 lemma subtype_restr_symm_trans_subtype_restr (f f' : local_homeomorph α β) :
-  (f.subtype_restr hs).symm.trans (f'.subtype_restr hs) ≈ (f.symm.trans f').restr (f.target ∩ (f.symm) ⁻¹' s) :=
+  (f.subtype_restr s).symm.trans (f'.subtype_restr s)
+  ≈ (f.symm.trans f').restr (f.target ∩ (f.symm) ⁻¹' s) :=
 begin
   simp only [subtype_restr_def, trans_symm_eq_symm_trans_symm],
-  rw [← of_set_trans _ (f.preimage_open_of_open_symm hs), ← trans_assoc, ← trans_assoc],
+  have openness₁ : is_open (f.target ∩ f.symm ⁻¹' s) := f.preimage_open_of_open_symm s.2,
+  rw [← of_set_trans _ openness₁, ← trans_assoc, ← trans_assoc],
   refine eq_on_source.trans' _ (eq_on_source_refl _),
   -- f' has been eliminated !!!
-  have sets_identity : f.symm.source ∩ (f.target ∩ (f.symm) ⁻¹' s) = f.symm.source ∩ f.symm ⁻¹' s :=
-    by mfld_set_tac,
-  rw [of_set_trans', sets_identity, ←trans_of_set' _ hs, trans_assoc],
+  have sets_identity : f.symm.source ∩ (f.target ∩ (f.symm) ⁻¹' s) = f.symm.source ∩ f.symm ⁻¹' s,
+  { mfld_set_tac },
+  have openness₂ : is_open (s : set α) := s.2,
+  rw [of_set_trans', sets_identity, ← trans_of_set' _ openness₂, trans_assoc],
   refine eq_on_source.trans' (eq_on_source_refl _) _,
   -- f has been eliminated !!!
-  refine setoid.trans (trans_symm_self hs.local_homeomorph_subtype_coe) _,
+  refine setoid.trans (trans_symm_self s.local_homeomorph_subtype_coe) _,
   simp only with mfld_simps,
 end
 

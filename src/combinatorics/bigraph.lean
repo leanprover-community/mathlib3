@@ -9,15 +9,15 @@ import algebra.big_operators
 # Bipartite graphs (bigraphs)
 This file gives a basic theory of bipartite graphs suitable for simple double counting arguments.
 We use the abbreviation `bigraph`, which is also used in some combinatorics / set theory literature.
-See e.g. [mathworld](https://mathworld.wolfram.com/Bigraph.html)
-There is a more sophisticated notion called [bigraph](https://en.wikipedia.org/wiki/Bigraph),
-which will probably not appear in mathlib in the near future.
-
-Our `bigraph`s have distinguished left and right parts.
-In e.g. [Lovász, Szegedy 2010](https://link.springer.com/chapter/10.1007/978-3-642-14444-8_12),
+Our `bigraph`s have distinguished left and right parts. In e.g. [Lovász, Szegedy 2010](https://link.springer.com/chapter/10.1007/978-3-642-14444-8_12),
 the distinction is made between a bigraph and a bipartite graph,
 where bipartite graphs forget the notions of left and right.
 
+See also [mathworld](https://mathworld.wolfram.com/Bigraph.html),
+where bigraph is exactly an alias for bipartite graph.
+
+There is a more sophisticated notion called [bigraph](https://en.wikipedia.org/wiki/Bigraph),
+which will probably not appear in mathlib in the near future.
 
 ## Implementation notes
 We considered extending `rel`. On a cursory inspection,

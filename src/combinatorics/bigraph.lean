@@ -49,11 +49,11 @@ def swap : bigraph β α :=
   right_carrier := G.left_carrier,
   adj := swap_inputs G.adj }
 
-@[simp] lemma A_swap : G.swap.left_carrier= G.right_carrier := rfl
+@[simp] lemma left_carrier_swap : G.swap.left_carrier= G.right_carrier := rfl
 
-@[simp] lemma B_swap : G.swap.right_carrier = G.left_carrier := rfl
+@[simp] lemma right_carrier_swap : G.swap.right_carrier = G.left_carrier := rfl
 
-@[simp] lemma E_swap : G.swap.adj = swap_inputs G.adj := rfl
+@[simp] lemma adj_swap : G.swap.adj = swap_inputs G.adj := rfl
 
 @[simp] lemma swap_swap : G.swap.swap = G := by ext; simp [swap]
 

@@ -33,16 +33,13 @@ structure simple_graph :=
 namespace simple_graph
 variables {V} (G : simple_graph V)
 
-/--
-The edge set of a simple graph consists of all the unordered pairs
-that satisfy the adjacency relation.
--/
-def E : set (sym2 V) :=
-sym2.from_rel (sym G)
+def E : Type u := { x : sym2 V // x ∈ sym2.from_rel G.sym }
 
 @[simp] lemma irrefl {v : V} : ¬ G.adj v v := G.loopless v
 
 variable [fintype V]
+
+instance : fintype (G.E) := subtype.fintype (λ x, x ∈ sym2.from_rel G.sym)
 
 def neighbors (v : V) : finset V := univ.filter (G.adj v)
 

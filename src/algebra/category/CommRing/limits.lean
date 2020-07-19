@@ -5,18 +5,12 @@ Authors: Scott Morrison
 -/
 import algebra.category.CommRing.basic
 import algebra.category.Group.limits
-import category_theory.limits.creates
-import deprecated.subgroup
 
 /-!
-# The category of commutative rings has all limits
+# The category of (commutative) rings has all limits
 
 Further, these limits are preserved by the forgetful functor --- that is,
 the underlying types are just the limits in the category of types.
-
-## Further work
-A lot of this should be generalised / automated, as it's quite common for concrete
-categories that the forgetful functor preserves limits.
 -/
 
 open category_theory
@@ -55,7 +49,7 @@ instance sections_submonoid' (F : J ⥤ Ring) :
 
 instance sections_add_subgroup' (F : J ⥤ Ring) :
   is_add_subgroup (F ⋙ forget Ring).sections :=
-(AddCommGroup.sections_add_subgroup (F ⋙ forget₂ Ring AddCommGroup)).is_subgroup
+(AddGroup.sections_add_subgroup (F ⋙ forget₂ Ring AddCommGroup ⋙ forget₂ AddCommGroup AddGroup)).is_subgroup
 
 instance sections_subring (F : J ⥤ Ring) :
   is_subring (F ⋙ forget Ring).sections := {}

@@ -9,14 +9,11 @@ import category_theory.limits.creates
 import algebra.pi_instances
 
 /-!
-# The category of (commutative / additive) monoids has all limits
+# The category of (commutative) (additive) monoids has all limits
 
 Further, these limits are preserved by the forgetful functor --- that is,
 the underlying types are just the limits in the category of types.
 
-## Further work
-A lot of this should be automated, as it's quite common for concrete
-categories that the forgetful functor preserves limits.
 -/
 
 open category_theory
@@ -123,18 +120,18 @@ namespace CommMon
 
 variables {J : Type u} [small_category J]
 
+@[to_additive AddCommMon.add_comm_monoid_obj]
 instance comm_monoid_obj (F : J ⥤ CommMon) (j) :
   comm_monoid ((F ⋙ forget CommMon).obj j) :=
 by { change comm_monoid (F.obj j), apply_instance }
 
+-- TODO I haven't worked out how to do this without
+-- going back to the deprecated `is_submonoid` setup.
+@[to_additive AddCommMon.limit_add_comm_monoid]
 instance limit_comm_monoid (F : J ⥤ CommMon) :
   comm_monoid (limit (F ⋙ forget CommMon)) :=
-sorry
-
--- (Mon.sections_submonoid (F ⋙ forget₂ CommMon Mon)).to_comm_monoid
-
--- @subtype.comm_monoid ((Π (j : J), (F ⋙ forget _).obj j)) (by apply_instance) _
---   (by convert (Mon.sections_submonoid (F ⋙ forget₂ CommMon Mon)))
+@subtype.comm_monoid ((Π (j : J), (F ⋙ forget _).obj j)) (by apply_instance) _
+  (by convert (Mon.sections_submonoid (F ⋙ forget₂ CommMon Mon)).is_submonoid)
 
 /--
 We show that the forgetful functor `CommMon ⥤ Mon` creates limits.
@@ -142,10 +139,11 @@ We show that the forgetful functor `CommMon ⥤ Mon` creates limits.
 All we need to do is notice that the limit point has a `comm_monoid` instance available,
 and then reuse the existing limit.
 -/
+@[to_additive AddCommMon.creates_limit]
 instance (F : J ⥤ CommMon) : creates_limit F (forget₂ CommMon Mon) :=
 creates_limit_of_reflects_iso (λ c' t,
 { lifted_cone :=
-  { X := CommMon.of (limit (F ⋙ forget _)),
+  { X := CommMon.of (limit (F ⋙ forget CommMon)),
     π :=
     { app := Mon.limit_π_monoid_hom (F ⋙ forget₂ CommMon Mon),
       naturality' := (Mon.has_limits.limit (F ⋙ forget₂ _ _)).π.naturality, } },
@@ -154,6 +152,7 @@ creates_limit_of_reflects_iso (λ c' t,
     (λ s, _) (λ s, rfl) })
 
 /-- The category of commutative monoids has all limits. -/
+@[to_additive AddCommMon.has_limits]
 instance has_limits : has_limits CommMon :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit_of_created F (forget₂ CommMon Mon) } }
@@ -162,6 +161,7 @@ instance has_limits : has_limits CommMon :=
 The forgetful functor from commutative monoids to monoids preserves all limits.
 (That is, the underlying monoid could have been computed instead as limits in the category of monoids.)
 -/
+@[to_additive AddCommMon.forget₂_AddMon_preserves_limits]
 instance forget₂_Mon_preserves_limits : preserves_limits (forget₂ CommMon Mon) :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ F, by apply_instance } }
@@ -170,6 +170,7 @@ instance forget₂_Mon_preserves_limits : preserves_limits (forget₂ CommMon Mo
 The forgetful functor from commutative monoids to types preserves all limits. (That is, the underlying
 types could have been computed instead as limits in the category of types.)
 -/
+@[to_additive AddCommMon.forget_preserves_limits]
 instance forget_preserves_limits : preserves_limits (forget CommMon) :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ F,
@@ -177,20 +178,3 @@ instance forget_preserves_limits : preserves_limits (forget CommMon) :=
       (limit.is_limit F) (limit.is_limit (F ⋙ forget _)) } }
 
 end CommMon
-
-
-
-/--
-The flat sections of a functor into `AddCommGroup` form a additive subgroup of all sections.
--/
-@[to_additive AddCommGroup.sections_add_subgroup]
-def sections_subgroup (F : J ⥤ CommGroup) :
-  subgroup (Π j, F.obj j) :=
-{ carrier := (F ⋙ forget CommGroup).sections,
-  inv_mem' := λ a ah j j' f,
-  begin
-    simp only [forget_map_eq_coe, functor.comp_map, pi.inv_apply, monoid_hom.map_inv, inv_inj],
-    dsimp [functor.sections] at ah,
-    rw ah f,
-  end,
-  ..(CommGroup.sections_submonoid F) }

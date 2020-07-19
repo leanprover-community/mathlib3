@@ -364,9 +364,10 @@ class closed_under_restriction (G : structure_groupoid H) : Prop :=
 (closed_under_restriction : ∀ {e : local_homeomorph H H}, e ∈ G → ∀ (s : set H), is_open s →
   (e : local_homeomorph H H).restr s ∈ G)
 
-lemma closed_under_restriction' (G : structure_groupoid H) [h : closed_under_restriction G] :
-  ∀ {e : local_homeomorph H H}, e ∈ G → ∀ (s : set H), is_open s →
-  (e : local_homeomorph H H).restr s ∈ G := h.closed_under_restriction
+lemma closed_under_restriction' {G : structure_groupoid H} [closed_under_restriction G]
+  {e : local_homeomorph H H} (he : e ∈ G) {s : set H} (hs : is_open s) :
+  (e : local_homeomorph H H).restr s ∈ G :=
+closed_under_restriction.closed_under_restriction he s hs
 
 /-- The trivial restriction-closed groupoid, containing only local homeomorphisms equivalent to the
 restriction of the identity to the various open subsets. -/
@@ -424,7 +425,7 @@ begin
     apply structure_groupoid.le_iff.mpr,
     rintros e ⟨s, hs, hes⟩,
     refine G.eq_on_source _ hes,
-    convert closed_under_restriction' G G.id_mem s hs,
+    convert closed_under_restriction' G.id_mem hs,
     rw interior_eq_of_open hs,
     simp only with mfld_simps },
   { intros h,

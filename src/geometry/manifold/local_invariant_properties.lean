@@ -513,7 +513,7 @@ lemma is_local_structomorph_within_at_local_invariant_prop [closed_under_restric
     { rintros h hx,
       rcases h ⟨hx, hux⟩ with ⟨e, heG, hef, hex⟩,
       refine ⟨e.restr (interior u), _, _, _⟩,
-      { exact closed_under_restriction' G heG (interior u) (is_open_interior) },
+      { exact closed_under_restriction' heG (is_open_interior) },
       { have : s ∩ u ∩ e.source = s ∩ (e.source ∩ u) := by mfld_set_tac,
         simpa only [this, interior_interior, interior_eq_of_open hu] with mfld_simps using hef },
       { simp only [*, interior_interior, interior_eq_of_open hu] with mfld_simps }}

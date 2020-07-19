@@ -114,13 +114,10 @@ right_fiber G.swap b = left_fiber G b := by { ext, simp }
 x ∈ (left_fiber' G b) ↔ (x.fst ∈ G.left_carrier ∧ x.snd = b) ∧ G.adj x.fst x.snd :=
 by rw left_fiber'; tidy
 
--- can the following be proven with swap and the above?
 @[simp] lemma mem_right_fiber' (a : α) (x : α × β) :
 x ∈ (right_fiber' G a) ↔ (x.fst = a ∧ x.snd ∈ G.right_carrier) ∧ G.adj x.fst x.snd :=
 by rw right_fiber'; tidy
 
--- i'm now confused about the properties of our simp normal form.
--- Do we always want to get swap out of G.swap?
 @[simp] lemma left_fiber'_swap (a : α) :
 left_fiber' G.swap a = finset.image prod.swap (right_fiber' G a) :=
 begin
@@ -146,7 +143,6 @@ begin
   rintros _ rfl _ _ _, contradiction,
 end
 
--- is this a useful simp lemma if reversed?
 lemma edges_eq_bind_left_fibers :
   edges G = (G.right_carrier).bind (λ (b : β), left_fiber' G b) :=
 begin
@@ -177,11 +173,9 @@ theorem sum_right_fibers :
   card_edges G = ∑ a in G.left_carrier, (right_fiber G a).card :=
 by { simp_rw ← left_fiber_swap, rw ← card_edges_symm, apply sum_left_fibers }
 
-def left_regular (d : ℕ) : Prop :=
-  ∀ b ∈ G.right_carrier, (left_fiber G b).card = d
+def left_regular (d : ℕ) : Prop := ∀ b ∈ G.right_carrier, (left_fiber G b).card = d
 
-def right_regular (d : ℕ) : Prop :=
-  ∀ a ∈ G.left_carrier, (right_fiber G a).card = d
+def right_regular (d : ℕ) : Prop := ∀ a ∈ G.left_carrier, (right_fiber G a).card = d
 
 def left_unique : Prop :=
   ∀ b ∈ G.right_carrier, ∃!(a : α), a ∈ G.left_carrier ∧ G.adj a b

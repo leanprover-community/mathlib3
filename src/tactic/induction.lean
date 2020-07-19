@@ -836,7 +836,11 @@ meta def local_def_depends_on_locals (h : expr) (ns : name_set) : tactic bool :=
   (some h_val) ← try_core $ local_def_value h | pure ff,
   pure $ h_val.has_local_in ns
 
-/- Precond: h is a local constant. -/
+/--
+Test whether `h` depends on any of the hypotheses in the set of unique names
+`ns`. This is the case if `h` is in `ns`, or if any of the `ns` appear in `h`'s
+type or body.
+-/
 meta def local_depends_on_locals (h : expr) (ns : name_set) : tactic bool :=
 list.mbor
   [ pure $ ns.contains h.local_uniq_name
@@ -844,7 +848,11 @@ list.mbor
   , local_def_depends_on_locals h ns
   ]
 
-meta def local_dependencies_of_local (h : expr) : tactic name_set := do
+/--
+The set of unique names of hypotheses which `h` depends on (including `h`
+itself). `h` must be a local constant.
+-/
+meta def dependencies_of_local (h : expr) : tactic name_set := do
   let deps := mk_name_set.insert h.local_uniq_name,
   t ← infer_type h,
   let deps := deps.merge t.local_unique_names,
@@ -869,36 +877,38 @@ dependency_closure' $ name_set.of_list $ hs.map expr.local_uniq_name
 
 /--
 Revert the local constants whose unique names appear in `hs`, as well as any
-hypotheses that depend on them. Returns the hypotheses that were reverted and
-their number.
+hypotheses that depend on them. Returns the number of hypotheses that were
+reverted and a list containing these hypotheses and their types.
 -/
-meta def revert_lst'' (hs : name_set) : tactic (ℕ × list expr) := do
+meta def revert_lst'' (hs : name_set) : tactic (ℕ × list (expr × expr)) := do
   to_revert ← dependency_closure' hs,
+  to_revert_types ← to_revert.mmap infer_type,
   num_reverted ← revert_lst to_revert,
-  pure (num_reverted, to_revert)
+  pure (num_reverted, to_revert.zip to_revert_types)
 
 /--
 Revert the local constants in `hs`, as well as any hypotheses that depend on
 them. See `revert_lst''`.
 -/
-meta def revert_lst' (hs : list expr) : tactic (ℕ × list expr) :=
+meta def revert_lst' (hs : list expr) : tactic (ℕ × list (expr × expr)) :=
 revert_lst'' $ name_set.of_list $ hs.map expr.local_uniq_name
 
 /--
 A value of `generalization_mode` describes the behaviour of the
-auto-generalization functionality:
+auto-generalisation functionality:
 
 - `generalize_all_except hs` means that the `hs` remain fixed and all other
-  hypotheses are generalised. However, there are two exceptions:
+  hypotheses are generalised. However, there are three exceptions:
 
-  * Hypotheses mentioning any `h` in `hs` also remain fixed. If we were to
+  * Hypotheses depending on any `h` in `hs` also remain fixed. If we were to
     generalise them, we would have to generalise `h` as well.
   * Hypotheses which do not occur in the target and which do not mention the
     eliminee or its dependencies are never generalised. Generalising them would
     not lead to a more general induction hypothesis.
+  * Frozen local instances and their dependencies are never generalised.
 
 - `generalize_only hs` means that the only the `hs` are generalised. Exception:
-  hypotheses which mention the eliminee are generalised even if they do not
+  hypotheses which depend on the eliminee are generalised even if they do not
   appear in `hs`.
 -/
 @[derive has_reflect]
@@ -916,26 +926,28 @@ unique names of the hypotheses that should be generalized. See
 meta def to_generalize (eliminee : expr)
   : generalization_mode → tactic name_set
 | (generalize_only ns) := do
-  deps ← kdependencies eliminee,
+  eliminee_rev_deps ← kdependencies eliminee,
   -- TODO replace kdependencies with a variant that takes local defs into account
-  let deps := name_set.of_list $ deps.map local_uniq_name,
+  let eliminee_rev_deps :=
+    name_set.of_list $ eliminee_rev_deps.map local_uniq_name,
   ns ← ns.mmap (functor.map local_uniq_name ∘ get_local),
-  pure $ deps.insert_list ns
+  pure $ eliminee_rev_deps.insert_list ns
 | (generalize_all_except fixed) := do
   fixed ← fixed.mmap get_local,
   tgt ← target,
   let tgt_dependencies := tgt.local_unique_names,
   eliminee_type ← infer_type eliminee,
-  eliminee_dependencies ← local_dependencies_of_local eliminee,
+  eliminee_dependencies ← dependencies_of_local eliminee,
   fixed_dependencies ←
-    name_set.merge_many <$> (eliminee :: fixed).mmap local_dependencies_of_local,
+    name_set.merge_many <$> (eliminee :: fixed).mmap dependencies_of_local,
   ctx ← revertible_local_context,
   to_revert ← ctx.mmap_filter $ λ h, do {
-    h_type ← infer_type h,
+    -- TODO what about local defs?
+    h_depends_on_eliminee_deps ← local_depends_on_locals h eliminee_dependencies,
     let h_name := h.local_uniq_name,
     let rev :=
       ¬ fixed_dependencies.contains h_name ∧
-      (tgt_dependencies.contains h_name ∨ h_type.has_local_in eliminee_dependencies),
+      (h_depends_on_eliminee_deps ∨ tgt_dependencies.contains h_name),
     -- TODO I think `h_type.has_local_in eliminee_dependencies` is an
     -- overapproximation. What we actually want is any hyp that depends either
     -- on the eliminee or on one of the eliminee's index args. (But the
@@ -951,9 +963,10 @@ Generalize hypotheses for the given eliminee and generalization mode. See
 `generalization_mode` and `to_generalize`.
 -/
 meta def generalize_hyps (eliminee : expr) (gm : generalization_mode)
-  : tactic (ℕ × list expr) := do
+  : tactic ℕ := do
   to_revert ← gm.to_generalize eliminee,
-  revert_lst'' to_revert
+  ⟨n, _⟩ ← revert_lst'' to_revert,
+  pure n
 
 meta def intron_fresh : ℕ → tactic (list expr)
 | 0 := pure []
@@ -1096,6 +1109,7 @@ meta def decompose_structure_equation_hyp (h : expr) : tactic name_set := do
   hs.mmap' $ λ ⟨i, i_type⟩, do {
     n ← mk_fresh_name,
     h ← assertv n i_type i,
+
     subst_core h <|> clear h
     -- TODO we can check more specifically whether h has the right shape
     -- for substitution
@@ -1117,24 +1131,28 @@ end interactive
 meta def generalize_complex_index_args_aux (eliminee : expr)
   (eliminee_head : expr) (eliminee_param_args eliminee_index_args : list expr)
   (generate_ihs : bool)
-  : tactic (expr × list expr × list expr) :=
+  : tactic (expr × list expr × list expr × ℕ) :=
 focus1 $ do
-  let js := eliminee_index_args.filter $ λ a, ¬ a.is_local_constant,
+  let js := eliminee_index_args,
   ctx ← local_context,
   tgt ← target,
 
-  -- Revert the hypotheses which depend on the complex index args (and their
-  -- dependencies).
+  -- Revert the hypotheses which depend on the index args (and their
+  -- dependencies). We exclude dependencies of the eliminee because we can't
+  -- replace their index occurrences anyway when we apply the recursor.
+  eliminee_deps ← dependencies_of_local eliminee,
   relevant_ctx ← ctx.mfilter $ λ h, do {
     H ← infer_type h,
-    js.mbany $ λ a, kdepends_on H a
+    h_depends_on_index ← js.mbany $ λ j, kdepends_on H j,
+    let eliminee_depends_on_h := eliminee_deps.contains h.local_uniq_name,
+    pure $ h_depends_on_index ∧ ¬ eliminee_depends_on_h
     -- TODO does kdepends_on respect local defs?
   },
   ⟨relevant_ctx_size, relevant_ctx⟩ ← revert_lst' relevant_ctx,
-  [eliminee_pos] ← pure $ relevant_ctx.indexes_of eliminee,
+  revert eliminee,
 
-  -- Create the local constants that will replace the complex index args. We
-  -- have to be careful to get the right types.
+  -- Create the local constants that will replace the index args. We have to be
+  -- careful to get the right types.
   let go : expr → list expr → tactic (list expr) :=
         λ j ks, do {
           J ← infer_type j,
@@ -1144,27 +1162,26 @@ focus1 $ do
         },
   ks ← js.mfoldr go [],
 
-  let jsks := js.zip ks,
+  let js_ks := js.zip ks,
 
-  -- Replace the complex index args in the relevant context and the target.
-  -- The eliminee is treated specially because we need to avoid spurious
-  -- replacements in the parameter arguments.
-  new_ctx ← relevant_ctx.mmap $ λ h,
-    if h ≠ eliminee
-      then jsks.mfoldr (λ ⟨j, k⟩ h, kreplace h j k) h
-      else do {
-        let new_index_args := eliminee_index_args.map $
-          λ a, if a.is_local_constant then some a else none,
-        let new_index_args := new_index_args.fill_nones ks,
-        let T := (eliminee_head.mk_app eliminee_param_args).mk_app new_index_args,
-        pure $ local_const h.local_uniq_name h.local_pp_name h.binding_info T
-      },
-  new_tgt ← jsks.mfoldr (λ ⟨j, k⟩ tgt, kreplace tgt j k) tgt,
-  let new_tgt := new_tgt.pis new_ctx,
+  -- Replace the index args in the relevant context and the target.
+  new_ctx ← relevant_ctx.mmap $ λ ⟨h, H⟩, do {
+    H ← js_ks.mfoldr (λ ⟨j, k⟩ h, kreplace h j k) H,
+    mk_local' h.local_pp_name h.binding_info H
+  },
+
+  -- Replace the index args in the eliminee
+  let new_eliminee_type := (eliminee_head.mk_app eliminee_param_args).mk_app ks,
+  new_eliminee ←
+    mk_local' eliminee.local_pp_name eliminee.binding_info new_eliminee_type,
+
+  -- Replace the index args in the target.
+  new_tgt ← js_ks.mfoldr (λ ⟨j, k⟩ tgt, kreplace tgt j k) tgt,
+  let new_tgt := (new_tgt.pis new_ctx).pis [new_eliminee],
 
   -- Generate the index equations and their proofs.
   let eq_name := if generate_ihs then `induction_eq else `cases_eq,
-  let step2_input := jsks.map $ λ ⟨j, k⟩, (eq_name, j, k),
+  let step2_input := js_ks.map $ λ ⟨j, k⟩, (eq_name, j, k),
   eqs_and_proofs ← generalizes.step2 reducible step2_input,
   let eqs := eqs_and_proofs.map prod.fst,
   let eq_proofs := eqs_and_proofs.map prod.snd,
@@ -1172,17 +1189,16 @@ focus1 $ do
   -- Assert the generalized goal and derive the current goal from it.
   generalizes.step3 new_tgt js ks eqs eq_proofs,
 
-  -- Introduce the index variables, equations and new hyps.
+  -- Introduce the index variables, equations and eliminee.
   let num_index_vars := js.length,
   index_vars ← intron' num_index_vars,
   index_equations ← intron' num_index_vars,
-  new_hyps ← intron' relevant_ctx_size,
-  let eliminee := new_hyps.inth eliminee_pos,
-  pure (eliminee, index_vars, index_equations)
+  eliminee ← intro1,
+  pure (eliminee, index_vars, index_equations, relevant_ctx_size)
 
 meta def generalize_complex_index_args (eliminee : expr) (num_params : ℕ)
   (generate_ihs : bool)
-  : tactic (expr × ℕ × list name × name_set) := do
+  : tactic (expr × ℕ × list name × name_set × ℕ) := do
   eliminee_type ← infer_type eliminee,
   ⟨eliminee_head, eliminee_args⟩ ← decompose_app_normalizing eliminee_type,
   let ⟨eliminee_param_args, eliminee_index_args⟩ :=
@@ -1191,19 +1207,19 @@ meta def generalize_complex_index_args (eliminee : expr) (num_params : ℕ)
   -- If there aren't any complex index arguments, we don't need to do anything.
   let have_complex_index_args :=
     eliminee_index_args.any $ λ h, ¬ h.is_local_constant,
-  tt ← pure have_complex_index_args | pure (eliminee, 0, [], mk_name_set),
+  tt ← pure have_complex_index_args | pure (eliminee, 0, [], mk_name_set, 0),
 
   -- Generalise the complex index arguments
-  ⟨eliminee, index_vars, index_equations⟩ ←
+  ⟨eliminee, index_vars, index_equations, num_generalized⟩ ←
     generalize_complex_index_args_aux eliminee eliminee_head
       eliminee_param_args eliminee_index_args generate_ihs,
   let index_vars := index_vars.map expr.local_pp_name,
   let index_equations := index_equations.map expr.local_pp_name,
 
-  -- Decompose the index equations equating elements of structures.
-  -- Note: Each step in the following loop may change the unique names of
-  -- hypotheses in the context, so we go by pretty names. `generalizes_intro`
-  -- and `decompose_structure_equation_hyp` make sure that these are unique.
+  -- Decompose the index equations equating elements of structures. Note: Each
+  -- step in the following loop may change the unique names of hypotheses in the
+  -- context, so we go by pretty names. `generalize_complex_index_args_aux` and
+  -- `decompose_structure_equation_hyp` make sure that these are unique.
   fields ← index_equations.mmap (get_local >=> decompose_structure_equation_hyp),
   let fields := name_set.merge_many fields,
 
@@ -1211,7 +1227,7 @@ meta def generalize_complex_index_args (eliminee : expr) (num_params : ℕ)
   index_equations ← index_equations.mmap get_local,
   revert_lst index_equations,
 
-  pure (eliminee, index_vars.length, index_vars, fields)
+  pure (eliminee, index_vars.length, index_vars, fields, num_generalized)
 
 meta def replace' (h : expr) (x : expr) (t : option expr := none) : tactic expr := do
   h' ← note h.local_pp_name t x,
@@ -1330,6 +1346,7 @@ do {
       pure goal_solved
     else do
       next_hyps ← injection equ,
+      clear equ,
       -- TODO better names for the new hyps produced by injection
       pure $ simplified $ next_hyps.map expr.local_pp_name
 } <|>
@@ -1540,11 +1557,12 @@ focus1 $ do
   -- (`environment.is_ginductive` doesn't seem to work.)
 
   -- Generalise complex indices
-  (eliminee, num_index_vars, index_var_names, structure_field_names) ←
+  (eliminee, num_index_vars, index_var_names, structure_field_names, num_index_generalized) ←
     generalize_complex_index_args eliminee iinfo.num_params generate_ihs,
 
   -- Generalise hypotheses according to the given generalization_mode.
-  (num_generalized, generalized_hyps) ← generalize_hyps eliminee gm,
+  num_auto_generalized ← generalize_hyps eliminee gm,
+  let num_generalized := num_index_generalized + num_auto_generalized,
 
   -- NOTE: The previous step may have changed the unique names of all hyps in
   -- the context.
@@ -1606,11 +1624,15 @@ focus1 $ do
       (constructor_arg_names, ih_names) ←
         constructor_intros generate_ihs iinfo cinfo,
 
-      -- Introduce any hypotheses we've previously generalised
-      generalized_hyps ← intron' num_generalized,
+      -- Introduce the auto-generalised hypotheses.
+      intron num_auto_generalized,
 
       -- Introduce the index equations
       index_equations ← intron' num_index_vars,
+
+      -- Introduce the hypotheses that were generalised during index
+      -- generalisation.
+      intron num_index_generalized,
 
       -- Simplify the index equations. Stop after this step if the goal has been
       -- solved by the simplification.
@@ -1622,7 +1644,7 @@ focus1 $ do
       -- induction hypotheses, so we have to locate them again. Their pretty
       -- names should be unique in the context, so we can use these.
       (ih_names.map prod.fst).mmap'
-        (get_local >=> simplify_ih num_generalized num_index_vars),
+        (get_local >=> simplify_ih num_auto_generalized num_index_vars),
 
       -- Try to clear the index variables. These often become unused during
       -- the index equation simplification step.

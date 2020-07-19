@@ -764,7 +764,18 @@ begin
   }
 end
 
-/- The same with an uncurried version of the predicate. It should make no
+
+/- This lemma used to give index generalisation major trouble. -/
+lemma big_step_equiv.seq_skip_left {S s t}
+  (h: (seq skip S, s) ⟹ t)
+  : (S, s) ⟹ t :=
+begin
+  cases' h,
+  cases' h_1,
+  exact h
+end
+
+/- The same with a curried version of the predicate. It should make no
 difference whether a predicate is curried or uncurried. -/
 
 inductive curried_big_step : stmt → state → state → Prop

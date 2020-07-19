@@ -163,7 +163,7 @@ add_tactic_doc
 { name       := "unfold_cases",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.unfold_cases],
-  tags       := ["induction"] }
+  tags       := ["induction", "case bashing"] }
 
 end interactive
 end tactic

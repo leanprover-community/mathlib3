@@ -16,10 +16,7 @@ variables {G}
 
 lemma path_bigraph_swap {A B : finset V} :
   (path_bigraph G A B).swap = path_bigraph G B A:=
-begin
-  ext, { refl }, { refl },
-  split; apply G.undirected,
-end
+by { ext, { refl }, { refl }, split; apply G.undirected }
 
 lemma left_fiber_eq_nbrs_inter_A {A B : finset V} {v : V} (hv : v ∈ B) :
   left_fiber (path_bigraph G A B) v = A ∩ (neighbors G v):=
@@ -34,7 +31,7 @@ by rwa [← left_fiber_swap, path_bigraph_swap, left_fiber_eq_nbrs_inter_A]
 
 variables {d : ℕ}
 
-lemma reg_card_count_2  (hd : regular_graph G d) (v:V) :
+lemma reg_card_count_2 (hd : regular_graph G d) (v : V) :
 card_edges (path_bigraph G (neighbors G v) {v}) = d :=
 begin
   rw ← hd v, apply card_edges_of_runique, rw right_unique_one_reg,
@@ -44,7 +41,7 @@ begin
   rwa [neighbor_iff_adjacent, edge_symm, ← neighbor_iff_adjacent],
 end
 
-lemma reg_card_count_3 (hd : regular_graph G d) (v:V) :
+lemma reg_card_count_3 (hd : regular_graph G d) (v : V) :
 card_edges (path_bigraph G (neighbors G v) finset.univ) = d * d :=
 begin
   unfold regular_graph degree at hd,

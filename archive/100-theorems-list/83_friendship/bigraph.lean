@@ -31,7 +31,6 @@ by simp [swap_inputs, function.uncurry, function.curry]
   swap_inputs (swap_inputs E)=E:=
 by ext; simp
 
-
 def swap : bigraph β α :=
 { A := G.B,
   B := G.A,
@@ -79,11 +78,9 @@ def left_fiber (b : β) : finset α :=
 def right_fiber (a : α) : finset β :=
   finset.filter (λ (b1 : β), (uncurried G) (a, b1)) G.B
 
-def left_fiber' (b : β) : finset (α × β) :=
-  finset.image (λ a:α, (a,b)) (left_fiber G b)
+def left_fiber' (b : β) : finset (α × β) := finset.image (λ a:α, (a,b)) (left_fiber G b)
 
-def right_fiber' (a : α) : finset (α × β) :=
-  finset.image (λ b:β, (a,b)) (right_fiber G a)
+def right_fiber' (a : α) : finset (α × β) := finset.image (λ b:β, (a,b)) (right_fiber G a)
 
 @[simp] lemma mem_left_fiber (b : β) {x : α} :
 x ∈ (left_fiber G b) ↔ x ∈ G.A ∧ G.E x b := by { unfold left_fiber, simp }
@@ -92,13 +89,13 @@ x ∈ (left_fiber G b) ↔ x ∈ G.A ∧ G.E x b := by { unfold left_fiber, simp
 x ∈ (right_fiber G a) ↔ x ∈ G.B ∧ G.E a x := by { unfold right_fiber, simp }
 
 @[simp] lemma left_fiber_swap (a : α) :
-left_fiber G.swap a=right_fiber G a := by { ext, simp }
+left_fiber G.swap a = right_fiber G a := by { ext, simp }
 
 @[simp] lemma right_fiber_swap (b : β) :
 right_fiber G.swap b = left_fiber G b := by { ext, simp }
 
 @[simp] lemma mem_left_fiber' (b : β) (x : α × β) :
-x ∈ (left_fiber' G b) ↔ (x.fst ∈ G.A ∧ x.snd = b) ∧ G.E x.fst x.snd:=
+x ∈ (left_fiber' G b) ↔ (x.fst ∈ G.A ∧ x.snd = b) ∧ G.E x.fst x.snd :=
 by rw left_fiber'; tidy
 
 -- can the following be proven with swap and the above?
@@ -106,12 +103,14 @@ by rw left_fiber'; tidy
 x ∈ (right_fiber' G a) ↔ (x.fst = a ∧ x.snd ∈ G.B) ∧ G.E x.fst x.snd :=
 by rw right_fiber'; tidy
 
+-- i'm now confused about the properties of our simp normal form.
+-- Do we always want to get swap out of G.swap?
 @[simp] lemma left_fiber'_swap (a : α) :
 left_fiber' G.swap a = finset.image prod.swap (right_fiber' G a) :=
 begin
-  have h : right_fiber' G a = finset.image (λ b:β,(a,b)) (right_fiber G a) := by refl,
+  have h : right_fiber' G a = finset.image (prod.mk a) (right_fiber G a) := rfl,
   rw [h, finset.image_image],
-  have h2 : left_fiber' G.swap a = finset.image (λ b:β,(b,a)) (left_fiber G.swap a) := by refl,
+  have h2 : left_fiber' G.swap a = finset.image (λ b:β,(b,a)) (left_fiber G.swap a) := rfl,
   simp [h2]; refl,
 end
 
@@ -119,12 +118,9 @@ end
   right_fiber' G.swap b = finset.image prod.swap (left_fiber' G b):=
 by rw [left_fiber', finset.image_image, right_fiber', right_fiber_swap]; refl
 
-@[simp] lemma card_left_fiber_eq_' (b : β):
-  (left_fiber G b).card = (left_fiber' G b).card:=
-begin
-  symmetry, apply finset.card_image_of_injective,
-  intros _ _, simp,
-end
+@[simp] lemma card_left_fiber_eq_card_left_fiber' (b : β) :
+  (left_fiber G b).card = (left_fiber' G b).card :=
+by { symmetry, apply finset.card_image_of_injective, intros _ _, simp }
 
 lemma disjoint_left_fiber' {b1 b2 : β} (h : b1 ≠ b2):
   disjoint (left_fiber' G b1) (left_fiber' G b2):=
@@ -134,8 +130,9 @@ begin
   rintros _ rfl _ _ _, contradiction,
 end
 
+-- is this a useful simp lemma if reversed?
 lemma edges_eq_bind_left_fibers :
-  edges G = (G.B).bind (λ (b : β), left_fiber' G b):=
+  edges G = (G.B).bind (λ (b : β), left_fiber' G b) :=
 begin
   ext, simp only [exists_prop, mem_left_fiber', mem_edges, finset.mem_bind],
   split, { rw and_imp, intros, use a.snd, tauto },
@@ -160,14 +157,14 @@ begin
   intros _ _ _ _ h, exact disjoint_left_fiber' _ h,
 end
 
-theorem sum_right_fibers (G : bigraph α β):
-  card_edges G = G.A.sum(λ (a1:α), (right_fiber G a1).card):=
+theorem sum_right_fibers :
+  card_edges G = ∑ a in G.A, (right_fiber G a).card :=
 by { simp_rw ← left_fiber_swap, rw ← card_edges_symm, apply sum_left_fibers }
 
 def left_regular (d : ℕ) : Prop :=
   ∀ b ∈ G.B, (left_fiber G b).card = d
 
-def right_regular (d:ℕ):Prop:=
+def right_regular (d : ℕ) : Prop:=
   ∀ a ∈ G.A, (right_fiber G a).card = d
 
 def left_unique : Prop :=
@@ -190,10 +187,8 @@ by simp [left_unique, right_unique]
 
 @[simp] lemma left_unique_one_reg : left_unique G ↔ left_regular G 1 :=
 begin
-  rw left_unique, apply forall_congr,
-  intro, apply imp_congr_right,
-  intro, rw [finset.card_eq_one, finset.singleton_iff_unique_mem],
-  simp,
+  apply forall_congr, intro, apply imp_congr_right,
+  simp_rw [finset.card_eq_one], simp [finset.singleton_iff_unique_mem],
 end
 
 @[simp] lemma right_unique_one_reg : right_unique G ↔ right_regular G 1 :=
@@ -226,7 +221,7 @@ variables (E : α → β → Prop)
 lemma edges_disjoint_of_eq_disj_eq {A : finset α} {B1 B2 : finset β} (h : disjoint B1 B2) :
   disjoint (edges ⟨A, B1, E⟩) (edges ⟨A, B2, E⟩) :=
 begin
-  apply finset.disjoint_filter_filter, --dsimp,
+  apply finset.disjoint_filter_filter,
   rw finset.disjoint_iff_ne,
   rintros a _ _ _ rfl,
   rw finset.mem_product at *,

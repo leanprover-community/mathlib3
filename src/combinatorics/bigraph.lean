@@ -234,7 +234,7 @@ begin
 end
 variables (adj : α → β → Prop)
 
-lemma edges_disjoint_of_eq_disj_eq {A : finset α} {B1 B2 : finset β} (h : disjoint B1 B2) :
+lemma edges_disjoint_of_disjoint_right {A : finset α} {B1 B2 : finset β} (h : disjoint B1 B2) :
   disjoint (edges ⟨A, B1, adj⟩) (edges ⟨A, B2, adj⟩) :=
 begin
   apply finset.disjoint_filter_filter,
@@ -245,7 +245,18 @@ begin
   apply h a.snd _ a.snd; tauto,
 end
 
-lemma edges_union {A : finset α} {B1 B2 : finset β} :
+lemma edges_disjoint_of_disjoint_left {A1 A2 : finset α} {B : finset β} (h : disjoint A1 A2) :
+  disjoint (edges ⟨A1, B, adj⟩) (edges ⟨A2, B, adj⟩) :=
+begin
+  apply finset.disjoint_filter_filter,
+  rw finset.disjoint_iff_ne,
+  rintros a _ _ _ rfl,
+  rw finset.mem_product at *,
+  rw finset.disjoint_iff_ne at h,
+  apply h a.fst _ a.fst; tauto,
+end
+
+lemma edges_union_right {A : finset α} {B1 B2 : finset β} :
   edges ⟨ A, B1 ∪ B2, adj⟩ = edges ⟨A, B1, adj⟩ ∪ edges ⟨A, B2, adj⟩ :=
 begin
   erw ← finset.filter_union,
@@ -253,8 +264,20 @@ begin
   ext, simp [ finset.mem_union, finset.mem_product]; tauto,
 end
 
-theorem card_edges_add_of_eq_disj_union_eq {A : finset α} {B1 B2 : finset β} (h : disjoint B1 B2) :
+lemma edges_union_left {A1 A2 : finset α} {B : finset β} :
+  edges ⟨ A1 ∪ A2, B, adj⟩ = edges ⟨A1, B, adj⟩ ∪ edges ⟨A2, B, adj⟩ :=
+begin
+  erw ← finset.filter_union,
+  suffices : (A1 ∪ A2).product B = A1.product B ∪ A2.product B, { rw ← this, refl },
+  ext, simp [ finset.mem_union, finset.mem_product]; tauto,
+end
+
+theorem card_edges_add_of_disj_union_right {A : finset α} {B1 B2 : finset β} (h : disjoint B1 B2) :
 card_edges ⟨A, B1 ∪ B2, adj⟩ = card_edges ⟨A, B1, adj⟩ + card_edges ⟨A, B2, adj⟩ :=
-by { rw [card_edges, edges_union], simp [edges_disjoint_of_eq_disj_eq, h], refl }
+by { rw [card_edges, edges_union_right], simp [edges_disjoint_of_disjoint_right, h], refl }
+
+theorem card_edges_add_of_disj_union_left {A1 A2 : finset α} {B : finset β} (h : disjoint A1 A2) :
+card_edges ⟨A1 ∪ A2, B, adj⟩ = card_edges ⟨A1, B, adj⟩ + card_edges ⟨A2, B, adj⟩ :=
+by { rw [card_edges, edges_union_left], simp [edges_disjoint_of_disjoint_left, h], refl }
 
 end bigraph

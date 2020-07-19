@@ -17,7 +17,6 @@ We also prove some divisibility tests based on digits, in particular completing
 Theorem #85 from https://www.cs.ru.nl/~freek/100/.
 -/
 
-
 /-- (Impl.) An auxiliary definition for `digits`, to help get the desired definitional unfolding. -/
 def digits_aux_0 : ℕ → list ℕ
 | 0 := []
@@ -69,8 +68,13 @@ begin
   { cases b; refl, },
 end
 
-@[simp] lemma digits_one_succ (n : ℕ) : digits 1 (n + 1) = 1 :: digits 1 n :=
-rfl
+@[simp] lemma digits_zero_zero : digits 0 0 = [] := rfl
+
+@[simp] lemma digits_zero_succ (n : ℕ) : digits 0 (n.succ) = [n+1] := rfl
+
+@[simp] lemma digits_one (n : ℕ) : digits 1 n = list.repeat 1 n := rfl
+
+@[simp] lemma digits_one_succ (n : ℕ) : digits 1 (n + 1) = 1 :: digits 1 n := rfl
 
 @[simp] lemma digits_add_two_add_one (b n : ℕ) :
   digits (b+2) (n+1) = (((n+1) % (b+2)) :: digits (b+2) ((n+1) / (b+2))) := rfl
@@ -415,109 +419,24 @@ begin
   exact t,
 end
 
-lemma ne_zero_iff_digits_ne_nil (b n : ℕ) : n ≠ 0 ↔ digits b n ≠ list.nil :=
-begin
-  split,
-  { intros hn hd,
-    cases n,
-    { contradiction },
-    { have h := of_digits_digits b n.succ,
-      rw hd at h,
-      contradiction,
-    },
-  },
-  { contrapose!,
-    intros h,
-    rw h,
-    exact digits_zero b,
-  },
-end
-
-lemma ne_zero_iff_digits_len_ne_zero (b n : ℕ) : n ≠ 0 ↔ (digits b n).length ≠ 0 :=
-begin
-  rw [ne_zero_iff_digits_ne_nil b n, not_iff_not],
-  symmetry',
-  exact list.length_eq_zero,
-end
-
-lemma div_ge_of_ge (a b : ℕ) : 0 < a → 0 < b → b ≤ a → 1 ≤ a/b :=
-begin
-  intros ha hb h,
-  rw nat.div_eq_sub_div hb h,
-  exact nat.le_add_left 1 ((a-b)/b),
-end
-
-lemma digits_ge_base_pow_len (b m : ℕ) : m ≠ 0 → m ≥ (b + 2) ^ ((digits (b + 2) m).length - 1) :=
-begin
-  apply nat.strong_induction_on m,
-  clear m,
-  intros n IH npos,
-  unfold digits at IH ⊢,
-  cases n,
-  { contradiction, },
-  { rw [digits_aux_def (b+2) (by linarith) (n.succ), list.length_cons],
-    specialize IH ((n.succ)/(b+2)) (nat.div_lt_self' n b),
-    cases nat.lt_or_ge n.succ (b+2),
-    { have ltb := nat.div_eq_of_lt h,
-      rw [ltb, digits_aux_zero, list.length],
-      simp,
-      exact nat.succ_pos n,
-    },
-    { have geb : (n.succ / (b + 2)) ≥ 1 := div_ge_of_ge n.succ (b+2) (by linarith [npos]) (by linarith) h,
-      specialize IH (by linarith [geb]),
-      rw nat.succ_sub_one (digits_aux (b + 2) _ (n.succ / (b + 2))).length,
-      have IH' := nat.mul_le_mul_left (b+2) IH,
-      rw [nat.mul_comm, <- nat.pow_succ, nat.succ_eq_add_one] at IH',
-      rw nat.add_comm ((digits_aux (b + 2) _ (n.succ / (b + 2))).length - 1) at IH',
-      rw <- nat.add_sub_assoc at IH',
-      { rw nat.add_sub_cancel_left 1 (digits_aux (b + 2) _ (n.succ / (b + 2))).length at IH',
-        have IH'' := nat.div_mul_le_self n.succ (b+2),
-        rw mul_comm at IH',
-        exact le_trans IH' IH'',
-      },
-      { change 0 < (digits_aux (b + 2) _ (n.succ / (b + 2))).length,
-        rw nat.pos_iff_ne_zero,
-        rw [<- digits, <- ne_zero_iff_digits_len_ne_zero],
-        linarith [geb],
-      },
-    },
-    rwa nat.pos_iff_ne_zero,
-  },
-end
-
 lemma digits_len_le_digits_len_succ (b n : ℕ) : (digits b n).length ≤ (digits b (n + 1)).length :=
 begin
   cases b,
   { -- base 0
-    unfold digits,
-    cases n,
-    { unfold digits_aux_0,
-      repeat { rw list.length },
-      linarith,
-    },
-    { unfold digits_aux_0,
-      repeat { rw list.length },
-    },
+    cases n; simp,
   },
   { cases b,
     { -- base 1
-      unfold digits,
-      unfold digits_aux_1,
-      repeat {rw list.length_repeat },
-      linarith,
+      simp,
     },
     { -- base >= 2
       apply nat.strong_induction_on n,
       clear n,
       intros n IH,
       cases n,
-      { rw digits_zero,
-        rw list.length,
-        linarith,
-      },
-      { have hdvd : (b.succ.succ) ∣ (n.succ+1) ∨ ¬((b.succ.succ) ∣ (n.succ+1)) := classical.or_not,
-        repeat { rw digits_add_two_add_one },
-        cases hdvd,
+      { simp },
+      { repeat { rw digits_add_two_add_one },
+        by_cases hdvd : (b.succ.succ) ∣ (n.succ+1),
         { rw nat.succ_div_of_dvd hdvd,
           repeat { rw list.length_cons },
           rw nat.succ_le_succ_iff,
@@ -532,9 +451,8 @@ begin
   },
 end
 
-lemma le_digits_len_le (b n m : ℕ) : n ≤ m → (digits b n).length ≤ (digits b m).length :=
+lemma le_digits_len_le (b n m : ℕ) (h : n ≤ m) : (digits b n).length ≤ (digits b m).length :=
 begin
-  intros h,
   induction h with k nk IH,
   { refl },
   { exact nat.le_trans IH (digits_len_le_digits_len_succ b k) },

@@ -236,7 +236,7 @@ by simp [le_antisymm_iff, zero_le]
 theorem pos_iff_ne_zero {o : cardinal} : 0 < o ↔ o ≠ 0 :=
 by simp [lt_iff_le_and_ne, eq_comm, zero_le]
 
-theorem zero_lt_one : (0 : cardinal) < 1 :=
+@[simp] theorem zero_lt_one : (0 : cardinal) < 1 :=
 lt_of_le_of_ne (zero_le _) zero_ne_one
 
 lemma zero_power_le (c : cardinal.{u}) : (0 : cardinal.{u}) ^ c ≤ 1 :=
@@ -644,6 +644,76 @@ by rw [← succ_zero, succ_le]
 
 theorem one_le_iff_ne_zero {c : cardinal} : 1 ≤ c ↔ c ≠ 0 :=
 by rw [one_le_iff_pos, pos_iff_ne_zero]
+
+section bit
+-- This section proves the "easy" inequalities for `bit0` and `bit1`,
+-- enabling `simp` to solve `0 < n`, `0 ≤ n`, `1 < n` and `1 ≤ n` for numerals `n`.
+
+-- See `one_lt_two` for a general tactic solution for proving inequalities between numerals
+-- using the embedding of `ℕ`.
+
+-- To enable `simp` to solve all inequalities between numerals we'd need other results,
+-- e.g. beginning with `bit0 a ≤ bit0 b → a ≤ b`.
+
+@[simp] lemma bit0_ne_zero (a : cardinal) : ¬bit0 a = 0 ↔ ¬a = 0 :=
+by simp [bit0]
+
+@[simp] lemma bit1_ne_zero (a : cardinal) : ¬bit1 a = 0 :=
+by simp [bit1]
+
+@[simp] lemma zero_lt_bit0 (a : cardinal) : 0 < bit0 a ↔ 0 < a :=
+by { rw ←not_iff_not, simp [bit0], }
+
+@[simp] lemma zero_lt_bit1 (a : cardinal) : 0 < bit1 a :=
+lt_of_lt_of_le zero_lt_one (le_add_left _ _)
+
+@[simp] lemma one_le_bit0 (a : cardinal) : 1 ≤ bit0 a ↔ 0 < a :=
+⟨λ h, (zero_lt_bit0 a).mp (lt_of_lt_of_le zero_lt_one h),
+ λ h, le_trans (one_le_iff_pos.mpr h) (le_add_left a a)⟩
+
+@[simp] lemma one_le_bit1 (a : cardinal) : 1 ≤ bit1 a :=
+le_add_left _ _
+
+-- The converse is rather more difficult!
+lemma bit0_le_bit0 {a b : cardinal} (h : a ≤ b) : bit0 a ≤ bit0 b :=
+calc a + a ≤ a + b : add_le_add_left a h
+       ... ≤ b + b : add_le_add_right b h
+
+-- The converse is rather more difficult!
+lemma bit1_le_bit1 {a b : cardinal} (h : a ≤ b) : bit1 a ≤ bit1 b :=
+calc a + a + 1 ≤ a + b + 1 : add_le_add_right 1 (add_le_add_left a h)
+           ... ≤ b + b + 1 : add_le_add_right 1 (add_le_add_right b h)
+
+lemma one_lt_two : (1 : cardinal) < 2 :=
+-- This strategy works generally to prove inequalities between numerals in `cardinality`.
+begin
+  suffices : ((1 : ℕ) : cardinal) < ((2 : ℕ) : cardinal), simpa,
+  norm_cast, simp,
+end
+
+@[simp] lemma one_lt_bit0 {a : cardinal} : 1 < bit0 a ↔ 0 < a :=
+begin
+  split,
+  { intro h,
+    by_contradiction p, simp at p, subst p,
+    simp at h,
+    exact lt_irrefl _ (lt_trans h zero_lt_one), },
+  { exact λ h, lt_of_lt_of_le one_lt_two (bit0_le_bit0 (one_le_iff_pos.mpr h)), },
+end
+
+@[simp] lemma one_lt_bit1 (a : cardinal) : 1 < bit1 a ↔ 0 < a :=
+begin
+  split,
+  { intro h,
+    by_contradiction p, simp at p, subst p,
+    simp at h,
+    exact lt_irrefl _ h, },
+  { intro h,
+    apply lt_of_lt_of_le (one_lt_bit0.2 h),
+    exact le_add_right _ _, }
+end
+
+end bit
 
 theorem nat_lt_omega (n : ℕ) : (n : cardinal.{u}) < omega :=
 succ_le.1 $ by rw [← nat_succ, ← lift_mk_fin, omega, lift_mk_le.{0 0 u}]; exact

@@ -48,7 +48,10 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
   let lhs_ap := lhs.mk_app type_args,
   let rhs_ap := rhs.instantiate_lambdas_or_apps type_args,
   let str := tgt.get_app_fn.const_name,
-  if e.is_structure str then do
+  /- Don't recursively continue if `str` is not a structure. As a special case, also don't
+    recursively continue if the nested structure is `prod` or `pprod`, unless projections are
+    specified manually. -/
+  if e.is_structure str ∧ ¬(todo = [] ∧ str ∈ [`prod, `pprod] ∧ ¬must_be_str) then do
     projs ← e.structure_fields_full str,
     [intro] ← return $ e.constructors_of str | fail "unreachable code (3)",
     let params := get_app_args tgt, -- the parameters of the structure
@@ -90,13 +93,13 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
       when must_be_str $
         fail "Invalid `simps` attribute. Body is not a constructor application",
       when (todo ≠ [] ∧ todo ≠ [""]) $
-        fail format!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo.head}. Too many projections given.",
+        fail format!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo.head}. The given definition is not a constructor application.",
       simps_add_projection (nm.append_suffix suffix) tgt lhs_ap rhs_ap new_args univs add_simp
   else do
     when must_be_str $
       fail "Invalid `simps` attribute. Target is not a structure",
-    when (todo ≠ [] ∧ todo ≠ [""]) $
-        fail format!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo.head}. Too many projections given.",
+    when (todo ≠ [] ∧ todo ≠ [""] ∧ str ∉ [`prod, `pprod]) $
+        fail format!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo.head}. Projection {todo.head} doesn't exist, because target is not a structure.",
     simps_add_projection (nm.append_suffix suffix) tgt lhs_ap rhs_ap new_args univs add_simp
 
 /-- `simps_tac` derives simp-lemmas for all (nested) non-Prop projections of the declaration.
@@ -115,7 +118,7 @@ reserve notation `lemmas_only`
 reserve notation `short_name`
 setup_tactic_parser
 
-/-- The parser for simps. Pattern: `'lemmas_only'? ident*` -/
+/-- The parser for simps. Pattern: `'lemmas_only'? 'short_name'? ident*` -/
 meta def simps_parser : parser (bool × bool × list string) :=
 /- note: we currently don't check whether the user has written a nonsense namespace as arguments. -/
 prod.mk <$> (option.is_none <$> (tk "lemmas_only")?) <*>
@@ -140,11 +143,14 @@ derives two simp-lemmas:
 * It will automatically reduce newly created beta-redexes, but not unfold any definitions.
 * If one of the fields itself is a structure, this command will recursively create
   simp-lemmas for all fields in that structure.
+  * Exception: by default it will not recursively create simp-lemmas for fields in the structures
+    `prod` and `pprod`. Give explicit projection names to override this.
 * You can use `@[simps proj1 proj2 ...]` to only generate the projection lemmas for the specified
   projections. For example:
   ```lean
   attribute [simps to_fun] refl
   ```
+  * Recursive projection names can be specified using `foo_proj1_proj2_proj3`. This will create a lemma of the form `foo.proj1.proj2.proj3 = ...`.
 * If one of the values is an eta-expanded structure, we will eta-reduce this structure.
 * You can use `@[simps lemmas_only]` to derive the lemmas, but not mark them
   as simp-lemmas.

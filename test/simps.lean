@@ -9,6 +9,15 @@ structure equiv (α : Sort*) (β : Sort*) :=
 
 infix ` ≃ `:25 := equiv
 
+/- Since `prod` and `pprod` are a special case for `@[simps]`, we define a new structure to test
+  the basic functionality.-/
+structure my_prod (α β : Type*) :=
+  (fst : α)
+  (snd : β)
+
+def myprod.map {α α' β β'} (f : α → α') (g : β → β') (x : my_prod α β) : my_prod α' β' :=
+⟨f x.1, g x.2⟩
+
 namespace foo
 
 @[simps] protected def rfl {α} : α ≃ α :=
@@ -75,11 +84,11 @@ run_cmd do
 /- check projections for nested structures -/
 
 namespace count_nested
-@[simps] def nested1 : ℕ × ℤ × ℕ :=
+@[simps] def nested1 : my_prod ℕ $ my_prod ℤ ℕ :=
 ⟨2, -1, 1⟩
 
-@[simps lemmas_only] def nested2 : ℕ × ℕ × ℕ :=
-⟨2, prod.map nat.succ nat.pred (1, 2)⟩
+@[simps lemmas_only] def nested2 : ℕ × my_prod ℕ ℕ :=
+⟨2, myprod.map nat.succ nat.pred ⟨1, 2⟩⟩
 
 end count_nested
 
@@ -106,7 +115,7 @@ structure equiv_plus_data (α β) extends α ≃ β :=
 structure automorphism_plus_data α extends α ⊕ α ≃ α ⊕ α :=
 (P : (α ⊕ α → α ⊕ α) → Prop)
 (data : P to_fun)
-(extra : bool → ℕ × ℕ)
+(extra : bool → my_prod ℕ ℕ)
 
 @[simps]
 def refl_with_data {α} : equiv_plus_data α α :=
@@ -125,7 +134,15 @@ def refl_with_data' {α} : equiv_plus_data α α :=
 def test {α} : automorphism_plus_data α :=
 { P := λ f, f = id,
   data := rfl,
-  extra := λ b, ((3,5).1,(3,5).2),
+  extra := λ b, ⟨(⟨3, 5⟩ : my_prod _ _).1, (⟨3, 5⟩ : my_prod _ _).2⟩,
+  ..foo.rfl }
+
+/- test whether this is indeed rejected as a valid eta expansion -/
+@[simps]
+def test_sneaky {α} : automorphism_plus_data α :=
+{ P := λ f, f = id,
+  data := rfl,
+  extra := λ b, ⟨(3,5).1,(3,5).2⟩,
   ..foo.rfl }
 
 run_cmd do
@@ -133,16 +150,18 @@ run_cmd do
   e.get `refl_with_data_to_equiv,
   e.get `refl_with_data'_to_equiv,
   e.get `test_extra,
+  e.get `test_sneaky_extra_fst,
   success_if_fail (e.get `refl_with_data_to_equiv_to_fun),
   success_if_fail (e.get `refl_with_data'_to_equiv_to_fun),
-  success_if_fail (e.get `test_extra_fst)
+  success_if_fail (e.get `test_extra_fst),
+  success_if_fail (e.get `test_sneaky_extra)
 
 structure partially_applied_str :=
-(data : ℕ → ℕ × ℕ)
+(data : ℕ → my_prod ℕ ℕ)
 
 /- if we have a partially applied constructor, we treat it as if it were eta-expanded -/
 @[simps]
-def partially_applied_term : partially_applied_str := ⟨prod.mk 3⟩
+def partially_applied_term : partially_applied_str := ⟨my_prod.mk 3⟩
 
 run_cmd do
   e ← get_env,
@@ -150,11 +169,11 @@ run_cmd do
   e.get `partially_applied_term_data_snd
 
 structure very_partially_applied_str :=
-(data : ∀β, ℕ → β → ℕ × β)
+(data : ∀β, ℕ → β → my_prod ℕ β)
 
 /- if we have a partially applied constructor, we treat it as if it were eta-expanded -/
 @[simps]
-def very_partially_applied_term : very_partially_applied_str := ⟨@prod.mk ℕ⟩
+def very_partially_applied_term : very_partially_applied_str := ⟨@my_prod.mk ℕ⟩
 
 run_cmd do
   e ← get_env,
@@ -214,8 +233,27 @@ run_cmd do
   skip
 
 /- check short_name option -/
-@[simps short_name] def short_name1 : (ℕ × ℕ) × ℕ × ℕ := ((1, 2), 3, 4)
+@[simps short_name] def short_name1 : my_prod ℕ ℕ × my_prod ℕ ℕ := ⟨⟨1, 2⟩, 3, 4⟩
 run_cmd do
   e ← get_env,
   e.get `short_name1_fst, e.get `short_name1_fst_2,
   e.get `short_name1_snd, e.get `short_name1_snd_2
+
+/- test that we don't recursively take projections of `prod` and `pprod` -/
+@[simps] def pprod_equiv_prod : pprod ℕ ℕ ≃ ℕ × ℕ :=
+{ to_fun := λ x, ⟨x.1, x.2⟩,
+  inv_fun := λ x, ⟨x.1, x.2⟩,
+  left_inv := λ ⟨x, y⟩, rfl,
+  right_inv := λ ⟨x, y⟩, rfl }
+
+run_cmd do
+  e ← get_env,
+  e.get `pprod_equiv_prod_to_fun,
+  e.get `pprod_equiv_prod_inv_fun
+
+attribute [simps to_fun_fst inv_fun_snd] pprod_equiv_prod
+
+run_cmd do
+  e ← get_env,
+  e.get `pprod_equiv_prod_to_fun_fst,
+  e.get `pprod_equiv_prod_inv_fun_snd

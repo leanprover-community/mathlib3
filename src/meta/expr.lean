@@ -725,7 +725,7 @@ meta def is_eta_expansion_test : list (name × expr) → option expr
 /-- `is_eta_expansion_aux val l` checks whether `val` can be eta-reduced to an expression `e`.
   Here `l` is intended to consists of the projections and the fields of `val`.
   This tactic calls `is_eta_expansion_test l`, but first removes all proofs from the list `l` and
-  afterward checks whether the retulting expression `e` unifies with `val`.
+  afterward checks whether the resulting expression `e` unifies with `val`.
   This last check is necessary, because `val` and `e` might have different types. -/
 meta def is_eta_expansion_aux (val : expr) (l : list (name × expr)) : tactic (option expr) :=
 do l' ← l.mfilter (λ⟨proj, val⟩, bnot <$> is_proof val),

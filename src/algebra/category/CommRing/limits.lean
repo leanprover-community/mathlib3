@@ -26,26 +26,12 @@ instance ring_obj (F : J ⥤ Ring) (j) :
   ring ((F ⋙ forget Ring).obj j) :=
 by { change ring (F.obj j), apply_instance }
 
-/--
-The flat sections of a functor into `Ring` form a multiplicative submonoid of all sections.
--/
-def sections_submonoid (F : J ⥤ Ring) :
-  submonoid (Π j, F.obj j) :=
-{ carrier := (F ⋙ forget Ring).sections,
-  one_mem' := λ j j' f, by simp,
-  mul_mem' := λ a b ah bh j j' f,
-  begin
-    simp only [forget_map_eq_coe, functor.comp_map, ring_hom.map_mul, pi.mul_apply],
-    dsimp [functor.sections] at ah bh,
-    rw [ah f, bh f],
-  end }
-
 -- We still don't have bundled subrings,
 -- so we need to convert the bundled sub-objects back to unbundled
 
 instance sections_submonoid' (F : J ⥤ Ring) :
   is_submonoid (F ⋙ forget Ring).sections :=
-(sections_submonoid F).is_submonoid
+(Mon.sections_submonoid (F ⋙ forget₂ Ring SemiRing ⋙ forget₂ SemiRing Mon)).is_submonoid
 
 instance sections_add_subgroup' (F : J ⥤ Ring) :
   is_add_subgroup (F ⋙ forget Ring).sections :=

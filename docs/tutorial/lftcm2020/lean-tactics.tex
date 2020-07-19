@@ -1,0 +1,114 @@
+\documentclass[a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+\usepackage[urw-garamond,expert,
+uppercase=upright,greeklowercase=upright]{mathdesign}
+\usepackage[osf,swashQ]{garamondx}
+
+\usepackage{microtype}
+
+\usepackage[textwidth=17cm, textheight=27cm]{geometry}
+\usepackage{booktabs, xspace}
+% \usepackage{amsmath,amsfonts,amssymb}
+
+\newcommand{\lean}[1]{{\tt #1}}
+\newcommand{\nv}{\textit{new\_name} }
+\newcommand{\nom}{\textit{name} }
+\newcommand{\expr}{\textit{expr} }
+\newcommand{\fait}{\textit{fact} }
+\newcommand{\hyp}{\textit{hyp}\xspace}
+
+
+\begin{document}
+\pagestyle{empty}
+\begin{center}
+ \large\textsc{Lean Cheatsheet}
+\end{center}
+
+In the following table,
+\nom always refers to a name already known to Lean
+while \nv refers to a new name provided by the user.
+When one of these words appears twice in the same line,
+the appearances do not designate the same name.
+\expr designates an expression,
+for example the name of an object in the context,
+an arithmetic expression that is a function of such objects,
+a hypothesis in the context,
+or a lemma applied to any of these.
+
+\begin{center}
+\setlength\tabcolsep{1.4cm}
+\def\arraystretch{1.5}
+\begin{tabular}{@{}lll@{}}
+  \toprule
+  Logical symbol & Appears in goal & Appears in hypothesis \\
+  \midrule
+ $\forall$ (for all) & \lean{intro} \nv & \lean{apply} \expr or \lean{specialize} \nom \expr  \\
+ $\exists$ (there exists) & \lean{use} \expr & \lean{cases} \expr \lean{with} \nv \nv \\
+ $\to$ (implies) & \lean{intro} \nv & \lean{apply} \expr or \lean{specialize} \nom \expr \\
+ $\leftrightarrow$ (if and only if) & \lean{split}  & \lean{rw} \expr or \lean{rw ←} \expr\\
+ $\land$ (and) & \lean{split} & \lean{cases} \expr \lean{with} \nv \nv \\
+ $\lor$ (or) & \lean{left} or \lean{right} & \lean{cases} \expr \lean{with} \nv \nv \\
+ $\lnot$ (not) & \lean{intro} \nv & \lean{apply} \expr or \lean{specialize} \nom \expr  \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+\emph{Note}:
+Traditional paper-based practice uses $\Rightarrow$ for implication,
+uses $\iff$ for equivalence,
+and does not use a notation for ``and'', ``or'' and ``not''.
+
+\medskip
+\noindent
+In the left-hand column of the following table,
+the parts in brackets are optional.
+The effect of these parts is also in brackets in the right-hand column.
+It is almost always a matter of specifying that a manipulation,
+which acts by default on the goal,
+must be performed rather on a certain hypothesis named \hyp.
+
+\begin{center}
+\setlength\tabcolsep{.5cm}
+\def\arraystretch{1.6}
+\begin{tabular}{@{}lp{10cm}@{}}
+  \toprule
+  Tactic & Effect \\
+  \midrule
+  \lean{exact} \expr & asserts that the goal can be satisfied by \expr \\
+  \lean{have} \nv : \fait & introduces a name \nv asserting that \fait is provable \\
+  \lean{unfold} \nom (\lean{at} \hyp) & unfold the definition of \nom in the goal
+  (or in the hypothesis \hyp) \\
+  \lean{change} \expr (\lean{at} \hyp) & transform the goal (or the hypothesis \hyp)
+  into the expression \expr to which it is equivalent by definition \\
+  \lean{rw} (\lean{←}) \expr (\lean{at} \hyp) & in the goal (or in the
+  hypothesis \hyp), replace the left-hand side
+  (or the right-hand side, if \lean{←} is present)
+  of the equality or equivalence \expr by the other side.
+  The expression to be replaced must appear explicitly,
+  one may use \lean{unfold} or \lean{change} to ensure this. \\
+  \lean{linarith} & prove the goal by a linear combination of hypotheses \\
+  \lean{ring} & prove the goal by combining the axioms of a commutative (semi)ring \\
+  \lean{library\_search} & search for a single existing lemma which closes the goal, also using local hypotheses. \\
+  \lean{choose} \nv \nv \lean{using} \expr &
+  given \expr : $\forall x, \exists y, P(x, y)$,
+  use the axiom of choice to produce a function $x \mapsto y(x)$ satisfying
+  $\forall x, P(x, y(x))$\\
+  \lean{exfalso} & apply the rule \emph{ex falso quod libet} \\
+  \lean{by\_contradiction} \nv & start a proof by contradiction,
+  using \nv as name for the hypothesis that is the negation of the goal \\
+  \lean{by\_cases} \nv : \expr & split the proof into two cases
+  depending on whether \expr is true or false,
+  using \nv as name for this hypothesis \\
+  \lean{contrapose} & transform a goal of the form \expr $\to$ \expr
+  into its contrapositive \\
+  \lean{push\_neg} (\lean{at} \hyp) & push negations in the goal
+  (or in the hypothesis \hyp) \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\end{document}

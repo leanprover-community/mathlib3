@@ -1,6 +1,6 @@
 import algebra.big_operators
 
-open_locale classical
+open_locale classical big_operators
 noncomputable theory
 
 universes u v
@@ -96,14 +96,11 @@ def right_fiber' (G:bigraph α β)(a:α): finset (α × β):=
 @[simp] lemma mem_left_fiber (G : bigraph α β) {b : β} {x : α}:
 x ∈ (left_fiber G b) ↔ x ∈ G.A ∧ G.E x b := by { unfold left_fiber, simp }
 
-
 @[simp] lemma mem_right_fiber (G : bigraph α β) {a : α} {x : β} :
 x ∈ (right_fiber G a) ↔ x ∈ G.B ∧ G.E a x := by { unfold right_fiber, simp }
 
-
 @[simp] lemma left_fiber_swap (G : bigraph α β) {a : α} :
 left_fiber G.swap a=right_fiber G a := by { ext, simp }
-
 
 @[simp] lemma right_fiber_swap (G : bigraph α β) {b : β} :
 right_fiber G.swap b = left_fiber G b := by { ext, simp }
@@ -169,23 +166,14 @@ end
 theorem sum_left_fibers (G:bigraph α β):
   card_edges G = G.B.sum(λ (b1:β), (left_fiber G b1).card):=
 begin
-  rw card_left_fiber_fun_eq_',
-  change (edges G).card = G.B.sum(λ (b1:β), (left_fiber' G b1).card),
-  rw edges_eq_bind_left_fibers,
-  apply finset.card_bind,
-  intros x hx y hy neq,
-  apply disjoint_left_fiber' G neq,
+  rw [card_left_fiber_fun_eq_', card_edges, edges_eq_bind_left_fibers],
+  apply finset.card_bind, intros _ _ _ _ h,
+  exact disjoint_left_fiber' G h,
 end
 
 theorem sum_right_fibers (G : bigraph α β):
   card_edges G = G.A.sum(λ (a1:α), (right_fiber G a1).card):=
-begin
-  transitivity G.A.sum(λ (a1:α), (left_fiber G.swap a1).card),
-  transitivity card_edges G.swap,
-  rw card_edges_symm,
-  apply sum_left_fibers,
-  simp,
-end
+by { simp_rw ← left_fiber_swap, rw ← card_edges_symm, apply sum_left_fibers }
 
 def left_regular (d : ℕ) : Prop :=
   ∀ b ∈ G.B, (left_fiber G b).card = d
@@ -213,95 +201,69 @@ by simp [left_unique, right_unique]
 
 @[simp] lemma left_unique_one_reg : left_unique G ↔ left_regular G 1 :=
 begin
-  transitivity ∀ b:β, b ∈ G.B → ∃!(a:α), a ∈ left_fiber G b,
-  unfold left_unique,
+  rw left_unique, apply forall_congr,
+  intro, apply imp_congr_right,
+  intro, rw [finset.card_eq_one, finset.singleton_iff_unique_mem],
   simp,
-  unfold left_regular,
-  apply forall_congr,
-  intro x,
-  apply imp_congr_right,
-  intro hx,
-  rw finset.card_eq_one,
-  rw finset.singleton_iff_unique_mem,
 end
 
 @[simp] lemma right_unique_one_reg : right_unique G ↔ right_regular G 1 :=
-begin
-  rw ← left_unique_swap,
-  rw ← left_regular_swap,
-  apply left_unique_one_reg,
-end
+by rw [← left_unique_swap, ← left_regular_swap]; apply left_unique_one_reg
 
 theorem card_edges_of_lreg {l : ℕ} (hl : left_regular G l) : card_edges G = l * G.B.card:=
-by {rwa [sum_left_fibers, mul_comm l, finset.sum_const_nat]}
+by rwa [sum_left_fibers, mul_comm l, finset.sum_const_nat]
+
+theorem card_edges_of_rreg {r : ℕ} (hr : right_regular G r) : card_edges G = r * G.A.card :=
+by rwa [sum_right_fibers, mul_comm r, finset.sum_const_nat]
 
 theorem card_edges_of_lunique :
   left_unique G → card_edges G = G.B.card :=
 begin
-  rw left_unique_one_reg,
-  intro h,
-  have h1 := card_edges_of_lreg G h,
-  simp at h1,
-  apply h1,
+  rw left_unique_one_reg, intro h,
+  convert card_edges_of_lreg _ h, simp,
 end
-
-theorem card_edges_of_rreg {r : ℕ} (hr : right_regular G r) : card_edges G = r * G.A.card :=
-by { rwa [sum_right_fibers, mul_comm r, finset.sum_const_nat] }
 
 theorem card_edges_of_runique : right_unique G → card_edges G = G.A.card :=
 begin
-  rw right_unique_one_reg,
-  intro h,
-  have h1 := card_edges_of_rreg G h,
-  simp at h1,
-  apply h1,
+  rw right_unique_one_reg, intro h,
+  convert card_edges_of_rreg _ h, simp,
 end
 
 theorem double_count_of_lreg_rreg {l r : ℕ} (hl : left_regular G l) (hr : right_regular G r) :
 r * G.A.card = l * G.B.card :=
-by { rwa [← card_edges_of_rreg _ hr, ← card_edges_of_lreg] }
+by rwa [← card_edges_of_rreg _ hr, ← card_edges_of_lreg]
 
 theorem card_eq_of_lunique_runique (hl : left_unique G) (hr : right_unique G ) :
 G.A.card = G.B.card :=
 begin
-  simp only [right_unique_one_reg, left_unique_one_reg] at hl hr,
-  have h := double_count_of_lreg_rreg _ hl hr,
-  revert h, simp,
+  rw right_unique_one_reg at hr, rw left_unique_one_reg at hl,
+  convert double_count_of_lreg_rreg _ hl hr; simp,
 end
 
-lemma edges_disjoint_of_eq_disj_eq {A : finset α} {B1 B2 : finset β} {E : α → β → Prop} :
-  disjoint B1 B2 → disjoint (edges ⟨A, B1, E⟩) (edges ⟨A, B2, E⟩) :=
+lemma edges_disjoint_of_eq_disj_eq {A : finset α} {B1 B2 : finset β} (h : disjoint B1 B2) {E : α → β → Prop} :
+  disjoint (edges ⟨A, B1, E⟩) (edges ⟨A, B2, E⟩) :=
 begin
-  intro disj,
-  change disjoint (finset.filter (function.uncurry E)(A.product B1)) (finset.filter (function.uncurry E)(A.product B2)),
-  apply finset.disjoint_filter_filter,
+  apply finset.disjoint_filter_filter, --dsimp,
   rw finset.disjoint_iff_ne,
-  intros a ha b hb,
-  intro contra,
+  rintros a _ _ _ rfl,
   rw finset.mem_product at *,
-  rw finset.disjoint_iff_ne at disj,
-  apply disj a.snd ha.right b.snd hb.right,
-  rw contra,
+  rw finset.disjoint_iff_ne at h,
+  apply h a.snd _ a.snd; tauto,
 end
 
 lemma edges_union_of_eq_union_eq {A : finset α} {B1 B2 : finset β} {E : α→ β→ Prop} :
-  edges ⟨ A, B1 ∪ B2, E⟩=edges ⟨A, B1, E⟩ ∪ edges ⟨A, B2, E⟩ :=
+  edges ⟨ A, B1 ∪ B2, E⟩ = edges ⟨A, B1, E⟩ ∪ edges ⟨A, B2, E⟩ :=
 begin
-  change finset.filter (function.uncurry E)(A.product (B1 ∪ B2)) = finset.filter (function.uncurry E)(A.product B1) ∪ finset.filter (function.uncurry E)(A.product B2),
-  rw ← finset.filter_union,
-  refine congr rfl _,
-  ext,
-  rw finset.mem_union,
-  repeat {rw finset.mem_product},
-  rw finset.mem_union,
-  tauto,
+  erw ← finset.filter_union,
+  suffices : A.product (B1 ∪ B2) = A.product B1 ∪ A.product B2,
+  { rw ← this, refl },
+  ext, simp [ finset.mem_union, finset.mem_product]; tauto,
 end
 
 theorem card_edges_add_of_eq_disj_union_eq {A : finset α} {B1 B2 : finset β} (h : disjoint B1 B2) (E : α → β → Prop) :
 card_edges ⟨A, B1 ∪ B2, E⟩ = card_edges ⟨A, B1, E⟩ + card_edges ⟨A, B2, E⟩ :=
 begin
-  unfold card_edges,
-  rw edges_union_of_eq_union_eq,
+  rw [card_edges, edges_union_of_eq_union_eq],
   apply finset.card_disjoint_union,
   exact edges_disjoint_of_eq_disj_eq h,
 end

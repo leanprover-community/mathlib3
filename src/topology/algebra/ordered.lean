@@ -1053,7 +1053,7 @@ have ∀a'∈s, ¬ b < f a',
       lt_irrefl _ (lt_of_le_of_lt ha'x hxa')),
 and.intro
   (assume b' ⟨a', ha', h_eq⟩, h_eq ▸ not_lt.1 $ this _ ha')
-  (assume b' hb', by haveI := hnbot; exact (le_of_tendsto hb $
+  (assume b' hb', by exactI (le_of_tendsto hb $
       mem_inf_sets_of_right $ assume x hx, hb' $ mem_image_of_mem _ hx))
 
 lemma is_glb_of_is_glb_of_tendsto {f : α → β} {s : set α} {a : α} {b : β}

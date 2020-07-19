@@ -36,6 +36,20 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
     set_basic_attribute `_refl_lemma decl_name tt,
     set_basic_attribute `simp decl_name tt
 
+/-- Get the projections of a structure used by simps. Returns a list of triples
+  (projection expression, projection name, corresponding right-hand-side) -/
+meta def simps_get_projection_exprs (e : environment) (tgt : expr)
+  (rhs : expr) : tactic $ list $ expr × name × expr := do
+  let str := tgt.get_app_fn.const_name,
+  let params := get_app_args tgt, -- the parameters of the structure
+  projs ← e.structure_fields_full str,
+  guard ((get_app_args rhs).take params.length = params) <|> fail "unreachable code (1)",
+  let rhs_args := (get_app_args rhs).drop params.length, -- the fields of the structure
+  guard (rhs_args.length = projs.length) <|> fail "unreachable code (2)",
+  -- cannot use `mk_app` here, since the resulting application is still a function.
+  proj_exprs ← projs.mmap $ λ proj, mk_mapp proj $ params.map some,
+  return $ proj_exprs.zip $ projs.zip rhs_args
+
 /-- Derive lemmas specifying the projections of the declaration.
   If `todo` is non-empty, it will generate exactly the names in `todo`. -/
 meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : string)
@@ -52,14 +66,11 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
     recursively continue if the nested structure is `prod` or `pprod`, unless projections are
     specified manually. -/
   if e.is_structure str ∧ ¬(todo = [] ∧ str ∈ [`prod, `pprod] ∧ ¬must_be_str) then do
-    projs ← e.structure_fields_full str,
     [intro] ← return $ e.constructors_of str | fail "unreachable code (3)",
-    let params := get_app_args tgt, -- the parameters of the structure
     if is_constant_of (get_app_fn rhs_ap) intro then do -- if the value is a constructor application
-      guard ((get_app_args rhs_ap).take params.length = params) <|> fail "unreachable code (1)",
-      let rhs_args := (get_app_args rhs_ap).drop params.length, -- the fields of the structure
-      guard (rhs_args.length = projs.length) <|> fail "unreachable code (2)",
-      let pairs := projs.zip rhs_args,
+      tuples ← simps_get_projection_exprs e tgt rhs_ap,
+      let projs := tuples.map $ λ x, x.2.1,
+      let pairs := tuples.map $ λ x, x.2,
       eta ← expr.is_eta_expansion_aux rhs_ap pairs, -- check whether `rhs_ap` is an eta-expansion
       let rhs_ap := eta.lhoare rhs_ap, -- eta-reduce `rhs_ap`
       /- we want to generate the current projection if it is in `todo` or when `rhs_ap` was an
@@ -77,14 +88,13 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
             simp_lemma := nm.append_suffix $ suffix ++ x,
             needed_proj := (x.split_on '_').tail.head in
           fail format!"Invalid simp-lemma {simp_lemma}. Projection {needed_proj} doesn't exist.",
-        pairs.mmap' $ λ ⟨proj, new_rhs⟩, do
+        tuples.mmap' $ λ ⟨proj_expr, proj, new_rhs⟩, do
           new_type ← infer_type new_rhs,
           let new_todo := todo.filter_map $ λ x, string.get_rest x $ "_" ++ proj.last,
           b ← is_prop new_type,
           -- we only continue with this field if it is non-propositional or mentioned in todo
           when ((¬ b ∧ todo = []) ∨ (todo ≠ [] ∧ new_todo ≠ [])) $ do
-            -- cannot use `mk_app` here, since the resulting application might still be a function.
-            new_lhs ← mk_mapp proj $ (params ++ [lhs_ap]).map some,
+            let new_lhs := proj_expr.app lhs_ap,
             let new_suffix := if short_nm then "_" ++ proj.last else
               suffix ++ "_" ++ proj.last,
             simps_add_projections e nm new_suffix new_type new_lhs new_rhs new_args univs
@@ -104,8 +114,7 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
 
 /-- `simps_tac` derives simp-lemmas for all (nested) non-Prop projections of the declaration.
   If `todo` is non-empty, it will generate exactly the names in `todo`.
-  If `short_nm` is true, the generated names will only use the last projection name.
-  -/
+  If `short_nm` is true, the generated names will only use the last projection name. -/
 meta def simps_tac (nm : name) (add_simp : bool) (short_nm : bool := ff)
   (todo : list string := []) : tactic unit := do
   e ← get_env,

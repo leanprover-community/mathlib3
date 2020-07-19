@@ -552,7 +552,7 @@ by rw [nhds_induced, filter.map_comap h]
 lemma closure_induced [t : topological_space β] {f : α → β} {a : α} {s : set α}
   (hf : ∀x y, f x = f y → x = y) :
   a ∈ @closure α (topological_space.induced f t) s ↔ f a ∈ closure (f '' s) :=
-have comap f (𝓝 (f a) ⊓ 𝓟 (f '' s)) ≠ ⊥ ↔ 𝓝 (f a) ⊓ 𝓟 (f '' s) ≠ ⊥,
+have ne_bot (comap f (𝓝 (f a) ⊓ 𝓟 (f '' s))) ↔ ne_bot (𝓝 (f a) ⊓ 𝓟 (f '' s)),
   from ⟨assume h₁ h₂, h₁ $ h₂.symm ▸ comap_bot,
     assume h,
     forall_sets_nonempty_iff_ne_bot.mp $
@@ -561,7 +561,7 @@ have comap f (𝓝 (f a) ⊓ 𝓟 (f '' s)) ≠ ⊥ ↔ 𝓝 (f a) ⊓ 𝓟 (f '
         from mem_inf_sets_of_right $ by simp [subset.refl],
       have s₂ ∩ f '' s ∈ 𝓝 (f a) ⊓ 𝓟 (f '' s),
         from inter_mem_sets hs₂ this,
-      let ⟨b, hb₁, ⟨a, ha, ha₂⟩⟩ := nonempty_of_mem_sets h this in
+      let ⟨b, hb₁, ⟨a, ha, ha₂⟩⟩ := h.nonempty_of_mem this in
       ⟨_, hs $ by rwa [←ha₂] at hb₁⟩⟩,
 calc a ∈ @closure α (topological_space.induced f t) s
     ↔ (@nhds α (topological_space.induced f t) a) ⊓ 𝓟 s ≠ ⊥ : by rw [closure_eq_cluster_pts]; refl

@@ -282,7 +282,7 @@ class category_struct (obj : Type u) extends has_hom.{v} obj : Type (max u (v+1)
 
 end prio
 
-set_option trace.app_builder true
+-- set_option trace.app_builder true
 -- test the universe levels in the category theory library
 @[simps] def types : category_struct (Type u) :=
 { hom     := λ a b, (a → b),

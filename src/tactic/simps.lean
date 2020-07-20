@@ -18,7 +18,8 @@ structures, projections, simp, simplifier, generates declarations
 open tactic expr
 
 setup_tactic_parser
-@[derive has_reflect] structure simps_cfg :=
+/-- configuration for the `@[simps]` attribute -/
+@[derive [has_reflect, inhabited]] structure simps_cfg :=
 -- give the generated lemmas the `@[simp]` attribute
 (simp_attr    := tt)
 -- give the generated lemmas a shorter name
@@ -112,16 +113,17 @@ meta def simps_get_raw_projections (e : environment) (str : name) :
         -- trace e_inst.to_string,
         raw_expr ← mk_mapp proj_nm [e_str, e_inst],
         return (raw_expr, raw_expr.lambdas args)),
-      trace raw_expr.to_string,
-      infer_type raw_expr >>= trace,
+      -- trace raw_expr.to_string,
+      -- infer_type raw_expr >>= trace,
       raw_expr_whnf ← whnf raw_expr.binding_body,
-      trace raw_expr_whnf.to_string,
+      -- trace raw_expr_whnf.to_string,
       let relevant_proj := raw_expr_whnf.get_app_fn.const_name,
       guard (projs.any (= relevant_proj)),
       let pos := projs.find_index (= relevant_proj),
+      when_tracing `simps.verbose trace!"        > using function {proj_nm} instead of the default projection {relevant_proj.last}.",
       return $ raw_exprs.update_nth pos lambda_raw_expr) <|> return raw_exprs) raw_exprs,
-    when_tracing `simps.verbose trace!"[simps] > {raw_exprs}",
-    when_tracing `simps.verbose trace!"[simps] > {raw_exprs.map expr.to_string}",
+    when_tracing `simps.verbose trace!"[simps] > resulting projections:\n        > {raw_exprs}",
+    -- when_tracing `simps.verbose trace!"[simps] > {raw_exprs.map expr.to_string}",
     simps_str_attr.set str (raw_univs, raw_exprs) tt,
     return (raw_univs, raw_exprs)
 

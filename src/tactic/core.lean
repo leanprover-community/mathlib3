@@ -1045,8 +1045,8 @@ meta def dependent_pose_core (l : list (expr × expr)) : tactic unit := do
 
 /-- Like `mk_local_pis` but translating into weak head normal form before checking if it is a `Π`.
 -/
-meta def mk_local_pis_whnf : expr → tactic (list expr × expr) | e := do
-(expr.pi n bi d b) ← whnf e | return ([], e),
+meta def mk_local_pis_whnf (e : expr) (md := semireducible) : tactic (list expr × expr) := do
+(expr.pi n bi d b) ← whnf e md | return ([], e),
 p ← mk_local' n bi d,
 (ps, r) ← mk_local_pis (expr.instantiate_var b p),
 return ((p :: ps), r)

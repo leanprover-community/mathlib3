@@ -16,10 +16,6 @@ Then `[L:F] = [L:K] [K:F]` where `[E₁:E₂]` means the `E₂`-dimension of `E�
 
 In fact we generalize it to algebras, where `L` is not necessarily a field, but just a `K`-algebra.
 
-The main lemma is this: if `{bi | i ∈ I}` is an `F`-basis of `K` and `{cj | j ∈ J}` is a `K`-basis
-of `L`, then `{bi cj | i ∈ I, j ∈ J}` is an `F`-basis of `L`. This statement does not require the
-base rings to be a field, so we also generalize the lemma to rings in this file.
-
 ## Implementation notes
 
 We prove two versions, since there are two notions of dimensions: `vector_space.dim` which gives
@@ -34,82 +30,6 @@ tower law
 
 universes u v w u₁ v₁ w₁
 open_locale classical big_operators
-
-section semiring
-
-variables {R : Type u} {S : Type v} {A : Type w}
-variables [comm_semiring R] [comm_semiring S] [semiring A]
-variables [algebra R S] [algebra S A] [algebra R A] [is_algebra_tower R S A]
-
-namespace submodule
-
-open is_algebra_tower
-
-theorem smul_mem_span_smul_of_mem {s : set S} {t : set A} {k : S} (hks : k ∈ span R s)
-  {x : A} (hx : x ∈ t) : k • x ∈ span R (s • t) :=
-span_induction hks (λ c hc, subset_span $ set.mem_smul.2 ⟨c, x, hc, hx, rfl⟩)
-  (by { rw zero_smul, exact zero_mem _ })
-  (λ c₁ c₂ ih₁ ih₂, by { rw add_smul, exact add_mem _ ih₁ ih₂ })
-  (λ b c hc, by { rw is_algebra_tower.smul_assoc, exact smul_mem _ _ hc })
-
-theorem smul_mem_span_smul {s : set S} (hs : span R s = ⊤) {t : set A} {k : S}
-  {x : A} (hx : x ∈ span R t) :
-  k • x ∈ span R (s • t) :=
-span_induction hx (λ x hx, smul_mem_span_smul_of_mem (hs.symm ▸ mem_top) hx)
-  (by { rw smul_zero, exact zero_mem _ })
-  (λ x y ihx ihy, by { rw smul_add, exact add_mem _ ihx ihy })
-  (λ c x hx, smul_left_comm c k x ▸ smul_mem _ _ hx)
-
-theorem smul_mem_span_smul' {s : set S} (hs : span R s = ⊤) {t : set A} {k : S}
-  {x : A} (hx : x ∈ span R (s • t)) :
-  k • x ∈ span R (s • t) :=
-span_induction hx (λ x hx, let ⟨p, q, hp, hq, hpq⟩ := set.mem_smul.1 hx in
-    by { rw [← hpq, smul_smul], exact smul_mem_span_smul_of_mem (hs.symm ▸ mem_top) hq })
-  (by { rw smul_zero, exact zero_mem _ })
-  (λ x y ihx ihy, by { rw smul_add, exact add_mem _ ihx ihy })
-  (λ c x hx, smul_left_comm c k x ▸ smul_mem _ _ hx)
-
-theorem span_smul {s : set S} (hs : span R s = ⊤) (t : set A) :
-  span R (s • t) = (span S t).restrict_scalars' R :=
-le_antisymm (span_le.2 $ λ x hx, let ⟨p, q, hps, hqt, hpqx⟩ := set.mem_smul.1 hx in
-  hpqx ▸ (span S t).smul_mem p (subset_span hqt)) $
-λ p hp, span_induction hp (λ x hx, one_smul S x ▸ smul_mem_span_smul hs (subset_span hx))
-  (zero_mem _)
-  (λ _ _, add_mem _)
-  (λ k x hx, smul_mem_span_smul' hs hx)
-
-end submodule
-
-end semiring
-
-section ring
-
-variables {R : Type u} {S : Type v} {A : Type w}
-variables [comm_ring R] [comm_ring S] [ring A]
-variables [algebra R S] [algebra S A] [algebra R A] [is_algebra_tower R S A]
-
-theorem linear_independent_smul {ι : Type v₁} {b : ι → S} {κ : Type w₁} {c : κ → A}
-  (hb : linear_independent R b) (hc : linear_independent S c) :
-  linear_independent R (λ p : ι × κ, b p.1 • c p.2) :=
-begin
-  rw linear_independent_iff' at hb hc, rw linear_independent_iff'', rintros s g hg hsg ⟨i, k⟩,
-  by_cases hik : (i, k) ∈ s,
-  { have h1 : ∑ i in (s.image prod.fst).product (s.image prod.snd), g i • b i.1 • c i.2 = 0,
-    { rw ← hsg, exact (finset.sum_subset finset.subset_product $ λ p _ hp,
-        show g p • b p.1 • c p.2 = 0, by rw [hg p hp, zero_smul]).symm },
-    rw [finset.sum_product, finset.sum_comm] at h1,
-    simp_rw [← is_algebra_tower.smul_assoc, ← finset.sum_smul] at h1,
-    exact hb _ _ (hc _ _ h1 k (finset.mem_image_of_mem _ hik)) i (finset.mem_image_of_mem _ hik) },
-  exact hg _ hik
-end
-
-theorem is_basis.smul {ι : Type v₁} {b : ι → S} {κ : Type w₁} {c : κ → A}
-  (hb : is_basis R b) (hc : is_basis S c) : is_basis R (λ p : ι × κ, b p.1 • c p.2) :=
-⟨linear_independent_smul hb.1 hc.1,
-by rw [← set.range_smul_range, submodule.span_smul hb.2, ← submodule.restrict_scalars'_top R S A,
-    submodule.restrict_scalars'_inj, hc.2]⟩
-
-end ring
 
 section field
 

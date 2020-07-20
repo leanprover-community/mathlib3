@@ -77,4 +77,3 @@ def regular_graph (d : ℕ) : Prop :=
 
 end finite
 end simple_graph
-#lint

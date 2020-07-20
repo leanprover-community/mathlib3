@@ -443,11 +443,7 @@ begin
           exact nat.div_lt_self (by linarith) (by linarith),
         },
         { rw nat.succ_div_of_not_dvd hdvd,
-          refl,
-        },
-      },
-    },
-  },
+          refl } } } }
 end
 
 lemma le_digits_len_le (b n m : ℕ) (h : n ≤ m) : (digits b n).length ≤ (digits b m).length :=

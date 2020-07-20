@@ -3,7 +3,7 @@
 Authors: Johan Commelin
 -/
 
-import algebra.inj_surj
+-- import algebra.inj_surj
 import data.nat.choose
 import data.int.gcd
 import data.mv_polynomial
@@ -66,7 +66,7 @@ It is defined as:
 
 `∑_{i ≤ n} p^i X_i^{p^{n-i}} ∈ R[X_0, X_1, X_2, …]`. -/
 noncomputable def witt_polynomial (n : ℕ) : mv_polynomial ℕ R :=
-∑ i in range (n+1), C (p^i) * X i ^ (p^(n-i))
+∑ i in range (n+1), C (p^i : R) * X i ^ (p^(n-i))
 
 /-! We set up notation locally to this file, to keep statements short and comprehensible.
 This allows us to simply write `W n` or `W_ ℤ n`. -/
@@ -91,7 +91,7 @@ begin
   apply finset.sum_congr rfl,
   intros i hi,
   rw [ring_hom.map_mul, map_hom_C f, ring_hom.map_pow,
-      ring_hom.map_nat_cast, ring_hom.map_pow, map_hom_X],
+      ring_hom.map_nat_cast, ring_hom.map_pow, ring_hom.map_pow, map_hom_X],
 end
 
 -- no longer used...
@@ -103,8 +103,11 @@ variables (R)
 
 lemma aeval_witt_polynomial {A : Type*} [comm_ring A] [algebra R A] (f : ℕ → A) (n : ℕ) :
   aeval f (W_ R n) = ∑ i in range (n+1), p^i * (f i) ^ (p ^ (n-i)) :=
-by simp only [witt_polynomial, alg_hom.map_sum, aeval_C,
-    ring_hom.map_nat_cast, alg_hom.map_pow, C_pow, aeval_X, alg_hom.map_mul]
+by { -- clean this up
+  simp only [witt_polynomial, alg_hom.map_sum, aeval_C, ring_hom.map_nat_cast, alg_hom.map_pow,
+    C_pow, aeval_X, alg_hom.map_mul,
+ ring_hom.map_nat_cast, alg_hom.map_pow, C_pow, aeval_X, alg_hom.map_mul],
+ simp only [alg_hom.map_nat_cast], }
 
 end
 
@@ -128,11 +131,11 @@ This fact is recorded in `from_W_to_X_basis_X_in_terms_of_W`. -/
 noncomputable def X_in_terms_of_W [invertible (p : R)] :
   ℕ → mv_polynomial ℕ R
 | n := (X n - (∑ i : fin n,
-  have _ := i.2, (C (p^(i : ℕ)) * (X_in_terms_of_W i)^(p^(n-i))))) * C (⅟p ^ n)
+  have _ := i.2, (C (p^(i : ℕ) : R) * (X_in_terms_of_W i)^(p^(n-i))))) * C (⅟p ^ n : R)
 
 lemma X_in_terms_of_W_eq [invertible (p : R)] {n : ℕ} :
   X_in_terms_of_W p R n =
-  (X n - (∑ i in range n, C (p^i) * X_in_terms_of_W p R i ^ p ^ (n - i))) * C (⅟p ^ n) :=
+  (X n - (∑ i in range n, C (p^i : R) * X_in_terms_of_W p R i ^ p ^ (n - i))) * C (⅟p ^ n : R) :=
 by { rw [X_in_terms_of_W, ← fin.sum_univ_eq_sum_range], refl }
 
 /-- View a polynomial written in terms of the standard basis
@@ -154,7 +157,7 @@ begin
   clear n, intros n H,
   rw [X_in_terms_of_W_eq],
   simp only [alg_hom.map_mul, alg_hom.map_sub, alg_hom_C, from_W_to_X_basis_X p R n, alg_hom.map_sum],
-  rw [finset.sum_congr rfl, (_ : W_ R n - ∑ i in range n, C (p^i) * (X i)^p^(n-i) = C (p^n) * X n)],
+  rw [finset.sum_congr rfl, (_ : W_ R n - ∑ i in range n, C (p^i : R) * (X i)^p^(n-i) = C (p^n : R) * X n)],
   { rw [mul_right_comm, ← C_mul, ← mul_pow, mul_inv_of_self, one_pow, C_1, one_mul] },
   { simp [witt_polynomial, nat.sub_self, finset.sum_range_succ] },
   { intros i h,
@@ -172,8 +175,8 @@ begin
 end
 
 lemma X_in_terms_of_W_aux [invertible (p : R)] (n : ℕ) :
-  X_in_terms_of_W p R n * C (p^n) =
-  X n - ∑ i in range n, C (p^i) * (X_in_terms_of_W p R i)^p^(n-i) :=
+  X_in_terms_of_W p R n * C (p^n : R) =
+  X n - ∑ i in range n, C (p^i : R) * (X_in_terms_of_W p R i)^p^(n-i) :=
 by rw [X_in_terms_of_W_eq, mul_assoc, ← C_mul, ← mul_pow, inv_of_mul_self, one_pow, C_1, mul_one]
 
 lemma from_X_to_W_basis_witt_polynomial [invertible (p : R)] (n : ℕ) :
@@ -263,9 +266,9 @@ begin
 end
 
 lemma witt_structure_rat_rec_aux (Φ : mv_polynomial idx ℚ) (n) :
-  (witt_structure_rat p Φ n) * C (p^n) =
+  (witt_structure_rat p Φ n) * C (p^n : ℚ) =
   ((aeval (λ b, (rename_hom (λ i, (b,i)) (W_ ℚ n))) Φ)) -
-  ∑ i in range n, C (p^i) * (witt_structure_rat p Φ i)^p^(n-i) :=
+  ∑ i in range n, C (p^i : ℚ) * (witt_structure_rat p Φ i)^p^(n-i) :=
 begin
   have := X_in_terms_of_W_aux p ℚ n,
   replace := congr_arg (aeval (λ k : ℕ, (aeval (λ b, (rename_hom (λ i, (b,i)) (W_ ℚ k)))) Φ)) this,
@@ -280,9 +283,9 @@ begin
 end
 
 lemma witt_structure_rat_rec (Φ : mv_polynomial idx ℚ) (n) :
-  (witt_structure_rat p Φ n) = C (1/p^n) *
+  (witt_structure_rat p Φ n) = C (1/p^n : ℚ) *
   (aeval (λ b, (rename_hom (λ i, (b,i)) (W_ ℚ n))) Φ -
-  ∑ i in range n, C (p^i) * (witt_structure_rat p Φ i)^p^(n-i)) :=
+  ∑ i in range n, C (p^i : ℚ) * (witt_structure_rat p Φ i)^p^(n-i)) :=
 begin
   rw [← witt_structure_rat_rec_aux p Φ n, mul_comm, mul_assoc,
       ← C_mul, mul_one_div_cancel, C_1, mul_one],
@@ -317,10 +320,10 @@ lemma foo' (Φ : mv_polynomial idx ℤ) (n : ℕ)
     witt_structure_rat p (map_hom (int.cast_ring_hom ℚ) Φ) m) :
   map_hom (int.cast_ring_hom ℚ)
     (((aeval (λ b, (rename_hom (λ i, (b,i)) (W_ ℤ n)))) Φ) -
-      (∑ i in range n, C (p^i) * (witt_structure_int p Φ i)^p^(n-i))) =
+      (∑ i in range n, C (p^i : ℤ) * (witt_structure_int p Φ i)^p^(n-i))) =
   aeval (λ b, (rename_hom (λ i, (b,i)) (W_ ℚ n)))
    (map_hom (int.cast_ring_hom ℚ) Φ) -
-  (∑ i in range n, C (p^i) * (witt_structure_rat p (map_hom (int.cast_ring_hom ℚ) Φ) i)^p^(n-i)) :=
+  (∑ i in range n, C (p^i : ℚ) * (witt_structure_rat p (map_hom (int.cast_ring_hom ℚ) Φ) i)^p^(n-i)) :=
 begin
   rw [ring_hom.map_sub, ring_hom.map_sum],
   apply sub_congr,
@@ -333,7 +336,8 @@ begin
     rw finset.mem_range at hi,
     specialize IH i hi,
     simp only [IH, int.cast_coe_nat, ring_hom.eq_int_cast, C_pow,
-      ring_hom.map_pow, map_hom_C, ring_hom.map_mul], }
+      ring_hom.map_pow, map_hom_C, ring_hom.map_mul],
+    simp only [ring_hom.map_nat_cast], }
 end
 
 @[simp] lemma witt_polynomial_zmod_self (n : ℕ) :
@@ -400,6 +404,10 @@ begin
     rw rat.coe_int_num n }
 end
 
+lemma mv_polynomial.algebra_map_eq_C (r : R) :
+  algebra_map R (mv_polynomial σ R) r = C r :=
+rfl
+
 lemma blur' (Φ : mv_polynomial idx ℤ) (n : ℕ)
   (IH : ∀ m : ℕ, m < (n + 1) →
     map_hom (int.cast_ring_hom ℚ) (witt_structure_int p Φ m) =
@@ -410,9 +418,8 @@ begin
   have aux := λ x, aeval_X ℤ _ (witt_structure_int p Φ) x,
   have aux₂ : ∀ n : ℕ, (algebra_map ℚ (mv_polynomial (idx × ℕ) ℚ)) (p ^ n) =
     map_hom (int.cast_ring_hom ℚ) (aeval (witt_structure_int p Φ) (C (p ^ n : ℤ))),
-  { intro n, rw [map_aeval, eval₂_hom_C, ring_hom.eq_int_cast],
-    show C (p ^ n : ℚ) = (p ^ n : ℤ),
-    rw [C_pow, C_eq_coe_nat], norm_cast },
+  { intro n, rw [map_aeval, eval₂_hom_C, ring_hom.eq_int_cast, mv_polynomial.algebra_map_eq_C],
+    rw [C_pow, C_eq_coe_nat], norm_cast, },
   have key := (witt_structure_rat_prop p (map_hom (int.cast_ring_hom ℚ) Φ) n).symm,
   conv_rhs at key
   { rw [witt_polynomial, alg_hom.map_sum],
@@ -494,7 +501,7 @@ begin
     intros k hk, rw finset.mem_range at hk,
     rw [← sub_eq_zero, ← ring_hom.map_sub, ← C_dvd_iff_zmod],
     rw [← int.nat_cast_eq_coe_nat, C_eq_coe_nat],
-    rw [← int.nat_cast_eq_coe_nat, C_pow, C_eq_coe_nat, ← mul_sub],
+    rw [← int.nat_cast_eq_coe_nat, C_eq_coe_nat, ← mul_sub],
     rw show p^(n+1) = p^k * p^(n-k+1),
     { rw ← nat.pow_add, congr' 1, omega },
     rw [nat.cast_mul, nat.cast_pow, nat.cast_pow],
@@ -811,21 +818,24 @@ local attribute [instance] mv_polynomial.invertible_rat_coe_nat
 variable (R)
 
 noncomputable def aux₁ : comm_ring (𝕎 p (mv_polynomial R ℚ)) :=
-comm_ring_of_injective (ghost_map)
+function.injective.comm_ring (ghost_map)
   (ghost_map.bijective_of_invertible p (mv_polynomial R ℚ)).1
   (ghost_map.zero) (ghost_map.one) (ghost_map.add) (ghost_map.mul) (ghost_map.neg)
 
 local attribute [instance] aux₁
 
 noncomputable def aux₂ : comm_ring (𝕎 p (mv_polynomial R ℤ)) :=
-comm_ring_of_injective (map $ mv_polynomial.map_hom (int.cast_ring_hom ℚ))
+function.injective.comm_ring (map $ mv_polynomial.map_hom (int.cast_ring_hom ℚ))
   (map_injective _ $ mv_polynomial.coe_int_rat_map_injective _)
   (map_zero _) (map_one _) (map_add _) (map_mul _) (map_neg _)
 
 local attribute [instance] aux₂
 
+-- the next instance is broken because of a bug in mathlib
+-- I've already made a PR to fix it.
+
 noncomputable instance : comm_ring (𝕎 p R) :=
-comm_ring_of_surjective
+function.surjective.comm_ring
   (map $ mv_polynomial.counit _) (map_surjective _ $ counit_surjective _)
   (map_zero _) (map_one _) (map_add _) (map_mul _) (map_neg _)
 

@@ -1,6 +1,6 @@
 -- this should all be moved
 
-import algebra.inj_surj
+-- import algebra.inj_surj
 import data.nat.choose
 import data.int.gcd
 import data.mv_polynomial
@@ -44,7 +44,7 @@ lemma alg_hom_ext {σ : Type*} (R : Type*) [comm_ring R]
   (f g : mv_polynomial σ R →ₐ[R] A)
   (hf : ∀ i : σ, f (X i) = g (X i)) : f = g :=
 begin
-  apply alg_hom.coe_ring_hom_inj,
+  apply alg_hom.coe_ring_hom_injective,
   apply ring_hom_ext,
   { intro r,
     calc f (C r) = algebra_map R A r : f.commutes r
@@ -326,7 +326,8 @@ end mv_polynomial
 namespace mv_polynomial
 variables {σ : Type*} {τ : Type*} {υ : Type*} {R : Type*} [comm_ring R]
 
-/-- This is an example of a map of algebraic varieties over `R` for dummies. -/
+/-- This is an example of a map of “algebraic varieties for dummies” over `R`.
+(Not meant in a degrading way. Just that we don'y have any actual varieties in Lean yet.) -/
 noncomputable def comap (f : mv_polynomial σ R →ₐ[R] mv_polynomial τ R) :
   (τ → R) → (σ → R) :=
 λ x i, aeval x (f (X i))
@@ -375,9 +376,9 @@ noncomputable def comap_equiv (f : mv_polynomial σ R ≃ₐ[R] mv_polynomial τ
 { to_fun    := comap f,
   inv_fun   := comap f.symm,
   left_inv  := by { intro x, rw [← comap_comp_apply], apply comap_eq_id_of_eq_id, intro,
-    simp only [alg_equiv.coe_to_alg_equiv, alg_hom.comp_apply, alg_equiv.apply_symm_apply], },
+    simp only [alg_hom.id_apply, alg_equiv.comp_symm], },
   right_inv := by { intro x, rw [← comap_comp_apply], apply comap_eq_id_of_eq_id, intro,
-    simp only [alg_equiv.symm_apply_apply, alg_equiv.coe_to_alg_equiv, alg_hom.comp_apply], }, }
+  simp only [alg_hom.id_apply, alg_equiv.symm_comp] }, }
 
 @[simp] lemma comap_equiv_coe (f : mv_polynomial σ R ≃ₐ[R] mv_polynomial τ R) :
   (comap_equiv f : (τ → R) → (σ → R)) = comap f := rfl
@@ -392,7 +393,7 @@ begin
   rw ← alg_hom.comp_apply,
   suffices : (aeval g).comp (aeval f) = alg_hom.id _ _,
   { rw [this, alg_hom.id_apply], },
-  apply mv_polynomial.alg_hom_ext R _ _ (alg_hom.id _ _),
+  refine mv_polynomial.alg_hom_ext R _ _ (alg_hom.id _ _) _,
   intro i,
   rw [alg_hom.comp_apply, alg_hom.id_apply, aeval_X, h],
 end

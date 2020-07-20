@@ -276,14 +276,6 @@ meta def is_num_eq : expr → expr → bool
 | `(%%a/%%a') `(%%b/%%b') :=  a.is_num_eq b
 | _ _ := ff
 
-/-- Get the universe levels of a `const` expression -/
-meta def univ_levels : expr → list level
-| (const n ls) := ls
-| _            := []
-
-/-- Get the universe levels of a `const` expression -/
-meta def substs : expr → list expr → expr | e es := es.foldl expr.subst e
-
 end expr
 
 /-! ### Declarations about `expr` -/
@@ -312,6 +304,11 @@ meta def is_mvar : expr → bool
 meta def is_sort : expr → bool
 | (sort _) := tt
 | e         := ff
+
+/-- Get the universe levels of a `const` expression -/
+meta def univ_levels : expr → list level
+| (const n ls) := ls
+| _            := []
 
 /--
 Replace any metavariables in the expression with underscores, in preparation for printing
@@ -453,10 +450,15 @@ meta def instantiate_lambdas : list expr → expr → expr
 | (e'::es) (lam n bi t e) := instantiate_lambdas es (e.instantiate_var e')
 | _        e              := e
 
+/-- Repeatedly apply `expr.subst`. -/
+meta def substs : expr → list expr → expr | e es := es.foldl expr.subst e
+
 /-- `instantiate_lambdas_or_apps es e` instantiates lambdas in `e` by expressions from `es`.
 If the length of `es` is larger than the number of lambdas in `e`,
 then the term is applied to the remaining terms.
-Also reduces head let-expressions in `e`, including those after instantiating all lambdas. -/
+Also reduces head let-expressions in `e`, including those after instantiating all lambdas.
+
+This is very similar to `expr.substs`, but also reduces head let-expressions. -/
 meta def instantiate_lambdas_or_apps : list expr → expr → expr
 | (v::es) (lam n bi t b) := instantiate_lambdas_or_apps es $ b.instantiate_var v
 | es      (elet _ _ v b) := instantiate_lambdas_or_apps es $ b.instantiate_var v

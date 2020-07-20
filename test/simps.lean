@@ -277,15 +277,19 @@ set_option default_priority 100
 class category_struct (obj : Type u) extends has_hom.{v} obj : Type (max u (v+1)) :=
 (id       : Π X : obj, hom X X)
 (comp     : Π {X Y Z : obj}, (X ⟶ Y) → (Y ⟶ Z) → (X ⟶ Z))
-
 end prio
 
--- set_option trace.app_builder true
--- test the universe levels in the category theory library
-@[simps] def types : category_struct (Type u) :=
+notation `𝟙` := category_struct.id -- type as \b1
+infixr ` ≫ `:80 := category_struct.comp -- type as \gg
+
+@[simps] instance types : category_struct (Type u) :=
 { hom     := λ a b, (a → b),
   id      := λ a, id,
   comp    := λ _ _ _ f g, g ∘ f }
+
+example (X : Type u) : (X ⟶ X) = (X → X) := by simp
+example (X : Type u) : 𝟙 X = (λ x, x) := by { funext, simp }
+example (X Y Z : Type u) (f : X ⟶ Y) (g : Y ⟶ Z) : f ≫ g = g ∘ f := by { funext, simp }
 
 namespace coercing
 
@@ -313,7 +317,6 @@ instance has_coe_voo_str (n : ℕ) : has_coe_to_sort (voo_str n) := ⟨_, voo_st
 example : ↥voo = ℕ := by simp only [voo_c]
 example : voo.x = (3 : ℕ) := by simp only [voo_x]
 
-
 structure equiv2 (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
@@ -322,51 +325,84 @@ structure equiv2 (α : Sort*) (β : Sort*) :=
 
 instance {α β} : has_coe_to_fun $ equiv2 α β := ⟨_, equiv2.to_fun⟩
 
-def foos {α : Sort u} {β : Sort v} (f : equiv2 α β) (x : α) : f x = f.to_fun x := rfl
-set_option pp.all true
-#print foos
-
--- (@coe_fn.{(max 1 (imax u v) (imax v u)) (imax u v)} (coercing.equiv2.{u v} α β)
---        (@coercing.has_coe_to_fun.{u v} α β)
---        f
---        x)
 @[simps] protected def rfl2 {α} : equiv2 α α :=
-⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
+⟨λ x, x, λ x, x, λ x, rfl, λ x, rfl⟩
 
-#print equiv2
+example {α} (x : α) : coercing.rfl2 x = x := by rw [coercing.rfl2_to_fun]
+example {α} (x : α) : coercing.rfl2 x = x := by simp
+example {α} (x : α) : coercing.rfl2.inv_fun x = x := by simp
 
-@[simps] protected def symm2 {α β} (f : equiv2 α β) : equiv2 β α :=
-⟨f.inv_fun, f.to_fun, f.right_inv, f.left_inv⟩
+@[simps] protected def equiv2.symm2 {α β} (f : equiv2 α β) : equiv2 β α :=
+⟨f.inv_fun, f, f.right_inv, f.left_inv⟩
 
--- todo
--- set_option old_structure_cmd true
--- class semigroup (G : Type u) extends has_mul G :=
--- (mul_assoc : ∀ a b c : G, a * b * c = a * (b * c))
+example {α β} (f : equiv2 α β) (y : β) : f.symm2 y = f.inv_fun y := by simp
+example {α β} (f : equiv2 α β) (x : α) : f.symm2.inv_fun x = f x := by simp
 
--- def bazz {G : Type*} [semigroup G] (x y : G) : x * y = semigroup.mul x y := rfl
--- #print bazz
+section
+set_option old_structure_cmd true
+class semigroup (G : Type u) extends has_mul G :=
+(mul_assoc : ∀ a b c : G, a * b * c = a * (b * c))
+end
 
--- example {α : Type u} : unit :=
--- begin
---   do e ← get_local `α,
---   f ← mk_conditional_instance
---     ((expr.const `coercing.semigroup [level.param `u]).app e)
---     ((expr.const `has_mul [level.param `u]).app e),
---   -- infer_type f.2 >>= trace,
---   trace f
--- end
+@[simps] instance {α β} [semigroup α] [semigroup β] : semigroup (α × β) :=
+{ mul := λ x y, (x.1 * y.1, x.2 * y.2),
+  mul_assoc := by { intros, simp only [semigroup.mul_assoc], refl } }
 
--- set_option pp.all true
--- @[simps] instance : semigroup ℕ :=
--- { mul := (*),
---   mul_assoc := nat.mul_assoc }
+example {α β} [semigroup α] [semigroup β] (x y : α × β) : x * y = (x.1 * y.1, x.2 * y.2) :=
+by simp
+example {α β} [semigroup α] [semigroup β] (x y : α × β) : (x * y).1 = x.1 * y.1 := by simp
 
--- def bazzz (x y : ℕ) : x * y = nat.mul x y :=
--- _
--- #print has_mul
+structure Semigroup :=
+  (G : Type*)
+  (op : G → G → G)
+  (infix * := op)
+  (op_assoc : ∀ (x y z : G), (x * y) * z = x * (y * z))
 
--- def baz (α : Type*) : semigroup α → has_mul α := by introI; apply_instance
+namespace Group
 
--- #print baz
+instance : has_coe_to_sort Semigroup := ⟨_, Semigroup.G⟩
+instance (G : Semigroup) : has_mul G := ⟨G.op⟩
+
+@[simps] def prod_Semigroup (G H : Semigroup) : Semigroup :=
+{ G := G × H,
+  op := λ x y, (x.1 * y.1, x.2 * y.2),
+  op_assoc := by { intros, dsimp [Group.has_mul], simp [Semigroup.op_assoc] }}
+
+
+end Group
+
+section
+set_option old_structure_cmd true
+class extending_stuff (G : Type u) extends has_mul G, has_zero G, has_neg G, has_subset G :=
+(new_axiom : ∀ x : G, x * - 0 ⊆ - x)
+end
+
+@[simps] def bar : extending_stuff ℕ :=
+{ mul := (*),
+  zero := 0,
+  neg := nat.succ,
+  subset := λ x y, true,
+  new_axiom := λ x, trivial }
+
+section
+local attribute [instance] bar
+example (x : ℕ) : x * - 0 ⊆ - x := by simp
+end
+
+class new_extending_stuff (G : Type u) extends has_mul G, has_zero G, has_neg G, has_subset G :=
+(new_axiom : ∀ x : G, x * - 0 ⊆ - x)
+
+@[simps] def new_bar : new_extending_stuff ℕ :=
+{ mul := (*),
+  zero := 0,
+  neg := nat.succ,
+  subset := λ x y, true,
+  new_axiom := λ x, trivial }
+
+section
+local attribute [instance] new_bar
+example (x : ℕ) : x * - 0 ⊆ - x := by simp
+end
+
 
 end coercing

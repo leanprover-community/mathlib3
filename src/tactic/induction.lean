@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jannis Limperg
 -/
 
-import control.basic data.sum data.list.defs tactic.basic
-import tactic.linarith tactic.type_based_naming
+import control.basic data.nat.basic data.sum data.list.defs tactic.basic
+import tactic.type_based_naming
 
 /--
 After elaboration, Lean does not have non-dependent function types with
@@ -1279,8 +1279,12 @@ meta def get_sizeof (type : expr) : tactic pexpr := do
   sizeof ← resolve_name $ sizeof_name,
   pure sizeof
 
-lemma n_plus_Sm_neq_n (n m : ℕ) : n + (m + 1) ≠ n :=
-by linarith
+lemma plus_gt (n m : ℕ) : m ≠ 0 → n + m > n :=
+by { induction m, contradiction, simp }
+
+-- Linarith could prove this, but I want to avoid that dependency.
+lemma n_plus_m_plus_one_ne_n (n m : ℕ) : n + (m + 1) ≠ n :=
+by simp [ne_of_gt, plus_gt]
 
 meta def match_n_plus_m (md) : ℕ → expr → tactic (ℕ × expr) :=
 λ n e, do
@@ -1310,7 +1314,7 @@ meta def contradict_n_eq_n_plus_m (md) (equ : expr) (lhs : expr) (rhs : expr)
   let rhs_n_expr := reflect rhs_n,
   n ← to_expr ``(%%common + %%rhs_n_expr),
   let m := reflect (diff - 1),
-  pure `(n_plus_Sm_neq_n %%n %%m %%equ)
+  pure `(n_plus_m_plus_one_ne_n %%n %%m %%equ)
 
 meta def simplify_cyclic_equation (equ type lhs rhs : expr) (u : level)
   : tactic simplification_result :=

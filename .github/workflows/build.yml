@@ -10,6 +10,9 @@ on:
       - 'nolints'
       # do not build lean-x.y.z branch used by leanpkg
       - 'lean-3.*'
+  pull_request:
+    branches:
+      - master
 
 jobs:
   build:

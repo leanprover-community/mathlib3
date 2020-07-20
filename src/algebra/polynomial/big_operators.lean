@@ -3,7 +3,9 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark.
 -/
-import algebra.polynomial.basic
+import data.polynomial.monic
+import tactic.linarith
+
 open polynomial finset
 
 /-!
@@ -13,34 +15,36 @@ Lemmas for the interaction between polynomials and ∑ and ∏.
 
 ## Main results
 
-- `nat_degree_prod_eq_of_monic` : the degree of a product of monic polynomials is the product of
+- `nat_degree_prod_of_monic` : the degree of a product of monic polynomials is the product of
     degrees. We prove this only for [comm_semiring R],
     but it ought to be true for [semiring R] and list.prod.
-- `nat_degree_prod_eq` : for polynomials over an integral domain,
+- `nat_degree_prod` : for polynomials over an integral domain,
     the degree of the product is the sum of degrees
 - `leading_coeff_prod` : for polynomials over an integral domain,
     the leading coefficient is the product of leading coefficients
+- `prod_X_sub_C_coeff_card_pred` carries most of the content for computing
+    the second coefficient of the characteristic polynomial.
 -/
 
 open_locale big_operators
 
 universes u w
 
-variables {R : Type u} {α : Type w}
+variables {R : Type u} {ι : Type w}
 
 namespace polynomial
 
-variable (s : finset α)
+variable (s : finset ι)
 
 section comm_semiring
-variables [comm_semiring R] (f : α → polynomial R)
+variables [comm_semiring R] (f : ι → polynomial R)
 
 lemma nat_degree_prod_le : (∏ i in s, f i).nat_degree ≤ ∑ i in s, (f i).nat_degree :=
 begin
   classical,
   induction s using finset.induction with a s ha hs, { simp },
   rw [prod_insert ha, sum_insert ha],
-  transitivity (f a).nat_degree + (∏ (x : α) in s, (f x)).nat_degree,
+  transitivity (f a).nat_degree + (∏ x in s, f x).nat_degree,
   apply polynomial.nat_degree_mul_le, linarith,
 end
 
@@ -56,39 +60,60 @@ begin
 end
 
 /-- The degree of a product of polynomials is equal to the product of the degrees, provided that the product of leading coefficients is nonzero.
-See `nat_degree_prod_eq` (without the `'`) for a version for integral domains, where this condition is automatically satisfied. -/
-lemma nat_degree_prod_eq' (h : ∏ i in s, (f i).leading_coeff ≠ 0) :
+See `nat_degree_prod` (without the `'`) for a version for integral domains, where this condition is automatically satisfied. -/
+lemma nat_degree_prod' (h : ∏ i in s, (f i).leading_coeff ≠ 0) :
   (∏ i in s, f i).nat_degree = ∑ i in s, (f i).nat_degree :=
 begin
   classical,
   revert h, induction s using finset.induction with a s ha hs, { simp },
   rw [prod_insert ha, prod_insert ha, sum_insert ha],
-  intro h, rw polynomial.nat_degree_mul_eq', rw hs,
+  intro h, rw polynomial.nat_degree_mul', rw hs,
   apply right_ne_zero_of_mul h,
   rwa polynomial.leading_coeff_prod', apply right_ne_zero_of_mul h,
 end
 
-lemma monic_prod_of_monic :
-  (∀ a : α, a ∈ s → monic (f a)) → monic (∏ i in s, f i) :=
-by { apply prod_induction, apply monic_mul, apply monic_one }
-
-lemma nat_degree_prod_eq_of_monic [nontrivial R] (h : ∀ i : α, i ∈ s → (f i).monic) :
+lemma nat_degree_prod_of_monic [nontrivial R] (h : ∀ i ∈ s, (f i).monic) :
   (∏ i in s, f i).nat_degree = ∑ i in s, (f i).nat_degree :=
 begin
-  apply nat_degree_prod_eq',
-  suffices : ∏ (i : α) in s, (f i).leading_coeff = 1, { rw this, simp },
+  apply nat_degree_prod',
+  suffices : ∏ i in s, (f i).leading_coeff = 1, { rw this, simp },
   rw prod_eq_one, intros, apply h, assumption,
 end
 
 end comm_semiring
 
-section integral_domain
-variables [integral_domain R] (f : α → polynomial R)
+section comm_ring
+variables [comm_ring R]
 
-lemma nat_degree_prod_eq (h : ∀ i ∈ s, f i ≠ 0) :
+open monic
+-- Eventually this can be generalized with Vieta's formulas
+-- plus the connection between roots and factorization.
+lemma prod_X_sub_C_next_coeff [nontrivial R] {s : finset ι} (f : ι → R) :
+next_coeff ∏ i in s, (X - C (f i)) = -∑ i in s, f i :=
+by { rw next_coeff_prod; { simp [monic_X_sub_C] } }
+
+lemma prod_X_sub_C_coeff_card_pred [nontrivial R] (s : finset ι) (f : ι → R) (hs : 0 < s.card) :
+(∏ i in s, (X - C (f i))).coeff (s.card - 1) = - ∑ i in s, f i :=
+begin
+  convert prod_X_sub_C_next_coeff (by assumption),
+  rw next_coeff, split_ifs,
+  { rw nat_degree_prod_of_monic at h,
+    swap, { intros, apply monic_X_sub_C },
+    rw sum_eq_zero_iff at h,
+    simp_rw nat_degree_X_sub_C at h, contrapose! h, norm_num,
+    exact multiset.card_pos_iff_exists_mem.mp hs },
+  congr, rw nat_degree_prod_of_monic; { simp [nat_degree_X_sub_C, monic_X_sub_C] },
+end
+
+end comm_ring
+
+section integral_domain
+variables [integral_domain R] (f : ι → polynomial R)
+
+lemma nat_degree_prod (h : ∀ i ∈ s, f i ≠ 0) :
   (∏ i in s, f i).nat_degree = ∑ i in s, (f i).nat_degree :=
 begin
-  apply nat_degree_prod_eq', rw prod_ne_zero_iff,
+  apply nat_degree_prod', rw prod_ne_zero_iff,
   intros x hx, simp [h x hx],
 end
 

@@ -27,7 +27,7 @@ variables {α} [topological_ring α]
 
 @[norm_cast]
 lemma coe_mul (a b : α) : ((a * b : α) : completion α) = a * b :=
-((dense_inducing_coe.prod dense_inducing_coe).extend_eq_of_cont
+((dense_inducing_coe.prod dense_inducing_coe).extend_eq
   ((continuous_coe α).comp continuous_mul) (a, b)).symm
 
 variables [uniform_add_group α]

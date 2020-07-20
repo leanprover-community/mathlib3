@@ -6,6 +6,7 @@ Authors: Robert Y. Lewis
 import data.padics.padic_integers
 import topology.metric_space.cau_seq_filter
 import analysis.specific_limits
+import data.polynomial.identities
 import topology.algebra.polynomial
 
 /-!
@@ -64,7 +65,7 @@ private lemma ncs_tendsto_lim :
 tendsto.comp (continuous_iff_continuous_at.1 continuous_norm _) (comp_tendsto_lim _)
 
 private lemma norm_deriv_eq : ∥F.derivative.eval ncs.lim∥ = ∥F.derivative.eval a∥ :=
-tendsto_nhds_unique at_top_ne_bot ncs_tendsto_lim ncs_tendsto_const
+tendsto_nhds_unique ncs_tendsto_lim ncs_tendsto_const
 
 end
 
@@ -77,7 +78,7 @@ private lemma tendsto_zero_of_norm_tendsto_zero : tendsto (λ i, F.eval (ncs i))
 tendsto_iff_norm_tendsto_zero.2 (by simpa using hnorm)
 
 lemma limit_zero_of_norm_tendsto_zero : F.eval ncs.lim = 0 :=
-tendsto_nhds_unique at_top_ne_bot (comp_tendsto_lim _) tendsto_zero_of_norm_tendsto_zero
+tendsto_nhds_unique (comp_tendsto_lim _) tendsto_zero_of_norm_tendsto_zero
 
 end
 
@@ -362,7 +363,7 @@ private lemma newton_seq_dist_tendsto' :
 (continuous_norm.tendsto _).comp (newton_cau_seq.tendsto_limit.sub tendsto_const_nhds)
 
 private lemma soln_dist_to_a : ∥soln - a∥ = ∥F.eval a∥ / ∥F.derivative.eval a∥ :=
-tendsto_nhds_unique at_top_ne_bot newton_seq_dist_tendsto' newton_seq_dist_tendsto
+tendsto_nhds_unique newton_seq_dist_tendsto' newton_seq_dist_tendsto
 
 private lemma soln_dist_to_a_lt_deriv : ∥soln - a∥ < ∥F.derivative.eval a∥ :=
 begin

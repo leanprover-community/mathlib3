@@ -347,3 +347,34 @@ by linarith
 example (p q r s t u v w : ℕ) (h1 : p + u = q + t) (h2 : r + w = s + v) :
   p * r + q * s + (t * w + u * v) = p * s + q * r + (t * v + u * w) :=
 by nlinarith
+
+-- Tests involving a norm, including that squares in a type where `pow_two_nonneg` does not apply
+-- do not cause an exception
+variables {R : Type*} [ring R] (abs : R → ℚ)
+
+lemma abs_nonneg' : ∀ r, 0 ≤ abs r := sorry
+
+example (t : R) (a b : ℚ) (h : a ≤ b) : abs (t^2) * a ≤ abs (t^2) * b :=
+by nlinarith [abs_nonneg' abs (t^2)]
+
+example (t : R)  (a b : ℚ) (h : a ≤ b) : a ≤ abs (t^2) + b :=
+by linarith [abs_nonneg' abs (t^2)]
+
+example (t : R) (a b : ℚ) (h : a ≤ b) : abs t * a ≤ abs t * b :=
+by nlinarith [abs_nonneg' abs t]
+
+constant T : Type
+
+attribute [instance]
+constant T_zero : ordered_ring T
+
+namespace T
+
+lemma zero_lt_one : (0 : T) < 1 := sorry
+
+lemma works {a b : ℕ} (hab : a ≤ b) (h : b < a) : false :=
+begin
+  linarith,
+end
+
+end T

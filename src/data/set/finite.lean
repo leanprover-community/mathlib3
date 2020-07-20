@@ -82,6 +82,8 @@ eq.trans (by congr) empty_card
 
 @[simp] theorem finite_empty : @finite α ∅ := ⟨set.fintype_empty⟩
 
+instance finite.inhabited : inhabited {s : set α // finite s} := ⟨⟨∅, finite_empty⟩⟩
+
 /-- A `fintype` structure on `insert a s`. -/
 def fintype_insert' {a : α} (s : set α) [fintype s] (h : a ∉ s) : fintype (insert a s : set α) :=
 fintype.of_finset ⟨a :: s.to_finset.1,

@@ -106,6 +106,10 @@ theorem forall_quotient_iff {α : Type*} [r : setoid α] {p : quotient r → Pro
   (x : α) :
   quotient.lift_on (quotient.mk x) f h = f x := rfl
 
+@[simp] theorem quotient.lift_on_beta₂ {α : Type} {β : Type} [setoid α] (f : α → α → β)
+  (h : ∀ (a₁ a₂ b₁ b₂ : α), a₁ ≈ b₁ → a₂ ≈ b₂ → f a₁ a₂ = f b₁ b₂) (x y : α) :
+  quotient.lift_on₂ (quotient.mk x) (quotient.mk y) f h = f x y := rfl
+
 /-- Choose an element of the equivalence class using the axiom of choice.
   Sound but noncomputable. -/
 noncomputable def quot.out {r : α → α → Prop} (q : quot r) : α :=

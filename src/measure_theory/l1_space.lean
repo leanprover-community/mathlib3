@@ -58,110 +58,139 @@ open set filter topological_space ennreal emetric
 open_locale big_operators
 
 universes u v w
-variables {α : Type u} [measure_space α]
+variables {α : Type u} [measurable_space α] {μ ν : measure α}
 variables {β : Type v} [normed_group β] {γ : Type w} [normed_group γ]
 
 /-- A function is `integrable` if the integral of its pointwise norm is less than infinity. -/
-def integrable (f : α → β) : Prop := (∫⁻ a, nnnorm (f a)) < ⊤
+def integrable (f : α → β) (μ : measure α) : Prop := ∫⁻ a, nnnorm (f a) ∂μ < ⊤
 
-lemma integrable_iff_norm (f : α → β) : integrable f ↔ (∫⁻ a, ennreal.of_real ∥f a∥) < ⊤ :=
+lemma integrable_iff_norm (f : α → β) : integrable f μ ↔ ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ < ⊤ :=
 by simp only [integrable, of_real_norm_eq_coe_nnnorm]
 
-lemma integrable_iff_edist (f : α → β) : integrable f ↔ (∫⁻ a, edist (f a) 0) < ⊤ :=
-have eq : (λa, edist (f a) 0) = (λa, (nnnorm(f a) : ennreal)),
-  by { funext, rw edist_eq_coe_nnnorm },
-iff.intro (by { rw eq, exact λh, h }) $ by { rw eq, exact λh, h }
+lemma integrable_iff_edist (f : α → β) : integrable f μ ↔ ∫⁻ a, edist (f a) 0 ∂μ < ⊤ :=
+by simp only [integrable_iff_norm, edist_dist, dist_zero_right]
 
-lemma integrable_iff_of_real {f : α → ℝ} (h : ∀ₘ a, 0 ≤ f a) :
-  integrable f ↔ (∫⁻ a, ennreal.of_real (f a)) < ⊤ :=
-have lintegral_eq :  (∫⁻ a, ennreal.of_real ∥f a∥) = (∫⁻ a, ennreal.of_real (f a)) :=
+lemma integrable_iff_of_real {f : α → ℝ} (h : 0 ≤ᵐ[μ] f) :
+  integrable f μ ↔ ∫⁻ a, ennreal.of_real (f a) ∂μ < ⊤ :=
+have lintegral_eq : ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ = ∫⁻ a, ennreal.of_real (f a) ∂μ :=
 begin
-  apply lintegral_congr_ae,
-  filter_upwards [h],
-  simp only [mem_set_of_eq],
-  assume a h,
-  rw [real.norm_eq_abs, abs_of_nonneg],
-  exact h
+  refine lintegral_congr_ae (h.mono $ λ a h, _),
+  rwa [real.norm_eq_abs, abs_of_nonneg]
 end,
 by rw [integrable_iff_norm, lintegral_eq]
 
-lemma integrable_of_ae_eq {f g : α → β} (hf : integrable f) (h : ∀ₘ a, f a = g a) : integrable g :=
+lemma integrable.congr {f g : α → β} (hf : integrable f μ) (h : f =ᵐ[μ] g) : integrable g μ :=
 begin
-  simp only [integrable] at *,
-  have : (∫⁻ (a : α), ↑(nnnorm (f a))) = (∫⁻ (a : α), ↑(nnnorm (g a))),
-  { apply lintegral_congr_ae,
-    filter_upwards [h],
-    assume a,
-    simp only [mem_set_of_eq],
-    assume h,
-    rw h },
-  rwa ← this
+  simp only [integrable],
+  convert hf using 1,
+  exact lintegral_rw₁ (h.symm.fun_comp _) _
 end
 
-lemma integrable_congr_ae {f g : α → β} (h : ∀ₘ a, f a = g a) : integrable f ↔ integrable g :=
-iff.intro (λhf, integrable_of_ae_eq hf h) (λhg, integrable_of_ae_eq hg (ae_eq_symm h))
+lemma integrable_const {c : β} : integrable (λ x : α, c) μ ↔ c = 0 ∨ μ univ < ⊤ :=
+begin
+  simp only [integrable, lintegral_const],
+  by_cases hc : c = 0,
+  { simp [hc] },
+  { simp only [hc, false_or],
+    refine ⟨λ h, _, λ h, mul_lt_top coe_lt_top h⟩,
+    replace h := mul_lt_top (@coe_lt_top $ (nnnorm c)⁻¹) h,
+    rwa [← mul_assoc, ← coe_mul, _root_.inv_mul_cancel, coe_one, one_mul] at h,
+    rwa [ne.def, nnnorm_eq_zero] }
+end
 
-lemma integrable_of_le_ae {f : α → β} {g : α → γ} (h : ∀ₘ a, ∥f a∥ ≤ ∥g a∥) (hg : integrable g) :
-  integrable f :=
+lemma integrable_congr {f g : α → β} (h : f =ᵐ[μ] g) : integrable f μ ↔ integrable g μ :=
+⟨λ hf, hf.congr h, λ hg, hg.congr h.symm⟩
+
+lemma integrable.mono {f : α → β} {g : α → γ} (hg : integrable g μ) (h : ∀ᵐ a ∂μ, ∥f a∥ ≤ ∥g a∥) :
+  integrable f μ :=
 begin
   simp only [integrable_iff_norm] at *,
-  calc (∫⁻ a, ennreal.of_real ∥f a∥) ≤ (∫⁻ (a : α), ennreal.of_real ∥g a∥) :
-    lintegral_le_lintegral_ae (by { filter_upwards [h], assume a h, exact of_real_le_of_real h })
+  calc ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ ≤ ∫⁻ (a : α), (ennreal.of_real ∥g a∥) ∂μ :
+    lintegral_mono_ae (h.mono $ assume a h, of_real_le_of_real h)
     ... < ⊤ : hg
 end
 
-lemma integrable_of_le {f : α → β} {g : α → γ} (h : ∀a, ∥f a∥ ≤ ∥g a∥) (hg : integrable g) :
-  integrable f :=
-integrable_of_le_ae (ae_of_all _ h) hg
+lemma integrable.mono_meas {f : α → β} (h : integrable f ν) (hμ : μ ≤ ν) :
+  integrable f μ :=
+lt_of_le_of_lt (lintegral_mono' hμ (le_refl _)) h
+
+lemma integrable.add_meas {f : α → β} (hμ : integrable f μ) (hν : integrable f ν) :
+  integrable f (μ + ν) :=
+begin
+  simp only [integrable, lintegral_add_meas] at *,
+  exact add_lt_top.2 ⟨hμ, hν⟩
+end
+
+lemma integrable.left_of_add_meas {f : α → β} (h : integrable f (μ + ν)) :
+  integrable f μ :=
+h.mono_meas $ measure.le_add_right $ le_refl _
+
+lemma integrable.right_of_add_meas {f : α → β} (h : integrable f (μ + ν)) :
+  integrable f ν :=
+h.mono_meas $ measure.le_add_left $ le_refl _
+
+lemma integrable.smul_meas {f : α → β} (h : integrable f μ) {c : ennreal} (hc : c < ⊤) :
+  integrable f (c • μ) :=
+begin
+  simp only [integrable, lintegral_smul_meas] at *,
+  exact mul_lt_top hc h
+end
+
+lemma integrable.mono_set {f : α → β} {s t : set α} (h : integrable f (μ.restrict t))
+  (hst : s ⊆ t) :
+  integrable f (μ.restrict s) :=
+h.mono_meas $ measure.restrict_mono hst (le_refl μ)
+
+lemma integrable.union {f : α → β} {s t : set α} (hs : integrable f (μ.restrict s))
+  (ht : integrable f (μ.restrict t)) :
+  integrable f (μ.restrict (s ∪ t)) :=
+(hs.add_meas ht).mono_meas $ measure.restrict_union_le _ _
 
 lemma lintegral_nnnorm_eq_lintegral_edist (f : α → β) :
-  (∫⁻ a, nnnorm (f a)) = ∫⁻ a, edist (f a) 0 :=
+  ∫⁻ a, nnnorm (f a) ∂μ = ∫⁻ a, edist (f a) 0 ∂μ :=
 by simp only [edist_eq_coe_nnnorm]
 
 lemma lintegral_norm_eq_lintegral_edist (f : α → β) :
-  (∫⁻ a, ennreal.of_real ∥f a∥) = ∫⁻ a, edist (f a) 0 :=
+  ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ = ∫⁻ a, edist (f a) 0 ∂μ :=
 by simp only [of_real_norm_eq_coe_nnnorm, edist_eq_coe_nnnorm]
 
 lemma lintegral_edist_triangle [second_countable_topology β] [measurable_space β]
   [opens_measurable_space β] {f g h : α → β}
   (hf : measurable f) (hg : measurable g) (hh : measurable h) :
-  (∫⁻ a, edist (f a) (g a)) ≤ (∫⁻ a, edist (f a) (h a)) + ∫⁻ a, edist (g a) (h a) :=
+  ∫⁻ a, edist (f a) (g a) ∂μ ≤ ∫⁻ a, edist (f a) (h a) ∂μ + ∫⁻ a, edist (g a) (h a) ∂μ :=
 begin
   rw ← lintegral_add (hf.edist hh) (hg.edist hh),
-  apply lintegral_mono,
-  assume a,
-  have := edist_triangle (f a) (h a) (g a),
-  convert this,
-  rw edist_comm (h a) (g a),
+  refine lintegral_mono (λ a, _),
+  apply edist_triangle_right
 end
 
 lemma lintegral_edist_lt_top [second_countable_topology β] [measurable_space β]
   [opens_measurable_space β] {f g : α → β}
-  (hfm : measurable f) (hfi : integrable f) (hgm : measurable g) (hgi : integrable g) :
-  (∫⁻ a, edist (f a) (g a)) < ⊤ :=
+  (hfm : measurable f) (hfi : integrable f μ) (hgm : measurable g) (hgi : integrable g μ) :
+  ∫⁻ a, edist (f a) (g a) ∂μ < ⊤ :=
 lt_of_le_of_lt
   (lintegral_edist_triangle hfm hgm (measurable_const : measurable (λa, (0 : β))))
   (ennreal.add_lt_top.2 $ by { split; rw ← integrable_iff_edist; assumption })
 
-lemma lintegral_nnnorm_zero : (∫⁻ a : α, nnnorm (0 : β)) = 0 := by simp
+lemma lintegral_nnnorm_zero : ∫⁻ a : α, nnnorm (0 : β) ∂μ = 0 := by simp
 
-variables (α β)
-@[simp] lemma integrable_zero : integrable (λa:α, (0:β)) :=
+variables (α β μ)
+@[simp] lemma integrable_zero : integrable (λa:α, (0:β)) μ :=
 by simp [integrable]
-variables {α β}
+variables {α β μ}
 
 lemma lintegral_nnnorm_add [measurable_space β] [opens_measurable_space β]
   [measurable_space γ] [opens_measurable_space γ]
   {f : α → β} {g : α → γ} (hf : measurable f) (hg : measurable g) :
-  (∫⁻ a, nnnorm (f a) + nnnorm (g a)) = (∫⁻ a, nnnorm (f a)) + ∫⁻ a, nnnorm (g a) :=
+  ∫⁻ a, nnnorm (f a) + nnnorm (g a) ∂μ = ∫⁻ a, nnnorm (f a) ∂μ + ∫⁻ a, nnnorm (g a) ∂μ :=
 lintegral_add hf.ennnorm hg.ennnorm
 
 lemma integrable.add [measurable_space β] [opens_measurable_space β]
-  {f g : α → β} (hfm : measurable f) (hfi : integrable f)
-  (hgm : measurable g) (hgi : integrable g) :
-  integrable (λa, f a + g a) :=
+  {f g : α → β} (hfm : measurable f) (hfi : integrable f μ)
+  (hgm : measurable g) (hgi : integrable g μ) :
+  integrable (f + g) μ :=
 calc
-  (∫⁻ (a : α), ↑(nnnorm ((f + g) a))) ≤ ∫⁻ (a : α), ↑(nnnorm (f a)) + ↑(nnnorm (g a)) :
+  ∫⁻ a, nnnorm (f a + g a) ∂μ ≤ ∫⁻ a, nnnorm (f a) + nnnorm (g a) ∂μ :
     lintegral_mono
       (assume a, by { simp only [← coe_add, coe_le_coe], exact nnnorm_add_le _ _ })
   ... = _ :
@@ -170,8 +199,8 @@ calc
 
 lemma integrable_finset_sum {ι} [measurable_space β] [borel_space β]
   [second_countable_topology β] (s : finset ι) {f : ι → α → β}
-  (hfm : ∀ i, measurable (f i)) (hfi : ∀ i, integrable (f i)) :
-  integrable (λ a, ∑ i in s, f i a) :=
+  (hfm : ∀ i, measurable (f i)) (hfi : ∀ i, integrable (f i) μ) :
+  integrable (λ a, ∑ i in s, f i a) μ :=
 begin
   refine finset.induction_on s _ _,
   { simp only [finset.sum_empty, integrable_zero] },
@@ -181,99 +210,90 @@ begin
 end
 
 lemma lintegral_nnnorm_neg {f : α → β} :
-  (∫⁻ (a : α), ↑(nnnorm ((-f) a))) = ∫⁻ (a : α), ↑(nnnorm ((f) a)) :=
+  ∫⁻ a, nnnorm ((-f) a) ∂μ = ∫⁻ a, nnnorm (f a) ∂μ :=
 by simp only [pi.neg_apply, nnnorm_neg]
 
-lemma integrable.neg {f : α → β} : integrable f → integrable (λa, -f a) :=
-assume hfi, calc _ = _ : lintegral_nnnorm_neg
-                 ... < ⊤ : hfi
+lemma integrable.neg {f : α → β} (hfi : integrable f μ) : integrable (-f) μ :=
+calc _ = _ : lintegral_nnnorm_neg
+   ... < ⊤ : hfi
 
-@[simp] lemma integrable_neg_iff (f : α → β) : integrable (λa, -f a) ↔ integrable f :=
-begin
-  split,
-  { assume h,
-    simpa only [_root_.neg_neg] using h.neg },
-  exact integrable.neg
-end
+@[simp] lemma integrable_neg_iff {f : α → β} : integrable (-f) μ ↔ integrable f μ :=
+⟨λ h, neg_neg f ▸ h.neg, integrable.neg⟩
 
 lemma integrable.sub [measurable_space β] [opens_measurable_space β]
-  {f g : α → β} (hfm : measurable f) (hfi : integrable f) (hgm : measurable g)
-  (hgi : integrable g) : integrable (λa, f a - g a) :=
+  {f g : α → β} (hfm : measurable f) (hfi : integrable f μ) (hgm : measurable g)
+  (hgi : integrable g μ) : integrable (f - g) μ :=
 calc
-  (∫⁻ (a : α), ↑(nnnorm ((f - g) a))) ≤ ∫⁻ (a : α), ↑(nnnorm (f a)) + ↑(nnnorm (-g a)) :
-    lintegral_mono
-      (assume a, by { simp only [← coe_add, coe_le_coe], exact nnnorm_add_le _ _ })
+  ∫⁻ a, nnnorm (f a - g a) ∂μ ≤ ∫⁻ a, nnnorm (f a) + nnnorm (-g a) ∂μ :
+    lintegral_mono (assume a, by exact_mod_cast nnnorm_add_le _ _ )
   ... = _ :
     by { simp only [nnnorm_neg], exact lintegral_nnnorm_add hfm hgm }
   ... < ⊤ : add_lt_top.2 ⟨hfi, hgi⟩
 
-
-lemma integrable.norm {f : α → β} (hfi : integrable f) : integrable (λa, ∥f a∥) :=
+lemma integrable.norm {f : α → β} (hfi : integrable f μ) : integrable (λa, ∥f a∥) μ :=
 have eq : (λa, (nnnorm ∥f a∥ : ennreal)) = λa, (nnnorm (f a) : ennreal),
   by { funext, rw nnnorm_norm },
 by { rwa [integrable, eq] }
 
-lemma integrable_norm_iff (f : α → β) : integrable (λa, ∥f a∥) ↔ integrable f :=
+lemma integrable_norm_iff (f : α → β) : integrable (λa, ∥f a∥) μ ↔ integrable f μ :=
 have eq : (λa, (nnnorm ∥f a∥ : ennreal)) = λa, (nnnorm (f a) : ennreal),
   by { funext, rw nnnorm_norm },
 by { rw [integrable, integrable, eq] }
 
-lemma integrable_of_integrable_bound {f : α → β} {bound : α → ℝ} (h : integrable bound)
-  (h_bound : ∀ₘ a, ∥f a∥ ≤ bound a) : integrable f :=
-have h₁ : ∀ₘ a, (nnnorm (f a) : ennreal) ≤ ennreal.of_real (bound a),
+lemma integrable_of_integrable_bound {f : α → β} {bound : α → ℝ} (h : integrable bound μ)
+  (h_bound : ∀ᵐ a ∂μ, ∥f a∥ ≤ bound a) : integrable f μ :=
+have h₁ : ∀ᵐ a ∂μ, (nnnorm (f a) : ennreal) ≤ ennreal.of_real (bound a),
 begin
-  filter_upwards [h_bound],
-  simp only [mem_set_of_eq],
-  assume a h,
+  refine h_bound.mono (assume a h, _),
   calc (nnnorm (f a) : ennreal) = ennreal.of_real (∥f a∥) : by rw of_real_norm_eq_coe_nnnorm
     ... ≤ ennreal.of_real (bound a) : ennreal.of_real_le_of_real h
 end,
-calc (∫⁻ a, nnnorm (f a)) ≤ (∫⁻ a, ennreal.of_real (bound a)) :
-    by { apply lintegral_le_lintegral_ae, exact h₁ }
-  ... ≤ (∫⁻ a, ennreal.of_real ∥bound a∥) : lintegral_mono $
-    by { assume a, apply ennreal.of_real_le_of_real, exact le_max_left (bound a) (-bound a) }
+calc ∫⁻ a, nnnorm (f a) ∂μ ≤ ∫⁻ a, ennreal.of_real (bound a) ∂μ :
+    lintegral_mono_ae h₁
+  ... ≤ ∫⁻ a, (ennreal.of_real ∥bound a∥) ∂μ : lintegral_mono $
+    assume a, ennreal.of_real_le_of_real $ le_max_left (bound a) (-bound a)
   ... < ⊤ : by { rwa [integrable_iff_norm] at h }
 
 section dominated_convergence
 
 variables {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
 
-lemma all_ae_of_real_F_le_bound (h : ∀ n, ∀ₘ a, ∥F n a∥ ≤ bound a) :
-  ∀ n, ∀ₘ a, ennreal.of_real ∥F n a∥ ≤ ennreal.of_real (bound a) :=
-λn, by filter_upwards [h n] λ a h, ennreal.of_real_le_of_real h
+lemma all_ae_of_real_F_le_bound (h : ∀ n, ∀ᵐ a ∂μ, ∥F n a∥ ≤ bound a) :
+  ∀ n, ∀ᵐ a ∂μ, ennreal.of_real ∥F n a∥ ≤ ennreal.of_real (bound a) :=
+λn, (h n).mono $ λ a h, ennreal.of_real_le_of_real h
 
-lemma all_ae_tendsto_of_real_norm (h : ∀ₘ a, tendsto (λ n, F n a) at_top $ 𝓝 $ f a) :
-  ∀ₘ a, tendsto (λn, ennreal.of_real ∥F n a∥) at_top $ 𝓝 $ ennreal.of_real ∥f a∥ :=
-by filter_upwards [h]
+lemma all_ae_tendsto_of_real_norm (h : ∀ᵐ a ∂μ, tendsto (λ n, F n a) at_top $ 𝓝 $ f a) :
+  ∀ᵐ a ∂μ, tendsto (λn, ennreal.of_real ∥F n a∥) at_top $ 𝓝 $ ennreal.of_real ∥f a∥ :=
+h.mono $
   λ a h, tendsto_of_real $ tendsto.comp (continuous.tendsto continuous_norm _) h
 
-lemma all_ae_of_real_f_le_bound (h_bound : ∀ n, ∀ₘ a, ∥F n a∥ ≤ bound a)
-  (h_lim : ∀ₘ a, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
-  ∀ₘ a, ennreal.of_real ∥f a∥ ≤ ennreal.of_real (bound a) :=
+lemma all_ae_of_real_f_le_bound (h_bound : ∀ n, ∀ᵐ a ∂μ, ∥F n a∥ ≤ bound a)
+  (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
+  ∀ᵐ a ∂μ, ennreal.of_real ∥f a∥ ≤ ennreal.of_real (bound a) :=
 begin
   have F_le_bound := all_ae_of_real_F_le_bound h_bound,
   rw ← ae_all_iff at F_le_bound,
   apply F_le_bound.mp ((all_ae_tendsto_of_real_norm h_lim).mono _),
   assume a tendsto_norm F_le_bound,
-  exact le_of_tendsto' at_top_ne_bot tendsto_norm (F_le_bound)
+  exact le_of_tendsto' tendsto_norm (F_le_bound)
 end
 
 lemma integrable_of_dominated_convergence {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
-  (bound_integrable : integrable bound)
-  (h_bound : ∀ n, ∀ₘ a, ∥F n a∥ ≤ bound a)
-  (h_lim : ∀ₘ a, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
-  integrable f :=
+  (bound_integrable : integrable bound μ)
+  (h_bound : ∀ n, ∀ᵐ a ∂μ, ∥F n a∥ ≤ bound a)
+  (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
+  integrable f μ :=
 /- `∥F n a∥ ≤ bound a` and `∥F n a∥ --> ∥f a∥` implies `∥f a∥ ≤ bound a`,
   and so `∫ ∥f∥ ≤ ∫ bound < ⊤` since `bound` is integrable -/
 begin
   rw integrable_iff_norm,
-  calc (∫⁻ a, (ennreal.of_real ∥f a∥)) ≤ ∫⁻ a, ennreal.of_real (bound a) :
-    lintegral_le_lintegral_ae $ all_ae_of_real_f_le_bound h_bound h_lim
+  calc ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ ≤ ∫⁻ a, ennreal.of_real (bound a) ∂μ :
+    lintegral_mono_ae $ all_ae_of_real_f_le_bound h_bound h_lim
     ... < ⊤ :
     begin
       rw ← integrable_iff_of_real,
       { exact bound_integrable },
-      filter_upwards [h_bound 0] λ a h, le_trans (norm_nonneg _) h,
+      exact (h_bound 0).mono (λ a h, le_trans (norm_nonneg _) h)
     end
 end
 
@@ -282,14 +302,14 @@ lemma tendsto_lintegral_norm_of_dominated_convergence [measurable_space β]
   {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
   (F_measurable : ∀ n, measurable (F n))
   (f_measurable : measurable f)
-  (bound_integrable : integrable bound)
-  (h_bound : ∀ n, ∀ₘ a, ∥F n a∥ ≤ bound a)
-  (h_lim : ∀ₘ a, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
-  tendsto (λn, ∫⁻ a, ennreal.of_real ∥F n a - f a∥) at_top (𝓝 0) :=
+  (bound_integrable : integrable bound μ)
+  (h_bound : ∀ n, ∀ᵐ a ∂μ, ∥F n a∥ ≤ bound a)
+  (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
+  tendsto (λn, ∫⁻ a, (ennreal.of_real ∥F n a - f a∥) ∂μ) at_top (𝓝 0) :=
 let b := λa, 2 * ennreal.of_real (bound a) in
 /- `∥F n a∥ ≤ bound a` and `F n a --> f a` implies `∥f a∥ ≤ bound a`, and thus by the
   triangle inequality, have `∥F n a - f a∥ ≤ 2 * (bound a). -/
-have hb : ∀ n, ∀ₘ a, ennreal.of_real ∥F n a - f a∥ ≤ b a,
+have hb : ∀ n, ∀ᵐ a ∂μ, ennreal.of_real ∥F n a - f a∥ ≤ b a,
 begin
   assume n,
   filter_upwards [all_ae_of_real_F_le_bound h_bound n, all_ae_of_real_f_le_bound h_bound h_lim],
@@ -304,20 +324,16 @@ begin
     ... = b a : by rw ← two_mul
 end,
 /- On the other hand, `F n a --> f a` implies that `∥F n a - f a∥ --> 0`  -/
-have h : ∀ₘ a, tendsto (λ n, ennreal.of_real ∥F n a - f a∥) at_top (𝓝 0),
+have h : ∀ᵐ a ∂μ, tendsto (λ n, ennreal.of_real ∥F n a - f a∥) at_top (𝓝 0),
 begin
-  suffices h : ∀ₘ a, tendsto (λ n, ennreal.of_real ∥F n a - f a∥) at_top (𝓝 $ ennreal.of_real 0),
-  { rwa ennreal.of_real_zero at h },
-  filter_upwards [h_lim],
-  assume a h,
-  refine tendsto.comp (continuous.tendsto continuous_of_real _) _,
-  rw ← tendsto_iff_norm_tendsto_zero,
-  exact h
+  rw ← ennreal.of_real_zero,
+  refine h_lim.mono (λ a h, (continuous_of_real.tendsto _).comp _),
+  rwa ← tendsto_iff_norm_tendsto_zero
 end,
 /- Therefore, by the dominated convergence theorem for nonnegative integration, have
   ` ∫ ∥f a - F n a∥ --> 0 ` -/
 begin
-  suffices h : tendsto (λn, ∫⁻ a, ennreal.of_real ∥F n a - f a∥) at_top (𝓝 (∫⁻ (a:α), 0)),
+  suffices h : tendsto (λn, ∫⁻ a, (ennreal.of_real ∥F n a - f a∥) ∂μ) at_top (𝓝 (∫⁻ (a:α), 0 ∂μ)),
   { rwa lintegral_zero at h },
   -- Using the dominated convergence theorem.
   refine tendsto_lintegral_of_dominated_convergence _ _ hb _ _,
@@ -325,7 +341,7 @@ begin
   { exact λn, measurable_of_real.comp ((F_measurable n).sub f_measurable).norm },
   -- Show `2 * bound` is integrable
   { rw integrable_iff_of_real at bound_integrable,
-    { calc (∫⁻ a, b a) = 2 * (∫⁻ a, ennreal.of_real (bound a)) :
+    { calc ∫⁻ a, b a ∂μ = 2 * ∫⁻ a, ennreal.of_real (bound a) ∂μ :
         by { rw lintegral_const_mul', exact coe_ne_top }
         ... < ⊤ : mul_lt_top (coe_lt_top) bound_integrable },
     filter_upwards [h_bound 0] λ a h, le_trans (norm_nonneg _) h },
@@ -338,10 +354,10 @@ end dominated_convergence
 section pos_part
 /-! Lemmas used for defining the positive part of a `L¹` function -/
 
-lemma integrable.max_zero {f : α → ℝ} (hf : integrable f) : integrable (λa, max (f a) 0) :=
+lemma integrable.max_zero {f : α → ℝ} (hf : integrable f μ) : integrable (λa, max (f a) 0) μ :=
 begin
   simp only [integrable_iff_norm] at *,
-  calc (∫⁻ a, ennreal.of_real ∥max (f a) 0∥) ≤ (∫⁻ (a : α), ennreal.of_real ∥f a∥) :
+  calc ∫⁻ a, (ennreal.of_real ∥max (f a) 0∥) ∂μ ≤ ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ :
     lintegral_mono
     begin
       assume a,
@@ -353,7 +369,7 @@ begin
     ... < ⊤ : hf
 end
 
-lemma integrable.min_zero {f : α → ℝ} (hf : integrable f) : integrable (λa, min (f a) 0) :=
+lemma integrable.min_zero {f : α → ℝ} (hf : integrable f μ) : integrable (λa, min (f a) 0) μ :=
 begin
   have : (λa, min (f a) 0) = (λa, - max (-f a) 0),
   { funext, rw [min_eq_neg_max_neg_neg, neg_zero] },
@@ -366,29 +382,21 @@ end pos_part
 section normed_space
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-lemma integrable.smul (c : 𝕜) {f : α → β} : integrable f → integrable (λa, c • f a) :=
+lemma integrable.smul (c : 𝕜) {f : α → β} : integrable f μ → integrable (c • f) μ :=
 begin
   simp only [integrable], assume hfi,
   calc
-    (∫⁻ (a : α), nnnorm ((c • f) a)) = (∫⁻ (a : α), (nnnorm c) * nnnorm (f a)) :
-    begin
-      apply lintegral_congr_ae,
-      filter_upwards [],
-      assume a,
-      simp only [nnnorm_smul, set.mem_set_of_eq, pi.smul_apply, ennreal.coe_mul]
-    end
+    ∫⁻ (a : α), nnnorm (c • f a) ∂μ = ∫⁻ (a : α), (nnnorm c) * nnnorm (f a) ∂μ :
+      by simp only [nnnorm_smul, ennreal.coe_mul]
     ... < ⊤ :
     begin
       rw lintegral_const_mul',
-      apply mul_lt_top,
-      { exact coe_lt_top },
-      { exact hfi },
-      { simp only [ennreal.coe_ne_top, ne.def, not_false_iff] }
+      exacts [mul_lt_top coe_lt_top hfi, coe_ne_top]
     end
 end
 
 lemma integrable_smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) :
-  integrable (λa, c • f a) ↔ integrable f :=
+  integrable (c • f) μ ↔ integrable f μ :=
 begin
   split,
   { assume h,
@@ -410,18 +418,18 @@ variable [opens_measurable_space β]
 
 /-- An almost everywhere equal function is `integrable` if it has a finite distance to the origin.
   Should mean the same thing as the predicate `integrable` over functions. -/
-def integrable (f : α →ₘ β) : Prop := f ∈ ball (0 : α →ₘ β) ⊤
+def integrable (f : α →ₘ[μ] β) : Prop := f ∈ ball (0 : α →ₘ[μ] β) ⊤
 
 lemma integrable_mk {f : α → β} (hf : measurable f) :
-  (integrable (mk f hf)) ↔ measure_theory.integrable f :=
+  (integrable (mk f hf : α →ₘ[μ] β)) ↔ measure_theory.integrable f μ :=
 by simp [integrable, zero_def, edist_mk_mk', measure_theory.integrable, nndist_eq_nnnorm]
 
-lemma integrable_to_fun (f : α →ₘ β) : integrable f ↔ (measure_theory.integrable f.to_fun) :=
-by conv_lhs { rw [self_eq_mk f, integrable_mk] }
+lemma integrable_coe_fn {f : α →ₘ[μ] β} : (measure_theory.integrable f μ) ↔ integrable f :=
+by rw [← integrable_mk, mk_coe_fn]
 
 local attribute [simp] integrable_mk
 
-lemma integrable_zero : integrable (0 : α →ₘ β) := mem_ball_self coe_lt_top
+lemma integrable_zero : integrable (0 : α →ₘ[μ] β) := mem_ball_self coe_lt_top
 
 end
 
@@ -429,30 +437,21 @@ section
 
 variable [borel_space β]
 
-lemma integrable.add :
-  ∀ {f g : α →ₘ β}, integrable f → integrable g → integrable (f + g) :=
+lemma integrable.add {f g : α →ₘ[μ] β} : integrable f → integrable g → integrable (f + g) :=
 begin
-  rintros ⟨f, hf⟩ ⟨g, hg⟩,
-  simp only [mem_ball, zero_def, mk_add_mk, integrable_mk, quot_mk_eq_mk],
-  assume hfi hgi,
-  exact hfi.add hf hg hgi
+  refine induction_on₂ f g (λ f hf g hg, _),
+  simp only [integrable_mk, mk_add_mk],
+  exact λ hfi hgi, hfi.add hf hg hgi
 end
 
-lemma integrable.neg : ∀ {f : α →ₘ β}, integrable f → integrable (-f) :=
-begin
-  rintros ⟨f, hfm⟩ hfi,
-  exact (integrable_mk _).2 ((integrable_mk hfm).1 hfi).neg
-end
+lemma integrable.neg {f : α →ₘ[μ] β} : integrable f → integrable (-f) :=
+induction_on f $ λ f hfm hfi, (integrable_mk _).2 ((integrable_mk hfm).1 hfi).neg
 
-lemma integrable.sub :
-  ∀ {f g : α →ₘ β}, integrable f → integrable g → integrable (f - g) :=
-begin
-  rintros ⟨f, hfm⟩ ⟨g, hgm⟩,
-  simp only [quot_mk_eq_mk, integrable_mk, mk_sub_mk],
-  exact λ hfi hgi, hfi.sub hfm hgm hgi
-end
+lemma integrable.sub {f g : α →ₘ[μ] β} (hf : integrable f) (hg : integrable g) :
+  integrable (f - g) :=
+hf.add hg.neg
 
-protected lemma is_add_subgroup : is_add_subgroup (ball (0 : α →ₘ β) ⊤) :=
+protected lemma is_add_subgroup : is_add_subgroup (ball (0 : α →ₘ[μ] β) ⊤) :=
 { zero_mem := integrable_zero,
   add_mem := λ _ _, integrable.add,
   neg_mem := λ _, integrable.neg }
@@ -460,12 +459,8 @@ protected lemma is_add_subgroup : is_add_subgroup (ball (0 : α →ₘ β) ⊤) 
 section normed_space
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-lemma integrable.smul : ∀ {c : 𝕜} {f : α →ₘ β}, integrable f → integrable (c • f) :=
-begin
-  rintros c ⟨f, hfm⟩,
-  simp only [quot_mk_eq_mk, integrable_mk, smul_mk],
-  exact λ hfi, hfi.smul c
-end
+lemma integrable.smul {c : 𝕜} {f : α →ₘ[μ] β} : integrable f → integrable (c • f) :=
+induction_on f $ λ f hfm hfi, (integrable_mk _).2 $ ((integrable_mk hfm).1 hfi).smul _
 
 end normed_space
 
@@ -473,17 +468,16 @@ end
 
 end ae_eq_fun
 
-section
-variables (α β) [measurable_space β] [opens_measurable_space β]
-
+variables (α β)
 /-- The space of equivalence classes of integrable (and measurable) functions, where two integrable
     functions are equivalent if they agree almost everywhere, i.e., they differ on a set of measure
     `0`. -/
-def l1 : Type (max u v) := subtype (@ae_eq_fun.integrable α _ β _ _ _ _)
+def l1 [measurable_space β] [opens_measurable_space β] (μ : measure α) : Type (max u v) :=
+{f : α →ₘ[μ] β // f.integrable}
 
-infixr ` →₁ `:25 := l1
+notation α ` →₁[`:25 μ `] ` β := l1 α β μ
 
-end
+variables {α β}
 
 namespace l1
 open ae_eq_fun
@@ -495,57 +489,64 @@ section
 
 variable [opens_measurable_space β]
 
-instance : has_coe (α →₁ β) (α →ₘ β) := ⟨subtype.val⟩
+instance : has_coe (α →₁[μ] β) (α →ₘ[μ] β) := coe_subtype
+instance : has_coe_to_fun (α →₁[μ] β) := ⟨λ f, α → β, λ f, ⇑(f : α →ₘ[μ] β)⟩
 
-protected lemma eq {f g : α →₁ β} : (f : α →ₘ β) = (g : α →ₘ β) → f = g := subtype.eq
-@[norm_cast] protected lemma eq_iff {f g : α →₁ β} : (f : α →ₘ β) = (g : α →ₘ β) ↔ f = g :=
+@[simp, norm_cast] lemma coe_coe (f : α →₁[μ] β) : ⇑(f : α →ₘ[μ] β) = f := rfl
+
+protected lemma eq {f g : α →₁[μ] β} : (f : α →ₘ[μ] β) = (g : α →ₘ[μ] β) → f = g := subtype.eq
+@[norm_cast] protected lemma eq_iff {f g : α →₁[μ] β} : (f : α →ₘ[μ] β) = (g : α →ₘ[μ] β) ↔ f = g :=
 iff.intro (l1.eq) (congr_arg coe)
 
 /- TODO : order structure of l1-/
 
 /-- `L¹` space forms a `emetric_space`, with the emetric being inherited from almost everywhere
   functions, i.e., `edist f g = ∫⁻ a, edist (f a) (g a)`. -/
-instance : emetric_space (α →₁ β) := subtype.emetric_space
+instance : emetric_space (α →₁[μ] β) := subtype.emetric_space
 
 /-- `L¹` space forms a `metric_space`, with the metric being inherited from almost everywhere
   functions, i.e., `edist f g = ennreal.to_real (∫⁻ a, edist (f a) (g a))`. -/
-instance : metric_space (α →₁ β) := metric_space_emetric_ball 0 ⊤
+instance : metric_space (α →₁[μ] β) := metric_space_emetric_ball 0 ⊤
 
 end
 
 variable [borel_space β]
 
-instance : add_comm_group (α →₁ β) := subtype.add_comm_group
+instance : add_comm_group (α →₁[μ] β) := subtype.add_comm_group
 
-instance : inhabited (α →₁ β) := ⟨0⟩
+instance : inhabited (α →₁[μ] β) := ⟨0⟩
 
-@[simp, norm_cast] lemma coe_zero : ((0 : α →₁ β) : α →ₘ β) = 0 := rfl
-@[simp, norm_cast] lemma coe_add (f g : α →₁ β) : ((f + g : α →₁ β) : α →ₘ β) = f + g := rfl
-@[simp, norm_cast] lemma coe_neg (f : α →₁ β) : ((-f : α →₁ β) : α →ₘ β) = -f := rfl
-@[simp, norm_cast] lemma coe_sub (f g : α →₁ β) : ((f - g : α →₁ β) : α →ₘ β) = f - g := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : α →₁[μ] β) : α →ₘ[μ] β) = 0 := rfl
+@[simp, norm_cast]
+lemma coe_add (f g : α →₁[μ] β) : ((f + g : α →₁[μ] β) : α →ₘ[μ] β) = f + g := rfl
+@[simp, norm_cast] lemma coe_neg (f : α →₁[μ] β) : ((-f : α →₁[μ] β) : α →ₘ[μ] β) = -f := rfl
+@[simp, norm_cast]
+lemma coe_sub (f g : α →₁[μ] β) : ((f - g : α →₁[μ] β) : α →ₘ[μ] β) = f - g := rfl
 
-@[simp] lemma edist_eq (f g : α →₁ β) : edist f g = edist (f : α →ₘ β) (g : α →ₘ β) := rfl
+@[simp] lemma edist_eq (f g : α →₁[μ] β) : edist f g = edist (f : α →ₘ[μ] β) (g : α →ₘ[μ] β) := rfl
 
-lemma dist_eq (f g : α →₁ β) : dist f g = ennreal.to_real (edist (f : α →ₘ β) (g : α →ₘ β)) := rfl
+lemma dist_eq (f g : α →₁[μ] β) :
+  dist f g = ennreal.to_real (edist (f : α →ₘ[μ] β) (g : α →ₘ[μ] β)) :=
+rfl
 
 /-- The norm on `L¹` space is defined to be `∥f∥ = ∫⁻ a, edist (f a) 0`. -/
-instance : has_norm (α →₁ β) := ⟨λ f, dist f 0⟩
+instance : has_norm (α →₁[μ] β) := ⟨λ f, dist f 0⟩
 
-lemma norm_eq (f : α →₁ β) : ∥f∥ = ennreal.to_real (edist (f : α →ₘ β) 0) := rfl
+lemma norm_eq (f : α →₁[μ] β) : ∥f∥ = ennreal.to_real (edist (f : α →ₘ[μ] β) 0) := rfl
 
-instance : normed_group (α →₁ β) := normed_group.of_add_dist (λ x, rfl) $ by
-{ intros, simp only [dist_eq, coe_add], rw edist_eq_add_add }
+instance : normed_group (α →₁[μ] β) := normed_group.of_add_dist (λ x, rfl) $ by
+{ intros, simp only [dist_eq, coe_add], rw edist_add_right }
 
 section normed_space
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-instance : has_scalar 𝕜 (α →₁ β) := ⟨λ x f, ⟨x • (f : α →ₘ β), ae_eq_fun.integrable.smul f.2⟩⟩
+instance : has_scalar 𝕜 (α →₁[μ] β) := ⟨λ x f, ⟨x • (f : α →ₘ[μ] β), ae_eq_fun.integrable.smul f.2⟩⟩
 
-@[simp, norm_cast] lemma coe_smul (c : 𝕜) (f : α →₁ β) :
-  ((c • f : α →₁ β) : α →ₘ β) = c • (f : α →ₘ β) := rfl
+@[simp, norm_cast] lemma coe_smul (c : 𝕜) (f : α →₁[μ] β) :
+  ((c • f : α →₁[μ] β) : α →ₘ[μ] β) = c • (f : α →ₘ[μ] β) := rfl
 
-instance : semimodule 𝕜 (α →₁ β) :=
+instance : semimodule 𝕜 (α →₁[μ] β) :=
 { one_smul  := λf, l1.eq (by { simp only [coe_smul], exact one_smul _ _ }),
   mul_smul  := λx y f, l1.eq (by { simp only [coe_smul], exact mul_smul _ _ _ }),
   smul_add  := λx f g, l1.eq (by { simp only [coe_smul, coe_add], exact smul_add _ _ _ }),
@@ -553,7 +554,7 @@ instance : semimodule 𝕜 (α →₁ β) :=
   add_smul  := λx y f, l1.eq (by { simp only [coe_smul], exact add_smul _ _ _ }),
   zero_smul := λf, l1.eq (by { simp only [coe_smul], exact zero_smul _ _ }) }
 
-instance : normed_space 𝕜 (α →₁ β) :=
+instance : normed_space 𝕜 (α →₁[μ] β) :=
 ⟨ begin
     rintros x ⟨f, hf⟩,
     show ennreal.to_real (edist (x • f) 0) ≤ ∥x∥ * ennreal.to_real (edist f 0),
@@ -566,94 +567,89 @@ end normed_space
 section of_fun
 
 /-- Construct the equivalence class `[f]` of a measurable and integrable function `f`. -/
-def of_fun (f : α → β) (hfm : measurable f) (hfi : integrable f) : (α →₁ β) :=
+def of_fun (f : α → β) (hfm : measurable f) (hfi : integrable f μ) : (α →₁[μ] β) :=
 ⟨mk f hfm, by { rw integrable_mk, exact hfi }⟩
 
-lemma of_fun_eq_mk (f : α → β) (hfm hfi) : (of_fun f hfm hfi : α →ₘ β) = mk f hfm := rfl
+@[simp] lemma of_fun_eq_mk (f : α → β) (hfm hfi) :
+  ((of_fun f hfm hfi : α →₁[μ] β) : α →ₘ[μ] β) = mk f hfm :=
+rfl
 
 lemma of_fun_eq_of_fun (f g : α → β) (hfm hfi hgm hgi) :
-  of_fun f hfm hfi = of_fun g hgm hgi ↔ ∀ₘ a, f a = g a :=
+  (of_fun f hfm hfi : α →₁[μ] β) = of_fun g hgm hgi ↔ f =ᵐ[μ] g :=
 by { rw ← l1.eq_iff, simp only [of_fun_eq_mk, mk_eq_mk] }
 
 lemma of_fun_zero :
-  of_fun (λa:α, (0:β)) (@measurable_const _ _ _ _ (0:β)) (integrable_zero α β) = 0 := rfl
+  (of_fun (λ _, 0) measurable_zero (integrable_zero α μ β) : α →₁[μ] β) = 0 := rfl
 
 lemma of_fun_add (f g : α → β) (hfm hfi hgm hgi) :
-  of_fun (λa, f a + g a) (measurable.add hfm hgm) (integrable.add hfm hfi hgm hgi)
+  (of_fun (f + g) (measurable.add hfm hgm) (integrable.add hfm hfi hgm hgi) : α →₁[μ] β)
     = of_fun f hfm hfi + of_fun g hgm hgi :=
 rfl
 
 lemma of_fun_neg (f : α → β) (hfm hfi) :
-  of_fun (λa, - f a) (measurable.neg hfm) (integrable.neg hfi) = - of_fun f hfm hfi := rfl
+  (of_fun (- f) (measurable.neg hfm) (integrable.neg hfi) : α →₁[μ] β) = - of_fun f hfm hfi := rfl
 
 lemma of_fun_sub (f g : α → β) (hfm hfi hgm hgi) :
-  of_fun (λa, f a - g a) (measurable.sub hfm hgm) (integrable.sub hfm hfi hgm hgi)
+  (of_fun (f - g) (measurable.sub hfm hgm) (integrable.sub hfm hfi hgm hgi) : α →₁[μ] β)
     = of_fun f hfm hfi - of_fun g hgm hgi :=
 rfl
 
 lemma norm_of_fun (f : α → β) (hfm hfi) :
-  ∥of_fun f hfm hfi∥ = ennreal.to_real (∫⁻ a, edist (f a) 0) :=
+  ∥(of_fun f hfm hfi : α →₁[μ] β)∥ = ennreal.to_real (∫⁻ a, edist (f a) 0 ∂μ) :=
 rfl
 
 lemma norm_of_fun_eq_lintegral_norm (f : α → β) (hfm hfi) :
-  ∥of_fun f hfm hfi∥ = ennreal.to_real (∫⁻ a, ennreal.of_real ∥f a∥) :=
+  ∥(of_fun f hfm hfi : α →₁[μ] β)∥ = ennreal.to_real (∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ) :=
 by { rw [norm_of_fun, lintegral_norm_eq_lintegral_edist] }
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-lemma of_fun_smul (f : α → β) (hfm : measurable f) (hfi : integrable f) (k : 𝕜) :
+lemma of_fun_smul (f : α → β) (hfm : measurable f) (hfi : integrable f μ) (k : 𝕜) :
   of_fun (λa, k • f a) (hfm.const_smul _) (hfi.smul _) = k • of_fun f hfm hfi := rfl
 
 end of_fun
 
 section to_fun
 
-/-- Find a representative of an `L¹` function [f] -/
-@[reducible]
-protected def to_fun (f : α →₁ β) : α → β := (f : α →ₘ β).to_fun
+protected lemma measurable (f : α →₁[μ] β) : measurable f := f.1.measurable
 
-protected lemma measurable (f : α →₁ β) : measurable f.to_fun := f.1.measurable
+protected lemma integrable (f : α →₁[μ] β) : integrable ⇑f μ :=
+integrable_coe_fn.2 f.2
 
-protected lemma integrable (f : α →₁ β) : integrable f.to_fun :=
-by { rw [l1.to_fun, ← integrable_to_fun], exact f.2 }
+lemma of_fun_to_fun (f : α →₁[μ] β) : of_fun f f.measurable f.integrable = f :=
+subtype.ext (f : α →ₘ[μ] β).mk_coe_fn
 
-lemma of_fun_to_fun (f : α →₁ β) : of_fun (f.to_fun) f.measurable f.integrable = f :=
-begin
-  rcases f with ⟨f, hfi⟩,
-  rw [of_fun, subtype.mk_eq_mk],
-  exact (self_eq_mk f).symm
-end
-
-lemma mk_to_fun (f : α →₁ β) : mk (f.to_fun) f.measurable = f :=
+lemma mk_to_fun (f : α →₁[μ] β) : (mk f f.measurable : α →ₘ[μ] β) = f :=
 by { rw ← of_fun_eq_mk, rw l1.eq_iff, exact of_fun_to_fun f }
 
-lemma to_fun_of_fun (f : α → β) (hfm hfi) : ∀ₘ a, (of_fun f hfm hfi).to_fun a = f a :=
-(all_ae_mk_to_fun f hfm).mono $ assume a, id
+lemma to_fun_of_fun (f : α → β) (hfm hfi) :
+  ⇑(of_fun f hfm hfi : α →₁[μ] β) =ᵐ[μ] f :=
+coe_fn_mk f hfm
 
 variables (α β)
-lemma zero_to_fun : ∀ₘ a, (0 : α →₁ β).to_fun a = 0 := ae_eq_fun.zero_to_fun
+lemma zero_to_fun : ⇑(0 : α →₁[μ] β) =ᵐ[μ] 0 := ae_eq_fun.coe_fn_zero
 variables {α β}
 
-lemma add_to_fun (f g : α →₁ β) : ∀ₘ a, (f + g).to_fun a = f.to_fun a + g.to_fun a :=
-ae_eq_fun.add_to_fun _ _
+lemma add_to_fun (f g : α →₁[μ] β) : ⇑(f + g) =ᵐ[μ] f + g :=
+ae_eq_fun.coe_fn_add _ _
 
-lemma neg_to_fun (f : α →₁ β) : ∀ₘ a, (-f).to_fun a = -f.to_fun a := ae_eq_fun.neg_to_fun _
+lemma neg_to_fun (f : α →₁[μ] β) : ⇑(-f) =ᵐ[μ] -⇑f := ae_eq_fun.coe_fn_neg _
 
-lemma sub_to_fun (f g : α →₁ β) : ∀ₘ a, (f - g).to_fun a = f.to_fun a - g.to_fun a :=
-ae_eq_fun.sub_to_fun _ _
+lemma sub_to_fun (f g : α →₁[μ] β) : ⇑(f - g) =ᵐ[μ] ⇑f - ⇑g :=
+ae_eq_fun.coe_fn_sub _ _
 
-lemma dist_to_fun (f g : α →₁ β) :
-  dist f g = ennreal.to_real (∫⁻ x, edist (f.to_fun x) (g.to_fun x)) :=
-by { simp only [dist_eq, edist_to_fun] }
+lemma dist_to_fun (f g : α →₁[μ] β) :
+  dist f g = ennreal.to_real (∫⁻ x, edist (f x) (g x) ∂μ) :=
+by { simp only [← coe_coe, dist_eq, edist_eq_coe] }
 
-lemma norm_eq_nnnorm_to_fun (f : α →₁ β) : ∥f∥ = ennreal.to_real (∫⁻ a, nnnorm (f.to_fun a)) :=
-by { rw [lintegral_nnnorm_eq_lintegral_edist, ← edist_zero_to_fun], refl }
+lemma norm_eq_nnnorm_to_fun (f : α →₁[μ] β) : ∥f∥ = ennreal.to_real (∫⁻ a, nnnorm (f a) ∂μ) :=
+by { rw [← coe_coe, lintegral_nnnorm_eq_lintegral_edist, ← edist_zero_eq_coe], refl }
 
-lemma norm_eq_norm_to_fun (f : α →₁ β) :
-  ∥f∥ = ennreal.to_real (∫⁻ a, ennreal.of_real ∥f.to_fun a∥) :=
+lemma norm_eq_norm_to_fun (f : α →₁[μ] β) :
+  ∥f∥ = ennreal.to_real (∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ) :=
 by { rw norm_eq_nnnorm_to_fun, congr, funext, rw of_real_norm_eq_coe_nnnorm }
 
-lemma lintegral_edist_to_fun_lt_top (f g : α →₁ β) : (∫⁻ a, edist (f.to_fun a) (g.to_fun a)) < ⊤ :=
+lemma lintegral_edist_to_fun_lt_top (f g : α →₁[μ] β) : (∫⁻ a, edist (f a) (g a) ∂μ) < ⊤ :=
 begin
   apply lintegral_edist_lt_top,
   exact f.measurable, exact f.integrable, exact g.measurable, exact g.integrable
@@ -661,60 +657,54 @@ end
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-lemma smul_to_fun (c : 𝕜) (f : α →₁ β) : ∀ₘ a, (c • f).to_fun a = c • f.to_fun a :=
-ae_eq_fun.smul_to_fun _ _
+lemma smul_to_fun (c : 𝕜) (f : α →₁[μ] β) : ⇑(c • f) =ᵐ[μ] c • f :=
+ae_eq_fun.coe_fn_smul _ _
 
 end to_fun
 
 section pos_part
 
 /-- Positive part of a function in `L¹` space. -/
-def pos_part (f : α →₁ ℝ) : α →₁ ℝ :=
-⟨ ae_eq_fun.pos_part f,
+def pos_part (f : α →₁[μ] ℝ) : α →₁[μ] ℝ :=
+⟨ae_eq_fun.pos_part f,
   begin
-    rw [ae_eq_fun.integrable_to_fun, integrable_congr_ae (pos_part_to_fun _)],
+    rw [← ae_eq_fun.integrable_coe_fn, integrable_congr (coe_fn_pos_part _)],
     exact integrable.max_zero f.integrable
   end ⟩
 
 /-- Negative part of a function in `L¹` space. -/
-def neg_part (f : α →₁ ℝ) : α →₁ ℝ := pos_part (-f)
+def neg_part (f : α →₁[μ] ℝ) : α →₁[μ] ℝ := pos_part (-f)
 
-@[norm_cast] lemma coe_pos_part (f : α →₁ ℝ) : (f.pos_part : α →ₘ ℝ) = (f : α →ₘ ℝ).pos_part := rfl
+@[norm_cast]
+lemma coe_pos_part (f : α →₁[μ] ℝ) : (f.pos_part : α →ₘ[μ] ℝ) = (f : α →ₘ[μ] ℝ).pos_part := rfl
 
-lemma pos_part_to_fun (f : α →₁ ℝ) : ∀ₘ a, (pos_part f).to_fun a = max (f.to_fun a) 0 :=
-ae_eq_fun.pos_part_to_fun _
+lemma pos_part_to_fun (f : α →₁[μ] ℝ) : ⇑(pos_part f) =ᵐ[μ] λ a, max (f a) 0 :=
+ae_eq_fun.coe_fn_pos_part _
 
-lemma neg_part_to_fun_eq_max (f : α →₁ ℝ) : ∀ₘ a, (neg_part f).to_fun a = max (- f.to_fun a) 0 :=
+lemma neg_part_to_fun_eq_max (f : α →₁[μ] ℝ) : ∀ᵐ a ∂μ, neg_part f a = max (- f a) 0 :=
 begin
   rw neg_part,
   filter_upwards [pos_part_to_fun (-f), neg_to_fun f],
   simp only [mem_set_of_eq],
   assume a h₁ h₂,
-  rw [h₁, h₂]
+  rw [h₁, h₂, pi.neg_apply]
 end
 
-lemma neg_part_to_fun_eq_min (f : α →₁ ℝ) : ∀ₘ a, (neg_part f).to_fun a = - min (f.to_fun a) 0 :=
-begin
-  filter_upwards [neg_part_to_fun_eq_max f],
-  simp only [mem_set_of_eq],
-  assume a h,
-  rw [h, min_eq_neg_max_neg_neg, _root_.neg_neg, neg_zero],
-end
+lemma neg_part_to_fun_eq_min (f : α →₁[μ] ℝ) : ∀ᵐ a ∂μ, neg_part f a = - min (f a) 0 :=
+(neg_part_to_fun_eq_max f).mono $ assume a h,
+by rw [h, min_eq_neg_max_neg_neg, _root_.neg_neg, neg_zero]
 
-lemma norm_le_norm_of_ae_le {f g : α →₁ β} (h : ∀ₘ a, ∥f.to_fun a∥ ≤ ∥g.to_fun a∥) : ∥f∥ ≤ ∥g∥ :=
+lemma norm_le_norm_of_ae_le {f g : α →₁[μ] β} (h : ∀ᵐ a ∂μ, ∥f a∥ ≤ ∥g a∥) : ∥f∥ ≤ ∥g∥ :=
 begin
   simp only [l1.norm_eq_norm_to_fun],
   rw to_real_le_to_real,
-  { apply lintegral_le_lintegral_ae,
-    filter_upwards [h],
-    simp only [mem_set_of_eq],
-    assume a h,
-    exact of_real_le_of_real h },
+  { apply lintegral_mono_ae,
+    exact h.mono (λ a h, of_real_le_of_real h) },
   { rw [← lt_top_iff_ne_top, ← integrable_iff_norm], exact f.integrable },
   { rw [← lt_top_iff_ne_top, ← integrable_iff_norm], exact g.integrable }
 end
 
-lemma continuous_pos_part : continuous $ λf : α →₁ ℝ, pos_part f :=
+lemma continuous_pos_part : continuous $ λf : α →₁[μ] ℝ, pos_part f :=
 begin
   simp only [metric.continuous_iff],
   assume g ε hε,
@@ -726,12 +716,12 @@ begin
     pos_part_to_fun f, pos_part_to_fun g],
   simp only [mem_set_of_eq],
   assume a h₁ h₂ h₃ h₄,
-  simp only [real.norm_eq_abs, h₁, h₂, h₃, h₄],
+  simp only [real.norm_eq_abs, h₁, h₂, h₃, h₄, pi.sub_apply],
   exact abs_max_sub_max_le_abs _ _ _
 end
 
-lemma continuous_neg_part : continuous $ λf : α →₁ ℝ, neg_part f :=
-have eq : (λf : α →₁ ℝ, neg_part f) = (λf : α →₁ ℝ, pos_part (-f)) := rfl,
+lemma continuous_neg_part : continuous $ λf : α →₁[μ] ℝ, neg_part f :=
+have eq : (λf : α →₁[μ] ℝ, neg_part f) = (λf : α →₁[μ] ℝ, pos_part (-f)) := rfl,
 by { rw eq, exact continuous_pos_part.comp continuous_neg }
 
 end pos_part

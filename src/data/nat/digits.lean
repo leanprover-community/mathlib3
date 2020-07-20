@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import data.int.modeq
-import data.fintype.card
-import tactic.ring
 import tactic.interval_cases
+import tactic.linarith
 
 /-!
 # Digits of a natural number

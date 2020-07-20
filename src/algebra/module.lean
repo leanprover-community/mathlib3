@@ -301,7 +301,7 @@ theorem coe_inj (h : (f : M → M₂) = g) : f = g :=
 by cases f; cases g; cases h; refl
 
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
-by cases f; cases g; congr'; exact funext H
+coe_inj $ funext H
 
 lemma coe_fn_congr : Π {x x' : M}, x = x' → f x = f x'
 | _ _ rfl := rfl

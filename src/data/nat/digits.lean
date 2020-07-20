@@ -423,11 +423,10 @@ lemma digits_len_le_digits_len_succ (b n : ℕ) : (digits b n).length ≤ (digit
 begin
   cases b,
   { -- base 0
-    cases n; simp, },
+    cases n; simp },
   { cases b,
     { -- base 1
-      simp,
-    },
+      simp },
     { -- base >= 2
       apply nat.strong_induction_on n,
       clear n,
@@ -440,8 +439,7 @@ begin
           repeat { rw list.length_cons },
           rw nat.succ_le_succ_iff,
           apply IH,
-          exact nat.div_lt_self (by linarith) (by linarith),
-        },
+          exact nat.div_lt_self (by linarith) (by linarith) },
         { rw nat.succ_div_of_not_dvd hdvd,
           refl } } } }
 end

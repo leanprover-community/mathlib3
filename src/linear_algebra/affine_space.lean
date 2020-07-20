@@ -1037,8 +1037,9 @@ variables {k}
 
 /-- A `weighted_vsub` with sum of weights 0 is in the `vector_span` of
 an indexed family. -/
-lemma weighted_vsub_mem_vector_span (p : ι → P) {s : finset ι} {w : ι → k}
-    (h : ∑ i in s, w i = 0) : s.weighted_vsub V p w ∈ vector_span k V (set.range p) :=
+lemma weighted_vsub_mem_vector_span {s : finset ι} {w : ι → k}
+    (h : ∑ i in s, w i = 0) (p : ι → P) : 
+    s.weighted_vsub V p w ∈ vector_span k V (set.range p) :=
 begin
   by_cases hn : nonempty ι,
   { cases hn with i0,

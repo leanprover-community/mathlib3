@@ -444,9 +444,4 @@ begin
           refl } } } }
 end
 
-lemma le_digits_len_le (b n m : ℕ) (h : n ≤ m) : (digits b n).length ≤ (digits b m).length :=
-begin
-  induction h with k nk IH,
-  { refl },
-  { exact nat.le_trans IH (digits_len_le_digits_len_succ b k) },
-end
+lemma le_digits_len_le (b n m : ℕ) (h : n ≤ m) : (digits b n).length ≤ (digits b m).length := monotone_of_monotone_nat (digits_len_le_digits_len_succ b) h

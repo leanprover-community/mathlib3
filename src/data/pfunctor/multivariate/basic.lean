@@ -171,10 +171,11 @@ open set mvfunctor
 theorem supp_eq {α : typevec n} (a : P.A) (f : P.B a ⟹ α) (i) :
   @supp.{u} _ P.obj _ α  (⟨a,f⟩ : P.obj α) i = f i '' univ :=
 begin
-  ext, simp [supp], split; intro h,
+  ext, simp only [supp, image_univ, mem_range, mem_set_of_eq],
+  split; intro h,
   { apply @h (λ i x, ∃ (y : P.B a i), f i y = x),
     rw liftp_iff', intros, refine ⟨_,rfl⟩ },
-  { simp [liftp_iff'], cases h, subst x,
+  { simp only [liftp_iff'], cases h, subst x,
     tauto }
 end
 

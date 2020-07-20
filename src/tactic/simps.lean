@@ -93,8 +93,8 @@ meta def simps_get_raw_projections (e : environment) (str : name) :
     /- check for other coercions and type-class arguments to use as projections instead. -/
     let e_str := (expr.const str raw_levels).mk_app args,
     raw_exprs ← simps_decls.mfoldl (λ (raw_exprs : list expr) ⟨is_class, class_nm, proj_nm⟩, (do
-      (raw_expr, lambda_raw_expr) ← if is_class then (do
-        let e_inst_type := (expr.const class_nm raw_levels).mk_app args,
+      (raw_expr, lambda_raw_expr) ← if is_class then (do failed -- todo
+        /-let e_inst_type := (expr.const class_nm raw_levels).mk_app args,
         -- trace e_inst_type.to_string,
         (hyp, e_inst) ← try_for 1000 (mk_conditional_instance e_str e_inst_type),
         -- trace e_inst.to_string,
@@ -104,7 +104,7 @@ meta def simps_get_raw_projections (e : environment) (str : name) :
         -- trace e_str.to_string,
         -- trace e_inst.to_string,
         raw_expr ← mk_mapp proj_nm [args.head, e_inst],
-        return (raw_expr, (raw_expr.bind_lambda hyp).lambdas args))
+        return (raw_expr, (raw_expr.bind_lambda hyp).lambdas args)-/)
       else (do
         e_inst_type ← to_expr ((expr.const class_nm []).app (pexpr.of_expr e_str)),
         -- trace e_inst_type.to_string,

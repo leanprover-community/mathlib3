@@ -340,34 +340,35 @@ set_option pp.all true
 @[simps] protected def symm2 {α β} (f : equiv2 α β) : equiv2 β α :=
 ⟨f.inv_fun, f.to_fun, f.right_inv, f.left_inv⟩
 
-set_option old_structure_cmd true
-class semigroup (G : Type u) extends has_mul G :=
-(mul_assoc : ∀ a b c : G, a * b * c = a * (b * c))
+-- todo
+-- set_option old_structure_cmd true
+-- class semigroup (G : Type u) extends has_mul G :=
+-- (mul_assoc : ∀ a b c : G, a * b * c = a * (b * c))
 
-def bazz {G : Type*} [semigroup G] (x y : G) : x * y = semigroup.mul x y := rfl
-#print bazz
+-- def bazz {G : Type*} [semigroup G] (x y : G) : x * y = semigroup.mul x y := rfl
+-- #print bazz
 
-example {α : Type u} : unit :=
-begin
-  do e ← get_local `α,
-  f ← mk_conditional_instance 
-    ((expr.const `coercing.semigroup [level.param `u]).app e)
-    ((expr.const `has_mul [level.param `u]).app e),
-  -- infer_type f.2 >>= trace,
-  trace f
-end
+-- example {α : Type u} : unit :=
+-- begin
+--   do e ← get_local `α,
+--   f ← mk_conditional_instance
+--     ((expr.const `coercing.semigroup [level.param `u]).app e)
+--     ((expr.const `has_mul [level.param `u]).app e),
+--   -- infer_type f.2 >>= trace,
+--   trace f
+-- end
 
-set_option pp.all true
-@[simps] instance : semigroup ℕ :=
-{ mul := (*),
-  mul_assoc := nat.mul_assoc }
+-- set_option pp.all true
+-- @[simps] instance : semigroup ℕ :=
+-- { mul := (*),
+--   mul_assoc := nat.mul_assoc }
 
-def bazzz (x y : ℕ) : x * y = nat.mul x y :=
-_
-#print has_mul
+-- def bazzz (x y : ℕ) : x * y = nat.mul x y :=
+-- _
+-- #print has_mul
 
-def baz (α : Type*) : semigroup α → has_mul α := by introI; apply_instance
+-- def baz (α : Type*) : semigroup α → has_mul α := by introI; apply_instance
 
-#print baz
+-- #print baz
 
 end coercing

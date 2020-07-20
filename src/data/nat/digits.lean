@@ -442,4 +442,7 @@ begin
           refl } } } }
 end
 
-lemma le_digits_len_le (b n m : ℕ) (h : n ≤ m) : (digits b n).length ≤ (digits b m).length := monotone_of_monotone_nat (digits_len_le_digits_len_succ b) h
+lemma le_digits_len_le (b n m : ℕ) (h : n ≤ m) : (digits b n).length ≤ (digits b m).length :=
+begin
+  exact monotone_of_monotone_nat (digits_len_le_digits_len_succ b) h,
+end

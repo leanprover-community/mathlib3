@@ -41,6 +41,7 @@ The default is that the original argument is returned, so `<` is just mapped to 
 meta def normalize_synonym : name → name
 | `gt := `has_lt.lt
 | `ge := `has_le.le
+| `monotone := `has_le.le
 | `not := `false
 | n   := n
 

@@ -15,13 +15,11 @@ The definitions include
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
-local attribute [instance, priority 10] is_semiring_hom.comp is_ring_hom.comp
-
 open finsupp finset add_monoid_algebra
 open_locale big_operators
 
 namespace polynomial
-universes u v --w x y z
+universes u v
 variables {R : Type u} {S : Type v} {a b : R} {n m : ℕ}
 
 section semiring
@@ -161,7 +159,7 @@ end
 by simp only [←C_eq_nat_cast, nat_degree_C]
 
 @[simp] lemma degree_monomial (n : ℕ) (ha : a ≠ 0) : degree (C a * X ^ n) = n :=
-by rw [← single_eq_C_mul_X, degree, support_single_ne_zero ha]; refl
+by rw [← single_eq_C_mul_X, degree, monomial, support_single_ne_zero ha]; refl
 
 lemma degree_monomial_le (n : ℕ) (a : R) : degree (C a * X ^ n) ≤ n :=
 if h : a = 0 then by rw [h, C_0, zero_mul]; exact bot_le else le_of_eq (degree_monomial n h)
@@ -269,6 +267,22 @@ by simp [nat_degree]
 by simp only [←C_eq_int_cast, nat_degree_C]
 
 end ring
+
+section semiring
+variables [semiring R]
+
+/-- The second-highest coefficient, or 0 for constants -/
+def next_coeff (p : polynomial R) : R :=
+if p.nat_degree = 0 then 0 else p.coeff (p.nat_degree - 1)
+
+@[simp]
+lemma next_coeff_C_eq_zero (c : R) :
+  next_coeff (C c) = 0 := by { rw next_coeff, simp }
+
+lemma next_coeff_of_pos_nat_degree (p : polynomial R) (hp : 0 < p.nat_degree) :
+  next_coeff p = p.coeff (p.nat_degree - 1) :=
+by { rw [next_coeff, if_neg], contrapose! hp, simpa }
+end semiring
 
 
 end polynomial

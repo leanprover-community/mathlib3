@@ -32,6 +32,8 @@ open widget.html widget.attr
 
 namespace interactive_expression
 
+meta instance : has_mem expr.coord expr.address := list.has_mem
+
 /-- eformat but without any of the formatting stuff like highlighting, groups etc. -/
 meta inductive sf : Type
 | tag_expr : expr.address → expr → sf → sf
@@ -71,6 +73,44 @@ meta def sf.flatten : sf → sf
   | x, y := sf.compose x y
   end
 | (sf.of_string s) := sf.of_string s
+
+private meta def elim_part_apps : sf → expr.address → sf
+| (sf.tag_expr ea e m) acc :=
+  if ∀ c ∈ ea, c = expr.coord.app_fn then
+    elim_part_apps m (acc ++ ea)
+  else
+    sf.tag_expr (acc ++ ea) e (elim_part_apps m [])
+| (sf.compose a b) acc := (elim_part_apps a acc).compose (elim_part_apps b acc)
+| (sf.of_string s) _ := sf.of_string s
+
+/--
+Post-process an `sf` object to eliminate tags for partial applications by
+pushing the `app_fn` as far into the expression as possible. The effect is
+that clicking on a sub-expression always includes the full argument list in
+the popup.
+
+Consider the expression `id id 0`. We push the `app_fn` for the partial
+application `id id` inwards and eliminate it.  Before:
+```
+(tag_expr [app_fn]
+  `(id.{1} (nat -> nat) (id.{1} nat))
+  (tag_expr [app_fn] `(id.{1} (nat -> nat)) "id")
+  "\n"
+  (tag_expr [app_arg] `(id.{1} nat) "id"))
+"\n"
+(tag_expr [app_arg] `(has_zero.zero.{0} nat nat.has_zero) "0")
+```
+After:
+```
+"id"
+"\n"
+(tag_expr [app_fn, app_arg] `(id.{1} nat) "id")
+"\n"
+(tag_expr [app_arg] `(has_zero.zero.{0} nat nat.has_zero) "0")
+```
+-/
+meta def sf.elim_part_apps (s : sf) : sf :=
+elim_part_apps s []
 
 /--
 The actions accepted by an expression widget.
@@ -129,9 +169,10 @@ tc.mk_simple
     end
   )
   (λ e ⟨ca, sa⟩, do
-    ts ← tactic.read,
-    let m : sf  := sf.flatten $ sf.of_eformat $ tactic_state.pp_tagged ts e,
-    let m : sf  := sf.tag_expr [] e m, -- [hack] in pp.cpp I forgot to add an expr-boundary for the root expression.
+    m ← sf.of_eformat <$> tactic.pp_tagged e,
+    let m := m.elim_part_apps,
+    let m := m.flatten,
+    let m := m.tag_expr [] e, -- [hack] in pp.cpp I forgot to add an expr-boundary for the root expression.
     v ← view tooltip_comp (prod.snd <$> ca) (prod.snd <$> sa) ⟨e, []⟩ m,
     pure $
     [ h "span" [

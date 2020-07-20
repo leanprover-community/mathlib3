@@ -2,15 +2,18 @@
 Copyright (c) 2019 Jan-David Salchow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo
-
-Operator norm on the space of continuous linear maps
-
-Define the operator norm on the space of continuous linear maps between normed spaces, and prove
-its basic properties. In particular, show that this space is itself a normed space.
 -/
 import linear_algebra.finite_dimensional
 import analysis.normed_space.riesz_lemma
 import analysis.asymptotics
+
+/-!
+# Operator norm on the space of continuous linear maps
+
+Define the operator norm on the space of continuous linear maps between normed spaces, and prove
+its basic properties. In particular, show that this space is itself a normed space.
+-/
+
 noncomputable theory
 open_locale classical
 
@@ -121,7 +124,7 @@ begin
     { assume x,
       by_cases hx : f x = 0,
       { rw [hx, norm_zero],
-        apply_rules [mul_nonneg, norm_nonneg, inv_nonneg.2, norm_nonneg] },
+        apply_rules [mul_nonneg, norm_nonneg, inv_nonneg.2] },
       { let y := x₀ - (f x₀ * (f x)⁻¹ ) • x,
         have fy_zero : f y = 0, by calc
           f y = f x₀ - (f x₀ * (f x)⁻¹ ) * f x : by simp [y]
@@ -461,13 +464,13 @@ begin
       have A := hG (v + w),
       have B := (hG v).add (hG w),
       simp only [map_add] at A B,
-      exact tendsto_nhds_unique filter.at_top_ne_bot A B,
+      exact tendsto_nhds_unique A B,
     end,
     map_smul' := λ c v, begin
       have A := hG (c • v),
       have B := filter.tendsto.smul (@tendsto_const_nhds _ ℕ _ c _) (hG v),
       simp only [map_smul] at A B,
-      exact tendsto_nhds_unique filter.at_top_ne_bot A B
+      exact tendsto_nhds_unique A B
     end },
   -- and that `G` has norm at most `(b 0 + ∥f 0∥)`.
   have Gnorm : ∀ v, ∥G v∥ ≤ (b 0 + ∥f 0∥) * ∥v∥,
@@ -482,7 +485,7 @@ begin
         apply add_le_add_right,
         simpa [dist_eq_norm] using b_bound n 0 0 (zero_le _) (zero_le _)
       end },
-    exact le_of_tendsto at_top_ne_bot (hG v).norm (eventually_of_forall A) },
+    exact le_of_tendsto (hG v).norm (eventually_of_forall A) },
   -- Thus `G` is continuous, and we propose that as the limit point of our original Cauchy sequence.
   let Gcont := Glin.mk_continuous _ Gnorm,
   use Gcont,
@@ -496,7 +499,7 @@ begin
       exact mul_le_mul_of_nonneg_right (b_bound n m n (le_refl _) hm) (norm_nonneg v) },
     have B : tendsto (λ m, ∥(f n - f m) v∥) at_top (𝓝 (∥(f n - Gcont) v∥)) :=
       tendsto.norm (tendsto_const_nhds.sub (hG v)),
-    exact le_of_tendsto at_top_ne_bot B A },
+    exact le_of_tendsto B A },
   erw tendsto_iff_norm_tendsto_zero,
   exact squeeze_zero (λ n, norm_nonneg _) this b_lim,
 end

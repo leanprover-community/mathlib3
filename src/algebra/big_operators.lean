@@ -459,6 +459,11 @@ by simp [prod_apply_dite _ _ (λ x, x)]
   (∏ x in s.filter p, f x) * (∏ x in s.filter (λ x, ¬ p x), g x) :=
 by simp [prod_apply_ite _ _ (λ x, x)]
 
+@[to_additive]
+lemma prod_extend_by_one [decidable_eq α] (s : finset α) (f : α → β) :
+  ∏ i in s, (if i ∈ s then f i else 1) = ∏ i in s, f i :=
+prod_congr rfl $ λ i hi, if_pos hi
+
 @[simp, to_additive]
 lemma prod_dite_eq [decidable_eq α] (s : finset α) (a : α) (b : Π x : α, a = x → β) :
   (∏ x in s, (if h : a = x then b x h else 1)) = ite (a ∈ s) (b a rfl) 1 :=
@@ -649,6 +654,21 @@ lemma sum_range_one {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) :
 
 attribute [to_additive finset.sum_range_one] prod_range_one
 
+open multiset
+lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
+  s.prod = ∏ m in s.to_finset, m ^ (s.count m) :=
+begin
+  apply s.induction_on, { rw [prod_zero, to_finset_zero, finset.prod_empty] },
+  intros a s ih, by_cases has : a ∈ s.to_finset,
+  { rw [prod_cons, to_finset_cons, finset.insert_eq_of_mem has, ih,
+      ← finset.insert_erase has, finset.prod_insert (finset.not_mem_erase _ _),
+      finset.prod_insert (finset.not_mem_erase _ _), ← mul_assoc, count_cons_self, pow_succ],
+    congr' 1, refine finset.prod_congr rfl (λ x hx, _), rw [count_cons_of_ne (finset.ne_of_mem_erase hx)] },
+  rw [prod_cons, to_finset_cons, finset.prod_insert has, count_cons_self],
+  rw mem_to_finset at has, rw [count_eq_zero_of_not_mem has, pow_one], congr' 1,
+  rw ih, refine finset.prod_congr rfl (λ x hx, _), rw mem_to_finset at hx, rw count_cons_of_ne,
+  rintro rfl, exact has hx
+end
 
 /-- To prove a property of a product, it suffices to prove that the property is multiplicative and holds on factors.
 -/

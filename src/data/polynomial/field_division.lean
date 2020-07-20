@@ -17,17 +17,12 @@ This file starts looking like the ring theory of $ R[X] $
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
-local attribute [instance, priority 10] is_semiring_hom.comp is_ring_hom.comp
-
 open finsupp finset add_monoid_algebra
 open_locale big_operators
 
 namespace polynomial
 universes u v w y z
 variables {R : Type u} {S : Type v} {k : Type y} {A : Type z} {a b : R} {n : ℕ}
-
-
-
 
 section field
 variables [field R] {p q : polynomial R}
@@ -58,7 +53,7 @@ lemma degree_mul_leading_coeff_inv (p : polynomial R) (h : q ≠ 0) :
   degree (p * C (leading_coeff q)⁻¹) = degree p :=
 have h₁ : (leading_coeff q)⁻¹ ≠ 0 :=
   inv_ne_zero (mt leading_coeff_eq_zero.1 h),
-by rw [degree_mul_eq, degree_C h₁, add_zero]
+by rw [degree_mul, degree_C h₁, add_zero]
 
 /-- Division of polynomials. See polynomial.div_by_monic for more details.-/
 def div (p q : polynomial R) :=
@@ -141,7 +136,7 @@ have degree (p % q) < degree (q * (p / q)) :=
   calc degree (p % q) < degree q : euclidean_domain.mod_lt _ hq0
   ... ≤ _ : degree_le_mul_left _ (mt (div_eq_zero_iff hq0).1 (not_lt_of_ge hpq)),
 by conv {to_rhs, rw [← euclidean_domain.div_add_mod p q, add_comm,
-    degree_add_eq_of_degree_lt this, degree_mul_eq]}
+    degree_add_eq_of_degree_lt this, degree_mul]}
 
 lemma degree_div_le (p q : polynomial R) : degree (p / q) ≤ degree p :=
 if hq : q = 0 then by simp [hq]
@@ -241,7 +236,7 @@ show ↑(dite _ _ _) = C p.leading_coeff⁻¹, by rw dif_neg hp; refl
 
 @[simp] lemma degree_normalize : degree (normalize p) = degree p :=
 if hp0 : p = 0 then by simp [hp0]
-else by rw [normalize, degree_mul_eq, degree_eq_zero_of_is_unit (is_unit_unit _), add_zero]
+else by rw [normalize, degree_mul, degree_eq_zero_of_is_unit (is_unit_unit _), add_zero]
 
 lemma prime_of_degree_eq_one (hp1 : degree p = 1) : prime p :=
 have prime (normalize p),

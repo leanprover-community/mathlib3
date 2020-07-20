@@ -277,7 +277,8 @@ begin
   assume z gz,
     calc map ff g ≤ map ff (𝓝 ⟦z⟧) : map_mono gz
               ... ≤ 𝓝 (ff ⟦z⟧) : (continuous_stone_cech_extend hf).tendsto _,
-  exact tendsto_nhds_unique u.1 (lim x gx) (lim y gy)
+  haveI := u.1,
+  exact tendsto_nhds_unique (lim x gx) (lim y gy)
 end
 
 instance stone_cech.compact_space : compact_space (stone_cech α) :=

@@ -281,6 +281,9 @@ meta def univ_levels : expr → list level
 | (const n ls) := ls
 | _            := []
 
+/-- Get the universe levels of a `const` expression -/
+meta def substs : expr → list expr → expr | e es := es.foldl expr.subst e
+
 end expr
 
 /-! ### Declarations about `expr` -/

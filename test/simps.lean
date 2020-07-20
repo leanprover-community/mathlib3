@@ -1,5 +1,7 @@
 import tactic.simps
 
+set_option trace.simps.verbose true
+
 open function tactic expr
 structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
@@ -20,7 +22,6 @@ def myprod.map {α α' β β'} (f : α → α') (g : β → β') (x : my_prod α
 
 namespace foo
 
-set_option trace.app_builder true
 @[simps] protected def rfl {α} : α ≃ α :=
 ⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
 

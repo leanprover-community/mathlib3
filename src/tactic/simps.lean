@@ -17,48 +17,92 @@ structures, projections, simp, simplifier, generates declarations
 
 open tactic expr
 
+setup_tactic_parser
+@[derive has_reflect] structure simps_cfg :=
+-- only generate lemmas, don't give them the @[simp] attribute
+(lemmas_only   := ff)
+-- give the generated lemmas a shorter name
+(short_name    := ff)
+-- simplify the right-hand-side of the simp lemmas
+(simp_rhs      := ff)
+
+/--
+The `@[simps_str]` specifies the projections of the given structure, using by the `@[simps]
+attribute.
+- This will usually be tagged by the `@[simps]` tactic.
+- If you specify it yourself, make sure it is specified in the same file as the structure
+  declaration.
+- The first argument is the list of names of the universe variables used in the structure
+- The second argument is the expressions that correspond to the projections of the structure
+  (these can contain the universe parameters specified in the first argument).
+-/
+@[user_attribute] meta def simps_str_attr : user_attribute unit (list name × list expr) :=
+{ name := `simps_str,
+  descr := "An attribute specifying the projection of the given structure.",
+  parser := do e ← texpr, eval_pexpr _ e }
+
 declare_trace simps.verbose
 
 /-- Add a lemma with `nm` stating that `lhs = rhs`. `type` is the type of both `lhs` and `rhs`,
   `args` is the list of local constants occurring, and `univs` is the list of universe variables.
   If `add_simp` then we make the resulting lemma a simp-lemma. -/
 meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list expr)
-  (univs : list name) (add_simp : bool) : tactic unit := do
+  (univs : list name) (cfg : simps_cfg) : tactic unit := do
   eq_ap ← mk_mapp `eq $ [type, lhs, rhs].map some,
   refl_ap ← mk_app `eq.refl [type, lhs],
   decl_name ← get_unused_decl_name nm,
   let decl_type := eq_ap.pis args,
   let decl_value := refl_ap.lambdas args,
   let decl := declaration.thm decl_name univs decl_type (pure decl_value),
-  add_decl decl <|> fail format!"failed to add projection lemma {decl_name}.",
   when_tracing `simps.verbose trace!"[simps] > adding projection\n        > {decl_name} : {decl_type}",
-  when add_simp $ do
+  add_decl decl <|> fail format!"failed to add projection lemma {decl_name}.",
+  when (¬ cfg.lemmas_only) $ do
     set_basic_attribute `_refl_lemma decl_name tt,
     set_basic_attribute `simp decl_name tt
 
-/-- Get the projections of a structure used by simps. Returns a list of triples
-  (projection expression, projection name, corresponding right-hand-side) -/
+/-- Get the projections used by `simps` associated to a given structure.
+ -/
+meta def simps_get_raw_projections (e : environment) (str : name) :
+  tactic (list name × list expr) := do
+  d_str ← e.get str,
+  projs ← e.structure_fields_full str,
+  has_attr ← has_attribute' `simps_str str,
+  if has_attr then
+    when_tracing `simps.verbose trace!"[simps] > found projection information for structure {str}" >>
+    simps_str_attr.get_param str
+  else do
+    when_tracing `simps.verbose trace!"[simps] > generating projection information to structure {str}",
+    let raw_univs := d_str.univ_params,
+    let raw_exprs : list expr := projs.map $ λ proj, (expr.const proj $ level.param <$> raw_univs),
+    simps_str_attr.set str (raw_univs, raw_exprs) tt,
+    return (raw_univs, raw_exprs)
+
+/-- Get the projections of a structure used by simps applied to the appropriate arguments.
+  Returns a list of triples (projection expression, projection name, corresponding right-hand-side).
+
+  This function does not use `tactic.mk_app` or `tactic.mk_mapp`, because the the given arguments
+  might not uniquely specify the universe levels yet.
+ -/
 meta def simps_get_projection_exprs (e : environment) (tgt : expr)
   (rhs : expr) : tactic $ list $ expr × name × expr := do
-  let str := tgt.get_app_fn.const_name,
   let params := get_app_args tgt, -- the parameters of the structure
-  let univ_levels := tgt.get_app_fn.univ_levels, -- the universe arguments of the structure
-  projs ← e.structure_fields_full str,
   guard ((get_app_args rhs).take params.length = params) <|> fail "unreachable code (1)",
+  let str := tgt.get_app_fn.const_name,
+  projs ← e.structure_fields_full str,
   let rhs_args := (get_app_args rhs).drop params.length, -- the fields of the structure
   guard (rhs_args.length = projs.length) <|> fail "unreachable code (2)",
-  -- cannot use `tactic.mk_app` here, since the resulting application is still a function.
-  -- cannot use `tactic.mk_mapp` here, since the the given arguments here might not uniquely
-  -- specify the universe levels.
-  let proj_exprs := projs.map $ λ proj, (expr.const proj univ_levels).mk_app params,
+  (raw_univs, raw_exprs) ← simps_get_raw_projections e str,
+  let univs := raw_univs.zip tgt.get_app_fn.univ_levels,
+  let proj_exprs := raw_exprs.map $
+    λ raw_expr, (raw_expr.instantiate_univ_params univs).substs params,
   return $ proj_exprs.zip $ projs.zip rhs_args
 
 /-- Derive lemmas specifying the projections of the declaration.
   If `todo` is non-empty, it will generate exactly the names in `todo`. -/
 meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : string)
-  (type lhs rhs : expr) (args : list expr) (univs : list name)
-  (add_simp must_be_str short_nm : bool) (todo : list string), tactic unit
-| e nm suffix type lhs rhs args univs add_simp must_be_str short_nm todo := do
+  (type lhs rhs : expr) (args : list expr) (univs : list name) (must_be_str : bool)
+  (cfg : simps_cfg) (todo : list string), tactic unit
+| e nm suffix type lhs rhs args univs must_be_str cfg todo := do
   (type_args, tgt) ← mk_local_pis_whnf type,
   tgt ← whnf tgt,
   let new_args := args ++ type_args,
@@ -79,7 +123,7 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
       /- we want to generate the current projection if it is in `todo` or when `rhs_ap` was an
       eta-expansion -/
       when ("" ∈ todo ∨ (todo = [] ∧ eta.is_some)) $
-        simps_add_projection (nm.append_suffix suffix) tgt lhs_ap rhs_ap new_args univs add_simp,
+        simps_add_projection (nm.append_suffix suffix) tgt lhs_ap rhs_ap new_args univs cfg,
       -- if `rhs_ap` was an eta-expansion and `todo` is empty, we stop
       when ¬(todo = [""] ∨ (eta.is_some ∧ todo = [])) $ do
         /- remove "" from todo. This allows a to generate lemmas + nested version of them.
@@ -98,44 +142,37 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
           -- we only continue with this field if it is non-propositional or mentioned in todo
           when ((¬ b ∧ todo = []) ∨ (todo ≠ [] ∧ new_todo ≠ [])) $ do
             let new_lhs := proj_expr.app lhs_ap,
-            let new_suffix := if short_nm then "_" ++ proj.last else
+            let new_suffix := if cfg.short_name then "_" ++ proj.last else
               suffix ++ "_" ++ proj.last,
             simps_add_projections e nm new_suffix new_type new_lhs new_rhs new_args univs
-              add_simp ff short_nm new_todo
+              ff cfg new_todo
     else do
       when must_be_str $
         fail "Invalid `simps` attribute. Body is not a constructor application",
       when (todo ≠ [] ∧ todo ≠ [""]) $
         fail format!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo.head}. The given definition is not a constructor application.",
-      simps_add_projection (nm.append_suffix suffix) tgt lhs_ap rhs_ap new_args univs add_simp
+      simps_add_projection (nm.append_suffix suffix) tgt lhs_ap rhs_ap new_args univs cfg
   else do
     when must_be_str $
       fail "Invalid `simps` attribute. Target is not a structure",
     when (todo ≠ [] ∧ todo ≠ [""] ∧ str ∉ [`prod, `pprod]) $
         fail format!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo.head}. Projection {(todo.head.split_on '_').tail.head} doesn't exist, because target is not a structure.",
-    simps_add_projection (nm.append_suffix suffix) tgt lhs_ap rhs_ap new_args univs add_simp
+    simps_add_projection (nm.append_suffix suffix) tgt lhs_ap rhs_ap new_args univs cfg
 
 /-- `simps_tac` derives simp-lemmas for all (nested) non-Prop projections of the declaration.
   If `todo` is non-empty, it will generate exactly the names in `todo`.
   If `short_nm` is true, the generated names will only use the last projection name. -/
-meta def simps_tac (nm : name) (add_simp : bool) (short_nm : bool := ff)
-  (todo : list string := []) : tactic unit := do
+meta def simps_tac (nm : name) (cfg : simps_cfg := {}) (todo : list string := []) : tactic unit := do
   e ← get_env,
   d ← e.get nm,
   let lhs : expr := const d.to_name (d.univ_params.map level.param),
   let todo := todo.erase_dup.map $ λ proj, "_" ++ proj,
-  simps_add_projections e nm "" d.type lhs d.value [] d.univ_params add_simp tt short_nm todo
+  simps_add_projections e nm "" d.type lhs d.value [] d.univ_params tt cfg todo
 
-reserve notation `lemmas_only`
-reserve notation `short_name`
-setup_tactic_parser
-
-/-- The parser for simps. Pattern: `'lemmas_only'? 'short_name'? ident*` -/
-meta def simps_parser : parser (bool × bool × list string) :=
+/-- The parser for the `@[simps]` attribute. -/
+meta def simps_parser : parser (simps_cfg × list string) := do
 /- note: we currently don't check whether the user has written a nonsense namespace as arguments. -/
-prod.mk <$> (option.is_none <$> (tk "lemmas_only")?) <*>
-(prod.mk <$> (option.is_some <$> (tk "short_name")?) <*> many (name.last <$> ident))
-
+prod.mk <$> ((do e ← parser.pexpr, eval_pexpr simps_cfg e) <|> return {}) <*> many (name.last <$> ident)
 
 /--
 The `@[simps]` attribute automatically derives lemmas specifying the projections of this
@@ -152,7 +189,7 @@ derives two simp-lemmas:
 ```
 
 * It does not derive simp-lemmas for the prop-valued projections.
-* It will automatically reduce newly created beta-redexes, but not unfold any definitions.
+* It will automatically reduce newly created beta-redexes, but will not unfold any definitions.
 * If one of the fields itself is a structure, this command will recursively create
   simp-lemmas for all fields in that structure.
   * Exception: by default it will not recursively create simp-lemmas for fields in the structures
@@ -178,13 +215,12 @@ derives two simp-lemmas:
   lemmas it generates.
 
   -/
-@[user_attribute] meta def simps_attr : user_attribute unit (bool × bool × list string) :=
+@[user_attribute] meta def simps_attr : user_attribute unit (simps_cfg × list string) :=
 { name := `simps,
   descr := "Automatically derive lemmas specifying the projections of this declaration.",
   parser := simps_parser,
   after_set := some $
-    λ n _ _, do (add_simp, short_nm, todo) ← simps_attr.get_param n,
-      simps_tac n add_simp short_nm todo }
+    λ n _ _, do (cfg, todo) ← simps_attr.get_param n, simps_tac n cfg todo }
 
 add_tactic_doc
 { name                     := "simps",

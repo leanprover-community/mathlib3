@@ -5,6 +5,10 @@ Author: Nicolò Cavalleri.
 -/
 
 import geometry.manifold.times_cont_mdiff
+import tactic
+
+meta def splita : tactic unit :=
+  `[show_term { dsimp_result { repeat { split <|> assumption }}}]
 
 noncomputable theory
 
@@ -35,14 +39,6 @@ section composition
 a topological counterpart with the same proof, I like the idea that people do not need to think
 to different processes to prove things, and can just replace continuous with smooth. -/
 
-lemma smooth_on.comp {s : set M} {t : set M'} {f : M → M'} {g : M' → M''}
-  (hg : smooth_on I' I'' g t) (hf : smooth_on I I' f s)
-  (st : s ⊆ f ⁻¹' t) : smooth_on I I'' (g ∘ f) s := times_cont_mdiff_on.comp hg hf st
-
-lemma smooth.comp {f : M → M'} {g : M' → M''}
-  (hg : smooth I' I'' g) (hf : smooth I I' f) :
-  smooth I I'' (g ∘ f) := times_cont_mdiff.comp hg hf
-
 lemma smooth.smooth_on {f : M → M'} {s : set M} (h : smooth I I' f) :
   smooth_on I I' f s :=
 begin
@@ -58,22 +54,64 @@ hg.smooth_on.comp hf set.subset_preimage_univ
 
 end composition
 
-lemma smooth_within_at.prod {f : M → M'} {g : M → M''} {s : set M} {x : M}
-  (hf : smooth_within_at I I' f s x) (hg : smooth_within_at I I'' g s x) :
-  smooth_within_at I (I'.prod I'') (λx, (f x, g x)) s x := sorry
+lemma times_cont_mdiff_on.prod {f : M → M'} {g : M → M''} {n : with_top ℕ} {s : set M}
+  (hf : times_cont_mdiff_on I I' n f s) (hg : times_cont_mdiff_on I I'' n g s) :
+  times_cont_mdiff_on I (I'.prod I'') n (λx, (f x, g x)) s :=
+begin
+  rw times_cont_mdiff_on_iff at hf hg ⊢,
+  refine ⟨hf.1.prod hg.1, λ x y, _⟩,
+
+  let s1 := ((ext_chart_at I x).target ∩ ((ext_chart_at I x).symm) ⁻¹'
+  (s ∩ f ⁻¹' (ext_chart_at I' y.fst).source)),
+  let t1 := ((ext_chart_at I x).target ∩ ((ext_chart_at I x).symm) ⁻¹'
+  (s ∩ g ⁻¹' (ext_chart_at I'' y.snd).source)) ,
+  let inter := s1 ∩ t1,
+  have hs : (inter ⊆ s1) := by exact set.inter_subset_left s1 t1,
+  have ht : (inter ⊆ t1) := by exact set.inter_subset_right s1 t1,
+  have h := times_cont_diff_on.prod (times_cont_diff_on.mono (hf.2 x y.fst) hs)
+  (times_cont_diff_on.mono (hg.2 x y.snd) ht),
+  convert h using 1,
+
+  ext1 z,
+  simp only with mfld_simps,
+  fsplit,
+  { rintro ⟨⟨⟨a, rfl⟩, h1⟩, h2, h3, h4⟩, exact ⟨⟨⟨⟨a, rfl⟩, h1⟩, ⟨h2, h3⟩⟩, ⟨⟨⟨a, rfl⟩, h1⟩, ⟨h2, h4⟩⟩⟩, },
+  { rintro ⟨⟨⟨⟨a, rfl⟩, h1⟩, h2, h3⟩, ⟨⟨b, hb⟩, h4⟩, h5, h6⟩, exact ⟨⟨⟨a, rfl⟩, h1⟩, ⟨h2, ⟨h3, h6⟩⟩⟩, }
+end
 
 lemma smooth_on.prod {f : M → M'} {g : M → M''} {s : set M}
   (hf : smooth_on I I' f s) (hg : smooth_on I I'' g s) :
-  smooth_on I (I'.prod I'') (λx, (f x, g x)) s :=
-λ x hx, smooth_within_at.prod (hf x hx) (hg x hx)
+  smooth_on I (I'.prod I'') (λx, (f x, g x)) s
+:= times_cont_mdiff_on.prod hf hg
+
+lemma smooth_within_at.prod {f : M → M'} {g : M → M''} {s : set M} {x : M}
+  (hf : smooth_within_at I I' f s x) (hg : smooth_within_at I I'' g s x) :
+  smooth_within_at I (I'.prod I'') (λx, (f x, g x)) s x :=
+begin
+  rw times_cont_mdiff_within_at_top at hf hg ⊢,
+  intro n,
+  have hf1 := hf n,
+  have hg1 := hg n,
+  rw times_cont_mdiff_within_at_iff_times_cont_mdiff_on_nhds at hf1 hg1 ⊢,
+  cases hg1 with ug hug,
+  cases hf1 with uf huf,
+  cases hug with hug1 hug2,
+  cases huf with huf1 huf2,
+  use ug ∩ uf,
+  refine ⟨(nhds_within x (insert x s)).inter_sets hug1 huf1, _⟩,
+  have huf3 : times_cont_mdiff_on I I' n f (ug ∩ uf) :=
+    times_cont_mdiff_on.mono huf2 (set.inter_subset_right ug uf),
+  have hug3 : times_cont_mdiff_on I I'' n g (ug ∩ uf) :=
+    times_cont_mdiff_on.mono hug2 (set.inter_subset_left ug uf),
+  exact times_cont_mdiff_on.prod huf3 hug3,
+end
 
 /- I do not know enough of Sebastien's tangent bundle to do this proof and in any case I am
 building my own tangent bundle but I'd be happy if this proof were there. If it is hard I will
 remove this lemma. I do not need it. -/
 lemma tangent_bundle_proj_smooth : smooth I.tangent I (tangent_bundle.proj I M) :=
 begin
-  delta smooth,
-  rw times_cont_mdiff_iff,
+  rw smooth_iff,
   refine ⟨tangent_bundle_proj_continuous I M, λ x y, _⟩,
   simp only [function.comp] with mfld_simps,
   sorry,
@@ -93,8 +131,7 @@ variables
 lemma smooth.prod_map {f : M → M'} {g : N → N'} (hf : smooth I I' f) (hg : smooth J J' g) :
   smooth (I.prod J) (I'.prod J') (prod.map f g) :=
 begin
-  delta smooth at hf hg ⊢,
-  rw times_cont_mdiff_iff at hf hg ⊢,
+  rw smooth_iff at hf hg ⊢,
   refine ⟨continuous.prod_map hf.1 hg.1, λ x y, _⟩,
 
   have h := (hf.2 x.fst y.fst).map_prod (hg.2 x.snd y.snd),
@@ -108,8 +145,7 @@ end
 
 lemma smooth_fst : smooth (I.prod J) I (@prod.fst M N) :=
 begin
-  delta smooth,
-  rw times_cont_mdiff_iff,
+  rw smooth_iff,
   refine ⟨continuous_fst, λ x y, _⟩,
 
   /- I am copying stuff fromt the goal because I do not want to bother spending time to find
@@ -140,8 +176,7 @@ end
 
 lemma smooth_snd : smooth (I.prod J) J (@prod.snd M N) :=
 begin
-  delta smooth,
-  rw times_cont_mdiff_iff,
+  rw smooth_iff,
   refine ⟨continuous_snd, λ x y, _⟩,
 
   have h1 := (has_groupoid.compatible (times_cont_diff_groupoid ⊤ (I.prod J))
@@ -170,8 +205,7 @@ end
 lemma smooth.prod_mk {f : M → M'} {g : M → N'} (hf : smooth I I' f) (hg : smooth I J' g) :
   smooth I (I'.prod J') (λx, (f x, g x)) :=
 begin
-  delta smooth at hf hg ⊢,
-  rw times_cont_mdiff_iff at hf hg ⊢,
+  rw smooth_iff at hf hg ⊢,
   refine ⟨continuous.prod_mk hf.1 hg.1, λ x y, _⟩,
 
   let s := ((ext_chart_at I x).target ∩ ((ext_chart_at I x).symm) ⁻¹'

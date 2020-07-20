@@ -232,12 +232,24 @@ begin
     mfld_set_tac }
 end
 
+lemma smooth_on_iff :
+  smooth_on I I' f s ↔ continuous_on f s ∧
+    ∀ (x : M) (y : M'), times_cont_diff_on 𝕜 ⊤ ((ext_chart_at I' y) ∘ f ∘ (ext_chart_at I x).symm)
+    ((ext_chart_at I x).target ∩ (ext_chart_at I x).symm ⁻¹' (s ∩ f ⁻¹' (ext_chart_at I' y).source)) :=
+times_cont_mdiff_on_iff
+
 /-- One can reformulate smoothness as continuity and smoothness in any extended chart. -/
 lemma times_cont_mdiff_iff :
   times_cont_mdiff I I' n f ↔ continuous f ∧
     ∀ (x : M) (y : M'), times_cont_diff_on 𝕜 n ((ext_chart_at I' y) ∘ f ∘ (ext_chart_at I x).symm)
     ((ext_chart_at I x).target ∩ (ext_chart_at I x).symm ⁻¹' (f ⁻¹' (ext_chart_at I' y).source)) :=
 by simp [← times_cont_mdiff_on_univ, times_cont_mdiff_on_iff, continuous_iff_continuous_on_univ]
+
+lemma smooth_iff :
+  smooth I I' f ↔ continuous f ∧
+    ∀ (x : M) (y : M'), times_cont_diff_on 𝕜 ⊤ ((ext_chart_at I' y) ∘ f ∘ (ext_chart_at I x).symm)
+    ((ext_chart_at I x).target ∩ (ext_chart_at I x).symm ⁻¹' (f ⁻¹' (ext_chart_at I' y).source)) :=
+times_cont_mdiff_iff
 
 omit Is I's
 
@@ -326,35 +338,52 @@ begin
     (hf.2.differentiable_within_at hn).mono (by mfld_set_tac)⟩,
 end
 
+lemma smooth_within_at.mdifferentiable_within_at
+  (hf : smooth_within_at I I' f s x) :
+  mdifferentiable_within_at I I' f s x :=
+times_cont_mdiff_within_at.mdifferentiable_within_at hf with_top.none_le
+
 lemma times_cont_mdiff_at.mdifferentiable_at (hf : times_cont_mdiff_at I I' n f x) (hn : 1 ≤ n) :
   mdifferentiable_at I I' f x :=
 mdifferentiable_within_at_univ.1 $ times_cont_mdiff_within_at.mdifferentiable_within_at hf hn
+
+lemma smooth_at.mdifferentiable_at (hf : smooth_at I I' f x):
+  mdifferentiable_at I I' f x :=
+times_cont_mdiff_at.mdifferentiable_at hf with_top.none_le
 
 lemma times_cont_mdiff_on.mdifferentiable_on (hf : times_cont_mdiff_on I I' n f s) (hn : 1 ≤ n) :
   mdifferentiable_on I I' f s :=
 λ x hx, (hf x hx).mdifferentiable_within_at hn
 
+lemma smooth_on.mdifferentiable_on (hf : smooth_on I I' f s) :
+  mdifferentiable_on I I' f s :=
+times_cont_mdiff_on.mdifferentiable_on hf with_top.none_le
+
 lemma times_cont_mdiff.mdifferentiable (hf : times_cont_mdiff I I' n f) (hn : 1 ≤ n) :
   mdifferentiable I I' f :=
 λ x, (hf x).mdifferentiable_at hn
 
+lemma smooth.mdifferentiable (hf : smooth I I' f) :
+  mdifferentiable I I' f :=
+times_cont_mdiff.mdifferentiable hf with_top.none_le
+
 /-! ### `C^∞` smoothness -/
 
 lemma times_cont_mdiff_within_at_top :
-  times_cont_mdiff_within_at I I' ∞ f s x ↔ (∀n:ℕ, times_cont_mdiff_within_at I I' n f s x) :=
+  smooth_within_at I I' f s x ↔ (∀n:ℕ, times_cont_mdiff_within_at I I' n f s x) :=
 ⟨λ h n, ⟨h.1, times_cont_diff_within_at_top.1 h.2 n⟩,
  λ H, ⟨(H 0).1, times_cont_diff_within_at_top.2 (λ n, (H n).2)⟩⟩
 
 lemma times_cont_mdiff_at_top :
-  times_cont_mdiff_at I I' ∞ f x ↔ (∀n:ℕ, times_cont_mdiff_at I I' n f x) :=
+  smooth_at I I' f x ↔ (∀n:ℕ, times_cont_mdiff_at I I' n f x) :=
 times_cont_mdiff_within_at_top
 
 lemma times_cont_mdiff_on_top :
-  times_cont_mdiff_on I I' ∞ f s ↔ (∀n:ℕ, times_cont_mdiff_on I I' n f s) :=
+  smooth_on I I' f s ↔ (∀n:ℕ, times_cont_mdiff_on I I' n f s) :=
 ⟨λ h n, h.of_le le_top, λ h x hx, times_cont_mdiff_within_at_top.2 (λ n, h n x hx)⟩
 
 lemma times_cont_mdiff_top :
-  times_cont_mdiff I I' ∞ f ↔ (∀n:ℕ, times_cont_mdiff I I' n f) :=
+  smooth I I' f ↔ (∀n:ℕ, times_cont_mdiff I I' n f) :=
 ⟨λ h n, h.of_le le_top, λ h x, times_cont_mdiff_within_at_top.2 (λ n, h n x)⟩
 
 lemma times_cont_mdiff_within_at_iff_nat :
@@ -594,11 +623,21 @@ begin
   simp only [local_equiv.left_inv _ (u_subset hp).2.2, -ext_chart_at] with mfld_simps
 end
 
+lemma smooth_on.comp {t : set M'} {g : M' → M''}
+  (hg : smooth_on I' I'' g t) (hf : smooth_on I I' f s)
+  (st : s ⊆ f ⁻¹' t) : smooth_on I I'' (g ∘ f) s :=
+times_cont_mdiff_on.comp hg hf st
+
 /-- The composition of `C^n` functions on domains is `C^n`. -/
 lemma times_cont_mdiff_on.comp' {t : set M'} {g : M' → M''}
   (hg : times_cont_mdiff_on I' I'' n g t) (hf : times_cont_mdiff_on I I' n f s) :
   times_cont_mdiff_on I I'' n (g ∘ f) (s ∩ f ⁻¹' t) :=
 hg.comp (hf.mono (inter_subset_left _ _)) (inter_subset_right _ _)
+
+lemma smooth_on.comp' {t : set M'} {g : M' → M''}
+  (hg : smooth_on I' I'' g t) (hf : smooth_on I I' f s) :
+  smooth_on I I'' (g ∘ f) (s ∩ f ⁻¹' t) :=
+times_cont_mdiff_on.comp' hg hf
 
 /-- The composition of `C^n` functions is `C^n`. -/
 lemma times_cont_mdiff.comp {g : M' → M''}
@@ -608,6 +647,11 @@ begin
   rw ← times_cont_mdiff_on_univ at hf hg ⊢,
   exact hg.comp hf subset_preimage_univ,
 end
+
+lemma smooth.comp {g : M' → M''}
+  (hg : smooth I' I'' g) (hf : smooth I I' f) :
+  smooth I I'' (g ∘ f) :=
+times_cont_mdiff.comp hg hf
 
 /-- The composition of `C^n` functions within domains at points is `C^n`. -/
 lemma times_cont_mdiff_within_at.comp {t : set M'} {g : M' → M''}
@@ -629,6 +673,12 @@ begin
   exact subset.trans st (preimage_mono (subset_insert _ _))
 end
 
+lemma smooth_within_at.comp {t : set M'} {g : M' → M''}
+  (hg : times_cont_mdiff_within_at I' I'' n g t (f x))
+  (hf : times_cont_mdiff_within_at I I' n f s x)
+  (st : s ⊆ f ⁻¹' t) : times_cont_mdiff_within_at I I'' n (g ∘ f) s x :=
+hg.comp hf st
+
 /-- The composition of `C^n` functions within domains at points is `C^n`. -/
 lemma times_cont_mdiff_within_at.comp' {t : set M'} {g : M' → M''}
   (hg : times_cont_mdiff_within_at I' I'' n g t (f x))
@@ -636,11 +686,22 @@ lemma times_cont_mdiff_within_at.comp' {t : set M'} {g : M' → M''}
   times_cont_mdiff_within_at I I'' n (g ∘ f) (s ∩ f⁻¹' t) x :=
 hg.comp (hf.mono (inter_subset_left _ _)) (inter_subset_right _ _)
 
+lemma smooth_within_at.comp' {t : set M'} {g : M' → M''}
+  (hg : smooth_within_at I' I'' g t (f x))
+  (hf : smooth_within_at I I' f s x) :
+  smooth_within_at I I'' (g ∘ f) (s ∩ f⁻¹' t) x :=
+hg.comp' hf
+
 /-- The composition of `C^n` functions at points is `C^n`. -/
 lemma times_cont_mdiff_at.comp {g : M' → M''}
   (hg : times_cont_mdiff_at I' I'' n g (f x)) (hf : times_cont_mdiff_at I I' n f x) :
   times_cont_mdiff_at I I'' n (g ∘ f) x :=
 hg.comp hf subset_preimage_univ
+
+lemma smooth_at.comp {g : M' → M''}
+  (hg : smooth_at I' I'' g (f x)) (hf : smooth_at I I' f x) :
+  smooth_at I I'' (g ∘ f) x :=
+hg.comp hf
 
 end composition
 

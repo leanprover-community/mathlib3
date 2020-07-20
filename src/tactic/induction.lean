@@ -858,6 +858,9 @@ list.mbor
   , local_def_depends_on_locals h ns
   ]
 
+meta def local_depends_on_local (h i : expr) : tactic bool :=
+local_depends_on_locals h (mk_name_set.insert i.local_uniq_name)
+
 /--
 The set of unique names of hypotheses which `h` depends on (including `h`
 itself). `h` must be a local constant.
@@ -1060,103 +1063,112 @@ meta def constructor_renames (generate_induction_hyps : bool)
   },
   pure (new_arg_hyps, new_ih_hyps)
 
-meta def match_structure_equation (t : expr)
-  : tactic (option (list level × list expr × list name × level × expr × expr × expr)) :=
-try_core $ do
-  ⟨u, type, lhs, rhs⟩ ← t.match_eq,
-  ⟨const struct struct_levels, params⟩ ← decompose_app_normalizing type,
+meta def structure_info (struct : name) : tactic (name × list name × ℕ) := do
   env ← get_env,
   fields ← env.structure_fields struct,
-  let fields := fields.map (λ n, struct ++ n),
+  let fields := fields.map $ λ f, struct ++ f,
   [constructor] ← pure $ env.constructors_of struct,
-  c ← get_app_fn_const_normalizing rhs,
-  guard $ c = constructor,
-  pure (struct_levels, params, fields, u, type, lhs, rhs)
+  let num_params := env.inductive_num_params struct,
+  pure (constructor, fields, num_params)
 
-meta def decompose_structure_equation_once (h : expr)
-  (struct_levels : list level) (params : list expr) (fields : list name)
-  (u : level) (type lhs rhs : expr)
-  : tactic (list (expr × expr)) :=
-fields.mmap (λ f, do
-    let proj := (const f struct_levels).mk_app params,
-    let lhs' := proj lhs,
-    let rhs' := proj rhs,
-    rhs' ← unfold_proj rhs',
-    lhs'_type ← infer_type lhs',
-    rhs'_type ← infer_type rhs',
-    sort u' ← infer_type lhs'_type,
-    type_eq ← succeeds $ is_def_eq lhs'_type rhs'_type,
-    if type_eq
-      then do
-        let eq_type := (const `eq [u]) lhs'_type lhs' rhs',
-        let eq_prf := (const `congr_arg [u, u']) type lhs'_type lhs rhs proj h,
-        pure (eq_prf, eq_type)
-      else do
-        let eq_type := (const `heq [u]) lhs'_type lhs' rhs'_type rhs',
-        eq_prf ← to_expr ``(@congr_arg_heq %%type _ %%proj %%lhs %%rhs %%h) ff,
-        instantiate_mvars eq_prf,
-        pure (eq_prf, eq_type)
-  )
-
-meta def decompose_structure_equation
-  : expr → expr → tactic (list (expr × expr) × name_set) :=
-λ e e_type, do
-  some ⟨struct_levels, params, fields, u, type, lhs, rhs⟩ ←
-    match_structure_equation e_type
-    | pure ([(e, e_type)], mk_name_set),
-  children ←
-    decompose_structure_equation_once e struct_levels params fields u type lhs rhs,
-  child_results
-    ← children.mmap (λ ⟨e, e_type⟩, decompose_structure_equation e e_type),
-  let child_equations := (child_results.map prod.fst).join,
-  let child_fields := name_set.merge_many (child_results.map prod.snd),
-  pure (child_equations, child_fields)
-
-meta def decompose_structure_equation_hyp (h : expr) : tactic name_set := do
-  h_type ← infer_type h,
-  some _ ← match_structure_equation h_type | pure mk_name_set,
-  ⟨hs, fields⟩ ← decompose_structure_equation h h_type,
-  hs.mmap' $ λ ⟨i, i_type⟩, do {
-    n ← mk_fresh_name,
-    h ← assertv n i_type i,
-
-    subst_core h <|> clear h
-    -- TODO we can check more specifically whether h has the right shape
-    -- for substitution
+meta def decompose_structure_value_aux
+  : expr → expr → tactic (list (expr × expr) × name_set) := λ e f, do
+  t ← infer_type e,
+  ⟨struct, levels, params, constructor, fields, num_params⟩ ← do {
+    ⟨const struct levels, params⟩ ← decompose_app_normalizing t,
+    i ← structure_info struct,
+    pure (struct, levels, params, i)
+  }
+  <|> fail! "decompose_structure_value: {e} : {t} is not a value of a structure",
+  args ← do {
+    ⟨const c _, args⟩ ← decompose_app_normalizing e,
+    guard $ c = constructor,
+    pure args
+  }
+  <|> fail!
+    "decompose_structure_value: {e} is not an application of the structure constructor {constructor}",
+  let args := (args.drop num_params).zip fields,
+  rec ← args.mmap $ λ ⟨a, field⟩, do {
+    let f := (const field levels).mk_app (params ++ [f]),
+    rec ← try_core $ decompose_structure_value_aux a f,
+    match rec with
+    | some (es_fs, fields) := pure (es_fs, fields.insert field)
+    | none := pure ([(a, f)], mk_name_set.insert field)
+    end
   },
+  let es_fs := (rec.map prod.fst).join,
+  let fields := name_set.merge_many $ rec.map prod.snd,
+  pure (es_fs, fields)
+
+/--
+If `e` is an application of a structure constructor, say `e = (x, y)`,
+`decompose_structure_value` returns a list of fields:
+
+    [(x, (x, y).fst), (y, (x, y).snd)]
+
+This also works recursively: `(x, y, z)` yields
+
+    [(x, (x, y, z).fst), (y, (x, y, z).snd.fst), (z, (x, y, z).snd.snd)]
+
+Additionally, `decompose_structure_value` returns the fully qualified names of
+all field accessors that appear in the output, e.g. `[prod.fst, prod.snd]` for
+the above examples.
+
+If `e` is not an application of a structure constructor, this tactic fails.
+-/
+meta def decompose_structure_value (e : expr)
+  : tactic (list (expr × expr) × name_set) :=
+decompose_structure_value_aux e e
+
+meta def replace_structure_index_args (eliminee : expr) (index_args : list expr)
+  : tactic name_set := do
+  structure_args ←
+    index_args.mmap_filter (try_core ∘ decompose_structure_value),
+  let fields := name_set.merge_many $ structure_args.map prod.snd,
+  let structure_args := (structure_args.map prod.fst).join,
+
+  ctx ← revertible_local_context,
+  eliminee_deps ← dependencies_of_local eliminee,
+  relevant_ctx ← ctx.mfilter $ λ h, do {
+    ff ← pure $ eliminee_deps.contains h.local_uniq_name | pure ff,
+    H ← infer_type h,
+    (structure_args.map prod.fst).mbany $ λ a, kdepends_on H a
+  },
+  n ← revert_lst relevant_ctx,
+  tgt ← target,
+  tgt ← structure_args.mfoldl (λ tgt ⟨e, f⟩, kreplace tgt e f) tgt,
+  change tgt,
+  intron n,
   pure fields
-
-namespace interactive
-
-open interactive
-open lean.parser
-
-meta def decompose_structure_equation (h : parse ident) : tactic unit := do
-  h ← get_local h,
-  decompose_structure_equation_hyp h,
-  pure ()
-
-end interactive
 
 meta def generalize_complex_index_args_aux (eliminee : expr)
   (eliminee_head : expr) (eliminee_param_args eliminee_index_args : list expr)
   (generate_ihs : bool)
-  : tactic (expr × list expr × list expr × ℕ) :=
+  : tactic (expr × list expr × list expr × ℕ × name_set) :=
 focus1 $ do
-  let js := eliminee_index_args,
-  ctx ← local_context,
-  tgt ← target,
+  -- If any of the index arguments are values of a structure, e.g. `(x, y)`,
+  -- replace `x` by `(x, y).fst` and `y` by `(x, y).snd` everywhere in the goal.
+  -- This makes sure that when we abstract over `(x, y)`, we don't lose the
+  -- connection to `x` and `y`.
+  fields ← replace_structure_index_args eliminee eliminee_index_args,
 
-  -- Revert the hypotheses which depend on the index args (and their
-  -- dependencies). We exclude dependencies of the eliminee because we can't
-  -- replace their index occurrences anyway when we apply the recursor.
+  -- TODO Add equations only for complex index args (not all index args).
+  -- This shouldn't matter semantically, but we'd get simpler terms.
+  let js := eliminee_index_args,
+  ctx ← revertible_local_context,
+  tgt ← target,
   eliminee_deps ← dependencies_of_local eliminee,
+
+  -- Revert the hypotheses which depend on the index args or the eliminee. We
+  -- exclude dependencies of the eliminee because we can't replace their index
+  -- occurrences anyway when we apply the recursor.
   relevant_ctx ← ctx.mfilter $ λ h, do {
+    let dep_of_eliminee := eliminee_deps.contains h.local_uniq_name,
+    dep_on_eliminee ← local_depends_on_local h eliminee,
     H ← infer_type h,
-    h_depends_on_index ← js.mbany $ λ j, kdepends_on H j,
-    let eliminee_depends_on_h := eliminee_deps.contains h.local_uniq_name,
-    pure $ h_depends_on_index ∧ ¬ eliminee_depends_on_h
-    -- TODO does kdepends_on respect local defs?
+    dep_of_index ← js.mbany $ λ j, kdepends_on H j,
+    -- TODO local defs
+    pure $ (dep_on_eliminee ∧ h ≠ eliminee) ∨ (dep_of_index ∧ ¬ dep_of_eliminee)
   },
   ⟨relevant_ctx_size, relevant_ctx⟩ ← revert_lst' relevant_ctx,
   revert eliminee,
@@ -1177,17 +1189,18 @@ focus1 $ do
   -- Replace the index args in the relevant context and the target.
   new_ctx ← relevant_ctx.mmap $ λ ⟨h, H⟩, do {
     H ← js_ks.mfoldr (λ ⟨j, k⟩ h, kreplace h j k) H,
-    mk_local' h.local_pp_name h.binding_info H
+    pure $ local_const h.local_uniq_name h.local_pp_name h.binding_info H
   },
 
   -- Replace the index args in the eliminee
-  let new_eliminee_type := (eliminee_head.mk_app eliminee_param_args).mk_app ks,
-  new_eliminee ←
-    mk_local' eliminee.local_pp_name eliminee.binding_info new_eliminee_type,
+  let new_eliminee_type := eliminee_head.mk_app (eliminee_param_args ++ ks),
+  let new_eliminee :=
+    local_const eliminee.local_uniq_name eliminee.local_pp_name
+      eliminee.binding_info new_eliminee_type,
 
   -- Replace the index args in the target.
   new_tgt ← js_ks.mfoldr (λ ⟨j, k⟩ tgt, kreplace tgt j k) tgt,
-  let new_tgt := (new_tgt.pis new_ctx).pis [new_eliminee],
+  let new_tgt := new_tgt.pis (new_eliminee :: new_ctx),
 
   -- Generate the index equations and their proofs.
   let eq_name := if generate_ihs then `induction_eq else `cases_eq,
@@ -1200,11 +1213,12 @@ focus1 $ do
   generalizes.step3 new_tgt js ks eqs eq_proofs,
 
   -- Introduce the index variables, equations and eliminee.
+  -- The relevant context remains reverted.
   let num_index_vars := js.length,
   index_vars ← intron' num_index_vars,
   index_equations ← intron' num_index_vars,
   eliminee ← intro1,
-  pure (eliminee, index_vars, index_equations, relevant_ctx_size)
+  pure (eliminee, index_vars, index_equations, relevant_ctx_size, fields)
 
 meta def generalize_complex_index_args (eliminee : expr) (num_params : ℕ)
   (generate_ihs : bool)
@@ -1214,27 +1228,12 @@ meta def generalize_complex_index_args (eliminee : expr) (num_params : ℕ)
   let ⟨eliminee_param_args, eliminee_index_args⟩ :=
     eliminee_args.split_at num_params,
 
-  -- If there aren't any complex index arguments, we don't need to do anything.
-  let have_complex_index_args :=
-    eliminee_index_args.any $ λ h, ¬ h.is_local_constant,
-  tt ← pure have_complex_index_args | pure (eliminee, 0, [], mk_name_set, 0),
-
-  -- Generalise the complex index arguments
-  ⟨eliminee, index_vars, index_equations, num_generalized⟩ ←
+  ⟨eliminee, index_vars, index_equations, num_generalized, fields⟩ ←
     generalize_complex_index_args_aux eliminee eliminee_head
       eliminee_param_args eliminee_index_args generate_ihs,
-  let index_vars := index_vars.map expr.local_pp_name,
-  let index_equations := index_equations.map expr.local_pp_name,
-
-  -- Decompose the index equations equating elements of structures. Note: Each
-  -- step in the following loop may change the unique names of hypotheses in the
-  -- context, so we go by pretty names. `generalize_complex_index_args_aux` and
-  -- `decompose_structure_equation_hyp` make sure that these are unique.
-  fields ← index_equations.mmap (get_local >=> decompose_structure_equation_hyp),
-  let fields := name_set.merge_many fields,
+  let index_vars := index_vars.map local_pp_name,
 
   -- Re-revert the index equations
-  index_equations ← index_equations.mmap get_local,
   revert_lst index_equations,
 
   pure (eliminee, index_vars.length, index_vars, fields, num_generalized)

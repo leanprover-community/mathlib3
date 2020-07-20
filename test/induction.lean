@@ -198,7 +198,8 @@ begin
 end
 
 -- We can also fix all hypotheses. This gives us the behaviour of stock
--- `induction`. Hypotheses which depend on the eliminee still get generalised.
+-- `induction`. Hypotheses which depend on the eliminee (or its index arguments)
+-- still get generalised.
 example {n m k : ℕ} (h : n + m = k) : n + m = k :=
 begin
   induction' n fixing *,
@@ -249,7 +250,7 @@ begin
     --     ∀ n k, m + k = k + m
     --
     -- with one useless additional argument.
-    linarith
+    ac_refl
   }
 end
 
@@ -773,6 +774,47 @@ begin
   cases' h,
   cases' h_1,
   exact h
+end
+
+/- Same with this one. -/
+lemma big_step_deterministic {S s l r} (hl : (S, s) ⟹ l)
+    (hr : (S, s) ⟹ r) :
+  l = r
+:=
+begin
+  induction' hl,
+  case skip : t {
+    cases' hr,
+    refl },
+  case assign : x a s {
+    cases' hr,
+    refl },
+  case seq : S T s t l hS hT ihS ihT {
+    cases' hr with _ _ _ _ _ _ _ t' _ hS' hT',
+    cases' ihS hS',
+    cases' ihT hT',
+    refl },
+  case ite_true : b S T s t hb hS ih {
+    cases' hr,
+    { apply ih,
+      assumption },
+    { apply ih,
+      cc } },
+  case ite_false : b S T s t hb hT ih {
+    cases' hr,
+    { apply ih,
+      cc },
+    { apply ih,
+      assumption } },
+  case while_true : b S s t u hb hS hw ihS ihw {
+    cases' hr,
+    { cases' ihS hr,
+      cases' ihw hr_1,
+      refl },
+    { cc } },
+  { cases' hr,
+    { cc },
+    { refl } }
 end
 
 /- The same with a curried version of the predicate. It should make no

@@ -107,6 +107,18 @@ meta structure basic_opt extends apply_any_opt :=
 (accept : list expr → tactic unit := λ _, skip)
 (pre_apply : tactic unit := skip)
 (discharger : tactic unit := failed)
+(max_depth : ℕ := 3)
+
+declare_trace solve_by_elim         -- trace attempted lemmas
+
+meta def on_success (n : ℕ) (e : expr) : tactic unit :=
+when_tracing `solve_by_elim (do
+  pp ← pp e,
+  trace format!"{(list.repeat '.' n).as_string}successfully applied lemma: {pp}")
+
+meta def on_failure (n : ℕ) : tactic unit :=
+trace_if_enabled `solve_by_elim
+  format!"{(list.repeat '.' n).as_string}no lemma could be applied"
 
 /--
 The internal implementation of `solve_by_elim`, with a limiting counter.
@@ -117,14 +129,16 @@ meta def solve_by_elim_aux (opt : basic_opt)
   -- First, check that progress so far is `accept`able.
   lock_tactic_state (original_goals.mmap instantiate_mvars >>= opt.accept) >>
   -- Then check if we've finished.
-  (done <|>
+  ((done >> trace_if_enabled `solve_by_elim "success!") <|>
     -- Otherwise, if there's more time left,
-    guard (n > 0) >>
+    (guard (n > 0) <|>
+      trace_if_enabled `solve_by_elim "aborting solve_by_elim, hit depth limit" >> failed) >>
     -- run the `pre_apply` tactic, then
     opt.pre_apply >>
-    -- try either applying a lemma and recursing, or
-    ((apply_any_thunk lemmas opt.to_apply_any_opt $ solve_by_elim_aux (n-1)) <|>
-    -- if that doesn't work, run the discharger and recurse.
+    -- try either applying a lemma and recursing,
+    ((apply_any_thunk lemmas opt.to_apply_any_opt (solve_by_elim_aux (n-1))
+      (on_success (opt.max_depth - n)) (on_failure (opt.max_depth - n))) <|>
+    -- or if that doesn't work, run the discharger and recurse.
      (opt.discharger >> solve_by_elim_aux (n-1))))
 
 /--
@@ -145,7 +159,6 @@ meta structure opt extends basic_opt :=
 (backtrack_all_goals : bool := ff)
 (lemmas : option (list expr) := none)
 (lemma_thunks : option (list (tactic expr)) := lemmas.map (λ l, l.map return))
-(max_depth : ℕ := 3)
 
 /--
 If no lemmas have been specified, generate the default set
@@ -193,7 +206,8 @@ do
   (if opt.backtrack_all_goals then id else focus1) $ (do
     gs ← get_goals,
     solve_by_elim_aux opt.to_basic_opt gs lemmas opt.max_depth <|>
-    fail "solve_by_elim failed; try increasing `max_depth`?")
+    fail ("`solve_by_elim` failed.\nTry `solve_by_elim { max_depth := N }` for a larger `N`,\n" ++
+         "or use `set_option trace.solve_by_elim true` to view the search."))
 
 open interactive lean.parser interactive.types
 local postfix `?`:9001 := optional

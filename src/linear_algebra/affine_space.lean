@@ -1085,7 +1085,7 @@ variables (k) {V}
 
 /-- A vector is in the `vector_span` of an indexed family if and only
 if it is a `weighted_vsub` with sum of weights 0. -/
-lemma mem_vector_span_iff_eq_weighted_vsub (v : V) (p : ι → P) :
+lemma mem_vector_span_iff_eq_weighted_vsub {v : V} {p : ι → P} :
   v ∈ vector_span k V (set.range p) ↔
     ∃ (s : finset ι) (w : ι → k) (h : ∑ i in s, w i = 0), v = s.weighted_vsub V p w :=
 begin

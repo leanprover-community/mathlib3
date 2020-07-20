@@ -3271,13 +3271,10 @@ is finite or infinite. Since the evaluation of the branches is not lazy, this is
 enough for practical situations, though.
 
 For specific numbers, these inequalities could also be deduced from the corresponding
-inequalities of natural numbers through coercion (and the complexity is better):
+inequalities of natural numbers using `norm_cast`:
 ```
 example : (37 : cardinal) < 42 :=
-begin
-  suffices : ((37 : ℕ) : cardinal) < ((42 : ℕ) : cardinal), simpa,
-  norm_cast, simp,
-end
+by { norm_cast, norm_num }
 ```
 -/
 
@@ -3515,10 +3512,7 @@ end
 
 lemma one_lt_two : (1 : cardinal) < 2 :=
 -- This strategy works generally to prove inequalities between numerals in `cardinality`.
-begin
-  suffices : ((1 : ℕ) : cardinal) < ((2 : ℕ) : cardinal), simpa,
-  norm_cast, simp,
-end
+by { norm_cast, norm_num }
 
 @[simp] lemma one_lt_bit0 {a : cardinal} : 1 < bit0 a ↔ 0 < a :=
 by simp [← bit1_zero]

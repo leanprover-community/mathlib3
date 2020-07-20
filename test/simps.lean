@@ -246,6 +246,30 @@ run_cmd do
   e.get `short_name1_fst, e.get `short_name1_fst_2,
   e.get `short_name1_snd, e.get `short_name1_snd_2
 
+/- check simp_rhs option -/
+@[simps {simp_rhs := tt}] def equiv.trans {α β γ} (f : α ≃ β) (g : β ≃ γ) : α ≃ γ :=
+⟨g.to_fun ∘ f.to_fun, f.inv_fun ∘ g.inv_fun,
+  by { intro x, simp [equiv.left_inv _ _] }, by { intro x, simp [equiv.right_inv _ _] }⟩
+
+example {α β γ : Type} (f : α ≃ β) (g : β ≃ γ) (x : α) :
+  (f.trans g).to_fun x = (f.trans g).to_fun x :=
+begin
+  dsimp only [equiv.trans_to_fun],
+  guard_target g.to_fun (f.to_fun x) = g.to_fun (f.to_fun x),
+  refl,
+end
+
+local attribute [simp] nat.zero_add nat.one_mul nat.mul_one
+@[simps {simp_rhs := tt}] def my_nat_equiv : ℕ ≃ ℕ :=
+⟨λ n, 0 + n, λ n, 1 * n * 1, by { intro n, simp }, by { intro n, simp }⟩
+
+example (n : ℕ) : my_nat_equiv.to_fun (my_nat_equiv.to_fun $ my_nat_equiv.inv_fun n) = n :=
+by { success_if_fail { refl }, simp only [my_nat_equiv_to_fun, my_nat_equiv_inv_fun] }
+
+@[simps {simp_rhs := tt}] def succeed_without_simplification_possible : ℕ ≃ ℕ :=
+⟨λ n, n, λ n, n, by { intro n, refl }, by { intro n, refl }⟩
+
+
 /- test that we don't recursively take projections of `prod` and `pprod` -/
 @[simps] def pprod_equiv_prod : pprod ℕ ℕ ≃ ℕ × ℕ :=
 { to_fun := λ x, ⟨x.1, x.2⟩,

@@ -139,12 +139,12 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
   If `add_simp` then we make the resulting lemma a simp-lemma. -/
 meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list expr)
   (univs : list name) (cfg : simps_cfg) : tactic unit := do
-  rhs ← if cfg.simp_rhs then return rhs else return rhs, -- TODO
+  -- simplify `rhs` if `simp_rhs` and `simp` makes progress
+  (rhs, prf) ← (guard cfg.simp_rhs >> rhs.simp) <|> prod.mk rhs <$> mk_app `eq.refl [type, lhs],
   eq_ap ← mk_mapp `eq $ [type, lhs, rhs].map some,
-  refl_ap ← mk_app `eq.refl [type, lhs],
   decl_name ← get_unused_decl_name nm,
   let decl_type := eq_ap.pis args,
-  let decl_value := refl_ap.lambdas args,
+  let decl_value := prf.lambdas args,
   let decl := declaration.thm decl_name univs decl_type (pure decl_value),
   when_tracing `simps.verbose trace!"[simps] > adding projection\n        > {decl_name} : {decl_type}",
   add_decl decl <|> fail format!"failed to add projection lemma {decl_name}.",
@@ -266,6 +266,8 @@ derives two simp-lemmas:
   as simp-lemmas.
 * You can use `@[simps {short_name := tt}]` to only use the name of the last projection
   for the name of the generated lemmas.
+* You can use `@[simps {simp_rhs := tt}]` to simplify the right-hand side of the lemmas
+  before adding them to the context.
 * The precise syntax is `('simps' ident* e)`, where `e` is an expression of type `simps_cfg`.
 * If one of the projections is marked as a coercion, the generated lemmas do *not* use this
   coercion.
@@ -275,8 +277,6 @@ derives two simp-lemmas:
 * When option `trace.simps.verbose` is true, `simps` will print the name and type of the
   lemmas it generates.
   -/
--- * You can use `@[simps {simp_rhs := tt}]` to simplify the right-hand side of the lemmas
---   before adding them to the context.
 
 @[user_attribute] meta def simps_attr : user_attribute unit (list string × simps_cfg) :=
 { name := `simps,

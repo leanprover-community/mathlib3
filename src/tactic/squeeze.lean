@@ -146,7 +146,7 @@ do e ← resolve_name' n, pure $ simp_arg_type.expr e
 /-- tactic combinator to create a `simp`-like tactic that minimizes its
 argument list.
 
- * `slow`: should we use a slower, more accurate strategy?
+ * `slow`: adds all rfl-lemmas from the environment to the initial list (this is a slower but more accurate strategy)
  * `no_dflt`: did the user use the `only` keyword?
  * `args`:    list of `simp` arguments
  * `tac`:     how to invoke the underlying `simp` tactic

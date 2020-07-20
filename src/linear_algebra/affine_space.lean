@@ -1061,7 +1061,7 @@ end
 /-- An `affine_combination` with sum of weights 1 is in the
 `affine_span` of an indexed family, if the underlying ring is
 nontrivial. -/
-lemma affine_combination_mem_affine_span [nontrivial k] (p : ι → P) {s : finset ι} {w : ι → k}
+lemma affine_combination_mem_affine_span [nontrivial k] {s : finset ι} {w : ι → k} (p : ι → P)
     (h : ∑ i in s, w i = 1) : s.affine_combination V w p ∈ affine_span k V (set.range p) :=
 begin
   have hnz : ∑ i in s, w i ≠ 0 := h.symm ▸ one_ne_zero,
@@ -1121,9 +1121,8 @@ begin
       intro hv,
       use [∅],
       simp [hv] } },
-  { rintros ⟨s, w, hw, hv⟩,
-    rw hv,
-    exact weighted_vsub_mem_vector_span V p hw }
+  { rintros ⟨s, w, hw, rfl⟩,
+    exact weighted_vsub_mem_vector_span V hw p }
 end
 
 variables {k}
@@ -1168,7 +1167,7 @@ variables (k V)
 /-- A point is in the `affine_span` of an indexed family if and only
 if it is an `affine_combination` with sum of weights 1, provided the
 underlying ring is nontrivial. -/
-lemma mem_affine_span_iff_eq_affine_combination [nontrivial k] (p1 : P) (p : ι → P) :
+lemma mem_affine_span_iff_eq_affine_combination [nontrivial k] {p1 : P} {p : ι → P} :
   p1 ∈ affine_span k V (set.range p) ↔
     ∃ (s : finset ι) (w : ι → k) (hw : ∑ i in s, w i = 1), p1 = s.affine_combination V w p :=
 begin

@@ -88,9 +88,9 @@ def head_symbol_match.to_string : head_symbol_match → string
 | both := "iff.mp and iff.mpr"
 
 /-- Determine if, and in which way, a given expression matches the specified head symbol. -/
-meta def match_head_symbol (hs : list name) : expr → option head_symbol_match
+meta def match_head_symbol (hs : name_set) : expr → option head_symbol_match
 | (expr.pi _ _ _ t) := match_head_symbol t
-| `(%%a ↔ %%b)      := if `iff ∈ hs then some ex else
+| `(%%a ↔ %%b)      := if hs.contains `iff then some ex else
                        match (match_head_symbol a, match_head_symbol b) with
                        | (some ex, some ex) :=
                            some both
@@ -99,8 +99,8 @@ meta def match_head_symbol (hs : list name) : expr → option head_symbol_match
                        | _ := none
                        end
 | (expr.app f _)    := match_head_symbol f
-| (expr.const n _)  := if normalize_synonym n ∈ hs then some ex else none
-| _ := if `_ ∈ hs then some ex else none
+| (expr.const n _)  := if hs.contains (normalize_synonym n) then some ex else none
+| _ := if hs.contains `_ then some ex else none
 
 /-- A package of `declaration` metadata, including the way in which its type matches the head symbol
 which we are searching for. -/
@@ -116,7 +116,7 @@ it matches the head symbol `hs` for the current goal.
 -/
 -- We used to check here for private declarations, or declarations with certain suffixes.
 -- It turns out `apply` is so fast, it's better to just try them all.
-meta def process_declaration (hs : list name) (d : declaration) : option decl_data :=
+meta def process_declaration (hs : name_set) (d : declaration) : option decl_data :=
 let n := d.to_name in
 if !d.is_trusted || n.is_internal then
   none
@@ -124,7 +124,7 @@ else
   (λ m, ⟨d, n, m, n.length⟩) <$> match_head_symbol hs d.type
 
 /-- Retrieve all library definitions with a given head symbol. -/
-meta def library_defs (hs : list name) : tactic (list decl_data) :=
+meta def library_defs (hs : name_set) : tactic (list decl_data) :=
 do trace_if_enabled `suggest format!"Looking for lemmas with head symbols {hs}.",
    env ← get_env,
    let defs := env.decl_filter_map (process_declaration hs),
@@ -260,7 +260,7 @@ do g :: _ ← get_goals,
    (do
    -- Collect all definitions with the correct head symbol
    t ← infer_type g,
-   defs ← unpack_iff_both <$> library_defs (allowed_head_symbols t),
+   defs ← unpack_iff_both <$> library_defs (name_set.of_list $ allowed_head_symbols t),
 
    let defs : mllist tactic _ := mllist.of_list defs,
 

@@ -16,8 +16,6 @@ In this file, we define `polynomial`, provide basic instances, and prove an `ext
 -/
 
 noncomputable theory
-local attribute [instance, priority 100] classical.prop_decidable
-
 
 /-- `polynomial R` is the type of univariate polynomials over `R`.
 
@@ -43,18 +41,9 @@ instance : semimodule R (polynomial R) := add_monoid_algebra.semimodule
 instance subsingleton [subsingleton R] : subsingleton (polynomial R) :=
 ⟨λ _ _, ext (λ _, subsingleton.elim _ _)⟩
 
-/-- The coercion turning a `polynomial` into the function which reports the coefficient of a given
-monomial `X^n` -/
-def coeff_coe_to_fun : has_coe_to_fun (polynomial R) :=
-finsupp.has_coe_to_fun
-
-local attribute [instance] coeff_coe_to_fun
-
-
 @[simp] lemma support_zero : (0 : polynomial R).support = ∅ := rfl
 
 /-- `monomial s a` is the monomial `a * X^s` -/
-@[reducible]
 def monomial (n : ℕ) (a : R) : polynomial R := finsupp.single n a
 
 @[simp] lemma monomial_zero_right (n : ℕ) :
@@ -64,6 +53,11 @@ by simp [monomial]
 lemma monomial_add (n : ℕ) (r s : R) :
   monomial n (r + s) = monomial n r + monomial n s :=
 by simp [monomial]
+
+lemma monomial_mul_monomial (n m : ℕ) (r s : R) :
+  monomial n r * monomial m s = monomial (n + m) (r * s) :=
+by simp only [monomial, single_mul_single]
+
 
 /-- `X` is the polynomial variable (aka indeterminant). -/
 def X : polynomial R := monomial 1 1
@@ -89,29 +83,27 @@ by rw [mul_assoc, X_pow_mul, ←mul_assoc]
 /-- coeff p n is the coefficient of X^n in p -/
 def coeff (p : polynomial R) := p.to_fun
 
-lemma apply_eq_coeff : p n = coeff p n := rfl
-
-
 @[simp] lemma coeff_mk (s) (f) (h) : coeff (finsupp.mk s f h : polynomial R) = f := rfl
 
+lemma coeff_monomial : coeff (monomial n a) m = if n = m then a else 0 :=
+by { dsimp [monomial, single, finsupp.single], congr, }
+
+/--
+This lemma is needed for occasions when we break through the abstraction from
+`polynomial` to `finsupp`; ideally it wouldn't be necessary at all.
+-/
 lemma coeff_single : coeff (single n a) m = if n = m then a else 0 :=
-by { dsimp [single, finsupp.single], congr, }
+coeff_monomial
 
 @[simp] lemma coeff_zero (n : ℕ) : coeff (0 : polynomial R) n = 0 := rfl
 
-@[simp] lemma coeff_one_zero : coeff (1 : polynomial R) 0 = 1 := coeff_single
+@[simp] lemma coeff_one_zero : coeff (1 : polynomial R) 0 = 1 := coeff_monomial
 
+@[simp] lemma coeff_X_one : coeff (X : polynomial R) 1 = 1 := coeff_monomial
 
-instance [has_repr R] : has_repr (polynomial R) :=
-⟨λ p, if p = 0 then "0"
-  else (p.support.sort (≤)).foldr
-    (λ n a, a ++ (if a = "" then "" else " + ") ++
-      if n = 0
-        then "C (" ++ repr (coeff p n) ++ ")"
-        else if n = 1
-          then if (coeff p n) = 1 then "X" else "C (" ++ repr (coeff p n) ++ ") * X"
-          else if (coeff p n) = 1 then "X ^ " ++ repr n
-            else "C (" ++ repr (coeff p n) ++ ") * X ^ " ++ repr n) ""⟩
+@[simp] lemma coeff_X_zero : coeff (X : polynomial R) 0 = 0 := coeff_monomial
+
+lemma coeff_X : coeff (X : polynomial R) n = if 1 = n then 1 else 0 := coeff_monomial
 
 theorem ext_iff {p q : polynomial R} : p = q ↔ ∀ n, coeff p n = coeff q n :=
 ⟨λ h n, h ▸ rfl, finsupp.ext⟩
@@ -126,7 +118,6 @@ by rw [←one_smul R p, ←h, zero_smul]
 
 end semiring
 
-
 section ring
 variables [ring R]
 
@@ -139,23 +130,38 @@ lemma coeff_sub (p q : polynomial R) (n : ℕ) : coeff (p - q) n = coeff p n - c
 
 end ring
 
-
-section comm_semiring
-variables [comm_semiring R]
-
-instance : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
-
-end comm_semiring
+instance [comm_semiring R] : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
+instance [comm_ring R] : comm_ring (polynomial R) := add_monoid_algebra.comm_ring
 
 section nonzero_semiring
 
-variables [semiring R] [nontrivial R] {p q : polynomial R}
+variables [semiring R] [nontrivial R]
 instance : nontrivial (polynomial R) :=
 begin
   refine nontrivial_of_ne 0 1 _, intro h,
   have := coeff_zero 0, revert this, rw h, simp,
 end
 
+lemma X_ne_zero : (X : polynomial R) ≠ 0 :=
+mt (congr_arg (λ p, coeff p 1)) (by simp)
+
 end nonzero_semiring
+
+section repr
+variables [semiring R]
+local attribute [instance, priority 100] classical.prop_decidable
+
+instance [has_repr R] : has_repr (polynomial R) :=
+⟨λ p, if p = 0 then "0"
+  else (p.support.sort (≤)).foldr
+    (λ n a, a ++ (if a = "" then "" else " + ") ++
+      if n = 0
+        then "C (" ++ repr (coeff p n) ++ ")"
+        else if n = 1
+          then if (coeff p n) = 1 then "X" else "C (" ++ repr (coeff p n) ++ ") * X"
+          else if (coeff p n) = 1 then "X ^ " ++ repr n
+            else "C (" ++ repr (coeff p n) ++ ") * X ^ " ++ repr n) ""⟩
+
+end repr
 
 end polynomial

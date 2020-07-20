@@ -100,7 +100,7 @@ begin
   change f x ≤ B x at hxB,
   cases lt_or_eq_of_le hxB with hxB hxB,
   { -- If `f x < B x`, then all we need is continuity of both sides
-    apply nonempty_of_mem_sets (nhds_within_Ioi_self_ne_bot x),
+    apply @nonempty_of_mem_sets _ (nhds_within x (Ioi x)),
     refine inter_mem_sets _ (Ioc_mem_nhds_within_Ioi ⟨le_refl x, hy⟩),
     have : ∀ᶠ x in nhds_within x (Icc a b), f x < B x,
       from A x (Ico_subset_Icc_self xab)
@@ -669,7 +669,7 @@ begin
   assume x y hx hy hxy,
   have hf'_gt : ∀ x ∈ interior D, -C < deriv (λ y, -f y) x,
   { assume x hx,
-    rw [deriv_neg, neg_lt_neg_iff],
+    rw [deriv.neg, neg_lt_neg_iff],
     exact lt_hf' x hx },
   simpa [-neg_lt_neg_iff]
     using neg_lt_neg (hD.mul_sub_lt_image_sub_of_lt_deriv hf.neg hf'.neg hf'_gt x y hx hy hxy)
@@ -695,7 +695,7 @@ begin
   assume x y hx hy hxy,
   have hf'_ge : ∀ x ∈ interior D, -C ≤ deriv (λ y, -f y) x,
   { assume x hx,
-    rw [deriv_neg, neg_le_neg_iff],
+    rw [deriv.neg, neg_le_neg_iff],
     exact le_hf' x hx },
   simpa [-neg_le_neg_iff]
     using neg_le_neg (hD.mul_sub_le_image_sub_of_le_deriv hf.neg hf'.neg hf'_ge x y hx hy hxy)

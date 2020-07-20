@@ -501,6 +501,10 @@ lemma smul_mem (r : R) (h : x ∈ p) : r • x ∈ p := p.smul_mem' r h
 lemma sum_mem {t : finset ι} {f : ι → M} : (∀c∈t, f c ∈ p) → (∑ i in t, f i) ∈ p :=
 p.to_add_submonoid.sum_mem
 
+lemma sum_smul_mem {t : finset ι} {f : ι → M} (r : ι → R)
+    (hyp : ∀ c ∈ t, f c ∈ p) : (∑ i in t, r i • f i) ∈ p :=
+submodule.sum_mem _ (λ i hi, submodule.smul_mem  _ _ (hyp i hi))
+
 @[simp] lemma smul_mem_iff' (u : units R) : (u:R) • x ∈ p ↔ x ∈ p :=
 ⟨λ h, by simpa only [smul_smul, u.inv_mul, one_smul] using p.smul_mem ↑u⁻¹ h, p.smul_mem u⟩
 

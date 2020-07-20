@@ -1,6 +1,6 @@
 import tactic.simps
 
-set_option trace.simps.verbose true
+-- set_option trace.simps.verbose true
 
 open function tactic expr
 structure equiv (α : Sort*) (β : Sort*) :=
@@ -54,17 +54,17 @@ noncomputable def bar3 {α} : α ≃ α :=
 classical.choice ⟨foo.rfl⟩
 
 run_cmd do
-  success_if_fail_with_msg (simps_tac `foo.bar1 tt)
+  success_if_fail_with_msg (simps_tac `foo.bar1)
     "Invalid `simps` attribute. Target is not a structure",
-  success_if_fail_with_msg (simps_tac `foo.bar2 tt)
+  success_if_fail_with_msg (simps_tac `foo.bar2)
     "Invalid `simps` attribute. Body is not a constructor application",
-  success_if_fail_with_msg (simps_tac `foo.bar3 tt)
+  success_if_fail_with_msg (simps_tac `foo.bar3)
     "Invalid `simps` attribute. Body is not a constructor application",
   e ← get_env,
   let nm := `foo.bar1,
   d ← e.get nm,
   let lhs : expr := const d.to_name (d.univ_params.map level.param),
-  simps_add_projections e nm "" d.type lhs d.value [] d.univ_params tt ff ff []
+  simps_add_projections e nm "" d.type lhs d.value [] d.univ_params ff {} []
 
 end foo
 
@@ -89,7 +89,7 @@ namespace count_nested
 @[simps] def nested1 : my_prod ℕ $ my_prod ℤ ℕ :=
 ⟨2, -1, 1⟩
 
-@[simps lemmas_only] def nested2 : ℕ × my_prod ℕ ℕ :=
+@[simps {simp_attr := ff}] def nested2 : ℕ × my_prod ℕ ℕ :=
 ⟨2, myprod.map nat.succ nat.pred ⟨1, 2⟩⟩
 
 end count_nested
@@ -218,13 +218,13 @@ run_cmd do
   e.get `specify.specify5_fst, e.get `specify.specify5_snd,
   guard $ 12 = e.fold 0 -- there are no other lemmas generated
     (λ d n, n + if d.to_name.components.init.ilast = `specify then 1 else 0),
-  success_if_fail_with_msg (simps_tac `specify.specify1 tt ff ["fst_fst"])
+  success_if_fail_with_msg (simps_tac `specify.specify1 {} ["fst_fst"])
     "Invalid simp-lemma specify.specify1_fst_fst. Projection fst doesn't exist, because target is not a structure.",
-  success_if_fail_with_msg (simps_tac `specify.specify1 tt ff ["foo_fst"])
+  success_if_fail_with_msg (simps_tac `specify.specify1 {} ["foo_fst"])
     "Invalid simp-lemma specify.specify1_foo_fst. Projection foo doesn't exist.",
-  success_if_fail_with_msg (simps_tac `specify.specify1 tt ff ["snd_bar"])
+  success_if_fail_with_msg (simps_tac `specify.specify1 {} ["snd_bar"])
     "Invalid simp-lemma specify.specify1_snd_bar. Projection bar doesn't exist.",
-  success_if_fail_with_msg (simps_tac `specify.specify5 tt ff ["snd_snd"])
+  success_if_fail_with_msg (simps_tac `specify.specify5 {} ["snd_snd"])
     "Invalid simp-lemma specify.specify5_snd_snd. The given definition is not a constructor application."
 
 
@@ -238,7 +238,7 @@ run_cmd do
   skip
 
 /- check short_name option -/
-@[simps short_name] def short_name1 : my_prod ℕ ℕ × my_prod ℕ ℕ := ⟨⟨1, 2⟩, 3, 4⟩
+@[simps {short_name := tt}] def short_name1 : my_prod ℕ ℕ × my_prod ℕ ℕ := ⟨⟨1, 2⟩, 3, 4⟩
 run_cmd do
   e ← get_env,
   e.get `short_name1_fst, e.get `short_name1_fst_2,

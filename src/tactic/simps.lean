@@ -19,8 +19,8 @@ open tactic expr
 
 setup_tactic_parser
 @[derive has_reflect] structure simps_cfg :=
--- only generate lemmas, don't give them the @[simp] attribute
-(lemmas_only   := ff)
+-- give the generated lemmas the `@[simp]` attribute
+(simp_attr    := tt)
 -- give the generated lemmas a shorter name
 (short_name    := ff)
 -- simplify the right-hand-side of the simp lemmas
@@ -56,7 +56,7 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
   let decl := declaration.thm decl_name univs decl_type (pure decl_value),
   when_tracing `simps.verbose trace!"[simps] > adding projection\n        > {decl_name} : {decl_type}",
   add_decl decl <|> fail format!"failed to add projection lemma {decl_name}.",
-  when (¬ cfg.lemmas_only) $ do
+  when cfg.simp_attr $ do
     set_basic_attribute `_refl_lemma decl_name tt,
     set_basic_attribute `simp decl_name tt
 
@@ -170,9 +170,10 @@ meta def simps_tac (nm : name) (cfg : simps_cfg := {}) (todo : list string := []
   simps_add_projections e nm "" d.type lhs d.value [] d.univ_params tt cfg todo
 
 /-- The parser for the `@[simps]` attribute. -/
-meta def simps_parser : parser (simps_cfg × list string) := do
+meta def simps_parser : parser (list string × simps_cfg) := do
 /- note: we currently don't check whether the user has written a nonsense namespace as arguments. -/
-prod.mk <$> ((do e ← parser.pexpr, eval_pexpr simps_cfg e) <|> return {}) <*> many (name.last <$> ident)
+prod.mk <$> many (name.last <$> ident) <*>
+  ((do e ← parser.pexpr, eval_pexpr simps_cfg e) <|> return {})
 
 /--
 The `@[simps]` attribute automatically derives lemmas specifying the projections of this
@@ -199,13 +200,14 @@ derives two simp-lemmas:
   ```lean
   attribute [simps to_fun] refl
   ```
-  * Recursive projection names can be specified using `foo_proj1_proj2_proj3`. This will create a lemma of the form `foo.proj1.proj2.proj3 = ...`.
+  * Recursive projection names can be specified using `foo_proj1_proj2_proj3`.
+    This will create a lemma of the form `foo.proj1.proj2.proj3 = ...`.
 * If one of the values is an eta-expanded structure, we will eta-reduce this structure.
-* You can use `@[simps lemmas_only]` to derive the lemmas, but not mark them
+* You can use `@[simps {simp_attr := ff}]` to derive the lemmas, but not mark them
   as simp-lemmas.
-* You can use `@[simps short_name]` to only use the name of the last projection for the name of the
-  generated lemmas.
-* The precise syntax is `('simps' 'lemmas_only'? 'short_name'? ident*)`.
+* You can use `@[simps {short_name := tt}]` to only use the name of the last projection
+  for the name of the generated lemmas.
+* The precise syntax is `('simps' ident* e)`, where `e` is an expression of type `simps_cfg`.
 * If one of the projections is marked as a coercion, the generated lemmas do *not* use this
   coercion.
 * `@[simps]` reduces let-expressions where necessary.
@@ -215,12 +217,12 @@ derives two simp-lemmas:
   lemmas it generates.
 
   -/
-@[user_attribute] meta def simps_attr : user_attribute unit (simps_cfg × list string) :=
+@[user_attribute] meta def simps_attr : user_attribute unit (list string × simps_cfg) :=
 { name := `simps,
   descr := "Automatically derive lemmas specifying the projections of this declaration.",
   parser := simps_parser,
   after_set := some $
-    λ n _ _, do (cfg, todo) ← simps_attr.get_param n, simps_tac n cfg todo }
+    λ n _ _, do (todo, cfg) ← simps_attr.get_param n, simps_tac n cfg todo }
 
 add_tactic_doc
 { name                     := "simps",

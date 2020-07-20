@@ -351,6 +351,82 @@ convex_halfspace_gt (is_linear_map.mk complex.add_im complex.smul_im) _
 lemma convex_halfspace_im_lge (r : ℝ) : convex {c : ℂ | r ≤ c.im} :=
 convex_halfspace_ge (is_linear_map.mk complex.add_im complex.smul_im) _
 
+/- Convex combinations in intervals -/
+
+/-
+If x is in an Ioo, it can be expressed as a convex combination of the endpoints.
+-/
+lemma convex_combo_Ioo {a b x : ℝ} :
+    x ∈ Ioo a b → ∃ (x_a x_b : ℝ), x_a > 0 ∧ x_b > 0 ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
+begin
+    rintros ⟨h_ax, h_bx⟩,
+    by_cases hab : a ≥ b,
+    { linarith },
+    { replace hab : a < b := not_le.mp hab,
+      have hab' : a ≠ b, linarith,
+      refine ⟨(b-x) / (b-a), (x-a) / (b-a), _⟩,
+      refine ⟨div_pos (by linarith) (by linarith), div_pos (by linarith) (by linarith),_,_⟩,
+      { calc
+          (b - x) / (b - a) + (x - a) / (b - a)
+                = (b - x + (x - a)) / (b - a)     : by rw[←add_div]
+           ...  = (b - a) / (b-a)                 : by ring
+           ...  = 1                               : div_self (by linarith) },
+
+      { calc
+          (b - x) / (b - a) * a + (x - a) / (b - a) * b
+                = ((b - x) * a) / (b-a) + ((x-a)*b)/(b-a)   : by simp only [mul_div_right_comm]
+          ...   = ((b-x) * a + (x-a)*b) / (b-a)             : by rw[←add_div]
+          ...   = (x * (b - a)) / (b-a)                     : by ring
+          ...   = x                                         : by apply mul_div_cancel; linarith } }
+end
+
+/-- If x is in an Ioc, it can be expressed as a convex combination of the endpoints. -/
+lemma convex_combo_Ioc {a b x : ℝ} :
+    x ∈ Ioc a b → ∃ (x_a x_b : ℝ), x_a ≥ 0 ∧ x_b > 0 ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
+begin
+    rintros ⟨h_ax, h_bx⟩,
+    by_cases hab : a ≥ b,
+    { linarith },
+    { replace hab : a < b := not_le.mp hab,
+      by_cases h_x : x = b,
+      { exact ⟨0, 1, by linarith, by linarith, by ring, by {rw[h_x], ring}⟩ },
+      { rcases convex_combo_Ioo ⟨h_ax, lt_of_le_of_ne h_bx h_x⟩ with ⟨x_a, x_b, Ioo_case⟩,
+        exact ⟨x_a, x_b, by linarith, Ioo_case.2⟩ } }
+end
+
+/-- If x is in an Ico, it can be expressed as a convex combination of the endpoints. -/
+lemma convex_combo_Ico {a b x : ℝ} :
+    x ∈ Ico a b → ∃ (x_a x_b : ℝ), x_a > 0 ∧ x_b ≥ 0 ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
+begin
+    rintros ⟨h_ax, h_bx⟩,
+    by_cases hab : a ≥ b,
+    { linarith },
+    { replace hab : a < b := not_le.mp hab,
+      by_cases h_x : x = a,
+      { exact ⟨1, 0, by linarith, by linarith, by ring, by {rw[h_x], ring}⟩ },
+      { rcases convex_combo_Ioo ⟨lt_of_le_of_ne h_ax (ne.symm h_x), h_bx⟩ with ⟨x_a, x_b, Ioo_case⟩,
+        exact ⟨x_a, x_b, Ioo_case.1, by linarith, (Ioo_case.2).2⟩ } }
+end
+
+/-- If x is in an Icc, it can be expressed as a convex combination of the endpoints. -/
+lemma convex_combo_Icc {a b x : ℝ} :
+    x ∈ Icc a b → ∃ (x_a x_b : ℝ), x_a ≥ 0 ∧ x_b ≥ 0 ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
+begin
+    intro x_in_I,
+    rw[Icc, mem_set_of_eq] at x_in_I,
+    rcases x_in_I with ⟨h_ax, h_bx⟩,
+    by_cases hab : a ≥ b,
+    { by_cases hab' : a = b,
+      { exact ⟨0, 1, le_refl 0, by linarith, by ring, by linarith⟩ },
+      { linarith[lt_of_le_of_ne hab (ne.symm hab')] } },
+    replace hab : a < b, linarith,
+    by_cases h_x : x = a,
+    { exact ⟨1, 0, by linarith, by linarith, by ring, by {rw[h_x], ring}⟩ },
+    { rcases convex_combo_Ioc ⟨lt_of_le_of_ne h_ax (ne.symm h_x), h_bx⟩ with ⟨x_a, x_b, Ioo_case⟩,
+      exact ⟨x_a, x_b, Ioo_case.1, by linarith, (Ioo_case.2).2⟩ }
+end
+
+
 section submodule
 
 open submodule

@@ -821,14 +821,16 @@ We need to do this to avoid metavariables getting stuck during subsequent rounds
 meta def apply_any_thunk
   (lemmas : list (tactic expr))
   (opt : apply_any_opt := {})
-  (tac : tactic unit := skip) : tactic unit :=
+  (tac : tactic unit := skip)
+  (on_success : expr → tactic unit := (λ _, skip))
+  (on_failure : tactic unit := skip) : tactic unit :=
 do
   let modes := [skip]
     ++ (if opt.use_symmetry then [symmetry] else [])
     ++ (if opt.use_exfalso then [exfalso] else []),
   modes.any_of (λ m, do m,
-    lemmas.any_of (λ H, H >>= opt.apply >> tac)) <|>
-  fail "apply_any tactic failed; no lemma could be applied"
+    lemmas.any_of (λ H, H >>= (λ e, do opt.apply e, on_success e, tac))) <|>
+  (on_failure >> fail "apply_any tactic failed; no lemma could be applied")
 
 /--
 `apply_any lemmas` tries to apply one of the list `lemmas` to the current goal.

@@ -67,8 +67,23 @@ ext_iff
 /-- Inverse of an equivalence `e : α ≃ β`. -/
 @[symm] protected def symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun, e.right_inv, e.left_inv⟩
 
+def foo1 (e : α ≃ β) : α → β := e
+def foo2 (e : α ≃ β) : β → α := e.symm
+
+open tactic
+run_cmd do
+  e ← get_env,
+  d1 ← get_decl `equiv.foo1,
+  d2 ← get_decl `equiv.foo1,
+  let ns := d1.univ_params,
+  let ls := d1.univ_levels,
+  simps_str_attr.set `equiv (ns, [d1.value, d2.value, expr.const `equiv.left_inv ls, expr.const `equiv.right_inv ls]) tt
+
+set_option trace.simps.verbose true
+set_option trace.app_builder true
+
 /-- Composition of equivalences `e₁ : α ≃ β` and `e₂ : β ≃ γ`. -/
-@[trans] protected def trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
+@[trans, simps] protected def trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
 ⟨e₂.to_fun ∘ e₁.to_fun, e₁.inv_fun ∘ e₂.inv_fun,
   e₂.left_inv.comp e₁.left_inv, e₂.right_inv.comp e₁.right_inv⟩
 

@@ -317,7 +317,7 @@ theorem min_le_padic_val_rat_add {q r : ℚ}
 
 end padic_val_rat
 
-section padic_val_nat
+namespace padic_val_nat
 
 /--
 A rewrite lemma for `padic_val_nat p (q * r)` with conditions `q ≠ 0`, `r ≠ 0`.
@@ -336,7 +336,7 @@ end
 /--
 Dividing out by a prime factor reduces the padic_val_nat by 1.
 -/
-lemma padic_val_nat_div {p : ℕ} [p_prime : fact p.prime] {b : ℕ} (dvd : p ∣ b) :
+protected lemma div {p : ℕ} [p_prime : fact p.prime] {b : ℕ} (dvd : p ∣ b) :
   (padic_val_nat p (b / p)) = (padic_val_nat p b) - 1 :=
 begin
   by_cases b_split : (b = 0),
@@ -347,6 +347,10 @@ begin
     have r : 1 ≤ padic_val_nat p b := one_le_padic_val_nat_of_dvd b_split dvd,
     exact_mod_cast split_frac, }
 end
+
+end padic_val_nat
+
+section padic_val_nat
 
 /--
 If a prime doesn't appear in `n`, `padic_val_nat p n` is `0`.
@@ -365,26 +369,7 @@ lemma padic_val_nat_primes {p q : ℕ} [p_prime : fact p.prime] [q_prime : fact 
   padic_val_nat p q = 0 :=
 @padic_val_nat_of_not_dvd p p_prime q $ (not_congr (iff.symm (prime_dvd_prime_iff_eq p_prime q_prime))).mp neq
 
-/--
-Dividing out by a prime which is not a factor doesn't change the `padic_val_nat`.
--/
--- The strange naming order here, with the two-tick version appearing before the one-tick version,
--- is because this is a special case of the one-tick version which is nevertheless of interest in
--- its own right.
-lemma padic_val_nat_div'' {p : ℕ} [p_prime : fact p.prime] {q : ℕ} [q_prime : fact q.prime] (neq : p ≠ q)
-  {b : ℕ} (dvd : q ∣ b) : padic_val_nat p (b / q) = padic_val_nat p b :=
-begin
-  by_cases b_split : b = 0,
-  { rw [b_split, nat.zero_div], },
-  { have q_nonzero : q ≠ 0, by { intro q_zero, simpa [q_zero, zero_dvd_iff] using dvd, },
-    have e : padic_val_rat p (b / q) = padic_val_rat p b - padic_val_rat p q :=
-      padic_val_rat.div p (nat.cast_ne_zero.mpr b_split) (nat.cast_ne_zero.mpr q_nonzero),
-    norm_cast at e,
-    rw [padic_val_nat_primes neq, int.coe_nat_zero, sub_zero] at e,
-    exact int.coe_nat_inj e }
-end
-
-lemma padic_val_nat_div' {p : ℕ} [p_prime : fact p.prime] :
+protected lemma padic_val_nat.div' {p : ℕ} [p_prime : fact p.prime] :
   ∀ {m : ℕ} (cpm : coprime p m) {b : ℕ} (dvd : m ∣ b), padic_val_nat p (b / m) = padic_val_nat p b
 | 0 := λ cpm b dvd, by { rw zero_dvd_iff at dvd, rw [dvd, nat.zero_div], }
 | (n + 1) :=
@@ -393,7 +378,7 @@ lemma padic_val_nat_div' {p : ℕ} [p_prime : fact p.prime] :
     rcases dvd with ⟨c, rfl⟩,
     rw [mul_div_right c (nat.succ_pos _)],by_cases hc : c = 0,
     { rw [hc, mul_zero] },
-    { rw mul,
+    { rw padic_val_nat.mul,
       { suffices : ¬ p ∣ (n+1),
         { rw [padic_val_nat_of_not_dvd this, zero_add] },
         contrapose! cpm,
@@ -419,12 +404,12 @@ begin
   have p_dvd_n : p ∣ n,
     { have: q ∣ n := nat.min_fac_dvd n,
       cc },
-  { rw [←h, padic_val_nat_div],
+  { rw [←h, padic_val_nat.div],
     { have: 1 ≤ padic_val_nat p n := one_le_padic_val_nat_of_dvd (by linarith) p_dvd_n,
       exact (nat.sub_eq_iff_eq_add this).mp rfl, },
     { exact p_dvd_n, }, },
   { suffices : p.coprime q,
-    { rw [padic_val_nat_div' this (min_fac_dvd n), add_zero], },
+    { rw [padic_val_nat.div' this (min_fac_dvd n), add_zero], },
     rwa nat.coprime_primes hp hq, },
 end
 

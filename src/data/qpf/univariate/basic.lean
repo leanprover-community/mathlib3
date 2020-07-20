@@ -602,6 +602,14 @@ def is_uniform : Prop := ∀ ⦃α : Type u⦄ (a a' : q.P.A)
     (f : q.P.B a → α) (f' : q.P.B a' → α),
   abs ⟨a, f⟩ = abs ⟨a', f'⟩ → f '' univ = f' '' univ
 
+/-- does `abs` preserve `liftp`? -/
+def liftp_preservation : Prop :=
+∀ ⦃α⦄ (p : α → Prop) (x : q.P.obj α), liftp p (abs x) ↔ liftp p x
+
+/-- does `abs` preserve `supp`? -/
+def supp_preservation : Prop :=
+∀ ⦃α⦄ (x : q.P.obj α), supp (abs x) = supp x
+
 variable [q]
 
 theorem supp_eq_of_is_uniform (h : q.is_uniform) {α : Type u} (a : q.P.A) (f : q.P.B a → α) :
@@ -633,5 +641,34 @@ begin
   rw ←abs_repr x, cases repr x with a f, rw [←abs_map, pfunctor.map_eq],
   rw [supp_eq_of_is_uniform h, supp_eq_of_is_uniform h, image_comp]
 end
+
+theorem supp_preservation_iff_uniform :
+  q.supp_preservation ↔ q.is_uniform :=
+begin
+  split,
+  { intros h α a a' f f' h',
+    rw [← pfunctor.supp_eq,← pfunctor.supp_eq,← h,h',h] },
+  { rintros h α ⟨a,f⟩, rwa [supp_eq_of_is_uniform,pfunctor.supp_eq], }
+end
+
+theorem supp_preservation_iff_liftp_preservation :
+  q.supp_preservation ↔ q.liftp_preservation :=
+begin
+  split; intro h,
+  { rintros α p ⟨a,f⟩,
+    have h' := h, rw supp_preservation_iff_uniform at h',
+    dsimp only [supp_preservation,supp] at h,
+    rwa [liftp_iff_of_is_uniform,supp_eq_of_is_uniform,pfunctor.liftp_iff'];
+      try { assumption },
+    { simp only [image_univ, mem_range, exists_imp_distrib],
+      split; intros; subst_vars; solve_by_elim } },
+  { rintros α ⟨a,f⟩,
+    simp only [liftp_preservation] at h,
+    simp only [supp,h] }
+end
+
+theorem liftp_preservation_iff_uniform :
+  q.liftp_preservation ↔ q.is_uniform :=
+by rw [← supp_preservation_iff_liftp_preservation, supp_preservation_iff_uniform]
 
 end qpf

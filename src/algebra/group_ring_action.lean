@@ -8,7 +8,7 @@ Group action on rings.
 
 import group_theory.group_action
 import data.equiv.ring
-import data.polynomial
+import data.polynomial.eval
 
 universes u v
 

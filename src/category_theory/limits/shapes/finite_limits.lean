@@ -3,6 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import data.fintype.basic
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.shapes.pullbacks
@@ -89,11 +90,69 @@ def has_coequalizers_of_has_finite_colimits [has_finite_colimits C] : has_coequa
 
 variables {J : Type v}
 
+local attribute [tidy] tactic.case_bash
+
+namespace wide_pullback_shape
+
+instance fintype_obj [fintype J] : fintype (wide_pullback_shape J) :=
+by { rw wide_pullback_shape, apply_instance }
+
+instance fintype_hom [decidable_eq J] (j j' : wide_pullback_shape J) :
+  fintype (j ⟶ j') :=
+{ elems :=
+  begin
+    cases j',
+    { cases j,
+      { exact {hom.id none} },
+      { exact {hom.term j} } },
+    { by_cases some j' = j,
+      { rw h,
+        exact {hom.id j} },
+      { exact ∅ } }
+  end,
+  complete := by tidy }
+
+end wide_pullback_shape
+
+namespace wide_pushout_shape
+
+instance fintype_obj [fintype J] : fintype (wide_pushout_shape J) :=
+by { rw wide_pushout_shape, apply_instance }
+
+instance fintype_hom [decidable_eq J] (j j' : wide_pushout_shape J) :
+  fintype (j ⟶ j') :=
+{ elems :=
+  begin
+    cases j,
+    { cases j',
+      { exact {hom.id none} },
+      { exact {hom.init j'} } },
+    { by_cases some j = j',
+      { rw h,
+        exact {hom.id j'} },
+      { exact ∅ } }
+  end,
+  complete := by tidy }
+
+end wide_pushout_shape
+
 instance fin_category_wide_pullback [fintype J] [decidable_eq J] : fin_category (wide_pullback_shape J) :=
 { fintype_hom := wide_pullback_shape.fintype_hom }
 
 instance fin_category_wide_pushout [fintype J] [decidable_eq J] : fin_category (wide_pushout_shape J) :=
 { fintype_hom := wide_pushout_shape.fintype_hom }
+
+/-- `has_finite_wide_pullbacks` represents a choice of wide pullback for every finite collection of morphisms -/
+class has_finite_wide_pullbacks :=
+(has_limits_of_shape : Π (J : Type v) [decidable_eq J] [fintype J], has_limits_of_shape (wide_pullback_shape J) C)
+
+attribute [instance] has_finite_wide_pullbacks.has_limits_of_shape
+
+/-- `has_finite_wide_pushouts` represents a choice of wide pushout for every finite collection of morphisms -/
+class has_finite_wide_pushouts :=
+(has_colimits_of_shape : Π (J : Type v) [decidable_eq J] [fintype J], has_colimits_of_shape (wide_pushout_shape J) C)
+
+attribute [instance] has_finite_wide_pushouts.has_colimits_of_shape
 
 /-- Finite wide pullbacks are finite limits, so if `C` has all finite limits, it also has finite wide pullbacks -/
 def has_finite_wide_pullbacks_of_has_finite_limits [has_finite_limits C] : has_finite_wide_pullbacks C :=

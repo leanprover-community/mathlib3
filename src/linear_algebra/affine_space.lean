@@ -1061,8 +1061,9 @@ end
 /-- An `affine_combination` with sum of weights 1 is in the
 `affine_span` of an indexed family, if the underlying ring is
 nontrivial. -/
-lemma affine_combination_mem_affine_span [nontrivial k] {s : finset ι} {w : ι → k} (p : ι → P)
-    (h : ∑ i in s, w i = 1) : s.affine_combination V w p ∈ affine_span k V (set.range p) :=
+lemma affine_combination_mem_affine_span [nontrivial k] {s : finset ι} {w : ι → k}
+    (h : ∑ i in s, w i = 1) (p : ι → P) :
+  s.affine_combination V w p ∈ affine_span k V (set.range p) :=
 begin
   have hnz : ∑ i in s, w i ≠ 0 := h.symm ▸ one_ne_zero,
   have hn : s.nonempty := finset.nonempty_of_sum_ne_zero hnz,
@@ -1174,7 +1175,7 @@ begin
   split,
   { exact eq_affine_combination_of_mem_affine_span },
   { rintros ⟨s, w, hw, rfl⟩,
-    exact affine_combination_mem_affine_span V p hw }
+    exact affine_combination_mem_affine_span V hw p }
 end
 
 end affine_space

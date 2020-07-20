@@ -127,6 +127,7 @@ section subtype
 
 variables {F : fam I ⥤ fam J}
 
+@[pp_nodot]
 def Pred (α : fam I) : Sort* := ∀ i, α i → Prop
 
 def Pred.mk {α : fam I} (p : Π i, (unit i ⟶ α) → Prop) : Pred α :=

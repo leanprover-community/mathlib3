@@ -15,13 +15,13 @@ open_locale classical topological_space big_operators
 variables {α : Type*} {β : Type*} {γ : Type*}
 
 /-- Basic hypothesis to talk about a topological additive monoid or a topological additive
-semigroup. A topological additive monoid over α, for example, is obtained by requiring both the
+semigroup. A topological additive monoid over `α`, for example, is obtained by requiring both the
 instances `add_monoid α` and `has_continuous_add α`. -/
 class has_continuous_add (α : Type*) [topological_space α] [has_add α] : Prop :=
 (continuous_add : continuous (λp:α×α, p.1 + p.2))
 
 /-- Basic hypothesis to talk about a topological monoid or a topological semigroup.
-A topological monoid over α, for example, is obtained by requiring both the instances `monoid α` and
+A topological monoid over `α`, for example, is obtained by requiring both the instances `monoid α` and
 `has_continuous_mul α`. -/
 @[to_additive]
 class has_continuous_mul (α : Type*) [topological_space α] [has_mul α] : Prop :=
@@ -81,8 +81,6 @@ hf.mul hg
 instance [topological_space β] [has_mul β] [has_continuous_mul β] : has_continuous_mul (α × β) :=
 ⟨((continuous_fst.comp continuous_fst).mul (continuous_fst.comp continuous_snd)).prod_mk
  ((continuous_snd.comp continuous_fst).mul (continuous_snd.comp continuous_snd))⟩
-
-attribute [instance] prod.has_continuous_mul
 
 end has_continuous_mul
 

@@ -129,7 +129,7 @@ axiom F (a b : ℕ) : f a ≤ f b ↔ a ≤ b
 example (a b : ℕ) (h : a ≤ b) : f a ≤ f b := by library_search
 
 -- Test #3432
-theorem nonzero_gt_one (n : ℕ ): ¬ n = 0 → n ≥ 1 :=
+theorem nonzero_gt_one (n : ℕ) : ¬ n = 0 → n ≥ 1 :=
 by library_search!   -- `exact nat.pos_of_ne_zero`
 
 end test.library_search

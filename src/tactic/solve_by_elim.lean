@@ -111,14 +111,25 @@ meta structure basic_opt extends apply_any_opt :=
 
 declare_trace solve_by_elim         -- trace attempted lemmas
 
-meta def on_success (n : ℕ) (e : expr) : tactic unit :=
-when_tracing `solve_by_elim (do
-  pp ← pp e,
-  trace format!"{(list.repeat '.' n).as_string}successfully applied lemma: {pp}")
-
-meta def on_failure (n : ℕ) : tactic unit :=
+meta def solve_by_elim_trace (n : ℕ) (f : format) : tactic unit :=
 trace_if_enabled `solve_by_elim
-  format!"{(list.repeat '.' n).as_string}no lemma could be applied"
+  (format!"[solve_by_elim {(list.repeat '.' (n+1)).as_string} " ++ f ++ "]")
+
+meta def on_success (g : format) (n : ℕ) (e : expr) : tactic unit :=
+do
+  pp ← pp e,
+  solve_by_elim_trace n (format!"✅ `{pp}` solves `⊢ {g}`")
+
+meta def on_failure (g : format) (n : ℕ) : tactic unit :=
+solve_by_elim_trace n (format!"❌ failed to solve `⊢ {g}`")
+
+meta def trace_hooks (n : ℕ) : tactic ((expr → tactic unit) × tactic unit) :=
+if is_trace_enabled_for `solve_by_elim then
+  do
+    g ← target >>= pp,
+    return (on_success g n, on_failure g n)
+else
+  return (λ _, skip, skip)
 
 /--
 The internal implementation of `solve_by_elim`, with a limiting counter.
@@ -127,19 +138,20 @@ meta def solve_by_elim_aux (opt : basic_opt)
   (original_goals : list expr) (lemmas : list (tactic expr)) : ℕ → tactic unit
 | n := do
   -- First, check that progress so far is `accept`able.
-  lock_tactic_state (original_goals.mmap instantiate_mvars >>= opt.accept) >>
+  lock_tactic_state (original_goals.mmap instantiate_mvars >>= opt.accept),
   -- Then check if we've finished.
-  ((done >> trace_if_enabled `solve_by_elim "success!") <|>
+  (done >> solve_by_elim_trace (opt.max_depth - n) "success!") <|> (do
     -- Otherwise, if there's more time left,
     (guard (n > 0) <|>
-      trace_if_enabled `solve_by_elim "aborting solve_by_elim, hit depth limit" >> failed) >>
+      solve_by_elim_trace opt.max_depth "🛑 aborting, hit depth limit" >> failed),
     -- run the `pre_apply` tactic, then
-    opt.pre_apply >>
+    opt.pre_apply,
     -- try either applying a lemma and recursing,
-    ((apply_any_thunk lemmas opt.to_apply_any_opt (solve_by_elim_aux (n-1))
-      (on_success (opt.max_depth - n)) (on_failure (opt.max_depth - n))) <|>
+    (on_success, on_failure) ← trace_hooks (opt.max_depth - n),
+    (apply_any_thunk lemmas opt.to_apply_any_opt (solve_by_elim_aux (n-1))
+      on_success on_failure) <|>
     -- or if that doesn't work, run the discharger and recurse.
-     (opt.discharger >> solve_by_elim_aux (n-1))))
+     (opt.discharger >> solve_by_elim_aux (n-1)))
 
 /--
 Arguments for `solve_by_elim`:

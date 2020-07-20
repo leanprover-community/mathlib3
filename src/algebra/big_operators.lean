@@ -459,6 +459,11 @@ by simp [prod_apply_dite _ _ (λ x, x)]
   (∏ x in s.filter p, f x) * (∏ x in s.filter (λ x, ¬ p x), g x) :=
 by simp [prod_apply_ite _ _ (λ x, x)]
 
+@[to_additive]
+lemma prod_extend_by_one [decidable_eq α] (s : finset α) (f : α → β) :
+  ∏ i in s, (if i ∈ s then f i else 1) = ∏ i in s, f i :=
+prod_congr rfl $ λ i hi, if_pos hi
+
 @[simp, to_additive]
 lemma prod_dite_eq [decidable_eq α] (s : finset α) (a : α) (b : Π x : α, a = x → β) :
   (∏ x in s, (if h : a = x then b x h else 1)) = ite (a ∈ s) (b a rfl) 1 :=

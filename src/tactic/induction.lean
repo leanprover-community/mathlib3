@@ -455,6 +455,16 @@ namespace tactic
 
 open expr native tactic.interactive
 
+declare_trace eliminate_hyp
+
+meta def trace_eliminate_hyp {α} [has_to_format α] (msg : thunk α) : tactic unit :=
+when_tracing `eliminate_hyp $ trace $ to_fmt "eliminate_hyp: " ++ to_fmt (msg ())
+
+meta def trace_state_eliminate_hyp {α} [has_to_format α] (msg : thunk α) : tactic unit := do
+  state ← read,
+  trace_eliminate_hyp $ format.join
+    [to_fmt (msg ()), "\n-----\n", to_fmt state, "\n-----"]
+
 meta def mopen_binder_aux (type e : expr) : tactic (expr × expr) := do
   mv ← mk_meta_var type,
   pure $ (mv, e.instantiate_var mv)
@@ -1560,9 +1570,14 @@ focus1 $ do
   -- seems to be no way to find out whether an inductive type is mutual/nested.
   -- (`environment.is_ginductive` doesn't seem to work.)
 
+  trace_state_eliminate_hyp "State before complex index generalisation:",
+
   -- Generalise complex indices
   (eliminee, num_index_vars, index_var_names, structure_field_names, num_index_generalized) ←
     generalize_complex_index_args eliminee iinfo.num_params generate_ihs,
+
+  trace_state_eliminate_hyp
+    "State after complex index generalisation and before auto-generalisation:",
 
   -- Generalise hypotheses according to the given generalization_mode.
   num_auto_generalized ← generalize_hyps eliminee gm,
@@ -1575,6 +1590,9 @@ focus1 $ do
   -- context.
   in_tag ← get_main_tag,
   old_hyps ← hyp_unique_names,
+
+  trace_state_eliminate_hyp
+    "State after auto-generalisation and before recursor application:",
 
   -- Apply the recursor. We first try the nondependent recursor, then the
   -- dependent recursor (if available).
@@ -1595,6 +1613,10 @@ focus1 $ do
   -- For each case (constructor):
   cases : list (option (name × list expr)) ←
     focus $ constrs.map $ λ ⟨cinfo, with_names⟩, do {
+      trace_eliminate_hyp "============",
+      trace_eliminate_hyp $ format! "Case {cinfo.cname}",
+      trace_state_eliminate_hyp "Initial state:",
+
       -- Get the eliminee's arguments. (Some of these may have changed due to
       -- the generalising step above.)
       -- TODO propagate this information instead of re-parsing the type here?
@@ -1611,6 +1633,9 @@ focus1 $ do
       -- avoid this, i.e. clean up even more conservatively?
       eliminee_args.mmap' (try ∘ clear),
 
+      trace_state_eliminate_hyp
+        "State after clearing the eliminee (and its arguments) and before unfolding structure projections:",
+
       -- Unfold structure projections which may have been introduced by the
       -- structure equation simplification step of generalize_complex_index_args.
       -- TODO This method reduces every occurrence of the given structure field
@@ -1620,6 +1645,9 @@ focus1 $ do
       n ← revert_all_except old_hyps,
       unfold_only_target structure_field_names.to_list ff,
       intron n,
+
+      trace_state_eliminate_hyp
+        "State after unfolding structure projections and before introductions:",
 
       -- NOTE: The previous step invalidates all unique names (except those of
       -- the old hyps).
@@ -1638,10 +1666,19 @@ focus1 $ do
       -- generalisation.
       intron num_index_generalized,
 
+      trace_state_eliminate_hyp
+        "State after introductions and before simplifying index equations:",
+
       -- Simplify the index equations. Stop after this step if the goal has been
       -- solved by the simplification.
       ff ← simplify_index_equations (index_equations.map expr.local_pp_name)
-        | pure none,
+        | do {
+            trace_eliminate_hyp "Case solved while simplifying index equations.",
+            pure none
+          },
+
+      trace_state_eliminate_hyp
+        "State after simplifying index equations and before simplifying IHs:",
 
       -- Simplify the induction hypotheses
       -- NOTE: The previous step may have changed the unique names of the
@@ -1650,9 +1687,15 @@ focus1 $ do
       (ih_names.map prod.fst).mmap'
         (get_local >=> simplify_ih num_auto_generalized num_index_vars),
 
+      trace_state_eliminate_hyp
+        "State after simplifying IHs and before clearing index variables:",
+
       -- Try to clear the index variables. These often become unused during
       -- the index equation simplification step.
       index_var_names.mmap $ λ h, try (get_local h >>= clear),
+
+      trace_state_eliminate_hyp
+        "State after clearing index variables and before renaming:",
 
       -- Rename the constructor names and IHs. We do this here (rather than
       -- earlier, when we introduced them) because there may now be less
@@ -1661,6 +1704,8 @@ focus1 $ do
       (constructor_arg_hyps, ih_hyps) ←
         constructor_renames generate_ihs einfo iinfo cinfo with_names
           constructor_arg_names ih_names,
+
+      trace_state_eliminate_hyp "Final state:",
 
       -- Return the constructor name and the renamable new hypotheses. These are
       -- the hypotheses that can later be renamed by the `case` tactic. Note

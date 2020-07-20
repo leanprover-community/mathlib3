@@ -20,24 +20,20 @@ usually fail but `generalizes` may succeed.
 To generalize the target `T` over expressions `j₁ : J₁, ..., jₙ : Jₙ`, we first
 create the new target type
 
-    T' = ∀ (k₁ : J₁) ... (kₙ : Jₙ) (k₁_eq : k₁ = j₁) ... (kₙ_eq : kₙ = jₙ), U
+    T' = ∀ (k₁ : J₁) ... (kₙ : Jₙ) (k₁_eq : k₁ = j₁) ... (kₙ_eq : kₙ == jₙ), U
 
 where `U` is `T` with any occurrences of the `jᵢ` replaced by the corresponding
-`kᵢ`. Creating this expression is a bit difficult because we must be careful
-when there are dependencies between the `jᵢ`. Suppose that `j₁ : J₁` and `j₂ : P
-j₁`. Then we want to end up with the target
-
-    T' = ∀ (k₁ : J₁) (k₂ : P j₁) (k₁_eq : k₁ == j₁) (k₂_eq : @heq (P k₁) k₂ (P j₁) j₂), ...
-
-Note the type of the heterogeneous equation `k₂_eq`: When abstracting over `j₁`,
-we want to replace `j₁` by `k₁` in the left-hand side to get the correct type
-for `k₂`, but not in the right-hand side. This construction is performed by
-`generalizes.step1` and `generalizes.step2`.
+`kᵢ`. Note that some of the `kᵢ_eq` may be heterogeneous; this happens when
+there are dependencies between the `jᵢ`. The construction of `T'` is performed
+by `generalizes.step1` and `generalizes.step2`.
 
 Having constructed `T'`, we can `assert` it and use it to construct a proof of
-the original target by instantiating the binders with `j₁`, `eq.refl j₁`, `j₂`,
-`heq.refl j₂` etc. This leaves us with a generalized goal. This construction is
-performed by `generalizes.step3`.
+the original target by instantiating the binders with
+
+    j₁ ... jₙ (eq.refl j₁) ... (heq.refl jₙ).
+
+This leaves us with a generalized goal. This construction is performed by
+`generalizes.step3`.
 -/
 
 universes u v w
@@ -51,21 +47,21 @@ namespace generalizes
 /--
 Input:
 
-- Target expression e.
-- List of expressions jᵢ that are to be generalised, along with a name for the
-  local const that will replace them. The jᵢ must be in dependency order:
+- Target expression `e`.
+- List of expressions `jᵢ` to be generalised, along with a name for the local
+  const that will replace them. The `jᵢ` must be in dependency order:
   `[n, fin n]` is okay but `[fin n, n]` is not.
 
 Output:
 
-- List of constants kᵢ, one for each jᵢ.
-- e with the jᵢ replaced by the kᵢ, i.e. `e[jᵢ := kᵢ]...[j₀ := k₀]`.
+- List of new local constants `kᵢ`, one for each `jᵢ`.
+- `e` with the `jᵢ` replaced by the `kᵢ`, i.e. `e[jᵢ := kᵢ]...[j₀ := k₀]`.
 
-Note that the substitution also affects the types of the kᵢ: If `jᵢ : Jᵢ` then
+Note that the substitution also affects the types of the `kᵢ`: If `jᵢ : Jᵢ` then
 `kᵢ : Jᵢ[jᵢ₋₁ := kᵢ₋₁]...[j₀ := k₀]`.
 
 The transparency `md` and the boolean `unify` are passed to `kabstract` when we
-abstract over occurrences of the jᵢ in e.
+abstract over occurrences of the `jᵢ` in `e`.
 -/
 meta def step1 (md : transparency) (unify : bool)
   (e : expr) (to_generalize : list (name × expr)) : tactic (expr × list expr) := do
@@ -81,13 +77,13 @@ meta def step1 (md : transparency) (unify : bool)
 
 /--
 Input: for each equation that should be generated: the equation name, the
-argument jᵢ and the corresponding local constant kᵢ from step 1.
+argument `jᵢ` and the corresponding local constant `kᵢ` from step 1.
 
-Output: for each element of the input list: a new local constant of type
+Output: for each element of the input list a new local constant of type
 `jᵢ = kᵢ` or `jᵢ == kᵢ` and a proof of `jᵢ = jᵢ` or `jᵢ == jᵢ`.
 
-The transparency `md` is used when determining whether the type of jᵢ is defeq
-to the type of kᵢ (and thus whether to generate a homogeneous or heterogeneous
+The transparency `md` is used when determining whether the type of `jᵢ` is defeq
+to the type of `kᵢ` (and thus whether to generate a homogeneous or heterogeneous
 equation).
 -/
 meta def step2 (md : transparency)
@@ -107,7 +103,7 @@ to_generalize.mmap $ λ ⟨n, j, k⟩, do
   pure (eq, eq_proof)
 
 /--
-Input: The jᵢ; the local constants kᵢ from step 1; the equations and their
+Input: The `jᵢ`; the local constants `kᵢ` from step 1; the equations and their
 proofs from step 2.
 
 This step is the first one that changes the goal (and also the last one
@@ -135,7 +131,7 @@ open generalizes
 Generalizes the target over each of the expressions in `args`. Given
 `args = [(a₁, h₁, arg₁), ...]`, this changes the target to
 
-    ∀ (a₁ : T₁) (h₁ : a₁ == arg₁) ..., U
+    ∀ (a₁ : T₁) ... (h₁ : a₁ = arg₁) ..., U
 
 where `U` is the current target with every occurrence of `argᵢ` replaced by
 `aᵢ`. A similar effect can be achieved by using `generalize` once for each of

@@ -3271,7 +3271,14 @@ is finite or infinite. Since the evaluation of the branches is not lazy, this is
 enough for practical situations, though.
 
 For specific numbers, these inequalities could also be deduced from the corresponding
-inequalities of natural numbers through coercion (and the complexity is better).
+inequalities of natural numbers through coercion (and the complexity is better):
+```
+example : (37 : cardinal) < 42 :=
+begin
+  suffices : ((37 : ℕ) : cardinal) < ((42 : ℕ) : cardinal), simpa,
+  norm_cast, simp,
+end
+```
 -/
 
 @[simp] lemma bit0_ne_zero (a : cardinal) : ¬bit0 a = 0 ↔ ¬a = 0 :=

@@ -5,6 +5,8 @@ Authors: Simon Hudon
 -/
 import tactic.rcases
 import data.sum
+import logic.function.basic
+
 universes u₁ u₂
 
 open interactive interactive.types
@@ -340,7 +342,7 @@ add_tactic_doc
   tags                     := ["rewrite", "logic"] }
 
 -- We mark some existing extensionality lemmas.
-attribute [ext] array.ext propext
+attribute [ext] array.ext propext function.hfunext
 attribute [ext [(→),thunk]] _root_.funext
 
 -- We create some extensionality lemmas for existing structures.
@@ -400,6 +402,8 @@ ext1 xs $> ()
 - `ext` applies as many extensionality lemmas as possible;
 - `ext ids`, with `ids` a list of identifiers, finds extentionality and applies them
   until it runs out of identifiers in `ids` to name the local constants.
+- `ext` can also be given an `rcases` pattern in place of an identifier.
+  This will destruct the introduced local constant.
 
 When trying to prove:
 
@@ -421,6 +425,26 @@ y : β
 
 by applying functional extensionality and set extensionality.
 
+When trying to prove:
+
+```lean
+α β γ : Type
+f g : α × β → γ
+⊢ f = g
+```
+
+applying `ext ⟨a, b⟩` yields:
+
+```lean
+α β γ : Type,
+f g : α × β → γ,
+a : α,
+b : β
+⊢ f (a, b) = g (a, b)
+```
+
+by applying functional extensionality and destructing the introduced pair.
+
 A maximum depth can be provided with `ext x y z : 3`.
 -/
 meta def interactive.ext : parse ext_parse → parse (tk ":" *> small_nat)? → tactic unit
@@ -429,15 +453,17 @@ meta def interactive.ext : parse ext_parse → parse (tk ":" *> small_nat)? → 
  | xs n        := tactic.ext xs n
 
 /--
- * `ext1 id` selects and apply one extensionality lemma (with
-    attribute `ext`), using `id`, if provided, to name a
-    local constant introduced by the lemma. If `id` is omitted, the
-    local constant is named automatically, as per `intro`.
+* `ext1 id` selects and apply one extensionality lemma (with
+  attribute `ext`), using `id`, if provided, to name a
+  local constant introduced by the lemma. If `id` is omitted, the
+  local constant is named automatically, as per `intro`.
 
- * `ext` applies as many extensionality lemmas as possible;
- * `ext ids`, with `ids` a list of identifiers, finds extensionality lemmas
-    and applies them until it runs out of identifiers in `ids` to name
-    the local constants.
+* `ext` applies as many extensionality lemmas as possible;
+* `ext ids`, with `ids` a list of identifiers, finds extensionality lemmas
+  and applies them until it runs out of identifiers in `ids` to name
+  the local constants.
+* `ext` can also be given an `rcases` pattern in place of an identifier.
+  This will destruct the introduced local constant.
 
 When trying to prove:
 
@@ -456,8 +482,27 @@ x : α,
 y : β
 ⊢ y ∈ f x ↔ y ∈ g x
 ```
-
 by applying functional extensionality and set extensionality.
+
+When trying to prove:
+
+```lean
+α β γ : Type
+f g : α × β → γ
+⊢ f = g
+```
+
+applying `ext ⟨a, b⟩` yields:
+
+```lean
+α β γ : Type,
+f g : α × β → γ,
+a : α,
+b : β
+⊢ f (a, b) = g (a, b)
+```
+
+by applying functional extensionality and destructing the introduced pair.
 
 A maximum depth can be provided with `ext x y z : 3`.
 -/

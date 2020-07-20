@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl
 -/
-import tactic.lint
+import tactic.lint tactic.ext
 
 section sigma
 variables {α : Type*} {β : α → Type*}
@@ -21,7 +21,7 @@ instance [h₁ : decidable_eq α] [h₂ : ∀a, decidable_eq (β a)] : decidable
   | a₁, _, a₂, _, is_false n := is_false (assume h, sigma.no_confusion h (λe₁ e₂, n e₁))
   end
 
-lemma injective_sigma_mk {i : α} : function.injective (@sigma.mk α β i)
+lemma sigma_mk_injective {i : α} : function.injective (@sigma.mk α β i)
 | _ _ rfl := rfl
 
 @[simp, nolint simp_nf] -- sometimes the built-in injectivity support does not work
@@ -31,6 +31,13 @@ by simp
 
 @[simp] theorem sigma.eta : ∀ x : Σ a, β a, sigma.mk x.1 x.2 = x
 | ⟨i, x⟩ := rfl
+
+@[ext]
+lemma ext {x₀ x₁ : sigma β}
+  (h₀ : x₀.1 = x₁.1)
+  (h₁ : x₀.1 = x₁.1 → x₀.2 == x₁.2) :
+  x₀ = x₁ :=
+by casesm* sigma _; cases h₀; cases h₁ h₀; refl
 
 @[simp] theorem sigma.forall {p : (Σ a, β a) → Prop} :
   (∀ x, p x) ↔ (∀ a b, p ⟨a, b⟩) :=
@@ -43,10 +50,10 @@ by simp
 variables {α₁ : Type*} {α₂ : Type*} {β₁ : α₁ → Type*} {β₂ : α₂ → Type*}
 
 /-- Map the left and right components of a sigma -/
-def sigma.map (f₁ : α₁ → α₂) (f₂ : Πa, β₁ a → β₂ (f₁ a)) : sigma β₁ → sigma β₂
-| ⟨a, b⟩ := ⟨f₁ a, f₂ a b⟩
+def sigma.map (f₁ : α₁ → α₂) (f₂ : Πa, β₁ a → β₂ (f₁ a)) (x : sigma β₁) : sigma β₂ :=
+⟨f₁ x.1, f₂ x.1 x.2⟩
 
-lemma injective_sigma_map {f₁ : α₁ → α₂} {f₂ : Πa, β₁ a → β₂ (f₁ a)}
+lemma function.injective.sigma_map {f₁ : α₁ → α₂} {f₂ : Πa, β₁ a → β₂ (f₁ a)}
   (h₁ : function.injective f₁) (h₂ : ∀ a, function.injective (f₂ a)) :
   function.injective (sigma.map f₁ f₂)
 | ⟨i, x⟩ ⟨j, y⟩ h :=
@@ -56,6 +63,20 @@ begin
   have : x = y, from h₂ i (eq_of_heq (sigma.mk.inj_iff.mp h).2),
   subst y
 end
+
+lemma function.surjective.sigma_map {f₁ : α₁ → α₂} {f₂ : Πa, β₁ a → β₂ (f₁ a)}
+  (h₁ : function.surjective f₁) (h₂ : ∀ a, function.surjective (f₂ a)) :
+  function.surjective (sigma.map f₁ f₂) :=
+begin
+  intros y,
+  cases y with j y,
+  cases h₁ j with i hi,
+  subst j,
+  cases h₂ i y with x hx,
+  subst y,
+  exact ⟨⟨i, x⟩, rfl⟩
+end
+
 
 end sigma
 

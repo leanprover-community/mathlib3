@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Simon Hudon, Mario Carneiro
 -/
 import algebra.group.to_additive
-import tactic.protected
+import tactic.basic
 
 /-!
 # Typeclasses for (semi)groups and monoid
@@ -48,8 +48,10 @@ universe u
    to the additive one.
 -/
 
+/-- A semigroup is a type with an associative `(*)`. -/
 @[protect_proj, ancestor has_mul] class semigroup (G : Type u) extends has_mul G :=
 (mul_assoc : ∀ a b c : G, a * b * c = a * (b * c))
+/-- An additive semigroup is a type with an associative `(+)`. -/
 @[protect_proj, ancestor has_add] class add_semigroup (G : Type u) extends has_add G :=
 (add_assoc : ∀ a b c : G, a + b + c = a + (b + c))
 attribute [to_additive add_semigroup] semigroup
@@ -69,9 +71,12 @@ instance semigroup.to_is_associative : is_associative G (*) :=
 
 end semigroup
 
+/-- A commutative semigroup is a type with an associative commutative `(*)`. -/
 @[protect_proj, ancestor semigroup]
 class comm_semigroup (G : Type u) extends semigroup G :=
 (mul_comm : ∀ a b : G, a * b = b * a)
+
+/-- A commutative additive semigroup is a type with an associative commutative `(+)`. -/
 @[protect_proj, ancestor add_semigroup]
 class add_comm_semigroup (G : Type u) extends add_semigroup G :=
 (add_comm : ∀ a b : G, a + b = b + a)
@@ -91,9 +96,12 @@ instance comm_semigroup.to_is_commutative : is_commutative G (*) :=
 
 end comm_semigroup
 
+/-- A `left_cancel_semigroup` is a semigroup such that `a * b = a * c` implies `b = c`. -/
 @[protect_proj, ancestor semigroup]
 class left_cancel_semigroup (G : Type u) extends semigroup G :=
 (mul_left_cancel : ∀ a b c : G, a * b = a * c → b = c)
+/-- An `add_left_cancel_semigroup` is an additive semigroup such that
+`a + b = a + c` implies `b = c`. -/
 @[protect_proj, ancestor add_semigroup]
 class add_left_cancel_semigroup (G : Type u) extends add_semigroup G :=
 (add_left_cancel : ∀ a b c : G, a + b = a + c → b = c)
@@ -120,9 +128,13 @@ theorem mul_right_inj (a : G) {b c : G} : a * b = a * c ↔ b = c :=
 
 end left_cancel_semigroup
 
+/-- A `right_cancel_semigroup` is a semigroup such that `a * b = c * b` implies `a = c`. -/
 @[protect_proj, ancestor semigroup]
 class right_cancel_semigroup (G : Type u) extends semigroup G :=
 (mul_right_cancel : ∀ a b c : G, a * b = c * b → a = c)
+
+/-- An `add_right_cancel_semigroup` is an additive semigroup such that
+`a + b = c + b` implies `a = c`. -/
 @[protect_proj, ancestor add_semigroup]
 class add_right_cancel_semigroup (G : Type u) extends add_semigroup G :=
 (add_right_cancel : ∀ a b c : G, a + b = c + b → a = c)
@@ -149,9 +161,11 @@ theorem mul_left_inj (a : G) {b c : G} : b * a = c * a ↔ b = c :=
 
 end right_cancel_semigroup
 
+/-- A `monoid` is a `semigroup` with an element `1` such that `1 * a = a * 1 = a`. -/
 @[ancestor semigroup has_one]
 class monoid (M : Type u) extends semigroup M, has_one M :=
 (one_mul : ∀ a : M, 1 * a = a) (mul_one : ∀ a : M, a * 1 = a)
+/-- An `add_monoid` is an `add_semigroup` with an element `0` such that `0 + a = a + 0 = a`. -/
 @[ancestor add_semigroup has_zero]
 class add_monoid (M : Type u) extends add_semigroup M, has_zero M :=
 (zero_add : ∀ a : M, 0 + a = a) (add_zero : ∀ a : M, a + 0 = a)
@@ -184,23 +198,34 @@ by rw [←one_mul c, ←hba, mul_assoc, hac, mul_one b]
 
 end monoid
 
+/-- A commutative monoid is a monoid with commutative `(*)`. -/
 @[protect_proj, ancestor monoid comm_semigroup]
 class comm_monoid (M : Type u) extends monoid M, comm_semigroup M
+
+/-- An additive commutative monoid is an additive monoid with commutative `(+)`. -/
 @[protect_proj, ancestor add_monoid add_comm_semigroup]
 class add_comm_monoid (M : Type u) extends add_monoid M, add_comm_semigroup M
 attribute [to_additive add_comm_monoid] comm_monoid
 
+/-- A monoid in which multiplication is left-cancellative. -/
+@[protect_proj, ancestor left_cancel_semigroup monoid]
+class left_cancel_monoid (M : Type u) extends left_cancel_semigroup M, monoid M
+
 /-- An additive monoid in which addition is left-cancellative.
 Main examples are `ℕ` and groups. This is the right typeclass for many sum lemmas, as having a zero
 is useful to define the sum over the empty set, so `add_left_cancel_semigroup` is not enough. -/
-@[protect_proj]
+@[protect_proj, ancestor add_left_cancel_semigroup add_monoid]
 class add_left_cancel_monoid (M : Type u) extends add_left_cancel_semigroup M, add_monoid M
 -- TODO: I found 1 (one) lemma assuming `[add_left_cancel_monoid]`.
--- Should we port more lemmas to this typeclass? Should we add a multiplicative version?
+-- Should we port more lemmas to this typeclass?
 
+attribute [to_additive add_left_cancel_monoid] left_cancel_monoid
+
+/-- A `group` is a `monoid` with an operation `⁻¹` satisfying `a⁻¹ * a = 1`. -/
 @[protect_proj, ancestor monoid has_inv]
 class group (α : Type u) extends monoid α, has_inv α :=
 (mul_left_inv : ∀ a : α, a⁻¹ * a = 1)
+/-- An `add_group` is an `add_monoid` with a unary `-` satisfying `-a + a = 0`. -/
 @[protect_proj, ancestor add_monoid has_neg]
 class add_group (α : Type u) extends add_monoid α, has_neg α :=
 (add_left_neg : ∀ a : α, -a + a = 0)
@@ -268,8 +293,10 @@ instance add_group.to_add_left_cancel_monoid : add_left_cancel_monoid G :=
 
 end add_group
 
+/-- A commutative group is a group with commutative `(*)`. -/
 @[protect_proj, ancestor group comm_monoid]
 class comm_group (G : Type u) extends group G, comm_monoid G
+/-- An additive commutative group is an additive group with commutative `(+)`. -/
 @[protect_proj, ancestor add_group add_comm_monoid]
 class add_comm_group (G : Type u) extends add_group G, add_comm_monoid G
 attribute [to_additive add_comm_group] comm_group

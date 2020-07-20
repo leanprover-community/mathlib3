@@ -23,7 +23,7 @@ variables {G₀ : Type*} [group_with_zero G₀]
 section nat_pow
 
 @[simp, field_simps] theorem inv_pow' (a : G₀) (n : ℕ) : (a⁻¹) ^ n = (a ^ n)⁻¹ :=
-by induction n with n ih; [exact inv_one'.symm,
+by induction n with n ih; [exact inv_one.symm,
   rw [pow_succ', pow_succ, ih, mul_inv_rev']]
 
 theorem pow_eq_zero' {g : G₀} {n : ℕ} (H : g ^ n = 0) : g = 0 :=
@@ -31,7 +31,7 @@ begin
   induction n with n ih,
   { rw pow_zero at H,
     rw [← mul_one g, H, mul_zero] },
-  exact or.cases_on (mul_eq_zero' _ _ H) id ih
+  exact or.cases_on (mul_eq_zero.1 H) id ih
 end
 
 @[field_simps] theorem pow_ne_zero' {g : G₀} (n : ℕ) (h : g ≠ 0) : g ^ n ≠ 0 :=
@@ -40,10 +40,10 @@ mt pow_eq_zero' h
 theorem pow_sub' (a : G₀) {m n : ℕ} (ha : a ≠ 0) (h : n ≤ m) : a ^ (m - n) = a ^ m * (a ^ n)⁻¹ :=
 have h1 : m - n + n = m, from nat.sub_add_cancel h,
 have h2 : a ^ (m - n) * a ^ n = a ^ m, by rw [←pow_add, h1],
-eq_mul_inv_of_mul_eq' (pow_ne_zero' _ ha) h2
+eq_div_of_mul_eq (pow_ne_zero' _ ha) h2
 
 theorem pow_inv_comm' (a : G₀) (m n : ℕ) : (a⁻¹) ^ m * a ^ n = a ^ n * (a⁻¹) ^ m :=
-by rw inv_pow'; exact inv_comm_of_comm' (pow_mul_comm _ _ _)
+(commute.refl a).inv_left'.pow_pow m n
 
 end nat_pow
 
@@ -68,7 +68,7 @@ def fpow (a : G₀) : ℤ → G₀
 
 theorem fpow_of_nat (a : G₀) (n : ℕ) : a ^ of_nat n = a ^ n := rfl
 
-@[simp] theorem fpow_neg_succ (a : G₀) (n : ℕ) : a ^ -[1+n] = (a ^ n.succ)⁻¹ := rfl
+@[simp] theorem fpow_neg_succ_of_nat (a : G₀) (n : ℕ) : a ^ -[1+n] = (a ^ n.succ)⁻¹ := rfl
 
 local attribute [ematch] le_of_lt
 
@@ -78,7 +78,7 @@ local attribute [ematch] le_of_lt
 
 @[simp] theorem one_fpow : ∀ (n : ℤ), (1 : G₀) ^ n = 1
 | (n : ℕ) := one_pow _
-| -[1+ n] := show _⁻¹=(1:G₀), by rw [one_pow, inv_one']
+| -[1+ n] := show _⁻¹=(1:G₀), by rw [one_pow, inv_one]
 
 lemma zero_fpow : ∀ z : ℤ, z ≠ 0 → (0 : G₀) ^ z = 0
 | (of_nat n) h := zero_pow' _ $ by rintro rfl; exact h rfl
@@ -86,7 +86,7 @@ lemma zero_fpow : ∀ z : ℤ, z ≠ 0 → (0 : G₀) ^ z = 0
 
 @[simp] theorem fpow_neg (a : G₀) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
 | (n+1:ℕ) := rfl
-| 0       := inv_one'.symm
+| 0       := inv_one.symm
 | -[1+ n] := (inv_inv' _).symm
 
 theorem fpow_neg_one (x : G₀) : x ^ (-1:ℤ) = x⁻¹ := congr_arg has_inv.inv $ pow_one x
@@ -95,38 +95,47 @@ theorem inv_fpow (a : G₀) : ∀n:ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
 | (n : ℕ) := inv_pow' a n
 | -[1+ n] := congr_arg has_inv.inv $ inv_pow' a (n+1)
 
-private lemma fpow_add_aux (a : G₀) (h : a ≠ 0) (m n : nat) :
-  a ^ ((of_nat m) + -[1+n]) = a ^ of_nat m * a ^ -[1+n] :=
-or.elim (nat.lt_or_ge m (nat.succ n))
- (assume h1 : m < n.succ,
-  have h2 : m ≤ n, from nat.le_of_lt_succ h1,
-  suffices a ^ -[1+ n-m] = a ^ of_nat m * a ^ -[1+n],
-    by rwa [of_nat_add_neg_succ_of_nat_of_lt h1],
-  show (a ^ nat.succ (n - m))⁻¹ = a ^ of_nat m * a ^ -[1+n],
-  by rw [← nat.succ_sub h2, pow_sub' _ h (le_of_lt h1), mul_inv_rev', inv_inv']; refl)
- (assume : m ≥ n.succ,
-  suffices a ^ (of_nat (m - n.succ)) = (a ^ (of_nat m)) * (a ^ -[1+ n]),
-    by rw [of_nat_add_neg_succ_of_nat_of_ge]; assumption,
-  suffices a ^ (m - n.succ) = a ^ m * (a ^ n.succ)⁻¹, from this,
-  by rw pow_sub'; assumption)
+lemma fpow_add_one {a : G₀} (ha : a ≠ 0) : ∀ n : ℤ, a ^ (n + 1) = a ^ n * a
+| (of_nat n) := by simp [← int.coe_nat_succ, pow_succ']
+| -[1+0]     := by simp [int.neg_succ_of_nat_eq, ha]
+| -[1+(n+1)] := by rw [int.neg_succ_of_nat_eq, fpow_neg, neg_add, neg_add_cancel_right, fpow_neg,
+  ← int.coe_nat_succ, fpow_coe_nat, fpow_coe_nat, pow_succ _ (n + 1), mul_inv_rev', mul_assoc,
+  inv_mul_cancel ha, mul_one]
 
-theorem fpow_add {a : G₀} (h : a ≠ 0) : ∀ (i j : ℤ), a ^ (i + j) = a ^ i * a ^ j
-| (of_nat m) (of_nat n) := pow_add _ _ _
-| (of_nat m) -[1+n]     := fpow_add_aux _ h _ _
-| -[1+m]     (of_nat n) := by rw [add_comm, fpow_add_aux _ h,
-  fpow_neg_succ, fpow_of_nat, ← inv_pow', ← pow_inv_comm']
-| -[1+m]     -[1+n]     :=
-  suffices (a ^ (m + n.succ.succ))⁻¹ = (a ^ m.succ)⁻¹ * (a ^ n.succ)⁻¹, from this,
-  by rw [← nat.succ_add_eq_succ_add, add_comm, pow_add, mul_inv_rev']
+lemma fpow_sub_one {a : G₀} (ha : a ≠ 0) (n : ℤ) : a ^ (n - 1) = a ^ n * a⁻¹ :=
+calc a ^ (n - 1) = a ^ (n - 1) * a * a⁻¹ : by rw [mul_assoc, mul_inv_cancel ha, mul_one]
+             ... = a^n * a⁻¹             : by rw [← fpow_add_one ha, sub_add_cancel]
 
-theorem fpow_add_one (a : G₀) (h : a ≠ 0) (i : ℤ) : a ^ (i + 1) = a ^ i * a :=
+lemma fpow_add {a : G₀} (ha : a ≠ 0) (m n : ℤ) : a ^ (m + n) = a ^ m * a ^ n :=
+begin
+  induction n using int.induction_on with n ihn n ihn,
+  case hz : { simp },
+  { simp only [← add_assoc, fpow_add_one ha, ihn, mul_assoc] },
+  { rw [fpow_sub_one ha, ← mul_assoc, ← ihn, ← fpow_sub_one ha, add_sub_assoc] }
+end
+
+theorem fpow_one_add {a : G₀} (h : a ≠ 0) (i : ℤ) : a ^ (1 + i) = a * a ^ i :=
 by rw [fpow_add h, fpow_one]
 
-theorem fpow_one_add (a : G₀) (h : a ≠ 0) (i : ℤ) : a ^ (1 + i) = a * a ^ i :=
-by rw [fpow_add h, fpow_one]
+theorem semiconj_by.fpow_right {a x y : G₀} (h : semiconj_by a x y) :
+  ∀ m : ℤ, semiconj_by a (x^m) (y^m)
+| (n : ℕ) := h.pow_right n
+| -[1+n]  := (h.pow_right (n + 1)).inv_right'
 
-theorem fpow_mul_comm (a : G₀) (h : a ≠ 0) (i j : ℤ) : a ^ i * a ^ j = a ^ j * a ^ i :=
-by rw [← fpow_add h, ← fpow_add h, add_comm]
+theorem commute.fpow_right {a b : G₀} (h : commute a b) : ∀ m : ℤ, commute a (b^m) :=
+h.fpow_right
+
+theorem commute.fpow_left {a b : G₀} (h : commute a b) (m : ℤ) : commute (a^m) b :=
+(h.symm.fpow_right m).symm
+
+theorem commute.fpow_fpow {a b : G₀} (h : commute a b) (m n : ℤ) : commute (a^m) (b^n) :=
+(h.fpow_left m).fpow_right n
+
+theorem commute.fpow_self (a : G₀) (n : ℤ) : commute (a^n) a := (commute.refl a).fpow_left n
+
+theorem commute.self_fpow (a : G₀) (n : ℤ) : commute a (a^n) := (commute.refl a).fpow_right n
+
+theorem commute.fpow_fpow_self (a : G₀) (m n : ℤ) : commute (a^m) (a^n) := (commute.refl a).fpow_fpow m n
 
 theorem fpow_mul (a : G₀) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
 | (m : ℕ) (n : ℕ) := pow_mul _ _ _
@@ -140,34 +149,26 @@ theorem fpow_mul (a : G₀) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
 theorem fpow_mul' (a : G₀) (m n : ℤ) : a ^ (m * n) = (a ^ n) ^ m :=
 by rw [mul_comm, fpow_mul]
 
-lemma fpow_inv (a : G₀) : a ^ (-1 : ℤ) = a⁻¹ :=
-show (a*1)⁻¹ = a⁻¹, by rw [mul_one]
-
-@[simp] lemma unit_pow {a : G₀} (ha : a ≠ 0) :
-  ∀ n : ℕ, (((units.mk0 a ha) ^ n : units G₀) : G₀) = a ^ n
-| 0     := units.coe_one.symm
-| (k+1) := by { simp only [pow_succ, units.coe_mul, units.coe_mk0], rw unit_pow }
-
-lemma fpow_neg_succ_of_nat (a : G₀) (n : ℕ) : a ^ (-[1+ n]) = (a ^ (n + 1))⁻¹ := rfl
-
-@[simp] lemma unit_gpow {a : G₀} (h : a ≠ 0) :
-  ∀ (z : ℤ), (((units.mk0 a h) ^ z : units G₀) : G₀) = a ^ z
-| (of_nat k) := unit_pow _ _
-| -[1+k] := by rw [fpow_neg_succ_of_nat, gpow_neg_succ, units.inv_eq_inv, unit_pow]
+@[simp, norm_cast] lemma units.coe_gpow' (u : units G₀) :
+  ∀ (n : ℤ), ((u ^ n : units G₀) : G₀) = u ^ n
+| (n : ℕ) := u.coe_pow n
+| -[1+k] := by rw [gpow_neg_succ_of_nat, fpow_neg_succ_of_nat, units.coe_inv', u.coe_pow]
 
 lemma fpow_ne_zero_of_ne_zero {a : G₀} (ha : a ≠ 0) : ∀ (z : ℤ), a ^ z ≠ 0
 | (of_nat n) := pow_ne_zero' _ ha
-| -[1+n]     := inv_ne_zero' $ pow_ne_zero' _ ha
+| -[1+n]     := inv_ne_zero $ pow_ne_zero' _ ha
 
 lemma fpow_sub {a : G₀} (ha : a ≠ 0) (z1 z2 : ℤ) : a ^ (z1 - z2) = a ^ z1 / a ^ z2 :=
 by rw [sub_eq_add_neg, fpow_add ha, fpow_neg]; refl
 
-lemma mul_fpow {G₀ : Type*} [comm_group_with_zero G₀] (a b : G₀) :
+lemma commute.mul_fpow {a b : G₀} (h : commute a b) :
   ∀ (i : ℤ), (a * b) ^ i = (a ^ i) * (b ^ i)
-| (int.of_nat n) := mul_pow a b n
-| -[1+n] :=
-  by rw [fpow_neg_succ_of_nat, fpow_neg_succ_of_nat, fpow_neg_succ_of_nat,
-      mul_pow, mul_inv'']
+| (n : ℕ) := h.mul_pow n
+| -[1+n]  := by simp [h.mul_pow, (h.pow_pow _ _).eq, mul_inv_rev']
+
+lemma mul_fpow {G₀ : Type*} [comm_group_with_zero G₀] (a b : G₀) (m : ℤ):
+  (a * b) ^ m = (a ^ m) * (b ^ m) :=
+(commute.all a b).mul_fpow m
 
 lemma fpow_eq_zero {x : G₀} {n : ℤ} (h : x ^ n = 0) : x = 0 :=
 classical.by_contradiction $ λ hx, fpow_ne_zero_of_ne_zero hx n h
@@ -179,7 +180,7 @@ theorem fpow_neg_mul_fpow_self (n : ℤ) {x : G₀} (h : x ≠ 0) :
   x ^ (-n) * x ^ n = 1 :=
 begin
   rw [fpow_neg],
-  exact inv_mul_cancel' _ (fpow_ne_zero n h)
+  exact inv_mul_cancel (fpow_ne_zero n h)
 end
 
 theorem one_div_pow {a : G₀} (n : ℕ) :
@@ -204,6 +205,6 @@ by simp only [div_eq_mul_inv, mul_pow, inv_pow']
 by simp only [div_eq_mul_inv, mul_fpow, inv_fpow]
 
 lemma div_sq_cancel {a : G₀} (ha : a ≠ 0) (b : G₀) : a ^ 2 * b / a = a * b :=
-by rw [pow_two, mul_assoc, mul_div_cancel_left' _ ha]
+by rw [pow_two, mul_assoc, mul_div_cancel_left _ ha]
 
 end

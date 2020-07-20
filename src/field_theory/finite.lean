@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Joey van Langen, Casper Putz
 -/
-
+import tactic.apply_fun
 import data.equiv.ring
 import data.zmod.basic
 import linear_algebra.basis
@@ -53,7 +53,7 @@ lemma card_image_polynomial_eval [fintype R] [decidable_eq R] {p : polynomial R}
   fintype.card R ≤ nat_degree p * (univ.image (λ x, eval x p)).card :=
 finset.card_le_mul_card_image _ _
   (λ a _, calc _ = (p - C a).roots.card : congr_arg card
-    (by simp [finset.ext, mem_roots_sub_C hp, -sub_eq_add_neg])
+    (by simp [finset.ext_iff, mem_roots_sub_C hp, -sub_eq_add_neg])
     ... ≤ _ : card_roots_sub_C' hp)
 
 /-- If `f` and `g` are quadratic polynomials, then the `f.eval a + g.eval b = 0` has a solution. -/
@@ -98,10 +98,10 @@ begin
 end
 
 lemma prod_univ_units_id_eq_neg_one :
-  univ.prod (λ x, x) = (-1 : units K) :=
+  (∏ x : units K, x) = (-1 : units K) :=
 begin
   classical,
-  have : ((@univ (units K) _).erase (-1)).prod (λ x, x) = 1,
+  have : (∏ x in (@univ (units K) _).erase (-1), x) = 1,
   from prod_involution (λ x _, x⁻¹) (by simp)
     (λ a, by simp [units.inv_eq_self_iff] {contextual := tt})
     (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm] {contextual := tt})
@@ -212,7 +212,7 @@ lemma sum_two_squares (p : ℕ) [hp : fact p.prime] (x : zmod p) :
   ∃ a b : zmod p, a^2 + b^2 = x :=
 begin
   cases hp.eq_two_or_odd with hp2 hp_odd,
-  { unfreezeI, subst p, revert x, exact dec_trivial },
+  { substI p, revert x, exact dec_trivial },
   let f : polynomial (zmod p) := X^2,
   let g : polynomial (zmod p) := X^2 - C x,
   obtain ⟨a, b, hab⟩ : ∃ a b, f.eval a + g.eval b = 0 :=

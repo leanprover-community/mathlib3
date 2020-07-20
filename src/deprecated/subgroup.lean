@@ -13,12 +13,6 @@ variables {G : Type*} {H : Type*} {A : Type*} {a a₁ a₂ b c: G}
 section group
 variables [group G] [add_group A]
 
-@[to_additive]
-lemma injective_mul {a : G} : injective ((*) a) :=
-assume a₁ a₂ h,
-have a⁻¹ * a * a₁ = a⁻¹ * a * a₂, by rw [mul_assoc, mul_assoc, h],
-by rwa [inv_mul_self, one_mul, one_mul] at this
-
 section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- `s` is an additive subgroup: a set containing 0 and closed under addition and negation. -/
@@ -155,11 +149,11 @@ lemma inv_mem_iff : a⁻¹ ∈ s ↔ a ∈ s :=
 ⟨λ h, by simpa using inv_mem h, inv_mem⟩
 
 @[to_additive]
-lemma mul_mem_cancel_left (h : a ∈ s) : b * a ∈ s ↔ b ∈ s :=
+lemma mul_mem_cancel_right (h : a ∈ s) : b * a ∈ s ↔ b ∈ s :=
 ⟨λ hba, by simpa using mul_mem hba (inv_mem h), λ hb, mul_mem hb h⟩
 
 @[to_additive]
-lemma mul_mem_cancel_right (h : a ∈ s) : a * b ∈ s ↔ b ∈ s :=
+lemma mul_mem_cancel_left (h : a ∈ s) : a * b ∈ s ↔ b ∈ s :=
 ⟨λ hab, by simpa using mul_mem (inv_mem h) hab, mul_mem h⟩
 
 end is_subgroup
@@ -280,8 +274,8 @@ instance normalizer_is_subgroup (s : set G) : is_subgroup (normalizer s) :=
 
 @[to_additive subset_add_normalizer]
 lemma subset_normalizer (s : set G) [is_subgroup s] : s ⊆ normalizer s :=
-λ g hg n, by rw [is_subgroup.mul_mem_cancel_left _ ((is_subgroup.inv_mem_iff _).2 hg),
-  is_subgroup.mul_mem_cancel_right _ hg]
+λ g hg n, by rw [is_subgroup.mul_mem_cancel_right _ ((is_subgroup.inv_mem_iff _).2 hg),
+  is_subgroup.mul_mem_cancel_left _ hg]
 
 /-- Every subgroup is a normal subgroup of its normalizer -/
 @[to_additive add_normal_in_add_normalizer]
@@ -319,7 +313,7 @@ end
 lemma one_ker_inv' (f : G → H) [is_group_hom f] {a b : G} (h : f (a⁻¹ * b) = 1) : f a = f b :=
 begin
   rw [map_mul f, map_inv f] at h,
-  apply eq_of_inv_eq_inv,
+  apply inv_injective,
   rw eq_inv_of_mul_eq_one h
 end
 
@@ -378,7 +372,7 @@ instance normal_subgroup_ker (f : G → H) [is_group_hom f] : normal_subgroup (k
 is_group_hom.preimage_normal f (trivial H)
 
 @[to_additive]
-lemma inj_of_trivial_ker (f : G → H) [is_group_hom f] (h : ker f = trivial G) :
+lemma injective_of_trivial_ker (f : G → H) [is_group_hom f] (h : ker f = trivial G) :
   function.injective f :=
 begin
   intros a₁ a₂ hfa,
@@ -388,7 +382,7 @@ begin
 end
 
 @[to_additive]
-lemma trivial_ker_of_inj (f : G → H) [is_group_hom f] (h : function.injective f) :
+lemma trivial_ker_of_injective (f : G → H) [is_group_hom f] (h : function.injective f) :
   ker f = trivial G :=
 set.ext $ assume x, iff.intro
   (assume hx,
@@ -397,9 +391,9 @@ set.ext $ assume x, iff.intro
   (by simp [mem_ker, is_group_hom.map_one f] {contextual := tt})
 
 @[to_additive]
-lemma inj_iff_trivial_ker (f : G → H) [is_group_hom f] :
+lemma injective_iff_trivial_ker (f : G → H) [is_group_hom f] :
   function.injective f ↔ ker f = trivial G :=
-⟨trivial_ker_of_inj f, inj_of_trivial_ker f⟩
+⟨trivial_ker_of_injective f, injective_of_trivial_ker f⟩
 
 @[to_additive]
 lemma trivial_ker_iff_eq_one (f : G → H) [is_group_hom f] :
@@ -585,25 +579,6 @@ elements of s. It is the smallest normal subgroup containing s. -/
 namespace group
 variables {s : set G} [group G]
 
-/-- Given an element a, conjugates a is the set of conjugates. -/
-def conjugates (a : G) : set G := {b | is_conj a b}
-
-lemma mem_conjugates_self {a : G} : a ∈ conjugates a := is_conj_refl _
-
-/-- Given a set s, conjugates_of_set s is the set of all conjugates of
-the elements of s. -/
-def conjugates_of_set (s : set G) : set G := ⋃ a ∈ s, conjugates a
-
-lemma mem_conjugates_of_set_iff {x : G} : x ∈ conjugates_of_set s ↔ ∃ a ∈ s, is_conj a x :=
-set.mem_bUnion_iff
-
-theorem subset_conjugates_of_set : s ⊆ conjugates_of_set s :=
-λ (x : G) (h : x ∈ s), mem_conjugates_of_set_iff.2 ⟨x, h, is_conj_refl _⟩
-
-theorem conjugates_of_set_mono {s t : set G} (h : s ⊆ t) :
-  conjugates_of_set s ⊆ conjugates_of_set t :=
-set.bUnion_subset_bUnion_left h
-
 lemma conjugates_subset {t : set G} [normal_subgroup t] {a : G} (h : a ∈ t) : conjugates a ⊆ t :=
 λ x ⟨c,w⟩,
 begin
@@ -611,18 +586,9 @@ begin
   rwa ←w,
 end
 
-theorem conjugates_of_set_subset {s t : set G} [normal_subgroup t] (h : s ⊆ t) :
+theorem conjugates_of_set_subset' {s t : set G} [normal_subgroup t] (h : s ⊆ t) :
   conjugates_of_set s ⊆ t :=
 set.bUnion_subset (λ x H, conjugates_subset (h H))
-
-/-- The set of conjugates of s is closed under conjugation. -/
-lemma conj_mem_conjugates_of_set {x c : G} :
-  x ∈ conjugates_of_set s → (c * x * c⁻¹ ∈ conjugates_of_set s) :=
-λ H,
-begin
-  rcases (mem_conjugates_of_set_iff.1 H) with ⟨a,h₁,h₂⟩,
-  exact mem_conjugates_of_set_iff.2 ⟨a, h₁, is_conj_trans h₂ ⟨c,rfl⟩⟩,
-end
 
 /-- The normal closure of a set s is the subgroup closure of all the conjugates of
 elements of s. It is the smallest normal subgroup containing s. -/
@@ -657,7 +623,7 @@ theorem normal_closure_subset {s t : set G} [normal_subgroup t] (h : s ⊆ t) :
 λ a w,
 begin
   induction w with x hx x hx ihx x y hx hy ihx ihy,
-  {exact (conjugates_of_set_subset h $ hx)},
+  {exact (conjugates_of_set_subset' h $ hx)},
   {exact is_submonoid.one_mem},
   {exact is_subgroup.inv_mem ihx},
   {exact is_submonoid.mul_mem ihx ihy}

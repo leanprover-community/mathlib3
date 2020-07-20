@@ -153,7 +153,7 @@ instance : complete_lattice (convex_cone E) :=
   Sup_le       := λ s p hs x hx, mem_Inf.1 hx p hs,
   le_Inf       := λ s a ha x hx, mem_Inf.2 $ λ t ht, ha t ht hx,
   Inf_le       := λ s a ha x hx, mem_Inf.1 hx _ ha,
-  .. partial_order.lift (coe : convex_cone E → set E) (λ a b, ext') (by apply_instance) }
+  .. partial_order.lift (coe : convex_cone E → set E) (λ a b, ext') }
 
 instance : inhabited (convex_cone E) := ⟨⊥⟩
 
@@ -193,15 +193,13 @@ end convex_cone
 
 namespace convex
 
-local attribute [instance] smul_set
-
 /-- The set of vectors proportional to those in a convex set forms a convex cone. -/
 def to_cone (s : set E) (hs : convex s) : convex_cone E :=
 begin
   apply convex_cone.mk (⋃ c > 0, (c : ℝ) • s);
     simp only [mem_Union, mem_smul_set],
   { rintros c c_pos _ ⟨c', c'_pos, x, hx, rfl⟩,
-    exact ⟨c * c', mul_pos c_pos c'_pos, x, hx, smul_smul _ _ _⟩ },
+    exact ⟨c * c', mul_pos c_pos c'_pos, x, hx, (smul_smul _ _ _).symm⟩ },
   { rintros _ ⟨cx, cx_pos, x, hx, rfl⟩ _ ⟨cy, cy_pos, y, hy, rfl⟩,
     have : 0 < cx + cy, from add_pos cx_pos cy_pos,
     refine ⟨_, this, _, convex_iff_div.1 hs hx hy (le_of_lt cx_pos) (le_of_lt cy_pos) this, _⟩,
@@ -212,7 +210,7 @@ variables {s : set E} (hs : convex s) {x : E}
 
 @[nolint ge_or_gt]
 lemma mem_to_cone : x ∈ hs.to_cone s ↔ ∃ (c > 0) (y ∈ s), (c : ℝ) • y = x :=
-by simp only [to_cone, convex_cone.mem_mk, mem_Union, mem_smul_set, eq_comm]
+by simp only [to_cone, convex_cone.mem_mk, mem_Union, mem_smul_set, eq_comm, exists_prop]
 
 @[nolint ge_or_gt]
 lemma mem_to_cone' : x ∈ hs.to_cone s ↔ ∃ c > 0, (c : ℝ) • x ∈ s :=
@@ -352,7 +350,7 @@ begin
     refine ⟨linear_pmap.Sup c c_chain.directed_on, _, λ _, linear_pmap.le_Sup c_chain.directed_on⟩,
     rintros ⟨x, hx⟩ hxs,
     have hdir : directed_on (≤) (linear_pmap.domain '' c),
-      from (directed_on_image _).2 (c_chain.directed_on.mono _ linear_pmap.domain_mono.monotone),
+      from directed_on_image.2 (c_chain.directed_on.mono linear_pmap.domain_mono.monotone),
     rcases (mem_Sup_of_directed (cne.image _) hdir).1 hx with ⟨_, ⟨f, hfc, rfl⟩, hfx⟩,
     have : f ≤ linear_pmap.Sup c c_chain.directed_on, from linear_pmap.le_Sup _ hfc,
     convert ← hcs hfc ⟨x, hfx⟩ hxs,

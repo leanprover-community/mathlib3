@@ -247,9 +247,9 @@ lemma inverse_approx_map_maps_to (hf : approximates_linear_on f (f' : E →L[�
   maps_to g (closed_ball b ε) (closed_ball b ε) :=
 begin
   cases hc with hE hc,
-  { exactI λ x hx, mem_preimage.2 (subsingleton.elim x (g x) ▸ hx) },
+  { exactI λ x hx, subsingleton.elim x (g x) ▸ hx },
   assume x hx,
-  simp only [subset_def, mem_closed_ball, mem_preimage] at hx hy ⊢,
+  simp only [mem_closed_ball] at hx hy ⊢,
   rw [dist_comm] at hy,
   calc dist (inverse_approx_map f f' y x) b ≤
     dist (inverse_approx_map f f' y x) (inverse_approx_map f f' y b) +
@@ -289,7 +289,7 @@ begin
     { exact lipschitz_with.of_dist_le_mul (λ x x', hf.inverse_approx_map_contracts_on
         y (hε x.mem) (hε x'.mem)) } },
   refine ⟨this.efixed_point' _ _ _ b (mem_closed_ball_self ε0) (edist_lt_top _ _), _, _⟩,
-  { exact is_complete_of_is_closed is_closed_ball },
+  { exact is_closed_ball.is_complete },
   { apply contracting_with.efixed_point_mem' },
   { exact (inverse_approx_map_fixed_iff y).1 (this.efixed_point_is_fixed_pt' _ _ _ _) }
 end
@@ -461,7 +461,7 @@ see `of_local_left_inverse`.  -/
 theorem to_local_left_inverse (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) {g : F → E}
   (hg : ∀ᶠ x in 𝓝 a, g (f x) = x) :
   has_strict_fderiv_at g (f'.symm : F →L[𝕜] E) (f a) :=
-hf.to_local_inverse.congr_of_mem_sets $ (hf.local_inverse_unique hg).mono $ λ _, eq.symm
+hf.to_local_inverse.congr_of_eventually_eq $ (hf.local_inverse_unique hg).mono $ λ _, eq.symm
 
 end has_strict_fderiv_at
 

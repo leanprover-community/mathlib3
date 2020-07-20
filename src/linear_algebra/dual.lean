@@ -44,7 +44,7 @@ instance : inhabited (dual R M) := by dunfold dual; apply_instance
 
 instance : has_coe_to_fun (dual R M) := ⟨_, linear_map.to_fun⟩
 
-/-- Maps a module M to the dual of the dual of M. See `vector_space.eval_range` and
+/-- Maps a module M to the dual of the dual of M. See `vector_space.erange_coe` and
 `vector_space.eval_equiv`. -/
 def eval : M →ₗ[R] (dual R (dual R M)) := linear_map.flip linear_map.id
 
@@ -82,9 +82,9 @@ def to_dual_flip (v : V) : (V →ₗ[K] K) := (linear_map.flip h.to_dual).to_fun
 omit de h
 /-- Evaluation of finitely supported functions at a fixed point `i`, as a `K`-linear map. -/
 def eval_finsupp_at (i : ι) : (ι →₀ K) →ₗ[K] K :=
-{ to_fun := λ f, f i,
-  add := by intros; rw finsupp.add_apply,
-  smul := by intros; rw finsupp.smul_apply }
+{ to_fun    := λ f, f i,
+  map_add'  := by intros; rw finsupp.add_apply,
+  map_smul' := by intros; rw finsupp.smul_apply }
 include h
 
 
@@ -216,17 +216,17 @@ begin
 end
 
 
-lemma eval_range (h : dim K V < omega) : (eval K V).range = ⊤ :=
+lemma erange_coe (h : dim K V < omega) : (eval K V).range = ⊤ :=
 begin
   classical,
   rcases exists_is_basis_fintype h with ⟨b, hb, ⟨hf⟩⟩,
-  rw [← hb.to_dual_to_dual, range_comp, hb.to_dual_range, map_top, to_dual_range _],
+  unfreezingI { rw [← hb.to_dual_to_dual, range_comp, hb.to_dual_range, map_top, to_dual_range _] },
   apply_instance
 end
 
 /-- A vector space is linearly equivalent to the dual of its dual space. -/
 def eval_equiv (h : dim K V < omega) : V ≃ₗ[K] dual K (dual K V) :=
-linear_equiv.of_bijective (eval K V) eval_ker (eval_range h)
+linear_equiv.of_bijective (eval K V) eval_ker (erange_coe h)
 
 end vector_space
 

@@ -5,7 +5,8 @@ Authors: Mario Carneiro, Chris Hughes
 
 Adjoining roots of polynomials
 -/
-import data.polynomial
+import data.polynomial.field_division
+import ring_theory.adjoin
 import ring_theory.principal_ideal_domain
 
 /-!
@@ -30,6 +31,7 @@ The main definitions are in the `adjoin_root` namespace.
 
 -/
 noncomputable theory
+open_locale big_operators
 
 universes u v w
 
@@ -56,8 +58,17 @@ instance : decidable_eq (adjoin_root f) := classical.dec_eq _
 /-- Ring homomorphism from `R[x]` to `adjoin_root f` sending `X` to the `root`. -/
 def mk : polynomial R →+* adjoin_root f := ideal.quotient.mk_hom _
 
+@[elab_as_eliminator]
+theorem induction_on {C : adjoin_root f → Prop} (x : adjoin_root f)
+  (ih : ∀ p : polynomial R, C (mk f p)) : C x :=
+quotient.induction_on' x ih
+
 /-- Embedding of the original ring `R` into `adjoin_root f`. -/
 def of : R →+* adjoin_root f := (mk f).comp (ring_hom.of C)
+
+instance : algebra R (adjoin_root f) := (of f).to_algebra
+
+@[simp] lemma algebra_map_eq : algebra_map R (adjoin_root f) = of f := rfl
 
 /-- The adjoined root. -/
 def root : adjoin_root f := mk f X
@@ -71,14 +82,20 @@ quotient.sound' (mem_span_singleton.2 $ by simp)
 
 @[simp] lemma mk_C (x : R) : mk f (C x) = x := rfl
 
+@[simp] lemma mk_X : mk f X = root f := rfl
+
+@[simp] lemma aeval_eq (p : polynomial R) : aeval R (adjoin_root f) (root f) p = mk f p :=
+polynomial.induction_on p (λ x, by { rw aeval_C, refl })
+  (λ p q ihp ihq, by rw [alg_hom.map_add, ring_hom.map_add, ihp, ihq])
+  (λ n x ih, by { rw [alg_hom.map_mul, aeval_C, alg_hom.map_pow, aeval_X,
+    ring_hom.map_mul, mk_C, ring_hom.map_pow, mk_X], refl })
+
+theorem adjoin_root_eq_top : algebra.adjoin R ({root f} : set (adjoin_root f)) = ⊤ :=
+algebra.eq_top_iff.2 $ λ x, induction_on f x $ λ p,
+(algebra.adjoin_singleton_eq_range R (root f)).symm ▸ ⟨p, aeval_eq p⟩
+
 @[simp] lemma eval₂_root (f : polynomial R) : f.eval₂ (of f) (root f) = 0 :=
-quotient.induction_on' (root f)
-  (λ (g : polynomial R) (hg : mk f g = mk f X),
-    show finsupp.sum f (λ (e : ℕ) (a : R), mk f (C a) * mk f g ^ e) = 0,
-    by simp only [hg, ((mk f).map_pow _ _).symm, ((mk f).map_mul _ _).symm];
-      rw [finsupp.sum, ← (mk f).map_sum,
-        show finset.sum _ _ = _, from sum_C_mul_X_eq _, mk_self])
-  (show (root f) = mk f X, from rfl)
+by rw [← algebra_map_eq, ← aeval_def, aeval_eq, mk_self]
 
 lemma is_root_root (f : polynomial R) : is_root (f.map (of f)) (root f) :=
 by rw [is_root, eval_map, eval₂_root]
@@ -99,17 +116,20 @@ variables {i : R →+* S} {a : S} {h : f.eval₂ i a = 0}
 @[simp] lemma lift_mk {g : polynomial R} : lift i a h (mk f g) = g.eval₂ i a :=
 ideal.quotient.lift_mk _ _ _
 
-@[simp] lemma lift_root : lift i a h (root f) = a := by simp [root, h]
+@[simp] lemma lift_root : lift i a h (root f) = a := by rw [root, lift_mk, eval₂_X]
 
 @[simp] lemma lift_of {x : R} : lift i a h x = i x :=
 by rw [← mk_C x, lift_mk, eval₂_C]
+
+@[simp] lemma lift_comp_of : (lift i a h).comp (of f) = i :=
+ring_hom.ext $ λ _, @lift_of _ _ _ _ _ _ _ h _
 
 end comm_ring
 
 variables [field K] {f : polynomial K} [irreducible f]
 
 instance is_maximal_span : is_maximal (span {f} : ideal (polynomial K)) :=
-principal_ideal_domain.is_maximal_of_irreducible ‹irreducible f›
+principal_ideal_ring.is_maximal_of_irreducible ‹irreducible f›
 
 noncomputable instance field : field (adjoin_root f) :=
 ideal.quotient.field (span {f} : ideal (polynomial K))
@@ -120,7 +140,8 @@ lemma coe_injective : function.injective (coe : K → adjoin_root f) :=
 variable (f)
 
 lemma mul_div_root_cancel :
-  (X - C (root f)) * (f.map (of f) / (X - C (root f))) = f.map (of f) :=
+  ((X - C (root f)) * (f.map (of f) / (X - C (root f))) : polynomial (adjoin_root f)) =
+    f.map (of f) :=
 mul_div_eq_iff_is_root.2 $ is_root_root _
 
 end adjoin_root

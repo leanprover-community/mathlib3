@@ -52,8 +52,7 @@ variables [has_mul R] [has_add R] [has_mul S] [has_add S] [has_mul S'] [has_add 
 
 instance : has_coe_to_fun (R ≃+* S) := ⟨_, ring_equiv.to_fun⟩
 
-@[simp]
-lemma to_fun_eq_coe (f : R ≃+* S) : f.to_fun = f := rfl
+@[simp] lemma to_fun_eq_coe_fun (f : R ≃+* S) : f.to_fun = f := rfl
 
 instance has_coe_to_mul_equiv : has_coe (R ≃+* S) (R ≃* S) := ⟨ring_equiv.to_mul_equiv⟩
 
@@ -69,6 +68,12 @@ variable (R)
 
 /-- The identity map is a ring isomorphism. -/
 @[refl] protected def refl : R ≃+* R := { .. mul_equiv.refl R, .. add_equiv.refl R }
+
+@[simp] lemma refl_apply (x : R) : ring_equiv.refl R x = x := rfl
+
+@[simp] lemma coe_add_equiv_refl : (ring_equiv.refl R : R ≃+ R) = add_equiv.refl R := rfl
+
+@[simp] lemma coe_mul_equiv_refl : (ring_equiv.refl R : R ≃* R) = mul_equiv.refl R := rfl
 
 variables {R}
 
@@ -170,6 +175,15 @@ def of (e : R ≃ S) [is_semiring_hom e] : R ≃+* S :=
 instance (e : R ≃+* S) : is_semiring_hom e := e.to_ring_hom.is_semiring_hom
 
 @[simp]
+lemma to_ring_hom_refl : (ring_equiv.refl R).to_ring_hom = ring_hom.id R := rfl
+
+@[simp]
+lemma to_monoid_hom_refl : (ring_equiv.refl R).to_monoid_hom = monoid_hom.id R := rfl
+
+@[simp]
+lemma to_add_monoid_hom_refl : (ring_equiv.refl R).to_add_monoid_hom = add_monoid_hom.id R := rfl
+
+@[simp]
 lemma to_ring_hom_apply_symm_to_ring_hom_apply {R S} [semiring R] [semiring S] (e : R ≃+* S) :
   ∀ (y : S), e.to_ring_hom (e.symm.to_ring_hom y) = y :=
 e.to_equiv.apply_symm_apply
@@ -185,26 +199,12 @@ end ring_equiv
 
 namespace mul_equiv
 
-/-- Gives an `is_semiring_hom` instance from a `mul_equiv` of semirings that preserves addition. -/
-protected lemma to_semiring_hom {R : Type*} {S : Type*} [semiring R] [semiring S]
-  (h : R ≃* S) (H : ∀ x y : R, h (x + y) = h x + h y) : is_semiring_hom h :=
-⟨add_equiv.map_zero $ add_equiv.mk' h.to_equiv H, h.map_one, H, h.5⟩
-
 /-- Gives a `ring_equiv` from a `mul_equiv` preserving addition.-/
 def to_ring_equiv {R : Type*} {S : Type*} [has_add R] [has_add S] [has_mul R] [has_mul S]
   (h : R ≃* S) (H : ∀ x y : R, h (x + y) = h x + h y) : R ≃+* S :=
 {..h.to_equiv, ..h, ..add_equiv.mk' h.to_equiv H }
 
 end mul_equiv
-
-namespace add_equiv
-
-/-- Gives an `is_semiring_hom` instance from a `mul_equiv` of semirings that preserves addition. -/
-protected lemma to_semiring_hom {R : Type*} {S : Type*} [semiring R] [semiring S]
-  (h : R ≃+ S) (H : ∀ x y : R, h (x * y) = h x * h y) : is_semiring_hom h :=
-⟨h.map_zero, mul_equiv.map_one $ mul_equiv.mk' h.to_equiv H, h.5, H⟩
-
-end add_equiv
 
 namespace ring_equiv
 
@@ -239,7 +239,8 @@ protected lemma is_integral_domain {A : Type*} (B : Type*) [ring A] [ring B]
     have e x * e y = 0, by rw [← e.map_mul, hxy, e.map_zero],
     (hB.eq_zero_or_eq_zero_of_mul_eq_zero _ _ this).imp (λ hx, by simpa using congr_arg e.symm hx)
       (λ hy, by simpa using congr_arg e.symm hy),
-  zero_ne_one := λ H, hB.zero_ne_one $ by rw [← e.map_zero, ← e.map_one, H] }
+  exists_pair_ne := ⟨e.symm 0, e.symm 1,
+    by { haveI : nontrivial B := hB.to_nontrivial, exact e.symm.injective.ne zero_ne_one }⟩ }
 
 /-- If two rings are isomorphic, and the second is an integral domain, then so is the first. -/
 protected def integral_domain {A : Type*} (B : Type*) [ring A] [integral_domain B]

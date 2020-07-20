@@ -51,7 +51,7 @@ variables {p : ℕ} [fact p.prime]
 
 instance : has_coe ℤ_[p] ℚ_[p] := ⟨subtype.val⟩
 
-@[ext] lemma ext {x y : ℤ_[p]} : (x : ℚ_[p]) = y → x = y := subtype.ext.2
+@[ext] lemma ext {x y : ℤ_[p]} : (x : ℚ_[p]) = y → x = y := subtype.ext_iff_val.2
 
 /-- Addition on ℤ_p is inherited from ℚ_p. -/
 instance : has_add ℤ_[p] :=
@@ -153,19 +153,19 @@ instance : comm_ring ℤ_[p] :=
   ..padic_int.ring }
 
 protected lemma padic_int.zero_ne_one : (0 : ℤ_[p]) ≠ 1 :=
-show (⟨(0 : ℚ_[p]), _⟩ : ℤ_[p]) ≠ ⟨(1 : ℚ_[p]), _⟩, from mt subtype.ext.1 zero_ne_one
+show (⟨(0 : ℚ_[p]), _⟩ : ℤ_[p]) ≠ ⟨(1 : ℚ_[p]), _⟩, from mt subtype.ext_iff_val.1 zero_ne_one
 
 protected lemma padic_int.eq_zero_or_eq_zero_of_mul_eq_zero :
           ∀ (a b : ℤ_[p]), a * b = 0 → a = 0 ∨ b = 0
 | ⟨a, ha⟩ ⟨b, hb⟩ := λ h : (⟨a * b, _⟩ : ℤ_[p]) = ⟨0, _⟩,
-have a * b = 0, from subtype.ext.1 h,
-(mul_eq_zero_iff_eq_zero_or_eq_zero.1 this).elim
+have a * b = 0, from subtype.ext_iff_val.1 h,
+(mul_eq_zero.1 this).elim
   (λ h1, or.inl (by simp [h1]; refl))
   (λ h2, or.inr (by simp [h2]; refl))
 
 instance : integral_domain ℤ_[p] :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := padic_int.eq_zero_or_eq_zero_of_mul_eq_zero,
-  zero_ne_one := padic_int.zero_ne_one,
+  exists_pair_ne := ⟨0, 1, padic_int.zero_ne_one⟩,
   ..padic_int.comm_ring }
 
 end instances
@@ -232,11 +232,11 @@ local attribute [reducible] padic_int
 lemma mul_inv : ∀ {z : ℤ_[p]}, ∥z∥ = 1 → z * z.inv = 1
 | ⟨k, _⟩ h :=
   begin
-    have hk : k ≠ 0, from λ h', @zero_ne_one ℚ_[p] _ _ _ (by simpa [h'] using h),
+    have hk : k ≠ 0, from λ h', @zero_ne_one ℚ_[p] _ _ (by simpa [h'] using h),
     unfold padic_int.inv, split_ifs,
     { change (⟨k * (1/k), _⟩ : ℤ_[p]) = 1,
       simp [hk], refl },
-    { apply subtype.ext.2, simp [mul_inv_cancel hk] }
+    { apply subtype.ext_iff_val.2, simp [mul_inv_cancel hk] }
   end
 
 lemma inv_mul {z : ℤ_[p]} (hz : ∥z∥ = 1) : z.inv * z = 1 :=
@@ -275,12 +275,15 @@ instance complete : cau_seq.is_complete ℤ_[p] norm :=
   ⟨ ⟨_, hqn⟩,
     λ ε, by simpa [norm, padic_norm_z] using cau_seq.equiv_lim (cau_seq_to_rat_cau_seq f) ε⟩⟩
 
-instance is_ring_hom_coe : is_ring_hom (coe : ℤ_[p] → ℚ_[p]) :=
-{ map_one := rfl,
-  map_mul := coe_mul,
-  map_add := coe_add }
+/-- The coercion from ℤ[p] to ℚ[p] as a ring homomorphism. -/
+def coe.ring_hom : ℤ_[p] →+* ℚ_[p]  :=
+{ to_fun := (coe : ℤ_[p] → ℚ_[p]),
+  map_zero' := rfl,
+  map_one' := rfl,
+  map_mul' := coe_mul,
+  map_add' := coe_add }
 
-instance : algebra ℤ_[p] ℚ_[p] := (ring_hom.of coe).to_algebra
+instance : algebra ℤ_[p] ℚ_[p] := (coe.ring_hom : ℤ_[p] →+* ℚ_[p]).to_algebra
 
 end padic_int
 

@@ -9,6 +9,9 @@ import group_theory.coset
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
+open_locale big_operators
+open function
+
 /-- Typeclass for types with a scalar multiplication operation, denoted `•` (`\bu`) -/
 class has_scalar (α : Type u) (γ : Type v) := (smul : α → γ → γ)
 
@@ -45,6 +48,22 @@ by rw [smul_smul, u.inv_mul, one_smul]
   (u:α) • (↑u⁻¹:α) • x = x :=
 by rw [smul_smul, u.mul_inv, one_smul]
 
+/-- Pullback a multiplicative action along an injective map respecting `•`. -/
+protected def function.injective.mul_action [has_scalar α γ] (f : γ → β)
+  (hf : injective f) (smul : ∀ (c : α) x, f (c • x) = c • f x) :
+  mul_action α γ :=
+{ smul := (•),
+  one_smul := λ x, hf $ (smul _ _).trans $ one_smul _ (f x),
+  mul_smul := λ c₁ c₂ x, hf $ by simp only [smul, mul_smul] }
+
+/-- Pushforward a multiplicative action along a surjective map respecting `•`. -/
+protected def function.surjective.mul_action [has_scalar α γ] (f : β → γ) (hf : surjective f)
+  (smul : ∀ (c : α) x, f (c • x) = c • f x) :
+  mul_action α γ :=
+{ smul := (•),
+  one_smul := λ y, by { rcases hf y with ⟨x, rfl⟩, rw [← smul, one_smul] },
+  mul_smul := λ c₁ c₂ y, by { rcases hf y with ⟨x, rfl⟩, simp only [← smul, mul_smul] } }
+
 section gwz
 
 variables {G : Type*} [group_with_zero G] [mul_action G β]
@@ -54,6 +73,12 @@ lemma inv_smul_smul' {c : G} (hc : c ≠ 0) (x : β) : c⁻¹ • c • x = x :=
 
 lemma smul_inv_smul' {c : G} (hc : c ≠ 0) (x : β) : c • c⁻¹ • x = x :=
 (units.mk0 c hc).smul_inv_smul x
+
+lemma inv_smul_eq_iff {a : G} (ha : a ≠ 0) {x y : β} : a⁻¹ • x = y ↔ x = a • y :=
+by { split; intro h, rw [← h, smul_inv_smul' ha], rw [h, inv_smul_smul' ha] }
+
+lemma eq_inv_smul_iff {a : G} (ha : a ≠ 0) {x y : β} : x = a⁻¹ • y ↔ a • x = y :=
+by { split; intro h, rw [h, smul_inv_smul' ha], rw [← h, inv_smul_smul' ha] }
 
 end gwz
 
@@ -162,7 +187,7 @@ variables {α} {β}
 instance : is_group_hom (to_perm α β) :=
 { map_mul := λ x y, equiv.ext (λ a, mul_action.mul_smul x y a) }
 
-lemma bijective (g : α) : function.bijective (λ b : β, g • b) :=
+protected lemma bijective (g : α) : bijective (λ b : β, g • b) :=
 (to_perm α β g).bijective
 
 lemma orbit_eq_iff {a b : β} :
@@ -202,7 +227,7 @@ open quotient_group
 /-- Orbit-stabilizer theorem. -/
 noncomputable def orbit_equiv_quotient_stabilizer (b : β) :
   orbit α b ≃ quotient (stabilizer α b) :=
-equiv.symm (@equiv.of_bijective _ _
+equiv.symm (equiv.of_bijective
   (λ x : quotient (stabilizer α b), quotient.lift_on' x
     (λ x, (⟨x • b, mem_orbit _ _⟩ : orbit α b))
     (λ g h (H : _ = _), subtype.eq $ (mul_action.bijective (g⁻¹)).1
@@ -260,6 +285,27 @@ distrib_mul_action.smul_add _ _ _
 @[simp] theorem smul_zero (a : α) : a • (0 : β) = 0 :=
 distrib_mul_action.smul_zero _
 
+/-- Pullback a distributive multiplicative action along an injective additive monoid
+homomorphism. -/
+protected def function.injective.distrib_mul_action [add_monoid γ] [has_scalar α γ] (f : γ →+ β)
+  (hf : injective f) (smul : ∀ (c : α) x, f (c • x) = c • f x) :
+  distrib_mul_action α γ :=
+{ smul := (•),
+  smul_add := λ c x y, hf $ by simp only [smul, f.map_add, smul_add],
+  smul_zero := λ c, hf $ by simp only [smul, f.map_zero, smul_zero],
+  .. hf.mul_action f smul }
+
+/-- Pushforward a distributive multiplicative action along a surjective additive monoid
+homomorphism.-/
+protected def function.surjective.distrib_mul_action [add_monoid γ] [has_scalar α γ] (f : β →+ γ)
+  (hf : surjective f) (smul : ∀ (c : α) x, f (c • x) = c • f x) :
+  distrib_mul_action α γ :=
+{ smul := (•),
+  smul_add := λ c x y, by { rcases hf x with ⟨x, rfl⟩, rcases hf y with ⟨y, rfl⟩,
+    simp only [smul_add, ← smul, ← f.map_add] },
+  smul_zero := λ c, by simp only [← f.map_zero, ← smul, smul_zero],
+  .. hf.mul_action f smul }
+
 theorem units.smul_eq_zero (u : units α) {x : β} : (u : α) • x = 0 ↔ x = 0 :=
 ⟨λ h, by rw [← u.inv_smul_smul x, h, smul_zero], λ h, h.symm ▸ smul_zero _⟩
 
@@ -297,7 +343,7 @@ lemma multiset.smul_sum {r : α} {s : multiset β} :
 (const_smul_hom β r).map_multiset_sum s
 
 lemma finset.smul_sum {r : α} {f : γ → β} {s : finset γ} :
-  r • s.sum f = s.sum (λ x, r • f x) :=
+  r • ∑ x in s, f x = ∑ x in s, r • f x :=
 (const_smul_hom β r).map_sum f s
 
 end

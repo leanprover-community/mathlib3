@@ -14,7 +14,7 @@ noncomputable theory
 
 namespace complex
 
-instance algebra_over_reals : algebra ℝ ℂ := (ring_hom.of coe).to_algebra
+instance algebra_over_reals : algebra ℝ ℂ := (complex.of_real).to_algebra
 
 end complex
 

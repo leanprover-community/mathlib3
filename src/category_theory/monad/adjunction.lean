@@ -16,7 +16,7 @@ variables (R : D ⥤ C)
 
 namespace adjunction
 
-instance monad (R : D ⥤ C) [is_right_adjoint R] : monad.{v₁} ((left_adjoint R) ⋙ R) :=
+instance monad (R : D ⥤ C) [is_right_adjoint R] : monad ((left_adjoint R) ⋙ R) :=
 let L := left_adjoint R in
 let h : L ⊣ R := is_right_adjoint.adj in
 { η := h.unit,
@@ -133,7 +133,7 @@ let h : L ⊣ R := is_right_adjoint.adj in
 instance comparison_full [full R] [is_right_adjoint R] : full (monad.comparison R) :=
 { preimage := λ X Y f, R.preimage f.f }
 instance comparison_faithful [faithful R] [is_right_adjoint R] : faithful (monad.comparison R) :=
-{ injectivity' := λ X Y f g w, by { have w' := (congr_arg monad.algebra.hom.f w), exact R.injectivity w' } }
+{ map_injective' := λ X Y f g w, by { have w' := (congr_arg monad.algebra.hom.f w), exact R.map_injective w' } }
 
 end reflective
 

@@ -98,6 +98,14 @@ eq_sub_of_add_eq $ by rw [← cast_add, nat.sub_add_cancel h]
 | (n+1) := (cast_add _ _).trans $
 show ((m * n : ℕ) : α) + m = m * (n + 1), by rw [cast_mul n, left_distrib, mul_one]
 
+@[simp] theorem cast_dvd {α : Type*} [field α] {m n : ℕ} (n_dvd : n ∣ m) (n_nonzero : (n:α) ≠ 0) : ((m / n : ℕ) : α) = m / n :=
+begin
+  rcases n_dvd with ⟨k, rfl⟩,
+  have : n ≠ 0, {rintro rfl, simpa using n_nonzero},
+  rw nat.mul_div_cancel_left _ (nat.pos_iff_ne_zero.2 this),
+  rw [nat.cast_mul, mul_div_cancel_left _ n_nonzero],
+end
+
 /-- `coe : ℕ → α` as a `ring_hom` -/
 def cast_ring_hom (α : Type*) [semiring α] : ℕ →+* α :=
 { to_fun := coe,
@@ -105,10 +113,13 @@ def cast_ring_hom (α : Type*) [semiring α] : ℕ →+* α :=
   map_mul' := cast_mul,
   .. cast_add_monoid_hom α }
 
-lemma coe_cast_ring_hom [semiring α] : (cast_ring_hom α : ℕ → α) = coe := rfl
+@[simp] lemma coe_cast_ring_hom [semiring α] : (cast_ring_hom α : ℕ → α) = coe := rfl
 
-theorem mul_cast_comm [semiring α] (a : α) (n : ℕ) : a * n = n * a :=
-by induction n; simp [left_distrib, right_distrib, *]
+lemma cast_commute [semiring α] (n : ℕ) (x : α) : commute ↑n x :=
+nat.rec_on n (commute.zero_left x) $ λ n ihn, ihn.add_left $ commute.one_left x
+
+lemma commute_cast [semiring α] (x : α) (n : ℕ) : commute x n :=
+(n.cast_commute x).symm
 
 @[simp] theorem cast_nonneg [linear_ordered_semiring α] : ∀ n : ℕ, 0 ≤ (n : α)
 | 0     := le_refl _
@@ -187,7 +198,7 @@ f.to_add_monoid_hom.eq_nat_cast f.map_one n
 (f.comp (nat.cast_ring_hom R)).eq_nat_cast n
 
 lemma ext_nat (f g : ℕ →+* R) : f = g :=
-coe_add_monoid_hom_inj $ add_monoid_hom.ext_nat $ f.map_one.trans g.map_one.symm
+coe_add_monoid_hom_injective $ add_monoid_hom.ext_nat $ f.map_one.trans g.map_one.symm
 
 end ring_hom
 
@@ -203,18 +214,19 @@ instance nat.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℕ 
 ⟨ring_hom.ext_nat⟩
 
 namespace with_top
-variables {α : Type*} [canonically_ordered_comm_semiring α] [decidable_eq α]
+variables {α : Type*}
 
-@[simp] lemma coe_nat : ∀(n : nat), ((n : α) : with_top α) = n
+variables [has_zero α] [has_one α] [has_add α]
+
+@[simp, norm_cast] lemma coe_nat : ∀(n : nat), ((n : α) : with_top α) = n
 | 0     := rfl
-| (n+1) := have (((1 : nat) : α) : with_top α) = ((1 : nat) : with_top α) := rfl,
-           by rw [nat.cast_add, coe_add, nat.cast_add, coe_nat n, this]
+| (n+1) := by { push_cast, rw [coe_nat n] }
 
 @[simp] lemma nat_ne_top (n : nat) : (n : with_top α) ≠ ⊤ :=
-by rw [←coe_nat n]; apply coe_ne_top
+by { rw [←coe_nat n], apply coe_ne_top }
 
 @[simp] lemma top_ne_nat (n : nat) : (⊤ : with_top α) ≠ n :=
-by rw [←coe_nat n]; apply top_ne_coe
+by { rw [←coe_nat n], apply top_ne_coe }
 
 lemma add_one_le_of_lt {i n : with_top ℕ} (h : i < n) : i + 1 ≤ n :=
 begin

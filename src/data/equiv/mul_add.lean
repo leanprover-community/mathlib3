@@ -59,7 +59,7 @@ variables [has_mul M] [has_mul N] [has_mul P]
 lemma to_fun_apply {f : M ≃* N} {m : M} : f.to_fun m = f m := rfl
 
 /-- A multiplicative isomorphism preserves multiplication (canonical form). -/
-@[to_additive]
+@[simp, to_additive]
 lemma map_mul (f : M ≃* N) : ∀ x y, f (x * y) = f x * f y := f.map_mul'
 
 /-- A multiplicative isomorphism preserves multiplication (deprecated). -/
@@ -143,7 +143,7 @@ lemma to_monoid_hom_apply {M N} [monoid M] [monoid N] (e : M ≃* N) (x : M) :
 rfl
 
 /-- A multiplicative equivalence of groups preserves inversion. -/
-@[to_additive]
+@[simp, to_additive]
 lemma map_inv [group G] [group H] (h : G ≃* H) (x : G) : h x⁻¹ = (h x)⁻¹ :=
 h.to_monoid_hom.map_inv x
 
@@ -208,9 +208,36 @@ instance : inhabited (mul_aut M) := ⟨1⟩
 @[simp] lemma coe_mul (e₁ e₂ : mul_aut M) : ⇑(e₁ * e₂) = e₁ ∘ e₂ := rfl
 @[simp] lemma coe_one : ⇑(1 : mul_aut M) = id := rfl
 
+lemma mul_def (e₁ e₂ : mul_aut M) : e₁ * e₂ = e₂.trans e₁ := rfl
+lemma one_def : (1 : mul_aut M) = mul_equiv.refl _ := rfl
+lemma inv_def (e₁ : mul_aut M) : e₁⁻¹ = e₁.symm := rfl
+@[simp] lemma mul_apply (e₁ e₂ : mul_aut M) (m : M) : (e₁ * e₂) m = e₁ (e₂ m) := rfl
+@[simp] lemma one_apply (m : M) : (1 : mul_aut M) m = m := rfl
+
+@[simp] lemma apply_inv_self (e : mul_aut M) (m : M) : e (e⁻¹ m) = m :=
+mul_equiv.apply_symm_apply _ _
+
+@[simp] lemma inv_apply_self (e : mul_aut M) (m : M) : e⁻¹ (e m) = m :=
+mul_equiv.apply_symm_apply _ _
+
 /-- Monoid hom from the group of multiplicative automorphisms to the group of permutations. -/
 def to_perm : mul_aut M →* equiv.perm M :=
 by refine_struct { to_fun := mul_equiv.to_equiv }; intros; refl
+
+/-- group conjugation as a group homomorphism into the automorphism group.
+  `conj g h = g * h * g⁻¹` -/
+def conj [group G] : G →* mul_aut G :=
+{ to_fun := λ g,
+  { to_fun := λ h, g * h * g⁻¹,
+    inv_fun := λ h, g⁻¹ * h * g,
+    left_inv := λ _, by simp [mul_assoc],
+    right_inv := λ _, by simp [mul_assoc],
+    map_mul' := by simp [mul_assoc] },
+  map_mul' := λ _ _, by ext; simp [mul_assoc],
+  map_one' := by ext; simp [mul_assoc] }
+
+@[simp] lemma conj_apply [group G] (g h : G) : conj g h = g * h * g⁻¹ := rfl
+@[simp] lemma conj_symm_apply [group G] (g h : G) : (conj g).symm h = g⁻¹ * h * g := rfl
 
 end mul_aut
 
@@ -234,6 +261,18 @@ instance : inhabited (add_aut A) := ⟨1⟩
 
 @[simp] lemma coe_mul (e₁ e₂ : add_aut A) : ⇑(e₁ * e₂) = e₁ ∘ e₂ := rfl
 @[simp] lemma coe_one : ⇑(1 : add_aut A) = id := rfl
+
+lemma mul_def (e₁ e₂ : add_aut A) : e₁ * e₂ = e₂.trans e₁ := rfl
+lemma one_def : (1 : add_aut A) = add_equiv.refl _ := rfl
+lemma inv_def (e₁ : add_aut A) : e₁⁻¹ = e₁.symm := rfl
+@[simp] lemma mul_apply (e₁ e₂ : add_aut A) (a : A) : (e₁ * e₂) a = e₁ (e₂ a) := rfl
+@[simp] lemma one_apply (a : A) : (1 : add_aut A) a = a := rfl
+
+@[simp] lemma apply_inv_self (e : add_aut A) (a : A) : e⁻¹ (e a) = a :=
+add_equiv.apply_symm_apply _ _
+
+@[simp] lemma inv_apply_self (e : add_aut A) (a : A) : e (e⁻¹ a) = a :=
+add_equiv.apply_symm_apply _ _
 
 /-- Monoid hom from the group of multiplicative automorphisms to the group of permutations. -/
 def to_perm : add_aut A →* equiv.perm A :=
@@ -262,7 +301,6 @@ def map_equiv (h : M ≃* N) : units M ≃* units N :=
   .. map h.to_monoid_hom }
 
 end units
-
 
 namespace equiv
 
@@ -336,7 +374,7 @@ by { ext y, rw [symm_apply_eq, point_reflection_involutive x y] }
 
 /-- `x` is the only fixed point of `point_reflection x`. This lemma requires
 `x + x = y + y ↔ x = y`. There is no typeclass to use here, so we add it as an explicit argument. -/
-lemma point_reflection_fixed_iff_of_bit0_inj {x y : A} (h : function.injective (bit0 : A → A)) :
+lemma point_reflection_fixed_iff_of_bit0_injective {x y : A} (h : function.injective (bit0 : A → A)) :
   point_reflection x y = y ↔ y = x :=
 sub_eq_iff_eq_add.trans $ h.eq_iff.trans eq_comm
 

@@ -75,7 +75,7 @@ instance coe_fun : has_coe_to_fun (special_linear_group n R) :=
 def to_lin (A : special_linear_group n R) := matrix.to_lin A
 
 lemma ext_iff (A B : special_linear_group n R) : A = B ↔ (∀ i j, A i j = B i j) :=
-iff.trans subtype.ext ⟨(λ h i j, congr_fun (congr_fun h i) j), matrix.ext⟩
+iff.trans subtype.ext_iff_val ⟨(λ h i j, congr_fun (congr_fun h i) j), matrix.ext⟩
 
 @[ext] lemma ext (A B : special_linear_group n R) : (∀ i j, A i j = B i j) → A = B :=
 (special_linear_group.ext_iff A B).mpr

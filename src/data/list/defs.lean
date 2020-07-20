@@ -140,6 +140,18 @@ def prod [has_mul α] [has_one α] : list α → α := foldl (*) 1
 -- dependencies.
 def sum [has_add α] [has_zero α] : list α → α := foldl (+) 0
 
+/-- The alternating sum of a list. -/
+def alternating_sum {G : Type*} [has_zero G] [has_add G] [has_neg G] : list G → G
+| [] := 0
+| (g :: []) := g
+| (g :: h :: t) := g + -h + alternating_sum t
+
+/-- The alternating product of a list. -/
+def alternating_prod {G : Type*} [has_one G] [has_mul G] [has_inv G] : list G → G
+| [] := 1
+| (g :: []) := g
+| (g :: h :: t) := g * h⁻¹ * alternating_prod t
+
 def partition_map (f : α → β ⊕ γ) : list α → list β × list γ
 | [] := ([],[])
 | (x::xs) :=
@@ -153,6 +165,10 @@ end
 def find (p : α → Prop) [decidable_pred p] : list α → option α
 | []     := none
 | (a::l) := if p a then some a else find l
+
+/-- `mfind tac l` returns the first element of `l` on which `tac` succeeds, and fails otherwise. -/
+def mfind {α} {m : Type → Type u} [monad m] [alternative m] (tac : α → m unit) : list α → m α :=
+list.mfirst $ λ a, tac a $> a
 
 def find_indexes_aux (p : α → Prop) [decidable_pred p] : list α → nat → list nat
 | []     n := []
@@ -511,6 +527,31 @@ def mmap_filter {m : Type → Type v} [monad m] {α β} (f : α → m (option β
 | []       := return []
 | (h :: t) := do b ← f h, t' ← t.mmap_filter, return $
   match b with none := t' | (some x) := x::t' end
+
+/--
+`mmap_upper_triangle f l` calls `f` on all elements in the upper triangular part of `l × l`.
+That is, for each `e ∈ l`, it will run `f e e` and then `f e e'`
+for each `e'` that appears after `e` in `l`.
+
+Example: suppose `l = [1, 2, 3]`. `mmap_upper_triangle f l` will produce the list
+`[f 1 1, f 1 2, f 1 3, f 2 2, f 2 3, f 3 3]`.
+-/
+def mmap_upper_triangle {m} [monad m] {α β : Type u} (f : α → α → m β) : list α → m (list β)
+| [] := return []
+| (h::t) := do v ← f h h, l ← t.mmap (f h), t ← t.mmap_upper_triangle, return $ (v::l) ++ t
+
+/--
+`mmap'_diag f l` calls `f` on all elements in the upper triangular part of `l × l`.
+That is, for each `e ∈ l`, it will run `f e e` and then `f e e'`
+for each `e'` that appears after `e` in `l`.
+
+Example: suppose `l = [1, 2, 3]`. `mmap'_diag f l` will evaluate, in this order,
+`f 1 1`, `f 1 2`, `f 1 3`, `f 2 2`, `f 2 3`, `f 3 3`.
+-/
+def mmap'_diag {m} [monad m] {α} (f : α → α → m unit) : list α → m unit
+| [] := return ()
+| (h::t) := f h h >> t.mmap' (f h) >> t.mmap'_diag
+
 
 protected def traverse {F : Type u → Type v} [applicative F] {α β : Type*} (f : α → F β) :
   list α → F (list β)

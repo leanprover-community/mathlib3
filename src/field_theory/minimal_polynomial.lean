@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johan Commelin
 -/
 import ring_theory.integral_closure
+import data.polynomial.field_division
 
 /-!
 # Minimal polynomials
@@ -110,7 +111,7 @@ begin
   have ndeg_eq_zero : nat_degree (minimal_polynomial hx) = 0,
   { simpa using congr_arg nat_degree (eq_C_of_degree_eq_zero deg_eq_zero) },
   have eq_one : minimal_polynomial hx = 1,
-  { rw eq_C_of_degree_eq_zero deg_eq_zero, congr,
+  { rw eq_C_of_degree_eq_zero deg_eq_zero, convert C_1,
     simpa [ndeg_eq_zero.symm] using (monic hx).leading_coeff },
   simpa [eq_one, aeval_def] using aeval hx
 end
@@ -212,7 +213,7 @@ begin
   { intro h,
     have zero_root := polynomial.zero_is_root_of_coeff_zero_eq_zero h,
     rw ← root hx zero_root,
-    exact is_ring_hom.map_zero _ },
+    exact ring_hom.map_zero _ },
   { rintro rfl, simp }
 end
 

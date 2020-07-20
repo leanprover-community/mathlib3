@@ -24,7 +24,7 @@ instance opens_category : category.{u} (opens X) :=
 def to_Top (X : Top.{u}) : opens X ⥤ Top :=
 { obj := λ U, ⟨U.val, infer_instance⟩,
   map := λ U V i, ⟨λ x, ⟨x.1, i.down.down x.2⟩,
-    (embedding.continuous_iff embedding_subtype_val).2 continuous_induced_dom⟩ }
+    (embedding.continuous_iff embedding_subtype_coe).2 continuous_induced_dom⟩ }
 
 /-- `opens.map f` gives the functor from open sets in Y to open set in X,
     given by taking preimages under f. -/

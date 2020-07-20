@@ -178,16 +178,14 @@ structure very_partially_applied_str :=
 (data : ∀β, ℕ → β → my_prod ℕ β)
 
 /- if we have a partially applied constructor, we treat it as if it were eta-expanded -/
-/- This is no longer supported, (it is useless) -/
+@[simps]
+-- def very_partially_applied_term : very_partially_applied_str := ⟨@my_prod.mk ℕ⟩
+def very_partially_applied_term : very_partially_applied_str := ⟨λ x y z, my_prod.mk y z⟩
 
--- @[simps]
--- -- def very_partially_applied_term : very_partially_applied_str := ⟨@my_prod.mk ℕ⟩
--- def very_partially_applied_term : very_partially_applied_str := ⟨λ x y z, my_prod.mk y z⟩
-
--- run_cmd do
---   e ← get_env,
---   e.get `very_partially_applied_term_data_fst,
---   e.get `very_partially_applied_term_data_snd
+run_cmd do
+  e ← get_env,
+  e.get `very_partially_applied_term_data_fst,
+  e.get `very_partially_applied_term_data_snd
 
 @[simps] def let1 : ℕ × ℤ :=
 let n := 3 in ⟨n + 4, 5⟩

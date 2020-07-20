@@ -27,6 +27,9 @@ instance semiring_obj (F : J ⥤ SemiRing) (j) :
   semiring ((F ⋙ forget SemiRing).obj j) :=
 by { change semiring (F.obj j), apply_instance }
 
+/--
+The flat sections of a functor into `SemiRing` form a subsemiring of all sections.
+-/
 def sections_subsemiring (F : J ⥤ SemiRing) :
   subsemiring (Π j, F.obj j) :=
 { carrier := (F ⋙ forget SemiRing).sections,
@@ -83,7 +86,7 @@ instance has_limits : has_limits SemiRing :=
       is_limit := limit_is_limit F } } }
 
 /--
-An auxilliary declaration to speed up typechecking.
+An auxiliary declaration to speed up typechecking.
 -/
 def forget₂_AddCommMon_preserves_limits_aux (F : J ⥤ SemiRing) :
   is_limit ((forget₂ SemiRing AddCommMon).map_cone (limit.cone F)) :=
@@ -99,7 +102,7 @@ instance forget₂_AddCommMon_preserves_limits : preserves_limits (forget₂ Sem
       (limit.is_limit F) (forget₂_AddCommMon_preserves_limits_aux F) } }
 
 /--
-An auxilliary declaration to speed up typechecking.
+An auxiliary declaration to speed up typechecking.
 -/
 def forget₂_Mon_preserves_limits_aux (F : J ⥤ SemiRing) :
   is_limit ((forget₂ SemiRing Mon).map_cone (limit.cone F)) :=
@@ -238,7 +241,7 @@ instance forget₂_SemiRing_preserves_limits : preserves_limits (forget₂ Ring 
   { preserves_limit := λ F, by apply_instance } }
 
 /--
-An auxilliary declaration to speed up typechecking.
+An auxiliary declaration to speed up typechecking.
 -/
 def forget₂_AddCommGroup_preserves_limits_aux (F : J ⥤ Ring) :
   is_limit ((forget₂ Ring AddCommGroup).map_cone (limit.cone F)) :=

@@ -31,7 +31,8 @@ by { change group (F.obj j), apply_instance }
 /--
 The flat sections of a functor into `Group` form a subgroup of all sections.
 -/
-@[to_additive AddGroup.sections_add_subgroup]
+@[to_additive AddGroup.sections_add_subgroup
+  "The flat sections of a functor into `AddGroup` form an additive subgroup of all sections."]
 def sections_subgroup (F : J ⥤ Group) :
   subgroup (Π j, F.obj j) :=
 { carrier := (F ⋙ forget Group).sections,
@@ -146,9 +147,10 @@ instance forget₂_Group_preserves_limits : preserves_limits (forget₂ CommGrou
   { preserves_limit := λ F, by apply_instance } }
 
 /--
-An auxilliary declaration to speed up typechecking.
+An auxiliary declaration to speed up typechecking.
 -/
-@[to_additive AddCommGroup.forget₂_AddCommMon_preserves_limits_aux]
+@[to_additive AddCommGroup.forget₂_AddCommMon_preserves_limits_aux
+  "An auxiliary declaration to speed up typechecking."]
 def forget₂_CommMon_preserves_limits_aux (F : J ⥤ CommGroup) :
   is_limit ((forget₂ CommGroup CommMon).map_cone (limit.cone F)) :=
   limit.is_limit (F ⋙ forget₂ CommGroup CommMon)

@@ -32,9 +32,10 @@ instance monoid_obj (F : J ⥤ Mon) (j) :
 by { change monoid (F.obj j), apply_instance }
 
 /--
-The flat sections of a functor into `Mon` form a additive submonoid of all sections.
+The flat sections of a functor into `Mon` form a submonoid of all sections.
 -/
-@[to_additive AddMon.sections_add_submonoid]
+@[to_additive AddMon.sections_add_submonoid
+  "The flat sections of a functor into `AddMon` form an additive submonoid of all sections."]
 def sections_submonoid (F : J ⥤ Mon) :
   submonoid (Π j, F.obj j) :=
 { carrier := (F ⋙ forget Mon).sections,
@@ -52,7 +53,8 @@ instance limit_monoid (F : J ⥤ Mon) :
 (sections_submonoid F).to_monoid
 
 /-- `limit.π (F ⋙ forget Mon) j` as a `monoid_hom`. -/
-@[to_additive AddMon.limit_π_add_monoid_hom]
+@[to_additive AddMon.limit_π_add_monoid_hom
+  "`limit.π (F ⋙ forget AddMon) j` as an `add_monoid_hom`."]
 def limit_π_monoid_hom (F : J ⥤ Mon) (j) :
   limit (F ⋙ forget Mon) →* (F ⋙ forget Mon).obj j :=
 { to_fun := limit.π (F ⋙ forget Mon) j,
@@ -68,7 +70,7 @@ namespace has_limits
 Construction of a limit cone in `Mon`.
 (Internal use only; use the limits API.)
 -/
-@[to_additive AddMon.has_limits.limit]
+@[to_additive AddMon.has_limits.limit "(Internal use only; use the limits API.)"]
 def limit (F : J ⥤ Mon) : cone F :=
 { X := Mon.of (limit (F ⋙ forget _)),
   π :=
@@ -80,7 +82,7 @@ def limit (F : J ⥤ Mon) : cone F :=
 Witness that the limit cone in `Mon` is a limit cone.
 (Internal use only; use the limits API.)
 -/
-@[to_additive AddMon.has_limits.limit_is_limit]
+@[to_additive AddMon.has_limits.limit_is_limit "(Internal use only; use the limits API.)"]
 def limit_is_limit (F : J ⥤ Mon) : is_limit (limit F) :=
 begin
   refine is_limit.of_faithful

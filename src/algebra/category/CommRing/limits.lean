@@ -83,13 +83,27 @@ instance has_limits : has_limits SemiRing :=
       is_limit := limit_is_limit F } } }
 
 /--
+An auxilliary declaration to speed up typechecking.
+-/
+def forget₂_AddCommMon_preserves_limits_aux (F : J ⥤ SemiRing) :
+  is_limit ((forget₂ SemiRing AddCommMon).map_cone (limit.cone F)) :=
+  limit.is_limit (F ⋙ forget₂ SemiRing AddCommMon)
+
+/--
 The forgetful functor from semirings to additive commutative monoids preserves all limits.
 -/
 instance forget₂_AddCommMon_preserves_limits : preserves_limits (forget₂ SemiRing AddCommMon) :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ F,
     by exactI preserves_limit_of_preserves_limit_cone
-      (limit.is_limit F) (limit.is_limit (F ⋙ forget₂ SemiRing AddCommMon)) } }
+      (limit.is_limit F) (forget₂_AddCommMon_preserves_limits_aux F) } }
+
+/--
+An auxilliary declaration to speed up typechecking.
+-/
+def forget₂_Mon_preserves_limits_aux (F : J ⥤ SemiRing) :
+  is_limit ((forget₂ SemiRing Mon).map_cone (limit.cone F)) :=
+  limit.is_limit (F ⋙ forget₂ SemiRing Mon)
 
 /--
 The forgetful functor from semirings to monoids preserves all limits.
@@ -99,7 +113,7 @@ instance forget₂_Mon_preserves_limits :
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ F,
     by exactI preserves_limit_of_preserves_limit_cone
-      (limit.is_limit F) (limit.is_limit (F ⋙ forget₂ SemiRing Mon)) } }
+      (limit.is_limit F) (forget₂_Mon_preserves_limits_aux F) } }
 
 /--
 The forgetful functor from semirings to types preserves all limits.
@@ -224,13 +238,20 @@ instance forget₂_SemiRing_preserves_limits : preserves_limits (forget₂ Ring 
   { preserves_limit := λ F, by apply_instance } }
 
 /--
+An auxilliary declaration to speed up typechecking.
+-/
+def forget₂_AddCommGroup_preserves_limits_aux (F : J ⥤ Ring) :
+  is_limit ((forget₂ Ring AddCommGroup).map_cone (limit.cone F)) :=
+  limit.is_limit (F ⋙ forget₂ Ring AddCommGroup)
+
+/--
 The forgetful functor from rings to additive commutative groups preserves all limits.
 -/
 instance forget₂_AddCommGroup_preserves_limits : preserves_limits (forget₂ Ring AddCommGroup) :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ F,
     by exactI preserves_limit_of_preserves_limit_cone
-      (limit.is_limit F) (limit.is_limit (F ⋙ forget₂ Ring AddCommGroup)) } }
+      (limit.is_limit F) (forget₂_AddCommGroup_preserves_limits_aux F) } }
 
 /--
 The forgetful functor from rings to types preserves all limits. (That is, the underlying

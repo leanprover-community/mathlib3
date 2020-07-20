@@ -146,6 +146,14 @@ instance forget₂_Group_preserves_limits : preserves_limits (forget₂ CommGrou
   { preserves_limit := λ F, by apply_instance } }
 
 /--
+An auxilliary declaration to speed up typechecking.
+-/
+@[to_additive AddCommGroup.forget₂_AddCommMon_preserves_limits_aux]
+def forget₂_CommMon_preserves_limits_aux (F : J ⥤ CommGroup) :
+  is_limit ((forget₂ CommGroup CommMon).map_cone (limit.cone F)) :=
+  limit.is_limit (F ⋙ forget₂ CommGroup CommMon)
+
+/--
 The forgetful functor from commutative groups to commutative monoids preserves all limits.
 (That is, the underlying commutative monoids could have been computed instead as limits
 in the category of commutative monoids.)
@@ -155,7 +163,7 @@ instance forget₂_CommMon_preserves_limits : preserves_limits (forget₂ CommGr
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ F,
     by exactI preserves_limit_of_preserves_limit_cone
-      (limit.is_limit F) (limit.is_limit (F ⋙ forget₂ CommGroup CommMon)) } }
+      (limit.is_limit F) (forget₂_CommMon_preserves_limits_aux F) } }
 
 /--
 The forgetful functor from commutative groups to types preserves all limits. (That is, the underlying

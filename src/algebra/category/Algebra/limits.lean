@@ -105,6 +105,24 @@ instance has_limits : has_limits (Algebra R) :=
       is_limit := limit_is_limit F } } }
 
 /--
+The forgetful functor from R-algebras to rings preserves all limits.
+-/
+instance forget₂_Ring_preserves_limits : preserves_limits (forget₂ (Algebra R) Ring) :=
+{ preserves_limits_of_shape := λ J 𝒥,
+  { preserves_limit := λ F,
+    by exactI preserves_limit_of_preserves_limit_cone
+      (limit.is_limit F) (limit.is_limit (F ⋙ forget₂ (Algebra R) Ring)) } }
+
+/--
+The forgetful functor from R-algebras to R-modules preserves all limits.
+-/
+instance forget₂_Module_preserves_limits : preserves_limits (forget₂ (Algebra R) (Module R)) :=
+{ preserves_limits_of_shape := λ J 𝒥,
+  { preserves_limit := λ F,
+    by exactI preserves_limit_of_preserves_limit_cone
+      (limit.is_limit F) (limit.is_limit (F ⋙ forget₂ (Algebra R) (Module R))) } }
+
+/--
 The forgetful functor from R-algebras to types preserves all limits.
 -/
 instance forget_preserves_limits : preserves_limits (forget (Algebra R)) :=

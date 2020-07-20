@@ -531,10 +531,36 @@ begin
   { apply sat_mk_intro, intros, simp, }
 end
 
--- #exit
-
 lemma cofix.dest_mk {α : fam I} : cofix.mk ≫ cofix.dest = 𝟙 (F.obj (α.append1 $ cofix F α)) :=
 by rw [cofix.mk, cofix.dest_corec, ←functor.map_comp, ←cofix.mk, ← append_fun_comp_right, cofix.mk_dest, append_fun_id_id, category_theory.functor.map_id]
+
+/-- Abstraction function for `cofix F α` -/
+def cofix.abs {α} : q.P.M α ⟶ cofix F α :=
+fam.quot.mk _
+
+/-- Representation function for `cofix F α` -/
+def cofix.repr {α} : cofix F α ⟶ q.P.M α :=
+ipfunctor.M_corec _ $ cofix.dest ≫ repr _ _
+
+lemma cofix.abs_repr {α}  :
+  cofix.repr ≫ cofix.abs = 𝟙 (cofix F α) :=
+begin
+  let R : Pred (cofix F α ⊗ cofix F α) :=
+    Pred.mk (λ i x, x ≫ fam.prod.fst = x ≫ fam.prod.snd ≫ cofix.repr ≫ cofix.abs),
+  refine cofix.bisim_rel R _ _ _ _,
+  { introv Rx, replace Rx := sat_mk_elim _ _ Rx (𝟙 _),
+    reassoc! Rx, rw Rx, clear Rx, congr' 2,
+    rw [cofix.repr,cofix.abs],
+    conv { to_lhs, congr, skip,
+      rw [cofix.dest], },
+    simp only [quot.mk_lift__assoc,ipfunctor.M_dest_corec''_assoc,category.assoc,abs_map_assoc,abs_repr_assoc,← map_comp,← append_fun_comp_right],
+    rw [← cofix.repr, ← cofix.abs], congr,
+    apply quot.sound'' (cofix.repr ≫ cofix.abs) (𝟙 _),
+    { apply sat_mk_intro, intros, simp },
+    { simp },
+    { simp } },
+  { apply sat_mk_intro, intros, simp }
+end
 
 variables (F)
 
@@ -543,11 +569,11 @@ def pCofix : fam I ⥤ fam J :=
 { obj := cofix F,
   map := cofix.map }
 
-noncomputable instance iqpf_cofix : iqpf (pCofix F) :=
+instance iqpf_cofix : iqpf (pCofix F) :=
 { P         := q.P.Mp,
-  abs       := λ α, fam.quot.mk (Mcongr F α),
-  repr     := λ α, fam.quot.out _,
-  abs_repr := λ α, fam.quot.out_mk _,
+  abs       := λ α, cofix.abs,
+  repr     := λ α, cofix.repr,
+  abs_repr := λ α, cofix.abs_repr,
   abs_map   := λ α β g, rfl
 }
 

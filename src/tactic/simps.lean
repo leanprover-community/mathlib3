@@ -48,6 +48,7 @@ declare_trace simps.verbose
   If `add_simp` then we make the resulting lemma a simp-lemma. -/
 meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list expr)
   (univs : list name) (cfg : simps_cfg) : tactic unit := do
+  rhs ← if cfg.simp_rhs then return rhs else return rhs, -- TODO
   eq_ap ← mk_mapp `eq $ [type, lhs, rhs].map some,
   refl_ap ← mk_app `eq.refl [type, lhs],
   decl_name ← get_unused_decl_name nm,
@@ -60,20 +61,67 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
     set_basic_attribute `_refl_lemma decl_name tt,
     set_basic_attribute `simp decl_name tt
 
-/-- Get the projections used by `simps` associated to a given structure.
- -/
+meta def simps_decls : list (bool × name × name) :=
+[(ff, `has_coe_to_sort, `coe_sort), (ff, `has_coe_to_fun, `coe_fn), (tt, `has_mul, `has_mul.mul)]
+
+/- finds an instance of an implication `cond → tgt`. -/
+meta def mk_conditional_instance (cond tgt : expr) : tactic (expr × expr) := do
+f ← mk_meta_var cond,
+e ← assertv `c cond f, swap,
+reset_instance_cache,
+inst ← mk_instance tgt,
+-- trace $ pformat!"({e} : {infer_type e})",
+-- trace $ pformat!"({inst} : {infer_type inst})",
+-- trace $ pformat!"({inst.bind_lambda e} : {infer_type $ inst.bind_lambda e})",
+return (e, inst)
+
+/-- Get the projections used by `simps` associated to a given structure. -/
 meta def simps_get_raw_projections (e : environment) (str : name) :
   tactic (list name × list expr) := do
-  d_str ← e.get str,
-  projs ← e.structure_fields_full str,
   has_attr ← has_attribute' `simps_str str,
-  if has_attr then
-    when_tracing `simps.verbose trace!"[simps] > found projection information for structure {str}" >>
+  if has_attr then do
+    when_tracing `simps.verbose trace!"[simps] > found projection information for structure {str}",
     simps_str_attr.get_param str
   else do
-    when_tracing `simps.verbose trace!"[simps] > generating projection information to structure {str}",
+    when_tracing `simps.verbose trace!"[simps] > generating projection information to structure {str}:",
+    d_str ← e.get str,
+    projs ← e.structure_fields_full str,
+    (args, _) ← mk_local_pis d_str.type,
     let raw_univs := d_str.univ_params,
-    let raw_exprs : list expr := projs.map $ λ proj, (expr.const proj $ level.param <$> raw_univs),
+    let raw_levels := level.param <$> raw_univs,
+    let raw_exprs : list expr := projs.map $ λ proj, (expr.const proj raw_levels),
+    /- check for other coercions and type-class arguments to use as projections instead. -/
+    let e_str := (expr.const str raw_levels).mk_app args,
+    raw_exprs ← simps_decls.mfoldl (λ (raw_exprs : list expr) ⟨is_class, class_nm, proj_nm⟩, (do
+      (raw_expr, lambda_raw_expr) ← if is_class then (do
+        let e_inst_type := (expr.const class_nm raw_levels).mk_app args,
+        -- trace e_inst_type.to_string,
+        (hyp, e_inst) ← try_for 1000 (mk_conditional_instance e_str e_inst_type),
+        -- trace e_inst.to_string,
+        -- t_inst ← infer_type e_inst,
+        -- trace t_inst.to_string,
+
+        -- trace e_str.to_string,
+        -- trace e_inst.to_string,
+        raw_expr ← mk_mapp proj_nm [args.head, e_inst],
+        return (raw_expr, (raw_expr.bind_lambda hyp).lambdas args))
+      else (do
+        e_inst_type ← to_expr ((expr.const class_nm []).app (pexpr.of_expr e_str)),
+        -- trace e_inst_type.to_string,
+        e_inst ← try_for 1000 (mk_instance e_inst_type),
+        -- trace e_inst.to_string,
+        raw_expr ← mk_mapp proj_nm [e_str, e_inst],
+        return (raw_expr, raw_expr.lambdas args)),
+      trace raw_expr.to_string,
+      infer_type raw_expr >>= trace,
+      raw_expr_whnf ← whnf raw_expr.binding_body,
+      trace raw_expr_whnf.to_string,
+      let relevant_proj := raw_expr_whnf.get_app_fn.const_name,
+      guard (projs.any (= relevant_proj)),
+      let pos := projs.find_index (= relevant_proj),
+      return $ raw_exprs.update_nth pos lambda_raw_expr) <|> return raw_exprs) raw_exprs,
+    when_tracing `simps.verbose trace!"[simps] > {raw_exprs}",
+    when_tracing `simps.verbose trace!"[simps] > {raw_exprs.map expr.to_string}",
     simps_str_attr.set str (raw_univs, raw_exprs) tt,
     return (raw_univs, raw_exprs)
 

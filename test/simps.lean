@@ -1,8 +1,10 @@
 import tactic.simps
 
--- set_option trace.simps.verbose true
+set_option trace.simps.verbose true
 
 open function tactic expr
+
+
 structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
@@ -21,6 +23,8 @@ def myprod.map {α α' β β'} (f : α → α') (g : β → β') (x : my_prod α
 ⟨f x.1, g x.2⟩
 
 namespace foo
+
+set_option trace.app_builder true
 
 @[simps] protected def rfl {α} : α ≃ α :=
 ⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
@@ -278,8 +282,92 @@ class category_struct (obj : Type u) extends has_hom.{v} obj : Type (max u (v+1)
 
 end prio
 
+set_option trace.app_builder true
 -- test the universe levels in the category theory library
 @[simps] def types : category_struct (Type u) :=
 { hom     := λ a b, (a → b),
   id      := λ a, id,
   comp    := λ _ _ _ f g, g ∘ f }
+
+namespace coercing
+
+structure foo_str :=
+ (c : Type)
+ (x : c)
+
+instance : has_coe_to_sort foo_str := ⟨_, foo_str.c⟩
+
+@[simps] def foo : foo_str := ⟨ℕ, 3⟩
+@[simps] def foo2 : foo_str := ⟨ℕ, 34⟩
+
+example : ↥foo = ℕ := by simp only [foo_c]
+example : foo.x = (3 : ℕ) := by simp only [foo_x]
+
+structure voo_str (n : ℕ) :=
+ (c : Type)
+ (x : c)
+
+instance has_coe_voo_str (n : ℕ) : has_coe_to_sort (voo_str n) := ⟨_, voo_str.c⟩
+
+@[simps] def voo : voo_str 7 := ⟨ℕ, 3⟩
+@[simps] def voo2 : voo_str 4 := ⟨ℕ, 34⟩
+
+example : ↥voo = ℕ := by simp only [voo_c]
+example : voo.x = (3 : ℕ) := by simp only [voo_x]
+
+
+structure equiv2 (α : Sort*) (β : Sort*) :=
+(to_fun    : α → β)
+(inv_fun   : β → α)
+(left_inv  : left_inverse inv_fun to_fun)
+(right_inv : right_inverse inv_fun to_fun)
+
+instance {α β} : has_coe_to_fun $ equiv2 α β := ⟨_, equiv2.to_fun⟩
+
+def foos {α : Sort u} {β : Sort v} (f : equiv2 α β) (x : α) : f x = f.to_fun x := rfl
+set_option pp.all true
+#print foos
+
+-- (@coe_fn.{(max 1 (imax u v) (imax v u)) (imax u v)} (coercing.equiv2.{u v} α β)
+--        (@coercing.has_coe_to_fun.{u v} α β)
+--        f
+--        x)
+@[simps] protected def rfl2 {α} : equiv2 α α :=
+⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
+
+#print equiv2
+
+@[simps] protected def symm2 {α β} (f : equiv2 α β) : equiv2 β α :=
+⟨f.inv_fun, f.to_fun, f.right_inv, f.left_inv⟩
+
+set_option old_structure_cmd true
+class semigroup (G : Type u) extends has_mul G :=
+(mul_assoc : ∀ a b c : G, a * b * c = a * (b * c))
+
+def bazz {G : Type*} [semigroup G] (x y : G) : x * y = semigroup.mul x y := rfl
+#print bazz
+
+example {α : Type u} : unit :=
+begin
+  do e ← get_local `α,
+  f ← mk_conditional_instance 
+    ((expr.const `coercing.semigroup [level.param `u]).app e)
+    ((expr.const `has_mul [level.param `u]).app e),
+  -- infer_type f.2 >>= trace,
+  trace f
+end
+
+set_option pp.all true
+@[simps] instance : semigroup ℕ :=
+{ mul := (*),
+  mul_assoc := nat.mul_assoc }
+
+def bazzz (x y : ℕ) : x * y = nat.mul x y :=
+_
+#print has_mul
+
+def baz (α : Type*) : semigroup α → has_mul α := by introI; apply_instance
+
+#print baz
+
+end coercing

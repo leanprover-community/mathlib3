@@ -12,9 +12,6 @@ The main results are `induction_on` and `as_sum`.
 -/
 
 noncomputable theory
-local attribute [instance, priority 100] classical.prop_decidable
-
-local attribute [instance, priority 10] is_semiring_hom.comp is_ring_hom.comp
 
 open finsupp finset add_monoid_algebra
 open_locale big_operators
@@ -89,7 +86,7 @@ end coeff
 -- TODO find a home (this file)
 @[simp] lemma finset_sum_coeff (s : finset ι) (f : ι → polynomial R) (n : ℕ) :
   coeff (∑ b in s, f b) n = ∑ b in s, coeff (f b) n :=
-(s.sum_hom (λ q : polynomial R, q.coeff n)).symm
+(s.sum_hom (λ q : polynomial R, lcoeff R n q)).symm
 
 lemma as_sum (p : polynomial R) :
   p = ∑ i in range (p.nat_degree + 1), C (p.coeff i) * X^i :=

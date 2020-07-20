@@ -11,7 +11,7 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (left_inv  : left_inverse inv_fun to_fun)
 (right_inv : right_inverse inv_fun to_fun)
 
-infix ` ≃ `:25 := equiv
+local infix ` ≃ `:25 := equiv
 
 /- Since `prod` and `pprod` are a special case for `@[simps]`, we define a new structure to test
   the basic functionality.-/
@@ -430,3 +430,43 @@ end
 
 
 end coercing
+
+namespace manual_coercion
+/- defining a manual coercion. This should be made more easily. -/
+
+structure equiv (α : Sort*) (β : Sort*) :=
+(to_fun    : α → β)
+(inv_fun   : β → α)
+(left_inv  : left_inverse inv_fun to_fun)
+(right_inv : right_inverse inv_fun to_fun)
+
+local infix ` ≃ `:25 := manual_coercion.equiv
+
+variables {α β γ : Sort*}
+
+instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
+
+def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun, e.right_inv, e.left_inv⟩
+
+def foo1 (e : α ≃ β) : α → β := e
+def foo2 (e : α ≃ β) : β → α := e.symm
+
+open tactic
+run_cmd do
+  e ← get_env,
+  d1 ← get_decl `manual_coercion.foo1,
+  d2 ← get_decl `manual_coercion.foo2,
+  let ns := d1.univ_params,
+  let ls := d1.univ_levels,
+  simps_str_attr.set `equiv (ns, [d1.value, d2.value, expr.const `equiv.left_inv ls, expr.const `equiv.right_inv ls]) tt
+
+set_option trace.simps.verbose true
+set_option trace.app_builder true
+
+/-- Composition of equivalences `e₁ : α ≃ β` and `e₂ : β ≃ γ`. -/
+@[simps {simp_rhs := tt}] protected def equiv.trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
+⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm,
+  by { intro x, simp [equiv.left_inv _ _], sorry }, by { intro x, simp [equiv.right_inv _ _], sorry }⟩
+
+
+end manual_coercion

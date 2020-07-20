@@ -53,7 +53,7 @@ attribute [notation_class* coe_sort] has_coe_to_sort
 attribute [notation_class* coe_fn] has_coe_to_fun
 
 
-/- finds an instance of an implication `cond → tgt`.
+/-- finds an instance of an implication `cond → tgt`.
   Returns a pair of a local constant `e` of type `cond`, and an instance of `tgt` that can mention `e`. -/
 meta def mk_conditional_instance (cond tgt : expr) : tactic (expr × expr) := do
 f ← mk_meta_var cond,

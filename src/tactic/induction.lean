@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jannis Limperg
 -/
 
-import control.basic data.nat.basic data.sum data.list.defs tactic.basic
+import control.basic data.nat.basic data.sum data.list.defs tactic.core
 import tactic.type_based_naming
 
 /--

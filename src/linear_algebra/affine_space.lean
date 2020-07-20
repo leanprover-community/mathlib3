@@ -1173,8 +1173,7 @@ lemma mem_affine_span_iff_eq_affine_combination [nontrivial k] (p1 : P) (p : ι 
 begin
   split,
   { exact eq_affine_combination_of_mem_affine_span },
-  { rintros ⟨s, w, hw, hp1⟩,
-    rw hp1,
+  { rintros ⟨s, w, hw, rfl⟩,
     exact affine_combination_mem_affine_span V p hw }
 end
 

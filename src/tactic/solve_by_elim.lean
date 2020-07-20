@@ -218,8 +218,9 @@ do
   (if opt.backtrack_all_goals then id else focus1) $ (do
     gs ← get_goals,
     solve_by_elim_aux opt.to_basic_opt gs lemmas opt.max_depth <|>
-    fail ("`solve_by_elim` failed.\nTry `solve_by_elim { max_depth := N }` for a larger `N`,\n" ++
-         "or use `set_option trace.solve_by_elim true` to view the search."))
+    fail ("`solve_by_elim` failed.\n" ++
+      "Try `solve_by_elim { max_depth := N }` for `N > " ++ (to_string opt.max_depth) ++ "`\n" ++
+      "or use `set_option trace.solve_by_elim true` to view the search."))
 
 open interactive lean.parser interactive.types
 local postfix `?`:9001 := optional

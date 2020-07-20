@@ -523,12 +523,12 @@ theorem exists_swap {p : α → β → Prop} : (∃ x y, p x y) ↔ ∃ y x, p x
 Extract an element from a existential statement, using `classical.some`.
 -/
 -- This enables projection notation.
-noncomputable abbreviation Exists.some {p : α → Prop} (P : ∃ a, p a) : α := classical.some P
+@[reducible] noncomputable def Exists.some {p : α → Prop} (P : ∃ a, p a) : α := classical.some P
 
 /--
 Show that an element extracted from `P : ∃ a, p a` using `P.some` satisfies `p`.
 -/
-abbreviation Exists.some_spec {p : α → Prop} (P : ∃ a, p a) : p (P.some) := classical.some_spec P
+lemma Exists.some_spec {p : α → Prop} (P : ∃ a, p a) : p (P.some) := classical.some_spec P
 
 --theorem forall_not_of_not_exists (h : ¬ ∃ x, p x) : ∀ x, ¬ p x :=
 --forall_imp_of_exists_imp h
@@ -970,7 +970,7 @@ noncomputable def classical.inhabited_of_nonempty' {α : Sort u} [h : nonempty �
 ⟨classical.choice h⟩
 
 /-- Using `classical.choice`, extracts a term from a `nonempty` type. -/
-protected noncomputable def nonempty.some {α : Sort u} (p : nonempty α) : α :=
+@[reducible] protected noncomputable def nonempty.some {α : Sort u} (p : nonempty α) : α :=
 classical.choice p
 
 /-- Given `f : α → β`, if `α` is nonempty then `β` is also nonempty.

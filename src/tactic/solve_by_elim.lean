@@ -111,18 +111,27 @@ meta structure basic_opt extends apply_any_opt :=
 
 declare_trace solve_by_elim         -- trace attempted lemmas
 
+/--
+A helper function for trace messages, prepending '....' depending on the current search depth.
+-/
 meta def solve_by_elim_trace (n : ℕ) (f : format) : tactic unit :=
 trace_if_enabled `solve_by_elim
   (format!"[solve_by_elim {(list.repeat '.' (n+1)).as_string} " ++ f ++ "]")
 
+/-- A helper function to generate trace messages on successful applications. -/
 meta def on_success (g : format) (n : ℕ) (e : expr) : tactic unit :=
 do
   pp ← pp e,
   solve_by_elim_trace n (format!"✅ `{pp}` solves `⊢ {g}`")
 
+/-- A helper function to generate trace messages on unsuccessful applications. -/
 meta def on_failure (g : format) (n : ℕ) : tactic unit :=
 solve_by_elim_trace n (format!"❌ failed to solve `⊢ {g}`")
 
+/--
+A helper function to generate the tactic that print trace messages.
+This function exists to ensure the target is pretty printed only as necessary.
+-/
 meta def trace_hooks (n : ℕ) : tactic ((expr → tactic unit) × tactic unit) :=
 if is_trace_enabled_for `solve_by_elim then
   do

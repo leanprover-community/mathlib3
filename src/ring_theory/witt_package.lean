@@ -38,7 +38,7 @@ To show that this data satisfies the axioms of a ring, we will need more work,
 and this will be done below.
 -/
 
-/-- An auxilliary inductive type to talk about the two sides of addition/multiplication.
+/-- An auxiliary inductive type to talk about the two sides of addition/multiplication.
 
 `side.l` and `side.r` refer to the left and right hand sides respectively,
 of expressions such as `x + y` and `x * y`.
@@ -90,9 +90,17 @@ noncomputable instance : has_neg (𝕎 R) :=
 end ring_data
 
 section map
+/-!
+## Functoriality of the Witt vector construction
+
+We define `witt_package.map`, the map between rings of Witt vectors
+induced by a map between the coefficient rings.
+-/
+
 open function
 variables {α : Type*} {β : Type*}
 
+/-- The map between Witt vectors induced by a map between the coefficients. -/
 def map (f : α → β) : 𝕎 α → 𝕎 β := λ w, f ∘ w
 
 lemma map_injective (f : α → β) (hf : injective f) :
@@ -106,62 +114,40 @@ by { funext n, dsimp [map], rw classical.some_spec (hf (x n)) }⟩
 
 variables (f : R →+* S)
 
-@[simp] lemma map_zero : W.map f (0 : 𝕎 R) = 0 :=
-begin
-  funext n,
+/-- Auxiliary tactic for showing that `witt_package.map` respects ring data. -/
+meta def witt_map : tactic unit :=
+`[funext n,
   show f (aeval _ _) = aeval _ _,
   rw map_aeval,
   apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
   funext p,
-  rcases p with ⟨⟨⟩, i⟩; refl,
-end
+  rcases p with ⟨⟨⟩, i⟩; refl]
+
+@[simp] lemma map_zero : W.map f (0 : 𝕎 R) = 0 :=
+by witt_map
 
 @[simp] lemma map_one : W.map f (1 : 𝕎 R) = 1 :=
-begin
-  funext n,
-  show f (aeval _ _) = aeval _ _,
-  rw map_aeval,
-  apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-  funext p,
-  rcases p with ⟨⟨⟩, i⟩; refl,
-end
+by witt_map
 
-@[simp] lemma map_add (x y : 𝕎 R) :
-  W.map f (x + y) = W.map f x + W.map f y :=
-begin
-  funext n,
-  show f (aeval _ _) = aeval _ _,
-  rw map_aeval,
-  apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-  funext p,
-  rcases p with ⟨⟨⟩, i⟩; refl,
-end
+@[simp] lemma map_add (x y : 𝕎 R) : W.map f (x + y) = W.map f x + W.map f y :=
+by witt_map
 
-@[simp] lemma map_mul (x y : 𝕎 R) :
-  W.map f (x * y) = W.map f x * W.map f y :=
-begin
-  funext n,
-  show f (aeval _ _) = aeval _ _,
-  rw map_aeval,
-  apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-  funext p,
-  rcases p with ⟨⟨⟩, i⟩; refl,
-end
+@[simp] lemma map_mul (x y : 𝕎 R) : W.map f (x * y) = W.map f x * W.map f y :=
+by witt_map
 
-@[simp] lemma map_neg (x : 𝕎 R) :
-  W.map f (-x) = - W.map f x :=
-begin
-  funext n,
-  show f (aeval _ _) = aeval _ _,
-  rw map_aeval,
-  apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-  funext p,
-  rcases p with ⟨⟨⟩, i⟩; refl,
-end
+@[simp] lemma map_neg (x : 𝕎 R) : W.map f (-x) = - W.map f x :=
+by witt_map
 
 end map
 
+section ghost_map
+/-!
+## Ghost map/components
+-/
 
+noncomputable def ghost_component (n : W.enum) (x : 𝕎 R) : R :=
+aeval x (W.witt_polynomial n)
 
+end ghost_map
 
 end witt_package

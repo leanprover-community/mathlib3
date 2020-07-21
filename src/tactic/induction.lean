@@ -1345,6 +1345,23 @@ do {
 } <|>
 pure not_simplified
 
+meta def decompose_and : expr → tactic (list expr) := λ h, do
+  H ← infer_type h,
+  match H with
+  | `(%%P ∧ %%Q) := focus1 $ do
+    p ← to_expr ``(and.left %%h),
+    assertv_core h.local_pp_name P p,
+    q ← to_expr ``(and.right %%h),
+    assertv_core h.local_pp_name Q q,
+    when h.is_local_constant $ clear h,
+    p_hyp ← intro1,
+    next_p ← decompose_and p_hyp,
+    q_hyp ← intro1,
+    next_q ← decompose_and q_hyp,
+    pure $ next_p ++ next_q
+  | _ := pure [h]
+  end
+
 meta def simplify_constructor_equation (equ type lhs rhs : expr) (u : level)
   : tactic simplification_result :=
 do {
@@ -1358,8 +1375,13 @@ do {
       solve1 $ cases equ,
       pure goal_solved
     else do
-      next_hyps ← injection equ,
+      inj ← mk_const (f ++ "inj"),
+      pr ← to_expr ``(%%inj %%equ),
+      pr_type ← infer_type pr,
+      assertv_core equ.local_pp_name pr_type pr,
       clear equ,
+      equs ← intro1,
+      next_hyps ← decompose_and equs,
       -- TODO better names for the new hyps produced by injection
       pure $ simplified $ next_hyps.map expr.local_pp_name
 } <|>

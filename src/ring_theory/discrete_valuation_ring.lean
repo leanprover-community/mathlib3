@@ -24,7 +24,7 @@ book "Local Fields").
 
 Let R be an integral domain, assumed to be a principal ideal ring and a local ring.
 
-* `DVR R` : a predicate expresing that R is a DVR
+* `discrete_valuation_ring R` : a predicate expressing that R is a DVR
 
 ### Notation
 

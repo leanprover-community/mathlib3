@@ -28,7 +28,6 @@ lemma abs_sum_le_sum_abs [discrete_linear_ordered_field α] {f : β → α} {s :
   abs (∑ x in s, f x) ≤ ∑ x in s, abs (f x) :=
 le_sum_of_subadditive _ abs_zero abs_add s f
 
-
 section ordered_add_comm_monoid
 variables [ordered_add_comm_monoid β]
 
@@ -42,6 +41,14 @@ begin
     from add_le_add (h _ (mem_insert_self _ _)) (ih $ assume x hx, h _ $ mem_insert_of_mem hx),
   by simpa only [sum_insert ha]
 end
+
+theorem card_le_mul_card_image [decidable_eq γ] {f : α → γ} (s : finset α)
+  (n : ℕ) (hn : ∀ a ∈ s.image f, (s.filter (λ x, f x = a)).card ≤ n) :
+  s.card ≤ n * (s.image f).card :=
+calc s.card = (∑ a in s.image f, (s.filter (λ x, f x = a)).card) :
+  card_eq_sum_card_image _ _
+... ≤ (∑ _ in s.image f, n) : sum_le_sum hn
+... = _ : by simp [mul_comm]
 
 lemma sum_nonneg (h : ∀x∈s, 0 ≤ f x) : 0 ≤ (∑ x in s, f x) :=
 le_trans (by rw [sum_const_zero]) (sum_le_sum h)

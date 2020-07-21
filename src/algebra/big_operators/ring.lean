@@ -132,6 +132,33 @@ begin
     rw [finset.prod_insert has, finset.sum_insert has, pow_add, H] }
 end
 
+theorem dvd_sum {b : β} {s : finset α} {f : α → β}
+  (h : ∀ x ∈ s, b ∣ f x) : b ∣ ∑ x in s, f x :=
+multiset.dvd_sum (λ y hy, by rcases multiset.mem_map.1 hy with ⟨x, hx, rfl⟩; exact h x hx)
+
+@[norm_cast]
+lemma prod_nat_cast [comm_semiring β] (s : finset α) (f : α → ℕ) :
+  ↑(∏ x in s, f x : ℕ) = (∏ x in s, (f x : β)) :=
+(nat.cast_ring_hom β).map_prod f s
+
 end comm_semiring
+
+/-- A product over all subsets of `s ∪ {x}` is obtained by multiplying the product over all subsets
+of `s`, and over all subsets of `s` to which one adds `x`. -/
+@[to_additive]
+lemma prod_powerset_insert [decidable_eq α] [comm_monoid β] {s : finset α} {x : α} (h : x ∉ s) (f : finset α → β) :
+  (∏ a in (insert x s).powerset, f a) =
+    (∏ a in s.powerset, f a) * (∏ t in s.powerset, f (insert x t)) :=
+begin
+  rw [powerset_insert, finset.prod_union, finset.prod_image],
+  { assume t₁ h₁ t₂ h₂ heq,
+    rw [← finset.erase_insert (not_mem_of_mem_powerset_of_not_mem h₁ h),
+        ← finset.erase_insert (not_mem_of_mem_powerset_of_not_mem h₂ h), heq] },
+  { rw finset.disjoint_iff_ne,
+    assume t₁ h₁ t₂ h₂,
+    rcases finset.mem_image.1 h₂ with ⟨t₃, h₃, H₃₂⟩,
+    rw ← H₃₂,
+    exact ne_insert_of_not_mem _ _ (not_mem_of_mem_powerset_of_not_mem h₁ h) }
+end
 
 end finset

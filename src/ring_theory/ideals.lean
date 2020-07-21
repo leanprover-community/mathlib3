@@ -97,6 +97,17 @@ end
 lemma span_singleton_mul_left_unit {a : α} (h2 : is_unit a) (x : α) :
   span ({a * x} : set α) = span {x} := by rw [mul_comm, span_singleton_mul_right_unit h2]
 
+lemma span_singleton_mul_right_unit {a : α} (h2 : is_unit a) (x : α) :
+  span ({x * a} : set α) = span {x} :=
+begin
+  apply le_antisymm,
+  { rw span_singleton_le_span_singleton, use a},
+  { rw span_singleton_le_span_singleton, rw mul_dvd_of_is_unit_right h2}
+end
+
+lemma span_singleton_mul_left_unit {a : α} (h2 : is_unit a) (x : α) :
+  span ({a * x} : set α) = span {x} := by rw [mul_comm, span_singleton_mul_right_unit h2]
+
 /-- An ideal `P` of a ring `R` is prime if `P ≠ R` and `xy ∈ P → x ∈ P ∨ y ∈ P` -/
 @[class] def is_prime (I : ideal α) : Prop :=
 I ≠ ⊤ ∧ ∀ {x y : α}, x * y ∈ I → x ∈ I ∨ y ∈ I

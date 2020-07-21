@@ -188,6 +188,24 @@ lemma is_closed.is_closed_le [topological_space β] {f g : β → α} {s : set �
   is_closed {x ∈ s | f x ≤ g x} :=
 (hf.prod hg).preimage_closed_of_closed hs order_closed_topology.is_closed_le'
 
+omit t
+
+lemma nhds_within_Ici_ne_bot {a b : α} (H₂ : a ≤ b) :
+  nhds_within b (Ici a) ≠ ⊥ :=
+nhds_within_ne_bot_of_mem H₂
+
+lemma nhds_within_Ici_self_ne_bot (a : α) :
+  nhds_within a (Ici a) ≠ ⊥ :=
+nhds_within_Ici_ne_bot (le_refl a)
+
+lemma nhds_within_Iic_ne_bot {a b : α} (H : a ≤ b) :
+  nhds_within a (Iic b) ≠ ⊥ :=
+nhds_within_ne_bot_of_mem H
+
+lemma nhds_within_Iic_self_ne_bot (a : α) :
+  nhds_within a (Iic a) ≠ ⊥ :=
+nhds_within_Iic_ne_bot (le_refl a)
+
 end preorder
 
 section partial_order

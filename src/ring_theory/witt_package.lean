@@ -8,8 +8,6 @@ import ring_theory.witt_vector_preps
 noncomputable theory
 open mv_polynomial
 
--- TODO: This should be fixed in mathlib
-local notation `aeval` := mv_polynomial.aeval _ _
 
 structure witt_package :=
 (enum : Type)

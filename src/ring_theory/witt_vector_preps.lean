@@ -15,8 +15,6 @@ universes u v w u₁
 -- ### FOR_MATHLIB
 -- everything in this file should move to other files
 
--- TODO: This should be fixed in mathlib
-local notation `aeval` := mv_polynomial.aeval _ _
 
 namespace mv_polynomial
 
@@ -274,19 +272,9 @@ ring_hom.map_dvd (int.cast_ring_hom R) h
 
 end
 
--- move this (and generalize to char_zero fields)
-instance rat.invertible_of_prime (n : ℕ) [h : fact (0 < n)] : invertible (n : ℚ) :=
-{ inv_of := 1/n,
-  inv_of_mul_self := one_div_mul_cancel $ by { rw nat.pos_iff_ne_zero at h, exact_mod_cast h },
-  mul_inv_of_self := mul_one_div_cancel $ by { rw nat.pos_iff_ne_zero at h, exact_mod_cast h } }
 
 namespace invertible
 variables {R : Type*} {S : Type*} [monoid R] [monoid S]
-
-def map (f : R →* S) (r : R) [invertible r] : invertible (f r) :=
-{ inv_of := f (⅟r),
-  inv_of_mul_self := by rw [← f.map_mul, inv_of_mul_self, f.map_one],
-  mul_inv_of_self := by rw [← f.map_mul, mul_inv_of_self, f.map_one] }
 
 def copy {r : R} (hr : invertible r) (s : R) (hs : s = r) : invertible s :=
 { inv_of := ⅟r,

@@ -45,9 +45,6 @@ open finset (range)
 
 open_locale big_operators
 
--- TODO: This should be fixed in mathlib
-local notation `aeval` := mv_polynomial.aeval _ _
-
 local attribute [-simp] coe_eval₂_hom
 
 variables (p : ℕ)
@@ -77,7 +74,7 @@ localized "notation `W_` := witt_polynomial p"   in witt
 localized "notation `W`  := witt_polynomial p _" in witt
 
 open_locale witt
-
+open mv_polynomial
 /- The first observation is that the Witt polynomial doesn't really depend on the coefficient ring.
 If we map the coefficients through a ring homomorphism, we obtain the corresponding Witt polynomial
 over the target ring. -/

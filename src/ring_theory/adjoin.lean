@@ -88,7 +88,7 @@ le_antisymm
     (λ p ⟨n, hn⟩ hp, by rw [alg_hom.map_mul, mv_polynomial.aeval_def _ (mv_polynomial.X _),
       mv_polynomial.eval₂_X]; exact is_submonoid.mul_mem hp (subset_adjoin hn)))
 
-theorem adjoin_singleton_eq_range (x : A) : adjoin R {x} = (polynomial.aeval R A x).range :=
+theorem adjoin_singleton_eq_range (x : A) : adjoin R {x} = (polynomial.aeval x).range :=
 le_antisymm
   (adjoin_le $ set.singleton_subset_iff.2 ⟨polynomial.X, polynomial.eval₂_X _ _⟩)
   (λ y ⟨p, hp⟩, hp ▸ polynomial.induction_on p

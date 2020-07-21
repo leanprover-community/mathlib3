@@ -132,6 +132,15 @@ direct_sum.induction_on f
   (λ i x, by rw [to_add_monoid_of])
   (λ x y ihx ihy, by rw [is_add_hom.map_add ψ, is_add_hom.map_add (to_add_monoid (λ i, ψ ∘ of β i)), ihx, ihy])
 
+variables (β)
+def set_to_set (S T : set ι) (H : S ⊆ T) :
+  direct_sum S (β ∘ subtype.val) → direct_sum T (β ∘ subtype.val) :=
+to_add_monoid $ λ i, of (β ∘ @subtype.val _ T) ⟨i.1, H i.2⟩
+variables {β}
+
+instance (S T : set ι) (H : S ⊆ T) : is_add_monoid_hom (set_to_set β S T H) :=
+to_add_monoid.is_add_monoid_hom
+
 protected def id (M : Type v) [add_comm_monoid M] : direct_sum punit (λ _, M) ≃ M :=
 { to_fun := direct_sum.to_add_monoid (λ _, id),
   inv_fun := of (λ _, M) punit.star,

@@ -69,15 +69,7 @@ theorem to_group.unique (f : direct_sum ι β) :
   ψ f = @to_group _ _ _ _ _ _ (λ i, ψ ∘ of β i) (λ i, is_add_group_hom.comp (of β i) ψ) f :=
 by apply to_add_monoid.unique
 
--- TODO: generalize to to_add_monoid too
-variables (β)
-def set_to_set (S T : set ι) (H : S ⊆ T) :
-  direct_sum S (β ∘ subtype.val) → direct_sum T (β ∘ subtype.val) :=
-to_group $ λ i, of (β ∘ @subtype.val _ T) ⟨i.1, H i.2⟩
-variables {β}
-
--- TODO: generalize to to_add_monoid too
 instance (S T : set ι) (H : S ⊆ T) : is_add_group_hom (set_to_set β S T H) :=
-to_group.is_add_group_hom
+{ ..to_add_monoid.is_add_monoid_hom }
 
 end direct_sum

@@ -165,6 +165,15 @@ def invertible_inv {a : α} [invertible a] : invertible (a⁻¹) :=
 
 end group_with_zero
 
+/--
+Monoid homs preserve invertibility.
+-/
+def invertible.map {R : Type*} {S : Type*} [monoid R] [monoid S] (f : R →* S) (r : R) [invertible r] :
+  invertible (f r) :=
+{ inv_of := f (⅟r),
+  inv_of_mul_self := by rw [← f.map_mul, inv_of_mul_self, f.map_one],
+  mul_inv_of_self := by rw [← f.map_mul, mul_inv_of_self, f.map_one] }
+
 section ring_char
 
 /-- A natural number `t` is invertible in a field `K` if the charactistic of `K` does not divide `t`. -/

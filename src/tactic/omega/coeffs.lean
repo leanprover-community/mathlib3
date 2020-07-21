@@ -230,14 +230,13 @@ begin
     { rw [add_comm, nat.sub_add_cancel h1] },
     rw h5 at h4, apply eq.trans _ h4,
      simp only [val_between, zero_add], ring },
-  rw not_lt at h1,
   have h2 : (list.length as - (n + 1)) = 0,
   { apply nat.sub_eq_zero_of_le
-    (le_trans h1 (nat.le_add_right _ _)) },
+    (le_trans (not_lt.1 h1) (nat.le_add_right _ _)) },
   have h3 : val_between v as 0 (list.length as) =
             val_between v as 0 (n + 1),
   { simpa only [val] using @val_eq_of_le v as (n+1)
-      (le_trans h1 (nat.le_add_right _ _)) },
+      (le_trans (not_lt.1 h1) (nat.le_add_right _ _)) },
   simp only [add_zero, val_between, zero_add, h2, h3]
 end
 

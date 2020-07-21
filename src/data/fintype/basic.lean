@@ -5,6 +5,7 @@ Author: Mario Carneiro
 
 Finite types.
 -/
+import tactic.wlog
 import data.finset.powerset
 import data.finset.lattice
 import data.finset.pi
@@ -38,6 +39,14 @@ fintype.complete x
 by ext; simp
 
 theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
+
+instance : order_top (finset α) :=
+{ top := univ,
+  le_top := subset_univ,
+  .. finset.partial_order }
+
+instance [decidable_eq α] : bounded_distrib_lattice (finset α) :=
+{ .. finset.distrib_lattice, .. finset.semilattice_inf_bot, .. finset.order_top }
 
 theorem eq_univ_iff_forall {s : finset α} : s = univ ↔ ∀ x, x ∈ s :=
 by simp [ext_iff]
@@ -634,6 +643,10 @@ set_fintype _
 @[simp] lemma set.to_finset_univ [fintype α] :
   (set.univ : set α).to_finset = finset.univ :=
 by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
+
+@[simp] lemma set.to_finset_empty [fintype α] :
+  (∅ : set α).to_finset = ∅ :=
+by { ext, simp only [set.mem_empty_eq, set.mem_to_finset, not_mem_empty] }
 
 theorem fintype.card_subtype_le [fintype α] (p : α → Prop) [decidable_pred p] :
   fintype.card {x // p x} ≤ fintype.card α :=

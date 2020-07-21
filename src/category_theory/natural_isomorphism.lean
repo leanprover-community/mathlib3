@@ -5,7 +5,6 @@ Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.functor_category
 import category_theory.isomorphism
-import tactic.localized
 
 open category_theory
 
@@ -15,38 +14,40 @@ universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄
 namespace category_theory
 open nat_trans
 
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
+  {E : Type u₃} [category.{v₃} E]
+
+namespace iso
+
 /-- The application of a natural isomorphism to an object. We put this definition in a different
 namespace, so that we can use `α.app` -/
-@[simp, reducible] def iso.app {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
-  {F G : C ⥤ D} (α : F ≅ G) (X : C) : F.obj X ≅ G.obj X :=
+@[simp, reducible] def app {F G : C ⥤ D} (α : F ≅ G) (X : C) : F.obj X ≅ G.obj X :=
 { hom := α.hom.app X,
   inv := α.inv.app X,
   hom_inv_id' := begin rw [← comp_app, iso.hom_inv_id], refl end,
   inv_hom_id' := begin rw [← comp_app, iso.inv_hom_id], refl end }
 
+@[simp, reassoc]
+lemma hom_inv_id_app {F G : C ⥤ D} (α : F ≅ G) (X : C) :
+  α.hom.app X ≫ α.inv.app X = 𝟙 (F.obj X) :=
+congr_fun (congr_arg nat_trans.app α.hom_inv_id) X
+
+@[simp, reassoc]
+lemma inv_hom_id_app {F G : C ⥤ D} (α : F ≅ G) (X : C) :
+  α.inv.app X ≫ α.hom.app X = 𝟙 (G.obj X) :=
+congr_fun (congr_arg nat_trans.app α.inv_hom_id) X
+
+end iso
 
 namespace nat_iso
 
 open category_theory.category category_theory.functor
-
-variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
-  {E : Type u₃} [category.{v₃} E]
 
 @[simp] lemma trans_app {F G H : C ⥤ D} (α : F ≅ G) (β : G ≅ H) (X : C) :
   (α ≪≫ β).app X = α.app X ≪≫ β.app X := rfl
 
 lemma app_hom {F G : C ⥤ D} (α : F ≅ G) (X : C) : (α.app X).hom = α.hom.app X := rfl
 lemma app_inv {F G : C ⥤ D} (α : F ≅ G) (X : C) : (α.app X).inv = α.inv.app X := rfl
-
-@[simp, reassoc]
-lemma hom_inv_id_app {F G : C ⥤ D} (α : F ≅ G) (X : C) :
-  α.hom.app X ≫ α.inv.app X = 𝟙 (F.obj X) :=
-congr_fun (congr_arg app α.hom_inv_id) X
-
-@[simp, reassoc]
-lemma inv_hom_id_app {F G : C ⥤ D} (α : F ≅ G) (X : C) :
-  α.inv.app X ≫ α.hom.app X = 𝟙 (G.obj X) :=
-congr_fun (congr_arg app α.inv_hom_id) X
 
 variables {F G : C ⥤ D}
 
@@ -58,11 +59,6 @@ instance inv_app_is_iso (α : F ≅ G) (X : C) : is_iso (α.inv.app X) :=
 { inv := α.hom.app X,
   hom_inv_id' := begin rw [←comp_app, iso.inv_hom_id, ←id_app] end,
   inv_hom_id' := begin rw [←comp_app, iso.hom_inv_id, ←id_app] end }
-
-lemma hom_app_inv_app_id (α : F ≅ G) (X : C) : α.hom.app X ≫ α.inv.app X = 𝟙 _ :=
-hom_inv_id_app _ _
-lemma inv_app_hom_app_id (α : F ≅ G) (X : C) : α.inv.app X ≫ α.hom.app X = 𝟙 _ :=
-inv_hom_id_app _ _
 
 variables {X Y : C}
 lemma naturality_1 (α : F ≅ G) (f : X ⟶ Y) :

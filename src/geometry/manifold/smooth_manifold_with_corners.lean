@@ -33,7 +33,7 @@ specific type class for `C^∞` manifolds as these are the most commonly used.
 * `smooth_manifold_with_corners I M` :
   a type class saying that the charted space `M`, modelled on the space `H`, has `C^∞` changes of
   coordinates with respect to the model with corners `I` on `(𝕜, E, H)`. This type class is just
-  a shortcut for `has_groupoid M (times_cont_diff_groupoid ⊤ I)`.
+  a shortcut for `has_groupoid M (times_cont_diff_groupoid ∞ I)`.
 * `ext_chart_at I x`:
   in a smooth manifold with corners with the model `I` on `(E, H)`, the charts take values in `H`,
   but often we may want to use their `E`-valued version, obtained by composing the charts with `I`.
@@ -114,6 +114,8 @@ noncomputable theory
 universes u v w u' v' w'
 
 open set
+
+localized "notation `∞` := (⊤ : with_top ℕ)" in manifold
 
 section model_with_corners
 /-! ### Models with corners. -/
@@ -472,6 +474,16 @@ begin
     exact h3, }
 end
 
+/-- The `C^n` groupoid is closed under restriction. -/
+instance : closed_under_restriction (times_cont_diff_groupoid n I) :=
+(closed_under_restriction_iff_id_le _).mpr
+begin
+  apply structure_groupoid.le_iff.mpr,
+  rintros e ⟨s, hs, hes⟩,
+  apply (times_cont_diff_groupoid n I).eq_on_source' _ _ _ hes,
+  exact of_set_mem_times_cont_diff_groupoid n I hs,
+end
+
 end times_cont_diff_groupoid
 
 end model_with_corners
@@ -484,7 +496,7 @@ class smooth_manifold_with_corners {𝕜 : Type*} [nondiscrete_normed_field 𝕜
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
   (M : Type*) [topological_space M] [charted_space H M] extends
-  has_groupoid M (times_cont_diff_groupoid ⊤ I) : Prop
+  has_groupoid M (times_cont_diff_groupoid ∞ I) : Prop
 
 /-- For any model with corners, the model space is a smooth manifold -/
 instance model_space_smooth {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
@@ -495,7 +507,7 @@ instance model_space_smooth {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 namespace smooth_manifold_with_corners
 /- We restate in the namespace `smooth_manifolds_with_corners` some lemmas that hold for general
 charted space with a structure groupoid, avoiding the need to specify the groupoid
-`times_cont_diff_groupoid ⊤ I` explicitly. -/
+`times_cont_diff_groupoid ∞ I` explicitly. -/
 
 variables  {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
@@ -503,14 +515,14 @@ variables  {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   (M : Type*) [topological_space M] [charted_space H M]
 
 /-- The maximal atlas of `M` for the smooth manifold with corners structure corresponding to the
-modle with corners `I`. -/
-def maximal_atlas := (times_cont_diff_groupoid ⊤ I).maximal_atlas M
+model with corners `I`. -/
+def maximal_atlas := (times_cont_diff_groupoid ∞ I).maximal_atlas M
 
 variable {M}
 
 lemma compatible [smooth_manifold_with_corners I M]
   {e e' : local_homeomorph M H} (he : e ∈ atlas H M) (he' : e' ∈ atlas H M) :
-  e.symm.trans e' ∈ times_cont_diff_groupoid ⊤ I :=
+  e.symm.trans e' ∈ times_cont_diff_groupoid ∞ I :=
 has_groupoid.compatible _ he he'
 
 lemma mem_maximal_atlas_of_mem_atlas [smooth_manifold_with_corners I M]
@@ -525,7 +537,7 @@ variable {I}
 
 lemma compatible_of_mem_maximal_atlas
   {e e' : local_homeomorph M H} (he : e ∈ maximal_atlas I M) (he' : e' ∈ maximal_atlas I M) :
-  e.symm.trans e' ∈ times_cont_diff_groupoid ⊤ I :=
+  e.symm.trans e' ∈ times_cont_diff_groupoid ∞ I :=
 structure_groupoid.compatible_of_mem_maximal_atlas he he'
 
 /-- The product of two smooth manifolds with corners is naturally a smooth manifold with corners. -/
@@ -682,14 +694,10 @@ end
 
 /-- Technical lemma to rewrite suitably the preimage of an intersection under an extended chart, to
 bring it into a convenient form to apply derivative lemmas. -/
-lemma ext_chart_preimage_inter_eq : ((ext_chart_at I x).symm ⁻¹' (s ∩ t) ∩ range I)
-  = ((ext_chart_at I x).symm ⁻¹' s ∩ range I)
-    ∩ ((ext_chart_at I x).symm ⁻¹' t) :=
-begin
-  rw [preimage_inter, inter_assoc, inter_assoc],
-  congr' 1,
-  rw inter_comm
-end
+lemma ext_chart_preimage_inter_eq :
+  ((ext_chart_at I x).symm ⁻¹' (s ∩ t) ∩ range I)
+  = ((ext_chart_at I x).symm ⁻¹' s ∩ range I) ∩ ((ext_chart_at I x).symm ⁻¹' t) :=
+by mfld_set_tac
 
 end extended_charts
 

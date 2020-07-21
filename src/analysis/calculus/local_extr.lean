@@ -122,7 +122,7 @@ begin
   rcases hy with ⟨c, d, hd, hc, hcd⟩,
   have hc' : tendsto (λ n, ∥c n∥) at_top at_top,
     from tendsto_at_top_mono (λ n, le_abs_self _) hc,
-  refine le_of_tendsto at_top_ne_bot (hf.lim at_top hd hc' hcd) _,
+  refine le_of_tendsto (hf.lim at_top hd hc' hcd) _,
   replace hd : tendsto (λ n, a + d n) at_top (nhds_within (a + 0) s),
   from tendsto_inf.2 ⟨tendsto_const_nhds.add (tangent_cone_at.lim_zero _ hc' hcd),
     by rwa tendsto_principal⟩,

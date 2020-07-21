@@ -236,14 +236,14 @@ by simp [le_antisymm_iff, zero_le]
 theorem pos_iff_ne_zero {o : cardinal} : 0 < o ↔ o ≠ 0 :=
 by simp [lt_iff_le_and_ne, eq_comm, zero_le]
 
-theorem zero_lt_one : (0 : cardinal) < 1 :=
+@[simp] theorem zero_lt_one : (0 : cardinal) < 1 :=
 lt_of_le_of_ne (zero_le _) zero_ne_one
 
 lemma zero_power_le (c : cardinal.{u}) : (0 : cardinal.{u}) ^ c ≤ 1 :=
 by { by_cases h : c = 0, rw [h, power_zero], rw [zero_power h], apply zero_le }
 
 theorem add_le_add : ∀{a b c d : cardinal}, a ≤ b → c ≤ d → a + c ≤ b + d :=
-by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨embedding.sum_congr e₁ e₂⟩
+by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.sum_map e₂⟩
 
 theorem add_le_add_left (a) {b c : cardinal} : b ≤ c → a + b ≤ a + c :=
 add_le_add (le_refl _)
@@ -258,7 +258,7 @@ theorem le_add_left (a b : cardinal) : a ≤ b + a :=
 by simpa using add_le_add_right a (zero_le b)
 
 theorem mul_le_mul : ∀{a b c d : cardinal}, a ≤ b → c ≤ d → a * c ≤ b * d :=
-by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨embedding.prod_congr e₁ e₂⟩
+by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.prod_map e₂⟩
 
 theorem mul_le_mul_left (a) {b c : cardinal} : b ≤ c → a * b ≤ a * c :=
 mul_le_mul (le_refl _)
@@ -394,7 +394,7 @@ quotient.induction_on a $ λ α, by simp; exact
   quotient.sound ⟨equiv.sigma_equiv_prod _ _⟩
 
 theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f ≤ sum g :=
-⟨embedding.sigma_congr_right $ λ i, classical.choice $
+⟨(embedding.refl _).sigma_map $ λ i, classical.choice $
   by have := H i; rwa [← quot.out_eq (f i), ← quot.out_eq (g i)] at this⟩
 
 /-- The indexed supremum of cardinals is the smallest cardinal above
@@ -649,7 +649,7 @@ theorem nat_lt_omega (n : ℕ) : (n : cardinal.{u}) < omega :=
 succ_le.1 $ by rw [← nat_succ, ← lift_mk_fin, omega, lift_mk_le.{0 0 u}]; exact
 ⟨⟨fin.val, λ a b, fin.eq_of_veq⟩⟩
 
-theorem one_lt_omega : 1 < omega :=
+@[simp] theorem one_lt_omega : 1 < omega :=
 by simpa using nat_lt_omega 1
 
 theorem lt_omega {c : cardinal.{u}} : c < omega ↔ ∃ n : ℕ, c = n :=

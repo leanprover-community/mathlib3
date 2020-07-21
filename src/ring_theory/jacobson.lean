@@ -107,7 +107,7 @@ end
 
 @[priority 100]
 instance is_jacobson_quotient [is_jacobson R] : is_jacobson (quotient I) :=
-is_jacobson_of_surjective ⟨quotient.mk_hom I, quotient.mk_surjective⟩
+is_jacobson_of_surjective ⟨quotient.mk I, (by rintro ⟨x⟩; use x; refl)⟩
 
 lemma is_jacobson_iso (e : R ≃+* S) : is_jacobson R ↔ is_jacobson S :=
 ⟨λ h, @is_jacobson_of_surjective _ _ _ _ h ⟨(e : R →+* S), e.surjective⟩,

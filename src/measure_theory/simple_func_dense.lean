@@ -22,7 +22,7 @@ variables {α : Type u} {β : Type v} {ι : Type*}
 namespace measure_theory
 open ennreal nat metric
 
-variables [measure_space α] [normed_group β] [second_countable_topology β]
+variables [measurable_space α] [normed_group β] [second_countable_topology β]
   [measurable_space β] [borel_space β]
 
 local infixr ` →ₛ `:25 := simple_func
@@ -42,7 +42,7 @@ let A' (N k : ℕ) : set α :=
   f ⁻¹' (metric.ball (e k) (1 / (N+1 : ℝ)) \ metric.ball 0 (1 / (N+1 : ℝ))) in
 let A N := disjointed (A' N) in
 have is_measurable_A' : ∀ {N k}, is_measurable (A' N k) :=
-  λ N k, hf.preimage $ is_measurable.inter is_measurable_ball $ is_measurable.compl is_measurable_ball,
+  λ N k, hf $ is_measurable.inter is_measurable_ball $ is_measurable.compl is_measurable_ball,
 have is_measurable_A : ∀ {N k}, is_measurable (A N k) :=
   λ N, is_measurable.disjointed $ λ k, is_measurable_A',
 have A_subset_A' : ∀ {N k x}, x ∈ A N k → x ∈ A' N k := λ N k, inter_subset_left _ _,
@@ -88,11 +88,11 @@ end,
 -- prove that for all N, (F N) is a measurable function
 have F_measurable : ∀ {N}, measurable (F N) :=
 begin
-  assume N, refine measurable.if _ _ measurable_const,
-  -- show `is_measurable {a : α | a ∈ ⋃ (M : ℕ) (H : M ≤ N) (k : ℕ) (H : k ≤ N), A M k}`
-  { rw set_of_mem_eq, simp [is_measurable.Union, is_measurable.Union_Prop, is_measurable_A] },
-  -- show `measurable (λ (x : α), e (k N x))`
-  apply measurable.comp measurable_from_nat, apply measurable_find_greatest,
+  assume N, refine measurable.piecewise _ _ measurable_const,
+  show is_measurable (⋃ (M : ℕ) (H : M ≤ N) (k : ℕ) (H : k ≤ N), A M k),
+  { simp [is_measurable.Union, is_measurable.Union_Prop, is_measurable_A] },
+  show measurable (λ x, e (k N x)),
+  refine  measurable_from_nat.comp (measurable_find_greatest _),
   assume k' k'_le_N, by_cases k'_eq_0 : k' = 0,
   -- if k' = 0
   have : {x | k N x = 0} = (⋃ (M : ℕ) (H : M ≤ N) (k : ℕ) (H : k ≤ N), A M k)ᶜ ∪
@@ -168,7 +168,7 @@ begin
   rw this, simp [is_measurable.Union, is_measurable.Union_Prop, is_measurable.diff, is_measurable_A]
 end,
 -- start of proof
-⟨λ N, ⟨F N, λ x, measurable.preimage F_measurable is_measurable_singleton, F_finite⟩,
+⟨λ N, ⟨F N, λ x, F_measurable (is_measurable_singleton _), F_finite⟩,
 -- The pointwise convergence part of the theorem
 λ x, ⟨metric.tendsto_at_top.2 $ λ ε hε, classical.by_cases
 --first case : f x = 0
@@ -236,9 +236,10 @@ classical.by_cases
   have F_eq_0 : F N x = 0 := if_neg h,
   by { simp only [F_eq_0, norm_zero], exact add_nonneg (norm_nonneg _) (norm_nonneg _) } )⟩⟩
 
-lemma simple_func_sequence_tendsto' {f : α → β} (hfm : measurable f)
-  (hfi : integrable f) : ∃ (F : ℕ → (α →ₛ β)), (∀n, integrable (F n)) ∧
-   tendsto (λ n, ∫⁻ x,  nndist (F n x) (f x)) at_top  (𝓝 0) :=
+lemma simple_func_sequence_tendsto' {μ : measure α} {f : α → β} (hfm : measurable f)
+  (hfi : integrable f μ) :
+    ∃ (F : ℕ → (α →ₛ β)), (∀n, integrable (F n) μ) ∧
+   tendsto (λ n, ∫⁻ x,  nndist (F n x) (f x) ∂μ) at_top (𝓝 0) :=
 let ⟨F, hF⟩ := simple_func_sequence_tendsto hfm in
 let G : ℕ → α → ennreal := λn x, nndist (F n x) (f x) in
 let g : α → ennreal := λx, nnnorm (f x) + nnnorm (f x) + nnnorm (f x) in
@@ -246,20 +247,20 @@ have hF_meas : ∀ n, measurable (G n) := λ n, measurable.comp measurable_coe $
   (F n).measurable.nndist hfm,
 have hg_meas : measurable g := measurable.comp measurable_coe $ measurable.add
   (measurable.add hfm.nnnorm hfm.nnnorm) hfm.nnnorm,
-have h_bound : ∀ n, ∀ₘ x, G n x ≤ g x := λ n, ae_of_all _ $ λ x, coe_le_coe.2 $
+have h_bound : ∀ n, G n ≤ᵐ[μ] g := λ n, ae_of_all _ $ λ x, coe_le_coe.2 $
   calc
     nndist (F n x) (f x) ≤ nndist (F n x) 0 + nndist 0 (f x) : nndist_triangle _ _ _
     ... = nnnorm (F n x) + nnnorm (f x) : by simp [nndist_eq_nnnorm]
     ... ≤ nnnorm (f x) + nnnorm (f x) + nnnorm (f x) :
       by { simp [nnreal.coe_le_coe.symm, (hF x).2, add_comm] },
-have h_finite : lintegral g < ⊤ :=
+have h_finite : ∫⁻ x, g x ∂μ < ⊤ :=
   calc
-    (∫⁻ x, nnnorm (f x) + nnnorm (f x) + nnnorm (f x)) =
-      (∫⁻ x, nnnorm (f x)) + (∫⁻ x, nnnorm (f x)) + (∫⁻ x, nnnorm (f x)) :
+    ∫⁻ x, nnnorm (f x) + nnnorm (f x) + nnnorm (f x) ∂μ =
+      ∫⁻ x, nnnorm (f x) ∂μ + ∫⁻ x, nnnorm (f x) ∂μ + ∫⁻ x, nnnorm (f x) ∂μ :
     by { rw [lintegral_add, lintegral_nnnorm_add],
       exacts [hfm, hfm, hfm.ennnorm.add hfm.ennnorm, hfm.ennnorm] }
     ... < ⊤ : by { simp only [and_self, add_lt_top], exact hfi},
-have h_lim : ∀ₘ x, tendsto (λ n, G n x) at_top (𝓝 0) := ae_of_all _ $ λ x,
+have h_lim : ∀ᵐ x ∂μ, tendsto (λ n, G n x) at_top (𝓝 0) := ae_of_all _ $ λ x,
   begin
     apply (@tendsto_coe ℕ at_top (λ n, nndist (F n x) (f x)) 0).2,
     apply (@nnreal.tendsto_coe ℕ at_top (λ n, nndist (F n x) (f x)) 0).1,
@@ -267,16 +268,15 @@ have h_lim : ∀ₘ x, tendsto (λ n, G n x) at_top (𝓝 0) := ae_of_all _ $ λ
   end,
 begin
   use F, split,
-  { assume n, exact
+  { assume n,
     calc
-      (∫⁻ a, nnnorm (F n a)) ≤ ∫⁻ a, nnnorm (f a) + nnnorm (f a) :
+      ∫⁻ a, nnnorm (F n a) ∂μ ≤ ∫⁻ a, nnnorm (f a) + nnnorm (f a) ∂μ :
         lintegral_mono
           (by { assume a, simp only [coe_add.symm, coe_le_coe], exact (hF a).2 n })
-       ... = (∫⁻ a, nnnorm (f a)) + (∫⁻ a, nnnorm (f a)) :
+       ... = ∫⁻ a, nnnorm (f a) ∂μ + ∫⁻ a, nnnorm (f a) ∂μ :
          lintegral_nnnorm_add hfm hfm
        ... < ⊤ : by simp only [add_lt_top, and_self]; exact hfi },
-  convert @tendsto_lintegral_of_dominated_convergence _ _ G (λ a, 0) g
-              hF_meas h_bound h_finite h_lim,
+  convert tendsto_lintegral_of_dominated_convergence g hF_meas h_bound h_finite h_lim,
   simp only [lintegral_zero]
 end
 

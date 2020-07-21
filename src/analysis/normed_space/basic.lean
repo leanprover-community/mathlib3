@@ -418,7 +418,7 @@ begin
 end
 
 @[priority 100] -- see Note [lower instance priority]
-instance normed_top_monoid : topological_add_monoid α := by apply_instance -- short-circuit type class inference
+instance normed_top_monoid : has_continuous_add α := by apply_instance -- short-circuit type class inference
 @[priority 100] -- see Note [lower instance priority]
 instance normed_top_group : topological_add_group α := by apply_instance -- short-circuit type class inference
 
@@ -484,7 +484,7 @@ instance prod.normed_ring [normed_ring α] [normed_ring β] : normed_ring (α ×
 end normed_ring
 
 @[priority 100] -- see Note [lower instance priority]
-instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
+instance normed_ring_top_monoid [normed_ring α] : has_continuous_mul α :=
 ⟨ continuous_iff_continuous_at.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
     have ∀ e : α × α, e.fst * e.snd - x.fst * x.snd =
       e.fst * e.snd - e.fst * x.snd + (e.fst * x.snd - x.fst * x.snd), by intro; rw sub_add_sub_cancel,
@@ -609,8 +609,9 @@ let ⟨n, hle, hlt⟩ := exists_int_pow_near' hr hw in
 ⟨w^n, by { rw norm_fpow; exact fpow_pos_of_pos (lt_trans zero_lt_one hw) _},
 by rwa norm_fpow⟩
 
+@[instance]
 lemma punctured_nhds_ne_bot {α : Type*} [nondiscrete_normed_field α] (x : α) :
-  nhds_within x {x}ᶜ ≠ ⊥ :=
+  ne_bot (nhds_within x {x}ᶜ) :=
 begin
   rw [← mem_closure_iff_nhds_within_ne_bot, metric.mem_closure_iff],
   rintros ε ε0,
@@ -618,6 +619,11 @@ begin
   refine ⟨x + b, mt (set.mem_singleton_iff.trans add_right_eq_self).1 $ norm_pos_iff.1 hb0, _⟩,
   rwa [dist_comm, dist_eq_norm, add_sub_cancel'],
 end
+
+@[instance]
+lemma nhds_within_is_unit_ne_bot {α : Type*} [nondiscrete_normed_field α] :
+  ne_bot (nhds_within (0:α) {x : α | is_unit x}) :=
+by simpa only [is_unit_iff_ne_zero] using punctured_nhds_ne_bot (0:α)
 
 lemma tendsto_inv [normed_field α] {r : α} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=
 begin
@@ -644,7 +650,7 @@ begin
   calc dist x⁻¹ r⁻¹ = ∥x⁻¹ - r⁻¹∥ : dist_eq_norm _ _
   ... ≤ ∥r-x∥ * ∥x∥⁻¹ * ∥r∥⁻¹ : by rw [this, norm_mul, norm_mul, norm_inv, norm_inv]
   ... ≤ (ε/2 * ∥r∥^2) * (2 * ∥r∥⁻¹) * (∥r∥⁻¹) : begin
-    apply_rules [mul_le_mul, inv_nonneg.2, le_of_lt A, norm_nonneg, inv_nonneg.2, mul_nonneg,
+    apply_rules [mul_le_mul, inv_nonneg.2, le_of_lt A, norm_nonneg, mul_nonneg,
                  (inv_le_inv norm_x_pos norm_r_pos).2, le_refl],
     show ∥r - x∥ ≤ ε / 2 * ∥r∥ ^ 2,
       by { rw [← dist_eq_norm, dist_comm], exact le_trans hx (min_le_left _ _) },
@@ -800,17 +806,6 @@ begin
     exact ((tendsto_iff_norm_tendsto_zero.1 (continuous_fst.tendsto p)).mul
       (continuous_snd.tendsto p).norm).add
         (tendsto_const_nhds.mul (tendsto_iff_norm_tendsto_zero.1 (continuous_snd.tendsto p))) }
-end
-
-/-- In a normed space over a nondiscrete normed field, only `⊤` submodule has a nonempty interior.
-See also `submodule.eq_top_of_nonempty_interior'` for a `topological_module` version.  -/
-lemma submodule.eq_top_of_nonempty_interior {α E : Type*} [nondiscrete_normed_field α]
-  [normed_group E] [normed_space α E] (s : submodule α E) (hs : (interior (s:set E)).nonempty) :
-  s = ⊤ :=
-begin
-  refine s.eq_top_of_nonempty_interior' _ hs,
-  simp only [is_unit_iff_ne_zero, @ne.def α, set.mem_singleton_iff.symm],
-  exact normed_field.punctured_nhds_ne_bot _
 end
 
 theorem closure_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :
@@ -1061,10 +1056,10 @@ cauchy_seq_finset_of_norm_bounded _ hf (assume i, le_refl _)
 its sum is converging to a limit `a`, then this holds along all finsets, i.e., `f` is summable
 with sum `a`. -/
 lemma has_sum_of_subseq_of_summable {f : ι → α} (hf : summable (λa, ∥f a∥))
-  {s : γ → finset ι} {p : filter γ} (hp : p ≠ ⊥)
+  {s : γ → finset ι} {p : filter γ} [ne_bot p]
   (hs : tendsto s p at_top) {a : α} (ha : tendsto (λ b, ∑ i in s b, f i) p (𝓝 a)) :
   has_sum f a :=
-tendsto_nhds_of_cauchy_seq_of_subseq (cauchy_seq_finset_of_summable_norm hf) hp hs ha
+tendsto_nhds_of_cauchy_seq_of_subseq (cauchy_seq_finset_of_summable_norm hf) hs ha
 
 /-- If `∑' i, ∥f i∥` is summable, then `∥(∑' i, f i)∥ ≤ (∑' i, ∥f i∥)`. Note that we do not assume
 that `∑' i, f i` is summable, and it might not be the case if `α` is not a complete space. -/
@@ -1076,7 +1071,7 @@ begin
       (continuous_norm.tendsto _).comp h.has_sum,
     have h₂ : tendsto (λs:finset ι, ∑ i in s, ∥f i∥) at_top (𝓝 (∑' i, ∥f i∥)) :=
       hf.has_sum,
-    exact le_of_tendsto_of_tendsto' at_top_ne_bot h₁ h₂ (assume s, norm_sum_le _ _) },
+    exact le_of_tendsto_of_tendsto' h₁ h₂ (assume s, norm_sum_le _ _) },
   { rw tsum_eq_zero_of_not_summable h,
     simp [tsum_nonneg] }
 end
@@ -1084,7 +1079,7 @@ end
 lemma has_sum_iff_tendsto_nat_of_summable_norm {f : ℕ → α} {a : α} (hf : summable (λi, ∥f i∥)) :
   has_sum f a ↔ tendsto (λn:ℕ, ∑ i in range n, f i) at_top (𝓝 a) :=
 ⟨λ h, h.tendsto_sum_nat,
-λ h, has_sum_of_subseq_of_summable hf at_top_ne_bot tendsto_finset_range h⟩
+λ h, has_sum_of_subseq_of_summable hf tendsto_finset_range h⟩
 
 variable [complete_space α]
 
@@ -1099,12 +1094,11 @@ real function `g` which is summable, then `f` is summable. -/
 lemma summable_of_norm_bounded_eventually {f : ι → α} (g : ι → ℝ) (hg : summable g)
   (h : ∀ᶠ i in cofinite, ∥f i∥ ≤ g i) : summable f :=
 begin
-  let s : finset ι := (mem_cofinite.mp h).to_finset,
-  refine (summable_subtype_iff s).mp _,
-  refine summable_of_norm_bounded _ ((summable_subtype_iff s).mpr hg) _,
-  refine subtype.forall.mpr _,
-  intros a h',
-  simpa [s] using h',
+  replace h := mem_cofinite.1 h,
+  refine h.summable_compl_iff.mp _,
+  refine summable_of_norm_bounded _ (h.summable_compl_iff.mpr hg) _,
+  rintros ⟨a, h'⟩,
+  simpa using h'
 end
 
 lemma summable_of_nnnorm_bounded {f : ι → α} (g : ι → nnreal) (hg : summable g)

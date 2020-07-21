@@ -106,7 +106,14 @@ inr_injective.eq_iff
 lemma inl_aut (g : G) (n : N) : (inl (φ g n) : N ⋊[φ] G) = inr g * inl n * inr g⁻¹ :=
 by ext; simp
 
-lemma inl_left_mul_inr_right (x : N ⋊[φ] G) : inl x.left * inr x.right = x :=
+lemma inl_aut_inv (g : G) (n : N) : (inl ((φ g)⁻¹ n) : N ⋊[φ] G) = inr g⁻¹ * inl n * inr g :=
+by rw [← monoid_hom.map_inv, inl_aut, inv_inv]
+
+@[simp] lemma mk_eq_inl_mul_inr (g : G) (n : N) : (⟨n, g⟩ : N ⋊[φ] G) = inl n * inr g :=
+by ext; simp
+
+@[simp] lemma inl_left_mul_inr_right (x : N ⋊[φ] G) : inl x.left * inr x.right = x :=
+
 by ext; simp
 
 /-- The canonical projection map `N ⋊[φ] G →* G`, as a group hom. -/
@@ -139,15 +146,19 @@ le_antisymm
 
 section lift
 variables (f₁ : N →* H) (f₂ : G →* H)
-  (h : ∀ n g, f₁ (φ g n) = f₂ g * f₁ n * f₂ g⁻¹)
+  (h : ∀ g, f₁.comp (φ g).to_monoid_hom = (mul_aut.conj (f₂ g)).to_monoid_hom.comp f₁)
 
 /-- Define a group hom `N ⋊[φ] G →* H`, by defining maps `N →* H` and `G →* H`  -/
 def lift (f₁ : N →* H) (f₂ : G →* H)
-  (h : ∀ n g, f₁ (φ g n) = f₂ g * f₁ n * f₂ g⁻¹) :
+  (h : ∀ g, f₁.comp (φ g).to_monoid_hom = (mul_aut.conj (f₂ g)).to_monoid_hom.comp f₁) :
   N ⋊[φ] G →* H :=
 { to_fun := λ a, f₁ a.1 * f₂ a.2,
   map_one' := by simp,
-  map_mul' := λ a b, by simp [h, _root_.mul_assoc] }
+  map_mul' := λ a b, begin
+    have := λ n g, monoid_hom.ext_iff.1 (h n) g,
+    simp only [mul_aut.conj_apply, monoid_hom.comp_apply, mul_equiv.to_monoid_hom_apply] at this,
+    simp [this, mul_assoc]
+  end }
 
 @[simp] lemma lift_inl (n : N) : lift f₁ f₂ h (inl n) = f₁ n := by simp [lift]
 @[simp] lemma lift_comp_inl : (lift f₁ f₂ h).comp inl = f₁ := by ext; simp
@@ -156,12 +167,18 @@ def lift (f₁ : N →* H) (f₂ : G →* H)
 @[simp] lemma lift_comp_inr : (lift f₁ f₂ h).comp inr = f₂ := by ext; simp
 
 lemma lift_unique (F : N ⋊[φ] G →* H) :
-  F = lift (F.comp inl) (F.comp inr) (by simp [inl_aut]) :=
+  F = lift (F.comp inl) (F.comp inr) (λ _, by ext; simp [inl_aut]) :=
 begin
   ext,
   simp only [lift, monoid_hom.comp_apply, monoid_hom.coe_mk],
   rw [← F.map_mul, inl_left_mul_inr_right],
 end
+
+/-- Two maps out of the semidirect product are equal if they're equal after composition
+  with both `inl` and `inr` -/
+lemma hom_ext {f g : (N ⋊[φ] G) →* H} (hl : f.comp inl = g.comp inl)
+  (hr : f.comp inr = g.comp inr) : f = g :=
+by { rw [lift_unique f, lift_unique g], simp only * }
 
 end lift
 

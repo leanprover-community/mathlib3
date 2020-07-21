@@ -20,11 +20,11 @@ begin
   rw [nat.pow_succ, pow_mul, pow_mul, ← geom_sum₂_mul, pow_succ],
   refine mul_dvd_mul _ ih,
   let I : ideal R := span {p},
-  let f : R →+* ideal.quotient I := mk_hom I,
+  let f : R →+* ideal.quotient I := mk I,
   have hp : (p : ideal.quotient I) = 0,
-  { rw [← f.map_nat_cast, ← mk_eq_mk_hom, eq_zero_iff_mem, mem_span_singleton] },
-  rw [← mem_span_singleton, ← ideal.quotient.eq, mk_eq_mk_hom, mk_eq_mk_hom] at h,
-  rw [← mem_span_singleton, ← eq_zero_iff_mem, mk_eq_mk_hom, ring_hom.map_geom_series₂,
+  { rw [← f.map_nat_cast, eq_zero_iff_mem, mem_span_singleton] },
+  rw [← mem_span_singleton, ← ideal.quotient.eq] at h,
+  rw [← mem_span_singleton, ← eq_zero_iff_mem, ring_hom.map_geom_series₂,
       ring_hom.map_pow, ring_hom.map_pow, h, geom_series₂_self, hp, zero_mul],
 end
 

@@ -3,7 +3,6 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
-import algebra.group.units
 import algebra.group.with_one
 import algebra.group.type_tags
 import order.bounded_lattice
@@ -1823,3 +1822,48 @@ instance [ordered_add_comm_group α] : ordered_add_comm_group (order_dual α) :=
   ..show add_comm_group α, by apply_instance }
 
 end order_dual
+
+section type_tags
+
+instance : Π [preorder α], preorder (multiplicative α) := id
+instance : Π [preorder α], preorder (additive α) := id
+instance : Π [partial_order α], partial_order (multiplicative α) := id
+instance : Π [partial_order α], partial_order (additive α) := id
+instance : Π [linear_order α], linear_order (multiplicative α) := id
+instance : Π [linear_order α], linear_order (additive α) := id
+instance : Π [decidable_linear_order α], decidable_linear_order (multiplicative α) := id
+instance : Π [decidable_linear_order α], decidable_linear_order (additive α) := id
+
+instance [ordered_add_comm_monoid α] : ordered_comm_monoid (multiplicative α) :=
+{ mul_le_mul_left := @ordered_add_comm_monoid.add_le_add_left α _,
+  lt_of_mul_lt_mul_left := @ordered_add_comm_monoid.lt_of_add_lt_add_left α _,
+  ..multiplicative.partial_order,
+  ..multiplicative.comm_monoid }
+
+instance [ordered_comm_monoid α] : ordered_add_comm_monoid (additive α) :=
+{ add_le_add_left := @ordered_comm_monoid.mul_le_mul_left α _,
+  lt_of_add_lt_add_left := @ordered_comm_monoid.lt_of_mul_lt_mul_left α _,
+  ..additive.partial_order,
+  ..additive.add_comm_monoid }
+
+instance [ordered_cancel_add_comm_monoid α] : ordered_cancel_comm_monoid (multiplicative α) :=
+{ le_of_mul_le_mul_left := @ordered_cancel_add_comm_monoid.le_of_add_le_add_left α _,
+  ..multiplicative.right_cancel_semigroup,
+  ..multiplicative.left_cancel_semigroup,
+  ..multiplicative.ordered_comm_monoid }
+
+instance [ordered_cancel_comm_monoid α] : ordered_cancel_add_comm_monoid (additive α) :=
+{ le_of_add_le_add_left := @ordered_cancel_comm_monoid.le_of_mul_le_mul_left α _,
+  ..additive.add_right_cancel_semigroup,
+  ..additive.add_left_cancel_semigroup,
+  ..additive.ordered_add_comm_monoid }
+
+instance [ordered_add_comm_group α] : ordered_comm_group (multiplicative α) :=
+{ ..multiplicative.comm_group,
+  ..multiplicative.ordered_comm_monoid }
+
+instance [ordered_comm_group α] : ordered_add_comm_group (additive α) :=
+{ ..additive.add_comm_group,
+  ..additive.ordered_add_comm_monoid }
+
+end type_tags

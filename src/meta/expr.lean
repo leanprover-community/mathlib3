@@ -283,6 +283,20 @@ end expr
 namespace expr
 open tactic
 
+/-- List of names removed by `clean`. All these names must resolve to functions defeq `id`. -/
+meta def clean_ids : list name :=
+[``id, ``id_rhs, ``id_delta, ``hidden]
+
+/-- Clean an expression by removing `id`s listed in `clean_ids`. -/
+meta def clean (e : expr) : expr :=
+e.replace (λ e n,
+     match e with
+     | (app (app (const n _) _) e') :=
+       if n ∈ clean_ids then some e' else none
+     | (app (lam _ _ _ (var 0)) e') := some e'
+     | _ := none
+     end)
+
 /-- `replace_with e s s'` replaces ocurrences of `s` with `s'` in `e`. -/
 meta def replace_with (e : expr) (s : expr) (s' : expr) : expr :=
 e.replace $ λc d, if c = s then some (s'.lift_vars 0 d) else none
@@ -304,6 +318,13 @@ meta def is_mvar : expr → bool
 meta def is_sort : expr → bool
 | (sort _) := tt
 | e         := ff
+
+/--
+Replace any metavariables in the expression with underscores, in preparation for printing
+`refine ...` statements.
+-/
+meta def replace_mvars (e : expr) : expr :=
+e.replace (λ e' _, if e'.is_mvar then some (unchecked_cast pexpr.mk_placeholder) else none)
 
 /-- If `e` is a local constant, `to_implicit_local_const e` changes the binder info of `e` to
  `implicit`. See also `to_implicit_binder`, which also changes lambdas and pis. -/
@@ -362,6 +383,12 @@ e.fold mk_name_set $ λ e' _ l,
   Returns `true` if `p name.anonymous` is true. -/
 meta def contains_constant (e : expr) (p : name → Prop) [decidable_pred p] : bool :=
 e.fold ff (λ e' _ b, if p (e'.const_name) then tt else b)
+
+/--
+Returns true if `e` contains a `sorry`.
+-/
+meta def contains_sorry (e : expr) : bool :=
+e.fold ff (λ e' _ b, if (is_sorry e').is_some then tt else b)
 
 /--
 `app_symbol_in e l` returns true iff `e` is an application of a constant whose name is in `l`.
@@ -805,6 +832,39 @@ d.univ_params.map level.param
 protected meta def reducibility_hints : declaration → reducibility_hints
 | (declaration.defn _ _ _ _ red _) := red
 | _ := _root_.reducibility_hints.opaque
+
+/-- formats the arguments of a `declaration.thm` -/
+private meta def print_thm (nm : name) (tp : expr) (body : task expr) : tactic format :=
+do tp ← pp tp, body ← pp body.get,
+   return $ "<theorem " ++ to_fmt nm ++ " : " ++ tp ++ " := " ++ body ++ ">"
+
+/-- formats the arguments of a `declaration.defn` -/
+private meta def print_defn (nm : name) (tp : expr) (body : expr) (is_trusted : bool) :
+  tactic format :=
+do tp ← pp tp, body ← pp body,
+   return $ "<" ++ (if is_trusted then "def " else "meta def ") ++ to_fmt nm ++ " : " ++ tp ++ " := "
+     ++ body ++ ">"
+
+/-- formats the arguments of a `declaration.cnst` -/
+private meta def print_cnst (nm : name) (tp : expr) (is_trusted : bool) : tactic format :=
+do tp ← pp tp,
+   return $ "<" ++ (if is_trusted then "constant " else "meta constant ") ++ to_fmt nm ++ " : "
+     ++ tp ++ ">"
+
+/-- formats the arguments of a `declaration.ax` -/
+private meta def print_ax (nm : name) (tp : expr) : tactic format :=
+do tp ← pp tp,
+   return $ "<axiom " ++ to_fmt nm ++ " : " ++ tp ++ ">"
+
+/-- pretty-prints a `declaration` object. -/
+meta def to_tactic_format : declaration → tactic format
+| (declaration.thm nm _ tp bd) := print_thm nm tp bd
+| (declaration.defn nm _ tp bd _ is_trusted) := print_defn nm tp bd is_trusted
+| (declaration.cnst nm _ tp is_trusted) := print_cnst nm tp is_trusted
+| (declaration.ax nm _ tp) := print_ax nm tp
+
+meta instance : has_to_tactic_format declaration :=
+⟨to_tactic_format⟩
 
 end declaration
 

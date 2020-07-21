@@ -3,11 +3,7 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl, Reid Barton
 -/
-import tactic.replacer
-import tactic.restate_axiom
-import tactic.split_ifs
-import tactic.simpa
-import tactic.tidy
+import tactic.basic
 
 /-!
 # Categories
@@ -32,15 +28,6 @@ universes v u
 
 namespace category_theory
 
-/-
-The propositional fields of `category` are annotated with the auto_param `obviously`,
-which is defined here as a
-[`replacer` tactic](https://leanprover-community.github.io/mathlib_docs/commands.html#def_replacer).
-We then immediately set up `obviously` to call `tidy`. Later, this can be replaced with more
-powerful tactics.
--/
-def_replacer obviously
-@[obviously] meta def obviously' := tactic.tidy
 
 class has_hom (obj : Type u) : Type (max u (v+1)) :=
 (hom : obj → obj → Type v)

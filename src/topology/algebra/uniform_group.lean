@@ -404,9 +404,9 @@ begin
   rcases this with ⟨U₁, U₁_nhd, V₁, V₁_nhd, H⟩,
 
   obtain ⟨x₁, x₁_in⟩ : U₁.nonempty :=
-    (forall_sets_nonempty_iff_ne_bot.2 de.comap_nhds_ne_bot U₁ U₁_nhd),
+    ((de.comap_nhds_ne_bot _).nonempty_of_mem U₁_nhd),
   obtain ⟨y₁, y₁_in⟩ : V₁.nonempty :=
-    (forall_sets_nonempty_iff_ne_bot.2 df.comap_nhds_ne_bot V₁ V₁_nhd),
+    ((df.comap_nhds_ne_bot _).nonempty_of_mem V₁_nhd),
 
   rcases (extend_Z_bilin_aux de df hφ W_nhd x₀ y₁) with ⟨U₂, U₂_nhd, HU⟩,
   rcases (extend_Z_bilin_aux df de (hφ.comp continuous_swap) W_nhd y₀ x₁) with ⟨V₂, V₂_nhd, HV⟩,
@@ -441,7 +441,7 @@ begin
   refine continuous_extend_of_cauchy _ _,
   rintro ⟨x₀, y₀⟩,
   split,
-  { apply map_ne_bot,
+  { apply ne_bot.map,
     apply comap_ne_bot,
 
     intros U h,

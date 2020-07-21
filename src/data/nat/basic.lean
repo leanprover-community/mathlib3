@@ -3,8 +3,6 @@ Copyright (c) 2014 Floris van Doorn (c) 2016 Microsoft Corporation. All rights r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import tactic.finish
-import algebra.ordered_ring
 import algebra.order_functions
 import data.set.basic
 
@@ -1535,6 +1533,24 @@ begin
   apply mul_pos,
   repeat {assumption},
   cc
+end
+
+@[simp]
+lemma div_div_div_eq_div : ∀ {a b c : ℕ} (dvd : b ∣ a) (dvd2 : a ∣ c), (c / (a / b)) / b = c / a
+| 0 _ := by simp
+| (a + 1) 0 := λ _ dvd _, by simpa using dvd
+| (a + 1) (c + 1) :=
+have a_split : a + 1 ≠ 0 := succ_ne_zero a,
+have c_split : c + 1 ≠ 0 := succ_ne_zero c,
+λ b dvd dvd2,
+begin
+  rcases dvd2 with ⟨k, rfl⟩,
+  rcases dvd with ⟨k2, pr⟩,
+  have k2_nonzero : k2 ≠ 0 := λ k2_zero, by simpa [k2_zero] using pr,
+  rw [nat.mul_div_cancel_left k (nat.pos_of_ne_zero a_split), pr,
+    nat.mul_div_cancel_left k2 (nat.pos_of_ne_zero c_split), nat.mul_comm ((c + 1) * k2) k,
+    ←nat.mul_assoc k (c + 1) k2, nat.mul_div_cancel _ (nat.pos_of_ne_zero k2_nonzero),
+    nat.mul_div_cancel _ (nat.pos_of_ne_zero c_split)],
 end
 
 lemma pow_dvd_of_le_of_pow_dvd {p m n k : ℕ} (hmn : m ≤ n) (hdiv : p ^ n ∣ k) : p ^ m ∣ k :=

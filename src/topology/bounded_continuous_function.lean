@@ -148,8 +148,7 @@ begin
   /- F : α → β,  hF : ∀ (x : α), tendsto (λ (n : ℕ), f n x) at_top (𝓝 (F x))
   `F` is the desired limit function. Check that it is uniformly approximated by `f N` -/
   have fF_bdd : ∀x N, dist (f N x) (F x) ≤ b N :=
-    λ x N, le_of_tendsto (by simp)
-      (tendsto_const_nhds.dist (hF x))
+    λ x N, le_of_tendsto (tendsto_const_nhds.dist (hF x))
       (filter.eventually_at_top.2 ⟨N, λn hn, f_bdd x N n N (le_refl N) hn⟩),
   refine ⟨⟨F, _, _⟩, _⟩,
   { /- Check that `F` is continuous, as a uniform limit of continuous functions -/
@@ -158,7 +157,7 @@ begin
       refine ((tendsto_order.1 b_lim).2 ε ε0).mono (λ n hn x, _),
       rw dist_comm,
       exact lt_of_le_of_lt (fF_bdd x n) hn },
-    exact this.continuous (λN, (f N).2.1) at_top_ne_bot },
+    exact this.continuous (λN, (f N).2.1) },
   { /- Check that `F` is bounded -/
     rcases (f 0).2.2 with ⟨C, hC⟩,
     exact ⟨C + (b 0 + b 0), λ x y, calc
@@ -219,7 +218,7 @@ theorem arzela_ascoli₁ [compact_space β]
   (closed : is_closed A)
   (H : ∀ (x:α) (ε > 0), ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
     f ∈ A → dist (f y) (f z) < ε) :
-  compact A :=
+  is_compact A :=
 begin
   refine compact_of_totally_bounded_is_closed _ closed,
   refine totally_bounded_of_finite_discretization (λ ε ε0, _),
@@ -277,20 +276,20 @@ end
 
 /-- Second version, with pointwise equicontinuity and range in a compact subset -/
 theorem arzela_ascoli₂
-  (s : set β) (hs : compact s)
+  (s : set β) (hs : is_compact s)
   (A : set (α →ᵇ β))
   (closed : is_closed A)
   (in_s : ∀(f : α →ᵇ β) (x : α), f ∈ A → f x ∈ s)
   (H : ∀(x:α) (ε > 0), ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
     f ∈ A → dist (f y) (f z) < ε) :
-  compact A :=
+  is_compact A :=
 /- This version is deduced from the previous one by restricting to the compact type in the target,
 using compactness there and then lifting everything to the original space. -/
 begin
   have M : lipschitz_with 1 coe := lipschitz_with.subtype_coe s,
   let F : (α →ᵇ s) → α →ᵇ β := comp coe M,
   refine compact_of_is_closed_subset
-    ((_ : compact (F ⁻¹' A)).image (continuous_comp M)) closed (λ f hf, _),
+    ((_ : is_compact (F ⁻¹' A)).image (continuous_comp M)) closed (λ f hf, _),
   { haveI : compact_space s := compact_iff_compact_space.1 hs,
     refine arzela_ascoli₁ _ (continuous_iff_is_closed.1 (continuous_comp M) _ closed)
       (λ x ε ε0, bex.imp_right (λ U U_nhds hU y z hy hz f hf, _) (H x ε ε0)),
@@ -304,12 +303,12 @@ end
 /-- Third (main) version, with pointwise equicontinuity and range in a compact subset, but
 without closedness. The closure is then compact -/
 theorem arzela_ascoli
-  (s : set β) (hs : compact s)
+  (s : set β) (hs : is_compact s)
   (A : set (α →ᵇ β))
   (in_s : ∀(f : α →ᵇ β) (x : α), f ∈ A → f x ∈ s)
   (H : ∀(x:α) (ε > 0), ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
     f ∈ A → dist (f y) (f z) < ε) :
-  compact (closure A) :=
+  is_compact (closure A) :=
 /- This version is deduced from the previous one by checking that the closure of A, in
 addition to being closed, still satisfies the properties of compact range and equicontinuity -/
 arzela_ascoli₂ s hs (closure A) is_closed_closure

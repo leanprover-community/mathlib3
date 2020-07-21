@@ -20,7 +20,7 @@ variables {α : Type u} {β : Type v} [uniform_space α]
   `s ∈ f` such that `s × s ⊆ r`. This is a generalization of Cauchy
   sequences, because if `a : ℕ → α` then the filter of sets containing
   cofinitely many of the `a n` is Cauchy iff `a` is a Cauchy sequence. -/
-def cauchy (f : filter α) := f ≠ ⊥ ∧ filter.prod f f ≤ (𝓤 α)
+def cauchy (f : filter α) := ne_bot f ∧ filter.prod f f ≤ (𝓤 α)
 
 /-- A set `s` is called *complete*, if any Cauchy filter `f` such that `s ∈ f`
 has a limit in `s` (formally, it satisfies `f ≤ 𝓝 x` for some `x ∈ s`). -/
@@ -28,25 +28,32 @@ def is_complete (s : set α) := ∀f, cauchy f → f ≤ 𝓟 s → ∃x∈s, f 
 
 lemma filter.has_basis.cauchy_iff {p : β → Prop} {s : β → set (α × α)} (h : (𝓤 α).has_basis p s)
   {f : filter α} :
-  cauchy f ↔ (f ≠ ⊥ ∧ (∀ i, p i → ∃ t ∈ f, ∀ x y ∈ t, (x, y) ∈ s i)) :=
+  cauchy f ↔ (ne_bot f ∧ (∀ i, p i → ∃ t ∈ f, ∀ x y ∈ t, (x, y) ∈ s i)) :=
 and_congr iff.rfl $ (f.basis_sets.prod_self.le_basis_iff h).trans $
   by simp only [subset_def, prod.forall, mem_prod_eq, and_imp, id]
 
 lemma cauchy_iff' {f : filter α} :
-  cauchy f ↔ (f ≠ ⊥ ∧ (∀ s ∈ 𝓤 α, ∃t∈f, ∀ x y ∈ t, (x, y) ∈ s)) :=
+  cauchy f ↔ (ne_bot f ∧ (∀ s ∈ 𝓤 α, ∃t∈f, ∀ x y ∈ t, (x, y) ∈ s)) :=
 (𝓤 α).basis_sets.cauchy_iff
 
 lemma cauchy_iff {f : filter α} :
-  cauchy f ↔ (f ≠ ⊥ ∧ (∀ s ∈ 𝓤 α, ∃t∈f, (set.prod t t) ⊆ s)) :=
+  cauchy f ↔ (ne_bot f ∧ (∀ s ∈ 𝓤 α, ∃t∈f, (set.prod t t) ⊆ s)) :=
 (𝓤 α).basis_sets.cauchy_iff.trans $
   by simp only [subset_def, prod.forall, mem_prod_eq, and_imp, id]
 
 lemma cauchy_map_iff {l : filter β} {f : β → α} :
-  cauchy (l.map f) ↔ (l ≠ ⊥ ∧ tendsto (λp:β×β, (f p.1, f p.2)) (l.prod l) (𝓤 α)) :=
-by rw [cauchy, (≠), map_eq_bot_iff, prod_map_map_eq]; refl
+  cauchy (l.map f) ↔ (ne_bot l ∧ tendsto (λp:β×β, (f p.1, f p.2)) (l.prod l) (𝓤 α)) :=
+by rw [cauchy, map_ne_bot_iff, prod_map_map_eq, tendsto]
 
-lemma cauchy_downwards {f g : filter α} (h_c : cauchy f) (hg : g ≠ ⊥) (h_le : g ≤ f) : cauchy g :=
+lemma cauchy_map_iff' {l : filter β} [hl : ne_bot l] {f : β → α} :
+  cauchy (l.map f) ↔ tendsto (λp:β×β, (f p.1, f p.2)) (l.prod l) (𝓤 α) :=
+cauchy_map_iff.trans $ and_iff_right hl
+
+lemma cauchy.mono {f g : filter α} [hg : ne_bot g] (h_c : cauchy f) (h_le : g ≤ f) : cauchy g :=
 ⟨hg, le_trans (filter.prod_mono h_le h_le) h_c.right⟩
+
+lemma cauchy.mono' {f g : filter α} (h_c : cauchy f) (hg : ne_bot g) (h_le : g ≤ f) : cauchy g :=
+h_c.mono h_le
 
 lemma cauchy_nhds {a : α} : cauchy (𝓝 a) :=
 ⟨nhds_ne_bot,
@@ -61,7 +68,7 @@ lemma cauchy_nhds {a : α} : cauchy (𝓝 a) :=
     ... ≤ 𝓤 α : comp_le_uniformity⟩
 
 lemma cauchy_pure {a : α} : cauchy (pure a) :=
-cauchy_downwards cauchy_nhds pure_ne_bot (pure_le_nhds a)
+cauchy_nhds.mono (pure_le_nhds a)
 
 /-- The common part of the proofs of `le_nhds_of_cauchy_adhp` and
 `sequentially_complete.le_nhds_of_seq_tendsto_nhds`: if for any entourage `s`
@@ -98,24 +105,29 @@ end
 
 lemma le_nhds_iff_adhp_of_cauchy {f : filter α} {x : α} (hf : cauchy f) :
   f ≤ 𝓝 x ↔ cluster_pt x f :=
-⟨assume h, cluster_pt.of_le_nhds h hf.1, le_nhds_of_cauchy_adhp hf⟩
+⟨assume h, cluster_pt.of_le_nhds' h hf.1, le_nhds_of_cauchy_adhp hf⟩
 
-lemma cauchy_map [uniform_space β] {f : filter α} {m : α → β}
-  (hm : uniform_continuous m) (hf : cauchy f) : cauchy (map m f) :=
-⟨have f ≠ ⊥, from hf.left, by simp; assumption,
+lemma cauchy.map [uniform_space β] {f : filter α} {m : α → β}
+  (hf : cauchy f) (hm : uniform_continuous m) : cauchy (map m f) :=
+⟨hf.1.map _,
   calc filter.prod (map m f) (map m f) =
           map (λp:α×α, (m p.1, m p.2)) (filter.prod f f) : filter.prod_map_map_eq
     ... ≤ map (λp:α×α, (m p.1, m p.2)) (𝓤 α) : map_mono hf.right
     ... ≤ 𝓤 β : hm⟩
 
-lemma cauchy_comap [uniform_space β] {f : filter β} {m : α → β}
-  (hm : comap (λp:α×α, (m p.1, m p.2)) (𝓤 β) ≤ 𝓤 α)
-  (hf : cauchy f) (hb : comap m f ≠ ⊥) : cauchy (comap m f) :=
-⟨hb,
+lemma cauchy.comap [uniform_space β] {f : filter β} {m : α → β}
+  (hf : cauchy f) (hm : comap (λp:α×α, (m p.1, m p.2)) (𝓤 β) ≤ 𝓤 α)
+  [ne_bot (comap m f)] : cauchy (comap m f) :=
+⟨‹_›,
   calc filter.prod (comap m f) (comap m f) =
           comap (λp:α×α, (m p.1, m p.2)) (filter.prod f f) : filter.prod_comap_comap_eq
     ... ≤ comap (λp:α×α, (m p.1, m p.2)) (𝓤 β) : comap_mono hf.right
     ... ≤ 𝓤 α : hm⟩
+
+lemma cauchy.comap' [uniform_space β] {f : filter β} {m : α → β}
+  (hf : cauchy f) (hm : comap (λp:α×α, (m p.1, m p.2)) (𝓤 β) ≤ 𝓤 α)
+  (hb : ne_bot (comap m f)) : cauchy (comap m f) :=
+hf.comap hm
 
 /-- Cauchy sequences. Usually defined on ℕ, but often it is also useful to say that a function
 defined on ℝ is Cauchy at +∞ to deduce convergence. Therefore, we define it in a type class that
@@ -123,7 +135,8 @@ is general enough to cover both ℕ and ℝ, which are the main motivating examp
 def cauchy_seq [semilattice_sup β] (u : β → α) := cauchy (at_top.map u)
 
 lemma cauchy_seq.mem_entourage {ι : Type*} [nonempty ι] [decidable_linear_order ι] {u : ι → α}
-(h : cauchy_seq u) {V : set (α × α)} (hV : V ∈ 𝓤 α) : ∃ k₀, ∀ i j, k₀ ≤ i → k₀ ≤ j → (u i, u j) ∈ V :=
+  (h : cauchy_seq u) {V : set (α × α)} (hV : V ∈ 𝓤 α) :
+  ∃ k₀, ∀ i j, k₀ ≤ i → k₀ ≤ j → (u i, u j) ∈ V :=
 begin
   have := h.right hV,
   obtain ⟨⟨i₀, j₀⟩, H⟩ : ∃ a, ∀ b : ι × ι, b ≥ a → prod.map u u b ∈ V,
@@ -136,20 +149,19 @@ end
 lemma cauchy_seq_of_tendsto_nhds [semilattice_sup β] [nonempty β] (f : β → α) {x}
   (hx : tendsto f at_top (𝓝 x)) :
   cauchy_seq f :=
-cauchy_downwards cauchy_nhds (map_ne_bot at_top_ne_bot) hx
+cauchy_nhds.mono hx
 
 lemma cauchy_seq_iff_tendsto [nonempty β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ tendsto (prod.map u u) at_top (𝓤 α) :=
-cauchy_map_iff.trans $ (and_iff_right at_top_ne_bot).trans $
-  by simp only [prod_at_top_at_top_eq, prod.map_def]
+cauchy_map_iff'.trans $ by simp only [prod_at_top_at_top_eq, prod.map_def]
 
 /-- If a Cauchy sequence has a convergent subsequence, then it converges. -/
 lemma tendsto_nhds_of_cauchy_seq_of_subseq
   [semilattice_sup β] {u : β → α} (hu : cauchy_seq u)
-  {ι : Type*} {f : ι → β} {p : filter ι} (hp : p ≠ ⊥)
+  {ι : Type*} {f : ι → β} {p : filter ι} [ne_bot p]
   (hf : tendsto f p at_top) {a : α} (ha : tendsto (u ∘ f) p (𝓝 a)) :
   tendsto u at_top (𝓝 a) :=
-le_nhds_of_cauchy_adhp hu (map_cluster_pt_of_comp hp hf ha)
+le_nhds_of_cauchy_adhp hu (map_cluster_pt_of_comp hf ha)
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma filter.has_basis.cauchy_seq_iff {γ} [nonempty β] [semilattice_sup β] {u : β → α}
@@ -215,8 +227,8 @@ lemma cauchy_prod [uniform_space β] {f : filter α} {g : filter β} :
 instance complete_space.prod [uniform_space β] [complete_space α] [complete_space β] :
   complete_space (α × β) :=
 { complete := λ f hf,
-    let ⟨x1, hx1⟩ := complete_space.complete $ cauchy_map uniform_continuous_fst hf in
-    let ⟨x2, hx2⟩ := complete_space.complete $ cauchy_map uniform_continuous_snd hf in
+    let ⟨x1, hx1⟩ := complete_space.complete $ hf.map uniform_continuous_fst in
+    let ⟨x2, hx2⟩ := complete_space.complete $ hf.map uniform_continuous_snd in
     ⟨(x1, x2), by rw [nhds_prod_eq, filter.prod_def];
       from filter.le_lift (λ s hs, filter.le_lift' $ λ t ht,
         have H1 : prod.fst ⁻¹' s ∈ f.sets := hx1 hs,
@@ -231,13 +243,13 @@ lemma complete_space_iff_is_complete_univ :
   complete_space α ↔ is_complete (univ : set α) :=
 ⟨@complete_univ α _, complete_space_of_is_complete_univ⟩
 
-lemma cauchy_iff_exists_le_nhds [complete_space α] {l : filter α} (hl : l ≠ ⊥) :
+lemma cauchy_iff_exists_le_nhds [complete_space α] {l : filter α} [ne_bot l] :
   cauchy l ↔ (∃x, l ≤ 𝓝 x) :=
-⟨complete_space.complete, assume ⟨x, hx⟩, cauchy_downwards cauchy_nhds hl hx⟩
+⟨complete_space.complete, assume ⟨x, hx⟩, cauchy_nhds.mono hx⟩
 
-lemma cauchy_map_iff_exists_tendsto [complete_space α] {l : filter β} {f : β → α}
-  (hl : l ≠ ⊥) : cauchy (l.map f) ↔ (∃x, tendsto f l (𝓝 x)) :=
-cauchy_iff_exists_le_nhds (map_ne_bot hl)
+lemma cauchy_map_iff_exists_tendsto [complete_space α] {l : filter β} {f : β → α} [ne_bot l] :
+  cauchy (l.map f) ↔ (∃x, tendsto f l (𝓝 x)) :=
+cauchy_iff_exists_le_nhds
 
 /-- A Cauchy sequence in a complete space converges -/
 theorem cauchy_seq_tendsto_of_complete [semilattice_sup β] [complete_space α]
@@ -308,7 +320,8 @@ assume d hd, let ⟨t, ht₁, ht₂⟩ := h d hd in ⟨t, ht₁, subset.trans hs
 lemma totally_bounded_empty : totally_bounded (∅ : set α) :=
 λ d hd, ⟨∅, finite_empty, empty_subset _⟩
 
-lemma totally_bounded_closure {s : set α} (h : totally_bounded s) :
+/-- The closure of a totally bounded set is totally bounded. -/
+lemma totally_bounded.closure {s : set α} (h : totally_bounded s) :
   totally_bounded (closure s) :=
 assume t ht,
 let ⟨t', ht', hct', htt'⟩ := mem_uniformity_is_closed ht, ⟨c, hcf, hc⟩ := h t' ht' in
@@ -319,8 +332,9 @@ let ⟨t', ht', hct', htt'⟩ := mem_uniformity_is_closed ht, ⟨c, hcf, hc⟩ :
     ... ⊆ _ : bUnion_subset $ assume i hi, subset.trans (assume x, @htt' (x, i))
       (subset_bUnion_of_mem hi)⟩
 
-lemma totally_bounded_image [uniform_space β] {f : α → β} {s : set α}
-  (hf : uniform_continuous f) (hs : totally_bounded s) : totally_bounded (f '' s) :=
+/-- The image of a totally bounded set under a unifromly continuous map is totally bounded. -/
+lemma totally_bounded.image [uniform_space β] {f : α → β} {s : set α}
+  (hs : totally_bounded s) (hf : uniform_continuous f) : totally_bounded (f '' s) :=
 assume t ht,
 have {p:α×α | (f p.1, f p.2) ∈ t} ∈ 𝓤 α,
   from hf ht,
@@ -349,29 +363,27 @@ lemma cauchy_of_totally_bounded_of_ultrafilter {s : set α} {f : filter α}
   (filter.prod f f).sets_of_superset (prod_mem_prod hif hif) (subset.trans this ht'_t)⟩
 
 lemma totally_bounded_iff_filter {s : set α} :
-  totally_bounded s ↔ (∀f, f ≠ ⊥ → f ≤ 𝓟 s → ∃c ≤ f, cauchy c) :=
+  totally_bounded s ↔ (∀f, ne_bot f → f ≤ 𝓟 s → ∃c ≤ f, cauchy c) :=
 ⟨assume : totally_bounded s, assume f hf hs,
   ⟨ultrafilter_of f, ultrafilter_of_le,
     cauchy_of_totally_bounded_of_ultrafilter this
-      (ultrafilter_ultrafilter_of hf) (le_trans ultrafilter_of_le hs)⟩,
+      (ultrafilter_ultrafilter_of' hf) (le_trans ultrafilter_of_le hs)⟩,
 
-  assume h : ∀f, f ≠ ⊥ → f ≤ 𝓟 s → ∃c ≤ f, cauchy c, assume d hd,
+  assume h : ∀f, ne_bot f → f ≤ 𝓟 s → ∃c ≤ f, cauchy c, assume d hd,
   classical.by_contradiction $ assume hs,
   have hd_cover : ∀{t:set α}, finite t → ¬ s ⊆ (⋃y∈t, {x | (x,y) ∈ d}),
     by simpa using hs,
   let
-    f := ⨅t:{t : set α // finite t}, 𝓟 (s \ (⋃y∈t.val, {x | (x,y) ∈ d})),
-    ⟨a, ha⟩ := (@ne_empty_iff_nonempty α s).1
-      (assume h, hd_cover finite_empty $ h.symm ▸ empty_subset _)
+    f := ⨅t:{t : set α // finite t}, 𝓟 (s \ (⋃y∈t.val, {x | (x,y) ∈ d}))
   in
-  have f ≠ ⊥,
-    from infi_ne_bot_of_directed ⟨a⟩
+  have ne_bot f,
+    from infi_ne_bot_of_directed'
       (assume ⟨t₁, ht₁⟩ ⟨t₂, ht₂⟩, ⟨⟨t₁ ∪ t₂, ht₁.union ht₂⟩,
         principal_mono.mpr $ diff_subset_diff_right $ Union_subset_Union $
           assume t, Union_subset_Union_const or.inl,
         principal_mono.mpr $ diff_subset_diff_right $ Union_subset_Union $
           assume t, Union_subset_Union_const or.inr⟩)
-      (assume ⟨t, ht⟩, by simp [diff_eq_empty]; exact hd_cover ht),
+      (assume ⟨t, ht⟩, by simp [ne_bot, diff_eq_empty]; exact hd_cover ht),
   have f ≤ 𝓟 s, from infi_le_of_le ⟨∅, finite_empty⟩ $ by simp; exact subset.refl s,
   let
     ⟨c, (hc₁ : c ≤ f), (hc₂ : cauchy c)⟩ := h f ‹f ≠ ⊥› this,
@@ -379,7 +391,7 @@ lemma totally_bounded_iff_filter {s : set α} :
   in
   have c ≤ 𝓟 s, from le_trans ‹c ≤ f› this,
   have m ∩ s ∈ c.sets, from inter_mem_sets hm $ le_principal_iff.mp this,
-  let ⟨y, hym, hys⟩ := nonempty_of_mem_sets hc₂.left this in
+  let ⟨y, hym, hys⟩ := hc₂.left.nonempty_of_mem this in
   let ys := (⋃y'∈({y}:set α), {x | (x, y') ∈ d}) in
   have m ⊆ ys,
     from assume y' hy',
@@ -398,16 +410,16 @@ lemma totally_bounded_iff_ultrafilter {s : set α} :
 ⟨assume hs f, cauchy_of_totally_bounded_of_ultrafilter hs,
   assume h, totally_bounded_iff_filter.mpr $ assume f hf hfs,
   have cauchy (ultrafilter_of f),
-    from h (ultrafilter_of f) (ultrafilter_ultrafilter_of hf) (le_trans ultrafilter_of_le hfs),
+    from h (ultrafilter_of f) (ultrafilter_ultrafilter_of' hf) (le_trans ultrafilter_of_le hfs),
   ⟨ultrafilter_of f, ultrafilter_of_le, this⟩⟩
 
 lemma compact_iff_totally_bounded_complete {s : set α} :
-  compact s ↔ totally_bounded s ∧ is_complete s :=
+  is_compact s ↔ totally_bounded s ∧ is_complete s :=
 ⟨λ hs, ⟨totally_bounded_iff_ultrafilter.2 (λ f hf1 hf2,
     let ⟨x, xs, fx⟩ := compact_iff_ultrafilter_le_nhds.1 hs f hf1 hf2 in
-    cauchy_downwards (cauchy_nhds) (hf1.1) fx),
+    cauchy_nhds.mono' hf1.1 fx),
   λ f fc fs,
-    let ⟨a, as, fa⟩ := hs f fc.1 fs in
+    let ⟨a, as, fa⟩ := @hs f fc.1 fs in
     ⟨a, as, le_nhds_of_cauchy_adhp fc fa⟩⟩,
 λ ⟨ht, hc⟩, compact_iff_ultrafilter_le_nhds.2
   (λf hf hfs, hc _ (totally_bounded_iff_ultrafilter.1 ht _ hf hfs) hfs)⟩
@@ -417,7 +429,7 @@ instance complete_of_compact {α : Type u} [uniform_space α] [compact_space α]
 ⟨λf hf, by simpa [principal_univ] using (compact_iff_totally_bounded_complete.1 compact_univ).2 f hf⟩
 
 lemma compact_of_totally_bounded_is_closed [complete_space α] {s : set α}
-  (ht : totally_bounded s) (hc : is_closed s) : compact s :=
+  (ht : totally_bounded s) (hc : is_closed s) : is_compact s :=
 (@compact_iff_totally_bounded_complete α _ s).2 ⟨ht, hc.is_complete⟩
 
 /-!
@@ -472,10 +484,10 @@ end
 /-- A sequence of points such that `seq n ∈ set_seq n`. Here `set_seq` is a monotonically
 decreasing sequence of sets `set_seq n ∈ f` with diameters controlled by a given sequence
 of entourages. -/
-def seq (n : ℕ) : α := some $ nonempty_of_mem_sets hf.1 (set_seq_mem hf U_mem n)
+def seq (n : ℕ) : α := some $ hf.1.nonempty_of_mem (set_seq_mem hf U_mem n)
 
 lemma seq_mem (n : ℕ) : seq hf U_mem n ∈ set_seq hf U_mem n :=
-some_spec $ nonempty_of_mem_sets hf.1 (set_seq_mem hf U_mem n)
+some_spec $ hf.1.nonempty_of_mem (set_seq_mem hf U_mem n)
 
 lemma seq_pair_mem ⦃N m n : ℕ⦄ (hm : N ≤ m) (hn : N ≤ n) :
   (seq hf U_mem m, seq hf U_mem n) ∈ U N :=

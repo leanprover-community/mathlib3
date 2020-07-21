@@ -7,9 +7,6 @@ Neil Strickland
 import algebra.group.hom
 import algebra.group.units
 import algebra.group_with_zero
-import tactic.alias
-import tactic.norm_cast
-import tactic.split_ifs
 
 /-!
 # Properties and homomorphisms of semirings and rings
@@ -629,7 +626,7 @@ protected def function.surjective.comm_ring [has_zero β] [has_one β] [has_add 
   [has_neg β] (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) :
-  ring β :=
+  comm_ring β :=
 { .. hf.ring f zero one add mul neg, .. hf.comm_semigroup f mul }
 
 local attribute [simp] add_assoc add_comm add_left_comm mul_comm

@@ -3,10 +3,10 @@ Copyright (c) 2014 Parikshit Khanna. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
-import algebra.group
 import deprecated.group
 import data.nat.basic
 import order.rel_classes
+import algebra.order_functions
 
 /-!
 # Basic properties of lists
@@ -490,6 +490,20 @@ theorem concat_cons (a b : α) (l : list α) : concat (a :: l) b = a :: concat l
 @[simp] theorem concat_eq_append (a : α) (l : list α) : concat l a = l ++ [a] :=
 by induction l; simp only [*, concat]; split; refl
 
+theorem init_eq_of_concat_eq {a : α} {l₁ l₂ : list α} : concat l₁ a = concat l₂ a → l₁ = l₂ :=
+begin
+  intro h,
+  rw [concat_eq_append, concat_eq_append] at h,
+  exact append_right_cancel h
+end
+
+theorem last_eq_of_concat_eq {a b : α} {l : list α} : concat l a = concat l b → a = b :=
+begin
+  intro h,
+  rw [concat_eq_append, concat_eq_append] at h,
+  exact head_eq_of_cons_eq (append_left_cancel h)
+end
+
 theorem concat_ne_nil (a : α) (l : list α) : concat l a ≠ [] :=
 by simp
 
@@ -525,6 +539,9 @@ by simp only [reverse_cons, concat_eq_append]
 @[simp] theorem reverse_append (s t : list α) : reverse (s ++ t) = (reverse t) ++ (reverse s) :=
 by induction s; [rw [nil_append, reverse_nil, append_nil],
 simp only [*, cons_append, reverse_cons, append_assoc]]
+
+theorem reverse_concat (l : list α) (a : α) : reverse (concat l a) = a :: reverse l :=
+by rw [concat_eq_append, reverse_append, reverse_singleton, singleton_append]
 
 @[simp] theorem reverse_reverse (l : list α) : reverse (reverse l) = l :=
 by induction l; [refl, simp only [*, reverse_cons, reverse_append]]; refl

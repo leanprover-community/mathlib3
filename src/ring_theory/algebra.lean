@@ -3,7 +3,6 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
-import tactic.simps
 import data.matrix.basic
 import linear_algebra.tensor_product
 import ring_theory.subsemiring
@@ -95,6 +94,28 @@ variables [comm_semiring R] [comm_semiring S] [semiring A] [algebra R A]
 
 lemma smul_def'' (r : R) (x : A) : r • x = algebra_map R A r * x :=
 algebra.smul_def' r x
+
+/--
+To prove two algebra structures on a fixed `[comm_semiring R] [semiring A]` agree,
+it suffices to check the `algebra_map`s agree.
+-/
+-- We'll later use this to show `algebra ℤ M` is a subsingleton.
+@[ext]
+lemma algebra_ext {R : Type*} [comm_semiring R] {A : Type*} [semiring A] (P Q : algebra R A)
+  (w : ∀ (r : R), by { haveI := P, exact algebra_map R A r } = by { haveI := Q, exact algebra_map R A r }) :
+  P = Q :=
+begin
+  unfreezingI { rcases P with ⟨⟨P⟩⟩, rcases Q with ⟨⟨Q⟩⟩ },
+  congr,
+  { funext r a,
+    replace w := congr_arg (λ s, s * a) (w r),
+    simp only [←algebra.smul_def''] at w,
+    apply w, },
+  { ext r,
+    exact w r, },
+  { apply proof_irrel_heq, },
+  { apply proof_irrel_heq, },
+end
 
 @[priority 200] -- see Note [lower instance priority]
 instance to_semimodule : semimodule R A :=
@@ -940,6 +961,13 @@ instance algebra_int : algebra ℤ R :=
   smul_def' := λ _ _, gsmul_eq_mul _ _,
   .. int.cast_ring_hom R }
 
+/--
+Promote a ring homomorphisms to a `ℤ`-algebra homomorphism.
+-/
+def ring_hom.to_int_alg_hom {R S : Type*} [ring R] [ring S] (f : R →+* S) : R →ₐ[ℤ] S :=
+{ commutes' := λ n, by simp,
+  .. f }
+
 variables {R}
 /-- A subring is a `ℤ`-subalgebra. -/
 def subalgebra_of_subring (S : set R) [is_subring S] : subalgebra ℤ R :=
@@ -953,6 +981,21 @@ def subalgebra_of_subring (S : set R) [is_subring S] : subalgebra ℤ R :=
     (λ i ih, show (i + 1 : R) ∈ S, from is_add_submonoid.add_mem ih is_submonoid.one_mem)
     (λ i ih, show ((-i - 1 : ℤ) : R) ∈ S, by { rw [int.cast_sub, int.cast_one],
       exact is_add_subgroup.sub_mem S _ _ ih is_submonoid.one_mem }) }
+
+
+section
+variables {S : Type*} [ring S]
+
+instance int_algebra_subsingleton : subsingleton (algebra ℤ S) :=
+⟨λ P Q, by { ext, simp, }⟩
+end
+
+section
+variables {S : Type*} [semiring S]
+
+instance nat_algebra_subsingleton : subsingleton (algebra ℕ S) :=
+⟨λ P Q, by { ext, simp, }⟩
+end
 
 @[simp] lemma mem_subalgebra_of_subring {x : R} {S : set R} [is_subring S] :
   x ∈ subalgebra_of_subring S ↔ x ∈ S :=

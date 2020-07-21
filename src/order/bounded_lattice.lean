@@ -10,7 +10,6 @@ Includes the Prop and fun instances.
 import order.lattice
 import data.option.basic
 import tactic.pi_instances
-import tactic.norm_cast
 
 set_option old_structure_cmd true
 
@@ -1007,6 +1006,18 @@ of_eq
 lemma inf_sup {x' y'} (h : is_compl x y) (h' : is_compl x' y') :
   is_compl (x ⊓ x') (y ⊔ y') :=
 (h.symm.sup_inf h'.symm).symm
+
+lemma inf_left_eq_bot_iff (h : is_compl y z) : x ⊓ y = ⊥ ↔ x ≤ z :=
+inf_eq_bot_iff_le_compl h.sup_eq_top h.inf_eq_bot
+
+lemma inf_right_eq_bot_iff (h : is_compl y z) : x ⊓ z = ⊥ ↔ x ≤ y :=
+h.symm.inf_left_eq_bot_iff
+
+lemma disjoint_left_iff (h : is_compl y z) : disjoint x y ↔ x ≤ z :=
+disjoint_iff.trans h.inf_left_eq_bot_iff
+
+lemma disjoint_right_iff (h : is_compl y z) : disjoint x z ↔ x ≤ y :=
+h.symm.disjoint_left_iff
 
 end is_compl
 

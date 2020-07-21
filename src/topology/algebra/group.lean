@@ -24,14 +24,14 @@ set_option default_priority 100 -- see Note [default priority]
 /-- A topological (additive) group is a group in which the addition and negation operations are
 continuous. -/
 class topological_add_group (α : Type u) [topological_space α] [add_group α]
-  extends topological_add_monoid α : Prop :=
+  extends has_continuous_add α : Prop :=
 (continuous_neg : continuous (λa:α, -a))
 
 /-- A topological group is a group in which the multiplication and inversion operations are
 continuous. -/
 @[to_additive topological_add_group]
 class topological_group (α : Type*) [topological_space α] [group α]
-  extends topological_monoid α : Prop :=
+  extends has_continuous_mul α : Prop :=
 (continuous_inv : continuous (λa:α, a⁻¹))
 end prio
 
@@ -47,9 +47,19 @@ lemma continuous.inv [topological_group α] [topological_space β] {f : β → �
 continuous_inv.comp hf
 
 @[to_additive]
+lemma continuous_on_inv [topological_group α] {s : set α} : continuous_on (λx:α, x⁻¹) s :=
+continuous_inv.continuous_on
+
+@[to_additive]
 lemma continuous_on.inv [topological_group α] [topological_space β] {f : β → α} {s : set β}
   (hf : continuous_on f s) : continuous_on (λx, (f x)⁻¹) s :=
 continuous_inv.comp_continuous_on hf
+
+@[to_additive]
+lemma tendsto_inv {α : Type*} [group α]
+  [topological_space α] [topological_group α] (a : α) :
+  tendsto (λ x, x⁻¹) (nhds a) (nhds (a⁻¹)) :=
+continuous_inv.tendsto a
 
 /-- If a function converges to a value in a multiplicative topological group, then its inverse
 converges to the inverse of this value. For the version in normed fields assuming additionally
@@ -323,7 +333,7 @@ topological_space.nhds_mk_of_nhds _ _
 lemma nhds_zero_eq_Z : 𝓝 0 = Z α := by simp [nhds_eq]; exact filter.map_id
 
 @[priority 100] -- see Note [lower instance priority]
-instance : topological_add_monoid α :=
+instance : has_continuous_add α :=
 ⟨ continuous_iff_continuous_at.2 $ assume ⟨a, b⟩,
   begin
     rw [continuous_at, nhds_prod_eq, nhds_eq, nhds_eq, nhds_eq, filter.prod_map_map_eq,
@@ -424,7 +434,7 @@ end
   such that `KV ⊆ U`. -/
 @[to_additive "Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of `0`
   such that `K + V ⊆ U`."]
-lemma compact_open_separated_mul {K U : set α} (hK : compact K) (hU : is_open U) (hKU : K ⊆ U) :
+lemma compact_open_separated_mul {K U : set α} (hK : is_compact K) (hU : is_open U) (hKU : K ⊆ U) :
   ∃ V : set α, is_open V ∧ (1 : α) ∈ V ∧ K * V ⊆ U :=
 begin
   let W : α → set α := λ x, (λ y, x * y) ⁻¹' U,
@@ -447,11 +457,11 @@ end
   with non-empty interior. -/
 @[to_additive "A compact set is covered by finitely many left additive translates of a set
   with non-empty interior."]
-lemma compact_covered_by_mul_left_translates {K V : set α} (hK : compact K)
+lemma compact_covered_by_mul_left_translates {K V : set α} (hK : is_compact K)
   (hV : (interior V).nonempty) : ∃ t : finset α, K ⊆ ⋃ g ∈ t, (λ h, g * h) ⁻¹' V :=
 begin
   cases hV with g₀ hg₀,
-  rcases compact.elim_finite_subcover hK (λ x : α, interior $ (λ h, x * h) ⁻¹' V) _ _ with ⟨t, ht⟩,
+  rcases is_compact.elim_finite_subcover hK (λ x : α, interior $ (λ h, x * h) ⁻¹' V) _ _ with ⟨t, ht⟩,
   { refine ⟨t, subset.trans ht _⟩,
     apply Union_subset_Union, intro g, apply Union_subset_Union, intro hg, apply interior_subset },
   { intro g, apply is_open_interior },

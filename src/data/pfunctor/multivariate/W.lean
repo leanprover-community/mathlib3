@@ -2,10 +2,16 @@
 Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad, Simon Hudon
-
-The W construction as a multivariate polynomial functor.
 -/
 import data.pfunctor.multivariate.basic
+
+/-!
+# The W construction as a multivariate polynomial functor.
+
+W types are well-founded tree-like structures. They are defined
+as the least fixpoint of a polynomial functor.
+-/
+
 universes u v
 
 namespace mvpfunctor
@@ -79,7 +85,7 @@ def W (α : typevec n) : Type* := P.Wp.obj α
 
 instance mvfunctor_W : mvfunctor P.W := by delta mvpfunctor.W; apply_instance
 
-/-
+/-!
 First, describe operations on `W` as a polynomial functor.
 -/
 
@@ -111,7 +117,7 @@ theorem Wp_ind {α : typevec n} {C : Π x : P.last.W, P.W_path x ⟹ α → Prop
   Π (x : P.last.W) (f' : P.W_path x ⟹ α), C x f'
 | ⟨a, f⟩ f' := ih a f f' (λ i, Wp_ind _ _)
 
-/-
+/-!
 Now think of W as defined inductively by the data ⟨a, f', f⟩ where
 - `a  : P.A` is the shape of the top node
 - `f' : P.drop.B a ⟹ α` is the contents of the top node
@@ -206,7 +212,7 @@ append_fun g (P.W_map g) <$$> P.obj_append1 a f' f =
   P.obj_append1 a (g ⊚ f') (λ x, P.W_map g (f x)) :=
 by rw [obj_append1, obj_append1, map_eq, append_fun, ← split_fun_comp]; refl
 
-/-
+/-!
 Yet another view of the W type: as a fixed point for a multivariate polynomial functor.
 These are needed to use the W-construction to construct a fixed point of a qpf, since
 the qpf axioms are expressed in terms of `map` on `P`.
@@ -230,24 +236,3 @@ theorem W_dest'_W_mk' {α : typevec n} (x : P.obj (α.append1 (P.W α))) :
 by cases x with a f; rw [W_mk', W_dest'_W_mk, split_drop_fun_last_fun]
 
 end mvpfunctor
-
-/- Checking 30 declarations (plus 55 automatically generated ones) in the current file -/
-
-/- OK: All declarations correctly marked as def/lemma. -/
-/- OK: No definitions are missing documentation.. -/
-/- OK: No unused arguments. -/
-/- OK: No declarations have a duplicate namespace. -/
-/- OK: Not using ≥/> in declarations. -/
-/- OK: has_coe_to_fun is used correctly. -/
-/- OK: No uses of `decidable` arguments should be replaced with `classical`. -/
-/- OK: No uses of `inhabited` arguments should be replaced with `nonempty`. -/
-/- OK: No invalid `has_coe` instances. -/
-/- OK: No type-class searches timed out. -/
-/- OK: No dangerous instances. -/
-/- OK: All declarations have correct type-class arguments. -/
-/- OK: All instances are applicable. -/
-/- OK: No types have missing inhabited instances. -/
-/- OK: All instance priorities are good. -/
-/- OK: No commutativity lemma is marked simp. -/
-/- OK: No left-hand sides of a simp lemma has a variable as head symbol. -/
-/- OK: All left-hand sides of simp lemmas are in simp-normal form. -/

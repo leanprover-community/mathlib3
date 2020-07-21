@@ -10,7 +10,7 @@ import data.pfunctor.multivariate.M
 import data.qpf.multivariate.basic
 
 /-!
-The final co-algebra of a multivariate qpf is again a qpf.
+# The final co-algebra of a multivariate qpf is again a qpf.
 
 Similarly to the initial algebra of a multivariate qpf,
 we define the corresponding polynomial functor by selecting:
@@ -303,11 +303,16 @@ have hh : subtype_val _ ⊚ to_subtype _ ⊚ from_append1_drop_last ⊚ c ⊚ b 
           (id ::: f ⊗' id ::: g) ⊚ prod.diag,
   by { dsimp [c,b],
        apply eq_of_drop_last_eq,
-       { dsimp, simp, erw [to_subtype_of_subtype_assoc,id_comp],
+       { dsimp,
+         simp only [prod_map_id, drop_fun_prod, drop_fun_append_fun, drop_fun_diag, id_comp,
+                    drop_fun_to_subtype],
+         erw [to_subtype_of_subtype_assoc,id_comp],
          clear_except,
          ext i x : 2, induction i,
          refl,  apply i_ih, },
-       simp [h], dsimp, ext1, refl },
+       simp only [h, last_fun_from_append1_drop_last, last_fun_to_subtype, last_fun_append_fun,
+                  last_fun_subtype_val, comp.left_id, last_fun_comp, last_fun_prod],
+       dsimp, ext1, refl },
 liftr_map _ _ _ _ (to_subtype _ ⊚ from_append1_drop_last ⊚ c ⊚ b) hh
 
 theorem liftr_map_last' [is_lawful_mvfunctor F] {α : typevec n} {ι}
@@ -330,18 +335,20 @@ begin
   clear x, rintros x y h, dsimp [R] at h, subst h,
   dsimp [cofix.dest,cofix.abs],
   induction y using quot.ind,
-  simp [cofix.repr,M.dest_corec,abs_map,abs_repr],
+  simp only [cofix.repr, M.dest_corec, abs_map, abs_repr],
   conv { congr, skip, rw cofix.dest },
   dsimp, rw [mvfunctor.map_map,mvfunctor.map_map,← append_fun_comp_id,← append_fun_comp_id],
   let f : α ::: (P F).M α ⟹ subtype_ (α.rel_last' R) :=
     split_fun diag_sub (λ x, ⟨(cofix.abs (cofix.abs x).repr, cofix.abs x),_⟩),
   refine liftr_map _ _ _ _ f _,
-  { simp [← append_prod_append_fun],
+  { simp only [←append_prod_append_fun, prod_map_id],
     apply eq_of_drop_last_eq,
-    { dsimp, simp,
+    { dsimp, simp only [drop_fun_diag],
       erw subtype_val_diag_sub,
     },
-    ext1, simp [cofix.abs],
+    ext1,
+    simp only [cofix.abs, prod.mk.inj_iff, prod_map, function.comp_app, last_fun_append_fun,
+               last_fun_subtype_val, last_fun_comp, last_fun_split_fun],
     dsimp [drop_fun_rel_last,last_fun,prod.diag],
     split; refl, },
   dsimp [rel_last',split_fun,function.uncurry,R],

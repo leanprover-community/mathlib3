@@ -2,11 +2,18 @@
 Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad, Mario Carneiro, Simon Hudon
-
-The M construction as a multivariate polynomial functor.
 -/
 import data.pfunctor.univariate
 import data.pfunctor.multivariate.basic
+
+/-!
+# The M construction as a multivariate polynomial functor.
+
+M types are potentially infinite tree-like structures. They are defined
+as the greatest fixpoint of a polynomial functor.
+
+-/
+
 universe u
 
 open_locale mvfunctor

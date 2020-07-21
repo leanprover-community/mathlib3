@@ -6,6 +6,13 @@ Authors: Johannes Hölzl
 
 import algebra.big_operators.basic
 
+/-!
+# Results about big operators with values in an ordered algebraic structure.
+
+Mostly monotonicity results for the `∑` operation.
+
+-/
+
 universes u v w
 
 open_locale big_operators

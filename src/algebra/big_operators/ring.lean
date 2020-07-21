@@ -8,6 +8,13 @@ import algebra.big_operators.basic
 import data.finset.pi
 import data.finset.powerset
 
+/-!
+# Results about big operators with values in a (semi)ring
+
+We prove results about big operators that involve some interaction between
+multiplicative and additive structures on the values being combined.
+-/
+
 universes u v w
 
 open_locale big_operators

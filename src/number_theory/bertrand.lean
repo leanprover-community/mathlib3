@@ -1,4 +1,5 @@
 import data.nat.prime
+import data.finset.intervals
 import data.nat.multiplicity
 import data.padics.padic_norm
 import tactic
@@ -54,29 +55,6 @@ end
 lemma add_two_not_le_one (x : nat) (pr : x.succ.succ ≤ 1) : false :=
   nat.not_succ_le_zero x (nat.lt_succ_iff.mp pr)
 
-lemma filter_Ico_bot (m n : nat) (size : m < n) : finset.filter (λ x, x ≤ m) (finset.Ico m n) = {m} :=
-begin
-  ext,
-  split,
-  { intros hyp,
-    simp only [finset.Ico.mem, finset.mem_filter] at hyp,
-    simp only [finset.mem_singleton],
-    linarith, },
-  { intros singleton,
-    rw finset.mem_singleton at singleton,
-    subst singleton,
-    simp,
-    exact ⟨ ⟨ le_refl a, size ⟩, le_refl a ⟩ }
-end
-
-lemma card_singleton_inter {A : Type*} [d : decidable_eq A] {x : A} {s : finset A} :
-  finset.card ({x} ∩ s) ≤ 1 :=
-begin
-  cases (finset.decidable_mem x s),
-  simp [finset.singleton_inter_of_not_mem h],
-  simp [finset.singleton_inter_of_mem h],
-end
-
 lemma claim_2
   (p : nat)
   (is_prime : nat.prime p)
@@ -119,8 +97,8 @@ begin
     },
   simp only [finset.filter_congr t],
   simp only [finset.filter_and],
-  simp only [filter_Ico_bot 1 (2 * n) (by linarith)],
-  exact card_singleton_inter,
+  simp only [@finset.Ico.filter_Ico_bot 1 (2 * n) (by linarith)],
+  exact finset.card_singleton_inter,
 end
 
 lemma move_mul (m p i : nat) (b : m < i * p) : m / p < i :=

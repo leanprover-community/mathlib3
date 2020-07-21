@@ -171,7 +171,7 @@ Icc_subset_Icc (le_refl _) h
 
 lemma Icc_subset_Ioo (ha : a₂ < a₁) (hb : b₁ < b₂) :
   Icc a₁ b₁ ⊆ Ioo a₂ b₂ :=
-λ x hx, ⟨ (lt_of_lt_of_le ha hx.1), (lt_of_le_of_lt hx.2 hb) ⟩
+λ x hx, ⟨lt_of_lt_of_le ha hx.1, lt_of_le_of_lt hx.2 hb⟩
 
 lemma Icc_subset_Ici_self : Icc a b ⊆ Ici a := λ x, and.left
 

@@ -702,9 +702,11 @@ private def init_last_of_cons : ∀ (a : α) (l : list α), Σ' l' a', a :: l = 
 | a [] := ⟨[], a, rfl⟩
 | a (b :: l) := let ⟨l', b', h'⟩ := init_last_of_cons b l in ⟨a :: l', b', by { congr, from h' }⟩
 
-/-- Implementation of `bidirectional_rec_on`. The `l` parameter is moved to the end to make the
-recursion easier to write. -/
-private def bidirectional_rec_on_aux {C : list α → Sort*}
+/-- Bidirectional induction principle for lists: if a property holds for the empty list, the
+singleton list, and `a :: (l ++ [b])` from `l`, then it holds for all lists. This can be used to
+prove statements about palindromes. The principle is given for a `Sort`-valued predicate, i.e., it
+can also be used to construct data. -/
+def bidirectional_rec {C : list α → Sort*}
     (H0 : C []) (H1 : ∀ (a : α), C [a])
     (Hn : ∀ (a : α) (l : list α) (b : α), C l → C (a :: (l ++ [b]))) : ∀ l, C l
 | [] := H0
@@ -718,19 +720,16 @@ have length l' < length (a :: b :: l), from
     ... = length (a :: b :: l) : by rw ←Hreassoc,
 begin
   rw Hreassoc,
-  have : C l', from bidirectional_rec_on_aux l',
+  have : C l', from bidirectional_rec l',
   exact Hn a l' b' ‹C l'›
 end
 using_well_founded { rel_tac := λ _ _, `[exact ⟨_, measure_wf list.length⟩] }
 
-/-- Bidirectional induction principle for lists: if a property holds for the empty list, the
-singleton list, and `a :: (l ++ [b])` from `l`, then it holds for all lists. This can be used to
-prove statements about palindromes. The principle is given for a `Sort`-valued predicate, i.e., it
-can also be used to construct data. -/
+/-- Like `bidirectional_rec`, but with the list parameter placed first for dot-notation. -/
 @[elab_as_eliminator] def bidirectional_rec_on {C : list α → Sort*}
     (l : list α) (H0 : C []) (H1 : ∀ (a : α), C [a])
     (Hn : ∀ (a : α) (l : list α) (b : α), C l → C (a :: (l ++ [b]))) : C l :=
-bidirectional_rec_on_aux H0 H1 Hn l
+bidirectional_rec H0 H1 Hn l
 
 /-! ### sublists -/
 

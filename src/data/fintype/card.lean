@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
 import data.fintype.basic
-import algebra.big_operators
+import algebra.big_operators.others -- FIXME
+import algebra.big_operators.ring
 
 /-!
 Results about "big operations" over a `fintype`, and consequent

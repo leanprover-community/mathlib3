@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
 -/
 import algebra.pi_instances
+import algebra.big_operators.ring
+import algebra.big_operators.others -- FIXME
+
 /-!
 # Matrices
 -/

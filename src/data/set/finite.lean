@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.fintype.basic
-import algebra.big_operators
+import algebra.big_operators.basic
 
 /-!
 # Finite sets

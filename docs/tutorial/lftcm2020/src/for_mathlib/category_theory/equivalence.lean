@@ -10,20 +10,6 @@ variables {C : Type u₁} [category.{v₁} C]
 variables {D : Type u₂} [category.{v₂} D]
 variables (e : C ≌ D)
 
-@[simp] lemma functor_map_inj_iff {X Y : C} (f g : X ⟶ Y) : e.functor.map f = e.functor.map g ↔ f = g :=
-begin
-  split,
-  { intro w, apply e.functor.map_injective, exact w, },
-  { rintro ⟨rfl⟩, refl, }
-end
-
-@[simp] lemma inverse_map_inj_iff {X Y : D} (f g : X ⟶ Y) : e.inverse.map f = e.inverse.map g ↔ f = g :=
-begin
-  split,
-  { intro w, apply e.inverse.map_injective, exact w, },
-  { rintro ⟨rfl⟩, refl, }
-end
-
 -- We need special forms of `cancel_nat_iso_hom_right(_assoc)` and `cancel_nat_iso_inv_right(_assoc)`
 -- for units and counits, because the simplifier can't see that `(𝟭 C).obj X` is the same as `X`.
 -- We also provide the lemmas for length four compositions, since they're occasionally useful.

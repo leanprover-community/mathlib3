@@ -48,13 +48,11 @@ instance to_group.is_add_group_hom : is_add_group_hom (to_group φ) :=
 { .. to_add_monoid.is_add_monoid_hom}
 
 variables (φ)
--- TODO: reuse to_add_monoid_zero
 @[simp] lemma to_group_zero : to_group φ 0 = 0 :=
-is_add_group_hom.map_zero _
+by apply to_add_monoid_zero
 
--- TODO: reuse to_add_monoid_add
 @[simp] lemma to_group_add (x y) : to_group φ (x + y) = to_group φ x + to_group φ y :=
-is_add_hom.map_add _ x y
+by apply to_add_monoid_add
 
 @[simp] lemma to_group_neg (x) : to_group φ (-x) = -to_group φ x :=
 is_add_group_hom.map_neg _ x
@@ -62,21 +60,14 @@ is_add_group_hom.map_neg _ x
 @[simp] lemma to_group_sub (x y) : to_group φ (x - y) = to_group φ x - to_group φ y :=
 is_add_group_hom.map_sub _ x y
 
--- TODO: reuse to_add_monoid_of
 @[simp] lemma to_group_of (i) (x : β i) : to_group φ (of β i x) = φ i x :=
-(add_zero _).trans $ congr_arg (φ i) $ show (if H : i ∈ ({i} : finset _) then x else 0) = x,
-from dif_pos $ finset.mem_singleton_self i
+by apply to_add_monoid_of
 
 variables (ψ : direct_sum ι β → γ) [is_add_group_hom ψ]
 
--- TODO: reuse to_add_monoid.unique
 theorem to_group.unique (f : direct_sum ι β) :
   ψ f = @to_group _ _ _ _ _ _ (λ i, ψ ∘ of β i) (λ i, is_add_group_hom.comp (of β i) ψ) f :=
-by haveI : ∀ i, is_add_group_hom (ψ ∘ of β i) := (λ _, is_add_group_hom.comp _ _); exact
-direct_sum.induction_on f
-  (by rw [is_add_group_hom.map_zero ψ, is_add_group_hom.map_zero (to_group (λ i, ψ ∘ of β i))])
-  (λ i x, by rw [to_group_of])
-  (λ x y ihx ihy, by rw [is_add_hom.map_add ψ, is_add_hom.map_add (to_group (λ i, ψ ∘ of β i)), ihx, ihy])
+by apply to_add_monoid.unique
 
 -- TODO: generalize to to_add_monoid too
 variables (β)

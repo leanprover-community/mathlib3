@@ -260,3 +260,12 @@ begin
 end
 
 end mv_polynomial
+
+namespace mv_polynomial
+
+variables (σ : Type*) (R : Type*) [comm_ring R] (p : ℕ)
+
+instance [char_p R p] : char_p (mv_polynomial σ R) p :=
+{ cast_eq_zero_iff := λ n, by rw [← C_eq_coe_nat, ← C_0, C_inj, char_p.cast_eq_zero_iff R p] }
+
+end mv_polynomial

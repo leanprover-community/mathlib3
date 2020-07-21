@@ -43,7 +43,7 @@ variables {E : Type u} {F : Type v} {ι : Type w} {ι' : Type x}
   [add_comm_group E] [vector_space ℝ E] [add_comm_group F] [vector_space ℝ F]
   {s : set E}
 
-open set
+open set linear_map
 open_locale classical big_operators
 
 local notation `I` := (Icc 0 1 : set ℝ)
@@ -252,6 +252,33 @@ begin
   convert (convex_singleton z).add hs,
   ext x,
   simp [set.mem_image, mem_add, eq_comm]
+end
+
+lemma convex.translate_preimage_right (hs : convex s) (z : E) : convex ((λ x, z + x) ⁻¹' s) :=
+begin
+  intros x y hx hy a b ha hb hab,
+  simp only[mem_preimage],
+  simp only [mem_preimage] at hx,
+  simp only [mem_preimage] at hy,
+  have := calc
+    z + (a • x + b • y) = 1 • z + (a • x + b • y)         : by simp only [one_smul]
+                    ... = (a + b) • z + (a • x + b • y)   : begin
+                                                            simp[←hab],
+                                                            rw[hab],
+                                                            simp only [one_smul],
+                                                           end
+                    ... = a • z + b • z + a • x + b • y   : by simp[add_smul, add_assoc]
+                    ... = a • z + a • x + b • z + b • y   : by abel
+                    ... = a • (z + x) + b • (z + y)       : by simp only [←smul_add, add_assoc],
+  rw[this],
+  exact hs hx hy ha hb hab,
+end
+
+lemma convex.translate_preimage_left (hs : convex s) (z : E) : convex ((λ x, x + z) ⁻¹' s) :=
+begin
+  have : (λ x, x + z) = (λ x, z + x) := funext (λ (x : E), add_comm x z),
+  rw[this],
+  exact convex.translate_preimage_right hs z,
 end
 
 lemma convex.affinity (hs : convex s) (z : E) (c : ℝ) : convex ((λx, z + c • x) '' s) :=
@@ -474,6 +501,17 @@ begin
   simpa [hab, zero_lt_one] using h hx hy ha hb,
 end⟩
 
+/-- If g is convex on s, so is (g ∘ f) on f ⁻¹' s for a linear f. -/
+lemma convex_on.linear_preimage {f : E →ₗ[ℝ] F} {g : F → ℝ} {s : set F} (hg : convex_on s g) :
+  convex_on (f ⁻¹' s) (g ∘ f) :=
+begin
+  refine ⟨convex.linear_preimage hg.1 f, _⟩,
+  intros x y x_in_set y_in_set a b a_nonneg b_nonneg hab,
+  rw[function.comp_app, map_add f (a • x) (b • y), map_smul, map_smul],
+  rw[function.comp_app, function.comp_app],
+  exact hg.2 (mem_preimage.mp x_in_set) (mem_preimage.mp y_in_set) (a_nonneg) (b_nonneg) hab,
+end
+
 /-- For a function on a convex set in a linear ordered space, in order to prove that it is convex
 it suffices to verify the inequality `f (a • x + b • y) ≤ a * f x + b * f y` only for `x < y`
 and positive `a`, `b`. The main use case is `E = ℝ` however one can apply it, e.g., to `ℝ^n` with
@@ -594,6 +632,41 @@ begin
     exact (@h (x, f x) (y, f y) ⟨hx, le_refl _⟩ ⟨hy, le_refl _⟩ a b ha hb hab).1 },
   { assume x y hx hy a b ha hb hab,
     exact (@h (x, f x) (y, f y) ⟨hx, le_refl _⟩ ⟨hy, le_refl _⟩ a b ha hb hab).2 }
+end
+
+/-- If a function is convex on s, it remains convex after a translation. -/
+lemma convex_on.translate_right {f : E → ℝ} {s : set E} {a : E} (hf : convex_on s f) :
+  convex_on ((λ z, a + z) ⁻¹' s) (f ∘ (λ z, a + z)) :=
+begin
+  refine ⟨convex.translate_preimage_right hf.1 a, _⟩,
+  intros x y x_in_s y_in_s a' b' ha' hb' hab',
+  replace x_in_s : a + x ∈ s,
+      simp at x_in_s, exact x_in_s,
+  replace y_in_s : a + y ∈ s,
+      simp at y_in_s, exact y_in_s,
+  change f (a + (a' • x + b' • y)) ≤ a' * f (a + x) + b' * f (a + y),
+  calc
+      f (a + (a' • x + b' • y)) = f ((1 : ℝ) • a + (a' • x + b' • y))
+                                              : by rw[one_smul]
+                          ...   = f ((a' + b') • a + (a' • x + b' • y))
+                                              : by rw[hab']
+                          ...  = f (a' • a + b' • a + a' • x + b' • y)
+                                              : by simp[smul_add, add_smul, add_assoc]
+                          ...  = f (a' • a + a' • x + b' • a + b' • y)
+                                              : by abel
+                          ...  = f (a' • (a + x) + b' • (a + y))
+                                              : by rw[smul_add, smul_add]; abel
+                           ... ≤ a' * f (a + x) + b' * f (a + y)
+                                              : hf.2 x_in_s y_in_s ha' hb' hab'
+end
+
+/-- If a function is convex on s, it remains convex after a translation. -/
+lemma convex_on.translate_left {f : E → ℝ} {s : set E} {a : E} (hf : convex_on s f) :
+  convex_on ((λ z, a + z) ⁻¹' s) (f ∘ (λ z, z + a)) :=
+begin
+  have : (λ x, x + a) = (λ x, a + x) := funext (λ (x : E), add_comm x a),
+  rw[this],
+  exact convex_on.translate_right hf,
 end
 
 end functions

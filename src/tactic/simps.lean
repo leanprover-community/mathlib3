@@ -228,7 +228,7 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
     add_decl decl,
   b ← succeeds $ is_def_eq lhs rhs,
   when (b ∧ `simp ∈ cfg.attrs) (set_basic_attribute `_refl_lemma decl_name tt),
-  cfg.attrs.mmap' $ λ nm, set_basic_attribute nm decl_name tt
+  cfg.attrs.mmap' $ λ nm, set_attribute nm decl_name tt
 
 /-- Derive lemmas specifying the projections of the declaration.
   If `todo` is non-empty, it will generate exactly the names in `todo`. -/

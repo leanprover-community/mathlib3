@@ -101,7 +101,7 @@ run_cmd do
 /- check projections for nested structures -/
 
 namespace count_nested
-@[simps] def nested1 : my_prod ℕ $ my_prod ℤ ℕ :=
+@[simps {attrs := [`simp, `norm]}] def nested1 : my_prod ℕ $ my_prod ℤ ℕ :=
 ⟨2, -1, 1⟩
 
 @[simps {attrs := []}] def nested2 : ℕ × my_prod ℕ ℕ :=

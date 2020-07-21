@@ -265,8 +265,11 @@ protected lemma nonempty.some_mem (h : s.nonempty) : h.some ∈ s := classical.s
 
 lemma nonempty.mono (ht : s ⊆ t) (hs : s.nonempty) : t.nonempty := hs.imp ht
 
+lemma nonempty_of_not_subset (h : ¬s ⊆ t) : (s \ t).nonempty :=
+let ⟨x, xs, xt⟩ := not_subset.1 h in ⟨x, xs, xt⟩
+
 lemma nonempty_of_ssubset (ht : s ⊂ t) : (t \ s).nonempty :=
-let ⟨x, xt, xs⟩ := exists_of_ssubset ht in ⟨x, xt, xs⟩
+nonempty_of_not_subset ht.2
 
 lemma nonempty.of_diff (h : (s \ t).nonempty) : s.nonempty := h.imp $ λ _, and.left
 
@@ -317,6 +320,9 @@ by simp [subset.antisymm_iff]
 theorem eq_empty_of_subset_empty {s : set α} : s ⊆ ∅ → s = ∅ :=
 subset_empty_iff.1
 
+theorem eq_empty_of_not_nonempty (h : ¬nonempty α) (s : set α) : s = ∅ :=
+eq_empty_of_subset_empty $ λ x hx, h ⟨x⟩
+
 lemma not_nonempty_iff_eq_empty {s : set α} : ¬s.nonempty ↔ s = ∅ :=
 by simp only [set.nonempty, eq_empty_iff_forall_not_mem, not_exists]
 
@@ -345,7 +351,7 @@ Mathematically it is the same as `α` but it has a different type.
 
 -/
 
-theorem univ_def : @univ α = {x | true} := rfl
+@[simp] theorem set_of_true : {x : α | true} = univ := rfl
 
 @[simp] theorem mem_univ (x : α) : x ∈ @univ α := trivial
 
@@ -959,6 +965,10 @@ begin
   { simp [h, h'] }
 end
 
+lemma insert_diff_self_of_not_mem {a : α} {s : set α} (h : a ∉ s) :
+  insert a s \ {a} = s :=
+ext $ λ x, by simp [and_iff_left_of_imp (λ hx : x ∈ s, show x ≠ a, from λ hxa, h $ hxa ▸ hx)]
+
 theorem union_diff_self {s t : set α} : s ∪ (t \ s) = s ∪ t :=
 by finish [ext_iff, iff_def]
 
@@ -1058,15 +1068,6 @@ theorem eq_preimage_subtype_val_iff {p : α → Prop} {s : set (subtype p)} {t :
   s = subtype.val ⁻¹' t ↔ (∀x (h : p x), (⟨x, h⟩ : subtype p) ∈ s ↔ x ∈ t) :=
 ⟨assume s_eq x h, by rw [s_eq]; simp,
  assume h, ext $ assume ⟨x, hx⟩, by simp [h]⟩
-
-lemma if_preimage (s : set α) [decidable_pred s] (f g : α → β) (t : set β) :
-  (λa, if a ∈ s then f a else g a)⁻¹' t = (s ∩ f ⁻¹' t) ∪ (sᶜ ∩ g ⁻¹' t) :=
-begin
-  ext,
-  simp only [mem_inter_eq, mem_union_eq, mem_preimage],
-  split_ifs;
-  simp [mem_def, h]
-end
 
 lemma preimage_coe_coe_diagonal {α : Type*} (s : set α) :
   (prod.map coe coe) ⁻¹' (diagonal α) = diagonal s :=
@@ -1263,7 +1264,7 @@ lemma nonempty.of_image {f : α → β} {s : set α} : (f '' s).nonempty → s.n
 ⟨nonempty.of_image, λ h, h.image f⟩
 
 /-- image and preimage are a Galois connection -/
-theorem image_subset_iff {s : set α} {t : set β} {f : α → β} :
+@[simp] theorem image_subset_iff {s : set α} {t : set β} {f : α → β} :
   f '' s ⊆ t ↔ s ⊆ f ⁻¹' t :=
 ball_image_iff
 

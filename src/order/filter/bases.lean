@@ -242,10 +242,10 @@ lemma has_basis.eventually_iff (hl : l.has_basis p s) {q : α → Prop} :
 by simpa using hl.mem_iff
 
 lemma has_basis.forall_nonempty_iff_ne_bot (hl : l.has_basis p s) :
-  (∀ {i}, p i → (s i).nonempty) ↔ l ≠ ⊥ :=
+  (∀ {i}, p i → (s i).nonempty) ↔ ne_bot l :=
 ⟨λ H, forall_sets_nonempty_iff_ne_bot.1 $
   λ s hs, let ⟨i, hi, his⟩ := hl.mem_iff.1 hs in (H hi).mono his,
-  λ H i hi, nonempty_of_mem_sets H (hl.mem_of_mem hi)⟩
+  λ H i hi, H.nonempty_of_mem (hl.mem_of_mem hi)⟩
 
 lemma basis_sets (l : filter α) : l.has_basis (λ s : set α, s ∈ l) id :=
 ⟨λ t, exists_sets_subset_iff.symm⟩
@@ -700,7 +700,7 @@ hcb.tendsto_iff_seq_tendsto.2
 
 lemma subseq_tendsto {f : filter α} (hf : is_countably_generated f)
   {u : ℕ → α}
-  (hx : f ⊓ map u at_top ≠ ⊥) :
+  (hx : ne_bot (f ⊓ map u at_top)) :
   ∃ (θ : ℕ → ℕ), (strict_mono θ) ∧ (tendsto (u ∘ θ) at_top f) :=
 begin
   rcases hf.has_antimono_basis with ⟨B, h⟩,

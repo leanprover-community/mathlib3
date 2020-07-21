@@ -429,8 +429,8 @@ begin
   { dsimp,
     erw [comp_id, ← H.inv_fun_id.hom.naturality (c.π.app j), comp_map, H.map_comp],
     congr' 1,
-    erw [← cancel_epi (H.inv_fun_id.inv.app (H.obj (F.obj j))), nat_iso.inv_hom_id_app,
-         ← (functor.as_equivalence H).functor_unit _, ← H.map_comp, nat_iso.hom_inv_id_app,
+    erw [← cancel_epi (H.inv_fun_id.inv.app (H.obj (F.obj j))), iso.inv_hom_id_app,
+         ← (functor.as_equivalence H).functor_unit _, ← H.map_comp, iso.hom_inv_id_app,
          H.map_id],
     refl }
 end

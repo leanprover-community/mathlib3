@@ -136,10 +136,9 @@ instance has_shift {β : Type*} [add_comm_group β] (s : β) : has_shift (graded
   (shift (graded_object_with_shift s C)).functor.obj X t = X (t + s) :=
 rfl
 
--- FIXME work out why we need the `^(1 : ℤ)` in `exact.lean`.
 @[simp] lemma shift_functor_map_apply {β : Type*} [add_comm_group β] (s : β)
   {X Y : graded_object_with_shift s C} (f : X ⟶ Y) (t : β) :
-  (shift (graded_object_with_shift s C) ^ (1 : ℤ)).functor.map f t = f (t + s) :=
+  (shift (graded_object_with_shift s C)).functor.map f t = f (t + s) :=
 rfl
 
 instance has_zero_morphisms [has_zero_morphisms C] (β : Type w) :

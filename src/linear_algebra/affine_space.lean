@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joseph Myers.
 -/
 import algebra.add_torsor
+import data.indicator_function
 import linear_algebra.basis
 
 noncomputable theory
@@ -59,6 +60,14 @@ def vector_span (s : set P) : submodule k V := submodule.span k (vsub_set V s)
 lemma vector_span_def (s : set P) : vector_span k V s = submodule.span k (vsub_set V s) :=
 rfl
 
+variables (P)
+
+/-- The `vector_span` of the empty set is `⊥`. -/
+@[simp] lemma vector_span_empty : vector_span k V (∅ : set P) = ⊥ :=
+by rw [vector_span_def, vsub_set_empty, submodule.span_empty]
+
+variables {P}
+
 /-- The `vsub_set` lies within the `vector_span`. -/
 lemma vsub_set_subset_vector_span (s : set P) : vsub_set V s ⊆ vector_span k V s :=
 submodule.subset_span
@@ -85,11 +94,18 @@ lemma mem_span_points (p : P) (s : set P) : p ∈ s → p ∈ span_points k V s
 lemma subset_span_points (s : set P) : s ⊆ span_points k V s :=
 λ p, mem_span_points k V p s
 
-/-- The set of points in the affine span of a nonempty set of points
-is nonempty. -/
-lemma span_points_nonempty_of_nonempty {s : set P} :
-  s.nonempty → (span_points k V s).nonempty 
-| ⟨p, hp⟩ := ⟨p, mem_span_points k V p s hp⟩
+/-- The `span_points` of a set is nonempty if and only if that set
+is. -/
+@[simp] lemma span_points_nonempty (s : set P) :
+  (span_points k V s).nonempty ↔ s.nonempty :=
+begin
+  split,
+  { contrapose,
+    rw [set.not_nonempty_iff_eq_empty, set.not_nonempty_iff_eq_empty],
+    intro h,
+    simp [h, span_points] },
+  { exact λ ⟨p, hp⟩, ⟨p, mem_span_points k V p s hp⟩ }
+end
 
 /-- Adding a point in the affine span and a vector in the spanning
 submodule produces a point in the affine span. -/
@@ -199,6 +215,16 @@ begin
   rw [vsub_self, smul_zero]
 end
 
+/-- The weighted sum is unaffected by changing the weights to the
+corresponding indicator function and adding points to the set. -/
+lemma weighted_vsub_of_point_indicator_subset (w : ι → k) (p : ι → P) (b : P) {s₁ s₂ : finset ι}
+    (h : s₁ ⊆ s₂) :
+  s₁.weighted_vsub_of_point V p b w = s₂.weighted_vsub_of_point V p b (set.indicator ↑s₁ w) :=
+begin
+  rw [weighted_vsub_of_point_apply, weighted_vsub_of_point_apply],
+  exact set.sum_indicator_subset_of_eq_zero w (λ i wi, wi • (p i -ᵥ b : V)) h (λ i, zero_smul k _)
+end
+
 /-- A weighted sum of the results of subtracting a default base point
 from the given points, as a linear map on the weights.  This is
 intended to be used when the sum of the weights is 0; that condition
@@ -222,6 +248,17 @@ lemma weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero (w : ι → k) (p :
     (h : ∑ i in s, w i = 0) (b : P) : s.weighted_vsub V p w = s.weighted_vsub_of_point V p b w :=
 s.weighted_vsub_of_point_eq_of_sum_eq_zero V w p h _ _
 
+/-- The `weighted_vsub` for an empty set is 0. -/
+@[simp] lemma weighted_vsub_empty (w : ι → k) (p : ι → P) :
+  (∅ : finset ι).weighted_vsub V p w = 0 :=
+by simp [weighted_vsub_apply]
+
+/-- The weighted sum is unaffected by changing the weights to the
+corresponding indicator function and adding points to the set. -/
+lemma weighted_vsub_indicator_subset (w : ι → k) (p : ι → P) {s₁ s₂ : finset ι} (h : s₁ ⊆ s₂) :
+  s₁.weighted_vsub V p w = s₂.weighted_vsub V p (set.indicator ↑s₁ w) :=
+weighted_vsub_of_point_indicator_subset _ _ _ _ h
+
 /-- A weighted sum of the results of subtracting a default base point
 from the given points, added to that base point.  This is intended to
 be used when the sum of the weights is 1, in which case it is an
@@ -230,6 +267,18 @@ that condition is specified as a hypothesis on those lemmas that
 require it. -/
 def affine_combination (w : ι → k) (p : ι → P) : P :=
 s.weighted_vsub_of_point V p (classical.choice S.nonempty) w +ᵥ (classical.choice S.nonempty)
+
+/-- Applying `affine_combination` with given weights.  This is for the
+case where a result involving a default base point is OK (for example,
+when that base point will cancel out later); a more typical use case
+for `affine_combination` would involve selecting a preferred base
+point with
+`affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one` and
+then using `weighted_vsub_of_point_apply`. -/
+lemma affine_combination_apply (w : ι → k) (p : ι → P) :
+  s.affine_combination V w p =
+    s.weighted_vsub_of_point V p (classical.choice S.nonempty) w +ᵥ (classical.choice S.nonempty) :=
+rfl
 
 /-- `affine_combination` gives the sum with any base point, when the
 sum of the weights is 1. -/
@@ -254,6 +303,31 @@ begin
   erw vadd_vsub_vadd_cancel_right,
   exact (linear_map.map_sub _ _ _).symm
 end
+
+/-- An `affine_combination` equals a point if that point is in the set
+and has weight 1 and the other points in the set have weight 0. -/
+@[simp] lemma affine_combination_of_eq_one_of_eq_zero (w : ι → k) (p : ι → P) {i : ι}
+    (his : i ∈ s) (hwi : w i = 1) (hw0 : ∀ i2 ∈ s, i2 ≠ i → w i2 = 0) :
+  s.affine_combination V w p = p i :=
+begin
+  have h1 : ∑ i in s, w i = 1 := hwi ▸ finset.sum_eq_single i hw0 (λ h, false.elim (h his)),
+  rw [s.affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one V w p h1 (p i),
+      weighted_vsub_of_point_apply],
+  convert zero_vadd V (p i),
+  convert finset.sum_eq_zero _,
+  intros i2 hi2,
+  by_cases h : i2 = i,
+  { simp [h] },
+  { simp [hw0 i2 hi2 h] }
+end
+
+/-- An affine combination is unaffected by changing the weights to the
+corresponding indicator function and adding points to the set. -/
+lemma affine_combination_indicator_subset (w : ι → k) (p : ι → P) {s₁ s₂ : finset ι}
+    (h : s₁ ⊆ s₂) :
+  s₁.affine_combination V w p = s₂.affine_combination V (set.indicator ↑s₁ w) p :=
+by rw [affine_combination_apply, affine_combination_apply,
+       weighted_vsub_of_point_indicator_subset _ _ _ _ h]
 
 end finset
 
@@ -430,6 +504,72 @@ lemma vsub_mem_direction {s : affine_subspace k V P} {p1 p2 : P} (hp1 : p1 ∈ s
   (p1 -ᵥ p2) ∈ s.direction :=
 vsub_mem_vector_span k V hp1 hp2
 
+/-- Given a point in an affine subspace, the set of vectors in its
+direction equals the set of vectors subtracting that point on the
+right. -/
+lemma coe_direction_eq_vsub_set_right {s : affine_subspace k V P} {p : P} (hp : p ∈ s) :
+  (s.direction : set V) = {v | ∃ p2 ∈ s, v = p2 -ᵥ p} :=
+begin
+  rw coe_direction_eq_vsub_set ⟨p, hp⟩,
+  refine le_antisymm _ _,
+  { rintros v ⟨p1, hp1, p2, hp2, hv⟩,
+    exact ⟨v +ᵥ p,
+           vadd_mem_of_mem_direction (hv.symm ▸ vsub_mem_direction hp1 hp2) hp,
+           (vadd_vsub _ _ _).symm⟩ },
+  { rintros v ⟨p2, hp2, hv⟩,
+    exact ⟨p2, hp2, p, hp, hv⟩ }
+end
+
+/-- Given a point in an affine subspace, the set of vectors in its
+direction equals the set of vectors subtracting that point on the
+left. -/
+lemma coe_direction_eq_vsub_set_left {s : affine_subspace k V P} {p : P} (hp : p ∈ s) :
+  (s.direction : set V) = {v | ∃ p2 ∈ s, v = p -ᵥ p2} :=
+begin
+  ext v,
+  rw [submodule.mem_coe, ←submodule.neg_mem_iff, ←submodule.mem_coe,
+      coe_direction_eq_vsub_set_right hp, set.mem_set_of_eq, set.mem_set_of_eq],
+  conv_lhs { congr, funext, rw [←neg_vsub_eq_vsub_rev, neg_inj] }
+end
+
+/-- Given a point in an affine subspace, a vector is in its direction
+if and only if it results from subtracting that point on the right. -/
+lemma mem_direction_iff_eq_vsub_right {s : affine_subspace k V P} {p : P} (hp : p ∈ s) (v : V) :
+  v ∈ s.direction ↔ ∃ p2 ∈ s, v = p2 -ᵥ p :=
+begin
+  rw [←submodule.mem_coe, coe_direction_eq_vsub_set_right hp],
+  exact iff.rfl
+end
+
+/-- Given a point in an affine subspace, a vector is in its direction
+if and only if it results from subtracting that point on the left. -/
+lemma mem_direction_iff_eq_vsub_left {s : affine_subspace k V P} {p : P} (hp : p ∈ s) (v : V) :
+  v ∈ s.direction ↔ ∃ p2 ∈ s, v = p -ᵥ p2 :=
+begin
+  rw [←submodule.mem_coe, coe_direction_eq_vsub_set_left hp],
+  exact iff.rfl
+end
+
+/-- Given a point in an affine subspace, a result of subtracting that
+point on the right is in the direction if and only if the other point
+is in the subspace. -/
+lemma vsub_right_mem_direction_iff_mem {s : affine_subspace k V P} {p : P} (hp : p ∈ s) (p2 : P) :
+  p2 -ᵥ p ∈ s.direction ↔ p2 ∈ s :=
+begin
+  rw mem_direction_iff_eq_vsub_right hp,
+  simp
+end
+
+/-- Given a point in an affine subspace, a result of subtracting that
+point on the left is in the direction if and only if the other point
+is in the subspace. -/
+lemma vsub_left_mem_direction_iff_mem {s : affine_subspace k V P} {p : P} (hp : p ∈ s) (p2 : P) :
+  p -ᵥ p2 ∈ s.direction ↔ p2 ∈ s :=
+begin
+  rw mem_direction_iff_eq_vsub_left hp,
+  simp
+end
+
 /-- Two affine subspaces are equal if they have the same points. -/
 @[ext] lemma ext {s1 s2 : affine_subspace k V P} (h : (s1 : set P) = s2) : s1 = s2 :=
 begin
@@ -567,7 +707,7 @@ end affine_span
 
 namespace affine_subspace
 
-variables (k : Type*) (V : Type*) (P : Type*) [ring k] [add_comm_group V] [module k V]
+variables {k : Type*} {V : Type*} {P : Type*} [ring k] [add_comm_group V] [module k V]
           [S : affine_space k V P]
 include S
 
@@ -636,7 +776,7 @@ second. -/
 lemma lt_iff_le_and_exists (s1 s2 : affine_subspace k V P) : s1 < s2 ↔ s1 ≤ s2 ∧ ∃ p ∈ s2, p ∉ s1 :=
 by rw [lt_iff_le_not_le, not_le_iff_exists]
 
-variables {P}
+variables (k V)
 
 /-- The affine span is the `Inf` of subspaces containing the given
 points. -/
@@ -663,6 +803,8 @@ protected def gi : galois_insertion (affine_span k V) (coe : affine_subspace k V
 @[simp] lemma span_univ : affine_span k V (set.univ : set P) = ⊤ :=
 eq_top_iff.2 $ subset_span_points k V _
 
+variables {P}
+
 /-- The span of a union of sets is the sup of their spans. -/
 lemma span_union (s t : set P) : affine_span k V (s ∪ t) = affine_span k V s ⊔ affine_span k V t :=
 (affine_subspace.gi k V P).gc.l_sup
@@ -672,6 +814,8 @@ their spans. -/
 lemma span_Union {ι : Type*} (s : ι → set P) :
   affine_span k V (⋃ i, s i) = ⨆ i, affine_span k V (s i) :=
 (affine_subspace.gi k V P).gc.l_supr
+
+variables (P)
 
 /-- `⊤`, coerced to a set, is the whole set of points. -/
 @[simp] lemma top_coe : ((⊤ : affine_subspace k V P) : set P) = set.univ :=
@@ -712,6 +856,8 @@ variables (P)
 @[simp] lemma direction_bot : (⊥ : affine_subspace k V P).direction = ⊥ :=
 by rw [direction_eq_vector_span, bot_coe, vector_span_def, vsub_set_empty, submodule.span_empty]
 
+variables {k V P}
+
 /-- The inf of two affine subspaces, coerced to a set, is the
 intersection of the two sets of points. -/
 @[simp] lemma inf_coe (s1 s2 : affine_subspace k V P) : ((s1 ⊓ s2) : set P) = s1 ∩ s2 :=
@@ -733,7 +879,306 @@ begin
     (Inf_le_Inf (λ p hp, set.subset.trans (vsub_set_mono V (set.inter_subset_right _ _)) hp))
 end
 
+/-- If one affine subspace is less than or equal to another, the same
+applies to their directions. -/
+lemma direction_le {s1 s2 : affine_subspace k V P} (h : s1 ≤ s2) : s1.direction ≤ s2.direction :=
+begin
+  repeat { rw [direction_eq_vector_span, vector_span_def] },
+  exact submodule.span_mono (vsub_set_mono _ h)
+end
+
+/-- If one nonempty affine subspace is less than another, the same
+applies to their directions -/
+lemma direction_lt_of_nonempty {s1 s2 : affine_subspace k V P} (h : s1 < s2)
+    (hn : (s1 : set P).nonempty) : s1.direction < s2.direction :=
+begin
+  cases hn with p hp,
+  rw lt_iff_le_and_exists at h,
+  rcases h with ⟨hle, p2, hp2, hp2s1⟩,
+  rw submodule.lt_iff_le_and_exists,
+  use [direction_le hle, p2 -ᵥ p, vsub_mem_direction hp2 (hle hp)],
+  intro hm,
+  rw vsub_right_mem_direction_iff_mem hp p2 at hm,
+  exact hp2s1 hm
+end
+
+/-- The sup of the directions of two affine subspaces is less than or
+equal to the direction of their sup. -/
+lemma sup_direction_le (s1 s2 : affine_subspace k V P) :
+  s1.direction ⊔ s2.direction ≤ (s1 ⊔ s2).direction :=
+begin
+  repeat { rw [direction_eq_vector_span, vector_span_def] },
+  exact sup_le
+    (Inf_le_Inf (λ p hp, set.subset.trans (vsub_set_mono V (le_sup_left : s1 ≤ s1 ⊔ s2)) hp))
+    (Inf_le_Inf (λ p hp, set.subset.trans (vsub_set_mono V (le_sup_right : s2 ≤ s1 ⊔ s2)) hp))
+end
+
+/-- The sup of the directions of two nonempty affine subspaces with
+empty intersection is less than the direction of their sup. -/
+lemma sup_direction_lt_of_nonempty_of_inter_empty {s1 s2 : affine_subspace k V P}
+    (h1 : (s1 : set P).nonempty) (h2 : (s2 : set P).nonempty) (he : (s1 ∩ s2 : set P) = ∅) :
+  s1.direction ⊔ s2.direction < (s1 ⊔ s2).direction :=
+begin
+  cases h1 with p1 hp1,
+  cases h2 with p2 hp2,
+  rw submodule.lt_iff_le_and_exists,
+  use [sup_direction_le s1 s2, p2 -ᵥ p1,
+       vsub_mem_direction ((le_sup_right : s2 ≤ s1 ⊔ s2) hp2) ((le_sup_left : s1 ≤ s1 ⊔ s2) hp1)],
+  intro h,
+  rw submodule.mem_sup at h,
+  rcases h with ⟨v1, hv1, v2, hv2, hv1v2⟩,
+  rw [←sub_eq_zero, sub_eq_add_neg, neg_vsub_eq_vsub_rev, add_comm v1, add_assoc,
+      ←vadd_vsub_assoc, ←neg_neg v2, add_comm, ←sub_eq_add_neg, ←vsub_vadd_eq_vsub_sub,
+      vsub_eq_zero_iff_eq] at hv1v2,
+  refine set.nonempty.ne_empty _ he,
+  use [v1 +ᵥ p1, vadd_mem_of_mem_direction hv1 hp1],
+  rw hv1v2,
+  exact vadd_mem_of_mem_direction (submodule.neg_mem _ hv2) hp2
+end
+
+/-- If the directions of two nonempty affine subspaces span the whole
+module, they have nonempty intersection. -/
+lemma inter_nonempty_of_nonempty_of_sup_direction_eq_top {s1 s2 : affine_subspace k V P}
+    (h1 : (s1 : set P).nonempty) (h2 : (s2 : set P).nonempty)
+    (hd : s1.direction ⊔ s2.direction = ⊤) : ((s1 : set P) ∩ s2).nonempty :=
+begin
+  by_contradiction h,
+  rw set.not_nonempty_iff_eq_empty at h,
+  have hlt := sup_direction_lt_of_nonempty_of_inter_empty h1 h2 h,
+  rw hd at hlt,
+  exact not_top_lt hlt
+end
+
+/-- If the directions of two nonempty affine subspaces are complements
+of each other, they intersect in exactly one point. -/
+lemma inter_eq_singleton_of_nonempty_of_is_compl {s1 s2 : affine_subspace k V P}
+    (h1 : (s1 : set P).nonempty) (h2 : (s2 : set P).nonempty)
+    (hd : is_compl s1.direction s2.direction) : ∃ p, (s1 : set P) ∩ s2 = {p} :=
+begin
+  cases inter_nonempty_of_nonempty_of_sup_direction_eq_top h1 h2 hd.sup_eq_top with p hp,
+  use p,
+  ext q,
+  rw set.mem_singleton_iff,
+  split,
+  { rintros ⟨hq1, hq2⟩,
+    have hqp : q -ᵥ p ∈ s1.direction ⊓ s2.direction :=
+      ⟨vsub_mem_direction hq1 hp.1, vsub_mem_direction hq2 hp.2⟩,
+    rwa [hd.inf_eq_bot, submodule.mem_bot, vsub_eq_zero_iff_eq] at hqp },
+  { exact λ h, h.symm ▸ hp }
+end
+
 end affine_subspace
+
+namespace affine_space
+
+variables (k : Type*) (V : Type*) {P : Type*} [ring k] [add_comm_group V] [module k V]
+          [affine_space k V P]
+variables {ι : Type*}
+
+/-- The `vector_span` is the span of the pairwise subtractions with a
+given point on the left. -/
+lemma vector_span_eq_span_vsub_set_left {s : set P} {p : P} (hp : p ∈ s) :
+  vector_span k V s = submodule.span k {v | ∃ p2 ∈ s, v = p -ᵥ p2} :=
+begin
+  rw vector_span_def,
+  refine le_antisymm _ (submodule.span_mono _),
+  { rw submodule.span_le,
+    rintros v ⟨p1, hp1, p2, hp2, hv⟩,
+    rw ←vsub_sub_vsub_cancel_left V p1 p2 p at hv,
+    rw [hv, submodule.mem_coe, submodule.mem_span],
+    exact λ m hm, submodule.sub_mem _ (hm ⟨p2, hp2, rfl⟩) (hm ⟨p1, hp1, rfl⟩) },
+  { rintros v ⟨p2, hp2, hv⟩,
+    exact ⟨p, hp, p2, hp2, hv⟩ }
+end
+
+/-- The `vector_span` is the span of the pairwise subtractions with a
+given point on the right. -/
+lemma vector_span_eq_span_vsub_set_right {s : set P} {p : P} (hp : p ∈ s) :
+  vector_span k V s = submodule.span k {v | ∃ p2 ∈ s, v = p2 -ᵥ p} :=
+begin
+  rw vector_span_def,
+  refine le_antisymm _ (submodule.span_mono _),
+  { rw submodule.span_le,
+    rintros v ⟨p1, hp1, p2, hp2, hv⟩,
+    rw ←vsub_sub_vsub_cancel_right V p1 p2 p at hv,
+    rw [hv, submodule.mem_coe, submodule.mem_span],
+    exact λ m hm, submodule.sub_mem _ (hm ⟨p1, hp1, rfl⟩) (hm ⟨p2, hp2, rfl⟩) },
+  { rintros v ⟨p2, hp2, hv⟩,
+    exact ⟨p2, hp2, p, hp, hv⟩ }
+end
+
+/-- The `vector_span` of an indexed family is the span of the pairwise
+subtractions with a given point on the left. -/
+lemma vector_span_range_eq_span_range_vsub_left (p : ι → P) (i0 : ι) :
+  vector_span k V (set.range p) = submodule.span k (set.range (λ (i : ι), p i0 -ᵥ p i)) :=
+begin
+  simp_rw [vector_span_eq_span_vsub_set_left k V (set.mem_range_self i0), set.exists_range_iff],
+  conv_lhs { congr, congr, funext, conv { congr, funext, rw eq_comm } },
+  refl
+end
+
+/-- The `vector_span` of an indexed family is the span of the pairwise
+subtractions with a given point on the right. -/
+lemma vector_span_range_eq_span_range_vsub_right (p : ι → P) (i0 : ι) :
+  vector_span k V (set.range p) = submodule.span k (set.range (λ (i : ι), p i -ᵥ p i0)) :=
+begin
+  simp_rw [vector_span_eq_span_vsub_set_right k V (set.mem_range_self i0), set.exists_range_iff],
+  conv_lhs { congr, congr, funext, conv { congr, funext, rw eq_comm } },
+  refl
+end
+
+/-- The affine span of a set is nonempty if and only if that set
+is. -/
+lemma affine_span_nonempty (s : set P) :
+  (affine_span k V s : set P).nonempty ↔ s.nonempty :=
+span_points_nonempty k V s
+
+variables {k}
+
+/-- A `weighted_vsub` with sum of weights 0 is in the `vector_span` of
+an indexed family. -/
+lemma weighted_vsub_mem_vector_span {s : finset ι} {w : ι → k}
+    (h : ∑ i in s, w i = 0) (p : ι → P) : 
+    s.weighted_vsub V p w ∈ vector_span k V (set.range p) :=
+begin
+  by_cases hn : nonempty ι,
+  { cases hn with i0,
+    rw [vector_span_range_eq_span_range_vsub_right k V p i0, ←set.image_univ,
+        finsupp.mem_span_iff_total,
+        finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero V s w p h (p i0),
+        finset.weighted_vsub_of_point_apply],
+    let w' := set.indicator ↑s w,
+    have hwx : ∀ i, w' i ≠ 0 → i ∈ s := λ i, set.mem_of_indicator_ne_zero,
+    use [finsupp.on_finset s w' hwx, set.subset_univ _],
+    rw [finsupp.total_apply, finsupp.on_finset_sum hwx],
+    { apply finset.sum_congr rfl,
+      intros i hi,
+      simp [w', set.indicator_apply, if_pos hi] },
+    { exact λ _, zero_smul k _ } },
+  { simp [finset.eq_empty_of_not_nonempty hn s] }
+end
+
+/-- An `affine_combination` with sum of weights 1 is in the
+`affine_span` of an indexed family, if the underlying ring is
+nontrivial. -/
+lemma affine_combination_mem_affine_span [nontrivial k] {s : finset ι} {w : ι → k}
+    (h : ∑ i in s, w i = 1) (p : ι → P) :
+  s.affine_combination V w p ∈ affine_span k V (set.range p) :=
+begin
+  have hnz : ∑ i in s, w i ≠ 0 := h.symm ▸ one_ne_zero,
+  have hn : s.nonempty := finset.nonempty_of_sum_ne_zero hnz,
+  cases hn with i1 hi1,
+  let w1 : ι → k := function.update (function.const ι 0) i1 1,
+  have hw1 : ∑ i in s, w1 i = 1,
+  { rw [finset.sum_update_of_mem hi1, finset.sum_const_zero, add_zero] },
+  have hw1s : s.affine_combination V w1 p = p i1 :=
+    s.affine_combination_of_eq_one_of_eq_zero V w1 p hi1 (function.update_same _ _ _)
+                                              (λ _ _ hne, function.update_noteq hne _ _),
+  have hv : s.affine_combination V w p -ᵥ p i1 ∈ (affine_span k V (set.range p)).direction,
+  { rw [direction_affine_span, ←hw1s, finset.affine_combination_vsub],
+    apply weighted_vsub_mem_vector_span,
+    simp [pi.sub_apply, h, hw1] },
+  rw ←vsub_vadd V (s.affine_combination V w p) (p i1),
+  exact affine_subspace.vadd_mem_of_mem_direction hv (mem_affine_span k V (set.mem_range_self _))
+end
+
+variables (k) {V}
+
+/-- A vector is in the `vector_span` of an indexed family if and only
+if it is a `weighted_vsub` with sum of weights 0. -/
+lemma mem_vector_span_iff_eq_weighted_vsub {v : V} {p : ι → P} :
+  v ∈ vector_span k V (set.range p) ↔
+    ∃ (s : finset ι) (w : ι → k) (h : ∑ i in s, w i = 0), v = s.weighted_vsub V p w :=
+begin
+  split,
+  { by_cases hn : nonempty ι,
+    { cases hn with i0,
+      rw [vector_span_range_eq_span_range_vsub_right k V p i0, ←set.image_univ,
+          finsupp.mem_span_iff_total],
+      rintros ⟨l, hl, hv⟩,
+      use insert i0 l.support,
+      set w := (l : ι → k) -
+        function.update (function.const ι 0 : ι → k) i0 (∑ i in l.support, l i) with hwdef,
+      use w,
+      have hw : ∑ i in insert i0 l.support, w i = 0,
+      { rw hwdef,
+        simp_rw [pi.sub_apply, finset.sum_sub_distrib,
+                 finset.sum_update_of_mem (finset.mem_insert_self _ _), finset.sum_const_zero,
+                 finset.sum_insert_of_eq_zero_if_not_mem finsupp.not_mem_support_iff.1,
+                 add_zero, sub_self] },
+      use hw,
+      have hz : w i0 • (p i0 -ᵥ p i0 : V) = 0 := (vsub_self V (p i0)).symm ▸ smul_zero _,
+      change (λ i, w i • (p i -ᵥ p i0 : V)) i0 = 0 at hz,
+      rw [finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero V _ w p hw (p i0),
+          finset.weighted_vsub_of_point_apply, ←hv, finsupp.total_apply,
+          finset.sum_insert_zero hz],
+      change ∑ i in l.support, l i • _ = _,
+      congr,
+      ext i,
+      by_cases h : i = i0,
+      { simp [h] },
+      { simp [hwdef, h] } },
+    { rw [set.range_eq_empty.2 hn, vector_span_empty, submodule.mem_bot],
+      intro hv,
+      use [∅],
+      simp [hv] } },
+  { rintros ⟨s, w, hw, rfl⟩,
+    exact weighted_vsub_mem_vector_span V hw p }
+end
+
+variables {k}
+
+/-- A point in the `affine_span` of an indexed family is an
+`affine_combination` with sum of weights 1. -/
+lemma eq_affine_combination_of_mem_affine_span {p1 : P} {p : ι → P}
+    (h : p1 ∈ affine_span k V (set.range p)) :
+  ∃ (s : finset ι) (w : ι → k) (hw : ∑ i in s, w i = 1), p1 = s.affine_combination V w p :=
+begin
+  have hn : ((affine_span k V (set.range p)) : set P).nonempty := ⟨p1, h⟩,
+  rw [affine_span_nonempty, set.range_nonempty_iff_nonempty] at hn,
+  cases hn with i0,
+  have h0 : p i0 ∈ affine_span k V (set.range p) := mem_affine_span k V (set.mem_range_self i0),
+  have hd : p1 -ᵥ p i0 ∈ (affine_span k V (set.range p)).direction :=
+    affine_subspace.vsub_mem_direction h h0,
+  rw [direction_affine_span, mem_vector_span_iff_eq_weighted_vsub] at hd,
+  rcases hd with ⟨s, w, h, hs⟩,
+  let s' := insert i0 s,
+  let w' := set.indicator ↑s w,
+  have h' : ∑ i in s', w' i = 0,
+  { rw [←h, set.sum_indicator_subset _ (finset.subset_insert i0 s)] },
+  have hs' : s'.weighted_vsub V p w' = p1 -ᵥ p i0,
+  { rw hs,
+    exact (finset.weighted_vsub_indicator_subset _ _ _ (finset.subset_insert i0 s)).symm },
+  let w0 : ι → k := function.update (function.const ι 0) i0 1,
+  have hw0 : ∑ i in s', w0 i = 1,
+  { rw [finset.sum_update_of_mem (finset.mem_insert_self _ _), finset.sum_const_zero, add_zero] },
+  have hw0s : s'.affine_combination V w0 p = p i0 :=
+    s'.affine_combination_of_eq_one_of_eq_zero V w0 p
+                                               (finset.mem_insert_self _ _)
+                                               (function.update_same _ _ _)
+                                               (λ _ _ hne, function.update_noteq hne _ _),
+  use [s', w0 + w'],
+  split,
+  { simp [pi.add_apply, finset.sum_add_distrib, hw0, h'] },
+  { rw [add_comm, ←finset.weighted_vsub_vadd_affine_combination, hw0s, hs', vsub_vadd] }
+end
+
+variables (k V)
+
+/-- A point is in the `affine_span` of an indexed family if and only
+if it is an `affine_combination` with sum of weights 1, provided the
+underlying ring is nontrivial. -/
+lemma mem_affine_span_iff_eq_affine_combination [nontrivial k] {p1 : P} {p : ι → P} :
+  p1 ∈ affine_span k V (set.range p) ↔
+    ∃ (s : finset ι) (w : ι → k) (hw : ∑ i in s, w i = 1), p1 = s.affine_combination V w p :=
+begin
+  split,
+  { exact eq_affine_combination_of_mem_affine_span },
+  { rintros ⟨s, w, hw, rfl⟩,
+    exact affine_combination_mem_affine_span V hw p }
+end
+
+end affine_space
 
 /-- An `affine_map k V1 P1 V2 P2` is a map from `P1` to `P2` that
 induces a corresponding linear map from `V1` to `V2`. -/

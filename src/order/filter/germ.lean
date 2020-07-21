@@ -55,11 +55,11 @@ namespace filter
 
 variables {α β γ δ : Type*} {l : filter α} {f g h : α → β}
 
-lemma const_eventually_eq' (hl : l ≠ ⊥) {a b : β} : (∀ᶠ x in l, a = b) ↔ a = b :=
-eventually_const hl
+lemma const_eventually_eq' [ne_bot l] {a b : β} : (∀ᶠ x in l, a = b) ↔ a = b :=
+eventually_const
 
-lemma const_eventually_eq (hl : l ≠ ⊥) {a b : β} : ((λ _, a) =ᶠ[l] (λ _, b)) ↔ a = b :=
-@const_eventually_eq' _ _ _ hl a b
+lemma const_eventually_eq [ne_bot l] {a b : β} : ((λ _, a) =ᶠ[l] (λ _, b)) ↔ a = b :=
+@const_eventually_eq' _ _ _ _ a b
 
 lemma eventually_eq.comp_tendsto {f' : α → β} (H : f =ᶠ[l] f') {g : γ → α} {lc : filter γ}
   (hg : tendsto g lc l) :
@@ -137,6 +137,10 @@ def map₂ (op : β → γ → δ) : germ l β → germ l γ → germ l δ :=
 quotient.map₂' (λ f g x, op (f x) (g x)) $ λ f f' Hf g g' Hg,
 Hg.mp $ Hf.mono $ λ x Hf Hg, by simp only [Hf, Hg]
 
+@[simp] lemma map₂_coe (op : β → γ → δ) (f : α → β) (g : α → γ) :
+  map₂ op (f : germ l β) g = λ x, op (f x) (g x) :=
+rfl
+
 /-- A germ at `l` of maps from `α` to `β` tends to `lb : filter β` if it is represented by a map
 which tends to `lb` along `l`. -/
 protected def tendsto (f : germ l β) (lb : filter β) : Prop :=
@@ -172,8 +176,8 @@ rfl
   f.comp_tendsto' _ hg.germ_tendsto = f.comp_tendsto g hg :=
 rfl
 
-@[simp, norm_cast] lemma const_inj (hl : l ≠ ⊥) {a b : β} : (↑a : germ l β) = ↑b ↔ a = b :=
-coe_eq.trans $ const_eventually_eq hl
+@[simp, norm_cast] lemma const_inj [ne_bot l] {a b : β} : (↑a : germ l β) = ↑b ↔ a = b :=
+coe_eq.trans $ const_eventually_eq
 
 @[simp] lemma map_const (l : filter α) (a : β) (f : β → γ) :
   (↑a : germ l β).map f = ↑(f a) :=
@@ -206,9 +210,9 @@ lemma lift_pred_const {p : β → Prop} {x : β} (hx : p x) :
   lift_pred p (↑x : germ l β) :=
 eventually_of_forall $ λ y, hx
 
-@[simp] lemma lift_pred_const_iff (hl : l ≠ ⊥) {p : β → Prop} {x : β} :
+@[simp] lemma lift_pred_const_iff [ne_bot l] {p : β → Prop} {x : β} :
   lift_pred p (↑x : germ l β) ↔ p x :=
-@eventually_const _ _ hl (p x)
+@eventually_const _ _ _ (p x)
 
 /-- Lift a relation `r : β → γ → Prop` to `germ l β → germ l γ → Prop`. -/
 def lift_rel (r : β → γ → Prop) (f : germ l β) (g : germ l γ) : Prop :=
@@ -223,9 +227,9 @@ lemma lift_rel_const {r : β → γ → Prop} {x : β} {y : γ} (h : r x y) :
   lift_rel r (↑x : germ l β) ↑y :=
 eventually_of_forall $ λ _, h
 
-@[simp] lemma lift_rel_const_iff (hl : l ≠ ⊥) {r : β → γ → Prop} {x : β} {y : γ} :
+@[simp] lemma lift_rel_const_iff [ne_bot l] {r : β → γ → Prop} {x : β} {y : γ} :
   lift_rel r (↑x : germ l β) ↑y ↔ r x y :=
-@eventually_const _ _ hl (r x y)
+@eventually_const _ _ _ (r x y)
 
 instance [inhabited β] : inhabited (germ l β) := ⟨↑(default β)⟩
 
@@ -330,10 +334,8 @@ section ring
 
 variables {R : Type*}
 
-/-- If `β` is nontrivial and `l` is a non-trivial filter (`l ≠ ⊥`), then `germ l β` is nontrivial.
-This cannot be an `instance` because it depends on `l ≠ ⊥`. -/
-protected lemma nontrivial [nontrivial R] (hl : l ≠ ⊥) : nontrivial (germ l R) :=
-let ⟨x, y, h⟩ := exists_pair_ne R in ⟨⟨↑x, ↑y, mt (const_inj hl).1 h⟩⟩
+instance nontrivial [nontrivial R] [ne_bot l] : nontrivial (germ l R) :=
+let ⟨x, y, h⟩ := exists_pair_ne R in ⟨⟨↑x, ↑y, mt const_inj.1 h⟩⟩
 
 instance [mul_zero_class R] : mul_zero_class (germ l R) :=
 { zero := 0,
@@ -425,8 +427,8 @@ lemma const_le [has_le β] {x y : β} (h : x ≤ y) : (↑x : germ l β) ≤ ↑
 lift_rel_const h
 
 @[simp, norm_cast]
-lemma const_le_iff [has_le β] (hl : l ≠ ⊥) {x y : β} : (↑x : germ l β) ≤ ↑y ↔ x ≤ y :=
-lift_rel_const_iff hl
+lemma const_le_iff [has_le β] [ne_bot l] {x y : β} : (↑x : germ l β) ≤ ↑y ↔ x ≤ y :=
+lift_rel_const_iff
 
 instance [preorder β] : preorder (germ l β) :=
 { le := (≤),

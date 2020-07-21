@@ -181,13 +181,9 @@ begin
   rintro l ⟨⟩,
   apply finsupp.induction l, {exact zero_mem _},
   refine λ x a l hl a0, add_mem _ _,
-  haveI := classical.dec_pred (λ x, ∃ i, x ∈ s i),
   by_cases (∃ i, x ∈ s i); simp [h],
   { cases h with i hi,
-    exact le_supr (λ i, supported M R (s i)) i (single_mem_supported R _ hi) },
-  { rw filter_single_of_neg,
-    { simp },
-    { exact h } }
+    exact le_supr (λ i, supported M R (s i)) i (single_mem_supported R _ hi) }
 end
 
 theorem supported_union (s t : set α) :

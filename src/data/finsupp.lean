@@ -488,6 +488,19 @@ begin
   simp only [finsupp.not_mem_support_iff.mp ha, pow_zero]
 end
 
+/-- If `g` maps a second argument of 0 to 0, summing it over the
+result of `on_finset` is the same as summing it over the original
+`finset`. -/
+lemma on_finset_sum [has_zero β] [add_comm_monoid γ] {s : finset α} {f : α → β} {g : α → β → γ}
+    (hf : ∀a, f a ≠ 0 → a ∈ s) (hg : ∀ a, g a 0 = 0) :
+  (on_finset s f hf).sum g = ∑ a in s, g a (f a) :=
+begin
+  refine finset.sum_subset support_on_finset_subset _,
+  intros x hx hxs,
+  rw not_mem_support_iff.1 hxs,
+  exact hg _
+end
+
 section add_monoid
 variables [add_monoid β]
 
@@ -957,7 +970,7 @@ lemma sum_comap_domain {α₁ α₂ β γ : Type*} [has_zero β] [add_comm_monoi
   (comap_domain f l hf.inj_on).sum (g ∘ f) = l.sum g :=
 begin
   simp [sum],
-  simp [comap_domain, finset.sum_preimage f _ _ (λ (x : α₂), g x (l x))]
+  simp [comap_domain, finset.sum_preimage_of_bij f _ _ (λ (x : α₂), g x (l x))]
 end
 
 lemma eq_zero_of_comap_domain_eq_zero {α₁ α₂ γ : Type*} [add_comm_monoid γ]
@@ -1806,7 +1819,7 @@ begin
   have f_im : set.finite (f '' {m | m ≤ n}) := set.finite.of_fintype _,
   suffices f_inj : set.inj_on f {m | m ≤ n},
   { exact set.finite_of_finite_image f_inj f_im },
-  intros m₁ m₂ h₁ h₂ h,
+  intros m₁ h₁ m₂ h₂ h,
   ext i,
   by_cases hi : i ∈ n.support,
   { replace h := congr_fun h ⟨i, hi⟩,

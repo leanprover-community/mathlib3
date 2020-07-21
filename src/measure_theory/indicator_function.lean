@@ -26,8 +26,8 @@ variables {α : Type u} {β : Type v}
 section has_zero
 variables [has_zero β] {s t : set α} {f g : α → β} {a : α}
 
-lemma indicator_congr_ae [measure_space α] (h : ∀ₘ a, a ∈ s → f a = g a) :
-  ∀ₘ a, indicator s f a = indicator s g a :=
+lemma indicator_congr_ae [measure_space α] (h : ∀ᵐ a, a ∈ s → f a = g a) :
+  ∀ᵐ a, indicator s f a = indicator s g a :=
 begin
   filter_upwards [h],
   simp only [mem_set_of_eq, indicator],
@@ -37,8 +37,8 @@ begin
   refl
 end
 
-lemma indicator_congr_of_set [measure_space α] (h : ∀ₘ a, a ∈ s ↔ a ∈ t) :
-  ∀ₘ a, indicator s f a = indicator t f a :=
+lemma indicator_congr_of_set [measure_space α] (h : ∀ᵐ a, a ∈ s ↔ a ∈ t) :
+  ∀ᵐ a, indicator s f a = indicator t f a :=
 begin
   filter_upwards [h],
   simp only [mem_set_of_eq, indicator],
@@ -56,8 +56,8 @@ section has_add
 variables [add_monoid β] {s t : set α} {f g : α → β} {a : α}
 
 lemma indicator_union_ae [measure_space α] {β : Type*} [add_monoid β]
-  (h : ∀ₘ a, a ∉ s ∩ t) (f : α → β) :
-  ∀ₘ a, indicator (s ∪ t) f a = indicator s f a + indicator t f a :=
+  (h : ∀ᵐ a, a ∉ s ∩ t) (f : α → β) :
+  ∀ᵐ a, indicator (s ∪ t) f a = indicator s f a + indicator t f a :=
 begin
   filter_upwards [h],
   simp only [mem_set_of_eq],
@@ -95,8 +95,8 @@ end norm
 section order
 variables [has_zero β] [preorder β] {s t : set α} {f g : α → β} {a : α}
 
-lemma indicator_le_indicator_ae [measure_space α] (h : ∀ₘ a, a ∈ s → f a ≤ g a) :
-  ∀ₘ a, indicator s f a ≤ indicator s g a :=
+lemma indicator_le_indicator_ae [measure_space α] (h : ∀ᵐ a, a ∈ s → f a ≤ g a) :
+  ∀ᵐ a, indicator s f a ≤ indicator s g a :=
 begin
   refine h.mono (λ a h, _),
   simp only [indicator],

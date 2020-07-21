@@ -34,6 +34,7 @@ open decidable
 
 /-- `prime p` means that `p` is a prime number, that is, a natural number
   at least 2 whose only divisors are `p` and `1`. -/
+@[pp_nodot]
 def prime (p : ℕ) := 2 ≤ p ∧ ∀ m ∣ p, m = 1 ∨ m = p
 
 theorem prime.two_le {p : ℕ} : prime p → 2 ≤ p := and.left
@@ -115,6 +116,9 @@ theorem dvd_prime {p m : ℕ} (pp : prime p) : m ∣ p ↔ m = 1 ∨ m = p :=
 
 theorem dvd_prime_two_le {p m : ℕ} (pp : prime p) (H : 2 ≤ m) : m ∣ p ↔ m = p :=
 (dvd_prime pp).trans $ or_iff_right_of_imp $ not.elim $ ne_of_gt H
+
+theorem prime_dvd_prime_iff_eq {p q : ℕ} (pp : p.prime) (qp : q.prime) : p ∣ q ↔ p = q :=
+dvd_prime_two_le qp (prime.two_le pp)
 
 theorem prime.not_dvd_one {p : ℕ} (pp : prime p) : ¬ p ∣ 1
 | d := (not_le_of_gt pp.one_lt) $ le_of_dvd dec_trivial d
@@ -373,6 +377,10 @@ begin
   { exact this, },
   { simp only [this, nat.factors, nat.div_self (nat.prime.pos hp)], },
 end
+
+/-- `factors` can be constructed inductively by extracting `min_fac`, for sufficiently large `n`. -/
+lemma factors_add_two (n : ℕ) :
+  factors (n+2) = (min_fac (n+2)) :: (factors ((n+2) / (min_fac (n+2)))) := rfl
 
 theorem prime.coprime_iff_not_dvd {p n : ℕ} (pp : prime p) : coprime p n ↔ ¬ p ∣ n :=
 ⟨λ co d, pp.not_dvd_one $ co.dvd_of_dvd_mul_left (by simp [d]),

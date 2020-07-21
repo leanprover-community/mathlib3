@@ -296,8 +296,12 @@ variables (f g : M →ₗ[R] M₂)
 theorem is_linear : is_linear_map R f := ⟨f.2, f.3⟩
 
 variables {f g}
+
+lemma coe_injective (H : ⇑f = g) : f = g :=
+by cases f; cases g; congr'; exact  H
+
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
-by cases f; cases g; congr'; exact funext H
+coe_injective $ funext H
 
 lemma coe_fn_congr : Π {x x' : M}, x = x' → f x = f x'
 | _ _ rfl := rfl
@@ -496,6 +500,10 @@ lemma smul_mem (r : R) (h : x ∈ p) : r • x ∈ p := p.smul_mem' r h
 
 lemma sum_mem {t : finset ι} {f : ι → M} : (∀c∈t, f c ∈ p) → (∑ i in t, f i) ∈ p :=
 p.to_add_submonoid.sum_mem
+
+lemma sum_smul_mem {t : finset ι} {f : ι → M} (r : ι → R)
+    (hyp : ∀ c ∈ t, f c ∈ p) : (∑ i in t, r i • f i) ∈ p :=
+submodule.sum_mem _ (λ i hi, submodule.smul_mem  _ _ (hyp i hi))
 
 @[simp] lemma smul_mem_iff' (u : units R) : (u:R) • x ∈ p ↔ x ∈ p :=
 ⟨λ h, by simpa only [smul_smul, u.inv_mul, one_smul] using p.smul_mem ↑u⁻¹ h, p.smul_mem u⟩

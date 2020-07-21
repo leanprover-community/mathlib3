@@ -398,12 +398,11 @@ begin
       end
     ... ≤ Cq * (∏ i : fin c.length, Cp) * r0 ^ n :
       begin
-        apply_rules [mul_le_mul, bot_le, le_trans _ (hCq c.length), le_refl, finset.prod_le_prod'],
-        { assume i hi,
-          refine le_trans (mul_le_mul (le_refl _) _ bot_le bot_le) (hCp (c.blocks_fun i)),
-          exact pow_le_pow_of_le_left bot_le (min_le_left _ _) _ },
-        { refine mul_le_mul (le_refl _) _ bot_le bot_le,
-          exact pow_le_pow_of_le_left bot_le (min_le_left _ _) _ }
+        apply_rules [mul_le_mul, bot_le, le_trans _ (hCq c.length), le_refl, finset.prod_le_prod',
+          pow_le_pow_of_le_left, min_le_left],
+        assume i hi,
+        refine le_trans (mul_le_mul (le_refl _) _ bot_le bot_le) (hCp (c.blocks_fun i)),
+        exact pow_le_pow_of_le_left bot_le (min_le_left _ _) _
       end
     ... ≤ Cq * (max Cp 1) ^ n * r0 ^ n :
       begin
@@ -747,7 +746,7 @@ begin
           have := (le_trans (le_of_lt hy) (min_le_right _ _)),
           rwa [ennreal.coe_le_coe, ← nnreal.coe_le_coe, coe_nnnorm] at this
         end },
-    exact tendsto_nhds_of_cauchy_seq_of_subseq cau at_top_ne_bot
+    exact tendsto_nhds_of_cauchy_seq_of_subseq cau
           comp_partial_sum_target_tendsto_at_top C },
   -- Fifth step: the sum over `n` of `q.comp p n` can be expressed as a particular resummation of
   -- the sum over all compositions, by grouping together the compositions of the same

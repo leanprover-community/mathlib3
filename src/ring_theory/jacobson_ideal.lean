@@ -6,14 +6,16 @@ Authors: Kenny Lau, Devon Tuma
 import ring_theory.ideal_operations
 
 /-!
-# Jacobson Radical
+# Jacobson radical
 
-The Jacobson Radical of a ring `R` is defined to be the intersection of all maximal ideals of `R`.
-This is similar to how the nilradical of `R` is equal to the intersection of all prime ideals of `R`.
+The Jacobson radical of a ring `R` is defined to be the intersection of all maximal ideals of `R`.
+This is similar to how the nilradical is equal to the intersection of all prime ideals of `R`.
 
-We can extend the idea of the nilradical to ideals of `R`, by letting the radical of an ideal `I` be the intersection of prime ideals containing `I`.
+We can extend the idea of the nilradical to ideals of `R`,
+by letting the radical of an ideal `I` be the intersection of prime ideals containing `I`.
 Under this extension, the original nilradical is the radical of the zero ideal `⊥`.
-Here we define the Jacobson Radical of an ideal `I` in a similar way, as the intersection of maximal ideals containing `I`.
+Here we define the Jacobson radical of an ideal `I` in a similar way,
+as the intersection of maximal ideals containing `I`.
 
 ## Main definitions
 

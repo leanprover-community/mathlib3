@@ -18,8 +18,6 @@ We also define `root_multiplicity`.
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
--- local attribute [instance, priority 10] is_semiring_hom.comp is_ring_hom.comp
-
 open finsupp finset add_monoid_algebra
 open_locale big_operators
 
@@ -59,7 +57,7 @@ def div_X (p : polynomial R) : polynomial R :=
   mem_support_to_fun := λ n,
     suffices (∃ (a : ℕ), (¬coeff p a = 0 ∧ a > 0) ∧ a - 1 = n) ↔
       ¬coeff p (n + 1) = 0,
-    by simpa [finset.mem_def.symm, apply_eq_coeff],
+    by simpa [finset.mem_def.symm],
     ⟨λ ⟨a, ha⟩, by rw [← ha.2, nat.sub_add_cancel ha.1.2]; exact ha.1.1,
       λ h, ⟨n + 1, ⟨h, nat.succ_pos _⟩, nat.succ_sub_one _⟩⟩ }
 

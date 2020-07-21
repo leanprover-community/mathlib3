@@ -17,26 +17,23 @@ usually fail but `generalizes` may succeed.
 
 ## Implementation notes
 
-To generalize the target `T` over expressions `a₁ : T₁, ..., aₙ : Tₙ`, we first
+To generalize the target `T` over expressions `j₁ : J₁, ..., jₙ : Jₙ`, we first
 create the new target type
 
-    T' = ∀ (j₁ : T₁) (j₁_eq : j₁ == a₁) ..., T''
+    T' = ∀ (k₁ : J₁) ... (kₙ : Jₙ) (k₁_eq : k₁ = j₁) ... (kₙ_eq : kₙ == jₙ), U
 
-where `T''` is `T` with any occurrences of the `aᵢ` replaced by the
-corresponding `jᵢ`. Creating this expression is a bit difficult because we must
-be careful when there are dependencies between the `aᵢ`. Suppose that `a₁ : T₁`
-and `a₂ : P a₁`. Then we want to end up with the target
-
-    T' = ∀ (j₁ : T₁) (j₁_eq : j₁ == a₁) (j₂ : P j₁) (j₂_eq : @heq (P j₁) j₂ (P a₁) a₂), ...
-
-Note the type of the heterogeneous equation `j₂_eq`: When abstracting over `a₁`,
-we want to replace `a₁` by `j₁` in the left-hand side to get the correct type
-for `j₂`, but not in the right-hand side. This construction is performed by
-`generalizes'_aux₁` and `generalizes'_aux₂`.
+where `U` is `T` with any occurrences of the `jᵢ` replaced by the corresponding
+`kᵢ`. Note that some of the `kᵢ_eq` may be heterogeneous; this happens when
+there are dependencies between the `jᵢ`. The construction of `T'` is performed
+by `generalizes.step1` and `generalizes.step2`.
 
 Having constructed `T'`, we can `assert` it and use it to construct a proof of
-the original target by instantiating the binders with `a₁`, `heq.refl a₁`, `a₂`,
-`heq.refl a₂` etc. This leaves us with a generalized goal.
+the original target by instantiating the binders with
+
+    j₁ ... jₙ (eq.refl j₁) ... (heq.refl jₙ).
+
+This leaves us with a generalized goal. This construction is performed by
+`generalizes.step3`.
 -/
 
 universes u v w
@@ -45,86 +42,96 @@ namespace tactic
 
 open expr
 
-/--
-`generalizes'_aux₁ md unify e [] args` iterates through the `args` from left to
-right. In each step of the iteration, any occurrences of the expression from
-`args` in `e` is replaced by a new local constant. The local constant's pretty
-name is the name given in `args`. The `args` must be given in reverse dependency
-order: `[fin n, n]` is okay, but `[n, fin n]` won't work.
-
-The result of `generalizes'_aux₁` is `e` with all the `args` replaced and the
-list of new local constants, one for each element of `args`. Note that the local
-constants are not added to the local context.
-
-`md` and `unify` control how subterms of `e` are matched against the expressions
-in `args`; see `kabstract`.
--/
-private meta def generalizes'_aux₁ (md : transparency) (unify : bool)
-  : expr → list expr → list (name × expr) → tactic (expr × list expr)
-| e cnsts [] := pure (e, cnsts.reverse)
-| e cnsts ((n, x) :: xs) := do
-  x_type ← infer_type x,
-  c ← mk_local' n binder_info.default x_type,
-  e ← kreplace e x c md unify,
-  cnsts ← cnsts.mmap $ λ c', kreplace c' x c md unify,
-  generalizes'_aux₁ e (c :: cnsts) xs
+namespace generalizes
 
 /--
-`generalizes'_aux₂ md []` takes as input the expression `e` produced by
-`generalizes'_aux₁` and a list containing, for each argument to be generalized:
+Input:
 
-- A name for the generalisation equation. If this is `none`, no equation is
-  generated.
-- The local constant produced by `generalizes'_aux₁`.
-- The argument itself.
+- Target expression `e`.
+- List of expressions `jᵢ` to be generalised, along with a name for the local
+  const that will replace them. The `jᵢ` must be in dependency order:
+  `[n, fin n]` is okay but `[fin n, n]` is not.
 
-From this information, it generates a type of the form
+Output:
 
-    ∀ (j₁ : T₁) (j₁_eq : j₁ = a₁) (j₂ : T₂) (j₂_eq : j₂ == a₂), e
+- List of new local constants `kᵢ`, one for each `jᵢ`.
+- `e` with the `jᵢ` replaced by the `kᵢ`, i.e. `e[jᵢ := kᵢ]...[j₀ := k₀]`.
 
-where the `aᵢ` are the arguments and the `jᵢ` correspond to the local constants.
+Note that the substitution also affects the types of the `kᵢ`: If `jᵢ : Jᵢ` then
+`kᵢ : Jᵢ[jᵢ₋₁ := kᵢ₋₁]...[j₀ := k₀]`.
 
-It also returns, for each argument, whether an equation was generated for the
-argument and if so, whether the equation is homogeneous (`tt`) or heterogeneous
-(`ff`).
-
-The transparency `md` is used when determining whether the types of an argument
-and its associated constant are definitionally equal (and thus whether to
-generate a homogeneous or a heterogeneous equation).
+The transparency `md` and the boolean `unify` are passed to `kabstract` when we
+abstract over occurrences of the `jᵢ` in `e`.
 -/
-private meta def generalizes'_aux₂ (md : transparency)
-  : list (option bool) → expr → list (option name × expr × expr)
-  → tactic (expr × list (option bool))
-| eq_kinds e [] := pure (e, eq_kinds.reverse)
-| eq_kinds e ((eq_name, cnst, arg) :: cs) := do
-  cnst_type ← infer_type cnst,
-  arg_type ← infer_type arg,
-  sort u ← infer_type arg_type,
-  ⟨eq_binder, eq_kind⟩ ← do {
-    match eq_name with
-    | none := pure ((id : expr → expr), none)
-    | some eq_name := do
-        homogeneous ← succeeds $ is_def_eq cnst_type arg_type,
-        let eq_type :=
-          if homogeneous
-            then ((const `eq [u]) cnst_type (var 0) arg)
-            else ((const `heq [u]) cnst_type (var 0) arg_type arg),
-        let eq_binder : expr → expr := λ e,
-          pi eq_name binder_info.default eq_type (e.lift_vars 0 1),
-        pure (eq_binder, some homogeneous )
-    end
-  },
-  let e :=
-    pi cnst.local_pp_name binder_info.default cnst_type $
-    eq_binder $
-    e.abstract cnst,
-  generalizes'_aux₂ (eq_kind :: eq_kinds) e cs
+meta def step1 (md : transparency) (unify : bool)
+  (e : expr) (to_generalize : list (name × expr)) : tactic (expr × list expr) := do
+  let go : name × expr → expr × list expr → tactic (expr × list expr) :=
+        λ ⟨n, j⟩ ⟨e, ks⟩, do {
+          J ← infer_type j,
+          k ← mk_local' n binder_info.default J,
+          e ← kreplace e j k md unify,
+          ks ← ks.mmap $ λ k', kreplace k' j k md unify,
+          pure (e, k :: ks)
+        },
+  to_generalize.mfoldr go (e, [])
+
+/--
+Input: for each equation that should be generated: the equation name, the
+argument `jᵢ` and the corresponding local constant `kᵢ` from step 1.
+
+Output: for each element of the input list a new local constant of type
+`jᵢ = kᵢ` or `jᵢ == kᵢ` and a proof of `jᵢ = jᵢ` or `jᵢ == jᵢ`.
+
+The transparency `md` is used when determining whether the type of `jᵢ` is defeq
+to the type of `kᵢ` (and thus whether to generate a homogeneous or heterogeneous
+equation).
+-/
+meta def step2 (md : transparency)
+  (to_generalize : list (name × expr × expr))
+  : tactic (list (expr × expr)) :=
+to_generalize.mmap $ λ ⟨n, j, k⟩, do
+  J ← infer_type j,
+  K ← infer_type k,
+  sort u ← infer_type K |
+    fail! "generalizes'/step2: expected the type of {K} to be a sort",
+  homogeneous ← succeeds $ is_def_eq J K md,
+  let ⟨eq_type, eq_proof⟩ :=
+    if homogeneous
+      then ((const `eq  [u]) K k j  , (const `eq.refl  [u]) J j)
+      else ((const `heq [u]) K k J j, (const `heq.refl [u]) J j),
+  eq ← mk_local' n binder_info.default eq_type,
+  pure (eq, eq_proof)
+
+/--
+Input: The `jᵢ`; the local constants `kᵢ` from step 1; the equations and their
+proofs from step 2.
+
+This step is the first one that changes the goal (and also the last one
+overall). It asserts the generalized goal, then derives the current goal from
+it. This leaves us with the generalized goal.
+-/
+meta def step3 (e : expr) (js ks eqs eq_proofs : list expr)
+  : tactic unit :=
+focus1 $ do
+  let new_target_type := (e.pis eqs).pis ks,
+  type_check new_target_type <|> fail!
+    "generalizes': unable to generalize the target because the generalized target type does not type check:\n{new_target_type}",
+  n ← mk_fresh_name,
+  new_target ← assert n new_target_type,
+  swap,
+  let target_proof := new_target.mk_app $ js ++ eq_proofs,
+  exact target_proof
+
+end generalizes
+
+open generalizes
+
 
 /--
 Generalizes the target over each of the expressions in `args`. Given
 `args = [(a₁, h₁, arg₁), ...]`, this changes the target to
 
-    ∀ (a₁ : T₁) (h₁ : a₁ == arg₁) ..., U
+    ∀ (a₁ : T₁) ... (h₁ : a₁ = arg₁) ..., U
 
 where `U` is the current target with every occurrence of `argᵢ` replaced by
 `aᵢ`. A similar effect can be achieved by using `generalize` once for each of
@@ -142,49 +149,29 @@ After generalizing the `args`, the target type may no longer type check.
 `generalizes'` will then raise an error.
 -/
 meta def generalizes' (args : list (name × option name × expr))
-  (md := semireducible) (unify := tt) : tactic unit :=
-focus1 $ do
+  (md := semireducible) (unify := tt) : tactic unit := do
   tgt ← target,
-  let args_rev := args.reverse,
-  (tgt, cnsts) ← generalizes'_aux₁ md unify tgt []
-    (args_rev.map (λ ⟨e_name, _, e⟩, (e_name, e))),
-  let args' :=
-    @list.map₂ (name × option name × expr) expr _
-      (λ ⟨_, eq_name, x⟩ cnst, (eq_name, cnst, x)) args_rev cnsts,
-  ⟨tgt, eq_kinds⟩ ← generalizes'_aux₂ md [] tgt args',
-  let eq_kinds := eq_kinds.reverse,
-  type_check tgt <|> fail!
-    "generalizes: unable to generalize the target because the generalized target type does not type check:\n{tgt}",
-  n ← mk_fresh_name,
-  h ← assert n tgt,
-  swap,
-  let args' :=
-    @list.map₂ (name × option name × expr) (option bool) _
-      (λ ⟨_, _, x⟩ eq_kind, (x, eq_kind)) args eq_kinds,
-  apps ← args'.mmap $ λ ⟨x, eq_kind⟩, do {
-    match eq_kind with
-    | none := pure [x]
-    | some eq_is_homogeneous := do
-      x_type ← infer_type x,
-      sort u ← infer_type x_type,
-      let eq_proof :=
-        if eq_is_homogeneous
-          then (const `eq.refl [u]) x_type x
-          else (const `heq.refl [u]) x_type x,
-      pure [x, eq_proof]
-    end
-  },
-  exact $ h.mk_app apps.join
+  let stage1_args := args.map $ λ ⟨n, _, j⟩, (n, j),
+  ⟨e, ks⟩ ← step1 md unify tgt stage1_args,
+  let stage2_args : list (option (name × expr × expr)) :=
+    args.map₂ (λ ⟨_, eq_name, j⟩ k, eq_name.map $ λ eq_name, (eq_name, j, k)) ks,
+  let stage2_args := stage2_args.reduce_option,
+  eqs_and_proofs ← step2 md stage2_args,
+  let eqs := eqs_and_proofs.map prod.fst,
+  let eq_proofs := eqs_and_proofs.map prod.snd,
+  let js := args.map (prod.snd ∘ prod.snd),
+  step3 e js ks eqs eq_proofs
 
 /--
 Like `generalizes'`, but also introduces the generalized constants and their
 associated equations into the context.
 -/
 meta def generalizes_intro (args : list (name × option name × expr))
-  (md := semireducible) (unify := tt) : tactic (list expr) := do
+  (md := semireducible) (unify := tt) : tactic (list expr × list expr) := do
   generalizes' args md unify,
-  let binder_nos := args.map (λ ⟨_, hyp, _⟩, 1 + if hyp.is_some then 1 else 0),
-  intron' binder_nos.sum
+  ks ← intron' args.length,
+  eqs ← intron' $ args.countp $ λ x, x.snd.fst.is_some,
+  pure (ks, eqs)
 
 namespace interactive
 
@@ -239,7 +226,7 @@ The expressions must be given in dependency order, so
 of `fin.succ f` is `nat.succ n`.
 
 You can choose to omit some or all of the generated equations. For the above
-example, `generalizes [(nat.succ n = n'), (fin.succ f == f')]` gets you
+example, `generalizes [nat.succ n = n', fin.succ f == f']` gets you
 
     P : ∀ n, fin n → Prop
     n : ℕ
@@ -247,8 +234,6 @@ example, `generalizes [(nat.succ n = n'), (fin.succ f == f')]` gets you
     n' : ℕ
     f' : fin n'
     ⊢ P n' f'
-
-Note the parentheses; these are necessary to avoid parsing issues.
 
 After generalization, the target type may no longer type check. `generalizes`
 will then raise an error.

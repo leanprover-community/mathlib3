@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
-import algebra.opposites
-import algebra.group.anti_hom
 import data.finset.intervals
 import data.finset.fold
 import data.finset.powerset
@@ -1496,23 +1494,6 @@ lemma card_eq_sum_ones (s : finset α) : s.card = ∑ _ in s, 1 :=
 by simp
 
 end finset
-
-section group
-
-open list
-variables [group α] [group β]
-
-theorem is_group_anti_hom.map_prod (f : α → β) [is_group_anti_hom f] (l : list α) :
-  f (prod l) = prod (map f (reverse l)) :=
-by induction l with hd tl ih; [exact is_group_anti_hom.map_one f,
-  simp only [prod_cons, is_group_anti_hom.map_mul f, ih, reverse_cons, map_append, prod_append,
-    map_singleton, prod_cons, prod_nil, mul_one]]
-
-theorem inv_prod : ∀ l : list α, (prod l)⁻¹ = prod (map (λ x, x⁻¹) (reverse l)) :=
--- TODO there is probably a cleaner proof of this
-λ l, @is_group_anti_hom.map_prod _ _ _ _ _ inv_is_group_anti_hom l
-
-end group
 
 @[to_additive is_add_group_hom_finset_sum]
 lemma is_group_hom_finset_prod {α β γ} [group α] [comm_group β] (s : finset γ)

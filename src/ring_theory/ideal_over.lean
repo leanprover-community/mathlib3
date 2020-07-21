@@ -82,7 +82,7 @@ begin
   obtain ⟨i, ne_zero, mem⟩ :=
     exists_coeff_ne_zero_mem_comap_of_root_mem rbar_ne_zero rbar_mem_J p_ne_zero rbar_root,
   rw coeff_map at ne_zero mem,
-  refine ⟨i, mem_of_mem_quotient hIJ _, mt _ ne_zero⟩,
+  refine ⟨i, (mem_quotient_iff_mem hIJ).mp _, mt _ ne_zero⟩,
   { simpa using mem },
   simp [quotient.eq_zero_iff_mem],
 end

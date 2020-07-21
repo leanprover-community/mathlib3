@@ -668,12 +668,15 @@ end
 
 end surjective
 
-lemma mem_of_mem_quotient (hIJ : I ≤ J) {x : R}
-  (mem : quotient.mk I x ∈ J.map (quotient.mk I)) : x ∈ J :=
+lemma mem_quotient_iff_mem (hIJ : I ≤ J) {x : R} :
+  quotient.mk I x ∈ J.map (quotient.mk I) ↔ x ∈ J :=
 begin
-  obtain ⟨x, x_mem, x_eq⟩ := (set.mem_image _ _ _).mp
-    (mem_image_of_mem_map_of_surjective (quotient.mk I) quotient.mk_surjective mem),
-  simpa using J.add_mem (hIJ (quotient.eq.mp x_eq.symm)) x_mem,
+  refine iff.trans (mem_map_iff_of_surjective _ quotient.mk_surjective) _,
+  split,
+  { rintros ⟨x, x_mem, x_eq⟩,
+    simpa using J.add_mem (hIJ (quotient.eq.mp x_eq.symm)) x_mem },
+  { intro x_mem,
+    exact ⟨x, x_mem, rfl⟩ }
 end
 
 section injective

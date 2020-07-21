@@ -110,9 +110,11 @@ quot.lift
         ←append_fun_comp_id] }
   end
 
+/-- Abstraction function for `cofix F α` -/
 def cofix.abs {α} : q.P.M α → cofix F α :=
 quot.mk _
 
+/-- Representation function for `cofix F α` -/
 def cofix.repr {α} : cofix F α → q.P.M α :=
 M.corec _ $ repr ∘ cofix.dest
 

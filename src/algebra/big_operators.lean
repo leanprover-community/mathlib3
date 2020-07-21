@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
-import algebra.opposites
 import algebra.group.anti_hom
 import data.finset.intervals
 import data.finset.fold

@@ -564,6 +564,17 @@ eq_repeat.2 ⟨by simp only [length_reverse, length_repeat],
 lemma is_nil_iff_eq_nil {l : list α} : l.is_nil ↔ l = [] :=
 list.cases_on l (by simp [is_nil]) (by simp [is_nil])
 
+/-! ### init -/
+
+@[simp] theorem length_init : ∀ (l : list α), length (init l) = length l - 1
+| [] := rfl
+| [a] := rfl
+| (a :: b :: l) := begin
+  rw init,
+  simp only [add_left_inj, length, succ_add_sub_one],
+  exact length_init (b :: l)
+end
+
 /-! ### last -/
 
 @[simp] theorem last_cons {a : α} {l : list α} :
@@ -697,11 +708,6 @@ begin
   { rw reverse_cons, exact H1 _ _ ih }
 end
 
-/-- Reassociates a list, revealing its last element. -/
-private def init_last_of_cons : ∀ (a : α) (l : list α), Σ' l' a', a :: l = l' ++ [a']
-| a [] := ⟨[], a, rfl⟩
-| a (b :: l) := let ⟨l', b', h'⟩ := init_last_of_cons b l in ⟨a :: l', b', by { congr, from h' }⟩
-
 /-- Bidirectional induction principle for lists: if a property holds for the empty list, the
 singleton list, and `a :: (l ++ [b])` from `l`, then it holds for all lists. This can be used to
 prove statements about palindromes. The principle is given for a `Sort`-valued predicate, i.e., it
@@ -712,14 +718,10 @@ def bidirectional_rec {C : list α → Sort*}
 | [] := H0
 | [a] := H1 a
 | (a :: b :: l) :=
-let ⟨l', b', Hreassoc⟩ := init_last_of_cons b l in
-have length l' < length (a :: b :: l), from
-  calc length l'
-        < length l' + 2 : by simp
-    ... = length (a :: (l' ++ [b'])) : by simp
-    ... = length (a :: b :: l) : by rw ←Hreassoc,
+let l' := init (b :: l), b' := last (b :: l) (cons_ne_nil _ _) in
+have length l' < length (a :: b :: l), by { change _ < length l + 2, simp },
 begin
-  rw Hreassoc,
+  rw ←init_append_last (cons_ne_nil b l),
   have : C l', from bidirectional_rec l',
   exact Hn a l' b' ‹C l'›
 end

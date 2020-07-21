@@ -57,8 +57,10 @@ attribute [notation_class] has_zero has_one has_add has_mul has_inv has_neg has_
 attribute [notation_class* coe_sort] has_coe_to_sort
 attribute [notation_class* coe_fn] has_coe_to_fun
 
-/-- finds an instance of an implication `cond → tgt`.
-  Returns a pair of a local constant `e` of type `cond`, and an instance of `tgt` that can mention `e`. -/
+/--
+  Finds an instance of an implication `cond → tgt`.
+  Returns a pair of a local constant `e` of type `cond`, and an instance of `tgt` that can mention `e`.
+-/
 meta def mk_conditional_instance (cond tgt : expr) : tactic (expr × expr) := do
 f ← mk_meta_var cond,
 e ← assertv `c cond f, swap,
@@ -151,7 +153,8 @@ library_note "custom simps projection"
   ns ← many ident,
   ns.mmap' $ λ nm, do nm ← resolve_constant nm, simps_get_raw_projections env nm
 
-/-- Get the projections of a structure used by simps applied to the appropriate arguments.
+/--
+  Get the projections of a structure used by simps applied to the appropriate arguments.
   Returns a list of triples (projection expression, projection name, corresponding right-hand-side).
 
   This function does not use `tactic.mk_app` or `tactic.mk_mapp`, because the the given arguments
@@ -176,7 +179,8 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
     λ raw_expr, (raw_expr.instantiate_univ_params univs).instantiate_lambdas_or_apps params,
   return $ proj_exprs.zip $ projs.zip rhs_args
 
-/-- configuration for the `@[simps]` attribute
+/--
+  Configuration options for the `@[simps]` attribute.
   * `attrs` specifies the list of attributes given to the generated lemmas. Default: ``[`simp]``.
     If ``[`simp]`` is in the list, then ``[`_refl_lemma]`` is added automatically if appropriate.
     The attributes can be either basic attributes, or user attributes without parameters.
@@ -193,13 +197,19 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
   * `rhs_md` specifies how aggressively definition in the declaration are unfolded for the purposes
     of finding out whether it is a constructor.
     Default: `none`
+  * If `fully_applied` is `ff` then the generated simp-lemmas will be between non-fully applied
+    terms, i.e. equalities between functions. This does not restrict the recursive behavior of
+    `@[simps]`, so only the "final" projection will be non-fully applied.
+    However, it can be used in combination with explicit field names, to get a partially applied
+    intermediate projection.
 -/
 @[derive [has_reflect, inhabited]] structure simps_cfg :=
-(attrs      := [`simp])
-(short_name := ff)
-(simp_rhs   := ff)
-(type_md    := transparency.instances)
-(rhs_md     := transparency.none)
+(attrs         := [`simp])
+(short_name    := ff)
+(simp_rhs      := ff)
+(type_md       := transparency.instances)
+(rhs_md        := transparency.none)
+(fully_applied := tt)
 
 /-- Add a lemma with `nm` stating that `lhs = rhs`. `type` is the type of both `lhs` and `rhs`,
   `args` is the list of local constants occurring, and `univs` is the list of universe variables.
@@ -233,6 +243,7 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
   let lhs_ap := lhs.mk_app type_args,
   rhs_ap ← whnf (rhs.instantiate_lambdas_or_apps type_args) cfg.rhs_md,
   let str := tgt.get_app_fn.const_name,
+  let new_nm := nm.append_suffix suffix,
   /- Don't recursively continue if `str` is not a structure. As a special case, also don't
     recursively continue if the nested structure is `prod` or `pprod`, unless projections are
     specified manually. -/
@@ -247,7 +258,9 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
       /- we want to generate the current projection if it is in `todo` or when `rhs_ap` was an
       eta-expansion -/
       when ("" ∈ todo ∨ (todo = [] ∧ eta.is_some)) $
-        simps_add_projection (nm.append_suffix suffix) tgt lhs_ap rhs_ap new_args univs cfg,
+        if cfg.fully_applied then
+          simps_add_projection new_nm tgt lhs_ap rhs_ap new_args univs cfg else
+          simps_add_projection new_nm type lhs rhs args univs cfg,
       -- if `rhs_ap` was an eta-expansion and `todo` is empty, we stop
       when ¬(todo = [""] ∨ (eta.is_some ∧ todo = [])) $ do
         /- remove "" from todo. This allows a to generate lemmas + nested version of them.
@@ -275,13 +288,17 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
         fail "Invalid `simps` attribute. Body is not a constructor application",
       when (todo ≠ [] ∧ todo ≠ [""]) $
         fail!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo.head}. The given definition is not a constructor application.",
-      simps_add_projection (nm.append_suffix suffix) tgt lhs_ap rhs_ap new_args univs cfg
+      if cfg.fully_applied then
+        simps_add_projection new_nm tgt lhs_ap rhs_ap new_args univs cfg else
+        simps_add_projection new_nm type lhs rhs args univs cfg
   else do
     when must_be_str $
       fail "Invalid `simps` attribute. Target is not a structure",
     when (todo ≠ [] ∧ todo ≠ [""] ∧ str ∉ [`prod, `pprod]) $
         fail!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo.head}. Projection {(todo.head.split_on '_').tail.head} doesn't exist, because target is not a structure.",
-    simps_add_projection (nm.append_suffix suffix) tgt lhs_ap rhs_ap new_args univs cfg
+    if cfg.fully_applied then
+      simps_add_projection new_nm tgt lhs_ap rhs_ap new_args univs cfg else
+      simps_add_projection new_nm type lhs rhs args univs cfg
 
 /-- `simps_tac` derives simp-lemmas for all (nested) non-Prop projections of the declaration.
   If `todo` is non-empty, it will generate exactly the names in `todo`.
@@ -332,13 +349,12 @@ derives two simp-lemmas:
   * Recursive projection names can be specified using `foo_proj1_proj2_proj3`.
     This will create a lemma of the form `foo.proj1.proj2.proj3 = ...`.
 * If one of the values is an eta-expanded structure, we will eta-reduce this structure.
-* You can use `@[simps {short_name := tt}]` to only use the name of the last projection
-  for the name of the generated lemmas.
 * You can use `@[simps {simp_rhs := tt}]` to simplify the right-hand side of the lemmas
   before adding them to the context.
 * You can use `@[simps {attrs := []}]` to derive the lemmas, but not mark them
   as simp-lemmas.
 * You can also use the `attrs` field of the config to add other attributes to all generated lemmas.
+* For other configuration options, see the doc string of `simps_cfg`.
 * The precise syntax is `('simps' ident* e)`, where `e` is an expression of type `simps_cfg`.
 * If one of the projections is marked as a coercion, the generated lemmas do *not* use this
   coercion.

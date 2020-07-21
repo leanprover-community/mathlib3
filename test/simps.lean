@@ -71,11 +71,15 @@ run_cmd do
   simps_add_projections e nm "" d.type lhs d.value [] d.univ_params ff {} []
 
 
-/- test `rhs_md` argument -/
+/- test `rhs_md` option -/
 def rfl2 {α} : α ≃ α := foo.rfl
 
 run_cmd success_if_fail (simps_tac `foo.rfl2)
 attribute [simps {rhs_md := semireducible}] foo.rfl2
+
+/- test `fully_applied` option -/
+
+@[simps {fully_applied := ff}] def rfl3 {α} : α ≃ α := ⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
 
 end foo
 
@@ -474,7 +478,6 @@ def equiv.simps.inv_fun (e : α ≃ β) : β → α := e.symm
 @[simps {simp_rhs := tt}] protected def equiv.trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
 ⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
 
-
 end manual_coercion
 
 namespace failty_manual_coercion
@@ -522,17 +525,6 @@ run_cmd has_attribute `_simps_str `manual_initialize.equiv
 
 end manual_initialize
 
-namespace new_namespace
-
-variables {γ β α : Sort*}
-open manual_initialize
-local infix ` ≃ `:25 := manual_initialize.equiv
-
-@[simps {simp_rhs := tt}] protected def equiv.trans2 (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
-⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
-
-end new_namespace
-
 -- test transparency setting
 structure set_plus (α : Type) :=
 (s : set α)
@@ -548,6 +540,26 @@ begin
   refl
 end
 
-/-
-todo:
--/
+namespace nested_non_fully_applied
+
+structure equiv (α : Sort*) (β : Sort*) :=
+(to_fun    : α → β)
+(inv_fun   : β → α)
+
+local infix ` ≃ `:25 := nested_non_fully_applied.equiv
+
+variables {α β γ : Sort*}
+
+@[simps] def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
+
+@[simps {rhs_md := semireducible, fully_applied := ff}] def equiv.symm2 : (α ≃ β) ≃ (β ≃ α) :=
+⟨equiv.symm, equiv.symm⟩
+
+example (e : α ≃ β) : (equiv.symm2.inv_fun e).to_fun = e.inv_fun :=
+begin
+  dsimp only [equiv.symm2_inv_fun_to_fun],
+  guard_target e.inv_fun = e.inv_fun,
+  refl
+end
+
+end nested_non_fully_applied

@@ -266,7 +266,7 @@ This map represents that we can find a contradiction by taking the sum  `∑ (co
 The default `certificate_oracle` used by `linarith` is `linarith.fourier_motzkin.produce_certificate`
 -/
 meta def certificate_oracle : Type :=
-list comp → ℕ → option (rb_map ℕ ℕ)
+list comp → ℕ → tactic (rb_map ℕ ℕ)
 
 /-- A configuration object for `linarith`. -/
 meta structure linarith_config : Type :=

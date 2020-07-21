@@ -86,14 +86,14 @@ end
 lemma sum_hom_units_eq_zero (f : G →* R) (hf : f ≠ 1) : ∑ g : G, f g = 0 :=
 begin
   classical,
-  obtain ⟨x, hx⟩ : ∃ x : set.range f.to_hom_units, ∀ y : set.range f.to_hom_units, y ∈ submonoid.closure {x},
+  obtain ⟨x, hx⟩ : ∃ x : set.range f.to_hom_units, ∀ y : set.range f.to_hom_units, y ∈ submonoid.powers x,
     from is_cyclic.exists_monoid_generator (set.range (f.to_hom_units)),
   have hx1 : x ≠ 1,
   { rintro rfl,
     apply hf,
     ext g,
     rw [monoid_hom.one_apply],
-    cases submonoid.mem_closure_singleton.mp (hx ⟨f.to_hom_units g, g, rfl⟩) with n hn,
+    cases submonoid.mem_powers_iff.mp (hx ⟨f.to_hom_units g, g, rfl⟩) with n hn,
     rwa [subtype.ext_iff, units.ext_iff, subtype.coe_mk, monoid_hom.coe_to_hom_units,
       is_submonoid.coe_pow, units.coe_pow, is_submonoid.coe_one, units.coe_one,
       _root_.one_pow, eq_comm] at hn, },
@@ -126,7 +126,7 @@ begin
       (λ m n hm hn, pow_injective_of_lt_order_of _
         (by simpa only [mem_range] using hm)
         (by simpa only [mem_range] using hn))
-      (λ b hb, let ⟨n, hn⟩ := submonoid.mem_closure_singleton.mp (hx b)
+      (λ b hb, let ⟨n, hn⟩ := submonoid.mem_powers_iff.mp (hx b)
         in ⟨n % order_of x, mem_range.2 (nat.mod_lt _ (order_of_pos _)),
         by rw [← pow_eq_mod_order_of, hn]⟩)
   ... = 0 : _,

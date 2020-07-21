@@ -161,6 +161,9 @@ set.ext (λ n, exists_congr $ λ i, by simp; refl)
 
 @[simp] lemma mem_powers (n : N) : n ∈ powers n := ⟨1, pow_one _⟩
 
+lemma mem_powers_iff {x y : M} : y ∈ powers x ↔ ∃ n:ℕ, x^n=y :=
+iff.rfl
+
 lemma powers_eq_closure (n : N) : powers n = closure {n} :=
 by { ext, exact mem_closure_singleton.symm }
 

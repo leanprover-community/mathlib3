@@ -8,7 +8,7 @@ import algebra.category.Module.limits
 import algebra.category.CommRing.limits
 
 /-!
-# The category of R-algebra has all limits
+# The category of R-algebras has all limits
 
 Further, these limits are preserved by the forgetful functor --- that is,
 the underlying types are just the limits in the category of types.

@@ -20,12 +20,12 @@ local notation `aeval` := mv_polynomial.aeval _ _
 
 namespace mv_polynomial
 
-variables {σ : Type*} {R : Type*} [comm_semiring R]
+-- variables {σ : Type*} {R : Type*} [comm_semiring R]
 
-noncomputable def C_ (σ : Type*) {R : Type*} [comm_semiring R] : R →+* mv_polynomial σ R :=
-ring_hom.of C
+/- noncomputable def C_ (σ : Type*) {R : Type*} [comm_semiring R] : R →+* mv_polynomial σ R :=
+ring_hom.of C -/
 
-example (x y : R) : C_ σ (x * y) = C_ σ x * C_ σ y := C_mul
+-- example (x y : R) : C_ σ (x * y) = C_ σ x * C_ σ y := C_mul
 
 lemma ring_hom_ext {σ : Type*} {R : Type*} {A : Type*} [comm_semiring R] [comm_semiring A]
   (f g : mv_polynomial σ R →+* A)
@@ -59,6 +59,7 @@ namespace mv_polynomial
 section char_p
 variables (σ : Type*) (R : Type*) [comm_ring R] (p : ℕ)
 
+-- PRed
 instance [char_p R p] : char_p (mv_polynomial σ R) p :=
 { cast_eq_zero_iff := λ n,
   by rw [← C_eq_coe_nat, ← C_0, C_inj, char_p.cast_eq_zero_iff R p] }

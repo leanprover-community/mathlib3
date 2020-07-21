@@ -84,6 +84,7 @@ le_antisymm (le_Inf (λ J ⟨hJ, hJ_max⟩, (is_prime.radical_le_iff hJ_max.is_p
             ((H I.radical (radical_idem I)) ▸ (jacobson_mono le_radical))
 
 /-- Fields have only two ideals, and the condition holds for both of them -/
+@[priority 100]
 instance is_jacobson_field {K : Type u} [field K] : is_jacobson K :=
 λ I hI, or.rec_on (eq_bot_or_top I)
 (λ h, le_antisymm

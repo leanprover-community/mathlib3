@@ -334,7 +334,7 @@ instance : lie_ring (direct_sum ι L) := {
 
 /-- The direct sum of Lie algebras carries a natural Lie algebra structure. -/
 instance : lie_algebra R (direct_sum ι L) :=
-{ lie_smul := λ c x y, by { ext, simp only [zip_with_apply, smul_apply, bracket_apply, lie_smul], },
+{ lie_smul := λ c x y, by { ext, simp only [zip_with_apply, @smul_apply ι L _ _ _ _ _ _ _, bracket_apply, lie_smul],},
   ..(infer_instance : module R _) }
 
 end direct_sum

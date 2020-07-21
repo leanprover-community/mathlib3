@@ -104,6 +104,7 @@ begin
   exact eq.trans this (map_Inf hf (λ J ⟨hJ, _⟩, le_trans (ideal.ker_le_comap f) hJ)),
 end
 
+@[priority 100]
 instance is_jacobson_quotient [is_jacobson R] : is_jacobson (quotient I) :=
 is_jacobson_of_surjective ⟨quotient.mk_hom I, quotient.mk_surjective⟩
 

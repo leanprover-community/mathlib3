@@ -454,7 +454,7 @@ begin
   { contradiction },
   { unfold digits at IH ⊢,
     rw [digits_aux_def (b+2) (by simp) n.succ nat.succ_pos', list.length_cons],
-    specialize IH ((n.succ)/(b+2)) (nat.div_lt_self' n b),
+    specialize IH ((n.succ) / (b+2)) (nat.div_lt_self' n b),
     rw [nat.pow_add, nat.pow_one, nat.mul_comm],
     cases nat.lt_or_ge n.succ (b+2),
     { rw [nat.div_eq_of_lt h, digits_aux_zero, list.length, nat.pow_zero],

@@ -63,6 +63,8 @@ inst ← mk_instance tgt,
 return (e, inst)
 
 /-- Get the projections used by `simps` associated to a given structure. -/
+-- if performance becomes a problem: possible heuristic: use the names of the projections to
+-- skip all classes that don't have the corresponding field.
 meta def simps_get_raw_projections (e : environment) (str : name) :
   tactic (list name × list expr) := do
   has_attr ← has_attribute' `simps_str str,
@@ -158,7 +160,8 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
   (type lhs rhs : expr) (args : list expr) (univs : list name) (must_be_str : bool)
   (cfg : simps_cfg) (todo : list string), tactic unit
 | e nm suffix type lhs rhs args univs must_be_str cfg todo := do
-  (type_args, tgt) ← mk_local_pis_whnf type,
+  -- we don't want to unfold non-reducible definitions (like `set`) to apply more arguments
+  (type_args, tgt) ← mk_local_pis_whnf type transparency.reducible,
   tgt ← whnf tgt,
   let new_args := args ++ type_args,
   let lhs_ap := lhs.mk_app type_args,

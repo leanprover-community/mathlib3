@@ -470,3 +470,11 @@ set_option trace.app_builder true
 
 
 end manual_coercion
+
+-- transparency setting
+structure set_plus (α : Type) :=
+(s : set α)
+(x : α)
+(h : x ∈ s)
+
+@[simps] def nat_set_plus : set_plus ℕ := ⟨set.univ, 1, trivial⟩

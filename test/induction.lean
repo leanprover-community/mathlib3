@@ -333,7 +333,7 @@ begin
   -- argument of `cons`, but that argument is cleared by index unification. I
   -- find this a little strange, but `cases` also behaves like this.
   guard_hyp j := ℕ,
-  guard_hyp k := Vec ℕ (nat.succ nat.zero),
+  guard_hyp k := Vec ℕ 1,
   clear j k,
 
   cases' z with i j k l,
@@ -581,6 +581,26 @@ lemma lt_lte {n m} : lt n m → lte n m :=
   end.
 
 end less_than
+
+/- Sortedness -/
+
+inductive sorted : list ℕ → Prop
+| nil : sorted []
+| single {x : ℕ} : sorted [x]
+| two_or_more {x y : ℕ} {zs : list ℕ} (hle : x ≤ y)
+    (hsorted : sorted (y :: zs)) :
+  sorted (x :: y :: zs)
+
+/- In this example it's important that cases' *doesn't* normalise the values of
+indexes when simplifying index equations. -/
+lemma not_sorted_17_13 :
+  ¬ sorted [17, 13] :=
+begin
+  intro h,
+  cases' h,
+  guard_hyp hle := 17 ≤ 13,
+  linarith
+end
 
 
 /- Palindromes -/

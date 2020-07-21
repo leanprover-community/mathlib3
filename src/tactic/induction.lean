@@ -1260,20 +1260,25 @@ do {
 } <|>
 pure not_simplified
 
-meta def simplify_defeq_equation (equ type lhs rhs : expr) (u : level)
-  : tactic simplification_result :=
+meta def simplify_defeq_equation (equ type lhs rhs lhs_whnf rhs_whnf : expr)
+  (u : level) : tactic simplification_result :=
 do {
-  is_def_eq lhs rhs,
+  is_def_eq lhs_whnf rhs_whnf,
   clear equ,
   pure $ simplified []
 } <|>
 pure not_simplified
 
-meta def simplify_var_equation (equ type lhs rhs : expr) (u : level)
-  : tactic simplification_result :=
+meta def simplify_var_equation (equ type lhs rhs lhs_whnf rhs_whnf : expr)
+  (u : level) : tactic simplification_result :=
 do {
-  guard $ lhs.is_local_constant ∨ rhs.is_local_constant,
-  let t := (const `eq [u]) type lhs rhs,
+  let lhs_is_local := lhs_whnf.is_local_constant,
+  let rhs_is_local := rhs_whnf.is_local_constant,
+  guard $ lhs_is_local ∨ rhs_is_local,
+  let t :=
+    if lhs_is_local
+      then (const `eq [u]) type lhs_whnf rhs
+      else (const `eq [u]) type lhs rhs_whnf,
   change_core t (some equ),
   equ ← get_local equ.local_pp_name,
   subst_core equ,
@@ -1302,7 +1307,7 @@ meta def match_n_plus_m (md) : ℕ → expr → tactic (ℕ × expr) :=
   | _ := pure (n, e)
   end
 
-meta def contradict_n_eq_n_plus_m (md) (equ : expr) (lhs : expr) (rhs : expr)
+meta def contradict_n_eq_n_plus_m (md : transparency) (equ lhs rhs : expr)
   : tactic expr := do
   ⟨lhs_n, lhs_e⟩ ← match_n_plus_m md 0 lhs,
   ⟨rhs_n, rhs_e⟩ ← match_n_plus_m md 0 rhs,
@@ -1324,15 +1329,15 @@ meta def contradict_n_eq_n_plus_m (md) (equ : expr) (lhs : expr) (rhs : expr)
   let m := reflect (diff - 1),
   pure `(n_plus_m_plus_one_ne_n %%n %%m %%equ)
 
-meta def simplify_cyclic_equation (equ type lhs rhs : expr) (u : level)
-  : tactic simplification_result :=
+meta def simplify_cyclic_equation (equ type lhs rhs lhs_whnf rhs_whnf : expr)
+  (u : level) : tactic simplification_result :=
 do {
-  -- Establish the fact that `sizeof lhs = sizeof rhs`.
+  -- Establish `sizeof lhs = sizeof rhs`.
   sizeof ← get_sizeof type,
-  hyp_lhs ← to_expr ``(%%sizeof %%lhs),
-  hyp_rhs ← to_expr ``(%%sizeof %%rhs),
+  hyp_lhs ← to_expr ``(%%sizeof %%lhs_whnf),
+  hyp_rhs ← to_expr ``(%%sizeof %%rhs_whnf),
   hyp_type ← to_expr ``(@eq ℕ %%hyp_lhs %%hyp_rhs),
-  hyp_proof ← to_expr ``(@congr_arg %%type ℕ %%lhs %%rhs %%sizeof %%equ),
+  hyp_proof ← to_expr ``(@congr_arg %%type ℕ %%lhs_whnf %%rhs_whnf %%sizeof %%equ),
   hyp_name ← mk_fresh_name,
   hyp ← note hyp_name hyp_type hyp_proof,
 
@@ -1361,11 +1366,11 @@ meta def decompose_and : expr → tactic (list expr) := λ h, do
   | _ := pure [h]
   end
 
-meta def simplify_constructor_equation (equ type lhs rhs : expr) (u : level)
-  : tactic simplification_result :=
+meta def simplify_constructor_equation (equ type lhs rhs lhs_whnf rhs_whnf : expr)
+  (u : level) : tactic simplification_result :=
 do {
-  (const f _) ← pure $ get_app_fn lhs,
-  (const g _) ← pure $ get_app_fn rhs,
+  (const f _) ← pure $ get_app_fn lhs_whnf,
+  (const g _) ← pure $ get_app_fn rhs_whnf,
   env ← get_env,
   guard $ env.is_constructor f,
   guard $ env.is_constructor g,
@@ -1395,13 +1400,13 @@ meta def sequence_simplifiers (s t : tactic simplification_result)
   | not_simplified := t
   end
 
-meta def simplify_homogeneous_index_equation (equ type lhs rhs : expr) (u : level)
-  : tactic simplification_result := do
+meta def simplify_homogeneous_index_equation (equ type lhs rhs lhs_whnf rhs_whnf : expr)
+  (u : level) : tactic simplification_result := do
   list.foldl sequence_simplifiers (pure not_simplified)
-    [ simplify_defeq_equation equ type lhs rhs u
-    , simplify_var_equation equ type lhs rhs u
-    , simplify_constructor_equation equ type lhs rhs u
-    , simplify_cyclic_equation equ type lhs rhs u
+    [ simplify_defeq_equation equ type lhs rhs lhs_whnf rhs_whnf u
+    , simplify_var_equation equ type lhs rhs lhs_whnf rhs_whnf u
+    , simplify_constructor_equation equ type lhs rhs lhs_whnf rhs_whnf u
+    , simplify_cyclic_equation equ type lhs rhs lhs_whnf rhs_whnf u
     ]
 
 meta def simplify_index_equation (equ : name) : tactic simplification_result := do
@@ -1411,7 +1416,7 @@ meta def simplify_index_equation (equ : name) : tactic simplification_result := 
   | (app (app (app (const `eq [u]) type) lhs) rhs) := do
     lhs_whnf ← whnf lhs,
     rhs_whnf ← whnf rhs,
-    simplify_homogeneous_index_equation eque type lhs_whnf rhs_whnf u
+    simplify_homogeneous_index_equation eque type lhs rhs lhs_whnf rhs_whnf u
   | `(@heq %%lhs_type %%lhs %%rhs_type %%rhs) := do
     simplify_heterogeneous_index_equation eque lhs_type rhs_type lhs rhs
   | _ := fail! "Expected {equ} to be an equation, but its type is\n{t}."

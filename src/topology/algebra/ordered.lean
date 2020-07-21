@@ -188,6 +188,24 @@ lemma is_closed.is_closed_le [topological_space β] {f g : β → α} {s : set �
   is_closed {x ∈ s | f x ≤ g x} :=
 (hf.prod hg).preimage_closed_of_closed hs order_closed_topology.is_closed_le'
 
+omit t
+
+lemma nhds_within_Ici_ne_bot {a b : α} (H₂ : a ≤ b) :
+  nhds_within b (Ici a) ≠ ⊥ :=
+nhds_within_ne_bot_of_mem H₂
+
+lemma nhds_within_Ici_self_ne_bot (a : α) :
+  nhds_within a (Ici a) ≠ ⊥ :=
+nhds_within_Ici_ne_bot (le_refl a)
+
+lemma nhds_within_Iic_ne_bot {a b : α} (H : a ≤ b) :
+  nhds_within a (Iic b) ≠ ⊥ :=
+nhds_within_ne_bot_of_mem H
+
+lemma nhds_within_Iic_self_ne_bot (a : α) :
+  nhds_within a (Iic a) ≠ ⊥ :=
+nhds_within_Iic_ne_bot (le_refl a)
+
 end preorder
 
 section partial_order
@@ -883,29 +901,160 @@ lemma Icc_mem_nhds_within_Iio {a b c : α} (h : b ∈ Ioc a c) :
   Icc a c ∈ nhds_within b (Iio b) :=
 mem_sets_of_superset (Ioo_mem_nhds_within_Iio h) Ioo_subset_Icc_self
 
-/-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u)`
-with `a < u`, provided `a` is not a top element. -/
-lemma mem_nhds_within_Ici_iff_exists_Ico_subset' {a u' : α} {s : set α} (hu' : a < u') :
-  s ∈ nhds_within a (Ici a) ↔ ∃u, a < u ∧ Ico a u ⊆ s :=
+/-- The following statements are equivalent:
+
+0. `s` is a neighborhood of `a` within `[a, +∞)`
+1. `s` is a neighborhood of `a` within `[a, b]`
+2. `s` is a neighborhood of `a` within `[a, b)`
+3. `s` includes `[a, u)` for some `u ∈ (a, b]`
+4. `s` includes `[a, u)` for some `u > a` -/
+lemma tfae_mem_nhds_within_Ici {a b : α} (hab : a < b) (s : set α) :
+  tfae [s ∈ nhds_within a (Ici a), -- 0 : `s` is a neighborhood of `a` within `[a, +∞)`
+    s ∈ nhds_within a (Icc a b),   -- 1 : `s` is a neighborhood of `a` within `[a, b]`
+    s ∈ nhds_within a (Ico a b),   -- 2 : `s` is a neighborhood of `a` within `[a, b)`
+    ∃ u ∈ Ioc a b, Ico a u ⊆ s,    -- 3 : `s` includes `[a, u)` for some `u ∈ (a, b]`
+    ∃ u ∈ Ioi a, Ico a u ⊆ s] :=   -- 4 : `s` includes `[a, u)` for some `u > a`
 begin
-  split,
+  tfae_have : 1 → 2, from λ h, nhds_within_mono _ Icc_subset_Ici_self h,
+  tfae_have : 2 → 3, from λ h, nhds_within_mono _ Ico_subset_Icc_self h,
+  tfae_have : 4 → 5, from λ ⟨u, umem, hu⟩, ⟨u, umem.1, hu⟩,
+  tfae_have : 5 → 1,
+  { rintros ⟨u, hau, hu⟩,
+    exact mem_nhds_within.2 ⟨Iio u, is_open_Iio, hau, by rwa [inter_comm, Ici_inter_Iio]⟩ },
+  tfae_have : 3 → 4,
   { assume h,
     rcases mem_nhds_within_iff_exists_mem_nhds_inter.1 h with ⟨v, va, hv⟩,
-    rcases exists_Ico_subset_of_mem_nhds va ⟨u', hu'⟩ with ⟨u, au, hu⟩,
+    rcases exists_Ico_subset_of_mem_nhds' va hab with ⟨u, au, hu⟩,
     refine ⟨u, au, λx hx, _⟩,
-    refine hv ⟨_, hx.1⟩,
-    exact hu hx },
-  { rintros ⟨u, au, hu⟩,
-    rw mem_nhds_within_iff_exists_mem_nhds_inter,
-    refine ⟨Iio u, mem_nhds_sets is_open_Iio au, _⟩,
-    rwa [inter_comm, Ici_inter_Iio] }
+    refine hv ⟨hu ⟨hx.1, hx.2⟩, _⟩,
+    exact Ico_subset_Ico_right au.2 hx  },
+  tfae_finish
 end
+
+@[simp] lemma nhds_within_Icc_eq_nhds_within_Ici {a b : α} (h : a < b) :
+  nhds_within a (Icc a b) = nhds_within a (Ici a) :=
+filter.ext $ λ s, (tfae_mem_nhds_within_Ici h s).out 1 0 (by norm_num) (by norm_num)
+
+@[simp] lemma nhds_within_Ico_eq_nhds_within_Ici {a b : α} (hu : a < b) :
+  nhds_within a (Ico a b) = nhds_within a (Ici a) :=
+filter.ext $ λ s, (tfae_mem_nhds_within_Ici hu s).out 2 0 (by norm_num) (by norm_num)
+
+lemma mem_nhds_within_Ici_iff_exists_mem_Ioc_Ico_subset {a u' : α} {s : set α} (hu' : a < u') :
+  s ∈ nhds_within a (Ici a) ↔ ∃u ∈ Ioc a u', Ico a u ⊆ s :=
+(tfae_mem_nhds_within_Ici hu' s).out 0 3 (by norm_num) (by norm_num)
+
+/-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u)`
+with `a < u < u'`, provided `a` is not a top element. -/
+lemma mem_nhds_within_Ici_iff_exists_Ico_subset' {a u' : α} {s : set α} (hu' : a < u') :
+  s ∈ nhds_within a (Ici a) ↔ ∃u ∈ Ioi a, Ico a u ⊆ s :=
+(tfae_mem_nhds_within_Ici hu' s).out 0 4 (by norm_num) (by norm_num)
 
 /-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u)`
 with `a < u`. -/
 lemma mem_nhds_within_Ici_iff_exists_Ico_subset [no_top_order α] {a : α} {s : set α} :
-  s ∈ nhds_within a (Ici a) ↔ ∃u, a < u ∧ Ico a u ⊆ s :=
+  s ∈ nhds_within a (Ici a) ↔ ∃u ∈ Ioi a, Ico a u ⊆ s :=
 let ⟨u', hu'⟩ := no_top a in mem_nhds_within_Ici_iff_exists_Ico_subset' hu'
+
+/-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u]`
+with `a < u`. -/
+lemma mem_nhds_within_Ici_iff_exists_Icc_subset' [no_top_order α] [densely_ordered α]
+  {a : α} {s : set α} : s ∈ nhds_within a (Ici a) ↔ ∃u ∈ Ioi a, Icc a u ⊆ s :=
+begin
+  rw mem_nhds_within_Ici_iff_exists_Ico_subset,
+  split,
+  { rintros ⟨u, au, as⟩,
+    rcases dense au with ⟨v, hv⟩,
+    exact ⟨v, hv.1, λx hx, as ⟨hx.1, lt_of_le_of_lt hx.2 hv.2⟩⟩ },
+  { rintros ⟨u, au, as⟩,
+    exact ⟨u, au, subset.trans Ico_subset_Icc_self as⟩ }
+end
+
+lemma Ioo_mem_nhds_within_Ici {a b c : α} (H : b ∈ Ioo a c) :
+  Ioo a c ∈ nhds_within b (Ici b) :=
+(mem_nhds_within_Ici_iff_exists_Ico_subset' H.2).2 ⟨c, H.2, Ico_subset_Ioo_left H.1⟩
+
+lemma Ioc_mem_nhds_within_Ici {a b c : α} (H : b ∈ Ioo a c) :
+  Ioc a c ∈ nhds_within b (Ici b) :=
+mem_sets_of_superset (Ioo_mem_nhds_within_Ici H) Ioo_subset_Ioc_self
+
+lemma Ico_mem_nhds_within_Ici {a b c : α} (H : b ∈ Ioo a c) :
+  Ico a c ∈ nhds_within b (Ici b) :=
+mem_sets_of_superset (Ioo_mem_nhds_within_Ici H) Ioo_subset_Ico_self
+
+lemma Icc_mem_nhds_within_Ici {a b c : α} (H : b ∈ Ioo a c) :
+  Icc a c ∈ nhds_within b (Ici b) :=
+mem_sets_of_superset (Ioo_mem_nhds_within_Ici H) Ioo_subset_Icc_self
+
+/-- The following statements are equivalent:
+
+0. `s` is a neighborhood of `b` within `(-∞, b]`
+1. `s` is a neighborhood of `b` within `[a, b]`
+2. `s` is a neighborhood of `b` within `(a, b]`
+3. `s` includes `(l, b]` for some `l ∈ [a, b)`
+4. `s` includes `(l, b]` for some `l < b` -/
+lemma tfae_mem_nhds_within_Iic {a b : α} (h : a < b) (s : set α) :
+  tfae [s ∈ nhds_within b (Iic b), -- 0 : `s` is a neighborhood of `b` within `(-∞, b]`
+    s ∈ nhds_within b (Icc a b),   -- 1 : `s` is a neighborhood of `b` within `[a, b]`
+    s ∈ nhds_within b (Ioc a b),   -- 2 : `s` is a neighborhood of `b` within `(a, b]`
+    ∃ l ∈ Ico a b, Ioc l b ⊆ s,    -- 3 : `s` includes `(l, b]` for some `l ∈ [a, b)`
+    ∃ l ∈ Iio b, Ioc l b ⊆ s] :=   -- 4 : `s` includes `(l, b]` for some `l < b`
+begin
+  have := @tfae_mem_nhds_within_Ici (order_dual α) _ _ _ _ _ h s,
+  -- If we call `convert` here, it generates wrong equations, so we need to simplify first
+  simp only [exists_prop] at this ⊢,
+  rw [dual_Icc, dual_Ioc, dual_Ioi] at this,
+  convert this; ext l; rw [dual_Ico]
+end
+
+@[simp] lemma nhds_within_Icc_eq_nhds_within_Iic {a b : α} (h : a < b) :
+  nhds_within b (Icc a b) = nhds_within b (Iic b) :=
+filter.ext $ λ s, (tfae_mem_nhds_within_Iic h s).out 1 0 (by norm_num) (by norm_num)
+
+@[simp] lemma nhds_within_Ioc_eq_nhds_within_Iic {a b : α} (h : a < b) :
+  nhds_within b (Ioc a b) = nhds_within b (Iic b) :=
+filter.ext $ λ s, (tfae_mem_nhds_within_Iic h s).out 2 0 (by norm_num) (by norm_num)
+
+lemma mem_nhds_within_Iic_iff_exists_mem_Ico_Ioc_subset {a l' : α} {s : set α} (hl' : l' < a) :
+  s ∈ nhds_within a (Iic a) ↔ ∃l ∈ Ico l' a, Ioc l a ⊆ s :=
+(tfae_mem_nhds_within_Iic hl' s).out 0 3 (by norm_num) (by norm_num)
+
+/-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `(l, a]`
+with `l < a`, provided `a` is not a bottom element. -/
+lemma mem_nhds_within_Iic_iff_exists_Ioc_subset' {a l' : α} {s : set α} (hl' : l' < a) :
+  s ∈ nhds_within a (Iic a) ↔ ∃l ∈ Iio a, Ioc l a ⊆ s :=
+(tfae_mem_nhds_within_Iic hl' s).out 0 4 (by norm_num) (by norm_num)
+
+/-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `(l, a]`
+with `l < a`. -/
+lemma mem_nhds_within_Iic_iff_exists_Ioc_subset [no_bot_order α] {a : α} {s : set α} :
+  s ∈ nhds_within a (Iic a) ↔ ∃l ∈ Iio a, Ioc l a ⊆ s :=
+let ⟨l', hl'⟩ := no_bot a in mem_nhds_within_Iic_iff_exists_Ioc_subset' hl'
+
+/-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `[l, a]`
+with `l < a`. -/
+lemma mem_nhds_within_Iic_iff_exists_Icc_subset' [no_bot_order α] [densely_ordered α]
+  {a : α} {s : set α} : s ∈ nhds_within a (Iic a) ↔ ∃l ∈ Iio a, Icc l a ⊆ s :=
+begin
+  convert @mem_nhds_within_Ici_iff_exists_Icc_subset' (order_dual α) _ _ _ _ _ _ _,
+  simp_rw (show ∀ u : order_dual α, @Icc (order_dual α) _ a u = @Icc α _ u a, from λ u, dual_Icc),
+  refl,
+end
+
+lemma Ioo_mem_nhds_within_Iic {a b c : α} (h : b ∈ Ioo a c) :
+  Ioo a c ∈ nhds_within b (Iic b) :=
+(mem_nhds_within_Iic_iff_exists_Ioc_subset' h.1).2 ⟨a, h.1, Ioc_subset_Ioo_right h.2⟩
+
+lemma Ioc_mem_nhds_within_Iic {a b c : α} (h : b ∈ Ioo a c) :
+  Ioc a c ∈ nhds_within b (Iic b) :=
+mem_sets_of_superset (Ioo_mem_nhds_within_Iic h) Ioo_subset_Ioc_self
+
+lemma Ico_mem_nhds_within_Iic {a b c : α} (h : b ∈ Ioo a c) :
+  Ico a c ∈ nhds_within b (Iic b) :=
+mem_sets_of_superset (Ioo_mem_nhds_within_Iic h) Ioo_subset_Ico_self
+
+lemma Icc_mem_nhds_within_Iic {a b c : α} (h : b ∈ Ioo a c) :
+  Icc a c ∈ nhds_within b (Iic b) :=
+mem_sets_of_superset (Ioo_mem_nhds_within_Iic h) Ioo_subset_Icc_self
 
 /-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u]`
 with `a < u`. -/
@@ -920,30 +1069,6 @@ begin
   { rintros ⟨u, au, as⟩,
     exact ⟨u, au, subset.trans Ico_subset_Icc_self as⟩ }
 end
-
-/-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `(l, a]`
-with `l < a`, provided `a` is not a bottom element. -/
-lemma mem_nhds_within_Iic_iff_exists_Ioc_subset' {a l' : α} {s : set α} (hl' : l' < a) :
-  s ∈ nhds_within a (Iic a) ↔ ∃l, l < a ∧ Ioc l a ⊆ s :=
-begin
-  split,
-  { assume h,
-    rcases mem_nhds_within_iff_exists_mem_nhds_inter.1 h with ⟨v, va, hv⟩,
-    rcases exists_Ioc_subset_of_mem_nhds va ⟨l', hl'⟩ with ⟨l, la, hl⟩,
-    refine ⟨l, la, λx hx, _⟩,
-    refine hv ⟨_, hx.2⟩,
-    exact hl hx },
-  { rintros ⟨l, la, ha⟩,
-    rw mem_nhds_within_iff_exists_mem_nhds_inter,
-    refine ⟨Ioi l, mem_nhds_sets is_open_Ioi la, _⟩,
-    rwa [Ioi_inter_Iic] }
-end
-
-/-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `(l, a]`
-with `l < a`. -/
-lemma mem_nhds_within_Iic_iff_exists_Ioc_subset [no_bot_order α] {a : α} {s : set α} :
-  s ∈ nhds_within a (Iic a) ↔ ∃l, l < a ∧ Ioc l a ⊆ s :=
-let ⟨l', hl'⟩ := no_bot a in mem_nhds_within_Iic_iff_exists_Ioc_subset' hl'
 
 /-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `[l, a]`
 with `l < a`. -/

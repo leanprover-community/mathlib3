@@ -20,7 +20,7 @@ open_locale mvfunctor
 
 variables {n : ℕ}
   {A : Type.{u}}
-  (F : A → typevec.{u} n → Type.{u}) [Π α, mvfunctor $ F α]
+  (F : A → typevec.{u} n → Type.{u})
 
 /-- Dependent sum of of an `n`-ary functor. The sum can range over
 data types like `ℕ` or over `Type.{u-1}` -/
@@ -31,6 +31,14 @@ def sigma (v : typevec.{u} n) : Type.{u} :=
 data types like `ℕ` or over `Type.{u-1}` -/
 def pi (v : typevec.{u} n) : Type.{u} :=
 Π α : A, F α v
+
+instance sigma.inhabited {α} [inhabited A] [inhabited (F (default A) α)] : inhabited (sigma F α) :=
+⟨ ⟨default A, default _⟩ ⟩
+
+instance pi.inhabited {α} [Π a, inhabited (F a α)] : inhabited (pi F α) :=
+⟨ λ a, default _ ⟩
+
+variables [Π α, mvfunctor $ F α]
 
 namespace sigma
 

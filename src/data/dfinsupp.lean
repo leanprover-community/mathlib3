@@ -428,7 +428,7 @@ instance [Π i, add_group (β i)] {s : finset ι} : is_add_group_hom (@mk ι β 
 
 section
 local attribute [instance] to_semimodule
-variables (γ : Type w) [semiring γ] [Π i, add_comm_group (β i)] [Π i, semimodule γ (β i)]
+variables (γ : Type w) [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, semimodule γ (β i)]
 include γ
 
 @[simp] lemma mk_smul {s : finset ι} {c : γ} (x : Π i : (↑s : set ι), β i.1) :
@@ -607,7 +607,7 @@ by ext i; simp
 
 local attribute [instance] dfinsupp.to_semimodule
 
-lemma support_smul {γ : Type w} [ring γ] [Π i, add_comm_group (β i)] [Π i, module γ (β i)]
+lemma support_smul {γ : Type w} [ring γ] [Π i, add_comm_monoid (β i)] [Π i, semimodule γ (β i)]
   [Π (i : ι) (x : β i), decidable (x ≠ 0)]
   {b : γ} {v : Π₀ i, β i} : (b • v).support ⊆ v.support :=
 support_map_range

@@ -178,6 +178,16 @@ def kernel_comp_is_iso {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
 { hom := kernel.lift _ (kernel.ι _) (by { rw [←cancel_mono g], simp, }),
   inv := kernel.lift _ (kernel.ι _) (by simp), }
 
+lemma kernel_comp_is_iso_hom_comp_kernel_ι {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
+  [has_kernel (f ≫ g)] [has_kernel f] [is_iso g] :
+  (kernel_comp_is_iso f g).hom ≫ kernel.ι f = kernel.ι (f ≫ g) :=
+by simp
+
+lemma kernel_comp_is_iso_inv_comp_kernel_ι {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
+  [has_kernel (f ≫ g)] [has_kernel f] [is_iso g] :
+  (kernel_comp_is_iso f g).inv ≫ kernel.ι (f ≫ g) = kernel.ι f :=
+by simp
+
 /--
 When `f` is an isomorphism, the kernel of `f ≫ g` is isomorphic to the kernel of `g`.
 -/
@@ -187,6 +197,16 @@ def kernel_is_iso_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   kernel (f ≫ g) ≅ kernel g :=
 { hom := kernel.lift _ (kernel.ι _ ≫ f) (by simp),
   inv := kernel.lift _ (kernel.ι _ ≫ inv f) (by simp), }
+
+lemma kernel_is_iso_comp_hom_comp_kernel_ι {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
+  [has_kernel (f ≫ g)] [is_iso f] [has_kernel g] :
+  (kernel_is_iso_comp f g).hom ≫ kernel.ι g = kernel.ι (f ≫ g) ≫ f :=
+by simp
+
+lemma kernel_is_iso_comp_inv_comp_kernel_ι {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
+  [has_kernel (f ≫ g)] [is_iso f] [has_kernel g] :
+  (kernel_is_iso_comp f g).inv ≫ kernel.ι (f ≫ g) = kernel.ι g ≫ (inv f) :=
+by simp
 
 end
 
@@ -381,6 +401,16 @@ def cokernel_comp_is_iso {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
 { hom := cokernel.desc _ (inv g ≫ cokernel.π f) (by simp),
   inv := cokernel.desc _ (g ≫ cokernel.π (f ≫ g)) (by rw [←category.assoc, cokernel.condition]), }
 
+lemma cokernel_π_comp_cokernel_comp_is_iso_hom {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
+  [has_cokernel (f ≫ g)] [has_cokernel f] [is_iso g] :
+  cokernel.π (f ≫ g) ≫ (cokernel_comp_is_iso f g).hom = inv g ≫ cokernel.π f :=
+by simp
+
+lemma cokernel_π_comp_cokernel_comp_is_iso_inv {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
+  [has_cokernel (f ≫ g)] [has_cokernel f] [is_iso g] :
+  cokernel.π f ≫ (cokernel_comp_is_iso f g).inv = g ≫ cokernel.π (f ≫ g) :=
+by simp
+
 /--
 When `f` is an isomorphism, the cokernel of `f ≫ g` is isomorphic to the cokernel of `g`.
 -/
@@ -390,6 +420,17 @@ def cokernel_is_iso_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   cokernel (f ≫ g) ≅ cokernel g :=
 { hom := cokernel.desc _ (cokernel.π g) (by simp),
   inv := cokernel.desc _ (cokernel.π (f ≫ g)) (by { rw [←cancel_epi f, ←category.assoc], simp, }), }
+
+
+lemma cokernel_π_comp_cokernel_is_iso_comp_hom {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
+  [has_cokernel (f ≫ g)] [is_iso f] [has_cokernel g] :
+  cokernel.π (f ≫ g) ≫ (cokernel_is_iso_comp f g).hom = cokernel.π g :=
+by simp
+
+lemma cokernel_π_comp_cokernel_is_iso_comp_inv {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
+  [has_cokernel (f ≫ g)] [is_iso f] [has_cokernel g] :
+  cokernel.π g ≫ (cokernel_is_iso_comp f g).inv = cokernel.π (f ≫ g) :=
+by simp
 
 end
 

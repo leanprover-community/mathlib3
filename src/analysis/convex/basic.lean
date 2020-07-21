@@ -357,7 +357,7 @@ convex_halfspace_ge (is_linear_map.mk complex.add_im complex.smul_im) _
 If x is in an Ioo, it can be expressed as a convex combination of the endpoints.
 -/
 lemma convex_combo_Ioo {a b x : ℝ} :
-    x ∈ Ioo a b → ∃ (x_a x_b : ℝ), x_a > 0 ∧ x_b > 0 ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
+    x ∈ Ioo a b → ∃ (x_a x_b : ℝ), 0 < x_a ∧ 0 < x_b ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
 begin
     rintros ⟨h_ax, h_bx⟩,
     by_cases hab : a ≥ b,
@@ -382,7 +382,7 @@ end
 
 /-- If x is in an Ioc, it can be expressed as a convex combination of the endpoints. -/
 lemma convex_combo_Ioc {a b x : ℝ} :
-    x ∈ Ioc a b → ∃ (x_a x_b : ℝ), x_a ≥ 0 ∧ x_b > 0 ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
+    x ∈ Ioc a b → ∃ (x_a x_b : ℝ), 0 ≤ x_a ∧ 0 < x_b ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
 begin
     rintros ⟨h_ax, h_bx⟩,
     by_cases hab : a ≥ b,
@@ -396,7 +396,7 @@ end
 
 /-- If x is in an Ico, it can be expressed as a convex combination of the endpoints. -/
 lemma convex_combo_Ico {a b x : ℝ} :
-    x ∈ Ico a b → ∃ (x_a x_b : ℝ), x_a > 0 ∧ x_b ≥ 0 ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
+    x ∈ Ico a b → ∃ (x_a x_b : ℝ), 0 < x_a ∧ 0 ≤ x_b ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
 begin
     rintros ⟨h_ax, h_bx⟩,
     by_cases hab : a ≥ b,
@@ -410,7 +410,7 @@ end
 
 /-- If x is in an Icc, it can be expressed as a convex combination of the endpoints. -/
 lemma convex_combo_Icc {a b x : ℝ} :
-    x ∈ Icc a b → ∃ (x_a x_b : ℝ), x_a ≥ 0 ∧ x_b ≥ 0 ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
+    x ∈ Icc a b → ∃ (x_a x_b : ℝ), 0 ≤ x_a ∧ 0 ≤ x_b ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
 begin
     intro x_in_I,
     rw[Icc, mem_set_of_eq] at x_in_I,

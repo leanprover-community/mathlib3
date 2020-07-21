@@ -458,7 +458,7 @@ If the length of `es` is larger than the number of lambdas in `e`,
 then the term is applied to the remaining terms.
 Also reduces head let-expressions in `e`, including those after instantiating all lambdas.
 
-This is very similar to `expr.substs`, but also reduces head let-expressions. -/
+This is very similar to `expr.substs`, but this also reduces head let-expressions. -/
 meta def instantiate_lambdas_or_apps : list expr → expr → expr
 | (v::es) (lam n bi t b) := instantiate_lambdas_or_apps es $ b.instantiate_var v
 | es      (elet _ _ v b) := instantiate_lambdas_or_apps es $ b.instantiate_var v

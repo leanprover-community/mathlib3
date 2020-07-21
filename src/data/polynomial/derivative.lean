@@ -14,8 +14,6 @@ import data.polynomial.field_division
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
-local attribute [instance, priority 10] is_semiring_hom.comp is_ring_hom.comp
-
 open finsupp finset add_monoid_algebra
 open_locale big_operators
 
@@ -49,8 +47,11 @@ end
 finsupp.sum_zero_index
 
 lemma derivative_monomial (a : R) (n : ℕ) : derivative (C a * X ^ n) = C (a * n) * X^(n - 1) :=
-by rw [← single_eq_C_mul_X, ← single_eq_C_mul_X, derivative, sum_single_index, single_eq_C_mul_X];
-  simp only [zero_mul, C_0]; refl
+begin
+  rw [← single_eq_C_mul_X, ← single_eq_C_mul_X, derivative, monomial,
+    sum_single_index, single_eq_C_mul_X],
+  simp only [zero_mul, C_0],
+end
 
 @[simp] lemma derivative_C {a : R} : derivative (C a) = 0 :=
 suffices derivative (C a * X^0) = C (a * 0:R) * X ^ 0,

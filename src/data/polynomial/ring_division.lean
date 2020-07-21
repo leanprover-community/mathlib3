@@ -17,8 +17,6 @@ This file starts looking like the ring theory of $ R[X] $
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
-local attribute [instance, priority 10] is_semiring_hom.comp is_ring_hom.comp
-
 open finsupp finset add_monoid_algebra
 open_locale big_operators
 
@@ -32,12 +30,12 @@ variables [comm_ring R] {p q : polynomial R}
 variables [comm_ring S]
 
 lemma nat_degree_pos_of_aeval_root [algebra R S] {p : polynomial R} (hp : p ≠ 0)
-  {z : S} (hz : aeval R S z p = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
+  {z : S} (hz : aeval z p = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
   0 < p.nat_degree :=
 nat_degree_pos_of_eval₂_root hp (algebra_map R S) hz inj
 
 lemma degree_pos_of_aeval_root [algebra R S] {p : polynomial R} (hp : p ≠ 0)
-  {z : S} (hz : aeval R S z p = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
+  {z : S} (hz : aeval z p = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
   0 < p.degree :=
 nat_degree_pos_iff_degree_pos.mp (nat_degree_pos_of_aeval_root hp hz inj)
 
@@ -195,8 +193,6 @@ then if h : (X : polynomial R) ^ n - C a = 0
 else by rw [← with_bot.coe_le_coe, ← degree_X_pow_sub_C (nat.pos_of_ne_zero hn) a];
   exact card_roots (X_pow_sub_C_ne_zero (nat.pos_of_ne_zero hn) a)
 
-
-
 lemma coeff_comp_degree_mul_degree (hqd0 : nat_degree q ≠ 0) :
   coeff (p.comp q) (nat_degree p * nat_degree q) =
   leading_coeff p * leading_coeff q ^ nat_degree p :=
@@ -210,7 +206,6 @@ calc coeff (p.comp q) (nat_degree p * nat_degree q)
     assume b hbs hbp,
     have hq0 : q ≠ 0, from λ hq0, hqd0 (by rw [hq0, nat_degree_zero]),
     have : coeff p b ≠ 0, rwa finsupp.mem_support_iff at hbs,
-    dsimp [apply_eq_coeff],
     refine coeff_eq_zero_of_degree_lt _,
     rw [degree_mul], erw degree_C this,
     rw [degree_pow, zero_add, degree_eq_nat_degree hq0,

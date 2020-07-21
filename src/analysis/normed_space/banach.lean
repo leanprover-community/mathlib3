@@ -179,9 +179,7 @@ begin
     rw this,
     refine tendsto.mul _ tendsto_const_nhds,
     exact tendsto_pow_at_top_nhds_0_of_lt_1 (by norm_num) (by norm_num) },
-  have feq : f x = y - 0,
-  { apply tendsto_nhds_unique _ L₁ L₂,
-    simp },
+  have feq : f x = y - 0 := tendsto_nhds_unique L₁ L₂,
   rw sub_zero at feq,
   exact ⟨x, feq, x_ineq⟩
 end

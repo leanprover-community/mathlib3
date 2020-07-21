@@ -1250,11 +1250,11 @@ lemma tendsto_lintegral_of_dominated_convergence
   tendsto (λn, ∫⁻ a, F n a ∂μ) at_top (𝓝 (∫⁻ a, f a ∂μ)) :=
 tendsto_of_le_liminf_of_limsup_le
 (calc ∫⁻ a, f a ∂μ = ∫⁻ a, liminf at_top (λ (n : ℕ), F n a) ∂μ :
-      lintegral_congr_ae $ h_lim.mono $ assume a h, (h.liminf_eq at_top_ne_bot).symm
+      lintegral_congr_ae $ h_lim.mono $ assume a h, h.liminf_eq.symm
  ... ≤ liminf at_top (λ n, ∫⁻ a, F n a ∂μ) : lintegral_liminf_le hF_meas)
 (calc limsup at_top (λ (n : ℕ), ∫⁻ a, F n a ∂μ) ≤ ∫⁻ a, limsup at_top (λn, F n a) ∂μ :
       limsup_lintegral_le hF_meas h_bound h_fin
- ... = ∫⁻ a, f a ∂μ : lintegral_congr_ae $ h_lim.mono $ λ a h, h.limsup_eq at_top_ne_bot)
+ ... = ∫⁻ a, f a ∂μ : lintegral_congr_ae $ h_lim.mono $ λ a h, h.limsup_eq)
 
 /-- Dominated convergence theorem for filters with a countable basis -/
 lemma tendsto_lintegral_filter_of_dominated_convergence {ι} {l : filter ι}

@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 -/
 import algebra.pi_instances
 import data.finsupp
+import algebra.pointwise
 
 /-!
 # Linear algebra
@@ -808,6 +809,8 @@ eq_bot_iff.trans ⟨
 
 @[simp] lemma span_singleton_eq_bot : span R ({x} : set M) = ⊥ ↔ x = 0 :=
 span_eq_bot.trans $ by simp
+
+@[simp] lemma span_zero : span R (0 : set M) = ⊥ := by rw [←singleton_zero, span_singleton_eq_bot]
 
 @[simp] lemma span_image (f : M →ₗ[R] M₂) : span R (f '' s) = map f (span R s) :=
 span_eq_of_le _ (image_subset _ subset_span) $ map_le_iff_le_comap.2 $

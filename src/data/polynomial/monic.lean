@@ -1,14 +1,12 @@
-import data.polynomial.algebra_map
-import algebra.gcd_domain
-import tactic.omega
-import tactic.ring
-
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-
+import data.polynomial.algebra_map
+import algebra.gcd_domain
+import tactic.ring
+import tactic.omega
 
 /-!
 # Theory of monic polynomials
@@ -20,8 +18,6 @@ and then define `integral_normalization`, which relate arbitrary polynomials to 
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
-
-local attribute [instance, priority 10] is_semiring_hom.comp is_ring_hom.comp
 
 open finsupp finset add_monoid_algebra
 open_locale big_operators
@@ -366,8 +362,8 @@ calc eval₂ f (z * f p.leading_coeff) (integral_normalization p)
 ... = 0 : by rw [hz, _root_.mul_zero]
 
 lemma integral_normalization_aeval_eq_zero [algebra R S] {f : polynomial R} (hf : f ≠ 0)
-  {z : S} (hz : aeval R S z f = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
-  aeval R S (z * algebra_map R S f.leading_coeff) (integral_normalization f) = 0 :=
+  {z : S} (hz : aeval z f = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
+  aeval (z * algebra_map R S f.leading_coeff) (integral_normalization f) = 0 :=
 integral_normalization_eval₂_eq_zero hf (algebra_map R S) hz inj
 end domain
 end integral_normalization

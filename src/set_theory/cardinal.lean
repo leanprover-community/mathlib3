@@ -236,7 +236,7 @@ by simp [le_antisymm_iff, zero_le]
 theorem pos_iff_ne_zero {o : cardinal} : 0 < o ↔ o ≠ 0 :=
 by simp [lt_iff_le_and_ne, eq_comm, zero_le]
 
-theorem zero_lt_one : (0 : cardinal) < 1 :=
+@[simp] theorem zero_lt_one : (0 : cardinal) < 1 :=
 lt_of_le_of_ne (zero_le _) zero_ne_one
 
 lemma zero_power_le (c : cardinal.{u}) : (0 : cardinal.{u}) ^ c ≤ 1 :=
@@ -649,7 +649,7 @@ theorem nat_lt_omega (n : ℕ) : (n : cardinal.{u}) < omega :=
 succ_le.1 $ by rw [← nat_succ, ← lift_mk_fin, omega, lift_mk_le.{0 0 u}]; exact
 ⟨⟨fin.val, λ a b, fin.eq_of_veq⟩⟩
 
-theorem one_lt_omega : 1 < omega :=
+@[simp] theorem one_lt_omega : 1 < omega :=
 by simpa using nat_lt_omega 1
 
 theorem lt_omega {c : cardinal.{u}} : c < omega ↔ ∃ n : ℕ, c = n :=

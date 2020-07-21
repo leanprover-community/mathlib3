@@ -56,7 +56,7 @@ instance : inhabited (adjoin_root f) := ⟨0⟩
 instance : decidable_eq (adjoin_root f) := classical.dec_eq _
 
 /-- Ring homomorphism from `R[x]` to `adjoin_root f` sending `X` to the `root`. -/
-def mk : polynomial R →+* adjoin_root f := ideal.quotient.mk_hom _
+def mk : polynomial R →+* adjoin_root f := ideal.quotient.mk _
 
 @[elab_as_eliminator]
 theorem induction_on {C : adjoin_root f → Prop} (x : adjoin_root f)

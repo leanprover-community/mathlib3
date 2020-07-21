@@ -218,7 +218,7 @@ begin
   exact coe_lt_coe.2 (lt_of_lt_of_le (nat.cast_lt.2 (nat.lt_succ_self _)) ha)
 end
 
-instance : topological_add_monoid ennreal :=
+instance : has_continuous_add ennreal :=
 ⟨ continuous_iff_continuous_at.2 $
   have hl : ∀a:ennreal, tendsto (λ (p : ennreal × ennreal), p.fst + p.snd) (𝓝 (⊤, a)) (𝓝 ⊤), from
     assume a, tendsto_nhds_top $ assume n,

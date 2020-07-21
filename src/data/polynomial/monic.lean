@@ -1,14 +1,12 @@
-import data.polynomial.algebra_map
-import algebra.gcd_domain
-import tactic.omega
-import tactic.ring
-
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-
+import data.polynomial.algebra_map
+import algebra.gcd_domain
+import tactic.ring
+import tactic.omega
 
 /-!
 # Theory of monic polynomials
@@ -20,8 +18,6 @@ and then define `integral_normalization`, which relate arbitrary polynomials to 
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
-
-local attribute [instance, priority 10] is_semiring_hom.comp is_ring_hom.comp
 
 open finsupp finset add_monoid_algebra
 open_locale big_operators

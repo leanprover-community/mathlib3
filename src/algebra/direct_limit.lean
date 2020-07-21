@@ -15,6 +15,7 @@ the free commutative ring (for the ring case) instead of a quotient of the disjo
 so as to make the operations (addition etc.) "computable".
 -/
 import ring_theory.free_comm_ring
+import linear_algebra.direct_sum_module
 
 universes u v w u₁
 

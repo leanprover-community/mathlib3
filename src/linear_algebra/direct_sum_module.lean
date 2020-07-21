@@ -36,7 +36,7 @@ open_locale direct_sum
 
 variables {R ι M}
 
-instance : semimodule R (⨁ i, M i) := dfinsupp.to_semimodule
+instance : semimodule R (⨁ i, M i) := @dfinsupp.to_semimodule ι M _ _ (λ i, by apply_instance) _
 
 variables R ι M
 /-- Create the direct sum given a family `M` of `R` semimodules indexed over `ι`. -/

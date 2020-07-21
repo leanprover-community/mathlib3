@@ -146,21 +146,22 @@ instance [Π i, add_comm_group (β i)] : add_comm_group (Π₀ i, β i) :=
 
 /-- Dependent functions with finite support inherit a semiring action from an action on each
 coordinate. -/
-def to_has_scalar {γ : Type w} [semiring γ] [Π i, add_comm_group (β i)] [Π i, semimodule γ (β i)] :
+def to_has_scalar {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, semimodule γ (β i)] :
   has_scalar γ (Π₀ i, β i) :=
 ⟨λc v, v.map_range (λ _, (•) c) (λ _, smul_zero _)⟩
 local attribute [instance] to_has_scalar
 
-@[simp] lemma smul_apply {γ : Type w} [semiring γ] [Π i, add_comm_group (β i)]
+@[simp] lemma smul_apply {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)]
   [Π i, semimodule γ (β i)] {i : ι} {b : γ} {v : Π₀ i, β i} :
   (b • v) i = b • (v i) :=
 map_range_apply
 
 /-- Dependent functions with finite support inherit a semimodule structure from such a structure on
 each coordinate. -/
-def to_semimodule {γ : Type w} [semiring γ] [Π i, add_comm_group (β i)] [Π i, semimodule γ (β i)] :
-  semimodule γ (Π₀ i, β i) :=
-semimodule.of_core {
+def to_semimodule {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, semimodule γ (β i)] :
+  semimodule γ (Π₀ i, β i) := {
+  smul_zero := λ c, ext $ λ i, by simp only [smul_apply, smul_zero, zero_apply],
+  zero_smul := λ c, ext $ λ i, by simp only [smul_apply, zero_smul, zero_apply],
   smul_add := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, smul_add],
   add_smul := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, add_smul],
   one_smul := λ x, ext $ λ i, by simp only [smul_apply, one_smul],

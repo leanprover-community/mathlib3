@@ -360,11 +360,14 @@ example {α} (x : α) : coercing.rfl2 x = x := by rw [coercing.rfl2_to_fun]
 example {α} (x : α) : coercing.rfl2 x = x := by simp
 example {α} (x : α) : coercing.rfl2.inv_fun x = x := by simp
 
-@[simps] protected def equiv2.symm2 {α β} (f : equiv2 α β) : equiv2 β α :=
+@[simps] protected def equiv2.symm {α β} (f : equiv2 α β) : equiv2 β α :=
 ⟨f.inv_fun, f, f.right_inv, f.left_inv⟩
 
-example {α β} (f : equiv2 α β) (y : β) : f.symm2 y = f.inv_fun y := by simp
-example {α β} (f : equiv2 α β) (x : α) : f.symm2.inv_fun x = f x := by simp
+@[simps] protected def equiv2.symm2 {α β} (f : equiv2 α β) : equiv2 β α :=
+⟨f.inv_fun, f.to_fun, f.right_inv, f.left_inv⟩
+
+example {α β} (f : equiv2 α β) (y : β) : f.symm y = f.inv_fun y := by simp
+example {α β} (f : equiv2 α β) (x : α) : f.symm.inv_fun x = f x := by simp
 
 section
 set_option old_structure_cmd true
@@ -502,3 +505,14 @@ begin
   guard_target @set.univ ℕ = set.univ,
   refl
 end
+
+/-
+todo:
+set_basic_attribute tactic failed, 'mfld_simps' is not a basic attribute
+make reducibility an option, default instance?
+bug? equiv2.symm and equiv2.symm2 have different number of arguments
+Invalid `simps` attribute. Body is not a constructor application
+test def-eq in custom projections.
+failed to add projection lemma local_equiv.prod_inv_fun.
+
+-/

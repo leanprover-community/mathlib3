@@ -183,7 +183,8 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
   let decl_value := prf.lambdas args,
   let decl := declaration.thm decl_name univs decl_type (pure decl_value),
   when_tracing `simps.verbose trace!"[simps] > adding projection\n        > {decl_name} : {decl_type}",
-  add_decl decl <|> fail format!"failed to add projection lemma {decl_name}.",
+  decorate_error ("failed to add projection lemma " ++ decl_name.to_string ++ ". Nested error:") $
+    add_decl decl,
   b ← succeeds $ is_def_eq lhs rhs,
   when (b ∧ `simp ∈ cfg.attrs) (set_basic_attribute `_refl_lemma decl_name tt),
   cfg.attrs.mmap' $ λ nm, set_basic_attribute nm decl_name tt

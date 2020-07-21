@@ -84,7 +84,7 @@ quotient.sound' (mem_span_singleton.2 $ by simp)
 
 @[simp] lemma mk_X : mk f X = root f := rfl
 
-@[simp] lemma aeval_eq (p : polynomial R) : aeval R (adjoin_root f) (root f) p = mk f p :=
+@[simp] lemma aeval_eq (p : polynomial R) : aeval (root f) p = mk f p :=
 polynomial.induction_on p (λ x, by { rw aeval_C, refl })
   (λ p q ihp ihq, by rw [alg_hom.map_add, ring_hom.map_add, ihp, ihq])
   (λ n x ih, by { rw [alg_hom.map_mul, aeval_C, alg_hom.map_pow, aeval_X,

@@ -1144,7 +1144,7 @@ meta def replace_structure_index_args (eliminee : expr) (index_args : list expr)
 meta def generalize_complex_index_args_aux (eliminee : expr)
   (eliminee_head : expr) (eliminee_param_args eliminee_index_args : list expr)
   (generate_ihs : bool)
-  : tactic (expr × list expr × list expr × ℕ × name_set) :=
+  : tactic (expr × list expr × ℕ × name_set) :=
 focus1 $ do
   -- If any of the index arguments are values of a structure, e.g. `(x, y)`,
   -- replace `x` by `(x, y).fst` and `y` by `(x, y).snd` everywhere in the goal.
@@ -1212,13 +1212,14 @@ focus1 $ do
   -- Assert the generalized goal and derive the current goal from it.
   generalizes.step3 new_tgt js ks eqs eq_proofs,
 
-  -- Introduce the index variables, equations and eliminee.
-  -- The relevant context remains reverted.
+  -- Introduce the index variables and eliminee. The index equations
+  -- and the relevant context remain reverted.
   let num_index_vars := js.length,
   index_vars ← intron' num_index_vars,
   index_equations ← intron' num_index_vars,
   eliminee ← intro1,
-  pure (eliminee, index_vars, index_equations, relevant_ctx_size, fields)
+  revert_lst index_equations,
+  pure (eliminee, index_vars, relevant_ctx_size, fields)
 
 meta def generalize_complex_index_args (eliminee : expr) (num_params : ℕ)
   (generate_ihs : bool)
@@ -1228,13 +1229,10 @@ meta def generalize_complex_index_args (eliminee : expr) (num_params : ℕ)
   let ⟨eliminee_param_args, eliminee_index_args⟩ :=
     eliminee_args.split_at num_params,
 
-  ⟨eliminee, index_vars, index_equations, num_generalized, fields⟩ ←
+  ⟨eliminee, index_vars, num_generalized, fields⟩ ←
     generalize_complex_index_args_aux eliminee eliminee_head
       eliminee_param_args eliminee_index_args generate_ihs,
   let index_vars := index_vars.map local_pp_name,
-
-  -- Re-revert the index equations
-  revert_lst index_equations,
 
   pure (eliminee, index_vars.length, index_vars, fields, num_generalized)
 
@@ -1682,6 +1680,7 @@ focus1 $ do
 
       -- Introduce the index equations
       index_equations ← intron' num_index_vars,
+      let index_equations := index_equations.map local_pp_name,
 
       -- Introduce the hypotheses that were generalised during index
       -- generalisation.
@@ -1692,7 +1691,7 @@ focus1 $ do
 
       -- Simplify the index equations. Stop after this step if the goal has been
       -- solved by the simplification.
-      ff ← simplify_index_equations (index_equations.map expr.local_pp_name)
+      ff ← simplify_index_equations index_equations
         | do {
             trace_eliminate_hyp "Case solved while simplifying index equations.",
             pure none

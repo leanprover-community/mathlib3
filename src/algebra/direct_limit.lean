@@ -159,7 +159,7 @@ span_induction ((quotient.mk_eq_zero _).1 H)
           to_module_totalize_of_le hik hi,
           to_module_totalize_of_le hjk hj]⟩)
   (λ a x ⟨i, hi, hxi⟩,
-    ⟨i, λ k hk, hi k (dfinsupp.support_smul hk),
+    ⟨i, λ k hk, hi k (@dfinsupp.support_smul ι G _ _ _ _ _ _ _ _ _ hk),
       by simp [linear_map.map_smul, hxi]⟩)
 
 /-- A component that corresponds to zero in the direct limit is already zero in some

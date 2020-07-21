@@ -542,6 +542,14 @@ end canonically_ordered_add_monoid
 class canonically_linear_ordered_add_monoid (α : Type*)
       extends canonically_ordered_add_monoid α, decidable_linear_order α
 
+section canonically_linear_ordered_add_monoid
+variables [canonically_linear_ordered_add_monoid α]
+
+instance canonically_linear_ordered_add_monoid.semilattice_sup_bot : semilattice_sup_bot α :=
+{ ..lattice_of_decidable_linear_order, ..canonically_ordered_add_monoid.to_order_bot α }
+
+end canonically_linear_ordered_add_monoid
+
 /-- An ordered cancellative additive commutative monoid
 is an additive commutative monoid with a partial order,
 in which addition is cancellative and strictly monotone. -/

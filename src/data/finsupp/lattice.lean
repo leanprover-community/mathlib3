@@ -92,12 +92,13 @@ instance [semilattice_sup β] : semilattice_sup (α →₀ β) :=
 lemma sup_apply [semilattice_sup β] {a : α} {f g : α →₀ β} : (f ⊔ g) a = f a ⊔ g a := rfl
 
 @[simp]
-lemma support_sup [semilattice_sup_bot β] [canonically_ordered_add_monoid β]
-  {f g : α →₀ β} : (f ⊔ g).support = f.support ∪ g.support :=
+lemma support_sup
+  {f g : α →₀ γ} : (f ⊔ g).support = f.support ∪ g.support :=
 begin
   change (binary_op_pointwise sup_idem f g).support = f.support ∪ g.support,
   unfold binary_op_pointwise, dsimp, rw finset.filter_true_of_mem,
-  intros x hx, rw ← bot_eq_zero, rw sup_eq_bot_iff, revert hx,
+  intros x hx, rw ← bot_eq_zero, rw sup_eq_bot_iff,
+   revert hx,
   simp only [not_and, mem_support_iff, bot_eq_zero, ne.def, finset.mem_union], tauto,
 end
 

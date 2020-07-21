@@ -18,7 +18,7 @@ for them.
 ## Important definitions
 
 There are various definitions of a DVR in the literature; we define a DVR to be a local PID
-which is a not a field (the first definition in Wikipedia) and prove that this is equivalent
+which is not a field (the first definition in Wikipedia) and prove that this is equivalent
 to being a PID with a unique non-zero prime ideal (the definition in Serre's
 book "Local Fields").
 

@@ -180,9 +180,9 @@ begin
     { split_ifs with h, { apply hg1 }, rw sub_self, exact (f i).zero_mem },
     { intros hjs hji, rw dif_pos, { apply hg2 }, exact ⟨hjs, hji⟩ } },
   rcases this with ⟨g, hgi, hgj⟩, use (∏ x in s.erase i, g x), split,
-  { rw [← quotient.eq, quotient.mk_one, quotient.mk_prod],
-    apply finset.prod_eq_one, intros, rw [← quotient.mk_one, quotient.eq], apply hgi },
-  intros j hjs hji, rw [← quotient.eq_zero_iff_mem, quotient.mk_prod],
+  { rw [← quotient.eq, ring_hom.map_one, ring_hom.map_prod],
+    apply finset.prod_eq_one, intros, rw [← ring_hom.map_one, quotient.eq], apply hgi },
+  intros j hjs hji, rw [← quotient.eq_zero_iff_mem, ring_hom.map_prod],
   refine finset.prod_eq_zero (finset.mem_erase_of_ne_of_mem hji hjs) _,
   rw quotient.eq_zero_iff_mem, exact hgj j hjs hji
 end
@@ -199,12 +199,12 @@ begin
   rcases this with ⟨φ, hφ1, hφ2⟩,
   use ∑ i, g i * φ i,
   intros i,
-  rw [← quotient.eq, quotient.mk_sum],
+  rw [← quotient.eq, ring_hom.map_sum],
   refine eq.trans (finset.sum_eq_single i _ _) _,
   { intros j _ hji, rw quotient.eq_zero_iff_mem, exact (f i).mul_mem_left (hφ2 j i hji) },
   { intros hi, exact (hi $ finset.mem_univ i).elim },
-  specialize hφ1 i, rw [← quotient.eq, quotient.mk_one] at hφ1,
-  rw [quotient.mk_mul, hφ1, mul_one]
+  specialize hφ1 i, rw [← quotient.eq, ring_hom.map_one] at hφ1,
+  rw [ring_hom.map_mul, hφ1, mul_one]
 end
 
 def quotient_inf_to_pi_quotient (f : ι → ideal R) :
@@ -212,7 +212,7 @@ def quotient_inf_to_pi_quotient (f : ι → ideal R) :
 begin
   refine quotient.lift (⨅ i, f i) _ _,
   { convert @@pi.ring_hom (λ i, quotient (f i)) (λ i, ring.to_semiring) ring.to_semiring
-      (λ i, quotient.mk_hom (f i)) },
+      (λ i, quotient.mk (f i)) },
   { intros r hr,
     rw submodule.mem_infi at hr,
     ext i,
@@ -552,7 +552,7 @@ le_antisymm (λ r ⟨n, hfrnk⟩, ⟨n, show f (r ^ n) ∈ K,
 (λ r ⟨n, hfrnk⟩, ⟨n, f.map_pow r n ▸ hfrnk⟩)
 
 @[simp] lemma map_quotient_self :
-  map (quotient.mk_hom I) I = ⊥ :=
+  map (quotient.mk I) I = ⊥ :=
 eq_bot_iff.2 $ ideal.map_le_iff_le_comap.2 $ λ x hx,
 (submodule.mem_bot I.quotient).2 $ ideal.quotient.eq_zero_iff_mem.2 hx
 

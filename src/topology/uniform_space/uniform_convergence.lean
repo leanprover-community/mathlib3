@@ -245,32 +245,32 @@ limits.
 /-- A locally uniform limit on a set of functions which are continuous on this set is itself
 continuous on this set. -/
 lemma tendsto_locally_uniformly_on.continuous_on (h : tendsto_locally_uniformly_on F f p s)
-  (hc : ∀ n, continuous_on (F n) s) (hp : p ≠ ⊥) : continuous_on f s :=
+  (hc : ∀ n, continuous_on (F n) s) [ne_bot p] : continuous_on f s :=
 begin
   apply continuous_on_of_locally_uniform_approx_of_continuous_on (λ x hx u hu, _) hc,
   rcases h u hu x hx with ⟨t, ht, H⟩,
-  exact ⟨t, ht, H.exists hp⟩
+  exact ⟨t, ht, H.exists⟩
 end
 
 /-- A uniform limit on a set of functions which are continuous on this set is itself continuous
 on this set. -/
 lemma tendsto_uniformly_on.continuous_on (h : tendsto_uniformly_on F f p s)
-  (hc : ∀ n, continuous_on (F n) s) (hp : p ≠ ⊥) : continuous_on f s :=
-h.tendsto_locally_uniformly_on.continuous_on hc hp
+  (hc : ∀ n, continuous_on (F n) s) [ne_bot p] : continuous_on f s :=
+h.tendsto_locally_uniformly_on.continuous_on hc
 
 /-- A locally uniform limit of continuous functions is continuous. -/
 lemma tendsto_locally_uniformly.continuous (h : tendsto_locally_uniformly F f p)
-  (hc : ∀ n, continuous (F n)) (hp : p ≠ ⊥) : continuous f :=
+  (hc : ∀ n, continuous (F n)) [ne_bot p] : continuous f :=
 begin
   apply continuous_of_locally_uniform_approx_of_continuous (λ x u hu, _) hc,
   rcases h u hu x with ⟨t, ht, H⟩,
-  exact ⟨t, ht, H.exists hp⟩
+  exact ⟨t, ht, H.exists⟩
 end
 
 /-- A uniform limit of continuous functions is continuous. -/
 lemma tendsto_uniformly.continuous (h : tendsto_uniformly F f p)
-  (hc : ∀ n, continuous (F n)) (hp : p ≠ ⊥) : continuous f :=
-h.tendsto_locally_uniformly.continuous hc hp
+  (hc : ∀ n, continuous (F n)) [ne_bot p] : continuous f :=
+h.tendsto_locally_uniformly.continuous hc
 
 /-!
 ### Composing limits under uniform convergence

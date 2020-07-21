@@ -785,7 +785,7 @@ begin
     continuous.comp continuous_norm (continuous.sub continuous_const continuous_id),
   have : tendsto (λ n, ∥u - w n∥) at_top (𝓝 ∥u - v∥),
     convert (tendsto.comp h_cont.continuous_at w_tendsto),
-  exact tendsto_nhds_unique at_top_ne_bot this norm_tendsto,
+  exact tendsto_nhds_unique this norm_tendsto,
   exact subtype.mem _
 end
 

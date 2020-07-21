@@ -756,7 +756,8 @@ variables (e : local_homeomorph α H)
 
 /-- If a single local homeomorphism `e` from a space `α` into `H` has source covering the whole
 space `α`, then that local homeomorphism induces an `H`-charted space structure on `α`.
-(This condition is equivalent to `e` being an open embedding of `α` into `H`.) -/
+(This condition is equivalent to `e` being an open embedding of `α` into `H`; see
+`local_homeomorph.to_open_embedding` and `open_embedding.to_local_homeomorph`.) -/
 def singleton_charted_space (h : e.source = set.univ) : charted_space H α :=
 { atlas := {e},
   chart_at := λ _, e,
@@ -781,6 +782,36 @@ lemma singleton_has_groupoid (h : e.source = set.univ) (G : structure_groupoid H
   end }
 
 end singleton
+
+namespace topological_space.opens
+
+open topological_space
+variables (G : structure_groupoid H) [has_groupoid M G]
+variables (s : opens M)
+
+/-- An open subset of a charted space is naturally a charted space. -/
+instance : charted_space H s :=
+{ atlas := ⋃ (x : s), {@local_homeomorph.subtype_restr _ _ _ _ (chart_at H x.1) s ⟨x⟩},
+  chart_at := λ x, @local_homeomorph.subtype_restr _ _ _ _ (chart_at H x.1) s ⟨x⟩,
+  mem_chart_source := λ x, by { simp only with mfld_simps, exact (mem_chart_source H x.1) },
+  chart_mem_atlas := λ x, by { simp only [mem_Union, mem_singleton_iff], use x } }
+
+/-- If a groupoid `G` is `closed_under_restriction`, then an open subset of a space which is
+`has_groupoid G` is naturally `has_groupoid G`. -/
+instance [closed_under_restriction G] : has_groupoid s G :=
+{ compatible := begin
+    rintros e e' ⟨_, ⟨x, hc⟩, he⟩ ⟨_, ⟨x', hc'⟩, he'⟩,
+    haveI : nonempty s := ⟨x⟩,
+    simp only [hc.symm, mem_singleton_iff, subtype.val_eq_coe] at he,
+    simp only [hc'.symm, mem_singleton_iff, subtype.val_eq_coe] at he',
+    rw [he, he'],
+    convert G.eq_on_source _ (subtype_restr_symm_trans_subtype_restr s (chart_at H x) (chart_at H x')),
+    apply closed_under_restriction',
+    { exact G.compatible (chart_mem_atlas H x) (chart_mem_atlas H x') },
+    { exact preimage_open_of_open_symm (chart_at H x) s.2 },
+  end }
+
+end topological_space.opens
 
 /-! ### Structomorphisms -/
 

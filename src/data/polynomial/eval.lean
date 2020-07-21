@@ -422,10 +422,8 @@ by rw [is_root.def, eval_sub, eval_X, eval_C, sub_eq_zero_iff_eq, eq_comm]
 
 end ring
 
-
 section comm_ring
 variables [comm_ring R] {p q : polynomial R}
-instance : comm_ring (polynomial R) := add_monoid_algebra.comm_ring
 
 instance eval₂.is_ring_hom {S} [comm_ring S]
   (f : R →+* S) {x : S} : is_ring_hom (eval₂ f x) :=

@@ -39,7 +39,7 @@ protected def division_ring [division_ring β] (U : is_ultrafilter φ) : divisio
   inv_mul_cancel := λ f, induction_on f $ λ f hf, coe_eq.2 $ (U.em (λ y, f y = 0)).elim
     (λ H, (hf $ coe_eq.2 H).elim) (λ H, H.mono $ λ x, inv_mul_cancel),
   inv_zero := coe_eq.2 $ by simp only [(∘), inv_zero],
-  .. germ.ring, .. germ.has_inv, .. germ.nontrivial U.1 }
+  .. germ.ring, .. germ.has_inv, .. @germ.nontrivial _ _ _ _ U.1 }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a field.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
@@ -67,7 +67,7 @@ coe_lt U
 
 lemma const_lt [preorder β] (U : is_ultrafilter φ) {x y : β} :
   (↑x : β*) < ↑y ↔ x < y :=
-(coe_lt U).trans $ lift_rel_const_iff U.1
+(coe_lt U).trans $ by haveI := U.1; exact lift_rel_const_iff
 
 lemma lt_def [preorder β] (U : is_ultrafilter φ) :
   ((<) : β* → β* → Prop) = lift_rel (<) :=
@@ -78,7 +78,7 @@ This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
 protected def ordered_ring [ordered_ring β] (U : is_ultrafilter φ) : ordered_ring β* :=
 { mul_pos := λ x y, induction_on₂ x y $ λ f g hf hg, (coe_pos U).2 $
     ((coe_pos U).1 hg).mp $ ((coe_pos U).1 hf).mono $ λ x, mul_pos,
-  .. germ.ring, .. germ.ordered_add_comm_group, .. germ.nontrivial U.1 }
+  .. germ.ring, .. germ.ordered_add_comm_group, .. @germ.nontrivial _ _ _ _ U.1 }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a linear ordered ring.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
@@ -157,19 +157,21 @@ exact quotient.sound' (show ∀* i, abs _ = _, by simp)
 @[simp] lemma const_max [decidable_linear_order β] (U : is_ultrafilter φ) (x y : β) :
   (↑(max x y : β) : β*) = @max _ (germ.decidable_linear_order U) ↑x ↑y :=
 begin
+  haveI := U.1,
   unfold max, split_ifs,
   { refl },
   { exact false.elim (h_1 $ const_le h) },
-  { exact false.elim (h ((const_le_iff U.1).mp h_1)) },
+  { exact false.elim (h (const_le_iff.mp h_1)) },
   { refl }
 end
 
 @[simp] lemma const_min [decidable_linear_order β] (U : is_ultrafilter φ) (x y : β) :
   (↑(min x y : β) : β*) = @min _ (germ.decidable_linear_order U) ↑x ↑y :=
 begin
+  haveI := U.1,
   unfold min, split_ifs; try { refl }; apply false.elim,
   { exact  (h_1 $ const_le h) },
-  { exact (h $ (const_le_iff U.1).mp h_1) },
+  { exact (h $ const_le_iff.mp h_1) },
 end
 
 @[simp] lemma const_abs [decidable_linear_ordered_add_comm_group β] (U : is_ultrafilter φ) (x : β) :

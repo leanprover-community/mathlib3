@@ -302,6 +302,10 @@ lemma eq_bot_of_prime {K : Type u} [field K] (I : ideal K) [h : I.is_prime] :
   I = ⊥ :=
 classical.or_iff_not_imp_right.mp I.eq_bot_or_top h.1
 
+lemma bot_is_maximal {K : Type u} [field K] : is_maximal (⊥ : ideal K) :=
+⟨λ h, absurd ((eq_top_iff_one (⊤ : ideal K)).mp rfl) (by rw ← h; simp),
+λ I hI, or_iff_not_imp_left.mp (eq_bot_or_top I) (ne_of_gt hI)⟩
+
 end ideal
 
 /-- The set of non-invertible elements of a monoid. -/

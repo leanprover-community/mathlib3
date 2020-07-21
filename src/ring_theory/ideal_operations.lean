@@ -556,10 +556,6 @@ le_antisymm (λ r ⟨n, hfrnk⟩, ⟨n, show f (r ^ n) ∈ K,
 eq_bot_iff.2 $ ideal.map_le_iff_le_comap.2 $ λ x hx,
 (submodule.mem_bot I.quotient).2 $ ideal.quotient.eq_zero_iff_mem.2 hx
 
-lemma comap_mk_eq_comap {j : ideal I.quotient} :
-  quotient.comap_mk I j = comap (quotient.mk_hom I) j :=
-by refl
-
 lemma map_mk_eq_map : quotient.map_mk I J = map (quotient.mk_hom I) J :=
 ideal.ext (λ x, ⟨λ h, mem_Inf.mpr (λ j hj, hj h), λ h, span_le.mpr (set.subset.rfl) h⟩)
 
@@ -623,12 +619,20 @@ submodule.span_induction H (λ _, id) ⟨0, I.zero_mem, f.map_zero⟩
 (λ y1 y2 ⟨x1, hx1i, hxy1⟩ ⟨x2, hx2i, hxy2⟩, ⟨x1 + x2, I.add_mem hx1i hx2i, hxy1 ▸ hxy2 ▸ f.map_add _ _⟩)
 (λ c y ⟨x, hxi, hxy⟩, let ⟨d, hdc⟩ := hf c in ⟨d • x, I.smul_mem _ hxi, hdc ▸ hxy ▸ f.map_mul _ _⟩)
 
+lemma mem_map_iff_of_surjective {I : ideal R} {y} :
+  y ∈ map f I ↔ ∃ x, x ∈ I ∧ f x = y :=
+⟨λ h, (set.mem_image _ _ _).2 (mem_image_of_mem_map_of_surjective f hf h),
+  λ ⟨x, hx⟩, hx.right ▸ (mem_map_of_mem hx.left)⟩
+
 theorem comap_map_of_surjective (I : ideal R) :
   comap f (map f I) = I ⊔ comap f ⊥ :=
 le_antisymm (assume r h, let ⟨s, hsi, hfsr⟩ := mem_image_of_mem_map_of_surjective f hf h in
   submodule.mem_sup.2 ⟨s, hsi, r - s, (submodule.mem_bot S).2 $ by rw [f.map_sub, hfsr, sub_self],
   add_sub_cancel'_right s r⟩)
 (sup_le (map_le_iff_le_comap.1 (le_refl _)) (comap_mono bot_le))
+
+lemma le_map_of_comap_le_of_surjective : comap f K ≤ I → K ≤ map f I :=
+λ h, (map_comap_of_surjective f hf K) ▸ map_mono h
 
 /-- Correspondence theorem -/
 def order_iso_of_surjective :
@@ -651,19 +655,38 @@ def lt_order_embedding_of_surjective :
   ((<) : ideal S → ideal S → Prop) ≼o ((<) : ideal R → ideal R → Prop) :=
 (le_order_embedding_of_surjective f hf).lt_embedding_of_le_embedding
 
+theorem map_eq_top_or_is_maximal_of_surjective (H : is_maximal I) :
+  (map f I) = ⊤ ∨ is_maximal (map f I) :=
+begin
+  refine classical.or_iff_not_imp_left.2 (λ ne_top, ⟨λ h, ne_top h, λ J hJ, _⟩),
+  { refine (order_iso_of_surjective f hf).injective
+      (subtype.ext_iff.2 (eq.trans (H.right (comap f J) (lt_of_le_of_ne _ _)) comap_top.symm)),
+    { exact (map_le_iff_le_comap).1 (le_of_lt hJ) },
+    { exact λ h, hJ.right (le_map_of_comap_le_of_surjective f hf (le_of_eq h.symm)) } }
+end
+
 end surjective
 
-section bijective
-
-variables (hf : function.bijective f)
+section injective
+variables (hf : function.injective f)
 include hf
 
-lemma le_comap_bot_of_bijective : comap f ⊥ ≤ I :=
+open function
+
+lemma comap_bot_le_of_injective : comap f ⊥ ≤ I :=
 begin
   refine le_trans (λ x hx, _) bot_le,
   rw [mem_comap, submodule.mem_bot, ← ring_hom.map_zero f] at hx,
-  exact eq.symm (hf.left hx) ▸ (submodule.zero_mem ⊥)
+  exact eq.symm (hf hx) ▸ (submodule.zero_mem ⊥)
 end
+
+end injective
+
+section bijective
+variables (hf : function.bijective f)
+include hf
+
+open function
 
 /-- Special case of the correspondence theorem for isomorphic rings -/
 def order_iso_of_bijective :
@@ -672,23 +695,19 @@ def order_iso_of_bijective :
   inv_fun := map f,
   left_inv := (order_iso_of_surjective f hf.right).left_inv,
   right_inv := λ J, subtype.ext_iff.1
-    ((order_iso_of_surjective f hf.right).right_inv ⟨J, le_comap_bot_of_bijective f hf⟩),
+    ((order_iso_of_surjective f hf.right).right_inv ⟨J, comap_bot_le_of_injective f hf.left⟩),
   ord' := (order_iso_of_surjective f hf.right).ord' }
 
-lemma comap_le_iff_map_le : comap f K ≤ I ↔ K ≤ map f I :=
-⟨λ h, ((order_iso_of_bijective f hf).left_inv K) ▸ map_mono h,
+lemma comap_le_iff_le_map : comap f K ≤ I ↔ K ≤ map f I :=
+⟨λ h, le_map_of_comap_le_of_surjective f hf.right h,
  λ h, ((order_iso_of_bijective f hf).right_inv I) ▸ comap_mono h⟩
 
 theorem map.is_maximal (H : is_maximal I) : is_maximal (map f I) :=
-begin
-  refine ⟨λ h, H.left _, λ J hJ, _⟩,
-  { have : comap f (map f I) = ⊤ := eq.trans (congr_arg (comap f) h) comap_top,
-    rwa ← (order_iso_of_bijective f hf).right_inv I },
-  { refine (order_iso_of_bijective f hf).injective
-      (eq.trans (H.right (comap f J) (lt_of_le_of_ne _ _)) comap_top.symm),
-    { exact (map_le_iff_le_comap).1 (le_of_lt hJ) },
-    { exact λ h, hJ.right ((comap_le_iff_map_le f hf).1 (le_of_eq h.symm)) } }
-end
+by refine classical.or_iff_not_imp_left.1
+  (map_eq_top_or_is_maximal_of_surjective f hf.right H) (λ h, H.left _);
+calc I = comap f (map f I) : ((order_iso_of_bijective f hf).right_inv I).symm
+   ... = comap f ⊤ : by rw h
+   ... = ⊤ : by rw comap_top
 
 theorem comap.is_maximal (H : is_maximal K) : is_maximal (comap f K) :=
 begin
@@ -697,7 +716,7 @@ begin
     rwa ← (order_iso_of_bijective f hf).left_inv K },
   { refine (order_iso_of_bijective f hf).symm.injective
       (eq.trans (H.right (map f J) (lt_of_le_of_ne _ _)) (map_top f).symm),
-    { exact (comap_le_iff_map_le f hf).1 (le_of_lt hJ) },
+    { exact (comap_le_iff_le_map f hf).1 (le_of_lt hJ) },
     { exact λ h, hJ.right ((map_le_iff_le_comap).1 (le_of_eq h.symm)) } }
 end
 
@@ -782,6 +801,38 @@ variables {R : Type*} {S : Type*} [comm_ring R] [comm_ring S]
 
 lemma map_eq_bot_iff_le_ker {I : ideal R} (f : R →+* S) : I.map f = ⊥ ↔ I ≤ f.ker :=
 by rw [ring_hom.ker, eq_bot_iff, map_le_iff_le_comap]
+
+lemma ker_le_comap {K : ideal S} (f : R →+* S) : f.ker ≤ comap f K :=
+λ x hx, mem_comap.2 (((ring_hom.mem_ker f).1 hx).symm ▸ K.zero_mem)
+
+lemma map_Inf {A : set (ideal R)} {f : R →+* S} (hf : function.surjective f) :
+  (∀ J ∈ A, ring_hom.ker f ≤ J) → map f (Inf A) = Inf (map f '' A) :=
+begin
+  refine λ h, le_antisymm (le_Inf _) _,
+  { intros j hj y hy,
+    cases (mem_map_iff_of_surjective f hf).1 hy with x hx,
+    cases (set.mem_image _ _ _).mp hj with J hJ,
+    rw [← hJ.right, ← hx.right],
+    exact mem_map_of_mem (Inf_le_of_le hJ.left (le_of_eq rfl) hx.left) },
+  {
+    intros y hy,
+    cases hf y with x hx,
+    rw ← hx,
+    refine mem_map_of_mem _,
+    rw Inf_eq_infi at ⊢ hy,
+    simp at ⊢ hy,
+    intros J hJ,
+    have : y ∈ map f J := hy (map f J) J hJ rfl,
+    cases (mem_map_iff_of_surjective f hf).1 this with x' hx',
+    have : x - x' ∈ J, {
+      apply h J hJ,
+      rw [ring_hom.mem_ker, ring_hom.map_sub, hx, hx'.right],
+      exact sub_self y
+    },
+    have := J.add_mem this hx'.left,
+    rwa [sub_add, sub_self, sub_zero] at this,
+  }
+end
 
 end ideal
 

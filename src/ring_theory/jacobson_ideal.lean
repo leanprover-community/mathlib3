@@ -19,7 +19,10 @@ Inf {J : ideal R | I ≤ J ∧ is_maximal J}
 lemma le_jacobson {I : ideal R} : I ≤ jacobson I :=
 λ x hx, mem_Inf.mpr (λ J hJ, hJ.left hx)
 
-theorem jacobson_eq_top_iff {I : ideal R} : jacobson I = ⊤ ↔ I = ⊤ :=
+@[simp] lemma jacobson_top : jacobson (⊤ : ideal R) = ⊤ :=
+eq_top_iff.2 le_jacobson
+
+@[simp] theorem jacobson_eq_top_iff {I : ideal R} : jacobson I = ⊤ ↔ I = ⊤ :=
 ⟨λ H, classical.by_contradiction $ λ hi, let ⟨M, hm, him⟩ := exists_le_maximal I hi in
   lt_top_iff_ne_top.1 (lt_of_le_of_lt (show jacobson I ≤ M, from Inf_le ⟨him, hm⟩) $ lt_top_iff_ne_top.2 hm.1) H,
 λ H, eq_top_iff.2 $ le_Inf $ λ J ⟨hij, hj⟩, H ▸ hij⟩
@@ -56,25 +59,6 @@ begin
   intros h x hx,
   erw mem_Inf at ⊢ hx,
   exact λ K ⟨hK, hK_max⟩, hx ⟨trans h hK, hK_max⟩
-end
-
-lemma comap_jacobson {S : Type v} [comm_ring S] (e : S ≃+* R) {I : ideal R}
-    : comap (e : S →+* R) (jacobson I) = jacobson (comap ↑e I) :=
-begin
-  let iso := order_iso_of_bijective (e : S →+* R) e.bijective,
-  refine le_antisymm _ _,
-  { intros x hx,
-    rw mem_comap at hx,
-    erw mem_Inf at hx ⊢,
-    intros J hJ,
-    specialize hx ⟨(comap_le_iff_map_le (e : S →+* R) e.bijective).1 hJ.left,
-      map.is_maximal _ e.bijective hJ.right⟩,
-    exact (iso.right_inv J) ▸ (mem_comap.1 hx),
-  },
-  { intros x hx,
-    erw [mem_comap, mem_Inf],
-    erw mem_Inf at hx,
-    exact λ J hJ, (hx) ⟨comap_mono hJ.left, comap.is_maximal _ e.bijective hJ.right⟩ }
 end
 
 end jacobson

@@ -42,6 +42,7 @@ universes u v
 namespace ideal
 section is_jacobson
 variables {R : Type u} [comm_ring R] {I : ideal R}
+variables {S : Type v} [comm_ring S]
 
 /-- Definition of jacobson rings in terms of radical ideals -/
 @[class] def is_jacobson (R : Type u) [comm_ring R] :=
@@ -83,37 +84,32 @@ le_antisymm (le_Inf (λ J ⟨hJ, hJ_max⟩, (is_prime.radical_le_iff hJ_max.is_p
             ((H I.radical (radical_idem I)) ▸ (jacobson_mono le_radical))
 
 /-- Fields have only two ideals, and the condition holds for both of them -/
-theorem is_jacobson_field {K : Type u} [field K] : is_jacobson K :=
+instance is_jacobson_field {K : Type u} [field K] : is_jacobson K :=
 λ I hI, or.rec_on (eq_bot_or_top I)
 (λ h, le_antisymm
   (Inf_le ⟨le_of_eq rfl, (eq.symm h) ▸ bot_is_maximal⟩)
   ((eq.symm h) ▸ bot_le))
 (λ h, by rw [h, jacobson_eq_top_iff])
 
--- TODO: Can this be rewritten as a special case of a statement about images?
-theorem is_jacobson_iso {S : Type u} [comm_ring S] (e : S ≃+* R)
-  : is_jacobson S ↔ is_jacobson R :=
+theorem is_jacobson_of_surjective [H : is_jacobson R] :
+  (∃ (f : R →+* S), function.surjective f) → is_jacobson S :=
 begin
-  split,
-  swap,
-  replace e := e.symm, -- After this swap both proofs are identical
-  all_goals {
-    let iso := order_iso_of_bijective e.to_ring_hom (equiv.bijective e.to_equiv),
-    exact λ H I hI, iso.injective ((comap_jacobson e).trans (H _ (by rw [← comap_radical, hI]))),
-  }
-end
-
-theorem is_jacobson_quotient [H : is_jacobson R] : is_jacobson (quotient I) :=
-begin
+  rintros ⟨f, hf⟩,
   rw is_jacobson_iff_Inf_maximal,
   intros p hp,
-  use quotient.map_mk I '' {J : ideal R | quotient.comap_mk I p ≤ J ∧ J.is_maximal},
-  use λ j ⟨J, hJ, hmap⟩, hmap ▸ or.symm (quotient.map_eq_top_or_is_maximal_of_is_maximal hJ.right),
-  have : p = quotient.map_mk I ((quotient.comap_mk I p).jacobson),
-  from (H (quotient.comap_mk I p) (by rw [comap_mk_eq_comap, ← comap_radical, hp])).symm
-    ▸ (quotient.map_mk_comap_mk_left_inverse p).symm,
-  exact eq.trans this (quotient.map_mk_Inf (λ J ⟨hJ, _⟩, le_trans (quotient.le_comap_mk) hJ))
+  use map f '' {J : ideal R | comap f p ≤ J ∧ J.is_maximal },
+  use λ j ⟨J, hJ, hmap⟩, hmap ▸ or.symm (map_eq_top_or_is_maximal_of_surjective f hf hJ.right),
+  have : p = map f ((comap f p).jacobson),
+  from (H (comap f p) (by rw [← comap_radical, hp])).symm ▸ (map_comap_of_surjective f hf p).symm,
+  exact eq.trans this (map_Inf hf (λ J ⟨hJ, _⟩, le_trans (ideal.ker_le_comap f) hJ)),
 end
+
+instance is_jacobson_quotient [is_jacobson R] : is_jacobson (quotient I) :=
+is_jacobson_of_surjective ⟨quotient.mk_hom I, quotient.mk_surjective⟩
+
+lemma is_jacobson_iso (e : R ≃+* S) : is_jacobson R ↔ is_jacobson S :=
+⟨λ h, @is_jacobson_of_surjective _ _ _ _ h ⟨(e : R →+* S), e.surjective⟩,
+  λ h, @is_jacobson_of_surjective _ _ _ _ h ⟨(e.symm : S →+* R), e.symm.surjective⟩⟩
 
 end is_jacobson
 

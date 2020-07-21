@@ -214,6 +214,9 @@ instance (I : ideal α) : comm_ring I.quotient :=
     λ a b c, congr_arg (mk _) (right_distrib a b c),
   ..submodule.quotient.add_comm_group I }
 
+lemma mk_surjective : function.surjective (mk I) :=
+by rintro ⟨x⟩; use x; refl
+
 /-- `ideal.quotient.mk` as a `ring_hom` -/
 def mk_hom (I : ideal α) : α →+* I.quotient := ⟨mk I, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩
 
@@ -227,46 +230,6 @@ def map_mk (I J : ideal α) : ideal I.quotient :=
     exact ⟨x + y, J.add_mem hx hy, rfl⟩,
   smul_mem' := by rintro ⟨c⟩ _ ⟨x, hx, rfl⟩;
     exact ⟨c * x, J.mul_mem_left hx, rfl⟩ }
-
-/-- The preimage of an ideal J under the quotient map `R → R/I`. -/
-def comap_mk (I : ideal α) (j : ideal I.quotient) : ideal α :=
-{ carrier := mk I ⁻¹' j,
-  zero_mem' := j.zero_mem,
-  add_mem' := λ _ _ hx hy, j.add_mem hx hy,
-  smul_mem' := λ c _ hx, by simp [j.mul_mem_left hx] }
-
-@[simp] lemma map_mk_top {I : ideal α} : map_mk I ⊤ = ⊤ :=
-le_antisymm le_top (by rintro ⟨x⟩ hx; use ⟨x, hx, rfl⟩)
-
-lemma map_mk_comap_mk_left_inverse {I : ideal α} : left_inverse (map_mk I) (comap_mk I) :=
-λ J, le_antisymm
-  (by rintro ⟨x⟩ hx; exact Exists.rec_on ((set.mem_image _ _ _).mp hx)
-    (λ w hw, hw.right ▸ hw.left))
-  (by rintro ⟨x⟩ hx; exact ⟨x, ⟨hx, rfl⟩⟩)
-
-lemma map_mk_le_iff_le_comap_mk {I J : ideal α} {j : ideal I.quotient} :
-  map_mk I J ≤ j ↔ J ≤ comap_mk I j :=
-set.image_subset_iff
-
-lemma le_map_mk_of_comap_mk_le {I J : ideal α} {j : ideal I.quotient} :
-  comap_mk I j ≤ J → j ≤ map_mk I J :=
-by rintros h ⟨x⟩ hx; exact ⟨x, ⟨h hx, rfl⟩⟩
-
--- This isn't just the contra of the last statement, because ideals are only partially ordered
-lemma lt_comap_mk_of_map_mk_lt {I J : ideal α} {j : ideal I.quotient} :
-  map_mk I J < j → J < comap_mk I j :=
-λ h, lt_of_le_of_ne
-  (map_mk_le_iff_le_comap_mk.mp (le_of_lt h))
-  (λ heq, (ne_of_lt (by rwa [heq, map_mk_comap_mk_left_inverse] at h)) (rfl : j = j))
-
-lemma map_eq_top_or_is_maximal_of_is_maximal  {I J : ideal α} (h : is_maximal J) :
-  (map_mk I J = ⊤) ∨ (is_maximal (map_mk I J)) :=
-begin
-  refine classical.or_iff_not_imp_left.2 (λ htop, ⟨htop, λ k hk, _⟩),
-  have : map_mk I (comap_mk I k) = map_mk I ⊤ :=
-    congr_arg (map_mk I) (h.right _ (lt_comap_mk_of_map_mk_lt hk)),
-  rwa [map_mk_comap_mk_left_inverse, map_mk_top] at this,
-end
 
 @[simp] lemma mk_zero (I : ideal α) : mk I 0 = 0 := rfl
 @[simp] lemma mk_add (I : ideal α) (a b : α) : mk I (a + b) = mk I a + mk I b := rfl
@@ -305,33 +268,6 @@ end
 
 lemma map_mk_self {I : ideal α} : map_mk I I = ⊥ :=
 map_mk_eq_bot (le_of_eq rfl)
-
-lemma le_comap_mk {I : ideal α} {j : ideal I.quotient} : I ≤ quotient.comap_mk I j :=
-map_mk_le_iff_le_comap_mk.1 ((eq.symm (@map_mk_self _ _ I)) ▸ bot_le)
-
--- TODO: is this a special case of a fact about map_mk respecting the lattice structure?
-lemma map_mk_Inf {I : ideal α} {S : set (ideal α)} (h : ∀ J ∈ S, I ≤ J) :
-  quotient.map_mk I (Inf S) = Inf (quotient.map_mk I '' S) :=
-begin
-  refine le_antisymm (le_Inf _) _,
-  { rintros j hj ⟨x⟩ ⟨y, hy⟩,
-    cases (set.mem_image _ _ _).mp hj with J hJ,
-    exact (hJ.right) ▸ ⟨y, (Inf_le_of_le hJ.left (le_of_eq rfl)) hy.left, hy.right⟩ },
-  { rintros ⟨x⟩ hx,
-    refine ⟨x, _, rfl⟩,
-    rw Inf_eq_infi at ⊢ hx,
-    simp at ⊢ hx,
-    intros J hJ,
-    cases hx (map_mk I J) J hJ rfl with x' hx',
-    have : x - x' ∈ J, {
-      apply h J hJ,
-      rw [← eq_zero_iff_mem, mk_sub, hx'.right, sub_eq_zero],
-      refl
-    },
-    have := J.add_mem this hx'.left,
-    ring at this,
-    exact this }
-end
 
 instance (I : ideal α) [hI : I.is_prime] : integral_domain I.quotient :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b,

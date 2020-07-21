@@ -632,6 +632,15 @@ by simp only [concat_eq_append, last_append]
 @[simp] theorem last_cons_cons (a₁ a₂ : α) (l : list α) (h : a₁::a₂::l ≠ []) :
   last (a₁::a₂::l) h = last (a₂::l) (cons_ne_nil a₂ l) := rfl
 
+theorem init_append_last : ∀ {l : list α} (h : l ≠ []), init l ++ [last l h] = l
+| [] h := absurd rfl h
+| [a] h := rfl
+| (a::b::l) h := begin
+  rw [init, cons_append, last_cons (cons_ne_nil _ _) (cons_ne_nil _ _)],
+  congr,
+  exact init_append_last (cons_ne_nil b l),
+end
+
 theorem last_congr {l₁ l₂ : list α} (h₁ : l₁ ≠ []) (h₂ : l₂ ≠ []) (h₃ : l₁ = l₂) :
   last l₁ h₁ = last l₂ h₂ :=
 by subst l₁

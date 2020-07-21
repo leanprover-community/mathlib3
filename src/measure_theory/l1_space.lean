@@ -275,7 +275,7 @@ begin
   rw ← ae_all_iff at F_le_bound,
   apply F_le_bound.mp ((all_ae_tendsto_of_real_norm h_lim).mono _),
   assume a tendsto_norm F_le_bound,
-  exact le_of_tendsto' at_top_ne_bot tendsto_norm (F_le_bound)
+  exact le_of_tendsto' tendsto_norm (F_le_bound)
 end
 
 lemma integrable_of_dominated_convergence {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}

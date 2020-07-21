@@ -218,7 +218,7 @@ begin
   exact coe_lt_coe.2 (lt_of_lt_of_le (nat.cast_lt.2 (nat.lt_succ_self _)) ha)
 end
 
-instance : topological_add_monoid ennreal :=
+instance : has_continuous_add ennreal :=
 ⟨ continuous_iff_continuous_at.2 $
   have hl : ∀a:ennreal, tendsto (λ (p : ennreal × ennreal), p.fst + p.snd) (𝓝 (⊤, a)) (𝓝 ⊤), from
     assume a, tendsto_nhds_top $ assume n,
@@ -635,7 +635,7 @@ lemma has_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} (hf : ∀i, 0 ≤ f i)
   has_sum f r ↔ tendsto (λn:ℕ, ∑ i in finset.range n, f i) at_top (𝓝 r) :=
 ⟨has_sum.tendsto_sum_nat,
   assume hfr,
-  have 0 ≤ r := ge_of_tendsto at_top_ne_bot hfr $ univ_mem_sets' $ assume i,
+  have 0 ≤ r := ge_of_tendsto hfr $ univ_mem_sets' $ assume i,
     show 0 ≤ ∑ j in finset.range i, f j, from finset.sum_nonneg $ assume i _, hf i,
   let f' (n : ℕ) : nnreal := ⟨f n, hf n⟩, r' : nnreal := ⟨r, this⟩ in
   have f_eq : f = (λi:ℕ, (f' i : ℝ)) := rfl,
@@ -825,7 +825,7 @@ lemma edist_le_tsum_of_edist_le_of_tendsto {f : ℕ → α} (d : ℕ → ennreal
   {a : α} (ha : tendsto f at_top (𝓝 a)) (n : ℕ) :
   edist (f n) a ≤ ∑' m, d (n + m) :=
 begin
-  refine le_of_tendsto at_top_ne_bot (tendsto_const_nhds.edist ha)
+  refine le_of_tendsto (tendsto_const_nhds.edist ha)
     (mem_at_top_sets.2 ⟨n, λ m hnm, _⟩),
   refine le_trans (edist_le_Ico_sum_of_edist_le hnm (λ k _ _, hf k)) _,
   rw [finset.sum_Ico_eq_sum_range],

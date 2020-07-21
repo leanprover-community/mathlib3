@@ -112,11 +112,10 @@ lemma is_cobounded.mk [is_trans α r] (a : α) (h : ∀s∈f, ∃x∈s, r a x) :
 
 /-- A filter which is eventually bounded is in particular frequently bounded (in the opposite
 direction). At least if the filter is not trivial. -/
-lemma is_cobounded_of_is_bounded [is_trans α r] (hf : f ≠ ⊥) :
+lemma is_cobounded_of_is_bounded [is_trans α r] [ne_bot f] :
   f.is_bounded r → f.is_cobounded (flip r)
 | ⟨a, ha⟩ := ⟨a, assume b hb,
-  have ∀ᶠ x in f, r x a ∧ r b x, from ha.and hb,
-  let ⟨x, rxa, rbx⟩ := nonempty_of_mem_sets hf this in
+  let ⟨x, rxa, rbx⟩ := (ha.and hb).exists in
   show r b a, from trans rbx rxa⟩
 
 lemma is_cobounded_bot : is_cobounded r ⊥ ↔ (∃b, ∀x, r b x) :=
@@ -220,13 +219,11 @@ theorem Liminf_le_of_le {f : filter α} {a}
   f.Liminf ≤ a :=
 cSup_le hf h
 
-theorem Liminf_le_Limsup {f : filter α} (hf : f ≠ ⊥)
+theorem Liminf_le_Limsup {f : filter α} [ne_bot f]
   (h₁ : f.is_bounded (≤) . is_bounded_default) (h₂ : f.is_bounded (≥) . is_bounded_default) :
   f.Liminf ≤ f.Limsup :=
-Liminf_le_of_le h₂ $ assume a₀ ha₀, le_Limsup_of_le h₁ $ assume a₁ ha₁, show a₀ ≤ a₁, from
-  have ∀ᶠ b in f, a₀ ≤ b ∧ b ≤ a₁, from ha₀.and ha₁,
-  let ⟨b, hb₀, hb₁⟩ := nonempty_of_mem_sets hf this in
-  le_trans hb₀ hb₁
+Liminf_le_of_le h₂ $ assume a₀ ha₀, le_Limsup_of_le h₁ $ assume a₁ ha₁,
+  show a₀ ≤ a₁, from let ⟨b, hb₀, hb₁⟩ := (ha₀.and ha₁).exists in le_trans hb₀ hb₁
 
 lemma Liminf_le_Liminf {f g : filter α}
   (hf : f.is_bounded (≥) . is_bounded_default) (hg : g.is_cobounded (≥) . is_bounded_default)
@@ -290,32 +287,18 @@ begin
   exact eventually_congr (h.mono $ λ x hx, by simp [hx])
 end
 
-lemma limsup_const {α : Type*} [conditionally_complete_lattice β] {f : filter α} (hf : f ≠ ⊥)
+lemma limsup_const {α : Type*} [conditionally_complete_lattice β] {f : filter α} [ne_bot f]
   (b : β) : limsup f (λ x, b) = b :=
 begin
   rw limsup_eq,
   apply le_antisymm,
-  { refine cInf_le ⟨b, λ a ha, _⟩ (by simp [le_refl]),
-    obtain ⟨n, hn⟩ : ∃ n, b ≤ a := eventually.exists ha hf,
-    exact hn },
-  { refine le_cInf ⟨b, by simp [le_refl]⟩ (λ a ha, _),
-    obtain ⟨n, hn⟩ : ∃ n, b ≤ a := eventually.exists ha hf,
-    exact hn }
+  { exact cInf_le ⟨b, λ a, eventually_const.1⟩ (eventually_le.refl _ _) },
+  { exact le_cInf ⟨b, eventually_le.refl _ _⟩ (λ a, eventually_const.1) }
 end
 
-lemma liminf_const {α : Type*} [conditionally_complete_lattice β] {f : filter α} (hf : f ≠ ⊥)
+lemma liminf_const {α : Type*} [conditionally_complete_lattice β] {f : filter α} [ne_bot f]
   (b : β) : liminf f (λ x, b) = b :=
-begin
-  rw liminf_eq,
-  apply le_antisymm,
-  { refine cSup_le ⟨b, by simp [le_refl]⟩ (λ a ha, _),
-    obtain ⟨n, hn⟩ : ∃ n, a ≤ b := eventually.exists ha hf,
-    exact hn },
-  { refine le_cSup ⟨b, λ a ha, _⟩ (by simp [le_refl]),
-    obtain ⟨n, hn⟩ : ∃ n, a ≤ b := eventually.exists ha hf,
-    exact hn }
-end
-
+@limsup_const (order_dual β) α _ f _ b
 
 end conditionally_complete_lattice
 
@@ -336,8 +319,8 @@ top_unique $ le_Inf $
 bot_unique $ Sup_le $
   by simp [eq_univ_iff_forall]; exact assume b hb, (bot_unique $ hb _)
 
-lemma liminf_le_limsup {f : filter β} (hf : f ≠ ⊥) {u : β → α}  : liminf f u ≤ limsup f u :=
-  Liminf_le_Limsup (map_ne_bot hf) is_bounded_le_of_top is_bounded_ge_of_bot
+lemma liminf_le_limsup {f : filter β} [ne_bot f] {u : β → α}  : liminf f u ≤ limsup f u :=
+Liminf_le_Limsup is_bounded_le_of_top is_bounded_ge_of_bot
 
 theorem Limsup_eq_infi_Sup {f : filter α} : f.Limsup = ⨅ s ∈ f, Sup s :=
 le_antisymm

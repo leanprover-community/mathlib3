@@ -188,7 +188,7 @@ begin
     { exact subset.trans (incl m) (subset.trans (inter_subset_left _ _) h) }},
   have yball : ∀n, y ∈ closed_ball (c n) (r n),
   { assume n,
-    refine mem_of_closed_of_tendsto (by simp) ylim is_closed_ball _,
+    refine mem_of_closed_of_tendsto ylim is_closed_ball _,
     simp only [filter.mem_at_top_sets, nonempty_of_inhabited, set.mem_preimage],
     exact ⟨n, λm hm, I n m hm mem_closed_ball_self⟩ },
   split,

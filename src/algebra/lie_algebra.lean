@@ -6,6 +6,7 @@ Authors: Oliver Nash
 import ring_theory.algebra
 import linear_algebra.linear_action
 import linear_algebra.bilinear_form
+import linear_algebra.direct_sum.finsupp
 import tactic.noncomm_ring
 
 /-!

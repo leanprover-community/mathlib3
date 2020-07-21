@@ -69,6 +69,14 @@ such that `P.B a` is empty to yield a finite tree -/
 attribute [nolint has_inhabited_instance] W
 variables {P}
 
+/-- root element  of a W tree -/
+def W.head : W P → P.A
+| ⟨a, f⟩ := a
+
+/-- children of the root of a W tree -/
+def W.children : Π x : W P, P.B (W.head x) → W P
+| ⟨a, f⟩ := f
+
 /-- destructor for W-types -/
 def W.dest : W P → P.obj (W P)
 | ⟨a, f⟩ := ⟨a, f⟩

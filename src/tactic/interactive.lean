@@ -1002,42 +1002,6 @@ add_tactic_doc
   decl_names := [`tactic.interactive.clear_except],
   tags       := ["context management"] }
 
-
-meta def format_names (ns : list name) : format :=
-format.join $ list.intersperse " " (ns.map to_fmt)
-
-private meta def indent_bindents (l r : string) : option (list name) → expr → tactic format
-| none e :=
-  do e ← pp e,
-     pformat!"{l}{format.nest l.length e}{r}"
-| (some ns) e :=
-  do e ← pp e,
-     let ns := format_names ns,
-     let margin := l.length + ns.to_string.length + " : ".length,
-     pformat!"{l}{ns} : {format.nest margin e}{r}"
-
-private meta def format_binders : list name × binder_info × expr → tactic format
-| (ns, binder_info.default, t) := indent_bindents "(" ")" ns t
-| (ns, binder_info.implicit, t) := indent_bindents "{" "}" ns t
-| (ns, binder_info.strict_implicit, t) := indent_bindents "⦃" "⦄" ns t
-| ([n], binder_info.inst_implicit, t) :=
-  if "_".is_prefix_of n.to_string
-    then indent_bindents "[" "]" none t
-    else indent_bindents "[" "]" [n] t
-| (ns, binder_info.inst_implicit, t) := indent_bindents "[" "]" ns t
-| (ns, binder_info.aux_decl, t) := indent_bindents "(" ")" ns t
-
-private meta def partition_vars' (s : name_set) : list expr → list expr → list expr → tactic (list expr × list expr)
-| [] as bs := pure (as.reverse, bs.reverse)
-| (x :: xs) as bs :=
-do t ← infer_type x,
-   if t.has_local_in s then partition_vars' xs as (x :: bs)
-     else partition_vars' xs (x :: as) bs
-
-private meta def partition_vars : tactic (list expr × list expr) :=
-do ls ← local_context,
-   partition_vars' (name_set.of_list $ ls.map expr.local_uniq_name) ls [] []
-
 /--
 Format the current goal as a stand-alone example. Useful for testing tactic.
 
@@ -1053,32 +1017,50 @@ example (i j k : ℕ) (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
 begin
   extract_goal,
      -- prints:
-     -- example {i j k : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
+     -- example : ∀ (i j k : ℕ), i ≤ j → j ≤ k → i ≤ k :=
      -- begin
-
+     --   intros i j k h₀ h₁,
+     --   admit,
      -- end
   extract_goal my_lemma
-     -- lemma my_lemma {i j k : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
-     -- begin
-
-     -- end
+    -- lemma my_lemma : ∀ (i j k : ℕ), i ≤ j → j ≤ k → i ≤ k :=
+    -- begin
+    --   intros i j k h₀ h₁,
+    --   admit,
+    -- end
 end
 
 example {i j k x y z w p q r m n : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k) (h₁ : k ≤ p) (h₁ : p ≤ q) : i ≤ k :=
 begin
   extract_goal my_lemma,
     -- prints:
-    -- lemma my_lemma {i j k x y z w p q r m n : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k)
-    --   (h₁ : k ≤ p) (h₁ : p ≤ q) : i ≤ k :=
+    -- lemma my_lemma : ∀ {i j k x y z w p q r m n : ℕ},
+    --     i ≤ j → j ≤ k → k ≤ p → p ≤ q → i ≤ k :=
     -- begin
-
+    --   intros i j k x y z w p q r m n h₀ h₁ h₁ h₁,
+    --   admit,
     -- end
 
   extract_goal my_lemma with i j k
     -- prints:
-    -- lemma my_lemma {i j k : ℕ} : i ≤ k :=
+    -- lemma my_lemma : ∀ {p i j k : ℕ},
+    --     i ≤ j → j ≤ k → k ≤ p → i ≤ k :=
     -- begin
+    --   intros p i j k h₀ h₁ h₁_1,
+    --   admit,
+    -- end
+end
 
+example : true :=
+begin
+  let n := 0,
+  have m : ℕ, admit,
+  have : n + m = 0, extract_goal,
+    -- prints:
+    -- example : let n : ℕ := 0 in ∀ (m : ℕ), n + m = 0 :=
+    -- begin
+    --   intros n m,
+    --   admit,
     -- end
 end
 ```
@@ -1088,26 +1070,25 @@ meta def extract_goal (print_use : parse $ tt <$ tk "!" <|> pure ff)
   (n : parse ident?) (vs : parse with_ident_list)
   : tactic unit :=
 do tgt ← target,
-   ((cxt₀,cxt₁),_) ← solve_aux tgt $
-       when (¬ vs.empty) (clear_except vs) >>
-       partition_vars,
-   tgt ← target,
-   is_prop ← is_prop tgt,
-   let title := match n, is_prop with
-                | none, _ := to_fmt "example"
-                | (some n), tt := format!"lemma {n}"
-                | (some n), ff := format!"def {n}"
-                end,
-   cxt₀ ← compact_decl cxt₀ >>= list.mmap format_binders,
-   cxt₁ ← compact_decl cxt₁ >>= list.mmap format_binders,
-   stmt ← pformat!"{tgt} :=",
-   let fmt :=
-     format.group $ format.nest 2 $
-       title ++ cxt₀.foldl (λ acc x, acc ++ format.group (format.line ++ x)) "" ++
-       format.line ++ format.intercalate format.line cxt₁ ++ " :" ++
-       format.line ++ stmt,
-   trace $ fmt.to_string $ options.mk.set_nat `pp.width 80,
-   trace!"begin\n  admit\nend\n"
+   solve_aux tgt $ do {
+     when (¬ vs.empty) (clear_except vs),
+     ls ← local_context,
+     n_vars ← revert_all,
+     tgt ← target,
+     is_prop ← is_prop tgt,
+     let title := match n, is_prop with
+                  | none, _ := to_fmt "example"
+                  | (some n), tt := format!"lemma {n}"
+                  | (some n), ff := format!"def {n}"
+                  end,
+     stmt ← pformat!" : {tgt} :=",
+     let fmt :=
+       format.group $ format.nest 2 $ title ++ stmt,
+     trace $ fmt.to_string $ options.mk.set_nat `pp.width 80,
+     let var_names := format.intercalate " " $ ls.map (to_fmt ∘ local_pp_name),
+     let call_intron := format!"intros {var_names}",
+     trace!"begin\n  {call_intron},\n  admit,\nend\n" },
+     skip
 
 add_tactic_doc
 { name       := "extract_goal",

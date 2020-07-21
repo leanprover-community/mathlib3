@@ -181,6 +181,10 @@ def invertible_of_char_p_not_dvd {K : Type*} [field K] {p : ℕ} [char_p K p]
   {t : ℕ} (not_dvd : ¬(p ∣ t)) : invertible (t : K) :=
 invertible_of_nonzero (λ h, not_dvd ((char_p.cast_eq_zero_iff K p t).mp h))
 
+instance invertible_of_pos {K : Type*} [field K] [char_zero K] (n : ℕ) [h : fact (0 < n)] :
+  invertible (n : K) :=
+invertible_of_nonzero $ by simpa [nat.pos_iff_ne_zero] using h
+
 end char_p
 
 section division_ring

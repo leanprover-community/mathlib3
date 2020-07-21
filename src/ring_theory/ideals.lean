@@ -180,72 +180,42 @@ def quotient (I : ideal α) := I.quotient
 namespace quotient
 variables {I} {x y : α}
 
-/-- The map from a ring `R` to a quotient ring `R/I`. -/
-def mk (I : ideal α) (a : α) : I.quotient := submodule.quotient.mk a
-
-instance : inhabited (quotient I) := ⟨mk I 37⟩
-
-protected theorem eq : mk I x = mk I y ↔ x - y ∈ I := submodule.quotient.eq I
-
-instance (I : ideal α) : has_one I.quotient := ⟨mk I 1⟩
-
-@[simp] lemma mk_one (I : ideal α) : mk I 1 = 1 := rfl
+instance (I : ideal α) : has_one I.quotient := ⟨submodule.quotient.mk 1⟩
 
 instance (I : ideal α) : has_mul I.quotient :=
-⟨λ a b, quotient.lift_on₂' a b (λ a b, mk I (a * b)) $
+⟨λ a b, quotient.lift_on₂' a b (λ a b, submodule.quotient.mk (a * b)) $
  λ a₁ a₂ b₁ b₂ h₁ h₂, quot.sound $ begin
   refine calc a₁ * a₂ - b₁ * b₂ = a₂ * (a₁ - b₁) + (a₂ - b₂) * b₁ : _
   ... ∈ I : I.add_mem (I.mul_mem_left h₁) (I.mul_mem_right h₂),
   rw [mul_sub, sub_mul, sub_add_sub_cancel, mul_comm, mul_comm b₁]
  end⟩
 
-@[simp] theorem mk_mul : mk I (x * y) = mk I x * mk I y := rfl
-
 instance (I : ideal α) : comm_ring I.quotient :=
 { mul := (*),
   one := 1,
   mul_assoc := λ a b c, quotient.induction_on₃' a b c $
-    λ a b c, congr_arg (mk _) (mul_assoc a b c),
+    λ a b c, congr_arg submodule.quotient.mk (mul_assoc a b c),
   mul_comm := λ a b, quotient.induction_on₂' a b $
-    λ a b, congr_arg (mk _) (mul_comm a b),
+    λ a b, congr_arg submodule.quotient.mk (mul_comm a b),
   one_mul := λ a, quotient.induction_on' a $
-    λ a, congr_arg (mk _) (one_mul a),
+    λ a, congr_arg submodule.quotient.mk (one_mul a),
   mul_one := λ a, quotient.induction_on' a $
-    λ a, congr_arg (mk _) (mul_one a),
+    λ a, congr_arg submodule.quotient.mk (mul_one a),
   left_distrib := λ a b c, quotient.induction_on₃' a b c $
-    λ a b c, congr_arg (mk _) (left_distrib a b c),
+    λ a b c, congr_arg submodule.quotient.mk (left_distrib a b c),
   right_distrib := λ a b c, quotient.induction_on₃' a b c $
-    λ a b c, congr_arg (mk _) (right_distrib a b c),
+    λ a b c, congr_arg submodule.quotient.mk (right_distrib a b c),
   ..submodule.quotient.add_comm_group I }
 
-/-- `ideal.quotient.mk` as a `ring_hom` -/
-def mk_hom (I : ideal α) : α →+* I.quotient := ⟨mk I, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩
+/-- The ring homomorphism from a ring `R` to a quotient ring `R/I`. -/
+def mk (I : ideal α) : α →+* I.quotient :=
+⟨λ a, submodule.quotient.mk a, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩
 
-lemma mk_eq_mk_hom (I : ideal α) (x : α) : ideal.quotient.mk I x = ideal.quotient.mk_hom I x := rfl
+instance : inhabited (quotient I) := ⟨mk I 37⟩
 
-/-- The image of an ideal J under the quotient map `R → R/I`. -/
-def map_mk (I J : ideal α) : ideal I.quotient :=
-{ carrier := mk I '' J,
-  zero_mem' := ⟨0, J.zero_mem, rfl⟩,
-  add_mem' := by rintro _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩;
-    exact ⟨x + y, J.add_mem hx hy, rfl⟩,
-  smul_mem' := by rintro ⟨c⟩ _ ⟨x, hx, rfl⟩;
-    exact ⟨c * x, J.mul_mem_left hx, rfl⟩ }
+protected theorem eq : mk I x = mk I y ↔ x - y ∈ I := submodule.quotient.eq I
 
-@[simp] lemma mk_zero (I : ideal α) : mk I 0 = 0 := rfl
-@[simp] lemma mk_add (I : ideal α) (a b : α) : mk I (a + b) = mk I a + mk I b := rfl
-@[simp] lemma mk_neg (I : ideal α) (a : α) : mk I (-a : α) = -mk I a := rfl
-@[simp] lemma mk_sub (I : ideal α) (a b : α) : mk I (a - b : α) = mk I a - mk I b := rfl
-@[simp] lemma mk_pow (I : ideal α) (a : α) (n : ℕ) : mk I (a ^ n : α) = mk I a ^ n :=
-(mk_hom I).map_pow a n
-
-lemma mk_prod {ι} (I : ideal α) (s : finset ι) (f : ι → α) :
-  mk I (∏ i in s, f i) = ∏ i in s, mk I (f i) :=
-(mk_hom I).map_prod f s
-
-lemma mk_sum {ι} (I : ideal α) (s : finset ι) (f : ι → α) :
-  mk I (∑ i in s, f i) = ∑ i in s, mk I (f i) :=
-(mk_hom I).map_sum f s
+@[simp] theorem mk_eq_mk (x : α) : (submodule.quotient.mk x : quotient I) = mk I x := rfl
 
 lemma eq_zero_iff_mem {I : ideal α} : mk I a = 0 ↔ a ∈ I :=
 by conv {to_rhs, rw ← sub_zero a }; exact quotient.eq'
@@ -331,6 +301,10 @@ end
 lemma eq_bot_of_prime {K : Type u} [field K] (I : ideal K) [h : I.is_prime] :
   I = ⊥ :=
 classical.or_iff_not_imp_right.mp I.eq_bot_or_top h.1
+
+lemma bot_is_maximal {K : Type u} [field K] : is_maximal (⊥ : ideal K) :=
+⟨λ h, absurd ((eq_top_iff_one (⊤ : ideal K)).mp rfl) (by rw ← h; simp),
+λ I hI, or_iff_not_imp_left.mp (eq_bot_or_top I) (ne_of_gt hI)⟩
 
 end ideal
 
@@ -505,7 +479,7 @@ noncomputable instance : inhabited (residue_field α) := ⟨37⟩
 
 /-- The quotient map from a local ring to its residue field. -/
 def residue : α →+* (residue_field α) :=
-ideal.quotient.mk_hom _
+ideal.quotient.mk _
 
 namespace residue_field
 
@@ -513,7 +487,7 @@ variables {α β}
 /-- The map on residue fields induced by a local homomorphism between local rings -/
 noncomputable def map (f : α →+* β) [is_local_ring_hom f] :
   residue_field α →+* residue_field β :=
-ideal.quotient.lift (maximal_ideal α) ((ideal.quotient.mk_hom _).comp f) $
+ideal.quotient.lift (maximal_ideal α) ((ideal.quotient.mk _).comp f) $
 λ a ha,
 begin
   erw ideal.quotient.eq_zero_iff_mem,

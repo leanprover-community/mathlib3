@@ -252,6 +252,24 @@ lemma is_local_extr.comp_continuous_on [topological_space δ] {s : set δ} (g : 
 hf.elim (λ hf, (hf.comp_continuous_on hg hb).is_extr)
   (λ hf, (is_local_max.comp_continuous_on hf hg hb).is_extr)
 
+lemma is_local_min_on.comp_continuous_on [topological_space δ] {t : set α} {s : set δ} {g : δ → α} {b : δ}
+  (hf : is_local_min_on f t (g b)) (hst : s ⊆ g ⁻¹' t) (hg : continuous_on g s) (hb : b ∈ s) :
+  is_local_min_on (f ∘ g) s b :=
+hf.comp_tendsto (tendsto_nhds_within_mono_right (image_subset_iff.mpr hst)
+  (continuous_within_at.tendsto_nhds_within_image (hg b hb)))
+
+lemma is_local_max_on.comp_continuous_on [topological_space δ] {t : set α} {s : set δ} {g : δ → α} {b : δ}
+  (hf : is_local_max_on f t (g b)) (hst : s ⊆ g ⁻¹' t) (hg : continuous_on g s) (hb : b ∈ s) :
+  is_local_max_on (f ∘ g) s b :=
+hf.comp_tendsto (tendsto_nhds_within_mono_right (image_subset_iff.mpr hst)
+  (continuous_within_at.tendsto_nhds_within_image (hg b hb)))
+
+lemma is_local_extr_on.comp_continuous_on [topological_space δ] {t : set α} {s : set δ} (g : δ → α) {b : δ}
+  (hf : is_local_extr_on f t (g b)) (hst : s ⊆ g ⁻¹' t) (hg : continuous_on g s) (hb : b ∈ s) :
+  is_local_extr_on (f ∘ g) s b :=
+hf.elim (λ hf, (hf.comp_continuous_on hst hg hb).is_extr)
+  (λ hf, (is_local_max_on.comp_continuous_on hf hst hg hb).is_extr)
+
 end preorder
 
 /-! ### Pointwise addition -/

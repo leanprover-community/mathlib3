@@ -74,7 +74,7 @@ attribute [norm_cast] add_units.coe_add
 @[simp, norm_cast, to_additive] lemma coe_one : ((1 : units α) : α) = 1 := rfl
 attribute [norm_cast] add_units.coe_zero
 
-@[norm_cast, to_additive] lemma coe_eq_one {a : units α} : (a : α) = 1 ↔ a = 1 :=
+@[simp, norm_cast, to_additive] lemma coe_eq_one {a : units α} : (a : α) = 1 ↔ a = 1 :=
 by rw [←units.coe_one, eq_iff]
 
 @[to_additive] lemma val_coe : (↑a : α) = a.val := rfl

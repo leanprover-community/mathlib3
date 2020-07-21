@@ -92,7 +92,7 @@ instance : has_top (open_subgroup G) := ⟨{ is_open' := is_open_univ, .. (⊤ :
 instance : inhabited (open_subgroup G) := ⟨⊤⟩
 
 @[to_additive]
-lemma is_closed [topological_monoid G] (U : open_subgroup G) : is_closed (U : set G) :=
+lemma is_closed [has_continuous_mul G] (U : open_subgroup G) : is_closed (U : set G) :=
 begin
   refine is_open_iff_forall_mem_open.2 (λ x hx, ⟨(λ y, y * x⁻¹) ⁻¹' U, _, _, _⟩),
   { intros u hux,
@@ -143,7 +143,7 @@ end open_subgroup
 
 namespace subgroup
 
-variables {G : Type*} [group G] [topological_space G] [topological_monoid G] (H : subgroup G)
+variables {G : Type*} [group G] [topological_space G] [has_continuous_mul G] (H : subgroup G)
 
 @[to_additive]
 lemma is_open_of_mem_nhds {g : G} (hg : (H : set G) ∈ 𝓝 g) :
@@ -174,7 +174,7 @@ end subgroup
 
 namespace open_subgroup
 
-variables {G : Type*} [group G] [topological_space G] [topological_monoid G]
+variables {G : Type*} [group G] [topological_space G] [has_continuous_mul G]
 
 @[to_additive]
 instance : semilattice_sup_top (open_subgroup G) :=

@@ -323,7 +323,7 @@ meta def fourier_motzkin.produce_certificate : certificate_oracle :=
 λ hyps max_var,
 let state := mk_linarith_structure hyps max_var in
 match except_t.run (state_t.run (validate >> elim_all_vars) state) with
-| (except.ok (a, _)) := none
+| (except.ok (a, _)) := tactic.failed
 | (except.error contr) := return contr.src.flatten
 end
 

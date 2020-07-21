@@ -24,7 +24,7 @@ def myprod.map {α α' β β'} (f : α → α') (g : β → β') (x : my_prod α
 
 namespace foo
 
-set_option trace.app_builder true
+-- set_option trace.app_builder true
 
 @[simps] protected def rfl {α} : α ≃ α :=
 ⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
@@ -93,7 +93,7 @@ namespace count_nested
 @[simps] def nested1 : my_prod ℕ $ my_prod ℤ ℕ :=
 ⟨2, -1, 1⟩
 
-@[simps {simp_attr := ff}] def nested2 : ℕ × my_prod ℕ ℕ :=
+@[simps {attrs := []}] def nested2 : ℕ × my_prod ℕ ℕ :=
 ⟨2, myprod.map nat.succ nat.pred ⟨1, 2⟩⟩
 
 end count_nested
@@ -251,6 +251,7 @@ run_cmd do
 ⟨g.to_fun ∘ f.to_fun, f.inv_fun ∘ g.inv_fun,
   by { intro x, simp [equiv.left_inv _ _] }, by { intro x, simp [equiv.right_inv _ _] }⟩
 
+
 example {α β γ : Type} (f : α ≃ β) (g : β ≃ γ) (x : α) :
   (f.trans g).to_fun x = (f.trans g).to_fun x :=
 begin
@@ -262,6 +263,9 @@ end
 local attribute [simp] nat.zero_add nat.one_mul nat.mul_one
 @[simps {simp_rhs := tt}] def my_nat_equiv : ℕ ≃ ℕ :=
 ⟨λ n, 0 + n, λ n, 1 * n * 1, by { intro n, simp }, by { intro n, simp }⟩
+
+run_cmd success_if_fail (has_attribute `_refl_lemma `my_nat_equiv_to_fun) >>
+  has_attribute `_refl_lemma `equiv.trans_to_fun
 
 example (n : ℕ) : my_nat_equiv.to_fun (my_nat_equiv.to_fun $ my_nat_equiv.inv_fun n) = n :=
 by { success_if_fail { refl }, simp only [my_nat_equiv_to_fun, my_nat_equiv_inv_fun] }
@@ -437,8 +441,6 @@ namespace manual_coercion
 structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
-(left_inv  : left_inverse inv_fun to_fun)
-(right_inv : right_inverse inv_fun to_fun)
 
 local infix ` ≃ `:25 := manual_coercion.equiv
 
@@ -446,35 +448,57 @@ variables {α β γ : Sort*}
 
 instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
 
-def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun, e.right_inv, e.left_inv⟩
+def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
 
-def foo1 (e : α ≃ β) : α → β := e
-def foo2 (e : α ≃ β) : β → α := e.symm
-
-open tactic
-run_cmd do
-  e ← get_env,
-  d1 ← get_decl `manual_coercion.foo1,
-  d2 ← get_decl `manual_coercion.foo2,
-  let ns := d1.univ_params,
-  let ls := d1.univ_levels,
-  simps_str_attr.set `equiv (ns, [d1.value, d2.value, expr.const `equiv.left_inv ls, expr.const `equiv.right_inv ls]) tt
-
-set_option trace.simps.verbose true
-set_option trace.app_builder true
+/-- See Note [custom simps projection] -/
+def equiv.simps.inv_fun (e : α ≃ β) : β → α := e.symm
 
 /-- Composition of equivalences `e₁ : α ≃ β` and `e₂ : β ≃ γ`. -/
 @[simps {simp_rhs := tt}] protected def equiv.trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
-⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm,
-  by { intro x, simp [equiv.left_inv _ _], sorry }, by { intro x, simp [equiv.right_inv _ _], sorry }⟩
+⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
 
 
 end manual_coercion
 
--- transparency setting
+namespace manual_initialize
+/- defining a manual coercion. This should be made more easily. -/
+
+structure equiv (α : Sort*) (β : Sort*) :=
+(to_fun    : α → β)
+(inv_fun   : β → α)
+
+local infix ` ≃ `:25 := manual_initialize.equiv
+
+variables {α β γ : Sort*}
+
+instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
+
+def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
+
+/-- See Note [custom simps projection] -/
+def equiv.simps.inv_fun (e : α ≃ β) : β → α := e.symm
+
+initialize_simps_projections equiv
+
+run_cmd has_attribute `_simps_str `manual_initialize.equiv
+
+/-- Composition of equivalences `e₁ : α ≃ β` and `e₂ : β ≃ γ`. -/
+@[simps {simp_rhs := tt}] protected def equiv.trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
+⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
+
+end manual_initialize
+
+-- test transparency setting
 structure set_plus (α : Type) :=
 (s : set α)
 (x : α)
 (h : x ∈ s)
 
 @[simps] def nat_set_plus : set_plus ℕ := ⟨set.univ, 1, trivial⟩
+
+example : nat_set_plus.s = set.univ :=
+begin
+  dsimp only [nat_set_plus_s],
+  guard_target @set.univ ℕ = set.univ,
+  refl
+end

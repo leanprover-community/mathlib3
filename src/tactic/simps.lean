@@ -18,28 +18,33 @@ structures, projections, simp, simplifier, generates declarations
 open tactic expr
 
 setup_tactic_parser
+reserve notation `specify_simps_projections`
 declare_trace simps.verbose
 
 /--
-The `@[simps_str]` attribute specifies the preferred projections of the given structure,
+The `@[_simps_str]` attribute specifies the preferred projections of the given structure,
 used by the `@[simps]` attribute.
 - This will usually be tagged by the `@[simps]` tactic.
-- If you specify it yourself, make sure it is specified in the same file as the structure
-  declaration.
+- You can also generate this with the command `initialize_simps_projections`.
+- To change the default value, see Note [custom simps projection].
+- You are strongly discouraged to add this attribute manually.
 - The first argument is the list of names of the universe variables used in the structure
 - The second argument is the expressions that correspond to the projections of the structure
   (these can contain the universe parameters specified in the first argument).
 -/
 @[user_attribute] meta def simps_str_attr : user_attribute unit (list name × list expr) :=
-{ name := `simps_str,
+{ name := `_simps_str,
   descr := "An attribute specifying the projection of the given structure.",
   parser := do e ← texpr, eval_pexpr _ e }
 
 /--
   The `@[notation_class]` attribute specifies that this is a notation class,
-  and this notation should be used instead of projections by simp.
+  and this notation should be used instead of projections by @[simps].
   * The first argument `tt` for notation classes and `ff` for classes applied to the structure,
-    like `has_coe_to_sort` and `has_coe_to_fun`-/
+    like `has_coe_to_sort` and `has_coe_to_fun`
+  * The second argument is the name of the projection (by default it is the first projection
+    of the structure)
+-/
 @[user_attribute] meta def notation_class_attr : user_attribute unit (bool × option name) :=
 { name := `notation_class,
   descr := "An attribute specifying that this is a notation class. Used by @[simps].",
@@ -52,7 +57,6 @@ attribute [notation_class] has_zero has_one has_add has_mul has_inv has_neg has_
 attribute [notation_class* coe_sort] has_coe_to_sort
 attribute [notation_class* coe_fn] has_coe_to_fun
 
-
 /-- finds an instance of an implication `cond → tgt`.
   Returns a pair of a local constant `e` of type `cond`, and an instance of `tgt` that can mention `e`. -/
 meta def mk_conditional_instance (cond tgt : expr) : tactic (expr × expr) := do
@@ -63,11 +67,11 @@ inst ← mk_instance tgt,
 return (e, inst)
 
 /-- Get the projections used by `simps` associated to a given structure. -/
--- if performance becomes a problem: possible heuristic: use the names of the projections to
+-- if performance becomes a problem, possible heuristic: use the names of the projections to
 -- skip all classes that don't have the corresponding field.
 meta def simps_get_raw_projections (e : environment) (str : name) :
   tactic (list name × list expr) := do
-  has_attr ← has_attribute' `simps_str str,
+  has_attr ← has_attribute' `_simps_str str,
   if has_attr then do
     when_tracing `simps.verbose trace!"[simps] > found projection information for structure {str}",
     simps_str_attr.get_param str
@@ -78,10 +82,15 @@ meta def simps_get_raw_projections (e : environment) (str : name) :
     (args, _) ← mk_local_pis d_str.type,
     let raw_univs := d_str.univ_params,
     let raw_levels := level.param <$> raw_univs,
-    let raw_exprs : list expr := projs.map $ λ proj, (expr.const proj raw_levels),
+    custom_projs ← attribute.get_instances `notation_class,
+    /- Define the raw expressions for the projections, by default as the projections
+    (as an expression), but this can be overriden by the user. -/
+    raw_exprs ← projs.mmap $ λ proj, (do
+      decl ← e.get (str ++ `simps ++ proj.last),
+      when_tracing `simps.verbose trace!"[simps] > found custom projection for {proj}:\n        > {decl.value}",
+      return decl.value) <|> return (expr.const proj raw_levels),
     /- check for other coercions and type-class arguments to use as projections instead. -/
     let e_str := (expr.const str raw_levels).mk_app args,
-    custom_projs ← attribute.get_instances `notation_class,
     raw_exprs ← custom_projs.mfoldl (λ (raw_exprs : list expr) class_nm, (do
       (is_class, proj_nm) ← notation_class_attr.get_param class_nm,
       proj_nm ← proj_nm <|> (e.structure_fields_full class_nm).map list.head,
@@ -99,14 +108,39 @@ meta def simps_get_raw_projections (e : environment) (str : name) :
         return (raw_expr, raw_expr.lambdas args)),
       raw_expr_whnf ← whnf raw_expr.binding_body,
       let relevant_proj := raw_expr_whnf.get_app_fn.const_name,
-      guard (projs.any (= relevant_proj)),
+      guard (projs.any (= relevant_proj) ∧ ¬ e.contains (str ++ `simps ++ relevant_proj.last)),
       let pos := projs.find_index (= relevant_proj),
       when_tracing `simps.verbose trace!"        > using function {proj_nm} instead of the default projection {relevant_proj.last}.",
       return $ raw_exprs.update_nth pos lambda_raw_expr) <|> return raw_exprs) raw_exprs,
     when_tracing `simps.verbose trace!"[simps] > generated projections for {str}:\n        > {raw_exprs}",
-    -- when_tracing `simps.verbose trace!"[simps] > {raw_exprs.map expr.to_string}",
     simps_str_attr.set str (raw_univs, raw_exprs) tt,
     return (raw_univs, raw_exprs)
+
+/--
+You can specify custom projections for the `@[simps]` attribute.
+To do this for the projection `my_structure.awesome_projection` by adding a declaration
+`my_structure.simps.awesome_projection` that is definitionally equal to
+`my_structure.awesome_projection` but has the projection in the desired (simp-normal) form.
+
+Make sure that `my_structure.simps.awesome_projection` uses the same (names for the) universe levels
+as `my_structure`.
+
+You can initialize the projections `@[simps]` uses with `initialize_simps_projections`
+(after declaring any custom projections). This is not necessary, it has the same effect
+if you just add `@[simps]` to a declaration.
+
+If you do anything to change the default projections, make sure to call either `@[simps]` or `initialize_simps_projections` in the same file as the structure declaration. Otherwise, you might
+have a file that imports the structure, but not your custom projections.
+-/
+library_note "custom simps projection"
+
+/-- Specify simps projections, see Note [custom simps projection].
+  Set `trace.simps.verbose` to true to see the generated projections. -/
+@[user_command] meta def initialize_simps_projections_cmd
+  (_ : parse $ tk "initialize_simps_projections") : parser unit := do
+  env ← get_env,
+  ns ← many ident,
+  ns.mmap' $ λ nm, do nm ← resolve_constant nm, simps_get_raw_projections env nm
 
 /-- Get the projections of a structure used by simps applied to the appropriate arguments.
   Returns a list of triples (projection expression, projection name, corresponding right-hand-side).
@@ -130,7 +164,7 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
 /-- configuration for the `@[simps]` attribute -/
 @[derive [has_reflect, inhabited]] structure simps_cfg :=
 -- give the generated lemmas the `@[simp]` attribute
-(simp_attr    := tt)
+(attrs    := [`simp])
 -- give the generated lemmas a shorter name
 (short_name    := ff)
 -- simplify the right-hand-side of the simp lemmas
@@ -150,9 +184,9 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
   let decl := declaration.thm decl_name univs decl_type (pure decl_value),
   when_tracing `simps.verbose trace!"[simps] > adding projection\n        > {decl_name} : {decl_type}",
   add_decl decl <|> fail format!"failed to add projection lemma {decl_name}.",
-  when cfg.simp_attr $ do
-    set_basic_attribute `_refl_lemma decl_name tt,
-    set_basic_attribute `simp decl_name tt
+  b ← succeeds $ is_def_eq lhs rhs,
+  when (b ∧ `simp ∈ cfg.attrs) (set_basic_attribute `_refl_lemma decl_name tt),
+  cfg.attrs.mmap' $ λ nm, set_basic_attribute nm decl_name tt
 
 /-- Derive lemmas specifying the projections of the declaration.
   If `todo` is non-empty, it will generate exactly the names in `todo`. -/
@@ -257,6 +291,7 @@ derives two simp-lemmas:
   of the projections, then this coercion will be used instead of the projection
 * If the structure is a class that has an instance to a notation class, like `has_mul`, then this
   notation is used instead of the corresponding projection.
+* You can specify custom projections, see Note [custom simps projection].
 * You can use `@[simps proj1 proj2 ...]` to only generate the projection lemmas for the specified
   projections. For example:
   ```lean
@@ -265,19 +300,21 @@ derives two simp-lemmas:
   * Recursive projection names can be specified using `foo_proj1_proj2_proj3`.
     This will create a lemma of the form `foo.proj1.proj2.proj3 = ...`.
 * If one of the values is an eta-expanded structure, we will eta-reduce this structure.
-* You can use `@[simps {simp_attr := ff}]` to derive the lemmas, but not mark them
-  as simp-lemmas.
 * You can use `@[simps {short_name := tt}]` to only use the name of the last projection
   for the name of the generated lemmas.
 * You can use `@[simps {simp_rhs := tt}]` to simplify the right-hand side of the lemmas
   before adding them to the context.
+* You can use `@[simps {attrs := []}]` to derive the lemmas, but not mark them
+  as simp-lemmas.
+* You can also use the `attrs` field of the config to add other attributes to all generated lemmas
+  (whenever `simp` is in the list `_refl_lemma` is added automatically if appropriate).
 * The precise syntax is `('simps' ident* e)`, where `e` is an expression of type `simps_cfg`.
 * If one of the projections is marked as a coercion, the generated lemmas do *not* use this
   coercion.
 * `@[simps]` reduces let-expressions where necessary.
 * If one of the fields is a partially applied constructor, we will eta-expand it
   (this likely never happens).
-* When option `trace.simps.verbose` is true, `simps` will print the name and type of the
+* When option `trace.simps.verbose` is true, `simps` will print the projections it finds and the
   lemmas it generates.
   -/
 

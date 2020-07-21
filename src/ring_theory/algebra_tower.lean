@@ -128,8 +128,8 @@ of_algebra_map_eq $ λ x, rfl
 instance polynomial : is_algebra_tower R A (polynomial B) :=
 of_algebra_map_eq $ λ x, congr_arg polynomial.C $ algebra_map_apply R A B x
 
-theorem aeval_apply (x : B) (p) : polynomial.aeval R B x p =
-  polynomial.aeval A B x (polynomial.map (algebra_map R A) p) :=
+theorem aeval_apply (x : B) (p : polynomial R) : polynomial.aeval x p =
+  polynomial.aeval x (polynomial.map (algebra_map R A) p) :=
 by rw [polynomial.aeval_def, polynomial.aeval_def, polynomial.eval₂_map, algebra_map_eq R A B]
 
 end comm_semiring

@@ -831,9 +831,6 @@ function.injective.comm_ring (map $ mv_polynomial.map_hom (int.cast_ring_hom ℚ
 
 local attribute [instance] aux₂
 
--- the next instance is broken because of a bug in mathlib
--- I've already made a PR to fix it.
-
 noncomputable instance : comm_ring (𝕎 p R) :=
 function.surjective.comm_ring
   (map $ mv_polynomial.counit _) (map_surjective _ $ counit_surjective _)

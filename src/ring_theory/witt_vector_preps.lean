@@ -27,7 +27,7 @@ ring_hom.of C
 
 example (x y : R) : C_ σ (x * y) = C_ σ x * C_ σ y := C_mul
 
-lemma ring_hom_ext {σ : Type*} {R : Type*} {A : Type*} [comm_ring R] [comm_ring A]
+lemma ring_hom_ext {σ : Type*} {R : Type*} {A : Type*} [comm_semiring R] [comm_semiring A]
   (f g : mv_polynomial σ R →+* A)
   (hC : ∀ r, f (C r) = g (C r)) (hX : ∀ i, f (X i) = g (X i)) :
   f = g :=
@@ -39,8 +39,8 @@ begin
   { intros p q hp hq, simp only [ring_hom.map_add, hp, hq] }
 end
 
-lemma alg_hom_ext {σ : Type*} (R : Type*) [comm_ring R]
-  (A : Type*) [comm_ring A] [algebra R A]
+lemma alg_hom_ext {σ : Type*} (R : Type*) [comm_semiring R]
+  (A : Type*) [comm_semiring A] [algebra R A]
   (f g : mv_polynomial σ R →ₐ[R] A)
   (hf : ∀ i : σ, f (X i) = g (X i)) : f = g :=
 begin
@@ -72,7 +72,7 @@ open mv_polynomial
 
 lemma comp_aeval {σ : Type*}
   {R : Type*} {A : Type*} {B : Type*}
-   [comm_ring R] [comm_ring A] [algebra R A] [comm_ring B] [algebra R B]
+   [comm_semiring R] [comm_semiring A] [algebra R A] [comm_semiring B] [algebra R B]
   (f : σ → A) (φ : A →ₐ[R] B) :
   φ.comp (aeval f) = (aeval (λ i, φ (f i))) :=
 begin
@@ -166,22 +166,21 @@ end
 --   (aeval f : mv_polynomial σ R →+* A) = eval₂_hom (algebra_map R A) f :=
 -- rfl
 
-lemma aeval_eq_eval₂_hom' {σ : Type*} {R : Type*} {A : Type*}
-   [comm_ring R] [comm_ring A] [algebra R A] (f : σ → A) (p : mv_polynomial σ R) :
-  aeval f p = eval₂_hom (algebra_map R A) f p :=
-rfl
+section
+variables {σ : Type*} {R : Type*} {A : Type*} {B : Type*}
+   [comm_semiring R] [comm_semiring A] [comm_semiring B]
 
-@[simp] lemma eval₂_hom_C {σ : Type*} {R : Type*} {A : Type*} [comm_ring R] [comm_ring A]
-  (f : R →+* A) (g : σ → A) (r : R) :
+
+lemma aeval_eq_eval₂_hom' [algebra R A] (f : σ → A) (p : mv_polynomial σ R) :
+  aeval f p = eval₂_hom (algebra_map R A) f p := rfl
+
+@[simp] lemma eval₂_hom_C (f : R →+* A) (g : σ → A) (r : R) :
   eval₂_hom f g (C r) = f r := eval₂_C f g r
 
-@[simp] lemma eval₂_hom_X' {σ : Type*} {R : Type*} {A : Type*} [comm_ring R] [comm_ring A]
-  (f : R →+* A) (g : σ → A) (i : σ) :
+@[simp] lemma eval₂_hom_X' (f : R →+* A) (g : σ → A) (i : σ) :
   eval₂_hom f g (X i) = g i := eval₂_X f g i
 
-@[simp] lemma comp_eval₂_hom {σ : Type*} {R : Type*} {A : Type*} {B : Type*}
-  [comm_ring R] [comm_ring A] [comm_ring B]
-  (f : R →+* A) (g : σ → A) (φ : A →+* B) :
+@[simp] lemma comp_eval₂_hom (f : R →+* A) (g : σ → A) (φ : A →+* B) :
   φ.comp (eval₂_hom f g) = (eval₂_hom (φ.comp f) (λ i, φ (g i))) :=
 begin
   apply mv_polynomial.ring_hom_ext,
@@ -189,34 +188,28 @@ begin
   { intro i, rw [ring_hom.comp_apply, eval₂_hom_X', eval₂_hom_X'] }
 end
 
-@[simp] lemma map_eval₂_hom {σ : Type*} {R : Type*} {A : Type*} {B : Type*}
-  [comm_ring R] [comm_ring A] [comm_ring B]
-  (f : R →+* A) (g : σ → A) (φ : A →+* B) (p : mv_polynomial σ R) :
+@[simp] lemma map_eval₂_hom (f : R →+* A) (g : σ → A) (φ : A →+* B) (p : mv_polynomial σ R) :
   φ (eval₂_hom f g p) = (eval₂_hom (φ.comp f) (λ i, φ (g i)) p) :=
 by { rw ← comp_eval₂_hom, refl }
 
-@[simp] lemma map_aeval {σ : Type*} {R : Type*} {A : Type*} {B : Type*}
-  [comm_ring R] [comm_ring A] [algebra R A] [comm_ring B]
+@[simp] lemma map_aeval [algebra R A]
   (g : σ → A) (φ : A →+* B) (p : mv_polynomial σ R) :
   φ (aeval g p) = (eval₂_hom (φ.comp (algebra_map R A)) (λ i, φ (g i)) p) :=
 by { rw ← comp_eval₂_hom, refl }
 
-@[simp] lemma eval_map {σ : Type*} {R : Type*} {A : Type*} [comm_ring R] [comm_ring A]
-  (f : R →+* A) (g : σ → A) (p : mv_polynomial σ R) :
+@[simp] lemma eval_map (f : R →+* A) (g : σ → A) (p : mv_polynomial σ R) :
   eval g (map f p) = eval₂ f g p :=
 by { apply mv_polynomial.induction_on p; { simp { contextual := tt } } }
 
-@[simp] lemma eval₂_map {σ : Type*} {R : Type*} {A : Type*} {B : Type*}
-  [comm_ring R] [comm_ring A] [comm_ring B]
-  (f : R →+* A) (g : σ → B) (φ : A →+* B) (p : mv_polynomial σ R) :
+@[simp] lemma eval₂_map (f : R →+* A) (g : σ → B) (φ : A →+* B) (p : mv_polynomial σ R) :
   eval₂ φ g (map f p) = eval₂ (φ.comp f) g p :=
 by { rw [← eval_map, ← eval_map, map_map], refl }
 
-@[simp] lemma eval₂_hom_map_hom {σ : Type*} {R : Type*} {A : Type*} {B : Type*}
-  [comm_ring R] [comm_ring A] [comm_ring B]
-  (f : R →+* A) (g : σ → B) (φ : A →+* B) (p : mv_polynomial σ R) :
+@[simp] lemma eval₂_hom_map_hom (f : R →+* A) (g : σ → B) (φ : A →+* B) (p : mv_polynomial σ R) :
   eval₂_hom φ g (map_hom f p) = eval₂_hom (φ.comp f) g p :=
 eval₂_map f g φ p
+
+end
 
 open_locale big_operators
 
@@ -315,7 +308,7 @@ noncomputable def invertible_rat_coe_nat (σ : Type*) (p : ℕ) [invertible (p :
 end mv_polynomial
 
 namespace mv_polynomial
-variables {σ : Type*} {R : Type*} [comm_ring R]
+variables {σ : Type*} {R : Type*} [comm_semiring R]
 
 @[simp] lemma alg_hom_C (f : mv_polynomial σ R →ₐ[R] mv_polynomial σ R) (r : R) :
   f (C r) = C r :=
@@ -324,7 +317,7 @@ f.commutes r
 end mv_polynomial
 
 namespace mv_polynomial
-variables {σ : Type*} {τ : Type*} {υ : Type*} {R : Type*} [comm_ring R]
+variables {σ : Type*} {τ : Type*} {υ : Type*} {R : Type*} [comm_semiring R]
 
 /-- This is an example of a map of “algebraic varieties for dummies” over `R`.
 (Not meant in a degrading way. Just that we don'y have any actual varieties in Lean yet.) -/
@@ -357,7 +350,7 @@ begin
     apply mv_polynomial.alg_hom_ext R _ g,
     intro, rw [aeval_X], },
   { simp only [comap, aeval_eq_eval₂_hom', map_eval₂_hom, alg_hom.comp_apply],
-    apply eval₂_hom_congr _ rfl rfl,
+    refine eval₂_hom_congr _ rfl rfl,
     ext r, apply aeval_C },
 end
 

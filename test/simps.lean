@@ -70,6 +70,13 @@ run_cmd do
   let lhs : expr := const d.to_name (d.univ_params.map level.param),
   simps_add_projections e nm "" d.type lhs d.value [] d.univ_params ff {} []
 
+
+/- test `rhs_md` argument -/
+def rfl2 {α} : α ≃ α := foo.rfl
+
+run_cmd success_if_fail (simps_tac `foo.rfl2)
+attribute [simps {rhs_md := semireducible}] foo.rfl2
+
 end foo
 
 /- we reduce the type when applying [simps] -/
@@ -366,8 +373,16 @@ example {α} (x : α) : coercing.rfl2.inv_fun x = x := by simp
 @[simps] protected def equiv2.symm2 {α β} (f : equiv2 α β) : equiv2 β α :=
 ⟨f.inv_fun, f.to_fun, f.right_inv, f.left_inv⟩
 
+/- we can use the `md` attribute to not unfold the `has_coe_to_fun` attribute, so that `@[simps]`
+  doesn't recognize that the type of `⇑f` is still a function type. -/
+@[simps {type_md := reducible}] protected def equiv2.symm3 {α β} (f : equiv2 α β) : equiv2 β α :=
+⟨f.inv_fun, f, f.right_inv, f.left_inv⟩
+
 example {α β} (f : equiv2 α β) (y : β) : f.symm y = f.inv_fun y := by simp
 example {α β} (f : equiv2 α β) (x : α) : f.symm.inv_fun x = f x := by simp
+
+example {α β} (f : equiv2 α β) : f.symm.inv_fun = f := by { success_if_fail {simp}, refl }
+example {α β} (f : equiv2 α β) : f.symm3.inv_fun = f := by simp
 
 section
 set_option old_structure_cmd true
@@ -439,7 +454,6 @@ end
 end coercing
 
 namespace manual_coercion
-/- defining a manual coercion. This should be made more easily. -/
 
 structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
@@ -463,8 +477,26 @@ def equiv.simps.inv_fun (e : α ≃ β) : β → α := e.symm
 
 end manual_coercion
 
+namespace failty_manual_coercion
+variables {α β γ : Sort*}
+
+structure equiv (α : Sort*) (β : Sort*) :=
+(to_fun    : α → β)
+(inv_fun   : β → α)
+
+local infix ` ≃ `:25 := failty_manual_coercion.equiv
+
+/-- See Note [custom simps projection] -/
+noncomputable def equiv.simps.inv_fun (e : α ≃ β) : β → α := classical.choice ⟨e.inv_fun⟩
+
+run_cmd do e ← get_env, success_if_fail (simps_get_raw_projections e `faulty_manual_coercion.equiv)
+
+end failty_manual_coercion
+
 namespace manual_initialize
 /- defining a manual coercion. This should be made more easily. -/
+
+variables {α β γ : Sort*}
 
 structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
@@ -472,13 +504,12 @@ structure equiv (α : Sort*) (β : Sort*) :=
 
 local infix ` ≃ `:25 := manual_initialize.equiv
 
-variables {α β γ : Sort*}
-
 instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
 
 def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
 
 /-- See Note [custom simps projection] -/
+-- test: intentionally using different unvierse levels for equiv.symm than for equiv
 def equiv.simps.inv_fun (e : α ≃ β) : β → α := e.symm
 
 initialize_simps_projections equiv
@@ -490,6 +521,17 @@ run_cmd has_attribute `_simps_str `manual_initialize.equiv
 ⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
 
 end manual_initialize
+
+namespace new_namespace
+
+variables {γ β α : Sort*}
+open manual_initialize
+local infix ` ≃ `:25 := manual_initialize.equiv
+
+@[simps {simp_rhs := tt}] protected def equiv.trans2 (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
+⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
+
+end new_namespace
 
 -- test transparency setting
 structure set_plus (α : Type) :=
@@ -508,11 +550,4 @@ end
 
 /-
 todo:
-set_basic_attribute tactic failed, 'mfld_simps' is not a basic attribute
-make reducibility an option, default instance?
-bug? equiv2.symm and equiv2.symm2 have different number of arguments
-Invalid `simps` attribute. Body is not a constructor application
-test def-eq in custom projections.
-failed to add projection lemma local_equiv.prod_inv_fun.
-
 -/

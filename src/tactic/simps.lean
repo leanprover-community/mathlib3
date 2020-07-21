@@ -66,7 +66,14 @@ reset_instance_cache,
 inst ← mk_instance tgt,
 return (e, inst)
 
-/-- Get the projections used by `simps` associated to a given structure. -/
+/-- Get the projections used by `simps` associated to a given structure. The second component is the
+  list of projections, and the first component the (shared) list of universe levels used by the
+  projections.
+  Example output:
+  ```
+  ([param `u, param `v], [`(@prod.fst.{u v}), `(@prod.snd.{u v})])
+  ```
+-/
 -- if performance becomes a problem, possible heuristic: use the names of the projections to
 -- skip all classes that don't have the corresponding field.
 meta def simps_get_raw_projections (e : environment) (str : name) :
@@ -82,16 +89,21 @@ meta def simps_get_raw_projections (e : environment) (str : name) :
     (args, _) ← mk_local_pis d_str.type,
     let raw_univs := d_str.univ_params,
     let raw_levels := level.param <$> raw_univs,
-    custom_projs ← attribute.get_instances `notation_class,
+    automatic_projs ← attribute.get_instances `notation_class,
     /- Define the raw expressions for the projections, by default as the projections
     (as an expression), but this can be overriden by the user. -/
-    raw_exprs ← projs.mmap $ λ proj, (do
-      decl ← e.get (str ++ `simps ++ proj.last),
-      when_tracing `simps.verbose trace!"[simps] > found custom projection for {proj}:\n        > {decl.value}",
-      return decl.value) <|> return (expr.const proj raw_levels),
+    raw_exprs ← projs.mmap (λ proj, let raw_expr : expr := expr.const proj raw_levels in do
+      custom_proj ← (do
+        decl ← e.get (str ++ `simps ++ proj.last),
+        let custom_proj := decl.value.instantiate_univ_params $ decl.univ_params.zip raw_levels,
+        when_tracing `simps.verbose trace!"[simps] > found custom projection for {proj}:\n        > {custom_proj}",
+        return custom_proj) <|> return raw_expr,
+      mwhen (bnot <$> succeeds (is_def_eq custom_proj raw_expr))
+        fail!"Invalid custom projection:\n {custom_proj}\nExpression is not definitionally equal to {raw_expr}.",
+      return custom_proj),
     /- check for other coercions and type-class arguments to use as projections instead. -/
     let e_str := (expr.const str raw_levels).mk_app args,
-    raw_exprs ← custom_projs.mfoldl (λ (raw_exprs : list expr) class_nm, (do
+    raw_exprs ← automatic_projs.mfoldl (λ (raw_exprs : list expr) class_nm, (do
       (is_class, proj_nm) ← notation_class_attr.get_param class_nm,
       proj_nm ← proj_nm <|> (e.structure_fields_full class_nm).map list.head,
       (raw_expr, lambda_raw_expr) ← if is_class then (do
@@ -122,9 +134,6 @@ To do this for the projection `my_structure.awesome_projection` by adding a decl
 `my_structure.simps.awesome_projection` that is definitionally equal to
 `my_structure.awesome_projection` but has the projection in the desired (simp-normal) form.
 
-Make sure that `my_structure.simps.awesome_projection` uses the same (names for the) universe levels
-as `my_structure`.
-
 You can initialize the projections `@[simps]` uses with `initialize_simps_projections`
 (after declaring any custom projections). This is not necessary, it has the same effect
 if you just add `@[simps]` to a declaration.
@@ -146,7 +155,13 @@ library_note "custom simps projection"
   Returns a list of triples (projection expression, projection name, corresponding right-hand-side).
 
   This function does not use `tactic.mk_app` or `tactic.mk_mapp`, because the the given arguments
-  might not uniquely specify the universe levels yet. -/
+  might not uniquely specify the universe levels yet.
+
+  Example output:
+  ```
+    [(`(@prod.fst.{u v} α β), `prod.fst, `(x)), (`(@prod.snd.{u v} α β), `prod.snd, `(y))]
+  ```
+-/
 meta def simps_get_projection_exprs (e : environment) (tgt : expr)
   (rhs : expr) : tactic $ list $ expr × name × expr := do
   let params := get_app_args tgt, -- the parameters of the structure
@@ -161,14 +176,30 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
     λ raw_expr, (raw_expr.instantiate_univ_params univs).instantiate_lambdas_or_apps params,
   return $ proj_exprs.zip $ projs.zip rhs_args
 
-/-- configuration for the `@[simps]` attribute -/
+/-- configuration for the `@[simps]` attribute
+  * `attrs` specifies the list of attributes given to the generated lemmas. Default: ``[`simp]``.
+    If ``[`simp]`` is in the list, then ``[`_refl_lemma]`` is added automatically if appropriate.
+    The attributes can be either basic attributes, or user attributes without parameters.
+    Warning: *don't* use this for user attributes whose parameter type is not `unit`. The fact that
+    `@[my_attr]` parses correctly without arguments is *not* sufficient to know that the
+    parameter type is `unit` (look at the `user_attribute` declaration)
+    (attributes declared with `mk_simp_attribute` can be safely added).
+  * `short_name` gives the generated lemmas a shorter name
+  * if `simp_rhs` is `tt` then the right-hand-side of the generated lemmas will be put simp-normal form
+  * `type_md` specifies how aggressively definitions are unfolded in the type of expressions
+    for the purposes of finding out whether the type is a function type.
+    Default: `instances`. This will unfold coercion instances (so that a coercion to a function type
+    is recognized as a function type), but not declarations like `set`.
+  * `rhs_md` specifies how aggressively definition in the declaration are unfolded for the purposes
+    of finding out whether it is a constructor.
+    Default: `none`
+-/
 @[derive [has_reflect, inhabited]] structure simps_cfg :=
--- give the generated lemmas the `@[simp]` attribute
-(attrs    := [`simp])
--- give the generated lemmas a shorter name
-(short_name    := ff)
--- simplify the right-hand-side of the simp lemmas
-(simp_rhs      := ff)
+(attrs      := [`simp])
+(short_name := ff)
+(simp_rhs   := ff)
+(type_md    := transparency.instances)
+(rhs_md     := transparency.none)
 
 /-- Add a lemma with `nm` stating that `lhs = rhs`. `type` is the type of both `lhs` and `rhs`,
   `args` is the list of local constants occurring, and `univs` is the list of universe variables.
@@ -196,11 +227,11 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
   (cfg : simps_cfg) (todo : list string), tactic unit
 | e nm suffix type lhs rhs args univs must_be_str cfg todo := do
   -- we don't want to unfold non-reducible definitions (like `set`) to apply more arguments
-  (type_args, tgt) ← mk_local_pis_whnf type transparency.reducible,
+  (type_args, tgt) ← mk_local_pis_whnf type cfg.type_md,
   tgt ← whnf tgt,
   let new_args := args ++ type_args,
   let lhs_ap := lhs.mk_app type_args,
-  let rhs_ap := rhs.instantiate_lambdas_or_apps type_args,
+  rhs_ap ← whnf (rhs.instantiate_lambdas_or_apps type_args) cfg.rhs_md,
   let str := tgt.get_app_fn.const_name,
   /- Don't recursively continue if `str` is not a structure. As a special case, also don't
     recursively continue if the nested structure is `prod` or `pprod`, unless projections are
@@ -307,8 +338,7 @@ derives two simp-lemmas:
   before adding them to the context.
 * You can use `@[simps {attrs := []}]` to derive the lemmas, but not mark them
   as simp-lemmas.
-* You can also use the `attrs` field of the config to add other attributes to all generated lemmas
-  (whenever `simp` is in the list `_refl_lemma` is added automatically if appropriate).
+* You can also use the `attrs` field of the config to add other attributes to all generated lemmas.
 * The precise syntax is `('simps' ident* e)`, where `e` is an expression of type `simps_cfg`.
 * If one of the projections is marked as a coercion, the generated lemmas do *not* use this
   coercion.

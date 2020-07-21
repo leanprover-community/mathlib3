@@ -20,6 +20,8 @@ instance : has_lt pos :=
 namespace expr
 open tactic
 
+attribute [derive [has_reflect, decidable_eq]] tactic.transparency
+
 /-- Given an expr `α` representing a type with numeral structure,
 `of_nat α n` creates the `α`-valued numeral expression corresponding to `n`. -/
 protected meta def of_nat (α : expr) : ℕ → tactic expr :=
@@ -2088,6 +2090,17 @@ add_tactic_doc
   category                 := doc_category.cmd,
   decl_names               := [`tactic.mk_simp_attribute_cmd],
   tags                     := ["simplification"] }
+
+/-- A tactic to set either a basic attribute or a user attribute, as long as the user attribute has
+  no parameter.
+  Warning: if a user attribute with a parameter (that is not `unit`) is set, this will *not*
+  produce an error, but instead will produce an error when `get_param` is called for this
+  declaration. -/
+meta def set_attribute (attr_name : name) (c_name : name) (persistent := tt)
+  (prio : option nat := none) : tactic unit :=
+mwhen (bnot <$> succeeds (get_decl c_name)) fail!"unknown declaration {c_name}" >>
+(set_basic_attribute attr_name c_name persistent prio <|>
+user_attribute.set { name := attr_name, descr := "" } c_name () tt prio)
 
 end tactic
 

@@ -9,10 +9,12 @@ open this folder in VSCode and start doing the exercises.
 For instance, on Tuesday morning, you can do inside this root folder
 ```
 git pull
-cp src/exercises_sources/tuesday/morning.lean src/tuesday_morning.lean
+cp src/exercises_sources/tuesday/sets.lean src/my_exercises/sets.lean
 code .
 ```
-And then click on `src/tuesday_morning.lean` in the VSCode file explorer
+And then click on `src/my_exercises/sets.lean` in the VSCode file explorer
 to start playing. The reason we don't recommend you edit our source file
 directly is your modifications would get overwritten when you'll update
 the repository using `git pull`.
+
+An alternative would be to create a branch specifically to complete the exercises in.

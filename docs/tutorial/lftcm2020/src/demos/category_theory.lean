@@ -23,23 +23,23 @@ as part of "Lean for the Curious Mathematician 2020".
 
 You can get this file by:
 * installing Lean if necessary: https://leanprover-community.github.io/get_started.html#regular-install
-* `leanproject get lftcm2020`
-* `code lftcm2020`
-* open the file `src/demos/category_theory.lean`
+* `leanproject get mathlib`
+* `code mathlib`
+* open the file `docs/tutorial/lftcm2020/src/demos/category_theory.lean`
 
-If you've already got a copy of `lftcm2020`, you should update it now, using
+If you've already got a copy of `mathlib`, you should update it now, using
 ```
-  cd /path/to/lftcm2020/
+  cd /path/to/mathlib/
   git pull
-  leanproject get-mathlib-cache
+  leanproject get-cache
 ```
 
 There are also exercises associated with this demo, in
-`src/exercise_sources/thursday/afternoon/category_theory/`
+`exercise_sources/thursday/category_theory/`
 with hints at
-`src/hints/thursday/afternoon/category_theory/`
+`hints/category_theory/`
 and (partial) solutions at
-`src/solutions/thursday/afternoon/category_theory/`
+`solutions/thursday/category_theory/`
 Any of Exercises 1-7 should be approachable after the demo.
 The later exercises are quite hard, and will take you longer than the afternoon problem session!
 -/

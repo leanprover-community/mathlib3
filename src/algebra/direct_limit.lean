@@ -287,7 +287,7 @@ comm_ring.to_ring _
 
 /-- The canonical map from a component to the direct limit. -/
 def of (i) (x : G i) : direct_limit G f :=
-ideal.quotient.mk _ $ of ⟨i, x⟩
+ideal.quotient.mk _ (of (⟨i, x⟩ : Σ i, G i))
 
 variables {G f}
 

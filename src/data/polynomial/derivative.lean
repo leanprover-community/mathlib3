@@ -14,8 +14,6 @@ import data.polynomial.field_division
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
-local attribute [instance, priority 10] is_semiring_hom.comp is_ring_hom.comp
-
 open finsupp finset add_monoid_algebra
 open_locale big_operators
 

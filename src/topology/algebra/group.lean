@@ -24,14 +24,14 @@ set_option default_priority 100 -- see Note [default priority]
 /-- A topological (additive) group is a group in which the addition and negation operations are
 continuous. -/
 class topological_add_group (α : Type u) [topological_space α] [add_group α]
-  extends topological_add_monoid α : Prop :=
+  extends has_continuous_add α : Prop :=
 (continuous_neg : continuous (λa:α, -a))
 
 /-- A topological group is a group in which the multiplication and inversion operations are
 continuous. -/
 @[to_additive topological_add_group]
 class topological_group (α : Type*) [topological_space α] [group α]
-  extends topological_monoid α : Prop :=
+  extends has_continuous_mul α : Prop :=
 (continuous_inv : continuous (λa:α, a⁻¹))
 end prio
 
@@ -333,7 +333,7 @@ topological_space.nhds_mk_of_nhds _ _
 lemma nhds_zero_eq_Z : 𝓝 0 = Z α := by simp [nhds_eq]; exact filter.map_id
 
 @[priority 100] -- see Note [lower instance priority]
-instance : topological_add_monoid α :=
+instance : has_continuous_add α :=
 ⟨ continuous_iff_continuous_at.2 $ assume ⟨a, b⟩,
   begin
     rw [continuous_at, nhds_prod_eq, nhds_eq, nhds_eq, nhds_eq, filter.prod_map_map_eq,

@@ -569,7 +569,8 @@ list.cases_on l (by simp [is_nil]) (by simp [is_nil])
 @[simp] theorem length_init : ∀ (l : list α), length (init l) = length l - 1
 | [] := rfl
 | [a] := rfl
-| (a :: b :: l) := begin
+| (a :: b :: l) :=
+begin
   rw init,
   simp only [add_left_inj, length, succ_add_sub_one],
   exact length_init (b :: l)
@@ -596,7 +597,8 @@ by simp only [concat_eq_append, last_append]
 theorem init_append_last : ∀ {l : list α} (h : l ≠ []), init l ++ [last l h] = l
 | [] h := absurd rfl h
 | [a] h := rfl
-| (a::b::l) h := begin
+| (a::b::l) h :=
+begin
   rw [init, cons_append, last_cons (cons_ne_nil _ _) (cons_ne_nil _ _)],
   congr,
   exact init_append_last (cons_ne_nil b l),

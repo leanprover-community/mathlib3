@@ -160,7 +160,7 @@ begin
   { rw [max_eq_left hln, filter_le_of_le_bot hln] }
 end
 
-@[simp] lemma filter_lt_of_succ_bot {n m : ℕ} (hnm : n < m) : (Ico n m).filter (λ x, x < n + 1) = [n] :=
+lemma filter_lt_of_succ_bot {n m : ℕ} (hnm : n < m) : (Ico n m).filter (λ x, x < n + 1) = [n] :=
 begin
   have r : min m (n + 1) = n + 1 := (@inf_eq_right _ _ m (n + 1)).mpr hnm,
   simp [filter_lt n m (n + 1), r],

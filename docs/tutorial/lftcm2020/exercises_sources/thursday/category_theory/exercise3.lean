@@ -22,3 +22,4 @@ sorry
 There are some further hints in
 `hints/category_theory/exercise3/`
 -/
+

@@ -50,3 +50,4 @@ synthesized type class instance is not definitionally equal to expression inferr
 ```
 while solving this exercise, see hint4.lean.
 -/
+

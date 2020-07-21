@@ -1497,6 +1497,13 @@ rw [card_insert_of_not_mem h]]
 
 @[simp] theorem card_singleton (a : α) : card ({a} : finset α) = 1 := card_singleton _
 
+lemma card_singleton_inter [decidable_eq α] {x : α} {s : finset α} : ({x} ∩ s).card ≤ 1 :=
+begin
+  cases (finset.decidable_mem x s),
+  { simp [finset.singleton_inter_of_not_mem h] },
+  { simp [finset.singleton_inter_of_mem h] },
+end
+
 theorem card_erase_of_mem [decidable_eq α] {a : α} {s : finset α} :
   a ∈ s → card (erase s a) = pred (card s) := card_erase_of_mem
 

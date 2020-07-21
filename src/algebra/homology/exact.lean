@@ -26,7 +26,7 @@ is an epimorphism.
 
 (We say epimorphism rather than isomorphism because, at least for preadditive categories,
 this is exactly equivalent to the homology at `i` vanishing.
-In an abelian category, this is the same as being an isomorphism,
+In an abelian category, this is the same as asking for it to be an isomorphism,
 because the inclusion map is always a monomorphism.)
 -/
 def exact_at (i : β) : Prop := epi (C.image_to_kernel_map (i-b))

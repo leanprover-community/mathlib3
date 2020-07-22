@@ -224,6 +224,10 @@ lemma eventually_eq_nhds_within_of_eq_on {f g : α → β} {s : set α} {a : α}
   f =ᶠ[nhds_within a s] g :=
 mem_inf_sets_of_right h
 
+lemma set.eq_on.eventually_eq {f g : α → β} {s : set α} {a : α} (h : eq_on f g s) :
+  f =ᶠ[nhds_within a s] g :=
+eventually_eq_nhds_within_of_eq_on h
+
 lemma tendsto_nhds_within_congr {f g : α → β} {s : set α} {a : α} {l : filter β}
   (hfg : ∀ x ∈ s, f x = g x) (hf : tendsto f (nhds_within a s) l) : tendsto g (nhds_within a s) l :=
 (tendsto_congr' $ eventually_eq_nhds_within_of_eq_on hfg).1 hf

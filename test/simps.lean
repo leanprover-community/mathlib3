@@ -61,9 +61,13 @@ run_cmd do
   success_if_fail_with_msg (simps_tac `foo.bar1)
     "Invalid `simps` attribute. Target is not a structure",
   success_if_fail_with_msg (simps_tac `foo.bar2)
-    "Invalid `simps` attribute. Body is not a constructor application",
+    "Invalid `simps` attribute. The body is not a constructor application:
+prod.map (λ (x : ℕ), x + 2) (λ (y : ℤ), y - 3) (3, 4)
+Possible solution: add option {rhs_md := semireducible}.",
   success_if_fail_with_msg (simps_tac `foo.bar3)
-    "Invalid `simps` attribute. Body is not a constructor application",
+    "Invalid `simps` attribute. The body is not a constructor application:
+classical.choice bar3._proof_1
+Possible solution: add option {rhs_md := semireducible}.",
   e ← get_env,
   let nm := `foo.bar1,
   d ← e.get nm,
@@ -238,7 +242,9 @@ run_cmd do
   success_if_fail_with_msg (simps_tac `specify.specify1 {} ["snd_bar"])
     "Invalid simp-lemma specify.specify1_snd_bar. Projection bar doesn't exist.",
   success_if_fail_with_msg (simps_tac `specify.specify5 {} ["snd_snd"])
-    "Invalid simp-lemma specify.specify5_snd_snd. The given definition is not a constructor application."
+    "Invalid simp-lemma specify.specify5_snd_snd. The given definition is not a constructor application:
+prod.map (λ (x : ℕ), x) (λ (y : ℕ), y) (2, 3)
+Possible solution: add option {rhs_md := semireducible}."
 
 
 /- We also eta-reduce if we explicitly specify the projection. -/
@@ -540,6 +546,22 @@ begin
   refl
 end
 
+@[simps {type_md := semireducible}] def nat_set_plus2 : set_plus ℕ := ⟨set.univ, 1, trivial⟩
+
+example : nat_set_plus2.s = set.univ :=
+begin
+  success_if_fail { dsimp only [nat_set_plus2_s] }, refl
+end
+
+@[simps {rhs_md := semireducible}] def nat_set_plus3 : set_plus ℕ := nat_set_plus
+
+example : nat_set_plus3.s = set.univ :=
+begin
+  dsimp only [nat_set_plus3_s],
+  guard_target @set.univ ℕ = set.univ,
+  refl
+end
+
 namespace nested_non_fully_applied
 
 structure equiv (α : Sort*) (β : Sort*) :=
@@ -560,6 +582,18 @@ begin
   dsimp only [equiv.symm2_inv_fun_to_fun],
   guard_target e.inv_fun = e.inv_fun,
   refl
+end
+
+/- do not prematurely unfold `equiv.symm`, unless necessary -/
+@[simps to_fun to_fun_to_fun {rhs_md := semireducible}] def equiv.symm3 : (α ≃ β) ≃ (β ≃ α) :=
+equiv.symm2
+
+example (e : α ≃ β) (y : β) : (equiv.symm3.to_fun e).to_fun y = e.inv_fun y ∧
+  (equiv.symm3.to_fun e).to_fun y = e.inv_fun y :=
+begin
+  split,
+  { dsimp only [equiv.symm3_to_fun], guard_target e.symm.to_fun y = e.inv_fun y, refl },
+  { dsimp only [equiv.symm3_to_fun_to_fun], guard_target e.inv_fun y = e.inv_fun y, refl }
 end
 
 end nested_non_fully_applied

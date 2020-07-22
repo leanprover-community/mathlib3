@@ -171,7 +171,7 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
   guard ((get_app_args rhs).take params.length = params) <|> fail "unreachable code (1)",
   let str := tgt.get_app_fn.const_name,
   projs ← e.structure_fields_full str,
-  let rhs_args := (get_app_args rhs).drop params.length, -- the fields of the structure
+  let rhs_args := (get_app_args rhs).drop params.length, -- the fields of the object
   guard (rhs_args.length = projs.length) <|> fail "unreachable code (2)",
   (raw_univs, raw_exprs) ← simps_get_raw_projections e str,
   let univs := raw_univs.zip tgt.get_app_fn.univ_levels,
@@ -241,31 +241,45 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
   tgt ← whnf tgt,
   let new_args := args ++ type_args,
   let lhs_ap := lhs.mk_app type_args,
-  rhs_ap ← whnf (rhs.instantiate_lambdas_or_apps type_args) cfg.rhs_md,
+  let rhs_ap := rhs.instantiate_lambdas_or_apps type_args,
   let str := tgt.get_app_fn.const_name,
   let new_nm := nm.append_suffix suffix,
+  /- We want to generate the current projection if it is in `todo` -/
+  let todo_next := todo.filter (≠ ""),
   /- Don't recursively continue if `str` is not a structure. As a special case, also don't
     recursively continue if the nested structure is `prod` or `pprod`, unless projections are
     specified manually. -/
   if e.is_structure str ∧ ¬(todo = [] ∧ str ∈ [`prod, `pprod] ∧ ¬must_be_str) then do
     [intro] ← return $ e.constructors_of str | fail "unreachable code (3)",
+    rhs_whnf ← whnf rhs_ap cfg.rhs_md,
+    (rhs_ap, todo_now) ← if h : ¬is_constant_of rhs_ap.get_app_fn intro ∧
+      is_constant_of rhs_whnf.get_app_fn intro then
+      /- If this was a desired projection, we want to apply it before taking the whnf.
+        However, if the current field is an eta-expansion (see below), we first want
+        to eta-reduce it and only then construct the projection.
+        This makes the flow of this function hard to follow. -/
+      when ("" ∈ todo) (if cfg.fully_applied then
+        simps_add_projection new_nm tgt lhs_ap rhs_ap new_args univs cfg else
+        simps_add_projection new_nm type lhs rhs args univs cfg) >>
+      return (rhs_whnf, ff) else
+      return (rhs_ap, "" ∈ todo),
     if is_constant_of (get_app_fn rhs_ap) intro then do -- if the value is a constructor application
       tuples ← simps_get_projection_exprs e tgt rhs_ap,
       let projs := tuples.map $ λ x, x.2.1,
       let pairs := tuples.map $ λ x, x.2,
       eta ← expr.is_eta_expansion_aux rhs_ap pairs, -- check whether `rhs_ap` is an eta-expansion
       let rhs_ap := eta.lhoare rhs_ap, -- eta-reduce `rhs_ap`
-      /- we want to generate the current projection if it is in `todo` or when `rhs_ap` was an
-      eta-expansion -/
-      when ("" ∈ todo ∨ (todo = [] ∧ eta.is_some)) $
+      /- As a special case, we want to automatically generate the current projection if `rhs_ap`
+        was an eta-expansion. Also, when this was a desired projection, we need to generate the
+        current projection if we haven't done it above. -/
+      when (todo_now ∨ (todo = [] ∧ eta.is_some)) $
         if cfg.fully_applied then
           simps_add_projection new_nm tgt lhs_ap rhs_ap new_args univs cfg else
           simps_add_projection new_nm type lhs rhs args univs cfg,
-      -- if `rhs_ap` was an eta-expansion and `todo` is empty, we stop
+      /- We stop if no further projection is specified or if we just reduced an eta-expansion and we
+      automatically choose projections -/
       when ¬(todo = [""] ∨ (eta.is_some ∧ todo = [])) $ do
-        /- remove "" from todo. This allows a to generate lemmas + nested version of them.
-          This is not very useful, but this does improve error messages. -/
-        let todo := todo.filter $ (≠ ""),
+        let todo := todo_next,
         -- check whether all elements in `todo` have a projection as prefix
         guard (todo.all $ λ x, projs.any $ λ proj, ("_" ++ proj.last).is_prefix_of x) <|>
           let x := (todo.find $ λ x, projs.all $ λ proj, ¬ ("_" ++ proj.last).is_prefix_of x).iget,
@@ -277,7 +291,7 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
           let new_todo := todo.filter_map $ λ x, string.get_rest x $ "_" ++ proj.last,
           b ← is_prop new_type,
           -- we only continue with this field if it is non-propositional or mentioned in todo
-          when ((¬ b ∧ todo = []) ∨ (todo ≠ [] ∧ new_todo ≠ [])) $ do
+          when ((¬ b ∧ todo = []) ∨ new_todo ≠ []) $ do
             let new_lhs := proj_expr.instantiate_lambdas_or_apps [lhs_ap],
             let new_suffix := if cfg.short_name then "_" ++ proj.last else
               suffix ++ "_" ++ proj.last,
@@ -285,17 +299,17 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
               ff cfg new_todo
     else do
       when must_be_str $
-        fail "Invalid `simps` attribute. Body is not a constructor application",
-      when (todo ≠ [] ∧ todo ≠ [""]) $
-        fail!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo.head}. The given definition is not a constructor application.",
+        fail!"Invalid `simps` attribute. The body is not a constructor application:\n{rhs_ap}\nPossible solution: add option {{rhs_md := semireducible}.",
+      when (todo_next ≠ []) $
+        fail!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo_next.head}. The given definition is not a constructor application:\n{rhs_ap}\nPossible solution: add option {{rhs_md := semireducible}.",
       if cfg.fully_applied then
         simps_add_projection new_nm tgt lhs_ap rhs_ap new_args univs cfg else
         simps_add_projection new_nm type lhs rhs args univs cfg
   else do
     when must_be_str $
       fail "Invalid `simps` attribute. Target is not a structure",
-    when (todo ≠ [] ∧ todo ≠ [""] ∧ str ∉ [`prod, `pprod]) $
-        fail!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo.head}. Projection {(todo.head.split_on '_').tail.head} doesn't exist, because target is not a structure.",
+    when (todo_next ≠ [] ∧ str ∉ [`prod, `pprod]) $
+        fail!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo_next.head}. Projection {(todo_next.head.split_on '_').tail.head} doesn't exist, because target is not a structure.",
     if cfg.fully_applied then
       simps_add_projection new_nm tgt lhs_ap rhs_ap new_args univs cfg else
       simps_add_projection new_nm type lhs rhs args univs cfg

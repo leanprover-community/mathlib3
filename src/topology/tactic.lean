@@ -7,9 +7,15 @@ import tactic.auto_cases
 import tactic.tidy
 import tactic.with_local_reducibility
 import topology.basic
+/-!
+# Tactics for topology
+
+Currently we have one domain-specific tactic for topology: `continuity`.
+
+-/
 
 /-!
-# `continuity` tactic
+### `continuity` tactic
 
 Automatically solve goals of the form `continuous f`.
 

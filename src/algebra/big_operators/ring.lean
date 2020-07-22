@@ -144,7 +144,7 @@ theorem dvd_sum {b : β} {s : finset α} {f : α → β}
 multiset.dvd_sum (λ y hy, by rcases multiset.mem_map.1 hy with ⟨x, hx, rfl⟩; exact h x hx)
 
 @[norm_cast]
-lemma prod_nat_cast [comm_semiring β] (s : finset α) (f : α → ℕ) :
+lemma prod_nat_cast (s : finset α) (f : α → ℕ) :
   ↑(∏ x in s, f x : ℕ) = (∏ x in s, (f x : β)) :=
 (nat.cast_ring_hom β).map_prod f s
 

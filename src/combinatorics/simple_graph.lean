@@ -91,44 +91,58 @@ by { intro h, rw h at hab, apply G.loopless b, exact hab }
 by tauto
 
 /--
-`G.adj' v` is the `finset` version of `G.adj v` in case `G` is
-locally finite at `v`.
--/
-def adj' (v : V) [fintype (G.adj v)] : finset V := set.to_finset (G.adj v)
-
-@[simp] lemma in_adj_iff_in_adj (v w : V) [fintype (G.adj v)] : w ∈ G.adj' v ↔ w ∈ G.adj v :=
-by simp [adj']
-
-/--
 `G.incident v` is the set of edges incident to `v`.  Due to the way
 sets are defined, `G.incident v e` denotes that `v` is incident to `e`.
 -/
 def incident (v : V) : set G.E := {e : G.E | v ∈ e.1}
 
+section finite_at
 
-section finite
+variables (v : V) [fintype (G.adj v)]
+/--
+`G.adj' v` is the `finset` version of `G.adj v` in case `G` is
+locally finite at `v`.
+-/
+def neighbors : finset V := set.to_finset (G.adj v)
 
-instance edges_fintype [decidable_eq V] [decidable_rel G.adj] [fintype V] : fintype G.E :=
-subtype.fintype _
+@[simp] lemma in_neighbors_iff_in_adj (w : V) :
+  w ∈ G.neighbors v ↔ w ∈ G.adj v := by simp [neighbors]
 
 /--
 `G.degree v` is the number of vertices adjacent to `v`.
 -/
-def degree (v : V) [fintype (G.adj v)] : ℕ := fintype.card (G.adj v)
+def degree : ℕ := fintype.card (G.adj v)
 
-@[simp] lemma degree_adj' (v : V) [fintype (G.adj v)] : (G.adj' v).card = G.degree v :=
-by simp [adj', degree]
+@[simp] lemma card_neighbors_eq_degree : (G.neighbors v).card = G.degree v :=
+by simp [neighbors, degree]
+
+end finite_at
+
+section locally_finite
+
+variable [∀ (v : V), fintype (G.adj v)]
 
 /--
 A regular graph is a locally finite graph such that every vertex has the same degree.
 -/
-def regular_graph [∀ (v : V), fintype (G.adj v)] (d : ℕ) : Prop :=
-∀ (v : V), degree G v = d
+def regular_graph (d : ℕ) : Prop := ∀ (v : V), degree G v = d
+
+end locally_finite
+
+section finite
+
+variables [fintype V] [decidable_eq V] [decidable_rel G.adj]
+
+instance edges_fintype : fintype G.E := subtype.fintype _
+
+@[simp] lemma neighbors_eq_filter {v : V} : G.neighbors v = (univ : finset V).filter (G.adj v) :=
+by {ext, simp}
 
 instance complete_graph_adj_decidable [decidable_eq V] : decidable_rel (complete_graph V).adj :=
 by { dsimp [complete_graph], apply_instance }
 
-lemma complete_graph_is_regular [fintype V] [decidable_eq V] : regular_graph (complete_graph V) (fintype.card V - 1) :=
+lemma complete_graph_is_regular [fintype V] [decidable_eq V] :
+  regular_graph (complete_graph V) (fintype.card V - 1) :=
 begin
   intro v,
   change fintype.card {w : V | v ≠ w} = fintype.card V - 1,

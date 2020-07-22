@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 
 Free abelian groups as abelianization of free groups.
+
+-- TODO : Chris suggests we strip this out completely and replace with definition using finsupp
 -/
 import algebra.pi_instances
 import group_theory.free_group
@@ -26,10 +28,11 @@ variable {α}
 namespace free_abelian_group
 
 def of (x : α) : free_abelian_group α :=
-abelianization.of $ free_group.of x
+additive.of_mul $ abelianization.of $ free_group.of x
 
 def lift {β : Type v} [add_comm_group β] (f : α → β) : free_abelian_group α →+ β :=
-(@abelianization.lift _ _ (multiplicative β) _ (monoid_hom.of (@free_group.to_group _ (multiplicative β) _ f))).to_additive
+(@abelianization.lift _ _ (multiplicative β) _
+  (monoid_hom.of (@free_group.to_group _ (multiplicative β) _ f))).to_additive'
 
 namespace lift
 variables {β : Type v} [add_comm_group β] (f : α → β)

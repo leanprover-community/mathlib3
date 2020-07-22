@@ -21,9 +21,10 @@ would use the spectral radius.
 The first main result is `is_open`:  the group of units of a complete normed ring is an open subset
 of the ring.
 
-A function `inverse` is defined on a normed ring `R`, which sends `a : R` to `a⁻¹` if `a` is a unit
-and 0 if not.  The asymptotic properties of `inverse (x + t)` as `t → 0` are characterized in
-`inverse_add_norm` and `inverse_add_norm_diff_nth_order`.
+The function `inverse` (defined in `algebra.ring`), for a ring `R`, sends `a : R` to `a⁻¹` if `a` is
+a unit and 0 if not.  The other major results of this file (notably `inverse_add`,
+`inverse_add_norm` and `inverse_add_norm_diff_nth_order`) cover the asymptotic properties of
+`inverse (x + t)` as `t → 0`.
 
 -/
 

@@ -273,6 +273,16 @@ begin
     exact h hr ⟨x, rfl⟩, }
 end
 
+instance from_rel.decidable_as_set (sym : symmetric r) [h : decidable_rel r] : decidable_pred (λ x, x ∈ sym2.from_rel sym) :=
+λ (x : sym2 α), quotient.rec_on x (λ x', begin
+  dsimp only,
+  rw from_rel_proj_prop,
+  apply_instance,
+end) (by tidy)
+
+instance from_rel.decidable_pred (sym : symmetric r) [h : decidable_rel r] : decidable_pred (sym2.from_rel sym) :=
+by { change decidable_pred (λ x, x ∈ sym2.from_rel sym), apply_instance }
+
 end relations
 
 section sym_equiv
@@ -349,5 +359,30 @@ def equiv_multiset (α : Type*) : sym2 α ≃ {s : multiset α // s.card = 2} :=
 equiv_sym α
 
 end sym_equiv
+
+section finite
+
+/--
+Given `[decidable_eq α]` and `[fintype α]`, the following instance gives `fintype (sym2 α)`.
+-/
+instance (α : Type*) [decidable_eq α] : decidable_rel (sym2.rel α) :=
+begin
+  rintros ⟨x₁, x₂⟩ ⟨y₁, y₂⟩,
+  by_cases h₁ : x₁ = y₁, subst x₁,
+  by_cases h₂ : x₂ = y₂, subst x₂,
+  apply decidable.is_true, refl,
+  by_cases h₃ : y₁ = y₂, subst y₁,
+  apply decidable.is_false, intro h, cases h; cc,
+  by_cases h₄ : x₂ = y₁, subst x₂,
+  apply decidable.is_false, intro h, cases h; cc,
+  apply decidable.is_false, intro h, cases h; cc,
+  by_cases h₂ : x₁ = y₂, subst x₁,
+  by_cases h₃ : x₂ = y₁, subst x₂,
+  apply decidable.is_true, apply sym2.rel.swap,
+  apply decidable.is_false, intro h, cases h; cc,
+  apply decidable.is_false, intro h, cases h; cc,
+end
+
+end finite
 
 end sym2

@@ -255,6 +255,12 @@ end
 @[simp] theorem inl_apply (x : M) : inl R M M₂ x = (x, 0) := rfl
 @[simp] theorem inr_apply (x : M₂) : inr R M M₂ x = (0, x) := rfl
 
+theorem inl_injective : function.injective (inl R M M₂) :=
+λ _, by simp
+
+theorem inr_injective : function.injective (inr R M M₂) :=
+λ _, by simp
+
 /-- The coprod function `λ x : M × M₂, f x.1 + g x.2` is a linear map. -/
 def coprod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) : M × M₂ →ₗ[R] M₃ :=
 { to_fun    := λ x, f x.1 + g x.2,

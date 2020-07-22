@@ -22,9 +22,8 @@ variables {γ : Type*} [canonically_linear_ordered_add_monoid γ]
 
 namespace finsupp
 
-lemma le_def [has_zero β] [partial_order β] {a b : α →₀ β} : a ≤ b ↔ ∀ (s : α), a s ≤ b s := by refl
+lemma le_def [partial_order β] {a b : α →₀ β} : a ≤ b ↔ ∀ (s : α), a s ≤ b s := by refl
 
-variable [has_zero β]
 
 instance order_bot_of_zero_bot [order_bot β] (h : ⊥ = (0 : β)): order_bot (α →₀ β) :=
 { bot := 0, bot_le := by simp [finsupp.le_def, ← h], .. finsupp.partial_order}

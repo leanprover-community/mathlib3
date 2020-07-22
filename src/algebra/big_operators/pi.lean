@@ -1,0 +1,76 @@
+import algebra.ring.pi algebra.big_operators data.fintype.basic algebra.group.prod
+
+open_locale big_operators
+
+namespace pi
+
+@[to_additive]
+lemma list_prod_apply {α : Type*} {β : α → Type*} [∀a, monoid (β a)] (a : α) :
+  ∀ (l : list (Πa, β a)), l.prod a = (l.map (λf:Πa, β a, f a)).prod
+| []       := rfl
+| (f :: l) := by simp [mul_apply f l.prod a, list_prod_apply l]
+
+@[to_additive]
+lemma multiset_prod_apply {α : Type*} {β : α → Type*} [∀a, comm_monoid (β a)] (a : α)
+  (s : multiset (Πa, β a)) : s.prod a = (s.map (λf:Πa, β a, f a)).prod :=
+quotient.induction_on s $ assume l, begin simp [list_prod_apply a l] end
+
+end pi
+
+@[simp, to_additive]
+lemma finset.prod_apply {α : Type*} {β : α → Type*} {γ} [∀a, comm_monoid (β a)] (a : α)
+  (s : finset γ) (g : γ → Πa, β a) : (∏ c in s, g c) a = ∏ c in s, g c a :=
+show (s.val.map g).prod a = (s.val.map (λc, g c a)).prod,
+  by rw [pi.multiset_prod_apply, multiset.map_map]
+
+@[to_additive prod_mk_sum]
+lemma prod_mk_prod {α β γ : Type*} [comm_monoid α] [comm_monoid β] (s : finset γ)
+  (f : γ → α) (g : γ → β) : (∏ x in s, f x, ∏ x in s, g x) = ∏ x in s, (f x, g x) :=
+by haveI := classical.dec_eq γ; exact
+finset.induction_on s rfl (by simp [prod.ext_iff] {contextual := tt})
+
+section single
+variables {I : Type*} [decidable_eq I] {Z : I → Type*}
+variables [Π i, add_comm_monoid (Z i)]
+
+-- As we only defined `single` into `add_monoid`, we only prove the `finset.sum` version here.
+lemma finset.univ_sum_single [fintype I] (f : Π i, Z i) :
+  ∑ i, pi.single i (f i) = f :=
+begin
+  ext a,
+  rw [finset.sum_apply, finset.sum_eq_single a],
+  { simp, },
+  { intros b _ h, simp [h.symm], },
+  { intro h, exfalso, simpa using h, },
+end
+
+@[ext]
+lemma add_monoid_hom.functions_ext [fintype I] (G : Type*)
+  [add_comm_monoid G] (g h : (Π i, Z i) →+ G)
+  (w : ∀ (i : I) (x : Z i), g (pi.single i x) = h (pi.single i x)) : g = h :=
+begin
+  ext k,
+  rw [←finset.univ_sum_single k, add_monoid_hom.map_sum, add_monoid_hom.map_sum],
+  apply finset.sum_congr rfl,
+  intros,
+  apply w,
+end
+
+end single
+
+section ring_hom
+open pi
+variables {I : Type*} [decidable_eq I] {f : I → Type*}
+variables [Π i, semiring (f i)]
+
+-- we need `apply`+`convert` because Lean fails to unify different `add_monoid` instances
+-- on `Π i, f i`
+@[ext]
+lemma ring_hom.functions_ext [fintype I] (G : Type*) [semiring G] (g h : (Π i, f i) →+* G)
+  (w : ∀ (i : I) (x : f i), g (single i x) = h (single i x)) : g = h :=
+begin
+  apply ring_hom.coe_add_monoid_hom_injective,
+  convert add_monoid_hom.functions_ext _ _ _ _; assumption
+end
+
+end ring_hom

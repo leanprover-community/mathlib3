@@ -18,7 +18,7 @@ structures, projections, simp, simplifier, generates declarations
 open tactic expr
 
 setup_tactic_parser
-reserve notation `specify_simps_projections`
+reserve notation `initialize_simps_projections`
 declare_trace simps.verbose
 
 /--

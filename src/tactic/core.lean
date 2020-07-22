@@ -14,13 +14,13 @@ import tactic.fix_by_cases
 
 universe variable u
 
+attribute [derive [has_reflect, decidable_eq]] tactic.transparency
+
 instance : has_lt pos :=
 { lt := λ x y, (x.line, x.column) < (y.line, y.column) }
 
 namespace expr
 open tactic
-
-attribute [derive [has_reflect, decidable_eq]] tactic.transparency
 
 /-- Given an expr `α` representing a type with numeral structure,
 `of_nat α n` creates the `α`-valued numeral expression corresponding to `n`. -/

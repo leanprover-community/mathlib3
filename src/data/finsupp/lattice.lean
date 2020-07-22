@@ -31,12 +31,7 @@ instance order_bot_of_zero_bot [order_bot β] (h : ⊥ = (0 : β)): order_bot (�
 
 instance : order_bot (α →₀ μ) := finsupp.order_bot_of_zero_bot bot_eq_zero
 
-
-def binary_rel_pointwise (r : β → β → Prop) (a b : α →₀ β) : Prop := ∀ s : α, r (a s) (b s)
-
-lemma binary_rel_pointwise_ext (r : β → β → Prop) (a b : α →₀ β) :
-  (binary_rel_pointwise r a b) ↔ ∀ s, r (a s) (b s) := by refl
-
+/-- Used to construct binary operations on `finsupp`s -/
 def binary_op_pointwise {f : β → β → β} (h : f 0 0 = 0) (a b : α →₀ β) : α →₀ β :=
 { support := ((a.support) ∪ (b.support)).filter (λ s, f (a s) (b s) ≠ 0),
   to_fun := λ s, f (a s) (b s),

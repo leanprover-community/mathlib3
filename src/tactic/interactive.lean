@@ -1133,7 +1133,7 @@ do tgt ← target,
      let fmt :=
        format.group $ format.nest 2 $
          title ++ cxt₀.foldl (λ acc x, acc ++ format.group (format.line ++ x)) "" ++
-         format.line ++ format.intercalate format.line cxt₁ ++ " :" ++
+         format.join (list.map (λ x, format.line ++ x) cxt₁) ++ " :" ++
          format.line ++ stmt,
      trace $ fmt.to_string $ options.mk.set_nat `pp.width 80,
      let var_names := format.intercalate " " $ ls.map (to_fmt ∘ local_pp_name),

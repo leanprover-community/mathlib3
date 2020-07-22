@@ -45,7 +45,7 @@ matrix inverse, cramer, cramer's rule, adjugate
 
 namespace matrix
 universes u v
-variables {n m : Type u} [fintype n] [decidable_eq n] [fintype m] [decidable_eq m] {α : Type v}
+variables {n : Type u} [fintype n] [decidable_eq n] {α : Type v}
 open_locale matrix big_operators
 open equiv equiv.perm finset
 

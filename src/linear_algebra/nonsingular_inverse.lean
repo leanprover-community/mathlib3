@@ -187,9 +187,9 @@ lemma sum_cramer {β} (s : finset β) (f : β → n → α) :
 lemma sum_cramer_apply {β} (s : finset β) (f : n → β → α) (i : n) :
 ∑ x in s, cramer α A (λ j, f j x) i = cramer α A (λ (j : n), ∑ x in s, f j x) i :=
 calc ∑ x in s, cramer α A (λ j, f j x) i
-    = (∑ x in s, cramer α A (λ j, f j x)) i : (pi.finset_sum_apply i s _).symm
+    = (∑ x in s, cramer α A (λ j, f j x)) i : (finset.sum_apply i s _).symm
 ... = cramer α A (λ (j : n), ∑ x in s, f j x) i :
-  by { rw [sum_cramer, cramer_apply], congr, ext j, apply pi.finset_sum_apply }
+  by { rw [sum_cramer, cramer_apply], congr, ext j, apply finset.sum_apply }
 
 end cramer
 

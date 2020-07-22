@@ -1263,7 +1263,7 @@ begin
       (eventually_of_forall $ λ i, (F i).measurable) (eventually_of_forall hFiν) _,
     refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hFt (λ _, zero_le _) _,
     exact λ i, lintegral_mono' (measure.le_add_left $ le_refl ν) (le_refl _) },
-  apply tendsto_nhds_unique at_top_ne_bot hμν,
+  apply tendsto_nhds_unique hμν,
   simpa only [← simple_func.integral_eq_integral, *, simple_func.integral_add_meas] using hμ.add hν
 end
 

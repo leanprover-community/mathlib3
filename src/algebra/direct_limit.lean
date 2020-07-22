@@ -15,6 +15,7 @@ the free commutative ring (for the ring case) instead of a quotient of the disjo
 so as to make the operations (addition etc.) "computable".
 -/
 import ring_theory.free_comm_ring
+import linear_algebra.direct_sum_module
 
 universes u v w u₁
 
@@ -287,7 +288,7 @@ comm_ring.to_ring _
 
 /-- The canonical map from a component to the direct limit. -/
 def of (i) (x : G i) : direct_limit G f :=
-ideal.quotient.mk _ $ of ⟨i, x⟩
+ideal.quotient.mk _ (of (⟨i, x⟩ : Σ i, G i))
 
 variables {G f}
 

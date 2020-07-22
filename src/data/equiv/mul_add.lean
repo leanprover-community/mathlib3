@@ -59,7 +59,7 @@ variables [has_mul M] [has_mul N] [has_mul P]
 lemma to_fun_apply {f : M ≃* N} {m : M} : f.to_fun m = f m := rfl
 
 /-- A multiplicative isomorphism preserves multiplication (canonical form). -/
-@[to_additive]
+@[simp, to_additive]
 lemma map_mul (f : M ≃* N) : ∀ x y, f (x * y) = f x * f y := f.map_mul'
 
 /-- A multiplicative isomorphism preserves multiplication (deprecated). -/
@@ -114,6 +114,12 @@ e.to_equiv.apply_symm_apply
 lemma symm_apply_apply (e : M ≃* N) : ∀ x, e.symm (e x) = x :=
 e.to_equiv.symm_apply_apply
 
+@[simp, to_additive]
+theorem refl_apply (m : M) : refl M m = m := rfl
+
+@[simp, to_additive]
+theorem trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (m : M) : e₁.trans e₂ m = e₂ (e₁ m) := rfl
+
 /-- a multiplicative equiv of monoids sends 1 to 1 (and is hence a monoid isomorphism) -/
 @[simp, to_additive]
 lemma map_one {M N} [monoid M] [monoid N] (h : M ≃* N) : h 1 = 1 :=
@@ -143,7 +149,7 @@ lemma to_monoid_hom_apply {M N} [monoid M] [monoid N] (e : M ≃* N) (x : M) :
 rfl
 
 /-- A multiplicative equivalence of groups preserves inversion. -/
-@[to_additive]
+@[simp, to_additive]
 lemma map_inv [group G] [group H] (h : G ≃* H) (x : G) : h x⁻¹ = (h x)⁻¹ :=
 h.to_monoid_hom.map_inv x
 
@@ -214,6 +220,12 @@ lemma inv_def (e₁ : mul_aut M) : e₁⁻¹ = e₁.symm := rfl
 @[simp] lemma mul_apply (e₁ e₂ : mul_aut M) (m : M) : (e₁ * e₂) m = e₁ (e₂ m) := rfl
 @[simp] lemma one_apply (m : M) : (1 : mul_aut M) m = m := rfl
 
+@[simp] lemma apply_inv_self (e : mul_aut M) (m : M) : e (e⁻¹ m) = m :=
+mul_equiv.apply_symm_apply _ _
+
+@[simp] lemma inv_apply_self (e : mul_aut M) (m : M) : e⁻¹ (e m) = m :=
+mul_equiv.apply_symm_apply _ _
+
 /-- Monoid hom from the group of multiplicative automorphisms to the group of permutations. -/
 def to_perm : mul_aut M →* equiv.perm M :=
 by refine_struct { to_fun := mul_equiv.to_equiv }; intros; refl
@@ -261,6 +273,12 @@ lemma one_def : (1 : add_aut A) = add_equiv.refl _ := rfl
 lemma inv_def (e₁ : add_aut A) : e₁⁻¹ = e₁.symm := rfl
 @[simp] lemma mul_apply (e₁ e₂ : add_aut A) (a : A) : (e₁ * e₂) a = e₁ (e₂ a) := rfl
 @[simp] lemma one_apply (a : A) : (1 : add_aut A) a = a := rfl
+
+@[simp] lemma apply_inv_self (e : add_aut A) (a : A) : e⁻¹ (e a) = a :=
+add_equiv.apply_symm_apply _ _
+
+@[simp] lemma inv_apply_self (e : add_aut A) (a : A) : e (e⁻¹ a) = a :=
+add_equiv.apply_symm_apply _ _
 
 /-- Monoid hom from the group of multiplicative automorphisms to the group of permutations. -/
 def to_perm : add_aut A →* equiv.perm A :=

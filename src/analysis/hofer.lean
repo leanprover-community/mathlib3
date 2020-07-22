@@ -119,5 +119,5 @@ begin
     from tendsto.comp cont.continuous_at limy,
 
   -- So we have our contradiction!
-  exact not_tendsto_at_top_of_tendsto_nhds at_top_ne_bot lim lim_top,
+  exact not_tendsto_at_top_of_tendsto_nhds lim lim_top,
 end

@@ -245,7 +245,7 @@ theorem unique_diff_within_at.eq (H : unique_diff_within_at 𝕜 s x)
 begin
   have A : ∀y ∈ tangent_cone_at 𝕜 s x, f' y = f₁' y,
   { rintros y ⟨c, d, dtop, clim, cdlim⟩,
-    exact tendsto_nhds_unique (by simp) (h.lim at_top dtop clim cdlim) (h₁.lim at_top dtop clim cdlim) },
+    exact tendsto_nhds_unique (h.lim at_top dtop clim cdlim) (h₁.lim at_top dtop clim cdlim) },
   have B : ∀y ∈ submodule.span 𝕜 (tangent_cone_at 𝕜 s x), f' y = f₁' y,
   { assume y hy,
     apply submodule.span_induction hy,
@@ -432,7 +432,7 @@ as this statement is empty. -/
 lemma has_fderiv_within_at_of_not_mem_closure (h : x ∉ closure s) :
   has_fderiv_within_at f f' s x :=
 begin
-  simp [mem_closure_iff_nhds_within_ne_bot] at h,
+  simp [mem_closure_iff_nhds_within_ne_bot, ne_bot] at h,
   simp [has_fderiv_within_at, has_fderiv_at_filter, h, is_o, is_O_with],
 end
 

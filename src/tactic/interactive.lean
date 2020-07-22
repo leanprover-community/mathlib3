@@ -328,24 +328,16 @@ meta def compact_decl : list expr → tactic (list (list name × binder_info × 
      compact_decl_aux [pp] bi t xs
 | (_ :: xs) := compact_decl xs
 
-meta def clean_ids : list name :=
-[``id, ``id_rhs, ``id_delta, ``hidden]
-
 /--
 Remove identity functions from a term. These are normally
 automatically generated with terms like `show t, from p` or
 `(p : t)` which translate to some variant on `@id t p` in
-order to retain the type. -/
+order to retain the type.
+-/
 meta def clean (q : parse texpr) : tactic unit :=
 do tgt : expr ← target,
    e ← i_to_expr_strict ``(%%q : %%tgt),
-   tactic.exact $ e.replace (λ e n,
-     match e with
-     | (app (app (const n _) _) e') :=
-       if n ∈ clean_ids then some e' else none
-     | (app (lam _ _ _ (var 0)) e') := some e'
-     | _ := none
-     end)
+   tactic.exact $ e.clean
 
 meta def source_fields (missing : list name) (e : pexpr) : tactic (list (name × pexpr)) :=
 do e ← to_expr e,

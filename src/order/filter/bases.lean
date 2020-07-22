@@ -513,15 +513,16 @@ begin
   { apply infi_le_of_le i _, rw principal_mono, intro a, simp, intro h, apply h, refl },
 end
 
-lemma countable_binfi_eq_infi_seq [complete_lattice α] {B : set ι} (Bcbl : countable B) (Bne : B.nonempty) (f : ι → α)
- : ∃ (x : ℕ → ι), (⨅ t ∈ B, f t) = ⨅ i, f (x i) :=
+lemma countable_binfi_eq_infi_seq [complete_lattice α] {B : set ι} (Bcbl : countable B)
+  (Bne : B.nonempty) (f : ι → α) :
+  ∃ (x : ℕ → ι), (⨅ t ∈ B, f t) = ⨅ i, f (x i) :=
 begin
   rw countable_iff_exists_surjective_to_subtype Bne at Bcbl,
   rcases Bcbl with ⟨g, gsurj⟩,
   rw infi_subtype',
   use (λ n, g n), apply le_antisymm; rw le_infi_iff,
   { intro i, apply infi_le_of_le (g i) _, apply le_refl _ },
-  { intros a, rcases gsurj a with i, apply infi_le_of_le i _, subst h, apply le_refl _ }
+  { intros a, rcases gsurj a with ⟨i, rfl⟩, apply infi_le }
 end
 
 lemma countable_binfi_eq_infi_seq' [complete_lattice α] {B : set ι} (Bcbl : countable B) (f : ι → α)

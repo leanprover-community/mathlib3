@@ -802,7 +802,7 @@ le_antisymm
   (le_infi $ assume ⟨i, h⟩, infi_le_of_le i $ infi_le _ _)
 
 lemma infi_subtype' {p : ι → Prop} {f : ∀ i, p i → α} :
-  (⨅ i (h : p i), f i h) = (⨅ x : subtype p, f x.val x.property) :=
+  (⨅ i (h : p i), f i h) = (⨅ x : subtype p, f x x.property) :=
 (@infi_subtype _ _ _ p (λ x, f x.val x.property)).symm
 
 lemma infi_subtype'' {ι} (s : set ι) (f : ι → α) :

@@ -59,25 +59,14 @@ instance [semilattice_inf β] : semilattice_inf (α →₀ β) :=
 @[simp]
 lemma inf_apply [semilattice_inf β] {a : α} {f g : α →₀ β} : (f ⊓ g) a = f a ⊓ g a := rfl
 
--- Could deduce these from more instances, but those instances would have different ≤s
-lemma support_inf_of_non_disjoint [semilattice_inf β]
-  (bz : ∀ x : β, 0 ≤ x) (nd : ∀ x y : β, x ⊓ y = 0 → x = 0 ∨ y = 0)
-  {f g : α →₀ β} : (f ⊓ g).support = f.support ∩ g.support :=
+lemma support_inf {f g : α →₀ γ} : (f ⊓ g).support = f.support ∩ g.support :=
 begin
   change (binary_op_pointwise inf_idem f g).support = f.support ∩ g.support,
   unfold binary_op_pointwise, dsimp, ext,
   simp only [mem_support_iff,  ne.def,
     finset.mem_union, finset.mem_filter, finset.mem_inter],
-  split; intro h, cases h with i j, split; intro con; rw con at j; apply j; simp [bz],
-  { split, left, exact h.left,
-    intro con, cases nd (f a) (g a) _, apply h.left h_1, apply h.right h_1, rw con }
-end
-
-lemma support_inf {f g : α →₀ γ} : (f ⊓ g).support = f.support ∩ g.support :=
-begin
-  unfold has_inf.inf, apply support_inf_of_non_disjoint zero_le _,
-  intros x y, change ite (x ≤ y) x y = 0 → x = 0 ∨ y = 0,
-  by_cases x ≤ y; simp only [h, if_true, if_false]; tauto,
+  split; intro h, cases h with i j, split; intro con; rw con at j; apply j; simp [zero_le],
+  { split, left, exact h.left, rw inf_eq_min, unfold min, split_ifs; tauto, }
 end
 
 instance [semilattice_sup β] : semilattice_sup (α →₀ β) :=

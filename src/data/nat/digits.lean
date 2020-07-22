@@ -473,5 +473,5 @@ end
 lemma base_pow_length_digits_le (b m : ℕ) (hb : 2 ≤ b): m ≠ 0 → b ^ ((digits b m).length) ≤ b * m :=
 begin
   rcases b with _ | _ | b; try { linarith },
-  exact ge_base_pow_length' b m,
+  exact base_pow_length_digits_le' b m,
 end

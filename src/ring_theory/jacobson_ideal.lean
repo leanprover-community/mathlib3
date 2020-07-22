@@ -29,11 +29,11 @@ Let `R` be a commutative ring, and `I` be an ideal of `R`
 
 * `mem_jacobson_iff` gives a characterization of members of the jacobson of I
 
-* `is_local_of_is_maximal_radical` says that if the regular radical of I is maximal then so is the jacobson radical
+* `is_local_of_is_maximal_radical`: if the radical of I is maximal then so is the jacobson radical
 
 ## Tags
 
-Jacobson, Jacobson Radical, Local Ideal
+Jacobson, Jacobson radical, Local Ideal
 
 -/
 

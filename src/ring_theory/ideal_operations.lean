@@ -811,8 +811,7 @@ begin
     cases (set.mem_image _ _ _).mp hj with J hJ,
     rw [← hJ.right, ← hx.right],
     exact mem_map_of_mem (Inf_le_of_le hJ.left (le_of_eq rfl) hx.left) },
-  {
-    intros y hy,
+  { intros y hy,
     cases hf y with x hx,
     rw ← hx,
     refine mem_map_of_mem _,
@@ -821,14 +820,12 @@ begin
     intros J hJ,
     have : y ∈ map f J := hy (map f J) J hJ rfl,
     cases (mem_map_iff_of_surjective f hf).1 this with x' hx',
-    have : x - x' ∈ J, {
-      apply h J hJ,
+    have : x - x' ∈ J,
+    { apply h J hJ,
       rw [ring_hom.mem_ker, ring_hom.map_sub, hx, hx'.right],
-      exact sub_self y
-    },
+      exact sub_self y },
     have := J.add_mem this hx'.left,
-    rwa [sub_add, sub_self, sub_zero] at this,
-  }
+    rwa [sub_add, sub_self, sub_zero] at this }
 end
 
 end ideal

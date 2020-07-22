@@ -17,13 +17,13 @@ def pt : Top := Top.of unit
 section MappingCylinder
 -- Let's construct the mapping cylinder.
 def to_pt (X : Top) : X ⟶ pt :=
-{ val := λ _, unit.star, property := by continuity }
+{ to_fun := λ _, unit.star, continuous_to_fun := continuous_const }
 def I₀ : pt ⟶ I :=
-{ val := λ _, ⟨(0 : ℝ), by norm_num [set.left_mem_Icc]⟩,
-  property := by continuity }
+{ to_fun := λ _, ⟨(0 : ℝ), by norm_num [set.left_mem_Icc]⟩,
+  continuous_to_fun := continuous_const }
 def I₁ : pt ⟶ I :=
-{ val := λ _, ⟨(1 : ℝ), by norm_num [set.right_mem_Icc]⟩,
-  property := by continuity }
+{ to_fun := λ _, ⟨(1 : ℝ), by norm_num [set.right_mem_Icc]⟩,
+  continuous_to_fun := continuous_const }
 
 def cylinder (X : Top) : Top := prod X I
 -- To define a map to the cylinder, we give a map to each factor.
@@ -72,7 +72,7 @@ end MappingCylinder
 section Gluing
 
 -- Here's two copies of the real line glued together at a point.
-def f : pt ⟶ R := { val := λ _, (0 : ℝ), property := by continuity }
+def f : pt ⟶ R := { to_fun := λ _, (0 : ℝ), continuous_to_fun := continuous_const }
 
 /-- Two copies of the real line glued together at 0. -/
 def X : Top := pushout f f
@@ -103,6 +103,6 @@ pi.lift (λ (n : ℕ), ⟨λ (_ : pt), (n + 1 : ℝ), by continuity⟩)
 -- `q.property` is the fact this function is continuous (i.e. no content, since `pt` is a singleton)
 
 -- We can check that this function is definitionally just the function we specified.
-example : (q.val ()).val (9 : ℕ) = ((10 : ℕ) : ℝ) := rfl
+example : (q ()).val (9 : ℕ) = ((10 : ℕ) : ℝ) := rfl
 
 end Products

@@ -6,7 +6,6 @@ Authors: Alexander Bentkamp, Yury Kudriashov
 import data.set.intervals.unordered_interval
 import data.set.intervals.image_preimage
 import data.complex.module
-import algebra.pointwise
 
 /-!
 # Convex sets and functions on real vector spaces

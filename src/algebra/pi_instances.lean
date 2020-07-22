@@ -6,6 +6,7 @@ Authors: Simon Hudon, Patrick Massot
 import algebra.module
 import ring_theory.subring
 import ring_theory.prod
+import data.fintype.basic
 
 open_locale big_operators
 

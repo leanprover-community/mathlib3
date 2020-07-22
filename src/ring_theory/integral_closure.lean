@@ -21,7 +21,7 @@ variables [algebra R A] [algebra R B]
 /-- An element `x` of an algebra `A` over a commutative ring `R` is said to be *integral*,
 if it is a root of some monic polynomial `p : polynomial R`. -/
 def is_integral (x : A) : Prop :=
-∃ p : polynomial R, monic p ∧ aeval R A x p = 0
+∃ p : polynomial R, monic p ∧ aeval x p = 0
 
 variables {R}
 theorem is_integral_algebra_map {x : R} : is_integral R (algebra_map R A x) :=
@@ -89,7 +89,7 @@ set.finite.induction_on hfs (λ _, ⟨{1}, submodule.ext $ λ x,
 theorem is_integral_of_noetherian' (H : is_noetherian R A) (x : A) :
   is_integral R x :=
 begin
-  let leval : @linear_map R (polynomial R) A _ _ _ _ _ := (aeval R A x).to_linear_map,
+  let leval : @linear_map R (polynomial R) A _ _ _ _ _ := (aeval x).to_linear_map,
   let D : ℕ → submodule R A := λ n, (degree_le R n).map leval,
   let M := well_founded.min (is_noetherian_iff_well_founded.1 H)
     (set.range D) ⟨_, ⟨0, rfl⟩⟩,
@@ -239,7 +239,7 @@ variables {R} {A}
 
 lemma integral_closure.is_integral (x : integral_closure R A) : is_integral R x :=
 exists_imp_exists
-  (λ p, and.imp_right (λ hp, show aeval R (integral_closure R A) x p = 0,
+  (λ p, and.imp_right (λ hp, show aeval x p = 0,
     from subtype.ext (trans (p.hom_eval₂ _ (integral_closure R A).val.to_ring_hom x) hp)))
   x.2
 
@@ -283,7 +283,7 @@ variables {R : Type*} {A : Type*} {B : Type*}
 variables [comm_ring R] [comm_ring A] [comm_ring B]
 variables [algebra A B] [algebra R B]
 
-lemma is_integral_trans_aux (x : B) {p : polynomial A} (pmonic : monic p) (hp : aeval A B x p = 0) :
+lemma is_integral_trans_aux (x : B) {p : polynomial A} (pmonic : monic p) (hp : aeval x p = 0) :
   is_integral (adjoin R (↑(p.map $ algebra_map A B).frange : set B)) x :=
 begin
   generalize hS : (↑(p.map $ algebra_map A B).frange : set B) = S,

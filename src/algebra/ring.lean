@@ -553,6 +553,8 @@ instance : has_neg (units α) := ⟨λu, ⟨-↑u, -↑u⁻¹, by simp, by simp�
     mapping this element to its additive inverse. -/
 @[simp, norm_cast] protected theorem coe_neg (u : units α) : (↑-u : α) = -u := rfl
 
+@[simp, norm_cast] protected theorem coe_neg_one : ((-1 : units α) : α) = -1 := rfl
+
 /-- Mapping an element of a ring's unit group to its inverse commutes with mapping this element
     to its additive inverse. -/
 @[simp] protected theorem neg_inv (u : units α) : (-u)⁻¹ = -u⁻¹ := rfl
@@ -626,7 +628,7 @@ protected def function.surjective.comm_ring [has_zero β] [has_one β] [has_add 
   [has_neg β] (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) :
-  ring β :=
+  comm_ring β :=
 { .. hf.ring f zero one add mul neg, .. hf.comm_semigroup f mul }
 
 local attribute [simp] add_assoc add_comm add_left_comm mul_comm

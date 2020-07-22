@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
-import algebra.opposites
-import algebra.group.anti_hom
 import data.finset.intervals
 import data.finset.fold
 import data.finset.powerset
@@ -151,17 +149,26 @@ lemma prod_empty {α : Type u} {f : α → β} : (∏ x in (∅:finset α), f x)
 lemma prod_insert [decidable_eq α] :
   a ∉ s → (∏ x in (insert a s), f x) = f a * ∏ x in s, f x := fold_insert
 
-/-- If a function applied at a point is 1, a product is unchanged by
-adding that point, whether or not present, to a `finset`. -/
-@[simp, to_additive "If a function applied at a point is 0, a sum is unchanged by
-adding that point, whether or not present, to a `finset`."]
-lemma prod_insert_one [decidable_eq α] (h : f a = 1) :
+/--
+The product of `f` over `insert a s` is the same as the product over `s`, as long as `a` is in `s` or `f a = 1`.
+-/
+@[simp, to_additive "The sum of `f` over `insert a s` is the same as the sum over `s`, as long as `a` is in `s` or `f a = 0`.
+"]
+lemma prod_insert_of_eq_one_if_not_mem [decidable_eq α] (h : a ∉ s → f a = 1) :
   ∏ x in insert a s, f x = ∏ x in s, f x :=
 begin
   by_cases hm : a ∈ s,
   { simp_rw insert_eq_of_mem hm },
-  { rw [prod_insert hm, h, one_mul] },
+  { rw [prod_insert hm, h hm, one_mul] },
 end
+
+/--
+The product of `f` over `insert a s` is the same as the product over `s`, as long as `f a = 1`.
+-/
+@[simp, to_additive "The sum of `f` over `insert a s` is the same as the sum over `s`, as long as `f a = 0`."]
+lemma prod_insert_one [decidable_eq α] (h : f a = 1) :
+  ∏ x in insert a s, f x = ∏ x in s, f x :=
+prod_insert_of_eq_one_if_not_mem (λ _, h)
 
 @[simp, to_additive]
 lemma prod_singleton : (∏ x in (singleton a), f x) = f a :=
@@ -450,6 +457,11 @@ by simp [prod_apply_dite _ _ (λ x, x)]
   (∏ x in s.filter p, f x) * (∏ x in s.filter (λ x, ¬ p x), g x) :=
 by simp [prod_apply_ite _ _ (λ x, x)]
 
+@[to_additive]
+lemma prod_extend_by_one [decidable_eq α] (s : finset α) (f : α → β) :
+  ∏ i in s, (if i ∈ s then f i else 1) = ∏ i in s, f i :=
+prod_congr rfl $ λ i hi, if_pos hi
+
 @[simp, to_additive]
 lemma prod_dite_eq [decidable_eq α] (s : finset α) (a : α) (b : Π x : α, a = x → β) :
   (∏ x in s, (if h : a = x then b x h else 1)) = ite (a ∈ s) (b a rfl) 1 :=
@@ -640,6 +652,21 @@ lemma sum_range_one {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) :
 
 attribute [to_additive finset.sum_range_one] prod_range_one
 
+open multiset
+lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
+  s.prod = ∏ m in s.to_finset, m ^ (s.count m) :=
+begin
+  apply s.induction_on, { rw [prod_zero, to_finset_zero, finset.prod_empty] },
+  intros a s ih, by_cases has : a ∈ s.to_finset,
+  { rw [prod_cons, to_finset_cons, finset.insert_eq_of_mem has, ih,
+      ← finset.insert_erase has, finset.prod_insert (finset.not_mem_erase _ _),
+      finset.prod_insert (finset.not_mem_erase _ _), ← mul_assoc, count_cons_self, pow_succ],
+    congr' 1, refine finset.prod_congr rfl (λ x hx, _), rw [count_cons_of_ne (finset.ne_of_mem_erase hx)] },
+  rw [prod_cons, to_finset_cons, finset.prod_insert has, count_cons_self],
+  rw mem_to_finset at has, rw [count_eq_zero_of_not_mem has, pow_one], congr' 1,
+  rw ih, refine finset.prod_congr rfl (λ x hx, _), rw mem_to_finset at hx, rw count_cons_of_ne,
+  rintro rfl, exact has hx
+end
 
 /-- To prove a property of a product, it suffices to prove that the property is multiplicative and holds on factors.
 -/
@@ -1467,23 +1494,6 @@ lemma card_eq_sum_ones (s : finset α) : s.card = ∑ _ in s, 1 :=
 by simp
 
 end finset
-
-section group
-
-open list
-variables [group α] [group β]
-
-theorem is_group_anti_hom.map_prod (f : α → β) [is_group_anti_hom f] (l : list α) :
-  f (prod l) = prod (map f (reverse l)) :=
-by induction l with hd tl ih; [exact is_group_anti_hom.map_one f,
-  simp only [prod_cons, is_group_anti_hom.map_mul f, ih, reverse_cons, map_append, prod_append,
-    map_singleton, prod_cons, prod_nil, mul_one]]
-
-theorem inv_prod : ∀ l : list α, (prod l)⁻¹ = prod (map (λ x, x⁻¹) (reverse l)) :=
--- TODO there is probably a cleaner proof of this
-λ l, @is_group_anti_hom.map_prod _ _ _ _ _ inv_is_group_anti_hom l
-
-end group
 
 @[to_additive is_add_group_hom_finset_sum]
 lemma is_group_hom_finset_prod {α β γ} [group α] [comm_group β] (s : finset γ)

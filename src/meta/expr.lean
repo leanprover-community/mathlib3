@@ -283,6 +283,20 @@ end expr
 namespace expr
 open tactic
 
+/-- List of names removed by `clean`. All these names must resolve to functions defeq `id`. -/
+meta def clean_ids : list name :=
+[``id, ``id_rhs, ``id_delta, ``hidden]
+
+/-- Clean an expression by removing `id`s listed in `clean_ids`. -/
+meta def clean (e : expr) : expr :=
+e.replace (λ e n,
+     match e with
+     | (app (app (const n _) _) e') :=
+       if n ∈ clean_ids then some e' else none
+     | (app (lam _ _ _ (var 0)) e') := some e'
+     | _ := none
+     end)
+
 /-- `replace_with e s s'` replaces ocurrences of `s` with `s'` in `e`. -/
 meta def replace_with (e : expr) (s : expr) (s' : expr) : expr :=
 e.replace $ λc d, if c = s then some (s'.lift_vars 0 d) else none

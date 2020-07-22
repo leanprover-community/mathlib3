@@ -938,7 +938,7 @@ units.ext_iff.1 $ nat.units_eq_one ⟨nat_abs u, nat_abs ↑u⁻¹,
   by rw [← nat_abs_mul, units.inv_mul]; refl⟩
 
 theorem units_eq_one_or (u : units ℤ) : u = 1 ∨ u = -1 :=
-by simpa [units.ext_iff, units_nat_abs] using nat_abs_eq u
+by simpa only [units.ext_iff, units_nat_abs] using nat_abs_eq u
 
 lemma units_inv_eq_self (u : units ℤ) : u⁻¹ = u :=
 (units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)

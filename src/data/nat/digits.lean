@@ -17,7 +17,6 @@ We also prove some divisibility tests based on digits, in particular completing
 Theorem #85 from https://www.cs.ru.nl/~freek/100/.
 -/
 
-
 /-- (Impl.) An auxiliary definition for `digits`, to help get the desired definitional unfolding. -/
 def digits_aux_0 : ℕ → list ℕ
 | 0 := []
@@ -69,8 +68,13 @@ begin
   { cases b; refl, },
 end
 
-@[simp] lemma digits_one_succ (n : ℕ) : digits 1 (n + 1) = 1 :: digits 1 n :=
-rfl
+@[simp] lemma digits_zero_zero : digits 0 0 = [] := rfl
+
+@[simp] lemma digits_zero_succ (n : ℕ) : digits 0 (n.succ) = [n+1] := rfl
+
+@[simp] lemma digits_one (n : ℕ) : digits 1 n = list.repeat 1 n := rfl
+
+@[simp] lemma digits_one_succ (n : ℕ) : digits 1 (n + 1) = 1 :: digits 1 n := rfl
 
 @[simp] lemma digits_add_two_add_one (b n : ℕ) :
   digits (b+2) (n+1) = (((n+1) % (b+2)) :: digits (b+2) ((n+1) / (b+2))) := rfl
@@ -414,3 +418,29 @@ begin
   rw of_digits_neg_one at t,
   exact t,
 end
+
+lemma digits_len_le_digits_len_succ (b n : ℕ) : (digits b n).length ≤ (digits b (n + 1)).length :=
+begin
+  cases b,
+  { -- base 0
+    cases n; simp },
+  { cases b,
+    { -- base 1
+      simp },
+    { -- base >= 2
+      apply nat.strong_induction_on n,
+      clear n,
+      intros n IH,
+      cases n,
+      { simp },
+      { rw [digits_add_two_add_one, digits_add_two_add_one],
+        by_cases hdvd : (b.succ.succ) ∣ (n.succ+1),
+        { rw [nat.succ_div_of_dvd hdvd, list.length_cons, list.length_cons, nat.succ_le_succ_iff],
+          apply IH,
+          exact nat.div_lt_self (by linarith) (by linarith) },
+        { rw nat.succ_div_of_not_dvd hdvd,
+          refl } } } }
+end
+
+lemma le_digits_len_le (b n m : ℕ) (h : n ≤ m) : (digits b n).length ≤ (digits b m).length :=
+monotone_of_monotone_nat (digits_len_le_digits_len_succ b) h

@@ -347,27 +347,8 @@ end
 lemma nhds_within_Icc_eq_nhds_within_Ioc {hab : a < b} :
   nhds_within b (Icc a b) = nhds_within b (Ioc a b) :=
 begin
-  by_cases h : ∃ b', b < b',
-  { cases h with b' hb',
-    apply nhds_within_eq_nhds_within,
-    exact show b ∈ Ioo a b', from ⟨ hab, hb' ⟩,
-    exact is_open_Ioo,
-    rw (show Ioc a b ∩ Ioo a b' = Ioc a b, from
-          inter_eq_self_of_subset_left
-          (λ x hx, ⟨ hx.1, lt_of_le_of_lt hx.2 hb' ⟩)),
-    exact eq_of_subset_of_subset
-          ( id (λ (x : α) (hx : x ∈ Icc a b ∩ Ioo a b'), ⟨hx.right.left, hx.left.right⟩) )
-          ( λ (x' : α) (hx' : x' ∈ Ioc a b),
-            ⟨⟨le_of_lt hx'.left, hx'.right⟩, ⟨hx'.left, lt_of_le_of_lt hx'.right hb'⟩⟩ ) },
-  { push_neg at h,
-    have h1 : Icc a b = Ici a := eq_of_subset_of_subset (λ x hx, hx.1) (λ x hx, ⟨ hx, h x ⟩),
-    have h2 : Ioc a b = Ioi a := eq_of_subset_of_subset (λ x hx, hx.1) (λ x hx, ⟨ hx, h x ⟩),
-    rw [h1, h2, nhds_within_eq_nhds_within],
-    exact show b ∈ Ioi a, from hab,
-    exact is_open_Ioi,
-    rw inter_self,
-    apply inter_eq_self_of_subset_right,
-    exact λ x hx, le_of_lt hx }
+  have := @nhds_within_Icc_eq_nhds_within_Ico (order_dual α) _ _ _ _ _ hab,
+  rwa [dual_Ico, dual_Icc] at this,
 end
 
 lemma continuous_within_at_Icc_iff_continuous_within_at_Ico
@@ -384,10 +365,8 @@ lemma continuous_within_at_Icc_iff_continuous_within_at_Ioc
   {β : Type*} [topological_space β] {hab : a < b} :
   ∀ f : α → β, continuous_within_at f (Icc a b) b ↔ continuous_within_at f (Ioc a b) b :=
 begin
-  unfold continuous_within_at,
-  rw nhds_within_Icc_eq_nhds_within_Ioc,
-  intros f, refl,
-  exact hab
+  have := @continuous_within_at_Icc_iff_continuous_within_at_Ico (order_dual α) _ _ _ _ _ _ _ hab,
+  rwa [dual_Ico, dual_Icc] at this
 end
 
 end linear_order

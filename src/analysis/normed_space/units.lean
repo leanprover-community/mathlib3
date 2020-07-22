@@ -28,9 +28,10 @@ and 0 if not.  The asymptotic properties of `inverse (x + t)` as `t → 0` are c
 -/
 
 noncomputable theory
-variables {R : Type*} [normed_ring R] [complete_space R]
+variables {R : Type*} [normed_ring R]
 
 namespace units
+variables  [complete_space R]
 
 /-- In a complete normed ring, a perturbation of `1` by an element `t` of distance less than `1`
 from `1` is a unit.  Here we construct its `units` structure.  -/
@@ -107,6 +108,8 @@ begin
   simp [h, inverse],
   exact units.inv_unique (classical.some_spec h),
 end
+
+variables [complete_space R]
 
 lemma inverse_one_sub (t : R) (h : ∥t∥ < 1) : inverse (1 - t) = ((units.one_sub t h)⁻¹ : units R) :=
 begin

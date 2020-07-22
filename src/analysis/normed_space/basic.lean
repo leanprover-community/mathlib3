@@ -1091,11 +1091,10 @@ lemma has_sum_iff_tendsto_nat_of_summable_norm {f : ℕ → α} {a : α} (hf : s
 ⟨λ h, h.tendsto_sum_nat,
 λ h, has_sum_of_subseq_of_summable hf tendsto_finset_range h⟩
 
-variable [complete_space α]
-
 /-- The direct comparison test for series:  if the norm of `f` is bounded by a real function `g`
 which is summable, then `f` is summable. -/
-lemma summable_of_norm_bounded {f : ι → α} (g : ι → ℝ) (hg : summable g) (h : ∀i, ∥f i∥ ≤ g i) :
+lemma summable_of_norm_bounded
+  [complete_space α] {f : ι → α} (g : ι → ℝ) (hg : summable g) (h : ∀i, ∥f i∥ ≤ g i) :
   summable f :=
 by { rw summable_iff_cauchy_seq_finset, exact cauchy_seq_finset_of_norm_bounded g hg h }
 
@@ -1116,6 +1115,8 @@ begin
   have h3 : a = ∑' (i:ι), g i := (has_sum.tsum_eq hg).symm,
   linarith
 end
+
+variable [complete_space α]
 
 /-- Variant of the direct comparison test for series:  if the norm of `f` is eventually bounded by a
 real function `g` which is summable, then `f` is summable. -/

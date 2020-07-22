@@ -57,7 +57,7 @@ meta def apply_continuous.comp : tactic unit :=
 meta def continuity_tactics : list (tactic string) :=
 [
   `[apply_rules continuity]            >> pure "apply_rules continuity",
-  auto_cases,
+  -- auto_cases,
   intros1                              >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
   tactic.interactive.apply_assumption  >> pure "apply_assumption",
   apply_continuous.comp                >> pure "refine continuous.comp _ _"

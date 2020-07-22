@@ -15,7 +15,7 @@ open opposite
 
 namespace Top
 
-variables (X : Top.{v})
+variables (X Y : Top.{v})
 
 /-- The presheaf of continuous functions on `X` with values in fixed target topological space `T`. -/
 def presheaf_to_Top (T : Top.{v}) : X.presheaf (Type v) :=
@@ -28,16 +28,6 @@ def continuous_functions (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) : CommRing.{v
 CommRing.of (unop X ⟶ (forget₂ TopCommRing Top).obj R)
 
 namespace continuous_functions
--- FIXME get rid of all these `.to_fun`s
-
-@[simp] lemma one (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (x : unop X) :
-  (1 : continuous_functions X R).to_fun x = 1 := rfl
-@[simp] lemma zero (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (x : unop X) :
-  (0 : continuous_functions X R).to_fun x = 0 := rfl
-@[simp] lemma add (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (f g : continuous_functions X R) (x : unop X) :
-  (f + g).to_fun x = f.1 x + g.1 x := rfl
-@[simp] lemma mul (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (f g : continuous_functions X R) (x : unop X) :
-  (f * g).to_fun x = f.1 x * g.1 x := rfl
 
 /-- Pulling back functions into a topological ring along a continuous map is a ring homomorphism. -/
 def pullback {X Y : Topᵒᵖ} (f : X ⟶ Y) (R : TopCommRing) :

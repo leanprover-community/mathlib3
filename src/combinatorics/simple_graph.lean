@@ -166,8 +166,8 @@ by { ext, simp }
 lemma complete_graph_degree [decidable_eq V] (v : V) :
   (complete_graph V).degree v = fintype.card V - 1 :=
 begin
-  dsimp [degree], convert univ.card.pred_eq_sub_one,
-  erw [neighbors_eq_filter, filter_ne, card_erase_of_mem (mem_univ v)],
+  convert univ.card.pred_eq_sub_one,
+  erw [degree, neighbors_eq_filter, filter_ne, card_erase_of_mem (mem_univ v)],
 end
 
 lemma complete_graph_is_regular [decidable_eq V] :

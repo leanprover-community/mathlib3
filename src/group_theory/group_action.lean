@@ -135,7 +135,7 @@ variable {α}
 variables (α) (β)
 
 /-- The set of elements fixed under the whole action. -/
-def fixed_points : set β := {b : β | ∀ x, x ∈ stabilizer α b}
+def fixed_points : set β := {b : β | ∀ x : α, x • b = b}
 
 variables {α} (β)
 

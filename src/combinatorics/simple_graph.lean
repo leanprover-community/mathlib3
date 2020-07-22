@@ -63,6 +63,10 @@ def complete_graph (V : Type u) : simple_graph V :=
 instance (V : Type u) : inhabited (simple_graph V) :=
 ⟨complete_graph V⟩
 
+instance complete_graph_adj_decidable (V : Type u) [decidable_eq V] :
+  decidable_rel (complete_graph V).adj :=
+by { dsimp [complete_graph], apply_instance }
+
 namespace simple_graph
 variables {V : Type u} (G : simple_graph V)
 
@@ -79,7 +83,7 @@ instance E.inhabited [inhabited {p : V × V | G.adj p.1 p.2}] : inhabited G.E :=
   rwa sym2.from_rel_prop,
 end⟩
 
-@[simp] lemma irrefl {v : V} : ¬ G.adj v v := G.loopless v
+@[simp] lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
 
 @[symm] lemma edge_symm (u v : V) : G.adj u v ↔ G.adj v u :=
 by split; apply G.sym
@@ -93,30 +97,49 @@ by tauto
 /--
 `G.incident v` is the set of edges incident to `v`.  Due to the way
 sets are defined, `G.incident v e` denotes that `v` is incident to `e`.
+
+As a convenience, we define a `has_mem` instance by `v ∈ e = G.incident v e`.
 -/
 def incident (v : V) : set G.E := {e : G.E | v ∈ e.1}
 
+instance incident.has_mem : has_mem V G.E :=
+⟨incident G⟩
+
+
 section finite_at
 
-variables (v : V) [fintype (G.adj v)]
+/-!
+## Finiteness at a vertex
+
+This section contains definitions and lemmas concerning vertices that
+have finitely many adjacent vertices.  We denote this condition by
+`fintype (G.adj v)`.
+
+We define `G.neighbors v` to be the `finset` version of `G.adj v`.
+Use `neighbors_eq_filter` to rewrite this definition as a `filter`.
+-/
+
 /--
-`G.adj' v` is the `finset` version of `G.adj v` in case `G` is
+`G.neighbors v` is the `finset` version of `G.adj v` in case `G` is
 locally finite at `v`.
 -/
-def neighbors : finset V := set.to_finset (G.adj v)
+def neighbors (v : V) [fintype (G.adj v)] : finset V := set.to_finset (G.adj v)
 
-@[simp] lemma in_neighbors_iff_in_adj (w : V) :
-  w ∈ G.neighbors v ↔ w ∈ G.adj v := by simp [neighbors]
+@[simp] lemma in_neighbors_iff_in_adj (v w : V) [fintype (G.adj v)] :
+  w ∈ G.neighbors v ↔ w ∈ G.adj v :=
+by simp [neighbors]
 
 /--
 `G.degree v` is the number of vertices adjacent to `v`.
 -/
-def degree : ℕ := fintype.card (G.adj v)
+def degree (v : V) [fintype (G.adj v)] : ℕ := (G.neighbors v).card
 
-@[simp] lemma card_neighbors_eq_degree : (G.neighbors v).card = G.degree v :=
-by simp [neighbors, degree]
+@[simp]
+lemma adj_card_is_degree (v : V) [fintype (G.adj v)] : fintype.card (G.adj v) = G.degree v :=
+by simp [degree, neighbors]
 
 end finite_at
+
 
 section locally_finite
 
@@ -129,30 +152,29 @@ def regular_graph (d : ℕ) : Prop := ∀ (v : V), degree G v = d
 
 end locally_finite
 
+
 section finite
 
-variables [fintype V] [decidable_eq V] [decidable_rel G.adj]
+variables [fintype V]
 
-instance edges_fintype : fintype G.E := subtype.fintype _
+instance edges_fintype [decidable_eq V] [decidable_rel G.adj] : fintype G.E := subtype.fintype _
 
-@[simp] lemma neighbors_eq_filter {v : V} : G.neighbors v = (univ : finset V).filter (G.adj v) :=
+@[simp] lemma neighbors_eq_filter {v : V} [decidable_pred (G.adj v)] :
+  G.neighbors v = finset.univ.filter (G.adj v) :=
 by {ext, simp}
 
-instance complete_graph_adj_decidable [decidable_eq V] : decidable_rel (complete_graph V).adj :=
-by { dsimp [complete_graph], apply_instance }
-
-lemma complete_graph_is_regular [fintype V] [decidable_eq V] :
-  regular_graph (complete_graph V) (fintype.card V - 1) :=
+@[simp]
+lemma complete_graph_degree [decidable_eq V] (v : V) : (complete_graph V).degree v = fintype.card V - 1 :=
 begin
-  intro v,
-  change fintype.card {w : V | v ≠ w} = fintype.card V - 1,
-  have h : fintype.card {w : V | v ≠ w} = (univ.filter (ne v)).card := by tidy,
-  rw h,
-  change _ = univ.card - 1,
-  rw filter_ne,
-  rw card_erase_of_mem (mem_univ v),
+  dsimp [complete_graph, degree],
+  rw neighbors_eq_filter,
+  change (finset.univ.filter (λ w, v ≠ w)).card = univ.card - 1,
+  rw [filter_ne, card_erase_of_mem (mem_univ v)],
   exact univ.card.pred_eq_sub_one,
 end
+
+lemma complete_graph_is_regular [decidable_eq V] : regular_graph (complete_graph V) (fintype.card V - 1) :=
+by { intro v, simp }
 
 end finite
 

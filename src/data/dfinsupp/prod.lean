@@ -87,8 +87,8 @@ def nested_to_prod2 (f : Π₀ i j, β i j) : Π₀ (ij : ii × jj), β ij.1 ij.
               {
                 apply or.inr,
                 simp only [],
-                split_ifs,
-                {simp [h0], sorry},
+                split_ifs with heq,
+                {simp [h0], induction heq, refl},
                 {refl},
               }
             },
@@ -108,24 +108,28 @@ def nested_to_prod2 (f : Π₀ i j, β i j) : Π₀ (ij : ii × jj), β ij.1 ij.
         rw H, refl,
       end,
     end),
+    -- I don't know whether I can actual build something useful out of this multiset of functions now...
     sorry,
   },
+  -- this can't be filled in until the above sorry is
   exact λ a b H, sorry,
 end
 
 lemma is_right_inverse  (f : Π₀ i j, β i j) : prod_to_nested(nested_to_prod(f)) = f := begin
   unfold prod_to_nested nested_to_prod,
   simp,
+  -- irrelevant until `nested_to_prod` is fixed
   sorry
 end
 
 lemma is_left_inverse (f : Π₀ (ij : ii × jj), β ij.1 ij.2) : nested_to_prod(prod_to_nested(f)) = f := begin
   unfold prod_to_nested nested_to_prod,
   simp,
+  -- irrelevant until `nested_to_prod` is fixed
   sorry
 end
 
--- the sole purpose of this file, t
+-- the sole purpose of this file
 def eqv : (Π₀ (ij : ii × jj), β ij.1 ij.2) ≃ (Π₀ i j, β i j) := {
   to_fun := prod_to_nested,
   inv_fun := nested_to_prod,

@@ -1306,7 +1306,7 @@ variables {α : Type*} {ι : Type*} [measure_space α] {s₁ s₂ : set α}
 notation `∀ᵐ` binders `, ` r:(scoped P, filter.eventually P (measure.ae volume)) := r
 
 /-- The tactic `exact volume`, to be used in optional arguments. -/
-meta def volume_tac : tactic unit := `[exact volume]
+meta def volume_tac : tactic unit := `[exact measure_theory.measure_space.volume]
 
 end measure_space
 

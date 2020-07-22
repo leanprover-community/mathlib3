@@ -37,10 +37,11 @@ We use the following local notations:
 They are defined using `local notation`, so they are not available outside of this file.
 -/
 
-universes u' u v w x
+universes u' u v v' w x
 
-variables {E : Type u} {F : Type v} {ι : Type w} {ι' : Type x}
+variables {E : Type u} {F : Type v} {ι : Type w} {ι' : Type x} {α : Type v'}
   [add_comm_group E] [vector_space ℝ E] [add_comm_group F] [vector_space ℝ F]
+  [linear_ordered_field α]
   {s : set E}
 
 open set linear_map
@@ -383,74 +384,133 @@ convex_halfspace_ge (is_linear_map.mk complex.add_im complex.smul_im) _
 /-
 If x is in an Ioo, it can be expressed as a convex combination of the endpoints.
 -/
-lemma convex_combo_Ioo {a b x : ℝ} :
-    x ∈ Ioo a b → ∃ (x_a x_b : ℝ), 0 < x_a ∧ 0 < x_b ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
+lemma convex.mem_Ioo {a b x : α} (h : a < b) :
+    x ∈ Ioo a b ↔ ∃ (x_a x_b : α), 0 < x_a ∧ 0 < x_b ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
 begin
-    rintros ⟨h_ax, h_bx⟩,
-    by_cases hab : a ≥ b,
-    { linarith },
-    { replace hab : a < b := not_le.mp hab,
-      have hab' : a ≠ b, linarith,
+  split,
+  { rintros ⟨h_ax, h_bx⟩,
+    by_cases hab : ¬a < b,
+    { exfalso; exact hab h },
+    { have hab' : a ≠ b := ne_of_lt h,
       refine ⟨(b-x) / (b-a), (x-a) / (b-a), _⟩,
       refine ⟨div_pos (by linarith) (by linarith), div_pos (by linarith) (by linarith),_,_⟩,
       { calc
           (b - x) / (b - a) + (x - a) / (b - a)
                 = (b - x + (x - a)) / (b - a)     : by rw[←add_div]
-           ...  = (b - a) / (b-a)                 : by ring
-           ...  = 1                               : div_self (by linarith) },
+           ...  = (b - a) / (b-a)                 : by abel
+           ...  = 1                               : div_self (sub_ne_zero.mpr (ne.symm hab')) },
 
       { calc
           (b - x) / (b - a) * a + (x - a) / (b - a) * b
                 = ((b - x) * a) / (b-a) + ((x-a)*b)/(b-a)   : by simp only [mul_div_right_comm]
           ...   = ((b-x) * a + (x-a)*b) / (b-a)             : by rw[←add_div]
           ...   = (x * (b - a)) / (b-a)                     : by ring
-          ...   = x                                         : by apply mul_div_cancel; linarith } }
+          ...   = x                                         : mul_div_cancel x (sub_ne_zero.mpr
+                                                                    (ne.symm hab')), } } },
+  { rw[mem_Ioo],
+    rintros ⟨xa, xb, ⟨hxa, hxb, hxaxb, h₂⟩⟩,
+    rw[←h₂],
+    split,
+    { calc
+      a   = 1 * a             : by rw[one_mul]
+      ... = (xa + xb) * a     : by rw[hxaxb]
+      ... = xa * a + xb * a   : by rw[add_mul]
+      ... < xa * a + xb * b   : by linarith[((mul_lt_mul_left hxb).mpr h)] },
+
+    { calc
+      b   = 1 * b             : by rw[one_mul]
+      ... = (xa + xb) * b     : by rw[hxaxb]
+      ... = xa * b + xb * b   : by rw[add_mul]
+      ... > xa * a + xb * b   : by linarith[((mul_lt_mul_left hxa).mpr h)] } }
 end
 
 /-- If x is in an Ioc, it can be expressed as a convex combination of the endpoints. -/
-lemma convex_combo_Ioc {a b x : ℝ} :
-    x ∈ Ioc a b → ∃ (x_a x_b : ℝ), 0 ≤ x_a ∧ 0 < x_b ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
+lemma convex.mem_Ioc {a b x : α} (h : a < b) :
+    x ∈ Ioc a b ↔ ∃ (x_a x_b : α), 0 ≤ x_a ∧ 0 < x_b ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
 begin
-    rintros ⟨h_ax, h_bx⟩,
-    by_cases hab : a ≥ b,
-    { linarith },
-    { replace hab : a < b := not_le.mp hab,
-      by_cases h_x : x = b,
-      { exact ⟨0, 1, by linarith, by linarith, by ring, by {rw[h_x], ring}⟩ },
-      { rcases convex_combo_Ioo ⟨h_ax, lt_of_le_of_ne h_bx h_x⟩ with ⟨x_a, x_b, Ioo_case⟩,
-        exact ⟨x_a, x_b, by linarith, Ioo_case.2⟩ } }
+  split,
+  { rintros ⟨h_ax, h_bx⟩,
+    by_cases h_x : x = b,
+    { exact ⟨0, 1, by linarith, by linarith, by ring, by {rw[h_x], ring}⟩ },
+    { rcases (convex.mem_Ioo h).mp ⟨h_ax, lt_of_le_of_ne h_bx h_x⟩ with ⟨x_a, x_b, Ioo_case⟩,
+      exact ⟨x_a, x_b, by linarith, Ioo_case.2⟩ } },
+  { rw[mem_Ioc],
+    rintros ⟨xa, xb, ⟨hxa, hxb, hxaxb, h₂⟩⟩,
+    rw[←h₂],
+    split,
+    { calc
+      a   = 1 * a             : by rw[one_mul]
+      ... = (xa + xb) * a     : by rw[hxaxb]
+      ... = xa * a + xb * a   : by rw[add_mul]
+      ... < xa * a + xb * b   : by linarith[((mul_lt_mul_left hxb).mpr h)] },
+
+    { calc
+      b   = 1 * b             : by rw[one_mul]
+      ... = (xa + xb) * b     : by rw[hxaxb]
+      ... = xa * b + xb * b   : by rw[add_mul]
+      ... ≥ xa * a + xb * b   : by linarith[(mul_le_mul_of_nonneg_left (le_of_lt h) hxa)] } }
 end
 
 /-- If x is in an Ico, it can be expressed as a convex combination of the endpoints. -/
-lemma convex_combo_Ico {a b x : ℝ} :
-    x ∈ Ico a b → ∃ (x_a x_b : ℝ), 0 < x_a ∧ 0 ≤ x_b ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
+lemma convex.mem_Ico {a b x : α} (h : a < b) :
+    x ∈ Ico a b ↔ ∃ (x_a x_b : α), 0 < x_a ∧ 0 ≤ x_b ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
 begin
-    rintros ⟨h_ax, h_bx⟩,
-    by_cases hab : a ≥ b,
-    { linarith },
-    { replace hab : a < b := not_le.mp hab,
-      by_cases h_x : x = a,
-      { exact ⟨1, 0, by linarith, by linarith, by ring, by {rw[h_x], ring}⟩ },
-      { rcases convex_combo_Ioo ⟨lt_of_le_of_ne h_ax (ne.symm h_x), h_bx⟩ with ⟨x_a, x_b, Ioo_case⟩,
-        exact ⟨x_a, x_b, Ioo_case.1, by linarith, (Ioo_case.2).2⟩ } }
+  split,
+  { rintros ⟨h_ax, h_bx⟩,
+    by_cases h_x : x = a,
+    { exact ⟨1, 0, by linarith, by linarith, by ring, by {rw[h_x], ring}⟩ },
+    { rcases (convex.mem_Ioo h).mp ⟨lt_of_le_of_ne h_ax (ne.symm h_x), h_bx⟩
+              with ⟨x_a, x_b, Ioo_case⟩,
+      exact ⟨x_a, x_b, Ioo_case.1, by linarith, (Ioo_case.2).2⟩ } },
+  { rw[mem_Ico],
+    rintros ⟨xa, xb, ⟨hxa, hxb, hxaxb, h₂⟩⟩,
+    rw[←h₂],
+    split,
+    { calc
+      a   = 1 * a             : by rw[one_mul]
+      ... = (xa + xb) * a     : by rw[hxaxb]
+      ... = xa * a + xb * a   : by rw[add_mul]
+      ... ≤ xa * a + xb * b   : by linarith[((mul_le_mul_of_nonneg_left (le_of_lt h) hxb))] },
+
+    { calc
+      b   = 1 * b             : by rw[one_mul]
+      ... = (xa + xb) * b     : by rw[hxaxb]
+      ... = xa * b + xb * b   : by rw[add_mul]
+      ... > xa * a + xb * b   : by linarith[((mul_lt_mul_left hxa).mpr h)] } }
 end
 
 /-- If x is in an Icc, it can be expressed as a convex combination of the endpoints. -/
-lemma convex_combo_Icc {a b x : ℝ} :
-    x ∈ Icc a b → ∃ (x_a x_b : ℝ), 0 ≤ x_a ∧ 0 ≤ x_b ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
+lemma convex.mem_Icc {a b x : α} (h : a ≤ b):
+    x ∈ Icc a b ↔ ∃ (x_a x_b : α), 0 ≤ x_a ∧ 0 ≤ x_b ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
 begin
-    intro x_in_I,
+  split,
+  { intro x_in_I,
     rw[Icc, mem_set_of_eq] at x_in_I,
     rcases x_in_I with ⟨h_ax, h_bx⟩,
-    by_cases hab : a ≥ b,
-    { by_cases hab' : a = b,
-      { exact ⟨0, 1, le_refl 0, by linarith, by ring, by linarith⟩ },
-      { linarith[lt_of_le_of_ne hab (ne.symm hab')] } },
-    replace hab : a < b, linarith,
+    by_cases hab' : a = b,
+    { exact ⟨0, 1, le_refl 0, by linarith, by ring, by linarith⟩ },
+    change a ≠ b at hab',
+    replace h : a < b, exact lt_of_le_of_ne h hab',
     by_cases h_x : x = a,
     { exact ⟨1, 0, by linarith, by linarith, by ring, by {rw[h_x], ring}⟩ },
-    { rcases convex_combo_Ioc ⟨lt_of_le_of_ne h_ax (ne.symm h_x), h_bx⟩ with ⟨x_a, x_b, Ioo_case⟩,
-      exact ⟨x_a, x_b, Ioo_case.1, by linarith, (Ioo_case.2).2⟩ }
+    { rcases (convex.mem_Ioc h).mp ⟨lt_of_le_of_ne h_ax (ne.symm h_x), h_bx⟩
+              with ⟨x_a, x_b, Ioo_case⟩,
+      exact ⟨x_a, x_b, Ioo_case.1, by linarith, (Ioo_case.2).2⟩ } },
+  { rw[mem_Icc],
+    rintros ⟨xa, xb, ⟨hxa, hxb, hxaxb, h₂⟩⟩,
+    rw[←h₂],
+    split,
+    { calc
+      a   = 1 * a             : by rw[one_mul]
+      ... = (xa + xb) * a     : by rw[hxaxb]
+      ... = xa * a + xb * a   : by rw[add_mul]
+      ... ≤ xa * a + xb * b   : by linarith[((mul_le_mul_of_nonneg_left h hxb))] },
+
+    { calc
+      b   = 1 * b             : by rw[one_mul]
+      ... = (xa + xb) * b     : by rw[hxaxb]
+      ... = xa * b + xb * b   : by rw[add_mul]
+      ... ≥ xa * a + xb * b   : by linarith[(mul_le_mul_of_nonneg_left h hxa)] } }
 end
 
 

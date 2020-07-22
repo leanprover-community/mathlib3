@@ -375,21 +375,21 @@ begin
       refine ⟨div_pos (by linarith) (by linarith), div_pos (by linarith) (by linarith),_,_⟩,
       { calc
           (b - x) / (b - a) + (x - a) / (b - a)
-                = (b - x + (x - a)) / (b - a)     : by rw[←add_div]
+                = (b - x + (x - a)) / (b - a)     : by rw [←add_div]
            ...  = (b - a) / (b-a)                 : by abel
            ...  = 1                               : div_self (sub_ne_zero.mpr (ne.symm hab')) },
 
       { calc
           (b - x) / (b - a) * a + (x - a) / (b - a) * b
                 = ((b - x) * a) / (b-a) + ((x-a)*b)/(b-a)   : by simp only [mul_div_right_comm]
-          ...   = ((b-x) * a + (x-a)*b) / (b-a)             : by rw[←add_div]
+          ...   = ((b-x) * a + (x-a)*b) / (b-a)             : by rw [←add_div]
           ...   = (x * (b - a)) / (b-a)                     : by ring
           ...   = x                                         : mul_div_cancel x (sub_ne_zero.mpr
                                                                     (ne.symm hab')), } } },
-  { rw[mem_Ioo],
+  { rw [mem_Ioo],
     rintros ⟨xa, xb, ⟨hxa, hxb, hxaxb, h₂⟩⟩,
-    rw[←h₂],
-    exact ⟨by nlinarith[convex.combo_self a hxaxb], by nlinarith[convex.combo_self b hxaxb]⟩ }
+    rw [←h₂],
+    exact ⟨by nlinarith [convex.combo_self a hxaxb], by nlinarith [convex.combo_self b hxaxb]⟩ }
 end
 
 /-- If x is in an Ioc, it can be expressed as a convex combination of the endpoints. -/
@@ -399,13 +399,13 @@ begin
   split,
   { rintros ⟨h_ax, h_bx⟩,
     by_cases h_x : x = b,
-    { exact ⟨0, 1, by linarith, by linarith, by ring, by {rw[h_x], ring}⟩ },
+    { exact ⟨0, 1, by linarith, by linarith, by ring, by {rw [h_x], ring}⟩ },
     { rcases (convex.mem_Ioo h).mp ⟨h_ax, lt_of_le_of_ne h_bx h_x⟩ with ⟨x_a, x_b, Ioo_case⟩,
       exact ⟨x_a, x_b, by linarith, Ioo_case.2⟩ } },
-  { rw[mem_Ioc],
+  { rw [mem_Ioc],
     rintros ⟨xa, xb, ⟨hxa, hxb, hxaxb, h₂⟩⟩,
-    rw[←h₂],
-    exact ⟨by nlinarith[convex.combo_self a hxaxb], by nlinarith[convex.combo_self b hxaxb]⟩ }
+    rw [←h₂],
+    exact ⟨by nlinarith [convex.combo_self a hxaxb], by nlinarith [convex.combo_self b hxaxb]⟩ }
 end
 
 /-- If x is in an Ico, it can be expressed as a convex combination of the endpoints. -/
@@ -415,14 +415,14 @@ begin
   split,
   { rintros ⟨h_ax, h_bx⟩,
     by_cases h_x : x = a,
-    { exact ⟨1, 0, by linarith, by linarith, by ring, by {rw[h_x], ring}⟩ },
+    { exact ⟨1, 0, by linarith, by linarith, by ring, by {rw [h_x], ring}⟩ },
     { rcases (convex.mem_Ioo h).mp ⟨lt_of_le_of_ne h_ax (ne.symm h_x), h_bx⟩
               with ⟨x_a, x_b, Ioo_case⟩,
       exact ⟨x_a, x_b, Ioo_case.1, by linarith, (Ioo_case.2).2⟩ } },
-  { rw[mem_Ico],
+  { rw [mem_Ico],
     rintros ⟨xa, xb, ⟨hxa, hxb, hxaxb, h₂⟩⟩,
-    rw[←h₂],
-    exact ⟨by nlinarith[convex.combo_self a hxaxb], by nlinarith[convex.combo_self b hxaxb]⟩ }
+    rw [←h₂],
+    exact ⟨by nlinarith [convex.combo_self a hxaxb], by nlinarith [convex.combo_self b hxaxb]⟩ }
 end
 
 /-- If x is in an Icc, it can be expressed as a convex combination of the endpoints. -/
@@ -431,21 +431,21 @@ lemma convex.mem_Icc {a b x : α} (h : a ≤ b):
 begin
   split,
   { intro x_in_I,
-    rw[Icc, mem_set_of_eq] at x_in_I,
+    rw [Icc, mem_set_of_eq] at x_in_I,
     rcases x_in_I with ⟨h_ax, h_bx⟩,
     by_cases hab' : a = b,
     { exact ⟨0, 1, le_refl 0, by linarith, by ring, by linarith⟩ },
     change a ≠ b at hab',
     replace h : a < b, exact lt_of_le_of_ne h hab',
     by_cases h_x : x = a,
-    { exact ⟨1, 0, by linarith, by linarith, by ring, by {rw[h_x], ring}⟩ },
+    { exact ⟨1, 0, by linarith, by linarith, by ring, by {rw [h_x], ring}⟩ },
     { rcases (convex.mem_Ioc h).mp ⟨lt_of_le_of_ne h_ax (ne.symm h_x), h_bx⟩
               with ⟨x_a, x_b, Ioo_case⟩,
       exact ⟨x_a, x_b, Ioo_case.1, by linarith, (Ioo_case.2).2⟩ } },
-  { rw[mem_Icc],
+  { rw [mem_Icc],
     rintros ⟨xa, xb, ⟨hxa, hxb, hxaxb, h₂⟩⟩,
-    rw[←h₂],
-    exact ⟨by nlinarith[convex.combo_self a hxaxb], by nlinarith[convex.combo_self b hxaxb]⟩ }
+    rw [←h₂],
+    exact ⟨by nlinarith [convex.combo_self a hxaxb], by nlinarith [convex.combo_self b hxaxb]⟩ }
 end
 
 

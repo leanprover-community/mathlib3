@@ -23,7 +23,8 @@ notation `C(` α `, ` β `)` := continuous_map α β
 
 namespace continuous_map
 
-variables {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+variables {α : Type*} {β : Type*} {γ : Type*}
+variables [topological_space α] [topological_space β] [topological_space γ]
 
 instance : has_coe_to_fun (C(α, β)) := ⟨_, continuous_map.to_fun⟩
 
@@ -34,6 +35,21 @@ by cases f; cases g; congr'; exact funext H
 
 instance [inhabited β] : inhabited C(α, β) :=
 ⟨⟨λ _, default _, continuous_const⟩⟩
+
+lemma coe_inj ⦃f g : C(α, β)⦄ (h : (f : α → β) = g) : f = g :=
+by cases f; cases g; cases h; refl
+
+/--
+The identity as a continuous map.
+-/
+def id : C(α, α) := ⟨id, continuous_id⟩
+
+/--
+The composition of continuous maps, as a continuous map.
+-/
+def comp (f : C(β, γ)) (g : C(α, β)) : C(α, γ) :=
+{ to_fun := λ a, f (g a),
+  continuous_to_fun := continuous.comp f.continuous_to_fun g.continuous_to_fun, }
 
 protected lemma continuous (f : C(α, β)) : continuous f := f.continuous_to_fun
 

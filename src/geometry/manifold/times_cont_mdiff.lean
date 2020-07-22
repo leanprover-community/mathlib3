@@ -144,7 +144,8 @@ read in the preferred chart at this point. -/
 def times_cont_mdiff_within_at (n : with_top ℕ) (f : M → M') (s : set M) (x : M) :=
 lift_prop_within_at (times_cont_diff_within_at_prop I I' n) f s x
 
-/-- Abbreviation for `times_cont_mdiff_within_at I I' ⊤ f s x`. -/
+/-- Abbreviation for `times_cont_mdiff_within_at I I' ⊤ f s x`. See also documentation for `smooth`.
+-/
 @[reducible] def smooth_within_at (f : M → M') (s : set M) (x : M) :=
   times_cont_mdiff_within_at I I' ⊤ f s x
 
@@ -154,7 +155,7 @@ read in the preferred chart at this point. -/
 def times_cont_mdiff_at (n : with_top ℕ) (f : M → M') (x : M) :=
 times_cont_mdiff_within_at I I' n f univ x
 
-/-- Abbreviation for `times_cont_mdiff_at I I' ⊤ f x`. -/
+/-- Abbreviation for `times_cont_mdiff_at I I' ⊤ f x`. See also documentation for `smooth`. -/
 @[reducible] def smooth_at (f : M → M') (x : M) := times_cont_mdiff_at I I' ⊤ f x
 
 /-- A function is `n` times continuously differentiable in a set of a manifold if it is continuous
@@ -163,7 +164,7 @@ around these points. -/
 def times_cont_mdiff_on (n : with_top ℕ) (f : M → M') (s : set M) :=
 ∀ x ∈ s, times_cont_mdiff_within_at I I' n f s x
 
-/-- Abbreviation for `times_cont_mdiff_on I I' ⊤ f s`. -/
+/-- Abbreviation for `times_cont_mdiff_on I I' ⊤ f s`. See also documentation for `smooth`. -/
 @[reducible] def smooth_on (f : M → M') (s : set M) := times_cont_mdiff_on I I' ⊤ f s
 
 /-- A function is `n` times continuously differentiable in a manifold if it is continuous
@@ -172,7 +173,11 @@ around these points. -/
 def times_cont_mdiff (n : with_top ℕ) (f : M → M') :=
 ∀ x, times_cont_mdiff_at I I' n f x
 
-/-- Abbreviation for `times_cont_mdiff I I' ⊤ f`. -/
+/-- Abbreviation for `times_cont_mdiff I I' ⊤ f`.
+Short note to work with these abbreviations: there is no need to extend to this case lemmas of the
+form `times_cont_mdiff_foo.bar` if `bar` does not contain `times_cont_mdiff`: dot notation will work
+fine. All other lemmas will have to be stated also in this form to work smoothly with these
+abbreviations. This note also applies to `smooth_at`, `smooth_on` and `smooth_within_at`.-/
 @[reducible] def smooth (f : M → M') := times_cont_mdiff I I' ⊤ f
 
 /-! ### Basic properties of smooth functions between manifolds -/
@@ -295,33 +300,17 @@ lemma times_cont_mdiff_within_at.continuous_within_at
   (hf : times_cont_mdiff_within_at I I' n f s x) : continuous_within_at f s x :=
 hf.1
 
-lemma smooth_within_at.continuous_within_at
-  (hf : smooth_within_at I I' f s x) : continuous_within_at f s x :=
-times_cont_mdiff_within_at.continuous_within_at hf
-
 lemma times_cont_mdiff_at.continuous_at
   (hf : times_cont_mdiff_at I I' n f x) : continuous_at f x :=
 (continuous_within_at_univ _ _ ).1 $ times_cont_mdiff_within_at.continuous_within_at hf
-
-lemma smooth_at.continuous_at
-  (hf : smooth_at I I' f x) : continuous_at f x :=
-times_cont_mdiff_at.continuous_at hf
 
 lemma times_cont_mdiff_on.continuous_on
   (hf : times_cont_mdiff_on I I' n f s) : continuous_on f s :=
 λ x hx, (hf x hx).continuous_within_at
 
-lemma smooth_on.continuous_on
-  (hf : smooth_on I I' f s) : continuous_on f s :=
-times_cont_mdiff_on.continuous_on hf
-
 lemma times_cont_mdiff.continuous (hf : times_cont_mdiff I I' n f) :
   continuous f :=
 continuous_iff_continuous_at.2 $ λ x, (hf x).continuous_at
-
-lemma smooth.continuous (hf : smooth I I' f) :
-  continuous f :=
-times_cont_mdiff.continuous hf
 
 /-! ### Deducing differentiability from smoothness -/
 
@@ -338,34 +327,17 @@ begin
     (hf.2.differentiable_within_at hn).mono (by mfld_set_tac)⟩,
 end
 
-lemma smooth_within_at.mdifferentiable_within_at
-  (hf : smooth_within_at I I' f s x) :
-  mdifferentiable_within_at I I' f s x :=
-times_cont_mdiff_within_at.mdifferentiable_within_at hf with_top.none_le
-
 lemma times_cont_mdiff_at.mdifferentiable_at (hf : times_cont_mdiff_at I I' n f x) (hn : 1 ≤ n) :
   mdifferentiable_at I I' f x :=
 mdifferentiable_within_at_univ.1 $ times_cont_mdiff_within_at.mdifferentiable_within_at hf hn
-
-lemma smooth_at.mdifferentiable_at (hf : smooth_at I I' f x):
-  mdifferentiable_at I I' f x :=
-times_cont_mdiff_at.mdifferentiable_at hf with_top.none_le
 
 lemma times_cont_mdiff_on.mdifferentiable_on (hf : times_cont_mdiff_on I I' n f s) (hn : 1 ≤ n) :
   mdifferentiable_on I I' f s :=
 λ x hx, (hf x hx).mdifferentiable_within_at hn
 
-lemma smooth_on.mdifferentiable_on (hf : smooth_on I I' f s) :
-  mdifferentiable_on I I' f s :=
-times_cont_mdiff_on.mdifferentiable_on hf with_top.none_le
-
 lemma times_cont_mdiff.mdifferentiable (hf : times_cont_mdiff I I' n f) (hn : 1 ≤ n) :
   mdifferentiable I I' f :=
 λ x, (hf x).mdifferentiable_at hn
-
-lemma smooth.mdifferentiable (hf : smooth I I' f) :
-  mdifferentiable I I' f :=
-times_cont_mdiff.mdifferentiable hf with_top.none_le
 
 /-! ### `C^∞` smoothness -/
 
@@ -407,6 +379,10 @@ lemma times_cont_mdiff_at.times_cont_mdiff_within_at (hf : times_cont_mdiff_at I
   times_cont_mdiff_within_at I I' n f s x :=
 times_cont_mdiff_within_at.mono hf (subset_univ _)
 
+lemma smooth_at.smooth_within_at (hf : smooth_at I I' f x) :
+  smooth_within_at I I' f s x :=
+times_cont_mdiff_at.times_cont_mdiff_within_at hf
+
 lemma times_cont_mdiff_on.mono (hf : times_cont_mdiff_on I I' n f s) (hts : t ⊆ s) :
   times_cont_mdiff_on I I' n f t :=
 λ x hx, (hf x (hts hx)).mono hts
@@ -414,6 +390,10 @@ lemma times_cont_mdiff_on.mono (hf : times_cont_mdiff_on I I' n f s) (hts : t �
 lemma times_cont_mdiff.times_cont_mdiff_on (hf : times_cont_mdiff I I' n f) :
   times_cont_mdiff_on I I' n f s :=
 λ x hx, (hf x).times_cont_mdiff_within_at
+
+lemma smooth.smooth_on (hf : smooth I I' f) :
+  smooth_on I I' f s :=
+times_cont_mdiff.times_cont_mdiff_on hf
 
 lemma times_cont_mdiff_within_at_inter' (ht : t ∈ nhds_within x s) :
   times_cont_mdiff_within_at I I' n f (s ∩ t) x ↔ times_cont_mdiff_within_at I I' n f s x :=
@@ -427,6 +407,11 @@ lemma times_cont_mdiff_within_at.times_cont_mdiff_at
   (h : times_cont_mdiff_within_at I I' n f s x) (ht : s ∈ 𝓝 x) :
   times_cont_mdiff_at I I' n f x :=
 (times_cont_diff_within_at_local_invariant_prop I I' n).lift_prop_at_of_lift_prop_within_at h ht
+
+lemma smooth_within_at.smooth_at
+  (h : smooth_within_at I I' f s x) (ht : s ∈ 𝓝 x) :
+  smooth_at I I' f x :=
+times_cont_mdiff_within_at.times_cont_mdiff_at h ht
 
 include Is I's
 
@@ -623,21 +608,11 @@ begin
   simp only [local_equiv.left_inv _ (u_subset hp).2.2, -ext_chart_at] with mfld_simps
 end
 
-lemma smooth_on.comp {t : set M'} {g : M' → M''}
-  (hg : smooth_on I' I'' g t) (hf : smooth_on I I' f s)
-  (st : s ⊆ f ⁻¹' t) : smooth_on I I'' (g ∘ f) s :=
-times_cont_mdiff_on.comp hg hf st
-
 /-- The composition of `C^n` functions on domains is `C^n`. -/
 lemma times_cont_mdiff_on.comp' {t : set M'} {g : M' → M''}
   (hg : times_cont_mdiff_on I' I'' n g t) (hf : times_cont_mdiff_on I I' n f s) :
   times_cont_mdiff_on I I'' n (g ∘ f) (s ∩ f ⁻¹' t) :=
 hg.comp (hf.mono (inter_subset_left _ _)) (inter_subset_right _ _)
-
-lemma smooth_on.comp' {t : set M'} {g : M' → M''}
-  (hg : smooth_on I' I'' g t) (hf : smooth_on I I' f s) :
-  smooth_on I I'' (g ∘ f) (s ∩ f ⁻¹' t) :=
-times_cont_mdiff_on.comp' hg hf
 
 /-- The composition of `C^n` functions is `C^n`. -/
 lemma times_cont_mdiff.comp {g : M' → M''}
@@ -647,11 +622,6 @@ begin
   rw ← times_cont_mdiff_on_univ at hf hg ⊢,
   exact hg.comp hf subset_preimage_univ,
 end
-
-lemma smooth.comp {g : M' → M''}
-  (hg : smooth I' I'' g) (hf : smooth I I' f) :
-  smooth I I'' (g ∘ f) :=
-times_cont_mdiff.comp hg hf
 
 /-- The composition of `C^n` functions within domains at points is `C^n`. -/
 lemma times_cont_mdiff_within_at.comp {t : set M'} {g : M' → M''}
@@ -673,12 +643,6 @@ begin
   exact subset.trans st (preimage_mono (subset_insert _ _))
 end
 
-lemma smooth_within_at.comp {t : set M'} {g : M' → M''}
-  (hg : times_cont_mdiff_within_at I' I'' n g t (f x))
-  (hf : times_cont_mdiff_within_at I I' n f s x)
-  (st : s ⊆ f ⁻¹' t) : times_cont_mdiff_within_at I I'' n (g ∘ f) s x :=
-hg.comp hf st
-
 /-- The composition of `C^n` functions within domains at points is `C^n`. -/
 lemma times_cont_mdiff_within_at.comp' {t : set M'} {g : M' → M''}
   (hg : times_cont_mdiff_within_at I' I'' n g t (f x))
@@ -686,22 +650,11 @@ lemma times_cont_mdiff_within_at.comp' {t : set M'} {g : M' → M''}
   times_cont_mdiff_within_at I I'' n (g ∘ f) (s ∩ f⁻¹' t) x :=
 hg.comp (hf.mono (inter_subset_left _ _)) (inter_subset_right _ _)
 
-lemma smooth_within_at.comp' {t : set M'} {g : M' → M''}
-  (hg : smooth_within_at I' I'' g t (f x))
-  (hf : smooth_within_at I I' f s x) :
-  smooth_within_at I I'' (g ∘ f) (s ∩ f⁻¹' t) x :=
-hg.comp' hf
-
 /-- The composition of `C^n` functions at points is `C^n`. -/
 lemma times_cont_mdiff_at.comp {g : M' → M''}
   (hg : times_cont_mdiff_at I' I'' n g (f x)) (hf : times_cont_mdiff_at I I' n f x) :
   times_cont_mdiff_at I I'' n (g ∘ f) x :=
 hg.comp hf subset_preimage_univ
-
-lemma smooth_at.comp {g : M' → M''}
-  (hg : smooth_at I' I'' g (f x)) (hf : smooth_at I I' f x) :
-  smooth_at I I'' (g ∘ f) x :=
-hg.comp hf
 
 end composition
 
@@ -744,14 +697,22 @@ lemma times_cont_mdiff_id : times_cont_mdiff I I n (id : M → M) :=
 times_cont_mdiff.of_le ((times_cont_diff_within_at_local_invariant_prop I I ∞).lift_prop_id
   (times_cont_diff_within_at_local_invariant_prop_id I)) le_top
 
+lemma smooth_id : smooth I I (id : M → M) := times_cont_mdiff_id
+
 lemma times_cont_mdiff_on_id : times_cont_mdiff_on I I n (id : M → M) s :=
 times_cont_mdiff_id.times_cont_mdiff_on
+
+lemma smooth_on_id : smooth_on I I (id : M → M) s := times_cont_mdiff_on_id
 
 lemma times_cont_mdiff_at_id : times_cont_mdiff_at I I n (id : M → M) x :=
 times_cont_mdiff_id.times_cont_mdiff_at
 
+lemma smooth_at_id : smooth_at I I (id : M → M) x := times_cont_mdiff_at_id
+
 lemma times_cont_mdiff_within_at_id : times_cont_mdiff_within_at I I n (id : M → M) s x :=
 times_cont_mdiff_at_id.times_cont_mdiff_within_at
+
+lemma smooth_within_at_id : smooth_within_at I I (id : M → M) s x := times_cont_mdiff_within_at_id
 
 end id
 
@@ -768,14 +729,25 @@ begin
   exact times_cont_diff_within_at_const,
 end
 
+lemma smooth_const : smooth I I' (λ (x : M), c) := times_cont_mdiff_const
+
 lemma times_cont_mdiff_on_const : times_cont_mdiff_on I I' n (λ (x : M), c) s :=
 times_cont_mdiff_const.times_cont_mdiff_on
+
+lemma smooth_on_const : smooth_on I I' (λ (x : M), c) s :=
+times_cont_mdiff_on_const
 
 lemma times_cont_mdiff_at_const : times_cont_mdiff_at I I' n (λ (x : M), c) x :=
 times_cont_mdiff_const.times_cont_mdiff_at
 
+lemma smooth_at_const : smooth_at I I' (λ (x : M), c) x :=
+times_cont_mdiff_at_const
+
 lemma times_cont_mdiff_within_at_const : times_cont_mdiff_within_at I I' n (λ (x : M), c) s x :=
 times_cont_mdiff_at_const.times_cont_mdiff_within_at
+
+lemma smooth_within_at_const : smooth_within_at I I' (λ (x : M), c) s x :=
+times_cont_mdiff_within_at_const
 
 end id
 

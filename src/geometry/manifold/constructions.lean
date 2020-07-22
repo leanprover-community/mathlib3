@@ -12,6 +12,8 @@ meta def splita : tactic unit :=
 
 noncomputable theory
 
+open set
+
 /-!
 This file proves smoothness of standard maps arising from standard constructions on smooth
 manifolds.
@@ -29,32 +31,8 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
 {M'' : Type*} [topological_space M''] [charted_space H'' M''] [smooth_manifold_with_corners I'' M'']
 
-lemma smooth_id : smooth I I (id : M → M) := times_cont_mdiff_id
-
-lemma smooth_const {x' : M'} : smooth I I' (λ x : M, x') := times_cont_mdiff_const
-
-section composition
-
-/- I am copying the structure of continuous_on file, because since most concepts in geometry have
-a topological counterpart with the same proof, I like the idea that people do not need to think
-to different processes to prove things, and can just replace continuous with smooth. -/
-
-lemma smooth.smooth_on {f : M → M'} {s : set M} (h : smooth I I' f) :
-  smooth_on I I' f s :=
-begin
-  delta smooth at h,
-  rw ← times_cont_mdiff_on_univ at h,
-  exact h.mono (set.subset_univ _)
-end
-
-lemma smooth.comp_smooth_on {f : M → M'} {g : M' → M''} {s : set M}
-  (hg : smooth I' I'' g) (hf : smooth_on I I' f s) :
-  smooth_on I I'' (g ∘ f) s :=
-hg.smooth_on.comp hf set.subset_preimage_univ
-
-end composition
-
-lemma times_cont_mdiff_on.prod {f : M → M'} {g : M → M''} {n : with_top ℕ} {s : set M}
+/- Should I generalize this to the case where f and g are smooth on different sets. -/
+lemma times_cont_mdiff_on.prod_mk {f : M → M'} {g : M → M''} {n : with_top ℕ} {s : set M}
   (hf : times_cont_mdiff_on I I' n f s) (hg : times_cont_mdiff_on I I'' n g s) :
   times_cont_mdiff_on I (I'.prod I'') n (λx, (f x, g x)) s :=
 begin
@@ -64,12 +42,9 @@ begin
   let s1 := ((ext_chart_at I x).target ∩ ((ext_chart_at I x).symm) ⁻¹'
   (s ∩ f ⁻¹' (ext_chart_at I' y.fst).source)),
   let t1 := ((ext_chart_at I x).target ∩ ((ext_chart_at I x).symm) ⁻¹'
-  (s ∩ g ⁻¹' (ext_chart_at I'' y.snd).source)) ,
-  let inter := s1 ∩ t1,
-  have hs : (inter ⊆ s1) := by exact set.inter_subset_left s1 t1,
-  have ht : (inter ⊆ t1) := by exact set.inter_subset_right s1 t1,
-  have h := times_cont_diff_on.prod (times_cont_diff_on.mono (hf.2 x y.fst) hs)
-  (times_cont_diff_on.mono (hg.2 x y.snd) ht),
+  (s ∩ g ⁻¹' (ext_chart_at I'' y.snd).source)),
+  have h := times_cont_diff_on.prod (times_cont_diff_on.mono (hf.2 x y.fst)
+  (inter_subset_left s1 t1)) (times_cont_diff_on.mono (hg.2 x y.snd) (inter_subset_right s1 t1)),
   convert h using 1,
 
   ext1 z,
@@ -79,31 +54,32 @@ begin
   { rintro ⟨⟨⟨⟨a, rfl⟩, h1⟩, h2, h3⟩, ⟨⟨b, hb⟩, h4⟩, h5, h6⟩, exact ⟨⟨⟨a, rfl⟩, h1⟩, ⟨h2, ⟨h3, h6⟩⟩⟩, }
 end
 
-lemma smooth_on.prod {f : M → M'} {g : M → M''} {s : set M}
-  (hf : smooth_on I I' f s) (hg : smooth_on I I'' g s) :
-  smooth_on I (I'.prod I'') (λx, (f x, g x)) s
-:= times_cont_mdiff_on.prod hf hg
+lemma times_cont_mdiff_within_at.prod_mk {f : M → M'} {g : M → M''} {s : set M} {x : M} {n : ℕ}
+  (hf : times_cont_mdiff_within_at I I' n f s x) (hg : times_cont_mdiff_within_at I I'' n g s x) :
+  times_cont_mdiff_within_at I (I'.prod I'') n (λx, (f x, g x)) s x :=
+begin
+  rw [times_cont_mdiff_within_at_iff_times_cont_mdiff_on_nhds] at hf hg ⊢,
+  rcases hg with ⟨ug, hug1, hug2⟩, rcases hf with ⟨uf, huf1, huf2⟩,
+  exact ⟨ug ∩ uf, (nhds_within x (insert x s)).inter_sets hug1 huf1,
+  (times_cont_mdiff_on.mono huf2 (set.inter_subset_right ug uf)).prod_mk
+    (times_cont_mdiff_on.mono hug2 (set.inter_subset_left ug uf))⟩,
+end
 
-lemma smooth_within_at.prod {f : M → M'} {g : M → M''} {s : set M} {x : M}
+lemma smooth_within_at.prod_mk {f : M → M'} {g : M → M''} {s : set M} {x : M}
   (hf : smooth_within_at I I' f s x) (hg : smooth_within_at I I'' g s x) :
   smooth_within_at I (I'.prod I'') (λx, (f x, g x)) s x :=
 begin
   rw times_cont_mdiff_within_at_top at hf hg ⊢,
   intro n,
-  have hf1 := hf n,
-  have hg1 := hg n,
-  rw times_cont_mdiff_within_at_iff_times_cont_mdiff_on_nhds at hf1 hg1 ⊢,
-  cases hg1 with ug hug,
-  cases hf1 with uf huf,
-  cases hug with hug1 hug2,
-  cases huf with huf1 huf2,
-  use ug ∩ uf,
-  refine ⟨(nhds_within x (insert x s)).inter_sets hug1 huf1, _⟩,
-  have huf3 : times_cont_mdiff_on I I' n f (ug ∩ uf) :=
-    times_cont_mdiff_on.mono huf2 (set.inter_subset_right ug uf),
-  have hug3 : times_cont_mdiff_on I I'' n g (ug ∩ uf) :=
-    times_cont_mdiff_on.mono hug2 (set.inter_subset_left ug uf),
-  exact times_cont_mdiff_on.prod huf3 hug3,
+  exact (hf n).prod_mk (hg n),
+end
+
+lemma smooth.prod_mk {f : M → M'} {g : M → N'} (hf : smooth I I' f) (hg : smooth I J' g) :
+  smooth I (I'.prod J') (λx, (f x, g x)) :=
+begin
+  have h := ((hf.smooth_on univ).prod_mk (hg.smooth_on univ)),
+  rw times_cont_mdiff_on_univ at h,
+  exact h,
 end
 
 /- I do not know enough of Sebastien's tangent bundle to do this proof and in any case I am
@@ -202,35 +178,11 @@ begin
   { rintro ⟨⟨⟨h1, h2⟩, h3, h4⟩, ⟨a, b⟩, rfl⟩, exact ⟨⟨⟨⟨a, rfl⟩, h1⟩, ⟨⟨b, rfl⟩, h3⟩⟩, h4⟩, }
 end
 
-lemma smooth.prod_mk {f : M → M'} {g : M → N'} (hf : smooth I I' f) (hg : smooth I J' g) :
-  smooth I (I'.prod J') (λx, (f x, g x)) :=
-begin
-  rw smooth_iff at hf hg ⊢,
-  refine ⟨continuous.prod_mk hf.1 hg.1, λ x y, _⟩,
-
-  let s := ((ext_chart_at I x).target ∩ ((ext_chart_at I x).symm) ⁻¹'
-  (f ⁻¹' (ext_chart_at I' y.fst).source)),
-  let t := ((ext_chart_at I x).target ∩ ((ext_chart_at I x).symm) ⁻¹'
-  (g ⁻¹' (ext_chart_at J' y.snd).source)),
-  let inter := s ∩ t,
-  have hs : (inter ⊆ s) := by exact set.inter_subset_left s t,
-  have ht : (inter ⊆ t) := by exact set.inter_subset_right s t,
-  have h := times_cont_diff_on.prod (times_cont_diff_on.mono (hf.2 x y.fst) hs)
-  (times_cont_diff_on.mono (hg.2 x y.snd) ht),
-  convert h using 1,
-
-  ext1 z,
-  simp only with mfld_simps,
-  fsplit,
-  { rintro ⟨⟨⟨w, rfl⟩, h1⟩, h2, h3⟩, exact ⟨⟨⟨⟨w, rfl⟩, h1⟩, h2⟩, ⟨⟨w, rfl⟩, h1⟩, h3⟩, },
-  { rintro ⟨⟨⟨⟨w, rfl⟩, h1⟩, h2⟩, ⟨⟨v, h_v⟩, h3⟩, h4⟩, refine ⟨⟨⟨w, rfl⟩, h1⟩, h2, h4⟩, }
-end
-
 lemma smooth_iff_proj_smooth {f : M → M' × N'} :
   (smooth I (I'.prod J') f) ↔ (smooth I I' (prod.fst ∘ f)) ∧ (smooth I J' (prod.snd ∘ f)) :=
 begin
   split,
-  { intro h, exact ⟨smooth.comp smooth_fst h, smooth.comp smooth_snd h⟩ },
+  { intro h, exact ⟨smooth_fst.comp h, smooth_snd.comp h⟩ },
   { rintro ⟨h_fst, h_snd⟩,
     have h := smooth.prod_mk h_fst h_snd,
     simp only [prod.mk.eta] at h, /- What is simp doing? I would like to find a way to replace it. -/

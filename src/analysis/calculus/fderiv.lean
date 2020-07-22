@@ -2088,12 +2088,12 @@ lemma fderiv_const_mul (hc : differentiable_at 𝕜 c x) (d : 𝕜) :
 end mul
 
 section algebra_inverse
-variables {R :Type*}
+variables {R :Type*} [normed_ring R] [normed_algebra 𝕜 R] [complete_space R]
 open normed_ring continuous_linear_map
 
 /-- At an invertible element `x` of a normed algebra `R`, the Fréchet derivative of the inversion
 operation is the linear map `λ t, - x⁻¹ * t * x⁻¹`. -/
-lemma fderiv_inverse [normed_ring R] [normed_algebra 𝕜 R] [complete_space R] (x : units R) :
+lemma has_fderiv_at_inverse  (x : units R) :
   has_fderiv_at (@inverse R _ _)
   (- ((lmul_right 𝕜 R ((x⁻¹:units R):R)).comp (lmul_left 𝕜 R (x⁻¹:units R)))) x :=
 begin
@@ -2114,6 +2114,14 @@ begin
     inverse_unit x, units.inv_mul, add_sub_cancel'_right, mul_sub, sub_mul, one_mul],
   abel
 end
+
+lemma differentiable_at_inverse (x : units R) : differentiable_at 𝕜 (@inverse R _ _) x :=
+(has_fderiv_at_inverse x).differentiable_at
+
+lemma fderiv_inverse (x : units R) :
+  fderiv 𝕜 (@inverse R _ _) x =
+  - ((lmul_right 𝕜 R ((x⁻¹:units R):R)).comp (lmul_left 𝕜 R (x⁻¹:units R))) :=
+(has_fderiv_at_inverse x).fderiv
 
 end algebra_inverse
 

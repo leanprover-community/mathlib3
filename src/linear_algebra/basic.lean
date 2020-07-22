@@ -2283,7 +2283,7 @@ begin
   simp only [mem_infi, mem_ker, proj_apply] at hb,
   rw ← show ∑ i in I, std_basis R φ i (b i) = b,
   { ext i,
-    rw [pi.finset_sum_apply, ← std_basis_same R φ i (b i)],
+    rw [finset.sum_apply, ← std_basis_same R φ i (b i)],
     refine finset.sum_eq_single i (assume j hjI ne, std_basis_ne _ _ _ _ ne.symm _) _,
     assume hiI,
     rw [std_basis_same],

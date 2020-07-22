@@ -39,7 +39,7 @@ namespace stalk_map
 begin
   dsimp [stalk_map],
   simp only [stalk_pushforward.id],
-  erw [←map_comp],
+  rw [←map_comp],
   convert (stalk_functor C x).map_id X.𝒪,
   tidy,
 end

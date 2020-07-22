@@ -24,13 +24,11 @@ attribute [derive [has_coe_to_sort, large_category, concrete_category]] Top
 
 instance topological_space_unbundled (x : Top) : topological_space x := x.str
 
--- FIXME confirm safe to remove:
+@[simp] lemma id_app (X : Top.{u}) (x : X) :
+  (𝟙 X : X → X) x = x := rfl
 
--- instance hom_has_coe_to_fun (X Y : Top.{u}) : has_coe_to_fun (X ⟶ Y) :=
--- { F := _, coe := subtype.val }
-
--- @[simp] lemma id_app (X : Top.{u}) (x : X) :
---   @coe_fn (X ⟶ X) (Top.hom_has_coe_to_fun X X) (𝟙 X) x = x := rfl
+@[simp] lemma comp_app {X Y Z : Top.{u}} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
+  (f ≫ g : X → Z) x = g (f x) := rfl
 
 /-- Construct a bundled `Top` from the underlying type and the typeclass. -/
 def of (X : Type u) [topological_space X] : Top := ⟨X⟩

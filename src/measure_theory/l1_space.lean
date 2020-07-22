@@ -61,7 +61,8 @@ universes u v w
 variables {α : Type u} [measurable_space α] {μ ν : measure α}
 variables {β : Type v} [normed_group β] {γ : Type w} [normed_group γ]
 
-/-- A function is `integrable` if the integral of its pointwise norm is less than infinity. -/
+/-- `integrable f μ` means that the integral `∫⁻ a, ∥f a∥ ∂μ` is finite; `integrable f` means
+`integrable f volume`. -/
 def integrable (f : α → β) (μ : measure α . volume_tac) : Prop := ∫⁻ a, nnnorm (f a) ∂μ < ⊤
 
 lemma integrable_iff_norm (f : α → β) : integrable f μ ↔ ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ < ⊤ :=

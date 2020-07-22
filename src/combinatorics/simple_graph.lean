@@ -17,9 +17,9 @@ irreflexive symmetric relation.
 There is a basic API for locally finite graphs and for graphs with
 finitely many vertices.
 
-* A locally finite graph is one with instances `∀ v, fintype (G.adj v)`.
+- A locally finite graph is one with instances `∀ v, fintype (G.adj v)`.
 
-* Given instances `decidable_rel G.adj` and `fintype V`, then the graph
+- Given instances `decidable_rel G.adj` and `fintype V`, then the graph
 is locally finite, too.
 
 
@@ -39,9 +39,9 @@ simple graph.
 universe u
 
 /--
-A simple graph is an irreflexive symmetric relation `adj` on a vertex
-type `V`.  The relation describes which pairs of vertices are
-adjacent.  There is exactly one edge for every pair of adjacent edges;
+A simple graph is an irreflexive symmetric relation `adj` on a vertex type `V`.
+The relation describes which pairs of vertices are adjacent.
+There is exactly one edge for every pair of adjacent edges;
 see `simple_graph.E` for the corresponding type of edges.
 
 Note: The type of the relation is given as `V → set V` rather than
@@ -55,7 +55,7 @@ structure simple_graph (V : Type u) :=
 (loopless : irreflexive adj . obviously)
 
 /--
-The complete graph on a type `V` is the simple graph where all pairs of distinct vertices are adjacent.
+The complete graph on a type `V` is the simple graph with all pairs of distinct vertices adjacent.
 -/
 def complete_graph (V : Type u) : simple_graph V :=
 { adj := λ v w, v ≠ w }
@@ -74,7 +74,7 @@ variables {V : Type u} (G : simple_graph V)
 The edges of G consist of the unordered pairs of vertices related by
 `G.adj`.  It is given as a subtype of the symmetric square.
 -/
-def E : Type u := { x : sym2 V // x ∈ sym2.from_rel G.sym }
+def E : Type u := {x : sym2 V // x ∈ sym2.from_rel G.sym}
 
 /--
 `G.incident v` is the set of edges incident to `v`.  Due to the way
@@ -101,7 +101,7 @@ end⟩
 by split; apply G.sym
 
 lemma ne_of_edge {a b : V} (hab : G.adj a b) : a ≠ b :=
-by { intro h, rw h at hab, apply G.loopless b, exact hab }
+by { rintro rfl, exact G.loopless a hab, }
 
 @[simp] lemma mem_adj (v w : V) : w ∈ G.adj v ↔ G.adj v w :=
 by tauto

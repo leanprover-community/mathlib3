@@ -1243,7 +1243,7 @@ end
 
 variable {ν : measure α}
 
-lemma integral_add_meas {f : α → E} (hfm : measurable f) (hfi : integrable f (μ + ν)) :
+@[simp] lemma integral_add_meas {f : α → E} (hfm : measurable f) (hfi : integrable f (μ + ν)) :
   ∫ x, f x ∂(μ + ν) = ∫ x, f x ∂μ + ∫ x, f x ∂ν :=
 begin
   rcases simple_func_sequence_tendsto' hfm hfi with ⟨F, hFi, hFt⟩,
@@ -1266,6 +1266,9 @@ begin
   apply tendsto_nhds_unique hμν,
   simpa only [← simple_func.integral_eq_integral, *, simple_func.integral_add_meas] using hμ.add hν
 end
+
+@[simp] lemma integral_zero_meas (f : α → E) : ∫ x, f x ∂0 = 0 :=
+norm_le_zero_iff.1 $ le_trans (norm_integral_le_lintegral_norm f) $ by simp
 
 end properties
 

@@ -62,7 +62,7 @@ variables {α : Type u} [measurable_space α] {μ ν : measure α}
 variables {β : Type v} [normed_group β] {γ : Type w} [normed_group γ]
 
 /-- A function is `integrable` if the integral of its pointwise norm is less than infinity. -/
-def integrable (f : α → β) (μ : measure α) : Prop := ∫⁻ a, nnnorm (f a) ∂μ < ⊤
+def integrable (f : α → β) (μ : measure α . volume_tac) : Prop := ∫⁻ a, nnnorm (f a) ∂μ < ⊤
 
 lemma integrable_iff_norm (f : α → β) : integrable f μ ↔ ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ < ⊤ :=
 by simp only [integrable, of_real_norm_eq_coe_nnnorm]
@@ -79,12 +79,20 @@ begin
 end,
 by rw [integrable_iff_norm, lintegral_eq]
 
-lemma integrable.congr {f g : α → β} (hf : integrable f μ) (h : f =ᵐ[μ] g) : integrable g μ :=
+lemma integrable.mono {f : α → β} {g : α → γ} (hg : integrable g μ) (h : ∀ᵐ a ∂μ, ∥f a∥ ≤ ∥g a∥) :
+  integrable f μ :=
 begin
-  simp only [integrable],
-  convert hf using 1,
-  exact lintegral_rw₁ (h.symm.fun_comp _) _
+  simp only [integrable_iff_norm] at *,
+  calc ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ ≤ ∫⁻ (a : α), (ennreal.of_real ∥g a∥) ∂μ :
+    lintegral_mono_ae (h.mono $ assume a h, of_real_le_of_real h)
+    ... < ⊤ : hg
 end
+
+lemma integrable.congr {f g : α → β} (hf : integrable f μ) (h : f =ᵐ[μ] g) : integrable g μ :=
+hf.mono $ h.rw (λ a b, ∥b∥ ≤ ∥f a∥) (eventually_le.refl _ $ λ x, ∥f x∥)
+
+lemma integrable_congr {f g : α → β} (h : f =ᵐ[μ] g) : integrable f μ ↔ integrable g μ :=
+⟨λ hf, hf.congr h, λ hg, hg.congr h.symm⟩
 
 lemma integrable_const {c : β} : integrable (λ x : α, c) μ ↔ c = 0 ∨ μ univ < ⊤ :=
 begin
@@ -96,18 +104,6 @@ begin
     replace h := mul_lt_top (@coe_lt_top $ (nnnorm c)⁻¹) h,
     rwa [← mul_assoc, ← coe_mul, _root_.inv_mul_cancel, coe_one, one_mul] at h,
     rwa [ne.def, nnnorm_eq_zero] }
-end
-
-lemma integrable_congr {f g : α → β} (h : f =ᵐ[μ] g) : integrable f μ ↔ integrable g μ :=
-⟨λ hf, hf.congr h, λ hg, hg.congr h.symm⟩
-
-lemma integrable.mono {f : α → β} {g : α → γ} (hg : integrable g μ) (h : ∀ᵐ a ∂μ, ∥f a∥ ≤ ∥g a∥) :
-  integrable f μ :=
-begin
-  simp only [integrable_iff_norm] at *,
-  calc ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ ≤ ∫⁻ (a : α), (ennreal.of_real ∥g a∥) ∂μ :
-    lintegral_mono_ae (h.mono $ assume a h, of_real_le_of_real h)
-    ... < ⊤ : hg
 end
 
 lemma integrable.mono_meas {f : α → β} (h : integrable f ν) (hμ : μ ≤ ν) :

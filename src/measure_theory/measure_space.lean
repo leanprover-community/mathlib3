@@ -1027,9 +1027,9 @@ end measure
 
 variables {α : Type*} {β : Type*} [measurable_space α] {μ : measure α}
 
-notation `∀ᵐ` binders `∂` μ `, ` r:(scoped P, μ.ae.eventually P) := r
-notation f ` =ᵐ[`:50 μ:50 `] `:0 g:50 := f =ᶠ[μ.ae] g
-notation f ` ≤ᵐ[`:50 μ:50 `] `:0 g:50 := f ≤ᶠ[μ.ae] g
+notation `∀ᵐ` binders `∂` μ `, ` r:(scoped P, filter.eventually P (measure.ae μ)) := r
+notation f ` =ᵐ[`:50 μ:50 `] `:0 g:50 := f =ᶠ[measure.ae μ] g
+notation f ` ≤ᵐ[`:50 μ:50 `] `:0 g:50 := f ≤ᶠ[measure.ae μ] g
 
 lemma mem_ae_iff {s : set α} : s ∈ μ.ae ↔ μ sᶜ = 0 := iff.rfl
 
@@ -1303,7 +1303,10 @@ add_decl_doc volume
 section measure_space
 variables {α : Type*} {ι : Type*} [measure_space α] {s₁ s₂ : set α}
 
-notation `∀ᵐ` binders `, ` r:(scoped P, volume.ae.eventually P) := r
+notation `∀ᵐ` binders `, ` r:(scoped P, filter.eventually P (measure.ae volume)) := r
+
+/-- The tactic `exact volume`, to be used in optional arguments. -/
+meta def volume_tac : tactic unit := `[exact volume]
 
 end measure_space
 

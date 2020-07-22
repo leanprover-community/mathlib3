@@ -884,7 +884,7 @@ variables [ring R]
 open_locale classical
 
 /-- Introduce a function `inverse` on a ring `R`, which sends `x` to `x⁻¹` if `x` is invertible and
-to `0` otherwise.  This definition is somewhat ad hoc, but one needs a fully (rather than) partially
+to `0` otherwise.  This definition is somewhat ad hoc, but one needs a fully (rather than partially)
 defined inverse function for some purposes, including for calculus. -/
 noncomputable def inverse : R → R :=
 λ x, if h : is_unit x then (((classical.some h)⁻¹ : units R) : R) else 0

@@ -28,10 +28,9 @@ and 0 if not.  The asymptotic properties of `inverse (x + t)` as `t → 0` are c
 -/
 
 noncomputable theory
-variables {R : Type*} [normed_ring R]
+variables {R : Type*} [normed_ring R] [complete_space R]
 
 namespace units
-variables  [complete_space R]
 
 /-- In a complete normed ring, a perturbation of `1` by an element `t` of distance less than `1`
 from `1` is a unit.  Here we construct its `units` structure.  -/
@@ -89,26 +88,7 @@ end units
 
 namespace normed_ring
 open_locale classical topological_space big_operators
-open asymptotics filter metric finset
-
-/-- Introduce a function `inverse` on a ring `R`, which sends `x` to `x⁻¹` if `x` is invertible and
-to `0` otherwise.  This definition is somewhat ad hoc, but one needs a fully (rather than) partially
-defined inverse function for some purposes, including for calculus. -/
-def inverse : R → R :=
-λ x,
-if h : is_unit x then
-  (((classical.some h)⁻¹ : units R) : R)
-else
-  0
-
-/-- By definition, if `x` is invertible then `inverse x = x⁻¹`. -/
-lemma inverse_unit (a : units R) : inverse (a : R) = (a⁻¹ : units R) :=
-begin
-  simp [is_unit_unit, inverse],
-  exact units.inv_unique (classical.some_spec (is_unit_unit a)),
-end
-
-variables [complete_space R]
+open asymptotics filter metric finset ring
 
 lemma inverse_one_sub (t : R) (h : ∥t∥ < 1) : inverse (1 - t) = ((units.one_sub t h)⁻¹ : units R) :=
 begin

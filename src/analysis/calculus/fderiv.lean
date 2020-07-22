@@ -2089,7 +2089,7 @@ end mul
 
 section algebra_inverse
 variables {R :Type*} [normed_ring R] [normed_algebra 𝕜 R] [complete_space R]
-open normed_ring continuous_linear_map
+open normed_ring continuous_linear_map ring
 
 /-- At an invertible element `x` of a normed algebra `R`, the Fréchet derivative of the inversion
 operation is the linear map `λ t, - x⁻¹ * t * x⁻¹`. -/

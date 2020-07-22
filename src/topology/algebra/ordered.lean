@@ -318,6 +318,78 @@ begin
   exact hs.Icc_subset ys zs ⟨le_of_lt hy, le_of_lt hz⟩
 end
 
+lemma nhds_within_Icc_eq_nhds_within_Ico {hab : a < b} :
+  nhds_within a (Icc a b) = nhds_within a (Ico a b) :=
+begin
+  by_cases h : ∃ a', a' < a,
+  { cases h with a' ha',
+    apply nhds_within_eq_nhds_within,
+    exact show a ∈ Ioo a' b, from ⟨ ha', hab ⟩,
+    exact is_open_Ioo,
+    rw (show Ico a b ∩ Ioo a' b = Ico a b, from
+         inter_eq_self_of_subset_left
+         (λ x hx, ⟨ lt_of_lt_of_le ha' hx.1, hx.2 ⟩)),
+    exact eq_of_subset_of_subset
+          ( id (λ (x : α) (hx : x ∈ Icc a b ∩ Ioo a' b), ⟨hx.left.left, hx.right.right⟩) )
+          ( λ (x' : α) (hx' : x' ∈ Ico a b),
+            ⟨⟨hx'.left, le_of_lt hx'.right⟩, ⟨lt_of_lt_of_le ha' hx'.left, hx'.right⟩⟩ ) },
+  { push_neg at h,
+    have h1 : Icc a b = Iic b := eq_of_subset_of_subset (λ x hx, hx.2) (λ x hx, ⟨ h x, hx ⟩),
+    have h2 : Ico a b = Iio b := eq_of_subset_of_subset (λ x hx, hx.2) (λ x hx, ⟨ h x, hx ⟩),
+    rw [h1, h2, nhds_within_eq_nhds_within],
+    exact show a ∈ Iio b, from hab,
+    exact is_open_Iio,
+    rw inter_self,
+    apply inter_eq_self_of_subset_right,
+    exact λ x hx, le_of_lt hx }
+end
+
+lemma nhds_within_Icc_eq_nhds_within_Ioc {hab : a < b} :
+  nhds_within b (Icc a b) = nhds_within b (Ioc a b) :=
+begin
+  by_cases h : ∃ b', b < b',
+  { cases h with b' hb',
+    apply nhds_within_eq_nhds_within,
+    exact show b ∈ Ioo a b', from ⟨ hab, hb' ⟩,
+    exact is_open_Ioo,
+    rw (show Ioc a b ∩ Ioo a b' = Ioc a b, from
+          inter_eq_self_of_subset_left
+          (λ x hx, ⟨ hx.1, lt_of_le_of_lt hx.2 hb' ⟩)),
+    exact eq_of_subset_of_subset
+          ( id (λ (x : α) (hx : x ∈ Icc a b ∩ Ioo a b'), ⟨hx.right.left, hx.left.right⟩) )
+          ( λ (x' : α) (hx' : x' ∈ Ioc a b),
+            ⟨⟨le_of_lt hx'.left, hx'.right⟩, ⟨hx'.left, lt_of_le_of_lt hx'.right hb'⟩⟩ ) },
+  { push_neg at h,
+    have h1 : Icc a b = Ici a := eq_of_subset_of_subset (λ x hx, hx.1) (λ x hx, ⟨ hx, h x ⟩),
+    have h2 : Ioc a b = Ioi a := eq_of_subset_of_subset (λ x hx, hx.1) (λ x hx, ⟨ hx, h x ⟩),
+    rw [h1, h2, nhds_within_eq_nhds_within],
+    exact show b ∈ Ioi a, from hab,
+    exact is_open_Ioi,
+    rw inter_self,
+    apply inter_eq_self_of_subset_right,
+    exact λ x hx, le_of_lt hx }
+end
+
+lemma continuous_within_at_Icc_iff_continuous_within_at_Ico
+  {β : Type*} [topological_space β] {hab : a < b} :
+  ∀ f : α → β, continuous_within_at f (Icc a b) a ↔ continuous_within_at f (Ico a b) a :=
+begin
+  unfold continuous_within_at,
+  rw nhds_within_Icc_eq_nhds_within_Ico,
+  intros f, refl,
+  exact hab
+end
+
+lemma continuous_within_at_Icc_iff_continuous_within_at_Ioc
+  {β : Type*} [topological_space β] {hab : a < b} :
+  ∀ f : α → β, continuous_within_at f (Icc a b) b ↔ continuous_within_at f (Ioc a b) b :=
+begin
+  unfold continuous_within_at,
+  rw nhds_within_Icc_eq_nhds_within_Ioc,
+  intros f, refl,
+  exact hab
+end
+
 end linear_order
 
 section decidable_linear_order

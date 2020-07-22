@@ -354,6 +354,12 @@ convex_halfspace_ge (is_linear_map.mk complex.add_im complex.smul_im) _
 
 /- Convex combinations in intervals -/
 
+lemma convex.combo_self (a : α) {x y : α} (h : x + y = 1) : a = x * a + y * a :=
+  calc
+      a   = 1 * a           : by rw[one_mul]
+      ... = (x + y) * a     : by rw[h]
+      ... = x * a + y * a   : by rw[add_mul]
+
 /-
 If x is in an Ioo, it can be expressed as a convex combination of the endpoints.
 -/
@@ -383,18 +389,7 @@ begin
   { rw[mem_Ioo],
     rintros ⟨xa, xb, ⟨hxa, hxb, hxaxb, h₂⟩⟩,
     rw[←h₂],
-    split,
-    { calc
-      a   = 1 * a             : by rw[one_mul]
-      ... = (xa + xb) * a     : by rw[hxaxb]
-      ... = xa * a + xb * a   : by rw[add_mul]
-      ... < xa * a + xb * b   : by linarith[((mul_lt_mul_left hxb).mpr h)] },
-
-    { calc
-      b   = 1 * b             : by rw[one_mul]
-      ... = (xa + xb) * b     : by rw[hxaxb]
-      ... = xa * b + xb * b   : by rw[add_mul]
-      ... > xa * a + xb * b   : by linarith[((mul_lt_mul_left hxa).mpr h)] } }
+    exact ⟨by nlinarith[convex.combo_self a hxaxb], by nlinarith[convex.combo_self b hxaxb]⟩ }
 end
 
 /-- If x is in an Ioc, it can be expressed as a convex combination of the endpoints. -/
@@ -410,18 +405,7 @@ begin
   { rw[mem_Ioc],
     rintros ⟨xa, xb, ⟨hxa, hxb, hxaxb, h₂⟩⟩,
     rw[←h₂],
-    split,
-    { calc
-      a   = 1 * a             : by rw[one_mul]
-      ... = (xa + xb) * a     : by rw[hxaxb]
-      ... = xa * a + xb * a   : by rw[add_mul]
-      ... < xa * a + xb * b   : by linarith[((mul_lt_mul_left hxb).mpr h)] },
-
-    { calc
-      b   = 1 * b             : by rw[one_mul]
-      ... = (xa + xb) * b     : by rw[hxaxb]
-      ... = xa * b + xb * b   : by rw[add_mul]
-      ... ≥ xa * a + xb * b   : by linarith[(mul_le_mul_of_nonneg_left (le_of_lt h) hxa)] } }
+    exact ⟨by nlinarith[convex.combo_self a hxaxb], by nlinarith[convex.combo_self b hxaxb]⟩ }
 end
 
 /-- If x is in an Ico, it can be expressed as a convex combination of the endpoints. -/
@@ -438,18 +422,7 @@ begin
   { rw[mem_Ico],
     rintros ⟨xa, xb, ⟨hxa, hxb, hxaxb, h₂⟩⟩,
     rw[←h₂],
-    split,
-    { calc
-      a   = 1 * a             : by rw[one_mul]
-      ... = (xa + xb) * a     : by rw[hxaxb]
-      ... = xa * a + xb * a   : by rw[add_mul]
-      ... ≤ xa * a + xb * b   : by linarith[((mul_le_mul_of_nonneg_left (le_of_lt h) hxb))] },
-
-    { calc
-      b   = 1 * b             : by rw[one_mul]
-      ... = (xa + xb) * b     : by rw[hxaxb]
-      ... = xa * b + xb * b   : by rw[add_mul]
-      ... > xa * a + xb * b   : by linarith[((mul_lt_mul_left hxa).mpr h)] } }
+    exact ⟨by nlinarith[convex.combo_self a hxaxb], by nlinarith[convex.combo_self b hxaxb]⟩ }
 end
 
 /-- If x is in an Icc, it can be expressed as a convex combination of the endpoints. -/
@@ -472,18 +445,7 @@ begin
   { rw[mem_Icc],
     rintros ⟨xa, xb, ⟨hxa, hxb, hxaxb, h₂⟩⟩,
     rw[←h₂],
-    split,
-    { calc
-      a   = 1 * a             : by rw[one_mul]
-      ... = (xa + xb) * a     : by rw[hxaxb]
-      ... = xa * a + xb * a   : by rw[add_mul]
-      ... ≤ xa * a + xb * b   : by linarith[((mul_le_mul_of_nonneg_left h hxb))] },
-
-    { calc
-      b   = 1 * b             : by rw[one_mul]
-      ... = (xa + xb) * b     : by rw[hxaxb]
-      ... = xa * b + xb * b   : by rw[add_mul]
-      ... ≥ xa * a + xb * b   : by linarith[(mul_le_mul_of_nonneg_left h hxa)] } }
+    exact ⟨by nlinarith[convex.combo_self a hxaxb], by nlinarith[convex.combo_self b hxaxb]⟩ }
 end
 
 

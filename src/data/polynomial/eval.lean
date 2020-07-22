@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.induction
+import data.polynomial.degree.basic
 
 /-!
 # Theory of univariate polynomials
@@ -23,7 +24,6 @@ variables {R : Type u} {S : Type v} {T : Type w} {ι : Type y} {a b : R} {m n : 
 
 section semiring
 variables [semiring R] {p q r : polynomial R}
-
 
 section
 variables [semiring S]
@@ -140,7 +140,7 @@ lemma eval₂_pow (n : ℕ) : (p ^ n).eval₂ f x = p.eval₂ f x ^ n := (eval�
 end eval₂
 
 section eval
-variable {x : R}
+variables {x : R}
 
 /-- `eval x p` is the evaluation of the polynomial `p` at `x` -/
 def eval : R → polynomial R → R := eval₂ (ring_hom.id _)
@@ -182,9 +182,6 @@ instance [decidable_eq R] : decidable (is_root p a) := by unfold is_root; apply_
 
 @[simp] lemma is_root.def : is_root p a ↔ p.eval a = 0 := iff.rfl
 
-
-
-
 lemma coeff_zero_eq_eval_zero (p : polynomial R) :
   coeff p 0 = p.eval 0 :=
 calc coeff p 0 = coeff p 0 * 0 ^ 0 : by simp
@@ -196,7 +193,6 @@ lemma zero_is_root_of_coeff_zero_eq_zero {p : polynomial R} (hp : p.coeff 0 = 0)
 by rwa coeff_zero_eq_eval_zero at hp
 
 end eval
-
 
 section comp
 
@@ -375,6 +371,37 @@ end hom_eval₂
 
 end semiring
 
+section comm_semiring
+
+section eval
+
+variables [comm_semiring R] {p q : polynomial R} {x : R}
+
+@[simp] lemma eval_mul : (p * q).eval x = p.eval x * q.eval x := eval₂_mul _ _
+
+instance eval.is_semiring_hom : is_semiring_hom (eval x) := eval₂.is_semiring_hom _ _
+
+@[simp] lemma eval_pow (n : ℕ) : (p ^ n).eval x = p.eval x ^ n := eval₂_pow _ _ _
+
+lemma eval₂_hom [comm_semiring S] (f : R →+* S) (x : R) :
+  p.eval₂ f (f x) = f (p.eval x) :=
+polynomial.induction_on p
+  (by simp)
+  (by simp [f.map_add] {contextual := tt})
+  (by simp [f.map_mul, eval_pow,
+    f.map_pow, pow_succ', (mul_assoc _ _ _).symm] {contextual := tt})
+
+lemma root_mul_left_of_is_root (p : polynomial R) {q : polynomial R} :
+  is_root q a → is_root (p * q) a :=
+λ H, by rw [is_root, eval_mul, is_root.def.1 H, mul_zero]
+
+lemma root_mul_right_of_is_root {p : polynomial R} (q : polynomial R) :
+  is_root p a → is_root (p * q) a :=
+λ H, by rw [is_root, eval_mul, is_root.def.1 H, zero_mul]
+
+end eval
+
+end comm_semiring
 
 section ring
 variables [ring R] {p q : polynomial R}

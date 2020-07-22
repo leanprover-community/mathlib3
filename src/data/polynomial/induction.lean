@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import data.polynomial.degree.basic
+import data.polynomial.coeff
 
 /-!
 # Theory of univariate polynomials
@@ -13,8 +13,7 @@ The main results are `induction_on` and `as_sum`.
 
 noncomputable theory
 
-open finsupp finset add_monoid_algebra
-open_locale big_operators
+open finsupp finset
 
 namespace polynomial
 universes u v w x y z
@@ -82,52 +81,6 @@ theorem coeff_monomial_zero_mul (p : polynomial R) (d : ℕ) (r : R) :
 coeff_monomial_mul p 0 d r
 
 end coeff
-
--- TODO find a home (this file)
-@[simp] lemma finset_sum_coeff (s : finset ι) (f : ι → polynomial R) (n : ℕ) :
-  coeff (∑ b in s, f b) n = ∑ b in s, coeff (f b) n :=
-(s.sum_hom (λ q : polynomial R, lcoeff R n q)).symm
-
-lemma as_sum (p : polynomial R) :
-  p = ∑ i in range (p.nat_degree + 1), C (p.coeff i) * X^i :=
-begin
-  ext n,
-  simp only [add_comm, coeff_X_pow, coeff_C_mul, finset.mem_range,
-    finset.sum_mul_boole, finset_sum_coeff, ite_le_nat_degree_coeff],
-end
-
-/--
-We can reexpress a sum over `p.support` as a sum over `range n`,
-for any `n` satisfying `p.nat_degree < n`.
--/
-lemma sum_over_range' [add_comm_monoid S] (p : polynomial R) {f : ℕ → R → S} (h : ∀ n, f n 0 = 0)
-  (n : ℕ) (w : p.nat_degree < n) :
-  p.sum f = ∑ (a : ℕ) in range n, f a (coeff p a) :=
-begin
-  rw finsupp.sum,
-  apply finset.sum_bij_ne_zero (λ n _ _, n),
-  { intros k h₁ h₂, simp only [mem_range],
-    calc k ≤ p.nat_degree : _
-       ... < n : w,
-    rw finsupp.mem_support_iff at h₁,
-    exact le_nat_degree_of_ne_zero h₁, },
-  { intros, assumption },
-  { intros b hb hb',
-    refine ⟨b, _, hb', rfl⟩,
-    rw finsupp.mem_support_iff,
-    contrapose! hb',
-    convert h b, },
-  { intros, refl }
-end
-/--
-We can reexpress a sum over `p.support` as a sum over `range (p.nat_degree + 1)`.
--/
--- See also `as_sum`.
-lemma sum_over_range [add_comm_monoid S] (p : polynomial R) {f : ℕ → R → S} (h : ∀ n, f n 0 = 0) :
-  p.sum f = ∑ (a : ℕ) in range (p.nat_degree + 1), f a (coeff p a) :=
-sum_over_range' p h (p.nat_degree + 1) (lt_add_one _)
-
-
 
 end semiring
 end polynomial

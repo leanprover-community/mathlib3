@@ -2094,7 +2094,7 @@ open normed_ring continuous_linear_map
 /-- At an invertible element `x` of a normed algebra `R`, the Fréchet derivative of the inversion
 operation is the linear map `λ t, - x⁻¹ * t * x⁻¹`. -/
 lemma has_fderiv_at_inverse  (x : units R) :
-  has_fderiv_at (@inverse R _ _)
+  has_fderiv_at (@inverse R _)
   (- ((lmul_right 𝕜 R ((x⁻¹:units R):R)).comp (lmul_left 𝕜 R (x⁻¹:units R)))) x :=
 begin
   have h_is_o : is_o (λ (t : R), inverse ((x:R) + t) - (x⁻¹:units R) + ↑x⁻¹ * t * ↑x⁻¹)
@@ -2115,11 +2115,11 @@ begin
   abel
 end
 
-lemma differentiable_at_inverse (x : units R) : differentiable_at 𝕜 (@inverse R _ _) x :=
+lemma differentiable_at_inverse (x : units R) : differentiable_at 𝕜 (@inverse R _) x :=
 (has_fderiv_at_inverse x).differentiable_at
 
 lemma fderiv_inverse (x : units R) :
-  fderiv 𝕜 (@inverse R _ _) x =
+  fderiv 𝕜 (@inverse R _) x =
   - ((lmul_right 𝕜 R ((x⁻¹:units R):R)).comp (lmul_left 𝕜 R (x⁻¹:units R))) :=
 (has_fderiv_at_inverse x).fderiv
 

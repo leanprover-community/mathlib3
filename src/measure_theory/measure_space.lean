@@ -947,6 +947,7 @@ begin
   rw [measure_eq_infi, infi_subtype', infi_subtype'],
   convert infi_const,
   { ext1 ⟨⟨t, hst⟩, ht⟩,
+    dsimp only [subtype.coe_mk] at *,
     simp only [dirac_apply _ ht, indicator_of_mem (hst h), pi.one_apply] },
   { exact ⟨⟨⟨set.univ, subset_univ _⟩, is_measurable.univ⟩⟩ }
 end

@@ -102,7 +102,7 @@ by split; apply G.sym
 lemma ne_of_edge {a b : V} (hab : G.adj a b) : a ≠ b :=
 by { intro h, rw h at hab, apply G.loopless b, exact hab }
 
-@[simp] lemma in_adj_iff_adj (v w : V) : w ∈ G.adj v ↔ G.adj v w :=
+@[simp] lemma mem_adj (v w : V) : w ∈ G.adj v ↔ G.adj v w :=
 by tauto
 
 section finite_at
@@ -124,7 +124,7 @@ locally finite at `v`.
 -/
 def neighbors (v : V) [fintype (G.adj v)] : finset V := set.to_finset (G.adj v)
 
-@[simp] lemma in_neighbors_iff_in_adj (v w : V) [fintype (G.adj v)] :
+@[simp] lemma mem_neighbors (v w : V) [fintype (G.adj v)] :
   w ∈ G.neighbors v ↔ w ∈ G.adj v :=
 by simp [neighbors]
 

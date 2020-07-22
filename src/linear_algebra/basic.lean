@@ -3,7 +3,11 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 -/
+import algebra.big_operators.pi
 import algebra.module.pi
+import algebra.module.prod
+import algebra.group.prod
+import ring_theory.subring
 import data.finsupp
 import algebra.pointwise
 
@@ -79,7 +83,7 @@ lemma pi_eq_sum_univ {ι : Type u} [fintype ι] {R : Type v} [semiring R] (x : �
   x = ∑ i, x i • (λj, if i = j then 1 else 0) :=
 begin
   ext k,
-  rw pi.finset_sum_apply,
+  rw finset.sum_apply,
   have : ∑ i, x i * ite (k = i) 1 0 = x k,
     by { have := finset.sum_mul_boole finset.univ x k, rwa if_pos (finset.mem_univ _) at this },
   rw ← this,
@@ -241,10 +245,10 @@ section
 variables (R M M₂)
 
 /-- The left injection into a product is a linear map. -/
-def inl : M →ₗ[R] M × M₂ := by refine ⟨prod.inl, _, _⟩; intros; simp [prod.inl]
+def inl : M →ₗ[R] M × M₂ := by refine ⟨add_monoid_hom.inl _ _, _, _⟩; intros; simp
 
 /-- The right injection into a product is a linear map. -/
-def inr : M₂ →ₗ[R] M × M₂ := by refine ⟨prod.inr, _, _⟩; intros; simp [prod.inr]
+def inr : M₂ →ₗ[R] M × M₂ := by refine ⟨add_monoid_hom.inr _ _, _, _⟩; intros; simp
 
 end
 
@@ -1166,7 +1170,7 @@ theorem prod_eq_sup_map (p : submodule R M) (q : submodule R M₂) :
 by rw [← map_coprod_prod, coprod_inl_inr, map_id]
 
 lemma span_inl_union_inr {s : set M} {t : set M₂} :
-  span R (prod.inl '' s ∪ prod.inr '' t) = (span R s).prod (span R t) :=
+  span R (inl R M  M₂ '' s ∪ inr R M M₂ '' t) = (span R s).prod (span R t) :=
 by rw [span_union, prod_eq_sup_map, ← span_image, ← span_image]; refl
 
 @[simp] lemma ker_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) :

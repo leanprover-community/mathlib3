@@ -306,6 +306,17 @@ f.commutes r
 end mv_polynomial
 
 namespace mv_polynomial
+variables (R A : Type*) [comm_semiring R] [comm_semiring A] [algebra R A]
+
+noncomputable def counit : mv_polynomial A R →ₐ A :=
+aeval id
+
+lemma counit_surjective : function.surjective (mv_polynomial.counit R A) :=
+λ r, ⟨X r, eval₂_hom_X' _ _ _⟩
+
+end mv_polynomial
+
+namespace mv_polynomial
 variables {σ : Type*} {τ : Type*} {υ : Type*} {R : Type*} [comm_semiring R]
 
 /-- This is an example of a map of “algebraic varieties for dummies” over `R`.

@@ -4,10 +4,10 @@ Authors: Johan Commelin
 -/
 
 import ring_theory.witt_vector_preps
+import tactic
 
 noncomputable theory
 open mv_polynomial
-
 
 structure witt_package :=
 (enum : Type)
@@ -16,11 +16,35 @@ structure witt_package :=
 (structure_prop  : ∀ {idx : Type} (Φ : mv_polynomial idx ℤ) (n : enum),
                     aeval (λ k, (witt_structure Φ k)) (witt_polynomial n) =
                     aeval (λ i, (rename_hom (λ k, (i,k)) (witt_polynomial n))) Φ)
+(loc : Type)
+[loc_comm_ring : comm_ring loc]
+[algebra       : algebra ℤ loc]
+(inj           : function.injective (algebra_map ℤ loc))
+(equiv         :
+begin
+  let aux1 : _ := _, let aux2 : _ := _, let aux3 : _ := _,
+  refine @alg_equiv loc (mv_polynomial enum loc) (mv_polynomial enum loc)
+    aux1 aux2 aux2 aux3 aux3,
+  swap 3, apply_instance,
+  swap, apply_instance,
+  convert @mv_polynomial.algebra loc enum aux1,
+end)
+-- (compat        :
+-- begin
+--   refine (equiv : mv_polynomial enum loc →ₐ[loc] mv_polynomial enum loc) = _,
+--   refine aeval _,
+--   intro n,
+--   refine mv_polynomial.map_hom _ (witt_polynomial n),
+--   refine @algebra_map ℤ loc (by apply_instance) (by apply_instance) (algebra)
+-- --                   aeval (λ n, mv_polynomial.map_hom (algebra_map ℤ loc) (witt_polynomial n))
+-- end)
 
 namespace witt_package
 
 variables (W : witt_package) (R : Type*) (S : Type*)
 variables [comm_ring R] [comm_ring S]
+
+attribute [instance] loc_comm_ring algebra
 
 /-- The ring of Witt vectors (depending on a “Witt package” `W`). -/
 def witt_vector (R : Type*) := W.enum → R
@@ -142,10 +166,135 @@ section ghost_map
 /-!
 ## Ghost map/components
 -/
+variables {R}
+open side
 
 noncomputable def ghost_component (n : W.enum) (x : 𝕎 R) : R :=
 aeval x (W.witt_polynomial n)
 
+noncomputable def ghost_map : 𝕎 R → (W.enum → R) := λ w n, W.ghost_component n w
+
+@[simp] lemma ghost_map_zero : W.ghost_map (0 : 𝕎 R) = 0 :=
+funext $ λ n,
+begin
+  have aux := (W.structure_prop (0 : mv_polynomial empty ℤ) n),
+  apply_fun (aeval (λ (p : empty × W.enum), (p.1.elim : R))) at aux,
+  convert aux using 1; clear aux,
+  { simp only [aeval_eq_eval₂_hom', eval₂_hom_map_hom, map_eval₂_hom],
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    funext k,
+    exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl },
+end
+
+@[simp] lemma ghost_map_one : W.ghost_map (1 : 𝕎 R) = 1 :=
+funext $ λ n,
+begin
+  have aux := (W.structure_prop (1 : mv_polynomial empty ℤ) n),
+  apply_fun (aeval (λ (p : empty × W.enum), (p.1.elim : R))) at aux,
+  convert aux using 1; clear aux,
+  { simp only [aeval_eq_eval₂_hom', eval₂_hom_map_hom, map_eval₂_hom],
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    funext k,
+    exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl },
+  { simp only [aeval_eq_eval₂_hom', ring_hom.map_one, eval₂_hom_X', eval₂_hom_rename_hom],
+    refl }
+end
+
+variable {R}
+
+@[simp] lemma ghost_map_add (x y : 𝕎 R) :
+  W.ghost_map (x + y) = W.ghost_map x + W.ghost_map y :=
+funext $ λ n,
+begin
+  have aux := (W.structure_prop (X l + X r) n),
+  apply_fun (aeval (λ (sn : side × W.enum), side.cond sn.1 (x sn.2) (y sn.2))) at aux,
+  convert aux using 1; clear aux,
+  { simp only [aeval_eq_eval₂_hom', eval₂_hom_map_hom, map_eval₂_hom],
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    funext k,
+    exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl },
+  { simp only [aeval_eq_eval₂_hom', ring_hom.map_add, eval₂_hom_X', eval₂_hom_rename_hom],
+    refl }
+end
+
+@[simp] lemma ghost_map_mul (x y : 𝕎 R) :
+  W.ghost_map (x * y) = W.ghost_map x * W.ghost_map y :=
+funext $ λ n,
+begin
+  have aux := (W.structure_prop (X l * X r) n),
+  apply_fun (aeval (λ (sn : side × W.enum), side.cond sn.1 (x sn.2) (y sn.2))) at aux,
+  convert aux using 1; clear aux,
+  { simp only [aeval_eq_eval₂_hom', eval₂_hom_map_hom, map_eval₂_hom],
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    funext k,
+    exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl },
+  { simp only [aeval_eq_eval₂_hom', ring_hom.map_mul, eval₂_hom_X', eval₂_hom_rename_hom],
+    refl }
+end
+
+@[simp] lemma ghost_map_neg (x : 𝕎 R) :
+  W.ghost_map (-x) = - W.ghost_map x :=
+funext $ λ n,
+begin
+  have aux := (W.structure_prop (-X ()) n),
+  apply_fun (aeval (λ (k : unit × W.enum), x k.2)) at aux,
+  convert aux using 1; clear aux,
+  { simp only [aeval_eq_eval₂_hom', eval₂_hom_map_hom, map_eval₂_hom],
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    funext k,
+    exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl },
+  { simp only [aeval_eq_eval₂_hom', ring_hom.map_neg, eval₂_hom_X', eval₂_hom_rename_hom],
+    refl }
+end
+.
+
+noncomputable def ghost_map_equiv :
+  𝕎 W.loc ≃ (W.enum → W.loc) :=
+mv_polynomial.comap_equiv (W.equiv)
+
+lemma ghost_map_eq :
+  (W.ghost_map : 𝕎 W.loc → W.enum → W.loc) = W.ghost_map_equiv :=
+begin
+  ext x n,
+  simp only [ghost_map_equiv, alg_equiv.coe_alg_hom, comap_apply, comap_equiv_coe],
+  sorry
+  -- rw aeval_X,
+  -- ext w n,
+  -- dsimp [ghost_map.equiv_of_invertible, witt.alg_equiv],
+  -- rw [aeval_X], refl,
+end
+
+lemma ghost_map_bijective :
+  function.bijective (W.ghost_map : 𝕎 W.loc → W.enum → W.loc) :=
+by { rw ghost_map_eq, exact (W.ghost_map_equiv).bijective }
+
 end ghost_map
+
+section ring_axioms
+/-! ## Verification of the ring axioms -/
+
+variable (R)
+
+noncomputable def comm_ring_aux₁ : comm_ring (𝕎 (mv_polynomial R W.loc)) :=
+function.injective.comm_ring (W.ghost_map)
+  (W.ghost_map_bijective).1
+  (W.ghost_map_zero) (W.ghost_map_one) (W.ghost_map_add) (W.ghost_map_mul) (W.ghost_map_neg)
+
+local attribute [instance] aux₁
+
+noncomputable def aux₂ : comm_ring (𝕎 p (mv_polynomial R ℤ)) :=
+function.injective.comm_ring (map $ mv_polynomial.map_hom (int.cast_ring_hom ℚ))
+  (map_injective _ $ mv_polynomial.coe_int_rat_map_injective _)
+  (map_zero _) (map_one _) (map_add _) (map_mul _) (map_neg _)
+
+local attribute [instance] aux₂
+
+noncomputable instance : comm_ring (𝕎 p R) :=
+function.surjective.comm_ring
+  (map $ mv_polynomial.counit _) (map_surjective _ $ counit_surjective _)
+  (map_zero _) (map_one _) (map_add _) (map_mul _) (map_neg _)
+
+
+end ring_axioms
 
 end witt_package

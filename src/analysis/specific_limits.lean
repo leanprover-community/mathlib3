@@ -560,6 +560,30 @@ begin
   exact eventually_norm_pow_le x,
 end
 
+/-- Bound for the sum of a geometric series in a normed.  This formula does not assume that the
+normed ring satisfies the axiom `∥1∥ = 1`. -/
+lemma normed_ring.tsum_geometric_of_norm_lt_1
+  (x : R) (h : ∥x∥ < 1) : ∥(∑' (n:ℕ), x ^ n)∥ ≤ ∥(1:R)∥ - 1 + (1 - ∥x∥)⁻¹ :=
+begin
+  let s : finset ℕ := {0},
+  have split_sum : (∑' (n : ℕ), x ^ n) = (∑' (n : {x // x ∉ s}), x ^ ↑n) + 1,
+  { have h' := s.summable_compl_iff.mpr (normed_ring.summable_geometric_of_norm_lt_1 x h),
+    simpa using (s.has_sum_compl_iff.mp h'.has_sum).tsum_eq },
+  have partial_geom_sum : ∥(∑' (n : {n // n ∉ s}), x ^ ↑n)∥ ≤ (1 - ∥x∥)⁻¹ - 1,
+  { have norm_pow_le' : ∀ (n:{n : ℕ // n ∉ s}), ∥x ^ (n : ℕ)∥ ≤ ∥x∥ ^ (n : ℕ),
+    { rintros ⟨n, hn⟩,
+      refine norm_pow_le _ (nat.pos_of_ne_zero _),
+      simpa using hn },
+    refine tsum_of_norm_bounded _ norm_pow_le',
+    simpa using s.has_sum_iff_compl.mp (has_sum_geometric_of_lt_1 (norm_nonneg _) h) },
+  calc ∥(∑' (n : ℕ), x ^ n)∥ = ∥(∑' (n : {x // x ∉ s}), x ^ (n:ℕ)) + 1∥ : _
+  ... ≤ ∥(∑' (n : {x // x ∉ s}), x ^ (n:ℕ))∥ + ∥(1:R)∥ : _
+  ... ≤ ∥(1:R)∥ - 1 + (1 - ∥x∥)⁻¹ : _,
+  rw split_sum,
+  exact norm_add_le _ _,
+  linarith,
+end
+
 lemma geom_series_mul_neg (x : R) (h : ∥x∥ < 1) :
   (∑' (i:ℕ), x ^ i) * (1 - x) = 1 :=
 begin

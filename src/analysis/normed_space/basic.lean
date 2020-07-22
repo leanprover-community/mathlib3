@@ -463,10 +463,20 @@ lemma mul_left_bound {α : Type*} [normed_ring α] (x : α) :
   ∀ (y:α), ∥add_monoid_hom.mul_left x y∥ ≤ ∥x∥ * ∥y∥ :=
 norm_mul_le x
 
+/-- In a normed ring, the left-multiplication `add_monoid_hom` is continuous. -/
+lemma mul_left_continuous {α : Type*} [normed_ring α] (x : α) :
+  continuous (add_monoid_hom.mul_left x) :=
+(add_monoid_hom.mul_left x).continuous_of_bound ∥x∥ (mul_left_bound x)
+
 /-- In a normed ring, the right-multiplication `add_monoid_hom` is bounded. -/
 lemma mul_right_bound {α : Type*} [normed_ring α] (x : α) :
   ∀ (y:α), ∥add_monoid_hom.mul_right x y∥ ≤ ∥x∥ * ∥y∥ :=
 λ y, by {rw mul_comm, convert norm_mul_le y x}
+
+/-- In a normed ring, the right-multiplication `add_monoid_hom` is continuous. -/
+lemma mul_right_continuous {α : Type*} [normed_ring α] (x : α) :
+  continuous (add_monoid_hom.mul_right x) :=
+(add_monoid_hom.mul_right x).continuous_of_bound ∥x∥ (mul_right_bound x)
 
 /-- Normed ring structure on the product of two normed rings, using the sup norm. -/
 instance prod.normed_ring [normed_ring α] [normed_ring β] : normed_ring (α × β) :=
@@ -1088,6 +1098,24 @@ which is summable, then `f` is summable. -/
 lemma summable_of_norm_bounded {f : ι → α} (g : ι → ℝ) (hg : summable g) (h : ∀i, ∥f i∥ ≤ g i) :
   summable f :=
 by { rw summable_iff_cauchy_seq_finset, exact cauchy_seq_finset_of_norm_bounded g hg h }
+
+/-- If the sum of `f` is known to exist by the direct comparison test, then its norm is bounded by
+that of the comparator. -/
+lemma tsum_of_norm_bounded {f : ι → α} {g : ι → ℝ} {a : ℝ} (hg : has_sum g a) (h : ∀i, ∥f i∥ ≤ g i) :
+  ∥(∑' (i:ι), f i)∥ ≤ a :=
+begin
+  have h' : summable (λ (i : ι), ∥f i∥),
+  { let f' : ι → ℝ := λ i, ∥f i∥,
+    have h'' : ∀ i, ∥f' i∥ ≤ g i,
+      intros i,
+      convert h i,
+      simp,
+    simpa [f'] using summable_of_norm_bounded g hg.summable h'' },
+  have h1 : ∥(∑' (i:ι), f i)∥ ≤ ∑' (i:ι), ∥f i∥ := by simpa using norm_tsum_le_tsum_norm h',
+  have h2 := tsum_le_tsum h h' hg.summable,
+  have h3 : a = ∑' (i:ι), g i := (has_sum.tsum_eq hg).symm,
+  linarith
+end
 
 /-- Variant of the direct comparison test for series:  if the norm of `f` is eventually bounded by a
 real function `g` which is summable, then `f` is summable. -/

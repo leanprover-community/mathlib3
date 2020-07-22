@@ -150,6 +150,9 @@ omit hp
     (finset.singleton_subset_set_iff.2 is_submonoid.one_mem)) = 1 :=
 ext $ λ i, subtype.eq $ by rw [coeff_to_subring', coeff_one, coeff_one]; split_ifs; refl
 
+theorem map_to_subring : (p.to_subring T hp).map (is_subring.subtype T) = p :=
+ext $ λ n, coeff_map _ _
+
 end to_subring
 
 variables (T : set R) [is_subring T]

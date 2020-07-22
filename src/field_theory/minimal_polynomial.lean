@@ -138,6 +138,13 @@ end
 lemma irreducible : irreducible (minimal_polynomial hx) :=
 irreducible_of_prime (prime hx)
 
+theorem unique' {p : polynomial α} (hp1 : _root_.irreducible p) (hp2 : polynomial.aeval α β x p = 0)
+  (hp3 : p.monic) : p = minimal_polynomial hx :=
+let ⟨q, hq⟩ := dvd hx hp2 in
+polynomial.eq_of_monic_of_associated hp3 (monic hx) $
+mul_one (minimal_polynomial hx) ▸ hq.symm ▸ associated_mul_mul (associated.refl _) $
+associated_one_iff_is_unit.2 $ (hp1.is_unit_or_is_unit hq).resolve_left $ not_is_unit hx
+
 /--If L/K is a field extension, and x is an element of L in the image of K,
 then the minimal polynomial of x is X - C x.-/
 @[simp] protected lemma algebra_map (a : α) (ha : is_integral α (algebra_map α β a)) :

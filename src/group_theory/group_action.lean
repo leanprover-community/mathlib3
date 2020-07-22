@@ -220,31 +220,15 @@ def orbit_rel : setoid β :=
   iseqv := ⟨mem_orbit_self, λ a b, by simp [orbit_eq_iff.symm, eq_comm],
     λ a b, by simp [orbit_eq_iff.symm, eq_comm] {contextual := tt}⟩ }
 
-variables {β}
+section
+open_locale classical
 
-open quotient_group
-
-/-- Orbit-stabilizer theorem. -/
-noncomputable def orbit_equiv_quotient_stabilizer (b : β) :
-  orbit α b ≃ quotient (stabilizer α b) :=
-equiv.symm (equiv.of_bijective
-  (λ x : quotient (stabilizer α b), quotient.lift_on' x
-    (λ x, (⟨x • b, mem_orbit _ _⟩ : orbit α b))
-    (λ g h (H : _ = _), subtype.eq $ (mul_action.bijective (g⁻¹)).1
-      $ show g⁻¹ • (g • b) = g⁻¹ • (h • b),
-      by rw [← mul_action.mul_smul, ← mul_action.mul_smul,
-        H, inv_mul_self, mul_action.one_smul]))
-⟨λ g h, quotient.induction_on₂' g h (λ g h H, quotient.sound' $
-  have H : g • b = h • b := subtype.mk.inj H,
-  show (g⁻¹ * h) • b = b,
-  by rw [mul_action.mul_smul, ← H, ← mul_action.mul_smul, inv_mul_self, mul_action.one_smul]),
-  λ ⟨b, ⟨g, hgb⟩⟩, ⟨g, subtype.eq hgb⟩⟩)
-
-@[simp] theorem orbit_equiv_quotient_stabilizer_symm_apply (b : β) (a : α) :
-  ((orbit_equiv_quotient_stabilizer α b).symm a : β) = a • b :=
-rfl
+noncomputable instance [fintype α] (s : set α) [is_subgroup s] : fintype (quotient_group.quotient s) :=
+quotient.fintype _
 
 end
+
+variables {α β}
 
 open quotient_group mul_action is_subgroup
 
@@ -265,6 +249,44 @@ instance (H : set α) [is_subgroup H] : mul_action α (quotient H) :=
 instance mul_left_cosets_comp_subtype_val (H I : set α) [is_subgroup H] [is_subgroup I] :
   mul_action I (quotient H) :=
 mul_action.comp_hom (quotient H) (subtype.val : I → α)
+
+variables (α) {β} (x : β)
+
+/-- The canonical map from the quotient of the stabilizer to the set. -/
+def of_quotient_stabilizer (g : quotient (mul_action.stabilizer α x)) : β :=
+quotient.lift_on' g (•x) $ λ g1 g2 H,
+calc  g1 • x
+    = g1 • (g1⁻¹ * g2) • x : congr_arg _ H.symm
+... = g2 • x : by rw [smul_smul, mul_inv_cancel_left]
+
+@[simp] theorem of_quotient_stabilizer_mk (g : α) :
+  of_quotient_stabilizer α x (quotient_group.mk g) = g • x :=
+rfl
+
+theorem of_quotient_stabilizer_mem_orbit (g) : of_quotient_stabilizer α x g ∈ orbit α x :=
+quotient.induction_on' g $ λ g, ⟨g, rfl⟩
+
+theorem of_quotient_stabilizer_smul (g : α) (g' : quotient (mul_action.stabilizer α x)) :
+  of_quotient_stabilizer α x (g • g') = g • of_quotient_stabilizer α x g' :=
+quotient.induction_on' g' $ λ _, mul_smul _ _ _
+
+theorem injective_of_quotient_stabilizer : function.injective (of_quotient_stabilizer α x) :=
+λ y₁ y₂, quotient.induction_on₂' y₁ y₂ $ λ g₁ g₂ (H : g₁ • x = g₂ • x), quotient.sound' $
+show (g₁⁻¹ * g₂) • x = x, by rw [mul_smul, ← H, mul_action.inv_smul_smul]
+
+/-- Orbit-stabilizer theorem. -/
+noncomputable def orbit_equiv_quotient_stabilizer (b : β) :
+  orbit α b ≃ quotient (stabilizer α b) :=
+equiv.symm $ equiv.of_bijective
+  (λ g, ⟨of_quotient_stabilizer α b g, of_quotient_stabilizer_mem_orbit α b g⟩)
+  ⟨λ x y hxy, injective_of_quotient_stabilizer α b (by convert congr_arg subtype.val hxy),
+  λ ⟨b, ⟨g, hgb⟩⟩, ⟨g, subtype.eq hgb⟩⟩
+
+@[simp] theorem orbit_equiv_quotient_stabilizer_symm_apply (b : β) (a : α) :
+  ((orbit_equiv_quotient_stabilizer α b).symm a : β) = a • b :=
+rfl
+
+end
 
 end mul_action
 
@@ -345,5 +367,16 @@ lemma multiset.smul_sum {r : α} {s : multiset β} :
 lemma finset.smul_sum {r : α} {f : γ → β} {s : finset γ} :
   r • ∑ x in s, f x = ∑ x in s, r • f x :=
 (const_smul_hom β r).map_sum f s
+
+end
+
+section
+variables [monoid α] [add_group β] [distrib_mul_action α β]
+
+@[simp] theorem smul_neg (r : α) (x : β) : r • (-x) = -(r • x) :=
+eq_neg_of_add_eq_zero $ by rw [← smul_add, neg_add_self, smul_zero]
+
+theorem smul_sub (r : α) (x y : β) : r • (x - y) = r • x - r • y :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, smul_add, smul_neg]
 
 end

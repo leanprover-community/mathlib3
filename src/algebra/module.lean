@@ -144,14 +144,6 @@ by letI := H.to_has_scalar; exact
   smul_zero := λ r, (add_monoid_hom.mk' ((•) r) (H.smul_add r)).map_zero,
   ..H }
 
-variable [semimodule R M]
-
-@[simp] theorem smul_neg (r : R) (x : M) : r • (-x) = -(r • x) :=
-eq_neg_of_add_eq_zero (by simp [← smul_add])
-
-theorem smul_sub (r : R) (x y : M) : r • (x - y) = r • x - r • y :=
-by simp [smul_add, sub_eq_add_neg]; rw smul_neg
-
 end add_comm_group
 
 /--

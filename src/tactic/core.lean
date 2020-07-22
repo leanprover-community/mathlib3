@@ -445,6 +445,15 @@ In contrast to `generalize` it already introduces the generalized variable. -/
 meta def generalize' (e : expr) (n : name) : tactic expr :=
 (generalize e n >> intro1) <|> note n none e
 
+/-- Like `intron` except that newly introduced variables are
+not renamed to avoid name clashes -/
+meta def intron_no_renames : ℕ → tactic unit
+| 0 := pure ()
+| (n+1) := do
+  expr.pi pp_n _ _ _ ← target,
+  intro pp_n,
+  intron_no_renames n
+
 /-!
 ### Various tactics related to local definitions (local constants of the form `x : α := t`)
 

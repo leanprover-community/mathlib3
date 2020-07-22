@@ -313,7 +313,7 @@ meta def compact_decl_aux : list name → binder_info → expr → list expr →
   tactic (list (list name × binder_info × expr))
 | ns bi t [] := pure [(ns.reverse, bi, t)]
 | ns bi t (v'@(local_const n pp bi' t') :: xs) :=
-  do t' ← get_local pp >>= infer_type,
+  do t' ← infer_type v',
      if bi = bi' ∧ t = t'
        then compact_decl_aux (pp :: ns) bi t xs
        else do vs ← compact_decl_aux [pp] bi' t' xs,
@@ -994,13 +994,49 @@ meta def clear_except (xs : parse ident *) : tactic unit :=
 do n ← xs.mmap (try_core ∘ get_local) >>= revert_lst ∘ list.filter_map id,
    ls ← local_context,
    ls.reverse.mmap' $ try ∘ tactic.clear,
-   intron n
+   intron_no_renames n
 
 add_tactic_doc
 { name       := "clear_except",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.clear_except],
   tags       := ["context management"] }
+
+
+meta def format_names (ns : list name) : format :=
+format.join $ list.intersperse " " (ns.map to_fmt)
+
+private meta def indent_bindents (l r : string) : option (list name) → expr → tactic format
+| none e :=
+  do e ← pp e,
+     pformat!"{l}{format.nest l.length e}{r}"
+| (some ns) e :=
+  do e ← pp e,
+     let ns := format_names ns,
+     let margin := l.length + ns.to_string.length + " : ".length,
+     pformat!"{l}{ns} : {format.nest margin e}{r}"
+
+private meta def format_binders : list name × binder_info × expr → tactic format
+| (ns, binder_info.default, t) := indent_bindents "(" ")" ns t
+| (ns, binder_info.implicit, t) := indent_bindents "{" "}" ns t
+| (ns, binder_info.strict_implicit, t) := indent_bindents "⦃" "⦄" ns t
+| ([n], binder_info.inst_implicit, t) :=
+  if "_".is_prefix_of n.to_string
+    then indent_bindents "[" "]" none t
+    else indent_bindents "[" "]" [n] t
+| (ns, binder_info.inst_implicit, t) := indent_bindents "[" "]" ns t
+| (ns, binder_info.aux_decl, t) := indent_bindents "(" ")" ns t
+
+private meta def partition_vars' (s : name_set) : list expr → list expr → list expr → tactic (list expr × list expr)
+| [] as bs := pure (as.reverse, bs.reverse)
+| (x :: xs) as bs :=
+do t ← infer_type x,
+   if t.has_local_in s then partition_vars' xs as (x :: bs)
+     else partition_vars' xs (x :: as) bs
+
+private meta def partition_vars : tactic (list expr × list expr) :=
+do ls ← local_context,
+   partition_vars' (name_set.of_list $ ls.map expr.local_uniq_name) ls [] []
 
 /--
 Format the current goal as a stand-alone example. Useful for testing tactic.
@@ -1017,36 +1053,40 @@ example (i j k : ℕ) (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
 begin
   extract_goal,
      -- prints:
-     -- example : ∀ (i j k : ℕ), i ≤ j → j ≤ k → i ≤ k :=
+     -- example (i j k : ℕ) (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
      -- begin
-     --   intros i j k h₀ h₁,
      --   admit,
      -- end
   extract_goal my_lemma
-    -- lemma my_lemma : ∀ (i j k : ℕ), i ≤ j → j ≤ k → i ≤ k :=
-    -- begin
-    --   intros i j k h₀ h₁,
-    --   admit,
-    -- end
+     -- prints:
+     -- lemma my_lemma (i j k : ℕ) (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
+     -- begin
+     --   admit,
+     -- end
 end
 
 example {i j k x y z w p q r m n : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k) (h₁ : k ≤ p) (h₁ : p ≤ q) : i ≤ k :=
 begin
   extract_goal my_lemma,
     -- prints:
-    -- lemma my_lemma : ∀ {i j k x y z w p q r m n : ℕ},
-    --     i ≤ j → j ≤ k → k ≤ p → p ≤ q → i ≤ k :=
+    -- lemma my_lemma {i j k x y z w p q r m n : ℕ}
+    --   (h₀ : i ≤ j)
+    --   (h₁ : j ≤ k)
+    --   (h₁ : k ≤ p)
+    --   (h₁ : p ≤ q) :
+    --   i ≤ k :=
     -- begin
-    --   intros i j k x y z w p q r m n h₀ h₁ h₁ h₁,
     --   admit,
     -- end
 
   extract_goal my_lemma with i j k
     -- prints:
-    -- lemma my_lemma : ∀ {p i j k : ℕ},
-    --     i ≤ j → j ≤ k → k ≤ p → i ≤ k :=
+    -- lemma my_lemma {p i j k : ℕ}
+    --   (h₀ : i ≤ j)
+    --   (h₁ : j ≤ k)
+    --   (h₁ : k ≤ p) :
+    --   i ≤ k :=
     -- begin
-    --   intros p i j k h₀ h₁ h₁_1,
     --   admit,
     -- end
 end
@@ -1055,11 +1095,12 @@ example : true :=
 begin
   let n := 0,
   have m : ℕ, admit,
-  have : n + m = 0, extract_goal,
+  have k : fin n, admit,
+  have : n + m + k.1 = 0, extract_goal,
     -- prints:
-    -- example : let n : ℕ := 0 in ∀ (m : ℕ), n + m = 0 :=
+    -- example (m : ℕ)  : let n : ℕ := 0 in ∀ (k : fin n), n + m + k.val = 0 :=
     -- begin
-    --   intros n m,
+    --   intros n k,
     --   admit,
     -- end
 end
@@ -1071,31 +1112,42 @@ meta def extract_goal (print_use : parse $ tt <$ tk "!" <|> pure ff)
   : tactic unit :=
 do tgt ← target,
    solve_aux tgt $ do {
-     when (¬ vs.empty) (clear_except vs),
-     ls ← local_context,
-     n_vars ← revert_all,
-     tgt ← target,
+     ((cxt₀,cxt₁,ls,tgt),_) ← solve_aux tgt $ do {
+         when (¬ vs.empty) (clear_except vs),
+         ls ← local_context,
+         ls ← ls.mfilter $ succeeds ∘ is_local_def,
+         n ← revert_lst ls,
+         (c₀,c₁) ← partition_vars,
+         tgt ← target,
+         ls ← intron' n,
+         pure (c₀,c₁,ls,tgt) },
      is_prop ← is_prop tgt,
      let title := match n, is_prop with
                   | none, _ := to_fmt "example"
                   | (some n), tt := format!"lemma {n}"
                   | (some n), ff := format!"def {n}"
                   end,
-     stmt ← pformat!" : {tgt} :=",
+     cxt₀ ← compact_decl cxt₀ >>= list.mmap format_binders,
+     cxt₁ ← compact_decl cxt₁ >>= list.mmap format_binders,
+     stmt ← pformat!"{tgt} :=",
      let fmt :=
-       format.group $ format.nest 2 $ title ++ stmt,
+       format.group $ format.nest 2 $
+         title ++ cxt₀.foldl (λ acc x, acc ++ format.group (format.line ++ x)) "" ++
+         format.line ++ format.intercalate format.line cxt₁ ++ " :" ++
+         format.line ++ stmt,
      trace $ fmt.to_string $ options.mk.set_nat `pp.width 80,
      let var_names := format.intercalate " " $ ls.map (to_fmt ∘ local_pp_name),
-     let call_intron := format!"intros {var_names}",
-     trace!"begin\n  {call_intron},\n  admit,\nend\n" },
-     skip
+     let call_intron := if ls.empty
+                     then to_fmt ""
+                     else format!"\n  intros {var_names},",
+     trace!"begin{call_intron}\n  admit,\nend\n" },
+   skip
 
 add_tactic_doc
 { name       := "extract_goal",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.extract_goal],
   tags       := ["goal management", "proof extraction"] }
-
 
 /--
 `inhabit α` tries to derive a `nonempty α` instance and then upgrades this

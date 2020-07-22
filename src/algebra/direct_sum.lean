@@ -9,8 +9,12 @@ import data.dfinsupp
 /-!
 # Direct sum
 
-Direct sum of abelian groups, indexed by a discrete type.
-`⨁ i, β i` is the n-ary direct sum, accessible after `open_locale direct_sum`.
+This file defines the direct sum of abelian groups, indexed by a discrete type.
+
+## Notation
+
+`⨁ i, β i` is the n-ary direct sum `direct_sum`.
+This notation is in the `direct_sum` locale, accessible after `open_locale direct_sum`.
 
 ## References
 

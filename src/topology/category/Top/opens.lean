@@ -29,10 +29,10 @@ def to_Top (X : Top.{u}) : opens X ⥤ Top :=
 /-- `opens.map f` gives the functor from open sets in Y to open set in X,
     given by taking preimages under f. -/
 def map (f : X ⟶ Y) : opens Y ⥤ opens X :=
-{ obj := λ U, ⟨ f.val ⁻¹' U.val, f.property _ U.property ⟩,
+{ obj := λ U, ⟨ f ⁻¹' U.val, f.continuous _ U.property ⟩,
   map := λ U V i, ⟨ ⟨ λ a b, i.down.down b ⟩ ⟩ }.
 
-@[simp] lemma map_obj (f : X ⟶ Y) (U) (p) : (map f).obj ⟨U, p⟩ = ⟨ f.val ⁻¹' U, f.property _ p ⟩ :=
+@[simp] lemma map_obj (f : X ⟶ Y) (U) (p) : (map f).obj ⟨U, p⟩ = ⟨ f ⁻¹' U, f.continuous _ p ⟩ :=
 rfl
 
 @[simp] lemma map_id_obj (U : opens X) : (map (𝟙 X)).obj U = U :=

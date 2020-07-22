@@ -27,7 +27,7 @@ variables (R : Type u) {A : Type v} [comm_ring R] [comm_ring A] [algebra R A]
 
 /-- An element of an R-algebra is algebraic over R if it is the root of a nonzero polynomial. -/
 def is_algebraic (x : A) : Prop :=
-∃ p : polynomial R, p ≠ 0 ∧ aeval R A x p = 0
+∃ p : polynomial R, p ≠ 0 ∧ aeval x p = 0
 
 variables {R}
 

@@ -3,10 +3,12 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
+import algebra.big_operators.intervals
 import topology.instances.real
 import data.indicator_function
 import data.equiv.encodable.lattice
 import order.filter.at_top_bot
+
 /-!
 # Infinite sum over a topological monoid
 
@@ -184,13 +186,13 @@ lemma has_sum.tendsto_sum_nat {f : ℕ → α} (h : has_sum f a) :
 h.comp tendsto_finset_range
 
 lemma has_sum.unique {a₁ a₂ : α} [t2_space α] : has_sum f a₁ → has_sum f a₂ → a₁ = a₂ :=
-tendsto_nhds_unique at_top_ne_bot
+tendsto_nhds_unique
 
 lemma summable.has_sum_iff_tendsto_nat [t2_space α] {f : ℕ → α} {a : α} (hf : summable f) :
   has_sum f a ↔ tendsto (λn:ℕ, ∑ i in range n, f i) at_top (𝓝 a) :=
 begin
   refine ⟨λ h, h.tendsto_sum_nat, λ h, _⟩,
-  rw tendsto_nhds_unique at_top_ne_bot h hf.has_sum.tendsto_sum_nat,
+  rw tendsto_nhds_unique h hf.has_sum.tendsto_sum_nat,
   exact hf.has_sum
 end
 
@@ -268,7 +270,7 @@ mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
     from tendsto_finset_sum bs $
       assume c hc, tendsto_infi' c $ tendsto_infi' hc $ by apply tendsto.comp (hf c) tendsto_comap,
   have ∑ b in bs, g b ∈ s,
-    from mem_of_closed_of_tendsto' this hsc $ forall_sets_nonempty_iff_ne_bot.mp $
+    from @mem_of_closed_of_tendsto' _ _ _ _ _ _ _ this hsc $ forall_sets_nonempty_iff_ne_bot.mp $
       begin
         simp only [mem_inf_sets, exists_imp_distrib, forall_and_distrib, and_imp,
                filter.mem_infi_sets_finset, mem_comap_sets, mem_at_top_sets, and_comm,
@@ -623,7 +625,7 @@ variables [ordered_add_comm_monoid α] [topological_space α] [order_closed_topo
 variables {f g : β → α} {a a₁ a₂ : α}
 
 lemma has_sum_le (h : ∀b, f b ≤ g b) (hf : has_sum f a₁) (hg : has_sum g a₂) : a₁ ≤ a₂ :=
-le_of_tendsto_of_tendsto' at_top_ne_bot hf hg $ assume s, sum_le_sum $ assume b _, h b
+le_of_tendsto_of_tendsto' hf hg $ assume s, sum_le_sum $ assume b _, h b
 
 lemma has_sum_le_inj {g : γ → α} (i : β → γ) (hi : injective i) (hs : ∀c∉set.range i, 0 ≤ g c)
   (h : ∀b, f b ≤ g (i b)) (hf : has_sum f a₁) (hg : has_sum g a₂) : a₁ ≤ a₂ :=
@@ -656,7 +658,7 @@ has_sum_le_inj i hi hs h hf.has_sum hg.has_sum
 
 lemma sum_le_has_sum {f : β → α} (s : finset β) (hs : ∀ b∉s, 0 ≤ f b) (hf : has_sum f a) :
   ∑ b in s, f b ≤ a :=
-ge_of_tendsto at_top_ne_bot hf (eventually_at_top.2 ⟨s, λ t hst,
+ge_of_tendsto hf (eventually_at_top.2 ⟨s, λ t hst,
   sum_le_sum_of_subset_of_nonneg hst $ λ b hbt hbs, hs b hbs⟩)
 
 lemma sum_le_tsum {f : β → α} (s : finset β) (hs : ∀ b∉s, 0 ≤ f b) (hf : summable f) :
@@ -689,7 +691,7 @@ variables {f g : β → α} {a a₁ a₂ : α}
 
 lemma summable_iff_cauchy_seq_finset [complete_space α] :
   summable f ↔ cauchy_seq (λ (s : finset β), ∑ b in s, f b) :=
-(cauchy_map_iff_exists_tendsto at_top_ne_bot).symm
+cauchy_map_iff_exists_tendsto.symm
 
 variable [uniform_add_group α]
 
@@ -839,7 +841,7 @@ lemma dist_le_tsum_of_dist_le_of_tendsto [metric_space α] {f : ℕ → α} (d :
   (n : ℕ) :
   dist (f n) a ≤ ∑' m, d (n + m) :=
 begin
-  refine le_of_tendsto at_top_ne_bot (tendsto_const_nhds.dist ha)
+  refine le_of_tendsto (tendsto_const_nhds.dist ha)
     (eventually_at_top.2 ⟨n, λ m hnm, _⟩),
   refine le_trans (dist_le_Ico_sum_of_dist_le hnm (λ k _ _, hf k)) _,
   rw [sum_Ico_eq_sum_range],

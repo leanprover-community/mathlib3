@@ -362,3 +362,19 @@ by linarith [abs_nonneg' abs (t^2)]
 
 example (t : R) (a b : ℚ) (h : a ≤ b) : abs t * a ≤ abs t * b :=
 by nlinarith [abs_nonneg' abs t]
+
+constant T : Type
+
+attribute [instance]
+constant T_zero : ordered_ring T
+
+namespace T
+
+lemma zero_lt_one : (0 : T) < 1 := sorry
+
+lemma works {a b : ℕ} (hab : a ≤ b) (h : b < a) : false :=
+begin
+  linarith,
+end
+
+end T

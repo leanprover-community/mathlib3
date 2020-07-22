@@ -121,8 +121,6 @@ end
 
 variables {C}
 
--- FIXME move higher??
-
 @[simp] lemma id_base (X : PresheafedSpace C) :
   ((𝟙 X) : X ⟶ X).base = (𝟙 (X : Top.{v})) := rfl
 

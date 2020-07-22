@@ -2198,7 +2198,6 @@ apply_nolint TopCommRing has_inhabited_instance
 apply_nolint CpltSepUniformSpace.to_UniformSpace doc_blame
 
 -- topology/compact_open.lean
-apply_nolint continuous_map doc_blame
 apply_nolint continuous_map.coev doc_blame
 apply_nolint continuous_map.compact_open.gen doc_blame
 apply_nolint continuous_map.ev doc_blame

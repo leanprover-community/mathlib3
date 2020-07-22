@@ -257,7 +257,7 @@ meta instance : has_coe preprocessor global_preprocessor :=
 ⟨preprocessor.globalize⟩
 
 /--
-A `certificate_oracle` is a function `produce_certificate : list comp → ℕ → option (rb_map ℕ ℕ)`.
+A `certificate_oracle` is a function `produce_certificate : list comp → ℕ → tactic (rb_map ℕ ℕ)`.
 `produce_certificate hyps max_var` tries to derive a contradiction from the comparisons in `hyps`
 by eliminating all variables ≤ `max_var`.
 If successful, it returns a map `coeff : ℕ → ℕ` as a certificate.
@@ -266,7 +266,7 @@ This map represents that we can find a contradiction by taking the sum  `∑ (co
 The default `certificate_oracle` used by `linarith` is `linarith.fourier_motzkin.produce_certificate`
 -/
 meta def certificate_oracle : Type :=
-list comp → ℕ → option (rb_map ℕ ℕ)
+list comp → ℕ → tactic (rb_map ℕ ℕ)
 
 /-- A configuration object for `linarith`. -/
 meta structure linarith_config : Type :=

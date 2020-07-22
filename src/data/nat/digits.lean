@@ -445,7 +445,7 @@ end
 lemma le_digits_len_le (b n m : ℕ) (h : n ≤ m) : (digits b n).length ≤ (digits b m).length :=
 monotone_of_monotone_nat (digits_len_le_digits_len_succ b) h
 
-lemma digits_ge_base_pow_len (b m : ℕ) : m ≠ 0 → (b + 2) ^ ((digits (b + 2) m).length) ≤ (b + 2) * m :=
+lemma ge_base_pow_length' (b m : ℕ) : m ≠ 0 → (b + 2) ^ ((digits (b + 2) m).length) ≤ (b + 2) * m :=
 begin
   apply nat.strong_induction_on m,
   clear m,
@@ -463,9 +463,15 @@ begin
     { have geb : (n.succ / (b + 2)) ≥ 1 := nat.div_pos h (by linarith),
       specialize IH (by linarith [geb]),
       replace IH := nat.mul_le_mul_left (b + 2) IH,
-      have IH'' : (b + 2) * ((b + 2) * (n.succ / (b + 2))) ≤ (b + 2) * n.succ,
+      have IH' : (b + 2) * ((b + 2) * (n.succ / (b + 2))) ≤ (b + 2) * n.succ,
       { apply nat.mul_le_mul_left,
         rw nat.mul_comm,
         exact nat.div_mul_le_self n.succ (b + 2) },
-      exact le_trans IH IH'' } }
+      exact le_trans IH IH' } }
+end
+
+lemma ge_base_pow_length (b m : ℕ) (hb : 2 ≤ b): m ≠ 0 → b ^ ((digits b m).length) ≤ b * m :=
+begin
+  rcases b with _ | _ | b; try { linarith },
+  exact ge_base_pow_length' b m,
 end

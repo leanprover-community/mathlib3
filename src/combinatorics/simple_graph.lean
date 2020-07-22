@@ -148,7 +148,7 @@ variable [∀ (v : V), fintype (G.adj v)]
 /--
 A regular graph is a locally finite graph such that every vertex has the same degree.
 -/
-def regular_graph (d : ℕ) : Prop := ∀ (v : V), degree G v = d
+def regular_graph (d : ℕ) : Prop := ∀ (v : V), G.degree v = d
 
 end locally_finite
 
@@ -164,7 +164,8 @@ instance edges_fintype [decidable_eq V] [decidable_rel G.adj] : fintype G.E := s
 by {ext, simp}
 
 @[simp]
-lemma complete_graph_degree [decidable_eq V] (v : V) : (complete_graph V).degree v = fintype.card V - 1 :=
+lemma complete_graph_degree [decidable_eq V] (v : V) :
+  (complete_graph V).degree v = fintype.card V - 1 :=
 begin
   dsimp [complete_graph, degree],
   rw neighbors_eq_filter,
@@ -173,7 +174,8 @@ begin
   exact univ.card.pred_eq_sub_one,
 end
 
-lemma complete_graph_is_regular [decidable_eq V] : regular_graph (complete_graph V) (fintype.card V - 1) :=
+lemma complete_graph_is_regular [decidable_eq V] :
+  regular_graph (complete_graph V) (fintype.card V - 1) :=
 by { intro v, simp }
 
 end finite

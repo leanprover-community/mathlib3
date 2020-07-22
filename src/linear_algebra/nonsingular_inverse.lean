@@ -125,7 +125,7 @@ begin
   { -- i = j: this entry should be `A.det`
     rw [if_pos h, ←h],
     congr, ext i',
-    by_cases h : i' = i, { rw [h, update_row_self] }, { rwa [update_row_ne h] } },
+    by_cases h : i' = i, { rw [h, update_row_self] }, { rw [update_row_ne h] } },
   { -- i ≠ j: this entry should be 0
     rw [if_neg h],
     apply det_zero_of_column_eq h,

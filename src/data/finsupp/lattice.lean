@@ -24,11 +24,8 @@ namespace finsupp
 
 lemma le_def [partial_order β] {a b : α →₀ β} : a ≤ b ↔ ∀ (s : α), a s ≤ b s := by refl
 
-
-instance order_bot_of_zero_bot [order_bot β] (h : ⊥ = (0 : β)): order_bot (α →₀ β) :=
-{ bot := 0, bot_le := by simp [finsupp.le_def, ← h], .. finsupp.partial_order}
-
-instance : order_bot (α →₀ μ) := finsupp.order_bot_of_zero_bot bot_eq_zero
+instance : order_bot (α →₀ μ) :=
+{ bot := 0, bot_le := by simp [finsupp.le_def, ← bot_eq_zero], .. finsupp.partial_order}
 
 /-- Used to construct binary operations on `finsupp`s -/
 def binary_op_pointwise {f : β → β → β} (h : f 0 0 = 0) (a b : α →₀ β) : α →₀ β :=

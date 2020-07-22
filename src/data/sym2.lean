@@ -367,20 +367,13 @@ Given `[decidable_eq α]` and `[fintype α]`, the following instance gives `fint
 -/
 instance (α : Type*) [decidable_eq α] : decidable_rel (sym2.rel α) :=
 begin
-  rintros ⟨x₁, x₂⟩ ⟨y₁, y₂⟩,
-  by_cases h₁ : x₁ = y₁, subst x₁,
-  by_cases h₂ : x₂ = y₂, subst x₂,
-  apply decidable.is_true, refl,
-  by_cases h₃ : y₁ = y₂, subst y₁,
-  apply decidable.is_false, intro h, cases h; cc,
-  by_cases h₄ : x₂ = y₁, subst x₂,
-  apply decidable.is_false, intro h, cases h; cc,
-  apply decidable.is_false, intro h, cases h; cc,
-  by_cases h₂ : x₁ = y₂, subst x₁,
-  by_cases h₃ : x₂ = y₁, subst x₂,
-  apply decidable.is_true, apply sym2.rel.swap,
-  apply decidable.is_false, intro h, cases h; cc,
-  apply decidable.is_false, intro h, cases h; cc,
+  rintros ⟨x₁, x₂⟩ ⟨y₁, y₂⟩, by_cases x₁ = y₁, subst x₁,
+  { by_cases x₂ = y₂, { subst x₂, apply decidable.is_true, refl },
+    by_cases y₁ = y₂, { subst y₁, apply decidable.is_false, rintro ⟨_,_⟩; cc },
+    by_cases x₂ = y₁; { try { subst x₂ }, apply decidable.is_false, rintro ⟨_,_⟩; cc }},
+  by_cases x₁ = y₂, subst x₁,
+  by_cases x₂ = y₁, { subst x₂, apply decidable.is_true, apply sym2.rel.swap },
+  all_goals { apply decidable.is_false, rintro ⟨_,_⟩; cc },
 end
 
 end finite

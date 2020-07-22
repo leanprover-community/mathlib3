@@ -26,7 +26,7 @@ def prod_to_nested (f : Π₀ (ij : ii × jj), β ij.1 ij.2) : Π₀ i, Π₀ j,
       unfold has_zero.zero,
       rw quotient.eq,
       unfold has_equiv.equiv setoid.r dfinsupp.pre.to_fun,
-      rw ← classical.forall_or_distrib_left,
+      rw ← forall_or_distrib_left,
       exact λ j, begin
         obtain hin | h0 := fij.zero (i, j),
         {apply or.inl, rw multiset.mem_map, use (i, j), simp only [hin, eq_self_iff_true, and_self]},

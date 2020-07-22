@@ -103,15 +103,9 @@ else
 /-- By definition, if `x` is invertible then `inverse x = x⁻¹`. -/
 lemma inverse_unit (a : units R) : inverse (a : R) = (a⁻¹ : units R) :=
 begin
-  have h : ∃ (b : units R), (b : R) = a,
-    use a,
+  have h : ∃ (b : units R), (b : R) = a := by use a,
   simp [h, inverse],
-  let b : units R := classical.some h,
-  have hb := classical.some_spec h,
-  have : b = classical.some h := rfl,
-  rw ← this at hb,
-  rw ← this,
-  exact units.inv_unique hb,
+  exact units.inv_unique (classical.some_spec h),
 end
 
 lemma inverse_one_sub (t : R) (h : ∥t∥ < 1) : inverse (1 - t) = ((units.one_sub t h)⁻¹ : units R) :=

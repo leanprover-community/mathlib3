@@ -1176,7 +1176,7 @@ h.add h'.neg
 
 lemma eventually_eq_inf_principal_iff {F : filter α} {s : set α} {f g : α → β} :
   (f =ᶠ[F ⊓ 𝓟 s] g) ↔ ∀ᶠ x in F, x ∈ s → f x = g x :=
-by simp [eventually_eq, eventually_iff, mem_inf_principal]
+eventually_inf_principal
 
 section has_le
 

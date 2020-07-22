@@ -15,7 +15,7 @@ open_locale topological_space
 namespace continuous_map
 
 section compact_open
-variables {α : Type} {β : Type*} {γ : Type*}
+variables {α : Type*} {β : Type*} {γ : Type*}
 variables [topological_space α] [topological_space β] [topological_space γ]
 
 def compact_open.gen (s : set α) (u : set β) : set C(α,β) := {f | f '' s ⊆ u}

@@ -574,16 +574,19 @@ end quotient
 section pi
 variables {ι : Type*} {π : ι → Type*}
 
+@[continuity]
 lemma continuous_pi [topological_space α] [∀i, topological_space (π i)] {f : α → Πi:ι, π i}
   (h : ∀i, continuous (λa, f a i)) : continuous f :=
 continuous_infi_rng $ assume i, continuous_induced_rng $ h i
 
+@[continuity]
 lemma continuous_apply [∀i, topological_space (π i)] (i : ι) :
   continuous (λp:Πi, π i, p i) :=
 continuous_infi_dom continuous_induced_dom
 
 /-- Embedding a factor into a product space (by fixing arbitrarily all the other coordinates) is
 continuous. -/
+@[continuity]
 lemma continuous_update [decidable_eq ι] [∀i, topological_space (π i)] {i : ι} {f : Πi:ι, π i} :
   continuous (λ x : π i, function.update f i x) :=
 begin
@@ -653,6 +656,7 @@ end pi
 section sigma
 variables {ι : Type*} {σ : ι → Type*} [Π i, topological_space (σ i)]
 
+@[continuity]
 lemma continuous_sigma_mk {i : ι} : continuous (@sigma.mk ι σ i) :=
 continuous_supr_rng continuous_coinduced_rng
 
@@ -714,10 +718,12 @@ lemma embedding_sigma_mk {i : ι} : embedding (@sigma.mk ι σ i) :=
 closed_embedding_sigma_mk.1
 
 /-- A map out of a sum type is continuous if its restriction to each summand is. -/
+@[continuity]
 lemma continuous_sigma [topological_space β] {f : sigma σ → β}
   (h : ∀ i, continuous (λ a, f ⟨i, a⟩)) : continuous f :=
 continuous_supr_dom (λ i, continuous_coinduced_dom (h i))
 
+@[continuity]
 lemma continuous_sigma_map {κ : Type*} {τ : κ → Type*} [Π k, topological_space (τ k)]
   {f₁ : ι → κ} {f₂ : Π i, σ i → τ (f₁ i)} (hf : ∀ i, continuous (f₂ i)) :
   continuous (sigma.map f₁ f₂) :=

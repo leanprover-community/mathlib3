@@ -58,6 +58,7 @@ meta def continuity_tactics : list (tactic string) :=
 [
   `[apply_rules continuity]            >> pure "apply_rules continuity",
   auto_cases,
+  intros1                              >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
   tactic.interactive.apply_assumption  >> pure "apply_assumption",
   apply_continuous.comp                >> pure "refine continuous.comp _ _"
 ]
@@ -71,6 +72,26 @@ tactic.tidy { tactics := continuity_tactics, ..cfg }
 
 /-- Version of `continuity` for use with auto_param. -/
 meta def continuity' : tactic unit := continuity
+
+/--
+`continuity` solves goals of the form `continuous f` by applying lemmas tagged with the
+`continuity` user attribute.
+
+```
+example {X Y : Type*} [topological_space X] [topological_space Y]
+  (f₁ f₂ : X → Y) (hf₁ : continuous f₁) (hf₂ : continuous f₂)
+  (g : Y → ℝ) (hg : continuous g) : continuous (λ x, (max (g (f₁ x)) (g (f₂ x))) + 1) :=
+by continuity
+```
+will discharge the goal, generating a proof term like
+`((continuous.comp hg hf₁).max (continuous.comp hg hf₂)).add continuous_const`
+-/
+add_tactic_doc
+{ name := "continuity / continuity'",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.continuity, `tactic.interactive.continuity'],
+  tags := ["lemma application"]
+}
 
 end interactive
 

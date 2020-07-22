@@ -40,6 +40,7 @@ protected def symm (h : α ≃ₜ β) : β ≃ₜ α :=
   continuous_inv_fun := h.continuous_to_fun,
   .. h.to_equiv.symm }
 
+@[continuity]
 protected lemma continuous (h : α ≃ₜ β) : continuous h := h.continuous_to_fun
 
 lemma symm_comp_self (h : α ≃ₜ β) : ⇑h.symm ∘ ⇑h = id :=

@@ -17,13 +17,11 @@ def pt : Top := Top.of unit
 section MappingCylinder
 -- Let's construct the mapping cylinder.
 def to_pt (X : Top) : X ⟶ pt :=
-{ to_fun := λ _, unit.star, continuous_to_fun := continuous_const }
+{ to_fun := λ _, unit.star, } -- We don't need to prove continuity: this is done automatically.
 def I₀ : pt ⟶ I :=
-{ to_fun := λ _, ⟨(0 : ℝ), by norm_num [set.left_mem_Icc]⟩,
-  continuous_to_fun := continuous_const }
+{ to_fun := λ _, ⟨(0 : ℝ), by norm_num [set.left_mem_Icc]⟩, }
 def I₁ : pt ⟶ I :=
-{ to_fun := λ _, ⟨(1 : ℝ), by norm_num [set.right_mem_Icc]⟩,
-  continuous_to_fun := continuous_const }
+{ to_fun := λ _, ⟨(1 : ℝ), by norm_num [set.right_mem_Icc]⟩, }
 
 def cylinder (X : Top) : Top := prod X I
 -- To define a map to the cylinder, we give a map to each factor.
@@ -72,7 +70,7 @@ end MappingCylinder
 section Gluing
 
 -- Here's two copies of the real line glued together at a point.
-def f : pt ⟶ R := { to_fun := λ _, (0 : ℝ), continuous_to_fun := continuous_const }
+def f : pt ⟶ R := { to_fun := λ _, (0 : ℝ), }
 
 /-- Two copies of the real line glued together at 0. -/
 def X : Top := pushout f f

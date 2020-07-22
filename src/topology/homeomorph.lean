@@ -12,8 +12,8 @@ variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 /-- α and β are homeomorph, also called topological isomoph -/
 structure homeomorph (α : Type*) (β : Type*) [topological_space α] [topological_space β]
   extends α ≃ β :=
-(continuous_to_fun  : continuous to_fun)
-(continuous_inv_fun : continuous inv_fun)
+(continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')
+(continuous_inv_fun : continuous inv_fun . tactic.interactive.continuity')
 
 infix ` ≃ₜ `:25 := homeomorph
 

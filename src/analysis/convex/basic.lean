@@ -356,9 +356,9 @@ convex_halfspace_ge (is_linear_map.mk complex.add_im complex.smul_im) _
 
 lemma convex.combo_self (a : α) {x y : α} (h : x + y = 1) : a = x * a + y * a :=
   calc
-      a   = 1 * a           : by rw[one_mul]
-      ... = (x + y) * a     : by rw[h]
-      ... = x * a + y * a   : by rw[add_mul]
+      a   = 1 * a           : by rw [one_mul]
+      ... = (x + y) * a     : by rw [h]
+      ... = x * a + y * a   : by rw [add_mul]
 
 /-
 If x is in an Ioo, it can be expressed as a convex combination of the endpoints.

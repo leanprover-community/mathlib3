@@ -22,7 +22,6 @@ finitely many vertices.
 - Given instances `decidable_rel G.adj` and `fintype V`, then the graph
 is locally finite, too.
 
-
 ## Implementation notes
 
 TODO: This is the simplest notion of an unoriented graph.  This should
@@ -87,7 +86,6 @@ def incident_edges (v : V) : set G.E := {e : G.E | v ∈ e.val}
 /-- Allows us to refer to a vertex being a member of an edge. -/
 instance E.has_mem : has_mem V G.E := { mem := G.incident_edges }
 
-
 instance E.inhabited [inhabited {p : V × V | G.adj p.1 p.2}] : inhabited G.E :=
 ⟨begin
   rcases inhabited.default {p : V × V | G.adj p.1 p.2} with ⟨⟨x, y⟩, h⟩,
@@ -140,7 +138,6 @@ by simp [degree, neighbors]
 
 end finite_at
 
-
 section locally_finite
 
 variable [∀ (v : V), fintype (G.adj v)]
@@ -151,7 +148,6 @@ A regular graph is a locally finite graph such that every vertex has the same de
 def regular_graph (d : ℕ) : Prop := ∀ (v : V), G.degree v = d
 
 end locally_finite
-
 
 section finite
 

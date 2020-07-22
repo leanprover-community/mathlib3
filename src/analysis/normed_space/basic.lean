@@ -463,20 +463,10 @@ lemma mul_left_bound {α : Type*} [normed_ring α] (x : α) :
   ∀ (y:α), ∥add_monoid_hom.mul_left x y∥ ≤ ∥x∥ * ∥y∥ :=
 norm_mul_le x
 
-/-- In a normed ring, the left-multiplication `add_monoid_hom` is continuous. -/
-lemma mul_left_continuous {α : Type*} [normed_ring α] (x : α) :
-  continuous (add_monoid_hom.mul_left x) :=
-(add_monoid_hom.mul_left x).continuous_of_bound ∥x∥ (mul_left_bound x)
-
 /-- In a normed ring, the right-multiplication `add_monoid_hom` is bounded. -/
 lemma mul_right_bound {α : Type*} [normed_ring α] (x : α) :
   ∀ (y:α), ∥add_monoid_hom.mul_right x y∥ ≤ ∥x∥ * ∥y∥ :=
 λ y, by {rw mul_comm, convert norm_mul_le y x}
-
-/-- In a normed ring, the right-multiplication `add_monoid_hom` is continuous. -/
-lemma mul_right_continuous {α : Type*} [normed_ring α] (x : α) :
-  continuous (add_monoid_hom.mul_right x) :=
-(add_monoid_hom.mul_right x).continuous_of_bound ∥x∥ (mul_right_bound x)
 
 /-- Normed ring structure on the product of two normed rings, using the sup norm. -/
 instance prod.normed_ring [normed_ring α] [normed_ring β] : normed_ring (α × β) :=

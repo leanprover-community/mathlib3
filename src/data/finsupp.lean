@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Scott Morrison
 import algebra.big_operators.order
 import algebra.module.basic
 import data.fintype.card
+import data.set.finite
 import data.multiset.antidiagonal
 
 /-!

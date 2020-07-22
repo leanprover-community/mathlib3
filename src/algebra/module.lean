@@ -809,24 +809,3 @@ def add_monoid_hom.to_rat_linear_map [add_comm_group M] [vector_space ℚ M]
   [add_comm_group M₂] [vector_space ℚ M₂] (f : M →+ M₂) :
   M →ₗ[ℚ] M₂ :=
 ⟨f, f.map_add, f.map_rat_module_smul⟩
-
-namespace finset
-
-variable (R)
-
-lemma sum_const' [semiring R] [add_comm_monoid M] [semimodule R M] {s : finset ι} (b : M) :
-  (∑ i in s, b) = (finset.card s : R) • b :=
-by rw [finset.sum_const, ← semimodule.smul_eq_smul]; refl
-
-variables {R} [decidable_linear_ordered_cancel_add_comm_monoid M]
-  {s : finset ι} (f : ι → M)
-
-theorem exists_card_smul_le_sum (hs : s.nonempty) :
-  ∃ i ∈ s, s.card • f i ≤ (∑ i in s, f i) :=
-exists_le_of_sum_le hs $ by rw [sum_const, ← nat.smul_def, smul_sum]
-
-theorem exists_card_smul_ge_sum (hs : s.nonempty) :
-  ∃ i ∈ s, (∑ i in s, f i) ≤ s.card • f i :=
-exists_le_of_sum_le hs $ by rw [sum_const, ← nat.smul_def, smul_sum]
-
-end finset

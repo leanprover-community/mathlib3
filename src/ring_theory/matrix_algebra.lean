@@ -3,9 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import tactic.tidy
 import ring_theory.tensor_product
-import data.matrix.basic
 
 /-!
 We provide the `R`-algebra structure on `matrix n n A` when `A` is an `R`-algebra,

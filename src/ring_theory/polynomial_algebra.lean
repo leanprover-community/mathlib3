@@ -3,7 +3,6 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import ring_theory.tensor_product
 import ring_theory.matrix_algebra
 import data.polynomial.algebra_map
 

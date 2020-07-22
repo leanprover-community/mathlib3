@@ -1,11 +1,10 @@
 /-
-Copyright (c) 2014 Floris van Doorn. All rights reserved.
+Copyright (c) 2014 Floris van Doorn (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import algebra.ordered_ring
 import algebra.order_functions
-import init_.data.nat.lemmas
+import data.set.basic
 
 /-!
 # Basic operations on the natural numbers
@@ -22,21 +21,102 @@ universes u v
 
 attribute [protected] nat.pow_zero nat.pow_succ
 
+instance : nontrivial ℕ :=
+⟨⟨0, 1, nat.zero_ne_one⟩⟩
+
+instance : comm_semiring nat :=
+{ add            := nat.add,
+  add_assoc      := nat.add_assoc,
+  zero           := nat.zero,
+  zero_add       := nat.zero_add,
+  add_zero       := nat.add_zero,
+  add_comm       := nat.add_comm,
+  mul            := nat.mul,
+  mul_assoc      := nat.mul_assoc,
+  one            := nat.succ nat.zero,
+  one_mul        := nat.one_mul,
+  mul_one        := nat.mul_one,
+  left_distrib   := nat.left_distrib,
+  right_distrib  := nat.right_distrib,
+  zero_mul       := nat.zero_mul,
+  mul_zero       := nat.mul_zero,
+  mul_comm       := nat.mul_comm }
+
+instance : decidable_linear_ordered_semiring nat :=
+{ add_left_cancel            := @nat.add_left_cancel,
+  add_right_cancel           := @nat.add_right_cancel,
+  lt                         := nat.lt,
+  add_le_add_left            := @nat.add_le_add_left,
+  le_of_add_le_add_left      := @nat.le_of_add_le_add_left,
+  zero_lt_one                := nat.zero_lt_succ 0,
+  mul_lt_mul_of_pos_left     := @nat.mul_lt_mul_of_pos_left,
+  mul_lt_mul_of_pos_right    := @nat.mul_lt_mul_of_pos_right,
+  decidable_eq               := nat.decidable_eq,
+  ..nat.comm_semiring, ..nat.decidable_linear_order }
+
+-- all the fields are already included in the decidable_linear_ordered_semiring instance
+instance : decidable_linear_ordered_cancel_add_comm_monoid ℕ :=
+{ add_left_cancel := @nat.add_left_cancel,
+  ..nat.decidable_linear_ordered_semiring }
+
+/- Extra instances to short-circuit type class resolution -/
+instance : add_comm_monoid nat    := by apply_instance
+instance : add_monoid nat         := by apply_instance
+instance : monoid nat             := by apply_instance
+instance : comm_monoid nat        := by apply_instance
+instance : comm_semigroup nat     := by apply_instance
+instance : semigroup nat          := by apply_instance
+instance : add_comm_semigroup nat := by apply_instance
+instance : add_semigroup nat      := by apply_instance
+instance : distrib nat            := by apply_instance
+instance : semiring nat           := by apply_instance
+instance : ordered_semiring nat   := by apply_instance
+
 instance : canonically_ordered_comm_semiring ℕ :=
 { le_iff_exists_add := assume a b,
   ⟨assume h, let ⟨c, hc⟩ := nat.le.dest h in ⟨c, hc.symm⟩,
     assume ⟨c, hc⟩, hc.symm ▸ nat.le_add_right _ _⟩,
-  zero_ne_one       := ne_of_lt zero_lt_one,
-  mul_eq_zero_iff   := assume a b,
-    iff.intro nat.eq_zero_of_mul_eq_zero (by simp [or_imp_distrib] {contextual := tt}),
+  eq_zero_or_eq_zero_of_mul_eq_zero   := assume a b, nat.eq_zero_of_mul_eq_zero,
   bot               := 0,
   bot_le            := nat.zero_le,
+  .. nat.nontrivial,
   .. (infer_instance : ordered_add_comm_monoid ℕ),
   .. (infer_instance : linear_ordered_semiring ℕ),
   .. (infer_instance : comm_semiring ℕ) }
 
+instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred s] [h : nonempty s] :
+  semilattice_sup_bot s :=
+{ bot := ⟨nat.find (nonempty_subtype.1 h), nat.find_spec (nonempty_subtype.1 h)⟩,
+  bot_le := λ x, nat.find_min' _ x.2,
+  ..subtype.linear_order s,
+  ..lattice_of_decidable_linear_order }
+
 namespace nat
 variables {m n k : ℕ}
+
+theorem mul_self_le_mul_self {n m : ℕ} (h : n ≤ m) : n * n ≤ m * m :=
+mul_le_mul h h (zero_le _) (zero_le _)
+
+theorem mul_self_lt_mul_self : Π {n m : ℕ}, n < m → n * n < m * m
+| 0        m h := mul_pos h h
+| (succ n) m h := mul_lt_mul h (le_of_lt h) (succ_pos _) (zero_le _)
+
+theorem mul_self_le_mul_self_iff {n m : ℕ} : n ≤ m ↔ n * n ≤ m * m :=
+⟨mul_self_le_mul_self, λh, decidable.by_contradiction $
+  λhn, not_lt_of_ge h $ mul_self_lt_mul_self $ lt_of_not_ge hn⟩
+
+theorem mul_self_lt_mul_self_iff {n m : ℕ} : n < m ↔ n * n < m * m :=
+iff.trans (lt_iff_not_ge _ _) $ iff.trans (not_iff_not_of_iff mul_self_le_mul_self_iff) $
+  iff.symm (lt_iff_not_ge _ _)
+
+theorem le_mul_self : Π (n : ℕ), n ≤ n * n
+| 0     := le_refl _
+| (n+1) := let t := mul_le_mul_left (n+1) (succ_pos n) in by simp at t; exact t
+
+theorem eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : m > 0) (H : n * m = k * m) : n = k :=
+by rw [mul_comm n m, mul_comm k m] at H; exact eq_of_mul_eq_mul_left Hm H
+
+theorem one_add (n : ℕ) : 1 + n = succ n := by simp [add_comm]
 
 -- Sometimes a bare `nat.add` or similar appears as a consequence of unfolding
 -- during pattern matching. These lemmas package them back up as typeclass
@@ -50,7 +130,9 @@ attribute [simp] nat.sub_self
 @[simp] lemma succ_pos' {n : ℕ} : 0 < succ n := succ_pos n
 
 theorem succ_inj' {n m : ℕ} : succ n = succ m ↔ n = m :=
-⟨succ_inj, congr_arg _⟩
+⟨succ.inj, congr_arg _⟩
+
+theorem succ_injective : function.injective nat.succ := λ x y, succ.inj
 
 theorem succ_le_succ_iff {m n : ℕ} : succ m ≤ succ n ↔ m ≤ n :=
 ⟨le_of_succ_le_succ, succ_le_succ⟩
@@ -389,6 +471,15 @@ mt (congr_arg (%2)) (by rw [add_comm, add_mul_mod_self_left, mul_mod_right]; exa
 @[elab_as_eliminator]
 protected def strong_rec' {p : ℕ → Sort u} (H : ∀ n, (∀ m, m < n → p m) → p n) : ∀ (n : ℕ), p n
 | n := H n (λ m hm, strong_rec' m)
+
+/-- Recursion principle based on `<` applied to some natural number. -/
+@[elab_as_eliminator]
+def strong_rec_on' {P : ℕ → Sort*} (n : ℕ) (h : ∀ n, (∀ m, m < n → P m) → P n) : P n :=
+nat.strong_rec' h n
+
+theorem strong_rec_on_beta' {P : ℕ → Sort*} {h} {n : ℕ} :
+  (strong_rec_on' n h : P n) = h n (λ m hmn, (strong_rec_on' m h : P m)) :=
+by { simp only [strong_rec_on'], rw nat.strong_rec' }
 
 attribute [simp] nat.div_self
 
@@ -1050,7 +1141,7 @@ begin
   cases b, {exact absurd rfl h},
   have : shiftl' tt m n + 1 = 1 := congr_arg (+1) s0,
   rw [shiftl'_tt_eq_mul_pow] at this,
-  have m0 := succ_inj (eq_one_of_dvd_one ⟨_, this.symm⟩),
+  have m0 := succ.inj (eq_one_of_dvd_one ⟨_, this.symm⟩),
   subst m0,
   simp at this,
   have : n = 0 := eq_zero_of_le_zero (le_of_not_gt $ λ hn,
@@ -1319,6 +1410,22 @@ iff.intro
   (assume ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
   (assume h, h.symm ▸ ⟨1, rfl⟩)
 
+section find
+
+@[simp] lemma find_eq_zero {p : ℕ → Prop} [decidable_pred p] (h : ∃ (n : ℕ), p n) :
+  nat.find h = 0 ↔ p 0 :=
+begin
+  split,
+  { intro h0, rw [← h0], apply nat.find_spec },
+  { intro hp, apply nat.eq_zero_of_le_zero, exact nat.find_min' _ hp }
+end
+
+@[simp] lemma find_pos {p : ℕ → Prop} [decidable_pred p] (h : ∃ (n : ℕ), p n) :
+  0 < nat.find h ↔ ¬ p 0 :=
+by rw [nat.pos_iff_ne_zero, not_iff_not, nat.find_eq_zero]
+
+end find
+
 section find_greatest
 
 /-- `find_greatest P b` is the largest `i ≤ bound` such that `P i` holds, or `0` if no such `i`
@@ -1426,6 +1533,24 @@ begin
   apply mul_pos,
   repeat {assumption},
   cc
+end
+
+@[simp]
+lemma div_div_div_eq_div : ∀ {a b c : ℕ} (dvd : b ∣ a) (dvd2 : a ∣ c), (c / (a / b)) / b = c / a
+| 0 _ := by simp
+| (a + 1) 0 := λ _ dvd _, by simpa using dvd
+| (a + 1) (c + 1) :=
+have a_split : a + 1 ≠ 0 := succ_ne_zero a,
+have c_split : c + 1 ≠ 0 := succ_ne_zero c,
+λ b dvd dvd2,
+begin
+  rcases dvd2 with ⟨k, rfl⟩,
+  rcases dvd with ⟨k2, pr⟩,
+  have k2_nonzero : k2 ≠ 0 := λ k2_zero, by simpa [k2_zero] using pr,
+  rw [nat.mul_div_cancel_left k (nat.pos_of_ne_zero a_split), pr,
+    nat.mul_div_cancel_left k2 (nat.pos_of_ne_zero c_split), nat.mul_comm ((c + 1) * k2) k,
+    ←nat.mul_assoc k (c + 1) k2, nat.mul_div_cancel _ (nat.pos_of_ne_zero k2_nonzero),
+    nat.mul_div_cancel _ (nat.pos_of_ne_zero c_split)],
 end
 
 lemma pow_dvd_of_le_of_pow_dvd {p m n k : ℕ} (hmn : m ≤ n) (hdiv : p ^ n ∣ k) : p ^ m ∣ k :=

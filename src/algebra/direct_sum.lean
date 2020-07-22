@@ -7,6 +7,8 @@ Direct sum of abelian groups, indexed by a discrete type.
 -/
 import data.dfinsupp
 
+open_locale big_operators
+
 universes u v w u₁
 
 variables (ι : Type v) [decidable_eq ι] (β : ι → Type w) [Π i, add_comm_group (β i)]
@@ -60,11 +62,11 @@ is_add_group_hom.map_neg _ x
 @[simp] lemma of_sub (i : ι) (x y) : of β i (x - y) = of β i x - of β i y :=
 is_add_group_hom.map_sub _ x y
 
-theorem mk_inj (s : finset ι) : function.injective (mk β s) :=
-dfinsupp.mk_inj s
+theorem mk_injective (s : finset ι) : function.injective (mk β s) :=
+dfinsupp.mk_injective s
 
-theorem of_inj (i : ι) : function.injective (of β i) :=
-λ x y H, congr_fun (mk_inj _ H) ⟨i, by simp⟩
+theorem of_injective (i : ι) : function.injective (of β i) :=
+λ x y H, congr_fun (mk_injective _ H) ⟨i, by simp⟩
 
 @[elab_as_eliminator]
 protected theorem induction_on {C : direct_sum ι β → Prop}
@@ -82,7 +84,7 @@ variables (φ : Π i, β i → γ) [Π i, is_add_group_hom (φ i)]
 
 variables (φ)
 def to_group (f : direct_sum ι β) : γ :=
-quotient.lift_on f (λ x, x.2.to_finset.sum $ λ i, φ i (x.1 i)) $ λ x y H,
+quotient.lift_on f (λ x, ∑ i in x.2.to_finset, φ i (x.1 i)) $ λ x y H,
 begin
   have H1 : x.2.to_finset ∩ y.2.to_finset ⊆ x.2.to_finset, from finset.inter_subset_left _ _,
   have H2 : x.2.to_finset ∩ y.2.to_finset ⊆ y.2.to_finset, from finset.inter_subset_right _ _,
@@ -102,7 +104,7 @@ instance to_group.is_add_group_hom : is_add_group_hom (to_group φ) :=
 begin
   refine quotient.induction_on f (λ x, _),
   refine quotient.induction_on g (λ y, _),
-  change finset.sum _ _ = finset.sum _ _ + finset.sum _ _,
+  change ∑ i in _, _ = (∑ i in _, _) + (∑ i in _, _),
   simp only, conv { to_lhs, congr, skip, funext, rw is_add_hom.map_add (φ i) },
   simp only [finset.sum_add_distrib],
   congr' 1,

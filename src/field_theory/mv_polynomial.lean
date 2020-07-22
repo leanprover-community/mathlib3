@@ -19,9 +19,6 @@ namespace mv_polynomial
 universes u v
 variables {σ : Type u} {α : Type v}
 
-instance [field α] : vector_space α (mv_polynomial σ α) :=
-finsupp.vector_space _ _
-
 section
 variables (σ α) [field α] (m : ℕ)
 def restrict_total_degree : submodule α (mv_polynomial σ α) :=
@@ -62,10 +59,13 @@ lemma map_range_eq_map {β : Type*}
   (f : α → β) [is_semiring_hom f]:
   finsupp.map_range f (is_semiring_hom.map_zero f) p = p.map f :=
 begin
-  rw [← finsupp.sum_single p, finsupp.sum, finsupp.map_range_finset_sum,
-    ← p.support.sum_hom (map f)],
+  rw [← finsupp.sum_single p, finsupp.sum],
+  -- It's not great that we need to use an `erw` here,
+  -- but hopefully it will become smoother when we move entirely away from `is_semiring_hom`.
+  erw [finsupp.map_range_finset_sum (add_monoid_hom.of f)],
+  rw [← p.support.sum_hom (map f)],
   { refine finset.sum_congr rfl (assume n _, _),
-    rw [finsupp.map_range_single, ← monomial, ← monomial, map_monomial] },
+    rw [finsupp.map_range_single, ← monomial, ← monomial, map_monomial, add_monoid_hom.coe_of], },
   apply_instance
 end
 
@@ -137,7 +137,7 @@ begin
 end
 
 lemma degrees_indicator (c : σ → α) :
-  degrees (indicator c) ≤ finset.univ.sum (λs:σ, (fintype.card α - 1) •ℕ {s}) :=
+  degrees (indicator c) ≤ ∑ s : σ, (fintype.card α - 1) •ℕ {s} :=
 begin
   rw [indicator],
   refine le_trans (degrees_prod _ _) (finset.sum_le_sum $ assume s hs, _),
@@ -182,7 +182,7 @@ end
 lemma map_restrict_dom_evalₗ : (restrict_degree σ α (fintype.card α - 1)).map (evalₗ α σ) = ⊤ :=
 begin
   refine top_unique (submodule.le_def'.2 $ assume e _, mem_map.2 _),
-  refine ⟨finset.univ.sum (λn:σ → α, e n • indicator n), _, _⟩,
+  refine ⟨∑ n : σ → α, e n • indicator n, _, _⟩,
   { exact sum_mem _ (assume c _, smul_mem _ _ (indicator_mem_restrict_degree _)) },
   { ext n,
     simp only [linear_map.map_sum, @pi.finset_sum_apply (σ → α) (λ_, α) _ _ _ _ _,
@@ -258,5 +258,14 @@ begin
   rw [ker_evalₗ, mem_bot] at this,
   rw [this]
 end
+
+end mv_polynomial
+
+namespace mv_polynomial
+
+variables (σ : Type*) (R : Type*) [comm_ring R] (p : ℕ)
+
+instance [char_p R p] : char_p (mv_polynomial σ R) p :=
+{ cast_eq_zero_iff := λ n, by rw [← C_eq_coe_nat, ← C_0, C_inj, char_p.cast_eq_zero_iff R p] }
 
 end mv_polynomial

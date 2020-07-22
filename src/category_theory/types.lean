@@ -100,6 +100,11 @@ congr_fun (F.map_iso f).hom_inv_id x
 @[simp] lemma map_hom_map_inv_apply (f : X ≅ Y) (y : F.obj Y) : F.map f.hom (F.map f.inv y) = y :=
 congr_fun (F.map_iso f).inv_hom_id y
 
+@[simp] lemma hom_inv_id_app_apply (α : F ≅ G) (X) (x) : α.inv.app X (α.hom.app X x) = x :=
+congr_fun (α.hom_inv_id_app X) x
+@[simp] lemma inv_hom_id_app_apply (α : F ≅ G) (X) (x) : α.hom.app X (α.inv.app X x) = x :=
+congr_fun (α.inv_hom_id_app X) x
+
 end functor_to_types
 
 /--
@@ -122,7 +127,7 @@ def ulift_functor : Type u ⥤ Type (max u v) :=
 instance ulift_functor_full : full.{u} ulift_functor :=
 { preimage := λ X Y f x, (f (ulift.up x)).down }
 instance ulift_functor_faithful : faithful ulift_functor :=
-{ injectivity' := λ X Y f g p, funext $ λ x,
+{ map_injective' := λ X Y f g p, funext $ λ x,
     congr_arg ulift.down ((congr_fun p (ulift.up x)) : ((ulift.up (f x)) = (ulift.up (g x)))) }
 
 /-- Any term `x` of a type `X` corresponds to a morphism `punit ⟶ X`. -/

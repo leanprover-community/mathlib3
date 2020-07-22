@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 Computational realization of filters (experimental).
 -/
-import order.filter.basic
+import order.filter.cofinite
 open set filter
 
 /-- A `cfilter α σ` is a realization of a filter (base) on `α`,
@@ -125,8 +125,7 @@ protected def map (m : α → β) {f : filter α} (F : f.realizer) : (map m f).r
   inf          := F.F.inf,
   inf_le_left  := λ a b, image_subset _ (F.F.inf_le_left _ _),
   inf_le_right := λ a b, image_subset _ (F.F.inf_le_right _ _) },
-filter_eq $ set.ext $ λ x, by simp [cfilter.to_filter]; rw F.mem_sets; exact
-exists_congr (λ s, image_subset_iff)⟩
+filter_eq $ set.ext $ λ x, by simp [cfilter.to_filter]; rw F.mem_sets; refl ⟩
 
 @[simp] theorem map_σ (m : α → β) {f : filter α} (F : f.realizer) : (F.map m).σ = F.σ := rfl
 @[simp] theorem map_F (m : α → β) {f : filter α} (F : f.realizer) (s) :
@@ -173,9 +172,9 @@ protected def cofinite [decidable_eq α] : (@cofinite α).realizer := ⟨finset 
   inf          := (∪),
   inf_le_left  := λ s t a, mt (finset.mem_union_left _),
   inf_le_right := λ s t a, mt (finset.mem_union_right _) },
-filter_eq $ set.ext $ λ x, by simp [cfilter.to_filter]; exactI
-⟨λ ⟨s, h⟩, finite_subset (finite_mem_finset s) (compl_subset_comm.1 h),
- λ ⟨fs⟩, ⟨(-x).to_finset, λ a (h : a ∉ (-x).to_finset),
+filter_eq $ set.ext $ λ x,
+⟨λ ⟨s, h⟩, s.finite_to_set.subset (compl_subset_comm.1 h),
+ λ ⟨fs⟩, by exactI ⟨xᶜ.to_finset, λ a (h : a ∉ xᶜ.to_finset),
   classical.by_contradiction $ λ h', h (mem_to_finset.2 h')⟩⟩⟩
 
 /-- Construct a realizer for filter bind -/

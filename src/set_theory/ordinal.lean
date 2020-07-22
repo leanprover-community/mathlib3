@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
 import set_theory.cardinal
+import tactic.omega
 
 /-!
 # Ordinal arithmetic
@@ -71,7 +72,7 @@ theorem unique_of_extensional [is_extensional β s] :
   well_founded r → subsingleton (r ≼i s) | ⟨h⟩ :=
 ⟨λ f g, begin
   suffices : (f : α → β) = g, { cases f, cases g,
-    congr, exact order_embedding.coe_fn_injective this },
+    congr, exact order_embedding.coe_fn_inj this },
   funext a, have := h a, induction this with a H IH,
   refine @is_extensional.ext _ s _ _ _ (λ x, ⟨λ h, _, λ h, _⟩),
   { rcases f.init_iff.1 h with ⟨y, rfl, h'⟩,
@@ -221,7 +222,7 @@ instance [is_well_order β s] : subsingleton (r ≺i s) :=
   { refine @is_extensional.ext _ s _ _ _ (λ x, _),
     simp only [f.down, g.down, ef, coe_fn_to_order_embedding] },
   cases f, cases g,
-  have := order_embedding.coe_fn_injective ef; congr'
+  have := order_embedding.coe_fn_inj ef; congr'
 end⟩
 
 theorem top_eq [is_well_order γ t]
@@ -518,12 +519,12 @@ theorem typein_surj (r : α → α → Prop) [is_well_order α r]
   {o} (h : o < type r) : ∃ a, typein r a = o :=
 induction_on o (λ β s _ ⟨f⟩, by exactI ⟨f.top, typein_top _⟩) h
 
-lemma injective_typein (r : α → α → Prop) [is_well_order α r] : injective (typein r) :=
+lemma typein_injective (r : α → α → Prop) [is_well_order α r] : injective (typein r) :=
 injective_of_increasing r (<) (typein r) (λ x y, (typein_lt_typein r).2)
 
 theorem typein_inj (r : α → α → Prop) [is_well_order α r]
   {a b} : typein r a = typein r b ↔ a = b :=
-injective.eq_iff (injective_typein r)
+injective.eq_iff (typein_injective r)
 
 /-- `enum r o h` is the `o`-th element of `α` ordered by `r`.
   That is, `enum` maps an initial segment of the ordinals, those
@@ -723,7 +724,7 @@ by rw [one_le_iff_pos, pos_iff_ne_zero]
 theorem add_le_add_left {a b : ordinal} : a ≤ b → ∀ c, c + a ≤ c + b :=
 induction_on a $ λ α₁ r₁ _, induction_on b $ λ α₂ r₂ _ ⟨⟨⟨f, fo⟩, fi⟩⟩ c,
 induction_on c $ λ β s _,
-⟨⟨⟨(embedding.refl _).sum_congr f,
+⟨⟨⟨(embedding.refl _).sum_map f,
   λ a b, match a, b with
     | sum.inl a, sum.inl b := sum.lex_inl_inl.trans sum.lex_inl_inl.symm
     | sum.inl a, sum.inr b := by apply iff_of_true; apply sum.lex.sep
@@ -904,7 +905,7 @@ induction_on a $ λ α₁ r₁ hr₁, induction_on b $ λ α₂ r₂ hr₂ ⟨�
 induction_on c $ λ β s hs, (@type_le' _ _ _ _
   (@sum.lex.is_well_order _ _ _ _ hr₁ hs)
   (@sum.lex.is_well_order _ _ _ _ hr₂ hs)).2
-⟨⟨embedding.sum_congr f (embedding.refl _), λ a b, begin
+⟨⟨f.sum_map (embedding.refl _), λ a b, begin
   split; intro H,
   { cases H; constructor; [rwa ← fo, assumption] },
   { cases a with a a; cases b with b b; cases H; constructor; [rwa fo, assumption] }
@@ -973,17 +974,21 @@ by simp only [le_antisymm_iff, add_le_add_iff_right]
   exact ⟨f punit.star⟩
 end, λ e, by simp only [e, card_zero]⟩
 
+
 theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonempty α :=
 (not_congr (@card_eq_zero (type r))).symm.trans ne_zero_iff_nonempty
 
 @[simp] theorem type_eq_zero_iff_empty [is_well_order α r] : type r = 0 ↔ ¬ nonempty α :=
 (not_iff_comm.1 type_ne_zero_iff_nonempty).symm
 
-instance : nonzero ordinal.{u} :=
-{ zero_ne_one := ne.symm $ type_ne_zero_iff_nonempty.2 ⟨punit.star⟩ }
+protected lemma one_ne_zero : (1 : ordinal) ≠ 0 :=
+type_ne_zero_iff_nonempty.2 ⟨punit.star⟩
+
+instance : nontrivial ordinal.{u} :=
+⟨⟨1, 0, ordinal.one_ne_zero⟩⟩
 
 theorem zero_lt_one : (0 : ordinal) < 1 :=
-lt_iff_le_and_ne.2 ⟨zero_le _, zero_ne_one⟩
+lt_iff_le_and_ne.2 ⟨zero_le _, ne.symm $ ordinal.one_ne_zero⟩
 
 /-- The ordinal predecessor of `o` is `o'` if `o = succ o'`,
   and `o` otherwise. -/
@@ -1308,7 +1313,7 @@ def lift.principal_seg : @principal_seg ordinal.{u} ordinal.{max (u+1) v} (<) (<
   { rw ← lift_id (type s) at h ⊢,
     cases lift_type_lt.1 h with f, cases f with f a hf,
     existsi a, revert hf,
-    apply induction_on a, intros α r _ hf,
+    apply induction_on a, introsI α r _ hf,
     refine lift_type_eq.{u (max (u+1) v) (max (u+1) v)}.2
       ⟨(order_iso.of_surjective (order_embedding.of_monotone _ _) _).symm⟩,
     { exact λ b, enum r (f b) ((hf _).2 ⟨_, rfl⟩) },
@@ -1318,7 +1323,7 @@ def lift.principal_seg : @principal_seg ordinal.{u} ordinal.{max (u+1) v} (<) (<
     { intro a', cases (hf _).1 (typein_lt_type _ a') with b e,
       existsi b, simp, simp [e] } },
   { cases h with a e, rw [← e],
-    apply induction_on a, intros α r _,
+    apply induction_on a, introsI α r _,
     exact lift_type_lt.{u (u+1) (max (u+1) v)}.2
       ⟨typein.principal_seg r⟩ }
 end⟩
@@ -1651,7 +1656,7 @@ by rw [← le_zero, div_le $ pos_iff_ne_zero.1 $ lt_of_le_of_lt (zero_le _) h];
 by simpa only [add_zero, zero_div] using mul_add_div a b0 0
 
 @[simp] theorem div_one (a : ordinal) : a / 1 = a :=
-by simpa only [one_mul] using mul_div_cancel a one_ne_zero
+by simpa only [one_mul] using mul_div_cancel a ordinal.one_ne_zero
 
 @[simp] theorem div_self {a : ordinal} (h : a ≠ 0) : a / a = 1 :=
 by simpa only [mul_one] using mul_div_cancel 1 h
@@ -2032,7 +2037,7 @@ begin
   { simp only [power_zero] },
   { intros _ ih, simp only [power_succ, ih, mul_one] },
   refine λ b l IH, eq_of_forall_ge_iff (λ c, _),
-  rw [power_le_of_limit one_ne_zero l],
+  rw [power_le_of_limit ordinal.one_ne_zero l],
   exact ⟨λ H, by simpa only [power_zero] using H 0 l.pos,
          λ H b' h, by rwa IH _ h⟩,
 end
@@ -2585,7 +2590,8 @@ by unfold CNF; rw [dif_neg b0, dif_neg b0, CNF_rec_ne_zero b0 o0]
 
 theorem one_CNF {o : ordinal} (o0 : o ≠ 0) :
   CNF 1 o = [(0, o)] :=
-by rw [CNF_ne_zero one_ne_zero o0, log_not_one_lt (lt_irrefl _), power_zero, mod_one, CNF_zero, div_one]
+by rw [CNF_ne_zero ordinal.one_ne_zero o0, log_not_one_lt (lt_irrefl _), power_zero, mod_one,
+       CNF_zero, div_one]
 
 theorem CNF_foldr {b : ordinal} (b0 : b ≠ 0) (o) :
   (CNF b o).foldr (λ p r, b ^ p.1 * p.2 + r) 0 = o :=
@@ -2797,7 +2803,7 @@ def aleph_idx.order_iso : @order_iso cardinal.{u} ordinal.{u} (<) (<) :=
   refine ordinal.induction_on o _ this, introsI α r _ h,
   let s := sup.{u u} (λ a:α, inv_fun aleph_idx (ordinal.typein r a)),
   apply not_le_of_gt (lt_succ_self s),
-  have I : injective aleph_idx := aleph_idx.initial_seg.to_embedding.inj,
+  have I : injective aleph_idx := aleph_idx.initial_seg.to_embedding.injective,
   simpa only [typein_enum, left_inverse_inv_fun I (succ s)] using
     le_sup.{u u} (λ a, inv_fun aleph_idx (ordinal.typein r a))
       (ordinal.enum r _ (h (succ s))),
@@ -2918,13 +2924,13 @@ begin
   refine acc.rec_on (cardinal.wf.apply c) (λ c _,
     quotient.induction_on c $ λ α IH ol, _) h,
   rcases ord_eq α with ⟨r, wo, e⟩, resetI,
-  let := decidable_linear_order_of_STO' r,
-  have : is_well_order α (<) := wo,
+  letI := decidable_linear_order_of_STO' r,
+  haveI : is_well_order α (<) := wo,
   let g : α × α → α := λ p, max p.1 p.2,
   let f : α × α ↪ ordinal × (α × α) :=
     ⟨λ p:α×α, (typein (<) (g p), p), λ p q, congr_arg prod.snd⟩,
   let s := f ⁻¹'o (prod.lex (<) (prod.lex (<) (<))),
-  have : is_well_order _ s := (order_embedding.preimage _ _).is_well_order,
+  haveI : is_well_order _ s := (order_embedding.preimage _ _).is_well_order,
   suffices : type s ≤ type r, {exact card_le_card this},
   refine le_of_forall_lt (λ o h, _),
   rcases typein_surj s h with ⟨p, rfl⟩,
@@ -3174,56 +3180,56 @@ lemma mk_bounded_subset_le {α : Type u} (s : set α) (c : cardinal.{u}) :
 begin
   refine le_trans _ (mk_bounded_set_le s c),
   refine ⟨embedding.cod_restrict _ _ _⟩,
-  use λ t, subtype.val ⁻¹' t.1,
+  use λ t, coe ⁻¹' t.1,
   { rintros ⟨t, ht1, ht2⟩ ⟨t', h1t', h2t'⟩ h, apply subtype.eq, dsimp only at h ⊢,
-    refine (preimage_eq_preimage' _ _).1 h; rw [subtype.range_val]; assumption },
+    refine (preimage_eq_preimage' _ _).1 h; rw [subtype.range_coe]; assumption },
   rintro ⟨t, h1t, h2t⟩, exact le_trans (mk_preimage_of_injective _ _ subtype.val_injective) h2t
 end
 
 /- compl -/
 
 lemma mk_compl_of_omega_le {α : Type*} (s : set α) (h : omega ≤ #α) (h2 : #s < #α) :
-  #(-s : set α) = #α :=
+  #(sᶜ : set α) = #α :=
 by { refine eq_of_add_eq_of_omega_le _ h2 h, exact mk_sum_compl s }
 
 lemma mk_compl_finset_of_omega_le {α : Type*} (s : finset α) (h : omega ≤ #α) :
-  #(-↑s : set α) = #α :=
+  #((↑s)ᶜ : set α) = #α :=
 by { apply mk_compl_of_omega_le _ h, exact lt_of_lt_of_le (finset_card_lt_omega s) h }
 
 lemma mk_compl_eq_mk_compl_infinite {α : Type*} {s t : set α} (h : omega ≤ #α) (hs : #s < #α)
-  (ht : #t < #α) : #(-s : set α) = #(-t : set α) :=
+  (ht : #t < #α) : #(sᶜ : set α) = #(tᶜ : set α) :=
 by { rw [mk_compl_of_omega_le s h hs, mk_compl_of_omega_le t h ht] }
 
 lemma mk_compl_eq_mk_compl_finite_lift {α : Type u} {β : Type v} {s : set α} {t : set β}
   (hα : #α < omega) (h1 : lift.{u (max v w)} (#α) = lift.{v (max u w)} (#β))
   (h2 : lift.{u (max v w)} (#s) = lift.{v (max u w)} (#t)) :
-  lift.{u (max v w)} (#(-s : set α)) = lift.{v (max u w)} (#(-t : set β)) :=
+  lift.{u (max v w)} (#(sᶜ : set α)) = lift.{v (max u w)} (#(tᶜ : set β)) :=
 begin
   have hα' := hα, have h1' := h1,
   rw [← mk_sum_compl s, ← mk_sum_compl t] at h1,
   rw [← mk_sum_compl s, add_lt_omega_iff] at hα,
   lift #s to ℕ using hα.1 with n hn,
-  lift #(- s : set α) to ℕ using hα.2 with m hm,
-  have : #(- t : set β) < omega,
+  lift #(sᶜ : set α) to ℕ using hα.2 with m hm,
+  have : #(tᶜ : set β) < omega,
   { refine lt_of_le_of_lt (mk_subtype_le _) _,
     rw [← lift_lt, lift_omega, ← h1', ← lift_omega.{u (max v w)}, lift_lt], exact hα' },
-  lift #(- t : set β) to ℕ using this with k hk,
+  lift #(tᶜ : set β) to ℕ using this with k hk,
   simp [nat_eq_lift_eq_iff] at h2, rw [nat_eq_lift_eq_iff.{v (max u w)}] at h2,
   simp [h2.symm] at h1 ⊢, norm_cast at h1, simp at h1, exact h1
 end
 
 lemma mk_compl_eq_mk_compl_finite {α β : Type u} {s : set α} {t : set β}
-  (hα : #α < omega) (h1 : #α = #β) (h : #s = #t) : #(-s : set α) = #(-t : set β) :=
+  (hα : #α < omega) (h1 : #α = #β) (h : #s = #t) : #(sᶜ : set α) = #(tᶜ : set β) :=
 by { rw [← lift_inj], apply mk_compl_eq_mk_compl_finite_lift hα; rw [lift_inj]; assumption }
 
 lemma mk_compl_eq_mk_compl_finite_same {α : Type*} {s t : set α} (hα : #α < omega)
-  (h : #s = #t) : #(-s : set α) = #(-t : set α) :=
+  (h : #s = #t) : #(sᶜ : set α) = #(tᶜ : set α) :=
 mk_compl_eq_mk_compl_finite hα rfl h
 
 /- extend an injection to an equiv -/
 
 theorem extend_function {α β : Type*} {s : set α} (f : s ↪ β)
-  (h : nonempty ((-s : set α) ≃ (- range f : set β))) :
+  (h : nonempty ((sᶜ : set α) ≃ ((range f)ᶜ : set β))) :
   ∃ (g : α ≃ β), ∀ x : s, g x = f x :=
 begin
   intros, have := h, cases this with g,
@@ -3255,5 +3261,268 @@ begin
     rwa [← lift_lt, ← h, mk_range_eq_lift, lift_lt], exact f.2 },
   { exact extend_function_finite f hα h }
 end
+
+section bit
+/-!
+This section proves inequalities for `bit0` and `bit1`, enabling `simp` to solve inequalities
+for numeral cardinals. The complexity of the resulting algorithm is not good, as in some cases
+`simp` reduces an inequality to a disjunction of two situations, depending on whether a cardinal
+is finite or infinite. Since the evaluation of the branches is not lazy, this is bad. It is good
+enough for practical situations, though.
+
+For specific numbers, these inequalities could also be deduced from the corresponding
+inequalities of natural numbers using `norm_cast`:
+```
+example : (37 : cardinal) < 42 :=
+by { norm_cast, norm_num }
+```
+-/
+
+@[simp] lemma bit0_ne_zero (a : cardinal) : ¬bit0 a = 0 ↔ ¬a = 0 :=
+by simp [bit0]
+
+@[simp] lemma bit1_ne_zero (a : cardinal) : ¬bit1 a = 0 :=
+by simp [bit1]
+
+@[simp] lemma zero_lt_bit0 (a : cardinal) : 0 < bit0 a ↔ 0 < a :=
+by { rw ←not_iff_not, simp [bit0], }
+
+@[simp] lemma zero_lt_bit1 (a : cardinal) : 0 < bit1 a :=
+lt_of_lt_of_le zero_lt_one (le_add_left _ _)
+
+@[simp] lemma one_le_bit0 (a : cardinal) : 1 ≤ bit0 a ↔ 0 < a :=
+⟨λ h, (zero_lt_bit0 a).mp (lt_of_lt_of_le zero_lt_one h),
+ λ h, le_trans (one_le_iff_pos.mpr h) (le_add_left a a)⟩
+
+@[simp] lemma one_le_bit1 (a : cardinal) : 1 ≤ bit1 a :=
+le_add_left _ _
+
+theorem bit0_eq_self {c : cardinal} (h : omega ≤ c) : bit0 c = c :=
+add_eq_self h
+
+@[simp] theorem bit0_lt_omega {c : cardinal} : bit0 c < omega ↔ c < omega :=
+by simp [bit0, add_lt_omega_iff]
+
+@[simp] theorem omega_le_bit0 {c : cardinal} : omega ≤ bit0 c ↔ omega ≤ c :=
+by { rw ← not_iff_not, simp }
+
+@[simp] theorem bit1_eq_self_iff {c : cardinal} : bit1 c = c ↔ omega ≤ c :=
+begin
+  by_cases h : omega ≤ c,
+  { simp only [bit1, bit0_eq_self h, h, eq_self_iff_true, add_one_of_omega_le] },
+  { simp only [h, iff_false],
+    apply ne_of_gt,
+    rcases lt_omega.1 (not_le.1 h) with ⟨n, rfl⟩,
+    norm_cast,
+    dsimp [bit1, bit0],
+    omega }
+end
+
+@[simp] theorem bit1_lt_omega {c : cardinal} : bit1 c < omega ↔ c < omega :=
+by simp [bit1, bit0, add_lt_omega_iff, one_lt_omega]
+
+@[simp] theorem omega_le_bit1 {c : cardinal} : omega ≤ bit1 c ↔ omega ≤ c :=
+by { rw ← not_iff_not, simp }
+
+@[simp] lemma bit0_le_bit0 {a b : cardinal} : bit0 a ≤ bit0 b ↔ a ≤ b :=
+begin
+  by_cases ha : omega ≤ a; by_cases hb : omega ≤ b,
+  { rw [bit0_eq_self ha, bit0_eq_self hb] },
+  { rw bit0_eq_self ha,
+    have I1 : ¬ (a ≤ b),
+    { assume h, apply hb, exact le_trans ha h },
+    have I2 : ¬ (a ≤ bit0 b),
+    { assume h,
+      have A : bit0 b < omega, by simpa using hb,
+      exact lt_irrefl _ (lt_of_lt_of_le (lt_of_lt_of_le A ha) h) },
+    simp [I1, I2] },
+  { rw [bit0_eq_self hb],
+    simp only [not_le] at ha,
+    have I1 : a ≤ b := le_of_lt (lt_of_lt_of_le ha hb),
+    have I2 : bit0 a ≤ b := le_trans (le_of_lt (bit0_lt_omega.2 ha)) hb,
+    simp [I1, I2] },
+  { simp at ha hb,
+    rcases lt_omega.1 ha with ⟨m, rfl⟩,
+    rcases lt_omega.1 hb with ⟨n, rfl⟩,
+    norm_cast,
+    simp }
+end
+
+@[simp] lemma bit0_le_bit1 {a b : cardinal} : bit0 a ≤ bit1 b ↔ a ≤ b :=
+begin
+  by_cases ha : omega ≤ a; by_cases hb : omega ≤ b,
+  { rw [bit0_eq_self ha, bit1_eq_self_iff.2 hb], },
+  { rw bit0_eq_self ha,
+    have I1 : ¬ (a ≤ b),
+    { assume h, apply hb, exact le_trans ha h },
+    have I2 : ¬ (a ≤ bit1 b),
+    { assume h,
+      have A : bit1 b < omega, by simpa using hb,
+      exact lt_irrefl _ (lt_of_lt_of_le (lt_of_lt_of_le A ha) h) },
+    simp [I1, I2] },
+  { rw [bit1_eq_self_iff.2 hb],
+    simp only [not_le] at ha,
+    have I1 : a ≤ b := le_of_lt (lt_of_lt_of_le ha hb),
+    have I2 : bit0 a ≤ b := le_trans (le_of_lt (bit0_lt_omega.2 ha)) hb,
+    simp [I1, I2] },
+  { simp at ha hb,
+    rcases lt_omega.1 ha with ⟨m, rfl⟩,
+    rcases lt_omega.1 hb with ⟨n, rfl⟩,
+    norm_cast,
+    simp }
+end
+
+@[simp] lemma bit1_le_bit1 {a b : cardinal} : bit1 a ≤ bit1 b ↔ a ≤ b :=
+begin
+  split,
+  { assume h,
+    apply bit0_le_bit1.1 (le_trans ((bit0 a).le_add_right 1) h) },
+  { assume h,
+    calc a + a + 1 ≤ a + b + 1 : add_le_add_right 1 (add_le_add_left a h)
+           ... ≤ b + b + 1 : add_le_add_right 1 (add_le_add_right b h) }
+end
+
+@[simp] lemma bit1_le_bit0 {a b : cardinal} : bit1 a ≤ bit0 b ↔ (a < b ∨ (a ≤ b ∧ omega ≤ a)) :=
+begin
+  by_cases ha : omega ≤ a; by_cases hb : omega ≤ b,
+  { simp only [bit1_eq_self_iff.mpr ha, bit0_eq_self hb, ha, and_true],
+    refine ⟨λ h, or.inr h, λ h, _⟩,
+    cases h,
+    { exact le_of_lt h },
+    { exact h } },
+  { rw bit1_eq_self_iff.2 ha,
+    have I1 : ¬ (a ≤ b),
+    { assume h, apply hb, exact le_trans ha h },
+    have I2 : ¬ (a ≤ bit0 b),
+    { assume h,
+      have A : bit0 b < omega, by simpa using hb,
+      exact lt_irrefl _ (lt_of_lt_of_le (lt_of_lt_of_le A ha) h) },
+    simp [I1, I2, le_of_not_ge I1] },
+  { rw [bit0_eq_self hb],
+    simp only [not_le] at ha,
+    have I1 : a < b := lt_of_lt_of_le ha hb,
+    have I2 : bit1 a ≤ b := le_trans (le_of_lt (bit1_lt_omega.2 ha)) hb,
+    simp [I1, I2] },
+  { simp at ha hb,
+    rcases lt_omega.1 ha with ⟨m, rfl⟩,
+    rcases lt_omega.1 hb with ⟨n, rfl⟩,
+    norm_cast,
+    simp [not_le.mpr ha], }
+end
+
+@[simp] lemma bit0_lt_bit0 {a b : cardinal} : bit0 a < bit0 b ↔ a < b :=
+begin
+  by_cases ha : omega ≤ a; by_cases hb : omega ≤ b,
+  { rw [bit0_eq_self ha, bit0_eq_self hb] },
+  { rw bit0_eq_self ha,
+    have I1 : ¬ (a < b),
+    { assume h, apply hb, exact le_trans ha (le_of_lt h) },
+    have I2 : ¬ (a < bit0 b),
+    { assume h,
+      have A : bit0 b < omega, by simpa using hb,
+      exact lt_irrefl _ (lt_trans (lt_of_lt_of_le A ha) h) },
+    simp [I1, I2] },
+  { rw [bit0_eq_self hb],
+    simp only [not_le] at ha,
+    have I1 : a < b := lt_of_lt_of_le ha hb,
+    have I2 : bit0 a < b := lt_of_lt_of_le (bit0_lt_omega.2 ha) hb,
+    simp [I1, I2] },
+  { simp at ha hb,
+    rcases lt_omega.1 ha with ⟨m, rfl⟩,
+    rcases lt_omega.1 hb with ⟨n, rfl⟩,
+    norm_cast,
+    simp }
+end
+
+@[simp] lemma bit1_lt_bit0 {a b : cardinal} : bit1 a < bit0 b ↔ a < b :=
+begin
+  by_cases ha : omega ≤ a; by_cases hb : omega ≤ b,
+  { rw [bit1_eq_self_iff.2 ha, bit0_eq_self hb], },
+  { rw bit1_eq_self_iff.2 ha,
+    have I1 : ¬ (a < b),
+    { assume h, apply hb, exact le_of_lt (lt_of_le_of_lt ha h) },
+    have I2 : ¬ (a < bit0 b),
+    { assume h,
+      have A : bit0 b < omega, by simpa using hb,
+      exact lt_irrefl _ (lt_trans (lt_of_lt_of_le A ha) h) },
+    simp [I1, I2] },
+  { rw [bit0_eq_self hb],
+    simp only [not_le] at ha,
+    have I1 : a < b := (lt_of_lt_of_le ha hb),
+    have I2 : bit1 a < b := lt_of_lt_of_le (bit1_lt_omega.2 ha) hb,
+    simp [I1, I2] },
+  { simp at ha hb,
+    rcases lt_omega.1 ha with ⟨m, rfl⟩,
+    rcases lt_omega.1 hb with ⟨n, rfl⟩,
+    norm_cast,
+    simp }
+end
+
+@[simp] lemma bit1_lt_bit1 {a b : cardinal} : bit1 a < bit1 b ↔ a < b :=
+begin
+  by_cases ha : omega ≤ a; by_cases hb : omega ≤ b,
+  { rw [bit1_eq_self_iff.2 ha, bit1_eq_self_iff.2 hb], },
+  { rw bit1_eq_self_iff.2 ha,
+    have I1 : ¬ (a < b),
+    { assume h, apply hb, exact le_of_lt (lt_of_le_of_lt ha h) },
+    have I2 : ¬ (a < bit1 b),
+    { assume h,
+      have A : bit1 b < omega, by simpa using hb,
+      exact lt_irrefl _ (lt_trans (lt_of_lt_of_le A ha) h) },
+    simp [I1, I2] },
+  { rw [bit1_eq_self_iff.2 hb],
+    simp only [not_le] at ha,
+    have I1 : a < b := (lt_of_lt_of_le ha hb),
+    have I2 : bit1 a < b := lt_of_lt_of_le (bit1_lt_omega.2 ha) hb,
+    simp [I1, I2] },
+  { simp at ha hb,
+    rcases lt_omega.1 ha with ⟨m, rfl⟩,
+    rcases lt_omega.1 hb with ⟨n, rfl⟩,
+    norm_cast,
+    simp }
+end
+
+@[simp] lemma bit0_lt_bit1 {a b : cardinal} : bit0 a < bit1 b ↔ (a < b ∨ (a ≤ b ∧ a < omega)) :=
+begin
+  by_cases ha : omega ≤ a; by_cases hb : omega ≤ b,
+  { simp [bit0_eq_self ha, bit1_eq_self_iff.2 hb, not_lt.mpr ha] },
+  { rw bit0_eq_self ha,
+    have I1 : ¬ (a < b),
+    { assume h, apply hb, exact le_of_lt (lt_of_le_of_lt ha h) },
+    have I2 : ¬ (a < bit1 b),
+    { assume h,
+      have A : bit1 b < omega, by simpa using hb,
+      exact lt_irrefl _ (lt_trans (lt_of_lt_of_le A ha) h) },
+    simp [I1, I2, not_lt.mpr ha] },
+  { rw [bit1_eq_self_iff.2 hb],
+    simp only [not_le] at ha,
+    have I1 : a < b := (lt_of_lt_of_le ha hb),
+    have I2 : bit0 a < b := lt_of_lt_of_le (bit0_lt_omega.2 ha) hb,
+    simp [I1, I2] },
+  { simp at ha hb,
+    rcases lt_omega.1 ha with ⟨m, rfl⟩,
+    rcases lt_omega.1 hb with ⟨n, rfl⟩,
+    norm_cast,
+    simp only [ha, and_true, nat.bit0_lt_bit1_iff],
+    refine ⟨λ h, or.inr h, λ h, _⟩,
+    cases h,
+    { exact le_of_lt h },
+    { exact h } }
+end
+
+lemma one_lt_two : (1 : cardinal) < 2 :=
+-- This strategy works generally to prove inequalities between numerals in `cardinality`.
+by { norm_cast, norm_num }
+
+@[simp] lemma one_lt_bit0 {a : cardinal} : 1 < bit0 a ↔ 0 < a :=
+by simp [← bit1_zero]
+
+@[simp] lemma one_lt_bit1 (a : cardinal) : 1 < bit1 a ↔ 0 < a :=
+by simp [← bit1_zero]
+
+@[simp] lemma one_le_one : (1 : cardinal) ≤ 1 :=
+le_refl _
+
+end bit
 
 end cardinal

@@ -103,6 +103,8 @@ instance : inhabited (con M) :=
 @[to_additive "A coercion from an additive congruence relation to its underlying binary relation."]
 instance : has_coe_to_fun (con M) := ⟨_, λ c, λ x y, c.r x y⟩
 
+@[simp, to_additive] lemma rel_eq_coe (c : con M) : c.r = c := rfl
+
 /-- Congruence relations are reflexive. -/
 @[to_additive "Additive congruence relations are reflexive."]
 protected lemma refl (x) : c x x := c.2.1 x
@@ -441,12 +443,10 @@ additive congruence relation containing the supremum of the set's image under th
 underlying binary relation."]
 lemma Sup_def {S : set (con M)} : Sup S = con_gen (Sup (r '' S)) :=
 begin
-  rw Sup_eq_con_gen,
+  rw [Sup_eq_con_gen, Sup_image],
   congr,
   ext x y,
-  erw [Sup_image, supr_apply, supr_apply, supr_Prop_eq],
-  simp only [Sup_image, supr_Prop_eq, supr_apply, supr_Prop_eq, exists_prop],
-  refl,
+  simp only [Sup_image, supr_apply, supr_Prop_eq, exists_prop, rel_eq_coe]
 end
 
 variables (M)
@@ -519,7 +519,7 @@ def correspondence : ((≤) : {d // c ≤ d} → {d // c ≤ d} → Prop) ≃o
     (by rw mul_ker_mk_eq; exact d.2) $ @exists_rep _ c.to_setoid,
   inv_fun := λ d, ⟨comap (coe : M → c.quotient) (λ x y, rfl) d, λ _ _ h,
     show d _ _, by rw c.eq.2 h; exact d.refl _ ⟩,
-  left_inv := λ d, subtype.ext.2 $ ext $ λ _ _,
+  left_inv := λ d, subtype.ext_iff_val.2 $ ext $ λ _ _,
     ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in
       d.1.trans (d.1.symm $ d.2 $ c.eq.1 hx) $ d.1.trans H $ d.2 $ c.eq.1 hy,
      λ h, ⟨_, _, rfl, rfl, h⟩⟩,
@@ -782,7 +782,7 @@ lift_range $ λ _ _, id
 /-- A monoid homomorphism `f` induces an injective homomorphism on the quotient by `f`'s kernel. -/
 @[to_additive "An `add_monoid` homomorphism `f` induces an injective homomorphism on the quotient
 by `f`'s kernel."]
-lemma injective_ker_lift (f : M →* P) : injective (ker_lift f) :=
+lemma ker_lift_injective (f : M →* P) : injective (ker_lift f) :=
 λ x y, quotient.induction_on₂' x y $ λ _ _, (ker f).eq.2
 
 /-- Given congruence relations `c, d` on a monoid such that `d` contains `c`, `d`'s quotient
@@ -809,11 +809,11 @@ variables (c)
 @[to_additive "The first isomorphism theorem for `add_monoid`s."]
 noncomputable def quotient_ker_equiv_range (f : M →* P) : (ker f).quotient ≃* f.mrange :=
 { map_mul' := monoid_hom.map_mul _,
-  ..@equiv.of_bijective _ _
+  ..equiv.of_bijective
       ((@mul_equiv.to_monoid_hom (ker_lift f).mrange _ _ _
         $ mul_equiv.submonoid_congr ker_lift_range_eq).comp (ker_lift f).mrange_restrict) $
       (equiv.bijective _).comp
-        ⟨λ x y h, injective_ker_lift f $ by rcases x; rcases y; injections,
+        ⟨λ x y h, ker_lift_injective f $ by rcases x; rcases y; injections,
          λ ⟨w, z, hzm, hz⟩, ⟨z, by rcases hz; rcases _x; refl⟩⟩ }
 
 /-- The first isomorphism theorem for monoids in the case of a surjective homomorphism. -/
@@ -822,8 +822,8 @@ homomorphism."]
 noncomputable def quotient_ker_equiv_of_surjective (f : M →* P) (hf : surjective f) :
   (ker f).quotient ≃* P :=
 { map_mul' := monoid_hom.map_mul _,
-  ..@equiv.of_bijective _ _ (ker_lift f)
-      ⟨injective_ker_lift f, lift_surjective_of_surjective (le_refl _) hf⟩ }
+  ..equiv.of_bijective (ker_lift f)
+      ⟨ker_lift_injective f, lift_surjective_of_surjective (le_refl _) hf⟩ }
 
 /-- The second isomorphism theorem for monoids. -/
 @[to_additive "The second isomorphism theorem for `add_monoid`s."]

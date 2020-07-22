@@ -8,7 +8,7 @@ Bases of topologies. Countability axioms.
 import topology.constructions
 
 open set filter classical
-open_locale topological_space
+open_locale topological_space filter
 
 namespace topological_space
 /- countability axioms
@@ -34,7 +34,7 @@ let b' := (λf, ⋂₀ f) '' {f:set (set α) | finite f ∧ f ⊆ s ∧ (⋂₀ 
 ⟨assume s₁ ⟨t₁, ⟨hft₁, ht₁b, ht₁⟩, eq₁⟩ s₂ ⟨t₂, ⟨hft₂, ht₂b, ht₂⟩, eq₂⟩,
     have ie : ⋂₀(t₁ ∪ t₂) = ⋂₀ t₁ ∩ ⋂₀ t₂, from Inf_union,
     eq₁ ▸ eq₂ ▸ assume x h,
-      ⟨_, ⟨t₁ ∪ t₂, ⟨finite_union hft₁ hft₂, union_subset ht₁b ht₂b,
+      ⟨_, ⟨t₁ ∪ t₂, ⟨hft₁.union hft₂, union_subset ht₁b ht₂b,
         ie.symm ▸ ⟨_, h⟩⟩, ie⟩, h, subset.refl _⟩,
   eq_univ_iff_forall.2 $ assume a, ⟨univ, ⟨∅, ⟨finite_empty, empty_subset _,
     by rw sInter_empty; exact ⟨a, mem_univ a⟩⟩, sInter_empty⟩, mem_univ _⟩,
@@ -116,6 +116,13 @@ class separable_space : Prop :=
 class first_countable_topology : Prop :=
 (nhds_generated_countable : ∀a:α, (𝓝 a).is_countably_generated)
 
+namespace first_countable_topology
+variable {α}
+lemma tendsto_subseq [first_countable_topology α] {u : ℕ → α} {x : α} (hx : map_cluster_pt x at_top u) :
+  ∃ (ψ : ℕ → ℕ), (strict_mono ψ) ∧ (tendsto (u ∘ ψ) at_top (𝓝 x)) :=
+(nhds_generated_countable x).subseq_tendsto hx
+end first_countable_topology
+
 /-- A second-countable space is one with a countable basis. -/
 class second_countable_topology : Prop :=
 (is_open_generated_countable [] : ∃b:set (set α), countable b ∧ t = topological_space.generate_from b)
@@ -185,7 +192,7 @@ end
 instance second_countable_topology.to_separable_space
   [second_countable_topology α] : separable_space α :=
 let ⟨b, hb₁, hb₂, hb₃, hb₄, eq⟩ := is_open_generated_countable_inter α in
-have nhds_eq : ∀a, 𝓝 a = (⨅ s : {s : set α // a ∈ s ∧ s ∈ b}, principal s.val),
+have nhds_eq : ∀a, 𝓝 a = (⨅ s : {s : set α // a ∈ s ∧ s ∈ b}, 𝓟 s.val),
   by intro a; rw [eq, nhds_generate_from, infi_subtype]; refl,
 have ∀s∈b, set.nonempty s,
   from assume s hs, ne_empty_iff_nonempty.1 $ λ eq, absurd hs (eq.symm ▸ hb₂),
@@ -197,9 +204,10 @@ let ⟨f, hf⟩ := this in
   have a ∈ (⋃₀ b), by rw [hb₄]; exact trivial,
   let ⟨t, ht₁, ht₂⟩ := this in
   have w : {s : set α // a ∈ s ∧ s ∈ b}, from ⟨t, ht₂, ht₁⟩,
-  suffices (⨅ (x : {s // a ∈ s ∧ s ∈ b}), principal (x.val ∩ ⋃s (h₁ h₂ : s ∈ b), {f s h₂})) ≠ ⊥,
-    by simpa only [closure_eq_nhds, nhds_eq, infi_inf w, inf_principal, mem_set_of_eq, mem_univ, iff_true],
-  infi_ne_bot_of_directed ⟨a⟩
+  suffices (⨅ (x : {s // a ∈ s ∧ s ∈ b}), 𝓟 (x.val ∩ ⋃s (h₁ h₂ : s ∈ b), {f s h₂})) ≠ ⊥,
+    by simpa only [closure_eq_cluster_pts, cluster_pt, nhds_eq, infi_inf w, inf_principal,
+                   mem_set_of_eq, mem_univ, iff_true],
+  by haveI : nonempty α := ⟨a⟩; exact infi_ne_bot_of_directed
     (assume ⟨s₁, has₁, hs₁⟩ ⟨s₂, has₂, hs₂⟩,
       have a ∈ s₁ ∩ s₂, from ⟨has₁, has₂⟩,
       let ⟨s₃, hs₃, has₃, hs⟩ := hb₃ _ hs₁ _ hs₂ _ this in

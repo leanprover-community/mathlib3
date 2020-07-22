@@ -6,6 +6,7 @@ Authors: Johannes Hölzl
 Transitive reflexive as well as reflexive closure of relations.
 -/
 import tactic.basic
+
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 namespace relation

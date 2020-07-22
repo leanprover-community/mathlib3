@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import group_theory.submonoid
+import algebra.group.conj
 
 /-!
 # Subgroups
@@ -73,6 +74,8 @@ membership of a subgroup's underlying set.
 ## Tags
 subgroup, subgroups
 -/
+
+open_locale big_operators
 
 variables {G : Type*} [group G]
 variables {A : Type*} [add_group A]
@@ -145,7 +148,7 @@ instance : has_mem G (subgroup G) := ⟨λ m K, m ∈ (K : set G)⟩
 instance : has_coe_to_sort (subgroup G) := ⟨_, λ G, (G : Type*)⟩
 
 @[simp, norm_cast, to_additive]
-lemma mem_coe {K : subgroup G} [g : G] : g ∈ (K : set G) ↔ g ∈ K := iff.rfl
+lemma mem_coe {K : subgroup G} {g : G} : g ∈ (K : set G) ↔ g ∈ K := iff.rfl
 
 @[simp, norm_cast, to_additive]
 lemma coe_coe (K : subgroup G) : ↥(K : set G) = K := rfl
@@ -236,7 +239,7 @@ lemma multiset_prod_mem {G} [comm_group G] (K : subgroup G) (g : multiset G) :
 is in the `add_subgroup`."]
 lemma prod_mem {G : Type*} [comm_group G] (K : subgroup G)
   {ι : Type*} {t : finset ι} {f : ι → G} (h : ∀ c ∈ t, f c ∈ K) :
-  t.prod f ∈ K :=
+  ∏ c in t, f c ∈ K :=
 K.to_submonoid.prod_mem h
 
 lemma pow_mem {x : G} (hx : x ∈ K) : ∀ n : ℕ, x ^ n ∈ K := K.to_submonoid.pow_mem hx
@@ -246,7 +249,7 @@ lemma gpow_mem {x : G} (hx : x ∈ K) : ∀ n : ℤ, x ^ n ∈ K
 | -[1+ n]        := K.inv_mem $ K.pow_mem hx n.succ
 
 /-- Construct a subgroup from a nonempty set that is closed under division. -/
-@[to_additive of_sub "Construct a subgroup from a nonempty set that is closed under subtraction"]
+@[to_additive "Construct a subgroup from a nonempty set that is closed under subtraction"]
 def of_div (s : set G) (hsn : s.nonempty) (hs : ∀ x y ∈ s, x * y⁻¹ ∈ s) : subgroup G :=
 have one_mem : (1 : G) ∈ s, from let ⟨x, hx⟩ := hsn in by simpa using hs x x hx hx,
 have inv_mem : ∀ x, x ∈ s → x⁻¹ ∈ s, from λ x hx, by simpa using hs 1 x one_mem hx,
@@ -310,7 +313,7 @@ lemma coe_subset_coe {H K : subgroup G} : (H : set G) ⊆ K ↔ H ≤ K := iff.r
 @[to_additive]
 instance : partial_order (subgroup G) :=
 { le := (≤),
-  .. partial_order.lift (coe : subgroup G → set G) (λ a b, ext') infer_instance }
+  .. partial_order.lift (coe : subgroup G → set G) (λ a b, ext') }
 
 /-- The subgroup `G` of the group `G`. -/
 @[to_additive "The `add_subgroup G` of the `add_group G`."]
@@ -488,8 +491,7 @@ lemma mem_Sup_of_directed_on {K : set (subgroup G)} (Kne : K.nonempty)
   x ∈ Sup K ↔ ∃ s ∈ K, x ∈ s :=
 begin
   haveI : nonempty K := Kne.to_subtype,
-  rw [Sup_eq_supr, supr_subtype', mem_supr_of_directed, subtype.exists],
-  exact (directed_on_iff_directed _).1 hK
+  simp only [Sup_eq_supr', mem_supr_of_directed hK.directed_coe, set_coe.exists, subtype.coe_mk]
 end
 
 variables {N : Type*} [group N] {P : Type*} [group P]
@@ -669,7 +671,7 @@ def center : subgroup G :=
   mul_mem' := λ a b (ha : ∀ g, g * a = a * g) (hb : ∀ g, g * b = b * g) g,
     by assoc_rw [ha, hb g],
   inv_mem' := λ a (ha : ∀ g, g * a = a * g) g,
-    by rw [← inv_inj', mul_inv_rev, inv_inv, ← ha, mul_inv_rev, inv_inv] }
+    by rw [← inv_inj, mul_inv_rev, inv_inv, ← ha, mul_inv_rev, inv_inv] }
 
 variable {G}
 
@@ -815,8 +817,8 @@ open set
 
 lemma gsmul_mem (H : add_subgroup A) {x : A} (hx : x ∈ H) :
   ∀ n : ℤ, gsmul n x ∈ H
-| (int.of_nat n) := add_submonoid.smul_mem H.to_add_submonoid hx n
-| -[1+ n]        := H.neg_mem' $ H.add_mem hx $ add_submonoid.smul_mem H.to_add_submonoid hx n
+| (int.of_nat n) := add_submonoid.nsmul_mem H.to_add_submonoid hx n
+| -[1+ n]        := H.neg_mem' $ H.add_mem hx $ add_submonoid.nsmul_mem H.to_add_submonoid hx n
 
 lemma sub_mem (H : add_subgroup A) {x y : A} (hx : x ∈ H) (hy : y ∈ H) : x - y ∈ H :=
 H.add_mem hx (H.neg_mem hy)

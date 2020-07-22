@@ -3,13 +3,20 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Simon Hudon, Mario Carneiro
 -/
-import algebra.group.to_additive
 import algebra.group.defs
-import tactic.simpa
 import logic.function.basic
-import tactic.protected
 
 universe u
+
+section monoid
+variables {M : Type u} [monoid M]
+
+@[to_additive]
+lemma ite_mul_one {P : Prop} [decidable P] {a b : M} :
+  ite P (a * b) 1 = ite P a 1 * ite P b 1 :=
+by { by_cases h : P; simp [h], }
+
+end monoid
 
 section comm_semigroup
 variables {G : Type u} [comm_semigroup G]
@@ -65,17 +72,13 @@ theorem left_inverse_inv (G) [group G] :
 inv_inv
 
 @[to_additive]
-lemma inv_inj (h : a⁻¹ = b⁻¹) : a = b :=
-have a = a⁻¹⁻¹, by simp,
-begin rw this, simp [h] end
-
-@[simp, to_additive]
-theorem inv_inj' : a⁻¹ = b⁻¹ ↔ a = b :=
-⟨λ h, by rw [← inv_inv a, h, inv_inv], congr_arg _⟩
+lemma inv_involutive : function.involutive (has_inv.inv : G → G) := inv_inv
 
 @[to_additive]
-theorem eq_of_inv_eq_inv : a⁻¹ = b⁻¹ → a = b :=
-inv_inj'.1
+lemma inv_injective : function.injective (has_inv.inv : G → G) :=
+inv_involutive.injective
+
+@[simp, to_additive] theorem inv_inj : a⁻¹ = b⁻¹ ↔ a = b := inv_injective.eq_iff
 
 @[simp, to_additive]
 lemma mul_inv_cancel_left (a b : G) : a * (a⁻¹ * b) = b :=
@@ -140,7 +143,7 @@ by have := @mul_right_inj _ _ a a 1; rwa mul_one at this
 
 @[simp, to_additive]
 theorem inv_eq_one : a⁻¹ = 1 ↔ a = 1 :=
-by rw [← @inv_inj' _ _ a 1, one_inv]
+by rw [← @inv_inj _ _ a 1, one_inv]
 
 @[to_additive]
 theorem inv_ne_one : a⁻¹ ≠ 1 ↔ a ≠ 1 :=
@@ -192,7 +195,7 @@ by rw [mul_eq_one_iff_eq_inv, inv_inv]
 
 @[to_additive]
 theorem inv_mul_eq_one : a⁻¹ * b = 1 ↔ a = b :=
-by rw [mul_eq_one_iff_eq_inv, inv_inj']
+by rw [mul_eq_one_iff_eq_inv, inv_inj]
 
 @[simp, to_additive]
 lemma mul_left_eq_self : a * b = b ↔ a = 1 :=
@@ -201,9 +204,6 @@ lemma mul_left_eq_self : a * b = b ↔ a = 1 :=
 @[simp, to_additive]
 lemma mul_right_eq_self : a * b = a ↔ b = 1 :=
 ⟨λ h, @mul_left_cancel _ _ a b 1 (by simp [h]), λ h, by simp [h]⟩
-
-@[to_additive]
-lemma inv_involutive : function.involutive (has_inv.inv : G → G) := inv_inv
 
 end group
 
@@ -277,7 +277,7 @@ lemma add_eq_of_eq_sub (h : a = c - b) : a + b = c :=
 by simp [h]
 
 @[simp] lemma sub_right_inj : a - b = a - c ↔ b = c :=
-(add_right_inj _).trans neg_inj'
+(add_right_inj _).trans neg_inj
 
 @[simp] lemma sub_left_inj : b - a = c - a ↔ b = c :=
 add_left_inj _

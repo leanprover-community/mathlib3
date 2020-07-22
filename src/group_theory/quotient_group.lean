@@ -133,16 +133,16 @@ instance ker_lift_is_group_hom : is_group_hom (ker_lift φ) :=
 quotient_group.is_group_hom_quotient_lift _ _ _
 
 @[to_additive quotient_add_group.injective_ker_lift]
-lemma injective_ker_lift : injective (ker_lift φ) :=
+lemma ker_lift_injective : injective (ker_lift φ) :=
 assume a b, quotient.induction_on₂' a b $ assume a b (h : φ a = φ b), quotient.sound' $
 show a⁻¹ * b ∈ ker φ, by rw [mem_ker φ,
   is_mul_hom.map_mul φ, ← h, is_group_hom.map_inv φ, inv_mul_self]
 
 --@[to_additive quotient_add_group.quotient_ker_equiv_range]
 noncomputable def quotient_ker_equiv_range : (quotient (ker φ)) ≃ set.range φ :=
-@equiv.of_bijective _ (set.range φ) (λ x, ⟨lift (ker φ) φ
+equiv.of_bijective (λ x, ⟨lift (ker φ) φ
   (by simp [mem_ker]) x, by exact quotient.induction_on' x (λ x, ⟨x, rfl⟩)⟩)
-⟨λ a b h, injective_ker_lift _ (subtype.mk.inj h),
+⟨λ a b h, ker_lift_injective _ (subtype.mk.inj h),
   λ ⟨x, y, hy⟩, ⟨mk y, subtype.eq hy⟩⟩
 
 noncomputable def quotient_ker_equiv_of_surjective (hφ : function.surjective φ) :

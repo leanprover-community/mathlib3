@@ -47,7 +47,16 @@ instance : has_repr ℤ[i] := ⟨λ x, "⟨" ++ repr x.re ++ ", " ++ repr x.im +
 
 instance : comm_ring ℤ[i] := zsqrtd.comm_ring
 
-def to_complex (x : ℤ[i]) : ℂ := x.re + x.im * I
+section
+local attribute [-instance] complex.field -- Avoid making things noncomputable unnecessarily.
+
+/-- The embedding of the Gaussian integers into the complex numbers, as a ring homomorphism. -/
+def to_complex : ℤ[i] →+* ℂ :=
+begin
+  refine_struct { to_fun := λ x : ℤ[i], (x.re + x.im * I : ℂ), .. };
+  intros; apply complex.ext; dsimp; norm_cast; simp; abel
+end
+end
 
 instance : has_coe (ℤ[i]) ℂ := ⟨to_complex⟩
 
@@ -58,21 +67,16 @@ lemma to_complex_def' (x y : ℤ) : ((⟨x, y⟩ : ℤ[i]) : ℂ) = x + y * I :=
 lemma to_complex_def₂ (x : ℤ[i]) : (x : ℂ) = ⟨x.re, x.im⟩ :=
 by apply complex.ext; simp [to_complex_def]
 
-instance to_complex.is_ring_hom : is_ring_hom to_complex :=
-by refine_struct {..}; intros; apply complex.ext; simp [sub_eq_add_neg, to_complex]
-
-instance : is_ring_hom (coe : ℤ[i] → ℂ) := to_complex.is_ring_hom
-
 @[simp] lemma to_real_re (x : ℤ[i]) : ((x.re : ℤ) : ℝ) = (x : ℂ).re := by simp [to_complex_def]
 @[simp] lemma to_real_im (x : ℤ[i]) : ((x.im : ℤ) : ℝ) = (x : ℂ).im := by simp [to_complex_def]
 @[simp] lemma to_complex_re (x y : ℤ) : ((⟨x, y⟩ : ℤ[i]) : ℂ).re = x := by simp [to_complex_def]
 @[simp] lemma to_complex_im (x y : ℤ) : ((⟨x, y⟩ : ℤ[i]) : ℂ).im = y := by simp [to_complex_def]
-@[simp] lemma to_complex_add (x y : ℤ[i]) : ((x + y : ℤ[i]) : ℂ) = x + y := is_ring_hom.map_add coe
-@[simp] lemma to_complex_mul (x y : ℤ[i]) : ((x * y : ℤ[i]) : ℂ) = x * y := is_ring_hom.map_mul coe
-@[simp] lemma to_complex_one : ((1 : ℤ[i]) : ℂ) = 1 := is_ring_hom.map_one coe
-@[simp] lemma to_complex_zero : ((0 : ℤ[i]) : ℂ) = 0 := is_ring_hom.map_zero coe
-@[simp] lemma to_complex_neg (x : ℤ[i]) : ((-x : ℤ[i]) : ℂ) = -x := is_ring_hom.map_neg coe
-@[simp] lemma to_complex_sub (x y : ℤ[i]) : ((x - y : ℤ[i]) : ℂ) = x - y := is_ring_hom.map_sub coe
+@[simp] lemma to_complex_add (x y : ℤ[i]) : ((x + y : ℤ[i]) : ℂ) = x + y := to_complex.map_add _ _
+@[simp] lemma to_complex_mul (x y : ℤ[i]) : ((x * y : ℤ[i]) : ℂ) = x * y := to_complex.map_mul _ _
+@[simp] lemma to_complex_one : ((1 : ℤ[i]) : ℂ) = 1 := to_complex.map_one
+@[simp] lemma to_complex_zero : ((0 : ℤ[i]) : ℂ) = 0 := to_complex.map_zero
+@[simp] lemma to_complex_neg (x : ℤ[i]) : ((-x : ℤ[i]) : ℂ) = -x := to_complex.map_neg _
+@[simp] lemma to_complex_sub (x y : ℤ[i]) : ((x - y : ℤ[i]) : ℂ) = x - y := to_complex.map_sub _ _
 
 @[simp] lemma to_complex_inj {x y : ℤ[i]} : (x : ℂ) = y ↔ x = y :=
 by cases x; cases y; simp [to_complex_def₂]
@@ -176,8 +180,8 @@ by rw [norm_mul, int.nat_abs_mul];
   exact le_mul_of_one_le_right' (nat.zero_le _)
     (int.coe_nat_le.1 (by rw [coe_nat_abs_norm]; exact norm_pos.2 hy))
 
-instance : nonzero ℤ[i] :=
-{ zero_ne_one := dec_trivial }
+instance : nontrivial ℤ[i] :=
+⟨⟨0, 1, dec_trivial⟩⟩
 
 instance : euclidean_domain ℤ[i] :=
 { quotient := (/),
@@ -189,9 +193,9 @@ instance : euclidean_domain ℤ[i] :=
   remainder_lt := nat_abs_norm_mod_lt,
   mul_left_not_lt := λ a b hb0, not_lt_of_ge $ norm_le_norm_mul_left a hb0,
   .. gaussian_int.comm_ring,
-  .. gaussian_int.nonzero }
+  .. gaussian_int.nontrivial }
 
-open principal_ideal_domain
+open principal_ideal_ring
 
 lemma mod_four_eq_three_of_nat_prime_of_prime (p : ℕ) [hp : fact p.prime] (hpi : prime (p : ℤ[i])) :
   p % 4 = 3 :=

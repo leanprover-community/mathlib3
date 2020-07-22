@@ -12,6 +12,7 @@ import data.list.rotate
 
 open equiv fintype finset mul_action function
 open equiv.perm is_subgroup list quotient_group
+open_locale big_operators
 universes u v w
 variables {G : Type u} {α : Type v} {β : Type w} [group G]
 
@@ -36,8 +37,8 @@ lemma card_modeq_card_fixed_points [fintype α] [fintype G] [fintype (fixed_poin
   (p : ℕ) {n : ℕ} [hp : fact p.prime] (h : card G = p ^ n) : card α ≡ card (fixed_points G α) [MOD p] :=
 calc card α = card (Σ y : quotient (orbit_rel G α), {x // quotient.mk' x = y}) :
   card_congr (sigma_preimage_equiv (@quotient.mk' _ (orbit_rel G α))).symm
-... = univ.sum (λ a : quotient (orbit_rel G α), card {x // quotient.mk' x = a}) : card_sigma _
-... ≡ (@univ (fixed_points G α) _).sum (λ _, 1) [MOD p] :
+... = ∑ a : quotient (orbit_rel G α), card {x // quotient.mk' x = a} : card_sigma _
+... ≡ ∑ a : fixed_points G α, 1 [MOD p] :
 begin
   rw [← zmod.eq_iff_modeq_nat p, sum_nat_cast, sum_nat_cast],
   refine eq.symm (sum_bij_ne_zero (λ a _ _, quotient.mk' a.1)
@@ -78,7 +79,7 @@ by consing the the inverse of the product of `v`. -/
 def mk_vector_prod_eq_one (n : ℕ) (v : vector G n) : vector G (n+1) :=
 v.to_list.prod⁻¹ :: v
 
-lemma mk_vector_prod_eq_one_inj (n : ℕ) : injective (@mk_vector_prod_eq_one G _ n) :=
+lemma mk_vector_prod_eq_one_injective (n : ℕ) : injective (@mk_vector_prod_eq_one G _ n) :=
 λ ⟨v, _⟩ ⟨w, _⟩ h, subtype.eq (show v = w, by injection h with h; injection h)
 
 /-- The type of vectors with terms from `G`, length `n`, and product equal to `1:G`. -/
@@ -138,7 +139,7 @@ let n : ℕ+ := ⟨p - 1, nat.sub_pos_of_lt hp.one_lt⟩ in
 have hn : p = n + 1 := nat.succ_sub hp.pos,
 have hcard : card (vectors_prod_eq_one G (n + 1)) = card G ^ (n : ℕ),
   by rw [set.ext mem_vectors_prod_eq_one_iff,
-    set.card_range_of_injective (mk_vector_prod_eq_one_inj _), card_vector],
+    set.card_range_of_injective (mk_vector_prod_eq_one_injective _), card_vector],
 have hzmod : fintype.card (multiplicative (zmod p)) = p ^ 1,
   by { rw nat.pow_one p, exact zmod.card p },
 have hmodeq : _ = _ := @mul_action.card_modeq_card_fixed_points

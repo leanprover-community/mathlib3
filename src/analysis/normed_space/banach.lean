@@ -14,7 +14,7 @@ bounded linear map between Banach spaces has a bounded inverse.
 -/
 
 open function metric set filter finset
-open_locale classical topological_space
+open_locale classical topological_space big_operators
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
@@ -43,8 +43,9 @@ begin
     refine mem_Union.2 ⟨n, subset_closure _⟩,
     refine (mem_image _ _ _).2 ⟨x, ⟨_, hx⟩⟩,
     rwa [mem_ball, dist_eq_norm, sub_zero] },
-  have : ∃(n:ℕ) y ε, 0 < ε ∧ ball y ε ⊆ closure (f '' (ball 0 n)) :=
+  have : ∃ (n : ℕ) x, x ∈ interior (closure (f '' (ball 0 n))) :=
     nonempty_interior_of_Union_of_closed (λn, is_closed_closure) A,
+  simp only [mem_interior_iff_mem_nhds, mem_nhds_iff] at this,
   rcases this with ⟨n, a, ε, ⟨εpos, H⟩⟩,
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   refine ⟨(ε/2)⁻¹ * ∥c∥ * 2 * n, _, λy, _⟩,
@@ -158,15 +159,15 @@ begin
     ... = 2 * C * ∥y∥ + 0 : by rw [add_zero, mul_assoc]
     ... ≤ 2 * C * ∥y∥ + ∥y∥ : add_le_add (le_refl _) (norm_nonneg _)
     ... = (2 * C + 1) * ∥y∥ : by ring,
-  have fsumeq : ∀n:ℕ, f((finset.range n).sum u) = y - (h^[n]) y,
+  have fsumeq : ∀n:ℕ, f(∑ i in finset.range n, u i) = y - (h^[n]) y,
   { assume n,
     induction n with n IH,
     { simp [f.map_zero] },
     { rw [sum_range_succ, f.map_add, IH, iterate_succ'],
       simp [u, h, sub_eq_add_neg, add_comm, add_left_comm] } },
-  have : tendsto (λn, (range n).sum u) at_top (𝓝 x) :=
+  have : tendsto (λn, ∑ i in range n, u i) at_top (𝓝 x) :=
     su.has_sum.tendsto_sum_nat,
-  have L₁ : tendsto (λn, f((range n).sum u)) at_top (𝓝 (f x)) :=
+  have L₁ : tendsto (λn, f(∑ i in range n, u i)) at_top (𝓝 (f x)) :=
     (f.continuous.tendsto _).comp this,
   simp only [fsumeq] at L₁,
   have L₂ : tendsto (λn, y - (h^[n]) y) at_top (𝓝 (y - 0)),
@@ -178,9 +179,7 @@ begin
     rw this,
     refine tendsto.mul _ tendsto_const_nhds,
     exact tendsto_pow_at_top_nhds_0_of_lt_1 (by norm_num) (by norm_num) },
-  have feq : f x = y - 0,
-  { apply tendsto_nhds_unique _ L₁ L₂,
-    simp },
+  have feq : f x = y - 0 := tendsto_nhds_unique L₁ L₂,
   rw sub_zero at feq,
   exact ⟨x, feq, x_ineq⟩
 end

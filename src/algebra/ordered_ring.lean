@@ -3,7 +3,6 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
-import algebra.ring
 import algebra.ordered_group
 
 set_option default_priority 100 -- see Note [default priority]
@@ -430,15 +429,11 @@ end decidable_linear_ordered_semiring
 /-- An `ordered_ring α` is a ring `α` with a partial order such that
 multiplication with a positive number and addition are monotone. -/
 @[protect_proj]
-class ordered_ring (α : Type u) extends ring α, ordered_add_comm_group α :=
+class ordered_ring (α : Type u) extends ring α, ordered_add_comm_group α, nontrivial α :=
 (mul_pos     : ∀ a b : α, 0 < a → 0 < b → 0 < a * b)
-(zero_ne_one : (0 : α) ≠ 1)
 
 section ordered_ring
 variables [ordered_ring α] {a b c : α}
-
-instance ordered_ring.to_nonzero : nonzero α :=
-⟨ordered_ring.zero_ne_one⟩
 
 lemma ordered_ring.mul_nonneg (a b : α) (h₁ : 0 ≤ a) (h₂ : 0 ≤ b) : 0 ≤ a * b :=
 begin
@@ -815,10 +810,9 @@ end decidable_linear_ordered_comm_ring
 
 /-- Extend `nonneg_add_comm_group` to support ordered rings
   specified by their nonnegative elements -/
-class nonneg_ring (α : Type*) extends ring α, nonneg_add_comm_group α :=
+class nonneg_ring (α : Type*) extends ring α, nonneg_add_comm_group α, nontrivial α :=
 (mul_nonneg : ∀ {a b}, nonneg a → nonneg b → nonneg (a * b))
 (mul_pos : ∀ {a b}, pos a → pos b → pos (a * b))
-(zero_ne_one : (0 : α) ≠ 1)
 
 /-- Extend `nonneg_add_comm_group` to support linearly ordered rings
   specified by their nonnegative elements -/
@@ -927,17 +921,17 @@ end linear_nonneg_ring
 in which `a ≤ b` iff there exists `c` with `b = a + c`. This is satisfied by the
 natural numbers, for example, but not the integers or other ordered groups. -/
 class canonically_ordered_comm_semiring (α : Type*) extends
-  canonically_ordered_add_monoid α, comm_semiring α :=
-(mul_eq_zero_iff (a b : α) : a * b = 0 ↔ a = 0 ∨ b = 0)
-(zero_ne_one : (0 : α) ≠ 1)
+  canonically_ordered_add_monoid α, comm_semiring α, nontrivial α :=
+(eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)
 
 namespace canonically_ordered_semiring
 variables [canonically_ordered_comm_semiring α] {a b : α}
 
 open canonically_ordered_add_monoid (le_iff_exists_add)
 
-instance canonically_ordered_comm_semiring.to_nonzero : nonzero α :=
-⟨canonically_ordered_comm_semiring.zero_ne_one⟩
+instance canonically_ordered_comm_semiring.to_no_zero_divisors :
+  no_zero_divisors α :=
+⟨canonically_ordered_comm_semiring.eq_zero_or_eq_zero_of_mul_eq_zero⟩
 
 lemma mul_le_mul {a b c d : α} (hab : a ≤ b) (hcd : c ≤ d) :
   a * c ≤ b * d :=
@@ -952,30 +946,20 @@ end
 lemma zero_lt_one : (0:α) < 1 := lt_of_le_of_ne (zero_le 1) zero_ne_one
 
 lemma mul_pos : 0 < a * b ↔ (0 < a) ∧ (0 < b) :=
-by simp only [zero_lt_iff_ne_zero, ne.def, canonically_ordered_comm_semiring.mul_eq_zero_iff,
-  not_or_distrib]
+by simp only [zero_lt_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
 
 end canonically_ordered_semiring
 
 namespace with_top
-variables [canonically_ordered_comm_semiring α]
 
-instance : has_one (with_top α) := ⟨↑(1:α)⟩
-
-@[simp] theorem top_ne_zero : ⊤ ≠ (0 : with_top α) .
-@[simp] theorem zero_ne_top : (0 : with_top α) ≠ ⊤ .
-
-@[simp] theorem coe_eq_zero {a : α} : (a : with_top α) = 0 ↔ a = 0 :=
-iff.intro
-  (assume h, match a, h with _, rfl := rfl end)
-  (assume h, h.symm ▸ rfl)
-
-@[simp] theorem zero_eq_coe {a : α} : 0 = (a : with_top α) ↔ a = 0 :=
-by rw [eq_comm, coe_eq_zero]
-
-@[simp] theorem coe_zero : ↑(0 : α) = (0 : with_top α) := rfl
+instance [nonempty α] : nontrivial (with_top α) :=
+option.nontrivial
 
 variable [decidable_eq α]
+
+section has_mul
+
+variables [has_zero α] [has_mul α]
 
 instance : mul_zero_class (with_top α) :=
 { zero := 0,
@@ -995,7 +979,13 @@ by cases a; simp [mul_def, h]; refl
 @[simp] lemma top_mul_top : (⊤ * ⊤ : with_top α) = ⊤ :=
 top_mul top_ne_zero
 
-lemma coe_mul {a b : α} : (↑(a * b) : with_top α) = a * b :=
+end has_mul
+
+section mul_zero_class
+
+variables [mul_zero_class α]
+
+@[norm_cast] lemma coe_mul {a b : α} : (↑(a * b) : with_top α) = a * b :=
 decidable.by_cases (assume : a = 0, by simp [this]) $ assume ha,
 decidable.by_cases (assume : b = 0, by simp [this]) $ assume hb,
 by simp [*, mul_def]; refl
@@ -1005,20 +995,36 @@ lemma mul_coe {b : α} (hb : b ≠ 0) : ∀{a : with_top α}, a * b = a.bind (λ
     by simp [hb]
 | (some a) := show ↑a * ↑b = ↑(a * b), from coe_mul.symm
 
+@[simp] lemma mul_eq_top_iff {a b : with_top α} : a * b = ⊤ ↔ (a ≠ 0 ∧ b = ⊤) ∨ (a = ⊤ ∧ b ≠ 0) :=
+begin
+  cases a; cases b; simp only [none_eq_top, some_eq_coe],
+  { simp [← coe_mul] },
+  { suffices : ⊤ * (b : with_top α) = ⊤ ↔ b ≠ 0, by simpa,
+    by_cases hb : b = 0; simp [hb] },
+  { suffices : (a : with_top α) * ⊤ = ⊤ ↔ a ≠ 0, by simpa,
+    by_cases ha : a = 0; simp [ha] },
+  { simp [← coe_mul] }
+end
+
+end mul_zero_class
+
+section no_zero_divisors
+
+variables [mul_zero_class α] [no_zero_divisors α]
+
+instance : no_zero_divisors (with_top α) :=
+⟨λ a b, by cases a; cases b; dsimp [mul_def]; split_ifs;
+  simp [*, none_eq_top, some_eq_coe, mul_eq_zero] at *⟩
+
+end no_zero_divisors
+
+variables [canonically_ordered_comm_semiring α]
+
 private lemma comm (a b : with_top α) : a * b = b * a :=
 begin
   by_cases ha : a = 0, { simp [ha] },
   by_cases hb : b = 0, { simp [hb] },
   simp [ha, hb, mul_def, option.bind_comm a b, mul_comm]
-end
-
-@[simp] lemma mul_eq_top_iff {a b : with_top α} : a * b = ⊤ ↔ (a ≠ 0 ∧ b = ⊤) ∨ (a = ⊤ ∧ b ≠ 0) :=
-begin
-  have H : ∀x:α, (¬x = 0) ↔ (⊤ : with_top α) * ↑x = ⊤ :=
-    λx, ⟨λhx, by simp [top_mul, hx], λhx f, by simpa [f] using hx⟩,
-  cases a; cases b; simp [none_eq_top, top_mul, coe_ne_top, some_eq_coe, coe_mul.symm],
-  { rw [H b] },
-  { rw [H a, comm] }
 end
 
 private lemma distrib' (a b c : with_top α) : (a + b) * c = a * c + b * c :=
@@ -1032,27 +1038,23 @@ begin
     repeat { refl <|> exact congr_arg some (add_mul _ _ _) } }
 end
 
-private lemma mul_eq_zero (a b : with_top α) : a * b = 0 ↔ a = 0 ∨ b = 0 :=
-by cases a; cases b; dsimp [mul_def]; split_ifs;
-  simp [*, none_eq_top, some_eq_coe, canonically_ordered_comm_semiring.mul_eq_zero_iff] at *
-
 private lemma assoc (a b c : with_top α) : (a * b) * c = a * (b * c) :=
 begin
   cases a,
   { by_cases hb : b = 0; by_cases hc : c = 0;
-      simp [*, none_eq_top, mul_eq_zero b c] },
+      simp [*, none_eq_top] },
   cases b,
   { by_cases ha : a = 0; by_cases hc : c = 0;
-      simp [*, none_eq_top, some_eq_coe, mul_eq_zero ↑a c] },
+      simp [*, none_eq_top, some_eq_coe] },
   cases c,
   { by_cases ha : a = 0; by_cases hb : b = 0;
-      simp [*, none_eq_top, some_eq_coe, mul_eq_zero ↑a ↑b] },
+      simp [*, none_eq_top, some_eq_coe] },
   simp [some_eq_coe, coe_mul.symm, mul_assoc]
 end
 
 private lemma one_mul' : ∀a : with_top α, 1 * a = a
-| none     := show ((1:α) : with_top α) * ⊤ = ⊤, by simp [-with_bot.coe_one]
-| (some a) := show ((1:α) : with_top α) * a = a, by simp [coe_mul.symm, -with_bot.coe_one]
+| none     := show ((1:α) : with_top α) * ⊤ = ⊤, by simp [-with_top.coe_one]
+| (some a) := show ((1:α) : with_top α) * a = a, by simp [coe_mul.symm, -with_top.coe_one]
 
 instance : canonically_ordered_comm_semiring (with_top α) :=
 { one             := (1 : α),
@@ -1060,10 +1062,9 @@ instance : canonically_ordered_comm_semiring (with_top α) :=
   left_distrib    := assume a b c, by rw [comm, distrib', comm b, comm c]; refl,
   mul_assoc       := assoc,
   mul_comm        := comm,
-  mul_eq_zero_iff := mul_eq_zero,
   one_mul         := one_mul',
   mul_one         := assume a, by rw [comm, one_mul'],
-  zero_ne_one     := assume h : ((0 : α) : with_top α) = 1, zero_ne_one $ option.some.inj h,
-  .. with_top.add_comm_monoid, .. with_top.mul_zero_class, .. with_top.canonically_ordered_add_monoid }
+  .. with_top.add_comm_monoid, .. with_top.mul_zero_class, .. with_top.canonically_ordered_add_monoid,
+  .. with_top.no_zero_divisors, .. with_top.nontrivial }
 
 end with_top

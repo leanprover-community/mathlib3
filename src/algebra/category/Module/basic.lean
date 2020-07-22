@@ -31,12 +31,12 @@ namespace Module
 instance : has_coe_to_sort (Module R) :=
 { S := Type u, coe := Module.carrier }
 
-instance : category (Module.{u} R) :=
+instance : category (Module R) :=
 { hom   := λ M N, M →ₗ[R] N,
   id    := λ M, 1,
   comp  := λ A B C f g, g.comp f }
 
-instance : concrete_category (Module.{u} R) :=
+instance : concrete_category (Module R) :=
 { forget := { obj := λ R, R, map := λ R S f, (f : R → S) },
   forget_faithful := { } }
 
@@ -63,7 +63,7 @@ def of_self_iso (M : Module R) : Module.of R M ≅ M :=
 instance : subsingleton (of R punit) :=
 by { rw of_apply R punit, apply_instance }
 
-instance : has_zero_object.{u} (Module R) :=
+instance : has_zero_object (Module R) :=
 { zero := of R punit,
   unique_to := λ X,
   { default := (0 : punit →ₗ[R] X),
@@ -80,9 +80,6 @@ variables {R} {M N U : Module R}
 
 @[simp] lemma coe_comp (f : M ⟶ N) (g : N ⟶ U) :
   ((f ≫ g) : M → U) = g ∘ f := rfl
-
-instance hom_is_module_hom (f : M ⟶ N) :
-  is_linear_map R (f : M → N) := linear_map.is_linear _
 
 end Module
 
@@ -103,19 +100,19 @@ namespace category_theory.iso
 
 /-- Build a `linear_equiv` from an isomorphism in the category `Module R`. -/
 @[simps]
-def to_linear_equiv {X Y : Module.{u} R} (i : X ≅ Y) : X ≃ₗ[R] Y :=
+def to_linear_equiv {X Y : Module R} (i : X ≅ Y) : X ≃ₗ[R] Y :=
 { to_fun    := i.hom,
   inv_fun   := i.inv,
   left_inv  := by tidy,
   right_inv := by tidy,
-  add       := by tidy,
-  smul      := by tidy, }.
+  map_add'  := by tidy,
+  map_smul' := by tidy, }.
 
 end category_theory.iso
 
 /-- linear equivalences between `module`s are the same as (isomorphic to) isomorphisms in `Module` -/
 @[simps]
-def linear_equiv_iso_Group_iso {X Y : Type u} [add_comm_group X] [add_comm_group Y] [module R X] [module R Y] :
+def linear_equiv_iso_Module_iso {X Y : Type u} [add_comm_group X] [add_comm_group Y] [module R X] [module R Y] :
   (X ≃ₗ[R] Y) ≅ (Module.of R X ≅ Module.of R Y) :=
 { hom := λ e, e.to_Module_iso,
   inv := λ i, i.to_linear_equiv, }
@@ -124,7 +121,7 @@ namespace Module
 
 section preadditive
 
-instance : preadditive.{u} (Module.{u} R) :=
+instance : preadditive (Module R) :=
 { add_comp' := λ P Q R f f' g,
     show (f + f') ≫ g = f ≫ g + f' ≫ g, by { ext, simp },
   comp_add' := λ P Q R f g g',
@@ -158,14 +155,14 @@ def kernel_is_limit : is_limit (kernel_cone f) :=
     { erw @linear_map.subtype_comp_cod_restrict _ _ _ _ _ _ _ _ (fork.ι s) f.ker _ },
     { rw [←fork.app_zero_left, ←fork.app_zero_left], refl }
   end,
-  uniq' := λ s m h, linear_map.ext $ λ x, subtype.ext.2 $
+  uniq' := λ s m h, linear_map.ext $ λ x, subtype.ext_iff_val.2 $
     have h₁ : (m ≫ (kernel_cone f).π.app zero).to_fun = (s.π.app zero).to_fun,
     by { congr, exact h zero },
     by convert @congr_fun _ _ _ _ h₁ x }
 
 end kernel
 
-instance : has_kernels.{u} (Module R) :=
+instance : has_kernels (Module R) :=
 ⟨λ _ _ f, ⟨kernel_cone f, kernel_is_limit f⟩⟩
 
 end Module

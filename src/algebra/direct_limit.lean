@@ -2,8 +2,12 @@
 Copyright (c) 2019 Kenny Lau, Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes
-
-Direct limit of modules, abelian groups, rings, and fields.
+-/
+import ring_theory.free_comm_ring
+import linear_algebra.direct_sum_module
+import data.finset.order
+/-!
+# Direct limit of modules, abelian groups, rings, and fields.
 
 See Atiyah-Macdonald PP.32-33, Matsumura PP.269-270
 
@@ -13,9 +17,8 @@ or incomparable abelian groups, or rings, or fields.
 It is constructed as a quotient of the free module (for the module case) or quotient of
 the free commutative ring (for the ring case) instead of a quotient of the disjoint union
 so as to make the operations (addition etc.) "computable".
--/
-import ring_theory.free_comm_ring
 
+-/
 universes u v w u₁
 
 open submodule
@@ -287,7 +290,7 @@ comm_ring.to_ring _
 
 /-- The canonical map from a component to the direct limit. -/
 def of (i) (x : G i) : direct_limit G f :=
-ideal.quotient.mk _ $ of ⟨i, x⟩
+ideal.quotient.mk _ (of (⟨i, x⟩ : Σ i, G i))
 
 variables {G f}
 
@@ -419,7 +422,7 @@ end of_zero_exact
 
 /-- If the maps in the directed system are injective, then the canonical maps
 from the components to the direct limits are injective. -/
-theorem of_inj (hf : ∀ i j hij, function.injective (f i j hij)) (i) :
+theorem of_injective (hf : ∀ i j hij, function.injective (f i j hij)) (i) :
   function.injective (of G f i) :=
 begin
   suffices : ∀ x, of G f i x = 0 → x = 0,
@@ -497,14 +500,14 @@ variables [directed_system G f]
 
 namespace direct_limit
 
-instance nonzero : nonzero (ring.direct_limit G f) :=
-{ zero_ne_one := nonempty.elim (by apply_instance) $ assume i : ι, begin
-    change (0 : ring.direct_limit G f) ≠ 1,
-    rw ← ring.direct_limit.of_one,
-    intros H, rcases ring.direct_limit.of.zero_exact H.symm with ⟨j, hij, hf⟩,
-    rw is_ring_hom.map_one (f i j hij) at hf,
-    exact one_ne_zero hf
-  end }
+instance nontrivial : nontrivial (ring.direct_limit G f) :=
+⟨⟨0, 1, nonempty.elim (by apply_instance) $ assume i : ι, begin
+  change (0 : ring.direct_limit G f) ≠ 1,
+  rw ← ring.direct_limit.of_one,
+  intros H, rcases ring.direct_limit.of.zero_exact H.symm with ⟨j, hij, hf⟩,
+  rw is_ring_hom.map_one (f i j hij) at hf,
+  exact one_ne_zero hf
+end ⟩⟩
 
 theorem exists_inv {p : ring.direct_limit G f} : p ≠ 0 → ∃ y, p * y = 1 :=
 ring.direct_limit.induction_on p $ λ i x H,
@@ -529,7 +532,7 @@ protected noncomputable def field : field (ring.direct_limit G f) :=
   mul_inv_cancel := λ p, direct_limit.mul_inv_cancel G f,
   inv_zero := dif_pos rfl,
   .. ring.direct_limit.comm_ring G f,
-  .. direct_limit.nonzero G f }
+  .. direct_limit.nontrivial G f }
 
 end
 

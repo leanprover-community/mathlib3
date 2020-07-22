@@ -163,6 +163,11 @@ Lift an expression to another type.
 * Given an instance `can_lift β γ`, it can also lift `α → β` to `α → γ`; more generally, given
   `β : Π a : α, Type*`, `γ : Π a : α, Type*`, and `[Π a : α, can_lift (β a) (γ a)]`, it automatically
   generates an instance `can_lift (Π a, β a) (Π a, γ a)`.
+
+`lift` is in some sense dual to the `zify` tactic. `lift (z : ℤ) to ℕ` will change the type of an
+integer `z` (in the supertype) to `ℕ` (the subtype), given a proof that `z ≥ 0`;
+propositions concerning `z` will still be over `ℤ`. `zify` changes propositions about `ℕ` (the
+subtype) to propositions about `ℤ` (the supertype), without changing the type of any variable.
 -/
 meta def lift (p : parse texpr) (t : parse to_texpr) (h : parse using_texpr)
   (n : parse with_ident_list) : tactic unit :=

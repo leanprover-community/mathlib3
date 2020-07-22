@@ -245,7 +245,7 @@ theorem zorn_subset {α : Type u} (S : set (set α))
   (h : ∀c ⊆ S, chain (⊆) c → ∃ub ∈ S, ∀ s ∈ c, s ⊆ ub) :
   ∃ m ∈ S, ∀a ∈ S, m ⊆ a → a = m :=
 begin
-  letI : partial_order S := partial_order.lift subtype.val (λ _ _, subtype.eq') (by apply_instance),
+  letI : partial_order S := partial_order.lift subtype.val (λ _ _, subtype.ext_val),
   have : ∀c:set S, @chain S (≤) c → ∃ub, ∀a∈c, a ≤ ub,
   { intros c hc,
     rcases h (subtype.val '' c) (image_subset_iff.2 _) _ with ⟨s, sS, hs⟩,
@@ -290,7 +290,7 @@ end zorn
 
 theorem directed_of_chain {α β r} [is_refl β r] {f : α → β} {c : set α}
   (h : zorn.chain (f ⁻¹'o r) c) :
-  directed r (λx:{a:α // a ∈ c}, f (x.val)) :=
+  directed r (λx:{a:α // a ∈ c}, f x) :=
 assume ⟨a, ha⟩ ⟨b, hb⟩, classical.by_cases
   (assume : a = b, by simp only [this, exists_prop, and_self, subtype.exists];
     exact ⟨b, hb, refl _⟩)

@@ -5,8 +5,11 @@ Author: Joseph Myers.
 -/
 import analysis.normed_space.real_inner_product
 import analysis.normed_space.add_torsor
+import linear_algebra.affine_space
+import tactic.interval_cases
 
 noncomputable theory
+open_locale big_operators
 open_locale classical
 open_locale real
 
@@ -127,7 +130,7 @@ by rw [angle_comm, angle_self_neg_of_nonzero hx]
 begin
   unfold angle,
   rw [inner_smul_right, norm_smul, real.norm_eq_abs, abs_of_nonneg (le_of_lt hr), ←mul_assoc,
-      mul_comm _ r, mul_assoc, mul_div_mul_left' _ _ (ne_of_gt hr)]
+      mul_comm _ r, mul_assoc, mul_div_mul_left _ _ (ne_of_gt hr)]
 end
 
 /-- The angle between a positive multiple of a vector and a vector. -/
@@ -253,7 +256,7 @@ begin
         rw [hx, inner_zero_left] },
       { rw norm_eq_zero at hy,
         rw [hy, inner_zero_right] } },
-    { rwa div_eq_zero_iff h at h2 } },
+    { simpa [h, div_eq_zero_iff] using h2 } },
 end
 
 /-- Pythagorean theorem, if-and-only-if vector angle form. -/
@@ -318,7 +321,7 @@ begin
   by_cases hxy : x = y,
   { rw hxy },
   { rw [←norm_neg (y - x), neg_sub, mul_comm, mul_comm ∥y∥, div_eq_mul_inv, div_eq_mul_inv,
-        mul_inv', mul_inv', ←mul_assoc, ←mul_assoc] at h,
+        mul_inv_rev', mul_inv_rev', ←mul_assoc, ←mul_assoc] at h,
     replace h :=
       mul_right_cancel' (inv_ne_zero (λ hz, hxy (eq_of_sub_eq_zero (norm_eq_zero.1 hz)))) h,
     rw [inner_sub_right, inner_sub_right, inner_comm y x, inner_self_eq_norm_square,
@@ -338,6 +341,151 @@ begin
         replace h := (mul_left_cancel' (sub_ne_zero_of_ne hyx) h).symm,
         rw [inner_div_norm_mul_norm_eq_neg_one_iff, ←angle_eq_pi_iff] at h,
         exact hpi h } } }
+end
+
+/-- The cosine of the sum of two angles in a possibly degenerate
+triangle (where two given sides are nonzero), vector angle form. -/
+lemma cos_angle_sub_add_angle_sub_rev_eq_neg_cos_angle {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  real.cos (angle x (x - y) + angle y (y - x)) = -real.cos (angle x y) :=
+begin
+  by_cases hxy : x = y,
+  { rw [hxy, angle_self hy],
+    simp },
+  { rw [real.cos_add, cos_angle, cos_angle, cos_angle],
+    have hxn : ∥x∥ ≠ 0 := (λ h, hx (norm_eq_zero.1 h)),
+    have hyn : ∥y∥ ≠ 0 := (λ h, hy (norm_eq_zero.1 h)),
+    have hxyn : ∥x - y∥ ≠ 0 := (λ h, hxy (eq_of_sub_eq_zero (norm_eq_zero.1 h))),
+    apply mul_right_cancel' hxn,
+    apply mul_right_cancel' hyn,
+    apply mul_right_cancel' hxyn,
+    apply mul_right_cancel' hxyn,
+    have H1 : real.sin (angle x (x - y)) * real.sin (angle y (y - x)) *
+                ∥x∥ * ∥y∥ * ∥x - y∥ * ∥x - y∥ =
+              (real.sin (angle x (x - y)) * (∥x∥ * ∥x - y∥)) *
+                (real.sin (angle y (y - x)) * (∥y∥ * ∥x - y∥)), { ring },
+    have H2 : inner x x * (inner x x - inner x y - (inner x y - inner y y)) -
+                (inner x x - inner x y) * (inner x x - inner x y) =
+              inner x x * inner y y - inner x y * inner x y, { ring },
+    have H3 : inner y y * (inner y y - inner x y - (inner x y - inner x x)) -
+                (inner y y - inner x y) * (inner y y - inner x y) =
+              inner x x * inner y y - inner x y * inner x y, { ring },
+    rw [mul_sub_right_distrib, mul_sub_right_distrib, mul_sub_right_distrib,
+        mul_sub_right_distrib, H1, sin_angle_mul_norm_mul_norm, norm_sub_rev x y,
+        sin_angle_mul_norm_mul_norm, norm_sub_rev y x, inner_sub_left, inner_sub_left,
+        inner_sub_right, inner_sub_right, inner_sub_right, inner_sub_right, inner_comm y x, H2,
+        H3, real.mul_self_sqrt (sub_nonneg_of_le (inner_mul_inner_self_le x y)),
+        inner_self_eq_norm_square, inner_self_eq_norm_square,
+        inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two],
+    field_simp [hxn, hyn, hxyn],
+    ring }
+end
+
+/-- The sine of the sum of two angles in a possibly degenerate
+triangle (where two given sides are nonzero), vector angle form. -/
+lemma sin_angle_sub_add_angle_sub_rev_eq_sin_angle {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  real.sin (angle x (x - y) + angle y (y - x)) = real.sin (angle x y) :=
+begin
+  by_cases hxy : x = y,
+  { rw [hxy, angle_self hy],
+    simp },
+  { rw [real.sin_add, cos_angle, cos_angle],
+    have hxn : ∥x∥ ≠ 0 := (λ h, hx (norm_eq_zero.1 h)),
+    have hyn : ∥y∥ ≠ 0 := (λ h, hy (norm_eq_zero.1 h)),
+    have hxyn : ∥x - y∥ ≠ 0 := (λ h, hxy (eq_of_sub_eq_zero (norm_eq_zero.1 h))),
+    apply mul_right_cancel' hxn,
+    apply mul_right_cancel' hyn,
+    apply mul_right_cancel' hxyn,
+    apply mul_right_cancel' hxyn,
+    have H1 : real.sin (angle x (x - y)) * (inner y (y - x) / (∥y∥ * ∥y - x∥)) * ∥x∥ * ∥y∥ * ∥x - y∥ =
+                real.sin (angle x (x - y)) * (∥x∥ * ∥x - y∥) *
+                  (inner y (y - x) / (∥y∥ * ∥y - x∥)) * ∥y∥, { ring },
+    have H2 : inner x (x - y) / (∥x∥ * ∥y - x∥) * real.sin (angle y (y - x)) * ∥x∥ * ∥y∥ * ∥y - x∥ =
+                inner x (x - y) / (∥x∥ * ∥y - x∥) *
+                  (real.sin (angle y (y - x)) * (∥y∥ * ∥y - x∥)) * ∥x∥, { ring },
+    have H3 : inner x x * (inner x x - inner x y - (inner x y - inner y y)) -
+                (inner x x - inner x y) * (inner x x - inner x y) =
+              inner x x * inner y y - inner x y * inner x y, { ring },
+    have H4 : inner y y * (inner y y - inner x y - (inner x y - inner x x)) -
+                (inner y y - inner x y) * (inner y y - inner x y) =
+              inner x x * inner y y - inner x y * inner x y, { ring },
+    rw [right_distrib, right_distrib, right_distrib, right_distrib, H1,
+        sin_angle_mul_norm_mul_norm, norm_sub_rev x y, H2, sin_angle_mul_norm_mul_norm,
+        norm_sub_rev y x, mul_assoc (real.sin (angle x y)), sin_angle_mul_norm_mul_norm,
+        inner_sub_left, inner_sub_left, inner_sub_right, inner_sub_right, inner_sub_right,
+        inner_sub_right, inner_comm y x, H3, H4, inner_self_eq_norm_square,
+        inner_self_eq_norm_square,
+        inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two],
+    field_simp [hxn, hyn, hxyn],
+    ring }
+end
+
+/-- The cosine of the sum of the angles of a possibly degenerate
+triangle (where two given sides are nonzero), vector angle form. -/
+lemma cos_angle_add_angle_sub_add_angle_sub_eq_neg_one {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  real.cos (angle x y + angle x (x - y) + angle y (y - x)) = -1 :=
+by rw [add_assoc, real.cos_add, cos_angle_sub_add_angle_sub_rev_eq_neg_cos_angle hx hy,
+       sin_angle_sub_add_angle_sub_rev_eq_sin_angle hx hy, ←neg_mul_eq_mul_neg, ←neg_add',
+       add_comm, ←pow_two, ←pow_two, real.sin_sq_add_cos_sq]
+
+/-- The sine of the sum of the angles of a possibly degenerate
+triangle (where two given sides are nonzero), vector angle form. -/
+lemma sin_angle_add_angle_sub_add_angle_sub_eq_zero {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  real.sin (angle x y + angle x (x - y) + angle y (y - x)) = 0 :=
+begin
+  rw [add_assoc, real.sin_add, cos_angle_sub_add_angle_sub_rev_eq_neg_cos_angle hx hy,
+      sin_angle_sub_add_angle_sub_rev_eq_sin_angle hx hy],
+  ring
+end
+
+/-- The sum of the angles of a possibly degenerate triangle (where the
+two given sides are nonzero), vector angle form. -/
+lemma angle_add_angle_sub_add_angle_sub_eq_pi {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  angle x y + angle x (x - y) + angle y (y - x) = π :=
+begin
+  have hcos := cos_angle_add_angle_sub_add_angle_sub_eq_neg_one hx hy,
+  have hsin := sin_angle_add_angle_sub_add_angle_sub_eq_zero hx hy,
+  rw real.sin_eq_zero_iff at hsin,
+  cases hsin with n hn,
+  symmetry' at hn,
+  have h0 : 0 ≤ angle x y + angle x (x - y) + angle y (y - x) :=
+    add_nonneg (add_nonneg (angle_nonneg _ _) (angle_nonneg _ _)) (angle_nonneg _ _),
+  have h3 : angle x y + angle x (x - y) + angle y (y - x) ≤ π + π + π :=
+    add_le_add (add_le_add (angle_le_pi _ _) (angle_le_pi _ _)) (angle_le_pi _ _),
+  have h3lt : angle x y + angle x (x - y) + angle y (y - x) < π + π + π,
+  { by_contradiction hnlt,
+    have hxy : angle x y = π,
+    { by_contradiction hxy,
+      exact hnlt (add_lt_add_of_lt_of_le (add_lt_add_of_lt_of_le
+                                           (lt_of_le_of_ne (angle_le_pi _ _) hxy)
+                                         (angle_le_pi _ _)) (angle_le_pi _ _)) },
+    rw hxy at hnlt,
+    rw angle_eq_pi_iff at hxy,
+    rcases hxy with ⟨hx, ⟨r, ⟨hr, hxr⟩⟩⟩,
+    rw [hxr, ←one_smul ℝ x, ←mul_smul, mul_one, ←sub_smul, one_smul, sub_eq_add_neg,
+        angle_smul_right_of_pos _ _ (add_pos zero_lt_one (neg_pos_of_neg hr)), angle_self hx,
+        add_zero] at hnlt,
+    apply hnlt,
+    rw add_assoc,
+    exact add_lt_add_left (lt_of_le_of_lt (angle_le_pi _ _)
+                                          (lt_add_of_pos_right π real.pi_pos)) _ },
+  have hn0 : 0 ≤ n,
+  { rw [hn, mul_nonneg_iff_right_nonneg_of_pos real.pi_pos] at h0,
+    norm_cast at h0,
+    exact h0 },
+  have hn3 : n < 3,
+  { rw [hn, (show π + π + π = 3 * π, by ring)] at h3lt,
+    replace h3lt := lt_of_mul_lt_mul_right h3lt (le_of_lt real.pi_pos),
+    norm_cast at h3lt,
+    exact h3lt },
+  interval_cases n,
+  { rw hn at hcos,
+    simp at hcos,
+    norm_num at hcos },
+  { rw hn,
+    norm_num },
+  { rw hn at hcos,
+    simp at hcos,
+    norm_num at hcos },
 end
 
 end inner_product_geometry
@@ -402,7 +550,7 @@ begin
   unfold angle,
   rw angle_eq_zero_iff,
   rw [←neg_vsub_eq_vsub_rev, neg_ne_zero] at hp1p2,
-  use [hp1p2, -r + 1, add_pos' (neg_pos_of_neg hr) zero_lt_one],
+  use [hp1p2, -r + 1, add_pos (neg_pos_of_neg hr) zero_lt_one],
   rw [add_smul, ←neg_vsub_eq_vsub_rev V p1 p2, smul_neg],
   simp [←hpr]
 end
@@ -424,7 +572,7 @@ begin
   rcases h with ⟨hp2p3, ⟨r, ⟨hr, hpr⟩⟩⟩,
   unfold angle,
   symmetry,
-  convert angle_smul_right_of_pos _ _ (add_pos' (neg_pos_of_neg hr) zero_lt_one),
+  convert angle_smul_right_of_pos _ _ (add_pos (neg_pos_of_neg hr) zero_lt_one),
   rw [add_smul, ←neg_vsub_eq_vsub_rev V p2 p3, smul_neg],
   simp [←hpr]
 end
@@ -483,6 +631,56 @@ begin
   rw [←angle_neg_neg, neg_vsub_eq_vsub_rev, neg_vsub_eq_vsub_rev] at hpi,
   rw [←vsub_sub_vsub_cancel_left V p3 p2 p1, ←vsub_sub_vsub_cancel_left V p2 p3 p1] at h,
   exact norm_eq_of_angle_sub_eq_angle_sub_rev_of_angle_ne_pi h hpi
+end
+
+/-- The sum of the angles of a possibly degenerate triangle (where the
+given vertex is distinct from the others), angle-at-point. -/
+lemma angle_add_angle_add_angle_eq_pi {p1 p2 p3 : P} (h2 : p2 ≠ p1) (h3 : p3 ≠ p1) :
+  ∠ V p1 p2 p3 + ∠ V p2 p3 p1 + ∠ V p3 p1 p2 = π :=
+begin
+  rw [add_assoc, add_comm, add_comm (∠ V p2 p3 p1), angle_comm V p2 p3 p1],
+  unfold angle,
+  rw [←angle_neg_neg (p1 -ᵥ p3), ←angle_neg_neg (p1 -ᵥ p2), neg_vsub_eq_vsub_rev,
+      neg_vsub_eq_vsub_rev, neg_vsub_eq_vsub_rev, neg_vsub_eq_vsub_rev,
+      ←vsub_sub_vsub_cancel_right V p3 p2 p1, ←vsub_sub_vsub_cancel_right V p2 p3 p1],
+  exact angle_add_angle_sub_add_angle_sub_eq_pi (λ he, h3 ((vsub_eq_zero_iff_eq V).1 he))
+                                                (λ he, h2 ((vsub_eq_zero_iff_eq V).1 he))
+end
+
+/-- The inner product of two vectors given with `weighted_vsub`, in
+terms of the pairwise distances. -/
+lemma inner_weighted_vsub {ι₁ : Type*} {s₁ : finset ι₁} {w₁ : ι₁ → ℝ} (p₁ : ι₁ → P)
+    (h₁ : ∑ i in s₁, w₁ i = 0) {ι₂ : Type*} {s₂ : finset ι₂} {w₂ : ι₂ → ℝ} (p₂ : ι₂ → P)
+    (h₂ : ∑ i in s₂, w₂ i = 0) :
+  inner (s₁.weighted_vsub V p₁ w₁) (s₂.weighted_vsub V p₂ w₂) =
+    (-∑ i₁ in s₁, ∑ i₂ in s₂,
+      w₁ i₁ * w₂ i₂ * (dist (p₁ i₁) (p₂ i₂) * dist (p₁ i₁) (p₂ i₂))) / 2 :=
+begin
+  rw [finset.weighted_vsub_apply, finset.weighted_vsub_apply,
+      inner_sum_smul_sum_smul_of_sum_eq_zero _ h₁ _ h₂],
+  simp_rw [vsub_sub_vsub_cancel_right],
+  congr,
+  ext i₁,
+  congr,
+  ext i₂,
+  rw dist_eq_norm V (p₁ i₁) (p₂ i₂)
+end
+
+/-- The distance between two points given with `affine_combination`,
+in terms of the pairwise distances between the points in that
+combination. -/
+lemma dist_affine_combination {ι : Type*} {s : finset ι} {w₁ w₂ : ι → ℝ} (p : ι → P)
+    (h₁ : ∑ i in s, w₁ i = 1) (h₂ : ∑ i in s, w₂ i = 1) :
+  dist (s.affine_combination V w₁ p) (s.affine_combination V w₂ p) *
+    dist (s.affine_combination V w₁ p) (s.affine_combination V w₂ p) =
+    (-∑ i₁ in s, ∑ i₂ in s,
+      (w₁ - w₂) i₁ * (w₁ - w₂) i₂ * (dist (p i₁) (p i₂) * dist (p i₁) (p i₂))) / 2 :=
+begin
+  rw [dist_eq_norm V (s.affine_combination V w₁ p) (s.affine_combination V w₂ p),
+      ←inner_self_eq_norm_square, finset.affine_combination_vsub],
+  have h : ∑ i in s, (w₁ - w₂) i = 0,
+  { simp_rw [pi.sub_apply, finset.sum_sub_distrib, h₁, h₂, sub_self] },
+  exact inner_weighted_vsub V p h p h
 end
 
 end euclidean_geometry

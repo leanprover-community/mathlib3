@@ -5,7 +5,11 @@ Authors: Johan Commelin
 
 Nonnegative real numbers.
 -/
+import algebra.linear_ordered_comm_group_with_zero
+import algebra.big_operators.ring
+import data.finset.lattice
 import data.real.basic
+import data.indicator_function
 
 noncomputable theory
 
@@ -53,18 +57,16 @@ instance : has_add ℝ≥0   := ⟨λa b, ⟨a + b, add_nonneg a.2 b.2⟩⟩
 instance : has_sub ℝ≥0   := ⟨λa b, nnreal.of_real (a - b)⟩
 instance : has_mul ℝ≥0   := ⟨λa b, ⟨a * b, mul_nonneg a.2 b.2⟩⟩
 instance : has_inv ℝ≥0   := ⟨λa, ⟨(a.1)⁻¹, inv_nonneg.2 a.2⟩⟩
-instance : has_div ℝ≥0   := ⟨λa b, ⟨a.1 / b.1, div_nonneg' a.2 b.2⟩⟩
 instance : has_le ℝ≥0    := ⟨λ r s, (r:ℝ) ≤ s⟩
 instance : has_bot ℝ≥0   := ⟨0⟩
 instance : inhabited ℝ≥0 := ⟨0⟩
 
 @[simp, norm_cast] protected lemma coe_eq {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) = r₂ ↔ r₁ = r₂ :=
-subtype.ext.symm
+subtype.ext_iff_val.symm
 @[simp, norm_cast] protected lemma coe_zero : ((0 : ℝ≥0) : ℝ) = 0 := rfl
 @[simp, norm_cast] protected lemma coe_one  : ((1 : ℝ≥0) : ℝ) = 1 := rfl
 @[simp, norm_cast] protected lemma coe_add (r₁ r₂ : ℝ≥0) : ((r₁ + r₂ : ℝ≥0) : ℝ) = r₁ + r₂ := rfl
 @[simp, norm_cast] protected lemma coe_mul (r₁ r₂ : ℝ≥0) : ((r₁ * r₂ : ℝ≥0) : ℝ) = r₁ * r₂ := rfl
-@[simp, norm_cast] protected lemma coe_div (r₁ r₂ : ℝ≥0) : ((r₁ / r₂ : ℝ≥0) : ℝ) = r₁ / r₂ := rfl
 @[simp, norm_cast] protected lemma coe_inv (r : ℝ≥0) : ((r⁻¹ : ℝ≥0) : ℝ) = r⁻¹ := rfl
 @[simp, norm_cast] protected lemma coe_bit0 (r : ℝ≥0) : ((bit0 r : ℝ≥0) : ℝ) = bit0 r := rfl
 @[simp, norm_cast] protected lemma coe_bit1 (r : ℝ≥0) : ((bit1 r : ℝ≥0) : ℝ) = bit1 r := rfl
@@ -74,7 +76,6 @@ subtype.ext.symm
 max_eq_left $ le_sub.2 $ by simp [show (r₂ : ℝ) ≤ r₁, from h]
 
 -- TODO: setup semifield!
-@[simp] protected lemma zero_div (r : ℝ≥0) : 0 / r = 0 := nnreal.eq (zero_div _)
 @[simp] protected lemma coe_eq_zero (r : ℝ≥0) : ↑r = (0 : ℝ) ↔ r = 0 := by norm_cast
 lemma coe_ne_zero {r : ℝ≥0} : (r : ℝ) ≠ 0 ↔ r ≠ 0 := by norm_cast
 
@@ -94,13 +95,18 @@ def to_real_hom : ℝ≥0 →+* ℝ :=
 @[simp] lemma coe_to_real_hom : ⇑to_real_hom = coe := rfl
 
 instance : comm_group_with_zero ℝ≥0 :=
-{ zero_ne_one    := assume h, zero_ne_one $ nnreal.eq_iff.2 h,
+{ exists_pair_ne := ⟨0, 1, assume h, zero_ne_one $ nnreal.eq_iff.2 h⟩,
   inv_zero       := nnreal.eq $ show (0⁻¹ : ℝ) = 0, from inv_zero,
   mul_inv_cancel := assume x h, nnreal.eq $ mul_inv_cancel $ ne_iff.2 h,
   .. (by apply_instance : has_inv ℝ≥0),
   .. (_ : comm_semiring ℝ≥0),
   .. (_ : semiring ℝ≥0) }
 
+@[simp, norm_cast] lemma coe_indicator {α} (s : set α) (f : α → ℝ≥0) (a : α) :
+  ((s.indicator f a : ℝ≥0) : ℝ) = s.indicator (λ x, f x) a :=
+(to_real_hom : ℝ≥0 →+ ℝ).map_indicator _ _ _
+
+@[simp, norm_cast] protected lemma coe_div (r₁ r₂ : ℝ≥0) : ((r₁ / r₂ : ℝ≥0) : ℝ) = r₁ / r₂ := rfl
 @[norm_cast] lemma coe_pow (r : ℝ≥0) (n : ℕ) : ((r^n : ℝ≥0) : ℝ) = r^n :=
 to_real_hom.map_pow r n
 
@@ -121,11 +127,11 @@ to_real_hom.map_multiset_sum s
 to_real_hom.map_multiset_prod s
 
 @[norm_cast] lemma coe_sum {α} {s : finset α} {f : α → ℝ≥0} :
-  ↑(s.sum f) = s.sum (λa, (f a : ℝ)) :=
+  ↑(∑ a in s, f a) = ∑ a in s, (f a : ℝ) :=
 to_real_hom.map_sum _ _
 
 @[norm_cast] lemma coe_prod {α} {s : finset α} {f : α → ℝ≥0} :
-  ↑(s.prod f) = s.prod (λa, (f a : ℝ)) :=
+  ↑(∏ a in s, f a) = ∏ a in s, (f a : ℝ) :=
 to_real_hom.map_prod _ _
 
 @[norm_cast] lemma nsmul_coe (r : ℝ≥0) (n : ℕ) : ↑(n •ℕ r) = n •ℕ (r:ℝ) :=
@@ -135,7 +141,7 @@ to_real_hom.to_add_monoid_hom.map_nsmul _ _
 to_real_hom.map_nat_cast n
 
 instance : decidable_linear_order ℝ≥0 :=
-decidable_linear_order.lift (coe : ℝ≥0 → ℝ) subtype.val_injective (by apply_instance)
+decidable_linear_order.lift (coe : ℝ≥0 → ℝ) subtype.val_injective
 
 @[norm_cast] protected lemma coe_le_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) ≤ r₂ ↔ r₁ ≤ r₂ := iff.rfl
 @[norm_cast] protected lemma coe_lt_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) < r₂ ↔ r₁ < r₂ := iff.rfl
@@ -191,12 +197,17 @@ instance : linear_ordered_semiring ℝ≥0 :=
   .. nnreal.canonically_ordered_add_monoid,
   .. nnreal.comm_semiring }
 
-instance : canonically_ordered_comm_semiring ℝ≥0 :=
-{ zero_ne_one     := assume h, zero_ne_one $ congr_arg subtype.val $ h,
-  mul_eq_zero_iff := assume a b, nnreal.eq_iff.symm.trans $ mul_eq_zero.trans $ by simp,
+instance : linear_ordered_comm_group_with_zero ℝ≥0 :=
+{ mul_le_mul_left := assume a b h c, mul_le_mul (le_refl c) h (zero_le a) (zero_le c),
+  zero_le_one := zero_le 1,
   .. nnreal.linear_ordered_semiring,
-  .. nnreal.canonically_ordered_add_monoid,
-  .. nnreal.comm_semiring }
+  .. nnreal.comm_group_with_zero }
+
+instance : canonically_ordered_comm_semiring ℝ≥0 :=
+{ .. nnreal.canonically_ordered_add_monoid,
+  .. nnreal.comm_semiring,
+  .. (show no_zero_divisors ℝ≥0, by apply_instance),
+  .. nnreal.comm_group_with_zero }
 
 instance : densely_ordered ℝ≥0 :=
 ⟨assume a b (h : (a : ℝ) < b), let ⟨c, hac, hcb⟩ := dense h in
@@ -370,7 +381,7 @@ section mul
 lemma mul_eq_mul_left {a b c : nnreal} (h : a ≠ 0) : (a * b = a * c ↔ b = c) :=
 begin
   rw [← nnreal.eq_iff, ← nnreal.eq_iff, nnreal.coe_mul, nnreal.coe_mul], split,
-  { exact eq_of_mul_eq_mul_left (mt (@nnreal.eq_iff a 0).1 h) },
+  { exact mul_left_cancel' (mt (@nnreal.eq_iff a 0).1 h) },
   { assume h, rw [h] }
 end
 
@@ -386,7 +397,7 @@ begin
 end
 
 @[field_simps] theorem mul_ne_zero' {a b : nnreal} (h₁ : a ≠ 0) (h₂ : b ≠ 0) : a * b ≠ 0 :=
-mul_ne_zero'' h₁ h₂
+mul_ne_zero h₁ h₂
 
 end mul
 
@@ -475,7 +486,7 @@ mul_pos hr (inv_pos.2 hp)
 
 @[simp] lemma div_one {r : ℝ≥0} : r / 1 = r := by rw [div_def, inv_one, mul_one]
 
-protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv' _ _
+protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv_rev' _ _
 
 protected lemma inv_pow {r : ℝ≥0} {n : ℕ} : (r^n)⁻¹ = (r⁻¹)^n :=
 nnreal.eq $ by { push_cast, exact (inv_pow' _ _).symm }
@@ -489,14 +500,14 @@ by rw [mul_comm, inv_mul_cancel h]
 @[simp] lemma div_self {r : ℝ≥0} (h : r ≠ 0) : r / r = 1 :=
 mul_inv_cancel h
 
-@[simp] lemma div_mul_cancel {r p : ℝ≥0} (h : p ≠ 0) : r / p * p = r :=
-by rw [div_def, mul_assoc, inv_mul_cancel h, mul_one]
+lemma div_self_le (r : ℝ≥0) : r / r ≤ 1 :=
+if h : r = 0 then by simp [h] else by rw [div_self h]
 
 @[simp] lemma mul_div_cancel {r p : ℝ≥0} (h : p ≠ 0) : r * p / p = r :=
 by rw [div_def, mul_assoc, mul_inv_cancel h, mul_one]
 
 @[simp] lemma mul_div_cancel' {r p : ℝ≥0} (h : r ≠ 0) : r * (p / r) = p :=
-by rw [mul_comm, div_mul_cancel h]
+by rw [mul_comm, div_mul_cancel _ h]
 
 @[simp] lemma inv_inv {r : ℝ≥0} : r⁻¹⁻¹ = r := nnreal.eq (inv_inv' _)
 

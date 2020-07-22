@@ -3,10 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-
-import algebra.big_operators
+import algebra.big_operators.basic
 
 open finset
+open_locale big_operators
 
 namespace nat
 
@@ -25,11 +25,11 @@ lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n
 | 1 := dec_trivial
 | (n+2) := λ h, card_pos.2 ⟨1, mem_filter.2 ⟨mem_range.2 dec_trivial, coprime_one_right _⟩⟩
 
-lemma sum_totient (n : ℕ) : ((range n.succ).filter (∣ n)).sum φ = n :=
+lemma sum_totient (n : ℕ) : ∑ m in (range n.succ).filter (∣ n), φ m = n :=
 if hn0 : n = 0 then by rw hn0; refl
 else
-calc ((range n.succ).filter (∣ n)).sum φ
-    = ((range n.succ).filter (∣ n)).sum (λ d, ((range (n / d)).filter (λ m, gcd (n / d) m = 1)).card) :
+calc ∑ m in (range n.succ).filter (∣ n), φ m
+    = ∑ d in (range n.succ).filter (∣ n), ((range (n / d)).filter (λ m, gcd (n / d) m = 1)).card :
   eq.symm $ sum_bij (λ d _, n / d)
     (λ d hd, mem_filter.2 ⟨mem_range.2 $ lt_succ_of_le $ nat.div_le_self _ _,
       by conv {to_rhs, rw ← nat.mul_div_cancel' (mem_filter.1 hd).2}; simp⟩)
@@ -45,7 +45,7 @@ calc ((range n.succ).filter (∣ n)).sum φ
       ⟨n / b, mem_filter.2 ⟨mem_range.2 $ lt_succ_of_le $ nat.div_le_self _ _, hbn⟩,
         by rw [← nat.mul_left_inj (nat.pos_of_ne_zero hnb0),
           nat.mul_div_cancel' hb.2, nat.div_mul_cancel hbn]⟩)
-... = ((range n.succ).filter (∣ n)).sum (λ d, ((range n).filter (λ m, gcd n m = d)).card) :
+... = ∑ d in (range n.succ).filter (∣ n), ((range n).filter (λ m, gcd n m = d)).card :
   sum_congr rfl (λ d hd,
     have hd : d ∣ n, from (mem_filter.1 hd).2,
     have hd0 : 0 < d, from nat.pos_of_ne_zero (λ h, hn0 (eq_zero_of_zero_dvd $ h ▸ hd)),
@@ -64,7 +64,7 @@ calc ((range n.succ).filter (∣ n)).sum φ
 ... = ((filter (∣ n) (range n.succ)).bind (λ d, (range n).filter (λ m, gcd n m = d))).card :
   (card_bind (by intros; apply disjoint_filter.2; cc)).symm
 ... = (range n).card :
-  congr_arg card (finset.ext.2 (λ m, ⟨by finish,
+  congr_arg card (finset.ext (λ m, ⟨by finish,
     λ hm, have h : m < n, from mem_range.1 hm,
       mem_bind.2 ⟨gcd n m, mem_filter.2 ⟨mem_range.2 (lt_succ_of_le (le_of_dvd (lt_of_le_of_lt (nat.zero_le _) h)
         (gcd_dvd_left _ _))), gcd_dvd_left _ _⟩, mem_filter.2 ⟨hm, rfl⟩⟩⟩))

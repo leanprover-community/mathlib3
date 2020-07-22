@@ -79,6 +79,40 @@ meta def continue (tac : itactic) : tactic unit :=
  (λ a, result.success ())
  (λ e ref, result.success ())
 
+/-- `id { tac }` is the same as `tac`, but it is useful for creating a block scope without
+requiring the goal to be solved at the end like `{ tac }`. It can also be used to enclose a
+non-interactive tactic for patterns like `tac1; id {tac2}` where `tac2` is non-interactive. -/
+@[inline] protected meta def id (tac : itactic) : tactic unit := tac
+
+/--
+`work_on_goal n { tac }` creates a block scope for the `n`-goal (indexed from zero),
+and does not require that the goal be solved at the end
+(any remaining subgoals are inserted back into the list of goals).
+
+Typically usage might look like:
+````
+intros,
+simp,
+apply lemma_1,
+work_on_goal 2 {
+  dsimp,
+  simp
+},
+refl
+````
+
+See also `id { tac }`, which is equivalent to `work_on_goal 0 { tac }`.
+-/
+meta def work_on_goal : parse small_nat → itactic → tactic unit
+| n t := do
+  goals ← get_goals,
+  let earlier_goals := goals.take n,
+  let later_goals := goals.drop (n+1),
+  set_goals (goals.nth n).to_list,
+  t,
+  new_goals ← get_goals,
+  set_goals (earlier_goals ++ new_goals ++ later_goals)
+
 /--
 `swap n` will move the `n`th goal to the front.
 `swap` defaults to `swap 2`, and so interchanges the first and second goals.
@@ -279,7 +313,7 @@ meta def compact_decl_aux : list name → binder_info → expr → list expr →
   tactic (list (list name × binder_info × expr))
 | ns bi t [] := pure [(ns.reverse, bi, t)]
 | ns bi t (v'@(local_const n pp bi' t') :: xs) :=
-  do t' ← get_local pp >>= infer_type,
+  do t' ← infer_type v',
      if bi = bi' ∧ t = t'
        then compact_decl_aux (pp :: ns) bi t xs
        else do vs ← compact_decl_aux [pp] bi' t' xs,
@@ -294,24 +328,16 @@ meta def compact_decl : list expr → tactic (list (list name × binder_info × 
      compact_decl_aux [pp] bi t xs
 | (_ :: xs) := compact_decl xs
 
-meta def clean_ids : list name :=
-[``id, ``id_rhs, ``id_delta, ``hidden]
-
 /--
 Remove identity functions from a term. These are normally
 automatically generated with terms like `show t, from p` or
 `(p : t)` which translate to some variant on `@id t p` in
-order to retain the type. -/
+order to retain the type.
+-/
 meta def clean (q : parse texpr) : tactic unit :=
 do tgt : expr ← target,
    e ← i_to_expr_strict ``(%%q : %%tgt),
-   tactic.exact $ e.replace (λ e n,
-     match e with
-     | (app (app (const n _) _) e') :=
-       if n ∈ clean_ids then some e' else none
-     | (app (lam _ _ _ (var 0)) e') := some e'
-     | _ := none
-     end)
+   tactic.exact $ e.clean
 
 meta def source_fields (missing : list name) (e : pexpr) : tactic (list (name × pexpr)) :=
 do e ← to_expr e,
@@ -709,6 +735,11 @@ begin
   field_simp [hx, hy],
   ring
 end
+
+See also the `cancel_denoms` tactic, which tries to do a similar simplification for expressions
+that have numerals in denominators.
+The tactics are not related: `cancel_denoms` will only handle numeric denominators, and will try to
+entirely remove (numeric) division from the expression by multiplying by a factor.
 ```
 -/
 meta def field_simp (no_dflt : parse only_flag) (hs : parse simp_arg_list)
@@ -937,16 +968,15 @@ end
 meta def set (h_simp : parse (tk "!")?) (a : parse ident) (tp : parse ((tk ":") >> texpr)?)
   (_ : parse (tk ":=")) (pv : parse texpr)
   (rev_name : parse opt_dir_with) :=
-do let vt := match tp with | some t := t | none := pexpr.mk_placeholder end,
-   let pv := ``(%%pv : %%vt),
-   v ← to_expr pv,
-   tp ← infer_type v,
-   definev a tp v,
-   when h_simp.is_none $ change' pv (some (expr.const a [])) loc.wildcard,
+do tp ← i_to_expr $ tp.get_or_else pexpr.mk_placeholder,
+   pv ← to_expr ``(%%pv : %%tp),
+   tp ← instantiate_mvars tp,
+   definev a tp pv,
+   when h_simp.is_none $ change' ``(%%pv) (some (expr.const a [])) $ interactive.loc.wildcard,
    match rev_name with
    | some (flip, id) :=
      do nv ← get_local a,
-        pf ← to_expr (cond flip ``(%%pv = %%nv) ``(%%nv = %%pv)) >>= assert id,
+        mk_app `eq (cond flip [pv, nv] [nv, pv]) >>= assert id,
         reflexivity
    | none := skip
    end
@@ -964,7 +994,7 @@ meta def clear_except (xs : parse ident *) : tactic unit :=
 do n ← xs.mmap (try_core ∘ get_local) >>= revert_lst ∘ list.filter_map id,
    ls ← local_context,
    ls.reverse.mmap' $ try ∘ tactic.clear,
-   intron n
+   intron_no_renames n
 
 add_tactic_doc
 { name       := "clear_except",
@@ -1023,14 +1053,15 @@ example (i j k : ℕ) (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
 begin
   extract_goal,
      -- prints:
-     -- example {i j k : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
+     -- example (i j k : ℕ) (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
      -- begin
-
+     --   admit,
      -- end
   extract_goal my_lemma
-     -- lemma my_lemma {i j k : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
+     -- prints:
+     -- lemma my_lemma (i j k : ℕ) (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
      -- begin
-
+     --   admit,
      -- end
 end
 
@@ -1038,17 +1069,39 @@ example {i j k x y z w p q r m n : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k) (h₁ 
 begin
   extract_goal my_lemma,
     -- prints:
-    -- lemma my_lemma {i j k x y z w p q r m n : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k)
-    --   (h₁ : k ≤ p) (h₁ : p ≤ q) : i ≤ k :=
+    -- lemma my_lemma {i j k x y z w p q r m n : ℕ}
+    --   (h₀ : i ≤ j)
+    --   (h₁ : j ≤ k)
+    --   (h₁ : k ≤ p)
+    --   (h₁ : p ≤ q) :
+    --   i ≤ k :=
     -- begin
-
+    --   admit,
     -- end
 
   extract_goal my_lemma with i j k
     -- prints:
-    -- lemma my_lemma {i j k : ℕ} : i ≤ k :=
+    -- lemma my_lemma {p i j k : ℕ}
+    --   (h₀ : i ≤ j)
+    --   (h₁ : j ≤ k)
+    --   (h₁ : k ≤ p) :
+    --   i ≤ k :=
     -- begin
+    --   admit,
+    -- end
+end
 
+example : true :=
+begin
+  let n := 0,
+  have m : ℕ, admit,
+  have k : fin n, admit,
+  have : n + m + k.1 = 0, extract_goal,
+    -- prints:
+    -- example (m : ℕ)  : let n : ℕ := 0 in ∀ (k : fin n), n + m + k.val = 0 :=
+    -- begin
+    --   intros n k,
+    --   admit,
     -- end
 end
 ```
@@ -1058,33 +1111,43 @@ meta def extract_goal (print_use : parse $ tt <$ tk "!" <|> pure ff)
   (n : parse ident?) (vs : parse with_ident_list)
   : tactic unit :=
 do tgt ← target,
-   ((cxt₀,cxt₁),_) ← solve_aux tgt $
-       when (¬ vs.empty) (clear_except vs) >>
-       partition_vars,
-   tgt ← target,
-   is_prop ← is_prop tgt,
-   let title := match n, is_prop with
-                | none, _ := to_fmt "example"
-                | (some n), tt := format!"lemma {n}"
-                | (some n), ff := format!"def {n}"
-                end,
-   cxt₀ ← compact_decl cxt₀ >>= list.mmap format_binders,
-   cxt₁ ← compact_decl cxt₁ >>= list.mmap format_binders,
-   stmt ← pformat!"{tgt} :=",
-   let fmt :=
-     format.group $ format.nest 2 $
-       title ++ cxt₀.foldl (λ acc x, acc ++ format.group (format.line ++ x)) "" ++
-       format.line ++ format.intercalate format.line cxt₁ ++ " :" ++
-       format.line ++ stmt,
-   trace $ fmt.to_string $ options.mk.set_nat `pp.width 80,
-   trace!"begin\n  admit\nend\n"
+   solve_aux tgt $ do {
+     ((cxt₀,cxt₁,ls,tgt),_) ← solve_aux tgt $ do {
+         when (¬ vs.empty) (clear_except vs),
+         ls ← local_context,
+         ls ← ls.mfilter $ succeeds ∘ is_local_def,
+         n ← revert_lst ls,
+         (c₀,c₁) ← partition_vars,
+         tgt ← target,
+         ls ← intron' n,
+         pure (c₀,c₁,ls,tgt) },
+     is_prop ← is_prop tgt,
+     let title := match n, is_prop with
+                  | none, _ := to_fmt "example"
+                  | (some n), tt := format!"lemma {n}"
+                  | (some n), ff := format!"def {n}"
+                  end,
+     cxt₀ ← compact_decl cxt₀ >>= list.mmap format_binders,
+     cxt₁ ← compact_decl cxt₁ >>= list.mmap format_binders,
+     stmt ← pformat!"{tgt} :=",
+     let fmt :=
+       format.group $ format.nest 2 $
+         title ++ cxt₀.foldl (λ acc x, acc ++ format.group (format.line ++ x)) "" ++
+         format.join (list.map (λ x, format.line ++ x) cxt₁) ++ " :" ++
+         format.line ++ stmt,
+     trace $ fmt.to_string $ options.mk.set_nat `pp.width 80,
+     let var_names := format.intercalate " " $ ls.map (to_fmt ∘ local_pp_name),
+     let call_intron := if ls.empty
+                     then to_fmt ""
+                     else format!"\n  intros {var_names},",
+     trace!"begin{call_intron}\n  admit,\nend\n" },
+   skip
 
 add_tactic_doc
 { name       := "extract_goal",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.extract_goal],
   tags       := ["goal management", "proof extraction"] }
-
 
 /--
 `inhabit α` tries to derive a `nonempty α` instance and then upgrades this

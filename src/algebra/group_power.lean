@@ -3,7 +3,9 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
-import data.int.basic
+import algebra.opposites
+import data.list.basic
+import data.int.cast
 import data.equiv.basic
 import deprecated.ring
 
@@ -160,7 +162,11 @@ theorem nsmul_add_comm : ∀ (a : A) (m n : ℕ), m •ℕ a + n •ℕ a = n �
 
 @[simp, priority 500]
 theorem list.prod_repeat (a : M) (n : ℕ) : (list.repeat a n).prod = a ^ n :=
-by induction n with n ih; [refl, rw [list.repeat_succ, list.prod_cons, ih]]; refl
+begin
+  induction n with n ih,
+  { refl },
+  { rw [list.repeat_succ, list.prod_cons, ih], refl, }
+end
 @[simp, priority 500]
 theorem list.sum_repeat : ∀ (a : A) (n : ℕ), (list.repeat a n).sum = n •ℕ a :=
 @list.prod_repeat (multiplicative A) _
@@ -295,6 +301,9 @@ open nat
 | 0       := one_inv.symm
 | -[1+ n] := (inv_inv _).symm
 
+lemma mul_gpow_neg_one (a b : G) : (a*b)^(-(1:ℤ)) = b^(-(1:ℤ))*a^(-(1:ℤ)) :=
+by simp only [mul_inv_rev, gpow_one, gpow_neg]
+
 @[simp] theorem neg_gsmul : ∀ (a : A) (n : ℤ), -n •ℤ a = -(n •ℤ a) :=
 @gpow_neg (multiplicative A) _
 
@@ -331,6 +340,12 @@ begin
   { simp only [← add_assoc, gpow_add_one, ihn, mul_assoc] },
   { rw [gpow_sub_one, ← mul_assoc, ← ihn, ← gpow_sub_one, add_sub_assoc] }
 end
+
+lemma mul_self_gpow (b : G) (m : ℤ) : b*b^m = b^(m+1) :=
+by { conv_lhs {congr, rw ← gpow_one b }, rw [← gpow_add, add_comm] }
+
+lemma mul_gpow_self (b : G) (m : ℤ) : b^m*b = b^(m+1) :=
+by { conv_lhs {congr, skip, rw ← gpow_one b }, rw [← gpow_add, add_comm] }
 
 theorem add_gsmul : ∀ (a : A) (i j : ℤ), (i + j) •ℤ a = i •ℤ a + j •ℤ a :=
 @gpow_add (multiplicative A) _
@@ -407,7 +422,7 @@ end comm_group
 
 @[simp] lemma with_bot.coe_nsmul [add_monoid A] (a : A) (n : ℕ) :
   ((nsmul n a : A) : with_bot A) = nsmul n a :=
-add_monoid_hom.map_nsmul ⟨_, with_bot.coe_zero, with_bot.coe_add⟩ a n
+add_monoid_hom.map_nsmul ⟨(coe : A → with_bot A), with_bot.coe_zero, with_bot.coe_add⟩ a n
 
 theorem nsmul_eq_mul' [semiring R] (a : R) (n : ℕ) : n •ℕ a = a * n :=
 by induction n with n ih; [rw [zero_nsmul, nat.cast_zero, mul_zero],
@@ -457,6 +472,19 @@ theorem neg_one_pow_eq_or [ring R] : ∀ n : ℕ, (-1 : R)^n = 1 ∨ (-1 : R)^n 
 lemma pow_dvd_pow [comm_semiring R] (a : R) {m n : ℕ} (h : m ≤ n) :
   a ^ m ∣ a ^ n := ⟨a ^ (n - m), by rw [← pow_add, nat.add_sub_cancel' h]⟩
 
+theorem pow_dvd_pow_of_dvd [comm_semiring R] {a b : R} (h : a ∣ b) : ∀ n : ℕ, a ^ n ∣ b ^ n
+| 0     := dvd_refl _
+| (n+1) := mul_dvd_mul h (pow_dvd_pow_of_dvd n)
+
+lemma pow_two_sub_pow_two {R : Type*} [comm_ring R] (a b : R) :
+  a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
+by simp only [pow_two, mul_sub, add_mul, sub_sub, add_sub, mul_comm, sub_add_cancel]
+
+lemma eq_or_eq_neg_of_pow_two_eq_pow_two [integral_domain R] (a b : R) (h : a ^ 2 = b ^ 2) :
+  a = b ∨ a = -b :=
+by rwa [← add_eq_zero_iff_eq_neg, ← sub_eq_zero, or_comm, ← mul_eq_zero,
+        ← pow_two_sub_pow_two a b, sub_eq_zero]
+
 -- The next four lemmas allow us to replace multiplication by a numeral with a `gsmul` expression.
 -- They are used by the `noncomm_ring` tactic, to normalise expressions before passing to `abel`.
 
@@ -494,7 +522,7 @@ lemma gsmul_int_one (n : ℤ) : n •ℤ 1 = n := by simp
 by induction m with m ih; [exact int.cast_one,
   rw [pow_succ, pow_succ, int.cast_mul, ih]]
 
-lemma neg_one_pow_eq_pow_mod_two [ring R] {n : ℕ} : (-1 : R) ^ n = -1 ^ (n % 2) :=
+lemma neg_one_pow_eq_pow_mod_two [ring R] {n : ℕ} : (-1 : R) ^ n = (-1) ^ (n % 2) :=
 by rw [← nat.mod_add_div n 2, pow_add, pow_mul]; simp [pow_two]
 
 theorem sq_sub_sq [comm_ring R] (a b : R) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
@@ -513,7 +541,7 @@ mt pow_eq_zero h
 
 theorem nsmul_nonneg [ordered_add_comm_monoid R] {a : R} (H : 0 ≤ a) : ∀ n : ℕ, 0 ≤ n •ℕ a
 | 0     := le_refl _
-| (n+1) := add_nonneg' H (nsmul_nonneg n)
+| (n+1) := add_nonneg H (nsmul_nonneg n)
 
 lemma pow_abs [decidable_linear_ordered_comm_ring R] (a : R) (n : ℕ) : (abs a)^n = abs (a^n) :=
 by induction n with n ih; [exact (abs_one).symm,
@@ -528,12 +556,12 @@ variable [ordered_add_comm_monoid A]
 theorem nsmul_le_nsmul {a : A} {n m : ℕ} (ha : 0 ≤ a) (h : n ≤ m) : n •ℕ a ≤ m •ℕ a :=
 let ⟨k, hk⟩ := nat.le.dest h in
 calc n •ℕ a = n •ℕ a + 0 : (add_zero _).symm
-  ... ≤ n •ℕ a + k •ℕ a : add_le_add_left' (nsmul_nonneg ha _)
+  ... ≤ n •ℕ a + k •ℕ a : add_le_add_left (nsmul_nonneg ha _) _
   ... = m •ℕ a : by rw [← hk, add_nsmul]
 
 lemma nsmul_le_nsmul_of_le_right {a b : A} (hab : a ≤ b) : ∀ i : ℕ, i •ℕ a ≤ i •ℕ b
 | 0 := by simp
-| (k+1) := add_le_add' hab (nsmul_le_nsmul_of_le_right _)
+| (k+1) := add_le_add hab (nsmul_le_nsmul_of_le_right _)
 
 end add_monoid
 
@@ -665,6 +693,9 @@ end linear_ordered_semiring
 
 theorem pow_two_nonneg [linear_ordered_ring R] (a : R) : 0 ≤ a ^ 2 :=
 by { rw pow_two, exact mul_self_nonneg _ }
+
+theorem pow_two_pos_of_ne_zero [linear_ordered_ring R] (a : R) (h : a ≠ 0) : 0 < a ^ 2 :=
+lt_of_le_of_ne (pow_two_nonneg a) (pow_ne_zero 2 h).symm
 
 /-- Bernoulli's inequality for `n : ℕ`, `-2 ≤ a`. -/
 theorem one_add_mul_le_pow [linear_ordered_ring R] {a : R} (H : -2 ≤ a) :
@@ -902,5 +933,22 @@ lemma conj_pow (u : units M) (x : M) (n : ℕ) : (↑u * x * ↑(u⁻¹))^n = u 
 
 lemma conj_pow' (u : units M) (x : M) (n : ℕ) : (↑(u⁻¹) * x * u)^n = ↑(u⁻¹) * x^n * u:=
 (u⁻¹).conj_pow x n
+
+open opposite
+
+/-- Moving to the opposite monoid commutes with taking powers. -/
+@[simp] lemma op_pow (x : M) (n : ℕ) : op (x ^ n) = (op x) ^ n :=
+begin
+  induction n with n h,
+  { simp },
+  { rw [pow_succ', op_mul, h, pow_succ] }
+end
+
+@[simp] lemma unop_pow (x : Mᵒᵖ) (n : ℕ) : unop (x ^ n) = (unop x) ^ n :=
+begin
+  induction n with n h,
+  { simp },
+  { rw [pow_succ', unop_mul, h, pow_succ] }
+end
 
 end units

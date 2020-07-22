@@ -313,7 +313,7 @@ end
 lemma one_ker_inv' (f : G → H) [is_group_hom f] {a b : G} (h : f (a⁻¹ * b) = 1) : f a = f b :=
 begin
   rw [map_mul f, map_inv f] at h,
-  apply eq_of_inv_eq_inv,
+  apply inv_injective,
   rw eq_inv_of_mul_eq_one h
 end
 
@@ -372,7 +372,7 @@ instance normal_subgroup_ker (f : G → H) [is_group_hom f] : normal_subgroup (k
 is_group_hom.preimage_normal f (trivial H)
 
 @[to_additive]
-lemma inj_of_trivial_ker (f : G → H) [is_group_hom f] (h : ker f = trivial G) :
+lemma injective_of_trivial_ker (f : G → H) [is_group_hom f] (h : ker f = trivial G) :
   function.injective f :=
 begin
   intros a₁ a₂ hfa,
@@ -382,7 +382,7 @@ begin
 end
 
 @[to_additive]
-lemma trivial_ker_of_inj (f : G → H) [is_group_hom f] (h : function.injective f) :
+lemma trivial_ker_of_injective (f : G → H) [is_group_hom f] (h : function.injective f) :
   ker f = trivial G :=
 set.ext $ assume x, iff.intro
   (assume hx,
@@ -391,9 +391,9 @@ set.ext $ assume x, iff.intro
   (by simp [mem_ker, is_group_hom.map_one f] {contextual := tt})
 
 @[to_additive]
-lemma inj_iff_trivial_ker (f : G → H) [is_group_hom f] :
+lemma injective_iff_trivial_ker (f : G → H) [is_group_hom f] :
   function.injective f ↔ ker f = trivial G :=
-⟨trivial_ker_of_inj f, inj_of_trivial_ker f⟩
+⟨trivial_ker_of_injective f, injective_of_trivial_ker f⟩
 
 @[to_additive]
 lemma trivial_ker_iff_eq_one (f : G → H) [is_group_hom f] :

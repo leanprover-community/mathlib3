@@ -114,28 +114,6 @@ jobs:
         run: |
           ./scripts/mk_all.sh
           lean --run scripts/lint_mathlib.lean
-          mv nolints.txt scripts/nolints.txt
-          ./scripts/rm_all.sh
-          git diff
-
-      - name: configure git setup
-        if: github.repository == 'leanprover-community/mathlib' && github.ref == 'refs/heads/master'
-        run: |
-          git remote add origin-bot "https://leanprover-community-bot:${{ secrets.DEPLOY_GITHUB_TOKEN }}@github.com/leanprover-community/mathlib.git"
-          git config user.email "leanprover.community@gmail.com"
-          git config user.name "leanprover-community-bot"
-
-          # By default, github actions overrides the credentials used to access any
-          # github url so that it uses the github-actions[bot] user.  We want to access
-          # github using a different username.
-          git config --unset http.https://github.com/.extraheader
-
-      - name: update nolints.txt
-        if: github.repository == 'leanprover-community/mathlib' && github.ref == 'refs/heads/master'
-        run: ./scripts/update_nolints.sh
-        env:
-          DEPLOY_GITHUB_TOKEN: ${{ secrets.DEPLOY_GITHUB_TOKEN }}
-          DEPLOY_GITHUB_USER: leanprover-community-bot
 
   tests:
     name: Run tests and docs
@@ -160,7 +138,7 @@ jobs:
       - name: tests
         run: |
           set -o pipefail
-          lean --make docs archive roadmap test | cat
+          lean -T100000 --make docs archive roadmap test | cat
 
       - name: leanchecker
         run: |

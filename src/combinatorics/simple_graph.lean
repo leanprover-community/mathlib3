@@ -17,6 +17,12 @@ irreflexive symmetric relation.
 There is a basic API for locally finite graphs and for graphs with
 finitely many vertices.
 
+* A locally finite graph is one with instances `∀ v, fintype (G.adj v)`.
+
+* Given instances `decidable_rel G.adj` and `fintype V`, then the graph
+is locally finite, too.
+
+
 ## Implementation notes
 
 TODO: This is the simplest notion of an unoriented graph.  This should
@@ -25,7 +31,7 @@ includes multigraphs and directed graphs.  We begin with simple graphs
 in order to start learning what the combinatorics hierarchy should
 look like.
 
-TODO: Part of would include defining, for example, subgraphs of a
+TODO: Part of this would include defining, for example, subgraphs of a
 simple graph.
 
 -/
@@ -37,9 +43,14 @@ A simple graph is an irreflexive symmetric relation `adj` on a vertex
 type `V`.  The relation describes which pairs of vertices are
 adjacent.  There is exactly one edge for every pair of adjacent edges;
 see `simple_graph.E` for the corresponding type of edges.
+
+Note: The type of the relation is given as `V → set V` rather than
+`V → V → Prop` so that, given vertices `v` and `w`, then `w ∈ G.adj v`
+works as another way to write `G.adj v w`.  Otherwise Lean cannot find
+a `has_mem` instance.
 -/
 structure simple_graph (V : Type u) :=
-(adj : V → V → Prop)
+(adj : V → set V)
 (sym : symmetric adj . obviously)
 (loopless : irreflexive adj . obviously)
 
@@ -47,9 +58,7 @@ structure simple_graph (V : Type u) :=
 The complete graph on a type `V` is the simple graph where all pairs of distinct vertices are adjacent.
 -/
 def complete_graph (V : Type u) : simple_graph V :=
-{ adj := λ v w, v ≠ w,
-  sym := by tidy,
-  loopless := by tidy }
+{ adj := λ v w, v ≠ w }
 
 instance (V : Type u) : inhabited (simple_graph V) :=
 ⟨complete_graph V⟩
@@ -64,11 +73,11 @@ The edges of G consist of the unordered pairs of vertices related by
 def E : Type u := { x : sym2 V // x ∈ sym2.from_rel G.sym }
 
 instance E.inhabited [inhabited {p : V × V | G.adj p.1 p.2}] : inhabited G.E :=
-{ default := begin
+⟨begin
   rcases inhabited.default {p : V × V | G.adj p.1 p.2} with ⟨⟨x, y⟩, h⟩,
   use ⟦(x, y)⟧,
   rwa sym2.from_rel_prop,
-end }
+end⟩
 
 @[simp] lemma irrefl {v : V} : ¬ G.adj v v := G.loopless v
 
@@ -78,20 +87,23 @@ by split; apply G.sym
 lemma ne_of_edge {a b : V} (hab : G.adj a b) : a ≠ b :=
 by { intro h, rw h at hab, apply G.loopless b, exact hab }
 
-/--
-`G.neighbors v` is the set of vertices adjacent to `v`.
--/
-def neighbors (v : V) : set V := G.adj v
+@[simp] lemma in_adj_iff_adj (v w : V) : w ∈ G.adj v ↔ G.adj v w :=
+by tauto
 
-@[simp] lemma neighbor_iff_adjacent (v w : V) :
-  w ∈ G.neighbors v ↔ G.adj v w :=
-by { tauto }
+/--
+`G.adj' v` is the `finset` version of `G.adj v` in case `G` is
+locally finite at `v`.
+-/
+def adj' (v : V) [fintype (G.adj v)] : finset V := set.to_finset (G.adj v)
+
+@[simp] lemma in_adj_iff_in_adj (v w : V) [fintype (G.adj v)] : w ∈ G.adj' v ↔ w ∈ G.adj v :=
+by simp [adj']
 
 /--
 `G.incident v` is the set of edges incident to `v`.  Due to the way
 sets are defined, `G.incident v e` denotes that `v` is incident to `e`.
 -/
-def incident (v : V) : set (G.E) := {e : G.E | v ∈ e.1}
+def incident (v : V) : set G.E := {e : G.E | v ∈ e.1}
 
 
 section finite
@@ -100,21 +112,18 @@ instance edges_fintype [decidable_eq V] [decidable_rel G.adj] [fintype V] : fint
 subtype.fintype _
 
 /--
-A graph with finitely many vertices is locally finite.
--/
-instance neighbors_fintype [decidable_rel G.adj] [fintype V] (v : V) : fintype (G.neighbors v) :=
-by { dsimp [neighbors], apply_instance }
-
-/--
 `G.degree v` is the number of vertices adjacent to `v`.
 -/
-def degree (v : V) [fintype (G.neighbors v)] : ℕ := fintype.card (neighbors G v)
+def degree (v : V) [fintype (G.adj v)] : ℕ := fintype.card (G.adj v)
+
+@[simp] lemma degree_adj' (v : V) [fintype (G.adj v)] : (G.adj' v).card = G.degree v :=
+by simp [adj', degree]
 
 /--
 A regular graph is a locally finite graph such that every vertex has the same degree.
 -/
-def regular_graph [∀ (v : V), fintype (G.neighbors v)] (d : ℕ) : Prop :=
- ∀ v : V, degree G v = d
+def regular_graph [∀ (v : V), fintype (G.adj v)] (d : ℕ) : Prop :=
+∀ (v : V), degree G v = d
 
 instance complete_graph_adj_decidable [decidable_eq V] : decidable_rel (complete_graph V).adj :=
 by { dsimp [complete_graph], apply_instance }

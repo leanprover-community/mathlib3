@@ -1243,7 +1243,7 @@ end
 
 variable {ν : measure α}
 
-@[simp] lemma integral_add_meas {f : α → E} (hfm : measurable f) (hfi : integrable f (μ + ν)) :
+lemma integral_add_meas {f : α → E} (hfm : measurable f) (hfi : integrable f (μ + ν)) :
   ∫ x, f x ∂(μ + ν) = ∫ x, f x ∂μ + ∫ x, f x ∂ν :=
 begin
   rcases simple_func_sequence_tendsto' hfm hfi with ⟨F, hFi, hFt⟩,

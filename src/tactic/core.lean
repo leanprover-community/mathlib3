@@ -445,8 +445,11 @@ In contrast to `generalize` it already introduces the generalized variable. -/
 meta def generalize' (e : expr) (n : name) : tactic expr :=
 (generalize e n >> intro1) <|> note n none e
 
-/-- Like `intron` except that newly introduced variables are
-not renamed to avoid name clashes -/
+/--
+`intron_no_renames n` calls `intro` `n` times, using the pretty-printing name
+provided by the binder to name the new local constant.
+Unlike `intron`, it does not rename introduced constants if the names shadow existing constants.
+-/
 meta def intron_no_renames : ℕ → tactic unit
 | 0 := pure ()
 | (n+1) := do

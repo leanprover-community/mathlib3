@@ -3,10 +3,12 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
+import algebra.big_operators.intervals
 import topology.instances.real
 import data.indicator_function
 import data.equiv.encodable.lattice
 import order.filter.at_top_bot
+
 /-!
 # Infinite sum over a topological monoid
 

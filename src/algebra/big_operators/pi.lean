@@ -1,4 +1,7 @@
-import algebra.ring.pi algebra.big_operators data.fintype.basic algebra.group.prod
+import algebra.ring.pi
+import algebra.big_operators
+import data.fintype.basic
+import algebra.group.prod
 
 open_locale big_operators
 
@@ -74,3 +77,17 @@ begin
 end
 
 end ring_hom
+
+namespace prod
+
+variables {α β γ : Type*} [comm_monoid α] [comm_monoid β] {s : finset γ} {f : γ → α × β}
+
+@[to_additive]
+lemma fst_prod : (∏ c in s, f c).1 = ∏ c in s, (f c).1 :=
+(monoid_hom.fst α β).map_prod f s
+
+@[to_additive]
+lemma snd_prod  : (∏ c in s, f c).2 = ∏ c in s, (f c).2 :=
+(monoid_hom.snd α β).map_prod f s
+
+end prod

@@ -674,7 +674,7 @@ begin
   have hmem' : ∀ i ∈ t, (z i, (f ∘ z) i) ∈ {p : E × ℝ | p.1 ∈ s ∧ f p.1 ≤ p.2},
     from λ i hi, ⟨hmem i hi, le_refl _⟩,
   convert (hf.convex_epigraph.center_mass_mem h₀ hpos hmem').2;
-    simp only [center_mass, function.comp, prod.smul_fst, prod.smul_snd],
+    simp only [center_mass, function.comp, prod.smul_fst, prod.fst_sum, prod.smul_snd, prod.snd_sum]
 end
 
 /-- Jensen's inequality, `finset.sum` version. -/

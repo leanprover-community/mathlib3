@@ -216,7 +216,7 @@ theorem aleph'_is_normal : is_normal (ord ∘ aleph') :=
 theorem aleph_is_normal : is_normal (ord ∘ aleph) :=
 aleph'_is_normal.trans $ add_is_normal ordinal.omega
 
-/- properties of mul -/
+/-! ### Properties of `mul` -/
 
 /-- If `α` is an infinite type, then `α × α` and `α` have the same cardinality. -/
 theorem mul_eq_self {c : cardinal} (h : omega ≤ c) : c * c = c :=
@@ -332,7 +332,7 @@ begin
     all_goals {simp}}
 end
 
-/- properties of add -/
+/-! ### Properties of `add` -/
 
 /-- If `α` is an infinite type, then `α ⊕ α` and `α` have the same cardinality. -/
 theorem add_eq_self {c : cardinal} (h : omega ≤ c) : c + c = c :=
@@ -411,7 +411,7 @@ protected lemma eq_of_add_eq_add_right {a b c : cardinal} (h : a + b = c + b) (h
   a = c :=
 by { rw [add_comm a b, add_comm c b] at h, exact cardinal.eq_of_add_eq_add_left h hb }
 
-/- properties about power -/
+/-! ### Properties about power -/
 
 theorem pow_le {κ μ : cardinal.{u}} (H1 : omega ≤ κ) (H2 : μ < omega) : κ ^ μ ≤ κ :=
 let ⟨n, H3⟩ := lt_omega.1 H2 in
@@ -447,7 +447,7 @@ begin
   refine le_trans (le_of_lt $ power_lt_omega h hc') (le_max_right _ _)
 end
 
-/- compute cardinality of various types -/
+/-! ### Computing cardinality of various types -/
 
 theorem mk_list_eq_mk {α : Type u} (H1 : omega ≤ mk α) : mk (list α) = mk α :=
 eq.symm $ le_antisymm ⟨⟨λ x, [x], λ x y H, (list.cons.inj H).1⟩⟩ $
@@ -503,7 +503,7 @@ begin
   rintro ⟨t, h1t, h2t⟩, exact le_trans (mk_preimage_of_injective _ _ subtype.val_injective) h2t
 end
 
-/- compl -/
+/-! ### Properties of `compl` -/
 
 lemma mk_compl_of_omega_le {α : Type*} (s : set α) (h : omega ≤ #α) (h2 : #s < #α) :
   #(sᶜ : set α) = #α :=
@@ -543,7 +543,7 @@ lemma mk_compl_eq_mk_compl_finite_same {α : Type*} {s t : set α} (hα : #α < 
   (h : #s = #t) : #(sᶜ : set α) = #(tᶜ : set α) :=
 mk_compl_eq_mk_compl_finite hα rfl h
 
-/- extend an injection to an equiv -/
+/-! ### Extending an injection to an equiv -/
 
 theorem extend_function {α β : Type*} {s : set α} (f : s ↪ β)
   (h : nonempty ((sᶜ : set α) ≃ ((range f)ᶜ : set β))) :

@@ -370,22 +370,9 @@ begin
   { rintros ⟨h_ax, h_bx⟩,
     by_cases hab : ¬a < b,
     { exfalso; exact hab h },
-    { have hab' : a ≠ b := ne_of_lt h,
-      refine ⟨(b-x) / (b-a), (x-a) / (b-a), _⟩,
-      refine ⟨div_pos (by linarith) (by linarith), div_pos (by linarith) (by linarith),_,_⟩,
-      { calc
-          (b - x) / (b - a) + (x - a) / (b - a)
-                = (b - x + (x - a)) / (b - a)     : by rw [←add_div]
-           ...  = (b - a) / (b-a)                 : by abel
-           ...  = 1                               : div_self (sub_ne_zero.mpr (ne.symm hab')) },
-
-      { calc
-          (b - x) / (b - a) * a + (x - a) / (b - a) * b
-                = ((b - x) * a) / (b-a) + ((x-a)*b)/(b-a)   : by simp only [mul_div_right_comm]
-          ...   = ((b-x) * a + (x-a)*b) / (b-a)             : by rw [←add_div]
-          ...   = (x * (b - a)) / (b-a)                     : by ring
-          ...   = x                                         : mul_div_cancel x (sub_ne_zero.mpr
-                                                                    (ne.symm hab')), } } },
+    { refine ⟨(b-x) / (b-a), (x-a) / (b-a), _⟩,
+      refine ⟨div_pos (by linarith) (by linarith), div_pos (by linarith) (by linarith),_,_⟩;
+      { field_simp [show b - a ≠ 0, by linarith], ring } } },
   { rw [mem_Ioo],
     rintros ⟨xa, xb, ⟨hxa, hxb, hxaxb, h₂⟩⟩,
     rw [←h₂],

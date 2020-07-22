@@ -7,6 +7,7 @@ import algebra.group.pi
 import algebra.module.basic
 import data.set.disjointed
 import data.support
+import data.finset.lattice
 
 /-!
 # Indicator function

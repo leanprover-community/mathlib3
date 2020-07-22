@@ -134,7 +134,7 @@ by simp [neighbors]
 def degree (v : V) [fintype (G.adj v)] : ℕ := (G.neighbors v).card
 
 @[simp]
-lemma adj_card_is_degree (v : V) [fintype (G.adj v)] : fintype.card (G.adj v) = G.degree v :=
+lemma card_adj_eq_degree (v : V) [fintype (G.adj v)] : fintype.card (G.adj v) = G.degree v :=
 by simp [degree, neighbors]
 
 end finite_at
@@ -158,19 +158,16 @@ variables [fintype V]
 
 instance edges_fintype [decidable_eq V] [decidable_rel G.adj] : fintype G.E := subtype.fintype _
 
-@[simp] lemma neighbors_eq_filter {v : V} [decidable_pred (G.adj v)] :
+lemma neighbors_eq_filter {v : V} [decidable_pred (G.adj v)] :
   G.neighbors v = finset.univ.filter (G.adj v) :=
-by {ext, simp}
+by { ext, simp }
 
 @[simp]
 lemma complete_graph_degree [decidable_eq V] (v : V) :
   (complete_graph V).degree v = fintype.card V - 1 :=
 begin
-  dsimp [complete_graph, degree],
-  rw neighbors_eq_filter,
-  change (finset.univ.filter (λ w, v ≠ w)).card = univ.card - 1,
-  rw [filter_ne, card_erase_of_mem (mem_univ v)],
-  exact univ.card.pred_eq_sub_one,
+  dsimp [degree], convert univ.card.pred_eq_sub_one,
+  erw [neighbors_eq_filter, filter_ne, card_erase_of_mem (mem_univ v)],
 end
 
 lemma complete_graph_is_regular [decidable_eq V] :

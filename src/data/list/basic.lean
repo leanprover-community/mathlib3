@@ -729,7 +729,7 @@ begin
 end
 using_well_founded { rel_tac := λ _ _, `[exact ⟨_, measure_wf list.length⟩] }
 
-/-- Like `bidirectional_rec`, but with the list parameter placed first for dot-notation. -/
+/-- Like `bidirectional_rec`, but with the list parameter placed first. -/
 @[elab_as_eliminator] def bidirectional_rec_on {C : list α → Sort*}
     (l : list α) (H0 : C []) (H1 : ∀ (a : α), C [a])
     (Hn : ∀ (a : α) (l : list α) (b : α), C l → C (a :: (l ++ [b]))) : C l :=

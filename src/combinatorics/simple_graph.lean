@@ -76,16 +76,17 @@ The edges of G consist of the unordered pairs of vertices related by
 -/
 def E : Type u := { x : sym2 V // x ∈ sym2.from_rel G.sym }
 
-/-- Allows us to refer to a vertex being a member of an edge. -/
-instance E.mem : has_mem V G.E := { mem := λ v e, v ∈ e.val }
-
 /--
 `G.incident v` is the set of edges incident to `v`.  Due to the way
 sets are defined, `G.incident v e` denotes that `v` is incident to `e`.
 
 As a convenience, we define a `has_mem` instance by `v ∈ e = G.incident v e`.
 -/
-def incident_edges (v : V) : set G.E := {e : G.E | v ∈ e}
+def incident_edges (v : V) : set G.E := {e : G.E | v ∈ e.val}
+
+/-- Allows us to refer to a vertex being a member of an edge. -/
+instance E.has_mem : has_mem V G.E := { mem := G.incident_edges }
+
 
 instance E.inhabited [inhabited {p : V × V | G.adj p.1 p.2}] : inhabited G.E :=
 ⟨begin

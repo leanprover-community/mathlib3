@@ -1,4 +1,14 @@
+/-
+Copyright (c) 2018 Simon Hudon. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Simon Hudon, Patrick Massot
+-/
 import algebra.module.basic algebra.ring.pi
+/-!
+# Pi instances for module and multiplicative actions
+
+This file defines instances for module, mul_action and related structures on Pi Types
+-/
 
 namespace pi
 universes u v w

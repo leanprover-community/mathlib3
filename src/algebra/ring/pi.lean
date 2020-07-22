@@ -1,4 +1,15 @@
+/-
+Copyright (c) 2018 Simon Hudon. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Simon Hudon, Patrick Massot
+-/
 import tactic.pi_instances algebra.group.pi algebra.ring.basic
+/-!
+# Pi instances for ring
+
+This file defines instances for ring, semiring and related structures on Pi Types
+-/
+
 
 namespace pi
 universes u v w

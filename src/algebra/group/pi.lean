@@ -1,4 +1,14 @@
+/-
+Copyright (c) 2018 Simon Hudon. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Simon Hudon, Patrick Massot
+-/
 import algebra.ordered_group tactic.pi_instances
+/-!
+# Pi instances for groups and monoids
+
+This file defines instances for group, monoid, semigroup and related structures on Pi Types
+-/
 
 universes u v w
 variable {I : Type u}     -- The indexing type

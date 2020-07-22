@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import ring_theory.tensor_product
 import ring_theory.matrix_algebra
-import data.polynomial
+import data.polynomial.algebra_map
 
 /-!
 # Algebra isomorphism between matrices of polynomials and polynomials of matrices

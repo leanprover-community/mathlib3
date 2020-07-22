@@ -5,9 +5,116 @@ Author: Mario Carneiro
 
 Ordinal notations (constructive ordinal arithmetic for ordinals < ε₀).
 -/
-import set_theory.ordinal
+import set_theory.ordinal_arithmetic
 open ordinal
 open_locale ordinal -- get notation for `ω`
+
+namespace ordinal
+
+theorem CNF_aux {b o : ordinal} (b0 : b ≠ 0) (o0 : o ≠ 0) :
+  o % b ^ log b o < o :=
+lt_of_lt_of_le
+  (mod_lt _ $ power_ne_zero _ b0)
+  (power_log_le _ $ pos_iff_ne_zero.2 o0)
+
+/-- Proving properties of ordinals by induction over their Cantor normal form. -/
+@[elab_as_eliminator] noncomputable def CNF_rec {b : ordinal} (b0 : b ≠ 0)
+  {C : ordinal → Sort*}
+  (H0 : C 0)
+  (H : ∀ o, o ≠ 0 → o % b ^ log b o < o → C (o % b ^ log b o) → C o)
+  : ∀ o, C o
+| o :=
+  if o0 : o = 0 then by rw o0; exact H0 else
+  have _, from CNF_aux b0 o0,
+  H o o0 this (CNF_rec (o % b ^ log b o))
+using_well_founded {dec_tac := `[assumption]}
+
+@[simp] theorem CNF_rec_zero {b} (b0) {C H0 H} : @CNF_rec b b0 C H0 H 0 = H0 :=
+by rw [CNF_rec, dif_pos rfl]; refl
+
+@[simp] theorem CNF_rec_ne_zero {b} (b0) {C H0 H o} (o0) :
+  @CNF_rec b b0 C H0 H o = H o o0 (CNF_aux b0 o0) (@CNF_rec b b0 C H0 H _) :=
+by rw [CNF_rec, dif_neg o0]
+
+/-- The Cantor normal form of an ordinal is the list of coefficients
+  in the base-`b` expansion of `o`.
+
+    CNF b (b ^ u₁ * v₁ + b ^ u₂ * v₂) = [(u₁, v₁), (u₂, v₂)] -/
+noncomputable def CNF (b := omega) (o : ordinal) : list (ordinal × ordinal) :=
+if b0 : b = 0 then [] else
+CNF_rec b0 [] (λ o o0 h IH, (log b o, o / b ^ log b o) :: IH) o
+
+@[simp] theorem zero_CNF (o) : CNF 0 o = [] :=
+dif_pos rfl
+
+@[simp] theorem CNF_zero (b) : CNF b 0 = [] :=
+if b0 : b = 0 then dif_pos b0 else
+(dif_neg b0).trans $ CNF_rec_zero _
+
+theorem CNF_ne_zero {b o : ordinal} (b0 : b ≠ 0) (o0 : o ≠ 0) :
+  CNF b o = (log b o, o / b ^ log b o) :: CNF b (o % b ^ log b o) :=
+by unfold CNF; rw [dif_neg b0, dif_neg b0, CNF_rec_ne_zero b0 o0]
+
+theorem one_CNF {o : ordinal} (o0 : o ≠ 0) :
+  CNF 1 o = [(0, o)] :=
+by rw [CNF_ne_zero ordinal.one_ne_zero o0, log_not_one_lt (lt_irrefl _), power_zero, mod_one,
+       CNF_zero, div_one]
+
+theorem CNF_foldr {b : ordinal} (b0 : b ≠ 0) (o) :
+  (CNF b o).foldr (λ p r, b ^ p.1 * p.2 + r) 0 = o :=
+CNF_rec b0 (by rw CNF_zero; refl)
+  (λ o o0 h IH, by rw [CNF_ne_zero b0 o0, list.foldr_cons, IH, div_add_mod]) o
+
+theorem CNF_pairwise_aux (b := omega) (o) :
+  (∀ p ∈ CNF b o, prod.fst p ≤ log b o) ∧
+  (CNF b o).pairwise (λ p q, q.1 < p.1) :=
+begin
+  by_cases b0 : b = 0,
+  { simp only [b0, zero_CNF, list.pairwise.nil, and_true], exact λ _, false.elim },
+  cases lt_or_eq_of_le (one_le_iff_ne_zero.2 b0) with b1 b1,
+  { refine CNF_rec b0 _ _ o,
+    { simp only [CNF_zero, list.pairwise.nil, and_true], exact λ _, false.elim },
+    intros o o0 H IH, cases IH with IH₁ IH₂,
+    simp only [CNF_ne_zero b0 o0, list.forall_mem_cons, list.pairwise_cons, IH₂, and_true],
+    refine ⟨⟨le_refl _, λ p m, _⟩, λ p m, _⟩,
+    { exact le_trans (IH₁ p m) (log_le_log _ $ le_of_lt H) },
+    { refine lt_of_le_of_lt (IH₁ p m) ((log_lt b1 _).2 _),
+      { rw pos_iff_ne_zero, intro e,
+        rw e at m, simpa only [CNF_zero] using m },
+      { exact mod_lt _ (power_ne_zero _ b0) } } },
+  { by_cases o0 : o = 0,
+    { simp only [o0, CNF_zero, list.pairwise.nil, and_true], exact λ _, false.elim },
+    rw [← b1, one_CNF o0],
+    simp only [list.mem_singleton, log_not_one_lt (lt_irrefl _), forall_eq, le_refl, true_and, list.pairwise_singleton] }
+end
+
+theorem CNF_pairwise (b := omega) (o) :
+  (CNF b o).pairwise (λ p q, prod.fst q < p.1) :=
+(CNF_pairwise_aux _ _).2
+
+theorem CNF_fst_le_log (b := omega) (o) :
+  ∀ p ∈ CNF b o, prod.fst p ≤ log b o :=
+(CNF_pairwise_aux _ _).1
+
+theorem CNF_fst_le (b := omega) (o) (p ∈ CNF b o) : prod.fst p ≤ o :=
+le_trans (CNF_fst_le_log _ _ p H) (log_le_self _ _)
+
+theorem CNF_snd_lt {b : ordinal} (b1 : 1 < b) (o) :
+  ∀ p ∈ CNF b o, prod.snd p < b :=
+begin
+  have b0 := ne_of_gt (lt_trans zero_lt_one b1),
+  refine CNF_rec b0 (λ _, by rw [CNF_zero]; exact false.elim) _ o,
+  intros o o0 H IH,
+  simp only [CNF_ne_zero b0 o0, list.mem_cons_iff, list.forall_mem_cons', iff_true_intro IH, and_true],
+  rw [div_lt (power_ne_zero _ b0), ← power_succ],
+  exact lt_power_succ_log b1 _,
+end
+
+theorem CNF_sorted (b := omega) (o) :
+  ((CNF b o).map prod.fst).sorted (>) :=
+by rw [list.sorted, list.pairwise_map]; exact CNF_pairwise b o
+
+end ordinal
 
 /-- Recursive definition of an ordinal notation. `zero` denotes the
   ordinal 0, and `oadd e n a` is intended to refer to `ω^e * n + a`.

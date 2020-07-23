@@ -517,7 +517,7 @@ def mul_nat : onote → ℕ → onote
 | _            0 := 0
 | (oadd e n a) (m+1) := oadd e (n * m.succ_pnat) a
 
-/-- Auxiliary definition to copute the ordinal notation for the ordinal
+/-- Auxiliary definition to compute the ordinal notation for the ordinal
 exponentiation in `power` -/
 def power_aux (e a0 a : onote) : ℕ → ℕ → onote
 | _     0     := 0

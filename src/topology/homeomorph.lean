@@ -22,6 +22,10 @@ variables [topological_space α] [topological_space β] [topological_space γ] [
 
 instance : has_coe_to_fun (α ≃ₜ β) := ⟨λ_, α → β, λe, e.to_equiv⟩
 
+@[simp] lemma homeomorph_mk_coe (a : equiv α β) (b c) :
+  ((homeomorph.mk a b c) : α → β) = a :=
+rfl
+
 lemma coe_eq_to_equiv (h : α ≃ₜ β) (a : α) : h a = h.to_equiv a := rfl
 
 /-- Identity map is a homeomorphism. -/
@@ -39,6 +43,10 @@ protected def symm (h : α ≃ₜ β) : β ≃ₜ α :=
 { continuous_to_fun  := h.continuous_inv_fun,
   continuous_inv_fun := h.continuous_to_fun,
   .. h.to_equiv.symm }
+
+@[simp] lemma homeomorph_mk_coe_symm (a : equiv α β) (b c) :
+  ((homeomorph.mk a b c).symm : β → α) = a.symm :=
+rfl
 
 protected lemma continuous (h : α ≃ₜ β) : continuous h := h.continuous_to_fun
 

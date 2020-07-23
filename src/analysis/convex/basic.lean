@@ -1057,7 +1057,7 @@ lemma set.finite.convex_hull_eq_image {s : set E} (hs : finite s) :
   convex_hull s = by haveI := hs.fintype; exact
     (⇑(∑ x : s, (@linear_map.proj ℝ s _ (λ i, ℝ) _ _ x).smul_right x.1)) '' (std_simplex s) :=
 begin
-  rw[← convex_hull_basis_eq_std_simplex, ← linear_map.convex_hull_image, ← set.range_comp, (∘)],
+  rw [← convex_hull_basis_eq_std_simplex, ← linear_map.convex_hull_image, ← set.range_comp, (∘)],
   apply congr_arg,
   convert subtype.range_coe.symm,
   ext x,

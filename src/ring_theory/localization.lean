@@ -286,6 +286,23 @@ lemma mk'_eq_iff_eq {x₁ x₂} {y₁ y₂ : M} :
   f.mk' x₁ y₁ = f.mk' x₂ y₂ ↔ f.to_map (x₁ * y₂) = f.to_map (x₂ * y₁) :=
 f.to_localization_map.mk'_eq_iff_eq
 
+lemma mk'_mem_iff {x} {y : M} {I : ideal S} : f.to_map x ∈ I ↔ f.mk' x y ∈ I :=
+begin
+  split,
+  {
+    intro h,
+    rw ← mk'_spec f x y at h,
+    obtain ⟨b, hb⟩ := is_unit_iff_exists_inv.1 (map_units f y),
+    have := I.smul_mem b h,
+    rwa [smul_eq_mul, mul_comm, mul_assoc, hb, mul_one] at this,
+  },
+  {
+    intro h,
+    rw [← mk'_spec f x y, mul_comm],
+    exact I.smul_mem (f.to_map y) h,
+  }
+end
+
 protected lemma eq {a₁ b₁} {a₂ b₂ : M} :
   f.mk' a₁ a₂ = f.mk' b₁ b₂ ↔ ∃ c : M, a₁ * b₂ * c = b₁ * a₂ * c :=
 f.to_localization_map.eq
@@ -703,6 +720,47 @@ variables (f : localization_map M S)
 
 section ideals
 
+/-- Explicit definition of the ideal given by `ideal.map f.to_map I` -/
+def to_map_ideal (I : ideal R) : ideal S :=
+{carrier := { z : S | ∃ x : I × M, z * (f.to_map x.2) = f.to_map x.1},
+  zero_mem' := ⟨⟨0, 1⟩, by simp⟩,
+  add_mem' := by {
+    intros a b ha hb,
+    obtain ⟨b', hb⟩ := hb,
+    obtain ⟨a', ha⟩ := ha,
+    use ⟨a'.2 * b'.1 + b'.2 * a'.1, I.add_mem (I.smul_mem _ b'.1.2) (I.smul_mem _ a'.1.2)⟩,
+    use a'.2 * b'.2,
+    simp,
+    rw [add_mul, ← mul_assoc a, ha, mul_comm (f.to_map a'.2) (f.to_map b'.2), ← mul_assoc b, hb],
+    ring, },
+  smul_mem' := by {
+    intros c x hx,
+    obtain ⟨x', hx⟩ := hx,
+    obtain ⟨c', hc⟩ := localization_map.surj f c,
+    use ⟨c'.1 * x'.1, I.smul_mem c'.1 x'.1.2⟩,
+    use c'.2 * x'.2,
+    simp,
+    rw [← hx, ← hc],
+    ring, }
+  }
+
+theorem map_to_map_eq_to_map_ideal {I : ideal R} : ideal.map f.to_map I = to_map_ideal f I :=
+begin
+  refine le_antisymm _ _,
+  {
+    refine λ _ h, ideal.mem_Inf.1 h (λ x hx, _),
+    obtain ⟨y, hy⟩ := hx,
+    use ⟨⟨⟨y, hy.left⟩, 1⟩, by simp [hy.right]⟩,
+  },
+  {
+    intros x hx,
+    have : x ∈ (to_map_ideal f I).carrier := hx,
+    obtain ⟨⟨a, s⟩, h⟩ := this,
+    rw [ideal.mem_iff_mul_unit_mem _ (map_units f s), mul_comm],
+    exact h.symm ▸ ideal.mem_map_of_mem a.2,
+  }
+end
+
 theorem map_comap (J : ideal S) :
   ideal.map f.to_map (ideal.comap f.to_map J) = J :=
 le_antisymm (ideal.map_le_iff_le_comap.2 (le_refl _)) $ λ x hJ,
@@ -711,6 +769,32 @@ begin
   rw ←hx at ⊢ hJ,
   exact ideal.mul_mem_right _ (ideal.mem_map_of_mem (show f.to_map r ∈ J, from
     f.mk'_spec r s ▸ @ideal.mul_mem_right _ _ J (f.mk' r s) (f.to_map s) hJ)),
+end
+
+theorem comap_map_of_is_prime_disjoint (I : ideal R) (hI : I.is_prime) (hM : disjoint (M : set R) I) :
+  ideal.comap f.to_map (ideal.map f.to_map I) = I :=
+begin
+  refine le_antisymm _ ideal.le_comap_map,
+  intros a ha,
+  rw ideal.mem_comap at ha,
+  rw map_to_map_eq_to_map_ideal at ha,
+  obtain ⟨⟨b, s⟩, h⟩ := ha,
+  have : f.to_map (a * ↑s - b) = 0 := by simpa [sub_eq_zero] using h,
+  rw ← f.to_map.map_zero at this,
+  rw eq_iff_exists f at this,
+  obtain ⟨c, hc⟩ := this,
+  have : a * s ∈ I, {
+    rw zero_mul at hc,
+    let this : (a * ↑s - ↑b) * ↑c ∈ I := hc.symm ▸ I.zero_mem,
+    cases hI.right this with h1 h2,
+    { simpa using I.add_mem h1 b.2 },
+    { exfalso,
+      refine hM ⟨c.2, h2⟩ }
+  },
+  cases hI.right this with h1 h2,
+  { exact h1 },
+  { exfalso,
+    refine hM ⟨s.2, h2⟩ }
 end
 
 /-- If `S` is the localization of `R` at a submonoid, the ordering of ideals of `S` is
@@ -722,6 +806,50 @@ def le_order_embedding :
   inj'   := function.left_inverse.injective f.map_comap,
   ord'   := λ J₁ J₂, ⟨ideal.comap_mono, λ hJ,
     f.map_comap J₁ ▸ f.map_comap J₂ ▸ ideal.map_mono hJ⟩ }
+
+lemma is_prime_iff_is_prime_disjoint (J : ideal S) :
+  J.is_prime ↔ (ideal.comap f.to_map J).is_prime ∧ disjoint (M : set R) ↑(ideal.comap f.to_map J) :=
+begin
+  split,
+  { refine λ h, ⟨_, λ m hm, h.1 (ideal.eq_top_of_is_unit_mem _ hm.2 (map_units f ⟨m, hm.left⟩))⟩,
+    split,
+    { refine λ hJ, h.left _,
+      rw [eq_top_iff, (le_order_embedding f).ord],
+      exact le_of_eq hJ.symm },
+    { intros x y hxy,
+      rw [ideal.mem_comap, ring_hom.map_mul] at hxy,
+      exact h.right hxy } },
+  { intro h,
+    split,
+    { refine λ hJ, h.left.left (eq_top_iff.2 _),
+      rwa [eq_top_iff, (le_order_embedding f).ord] at hJ },
+    { intros x y hxy,
+      obtain ⟨a, s, ha⟩ := mk'_surjective f x,
+      obtain ⟨b, t, hb⟩ := mk'_surjective f y,
+      have : f.mk' (a * b) (s * t) ∈ J := by rwa [mk'_mul, ha, hb],
+      rw [← mk'_mem_iff, ← ideal.mem_comap] at this,
+      replace this := h.left.right this,
+      rw [ideal.mem_comap, ideal.mem_comap] at this,
+      rwa [← ha, ← hb, ← mk'_mem_iff, ← mk'_mem_iff] } }
+end
+
+-- TODO: Just inline this into the order_iso proof
+lemma is_prime_of_is_prime_disjoint (I : ideal R) :
+  I.is_prime ∧ disjoint (M : set R) ↑I → (ideal.map f.to_map I).is_prime :=
+λ h, by rwa [is_prime_iff_is_prime_disjoint f, comap_map_of_is_prime_disjoint f I h.1 h.2]
+
+/-- If `R` is a ring, then prime ideals in the localization at `M`
+correspond to prime ideals in the original ring `R` that are disjoint from `M` -/
+def le_order_iso_of_prime (f : localization_map M S) :
+  ((≤) : {p : ideal S // p.is_prime} → {p : ideal S // p.is_prime} → Prop) ≃o
+  ((≤) : {p : ideal R // p.is_prime ∧ disjoint (M : set R) ↑p}
+            → {p : ideal R // p.is_prime ∧ disjoint (M : set R) ↑p} → Prop) :=
+{ to_fun := λ p, ⟨ideal.comap f.to_map p.1, (is_prime_iff_is_prime_disjoint f p.1).1 p.2⟩,
+  inv_fun := λ p, ⟨ideal.map f.to_map p.1, (is_prime_of_is_prime_disjoint f p.1) p.2⟩,
+  left_inv := λ J, subtype.eq (map_comap f J),
+  right_inv := λ I, subtype.eq (comap_map_of_is_prime_disjoint f I.1 I.2.1 I.2.2),
+  ord' := λ I I', ⟨λ h x hx, h hx, λ h, (show I.val ≤ I'.val,
+    from (map_comap f I.val) ▸ (map_comap f I'.val) ▸ (ideal.map_mono h))⟩ }
 
 end ideals
 

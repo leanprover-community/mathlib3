@@ -954,6 +954,9 @@ semimodule.of_core $ by refine {smul := (•), ..};
   repeat {rintro ⟨⟩ <|> intro}; simp [smul_add, add_smul, smul_smul,
     -mk_add, (mk_add p).symm, -mk_smul, (mk_smul p).symm]
 
+lemma mk_surjective : function.surjective (@mk _ _ _ _ _ p) :=
+by rintros ⟨x⟩; exact ⟨x, rfl⟩
+
 end quotient
 
 lemma quot_hom_ext ⦃f g : quotient p →ₗ[R] M₂⦄ (h : ∀ x, f (quotient.mk x) = g (quotient.mk x)) :

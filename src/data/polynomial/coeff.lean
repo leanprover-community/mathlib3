@@ -5,6 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.monomial
 import data.finset.nat_antidiagonal
+import linear_algebra.basic
 
 /-!
 # Theory of univariate polynomials
@@ -150,6 +151,31 @@ theorem mul_X_pow_eq_zero {p : polynomial R} {n : ℕ}
   (H : p * X ^ n = 0) : p = 0 :=
 ext $ λ k, (coeff_mul_X_pow p n k).symm.trans $ ext_iff.1 H (k+n)
 
+theorem polynomial_exists_downshift (f : polynomial R) : ∃ g, f = g * X + C (coeff f 0) :=
+begin
+  use f.sum (λn a, if n > 0 then C a * X^(n - 1) else 0),
+  ext,
+  cases n,
+  { simp },
+  { rw [coeff_add, coeff_C_succ, add_zero, coeff_mul_X],
+    simp only [coeff_X_pow, coeff_sum, coeff_C_mul],
+    rw [finsupp.sum, finset.sum_eq_single (n + 1)],
+    { simp,
+      exact congr_fun rfl n.succ },
+    { intros m hm h,
+      cases m,
+      { exact trans (by refl) (coeff_zero n) },
+      { have : n ≠ m := λ h', h (by rw h'),
+        simp [this, coeff_X_pow] } },
+    { simp_intros hn,
+      exact hn } }
+end
+
 end coeff
+
+section restrict_const_coeff
+
+
+end restrict_const_coeff
 
 end polynomial

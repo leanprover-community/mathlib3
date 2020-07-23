@@ -677,8 +677,7 @@ lemma mfderiv_within_congr (hs : unique_mdiff_within_at I s x)
   mfderiv_within I I' f₁ s x = (mfderiv_within I I' f s x : _) :=
 filter.eventually_eq.mfderiv_within_eq hs (filter.eventually_eq_of_mem (self_mem_nhds_within) hL) hx
 
-lemma tangent_map_within_congr {s : set M}
-  (h : ∀ x ∈ s, f x = f₁ x)
+lemma tangent_map_within_congr (h : ∀ x ∈ s, f x = f₁ x)
   (p : tangent_bundle I M) (hp : p.1 ∈ s) (hs : unique_mdiff_within_at I s p.1) :
   tangent_map_within I I' f s p = tangent_map_within I I' f₁ s p :=
 begin

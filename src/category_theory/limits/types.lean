@@ -29,19 +29,21 @@ instance : has_limits (Type u) :=
 { has_limits_of_shape := λ J 𝒥,
   { has_limit := λ F, by exactI { cone := limit_ F, is_limit := limit_is_limit_ F } } }
 
-@[simp] lemma types_limit (F : J ⥤ Type u) :
+-- FIXME these are terrible simp lemmas, that reveal what happened in the kitchen
+
+lemma types_limit (F : J ⥤ Type u) :
   limits.limit F = {u : Π j, F.obj j // ∀ {j j'} f, F.map f (u j) = u j'} := rfl
-@[simp] lemma types_limit_π (F : J ⥤ Type u) (j : J) (g : limit F) :
+lemma types_limit_π (F : J ⥤ Type u) (j : J) (g : limit F) :
   limit.π F j g = g.val j := rfl
-@[simp] lemma types_limit_pre
+lemma types_limit_pre
   (F : J ⥤ Type u) {K : Type u} [𝒦 : small_category K] (E : K ⥤ J) (g : limit F) :
   limit.pre F E g = (⟨λ k, g.val (E.obj k), by obviously⟩ : limit (E ⋙ F)) := rfl
-@[simp] lemma types_limit_map {F G : J ⥤ Type u} (α : F ⟶ G) (g : limit F) :
+lemma types_limit_map {F G : J ⥤ Type u} (α : F ⟶ G) (g : limit F) :
   (lim.map α : limit F → limit G) g =
   (⟨λ j, (α.app j) (g.val j), λ j j' f,
     by {rw ←functor_to_types.naturality, dsimp, rw ←(g.prop f)}⟩ : limit G) := rfl
 
-@[simp] lemma types_limit_lift (F : J ⥤ Type u) (c : cone F) (x : c.X) :
+lemma types_limit_lift (F : J ⥤ Type u) (c : cone F) (x : c.X) :
   limit.lift F c x = (⟨λ j, c.π.app j x, λ j j' f, congr_fun (cone.w c f) x⟩ : limit F) :=
 rfl
 
@@ -63,21 +65,21 @@ instance : has_colimits (Type u) :=
 { has_colimits_of_shape := λ J 𝒥,
   { has_colimit := λ F, by exactI { cocone := colimit_ F, is_colimit := colimit_is_colimit_ F } } }
 
-@[simp] lemma types_colimit (F : J ⥤ Type u) :
+lemma types_colimit (F : J ⥤ Type u) :
   limits.colimit F = @quot (Σ j, F.obj j) (λ p p', ∃ f : p.1 ⟶ p'.1, p'.2 = F.map f p.2) := rfl
-@[simp] lemma types_colimit_ι (F : J ⥤ Type u) (j : J) :
+lemma types_colimit_ι (F : J ⥤ Type u) (j : J) :
   colimit.ι F j = λ x, quot.mk _ ⟨j, x⟩ := rfl
-@[simp] lemma types_colimit_pre
+lemma types_colimit_pre
   (F : J ⥤ Type u) {K : Type u} [𝒦 : small_category K] (E : K ⥤ J) :
   colimit.pre F E =
   quot.lift (λ p, quot.mk _ ⟨E.obj p.1, p.2⟩) (λ p p' ⟨f, h⟩, quot.sound ⟨E.map f, h⟩) := rfl
-@[simp] lemma types_colimit_map {F G : J ⥤ Type u} (α : F ⟶ G) :
+lemma types_colimit_map {F G : J ⥤ Type u} (α : F ⟶ G) :
   (colim.map α : colimit F → colimit G) =
   quot.lift
     (λ p, quot.mk _ ⟨p.1, (α.app p.1) p.2⟩)
     (λ p p' ⟨f, h⟩, quot.sound ⟨f, by rw h; exact functor_to_types.naturality _ _ α f _⟩) := rfl
 
-@[simp] lemma types_colimit_desc (F : J ⥤ Type u) (c : cocone F) :
+lemma types_colimit_desc (F : J ⥤ Type u) (c : cocone F) :
   colimit.desc F c =
   quot.lift
     (λ p, c.ι.app p.1 p.2)

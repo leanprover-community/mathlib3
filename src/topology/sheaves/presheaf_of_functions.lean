@@ -17,6 +17,9 @@ namespace Top
 
 variables (X Y : Top.{v})
 
+def presheaf_to_Type (T : Type v) : X.presheaf (Type v) :=
+(opens.to_Top X ⋙ forget Top).op ⋙ (yoneda.obj T)
+
 /-- The presheaf of continuous functions on `X` with values in fixed target topological space `T`. -/
 def presheaf_to_Top (T : Top.{v}) : X.presheaf (Type v) :=
 (opens.to_Top X).op ⋙ (yoneda.obj T)

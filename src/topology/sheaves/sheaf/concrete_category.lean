@@ -145,8 +145,7 @@ begin
     apply iso.symm,
     fapply cones.ext,
     exact (as_iso f),
-    rintro ⟨_|_⟩; { dsimp [f], simp, },
-  },
+    rintro ⟨_|_⟩; { dsimp [f], simp, }, },
   { intros S, apply subsingleton.elim, },
   { intros S, apply subsingleton.elim, },
 end

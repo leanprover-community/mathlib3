@@ -517,6 +517,10 @@ lemma map_comap_le : (K.comap f).map f ≤ K :=
 @[simp] lemma comap_top : (⊤ : ideal S).comap f = ⊤ :=
 (gc_map_comap f).u_top
 
+@[simp] lemma comap_eq_top_iff {I : ideal S} : I.comap f = ⊤ ↔ I = ⊤ :=
+⟨ λ h, I.eq_top_iff_one.mpr (f.map_one ▸ mem_comap.mp ((I.comap f).eq_top_iff_one.mp h)),
+  λ h, by rw [h, comap_top] ⟩
+
 @[simp] lemma map_bot : (⊥ : ideal R).map f = ⊥ :=
 (gc_map_comap f).l_bot
 
@@ -664,6 +668,17 @@ begin
 end
 
 end surjective
+
+lemma mem_quotient_iff_mem (hIJ : I ≤ J) {x : R} :
+  quotient.mk I x ∈ J.map (quotient.mk I) ↔ x ∈ J :=
+begin
+  refine iff.trans (mem_map_iff_of_surjective _ quotient.mk_surjective) _,
+  split,
+  { rintros ⟨x, x_mem, x_eq⟩,
+    simpa using J.add_mem (hIJ (quotient.eq.mp x_eq.symm)) x_mem },
+  { intro x_mem,
+    exact ⟨x, x_mem, rfl⟩ }
+end
 
 section injective
 variables (hf : function.injective f)

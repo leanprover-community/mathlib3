@@ -76,12 +76,12 @@ begin
     group so it's 1.
   -/
   apply subgroup.normal_closure_le_normal,
+ -- FIXME why is the apply_instance needed?
   { apply_instance },
   { rintros x ⟨p, q, rfl⟩,
     simp [monoid_hom.mem_ker, mul_right_comm (f p) (f q)] }
 end
 
--- -- FIXME why is the apply_instance needed?
 
 -- goal: if G -> A is a group hom, then it factors through G^ᵃᵇ
 -- this is the data part of the universal property of the abelianization
@@ -95,10 +95,24 @@ rfl
 theorem lift.unique
   (φ : abelianization G →* A)
   -- hφ : φ agrees with f on the image of G in Gᵃᵇ
-  (hφ : ∀ (x : G), φ (of x) = f x) {x} :
+  (hφ : ∀ (x : G), φ (of x) = f x)
+  {x : abelianization G} :
   φ x = lift f x :=
 quotient_group.induction_on x hφ
 
 end lift
+
+variables {A : Type v} [monoid A]
+
+theorem hom_ext (φ ψ : abelianization G →* A)
+  (h : φ.comp of = ψ.comp of) : φ = ψ :=
+begin
+  ext x,
+  apply quotient_group.induction_on x,
+  intro z,
+  show φ.comp of z = _,
+  rw h,
+  refl,
+end
 
 end abelianization

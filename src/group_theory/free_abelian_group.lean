@@ -49,7 +49,20 @@ by simp [sub_eq_add_neg]
 @[simp] protected lemma zero : lift f 0 = 0 :=
 is_add_group_hom.map_zero _
 
+#exit
 @[simp] protected lemma of (x : α) : lift f (of x) = f x :=
+begin
+  unfold of,
+  unfold lift,
+  have zzz := (abelianization.lift (monoid_hom.of (free_group.to_group f))),
+  apply abelianization.lift.of,
+  show ((abelianization.lift (monoid_hom.of (free_group.to_group f))).to_additive)
+       (abelianization.of (free_group.of x)) = f x,
+
+  convert abelianization.lift.of (free_group.of x) x,
+
+end
+#exit
 by { unfold of, unfold lift, simp }
 
 protected theorem unique (g : free_abelian_group α →+ β)

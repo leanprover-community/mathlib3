@@ -433,8 +433,8 @@ embedding.total.resolve_left $ λ ⟨⟨f, hf⟩⟩,
 /-- An embedding of any type to the set of cardinals. -/
 def embedding_to_cardinal : σ ↪ cardinal.{u} := classical.choice nonempty_embedding_to_cardinal
 
-/-- Any type can be endowed with a well order, obtained by pulling the well order over cardinals
-by some embedding -/
+/-- Any type can be endowed with a well order, obtained by pulling back the well order over
+cardinals by some embedding. -/
 def well_ordering_rel : σ → σ → Prop := embedding_to_cardinal ⁻¹'o (<)
 
 instance well_ordering_rel.is_well_order : is_well_order σ well_ordering_rel :=

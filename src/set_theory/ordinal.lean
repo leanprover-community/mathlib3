@@ -350,7 +350,7 @@ theorem initial_seg.lt_or_eq_apply_right [is_well_order β s]
   (f : r ≼i s) (g : r ≃o s) (a : α) : g a = f a :=
 initial_seg.eq (initial_seg.of_iso g) f a
 
-/-- Composition of an initial segment taking values in a well-order and of a principal segment. -/
+/-- Composition of an initial segment taking values in a well order and a principal segment. -/
 def initial_seg.le_lt [is_well_order β s] [is_trans γ t] (f : r ≼i s) (g : s ≺i t) : r ≺i t :=
 match f.lt_or_eq with
 | sum.inl f' := f'.trans g

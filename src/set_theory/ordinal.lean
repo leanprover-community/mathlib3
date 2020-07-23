@@ -367,7 +367,7 @@ end
 
 namespace order_embedding
 
-/-- Given an order embedding into a well-order, collapse the order embedding by filling the
+/-- Given an order embedding into a well order, collapse the order embedding by filling the
 gaps, to obtain an initial segment. Here, we construct the collapsed order embedding pointwise,
 but the proof of the fact that it is an initial segment will be given in `collapse`. -/
 def collapse_F [is_well_order β s] (f : r ≼o s) : Π a, {b // ¬ s (f a) b} :=

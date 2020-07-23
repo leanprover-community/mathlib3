@@ -58,6 +58,13 @@ end
 
 def fork : fork (left_restriction F U) (right_restriction F U) := fork.of_ι _ (fork_condition F U)
 
+@[simp]
+lemma fork_ι : (fork F U).ι = restriction F U := rfl
+@[simp]
+lemma fork_π_app_zero : (fork F U).π.app walking_parallel_pair.zero = restriction F U := rfl
+@[simp]
+lemma fork_π_app_one : (fork F U).π.app walking_parallel_pair.one = restriction F U ≫ left_restriction F U := rfl
+
 end sheaf_condition
 
 -- Perhaps we want to work with sets of opens, rather than indexed families,

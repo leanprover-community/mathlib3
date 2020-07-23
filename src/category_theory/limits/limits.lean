@@ -67,6 +67,11 @@ def unique_up_to_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) : s ≅ t 
   hom_inv_id' := P.uniq_cone_morphism,
   inv_hom_id' := Q.uniq_cone_morphism }
 
+def hom_is_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) (f : s ⟶ t) : is_iso f :=
+{ inv := P.lift_cone_morphism t,
+  hom_inv_id' := P.uniq_cone_morphism,
+  inv_hom_id' := Q.uniq_cone_morphism, }
+
 /-- Limits of `F` are unique up to isomorphism. -/
 -- We may later want to prove the coherence of these isomorphisms.
 def cone_point_unique_up_to_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) : s.X ≅ t.X :=
@@ -112,7 +117,16 @@ def of_cone_equiv {D : Type u'} [category.{v} D] {G : K ⥤ D}
   is_limit (h.obj c) :=
 mk_cone_morphism
   (λ s, (adjunction.of_right_adjoint h).hom_equiv s c (t.lift_cone_morphism _))
-  (λ s m, (adjunction.eq_hom_equiv_apply _ _ _).2 t.uniq_cone_morphism )
+  (λ s m, (adjunction.eq_hom_equiv_apply _ _ _).2 t.uniq_cone_morphism)
+
+-- FIXME naming
+def of_cone_equiv' {D : Type u'} [category.{v} D] {G : K ⥤ D}
+  (h : cone G ≌ cone F) {c : cone G} :
+  is_limit (h.functor.obj c) ≃ is_limit c :=
+{ to_fun := λ P, of_iso_limit (of_cone_equiv h.inverse P) (h.unit_iso.symm.app c),
+  inv_fun := of_cone_equiv h.functor,
+  left_inv := by tidy,
+  right_inv := by tidy, }
 
 /--
 The cone points of two limit cones for naturally isomorphic functors

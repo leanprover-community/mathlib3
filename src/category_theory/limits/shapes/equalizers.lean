@@ -357,6 +357,15 @@ def cofork.of_cocone
 @[simp] lemma cofork.of_cocone_ι {F : walking_parallel_pair ⥤ C} (t : cocone F) (j) :
   (cofork.of_cocone t).ι.app j = eq_to_hom (by tidy) ≫ t.ι.app j := rfl
 
+def fork.mk_hom {s t : fork f g} (k : s.X ⟶ t.X) (w : k ≫ t.ι = s.ι) : s ⟶ t :=
+{ hom := k,
+  w' :=
+  begin
+    rintro ⟨_|_⟩,
+    exact w,
+    simpa using w =≫ f,
+  end }
+
 variables (f g)
 
 section

@@ -97,18 +97,25 @@ end
 -- -- FIXME why is the apply_instance needed?
 
 -- goal: if G -> A is a group hom, then it factors through G^ᵃᵇ
--- this is the universal property of the abelianization
+-- this is the data part of the universal property of the abelianization
 def lift : abelianization G →* A :=
-quotient_group.lift _ f (λ x h, sorry)
+quotient_group.lift _ f (λ x h,
+begin
+  rw ←monoid_hom.mem_ker,
+  apply commutator_subset_ker,
+  assumption,
+end)
 
 @[simp] lemma lift.of (x : G) : lift f (of x) = f x :=
 rfl
 
+-- this is the theorem part of the universal property of the abelianization
 theorem lift.unique
-  (g : abelianization G →* A)
-  (hg : ∀ x, g (of x) = f x) {x} :
-  g x = lift f x :=
-quotient_group.induction_on x hg
+  (φ : abelianization G →* A)
+  -- hφ : φ agrees with f on the image of G in Gᵃᵇ
+  (hφ : ∀ (x : G), φ (of x) = f x) {x} :
+  φ x = lift f x :=
+quotient_group.induction_on x hφ
 
 end lift
 

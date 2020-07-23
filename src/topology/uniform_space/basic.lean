@@ -1068,10 +1068,11 @@ lemma to_topological_space_infi {ι : Sort*} {u : ι → uniform_space α} :
   (infi u).to_topological_space = ⨅i, (u i).to_topological_space :=
 begin
   by_cases h : nonempty ι,
-  {refine (eq_of_nhds_eq_nhds $ assume a, _),
+  { resetI,
+    refine (eq_of_nhds_eq_nhds $ assume a, _),
     rw [nhds_infi, nhds_eq_uniformity],
     change (infi u).uniformity.lift' (preimage $ prod.mk a) = _,
-    rw [infi_uniformity, lift'_infi h],
+    rw [infi_uniformity, lift'_infi],
     { simp only [nhds_eq_uniformity], refl },
     { exact assume a b, rfl } },
   { rw [infi_of_empty h, infi_of_empty h, to_topological_space_top] }

@@ -597,3 +597,6 @@ begin
 end
 
 end nested_non_fully_applied
+
+/- fail if you add an attribute with a parameter. -/
+run_cmd success_if_fail $ simps_tac `foo.rfl { attrs := [`higher_order] }

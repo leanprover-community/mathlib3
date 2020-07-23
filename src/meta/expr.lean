@@ -19,6 +19,9 @@ expr, name, declaration, level, environment, meta, metaprogramming, tactic
 
 attribute [derive has_reflect, derive decidable_eq] binder_info congr_arg_kind
 
+@[priority 100] meta instance has_reflect.has_to_pexpr {α} [has_reflect α] : has_to_pexpr α :=
+⟨λ b, pexpr.of_expr (reflect b)⟩
+
 namespace binder_info
 
 /-! ### Declarations about `binder_info` -/

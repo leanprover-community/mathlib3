@@ -1685,6 +1685,14 @@ meta def retrieve_or_report_error {α : Type u} (t : tactic α) : tactic (α ⊕
   result.success (sum.inr (msg'.iget ()).to_string) s
 end
 
+/-- Applies tactic `t`. If it succeeds, return the value. If it fails, returns the error message. -/
+meta def try_or_report_error {α : Type u} (t : tactic α) : tactic (α ⊕ string) :=
+λ s, match t s with
+| (interaction_monad.result.success a s') := result.success (sum.inl a) s'
+| (interaction_monad.result.exception msg' _ s') :=
+  result.success (sum.inr (msg'.iget ()).to_string) s
+end
+
 /-- This tactic succeeds if `t` succeeds or fails with message `msg` such that `p msg` is `tt`.
 -/
 meta def succeeds_or_fails_with_msg {α : Type} (t : tactic α) (p : string → bool) : tactic unit :=
@@ -2091,16 +2099,35 @@ add_tactic_doc
   decl_names               := [`tactic.mk_simp_attribute_cmd],
   tags                     := ["simplification"] }
 
+/-- Gets the declaration name of a user attribute. Fails if there is no such user attribute.
+  Example : ``get_user_attribute_name `library_note`` returns `` `library_note_attr`` -/
+meta def get_user_attribute_name (attr_name : name) : tactic name := do
+ns ← attribute.get_instances `user_attribute,
+ns.mfirst (λ nm, do
+  d ← get_decl nm,
+  e ← mk_app `user_attribute.name [d.value],
+  attr_nm ← eval_expr name e,
+  guard $ attr_nm = attr_name,
+  return nm) <|> fail!"'{attr_name}' is not a user attribute."
+
 /-- A tactic to set either a basic attribute or a user attribute, as long as the user attribute has
   no parameter.
-  Warning: if a user attribute with a parameter (that is not `unit`) is set, this will *not*
-  produce an error, but instead will produce an error when `get_param` is called for this
-  declaration. -/
+  If a user attribute with a parameter (that is not `unit`) is set, this function will raise an
+  error. -/
+-- possible enhancement if needed: use default value for a user attribute with parameter.
 meta def set_attribute (attr_name : name) (c_name : name) (persistent := tt)
-  (prio : option nat := none) : tactic unit :=
-mwhen (bnot <$> succeeds (get_decl c_name)) fail!"unknown declaration {c_name}" >>
-(set_basic_attribute attr_name c_name persistent prio <|>
-user_attribute.set { name := attr_name, descr := "" } c_name () tt prio)
+  (prio : option nat := none) : tactic unit := do
+get_decl c_name <|> fail!"unknown declaration {c_name}",
+s ← try_or_report_error (set_basic_attribute attr_name c_name persistent prio),
+sum.inr msg ← return s | skip,
+if msg = (format!"set_basic_attribute tactic failed, '{attr_name}' is not a basic attribute").to_string
+then do
+  user_attr_nm ← get_user_attribute_name attr_name,
+  user_attr_const ← mk_const user_attr_nm,
+  tac ← eval_pexpr (tactic unit) ``(user_attribute.set %%user_attr_const %%c_name () %%persistent) <|>
+    fail!"Cannot set attribute @[{attr_name}]. The corresponding user attribute {user_attr_nm} has a parameter.",
+  tac
+else fail msg
 
 end tactic
 

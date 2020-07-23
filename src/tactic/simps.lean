@@ -68,13 +68,35 @@ reset_instance_cache,
 inst ← mk_instance tgt,
 return (e, inst)
 
-/-- Get the projections used by `simps` associated to a given structure. The second component is the
-  list of projections, and the first component the (shared) list of universe levels used by the
+/--
+  Get the projections used by `simps` associated to a given structure `str`. The second component is
+  the list of projections, and the first component the (shared) list of universe levels used by the
   projections.
-  Example output:
-  ```
-  ([param `u, param `v], [`(@prod.fst.{u v}), `(@prod.snd.{u v})])
-  ```
+  The returned universe levels are the universe levels of the structure. For the projections there
+  are three cases
+  * If the declaration `{structure_name}.simps.{projection_name}` has been declared, then the value
+    of this declaration is used (after checking that it is definitionally equal to the actual
+    projection
+  * Otherwise, for every class with the `notation_class` attribute, and the structure has an
+    instance of that notation class, then the projection of that notation class is used for the
+    projection that is definitionally equal to it (if there is such a projection).
+    This means in practice that coercions to function types and sorts will be used instead of
+    a projection, if this coercion is definitionally equal to a projection. Furthermore, for
+    notation classes like `has_mul` and `has_zero` those projections are used instead of the
+    corresponding projection
+  * Otherwise, the projection of the structure is chosen.
+    For example: ``simps_get_raw_projections env `prod`` gives the default projections
+    ```
+      ([u, v], [prod.fst.{u v}, prod.snd.{u v}])
+    ```
+    while ``simps_get_raw_projections env `equiv`` gives
+    ```
+      ([u_1, u_2], [λ α β, coe_fn, λ {α β} (e : α ≃ β), ⇑(e.symm), left_inv, right_inv])
+    ```
+    after declaring the coercion from `equiv` to function and adding the declaration
+    ```
+      def equiv.simps.inv_fun {α β} (e : α ≃ β) : β → α := e.symm
+    ```
 -/
 -- if performance becomes a problem, possible heuristic: use the names of the projections to
 -- skip all classes that don't have the corresponding field.
@@ -85,13 +107,11 @@ meta def simps_get_raw_projections (e : environment) (str : name) :
     when_tracing `simps.verbose trace!"[simps] > found projection information for structure {str}",
     simps_str_attr.get_param str
   else do
-    when_tracing `simps.verbose trace!"[simps] > generating projection information to structure {str}:",
+    when_tracing `simps.verbose trace!"[simps] > generating projection information for structure {str}:",
     d_str ← e.get str,
     projs ← e.structure_fields_full str,
-    (args, _) ← mk_local_pis d_str.type,
     let raw_univs := d_str.univ_params,
     let raw_levels := level.param <$> raw_univs,
-    automatic_projs ← attribute.get_instances `notation_class,
     /- Define the raw expressions for the projections, by default as the projections
     (as an expression), but this can be overriden by the user. -/
     raw_exprs ← projs.mmap (λ proj, let raw_expr : expr := expr.const proj raw_levels in do
@@ -100,11 +120,13 @@ meta def simps_get_raw_projections (e : environment) (str : name) :
         let custom_proj := decl.value.instantiate_univ_params $ decl.univ_params.zip raw_levels,
         when_tracing `simps.verbose trace!"[simps] > found custom projection for {proj}:\n        > {custom_proj}",
         return custom_proj) <|> return raw_expr,
-      mwhen (bnot <$> succeeds (is_def_eq custom_proj raw_expr))
+      is_def_eq custom_proj raw_expr <|>
         fail!"Invalid custom projection:\n {custom_proj}\nExpression is not definitionally equal to {raw_expr}.",
       return custom_proj),
     /- check for other coercions and type-class arguments to use as projections instead. -/
+    (args, _) ← mk_local_pis d_str.type,
     let e_str := (expr.const str raw_levels).mk_app args,
+    automatic_projs ← attribute.get_instances `notation_class,
     raw_exprs ← automatic_projs.mfoldl (λ (raw_exprs : list expr) class_nm, (do
       (is_class, proj_nm) ← notation_class_attr.get_param class_nm,
       proj_nm ← proj_nm <|> (e.structure_fields_full class_nm).map list.head,
@@ -122,6 +144,8 @@ meta def simps_get_raw_projections (e : environment) (str : name) :
         return (raw_expr, raw_expr.lambdas args)),
       raw_expr_whnf ← whnf raw_expr.binding_body,
       let relevant_proj := raw_expr_whnf.get_app_fn.const_name,
+      /- use this as projection, if the function reduces to a projection, and this projection has
+        not been overrriden by the user. -/
       guard (projs.any (= relevant_proj) ∧ ¬ e.contains (str ++ `simps ++ relevant_proj.last)),
       let pos := projs.find_index (= relevant_proj),
       when_tracing `simps.verbose trace!"        > using function {proj_nm} instead of the default projection {relevant_proj.last}.",
@@ -131,17 +155,18 @@ meta def simps_get_raw_projections (e : environment) (str : name) :
     return (raw_univs, raw_exprs)
 
 /--
-You can specify custom projections for the `@[simps]` attribute.
-To do this for the projection `my_structure.awesome_projection` by adding a declaration
-`my_structure.simps.awesome_projection` that is definitionally equal to
-`my_structure.awesome_projection` but has the projection in the desired (simp-normal) form.
+  You can specify custom projections for the `@[simps]` attribute.
+  To do this for the projection `my_structure.awesome_projection` by adding a declaration
+  `my_structure.simps.awesome_projection` that is definitionally equal to
+  `my_structure.awesome_projection` but has the projection in the desired (simp-normal) form.
 
-You can initialize the projections `@[simps]` uses with `initialize_simps_projections`
-(after declaring any custom projections). This is not necessary, it has the same effect
-if you just add `@[simps]` to a declaration.
+  You can initialize the projections `@[simps]` uses with `initialize_simps_projections`
+  (after declaring any custom projections). This is not necessary, it has the same effect
+  if you just add `@[simps]` to a declaration.
 
-If you do anything to change the default projections, make sure to call either `@[simps]` or `initialize_simps_projections` in the same file as the structure declaration. Otherwise, you might
-have a file that imports the structure, but not your custom projections.
+  If you do anything to change the default projections, make sure to call either `@[simps]` or
+  `initialize_simps_projections` in the same file as the structure declaration. Otherwise, you might
+  have a file that imports the structure, but not your custom projections.
 -/
 library_note "custom simps projection"
 
@@ -154,17 +179,17 @@ library_note "custom simps projection"
   ns.mmap' $ λ nm, do nm ← resolve_constant nm, simps_get_raw_projections env nm
 
 /--
-  Get the projections of a structure used by simps applied to the appropriate arguments.
-  Returns a list of triples (projection expression, projection name, corresponding right-hand-side).
+  Get the projections of a structure used by `@[simps]` applied to the appropriate arguments.
+  Returns a list of triples (projection expression, projection name, corresponding right-hand-side),
+  one for each projection.
 
-  This function does not use `tactic.mk_app` or `tactic.mk_mapp`, because the the given arguments
-  might not uniquely specify the universe levels yet.
-
-  Example output:
+  Example: ``simps_get_projection_exprs env `(α × β) `(⟨x, y⟩)`` will give the output
   ```
     [(`(@prod.fst.{u v} α β), `prod.fst, `(x)), (`(@prod.snd.{u v} α β), `prod.snd, `(y))]
   ```
 -/
+-- This function does not use `tactic.mk_app` or `tactic.mk_mapp`, because the the given arguments
+-- might not uniquely specify the universe levels yet.
 meta def simps_get_projection_exprs (e : environment) (tgt : expr)
   (rhs : expr) : tactic $ list $ expr × name × expr := do
   let params := get_app_args tgt, -- the parameters of the structure
@@ -184,10 +209,6 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
   * `attrs` specifies the list of attributes given to the generated lemmas. Default: ``[`simp]``.
     If ``[`simp]`` is in the list, then ``[`_refl_lemma]`` is added automatically if appropriate.
     The attributes can be either basic attributes, or user attributes without parameters.
-    Warning: *don't* use this for user attributes whose parameter type is not `unit`. The fact that
-    `@[my_attr]` parses correctly without arguments is *not* sufficient to know that the
-    parameter type is `unit` (look at the `user_attribute` declaration)
-    (attributes declared with `mk_simp_attribute` can be safely added).
   * `short_name` gives the generated lemmas a shorter name
   * if `simp_rhs` is `tt` then the right-hand-side of the generated lemmas will be put simp-normal form
   * `type_md` specifies how aggressively definitions are unfolded in the type of expressions
@@ -334,14 +355,14 @@ prod.mk <$> many (name.last <$> ident) <*>
 The `@[simps]` attribute automatically derives lemmas specifying the projections of this
 declaration.
 
-Example: (note that the forward and reverse functions are specified differently!)
+Example:
 ```lean
-@[simps] def refl (α) : α ≃ α := ⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
+@[simps] def foo : ℕ × ℤ := (1, 2)
 ```
 derives two simp-lemmas:
 ```lean
-@[simp] lemma refl_to_fun (α) (x : α) : (refl α).to_fun x = id x
-@[simp] lemma refl_inv_fun (α) (x : α) : (refl α).inv_fun x = x
+@[simp] lemma foo_fst : foo.fst = 1
+@[simp] lemma foo_snd : foo.snd = 2
 ```
 
 * It does not derive simp-lemmas for the prop-valued projections.
@@ -377,6 +398,20 @@ derives two simp-lemmas:
   (this likely never happens).
 * When option `trace.simps.verbose` is true, `simps` will print the projections it finds and the
   lemmas it generates.
+
+  Examples:
+  ```lean
+  @[simps {rhs_md := ff}] def equiv.comm : (α ≃ β) ≃ (β ≃ α) :=
+  ⟨equiv.symm, equiv.symm⟩
+  ```
+  gives
+  ```lean
+  equiv.comm_to_fun : ∀ {α : Sort u_1} {β : Sort u_2} (e : α ≃ β),
+  ⇑equiv.comm e = e.symm
+  equiv.comm_inv_fun : ∀ {α : Sort u_1} {β : Sort u_2} (e : β ≃ α),
+  ⇑(equiv.comm.symm) e = e.symm
+  ```
+
   -/
 
 @[user_attribute] meta def simps_attr : user_attribute unit (list string × simps_cfg) :=

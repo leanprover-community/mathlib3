@@ -42,7 +42,7 @@ class has_vadd (G : Type*) (P : Type*) :=
 (vadd : G → P → P)
 
 /-- Type class for the `-ᵥ` notation. -/
-class has_vsub (G : Type*) (P : Type*) :=
+class has_vsub (G : out_param Type*) (P : Type*) :=
 (vsub : P → P → G)
 
 infix ` +ᵥ `:65 := has_vadd.vadd
@@ -61,10 +61,14 @@ acted on by an `add_group G` with a transitive and free action given
 by the `+ᵥ` operation and a corresponding subtraction given by the
 `-ᵥ` operation. In the case of a vector space, it is an affine
 space. -/
-class add_torsor (G : Type*) (P : Type*) [add_group G] extends add_action G P, has_vsub G P :=
+class add_torsor (G : out_param Type*) (P : Type*) [add_group G]
+  extends add_action G P, has_vsub G P :=
 [nonempty : nonempty P]
 (vsub_vadd' : ∀ (p1 p2 : P), (p1 -ᵥ p2 : G) +ᵥ p2 = p1)
 (vadd_vsub' : ∀ (g : G) (p : P), g +ᵥ p -ᵥ p = g)
+
+attribute [instance, priority 100] add_torsor.nonempty
+
 end prio
 
 /-- An `add_group G` is a torsor for itself. -/
@@ -79,12 +83,12 @@ instance add_group_is_add_torsor (G : Type*) [add_group G] :
 
 /-- Simplify addition for a torsor for an `add_group G` over
 itself. -/
-@[simp] lemma vadd_eq_add (G : Type*) [add_group G] (g1 g2 : G) : g1 +ᵥ g2 = g1 + g2 :=
+@[simp] lemma vadd_eq_add {G : Type*} [add_group G] (g1 g2 : G) : g1 +ᵥ g2 = g1 + g2 :=
 rfl
 
 /-- Simplify subtraction for a torsor for an `add_group G` over
 itself. -/
-@[simp] lemma vsub_eq_sub (G : Type*) [add_group G] (g1 g2 : G) : g1 -ᵥ g2 = g1 - g2 :=
+@[simp] lemma vsub_eq_sub {G : Type*} [add_group G] (g1 g2 : G) : g1 -ᵥ g2 = g1 - g2 :=
 rfl
 
 namespace add_action
@@ -144,12 +148,12 @@ open add_action
 
 section general
 
-variables (G : Type*) {P : Type*} [add_group G] [T : add_torsor G P]
+variables {G : Type*} {P : Type*} [add_group G] [T : add_torsor G P]
 include T
 
 /-- Adding the result of subtracting from another point produces that
 point. -/
-@[simp] lemma vsub_vadd (p1 p2 : P) : (p1 -ᵥ p2 : G) +ᵥ p2 = p1 :=
+@[simp] lemma vsub_vadd (p1 p2 : P) : p1 -ᵥ p2 +ᵥ p2 = p1 :=
 vsub_vadd' p1 p2
 
 /-- Adding a group element then subtracting the original point
@@ -157,12 +161,10 @@ produces that group element. -/
 @[simp] lemma vadd_vsub (g : G) (p : P) : g +ᵥ p -ᵥ p = g :=
 vadd_vsub' g p
 
-variable {G}
-
 /-- If the same point added to two group elements produces equal
 results, those group elements are equal. -/
 lemma vadd_right_cancel {g1 g2 : G} (p : P) (h : g1 +ᵥ p = g2 +ᵥ p) : g1 = g2 :=
-by rw [←vadd_vsub G g1, h, vadd_vsub]
+by rw [←vadd_vsub g1, h, vadd_vsub]
 
 @[simp] lemma vadd_right_cancel_iff {g1 g2 : G} (p : P) :  g1 +ᵥ p = g2 +ᵥ p ↔ g1 = g2 :=
 ⟨vadd_right_cancel p, λ h, h ▸ rfl⟩
@@ -176,23 +178,21 @@ begin
   rw [vsub_vadd, ←vadd_assoc, vsub_vadd]
 end
 
-variable (G)
-
 /-- Subtracting a point from itself produces 0. -/
 @[simp] lemma vsub_self (p : P) : p -ᵥ p = (0 : G) :=
-by rw [←zero_add (p -ᵥ p : G), ←vadd_vsub_assoc, vadd_vsub]
+by rw [←zero_add (p -ᵥ p), ←vadd_vsub_assoc, vadd_vsub]
 
 /-- If subtracting two points produces 0, they are equal. -/
 lemma eq_of_vsub_eq_zero {p1 p2 : P} (h : p1 -ᵥ p2 = (0 : G)) : p1 = p2 :=
-by rw [←vsub_vadd G p1 p2, h, zero_vadd]
+by rw [←vsub_vadd p1 p2, h, zero_vadd]
 
 /-- Subtracting two points produces 0 if and only if they are
 equal. -/
 @[simp] lemma vsub_eq_zero_iff_eq {p1 p2 : P} : p1 -ᵥ p2 = (0 : G) ↔ p1 = p2 :=
-iff.intro (eq_of_vsub_eq_zero G) (λ h, h ▸ vsub_self G _)
+iff.intro eq_of_vsub_eq_zero (λ h, h ▸ vsub_self _)
 
 /-- Cancellation adding the results of two subtractions. -/
-@[simp] lemma vsub_add_vsub_cancel (p1 p2 p3 : P) : (p1 -ᵥ p2 : G) + (p2 -ᵥ p3) = (p1 -ᵥ p3) :=
+@[simp] lemma vsub_add_vsub_cancel (p1 p2 p3 : P) : p1 -ᵥ p2 + (p2 -ᵥ p3) = (p1 -ᵥ p3) :=
 begin
   apply vadd_right_cancel p3,
   rw [←vadd_assoc, vsub_vadd, vsub_vadd, vsub_vadd]
@@ -200,7 +200,7 @@ end
 
 /-- Subtracting two points in the reverse order produces the negation
 of subtracting them. -/
-@[simp] lemma neg_vsub_eq_vsub_rev (p1 p2 : P) : -(p1 -ᵥ p2) = (p2 -ᵥ p1 : G) :=
+@[simp] lemma neg_vsub_eq_vsub_rev (p1 p2 : P) : -(p1 -ᵥ p2) = (p2 -ᵥ p1) :=
 begin
   refine neg_eq_of_add_eq_zero (vadd_right_cancel p1 _),
   rw [vsub_add_vsub_cancel, vsub_self],
@@ -214,11 +214,15 @@ by rw [←add_right_inj (p2 -ᵥ p1 : G), vsub_add_vsub_cancel, ←neg_vsub_eq_v
 
 /-- Cancellation subtracting the results of two subtractions. -/
 @[simp] lemma vsub_sub_vsub_cancel_right (p1 p2 p3 : P) :
-  (p1 -ᵥ p3 : G) - (p2 -ᵥ p3) = (p1 -ᵥ p2) :=
+  (p1 -ᵥ p3) - (p2 -ᵥ p3) = (p1 -ᵥ p2) :=
 by rw [←vsub_vadd_eq_vsub_sub, vsub_vadd]
+
+variable (G)
 
 /-- The pairwise differences of a set of points. -/
 def vsub_set (s : set P) : set G := {g | ∃ x ∈ s, ∃ y ∈ s, g = x -ᵥ y}
+
+variable {G}
 
 /-- `vsub_set` of an empty set. -/
 @[simp] lemma vsub_set_empty : vsub_set G (∅ : set P) = ∅ :=
@@ -241,40 +245,37 @@ begin
 end
 
 @[simp] lemma vadd_vsub_vadd_cancel_right (v₁ v₂ : G) (p : P) :
-  ((v₁ +ᵥ p) -ᵥ (v₂ +ᵥ p) : G) = v₁ - v₂ :=
+  (v₁ +ᵥ p) -ᵥ (v₂ +ᵥ p) = v₁ - v₂ :=
 by rw [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, vsub_self, add_zero]
 
 /-- If the same point subtracted from two points produces equal
 results, those points are equal. -/
-lemma vsub_left_cancel {p1 p2 p : P} (h : (p1 -ᵥ p : G) = p2 -ᵥ p) : p1 = p2 :=
+lemma vsub_left_cancel {p1 p2 p : P} (h : p1 -ᵥ p = p2 -ᵥ p) : p1 = p2 :=
 by rwa [←sub_eq_zero, vsub_sub_vsub_cancel_right, vsub_eq_zero_iff_eq] at h
 
 /-- The same point subtracted from two points produces equal results
 if and only if those points are equal. -/
-@[simp] lemma vsub_left_cancel_iff {p1 p2 p : P} : (p1 -ᵥ p : G) = p2 -ᵥ p ↔ p1 = p2 :=
-⟨vsub_left_cancel _, λ h, h ▸ rfl⟩
+@[simp] lemma vsub_left_cancel_iff {p1 p2 p : P} : (p1 -ᵥ p) = p2 -ᵥ p ↔ p1 = p2 :=
+⟨vsub_left_cancel, λ h, h ▸ rfl⟩
 
 /-- If subtracting two points from the same point produces equal
 results, those points are equal. -/
-lemma vsub_right_cancel {p1 p2 p : P} (h : (p -ᵥ p1 : G) = p -ᵥ p2) : p1 = p2 :=
+lemma vsub_right_cancel {p1 p2 p : P} (h : p -ᵥ p1 = p -ᵥ p2) : p1 = p2 :=
 begin
-  have h2 : (p -ᵥ p2 : G) +ᵥ p1 = (p -ᵥ p1 : G) +ᵥ p1, { rw h },
-  conv_rhs at h2 {
-    rw [vsub_vadd, ←vsub_vadd G p p2],
-  },
-  rwa vadd_left_cancel_iff at h2
+  refine vadd_left_cancel (p -ᵥ p2) _,
+  rw [vsub_vadd, ← h, vsub_vadd]
 end
 
 /-- Subtracting two points from the same point produces equal results
 if and only if those points are equal. -/
-@[simp] lemma vsub_right_cancel_iff {p1 p2 p : P} : (p -ᵥ p1 : G) = p -ᵥ p2 ↔ p1 = p2 :=
-⟨vsub_right_cancel _, λ h, h ▸ rfl⟩
+@[simp] lemma vsub_right_cancel_iff {p1 p2 p : P} : p -ᵥ p1 = p -ᵥ p2 ↔ p1 = p2 :=
+⟨vsub_right_cancel, λ h, h ▸ rfl⟩
 
 end general
 
 section comm
 
-variables (G : Type*) {P : Type*} [add_comm_group G] [add_torsor G P]
+variables {G : Type*} {P : Type*} [add_comm_group G] [add_torsor G P]
 
 /-- Cancellation subtracting the results of two subtractions. -/
 @[simp] lemma vsub_sub_vsub_cancel_left (p1 p2 p3 : P) :
@@ -282,7 +283,7 @@ variables (G : Type*) {P : Type*} [add_comm_group G] [add_torsor G P]
 by rw [sub_eq_add_neg, neg_vsub_eq_vsub_rev, add_comm, vsub_add_vsub_cancel]
 
 @[simp] lemma vadd_vsub_vadd_cancel_left (v : G) (p1 p2 : P) :
-  ((v +ᵥ p1) -ᵥ (v +ᵥ p2) : G) = p1 -ᵥ p2 :=
+  (v +ᵥ p1) -ᵥ (v +ᵥ p2) = p1 -ᵥ p2 :=
 by rw [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_sub_cancel']
 
 end comm
@@ -299,7 +300,7 @@ instance : add_torsor (G × G') (P × P') :=
   zero_vadd' := λ p, by simp,
   vadd_assoc' := by simp [add_action.vadd_assoc],
   vsub := λ p₁ p₂, (p₁.1 -ᵥ p₂.1, p₁.2 -ᵥ p₂.2),
-  nonempty := @prod.nonempty _ _ (add_torsor.nonempty G) (add_torsor.nonempty G'),
+  nonempty := prod.nonempty,
   vsub_vadd' := λ p₁ p₂, show (p₁.1 -ᵥ p₂.1 +ᵥ p₂.1, _) = p₁, by simp,
   vadd_vsub' := λ v p, show (v.1 +ᵥ p.1 -ᵥ p.1, v.2 +ᵥ p.2 -ᵥ p.2)  =v, by simp }
 
@@ -330,9 +331,8 @@ instance [T : ∀ i, add_torsor (fg i) (fp i)] : add_torsor (Π i, fg i) (Π i, 
   vadd_assoc' := λ g₁ g₂ p, funext $ λ i, vadd_assoc (fg i) (g₁ i) (g₂ i) (p i),
   vsub := λ p₁ p₂, λ i, p₁ i -ᵥ p₂ i,
   nonempty := ⟨λ i, classical.choice (T i).nonempty⟩,
-  vsub_vadd' := λ p₁ p₂, funext $ λ i, vsub_vadd (fg i) (p₁ i) (p₂ i),
-  vadd_vsub' := λ g p, funext $ λ i, vadd_vsub (fg i) (g i) (p i),
-}
+  vsub_vadd' := λ p₁ p₂, funext $ λ i, vsub_vadd (p₁ i) (p₂ i),
+  vadd_vsub' := λ g p, funext $ λ i, vadd_vsub (g i) (p i) }
 
 /-- Addition in a product of `add_torsor`s. -/
 @[simp] lemma vadd_apply [T : ∀ i, add_torsor (fg i) (fp i)] (x : Π i, fg i) (y : Π i, fp i)
@@ -351,8 +351,8 @@ open add_action add_torsor
 def vadd_const (p : P) : G ≃ P :=
 { to_fun := λ v, v +ᵥ p,
   inv_fun := λ p', p' -ᵥ p,
-  left_inv := λ v, vadd_vsub _ _ _,
-  right_inv := λ p', vsub_vadd _ _ _ }
+  left_inv := λ v, vadd_vsub _ _,
+  right_inv := λ p', vsub_vadd _ _ }
 
 @[simp] lemma coe_vadd_const (p : P) : ⇑(vadd_const G p) = λ v, v+ᵥ p := rfl
 

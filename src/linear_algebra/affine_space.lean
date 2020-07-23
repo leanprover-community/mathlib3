@@ -44,12 +44,12 @@ where the group is a vector space, or more generally a module, but we
 omit the type classes `[ring k]` and `[module k V]` in the type
 synonym itself to simplify type class search.. -/
 @[nolint unused_arguments]
-abbreviation affine_space (k : Type*) (V : Type*) (P : Type*) [add_comm_group V] :=
+abbreviation affine_space (k : Type*) (V : out_param Type*) (P : Type*) [add_comm_group V] :=
 add_torsor V P
 
 namespace affine_space
 
-variables (k : Type*) (V : Type*) {P : Type*} [ring k] [add_comm_group V] [module k V]
+variables (k : Type*) {V : Type*} {P : Type*} [ring k] [add_comm_group V] [module k V]
 variables [affine_space k V P]
 
 /-- The submodule spanning the differences of a (possibly empty) set
@@ -57,19 +57,19 @@ of points. -/
 def vector_span (s : set P) : submodule k V := submodule.span k (vsub_set V s)
 
 /-- The definition of `vector_span`, for rewriting. -/
-lemma vector_span_def (s : set P) : vector_span k V s = submodule.span k (vsub_set V s) :=
+lemma vector_span_def (s : set P) : vector_span k s = submodule.span k (vsub_set V s) :=
 rfl
 
 variables (P)
 
 /-- The `vector_span` of the empty set is `⊥`. -/
-@[simp] lemma vector_span_empty : vector_span k V (∅ : set P) = ⊥ :=
+@[simp] lemma vector_span_empty : vector_span k (∅ : set P) = (⊥ : submodule k V) :=
 by rw [vector_span_def, vsub_set_empty, submodule.span_empty]
 
 variables {P}
 
 /-- The `vsub_set` lies within the `vector_span`. -/
-lemma vsub_set_subset_vector_span (s : set P) : vsub_set V s ⊆ vector_span k V s :=
+lemma vsub_set_subset_vector_span (s : set P) : vsub_set V s ⊆ ↑(vector_span k s) :=
 submodule.subset_span
 
 /-- Each pairwise difference is in the `vector_span`. -/

@@ -1088,8 +1088,9 @@ lemma summable_of_norm_bounded
   summable f :=
 by { rw summable_iff_cauchy_seq_finset, exact cauchy_seq_finset_of_norm_bounded g hg h }
 
-/-- If the sum of `f` is known to exist by the direct comparison test, then its norm is bounded by
-that of the comparator. -/
+/-- Quantitative result associated to the direct comparison test for series:  If `∑' i, g i` is
+summable, and for all `i`, `∥f i∥ ≤ g i`, then `∥(∑' i, f i)∥ ≤ (∑' i, g i)`. Note that we do not
+assume that `∑' i, f i` is summable, and it might not be the case if `α` is not a complete space. -/
 lemma tsum_of_norm_bounded {f : ι → α} {g : ι → ℝ} {a : ℝ} (hg : has_sum g a) (h : ∀i, ∥f i∥ ≤ g i) :
   ∥(∑' (i:ι), f i)∥ ≤ a :=
 begin

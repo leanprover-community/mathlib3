@@ -273,14 +273,14 @@ begin
     exact h hr ⟨x, rfl⟩, }
 end
 
-instance from_rel.decidable_as_set (sym : symmetric r) [h : decidable_rel r] : decidable_pred (λ x, x ∈ sym2.from_rel sym) :=
-λ (x : sym2 α), quotient.rec_on x (λ x', begin
-  dsimp only,
-  rw from_rel_proj_prop,
-  apply_instance,
-end) (by tidy)
+instance from_rel.decidable_as_set (sym : symmetric r) [h : decidable_rel r] :
+  decidable_pred (λ x, x ∈ sym2.from_rel sym) :=
+λ (x : sym2 α), quotient.rec_on x
+  (λ x', by { simp_rw from_rel_proj_prop, apply_instance })
+  (by tidy)
 
-instance from_rel.decidable_pred (sym : symmetric r) [h : decidable_rel r] : decidable_pred (sym2.from_rel sym) :=
+instance from_rel.decidable_pred (sym : symmetric r) [h : decidable_rel r] :
+  decidable_pred (sym2.from_rel sym) :=
 by { change decidable_pred (λ x, x ∈ sym2.from_rel sym), apply_instance }
 
 end relations

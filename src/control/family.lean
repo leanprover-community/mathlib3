@@ -102,9 +102,6 @@ theorem append_fun_id_id {α : fam I} {β : fam J} :
   append_fun (𝟙 α) (𝟙 β) = 𝟙 _ :=
 by apply eq_of_drop_last_eq; intros; try { ext }; refl
 
--- def unit (i : I) : fam I
--- | j := ulift (plift (i = j))
-
 inductive unit (i : I) : I → Type u
 | rfl {} : unit i
 

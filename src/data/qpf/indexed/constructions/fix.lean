@@ -273,7 +273,7 @@ begin
           ⟨a,
            ipfunctor.append_contents (P F) f' (λ (i_1 : J) (x : (ipfunctor.last (P F)).B i a i_1), ⟦f x⟧)⟩))
           _ unit.rfl,
-  rw [iqpf.liftp_iff],
+  rw [iqpf.liftp_iff₀],
   rintros k ⟨⟨rfl⟩⟩,
   refine ⟨a, _, rfl, _⟩,
   rintros (i|i) x, { triv },

@@ -7,6 +7,7 @@ Author: Simon Hudon
 import tactic.interactive tactic.mk_constructive
 import control.family
 import control.functor.indexed
+import tactic.mk_opaque
 
 /-!
 
@@ -44,11 +45,12 @@ def liftr {α β : fam I} (r : fam.Pred (α ⊗ β)) {X : fam J} (x : X ⟶ F.ob
   u ≫ F.map (fam.subtype.val ≫ fam.prod.fst) = x ∧
   u ≫ F.map (fam.subtype.val ≫ fam.prod.snd) = y
 
-def supp {α : fam I} {X : fam J} (x : X ⟶ F.obj α) : set (sigma α) := { y : sigma α | ∀ ⦃p⦄, liftp p x → p _ y.2 }
+def supp {α : fam I} {X : fam J} (x : X ⟶ F.obj α) (ι : I) : set (α ι) :=
+{ y : α ι | ∀ ⦃p⦄, liftp p x → p _ y }
 
 theorem of_mem_supp {α : fam I} {X : fam J} {x : X ⟶ F.obj α} {p : fam.Pred α} (h : liftp p x) :
-  ∀ y ∈ supp x, p _ (sigma.snd y) :=
-λ y hy, hy h
+  ∀ i (y ∈ supp x i), p _ y :=
+λ i y hy, hy h
 
 lemma liftp_comp {α : fam I} {X : fam J} {p : Π i, α i → Prop}
   (x : X ⟶ F.obj α) (h : F ⟶ G) :
@@ -120,7 +122,7 @@ theorem map_eq' {α β : fam I} (f : α ⟶ β) {i : J} (a : P.A i) (g : P.B i a
   P.map f ⟨a, g⟩ = ⟨a, g ≫ f⟩ :=
 rfl
 
-open fam
+open fam set category_theory.functor
 
 @[simp, reassoc]
 theorem map_eq {α β : fam I} (f : α ⟶ β) {i : J} (a : P.A i) (g : P.B i a ⟶ α) :
@@ -199,11 +201,68 @@ Lifting predicates and relations.
 namespace ipfunctor
 variables {I J : Type u} {P : ipfunctor.{u} I J}
 open category_theory.functor.fam
+open fam set category_theory.functor
 
 @[simp]
 lemma then_def {X Y Z : fam I} (f : X ⟶ Y) (g : Y ⟶ Z) {i} (x : X i) : (f ≫ g) x = g (f x) := rfl
 
-theorem liftp_iff {α : fam I} {X : fam J} (p : fam.Pred α) (x : X ⟶ P.obj α) :
+@[elab_as_eliminator]
+def obj_cases
+   {α : fam I} {j} {C : (unit j ⟶ P.obj α) → Sort*}
+   (h : ∀ a f, C $ value _ _ ⟨a,f⟩)
+   (x : unit j ⟶ P.obj α) : C x :=
+begin
+  rcases h' : x unit.rfl with ⟨a,f⟩,
+  have : value _ _ (x unit.rfl) = x,
+      { ext _ ⟨ ⟩ : 2, refl },
+  rw h' at this, specialize h a f,
+  simpa [this] using h
+end
+
+theorem liftp_iff {α : fam I} (p : Π ⦃i⦄ , α i → Prop) {j} (x : unit j ⟶ P.obj α) :
+  fam.liftp p x ↔ ∃ a f, x = value _ _ ⟨a, f⟩ ∧ ∀ (i : I) y, p (@f i y) :=
+begin
+  split,
+  { rintros ⟨y, hy⟩, revert y, refine obj_cases _, intros a f hy,
+    rw [← ipfunctor.map, map_eq P] at hy,
+    use [a, f ≫ fam.subtype.val, hy.symm],
+    intros, apply (f y).property },
+  rintros ⟨a, f, xeq, pf⟩,
+  let g : unit j ⟶ P.obj (subtype p),
+  { rintros _ ⟨ ⟩, refine ⟨a, λ i b, ⟨f b, pf _ _⟩⟩, },
+  refine ⟨g, _⟩,
+  ext _ ⟨ ⟩ : 2, rw xeq, refl,
+end
+
+theorem liftp_iff' {α : fam I} (p : Π ⦃i⦄ , α i → Prop) {i} (a : P.A i) (f : P.B i a ⟶ α) :
+  @fam.liftp.{u} _ _ P.apply _ p _ (value _ _ ⟨a,f⟩) ↔ ∀ i x, p (@f i x) :=
+begin
+  simp only [liftp_iff, sigma.mk.inj_iff]; split; intro,
+  { casesm* [Exists _, _ ∧ _],
+    replace a_1_h_h_left := congr_fun (congr_fun a_1_h_h_left i) unit.rfl,
+    dsimp [value] at a_1_h_h_left, cases a_1_h_h_left, assumption },
+  repeat { constructor <|> assumption }
+end
+
+theorem liftr_iff {α : fam I} (r : Pred (α ⊗ α)) {j} (x y : unit j ⟶ P.obj α) :
+  fam.liftr r x y ↔ ∃ a f₀ f₁, x = value _ _ ⟨a, f₀⟩ ∧ y = value _ _ ⟨a, f₁⟩ ∧ ∀ i j, r _ (@f₀ i j, @f₁ i j) :=
+begin
+  split,
+  { rintros ⟨u, xeq, yeq⟩,
+    revert u, refine obj_cases _, intros a f xeq yeq,
+    rw [← ipfunctor.map, map_eq] at xeq yeq,
+    use [a,f ≫ fam.subtype.val ≫ fam.prod.fst,f ≫ fam.subtype.val ≫ fam.prod.snd, xeq.symm, yeq.symm],
+    intros, convert (f j_1).property, ext; refl },
+  rintros ⟨a, f₀, f₁, xeq, yeq, h⟩,
+  let g : unit j ⟶ P.obj (subtype r),
+  { rintros _ ⟨ ⟩, refine ⟨a, λ i b, ⟨(f₀ b, f₁ b), h _ _⟩⟩, },
+  refine ⟨g, _⟩,
+  split; ext _ ⟨ ⟩ : 2,
+  { rw xeq, refl },
+  { rw yeq, refl },
+end
+
+theorem liftp_iff₀ {α : fam I} {X : fam J} (p : fam.Pred α) (x : X ⟶ P.obj α) :
   liftp p x ↔ ∀ j (y : X j), ∃ a f, x y = ⟨a, f⟩ ∧ ∀ i a, p i (f a) :=
 begin
   split,
@@ -223,7 +282,7 @@ begin
   ext : 2, dsimp, rw F₂, refl
 end
 
-theorem liftr_iff {α β : fam I} (r : fam.Pred (α ⊗ β)) {X : fam J} (x : X ⟶ P.obj α) {y} :
+theorem liftr_iff₀ {α β : fam I} (r : fam.Pred (α ⊗ β)) {X : fam J} (x : X ⟶ P.obj α) {y} :
   liftr r x y ↔ ∀ j (z : X j), ∃ a f₀ f₁, x z = ⟨a, f₀⟩ ∧ y z = ⟨a, f₁⟩ ∧ ∀ i a, r i (f₀ a, f₁ a) :=
 begin
   split,
@@ -245,6 +304,17 @@ begin
   refine ⟨λ j x, ⟨F₀ j x,λ i y, _⟩,_⟩,
   { refine ⟨(F₁ j x y,F₂ j x y),F₅ _ _ _ _⟩ },
   split; ext : 2; [rw F₃,rw F₄]; refl,
+end
+
+theorem supp_eq {α : fam I} (j i) (a : P.A j) (f : P.B j a ⟶ α) :
+  @fam.supp.{u} _ _ P.apply _ _  (value _ _ ⟨a,f⟩) i = @f _ '' univ :=
+begin
+  ext, simp only [fam.supp, image_univ, mem_range, mem_set_of_eq],
+  split; intro h,
+  { apply @h (λ i x, ∃ (y : P.B j a i), f y = x),
+    rw liftp_iff', intros, refine ⟨_,rfl⟩ },
+  { simp only [liftp_iff'], cases h, subst x,
+    tauto }
 end
 
 end ipfunctor

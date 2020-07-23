@@ -55,17 +55,19 @@ have h₁ : (leading_coeff q)⁻¹ ≠ 0 :=
   inv_ne_zero (mt leading_coeff_eq_zero.1 h),
 by rw [degree_mul, degree_C h₁, add_zero]
 
-theorem irreducible_of_monic {F : Type u} [field F] {p : polynomial F} (hp1 : p.monic)
-  (hp2 : p ≠ 1) (hp3 : ∀ f g : polynomial F, f.monic → g.monic → f * g = p → f = 1 ∨ g = 1) :
-  irreducible p :=
-⟨mt (eq_one_of_is_unit_of_monic hp1) hp2, λ f g hp,
+theorem irreducible_of_monic {p : polynomial R} (hp1 : p.monic) (hp2 : p ≠ 1) :
+  irreducible p ↔ (∀ f g : polynomial R, f.monic → g.monic → f * g = p → f = 1 ∨ g = 1) :=
+⟨λ hp3 f g hf hg hfg, or.cases_on (hp3.2 f g hfg.symm)
+  (assume huf : is_unit f, or.inl $ eq_one_of_is_unit_of_monic hf huf)
+  (assume hug : is_unit g, or.inr $ eq_one_of_is_unit_of_monic hg hug),
+λ hp3, ⟨mt (eq_one_of_is_unit_of_monic hp1) hp2, λ f g hp,
 have hf : f ≠ 0, from λ hf, by { rw [hp, hf, zero_mul] at hp1, exact not_monic_zero hp1 },
 have hg : g ≠ 0, from λ hg, by { rw [hp, hg, mul_zero] at hp1, exact not_monic_zero hp1 },
 or.imp (λ hf, is_unit_of_mul_eq_one _ _ hf) (λ hg, is_unit_of_mul_eq_one _ _ hg) $
 hp3 (f * C f.leading_coeff⁻¹) (g * C g.leading_coeff⁻¹)
   (monic_mul_leading_coeff_inv hf) (monic_mul_leading_coeff_inv hg) $
 by rw [mul_assoc, mul_left_comm _ g, ← mul_assoc, ← C_mul, ← mul_inv', ← leading_coeff_mul,
-    ← hp, monic.def.1 hp1, inv_one, C_1, mul_one]⟩
+    ← hp, monic.def.1 hp1, inv_one, C_1, mul_one]⟩⟩
 
 /-- Division of polynomials. See polynomial.div_by_monic for more details.-/
 def div (p q : polynomial R) :=

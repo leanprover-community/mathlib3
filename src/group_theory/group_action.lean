@@ -137,10 +137,20 @@ variables (α) (β)
 /-- The set of elements fixed under the whole action. -/
 def fixed_points : set β := {b : β | ∀ x : α, x • b = b}
 
+/-- `fixed_by g` is the subfield of elements fixed by `g`. -/
+def fixed_by (g : α) : set β :=
+{ x | g • x = x }
+
+theorem fixed_eq_Inter_fixed_by : fixed_points α β = ⋂ g : α, fixed_by α β g :=
+set.ext $ λ x, ⟨λ hx, set.mem_Inter.2 $ λ g, hx g, λ hx g, by exact (set.mem_Inter.1 hx g : _)⟩
+
 variables {α} (β)
 
 @[simp] lemma mem_fixed_points {b : β} :
   b ∈ fixed_points α β ↔ ∀ x : α, x • b = b := iff.rfl
+
+@[simp] lemma mem_fixed_by {g : α} {b : β} :
+  b ∈ fixed_by α β g ↔ g • b = b := iff.rfl
 
 lemma mem_fixed_points' {b : β} : b ∈ fixed_points α β ↔
   (∀ b', b' ∈ orbit α b → b' = b) :=

@@ -189,6 +189,9 @@ instance is_invariant_subring.to_mul_semiring_action : mul_semiring_action M S :
   smul_one := λ m, subtype.eq $ smul_one m,
   smul_mul := λ m s₁ s₂, subtype.eq $ smul_mul' m s₁ s₂ }
 
+instance fixed_points.is_invariant_subring : is_invariant_subring M (fixed_points G R) :=
+{ smul_mem := λ g x hx g', by rw [hx, hx] }
+
 end ring
 
 section comm_ring
@@ -199,29 +202,27 @@ open mul_action
 open_locale classical
 
 /-- the product of `(X - g • x)` over distinct `g • x`. -/
-noncomputable def mul_semiring_action.minpoly (x : R) : polynomial R :=
+noncomputable def prod_X_sub_smul (x : R) : polynomial R :=
 (finset.univ : finset (quotient_group.quotient $ mul_action.stabilizer G x)).prod $
 λ g, polynomial.X - polynomial.C (of_quotient_stabilizer G x g)
 
-theorem mul_semiring_action.minpoly.monic (x : R) :
-  polynomial.monic (mul_semiring_action.minpoly G R x) :=
+theorem prod_X_sub_smul.monic (x : R) : (prod_X_sub_smul G R x).monic :=
 polynomial.monic_prod_of_monic _ _ $ λ g _, polynomial.monic_X_sub_C _
 
-theorem mul_semiring_action.minpoly.eval (x : R) :
-  (mul_semiring_action.minpoly G R x).eval x = 0 :=
+theorem prod_X_sub_smul.eval (x : R) : (prod_X_sub_smul G R x).eval x = 0 :=
 (finset.prod_hom _ (polynomial.eval x)).symm.trans $ finset.prod_eq_zero (finset.mem_univ $ quotient_group.mk 1) $
 by rw [of_quotient_stabilizer_mk, one_smul, polynomial.eval_sub, polynomial.eval_X, polynomial.eval_C, sub_self]
 
-theorem mul_semiring_action.minpoly.smul (x : R) (g : G) :
-  g • mul_semiring_action.minpoly G R x = mul_semiring_action.minpoly G R x :=
+theorem prod_X_sub_smul.smul (x : R) (g : G) :
+  g • prod_X_sub_smul G R x = prod_X_sub_smul G R x :=
 (smul_prod _ _ _ _ _).trans $ finset.prod_bij (λ g' _, g • g') (λ _ _, finset.mem_univ _)
   (λ g' _, by rw [of_quotient_stabilizer_smul, smul_sub, polynomial.smul_X, polynomial.smul_C])
   (λ _ _ _ _ H, (mul_action.bijective g).1 H)
   (λ g' _, ⟨g⁻¹ • g', finset.mem_univ _, by rw [smul_smul, mul_inv_self, one_smul]⟩)
 
-theorem mul_semiring_action.minpoly.coeff (x : R) (g : G) (n : ℕ) :
-  g • (mul_semiring_action.minpoly G R x).coeff n =
-  (mul_semiring_action.minpoly G R x).coeff n :=
-by rw [← polynomial.coeff_smul', mul_semiring_action.minpoly.smul]
+theorem prod_X_sub_smul.coeff (x : R) (g : G) (n : ℕ) :
+  g • (prod_X_sub_smul G R x).coeff n =
+  (prod_X_sub_smul G R x).coeff n :=
+by rw [← polynomial.coeff_smul', prod_X_sub_smul.smul]
 
 end comm_ring

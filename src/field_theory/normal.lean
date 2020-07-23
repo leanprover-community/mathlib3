@@ -37,10 +37,6 @@ theorem normal.is_integral [h : normal F K] (x : K) : is_integral F x := (h x).f
 theorem normal.splits [h : normal F K] (x : K) :
   splits (algebra_map F K) (minimal_polynomial $ normal.is_integral F K x) := (h x).snd
 
--- MOVE
-theorem subalgebra.to_submodule_top : ((⊤ : subalgebra F K) : submodule F K) = ⊤ :=
-submodule.ext $ λ x, iff_of_true algebra.mem_top trivial
-
 theorem normal.exists_is_splitting_field [normal F K] [finite_dimensional F K] :
   ∃ p : polynomial F, is_splitting_field F K p :=
 begin
@@ -48,7 +44,7 @@ begin
   refine ⟨s.prod $ λ x, minimal_polynomial $ normal.is_integral F K x,
     splits_prod _ $ λ x hx, normal.splits F K x,
     subalgebra.to_submodule_injective _⟩,
-  rw [subalgebra.to_submodule_top F K, eq_top_iff, ← hs.2, submodule.span_le, set.range_subset_iff],
+  rw [algebra.coe_top F, eq_top_iff, ← hs.2, submodule.span_le, set.range_subset_iff],
   refine λ x, algebra.subset_adjoin ((mem_roots $ mt (map_eq_zero $ algebra_map F K).1 $
     finset.prod_ne_zero_iff.2 $ λ x hx, _).2 _),
   { exact minimal_polynomial.ne_zero _ },

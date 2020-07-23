@@ -234,9 +234,9 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
 @[derive [has_reflect, inhabited]] structure simps_cfg :=
 (attrs         := [`simp])
 (short_name    := ff)
-(simp_rhs      := ff)
+(simp_rhs      := tt)
 (type_md       := transparency.instances)
-(rhs_md        := transparency.none)
+(rhs_md        := transparency.semireducible)
 (fully_applied := tt)
 
 /-- Add a lemma with `nm` stating that `lhs = rhs`. `type` is the type of both `lhs` and `rhs`,

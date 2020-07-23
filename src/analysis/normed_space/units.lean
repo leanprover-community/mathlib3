@@ -102,7 +102,7 @@ lemma inverse_add (x : units R) :
   ∀ᶠ t in (𝓝 0), inverse ((x : R) + t) = inverse (1 + ((x⁻¹: units R) * t)) * (x⁻¹ : units R) :=
 begin
   rw [eventually_iff, mem_nhds_iff],
-  cases subsingleton_or_nontrivial R; resetI,
+  casesI subsingleton_or_nontrivial R,
   { use [1, by norm_num] },
   { have hinv : 0 < ∥((x⁻¹ : units R):R)∥⁻¹,
     { cancel_denoms,
@@ -114,7 +114,7 @@ begin
     { refine lt_of_le_of_lt (norm_mul_le _ _) _,
       rw norm_neg,
       refine lt_of_lt_of_le (mul_lt_mul_of_pos_left ht x⁻¹.norm_pos) _,
-      cancel_denoms }, -- := sorry,
+      cancel_denoms },
     have hright := inverse_one_sub (- ((x⁻¹: units R):R) * t) ht',
     have hleft := inverse_unit (x.add t ht),
     simp only [neg_mul_eq_neg_mul_symm, sub_neg_eq_add] at hright,
@@ -146,7 +146,7 @@ end
 /-- The formula
 `inverse (x + t) = (∑ i in range n, (- x⁻¹ * t) ^ i) * x⁻¹ + (- x⁻¹ * t) ^ n * inverse (x + t)`
 holds for `t` sufficiently small. -/
-lemma inverse_add_nth_order (x : units R) (n : ℕ) :  ∀ᶠ t in (𝓝 (0:R)),
+lemma inverse_add_nth_order (x : units R) (n : ℕ) : ∀ᶠ t in (𝓝 (0:R)),
   inverse ((x:R) + t)
   = (∑ i in range n, (- (x⁻¹: units R) * t) ^ i) * (x⁻¹ : units R)
     + ((- (x⁻¹ : units R) * t) ^ n) * inverse (x + t) :=

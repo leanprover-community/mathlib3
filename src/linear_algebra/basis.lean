@@ -404,16 +404,15 @@ begin
   { rw finset.sup_empty,
     apply linear_independent_empty_type (not_nonempty_iff_imp_false.2 _),
     exact λ x, set.not_mem_empty x (subtype.mem x) },
-  { rintros ⟨i⟩ s his ih,
+  { rintros i s his ih,
     rw [finset.sup_insert],
     refine (hl _).union ih _,
     rw [finset.sup_eq_supr],
     refine (hd i _ _ his).mono_right _,
     { simp only [(span_Union _).symm],
       refine span_mono (@supr_le_supr2 (set M) _ _ _ _ _ _),
-      rintros ⟨i⟩, exact ⟨i, le_refl _⟩ },
-    { change finite (plift.up ⁻¹' ↑s),
-      exact s.finite_to_set.preimage (assume i j _ _, plift.up.inj) } }
+      rintros i, exact ⟨i, le_refl _⟩ },
+    { exact s.finite_to_set } }
 end
 
 lemma linear_independent_Union_finite {η : Type*} {ιs : η → Type*}

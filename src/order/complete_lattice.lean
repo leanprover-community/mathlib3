@@ -351,21 +351,19 @@ lemma monotone.supr_comp_eq [preorder β] {f : β → α} (hf : monotone f)
   (⨆ x, f (s x)) = ⨆ y, f y :=
 le_antisymm (supr_comp_le _ _) (supr_le_supr2 $ λ x, (hs x).imp $ λ i hi, hf hi)
 
-lemma supr_congr {f : β → α} {g : β₂ → α} (h : β → β₂)
-  (h1 : function.surjective h) (h2 : ∀ x, g (h x) = f x) : (⨆ x, f x) = ⨆ y, g y :=
-by { unfold supr, congr' 1, convert h1.range_comp g, ext, rw ←h2 }
+lemma function.surjective.supr_comp {α : Type*} [has_Sup α] {f : ι → ι₂}
+  (hf : function.surjective f) (g : ι₂ → α) :
+  (⨆ x, g (f x)) = ⨆ y, g y :=
+by simp only [supr, hf.range_comp]
 
 -- TODO: finish doesn't do well here.
 @[congr] theorem supr_congr_Prop {α : Type*} [has_Sup α] {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : supr f₁ = supr f₂ :=
 begin
-  unfold supr,
-  apply congr_arg,
-  ext,
-  simp,
-  split,
-  exact λ⟨h, W⟩, ⟨pq.1 h, eq.trans (f (pq.1 h)).symm W⟩,
-  exact λ⟨h, W⟩, ⟨pq.2 h, eq.trans (f h) W⟩
+  have : f₁ ∘ pq.mpr = f₂ := funext f,
+  rw [← this],
+  refine (function.surjective.supr_comp (λ h, ⟨pq.1 h, _⟩) f₁).symm,
+  refl
 end
 
 theorem infi_le (s : ι → α) (i : ι) : infi s ≤ s i :=
@@ -441,21 +439,14 @@ lemma monotone.infi_comp_eq [preorder β] {f : β → α} (hf : monotone f)
   (⨅ x, f (s x)) = ⨅ y, f y :=
 le_antisymm (infi_le_infi2 $ λ x, (hs x).imp $ λ i hi, hf hi) (le_infi_comp _ _)
 
-lemma infi_congr {f : β → α} {g : β₂ → α} (h : β → β₂)
-  (h1 : function.surjective h) (h2 : ∀ x, g (h x) = f x) : (⨅ x, f x) = ⨅ y, g y :=
-by { unfold infi, congr' 1, convert h1.range_comp g, ext, rw ←h2 }
+lemma function.surjective.infi_comp {α : Type*} [has_Inf α] {f : ι → ι₂}
+  (hf : function.surjective f) (g : ι₂ → α) :
+  (⨅ x, g (f x)) = ⨅ y, g y :=
+@function.surjective.supr_comp _ _ (order_dual α) _ f hf g
 
 @[congr] theorem infi_congr_Prop {α : Type*} [has_Inf α] {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : infi f₁ = infi f₂ :=
-begin
-  unfold infi,
-  apply congr_arg,
-  ext,
-  simp,
-  split,
-  exact λ⟨h, W⟩, ⟨pq.1 h, eq.trans (f (pq.1 h)).symm W⟩,
-  exact λ⟨h, W⟩, ⟨pq.2 h, eq.trans (f h) W⟩
-end
+@supr_congr_Prop (order_dual α) _ p q f₁ f₂ pq f
 
 -- We will generalize this to conditionally complete lattices in `cinfi_const`.
 theorem infi_const [nonempty ι] {a : α} : (⨅ b:ι, a) = a :=

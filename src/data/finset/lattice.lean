@@ -352,33 +352,33 @@ end multiset
 
 
 section lattice
-variables {ι : Sort*} [complete_lattice α]
+variables {ι : Type*} [complete_lattice α]
 
 lemma supr_eq_supr_finset (s : ι → α) :
-  (⨆i, s i) = (⨆t:finset (plift ι), ⨆i∈t, s (plift.down i)) :=
+  (⨆i, s i) = (⨆t:finset ι, ⨆i∈t, s i) :=
 begin
   classical,
   exact le_antisymm
-    (supr_le $ assume b, le_supr_of_le {plift.up b} $ le_supr_of_le (plift.up b) $ le_supr_of_le
+    (supr_le $ assume b, le_supr_of_le {b} $ le_supr_of_le b $ le_supr_of_le
       (by simp) $ le_refl _)
     (supr_le $ assume t, supr_le $ assume b, supr_le $ assume hb, le_supr _ _)
 end
 
 lemma infi_eq_infi_finset (s : ι → α) :
-  (⨅i, s i) = (⨅t:finset (plift ι), ⨅i∈t, s (plift.down i)) :=
+  (⨅i, s i) = (⨅t:finset ι, ⨅i∈t, s i) :=
 @supr_eq_supr_finset (order_dual α) _ _ _
 
 end lattice
 
 namespace set
-variables {ι : Sort*}
+variables {ι : Type*}
 
 lemma Union_eq_Union_finset (s : ι → set α) :
-  (⋃i, s i) = (⋃t:finset (plift ι), ⋃i∈t, s (plift.down i)) :=
+  (⋃i, s i) = (⋃t:finset ι, ⋃i∈t, s i) :=
 supr_eq_supr_finset s
 
 lemma Inter_eq_Inter_finset (s : ι → set α) :
-  (⋂i, s i) = (⋂t:finset (plift ι), ⋂i∈t, s (plift.down i)) :=
+  (⋂i, s i) = (⋂t:finset ι, ⋂i∈t, s i) :=
 infi_eq_infi_finset s
 
 end set

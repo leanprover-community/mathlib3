@@ -1622,12 +1622,21 @@ focus1 $ do
 
   -- Apply the recursor. We first try the nondependent recursor, then the
   -- dependent recursor (if available).
+
+  -- Construct a pexpr `@rec _ ... _ eliminee`. Why not ``(%%rec %%eliminee)?
+  -- Because for whatever reason, `false.rec_on` takes the motive not as an
+  -- implicit argument, like any other recursor, but as an explicit one.
+  -- Why not something based on `mk_app` or `mk_mapp`? Because we need the
+  -- special elaborator support for `elab_as_eliminator` definitions.
+  let rec_app : name → pexpr := λ rec_suffix,
+    (unchecked_cast expr.mk_app : pexpr → list pexpr → pexpr)
+      (pexpr.mk_explicit (const (iname ++ rec_suffix) []))
+      (list.repeat pexpr.mk_placeholder (eliminee_args.length + 1) ++
+        [to_pexpr eliminee]),
   let rec_suffix := if generate_ihs then "rec_on" else "cases_on",
   let drec_suffix := if generate_ihs then "drec_on" else "dcases_on",
-  rec ← mk_const $ iname ++ rec_suffix,
-  drec ← try_core $ mk_const $ iname ++ drec_suffix,
-  interactive.apply ``(%%rec %%eliminee)
-    <|> (do drec ← drec, interactive.apply ``(%%drec %%eliminee))
+  interactive.apply (rec_app rec_suffix)
+    <|> interactive.apply (rec_app drec_suffix)
     <|> fail! "Failed to apply the (dependent) recursor for {iname} on {eliminee}.",
 
   -- Prepare the "with" names for each constructor case.

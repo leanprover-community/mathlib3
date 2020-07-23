@@ -446,6 +446,14 @@ begin
   -- This leaves the goal provable, but very confusing.
 end
 
+-- For whatever reason, the eliminator for `false` has an explicit argument
+-- where all other eliminators have an implicit one. `eliminate_hyp` has to
+-- work around this to ensure that we can eliminate a `false` hyp.
+example {α} (h : false) : α :=
+begin
+  cases' h
+end
+
 end ℕ₂
 
 --------------------------------------------------------------------------------

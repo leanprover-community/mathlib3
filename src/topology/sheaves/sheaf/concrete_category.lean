@@ -61,7 +61,7 @@ begin
     simp, dsimp, simp, },
   { rw iso.eq_comp_inv,
     ext,
-    simp,
+    simp, -- squeeze_simp fails
     dsimp,
     simp only [limit.lift_π, fan.mk_π_app],
     simp only [←G.map_comp],
@@ -81,7 +81,7 @@ variables [has_limits C] [preserves_limits (forget C)]
 
 variables {X : Top.{u}} (F : presheaf C X)
 
--- FIXME remove this attribute?
+-- TODO I'd prefer this isn't necessary
 local attribute [-simp] forget_map_eq_coe
 
 /--
@@ -121,8 +121,8 @@ begin
         dsimp,
         simp only [category.assoc],
         simp only [←functor.map_comp_assoc],
-        simp,
-        dsimp, simp [restriction], dsimp, simp,
+        simp only [equalizer.lift_ι, lift_comp_preserves_products_iso_hom_assoc],
+        dsimp [restriction], simp,
       end,
       haveI : is_iso g := is_limit.hom_is_iso hc hd' g,
       exact { ..((cones.forget _).map_iso (as_iso g)) },

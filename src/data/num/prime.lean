@@ -97,4 +97,3 @@ instance decidable_prime : decidable_pred num.prime
 | (pos n) := pos_num.decidable_prime n
 
 end num
-#lint

@@ -12,10 +12,7 @@ import topology.subset_properties
 In this file we define the type `continuous_map` of continuous bundled maps.
 -/
 
-<<<<<<< HEAD
-=======
 /-- Bundled continuous maps. -/
->>>>>>> master
 @[protect_proj]
 structure continuous_map (α : Type*) (β : Type*)
 [topological_space α] [topological_space β] :=
@@ -26,12 +23,8 @@ notation `C(` α `, ` β `)` := continuous_map α β
 
 namespace continuous_map
 
-<<<<<<< HEAD
-variables {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-=======
 variables {α : Type*} {β : Type*} {γ : Type*}
 variables [topological_space α] [topological_space β] [topological_space γ]
->>>>>>> master
 
 instance : has_coe_to_fun (C(α, β)) := ⟨_, continuous_map.to_fun⟩
 
@@ -43,10 +36,6 @@ by cases f; cases g; congr'; exact funext H
 instance [inhabited β] : inhabited C(α, β) :=
 ⟨⟨λ _, default _, continuous_const⟩⟩
 
-<<<<<<< HEAD
-protected lemma continuous (f : C(α, β)) : continuous f := f.continuous_to_fun
-
-=======
 lemma coe_inj ⦃f g : C(α, β)⦄ (h : (f : α → β) = g) : f = g :=
 by cases f; cases g; cases h; refl
 
@@ -65,7 +54,6 @@ def comp (f : C(β, γ)) (g : C(α, β)) : C(α, γ) :=
 protected lemma continuous (f : C(α, β)) : continuous f := f.continuous_to_fun
 
 /-- Takes `b` in input and gives the continuous bundled function constantly valued `b` in output. -/
->>>>>>> master
 def const (b : β) : C(α, β) := ⟨λ x, b, continuous_const⟩
 
 end continuous_map

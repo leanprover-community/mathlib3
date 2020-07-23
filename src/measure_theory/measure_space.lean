@@ -264,7 +264,7 @@ begin
     simpa only [infi_lt_iff, exists_prop] using ht },
   refine ⟨⋂n, t n, subset_Inter (λn, (ht n).1), is_measurable.Inter (λn, (ht n).2.1), _⟩,
   refine le_antisymm _ (zero_le _),
-  refine le_of_tendsto_of_tendsto at_top_ne_bot tendsto_const_nhds
+  refine le_of_tendsto_of_tendsto tendsto_const_nhds
     ennreal.tendsto_inv_nat_nhds_zero (eventually_of_forall $ assume n, _),
   exact le_trans (m.mono' $ Inter_subset _ _) (le_of_lt (ht n).2.2)
 end
@@ -947,6 +947,7 @@ begin
   rw [measure_eq_infi, infi_subtype', infi_subtype'],
   convert infi_const,
   { ext1 ⟨⟨t, hst⟩, ht⟩,
+    dsimp only [subtype.coe_mk] at *,
     simp only [dirac_apply _ ht, indicator_of_mem (hst h), pi.one_apply] },
   { exact ⟨⟨⟨set.univ, subset_univ _⟩, is_measurable.univ⟩⟩ }
 end

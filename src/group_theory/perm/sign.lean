@@ -6,7 +6,7 @@ Authors: Chris Hughes
 import data.fintype.basic
 import data.finset.sort
 import algebra.group.conj
-import algebra.big_operators
+import algebra.big_operators.basic
 
 universes u v
 open equiv function fintype finset

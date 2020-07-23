@@ -339,17 +339,17 @@ instance prod.borel_space [second_countable_topology α] [second_countable_topol
 ⟨le_antisymm prod_le_borel_prod opens_measurable_space.borel_le⟩
 
 @[to_additive]
-lemma measurable_mul [monoid α] [topological_monoid α] [second_countable_topology α] :
+lemma measurable_mul [monoid α] [has_continuous_mul α] [second_countable_topology α] :
   measurable (λ p : α × α, p.1 * p.2) :=
 continuous_mul.measurable
 
 @[to_additive]
-lemma measurable.mul [monoid α] [topological_monoid α] [second_countable_topology α]
+lemma measurable.mul [monoid α] [has_continuous_mul α] [second_countable_topology α]
   {f : δ → α} {g : δ → α} : measurable f → measurable g → measurable (λa, f a * g a) :=
 continuous_mul.measurable2
 
 @[to_additive]
-lemma finset.measurable_prod {ι : Type*} [comm_monoid α] [topological_monoid α]
+lemma finset.measurable_prod {ι : Type*} [comm_monoid α] [has_continuous_mul α]
   [second_countable_topology α] {f : ι → δ → α} (s : finset ι) (hf : ∀i, measurable (f i)) :
   measurable (λa, ∏ i in s, f i a) :=
 finset.induction_on s

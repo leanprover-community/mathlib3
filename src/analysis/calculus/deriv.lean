@@ -1696,7 +1696,7 @@ lemma has_deriv_within_at.limsup_slope_le' (hf : has_deriv_within_at f f' s x)
 lemma has_deriv_within_at.liminf_right_slope_le
   (hf : has_deriv_within_at f f' (Ioi x) x) (hr : f' < r) :
   ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (f z - f x) < r :=
-(hf.limsup_slope_le' (lt_irrefl x) hr).frequently (nhds_within_Ioi_self_ne_bot x)
+(hf.limsup_slope_le' (lt_irrefl x) hr).frequently
 
 end real
 
@@ -1753,7 +1753,7 @@ for a stronger version using limit superior and any set `s`. -/
 lemma has_deriv_within_at.liminf_right_norm_slope_le
   (hf : has_deriv_within_at f f' (Ioi x) x) (hr : ∥f'∥ < r) :
   ∃ᶠ z in nhds_within x (Ioi x), ∥z - x∥⁻¹ * ∥f z - f x∥ < r :=
-(hf.limsup_norm_slope_le hr).frequently (nhds_within_Ioi_self_ne_bot x)
+(hf.limsup_norm_slope_le hr).frequently
 
 /-- If `f` has derivative `f'` within `(x, +∞)` at `x`, then for any `r > ∥f'∥` the ratio
 `(∥f z∥ - ∥f x∥) / (z - x)` is frequently less than `r` as `z → x+0`.
@@ -1770,7 +1770,7 @@ lemma has_deriv_within_at.liminf_right_slope_norm_le
   (hf : has_deriv_within_at f f' (Ioi x) x) (hr : ∥f'∥ < r) :
   ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (∥f z∥ - ∥f x∥) < r :=
 begin
-  have := (hf.limsup_slope_norm_le hr).frequently (nhds_within_Ioi_self_ne_bot x),
+  have := (hf.limsup_slope_norm_le hr).frequently,
   refine this.mp (eventually.mono self_mem_nhds_within _),
   assume z hxz hz,
   rwa [real.norm_eq_abs, abs_of_pos (sub_pos_of_lt hxz)] at hz

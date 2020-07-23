@@ -445,6 +445,18 @@ In contrast to `generalize` it already introduces the generalized variable. -/
 meta def generalize' (e : expr) (n : name) : tactic expr :=
 (generalize e n >> intro1) <|> note n none e
 
+/--
+`intron_no_renames n` calls `intro` `n` times, using the pretty-printing name
+provided by the binder to name the new local constant.
+Unlike `intron`, it does not rename introduced constants if the names shadow existing constants.
+-/
+meta def intron_no_renames : ℕ → tactic unit
+| 0 := pure ()
+| (n+1) := do
+  expr.pi pp_n _ _ _ ← target,
+  intro pp_n,
+  intron_no_renames n
+
 /-!
 ### Various tactics related to local definitions (local constants of the form `x : α := t`)
 
@@ -821,14 +833,16 @@ We need to do this to avoid metavariables getting stuck during subsequent rounds
 meta def apply_any_thunk
   (lemmas : list (tactic expr))
   (opt : apply_any_opt := {})
-  (tac : tactic unit := skip) : tactic unit :=
+  (tac : tactic unit := skip)
+  (on_success : expr → tactic unit := (λ _, skip))
+  (on_failure : tactic unit := skip) : tactic unit :=
 do
   let modes := [skip]
     ++ (if opt.use_symmetry then [symmetry] else [])
     ++ (if opt.use_exfalso then [exfalso] else []),
   modes.any_of (λ m, do m,
-    lemmas.any_of (λ H, H >>= opt.apply >> tac)) <|>
-  fail "apply_any tactic failed; no lemma could be applied"
+    lemmas.any_of (λ H, H >>= (λ e, do opt.apply e, on_success e, tac))) <|>
+  (on_failure >> fail "apply_any tactic failed; no lemma could be applied")
 
 /--
 `apply_any lemmas` tries to apply one of the list `lemmas` to the current goal.

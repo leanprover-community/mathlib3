@@ -15,7 +15,6 @@ The theorems include formulas for computing coefficients, such as
 -/
 
 noncomputable theory
-local attribute [instance, priority 100] classical.prop_decidable
 
 open finsupp finset add_monoid_algebra
 open_locale big_operators
@@ -24,12 +23,10 @@ namespace polynomial
 universes u v
 variables {R : Type u} {S : Type v} {a b : R} {n m : ℕ}
 
-section semiring
 variables [semiring R] {p q r : polynomial R}
 
 section coeff
 
-@[simp, priority 990]
 lemma coeff_one (n : ℕ) : coeff (1 : polynomial R) n = if 0 = n then 1 else 0 :=
 coeff_monomial
 
@@ -42,11 +39,6 @@ lemma coeff_sum [semiring S] (n : ℕ) (f : ℕ → R → polynomial S) :
 @[simp] lemma coeff_smul (p : polynomial R) (r : R) (n : ℕ) :
 coeff (r • p) n = r * coeff p n := finsupp.smul_apply
 
--- TODO: bundle into a def instead of an instance?
-instance coeff.is_add_monoid_hom {n : ℕ} : is_add_monoid_hom (λ p : polynomial R, p.coeff n) :=
-{ map_add  := λ p q, coeff_add p q n,
-  map_zero := coeff_zero _ }
-
 variable (R)
 /-- The nth coefficient, as a linear map. -/
 def lcoeff (n : ℕ) : polynomial R →ₗ[R] R :=
@@ -56,6 +48,10 @@ def lcoeff (n : ℕ) : polynomial R →ₗ[R] R :=
 variable {R}
 
 @[simp] lemma lcoeff_apply (n : ℕ) (f : polynomial R) : lcoeff R n f = coeff f n := rfl
+
+@[simp] lemma finset_sum_coeff {ι : Type*} (s : finset ι) (f : ι → polynomial R) (n : ℕ) :
+  coeff (∑ b in s, f b) n = ∑ b in s, coeff (f b) n :=
+(s.sum_hom (λ q : polynomial R, lcoeff R n q)).symm
 
 lemma coeff_mul (p q : polynomial R) (n : ℕ) :
   coeff (p * q) n = ∑ x in nat.antidiagonal n, coeff p x.1 * coeff q x.2 :=
@@ -81,9 +77,11 @@ end
 @[simp] lemma mul_coeff_zero (p q : polynomial R) : coeff (p * q) 0 = coeff p 0 * coeff q 0 :=
 by simp [coeff_mul]
 
-@[simp] lemma coeff_mul_X_zero (p : polynomial R) : coeff (p * X) 0 = 0 :=
-by rw [coeff_mul, nat.antidiagonal_zero];
-simp only [polynomial.coeff_X_zero, finset.sum_singleton, mul_zero]
+lemma coeff_mul_X_zero (p : polynomial R) : coeff (p * X) 0 = 0 :=
+by simp
+
+lemma coeff_X_mul_zero (p : polynomial R) : coeff (X * p) 0 = 0 :=
+by simp
 
 lemma coeff_C_mul_X (x : R) (k n : ℕ) :
   coeff (C x * X^k : polynomial R) n = if n = k then x else 0 :=
@@ -98,6 +96,9 @@ begin
     assume i hi, by_cases i = n; simp [h] },
   { simp [finsupp.sum] }
 end
+
+lemma C_mul' (a : R) (f : polynomial R) : C a * f = a • f :=
+ext $ λ n, coeff_C_mul f
 
 @[simp] lemma coeff_mul_C (p : polynomial R) (n : ℕ) (a : R) :
   coeff (p * C a) n = coeff p n * a :=
@@ -123,9 +124,14 @@ begin
     ... = a • X^n  : by rw monomial_one_eq_X_pow
 end
 
-@[simp] lemma coeff_X_pow (k n : ℕ) :
+lemma coeff_X_pow (k n : ℕ) :
   coeff (X^k : polynomial R) n = if n = k then 1 else 0 :=
 by rw [← monomial_one_eq_X_pow]; simp [monomial, single, eq_comm, coeff]; congr
+
+@[simp]
+lemma coeff_X_pow_self (n : ℕ) :
+  coeff (X^n : polynomial R) n = 1 :=
+by simp [coeff_X_pow]
 
 theorem coeff_mul_X_pow (p : polynomial R) (n d : ℕ) :
   coeff (p * polynomial.X ^ n) (d + n) = coeff p d :=
@@ -140,14 +146,10 @@ end
   coeff (p * X) (n + 1) = coeff p n :=
 by simpa only [pow_one] using coeff_mul_X_pow p 1 n
 
-
 theorem mul_X_pow_eq_zero {p : polynomial R} {n : ℕ}
   (H : p * X ^ n = 0) : p = 0 :=
 ext $ λ k, (coeff_mul_X_pow p n k).symm.trans $ ext_iff.1 H (k+n)
 
 end coeff
-
-end semiring
-
 
 end polynomial

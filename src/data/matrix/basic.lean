@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
 -/
 import algebra.pi_instances
+import algebra.big_operators.ring
+
 /-!
 # Matrices
 -/
@@ -737,6 +739,61 @@ lemma row_mul_vec [semiring α] (M : matrix m n α) (v : n → α) :
   matrix.row (matrix.mul_vec M v) = (M ⬝ matrix.col v)ᵀ := by {ext, refl}
 
 end row_col
+
+section update
+
+/-- Update, i.e. replace the `i`th row of matrix `A` with the values in `b`. -/
+def update_row [decidable_eq n] (M : matrix n m α) (i : n) (b : m → α) : matrix n m α :=
+function.update M i b
+
+/-- Update, i.e. replace the `i`th column of matrix `A` with the values in `b`. -/
+def update_column [decidable_eq m] (M : matrix n m α) (j : m) (b : n → α) : matrix n m α :=
+λ i, function.update (M i) j (b i)
+
+variables {M : matrix n m α} {i : n} {j : m} {b : m → α} {c : n → α}
+
+@[simp] lemma update_row_self [decidable_eq n] : update_row M i b i = b :=
+function.update_same i b M
+
+@[simp] lemma update_column_self [decidable_eq m] : update_column M j c i j = c i :=
+function.update_same j (c i) (M i)
+
+@[simp] lemma update_row_ne [decidable_eq n] {i' : n} (i_ne : i' ≠ i) :
+  update_row M i b i' = M i' := function.update_noteq i_ne b M
+
+@[simp] lemma update_column_ne [decidable_eq m] {j' : m} (j_ne : j' ≠ j) :
+  update_column M j c i j' = M i j' := function.update_noteq j_ne (c i) (M i)
+
+lemma update_row_val [decidable_eq n] {i' : n} :
+  update_row M i b i' j = if i' = i then b j else M i' j :=
+begin
+  by_cases i' = i,
+  { rw [h, update_row_self, if_pos rfl] },
+  { rwa [update_row_ne h, if_neg h] }
+end
+
+lemma update_column_val [decidable_eq m] {j' : m} : update_column M j c i j' = if j' = j then c i else M i j' :=
+begin
+  by_cases j' = j,
+  { rw [h, update_column_self, if_pos rfl] },
+  { rwa [update_column_ne h, if_neg h] }
+end
+
+lemma update_row_transpose [decidable_eq m] : update_row Mᵀ j c = (update_column M j c)ᵀ :=
+begin
+  ext i' j,
+  rw [transpose_val, update_row_val, update_column_val],
+  refl
+end
+
+lemma update_column_transpose [decidable_eq n] : update_column Mᵀ i b = (update_row M i b)ᵀ :=
+begin
+  ext i' j,
+  rw [transpose_val, update_row_val, update_column_val],
+  refl
+end
+
+end update
 
 end matrix
 

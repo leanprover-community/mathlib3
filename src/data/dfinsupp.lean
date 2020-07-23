@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau
 -/
 import algebra.pi_instances
+import data.set.finite
 
 /-!
 # Dependent functions with finite support

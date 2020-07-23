@@ -31,7 +31,7 @@ namespace algebraic_geometry.PresheafedSpace
 def stalk (X : PresheafedSpace C) (x : X) : C := X.𝒪.stalk x
 
 def stalk_map {X Y : PresheafedSpace C} (α : X ⟶ Y) (x : X) : Y.stalk (α x) ⟶ X.stalk x :=
-(stalk_functor C (α x)).map (α.c) ≫ X.𝒪.stalk_pushforward C α x
+(stalk_functor C (α x)).map (α.c) ≫ X.𝒪.stalk_pushforward C (α : (X : Top.{v}) ⟶ (Y : Top.{v})) x
 
 namespace stalk_map
 

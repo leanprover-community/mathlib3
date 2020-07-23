@@ -566,7 +566,7 @@ begin
   have := has_sum_of_bounded_monoid_hom_of_summable
     (normed_ring.summable_geometric_of_norm_lt_1 x h) (∥1 - x∥)
     (mul_right_bound (1 - x)),
-  refine tendsto_nhds_unique at_top_ne_bot this.tendsto_sum_nat _,
+  refine tendsto_nhds_unique this.tendsto_sum_nat _,
   have : tendsto (λ (n : ℕ), 1 - x ^ n) at_top (nhds 1),
   { simpa using tendsto_const_nhds.sub
       (tendsto_pow_at_top_nhds_0_of_norm_lt_1 h) },
@@ -582,7 +582,7 @@ begin
   have := has_sum_of_bounded_monoid_hom_of_summable
     (normed_ring.summable_geometric_of_norm_lt_1 x h) (∥1 - x∥)
     (mul_left_bound (1 - x)),
-  refine tendsto_nhds_unique at_top_ne_bot this.tendsto_sum_nat _,
+  refine tendsto_nhds_unique this.tendsto_sum_nat _,
   have : tendsto (λ (n : ℕ), 1 - x ^ n) at_top (nhds 1),
   { simpa using tendsto_const_nhds.sub
       (tendsto_pow_at_top_nhds_0_of_norm_lt_1 h) },
@@ -697,7 +697,7 @@ end
 theorem harmonic_tendsto_at_top : tendsto harmonic_series at_top at_top :=
 begin
   suffices : tendsto (λ n : ℕ, harmonic_series (2^n)) at_top at_top, by
-  { exact tendsto_at_top_of_monotone_of_subseq mono_harmonic at_top_ne_bot this },
+  { exact tendsto_at_top_of_monotone_of_subseq mono_harmonic this },
   apply tendsto_at_top_mono self_div_two_le_harmonic_two_pow,
   apply tendsto_at_top_div,
   norm_num,

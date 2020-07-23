@@ -1366,6 +1366,7 @@ meta def decompose_and : expr → tactic (list expr) := λ h, do
   | _ := pure [h]
   end
 
+-- TODO replace this whole thing with a call to the new `injection`.
 meta def simplify_constructor_equation (equ type lhs rhs lhs_whnf rhs_whnf : expr)
   (u : level) : tactic simplification_result :=
 do {

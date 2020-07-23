@@ -251,7 +251,7 @@ def sym2_equiv_sym' {α : Type*} : equiv (sym2 α) (sym' α 2) :=
     cases x with _ x, swap, { exfalso, simp at hx; linarith [hx] },
     cases y with _ y, { simp at hy; tauto },
     cases y with _ y, { simp at hy; norm_num at hy },
-    cases y with _ y, swap, { exfalso, simp at hy, linarith [hy] },
+    cases y with _ y, swap, { exfalso, simp at hy; linarith [hy] },
     rcases perm_card_two_iff.mp h with ⟨rfl,rfl⟩|⟨rfl,rfl⟩, { refl },
     apply sym2.rel.swap,
   end),

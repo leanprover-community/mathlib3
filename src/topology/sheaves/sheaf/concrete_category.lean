@@ -2,6 +2,18 @@ import topology.sheaves.sheaf
 import category_theory.limits.preserves.shapes
 import category_theory.limits.types
 
+/-!
+# Checking the sheaf condition on the underlying presheaf of types.
+
+When `C` is a concrete category with a forgetful functor
+that preserves limits and reflects isomorphism,
+the sheaf condition on a `C`-valued presheaf is equivalent to
+the sheaf condition on the underlying `Type`-valued presheaf.
+
+## References
+* https://stacks.math.columbia.edu/tag/0073
+-/
+
 open category_theory
 open category_theory.limits
 open topological_space
@@ -88,7 +100,8 @@ local attribute [-simp] forget_map_eq_coe
 If `C` is a concrete category with a forgetful functor that preserves limits and reflects isomorphisms,
 to check the sheaf condition it suffices to check it on the underlying sheaf of types.
 -/
-def sheaf_condition_in_Type : sheaf_condition F ≃ sheaf_condition (F ⋙ (forget C)) :=
+def sheaf_condition_equiv_sheaf_condition_forget :
+  sheaf_condition F ≃ sheaf_condition (F ⋙ (forget C)) :=
 begin
   fsplit,
   { intros S ι U,

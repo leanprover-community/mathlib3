@@ -1066,34 +1066,22 @@ top_unique $ assume s hs, s.eq_empty_or_nonempty.elim
 
 lemma to_topological_space_infi {ι : Sort*} {u : ι → uniform_space α} :
   (infi u).to_topological_space = ⨅i, (u i).to_topological_space :=
-classical.by_cases
-  (assume h : nonempty ι,
-    eq_of_nhds_eq_nhds $ assume a,
-    begin
-      rw [nhds_infi, nhds_eq_uniformity],
-      change (infi u).uniformity.lift' (preimage $ prod.mk a) = _,
-      begin
-        rw [infi_uniformity, lift'_infi],
-        exact (congr_arg _ $ funext $ assume i, (@nhds_eq_uniformity α (u i) a).symm),
-        exact h,
-        exact assume a b, rfl
-      end
-    end)
-  (assume : ¬ nonempty ι,
-    le_antisymm
-      (le_infi $ assume i, to_topological_space_mono $ infi_le _ _)
-      (have infi u = ⊤, from top_unique $ le_infi $ assume i, (this ⟨i⟩).elim,
-        have @uniform_space.to_topological_space _ (infi u) = ⊤,
-          from this.symm ▸ to_topological_space_top,
-        this.symm ▸ le_top))
+begin
+  by_cases h : nonempty ι,
+  {refine (eq_of_nhds_eq_nhds $ assume a, _),
+    rw [nhds_infi, nhds_eq_uniformity],
+    change (infi u).uniformity.lift' (preimage $ prod.mk a) = _,
+    rw [infi_uniformity, lift'_infi h],
+    { simp only [nhds_eq_uniformity], refl },
+    { exact assume a b, rfl } },
+  { rw [infi_of_empty h, infi_of_empty h, to_topological_space_top] }
+end
 
 lemma to_topological_space_Inf {s : set (uniform_space α)} :
   (Inf s).to_topological_space = (⨅i∈s, @uniform_space.to_topological_space α i) :=
 begin
-  rw [Inf_eq_infi, to_topological_space_infi],
-  apply congr rfl,
-  funext x,
-  exact to_topological_space_infi
+  rw [Inf_eq_infi],
+  simp only [← to_topological_space_infi],
 end
 
 lemma to_topological_space_inf {u v : uniform_space α} :
@@ -1349,6 +1337,8 @@ end constructions
 -- For a version of the Lebesgue number lemma assuming only a sequentially compact space,
 -- see topology/sequences.lean
 
+/-- Let `c : ι → set α` be an open cover of a compact set `s`. Then there exists an entourage
+`n` such that for each `x ∈ s` its `n`-neighborhood is contained in some `c i`. -/
 lemma lebesgue_number_lemma {α : Type u} [uniform_space α] {s : set α} {ι} {c : ι → set α}
   (hs : is_compact s) (hc₁ : ∀ i, is_open (c i)) (hc₂ : s ⊆ ⋃ i, c i) :
   ∃ n ∈ 𝓤 α, ∀ x ∈ s, ∃ i, {y | (x, y) ∈ n} ⊆ c i :=
@@ -1375,6 +1365,8 @@ begin
   exact prod_mk_mem_comp_rel (refl_mem_uniformity hm) (bInter_subset_of_mem bn hy)
 end
 
+/-- Let `c : set (set α)` be an open cover of a compact set `s`. Then there exists an entourage
+`n` such that for each `x ∈ s` its `n`-neighborhood is contained in some `t ∈ c`. -/
 lemma lebesgue_number_lemma_sUnion {α : Type u} [uniform_space α] {s : set α} {c : set (set α)}
   (hs : is_compact s) (hc₁ : ∀ t ∈ c, is_open t) (hc₂ : s ⊆ ⋃₀ c) :
   ∃ n ∈ 𝓤 α, ∀ x ∈ s, ∃ t ∈ c, ∀ y, (x, y) ∈ n → y ∈ t :=

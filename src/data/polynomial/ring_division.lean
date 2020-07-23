@@ -4,7 +4,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
+
+import data.polynomial.basic
 import data.polynomial.div
+import data.polynomial.algebra_map
 
 /-!
 # Theory of univariate polynomials
@@ -16,8 +19,7 @@ This file starts looking like the ring theory of $ R[X] $
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
-open finsupp finset add_monoid_algebra
-open_locale big_operators
+open finset
 
 namespace polynomial
 universes u v w z

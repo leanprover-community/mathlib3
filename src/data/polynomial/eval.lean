@@ -310,6 +310,9 @@ lemma map_monic_eq_zero_iff (hp : p.monic) : p.map f = 0 ↔ ∀ x, f x = 0 :=
                 ... = 0 : by simp [hfp],
   λ h, ext (λ n, trans (coeff_map f n) (h _)) ⟩
 
+lemma map_monic_ne_zero_of_nontrivial (hp : p.monic) [nontrivial S] : p.map f ≠ 0 :=
+mt (f.codomain_trivial_iff_image_trivial.mpr ∘ (map_monic_eq_zero_iff hp).mp) zero_ne_one
+
 variables (f)
 
 open is_semiring_hom

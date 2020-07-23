@@ -11,15 +11,12 @@ open category_theory
 open topological_space
 open opposite
 
-variables (C : Type u) [𝒞 : category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C]
 
 namespace Top
 
+@[derive category]
 def presheaf (X : Top.{v}) := (opens X)ᵒᵖ ⥤ C
-
-instance category_presheaf (X : Top.{v}) : category (X.presheaf C) :=
-by dsimp [presheaf]; apply_instance
 
 namespace presheaf
 variables {C}

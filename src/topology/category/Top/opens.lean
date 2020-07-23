@@ -17,9 +17,10 @@ namespace topological_space.opens
 variables {X Y Z : Top.{u}}
 
 instance opens_category : category.{u} (opens X) :=
-{ hom  := λ U V, ulift (plift (U ≤ V)),
-  id   := λ X, ⟨ ⟨ le_refl X ⟩ ⟩,
-  comp := λ X Y Z f g, ⟨ ⟨ le_trans f.down.down g.down.down ⟩ ⟩ }
+by apply_instance
+-- { hom  := λ U V, ulift (plift (U ≤ V)),
+--   id   := λ X, ⟨ ⟨ le_refl X ⟩ ⟩,
+--   comp := λ X Y Z f g, ⟨ ⟨ le_trans f.down.down g.down.down ⟩ ⟩ }
 
 def to_Top (X : Top.{u}) : opens X ⥤ Top :=
 { obj := λ U, ⟨U.val, infer_instance⟩,

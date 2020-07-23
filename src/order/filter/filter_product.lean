@@ -5,7 +5,6 @@ Authors: Abhimanyu Pallavi Sudhir
 -/
 import order.filter.ultrafilter
 import order.filter.germ
-import algebra.pi_instances
 
 /-!
 # Ultraproducts

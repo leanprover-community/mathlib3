@@ -10,8 +10,6 @@ import algebra.group_with_zero
 import tactic.alias
 import tactic.norm_cast
 import tactic.split_ifs
-import tactic.where
-import tactic.ring
 
 
 /-!
@@ -724,15 +722,16 @@ by { rw inv_eq_iff_mul_eq_one, simp only [units.ext_iff], push_cast, exact mul_s
 /-- Makes a ring homomorphism from a additive group homomorphism of a commutative rings and an
     integral domain that commutes with self multiplication. -/
 def ring_hom.mk_mul_self_of_two_ne_zero [comm_ring β] (f : β →+ α) (h : ∀ x, f (x * x) = f x * f x)
-  (h2 : (2 : β) ≠ 0) (h_one : f 1 = 1) : β →+* α :=
+  (h2 : (2 : α) ≠ 0) (h_one : f 1 = 1) : β →+* α :=
 { map_one' := h_one,
   map_mul' := begin
     intros x y,
     have hxy := h (x + y),
     simp only [mul_add, add_mul, h x, h y, f.map_add] at hxy,
     rw [← sub_eq_zero_iff_eq] at hxy,
-    ring at hxy,
-    rw [mul_comm y x, mul_assoc, mul_comm (f y), ← two_mul, add_comm, ← sub_eq_add_neg, ← mul_sub,
+    rw [add_comm, ← sub_sub, ← sub_sub, ← sub_sub, mul_comm y x, mul_comm (f y) (f x)] at hxy,
+    simp [add_assoc, add_sub_assoc] at hxy,
+    rw [sub_sub, ← two_mul, ← add_sub_assoc, ← two_mul, ← mul_sub,
       mul_eq_zero, sub_eq_zero_iff_eq, classical.or_iff_not_imp_left] at hxy,
     exact hxy h2,
   end,

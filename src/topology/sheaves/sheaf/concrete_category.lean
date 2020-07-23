@@ -17,13 +17,13 @@ variables {C : Type u} [category.{v} C]
 variables {F G : J ⥤ C} (α : F ≅ G)
 variables (c : cone F)
 
-def blah (c : cone F) : is_limit ((cones.postcompose α.hom).obj c) ≃ is_limit c :=
+def postcompose_hom_equiv (c : cone F) : is_limit ((cones.postcompose α.hom).obj c) ≃ is_limit c :=
 begin
   change is_limit ((cones.postcompose_equivalence α).functor.obj c) ≃ _,
   apply is_limit.of_cone_equiv',
 end
 
-def blah' (c : cone G) : is_limit ((cones.postcompose α.inv).obj c) ≃ is_limit c :=
+def postcompose_inv_equiv (c : cone G) : is_limit ((cones.postcompose α.inv).obj c) ≃ is_limit c :=
 begin
   change is_limit ((cones.postcompose_equivalence α.symm).functor.obj c) ≃ _,
   apply is_limit.of_cone_equiv',
@@ -115,7 +115,7 @@ begin
     simp only [←G.map_comp],
     simp,
   },
-end) -- should be easy after `bar` is defined
+end)
 
 end
 
@@ -139,7 +139,7 @@ begin
     have t1 := S U,
     have t2 := @preserves_limit.preserves _ _ _ _ _ _ _ (forget C) _ _ t1,
     have t3 := is_limit.of_iso_limit t2 (foo _ _ _),
-    have t4 := blah' _ _ t3,
+    have t4 := postcompose_inv_equiv _ _ t3,
     exact t4, },
   { intros S ι U,
     let f := equalizer.lift _ (fork_condition F U),
@@ -155,7 +155,7 @@ begin
       -- so it's an isomorphism...
       -- EXCEPT: `c` and `d` don't quite have the same shape yet.
       let d' := (cones.postcompose (bar _ F U).hom).obj d,
-      have hd' : is_limit d' := (blah.{u} (bar (forget C) F U) _).symm hd,
+      have hd' : is_limit d' := (postcompose_hom_equiv.{u} (bar (forget C) F U) _).symm hd,
       let g : c ⟶ d' :=
       fork.mk_hom ((forget C).map f)
       begin

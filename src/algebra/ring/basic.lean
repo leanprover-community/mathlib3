@@ -266,6 +266,14 @@ lemma codomain_trivial_iff_image_trivial : (0 : β) = 1 ↔ (∀ x, f x = 0) :=
 f.codomain_trivial_iff_map_one_eq_zero.trans
   ⟨λ h x, by rw [←mul_one x, map_mul, h, mul_zero], λ h, h 1⟩
 
+/-- `f : R →+* S` doesn't map `1` to `0` if `S` is nontrivial -/
+lemma map_one_ne_zero_of_nontrivial [nontrivial β] : f 1 ≠ 0 :=
+mt f.codomain_trivial_iff_map_one_eq_zero.mpr zero_ne_one
+
+/-- `f : R →+* S` doesn't map `1` to `0` if `S` is nontrivial -/
+lemma codomain_nontrivial [nontrivial β] : nontrivial α :=
+⟨⟨1, 0, mt (λ h, show f 1 = 0, by rw [h, map_zero]) f.map_one_ne_zero_of_nontrivial⟩⟩
+
 end
 
 /-- The identity ring homomorphism from a semiring to itself. -/

@@ -226,14 +226,6 @@ def orbit_rel : setoid β :=
   iseqv := ⟨mem_orbit_self, λ a b, by simp [orbit_eq_iff.symm, eq_comm],
     λ a b, by simp [orbit_eq_iff.symm, eq_comm] {contextual := tt}⟩ }
 
-section
-open_locale classical
-
-noncomputable instance [fintype α] (s : set α) [is_subgroup s] : fintype (quotient_group.quotient s) :=
-quotient.fintype _
-
-end
-
 variables {α β}
 
 open quotient_group mul_action is_subgroup

@@ -171,6 +171,7 @@ section ring
 
 variables (M : Type u) [monoid M] {R : Type v} [ring R] [mul_semiring_action M R]
 variables (S : set R) [is_subring S]
+open mul_action
 
 set_option old_structure_cmd false
 
@@ -200,6 +201,9 @@ variables (G : Type u) [group G] [fintype G]
 variables (R : Type v) [comm_ring R] [mul_semiring_action G R]
 open mul_action
 open_locale classical
+
+noncomputable instance (s : set G) [is_subgroup s] : fintype (quotient_group.quotient s) :=
+quotient.fintype _
 
 /-- the product of `(X - g • x)` over distinct `g • x`. -/
 noncomputable def prod_X_sub_smul (x : R) : polynomial R :=

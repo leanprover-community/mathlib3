@@ -88,7 +88,7 @@ def R : G → G → G := λ g : G, λ x : G, x * g
 lemma smooth_on.mul {f : M → G} {g : M → G} {s : set M}
   (hf : smooth_on I' I f s) (hg : smooth_on I' I g s) :
   smooth_on I' I (f * g) s :=
-(smooth_mul.comp_smooth_on (hf.prod hg) : _)
+(smooth_mul.comp_smooth_on (hf.prod_mk hg) : _)
 
 lemma smooth_pow : ∀ n : ℕ, smooth I I (λ a : G, a ^ n)
 | 0 := by { simp only [pow_zero], exact smooth_const }

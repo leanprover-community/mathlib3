@@ -656,6 +656,16 @@ lemma times_cont_mdiff_at.comp {g : M' → M''}
   times_cont_mdiff_at I I'' n (g ∘ f) x :=
 hg.comp hf subset_preimage_univ
 
+lemma times_cont_mdiff.comp_times_cont_mdiff_on {f : M → M'} {g : M' → M''} {s : set M}
+  (hg : times_cont_mdiff I' I'' n g) (hf : times_cont_mdiff_on I I' n f s) :
+  times_cont_mdiff_on I I'' n (g ∘ f) s :=
+hg.times_cont_mdiff_on.comp hf set.subset_preimage_univ
+
+lemma smooth.comp_smooth_on {f : M → M'} {g : M' → M''} {s : set M}
+  (hg : smooth I' I'' g) (hf : smooth_on I I' f s) :
+  smooth_on I I'' (g ∘ f) s :=
+hg.smooth_on.comp hf set.subset_preimage_univ
+
 end composition
 
 /-! ### Atlas members are smooth -/

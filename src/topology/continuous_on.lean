@@ -173,6 +173,12 @@ lemma nhds_within_prod_eq {α : Type*} [topological_space α] {β : Type*} [topo
   nhds_within (a, b) (s.prod t) = (nhds_within a s).prod (nhds_within b t) :=
 by { unfold nhds_within, rw [nhds_prod_eq, ←filter.prod_inf_prod, filter.prod_principal_principal] }
 
+lemma nhds_within_prod {α : Type*} [topological_space α] {β : Type*} [topological_space β]
+  {s u : set α} {t v : set β} {a : α} {b : β}
+  (hu : u ∈ nhds_within a s) (hv : v ∈ nhds_within b t) :
+  (u.prod v) ∈ nhds_within (a, b) (s.prod t) :=
+by { rw nhds_within_prod_eq, exact prod_mem_prod hu hv, }
+
 theorem tendsto_if_nhds_within {f g : α → β} {p : α → Prop} [decidable_pred p]
     {a : α} {s : set α} {l : filter β}
     (h₀ : tendsto f (nhds_within a (s ∩ p)) l)

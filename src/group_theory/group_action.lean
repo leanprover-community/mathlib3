@@ -3,7 +3,6 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.set.finite
 import group_theory.coset
 
 universes u v w
@@ -117,9 +116,6 @@ iff.rfl
 
 @[simp] lemma mem_orbit_self (b : β) : b ∈ orbit α b :=
 ⟨1, by simp [mul_action.one_smul]⟩
-
-instance orbit_fintype (b : β) [fintype α] [decidable_eq β] :
-  fintype (orbit α b) := set.fintype_range _
 
 variable (α)
 

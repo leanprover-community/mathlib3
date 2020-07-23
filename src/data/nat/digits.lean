@@ -444,3 +444,35 @@ end
 
 lemma le_digits_len_le (b n m : ℕ) (h : n ≤ m) : (digits b n).length ≤ (digits b m).length :=
 monotone_of_monotone_nat (digits_len_le_digits_len_succ b) h
+
+-- future refactor to proof using lists (see lt_base_pow_length_digits)
+lemma base_pow_length_digits_le' (b m : ℕ) : m ≠ 0 → (b + 2) ^ ((digits (b + 2) m).length) ≤ (b + 2) * m :=
+begin
+  apply nat.strong_induction_on m,
+  clear m,
+  intros n IH npos,
+  cases n,
+  { contradiction },
+  { unfold digits at IH ⊢,
+    rw [digits_aux_def (b+2) (by simp) n.succ nat.succ_pos', list.length_cons],
+    specialize IH ((n.succ) / (b+2)) (nat.div_lt_self' n b),
+    rw [nat.pow_add, nat.pow_one, nat.mul_comm],
+    cases nat.lt_or_ge n.succ (b+2),
+    { rw [nat.div_eq_of_lt h, digits_aux_zero, list.length, nat.pow_zero],
+      apply nat.mul_le_mul_left,
+      exact nat.succ_pos n },
+    { have geb : (n.succ / (b + 2)) ≥ 1 := nat.div_pos h (by linarith),
+      specialize IH (by linarith [geb]),
+      replace IH := nat.mul_le_mul_left (b + 2) IH,
+      have IH' : (b + 2) * ((b + 2) * (n.succ / (b + 2))) ≤ (b + 2) * n.succ,
+      { apply nat.mul_le_mul_left,
+        rw nat.mul_comm,
+        exact nat.div_mul_le_self n.succ (b + 2) },
+      exact le_trans IH IH' } }
+end
+
+lemma base_pow_length_digits_le (b m : ℕ) (hb : 2 ≤ b): m ≠ 0 → b ^ ((digits b m).length) ≤ b * m :=
+begin
+  rcases b with _ | _ | b; try { linarith },
+  exact base_pow_length_digits_le' b m,
+end

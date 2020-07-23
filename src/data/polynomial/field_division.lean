@@ -5,7 +5,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.ring_division
-
+import data.polynomial.derivative
+import algebra.gcd_domain
 
 /-!
 # Theory of univariate polynomials
@@ -16,9 +17,6 @@ This file starts looking like the ring theory of $ R[X] $
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
-
-open finsupp finset add_monoid_algebra
-open_locale big_operators
 
 namespace polynomial
 universes u v w y z
@@ -275,6 +273,27 @@ theorem pairwise_coprime_X_sub {α : Type u} [field α] {I : Type v}
 ⟨polynomial.C (s j - s i)⁻¹, -polynomial.C (s j - s i)⁻¹,
 by rw [neg_mul_eq_neg_mul_symm, ← sub_eq_add_neg, ← mul_sub, sub_sub_sub_cancel_left,
     ← polynomial.C_sub, ← polynomial.C_mul, inv_mul_cancel h, polynomial.C_1]⟩
+
+/-- If `f` is a polynomial over a field, and `a : K` satisfies `f' a ≠ 0`,
+then `f / (X - a)` is coprime with `X - a`.
+Note that we do not assume `f a = 0`, because `f / (X - a) = (f - f a) / (X - a)`. -/
+lemma is_coprime_of_is_root_of_eval_derivative_ne_zero {K : Type*} [field K]
+  (f : polynomial K) (a : K) (hf' : f.derivative.eval a ≠ 0) :
+  is_coprime (X - C a : polynomial K) (f /ₘ (X - C a)) :=
+begin
+  refine or.resolve_left (dvd_or_coprime (X - C a) (f /ₘ (X - C a))
+    (irreducible_of_degree_eq_one (polynomial.degree_X_sub_C a))) _,
+  contrapose! hf' with h,
+  have key : (X - C a) * (f /ₘ (X - C a)) = f - (f %ₘ (X - C a)),
+  { rw [eq_sub_iff_add_eq, ← eq_sub_iff_add_eq', mod_by_monic_eq_sub_mul_div],
+    exact monic_X_sub_C a },
+  replace key := congr_arg derivative key,
+  simp only [derivative_X, derivative_mul, one_mul, sub_zero, derivative_sub,
+    mod_by_monic_X_sub_C_eq_C_eval, derivative_C] at key,
+  have : (X - C a) ∣ derivative f := key ▸ (dvd_add h (dvd_mul_right _ _)),
+  rw [← dvd_iff_mod_by_monic_eq_zero (monic_X_sub_C _), mod_by_monic_X_sub_C_eq_C_eval] at this,
+  rw [← C_inj, this, C_0],
+end
 
 end field
 end polynomial

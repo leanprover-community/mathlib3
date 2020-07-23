@@ -342,7 +342,7 @@ instance : has_continuous_add α :=
       (map (λx:α, (a + b) + x) (Z α)),
     { simpa [(∘), add_comm, add_left_comm] },
     exact tendsto_map.comp add_Z
-  end⟩
+  end ⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance : topological_add_group α :=

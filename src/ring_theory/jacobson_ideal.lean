@@ -5,6 +5,38 @@ Authors: Kenny Lau, Devon Tuma
 -/
 import ring_theory.ideal_operations
 
+/-!
+# Jacobson radical
+
+The Jacobson radical of a ring `R` is defined to be the intersection of all maximal ideals of `R`.
+This is similar to how the nilradical is equal to the intersection of all prime ideals of `R`.
+
+We can extend the idea of the nilradical to ideals of `R`,
+by letting the radical of an ideal `I` be the intersection of prime ideals containing `I`.
+Under this extension, the original nilradical is the radical of the zero ideal `⊥`.
+Here we define the Jacobson radical of an ideal `I` in a similar way,
+as the intersection of maximal ideals containing `I`.
+
+## Main definitions
+
+Let `R` be a commutative ring, and `I` be an ideal of `R`
+
+* `jacobson I` is the jacobson radical, i.e. the infimum of all maximal ideals containing I.
+
+* `is_local I` is the proposition that the jacobson radical of `I` is itself a maximal ideal
+
+## Main statements
+
+* `mem_jacobson_iff` gives a characterization of members of the jacobson of I
+
+* `is_local_of_is_maximal_radical`: if the radical of I is maximal then so is the jacobson radical
+
+## Tags
+
+Jacobson, Jacobson radical, Local Ideal
+
+-/
+
 universes u v
 
 namespace ideal

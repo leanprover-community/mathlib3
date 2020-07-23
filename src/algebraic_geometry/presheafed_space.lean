@@ -126,7 +126,7 @@ instance {X Y : PresheafedSpace C} : has_coe (X ⟶ Y) ((X : Top.{v}) ⟶ (Y : T
 
 -- see Note [function coercion]
 instance {X Y : PresheafedSpace C} : has_coe_to_fun (X ⟶ Y) :=
-⟨λ _, (X : Top.{v}) → Y.to_Top, λ h, h⟩
+⟨λ _, (X : Top.{v}) → (Y : Top.{v}), λ h, h⟩
 
 @[simp] lemma hom_mk_coe {X Y : PresheafedSpace C} (f) (c) :
   (({ f := f, c := c } : X ⟶ Y) : (X : Top.{v}) ⟶ (Y : Top.{v})) = f := rfl
@@ -209,7 +209,8 @@ def map_presheaf (F : C ⥤ D) : PresheafedSpace C ⥤ PresheafedSpace D :=
 @[simp] lemma map_presheaf_obj_𝒪 (F : C ⥤ D) (X : PresheafedSpace C) :
   (F.map_presheaf.obj X).𝒪 = X.𝒪 ⋙ F := rfl
 @[simp] lemma map_presheaf_map_f (F : C ⥤ D) {X Y : PresheafedSpace C} (f : X ⟶ Y) :
-  ((F.map_presheaf.map f) : (X : Top.{v}) ⟶ (Y : Top.{v})) = f := rfl
+  ((F.map_presheaf.map f) : (F.map_presheaf.obj X : Top.{v}) ⟶ (F.map_presheaf.obj Y : Top.{v})) =
+    (f : (X : Top.{v}) ⟶ (Y : Top.{v})) := rfl
 @[simp] lemma map_presheaf_map_c (F : C ⥤ D) {X Y : PresheafedSpace C} (f : X ⟶ Y) :
   (F.map_presheaf.map f).c = whisker_right f.c F := rfl
 

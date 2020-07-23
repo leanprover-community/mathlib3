@@ -18,8 +18,7 @@ We also define `root_multiplicity`.
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
-open finsupp finset add_monoid_algebra
-open_locale big_operators
+open finset
 
 namespace polynomial
 universes u v w z

@@ -8,6 +8,7 @@ More operations on modules and ideals.
 import data.nat.choose
 import data.equiv.ring
 import ring_theory.algebra_operations
+import ring_theory.ideals
 
 universes u v w x
 
@@ -516,6 +517,10 @@ lemma map_comap_le : (K.comap f).map f ≤ K :=
 @[simp] lemma comap_top : (⊤ : ideal S).comap f = ⊤ :=
 (gc_map_comap f).u_top
 
+@[simp] lemma comap_eq_top_iff {I : ideal S} : I.comap f = ⊤ ↔ I = ⊤ :=
+⟨ λ h, I.eq_top_iff_one.mpr (f.map_one ▸ mem_comap.mp ((I.comap f).eq_top_iff_one.mp h)),
+  λ h, by rw [h, comap_top] ⟩
+
 @[simp] lemma map_bot : (⊥ : ideal R).map f = ⊥ :=
 (gc_map_comap f).l_bot
 
@@ -664,6 +669,17 @@ end
 
 end surjective
 
+lemma mem_quotient_iff_mem (hIJ : I ≤ J) {x : R} :
+  quotient.mk I x ∈ J.map (quotient.mk I) ↔ x ∈ J :=
+begin
+  refine iff.trans (mem_map_iff_of_surjective _ quotient.mk_surjective) _,
+  split,
+  { rintros ⟨x, x_mem, x_eq⟩,
+    simpa using J.add_mem (hIJ (quotient.eq.mp x_eq.symm)) x_mem },
+  { intro x_mem,
+    exact ⟨x, x_mem, rfl⟩ }
+end
+
 section injective
 variables (hf : function.injective f)
 include hf
@@ -811,8 +827,7 @@ begin
     cases (set.mem_image _ _ _).mp hj with J hJ,
     rw [← hJ.right, ← hx.right],
     exact mem_map_of_mem (Inf_le_of_le hJ.left (le_of_eq rfl) hx.left) },
-  {
-    intros y hy,
+  { intros y hy,
     cases hf y with x hx,
     rw ← hx,
     refine mem_map_of_mem _,
@@ -821,14 +836,12 @@ begin
     intros J hJ,
     have : y ∈ map f J := hy (map f J) J hJ rfl,
     cases (mem_map_iff_of_surjective f hf).1 this with x' hx',
-    have : x - x' ∈ J, {
-      apply h J hJ,
+    have : x - x' ∈ J,
+    { apply h J hJ,
       rw [ring_hom.mem_ker, ring_hom.map_sub, hx, hx'.right],
-      exact sub_self y
-    },
+      exact sub_self y },
     have := J.add_mem this hx'.left,
-    rwa [sub_add, sub_self, sub_zero] at this,
-  }
+    rwa [sub_add, sub_self, sub_zero] at this }
 end
 
 end ideal

@@ -947,6 +947,7 @@ begin
   rw [measure_eq_infi, infi_subtype', infi_subtype'],
   convert infi_const,
   { ext1 ⟨⟨t, hst⟩, ht⟩,
+    dsimp only [subtype.coe_mk] at *,
     simp only [dirac_apply _ ht, indicator_of_mem (hst h), pi.one_apply] },
   { exact ⟨⟨⟨set.univ, subset_univ _⟩, is_measurable.univ⟩⟩ }
 end
@@ -1027,9 +1028,9 @@ end measure
 
 variables {α : Type*} {β : Type*} [measurable_space α] {μ : measure α}
 
-notation `∀ᵐ` binders `∂` μ `, ` r:(scoped P, μ.ae.eventually P) := r
-notation f ` =ᵐ[`:50 μ:50 `] `:0 g:50 := f =ᶠ[μ.ae] g
-notation f ` ≤ᵐ[`:50 μ:50 `] `:0 g:50 := f ≤ᶠ[μ.ae] g
+notation `∀ᵐ` binders `∂` μ `, ` r:(scoped P, filter.eventually P (measure.ae μ)) := r
+notation f ` =ᵐ[`:50 μ:50 `] `:0 g:50 := f =ᶠ[measure.ae μ] g
+notation f ` ≤ᵐ[`:50 μ:50 `] `:0 g:50 := f ≤ᶠ[measure.ae μ] g
 
 lemma mem_ae_iff {s : set α} : s ∈ μ.ae ↔ μ sᶜ = 0 := iff.rfl
 
@@ -1303,7 +1304,10 @@ add_decl_doc volume
 section measure_space
 variables {α : Type*} {ι : Type*} [measure_space α] {s₁ s₂ : set α}
 
-notation `∀ᵐ` binders `, ` r:(scoped P, volume.ae.eventually P) := r
+notation `∀ᵐ` binders `, ` r:(scoped P, filter.eventually P (measure.ae volume)) := r
+
+/-- The tactic `exact volume`, to be used in optional (`auto_param`) arguments. -/
+meta def volume_tac : tactic unit := `[exact measure_theory.measure_space.volume]
 
 end measure_space
 

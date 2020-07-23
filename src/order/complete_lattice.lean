@@ -774,11 +774,23 @@ le_antisymm
 
 /- supr and infi under Type -/
 
+theorem infi_of_empty' (h : ι → false) {s : ι → α} : infi s = ⊤ :=
+top_unique (le_infi $ assume i, (h i).elim)
+
+theorem supr_of_empty' (h : ι → false) {s : ι → α} : supr s = ⊥ :=
+bot_unique (supr_le $ assume i, (h i).elim)
+
+theorem infi_of_empty (h : ¬nonempty ι) {s : ι → α} : infi s = ⊤ :=
+infi_of_empty' (λ i, h ⟨i⟩)
+
+theorem supr_of_empty (h : ¬nonempty ι) {s : ι → α} : supr s = ⊥ :=
+supr_of_empty' (λ i, h ⟨i⟩)
+
 @[simp] theorem infi_empty {s : empty → α} : infi s = ⊤ :=
-le_antisymm le_top (le_infi $ assume i, empty.rec_on _ i)
+infi_of_empty nonempty_empty
 
 @[simp] theorem supr_empty {s : empty → α} : supr s = ⊥ :=
-le_antisymm (supr_le $ assume i, empty.rec_on _ i) bot_le
+supr_of_empty nonempty_empty
 
 @[simp] theorem infi_unit {f : unit → α} : (⨅ x, f x) = f () :=
 le_antisymm (infi_le _ _) (le_infi $ assume ⟨⟩, le_refl _)
@@ -802,7 +814,7 @@ le_antisymm
   (le_infi $ assume ⟨i, h⟩, infi_le_of_le i $ infi_le _ _)
 
 lemma infi_subtype' {p : ι → Prop} {f : ∀ i, p i → α} :
-  (⨅ i (h : p i), f i h) = (⨅ x : subtype p, f x.val x.property) :=
+  (⨅ i (h : p i), f i h) = (⨅ x : subtype p, f x x.property) :=
 (@infi_subtype _ _ _ p (λ x, f x.val x.property)).symm
 
 lemma infi_subtype'' {ι} (s : set ι) (f : ι → α) :

@@ -190,9 +190,6 @@ instance is_invariant_subring.to_mul_semiring_action : mul_semiring_action M S :
   smul_one := λ m, subtype.eq $ smul_one m,
   smul_mul := λ m s₁ s₂, subtype.eq $ smul_mul' m s₁ s₂ }
 
-instance fixed_points.is_invariant_subring : is_invariant_subring M (fixed_points M R) :=
-{ smul_mem := λ g x hx g', by rw [hx, hx] }
-
 end ring
 
 section comm_ring

@@ -45,6 +45,9 @@ instance fixed_by.is_subfield : is_subfield (fixed_by G F g) :=
 instance fixed_points.is_subfield : is_subfield (fixed_points G F) :=
 by convert @is_subfield.Inter F _ G (fixed_by G F) _; rw fixed_eq_Inter_fixed_by
 
+instance fixed_points.is_invariant_subring : is_invariant_subring G (fixed_points G F) :=
+{ smul_mem := λ g x hx g', by rw [hx, hx] }
+
 @[simp] theorem fixed_points.smul (g : G) (x : fixed_points G F) : g • x = x :=
 subtype.eq $ x.2 g
 

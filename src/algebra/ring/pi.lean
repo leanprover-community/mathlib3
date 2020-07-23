@@ -4,12 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
 import tactic.pi_instances algebra.group.pi algebra.ring.basic
+
 /-!
 # Pi instances for ring
 
 This file defines instances for ring, semiring and related structures on Pi Types
 -/
-
 
 namespace pi
 universes u v w
@@ -46,13 +46,6 @@ protected def ring_hom
   map_mul' := λ x y, funext $ λ z, (f z).map_mul x y,
   map_one' := funext $ λ z, (f z).map_one,
   map_zero' := funext $ λ z, (f z).map_zero }
-
--- instance is_ring_hom_pi
---   {α : Type u} {β : α → Type v} [R : Π a : α, ring (β a)]
---   {γ : Type w} [ring γ]
---   (f : Π a : α, γ → β a) [Rh : Π a : α, is_ring_hom (f a)] :
---   is_ring_hom (λ x b, f b x) :=
--- (show γ →+* Π a, β a, from pi.ring_hom (λ a, ring_hom.of (f a))).is_ring_hom
 
 end pi
 

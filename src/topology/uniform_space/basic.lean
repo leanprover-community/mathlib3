@@ -1338,7 +1338,7 @@ end constructions
 -- see topology/sequences.lean
 
 /-- Let `c : ι → set α` be an open cover of a compact set `s`. Then there exists an entourage
-`n` such that for each `x ∈ s` its `n`-neighborhood is included by some `c i`. -/
+`n` such that for each `x ∈ s` its `n`-neighborhood is contained in some `c i`. -/
 lemma lebesgue_number_lemma {α : Type u} [uniform_space α] {s : set α} {ι} {c : ι → set α}
   (hs : is_compact s) (hc₁ : ∀ i, is_open (c i)) (hc₂ : s ⊆ ⋃ i, c i) :
   ∃ n ∈ 𝓤 α, ∀ x ∈ s, ∃ i, {y | (x, y) ∈ n} ⊆ c i :=
@@ -1366,7 +1366,7 @@ begin
 end
 
 /-- Let `c : set (set α)` be an open cover of a compact set `s`. Then there exists an entourage
-`n` such that for each `x ∈ s` its `n`-neighborhood is included by some `t ∈ c`. -/
+`n` such that for each `x ∈ s` its `n`-neighborhood is contained in some `t ∈ c`. -/
 lemma lebesgue_number_lemma_sUnion {α : Type u} [uniform_space α] {s : set α} {c : set (set α)}
   (hs : is_compact s) (hc₁ : ∀ t ∈ c, is_open t) (hc₂ : s ⊆ ⋃₀ c) :
   ∃ n ∈ 𝓤 α, ∀ x ∈ s, ∃ t ∈ c, ∀ y, (x, y) ∈ n → y ∈ t :=

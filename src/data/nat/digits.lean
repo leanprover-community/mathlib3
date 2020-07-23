@@ -289,6 +289,8 @@ end
 
 end of_digits
 
+section
+
 /-- Any number m is less than (b+2)^(number of digits in the base b + 2 representation of m) -/
 lemma lt_base_pow_length_digits' {b m : ℕ} : m < (b + 2) ^ (digits (b + 2) m).length :=
 begin
@@ -306,8 +308,6 @@ end
 lemma of_digits_digits_append_digits {b m n : ℕ} :
   of_digits b (digits b n ++ digits b m) = n + b ^ (digits b n).length * m:=
 by rw [of_digits_append, of_digits_digits, of_digits_digits]
-
-
 
 lemma digits_len_le_digits_len_succ (b n : ℕ) : (digits b n).length ≤ (digits b (n + 1)).length :=
 begin
@@ -366,6 +366,8 @@ lemma base_pow_length_digits_le (b m : ℕ) (hb : 2 ≤ b): m ≠ 0 → b ^ ((di
 begin
   rcases b with _ | _ | b; try { linarith },
   exact base_pow_length_digits_le' b m,
+end
+
 end
 
 /- Divisibility tests and various lemmas relating to digits and modular arithmetic -/

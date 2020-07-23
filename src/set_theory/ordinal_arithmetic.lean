@@ -32,7 +32,7 @@ of casts of natural numbers of and of `omega` with respect to these operations.
 
 Some properties of the operations are also used to discuss general tools on ordinals:
 
-* `is_limit o`: an ordinal is a limit ordinal if it neihter `0` nor a successor.
+* `is_limit o`: an ordinal is a limit ordinal if it neither `0` nor a successor.
 * `limit_rec_on` is the main induction principle of ordinals: if one can prove a property by
   induction at successor ordinals and at limit ordinals, then it holds for all ordinals.
 

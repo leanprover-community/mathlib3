@@ -267,7 +267,7 @@ end
 
 end using_ordinals
 
-/-- If `α` and `β` are infinite type, then the cardinality of `α × β` is the maximum
+/-- If `α` and `β` are infinite types, then the cardinality of `α × β` is the maximum
 of the cardinalities of `α` and `β`. -/
 theorem mul_eq_max {a b : cardinal} (ha : omega ≤ a) (hb : omega ≤ b) : a * b = max a b :=
 le_antisymm

@@ -162,7 +162,11 @@ theorem nsmul_add_comm : ∀ (a : A) (m n : ℕ), m •ℕ a + n •ℕ a = n �
 
 @[simp, priority 500]
 theorem list.prod_repeat (a : M) (n : ℕ) : (list.repeat a n).prod = a ^ n :=
-by induction n with n ih; [refl, rw [list.repeat_succ, list.prod_cons, ih]]; refl
+begin
+  induction n with n ih,
+  { refl },
+  { rw [list.repeat_succ, list.prod_cons, ih], refl, }
+end
 @[simp, priority 500]
 theorem list.sum_repeat : ∀ (a : A) (n : ℕ), (list.repeat a n).sum = n •ℕ a :=
 @list.prod_repeat (multiplicative A) _

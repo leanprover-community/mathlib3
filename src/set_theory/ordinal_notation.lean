@@ -2,10 +2,16 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
-
-Ordinal notations (constructive ordinal arithmetic for ordinals < ε₀).
 -/
-import set_theory.ordinal
+
+import set_theory.ordinal_arithmetic
+
+/-!
+# Ordinal notations
+
+constructive ordinal arithmetic for ordinals `< ε₀`.
+-/
+
 open ordinal
 open_locale ordinal -- get notation for `ω`
 
@@ -38,6 +44,7 @@ def omega : onote := oadd 1 1 0
 | 0 := 0
 | (oadd e n a) := ω ^ repr e * n + repr a
 
+/-- Auxiliary definition to print an ordinal notation -/
 def to_string_aux1 (e : onote) (n : ℕ) (s : string) : string :=
 if e = 0 then _root_.to_string n else
 (if e = 1 then "ω" else "ω^(" ++ s ++ ")") ++
@@ -133,7 +140,7 @@ inductive NF_below : onote → ordinal.{0} → Prop
   ordinal notations, but to avoid complicating the algorithms
   we define everything over general ordinal notations and
   only prove correctness with normal form as an invariant. -/
-@[class] def NF (o : onote) := Exists (NF_below o)
+@[class, pp_nodot] def NF (o : onote) := Exists (NF_below o)
 
 instance NF.zero : NF 0 := ⟨0, NF_below.zero⟩
 
@@ -209,14 +216,12 @@ instance NF_of_nat (n) : NF (of_nat n) := ⟨_, NF_below_of_nat n⟩
 
 instance NF_one : NF 1 := by rw ← of_nat_one; apply_instance
 
-theorem oadd_lt_oadd_1 {e₁ n₁ o₁ e₂ n₂ o₂}
-  (h₁ : NF (oadd e₁ n₁ o₁)) (h₂ : NF (oadd e₂ n₂ o₂))
-  (h : e₁ < e₂) : oadd e₁ n₁ o₁ < oadd e₂ n₂ o₂ :=
+theorem oadd_lt_oadd_1 {e₁ n₁ o₁ e₂ n₂ o₂} (h₁ : NF (oadd e₁ n₁ o₁)) (h : e₁ < e₂) :
+  oadd e₁ n₁ o₁ < oadd e₂ n₂ o₂ :=
 @lt_of_lt_of_le _ _ _ _ _ ((h₁.below_of_lt h).repr_lt) (omega_le_oadd _ _ _)
 
-theorem oadd_lt_oadd_2 {e n₁ o₁ n₂ o₂}
-  (h₁ : NF (oadd e n₁ o₁)) (h₂ : NF (oadd e n₂ o₂))
-  (h : (n₁:ℕ) < n₂) : oadd e n₁ o₁ < oadd e n₂ o₂ :=
+theorem oadd_lt_oadd_2 {e o₁ o₂ : onote} {n₁ n₂ : ℕ+}
+  (h₁ : NF (oadd e n₁ o₁)) (h : (n₁:ℕ) < n₂) : oadd e n₁ o₁ < oadd e n₂ o₂ :=
 begin
   simp [lt_def],
   refine lt_of_lt_of_le ((ordinal.add_lt_add_iff_left _).2 h₁.snd'.repr_lt)
@@ -225,9 +230,8 @@ begin
        ordinal.succ_le, nat_cast_lt]
 end
 
-theorem oadd_lt_oadd_3 {e n a₁ a₂}
-  (h₁ : NF (oadd e n a₁)) (h₂ : NF (oadd e n a₂))
-  (h : a₁ < a₂) : oadd e n a₁ < oadd e n a₂ :=
+theorem oadd_lt_oadd_3 {e n a₁ a₂} (h : a₁ < a₂) :
+  oadd e n a₁ < oadd e n a₂ :=
 begin
   rw lt_def, unfold repr,
   exact (ordinal.add_lt_add_iff_left _).2 h
@@ -241,20 +245,20 @@ theorem cmp_compares : ∀ (a b : onote) [NF a] [NF b], (cmp a b).compares a b
     rw cmp,
     have IHe := @cmp_compares _ _ h₁.fst h₂.fst,
     cases cmp e₁ e₂,
-    case ordering.lt { exact oadd_lt_oadd_1 h₁ h₂ IHe },
-    case ordering.gt { exact oadd_lt_oadd_1 h₂ h₁ IHe },
+    case ordering.lt { exact oadd_lt_oadd_1 h₁ IHe },
+    case ordering.gt { exact oadd_lt_oadd_1 h₂ IHe },
     change e₁ = e₂ at IHe, subst IHe,
     unfold _root_.cmp, cases nh : cmp_using (<) (n₁:ℕ) n₂,
     case ordering.lt {
-      rw cmp_using_eq_lt at nh, exact oadd_lt_oadd_2 h₁ h₂ nh },
+      rw cmp_using_eq_lt at nh, exact oadd_lt_oadd_2 h₁ nh },
     case ordering.gt {
-      rw cmp_using_eq_gt at nh, exact oadd_lt_oadd_2 h₂ h₁ nh },
+      rw cmp_using_eq_gt at nh, exact oadd_lt_oadd_2 h₂ nh },
     rw cmp_using_eq_eq at nh,
     have := subtype.eq (eq_of_incomp nh), subst n₂,
     have IHa := @cmp_compares _ _ h₁.snd h₂.snd,
     cases cmp a₁ a₂,
-    case ordering.lt { exact oadd_lt_oadd_3 h₁ h₂ IHa },
-    case ordering.gt { exact oadd_lt_oadd_3 h₂ h₁ IHa },
+    case ordering.lt { exact oadd_lt_oadd_3 IHa },
+    case ordering.gt { exact oadd_lt_oadd_3 IHa },
     change a₁ = a₂ at IHa, subst IHa, exact rfl
   end
 
@@ -410,13 +414,13 @@ instance sub_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ - o₂)
   have ee := @cmp_compares _ _ h₁.fst h₂.fst,
   cases cmp e₁ e₂,
   { rw [sub_eq_zero_iff_le.2], {refl},
-    exact le_of_lt (oadd_lt_oadd_1 h₁ h₂ ee) },
+    exact le_of_lt (oadd_lt_oadd_1 h₁ ee) },
   { change e₁ = e₂ at ee, substI e₂, unfold sub._match_1,
     cases mn : (n₁:ℕ) - n₂; dsimp only [sub._match_2],
     { by_cases en : n₁ = n₂,
       { simp [en], rwa [add_sub_add_cancel] },
       { simp [en, -repr],
-        exact (sub_eq_zero_iff_le.2 $ le_of_lt $ oadd_lt_oadd_2 h₁ h₂ $
+        exact (sub_eq_zero_iff_le.2 $ le_of_lt $ oadd_lt_oadd_2 h₁ $
           lt_of_le_of_ne (nat.sub_eq_zero_iff_le.1 mn) (mt pnat.eq en)).symm } },
     { simp [nat.succ_pnat, -nat.cast_succ],
       rw [(nat.sub_eq_iff_eq_add $ le_of_lt $ nat.lt_of_sub_eq_succ mn).1 mn,
@@ -513,6 +517,8 @@ def mul_nat : onote → ℕ → onote
 | _            0 := 0
 | (oadd e n a) (m+1) := oadd e (n * m.succ_pnat) a
 
+/-- Auxiliary definition to compute the ordinal notation for the ordinal
+exponentiation in `power` -/
 def power_aux (e a0 a : onote) : ℕ → ℕ → onote
 | _     0     := 0
 | 0     (m+1) := oadd e m.succ_pnat 0

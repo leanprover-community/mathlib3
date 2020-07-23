@@ -5,6 +5,7 @@ Author: Mario Carneiro
 -/
 import data.nat.basic
 import order.order_iso
+import logic.function.iterate
 
 namespace order_embedding
 

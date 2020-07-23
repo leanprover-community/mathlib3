@@ -23,7 +23,7 @@ Polynomials should be seen as (semi-)rings with the additional constructor `X`.
 The embedding from `R` is called `C`. -/
 def polynomial (R : Type*) [semiring R] := add_monoid_algebra R ℕ
 
-open finsupp finset add_monoid_algebra
+open finsupp add_monoid_algebra
 open_locale big_operators
 
 namespace polynomial

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 -/
 import algebra.associated
-import algebra.pointwise
 import linear_algebra.basic
 import order.zorn
 
@@ -257,6 +256,9 @@ not_congr zero_eq_one_iff
 
 protected theorem nontrivial {I : ideal α} (hI : I ≠ ⊤) : nontrivial I.quotient :=
 ⟨⟨0, 1, zero_ne_one_iff.2 hI⟩⟩
+
+lemma mk_surjective : function.surjective (mk I) :=
+λ y, quotient.induction_on' y (λ x, exists.intro x rfl)
 
 instance (I : ideal α) [hI : I.is_prime] : integral_domain I.quotient :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b,

@@ -46,9 +46,9 @@ mem_infi_sets a $ subset.refl _
 lemma Iio_mem_at_bot [preorder α] [no_bot_order α] (x : α) : Iio x ∈ (at_bot : filter α) :=
 let ⟨z, hz⟩ := no_bot x in mem_sets_of_superset (mem_at_bot z) $ λ y h, lt_of_le_of_lt h hz
 
-lemma at_top_basis [hα : nonempty α] [semilattice_sup α] :
+lemma at_top_basis [nonempty α] [semilattice_sup α] :
   (@at_top α _).has_basis (λ _, true) Ici :=
-has_basis_infi_principal (directed_of_sup $ λ a b, Ici_subset_Ici.2) hα
+has_basis_infi_principal (directed_of_sup $ λ a b, Ici_subset_Ici.2)
 
 lemma at_top_basis' [semilattice_sup α] (a : α) :
   (@at_top α _).has_basis (λ x, a ≤ x) Ici :=
@@ -587,9 +587,8 @@ begin
     subst gbasis,
     rw mem_infi,
     { simp only [set.mem_Union, iff_self, filter.mem_principal_sets] },
-    { exact directed_of_sup (λ i j h, principal_mono.mpr $ gmon _ _ h) },
-    { apply_instance } },
-  classical, contrapose,
+    { exact directed_of_sup (λ i j h, principal_mono.mpr $ gmon h) } },
+  contrapose,
   simp only [not_forall, not_imp, not_exists, subset_def, @tendsto_def _ _ f, gbasis],
   rintro ⟨B, hBl, hfBk⟩,
   choose x h using hfBk,
@@ -597,7 +596,7 @@ begin
   { simp only [tendsto_at_top', gbasis],
     rintros A ⟨i, hgiA⟩,
     use i,
-    refine (λ j hj, hgiA $ gmon _ _ hj _),
+    refine (λ j hj, hgiA $ gmon hj _),
     simp only [h] },
   { simp only [tendsto_at_top', (∘), not_forall, not_exists],
     use [B, hBl],

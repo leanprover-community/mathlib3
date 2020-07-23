@@ -13,8 +13,7 @@ Preparatory lemmas for degree_basic.
 
 noncomputable theory
 
-open finsupp finset add_monoid_algebra
-open_locale big_operators
+open finsupp
 
 namespace polynomial
 
@@ -68,5 +67,8 @@ lemma single_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
   calc monomial (n + 1) a = monomial n a * X : by { rw [X, monomial_mul_monomial, mul_one], }
     ... = (C a * X^n) * X : by rw [single_eq_C_mul_X]
     ... = C a * X^(n+1) : by simp only [pow_add, mul_assoc, pow_one]
+
+lemma C_inj : C a = C b ↔ a = b :=
+⟨λ h, coeff_C_zero.symm.trans (h.symm ▸ coeff_C_zero), congr_arg C⟩
 
 end polynomial

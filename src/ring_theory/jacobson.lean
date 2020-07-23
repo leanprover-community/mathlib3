@@ -9,7 +9,7 @@ import ring_theory.ideal_operations
 import ring_theory.jacobson_ideal
 
 /-!
-# Jacobson rings
+# Jacobson Rings
 
 The following conditions are equivalent for a ring `R`:
 1. Every radical ideal `I` is equal to its jacobson radical
@@ -44,11 +44,12 @@ section is_jacobson
 variables {R : Type u} [comm_ring R] {I : ideal R}
 variables {S : Type v} [comm_ring S]
 
-/-- Definition of jacobson rings in terms of radical ideals -/
+/-- A ring is a Jacobson ring if for every radical ideal `I`, the Jacobson radical of `I` is equal to `I`.
+See `is_jacobson_iff_prime_eq` and `is_jacobson_iff_Inf_maximal` for equivalent characterisations. -/
 @[class] def is_jacobson (R : Type u) [comm_ring R] :=
     ∀ (I : ideal R), I.radical = I → I.jacobson = I
 
-/-- Defining jacobson rings in terms of prime ideals is completely equivalent -/
+/--  A ring is a Jacobson ring if and only if for all prime ideals `P` the Jacobson radical of `P` is equal to `P`. -/
 lemma is_jacobson_iff_prime_eq : is_jacobson R ↔ ∀ P : ideal R, is_prime P → P.jacobson = P :=
 begin
   split,
@@ -62,7 +63,7 @@ begin
     exact λ J hJ, hx ⟨le_trans hP.left hJ.left, hJ.right⟩ }
 end
 
-/-- I equals its jacobson iff it can be written as an Inf of maximal ideals -/
+/-- A ring `R` is Jacobson if and only if every radical ideal is the infimum of a collection of maximal ideals. -/
 lemma is_jacobson_iff_Inf_maximal : is_jacobson R ↔
     ∀ {I : ideal R}, I.radical = I → ∃ M ⊆ {J : ideal R | J.is_maximal ∨ J = ⊤}, I = Inf M :=
 begin

@@ -7,6 +7,7 @@ import linear_algebra.finsupp
 import linear_algebra.projection
 import order.zorn
 import data.fintype.card
+import data.finset.order
 
 /-!
 

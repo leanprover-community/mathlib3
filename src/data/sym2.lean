@@ -145,7 +145,7 @@ The defining property of the other element is that it can be used to
 reconstruct the term of the symmetric square.
 -/
 lemma vmem_other_spec {a : α} {z : sym2 α} (h : vmem a z) :
-z = ⟦(a, h.other)⟧ := by { delta vmem.other, tidy }
+  z = ⟦(a, h.other)⟧ := by { delta vmem.other, tidy }
 
 /--
 This is the `mem`-based version of `other`.
@@ -169,7 +169,7 @@ end
 
 lemma mem_iff {a b c : α} : a ∈ ⟦(b, c)⟧ ↔ a = b ∨ a = c :=
 { mp  := by { rintro ⟨_, h⟩, rw eq_iff at h, tidy },
-  mpr := by { rintro ⟨_⟩; subst a, { apply mk_has_mem }, rw eq_swap, apply mk_has_mem }}
+  mpr := by { rintro ⟨_⟩; subst a, { apply mk_has_mem }, rw eq_swap, apply mk_has_mem } }
 
 end membership
 
@@ -235,7 +235,7 @@ private def from_vector {α : Type*} : vector α 2 → α × α
 private lemma perm_card_two_iff {α : Type*} {a₁ b₁ a₂ b₂ : α} :
   [a₁, b₁].perm [a₂, b₂] ↔ (a₁ = a₂ ∧ b₁ = b₂) ∨ (a₁ = b₂ ∧ b₁ = a₂) :=
 { mp  := by { simp [← multiset.coe_eq_coe, ← multiset.cons_coe, multiset.cons_eq_cons]; tidy },
-  mpr := by { intro h, cases h; rw [h.1, h.2], apply list.perm.swap', refl }}
+  mpr := by { intro h, cases h; rw [h.1, h.2], apply list.perm.swap', refl } }
 
 /--
 The symmetric square is equivalent to length-2 vectors up to permutations.

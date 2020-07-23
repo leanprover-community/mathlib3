@@ -489,9 +489,12 @@ lemma dvd_iff_mod_by_monic_eq_zero (hq : monic q) : p %ₘ q = 0 ↔ q ∣ p :=
 
 theorem map_dvd_map [comm_ring S] (f : R →+* S) (hf : function.injective f) {x y : polynomial R}
   (hx : x.monic) : x.map f ∣ y.map f ↔ x ∣ y :=
-by { rw [← dvd_iff_mod_by_monic_eq_zero hx, ← dvd_iff_mod_by_monic_eq_zero (monic_map f hx),
-    ← map_mod_by_monic f hx], exact ⟨λ H, map_injective f hf $ by rw [H, map_zero],
-  λ H, by rw [H, map_zero]⟩ }
+begin
+  rw [← dvd_iff_mod_by_monic_eq_zero hx, ← dvd_iff_mod_by_monic_eq_zero (monic_map f hx),
+    ← map_mod_by_monic f hx],
+  exact ⟨λ H, map_injective f hf $ by rw [H, map_zero],
+  λ H, by rw [H, map_zero]⟩
+end
 
 @[simp] lemma mod_by_monic_one (p : polynomial R) : p %ₘ 1 = 0 :=
 (dvd_iff_mod_by_monic_eq_zero (by convert monic_one)).2 (one_dvd _)

@@ -19,7 +19,7 @@ the subfield consisting of elements of `F` fixed_points by every element of `G`.
 This subfield is then normal (proved in this file) and separable (TODO), and in addition
 if `G` acts faithfully on `F` then `findim (fixed_points G F) F = fintype.card G` (TODO).
 
-## Main Deifnitions
+## Main Definitions
 
 - `fixed_points G F`, the subfield consisting of elements of `F` fixed_points by every element of `G`, where
 `G` is a group that acts on `F`.
@@ -34,7 +34,7 @@ universes u v w
 
 variables (G : Type u) [group G] (F : Type v) [field F] [mul_semiring_action G F] (g : G)
 
-/-- The subfield fixed_points by one element of the group. -/
+/-- `fixed_by g` is the subfield of elements fixed by `g`. -/
 def fixed_by : set F :=
 { x | g • x = x }
 
@@ -55,7 +55,7 @@ by convert @is_subfield.Inter F _ G (fixed_by G F) _; rw fixed_eq_Inter_fixed_by
 instance fixed_points.is_invariant_subring : is_invariant_subring G (fixed_points G F) :=
 { smul_mem := λ g x hx g', by rw [hx, hx] }
 
-theorem fixed_points.smul (g : G) (x : fixed_points G F) : g • x = x :=
+@[simp] theorem fixed_points.smul (g : G) (x : fixed_points G F) : g • x = x :=
 subtype.eq $ x.2 g
 
 theorem fixed_points.smul_polynomial (g : G) (p : polynomial (fixed_points G F)) : g • p = p :=

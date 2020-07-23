@@ -61,7 +61,7 @@ acted on by an `add_group G` with a transitive and free action given
 by the `+ᵥ` operation and a corresponding subtraction given by the
 `-ᵥ` operation. In the case of a vector space, it is an affine
 space. -/
-class add_torsor (G : out_param Type*) (P : Type*) [add_group G]
+class add_torsor (G : out_param Type*) (P : Type*) [out_param $ add_group G]
   extends add_action G P, has_vsub G P :=
 [nonempty : nonempty P]
 (vsub_vadd' : ∀ (p1 p2 : P), (p1 -ᵥ p2 : G) +ᵥ p2 = p1)
@@ -217,15 +217,11 @@ by rw [←add_right_inj (p2 -ᵥ p1 : G), vsub_add_vsub_cancel, ←neg_vsub_eq_v
   (p1 -ᵥ p3) - (p2 -ᵥ p3) = (p1 -ᵥ p2) :=
 by rw [←vsub_vadd_eq_vsub_sub, vsub_vadd]
 
-variable (G)
-
 /-- The pairwise differences of a set of points. -/
 def vsub_set (s : set P) : set G := {g | ∃ x ∈ s, ∃ y ∈ s, g = x -ᵥ y}
 
-variable {G}
-
 /-- `vsub_set` of an empty set. -/
-@[simp] lemma vsub_set_empty : vsub_set G (∅ : set P) = ∅ :=
+@[simp] lemma vsub_set_empty : vsub_set (∅ : set P) = ∅ :=
 begin
   rw set.eq_empty_iff_forall_not_mem,
   rintros g ⟨p, hp, hg⟩,
@@ -234,11 +230,11 @@ end
 
 /-- Each pairwise difference is in the `vsub_set`. -/
 lemma vsub_mem_vsub_set {p1 p2 : P} {s : set P} (hp1 : p1 ∈ s) (hp2 : p2 ∈ s) :
-  (p1 -ᵥ p2) ∈ vsub_set G s :=
+  (p1 -ᵥ p2) ∈ vsub_set s :=
 ⟨p1, hp1, p2, hp2, rfl⟩
 
 /-- `vsub_set` is contained in `vsub_set` of a larger set. -/
-lemma vsub_set_mono {s1 s2 : set P} (h : s1 ⊆ s2) : vsub_set G s1 ⊆ vsub_set G s2 :=
+lemma vsub_set_mono {s1 s2 : set P} (h : s1 ⊆ s2) : vsub_set s1 ⊆ vsub_set s2 :=
 begin
   rintros v ⟨p1, hp1, p2, hp2, hv⟩,
   exact ⟨p1, set.mem_of_mem_of_subset hp1 h, p2, set.mem_of_mem_of_subset hp2 h, hv⟩

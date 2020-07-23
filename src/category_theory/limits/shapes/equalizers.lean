@@ -364,18 +364,20 @@ variables [has_limit (parallel_pair f g)]
 
 /-- If we have chosen an equalizer of `f` and `g`, we can access the corresponding object by
     saying `equalizer f g`. -/
-abbreviation equalizer := limit (parallel_pair f g)
+abbreviation equalizer : C := limit (parallel_pair f g)
 
 /-- If we have chosen an equalizer of `f` and `g`, we can access the inclusion
     `equalizer f g ⟶ X` by saying `equalizer.ι f g`. -/
 abbreviation equalizer.ι : equalizer f g ⟶ X :=
 limit.π (parallel_pair f g) zero
 
-@[simp] lemma equalizer.ι.fork :
-  fork.ι (limit.cone (parallel_pair f g)) = equalizer.ι f g := rfl
+abbreviation equalizer.fork : fork f g := limit.cone (parallel_pair f g)
 
-@[simp] lemma equalizer.ι.eq_app_zero :
-  (limit.cone (parallel_pair f g)).π.app zero = equalizer.ι f g := rfl
+@[simp] lemma equalizer.fork_ι :
+  (equalizer.fork f g).ι = equalizer.ι f g := rfl
+
+@[simp] lemma equalizer.fork_π_app_zero :
+  (equalizer.fork f g).π.app zero = equalizer.ι f g := rfl
 
 @[reassoc] lemma equalizer.condition : equalizer.ι f g ≫ f = equalizer.ι f g ≫ g :=
 fork.condition $ limit.cone $ parallel_pair f g

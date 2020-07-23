@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
 import measure_theory.bochner_integration
-import measure_theory.indicator_function
 import measure_theory.lebesgue_measure
 
 /-!

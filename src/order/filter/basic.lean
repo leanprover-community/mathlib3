@@ -1118,12 +1118,20 @@ lemma eventually_eq.rw {l : filter α} {f g : α → β} (h : f =ᶠ[l] g) (p : 
   ∀ᶠ x in l, p x (g x) :=
 hf.congr $ h.mono $ λ x hx, hx ▸ iff.rfl
 
+lemma eventually_set_ext {s t : set α} {l : filter α} :
+   s =ᶠ[l] t ↔ ∀ᶠ x in l, x ∈ s ↔ x ∈ t :=
+eventually_congr $ eventually_of_forall $ λ x, ⟨eq.to_iff, iff.to_eq⟩
+
+lemma eventually_eq.mem_iff {s t : set α} {l : filter α} (h : s =ᶠ[l] t) :
+  ∀ᶠ x in l, x ∈ s ↔ x ∈ t :=
+eventually_set_ext.1 h
+
 lemma eventually_eq.exists_mem {l : filter α} {f g : α → β} (h : f =ᶠ[l] g) :
   ∃ s ∈ l, ∀ x ∈ s, f x = g x :=
 filter.eventually.exists_mem h
 
 lemma eventually_eq_of_mem {l : filter α} {f g : α → β} {s : set α}
-  (hs : s ∈ l) (h : ∀ x ∈ s, f x = g x) : f =ᶠ[l] g :=
+  (hs : s ∈ l) (h : eq_on f g s) : f =ᶠ[l] g :=
 eventually_of_mem hs h
 
 lemma eventually_eq_iff_exists_mem {l : filter α} {f g : α → β} :

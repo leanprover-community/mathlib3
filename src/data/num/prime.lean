@@ -1,15 +1,26 @@
 /-
-Copyright (c) 2014 Microsoft Corporation. All rights reserved.
+Copyright (c) 2020 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
+-/
+import data.num.lemmas
+import data.nat.prime
+import tactic.ring
+
+/-!
+# Primality for binary natural numbers
 
 Decision procedures for primality on `num`.
 -/
 
-import data.num.lemmas data.nat.prime tactic.ring
-
 namespace pos_num
 
+/-- Auxiliary function for computing the smallest prime factor of a `pos_num`. Unlike
+`nat.min_fac_aux`, we use a natural number `fuel` variable that is set to an upper bound on the
+number of iterations. It is initialized to the number `n` we are determining primality for. Even
+though this is exponential in the input (since it is a `nat`, not a `num`), it will get lazily
+evaluated during kernel reduction, so we will only require about `sqrt n` unfoldings, for the
+`sqrt n` iterations of the loop. -/
 def min_fac_aux (n : pos_num) : ℕ → pos_num → pos_num
 | 0 _ := n
 | (fuel+1) k :=
@@ -29,6 +40,7 @@ begin
     nat.succ_eq_add_one, add_assoc, add_left_comm]
 end
 
+/-- Returns the smallest prime factor of `n ≠ 1`. -/
 def min_fac : pos_num → pos_num
 | 1 := 1
 | (bit0 n) := 2
@@ -47,6 +59,7 @@ begin
     simp },
 end
 
+/-- Primality predicate for a `pos_num`. -/
 @[simp] def prime (n : pos_num) : Prop := nat.prime n
 
 instance decidable_prime : decidable_pred pos_num.prime
@@ -67,6 +80,7 @@ end pos_num
 
 namespace num
 
+/-- Returns the smallest prime factor of `n ≠ 1`. -/
 def min_fac : num → pos_num
 | 0 := 2
 | (pos n) := n.min_fac
@@ -75,6 +89,7 @@ def min_fac : num → pos_num
 | 0 := rfl
 | (pos n) := pos_num.min_fac_to_nat _
 
+/-- Primality predicate for a `num`. -/
 @[simp] def prime (n : num) : Prop := nat.prime n
 
 instance decidable_prime : decidable_pred num.prime
@@ -82,3 +97,4 @@ instance decidable_prime : decidable_pred num.prime
 | (pos n) := pos_num.decidable_prime n
 
 end num
+#lint

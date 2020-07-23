@@ -10,10 +10,6 @@ of the forgetful functor Ab → Grp.
 import group_theory.quotient_group
 import tactic.group
 
--- IMPLEMENTATION ISSUE WARNING
--- WE USED TO DO SUBGROUPS USING `is_subgroup`, -- WE
--- NOW DO THEM USING `subgroup`
-
 -- mathematicians can ignore this
 universes u v
 
@@ -41,9 +37,9 @@ instance : comm_group (abelianization G) :=
   begin
     apply quotient.sound,
     clear x y,
-    show (a * b)⁻¹ * (b * a) ∈ commutator G,
+--    show (a * b)⁻¹ * (b * a) ∈ commutator G,
     apply subgroup.subset_normal_closure,
-    dsimp,
+--    dsimp,
     use b⁻¹, use a⁻¹,
     group, -- an algorithm to solve questions like this
     -- advert. Interested in building an algorithm to
@@ -81,30 +77,16 @@ begin
   -/
   apply subgroup.normal_closure_le_normal,
   { apply_instance },
-  { intros x,
-    dsimp,
-    rintros ⟨p, q, rfl⟩,
-    norm_cast,
-    rw monoid_hom.mem_ker,
-    simp,
-    -- annoying that there was no comm_group tactic.
-    rw mul_right_comm,
-    simp }
+  { rintros x ⟨p, q, rfl⟩,
+    simp [monoid_hom.mem_ker, mul_right_comm (f p) (f q)] }
 end
--- subgroup.normal_closure_le_normal (by apply_instance) (λ x ⟨p,q,w⟩, (is_group_hom.mem_ker f).2
---   (by {rw ←w, simp [is_mul_hom.map_mul f, is_group_hom.map_inv f, mul_comm]}))
 
 -- -- FIXME why is the apply_instance needed?
 
 -- goal: if G -> A is a group hom, then it factors through G^ᵃᵇ
 -- this is the data part of the universal property of the abelianization
 def lift : abelianization G →* A :=
-quotient_group.lift _ f (λ x h,
-begin
-  rw ←monoid_hom.mem_ker,
-  apply commutator_subset_ker,
-  assumption,
-end)
+quotient_group.lift _ f (λ x h, monoid_hom.mem_ker.2 $ commutator_subset_ker _ h)
 
 @[simp] lemma lift.of (x : G) : lift f (of x) = f x :=
 rfl

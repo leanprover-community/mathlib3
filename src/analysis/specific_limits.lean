@@ -560,7 +560,7 @@ begin
   exact eventually_norm_pow_le x,
 end
 
-/-- Bound for the sum of a geometric series in a normed.  This formula does not assume that the
+/-- Bound for the sum of a geometric series in a normed ring.  This formula does not assume that the
 normed ring satisfies the axiom `∥1∥ = 1`. -/
 lemma normed_ring.tsum_geometric_of_norm_lt_1
   (x : R) (h : ∥x∥ < 1) : ∥(∑' (n:ℕ), x ^ n)∥ ≤ ∥(1:R)∥ - 1 + (1 - ∥x∥)⁻¹ :=

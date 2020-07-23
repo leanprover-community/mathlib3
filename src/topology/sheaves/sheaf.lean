@@ -29,6 +29,8 @@ end topological_space.opens
 
 open topological_space.opens
 
+namespace Top
+
 variables {C : Type u} [category.{v} C] [has_products C]
 variables {X : Top.{v}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
 
@@ -55,6 +57,9 @@ begin
   rw [←F.map_comp],
   congr,
 end
+
+def diagram : walking_parallel_pair ⥤ C :=
+parallel_pair (left_restriction F U) (right_restriction F U)
 
 def fork : fork (left_restriction F U) (right_restriction F U) := fork.of_ι _ (fork_condition F U)
 
@@ -84,3 +89,5 @@ begin
   change category (induced_category (presheaf C X) sheaf.presheaf),
   apply_instance,
 end
+
+end Top

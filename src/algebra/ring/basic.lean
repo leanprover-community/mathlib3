@@ -257,6 +257,15 @@ theorem coe_monoid_hom_injective : function.injective (coe : (α →+* β) → (
 /-- Ring homomorphisms preserve multiplication. -/
 @[simp] lemma map_mul (f : α →+* β) (a b : α) : f (a * b) = f a * f b := f.map_mul' a b
 
+/-- `f : R →+* S` has a trivial codomain iff `f 1 = 0`. -/
+lemma codomain_trivial_iff_map_one_eq_zero : (0 : β) = 1 ↔ f 1 = 0 :=
+by rw [map_one, eq_comm]
+
+/-- `f : R →+* S` has a trivial codomain iff it has a trivial image. -/
+lemma codomain_trivial_iff_image_trivial : (0 : β) = 1 ↔ (∀ x, f x = 0) :=
+f.codomain_trivial_iff_map_one_eq_zero.trans
+  ⟨λ h x, by rw [←mul_one x, map_mul, h, mul_zero], λ h, h 1⟩
+
 end
 
 /-- The identity ring homomorphism from a semiring to itself. -/

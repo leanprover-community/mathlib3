@@ -255,30 +255,25 @@ begin
   simp [set.mem_image, mem_add, eq_comm]
 end
 
+/-- The translation of a convex set is also convex -/
 lemma convex.translate_preimage_right (hs : convex s) (z : E) : convex ((λ x, z + x) ⁻¹' s) :=
 begin
   intros x y hx hy a b ha hb hab,
-  simp only[mem_preimage],
-  simp only [mem_preimage] at hx,
-  simp only [mem_preimage] at hy,
+  rw [mem_preimage],
   have := calc
-    z + (a • x + b • y) = 1 • z + (a • x + b • y)         : by simp only [one_smul]
-                    ... = (a + b) • z + (a • x + b • y)   : begin
-                                                            simp[←hab],
-                                                            rw[hab],
-                                                            simp only [one_smul],
-                                                           end
-                    ... = a • z + b • z + a • x + b • y   : by simp[add_smul, add_assoc]
+    z + (a • x + b • y) = (a + b) • z + (a • x + b • y)   : by simp only
+                                                                [add_left_inj, hab, one_smul]
+                    ... = a • z + b • z + a • x + b • y   : by simp only [add_smul, add_assoc]
                     ... = a • z + a • x + b • z + b • y   : by abel
                     ... = a • (z + x) + b • (z + y)       : by simp only [←smul_add, add_assoc],
-  rw[this],
+  rw [this],
   exact hs hx hy ha hb hab,
 end
 
+/-- The translation of a convex set is also convex -/
 lemma convex.translate_preimage_left (hs : convex s) (z : E) : convex ((λ x, x + z) ⁻¹' s) :=
 begin
-  have : (λ x, x + z) = (λ x, z + x) := funext (λ (x : E), add_comm x z),
-  rw[this],
+  rw [show (λ x, x + z) = (λ x, z + x), by exact funext (λ (x : E), add_comm x z)],
   exact convex.translate_preimage_right hs z,
 end
 
@@ -516,8 +511,8 @@ lemma convex_on.linear_preimage {f : E →ₗ[ℝ] F} {g : F → ℝ} {s : set F
 begin
   refine ⟨convex.linear_preimage hg.1 f, _⟩,
   intros x y x_in_set y_in_set a b a_nonneg b_nonneg hab,
-  rw[function.comp_app, map_add f (a • x) (b • y), map_smul, map_smul],
-  rw[function.comp_app, function.comp_app],
+  rw [function.comp_app, map_add f (a • x) (b • y), map_smul, map_smul],
+  rw [function.comp_app, function.comp_app],
   exact hg.2 (mem_preimage.mp x_in_set) (mem_preimage.mp y_in_set) (a_nonneg) (b_nonneg) hab,
 end
 
@@ -649,23 +644,16 @@ lemma convex_on.translate_right {f : E → ℝ} {s : set E} {a : E} (hf : convex
 begin
   refine ⟨convex.translate_preimage_right hf.1 a, _⟩,
   intros x y x_in_s y_in_s a' b' ha' hb' hab',
-  replace x_in_s : a + x ∈ s,
-      simp at x_in_s, exact x_in_s,
-  replace y_in_s : a + y ∈ s,
-      simp at y_in_s, exact y_in_s,
-  change f (a + (a' • x + b' • y)) ≤ a' * f (a + x) + b' * f (a + y),
   calc
-      f (a + (a' • x + b' • y)) = f ((1 : ℝ) • a + (a' • x + b' • y))
-                                              : by rw[one_smul]
-                          ...   = f ((a' + b') • a + (a' • x + b' • y))
-                                              : by rw[hab']
-                          ...  = f (a' • a + b' • a + a' • x + b' • y)
-                                              : by simp[smul_add, add_smul, add_assoc]
-                          ...  = f (a' • a + a' • x + b' • a + b' • y)
+      f (a + (a' • x + b' • y)) = f ((a' + b') • a + (a' • x + b' • y))
+                                              : by simp only [one_smul, hab']
+                           ...  = f (a' • a + b' • a + a' • x + b' • y)
+                                              : by simp [smul_add, add_smul, add_assoc]
+                           ...  = f (a' • a + a' • x + b' • a + b' • y)
                                               : by abel
-                          ...  = f (a' • (a + x) + b' • (a + y))
-                                              : by rw[smul_add, smul_add]; abel
-                           ... ≤ a' * f (a + x) + b' * f (a + y)
+                           ...  = f (a' • (a + x) + b' • (a + y))
+                                              : by rw [smul_add, smul_add]; abel
+                            ... ≤ a' * f (a + x) + b' * f (a + y)
                                               : hf.2 x_in_s y_in_s ha' hb' hab'
 end
 
@@ -673,8 +661,7 @@ end
 lemma convex_on.translate_left {f : E → ℝ} {s : set E} {a : E} (hf : convex_on s f) :
   convex_on ((λ z, a + z) ⁻¹' s) (f ∘ (λ z, z + a)) :=
 begin
-  have : (λ x, x + a) = (λ x, a + x) := funext (λ (x : E), add_comm x a),
-  rw[this],
+  rw [show (λ x, x + a) = (λ x, a + x), by exact funext (λ (x : E), add_comm x a)],
   exact convex_on.translate_right hf,
 end
 

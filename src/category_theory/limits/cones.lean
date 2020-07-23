@@ -185,6 +185,11 @@ namespace cones
   map := λ c₁ c₂ f, { hom := f.hom, w' :=
   by intro; erw ← category.assoc; simp [-category.assoc] } }
 
+@[simp]
+def postcompose_obj_X_iso {G : J ⥤ C} (α : F ⟶ G) (c : cone F) :
+  ((postcompose α).obj c).X ≅ c.X :=
+iso.refl _
+
 def postcompose_comp {G H : J ⥤ C} (α : F ⟶ G) (β : G ⟶ H) :
   postcompose (α ≫ β) ≅ postcompose α ⋙ postcompose β :=
 nat_iso.of_components (λ s, cones.ext (iso.refl _) (by tidy)) (by tidy)

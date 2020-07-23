@@ -154,12 +154,10 @@ noncomputable def mem.other {a : α} {z : sym2 α} (h : a ∈ z) : α :=
 classical.some h
 
 lemma mem_other_spec {a : α} {z : sym2 α} (h : a ∈ z) :
-  ⟦(a, h.other)⟧ = z :=
-by erw ← classical.some_spec h
+  ⟦(a, h.other)⟧ = z := by erw ← classical.some_spec h
 
 lemma other_is_mem_other {a : α} {z : sym2 α} (h : vmem a z) (h' : a ∈ z) :
-  h.other = mem.other h' :=
-by rw [← congr_right a, ← vmem_other_spec h, mem_other_spec]
+  h.other = mem.other h' := by rw [← congr_right a, ← vmem_other_spec h, mem_other_spec]
 
 lemma eq_iff {x y z w : α} :
   ⟦(x, y)⟧ = ⟦(z, w)⟧ ↔ (x = z ∧ y = w) ∨ (x = w ∧ y = z) :=
@@ -223,16 +221,6 @@ lemma from_rel_irreflexive {sym : symmetric r} :
               erw is_diag_iff_proj_eq at hd, erw from_rel_proj_prop at hr, tidy },
   mpr := by { intros h x hr, rw ← @from_rel_prop _ _ sym at hr, exact h hr ⟨x, rfl⟩ }}
 
-instance from_rel.decidable_as_set (sym : symmetric r) [h : decidable_rel r] :
-  decidable_pred (λ x, x ∈ sym2.from_rel sym) :=
-λ (x : sym2 α), quotient.rec_on x
-  (λ x', by { simp_rw from_rel_proj_prop, apply_instance })
-  (by tidy)
-
-instance from_rel.decidable_pred (sym : symmetric r) [h : decidable_rel r] :
-  decidable_pred (sym2.from_rel sym) :=
-by { change decidable_pred (λ x, x ∈ sym2.from_rel sym), apply_instance }
-
 end relations
 
 section sym_equiv
@@ -257,7 +245,6 @@ def sym2_equiv_sym' {α : Type*} : equiv (sym2 α) (sym' α 2) :=
     (λ (x : α × α), ⟨[x.1, x.2], rfl⟩)
     (by { rintros _ _ ⟨_⟩, { refl }, apply list.perm.swap', refl }),
   inv_fun := quotient.map from_vector (begin
-    -- rintros ⟨x, hx⟩ ⟨y, hy⟩ ⟨h⟩,
     rintros ⟨x, hx⟩ ⟨y, hy⟩ h,
     cases x with x0 x, { simp at hx; tauto },
     cases x with x1 x, { simp at hx; norm_num at hx },
@@ -294,23 +281,5 @@ def equiv_multiset (α : Type*) : sym2 α ≃ {s : multiset α // s.card = 2} :=
 equiv_sym α
 
 end sym_equiv
-
-section finite
-
-/--
-Given `[decidable_eq α]` and `[fintype α]`, the following instance gives `fintype (sym2 α)`.
--/
-instance (α : Type*) [decidable_eq α] : decidable_rel (sym2.rel α) :=
-begin
-  rintros ⟨x₁, x₂⟩ ⟨y₁, y₂⟩, by_cases x₁ = y₁, subst x₁,
-  { by_cases x₂ = y₂, { subst x₂, apply decidable.is_true, refl },
-    by_cases y₁ = y₂, { subst y₁, apply decidable.is_false, rintro ⟨_,_⟩; cc },
-    by_cases x₂ = y₁; { try { subst x₂ }, apply decidable.is_false, rintro ⟨_,_⟩; cc }},
-  by_cases x₁ = y₂, subst x₁,
-  by_cases x₂ = y₁, { subst x₂, apply decidable.is_true, apply sym2.rel.swap },
-  all_goals { apply decidable.is_false, rintro ⟨_,_⟩; cc },
-end
-
-end finite
 
 end sym2

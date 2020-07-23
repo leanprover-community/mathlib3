@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import algebra.associated
-import algebra.big_operators
+import algebra.big_operators.basic
 /-!
 # Prime elements in rings
 This file contains lemmas about prime elements of commutative rings.

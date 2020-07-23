@@ -2,8 +2,12 @@
 Copyright (c) 2019 Kenny Lau, Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes
-
-Direct limit of modules, abelian groups, rings, and fields.
+-/
+import ring_theory.free_comm_ring
+import linear_algebra.direct_sum_module
+import data.finset.order
+/-!
+# Direct limit of modules, abelian groups, rings, and fields.
 
 See Atiyah-Macdonald PP.32-33, Matsumura PP.269-270
 
@@ -13,9 +17,8 @@ or incomparable abelian groups, or rings, or fields.
 It is constructed as a quotient of the free module (for the module case) or quotient of
 the free commutative ring (for the ring case) instead of a quotient of the disjoint union
 so as to make the operations (addition etc.) "computable".
--/
-import ring_theory.free_comm_ring
 
+-/
 universes u v w u₁
 
 open submodule

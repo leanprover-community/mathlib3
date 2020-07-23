@@ -4,8 +4,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
+
+import data.polynomial.basic
 import data.polynomial.div
-import tactic.omega
+import data.polynomial.algebra_map
 
 /-!
 # Theory of univariate polynomials
@@ -17,8 +19,7 @@ This file starts looking like the ring theory of $ R[X] $
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
-open finsupp finset add_monoid_algebra
-open_locale big_operators
+open finset
 
 namespace polynomial
 universes u v w z
@@ -30,12 +31,12 @@ variables [comm_ring R] {p q : polynomial R}
 variables [comm_ring S]
 
 lemma nat_degree_pos_of_aeval_root [algebra R S] {p : polynomial R} (hp : p ≠ 0)
-  {z : S} (hz : aeval R S z p = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
+  {z : S} (hz : aeval z p = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
   0 < p.nat_degree :=
 nat_degree_pos_of_eval₂_root hp (algebra_map R S) hz inj
 
 lemma degree_pos_of_aeval_root [algebra R S] {p : polynomial R} (hp : p ≠ 0)
-  {z : S} (hz : aeval R S z p = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
+  {z : S} (hz : aeval z p = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
   0 < p.degree :=
 nat_degree_pos_iff_degree_pos.mp (nat_degree_pos_of_aeval_root hp hz inj)
 

@@ -49,6 +49,10 @@ variable {R}
 
 @[simp] lemma lcoeff_apply (n : ℕ) (f : polynomial R) : lcoeff R n f = coeff f n := rfl
 
+@[simp] lemma finset_sum_coeff {ι : Type*} (s : finset ι) (f : ι → polynomial R) (n : ℕ) :
+  coeff (∑ b in s, f b) n = ∑ b in s, coeff (f b) n :=
+(s.sum_hom (λ q : polynomial R, lcoeff R n q)).symm
+
 lemma coeff_mul (p q : polynomial R) (n : ℕ) :
   coeff (p * q) n = ∑ x in nat.antidiagonal n, coeff p x.1 * coeff q x.2 :=
 have hite : ∀ a : ℕ × ℕ, ite (a.1 + a.2 = n) (coeff p (a.fst) * coeff q (a.snd)) 0 ≠ 0
@@ -92,6 +96,9 @@ begin
     assume i hi, by_cases i = n; simp [h] },
   { simp [finsupp.sum] }
 end
+
+lemma C_mul' (a : R) (f : polynomial R) : C a * f = a • f :=
+ext $ λ n, coeff_C_mul f
 
 @[simp] lemma coeff_mul_C (p : polynomial R) (n : ℕ) (a : R) :
   coeff (p * C a) n = coeff p n * a :=
@@ -138,7 +145,6 @@ end
 @[simp] theorem coeff_mul_X (p : polynomial R) (n : ℕ) :
   coeff (p * X) (n + 1) = coeff p n :=
 by simpa only [pow_one] using coeff_mul_X_pow p 1 n
-
 
 theorem mul_X_pow_eq_zero {p : polynomial R} {n : ℕ}
   (H : p * X ^ n = 0) : p = 0 :=

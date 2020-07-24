@@ -569,6 +569,8 @@ end local_definitions
 
 section set_attribute
 
+open tactic
+
 @[user_attribute] meta def my_user_attribute : user_attribute unit bool :=
 { name := `my_attr,
   descr := "",

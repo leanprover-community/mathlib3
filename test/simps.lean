@@ -1,6 +1,6 @@
 import tactic.simps
 
-set_option trace.simps.verbose true
+-- set_option trace.simps.verbose true
 
 open function tactic expr
 

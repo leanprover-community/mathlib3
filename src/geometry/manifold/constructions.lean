@@ -5,7 +5,6 @@ Author: Nicolò Cavalleri.
 -/
 
 import geometry.manifold.times_cont_mdiff
-import tactic
 
 noncomputable theory
 
@@ -120,30 +119,18 @@ lemma times_cont_mdiff_on.prod_map {n : with_top ℕ}
 begin
   rw times_cont_mdiff_on_iff at hf hg ⊢,
   refine ⟨hf.1.prod_map hg.1, λ x y, _⟩,
-
-  have h := (hf.2 x.fst y.fst).map_prod (hg.2 x.snd y.snd),
-  simp only with mfld_simps at h,
-  convert h using 1,
-
-  ext1 z,
-  simp only [set.mem_range, prod.map_mk] with mfld_simps,
-  fsplit,
-  { rintro ⟨⟨h1, h2⟩, ⟨h3, h4⟩, h5, h6⟩, exact ⟨⟨h1, ⟨h3, h5⟩⟩, ⟨h2, ⟨h4, h6⟩⟩⟩, },
-  { rintro ⟨⟨h1, h2, h3⟩, h4, h5, h6⟩, exact ⟨⟨h1, h4⟩, ⟨⟨h2, h5⟩, ⟨h3, h6⟩⟩⟩, }
+  convert (hf.2 x.1 y.1).prod_map (hg.2 x.2 y.2) using 1,
+  mfld_set_tac,
 end
 
-/- I can't prove this but I do not need it so I can take it out of this PR. -/
 lemma times_cont_mdiff_within_at.prod_map {n : ℕ}
   (hf : times_cont_mdiff_within_at I I' n f s x) (hg : times_cont_mdiff_within_at J J' n g t y) :
   times_cont_mdiff_within_at (I.prod J) (I'.prod J') n (prod.map f g) (s.prod t) (x, y) :=
 begin
-  rw times_cont_mdiff_within_at_iff_times_cont_mdiff_on_nhds at hf hg ⊢,
-  rcases hg with ⟨ug, hug1, hug2⟩, rcases hf with ⟨uf, huf1, huf2⟩,
-  refine ⟨uf.prod ug, _, _⟩,
-  have h := nhds_within_prod huf1 hug1,
-  sorry,
-  sorry,
-  /- do not really know how to go on. -/
+  rw times_cont_mdiff_within_at_iff at *,
+  refine ⟨hf.1.prod_map hg.1, _⟩,
+  convert hf.2.prod_map hg.2 using 1,
+  mfld_set_tac,
 end
 
 lemma smooth_within_at.prod_map

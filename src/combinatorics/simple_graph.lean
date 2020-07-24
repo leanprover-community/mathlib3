@@ -98,15 +98,16 @@ begin
   have key := e.property, rwa this at key,
 end
 
-
---attribute [irreducible] E
-
 instance E.inhabited [inhabited {p : V × V | G.adj p.1 p.2}] : inhabited G.E :=
 ⟨begin
   rcases inhabited.default {p : V × V | G.adj p.1 p.2} with ⟨⟨x, y⟩, h⟩,
   use ⟦(x, y)⟧,
   rwa sym2.from_rel_prop,
 end⟩
+
+instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] : fintype G.E := subtype.fintype _
+
+attribute [irreducible] E
 
 @[simp] lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
 
@@ -172,7 +173,6 @@ variables [fintype V]
 instance neighbor_set_fintype [decidable_rel G.adj] (v : V) : fintype (G.neighbor_set v) :=
   @subtype.fintype _ _ (by {simp_rw mem_neighbor_set, apply_instance}) _
 
-instance edges_fintype [decidable_eq V] [decidable_rel G.adj] : fintype G.E := subtype.fintype _
 
 lemma neighbor_finset_eq_filter {v : V} [decidable_rel G.adj] :
   G.neighbor_finset v = finset.univ.filter (G.adj v) :=

@@ -586,4 +586,4 @@ run_cmd success_if_fail $ set_attribute `my_attr `prod.map
 run_cmd success_if_fail $ set_attribute `norm `xyz.zxy
 run_cmd success_if_fail $ set_attribute `zxy.xyz `prod.map
 
-end attribute
+end set_attribute

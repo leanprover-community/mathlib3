@@ -451,34 +451,6 @@ derives two simp-lemmas:
   after_set := some $
     λ n _ _, do (todo, cfg) ← simps_attr.get_param n, simps_tac n cfg todo }
 
-open function
-structure equiv (α : Sort*) (β : Sort*) :=
-(to_fun    : α → β)
-(inv_fun   : β → α)
-(left_inv  : left_inverse inv_fun to_fun)
-(right_inv : right_inverse inv_fun to_fun)
-
-local infix ` ≃ `:25 := equiv
-
-@[simps] protected def equiv.refl (α) : α ≃ α :=
-⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
-
-set_option trace.simps.verbose true
-structure equiv_plus_data (α β) extends α ≃ β := (data : bool)
-/-
-[simps] > generating projection information for structure equiv_plus_data:
-[simps] > generated projections for equiv_plus_data:
-        > [equiv_plus_data.to_equiv, equiv_plus_data.data]
-[simps] > found projection information for structure equiv
-[simps] > adding projection
-        > bar_to_equiv : ∀ {α : Sort u_1}, bar.to_equiv = equiv.refl α
-[simps] > adding projection
-        > bar_data : ∀ {α : Sort u_1}, bar.data = tt
-
--/
-
-@[simps] def bar {α} : equiv_plus_data α α := { data := tt, ..equiv.refl α }
-
 add_tactic_doc
 { name                     := "simps",
   category                 := doc_category.attr,

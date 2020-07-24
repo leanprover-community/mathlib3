@@ -1,6 +1,7 @@
 import tactic.simps
 
-set_option trace.simps.verbose true
+-- set_option trace.simps.verbose true
+-- set_option trace.app_builder true
 
 open function tactic expr
 
@@ -21,8 +22,6 @@ def myprod.map {α α' β β'} (f : α → α') (g : β → β') (x : my_prod α
 ⟨f x.1, g x.2⟩
 
 namespace foo
-
--- set_option trace.app_builder true
 
 @[simps] protected def rfl {α} : α ≃ α :=
 ⟨id, λ x, x, λ x, rfl, λ x, rfl⟩

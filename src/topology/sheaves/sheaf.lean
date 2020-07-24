@@ -89,6 +89,12 @@ def fork : fork (left_res F U) (right_res F U) := fork.of_ι _ (w F U)
 
 @[simp]
 lemma fork_ι : (fork F U).ι = res F U := rfl
+@[simp]
+lemma fork_π_app_walking_parallel_pair_zero :
+  (fork F U).π.app walking_parallel_pair.zero = res F U := rfl
+@[simp]
+lemma fork_π_app_walking_parallel_pair_one :
+  (fork F U).π.app walking_parallel_pair.one = res F U ≫ left_res F U := rfl
 
 end sheaf_condition
 
@@ -102,7 +108,7 @@ is the equalizer of the two morphisms
 -- to avoid the `v+1` here in the universe levels?
 @[derive subsingleton]
 def sheaf_condition (F : presheaf C X) : Type (max u (v+1)) :=
-Π {ι : Type v} (U : ι → opens X), is_limit (sheaf_condition.fork F U)
+Π ⦃ι : Type v⦄ (U : ι → opens X), is_limit (sheaf_condition.fork F U)
 
 variables (C X)
 

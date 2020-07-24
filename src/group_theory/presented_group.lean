@@ -40,11 +40,11 @@ local notation `F` := free_group.to_group f
 variable (h : ∀ r ∈ rels, F r = 1)
 
 -- FIXME why is apply_instance needed here? surely this should be a [] argument in `subgroup.normal_closure_le_normal`
-lemma closure_rels_subset_ker : subgroup.normal_closure rels ≤ (monoid_hom.of F).ker :=
-subgroup.normal_closure_le_normal (by apply_instance) (λ x w, (is_group_hom.mem_ker F).2 (h x w))
+lemma closure_rels_subset_ker : subgroup.normal_closure rels ≤ monoid_hom.ker F :=
+subgroup.normal_closure_le_normal (by apply_instance) (λ x w, monoid_hom.mem_ker.2 (h x w))
 
 lemma to_group_eq_one_of_mem_closure : ∀ x ∈ subgroup.normal_closure rels, F x = 1 :=
-λ x w, (is_group_hom.mem_ker F).1  ((closure_rels_subset_ker h) w)
+λ x w, monoid_hom.mem_ker.1 $ closure_rels_subset_ker h w
 
 /-- The extension of a map f : α → β that satisfies the given relations to a group homomorphism
 from presented_group rels → β. -/

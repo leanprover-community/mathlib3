@@ -711,8 +711,8 @@ end
 lemma convex_on.translate_left {f : E → ℝ} {s : set E} {a : E} (hf : convex_on s f) :
   convex_on ((λ z, a + z) ⁻¹' s) (f ∘ (λ z, z + a)) :=
 begin
-  rw [show (λ x, x + a) = (λ x, a + x), by exact funext (λ (x : E), add_comm x a)],
-  exact convex_on.translate_right hf,
+  convert convex_on.translate_right hf,
+  simp only [add_comm]
 end
 
 /-- If a function is convex on s, it remains convex when prepended by an affine map -/

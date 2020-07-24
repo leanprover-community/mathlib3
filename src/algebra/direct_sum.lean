@@ -22,10 +22,9 @@ This notation is in the `direct_sum` locale, accessible after `open_locale direc
 -/
 
 open_locale big_operators
+open_locale direct_sum
 
 universes u v w u₁
-
-localized "notation `⨁` binders `, ` r:(scoped f, direct_sum _ f) := r" in direct_sum
 
 namespace direct_sum
 

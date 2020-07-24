@@ -15,6 +15,8 @@ variables (ι : Type v) [decidable_eq ι] (β : ι → Type w) [Π i, add_comm_m
 
 def direct_sum : Type* := Π₀ i, β i
 
+localized "notation `⨁` binders `, ` r:(scoped f, direct_sum _ f) := r" in direct_sum
+
 namespace direct_sum
 
 variables {ι β}

@@ -6,7 +6,7 @@ Authors: Johan Commelin
 -- import algebra.inj_surj
 import data.nat.choose
 import data.int.gcd
-import data.mv_polynomial
+import field_theory.mv_polynomial
 import data.zmod.basic
 import data.fintype.card
 import ring_theory.multiplicity
@@ -165,7 +165,7 @@ end
 lemma from_W_to_X_basis_comp_from_X_to_W_basis [invertible (p : R)] :
   (from_W_to_X_basis p R).comp (from_X_to_W_basis p _) = alg_hom.id _ _ :=
 begin
-  apply mv_polynomial.alg_hom_ext R (mv_polynomial ℕ R),
+  apply mv_polynomial.alg_hom_ext,
   intro n,
   rw [from_X_to_W_basis, alg_hom.comp_apply, aeval_X],
   exact from_W_to_X_basis_X_in_terms_of_W p R n
@@ -192,7 +192,7 @@ end
 lemma from_X_to_W_basis_comp_from_W_to_X_basis [invertible (p : R)] :
   (from_X_to_W_basis p R).comp (from_W_to_X_basis p _) = alg_hom.id _ _ :=
 begin
-  apply mv_polynomial.alg_hom_ext R (mv_polynomial ℕ R),
+  apply mv_polynomial.alg_hom_ext,
   intro n,
   rw [alg_hom.comp_apply, from_W_to_X_basis_X],
   exact from_X_to_W_basis_witt_polynomial p R n,

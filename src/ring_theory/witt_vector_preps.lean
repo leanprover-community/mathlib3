@@ -16,56 +16,6 @@ universes u v w u₁
 -- everything in this file should move to other files
 
 
-namespace mv_polynomial
-
--- variables {σ : Type*} {R : Type*} [comm_semiring R]
-
-/- noncomputable def C_ (σ : Type*) {R : Type*} [comm_semiring R] : R →+* mv_polynomial σ R :=
-ring_hom.of C -/
-
--- example (x y : R) : C_ σ (x * y) = C_ σ x * C_ σ y := C_mul
-
-lemma ring_hom_ext {σ : Type*} {R : Type*} {A : Type*} [comm_semiring R] [comm_semiring A]
-  (f g : mv_polynomial σ R →+* A)
-  (hC : ∀ r, f (C r) = g (C r)) (hX : ∀ i, f (X i) = g (X i)) :
-  f = g :=
-begin
-  ext p : 1,
-  apply mv_polynomial.induction_on' p,
-  { intros m r, rw [monomial_eq, finsupp.prod],
-    simp only [monomial_eq, ring_hom.map_mul, ring_hom.map_prod, ring_hom.map_pow, hC, hX], },
-  { intros p q hp hq, simp only [ring_hom.map_add, hp, hq] }
-end
-
-lemma alg_hom_ext {σ : Type*} (R : Type*) [comm_semiring R]
-  (A : Type*) [comm_semiring A] [algebra R A]
-  (f g : mv_polynomial σ R →ₐ[R] A)
-  (hf : ∀ i : σ, f (X i) = g (X i)) : f = g :=
-begin
-  apply alg_hom.coe_ring_hom_injective,
-  apply ring_hom_ext,
-  { intro r,
-    calc f (C r) = algebra_map R A r : f.commutes r
-             ... = g (C r)           : (g.commutes r).symm },
-  { simpa only [hf] },
-end
-
-end mv_polynomial
-
-namespace mv_polynomial
-
-section char_p
-variables (σ : Type*) (R : Type*) [comm_ring R] (p : ℕ)
-
--- PRed
-instance [char_p R p] : char_p (mv_polynomial σ R) p :=
-{ cast_eq_zero_iff := λ n,
-  by rw [← C_eq_coe_nat, ← C_0, C_inj, char_p.cast_eq_zero_iff R p] }
-
-end char_p
-
-end mv_polynomial
-
 namespace alg_hom
 open mv_polynomial
 
@@ -347,7 +297,7 @@ begin
   { apply eval₂_hom_congr rfl rfl,
     rw alg_hom.comp_apply,
     suffices : g = aeval (λ i, g (X i)), { rw ← this, },
-    apply mv_polynomial.alg_hom_ext R _ g,
+    apply mv_polynomial.alg_hom_ext g,
     intro, rw [aeval_X], },
   { simp only [comap, aeval_eq_eval₂_hom', map_eval₂_hom, alg_hom.comp_apply],
     refine eval₂_hom_congr _ rfl rfl,
@@ -386,7 +336,7 @@ begin
   rw ← alg_hom.comp_apply,
   suffices : (aeval g).comp (aeval f) = alg_hom.id _ _,
   { rw [this, alg_hom.id_apply], },
-  refine mv_polynomial.alg_hom_ext R _ _ (alg_hom.id _ _) _,
+  refine mv_polynomial.alg_hom_ext _ (alg_hom.id _ _) _,
   intro i,
   rw [alg_hom.comp_apply, alg_hom.id_apply, aeval_X, h],
 end

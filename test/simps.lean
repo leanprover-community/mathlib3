@@ -1,6 +1,6 @@
 import tactic.simps
 
--- set_option trace.simps.verbose true
+set_option trace.simps.verbose true
 
 open function tactic expr
 
@@ -15,9 +15,7 @@ local infix ` ≃ `:25 := equiv
 
 /- Since `prod` and `pprod` are a special case for `@[simps]`, we define a new structure to test
   the basic functionality.-/
-structure my_prod (α β : Type*) :=
-  (fst : α)
-  (snd : β)
+structure my_prod (α β : Type*) := (fst : α) (snd : β)
 
 def myprod.map {α α' β β'} (f : α → α') (g : β → β') (x : my_prod α β) : my_prod α' β' :=
 ⟨f x.1, g x.2⟩
@@ -479,6 +477,8 @@ def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
 
 /-- See Note [custom simps projection] -/
 def equiv.simps.inv_fun (e : α ≃ β) : β → α := e.symm
+@[simps] def equiv.trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
+⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
 
 /-- Composition of equivalences `e₁ : α ≃ β` and `e₂ : β ≃ γ`. -/
 @[simps {simp_rhs := tt}] protected def equiv.trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=

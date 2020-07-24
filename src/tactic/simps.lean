@@ -367,29 +367,73 @@ derives two simp-lemmas:
 
 * It does not derive simp-lemmas for the prop-valued projections.
 * It will automatically reduce newly created beta-redexes, but will not unfold any definitions.
+* If the structure has a coercion to either sorts or functions, and this is defined to be one
+  of the projections, then this coercion will be used instead of the projection.
+* If the structure is a class that has an instance to a notation class, like `has_mul`, then this
+  notation is used instead of the corresponding projection.
+* You can specify custom projections, by giving a declaration with name
+  `{structure_name}.simps.{projection_name}`. See Note [custom simps projection].
+
+  Example:
+  ```lean
+  def equiv.simps.inv_fun (e : α ≃ β) : β → α := e.symm
+  @[simps] def equiv.trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
+  ⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
+  ```
+  generates
+  ```
+  @[simp] lemma equiv.trans_to_fun : ∀ {α β γ} (e₁ e₂) (a : α), ⇑(e₁.trans e₂) a = (⇑e₂ ∘ ⇑e₁) a
+  @[simp] lemma equiv.trans_inv_fun : ∀ {α β γ} (e₁ e₂) (a : γ),
+    ⇑((e₁.trans e₂).symm) a = (⇑(e₁.symm) ∘ ⇑(e₂.symm)) a
+  ```
+
 * If one of the fields itself is a structure, this command will recursively create
   simp-lemmas for all fields in that structure.
   * Exception: by default it will not recursively create simp-lemmas for fields in the structures
     `prod` and `pprod`. Give explicit projection names to override this.
-* If the structure has a coercion to either sorts or functions, and this is defined to be one
-  of the projections, then this coercion will be used instead of the projection
-* If the structure is a class that has an instance to a notation class, like `has_mul`, then this
-  notation is used instead of the corresponding projection.
-* You can specify custom projections, see Note [custom simps projection].
-* You can use `@[simps proj1 proj2 ...]` to only generate the projection lemmas for the specified
-  projections. For example:
+
+  Example:
   ```lean
-  attribute [simps to_fun] refl
+  structure my_prod (α β : Type*) := (fst : α) (snd : β)
+  @[simps] def foo : prod ℕ ℕ × my_prod ℕ ℕ := ⟨⟨1, 2⟩, 3, 4⟩
   ```
-  * Recursive projection names can be specified using `foo_proj1_proj2_proj3`.
-    This will create a lemma of the form `foo.proj1.proj2.proj3 = ...`.
+  generates
+  ```lean
+  @[simp] lemma  foo_fst : foo.fst = (1, 2)
+  @[simp] lemma foo_snd_fst : foo.snd.fst = 3
+  @[simp] lemma foo_snd_snd : foo.snd.snd = 4
+  ```
+
+* You can use `@[simps proj1 proj2 ...]` to only generate the projection lemmas for the specified
+  projections.
+* Recursive projection names can be specified using `proj1_proj2_proj3`.
+  This will create a lemma of the form `foo.proj1.proj2.proj3 = ...`.
+
+  Example:
+  ```lean
+  structure my_prod (α β : Type*) := (fst : α) (snd : β)
+  @[simps fst fst_fst snd] def foo : prod ℕ ℕ × my_prod ℕ ℕ := ⟨⟨1, 2⟩, 3, 4⟩
+  ```
+  generates
+  ```lean
+  @[simp] lemma foo_fst : foo.fst = (1, 2)
+  @[simp] lemma foo_fst_fst : foo.fst.fst = 1
+  @[simp] lemma foo_snd : foo.snd = {fst := 3, snd := 4}
+  ```
 * If one of the values is an eta-expanded structure, we will eta-reduce this structure.
-* You can use `@[simps {simp_rhs := tt}]` to simplify the right-hand side of the lemmas
-  before adding them to the context.
-* You can use `@[simps {attrs := []}]` to derive the lemmas, but not mark them
-  as simp-lemmas.
-* You can also use the `attrs` field of the config to add other attributes to all generated lemmas.
-* For other configuration options, see the doc string of `simps_cfg`.
+
+  Example:
+  ```lean
+  structure equiv_plus_data (α β) extends α ≃ β := (data : bool)
+  @[simps] def bar {α} : equiv_plus_data α α := { data := tt, ..equiv.refl α }
+  ```
+  generates the following, even though Lean inserts an eta-expanded version of `equiv.refl α` in the
+  definition of `bar`:
+  ```lean
+  @[simp] lemma bar_to_equiv : ∀ {α : Sort u_1}, bar.to_equiv = equiv.refl α
+  @[simp] lemma bar_data : ∀ {α : Sort u_1}, bar.data = tt
+  ```
+* For configuration options, see the doc string of `simps_cfg`.
 * The precise syntax is `('simps' ident* e)`, where `e` is an expression of type `simps_cfg`.
 * If one of the projections is marked as a coercion, the generated lemmas do *not* use this
   coercion.
@@ -398,20 +442,6 @@ derives two simp-lemmas:
   (this likely never happens).
 * When option `trace.simps.verbose` is true, `simps` will print the projections it finds and the
   lemmas it generates.
-
-  Examples:
-  ```lean
-  @[simps {rhs_md := ff}] def equiv.comm : (α ≃ β) ≃ (β ≃ α) :=
-  ⟨equiv.symm, equiv.symm⟩
-  ```
-  gives
-  ```lean
-  equiv.comm_to_fun : ∀ {α : Sort u_1} {β : Sort u_2} (e : α ≃ β),
-  ⇑equiv.comm e = e.symm
-  equiv.comm_inv_fun : ∀ {α : Sort u_1} {β : Sort u_2} (e : β ≃ α),
-  ⇑(equiv.comm.symm) e = e.symm
-  ```
-
   -/
 
 @[user_attribute] meta def simps_attr : user_attribute unit (list string × simps_cfg) :=
@@ -420,6 +450,34 @@ derives two simp-lemmas:
   parser := simps_parser,
   after_set := some $
     λ n _ _, do (todo, cfg) ← simps_attr.get_param n, simps_tac n cfg todo }
+
+open function
+structure equiv (α : Sort*) (β : Sort*) :=
+(to_fun    : α → β)
+(inv_fun   : β → α)
+(left_inv  : left_inverse inv_fun to_fun)
+(right_inv : right_inverse inv_fun to_fun)
+
+local infix ` ≃ `:25 := equiv
+
+@[simps] protected def equiv.refl (α) : α ≃ α :=
+⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
+
+set_option trace.simps.verbose true
+structure equiv_plus_data (α β) extends α ≃ β := (data : bool)
+/-
+[simps] > generating projection information for structure equiv_plus_data:
+[simps] > generated projections for equiv_plus_data:
+        > [equiv_plus_data.to_equiv, equiv_plus_data.data]
+[simps] > found projection information for structure equiv
+[simps] > adding projection
+        > bar_to_equiv : ∀ {α : Sort u_1}, bar.to_equiv = equiv.refl α
+[simps] > adding projection
+        > bar_data : ∀ {α : Sort u_1}, bar.data = tt
+
+-/
+
+@[simps] def bar {α} : equiv_plus_data α α := { data := tt, ..equiv.refl α }
 
 add_tactic_doc
 { name                     := "simps",

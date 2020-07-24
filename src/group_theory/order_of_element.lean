@@ -6,13 +6,13 @@ Authors: Johannes Hölzl
 import group_theory.coset
 import data.nat.totient
 import data.set.finite
---import deprecated.subgroup
 
 open function
 open_locale big_operators
 
 variables {α : Type*} {s : set α} {a a₁ a₂ b c: α}
 
+-- **TODO**: look at git logs to find out whether this TODO is DONE
 -- TODO this lemma isn't used anywhere in this file, and should be moved elsewhere.
 namespace finset
 open finset
@@ -311,11 +311,11 @@ lemma order_of_eq_card_of_forall_mem_gpowers [group α] [fintype α] [decidable_
   {g : α} (hx : ∀ x, x ∈ gpowers g) : order_of g = fintype.card α :=
 by {rw [← fintype.card_congr (equiv.set.univ α), order_eq_card_gpowers],
   simp [hx], apply fintype.card_of_finset', simp, intro x, exact hx x}
-#exit
-instance [group α] : is_cyclic (is_subgroup.trivial α) :=
-⟨⟨(1 : is_subgroup.trivial α), λ x, ⟨0, subtype.eq $ eq.symm (is_subgroup.mem_trivial.1 x.2)⟩⟩⟩
 
-instance is_subgroup.is_cyclic [group α] [is_cyclic α] (H : set α) [is_subgroup H] : is_cyclic H :=
+instance bot.is_cyclic [group α] : is_cyclic (⊥ : subgroup α) :=
+⟨⟨1, λ x, ⟨0, subtype.eq $ eq.symm (subgroup.mem_bot.1 x.2)⟩⟩⟩
+
+instance subgroup.is_cyclic [group α] [is_cyclic α] (H : subgroup α) : is_cyclic H :=
 by haveI := classical.prop_decidable; exact
 let ⟨g, hg⟩ := is_cyclic.exists_generator α in
 if hx : ∃ (x : α), x ∈ H ∧ x ≠ (1 : α) then
@@ -327,16 +327,16 @@ if hx : ∃ (x : α), x ∈ H ∧ x ≠ (1 : α) then
         match k, hk with
         | (k : ℕ), hk := by rw [int.nat_abs_of_nat, ← gpow_coe_nat, hk]; exact hx₁
         | -[1+ k], hk := by rw [int.nat_abs_of_neg_succ_of_nat,
-          ← is_subgroup.inv_mem_iff H]; simp * at *
+          ← subgroup.inv_mem_iff H]; simp * at *
         end⟩,
   ⟨⟨⟨g ^ nat.find hex, (nat.find_spec hex).2⟩,
     λ ⟨x, hx⟩, let ⟨k, hk⟩ := hg x in
       have hk₁ : g ^ ((nat.find hex : ℤ) * (k / nat.find hex)) ∈ gpowers (g ^ nat.find hex),
         from ⟨k / nat.find hex, eq.symm $ gpow_mul _ _ _⟩,
       have hk₂ : g ^ ((nat.find hex : ℤ) * (k / nat.find hex)) ∈ H,
-        by rw gpow_mul; exact is_subgroup.gpow_mem (nat.find_spec hex).2,
+        by rw gpow_mul; exact H.gpow_mem (nat.find_spec hex).2 _,
       have hk₃ : g ^ (k % nat.find hex) ∈ H,
-        from (is_subgroup.mul_mem_cancel_right H hk₂).1 $
+        from (subgroup.mul_mem_cancel_right H hk₂).1 $
           by rw [← gpow_add, int.mod_add_div, hk]; exact hx,
       have hk₄ : k % nat.find hex = (k % nat.find hex).nat_abs,
         by rw int.nat_abs_of_nonneg (int.mod_nonneg _
@@ -354,18 +354,18 @@ if hx : ∃ (x : α), x ∈ H ∧ x ≠ (1 : α) then
         rw [int.mul_div_cancel' (int.dvd_of_mod_eq_zero (int.eq_zero_of_nat_abs_eq_zero hk₆)), hk]
       end⟩⟩⟩
 else
-  have H = is_subgroup.trivial α,
-    from set.ext $ λ x, ⟨λ h, by simp at *; tauto,
-      λ h, by rw [is_subgroup.mem_trivial.1 h]; exact is_submonoid.one_mem⟩,
+  have H = (⊥ : subgroup α), from subgroup.ext $ λ x, ⟨λ h, by simp at *; tauto,
+    λ h, by rw [subgroup.mem_bot.1 h]; exact H.one_mem⟩,
   by clear _let_match; substI this; apply_instance
 
 open finset nat
-
 lemma is_cyclic.card_pow_eq_one_le [group α] [fintype α] [decidable_eq α] [is_cyclic α] {n : ℕ}
   (hn0 : 0 < n) : (univ.filter (λ a : α, a ^ n = 1)).card ≤ n :=
 let ⟨g, hg⟩ := is_cyclic.exists_generator α in
-calc (univ.filter (λ a : α, a ^ n = 1)).card ≤ (gpowers (g ^ (fintype.card α / (gcd n (fintype.card α))))).to_finset.card :
-  card_le_of_subset (λ x hx, let ⟨m, hm⟩ := show x ∈ powers g, from (powers_eq_gpowers g).symm ▸ hg x in
+calc (univ.filter (λ a : α, a ^ n = 1)).card
+  ≤ ((gpowers (g ^ (fintype.card α / (gcd n (fintype.card α))))) : set α).to_finset.card :
+  card_le_of_subset (λ x hx, let ⟨m, hm⟩ := show x ∈ (submonoid.powers g : set α),
+    from (powers_eq_gpowers g).symm ▸ hg x in
     set.mem_to_finset.2 ⟨(m / (fintype.card α / (gcd n (fintype.card α))) : ℕ),
       have hgmn : g ^ (m * gcd n (fintype.card α)) = 1,
         by rw [pow_mul, hm, ← pow_gcd_card_eq_one_iff]; exact (mem_filter.1 hx).2,
@@ -389,8 +389,8 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card ≤ (gpowers (g ^ (fintype.card �
   end
 
 lemma is_cyclic.exists_monoid_generator (α : Type*) [group α] [fintype α] [is_cyclic α] :
-  ∃ x : α, ∀ y : α, y ∈ powers x :=
-by simp only [powers_eq_gpowers]; exact is_cyclic.exists_generator α
+  ∃ x : α, ∀ y : α, y ∈ submonoid.powers x :=
+by { simp only [submonoid.mem_coe.symm, powers_eq_gpowers], exact is_cyclic.exists_generator α }
 
 section
 
@@ -399,6 +399,7 @@ variables [group α] [fintype α] [decidable_eq α]
 lemma is_cyclic.image_range_order_of (ha : ∀ x : α, x ∈ gpowers a) :
   finset.image (λ i, a ^ i) (range (order_of a)) = univ :=
 begin
+  simp_rw [←subgroup.mem_coe] at ha,
   simp only [image_range_order_of, set.eq_univ_iff_forall.mpr ha],
   convert set.to_finset_univ
 end

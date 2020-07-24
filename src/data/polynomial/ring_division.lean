@@ -346,7 +346,6 @@ A polynomial over an integral domain `R` is irreducible if it is monic and
 A special case of this lemma is that a polynomial over `ℤ` is irreducible if
   it is monic and irreducible over `ℤ/pℤ` for some prime `p`.
 -/
-
 lemma irreducible_of_irreducible_map (f : polynomial R)
   (h_mon : monic f) (h_irr : irreducible (map φ f)) :
   irreducible f :=

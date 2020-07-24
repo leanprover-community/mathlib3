@@ -18,7 +18,7 @@ We give methods for computing coefficients of the characteristic polynomial.
 
 - `degree_char_poly_eq_dim` proves that the degree of the characterist polynomial
   over a nonzero ring is the dimension of the matrix
-- `det_from_char_poly` proves that the determinant is the constant term of the characteristic
+- `det_from_char_poly_coeff_zero` proves that the determinant is the constant term of the characteristic
   polynomial, up to sign.
 - `trace_from_char_poly` proves that the trace is the negative of the coefficient of the
   characteristic polynomial with index one less than the dimension of the matrix. For a nonzero
@@ -188,6 +188,9 @@ begin
   apply congr_arg det, ext, convert eval_mat_poly_equiv _ _ _ _,
 end
 
-theorem det_from_char_poly (M: matrix n n R) :
-M.det = (-1)^(fintype.card n) * (char_poly M).coeff 0:=
-by rw [coeff_zero_eq_eval_zero, char_poly, eval_det, mat_poly_equiv_char_matrix, ← det_smul]; simp
+theorem det_from_char_poly_coeff_zero (M : matrix n n R) :
+  M.det = (-1)^(fintype.card n) * (char_poly M).coeff 0:=
+begin
+  rw [coeff_zero_eq_eval_zero, char_poly, eval_det, mat_poly_equiv_char_matrix, ← det_smul],
+  simp
+end

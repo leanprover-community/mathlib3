@@ -98,7 +98,6 @@ end
 
 lemma bot_eq_zero : (⊥ : α →₀ γ) = 0 := rfl
 
-@[simp]
 lemma disjoint_iff {x y : α →₀ γ} : disjoint x y ↔ disjoint x.support y.support :=
 begin
   unfold disjoint, repeat {rw le_bot_iff},

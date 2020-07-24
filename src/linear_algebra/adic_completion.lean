@@ -4,15 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import algebra.pi_instances
 import linear_algebra.smodeq
 import ring_theory.ideal_operations
-import data.padics
 
 /-!
 # Completion of a module with respect to an ideal.
 
-In this file we define the notion of Hausdorff and precomplete and complete for an `R`-module `M`
+In this file we define the notions of Hausdorff, precomplete, and complete for an `R`-module `M`
 with respect to an ideal `I`:
 
 ## Main definitions
@@ -20,7 +18,7 @@ with respect to an ideal `I`:
 - `is_Hausdorff I M`: this says that the intersection of `I^n M` is `0`.
 - `is_precomplete I M`: this says that every Cauchy sequence converges.
 - `is_adic_complete I M`: this says that `M` is Hausdorff and precomplete.
-- `Hausdorfficiation I M`: this is the universal Hausdorff module with a map from `M`.
+- `Hausdorffification I M`: this is the universal Hausdorff module with a map from `M`.
 - `completion I M`: if `I` is finitely generated, then this is the universal complete module (TODO)
   with a map from `M`. This map is injective iff `M` is Hausdorff and surjective iff `M` is
   precomplete.
@@ -50,7 +48,7 @@ is_Hausdorff I M ∧ is_precomplete I M
 @[reducible] def Hausdorffification : Type* :=
 (⨅ n : ℕ, I ^ n • ⊤ : submodule R M).quotient
 
-/-- The completion of a module with respect to an ideal. This is not Hausdorff.
+/-- The completion of a module with respect to an ideal. This is not necessarily Hausdorff.
 In fact, this is only complete if the ideal is finitely generated. -/
 def adic_completion : submodule R (Π n : ℕ, (I ^ n • ⊤ : submodule R M).quotient) :=
 { carrier := { f | ∀ {m n} (h : m ≤ n), liftq _ (mkq _)

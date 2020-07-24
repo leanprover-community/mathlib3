@@ -336,16 +336,25 @@ begin
     simpa using u, }
 end
 
+end
+
+section
+variables [integral_domain R] [integral_domain S] (φ : R →+* S)
 /--
-A polynomial over `ℤ` is irreducible if it is monic and irreducible over `ℤ/pℤ` for some prime `p`.
+A polynomial over an integral domain `R` is irreducible if it is monic and
+  irreducible after mapping into an integral domain `S`.
+
+A special case of this lemma is that a polynomial over `ℤ` is irreducible if
+  it is monic and irreducible over `ℤ/pℤ` for some prime `p`.
 -/
-lemma irreducible_of_irreducible_mod_prime (f : polynomial ℤ) (p : ℕ) [fact p.prime]
-  (h_mon : monic f) (h_irr : irreducible (map (int.cast_ring_hom (zmod p)) f)) :
+
+lemma irreducible_of_irreducible_map (f : polynomial R)
+  (h_mon : monic f) (h_irr : irreducible (map φ f)) :
   irreducible f :=
 begin
   fsplit,
   { intro h,
-    exact h_irr.1 (is_unit.map' (map (int.cast_ring_hom (zmod p))) h), },
+    exact h_irr.1 (is_unit.map (monoid_hom.of (map φ)) h), },
   { intros a b h,
 
     have q := (leading_coeff_mul a b).symm,
@@ -357,7 +366,7 @@ begin
     have bu : is_unit b.leading_coeff := is_unit_of_mul_eq_one _ _ q,
     clear q h_mon,
 
-    have h' := congr_arg (map (int.cast_ring_hom (zmod p))) h,
+    have h' := congr_arg (map φ) h,
     simp only [map_mul] at h',
     cases h_irr.2 _ _ h' with w w,
     { left,
@@ -367,7 +376,6 @@ begin
 end
 
 end
-
 
 end polynomial
 

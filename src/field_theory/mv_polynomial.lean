@@ -185,7 +185,7 @@ begin
   refine ⟨∑ n : σ → α, e n • indicator n, _, _⟩,
   { exact sum_mem _ (assume c _, smul_mem _ _ (indicator_mem_restrict_degree _)) },
   { ext n,
-    simp only [linear_map.map_sum, @pi.finset_sum_apply (σ → α) (λ_, α) _ _ _ _ _,
+    simp only [linear_map.map_sum, @finset.sum_apply (σ → α) (λ_, α) _ _ _ _ _,
       pi.smul_apply, linear_map.map_smul],
     simp only [evalₗ_apply],
     transitivity,

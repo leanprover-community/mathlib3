@@ -7,7 +7,10 @@ Theory of topological monoids.
 -/
 
 import topology.continuous_on
-import algebra.pi_instances
+import algebra.group.pi
+import group_theory.submonoid.basic
+import algebra.group.prod
+import deprecated.submonoid
 
 open classical set filter topological_space
 open_locale classical topological_space big_operators

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
 import data.equiv.list
+import logic.function.iterate
 
 /-!
 # The primitive recursive functions

@@ -3,7 +3,8 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Floris van Doorn
 -/
-import algebra.module
+import algebra.module.basic
+import data.set.finite
 
 /-!
 # Pointwise addition, multiplication, and scalar multiplication of sets.

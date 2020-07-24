@@ -543,6 +543,11 @@ add_tactic_doc
 `apply_rules hs n` applies the list of lemmas `hs` and `assumption` on the
 first goal and the resulting subgoals, iteratively, at most `n` times.
 `n` is optional, equal to 50 by default.
+You can pass an `apply_cfg` option argument as `apply_rules hs n opt`.
+(A typical usage would be with `apply_rules hs n { md := reducible })`,
+which asks `apply_rules` to not unfold `semireducible` definitions (i.e. most)
+when checking if a lemma matches the goal.)
+
 `hs` can contain user attributes: in this case all theorems with this
 attribute are added to the list of rules.
 

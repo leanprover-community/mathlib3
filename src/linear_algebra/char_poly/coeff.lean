@@ -7,35 +7,33 @@ Author: Aaron Anderson, Jalex Stark.
 import linear_algebra.char_poly
 import linear_algebra.matrix
 import ring_theory.polynomial.basic
-import number_theory.quadratic_reciprocity
 import algebra.polynomial.big_operators
 
 /-!
-# Characteristic polynomials and the Cayley-Hamilton theorem
+# Characteristic polynomials
 
-We define characteristic polynomials of matrices and
-prove the Cayley–Hamilton theorem over arbitrary commutative rings.
+We give methods for computing coefficients of the characteristic polynomial.
 
 ## Main definitions
 
-* `char_poly` is the characteristic polynomial of a matrix.
-`det_from_char_poly`
-`trace_from_char_poly`
+- `degree_char_poly_eq_dim`
+- `det_from_char_poly`
+- `trace_from_char_poly`
+
 ## Implementation details
 
-We follow a nice proof from http://drorbn.net/AcademicPensieve/2015-12/CayleyHamilton.pdf
 -/
 
 noncomputable theory
 
-universes u_1 u_2 u_3 u_4
+universes u v w z
 
 open polynomial matrix
 open_locale big_operators
 
-variables {R : Type u_1} [comm_ring R]
-variables {n : Type u_2} [fintype n] [decidable_eq n]
-variables {α : Type u_2} [decidable_eq α]
+variables {R : Type u} [comm_ring R]
+variables {n : Type v} [fintype n] [decidable_eq n]
+variables {α : Type v} [decidable_eq α]
 
 open finset
 open polynomial
@@ -73,10 +71,7 @@ by { by_cases i = j; simp [h, ← degree_eq_iff_nat_degree_eq_of_pos (nat.succ_p
 
 lemma nat_degree_char_matrix_val_le (i j : n) :
   (char_matrix M i j).nat_degree ≤ ite (i = j) 1 0 :=
-begin
-  by_cases i = j, swap, { simp [h] },
-  rw [if_pos h, h, char_matrix_apply_eq], apply nat_degree_X_sub_C_le,
-end
+by split_ifs; simp [h, nat_degree_X_sub_C_le]
 
 variable (M)
 lemma low_degree_char_poly_sub_diagonal :
@@ -104,10 +99,8 @@ begin
 end
 
 lemma det_of_dim_zero (h : fintype.card n = 0) (M : matrix n n R) : M.det = 1 :=
-begin
-  rw fintype.card_eq_zero_iff at h,
-  have hone : M = 1, ext, exfalso, apply h i, rw hone, simp,
-end
+by { rw fintype.card_eq_zero_iff at h, suffices : M = 1, { simp [this] }, ext, tauto }
+
 
 theorem degree_char_poly_eq_dim [nontrivial R] (M: matrix n n R) :
 (char_poly M).degree = fintype.card n :=
@@ -127,8 +120,8 @@ theorem nat_degree_char_poly_eq_dim [nontrivial R] (M: matrix n n R) :
   (char_poly M).nat_degree = fintype.card n :=
 nat_degree_eq_of_degree_eq_some (degree_char_poly_eq_dim M)
 
-lemma char_poly_monic_of_nontrivial [nontrivial R] (M : matrix n n R):
-  monic (char_poly M):=
+lemma char_poly_monic_of_nontrivial [nontrivial R] (M : matrix n n R) :
+  monic (char_poly M) :=
 begin
   by_cases fintype.card n = 0, rw [char_poly, det_of_dim_zero h], apply monic_one,
   have mon : (∏ (i : n), (X - C (M i i))).monic,
@@ -140,13 +133,12 @@ begin
   rw ← nat.pred_eq_sub_one, apply nat.pred_lt, apply h,
 end
 
-lemma char_poly_monic (M : matrix n n R):
-  monic (char_poly M):=
+lemma char_poly_monic (M : matrix n n R) :
+  monic (char_poly M) :=
 begin
-  classical,
-  by_cases h : nontrivial R,
-  { apply @char_poly_monic_of_nontrivial _ _ _ _ _ h, },
-  { unfold monic, rw nontrivial_iff at h, push_neg at h, apply h, }
+  classical, by_cases h : nontrivial R,
+  { letI := h, apply char_poly_monic_of_nontrivial, },
+  { rw nontrivial_iff at h, push_neg at h, apply h, }
 end
 
 --shouldn't need these instances, but might need casework
@@ -158,17 +150,17 @@ begin
   rw [← fintype.card, fintype.card_pos_iff], apply_instance,
 end
 
-lemma ring_hom_det {S : Type u_1} [comm_ring S] {M : matrix n n R} {f : R →+* S} :
+lemma ring_hom_det {S : Type w} [comm_ring S] {M : matrix n n R} {f : R →+* S} :
   f M.det = matrix.det (f.map_matrix M) :=
-by { unfold matrix.det, simp [f.map_sum, f.map_prod] }
+by simp [matrix.det, f.map_sum, f.map_prod]
 
-lemma alg_hom_det {S : Type u_1} [comm_ring S] [algebra R S] {T : Type u_1} [comm_ring T] [algebra R T]
+lemma alg_hom_det {S : Type w} [comm_ring S] [algebra R S] {T : Type z} [comm_ring T] [algebra R T]
   {M : matrix n n S} {f : S →ₐ[R] T} :
   f M.det = matrix.det ((f : S →+* T).map_matrix M) :=
-by { rw [← alg_hom.coe_to_ring_hom, ring_hom_det], }
+by rw [← alg_hom.coe_to_ring_hom, ring_hom_det]
 
 lemma matrix.scalar.commute (r : R) (M : matrix n n R) : commute (scalar n r) M :=
-by { unfold commute, unfold semiconj_by, simp }
+by simp [commute, semiconj_by]
 
 -- I feel like this should use polynomial.alg_hom_eval₂_algebra_map
 lemma eval_mat_poly_equiv (M : matrix n n (polynomial R)) (r : R) (i j : n) :

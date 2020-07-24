@@ -7,6 +7,7 @@ import linear_algebra.finsupp
 import linear_algebra.projection
 import order.zorn
 import data.fintype.card
+import data.finset.order
 
 /-!
 
@@ -100,6 +101,14 @@ linear_independent_iff.trans
     ... = 0 : finsupp.ext_iff.1 h i,
 λ hf l hl, finsupp.ext $ λ i, classical.by_contradiction $ λ hni, hni $ hf _ _ hl _ $
   finsupp.mem_support_iff.2 hni⟩
+
+theorem linear_independent_iff'' :
+  linear_independent R v ↔ ∀ (s : finset ι) (g : ι → R) (hg : ∀ i ∉ s, g i = 0),
+    ∑ i in s, g i • v i = 0 → ∀ i, g i = 0 :=
+linear_independent_iff'.trans ⟨λ H s g hg hv i, if his : i ∈ s then H s g hv i his else hg i his,
+λ H s g hg i hi, by { convert H s (λ j, if j ∈ s then g j else 0) (λ j hj, if_neg hj)
+    (by simp_rw [ite_smul, zero_smul, finset.sum_extend_by_zero, hg]) i,
+  exact (if_pos hi).symm }⟩
 
 theorem linear_dependent_iff : ¬ linear_independent R v ↔
   ∃ s : finset ι, ∃ g : ι → R, s.sum (λ i, g i • v i) = 0 ∧ (∃ i ∈ s, g i ≠ 0) :=
@@ -618,8 +627,8 @@ begin
   have inj_v' : injective v' := (linear_independent.injective zero_eq_one hv'),
   apply linear_independent.of_subtype_range,
   { apply sum.elim_injective,
-    { exact prod.inl_injective.comp inj_v },
-    { exact prod.inr_injective.comp inj_v' },
+    { exact inl_injective.comp inj_v },
+    { exact inr_injective.comp inj_v' },
     { intros, simp [hv.ne_zero zero_eq_one] } },
   { rw sum.elim_range,
     refine (hv.image _).to_subtype_range.union (hv'.image _).to_subtype_range _;
@@ -653,7 +662,7 @@ have h1 : ∀ i ∈ s, (g i • i : G → L) = g i • a, from λ i his, funext 
     (funext $ λ y : G, calc
     -- After that, it's just a chase scene.
           (∑ i in s, ((g i * i x - g i * a x) • i : G → L)) y
-        = ∑ i in s, (g i * i x - g i * a x) * i y : pi.finset_sum_apply _ _ _
+        = ∑ i in s, (g i * i x - g i * a x) * i y : finset.sum_apply _ _ _
     ... = ∑ i in s, (g i * i x * i y - g i * a x * i y) : finset.sum_congr rfl
       (λ _ _, sub_mul _ _ _)
     ... = ∑ i in s, g i * i x * i y - ∑ i in s, g i * a x * i y : finset.sum_sub_distrib
@@ -666,7 +675,7 @@ have h1 : ∀ i ∈ s, (g i • i : G → L) = g i • a, from λ i his, funext 
         (finset.sum_congr rfl $ λ _ _, by rw [mul_assoc, mul_left_comm])
     ... = (∑ i in insert a s, (g i • i : G → L)) (x * y)
           - a x * (∑ i in insert a s, (g i • i : G → L)) y :
-      by rw [pi.finset_sum_apply, pi.finset_sum_apply, finset.mul_sum]; refl
+      by rw [finset.sum_apply, finset.sum_apply, finset.mul_sum]; refl
     ... = 0 - a x * 0 : by rw hg; refl
     ... = 0 : by rw [mul_zero, sub_zero])
     i
@@ -880,7 +889,7 @@ begin
     intro hi,
     simp [hi] },
   { refine top_unique (λ _ _, _),
-    simp [submodule.mem_span_singleton] }
+    simp only [mem_span_singleton, range_const, mul_one, exists_eq, smul_eq_mul] }
 end
 
 protected lemma linear_equiv.is_basis (hs : is_basis R v)

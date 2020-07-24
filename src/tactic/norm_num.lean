@@ -5,7 +5,6 @@ Authors: Simon Hudon, Mario Carneiro
 -/
 import data.rat.cast
 import data.rat.meta_defs
-import tactic.doc_commands
 
 /-!
 # `norm_num`

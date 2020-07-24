@@ -5,7 +5,7 @@ Author: Yury Kudryashov
 -/
 import algebra.group.type_tags
 import algebra.group.units_hom
-import algebra.ring
+import algebra.ring.basic
 
 /-!
 # Unbundled monoid and group homomorphisms (deprecated)

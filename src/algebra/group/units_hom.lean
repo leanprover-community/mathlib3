@@ -3,7 +3,6 @@ Copyright (c) 2018 Johan Commelin All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Chris Hughes, Kevin Buzzard
 -/
-import algebra.group.units
 import algebra.group.hom
 /-!
 # Lift monoid homomorphisms to group homomorphisms of their units subgroups.

@@ -6,8 +6,10 @@ Authors: Johan Commelin
 Nonnegative real numbers.
 -/
 import algebra.linear_ordered_comm_group_with_zero
+import algebra.big_operators.ring
 import data.finset.lattice
 import data.real.basic
+import data.indicator_function
 
 noncomputable theory
 
@@ -99,6 +101,10 @@ instance : comm_group_with_zero ℝ≥0 :=
   .. (by apply_instance : has_inv ℝ≥0),
   .. (_ : comm_semiring ℝ≥0),
   .. (_ : semiring ℝ≥0) }
+
+@[simp, norm_cast] lemma coe_indicator {α} (s : set α) (f : α → ℝ≥0) (a : α) :
+  ((s.indicator f a : ℝ≥0) : ℝ) = s.indicator (λ x, f x) a :=
+(to_real_hom : ℝ≥0 →+ ℝ).map_indicator _ _ _
 
 @[simp, norm_cast] protected lemma coe_div (r₁ r₂ : ℝ≥0) : ((r₁ / r₂ : ℝ≥0) : ℝ) = r₁ / r₂ := rfl
 @[norm_cast] lemma coe_pow (r : ℝ≥0) (n : ℕ) : ((r^n : ℝ≥0) : ℝ) = r^n :=

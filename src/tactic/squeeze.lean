@@ -94,6 +94,15 @@ meta def parse_config : option pexpr → tactic (simp_config_ext × format)
      prod.mk <$> eval_expr simp_config_ext e
              <*> struct.to_tactic_format cfg
 
+/-- translate a `pexpr` into a `dsimp` configuration -/
+meta def parse_dsimp_config : option pexpr → tactic (dsimp_config × format)
+| none := pure ({}, "")
+| (some cfg) :=
+  do e ← to_expr ``(%%cfg : simp_config_ext),
+     fmt ← has_to_tactic_format.to_tactic_format cfg,
+     prod.mk <$> eval_expr dsimp_config e
+             <*> struct.to_tactic_format cfg
+
 /-- `same_result proof tac` runs tactic `tac` and checks if the proof
 produced by `tac` is equivalent to `proof`. -/
 meta def same_result (pr : proof_state) (tac : tactic unit) : tactic bool :=
@@ -137,16 +146,23 @@ do e ← resolve_name' n, pure $ simp_arg_type.expr e
 /-- tactic combinator to create a `simp`-like tactic that minimizes its
 argument list.
 
+ * `slow`: adds all rfl-lemmas from the environment to the initial list (this is a slower but more accurate strategy)
  * `no_dflt`: did the user use the `only` keyword?
  * `args`:    list of `simp` arguments
  * `tac`:     how to invoke the underlying `simp` tactic
 
 -/
 meta def squeeze_simp_core
-  (no_dflt : bool) (args : list simp_arg_type)
+  (slow no_dflt : bool) (args : list simp_arg_type)
   (tac : Π (no_dflt : bool) (args : list simp_arg_type), tactic unit)
   (mk_suggestion : list simp_arg_type → tactic unit) : tactic unit :=
 do v ← target >>= mk_meta_var,
+   args ← if slow then do
+     simp_set ← attribute.get_instances `simp,
+     simp_set ← simp_set.mfilter $ has_attribute' `_refl_lemma,
+     simp_set ← simp_set.mmap $ resolve_name' >=> pure ∘ simp_arg_type.expr,
+     pure $ args ++ simp_set
+   else pure args,
    g ← retrieve $ do
    { g ← main_goal,
      tac no_dflt args,
@@ -199,13 +215,14 @@ do none ← squeeze_loc_attr.get_param ``squeeze_loc_attr_carrier | pure (),
          mk_suggestion p pre post (suggs.foldl list.union []) tt, pure () }
 
 /--
-`squeeze_simp` and `squeeze_simpa` perform the same task with
-the difference that `squeeze_simp` relates to `simp` while
-`squeeze_simpa` relates to `simpa`. The following applies to both
-`squeeze_simp` and `squeeze_simpa`.
+`squeeze_simp`, `squeeze_simpa` and `squeeze_dsimp` perform the same
+task with the difference that `squeeze_simp` relates to `simp` while
+`squeeze_simpa` relates to `simpa` and `squeeze_dsimp` relates to
+`dsimp`. The following applies to `squeeze_simp`, `squeeze_simpa` and
+`squeeze_dsimp`.
 
 `squeeze_simp` behaves like `simp` (including all its arguments)
-and prints a `simp only` invokation to skip the search through the
+and prints a `simp only` invocation to skip the search through the
 `simp` lemma list.
 
 For instance, the following is easily solved with `simp`:
@@ -248,14 +265,18 @@ Known limitation(s):
     It is likely that none of the suggestion is a good replacement but they can all be
     combined by concatenating their list of lemmas. `squeeze_scope` can be used to
     combine the suggestions: `by squeeze_scope { cases x; squeeze_simp }`
+  * sometimes, `simp` lemmas are also `_refl_lemma` and they can be used without appearing in the
+    resulting proof. `squeeze_simp` won't know to try that lemma unless it is called as `squeeze_simp?`
+
 -/
 meta def squeeze_simp
   (key : parse cur_pos)
+  (slow_and_accurate : parse (tk "?")?)
   (use_iota_eqn : parse (tk "!")?) (no_dflt : parse only_flag) (hs : parse simp_arg_list)
   (attr_names : parse with_ident_list) (locat : parse location)
   (cfg : parse struct_inst?) : tactic unit :=
 do (cfg',c) ← parse_config cfg,
-   squeeze_simp_core no_dflt hs
+   squeeze_simp_core slow_and_accurate.is_some no_dflt hs
      (λ l_no_dft l_args, simp use_iota_eqn l_no_dft l_args attr_names locat cfg')
      (λ args,
         let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
@@ -268,13 +289,14 @@ do (cfg',c) ← parse_config cfg,
 /-- see `squeeze_simp` -/
 meta def squeeze_simpa
   (key : parse cur_pos)
+  (slow_and_accurate : parse (tk "?")?)
   (use_iota_eqn : parse (tk "!")?) (no_dflt : parse only_flag) (hs : parse simp_arg_list)
   (attr_names : parse with_ident_list) (tgt : parse (tk "using" *> texpr)?)
   (cfg : parse struct_inst?) : tactic unit :=
 do (cfg',c) ← parse_config cfg,
    tgt' ← traverse (λ t, do t ← to_expr t >>= pp,
                             pure format!" using {t}") tgt,
-   squeeze_simp_core no_dflt hs
+   squeeze_simp_core slow_and_accurate.is_some no_dflt hs
      (λ l_no_dft l_args, simpa use_iota_eqn l_no_dft l_args attr_names tgt cfg')
      (λ args,
         let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
@@ -284,15 +306,38 @@ do (cfg',c) ← parse_config cfg,
           sformat!"Try this: simpa{use_iota_eqn} only "
           sformat!"{attrs}{tgt'}{c}" args)
 
+/-- `squeeze_dsimp` behaves like `dsimp` (including all its arguments)
+and prints a `dsimp only` invocation to skip the search through the
+`simp` lemma list. See the doc string of `squeeze_simp` for examples.
+ -/
+meta def squeeze_dsimp
+  (key : parse cur_pos)
+  (slow_and_accurate : parse (tk "?")?)
+  (use_iota_eqn : parse (tk "!")?)
+  (no_dflt : parse only_flag) (hs : parse simp_arg_list)
+  (attr_names : parse with_ident_list) (locat : parse location)
+  (cfg : parse struct_inst?) : tactic unit :=
+do (cfg',c) ← parse_dsimp_config cfg,
+   squeeze_simp_core slow_and_accurate.is_some no_dflt hs
+     (λ l_no_dft l_args, dsimp l_no_dft l_args attr_names locat cfg')
+     (λ args,
+        let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
+            attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
+            loc := loc.to_string locat in
+        mk_suggestion (key.move_left 1)
+          sformat!"Try this: dsimp{use_iota_eqn} only "
+          sformat!"{attrs}{loc}{c}" args)
+
 end interactive
 end tactic
 
 open tactic.interactive
 add_tactic_doc
-{ name       := "squeeze_simp / squeeze_simpa / squeeze_scope",
+{ name       := "squeeze_simp / squeeze_simpa / squeeze_dsimp / squeeze_scope",
   category   := doc_category.tactic,
   decl_names :=
    [``squeeze_simp,
+    ``squeeze_dsimp,
     ``squeeze_simpa,
     ``squeeze_scope],
   tags       := ["simplification", "Try this"],

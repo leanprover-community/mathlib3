@@ -162,6 +162,11 @@ variables [semiring R] [semiring S]
 def to_ring_hom (e : R ≃+* S) : R →+* S :=
 { .. e.to_mul_equiv.to_monoid_hom, .. e.to_add_equiv.to_add_monoid_hom }
 
+instance has_coe_to_ring_hom : has_coe (R ≃+* S) (R →+* S) := ⟨ring_equiv.to_ring_hom⟩
+
+@[norm_cast] lemma coe_ring_hom (f : R ≃+* S) (a : R) :
+  (f : R →+* S) a = f a := rfl
+
 /-- Reinterpret a ring equivalence as a monoid homomorphism. -/
 abbreviation to_monoid_hom (e : R ≃+* S) : R →* S := e.to_ring_hom.to_monoid_hom
 

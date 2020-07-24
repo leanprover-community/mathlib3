@@ -49,7 +49,7 @@ def liftr {α : typevec n} (r : Π {i}, α i → α i → Prop) (x y : F α) : P
 /-- given `x : F α` and a projection `i` of type vector `α`, `supp x i` is the set
 of `α.i` contained in `x` -/
 def supp {α : typevec n} (x : F α) (i : fin2 n) : set (α i) :=
-{ y : α i | ∀ {p}, liftp p x → p i y }
+{ y : α i | ∀ ⦃p⦄, liftp p x → p i y }
 
 theorem of_mem_supp {α : typevec n} {x : F α} {p : Π ⦃i⦄, α i → Prop} (h : liftp p x) (i : fin2 n):
   ∀ y ∈ supp x i, p y :=

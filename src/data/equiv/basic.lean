@@ -261,12 +261,18 @@ def prop_equiv_punit {p : Prop} (h : p) : p ≃ punit :=
 def true_equiv_punit : true ≃ punit := prop_equiv_punit trivial
 
 /-- `ulift α` is equivalent to `α`. -/
-protected def ulift {α : Type u} : ulift α ≃ α :=
+protected def ulift {α : Type v} : ulift.{u} α ≃ α :=
 ⟨ulift.down, ulift.up, ulift.up_down, λ a, rfl⟩
+
+@[simp] lemma coe_ulift {α : Type v} : ⇑(@equiv.ulift.{u} α) = ulift.down := rfl
+@[simp] lemma coe_ulift_symm {α : Type v} : ⇑(@equiv.ulift.{u} α).symm = ulift.up := rfl
 
 /-- `plift α` is equivalent to `α`. -/
 protected def plift : plift α ≃ α :=
 ⟨plift.down, plift.up, plift.up_down, plift.down_up⟩
+
+@[simp] lemma coe_plift : ⇑(@equiv.plift α) = plift.down := rfl
+@[simp] lemma coe_plift_symm : ⇑(@equiv.plift α).symm = plift.up := rfl
 
 /-- equivalence of propositions is the same as iff -/
 def of_iff {P Q : Prop} (h : P ↔ Q) : P ≃ Q :=

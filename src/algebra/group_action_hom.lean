@@ -273,7 +273,7 @@ protected noncomputable def polynomial (g : P →+*[M] Q) : polynomial P →+*[M
   map_one' := polynomial.map_one g,
   map_mul' := λ p q, polynomial.map_mul g }
 
-theorem coe_polynomial (g : P →+*[M] Q) : (g.polynomial : polynomial P → polynomial Q) = map g :=
+@[simp] theorem coe_polynomial (g : P →+*[M] Q) : (g.polynomial : polynomial P → polynomial Q) = map g :=
 rfl
 
 end mul_semiring_action_hom
@@ -284,7 +284,7 @@ variables (M) {R'} (U : set R') [is_subring U] [is_invariant_subring M U]
 def is_invariant_subring.subtype_hom : U →+*[M] R' :=
 { map_smul' := λ m s, rfl, .. is_subring.subtype U }
 
-theorem is_invariant_subring.coe_subtype_hom : (is_invariant_subring.subtype_hom M U : U → R') = coe := rfl
+@[simp] theorem is_invariant_subring.coe_subtype_hom : (is_invariant_subring.subtype_hom M U : U → R') = coe := rfl
 
 @[simp] theorem is_invariant_subring.coe_subtype_hom' :
   (is_invariant_subring.subtype_hom M U : U →+* R') = is_subring.subtype U := rfl

@@ -8,7 +8,6 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 import data.polynomial.basic
 import data.polynomial.div
 import data.polynomial.algebra_map
-import data.zmod.basic
 
 /-!
 # Theory of univariate polynomials

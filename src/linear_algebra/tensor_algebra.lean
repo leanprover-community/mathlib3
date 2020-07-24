@@ -324,19 +324,18 @@ def lift {A : Type u3} [semiring A] [algebra R A] (f : M →ₗ[R] A) : tensor_a
 variables {R M}
 
 theorem univ_comp_lift {A : Type u3} [semiring A] [algebra R A] (f : M →ₗ[R] A) :
-  (lift R M f) ∘ (univ R M) = f := rfl
+  (lift R M f).to_linear_map.comp (univ R M) = f := by {ext, refl}
 
 theorem lift_unique {A : Type u3} [semiring A] [algebra R A] (f : M →ₗ[R] A)
-  (g : tensor_algebra R M →ₐ[R] A) : g ∘ (univ R M) = f → g = lift R M f :=
+  (g : tensor_algebra R M →ₐ[R] A) : g.to_linear_map.comp (univ R M) = f → g = lift R M f :=
 begin
   intro hyp,
   ext,
   rcases quot.exists_rep x with ⟨x,rfl⟩,
   let G := lift_fun R M f,
   induction x,
-  { change (g ∘ (univ R M)) _ = _,
-    rw hyp,
-    refl },
+  { change (g.to_linear_map.comp (univ R M)) _ = _,
+    rw hyp, refl },
   { change g (algebra_map R _ _) = algebra_map _ _ _,
     exact alg_hom.commutes g x },
   { change g (quot.mk _ x_a + quot.mk _ x_a_1) = _,
@@ -347,6 +346,17 @@ begin
     rw alg_hom.map_mul,
     rw x_ih_a, rw x_ih_a_1,
     refl },
+end
+
+theorem hom_ext {A : Type u3} [semiring A] [algebra R A] {f g : tensor_algebra R M →ₐ[R] A} :
+  f.to_linear_map.comp (univ R M) = g.to_linear_map.comp (univ R M) → f = g :=
+begin
+  intro hyp,
+  let h := f.to_linear_map.comp (univ R M),
+  have : f = lift R M h, by apply lift_unique; refl,
+  rw this, clear this,
+  symmetry, apply lift_unique,
+  rw ←hyp,
 end
 
 end tensor_algebra

@@ -265,8 +265,11 @@ protected lemma nonempty.some_mem (h : s.nonempty) : h.some ∈ s := classical.s
 
 lemma nonempty.mono (ht : s ⊆ t) (hs : s.nonempty) : t.nonempty := hs.imp ht
 
+lemma nonempty_of_not_subset (h : ¬s ⊆ t) : (s \ t).nonempty :=
+let ⟨x, xs, xt⟩ := not_subset.1 h in ⟨x, xs, xt⟩
+
 lemma nonempty_of_ssubset (ht : s ⊂ t) : (t \ s).nonempty :=
-let ⟨x, xt, xs⟩ := exists_of_ssubset ht in ⟨x, xt, xs⟩
+nonempty_of_not_subset ht.2
 
 lemma nonempty.of_diff (h : (s \ t).nonempty) : s.nonempty := h.imp $ λ _, and.left
 

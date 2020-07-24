@@ -75,10 +75,10 @@ disequality hypotheses, since this would lead to a number of runs exponential in
 disequalities in the context.
 
 The Fourier-Motzkin oracle is very modular. It can easily be replaced with another function of type
-`list comp → ℕ → option (rb_map ℕ ℕ)`, which takes a list of comparisons and the largest variable
+`certificate_oracle := list comp → ℕ → tactic (rb_map ℕ ℕ)`,
+which takes a list of comparisons and the largest variable
 index appearing in those comparisons, and returns a map from comparison indices to coefficients.
-Because we do not expect another oracle to be available any time soon, there is no convenient hook
-to replace it, but doing so requires only a few lines of code to change.
+An alternate oracle can be specified in the `linarith_config` object.
 
 A variant, `nlinarith`, adds an extra preprocessing step to handle some basic nonlinear goals.
 There is a hook in the `linarith_config` configuration object to add custom preprocessing routines.

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Floris van Doorn
 -/
 import algebra.module
+import data.set.finite
 
 /-!
 # Pointwise addition, multiplication, and scalar multiplication of sets.
@@ -258,6 +259,12 @@ iff.rfl
 lemma image_smul_prod [has_scalar α β] {t : set β} :
   (λ x : α × β, x.fst • x.snd) '' s.prod t = s • t :=
 image_prod _
+
+theorem range_smul_range [has_scalar α β] {ι κ : Type*} (b : ι → α) (c : κ → β) :
+  range b • range c = range (λ p : ι × κ, b p.1 • c p.2) :=
+ext $ λ x, ⟨λ hx, let ⟨p, q, ⟨i, hi⟩, ⟨j, hj⟩, hpq⟩ := set.mem_smul.1 hx in
+  ⟨(i, j), hpq ▸ hi ▸ hj ▸ rfl⟩,
+λ ⟨⟨i, j⟩, h⟩, set.mem_smul.2 ⟨b i, c j, ⟨i, rfl⟩, ⟨j, rfl⟩, h⟩⟩
 
 lemma singleton_smul [has_scalar α β] {t : set β} : ({a} : set α) • t = a • t :=
 image2_singleton_left

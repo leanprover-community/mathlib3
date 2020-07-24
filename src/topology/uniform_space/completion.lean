@@ -2,8 +2,11 @@
 Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
+-/
+import topology.uniform_space.abstract_completion
 
-Hausdorff completions of uniform spaces.
+/-!
+# Hausdorff completions of uniform spaces
 
 The goal is to construct a left-adjoint to the inclusion of complete Hausdorff uniform spaces
 into all uniform spaces. Any uniform space `α` gets a completion `completion α` and a morphism
@@ -29,12 +32,13 @@ In this file we introduce the following concepts:
 
 * `completion α := quotient (separation_setoid (Cauchy α))` the Hausdorff completion.
 
+## References
+
 This formalization is mostly based on
   N. Bourbaki: General Topology
   I. M. James: Topologies and Uniformities
 From a slightly different perspective in order to reuse material in topology.uniform_space.basic.
 -/
-import topology.uniform_space.abstract_completion
 
 noncomputable theory
 open filter set
@@ -91,7 +95,7 @@ let ⟨t₃, (ht₃ : t₃ ∈ h.val), t₄, (ht₄ : t₄ ∈ g.val), (h₂ : s
 have t₂ ∩ t₃ ∈ h.val,
   from inter_mem_sets ht₂ ht₃,
 let ⟨x, xt₂, xt₃⟩ :=
-  nonempty_of_mem_sets (h.property.left) this in
+  h.property.left.nonempty_of_mem this in
 (filter.prod f.val g.val).sets_of_superset
   (prod_mem_prod ht₁ ht₄)
   (assume ⟨a, b⟩ ⟨(ha : a ∈ t₁), (hb : b ∈ t₄)⟩,
@@ -161,7 +165,7 @@ have h_ex : ∀ s ∈ 𝓤 (Cauchy α), ∃y:α, (f, pure_cauchy y) ∈ s, from
   have t' ∈ filter.prod (f.val) (f.val),
     from f.property.right ht'₁,
   let ⟨t, ht, (h : set.prod t t ⊆ t')⟩ := mem_prod_same_iff.mp this in
-  let ⟨x, (hx : x ∈ t)⟩ := nonempty_of_mem_sets f.property.left ht in
+  let ⟨x, (hx : x ∈ t)⟩ := f.property.left.nonempty_of_mem ht in
   have t'' ∈ filter.prod f.val (pure x),
     from mem_prod_iff.mpr ⟨t, ht, {y:α | (x, y) ∈ t'},
       h $ mk_mem_prod hx hx,
@@ -308,8 +312,8 @@ instance complete_space_separation [h : complete_space α] :
   complete_space (quotient (separation_setoid α)) :=
 ⟨assume f, assume hf : cauchy f,
   have cauchy (f.comap (λx, ⟦x⟧)), from
-    cauchy_comap comap_quotient_le_uniformity hf $
-      comap_ne_bot_of_surj hf.left $ assume b, quotient.exists_rep _,
+    hf.comap' comap_quotient_le_uniformity $
+      hf.left.comap_of_surj $ assume b, quotient.exists_rep _,
   let ⟨x, (hx : f.comap (λx, ⟦x⟧) ≤ 𝓝 x)⟩ := complete_space.complete this in
   ⟨⟦x⟧, calc f = map (λx, ⟦x⟧) (f.comap (λx, ⟦x⟧)) :
       (map_comap $ univ_mem_sets' $ assume b, quotient.exists_rep _).symm

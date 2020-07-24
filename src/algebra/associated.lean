@@ -239,6 +239,11 @@ lemma associated_mul_mul [comm_monoid α] {a₁ a₂ b₁ b₂ : α} :
   a₁ ~ᵤ b₁ → a₂ ~ᵤ b₂ → (a₁ * a₂) ~ᵤ (b₁ * b₂)
 | ⟨c₁, h₁⟩ ⟨c₂, h₂⟩ := ⟨c₁ * c₂, by simp [h₁.symm, h₂.symm, mul_assoc, mul_comm, mul_left_comm]⟩
 
+lemma dvd_of_associated [comm_ring α] {a b : α} : a ~ᵤ b → a ∣ b := λ ⟨u, hu⟩, ⟨u, hu.symm⟩
+
+lemma dvd_dvd_of_associated [comm_ring α] {a b : α} (h : a ~ᵤ b) : a ∣ b ∧ b ∣ a :=
+⟨dvd_of_associated h, dvd_of_associated h.symm⟩
+
 theorem associated_of_dvd_dvd [integral_domain α] {a b : α} (hab : a ∣ b) (hba : b ∣ a) : a ~ᵤ b :=
 begin
   haveI := classical.dec_eq α,
@@ -251,6 +256,9 @@ begin
   have : 1 = (c * d), from mul_left_cancel' ha0 this,
   exact ⟨units.mk_of_mul_eq_one c d (this.symm), by rw [units.mk_of_mul_eq_one, units.val_coe]⟩
 end
+
+theorem dvd_dvd_iff_associated [integral_domain α] {a b : α} : a ∣ b ∧ b ∣ a ↔ a ~ᵤ b :=
+⟨λ ⟨h1, h2⟩, associated_of_dvd_dvd h1 h2, dvd_dvd_of_associated⟩
 
 lemma exists_associated_mem_of_dvd_prod [integral_domain α] {p : α}
   (hp : prime p) {s : multiset α} : (∀ r ∈ s, prime r) → p ∣ s.prod → ∃ q ∈ s, p ~ᵤ q :=

@@ -133,7 +133,7 @@ begin
     use y,
     -- the limit point `y` will be the desired point, in `t0` and close to our initial point `x`.
     -- First, we check it belongs to `t0`.
-    have : y ∈ t0 := mem_Inter.2 (λk, mem_closure_of_tendsto (by simp) y_lim
+    have : y ∈ t0 := mem_Inter.2 (λk, mem_closure_of_tendsto y_lim
     begin
       simp only [exists_prop, set.mem_Union, filter.eventually_at_top, set.mem_preimage, set.preimage_Union],
       exact ⟨k, λ m hm, ⟨n+m, zero_add k ▸ add_le_add (zero_le n) hm, (z m).2⟩⟩

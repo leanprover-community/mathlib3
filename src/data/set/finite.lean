@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.fintype.basic
-import algebra.big_operators
+import algebra.big_operators.basic
 
 /-!
 # Finite sets
@@ -81,6 +81,8 @@ theorem empty_card : fintype.card (∅ : set α) = 0 := rfl
 eq.trans (by congr) empty_card
 
 @[simp] theorem finite_empty : @finite α ∅ := ⟨set.fintype_empty⟩
+
+instance finite.inhabited : inhabited {s : set α // finite s} := ⟨⟨∅, finite_empty⟩⟩
 
 /-- A `fintype` structure on `insert a s`. -/
 def fintype_insert' {a : α} (s : set α) [fintype s] (h : a ∉ s) : fintype (insert a s : set α) :=

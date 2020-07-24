@@ -388,6 +388,20 @@ is_equivalence.mk (equivalence_inverse F)
     (λ Y, F.fun_obj_preimage_iso Y)
     (by obviously))
 
+@[simp] lemma functor_map_inj_iff (e : C ≌ D) {X Y : C} (f g : X ⟶ Y) : e.functor.map f = e.functor.map g ↔ f = g :=
+begin
+  split,
+  { intro w, apply e.functor.map_injective, exact w, },
+  { rintro ⟨rfl⟩, refl, }
+end
+
+@[simp] lemma inverse_map_inj_iff (e : C ≌ D) {X Y : D} (f g : X ⟶ Y) : e.inverse.map f = e.inverse.map g ↔ f = g :=
+begin
+  split,
+  { intro w, apply e.inverse.map_injective, exact w, },
+  { rintro ⟨rfl⟩, refl, }
+end
+
 end equivalence
 
 end category_theory

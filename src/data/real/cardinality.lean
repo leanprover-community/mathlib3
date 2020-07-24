@@ -5,7 +5,7 @@ Authors: Floris van Doorn
 
 The cardinality of the reals.
 -/
-import set_theory.ordinal
+import set_theory.cardinal_ordinal
 import analysis.specific_limits
 import data.rat.denumerable
 import data.set.intervals.image_preimage

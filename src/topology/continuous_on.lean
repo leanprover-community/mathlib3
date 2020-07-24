@@ -173,6 +173,12 @@ lemma nhds_within_prod_eq {α : Type*} [topological_space α] {β : Type*} [topo
   nhds_within (a, b) (s.prod t) = (nhds_within a s).prod (nhds_within b t) :=
 by { unfold nhds_within, rw [nhds_prod_eq, ←filter.prod_inf_prod, filter.prod_principal_principal] }
 
+lemma nhds_within_prod {α : Type*} [topological_space α] {β : Type*} [topological_space β]
+  {s u : set α} {t v : set β} {a : α} {b : β}
+  (hu : u ∈ nhds_within a s) (hv : v ∈ nhds_within b t) :
+  (u.prod v) ∈ nhds_within (a, b) (s.prod t) :=
+by { rw nhds_within_prod_eq, exact prod_mem_prod hu hv, }
+
 theorem tendsto_if_nhds_within {f g : α → β} {p : α → Prop} [decidable_pred p]
     {a : α} {s : set α} {l : filter β}
     (h₀ : tendsto f (nhds_within a (s ∩ p)) l)
@@ -205,15 +211,15 @@ theorem principal_subtype {α : Type*} (s : set α) (t : set {x // x ∈ s}) :
 by rw [comap_principal, set.preimage_image_eq _ subtype.coe_injective]
 
 lemma mem_closure_iff_nhds_within_ne_bot {s : set α} {x : α} :
-  x ∈ closure s ↔ nhds_within x s ≠ ⊥ :=
-mem_closure_iff_nhds.trans (nhds_within_has_basis (𝓝 x).basis_sets s).forall_nonempty_iff_ne_bot
+  x ∈ closure s ↔ ne_bot (nhds_within x s) :=
+mem_closure_iff_cluster_pt
 
 lemma nhds_within_ne_bot_of_mem {s : set α} {x : α} (hx : x ∈ s) :
-  nhds_within x s ≠ ⊥ :=
+  ne_bot (nhds_within x s) :=
 mem_closure_iff_nhds_within_ne_bot.1 $ subset_closure hx
 
 lemma is_closed.mem_of_nhds_within_ne_bot {s : set α} (hs : is_closed s)
-  {x : α} (hx : nhds_within x s ≠ ⊥) : x ∈ s :=
+  {x : α} (hx : ne_bot $ nhds_within x s) : x ∈ s :=
 by simpa only [hs.closure_eq] using mem_closure_iff_nhds_within_ne_bot.2 hx
 
 /-
@@ -365,8 +371,9 @@ by simp only [continuous_within_at, nhds_within_union, tendsto, map_sup, sup_le_
 
 lemma continuous_within_at.mem_closure_image  {f : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (hx : x ∈ closure s) : f x ∈ closure (f '' s) :=
-mem_closure_of_tendsto (mem_closure_iff_nhds_within_ne_bot.1 hx) h $
-mem_sets_of_superset self_mem_nhds_within (subset_preimage_image f s)
+by haveI := (mem_closure_iff_nhds_within_ne_bot.1 hx);
+exact (mem_closure_of_tendsto h $
+  mem_sets_of_superset self_mem_nhds_within (subset_preimage_image f s))
 
 lemma continuous_within_at.mem_closure {f : α → β} {s : set α} {x : α} {A : set β}
   (h : continuous_within_at f s x) (hx : x ∈ closure s) (hA : s ⊆ f⁻¹' A) : f x ∈ closure A :=

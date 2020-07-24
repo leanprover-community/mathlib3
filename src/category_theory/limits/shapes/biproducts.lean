@@ -6,7 +6,6 @@ Authors: Scott Morrison
 import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.binary_products
 import category_theory.preadditive
-import algebra.big_operators
 
 /-!
 # Biproducts and binary biproducts

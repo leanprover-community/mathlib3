@@ -1497,6 +1497,13 @@ rw [card_insert_of_not_mem h]]
 
 @[simp] theorem card_singleton (a : α) : card ({a} : finset α) = 1 := card_singleton _
 
+lemma card_singleton_inter [decidable_eq α] {x : α} {s : finset α} : ({x} ∩ s).card ≤ 1 :=
+begin
+  cases (finset.decidable_mem x s),
+  { simp [finset.singleton_inter_of_not_mem h] },
+  { simp [finset.singleton_inter_of_mem h] },
+end
+
 theorem card_erase_of_mem [decidable_eq α] {a : α} {s : finset α} :
   a ∈ s → card (erase s a) = pred (card s) := card_erase_of_mem
 
@@ -1769,6 +1776,10 @@ protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨
 @[simp] theorem product_val : (s.product t).1 = s.1.product t.1 := rfl
 
 @[simp] theorem mem_product {p : α × β} : p ∈ s.product t ↔ p.1 ∈ s ∧ p.2 ∈ t := mem_product
+
+theorem subset_product [decidable_eq α] [decidable_eq β] {s : finset (α × β)} :
+  s ⊆ (s.image prod.fst).product (s.image prod.snd) :=
+λ p hp, mem_product.2 ⟨mem_image_of_mem _ hp, mem_image_of_mem _ hp⟩
 
 theorem product_eq_bind [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
  s.product t = s.bind (λa, t.image $ λb, (a, b)) :=

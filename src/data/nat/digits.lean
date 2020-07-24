@@ -17,7 +17,6 @@ We also prove some divisibility tests based on digits, in particular completing
 Theorem #85 from https://www.cs.ru.nl/~freek/100/.
 -/
 
-
 /-- (Impl.) An auxiliary definition for `digits`, to help get the desired definitional unfolding. -/
 def digits_aux_0 : ℕ → list ℕ
 | 0 := []
@@ -69,8 +68,13 @@ begin
   { cases b; refl, },
 end
 
-@[simp] lemma digits_one_succ (n : ℕ) : digits 1 (n + 1) = 1 :: digits 1 n :=
-rfl
+@[simp] lemma digits_zero_zero : digits 0 0 = [] := rfl
+
+@[simp] lemma digits_zero_succ (n : ℕ) : digits 0 (n.succ) = [n+1] := rfl
+
+@[simp] lemma digits_one (n : ℕ) : digits 1 n = list.repeat 1 n := rfl
+
+@[simp] lemma digits_one_succ (n : ℕ) : digits 1 (n + 1) = 1 :: digits 1 n := rfl
 
 @[simp] lemma digits_add_two_add_one (b n : ℕ) :
   digits (b+2) (n+1) = (((n+1) % (b+2)) :: digits (b+2) ((n+1) / (b+2))) := rfl
@@ -413,4 +417,62 @@ begin
   have t := dvd_iff_dvd_of_digits 11 10 (-1 : ℤ) (by norm_num) n,
   rw of_digits_neg_one at t,
   exact t,
+end
+
+lemma digits_len_le_digits_len_succ (b n : ℕ) : (digits b n).length ≤ (digits b (n + 1)).length :=
+begin
+  cases b,
+  { -- base 0
+    cases n; simp },
+  { cases b,
+    { -- base 1
+      simp },
+    { -- base >= 2
+      apply nat.strong_induction_on n,
+      clear n,
+      intros n IH,
+      cases n,
+      { simp },
+      { rw [digits_add_two_add_one, digits_add_two_add_one],
+        by_cases hdvd : (b.succ.succ) ∣ (n.succ+1),
+        { rw [nat.succ_div_of_dvd hdvd, list.length_cons, list.length_cons, nat.succ_le_succ_iff],
+          apply IH,
+          exact nat.div_lt_self (by linarith) (by linarith) },
+        { rw nat.succ_div_of_not_dvd hdvd,
+          refl } } } }
+end
+
+lemma le_digits_len_le (b n m : ℕ) (h : n ≤ m) : (digits b n).length ≤ (digits b m).length :=
+monotone_of_monotone_nat (digits_len_le_digits_len_succ b) h
+
+-- future refactor to proof using lists (see lt_base_pow_length_digits)
+lemma base_pow_length_digits_le' (b m : ℕ) : m ≠ 0 → (b + 2) ^ ((digits (b + 2) m).length) ≤ (b + 2) * m :=
+begin
+  apply nat.strong_induction_on m,
+  clear m,
+  intros n IH npos,
+  cases n,
+  { contradiction },
+  { unfold digits at IH ⊢,
+    rw [digits_aux_def (b+2) (by simp) n.succ nat.succ_pos', list.length_cons],
+    specialize IH ((n.succ) / (b+2)) (nat.div_lt_self' n b),
+    rw [nat.pow_add, nat.pow_one, nat.mul_comm],
+    cases nat.lt_or_ge n.succ (b+2),
+    { rw [nat.div_eq_of_lt h, digits_aux_zero, list.length, nat.pow_zero],
+      apply nat.mul_le_mul_left,
+      exact nat.succ_pos n },
+    { have geb : (n.succ / (b + 2)) ≥ 1 := nat.div_pos h (by linarith),
+      specialize IH (by linarith [geb]),
+      replace IH := nat.mul_le_mul_left (b + 2) IH,
+      have IH' : (b + 2) * ((b + 2) * (n.succ / (b + 2))) ≤ (b + 2) * n.succ,
+      { apply nat.mul_le_mul_left,
+        rw nat.mul_comm,
+        exact nat.div_mul_le_self n.succ (b + 2) },
+      exact le_trans IH IH' } }
+end
+
+lemma base_pow_length_digits_le (b m : ℕ) (hb : 2 ≤ b): m ≠ 0 → b ^ ((digits b m).length) ≤ b * m :=
+begin
+  rcases b with _ | _ | b; try { linarith },
+  exact base_pow_length_digits_le' b m,
 end

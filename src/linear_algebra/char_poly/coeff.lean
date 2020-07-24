@@ -20,7 +20,7 @@ We give methods for computing coefficients of the characteristic polynomial.
   over a nonzero ring is the dimension of the matrix
 - `det_from_char_poly_coeff_zero` proves that the determinant is the constant term of the characteristic
   polynomial, up to sign.
-- `trace_from_char_poly` proves that the trace is the negative of the coefficient of the
+- `trace_eq_neg_coeff_char_poly` proves that the trace is the negative of the coefficient of the
   characteristic polynomial with index one less than the dimension of the matrix. For a nonzero
   ring, this is the second-highest coefficient.
 
@@ -143,7 +143,7 @@ begin
   { rw nontrivial_iff at h, push_neg at h, apply h, }
 end
 
-theorem trace_from_char_poly [nonempty n] (M : matrix n n R) :
+theorem trace_eq_neg_coeff_char_poly [nonempty n] (M : matrix n n R) :
   (matrix.trace n R R) M = -(char_poly M).coeff (fintype.card n - 1) :=
 begin
   by_cases nontrivial R; try { rw not_nontrivial_iff_subsingleton at h }; haveI := h, swap,
@@ -166,27 +166,27 @@ lemma matrix.scalar.commute (r : R) (M : matrix n n R) : commute (scalar n r) M 
 by simp [commute, semiconj_by]
 
 -- I feel like this should use polynomial.alg_hom_eval₂_algebra_map
-lemma eval_mat_poly_equiv (M : matrix n n (polynomial R)) (r : R) (i j : n) :
-  polynomial.eval r (M i j) = polynomial.eval ((scalar n) r) (mat_poly_equiv M) i j :=
+lemma mat_poly_equiv_eval (M : matrix n n (polynomial R)) (r : R) (i j : n) :
+  polynomial.eval ((scalar n) r) (mat_poly_equiv M) i j = polynomial.eval r (M i j) :=
 begin
   unfold polynomial.eval, unfold eval₂,
   transitivity finsupp.sum (mat_poly_equiv M) (λ (e : ℕ) (a : matrix n n R),
     (a * (scalar n) r ^ e) i j),
+  { unfold finsupp.sum, rw sum_apply, rw sum_apply, dsimp, refl, },
   { simp_rw ← (scalar n).map_pow, simp_rw ← (matrix.scalar.commute _ _).eq,
     simp only [coe_scalar, matrix.one_mul, ring_hom.id_apply,
       smul_val, mul_eq_mul, algebra.smul_mul_assoc],
     have h : ∀ x : ℕ, (λ (e : ℕ) (a : R), r ^ e * a) x 0 = 0 := by simp,
-    rw ← finsupp.sum_map_range_index h, swap, refl,
+    symmetry, rw ← finsupp.sum_map_range_index h, swap, refl,
     refine congr (congr rfl _) (by {ext, rw mul_comm}), ext, rw finsupp.map_range_apply,
-    simp [apply_eq_coeff], },
-  { unfold finsupp.sum, rw sum_apply, rw sum_apply, dsimp, refl, }
+    simp [apply_eq_coeff], }
 end
 
 lemma eval_det (M : matrix n n (polynomial R)) (r : R) :
   polynomial.eval r M.det = (polynomial.eval (matrix.scalar n r) (mat_poly_equiv M)).det :=
 begin
   rw [polynomial.eval, ← coe_eval₂_ring_hom, ring_hom_det],
-  apply congr_arg det, ext, convert eval_mat_poly_equiv _ _ _ _,
+  apply congr_arg det, ext, symmetry, convert mat_poly_equiv_eval _ _ _ _,
 end
 
 theorem det_from_char_poly_coeff_zero (M : matrix n n R) :

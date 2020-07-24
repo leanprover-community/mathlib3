@@ -315,6 +315,18 @@ begin
   exact hs xs ys ha hb hab,
 end
 
+/-- Convexity is preserved by affine maps -/
+lemma convex.affine_image {f : affine_map ℝ E E F F} {s : set E} (hs : convex s) :
+  convex (f '' s) :=
+begin
+  intros x y xs ys a b ha hb hab,
+  rcases xs with ⟨x', ⟨hx', hx'f⟩⟩,
+  rcases ys with ⟨y', ⟨hy', hy'f⟩⟩,
+  refine ⟨a • x' + b • y',⟨hs hx' hy' ha hb hab,_⟩⟩,
+  rw [convex.combo_affine_apply, hx'f, hy'f],
+  exact hab,
+end
+
 lemma convex.affinity (hs : convex s) (z : E) (c : ℝ) : convex ((λx, z + c • x) '' s) :=
 begin
   convert (hs.smul c).translate z using 1,

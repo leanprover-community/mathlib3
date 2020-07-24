@@ -174,10 +174,12 @@ def times_cont_mdiff (n : with_top ℕ) (f : M → M') :=
 ∀ x, times_cont_mdiff_at I I' n f x
 
 /-- Abbreviation for `times_cont_mdiff I I' ⊤ f`.
-Short note to work with these abbreviations: there is no need to extend to this case lemmas of the
-form `times_cont_mdiff_foo.bar` if `bar` does not contain `times_cont_mdiff`: dot notation will work
-fine. All other lemmas will have to be stated also in this form to work smoothly with these
-abbreviations. This note also applies to `smooth_at`, `smooth_on` and `smooth_within_at`.-/
+Short note to work with these abbreviations: a lemma of the form `times_cont_mdiff_foo.bar` will
+apply fine to an assumption `smooth_foo` using dot notation or normal notation.
+If the consequence `bar` of the lemma involves `times_cont_diff`, it is still better to restate
+the lemma replacing `times_cont_diff` with `smooth` both in the assumption and in the conclusion,
+to make it possible to use `smooth` consistently.
+This also applies to `smooth_at`, `smooth_on` and `smooth_within_at`.-/
 @[reducible] def smooth (f : M → M') := times_cont_mdiff I I' ⊤ f
 
 /-! ### Basic properties of smooth functions between manifolds -/
@@ -220,6 +222,13 @@ begin
   congr' 3,
   mfld_set_tac
 end
+
+lemma smooth_within_at_iff :
+  smooth_within_at I I' f s x ↔ continuous_within_at f s x ∧
+    times_cont_diff_within_at 𝕜 ∞ ((ext_chart_at I' (f x)) ∘ f ∘ (ext_chart_at I x).symm)
+    ((ext_chart_at I x).target ∩ (ext_chart_at I x).symm ⁻¹' (s ∩ f ⁻¹' (ext_chart_at I' (f x)).source))
+    (ext_chart_at I x x) :=
+times_cont_mdiff_within_at_iff
 
 /-- One can reformulate smoothness on a set as continuity on this set, and smoothness in any
 extended chart. -/
@@ -1137,3 +1146,106 @@ begin
 end
 
 end tangent_map
+
+/-! ### Smoothness of the projection in a basic smooth bundle -/
+
+namespace basic_smooth_bundle_core
+
+variables (Z : basic_smooth_bundle_core I M E')
+
+lemma times_cont_mdiff_proj :
+  times_cont_mdiff ((I.prod (model_with_corners_self 𝕜 E'))) I n
+    Z.to_topological_fiber_bundle_core.proj :=
+begin
+  assume x,
+  rw [times_cont_mdiff_at, times_cont_mdiff_within_at_iff],
+  refine ⟨Z.to_topological_fiber_bundle_core.continuous_proj.continuous_at.continuous_within_at, _⟩,
+  simp only [(∘), chart_at, chart] with mfld_simps,
+  apply times_cont_diff_within_at_fst.congr,
+  { rintros ⟨a, b⟩ hab,
+    simp only with mfld_simps at hab,
+    simp only [hab] with mfld_simps },
+  { simp only with mfld_simps }
+end
+
+lemma smooth_proj :
+  smooth ((I.prod (model_with_corners_self 𝕜 E'))) I Z.to_topological_fiber_bundle_core.proj :=
+times_cont_mdiff_proj Z
+
+lemma times_cont_mdiff_on_proj {s : set (Z.to_topological_fiber_bundle_core.total_space)} :
+  times_cont_mdiff_on ((I.prod (model_with_corners_self 𝕜 E'))) I n
+    Z.to_topological_fiber_bundle_core.proj s :=
+Z.times_cont_mdiff_proj.times_cont_mdiff_on
+
+lemma smooth_on_proj {s : set (Z.to_topological_fiber_bundle_core.total_space)} :
+  smooth_on ((I.prod (model_with_corners_self 𝕜 E'))) I Z.to_topological_fiber_bundle_core.proj s :=
+times_cont_mdiff_on_proj Z
+
+lemma times_cont_mdiff_at_proj {p : Z.to_topological_fiber_bundle_core.total_space} :
+  times_cont_mdiff_at ((I.prod (model_with_corners_self 𝕜 E'))) I n
+    Z.to_topological_fiber_bundle_core.proj p :=
+Z.times_cont_mdiff_proj.times_cont_mdiff_at
+
+lemma smooth_at_proj {p : Z.to_topological_fiber_bundle_core.total_space} :
+  smooth_at ((I.prod (model_with_corners_self 𝕜 E'))) I Z.to_topological_fiber_bundle_core.proj p :=
+Z.times_cont_mdiff_at_proj
+
+lemma times_cont_mdiff_within_at_proj
+  {s : set (Z.to_topological_fiber_bundle_core.total_space)}
+  {p : Z.to_topological_fiber_bundle_core.total_space} :
+  times_cont_mdiff_within_at ((I.prod (model_with_corners_self 𝕜 E'))) I n
+    Z.to_topological_fiber_bundle_core.proj s p :=
+Z.times_cont_mdiff_at_proj.times_cont_mdiff_within_at
+
+lemma smooth_within_at_proj
+  {s : set (Z.to_topological_fiber_bundle_core.total_space)}
+  {p : Z.to_topological_fiber_bundle_core.total_space} :
+  smooth_within_at ((I.prod (model_with_corners_self 𝕜 E'))) I
+    Z.to_topological_fiber_bundle_core.proj s p :=
+Z.times_cont_mdiff_within_at_proj
+
+end basic_smooth_bundle_core
+
+/-! ### Smoothness of the tangent bundle projection -/
+
+namespace tangent_bundle
+
+include Is
+
+lemma times_cont_mdiff_proj :
+  times_cont_mdiff I.tangent I n (proj I M) :=
+basic_smooth_bundle_core.times_cont_mdiff_proj _
+
+lemma smooth_proj : smooth I.tangent I (proj I M) :=
+basic_smooth_bundle_core.smooth_proj _
+
+lemma times_cont_mdiff_on_proj {s : set (tangent_bundle I M)} :
+  times_cont_mdiff_on I.tangent I n (proj I M) s :=
+basic_smooth_bundle_core.times_cont_mdiff_on_proj _
+
+lemma smooth_on_proj {s : set (tangent_bundle I M)} :
+  smooth_on I.tangent I (proj I M) s :=
+basic_smooth_bundle_core.smooth_on_proj _
+
+lemma times_cont_mdiff_at_proj {p : tangent_bundle I M} :
+  times_cont_mdiff_at I.tangent I n
+    (proj I M) p :=
+basic_smooth_bundle_core.times_cont_mdiff_at_proj _
+
+lemma smooth_at_proj {p : tangent_bundle I M} :
+  smooth_at I.tangent I (proj I M) p :=
+basic_smooth_bundle_core.smooth_at_proj _
+
+lemma times_cont_mdiff_within_at_proj
+  {s : set (tangent_bundle I M)} {p : tangent_bundle I M} :
+  times_cont_mdiff_within_at I.tangent I n
+    (proj I M) s p :=
+basic_smooth_bundle_core.times_cont_mdiff_within_at_proj _
+
+lemma smooth_within_at_proj
+  {s : set (tangent_bundle I M)} {p : tangent_bundle I M} :
+  smooth_within_at I.tangent I
+    (proj I M) s p :=
+basic_smooth_bundle_core.smooth_within_at_proj _
+
+end tangent_bundle

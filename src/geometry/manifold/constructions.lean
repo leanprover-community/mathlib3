@@ -240,14 +240,3 @@ begin
 end
 
 end projections
-
-/- I do not know enough of Sebastien's tangent bundle to do this proof and in any case I am
-building my own tangent bundle but I'd be happy if this proof were there. If it is hard I will
-remove this lemma. I do not need it. -/
-lemma tangent_bundle_proj_smooth : smooth I.tangent I (tangent_bundle.proj I M) :=
-begin
-  rw smooth_iff,
-  refine ⟨tangent_bundle_proj_continuous I M, λ x y, _⟩,
-  simp only [function.comp] with mfld_simps,
-  sorry,
-end

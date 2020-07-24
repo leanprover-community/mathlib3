@@ -679,6 +679,19 @@ meta def get_classes (e : expr) : tactic (list name) :=
 attribute.get_instances `class >>= list.mfilter (λ n,
   succeeds $ mk_app n [e] >>= mk_instance)
 
+/--
+  Finds an instance of an implication `cond → tgt`.
+  Returns a pair of a local constant `e` of type `cond`, and an instance of `tgt` that can mention `e`.
+  The local constant `e` is added as an hypothesis to the tactic state, but should not be used, since
+  it has been "proven" by a metavariable.
+-/
+meta def mk_conditional_instance (cond tgt : expr) : tactic (expr × expr) := do
+f ← mk_meta_var cond,
+e ← assertv `c cond f, swap,
+reset_instance_cache,
+inst ← mk_instance tgt,
+return (e, inst)
+
 open nat
 
 /-- Create a list of `n` fresh metavariables. -/
@@ -2099,8 +2112,11 @@ add_tactic_doc
   decl_names               := [`tactic.mk_simp_attribute_cmd],
   tags                     := ["simplification"] }
 
-/-- Gets the declaration name of a user attribute. Fails if there is no such user attribute.
-  Example : ``get_user_attribute_name `library_note`` returns `` `library_note_attr`` -/
+/--
+Given a user attribute name `attr_name`, `get_user_attribute_name attr_name` returns
+the name of the declaration that defines this attribute.
+Fails if there is no user attribute with this name.
+Example: ``get_user_attribute_name `norm_cast`` returns `` `norm_cast.norm_cast_attr`` -/
 meta def get_user_attribute_name (attr_name : name) : tactic name := do
 ns ← attribute.get_instances `user_attribute,
 ns.mfirst (λ nm, do

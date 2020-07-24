@@ -476,8 +476,6 @@ def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
 
 /-- See Note [custom simps projection] -/
 def equiv.simps.inv_fun (e : α ≃ β) : β → α := e.symm
-@[simps] def equiv.trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
-⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
 
 /-- Composition of equivalences `e₁ : α ≃ β` and `e₂ : β ≃ γ`. -/
 @[simps {simp_rhs := tt}] protected def equiv.trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=

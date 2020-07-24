@@ -10,6 +10,22 @@ import tactic.core
 This file defines the `@[simps]` attribute, to automatically generate simp-lemmas
 reducing a definition when projections are applied to it.
 
+## Implementation Notes
+
+There are three attributes being defined here
+* `@[simps]` is the attribute for objects of a structure or instances of a class. It will
+  automatically generate simplication lemmas for each projection of the object/instance that contains
+  data. See the doc strings for `simps_attr` and `simps_cfg` for more details and configuration
+  options
+* `@[_simps_str]` is automatically added to structures that have been used in `@[simps]` at least
+  once. They contain the data of the projections used for this structure by all following
+  invocations of `@[simps]`.
+* `@[notation_class]` should be added to all classes that define notation, like `has_mul` and
+  `has_zero`. This specifies that the projections that `@[simps]` used are the projections from
+  these notation classes instead of the projections of the superclasses.
+  Example: if `has_mul` is tagged with `@[notation_class]` then the projection used for `semigroup`
+  will be `λ α hα, @has_mul.mul α (@semigroup.to_has_mul α hα)` instead of `@semigroup.mul`.
+
 ## Tags
 
 structures, projections, simp, simplifier, generates declarations
@@ -56,17 +72,6 @@ attribute [notation_class] has_zero has_one has_add has_mul has_inv has_neg has_
 
 attribute [notation_class* coe_sort] has_coe_to_sort
 attribute [notation_class* coe_fn] has_coe_to_fun
-
-/--
-  Finds an instance of an implication `cond → tgt`.
-  Returns a pair of a local constant `e` of type `cond`, and an instance of `tgt` that can mention `e`.
--/
-meta def mk_conditional_instance (cond tgt : expr) : tactic (expr × expr) := do
-f ← mk_meta_var cond,
-e ← assertv `c cond f, swap,
-reset_instance_cache,
-inst ← mk_instance tgt,
-return (e, inst)
 
 /--
   Get the projections used by `simps` associated to a given structure `str`. The second component is
@@ -135,6 +140,7 @@ meta def simps_get_raw_projections (e : environment) (str : name) :
         let e_inst_type := (expr.const class_nm raw_levels).mk_app args,
         (hyp, e_inst) ← try_for 1000 (mk_conditional_instance e_str e_inst_type),
         raw_expr ← mk_mapp proj_nm [args.head, e_inst],
+        clear hyp,
         raw_expr_lambda ← lambdas [hyp] raw_expr, -- expr.bind_lambda doesn't give the correct type
         return (raw_expr, raw_expr_lambda.lambdas args))
       else (do

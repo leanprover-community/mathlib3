@@ -1584,9 +1584,9 @@ by { intros s t h, rw [←preimage_image_eq s hf, ←preimage_image_eq t hf, h] 
 lemma surjective.range_eq {f : ι → α} (hf : surjective f) : range f = univ :=
 range_iff_surjective.2 hf
 
-lemma surjective.range_comp (g : α → β) {f : ι → α} (hf : surjective f) :
+lemma surjective.range_comp {ι' : Sort*} {f : ι → ι'} (hf : surjective f) (g : ι' → α) :
   range (g ∘ f) = range g :=
-by rw [range_comp, hf.range_eq, image_univ]
+ext $ λ y, (@surjective.exists _ _ _ hf (λ x, g x = y)).symm
 
 lemma injective.nonempty_apply_iff {f : set α → set β} (hf : injective f)
   (h2 : f ∅ = ∅) {s : set α} : (f s).nonempty ↔ s.nonempty :=

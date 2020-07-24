@@ -311,7 +311,7 @@ lemma order_of_eq_card_of_forall_mem_gpowers [group α] [fintype α] [decidable_
   {g : α} (hx : ∀ x, x ∈ gpowers g) : order_of g = fintype.card α :=
 by {rw [← fintype.card_congr (equiv.set.univ α), order_eq_card_gpowers],
   simp [hx], apply fintype.card_of_finset', simp, intro x, exact hx x}
-
+#exit
 instance [group α] : is_cyclic (is_subgroup.trivial α) :=
 ⟨⟨(1 : is_subgroup.trivial α), λ x, ⟨0, subtype.eq $ eq.symm (is_subgroup.mem_trivial.1 x.2)⟩⟩⟩
 

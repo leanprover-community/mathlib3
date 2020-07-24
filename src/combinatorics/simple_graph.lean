@@ -89,7 +89,7 @@ def E : Type u := {x : sym2 V // x ∈ sym2.from_rel G.sym}
 /-- Allows us to refer to a vertex being a member of an edge. -/
 instance E.has_mem : has_mem V G.E := { mem := λ v e, v ∈ e.val }
 
-lemma exists_edge_iff_adj {v w : V} (hne : v ≠ w) :
+lemma adj_iff_exists_edge {v w : V} (hne : v ≠ w) :
 G.adj v w ↔ ∃ (e : G.E), v ∈ e ∧ w ∈ e :=
 begin
   split, { intro, use ⟦(v,w)⟧, assumption, iterate 2 { erw sym2.mem_iff }, simp },
@@ -97,13 +97,6 @@ begin
   have : e.val = ⟦(v,w)⟧, {rw [hve, sym2.eq_iff] at hew ⊢, cc},
   have key := e.property, rwa this at key,
 end
-
-instance E.inhabited [inhabited {p : V × V | G.adj p.1 p.2}] : inhabited G.E :=
-⟨begin
-  rcases inhabited.default {p : V × V | G.adj p.1 p.2} with ⟨⟨x, y⟩, h⟩,
-  use ⟦(x, y)⟧,
-  rwa sym2.from_rel_prop,
-end⟩
 
 instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] : fintype G.E := subtype.fintype _
 

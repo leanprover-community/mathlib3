@@ -273,8 +273,8 @@ end
 /-- The translation of a convex set is also convex -/
 lemma convex.translate_preimage_left (hs : convex s) (z : E) : convex ((λ x, x + z) ⁻¹' s) :=
 begin
-  rw [show (λ x, x + z) = (λ x, z + x), by exact funext (λ (x : E), add_comm x z)],
-  exact convex.translate_preimage_right hs z,
+  convert convex.translate_preimage_right hs z,
+  simp only [add_comm]
 end
 
 lemma convex.combo_to_vadd {a b : ℝ} {x y : E} (h : a + b = 1) :

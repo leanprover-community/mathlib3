@@ -191,9 +191,7 @@ lemma eval_det (M : matrix n n (polynomial R)) (r : R) :
   polynomial.eval r M.det = (polynomial.eval (matrix.scalar n r) (mat_poly_equiv M)).det :=
 begin
   rw [polynomial.eval, ← coe_eval₂_ring_hom, ring_hom_det],
-  -- apply congr_arg det,
-  -- ext,
-  convert eval_mat_poly_equiv _ _ _ _,
+  apply congr_arg det, ext, convert eval_mat_poly_equiv _ _ _ _,
 end
 
 theorem det_from_char_poly (M: matrix n n R) :

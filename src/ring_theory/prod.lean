@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Chris Hughes, Mario Carneiro, Yury Kudryashov
 -/
 import algebra.group.prod
-import algebra.ring
+import algebra.ring.basic
 
 /-!
 # Semiring, ring etc structures on `R × S`

@@ -3,9 +3,11 @@ Copyright (c) 2020 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-import algebra.pi_instances
+import algebra.group.pi
+import algebra.module.basic
 import data.set.disjointed
 import data.support
+import data.finset.lattice
 
 /-!
 # Indicator function

@@ -3,7 +3,9 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import algebra.pi_instances
+import algebra.group.pi
+import order.rel_classes
+import algebra.order_functions
 
 variables {ι : Type*} {β : ι → Type*} (r : ι → ι → Prop)
   (s : Π {i}, β i → β i → Prop)

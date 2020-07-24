@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import data.finsupp
-import tactic.squeeze
 import algebra.ordered_group
---open finsupp
 
 /-!
 # Lattice structure on finsupps

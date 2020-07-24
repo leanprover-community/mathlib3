@@ -17,12 +17,21 @@ irreflexive symmetric relation.
 There is a basic API for locally finite graphs and for graphs with
 finitely many vertices.
 
-- A locally finite graph is one with instances `∀ v, fintype (G.adj v)`.
+## Main definitions
 
-- Given instances `decidable_rel G.adj` and `fintype V`, then the graph
-is locally finite, too.
+* `simple_graph` is a structure for symmetric, irreflexive relations
+
+* `neighbor_set` is the `set` of vertices adjacent to a given vertex
+
+* `neighbor_finset` is the `finset` of vertices adjacent to a given vertex,
+   if `neighbor_set` is finite
 
 ## Implementation notes
+
+* A locally finite graph is one with instances `∀ v, fintype (G.neighbor_set v)`.
+
+* Given instances `decidable_rel G.adj` and `fintype V`, then the graph
+is locally finite, too.
 
 TODO: This is the simplest notion of an unoriented graph.  This should
 eventually fit into a more complete combinatorics hierarchy which
@@ -49,7 +58,7 @@ works as another way to write `G.adj v w`.  Otherwise Lean cannot find
 a `has_mem` instance.
 -/
 structure simple_graph (V : Type u) :=
-(adj : V → set V)
+(adj : V → V → Prop)
 (sym : symmetric adj . obviously)
 (loopless : irreflexive adj . obviously)
 
@@ -69,22 +78,20 @@ by { dsimp [complete_graph], apply_instance }
 namespace simple_graph
 variables {V : Type u} (G : simple_graph V)
 
+def neighbor_set (v : V) : set V := set_of (G.adj v)
+
 /--
 The edges of G consist of the unordered pairs of vertices related by
 `G.adj`.  It is given as a subtype of the symmetric square.
 -/
 def E : Type u := {x : sym2 V // x ∈ sym2.from_rel G.sym}
 
-/--
-`G.incident_edges v` is the set of edges incident to `v`.  Due to the way
-sets are defined, `G.incident_edges v e` denotes that `v` is incident to `e`.
-
-As a convenience, we define a `has_mem` instance by `v ∈ e = G.incident_edges v e`.
--/
-def incident_edges (v : V) : set G.E := {e : G.E | v ∈ e.val}
-
 /-- Allows us to refer to a vertex being a member of an edge. -/
-instance E.has_mem : has_mem V G.E := { mem := G.incident_edges }
+instance E.has_mem : has_mem V G.E := { mem := λ v e, v ∈ e.val }
+
+--lemma exists_edge_iff_adj {v w : V} (hne : v ≠ w) : (∃ (e : G.E), v ∈ e ∧ w ∈ e) ↔ G.adj v w :=
+
+--attribute [irreducible] E
 
 instance E.inhabited [inhabited {p : V × V | G.adj p.1 p.2}] : inhabited G.E :=
 ⟨begin
@@ -101,7 +108,7 @@ by split; apply G.sym
 lemma ne_of_edge {a b : V} (hab : G.adj a b) : a ≠ b :=
 by { rintro rfl, exact G.loopless a hab, }
 
-@[simp] lemma mem_adj (v w : V) : w ∈ G.adj v ↔ G.adj v w :=
+@[simp] lemma mem_neighbor_set (v w : V) : w ∈ G.neighbor_set v ↔ G.adj v w :=
 by tauto
 
 section finite_at
@@ -111,36 +118,37 @@ section finite_at
 
 This section contains definitions and lemmas concerning vertices that
 have finitely many adjacent vertices.  We denote this condition by
-`fintype (G.adj v)`.
+`fintype (G.neighbor_set v)`.
 
-We define `G.neighbors v` to be the `finset` version of `G.adj v`.
-Use `neighbors_eq_filter` to rewrite this definition as a `filter`.
+We define `G.neighbor_finset v` to be the `finset` version of `G.neighbor_set v`.
+Use `neighbor_finset_eq_filter` to rewrite this definition as a `filter`.
 -/
 
+variables (v : V) [fintype (G.neighbor_set v)]
 /--
 `G.neighbors v` is the `finset` version of `G.adj v` in case `G` is
 locally finite at `v`.
 -/
-def neighbors (v : V) [fintype (G.adj v)] : finset V := set.to_finset (G.adj v)
+def neighbor_finset : finset V := (G.neighbor_set v).to_finset
 
-@[simp] lemma mem_neighbors (v w : V) [fintype (G.adj v)] :
-  w ∈ G.neighbors v ↔ w ∈ G.adj v :=
-by simp [neighbors]
+@[simp] lemma mem_neighbor_finset (w : V) :
+  w ∈ G.neighbor_finset v ↔ G.adj v w :=
+by simp [neighbor_finset]
 
 /--
 `G.degree v` is the number of vertices adjacent to `v`.
 -/
-def degree (v : V) [fintype (G.adj v)] : ℕ := (G.neighbors v).card
+def degree : ℕ := (G.neighbor_finset v).card
 
 @[simp]
-lemma card_adj_eq_degree (v : V) [fintype (G.adj v)] : fintype.card (G.adj v) = G.degree v :=
-by simp [degree, neighbors]
+lemma card_neighbor_set_eq_degree : fintype.card (G.neighbor_set v) = G.degree v :=
+by simp [degree, neighbor_finset]
 
 end finite_at
 
 section locally_finite
 
-variable [∀ (v : V), fintype (G.adj v)]
+variable [∀ (v : V), fintype (G.neighbor_set v)]
 
 /--
 A regular graph is a locally finite graph such that every vertex has the same degree.
@@ -153,10 +161,13 @@ section finite
 
 variables [fintype V]
 
+instance neighbor_set_fintype [decidable_rel G.adj] (v : V) : fintype (G.neighbor_set v) :=
+  @subtype.fintype _ _ (by {simp_rw mem_neighbor_set, apply_instance}) _
+
 instance edges_fintype [decidable_eq V] [decidable_rel G.adj] : fintype G.E := subtype.fintype _
 
-lemma neighbors_eq_filter {v : V} [decidable_pred (G.adj v)] :
-  G.neighbors v = finset.univ.filter (G.adj v) :=
+lemma neighbor_finset_eq_filter {v : V} [decidable_rel G.adj] :
+  G.neighbor_finset v = finset.univ.filter (G.adj v) :=
 by { ext, simp }
 
 @[simp]
@@ -164,7 +175,7 @@ lemma complete_graph_degree [decidable_eq V] (v : V) :
   (complete_graph V).degree v = fintype.card V - 1 :=
 begin
   convert univ.card.pred_eq_sub_one,
-  erw [degree, neighbors_eq_filter, filter_ne, card_erase_of_mem (mem_univ v)],
+  erw [degree, neighbor_finset_eq_filter, filter_ne, card_erase_of_mem (mem_univ v)],
 end
 
 lemma complete_graph_is_regular [decidable_eq V] :

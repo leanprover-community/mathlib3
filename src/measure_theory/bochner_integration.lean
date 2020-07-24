@@ -1267,6 +1267,9 @@ begin
   simpa only [← simple_func.integral_eq_integral, *, simple_func.integral_add_meas] using hμ.add hν
 end
 
+@[simp] lemma integral_zero_meas (f : α → E) : ∫ x, f x ∂0 = 0 :=
+norm_le_zero_iff.1 $ le_trans (norm_integral_le_lintegral_norm f) $ by simp
+
 end properties
 
 mk_simp_attribute integral_simps "Simp set for integral rules."

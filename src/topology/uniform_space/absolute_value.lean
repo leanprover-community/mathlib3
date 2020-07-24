@@ -70,7 +70,6 @@ begin
   rw mem_infi,
   { simp [subset_def] },
   { exact assume ⟨r, hr⟩ ⟨p, hp⟩, ⟨⟨min r p, lt_min hr hp⟩, by simp [lt_min_iff, (≥)] {contextual := tt}⟩, },
-  { exact ⟨⟨1, zero_lt_one⟩⟩ }
 end
 
 end is_absolute_value

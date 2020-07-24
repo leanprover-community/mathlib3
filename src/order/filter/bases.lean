@@ -3,7 +3,7 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Yury Kudryashov, Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
-import order.filter.at_top_bot
+import order.filter.basic
 import data.set.countable
 
 /-!
@@ -77,6 +77,8 @@ structure filter_basis (α : Type*) :=
 (nonempty               : sets.nonempty)
 (inter_sets {x y}       : x ∈ sets → y ∈ sets → ∃ z ∈ sets, z ⊆ x ∩ y)
 
+instance filter_basis.nonempty_sets (B : filter_basis α) : nonempty B.sets := B.nonempty.to_subtype
+
 /-- If `B` is a filter basis on `α`, and `U` a subset of `α` then we can write `U ∈ B` as on paper. -/
 @[reducible]
 instance {α : Type*}: has_mem (set α) (filter_basis α) := ⟨λ U B, U ∈ B.sets⟩
@@ -136,15 +138,13 @@ lemma mem_filter_of_mem (B : filter_basis α) {U : set α} : U ∈ B → U ∈ B
 
 lemma eq_infi_principal (B : filter_basis α) : B.filter = ⨅ s : B.sets, 𝓟 s :=
 begin
-  ext U,
-  rw [mem_filter_iff, mem_infi],
-  { simp },
+  have : directed (≥) (λ (s : B.sets), 𝓟 (s : set α)),
   { rintros ⟨U, U_in⟩ ⟨V, V_in⟩,
     rcases B.inter_sets U_in V_in with ⟨W, W_in, W_sub⟩,
     use [W, W_in],
     finish },
-  cases B.nonempty with U U_in,
-  exact ⟨⟨U, U_in⟩⟩,
+  ext U,
+  simp [mem_filter_iff, mem_infi this]
 end
 
 protected lemma generate (B : filter_basis α) : generate B.sets = B.filter :=
@@ -190,7 +190,8 @@ section same_type
 variables {l l' : filter α} {p : ι → Prop} {s : ι → set α} {t : set α} {i : ι}
   {p' : ι' → Prop} {s' : ι' → set α} {i' : ι'}
 
-lemma has_basis_generate (s : set (set α)) : (generate s).has_basis (λ t, finite t ∧ t ⊆ s) (λ t, ⋂₀ t) :=
+lemma has_basis_generate (s : set (set α)) :
+  (generate s).has_basis (λ t, finite t ∧ t ⊆ s) (λ t, ⋂₀ t) :=
 ⟨begin
   intro U,
   rw mem_generate_iff,
@@ -266,16 +267,6 @@ begin
     tauto }
 end
 
-lemma at_top_basis [nonempty α] [semilattice_sup α] :
-  (@at_top α _).has_basis (λ _, true) Ici :=
-⟨λ t, by simpa only [exists_prop, true_and] using @mem_at_top_sets α _ _ t⟩
-
-lemma at_top_basis' [semilattice_sup α] (a : α) :
-  (@at_top α _).has_basis (λ x, a ≤ x) Ici :=
-⟨λ t, (@at_top_basis α ⟨a⟩ _).mem_iff.trans
-  ⟨λ ⟨x, _, hx⟩, ⟨x ⊔ a, le_sup_right, λ y hy, hx (le_trans le_sup_left hy)⟩,
-    λ ⟨x, _, hx⟩, ⟨x, trivial, hx⟩⟩⟩
-
 theorem has_basis.ge_iff (hl' : l'.has_basis p' s')  : l ≤ l' ↔ ∀ i', p' i' → s' i' ∈ l :=
 ⟨λ h i' hi', h $ hl'.mem_of_mem hi',
   λ h s hs, let ⟨i', hi', hs⟩ := hl'.mem_iff.1 hs in mem_sets_of_superset (h _ hi') hs⟩
@@ -313,10 +304,10 @@ lemma has_basis.eq_infi (h : l.has_basis (λ _, true) s) :
 by simpa only [infi_true] using h.eq_binfi
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-lemma has_basis_infi_principal {s : ι → set α} (h : directed (≥) s) (ne : nonempty ι) :
+lemma has_basis_infi_principal {s : ι → set α} (h : directed (≥) s) [nonempty ι] :
   (⨅ i, 𝓟 (s i)).has_basis (λ _, true) s :=
 ⟨begin
-  refine λ t, (mem_infi (h.mono_comp _ _) ne t).trans $
+  refine λ t, (mem_infi (h.mono_comp _ _) t).trans $
     by simp only [exists_prop, true_and, mem_principal_sets],
   exact λ _ _, principal_mono.2
 end⟩
@@ -465,16 +456,6 @@ lemma has_basis.prod' {la : filter α} {lb : filter β} {ι : Type*} {p : ι →
     exact ⟨sa i, hla.mem_of_mem hi, sb i, hlb.mem_of_mem hi, h⟩ },
 end⟩
 
-lemma has_antimono_basis.tendsto [semilattice_sup ι] [nonempty ι] {l : filter α}
-  {p : ι → Prop} {s : ι → set α} (hl : l.has_antimono_basis p s) {φ : ι → α}
-  (h : ∀ i : ι, φ i ∈ s i) : tendsto φ at_top l  :=
-begin
-  rw hl.to_has_basis.tendsto_right_iff,
-  intros i hi,
-  rw eventually_at_top,
-  exact ⟨i, λ j hij, hl.decreasing hi (hl.mono hij hi) hij (h j)⟩,
-end
-
 end two_types
 
 /-- `is_countably_generated f` means `f = generate s` for some countable `s`. -/
@@ -590,7 +571,7 @@ begin
 end
 
 lemma exists_antimono_seq {f : filter α} (cblb : f.is_countably_generated) :
-  ∃ x : ℕ → set α, (∀ i j, i ≤ j → x j ⊆ x i) ∧ f = ⨅ i, 𝓟 (x i) :=
+  ∃ x : ℕ → set α, (∀ ⦃i j⦄, i ≤ j → x j ⊆ x i) ∧ f = ⨅ i, 𝓟 (x i) :=
 begin
   rcases cblb.exists_seq with ⟨x', hx'⟩,
   let x := λ n, ⋂ m ≤ n, x' m,
@@ -606,18 +587,23 @@ lemma has_antimono_basis {f : filter α} (h : f.is_countably_generated) :
  ∃ x : ℕ → set α, f.has_antimono_basis (λ _, true) x :=
 begin
   rcases h.exists_antimono_seq with ⟨x, x_dec, rfl⟩,
-  refine ⟨x, has_basis_infi_principal _ ⟨0⟩, _, monotone_const⟩,
-  exacts [directed_of_sup x_dec, λ i j _ _, x_dec i j]
+  refine ⟨x, has_basis_infi_principal _, _, monotone_const⟩,
+  exacts [directed_of_sup x_dec, λ i j _ _ h, x_dec h]
 end
 
 end is_countably_generated
+
+lemma has_countable_basis.is_countably_generated {f : filter α} {p : ι → Prop} {s : ι → set α}
+  (h : f.has_countable_basis p s) :
+  f.is_countably_generated :=
+⟨{t | ∃ i, p i ∧ s i = t}, h.countable.image s, h.to_has_basis.eq_generate⟩
 
 lemma is_countably_generated_seq (x : ℕ → set α) : is_countably_generated (⨅ i, 𝓟 $ x i) :=
 begin
   rcases antimono_seq_of_seq x with ⟨y, am, h⟩,
   rw h,
   use [range y, countable_range _],
-  rw (has_basis_infi_principal _ _).eq_generate,
+  rw (has_basis_infi_principal _).eq_generate,
   { simp [range] },
   { exact directed_of_sup am },
   { use 0 },
@@ -661,77 +647,6 @@ begin
           ... = (⨅ i, 𝓟 $ f ⁻¹' x i)     : by simp_rw comap_principal,
 end
 
-/-- An abstract version of continuity of sequentially continuous functions on metric spaces:
-if a filter `k` is countably generated then `tendsto f k l` iff for every sequence `u`
-converging to `k`, `f ∘ u` tends to `l`. -/
-lemma tendsto_iff_seq_tendsto {f : α → β} {k : filter α} {l : filter β}
-  (hcb : k.is_countably_generated) :
-  tendsto f k l ↔ (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) :=
-suffices (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l,
-  from ⟨by intros; apply tendsto.comp; assumption, by assumption⟩,
-begin
-  rcases hcb.exists_antimono_seq with ⟨g, gmon, gbasis⟩,
-  have gbasis : ∀ A, A ∈ k ↔ ∃ i, g i ⊆ A,
-  { intro A,
-    subst gbasis,
-    rw mem_infi,
-    { simp only [set.mem_Union, iff_self, filter.mem_principal_sets] },
-    { exact directed_of_sup (λ i j h, principal_mono.mpr $ gmon _ _ h) },
-    { apply_instance } },
-  classical, contrapose,
-  simp only [not_forall, not_imp, not_exists, subset_def, @tendsto_def _ _ f, gbasis],
-  rintro ⟨B, hBl, hfBk⟩,
-  choose x h using hfBk,
-  use x, split,
-  { simp only [tendsto_at_top', gbasis],
-    rintros A ⟨i, hgiA⟩,
-    use i,
-    refine (λ j hj, hgiA $ gmon _ _ hj _),
-    simp only [h] },
-  { simp only [tendsto_at_top', (∘), not_forall, not_exists],
-    use [B, hBl],
-    intro i, use [i, (le_refl _)],
-    apply (h i).right },
-end
-
-lemma tendsto_of_seq_tendsto {f : α → β} {k : filter α} {l : filter β}
-  (hcb : k.is_countably_generated) :
-  (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l :=
-hcb.tendsto_iff_seq_tendsto.2
-
-lemma subseq_tendsto {f : filter α} (hf : is_countably_generated f)
-  {u : ℕ → α}
-  (hx : ne_bot (f ⊓ map u at_top)) :
-  ∃ (θ : ℕ → ℕ), (strict_mono θ) ∧ (tendsto (u ∘ θ) at_top f) :=
-begin
-  rcases hf.has_antimono_basis with ⟨B, h⟩,
-  have : ∀ N, ∃ n ≥ N, u n ∈ B N,
-    from λ N, filter.inf_map_at_top_ne_bot_iff.mp hx _ (h.to_has_basis.mem_of_mem trivial) N,
-  choose φ hφ using this,
-  cases forall_and_distrib.mp hφ with φ_ge φ_in,
-  have lim_uφ : tendsto (u ∘ φ) at_top f,
-    from h.tendsto φ_in,
-  have lim_φ : tendsto φ at_top at_top,
-    from (tendsto_at_top_mono φ_ge tendsto_id),
-  obtain ⟨ψ, hψ, hψφ⟩ : ∃ ψ : ℕ → ℕ, strict_mono ψ ∧ strict_mono (φ ∘ ψ),
-    from strict_mono_subseq_of_tendsto_at_top lim_φ,
-  exact ⟨φ ∘ ψ, hψφ, lim_uφ.comp $ strict_mono_tendsto_at_top hψ⟩,
-end
-
 end is_countably_generated
 
--- TODO : prove this for a encodable type
-lemma is_countably_generated_at_top_finset_nat : (at_top : filter $ finset ℕ).is_countably_generated :=
-begin
-  apply is_countably_generated_of_seq,
-  use λ N, Ici (finset.range N),
-  apply eq_infi_of_mem_sets_iff_exists_mem,
-  assume s,
-  rw mem_at_top_sets,
-  refine ⟨_, λ ⟨N, hN⟩, ⟨finset.range N, hN⟩⟩,
-  rintros ⟨t, ht⟩,
-  rcases mem_at_top_sets.1 (tendsto_finset_range (mem_at_top t)) with ⟨N, hN⟩,
-  simp only [preimage, mem_set_of_eq] at hN,
-  exact ⟨N, mem_principal_sets.2 $ λ t' ht', ht t' $ le_trans (hN _ $ le_refl N) ht'⟩
-end
 end filter

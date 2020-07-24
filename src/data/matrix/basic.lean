@@ -3,7 +3,8 @@ Copyright (c) 2018 Ellen Arlt. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
 -/
-import algebra.pi_instances
+import algebra.big_operators.pi
+import algebra.module.pi
 import algebra.big_operators.ring
 
 /-!

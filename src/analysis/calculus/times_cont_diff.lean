@@ -2046,10 +2046,7 @@ lemma times_cont_diff_within_at.prod_map
   {s : set E} {t : set E'} {f : E → F} {g : E' → F'} {x : E} {y : E'}
   (hf : times_cont_diff_within_at 𝕜 n f s x) (hg : times_cont_diff_within_at 𝕜 n g t y) :
   times_cont_diff_within_at 𝕜 n (prod.map f g) (set.prod s t) (x, y) :=
-begin
-  apply times_cont_diff_within_at.prod_map',
-  exacts [hf, hg]
-end
+times_cont_diff_within_at.prod_map' hf hg
 
 /-- The product map of two `C^n` functions on a set is `C^n` on the product set. -/
 lemma times_cont_diff_on.prod_map {s : set E} {t : set E'} {f : E → F} {g : E' → F'}
@@ -2076,8 +2073,7 @@ lemma times_cont_diff_at.prod_map' {f : E → F} {g : E' → F'} {p : E × E'}
   times_cont_diff_at 𝕜 n (prod.map f g) p :=
 begin
   rcases p,
-  apply times_cont_diff_at.prod_map,
-  exacts [hf, hg]
+  exact times_cont_diff_at.prod_map hf hg
 end
 
 /-- The product map of two `C^n` functions is `C^n`. -/

@@ -6,6 +6,7 @@ Authors: Alexander Bentkamp, Yury Kudriashov
 import data.set.intervals.unordered_interval
 import data.set.intervals.image_preimage
 import data.complex.module
+import linear_algebra.affine_space
 
 /-!
 # Convex sets and functions on real vector spaces
@@ -274,6 +275,44 @@ lemma convex.translate_preimage_left (hs : convex s) (z : E) : convex ((λ x, x 
 begin
   rw [show (λ x, x + z) = (λ x, z + x), by exact funext (λ (x : E), add_comm x z)],
   exact convex.translate_preimage_right hs z,
+end
+
+lemma convex.combo_to_vadd {a b : ℝ} {x y : E} (h : a + b = 1) :
+  a • x + b • y = b • (y - x) + x  :=
+  eq.symm (calc
+    b • (y - x) + x = b • (y - x) + (1 : ℝ) • x          : by rw [one_smul]
+                ... = b • (y - x) + (a + b) • x           : by rw [h]
+                ... = (b • y - b • x) + (a • x + b • x)   : by rw [add_smul, smul_sub]
+                ... = a • x + b • y                       : by abel )
+
+/--
+Applying an affine map to an affine combination of two points yields
+an affine combination of the images.
+ -/
+lemma convex.combo_affine_apply {a b : ℝ} {x y : E} {f : affine_map ℝ E E F F}
+  (h : a + b = 1) : f (a • x + b • y) = a • (f x) + b • (f y) :=
+begin
+  rw [convex.combo_to_vadd h],
+  calc
+    f (b • (y - x) + x)
+          = f.to_fun (b • ((y -ᵥ x) : E) +ᵥ x)                    : rfl
+      ... = f.linear.to_fun (b • ((y -ᵥ x) : E)) +ᵥ f.to_fun x    : by rw [f.map_vadd']; refl
+      ... = b • f.linear ((y -ᵥ x) : E) + f.to_fun x              : by rw [f.linear.map_smul']; refl
+      ... = b • (f y - f x) + f x                       : by rw [affine_map.linear_map_vsub]; refl
+      ... = b • (f y) - b • (f x) + f x                 : by rw [smul_sub]
+      ... = b • f y - b • f x + (1 : ℝ) • f x           : by rw [one_smul]
+      ... = b • f y - b • f x + (a + b) • f x           : by rw [h]
+      ... = b • f y - b • f x + (a • f x + b • f x)     : by rw [add_smul]
+      ... = a • f x + b • f y                           : by abel
+end
+
+/-- Convexity is preserved by affine maps -/
+lemma convex.affine_preimage {f : affine_map ℝ E E F F} {s : set F} (hs : convex s) :
+  convex (f ⁻¹' s) :=
+begin
+  intros x y xs ys a b ha hb hab,
+  rw [mem_preimage, convex.combo_affine_apply hab],
+  exact hs xs ys ha hb hab,
 end
 
 lemma convex.affinity (hs : convex s) (z : E) (c : ℝ) : convex ((λx, z + c • x) '' s) :=
@@ -662,6 +701,19 @@ lemma convex_on.translate_left {f : E → ℝ} {s : set E} {a : E} (hf : convex_
 begin
   rw [show (λ x, x + a) = (λ x, a + x), by exact funext (λ (x : E), add_comm x a)],
   exact convex_on.translate_right hf,
+end
+
+/-- If a function is convex on s, it remains convex when prepended by an affine map -/
+lemma convex_on.affine_preimage {f : F → ℝ} {g : affine_map ℝ E E F F} {s : set F}
+  (hf : convex_on s f) : convex_on (g ⁻¹' s) (f ∘ g) :=
+begin
+  refine ⟨convex.affine_preimage hf.1,_⟩,
+  intros x y xs ys a b ha hb hab,
+  calc
+    (f ∘ ⇑g) (a • x + b • y) = f (g (a • x + b • y))         : rfl
+                        ...  = f (a • (g x) + b • (g y))     : by rw [convex.combo_affine_apply hab]
+                        ...  ≤ a * f (g x) + b * f (g y)     : hf.2 xs ys ha hb hab
+                        ...  = a * (f ∘ g) x + b * (f ∘ g) y  : rfl
 end
 
 end functions

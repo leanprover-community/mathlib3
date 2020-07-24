@@ -255,28 +255,6 @@ begin
   simp [set.mem_image, mem_add, eq_comm]
 end
 
-/-- The translation of a convex set is also convex -/
-lemma convex.translate_preimage_right (hs : convex s) (z : E) : convex ((λ x, z + x) ⁻¹' s) :=
-begin
-  intros x y hx hy a b ha hb hab,
-  rw [mem_preimage],
-  have := calc
-    z + (a • x + b • y) = (a + b) • z + (a • x + b • y)   : by simp only
-                                                                [add_left_inj, hab, one_smul]
-                    ... = a • z + b • z + a • x + b • y   : by simp only [add_smul, add_assoc]
-                    ... = a • z + a • x + b • z + b • y   : by abel
-                    ... = a • (z + x) + b • (z + y)       : by simp only [←smul_add, add_assoc],
-  rw [this],
-  exact hs hx hy ha hb hab,
-end
-
-/-- The translation of a convex set is also convex -/
-lemma convex.translate_preimage_left (hs : convex s) (z : E) : convex ((λ x, x + z) ⁻¹' s) :=
-begin
-  convert convex.translate_preimage_right hs z,
-  simp only [add_comm]
-end
-
 lemma convex.combo_to_vadd {a b : ℝ} {x y : E} (h : a + b = 1) :
   a • x + b • y = b • (y - x) + x  :=
   eq.symm (calc
@@ -325,6 +303,21 @@ begin
   refine ⟨a • x' + b • y',⟨hs hx' hy' ha hb hab,_⟩⟩,
   rw [convex.combo_affine_apply, hx'f, hy'f],
   exact hab,
+end
+
+/-- The translation of a convex set is also convex -/
+lemma convex.translate_preimage_right (hs : convex s) (a : E) : convex ((λ z, a + z) ⁻¹' s) :=
+begin
+  let g : affine_map ℝ E E E E := ⟨λ z, a + z, id, by intros p v; dsimp; abel⟩,
+  change convex (g ⁻¹' s),
+  exact convex.affine_preimage hs
+end
+
+/-- The translation of a convex set is also convex -/
+lemma convex.translate_preimage_left (hs : convex s) (a : E) : convex ((λ z, z + a) ⁻¹' s) :=
+begin
+  convert convex.translate_preimage_right hs a,
+  simp only [add_comm]
 end
 
 lemma convex.affinity (hs : convex s) (z : E) (c : ℝ) : convex ((λx, z + c • x) '' s) :=
@@ -688,33 +681,6 @@ begin
     exact (@h (x, f x) (y, f y) ⟨hx, le_refl _⟩ ⟨hy, le_refl _⟩ a b ha hb hab).2 }
 end
 
-/-- If a function is convex on s, it remains convex after a translation. -/
-lemma convex_on.translate_right {f : E → ℝ} {s : set E} {a : E} (hf : convex_on s f) :
-  convex_on ((λ z, a + z) ⁻¹' s) (f ∘ (λ z, a + z)) :=
-begin
-  refine ⟨convex.translate_preimage_right hf.1 a, _⟩,
-  intros x y x_in_s y_in_s a' b' ha' hb' hab',
-  calc
-      f (a + (a' • x + b' • y)) = f ((a' + b') • a + (a' • x + b' • y))
-                                              : by simp only [one_smul, hab']
-                           ...  = f (a' • a + b' • a + a' • x + b' • y)
-                                              : by simp [smul_add, add_smul, add_assoc]
-                           ...  = f (a' • a + a' • x + b' • a + b' • y)
-                                              : by abel
-                           ...  = f (a' • (a + x) + b' • (a + y))
-                                              : by rw [smul_add, smul_add]; abel
-                            ... ≤ a' * f (a + x) + b' * f (a + y)
-                                              : hf.2 x_in_s y_in_s ha' hb' hab'
-end
-
-/-- If a function is convex on s, it remains convex after a translation. -/
-lemma convex_on.translate_left {f : E → ℝ} {s : set E} {a : E} (hf : convex_on s f) :
-  convex_on ((λ z, a + z) ⁻¹' s) (f ∘ (λ z, z + a)) :=
-begin
-  convert convex_on.translate_right hf,
-  simp only [add_comm]
-end
-
 /-- If a function is convex on s, it remains convex when prepended by an affine map -/
 lemma convex_on.affine_preimage {f : F → ℝ} {g : affine_map ℝ E E F F} {s : set F}
   (hf : convex_on s f) : convex_on (g ⁻¹' s) (f ∘ g) :=
@@ -727,6 +693,24 @@ begin
                         ...  ≤ a * f (g x) + b * f (g y)     : hf.2 xs ys ha hb hab
                         ...  = a * (f ∘ g) x + b * (f ∘ g) y  : rfl
 end
+
+/-- If a function is convex on s, it remains convex after a translation. -/
+lemma convex_on.translate_right {f : E → ℝ} {s : set E} {a : E} (hf : convex_on s f) :
+  convex_on ((λ z, a + z) ⁻¹' s) (f ∘ (λ z, a + z)) :=
+begin
+  let g : affine_map ℝ E E E E := ⟨λ z, a + z, id, by intros p v; dsimp; abel⟩,
+  change convex_on (g ⁻¹' s) (f ∘ g),
+  exact convex_on.affine_preimage hf
+end
+
+/-- If a function is convex on s, it remains convex after a translation. -/
+lemma convex_on.translate_left {f : E → ℝ} {s : set E} {a : E} (hf : convex_on s f) :
+  convex_on ((λ z, a + z) ⁻¹' s) (f ∘ (λ z, z + a)) :=
+begin
+  convert convex_on.translate_right hf,
+  simp only [add_comm]
+end
+
 
 end functions
 

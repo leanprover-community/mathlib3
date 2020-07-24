@@ -43,78 +43,68 @@ namespace tensor_algebra
 @[nolint doc_blame]
 inductive pre
 | of : M → pre
-| zero : pre
-| one : pre
-| mul : pre → pre → pre
+| of_scalar : R → pre
 | add : pre → pre → pre
-| smul : R → pre → pre
-
+| mul : pre → pre → pre
 
 namespace pre
 
-instance : inhabited (pre R M) := ⟨pre.zero⟩
+instance : inhabited (pre R M) := ⟨of_scalar 0⟩
 
 -- These instances are only used to simplify the notation.
 @[nolint doc_blame]
-def has_coe : has_coe M (pre R M) := ⟨of⟩
+def has_coe_module : has_coe M (pre R M) := ⟨of⟩
+@[nolint doc_blame]
+def has_coe_ring : has_coe R (pre R M) := ⟨of_scalar⟩
 @[nolint doc_blame]
 def has_mul : has_mul (pre R M) := ⟨mul⟩
 @[nolint doc_blame]
 def has_add : has_add (pre R M) := ⟨add⟩
 @[nolint doc_blame]
-def has_zero : has_zero (pre R M) := ⟨zero⟩
+def has_zero : has_zero (pre R M) := ⟨of_scalar 0⟩
 @[nolint doc_blame]
-def has_one : has_one (pre R M) := ⟨one⟩
+def has_one : has_one (pre R M) := ⟨of_scalar 1⟩
 @[nolint doc_blame]
-def has_scalar : has_scalar R (pre R M) := ⟨smul⟩
+def has_scalar : has_scalar R (pre R M) := ⟨λ r m, mul (of_scalar r) m⟩
 @[nolint doc_blame]
-def has_neg : has_neg (pre R M) := ⟨smul (-1 : R)⟩
+def has_neg : has_neg (pre R M) := ⟨mul (of_scalar (-1))⟩
 
 end pre
 
-local attribute [instance] pre.has_coe
-local attribute [instance] pre.has_mul
-local attribute [instance] pre.has_add
-local attribute [instance] pre.has_zero
-local attribute [instance] pre.has_one
-local attribute [instance] pre.has_scalar
-local attribute [instance] pre.has_neg
+local attribute [instance]
+  pre.has_coe_module pre.has_coe_ring pre.has_mul pre.has_add pre.has_zero
+  pre.has_one pre.has_scalar pre.has_neg
 
 @[nolint doc_blame]
 def lift_fun {A : Type u3} [ring A] [algebra R A] (f : M →ₗ[R] A) : pre R M → A :=
-  λ t, pre.rec_on t f 0 1 (λ _ _, (*)) (λ _ _, (+)) (λ x _ a, x • a)
+  λ t, pre.rec_on t f (algebra_map _ _) (λ _ _, (+)) (λ _ _, (*))
 
 @[nolint doc_blame]
 inductive rel : (pre R M) → (pre R M) → Prop
 -- force of to be linear
-| add_lin {a b : M} : rel ↑(a + b) (↑a + ↑b)
-| smul_lin {r : R} {a : M} : rel ↑(r • a) (r • ↑a)
-| zero_lin : rel ↑(0 : M) 0
--- add gives a commutative group
+| add_lin {a b : M} : rel ↑(a+b) (↑a + ↑b)
+| smul_lin {r : R} {a : M} : rel ↑(r • a) (↑r * ↑a)
+-- force const to be a central ring morphism
+| add_scalar {r s : R} : rel ↑(r + s) (↑r + ↑s)
+| mul_scalar {r s : R} : rel ↑(r * s) (↑r * ↑s)
+| central_scalar {r : R} {a : pre R M} : rel (r * a) (a * r)
+-- commutative additive group
 | add_assoc {a b c : pre R M} : rel (a + b + c) (a + (b + c))
 | add_comm {a b : pre R M} : rel (a + b) (b + a)
 | neg_add {a : pre R M} : rel (-a + a) 0
 | zero_add {a : pre R M} : rel (0 + a) a
--- mul gives a monoid
+-- multiplicative monoid
 | mul_assoc {a b c : pre R M} : rel (a * b * c) (a * (b * c))
 | one_mul {a : pre R M} : rel (1 * a) a
 | mul_one {a : pre R M} : rel (a * 1) a
 -- distributivity
 | left_distrib {a b c : pre R M} : rel (a * (b + c)) (a * b + a * c)
 | right_distrib {a b c : pre R M} : rel ((a + b) * c) (a * c + b * c)
--- algebra structure
-| map_one : rel ((1 : R) • (1 : pre R M)) 1
-| map_mul {r s : R} : rel ((r * s) • 1) ((r • (1 : pre R M)) * (s • 1))
-| map_add {r s : R} : rel ((r + s) • (1 : pre R M)) (r • 1 + s • 1)
-| map_zero : rel ((0 : R) • (1 : pre R M)) 0
-| commutes {r : R} {a : pre R M} : rel ((r • (1 : pre R M)) * a) (a * (r • 1))
-| smul_def {r : R} {a : pre R M} : rel (r • a) ((r • 1) * a)
 -- compatibility
-| mul_compat_left {a b c : pre R M} : rel a b → rel (a * c) (b * c)
-| mul_compat_right {a b c : pre R M} : rel a b → rel (c * a) (c * b)
 | add_compat_left {a b c : pre R M} : rel a b → rel (a + c) (b + c)
 | add_compat_right {a b c : pre R M} : rel a b → rel (c + a) (c + b)
-| smul_compat {r : R} {a b : pre R M} : rel a b → rel (r • a) (r • b)
+| mul_compat_left {a b c : pre R M} : rel a b → rel (a * c) (b * c)
+| mul_compat_right {a b c : pre R M} : rel a b → rel (c * a) (c * b)
 
 end tensor_algebra
 
@@ -125,13 +115,9 @@ def tensor_algebra := quot (tensor_algebra.rel R M)
 
 namespace tensor_algebra
 
-local attribute [instance] pre.has_coe
-local attribute [instance] pre.has_mul
-local attribute [instance] pre.has_add
-local attribute [instance] pre.has_zero
-local attribute [instance] pre.has_one
-local attribute [instance] pre.has_scalar
-local attribute [instance] pre.has_neg
+local attribute [instance]
+  pre.has_coe_module pre.has_coe_ring pre.has_mul pre.has_add pre.has_zero
+  pre.has_one pre.has_scalar pre.has_neg
 
 instance : ring (tensor_algebra R M) :=
 { add := λ a b, quot.lift_on a (λ x, quot.lift_on b (λ y, quot.mk (rel R M) (x + y))
@@ -177,7 +163,7 @@ instance : ring (tensor_algebra R M) :=
     intros a b h,
     dsimp only [],
     apply quot.sound,
-    apply rel.smul_compat h,
+    apply rel.mul_compat_right h,
   end,
   add_left_neg := λ a,
   begin
@@ -248,34 +234,28 @@ instance : ring (tensor_algebra R M) :=
 instance : inhabited (tensor_algebra R M) := ⟨0⟩
 
 instance : has_scalar R (tensor_algebra R M) :=
-{ smul := λ r a, quot.lift_on a (λ x, quot.mk _ $ r • x)
+{ smul := λ r a, quot.lift_on a (λ x, quot.mk _ $ ↑r * x)
 begin
   intros a b h,
   dsimp only [],
   apply quot.sound,
-  apply rel.smul_compat h,
+  apply rel.mul_compat_right h,
 end }
 
 instance : algebra R (tensor_algebra R M) :=
-{ to_fun := λ r, r • 1,
-  map_one' := by apply quot.sound; apply rel.map_one,
-  map_mul' := λ a b, by apply quot.sound; apply rel.map_mul,
-  map_zero' := by apply quot.sound; apply rel.map_zero,
-  map_add' := λ a b, by apply quot.sound; apply rel.map_add,
+{ to_fun := λ r, quot.mk _ ↑r,
+  map_one' := rfl,
+  map_mul' := λ a b, by apply quot.sound; apply rel.mul_scalar,
+  map_zero' := rfl,
+  map_add' := λ a b, by apply quot.sound; apply rel.add_scalar,
   commutes' := λ r x,
   begin
     dsimp only [],
     rcases quot.exists_rep x with ⟨x,rfl⟩,
     apply quot.sound,
-    apply rel.commutes,
+    apply rel.central_scalar,
   end,
-  smul_def' := λ r x,
-  begin
-    dsimp only [],
-    rcases quot.exists_rep x with ⟨x,rfl⟩,
-    apply quot.sound,
-    apply rel.smul_def,
-  end }
+  smul_def' := λ r x, by refl }
 
 /--
 The universal linear map `M →ₗ[R] tensor_algebra R M`.
@@ -294,31 +274,34 @@ def lift {A : Type u3} [ring A] [algebra R A] (f : M →ₗ[R] A) : tensor_algeb
 { to_fun := λ a, quot.lift_on a (lift_fun _ _ f) $ λ a b h,
   begin
     induction h,
-    { change f _ = f _ + f _, rw linear_map.map_add },
-    { change f _ = _ • f _, rw linear_map.map_smul },
-    { change f _ = _, rw linear_map.map_zero, refl },
+    { change f _ = f _ + f _, simp, },
+    { change f _ = (algebra_map _ _ _) * f _, rw linear_map.map_smul,
+      exact algebra.smul_def h_r (f h_a) },
+    { change algebra_map _ _ _ = algebra_map _ _ _ + algebra_map _ _ _,
+      exact (algebra_map R A).map_add h_r h_s },
+    { change algebra_map _ _ _ = algebra_map _ _ _ * algebra_map _ _ _,
+      exact (algebra_map R A).map_mul h_r h_s },
+    { let G := lift_fun R M f,
+      change (algebra_map _ _ _) * G _ = G _,
+      exact algebra.commutes h_r (G h_a) },
     { change _ + _ + _ = _ + (_ + _), rw add_assoc },
     { change _ + _ = _ + _, rw add_comm, },
-    { change (-1 : R) • _ + _ = (0 : A),
-      rw [neg_one_smul, neg_add_self] },
-    { change (0 : A) + _ = _, rw zero_add, refl },
+    { change (algebra_map _ _ _) * _ + _ = algebra_map _ _ _, simp },
+    { let G := lift_fun R M f,
+      change (algebra_map _ _ _) + G _ = G _, simp, },
     { change _ * _ * _ = _ * (_ * _), rw mul_assoc },
-    { change (1 : A) * _ = _, rw one_mul, refl },
-    { change _ * (1 : A) = _, rw mul_one, refl },
-    { change _ * ( _ + _ ) = _, rw left_distrib, refl },
-    { change (_ + _) * _ = _, rw right_distrib, refl },
-    { change (1 : R) • (1 : A) = _, rw one_smul, refl },
-    { change (_ * _) • (1 : A) = (_ • (1 : A)) * (_ • (1 : A)),
-      simp only [mul_one, algebra.mul_smul_comm, algebra.smul_mul_assoc, mul_smul] },
-    { change (_ + _) • (1 : A) = _ + _, rw add_smul, refl },
-    { change (0 : R) • (1 : A) = 0, simp, },
-    { change (_ • (1 : A)) * _ = _ * (_ • (1 : A)), simp },
-    { change _ • _ = (_ • (1 : A)) * _, simp },
-    repeat { let G := lift_fun R M f, change G _ * G _ = G _ * G _, simp only * },
-    repeat { let G := lift_fun R M f, change G _ + G _ = G _ + G _, simp only * },
-    { let G := lift_fun R M f, change _ • G _ = _ • G _, simp only * },
+    { let G := lift_fun R M f,
+      change (algebra_map _ _ _) * G _ = G _, simp, },
+    { let G := lift_fun R M f,
+      change G _ * (algebra_map _ _ _)= G _, simp, },
+    { change _ * (_ + _) = _ * _ + _ * _, rw left_distrib, },
+    { change (_ + _) * _ = _ * _ + _ * _, rw right_distrib, },
+    repeat { set G := lift_fun R M f,
+      change G _ + G _ = G _ + G _, rw h_ih, },
+    repeat { set G := lift_fun R M f,
+      change G _ * G _ = G _ * G _, rw h_ih, },
   end,
-  map_one' := rfl,
+  map_one' := by change algebra_map _ _ _ = _; simp,
   map_mul' :=
   begin
     intros x y,
@@ -326,7 +309,7 @@ def lift {A : Type u3} [ring A] [algebra R A] (f : M →ₗ[R] A) : tensor_algeb
     rcases quot.exists_rep y with ⟨y,rfl⟩,
     refl,
   end,
-  map_zero' := rfl,
+  map_zero' := by change algebra_map _ _ _ = _; simp,
   map_add' :=
   begin
     intros x y,
@@ -334,13 +317,7 @@ def lift {A : Type u3} [ring A] [algebra R A] (f : M →ₗ[R] A) : tensor_algeb
     rcases quot.exists_rep y with ⟨y,rfl⟩,
     refl,
   end,
-  commutes' :=
-  begin
-    intros r,
-    have : algebra_map R A r = r • (1 : A), by refine algebra.algebra_map_eq_smul_one r,
-    rw this, clear this,
-    refl,
-  end }
+  commutes' := by tauto }
 
 variables {R M}
 
@@ -358,21 +335,16 @@ begin
   { change (g ∘ (univ R M)) _ = _,
     rw hyp,
     refl },
-  { change g 0 = 0,
-    exact alg_hom.map_zero g },
-  { change g 1 = 1,
-    exact alg_hom.map_one g },
-  { change g (quot.mk _ x_a * quot.mk _ x_a_1) = _,
-    rw alg_hom.map_mul,
-    rw x_ih_a, rw x_ih_a_1,
-    refl },
+  { change g (algebra_map R _ _) = algebra_map _ _ _,
+    exact alg_hom.commutes g x },
   { change g (quot.mk _ x_a + quot.mk _ x_a_1) = _,
     rw alg_hom.map_add,
     rw x_ih_a, rw x_ih_a_1,
     refl },
-  { change g (x_a • quot.mk _ x_a_1 ) = _,
-    rw alg_hom.map_smul,
-    rw x_ih, refl },
+  { change g (quot.mk _ x_a * quot.mk _ x_a_1) = _,
+    rw alg_hom.map_mul,
+    rw x_ih_a, rw x_ih_a_1,
+    refl },
 end
 
 end tensor_algebra

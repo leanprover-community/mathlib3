@@ -143,10 +143,11 @@ begin
   { rw nontrivial_iff at h, push_neg at h, apply h, }
 end
 
---shouldn't need these instances, but might need casework
-theorem trace_from_char_poly [nontrivial R] [nonempty n] (M : matrix n n R) :
+theorem trace_from_char_poly [nonempty n] (M : matrix n n R) :
   (matrix.trace n R R) M = -(char_poly M).coeff (fintype.card n - 1) :=
 begin
+  by_cases nontrivial R; try { rw not_nontrivial_iff_subsingleton at h }; haveI := h, swap,
+  { apply subsingleton.elim },
   rw char_poly_coeff_eq_prod_coeff_of_le, swap, refl,
   rw [fintype.card, prod_X_sub_C_coeff_card_pred univ (λ i : n, M i i)], simp,
   rw [← fintype.card, fintype.card_pos_iff], apply_instance,

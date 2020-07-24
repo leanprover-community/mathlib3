@@ -548,17 +548,6 @@ begin
   simpa [hab, zero_lt_one] using h hx hy ha hb,
 end⟩
 
-/-- If g is convex on s, so is (g ∘ f) on f ⁻¹' s for a linear f. -/
-lemma convex_on.linear_preimage {f : E →ₗ[ℝ] F} {g : F → ℝ} {s : set F} (hg : convex_on s g) :
-  convex_on (f ⁻¹' s) (g ∘ f) :=
-begin
-  refine ⟨convex.linear_preimage hg.1 f, _⟩,
-  intros x y x_in_set y_in_set a b a_nonneg b_nonneg hab,
-  rw [function.comp_app, map_add f (a • x) (b • y), map_smul, map_smul],
-  rw [function.comp_app, function.comp_app],
-  exact hg.2 (mem_preimage.mp x_in_set) (mem_preimage.mp y_in_set) (a_nonneg) (b_nonneg) hab,
-end
-
 /-- For a function on a convex set in a linear ordered space, in order to prove that it is convex
 it suffices to verify the inequality `f (a • x + b • y) ≤ a * f x + b * f y` only for `x < y`
 and positive `a`, `b`. The main use case is `E = ℝ` however one can apply it, e.g., to `ℝ^n` with
@@ -692,6 +681,15 @@ begin
                         ...  = f (a • (g x) + b • (g y))     : by rw [convex.combo_affine_apply hab]
                         ...  ≤ a * f (g x) + b * f (g y)     : hf.2 xs ys ha hb hab
                         ...  = a * (f ∘ g) x + b * (f ∘ g) y  : rfl
+end
+
+/-- If g is convex on s, so is (g ∘ f) on f ⁻¹' s for a linear f. -/
+lemma convex_on.linear_preimage {f : E →ₗ[ℝ] F} {g : F → ℝ} {s : set F} (hg : convex_on s g) :
+  convex_on (f ⁻¹' s) (g ∘ f) :=
+begin
+  let f' : affine_map ℝ E E F F := ⟨f, f, λ p v, map_add f v p⟩,
+  change convex_on (f' ⁻¹' s) (g ∘ f'),
+  exact convex_on.affine_preimage hg
 end
 
 /-- If a function is convex on s, it remains convex after a translation. -/

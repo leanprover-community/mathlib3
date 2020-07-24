@@ -251,6 +251,29 @@ lemma is_id (f : mv_polynomial σ α → mv_polynomial σ α) (hf : is_semiring_
   f p = p :=
 hom_eq_hom f id hf is_semiring_hom.id hC hX p
 
+lemma ring_hom_ext {A : Type*} [comm_semiring A] (f g : mv_polynomial σ α →+* A)
+  (hC : ∀ r, f (C r) = g (C r)) (hX : ∀ i, f (X i) = g (X i)) :
+  f = g :=
+begin
+  ext p : 1,
+  apply mv_polynomial.induction_on' p,
+  { intros m r, rw [monomial_eq, finsupp.prod],
+    simp only [monomial_eq, ring_hom.map_mul, ring_hom.map_prod, ring_hom.map_pow, hC, hX], },
+  { intros p q hp hq, simp only [ring_hom.map_add, hp, hq] }
+end
+
+lemma alg_hom_ext {A : Type*} [comm_semiring A] [algebra α A]
+  (f g : mv_polynomial σ α →ₐ[α] A) (hf : ∀ i : σ, f (X i) = g (X i)) :
+  f = g :=
+begin
+  apply alg_hom.coe_ring_hom_injective,
+  apply ring_hom_ext,
+  { intro r,
+    calc f (C r) = algebra_map α A r : f.commutes r
+             ... = g (C r)           : (g.commutes r).symm },
+  { simpa only [hf] },
+end
+
 section coeff
 
 section

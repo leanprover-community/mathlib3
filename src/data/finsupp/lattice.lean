@@ -20,7 +20,7 @@ variables {γ : Type*} [canonically_linear_ordered_add_monoid γ]
 
 namespace finsupp
 
-lemma le_def [partial_order β] {a b : α →₀ β} : a ≤ b ↔ ∀ (s : α), a s ≤ b s := by refl
+lemma le_def [partial_order β] {a b : α →₀ β} : a ≤ b ↔ ∀ (s : α), a s ≤ b s := rfl
 
 instance : order_bot (α →₀ μ) :=
 { bot := 0, bot_le := by simp [finsupp.le_def, ← bot_eq_zero], .. finsupp.partial_order}
@@ -48,6 +48,7 @@ instance [semilattice_inf β] : semilattice_inf (α →₀ β) :=
 @[simp]
 lemma inf_apply [semilattice_inf β] {a : α} {f g : α →₀ β} : (f ⊓ g) a = f a ⊓ g a := rfl
 
+@[simp]
 lemma support_inf {f g : α →₀ γ} : (f ⊓ g).support = f.support ∩ g.support :=
 begin
   change (binary_op_pointwise inf_idem f g).support = f.support ∩ g.support,

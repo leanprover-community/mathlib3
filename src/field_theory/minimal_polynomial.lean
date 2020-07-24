@@ -138,7 +138,7 @@ end
 lemma irreducible : irreducible (minimal_polynomial hx) :=
 irreducible_of_prime (prime hx)
 
-theorem unique' {p : polynomial α} (hp1 : _root_.irreducible p) (hp2 : polynomial.aeval α β x p = 0)
+theorem unique' {p : polynomial α} (hp1 : _root_.irreducible p) (hp2 : polynomial.aeval x p = 0)
   (hp3 : p.monic) : p = minimal_polynomial hx :=
 let ⟨q, hq⟩ := dvd hx hp2 in
 polynomial.eq_of_monic_of_associated hp3 (monic hx) $

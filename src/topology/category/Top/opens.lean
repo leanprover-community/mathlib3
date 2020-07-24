@@ -88,8 +88,6 @@ def map_id : map (𝟙 X) ≅ 𝟭 (opens X) :=
 { hom := { app := λ U, eq_to_hom (map_id_obj U) },
   inv := { app := λ U, eq_to_hom (map_id_obj U).symm } }
 
-@[simp] lemma map_id_hom_app (U) : (map_id X).hom.app U = eq_to_hom (map_id_obj U) := rfl
-@[simp] lemma map_id_inv_app (U) : (map_id X).inv.app U = eq_to_hom (map_id_obj U).symm := rfl
 end
 
 @[simp] lemma map_comp_obj (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
@@ -115,11 +113,6 @@ of taking preimages under `g`, then preimages under `f`.
 def map_comp (f : X ⟶ Y) (g : Y ⟶ Z) : map (f ≫ g) ≅ map g ⋙ map f :=
 { hom := { app := λ U, eq_to_hom (map_comp_obj f g U) },
   inv := { app := λ U, eq_to_hom (map_comp_obj f g U).symm } }
-
-@[simp] lemma map_comp_hom_app (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
-  (map_comp f g).hom.app U = eq_to_hom (map_comp_obj f g U) := rfl
-@[simp] lemma map_comp_inv_app (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
-  (map_comp f g).inv.app U = eq_to_hom (map_comp_obj f g U).symm := rfl
 
 -- We could make `f g` implicit here, but it's nice to be able to see when
 -- they are the identity (often!)

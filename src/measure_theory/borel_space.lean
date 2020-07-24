@@ -349,6 +349,16 @@ lemma measurable.mul [monoid α] [has_continuous_mul α] [second_countable_topol
 continuous_mul.measurable2
 
 @[to_additive]
+lemma measurable_mul_left [monoid α] [topological_monoid α] (x : α) :
+  measurable (λ y : α, x * y) :=
+continuous.measurable $ continuous_const.mul continuous_id
+
+@[to_additive]
+lemma measurable_mul_right [monoid α] [topological_monoid α] (x : α) :
+  measurable (λ y : α, y * x) :=
+continuous.measurable $ continuous_id.mul continuous_const
+
+@[to_additive]
 lemma finset.measurable_prod {ι : Type*} [comm_monoid α] [has_continuous_mul α]
   [second_countable_topology α] {f : ι → δ → α} (s : finset ι) (hf : ∀i, measurable (f i)) :
   measurable (λa, ∏ i in s, f i a) :=

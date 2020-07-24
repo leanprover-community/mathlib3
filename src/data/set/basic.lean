@@ -1023,6 +1023,9 @@ variables {f : α → β} {g : β → γ}
 
 @[simp] theorem mem_preimage {s : set β} {a : α} : (a ∈ f ⁻¹' s) ↔ (f a ∈ s) := iff.rfl
 
+lemma preimage_congr {f g : α → β} {s : set β} (h : ∀ (x : α), f x = g x) : f ⁻¹' s = g ⁻¹' s :=
+by { congr, ext, apply_assumption }
+
 theorem preimage_mono {s t : set β} (h : s ⊆ t) : f ⁻¹' s ⊆ f ⁻¹' t :=
 assume x hx, h hx
 

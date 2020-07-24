@@ -1019,3 +1019,14 @@ lemma ite_apply {α : Type*} {β : α → Type*} (P : Prop) [decidable P]
 dite_apply P (λ _, f) (λ _, g) x
 
 end ite
+
+/--
+A convenience method for extracting the property satisfied by a term which is merely equal to
+`classical.some _`.
+-/
+lemma classical.spec_of_eq_some
+  {α : Type*} {p : α → Prop} {a : α} {w : ∃ x, p x} (h : a = classical.some w) : p a :=
+begin
+  subst h,
+  apply classical.some_spec,
+end

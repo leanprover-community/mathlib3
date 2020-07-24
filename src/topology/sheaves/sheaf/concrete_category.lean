@@ -33,7 +33,7 @@ variables {X : Top.{v}} (F : presheaf C X)
 variables {ι : Type v} (U : ι → opens X)
 
 local attribute [reducible] sheaf_condition.diagram
-local attribute [reducible] sheaf_condition.left_restriction sheaf_condition.right_restriction
+local attribute [reducible] sheaf_condition.left_res sheaf_condition.right_res
 
 /--
 When `G` preserves limits, the sheaf condition diagram for `F` composed with `G` is
@@ -111,12 +111,12 @@ begin
     have t4 := is_limit.postcompose_inv_equiv _ _ t3,
     exact t4, },
   { intros S ι U,
-    let f := equalizer.lift _ (fork_condition F U),
+    let f := equalizer.lift _ (w F U),
     haveI : is_iso ((forget C).map f) :=
     begin
       let c := sheaf_condition.fork (F ⋙ forget C) U,
       have hc : is_limit c := S U,
-      let d := (forget C).map_cone (equalizer.fork (left_restriction F U) (right_restriction F U)),
+      let d := (forget C).map_cone (equalizer.fork (left_res F U) (right_res F U)),
       have hd : is_limit d := preserves_limit.preserves (limit.is_limit _),
       -- `c` is a limit cone by `S`
       -- `d` is a limit cone because `forget C` preserves limits

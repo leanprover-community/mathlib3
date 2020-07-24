@@ -10,35 +10,10 @@ noncomputable theory
 
 universe u
 
--- @[simp]
--- lemma foo (X : Top.{u}) {U V : opens X} {f : U ⟶ V} {x} :
---   ((opens.to_Top X).map f) x = ⟨x.1, f.down.down x.2⟩ :=
--- begin
---   ext,
---   refl,
--- end
-
--- @[simp]
--- lemma foo' (X : Top.{u}) {U V : opens X} {f : U ⟶ V} {x} {h} :
---   ((opens.to_Top X).map f) ⟨x, h⟩ = ⟨x, f.down.down h⟩ :=
--- rfl
-
--- local attribute [irreducible] functor.sections -- TODO move as earlier as possible
-
-
 variables (X : Top.{u})
 
 open Top
 
-
-
-lemma classical.spec_of_eq_some {α :Type*} {p : α → Prop} {a : α} {w : ∃ x, p x} (h : a = classical.some w) : p a :=
-begin
-  subst h,
-  apply classical.some_spec,
-end
-
--- local attribute [-simp] forget_map_eq_coe -- FIXME?
 example (T : Type u) : sheaf_condition (presheaf_to_Type X T) :=
 λ ι U,
 begin
@@ -55,7 +30,7 @@ begin
     exact ((s.ι ≫ pi.π _ i) f) ⟨x, by { subst hi, exact  H.2, }⟩, },
   { intros s,
     dsimp,
-    dsimp only [sheaf_condition.restriction],
+    dsimp only [sheaf_condition.res],
 
     ext1 i,
     simp only [exists_prop, set.mem_range, set.mem_image, exists_exists_eq_and, category.assoc],
@@ -68,7 +43,7 @@ begin
     let j : ι := _,
     have s₀ := s.condition =≫ pi.π _ (j, i),
     -- TODO make proper simp lemmas
-    simp [sheaf_condition.left_restriction, sheaf_condition.right_restriction] at s₀,
+    simp [sheaf_condition.left_res, sheaf_condition.right_res] at s₀,
     have s₁ := congr_fun s₀ f,
     have s₂ := congr_fun s₁ ⟨x, _⟩,
 

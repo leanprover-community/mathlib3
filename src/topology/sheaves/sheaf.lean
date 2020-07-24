@@ -36,21 +36,38 @@ variables {X : Top.{v}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
 
 namespace sheaf_condition
 
-def product_over_opens : C := pi_obj (λ i : ι, F.obj (op (U i)))
-def product_over_intersections : C := limits.pi_obj (λ p : ι × ι, F.obj (op (U p.1 ⊓ U p.2)))
+/-- The product of the sections of a presheaf over a family of open sets. -/
+def pi_opens : C := ∏ (λ i : ι, F.obj (op (U i)))
+/--
+The product of the sections of a presheaf over the pairwise intersections of
+a family of open sets.
+-/
+def pi_inters : C := ∏ (λ p : ι × ι, F.obj (op (U p.1 ⊓ U p.2)))
 
-def left_restriction : product_over_opens F U ⟶ product_over_intersections F U :=
+/--
+The morphism `Π F.obj (U i) ⟶ Π F.obj (U i) ⊓ (U j)` whose components
+are given by the restriction maps from `U i` to `U i ⊓ U j`.
+-/
+def left_res : pi_opens F U ⟶ pi_inters F U :=
 pi.lift (λ p : ι × ι, pi.π _ p.1 ≫ F.map (inf_le_left (U p.1) (U p.2)).op)
 
-def right_restriction : product_over_opens F U ⟶ product_over_intersections F U :=
+/--
+The morphism `Π F.obj (U i) ⟶ Π F.obj (U i) ⊓ (U j)` whose components
+are given by the restriction maps from `U j` to `U i ⊓ U j`.
+-/
+def right_res : pi_opens F U ⟶ pi_inters F U :=
 pi.lift (λ p : ι × ι, pi.π _ p.2 ≫ F.map (inf_le_right (U p.1) (U p.2)).op)
 
-def restriction : F.obj (op (supr U)) ⟶ product_over_opens F U :=
+/--
+The morphism `F.obj U ⟶ Π F.obj (U i)` whose components
+are given by the restriction maps from `U j` to `U i ⊓ U j`.
+-/
+def res : F.obj (op (supr U)) ⟶ pi_opens F U :=
 pi.lift (λ i : ι, F.map (topological_space.opens.le_supr U i).op)
 
-lemma fork_condition : restriction F U ≫ left_restriction F U = restriction F U ≫ right_restriction F U :=
+lemma w : res F U ≫ left_res F U = res F U ≫ right_res F U :=
 begin
-  dsimp [restriction, left_restriction, right_restriction],
+  dsimp [res, left_res, right_res],
   ext,
   simp,
   rw [←F.map_comp],
@@ -58,20 +75,29 @@ begin
   congr,
 end
 
+/--
+The equalizer diagram for the sheaf condition.
+-/
 def diagram : walking_parallel_pair ⥤ C :=
-parallel_pair (left_restriction F U) (right_restriction F U)
+parallel_pair (left_res F U) (right_res F U)
 
-def fork : fork (left_restriction F U) (right_restriction F U) := fork.of_ι _ (fork_condition F U)
+/--
+The restriction map `F.obj U ⟶ Π F.obj (U i)` gives a cone over the equalizer diagram
+for the sheaf condition. The sheaf condition asserts this cone is a limit cone.
+-/
+def fork : fork (left_res F U) (right_res F U) := fork.of_ι _ (w F U)
 
 @[simp]
-lemma fork_ι : (fork F U).ι = restriction F U := rfl
-@[simp]
-lemma fork_π_app_zero : (fork F U).π.app walking_parallel_pair.zero = restriction F U := rfl
-@[simp]
-lemma fork_π_app_one : (fork F U).π.app walking_parallel_pair.one = restriction F U ≫ left_restriction F U := rfl
+lemma fork_ι : (fork F U).ι = res F U := rfl
 
 end sheaf_condition
 
+/--
+The sheaf condition of a `F : presheaf C X` requires that the morphism
+`F.obj U ⟶ ∏ F.obj (U i)` (where `U` is some open set which is the union of the `U i`)
+is the equalizer of the two morphisms
+`∏ F.obj (U i) ⟶ ∏ F.obj (U i) ⊓ (U j)`.
+-/
 -- Perhaps we want to work with sets of opens, rather than indexed families,
 -- to avoid the `v+1` here in the universe levels?
 @[derive subsingleton]
@@ -80,6 +106,10 @@ def sheaf_condition (F : presheaf C X) : Type (max u (v+1)) :=
 
 variables (C X)
 
+/--
+A `sheaf C X` is a presheaf of objects from `C` over a (bundled) topological space `X`,
+satisfying the sheaf condition.
+-/
 structure sheaf :=
 (presheaf : presheaf C X)
 (sheaf_condition : sheaf_condition presheaf)

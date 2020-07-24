@@ -89,7 +89,15 @@ def E : Type u := {x : sym2 V // x ∈ sym2.from_rel G.sym}
 /-- Allows us to refer to a vertex being a member of an edge. -/
 instance E.has_mem : has_mem V G.E := { mem := λ v e, v ∈ e.val }
 
---lemma exists_edge_iff_adj {v w : V} (hne : v ≠ w) : (∃ (e : G.E), v ∈ e ∧ w ∈ e) ↔ G.adj v w :=
+lemma exists_edge_iff_adj {v w : V} (hne : v ≠ w) :
+G.adj v w ↔ ∃ (e : G.E), v ∈ e ∧ w ∈ e :=
+begin
+  split, { intro, use ⟦(v,w)⟧, assumption, iterate 2 { erw sym2.mem_iff }, simp },
+  rintro ⟨e, ⟨w',hve⟩, ⟨v',hew⟩⟩,
+  have : e.val = ⟦(v,w)⟧, {rw [hve, sym2.eq_iff] at hew ⊢, cc},
+  have key := e.property, rwa this at key,
+end
+
 
 --attribute [irreducible] E
 
@@ -183,12 +191,5 @@ lemma complete_graph_is_regular [decidable_eq V] :
 by { intro v, simp }
 
 end finite
-
-lemma adjacent_of_mem_edge_of_ne {x y : V} (hxy : G.adj x y) :
-  ∃ e : G.E, x ∈ e ∧ y ∈ e :=
-begin
-  use ⟦(x,y)⟧, assumption,
-  unfold G.E.has_mem,
-end
 
 end simple_graph

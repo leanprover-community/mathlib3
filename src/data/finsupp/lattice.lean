@@ -42,8 +42,7 @@ instance [semilattice_inf β] : semilattice_inf (α →₀ β) :=
   inf_le_left := by { intros, rw le_def, intro, apply inf_le_left, },
   inf_le_right := by { intros, rw le_def, intro, apply inf_le_right, },
   le_inf := by { intros, rw le_def at *, intro, apply le_inf (a_1 s) (a_2 s) },
-  ..finsupp.partial_order,
-}
+  ..finsupp.partial_order, }
 
 @[simp]
 lemma inf_apply [semilattice_inf β] {a : α} {f g : α →₀ β} : (f ⊓ g) a = f a ⊓ g a := rfl
@@ -64,8 +63,7 @@ instance [semilattice_sup β] : semilattice_sup (α →₀ β) :=
   le_sup_left := by { intros, rw le_def, intro, apply le_sup_left, },
   le_sup_right := by { intros, rw le_def, intro, apply le_sup_right, },
   sup_le := by { intros, rw le_def at *, intro, apply sup_le (a_1 s) (a_2 s) },
-  ..finsupp.partial_order,
-}
+  ..finsupp.partial_order, }
 
 @[simp]
 lemma sup_apply [semilattice_sup β] {a : α} {f g : α →₀ β} : (f ⊔ g) a = f a ⊔ g a := rfl

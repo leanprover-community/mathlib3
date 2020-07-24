@@ -1372,9 +1372,6 @@ meta def simplify_constructor_equation (equ type lhs rhs lhs_whnf rhs_whnf : exp
 do {
   (const f _) ← pure $ get_app_fn lhs_whnf,
   (const g _) ← pure $ get_app_fn rhs_whnf,
-  env ← get_env,
-  guard $ env.is_constructor f,
-  guard $ env.is_constructor g,
   if f ≠ g
     then do
       solve1 $ cases equ,
@@ -1415,8 +1412,8 @@ meta def simplify_index_equation (equ : name) : tactic simplification_result := 
   t ← infer_type eque,
   match t with
   | (app (app (app (const `eq [u]) type) lhs) rhs) := do
-    lhs_whnf ← whnf lhs,
-    rhs_whnf ← whnf rhs,
+    lhs_whnf ← whnf_ginductive lhs,
+    rhs_whnf ← whnf_ginductive rhs,
     simplify_homogeneous_index_equation eque type lhs rhs lhs_whnf rhs_whnf u
   | `(@heq %%lhs_type %%lhs %%rhs_type %%rhs) := do
     simplify_heterogeneous_index_equation eque lhs_type rhs_type lhs rhs

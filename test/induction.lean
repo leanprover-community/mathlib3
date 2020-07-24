@@ -446,6 +446,8 @@ begin
   -- This leaves the goal provable, but very confusing.
 end
 
+end ℕ₂
+
 -- For whatever reason, the eliminator for `false` has an explicit argument
 -- where all other eliminators have an implicit one. `eliminate_hyp` has to
 -- work around this to ensure that we can eliminate a `false` hyp.
@@ -454,7 +456,23 @@ begin
   cases' h
 end
 
-end ℕ₂
+-- Index equation simplification also works with nested datatypes.
+inductive rose (α : Type) : Type
+| leaf : rose
+| node (val : α) (children : list rose) : rose
+
+namespace rose
+
+inductive nonempty {α} : rose α → Prop
+| node (v c cs) : nonempty (node v (c :: cs))
+
+lemma nonempty_node_elim {α} {v : α} {cs} (h : nonempty (node v cs)) : ¬ cs.empty :=
+begin
+  induction' h,
+  finish
+end
+
+end rose
 
 --------------------------------------------------------------------------------
 -- Jasmin's original use cases

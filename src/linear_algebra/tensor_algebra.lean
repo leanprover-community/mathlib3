@@ -38,9 +38,10 @@ variables (M : Type u2) [add_comm_group M] [semimodule R M]
 
 namespace tensor_algebra
 
--- This inductive type is used to express representatives
--- of the tensor algebra.
-@[nolint doc_blame]
+/--
+This inductive type is used to express representatives
+of the tensor algebra.
+-/
 inductive pre
 | of : M → pre
 | of_scalar : R → pre
@@ -51,25 +52,31 @@ namespace pre
 
 instance : inhabited (pre R M) := ⟨of_scalar 0⟩
 
--- These instances are only used to simplify the notation.
+-- Note: These instances are only used to simplify the notation.
+/-- Coersion from `M` to `pre R M`. Note: Used for notation only. -/
 def has_coe_module : has_coe M (pre R M) := ⟨of⟩
+/-- Coersion from `R` to `pre R M`. Note: Used for notation only. -/
 def has_coe_semiring : has_coe R (pre R M) := ⟨of_scalar⟩
+/-- Multiplication in `pre R M` defined as `pre.mul`. Note: Used for notation only. -/
 def has_mul : has_mul (pre R M) := ⟨mul⟩
+/-- Addition in `pre R M` defined as `pre.add`. Note: Used for notation only. -/
 def has_add : has_add (pre R M) := ⟨add⟩
+/-- Zero in `pre R M` defined as the image of `0` from `R`. Note: Used for notation only. -/
 def has_zero : has_zero (pre R M) := ⟨of_scalar 0⟩
+/-- One in `pre R M` defined as the image of `1` from `R`. Note: Used for notation only. -/
 def has_one : has_one (pre R M) := ⟨of_scalar 1⟩
+/--
+Scalar multiplication defined as multiplication by the image
+of elements from `R`.
+Note: Used for notation only.
+-/
 def has_scalar : has_scalar R (pre R M) := ⟨λ r m, mul (of_scalar r) m⟩
---def has_neg : has_neg (pre R M) := ⟨mul (of_scalar (-1))⟩
-
-attribute [nolint doc_blame]
-  pre.has_coe_module pre.has_coe_semiring pre.has_mul pre.has_add pre.has_zero
-  pre.has_one pre.has_scalar -- pre.has_neg
 
 end pre
 
 local attribute [instance]
   pre.has_coe_module pre.has_coe_semiring pre.has_mul pre.has_add pre.has_zero
-  pre.has_one pre.has_scalar -- pre.has_neg
+  pre.has_one pre.has_scalar
 
 /--
 Given a linear map from `M` to an `R`-algebra `A`, `lift_fun` provides
@@ -79,7 +86,10 @@ This is mainly used in the construction of `tensor_algebra.lift` below.
 def lift_fun {A : Type u3} [semiring A] [algebra R A] (f : M →ₗ[R] A) : pre R M → A :=
   λ t, pre.rec_on t f (algebra_map _ _) (λ _ _, (+)) (λ _ _, (*))
 
-@[nolint doc_blame]
+/--
+An inductively defined relation on `pre R M`
+used to force the initial algebra structure on the associated quotient.
+-/
 inductive rel : (pre R M) → (pre R M) → Prop
 -- force of to be linear
 | add_lin {a b : M} : rel ↑(a+b) (↑a + ↑b)
@@ -119,7 +129,7 @@ namespace tensor_algebra
 
 local attribute [instance]
   pre.has_coe_module pre.has_coe_semiring pre.has_mul pre.has_add pre.has_zero
-  pre.has_one pre.has_scalar -- pre.has_neg
+  pre.has_one pre.has_scalar
 
 instance : semiring (tensor_algebra R M) :=
 { add := λ a b, quot.lift_on a (λ x, quot.lift_on b (λ y, quot.mk (rel R M) (x + y))

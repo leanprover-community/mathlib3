@@ -1,5 +1,5 @@
 import tactic.lint
-import algebra.ring
+import algebra.ring.basic
 
 def foo1 (n m : ℕ) : ℕ := n + 1
 def foo2 (n m : ℕ) : m = m := by refl

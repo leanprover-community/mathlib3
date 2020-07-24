@@ -4,7 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
 import data.setoid.basic
-import algebra.pi_instances
+import algebra.group.pi
+import algebra.group.prod
+import data.equiv.mul_add
+import group_theory.submonoid.operations
 
 /-!
 # Congruence relations

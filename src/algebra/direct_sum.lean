@@ -3,20 +3,36 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 
-Direct sum of abelian groups, indexed by a discrete type.
 -/
 import algebra.direct_sum_monoid
+
+/-!
+# Direct sum
+
+This file defines the direct sum of abelian groups, indexed by a discrete type.
+
+## Notation
+
+`⨁ i, β i` is the n-ary direct sum `direct_sum`.
+This notation is in the `direct_sum` locale, accessible after `open_locale direct_sum`.
+
+## References
+
+* https://en.wikipedia.org/wiki/Direct_sum
+-/
 
 open_locale big_operators
 
 universes u v w u₁
+
+localized "notation `⨁` binders `, ` r:(scoped f, direct_sum _ f) := r" in direct_sum
 
 namespace direct_sum
 
 variables {ι : Type v} [decidable_eq ι]
 variables {β : ι → Type w} [Π i, add_comm_group (β i)]
 
-instance : add_comm_group (direct_sum ι β) :=
+instance : add_comm_group (⨁ i, β i) :=
 dfinsupp.add_comm_group
 
 instance mk.is_add_group_hom (s : finset ι) : is_add_group_hom (mk β s) :=
@@ -41,7 +57,7 @@ variables {γ : Type u₁} [add_comm_group γ]
 variables (φ : Π i, β i → γ) [Π i, is_add_group_hom (φ i)]
 
 variables (φ)
-def to_group (f : direct_sum ι β) : γ := @to_add_monoid _ _ _ _ _ _ φ (λ i, by apply_instance) f
+def to_group (f : ⨁ i, β i) : γ := @to_add_monoid _ _ _ _ _ _ φ (λ i, by apply_instance) f
 variables {φ}
 
 instance to_group.is_add_group_hom : is_add_group_hom (to_group φ) :=
@@ -63,9 +79,9 @@ is_add_group_hom.map_sub _ x y
 @[simp] lemma to_group_of (i) (x : β i) : to_group φ (of β i x) = φ i x :=
 by apply to_add_monoid_of
 
-variables (ψ : direct_sum ι β → γ) [is_add_group_hom ψ]
+variables (ψ : (⨁ i, β i) → γ) [is_add_group_hom ψ]
 
-theorem to_group.unique (f : direct_sum ι β) :
+theorem to_group.unique (f : ⨁ i, β i) :
   ψ f = @to_group _ _ _ _ _ _ (λ i, ψ ∘ of β i) (λ i, is_add_group_hom.comp (of β i) ψ) f :=
 by apply to_add_monoid.unique
 

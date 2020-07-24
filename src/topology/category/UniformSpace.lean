@@ -51,9 +51,9 @@ lemma hom_ext {X Y : UniformSpace} {f g : X ⟶ Y} : (f : X → Y) = g → f = g
 
 /-- The forgetful functor from uniform spaces to topological spaces. -/
 instance has_forget_to_Top : has_forget₂ UniformSpace.{u} Top.{u} :=
-unbundled_hom.mk_has_forget₂
-  @uniform_space.to_topological_space
-  @uniform_continuous.continuous
+{ forget₂ :=
+  { obj := λ X, Top.of X,
+    map := λ X Y f, { to_fun := f, continuous_to_fun := uniform_continuous.continuous f.property }, }, }
 
 end UniformSpace
 

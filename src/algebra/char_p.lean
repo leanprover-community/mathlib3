@@ -7,7 +7,7 @@ Author: Kenny Lau, Joey van Langen, Casper Putz
 import data.fintype.basic
 import data.nat.choose
 import data.int.modeq
-import algebra.module
+import algebra.module.basic
 import algebra.iterate_hom
 
 /-!

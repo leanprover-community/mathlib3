@@ -676,24 +676,43 @@ end
 section
 /-- A `psigma`-type is equivalent to the corresponding `sigma`-type. -/
 def psigma_equiv_sigma {α} (β : α → Sort*) : (Σ' i, β i) ≃ Σ i, β i :=
-⟨λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
+⟨λ a, ⟨a.1, a.2⟩, λ a, ⟨a.1, a.2⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
+
+@[simp] lemma psigma_equiv_sigma_apply {α} (β : α → Sort*) (x) :
+  psigma_equiv_sigma β x = ⟨x.1, x.2⟩ :=
+rfl
+
+@[simp] lemma psigma_equiv_sigma_symm_apply {α} (β : α → Sort*) (x) :
+  (psigma_equiv_sigma β).symm x = ⟨x.1, x.2⟩ :=
+rfl
 
 /-- A family of equivalences `Π a, β₁ a ≃ β₂ a` generates an equivalence between `Σ a, β₁ a` and
 `Σ a, β₂ a`. -/
 def sigma_congr_right {α} {β₁ β₂ : α → Sort*} (F : Π a, β₁ a ≃ β₂ a) : (Σ a, β₁ a) ≃ Σ a, β₂ a :=
-⟨λ ⟨a, b⟩, ⟨a, F a b⟩, λ ⟨a, b⟩, ⟨a, (F a).symm b⟩,
+⟨λ a, ⟨a.1, F a.1 a.2⟩, λ a, ⟨a.1, (F a.1).symm a.2⟩,
  λ ⟨a, b⟩, congr_arg (sigma.mk a) $ symm_apply_apply (F a) b,
  λ ⟨a, b⟩, congr_arg (sigma.mk a) $ apply_symm_apply (F a) b⟩
 
+@[simp] lemma sigma_congr_right_apply {α} {β₁ β₂ : α → Sort*} (F : Π a, β₁ a ≃ β₂ a) (x) :
+  sigma_congr_right F x = ⟨x.1, F x.1 x.2⟩ :=
+rfl
+
+@[simp] lemma sigma_congr_right_symm_apply {α} {β₁ β₂ : α → Sort*} (F : Π a, β₁ a ≃ β₂ a) (x) :
+  (sigma_congr_right F).symm x = ⟨x.1, (F x.1).symm x.2⟩ :=
+rfl
+
 /-- An equivalence `f : α₁ ≃ α₂` generates an equivalence between `Σ a, β (f a)` and `Σ a, β a`. -/
-def sigma_congr_left {α₁ α₂} {β : α₂ → Sort*} : ∀ f : α₁ ≃ α₂, (Σ a:α₁, β (f a)) ≃ (Σ a:α₂, β a)
-| ⟨f, g, l, r⟩ :=
-  ⟨λ ⟨a, b⟩, ⟨f a, b⟩, λ ⟨a, b⟩, ⟨g a, @@eq.rec β b (r a).symm⟩,
-   λ ⟨a, b⟩, match g (f a), l a : ∀ a' (h : a' = a),
-       @sigma.mk _ (β ∘ f) _ (@@eq.rec β b (congr_arg f h.symm)) = ⟨a, b⟩ with
-     | _, rfl := rfl end,
-   λ ⟨a, b⟩, match f (g a), _ : ∀ a' (h : a' = a), sigma.mk a' (@@eq.rec β b h.symm) = ⟨a, b⟩ with
-     | _, rfl := rfl end⟩
+def sigma_congr_left {α₁ α₂} {β : α₂ → Sort*} (e : α₁ ≃ α₂) : (Σ a:α₁, β (e a)) ≃ (Σ a:α₂, β a) :=
+⟨λ a, ⟨e a.1, a.2⟩, λ a, ⟨e.symm a.1, @@eq.rec β a.2 (e.right_inv a.1).symm⟩,
+ λ ⟨a, b⟩, match e.symm (e a), e.left_inv a : ∀ a' (h : a' = a),
+     @sigma.mk _ (β ∘ e) _ (@@eq.rec β b (congr_arg e h.symm)) = ⟨a, b⟩ with
+   | _, rfl := rfl end,
+ λ ⟨a, b⟩, match e (e.symm a), _ : ∀ a' (h : a' = a), sigma.mk a' (@@eq.rec β b h.symm) = ⟨a, b⟩ with
+   | _, rfl := rfl end⟩
+
+@[simp] lemma sigma_congr_left_apply {α₁ α₂} {β : α₂ → Sort*} (e : α₁ ≃ α₂) (x : Σ a, β (e a)) :
+  sigma_congr_left e x = ⟨e x.1, x.2⟩ :=
+rfl
 
 /-- Transporting a sigma type through an equivalence of the base -/
 def sigma_congr_left' {α₁ α₂} {β : α₁ → Sort*} (f : α₁ ≃ α₂) :
@@ -708,12 +727,20 @@ def sigma_congr {α₁ α₂} {β₁ : α₁ → Sort*} {β₂ : α₂ → Sort*
 (sigma_congr_right F).trans (sigma_congr_left f)
 
 /-- `sigma` type with a constant fiber is equivalent to the product. -/
-def sigma_equiv_prod (α β : Sort*) : (Σ_:α, β) ≃ α × β :=
-⟨λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
+def sigma_equiv_prod (α β : Type*) : (Σ_:α, β) ≃ α × β :=
+⟨λ a, ⟨a.1, a.2⟩, λ a, ⟨a.1, a.2⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
+
+@[simp] lemma sigma_equiv_prod_apply {α β : Type*} (x : Σ _:α, β) :
+  sigma_equiv_prod α β x = ⟨x.1, x.2⟩ :=
+rfl
+
+@[simp] lemma sigma_equiv_prod_symm_apply {α β : Type*} (x : α × β) :
+  (sigma_equiv_prod α β).symm x = ⟨x.1, x.2⟩ :=
+rfl
 
 /-- If each fiber of a `sigma` type is equivalent to a fixed type, then the sigma type
 is equivalent to the product. -/
-def sigma_equiv_prod_of_equiv {α β} {β₁ : α → Sort*} (F : ∀ a, β₁ a ≃ β) : sigma β₁ ≃ α × β :=
+def sigma_equiv_prod_of_equiv {α β} {β₁ : α → Sort*} (F : Π a, β₁ a ≃ β) : sigma β₁ ≃ α × β :=
 (sigma_congr_right F).trans (sigma_equiv_prod α β)
 
 end

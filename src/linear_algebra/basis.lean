@@ -7,6 +7,7 @@ import linear_algebra.finsupp
 import linear_algebra.projection
 import order.zorn
 import data.fintype.card
+import data.finset.order
 
 /-!
 
@@ -626,8 +627,8 @@ begin
   have inj_v' : injective v' := (linear_independent.injective zero_eq_one hv'),
   apply linear_independent.of_subtype_range,
   { apply sum.elim_injective,
-    { exact prod.inl_injective.comp inj_v },
-    { exact prod.inr_injective.comp inj_v' },
+    { exact inl_injective.comp inj_v },
+    { exact inr_injective.comp inj_v' },
     { intros, simp [hv.ne_zero zero_eq_one] } },
   { rw sum.elim_range,
     refine (hv.image _).to_subtype_range.union (hv'.image _).to_subtype_range _;
@@ -661,7 +662,7 @@ have h1 : ∀ i ∈ s, (g i • i : G → L) = g i • a, from λ i his, funext 
     (funext $ λ y : G, calc
     -- After that, it's just a chase scene.
           (∑ i in s, ((g i * i x - g i * a x) • i : G → L)) y
-        = ∑ i in s, (g i * i x - g i * a x) * i y : pi.finset_sum_apply _ _ _
+        = ∑ i in s, (g i * i x - g i * a x) * i y : finset.sum_apply _ _ _
     ... = ∑ i in s, (g i * i x * i y - g i * a x * i y) : finset.sum_congr rfl
       (λ _ _, sub_mul _ _ _)
     ... = ∑ i in s, g i * i x * i y - ∑ i in s, g i * a x * i y : finset.sum_sub_distrib
@@ -674,7 +675,7 @@ have h1 : ∀ i ∈ s, (g i • i : G → L) = g i • a, from λ i his, funext 
         (finset.sum_congr rfl $ λ _ _, by rw [mul_assoc, mul_left_comm])
     ... = (∑ i in insert a s, (g i • i : G → L)) (x * y)
           - a x * (∑ i in insert a s, (g i • i : G → L)) y :
-      by rw [pi.finset_sum_apply, pi.finset_sum_apply, finset.mul_sum]; refl
+      by rw [finset.sum_apply, finset.sum_apply, finset.mul_sum]; refl
     ... = 0 - a x * 0 : by rw hg; refl
     ... = 0 : by rw [mul_zero, sub_zero])
     i

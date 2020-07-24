@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Abhimanyu Pallavi Sudhir
 -/
 import order.filter.basic
-import algebra.pi_instances
+import algebra.module.pi
 
 /-!
 # Germ of a function at a filter

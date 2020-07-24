@@ -114,6 +114,7 @@ def mem (x : α) (z : sym2 α) : Prop :=
 instance : has_mem α (sym2 α) := ⟨mem⟩
 
 lemma mk_has_mem (x y : α) : x ∈ ⟦(x, y)⟧ := ⟨y, rfl⟩
+lemma mk_has_mem_right (x y : α) : x ∈ ⟦(x, y)⟧ := ⟨y, rfl⟩
 
 /--
 This is a type-valued version of the membership predicate `mem` that contains the other
@@ -167,7 +168,7 @@ begin
   { cases h; rw [h.1, h.2], rw eq_swap }
 end
 
-lemma mem_iff {a b c : α} : a ∈ ⟦(b, c)⟧ ↔ a = b ∨ a = c :=
+@[simp] lemma mem_iff {a b c : α} : a ∈ ⟦(b, c)⟧ ↔ a = b ∨ a = c :=
 { mp  := by { rintro ⟨_, h⟩, rw eq_iff at h, tidy },
   mpr := by { rintro ⟨_⟩; subst a, { apply mk_has_mem }, rw eq_swap, apply mk_has_mem } }
 

@@ -173,4 +173,11 @@ by { intro v, simp }
 
 end finite
 
+lemma adjacent_of_mem_edge_of_ne {x y : V} (hxy : G.adj x y) :
+  ∃ e : G.E, x ∈ e ∧ y ∈ e :=
+begin
+  use ⟦(x,y)⟧, assumption,
+  unfold G.E.has_mem,
+end
+
 end simple_graph

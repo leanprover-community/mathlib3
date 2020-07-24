@@ -100,6 +100,10 @@ lemma mem_range_indicator {r : β} {s : set α} {f : α → β} :
 by simp [indicator, ite_eq_iff, exists_or_distrib, eq_univ_iff_forall, and_comm, or_comm,
   @eq_comm _ r 0]
 
+lemma indicator_rel_indicator {r : β → β → Prop} (h0 : r 0 0) (ha : a ∈ s → r (f a) (g a)) :
+  r (indicator s f a) (indicator s g a) :=
+by { simp only [indicator], split_ifs with has has, exacts [ha has, h0] }
+
 /-- Consider a sum of `g i (f i)` over a `finset`.  Suppose `g` is a
 function such as multiplication, which maps a second argument of 0 to
 0.  (A typical use case would be a weighted sum of `f i * h i` or `f i
@@ -254,7 +258,7 @@ lemma indicator_le' (hfg : ∀ a ∈ s, f a ≤ g a) (hg : ∀ a ∉ s, 0 ≤ g 
 λ a, if ha : a ∈ s then by simpa [ha] using hfg a ha else by simpa [ha] using hg a ha
 
 @[mono] lemma indicator_le_indicator (h : f a ≤ g a) : indicator s f a ≤ indicator s g a :=
-by { simp only [indicator], split_ifs with ha, { exact h }, refl }
+indicator_rel_indicator (le_refl _) (λ _, h)
 
 lemma indicator_le_indicator_of_subset (h : s ⊆ t) (hf : ∀a, 0 ≤ f a) (a : α) :
   indicator s f a ≤ indicator t f a :=

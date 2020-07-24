@@ -36,7 +36,7 @@ lemma conj_injective [group α] {x : α} : function.injective (λ (g : α), x * 
 λ a b h, by simpa [mul_left_inj, mul_right_inj] using h
 
 lemma mem_normalizer_fintype [group α] {s : set α} [fintype s] {x : α}
-  (h : ∀ n, n ∈ s → x * n * x⁻¹ ∈ s) : x ∈ is_subgroup.normalizer s :=
+  (h : ∀ n, n ∈ s → x * n * x⁻¹ ∈ s) : x ∈ subgroup.set_normalizer s :=
 by haveI := classical.prop_decidable;
 haveI := set.fintype_image s (λ n, x * n * x⁻¹); exact
 λ n, ⟨h n, λ h₁,
@@ -49,10 +49,13 @@ section order_of
 variable [group α]
 open quotient_group set
 
-@[simp] lemma card_trivial [fintype (is_subgroup.trivial α)] :
-  fintype.card (is_subgroup.trivial α) = 1 :=
+instance fintype_bot : fintype (⊥ : subgroup α) := ⟨{1},
+by {rintro ⟨x, ⟨hx⟩⟩, exact finset.mem_singleton_self _}⟩
+
+@[simp] lemma card_trivial :
+  fintype.card (⊥ : subgroup α) = 1 :=
 fintype.card_eq_one_iff.2
-  ⟨⟨(1 : α), by simp⟩, λ ⟨y, hy⟩, subtype.eq $ is_subgroup.mem_trivial.1 hy⟩
+  ⟨⟨(1 : α), set.mem_singleton 1⟩, λ ⟨y, hy⟩, subtype.eq $ subgroup.mem_bot.1 hy⟩
 
 variables [fintype α] [dec : decidable_eq α]
 
@@ -135,16 +138,16 @@ calc a ^ i = a ^ (i % order_of a + order_of a * (i / order_of a)) :
   ... = a ^ (i % order_of a) :
     by simp [gpow_add, gpow_mul, pow_order_of_eq_one]
 
-lemma mem_gpowers_iff_mem_range_order_of {a a' : α} :
-  a' ∈ gpowers a ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
-finset.mem_range_iff_mem_finset_range_of_mod_eq
+lemma mem_closure_singleton_iff_mem_range_order_of {a a' : α} :
+  a' ∈ subgroup.closure ({a} : set α) ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
+subgroup.mem_closure_singleton.trans $ finset.mem_range_iff_mem_finset_range_of_mod_eq
   (order_of_pos a)
   (assume i, gpow_eq_mod_order_of.symm)
 
-instance decidable_gpowers : decidable_pred (gpowers a) :=
+instance decidable_mem_closure : decidable_pred (subgroup.closure ({a} : set α) : set α) :=
 assume a', decidable_of_iff'
   (a' ∈ (finset.range (order_of a)).image ((^) a))
-  mem_gpowers_iff_mem_range_order_of
+  mem_closure_singleton_iff_mem_range_order_of
 
 lemma order_of_dvd_of_pow_eq_one {n : ℕ} (h : a ^ n = 1) : order_of a ∣ n :=
 by_contradiction
@@ -174,11 +177,11 @@ end))
 section
 local attribute [instance] set_fintype
 
-lemma order_eq_card_gpowers : order_of a = fintype.card (gpowers a) :=
+lemma order_eq_card_closure_singleton : order_of a = fintype.card (subgroup.closure ({a} : set α) : set α) :=
 begin
   refine (finset.card_eq_of_bijective _ _ _ _).symm,
-  { exact λn hn, ⟨gpow a n, ⟨n, rfl⟩⟩ },
-  { exact assume ⟨_, i, rfl⟩ _,
+  { exact λn hn, ⟨gpow a n, subgroup.mem_closure_singleton.2 ⟨n, rfl⟩⟩ },
+  { rintro ⟨_, h⟩ _, rcases subgroup.mem_closure_singleton.1 h with ⟨i, rfl⟩, exact
     have pos: (0:int) < order_of a,
       from int.coe_nat_lt.mpr $ order_of_pos a,
     have 0 ≤ i % (order_of a),
@@ -191,7 +194,7 @@ begin
 end
 
 @[simp] lemma order_of_one : order_of (1 : α) = 1 :=
-by rw [order_eq_card_gpowers, fintype.card_eq_one_iff];
+by rw [order_eq_card_closure_singleton, fintype.card_eq_one_iff];
   exact ⟨⟨1, 0, rfl⟩, λ ⟨a, i, ha⟩, by simp [ha.symm]⟩
 
 @[simp] lemma order_of_eq_one_iff : order_of a = 1 ↔ a = 1 :=
@@ -224,7 +227,7 @@ have eq₁ : fintype.card α = @fintype.card _ ft_cosets * @fintype.card _ ft_s,
     ... = @fintype.card _ ft_cosets * @fintype.card _ ft_s :
       @fintype.card_prod _ _ ft_cosets ft_s,
 have eq₂ : order_of a = @fintype.card _ ft_s,
-  from calc order_of a = _ : order_eq_card_gpowers
+  from calc order_of a = _ : order_eq_card_closure_singleton
     ... = _ : congr_arg (@fintype.card _) $ subsingleton.elim _ _,
 dvd.intro (@fintype.card (quotient (subgroup.gpowers a)) ft_cosets) $
   by rw [eq₁, eq₂, mul_comm]
@@ -260,7 +263,7 @@ dvd_antisymm
 
 lemma image_range_order_of (a : α) :
   finset.image (λ i, a ^ i) (finset.range (order_of a)) = (gpowers a).to_finset :=
-by { ext x, rw [set.mem_to_finset, mem_gpowers_iff_mem_range_order_of] }
+by { ext x, rw [set.mem_to_finset, mem_closure_singleton_iff_mem_range_order_of] }
 
 omit dec
 open_locale classical
@@ -301,11 +304,11 @@ lemma is_cyclic_of_order_of_eq_card [group α] [fintype α] [decidable_eq α]
   (x : α) (hx : order_of x = fintype.card α) : is_cyclic α :=
 ⟨⟨x, set.eq_univ_iff_forall.1 $ set.eq_of_subset_of_card_le
   (set.subset_univ _)
-  (by rw [fintype.card_congr (equiv.set.univ α), ← hx, order_eq_card_gpowers])⟩⟩
+  (by rw [fintype.card_congr (equiv.set.univ α), ← hx, order_eq_card_closure_singleton])⟩⟩
 
 lemma order_of_eq_card_of_forall_mem_gpowers [group α] [fintype α] [decidable_eq α]
   {g : α} (hx : ∀ x, x ∈ gpowers g) : order_of g = fintype.card α :=
-by rw [← fintype.card_congr (equiv.set.univ α), order_eq_card_gpowers];
+by rw [← fintype.card_congr (equiv.set.univ α), order_eq_card_closure_singleton];
   simp [hx]; congr
 
 instance [group α] : is_cyclic (is_subgroup.trivial α) :=
@@ -376,7 +379,7 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card ≤ (gpowers (g ^ (fintype.card �
   have hm0 : 0 < m, from nat.pos_of_ne_zero
     (λ hm0, (by rw [hm0, mul_zero, fintype.card_eq_zero_iff] at hm; exact hm 1)),
   begin
-    rw [← fintype.card_of_finset' _ (λ _, set.mem_to_finset), ← order_eq_card_gpowers,
+    rw [← fintype.card_of_finset' _ (λ _, set.mem_to_finset), ← order_eq_card_closure_singleton,
       order_of_pow, order_of_eq_card_of_forall_mem_gpowers hg],
     rw [hm] {occs := occurrences.pos [2,3]},
     rw [nat.mul_div_cancel_left _  (gcd_pos_of_pos_left _ hn0), gcd_mul_left_left,
@@ -414,7 +417,7 @@ lemma card_pow_eq_one_eq_order_of_aux (a : α) :
   (finset.univ.filter (λ b : α, b ^ order_of a = 1)).card = order_of a :=
 le_antisymm
   (hn _ (order_of_pos _))
-  (calc order_of a = @fintype.card (gpowers a) (id _) : order_eq_card_gpowers
+  (calc order_of a = @fintype.card (gpowers a) (id _) : order_eq_card_closure_singleton
     ... ≤ @fintype.card (↑(univ.filter (λ b : α, b ^ order_of a = 1)) : set α)
     (fintype.of_finset _ (λ _, iff.rfl)) :
       @fintype.card_le_of_injective (gpowers a) (↑(univ.filter (λ b : α, b ^ order_of a = 1)) : set α)

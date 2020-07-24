@@ -155,7 +155,7 @@ end
 
 -- I feel like this should use polynomial.alg_hom_eval₂_algebra_map
 lemma mat_poly_equiv_eval (M : matrix n n (polynomial R)) (r : R) (i j : n) :
-  polynomial.eval ((scalar n) r) (mat_poly_equiv M) i j = polynomial.eval r (M i j) :=
+  (mat_poly_equiv M).eval ((scalar n) r) i j = (M i j).eval r :=
 begin
   unfold polynomial.eval, unfold eval₂,
   transitivity finsupp.sum (mat_poly_equiv M) (λ (e : ℕ) (a : matrix n n R),

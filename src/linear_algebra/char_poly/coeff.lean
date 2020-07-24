@@ -153,18 +153,6 @@ begin
   rw [← fintype.card, fintype.card_pos_iff], apply_instance,
 end
 
-lemma ring_hom_det {S : Type w} [comm_ring S] {M : matrix n n R} {f : R →+* S} :
-  f M.det = matrix.det (f.map_matrix M) :=
-by simp [matrix.det, f.map_sum, f.map_prod]
-
-lemma alg_hom_det {S : Type w} [comm_ring S] [algebra R S] {T : Type z} [comm_ring T] [algebra R T]
-  {M : matrix n n S} {f : S →ₐ[R] T} :
-  f M.det = matrix.det ((f : S →+* T).map_matrix M) :=
-by rw [← alg_hom.coe_to_ring_hom, ring_hom_det]
-
-lemma matrix.scalar.commute (r : R) (M : matrix n n R) : commute (scalar n r) M :=
-by simp [commute, semiconj_by]
-
 -- I feel like this should use polynomial.alg_hom_eval₂_algebra_map
 lemma mat_poly_equiv_eval (M : matrix n n (polynomial R)) (r : R) (i j : n) :
   polynomial.eval ((scalar n) r) (mat_poly_equiv M) i j = polynomial.eval r (M i j) :=
@@ -185,7 +173,7 @@ end
 lemma eval_det (M : matrix n n (polynomial R)) (r : R) :
   polynomial.eval r M.det = (polynomial.eval (matrix.scalar n r) (mat_poly_equiv M)).det :=
 begin
-  rw [polynomial.eval, ← coe_eval₂_ring_hom, ring_hom_det],
+  rw [polynomial.eval, ← coe_eval₂_ring_hom, ring_hom.map_det],
   apply congr_arg det, ext, symmetry, convert mat_poly_equiv_eval _ _ _ _,
 end
 

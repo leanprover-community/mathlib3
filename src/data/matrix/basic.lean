@@ -466,6 +466,9 @@ begin
   simp,
 end
 
+lemma scalar.commute [decidable_eq n] (r : α) (M : matrix n n α) : commute (scalar n r) M :=
+by simp [commute, semiconj_by]
+
 end comm_semiring
 
 section semiring

@@ -79,6 +79,7 @@ by { dsimp [complete_graph], apply_instance }
 namespace simple_graph
 variables {V : Type u} (G : simple_graph V)
 
+/-- `G.neighbor_set v` is the set of vertices adjacent to `v` in `G`. -/
 def neighbor_set (v : V) : set V := set_of (G.adj v)
 
 lemma ne_of_edge {a b : V} (hab : G.adj a b) : a ≠ b :=
@@ -90,18 +91,23 @@ The edges of G consist of the unordered pairs of vertices related by
 -/
 def E : Type u := {x : sym2 V // x ∈ sym2.from_rel G.sym}
 
-def E.of_adj {v w : V} (h : G.adj v w) : G.E := ⟨⟦(v,w)⟧, h⟩
--- begin
---   fsplit,
--- end
-
 /-- Allows us to refer to a vertex being a member of an edge. -/
-instance E.has_mem : has_mem V G.E := { mem := λ v e, v ∈ e.val }
+instance has_mem : has_mem V G.E := { mem := λ v e, v ∈ e.val }
+
+-- namespace E
+/-- Construct an edge from its endpoints. -/
+def edge_of_adj {v w : V} (h : G.adj v w) : G.E := ⟨⟦(v,w)⟧, h⟩
+
+lemma mem_of_adj {v w : V} (h : G.adj v w) :
+  v ∈ G.edge_of_adj h := sym2.mk_has_mem v w
+
+lemma mem_of_adj_right {v w : V} (h : G.adj v w) :
+  w ∈ G.edge_of_adj h := sym2.mk_has_mem_right v w
 
 lemma adj_iff_exists_edge {v w : V} (hne : v ≠ w) :
 G.adj v w ↔ ∃ (e : G.E), v ∈ e ∧ w ∈ e :=
 begin
-  split, { intro, use ⟦(v,w)⟧, assumption, iterate 2 { erw sym2.mem_iff }, simp },
+  split, { intro, use ⟦(v,w)⟧, assumption, refine ⟨(G.mem_of_adj _), (G.mem_of_adj_right _)⟩ },
   rintro ⟨e, ⟨w', hve⟩, ⟨v', hew⟩⟩,
   have : e.val = ⟦(v,w)⟧, { rw [hve, sym2.eq_iff] at hew ⊢, cc },
   have key := e.property, rwa this at key,
@@ -109,6 +115,7 @@ end
 
 variables {G}
 
+/-- Given an edge and one vertex incident on it, construct the other one. -/
 noncomputable def E.other (e : G.E) {v : V} (h : v ∈ e) : V :=
 by { have : v ∈ e.val, apply h, exact this.other }
 

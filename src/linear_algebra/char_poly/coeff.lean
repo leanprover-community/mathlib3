@@ -120,7 +120,7 @@ begin
   { rw nontrivial_iff at h, push_neg at h, apply h, }
 end
 
-theorem trace_eq_neg_coeff_char_poly [nonempty n] (M : matrix n n R) :
+theorem trace_eq_char_poly [nonempty n] (M : matrix n n R) :
   (matrix.trace n R R) M = -(char_poly M).coeff (fintype.card n - 1) :=
 begin
   by_cases nontrivial R; try { rw not_nontrivial_iff_subsingleton at h }; haveI := h, swap,

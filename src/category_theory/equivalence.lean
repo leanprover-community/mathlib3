@@ -209,7 +209,8 @@ section cancellation_lemmas
 variables (e : C ≌ D)
 
 -- We need special forms of `cancel_nat_iso_hom_right(_assoc)` and `cancel_nat_iso_inv_right(_assoc)`
--- for units and counits, because the simplifier can't see that `(𝟭 C).obj X` is the same as `X`.
+-- for units and counits, because neither `simp` or `rw` will apply those lemmas in this
+-- setting without providing `e.unit_iso` (or similar) as an explicit argument.
 -- We also provide the lemmas for length four compositions, since they're occasionally useful.
 -- (e.g. in proving that equivalences take monos to monos)
 

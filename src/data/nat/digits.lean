@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison, Shing Tak Lam, Angela Li
+Authors: Scott Morrison, Shing Tak Lam
 -/
 import data.int.modeq
 import tactic.interval_cases

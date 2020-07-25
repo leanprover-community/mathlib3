@@ -6,7 +6,6 @@ Authors: Scott Morrison
 import algebra.category.Mon.basic
 import category_theory.limits.types
 import category_theory.limits.creates
-import algebra.pi_instances
 
 /-!
 # The category of (commutative) (additive) monoids has all limits

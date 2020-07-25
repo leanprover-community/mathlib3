@@ -169,7 +169,6 @@ lemma generate_from_mono {α} {g₁ g₂ : set (set α)} (h : g₁ ⊆ g₂) :
 def tmp_complete_lattice {α : Type u} : complete_lattice (topological_space α) :=
 (gi_generate_from α).lift_complete_lattice
 
-
 /-- The ordering on topologies on the type `α`.
   `t ≤ s` if every set open in `s` is also open in `t` (`t` is finer than `s`). -/
 instance : partial_order (topological_space α) :=
@@ -347,9 +346,16 @@ instance inhabited_topological_space {α : Type u} : inhabited (topological_spac
 ⟨⊤⟩
 
 @[priority 100]
-instance subsingleton.discrete_topology [topological_space α] [subsingleton α] :
+instance subsingleton.unique_topological_space [subsingleton α] :
+  unique (topological_space α) :=
+{ default := ⊥,
+  uniq := λ t, eq_bot_of_singletons_open $ λ x, subsingleton.set_cases
+    (@is_open_empty _ t) (@is_open_univ _ t) ({x} : set α) }
+
+@[priority 100]
+instance subsingleton.discrete_topology [t : topological_space α] [subsingleton α] :
   discrete_topology α :=
-⟨eq_bot_of_singletons_open $ λ x, subsingleton.set_cases is_open_empty is_open_univ ({x} : set α)⟩
+⟨unique.eq_default t⟩
 
 instance : topological_space empty := ⊥
 instance : discrete_topology empty := ⟨rfl⟩

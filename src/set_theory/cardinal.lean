@@ -15,6 +15,11 @@ We define the order on cardinal numbers, define omega, and do basic cardinal ari
   addition, multiplication, power, cardinal successor, minimum, supremum,
     infinitary sums and products
 
+The fact that the cardinality of `α × α` coincides with that of `α` when `α` is infinite is not
+proved in this file, as it relies on facts on well-orders. Instead, it is in
+`cardinal_ordinal.lean` (together with many other facts on cardinals, for instance the
+cardinality of `list α`).
+
 ## Implementation notes
 
 * There is a type of cardinal numbers in every universe level: `cardinal.{u} : Type (u + 1)`

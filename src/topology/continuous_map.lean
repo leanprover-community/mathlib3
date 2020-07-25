@@ -39,21 +39,17 @@ instance [inhabited β] : inhabited C(α, β) :=
 lemma coe_inj ⦃f g : C(α, β)⦄ (h : (f : α → β) = g) : f = g :=
 by cases f; cases g; cases h; refl
 
-/--
-The identity as a continuous map.
--/
+/-- The identity as a continuous map. -/
 def id : C(α, α) := ⟨id, continuous_id⟩
 
-/--
-The composition of continuous maps, as a continuous map.
--/
+/-- The composition of continuous maps, as a continuous map. -/
 def comp (f : C(β, γ)) (g : C(α, β)) : C(α, γ) :=
 { to_fun := λ a, f (g a),
-  continuous_to_fun := continuous.comp f.continuous_to_fun g.continuous_to_fun, }
+  continuous_to_fun := f.continuous_to_fun.comp g.continuous_to_fun, }
 
 protected lemma continuous (f : C(α, β)) : continuous f := f.continuous_to_fun
 
-/-- Takes `b` in input and gives the continuous bundled function constantly valued `b` in output. -/
+/-- Constant map as a smooth map -/
 def const (b : β) : C(α, β) := ⟨λ x, b, continuous_const⟩
 
 end continuous_map

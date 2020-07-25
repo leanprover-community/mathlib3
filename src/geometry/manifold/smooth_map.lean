@@ -22,6 +22,10 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {I : model_with_corners 𝕜 E H} {I' : model_with_corners 𝕜 E' H'}
 {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 {M' : Type*} [topological_space M'] [charted_space H' M'] [smooth_manifold_with_corners I' M']
+{E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']
+{H'' : Type*} [topological_space H'']
+{I'' : model_with_corners 𝕜 E'' H''}
+{M'' : Type*} [topological_space M''] [charted_space H'' M''] [smooth_manifold_with_corners I'' M'']
 
 variables (I) (I') (M) (M')
 
@@ -42,12 +46,23 @@ instance : has_coe C∞(I, M; I', M') C(M, M') :=
 
 variables {f g : C∞(I, M; I', M')}
 
+lemma coe_inj ⦃f g : C∞(I, M; I', M')⦄ (h : (f : M → M') = g) : f = g :=
+by cases f; cases g; cases h; refl
+
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g := sorry
+
+/-- The identity as a smooth map. -/
+def id : C∞(I, M; I, M) := ⟨id, smooth_id⟩
+
+/-- The smooth of smooth maps, as a smooth map. -/
+def comp (f : C∞(I', M'; I'', M'')) (g : C∞(I, M; I', M')) : C∞(I, M; I'', M'') :=
+{ to_fun := λ a, f (g a),
+  smooth_to_fun := f.smooth_to_fun.comp g.smooth_to_fun, }
 
 instance [inhabited M'] : inhabited C∞(I, M; I', M') :=
 ⟨⟨λ _, default _, smooth_const⟩⟩
 
-protected lemma continuous (f : C∞(I, M; I', M')) : smooth I I' f := f.smooth_to_fun
+protected lemma smoooth (f : C∞(I, M; I', M')) : smooth I I' f := f.smooth_to_fun
 
 def const (y : M') : C∞(I, M; I', M') := ⟨λ x, y, smooth_const⟩
 

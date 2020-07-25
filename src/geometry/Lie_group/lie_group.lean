@@ -47,8 +47,6 @@ class Lie_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   (smooth_mul : smooth (I.prod I) I (λ p : G×G, p.1 * p.2))
   (smooth_inv : smooth I I (λ a:G, a⁻¹))
 
-class Lie_group.core
-
 section
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]

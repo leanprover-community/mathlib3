@@ -3,7 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Simon Hudon
 -/
-import category_theory.monoidal.category
+import category_theory.monoidal.braided
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.terminal
 
@@ -208,6 +208,25 @@ def monoidal_of_has_finite_products [has_terminal C] [has_binary_products C] : m
   associator_naturality' := @prod.associator_naturality _ _ _, }
 end
 
+section
+local attribute [instance] monoidal_of_has_finite_products
+
+open monoidal_category
+
+@[simps]
+def symmetric_monoidal_of_has_finite_products [has_terminal C] [has_binary_products C] :
+  symmetric_monoidal_category C :=
+{ braiding := limits.prod.braiding,
+  braiding_naturality' := λ X X' Y Y' f g,
+    by { dsimp [tensor_hom], ext, simp, simp, }, -- haven't seen that before!
+  hexagon_forward' := λ X Y Z,
+    by ext; { dsimp [monoidal_of_has_finite_products], simp; dsimp; simp, },
+  hexagon_reverse' := λ X Y Z,
+    by ext; { dsimp [monoidal_of_has_finite_products], simp; dsimp; simp, },
+  symmetry' := λ X Y, by { dsimp, simp, refl, }, }
+
+end
+
 namespace monoidal_of_has_finite_products
 
 variables [has_terminal C] [has_binary_products C]
@@ -251,6 +270,26 @@ def monoidal_of_has_finite_coproducts [has_initial C] [has_binary_coproducts C] 
   pentagon'    := coprod.pentagon,
   triangle'    := coprod.triangle,
   associator_naturality' := @coprod.associator_naturality _ _ _, }
+end
+
+
+section
+local attribute [instance] monoidal_of_has_finite_coproducts
+
+open monoidal_category
+
+@[simps]
+def symmetric_monoidal_of_has_finite_coproducts [has_initial C] [has_binary_coproducts C] :
+  symmetric_monoidal_category C :=
+{ braiding := limits.coprod.braiding,
+  braiding_naturality' := λ X X' Y Y' f g,
+    by { dsimp [tensor_hom], ext, simp, simp, }, -- haven't seen that before!
+  hexagon_forward' := λ X Y Z,
+    by ext; { dsimp [monoidal_of_has_finite_coproducts], simp; dsimp; simp, },
+  hexagon_reverse' := λ X Y Z,
+    by ext; { dsimp [monoidal_of_has_finite_coproducts], simp; dsimp; simp, },
+  symmetry' := λ X Y, by { dsimp, simp, refl, }, }
+
 end
 
 namespace monoidal_of_has_finite_coproducts

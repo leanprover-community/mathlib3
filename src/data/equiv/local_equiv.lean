@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import data.equiv.basic
-import tactic.tauto
-import tactic.simps
 
 /-!
 # Local equivalences
@@ -71,6 +69,37 @@ its output. The list of lemmas should be reasonable (contrary to the output of
 `squeeze_simp [foo, bar]` which might contain tens of lemmas), and the outcome should be quick
 enough.
 "
+
+-- register in the simpset `mfld_simps` several lemmas that are often useful when dealing
+-- with manifolds
+attribute [mfld_simps] id.def function.comp.left_id set.mem_set_of_eq set.image_eq_empty
+set.univ_inter set.preimage_univ set.prod_mk_mem_set_prod_eq and_true set.mem_univ
+set.mem_image_of_mem true_and set.mem_inter_eq set.mem_preimage function.comp_app
+set.inter_subset_left set.mem_prod set.range_id and_self set.mem_range_self
+eq_self_iff_true forall_const forall_true_iff set.inter_univ set.preimage_id function.comp.right_id
+not_false_iff and_imp set.prod_inter_prod set.univ_prod_univ true_or or_true
+
+namespace tactic.interactive
+
+/-- A very basic tactic to show that sets showing up in manifolds coincide or are included in
+one another. -/
+meta def mfld_set_tac : tactic unit := do
+  goal ← tactic.target,
+  match goal with
+  | `(%%e₁ = %%e₂) :=
+      `[ext my_y,
+        split;
+        { assume h_my_y,
+          try { simp only [*, -h_my_y] with mfld_simps at h_my_y },
+          simp only [*] with mfld_simps }]
+  | `(%%e₁ ⊆ %%e₂) :=
+      `[assume my_y h_my_y,
+        try { simp only [*, -h_my_y] with mfld_simps at h_my_y },
+        simp only [*] with mfld_simps]
+  | _ := tactic.fail "goal should be an equality or an inclusion"
+  end
+
+end tactic.interactive
 
 open function set
 
@@ -204,7 +233,7 @@ e.symm.image_inter_source_eq' _
 lemma source_inter_preimage_inv_preimage (s : set α) :
   e.source ∩ e ⁻¹' (e.symm ⁻¹' s) = e.source ∩ s :=
 begin
-  ext, split,
+  ext x, split,
   { rintros ⟨hx, xs⟩,
     simp only [mem_preimage, hx, e.left_inv, mem_preimage] at xs,
     exact ⟨hx, xs⟩ },
@@ -249,18 +278,12 @@ protected def restr (s : set α) : local_equiv α β :=
   source  := e.source ∩ s,
   target  := e.target ∩ e.symm⁻¹' s,
   map_source'  := λx hx, begin
-    apply mem_inter,
-    { apply e.map_source,
-      exact hx.1 },
-    { rw [mem_preimage, e.left_inv],
-      exact hx.2,
-      exact hx.1 },
+    simp only with mfld_simps at hx,
+    simp only [hx] with mfld_simps,
   end,
   map_target' := λy hy, begin
-    apply mem_inter,
-    { apply e.map_target,
-      exact hy.1 },
-    { exact hy.2 },
+    simp only with mfld_simps at hy,
+    simp only [hy] with mfld_simps,
   end,
   left_inv'  := λx hx, e.left_inv hx.1,
   right_inv' := λy hy, e.right_inv hy.1 }
@@ -334,15 +357,7 @@ by cases e; cases e'; refl
 @[simp, mfld_simps] lemma trans_source : (e.trans e').source = e.source ∩ e ⁻¹' e'.source := rfl
 
 lemma trans_source' : (e.trans e').source = e.source ∩ e ⁻¹' (e.target ∩ e'.source) :=
-begin
-  symmetry, calc
-    e.source ∩ e ⁻¹' (e.target ∩ e'.source) =
-    (e.source ∩ e ⁻¹' (e.target)) ∩ e ⁻¹' (e'.source) :
-      by rw [preimage_inter, inter_assoc]
-    ... = e.source ∩ e ⁻¹' (e'.source) :
-      by { congr' 1, apply inter_eq_self_of_subset_left e.source_subset_preimage_target }
-    ... = (e.trans e').source : rfl
-end
+by mfld_set_tac
 
 lemma trans_source'' : (e.trans e').source = e.symm '' (e.target ∩ e'.source) :=
 by rw [e.trans_source', inter_comm e.target, e.symm_image_inter_target_eq]
@@ -463,11 +478,10 @@ to the source -/
 lemma trans_self_symm :
   e.trans e.symm ≈ local_equiv.of_set e.source :=
 begin
-  have A : (e.trans e.symm).source = e.source,
-    by simp [trans_source, inter_eq_self_of_subset_left (source_subset_preimage_target _)],
+  have A : (e.trans e.symm).source = e.source, by mfld_set_tac,
   refine ⟨by simp [A], λx hx, _⟩,
   rw A at hx,
-  simp [hx]
+  simp only [hx] with mfld_simps
 end
 
 /-- Composition of the inverse of a local equiv and this local equiv is equivalent to the

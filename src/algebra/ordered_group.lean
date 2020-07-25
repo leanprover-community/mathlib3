@@ -3,7 +3,6 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
-import algebra.group.units
 import algebra.group.with_one
 import algebra.group.type_tags
 import order.bounded_lattice
@@ -333,13 +332,14 @@ instance [add_comm_semigroup α] : add_comm_semigroup (with_top α) :=
 instance [add_monoid α] : add_monoid (with_top α) :=
 { zero := some 0,
   add := (+),
-  ..@additive.add_monoid _ $ @with_zero.monoid (multiplicative α) _ }
+  ..@additive.add_monoid _ $ @monoid_with_zero.to_monoid _ $
+    @with_zero.monoid_with_zero (multiplicative α) _ }
 
 instance [add_comm_monoid α] : add_comm_monoid (with_top α) :=
 { zero := 0,
   add := (+),
-  ..@additive.add_comm_monoid _ $
-    @with_zero.comm_monoid (multiplicative α) _ }
+  ..@additive.add_comm_monoid _ $ @comm_monoid_with_zero.to_comm_monoid _ $
+    @with_zero.comm_monoid_with_zero (multiplicative α) _ }
 
 instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_top α) :=
 begin
@@ -381,13 +381,7 @@ lemma add_eq_top [ordered_add_comm_monoid α] (a b : with_top α) : a + b = ⊤ 
 by cases a; cases b; simp [none_eq_top, some_eq_coe, coe_add.symm]
 
 lemma add_lt_top [ordered_add_comm_monoid α] (a b : with_top α) : a + b < ⊤ ↔ a < ⊤ ∧ b < ⊤ :=
-begin
-  apply not_iff_not.1,
-  simp [lt_top_iff_ne_top, add_eq_top],
-  finish,
-  apply classical.dec _,
-  apply classical.dec _,
-end
+by simp [lt_top_iff_ne_top, add_eq_top, not_or_distrib]
 
 end with_top
 
@@ -452,7 +446,7 @@ by norm_cast
 
 end with_bot
 
-/-- A canonically ordered monoid is an ordered commutative monoid
+/-- A canonically ordered additive monoid is an ordered commutative additive monoid
   in which the ordering coincides with the divisibility relation,
   which is to say, `a ≤ b` iff there exists `c` with `b = a + c`.
   This is satisfied by the natural numbers, for example, but not
@@ -537,6 +531,20 @@ instance with_top.canonically_ordered_add_monoid : canonically_ordered_add_monoi
   .. with_top.ordered_add_comm_monoid }
 
 end canonically_ordered_add_monoid
+
+/-- A canonically linear-ordered additive monoid is a canonically ordered additive monoid
+    whose ordering is a decidable linear order. -/
+@[protect_proj]
+class canonically_linear_ordered_add_monoid (α : Type*)
+      extends canonically_ordered_add_monoid α, decidable_linear_order α
+
+section canonically_linear_ordered_add_monoid
+variables [canonically_linear_ordered_add_monoid α]
+
+instance canonically_linear_ordered_add_monoid.semilattice_sup_bot : semilattice_sup_bot α :=
+{ ..lattice_of_decidable_linear_order, ..canonically_ordered_add_monoid.to_order_bot α }
+
+end canonically_linear_ordered_add_monoid
 
 /-- An ordered cancellative additive commutative monoid
 is an additive commutative monoid with a partial order,
@@ -1828,3 +1836,48 @@ instance [ordered_add_comm_group α] : ordered_add_comm_group (order_dual α) :=
   ..show add_comm_group α, by apply_instance }
 
 end order_dual
+
+section type_tags
+
+instance : Π [preorder α], preorder (multiplicative α) := id
+instance : Π [preorder α], preorder (additive α) := id
+instance : Π [partial_order α], partial_order (multiplicative α) := id
+instance : Π [partial_order α], partial_order (additive α) := id
+instance : Π [linear_order α], linear_order (multiplicative α) := id
+instance : Π [linear_order α], linear_order (additive α) := id
+instance : Π [decidable_linear_order α], decidable_linear_order (multiplicative α) := id
+instance : Π [decidable_linear_order α], decidable_linear_order (additive α) := id
+
+instance [ordered_add_comm_monoid α] : ordered_comm_monoid (multiplicative α) :=
+{ mul_le_mul_left := @ordered_add_comm_monoid.add_le_add_left α _,
+  lt_of_mul_lt_mul_left := @ordered_add_comm_monoid.lt_of_add_lt_add_left α _,
+  ..multiplicative.partial_order,
+  ..multiplicative.comm_monoid }
+
+instance [ordered_comm_monoid α] : ordered_add_comm_monoid (additive α) :=
+{ add_le_add_left := @ordered_comm_monoid.mul_le_mul_left α _,
+  lt_of_add_lt_add_left := @ordered_comm_monoid.lt_of_mul_lt_mul_left α _,
+  ..additive.partial_order,
+  ..additive.add_comm_monoid }
+
+instance [ordered_cancel_add_comm_monoid α] : ordered_cancel_comm_monoid (multiplicative α) :=
+{ le_of_mul_le_mul_left := @ordered_cancel_add_comm_monoid.le_of_add_le_add_left α _,
+  ..multiplicative.right_cancel_semigroup,
+  ..multiplicative.left_cancel_semigroup,
+  ..multiplicative.ordered_comm_monoid }
+
+instance [ordered_cancel_comm_monoid α] : ordered_cancel_add_comm_monoid (additive α) :=
+{ le_of_add_le_add_left := @ordered_cancel_comm_monoid.le_of_mul_le_mul_left α _,
+  ..additive.add_right_cancel_semigroup,
+  ..additive.add_left_cancel_semigroup,
+  ..additive.ordered_add_comm_monoid }
+
+instance [ordered_add_comm_group α] : ordered_comm_group (multiplicative α) :=
+{ ..multiplicative.comm_group,
+  ..multiplicative.ordered_comm_monoid }
+
+instance [ordered_comm_group α] : ordered_add_comm_group (additive α) :=
+{ ..additive.add_comm_group,
+  ..additive.ordered_add_comm_monoid }
+
+end type_tags

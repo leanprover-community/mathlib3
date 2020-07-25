@@ -9,6 +9,7 @@ Main result: Hilbert basis theorem, that if a ring is noetherian then so is its 
 -/
 import algebra.char_p
 import data.mv_polynomial
+import data.polynomial.ring_division
 import ring_theory.noetherian
 
 noncomputable theory
@@ -18,7 +19,7 @@ universes u v w
 
 namespace polynomial
 
-instance {R : Type u} [comm_semiring R] (p : ℕ) [h : char_p R p] : char_p (polynomial R) p :=
+instance {R : Type u} [semiring R] (p : ℕ) [h : char_p R p] : char_p (polynomial R) p :=
 let ⟨h⟩ := h in ⟨λ n, by rw [← C.map_nat_cast, ← C_0, C_inj, h]⟩
 
 variables (R : Type u) [comm_ring R]
@@ -109,7 +110,7 @@ def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set
 @[simp] theorem restriction_one : restriction (1 : polynomial R) = 1 :=
 ext $ λ i, subtype.eq $ by rw [coeff_restriction', coeff_one, coeff_one]; split_ifs; refl
 
-variables {S : Type v} [comm_ring S] {f : R →+* S} {x : S}
+variables {S : Type v} [ring S] {f : R →+* S} {x : S}
 
 theorem eval₂_restriction {p : polynomial R} :
   eval₂ f x p = eval₂ (f.comp (is_subring.subtype _)) x p.restriction :=
@@ -148,6 +149,9 @@ omit hp
   (set.subset.trans (finset.coe_subset.2 finsupp.frange_single)
     (finset.singleton_subset_set_iff.2 is_submonoid.one_mem)) = 1 :=
 ext $ λ i, subtype.eq $ by rw [coeff_to_subring', coeff_one, coeff_one]; split_ifs; refl
+
+@[simp] theorem map_to_subring : (p.to_subring T hp).map (is_subring.subtype T) = p :=
+ext $ λ n, coeff_map _ _
 
 end to_subring
 
@@ -260,7 +264,8 @@ is_noetherian_submodule_left.1 (is_noetherian_of_fg_of_noetherian _
 end ideal
 
 /-- Hilbert basis theorem: a polynomial ring over a noetherian ring is a noetherian ring. -/
-protected theorem polynomial.is_noetherian_ring [is_noetherian_ring R] : is_noetherian_ring (polynomial R) :=
+protected theorem polynomial.is_noetherian_ring [is_noetherian_ring R] :
+  is_noetherian_ring (polynomial R) :=
 ⟨assume I : ideal (polynomial R),
 let L := I.leading_coeff in
 let M := well_founded.min (is_noetherian_iff_well_founded.1 (by apply_instance))
@@ -288,7 +293,7 @@ from hs ▸ λ x hx, submodule.span_induction hx (λ _ hx, ideal.subset_span hx)
     have : (0 : R) ≠ 1,
     { intro h, apply hp0, ext i, refine (mul_one _).symm.trans _,
       rw [← h, mul_zero], refl },
-    haveI : nonzero R := ⟨this⟩,
+    haveI : nontrivial R := ⟨⟨0, 1, this⟩⟩,
     have : p.leading_coeff ∈ I.leading_coeff_nth N,
     { rw HN, exact hm2 k ((I.mem_leading_coeff_nth _ _).2
         ⟨_, hp, hn ▸ polynomial.degree_le_nat_degree, rfl⟩) },
@@ -298,7 +303,7 @@ from hs ▸ λ x hx, submodule.span_induction hx (λ _ hx, ideal.subset_span hx)
     { intro H, rw [← polynomial.leading_coeff_eq_zero] at H,
       rw [hlqp, polynomial.leading_coeff_eq_zero] at H, exact hp0 H },
     have h1 : p.degree = (q * polynomial.X ^ (k - q.nat_degree)).degree,
-    { rw [polynomial.degree_mul_eq', polynomial.degree_X_pow],
+    { rw [polynomial.degree_mul', polynomial.degree_X_pow],
       rw [polynomial.degree_eq_nat_degree hp0, polynomial.degree_eq_nat_degree hq0],
       rw [← with_bot.coe_add, nat.add_sub_cancel', hn],
       { refine le_trans (polynomial.nat_degree_le_of_degree_le hdq) (le_of_lt h) },
@@ -416,14 +421,13 @@ end
 instance {R : Type u} {σ : Type v} [integral_domain R] :
   integral_domain (mv_polynomial σ R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := mv_polynomial.eq_zero_or_eq_zero_of_mul_eq_zero,
-  zero_ne_one :=
+  exists_pair_ne := ⟨0, 1, λ H,
   begin
-    intro H,
     have : eval₂ id (λ s, (0:R)) (0 : mv_polynomial σ R) =
       eval₂ id (λ s, (0:R)) (1 : mv_polynomial σ R),
     { congr, exact H },
     simpa,
-  end,
+  end⟩,
   .. (by apply_instance : comm_ring (mv_polynomial σ R)) }
 
 end mv_polynomial

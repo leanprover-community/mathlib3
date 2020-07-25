@@ -162,6 +162,11 @@ variables [semiring R] [semiring S]
 def to_ring_hom (e : R ≃+* S) : R →+* S :=
 { .. e.to_mul_equiv.to_monoid_hom, .. e.to_add_equiv.to_add_monoid_hom }
 
+instance has_coe_to_ring_hom : has_coe (R ≃+* S) (R →+* S) := ⟨ring_equiv.to_ring_hom⟩
+
+@[norm_cast] lemma coe_ring_hom (f : R ≃+* S) (a : R) :
+  (f : R →+* S) a = f a := rfl
+
 /-- Reinterpret a ring equivalence as a monoid homomorphism. -/
 abbreviation to_monoid_hom (e : R ≃+* S) : R →* S := e.to_ring_hom.to_monoid_hom
 
@@ -239,7 +244,8 @@ protected lemma is_integral_domain {A : Type*} (B : Type*) [ring A] [ring B]
     have e x * e y = 0, by rw [← e.map_mul, hxy, e.map_zero],
     (hB.eq_zero_or_eq_zero_of_mul_eq_zero _ _ this).imp (λ hx, by simpa using congr_arg e.symm hx)
       (λ hy, by simpa using congr_arg e.symm hy),
-  zero_ne_one := λ H, hB.zero_ne_one $ by rw [← e.map_zero, ← e.map_one, H] }
+  exists_pair_ne := ⟨e.symm 0, e.symm 1,
+    by { haveI : nontrivial B := hB.to_nontrivial, exact e.symm.injective.ne zero_ne_one }⟩ }
 
 /-- If two rings are isomorphic, and the second is an integral domain, then so is the first. -/
 protected def integral_domain {A : Type*} (B : Type*) [ring A] [integral_domain B]

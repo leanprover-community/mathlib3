@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Chris Hughes
 
 Adjoining roots of polynomials
 -/
-import data.polynomial
+import data.polynomial.field_division
 import ring_theory.adjoin
 import ring_theory.principal_ideal_domain
 
@@ -56,7 +56,7 @@ instance : inhabited (adjoin_root f) := ⟨0⟩
 instance : decidable_eq (adjoin_root f) := classical.dec_eq _
 
 /-- Ring homomorphism from `R[x]` to `adjoin_root f` sending `X` to the `root`. -/
-def mk : polynomial R →+* adjoin_root f := ideal.quotient.mk_hom _
+def mk : polynomial R →+* adjoin_root f := ideal.quotient.mk _
 
 @[elab_as_eliminator]
 theorem induction_on {C : adjoin_root f → Prop} (x : adjoin_root f)
@@ -84,7 +84,7 @@ quotient.sound' (mem_span_singleton.2 $ by simp)
 
 @[simp] lemma mk_X : mk f X = root f := rfl
 
-@[simp] lemma aeval_eq (p : polynomial R) : aeval R (adjoin_root f) (root f) p = mk f p :=
+@[simp] lemma aeval_eq (p : polynomial R) : aeval (root f) p = mk f p :=
 polynomial.induction_on p (λ x, by { rw aeval_C, refl })
   (λ p q ihp ihq, by rw [alg_hom.map_add, ring_hom.map_add, ihp, ihq])
   (λ n x ih, by { rw [alg_hom.map_mul, aeval_C, alg_hom.map_pow, aeval_X,

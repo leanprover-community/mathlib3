@@ -7,6 +7,7 @@ import linear_algebra.finsupp
 import linear_algebra.projection
 import order.zorn
 import data.fintype.card
+import data.finset.order
 
 /-!
 
@@ -100,6 +101,14 @@ linear_independent_iff.trans
     ... = 0 : finsupp.ext_iff.1 h i,
 λ hf l hl, finsupp.ext $ λ i, classical.by_contradiction $ λ hni, hni $ hf _ _ hl _ $
   finsupp.mem_support_iff.2 hni⟩
+
+theorem linear_independent_iff'' :
+  linear_independent R v ↔ ∀ (s : finset ι) (g : ι → R) (hg : ∀ i ∉ s, g i = 0),
+    ∑ i in s, g i • v i = 0 → ∀ i, g i = 0 :=
+linear_independent_iff'.trans ⟨λ H s g hg hv i, if his : i ∈ s then H s g hv i his else hg i his,
+λ H s g hg i hi, by { convert H s (λ j, if j ∈ s then g j else 0) (λ j hj, if_neg hj)
+    (by simp_rw [ite_smul, zero_smul, finset.sum_extend_by_zero, hg]) i,
+  exact (if_pos hi).symm }⟩
 
 theorem linear_dependent_iff : ¬ linear_independent R v ↔
   ∃ s : finset ι, ∃ g : ι → R, s.sum (λ i, g i • v i) = 0 ∧ (∃ i ∈ s, g i ≠ 0) :=
@@ -258,11 +267,11 @@ begin
     use i,
     rw [mem_preimage, hi],
     exact ⟨hx, rfl⟩ },
-  apply finsupp.eq_zero_of_comap_domain_eq_zero v l,
+  apply finsupp.eq_zero_of_comap_domain_eq_zero v l h_bij,
   apply linear_independent_iff.1 hv,
-  rw [finsupp.total_comap_domain, finset.sum_preimage v l.support h_bij (λ (x : M), l x • x)],
-  rw [finsupp.total_apply, finsupp.sum] at hl₂,
-  apply hl₂
+  rw [finsupp.total_comap_domain, finset.sum_preimage_of_bij v l.support h_bij
+    (λ (x : M), l x • x)],
+  rwa [finsupp.total_apply, finsupp.sum] at hl₂
 end
 
 lemma linear_independent.of_subtype_range (hv : injective v)
@@ -373,16 +382,13 @@ lemma linear_independent_sUnion_of_directed {s : set (set M)}
   (h : ∀ a ∈ s, linear_independent R (λ x, x : (a : set M) → M)) :
   linear_independent R (λ x, x : (⋃₀ s) → M) :=
 by rw sUnion_eq_Union; exact
-linear_independent_Union_of_directed
-  ((directed_on_iff_directed _).1 hs) (by simpa using h)
+linear_independent_Union_of_directed hs.directed_coe (by simpa using h)
 
 lemma linear_independent_bUnion_of_directed {η} {s : set η} {t : η → set M}
   (hs : directed_on (t ⁻¹'o (⊆)) s) (h : ∀a∈s, linear_independent R (λ x, x : t a → M)) :
   linear_independent R (λ x, x : (⋃a∈s, t a) → M) :=
 by rw bUnion_eq_Union; exact
-linear_independent_Union_of_directed
-  ((directed_comp _ _ _).2 $ (directed_on_iff_directed _).1 hs)
-  (by simpa using h)
+linear_independent_Union_of_directed (directed_comp.2 $ hs.directed_coe) (by simpa using h)
 
 lemma linear_independent_Union_finite_subtype {ι : Type*} {f : ι → set M}
   (hl : ∀i, linear_independent R (λ x, x : f i → M))
@@ -398,16 +404,15 @@ begin
   { rw finset.sup_empty,
     apply linear_independent_empty_type (not_nonempty_iff_imp_false.2 _),
     exact λ x, set.not_mem_empty x (subtype.mem x) },
-  { rintros ⟨i⟩ s his ih,
+  { rintros i s his ih,
     rw [finset.sup_insert],
     refine (hl _).union ih _,
     rw [finset.sup_eq_supr],
     refine (hd i _ _ his).mono_right _,
     { simp only [(span_Union _).symm],
       refine span_mono (@supr_le_supr2 (set M) _ _ _ _ _ _),
-      rintros ⟨i⟩, exact ⟨i, le_refl _⟩ },
-    { change finite (plift.up ⁻¹' ↑s),
-      exact s.finite_to_set.preimage (assume i j _ _, plift.up.inj) } }
+      rintros i, exact ⟨i, le_refl _⟩ },
+    { exact s.finite_to_set } }
 end
 
 lemma linear_independent_Union_finite {η : Type*} {ιs : η → Type*}
@@ -621,8 +626,8 @@ begin
   have inj_v' : injective v' := (linear_independent.injective zero_eq_one hv'),
   apply linear_independent.of_subtype_range,
   { apply sum.elim_injective,
-    { exact prod.inl_injective.comp inj_v },
-    { exact prod.inr_injective.comp inj_v' },
+    { exact inl_injective.comp inj_v },
+    { exact inr_injective.comp inj_v' },
     { intros, simp [hv.ne_zero zero_eq_one] } },
   { rw sum.elim_range,
     refine (hv.image _).to_subtype_range.union (hv'.image _).to_subtype_range _;
@@ -656,7 +661,7 @@ have h1 : ∀ i ∈ s, (g i • i : G → L) = g i • a, from λ i his, funext 
     (funext $ λ y : G, calc
     -- After that, it's just a chase scene.
           (∑ i in s, ((g i * i x - g i * a x) • i : G → L)) y
-        = ∑ i in s, (g i * i x - g i * a x) * i y : pi.finset_sum_apply _ _ _
+        = ∑ i in s, (g i * i x - g i * a x) * i y : finset.sum_apply _ _ _
     ... = ∑ i in s, (g i * i x * i y - g i * a x * i y) : finset.sum_congr rfl
       (λ _ _, sub_mul _ _ _)
     ... = ∑ i in s, g i * i x * i y - ∑ i in s, g i * a x * i y : finset.sum_sub_distrib
@@ -669,7 +674,7 @@ have h1 : ∀ i ∈ s, (g i • i : G → L) = g i • a, from λ i his, funext 
         (finset.sum_congr rfl $ λ _ _, by rw [mul_assoc, mul_left_comm])
     ... = (∑ i in insert a s, (g i • i : G → L)) (x * y)
           - a x * (∑ i in insert a s, (g i • i : G → L)) y :
-      by rw [pi.finset_sum_apply, pi.finset_sum_apply, finset.mul_sum]; refl
+      by rw [finset.sum_apply, finset.sum_apply, finset.mul_sum]; refl
     ... = 0 - a x * 0 : by rw hg; refl
     ... = 0 : by rw [mul_zero, sub_zero])
     i
@@ -883,7 +888,7 @@ begin
     intro hi,
     simp [hi] },
   { refine top_unique (λ _ _, _),
-    simp [submodule.mem_span_singleton] }
+    simp only [mem_span_singleton, range_const, mul_one, exists_eq, smul_eq_mul] }
 end
 
 protected lemma linear_equiv.is_basis (hs : is_basis R v)
@@ -1286,9 +1291,7 @@ begin
   apply (is_basis_fun₀ R η).comp (λ i, ⟨i, punit.star⟩),
   apply bijective_iff_has_inverse.2,
   use sigma.fst,
-  suffices : ∀ (a : η) (b : unit), punit.star = b,
-  { simpa [function.left_inverse, function.right_inverse] },
-  exact λ _, punit_eq _
+  simp [function.left_inverse, function.right_inverse]
 end
 
 end

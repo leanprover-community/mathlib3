@@ -179,9 +179,7 @@ begin
     rw this,
     refine tendsto.mul _ tendsto_const_nhds,
     exact tendsto_pow_at_top_nhds_0_of_lt_1 (by norm_num) (by norm_num) },
-  have feq : f x = y - 0,
-  { apply tendsto_nhds_unique _ L₁ L₂,
-    simp },
+  have feq : f x = y - 0 := tendsto_nhds_unique L₁ L₂,
   rw sub_zero at feq,
   exact ⟨x, feq, x_ineq⟩
 end
@@ -212,6 +210,7 @@ end
 namespace linear_equiv
 
 /-- If a bounded linear map is a bijection, then its inverse is also a bounded linear map. -/
+@[continuity]
 theorem continuous_symm (e : E ≃ₗ[𝕜] F) (h : continuous e) :
   continuous e.symm :=
 begin
@@ -229,7 +228,6 @@ def to_continuous_linear_equiv_of_continuous (e : E ≃ₗ[𝕜] F) (h : continu
 { continuous_to_fun := h,
   continuous_inv_fun := e.continuous_symm h,
   ..e }
-
 @[simp] lemma coe_fn_to_continuous_linear_equiv_of_continuous (e : E ≃ₗ[𝕜] F) (h : continuous e) :
   ⇑(e.to_continuous_linear_equiv_of_continuous h) = e := rfl
 

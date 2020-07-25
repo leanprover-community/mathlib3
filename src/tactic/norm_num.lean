@@ -5,7 +5,6 @@ Authors: Simon Hudon, Mario Carneiro
 -/
 import data.rat.cast
 import data.rat.meta_defs
-import tactic.doc_commands
 
 /-!
 # `norm_num`
@@ -1442,6 +1441,6 @@ where `A` and `B` are numerical expressions.
 It also has a relatively simple primality prover. -/
 meta def norm_num (hs : parse simp_arg_list) : conv unit :=
 repeat1 $ orelse' norm_num1 $
-simp_core {} norm_num1 ff hs [] (loc.ns [none])
+conv.interactive.simp ff hs [] { discharger := tactic.interactive.norm_num1 (loc.ns [none]) }
 
 end conv.interactive

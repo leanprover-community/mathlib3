@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Edward Ayers, Thomas Read
 -/
 
-import category_theory.limits.shapes.binary_products
+import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.constructions.preserve_binary_products
 import category_theory.closed.monoidal
 import category_theory.monoidal.of_has_finite_products
@@ -341,7 +341,7 @@ def cartesian_closed_of_equiv (e : C ≌ D) [h : cartesian_closed C] : cartesian
         { rw [assoc, prod.lift_fst, prod.lift_fst, ←functor.map_comp,
             limits.prod.map_fst, comp_id], },
         { rw [assoc, prod.lift_snd, prod.lift_snd, ←functor.map_comp_assoc, limits.prod.map_snd],
-          simp only [nat_iso.hom_inv_id_app, assoc, equivalence.inv_fun_map,
+          simp only [iso.hom_inv_id_app, assoc, equivalence.inv_fun_map,
             functor.map_comp, comp_id],
           erw comp_id, }, },
       { have : is_left_adjoint (e.functor ⋙ prod_functor.obj X ⋙ e.inverse) :=

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
 import data.num.bitwise
-import data.int.basic
+import data.int.char_zero
 import data.nat.gcd
 
 /-!
@@ -347,6 +347,11 @@ num.to_nat_inj.1 $ by rw [pred'_to_nat, succ'_to_nat,
 to_nat_inj.1 $ by rw [succ'_to_nat, pred'_to_nat,
   nat.add_one, nat.succ_pred_eq_of_pos (to_nat_pos _)]
 
+instance : has_dvd pos_num := ⟨λ m n, pos m ∣ pos n⟩
+
+@[norm_cast] theorem dvd_to_nat {m n : pos_num} : (m:ℕ) ∣ n ↔ m ∣ n :=
+num.dvd_to_nat (pos m) (pos n)
+
 theorem size_to_nat : ∀ n, (size n : ℕ) = nat.size n
 | 1        := nat.size_one.symm
 | (bit0 n) := by rw [size, succ_to_nat, size_to_nat, cast_bit0,
@@ -377,7 +382,6 @@ by refine {add := (+), ..}; transfer
 
 instance : comm_monoid pos_num :=
 by refine {mul := (*), one := 1, ..}; transfer
-
 
 instance : distrib pos_num :=
 by refine {add := (+), mul := (*), ..}; {transfer, simp [mul_add, mul_comm]}
@@ -1027,7 +1031,7 @@ instance : decidable_linear_ordered_comm_ring znum :=
   left_distrib     := by {transfer, simp [mul_add]},
   right_distrib    := by {transfer, simp [mul_add, mul_comm]},
   mul_comm         := by transfer,
-  zero_ne_one      := dec_trivial,
+  exists_pair_ne   := ⟨0, 1, dec_trivial⟩,
   add_le_add_left  := by {intros a b h c, revert h, transfer_rw, exact λ h, add_le_add_left h c},
   mul_pos          := λ a b, show 0 < a → 0 < b → 0 < a * b, by {transfer_rw, apply mul_pos},
   zero_lt_one      := dec_trivial,
@@ -1161,10 +1165,13 @@ theorem dvd_iff_mod_eq_zero {m n : num} : m ∣ n ↔ n % m = 0 :=
 by rw [← dvd_to_nat, nat.dvd_iff_mod_eq_zero,
   ← to_nat_inj, mod_to_nat]; refl
 
-instance : decidable_rel ((∣) : num → num → Prop)
+instance decidable_dvd : decidable_rel ((∣) : num → num → Prop)
 | a b := decidable_of_iff' _ dvd_iff_mod_eq_zero
 
 end num
+
+instance pos_num.decidable_dvd : decidable_rel ((∣) : pos_num → pos_num → Prop)
+| a b := num.decidable_dvd _ _
 
 namespace znum
 

@@ -6,8 +6,9 @@ Authors: Johan Commelin
 Nonnegative real numbers.
 -/
 import algebra.linear_ordered_comm_group_with_zero
-import data.finset.lattice
+import algebra.big_operators.ring
 import data.real.basic
+import data.indicator_function
 
 noncomputable theory
 
@@ -93,12 +94,16 @@ def to_real_hom : ℝ≥0 →+* ℝ :=
 @[simp] lemma coe_to_real_hom : ⇑to_real_hom = coe := rfl
 
 instance : comm_group_with_zero ℝ≥0 :=
-{ zero_ne_one    := assume h, zero_ne_one $ nnreal.eq_iff.2 h,
+{ exists_pair_ne := ⟨0, 1, assume h, zero_ne_one $ nnreal.eq_iff.2 h⟩,
   inv_zero       := nnreal.eq $ show (0⁻¹ : ℝ) = 0, from inv_zero,
   mul_inv_cancel := assume x h, nnreal.eq $ mul_inv_cancel $ ne_iff.2 h,
   .. (by apply_instance : has_inv ℝ≥0),
   .. (_ : comm_semiring ℝ≥0),
   .. (_ : semiring ℝ≥0) }
+
+@[simp, norm_cast] lemma coe_indicator {α} (s : set α) (f : α → ℝ≥0) (a : α) :
+  ((s.indicator f a : ℝ≥0) : ℝ) = s.indicator (λ x, f x) a :=
+(to_real_hom : ℝ≥0 →+ ℝ).map_indicator _ _ _
 
 @[simp, norm_cast] protected lemma coe_div (r₁ r₂ : ℝ≥0) : ((r₁ / r₂ : ℝ≥0) : ℝ) = r₁ / r₂ := rfl
 @[norm_cast] lemma coe_pow (r : ℝ≥0) (n : ℕ) : ((r^n : ℝ≥0) : ℝ) = r^n :=
@@ -198,11 +203,10 @@ instance : linear_ordered_comm_group_with_zero ℝ≥0 :=
   .. nnreal.comm_group_with_zero }
 
 instance : canonically_ordered_comm_semiring ℝ≥0 :=
-{ .. nnreal.linear_ordered_semiring,
-  .. nnreal.canonically_ordered_add_monoid,
+{ .. nnreal.canonically_ordered_add_monoid,
   .. nnreal.comm_semiring,
   .. (show no_zero_divisors ℝ≥0, by apply_instance),
-  .. (show nonzero ℝ≥0, by apply_instance) }
+  .. nnreal.comm_group_with_zero }
 
 instance : densely_ordered ℝ≥0 :=
 ⟨assume a b (h : (a : ℝ) < b), let ⟨c, hac, hcb⟩ := dense h in

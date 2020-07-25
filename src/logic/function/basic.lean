@@ -41,11 +41,19 @@ lemma comp_apply {α : Sort u} {β : Sort v} {φ : Sort w} (f : β → φ) (g : 
   f a = f b ↔ a = b :=
 ⟨@I _ _, congr_arg f⟩
 
+theorem injective.eq_iff' (I : injective f) {a b : α} {c : β} (h : f b = c) :
+  f a = c ↔ a = b :=
+h ▸ I.eq_iff
+
 lemma injective.ne (hf : injective f) {a₁ a₂ : α} : a₁ ≠ a₂ → f a₁ ≠ f a₂ :=
 mt (assume h, hf h)
 
 lemma injective.ne_iff (hf : injective f) {x y : α} : f x ≠ f y ↔ x ≠ y :=
 ⟨mt $ congr_arg f, hf.ne⟩
+
+lemma injective.ne_iff' (hf : injective f) {x y : α} {z : β} (h : f y = z) :
+  f x ≠ z ↔ x ≠ y :=
+h ▸ hf.ne_iff
 
 /-- If the co-domain `β` of an injective function `f : α → β` has decidable equality, then
 the domain `α` also has decidable equality. -/
@@ -61,6 +69,30 @@ lemma surjective.of_comp {γ : Sort w} {g : γ → α} (S : surjective (f ∘ g)
 instance decidable_eq_pfun (p : Prop) [decidable p] (α : p → Type*)
   [Π hp, decidable_eq (α hp)] : decidable_eq (Π hp, α hp)
 | f g := decidable_of_iff (∀ hp, f hp = g hp) funext_iff.symm
+
+theorem surjective.forall {f : α → β} (hf : surjective f) {p : β → Prop} :
+  (∀ y, p y) ↔ ∀ x, p (f x) :=
+⟨λ h x, h (f x), λ h y, let ⟨x, hx⟩ := hf y in hx ▸ h x⟩
+
+theorem surjective.forall₂ {f : α → β} (hf : surjective f) {p : β → β → Prop} :
+  (∀ y₁ y₂, p y₁ y₂) ↔ ∀ x₁ x₂, p (f x₁) (f x₂) :=
+hf.forall.trans $ forall_congr $ λ x, hf.forall
+
+theorem surjective.forall₃ {f : α → β} (hf : surjective f) {p : β → β → β → Prop} :
+  (∀ y₁ y₂ y₃, p y₁ y₂ y₃) ↔ ∀ x₁ x₂ x₃, p (f x₁) (f x₂) (f x₃) :=
+hf.forall.trans $ forall_congr $ λ x, hf.forall₂
+
+theorem surjective.exists {f : α → β} (hf : surjective f) {p : β → Prop} :
+  (∃ y, p y) ↔ ∃ x, p (f x) :=
+⟨λ ⟨y, hy⟩, let ⟨x, hx⟩ := hf y in ⟨x, hx.symm ▸ hy⟩, λ ⟨x, hx⟩, ⟨f x, hx⟩⟩
+
+theorem surjective.exists₂ {f : α → β} (hf : surjective f) {p : β → β → Prop} :
+  (∃ y₁ y₂, p y₁ y₂) ↔ ∃ x₁ x₂, p (f x₁) (f x₂) :=
+hf.exists.trans $ exists_congr $ λ x, hf.exists
+
+theorem surjective.exists₃ {f : α → β} (hf : surjective f) {p : β → β → β → Prop} :
+  (∃ y₁ y₂ y₃, p y₁ y₂ y₃) ↔ ∃ x₁ x₂ x₃, p (f x₁) (f x₂) (f x₃) :=
+hf.exists.trans $ exists_congr $ λ x, hf.exists₂
 
 /-- Cantor's diagonal argument implies that there are no surjective functions from `α`
 to `set α`. -/
@@ -163,10 +195,10 @@ theorem inv_fun_on_mem (h : ∃a∈s, f a = b) : inv_fun_on f s b ∈ s := (inv_
 
 theorem inv_fun_on_eq (h : ∃a∈s, f a = b) : f (inv_fun_on f s b) = b := (inv_fun_on_pos h).right
 
-theorem inv_fun_on_eq' (h : ∀ x y ∈ s, f x = f y → x = y) (ha : a ∈ s) :
+theorem inv_fun_on_eq' (h : ∀ (x ∈ s) (y ∈ s), f x = f y → x = y) (ha : a ∈ s) :
   inv_fun_on f s (f a) = a :=
 have ∃a'∈s, f a' = f a, from ⟨a, ha, rfl⟩,
-h _ _ (inv_fun_on_mem this) ha (inv_fun_on_eq this)
+h _ (inv_fun_on_mem this) _ ha (inv_fun_on_eq this)
 
 theorem inv_fun_on_neg (h : ¬ ∃a∈s, f a = b) : inv_fun_on f s b = classical.choice n :=
 by rw [bex_def] at h; rw [inv_fun_on, dif_neg h]

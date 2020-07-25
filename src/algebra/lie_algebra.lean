@@ -6,6 +6,7 @@ Authors: Oliver Nash
 import ring_theory.algebra
 import linear_algebra.linear_action
 import linear_algebra.bilinear_form
+import linear_algebra.direct_sum.finsupp
 import tactic.noncomm_ring
 
 /-!
@@ -466,8 +467,8 @@ def lie_subalgebra_of_subalgebra (A : Type v) [ring A] [algebra R A]
 { lie_mem := λ x y hx hy, by {
     change ⁅x, y⁆ ∈ A', change x ∈ A' at hx, change y ∈ A' at hy,
     rw lie_ring.of_associative_ring_bracket,
-    have hxy := subalgebra.mul_mem A' x y hx hy,
-    have hyx := subalgebra.mul_mem A' y x hy hx,
+    have hxy := A'.mul_mem hx hy,
+    have hyx := A'.mul_mem hy hx,
     exact submodule.sub_mem A'.to_submodule hxy hyx, },
   ..A'.to_submodule }
 
@@ -812,6 +813,24 @@ by simp [linear_equiv.conj_apply, matrix.lie_conj, matrix.comp_to_matrix_mul, to
 @[simp] lemma matrix.lie_conj_symm_apply (P A : matrix n n R) (h : is_unit P) :
   (P.lie_conj h).symm A = P⁻¹ ⬝ A ⬝ P :=
 by simp [linear_equiv.symm_conj_apply, matrix.lie_conj, matrix.comp_to_matrix_mul, to_lin_to_matrix]
+
+/-- For square matrices, the natural map that reindexes a matrix's rows and columns with equivalent
+types is an equivalence of Lie algebras. -/
+def matrix.reindex_lie_equiv {m : Type w₁} [fintype m] [decidable_eq m]
+  (e : n ≃ m) : matrix n n R ≃ₗ⁅R⁆ matrix m m R :=
+{ map_lie := λ M N, by simp only [lie_ring.of_associative_ring_bracket, matrix.reindex_mul,
+    matrix.mul_eq_mul, linear_equiv.map_sub, linear_equiv.to_fun_apply],
+..(matrix.reindex_linear_equiv e e) }
+
+@[simp] lemma matrix.reindex_lie_equiv_apply {m : Type w₁} [fintype m] [decidable_eq m]
+  (e : n ≃ m) (M : matrix n n R) :
+  matrix.reindex_lie_equiv e M = λ i j, M (e.symm i) (e.symm j) :=
+rfl
+
+@[simp] lemma matrix.reindex_lie_equiv_symm_apply {m : Type w₁} [fintype m] [decidable_eq m]
+  (e : n ≃ m) (M : matrix m m R) :
+  (matrix.reindex_lie_equiv e).symm M = λ i j, M (e i) (e j) :=
+rfl
 
 end matrices
 

@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.opposites
-import data.int.basic
+import data.list.basic
+import data.int.cast
 import data.equiv.basic
 import deprecated.ring
 
@@ -161,7 +162,11 @@ theorem nsmul_add_comm : ∀ (a : A) (m n : ℕ), m •ℕ a + n •ℕ a = n �
 
 @[simp, priority 500]
 theorem list.prod_repeat (a : M) (n : ℕ) : (list.repeat a n).prod = a ^ n :=
-by induction n with n ih; [refl, rw [list.repeat_succ, list.prod_cons, ih]]; refl
+begin
+  induction n with n ih,
+  { refl },
+  { rw [list.repeat_succ, list.prod_cons, ih], refl, }
+end
 @[simp, priority 500]
 theorem list.sum_repeat : ∀ (a : A) (n : ℕ), (list.repeat a n).sum = n •ℕ a :=
 @list.prod_repeat (multiplicative A) _
@@ -467,6 +472,19 @@ theorem neg_one_pow_eq_or [ring R] : ∀ n : ℕ, (-1 : R)^n = 1 ∨ (-1 : R)^n 
 lemma pow_dvd_pow [comm_semiring R] (a : R) {m n : ℕ} (h : m ≤ n) :
   a ^ m ∣ a ^ n := ⟨a ^ (n - m), by rw [← pow_add, nat.add_sub_cancel' h]⟩
 
+theorem pow_dvd_pow_of_dvd [comm_semiring R] {a b : R} (h : a ∣ b) : ∀ n : ℕ, a ^ n ∣ b ^ n
+| 0     := dvd_refl _
+| (n+1) := mul_dvd_mul h (pow_dvd_pow_of_dvd n)
+
+lemma pow_two_sub_pow_two {R : Type*} [comm_ring R] (a b : R) :
+  a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
+by simp only [pow_two, mul_sub, add_mul, sub_sub, add_sub, mul_comm, sub_add_cancel]
+
+lemma eq_or_eq_neg_of_pow_two_eq_pow_two [integral_domain R] (a b : R) (h : a ^ 2 = b ^ 2) :
+  a = b ∨ a = -b :=
+by rwa [← add_eq_zero_iff_eq_neg, ← sub_eq_zero, or_comm, ← mul_eq_zero,
+        ← pow_two_sub_pow_two a b, sub_eq_zero]
+
 -- The next four lemmas allow us to replace multiplication by a numeral with a `gsmul` expression.
 -- They are used by the `noncomm_ring` tactic, to normalise expressions before passing to `abel`.
 
@@ -675,6 +693,9 @@ end linear_ordered_semiring
 
 theorem pow_two_nonneg [linear_ordered_ring R] (a : R) : 0 ≤ a ^ 2 :=
 by { rw pow_two, exact mul_self_nonneg _ }
+
+theorem pow_two_pos_of_ne_zero [linear_ordered_ring R] (a : R) (h : a ≠ 0) : 0 < a ^ 2 :=
+lt_of_le_of_ne (pow_two_nonneg a) (pow_ne_zero 2 h).symm
 
 /-- Bernoulli's inequality for `n : ℕ`, `-2 ≤ a`. -/
 theorem one_add_mul_le_pow [linear_ordered_ring R] {a : R} (H : -2 ≤ a) :

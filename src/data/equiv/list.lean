@@ -6,6 +6,7 @@ Author: Mario Carneiro
 Additional equiv and encodable instances for lists, finsets, and fintypes.
 -/
 import data.equiv.denumerable
+import data.finset.sort
 
 open nat list
 

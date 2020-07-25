@@ -748,6 +748,8 @@ variables (f : localization_map M S)
   (algebra.of_id R f.codomain) a = f.to_map a :=
 rfl
 
+@[simp] lemma algebra_map_eq : algebra_map R f.codomain = f.to_map := rfl
+
 variables (f)
 /-- Localization map `f` from `R` to `S` as an `R`-linear map. -/
 def lin_coe : R →ₗ[R] f.codomain :=
@@ -834,10 +836,11 @@ lemma integer_normalization_eval₂_eq_zero (g : f.codomain →+* R') (p : polyn
 let ⟨b, hb⟩ := integer_normalization_map_to_map p in
 trans (eval₂_map f.to_map g x).symm (by rw [hb, eval₂_smul, hx, smul_zero])
 
-lemma integer_normalization_aeval_eq_zero [algebra f.codomain R'] (p : polynomial f.codomain)
-  {x : R'} (hx : aeval _ _ x p = 0) :
-  aeval _ (algebra.comap R f.codomain R') x (integer_normalization p) = 0 :=
-integer_normalization_eval₂_eq_zero (algebra_map f.codomain R') p hx
+lemma integer_normalization_aeval_eq_zero [algebra R R'] [algebra f.codomain R']
+  [is_algebra_tower R f.codomain R'] (p : polynomial f.codomain)
+  {x : R'} (hx : aeval x p = 0) : aeval x (integer_normalization p) = 0 :=
+by rw [aeval_def, is_algebra_tower.algebra_map_eq R f.codomain R', algebra_map_eq,
+    integer_normalization_eval₂_eq_zero _ _ hx]
 
 end integer_normalization
 
@@ -876,7 +879,7 @@ lemma eq_zero_of_ne_zero_of_mul_eq_zero
 
 lemma mem_non_zero_divisors_iff_ne_zero {x : A} :
   x ∈ non_zero_divisors A ↔ x ≠ 0 :=
-⟨λ hm hz, @zero_ne_one A _ _ domain.to_nonzero (hm 1 $ by rw [hz, one_mul]).symm,
+⟨λ hm hz, zero_ne_one (hm 1 $ by rw [hz, one_mul]).symm,
 λ hnx z, eq_zero_of_ne_zero_of_mul_eq_zero hnx⟩
 
 lemma map_ne_zero_of_mem_non_zero_divisors {B : Type*} [ring B] {g : A →+* B}
@@ -934,8 +937,7 @@ def to_integral_domain [comm_ring K] (φ : fraction_map A K) : integral_domain K
         { exact or.inl (φ.eq_zero_of_fst_eq_zero hx H) },
       { exact or.inr (φ.eq_zero_of_fst_eq_zero hy H) },
     end,
-  zero_ne_one := by erw [←φ.to_map.map_zero, ←φ.to_map.map_one];
-    exact λ h, @zero_ne_one _ _ _ domain.to_nonzero (φ.injective h),
+  exists_pair_ne := ⟨φ.to_map 0, φ.to_map 1, λ h, zero_ne_one (φ.injective h)⟩,
   ..(infer_instance : comm_ring K) }
 
 /-- The inverse of an element in the field of fractions of an integral domain. -/
@@ -1056,14 +1058,14 @@ begin
 end
 
 /-- A field is algebraic over the ring `A` iff it is algebraic over the field of fractions of `A`. -/
-lemma comap_is_algebraic_iff [algebra f.codomain L] :
-  algebra.is_algebraic A (algebra.comap A f.codomain L) ↔ algebra.is_algebraic f.codomain L :=
+lemma comap_is_algebraic_iff [algebra A L] [algebra f.codomain L] [is_algebra_tower A f.codomain L] :
+  algebra.is_algebraic A L ↔ algebra.is_algebraic f.codomain L :=
 begin
   split; intros h x; obtain ⟨p, hp, px⟩ := h x,
   { refine ⟨p.map f.to_map, λ h, hp (polynomial.ext (λ i, _)), _⟩,
   { have : f.to_map (p.coeff i) = 0 := trans (polynomial.coeff_map _ _).symm (by simp [h]),
     exact f.to_map_eq_zero_iff.mpr this },
-  { exact trans (polynomial.eval₂_map _ _ _) px } },
+  { rwa [is_algebra_tower.aeval_apply _ f.codomain, algebra_map_eq] at px } },
   { exact ⟨integer_normalization p,
            mt f.integer_normalization_eq_zero_iff.mp hp,
            integer_normalization_aeval_eq_zero p px⟩ },
@@ -1162,11 +1164,13 @@ def fraction_map_of_algebraic [algebra A L] (alg : is_algebraic A L)
 
 /-- If the field `L` is a finite extension of the fraction field of the integral domain `A`,
 the integral closure of `A` in `L` has fraction field `L`. -/
-def fraction_map_of_finite_extension [algebra f.codomain L] [finite_dimensional f.codomain L] :
-  fraction_map (integral_closure A (algebra.comap A f.codomain L)) (algebra.comap A f.codomain L) :=
+def fraction_map_of_finite_extension [algebra A L] [algebra f.codomain L]
+  [is_algebra_tower A f.codomain L] [finite_dimensional f.codomain L] :
+  fraction_map (integral_closure A L) L :=
 fraction_map_of_algebraic
   (f.comap_is_algebraic_iff.mpr is_algebraic_of_finite)
-  (λ x hx, f.to_map_eq_zero_iff.mpr ((algebra_map f.codomain L).map_eq_zero.mp hx))
+  (λ x hx, f.to_map_eq_zero_iff.mpr ((algebra_map f.codomain L).map_eq_zero.mp $
+    (is_algebra_tower.algebra_map_apply _ _ _ _).symm.trans hx))
 
 end integral_closure
 

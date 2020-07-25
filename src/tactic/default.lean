@@ -14,7 +14,7 @@ As (non-exhaustive) examples, these includes things like:
 * data.nat.prime
 * data.list.perm
 * data.set.lattice
-* data.equiv.encodable
+* data.equiv.encodable.basic
 * order.complete_lattice
 -/
 import tactic.basic -- ensure basic tactics are available
@@ -32,3 +32,5 @@ import tactic.subtype_instance
 import tactic.group
 import tactic.cancel_denoms
 import tactic.zify
+import tactic.transport
+import tactic.unfold_cases

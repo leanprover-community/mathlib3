@@ -201,6 +201,10 @@ classical.by_cases or.inl (λ h, or.inr (nonempty_of_ne_empty h))
 
 @[simp] lemma coe_empty : ↑(∅ : finset α) = (∅ : set α) := rfl
 
+/-- A `finset` for an empty type is empty. -/
+lemma eq_empty_of_not_nonempty (h : ¬ nonempty α) (s : finset α) : s = ∅ :=
+finset.eq_empty_of_forall_not_mem $ λ x, false.elim $ not_nonempty_iff_imp_false.1 h x
+
 /-! ### singleton -/
 /--
 `{a} : finset a` is the set `{a}` containing `a` and nothing else.
@@ -1319,6 +1323,11 @@ theorem image_subset_image {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁.im
 by simp only [subset_def, image_val, subset_erase_dup', erase_dup_subset',
   multiset.map_subset_map h]
 
+theorem image_subset_iff {s : finset α} {t : finset β} {f : α → β} :
+  s.image f ⊆ t ↔ ∀ x ∈ s, f x ∈ t :=
+calc s.image f ⊆ t ↔ f '' ↑s ⊆ ↑t : by norm_cast
+               ... ↔ _ : set.image_subset_iff
+
 theorem image_mono (f : α → β) : monotone (finset.image f) := λ _ _, image_subset_image
 
 theorem coe_image_subset_range : ↑(s.image f) ⊆ set.range f :=
@@ -1487,6 +1496,13 @@ by by_cases a ∈ s; [{rw [insert_eq_of_mem h], apply nat.le_add_right},
 rw [card_insert_of_not_mem h]]
 
 @[simp] theorem card_singleton (a : α) : card ({a} : finset α) = 1 := card_singleton _
+
+lemma card_singleton_inter [decidable_eq α] {x : α} {s : finset α} : ({x} ∩ s).card ≤ 1 :=
+begin
+  cases (finset.decidable_mem x s),
+  { simp [finset.singleton_inter_of_not_mem h] },
+  { simp [finset.singleton_inter_of_mem h] },
+end
 
 theorem card_erase_of_mem [decidable_eq α] {a : α} {s : finset α} :
   a ∈ s → card (erase s a) = pred (card s) := card_erase_of_mem
@@ -1761,6 +1777,10 @@ protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨
 
 @[simp] theorem mem_product {p : α × β} : p ∈ s.product t ↔ p.1 ∈ s ∧ p.2 ∈ t := mem_product
 
+theorem subset_product [decidable_eq α] [decidable_eq β] {s : finset (α × β)} :
+  s ⊆ (s.image prod.fst).product (s.image prod.snd) :=
+λ p hp, mem_product.2 ⟨mem_image_of_mem _ hp, mem_image_of_mem _ hp⟩
+
 theorem product_eq_bind [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
  s.product t = s.bind (λa, t.image $ λb, (a, b)) :=
 ext $ λ ⟨x, y⟩, by simp only [mem_product, mem_bind, mem_image, exists_prop, prod.mk.inj_iff,
@@ -1939,6 +1959,18 @@ end
 lemma exists_smaller_set (A : finset α) (i : ℕ) (h₁ : i ≤ card A) :
   ∃ (B : finset α), B ⊆ A ∧ card B = i :=
 let ⟨B, _, x₁, x₂⟩ := exists_intermediate_set i (by simpa) (empty_subset A) in ⟨B, x₁, x₂⟩
+
+/-- `finset.fin_range k` is the finset `{0, 1, ..., k-1}`, as a `finset (fin k)`. -/
+def fin_range (k : ℕ) : finset (fin k) :=
+⟨list.fin_range k, list.nodup_fin_range k⟩
+
+@[simp]
+lemma fin_range_card {k : ℕ} : (fin_range k).card = k :=
+by simp [fin_range]
+
+@[simp]
+lemma mem_fin_range {k : ℕ} (m : fin k) : m ∈ fin_range k :=
+list.mem_fin_range m
 
 /-- Given a finset `s` of `ℕ` contained in `{0,..., n-1}`, the corresponding finset in `fin n`
 is `s.attach_fin h` where `h` is a proof that all elements of `s` are less than `n`. -/

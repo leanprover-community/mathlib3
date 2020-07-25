@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
 import data.fintype.basic
-import data.nat.choose
-import tactic.ring
+import algebra.big_operators.ring
 
 /-!
 Results about "big operations" over a `fintype`, and consequent
@@ -110,6 +109,11 @@ card_sigma _ _
 @[simp] theorem fintype.card_sum (α β : Type*) [fintype α] [fintype β] :
   fintype.card (α ⊕ β) = fintype.card α + fintype.card β :=
 by simp [sum.fintype, fintype.of_equiv_card]
+
+@[simp] lemma finset.card_pi [decidable_eq α] {δ : α → Type*}
+  (s : finset α) (t : Π a, finset (δ a)) :
+  (s.pi t).card = ∏ a in s, card (t a) :=
+multiset.card_pi _ _
 
 @[simp] lemma fintype.card_pi_finset [decidable_eq α] [fintype α]
   {δ : α → Type*} (t : Π a, finset (δ a)) :

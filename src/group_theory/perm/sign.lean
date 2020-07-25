@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import data.fintype.basic
-import algebra.big_operators
+import data.finset.sort
+import algebra.group.conj
+import algebra.big_operators.basic
 
 universes u v
 open equiv function fintype finset

@@ -139,3 +139,19 @@ swap_swap
 swap_swap
 
 end sum
+
+namespace function
+
+open sum
+
+lemma injective.sum_map {f : α → β} {g : α' → β'} (hf : injective f) (hg : injective g) :
+  injective (sum.map f g)
+| (inl x) (inl y) h := congr_arg inl $ hf $ inl.inj h
+| (inr x) (inr y) h := congr_arg inr $ hg $ inr.inj h
+
+lemma surjective.sum_map {f : α → β} {g : α' → β'} (hf : surjective f) (hg : surjective g) :
+  surjective (sum.map f g)
+| (inl y) := let ⟨x, hx⟩ := hf y in ⟨inl x, congr_arg inl hx⟩
+| (inr y) := let ⟨x, hx⟩ := hg y in ⟨inr x, congr_arg inr hx⟩
+
+end function

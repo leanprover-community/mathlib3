@@ -3,8 +3,13 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 -/
-import algebra.pi_instances
+import algebra.big_operators.pi
+import algebra.module.pi
+import algebra.module.prod
+import algebra.group.prod
+import ring_theory.subring
 import data.finsupp
+import algebra.pointwise
 
 /-!
 # Linear algebra
@@ -78,7 +83,7 @@ lemma pi_eq_sum_univ {ι : Type u} [fintype ι] {R : Type v} [semiring R] (x : �
   x = ∑ i, x i • (λj, if i = j then 1 else 0) :=
 begin
   ext k,
-  rw pi.finset_sum_apply,
+  rw finset.sum_apply,
   have : ∑ i, x i * ite (k = i) 1 0 = x k,
     by { have := finset.sum_mul_boole finset.univ x k, rwa if_pos (finset.mem_univ _) at this },
   rw ← this,
@@ -240,15 +245,21 @@ section
 variables (R M M₂)
 
 /-- The left injection into a product is a linear map. -/
-def inl : M →ₗ[R] M × M₂ := by refine ⟨prod.inl, _, _⟩; intros; simp [prod.inl]
+def inl : M →ₗ[R] M × M₂ := by refine ⟨add_monoid_hom.inl _ _, _, _⟩; intros; simp
 
 /-- The right injection into a product is a linear map. -/
-def inr : M₂ →ₗ[R] M × M₂ := by refine ⟨prod.inr, _, _⟩; intros; simp [prod.inr]
+def inr : M₂ →ₗ[R] M × M₂ := by refine ⟨add_monoid_hom.inr _ _, _, _⟩; intros; simp
 
 end
 
 @[simp] theorem inl_apply (x : M) : inl R M M₂ x = (x, 0) := rfl
 @[simp] theorem inr_apply (x : M₂) : inr R M M₂ x = (0, x) := rfl
+
+theorem inl_injective : function.injective (inl R M M₂) :=
+λ _, by simp
+
+theorem inr_injective : function.injective (inr R M M₂) :=
+λ _, by simp
 
 /-- The coprod function `λ x : M × M₂, f x.1 + g x.2` is a linear map. -/
 def coprod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) : M × M₂ →ₗ[R] M₃ :=
@@ -437,6 +448,13 @@ instance : order_bot (submodule R M) :=
 { bot := ⊥,
   bot_le := λ p x, by simp {contextual := tt},
   ..submodule.partial_order }
+
+protected lemma eq_bot_iff (p : submodule R M) : p = ⊥ ↔ ∀ x ∈ p, x = (0 : M) :=
+⟨ λ h, h.symm ▸ λ x hx, (mem_bot R).mp hx,
+  λ h, eq_bot_iff.mpr (λ x hx, (mem_bot R).mpr (h x hx)) ⟩
+
+protected lemma ne_bot_iff (p : submodule R M) : p ≠ ⊥ ↔ ∃ x ∈ p, x ≠ (0 : M) :=
+by { haveI := classical.prop_decidable, simp_rw [ne.def, p.eq_bot_iff, not_forall] }
 
 /-- The universal set is the top element of the lattice of submodules. -/
 instance : has_top (submodule R M) :=
@@ -721,8 +739,7 @@ theorem mem_Sup_of_directed {s : set (submodule R M)}
   z ∈ Sup s ↔ ∃ y ∈ s, z ∈ y :=
 begin
   haveI : nonempty s := hs.to_subtype,
-  rw [Sup_eq_supr, supr_subtype', mem_supr_of_directed, subtype.exists],
-  exact (directed_on_iff_directed _).1 hdir
+  simp only [Sup_eq_supr', mem_supr_of_directed _ hdir.directed_coe, set_coe.exists, subtype.coe_mk]
 end
 
 section
@@ -800,8 +817,10 @@ eq_bot_iff.trans ⟨
   λ H x h, (mem_bot R).1 $ H $ subset_span h,
   λ H, span_le.2 (λ x h, (mem_bot R).2 $ H x h)⟩
 
-lemma span_singleton_eq_bot : span R ({x} : set M) = ⊥ ↔ x = 0 :=
+@[simp] lemma span_singleton_eq_bot : span R ({x} : set M) = ⊥ ↔ x = 0 :=
 span_eq_bot.trans $ by simp
+
+@[simp] lemma span_zero : span R (0 : set M) = ⊥ := by rw [←singleton_zero, span_singleton_eq_bot]
 
 @[simp] lemma span_image (f : M →ₗ[R] M₂) : span R (f '' s) = map f (span R s) :=
 span_eq_of_le _ (image_subset _ subset_span) $ map_le_iff_le_comap.2 $
@@ -1157,7 +1176,7 @@ theorem prod_eq_sup_map (p : submodule R M) (q : submodule R M₂) :
 by rw [← map_coprod_prod, coprod_inl_inr, map_id]
 
 lemma span_inl_union_inr {s : set M} {t : set M₂} :
-  span R (prod.inl '' s ∪ prod.inr '' t) = (span R s).prod (span R t) :=
+  span R (inl R M  M₂ '' s ∪ inr R M M₂ '' t) = (span R s).prod (span R t) :=
 by rw [span_union, prod_eq_sup_map, ← span_image, ← span_image]; refl
 
 @[simp] lemma ker_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) :
@@ -2270,7 +2289,7 @@ begin
   simp only [mem_infi, mem_ker, proj_apply] at hb,
   rw ← show ∑ i in I, std_basis R φ i (b i) = b,
   { ext i,
-    rw [pi.finset_sum_apply, ← std_basis_same R φ i (b i)],
+    rw [finset.sum_apply, ← std_basis_same R φ i (b i)],
     refine finset.sum_eq_single i (assume j hjI ne, std_basis_ne _ _ _ _ ne.symm _) _,
     assume hiI,
     rw [std_basis_same],

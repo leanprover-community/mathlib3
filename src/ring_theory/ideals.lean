@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 -/
 import algebra.associated
-import algebra.pointwise
 import linear_algebra.basic
 import order.zorn
 
@@ -68,13 +67,35 @@ lemma span_singleton_le_span_singleton {x y : α} :
   span ({x} : set α) ≤ span ({y} : set α) ↔ y ∣ x :=
 span_le.trans $ singleton_subset_iff.trans mem_span_singleton
 
+lemma span_singleton_eq_span_singleton {α : Type u} [integral_domain α] {x y : α} :
+  span ({x} : set α) = span ({y} : set α) ↔ associated x y :=
+begin
+  rw [←dvd_dvd_iff_associated, le_antisymm_iff, and_comm],
+  apply and_congr;
+  rw span_singleton_le_span_singleton,
+end
+
 lemma span_eq_bot {s : set α} : span s = ⊥ ↔ ∀ x ∈ s, (x:α) = 0 := submodule.span_eq_bot
 
-lemma span_singleton_eq_bot {x} : span ({x} : set α) = ⊥ ↔ x = 0 := submodule.span_singleton_eq_bot
+@[simp] lemma span_singleton_eq_bot {x} : span ({x} : set α) = ⊥ ↔ x = 0 :=
+submodule.span_singleton_eq_bot
+
+@[simp] lemma span_zero : span (0 : set α) = ⊥ := by rw [←set.singleton_zero, span_singleton_eq_bot]
 
 lemma span_singleton_eq_top {x} : span ({x} : set α) = ⊤ ↔ is_unit x :=
 by rw [is_unit_iff_dvd_one, ← span_singleton_le_span_singleton, singleton_one, span_singleton_one,
   eq_top_iff]
+
+lemma span_singleton_mul_right_unit {a : α} (h2 : is_unit a) (x : α) :
+  span ({x * a} : set α) = span {x} :=
+begin
+  apply le_antisymm,
+  { rw span_singleton_le_span_singleton, use a},
+  { rw span_singleton_le_span_singleton, rw mul_dvd_of_is_unit_right h2}
+end
+
+lemma span_singleton_mul_left_unit {a : α} (h2 : is_unit a) (x : α) :
+  span ({a * x} : set α) = span {x} := by rw [mul_comm, span_singleton_mul_right_unit h2]
 
 /-- An ideal `P` of a ring `R` is prime if `P ≠ R` and `xy ∈ P → x ∈ P ∨ y ∈ P` -/
 @[class] def is_prime (I : ideal α) : Prop :=
@@ -139,7 +160,8 @@ theorem is_maximal.is_prime {I : ideal α} (H : I.is_maximal) : I.is_prime :=
 end⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_maximal.is_prime' (I : ideal α) : ∀ [H : I.is_maximal], I.is_prime := is_maximal.is_prime
+instance is_maximal.is_prime' (I : ideal α) : ∀ [H : I.is_maximal], I.is_prime :=
+is_maximal.is_prime
 
 theorem exists_le_maximal (I : ideal α) (hI : I ≠ ⊤) :
   ∃ M : ideal α, M.is_maximal ∧ I ≤ M :=
@@ -152,6 +174,16 @@ begin
     obtain ⟨J, JS, J0⟩ : ∃ J ∈ S, (1 : α) ∈ J,
       from (submodule.mem_Sup_of_directed ⟨I, IS⟩ cC.directed_on).1 ((eq_top_iff_one _).1 H),
     exact SC JS ((eq_top_iff_one _).2 J0) }
+end
+
+/-- If P is not properly contained in any maximal ideal then it is not properly contained
+  in any proper ideal -/
+lemma maximal_of_no_maximal {R : Type u} [comm_ring R] {P : ideal R}
+(hmax : ∀ m : ideal R, P < m → ¬is_maximal m) (J : ideal R) (hPJ : P < J) : J = ⊤ :=
+begin
+  by_contradiction hnonmax,
+  rcases exists_le_maximal J hnonmax with ⟨M, hM1, hM2⟩,
+  exact hmax M (lt_of_lt_of_le hPJ hM2) hM1,
 end
 
 theorem mem_span_pair {x y z : α} :
@@ -176,72 +208,42 @@ def quotient (I : ideal α) := I.quotient
 namespace quotient
 variables {I} {x y : α}
 
-/-- The map from a ring `R` to a quotient ring `R/I`. -/
-def mk (I : ideal α) (a : α) : I.quotient := submodule.quotient.mk a
-
-instance : inhabited (quotient I) := ⟨mk I 37⟩
-
-protected theorem eq : mk I x = mk I y ↔ x - y ∈ I := submodule.quotient.eq I
-
-instance (I : ideal α) : has_one I.quotient := ⟨mk I 1⟩
-
-@[simp] lemma mk_one (I : ideal α) : mk I 1 = 1 := rfl
+instance (I : ideal α) : has_one I.quotient := ⟨submodule.quotient.mk 1⟩
 
 instance (I : ideal α) : has_mul I.quotient :=
-⟨λ a b, quotient.lift_on₂' a b (λ a b, mk I (a * b)) $
+⟨λ a b, quotient.lift_on₂' a b (λ a b, submodule.quotient.mk (a * b)) $
  λ a₁ a₂ b₁ b₂ h₁ h₂, quot.sound $ begin
   refine calc a₁ * a₂ - b₁ * b₂ = a₂ * (a₁ - b₁) + (a₂ - b₂) * b₁ : _
   ... ∈ I : I.add_mem (I.mul_mem_left h₁) (I.mul_mem_right h₂),
   rw [mul_sub, sub_mul, sub_add_sub_cancel, mul_comm, mul_comm b₁]
  end⟩
 
-@[simp] theorem mk_mul : mk I (x * y) = mk I x * mk I y := rfl
-
 instance (I : ideal α) : comm_ring I.quotient :=
 { mul := (*),
   one := 1,
   mul_assoc := λ a b c, quotient.induction_on₃' a b c $
-    λ a b c, congr_arg (mk _) (mul_assoc a b c),
+    λ a b c, congr_arg submodule.quotient.mk (mul_assoc a b c),
   mul_comm := λ a b, quotient.induction_on₂' a b $
-    λ a b, congr_arg (mk _) (mul_comm a b),
+    λ a b, congr_arg submodule.quotient.mk (mul_comm a b),
   one_mul := λ a, quotient.induction_on' a $
-    λ a, congr_arg (mk _) (one_mul a),
+    λ a, congr_arg submodule.quotient.mk (one_mul a),
   mul_one := λ a, quotient.induction_on' a $
-    λ a, congr_arg (mk _) (mul_one a),
+    λ a, congr_arg submodule.quotient.mk (mul_one a),
   left_distrib := λ a b c, quotient.induction_on₃' a b c $
-    λ a b c, congr_arg (mk _) (left_distrib a b c),
+    λ a b c, congr_arg submodule.quotient.mk (left_distrib a b c),
   right_distrib := λ a b c, quotient.induction_on₃' a b c $
-    λ a b c, congr_arg (mk _) (right_distrib a b c),
+    λ a b c, congr_arg submodule.quotient.mk (right_distrib a b c),
   ..submodule.quotient.add_comm_group I }
 
-/-- `ideal.quotient.mk` as a `ring_hom` -/
-def mk_hom (I : ideal α) : α →+* I.quotient := ⟨mk I, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩
+/-- The ring homomorphism from a ring `R` to a quotient ring `R/I`. -/
+def mk (I : ideal α) : α →+* I.quotient :=
+⟨λ a, submodule.quotient.mk a, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩
 
-lemma mk_eq_mk_hom (I : ideal α) (x : α) : ideal.quotient.mk I x = ideal.quotient.mk_hom I x := rfl
+instance : inhabited (quotient I) := ⟨mk I 37⟩
 
-/-- The image of an ideal J under the quotient map `R → R/I`. -/
-def map_mk (I J : ideal α) : ideal I.quotient :=
-{ carrier := mk I '' J,
-  zero_mem' := ⟨0, J.zero_mem, rfl⟩,
-  add_mem' := by rintro _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩;
-    exact ⟨x + y, J.add_mem hx hy, rfl⟩,
-  smul_mem' := by rintro ⟨c⟩ _ ⟨x, hx, rfl⟩;
-    exact ⟨c * x, J.mul_mem_left hx, rfl⟩ }
+protected theorem eq : mk I x = mk I y ↔ x - y ∈ I := submodule.quotient.eq I
 
-@[simp] lemma mk_zero (I : ideal α) : mk I 0 = 0 := rfl
-@[simp] lemma mk_add (I : ideal α) (a b : α) : mk I (a + b) = mk I a + mk I b := rfl
-@[simp] lemma mk_neg (I : ideal α) (a : α) : mk I (-a : α) = -mk I a := rfl
-@[simp] lemma mk_sub (I : ideal α) (a b : α) : mk I (a - b : α) = mk I a - mk I b := rfl
-@[simp] lemma mk_pow (I : ideal α) (a : α) (n : ℕ) : mk I (a ^ n : α) = mk I a ^ n :=
-(mk_hom I).map_pow a n
-
-lemma mk_prod {ι} (I : ideal α) (s : finset ι) (f : ι → α) :
-  mk I (∏ i in s, f i) = ∏ i in s, mk I (f i) :=
-(mk_hom I).map_prod f s
-
-lemma mk_sum {ι} (I : ideal α) (s : finset ι) (f : ι → α) :
-  mk I (∑ i in s, f i) = ∑ i in s, mk I (f i) :=
-(mk_hom I).map_sum f s
+@[simp] theorem mk_eq_mk (x : α) : (submodule.quotient.mk x : quotient I) = mk I x := rfl
 
 lemma eq_zero_iff_mem {I : ideal α} : mk I a = 0 ↔ a ∈ I :=
 by conv {to_rhs, rw ← sub_zero a }; exact quotient.eq'
@@ -252,8 +254,11 @@ eq_comm.trans $ eq_zero_iff_mem.trans (eq_top_iff_one _).symm
 theorem zero_ne_one_iff {I : ideal α} : (0 : I.quotient) ≠ 1 ↔ I ≠ ⊤ :=
 not_congr zero_eq_one_iff
 
-protected theorem nonzero {I : ideal α} (hI : I ≠ ⊤) : nonzero I.quotient :=
-{ zero_ne_one := zero_ne_one_iff.2 hI }
+protected theorem nontrivial {I : ideal α} (hI : I ≠ ⊤) : nontrivial I.quotient :=
+⟨⟨0, 1, zero_ne_one_iff.2 hI⟩⟩
+
+lemma mk_surjective : function.surjective (mk I) :=
+λ y, quotient.induction_on' y (λ x, exists.intro x rfl)
 
 instance (I : ideal α) [hI : I.is_prime] : integral_domain I.quotient :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b,
@@ -261,8 +266,8 @@ instance (I : ideal α) [hI : I.is_prime] : integral_domain I.quotient :=
       (hI.mem_or_mem (eq_zero_iff_mem.1 hab)).elim
         (or.inl ∘ eq_zero_iff_mem.2)
         (or.inr ∘ eq_zero_iff_mem.2),
-  ..quotient.nonzero hI.1,
-  ..quotient.comm_ring I }
+  .. quotient.comm_ring I,
+  .. quotient.nontrivial hI.1 }
 
 lemma exists_inv {I : ideal α} [hI : I.is_maximal] :
  ∀ {a : I.quotient}, a ≠ 0 → ∃ b : I.quotient, a * b = 1 :=
@@ -328,6 +333,10 @@ lemma eq_bot_of_prime {K : Type u} [field K] (I : ideal K) [h : I.is_prime] :
   I = ⊥ :=
 classical.or_iff_not_imp_right.mp I.eq_bot_or_top h.1
 
+lemma bot_is_maximal {K : Type u} [field K] : is_maximal (⊥ : ideal K) :=
+⟨λ h, absurd ((eq_top_iff_one (⊤ : ideal K)).mp rfl) (by rw ← h; simp),
+λ I hI, or_iff_not_imp_left.mp (eq_bot_or_top I) (ne_of_gt hI)⟩
+
 end ideal
 
 /-- The set of non-invertible elements of a monoid. -/
@@ -366,7 +375,7 @@ section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- A commutative ring is local if it has a unique maximal ideal. Note that
   `local_ring` is a predicate. -/
-class local_ring (α : Type u) [comm_ring α] extends nonzero α : Prop :=
+class local_ring (α : Type u) [comm_ring α] extends nontrivial α : Prop :=
 (is_local : ∀ (a : α), (is_unit a) ∨ (is_unit (1 - a)))
 end prio
 
@@ -424,13 +433,22 @@ begin
     simpa using I.smul_mem ↑u⁻¹ H }
 end
 
-lemma max_ideal_unique :
+lemma maximal_ideal_unique :
   ∃! I : ideal α, I.is_maximal :=
 ⟨maximal_ideal α, maximal_ideal.is_maximal α,
   λ I hI, hI.eq_of_le (maximal_ideal.is_maximal α).1 $
   λ x hx, hI.1 ∘ I.eq_top_of_is_unit_mem hx⟩
 
 variable {α}
+
+lemma eq_maximal_ideal {I : ideal α} (hI : I.is_maximal) : I = maximal_ideal α :=
+unique_of_exists_unique (maximal_ideal_unique α) hI $ maximal_ideal.is_maximal α
+
+lemma le_maximal_ideal {J : ideal α} (hJ : J ≠ ⊤) : J ≤ maximal_ideal α :=
+begin
+  rcases ideal.exists_le_maximal J hJ with ⟨M, hM1, hM2⟩,
+  rwa ←eq_maximal_ideal hM1
+end
 
 @[simp] lemma mem_maximal_ideal (x) :
   x ∈ maximal_ideal α ↔ x ∈ nonunits α := iff.rfl
@@ -439,13 +457,13 @@ end local_ring
 
 lemma local_of_nonunits_ideal [comm_ring α] (hnze : (0:α) ≠ 1)
   (h : ∀ x y ∈ nonunits α, x + y ∈ nonunits α) : local_ring α :=
-{ zero_ne_one := hnze,
+{ exists_pair_ne := ⟨0, 1, hnze⟩,
   is_local := λ x, or_iff_not_imp_left.mpr $ λ hx,
-begin
-  by_contra H,
-  apply h _ _ hx H,
-  simp [-sub_eq_add_neg, add_sub_cancel'_right]
-end}
+  begin
+    by_contra H,
+    apply h _ _ hx H,
+    simp [-sub_eq_add_neg, add_sub_cancel'_right]
+  end }
 
 lemma local_of_unique_max_ideal [comm_ring α] (h : ∃! I : ideal α, I.is_maximal) :
   local_ring α :=
@@ -458,6 +476,17 @@ let ⟨Iy, Iymax, Hy⟩ := exists_max_ideal_of_mem_nonunits hy in
 have xmemI : x ∈ I, from ((Iuniq Ix Ixmax) ▸ Hx),
 have ymemI : y ∈ I, from ((Iuniq Iy Iymax) ▸ Hy),
 Imax.1 $ I.eq_top_of_is_unit_mem (I.add_mem xmemI ymemI) H
+
+lemma local_of_unique_nonzero_prime (R : Type u) [comm_ring R]
+  (h : ∃! P : ideal R, P ≠ ⊥ ∧ ideal.is_prime P) : local_ring R :=
+local_of_unique_max_ideal begin
+  rcases h with ⟨P, ⟨hPnonzero, hPnot_top, _⟩, hPunique⟩,
+  refine ⟨P, ⟨hPnot_top, _⟩, λ M hM, hPunique _ ⟨_, ideal.is_maximal.is_prime hM⟩⟩,
+  { refine ideal.maximal_of_no_maximal (λ M hPM hM, ne_of_lt hPM _),
+    exact (hPunique _ ⟨ne_bot_of_gt hPM, ideal.is_maximal.is_prime hM⟩).symm },
+  { rintro rfl,
+    exact hPnot_top (hM.2 P (bot_lt_iff_ne_bot.2 hPnonzero)) },
+end
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
@@ -501,7 +530,7 @@ noncomputable instance : inhabited (residue_field α) := ⟨37⟩
 
 /-- The quotient map from a local ring to its residue field. -/
 def residue : α →+* (residue_field α) :=
-ideal.quotient.mk_hom _
+ideal.quotient.mk _
 
 namespace residue_field
 
@@ -509,7 +538,7 @@ variables {α β}
 /-- The map on residue fields induced by a local homomorphism between local rings -/
 noncomputable def map (f : α →+* β) [is_local_ring_hom f] :
   residue_field α →+* residue_field β :=
-ideal.quotient.lift (maximal_ideal α) ((ideal.quotient.mk_hom _).comp f) $
+ideal.quotient.lift (maximal_ideal α) ((ideal.quotient.mk _).comp f) $
 λ a ha,
 begin
   erw ideal.quotient.eq_zero_iff_mem,

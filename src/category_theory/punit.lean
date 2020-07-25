@@ -5,7 +5,6 @@ Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.const
 import category_theory.discrete_category
-import category_theory.equivalence
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 

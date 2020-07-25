@@ -53,9 +53,9 @@ namespace pre
 instance : inhabited (pre R M) := ⟨of_scalar 0⟩
 
 -- Note: These instances are only used to simplify the notation.
-/-- Coersion from `M` to `pre R M`. Note: Used for notation only. -/
+/-- Coercion from `M` to `pre R M`. Note: Used for notation only. -/
 def has_coe_module : has_coe M (pre R M) := ⟨of⟩
-/-- Coersion from `R` to `pre R M`. Note: Used for notation only. -/
+/-- Coercion from `R` to `pre R M`. Note: Used for notation only. -/
 def has_coe_semiring : has_coe R (pre R M) := ⟨of_scalar⟩
 /-- Multiplication in `pre R M` defined as `pre.mul`. Note: Used for notation only. -/
 def has_mul : has_mul (pre R M) := ⟨mul⟩

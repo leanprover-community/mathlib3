@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Aaron Anderson.
  -/
 
-import data.finsupp
+import data.finsupp.lattice
 import data.pnat.factors
-import order.lattice
 import order.order_iso
 
 /-!
@@ -15,13 +14,24 @@ import order.order_iso
 A new version of prime factorisation and some facts about lattice isomorphisms
 
 ## Main Definitions
-- `factor_finsupp` sends a `pnat` to its prime factorization,
+* `factor_finsupp` sends a `pnat` to its prime factorization,
   expressed as a function from the primes to their multiplicities.
 
+* `coprime_part` defines the largest factor of a `pnat` not divisible by a certain prime
+
+* `odd_part` is `coprime_part` where the prime is 2
+
+* Functions satisfying `is_multiplicative` are multiplicative in the arithmetic sense,
+  in that `f(mn) = f(m) * f(n)` when `m` and `n` are `coprime`. These can be evaluated using
+  `finsupp.prod` over their `factor_finsupp`.
+
 ## Implementation Notes
-- `factor_finsupp` is based on `pnat.factor_multiset`.
-- Many facts about it are proved by constructing a lattice isomorphism between `multiset`s
+* `factor_finsupp` is based on `pnat.factor_multiset`.
+
+* Many facts about it are proved by constructing a lattice isomorphism between `multiset`s
   and `finsupp`s to ℕ.
+
+* `coprime_part` and `odd_part` are implemented with `finsupp.erase`
 
 -/
 
@@ -77,167 +87,8 @@ by { unfold factor_finsupp, simp }
 
 end basics
 
-section finsupp_lattice
--- Should this go to data/finsupp.lean? New file data/finsupp/order.lean?
-
-variables {α β : Type} [has_zero β]
-
-@[simp]
-lemma nat.inf_zero_iff {m n : ℕ} : m ⊓ n = 0 ↔ m = 0 ∨ n = 0 :=
-begin
-  split, swap, intro h, cases h; rw h; simp,
-  unfold has_inf.inf, unfold semilattice_inf.inf, unfold lattice.inf, unfold min,
-  intro hmin, by_cases m = 0, left, apply h,
-  rw if_neg _ at hmin, right, apply hmin, contrapose hmin,
-  simp only [not_lt, not_le] at hmin, rw if_pos hmin, apply h
-end
-
-lemma nat.zero_eq_bot : (0 : ℕ) = ⊥ := rfl
-
-instance finsupp.has_inf [semilattice_inf β] :
-  has_inf (α →₀ β) :=
-begin
-  refine ⟨_⟩, intros v1 v2,
-  refine ⟨(v1.support ∪ v2.support).filter (λ x, v1 x ⊓ v2 x ≠ 0),
-    (λ (a : α), (v1 a ⊓ v2 a)), _⟩,
-  intro a, simp only [finsupp.mem_support_iff, ne.def, finset.mem_union, finset.mem_filter],
-  apply and_iff_right_of_imp, contrapose, push_neg,
-  intro h, rw [h.left, h.right], apply inf_idem,
-end
-
-@[simp]
-lemma finsupp.inf_apply [semilattice_inf β] {a : α} {f g : α →₀ β} : (f ⊓ g) a = f a ⊓ g a := rfl
-
-@[simp]
-lemma finsupp.nat.support_inf {f g : α →₀ ℕ} : (f ⊓ g).support = f.support ∩ g.support :=
-begin
-  unfold has_inf.inf, dsimp,
-  have h : ∀ m n : ℕ, m ⊓ n = semilattice_inf.inf m n, intros, refl,
-  ext, simp [← h], tauto,
-end
-
-instance finsupp.has_sup [semilattice_sup β]:
-  has_sup (α →₀ β) :=
-begin
-  refine ⟨_⟩, intros v1 v2,
-  refine ⟨(v1.support ∪ v2.support).filter (λ x, v1 x ⊔ v2 x ≠ 0),
-    (λ (a : α), (v1 a ⊔ v2 a)), _⟩,
-  intro a, simp only [finsupp.mem_support_iff, ne.def, finset.mem_union, finset.mem_filter],
-  apply and_iff_right_of_imp, contrapose, push_neg,
-  intro h, rw [h.left, h.right], apply sup_idem,
-end
-
-@[simp]
-lemma finsupp.sup_apply [semilattice_sup β] {a : α} {f g : α →₀ β} : (f ⊔ g) a = f a ⊔ g a := rfl
-
-@[simp]
-lemma finsupp.nat.support_sup {f g : α →₀ ℕ} : (f ⊔ g).support = f.support ∪ g.support :=
-begin
-  unfold has_sup.sup, dsimp, ext,
-  simp only [finsupp.mem_support_iff, ne.def, finset.mem_union, finset.mem_filter],
-  apply and_iff_left_of_imp, repeat {rw ← bot_eq_zero}, contrapose, push_neg,
-  rw ← sup_eq_bot_iff, intro h, rw ← h, refl,
-end
-
-instance finsupp.lattice : lattice (α →₀ ℕ) :=
-begin
-  refine lattice.mk has_sup.sup has_le.le has_lt.lt _ _ _ _ _ _ _ has_inf.inf _ _ _,
-  exact (finsupp.preorder).le_refl,
-  exact (finsupp.preorder).le_trans,
-  { simp only [auto_param_eq], intros a b, apply lt_iff_le_not_le,
-  },
-  exact (finsupp.partial_order).le_antisymm,
-  intros, rw finsupp.le_iff, intros, simp,
-  intros, rw finsupp.le_iff, intros, simp,
-  { intros, rw finsupp.le_iff at *,
-    intros, rw finsupp.sup_apply, apply sup_le,
-    { by_cases s ∈ a.support, apply a_1 s h,
-      simp only [finsupp.mem_support_iff, classical.not_not] at h, rw h, simp },
-    { by_cases s ∈ b.support, apply a_2 s h,
-      simp only [finsupp.mem_support_iff, classical.not_not] at h, rw h, simp }
-    },
-  intros, rw finsupp.le_iff, intros, simp,
-  intros, rw finsupp.le_iff, intros, simp,
-  { intros, rw finsupp.le_iff at *, intros,
-    rw finsupp.inf_apply, apply le_inf, apply a_1 s H, apply a_2 s H }
-end
-
-instance finsupp.semilattice_inf_bot : semilattice_inf_bot (α →₀ ℕ) :=
-{ bot := 0,
-  bot_le := by { intro a, simp [finsupp.le_iff] },
-..finsupp.lattice}
-
-lemma finsupp.of_multiset_strict_mono : strict_mono (@finsupp.of_multiset α) :=
-begin
-  unfold strict_mono, intros, rw lt_iff_le_and_ne at *, split,
-  { rw finsupp.le_iff, intros s hs, repeat {rw finsupp.of_multiset_apply},
-    rw multiset.le_iff_count at a_1, apply a_1.left },
-  { have h := a_1.right, contrapose h, simp at *,
-    apply finsupp.equiv_multiset.symm.injective h }
-end
-
-lemma finsupp.nat.bot_eq_zero : (⊥ : α →₀ ℕ) = 0 := rfl
-
-@[simp]
-lemma finsupp.nat.disjoint_iff {x y : α →₀ ℕ} : disjoint x y ↔ disjoint x.support y.support :=
-begin
-  unfold disjoint, repeat {rw le_bot_iff},
-  rw [finsupp.nat.bot_eq_zero, ← finsupp.support_eq_empty, finsupp.nat.support_inf], refl,
-end
-
-end finsupp_lattice
-
-section lattice_isos
---I'm guessing this should go to order.order_iso?
-
-variables {α β : Type}
-
-lemma order_embedding.map_inf_le [semilattice_inf α] [semilattice_inf β]
-  (f : (has_le.le : α → α → Prop) ≼o (has_le.le : β → β → Prop))
-  {a₁ a₂ : α}:
-  f (a₁ ⊓ a₂) ≤ f a₁ ⊓ f a₂ :=
-by { apply le_inf; rw ← f.ord; simp }
-
-lemma order_iso.map_inf [semilattice_inf α] [semilattice_inf β]
-  (f : (has_le.le : α → α → Prop) ≃o (has_le.le : β → β → Prop))
-  {a₁ a₂ : α}:
-  f (a₁ ⊓ a₂) = f a₁ ⊓ f a₂ :=
-begin
-  apply le_antisymm, apply f.to_order_embedding.map_inf_le,
-  rw f.symm.ord, rw order_iso.symm_apply_apply,
-  conv_rhs {rw [← order_iso.symm_apply_apply f a₁, ← order_iso.symm_apply_apply f a₂]},
-  apply f.symm.to_order_embedding.map_inf_le
-end
-
-lemma order_embedding.le_map_sup [semilattice_sup α] [semilattice_sup β]
-  (f : (has_le.le : α → α → Prop) ≼o (has_le.le : β → β → Prop))
-  {a₁ a₂ : α}:
-  f a₁ ⊔ f a₂ ≤ f (a₁ ⊔ a₂) :=
-by { apply sup_le; rw ← f.ord; simp }
-
-lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β]
-  (f : (has_le.le : α → α → Prop) ≃o (has_le.le : β → β → Prop))
-  {a₁ a₂ : α}:
-  f (a₁ ⊔ a₂) = f a₁ ⊔ f a₂ :=
-begin
-  apply le_antisymm, swap, apply f.to_order_embedding.le_map_sup,
-  rw f.symm.ord, rw order_iso.symm_apply_apply,
-  conv_lhs {rw [← order_iso.symm_apply_apply f a₁, ← order_iso.symm_apply_apply f a₂]},
-  apply f.symm.to_order_embedding.le_map_sup
-end
-
-end lattice_isos
-
 section finsupp_lattice_iso_multiset
 -- to data.finsupp or a related file?
-
-/-- The lattice of finsupps to ℕ is order isomorphic to that of multisets.  -/
-def finsupp.order_iso_multiset (α : Type) :
-  (has_le.le : (α →₀ ℕ) → (α →₀ ℕ) → Prop) ≃o (has_le.le : (multiset α) → (multiset α) → Prop) :=
-⟨finsupp.equiv_multiset, begin
-  intros a b, unfold finsupp.equiv_multiset, dsimp,
-  rw multiset.le_iff_count, simp only [finsupp.count_to_multiset], refl
-end ⟩
 
 @[simp]
 lemma finsupp.order_iso_multiset_factor_finsupp {n : ℕ+} :

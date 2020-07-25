@@ -21,9 +21,9 @@ We give methods for computing coefficients of the characteristic polynomial.
   over a nonzero ring is the dimension of the matrix
 - `det_eq_char_poly` proves that the determinant is the constant term of the characteristic
   polynomial, up to sign.
-- `trace_eq_neg_coeff_char_poly` proves that the trace is the negative of the coefficient of the
-  characteristic polynomial with index one less than the dimension of the matrix. For a nonzero
-  ring, this is the second-highest coefficient.
+- `trace_eq_char_poly` proves that the trace is the negative of the (d-1)th coefficient of the
+  characteristic polynomial, where d is the dimension of the matrix. 
+  For a nonzero ring, this is the second-highest coefficient.
 
 -/
 

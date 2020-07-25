@@ -112,8 +112,8 @@ def mem (x : α) (z : sym2 α) : Prop :=
 
 instance : has_mem α (sym2 α) := ⟨mem⟩
 
-@[simp] lemma mk_has_mem (x y : α) : x ∈ ⟦(x, y)⟧ := ⟨y, rfl⟩
-@[simp] lemma mk_has_mem_right (x y : α) : y ∈ ⟦(x, y)⟧ := by { rw eq_swap, simp }
+lemma mk_has_mem (x y : α) : x ∈ ⟦(x, y)⟧ := ⟨y, rfl⟩
+lemma mk_has_mem_right (x y : α) : y ∈ ⟦(x, y)⟧ := by { rw eq_swap, apply mk_has_mem }
 
 /--
 This is a type-valued version of the membership predicate `mem` that contains the other

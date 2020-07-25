@@ -87,7 +87,7 @@ begin
   rw [finsupp.bot_eq_zero, ← finsupp.support_eq_empty, finsupp.support_inf], refl,
 end
 
-/-- The lattice of finsupps to ℕ is order isomorphic to that of multisets.  -/
+/-- The lattice of `finsupp`s to `ℕ` is order-isomorphic to that of `multiset`s.  -/
 def order_iso_multiset :
   (has_le.le : (α →₀ ℕ) → (α →₀ ℕ) → Prop) ≃o (has_le.le : (multiset α) → (multiset α) → Prop) :=
 ⟨finsupp.equiv_multiset, begin
@@ -103,6 +103,7 @@ by { conv_rhs { rw ← (order_iso.apply_symm_apply order_iso_multiset) s}, simp 
 
 variable [partial_order β]
 
+/-- The order on `finsupp`s over a partial order-embeds into that on functions -/
 def order_embedding_to_fun :
   (has_le.le : (α →₀ β) → (α →₀ β) → Prop) ≼o (has_le.le : (α → β) → (α → β) → Prop) :=
 ⟨⟨λ (f : α →₀ β) (a : α), f a,  λ f g h, finsupp.ext (λ a, by { dsimp at h, rw h,} )⟩,

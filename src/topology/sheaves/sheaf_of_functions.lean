@@ -26,7 +26,6 @@ variables (X : Top.{u})
 
 open Top
 
--- set_option pp.proofs true
 /--
 We show that the presheaf of functions to a type `T`
 (no continuity assumptions, just plain functions)

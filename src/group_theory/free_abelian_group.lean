@@ -252,7 +252,7 @@ instance [monoid α] : semigroup (free_abelian_group α) :=
   mul_assoc := λ x y z, begin
     unfold has_mul.mul,
     refine free_abelian_group.induction_on z rfl _ _ _,
-    sorry,
+    { sorry },
     -- { intros L3, rw [lift.of, lift.of],
     --   refine free_abelian_group.induction_on y rfl _ _ _,
     --   { intros L2, iterate 3 { rw lift.of },

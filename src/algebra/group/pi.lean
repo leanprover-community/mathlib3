@@ -3,7 +3,8 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
-import algebra.ordered_group tactic.pi_instances
+import algebra.ordered_group
+import tactic.pi_instances
 /-!
 # Pi instances for groups and monoids
 

@@ -203,7 +203,7 @@ instance sections_submonoid' (F : J ⥤ Ring) :
 
 instance sections_add_subgroup' (F : J ⥤ Ring) :
   is_add_subgroup (F ⋙ forget Ring).sections :=
-(AddGroup.sections_add_subgroup (F ⋙ forget₂ Ring AddCommGroup ⋙ forget₂ AddCommGroup AddGroup)).is_subgroup
+(AddGroup.sections_add_subgroup (F ⋙ forget₂ Ring AddCommGroup ⋙ forget₂ AddCommGroup AddGroup)).is_add_subgroup
 
 instance sections_subring (F : J ⥤ Ring) :
   is_subring (F ⋙ forget Ring).sections := {}

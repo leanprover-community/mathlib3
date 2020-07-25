@@ -29,7 +29,7 @@ class topological_add_group (α : Type u) [topological_space α] [add_group α]
 
 /-- A topological group is a group in which the multiplication and inversion operations are
 continuous. -/
-@[to_additive topological_add_group]
+@[to_additive]
 class topological_group (α : Type*) [topological_space α] [group α]
   extends has_continuous_mul α : Prop :=
 (continuous_inv : continuous (λa:α, a⁻¹))
@@ -80,7 +80,7 @@ lemma continuous_within_at.inv [topological_group α] [topological_space β] {f 
   continuous_within_at (λx, (f x)⁻¹) s x :=
 hf.inv
 
-@[to_additive topological_add_group]
+@[to_additive]
 instance [topological_group α] [topological_space β] [group β] [topological_group β] :
   topological_group (α × β) :=
 { continuous_inv := continuous_fst.inv.prod_mk continuous_snd.inv }
@@ -199,7 +199,7 @@ instance {α : Type u} [group α] [topological_space α] (N : set α) [normal_su
 by dunfold quotient_group.quotient; apply_instance
 
 open quotient_group
-@[to_additive quotient_add_group_saturate]
+@[to_additive]
 lemma quotient_group_saturate {α : Type u} [group α] (N : set α) [normal_subgroup N] (s : set α) :
   (coe : α → quotient N) ⁻¹' ((coe : α → quotient N) '' s) = (⋃ x : N, (λ y, y*x.1) '' s) :=
 begin
@@ -222,7 +222,7 @@ begin
   exact is_open_map_mul_right n s s_op
 end
 
-@[to_additive topological_add_group_quotient]
+@[to_additive]
 instance topological_group_quotient : topological_group (quotient N) :=
 { continuous_mul := begin
     have cont : continuous ((coe : α → quotient N) ∘ (λ (p : α × α), p.fst * p.snd)) :=

@@ -51,30 +51,30 @@ the structure of a group.
 
 section subtype
 
-@[to_additive continuous_add_submonoid]
+@[to_additive]
 instance continuous_submonoid (α : Type*) (β : Type*) [topological_space α] [topological_space β]
   [monoid β] [has_continuous_mul β] : is_submonoid { f : α → β | continuous f } :=
 { one_mem := @continuous_const _ _ _ _ 1,
   mul_mem := λ f g fc gc, continuous.comp
   has_continuous_mul.continuous_mul (continuous.prod_mk fc gc) }.
 
-@[to_additive continuous_add_subgroup]
+@[to_additive]
 instance continuous_subgroup (α : Type*) (β : Type*) [topological_space α] [topological_space β]
   [group β] [topological_group β] : is_subgroup { f : α → β | continuous f } :=
 { inv_mem := λ f fc, continuous.comp topological_group.continuous_inv fc,
   ..continuous_submonoid α β, }.
 
-@[to_additive continuous_add_monoid]
+@[to_additive]
 instance continuous_monoid {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [monoid β] [has_continuous_mul β] : monoid { f : α → β | continuous f } :=
 subtype.monoid
 
-@[to_additive continuous_add_group]
+@[to_additive]
 instance continuous_group {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [group β] [topological_group β] : group { f : α → β | continuous f } :=
 subtype.group
 
-@[to_additive continuous_add_comm_group]
+@[to_additive]
 instance continuous_comm_group {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [comm_group β] [topological_group β] : comm_group { f : α → β | continuous f } :=
 @subtype.comm_group _ _ _ (continuous_subgroup α β) -- infer_instance doesn't work?!
@@ -83,13 +83,13 @@ end subtype
 
 section continuous_map
 
-@[to_additive continuous_map_add_semigroup]
+@[to_additive]
 instance continuous_map_semigroup {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [semigroup β] [has_continuous_mul β] : semigroup C(α, β) :=
 { mul_assoc := λ a b c, by ext; exact mul_assoc _ _ _,
   ..continuous_map.has_mul}
 
-@[to_additive continuous_map_add_monoid]
+@[to_additive]
 instance continuous_map_monoid {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [monoid β] [has_continuous_mul β] : monoid C(α, β) :=
 { one_mul := λ a, by ext; exact one_mul _,
@@ -97,7 +97,7 @@ instance continuous_map_monoid {α : Type*} {β : Type*} [topological_space α] 
   ..continuous_map_semigroup,
   ..continuous_map.has_one }
 
-@[to_additive continuous_map_add_comm_monoid]
+@[to_additive]
 instance continuous_map_comm_monoid {α : Type*} {β : Type*} [topological_space α]
 [topological_space β] [comm_monoid β] [has_continuous_mul β] : comm_monoid C(α, β) :=
 { one_mul := λ a, by ext; exact one_mul _,
@@ -106,14 +106,14 @@ instance continuous_map_comm_monoid {α : Type*} {β : Type*} [topological_space
   ..continuous_map_semigroup,
   ..continuous_map.has_one }
 
-@[to_additive continuous_map_add_group]
+@[to_additive]
 instance continuous_map_group {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [group β] [topological_group β] : group C(α, β) :=
 { inv := λ f, ⟨λ x, (f x)⁻¹, continuous_inv.comp f.continuous⟩,
   mul_left_inv := λ a, by ext; exact mul_left_inv _,
   ..continuous_map_monoid }
 
-@[to_additive continuous_map_add_comm_group]
+@[to_additive]
 instance continuous_map_comm_group {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [comm_group β] [topological_group β] : comm_group C(α, β) :=
 { ..continuous_map_group,

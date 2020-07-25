@@ -46,7 +46,7 @@ class ordered_add_comm_monoid (α : Type*) extends add_comm_monoid α, partial_o
 (add_le_add_left       : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 (lt_of_add_lt_add_left : ∀ a b c : α, a + b < a + c → b < c)
 
-attribute [to_additive ordered_add_comm_monoid] ordered_comm_monoid
+attribute [to_additive] ordered_comm_monoid
 
 section ordered_comm_monoid
 variables [ordered_comm_monoid α] {a b c d : α}
@@ -552,7 +552,7 @@ class ordered_cancel_comm_monoid (α : Type u)
 (mul_le_mul_left       : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
 (le_of_mul_le_mul_left : ∀ a b c : α, a * b ≤ a * c → b ≤ c)
 
-attribute [to_additive ordered_cancel_add_comm_monoid] ordered_cancel_comm_monoid
+attribute [to_additive] ordered_cancel_comm_monoid
 
 section ordered_cancel_comm_monoid
 variables [ordered_cancel_comm_monoid α] {a b c d : α}
@@ -798,7 +798,7 @@ with a partial order in which multiplication is strictly monotone. -/
 class ordered_comm_group (α : Type u) extends comm_group α, partial_order α :=
 (mul_le_mul_left : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
 
-attribute [to_additive ordered_add_comm_group] ordered_comm_group
+attribute [to_additive] ordered_comm_group
 
 /--The units of an ordered commutative monoid form an ordered commutative group. -/
 @[to_additive]

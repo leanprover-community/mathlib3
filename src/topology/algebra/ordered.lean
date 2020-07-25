@@ -319,12 +319,12 @@ begin
 end
 
 /-!
-### Neighborhoods to the left and to the right on an order_closed_topology
+### Neighborhoods to the left and to the right on an `order_closed_topology`
 
 Limits to the left and to the right of real functions are defined in terms of neighborhoods to
 the left and to the right, either open or closed, i.e., members of `nhds_within a (Ioi a)` and
-`nhds_wihin a (Ici a)` on the right, and similarly on the left. Here we simply prove that all
-right-neighborhood of a point are equal, and we'll prove later other useful characterizations which
+`nhds_within a (Ici a)` on the right, and similarly on the left. Here we simply prove that all
+right-neighborhoods of a point are equal, and we'll prove later other useful characterizations which
 require the stronger hypothesis `order_topology α` -/
 
 -- NB: If you extend the list, append to the end please to avoid breaking the API
@@ -890,10 +890,10 @@ lemma not_tendsto_at_bot_of_tendsto_nhds [no_bot_order α]
 hf.not_tendsto (disjoint_nhds_at_bot x)
 
 /-!
-### Neighborhoods to the left and to the right on an order_topology
+### Neighborhoods to the left and to the right on an `order_topology`
 
-We've seen some properties of left and right neighborhood of a point in an order_closed_topology.
-In an order_topology, such neighborhoods can be characterized as the sets containing suitable
+We've seen some properties of left and right neighborhood of a point in an `order_closed_topology`.
+In an `order_topology`, such neighborhoods can be characterized as the sets containing suitable
 intervals to the right or to the left of `a`. We give now these characterizations. -/
 
 -- NB: If you extend the list, append to the end please to avoid breaking the API

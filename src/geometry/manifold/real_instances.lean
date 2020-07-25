@@ -368,5 +368,8 @@ begin
   constructor
 end
 
-/- Register an instance of `0 < 1` to be able to use freely the manifold structure on `Icc 0 1`. -/
+/- Register an instance of `0 < 1` to be able to use freely the manifold structure on `Icc 0 1`,
+and also its zero and one. -/
 instance : fact ((0 : ℝ) < 1) := zero_lt_one
+instance : has_zero (Icc (0 : ℝ) 1) := ⟨⟨(0 : ℝ), ⟨le_refl _, zero_le_one⟩⟩⟩
+instance : has_one (Icc (0 : ℝ) 1) := ⟨⟨(1 : ℝ), ⟨zero_le_one, le_refl _⟩⟩⟩

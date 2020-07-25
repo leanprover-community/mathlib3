@@ -1110,6 +1110,9 @@ variables {x y z : α} {ε ε₁ ε₂ : ℝ} {s : set α}
 theorem is_closed_ball : is_closed (closed_ball x ε) :=
 is_closed_le (continuous_id.dist continuous_const) continuous_const
 
+lemma is_closed_sphere : is_closed (sphere x ε) :=
+is_closed_eq (continuous_id.dist continuous_const) continuous_const
+
 @[simp] theorem closure_closed_ball : closure (closed_ball x ε) = closed_ball x ε :=
 is_closed_ball.closure_eq
 

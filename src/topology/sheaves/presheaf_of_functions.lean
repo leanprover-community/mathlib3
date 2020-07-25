@@ -17,6 +17,24 @@ namespace Top
 
 variables (X Y : Top.{v})
 
+-- TODO move these instances
+
+instance opens_hom_has_coe_to_fun {U V : opens X} : has_coe_to_fun (U ⟶ V) :=
+{ F := λ f, U → V,
+  coe := λ f x, ⟨x, f.down.down x.2⟩ }
+
+instance opens_op_hom_has_coe_to_fun {U V : (opens X)ᵒᵖ} : has_coe_to_fun (U ⟶ V) :=
+{ F := λ f, (unop V) → (unop U),
+  coe := λ f x, ⟨x, f.unop.down.down x.2⟩ }
+
+/--
+The presheaf of dependently types functions on `X`, with fibres given by a type family `f`.
+There is no requirement that the functions are continuous, here.
+-/
+def presheaf_to_Types (f : X → Type v) : X.presheaf (Type v) :=
+{ obj := λ U, Π x : (unop U), f x,
+  map := λ U V i g, λ (x : unop V), g (i x) }
+
 def presheaf_to_Type (T : Type v) : X.presheaf (Type v) :=
 (opens.to_Top X ⋙ forget Top).op ⋙ (yoneda.obj T)
 

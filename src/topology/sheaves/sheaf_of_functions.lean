@@ -11,14 +11,22 @@ open category_theory
 open category_theory.limits
 open topological_space
 
+universe u
+
+@[simp] lemma classical.indefinite_description_val {α : Sort u} (p : α → Prop) (h : ∃ x, p x) :
+  (classical.indefinite_description p h).val = classical.some h := rfl
+
+@[simp] lemma classical.indefinite_description_property {α : Sort u} (p : α → Prop) (h : ∃ x, p x) :
+  (classical.indefinite_description p h).property = classical.some_spec h := rfl
+
 noncomputable theory
 
-universe u
 
 variables (X : Top.{u})
 
 open Top
 
+-- set_option pp.proofs true
 /--
 We show that the presheaf of functions to a type `T`
 (no continuity assumptions, just plain functions)
@@ -38,13 +46,12 @@ begin
     -- `f`, a term of `s.X`.
     -- We do this one point at a time, so we also pick some `x` and the evidence `mem : x ∈ supr U`.
     rintros s f ⟨x, mem⟩,
-    change x ∈ supr U at mem, -- needs some lemmas!
+    change x ∈ supr U at mem, -- FIXME needs some lemmas!
     -- Since `x ∈ supr U`, there must be some `i` so `x ∈ U i`:
-    choose Ui H using mem,
-    simp only [set.mem_range, set.mem_image, exists_exists_eq_and] at H,
-    choose i hi using H.1,
+    simp [opens.mem_supr] at mem,
+    choose i hi using mem,
     -- We define out function to be the restriction of `f` to that `U i`, evaluated at `x`.
-    exact ((s.ι ≫ pi.π _ i) f) ⟨x, by { subst hi, exact  H.2, }⟩, },
+    exact ((s.ι ≫ pi.π _ i) f) ⟨x, hi⟩, },
   { -- Now we need to verify that this lifted function restricts correctly to each set `U i`.
     -- Of course, the difficulty is that at any given point `x ∈ U i`,
     -- we may have used the axiom of choice to pick a differnt `j` with `x ∈ U j`
@@ -78,7 +85,7 @@ begin
     -- Now, we assert that the two restrictions of `f` to `U i` and `U j` coincide on `U i ⊓ U j`,
     -- and in particular coincide there after evaluating at `x`.
     have s₀ := s.condition =≫ pi.π _ (j, i),
-    -- TODO make proper simp lemmas
+    -- FIXME make proper simp lemmas
     simp [sheaf_condition.left_res, sheaf_condition.right_res] at s₀,
     have s₁ := congr_fun s₀ f,
     have s₂ := congr_fun s₁ ⟨x, _⟩,
@@ -94,6 +101,7 @@ begin
     -- At this point we've ended up with two copies of the "left over" goal `x ∈ U j ⊓ U i`.
     -- We just throw one out; Lean is clever enough to sort this out later.
     (do [g₁, g₂] ← tactic.get_goals, tactic.set_goals [g₁]),
+    clear s₀ s₁,
 
     -- We've got half of this: we knew `x ∈ U i` right from the start:
     refine ⟨_, mem⟩,
@@ -105,8 +113,10 @@ begin
     -- because Lean's unification has worked out that this `j` must have been the index
     -- that we picked using choice back when constructing the lift.
     -- From this, we can extract the evidence that `x ∈ U j`:
-    obtain ⟨_, x_mem⟩ := classical.spec_of_eq_some (subtype.val_prop _ : j ∈ _),
-    exact x_mem, },
+
+    -- FIXME this is surely unnecessarily cumbersome:
+    have := classical.spec_of_eq_some (rfl : j = j),
+    exact this, },
   { -- On the home stretch now,
     -- we just need to check that the lift we picked was the only possible one.
 

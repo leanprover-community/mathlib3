@@ -189,15 +189,18 @@ lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : subgroup G} [fint
     simpa [mul_inv_rev, mul_assoc] using hb₂)⟩
 
 def fixed_points_mul_left_cosets_equiv_quotient (H : subgroup G) [fintype (H : set G)] :
-  fixed_points H (quotient H) ≃ quotient (subtype.val ⁻¹' H : set (normalizer (H : set G)) :=
-@subtype_quotient_equiv_quotient_subtype G (normalizer H) (id _) (id _) (fixed_points _ _)
-  (λ a, mem_fixed_points_mul_left_cosets_iff_mem_normalizer.symm) (by intros; refl)
+  fixed_points H (quotient H) ≃
+  quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H) :=
+@subtype_quotient_equiv_quotient_subtype G (normalizer H : set G) (id _) (id _) (fixed_points _ _)
+  (λ a, (@mem_fixed_points_mul_left_cosets_iff_mem_normalizer _ _ _ _inst_2 _).symm) (by intros; refl)
 
 local attribute [instance] set_fintype
 
 lemma exists_subgroup_card_pow_prime [fintype G] (p : ℕ) : ∀ {n : ℕ} [hp : fact p.prime]
-  (hdvd : p ^ n ∣ card G), ∃ H : set G, is_subgroup H ∧ fintype.card H = p ^ n
-| 0 := λ _ _, ⟨trivial G, by apply_instance, by simp⟩
+  (hdvd : p ^ n ∣ card G), ∃ H : subgroup G, fintype.card H = p ^ n
+| 0 := λ _ _, ⟨(⊥ : subgroup G), by rw card_trivial⟩
+| (n+1) := sorry
+#exit
 | (n+1) := λ hp hdvd,
 let ⟨H, ⟨hH1, hH2⟩⟩ := @exists_subgroup_card_pow_prime _ hp
   (dvd.trans (nat.pow_dvd_pow _ (nat.le_succ _)) hdvd) in

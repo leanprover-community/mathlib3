@@ -10,7 +10,17 @@ import tactic.ring
 /-!
 # Primality for binary natural numbers
 
-Decision procedures for primality on `num`.
+This file defines versions of `nat.min_fac` and `nat.prime` for `num` and `pos_num`. As with other
+`num` definitions, they are not intended for general use (`nat` should be used instead of `num` in
+most cases) but they can be used in contexts where kernel computation is required, such as proofs
+by `rfl` and `dec_trivial`, as well as in `#reduce`.
+
+The default decidable instance for `nat.prime` is optimized for VM evaluation, so it should be
+preferred within `#eval` or in tactic execution, while for proofs the `norm_num` tactic can be used
+to construct primality and non-primality proofs more efficiently than kernel computation.
+
+Nevertheless, sometimes proof by computational reflection requires natural number computations, and
+`num` implements algorithms directly on binary natural numbers for this purpose.
 -/
 
 namespace pos_num

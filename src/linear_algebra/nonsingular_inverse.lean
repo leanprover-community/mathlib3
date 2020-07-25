@@ -381,5 +381,19 @@ begin
     exact is_unit_unit (A.nonsing_inv_unit h), },
 end
 
+lemma nonsing_inv_left_right (B : matrix n n α) (h : A ⬝ B = 1) : B ⬝ A = 1 :=
+begin
+  have h' : is_unit B.det :=
+  ⟨{ val     := B.det,
+     inv     := A.det,
+     val_inv := by rw [mul_comm, ←det_mul, h, det_one],
+     inv_val := by rw [←det_mul, h, det_one],
+  }, rfl⟩,
+  calc B ⬝ A = (B ⬝ A) ⬝ (B ⬝ B⁻¹) : by simp only [h', matrix.mul_one, mul_nonsing_inv]
+        ... = B ⬝ ((A ⬝ B) ⬝ B⁻¹) : by simp only [matrix.mul_assoc]
+        ... = B ⬝ B⁻¹ : by simp only [h, matrix.one_mul]
+        ... = 1 : mul_nonsing_inv B h',
+end
+
 end inv
 end matrix

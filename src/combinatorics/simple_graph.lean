@@ -67,7 +67,7 @@ structure simple_graph (V : Type u) :=
 The complete graph on a type `V` is the simple graph with all pairs of distinct vertices adjacent.
 -/
 def complete_graph (V : Type u) : simple_graph V :=
-{ adj := λ v w, v ≠ w }
+{ adj := ne }
 
 instance (V : Type u) : inhabited (simple_graph V) :=
 ⟨complete_graph V⟩
@@ -106,7 +106,6 @@ begin
   have : e.val = ⟦(v,w)⟧, { rw [hve, sym2.eq_iff] at hew ⊢, cc },
   have key := e.property, rwa this at key,
 end
-
 
 variables {G}
 noncomputable def E.other (e : G.E) {v : V} (h : v ∈ e) : V :=

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 
 Free abelian groups as abelianization of free groups.
+
+-- TODO: rewrite in terms of finsupp
 -/
 import algebra.group.pi
 import group_theory.free_group
@@ -49,30 +51,20 @@ by simp [sub_eq_add_neg]
 @[simp] protected lemma zero : lift f 0 = 0 :=
 is_add_group_hom.map_zero _
 
-#exit
 @[simp] protected lemma of (x : α) : lift f (of x) = f x :=
 begin
-  unfold of,
-  unfold lift,
-  have zzz := (abelianization.lift (monoid_hom.of (free_group.to_group f))),
-  apply abelianization.lift.of,
-  show ((abelianization.lift (monoid_hom.of (free_group.to_group f))).to_additive)
-       (abelianization.of (free_group.of x)) = f x,
-
-  convert abelianization.lift.of (free_group.of x) x,
-
+  convert @abelianization.lift.of (free_group α) _ (multiplicative β) _ _ _,
+  convert free_group.to_group.of.symm
 end
-#exit
-by { unfold of, unfold lift, simp }
 
 protected theorem unique (g : free_abelian_group α →+ β)
   (hg : ∀ x, g (of x) = f x) {x} :
   g x = lift f x :=
 @abelianization.lift.unique (free_group α) _ (multiplicative β) _
   (monoid_hom.of (@free_group.to_group _ (multiplicative β) _ f)) g.to_multiplicative
-  (λ x,
-  @free_group.to_group.unique α (multiplicative β) _ _ (g ∘ abelianization.of)
-    { map_mul := λ m n, is_add_hom.map_add g (abelianization.of m) (abelianization.of n) } hg x) _
+  (λ x, @free_group.to_group.unique α (multiplicative β) _ _
+    ((add_monoid_hom.to_multiplicative' g).comp abelianization.of)
+    hg x) _
 
 protected theorem ext (g h : free_abelian_group α →+ β)
   (H : ∀ x, g (of x) = h (of x)) {x} :
@@ -83,12 +75,13 @@ eq.symm $ lift.unique _ _ $ λ x, eq.symm $ H x
 lemma map_hom {α β γ} [add_comm_group β] [add_comm_group γ]
   (a : free_abelian_group α) (f : α → β) (g : β →+ γ) :
   g (lift f a) = lift (g ∘ f) a :=
-show (g ∘ lift f) a = lift (g ∘ f) a,
 begin
-  haveI : is_add_group_hom (g ∘ lift f) := is_add_group_hom.comp _ _,
+  suffices : (g.comp (lift f)) a = lift (g ∘ f) a,
+    exact this,
   apply @lift.unique,
   assume a,
-  simp only [(∘), lift.of]
+  show g ((lift f) (of a)) = g (f a),
+  simp only [(∘), lift.of],
 end
 
 end lift
@@ -110,7 +103,7 @@ lemma hom_equiv_symm_apply (f) (x) : ((hom_equiv X G).symm f) x = (lift f) x := 
 
 end
 
-local attribute [instance] quotient_group.left_rel normal_subgroup.to_is_subgroup
+local attribute [instance] quotient_group.left_rel
 
 @[elab_as_eliminator]
 protected theorem induction_on

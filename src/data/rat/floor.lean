@@ -3,8 +3,6 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Kappelmann
 -/
-import data.rat.order
-import data.rat.cast
 import algebra.floor
 /-!
 # Floor Function for Rational Numbers

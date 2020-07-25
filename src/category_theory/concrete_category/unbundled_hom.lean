@@ -22,8 +22,8 @@ namespace category_theory
 take two types `α`, `β` and instances of the corresponding structures,
 and return a predicate on `α → β`. -/
 class unbundled_hom {c : Type u → Type u} (hom : Π {α β}, c α → c β → (α → β) → Prop) :=
-(hom_id : ∀ {α} (ia : c α), hom ia ia id)
-(hom_comp : ∀ {α β γ} {Iα : c α} {Iβ : c β} {Iγ : c γ} {g : β → γ} {f : α → β}
+(hom_id [] : ∀ {α} (ia : c α), hom ia ia id)
+(hom_comp [] : ∀ {α β γ} {Iα : c α} {Iβ : c β} {Iγ : c γ} {g : β → γ} {f : α → β}
   (hg : hom Iβ Iγ g) (hf : hom Iα Iβ f), hom Iα Iγ (g ∘ f))
 
 namespace unbundled_hom

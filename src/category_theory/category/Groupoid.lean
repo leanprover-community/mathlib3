@@ -3,8 +3,7 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import category_theory.groupoid
-import category_theory.category.Cat
+import category_theory.single_obj
 
 /-!
 # Category of groupoids
@@ -30,6 +29,8 @@ namespace category_theory
 def Groupoid := bundled groupoid.{v u}
 
 namespace Groupoid
+
+instance : inhabited Groupoid := ⟨bundled.of (single_obj punit)⟩
 
 instance str (C : Groupoid.{v u}) : groupoid.{v u} C.α := C.str
 

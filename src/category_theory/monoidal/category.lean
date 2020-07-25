@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Jendrusch, Scott Morrison
 -/
 import category_theory.products.basic
-import category_theory.natural_isomorphism
-import tactic.basic
-import tactic.slice
 
 open category_theory
 
@@ -40,7 +37,7 @@ class monoidal_category (C : Type u) [𝒞 : category.{v} C] :=
   ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (g₁ : Y₁ ⟶ Z₁) (g₂ : Y₂ ⟶ Z₂),
   (f₁ ≫ g₁) ⊗' (f₂ ≫ g₂) = (f₁ ⊗' f₂) ≫ (g₁ ⊗' g₂) . obviously)
 -- tensor unit:
-(tensor_unit              : C)
+(tensor_unit []           : C)
 (notation `𝟙_`            := tensor_unit)
 -- associator:
 (associator               :
@@ -72,8 +69,11 @@ attribute [simp] monoidal_category.tensor_id
 restate_axiom monoidal_category.tensor_comp'
 attribute [simp] monoidal_category.tensor_comp
 restate_axiom monoidal_category.associator_naturality'
+attribute [reassoc] monoidal_category.associator_naturality
 restate_axiom monoidal_category.left_unitor_naturality'
+attribute [reassoc] monoidal_category.left_unitor_naturality
 restate_axiom monoidal_category.right_unitor_naturality'
+attribute [reassoc] monoidal_category.right_unitor_naturality
 restate_axiom monoidal_category.pentagon'
 restate_axiom monoidal_category.triangle'
 attribute [simp] monoidal_category.triangle
@@ -102,8 +102,7 @@ namespace monoidal_category
 
 section
 
-variables {C : Type u} [category.{v} C] [𝒞 : monoidal_category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C] [monoidal_category.{v} C]
 
 instance tensor_is_iso {W X Y Z : C} (f : W ⟶ X) [is_iso f] (g : Y ⟶ Z) [is_iso g] : is_iso (f ⊗ g) :=
 { ..(as_iso f ⊗ as_iso g) }
@@ -192,7 +191,7 @@ end
 --   = ((λ_ X).hom ⊗ (𝟙 Y))
 -- (and the corresponding fact for right unitors)
 -- following the proof on nLab:
--- Lemma 2.2 at https://ncatlab.org/nlab/revision/monoidal+category/115
+-- Lemma 2.2 at <https://ncatlab.org/nlab/revision/monoidal+category/115>
 
 lemma left_unitor_product_aux_perimeter (X Y : C) :
     ((α_ (𝟙_ C) (𝟙_ C) X).hom ⊗ (𝟙 Y)) ≫
@@ -276,7 +275,7 @@ begin
   rw [←right_unitor_product_aux_triangle, ←right_unitor_product_aux_perimeter],
 end
 
--- See Proposition 2.2.4 of http://www-math.mit.edu/~etingof/egnobookfinal.pdf
+-- See Proposition 2.2.4 of <http://www-math.mit.edu/~etingof/egnobookfinal.pdf>
 @[simp] lemma left_unitor_tensor (X Y : C) :
   ((α_ (𝟙_ C) X Y).hom) ≫ ((λ_ (X ⊗ Y)).hom) =
     ((λ_ X).hom ⊗ (𝟙 Y)) :=
@@ -314,9 +313,9 @@ begin
   rw [category.assoc, monoidal_category.pentagon]
 end
 
-@[simp] lemma triangle_assoc_comp_left (X Y : C) :
+lemma triangle_assoc_comp_left (X Y : C) :
   (α_ X (𝟙_ C) Y).hom ≫ ((𝟙 X) ⊗ (λ_ Y).hom) = (ρ_ X).hom ⊗ 𝟙 Y :=
-monoidal_category.triangle C X Y
+monoidal_category.triangle X Y
 
 @[simp] lemma triangle_assoc_comp_right (X Y : C) :
   (α_ X (𝟙_ C) Y).inv ≫ ((ρ_ X).hom ⊗ 𝟙 Y) = ((𝟙 X) ⊗ (λ_ Y).hom) :=
@@ -341,8 +340,7 @@ end
 end
 
 section
-variables (C : Type u) [category.{v} C] [𝒞 : monoidal_category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C] [monoidal_category.{v} C]
 
 /-- The tensor product expressed as a functor. -/
 def tensor : (C × C) ⥤ C :=
@@ -401,6 +399,57 @@ def right_unitor_nat_iso :
 nat_iso.of_components
   (by { intros, apply monoidal_category.right_unitor })
   (by { intros, apply monoidal_category.right_unitor_naturality })
+
+
+
+section
+variables {C}
+
+/-- Tensoring on the left with as fixed object, as a functor. -/
+@[simps]
+def tensor_left (X : C) : C ⥤ C :=
+{ obj := λ Y, X ⊗ Y,
+  map := λ Y Y' f, (𝟙 X) ⊗ f, }
+
+/--
+Tensoring on the left with `X ⊗ Y` is naturally isomorphic to
+tensoring on the left with `Y`, and then again with `X`.
+-/
+def tensor_left_tensor (X Y : C) : tensor_left (X ⊗ Y) ≅ tensor_left Y ⋙ tensor_left X :=
+nat_iso.of_components
+  (associator _ _)
+  (λ Z Z' f, by { dsimp, rw[←tensor_id], apply associator_naturality })
+
+@[simp] lemma tensor_left_tensor_hom_app (X Y Z : C) :
+  (tensor_left_tensor X Y).hom.app Z = (associator X Y Z).hom :=
+rfl
+@[simp] lemma tensor_left_tensor_inv_app (X Y Z : C) :
+  (tensor_left_tensor X Y).inv.app Z = (associator X Y Z).inv :=
+rfl
+
+/-- Tensoring on the right with as fixed object, as a functor. -/
+@[simps]
+def tensor_right (X : C) : C ⥤ C :=
+{ obj := λ Y, Y ⊗ X,
+  map := λ Y Y' f, f ⊗ (𝟙 X), }
+
+/--
+Tensoring on the right with `X ⊗ Y` is naturally isomorphic to
+tensoring on the right with `X`, and then again with `Y`.
+-/
+def tensor_right_tensor (X Y : C) : tensor_right (X ⊗ Y) ≅ tensor_right X ⋙ tensor_right Y :=
+nat_iso.of_components
+  (λ Z, (associator Z X Y).symm)
+  (λ Z Z' f, by { dsimp, rw[←tensor_id], apply associator_inv_naturality })
+
+@[simp] lemma tensor_right_tensor_hom_app (X Y Z : C) :
+  (tensor_right_tensor X Y).hom.app Z = (associator Z X Y).inv :=
+rfl
+@[simp] lemma tensor_right_tensor_inv_app (X Y Z : C) :
+  (tensor_right_tensor X Y).inv.app Z = (associator Z X Y).hom :=
+rfl
+
+end
 
 end
 

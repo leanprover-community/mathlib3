@@ -3,11 +3,16 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import group_theory.group_action group_theory.quotient_group
-import group_theory.order_of_element data.zmod.basic
+import group_theory.group_action
+import group_theory.quotient_group
+import group_theory.order_of_element
+import data.zmod.basic
+import data.fintype.card
+import data.list.rotate
 
 open equiv fintype finset mul_action function
 open equiv.perm is_subgroup list quotient_group
+open_locale big_operators
 universes u v w
 variables {G : Type u} {α : Type v} {β : Type w} [group G]
 
@@ -29,13 +34,13 @@ begin
 end
 
 lemma card_modeq_card_fixed_points [fintype α] [fintype G] [fintype (fixed_points G α)]
-  {p n : ℕ} (hp : nat.prime p) (h : card G = p ^ n) : card α ≡ card (fixed_points G α) [MOD p] :=
+  (p : ℕ) {n : ℕ} [hp : fact p.prime] (h : card G = p ^ n) : card α ≡ card (fixed_points G α) [MOD p] :=
 calc card α = card (Σ y : quotient (orbit_rel G α), {x // quotient.mk' x = y}) :
   card_congr (sigma_preimage_equiv (@quotient.mk' _ (orbit_rel G α))).symm
-... = univ.sum (λ a : quotient (orbit_rel G α), card {x // quotient.mk' x = a}) : card_sigma _
-... ≡ (@univ (fixed_points G α) _).sum (λ _, 1) [MOD p] :
+... = ∑ a : quotient (orbit_rel G α), card {x // quotient.mk' x = a} : card_sigma _
+... ≡ ∑ a : fixed_points G α, 1 [MOD p] :
 begin
-  rw [← zmodp.eq_iff_modeq_nat hp, sum_nat_cast, sum_nat_cast],
+  rw [← zmod.eq_iff_modeq_nat p, sum_nat_cast, sum_nat_cast],
   refine eq.symm (sum_bij_ne_zero (λ a _ _, quotient.mk' a.1)
     (λ _ _ _, mem_univ _)
     (λ a₁ a₂ _ _ _ _ h,
@@ -49,12 +54,13 @@ begin
       exact card_quotient_dvd_card _ },
     rcases (nat.dvd_prime_pow hp).1 this with ⟨k, _, hk⟩,
     have hb' :¬ p ^ 1 ∣ p ^ k,
-    { rw [nat.pow_one, ← hk, ← nat.modeq.modeq_zero_iff, ← zmodp.eq_iff_modeq_nat hp,
+    { rw [nat.pow_one, ← hk, ← nat.modeq.modeq_zero_iff, ← zmod.eq_iff_modeq_nat,
         nat.cast_zero, ← ne.def],
       exact eq.mpr (by simp only [quotient.eq']; congr) hb },
     have : k = 0 := nat.le_zero_iff.1 (nat.le_of_lt_succ (lt_of_not_ge (mt (nat.pow_dvd_pow p) hb'))),
-    refine ⟨⟨b, mem_fixed_points_iff_card_orbit_eq_one.2 $ by rw [hk, this, nat.pow_zero]⟩, mem_univ _,
-      by simp [zero_ne_one], rfl⟩ }
+    refine ⟨⟨b, mem_fixed_points_iff_card_orbit_eq_one.2 $ by rw [hk, this, nat.pow_zero]⟩,
+      mem_univ _, _, rfl⟩,
+    rw [nat.cast_one], exact one_ne_zero }
 end
 ... = _ : by simp; refl
 
@@ -68,12 +74,15 @@ by rw [← fintype.card_prod, fintype.card_congr
 
 namespace sylow
 
+/-- Given a vector `v` of length `n`, make a vector of length `n+1` whose product is `1`,
+by consing the the inverse of the product of `v`. -/
 def mk_vector_prod_eq_one (n : ℕ) (v : vector G n) : vector G (n+1) :=
 v.to_list.prod⁻¹ :: v
 
-lemma mk_vector_prod_eq_one_inj (n : ℕ) : injective (@mk_vector_prod_eq_one G _ n) :=
+lemma mk_vector_prod_eq_one_injective (n : ℕ) : injective (@mk_vector_prod_eq_one G _ n) :=
 λ ⟨v, _⟩ ⟨w, _⟩ h, subtype.eq (show v = w, by injection h with h; injection h)
 
+/-- The type of vectors with terms from `G`, length `n`, and product equal to `1:G`. -/
 def vectors_prod_eq_one (G : Type*) [group G] (n : ℕ) : set (vector G n) :=
 {v | v.to_list.prod = 1}
 
@@ -88,67 +97,71 @@ lemma mem_vectors_prod_eq_one_iff {n : ℕ} (v : vector G (n + 1)) :
     conv {to_rhs, rw ← vector.cons_head_tail v},
     suffices : (v.tail.to_list.prod)⁻¹ = v.head,
     { rw this },
-    rw [← mul_right_inj v.tail.to_list.prod, inv_mul_self, ← list.prod_cons,
+    rw [← mul_left_inj v.tail.to_list.prod, inv_mul_self, ← list.prod_cons,
       ← vector.to_list_cons, vector.cons_head_tail, h]
   end⟩,
   λ ⟨w, hw⟩, by rw [mem_vectors_prod_eq_one, ← hw, mk_vector_prod_eq_one,
     vector.to_list_cons, list.prod_cons, inv_mul_self]⟩
 
-def rotate_vectors_prod_eq_one (G : Type*) [group G] (n : ℕ+) (m : multiplicative (zmod n))
-  (v : vectors_prod_eq_one G n) : vectors_prod_eq_one G n :=
-⟨⟨v.1.to_list.rotate m.1, by simp⟩, prod_rotate_eq_one_of_prod_eq_one v.2 _⟩
+/-- The rotation action of `zmod n` (viewed as multiplicative group) on
+`vectors_prod_eq_one G n`, where `G` is a multiplicative group. -/
+def rotate_vectors_prod_eq_one (G : Type*) [group G] (n : ℕ)
+  (m : multiplicative (zmod n)) (v : vectors_prod_eq_one G n) : vectors_prod_eq_one G n :=
+⟨⟨v.1.to_list.rotate m.val, by simp⟩, prod_rotate_eq_one_of_prod_eq_one v.2 _⟩
 
-instance rotate_vectors_prod_eq_one.mul_action (n : ℕ+) :
+instance rotate_vectors_prod_eq_one.mul_action (n : ℕ) [fact (0 < n)] :
   mul_action (multiplicative (zmod n)) (vectors_prod_eq_one G n) :=
 { smul := (rotate_vectors_prod_eq_one G n),
-  one_smul := λ v, subtype.eq $ vector.eq _ _ $ rotate_zero v.1.to_list,
+  one_smul :=
+  begin
+    intro v, apply subtype.eq, apply vector.eq _ _,
+    show rotate _ (0 : zmod n).val = _, rw zmod.val_zero,
+    exact rotate_zero v.1.to_list
+  end,
   mul_smul := λ a b ⟨⟨v, hv₁⟩, hv₂⟩, subtype.eq $ vector.eq _ _ $
     show v.rotate ((a + b : zmod n).val) = list.rotate (list.rotate v (b.val)) (a.val),
-    by rw [zmod.add_val, rotate_rotate, ← rotate_mod _ (b.1 + a.1), add_comm, hv₁] }
+    by rw [zmod.val_add, rotate_rotate, ← rotate_mod _ (b.val + a.val), add_comm, hv₁] }
 
 lemma one_mem_vectors_prod_eq_one (n : ℕ) : vector.repeat (1 : G) n ∈ vectors_prod_eq_one G n :=
 by simp [vector.repeat, vectors_prod_eq_one]
 
-lemma one_mem_fixed_points_rotate (n : ℕ+) :
+lemma one_mem_fixed_points_rotate (n : ℕ) [fact (0 < n)] :
   (⟨vector.repeat (1 : G) n, one_mem_vectors_prod_eq_one n⟩ : vectors_prod_eq_one G n) ∈
   fixed_points (multiplicative (zmod n)) (vectors_prod_eq_one G n) :=
 λ m, subtype.eq $ vector.eq _ _ $
-by haveI : nonempty G := ⟨1⟩; exact
 rotate_eq_self_iff_eq_repeat.2 ⟨(1 : G),
   show list.repeat (1 : G) n = list.repeat 1 (list.repeat (1 : G) n).length, by simp⟩ _
 
 /-- Cauchy's theorem -/
-lemma exists_prime_order_of_dvd_card [fintype G] {p : ℕ} (hp : nat.prime p)
+lemma exists_prime_order_of_dvd_card [fintype G] (p : ℕ) [hp : fact p.prime]
   (hdvd : p ∣ card G) : ∃ x : G, order_of x = p :=
 let n : ℕ+ := ⟨p - 1, nat.sub_pos_of_lt hp.one_lt⟩ in
-let p' : ℕ+ := ⟨p, hp.pos⟩ in
-have hn : p' = n + 1 := subtype.eq (nat.succ_sub hp.pos),
+have hn : p = n + 1 := nat.succ_sub hp.pos,
 have hcard : card (vectors_prod_eq_one G (n + 1)) = card G ^ (n : ℕ),
   by rw [set.ext mem_vectors_prod_eq_one_iff,
-    set.card_range_of_injective (mk_vector_prod_eq_one_inj _), card_vector],
-have hzmod : fintype.card (multiplicative (zmod p')) =
-  (p' : ℕ) ^ 1 := (nat.pow_one p').symm ▸ card_fin _,
+    set.card_range_of_injective (mk_vector_prod_eq_one_injective _), card_vector],
+have hzmod : fintype.card (multiplicative (zmod p)) = p ^ 1,
+  by { rw nat.pow_one p, exact zmod.card p },
 have hmodeq : _ = _ := @mul_action.card_modeq_card_fixed_points
-  (multiplicative (zmod p')) (vectors_prod_eq_one G p') _ _ _ _ _ _ 1 hp hzmod,
+  (multiplicative (zmod p)) (vectors_prod_eq_one G p) _ _ _ _ _ _ 1 hp hzmod,
 have hdvdcard : p ∣ fintype.card (vectors_prod_eq_one G (n + 1)) :=
   calc p ∣ card G ^ 1 : by rwa nat.pow_one
   ... ∣ card G ^ (n : ℕ) : nat.pow_dvd_pow _ n.2
   ... = card (vectors_prod_eq_one G (n + 1)) : hcard.symm,
-have hdvdcard₂ : p ∣ card (fixed_points (multiplicative (zmod p')) (vectors_prod_eq_one G p')) :=
-  nat.dvd_of_mod_eq_zero (hmodeq ▸ hn.symm ▸ nat.mod_eq_zero_of_dvd hdvdcard),
-have hcard_pos : 0 < card (fixed_points (multiplicative (zmod p')) (vectors_prod_eq_one G p')) :=
-  fintype.card_pos_iff.2 ⟨⟨⟨vector.repeat 1 p', one_mem_vectors_prod_eq_one _⟩,
+have hdvdcard₂ : p ∣ card (fixed_points (multiplicative (zmod p)) (vectors_prod_eq_one G p)),
+  by { rw nat.dvd_iff_mod_eq_zero at hdvdcard ⊢, rwa [← hn, hmodeq] at hdvdcard },
+have hcard_pos : 0 < card (fixed_points (multiplicative (zmod p)) (vectors_prod_eq_one G p)) :=
+  fintype.card_pos_iff.2 ⟨⟨⟨vector.repeat 1 p, one_mem_vectors_prod_eq_one _⟩,
     one_mem_fixed_points_rotate _⟩⟩,
-have hlt : 1 < card (fixed_points (multiplicative (zmod p')) (vectors_prod_eq_one G p')) :=
-  calc (1 : ℕ) < p' : hp.one_lt
+have hlt : 1 < card (fixed_points (multiplicative (zmod p)) (vectors_prod_eq_one G p)) :=
+  calc (1 : ℕ) < p : hp.one_lt
   ... ≤ _ : nat.le_of_dvd hcard_pos hdvdcard₂,
 let ⟨⟨⟨⟨x, hx₁⟩, hx₂⟩, hx₃⟩, hx₄⟩ := fintype.exists_ne_of_one_lt_card hlt
-  ⟨_, one_mem_fixed_points_rotate p'⟩ in
-have hx : x ≠ list.repeat (1 : G) p', from λ h, by simpa [h, vector.repeat] using hx₄,
-have nG : nonempty G, from ⟨1⟩,
+  ⟨_, one_mem_fixed_points_rotate p⟩ in
+have hx : x ≠ list.repeat (1 : G) p, from λ h, by simpa [h, vector.repeat] using hx₄,
 have ∃ a, x = list.repeat a x.length := by exactI rotate_eq_self_iff_eq_repeat.1 (λ n,
-  have list.rotate x (n : zmod p').val = x :=
-    subtype.mk.inj (subtype.mk.inj (hx₃ (n : zmod p'))),
+  have list.rotate x (n : zmod p).val = x :=
+    subtype.mk.inj (subtype.mk.inj (hx₃ (n : zmod p))),
   by rwa [zmod.val_cast_nat, ← hx₁, rotate_mod] at this),
 let ⟨a, ha⟩ := this in
 ⟨a, have hx1 : x.prod = 1 := hx₂,
@@ -170,7 +183,7 @@ lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : set G} [is_subgro
 (mem_fixed_points' _).2 $ λ y, quotient.induction_on' y $ λ y hy, quotient_group.eq.2
   (let ⟨⟨b, hb₁⟩, hb₂⟩ := hy in
   have hb₂ : (b * x)⁻¹ * y ∈ H := quotient_group.eq.1 hb₂,
-  (inv_mem_iff H).1 $ (hx _).2 $ (mul_mem_cancel_right H (inv_mem hb₁)).1
+  (inv_mem_iff H).1 $ (hx _).2 $ (mul_mem_cancel_left H (inv_mem hb₁)).1
   $ by rw hx at hb₂;
     simpa [mul_inv_rev, mul_assoc] using hb₂)⟩
 
@@ -181,22 +194,22 @@ def fixed_points_mul_left_cosets_equiv_quotient (H : set G) [is_subgroup H] [fin
 
 local attribute [instance] set_fintype
 
-lemma exists_subgroup_card_pow_prime [fintype G] {p : ℕ} : ∀ {n : ℕ} (hp : nat.prime p)
+lemma exists_subgroup_card_pow_prime [fintype G] (p : ℕ) : ∀ {n : ℕ} [hp : fact p.prime]
   (hdvd : p ^ n ∣ card G), ∃ H : set G, is_subgroup H ∧ fintype.card H = p ^ n
 | 0 := λ _ _, ⟨trivial G, by apply_instance, by simp⟩
 | (n+1) := λ hp hdvd,
-let ⟨H, ⟨hH1, hH2⟩⟩ := exists_subgroup_card_pow_prime hp
+let ⟨H, ⟨hH1, hH2⟩⟩ := @exists_subgroup_card_pow_prime _ hp
   (dvd.trans (nat.pow_dvd_pow _ (nat.le_succ _)) hdvd) in
 let ⟨s, hs⟩ := exists_eq_mul_left_of_dvd hdvd in
 by exactI
 have hcard : card (quotient H) = s * p :=
-  (nat.mul_right_inj (show card H > 0, from fintype.card_pos_iff.2
-      ⟨⟨1, is_submonoid.one_mem H⟩⟩)).1
+  (nat.mul_left_inj (show card H > 0, from fintype.card_pos_iff.2
+      ⟨⟨1, is_submonoid.one_mem⟩⟩)).1
     (by rwa [← card_eq_card_quotient_mul_card_subgroup, hH2, hs,
       nat.pow_succ, mul_assoc, mul_comm p]),
 have hm : s * p % p = card (quotient (subtype.val ⁻¹' H : set (normalizer H))) % p :=
   card_congr (fixed_points_mul_left_cosets_equiv_quotient H) ▸ hcard ▸
-    card_modeq_card_fixed_points hp hH2,
+    card_modeq_card_fixed_points p hH2,
 have hm' : p ∣ card (quotient (subtype.val ⁻¹' H : set (normalizer H))) :=
   nat.dvd_of_mod_eq_zero
     (by rwa [nat.mod_eq_zero_of_dvd (dvd_mul_left _ _), eq_comm] at hm),

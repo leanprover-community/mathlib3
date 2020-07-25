@@ -11,8 +11,6 @@ in favor of the "Peano" natural numbers `nat`, and the purpose of this
 collection of theorems is to show the equivalence of the different approaches.
 -/
 
-import data.vector data.bitvec
-
 /-- The type of positive binary numbers.
 
      13 = 1101(base 2) = bit1 (bit0 (bit1 one)) -/
@@ -22,6 +20,7 @@ inductive pos_num : Type
 | bit1 : pos_num → pos_num
 | bit0 : pos_num → pos_num
 instance : has_one pos_num := ⟨pos_num.one⟩
+instance : inhabited pos_num := ⟨1⟩
 
 /-- The type of nonnegative binary numbers, using `pos_num`.
 
@@ -32,6 +31,7 @@ inductive num : Type
 | pos   : pos_num → num
 instance : has_zero num := ⟨num.zero⟩
 instance : has_one num := ⟨num.pos 1⟩
+instance : inhabited num := ⟨0⟩
 
 /-- Representation of integers using trichotomy around zero.
 
@@ -44,34 +44,7 @@ inductive znum : Type
 | neg  : pos_num → znum
 instance : has_zero znum := ⟨znum.zero⟩
 instance : has_one znum := ⟨znum.pos 1⟩
-
-/-- See `snum`. -/
-@[derive has_reflect, derive decidable_eq]
-inductive nzsnum : Type
-| msb : bool → nzsnum
-| bit : bool → nzsnum → nzsnum
-/-- Alternative representation of integers using a sign bit at the end.
-  The convention on sign here is to have the argument to `msb` denote
-  the sign of the MSB itself, with all higher bits set to the negation
-  of this sign. The result is interpreted in two's complement.
-
-     13  = ..0001101(base 2) = nz (bit1 (bit0 (bit1 (msb tt))))
-     -13 = ..1110011(base 2) = nz (bit1 (bit1 (bit0 (msb ff))))
-
-  As with `num`, a special case must be added for zero, which has no msb,
-  but by two's complement symmetry there is a second special case for -1.
-  Here the `bool` field indicates the sign of the number.
-
-     0  = ..0000000(base 2) = zero ff
-     -1 = ..1111111(base 2) = zero tt -/
-@[derive has_reflect, derive decidable_eq]
-inductive snum : Type
-| zero : bool → snum
-| nz : nzsnum → snum
-instance : has_coe nzsnum snum := ⟨snum.nz⟩
-instance : has_zero snum := ⟨snum.zero ff⟩
-instance : has_one nzsnum := ⟨nzsnum.msb tt⟩
-instance : has_one snum := ⟨snum.nz 1⟩
+instance : inhabited znum := ⟨0⟩
 
 namespace pos_num
 
@@ -160,9 +133,11 @@ section
   | 0           := 0
   | (num.pos p) := cast_pos_num p
 
-  @[priority 10] instance pos_num_coe : has_coe pos_num α := ⟨cast_pos_num⟩
+  -- see Note [coercion into rings]
+  @[priority 900] instance pos_num_coe : has_coe_t pos_num α := ⟨cast_pos_num⟩
 
-  @[priority 10] instance num_nat_coe : has_coe num α := ⟨cast_num⟩
+  -- see Note [coercion into rings]
+  @[priority 900] instance num_nat_coe : has_coe_t num α := ⟨cast_num⟩
 
   instance : has_repr pos_num := ⟨λ n, repr (n : ℕ)⟩
   instance : has_repr num := ⟨λ n, repr (n : ℕ)⟩
@@ -504,145 +479,8 @@ section
   | (znum.pos p) := p
   | (znum.neg p) := -p
 
-  @[priority 10] instance znum_coe : has_coe znum α := ⟨cast_znum⟩
+  -- see Note [coercion into rings]
+  @[priority 900] instance znum_coe : has_coe_t znum α := ⟨cast_znum⟩
 
   instance : has_repr znum := ⟨λ n, repr (n : ℤ)⟩
 end
-
-/- The snum representation uses a bit string, essentially a list of 0 (ff) and 1 (tt) bits,
-   and the negation of the MSB is sign-extended to all higher bits. -/
-namespace nzsnum
-  notation a :: b := bit a b
-
-  def sign : nzsnum → bool
-  | (msb b) := bnot b
-  | (b :: p) := sign p
-
-  @[pattern] def not : nzsnum → nzsnum
-  | (msb b) := msb (bnot b)
-  | (b :: p) := bnot b :: not p
-  prefix ~ := not
-
-  def bit0 : nzsnum → nzsnum := bit ff
-  def bit1 : nzsnum → nzsnum := bit tt
-
-  def head : nzsnum → bool
-  | (msb b)  := b
-  | (b :: p) := b
-
-  def tail : nzsnum → snum
-  | (msb b)  := snum.zero (bnot b)
-  | (b :: p) := p
-
-end nzsnum
-
-namespace snum
-  open nzsnum
-
-  def sign : snum → bool
-  | (zero z) := z
-  | (nz p)   := p.sign
-
-  @[pattern] def not : snum → snum
-  | (zero z) := zero (bnot z)
-  | (nz p)   := ~p
-  prefix ~ := not
-
-  @[pattern] def bit : bool → snum → snum
-  | b (zero z) := if b = z then zero b else msb b
-  | b (nz p)   := p.bit b
-
-  notation a :: b := bit a b
-
-  def bit0 : snum → snum := bit ff
-  def bit1 : snum → snum := bit tt
-
-  theorem bit_zero (b) : b :: zero b = zero b := by cases b; refl
-
-  theorem bit_one (b) : b :: zero (bnot b) = msb b := by cases b; refl
-
-end snum
-
-namespace nzsnum
-  open snum
-
-  def drec' {C : snum → Sort*} (z : Π b, C (snum.zero b))
-    (s : Π b p, C p → C (b :: p)) : Π p : nzsnum, C p
-  | (msb b)  := by rw ←bit_one; exact s b (snum.zero (bnot b)) (z (bnot b))
-  | (bit b p) := s b p (drec' p)
-end nzsnum
-
-namespace snum
-  open nzsnum
-
-  def head : snum → bool
-  | (zero z) := z
-  | (nz p)   := p.head
-
-  def tail : snum → snum
-  | (zero z) := zero z
-  | (nz p)   := p.tail
-
-  def drec' {C : snum → Sort*} (z : Π b, C (snum.zero b))
-    (s : Π b p, C p → C (b :: p)) : Π p, C p
-  | (zero b) := z b
-  | (nz p)   := p.drec' z s
-
-  def rec' {α} (z : bool → α) (s : bool → snum → α → α) : snum → α :=
-  drec' z s
-
-  def bits : snum → Π n, vector bool n
-  | p 0     := vector.nil
-  | p (n+1) := head p :: bits (tail p) n
-
-  def test_bit : nat → snum → bool
-  | 0     p := head p
-  | (n+1) p := test_bit n (tail p)
-
-  def succ : snum → snum :=
-  rec' (λ b, cond b 0 1) (λb p succp, cond b (ff :: succp) (tt :: p))
-
-  def pred : snum → snum :=
-  rec' (λ b, cond b (~1) ~0) (λb p predp, cond b (ff :: p) (tt :: predp))
-
-  protected def neg (n : snum) : snum := succ ~n
-
-  instance : has_neg snum := ⟨snum.neg⟩
-
-  -- First bit is 0 or 1 (tt), second bit is 0 or -1 (tt)
-  def czadd : bool → bool → snum → snum
-  | ff ff p := p
-  | ff tt p := pred p
-  | tt ff p := succ p
-  | tt tt p := p
-
-  def cadd : snum → snum → bool → snum :=
-  rec' (λ a p c, czadd c a p) $ λa p IH,
-  rec' (λb c, czadd c b (a :: p)) $ λb q _ c,
-  bitvec.xor3 a b c :: IH q (bitvec.carry a b c)
-
-  protected def add (a b : snum) : snum := cadd a b ff
-
-  instance : has_add snum := ⟨snum.add⟩
-
-  protected def sub (a b : snum) : snum := a + -b
-
-  instance : has_sub snum := ⟨snum.sub⟩
-
-  protected def mul (a : snum) : snum → snum :=
-  rec' (λ b, cond b (-a) 0) $ λb q IH,
-  cond b (bit0 IH + a) (bit0 IH)
-
-  instance : has_mul snum := ⟨snum.mul⟩
-
-end snum
-
-namespace int
-  def of_snum : snum → ℤ :=
-  snum.rec' (λ a, cond a (-1) 0) (λa p IH, cond a (bit1 IH) (bit0 IH))
-
-  instance snum_coe : has_coe snum ℤ := ⟨of_snum⟩
-end int
-
-instance : has_lt snum := ⟨λa b, (a : ℤ) < b⟩
-instance : has_le snum := ⟨λa b, (a : ℤ) ≤ b⟩

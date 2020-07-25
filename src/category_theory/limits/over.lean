@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin, Reid Barton
+Authors: Johan Commelin, Reid Barton, Bhavik Mehta
 -/
-import category_theory.comma
+import category_theory.over
 import category_theory.limits.preserves
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -11,8 +11,7 @@ universes v u -- declare the `v`'s first; see `category_theory.category` for an 
 open category_theory category_theory.limits
 
 variables {J : Type v} [small_category J]
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 variable {X : C}
 
 namespace category_theory.functor
@@ -75,14 +74,20 @@ instance has_colimits_of_shape [has_colimits_of_shape J C] :
   has_colimits_of_shape J (over X) :=
 { has_colimit := λ F, by apply_instance }
 
-instance has_colimits [has_colimits.{v} C] : has_colimits.{v} (over X) :=
+instance has_colimits [has_colimits C] : has_colimits (over X) :=
 { has_colimits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
-instance forget_preserves_colimits [has_colimits.{v} C] {X : C} :
+instance forget_preserves_colimit {X : C} {F : J ⥤ over X} [has_colimit (F ⋙ forget)] :
+  preserves_colimit F (forget : over X ⥤ C) :=
+preserves_colimit_of_preserves_colimit_cocone (colimit.is_colimit F) (forget_colimit_is_colimit F)
+
+instance forget_preserves_colimits_of_shape [has_colimits_of_shape J C] {X : C} :
+  preserves_colimits_of_shape J (forget : over X ⥤ C) :=
+{ preserves_colimit := λ F, by apply_instance }
+
+instance forget_preserves_colimits [has_colimits C] {X : C} :
   preserves_colimits (forget : over X ⥤ C) :=
-{ preserves_colimits_of_shape := λ J 𝒥,
-  { preserves_colimit := λ F, by exactI
-    preserves_colimit_of_preserves_colimit_cocone (colimit.is_colimit F) (forget_colimit_is_colimit F) } }
+{ preserves_colimits_of_shape := λ J 𝒥, by apply_instance }
 
 end category_theory.over
 
@@ -133,10 +138,10 @@ instance has_limits_of_shape [has_limits_of_shape J C] :
   has_limits_of_shape J (under X) :=
 { has_limit := λ F, by apply_instance }
 
-instance has_limits [has_limits.{v} C] : has_limits.{v} (under X) :=
+instance has_limits [has_limits C] : has_limits (under X) :=
 { has_limits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
-instance forget_preserves_limits [has_limits.{v} C] {X : C} :
+instance forget_preserves_limits [has_limits C] {X : C} :
   preserves_limits (forget : under X ⥤ C) :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ F, by exactI

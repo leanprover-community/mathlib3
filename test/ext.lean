@@ -4,12 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 
-import tactic.core
 import tactic.ext
 import tactic.solve_by_elim
-import data.set.basic data.stream.basic
+import data.stream.basic
+import data.finset.basic
 
-@[extensionality] lemma unit.ext (x y : unit) : x = y :=
+@[ext] lemma unit.ext (x y : unit) : x = y :=
 begin
   cases x, cases y, refl
 end
@@ -70,80 +70,35 @@ begin
   apply h
 end
 
-def my_foo {α} (x : semigroup α) (y : group α) : true := trivial
 
-example {α : Type} : true :=
+/- extensionality -/
+
+example : true :=
 begin
-  have : true,
-  { refine_struct (@my_foo α { .. } { .. } ),
-      -- 9 goals
-    guard_tags _field mul semigroup, admit,
-      -- case semigroup, mul
-      -- α : Type
-      -- ⊢ α → α → α
-
-    guard_tags _field mul_assoc semigroup, admit,
-      -- case semigroup, mul_assoc
-      -- α : Type
-      -- ⊢ ∀ (a b c : α), a * b * c = a * (b * c)
-
-    guard_tags _field mul group, admit,
-      -- case group, mul
-      -- α : Type
-      -- ⊢ α → α → α
-
-    guard_tags _field mul_assoc group, admit,
-      -- case group, mul_assoc
-      -- α : Type
-      -- ⊢ ∀ (a b c : α), a * b * c = a * (b * c)
-
-    guard_tags _field one group, admit,
-      -- case group, one
-      -- α : Type
-      -- ⊢ α
-
-    guard_tags _field one_mul group, admit,
-      -- case group, one_mul
-      -- α : Type
-      -- ⊢ ∀ (a : α), 1 * a = a
-
-    guard_tags _field mul_one group, admit,
-      -- case group, mul_one
-      -- α : Type
-      -- ⊢ ∀ (a : α), a * 1 = a
-
-    guard_tags _field inv group, admit,
-      -- case group, inv
-      -- α : Type
-      -- ⊢ α → α
-
-    guard_tags _field mul_left_inv group, admit,
-      -- case group, mul_left_inv
-      -- α : Type
-      -- ⊢ ∀ (a : α), a⁻¹ * a = 1
-  },
-  trivial
-end
-
-def my_bar {α} (x : semigroup α) (y : group α) (i j : α) : α := i
-
-example {α : Type} : true :=
-begin
-  have : monoid α,
-  { refine_struct { mul := my_bar { .. } { .. } },
-    guard_tags _field mul semigroup, admit,
-    guard_tags _field mul_assoc semigroup, admit,
-    guard_tags _field mul group, admit,
-    guard_tags _field mul_assoc group, admit,
-    guard_tags _field one group, admit,
-    guard_tags _field one_mul group, admit,
-    guard_tags _field mul_one group, admit,
-    guard_tags _field inv group, admit,
-    guard_tags _field mul_left_inv group, admit,
-    guard_tags _field mul_assoc monoid, admit,
-    guard_tags _field one monoid, admit,
-    guard_tags _field one_mul monoid, admit,
-    guard_tags _field mul_one monoid, admit, },
+  have : ∀ (s₀ s₁ : set ℤ), s₀ = s₁,
+  { intros, ext1,
+    guard_target x ∈ s₀ ↔ x ∈ s₁,
+    admit },
+  have : ∀ (s₀ s₁ : finset ℕ), s₀ = s₁,
+  { intros, ext1,
+    guard_target a ∈ s₀ ↔ a ∈ s₁,
+    admit },
+  have : ∀ (s₀ s₁ : multiset ℕ), s₀ = s₁,
+  { intros, ext1,
+    guard_target multiset.count a s₀ = multiset.count a s₁,
+    admit },
+  have : ∀ (s₀ s₁ : list ℕ), s₀ = s₁,
+  { intros, ext1,
+    guard_target list.nth s₀ n = list.nth s₁ n,
+    admit },
+  have : ∀ (s₀ s₁ : stream ℕ), s₀ = s₁,
+  { intros, ext1,
+    guard_target stream.nth n s₀ = stream.nth n s₁,
+    admit },
+  have : ∀ n (s₀ s₁ : array n ℕ), s₀ = s₁,
+  { intros, ext1,
+    guard_target array.read s₀ i = array.read s₁ i,
+    admit },
   trivial
 end
 
@@ -151,7 +106,7 @@ structure dependent_fields :=
 (a : bool)
 (v : if a then ℕ else ℤ)
 
-@[extensionality] lemma df.ext (s t : dependent_fields) (h : s.a = t.a)
+@[ext] lemma df.ext (s t : dependent_fields) (h : s.a = t.a)
  (w : (@eq.rec _ s.a (λ b, if b then ℕ else ℤ) s.v t.a h) = t.v) : s = t :=
 begin
   cases s, cases t,
@@ -171,3 +126,5 @@ begin
   refl,
   refl,
 end
+
+@[ext] structure dumb (V : Type) := (val : V)

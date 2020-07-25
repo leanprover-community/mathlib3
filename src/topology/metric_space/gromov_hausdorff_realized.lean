@@ -6,18 +6,17 @@ Author: Sébastien Gouëzel
 Construction of a good coupling between nonempty compact metric spaces, minimizing
 their Hausdorff distance. This construction is instrumental to study the Gromov-Hausdorff
 distance between nonempty compact metric spaces -/
-
-import topology.bounded_continuous_function topology.metric_space.gluing
-topology.metric_space.hausdorff_distance
+import topology.metric_space.gluing
+import topology.metric_space.hausdorff_distance
 
 noncomputable theory
 open_locale classical
+open_locale topological_space
 universes u v w
 
-open classical lattice set function topological_space filter metric quotient
+open classical set function topological_space filter metric quotient
 open bounded_continuous_function
 open sum (inl inr)
-set_option class.instance_max_depth 50
 
 local attribute [instance] metric_space_sum
 
@@ -38,12 +37,13 @@ variables (α : Type u) (β : Type v)
 @[reducible] private def prod_space_fun : Type* := ((α ⊕ β) × (α ⊕ β)) → ℝ
 @[reducible] private def Cb : Type* := bounded_continuous_function ((α ⊕ β) × (α ⊕ β)) ℝ
 
-private def max_var : ℝ := 2 * diam (univ : set α) + 1 + 2 * diam (univ : set β)
+private def max_var : nnreal :=
+2 * ⟨diam (univ : set α), diam_nonneg⟩ + 1 + 2 * ⟨diam (univ : set β), diam_nonneg⟩
 
 private lemma one_le_max_var : 1 ≤ max_var α β := calc
   (1 : real) = 2 * 0 + 1 + 2 * 0 : by simp
   ... ≤ 2 * diam (univ : set α) + 1 + 2 * diam (univ : set β) :
-  by apply_rules [add_le_add, mul_le_mul_of_nonneg_left, diam_nonneg, diam_nonneg]; norm_num
+  by apply_rules [add_le_add, mul_le_mul_of_nonneg_left, diam_nonneg]; norm_num
 
 /-- The set of functions on α ⊕ β that are candidates distances to realize the
 minimum of the Hausdorff distances between α and β in a coupling -/
@@ -76,11 +76,11 @@ private lemma max_var_bound : dist x y ≤ max_var α β := calc
   ... ≤ diam (inl '' (univ : set α)) + dist (inl (default α)) (inr (default β)) + diam (inr '' (univ : set β)) :
     diam_union (mem_image_of_mem _ (mem_univ _)) (mem_image_of_mem _ (mem_univ _))
   ... = diam (univ : set α) + (dist (default α) (default α) + 1 + dist (default β) (default β)) + diam (univ : set β) :
-    by { rw [isometry.diam_image isometry_on_inl, isometry.diam_image isometry_on_inr], refl }
+    by { rw [isometry_on_inl.diam_image, isometry_on_inr.diam_image], refl }
   ... = 1 * diam (univ : set α) + 1 + 1 * diam (univ : set β) : by simp
   ... ≤ 2 * diam (univ : set α) + 1 + 2 * diam (univ : set β) :
   begin
-    apply_rules [add_le_add, mul_le_mul_of_nonneg_right, diam_nonneg, diam_nonneg, le_refl],
+    apply_rules [add_le_add, mul_le_mul_of_nonneg_right, diam_nonneg, le_refl],
     norm_num, norm_num
   end
 
@@ -142,7 +142,7 @@ calc
   f (x, y) - f(z, t) ≤ f (x, t) + f (t, y) - f (z, t) : add_le_add_right (candidates_triangle fA) _
   ... ≤ (f (x, z) + f (z, t) + f(t, y)) - f (z, t) :
     add_le_add_right (add_le_add_right (candidates_triangle fA) _ ) _
-  ... = f (x, z) + f (t, y) : by simp
+  ... = f (x, z) + f (t, y) : by simp [sub_eq_add_neg, add_assoc]
   ... ≤ max_var α β * dist x z + max_var α β * dist t y :
     add_le_add (candidates_dist_bound fA) (candidates_dist_bound fA)
   ... ≤ max_var α β * max (dist x z) (dist t y) + max_var α β * max (dist x z) (dist t y) :
@@ -156,11 +156,11 @@ calc
   ... = 2 * max_var α β * dist (x, y) (z, t) : by refl
 
 /-- Candidates are Lipschitz -/
-private lemma candidates_lipschitz (fA : f ∈ candidates α β) (p q : (α ⊕ β) × (α ⊕ β)) :
-  dist (f p) (f q) ≤ 2 * max_var α β * dist p q :=
+private lemma candidates_lipschitz (fA : f ∈ candidates α β) :
+  lipschitz_with (2 * max_var α β) f :=
 begin
-  rcases p with ⟨x, y⟩,
-  rcases q with ⟨z, t⟩,
+  apply lipschitz_with.of_dist_le_mul,
+  rintros ⟨x, y⟩ ⟨z, t⟩,
   rw real.dist_eq,
   apply abs_le_of_le_of_neg_le,
   { exact candidates_lipschitz_aux fA },
@@ -171,7 +171,7 @@ end
 
 /-- candidates give rise to elements of bounded_continuous_functions -/
 def candidates_b_of_candidates (f : prod_space_fun α β) (fA : f ∈ candidates α β) : Cb α β :=
-bounded_continuous_function.mk_of_compact f (continuous_of_lipschitz (candidates_lipschitz fA))
+bounded_continuous_function.mk_of_compact f (candidates_lipschitz fA).continuous
 
 lemma candidates_b_of_candidates_mem (f : prod_space_fun α β) (fA : f ∈ candidates α β) :
   candidates_b_of_candidates f fA ∈ candidates_b α β := fA
@@ -193,8 +193,8 @@ def candidates_b_dist (α : Type u) (β : Type v) [metric_space α] [compact_spa
 lemma candidates_b_dist_mem_candidates_b : candidates_b_dist α β ∈ candidates_b α β :=
 candidates_b_of_candidates_mem _ _
 
-private lemma candidates_b_ne_empty : candidates_b α β ≠ ∅ :=
-ne_empty_of_mem candidates_b_dist_mem_candidates_b
+private lemma candidates_b_nonempty : (candidates_b α β).nonempty :=
+⟨_,  candidates_b_dist_mem_candidates_b⟩
 
 /-- To apply Arzela-Ascoli, we need to check that the set of candidates is closed and equicontinuous.
 Equicontinuity follows from the Lipschitz control, we check closedness -/
@@ -207,7 +207,7 @@ begin
   have I3 : ∀x y, is_closed {f : Cb α β | f (x, y) = f (y, x)} :=
     λx y, is_closed_eq continuous_evalx continuous_evalx,
   have I4 : ∀x y z, is_closed {f : Cb α β | f (x, z) ≤ f (x, y) + f (y, z)} :=
-    λx y z, is_closed_le continuous_evalx (continuous_add continuous_evalx continuous_evalx),
+    λx y z, is_closed_le continuous_evalx (continuous_evalx.add continuous_evalx),
   have I5 : ∀x, is_closed {f : Cb α β | f (x, x) = 0} :=
     λx, is_closed_eq continuous_evalx continuous_const,
   have I6 : ∀x y, is_closed {f : Cb α β | f (x, y) ≤ max_var α β} :=
@@ -232,25 +232,24 @@ begin
 end
 
 /-- Compactness of candidates (in bounded_continuous_functions) follows -/
-private lemma compact_candidates_b : compact (candidates_b α β) :=
+private lemma compact_candidates_b : is_compact (candidates_b α β) :=
 begin
   refine arzela_ascoli₂ (Icc 0 (max_var α β)) compact_Icc (candidates_b α β) closed_candidates_b _ _,
   { rintros f ⟨x1, x2⟩ hf,
     simp only [set.mem_Icc],
     exact ⟨candidates_nonneg hf, candidates_le_max_var hf⟩ },
   { refine equicontinuous_of_continuity_modulus (λt, 2 * max_var α β * t) _ _ _,
-    { have : tendsto (λ (t : ℝ), 2 * max_var α β * t) (nhds 0) (nhds (2 * max_var α β * 0)) :=
-        tendsto_mul tendsto_const_nhds tendsto_id,
+    { have : tendsto (λ (t : ℝ), 2 * (max_var α β : ℝ) * t) (𝓝 0) (𝓝 (2 * max_var α β * 0)) :=
+        tendsto_const_nhds.mul tendsto_id,
       simpa using this },
     { assume x y f hf,
-      exact candidates_lipschitz hf _ _ } }
+      exact (candidates_lipschitz hf).dist_le_mul _ _ } }
 end
 
 /-- We will then choose the candidate minimizing the Hausdorff distance. Except that we are not
 in a metric space setting, so we need to define our custom version of Hausdorff distance,
 called HD, and prove its basic properties. -/
-def HD (f : Cb α β) := max (supr (λx:α, infi (λy:β, f (inl x, inr y))))
-                           (supr (λy:β, infi (λx:α, f (inl x, inr y))))
+def HD (f : Cb α β) := max (⨆ x, ⨅ y, f (inl x, inr y)) (⨆ y, ⨅ x, f (inl x, inr y))
 
 /- We will show that HD is continuous on bounded_continuous_functions, to deduce that its
 minimum on the compact set candidates_b is attained. Since it is defined in terms of
@@ -258,39 +257,45 @@ infimum and supremum on ℝ, which is only conditionnally complete, we will need
 to check that the defining sets are bounded below or above. This is done in the next few
 technical lemmas -/
 
-lemma HD_below_aux1 {f : Cb α β} (C : ℝ) {x : α} : bdd_below (range (λ (y : β), f (inl x, inr y) + C)) :=
+lemma HD_below_aux1 {f : Cb α β} (C : ℝ) {x : α} :
+  bdd_below (range (λ (y : β), f (inl x, inr y) + C)) :=
 let ⟨cf, hcf⟩ := (real.bounded_iff_bdd_below_bdd_above.1 bounded_range).1 in
-⟨cf + C, forall_range_iff.2 (λi, add_le_add_right ((λx, hcf (f x) (mem_range_self _)) _) _)⟩
+⟨cf + C, forall_range_iff.2 (λi, add_le_add_right ((λx, hcf (mem_range_self x)) _) _)⟩
 
-private lemma HD_bound_aux1 (f : Cb α β) (C : ℝ) : bdd_above (range (λ (x : α), infi (λy:β, f (inl x, inr y) + C))) :=
+private lemma HD_bound_aux1 (f : Cb α β) (C : ℝ) :
+  bdd_above (range (λ (x : α), ⨅ y, f (inl x, inr y) + C)) :=
 begin
   rcases (real.bounded_iff_bdd_below_bdd_above.1 bounded_range).2 with ⟨Cf, hCf⟩,
   refine ⟨Cf + C, forall_range_iff.2 (λx, _)⟩,
-  calc infi (λy:β, f (inl x, inr y) + C) ≤ f (inl x, inr (default β)) + C :
-    cinfi_le (HD_below_aux1 C)
-    ... ≤ Cf + C : add_le_add ((λx, hCf (f x) (mem_range_self _)) _) (le_refl _)
+  calc (⨅ y, f (inl x, inr y) + C) ≤ f (inl x, inr (default β)) + C :
+    cinfi_le (HD_below_aux1 C) (default β)
+    ... ≤ Cf + C : add_le_add ((λx, hCf (mem_range_self x)) _) (le_refl _)
 end
 
-lemma HD_below_aux2 {f : Cb α β} (C : ℝ) {y : β} : bdd_below (range (λ (x : α), f (inl x, inr y) + C)) :=
+lemma HD_below_aux2 {f : Cb α β} (C : ℝ) {y : β} :
+  bdd_below (range (λ (x : α), f (inl x, inr y) + C)) :=
 let ⟨cf, hcf⟩ := (real.bounded_iff_bdd_below_bdd_above.1 bounded_range).1 in
-⟨cf + C, forall_range_iff.2 (λi, add_le_add_right ((λx, hcf (f x) (mem_range_self _)) _) _)⟩
+⟨cf + C, forall_range_iff.2 (λi, add_le_add_right ((λx, hcf (mem_range_self x)) _) _)⟩
 
-private lemma HD_bound_aux2 (f : Cb α β) (C : ℝ) : bdd_above (range (λ (y : β), infi (λx:α, f (inl x, inr y) + C))) :=
+private lemma HD_bound_aux2 (f : Cb α β) (C : ℝ) :
+  bdd_above (range (λ (y : β), ⨅ x, f (inl x, inr y) + C)) :=
 begin
   rcases (real.bounded_iff_bdd_below_bdd_above.1 bounded_range).2 with ⟨Cf, hCf⟩,
   refine ⟨Cf + C, forall_range_iff.2 (λy, _)⟩,
-  calc infi (λx:α, f (inl x, inr y) + C) ≤ f (inl (default α), inr y) + C :
-    cinfi_le (HD_below_aux2 C)
-  ... ≤ Cf + C : add_le_add ((λx, hCf (f x) (mem_range_self _)) _) (le_refl _)
+  calc (⨅ x, f (inl x, inr y) + C) ≤ f (inl (default α), inr y) + C :
+    cinfi_le (HD_below_aux2 C) (default α)
+  ... ≤ Cf + C : add_le_add ((λx, hCf (mem_range_self x)) _) (le_refl _)
 end
 
 /-- Explicit bound on HD (dist). This means that when looking for minimizers it will
 be sufficient to look for functions with HD(f) bounded by this bound. -/
-lemma HD_candidates_b_dist_le : HD (candidates_b_dist α β) ≤ diam (univ : set α) + 1 + diam (univ : set β) :=
+lemma HD_candidates_b_dist_le :
+  HD (candidates_b_dist α β) ≤ diam (univ : set α) + 1 + diam (univ : set β) :=
 begin
   refine max_le (csupr_le (λx, _)) (csupr_le (λy, _)),
-  { have A : infi (λy:β, candidates_b_dist α β (inl x, inr y)) ≤ candidates_b_dist α β (inl x, inr (default β)) :=
-      cinfi_le (by simpa using HD_below_aux1 0),
+  { have A : (⨅ y, candidates_b_dist α β (inl x, inr y)) ≤
+      candidates_b_dist α β (inl x, inr (default β)) :=
+      cinfi_le (by simpa using HD_below_aux1 0) (default β),
     have B : dist (inl x) (inr (default β)) ≤ diam (univ : set α) + 1 + diam (univ : set β) := calc
       dist (inl x) (inr (default β)) = dist x (default α) + 1 + dist (default β) (default β) : rfl
       ... ≤ diam (univ : set α) + 1 + diam (univ : set β) :
@@ -300,8 +305,9 @@ begin
         exact dist_le_diam_of_mem (bounded_of_compact (compact_univ)) (mem_univ _) (mem_univ _)
       end,
     exact le_trans A B },
-  { have A : infi (λx:α, candidates_b_dist α β (inl x, inr y)) ≤ candidates_b_dist α β (inl (default α), inr y) :=
-      cinfi_le (by simpa using HD_below_aux2 0),
+  { have A : (⨅ x, candidates_b_dist α β (inl x, inr y)) ≤
+      candidates_b_dist α β (inl (default α), inr y) :=
+      cinfi_le (by simpa using HD_below_aux2 0) (default α),
     have B : dist (inl (default α)) (inr y) ≤ diam (univ : set α) + 1 + diam (univ : set β) := calc
       dist (inl (default α)) (inr y) = dist (default α) (default α) + 1 + dist (default β) y : rfl
       ... ≤ diam (univ : set α) + 1 + diam (univ : set β) :
@@ -316,71 +322,61 @@ end
 /- To check that HD is continuous, we check that it is Lipschitz. As HD is a max, we
 prove separately inequalities controlling the two terms (relying too heavily on copy-paste...) -/
 private lemma HD_lipschitz_aux1 (f g : Cb α β) :
-  supr (λx:α, infi (λy:β, f (inl x, inr y))) ≤ supr (λx:α, infi (λy:β, g (inl x, inr y))) + dist f g :=
+  (⨆ x, ⨅ y, f (inl x, inr y)) ≤ (⨆ x, ⨅ y, g (inl x, inr y)) + dist f g :=
 begin
   rcases (real.bounded_iff_bdd_below_bdd_above.1 bounded_range).1 with ⟨cg, hcg⟩,
-  have Hcg : ∀x, cg ≤ g x := λx, hcg (g x) (mem_range_self _),
+  have Hcg : ∀x, cg ≤ g x := λx, hcg (mem_range_self x),
   rcases (real.bounded_iff_bdd_below_bdd_above.1 bounded_range).1 with ⟨cf, hcf⟩,
-  have Hcf : ∀x, cf ≤ f x := λx, hcf (f x) (mem_range_self _),
+  have Hcf : ∀x, cf ≤ f x := λx, hcf (mem_range_self x),
 
   -- prove the inequality but with `dist f g` inside, by using inequalities comparing
   -- supr to supr and infi to infi
-  have Z : supr (λx:α, infi (λy:β, f (inl x, inr y))) ≤ supr (λx:α, infi (λy:β, g (inl x, inr y) + dist f g)) :=
+  have Z : (⨆ x, ⨅ y, f (inl x, inr y)) ≤ ⨆ x, ⨅ y, g (inl x, inr y) + dist f g :=
     csupr_le_csupr (HD_bound_aux1 _ (dist f g))
       (λx, cinfi_le_cinfi ⟨cf, forall_range_iff.2(λi, Hcf _)⟩ (λy, coe_le_coe_add_dist)),
   -- move the `dist f g` out of the infimum and the supremum, arguing that continuous monotone maps
   -- (here the addition of `dist f g`) preserve infimum and supremum
-  have E1 : ∀x, infi (λy:β, g (inl x, inr y)) + dist f g =
-             infi ((λz, z + dist f g) ∘ (λy:β, (g (inl x, inr y)))),
+  have E1 : ∀x, (⨅ y, g (inl x, inr y)) + dist f g = ⨅ y, g (inl x, inr y) + dist f g,
   { assume x,
-    refine cinfi_of_cinfi_of_monotone_of_continuous (_ : continuous (λ (z : ℝ), z + dist f g)) _ _,
-    { exact continuous_add continuous_id continuous_const },
+    refine map_cinfi_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _ _,
     { assume x y hx, simpa },
     { show bdd_below (range (λ (y : β), g (inl x, inr y))),
         from ⟨cg, forall_range_iff.2(λi, Hcg _)⟩ } },
-  have E2 : supr (λx:α, infi (λy:β, g (inl x, inr y))) + dist f g =
-         supr ((λz, z + dist f g) ∘ (λx:α, infi (λy:β, g (inl x, inr y)))),
-  { refine csupr_of_csupr_of_monotone_of_continuous (_ : continuous (λ (z : ℝ), z + dist f g)) _ _,
-    { exact continuous_add continuous_id continuous_const },
+  have E2 : (⨆ x, ⨅ y, g (inl x, inr y)) + dist f g = ⨆ x, (⨅ y, g (inl x, inr y)) + dist f g,
+  { refine map_csupr_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _ _,
     { assume x y hx, simpa },
     { by simpa using HD_bound_aux1 _ 0 } },
   -- deduce the result from the above two steps
-  simp only [add_comm] at Z,
   simpa [E2, E1, function.comp]
 end
 
 private lemma HD_lipschitz_aux2 (f g : Cb α β) :
-  supr (λy:β, infi (λx:α, f (inl x, inr y))) ≤ supr (λy:β, infi (λx:α, g (inl x, inr y))) + dist f g :=
+  (⨆ y, ⨅ x, f (inl x, inr y)) ≤ (⨆ y, ⨅ x, g (inl x, inr y)) + dist f g :=
 begin
   rcases (real.bounded_iff_bdd_below_bdd_above.1 bounded_range).1 with ⟨cg, hcg⟩,
-  have Hcg : ∀x, cg ≤ g x := λx, hcg (g x) (mem_range_self _),
+  have Hcg : ∀x, cg ≤ g x := λx, hcg (mem_range_self x),
   rcases (real.bounded_iff_bdd_below_bdd_above.1 bounded_range).1 with ⟨cf, hcf⟩,
-  have Hcf : ∀x, cf ≤ f x := λx, hcf (f x) (mem_range_self _),
+  have Hcf : ∀x, cf ≤ f x := λx, hcf (mem_range_self x),
 
   -- prove the inequality but with `dist f g` inside, by using inequalities comparing
   -- supr to supr and infi to infi
-  have Z : supr (λy:β, infi (λx:α, f (inl x, inr y))) ≤ supr (λy:β, infi (λx:α, g (inl x, inr y) + dist f g)) :=
+  have Z : (⨆ y, ⨅ x, f (inl x, inr y)) ≤ ⨆ y, ⨅ x, g (inl x, inr y) + dist f g :=
     csupr_le_csupr (HD_bound_aux2 _ (dist f g))
       (λy, cinfi_le_cinfi  ⟨cf, forall_range_iff.2(λi, Hcf _)⟩ (λy, coe_le_coe_add_dist)),
   -- move the `dist f g` out of the infimum and the supremum, arguing that continuous monotone maps
   -- (here the addition of `dist f g`) preserve infimum and supremum
-  have E1 : ∀y, infi (λx:α, g (inl x, inr y)) + dist f g =
-             infi ((λz, z + dist f g) ∘ (λx:α, (g (inl x, inr y)))),
+  have E1 : ∀y, (⨅ x, g (inl x, inr y)) + dist f g = ⨅ x, g (inl x, inr y) + dist f g,
   { assume y,
-    refine cinfi_of_cinfi_of_monotone_of_continuous (_ : continuous (λ (z : ℝ), z + dist f g)) _ _,
-    { exact continuous_add continuous_id continuous_const },
+    refine map_cinfi_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _ _,
     { assume x y hx, simpa },
     { show bdd_below (range (λx:α, g (inl x, inr y))),
-        from ⟨cg, forall_range_iff.2(λi, Hcg _)⟩ } },
-  have E2 : supr (λy:β, infi (λx:α, g (inl x, inr y))) + dist f g =
-         supr ((λz, z + dist f g) ∘ (λy:β, infi (λx:α, g (inl x, inr y)))),
-  { refine csupr_of_csupr_of_monotone_of_continuous (_ : continuous (λ (z : ℝ), z + dist f g)) _ _,
-    { exact continuous_add continuous_id continuous_const },
+        from ⟨cg, forall_range_iff.2 (λi, Hcg _)⟩ } },
+  have E2 : (⨆ y, ⨅ x, g (inl x, inr y)) + dist f g = ⨆ y, (⨅ x, g (inl x, inr y)) + dist f g,
+  { refine map_csupr_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _ _,
     { assume x y hx, simpa },
     { by simpa using HD_bound_aux2 _ 0 } },
   -- deduce the result from the above two steps
-  simp only [add_comm] at Z,
-  simpa [E2, E1, function.comp]
+  simpa [E2, E1]
 end
 
 private lemma HD_lipschitz_aux3 (f g : Cb α β) : HD f ≤ HD g + dist f g :=
@@ -389,19 +385,19 @@ max_le (le_trans (HD_lipschitz_aux1 f g) (add_le_add_right (le_max_left _ _) _))
 
 /-- Conclude that HD, being Lipschitz, is continuous -/
 private lemma HD_continuous : continuous (HD : Cb α β → ℝ) :=
-uniform_continuous.continuous $ uniform_continuous_of_le_add 1 $
-λf g, begin simp, exact HD_lipschitz_aux3 _ _ end
+lipschitz_with.continuous (lipschitz_with.of_le_add HD_lipschitz_aux3)
 
 end constructions --section
 
 section consequences
-variables (α : Type u) (β : Type v) [metric_space α] [compact_space α] [nonempty α] [metric_space β] [compact_space β] [nonempty β]
+variables (α : Type u) (β : Type v) [metric_space α] [compact_space α] [nonempty α] [metric_space β]
+  [compact_space β] [nonempty β]
 
 /- Now that we have proved that the set of candidates is compact, and that HD is continuous,
 we can finally select a candidate minimizing HD. This will be the candidate realizing the
 optimal coupling. -/
 private lemma exists_minimizer : ∃f ∈ candidates_b α β, ∀g ∈ candidates_b α β, HD f ≤ HD g :=
-exists_forall_le_of_compact_of_continuous _ HD_continuous _ compact_candidates_b candidates_b_ne_empty
+compact_candidates_b.exists_forall_le candidates_b_nonempty HD_continuous.continuous_on
 
 private definition optimal_GH_dist : Cb α β := classical.some (exists_minimizer α β)
 
@@ -423,12 +419,8 @@ def premetric_optimal_GH_dist : premetric_space (α ⊕ β) :=
 local attribute [instance] premetric_optimal_GH_dist premetric.dist_setoid
 
 /-- A metric space which realizes the optimal coupling between α and β -/
-@[reducible] definition optimal_GH_coupling : Type* :=
+@[derive [metric_space]] definition optimal_GH_coupling : Type* :=
 premetric.metric_quot (α ⊕ β)
-
-instance : metric_space (optimal_GH_coupling α β) := by apply_instance
-
-private lemma optimal_GH_dist.dist_eq (p q : α ⊕ β) : dist ⟦p⟧ ⟦q⟧ = (optimal_GH_dist α β).val (p, q) := rfl
 
 /-- Injection of α in the optimal coupling between α and β -/
 def optimal_GH_injl (x : α) : optimal_GH_coupling α β := ⟦inl x⟧
@@ -438,7 +430,6 @@ lemma isometry_optimal_GH_injl : isometry (optimal_GH_injl α β) :=
 begin
   refine isometry_emetric_iff_metric.2 (λx y, _),
   change dist ⟦inl x⟧ ⟦inl y⟧ = dist x y,
-  rw [optimal_GH_dist.dist_eq α β],
   exact candidates_dist_inl (optimal_GH_dist_mem_candidates_b α β) _ _,
 end
 
@@ -450,7 +441,6 @@ lemma isometry_optimal_GH_injr : isometry (optimal_GH_injr α β) :=
 begin
   refine isometry_emetric_iff_metric.2 (λx y, _),
   change dist ⟦inr x⟧ ⟦inr y⟧ = dist x y,
-  rw [optimal_GH_dist.dist_eq α β],
   exact candidates_dist_inr (optimal_GH_dist_mem_candidates_b α β) _ _,
 end
 
@@ -469,9 +459,8 @@ instance compact_space_optimal_GH_coupling : compact_space (optimal_GH_coupling 
       rw this,
       exact mem_union_right _ (mem_image_of_mem _ (mem_univ _)) } },
   rw this,
-  exact compact_union_of_compact
-    (compact_image (compact_univ) (isometry_optimal_GH_injl α β).continuous)
-    (compact_image (compact_univ) (isometry_optimal_GH_injr α β).continuous)
+  exact (compact_univ.image (isometry_optimal_GH_injl α β).continuous).union
+    (compact_univ.image (isometry_optimal_GH_injr α β).continuous)
 end⟩
 
 /-- For any candidate f, HD(f) is larger than or equal to the Hausdorff distance in the
@@ -486,13 +475,13 @@ begin
   { assume x hx,
     rcases mem_range.1 hx with ⟨z, hz⟩,
     rw ← hz,
-    have I1 : supr (λx:α, infi (λy:β, optimal_GH_dist α β (inl x, inr y))) < r :=
+    have I1 : (⨆ x, ⨅ y, optimal_GH_dist α β (inl x, inr y)) < r :=
       lt_of_le_of_lt (le_max_left _ _) hr,
-    have I2 : infi (λy:β, optimal_GH_dist α β (inl z, inr y)) ≤
-        supr (λx:α, infi (λy:β, optimal_GH_dist α β (inl x, inr y))) :=
+    have I2 : (⨅ y, optimal_GH_dist α β (inl z, inr y)) ≤
+        ⨆ x, ⨅ y, optimal_GH_dist α β (inl x, inr y) :=
       le_cSup (by simpa using HD_bound_aux1 _ 0) (mem_range_self _),
-    have I : infi (λy:β, optimal_GH_dist α β (inl z, inr y)) < r := lt_of_le_of_lt I2 I1,
-    rcases exists_lt_of_cInf_lt (by simpa) I with ⟨r', r'range, hr'⟩,
+    have I : (⨅ y, optimal_GH_dist α β (inl z, inr y)) < r := lt_of_le_of_lt I2 I1,
+    rcases exists_lt_of_cInf_lt (range_nonempty _) I with ⟨r', r'range, hr'⟩,
     rcases mem_range.1 r'range with ⟨z', hz'⟩,
     existsi [optimal_GH_injr α β z', mem_range_self _],
     have : (optimal_GH_dist α β) (inl z, inr z') ≤ r := begin rw hz', exact le_of_lt hr' end,
@@ -505,13 +494,13 @@ begin
   { assume y hy,
     rcases mem_range.1 hy with ⟨z, hz⟩,
     rw ← hz,
-    have I1 : supr (λy:β, infi (λx:α, optimal_GH_dist α β (inl x, inr y))) < r :=
+    have I1 : (⨆ y, ⨅ x, optimal_GH_dist α β (inl x, inr y)) < r :=
       lt_of_le_of_lt (le_max_right _ _) hr,
-    have I2 : infi (λx:α, optimal_GH_dist α β (inl x, inr z)) ≤
-        supr (λy:β, infi (λx:α, optimal_GH_dist α β (inl x, inr y))) :=
+    have I2 : (⨅ x, optimal_GH_dist α β (inl x, inr z)) ≤
+        ⨆ y, ⨅ x, optimal_GH_dist α β (inl x, inr y) :=
       le_cSup (by simpa using HD_bound_aux2 _ 0) (mem_range_self _),
-    have I : infi (λx:α, optimal_GH_dist α β (inl x, inr z)) < r := lt_of_le_of_lt I2 I1,
-    rcases exists_lt_of_cInf_lt (by simpa) I with ⟨r', r'range, hr'⟩,
+    have I : (⨅ x, optimal_GH_dist α β (inl x, inr z)) < r := lt_of_le_of_lt I2 I1,
+    rcases exists_lt_of_cInf_lt (range_nonempty _) I with ⟨r', r'range, hr'⟩,
     rcases mem_range.1 r'range with ⟨z', hz'⟩,
     existsi [optimal_GH_injl α β z', mem_range_self _],
     have : (optimal_GH_dist α β) (inl z', inr z) ≤ r := begin rw hz', exact le_of_lt hr' end,

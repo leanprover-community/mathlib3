@@ -4,7 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Scott Morrison
 -/
 
-import tactic.interactive tactic.finish tactic.ext tactic.lift tactic.apply tactic.reassoc_axiom
+import tactic.interactive
+import tactic.finish
+import tactic.ext
+import tactic.lift
+import tactic.apply
+import tactic.reassoc_axiom
+import tactic.tfae
+import tactic.elide
+import tactic.ring_exp
+import tactic.clear
+import tactic.simp_rw
 
 example (m n p q : nat) (h : m + n = p) : true :=
 begin
@@ -49,32 +59,6 @@ begin
   guard_hyp' h' := q ↔ p,
   trivial
 end
-
-section apply_rules
-
-example {a b c d e : nat} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
-a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
-add_le_add (add_le_add (add_le_add (add_le_add h1 (mul_le_mul_of_nonneg_right h2 h3)) h1 ) h2) h3
-
-example {a b c d e : nat} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
-a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
-by apply_rules [add_le_add, mul_le_mul_of_nonneg_right]
-
-@[user_attribute]
-meta def mono_rules : user_attribute :=
-{ name := `mono_rules,
-  descr := "lemmas usable to prove monotonicity" }
-attribute [mono_rules] add_le_add mul_le_mul_of_nonneg_right
-
-example {a b c d e : nat} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
-a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
-by apply_rules [mono_rules]
-
-example {a b c d e : nat} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
-a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
-by apply_rules mono_rules
-
-end apply_rules
 
 section h_generalize
 
@@ -129,57 +113,75 @@ end
 
 end h_generalize
 
--- section tfae
+section tfae
 
--- example (p q r s : Prop)
---   (h₀ : p ↔ q)
---   (h₁ : q ↔ r)
---   (h₂ : r ↔ s) :
---   p ↔ s :=
--- begin
---   scc,
--- end
+example (p q r s : Prop)
+  (h₀ : p ↔ q)
+  (h₁ : q ↔ r)
+  (h₂ : r ↔ s) :
+  p ↔ s :=
+begin
+  scc,
+end
 
--- example (p' p q r r' s s' : Prop)
---   (h₀ : p' → p)
---   (h₀ : p → q)
---   (h₁ : q → r)
---   (h₁ : r' → r)
---   (h₂ : r ↔ s)
---   (h₂ : s → p)
---   (h₂ : s → s') :
---   p ↔ s :=
--- begin
---   scc,
--- end
+example (p' p q r r' s s' : Prop)
+  (h₀ : p' → p)
+  (h₀ : p → q)
+  (h₁ : q → r)
+  (h₁ : r' → r)
+  (h₂ : r ↔ s)
+  (h₂ : s → p)
+  (h₂ : s → s') :
+  p ↔ s :=
+begin
+  scc,
+end
 
--- example (p' p q r r' s s' : Prop)
---   (h₀ : p' → p)
---   (h₀ : p → q)
---   (h₁ : q → r)
---   (h₁ : r' → r)
---   (h₂ : r ↔ s)
---   (h₂ : s → p)
---   (h₂ : s → s') :
---   p ↔ s :=
--- begin
---   scc',
---   assumption
--- end
+example (p' p q r r' s s' : Prop)
+  (h₀ : p' → p)
+  (h₀ : p → q)
+  (h₁ : q → r)
+  (h₁ : r' → r)
+  (h₂ : r ↔ s)
+  (h₂ : s → p)
+  (h₂ : s → s') :
+  p ↔ s :=
+begin
+  scc',
+  assumption
+end
 
--- example : tfae [true, ∀ n : ℕ, 0 ≤ n * n, true, true] := begin
---   tfae_have : 3 → 1, { intro h, constructor },
---   tfae_have : 2 → 3, { intro h, constructor },
---   tfae_have : 2 ← 1, { intros h n, apply nat.zero_le },
---   tfae_have : 4 ↔ 2, { tauto },
---   tfae_finish,
--- end
+example : tfae [true, ∀ n : ℕ, 0 ≤ n * n, true, true] := begin
+  tfae_have : 3 → 1, { intro h, constructor },
+  tfae_have : 2 → 3, { intro h, constructor },
+  tfae_have : 2 ← 1, { intros h n, apply nat.zero_le },
+  tfae_have : 4 ↔ 2, { tauto },
+  tfae_finish,
+end
 
--- example : tfae [] := begin
---   tfae_finish,
--- end
+example : tfae [] := begin
+  tfae_finish,
+end
 
--- end tfae
+variables P Q R : Prop
+
+example (pq : P → Q) (qr : Q → R) (rp : R → P) : tfae [P, Q, R] :=
+begin
+  tfae_finish
+end
+
+example (pq : P ↔ Q) (qr : Q ↔ R) : tfae [P, Q, R] :=
+begin
+  tfae_finish -- the success or failure of this tactic is nondeterministic!
+end
+
+example (p : unit → Prop) : tfae [p (), p ()] :=
+begin
+  tfae_have : 1 ↔ 2, from iff.rfl,
+  tfae_finish
+end
+
+end tfae
 
 section clear_aux_decl
 
@@ -236,7 +238,8 @@ end swap
 
 section lift
 
-example (n m k x z u : ℤ) (hn : 0 < n) (hk : 0 ≤ k + n) (hu : 0 ≤ u) (h : k + n = 2 + x) :
+example (n m k x z u : ℤ) (hn : 0 < n) (hk : 0 ≤ k + n) (hu : 0 ≤ u)
+  (h : k + n = 2 + x) (f : false) :
   k + n = m + x :=
 begin
   lift n to ℕ using le_of_lt hn,
@@ -253,7 +256,17 @@ begin
     guard_hyp w := ℕ, tactic.success_if_fail (tactic.get_local `z),
   lift u to ℕ using hu with u rfl hu,
     guard_hyp hu := (0 : ℤ) ≤ ↑u,
-  all_goals { admit }
+
+  all_goals { exfalso, assumption },
+end
+
+-- test lift of functions
+example (α : Type*) (f : α → ℤ) (hf : ∀ a, 0 ≤ f a) (hf' : ∀ a, f a < 1) (a : α) : 0 ≤ 2 * f a :=
+begin
+  lift f to α → ℕ using hf,
+    guard_target ((0:ℤ) ≤ 2 * (λ i : α, (f i : ℤ)) a),
+    guard_hyp hf' := ∀ a, ((λ i : α, (f i:ℤ)) a) < 1,
+  trivial
 end
 
 instance can_lift_unit : can_lift unit unit :=
@@ -270,6 +283,13 @@ begin
   success_if_fail_with_msg {lift (n : option ℤ) to ℕ}
     "Failed to find a lift from option ℤ to ℕ. Provide an instance of\n  can_lift (option ℤ) ℕ",
   trivial
+end
+
+example (n : ℤ) : ℕ :=
+begin
+  success_if_fail_with_msg {lift n to ℕ}
+    "lift tactic failed. Tactic is only applicable when the target is a proposition.",
+  exact 0
 end
 
 end lift
@@ -313,15 +333,15 @@ end category_theory
 section is_eta_expansion
 /- test the is_eta_expansion tactic -/
 open function tactic
-structure equiv (α : Sort*) (β : Sort*) :=
+structure my_equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 (left_inv  : left_inverse inv_fun to_fun)
 (right_inv : right_inverse inv_fun to_fun)
 
-infix ` ≃ `:25 := equiv
+infix ` my≃ `:25 := my_equiv
 
-protected def my_rfl {α} : α ≃ α :=
+protected def my_rfl {α} : α my≃ α :=
 ⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
 
 def eta_expansion_test : ℕ × ℕ := ((1,0).1,(1,0).2)
@@ -330,12 +350,12 @@ run_cmd do e ← get_env, x ← e.get `eta_expansion_test,
   let nms := [`prod.fst, `prod.snd],
   guard $ expr.is_eta_expansion_test (nms.zip v) = some `((1, 0))
 
-def eta_expansion_test2 : ℕ ≃ ℕ :=
+def eta_expansion_test2 : ℕ my≃ ℕ :=
 ⟨my_rfl.to_fun, my_rfl.inv_fun, λ x, rfl, λ x, rfl⟩
 
 run_cmd do e ← get_env, x ← e.get `eta_expansion_test2,
   let v := (x.value.get_app_args).drop 2,
-  projs ← e.get_projections `equiv,
+  projs ← e.structure_fields_full `my_equiv,
   b ← expr.is_eta_expansion_aux x.value (projs.zip v),
   guard $ b = some `(@my_rfl ℕ)
 
@@ -346,9 +366,9 @@ run_cmd do e ← get_env, x1 ← e.get `eta_expansion_test, x2 ← e.get `eta_ex
 
 structure my_str (n : ℕ) := (x y : ℕ)
 
-def dummy : my_str 3 := ⟨3, 1, 1⟩
-def wrong_param : my_str 2 := ⟨2, dummy.1, dummy.2⟩
-def right_param : my_str 3 := ⟨3, dummy.1, dummy.2⟩
+def dummy : my_str 3 := ⟨1, 1⟩
+def wrong_param : my_str 2 := ⟨dummy.1, dummy.2⟩
+def right_param : my_str 3 := ⟨dummy.1, dummy.2⟩
 
 run_cmd do e ← get_env,
   x ← e.get `wrong_param, o ← x.value.is_eta_expansion,
@@ -358,3 +378,186 @@ run_cmd do e ← get_env,
 
 
 end is_eta_expansion
+
+section elide
+
+variables {x y z w : ℕ}
+variables (h  : x + y + z ≤ w)
+          (h' : x ≤ y + z + w)
+include h h'
+
+example : x + y + z ≤ w :=
+begin
+  elide 0 at h,
+  elide 2 at h',
+  guard_hyp h := @hidden _ (x + y + z ≤ w),
+  guard_hyp h' := x ≤ @has_add.add (@hidden Type nat) (@hidden (has_add nat) nat.has_add)
+                                   (@hidden ℕ (y + z)) (@hidden ℕ w),
+  unelide at h,
+  unelide at h',
+  guard_hyp h' := x ≤ y + z + w,
+  exact h, -- there was a universe problem in `elide`. `exact h` lets the kernel check
+           -- the consistency of the universes
+end
+
+end elide
+
+section struct_eq
+
+@[ext]
+structure foo (α : Type*) :=
+(x y : ℕ)
+(z : {z // z < x})
+(k : α)
+(h : x < y)
+
+example {α : Type*} : Π (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y :=
+foo.ext
+
+example {α : Type*} : Π (x y : foo α), x = y ↔ x.x = y.x ∧ x.y = y.y ∧ x.z == y.z ∧ x.k = y.k :=
+foo.ext_iff
+
+example {α} (x y : foo α) (h : x = y) : y = x :=
+begin
+  ext,
+  { guard_target' y.x = x.x, rw h },
+  { guard_target' y.y = x.y, rw h },
+  { guard_target' y.z == x.z, rw h },
+  { guard_target' y.k = x.k, rw h },
+end
+
+end struct_eq
+
+section ring_exp
+  example (a b : ℤ) (n : ℕ) : (a + b)^(n + 2) = (a^2 + 2 * a * b + b^2) * (a + b)^n := by ring_exp
+end ring_exp
+
+section clear'
+
+example (a : ℕ) (b : fin a) : unit :=
+begin
+  success_if_fail { clear a b }, -- fails since `b` depends on `a`
+  success_if_fail { clear' a },  -- fails since `b` depends on `a`
+  clear' a b,
+  guard_hyp_nums 0,
+  exact ()
+end
+
+example (a : ℕ) : fin a → unit :=
+begin
+  success_if_fail { clear' a },          -- fails since the target depends on `a`
+  success_if_fail { clear_dependent a }, -- ditto
+  exact λ _, ()
+end
+
+example (a : unit) : unit :=
+begin
+  -- Check we fail with an error (but don't segfault) if hypotheses are repeated.
+  success_if_fail { clear' a a },
+  success_if_fail { clear_dependent a a },
+  exact ()
+end
+
+example (a a a : unit) : unit :=
+begin
+  -- If there are multiple hypotheses with the same name,
+  -- `clear'`/`clear_dependent` currently clears only the last.
+  clear' a,
+  clear_dependent a,
+  guard_hyp_nums 1,
+  exact ()
+end
+
+end clear'
+
+section clear_dependent
+
+example (a : ℕ) (b : fin a) : unit :=
+begin
+  success_if_fail { clear' a }, -- fails since `b` depends on `a`
+  clear_dependent a,
+  guard_hyp_nums 0,
+  exact ()
+end
+
+end clear_dependent
+
+section simp_rw
+  example {α β : Type} {f : α → β} {t : set β} :
+    (∀ s, f '' s ⊆ t) = ∀ s : set α, ∀ x ∈ s, x ∈ f ⁻¹' t :=
+  by simp_rw [set.image_subset_iff, set.subset_def]
+end simp_rw
+
+section local_definitions
+/- Some tactics about local definitions.
+  Testing revert_deps, revert_after, generalize', clear_value. -/
+open tactic
+example {A : ℕ → Type} {n : ℕ} : let k := n + 3, l := k + n, f : A k → A k := id in
+  ∀(x : A k) (y : A (n + k)) (z : A n) (h : k = n + n), unit :=
+begin
+  intros, guard_target unit,
+  do { e ← get_local `k, e1 ← tactic.local_def_value e, e2 ← to_expr ```(n + 3), guard $ e1 = e2 },
+  do { e ← get_local `n, success_if_fail_with_msg (tactic.local_def_value e)
+    "Variable n is not a local definition." },
+  do { success_if_fail_with_msg (tactic.local_def_value `(1 + 2))
+    "No such hypothesis 1 + 2." },
+  revert_deps k, tactic.intron 5, guard_target unit,
+  revert_after n, tactic.intron 7, guard_target unit,
+  do { e ← get_local `k, tactic.revert_deps e, l ← local_context, guard $ e ∈ l, intros },
+  exact unit.star
+end
+
+example {A : ℕ → Type} {n : ℕ} : let k := n + 3, l := k + n, f : A k → A (n+3) := id in
+  ∀(x : A k) (y : A (n + k)) (z : A n) (h : k = n + n), unit :=
+begin
+  intros,
+  success_if_fail_with_msg {generalize : n + k = x}
+    "generalize tactic failed, failed to find expression in the target",
+  generalize' : n + k = x,
+  generalize' h : n + k = y,
+  exact unit.star
+end
+
+example {A : ℕ → Type} {n : ℕ} : let k := n + 3, l := k + n, f : A k → A (n+3) := id in
+  ∀(x : A k) (y : A (n + k)) (z : A n) (h : k = n + n), unit :=
+begin
+  intros,
+  tactic.to_expr ```(n + n) >>= λ e, tactic.generalize' e `xxx,
+  success_if_fail_with_msg {clear_value n}
+    "Cannot clear the body of n. It is not a local definition.",
+  success_if_fail_with_msg {clear_value k}
+    "Cannot clear the body of k. The resulting goal is not type correct.",
+  clear_value k f,
+  exact unit.star
+end
+
+example {A : ℕ → Type} {n : ℕ} : let k := n + 3, l := k + n, f : A k → A k := id in
+  ∀(x : A k) (y : A (n + k)) (z : A n) (h : k = n + n), unit :=
+begin
+  intros,
+  clear_value k f,
+  exact unit.star
+end
+
+end local_definitions
+
+section set_attribute
+
+open tactic
+
+@[user_attribute] meta def my_user_attribute : user_attribute unit bool :=
+{ name := `my_attr,
+  descr := "",
+  parser := return ff }
+
+run_cmd do nm ← get_user_attribute_name `library_note, guard $ nm = `library_note_attr
+run_cmd do nm ← get_user_attribute_name `higher_order, guard $ nm = `tactic.higher_order_attr
+run_cmd do success_if_fail $ get_user_attribute_name `zxy.xzy
+
+run_cmd set_attribute `norm `prod.map tt
+run_cmd success_if_fail $ set_attribute `higher_order `prod.map tt
+run_cmd success_if_fail $ set_attribute `my_attr `prod.map
+run_cmd success_if_fail $ set_attribute `norm `xyz.zxy
+run_cmd success_if_fail $ set_attribute `zxy.xyz `prod.map
+
+end set_attribute

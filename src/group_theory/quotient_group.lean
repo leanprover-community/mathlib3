@@ -18,7 +18,7 @@ instance : group (quotient N) :=
 { one := (1 : G),
   mul := quotient.map₂' (*)
   (λ a₁ b₁ hab₁ a₂ b₂ hab₂,
-    ((is_subgroup.mul_mem_cancel_left N (is_subgroup.inv_mem hab₂)).1
+    ((is_subgroup.mul_mem_cancel_right N (is_subgroup.inv_mem hab₂)).1
         (by rw [mul_inv_rev, mul_inv_rev, ← mul_assoc (a₂⁻¹ * a₁⁻¹),
           mul_assoc _ b₂, ← mul_assoc b₂, mul_inv_self, one_mul, mul_assoc (a₂⁻¹)];
           exact normal_subgroup.normal _ hab₁ _))),
@@ -66,10 +66,10 @@ lemma coe_mul (a b : G) : ((a * b : G) : quotient N) = a * b := rfl
 lemma coe_inv (a : G) : ((a⁻¹ : G) : quotient N) = a⁻¹ := rfl
 
 @[simp] lemma coe_pow (a : G) (n : ℕ) : ((a ^ n : G) : quotient N) = a ^ n :=
-@is_group_hom.map_pow _ _ _ _ mk _ a n
+(monoid_hom.of mk).map_pow a n
 
 @[simp] lemma coe_gpow (a : G) (n : ℤ) : ((a ^ n : G) : quotient N) = a ^ n :=
-@is_group_hom.map_gpow _ _ _ _ mk _ a n
+(monoid_hom.of mk).map_gpow a n
 
 local notation ` Q ` := quotient N
 
@@ -111,7 +111,7 @@ instance is_group_hom_quotient_lift  :
 @[to_additive quotient_add_group.map_is_add_group_hom]
 instance map_is_group_hom (M : set H) [normal_subgroup M]
 (f : G → H) [is_group_hom f] (h : N ⊆ f ⁻¹' M) : is_group_hom (map N M f h) :=
-quotient_group.is_group_hom_quotient_lift _ _ _
+@quotient_group.is_group_hom_quotient_lift _ _ _ _ _ _ _ (is_group_hom.comp _ _) _
 
 open function is_group_hom
 
@@ -133,16 +133,16 @@ instance ker_lift_is_group_hom : is_group_hom (ker_lift φ) :=
 quotient_group.is_group_hom_quotient_lift _ _ _
 
 @[to_additive quotient_add_group.injective_ker_lift]
-lemma injective_ker_lift : injective (ker_lift φ) :=
+lemma ker_lift_injective : injective (ker_lift φ) :=
 assume a b, quotient.induction_on₂' a b $ assume a b (h : φ a = φ b), quotient.sound' $
 show a⁻¹ * b ∈ ker φ, by rw [mem_ker φ,
   is_mul_hom.map_mul φ, ← h, is_group_hom.map_inv φ, inv_mul_self]
 
 --@[to_additive quotient_add_group.quotient_ker_equiv_range]
 noncomputable def quotient_ker_equiv_range : (quotient (ker φ)) ≃ set.range φ :=
-@equiv.of_bijective _ (set.range φ) (λ x, ⟨lift (ker φ) φ
+equiv.of_bijective (λ x, ⟨lift (ker φ) φ
   (by simp [mem_ker]) x, by exact quotient.induction_on' x (λ x, ⟨x, rfl⟩)⟩)
-⟨λ a b h, injective_ker_lift _ (subtype.mk.inj h),
+⟨λ a b h, ker_lift_injective _ (subtype.mk.inj h),
   λ ⟨x, y, hy⟩, ⟨mk y, subtype.eq hy⟩⟩
 
 noncomputable def quotient_ker_equiv_of_surjective (hφ : function.surjective φ) :
@@ -159,10 +159,13 @@ variables {G : Type u} [_root_.add_group G] (N : set G) [normal_add_subgroup N] 
 variables (φ : G → H) [_root_.is_add_group_hom φ]
 
 noncomputable def quotient_ker_equiv_range : (quotient (ker φ)) ≃ set.range φ :=
-@quotient_group.quotient_ker_equiv_range (multiplicative G) _ (multiplicative H) _ φ _
+@quotient_group.quotient_ker_equiv_range (multiplicative G) _ (multiplicative H) _ φ
+  (multiplicative.is_group_hom _)
 
-noncomputable def quotient_ker_equiv_of_surjective (hφ : function.surjective φ) : (quotient (ker φ)) ≃ H :=
-@quotient_group.quotient_ker_equiv_of_surjective (multiplicative G) _ (multiplicative H) _ φ _ hφ
+noncomputable def quotient_ker_equiv_of_surjective (hφ : function.surjective φ) :
+  (quotient (ker φ)) ≃ H :=
+@quotient_group.quotient_ker_equiv_of_surjective (multiplicative G) _ (multiplicative H) _ φ
+  (multiplicative.is_group_hom _) hφ
 
 attribute [to_additive quotient_add_group.quotient_ker_equiv_range] quotient_group.quotient_ker_equiv_range
 attribute [to_additive quotient_add_group.quotient_ker_equiv_of_surjective] quotient_group.quotient_ker_equiv_of_surjective

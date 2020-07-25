@@ -5,11 +5,13 @@ Author: Robert Y. Lewis
 
 Analytic facts about polynomials.
 -/
-
-import topology.algebra.ring data.polynomial data.real.cau_seq
+import topology.algebra.ring
+import data.polynomial.div
+import data.real.cau_seq
 
 open polynomial is_absolute_value
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma polynomial.tendsto_infinity {α β : Type*} [comm_ring α] [discrete_linear_ordered_field β]
   (abv : α → β) [is_absolute_value abv] {p : polynomial α} (h : 0 < degree p) :
   ∀ x : β, ∃ r > 0, ∀ z : α, r < abv z → x < abv (p.eval z) :=
@@ -35,10 +37,10 @@ begin
     ext, show polynomial.eval x 0 = 0, from rfl },
   { intros a b f haf hb hcts,
     simp only [polynomial.eval_add],
-    refine continuous_add _ hcts,
+    refine continuous.add _ hcts,
     have : ∀ x, finsupp.sum (finsupp.single a b) (λ (e : ℕ) (a : α), a * x ^ e) = b * x ^a,
       from λ x, finsupp.sum_single_index (by simp),
-    convert continuous_mul _ _,
+    convert continuous.mul _ _,
     { ext, apply this },
     { apply_instance },
     { apply continuous_const },

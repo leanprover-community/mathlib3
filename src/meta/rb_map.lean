@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Robert Y. Lewis
 -/
 import data.option.defs
+import data.list.defs
 
 /-!
 # rb_map
@@ -14,7 +15,13 @@ and are generally the most efficient dictionary structures to use for pure metap
 -/
 
 namespace native
+
+/-! ### Declarations about `rb_set` -/
 namespace rb_set
+
+meta instance {key} [has_lt key] [decidable_rel ((<) : key → key → Prop)] :
+  inhabited (rb_set key) :=
+⟨mk_rb_set⟩
 
 /-- `filter s P` returns the subset of elements of `s` satisfying `P`. -/
 meta def filter {key} (s : rb_set key) (P : key → bool) : rb_set key :=
@@ -31,9 +38,47 @@ s.fold (pure s) (λ a m,
 meta def union {key} (s t : rb_set key) : rb_set key :=
 s.fold t (λ a t, t.insert a)
 
+/--
+`of_list_core empty l` turns a list of keys into an `rb_set`.
+It takes a user_provided `rb_set` to use for the base case.
+This can be used to pre-seed the set with additional elements,
+and/or to use a custom comparison operator.
+-/
+meta def of_list_core {key} (base : rb_set key) : list key → rb_map key unit
+| []      := base
+| (x::xs) := rb_set.insert (of_list_core xs) x
+
+/--
+`of_list l` transforms a list `l : list key` into an `rb_set`,
+inferring an order on the type `key`.
+-/
+meta def of_list {key} [has_lt key] [decidable_rel ((<) : key → key → Prop)] :
+  list key → rb_set key :=
+of_list_core mk_rb_set
+
+/--
+`sdiff s1 s2` returns the set of elements that are in `s1` but not in `s2`.
+It does so by folding over `s2`. If `s1` is significantly smaller than `s2`,
+it may be worth it to reverse the fold.
+-/
+meta def sdiff {α} (s1 s2 : rb_set α) : rb_set α :=
+s2.fold s1 $ λ v s, s.erase v
+
+/--
+`insert_list s l` inserts each element of `l` into `s`.
+-/
+meta def insert_list {key} (s : rb_set key) (l : list key) : rb_set key :=
+l.foldl rb_set.insert s
+
 end rb_set
 
+/-! ### Declarations about `rb_map` -/
+
 namespace rb_map
+
+meta instance {key data : Type} [has_lt key] [decidable_rel ((<) : key → key → Prop)] :
+  inhabited (rb_map key data) :=
+⟨mk_rb_map⟩
 
 /-- `find_def default m k` returns the value corresponding to `k` in `m`, if it exists.
 Otherwise it returns `default`. -/
@@ -92,7 +137,13 @@ end
 
 end rb_map
 
+/-! ### Declarations about `rb_lmap` -/
+
 namespace rb_lmap
+
+meta instance (key : Type) [has_lt key] [decidable_rel ((<) : key → key → Prop)] (data : Type) :
+  inhabited (rb_lmap key data) :=
+⟨rb_lmap.mk _ _⟩
 
 /-- Construct a rb_lmap from a list of key-data pairs -/
 protected meta def of_list {key : Type} {data : Type} [has_lt key]
@@ -100,10 +151,18 @@ protected meta def of_list {key : Type} {data : Type} [has_lt key]
 | []           := rb_lmap.mk key data
 | ((k, v)::ls) := (of_list ls).insert k v
 
+/-- Returns the list of values of an `rb_lmap`. -/
+protected meta def values {key data} (m : rb_lmap key data) : list data :=
+m.fold [] (λ _, (++))
+
 end rb_lmap
 end native
 
+/-! ### Declarations about `name_set` -/
+
 namespace name_set
+
+meta instance : inhabited name_set := ⟨mk_name_set⟩
 
 /-- `filter P s` returns the subset of elements of `s` satisfying `P`. -/
 meta def filter (P : name → bool) (s : name_set) : name_set :=
@@ -132,3 +191,12 @@ meta def insert_list (s : name_set) (l : list name) : name_set :=
 l.foldr (λ n s', s'.insert n) s
 
 end name_set
+
+/-! ### Declarations about `name_map` -/
+
+namespace name_map
+
+meta instance {data : Type} : inhabited (name_map data) :=
+⟨mk_name_map⟩
+
+end name_map

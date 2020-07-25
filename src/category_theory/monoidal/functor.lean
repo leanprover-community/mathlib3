@@ -18,9 +18,8 @@ section
 
 open monoidal_category
 
-variables (C : Type u₁) [category.{v₁} C] [𝒞 : monoidal_category.{v₁} C]
-          (D : Type u₂) [category.{v₂} D] [𝒟 : monoidal_category.{v₂} D]
-include 𝒞 𝒟
+variables (C : Type u₁) [category.{v₁} C] [monoidal_category.{v₁} C]
+          (D : Type u₂) [category.{v₂} D] [monoidal_category.{v₂} D]
 
 /-- A lax monoidal functor is a functor `F : C ⥤ D` between monoidal categories, equipped with morphisms
     `ε : 𝟙 _D ⟶ F.obj (𝟙_ C)` and `μ X Y : F.obj X ⊗ F.obj Y ⟶ F.obj (X ⊗ Y)`, satisfying the
@@ -86,9 +85,8 @@ open monoidal_category
 namespace monoidal_functor
 
 section
-variables {C : Type u₁} [category.{v₁} C] [𝒞 : monoidal_category.{v₁} C]
-variables {D : Type u₂} [category.{v₂} D] [𝒟 : monoidal_category.{v₂} D]
-include 𝒞 𝒟
+variables {C : Type u₁} [category.{v₁} C] [monoidal_category.{v₁} C]
+variables {D : Type u₂} [category.{v₂} D] [monoidal_category.{v₂} D]
 
 /-- The tensorator as a natural isomorphism. -/
 def μ_nat_iso (F : monoidal_functor.{v₁ v₂} C D) :
@@ -99,8 +97,7 @@ nat_iso.of_components
 end
 
 section
-variables (C : Type u₁) [category.{v₁} C] [𝒞 : monoidal_category.{v₁} C]
-include 𝒞
+variables (C : Type u₁) [category.{v₁} C] [monoidal_category.{v₁} C]
 
 /-- The identity monoidal functor. -/
 @[simps] def id : monoidal_functor.{v₁ v₁} C C :=
@@ -112,11 +109,9 @@ end
 
 end monoidal_functor
 
-variables {C : Type u₁} [category.{v₁} C] [𝒞 : monoidal_category.{v₁} C]
-variables {D : Type u₂} [category.{v₂} D] [𝒟 : monoidal_category.{v₂} D]
-variables {E : Type u₃} [category.{v₃} E] [ℰ : monoidal_category.{v₃} E]
-
-include 𝒞 𝒟 ℰ
+variables {C : Type u₁} [category.{v₁} C] [monoidal_category.{v₁} C]
+variables {D : Type u₂} [category.{v₂} D] [monoidal_category.{v₂} D]
+variables {E : Type u₃} [category.{v₃} E] [monoidal_category.{v₃} E]
 
 namespace lax_monoidal_functor
 variables (F : lax_monoidal_functor.{v₁ v₂} C D) (G : lax_monoidal_functor.{v₂ v₃} D E)

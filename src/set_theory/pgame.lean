@@ -3,9 +3,8 @@ Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Mario Carneiro, Isabel Longbottom, Scott Morrison
 -/
-import data.equiv.basic logic.embedding
+import logic.embedding
 import data.nat.cast
-import data.finset data.fintype
 
 /-!
 # Combinatorial (pre-)games.
@@ -119,8 +118,11 @@ inductive pgame : Type (u+1)
 
 namespace pgame
 
-/-- Construct a pre-game from list of pre-games describing the available moves for Left and Right. -/
--- TODO provide some API describing the interaction with `left_moves`, `right_moves`, `move_left` and `move_right` below.
+/--
+Construct a pre-game from list of pre-games describing the available moves for Left and Right.
+-/
+-- TODO provide some API describing the interaction with
+-- `left_moves`, `right_moves`, `move_left` and `move_right` below.
 -- TODO define this at the level of games, as well, and perhaps also for finsets of games.
 def of_lists (L R : list pgame.{0}) : pgame.{0} :=
 pgame.mk (fin L.length) (fin R.length) (λ i, L.nth_le i.val i.is_lt) (λ j, R.nth_le j.val j.is_lt)
@@ -181,13 +183,15 @@ meta def pgame_wf_tac :=
   [psigma.lex.left, psigma.lex.right,
    subsequent.left_move, subsequent.right_move,
    subsequent.left, subsequent.right, subsequent.trans]
-  { max_rep := 6 }]
+  { max_depth := 6 }]
 
 /-- The pre-game `zero` is defined by `0 = { | }`. -/
 instance : has_zero pgame := ⟨⟨pempty, pempty, pempty.elim, pempty.elim⟩⟩
 
 @[simp] lemma zero_left_moves : (0 : pgame).left_moves = pempty := rfl
 @[simp] lemma zero_right_moves : (0 : pgame).right_moves = pempty := rfl
+
+instance : inhabited pgame := ⟨0⟩
 
 /-- The pre-game `one` is defined by `1 = { 0 | }`. -/
 instance : has_one pgame := ⟨⟨punit, pempty, λ _, 0, pempty.elim⟩⟩
@@ -451,9 +455,11 @@ begin
      λ i, or.inr ⟨R_embedding i, le_of_restricted (R_restriction i)⟩⟩
 end
 
-/-- `relabelling x y` says that `x` and `y` are really the same game, just dressed up differently.
-  Specifically, there is a bijection between the moves for Left in `x` and in `y`, and similarly
-  for Right, and under these bijections we inductively have `relabelling`s for the consequent games. -/
+/--
+`relabelling x y` says that `x` and `y` are really the same game, just dressed up differently.
+Specifically, there is a bijection between the moves for Left in `x` and in `y`, and similarly
+for Right, and under these bijections we inductively have `relabelling`s for the consequent games.
+-/
 inductive relabelling : pgame.{u} → pgame.{u} → Type (u+1)
 | mk : Π {x y : pgame} (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves),
          (∀ (i : x.left_moves), relabelling (x.move_left i) (y.move_left (L i))) →
@@ -488,7 +494,17 @@ begin
   { intro j, simpa using (R_relabelling (R_equiv j)).symm }
 end
 
--- TODO trans for relabelling?
+/-- Transitivity of relabelling -/
+@[trans] def relabelling.trans :
+  Π {x y z : pgame}, relabelling x y → relabelling y z → relabelling x z
+| (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR)
+  (relabelling.mk L_equiv₁ R_equiv₁ L_relabelling₁ R_relabelling₁)
+  (relabelling.mk L_equiv₂ R_equiv₂ L_relabelling₂ R_relabelling₂) :=
+begin
+  refine relabelling.mk (L_equiv₁.trans L_equiv₂) (R_equiv₁.trans R_equiv₂) _ _,
+  { intro i, simpa using (L_relabelling₁ _).trans (L_relabelling₂ _) },
+  { intro j, simpa using (R_relabelling₁ _).trans (R_relabelling₂ _) },
+end
 
 theorem le_of_relabelling {x y : pgame} (r : relabelling x y) : x ≤ y :=
 le_of_restricted (restricted_of_relabelling r)
@@ -503,19 +519,23 @@ instance {x y : pgame} : has_coe (relabelling x y) (x ≈ y) := ⟨equiv_of_rela
 def relabel {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') :=
 pgame.mk xl' xr' (λ i, x.move_left (el.symm i)) (λ j, x.move_right (er.symm j))
 
-@[simp] lemma relabel_move_left {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') (i : x.left_moves) :
-  move_left (relabel el er) (el i) = x.move_left i :=
-by { dsimp [relabel], simp }
-@[simp] lemma relabel_move_left' {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') (i : xl') :
+@[simp] lemma relabel_move_left' {x : pgame} {xl' xr'}
+  (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') (i : xl') :
   move_left (relabel el er) i = x.move_left (el.symm i) :=
 rfl
+@[simp] lemma relabel_move_left {x : pgame} {xl' xr'}
+  (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') (i : x.left_moves) :
+  move_left (relabel el er) (el i) = x.move_left i :=
+by simp
 
-@[simp] lemma relabel_move_right {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') (j : x.right_moves) :
-  move_right (relabel el er) (er j) = x.move_right j :=
-by { dsimp [relabel], simp }
-@[simp] lemma relabel_move_right' {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') (j : xr') :
+@[simp] lemma relabel_move_right' {x : pgame} {xl' xr'}
+  (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') (j : xr') :
   move_right (relabel el er) j = x.move_right (er.symm j) :=
 rfl
+@[simp] lemma relabel_move_right {x : pgame} {xl' xr'}
+  (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') (j : x.right_moves) :
+  move_right (relabel el er) (er j) = x.move_right j :=
+by simp
 
 /-- The game obtained by relabelling the next moves is a relabelling of the original game. -/
 def relabel_relabelling {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') :
@@ -582,19 +602,27 @@ begin
   { intro h,
     split,
     { intro i, have t := h.right i, cases t,
-      { right, cases t, use (@right_moves_neg (yR i)).symm t_w, convert le_iff_neg_ge.1 t_h, simp },
-      { left, cases t, use t_w, exact le_iff_neg_ge.1 t_h, } },
+      { right, cases t,
+        use (@right_moves_neg (yR i)).symm t_w, convert le_iff_neg_ge.1 t_h, simp },
+      { left, cases t,
+        use t_w, exact le_iff_neg_ge.1 t_h, } },
     { intro j, have t := h.left j, cases t,
-      { right, cases t, use t_w, exact le_iff_neg_ge.1 t_h, },
-      { left, cases t, use (@left_moves_neg (xL j)).symm t_w, convert le_iff_neg_ge.1 t_h, simp, } } },
+      { right, cases t,
+        use t_w, exact le_iff_neg_ge.1 t_h, },
+      { left, cases t,
+        use (@left_moves_neg (xL j)).symm t_w, convert le_iff_neg_ge.1 t_h, simp, } } },
   { intro h,
     split,
     { intro i, have t := h.right i, cases t,
-      { right, cases t, use (@left_moves_neg (xL i)) t_w, convert le_iff_neg_ge.2 _, convert t_h, simp, },
-      { left, cases t, use t_w, exact le_iff_neg_ge.2 t_h, } },
+      { right, cases t,
+        use (@left_moves_neg (xL i)) t_w, convert le_iff_neg_ge.2 _, convert t_h, simp, },
+      { left, cases t,
+        use t_w, exact le_iff_neg_ge.2 t_h, } },
     { intro j, have t := h.left j, cases t,
-      { right, cases t, use t_w, exact le_iff_neg_ge.2 t_h, },
-      { left, cases t, use (@right_moves_neg (yR j)) t_w, convert le_iff_neg_ge.2 _, convert t_h, simp } } },
+      { right, cases t,
+        use t_w, exact le_iff_neg_ge.2 t_h, },
+      { left, cases t,
+        use (@right_moves_neg (yR j)) t_w, convert le_iff_neg_ge.2 _, convert t_h, simp } } },
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
@@ -677,28 +705,32 @@ def right_moves_add (x y : pgame) : (x + y).right_moves ≃ x.right_moves ⊕ y.
 by { cases x, cases y, refl, }
 
 @[simp] lemma mk_add_move_left_inl {xl xr yl yr} {xL xR yL yR} {i} :
-  (mk xl xr xL xR + mk yl yr yL yR).move_left (sum.inl i) = (mk xl xr xL xR).move_left i + (mk yl yr yL yR) :=
+  (mk xl xr xL xR + mk yl yr yL yR).move_left (sum.inl i) =
+    (mk xl xr xL xR).move_left i + (mk yl yr yL yR) :=
 rfl
 @[simp] lemma add_move_left_inl {x y : pgame} {i} :
   (x + y).move_left ((@left_moves_add x y).symm (sum.inl i)) = x.move_left i + y :=
 by { cases x, cases y, refl, }
 
 @[simp] lemma mk_add_move_right_inl {xl xr yl yr} {xL xR yL yR} {i} :
-  (mk xl xr xL xR + mk yl yr yL yR).move_right (sum.inl i) = (mk xl xr xL xR).move_right i + (mk yl yr yL yR) :=
+  (mk xl xr xL xR + mk yl yr yL yR).move_right (sum.inl i) =
+    (mk xl xr xL xR).move_right i + (mk yl yr yL yR) :=
 rfl
 @[simp] lemma add_move_right_inl {x y : pgame} {i} :
   (x + y).move_right ((@right_moves_add x y).symm (sum.inl i)) = x.move_right i + y :=
 by { cases x, cases y, refl, }
 
 @[simp] lemma mk_add_move_left_inr {xl xr yl yr} {xL xR yL yR} {i} :
-  (mk xl xr xL xR + mk yl yr yL yR).move_left (sum.inr i) = (mk xl xr xL xR) + (mk yl yr yL yR).move_left i :=
+  (mk xl xr xL xR + mk yl yr yL yR).move_left (sum.inr i) =
+    (mk xl xr xL xR) + (mk yl yr yL yR).move_left i :=
 rfl
 @[simp] lemma add_move_left_inr {x y : pgame} {i : y.left_moves} :
   (x + y).move_left ((@left_moves_add x y).symm (sum.inr i)) = x + y.move_left i :=
 by { cases x, cases y, refl, }
 
 @[simp] lemma mk_add_move_right_inr {xl xr yl yr} {xL xR yL yR} {i} :
-  (mk xl xr xL xR + mk yl yr yL yR).move_right (sum.inr i) = (mk xl xr xL xR) + (mk yl yr yL yR).move_right i :=
+  (mk xl xr xL xR + mk yl yr yL yR).move_right (sum.inr i) =
+    (mk xl xr xL xR) + (mk yl yr yL yR).move_right i :=
 rfl
 @[simp] lemma add_move_right_inr {x y : pgame} {i} :
   (x + y).move_right ((@right_moves_add x y).symm (sum.inr i)) = x + y.move_right i :=
@@ -725,9 +757,9 @@ le_of_relabelling (neg_add_relabelling x y)
 def add_comm_relabelling : Π (x y : pgame.{u}), relabelling (x + y) (y + x)
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
-  refine ⟨equiv.sum_comm _ _, equiv.sum_comm _ _, _, _⟩,
-  { rintros (_|_); { dsimp [left_moves_add], apply add_comm_relabelling, } },
-  { rintros (_|_); { dsimp [right_moves_add], apply add_comm_relabelling, } },
+  refine ⟨equiv.sum_comm _ _, equiv.sum_comm _ _, _, _⟩;
+  rintros (_|_);
+  { simp [left_moves_add, right_moves_add], apply add_comm_relabelling }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

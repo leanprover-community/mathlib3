@@ -3,10 +3,10 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 
-Additional equiv and encodable instances for lists and finsets.
+Additional equiv and encodable instances for lists, finsets, and fintypes.
 -/
-import data.equiv.denumerable data.nat.pairing order.order_iso
-  data.array.lemmas data.fintype
+import data.equiv.denumerable
+import data.finset.sort
 
 open nat list
 
@@ -117,6 +117,34 @@ def fintype_pi (α : Type*) (π : α → Type*) [fintype α] [decidable_eq α] [
   (@fintype_arrow α (Σa, π a) _ _ (@encodable.sigma _ _ a _)).bind $ λf,
   trunc.mk $ @encodable.of_equiv _ _ (@encodable.subtype _ _ f _) (equiv.pi_equiv_subtype_sigma α π)
 
+/-- The elements of a `fintype` as a sorted list. -/
+def sorted_univ (α) [fintype α] [encodable α] : list α :=
+finset.univ.sort (encodable.encode' α ⁻¹'o (≤))
+
+theorem mem_sorted_univ {α} [fintype α] [encodable α] (x : α) : x ∈ sorted_univ α :=
+(finset.mem_sort _).2 (finset.mem_univ _)
+
+theorem length_sorted_univ {α} [fintype α] [encodable α] :
+  (sorted_univ α).length = fintype.card α :=
+finset.length_sort _
+
+theorem sorted_univ_nodup {α} [fintype α] [encodable α] : (sorted_univ α).nodup :=
+finset.sort_nodup _ _
+
+/-- An encodable `fintype` is equivalent a `fin`.-/
+def fintype_equiv_fin {α} [fintype α] [encodable α] :
+  α ≃ fin (fintype.card α) :=
+begin
+  haveI : decidable_eq α := encodable.decidable_eq_of_encodable _,
+  transitivity,
+  { exact fintype.equiv_fin_of_forall_mem_list mem_sorted_univ (@sorted_univ_nodup α _ _) },
+  exact equiv.cast (congr_arg _ (@length_sorted_univ α _ _))
+end
+
+instance fintype_arrow_of_encodable {α β : Type*} [encodable α] [fintype α] [encodable β] :
+  encodable (α → β) :=
+of_equiv (fin (fintype.card α) → β) $ equiv.arrow_congr fintype_equiv_fin (equiv.refl _)
+
 end encodable
 
 namespace denumerable
@@ -173,7 +201,7 @@ lemma raise_lower : ∀ {l n}, list.sorted (≤) (n :: l) → raise (lower l n) 
 | []       n h := rfl
 | (m :: l) n h :=
   have n ≤ m, from list.rel_of_sorted_cons h _ (l.mem_cons_self _),
-  by simp [raise, lower, nat.add_sub_cancel' this,
+  by simp [raise, lower, nat.sub_add_cancel this,
            raise_lower (list.sorted_of_sorted_cons h)]
 
 lemma raise_chain : ∀ l n, list.chain (≤) n (raise l n)
@@ -213,7 +241,7 @@ lemma raise_lower' : ∀ {l n}, (∀ m ∈ l, n ≤ m) → list.sorted (<) l →
 | []       n h₁ h₂ := rfl
 | (m :: l) n h₁ h₂ :=
   have n ≤ m, from h₁ _ (l.mem_cons_self _),
-  by simp [raise', lower', nat.add_sub_cancel' this, raise_lower'
+  by simp [raise', lower', nat.sub_add_cancel this, raise_lower'
     (list.rel_of_sorted_cons h₂ : ∀ a ∈ l, m < a) (list.sorted_of_sorted_cons h₂)]
 
 lemma raise'_chain : ∀ l {m n}, m < n → list.chain (<) m (raise' l n)
@@ -249,7 +277,7 @@ namespace equiv
 def list_unit_equiv : list unit ≃ ℕ :=
 { to_fun := list.length,
   inv_fun := list.repeat (),
-  left_inv := λ u, list.injective_length (by simp),
+  left_inv := λ u, list.length_injective (by simp),
   right_inv := λ n, list.length_repeat () n }
 
 def list_nat_equiv_nat : list ℕ ≃ ℕ := denumerable.eqv _

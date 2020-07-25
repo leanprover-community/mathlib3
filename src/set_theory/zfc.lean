@@ -14,6 +14,18 @@ def arity (α : Type u) : nat → Type u
 | 0     := α
 | (n+1) := α → arity n
 
+namespace arity
+
+/-- Constant `n`-ary function with value `a`. -/
+def const {α : Type u} (a : α) : ∀ n, arity α n
+| 0 := a
+| (n+1) := λ _, const n
+
+instance arity.inhabited {α n} [inhabited α] : inhabited (arity α n) :=
+⟨const (default _) _⟩
+
+end arity
+
 /-- The type of pre-sets in universe `u`. A pre-set
   is a family of pre-sets indexed by a type in `Type u`.
   The ZFC universe is defined as a quotient of this
@@ -109,7 +121,7 @@ def to_set (u : pSet.{u}) : set pSet.{u} := {x | x ∈ u}
 
 /-- Two pre-sets are equivalent iff they have the same members. -/
 theorem equiv.eq {x y : pSet} : equiv x y ↔ to_set x = to_set y :=
-equiv_iff_mem.trans (set.ext_iff _ _).symm
+equiv_iff_mem.trans set.ext_iff.symm
 
 instance : has_coe pSet (set pSet) := ⟨to_set⟩
 
@@ -118,6 +130,8 @@ protected def empty : pSet := ⟨ulift empty, λe, match e with end⟩
 
 instance : has_emptyc pSet := ⟨pSet.empty⟩
 
+instance : inhabited pSet := ⟨∅⟩
+
 theorem mem_empty (x : pSet.{u}) : x ∉ (∅:pSet.{u}) := λe, match e with end
 
 /-- Insert an element into a pre-set -/
@@ -125,6 +139,10 @@ protected def insert : pSet → pSet → pSet
 | u ⟨α, A⟩ := ⟨option α, λo, option.rec u A o⟩
 
 instance : has_insert pSet pSet := ⟨pSet.insert⟩
+
+instance : has_singleton pSet pSet := ⟨λ s, insert s ∅⟩
+
+instance : is_lawful_singleton pSet pSet := ⟨λ _, rfl⟩
 
 /-- The n-th von Neumann ordinal -/
 def of_nat : ℕ → pSet
@@ -187,9 +205,16 @@ def arity.equiv : Π {n}, arity pSet.{u} n → arity pSet.{u} n → Prop
 | 0     a b := equiv a b
 | (n+1) a b := ∀ x y, equiv x y → arity.equiv (a x) (b y)
 
+lemma arity.equiv_const {a : pSet.{u}} : ∀ n, arity.equiv (arity.const a n) (arity.const a n)
+| 0 := equiv.refl _
+| (n+1) := λ x y h, arity.equiv_const _
+
 /-- `resp n` is the collection of n-ary functions on `pSet` that respect
   equivalence, i.e. when the inputs are equivalent the output is as well. -/
 def resp (n) := { x : arity pSet.{u} n // arity.equiv x x }
+
+instance resp.inhabited {n} : inhabited (resp n) :=
+⟨⟨arity.const (default _) _, arity.equiv_const _⟩⟩
 
 def resp.f {n} (f : resp (n+1)) (x : pSet) : resp n :=
 ⟨f.1 x, f.2 _ _ $ equiv.refl x⟩
@@ -226,7 +251,7 @@ def eval_aux : Π {n}, { f : resp n → arity Set.{u} n // ∀ (a b : resp n), r
 /-- An equivalence-respecting function yields an n-ary Set function. -/
 def eval (n) : resp n → arity Set.{u} n := eval_aux.1
 
-@[simp] theorem eval_val {n f x} : (@eval (n+1) f : Set → arity Set n) ⟦x⟧ = eval n (resp.f f x) := rfl
+theorem eval_val {n f x} : (@eval (n+1) f : Set → arity Set n) ⟦x⟧ = eval n (resp.f f x) := rfl
 
 end resp
 
@@ -262,7 +287,7 @@ noncomputable def all_definable : Π {n} (F : arity Set.{u} n), definable n F
       rw @quotient.sound pSet _ _ _ h,
       exact (definable.resp (F ⟦y⟧)).2 },
     exact funext (λq, quotient.induction_on q $ λx,
-      by simp [resp.f]; exact @definable.eq _ (F ⟦x⟧) (I ⟦x⟧))
+      by simp [resp.eval_val, resp.f]; exact @definable.eq _ (F ⟦x⟧) (I ⟦x⟧))
   end
 
 end classical
@@ -273,6 +298,10 @@ open pSet
 def mk : pSet → Set := quotient.mk
 
 @[simp] theorem mk_eq (x : pSet) : @eq Set ⟦x⟧ (mk x) := rfl
+
+@[simp] lemma eval_mk {n f x} :
+  (@resp.eval (n+1) f : Set → arity Set n) (mk x) = resp.eval n (resp.f f x) :=
+rfl
 
 def mem : Set → Set → Prop :=
 quotient.lift₂ pSet.mem
@@ -324,6 +353,10 @@ resp.eval 2 ⟨pSet.insert, λu v uv ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
 
 instance : has_insert Set Set := ⟨Set.insert⟩
 
+instance : has_singleton Set Set := ⟨λ x, insert x ∅⟩
+
+instance : is_lawful_singleton Set Set := ⟨λ x, rfl⟩
+
 @[simp] theorem mem_insert {x y z : Set.{u}} : x ∈ insert y z ↔ x = y ∨ x ∈ z :=
 quotient.induction_on₃ x y z
  (λx y ⟨α, A⟩, show x ∈ pSet.mk (option α) (λo, option.rec y A o) ↔
@@ -336,13 +369,11 @@ quotient.induction_on₃ x y z
   | or.inl h := ⟨none, quotient.exact h⟩
   end⟩)
 
-@[simp] theorem mem_singleton {x y : Set.{u}} : x ∈ @singleton Set.{u} Set.{u} _ _ y ↔ x = y :=
+@[simp] theorem mem_singleton {x y : Set.{u}} : x ∈ @singleton Set.{u} Set.{u} _ y ↔ x = y :=
 iff.trans mem_insert ⟨λo, or.rec (λh, h) (λn, absurd n (mem_empty _)) o, or.inl⟩
 
-@[simp] theorem mem_singleton' {x y : Set.{u}} : x ∈ @insert Set.{u} Set.{u} _ y ∅ ↔ x = y := mem_singleton
-
 @[simp] theorem mem_pair {x y z : Set.{u}} : x ∈ ({y, z} : Set) ↔ x = y ∨ x = z :=
-iff.trans mem_insert $ iff.trans or.comm $ let m := @mem_singleton x y in ⟨or.imp_left m.1, or.imp_left m.2⟩
+iff.trans mem_insert $ or_congr iff.rfl mem_singleton
 
 /-- `omega` is the first infinite von Neumann ordinal -/
 def omega : Set := mk omega
@@ -567,6 +598,7 @@ namespace Class
 instance : has_subset Class     := ⟨set.subset⟩
 instance : has_sep Set Class    := ⟨set.sep⟩
 instance : has_emptyc Class     := ⟨λ a, false⟩
+instance : inhabited Class      := ⟨∅⟩
 instance : has_insert Set Class := ⟨set.insert⟩
 instance : has_union Class      := ⟨set.union⟩
 instance : has_inter Class      := ⟨set.inter⟩
@@ -612,9 +644,9 @@ Set.ext $ λz, by change (x : Class.{u}) z ↔ (y : Class.{u}) z; simp [*]
 @[simp] theorem mem_hom_left (x : Set.{u}) (A : Class.{u}) : (x : Class.{u}) ∈ A ↔ A x :=
 to_Set_of_Set _ _
 
-@[simp] theorem mem_hom_right (x y : Set.{u}) : (y : Class.{u}) x ↔ x ∈ y := iff.refl _
+@[simp] theorem mem_hom_right (x y : Set.{u}) : (y : Class.{u}) x ↔ x ∈ y := iff.rfl
 
-@[simp] theorem subset_hom (x y : Set.{u}) : (x : Class.{u}) ⊆ y ↔ x ⊆ y := iff.refl _
+@[simp] theorem subset_hom (x y : Set.{u}) : (x : Class.{u}) ⊆ y ↔ x ⊆ y := iff.rfl
 
 @[simp] theorem sep_hom (p : Set.{u} → Prop) (x : Set.{u}) : (↑{y ∈ x | p y} : Class.{u}) = {y ∈ x | p y} :=
 set.ext $ λy, Set.mem_sep

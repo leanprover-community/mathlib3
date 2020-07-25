@@ -2,11 +2,15 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
+-/
+import tactic.core
+
+/-!
+# `def_replacer`
 
 A mechanism for defining tactics for use in auto params, whose
 meaning is defined incrementally through attributes.
 -/
-import tactic.core data.string.defs data.list.defs
 
 namespace tactic
 
@@ -89,9 +93,22 @@ let nattr := ntac <.> "attr" in do
     "It is intended for use with `auto_param`s for structure fields."
 
 open interactive lean.parser
-/-- Define a new replaceable tactic. -/
-@[user_command] meta def def_replacer_cmd (meta_info : decl_meta_info)
-  (_ : parse $ tk "def_replacer") : lean.parser unit :=
+/--
+`def_replacer foo` sets up a stub definition `foo : tactic unit`, which can
+effectively be defined and re-defined later, by tagging definitions with `@[foo]`.
+
+- `@[foo] meta def foo_1 : tactic unit := ...` replaces the current definition of `foo`.
+- `@[foo] meta def foo_2 (old : tactic unit) : tactic unit := ...` replaces the current
+  definition of `foo`, and provides access to the previous definition via `old`.
+  (The argument can also be an `option (tactic unit)`, which is provided as `none` if
+  this is the first definition tagged with `@[foo]` since `def_replacer` was invoked.)
+
+`def_replacer foo : α → β → tactic γ` allows the specification of a replacer with
+custom input and output types. In this case all subsequent redefinitions must have the
+same type, or the type `α → β → tactic γ → tactic γ` or
+`α → β → option (tactic γ) → tactic γ` analogously to the previous cases.
+ -/
+@[user_command] meta def def_replacer_cmd (_ : parse $ tk "def_replacer") : lean.parser unit :=
 do ntac ← ident,
   ty ← optional (tk ":" *> types.texpr),
   match ty with
@@ -99,9 +116,15 @@ do ntac ← ident,
   | none     := def_replacer ntac `(tactic unit)
   end
 
+add_tactic_doc
+{ name                     := "def_replacer",
+  category                 := doc_category.cmd,
+  decl_names               := [`tactic.def_replacer_cmd],
+  tags                     := ["environment", "renaming"] }
+
 meta def unprime : name → tactic name
 | nn@(name.mk_string s n) :=
-  let s' := s.over_list (list.take_while (≠ ''')) in
+  let s' := (s.split_on ''').head in
   if s'.length < s.length then pure (name.mk_string s' n)
                    else fail format!"expecting primed name: {nn}"
 | n := fail format!"invalid name: {n}"

@@ -15,33 +15,29 @@ open category_theory
 
 namespace category_theory.prod
 
-variables (C : Type u₁) [𝒞 : category.{v₁} C]
-          (D : Type u₂) [𝒟 : category.{v₂} D]
-          (E : Type u₃) [ℰ : category.{v₃} E]
-include 𝒞 𝒟 ℰ
+variables (C : Type u₁) [category.{v₁} C]
+          (D : Type u₂) [category.{v₂} D]
+          (E : Type u₃) [category.{v₃} E]
 
-def associator : ((C × D) × E) ⥤ (C × (D × E)) :=
+/--
+The associator functor `(C × D) × E ⥤ C × (D × E)`.
+-/
+-- Here and below we specify explicitly the projections to generate `@[simp]` lemmas for,
+-- as the default behaviour of `@[simps]` will generate projections all the way down to components of pairs.
+@[simps] def associator : (C × D) × E ⥤ C × (D × E) :=
 { obj := λ X, (X.1.1, (X.1.2, X.2)),
   map := λ _ _ f, (f.1.1, (f.1.2, f.2)) }
 
-@[simp] lemma associator_obj (X) :
-  (associator C D E).obj X = (X.1.1, (X.1.2, X.2)) :=
-rfl
-@[simp] lemma associator_map {X Y} (f : X ⟶ Y) :
-  (associator C D E).map f = (f.1.1, (f.1.2, f.2)) :=
-rfl
-
-def inverse_associator : (C × (D × E)) ⥤ ((C × D) × E) :=
+/--
+The inverse associator functor `C × (D × E) ⥤ (C × D) × E `.
+-/
+@[simps] def inverse_associator : C × (D × E) ⥤ (C × D) × E :=
 { obj := λ X, ((X.1, X.2.1), X.2.2),
   map := λ _ _ f, ((f.1, f.2.1), f.2.2) }
 
-@[simp] lemma inverse_associator_obj (X) :
-  (inverse_associator C D E).obj X = ((X.1, X.2.1), X.2.2) :=
-rfl
-@[simp] lemma inverse_associator_map {X Y} (f : X ⟶ Y) :
-  (inverse_associator C D E).map f = ((f.1, f.2.1), f.2.2) :=
-rfl
-
+/--
+The equivalence of categories expressing associativity of products of categories.
+-/
 def associativity : (C × D) × E ≌ C × (D × E) :=
 equivalence.mk (associator C D E) (inverse_associator C D E)
   (nat_iso.of_components (λ X, eq_to_iso (by simp)) (by tidy))

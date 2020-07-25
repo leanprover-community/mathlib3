@@ -2,7 +2,6 @@
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-
 import topology.category.Top.basic
 import measure_theory.giry_monad
 import category_theory.monad.algebra
@@ -29,7 +28,8 @@ noncomputable theory
 open category_theory measure_theory
 universes u v
 
-@[reducible] def Meas : Type (u+1) := bundled measurable_space
+@[derive has_coe_to_sort]
+def Meas : Type (u+1) := bundled measurable_space
 
 namespace Meas
 
@@ -39,6 +39,10 @@ instance (X : Meas) : measurable_space X := X.str
 def of (α : Type u) [measurable_space α] : Meas := ⟨α⟩
 
 instance unbundled_hom : unbundled_hom @measurable := ⟨@measurable_id, @measurable.comp⟩
+
+attribute [derive [large_category, concrete_category]] Meas
+
+instance : inhabited Meas := ⟨Meas.of empty⟩
 
 /-- `Measure X` is the measurable space of measures over the measurable space `X`. It is the
 weakest measurable space, s.t. λμ, μ s is measurable for all measurable sets `s` in `X`. An
@@ -51,7 +55,7 @@ the restriction of `Measure` to (sub-)probability space.)
 -/
 def Measure : Meas ⥤ Meas :=
 { obj      := λX, ⟨@measure_theory.measure X.1 X.2⟩,
-  map      := λX Y f, ⟨measure.map f, measure.measurable_map f f.2⟩,
+  map      := λX Y f, ⟨measure.map (f : X → Y), measure.measurable_map f f.2⟩,
   map_id'  := assume ⟨α, I⟩, subtype.eq $ funext $ assume μ, @measure.map_id α I μ,
   map_comp':=
     assume X Y Z ⟨f, hf⟩ ⟨g, hg⟩, subtype.eq $ funext $ assume μ, (measure.map_map hg hf).symm }
@@ -74,22 +78,19 @@ instance : category_theory.monad Measure.{u} :=
 nicely under the monad operations. -/
 def Integral : monad.algebra Measure :=
 { A      := Meas.of ennreal ,
-  a      := ⟨ λm:measure ennreal, m.integral id, measure.measurable_integral _ measurable_id ⟩,
-  unit'  := subtype.eq $ funext $ assume r:ennreal, measure.integral_dirac _ measurable_id,
+  a      := ⟨λm:measure ennreal, ∫⁻ x, x ∂m, measure.measurable_lintegral measurable_id ⟩,
+  unit'  := subtype.eq $ funext $ assume r:ennreal, lintegral_dirac _ measurable_id,
   assoc' := subtype.eq $ funext $ assume μ : measure (measure ennreal),
-    show μ.join.integral id = measure.integral (μ.map (λm:measure ennreal, m.integral id)) id, from
-    begin
-      rw [measure.integral_join measurable_id, measure.integral_map measurable_id],
-      refl,
-      exact measure.measurable_integral _ measurable_id
-    end }
+    show ∫⁻ x, x ∂ μ.join = ∫⁻ x, x ∂ (measure.map (λm:measure ennreal, ∫⁻ x, x ∂m) μ),
+    by rw [measure.lintegral_join, lintegral_map];
+      apply_rules [measurable_id, measure.measurable_lintegral] }
 
 end Meas
 
 instance Top.has_forget_to_Meas : has_forget₂ Top.{u} Meas.{u} :=
 bundled_hom.mk_has_forget₂
-  @measure_theory.borel
-  (λ X Y f, ⟨f.1, measure_theory.measurable_of_continuous f.2⟩)
+  borel
+  (λ X Y f, ⟨f.1, f.2.borel_measurable⟩)
   (by intros; refl)
 
 /-- The Borel functor, the canonical embedding of topological spaces into measurable spaces. -/

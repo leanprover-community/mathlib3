@@ -2,10 +2,8 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johan Commelin
-
-Various multiplicative and additive structures.
 -/
-import algebra.group.to_additive algebra.group.basic algebra.group.hom
+import algebra.ring.basic
 
 universes u v
 variable {α : Type u}
@@ -20,6 +18,12 @@ instance : monad with_one := option.monad
 
 @[to_additive]
 instance : has_one (with_one α) := ⟨none⟩
+
+@[to_additive]
+instance : inhabited (with_one α) := ⟨1⟩
+
+@[to_additive]
+instance [nonempty α] : nontrivial (with_one α) := option.nontrivial
 
 @[to_additive]
 instance : has_coe_t α (with_one α) := ⟨some⟩
@@ -53,9 +57,6 @@ instance [has_mul α] : has_mul (with_one α) :=
 @[simp, to_additive]
 lemma mul_coe [has_mul α] (a b : α) : (a : with_one α) * b = (a * b : α) := rfl
 
-@[to_additive]
-instance coe_is_mul_hom [has_mul α] : is_mul_hom (coe : α → with_one α) := { map_mul := λ a b, rfl }
-
 @[to_additive add_monoid]
 instance [semigroup α] : monoid (with_one α) :=
 { mul_assoc := (option.lift_or_get_assoc _).1,
@@ -71,49 +72,43 @@ instance [comm_semigroup α] : comm_monoid (with_one α) :=
 
 section lift
 
-@[to_additive]
-def lift {β : Type v} [has_one β] (f : α → β) : (with_one α) → β := λ x, option.cases_on x 1 f
+variables [semigroup α] {β : Type v} [monoid β]
 
-variables [ha : semigroup α] {β : Type v} [monoid β] (f : α → β)
+/-- Lift a semigroup homomorphism `f` to a bundled monoid homorphism.
+We have no bundled semigroup homomorphisms, so this function
+takes `∀ x y, f (x * y) = f x * f y` as an explicit argument. -/
+@[to_additive]
+def lift (f : α → β) (hf : ∀ x y, f (x * y) = f x * f y) :
+  (with_one α) →* β :=
+{ to_fun := λ x, option.cases_on x 1 f,
+  map_one' := rfl,
+  map_mul' := λ x y,
+    with_one.cases_on x (by { rw one_mul, exact (one_mul _).symm }) $ λ x,
+    with_one.cases_on y (by { rw mul_one, exact (mul_one _).symm }) $ λ y,
+    hf x y }
+
+variables (f : α → β) (hf : ∀ x y, f (x * y) = f x * f y)
 
 @[simp, to_additive]
-lemma lift_coe (x : α) : lift f x = f x := rfl
+lemma lift_coe (x : α) : lift f hf x = f x := rfl
 
 @[simp, to_additive]
-lemma lift_one : lift f 1 = 1 := rfl
+lemma lift_one : lift f hf 1 = 1 := rfl
 
 @[to_additive]
-theorem lift_unique (f : with_one α → β) (hf : f 1 = 1) :
-  f = lift (f ∘ coe) :=
-funext $ λ x, with_one.cases_on x hf $ λ x, rfl
-
-include ha
-
-@[to_additive lift_is_add_monoid_hom]
-instance lift_is_monoid_hom [hf : is_mul_hom f] : is_monoid_hom (lift f) :=
-{ map_one := lift_one f,
-  map_mul := λ x y,
-    with_one.cases_on x (by rw [one_mul, lift_one, one_mul]) $ λ x,
-    with_one.cases_on y (by rw [mul_one, lift_one, mul_one]) $ λ y,
-    @is_mul_hom.map_mul α β _ _ f hf x y }
+theorem lift_unique (f : with_one α →* β) : f = lift (f ∘ coe) (λ x y, f.map_mul x y) :=
+monoid_hom.ext $ λ x, with_one.cases_on x f.map_one $ λ x, rfl
 
 end lift
 
 section map
 
-@[to_additive]
-def map {β : Type v} (f : α → β) : with_one α → with_one β := option.map f
+variables {β : Type v} [semigroup α] [semigroup β]
 
 @[to_additive]
-lemma map_eq {β : Type v} (f : α → β) : map f = lift (coe ∘ f) :=
-funext $ assume x,
-@with_one.cases_on α (λ x, map f x = lift (coe ∘ f) x) x rfl (λ a, rfl)
-
-variables [semigroup α] {β : Type v} [semigroup β] (f : α → β) [is_mul_hom f]
-
-@[to_additive map_is_add_monoid_hom]
-instance map_is_monoid_hom : is_monoid_hom (map f) :=
-by rw map_eq; apply with_one.lift_is_monoid_hom
+def map (f : α → β) (hf : ∀ x y, f (x * y) = f x * f y) :
+  with_one α →* with_one β :=
+lift (coe ∘ f) (λ x y, coe_inj.2 $ hf x y)
 
 end map
 
@@ -124,15 +119,10 @@ namespace with_zero
 instance [one : has_one α] : has_one (with_zero α) :=
 { ..one }
 
-instance [has_one α] : zero_ne_one_class (with_zero α) :=
-{ zero_ne_one := λ h, option.no_confusion h,
-  ..with_zero.has_zero,
-  ..with_zero.has_one }
-
 lemma coe_one [has_one α] : ((1 : α) : with_zero α) = 1 := rfl
 
 instance [has_mul α] : mul_zero_class (with_zero α) :=
-{ mul       := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a * b)),
+{ mul       := λ o₁ o₂, o₁.bind (λ a, option.map (λ b, a * b) o₂),
   zero_mul  := λ a, rfl,
   mul_zero  := λ a, by cases a; refl,
   ..with_zero.has_zero }
@@ -157,7 +147,7 @@ instance [comm_semigroup α] : comm_semigroup (with_zero α) :=
     end,
   ..with_zero.semigroup }
 
-instance [monoid α] : monoid (with_zero α) :=
+instance [monoid α] : monoid_with_zero (with_zero α) :=
 { one_mul := λ a, match a with
     | none   := rfl
     | some a := congr_arg some $ one_mul _
@@ -166,11 +156,12 @@ instance [monoid α] : monoid (with_zero α) :=
     | none   := rfl
     | some a := congr_arg some $ mul_one _
     end,
-  ..with_zero.zero_ne_one_class,
+  ..with_zero.mul_zero_class,
+  ..with_zero.has_one,
   ..with_zero.semigroup }
 
-instance [comm_monoid α] : comm_monoid (with_zero α) :=
-{ ..with_zero.monoid, ..with_zero.comm_semigroup }
+instance [comm_monoid α] : comm_monoid_with_zero (with_zero α) :=
+{ ..with_zero.monoid_with_zero, ..with_zero.comm_semigroup }
 
 definition inv [has_inv α] (x : with_zero α) : with_zero α :=
 do a ← x, return a⁻¹
@@ -251,5 +242,25 @@ begin
 end
 
 end comm_group
+
+section semiring
+
+instance [semiring α] : semiring (with_zero α) :=
+{ left_distrib := λ a b c, begin
+    cases a with a, {refl},
+    cases b with b; cases c with c; try {refl},
+    exact congr_arg some (left_distrib _ _ _)
+  end,
+  right_distrib := λ a b c, begin
+    cases c with c,
+    { change (a + b) * 0 = a * 0 + b * 0, simp },
+    cases a with a; cases b with b; try {refl},
+    exact congr_arg some (right_distrib _ _ _)
+  end,
+  ..with_zero.add_comm_monoid,
+  ..with_zero.mul_zero_class,
+  ..with_zero.monoid_with_zero }
+
+end semiring
 
 end with_zero

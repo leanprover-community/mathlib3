@@ -88,10 +88,9 @@ begin
   -- The strategy is to show that the exceptional locus in nonempty
   -- by running a descent argument that starts with the given point p = (x,y).
   -- Our assumptions ensure that we can then prove the claim.
-  suffices exc : exceptional ≠ ∅,
+  suffices exc : exceptional.nonempty,
   { -- Suppose that there exists an element in the exceptional locus.
-    rw set.ne_empty_iff_exists_mem at exc,
-    simp [exceptional, -add_comm] at exc,
+    simp [exceptional, -add_comm, set.nonempty] at exc,
     -- Let (a,b) be such an element, and consider all the possible cases.
     rcases exc with ⟨a, b, hH, hb⟩, rcases hb with _|rfl|rfl|hB|hB,
     -- The first three cases are rather easy to solve.
@@ -112,20 +111,20 @@ begin
       solve_by_elim } },
   -- To finish the main proof, we need to show that the exceptional locus is nonempty.
   -- So we assume that the exceptional locus is empty, and work towards dering a contradiction.
+  rw ← set.ne_empty_iff_nonempty,
   assume exceptional_empty,
   -- Observe that S is nonempty.
-  have S_ne_empty : S ≠ ∅,
-  { rw set.ne_empty_iff_exists_mem,
-    -- It contains the image of p.
+  have S_nonempty : S.nonempty,
+  { -- It contains the image of p.
     use p.2,
     apply set.mem_image_of_mem,
     -- After all, we assumed that the exceptional locus is empty.
     rwa [exceptional_empty, set.diff_empty], },
   -- We are now set for an infinite descent argument.
   -- Let m be the smallest element of the nonempty set S.
-  let  m     : ℕ                := well_founded.min     nat.lt_wf S S_ne_empty,
-  have m_mem : m ∈ S            := well_founded.min_mem nat.lt_wf S S_ne_empty,
-  have m_min : ∀ k ∈ S, ¬ k < m := λ k hk, well_founded.not_lt_min nat.lt_wf S S_ne_empty hk,
+  let  m     : ℕ                := well_founded.min     nat.lt_wf S S_nonempty,
+  have m_mem : m ∈ S            := well_founded.min_mem nat.lt_wf S S_nonempty,
+  have m_min : ∀ k ∈ S, ¬ k < m := λ k hk, well_founded.not_lt_min nat.lt_wf S S_nonempty hk,
   -- It suffices to show that there is point (a,b) with b ∈ S and b < m.
   suffices hp' : ∃ p' : ℕ × ℕ, p'.2 ∈ S ∧ p'.2 < m,
   { rcases hp' with ⟨p', p'_mem, p'_small⟩, solve_by_elim },
@@ -191,7 +190,7 @@ begin
   simp only [nat.pow_two] at hk,
   apply constant_descent_vieta_jumping a b hk (λ x, k * x) (λ x, x*x - k) (λ x y, false);
   clear hk a b,
-  { -- We will now show that the fibres of the solution set are described by a quadratic equation.
+  { -- We will now show that the fibers of the solution set are described by a quadratic equation.
     intros x y, dsimp only,
     rw [← int.coe_nat_inj', ← sub_eq_zero],
     apply eq_iff_eq_cancel_right.2,
@@ -213,7 +212,7 @@ begin
     apply ne_of_lt,
     calc x*x + x*x = x*x * 2       : by rw mul_two
                ... ≤ x*x * k       : nat.mul_le_mul_left (x*x) k_lt_one
-               ... < (x*x + 1) * k : by apply mul_lt_mul; linarith },
+               ... < (x*x + 1) * k : by linarith },
   { -- Show the descent step.
     intros x y hx x_lt_y hxky h z h_root hV₁ hV₀,
     split,
@@ -224,7 +223,7 @@ begin
         { apply mul_pos; exact_mod_cast hx }, },
       have hzx : z*z + x*x = (z * x + 1) * k,
       { rw [← sub_eq_zero, ← h_root],
-        simp, ring, },
+        ring, },
       rw hzx at hpos,
       replace hpos : z * x + 1 > 0 := pos_of_mul_pos_right hpos (int.coe_zero_le k),
       replace hpos : z * x ≥ 0 := int.le_of_lt_add_one hpos,
@@ -250,13 +249,13 @@ begin
   simp only [nat.pow_two] at hk,
   apply constant_descent_vieta_jumping a b hk (λ x, k * x) (λ x, x*x + 1) (λ x y, x ≤ 1);
   clear hk a b,
-  { -- We will now show that the fibres of the solution set are described by a quadratic equation.
+  { -- We will now show that the fibers of the solution set are described by a quadratic equation.
     intros x y, dsimp only,
     rw [← int.coe_nat_inj', ← sub_eq_zero],
     apply eq_iff_eq_cancel_right.2,
     simp, ring, },
   { -- Show that the solution set is symmetric in a and b.
-    intros x y, simp [mul_comm], },
+    cc },
   { -- Show that the claim is true if b = 0.
     simp },
   { -- Show that the claim is true if a = b.
@@ -292,5 +291,5 @@ begin
       have y_dvd : y ∣ y * k := dvd_mul_right y k,
       rw [← h, ← add_assoc, nat.dvd_add_left (dvd_mul_left y y)] at y_dvd,
       obtain rfl|rfl : y = 1 ∨ y = 2 := nat.prime_two.2 y y_dvd,
-      all_goals {omega} } }
+      all_goals { ring at h, omega } } }
 end

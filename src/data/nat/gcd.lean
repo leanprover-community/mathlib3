@@ -28,6 +28,10 @@ theorem dvd_gcd {m n k : ℕ} : k ∣ m → k ∣ n → k ∣ gcd m n :=
 gcd.induction m n (λn _ kn, by rw gcd_zero_left; exact kn)
   (λn m mpos IH H1 H2, by rw gcd_rec; exact IH ((dvd_mod_iff H1).2 H2) H1)
 
+theorem dvd_gcd_iff {m n k : ℕ} : k ∣ gcd m n ↔ k ∣ m ∧ k ∣ n :=
+iff.intro (λ h, ⟨dvd_trans h (gcd_dvd m n).left, dvd_trans h (gcd_dvd m n).right⟩)
+          (λ h, dvd_gcd h.left h.right)
+
 theorem gcd_comm (m n : ℕ) : gcd m n = gcd n m :=
 dvd_antisymm
   (dvd_gcd (gcd_dvd_right m n) (gcd_dvd_left m n))
@@ -262,6 +266,20 @@ H.coprime_dvd_right (dvd_mul_left _ _)
 theorem coprime.coprime_mul_right_right {k m n : ℕ} (H : coprime m (n * k)) : coprime m n :=
 H.coprime_dvd_right (dvd_mul_right _ _)
 
+theorem coprime.coprime_div_left {m n a : ℕ} (cmn : coprime m n) (dvd : a ∣ m) : coprime (m / a) n :=
+begin
+  by_cases a_split : (a = 0),
+  { subst a_split,
+    rw zero_dvd_iff at dvd,
+    simpa [dvd] using cmn, },
+  { rcases dvd with ⟨k, rfl⟩,
+    rw nat.mul_div_cancel_left _ (nat.pos_of_ne_zero a_split),
+    exact coprime.coprime_mul_left cmn, },
+end
+
+theorem coprime.coprime_div_right {m n a : ℕ} (cmn : coprime m n) (dvd : a ∣ n) : coprime m (n / a) :=
+(coprime.coprime_div_left cmn.symm dvd).symm
+
 lemma coprime_mul_iff_left {k m n : ℕ} : coprime (m * n) k ↔ coprime m k ∧ coprime n k :=
 ⟨λ h, ⟨coprime.coprime_mul_right h, coprime.coprime_mul_left h⟩,
   λ ⟨h, _⟩, by rwa [coprime, coprime.gcd_mul_left_cancel n h]⟩
@@ -322,8 +340,8 @@ case nat.zero {
   have : k = 0 := eq_zero_of_gcd_eq_zero_left h0, subst this,
   have : m = 0 := eq_zero_of_gcd_eq_zero_right h0, subst this,
   exact ⟨⟨⟨0, dvd_refl 0⟩, ⟨n, dvd_refl n⟩⟩, (zero_mul n).symm⟩ },
-case nat.succ : tmp hpos {
-  replace hpos : 0 < gcd k m := hpos.symm ▸ nat.zero_lt_succ _; clear tmp,
+case nat.succ : tmp {
+  have hpos : 0 < gcd k m := h0.symm ▸ nat.zero_lt_succ _; clear h0 tmp,
   have hd : gcd k m * (k / gcd k m) = k := (nat.mul_div_cancel' (gcd_dvd_left k m)),
   refine ⟨⟨⟨gcd k m,  gcd_dvd_right k m⟩, ⟨k / gcd k m, _⟩⟩, hd.symm⟩,
   apply dvd_of_mul_dvd_mul_left hpos,

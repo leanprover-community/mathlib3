@@ -3,8 +3,8 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-
-import category_theory.isomorphism data.equiv.basic category_theory.endomorphism algebra.group_power
+import category_theory.endomorphism
+import algebra.group_power
 
 /-!
 # Conjugate morphisms by isomorphisms
@@ -22,10 +22,9 @@ namespace category_theory
 
 namespace iso
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
-/- If `X` is isomorphic to `X₁` and `Y` is isomorphic to `Y₁`, then
+/-- If `X` is isomorphic to `X₁` and `Y` is isomorphic to `Y₁`, then
 there is a natural bijection between `X ⟶ Y` and `X₁ ⟶ Y₁`. See also `equiv.arrow_congr`. -/
 def hom_congr {X Y X₁ Y₁ : C} (α : X ≅ X₁) (β : Y ≅ Y₁) :
   (X ⟶ Y) ≃ (X₁ ⟶ Y₁) :=
@@ -69,12 +68,12 @@ def conj : End X ≃* End Y :=
 lemma conj_apply (f : End X) : α.conj f = α.inv ≫ f ≫ α.hom := rfl
 
 @[simp] lemma conj_comp (f g : End X) : α.conj (f ≫ g) = (α.conj f) ≫ (α.conj g) :=
-is_mul_hom.map_mul α.conj g f
+α.conj.map_mul g f
 
 @[simp] lemma conj_id : α.conj (𝟙 X) = 𝟙 Y :=
-is_monoid_hom.map_one α.conj
+α.conj.map_one
 
-@[simp] lemma refl_conj (f : End X) : (@iso.refl C 𝒞 X).conj f = f :=
+@[simp] lemma refl_conj (f : End X) : (iso.refl X).conj f = f :=
 by rw [conj_apply, iso.refl_inv, iso.refl_hom, category.id_comp, category.comp_id]
 
 @[simp] lemma trans_conj {Z : C} (β : Y ≅ Z) (f : End X) : (α ≪≫ β).conj f = β.conj (α.conj f) :=
@@ -87,13 +86,13 @@ by rw [← trans_conj, α.self_symm_id, refl_conj]
 α.symm.symm_self_conj f
 
 @[simp] lemma conj_pow (f : End X) (n : ℕ) : α.conj (f^n) = (α.conj f)^n :=
-is_monoid_hom.map_pow α.conj f n
+α.conj.to_monoid_hom.map_pow f n
 
 /-- `conj` defines a group isomorphisms between groups of automorphisms -/
 def conj_Aut : Aut X ≃* Aut Y :=
-(Aut.units_End_eqv_Aut X).symm.trans $
+(Aut.units_End_equiv_Aut X).symm.trans $
 (units.map_equiv α.conj).trans $
-Aut.units_End_eqv_Aut Y
+Aut.units_End_equiv_Aut Y
 
 lemma conj_Aut_apply (f : Aut X) : α.conj_Aut f = α.symm ≪≫ f ≪≫ α :=
 by cases f; cases α; ext; refl
@@ -105,16 +104,16 @@ by cases f; cases α; ext; refl
 by simp only [conj_Aut_apply, iso.trans_symm, iso.trans_assoc]
 
 @[simp] lemma conj_Aut_mul (f g : Aut X) : α.conj_Aut (f * g) = α.conj_Aut f * α.conj_Aut g :=
-is_mul_hom.map_mul α.conj_Aut f g
+α.conj_Aut.map_mul f g
 
 @[simp] lemma conj_Aut_trans (f g : Aut X) : α.conj_Aut (f ≪≫ g) = α.conj_Aut f ≪≫ α.conj_Aut g :=
 conj_Aut_mul α g f
 
 @[simp] lemma conj_Aut_pow (f : Aut X) (n : ℕ) : α.conj_Aut (f^n) = (α.conj_Aut f)^n :=
-is_monoid_hom.map_pow α.conj_Aut f n
+α.conj_Aut.to_monoid_hom.map_pow f n
 
 @[simp] lemma conj_Aut_gpow (f : Aut X) (n : ℤ) : α.conj_Aut (f^n) = (α.conj_Aut f)^n :=
-is_group_hom.map_gpow α.conj_Aut f n
+α.conj_Aut.to_monoid_hom.map_gpow f n
 
 end iso
 
@@ -122,8 +121,7 @@ namespace functor
 
 universes v₁ u₁
 
-variables {C : Type u} [𝒞 : category.{v} C] {D : Type u₁} [𝒟 : category.{v₁} D] (F : C ⥤ D)
-include 𝒞 𝒟
+variables {C : Type u} [category.{v} C] {D : Type u₁} [category.{v₁} D] (F : C ⥤ D)
 
 lemma map_hom_congr {X Y X₁ Y₁ : C} (α : X ≅ X₁) (β : Y ≅ Y₁) (f : X ⟶ Y) :
   F.map (iso.hom_congr α β f) = iso.hom_congr (F.map_iso α) (F.map_iso β) (F.map f) :=

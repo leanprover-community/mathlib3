@@ -736,29 +736,18 @@ instance {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A] (S : sub
 instance : inhabited S := ⟨0⟩
 instance (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
   [algebra R A] (S : subalgebra R A) : semiring S := subsemiring.to_semiring S
-instance semiring' (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
-  [algebra R A] (S : subalgebra R A) : semiring (S : set A) := subsemiring.to_semiring S
 instance (R : Type u) (A : Type v) [comm_semiring R] [comm_semiring A]
   [algebra R A] (S : subalgebra R A) : comm_semiring S := subsemiring.to_comm_semiring S
-instance comm_semiring' (R : Type u) (A : Type v) [comm_semiring R] [comm_semiring A]
-  [algebra R A] (S : subalgebra R A) : comm_semiring (S : set A) := subsemiring.to_comm_semiring S
 instance (R : Type u) (A : Type v) [comm_ring R] [ring A]
   [algebra R A] (S : subalgebra R A) : ring S := @@subtype.ring _ S.is_subring
-instance ring' (R : Type u) (A : Type v) [comm_ring R] [ring A]
-  [algebra R A] (S : subalgebra R A) : ring (S : set A) := @@subtype.ring _ S.is_subring
 instance (R : Type u) (A : Type v) [comm_ring R] [comm_ring A]
   [algebra R A] (S : subalgebra R A) : comm_ring S := @@subtype.comm_ring _ S.is_subring
-instance comm_ring' (R : Type u) (A : Type v) [comm_ring R] [comm_ring A]
-  [algebra R A] (S : subalgebra R A) : comm_ring (S : set A) := @@subtype.comm_ring _ S.is_subring
 
 instance algebra : algebra R S :=
 { smul := λ (c:R) x, ⟨c • x.1, S.smul_mem x.2 c⟩,
   commutes' := λ c x, subtype.eq $ algebra.commutes _ _,
   smul_def' := λ c x, subtype.eq $ algebra.smul_def _ _,
   .. (algebra_map R A).cod_srestrict S $ λ x, S.range_le ⟨x, rfl⟩ }
-
-instance algebra' : algebra R (S : set A) :=
-subalgebra.algebra S
 
 instance to_algebra {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
   [algebra R A] (S : subalgebra R A) : algebra S A :=

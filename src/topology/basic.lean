@@ -426,22 +426,27 @@ end
 ### Neighborhoods
 -/
 
-/-- neighbourhood filter -/
+/-- The neighborhoods of a point `a` are the sets which include an open set containing `a`. These
+sets form a filter. -/
 def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s)
 
 localized "notation `𝓝` := nhds" in topological_space
 
 lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s) := rfl
 
+/-- The open sets containing `a` are a basis for the neighborhood filter. -/
 lemma nhds_basis_opens (a : α) : (𝓝 a).has_basis (λ s : set α, a ∈ s ∧ is_open s) (λ x, x) :=
 has_basis_binfi_principal
   (λ s ⟨has, hs⟩ t ⟨hat, ht⟩, ⟨s ∩ t, ⟨⟨has, hat⟩, is_open_inter hs ht⟩,
     ⟨inter_subset_left _ _, inter_subset_right _ _⟩⟩)
   ⟨univ, ⟨mem_univ a, is_open_univ⟩⟩
 
+/-- A filter includes the neighborhoods of `a` iff it includes the open sets containing `a`. -/
 lemma le_nhds_iff {f a} : f ≤ 𝓝 a ↔ ∀ s : set α, a ∈ s → is_open s → s ∈ f :=
 by simp [nhds_def]
 
+/-- A filter is included in the neighborhood filter if it is included in one of the principal
+filters that comprise it. -/
 lemma nhds_le_of_le {f a} {s : set α} (h : a ∈ s) (o : is_open s) (sf : 𝓟 s ≤ f) : 𝓝 a ≤ f :=
 by rw nhds_def; exact infi_le_of_le s (infi_le_of_le ⟨h, o⟩ sf)
 
@@ -450,6 +455,8 @@ lemma mem_nhds_sets_iff {a : α} {s : set α} :
 (nhds_basis_opens a).mem_iff.trans
   ⟨λ ⟨t, ⟨hat, ht⟩, hts⟩, ⟨t, hts, ht, hat⟩, λ ⟨t, hts, ht, hat⟩, ⟨t, ⟨hat, ht⟩, hts⟩⟩
 
+/-- A predicate is true in a neighborhood of `a` iff it is true for all the points in an open set
+containing `a`. -/
 lemma eventually_nhds_iff {a : α} {p : α → Prop} :
   (∀ᶠ x in 𝓝 a, p x) ↔ ∃ (t : set α), (∀ x ∈ t, p x) ∧ is_open t ∧ a ∈ t :=
 mem_nhds_sets_iff.trans $ by simp only [subset_def, exists_prop, mem_set_of_eq]
@@ -463,6 +470,7 @@ attribute [irreducible] nhds
 lemma mem_of_nhds {a : α} {s : set α} : s ∈ 𝓝 a → a ∈ s :=
 λ H, let ⟨t, ht, _, hs⟩ := mem_nhds_sets_iff.1 H in ht hs
 
+/-- If a predicate is true in a neighborhood of `a`, then it is true for `a`. -/
 lemma filter.eventually.self_of_nhds {p : α → Prop} {a : α}
   (h : ∀ᶠ y in 𝓝 a, p y) : p a :=
 mem_of_nhds h
@@ -471,6 +479,7 @@ lemma mem_nhds_sets {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
   s ∈ 𝓝 a :=
 mem_nhds_sets_iff.2 ⟨s, subset.refl _, hs, ha⟩
 
+/-- The open neighborhoods of `a` are a basis for the neighborhood filter. -/
 lemma nhds_basis_opens' (a : α) : (𝓝 a).has_basis (λ s : set α, s ∈ 𝓝 a ∧ is_open s) (λ x, x) :=
 begin
   convert nhds_basis_opens a,

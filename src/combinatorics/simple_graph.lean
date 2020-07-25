@@ -94,7 +94,6 @@ def E : Type u := {x : sym2 V // x ∈ sym2.from_rel G.sym}
 /-- Allows us to refer to a vertex being a member of an edge. -/
 instance has_mem : has_mem V G.E := { mem := λ v e, v ∈ e.val }
 
--- namespace E
 /-- Construct an edge from its endpoints. -/
 def edge_of_adj {v w : V} (h : G.adj v w) : G.E := ⟨⟦(v,w)⟧, h⟩
 

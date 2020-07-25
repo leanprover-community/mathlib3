@@ -91,10 +91,10 @@ An inductively defined relation on `pre R M`
 used to force the initial algebra structure on the associated quotient.
 -/
 inductive rel : (pre R M) → (pre R M) → Prop
--- force of to be linear
+-- force `of` to be linear
 | add_lin {a b : M} : rel ↑(a+b) (↑a + ↑b)
 | smul_lin {r : R} {a : M} : rel ↑(r • a) (↑r * ↑a)
--- force of_scalar to be a central semiring morphism
+-- force `of_scalar` to be a central semiring morphism
 | add_scalar {r s : R} : rel ↑(r + s) (↑r + ↑s)
 | mul_scalar {r s : R} : rel ↑(r * s) (↑r * ↑s)
 | central_scalar {r : R} {a : pre R M} : rel (r * a) (a * r)

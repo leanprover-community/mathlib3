@@ -30,8 +30,11 @@ open Top
 We show that the presheaf of functions to a type `T`
 (no continuity assumptions, just plain functions)
 form a sheaf.
+
+In fact, the proof is identical when we do this for dependent functions to a type family `T`,
+so we do the more general case.
 -/
-def sheaf_condition_presheaf_to_Type (T : Type u) : sheaf_condition (presheaf_to_Type X T) :=
+def sheaf_condition_presheaf_to_Types (T : X → Type u) : sheaf_condition (presheaf_to_Types X T) :=
 λ ι U,
 -- U is a family of open sets, indexed by `i`.
 -- In the informal comments below, I'll just write `U` to represent the union.

@@ -246,25 +246,22 @@ instance : is_comm_applicative free_abelian_group.{u} :=
     (λ x₁ x₂ ih1 ih2, by rw [map_add, add_seq, seq_add, ih1, ih2]) }
 variable (α)
 
--- FIXME timeout!
 instance [monoid α] : semigroup (free_abelian_group α) :=
 { mul := λ x, lift $ λ x₂, lift (λ x₁, of $ x₁ * x₂) x,
   mul_assoc := λ x y z, begin
     unfold has_mul.mul,
-    refine free_abelian_group.induction_on z rfl _ _ _,
-    { sorry },
-    -- { intros L3, rw [lift.of, lift.of],
-    --   refine free_abelian_group.induction_on y rfl _ _ _,
-    --   { intros L2, iterate 3 { rw lift.of },
-    --     refine free_abelian_group.induction_on x rfl _ _ _,
-    --     { intros L1, iterate 3 { rw lift.of }, congr' 1, exact mul_assoc _ _ _ },
-    --     { intros L1 ih, iterate 3 { rw lift.neg }, rw ih },
-    --     { intros x1 x2 ih1 ih2, iterate 3 { rw lift.add }, rw [ih1, ih2] } },
-    --   { intros L2 ih, iterate 4 { rw lift.neg }, rw ih },
-    --   { intros y1 y2 ih1 ih2, iterate 4 { rw lift.add }, rw [ih1, ih2] } },
+    refine free_abelian_group.induction_on z (by simp) _ _ _,
+    { intros L3, rw [lift.of, lift.of],
+      refine free_abelian_group.induction_on y (by simp) _ _ _,
+      { intros L2, iterate 3 { rw lift.of },
+        refine free_abelian_group.induction_on x (by simp) _ _ _,
+        { intros L1, iterate 3 { rw lift.of }, congr' 1, exact mul_assoc _ _ _ },
+        { intros L1 ih, iterate 3 { rw lift.neg }, rw ih },
+        { intros x1 x2 ih1 ih2, iterate 3 { rw lift.add }, rw [ih1, ih2] } },
+      { intros L2 ih, iterate 4 { rw lift.neg }, rw ih },
+      { intros y1 y2 ih1 ih2, iterate 4 { rw lift.add }, rw [ih1, ih2] } },
     { intros L3 ih, iterate 3 { rw lift.neg }, rw ih },
-    { intros z1 z2 ih1 ih2, iterate 2 { rw lift.add }, rw [ih1, ih2],
-      exact (lift.add _ _ _).symm, }
+    { intros z1 z2 ih1 ih2, iterate 2 { rw lift.add }, rw [ih1, ih2], exact (lift.add _ _ _).symm }
   end }
 
 lemma mul_def [monoid α] (x y : free_abelian_group α) :

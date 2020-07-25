@@ -7,6 +7,7 @@ import data.fintype.basic
 import data.sym2
 
 open finset
+-- noncomputable theory
 
 /-!
 # Simple graphs
@@ -80,29 +81,57 @@ variables {V : Type u} (G : simple_graph V)
 
 def neighbor_set (v : V) : set V := set_of (G.adj v)
 
+lemma ne_of_edge {a b : V} (hab : G.adj a b) : a ≠ b :=
+by { rintro rfl, exact G.loopless a hab, }
+
 /--
 The edges of G consist of the unordered pairs of vertices related by
 `G.adj`.  It is given as a subtype of the symmetric square.
 -/
 def E : Type u := {x : sym2 V // x ∈ sym2.from_rel G.sym}
 
+def E.of_adj {v w : V} (h : G.adj v w) : G.E := ⟨⟦(v,w)⟧, h⟩
+-- begin
+--   fsplit,
+-- end
+
 /-- Allows us to refer to a vertex being a member of an edge. -/
 instance E.has_mem : has_mem V G.E := { mem := λ v e, v ∈ e.val }
 
-lemma exists_edge_iff_adj {v w : V} (hne : v ≠ w) :
+lemma adj_iff_exists_edge {v w : V} (hne : v ≠ w) :
 G.adj v w ↔ ∃ (e : G.E), v ∈ e ∧ w ∈ e :=
 begin
   split, { intro, use ⟦(v,w)⟧, assumption, iterate 2 { erw sym2.mem_iff }, simp },
-  rintro ⟨e, ⟨w',hve⟩, ⟨v',hew⟩⟩,
-  have : e.val = ⟦(v,w)⟧, {rw [hve, sym2.eq_iff] at hew ⊢, cc},
+  rintro ⟨e, ⟨w', hve⟩, ⟨v', hew⟩⟩,
+  have : e.val = ⟦(v,w)⟧, { rw [hve, sym2.eq_iff] at hew ⊢, cc },
   have key := e.property, rwa this at key,
 end
+
+
+variables {G}
+noncomputable def E.other (e : G.E) {v : V} (h : v ∈ e) : V :=
+by { have : v ∈ e.val, apply h, exact this.other }
+
+lemma E.other_mem (e : G.E) {v : V} (h : v ∈ e) : e.other h ∈ e :=
+begin
+  change sym2.mem.other h ∈ e.val, have := sym2.mem_other_spec h,
+  convert sym2.mk_has_mem_right _ _; tauto,
+end
+
+lemma E.other_ne (e : G.E) {v : V} (h : v ∈ e) : e.other h ≠ v :=
+begin
+  have key := e.property,
+  erw [← sym2.mem_other_spec h, sym2.eq_swap] at key,
+  exact G.ne_of_edge key,
+end
+
+attribute [irreducible] E.other
+variables (G)
 
 instance E.inhabited [inhabited {p : V × V | G.adj p.1 p.2}] : inhabited G.E :=
 ⟨begin
   rcases inhabited.default {p : V × V | G.adj p.1 p.2} with ⟨⟨x, y⟩, h⟩,
-  use ⟦(x, y)⟧,
-  rwa sym2.from_rel_prop,
+  use ⟦(x, y)⟧, rwa sym2.from_rel_prop,
 end⟩
 
 instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] : fintype G.E := subtype.fintype _
@@ -113,9 +142,6 @@ attribute [irreducible] E
 
 @[symm] lemma edge_symm (u v : V) : G.adj u v ↔ G.adj v u :=
 by split; apply G.sym
-
-lemma ne_of_edge {a b : V} (hab : G.adj a b) : a ≠ b :=
-by { rintro rfl, exact G.loopless a hab, }
 
 @[simp] lemma mem_neighbor_set (v w : V) : w ∈ G.neighbor_set v ↔ G.adj v w :=
 by tauto
@@ -172,7 +198,6 @@ variables [fintype V]
 
 instance neighbor_set_fintype [decidable_rel G.adj] (v : V) : fintype (G.neighbor_set v) :=
   @subtype.fintype _ _ (by {simp_rw mem_neighbor_set, apply_instance}) _
-
 
 lemma neighbor_finset_eq_filter {v : V} [decidable_rel G.adj] :
   G.neighbor_finset v = finset.univ.filter (G.adj v) :=

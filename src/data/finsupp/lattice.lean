@@ -88,11 +88,26 @@ begin
 end
 
 /-- The lattice of finsupps to ℕ is order isomorphic to that of multisets.  -/
-def order_iso_multiset (α : Type) :
+def order_iso_multiset :
   (has_le.le : (α →₀ ℕ) → (α →₀ ℕ) → Prop) ≃o (has_le.le : (multiset α) → (multiset α) → Prop) :=
 ⟨finsupp.equiv_multiset, begin
   intros a b, unfold finsupp.equiv_multiset, dsimp,
   rw multiset.le_iff_count, simp only [finsupp.count_to_multiset], refl
 end ⟩
+
+@[simp] lemma order_iso_multiset_apply {f : α →₀ ℕ} : order_iso_multiset f = f.to_multiset := rfl
+
+@[simp] lemma order_iso_multiset_symm_apply {s : multiset α} :
+  order_iso_multiset.symm s = s.to_finsupp :=
+by { conv_rhs { rw ← (order_iso.apply_symm_apply order_iso_multiset) s}, simp }
+
+variable [partial_order β]
+
+def order_embedding_coe :
+  (has_le.le : (α →₀ β) → (α →₀ β) → Prop) ≼o (has_le.le : (α → β) → (α → β) → Prop) :=
+⟨⟨λ (f : α →₀ β) (a : α), f a,  λ f g h, finsupp.ext (λ a, by { dsimp at h, rw h,} )⟩,
+  λ a b, le_def⟩
+
+@[simp] lemma order_embedding_coe_apply {f : α →₀ β} {a : α} : order_embedding_coe f a = f a := rfl
 
 end finsupp

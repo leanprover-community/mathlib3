@@ -38,11 +38,13 @@ variables [topological_space α] [has_mul α] [has_continuous_mul α]
 lemma continuous_mul : continuous (λp:α×α, p.1 * p.2) :=
 has_continuous_mul.continuous_mul
 
-@[to_additive]
+@[to_additive, continuity]
 lemma continuous.mul [topological_space β] {f : β → α} {g : β → α}
   (hf : continuous f) (hg : continuous g) :
   continuous (λx, f x * g x) :=
 continuous_mul.comp (hf.prod_mk hg)
+
+attribute [continuity] continuous.add
 
 @[to_additive]
 lemma continuous_mul_left (a : α) : continuous (λ b:α, a * b) :=
@@ -111,9 +113,15 @@ continuous_iff_continuous_at.2 $ assume x, tendsto_list_prod l $ assume c hc,
   continuous_iff_continuous_at.1 (h c hc) x
 
 -- @[to_additive continuous_smul]
+@[continuity]
 lemma continuous_pow : ∀ n : ℕ, continuous (λ a : α, a ^ n)
 | 0 := by simpa using continuous_const
 | (k+1) := show continuous (λ (a : α), a * a ^ k), from continuous_id.mul (continuous_pow _)
+
+@[continuity]
+lemma continuous.pow {f : β → α} [topological_space β] (h : continuous f) (n : ℕ) :
+  continuous (λ b, (f b) ^ n) :=
+continuous.comp (continuous_pow n) h
 
 end has_continuous_mul
 
@@ -139,14 +147,18 @@ lemma tendsto_finset_prod {f : γ → β → α} {x : filter β} {a : γ → α}
   (∀c∈s, tendsto (f c) x (𝓝 (a c))) → tendsto (λb, ∏ c in s, f c b) x (𝓝 (∏ c in s, a c)) :=
 tendsto_multiset_prod _
 
-@[to_additive]
+@[to_additive, continuity]
 lemma continuous_multiset_prod [topological_space β] {f : γ → β → α} (s : multiset γ) :
   (∀c∈s, continuous (f c)) → continuous (λa, (s.map (λc, f c a)).prod) :=
 by { rcases s with ⟨l⟩, simp, exact continuous_list_prod l }
 
-@[to_additive]
+attribute [continuity] continuous_multiset_sum
+
+@[to_additive, continuity]
 lemma continuous_finset_prod [topological_space β] {f : γ → β → α} (s : finset γ) :
   (∀c∈s, continuous (f c)) → continuous (λa, ∏ c in s, f c a) :=
 continuous_multiset_prod _
+
+attribute [continuity] continuous_finset_sum
 
 end

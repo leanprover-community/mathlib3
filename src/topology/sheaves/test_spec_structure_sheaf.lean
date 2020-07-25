@@ -108,25 +108,28 @@ limit (full_subcategory_inclusion
   {f : dvd_preorder R | ∀ P ∈ invertibility_locus R f, P ∈ U.unop}
   ⋙ localization_functor R)
 
+def structure_presheaf_map (U V : (topological_space.opens ↥(of (prime_spectrum R)))ᵒᵖ)
+  (i : U ⟶ V) :
+  structure_presheaf_obj R U ⟶ structure_presheaf_obj R V :=
+begin
+  let c : cone
+  (full_subcategory_inclusion
+    {f : dvd_preorder R | ∀ P ∈ invertibility_locus R f, P ∈ V.unop}
+    ⋙ localization_functor R) :=
+  { X := structure_presheaf_obj _ U,
+    π := _ },
+  refine limit.lift _ c,
+  refine { app := λ f, limit.π _ ⟨f, (λ (P : ↥(of (prime_spectrum R))) (hP : P ∈ invertibility_locus R ↑f), i.unop.down.down (f.property P hP))⟩ ≫ 𝟙 _, naturality' := _ },
+  intros f g hfg,
+  -- dsimp, simp,
+  sorry
+end
+
 def structure_presheaf : presheaf CommRing (Top.of (prime_spectrum R)) :=
-{ obj := λ U, structure_presheaf_obj _ U,
-  map := λ U V i,
+{ obj := structure_presheaf_obj R,
+  map := structure_presheaf_map R,
+  map_id' := λ U,
   begin
-    let c : cone
-    (full_subcategory_inclusion
-      {f : dvd_preorder R | ∀ P ∈ invertibility_locus R f, P ∈ V.unop}
-      ⋙ localization_functor R) :=
-    { X := structure_presheaf_obj _ U,
-      π := _ },
-    refine limit.lift _ c,
-    refine { app := λ f, limit.π _ ⟨f, (λ (P : ↥(of (prime_spectrum R))) (hP : P ∈ invertibility_locus R ↑f), i.unop.down.down (f.property P hP))⟩ ≫ 𝟙 _, naturality' := _ },
-    intros f g hfg,
-    -- dsimp, simp,
-    sorry
-  end,
-  map_id' :=
-  begin
-    intros U,
     ext1,
     dsimp,
   end,

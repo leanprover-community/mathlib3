@@ -93,6 +93,7 @@ end
 /--
 The equalizer diagram for the sheaf condition.
 -/
+@[reducible]
 def diagram : walking_parallel_pair ⥤ C :=
 parallel_pair (left_res F U) (right_res F U)
 

@@ -5,11 +5,8 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Theory of topological monoids.
 -/
-
 import topology.continuous_on
-import algebra.group.pi
 import group_theory.submonoid.basic
-import algebra.group.prod
 import deprecated.submonoid
 
 open classical set filter topological_space

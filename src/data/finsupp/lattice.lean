@@ -25,20 +25,8 @@ lemma le_def [partial_order β] {a b : α →₀ β} : a ≤ b ↔ ∀ (s : α),
 instance : order_bot (α →₀ μ) :=
 { bot := 0, bot_le := by simp [finsupp.le_def, ← bot_eq_zero], .. finsupp.partial_order}
 
-/-- Used to construct binary operations on `finsupp`s -/
-def binary_op_pointwise {f : β → β → β} (h : f 0 0 = 0) (a b : α →₀ β) : α →₀ β :=
-{ support := ((a.support) ∪ (b.support)).filter (λ s, f (a s) (b s) ≠ 0),
-  to_fun := λ s, f (a s) (b s),
-  mem_support_to_fun := by {
-    simp only [mem_support_iff, ne.def, finset.mem_union, finset.mem_filter],
-    intro s, apply and_iff_right_of_imp, rw ← not_and_distrib, rw not_imp_not,
-    intro h1, rw h1.left, rw h1.right, apply h, }, }
-
-lemma binary_op_pointwise_apply {f : β → β → β} (h : f 0 0 = 0) (a b : α →₀ β) (s : α) :
-  (binary_op_pointwise h a b) s = f (a s) (b s) := rfl
-
 instance [semilattice_inf β] : semilattice_inf (α →₀ β) :=
-{ inf := binary_op_pointwise inf_idem,
+{ inf := zip_with (⊓) inf_idem,
   inf_le_left := by { intros, rw le_def, intro, apply inf_le_left, },
   inf_le_right := by { intros, rw le_def, intro, apply inf_le_right, },
   le_inf := by { intros, rw le_def at *, intro, apply le_inf (a_1 s) (a_2 s) },
@@ -50,16 +38,16 @@ lemma inf_apply [semilattice_inf β] {a : α} {f g : α →₀ β} : (f ⊓ g) a
 @[simp]
 lemma support_inf {f g : α →₀ γ} : (f ⊓ g).support = f.support ∩ g.support :=
 begin
-  change (binary_op_pointwise inf_idem f g).support = f.support ∩ g.support,
-  unfold binary_op_pointwise, dsimp, ext,
-  simp only [mem_support_iff,  ne.def,
+  ext, simp only [inf_apply, mem_support_iff,  ne.def,
     finset.mem_union, finset.mem_filter, finset.mem_inter],
-  split; intro h, cases h with i j, split; intro con; rw con at j; apply j; simp [zero_le],
-  { split, left, exact h.left, rw inf_eq_min, unfold min, split_ifs; tauto, }
+  rw [← decidable.not_or_iff_and_not, ← not_congr],
+  rw inf_eq_min, unfold min, split_ifs;
+  { try {apply or_iff_left_of_imp}, try {apply or_iff_right_of_imp}, intro con, rw con at h,
+    revert h, simp, }
 end
 
 instance [semilattice_sup β] : semilattice_sup (α →₀ β) :=
-{ sup := binary_op_pointwise sup_idem,
+{ sup := zip_with (⊔) sup_idem,
   le_sup_left := by { intros, rw le_def, intro, apply le_sup_left, },
   le_sup_right := by { intros, rw le_def, intro, apply le_sup_right, },
   sup_le := by { intros, rw le_def at *, intro, apply sup_le (a_1 s) (a_2 s) },
@@ -72,11 +60,8 @@ lemma sup_apply [semilattice_sup β] {a : α} {f g : α →₀ β} : (f ⊔ g) a
 lemma support_sup
   {f g : α →₀ γ} : (f ⊔ g).support = f.support ∪ g.support :=
 begin
-  change (binary_op_pointwise sup_idem f g).support = f.support ∪ g.support,
-  unfold binary_op_pointwise, dsimp, rw finset.filter_true_of_mem,
-  intros x hx, rw ← bot_eq_zero, rw sup_eq_bot_iff,
-   revert hx,
-  simp only [not_and, mem_support_iff, bot_eq_zero, ne.def, finset.mem_union], tauto,
+  ext, simp only [finset.mem_union, mem_support_iff, sup_apply, ne.def, ← bot_eq_zero],
+  rw sup_eq_bot_iff, tauto,
 end
 
 instance lattice [lattice β] : lattice (α →₀ β) :=
@@ -109,7 +94,5 @@ def order_iso_multiset (α : Type) :
   intros a b, unfold finsupp.equiv_multiset, dsimp,
   rw multiset.le_iff_count, simp only [finsupp.count_to_multiset], refl
 end ⟩
-
-
 
 end finsupp

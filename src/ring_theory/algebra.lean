@@ -177,14 +177,14 @@ instance of_subring {R A : Type*} [comm_ring R] [ring A] [algebra R A]
   smul_def' := λ r x, algebra.smul_def r x,
   .. (algebra_map R A).comp (⟨coe, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩ : S →+* R) }
 
-lemma subring_coe_algebra_map_hom {R A : Type*} [comm_ring R] [ring A] [algebra R A]
-  (S : set R) [is_subring S] : (algebra_map S R : S →+* R) = is_subring.subtype S := rfl
+lemma subring_coe_algebra_map_hom {R : Type*} [comm_ring R] (S : set R) [is_subring S] :
+  (algebra_map S R : S →+* R) = is_subring.subtype S := rfl
 
-lemma subring_coe_algebra_map {R A : Type*} [comm_ring R] [ring A] [algebra R A]
-  (S : set R) [is_subring S] : (algebra_map S R : S → R) = subtype.val := rfl
+lemma subring_coe_algebra_map {R : Type*} [comm_ring R] (S : set R) [is_subring S] :
+  (algebra_map S R : S → R) = subtype.val := rfl
 
-lemma subring_algebra_map_apply {R A : Type*} [comm_ring R] [ring A] [algebra R A]
-  (S : set R) [is_subring S] (x : S) : algebra_map S R x = x := rfl
+lemma subring_algebra_map_apply {R : Type*} [comm_ring R] (S : set R) [is_subring S] (x : S) :
+  algebra_map S R x = x := rfl
 
 variables (R A)
 /-- The multiplication in an algebra is a bilinear map. -/

@@ -3,7 +3,6 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import ring_theory.tensor_product
 import ring_theory.matrix_algebra
 import data.polynomial.algebra_map
 
@@ -132,8 +131,10 @@ begin
   simp only [lift.tmul],
   dsimp [to_fun_bilinear, to_fun_linear_right, to_fun],
   ext k,
-  simp_rw [coeff_sum, coeff_single, finsupp.sum,
-    finset.sum_ite_eq', finsupp.mem_support_iff, ne.def, coeff_mul, finset_sum_coeff, coeff_single,
+  -- TODO This is a bit annoying: the polynomial API is breaking down.
+  have apply_eq_coeff : ∀ {p : ℕ →₀ R} {n : ℕ}, p n = coeff p n := by { intros, refl },
+  simp_rw [coeff_sum, coeff_monomial, finsupp.sum, finset.sum_ite_eq', finsupp.mem_support_iff,
+    ne.def, coeff_mul, finset_sum_coeff, coeff_monomial,
     finset.sum_ite_eq', finsupp.mem_support_iff, ne.def,
     mul_ite, mul_zero, ite_mul, zero_mul, apply_eq_coeff],
   simp_rw [ite_mul_zero_left (¬coeff p₁ _ = 0) (a₁ * (algebra_map R A) (coeff p₁ _))],
@@ -147,7 +148,7 @@ begin
   dsimp [to_fun_linear],
   simp only [lift.tmul],
   dsimp [to_fun_bilinear, to_fun_linear_right, to_fun],
-  rw [← C_1, ←monomial_zero_left, finsupp.sum_single_index],
+  rw [← C_1, ←monomial_zero_left, monomial, finsupp.sum_single_index],
   { simp, refl, },
   { simp, },
 end
@@ -208,6 +209,7 @@ begin
     rw [inv_fun, eval₂_monomial, alg_hom.coe_to_ring_hom, algebra.tensor_product.include_left_apply,
       algebra.tensor_product.tmul_pow, one_pow, algebra.tensor_product.tmul_mul_tmul,
       mul_one, one_mul, to_fun_alg_hom_apply_tmul, ←monomial_one_eq_X_pow],
+    dsimp [monomial],
     rw [finsupp.sum_single_index]; simp, }
 end
 
@@ -294,7 +296,7 @@ begin
   { intros p q hp hq, ext,
     simp [hp, hq, coeff_add, add_val, std_basis_matrix_add], },
   { intros k x,
-    simp only [mat_poly_equiv_coeff_apply_aux_1, coeff_single],
+    simp only [mat_poly_equiv_coeff_apply_aux_1, coeff_monomial],
     split_ifs; { funext, simp, }, }
 end
 

@@ -129,10 +129,9 @@ theorem monotone_lift [preorder γ] {f : γ → filter α} {g : γ → set α �
   (hf : monotone f) (hg : monotone g) : monotone (λc, (f c).lift (g c)) :=
 assume a b h, lift_mono (hf h) (hg h)
 
-lemma lift_ne_bot_iff (hm : monotone g) : (f.lift g ≠ ⊥) ↔ (∀s∈f, g s ≠ ⊥) :=
+lemma lift_ne_bot_iff (hm : monotone g) : (ne_bot $ f.lift g) ↔ (∀s∈f, ne_bot (g s)) :=
 begin
   rw [filter.lift, infi_subtype', infi_ne_bot_iff_of_directed', subtype.forall'],
-  { exact ⟨⟨univ, univ_mem_sets⟩⟩ },
   { rintros ⟨s, hs⟩ ⟨t, ht⟩,
     exact ⟨⟨s ∩ t, inter_mem_sets hs ht⟩, hm (inter_subset_left s t), hm (inter_subset_right s t)⟩ }
 end
@@ -150,7 +149,7 @@ le_antisymm
   (le_infi $ assume s, le_infi $ assume hs, by simp only [hs, le_principal_iff])
 
 lemma lift_infi {f : ι → filter α} {g : set α → filter β}
-  (hι : nonempty ι) (hg : ∀{s t}, g s ⊓ g t = g (s ∩ t)) : (infi f).lift g = (⨅i, (f i).lift g) :=
+  [hι : nonempty ι] (hg : ∀{s t}, g s ⊓ g t = g (s ∩ t)) : (infi f).lift g = (⨅i, (f i).lift g) :=
 le_antisymm
   (le_infi $ assume i, lift_mono (infi_le _ _) (le_refl _))
   (assume s,
@@ -269,8 +268,8 @@ le_antisymm
     (infi_le_of_le univ $ infi_le_of_le univ_mem_sets $
     by simp only [le_principal_iff, inter_subset_right, mem_principal_sets, function.comp_app]; exact inter_subset_left _ _))
 
-lemma lift'_ne_bot_iff (hh : monotone h) : (f.lift' h ≠ ⊥) ↔ (∀s∈f, (h s).nonempty) :=
-calc (f.lift' h ≠ ⊥) ↔ (∀s∈f, 𝓟 (h s) ≠ ⊥) :
+lemma lift'_ne_bot_iff (hh : monotone h) : (ne_bot (f.lift' h)) ↔ (∀s∈f, (h s).nonempty) :=
+calc (ne_bot (f.lift' h)) ↔ (∀s∈f, ne_bot (𝓟 (h s))) :
     lift_ne_bot_iff (monotone_principal.comp hh)
   ... ↔ (∀s∈f, (h s).nonempty) : by simp only [principal_ne_bot_iff]
 
@@ -282,19 +281,19 @@ lemma le_lift' {f : filter α} {h : set α → set β} {g : filter β}
 le_infi $ assume s, le_infi $ assume hs, by simp only [h_le, le_principal_iff, function.comp_app]; exact h_le s hs
 
 lemma lift_infi' {f : ι → filter α} {g : set α → filter β}
-  (hι : nonempty ι) (hf : directed (≥) f) (hg : monotone g) : (infi f).lift g = (⨅i, (f i).lift g) :=
+  [nonempty ι] (hf : directed (≥) f) (hg : monotone g) : (infi f).lift g = (⨅i, (f i).lift g) :=
 le_antisymm
   (le_infi $ assume i, lift_mono (infi_le _ _) (le_refl _))
   (assume s,
   begin
     rw mem_lift_sets hg,
-    simp only [exists_imp_distrib, mem_infi hf hι],
+    simp only [exists_imp_distrib, mem_infi hf],
     exact assume t i ht hs, mem_infi_sets i $ mem_lift ht hs
   end)
 
 lemma lift'_infi {f : ι → filter α} {g : set α → set β}
-  (hι : nonempty ι) (hg : ∀{s t}, g s ∩ g t = g (s ∩ t)) : (infi f).lift' g = (⨅i, (f i).lift' g) :=
-lift_infi hι $ by simp only [principal_eq_iff_eq, inf_principal, function.comp_app]; apply assume s t, hg
+  [nonempty ι] (hg : ∀{s t}, g s ∩ g t = g (s ∩ t)) : (infi f).lift' g = (⨅i, (f i).lift' g) :=
+lift_infi $ by simp only [principal_eq_iff_eq, inf_principal, function.comp_app]; apply assume s t, hg
 
 theorem comap_eq_lift' {f : filter β} {m : α → β} :
   comap m f = f.lift' (preimage m) :=

@@ -265,8 +265,11 @@ protected lemma nonempty.some_mem (h : s.nonempty) : h.some ∈ s := classical.s
 
 lemma nonempty.mono (ht : s ⊆ t) (hs : s.nonempty) : t.nonempty := hs.imp ht
 
+lemma nonempty_of_not_subset (h : ¬s ⊆ t) : (s \ t).nonempty :=
+let ⟨x, xs, xt⟩ := not_subset.1 h in ⟨x, xs, xt⟩
+
 lemma nonempty_of_ssubset (ht : s ⊂ t) : (t \ s).nonempty :=
-let ⟨x, xt, xs⟩ := exists_of_ssubset ht in ⟨x, xt, xs⟩
+nonempty_of_not_subset ht.2
 
 lemma nonempty.of_diff (h : (s \ t).nonempty) : s.nonempty := h.imp $ λ _, and.left
 
@@ -1581,9 +1584,9 @@ by { intros s t h, rw [←preimage_image_eq s hf, ←preimage_image_eq t hf, h] 
 lemma surjective.range_eq {f : ι → α} (hf : surjective f) : range f = univ :=
 range_iff_surjective.2 hf
 
-lemma surjective.range_comp (g : α → β) {f : ι → α} (hf : surjective f) :
+lemma surjective.range_comp {ι' : Sort*} {f : ι → ι'} (hf : surjective f) (g : ι' → α) :
   range (g ∘ f) = range g :=
-by rw [range_comp, hf.range_eq, image_univ]
+ext $ λ y, (@surjective.exists _ _ _ hf (λ x, g x = y)).symm
 
 lemma injective.nonempty_apply_iff {f : set α → set β} (hf : injective f)
   (h2 : f ∅ = ∅) {s : set α} : (f s).nonempty ↔ s.nonempty :=

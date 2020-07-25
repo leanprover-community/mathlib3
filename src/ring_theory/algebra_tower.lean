@@ -125,6 +125,9 @@ variables [comm_semiring B] [algebra A B] [algebra R B] [is_algebra_tower R A B]
 instance subalgebra (S : subalgebra R A) : is_algebra_tower R S A :=
 of_algebra_map_eq $ λ x, rfl
 
+instance subalgebra' (S : subalgebra R A) : is_algebra_tower R (S : set A) A :=
+is_algebra_tower.subalgebra R A S
+
 instance polynomial : is_algebra_tower R A (polynomial B) :=
 of_algebra_map_eq $ λ x, congr_arg polynomial.C $ algebra_map_apply R A B x
 

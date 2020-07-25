@@ -31,30 +31,25 @@ by rw [alg_hom.map_sub, aeval_def, aeval_def, eval₂_X, eval₂_C, sub_self]⟩
 theorem is_integral_alg_hom (f : A →ₐ[R] B) {x : A} (hx : is_integral R x) : is_integral R (f x) :=
 let ⟨p, hp, hpx⟩ := hx in ⟨p, hp, by rw [aeval_alg_hom_apply, hpx, f.map_zero]⟩
 
-section
-local attribute [semireducible] eval₂
+theorem is_integral_of_is_algebra_tower [algebra A B] [is_algebra_tower R A B]
+  (x : B) (hx : is_integral R x) : is_integral A x :=
+let ⟨p, hp, hpx⟩ := hx in
+⟨p.map $ algebra_map R A, monic_map _ hp, by rw [← is_algebra_tower.aeval_apply, hpx]⟩
 
 theorem is_integral_of_subring {x : A} (T : set R) [is_subring T]
   (hx : is_integral T x) : is_integral R x :=
-let ⟨p, hpm, hpx⟩ := hx in
-⟨⟨p.support, λ n, (p.to_fun n).1,
-  λ n, finsupp.mem_support_iff.trans (not_iff_not_of_iff
-    ⟨λ H, have _ := congr_arg subtype.val H, this,
-    λ H, subtype.eq H⟩)⟩,
-have _ := congr_arg subtype.val hpm, this, hpx⟩
+is_integral_of_is_algebra_tower x hx
 
 theorem is_integral_iff_is_integral_closure_finite {r : A} :
   is_integral R r ↔ ∃ s : set R, s.finite ∧ is_integral (ring.closure s) r :=
 begin
   split; intro hr,
   { rcases hr with ⟨p, hmp, hpr⟩,
-    exact ⟨_, set.finite_mem_finset _, p.restriction, subtype.eq hmp, hpr⟩ },
+    refine ⟨_, set.finite_mem_finset _, p.restriction, subtype.eq hmp, _⟩,
+    erw [is_algebra_tower.aeval_apply _ R, map_restriction, hpr] },
   rcases hr with ⟨s, hs, hsr⟩,
   exact is_integral_of_subring _ hsr
 end
-
-end
-
 
 theorem fg_adjoin_singleton_of_integral (x : A) (hx : is_integral R x) :
   (algebra.adjoin R ({x} : set A) : submodule R A).fg :=
@@ -243,48 +238,9 @@ theorem mem_integral_closure_iff_mem_fg {r : A} :
 
 variables {R} {A}
 
-section
-local attribute [semireducible] eval₂
-
 lemma integral_closure.is_integral (x : integral_closure R A) : is_integral R x :=
-exists_imp_exists
-  (λ p, and.imp_right (λ hp, show aeval x p = 0,
-    from subtype.ext (trans (p.hom_eval₂ _ (integral_closure R A).val.to_ring_hom x) hp)))
-  x.2
-
-theorem integral_closure_idem : integral_closure (integral_closure R A : set A) A = ⊥ :=
-begin
-  rw eq_bot_iff, intros r hr,
-  rcases is_integral_iff_is_integral_closure_finite.1 hr with ⟨s, hfs, hr⟩,
-  apply algebra.mem_bot.2, refine ⟨⟨_, _⟩, rfl⟩,
-  refine (mem_integral_closure_iff_mem_fg _ _).2 ⟨algebra.adjoin _ (subtype.val '' s ∪ {r}),
-    algebra.fg_trans (fg_adjoin_of_finite (hfs.image _) (λ y ⟨x, hx, hxy⟩, hxy ▸ x.2)) _,
-    algebra.subset_adjoin (or.inr rfl)⟩,
-  refine fg_adjoin_singleton_of_integral _ _,
-  rcases hr with ⟨p, hmp, hpx⟩,
-  refine ⟨to_subring (of_subring _ (of_subring _ p)) _ _, _, hpx⟩,
-  { intros x hx, rcases finsupp.mem_frange.1 hx with ⟨h1, n, rfl⟩,
-    change (coeff p n).1.1 ∈ algebra.adjoin R (_ : set A),
-    rcases ring.exists_list_of_mem_closure (coeff p n).2 with ⟨L, HL1, HL2⟩, rw ← HL2,
-    clear HL2 hfs h1 hx n hmp hpx hr r p,
-    induction L with hd tl ih, { exact subalgebra.zero_mem _ },
-    rw list.forall_mem_cons at HL1,
-    rw [list.map_cons, list.sum_cons],
-    refine subalgebra.add_mem _ _ (ih HL1.2),
-    cases HL1 with HL HL', clear HL' ih tl,
-    induction hd with hd tl ih, { exact subalgebra.one_mem _ },
-    rw list.forall_mem_cons at HL,
-    rw list.prod_cons,
-    refine subalgebra.mul_mem _ _ (ih HL.2),
-    rcases HL.1 with hs | rfl,
-    { exact algebra.subset_adjoin (set.mem_image_of_mem _ hs) },
-    exact subalgebra.neg_mem _ (subalgebra.one_mem _) },
-  replace hmp := congr_arg subtype.val hmp,
-  replace hmp := congr_arg subtype.val hmp,
-  exact subtype.eq hmp
-end
-
-end
+let ⟨p, hpm, hpx⟩ := x.2 in ⟨p, hpm, subtype.eq $
+by rwa [subtype.val_eq_coe, ← subalgebra.val_apply, aeval_alg_hom_apply] at hpx⟩
 
 end
 
@@ -342,6 +298,12 @@ lemma algebra.is_integral_trans (A_int : ∀ x : A, is_integral R x)(B_int : ∀
 λ x, is_integral_trans A_int x (B_int x)
 
 end algebra
+
+-- Why is this so slow?
+theorem integral_closure_idem {R : Type*} {A : Type*} [comm_ring R] [comm_ring A] [algebra R A] :
+  integral_closure (integral_closure R A : set A) A = ⊥ :=
+eq_bot_iff.2 $ λ x hx, algebra.mem_bot.2
+⟨⟨x, is_integral_trans integral_closure.is_integral _ hx⟩, rfl⟩
 
 section integral_domain
 variables {R S : Type*} [comm_ring R] [integral_domain S] [algebra R S]

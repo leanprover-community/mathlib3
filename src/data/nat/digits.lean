@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Shing Tak Lam, Angela Li
 -/
 import data.int.modeq
 import tactic.interval_cases
@@ -238,9 +238,11 @@ begin
   { simp [of_digits, list.sum_cons, ih], }
 end
 
-/-! ### Properties
+/-!
+### Properties
 
-This section contains various lemmas of properties relating to `digits` and `of_digits`. -/
+This section contains various lemmas of properties relating to `digits` and `of_digits`.
+-/
 
 lemma digits_eq_nil_iff_eq_zero (b n : ℕ) : digits b n = [] ↔ n = 0 :=
 begin
@@ -254,8 +256,8 @@ begin
 end
 
 lemma digits_ne_nil_iff_ne_zero (b n : ℕ) : digits b n ≠ [] ↔ n ≠ 0 :=
-  ⟨λ h, h ∘ (digits_eq_nil_iff_eq_zero _ _).mpr,
-  λ h, h ∘ (digits_eq_nil_iff_eq_zero _ _).mp⟩
+⟨λ h, h ∘ (digits_eq_nil_iff_eq_zero _ _).mpr,
+ λ h, h ∘ (digits_eq_nil_iff_eq_zero _ _).mp⟩
 
 private lemma digits_last_aux1 {α : Type*} {L M : list α} (h : L = M) (p q) : L.last p = M.last q :=
 by simp [h]
@@ -284,7 +286,7 @@ lemma last_digit_ne_zero (b m : ℕ) (hm : m ≠ 0) (p):
 begin
   rcases b with _|_|b,
   { cases m; finish },
-  { cases m, finish,
+  { cases m, { finish },
     simp_rw [digits_one, list.last_repeat_succ 1 m],
     norm_num },
   revert hm p,
@@ -395,16 +397,18 @@ lemma pow_length_le_mul_of_digits {b : ℕ} {l : list ℕ} (hl : l ≠ []) (hl2 
   (b + 2) ^ l.length ≤ (b + 2) * of_digits (b+2) l :=
 begin
   rw [←list.init_append_last hl],
-  simp only [list.length_append, list.length, zero_add, list.length_init, of_digits_append, list.length_init,
-    of_digits_singleton, add_comm (l.length - 1), nat.pow_add, nat.pow_one],
+  simp only [list.length_append, list.length, zero_add, list.length_init, of_digits_append,
+    list.length_init, of_digits_singleton, add_comm (l.length - 1), nat.pow_add, nat.pow_one],
   apply nat.mul_le_mul_left,
   refine le_trans _ (nat.le_add_left _ _),
   have : 0 < l.last hl, { rwa [nat.pos_iff_ne_zero] },
   convert nat.mul_le_mul_left _ this, rw [mul_one]
 end
 
-/-- Any non-zero natural number `m` is greater than
-  (b+2)^((number of digits in the base (b+2) representation of m) - 1)-/
+/--
+Any non-zero natural number `m` is greater than
+(b+2)^((number of digits in the base (b+2) representation of m) - 1)
+-/
 lemma base_pow_length_digits_le' (b m : ℕ) (hm : m ≠ 0) :
   (b + 2) ^ ((digits (b + 2) m).length) ≤ (b + 2) * m :=
 begin
@@ -413,8 +417,10 @@ begin
   rwa of_digits_digits,
 end
 
-/-- Any non-zero natural number `m` is greater than
-  b^((number of digits in the base b representation of m) - 1)-/
+/--
+Any non-zero natural number `m` is greater than
+b^((number of digits in the base b representation of m) - 1)
+-/
 lemma base_pow_length_digits_le (b m : ℕ) (hb : 2 ≤ b): m ≠ 0 → b ^ ((digits b m).length) ≤ b * m :=
 begin
   rcases b with _ | _ | b; try { linarith },

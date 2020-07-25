@@ -114,7 +114,7 @@ variables {S : Type v} [ring S] {f : R →+* S} {x : S}
 
 theorem eval₂_restriction {p : polynomial R} :
   eval₂ f x p = eval₂ (f.comp (is_subring.subtype _)) x p.restriction :=
-rfl
+by { dsimp only [eval₂_eq_sum], refl, }
 
 section to_subring
 variables (p : polynomial R) (T : set R) [is_subring T]

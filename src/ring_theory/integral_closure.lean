@@ -31,6 +31,9 @@ by rw [alg_hom.map_sub, aeval_def, aeval_def, eval₂_X, eval₂_C, sub_self]⟩
 theorem is_integral_alg_hom (f : A →ₐ[R] B) {x : A} (hx : is_integral R x) : is_integral R (f x) :=
 let ⟨p, hp, hpx⟩ := hx in ⟨p, hp, by rw [aeval_alg_hom_apply, hpx, f.map_zero]⟩
 
+section
+local attribute [semireducible] eval₂
+
 theorem is_integral_of_subring {x : A} (T : set R) [is_subring T]
   (hx : is_integral T x) : is_integral R x :=
 let ⟨p, hpm, hpx⟩ := hx in
@@ -49,6 +52,9 @@ begin
   rcases hr with ⟨s, hs, hsr⟩,
   exact is_integral_of_subring _ hsr
 end
+
+end
+
 
 theorem fg_adjoin_singleton_of_integral (x : A) (hx : is_integral R x) :
   (algebra.adjoin R ({x} : set A) : submodule R A).fg :=
@@ -237,6 +243,9 @@ theorem mem_integral_closure_iff_mem_fg {r : A} :
 
 variables {R} {A}
 
+section
+local attribute [semireducible] eval₂
+
 lemma integral_closure.is_integral (x : integral_closure R A) : is_integral R x :=
 exists_imp_exists
   (λ p, and.imp_right (λ hp, show aeval x p = 0,
@@ -273,6 +282,8 @@ begin
   replace hmp := congr_arg subtype.val hmp,
   replace hmp := congr_arg subtype.val hmp,
   exact subtype.eq hmp
+end
+
 end
 
 end

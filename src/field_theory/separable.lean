@@ -97,6 +97,10 @@ lemma coe_expand : (expand R p : polynomial R → polynomial R) = eval₂ C (X ^
 
 variables {R}
 
+lemma expand_eq_sum {f : polynomial R} :
+  expand R p f = f.sum (λ e a, C a * (X ^ p) ^ e) :=
+by { dsimp [expand, eval₂], refl, }
+
 @[simp] lemma expand_C (r : R) : expand R p (C r) = C r := eval₂_C _ _
 @[simp] lemma expand_X : expand R p X = X ^ p := eval₂_X _ _
 @[simp] lemma expand_monomial (r : R) : expand R p (monomial q r) = monomial (q * p) r :=
@@ -128,6 +132,7 @@ by rw [coe_expand, derivative_eval₂_C, derivative_pow, derivative_X, mul_one]
 theorem coeff_expand {p : ℕ} (hp : 0 < p) (f : polynomial R) (n : ℕ) :
   (expand R p f).coeff n = if p ∣ n then f.coeff (n / p) else 0 :=
 begin
+  simp only [expand_eq_sum],
   change (show ℕ →₀ R, from (f.sum (λ e a, C a * (X ^ p) ^ e) : polynomial R)) n = _,
   simp_rw [finsupp.sum_apply, finsupp.sum, ← pow_mul, C_mul', ← monomial_eq_smul_X,
     monomial, finsupp.single_apply],
@@ -148,7 +153,7 @@ by rw [mul_comm, coeff_expand_mul hp]
 
 theorem expand_eq_map_domain (p : ℕ) (f : polynomial R) :
   expand R p f = f.map_domain (*p) :=
-finsupp.induction f rfl $ λ n r f hf hr ih,
+finsupp.induction f (by { simp only [expand_eq_sum], refl }) $ λ n r f hf hr ih,
 by rw [finsupp.map_domain_add, finsupp.map_domain_single, alg_hom.map_add, ← monomial,
   expand_monomial, ← monomial, ih]
 

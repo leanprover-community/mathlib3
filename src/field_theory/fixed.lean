@@ -76,9 +76,14 @@ hn ▸ prod_X_sub_smul.coeff G F x g n
 theorem fixed_points.minpoly.monic : (fixed_points.minpoly G F x).monic :=
 subtype.eq $ prod_X_sub_smul.monic G F x
 
+section
+local attribute [semireducible] polynomial.eval₂
+
 theorem fixed_points.minpoly.eval₂ :
   polynomial.eval₂ (is_subring.subtype $ fixed_points G F) x (fixed_points.minpoly G F x) = 0 :=
 prod_X_sub_smul.eval G F x
+
+end
 
 theorem fixed_points.is_integral : is_integral (fixed_points G F) x :=
 ⟨fixed_points.minpoly G F x,

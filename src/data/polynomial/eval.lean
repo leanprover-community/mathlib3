@@ -34,6 +34,8 @@ variables (f : R →+* S) (x : S)
 def eval₂ (p : polynomial R) : S :=
 p.sum (λ e a, f a * x ^ e)
 
+lemma eval₂_eq_sum {f : R →+* S} {x : S} : p.eval₂ f x = p.sum (λ e a, f a * x ^ e) := rfl
+
 @[simp] lemma eval₂_zero : (0 : polynomial R).eval₂ f x = 0 :=
 finsupp.sum_zero_index
 
@@ -145,6 +147,9 @@ variables {x : R}
 /-- `eval x p` is the evaluation of the polynomial `p` at `x` -/
 def eval : R → polynomial R → R := eval₂ (ring_hom.id _)
 
+lemma eval_eq_sum : p.eval x = sum p (λ e a, a * x ^ e) :=
+rfl
+
 @[simp] lemma eval_C : (C a).eval x = a := eval₂_C _ _
 
 @[simp] lemma eval_nat_cast {n : ℕ} : (n : polynomial R).eval x = n :=
@@ -198,6 +203,9 @@ section comp
 
 /-- The composition of polynomials as a polynomial. -/
 def comp (p q : polynomial R) : polynomial R := p.eval₂ C q
+
+lemma comp_eq_sum_left : p.comp q = p.sum (λ e a, C a * q ^ e) :=
+rfl
 
 @[simp] lemma comp_X : p.comp X = p :=
 begin
@@ -361,6 +369,13 @@ eval₂_map f (ring_hom.id _) x
 
 end map
 
+/-!
+After having set up the basic theory of `eval₂`, `eval`, `comp`, and `map`,
+we make `eval₂` irreducible.
+
+Perhaps we can make the others irreducible too?
+-/
+attribute [irreducible] polynomial.eval₂
 
 section hom_eval₂
 -- TODO: Here we need commutativity in both `S` and `T`?

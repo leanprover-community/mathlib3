@@ -630,6 +630,15 @@ theorem last_mem : ∀ {l : list α} (h : l ≠ []), last l h ∈ l
 | [a] h := or.inl rfl
 | (a::b::l) h := or.inr $ by { rw [last_cons_cons], exact last_mem (cons_ne_nil b l) }
 
+lemma last_repeat_succ (a m : ℕ) :
+  (repeat a m.succ).last (ne_nil_of_length_eq_succ
+  (show (repeat a m.succ).length = m.succ, by rw length_repeat)) = a :=
+begin
+  induction m with k IH,
+  { simp },
+  { simpa only [repeat_succ, last] }
+end
+
 /-! ### last' -/
 
 @[simp] theorem last'_is_none :

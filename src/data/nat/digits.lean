@@ -236,10 +236,24 @@ begin
   { simp [of_digits, list.sum_cons, ih], }
 end
 
-/-! ### Inequalities
+/-! ### Properties
 
-This section contains various lemmas with inequalities relating to `digits` and `of_digits`.
- -/
+This section contains various lemmas of properties relating to `digits` and `of_digits`. -/
+
+lemma digits_eq_nil_iff_eq_zero (b n : ℕ) : digits b n = [] ↔ n = 0 :=
+begin
+  split,
+  { intro h,
+    have : of_digits b (digits b n) = of_digits b [], by rw h,
+    convert this,
+    rw of_digits_digits },
+  { rintro rfl,
+    simp }
+end
+
+lemma digits_ne_nil_iff_ne_zero (b n : ℕ) : digits b n ≠ [] ↔ n ≠ 0 :=
+  ⟨λ h, h ∘ (digits_eq_nil_iff_eq_zero _ _).mpr,
+  λ h, h ∘ (digits_eq_nil_iff_eq_zero _ _).mp⟩
 
 /-- The digits in the base b+2 expansion of n are all less than b+2 -/
 lemma digits_lt_base' {b m : ℕ} : ∀ {d}, d ∈ digits (b+2) m → d < b+2 :=

@@ -35,6 +35,11 @@ attribute [continuity]
   continuous_id
   continuous_const
 
+-- As we will be using `apply_rules` with `md := semireducible`,
+-- we need another version of `continuous_id`.
+@[continuity] lemma continuous_id' {α : Type*} [topological_space α] : continuous (λ a : α, a) :=
+continuous_id
+
 namespace tactic
 
 /--
@@ -62,11 +67,10 @@ meta def apply_continuous.comp : tactic unit :=
 /-- List of tactics used by `continuity` internally. -/
 meta def continuity_tactics : list (tactic string) :=
 [
-  `[apply_rules continuity]            >> pure "apply_rules continuity",
-  -- auto_cases,
-  intros1                              >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
-  tactic.interactive.apply_assumption  >> pure "apply_assumption",
-  apply_continuous.comp                >> pure "refine continuous.comp _ _"
+  intros1               >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
+  `[apply_rules [continuity] 50 {md:=reducible}]
+                        >> pure "apply_rules continuity",
+  apply_continuous.comp >> pure "refine continuous.comp _ _"
 ]
 
 namespace interactive

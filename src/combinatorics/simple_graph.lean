@@ -82,7 +82,7 @@ variables {V : Type u} (G : simple_graph V)
 def neighbor_set (v : V) : set V := set_of (G.adj v)
 
 lemma ne_of_edge {a b : V} (hab : G.adj a b) : a ≠ b :=
-by { rintro rfl, exact G.loopless a hab, }
+by { rintro rfl, exact G.loopless a hab }
 
 /--
 The edges of G consist of the unordered pairs of vertices related by
@@ -108,6 +108,7 @@ begin
 end
 
 variables {G}
+
 noncomputable def E.other (e : G.E) {v : V} (h : v ∈ e) : V :=
 by { have : v ∈ e.val, apply h, exact this.other }
 
@@ -133,7 +134,8 @@ instance E.inhabited [inhabited {p : V × V | G.adj p.1 p.2}] : inhabited G.E :=
   use ⟦(x, y)⟧, rwa sym2.from_rel_prop,
 end⟩
 
-instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] : fintype G.E := subtype.fintype _
+instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
+  fintype G.E := subtype.fintype _
 
 attribute [irreducible] E
 

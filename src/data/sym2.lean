@@ -41,13 +41,14 @@ term of the symmetric square.
 symmetric square, unordered pairs, symmetric powers
 -/
 
+universe u
+variables {α : Type u}
 namespace sym2
-variables {α : Type*}
 
 /--
 This is the relation capturing the notion of pairs equivalent up to permutations.
 -/
-inductive rel (α : Type*) : (α × α) → (α × α) → Prop
+inductive rel (α : Type u) : (α × α) → (α × α) → Prop
 | refl (x y : α) : rel (x, y) (x, y)
 | swap (x y : α) : rel (x, y) (y, x)
 
@@ -61,7 +62,7 @@ by { intros a b, cases_matching* rel _ _ _; apply rel.refl <|> apply rel.swap }
 
 lemma rel.is_equivalence : equivalence (rel α) := by tidy; apply rel.trans; assumption
 
-instance rel.setoid (α : Type*) : setoid (α × α) := ⟨rel α, rel.is_equivalence⟩
+instance rel.setoid (α : Type u) : setoid (α × α) := ⟨rel α, rel.is_equivalence⟩
 
 end sym2
 
@@ -73,11 +74,9 @@ It is equivalent in a natural way to multisets of cardinality 2 (see
 `sym2.equiv_multiset`).
 -/
 @[reducible]
-def sym2 (α : Type*) := quotient (sym2.rel.setoid α)
+def sym2 (α : Type u) := quotient (sym2.rel.setoid α)
 
 namespace sym2
-universe u
-variables {α : Type u}
 
 lemma eq_swap {a b : α} : ⟦(a, b)⟧ = ⟦(b, a)⟧ :=
 by { rw quotient.eq, apply rel.swap }
@@ -296,18 +295,29 @@ end sym_equiv
 section finite
 
 /--
+An algorithm for computing `sym2.rel`.
+-/
+def rel_bool [decidable_eq α] (x y : α × α) : bool :=
+if x.1 = y.1 then x.2 = y.2 else
+  if x.1 = y.2 then x.2 = y.1 else ff
+
+lemma rel_bool_spec [decidable_eq α] (x y : α × α) :
+  ↥(rel_bool x y) ↔ rel α x y :=
+begin
+  cases x with x₁ x₂, cases y with y₁ y₂,
+  dsimp [rel_bool], split_ifs;
+  simp only [false_iff, bool.coe_sort_ff, bool.of_to_bool_iff],
+  rotate 2, { contrapose! h, cases h; cc },
+  all_goals { subst x₁, split; intro h1,
+    { subst h1; apply sym2.rel.swap },
+    { cases h1; cc }}
+end
+
+/--
 Given `[decidable_eq α]` and `[fintype α]`, the following instance gives `fintype (sym2 α)`.
 -/
 instance (α : Type*) [decidable_eq α] : decidable_rel (sym2.rel α) :=
-begin
-  rintros ⟨x₁, x₂⟩ ⟨y₁, y₂⟩, by_cases x₁ = y₁, subst x₁,
-  { by_cases x₂ = y₂, { subst x₂, apply decidable.is_true, refl },
-    by_cases y₁ = y₂, { subst y₁, apply decidable.is_false, rintro ⟨_,_⟩; cc },
-    by_cases x₂ = y₁; { try { subst x₂ }, apply decidable.is_false, rintro ⟨_,_⟩; cc }},
-  by_cases x₁ = y₂, subst x₁,
-  by_cases x₂ = y₁, { subst x₂, apply decidable.is_true, apply sym2.rel.swap },
-  all_goals { apply decidable.is_false, rintro ⟨_,_⟩; cc },
-end
+λ x y, decidable_of_bool (rel_bool x y) (rel_bool_spec x y)
 
 end finite
 

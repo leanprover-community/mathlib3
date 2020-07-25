@@ -120,13 +120,13 @@ iff.rfl
 variable (α)
 
 /-- The stabilizer of an element under an action, i.e. what sends the element to itself. -/
-def stabilizer (b : β) : set α :=
+def stabilizer_carrier (b : β) : set α :=
 {x : α | x • b = b}
 
 variable {α}
 
 @[simp] lemma mem_stabilizer_iff {b : β} {x : α} :
-  x ∈ stabilizer α b ↔ x • b = b := iff.rfl
+  x ∈ stabilizer_carrier α b ↔ x • b = b := iff.rfl
 
 variables (α) (β)
 
@@ -154,17 +154,17 @@ lemma mem_fixed_points' {b : β} : b ∈ fixed_points α β ↔
 λ h b, mem_stabilizer_iff.2 (h _ (mem_orbit _ _))⟩
 
 /-- An action of `α` on `β` and a monoid homomorphism `γ → α` induce an action of `γ` on `β`. -/
-def comp_hom [monoid γ] (g : γ → α) [is_monoid_hom g] :
+def comp_hom [monoid γ] (g : γ →* α) :
   mul_action γ β :=
 { smul := λ x b, (g x) • b,
-  one_smul := by simp [is_monoid_hom.map_one g, mul_action.one_smul],
-  mul_smul := by simp [is_monoid_hom.map_mul g, mul_action.mul_smul] }
+  one_smul := by simp [g.map_one, mul_action.one_smul],
+  mul_smul := by simp [g.map_mul, mul_action.mul_smul] }
 
 variables (α) {β}
 
 /-- The stabilizer of a point `b` as a submonoid of `α`. -/
 def stabilizer.submonoid (b : β) : submonoid α :=
-{ carrier := stabilizer α b,
+{ carrier := stabilizer_carrier α b,
   one_mem' := one_smul _ b,
   mul_mem' := λ a a' (ha : a • b = b) (hb : a' • b = b),
     by rw [mem_stabilizer_iff, ←smul_smul, hb, ha] }
@@ -183,7 +183,30 @@ open mul_action quotient_group
 @[simp] lemma smul_inv_smul (c : α) (x : β) : c • c⁻¹ • x = x :=
 (to_units α c).smul_inv_smul x
 
-variables (α) (β)
+lemma inv_smul_eq_iff {a : α} {x y : β} : a⁻¹ • x = y ↔ x = a • y :=
+begin
+  split;
+  rintro rfl,
+  {rw smul_inv_smul},
+  {rw inv_smul_smul},
+end
+
+lemma eq_inv_smul_iff {a : α} {x y : β} : x = a⁻¹ • y ↔ a • x = y :=
+begin
+  split;
+  rintro rfl,
+  {rw smul_inv_smul},
+  {rw inv_smul_smul},
+end
+
+variable (α)
+
+def stabilizer (b : β) : subgroup α :=
+{ inv_mem' := λ a (ha : a • b = b), show a⁻¹ • b = b, by rw [inv_smul_eq_iff, ha]
+  ..stabilizer.submonoid α b
+}
+
+variable (β)
 
 /-- Given an action of a group `α` on a set `β`, each `g : α` defines a permutation of `β`. -/
 def to_perm (g : α) : equiv.perm β :=

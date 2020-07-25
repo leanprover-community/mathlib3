@@ -148,8 +148,7 @@ begin
   /- F : α → β,  hF : ∀ (x : α), tendsto (λ (n : ℕ), f n x) at_top (𝓝 (F x))
   `F` is the desired limit function. Check that it is uniformly approximated by `f N` -/
   have fF_bdd : ∀x N, dist (f N x) (F x) ≤ b N :=
-    λ x N, le_of_tendsto (by simp)
-      (tendsto_const_nhds.dist (hF x))
+    λ x N, le_of_tendsto (tendsto_const_nhds.dist (hF x))
       (filter.eventually_at_top.2 ⟨N, λn hn, f_bdd x N n N (le_refl N) hn⟩),
   refine ⟨⟨F, _, _⟩, _⟩,
   { /- Check that `F` is continuous, as a uniform limit of continuous functions -/
@@ -158,7 +157,7 @@ begin
       refine ((tendsto_order.1 b_lim).2 ε ε0).mono (λ n hn x, _),
       rw dist_comm,
       exact lt_of_le_of_lt (fF_bdd x n) hn },
-    exact this.continuous (λN, (f N).2.1) at_top_ne_bot },
+    exact this.continuous (λN, (f N).2.1) },
   { /- Check that `F` is bounded -/
     rcases (f 0).2.2 with ⟨C, hC⟩,
     exact ⟨C + (b 0 + b 0), λ x y, calc

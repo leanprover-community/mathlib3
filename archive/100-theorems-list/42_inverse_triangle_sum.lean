@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jalex Stark, Yury Kudryashov
 -/
 import tactic
-import algebra.big_operators
 import data.real.basic
 
 /-!

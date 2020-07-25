@@ -144,14 +144,6 @@ by letI := H.to_has_scalar; exact
   smul_zero := λ r, (add_monoid_hom.mk' ((•) r) (H.smul_add r)).map_zero,
   ..H }
 
-variable [semimodule R M]
-
-@[simp] theorem smul_neg (r : R) (x : M) : r • (-x) = -(r • x) :=
-eq_neg_of_add_eq_zero (by simp [← smul_add])
-
-theorem smul_sub (r : R) (x y : M) : r • (x - y) = r • x - r • y :=
-by simp [smul_add, sub_eq_add_neg]; rw smul_neg
-
 end add_comm_group
 
 /--
@@ -296,8 +288,12 @@ variables (f g : M →ₗ[R] M₂)
 theorem is_linear : is_linear_map R f := ⟨f.2, f.3⟩
 
 variables {f g}
+
+lemma coe_injective (H : ⇑f = g) : f = g :=
+by cases f; cases g; congr'; exact  H
+
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
-by cases f; cases g; congr'; exact funext H
+coe_injective $ funext H
 
 lemma coe_fn_congr : Π {x x' : M}, x = x' → f x = f x'
 | _ _ rfl := rfl
@@ -496,6 +492,10 @@ lemma smul_mem (r : R) (h : x ∈ p) : r • x ∈ p := p.smul_mem' r h
 
 lemma sum_mem {t : finset ι} {f : ι → M} : (∀c∈t, f c ∈ p) → (∑ i in t, f i) ∈ p :=
 p.to_add_submonoid.sum_mem
+
+lemma sum_smul_mem {t : finset ι} {f : ι → M} (r : ι → R)
+    (hyp : ∀ c ∈ t, f c ∈ p) : (∑ i in t, r i • f i) ∈ p :=
+submodule.sum_mem _ (λ i hi, submodule.smul_mem  _ _ (hyp i hi))
 
 @[simp] lemma smul_mem_iff' (u : units R) : (u:R) • x ∈ p ↔ x ∈ p :=
 ⟨λ h, by simpa only [smul_smul, u.inv_mul, one_smul] using p.smul_mem ↑u⁻¹ h, p.smul_mem u⟩
@@ -801,24 +801,3 @@ def add_monoid_hom.to_rat_linear_map [add_comm_group M] [vector_space ℚ M]
   [add_comm_group M₂] [vector_space ℚ M₂] (f : M →+ M₂) :
   M →ₗ[ℚ] M₂ :=
 ⟨f, f.map_add, f.map_rat_module_smul⟩
-
-namespace finset
-
-variable (R)
-
-lemma sum_const' [semiring R] [add_comm_monoid M] [semimodule R M] {s : finset ι} (b : M) :
-  (∑ i in s, b) = (finset.card s : R) • b :=
-by rw [finset.sum_const, ← semimodule.smul_eq_smul]; refl
-
-variables {R} [decidable_linear_ordered_cancel_add_comm_monoid M]
-  {s : finset ι} (f : ι → M)
-
-theorem exists_card_smul_le_sum (hs : s.nonempty) :
-  ∃ i ∈ s, s.card • f i ≤ (∑ i in s, f i) :=
-exists_le_of_sum_le hs $ by rw [sum_const, ← nat.smul_def, smul_sum]
-
-theorem exists_card_smul_ge_sum (hs : s.nonempty) :
-  ∃ i ∈ s, (∑ i in s, f i) ≤ s.card • f i :=
-exists_le_of_sum_le hs $ by rw [sum_const, ← nat.smul_def, smul_sum]
-
-end finset

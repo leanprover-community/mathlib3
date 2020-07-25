@@ -5,7 +5,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.ring_division
-
+import data.polynomial.derivative
+import algebra.gcd_domain
 
 /-!
 # Theory of univariate polynomials
@@ -17,17 +18,9 @@ This file starts looking like the ring theory of $ R[X] $
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
-local attribute [instance, priority 10] is_semiring_hom.comp is_ring_hom.comp
-
-open finsupp finset add_monoid_algebra
-open_locale big_operators
-
 namespace polynomial
 universes u v w y z
 variables {R : Type u} {S : Type v} {k : Type y} {A : Type z} {a b : R} {n : ℕ}
-
-
-
 
 section field
 variables [field R] {p q : polynomial R}
@@ -58,7 +51,21 @@ lemma degree_mul_leading_coeff_inv (p : polynomial R) (h : q ≠ 0) :
   degree (p * C (leading_coeff q)⁻¹) = degree p :=
 have h₁ : (leading_coeff q)⁻¹ ≠ 0 :=
   inv_ne_zero (mt leading_coeff_eq_zero.1 h),
-by rw [degree_mul_eq, degree_C h₁, add_zero]
+by rw [degree_mul, degree_C h₁, add_zero]
+
+theorem irreducible_of_monic {p : polynomial R} (hp1 : p.monic) (hp2 : p ≠ 1) :
+  irreducible p ↔ (∀ f g : polynomial R, f.monic → g.monic → f * g = p → f = 1 ∨ g = 1) :=
+⟨λ hp3 f g hf hg hfg, or.cases_on (hp3.2 f g hfg.symm)
+  (assume huf : is_unit f, or.inl $ eq_one_of_is_unit_of_monic hf huf)
+  (assume hug : is_unit g, or.inr $ eq_one_of_is_unit_of_monic hg hug),
+λ hp3, ⟨mt (eq_one_of_is_unit_of_monic hp1) hp2, λ f g hp,
+have hf : f ≠ 0, from λ hf, by { rw [hp, hf, zero_mul] at hp1, exact not_monic_zero hp1 },
+have hg : g ≠ 0, from λ hg, by { rw [hp, hg, mul_zero] at hp1, exact not_monic_zero hp1 },
+or.imp (λ hf, is_unit_of_mul_eq_one _ _ hf) (λ hg, is_unit_of_mul_eq_one _ _ hg) $
+hp3 (f * C f.leading_coeff⁻¹) (g * C g.leading_coeff⁻¹)
+  (monic_mul_leading_coeff_inv hf) (monic_mul_leading_coeff_inv hg) $
+by rw [mul_assoc, mul_left_comm _ g, ← mul_assoc, ← C_mul, ← mul_inv', ← leading_coeff_mul,
+    ← hp, monic.def.1 hp1, inv_one, C_1, mul_one]⟩⟩
 
 /-- Division of polynomials. See polynomial.div_by_monic for more details.-/
 def div (p q : polynomial R) :=
@@ -141,7 +148,7 @@ have degree (p % q) < degree (q * (p / q)) :=
   calc degree (p % q) < degree q : euclidean_domain.mod_lt _ hq0
   ... ≤ _ : degree_le_mul_left _ (mt (div_eq_zero_iff hq0).1 (not_lt_of_ge hpq)),
 by conv {to_rhs, rw [← euclidean_domain.div_add_mod p q, add_comm,
-    degree_add_eq_of_degree_lt this, degree_mul_eq]}
+    degree_add_eq_of_degree_lt this, degree_mul]}
 
 lemma degree_div_le (p q : polynomial R) : degree (p / q) ≤ degree p :=
 if hq : q = 0 then by simp [hq]
@@ -239,9 +246,16 @@ by rw dif_neg hp0; exact monic_mul_leading_coeff_inv hp0
 lemma coe_norm_unit (hp : p ≠ 0) : (norm_unit p : polynomial R) = C p.leading_coeff⁻¹ :=
 show ↑(dite _ _ _) = C p.leading_coeff⁻¹, by rw dif_neg hp; refl
 
+theorem map_dvd_map' [field k] (f : R →+* k) {x y : polynomial R} : x.map f ∣ y.map f ↔ x ∣ y :=
+if H : x = 0 then by rw [H, map_zero, zero_dvd_iff, zero_dvd_iff, map_eq_zero]
+else by rw [← normalize_dvd_iff, ← @normalize_dvd_iff (polynomial R), normalize, normalize,
+    coe_norm_unit H, coe_norm_unit (mt (map_eq_zero _).1 H),
+    leading_coeff_map, ← f.map_inv, ← map_C, ← map_mul,
+    map_dvd_map _ f.injective (monic_mul_leading_coeff_inv H)]
+
 @[simp] lemma degree_normalize : degree (normalize p) = degree p :=
 if hp0 : p = 0 then by simp [hp0]
-else by rw [normalize, degree_mul_eq, degree_eq_zero_of_is_unit (is_unit_unit _), add_zero]
+else by rw [normalize, degree_mul, degree_eq_zero_of_is_unit (is_unit_unit _), add_zero]
 
 lemma prime_of_degree_eq_one (hp1 : degree p = 1) : prime p :=
 have prime (normalize p),
@@ -259,6 +273,27 @@ theorem pairwise_coprime_X_sub {α : Type u} [field α] {I : Type v}
 ⟨polynomial.C (s j - s i)⁻¹, -polynomial.C (s j - s i)⁻¹,
 by rw [neg_mul_eq_neg_mul_symm, ← sub_eq_add_neg, ← mul_sub, sub_sub_sub_cancel_left,
     ← polynomial.C_sub, ← polynomial.C_mul, inv_mul_cancel h, polynomial.C_1]⟩
+
+/-- If `f` is a polynomial over a field, and `a : K` satisfies `f' a ≠ 0`,
+then `f / (X - a)` is coprime with `X - a`.
+Note that we do not assume `f a = 0`, because `f / (X - a) = (f - f a) / (X - a)`. -/
+lemma is_coprime_of_is_root_of_eval_derivative_ne_zero {K : Type*} [field K]
+  (f : polynomial K) (a : K) (hf' : f.derivative.eval a ≠ 0) :
+  is_coprime (X - C a : polynomial K) (f /ₘ (X - C a)) :=
+begin
+  refine or.resolve_left (dvd_or_coprime (X - C a) (f /ₘ (X - C a))
+    (irreducible_of_degree_eq_one (polynomial.degree_X_sub_C a))) _,
+  contrapose! hf' with h,
+  have key : (X - C a) * (f /ₘ (X - C a)) = f - (f %ₘ (X - C a)),
+  { rw [eq_sub_iff_add_eq, ← eq_sub_iff_add_eq', mod_by_monic_eq_sub_mul_div],
+    exact monic_X_sub_C a },
+  replace key := congr_arg derivative key,
+  simp only [derivative_X, derivative_mul, one_mul, sub_zero, derivative_sub,
+    mod_by_monic_X_sub_C_eq_C_eval, derivative_C] at key,
+  have : (X - C a) ∣ derivative f := key ▸ (dvd_add h (dvd_mul_right _ _)),
+  rw [← dvd_iff_mod_by_monic_eq_zero (monic_X_sub_C _), mod_by_monic_X_sub_C_eq_C_eval] at this,
+  rw [← C_inj, this, C_0],
+end
 
 end field
 end polynomial

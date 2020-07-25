@@ -5,7 +5,7 @@ Authors: Kenny Lau
 
 Free abelian groups as abelianization of free groups.
 -/
-import algebra.pi_instances
+import algebra.group.pi
 import group_theory.free_group
 import group_theory.abelianization
 

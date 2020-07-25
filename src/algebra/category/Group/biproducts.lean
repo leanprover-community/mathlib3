@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import algebra.category.Group.basic
 import algebra.category.Group.preadditive
 import category_theory.limits.shapes.biproducts
-import algebra.pi_instances
+import algebra.group.pi
 
 /-!
 # The category of abelian groups has finite biproducts

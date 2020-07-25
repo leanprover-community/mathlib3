@@ -185,7 +185,7 @@ begin
   refine ⟨∑ n : σ → α, e n • indicator n, _, _⟩,
   { exact sum_mem _ (assume c _, smul_mem _ _ (indicator_mem_restrict_degree _)) },
   { ext n,
-    simp only [linear_map.map_sum, @pi.finset_sum_apply (σ → α) (λ_, α) _ _ _ _ _,
+    simp only [linear_map.map_sum, @finset.sum_apply (σ → α) (λ_, α) _ _ _ _ _,
       pi.smul_apply, linear_map.map_smul],
     simp only [evalₗ_apply],
     transitivity,
@@ -258,5 +258,14 @@ begin
   rw [ker_evalₗ, mem_bot] at this,
   rw [this]
 end
+
+end mv_polynomial
+
+namespace mv_polynomial
+
+variables (σ : Type*) (R : Type*) [comm_ring R] (p : ℕ)
+
+instance [char_p R p] : char_p (mv_polynomial σ R) p :=
+{ cast_eq_zero_iff := λ n, by rw [← C_eq_coe_nat, ← C_0, C_inj, char_p.cast_eq_zero_iff R p] }
 
 end mv_polynomial

@@ -352,34 +352,75 @@ end multiset
 
 
 section lattice
-variables {ι : Sort*} [complete_lattice α]
+variables {ι : Type*} {ι' : Sort*} [complete_lattice α]
 
+/-- Supremum of `s i`, `i : ι`, is equal to the supremum over `t : finset ι` of suprema
+`⨆ i ∈ t, s i`. This version assumes `ι` is a `Type*`. See `supr_eq_supr_finset'` for a version
+that works for `ι : Sort*`. -/
 lemma supr_eq_supr_finset (s : ι → α) :
-  (⨆i, s i) = (⨆t:finset (plift ι), ⨆i∈t, s (plift.down i)) :=
+  (⨆i, s i) = (⨆t:finset ι, ⨆i∈t, s i) :=
 begin
   classical,
   exact le_antisymm
-    (supr_le $ assume b, le_supr_of_le {plift.up b} $ le_supr_of_le (plift.up b) $ le_supr_of_le
+    (supr_le $ assume b, le_supr_of_le {b} $ le_supr_of_le b $ le_supr_of_le
       (by simp) $ le_refl _)
     (supr_le $ assume t, supr_le $ assume b, supr_le $ assume hb, le_supr _ _)
 end
 
+/-- Supremum of `s i`, `i : ι`, is equal to the supremum over `t : finset ι` of suprema
+`⨆ i ∈ t, s i`. This version works for `ι : Sort*`. See `supr_eq_supr_finset` for a version
+that assumes `ι : Type*` but has no `plift`s. -/
+lemma supr_eq_supr_finset' (s : ι' → α) :
+  (⨆i, s i) = (⨆t:finset (plift ι'), ⨆i∈t, s (plift.down i)) :=
+by rw [← supr_eq_supr_finset, ← equiv.plift.surjective.supr_comp]; refl
+
+/-- Infimum of `s i`, `i : ι`, is equal to the infimum over `t : finset ι` of infima
+`⨆ i ∈ t, s i`. This version assumes `ι` is a `Type*`. See `infi_eq_infi_finset'` for a version
+that works for `ι : Sort*`. -/
 lemma infi_eq_infi_finset (s : ι → α) :
-  (⨅i, s i) = (⨅t:finset (plift ι), ⨅i∈t, s (plift.down i)) :=
+  (⨅i, s i) = (⨅t:finset ι, ⨅i∈t, s i) :=
 @supr_eq_supr_finset (order_dual α) _ _ _
+
+/-- Infimum of `s i`, `i : ι`, is equal to the infimum over `t : finset ι` of infima
+`⨆ i ∈ t, s i`. This version works for `ι : Sort*`. See `infi_eq_infi_finset` for a version
+that assumes `ι : Type*` but has no `plift`s. -/
+lemma infi_eq_infi_finset' (s : ι' → α) :
+  (⨅i, s i) = (⨅t:finset (plift ι'), ⨅i∈t, s (plift.down i)) :=
+@supr_eq_supr_finset' (order_dual α) _ _ _
 
 end lattice
 
 namespace set
-variables {ι : Sort*}
+variables {ι : Type*} {ι' : Sort*}
 
+/-- Union of an indexed family of sets `s : ι → set α` is equal to the union of the unions
+of finite subfamilies. This version assumes `ι : Type*`. See also `Union_eq_Union_finset'` for
+a version that works for `ι : Sort*`. -/
 lemma Union_eq_Union_finset (s : ι → set α) :
-  (⋃i, s i) = (⋃t:finset (plift ι), ⋃i∈t, s (plift.down i)) :=
+  (⋃i, s i) = (⋃t:finset ι, ⋃i∈t, s i) :=
 supr_eq_supr_finset s
 
+/-- Union of an indexed family of sets `s : ι → set α` is equal to the union of the unions
+of finite subfamilies. This version works for `ι : Sort*`. See also `Union_eq_Union_finset` for
+a version that assumes `ι : Type*` but avoids `plift`s in the right hand side. -/
+lemma Union_eq_Union_finset' (s : ι' → set α) :
+  (⋃i, s i) = (⋃t:finset (plift ι'), ⋃i∈t, s (plift.down i)) :=
+supr_eq_supr_finset' s
+
+/-- Intersection of an indexed family of sets `s : ι → set α` is equal to the intersection of the
+intersections of finite subfamilies. This version assumes `ι : Type*`. See also
+`Inter_eq_Inter_finset'` for a version that works for `ι : Sort*`. -/
 lemma Inter_eq_Inter_finset (s : ι → set α) :
-  (⋂i, s i) = (⋂t:finset (plift ι), ⋂i∈t, s (plift.down i)) :=
+  (⋂i, s i) = (⋂t:finset ι, ⋂i∈t, s i) :=
 infi_eq_infi_finset s
+
+/-- Intersection of an indexed family of sets `s : ι → set α` is equal to the intersection of the
+intersections of finite subfamilies. This version works for `ι : Sort*`. See also
+`Inter_eq_Inter_finset` for a version that assumes `ι : Type*` but avoids `plift`s in the right
+hand side. -/
+lemma Inter_eq_Inter_finset' (s : ι' → set α) :
+  (⋂i, s i) = (⋂t:finset (plift ι'), ⋂i∈t, s (plift.down i)) :=
+infi_eq_infi_finset' s
 
 end set
 

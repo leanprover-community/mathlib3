@@ -40,7 +40,7 @@ filter.ext_iff.1 nhds_bind_nhds_within {x | p x}
 
 lemma eventually_nhds_within_iff {a : α} {s : set α} {p : α → Prop} :
   (∀ᶠ x in nhds_within a s, p x) ↔ ∀ᶠ x in 𝓝 a, x ∈ s → p x :=
-mem_inf_principal _ _ _
+eventually_inf_principal
 
 @[simp] lemma eventually_nhds_within_nhds_within {a : α} {s : set α} {p : α → Prop} :
   (∀ᶠ y in nhds_within a s, ∀ᶠ x in nhds_within y s, p x) ↔ ∀ᶠ x in nhds_within a s, p x :=
@@ -205,15 +205,15 @@ theorem principal_subtype {α : Type*} (s : set α) (t : set {x // x ∈ s}) :
 by rw [comap_principal, set.preimage_image_eq _ subtype.coe_injective]
 
 lemma mem_closure_iff_nhds_within_ne_bot {s : set α} {x : α} :
-  x ∈ closure s ↔ nhds_within x s ≠ ⊥ :=
-mem_closure_iff_nhds.trans (nhds_within_has_basis (𝓝 x).basis_sets s).forall_nonempty_iff_ne_bot
+  x ∈ closure s ↔ ne_bot (nhds_within x s) :=
+mem_closure_iff_cluster_pt
 
 lemma nhds_within_ne_bot_of_mem {s : set α} {x : α} (hx : x ∈ s) :
-  nhds_within x s ≠ ⊥ :=
+  ne_bot (nhds_within x s) :=
 mem_closure_iff_nhds_within_ne_bot.1 $ subset_closure hx
 
 lemma is_closed.mem_of_nhds_within_ne_bot {s : set α} (hs : is_closed s)
-  {x : α} (hx : nhds_within x s ≠ ⊥) : x ∈ s :=
+  {x : α} (hx : ne_bot $ nhds_within x s) : x ∈ s :=
 by simpa only [hs.closure_eq] using mem_closure_iff_nhds_within_ne_bot.2 hx
 
 /-
@@ -365,8 +365,9 @@ by simp only [continuous_within_at, nhds_within_union, tendsto, map_sup, sup_le_
 
 lemma continuous_within_at.mem_closure_image  {f : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (hx : x ∈ closure s) : f x ∈ closure (f '' s) :=
-mem_closure_of_tendsto (mem_closure_iff_nhds_within_ne_bot.1 hx) h $
-mem_sets_of_superset self_mem_nhds_within (subset_preimage_image f s)
+by haveI := (mem_closure_iff_nhds_within_ne_bot.1 hx);
+exact (mem_closure_of_tendsto h $
+  mem_sets_of_superset self_mem_nhds_within (subset_preimage_image f s))
 
 lemma continuous_within_at.mem_closure {f : α → β} {s : set α} {x : α} {A : set β}
   (h : continuous_within_at f s x) (hx : x ∈ closure s) (hA : s ⊆ f⁻¹' A) : f x ∈ closure A :=

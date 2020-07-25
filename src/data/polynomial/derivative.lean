@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import data.polynomial.field_division
+import data.polynomial.eval
 
 /-!
 # Theory of univariate polynomials
@@ -14,9 +14,7 @@ import data.polynomial.field_division
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
-local attribute [instance, priority 10] is_semiring_hom.comp is_ring_hom.comp
-
-open finsupp finset add_monoid_algebra
+open finsupp finset
 open_locale big_operators
 
 namespace polynomial
@@ -49,8 +47,11 @@ end
 finsupp.sum_zero_index
 
 lemma derivative_monomial (a : R) (n : ℕ) : derivative (C a * X ^ n) = C (a * n) * X^(n - 1) :=
-by rw [← single_eq_C_mul_X, ← single_eq_C_mul_X, derivative, sum_single_index, single_eq_C_mul_X];
-  simp only [zero_mul, C_0]; refl
+begin
+  rw [← single_eq_C_mul_X, ← single_eq_C_mul_X, derivative, monomial,
+    sum_single_index, single_eq_C_mul_X],
+  simp only [zero_mul, C_0],
+end
 
 @[simp] lemma derivative_C {a : R} : derivative (C a) = 0 :=
 suffices derivative (C a * X^0) = C (a * 0:R) * X ^ 0,
@@ -125,10 +126,6 @@ calc derivative (f * g) = f.sum (λn a, g.sum (λm b, C ((a * b) * (n + m : ℕ)
       simp only [sum_add_distrib, finset.mul_sum, finset.sum_mul]
     end
 
-lemma derivative_eval (p : polynomial R) (x : R) :
-  p.derivative.eval x = p.sum (λ n a, (a * n)*x^(n-1)) :=
-by simp [derivative, eval_sum, eval_pow, -alg_hom.map_nat_cast]
-
 theorem derivative_pow_succ (p : polynomial R) (n : ℕ) :
   (p ^ (n + 1)).derivative = (n + 1) * (p ^ n) * p.derivative :=
 nat.rec_on n (by rw [pow_one, nat.cast_zero, zero_add, one_mul, pow_zero, one_mul]) $ λ n ih,
@@ -183,27 +180,6 @@ def derivative_lhom (R : Type*) [comm_ring R] : polynomial R →ₗ[R] polynomia
 { to_fun    := derivative,
   map_add'  := λ p q, derivative_add,
   map_smul' := λ r p, derivative_smul r p }
-
-/-- If `f` is a polynomial over a field, and `a : K` satisfies `f' a ≠ 0`,
-then `f / (X - a)` is coprime with `X - a`.
-Note that we do not assume `f a = 0`, because `f / (X - a) = (f - f a) / (X - a)`. -/
-lemma is_coprime_of_is_root_of_eval_derivative_ne_zero {K : Type*} [field K]
-  (f : polynomial K) (a : K) (hf' : f.derivative.eval a ≠ 0) :
-  is_coprime (X - C a : polynomial K) (f /ₘ (X - C a)) :=
-begin
-  refine or.resolve_left (dvd_or_coprime (X - C a) (f /ₘ (X - C a))
-    (irreducible_of_degree_eq_one (polynomial.degree_X_sub_C a))) _,
-  contrapose! hf' with h,
-  have key : (X - C a) * (f /ₘ (X - C a)) = f - (f %ₘ (X - C a)),
-  { rw [eq_sub_iff_add_eq, ← eq_sub_iff_add_eq', mod_by_monic_eq_sub_mul_div],
-    exact monic_X_sub_C a },
-  replace key := congr_arg derivative key,
-  simp only [derivative_X, derivative_mul, one_mul, sub_zero, derivative_sub,
-    mod_by_monic_X_sub_C_eq_C_eval, derivative_C] at key,
-  have : (X - C a) ∣ derivative f := key ▸ (dvd_add h (dvd_mul_right _ _)),
-  rw [← dvd_iff_mod_by_monic_eq_zero (monic_X_sub_C _), mod_by_monic_X_sub_C_eq_C_eval] at this,
-  rw [← C_inj, this, C_0],
-end
 
 end comm_semiring
 

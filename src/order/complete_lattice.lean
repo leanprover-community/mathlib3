@@ -351,21 +351,19 @@ lemma monotone.supr_comp_eq [preorder β] {f : β → α} (hf : monotone f)
   (⨆ x, f (s x)) = ⨆ y, f y :=
 le_antisymm (supr_comp_le _ _) (supr_le_supr2 $ λ x, (hs x).imp $ λ i hi, hf hi)
 
-lemma supr_congr {f : β → α} {g : β₂ → α} (h : β → β₂)
-  (h1 : function.surjective h) (h2 : ∀ x, g (h x) = f x) : (⨆ x, f x) = ⨆ y, g y :=
-by { unfold supr, congr' 1, convert h1.range_comp g, ext, rw ←h2 }
+lemma function.surjective.supr_comp {α : Type*} [has_Sup α] {f : ι → ι₂}
+  (hf : function.surjective f) (g : ι₂ → α) :
+  (⨆ x, g (f x)) = ⨆ y, g y :=
+by simp only [supr, hf.range_comp]
 
 -- TODO: finish doesn't do well here.
 @[congr] theorem supr_congr_Prop {α : Type*} [has_Sup α] {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : supr f₁ = supr f₂ :=
 begin
-  unfold supr,
-  apply congr_arg,
-  ext,
-  simp,
-  split,
-  exact λ⟨h, W⟩, ⟨pq.1 h, eq.trans (f (pq.1 h)).symm W⟩,
-  exact λ⟨h, W⟩, ⟨pq.2 h, eq.trans (f h) W⟩
+  have : f₁ ∘ pq.mpr = f₂ := funext f,
+  rw [← this],
+  refine (function.surjective.supr_comp (λ h, ⟨pq.1 h, _⟩) f₁).symm,
+  refl
 end
 
 theorem infi_le (s : ι → α) (i : ι) : infi s ≤ s i :=
@@ -441,21 +439,14 @@ lemma monotone.infi_comp_eq [preorder β] {f : β → α} (hf : monotone f)
   (⨅ x, f (s x)) = ⨅ y, f y :=
 le_antisymm (infi_le_infi2 $ λ x, (hs x).imp $ λ i hi, hf hi) (le_infi_comp _ _)
 
-lemma infi_congr {f : β → α} {g : β₂ → α} (h : β → β₂)
-  (h1 : function.surjective h) (h2 : ∀ x, g (h x) = f x) : (⨅ x, f x) = ⨅ y, g y :=
-by { unfold infi, congr' 1, convert h1.range_comp g, ext, rw ←h2 }
+lemma function.surjective.infi_comp {α : Type*} [has_Inf α] {f : ι → ι₂}
+  (hf : function.surjective f) (g : ι₂ → α) :
+  (⨅ x, g (f x)) = ⨅ y, g y :=
+@function.surjective.supr_comp _ _ (order_dual α) _ f hf g
 
 @[congr] theorem infi_congr_Prop {α : Type*} [has_Inf α] {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : infi f₁ = infi f₂ :=
-begin
-  unfold infi,
-  apply congr_arg,
-  ext,
-  simp,
-  split,
-  exact λ⟨h, W⟩, ⟨pq.1 h, eq.trans (f (pq.1 h)).symm W⟩,
-  exact λ⟨h, W⟩, ⟨pq.2 h, eq.trans (f h) W⟩
-end
+@supr_congr_Prop (order_dual α) _ p q f₁ f₂ pq f
 
 -- We will generalize this to conditionally complete lattices in `cinfi_const`.
 theorem infi_const [nonempty ι] {a : α} : (⨅ b:ι, a) = a :=
@@ -774,11 +765,23 @@ le_antisymm
 
 /- supr and infi under Type -/
 
+theorem infi_of_empty' (h : ι → false) {s : ι → α} : infi s = ⊤ :=
+top_unique (le_infi $ assume i, (h i).elim)
+
+theorem supr_of_empty' (h : ι → false) {s : ι → α} : supr s = ⊥ :=
+bot_unique (supr_le $ assume i, (h i).elim)
+
+theorem infi_of_empty (h : ¬nonempty ι) {s : ι → α} : infi s = ⊤ :=
+infi_of_empty' (λ i, h ⟨i⟩)
+
+theorem supr_of_empty (h : ¬nonempty ι) {s : ι → α} : supr s = ⊥ :=
+supr_of_empty' (λ i, h ⟨i⟩)
+
 @[simp] theorem infi_empty {s : empty → α} : infi s = ⊤ :=
-le_antisymm le_top (le_infi $ assume i, empty.rec_on _ i)
+infi_of_empty nonempty_empty
 
 @[simp] theorem supr_empty {s : empty → α} : supr s = ⊥ :=
-le_antisymm (supr_le $ assume i, empty.rec_on _ i) bot_le
+supr_of_empty nonempty_empty
 
 @[simp] theorem infi_unit {f : unit → α} : (⨅ x, f x) = f () :=
 le_antisymm (infi_le _ _) (le_infi $ assume ⟨⟩, le_refl _)
@@ -802,7 +805,7 @@ le_antisymm
   (le_infi $ assume ⟨i, h⟩, infi_le_of_le i $ infi_le _ _)
 
 lemma infi_subtype' {p : ι → Prop} {f : ∀ i, p i → α} :
-  (⨅ i (h : p i), f i h) = (⨅ x : subtype p, f x.val x.property) :=
+  (⨅ i (h : p i), f i h) = (⨅ x : subtype p, f x x.property) :=
 (@infi_subtype _ _ _ p (λ x, f x.val x.property)).symm
 
 lemma infi_subtype'' {ι} (s : set ι) (f : ι → α) :
@@ -875,13 +878,11 @@ section complete_linear_order
 variables [complete_linear_order α]
 
 lemma supr_eq_top (f : ι → α) : supr f = ⊤ ↔ (∀b<⊤, ∃i, b < f i) :=
-by rw [← Sup_range, Sup_eq_top];
-from forall_congr (assume b, forall_congr (assume hb, set.exists_range_iff))
+by simp only [← Sup_range, Sup_eq_top, set.exists_range_iff]
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-lemma infi_eq_bot (f : ι → α) : infi f = ⊥ ↔ (∀b>⊥, ∃i, b > f i) :=
-by rw [← Inf_range, Inf_eq_bot];
-from forall_congr (assume b, forall_congr (assume hb, set.exists_range_iff))
+lemma infi_eq_bot (f : ι → α) : infi f = ⊥ ↔ (∀b>⊥, ∃i, f i < b) :=
+by simp only [← Inf_range, Inf_eq_bot, set.exists_range_iff]
 
 end complete_linear_order
 

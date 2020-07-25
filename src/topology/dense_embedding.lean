@@ -42,6 +42,10 @@ eq_univ_iff_forall.symm
 lemma dense_range.closure_range (h : dense_range f) : closure (range f) = univ :=
 eq_univ_iff_forall.mpr h
 
+lemma dense_range.nhds_within_ne_bot (h : dense_range f) (x : β) :
+  ne_bot (nhds_within x (range f)) :=
+mem_closure_iff_cluster_pt.1 (h x)
+
 lemma dense_range.comp (hg : dense_range g) (hf : dense_range f) (cg : continuous g) :
   dense_range (g ∘ f) :=
 begin
@@ -142,13 +146,11 @@ begin
   exact le_trans lim1 lim2,
 end
 
-protected lemma nhds_inf_ne_bot (di : dense_inducing i) {b : β} : 𝓝 b ⊓ 𝓟 (range i) ≠ ⊥ :=
-begin
-  convert di.dense b,
-  simp [closure_eq_cluster_pts, cluster_pt]
-end
+protected lemma nhds_within_ne_bot (di : dense_inducing i) (b : β) :
+  ne_bot (nhds_within b (range i)) :=
+di.dense.nhds_within_ne_bot b
 
-lemma comap_nhds_ne_bot (di : dense_inducing i) {b : β} : comap i (𝓝 b) ≠ ⊥ :=
+lemma comap_nhds_ne_bot (di : dense_inducing i) (b : β) : ne_bot (comap i (𝓝 b)) :=
 comap_ne_bot $ λ s hs,
 let ⟨_, ⟨ha, a, rfl⟩⟩ := mem_closure_iff_nhds.1 (di.dense b) s hs in ⟨a, ha⟩
 
@@ -161,23 +163,43 @@ variables [topological_space γ]
 def extend (di : dense_inducing i) (f : α → γ) (b : β) : γ :=
 @@lim _ ⟨f (di.dense.inhabited b).default⟩ (comap i (𝓝 b)) f
 
-lemma extend_eq [t2_space γ] {b : β} {c : γ} {f : α → γ} (hf : tendsto f (comap i (𝓝 b)) (𝓝 c)) :
+lemma extend_eq_of_tendsto [t2_space γ] {b : β} {c : γ} {f : α → γ}
+  (hf : tendsto f (comap i (𝓝 b)) (𝓝 c)) :
   di.extend f b = c :=
-hf.lim_eq di.comap_nhds_ne_bot
+by haveI := di.comap_nhds_ne_bot; exact hf.lim_eq
 
-lemma extend_e_eq [t2_space γ] {f : α → γ} (a : α) (hf : continuous_at f a) :
+lemma extend_eq_at [t2_space γ] {f : α → γ} (a : α) (hf : continuous_at f a) :
   di.extend f (i a) = f a :=
-extend_eq _ $ di.nhds_eq_comap a ▸ hf
+extend_eq_of_tendsto _ $ di.nhds_eq_comap a ▸ hf
 
-lemma extend_eq_of_cont [t2_space γ] {f : α → γ} (hf : continuous f) (a : α) :
+lemma extend_eq [t2_space γ] {f : α → γ} (hf : continuous f) (a : α) :
   di.extend f (i a) = f a :=
-di.extend_e_eq a (continuous_iff_continuous_at.1 hf a)
+di.extend_eq_at a hf.continuous_at
+
+lemma extend_unique_at [t2_space γ] {b : β} {f : α → γ} {g : β → γ} (di : dense_inducing i)
+  (hf : ∀ᶠ x in comap i (𝓝 b), g (i x) = f x) (hg : continuous_at g b) :
+  di.extend f b = g b :=
+begin
+  refine di.extend_eq_of_tendsto (λ s hs, mem_map.2 _),
+  suffices : ∀ᶠ (x : α) in comap i (𝓝 b), g (i x) ∈ s,
+    from hf.mp (this.mono $ λ x hgx hfx, hfx ▸ hgx),
+  clear hf f,
+  refine eventually_comap.2 ((hg.eventually hs).mono _),
+  rintros _ hxs x rfl,
+  exact hxs
+end
+
+lemma extend_unique [t2_space γ] {f : α → γ} {g : β → γ} (di : dense_inducing i)
+  (hf : ∀ x, g (i x) = f x) (hg : continuous g) :
+  di.extend f = g :=
+funext $ λ b, extend_unique_at di (eventually_of_forall hf) hg.continuous_at
 
 lemma continuous_at_extend [regular_space γ] {b : β} {f : α → γ} (di : dense_inducing i)
   (hf : ∀ᶠ x in 𝓝 b, ∃c, tendsto f (comap i $ 𝓝 x) (𝓝 c)) :
   continuous_at (di.extend f) b :=
 begin
   set φ := di.extend f,
+  haveI := di.comap_nhds_ne_bot,
   suffices : ∀ V' ∈ 𝓝 (φ b), is_closed V' → φ ⁻¹' V' ∈ 𝓝 b,
     by simpa [continuous_at, (closed_nhds_basis _).tendsto_right_iff],
   intros V' V'_in V'_closed,
@@ -185,9 +207,8 @@ begin
   have V₁_in : V₁ ∈ 𝓝 b,
   { filter_upwards [hf],
     rintros x ⟨c, hc⟩,
-    change tendsto f (comap i (𝓝 x)) (𝓝 (φ x)),
-    convert hc,
-    exact di.extend_eq hc },
+    dsimp [V₁, φ],
+    rwa di.extend_eq_of_tendsto hc },
   obtain ⟨V₂, V₂_in, V₂_op, hV₂⟩ : ∃ V₂ ∈ 𝓝 b, is_open V₂ ∧ ∀ x ∈ i ⁻¹' V₂, f x ∈ V',
   { simpa [and_assoc] using ((nhds_basis_opens' b).comap i).tendsto_left_iff.mp
                             (mem_of_nhds V₁_in : b ∈ V₁) V' V'_in },
@@ -195,7 +216,7 @@ begin
   { filter_upwards [inter_mem_sets V₁_in V₂_in], exact this },
   rintros x ⟨x_in₁, x_in₂⟩,
   have hV₂x : V₂ ∈ 𝓝 x := mem_nhds_sets V₂_op x_in₂,
-  apply mem_of_closed_of_tendsto (comap_nhds_ne_bot di) x_in₁ V'_closed,
+  apply mem_of_closed_of_tendsto x_in₁ V'_closed,
   use V₂,
   tauto,
 end

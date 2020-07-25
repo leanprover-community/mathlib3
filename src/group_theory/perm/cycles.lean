@@ -5,6 +5,7 @@ Authors: Chris Hughes
 -/
 import group_theory.perm.sign
 import group_theory.order_of_element
+import tactic.omega
 
 namespace equiv.perm
 open equiv function finset
@@ -143,5 +144,34 @@ else let ⟨m, hm₁, hm₂, hm₃⟩ := cycle_factors_aux l ((cycle_of f x)⁻�
 def cycle_factors [fintype α] [decidable_linear_order α] (f : perm α) :
   {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint} :=
 cycle_factors_aux (univ.sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
+
+
+
+section fixed_points
+
+-- TODO: move this section to be with other combinatorial facts about the symmetric group
+lemma one_lt_nonfixed_point_of_ne_refl [fintype α] {σ : perm α} (h : σ ≠ equiv.refl α) :
+1 < (filter (λ x, ¬ σ x = x) univ).card :=
+begin
+  rw one_lt_card_iff,
+  contrapose! h, ext, dsimp,
+  have := h (σ x) x, simp only [true_and, mem_filter, equiv.apply_eq_iff_eq, mem_univ, ne.def] at this,
+  tauto,
+end
+
+lemma fixed_point_card_lt_of_ne_refl [fintype α] {σ : perm α} (h : σ ≠ equiv.refl α) :
+(filter (λ x, σ x = x) univ).card < fintype.card α - 1 :=
+begin
+  have hun := @filter_union_filter_neg_eq _ (λ x, σ x = x) _ _ _ univ,
+  have hin : (filter (λ x, σ x = x) univ) ∩ (filter (λ x, ¬ σ x = x) univ) = ∅
+    := filter_inter_filter_neg_eq univ,
+  rw ← disjoint_iff_inter_eq_empty at hin,
+  rw fintype.card, conv_rhs { rw ← hun },
+  rw card_disjoint_union hin,
+  have := one_lt_nonfixed_point_of_ne_refl h, omega,
+end
+
+end fixed_points
+
 
 end equiv.perm

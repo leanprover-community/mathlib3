@@ -8,6 +8,7 @@ import linear_algebra.char_poly
 import linear_algebra.matrix
 import ring_theory.polynomial.basic
 import algebra.polynomial.big_operators
+import group_theory.perm.cycles
 
 /-!
 # Characteristic polynomials
@@ -34,36 +35,12 @@ open polynomial matrix
 open_locale big_operators
 
 variables {R : Type u} [comm_ring R]
-variables {n : Type v} [fintype n] [decidable_eq n]
-variables {α : Type v} [decidable_eq α]
+variables {n G : Type v} [fintype n] [decidable_eq n]
+variables {α β : Type v} [decidable_eq α]
+
 
 open finset
 open polynomial
-
-section fixed_points
--- TODO: move this section to be with other combinatorial facts about the symmetric group
-lemma one_lt_nonfixed_point_of_ne_refl {σ : equiv.perm n} (h : σ ≠ equiv.refl n) :
-1 < (filter (λ (x : n), ¬ σ x = x) univ).card :=
-begin
-  rw one_lt_card_iff,
-  contrapose! h, ext, dsimp,
-  have := h (σ x) x, simp only [true_and, mem_filter, equiv.apply_eq_iff_eq, mem_univ, ne.def] at this,
-  tauto,
-end
-
-lemma fixed_point_card_lt_of_ne_refl {σ : equiv.perm n} (h : σ ≠ equiv.refl n) :
-(filter (λ (x : n), σ x = x) univ).card < fintype.card n - 1:=
-begin
-  have hun := @filter_union_filter_neg_eq _ (λ (x : n), σ x = x) _ _ _ univ,
-  have hin : (filter (λ (x : n), σ x = x) univ) ∩ (filter (λ (x : n), ¬ σ x = x) univ) = ∅
-    := filter_inter_filter_neg_eq univ,
-  rw ← disjoint_iff_inter_eq_empty at hin,
-  rw fintype.card, conv_rhs { rw ← hun },
-  rw card_disjoint_union hin,
-  have := one_lt_nonfixed_point_of_ne_refl h, omega,
-end
-
-end fixed_points
 
 variable {M : matrix n n R}
 
@@ -87,7 +64,7 @@ begin
   intros c hc, rw [← C_eq_int_cast, C_mul'],
   apply submodule.smul_mem (degree_lt R (fintype.card n - 1)) ↑↑(equiv.perm.sign c),
   rw mem_degree_lt, apply lt_of_le_of_lt degree_le_nat_degree _, rw with_bot.coe_lt_coe,
-  apply lt_of_le_of_lt _ (fixed_point_card_lt_of_ne_refl (ne_of_mem_erase hc)),
+  apply lt_of_le_of_lt _ (equiv.perm.fixed_point_card_lt_of_ne_refl (ne_of_mem_erase hc)),
   apply le_trans (polynomial.nat_degree_prod_le univ (λ i : n, (char_matrix M (c i) i))) _,
   rw card_eq_sum_ones, rw sum_filter, apply sum_le_sum,
   intros, apply char_matrix_apply_nat_degree_le,

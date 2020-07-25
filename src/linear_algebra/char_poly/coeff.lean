@@ -177,7 +177,7 @@ begin
   apply congr_arg det, ext, symmetry, convert mat_poly_equiv_eval _ _ _ _,
 end
 
-theorem det_from_char_poly_coeff_zero (M : matrix n n R) :
+theorem det_eq_char_poly (M : matrix n n R) :
   M.det = (-1)^(fintype.card n) * (char_poly M).coeff 0:=
 begin
   rw [coeff_zero_eq_eval_zero, char_poly, eval_det, mat_poly_equiv_char_matrix, ← det_smul],

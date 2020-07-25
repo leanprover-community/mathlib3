@@ -91,7 +91,7 @@ for each natural `m` is by definition `C^∞` at `0`.
 
 There is another issue with the definition of `times_cont_diff_within_at 𝕜 n f s x`. We can
 require the existence and good behavior of derivatives up to order `n` on a neighborhood of `x`
-within `s`. However, this does not imply continuity or differentiability within `s`of the function
+within `s`. However, this does not imply continuity or differentiability within `s` of the function
 at `x`. Therefore, we require such existence and good behavior on a neighborhood of `x` within
 `s ∪ {x}` (which appears as `insert x s` in this file).
 
@@ -1959,7 +1959,7 @@ end
 
 /-! ### Sum of two functions -/
 
-/-- The sum of two `C^n`functions within a set at a point is `C^n` within this set
+/-- The sum of two `C^n` functions within a set at a point is `C^n` within this set
 at this point. -/
 lemma times_cont_diff_within_at.add {n : with_top ℕ} {s : set E} {f g : E → F}
   (hf : times_cont_diff_within_at 𝕜 n f s x) (hg : times_cont_diff_within_at 𝕜 n g s x) :
@@ -1971,7 +1971,7 @@ begin
   exact A.times_cont_diff_within_at.comp x (hf.prod hg) subset_preimage_univ,
 end
 
-/-- The sum of two `C^n`functions at a point is `C^n` at this point. -/
+/-- The sum of two `C^n` functions at a point is `C^n` at this point. -/
 lemma times_cont_diff_at.add {n : with_top ℕ} {f g : E → F}
   (hf : times_cont_diff_at 𝕜 n f x) (hg : times_cont_diff_at 𝕜 n g x) :
   times_cont_diff_at 𝕜 n (λx, f x + g x) x :=
@@ -1980,13 +1980,13 @@ begin
   exact hf.add hg
 end
 
-/-- The sum of two `C^n`functions on a domain is `C^n`. -/
+/-- The sum of two `C^n` functions on a domain is `C^n`. -/
 lemma times_cont_diff_on.add {n : with_top ℕ} {s : set E} {f g : E → F}
   (hf : times_cont_diff_on 𝕜 n f s) (hg : times_cont_diff_on 𝕜 n g s) :
   times_cont_diff_on 𝕜 n (λx, f x + g x) s :=
 λ x hx, (hf x hx).add (hg x hx)
 
-/-- The sum of two `C^n`functions is `C^n`. -/
+/-- The sum of two `C^n` functions is `C^n`. -/
 lemma times_cont_diff.add {n : with_top ℕ} {f g : E → F}
   (hf : times_cont_diff 𝕜 n f) (hg : times_cont_diff 𝕜 n g) : times_cont_diff 𝕜 n (λx, f x + g x) :=
 begin
@@ -1996,7 +1996,7 @@ end
 
 /-! ### Negative -/
 
-/-- The negative of a `C^n`function within a domain at a point is `C^n` within this domain at
+/-- The negative of a `C^n` function within a domain at a point is `C^n` within this domain at
 this point. -/
 lemma times_cont_diff_within_at.neg {n : with_top ℕ} {s : set E} {f : E → F}
   (hf : times_cont_diff_within_at 𝕜 n f s x) : times_cont_diff_within_at 𝕜 n (λx, -f x) s x :=
@@ -2007,7 +2007,7 @@ begin
   exact this.times_cont_diff_within_at.comp x hf subset_preimage_univ
 end
 
-/-- The negative of a `C^n`function at a point is `C^n` at this point. -/
+/-- The negative of a `C^n` function at a point is `C^n` at this point. -/
 lemma times_cont_diff_at.neg {n : with_top ℕ} {f : E → F}
   (hf : times_cont_diff_at 𝕜 n f x) : times_cont_diff_at 𝕜 n (λx, -f x) x :=
 begin
@@ -2015,12 +2015,12 @@ begin
   exact hf.neg
 end
 
-/-- The negative of a `C^n`function on a domain is `C^n`. -/
+/-- The negative of a `C^n` function on a domain is `C^n`. -/
 lemma times_cont_diff_on.neg {n : with_top ℕ} {s : set E} {f : E → F}
   (hf : times_cont_diff_on 𝕜 n f s) : times_cont_diff_on 𝕜 n (λx, -f x) s :=
 λ x hx, (hf x hx).neg
 
-/-- The negative of a `C^n`function is `C^n`. -/
+/-- The negative of a `C^n` function is `C^n`. -/
 lemma times_cont_diff.neg {n : with_top ℕ} {f : E → F} (hf : times_cont_diff 𝕜 n f) :
   times_cont_diff 𝕜 n (λx, -f x) :=
 begin
@@ -2030,26 +2030,26 @@ end
 
 /-! ### Subtraction -/
 
-/-- The difference of two `C^n`functions within a set at a point is `C^n` within this set
+/-- The difference of two `C^n` functions within a set at a point is `C^n` within this set
 at this point. -/
 lemma times_cont_diff_within_at.sub {n : with_top ℕ} {s : set E} {f g : E → F}
   (hf : times_cont_diff_within_at 𝕜 n f s x) (hg : times_cont_diff_within_at 𝕜 n g s x) :
   times_cont_diff_within_at 𝕜 n (λx, f x - g x) s x :=
 hf.add hg.neg
 
-/-- The difference of two `C^n`functions at a point is `C^n` at this point. -/
+/-- The difference of two `C^n` functions at a point is `C^n` at this point. -/
 lemma times_cont_diff_at.sub {n : with_top ℕ} {f g : E → F}
   (hf : times_cont_diff_at 𝕜 n f x) (hg : times_cont_diff_at 𝕜 n g x) :
   times_cont_diff_at 𝕜 n (λx, f x - g x) x :=
 hf.add hg.neg
 
-/-- The difference of two `C^n`functions on a domain is `C^n`. -/
+/-- The difference of two `C^n` functions on a domain is `C^n`. -/
 lemma times_cont_diff_on.sub {n : with_top ℕ} {s : set E} {f g : E → F}
   (hf : times_cont_diff_on 𝕜 n f s) (hg : times_cont_diff_on 𝕜 n g s) :
   times_cont_diff_on 𝕜 n (λx, f x - g x) s :=
 hf.add hg.neg
 
-/-- The difference of two `C^n`functions is `C^n`. -/
+/-- The difference of two `C^n` functions is `C^n`. -/
 lemma times_cont_diff.sub {n : with_top ℕ} {f g : E → F}
   (hf : times_cont_diff 𝕜 n f) (hg : times_cont_diff 𝕜 n g) : times_cont_diff 𝕜 n (λx, f x - g x) :=
 hf.add hg.neg

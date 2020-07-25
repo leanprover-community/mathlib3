@@ -26,6 +26,8 @@ variables (X : Top.{u})
 
 open Top
 
+namespace Top.sheaf_condition
+
 /--
 We show that the presheaf of functions to a type `T`
 (no continuity assumptions, just plain functions)
@@ -34,7 +36,7 @@ form a sheaf.
 In fact, the proof is identical when we do this for dependent functions to a type family `T`,
 so we do the more general case.
 -/
-def sheaf_condition_presheaf_to_Types (T : X → Type u) : sheaf_condition (presheaf_to_Types X T) :=
+def to_Types (T : X → Type u) : sheaf_condition (presheaf_to_Types X T) :=
 λ ι U,
 -- U is a family of open sets, indexed by `i`.
 -- In the informal comments below, I'll just write `U` to represent the union.
@@ -138,7 +140,11 @@ begin
     -- Now it's just a matter of plugging in all the values;
     -- `j` gets solved for during unification.
     convert congr_fun (congr_fun (w =≫ pi.π _ j) f) ⟨x, _⟩, }
-end
+end.
+
+-- We verify that the non-dependent version is an immediate consequence:
+def to_Type (T : Type u) : sheaf_condition (presheaf_to_Type X T) :=
+to_Types X (λ _, T)
 
 /-
 TODO: next we need to do this for continuous functions.
@@ -156,4 +162,71 @@ To show continuity, we already know that our lifted function restricted to any `
 original continuous function we had here,
 and since continuity is a local condition we should be done!
 -/
--- example (T : Top.{u}) : sheaf_condition (presheaf_to_Top X T) :=
+
+/--
+The natural transformation from the sheaf condition diagram for continuous functions
+to the sheaf condition diagram for arbitrary functions,
+given by forgetting continuity everywhere.
+-/
+def forget_continuity (T : Top.{u}) {ι : Type u} (U : ι → opens X) :
+  diagram (presheaf_to_Top X T) U ⟶ diagram (presheaf_to_Type X T) U :=
+{ app :=
+  begin
+    rintro ⟨_|_⟩,
+    exact (pi.map (λ i f, f.to_fun)),
+    exact (pi.map (λ p f, f.to_fun)),
+  end,
+  naturality' := by rintro ⟨_|_⟩ ⟨_|_⟩ f; cases f; refl, }
+
+example (T : Top.{u}) : sheaf_condition (presheaf_to_Top X T) :=
+λ ι U,
+-- U is a family of open sets, indexed by `i`.
+-- In the informal comments below, I'll just write `U` to represent the union.
+begin
+  refine fork.is_limit.mk _ _ _ _,
+  { intros s f,
+    fsplit,
+    -- First, we use the fact that not necessarily continuous functions form a sheaf,
+    -- to provide the lift.
+    let s' := (cones.postcompose (forget_continuity.{u u} X T U)).obj s,
+    exact (to_Type X T U).lift s' f,
+    -- Second, we need to do the actual work, proving this lift is continuous.
+    sorry,
+    },
+  { -- Proving the factorisation condition is straightforward:
+    -- we observe that checking equality of continuous functions reduces to
+    -- checking equality of the underlying functions,
+    -- and use the factorisation condition for the sheaf condition for functions.
+    intros s,
+    ext i f : 2,
+    apply continuous_map.coe_inj,
+    exact congr_fun (((to_Type X T U).fac _ walking_parallel_pair.zero) =≫ pi.π _ i) _, },
+  { -- Similarly for proving the uniqueness condition, after a certain amount of bookkeeping.
+    intros s m w,
+    ext f : 1,
+    apply continuous_map.coe_inj,
+    let s' := (cones.postcompose (forget_continuity.{u u} X T U)).obj s,
+    refine congr_fun ((to_Type X T U).uniq s' _ _) f,
+    -- We "just" need to fix up our `w` to match the missing `w` argument.
+    -- Unfortunately, it's really gross.
+    intro j,
+    specialize w j,
+    dsimp [s'],
+    rw ←w, clear w,
+    simp only [category.assoc],
+    rcases j with ⟨_|_⟩,
+    { apply limit.hom_ext,
+      intro i,
+      simp only [category.assoc, limit.map_π, forget_continuity],
+      ext f' ⟨x, mem⟩,
+      simp [presheaf_to_Top, presheaf_to_Type, res],
+      refl, },
+    { apply limit.hom_ext,
+      intro i,
+      simp only [category.assoc, limit.map_π, forget_continuity],
+      ext f' ⟨x, mem⟩,
+      simp [presheaf_to_Top, presheaf_to_Type, res, left_res],
+      refl, }, },
+end
+
+end Top.sheaf_condition

@@ -28,7 +28,7 @@ instance opens_op_hom_has_coe_to_fun {U V : (opens X)ᵒᵖ} : has_coe_to_fun (U
   coe := λ f x, ⟨x, f.unop.down.down x.2⟩ }
 
 /--
-The presheaf of dependently types functions on `X`, with fibres given by a type family `f`.
+The presheaf of dependently typed functions on `X`, with fibres given by a type family `f`.
 There is no requirement that the functions are continuous, here.
 -/
 def presheaf_to_Types (f : X → Type v) : X.presheaf (Type v) :=
@@ -38,9 +38,20 @@ def presheaf_to_Types (f : X → Type v) : X.presheaf (Type v) :=
 def presheaf_to_Type (T : Type v) : X.presheaf (Type v) :=
 (opens.to_Top X ⋙ forget Top).op ⋙ (yoneda.obj T)
 
+@[simp] lemma presheaf_to_Type_map_apply
+  {T : Type v} {U V : (opens X)ᵒᵖ} {i : U ⟶ V} {f} {x} {mem} :
+  (presheaf_to_Type X T).map i f ⟨x, mem⟩ = f ⟨x, i.unop.down.down mem⟩ :=
+rfl
+
 /-- The presheaf of continuous functions on `X` with values in fixed target topological space `T`. -/
 def presheaf_to_Top (T : Top.{v}) : X.presheaf (Type v) :=
 (opens.to_Top X).op ⋙ (yoneda.obj T)
+
+-- TODO is this actually useful? I wish I knew how to write this with the coercion.
+@[simp] lemma presheaf_to_Top_map_apply
+  {T : Top.{v}} {U V : (opens X)ᵒᵖ} {i : U ⟶ V} {f} {x} {mem} :
+  (((presheaf_to_Top X T).map i f).to_fun) ⟨x, mem⟩ = f.to_fun ⟨x, i.unop.down.down mem⟩ :=
+rfl
 
 /-- The (bundled) commutative ring of continuous functions from a topological space
 to a topological commutative ring, with pointwise multiplication. -/

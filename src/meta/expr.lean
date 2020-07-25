@@ -19,6 +19,9 @@ expr, name, declaration, level, environment, meta, metaprogramming, tactic
 
 attribute [derive has_reflect, derive decidable_eq] binder_info congr_arg_kind
 
+@[priority 100] meta instance has_reflect.has_to_pexpr {α} [has_reflect α] : has_to_pexpr α :=
+⟨λ b, pexpr.of_expr (reflect b)⟩
+
 namespace binder_info
 
 /-! ### Declarations about `binder_info` -/
@@ -319,6 +322,11 @@ meta def is_sort : expr → bool
 | (sort _) := tt
 | e         := ff
 
+/-- Get the universe levels of a `const` expression -/
+meta def univ_levels : expr → list level
+| (const n ls) := ls
+| _            := []
+
 /--
 Replace any metavariables in the expression with underscores, in preparation for printing
 `refine ...` statements.
@@ -459,10 +467,15 @@ meta def instantiate_lambdas : list expr → expr → expr
 | (e'::es) (lam n bi t e) := instantiate_lambdas es (e.instantiate_var e')
 | _        e              := e
 
+/-- Repeatedly apply `expr.subst`. -/
+meta def substs : expr → list expr → expr | e es := es.foldl expr.subst e
+
 /-- `instantiate_lambdas_or_apps es e` instantiates lambdas in `e` by expressions from `es`.
 If the length of `es` is larger than the number of lambdas in `e`,
 then the term is applied to the remaining terms.
-Also reduces head let-expressions in `e`, including those after instantiating all lambdas. -/
+Also reduces head let-expressions in `e`, including those after instantiating all lambdas.
+
+This is very similar to `expr.substs`, but this also reduces head let-expressions. -/
 meta def instantiate_lambdas_or_apps : list expr → expr → expr
 | (v::es) (lam n bi t b) := instantiate_lambdas_or_apps es $ b.instantiate_var v
 | es      (elet _ _ v b) := instantiate_lambdas_or_apps es $ b.instantiate_var v
@@ -739,7 +752,7 @@ meta def is_eta_expansion_test : list (name × expr) → option expr
 /-- `is_eta_expansion_aux val l` checks whether `val` can be eta-reduced to an expression `e`.
   Here `l` is intended to consists of the projections and the fields of `val`.
   This tactic calls `is_eta_expansion_test l`, but first removes all proofs from the list `l` and
-  afterward checks whether the retulting expression `e` unifies with `val`.
+  afterward checks whether the resulting expression `e` unifies with `val`.
   This last check is necessary, because `val` and `e` might have different types. -/
 meta def is_eta_expansion_aux (val : expr) (l : list (name × expr)) : tactic (option expr) :=
 do l' ← l.mfilter (λ⟨proj, val⟩, bnot <$> is_proof val),

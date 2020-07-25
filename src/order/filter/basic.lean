@@ -598,17 +598,24 @@ lemma mem_binfi {f : β → filter α} {s : set β}
   t ∈ (⨅ i∈s, f i) ↔ ∃ i ∈ s, t ∈ f i :=
 by simp only [binfi_sets_eq h ne, mem_bUnion_iff]
 
-lemma infi_sets_eq_finite (f : ι → filter α) :
-  (⨅i, f i).sets = (⋃t:finset (plift ι), (⨅i∈t, f (plift.down i)).sets) :=
+lemma infi_sets_eq_finite {ι : Type*} (f : ι → filter α) :
+  (⨅i, f i).sets = (⋃t:finset ι, (⨅i∈t, f i).sets) :=
 begin
   rw [infi_eq_infi_finset, infi_sets_eq],
   exact (directed_of_sup $ λs₁ s₂ hs, infi_le_infi $ λi, infi_le_infi_const $ λh, hs h),
 end
 
-lemma mem_infi_finite {f : ι → filter α} (s) :
+lemma infi_sets_eq_finite' (f : ι → filter α) :
+  (⨅i, f i).sets = (⋃t:finset (plift ι), (⨅i∈t, f (plift.down i)).sets) :=
+by rw [← infi_sets_eq_finite, ← equiv.plift.surjective.infi_comp]; refl
+
+lemma mem_infi_finite {ι : Type*} {f : ι → filter α} (s) :
+  s ∈ infi f ↔ s ∈ ⋃t:finset ι, (⨅i∈t, f i).sets :=
+set.ext_iff.1 (infi_sets_eq_finite f) s
+
+lemma mem_infi_finite' {f : ι → filter α} (s) :
   s ∈ infi f ↔ s ∈ ⋃t:finset (plift ι), (⨅i∈t, f (plift.down i)).sets :=
-show  s ∈ (infi f).sets ↔ s ∈ ⋃t:finset (plift ι), (⨅i∈t, f (plift.down i)).sets,
-by rw infi_sets_eq_finite
+set.ext_iff.1 (infi_sets_eq_finite' f) s
 
 @[simp] lemma sup_join {f₁ f₂ : filter (filter α)} : (join f₁ ⊔ join f₂) = join (f₁ ⊔ f₂) :=
 filter_eq $ set.ext $ assume x,
@@ -640,7 +647,7 @@ lemma infi_sup_eq {f : filter α} {g : ι → filter α} : (⨅ x, f ⊔ g x) = 
 begin
   refine le_antisymm _ (le_infi $ assume i, sup_le_sup_left (infi_le _ _) _),
   rintros t ⟨h₁, h₂⟩,
-  rw [infi_sets_eq_finite] at h₂,
+  rw [infi_sets_eq_finite'] at h₂,
   simp only [mem_Union, (finset.inf_eq_infi _ _).symm] at h₂,
   rcases h₂ with ⟨s, hs⟩,
   suffices : (⨅i, f ⊔ g i) ≤ f ⊔ s.inf (λi, g i.down), { exact this ⟨h₁, hs⟩ },
@@ -720,7 +727,7 @@ lemma infi_sets_induct {f : ι → filter α} {s : set α} (hs : s ∈ infi f) {
   (ins : ∀{i s₁ s₂}, s₁ ∈ f i → p s₂ → p (s₁ ∩ s₂))
   (upw : ∀{s₁ s₂}, s₁ ⊆ s₂ → p s₁ → p s₂) : p s :=
 begin
-  rw [mem_infi_finite] at hs,
+  rw [mem_infi_finite'] at hs,
   simp only [mem_Union, (finset.inf_eq_infi _ _).symm] at hs,
   rcases hs with ⟨is, his⟩,
   revert s,
@@ -1111,12 +1118,20 @@ lemma eventually_eq.rw {l : filter α} {f g : α → β} (h : f =ᶠ[l] g) (p : 
   ∀ᶠ x in l, p x (g x) :=
 hf.congr $ h.mono $ λ x hx, hx ▸ iff.rfl
 
+lemma eventually_set_ext {s t : set α} {l : filter α} :
+   s =ᶠ[l] t ↔ ∀ᶠ x in l, x ∈ s ↔ x ∈ t :=
+eventually_congr $ eventually_of_forall $ λ x, ⟨eq.to_iff, iff.to_eq⟩
+
+lemma eventually_eq.mem_iff {s t : set α} {l : filter α} (h : s =ᶠ[l] t) :
+  ∀ᶠ x in l, x ∈ s ↔ x ∈ t :=
+eventually_set_ext.1 h
+
 lemma eventually_eq.exists_mem {l : filter α} {f g : α → β} (h : f =ᶠ[l] g) :
   ∃ s ∈ l, ∀ x ∈ s, f x = g x :=
 filter.eventually.exists_mem h
 
 lemma eventually_eq_of_mem {l : filter α} {f g : α → β} {s : set α}
-  (hs : s ∈ l) (h : ∀ x ∈ s, f x = g x) : f =ᶠ[l] g :=
+  (hs : s ∈ l) (h : eq_on f g s) : f =ᶠ[l] g :=
 eventually_of_mem hs h
 
 lemma eventually_eq_iff_exists_mem {l : filter α} {f g : α → β} :

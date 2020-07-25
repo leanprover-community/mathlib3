@@ -5,7 +5,7 @@ Authors: Joseph Myers, Yury Kudryashov.
 -/
 import algebra.group.prod
 import algebra.group.type_tags
-import algebra.pi_instances
+import algebra.group.pi
 import data.equiv.basic
 
 /-!

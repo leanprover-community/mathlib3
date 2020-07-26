@@ -13,20 +13,20 @@ variables (C : Type u) [category.{v} C] [monoidal_category.{v} C]
 
 structure Mon_ :=
 (X : C)
-(ι : 𝟙_ C ⟶ X)
-(μ : X ⊗ X ⟶ X)
-(μ_ι' : (ι ⊗ 𝟙 X) ≫ μ = (λ_ X).hom . obviously)
-(ι_μ' : (𝟙 X ⊗ ι) ≫ μ = (ρ_ X).hom . obviously)
+(one : 𝟙_ C ⟶ X)
+(mul : X ⊗ X ⟶ X)
+(one_mul' : (one ⊗ 𝟙 X) ≫ mul = (λ_ X).hom . obviously)
+(mul_one' : (𝟙 X ⊗ one) ≫ mul = (ρ_ X).hom . obviously)
 -- Obviously there is some flexibility stating this axiom.
 -- This one has left- and right-hand sides matching the statement of `monoid.mul_assoc`,
 -- and choosing to place the associator on the right-hand side.
 -- The heuristic is that unitors and associators "don't have much weight".
-(μ_assoc' : (μ ⊗ 𝟙 X) ≫ μ = (α_ X X X).hom ≫ (𝟙 X ⊗ μ) ≫ μ . obviously)
+(mul_assoc' : (mul ⊗ 𝟙 X) ≫ mul = (α_ X X X).hom ≫ (𝟙 X ⊗ mul) ≫ mul . obviously)
 
-restate_axiom Mon_.μ_ι'
-restate_axiom Mon_.ι_μ'
-restate_axiom Mon_.μ_assoc'
-attribute [simp, reassoc] Mon_.μ_ι Mon_.ι_μ Mon_.μ_assoc
+restate_axiom Mon_.one_mul'
+restate_axiom Mon_.mul_one'
+restate_axiom Mon_.mul_assoc'
+attribute [simp, reassoc] Mon_.one_mul Mon_.mul_one Mon_.mul_assoc
 
 namespace Mon_
 
@@ -35,12 +35,12 @@ variables {C}
 @[ext]
 structure hom (M N : Mon_ C) :=
 (hom : M.X ⟶ N.X)
-(ι_hom' : M.ι ≫ hom = N.ι . obviously)
-(μ_hom' : M.μ ≫ hom = (hom ⊗ hom) ≫ N.μ . obviously)
+(one_hom' : M.one ≫ hom = N.one . obviously)
+(mul_hom' : M.mul ≫ hom = (hom ⊗ hom) ≫ N.mul . obviously)
 
-restate_axiom hom.ι_hom'
-restate_axiom hom.μ_hom'
-attribute [simp, reassoc] hom.ι_hom hom.μ_hom
+restate_axiom hom.one_hom'
+restate_axiom hom.mul_hom'
+attribute [simp, reassoc] hom.one_hom hom.mul_hom
 
 @[simps]
 def id (M : Mon_ C) : hom M M :=
@@ -64,12 +64,12 @@ variables {C}
 structure Mod (A : Mon_ C) :=
 (X : C)
 (act : A.X ⊗ X ⟶ X)
-(ι_act' : (A.ι ⊗ 𝟙 X) ≫ act = (λ_ X).hom . obviously)
-(assoc' : (𝟙 A.X ⊗ act) ≫ act = (α_ A.X A.X X).inv ≫ (A.μ ⊗ 𝟙 X) ≫ act . obviously)
+(one_act' : (A.one ⊗ 𝟙 X) ≫ act = (λ_ X).hom . obviously)
+(assoc' : (𝟙 A.X ⊗ act) ≫ act = (α_ A.X A.X X).inv ≫ (A.mul ⊗ 𝟙 X) ≫ act . obviously)
 
-restate_axiom Mod.ι_act'
+restate_axiom Mod.one_act'
 restate_axiom Mod.assoc'
-attribute [simp, reassoc] Mod.ι_act Mod.assoc
+attribute [simp, reassoc] Mod.one_act Mod.assoc
 
 namespace Mod
 
@@ -103,7 +103,7 @@ def comap {A B : Mon_ C} (f : A ⟶ B) : Mod B ⥤ Mod A :=
 { obj := λ M,
   { X := M.X,
     act := (f.hom ⊗ 𝟙 M.X) ≫ M.act,
-    ι_act' :=
+    one_act' :=
     begin
       slice_lhs 1 2 { rw [←comp_tensor_id], simp, },
       simp,
@@ -117,7 +117,7 @@ def comap {A B : Mon_ C} (f : A ⟶ B) : Mod B ⥤ Mod A :=
       slice_lhs 2 3 { rw associator_inv_naturality, },
       slice_lhs 1 2 { rw [←tensor_id, associator_inv_naturality], },
       slice_lhs 2 3 { rw [←comp_tensor_id, tensor_id_comp_id_tensor], },
-      slice_lhs 2 3 { rw [←comp_tensor_id, ←f.μ_hom], },
+      slice_lhs 2 3 { rw [←comp_tensor_id, ←f.mul_hom], },
       rw [comp_tensor_id, category.assoc],
     end, },
   map := λ M N g,

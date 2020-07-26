@@ -135,7 +135,7 @@ lemma is_closed_Icc {a b : α} : is_closed (Icc a b) :=
 is_closed_inter is_closed_Ici is_closed_Iic
 
 lemma le_of_tendsto_of_tendsto {f g : β → α} {b : filter β} {a₁ a₂ : α} [ne_bot b]
-  (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) (h : ∀ᶠ x in b, f x ≤ g x) :
+  (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) (h : f ≤ᶠ[b] g) :
   a₁ ≤ a₂ :=
 have tendsto (λb, (f b, g b)) b (𝓝 (a₁, a₂)),
   by rw [nhds_prod_eq]; exact hf.prod_mk hg,
@@ -1822,18 +1822,18 @@ match forall_le_or_exists_lt_sup a with
 | or.inr ⟨b, hb⟩ := ⟨b, ge_mem_nhds hb⟩
 end
 
-lemma is_bounded_under_le_of_tendsto {f : filter β} {u : β → α} {a : α}
+lemma filter.tendsto.is_bounded_under_le {f : filter β} {u : β → α} {a : α}
   (h : tendsto u f (𝓝 a)) : f.is_bounded_under (≤) u :=
-is_bounded_of_le h (is_bounded_le_nhds a)
+(is_bounded_le_nhds a).mono h
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma is_cobounded_ge_nhds (a : α) : (𝓝 a).is_cobounded (≥) :=
-is_cobounded_of_is_bounded (is_bounded_le_nhds a)
+(is_bounded_le_nhds a).is_cobounded_flip
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-lemma is_cobounded_under_ge_of_tendsto {f : filter β} {u : β → α} {a : α}
+lemma filter.tendsto.is_cobounded_under_ge {f : filter β} {u : β → α} {a : α}
   [ne_bot f] (h : tendsto u f (𝓝 a)) : f.is_cobounded_under (≥) u :=
-is_cobounded_of_is_bounded (is_bounded_under_le_of_tendsto h)
+h.is_bounded_under_le.is_cobounded_flip
 
 end order_closed_topology
 
@@ -1842,22 +1842,19 @@ variables [semilattice_inf α] [topological_space α] [order_topology α]
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma is_bounded_ge_nhds (a : α) : (𝓝 a).is_bounded (≥) :=
-match forall_le_or_exists_lt_inf a with
-| or.inl h := ⟨a, eventually_of_forall h⟩
-| or.inr ⟨b, hb⟩ := ⟨b, le_mem_nhds hb⟩
-end
+@is_bounded_le_nhds (order_dual α) _ _ _ a
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-lemma is_bounded_under_ge_of_tendsto {f : filter β} {u : β → α} {a : α}
+lemma filter.tendsto.is_bounded_under_ge {f : filter β} {u : β → α} {a : α}
   (h : tendsto u f (𝓝 a)) : f.is_bounded_under (≥) u :=
-is_bounded_of_le h (is_bounded_ge_nhds a)
+(is_bounded_ge_nhds a).mono h
 
 lemma is_cobounded_le_nhds (a : α) : (𝓝 a).is_cobounded (≤) :=
-is_cobounded_of_is_bounded (is_bounded_ge_nhds a)
+(is_bounded_ge_nhds a).is_cobounded_flip
 
-lemma is_cobounded_under_le_of_tendsto {f : filter β} {u : β → α} {a : α}
+lemma filter.tendsto.is_cobounded_under_le {f : filter β} {u : β → α} {a : α}
   [ne_bot f] (h : tendsto u f (𝓝 a)) : f.is_cobounded_under (≤) u :=
-is_cobounded_of_is_bounded (is_bounded_under_ge_of_tendsto h)
+h.is_bounded_under_ge.is_cobounded_flip
 
 end order_closed_topology
 
@@ -1900,16 +1897,16 @@ theorem Liminf_nhds : ∀ (a : α), Liminf (𝓝 a) = a :=
 
 /-- If a filter is converging, its limsup coincides with its limit. -/
 theorem Liminf_eq_of_le_nhds {f : filter α} {a : α} [ne_bot f] (h : f ≤ 𝓝 a) : f.Liminf = a :=
-have hb_ge : is_bounded (≥) f, from is_bounded_of_le h (is_bounded_ge_nhds a),
-have hb_le : is_bounded (≤) f, from is_bounded_of_le h (is_bounded_le_nhds a),
+have hb_ge : is_bounded (≥) f, from (is_bounded_ge_nhds a).mono h,
+have hb_le : is_bounded (≤) f, from (is_bounded_le_nhds a).mono h,
 le_antisymm
   (calc f.Liminf ≤ f.Limsup : Liminf_le_Limsup hb_le hb_ge
     ... ≤ (𝓝 a).Limsup :
-      Limsup_le_Limsup_of_le h (is_cobounded_of_is_bounded hb_ge) (is_bounded_le_nhds a)
+      Limsup_le_Limsup_of_le h hb_ge.is_cobounded_flip (is_bounded_le_nhds a)
     ... = a : Limsup_nhds a)
   (calc a = (𝓝 a).Liminf : (Liminf_nhds a).symm
     ... ≤ f.Liminf :
-      Liminf_le_Liminf_of_le h (is_bounded_ge_nhds a) (is_cobounded_of_is_bounded hb_le))
+      Liminf_le_Liminf_of_le h (is_bounded_ge_nhds a) hb_le.is_cobounded_flip)
 
 /-- If a filter is converging, its liminf coincides with its limit. -/
 theorem Limsup_eq_of_le_nhds : ∀ {f : filter α} {a : α} [ne_bot f], f ≤ 𝓝 a → f.Limsup = a :=

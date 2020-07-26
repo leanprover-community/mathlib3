@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
 import measure_theory.bochner_integration
-import measure_theory.lebesgue_measure
+import analysis.normed_space.indicator_function
 
 /-!
 # Set integral
@@ -22,16 +22,173 @@ Integrate a function over a subset of a measure space.
 `∫ a in s, f a` is `measure_theory.integral (s.indicator f)`
 -/
 
-/-
-
 noncomputable theory
 open set filter topological_space measure_theory
 open_locale classical topological_space interval big_operators
 
-variables {α β E F : Type*}
+variables {α β E F : Type*} [measurable_space α]
+
+section piecewise
+
+variables {μ : measure α} {s : set α} {f g : α → β}
+
+lemma piecewise_ae_eq_restrict (hs : is_measurable s) : piecewise s f g =ᵐ[μ.restrict s] f :=
+by { rw [ae_restrict_eq hs], exact (piecewise_eq_on s f g).eventually_eq.inf_of_right }
+
+lemma piecewise_ae_eq_restrict_compl (hs : is_measurable s) :
+  piecewise s f g =ᵐ[μ.restrict sᶜ] g :=
+by { rw [ae_restrict_eq hs.compl], exact (piecewise_eq_on_compl s f g).eventually_eq.inf_of_right }
+
+end piecewise
+
+section indicator_function
+
+variables [has_zero β] {μ : measure α} {s : set α} {f : α → β}
+
+lemma indicator_ae_eq_restrict (hs : is_measurable s) : indicator s f =ᵐ[μ.restrict s] f :=
+piecewise_ae_eq_restrict hs
+
+lemma indicator_ae_eq_restrict_compl (hs : is_measurable s) : indicator s f =ᵐ[μ.restrict sᶜ] 0 :=
+piecewise_ae_eq_restrict_compl hs
+
+end indicator_function
 
 namespace measure_theory
 
+section normed_group
+
+variables [normed_group E] {f : α → E} {s t : set α} {μ ν : measure α}
+
+/-- A function is `integrable_on` a set `s` if the integral of its pointwise norm over `s` is less
+than infinity. -/
+def integrable_on (f : α → E) (s : set α) (μ : measure α . volume_tac) : Prop :=
+integrable f (μ.restrict s)
+
+lemma integrable_on.integrable (h : integrable_on f s μ) :
+  integrable f (μ.restrict s) :=
+h
+
+@[simp] lemma integrable_on_empty : integrable_on f ∅ μ :=
+by simp [integrable_on]
+
+@[simp] lemma integrable_on_univ : integrable_on f univ μ ↔ integrable f μ :=
+by rw [integrable_on, measure.restrict_univ]
+
+lemma integrable_on_zero : integrable_on (λ _, (0:E)) s μ := integrable_zero _ _ _
+
+lemma integrable_on_const {C : E} : integrable_on (λ _, C) s μ ↔ C = 0 ∨ μ s < ⊤ :=
+integrable_const_iff.trans $ by rw [measure.restrict_apply_univ]
+
+lemma integrable_on.mono (h : integrable_on f t ν) (hs : s ⊆ t) (hμ : μ ≤ ν) :
+  integrable_on f s μ :=
+h.mono_meas $ measure.restrict_mono hs hμ
+
+lemma integrable_on.mono_set (h : integrable_on f t μ) (hst : s ⊆ t) :
+  integrable_on f s μ :=
+h.mono hst (le_refl _)
+
+lemma integrable_on.mono_meas (h : integrable_on f s ν) (hμ : μ ≤ ν) :
+  integrable_on f s μ :=
+h.mono (subset.refl _) hμ
+
+lemma integrable.integrable_on (h : integrable f μ) : integrable_on f s μ :=
+h.mono_meas $ measure.restrict_le_self
+
+lemma integrable.integrable_on' (h : integrable f (μ.restrict s)) : integrable_on f s μ :=
+h
+
+lemma integrable_on.left_of_union (h : integrable_on f (s ∪ t) μ) : integrable_on f s μ :=
+h.mono_set $ subset_union_left _ _
+
+lemma integrable_on.right_of_union (h : integrable_on f (s ∪ t) μ) : integrable_on f t μ :=
+h.mono_set $ subset_union_right _ _
+
+lemma integrable_on.union (hs : integrable_on f s μ) (ht : integrable_on f t μ) :
+  integrable_on f (s ∪ t) μ :=
+(hs.add_meas ht).mono_meas $ measure.restrict_union_le _ _
+
+@[simp] lemma integrable_on_union :
+  integrable_on f (s ∪ t) μ ↔ integrable_on f s μ ∧ integrable_on f t μ :=
+⟨λ h, ⟨h.left_of_union, h.right_of_union⟩, λ h, h.1.union h.2⟩
+
+lemma integrable_on.add_meas (hμ : integrable_on f s μ) (hν : integrable_on f s ν) :
+  integrable_on f s (μ + ν) :=
+by { delta integrable_on, rw measure.restrict_add, exact hμ.integrable.add_meas hν }
+
+@[simp] lemma integrable_on_add_meas :
+  integrable_on f s (μ + ν) ↔ integrable_on f s μ ∧ integrable_on f s ν :=
+⟨λ h, ⟨h.mono_meas (measure.le_add_right (le_refl _)),
+  h.mono_meas (measure.le_add_left (le_refl _))⟩,
+  λ h, h.1.add_meas h.2⟩
+
+lemma integrable_on.indicator (h : integrable_on f s μ) (hs : is_measurable s) :
+  integrable (indicator s f) μ :=
+by simpa only [integrable_on, integrable, nnnorm_indicator_eq_indicator_nnnorm,
+  ennreal.coe_indicator, lintegral_indicator _ hs] using h
+
+variables [measurable_space E] [borel_space E] [complete_space E] [second_countable_topology E]
+  [normed_space ℝ E]
+
+lemma integral_union (hst : disjoint s t) (hs : is_measurable s) (ht : is_measurable t)
+  (hfm : measurable f) (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
+  ∫ x in s ∪ t, f x ∂μ = ∫ x in s, f x ∂μ + ∫ x in t, f x ∂μ :=
+by simp only [integrable_on, measure.restrict_union hst hs ht, integral_add_meas hfm hfs hft]
+
+lemma integral_empty : ∫ x in ∅, f x ∂μ = 0 := by rw [measure.restrict_empty, integral_zero_meas]
+
+lemma integral_univ : ∫ x in univ, f x ∂μ = ∫ x, f x ∂μ := by rw [measure.restrict_univ]
+
+lemma integral_add_compl (hs : is_measurable s) (hfm : measurable f) (hfi : integrable f μ) :
+  ∫ x in s, f x ∂μ + ∫ x in sᶜ, f x ∂μ = ∫ x, f x ∂μ :=
+by rw [← integral_union (disjoint_compl s) hs hs.compl hfm hfi.integrable_on hfi.integrable_on,
+  union_compl_self, integral_univ]
+
+lemma integral_indicator (hfm : measurable f) (hfi : integrable_on f s μ)
+  (hs : is_measurable s) :
+  ∫ x, indicator s f x ∂μ = ∫ x in s, f x ∂μ :=
+have hfms : measurable (indicator s f) := hfm.indicator hs,
+calc ∫ x, indicator s f x ∂μ = ∫ x in s, indicator s f x ∂μ + ∫ x in sᶜ, indicator s f x ∂μ :
+  (integral_add_compl hs hfms (hfi.indicator hs)).symm
+... = ∫ x in s, f x ∂μ + ∫ x in sᶜ, 0 ∂μ :
+  congr_arg2 (+) (integral_congr_ae hfms hfm (indicator_ae_eq_restrict hs))
+    (integral_congr_ae hfms measurable_const (indicator_ae_eq_restrict_compl hs))
+... = ∫ x in s, f x ∂μ : by simp
+
+lemma set_integral_const (c : E) : ∫ x in s, c ∂μ = (μ s).to_real • c :=
+by rw [integral_const, measure.restrict_apply_univ]
+
+lemma norm_set_integral_le_of_norm_le_const {C : ℝ} (hs : μ s < ⊤)
+  (hC : ∀ᵐ x ∂(μ.restrict s), ∥f x∥ ≤ C) :
+  ∥∫ x in s, f x ∂μ∥ ≤ C * (μ s).to_real :=
+begin
+  rw ← measure.restrict_apply_univ at *,
+  haveI : finite_measure (μ.restrict s) := ⟨‹_›⟩,
+  exact norm_integral_le_of_norm_le_const hC
+end
+
+lemma integrable_on_of_bounded {C} (hs : μ s < ⊤) (hf : ∀ᵐ x ∂(μ.restrict s), ∥f x∥ ≤ C) :
+  integrable_on f s μ :=
+by haveI : finite_measure (μ.restrict s) := ⟨by rwa [measure.restrict_apply_univ]⟩;
+  exact integrable_of_bounded hf
+
+lemma locally_integrable_on_of_is_bounded_under' {l : filter α} (hμ : ∃ s ∈ l, μ s < ⊤)
+  (hf : l.is_bounded_under (≤) (norm ∘ f)) :
+  ∃ s ∈ l, integrable_on f s μ :=
+begin
+  rcases hμ with ⟨s, hsl, hsμ⟩,
+  rcases hf with ⟨C, hC⟩,
+  simp only [eventually_map] at hC,
+  rcases hC.exists_mem with ⟨t, htl, hC⟩,
+  refine ⟨s ∩ t, inter_mem_sets hsl htl, _⟩,
+  refine integrable_on_of_bounded (lt_of_le_of_lt (measure_mono $ inter_subset_left _ _) hsμ) _,
+end 
+
+end normed_group
+
+end measure_theory
+
+
+/-
 namespace integrable
 
 variables [measurable_space α] [measurable_space β] [normed_group E]

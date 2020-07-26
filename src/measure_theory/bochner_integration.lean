@@ -1189,6 +1189,18 @@ lemma integral_mono {f g : α → ℝ} (hfm : measurable f) (hfi : integrable f 
 le_of_sub_nonneg $ integral_sub hgm hgi hfm hfi ▸
   integral_nonneg_of_ae $ h.mono (λ a, sub_nonneg_of_le)
 
+lemma integral_mono_of_nonneg {f g : α → ℝ} (hf : 0 ≤ᵐ[μ] f) (hgm : measurable g)
+  (hgi : integrable g μ) (h : f ≤ᵐ[μ] g) :
+  ∫ a, f a ∂μ ≤ ∫ a, g a ∂μ :=
+begin
+  by_cases hfm : measurable f,
+  { refine integral_mono hfm _ hgm hgi h,
+    refine (hgi.mono $ h.mp $ hf.mono $ λ x hf hfg, _),
+    simpa [real.norm_eq_abs, abs_of_nonneg hf, abs_of_nonneg (le_trans hf hfg)] },
+  { rw [integral_non_measurable hfm],
+    exact integral_nonneg_of_ae (hf.trans h) }
+end
+
 lemma norm_integral_le_integral_norm (f : α → E) : ∥(∫ a, f a ∂μ)∥ ≤ ∫ a, ∥f a∥ ∂μ :=
 have le_ae : ∀ᵐ a ∂μ, 0 ≤ ∥f a∥ := eventually_of_forall (λa, norm_nonneg _),
 classical.by_cases
@@ -1197,9 +1209,16 @@ classical.by_cases
     ... = ∫ a, ∥f a∥ ∂μ : (integral_eq_lintegral_of_nonneg_ae le_ae $ measurable.norm h).symm )
 ( λh : ¬measurable f,
   begin
-    rw [integral_non_measurable h, _root_.norm_zero],
+    rw [integral_non_measurable h, norm_zero],
     exact integral_nonneg_of_ae le_ae
   end )
+
+lemma norm_integral_le_of_norm_le {f : α → E} {g : α → ℝ}
+  (hgm : measurable g) (hgi : integrable g μ) (h : ∀ᵐ x ∂μ, ∥f x∥ ≤ g x) :
+  ∥∫ x, f x ∂μ∥ ≤ ∫ x, g x ∂μ :=
+calc ∥∫ x, f x ∂μ∥ ≤ ∫ x, ∥f x∥ ∂μ : norm_integral_le_integral_norm f
+               ... ≤ ∫ x, g x ∂μ   :
+  integral_mono_of_nonneg (eventually_of_forall $ λ x, norm_nonneg _) hgm hgi h
 
 lemma integral_finset_sum {ι} (s : finset ι) {f : ι → α → E}
   (hfm : ∀ i, measurable (f i)) (hfi : ∀ i, integrable (f i) μ) :
@@ -1224,9 +1243,9 @@ end
 @[simp] lemma integral_const (c : E) : ∫ x : α, c ∂μ = (μ univ).to_real • c :=
 begin
   by_cases hμ : μ univ < ⊤,
-  { have : integrable (simple_func.const α c) μ := integrable_const.2 (or.inr hμ),
+  { haveI : finite_measure μ := ⟨hμ⟩,
     calc ∫ x : α, c ∂μ = (simple_func.const α c).integral μ :
-      ((simple_func.const α c).integral_eq_integral this).symm
+      ((simple_func.const α c).integral_eq_integral (integrable_const _)).symm
     ... = _ : _,
     rw [simple_func.integral],
     by_cases ha : nonempty α,
@@ -1235,17 +1254,24 @@ begin
   { by_cases hc : c = 0,
     { simp [hc] },
     { have : ¬integrable (λ x : α, c) μ,
-      { simp only [integrable_const, not_or_distrib],
+      { simp only [integrable_const_iff, not_or_distrib],
         exact ⟨hc, hμ⟩ },
       simp only [not_lt, top_le_iff] at hμ,
       simp [integral_non_integrable, *] } }
 end
 
+lemma norm_integral_le_of_norm_le_const [finite_measure μ] {f : α → E} {C : ℝ}
+  (h : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
+  ∥∫ x, f x ∂μ∥ ≤ C * (μ univ).to_real :=
+calc ∥∫ x, f x ∂μ∥ ≤ ∫ x, C ∂μ : norm_integral_le_of_norm_le measurable_const (integrable_const C) h
+               ... = C * (μ univ).to_real : by rw [integral_const, smul_eq_mul, mul_comm]
+
 variable {ν : measure α}
 
-lemma integral_add_meas {f : α → E} (hfm : measurable f) (hfi : integrable f (μ + ν)) :
+lemma integral_add_meas {f : α → E} (hfm : measurable f) (hμ : integrable f μ) (hν : integrable f ν) :
   ∫ x, f x ∂(μ + ν) = ∫ x, f x ∂μ + ∫ x, f x ∂ν :=
 begin
+  have hfi := hμ.add_meas hν,
   rcases simple_func_sequence_tendsto' hfm hfi with ⟨F, hFi, hFt⟩,
   have hFiμ : ∀ i, integrable (F i) μ := λ i, (hFi i).left_of_add_meas,
   have hFiν : ∀ i, integrable (F i) ν := λ i, (hFi i).right_of_add_meas,

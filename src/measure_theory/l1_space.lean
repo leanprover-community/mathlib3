@@ -89,13 +89,26 @@ begin
     ... < ⊤ : hg
 end
 
+lemma integrable.mono' {f : α → β} {g : α → ℝ} (hg : integrable g μ) (h : ∀ᵐ a ∂μ, ∥f a∥ ≤ g a) :
+  integrable f μ :=
+hg.mono $ h.mono $ λ x hx, le_trans hx (le_abs_self _)
+
+lemma integrable.congr' {f : α → β} {g : α → γ} (hf : integrable f μ)
+  (h : ∀ᵐ a ∂μ, ∥f a∥ = ∥g a∥) :
+  integrable g μ :=
+hf.mono $ eventually_eq.le $ eventually_eq.symm h
+
+lemma integrable_congr' {f : α → β} {g : α → γ} (h : ∀ᵐ a ∂μ, ∥f a∥ = ∥g a∥) :
+  integrable f μ ↔ integrable g μ :=
+⟨λ hf, hf.congr' h, λ hg, hg.congr' $ eventually_eq.symm h⟩
+
 lemma integrable.congr {f g : α → β} (hf : integrable f μ) (h : f =ᵐ[μ] g) : integrable g μ :=
-hf.mono $ h.rw (λ a b, ∥b∥ ≤ ∥f a∥) (eventually_le.refl _ $ λ x, ∥f x∥)
+hf.congr' $ h.fun_comp norm
 
 lemma integrable_congr {f g : α → β} (h : f =ᵐ[μ] g) : integrable f μ ↔ integrable g μ :=
-⟨λ hf, hf.congr h, λ hg, hg.congr h.symm⟩
+integrable_congr' $ h.fun_comp norm
 
-lemma integrable_const {c : β} : integrable (λ x : α, c) μ ↔ c = 0 ∨ μ univ < ⊤ :=
+lemma integrable_const_iff {c : β} : integrable (λ x : α, c) μ ↔ c = 0 ∨ μ univ < ⊤ :=
 begin
   simp only [integrable, lintegral_const],
   by_cases hc : c = 0,
@@ -106,6 +119,13 @@ begin
     rwa [← mul_assoc, ← coe_mul, _root_.inv_mul_cancel, coe_one, one_mul] at h,
     rwa [ne.def, nnnorm_eq_zero] }
 end
+
+lemma integrable_const [finite_measure μ] (c : β) : integrable (λ x : α, c) μ :=
+integrable_const_iff.2 (or.inr meas_univ_lt_top)
+
+lemma integrable_of_bounded [finite_measure μ] {f : α → β} {C : ℝ} (hC : ∀ᵐ a ∂μ, ∥f a∥ ≤ C) :
+  integrable f μ :=
+(integrable_const C).mono' hC
 
 lemma integrable.mono_meas {f : α → β} (h : integrable f ν) (hμ : μ ≤ ν) :
   integrable f μ :=
@@ -126,6 +146,10 @@ lemma integrable.right_of_add_meas {f : α → β} (h : integrable f (μ + ν)) 
   integrable f ν :=
 h.mono_meas $ measure.le_add_left $ le_refl _
 
+@[simp] lemma integrable_add_meas {f : α → β} :
+  integrable f (μ + ν) ↔ integrable f μ ∧ integrable f ν :=
+⟨λ h, ⟨h.left_of_add_meas, h.right_of_add_meas⟩, λ h, h.1.add_meas h.2⟩
+
 lemma integrable.smul_meas {f : α → β} (h : integrable f μ) {c : ennreal} (hc : c < ⊤) :
   integrable f (c • μ) :=
 begin
@@ -133,15 +157,8 @@ begin
   exact mul_lt_top hc h
 end
 
-lemma integrable.mono_set {f : α → β} {s t : set α} (h : integrable f (μ.restrict t))
-  (hst : s ⊆ t) :
-  integrable f (μ.restrict s) :=
-h.mono_meas $ measure.restrict_mono hst (le_refl μ)
-
-lemma integrable.union {f : α → β} {s t : set α} (hs : integrable f (μ.restrict s))
-  (ht : integrable f (μ.restrict t)) :
-  integrable f (μ.restrict (s ∪ t)) :=
-(hs.add_meas ht).mono_meas $ measure.restrict_union_le _ _
+@[simp] lemma integrable_zero_meas (f : α → β) : integrable f 0 :=
+by simp only [integrable, lintegral_zero_meas, with_top.zero_lt_top]
 
 lemma lintegral_nnnorm_eq_lintegral_edist (f : α → β) :
   ∫⁻ a, nnnorm (f a) ∂μ = ∫⁻ a, edist (f a) 0 ∂μ :=
@@ -233,23 +250,7 @@ have eq : (λa, (nnnorm ∥f a∥ : ennreal)) = λa, (nnnorm (f a) : ennreal),
 by { rwa [integrable, eq] }
 
 lemma integrable_norm_iff (f : α → β) : integrable (λa, ∥f a∥) μ ↔ integrable f μ :=
-have eq : (λa, (nnnorm ∥f a∥ : ennreal)) = λa, (nnnorm (f a) : ennreal),
-  by { funext, rw nnnorm_norm },
-by { rw [integrable, integrable, eq] }
-
-lemma integrable_of_integrable_bound {f : α → β} {bound : α → ℝ} (h : integrable bound μ)
-  (h_bound : ∀ᵐ a ∂μ, ∥f a∥ ≤ bound a) : integrable f μ :=
-have h₁ : ∀ᵐ a ∂μ, (nnnorm (f a) : ennreal) ≤ ennreal.of_real (bound a),
-begin
-  refine h_bound.mono (assume a h, _),
-  calc (nnnorm (f a) : ennreal) = ennreal.of_real (∥f a∥) : by rw of_real_norm_eq_coe_nnnorm
-    ... ≤ ennreal.of_real (bound a) : ennreal.of_real_le_of_real h
-end,
-calc ∫⁻ a, nnnorm (f a) ∂μ ≤ ∫⁻ a, ennreal.of_real (bound a) ∂μ :
-    lintegral_mono_ae h₁
-  ... ≤ ∫⁻ a, (ennreal.of_real ∥bound a∥) ∂μ : lintegral_mono $
-    assume a, ennreal.of_real_le_of_real $ le_max_left (bound a) (-bound a)
-  ... < ⊤ : by { rwa [integrable_iff_norm] at h }
+integrable_congr' $ eventually_of_forall $ λ x, norm_norm (f x)
 
 section dominated_convergence
 
@@ -352,27 +353,11 @@ section pos_part
 /-! Lemmas used for defining the positive part of a `L¹` function -/
 
 lemma integrable.max_zero {f : α → ℝ} (hf : integrable f μ) : integrable (λa, max (f a) 0) μ :=
-begin
-  simp only [integrable_iff_norm] at *,
-  calc ∫⁻ a, (ennreal.of_real ∥max (f a) 0∥) ∂μ ≤ ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ :
-    lintegral_mono
-    begin
-      assume a,
-      apply of_real_le_of_real,
-      simp only [real.norm_eq_abs],
-      calc abs (max (f a) 0) = max (f a) 0 : by { rw abs_of_nonneg, apply le_max_right }
-        ... ≤ abs (f a) : max_le (le_abs_self _) (abs_nonneg _)
-    end
-    ... < ⊤ : hf
-end
+hf.mono $ eventually_of_forall $ λ x, by simp [real.norm_eq_abs, abs_le, abs_nonneg, le_abs_self]
 
 lemma integrable.min_zero {f : α → ℝ} (hf : integrable f μ) : integrable (λa, min (f a) 0) μ :=
-begin
-  have : (λa, min (f a) 0) = (λa, - max (-f a) 0),
-  { funext, rw [min_eq_neg_max_neg_neg, neg_zero] },
-  rw this,
-  exact (integrable.max_zero hf.neg).neg,
-end
+hf.mono $ eventually_of_forall $ λ x,
+  by simp [real.norm_eq_abs, abs_le, abs_nonneg, neg_le, neg_le_abs_self]
 
 end pos_part
 

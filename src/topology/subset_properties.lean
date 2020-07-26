@@ -42,6 +42,25 @@ section compact
     every set of `f` also meets every neighborhood of some `a ∈ s`. -/
 def is_compact (s : set α) := ∀ ⦃f⦄ [ne_bot f], f ≤ 𝓟 s → ∃a∈s, cluster_pt a f
 
+lemma is_compact.compl_mem_sets {s : set α} (hs : is_compact s) {f : filter α}
+  (hf : ∀ a ∈ s, sᶜ ∈ 𝓝 a ⊓ f) :
+  sᶜ ∈ f :=
+begin
+  contrapose! hf,
+  simp only [mem_iff_inf_principal_compl, compl_compl, inf_assoc, ← exists_prop] at hf ⊢,
+  exact @hs _ hf inf_le_right
+end
+
+lemma is_compact.compl_mem_sets' {s : set α} (hs : is_compact s) {f : filter α}
+  (hf : ∀ a ∈ s, ∃ t ∈ 𝓝 a, tᶜ ∪ sᶜ ∈ f) :
+  sᶜ ∈ f :=
+begin
+  refine hs.compl_mem_sets (λ a ha, _),
+  rcases hf a ha with ⟨t, ht, hst⟩,
+  refine mem_inf_sets.2 ⟨_, ht, _, hst, _⟩,
+  simp [inter_union_distrib_left]
+end
+
 lemma is_compact.inter_right {s t : set α} (hs : is_compact s) (ht : is_closed t) :
   is_compact (s ∩ t) :=
 begin

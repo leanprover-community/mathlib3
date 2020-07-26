@@ -1113,6 +1113,10 @@ def eventually_eq (l : filter α) (f g : α → β) : Prop := ∀ᶠ x in l, f x
 
 notation f ` =ᶠ[`:50 l:50 `] `:0 g:50 := eventually_eq l f g
 
+lemma eventually_eq.eventually {l : filter α} {f g : α → β} (h : f =ᶠ[l] g) :
+  ∀ᶠ x in l, f x = g x :=
+h
+
 lemma eventually_eq.rw {l : filter α} {f g : α → β} (h : f =ᶠ[l] g) (p : α → β → Prop)
   (hf : ∀ᶠ x in l, p x (f x)) :
   ∀ᶠ x in l, p x (g x) :=
@@ -1127,16 +1131,28 @@ lemma eventually_eq.mem_iff {s t : set α} {l : filter α} (h : s =ᶠ[l] t) :
 eventually_set_ext.1 h
 
 lemma eventually_eq.exists_mem {l : filter α} {f g : α → β} (h : f =ᶠ[l] g) :
-  ∃ s ∈ l, ∀ x ∈ s, f x = g x :=
-filter.eventually.exists_mem h
+  ∃ s ∈ l, eq_on f g s :=
+h.exists_mem
 
-lemma eventually_eq_of_mem {l : filter α} {f g : α → β} {s : set α}
-  (hs : s ∈ l) (h : eq_on f g s) : f =ᶠ[l] g :=
+lemma eventually_eq_of_mem {l : filter α} {f g : α → β} {s : set α} (hs : s ∈ l) (h : eq_on f g s) :
+  f =ᶠ[l] g :=
 eventually_of_mem hs h
 
 lemma eventually_eq_iff_exists_mem {l : filter α} {f g : α → β} :
-  (f =ᶠ[l] g) ↔ ∃ s ∈ l, ∀ x ∈ s, f x = g x :=
+  (f =ᶠ[l] g) ↔ ∃ s ∈ l, eq_on f g s :=
 eventually_iff_exists_mem
+
+lemma eventually_eq.mono' {l l' : filter α} {f g : α → β} (h₁ : f =ᶠ[l] g) (h₂ : l' ≤ l) :
+  f =ᶠ[l'] g :=
+h₂ h₁
+
+lemma eventually_eq.inf_of_left {l l' : filter α} {f g : α → β} (h : f =ᶠ[l] g) :
+  f =ᶠ[l ⊓ l'] g :=
+h.mono' inf_le_left
+
+lemma eventually_eq.inf_of_right {l l' : filter α} {f g : α → β} (h : f =ᶠ[l'] g) :
+  f =ᶠ[l ⊓ l'] g :=
+h.mono' inf_le_right
 
 @[refl] lemma eventually_eq.refl (l : filter α) (f : α → β) :
   f =ᶠ[l] f :=
@@ -1184,6 +1200,10 @@ lemma eventually_eq.sub [add_group β] {f f' g g' : α → β} {l : filter α} (
   (h' : f' =ᶠ[l] g') :
   ((λ x, f x - f' x) =ᶠ[l] (λ x, g x - g' x)) :=
 h.add h'.neg
+
+@[simp] lemma eventually_eq_principal {s : set α} {f g : α → β} :
+  f =ᶠ[𝓟 s] g ↔ eq_on f g s :=
+iff.rfl
 
 section has_le
 
@@ -2286,3 +2306,9 @@ by simp only [tendsto_def, mem_prod_iff, prod_sub_preimage_iff, exists_prop, iff
 end prod
 
 end filter
+
+open_locale filter
+
+lemma set.eq_on.eventually_eq {α β} {s : set α} {f g : α → β} (h : eq_on f g s) :
+  f =ᶠ[𝓟 s] g :=
+h

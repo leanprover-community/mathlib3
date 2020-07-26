@@ -603,3 +603,14 @@ hf.prod_mk_nhds hg
 lemma continuous_on.prod {f : α → β} {g : α → γ} {s : set α}
   (hf : continuous_on f s) (hg : continuous_on g s) : continuous_on (λx, (f x, g x)) s :=
 λx hx, continuous_within_at.prod (hf x hx) (hg x hx)
+
+lemma inducing.continuous_on_iff {f : α → β} {g : β → γ} (hg : inducing g) {s : set α} :
+  continuous_on f s ↔ continuous_on (g ∘ f) s :=
+begin
+  simp only [continuous_on_iff_continuous_restrict, restrict_eq],
+  conv_rhs { rw [function.comp.assoc, ← (inducing.continuous_iff hg)] },
+end
+
+lemma embedding.continuous_on_iff {f : α → β} {g : β → γ} (hg : embedding g) {s : set α} :
+  continuous_on f s ↔ continuous_on (g ∘ f) s :=
+inducing.continuous_on_iff hg.1

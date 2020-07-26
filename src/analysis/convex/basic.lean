@@ -36,10 +36,11 @@ We use the following local notations:
 They are defined using `local notation`, so they are not available outside of this file.
 -/
 
-universes u' u v w x
+universes u' u v v' w x
 
-variables {E : Type u} {F : Type v} {ι : Type w} {ι' : Type x}
+variables {E : Type u} {F : Type v} {ι : Type w} {ι' : Type x} {α : Type v'}
   [add_comm_group E] [vector_space ℝ E] [add_comm_group F] [vector_space ℝ F]
+  [linear_ordered_field α]
   {s : set E}
 
 open set
@@ -349,6 +350,90 @@ convex_halfspace_gt (is_linear_map.mk complex.add_im complex.smul_im) _
 
 lemma convex_halfspace_im_lge (r : ℝ) : convex {c : ℂ | r ≤ c.im} :=
 convex_halfspace_ge (is_linear_map.mk complex.add_im complex.smul_im) _
+
+/- Convex combinations in intervals -/
+
+lemma convex.combo_self (a : α) {x y : α} (h : x + y = 1) : a = x * a + y * a :=
+  calc
+      a   = 1 * a           : by rw [one_mul]
+      ... = (x + y) * a     : by rw [h]
+      ... = x * a + y * a   : by rw [add_mul]
+
+/-
+If x is in an Ioo, it can be expressed as a convex combination of the endpoints.
+-/
+lemma convex.mem_Ioo {a b x : α} (h : a < b) :
+    x ∈ Ioo a b ↔ ∃ (x_a x_b : α), 0 < x_a ∧ 0 < x_b ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
+begin
+  split,
+  { rintros ⟨h_ax, h_bx⟩,
+    by_cases hab : ¬a < b,
+    { exfalso; exact hab h },
+    { refine ⟨(b-x) / (b-a), (x-a) / (b-a), _⟩,
+      refine ⟨div_pos (by linarith) (by linarith), div_pos (by linarith) (by linarith),_,_⟩;
+      { field_simp [show b - a ≠ 0, by linarith], ring } } },
+  { rw [mem_Ioo],
+    rintros ⟨xa, xb, ⟨hxa, hxb, hxaxb, h₂⟩⟩,
+    rw [←h₂],
+    exact ⟨by nlinarith [convex.combo_self a hxaxb], by nlinarith [convex.combo_self b hxaxb]⟩ }
+end
+
+/-- If x is in an Ioc, it can be expressed as a convex combination of the endpoints. -/
+lemma convex.mem_Ioc {a b x : α} (h : a < b) :
+    x ∈ Ioc a b ↔ ∃ (x_a x_b : α), 0 ≤ x_a ∧ 0 < x_b ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
+begin
+  split,
+  { rintros ⟨h_ax, h_bx⟩,
+    by_cases h_x : x = b,
+    { exact ⟨0, 1, by linarith, by linarith, by ring, by {rw [h_x], ring}⟩ },
+    { rcases (convex.mem_Ioo h).mp ⟨h_ax, lt_of_le_of_ne h_bx h_x⟩ with ⟨x_a, x_b, Ioo_case⟩,
+      exact ⟨x_a, x_b, by linarith, Ioo_case.2⟩ } },
+  { rw [mem_Ioc],
+    rintros ⟨xa, xb, ⟨hxa, hxb, hxaxb, h₂⟩⟩,
+    rw [←h₂],
+    exact ⟨by nlinarith [convex.combo_self a hxaxb], by nlinarith [convex.combo_self b hxaxb]⟩ }
+end
+
+/-- If x is in an Ico, it can be expressed as a convex combination of the endpoints. -/
+lemma convex.mem_Ico {a b x : α} (h : a < b) :
+    x ∈ Ico a b ↔ ∃ (x_a x_b : α), 0 < x_a ∧ 0 ≤ x_b ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
+begin
+  split,
+  { rintros ⟨h_ax, h_bx⟩,
+    by_cases h_x : x = a,
+    { exact ⟨1, 0, by linarith, by linarith, by ring, by {rw [h_x], ring}⟩ },
+    { rcases (convex.mem_Ioo h).mp ⟨lt_of_le_of_ne h_ax (ne.symm h_x), h_bx⟩
+              with ⟨x_a, x_b, Ioo_case⟩,
+      exact ⟨x_a, x_b, Ioo_case.1, by linarith, (Ioo_case.2).2⟩ } },
+  { rw [mem_Ico],
+    rintros ⟨xa, xb, ⟨hxa, hxb, hxaxb, h₂⟩⟩,
+    rw [←h₂],
+    exact ⟨by nlinarith [convex.combo_self a hxaxb], by nlinarith [convex.combo_self b hxaxb]⟩ }
+end
+
+/-- If x is in an Icc, it can be expressed as a convex combination of the endpoints. -/
+lemma convex.mem_Icc {a b x : α} (h : a ≤ b):
+    x ∈ Icc a b ↔ ∃ (x_a x_b : α), 0 ≤ x_a ∧ 0 ≤ x_b ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
+begin
+  split,
+  { intro x_in_I,
+    rw [Icc, mem_set_of_eq] at x_in_I,
+    rcases x_in_I with ⟨h_ax, h_bx⟩,
+    by_cases hab' : a = b,
+    { exact ⟨0, 1, le_refl 0, by linarith, by ring, by linarith⟩ },
+    change a ≠ b at hab',
+    replace h : a < b, exact lt_of_le_of_ne h hab',
+    by_cases h_x : x = a,
+    { exact ⟨1, 0, by linarith, by linarith, by ring, by {rw [h_x], ring}⟩ },
+    { rcases (convex.mem_Ioc h).mp ⟨lt_of_le_of_ne h_ax (ne.symm h_x), h_bx⟩
+              with ⟨x_a, x_b, Ioo_case⟩,
+      exact ⟨x_a, x_b, Ioo_case.1, by linarith, (Ioo_case.2).2⟩ } },
+  { rw [mem_Icc],
+    rintros ⟨xa, xb, ⟨hxa, hxb, hxaxb, h₂⟩⟩,
+    rw [←h₂],
+    exact ⟨by nlinarith [convex.combo_self a hxaxb], by nlinarith [convex.combo_self b hxaxb]⟩ }
+end
+
 
 section submodule
 

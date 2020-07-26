@@ -26,6 +26,8 @@ section miscellany
 attribute [inline] and.decidable or.decidable decidable.false xor.decidable iff.decidable
   decidable.true implies.decidable not.decidable ne.decidable
   bool.decidable_eq decidable.to_bool
+  
+attribute [simp] cast_eq
 
 variables {α : Type*} {β : Type*}
 

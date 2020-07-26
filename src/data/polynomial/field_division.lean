@@ -53,6 +53,20 @@ have h₁ : (leading_coeff q)⁻¹ ≠ 0 :=
   inv_ne_zero (mt leading_coeff_eq_zero.1 h),
 by rw [degree_mul, degree_C h₁, add_zero]
 
+theorem irreducible_of_monic {p : polynomial R} (hp1 : p.monic) (hp2 : p ≠ 1) :
+  irreducible p ↔ (∀ f g : polynomial R, f.monic → g.monic → f * g = p → f = 1 ∨ g = 1) :=
+⟨λ hp3 f g hf hg hfg, or.cases_on (hp3.2 f g hfg.symm)
+  (assume huf : is_unit f, or.inl $ eq_one_of_is_unit_of_monic hf huf)
+  (assume hug : is_unit g, or.inr $ eq_one_of_is_unit_of_monic hg hug),
+λ hp3, ⟨mt (eq_one_of_is_unit_of_monic hp1) hp2, λ f g hp,
+have hf : f ≠ 0, from λ hf, by { rw [hp, hf, zero_mul] at hp1, exact not_monic_zero hp1 },
+have hg : g ≠ 0, from λ hg, by { rw [hp, hg, mul_zero] at hp1, exact not_monic_zero hp1 },
+or.imp (λ hf, is_unit_of_mul_eq_one _ _ hf) (λ hg, is_unit_of_mul_eq_one _ _ hg) $
+hp3 (f * C f.leading_coeff⁻¹) (g * C g.leading_coeff⁻¹)
+  (monic_mul_leading_coeff_inv hf) (monic_mul_leading_coeff_inv hg) $
+by rw [mul_assoc, mul_left_comm _ g, ← mul_assoc, ← C_mul, ← mul_inv', ← leading_coeff_mul,
+    ← hp, monic.def.1 hp1, inv_one, C_1, mul_one]⟩⟩
+
 /-- Division of polynomials. See polynomial.div_by_monic for more details.-/
 def div (p q : polynomial R) :=
 C (leading_coeff q)⁻¹ * (p /ₘ (q * C (leading_coeff q)⁻¹))
@@ -231,6 +245,13 @@ by rw dif_neg hp0; exact monic_mul_leading_coeff_inv hp0
 
 lemma coe_norm_unit (hp : p ≠ 0) : (norm_unit p : polynomial R) = C p.leading_coeff⁻¹ :=
 show ↑(dite _ _ _) = C p.leading_coeff⁻¹, by rw dif_neg hp; refl
+
+theorem map_dvd_map' [field k] (f : R →+* k) {x y : polynomial R} : x.map f ∣ y.map f ↔ x ∣ y :=
+if H : x = 0 then by rw [H, map_zero, zero_dvd_iff, zero_dvd_iff, map_eq_zero]
+else by rw [← normalize_dvd_iff, ← @normalize_dvd_iff (polynomial R), normalize, normalize,
+    coe_norm_unit H, coe_norm_unit (mt (map_eq_zero _).1 H),
+    leading_coeff_map, ← f.map_inv, ← map_C, ← map_mul,
+    map_dvd_map _ f.injective (monic_mul_leading_coeff_inv H)]
 
 @[simp] lemma degree_normalize : degree (normalize p) = degree p :=
 if hp0 : p = 0 then by simp [hp0]

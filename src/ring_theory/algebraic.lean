@@ -53,7 +53,7 @@ begin
   apply and_congr iff.rfl,
   have h : function.injective (S.val) := subtype.val_injective,
   conv_rhs { rw [← h.eq_iff, alg_hom.map_zero], },
-  rw [← aeval_alg_hom_apply, S.val_apply, subtype.val_eq_coe],
+  rw [← aeval_alg_hom_apply, S.val_apply]
 end
 
 /-- An algebra is algebraic if and only if it is algebraic as a subalgebra. -/

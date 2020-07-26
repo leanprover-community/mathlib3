@@ -151,9 +151,9 @@ def preserves_colimit_of_iso {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K
   preserves_colimit K₂ F :=
 { preserves := λ c t,
   begin
-    have t' := is_colimit.of_cocone_equiv (cocones.precompose_equivalence h).functor t,
+    have t' := is_colimit.of_left_adjoint (cocones.precompose_equivalence h).functor t,
     let hF := iso_whisker_right h F,
-    have := is_colimit.of_cocone_equiv (cocones.precompose_equivalence hF).inverse
+    have := is_colimit.of_left_adjoint (cocones.precompose_equivalence hF).inverse
               (preserves_colimit.preserves t'),
     apply is_colimit.of_iso_colimit this,
     refine cocones.ext (iso.refl _) (λ j, _),

@@ -166,7 +166,7 @@ variables {R : Type u} [comm_ring R] {ι : Type v} [fintype ι] {ι' : Type w}
 
 /-- If `f : R^n → R^m` is an `R`-linear map and `I ⊆ R` is an ideal, then the image of `I^n` is
     contained in `I^m`. -/
-lemma mem_fin (I : ideal R) (x : ι → R) (hi : ∀ i, x i ∈ I)
+lemma linear_map.map_pi_ideal (I : ideal R) (x : ι → R) (hi : ∀ i, x i ∈ I)
   (f : (ι → R) →ₗ[R] (ι' → R)) (i : ι') : f x i ∈ I :=
 begin
   rw pi_eq_sum_univ x,
@@ -190,7 +190,7 @@ begin
   apply ideal.quotient.eq.2,
   intro h,
   rw ←linear_equiv.map_sub,
-  exact mem_fin _ _ hab e.to_linear_map h
+  exact linear_map.map_pi_ideal _ _ hab e.to_linear_map h
 end
 
 /-- An isomorphism of `R`-modules `R^n ≃ R^m` induces an isomorphism `R/I`-modules

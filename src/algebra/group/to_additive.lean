@@ -80,6 +80,7 @@ optional doc string. -/
 @[derive has_reflect, derive inhabited]
 structure value_type : Type := (tgt : name) (doc : option string)
 
+/-- `add_comm_prefix x s` returns `"comm_" ++ s` if `x = tt` and `s` otherwise. -/
 meta def add_comm_prefix : bool → string → string
 | tt s := ("comm_" ++ s)
 | ff s := s

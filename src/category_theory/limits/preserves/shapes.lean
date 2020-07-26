@@ -25,7 +25,7 @@ def preserves_limits_iso (F : J ⥤ C) [has_limit F] [has_limit (F ⋙ G)] :
     (limit.is_limit (F ⋙ G)))
 
 @[simp, reassoc]
-lemma preserves_limits_iso_hom
+lemma preserves_limits_iso_hom_π
   (F : J ⥤ C) [has_limit F] [has_limit (F ⋙ G)] (j) :
   (preserves_limits_iso G F).hom ≫ limit.π _ j = G.map (limit.π F j) :=
 begin
@@ -45,7 +45,7 @@ preserves_limits_iso G (discrete.functor f) ≪≫
   has_limit.iso_of_nat_iso (discrete.nat_iso (λ j, iso.refl _))
 
 @[simp, reassoc]
-lemma preserves_products_iso_hom
+lemma preserves_products_iso_hom_π
   {J : Type v} (f : J → C) [has_limits C] [has_limits D] (j) :
   (preserves_products_iso G f).hom ≫ pi.π _ j = G.map (pi.π f j) :=
 begin
@@ -57,7 +57,7 @@ begin
 end
 
 @[simp, reassoc]
-lemma lift_comp_preserves_products_iso_hom
+lemma map_lift_comp_preserves_products_iso_hom
   {J : Type v} (f : J → C) [has_limits C] [has_limits D] (P) (g : Π j, P ⟶ f j) :
   G.map (pi.lift g) ≫ (preserves_products_iso G f).hom = pi.lift (λ j, G.map (g j)) :=
 begin

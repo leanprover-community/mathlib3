@@ -481,17 +481,34 @@ rfl
   (equalizer.iso_source_of_self f).inv = equalizer.lift (𝟙 X) (by simp) :=
 rfl
 
+def cofork.mk_hom {s t : cofork f g} (k : s.X ⟶ t.X) (w : s.π ≫ k = t.π) : s ⟶ t :=
+{ hom := k,
+  w' :=
+  begin
+    rintro ⟨_|_⟩,
+    simpa using f ≫= w,
+    exact w,
+  end }
+
 section
 variables [has_colimit (parallel_pair f g)]
 
 /-- If we have chosen a coequalizer of `f` and `g`, we can access the corresponding object by
     saying `coequalizer f g`. -/
-abbreviation coequalizer := colimit (parallel_pair f g)
+abbreviation coequalizer : C := colimit (parallel_pair f g)
 
 /-- If we have chosen a coequalizer of `f` and `g`, we can access the corresponding projection by
     saying `coequalizer.π f g`. -/
 abbreviation coequalizer.π : Y ⟶ coequalizer f g :=
 colimit.ι (parallel_pair f g) one
+
+abbreviation coequalizer.cofork : cofork f g := colimit.cocone (parallel_pair f g)
+
+@[simp] lemma coequalizer.cofork_π :
+  (coequalizer.cofork f g).π = coequalizer.π f g := rfl
+
+@[simp] lemma coequalizer.cofork_ι_app_one :
+  (coequalizer.cofork f g).ι.app one = coequalizer.π f g := rfl
 
 @[simp] lemma coequalizer.π.cofork :
   cofork.π (colimit.cocone (parallel_pair f g)) = coequalizer.π f g := rfl

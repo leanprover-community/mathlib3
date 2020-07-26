@@ -296,9 +296,6 @@ iff.intro
     ⟨ge_of_eq rfl, λ _, le_of_eq (by { rw [zero_mul, hf], exact norm_zero })⟩)
     (op_norm_nonneg _))
 
-@[simp] lemma norm_zero : ∥(0 : E →L[𝕜] F)∥ = 0 :=
-by rw op_norm_zero_iff
-
 /-- The norm of the identity is at most `1`. It is in fact `1`, except when the space is trivial
 where it is `0`. It means that one can not do better than an inequality in general. -/
 lemma norm_id_le : ∥id 𝕜 E∥ ≤ 1 :=
@@ -539,7 +536,7 @@ have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
 }
 
 lemma extend_unique (g : G →L[𝕜] F) (H : g.comp e = f) : extend f e h_dense h_e = g :=
-continuous_linear_map.coe_injective' $
+continuous_linear_map.coe_inj $
   uniformly_extend_unique h_e h_dense (continuous_linear_map.ext_iff.1 H) g.continuous
 
 @[simp] lemma extend_zero : extend (0 : E →L[𝕜] F) e h_dense h_e = 0 :=

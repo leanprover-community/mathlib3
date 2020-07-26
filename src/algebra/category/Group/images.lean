@@ -106,4 +106,13 @@ noncomputable instance : has_image_maps AddCommGroup.{0} :=
   (image.map st x).val = st.right x.1 :=
 rfl
 
+/--
+The categorical image of a morphism in `AddCommGroup`
+agrees with the usual group-theoretical range.
+-/
+def image_iso_range {G H : AddCommGroup} (f : G ⟶ H) :
+  image f ≅ AddCommGroup.of (set.range f) :=
+iso.refl _
+
+
 end AddCommGroup

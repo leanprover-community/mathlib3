@@ -3,6 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import algebra.category.Mon.limits
 import algebra.category.Group.preadditive
 import category_theory.over
 import category_theory.limits.types
@@ -182,43 +183,45 @@ instance forget_preserves_limits : preserves_limits (forget CommGroup) :=
     by exactI preserves_limit_of_preserves_limit_cone
       (limit.is_limit F) (limit.is_limit (F ⋙ forget _)) } }
 
+end CommGroup
+
+namespace AddCommGroup
+
 /--
-The categorical kernel of a morphism in `CommGroup`
+The categorical kernel of a morphism in `AddCommGroup`
 agrees with the usual group-theoretical kernel.
 -/
-@[to_additive "The categorical kernel of a morphism in `AddCommGroup`
-agrees with the usual group-theoretical kernel."]
-def kernel_iso_ker {G H : CommGroup} (f : G ⟶ H) :
-  kernel f ≅ CommGroup.of f.ker :=
+@[simps]
+def kernel_iso_ker {G H : AddCommGroup} (f : G ⟶ H) :
+  kernel f ≅ AddCommGroup.of f.ker :=
 { hom :=
   { to_fun := λ g, ⟨kernel.ι f g,
     begin
       -- TODO where is this `has_coe_t_aux.coe` coming from? can we prevent it appearing?
       change (kernel.ι f) g ∈ f.ker,
-      simp [monoid_hom.mem_ker],
+      simp [add_monoid_hom.mem_ker],
     end⟩,
     map_zero' := rfl,
     map_add' := λ g g', rfl, },
-  inv := kernel.lift f (subgroup.subtype f.ker) (by tidy), }.
+  inv := kernel.lift f (add_subgroup.subtype f.ker) (by tidy),
+  hom_inv_id' := sorry,
+  inv_hom_id' := sorry, }.
 
-@[simp, to_additive]
-lemma kernel_iso_ker_hom_comp_subtype {G H : CommGroup} (f : G ⟶ H) :
-  (kernel_iso_ker f).hom ≫ subgroup.subtype f.ker = kernel.ι f := rfl
+lemma kernel_iso_ker_hom_comp_subtype {G H : AddCommGroup} (f : G ⟶ H) :
+  (kernel_iso_ker f).hom ≫ add_subgroup.subtype f.ker = kernel.ι f := rfl
 
-@[simp, to_additive]
-lemma kernel_iso_ker_inv_comp_ι {G H : CommGroup} (f : G ⟶ H) :
-  (kernel_iso_ker f).inv ≫ kernel.ι f = subgroup.subtype f.ker := rfl
+lemma kernel_iso_ker_inv_comp_ι {G H : AddCommGroup} (f : G ⟶ H) :
+  (kernel_iso_ker f).inv ≫ kernel.ι f = add_subgroup.subtype f.ker := rfl
 
 /--
 The categorical kernel inclusion for `f : G ⟶ H`, as an object over `G`,
 agrees with the `subtype` map.
 -/
-@[simps, to_additive "The categorical kernel inclusion for `f : G ⟶ H`, as an object over `G`,
-agrees with the `subtype` map."]
-def kernel_iso_ker_over {G H : CommGroup} (f : G ⟶ H) :
-  over.mk (kernel.ι f) ≅ @over.mk _ _ G (CommGroup.of f.ker) (subgroup.subtype f.ker) :=
+@[simps]
+def kernel_iso_ker_over {G H : AddCommGroup} (f : G ⟶ H) :
+  over.mk (kernel.ι f) ≅ @over.mk _ _ G (AddCommGroup.of f.ker) (add_subgroup.subtype f.ker) :=
 -- TODO this would be cleaner if we made a `over.iso_mk`.
 { hom := over.hom_mk (kernel_iso_ker f).hom (by simp),
   inv := over.hom_mk (kernel_iso_ker f).inv (by simp), }.
 
-end CommGroup
+end AddCommGroup

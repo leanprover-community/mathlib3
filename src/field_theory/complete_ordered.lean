@@ -75,11 +75,10 @@ def cut_map (F K : Type*) [division_ring F] [char_zero F] [division_ring K] [cha
 local attribute [instance] pointwise_one pointwise_mul pointwise_add
 
 /- No longer used -/
-lemma bdd_above_add {F : Type*} [ordered_add_comm_monoid F] {A B : set F}
-  (hbA : bdd_above A) (hbB : bdd_above B) : bdd_above (A + B) :=
+lemma bdd_above_add {F : Type*} [ordered_add_comm_monoid F] {A B : set F} :
+  bdd_above A → bdd_above B → bdd_above (A + B) :=
 begin
-  rcases hbA with ⟨bA, hbA⟩,
-  rcases hbB with ⟨bB, hbB⟩,
+  rintros ⟨bA, hbA⟩ ⟨bB, hbB⟩,
   use bA + bB,
   rintros x ⟨xa, hxa, xb, hxb, rfl⟩,
   exact add_le_add (hbA hxa) (hbB hxb),

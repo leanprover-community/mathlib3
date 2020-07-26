@@ -7,6 +7,7 @@ Author: Aaron Anderson.
 import data.finsupp.lattice
 import data.pnat.factors
 import order.order_iso
+import tactic.omega
 
 /-!
 # Factor Finsupps
@@ -42,6 +43,9 @@ open_locale big_operators
 open finsupp
 
 noncomputable theory
+
+instance : canonically_linear_ordered_add_monoid ℕ :=
+{ ..nat.canonically_ordered_comm_semiring, ..nat.decidable_linear_order }
 
 section basics
 
@@ -160,18 +164,17 @@ end
 lemma coprime_iff_disjoint_factor_finsupps {m n : ℕ+} :
   m.coprime n ↔ disjoint (factor_finsupp m) (factor_finsupp n) :=
 begin
-  rw [pnat.coprime, disjoint_iff, ← factor_finsupp_gcd_eq_inf_factor_finsupps,
-    finsupp.nat.bot_eq_zero],
-  rw ← factor_finsupp_one, split; intro h, rw h,
-  apply pnat.prime_finsupp_equiv.injective, simpa,
+  rw [pnat.coprime, disjoint, le_bot_iff, finsupp.bot_eq_zero,
+  ← factor_finsupp_one, ← factor_finsupp_gcd_eq_inf_factor_finsupps],
+  split; intro h, {rw h}, {apply pnat.prime_finsupp_equiv.injective, simpa,}
 end
 
 lemma coprime_iff_disjoint_supports {m n : ℕ+} :
   m.coprime n ↔ disjoint (factor_finsupp m).support (factor_finsupp n).support :=
 begin
-  rw coprime_iff_disjoint_factor_finsupps, rw finsupp.nat.disjoint_iff,
-  unfold disjoint, repeat {rw le_bot_iff},
-  split; intro h; rw ← h; ext; simp, --WHY DOESN'T REFL WORK???
+  rw [coprime_iff_disjoint_factor_finsupps, finsupp.disjoint_iff],
+  repeat { rw [disjoint, le_bot_iff] },
+  split; intro h; rw ← h; ext; simp,
 end
 
 end basic_number_theory_definitions

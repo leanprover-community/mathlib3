@@ -190,6 +190,20 @@ lemma times_cont_mdiff.smooth (h : times_cont_mdiff I I' ⊤ f) : smooth I I' f 
 
 lemma smooth.times_cont_mdiff (h : smooth I I' f) : times_cont_mdiff I I' ⊤ f := h
 
+lemma times_cont_mdiff_on.smooth_on (h : times_cont_mdiff_on I I' ⊤ f s) : smooth_on I I' f s := h
+
+lemma smooth_on.times_cont_mdiff_on (h : smooth_on I I' f s) : times_cont_mdiff_on I I' ⊤ f s := h
+
+lemma times_cont_mdiff_at.smooth_at (h : times_cont_mdiff_at I I' ⊤ f x) : smooth_at I I' f x := h
+
+lemma smooth_at.times_cont_mdiff_at (h : smooth_at I I' f x) : times_cont_mdiff_at I I' ⊤ f x := h
+
+lemma times_cont_mdiff_within_at.smooth_within_at (h : times_cont_mdiff_within_at I I' ⊤ f s x) :
+  smooth_within_at I I' f s x := h
+
+lemma smooth_within_at.times_cont_mdiff_within_at (h : smooth_within_at I I' f s x) :
+times_cont_mdiff_within_at I I' ⊤ f s x := h
+
 lemma times_cont_mdiff.times_cont_mdiff_at (h : times_cont_mdiff I I' n f) :
   times_cont_mdiff_at I I' n f x :=
 h x
@@ -212,8 +226,6 @@ by simp only [times_cont_mdiff_on, times_cont_mdiff, times_cont_mdiff_within_at_
 lemma smooth_on_univ :
   smooth_on I I' f univ ↔ smooth I I' f := times_cont_mdiff_on_univ
 
-include Is I's
-
 /-- One can reformulate smoothness within a set at a point as continuity within this set at this
 point, and smoothness in the corresponding extended chart. -/
 lemma times_cont_mdiff_within_at_iff :
@@ -233,6 +245,8 @@ lemma smooth_within_at_iff :
     ((ext_chart_at I x).target ∩ (ext_chart_at I x).symm ⁻¹' (s ∩ f ⁻¹' (ext_chart_at I' (f x)).source))
     (ext_chart_at I x x) :=
 times_cont_mdiff_within_at_iff
+
+include Is I's
 
 /-- One can reformulate smoothness on a set as continuity on this set, and smoothness in any
 extended chart. -/
@@ -1256,8 +1270,6 @@ end tangent_bundle
 
 /-! ### Smoothness of standard maps associated to the product of manifolds -/
 
-open set
-
 variables {I I'} [smooth_manifold_with_corners I M] [smooth_manifold_with_corners I' M']
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 {F' : Type*} [normed_group F'] [normed_space 𝕜 F']
@@ -1291,7 +1303,7 @@ begin
   { rintro ⟨⟨⟨⟨a, rfl⟩, h1⟩, h2, h3⟩, ⟨⟨b, hb⟩, h4⟩, h5, h6⟩, exact ⟨⟨⟨a, rfl⟩, h1⟩, ⟨h2, ⟨h3, h6⟩⟩⟩, }
 end
 
-lemma times_cont_mdiff_within_at.prod_mk {f : M → M'} {g : M → N'} {s : set M} {x : M} {n : ℕ}
+lemma times_cont_mdiff_within_at.prod_mk_aux {f : M → M'} {g : M → N'} {s : set M} {x : M} {n : ℕ}
   (hf : times_cont_mdiff_within_at I I' n f s x) (hg : times_cont_mdiff_within_at I J' n g s x) :
   times_cont_mdiff_within_at I (I'.prod J') n (λ x, (f x, g x)) s x :=
 begin
@@ -1302,15 +1314,21 @@ begin
     (times_cont_mdiff_on.mono hug2 (set.inter_subset_left ug uf))⟩,
 end
 
-/- Not a particular case of previous lemma. -/
+lemma times_cont_mdiff_within_at.prod_mk {f : M → M'} {g : M → N'} {s : set M} {x : M} {n : with_top ℕ}
+  (hf : times_cont_mdiff_within_at I I' n f s x) (hg : times_cont_mdiff_within_at I J' n g s x) :
+  times_cont_mdiff_within_at I (I'.prod J') n (λ x, (f x, g x)) s x :=
+begin
+  cases n,
+  { apply smooth_within_at.times_cont_mdiff_within_at,
+    have hf1 := hf.smooth_within_at, have hg1 := hg.smooth_within_at,
+    rw times_cont_mdiff_within_at_top at hf1 hg1 ⊢,
+    intro n, exact (hf1 n).prod_mk_aux (hg1 n), },
+  { exact hf.prod_mk_aux hg, }
+end
+
 lemma smooth_within_at.prod_mk {f : M → M'} {g : M → N'} {s : set M} {x : M}
   (hf : smooth_within_at I I' f s x) (hg : smooth_within_at I J' g s x) :
-  smooth_within_at I (I'.prod J') (λ x, (f x, g x)) s x :=
-begin
-  rw times_cont_mdiff_within_at_top at hf hg ⊢,
-  intro n,
-  exact (hf n).prod_mk (hg n),
-end
+  smooth_within_at I (I'.prod J') (λ x, (f x, g x)) s x := hf.prod_mk hg
 
 lemma times_cont_mdiff.prod_mk {f : M → M'} {g : M → N'} {n : with_top ℕ}
   (hf : times_cont_mdiff I I' n f) (hg : times_cont_mdiff I J' n g) :
@@ -1321,7 +1339,7 @@ begin
   exact h,
 end
 
-lemma times_cont_mdiff_at.prod_mk {f : M → M'} {g : M → N'} {n : ℕ} {x : M}
+lemma times_cont_mdiff_at.prod_mk_aux {f : M → M'} {g : M → N'} {n : ℕ} {x : M}
   (hf : times_cont_mdiff_at I I' n f x) (hg : times_cont_mdiff_at I J' n g x) :
   times_cont_mdiff_at I (I'.prod J') n (λ x, (f x, g x)) x :=
 begin
@@ -1331,15 +1349,21 @@ begin
   (huf2.mono (inter_subset_left uf ug)).prod_mk (hug2.mono (inter_subset_right uf ug))⟩,
 end
 
-/- Not a particular case of previous lemma. -/
+lemma times_cont_mdiff_at.prod_mk {f : M → M'} {g : M → N'} {n : with_top ℕ} {x : M}
+  (hf : times_cont_mdiff_at I I' n f x) (hg : times_cont_mdiff_at I J' n g x) :
+  times_cont_mdiff_at I (I'.prod J') n (λ x, (f x, g x)) x :=
+begin
+  cases n,
+  { apply smooth_at.times_cont_mdiff_at,
+    have hf1 := hf.smooth_at, have hg1 := hg.smooth_at,
+    rw times_cont_mdiff_at_top at hf1 hg1 ⊢,
+    intro n, exact (hf1 n).prod_mk (hg1 n), },
+  { exact hf.prod_mk_aux hg, }
+end
+
 lemma smooth_at.prod_mk {f : M → M'} {g : M → N'} {x : M}
   (hf : smooth_at I I' f x) (hg : smooth_at I J' g x) :
-  smooth_at I (I'.prod J') (λ x, (f x, g x)) x :=
-begin
-  rw times_cont_mdiff_at_top at hf hg ⊢,
-  intro n,
-  exact (hf n).prod_mk (hg n),
-end
+  smooth_at I (I'.prod J') (λ x, (f x, g x)) x := hf.prod_mk hg
 
 end prod_mk
 
@@ -1357,7 +1381,8 @@ begin
   mfld_set_tac,
 end
 
-lemma times_cont_mdiff_within_at.prod_map {n : ℕ}
+@[nolint unused_arguments] /- What is going on here? -/
+lemma times_cont_mdiff_within_at.prod_map_aux {n : ℕ}
   (hf : times_cont_mdiff_within_at I I' n f s x) (hg : times_cont_mdiff_within_at J J' n g r y) :
   times_cont_mdiff_within_at (I.prod J) (I'.prod J') n (prod.map f g) (s.prod r) (x, y) :=
 begin
@@ -1367,14 +1392,21 @@ begin
   mfld_set_tac,
 end
 
+lemma times_cont_mdiff_within_at.prod_map {n : with_top ℕ}
+  (hf : times_cont_mdiff_within_at I I' n f s x) (hg : times_cont_mdiff_within_at J J' n g r y) :
+  times_cont_mdiff_within_at (I.prod J) (I'.prod J') n (prod.map f g) (s.prod r) (x, y) :=
+begin
+  cases n,
+  { apply smooth_within_at.times_cont_mdiff_within_at,
+    have hf1 := hf.smooth_within_at, have hg1 := hg.smooth_within_at,
+    rw times_cont_mdiff_within_at_top at hf1 hg1 ⊢,
+    intro n, exact (hf1 n).prod_map_aux (hg1 n) },
+  { exact hf.prod_map_aux hg, }
+end
+
 lemma smooth_within_at.prod_map
   (hf : smooth_within_at I I' f s x) (hg : smooth_within_at J J' g r y) :
-  smooth_within_at (I.prod J) (I'.prod J') (prod.map f g) (s.prod r) (x, y) :=
-begin
-  rw times_cont_mdiff_within_at_top at hf hg ⊢,
-  intro n,
-  exact (hf n).prod_map (hg n),
-end
+  smooth_within_at (I.prod J) (I'.prod J') (prod.map f g) (s.prod r) (x, y) := hf.prod_map hg
 
 lemma times_cont_mdiff.prod_map {n : with_top ℕ}
 (hf : times_cont_mdiff I I' n f) (hg : times_cont_mdiff J J' n g) :
@@ -1385,7 +1417,7 @@ begin
   exact h,
 end
 
-lemma times_cont_mdiff_at.prod_map {n : ℕ}
+lemma times_cont_mdiff_at.prod_map_aux {n : ℕ}
   (hf : times_cont_mdiff_at I I' n f x) (hg : times_cont_mdiff_at J J' n g y) :
   times_cont_mdiff_at (I.prod J) (I'.prod J') n (prod.map f g) (x, y) :=
 begin
@@ -1394,10 +1426,21 @@ begin
   exact ⟨uf.prod ug, prod_mem_nhds_sets huf1 hug1, huf2.prod_map hug2⟩,
 end
 
+lemma times_cont_mdiff_at.prod_map {n : with_top ℕ}
+  (hf : times_cont_mdiff_at I I' n f x) (hg : times_cont_mdiff_at J J' n g y) :
+  times_cont_mdiff_at (I.prod J) (I'.prod J') n (prod.map f g) (x, y) :=
+begin
+  cases n,
+  { apply smooth_at.times_cont_mdiff_at,
+    have hf1 := hf.smooth_at, have hg1 := hg.smooth_at,
+    rw times_cont_mdiff_at_top at hf1 hg1 ⊢,
+    intro n, exact (hf1 n).prod_map_aux (hg1 n) },
+  { exact hf.prod_map_aux hg, }
+end
+
 lemma smooth_at.prod_map
   (hf : smooth_at I I' f x) (hg : smooth_at J J' g y) :
-  smooth_at (I.prod J) (I'.prod J') (prod.map f g) (x, y) :=
-by {rw times_cont_mdiff_at_top at hf hg ⊢, intro n, exact (hf n).prod_map (hg n) }
+  smooth_at (I.prod J) (I'.prod J') (prod.map f g) (x, y) := hf.prod_map hg
 
 end prod_map
 

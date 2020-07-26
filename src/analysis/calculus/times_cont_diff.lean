@@ -2078,7 +2078,7 @@ end
 
 /-- The product map of two `C^n` functions is `C^n`. -/
 lemma times_cont_diff.prod_map
-  {s : set E} {t : set E'} {f : E → F} {g : E' → F'}
+  {f : E → F} {g : E' → F'}
   (hf : times_cont_diff 𝕜 n f) (hg : times_cont_diff 𝕜 n g) :
   times_cont_diff 𝕜 n (prod.map f g) :=
 begin

@@ -41,10 +41,12 @@ variables [topological_space α] [group α]
 lemma continuous_inv [topological_group α] : continuous (λx:α, x⁻¹) :=
 topological_group.continuous_inv
 
-@[to_additive]
+@[to_additive, continuity]
 lemma continuous.inv [topological_group α] [topological_space β] {f : β → α}
   (hf : continuous f) : continuous (λx, (f x)⁻¹) :=
 continuous_inv.comp hf
+
+attribute [continuity] continuous.neg
 
 @[to_additive]
 lemma continuous_on_inv [topological_group α] {s : set α} : continuous_on (λx:α, x⁻¹) s :=
@@ -250,7 +252,7 @@ end quotient_topological_group
 section topological_add_group
 variables [topological_space α] [add_group α]
 
-lemma continuous.sub [topological_add_group α] [topological_space β] {f : β → α} {g : β → α}
+@[continuity] lemma continuous.sub [topological_add_group α] [topological_space β] {f : β → α} {g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λx, f x - g x) :=
 by simp [sub_eq_add_neg]; exact hf.add hg.neg
 

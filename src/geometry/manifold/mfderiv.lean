@@ -672,6 +672,20 @@ begin
     rwa ← hL.mdifferentiable_within_at_iff I I' hx }
 end
 
+lemma mfderiv_within_congr (hs : unique_mdiff_within_at I s x)
+  (hL : ∀ x ∈ s, f₁ x = f x) (hx : f₁ x = f x) :
+  mfderiv_within I I' f₁ s x = (mfderiv_within I I' f s x : _) :=
+filter.eventually_eq.mfderiv_within_eq hs (filter.eventually_eq_of_mem (self_mem_nhds_within) hL) hx
+
+lemma tangent_map_within_congr (h : ∀ x ∈ s, f x = f₁ x)
+  (p : tangent_bundle I M) (hp : p.1 ∈ s) (hs : unique_mdiff_within_at I s p.1) :
+  tangent_map_within I I' f s p = tangent_map_within I I' f₁ s p :=
+begin
+  simp only [tangent_map_within, h p.fst hp, true_and, prod.mk.inj_iff, eq_self_iff_true],
+  congr' 1,
+  exact mfderiv_within_congr hs h (h _ hp)
+end
+
 lemma filter.eventually_eq.mfderiv_eq (hL : f₁ =ᶠ[𝓝 x] f) :
   mfderiv I I' f₁ x = (mfderiv I I' f x : _) :=
 begin
@@ -864,6 +878,19 @@ lemma mfderiv_within_id (hxs : unique_mdiff_within_at I s x) :
 begin
   rw mdifferentiable.mfderiv_within (mdifferentiable_at_id I) hxs,
   exact mfderiv_id I
+end
+
+@[simp, mfld_simps] lemma tangent_map_id : tangent_map I I (id : M → M) = id :=
+by { ext1 p, simp [tangent_map] }
+
+lemma tangent_map_within_id {p : tangent_bundle I M}
+  (hs : unique_mdiff_within_at I s (tangent_bundle.proj I M p)) :
+  tangent_map_within I I (id : M → M) s p = p :=
+begin
+  simp only [tangent_map_within, id.def],
+  rw mfderiv_within_id,
+  { rcases p, refl },
+  { exact hs }
 end
 
 end id

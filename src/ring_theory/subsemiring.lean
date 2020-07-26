@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 
-import ring_theory.prod
+import algebra.ring.prod
 import group_theory.submonoid
 import data.equiv.ring
 

@@ -500,7 +500,7 @@ eventually_nhds_iff.2 ⟨t, λ x hx, eventually_nhds_iff.2 ⟨t, htp, hto, hx⟩
 eventually_eventually_nhds
 
 lemma filter.eventually_eq.eq_of_nhds {f g : α → β} {a : α} (h : f =ᶠ[𝓝 a] g) : f a = g a :=
-show a ∈ {x | f x = g x}, from mem_of_nhds h
+h.self_of_nhds
 
 @[simp] lemma eventually_eventually_le_nhds [has_le β] {f g : α → β} {a : α} :
   (∀ᶠ y in 𝓝 a, f ≤ᶠ[𝓝 y] g) ↔ f ≤ᶠ[𝓝 a] g :=

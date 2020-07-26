@@ -15,12 +15,13 @@ structure Mon_ :=
 (X : C)
 (ι : 𝟙_ C ⟶ X)
 (μ : X ⊗ X ⟶ X)
-(μ_ι' : (λ_ X).inv ≫ (ι ⊗ 𝟙 X) ≫ μ = 𝟙 X . obviously)
-(ι_μ' : (ρ_ X).inv ≫ (𝟙 X ⊗ ι) ≫ μ = 𝟙 X . obviously)
+(μ_ι' : (ι ⊗ 𝟙 X) ≫ μ = (λ_ X).hom . obviously)
+(ι_μ' : (𝟙 X ⊗ ι) ≫ μ = (ρ_ X).hom . obviously)
 -- Obviously there is some flexibility stating this axiom.
 -- This one has left- and right-hand sides matching the statement of `monoid.mul_assoc`,
--- and choosing to place the associator on the left-hand side.
-(μ_assoc' : (α_ X X X).inv ≫ (μ ⊗ 𝟙 X) ≫ μ = (𝟙 X ⊗ μ) ≫ μ . obviously)
+-- and choosing to place the associator on the right-hand side.
+-- The heuristic is that unitors and associators "don't have much weight".
+(μ_assoc' : (μ ⊗ 𝟙 X) ≫ μ = (α_ X X X).hom ≫ (𝟙 X ⊗ μ) ≫ μ . obviously)
 
 restate_axiom Mon_.μ_ι'
 restate_axiom Mon_.ι_μ'
@@ -63,8 +64,8 @@ variables {C}
 structure Mod (A : Mon_ C) :=
 (X : C)
 (act : A.X ⊗ X ⟶ X)
-(ι_act' : (λ_ X).inv ≫ (A.ι ⊗ 𝟙 X) ≫ act = 𝟙 X . obviously)
-(assoc' : (α_ A.X A.X X).hom ≫ (𝟙 A.X ⊗ act) ≫ act = (A.μ ⊗ 𝟙 X) ≫ act . obviously)
+(ι_act' : (A.ι ⊗ 𝟙 X) ≫ act = (λ_ X).hom . obviously)
+(assoc' : (𝟙 A.X ⊗ act) ≫ act = (α_ A.X A.X X).inv ≫ (A.μ ⊗ 𝟙 X) ≫ act . obviously)
 
 restate_axiom Mod.ι_act'
 restate_axiom Mod.assoc'
@@ -73,11 +74,6 @@ attribute [simp, reassoc] Mod.ι_act Mod.assoc
 namespace Mod
 
 variables {A : Mon_ C} (M : Mod A)
-
--- FIXME work out sensible naming
-lemma assoc'' : (𝟙 A.X ⊗ M.act) ≫ M.act = (α_ A.X A.X M.X).inv ≫ (A.μ ⊗ 𝟙 M.X) ≫ M.act :=
-by { rw [←Mod.assoc], slice_rhs 1 2 { simp, }, simp, }
-
 
 @[ext]
 structure hom (M N : Mod A) :=
@@ -109,20 +105,19 @@ def comap {A B : Mon_ C} (f : A ⟶ B) : Mod B ⥤ Mod A :=
     act := (f.hom ⊗ 𝟙 M.X) ≫ M.act,
     ι_act' :=
     begin
-      slice_lhs 2 3 { rw [←comp_tensor_id], simp, },
+      slice_lhs 1 2 { rw [←comp_tensor_id], simp, },
       simp,
     end,
     assoc' :=
     begin
       -- oh, for homotopy.io in a widget!
-      slice_lhs 2 3 { rw [id_tensor_comp_tensor_id, ←tensor_id_comp_id_tensor], },
+      slice_lhs 1 2 { rw [id_tensor_comp_tensor_id, ←tensor_id_comp_id_tensor], },
       rw id_tensor_comp,
-      slice_lhs 4 5 { rw Mod.assoc'', },
-      slice_lhs 3 4 { rw associator_inv_naturality, },
-      slice_lhs 2 3 { rw [←tensor_id, associator_inv_naturality], },
-      slice_lhs 1 3 { rw [iso.hom_inv_id_assoc], },
-      slice_lhs 1 2 { rw [←comp_tensor_id, tensor_id_comp_id_tensor], },
-      slice_lhs 1 2 { rw [←comp_tensor_id, ←f.μ_hom], },
+      slice_lhs 3 4 { rw Mod.assoc, },
+      slice_lhs 2 3 { rw associator_inv_naturality, },
+      slice_lhs 1 2 { rw [←tensor_id, associator_inv_naturality], },
+      slice_lhs 2 3 { rw [←comp_tensor_id, tensor_id_comp_id_tensor], },
+      slice_lhs 2 3 { rw [←comp_tensor_id, ←f.μ_hom], },
       rw [comp_tensor_id, category.assoc],
     end, },
   map := λ M N g,

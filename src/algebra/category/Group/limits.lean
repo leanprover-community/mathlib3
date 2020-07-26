@@ -191,7 +191,6 @@ namespace AddCommGroup
 The categorical kernel of a morphism in `AddCommGroup`
 agrees with the usual group-theoretical kernel.
 -/
-@[simps]
 def kernel_iso_ker {G H : AddCommGroup} (f : G ⟶ H) :
   kernel f ≅ AddCommGroup.of f.ker :=
 { hom :=
@@ -204,12 +203,20 @@ def kernel_iso_ker {G H : AddCommGroup} (f : G ⟶ H) :
     map_zero' := rfl,
     map_add' := λ g g', rfl, },
   inv := kernel.lift f (add_subgroup.subtype f.ker) (by tidy),
-  hom_inv_id' := sorry,
-  inv_hom_id' := sorry, }.
+  hom_inv_id' := by { apply equalizer.hom_ext _, simp, refl, },
+  inv_hom_id' :=
+  begin
+    apply AddCommGroup.ext,
+    simp only [add_monoid_hom.coe_mk, coe_id, coe_comp],
+    rintro ⟨x, mem⟩,
+    simp, refl,
+  end, }.
 
+@[simp]
 lemma kernel_iso_ker_hom_comp_subtype {G H : AddCommGroup} (f : G ⟶ H) :
   (kernel_iso_ker f).hom ≫ add_subgroup.subtype f.ker = kernel.ι f := rfl
 
+@[simp]
 lemma kernel_iso_ker_inv_comp_ι {G H : AddCommGroup} (f : G ⟶ H) :
   (kernel_iso_ker f).inv ≫ kernel.ι f = add_subgroup.subtype f.ker := rfl
 
@@ -218,7 +225,7 @@ The categorical kernel inclusion for `f : G ⟶ H`, as an object over `G`,
 agrees with the `subtype` map.
 -/
 @[simps]
-def kernel_iso_ker_over {G H : AddCommGroup} (f : G ⟶ H) :
+def kernel_iso_ker_over {G H : AddCommGroup.{u}} (f : G ⟶ H) :
   over.mk (kernel.ι f) ≅ @over.mk _ _ G (AddCommGroup.of f.ker) (add_subgroup.subtype f.ker) :=
 -- TODO this would be cleaner if we made a `over.iso_mk`.
 { hom := over.hom_mk (kernel_iso_ker f).hom (by simp),

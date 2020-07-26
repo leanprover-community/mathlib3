@@ -333,7 +333,7 @@ lemma lift_prop_within_at_congr_of_eventually_eq
 begin
   rcases h₁.exists_mem with ⟨t, t_nhd, ht⟩,
   rw ← hG.lift_prop_within_at_inter' t_nhd at h ⊢,
-  exact hG.lift_prop_within_at_congr h (λ y hy, ht _ hy.2) hx
+  exact hG.lift_prop_within_at_congr h (λ y hy, ht hy.2) hx
 end
 
 lemma lift_prop_within_at_congr_iff_of_eventually_eq

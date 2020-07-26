@@ -204,57 +204,6 @@ begin
         ht (mem_prod.1 hx).2 (mem_prod.1 hy).2 ha hb hab⟩
 end
 
-lemma convex.is_linear_image (hs : convex s) {f : E → F} (hf : is_linear_map ℝ f) :
-  convex (f '' s) :=
-begin
-  rintros _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩ a b ha hb hab,
-  exact ⟨a • x + b • y, hs hx hy ha hb hab, by simp only [hf.map_add,hf.map_smul]⟩
-end
-
-lemma convex.linear_image (hs : convex s) (f : E →ₗ[ℝ] F) : convex (image f s) :=
-hs.is_linear_image f.is_linear
-
-lemma convex.is_linear_preimage {s : set F} (hs : convex s) {f : E → F} (hf : is_linear_map ℝ f) :
-  convex (preimage f s) :=
-begin
-  intros x y hx hy a b ha hb hab,
-  convert hs hx hy ha hb hab,
-  simp only [mem_preimage, hf.map_add, hf.map_smul]
-end
-
-lemma convex.linear_preimage {s : set F} (hs : convex s) (f : E →ₗ[ℝ] F) :
-  convex (preimage f s) :=
-hs.is_linear_preimage f.is_linear
-
-lemma convex.neg (hs : convex s) : convex ((λ z, -z) '' s) :=
-hs.is_linear_image is_linear_map.is_linear_map_neg
-
-lemma convex.neg_preimage (hs : convex s) : convex ((λ z, -z) ⁻¹' s) :=
-hs.is_linear_preimage is_linear_map.is_linear_map_neg
-
-lemma convex.smul (c : ℝ) (hs : convex s) : convex (c • s) :=
-begin
-  rw ← image_smul,
-  exact hs.is_linear_image (is_linear_map.is_linear_map_smul c)
-end
-
-lemma convex.smul_preimage (c : ℝ) (hs : convex s) : convex ((λ z, c • z) ⁻¹' s) :=
-hs.is_linear_preimage (is_linear_map.is_linear_map_smul c)
-
-lemma convex.add {t : set E}  (hs : convex s) (ht : convex t) : convex (s + t) :=
-by { rw ← add_image_prod, exact (hs.prod ht).is_linear_image is_linear_map.is_linear_map_add }
-
-lemma convex.sub {t : set E}  (hs : convex s) (ht : convex t) :
-  convex ((λx : E × E, x.1 - x.2) '' (s.prod t)) :=
-(hs.prod ht).is_linear_image is_linear_map.is_linear_map_sub
-
-lemma convex.translate (hs : convex s) (z : E) : convex ((λx, z + x) '' s) :=
-begin
-  convert (convex_singleton z).add hs,
-  ext x,
-  simp [set.mem_image, mem_add, eq_comm]
-end
-
 lemma convex.combo_to_vadd {a b : ℝ} {x y : E} (h : a + b = 1) :
   a • x + b • y = b • (y - x) + x  :=
   eq.symm (calc
@@ -267,20 +216,15 @@ lemma convex.combo_to_vadd {a b : ℝ} {x y : E} (h : a + b = 1) :
 Applying an affine map to an affine combination of two points yields
 an affine combination of the images.
  -/
-lemma convex.combo_affine_apply {a b : ℝ} {x y : E} {f : affine_map ℝ E E F F}
-  (h : a + b = 1) : f (a • x + b • y) = a • (f x) + b • (f y) :=
+lemma convex.combo_affine_apply {a b : ℝ} {x y : E} {f : affine_map ℝ E E F F} (h : a + b = 1) :
+  f (a • x + b • y) = a • f x + b • f y :=
 begin
-  simp only [convex.combo_to_vadd h],
-  have := calc
-      b • (f y - f x) + f x
-            = b • (f y -ᵥ f x) + f x           : rfl
-        ... = b • f.linear (y - x) + f x      : by rw [←f.linear_map_vsub]; refl,
-  rw [this],
+  simp only [convex.combo_to_vadd h, ← vsub_eq_sub, ← f.linear_map_vsub],
   exact affine_map.affine_apply_line_map f x (y - x) b,
 end
 
 /-- Convexity is preserved by affine maps -/
-lemma convex.affine_preimage {f : affine_map ℝ E E F F} {s : set F} (hs : convex s) :
+lemma convex.affine_preimage (f : affine_map ℝ E E F F) {s : set F} (hs : convex s) :
   convex (f ⁻¹' s) :=
 begin
   intros x y xs ys a b ha hb hab,
@@ -289,37 +233,61 @@ begin
 end
 
 /-- Convexity is preserved by affine maps -/
-lemma convex.affine_image {f : affine_map ℝ E E F F} {s : set E} (hs : convex s) :
+lemma convex.affine_image (f : affine_map ℝ E E F F) {s : set E} (hs : convex s) :
   convex (f '' s) :=
 begin
-  intros x y xs ys a b ha hb hab,
-  rcases xs with ⟨x', ⟨hx', hx'f⟩⟩,
-  rcases ys with ⟨y', ⟨hy', hy'f⟩⟩,
-  refine ⟨a • x' + b • y',⟨hs hx' hy' ha hb hab,_⟩⟩,
-  rw [convex.combo_affine_apply, hx'f, hy'f],
-  exact hab,
+  rintros x y ⟨x', ⟨hx', hx'f⟩⟩ ⟨y', ⟨hy', hy'f⟩⟩ a b ha hb hab,
+  refine ⟨a • x' + b • y', ⟨hs hx' hy' ha hb hab, _⟩⟩,
+  rw [convex.combo_affine_apply hab, hx'f, hy'f]
 end
+
+lemma convex.linear_image (hs : convex s) (f : E →ₗ[ℝ] F) : convex (image f s) :=
+hs.affine_image f.to_affine_map
+
+lemma convex.is_linear_image (hs : convex s) {f : E → F} (hf : is_linear_map ℝ f) :
+  convex (f '' s) :=
+hs.linear_image $ hf.mk' f
+
+lemma convex.linear_preimage {s : set F} (hs : convex s) (f : E →ₗ[ℝ] F) :
+  convex (preimage f s) :=
+hs.affine_preimage f.to_affine_map
+
+lemma convex.is_linear_preimage {s : set F} (hs : convex s) {f : E → F} (hf : is_linear_map ℝ f) :
+  convex (preimage f s) :=
+hs.linear_preimage $ hf.mk' f
+
+lemma convex.neg (hs : convex s) : convex ((λ z, -z) '' s) :=
+hs.is_linear_image is_linear_map.is_linear_map_neg
+
+lemma convex.neg_preimage (hs : convex s) : convex ((λ z, -z) ⁻¹' s) :=
+hs.is_linear_preimage is_linear_map.is_linear_map_neg
+
+lemma convex.smul (c : ℝ) (hs : convex s) : convex (c • s) :=
+hs.linear_image (linear_map.lsmul _ _ c)
+
+lemma convex.smul_preimage (c : ℝ) (hs : convex s) : convex ((λ z, c • z) ⁻¹' s) :=
+hs.linear_preimage (linear_map.lsmul _ _ c)
+
+lemma convex.add {t : set E}  (hs : convex s) (ht : convex t) : convex (s + t) :=
+by { rw ← add_image_prod, exact (hs.prod ht).is_linear_image is_linear_map.is_linear_map_add }
+
+lemma convex.sub {t : set E}  (hs : convex s) (ht : convex t) :
+  convex ((λx : E × E, x.1 - x.2) '' (s.prod t)) :=
+(hs.prod ht).is_linear_image is_linear_map.is_linear_map_sub
+
+lemma convex.translate (hs : convex s) (z : E) : convex ((λx, z + x) '' s) :=
+hs.affine_image $ affine_map.const ℝ E E E z +ᵥ affine_map.id ℝ E E
 
 /-- The translation of a convex set is also convex -/
 lemma convex.translate_preimage_right (hs : convex s) (a : E) : convex ((λ z, a + z) ⁻¹' s) :=
-begin
-  let g : affine_map ℝ E E E E := ⟨λ z, a + z, id, by intros p v; dsimp; abel⟩,
-  change convex (g ⁻¹' s),
-  exact convex.affine_preimage hs
-end
+hs.affine_preimage $ affine_map.const ℝ E E E a +ᵥ affine_map.id ℝ E E
 
 /-- The translation of a convex set is also convex -/
 lemma convex.translate_preimage_left (hs : convex s) (a : E) : convex ((λ z, z + a) ⁻¹' s) :=
-begin
-  convert convex.translate_preimage_right hs a,
-  simp only [add_comm]
-end
+by simpa only [add_comm] using hs.translate_preimage_right a
 
 lemma convex.affinity (hs : convex s) (z : E) (c : ℝ) : convex ((λx, z + c • x) '' s) :=
-begin
-  convert (hs.smul c).translate z using 1,
-  erw [← image_smul, ←image_comp]
-end
+hs.affine_image $ affine_map.const ℝ E E E z +ᵥ c • affine_map.id ℝ E E
 
 lemma convex_real_iff {s : set ℝ} :
   convex s ↔ ∀ {x y}, x ∈ s → y ∈ s → Icc x y ⊆ s :=
@@ -669,13 +637,13 @@ end
 lemma convex_on.comp_affine_map {f : F → ℝ} (g : affine_map ℝ E E F F) {s : set F}
   (hf : convex_on s f) : convex_on (g ⁻¹' s) (f ∘ g) :=
 begin
-  refine ⟨convex.affine_preimage hf.1,_⟩,
+  refine ⟨hf.1.affine_preimage  _,_⟩,
   intros x y xs ys a b ha hb hab,
   calc
-    (f ∘ ⇑g) (a • x + b • y) = f (g (a • x + b • y))         : rfl
-                        ...  = f (a • (g x) + b • (g y))     : by rw [convex.combo_affine_apply hab]
-                        ...  ≤ a * f (g x) + b * f (g y)     : hf.2 xs ys ha hb hab
-                        ...  = a * (f ∘ g) x + b * (f ∘ g) y  : rfl
+    (f ∘ g) (a • x + b • y) = f (g (a • x + b • y))         : rfl
+                       ...  = f (a • (g x) + b • (g y))     : by rw [convex.combo_affine_apply hab]
+                       ...  ≤ a * f (g x) + b * f (g y)     : hf.2 xs ys ha hb hab
+                       ...  = a * (f ∘ g) x + b * (f ∘ g) y  : rfl
 end
 
 /-- If g is convex on s, so is (g ∘ f) on f ⁻¹' s for a linear f. -/
@@ -686,20 +654,12 @@ hg.comp_affine_map f.to_affine_map
 /-- If a function is convex on s, it remains convex after a translation. -/
 lemma convex_on.translate_right {f : E → ℝ} {s : set E} {a : E} (hf : convex_on s f) :
   convex_on ((λ z, a + z) ⁻¹' s) (f ∘ (λ z, a + z)) :=
-begin
-  let g : affine_map ℝ E E E E := ⟨λ z, a + z, id, by intros p v; dsimp; abel⟩,
-  change convex_on (g ⁻¹' s) (f ∘ g),
-  exact convex_on.comp_affine_map g hf
-end
+hf.comp_affine_map $ affine_map.const ℝ E E E a +ᵥ affine_map.id ℝ E E
 
 /-- If a function is convex on s, it remains convex after a translation. -/
 lemma convex_on.translate_left {f : E → ℝ} {s : set E} {a : E} (hf : convex_on s f) :
   convex_on ((λ z, a + z) ⁻¹' s) (f ∘ (λ z, z + a)) :=
-begin
-  convert convex_on.translate_right hf,
-  simp only [add_comm]
-end
-
+by simpa only [add_comm] using  hf.translate_right
 
 end functions
 

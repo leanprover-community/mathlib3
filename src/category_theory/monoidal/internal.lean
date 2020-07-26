@@ -11,6 +11,11 @@ open category_theory
 
 variables (C : Type u) [category.{v} C] [monoidal_category.{v} C]
 
+/--
+A monoid object internal to a monoidal category.
+
+When the monoidal category is preadditive, this is also sometimes called an "algebra object".
+-/
 structure Mon_ :=
 (X : C)
 (one : 𝟙_ C ⟶ X)
@@ -32,6 +37,7 @@ namespace Mon_
 
 variables {C}
 
+/-- A morphism of monoid objects. -/
 @[ext]
 structure hom (M N : Mon_ C) :=
 (hom : M.X ⟶ N.X)
@@ -42,10 +48,12 @@ restate_axiom hom.one_hom'
 restate_axiom hom.mul_hom'
 attribute [simp, reassoc] hom.one_hom hom.mul_hom
 
+/-- The identity morphism on a monoid object. -/
 @[simps]
 def id (M : Mon_ C) : hom M M :=
 { hom := 𝟙 M.X, }
 
+/-- Composition of morphisms of monoid objects. -/
 @[simps]
 def comp {M N O : Mon_ C} (f : hom M N) (g : hom N O) : hom M O :=
 { hom := f.hom ≫ g.hom, }
@@ -66,6 +74,7 @@ end Mon_
 
 variables {C}
 
+/-- A module object for a monoid object, all internal to some monoidal category. -/
 structure Mod (A : Mon_ C) :=
 (X : C)
 (act : A.X ⊗ X ⟶ X)
@@ -80,6 +89,7 @@ namespace Mod
 
 variables {A : Mon_ C} (M : Mod A)
 
+/-- A morphism of module objects. -/
 @[ext]
 structure hom (M N : Mod A) :=
 (hom : M.X ⟶ N.X)
@@ -88,10 +98,12 @@ structure hom (M N : Mod A) :=
 restate_axiom hom.act_hom'
 attribute [simp, reassoc] hom.act_hom
 
+/-- The identity morphism on a module object. -/
 @[simps]
 def id (M : Mod A) : hom M M :=
 { hom := 𝟙 M.X, }
 
+/-- Composition of module object morphisms. -/
 @[simps]
 def comp {M N O : Mod A} (f : hom M N) (g : hom N O) : hom M O :=
 { hom := f.hom ≫ g.hom, }
@@ -103,6 +115,10 @@ instance : category (Mod A) :=
 
 open category_theory.monoidal_category
 
+/--
+A morphism of monoid objects induces a "restriction" or "comap" functor
+between the categories of module objects.
+-/
 @[simps]
 def comap {A B : Mon_ C} (f : A ⟶ B) : Mod B ⥤ Mod A :=
 { obj := λ M,
@@ -142,7 +158,6 @@ end Mod
 
 /-!
 Projects:
-* Check that `Mon_ Type ≌ Mon`.
 * Check that `Mon_ Mon ≌ CommMon`, via the Eckmann-Hilton argument.
   (You'll have to hook up the cartesian monoidal structure on `Mon` first, available in #3463)
 * Check that `Mon_ AddCommGroup ≌ Ring`.

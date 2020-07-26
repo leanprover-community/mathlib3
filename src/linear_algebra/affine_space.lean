@@ -400,6 +400,43 @@ end
 
 end affine_independent
 
+namespace affine_space
+
+variables (k : Type*) (V : Type*) (P : Type*) [ring k] [add_comm_group V] [module k V]
+variables [affine_space k V P]
+
+/-- A `simplex k V P n` is a collection of `n + 1` affinely
+independent points. -/
+structure simplex (n : ℕ) :=
+(points : fin (n + 1) → P)
+(independent : affine_independent k V points)
+
+/-- A `triangle k V P` is a collection of three affinely independent
+points. -/
+abbreviation triangle := simplex k V P 2
+
+namespace simplex
+
+variables {P}
+
+/-- Construct a 0-simplex from a point. -/
+def mk_of_point (p : P) : simplex k V P 0 :=
+⟨λ _, p, affine_independent_of_subsingleton k V _⟩
+
+/-- The point in a simplex constructed with `mk_of_point`. -/
+@[simp] lemma mk_of_point_points (p : P) (i : fin 1) : (mk_of_point k V p).points i = p :=
+rfl
+
+instance [inhabited P] : inhabited (simplex k V P 0) :=
+⟨mk_of_point k V $ default P⟩
+
+instance nonempty : nonempty (simplex k V P 0) :=
+⟨mk_of_point k V $ (add_torsor.nonempty V).some⟩
+
+end simplex
+
+end affine_space
+
 /-- An `affine_subspace k V P` is a subset of an `affine_space k V P`
 that, if not empty, has an affine space structure induced by a
 corresponding subspace of the `module k V`. -/

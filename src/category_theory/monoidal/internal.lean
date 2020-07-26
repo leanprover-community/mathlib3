@@ -15,9 +15,17 @@ structure Mon_ :=
 (X : C)
 (ι : 𝟙_ C ⟶ X)
 (μ : X ⊗ X ⟶ X)
-(μ_ι : (λ_ X).inv ≫ (ι ⊗ 𝟙 X) ≫ μ = 𝟙 X . obviously)
-(ι_μ : (ρ_ X).inv ≫ (𝟙 X ⊗ ι) ≫ μ = 𝟙 X . obviously)
-(μ_assoc : (α_ X X X).inv ≫ (μ ⊗ 𝟙 X) ≫ μ = (𝟙 X ⊗ μ) ≫ μ . obviously)
+(μ_ι' : (λ_ X).inv ≫ (ι ⊗ 𝟙 X) ≫ μ = 𝟙 X . obviously)
+(ι_μ' : (ρ_ X).inv ≫ (𝟙 X ⊗ ι) ≫ μ = 𝟙 X . obviously)
+-- Obviously there is some flexibility stating this axiom.
+-- This one has left- and right-hand sides matching the statement of `monoid.mul_assoc`,
+-- and choosing to place the associator on the left-hand side.
+(μ_assoc' : (α_ X X X).inv ≫ (μ ⊗ 𝟙 X) ≫ μ = (𝟙 X ⊗ μ) ≫ μ . obviously)
+
+restate_axiom Mon_.μ_ι'
+restate_axiom Mon_.ι_μ'
+restate_axiom Mon_.μ_assoc'
+attribute [simp, reassoc] Mon_.μ_ι Mon_.ι_μ Mon_.μ_assoc
 
 namespace Mon_
 
@@ -48,21 +56,31 @@ instance : category (Mon_ C) :=
 
 end Mon_
 
+-- TODO lax monoidal functors `C ⥤ D` induce functors `Mon_ C ⥤ Mon_ D`.
+
 variables {C}
 
-structure Mod_ (A : Mon_ C) :=
+structure Mod (A : Mon_ C) :=
 (X : C)
 (act : A.X ⊗ X ⟶ X)
-(μ_ι : (λ_ X).inv ≫ (A.ι ⊗ 𝟙 X) ≫ act = 𝟙 X)
-(μ_assoc : (α_ A.X A.X X).hom ≫ (𝟙 A.X ⊗ act) ≫ act = (A.μ ⊗ 𝟙 X) ≫ act)
+(ι_act' : (λ_ X).inv ≫ (A.ι ⊗ 𝟙 X) ≫ act = 𝟙 X . obviously)
+(assoc' : (α_ A.X A.X X).hom ≫ (𝟙 A.X ⊗ act) ≫ act = (A.μ ⊗ 𝟙 X) ≫ act . obviously)
 
+restate_axiom Mod.ι_act'
+restate_axiom Mod.assoc'
+attribute [simp, reassoc] Mod.ι_act Mod.assoc
 
-namespace Mod_
+namespace Mod
 
-variables {A : Mon_ C}
+variables {A : Mon_ C} (M : Mod A)
+
+-- FIXME work out sensible naming
+lemma assoc'' : (𝟙 A.X ⊗ M.act) ≫ M.act = (α_ A.X A.X M.X).inv ≫ (A.μ ⊗ 𝟙 M.X) ≫ M.act :=
+by { rw [←Mod.assoc], slice_rhs 1 2 { simp, }, simp, }
+
 
 @[ext]
-structure hom (M N : Mod_ A) :=
+structure hom (M N : Mod A) :=
 (hom : M.X ⟶ N.X)
 (act_hom' : M.act ≫ hom = (𝟙 A.X ⊗ hom) ≫ N.act . obviously)
 
@@ -70,33 +88,69 @@ restate_axiom hom.act_hom'
 attribute [simp, reassoc] hom.act_hom
 
 @[simps]
-def id (M : Mod_ A) : hom M M :=
+def id (M : Mod A) : hom M M :=
 { hom := 𝟙 M.X, }
 
 @[simps]
-def comp {M N O : Mod_ A} (f : hom M N) (g : hom N O) : hom M O :=
+def comp {M N O : Mod A} (f : hom M N) (g : hom N O) : hom M O :=
 { hom := f.hom ≫ g.hom, }
 
-instance : category (Mod_ A) :=
+instance : category (Mod A) :=
 { hom := λ M N, hom M N,
   id := id,
   comp := λ M N O f g, comp f g, }
 
-end Mod_
+open category_theory.monoidal_category
+
+@[simps]
+def comap {A B : Mon_ C} (f : A ⟶ B) : Mod B ⥤ Mod A :=
+{ obj := λ M,
+  { X := M.X,
+    act := (f.hom ⊗ 𝟙 M.X) ≫ M.act,
+    ι_act' :=
+    begin
+      slice_lhs 2 3 { rw [←comp_tensor_id], simp, },
+      simp,
+    end,
+    assoc' :=
+    begin
+      -- oh, for homotopy.io in a widget!
+      slice_lhs 2 3 { rw [id_tensor_comp_tensor_id, ←tensor_id_comp_id_tensor], },
+      rw id_tensor_comp,
+      slice_lhs 4 5 { rw Mod.assoc'', },
+      slice_lhs 3 4 { rw associator_inv_naturality, },
+      slice_lhs 2 3 { rw [←tensor_id, associator_inv_naturality], },
+      slice_lhs 1 3 { rw [iso.hom_inv_id_assoc], },
+      slice_lhs 1 2 { rw [←comp_tensor_id, tensor_id_comp_id_tensor], },
+      slice_lhs 1 2 { rw [←comp_tensor_id, ←f.μ_hom], },
+      rw [comp_tensor_id, category.assoc],
+    end, },
+  map := λ M N g,
+  { hom := g.hom,
+    act_hom' :=
+    begin
+      dsimp,
+      slice_rhs 1 2 { rw [id_tensor_comp_tensor_id, ←tensor_id_comp_id_tensor], },
+      slice_rhs 2 3 { rw ←g.act_hom, },
+      rw category.assoc,
+    end }, }
+
+-- Lots more could be said about `comap`, e.g. how it interacts with
+-- identities, compositions, and equalities of monoid object morphisms.
+
+end Mod
 
 /-!
-Bonus projects (all but the first will be non-trivial with today's mathlib):
-* Construct the category of module objects for a fixed monoid object.
-* Check that `Mon_in Type ≌ Mon`.
-* Check that `Mon_in Mon ≌ CommMon`, via the Eckmann-Hilton argument.
-  (You'll have to hook up the cartesian monoidal structure on `Mon` first.)
-* Check that `Mon_in AddCommGroup ≌ Ring`.
+Projects:
+* Check that `Mon_ Type ≌ Mon`.
+* Check that `Mon_ Mon ≌ CommMon`, via the Eckmann-Hilton argument.
+  (You'll have to hook up the cartesian monoidal structure on `Mon` first, available in #3463)
+* Check that `Mon_ AddCommGroup ≌ Ring`.
   (You'll have to hook up the monoidal structure on `AddCommGroup`.
   Currently we have the monoidal structure on `Module R`; perhaps one could specialize to `R = ℤ`
   and transport the monoidal structure across an equivalence? This sounds like some work!)
-* Check that `Mon_in (Module R) ≌ Algebra R`.
-* Show that if `C` is braided (you'll have to define that first!)
-   then `Mon_in C` is naturally monoidal.
+* Check that `Mon_ (Module R) ≌ Algebra R`.
+* Show that if `C` is braided (see #3550) then `Mon_ C` is naturally monoidal.
 * Can you transport this monoidal structure to `Ring` or `Algebra R`?
   How does it compare to the "native" one?
 -/

@@ -15,9 +15,9 @@ universes u
 
 namespace category_theory.monoidal
 
-local attribute [instance] monoidal_of_has_finite_products symmetric_monoidal_of_has_finite_products
+local attribute [instance] monoidal_of_has_finite_products symmetric_of_has_finite_products
 
 instance types_monoidal : monoidal_category.{u} (Type u) := by apply_instance
-instance types_symmetric : symmetric_monoidal_category.{u} (Type u) := by apply_instance
+instance types_symmetric : symmetric_category.{u} (Type u) := by apply_instance
 
 end category_theory.monoidal

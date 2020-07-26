@@ -30,7 +30,7 @@ universes v v₁ v₂ v₃ u u₁ u₂ u₃
 
 namespace category_theory
 
-class braided_monoidal_category (C : Type u) [category.{v} C] [monoidal_category.{v} C] :=
+class braided_category (C : Type u) [category.{v} C] [monoidal_category.{v} C] :=
 -- braiding natural iso:
 (braiding             : Π X Y : C, X ⊗ Y ≅ Y ⊗ X)
 (braiding_naturality' : ∀ {X X' Y Y' : C} (f : X ⟶ Y) (g : X' ⟶ Y'),
@@ -45,28 +45,28 @@ class braided_monoidal_category (C : Type u) [category.{v} C] [monoidal_category
   = ((𝟙 X) ⊗ (braiding Y Z).hom) ≫ (α_ X Z Y).inv ≫ ((braiding X Z).hom ⊗ (𝟙 Y))
   . obviously)
 
-restate_axiom braided_monoidal_category.braiding_naturality'
-attribute [simp] braided_monoidal_category.braiding_naturality
-restate_axiom braided_monoidal_category.hexagon_forward'
-attribute [simp] braided_monoidal_category.hexagon_forward
-restate_axiom braided_monoidal_category.hexagon_reverse'
-attribute [simp] braided_monoidal_category.hexagon_reverse
+restate_axiom braided_category.braiding_naturality'
+attribute [simp] braided_category.braiding_naturality
+restate_axiom braided_category.hexagon_forward'
+attribute [simp] braided_category.hexagon_forward
+restate_axiom braided_category.hexagon_reverse'
+attribute [simp] braided_category.hexagon_reverse
 
-open braided_monoidal_category
+open braided_category
 
 notation `β_` := braiding
 
-class symmetric_monoidal_category (C : Type u) [category.{v} C] [monoidal_category.{v} C]
-   extends braided_monoidal_category.{v} C :=
+class symmetric_category (C : Type u) [category.{v} C] [monoidal_category.{v} C]
+   extends braided_category.{v} C :=
 -- braiding symmetric:
 (symmetry' : ∀ X Y : C, (β_ X Y).hom ≫ (β_ Y X).hom = 𝟙 (X ⊗ Y) . obviously)
 
-restate_axiom symmetric_monoidal_category.symmetry'
-attribute [simp] symmetric_monoidal_category.symmetry
+restate_axiom symmetric_category.symmetry'
+attribute [simp] symmetric_category.symmetry
 
-variables (C : Type u₁) [category.{v₁} C] [monoidal_category.{v₁} C] [braided_monoidal_category.{v₁} C]
-variables (D : Type u₂) [category.{v₂} D] [monoidal_category.{v₂} D] [braided_monoidal_category.{v₂} D]
-variables (E : Type u₃) [category.{v₃} E] [monoidal_category.{v₃} E] [braided_monoidal_category.{v₃} E]
+variables (C : Type u₁) [category.{v₁} C] [monoidal_category.{v₁} C] [braided_category.{v₁} C]
+variables (D : Type u₂) [category.{v₂} D] [monoidal_category.{v₂} D] [braided_category.{v₂} D]
+variables (E : Type u₃) [category.{v₃} E] [monoidal_category.{v₃} E] [braided_category.{v₃} E]
 
 structure braided_functor extends monoidal_functor C D :=
 (braided' : ∀ X Y : C, map (β_ X Y).hom = inv (μ X Y) ≫ (β_ (obj X) (obj Y)).hom ≫ μ Y X . obviously)

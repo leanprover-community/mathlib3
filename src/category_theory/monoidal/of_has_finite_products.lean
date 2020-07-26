@@ -214,8 +214,8 @@ local attribute [instance] monoidal_of_has_finite_products
 open monoidal_category
 
 @[simps]
-def symmetric_monoidal_of_has_finite_products [has_terminal C] [has_binary_products C] :
-  symmetric_monoidal_category C :=
+def symmetric_of_has_finite_products [has_terminal C] [has_binary_products C] :
+  symmetric_category C :=
 { braiding := limits.prod.braiding,
   braiding_naturality' := λ X X' Y Y' f g,
     by { dsimp [tensor_hom], ext, simp, simp, }, -- haven't seen that before!
@@ -279,8 +279,8 @@ local attribute [instance] monoidal_of_has_finite_coproducts
 open monoidal_category
 
 @[simps]
-def symmetric_monoidal_of_has_finite_coproducts [has_initial C] [has_binary_coproducts C] :
-  symmetric_monoidal_category C :=
+def symmetric_of_has_finite_coproducts [has_initial C] [has_binary_coproducts C] :
+  symmetric_category C :=
 { braiding := limits.coprod.braiding,
   braiding_naturality' := λ X X' Y Y' f g,
     by { dsimp [tensor_hom], ext, simp, simp, }, -- haven't seen that before!

@@ -328,6 +328,3 @@ lemma associator_hom (X Y Z : C) :
 end monoidal_of_has_finite_coproducts
 
 end category_theory
-
--- TODO in fact, a category with finite products is braided, and symmetric,
--- and we should say that here, once braided categories arrive in mathlib.

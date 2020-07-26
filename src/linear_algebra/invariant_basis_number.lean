@@ -24,9 +24,15 @@ We show that every nontrivial commutative ring has the invariant basis number pr
 
 ## Future work
 
-Definition of finitely generated free modules. Submodules of f.g. free modules are free, and their
-rank is at most the rank of the module. Elementary divisors and the structure theorem for finitely
-generated modules over a PID.
+So far, there is no API at all for the `invariant_basis_number` class. There are several natural
+ways to formulate that a module `M` is finitely generated and free, for example
+`M ≃ₗ[R] (fin n → R)`, `M ≃ₗ[R] (ι → R)`, where `ι` is a fintype, or prividing a basis indexed by
+a finite type. There should be lemmas applying the invariant basis number property to each
+situation.
+
+The finite version of the invariant basis number property implies the inifite analogue, i.e., that
+`(ι →₀ R) ≃ₗ[R] (ι' →₀ R)` implies that `cardinal.mk ι = cardinal.mk ι'`. This fact (and its
+variants) should be formalized.
 
 ## References
 
@@ -183,14 +189,12 @@ local attribute [instance, priority 1] ideal.quotient.field
 
 /-- An isomorphism of `R`-modules `R^n ≃ R^m` induces a function `R^n/I^n → R^m/I^n`. -/
 private def induced_map {R : Type u} [comm_ring R] (I : ideal R) (n m : ℕ)
-  (e : (fin n → R) ≃ₗ[R] (fin m → R)) : (I.pi (fin n)).quotient → (I.pi (fin m)).quotient :=
+  (e : (fin n → R) →ₗ[R] (fin m → R)) : (I.pi (fin n)).quotient → (I.pi (fin m)).quotient :=
 λ x, quotient.lift_on' x (λ y, ideal.quotient.mk _ (e y))
 begin
-  intros a b hab,
-  apply ideal.quotient.eq.2,
-  intro h,
-  rw ←linear_equiv.map_sub,
-  exact linear_map.map_pi_ideal _ _ hab e.to_linear_map h
+  refine λ a b hab, ideal.quotient.eq.2 (λ h, _),
+  rw ←linear_map.map_sub,
+  exact linear_map.map_pi_ideal _ _ hab e h,
 end
 
 /-- An isomorphism of `R`-modules `R^n ≃ R^m` induces an isomorphism `R/I`-modules

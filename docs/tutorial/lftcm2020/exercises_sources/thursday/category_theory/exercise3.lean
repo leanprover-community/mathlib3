@@ -1,4 +1,4 @@
-import ...for_mathlib.category_theory -- This imports some simp lemmas that I realised belong in mathlib while writing this exercise.
+import category_theory.equivalence
 
 open category_theory
 
@@ -22,4 +22,3 @@ sorry
 There are some further hints in
 `hints/category_theory/exercise3/`
 -/
-

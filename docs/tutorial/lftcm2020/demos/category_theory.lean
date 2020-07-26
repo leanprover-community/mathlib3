@@ -13,8 +13,6 @@ import category_theory.abelian.basic
 import algebra.category.Module.monoidal
 import topology.category.UniformSpace
 import ..for_mathlib.algebra.category.Group.kernels
-import ..for_mathlib.category_theory.limits.shapes.images
-import ..for_mathlib.category_theory.limits.shapes.kernels
 
 
 /-!

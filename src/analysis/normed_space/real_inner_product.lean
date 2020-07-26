@@ -921,6 +921,89 @@ begin
   exacts [submodule.convex _, hv]
 end
 
+/-- The orthogonal projection onto a complete subspace, as an
+unbundled function.  This definition is only intended for use in
+setting up the bundled version `orthogonal_projection` and should not
+be used once that is defined. -/
+def orthogonal_projection_fn {K : submodule ℝ α} (h : is_complete (K : set α)) (v : α) :=
+(exists_norm_eq_infi_of_complete_subspace K h v).some
+
+/-- The unbundled orthogonal projection is in the given subspace.
+This lemma is only intended for use in setting up the bundled version
+and should not be used once that is defined. -/
+lemma orthogonal_projection_fn_mem {K : submodule ℝ α} (h : is_complete (K : set α)) (v : α) :
+  orthogonal_projection_fn h v ∈ K :=
+(exists_norm_eq_infi_of_complete_subspace K h v).some_spec.some
+
+/-- The characterization of the unbundled orthogonal projection.  This
+lemma is only intended for use in setting up the bundled version
+and should not be used once that is defined. -/
+lemma orthogonal_projection_fn_inner_eq_zero {K : submodule ℝ α} (h : is_complete (K : set α))
+    (v : α) : ∀ w ∈ K, inner (v - orthogonal_projection_fn h v) w = 0 :=
+begin
+  rw ←norm_eq_infi_iff_inner_eq_zero K (orthogonal_projection_fn_mem h v),
+  exact (exists_norm_eq_infi_of_complete_subspace K h v).some_spec.some_spec
+end
+
+/-- The unbundled orthogonal projection is the unique point in `K`
+with the orthogonality property.  This lemma is only intended for use
+in setting up the bundled version and should not be used once that is
+defined. -/
+lemma eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero {K : submodule ℝ α}
+    (h : is_complete (K : set α)) {u v : α} (hvm : v ∈ K) (hvo : ∀ w ∈ K, inner (u - v) w = 0) :
+  v = orthogonal_projection_fn h u :=
+begin
+  rw [←sub_eq_zero, ←inner_self_eq_zero],
+  have hvs : v - orthogonal_projection_fn h u ∈ K :=
+    submodule.sub_mem K hvm (orthogonal_projection_fn_mem h u),
+  have huo : inner (u - orthogonal_projection_fn h u) (v - orthogonal_projection_fn h u) = 0 :=
+    orthogonal_projection_fn_inner_eq_zero h u _ hvs,
+  have huv : inner (u - v) (v - orthogonal_projection_fn h u) = 0 := hvo _ hvs,
+  have houv : inner ((u - orthogonal_projection_fn h u) - (u - v))
+                    (v - orthogonal_projection_fn h u) = 0,
+  { rw [inner_sub_left, huo, huv, sub_zero] },
+  rwa sub_sub_sub_cancel_left at houv
+end
+
+/-- The orthogonal projection onto a complete subspace. -/
+def orthogonal_projection {K : submodule ℝ α} (h : is_complete (K : set α)) : linear_map ℝ α α :=
+{ to_fun := orthogonal_projection_fn h,
+  map_add' := λ x y, begin
+    have hm : orthogonal_projection_fn h x + orthogonal_projection_fn h y ∈ K :=
+      submodule.add_mem K (orthogonal_projection_fn_mem h x) (orthogonal_projection_fn_mem h y),
+    have ho :
+      ∀ w ∈ K, inner (x + y - (orthogonal_projection_fn h x + orthogonal_projection_fn h y)) w = 0,
+    { intros w hw,
+      rw [add_sub_comm, inner_add_left, orthogonal_projection_fn_inner_eq_zero h _ w hw,
+          orthogonal_projection_fn_inner_eq_zero h _ w hw, add_zero] },
+    rw eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero h hm ho
+  end,
+  map_smul' := λ c x, begin
+    have hm : c • orthogonal_projection_fn h x ∈ K :=
+      submodule.smul_mem K _ (orthogonal_projection_fn_mem h x),
+    have ho : ∀ w ∈ K, inner (c • x - c • orthogonal_projection_fn h x) w = 0,
+    { intros w hw,
+      rw [←smul_sub, inner_smul_left, orthogonal_projection_fn_inner_eq_zero h _ w hw, mul_zero] },
+    rw eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero h hm ho
+  end }
+
+/-- The orthogonal projection is in the given subspace. -/
+lemma orthogonal_projection_mem {K : submodule ℝ α} (h : is_complete (K : set α)) (v : α) :
+  orthogonal_projection h v ∈ K :=
+orthogonal_projection_fn_mem h v
+
+/-- The characterization of the orthogonal projection.  -/
+lemma orthogonal_projection_inner_eq_zero {K : submodule ℝ α} (h : is_complete (K : set α))
+    (v : α) : ∀ w ∈ K, inner (v - orthogonal_projection h v) w = 0 :=
+orthogonal_projection_fn_inner_eq_zero h v
+
+/-- The orthogonal projection is the unique point in `K` with the
+orthogonality property. -/
+lemma eq_orthogonal_projection_of_mem_of_inner_eq_zero {K : submodule ℝ α}
+    (h : is_complete (K : set α)) {u v : α} (hvm : v ∈ K) (hvo : ∀ w ∈ K, inner (u - v) w = 0) :
+  v = orthogonal_projection h u :=
+eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero h hvm hvo
+
 /-- The subspace of vectors orthogonal to a given subspace. -/
 def submodule.orthogonal (K : submodule ℝ α) : submodule ℝ α :=
 { carrier := {v | ∀ u ∈ K, inner u v = 0},

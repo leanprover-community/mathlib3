@@ -270,18 +270,13 @@ an affine combination of the images.
 lemma convex.combo_affine_apply {a b : ℝ} {x y : E} {f : affine_map ℝ E E F F}
   (h : a + b = 1) : f (a • x + b • y) = a • (f x) + b • (f y) :=
 begin
-  rw [convex.combo_to_vadd h],
-  calc
-    f (b • (y - x) + x)
-          = f.to_fun (b • ((y -ᵥ x) : E) +ᵥ x)                    : rfl
-      ... = f.linear.to_fun (b • ((y -ᵥ x) : E)) +ᵥ f.to_fun x    : by rw [f.map_vadd']; refl
-      ... = b • f.linear ((y -ᵥ x) : E) + f.to_fun x              : by rw [f.linear.map_smul']; refl
-      ... = b • (f y - f x) + f x                       : by rw [affine_map.linear_map_vsub]; refl
-      ... = b • (f y) - b • (f x) + f x                 : by rw [smul_sub]
-      ... = b • f y - b • f x + (1 : ℝ) • f x           : by rw [one_smul]
-      ... = b • f y - b • f x + (a + b) • f x           : by rw [h]
-      ... = b • f y - b • f x + (a • f x + b • f x)     : by rw [add_smul]
-      ... = a • f x + b • f y                           : by abel
+  simp only [convex.combo_to_vadd h],
+  have := calc
+      b • (f y - f x) + f x
+            = b • (f y -ᵥ f x) + f x           : rfl
+        ... = b • f.linear (y - x) + f x      : by rw [←f.linear_map_vsub]; refl,
+  rw [this],
+  exact affine_map.affine_apply_line_map f x (y - x) b,
 end
 
 /-- Convexity is preserved by affine maps -/
@@ -684,13 +679,9 @@ begin
 end
 
 /-- If g is convex on s, so is (g ∘ f) on f ⁻¹' s for a linear f. -/
-lemma convex_on.linear_preimage {f : E →ₗ[ℝ] F} {g : F → ℝ} {s : set F} (hg : convex_on s g) :
+lemma convex_on.comp_linear_map {g : F → ℝ} {s : set F} (hg : convex_on s g) (f : E →ₗ[ℝ] F) :
   convex_on (f ⁻¹' s) (g ∘ f) :=
-begin
-  let f' : affine_map ℝ E E F F := ⟨f, f, λ p v, map_add f v p⟩,
-  change convex_on (f' ⁻¹' s) (g ∘ f'),
-  exact convex_on.comp_affine_map f' hg
-end
+hg.comp_affine_map f.to_affine_map
 
 /-- If a function is convex on s, it remains convex after a translation. -/
 lemma convex_on.translate_right {f : E → ℝ} {s : set E} {a : E} (hf : convex_on s f) :

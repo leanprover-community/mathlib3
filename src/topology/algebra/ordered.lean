@@ -1852,7 +1852,7 @@ lemma filter.tendsto.is_bounded_under_ge {f : filter β} {u : β → α} {a : α
 lemma is_cobounded_le_nhds (a : α) : (𝓝 a).is_cobounded (≤) :=
 (is_bounded_ge_nhds a).is_cobounded_flip
 
-lemma is_cobounded_under_le_of_tendsto {f : filter β} {u : β → α} {a : α}
+lemma filter.tendsto.is_cobounded_under_le {f : filter β} {u : β → α} {a : α}
   [ne_bot f] (h : tendsto u f (𝓝 a)) : f.is_cobounded_under (≤) u :=
 h.is_bounded_under_ge.is_cobounded_flip
 

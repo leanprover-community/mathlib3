@@ -30,6 +30,12 @@ universes v v₁ v₂ v₃ u u₁ u₂ u₃
 
 namespace category_theory
 
+/--
+A braided monoidal category is a monoidal category equipped with a braiding isomorphism
+`β_ X Y : X ⊗ Y ≅ Y ⊗ X`
+which is natural in both arguments,
+and also satisfies the two hexagon identities.
+-/
 class braided_category (C : Type u) [category.{v} C] [monoidal_category.{v} C] :=
 -- braiding natural iso:
 (braiding             : Π X Y : C, X ⊗ Y ≅ Y ⊗ X)
@@ -56,6 +62,9 @@ open braided_category
 
 notation `β_` := braiding
 
+/--
+A symmetric monoidal category is a braided monoidal category for which the braiding is symmetric.
+-/
 class symmetric_category (C : Type u) [category.{v} C] [monoidal_category.{v} C]
    extends braided_category.{v} C :=
 -- braiding symmetric:
@@ -68,7 +77,13 @@ variables (C : Type u₁) [category.{v₁} C] [monoidal_category.{v₁} C] [brai
 variables (D : Type u₂) [category.{v₂} D] [monoidal_category.{v₂} D] [braided_category.{v₂} D]
 variables (E : Type u₃) [category.{v₃} E] [monoidal_category.{v₃} E] [braided_category.{v₃} E]
 
+/--
+A braided functor between braided monoidal categories is a monoidal functor
+which preserves the braiding.
+-/
 structure braided_functor extends monoidal_functor C D :=
+-- I have no reason to think this formulation is the best, in terms of `simp` normal forms.
+-- Suggestions for moving the `μ`s around, or swapping left- and right-hand sides, very welcome.
 (braided' : ∀ X Y : C, map (β_ X Y).hom = inv (μ X Y) ≫ (β_ (obj X) (obj Y)).hom ≫ μ Y X . obviously)
 
 restate_axiom braided_functor.braided'

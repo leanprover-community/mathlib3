@@ -213,6 +213,9 @@ local attribute [instance] monoidal_of_has_finite_products
 
 open monoidal_category
 
+/--
+The monoidal structure coming from finite products is symmetric.
+-/
 @[simps]
 def symmetric_of_has_finite_products [has_terminal C] [has_binary_products C] :
   symmetric_category C :=
@@ -278,6 +281,9 @@ local attribute [instance] monoidal_of_has_finite_coproducts
 
 open monoidal_category
 
+/--
+The monoidal structure coming from finite coproducts is symmetric.
+-/
 @[simps]
 def symmetric_of_has_finite_coproducts [has_initial C] [has_binary_coproducts C] :
   symmetric_category C :=

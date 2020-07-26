@@ -159,6 +159,14 @@ begin
   rw [right_unitor_naturality, ←category.assoc, iso.inv_hom_id, category.id_comp]
 end
 
+@[simp]
+lemma right_unitor_conjugation {X Y : C} (f : X ⟶ Y) : (ρ_ X).inv ≫ (f ⊗ (𝟙 (𝟙_ C))) ≫ (ρ_ Y).hom = f :=
+by rw [right_unitor_naturality, ←category.assoc, iso.inv_hom_id, category.id_comp]
+
+@[simp]
+lemma left_unitor_conjugation {X Y : C} (f : X ⟶ Y) : (λ_ X).inv ≫ ((𝟙 (𝟙_ C)) ⊗ f) ≫ (λ_ Y).hom = f :=
+by rw [left_unitor_naturality, ←category.assoc, iso.inv_hom_id, category.id_comp]
+
 @[simp] lemma tensor_left_iff
   {X Y : C} (f g : X ⟶ Y) :
   ((𝟙 (𝟙_ C)) ⊗ f = (𝟙 (𝟙_ C)) ⊗ g) ↔ (f = g) :=

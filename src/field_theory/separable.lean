@@ -381,5 +381,7 @@ begin
   intro hf2, rw [hf2, C_0] at hf1, exact absurd hf1 hf0
 end
 
+/-- Typeclass for separable field extension: `K` is a separable field extension of `F` iff
+the minimal polynomial of every `x : K` is separable. -/
 @[class] def is_separable (F K : Sort*) [field F] [field K] [algebra F K] : Prop :=
 ∀ x : K, ∃ H : is_integral F x, (minimal_polynomial H).separable

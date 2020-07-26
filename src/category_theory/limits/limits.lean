@@ -524,7 +524,7 @@ If `s : cone F` is a limit cone, so is `s` whiskered by an equivalence `e`.
 -/
 def whisker_equivalence {s : cocone F} (P : is_colimit s) (e : K ≌ J) :
   is_colimit (s.whisker e.functor) :=
-of_cocone_equiv (cocones.whiskering_equivalence e).functor P
+of_left_adjoint (cocones.whiskering_equivalence e).functor P
 
 /--
 We can prove two cocone points `(s : cocone F).X` and `(t.cocone F).X` are isomorphic if

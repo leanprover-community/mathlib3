@@ -224,7 +224,7 @@ lemma eventually_eq_nhds_within_of_eq_on {f g : α → β} {s : set α} {a : α}
   f =ᶠ[nhds_within a s] g :=
 mem_inf_sets_of_right h
 
-lemma set.eq_on.eventually_eq {f g : α → β} {s : set α} {a : α} (h : eq_on f g s) :
+lemma set.eq_on.eventually_eq_nhds_within {f g : α → β} {s : set α} {a : α} (h : eq_on f g s) :
   f =ᶠ[nhds_within a s] g :=
 eventually_eq_nhds_within_of_eq_on h
 

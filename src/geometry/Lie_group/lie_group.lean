@@ -48,7 +48,7 @@ class lie_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 (smooth_mul : smooth (I.prod I) I (λ p : G×G, p.1 * p.2))
 (smooth_inv : smooth I I (λ a:G, a⁻¹))
 
-section
+section lie_group
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {H : Type*} [topological_space H]
@@ -120,29 +120,26 @@ lemma smooth_on.inv {f : M → G} {s : set M}
   (hf : smooth_on I' I f s) : smooth_on I' I (λx, (f x)⁻¹) s :=
 smooth_inv.comp_smooth_on hf
 
-end
+end lie_group
 
-section
+section prod_lie_group
 
 /- Instance of product group -/
-instance prod_lie_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-/-@[to_additive] how does it work here? The purpose is not replacing prod with sum-/
-{H : Type*} [topological_space H]
+@[to_additive lie_add_group]
+instance {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {H : Type*} [topological_space H]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]  {I : model_with_corners 𝕜 E H}
 {G : Type*} [topological_space G] [charted_space H G] [group G] [topological_group G]
-[h : lie_group I G]
-{E' : Type*} [normed_group E'] [normed_space 𝕜 E']
-{H' : Type*} [topological_space H']
-{I' : model_with_corners 𝕜 E' H'}
+[h : lie_group I G] {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+{H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {G' : Type*} [topological_space G'] [charted_space H' G']
 [group G'] [topological_group G'] [h' : lie_group I' G'] : lie_group (I.prod I') (G×G') :=
 { smooth_mul := ((smooth_fst.comp smooth_fst).smooth.mul (smooth_fst.comp smooth_snd)).prod_mk
     ((smooth_snd.comp smooth_fst).smooth.mul (smooth_snd.comp smooth_snd)),
   smooth_inv := smooth_fst.inv.prod_mk smooth_snd.inv, }
 
-end
+end prod_lie_group
 
-section
+section lie_add_group_morphism
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
@@ -180,7 +177,7 @@ instance : inhabited (lie_group_morphism I I' G G') := ⟨1⟩
 @[to_additive]
 instance : has_coe_to_fun (lie_group_morphism I I' G G') := ⟨_, λ a, a.to_fun⟩
 
-end
+end lie_add_group_morphism
 
 end lie_group
 

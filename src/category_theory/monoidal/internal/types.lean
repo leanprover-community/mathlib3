@@ -1,8 +1,3 @@
-/-
-Copyright (c) 2020 Scott Morrison. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
--/
 import algebra.category.Mon.basic
 import category_theory.monoidal.internal
 import category_theory.monoidal.types
@@ -70,4 +65,4 @@ def Mon_Type_equivalence_Mon_forget :
 nat_iso.of_components (λ A, iso.refl _) (by tidy)
 
 instance Mon_Type_inhabited : inhabited (Mon_ (Type u)) :=
-Mon_Type_equivalence_Mon.functor.obj (Mon.of punit)
+⟨Mon_Type_equivalence_Mon.inverse.obj (Mon.of punit)⟩

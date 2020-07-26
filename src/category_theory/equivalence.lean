@@ -203,6 +203,59 @@ by { dsimp [inv_fun_id_assoc], tidy }
   (inv_fun_id_assoc e F).inv.app X = F.map (e.counit_inv.app X) :=
 by { dsimp [inv_fun_id_assoc], tidy }
 
+
+
+section cancellation_lemmas
+variables (e : C ≌ D)
+
+-- We need special forms of `cancel_nat_iso_hom_right(_assoc)` and `cancel_nat_iso_inv_right(_assoc)`
+-- for units and counits, because neither `simp` or `rw` will apply those lemmas in this
+-- setting without providing `e.unit_iso` (or similar) as an explicit argument.
+-- We also provide the lemmas for length four compositions, since they're occasionally useful.
+-- (e.g. in proving that equivalences take monos to monos)
+
+@[simp] lemma cancel_unit_right {X Y : C}
+  (f f' : X ⟶ Y) :
+  f ≫ e.unit.app Y = f' ≫ e.unit.app Y ↔ f = f' :=
+by simp only [cancel_mono]
+
+@[simp] lemma cancel_unit_inv_right {X Y : C}
+  (f f' : X ⟶ e.inverse.obj (e.functor.obj Y))   :
+  f ≫ e.unit_inv.app Y = f' ≫ e.unit_inv.app Y ↔ f = f' :=
+by simp only [cancel_mono]
+
+@[simp] lemma cancel_counit_right {X Y : D}
+  (f f' : X ⟶ e.functor.obj (e.inverse.obj Y))   :
+  f ≫ e.counit.app Y = f' ≫ e.counit.app Y ↔ f = f' :=
+by simp only [cancel_mono]
+
+@[simp] lemma cancel_counit_inv_right {X Y : D}
+  (f f' : X ⟶ Y) :
+  f ≫ e.counit_inv.app Y = f' ≫ e.counit_inv.app Y ↔ f = f' :=
+by simp only [cancel_mono]
+
+@[simp] lemma cancel_unit_right_assoc {W X X' Y : C}
+  (f : W ⟶ X) (g : X ⟶ Y) (f' : W ⟶ X') (g' : X' ⟶ Y) :
+  f ≫ g ≫ e.unit.app Y = f' ≫ g' ≫ e.unit.app Y ↔ f ≫ g = f' ≫ g' :=
+by simp only [←category.assoc, cancel_mono]
+
+@[simp] lemma cancel_counit_inv_right_assoc {W X X' Y : D}
+  (f : W ⟶ X) (g : X ⟶ Y) (f' : W ⟶ X') (g' : X' ⟶ Y) :
+  f ≫ g ≫ e.counit_inv.app Y = f' ≫ g' ≫ e.counit_inv.app Y ↔ f ≫ g = f' ≫ g' :=
+by simp only [←category.assoc, cancel_mono]
+
+@[simp] lemma cancel_unit_right_assoc' {W X X' Y Y' Z : C}
+  (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z) (f' : W ⟶ X') (g' : X' ⟶ Y') (h' : Y' ⟶ Z) :
+  f ≫ g ≫ h ≫ e.unit.app Z = f' ≫ g' ≫ h' ≫ e.unit.app Z ↔ f ≫ g ≫ h = f' ≫ g' ≫ h' :=
+by simp only [←category.assoc, cancel_mono]
+
+@[simp] lemma cancel_counit_inv_right_assoc' {W X X' Y Y' Z : D}
+  (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z) (f' : W ⟶ X') (g' : X' ⟶ Y') (h' : Y' ⟶ Z) :
+  f ≫ g ≫ h ≫ e.counit_inv.app Z = f' ≫ g' ≫ h' ≫ e.counit_inv.app Z ↔ f ≫ g ≫ h = f' ≫ g' ≫ h' :=
+by simp only [←category.assoc, cancel_mono]
+
+end cancellation_lemmas
+
 section
 
 -- There's of course a monoid structure on `C ≌ C`,
@@ -387,6 +440,20 @@ is_equivalence.mk (equivalence_inverse F)
   (nat_iso.of_components
     (λ Y, F.fun_obj_preimage_iso Y)
     (by obviously))
+
+@[simp] lemma functor_map_inj_iff (e : C ≌ D) {X Y : C} (f g : X ⟶ Y) : e.functor.map f = e.functor.map g ↔ f = g :=
+begin
+  split,
+  { intro w, apply e.functor.map_injective, exact w, },
+  { rintro ⟨rfl⟩, refl, }
+end
+
+@[simp] lemma inverse_map_inj_iff (e : C ≌ D) {X Y : D} (f g : X ⟶ Y) : e.inverse.map f = e.inverse.map g ↔ f = g :=
+begin
+  split,
+  { intro w, apply e.inverse.map_injective, exact w, },
+  { rintro ⟨rfl⟩, refl, }
+end
 
 end equivalence
 

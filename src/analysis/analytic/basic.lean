@@ -111,7 +111,7 @@ begin
     { simp } },
   have D : liminf at_top (λ n : ℕ, (r : ennreal) / ((C + 1)^(1/(n : ℝ)) : nnreal)) ≤ p.radius :=
     liminf_le_liminf B,
-  rw L.liminf_eq filter.at_top_ne_bot at D,
+  rw L.liminf_eq at D,
   simpa using D
 end
 
@@ -192,7 +192,7 @@ def partial_sum (p : formal_multilinear_series 𝕜 E F) (n : ℕ) (x : E) : F :
 /-- The partial sums of a formal multilinear series are continuous. -/
 lemma partial_sum_continuous (p : formal_multilinear_series 𝕜 E F) (n : ℕ) :
   continuous (p.partial_sum n) :=
-continuous_finset_sum (finset.range n) $ λ k hk, (p k).cont.comp (continuous_pi (λ i, continuous_id))
+by continuity
 
 end formal_multilinear_series
 
@@ -404,10 +404,8 @@ end
 /-- If a function admits a power series expansion on a disk, then it is continuous there. -/
 lemma has_fpower_series_on_ball.continuous_on
   (hf : has_fpower_series_on_ball f p x r) : continuous_on f (emetric.ball x r) :=
-begin
-  apply hf.tendsto_locally_uniformly_on'.continuous_on _ at_top_ne_bot,
-  exact λ n, ((p.partial_sum_continuous n).comp (continuous_id.sub continuous_const)).continuous_on
-end
+hf.tendsto_locally_uniformly_on'.continuous_on $ λ n,
+  ((p.partial_sum_continuous n).comp (continuous_id.sub continuous_const)).continuous_on
 
 lemma has_fpower_series_at.continuous_at (hf : has_fpower_series_at f p x) : continuous_at f x :=
 let ⟨r, hr⟩ := hf in hr.continuous_on.continuous_at (emetric.ball_mem_nhds x (hr.r_pos))

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
 import topology.continuous_on
+import data.finset.order
 
 /-!
 # Properties of subsets of topological spaces
@@ -39,15 +40,19 @@ section compact
 
 /-- A set `s` is compact if for every filter `f` that contains `s`,
     every set of `f` also meets every neighborhood of some `a ∈ s`. -/
-def is_compact (s : set α) := ∀f, f ≠ ⊥ → f ≤ 𝓟 s → ∃a∈s, cluster_pt a f
+def is_compact (s : set α) := ∀ ⦃f⦄ [ne_bot f], f ≤ 𝓟 s → ∃a∈s, cluster_pt a f
 
-lemma is_compact.inter_right {s t : set α} (hs : is_compact s) (ht : is_closed t) : is_compact (s ∩ t) :=
-assume f hnf hstf,
-let ⟨a, hsa, (ha : cluster_pt a f)⟩ := hs f hnf (le_trans hstf (le_principal_iff.2 (inter_subset_left _ _))) in
-have a ∈ t,
-  from ht.mem_of_nhds_within_ne_bot $ ne_bot_of_le_ne_bot ha $
-    inf_le_inf_left _ (le_trans hstf (le_principal_iff.2 (inter_subset_right _ _))),
-⟨a, ⟨hsa, this⟩, ha⟩
+lemma is_compact.inter_right {s t : set α} (hs : is_compact s) (ht : is_closed t) :
+  is_compact (s ∩ t) :=
+begin
+  introsI f hnf hstf,
+  obtain ⟨a, hsa, ha⟩ : ∃ a ∈ s, cluster_pt a f :=
+    hs (le_trans hstf (le_principal_iff.2 (inter_subset_left _ _))),
+  have : a ∈ t :=
+    (ht.mem_of_nhds_within_ne_bot $ ha.mono $
+      le_trans hstf (le_principal_iff.2 (inter_subset_right _ _))),
+  exact ⟨a, ⟨hsa, this⟩, ha⟩
+end
 
 lemma is_compact.inter_left {s t : set α} (ht : is_compact t) (hs : is_closed s) : is_compact (s ∩ t) :=
 inter_comm t s ▸ ht.inter_right hs
@@ -64,7 +69,7 @@ lemma is_compact.adherence_nhdset {s t : set α} {f : filter α}
   t ∈ f :=
 classical.by_cases mem_sets_of_eq_bot $
   assume : f ⊓ 𝓟 tᶜ ≠ ⊥,
-  let ⟨a, ha, (hfa : cluster_pt a $ f ⊓ 𝓟 tᶜ)⟩ := hs _ this $ inf_le_left_of_le hf₂ in
+  let ⟨a, ha, (hfa : cluster_pt a $ f ⊓ 𝓟 tᶜ)⟩ := @@hs this $ inf_le_left_of_le hf₂ in
   have a ∈ t,
     from ht₂ a ha (hfa.of_inf_left),
   have tᶜ ∩ t ∈ nhds_within a (tᶜ),
@@ -78,47 +83,36 @@ classical.by_cases mem_sets_of_eq_bot $
 lemma compact_iff_ultrafilter_le_nhds {s : set α} :
   is_compact s ↔ (∀f, is_ultrafilter f → f ≤ 𝓟 s → ∃a∈s, f ≤ 𝓝 a) :=
 ⟨assume hs : is_compact s, assume f hf hfs,
-  let ⟨a, ha, h⟩ := hs _ hf.left hfs in
+  let ⟨a, ha, h⟩ := @hs _ hf.left hfs in
   ⟨a, ha, le_of_ultrafilter hf h⟩,
 
   assume hs : (∀f, is_ultrafilter f → f ≤ 𝓟 s → ∃a∈s, f ≤ 𝓝 a),
   assume f hf hfs,
   let ⟨a, ha, (h : ultrafilter_of f ≤ 𝓝 a)⟩ :=
-    hs (ultrafilter_of f) (ultrafilter_ultrafilter_of hf) (le_trans ultrafilter_of_le hfs) in
+    hs (ultrafilter_of f) (ultrafilter_ultrafilter_of' hf) (le_trans ultrafilter_of_le hfs) in
   have cluster_pt a (ultrafilter_of f),
-    from cluster_pt.of_le_nhds h (ultrafilter_ultrafilter_of hf).left,
+    from cluster_pt.of_le_nhds' h (ultrafilter_ultrafilter_of' hf).left,
   ⟨a, ha, this.mono ultrafilter_of_le⟩⟩
 
 /-- For every open cover of a compact set, there exists a finite subcover. -/
 lemma is_compact.elim_finite_subcover {s : set α} {ι : Type v} (hs : is_compact s)
   (U : ι → set α) (hUo : ∀i, is_open (U i)) (hsU : s ⊆ ⋃ i, U i) :
   ∃ t : finset ι, s ⊆ ⋃ i ∈ t, U i :=
-classical.by_contradiction $ assume h,
-  have h : ∀ t : finset ι, ¬ s ⊆ ⋃ i ∈ t, U i,
-    from assume t ht, h ⟨t, ht⟩,
-  let
-    f : filter α := (⨅t:finset ι, 𝓟 (s \ ⋃ i ∈ t, U i)),
-    ⟨a, ha⟩ := (@ne_empty_iff_nonempty α s).1 (assume h', h ∅ $ h'.symm ▸ empty_subset _)
-  in
-  have f ≠ ⊥, from infi_ne_bot_of_directed ⟨a⟩
-  (assume t₁ t₂, ⟨t₁ ∪ t₂,
-    principal_mono.mpr $ diff_subset_diff_right $
-      bUnion_subset_bUnion_left $ finset.subset_union_left _ _,
-    principal_mono.mpr $ diff_subset_diff_right $
-      bUnion_subset_bUnion_left $ finset.subset_union_right _ _⟩)
-   (assume t, show 𝓟 (s \ _) ≠ ⊥,
-     by simp only [ne.def, principal_eq_bot_iff, diff_eq_empty]; exact h _),
-  have f ≤ 𝓟 s, from infi_le_of_le ∅ $
-    show 𝓟 (s \ _) ≤ 𝓟 s, from le_principal_iff.2 (diff_subset _ _),
-  let
-    ⟨a, ha, (h : cluster_pt a f)⟩ := hs f ‹f ≠ ⊥› this,
-    ⟨_, ⟨i, rfl⟩, (ha : a ∈ U i)⟩ := hsU ha
-  in
-  have f ≤ 𝓟 (U i)ᶜ,
-    from infi_le_of_le {i} $ principal_mono.mpr $ show s \ _ ⊆ (U i)ᶜ, by simp [diff_subset_iff],
-  have is_closed (U i)ᶜ, from is_open_compl_iff.mp $ by rw compl_compl; exact hUo i,
-  have a ∈ (U i)ᶜ, from is_closed_iff_cluster_pt.mp this _ (h.mono ‹f ≤ 𝓟 (U i)ᶜ›),
-  this ‹a ∈ U i›
+begin
+  by_contra h, push_neg at h,
+  set f : filter α := ⨅ t : finset ι, 𝓟 (s \ ⋃ i ∈ t, U i),
+  haveI hf : ne_bot f := infi_ne_bot_of_directed'
+    (directed_of_sup $ λ t₁ t₂ ht, principal_mono.2 $ diff_subset_diff_right $
+      bUnion_subset_bUnion_left ht)
+    (λ t, principal_ne_bot_iff.2 $ nonempty_of_not_subset (h t)),
+  have : f ≤ 𝓟 s := infi_le_of_le ∅ (le_principal_iff.2 (diff_subset _ _)),
+  obtain ⟨a, ha, h⟩ : ∃ a ∈ s, cluster_pt a f := hs this,
+  obtain ⟨_, ⟨i, rfl⟩, ha⟩ := hsU ha,
+  suffices : a ∈ (U i)ᶜ, from this ha,
+  have hfi : f ≤ 𝓟 (U i)ᶜ := infi_le_of_le {i} (principal_mono.2 $ by simp [diff_subset_iff]),
+  have hic : is_closed (U i)ᶜ := is_closed_compl_iff.2 (hUo i),
+  exact hic.mem_of_nhds_within_ne_bot (h.mono hfi),
+end
 
 /-- For every family of closed sets whose intersection avoids a compact set,
 there exists a finite subfamily whose intersection avoids this compact set. -/
@@ -202,7 +196,7 @@ theorem compact_of_finite_subfamily_closed {s : set α}
   is_compact s :=
 assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, cluster_pt x f),
   have hf : ∀x∈s, 𝓝 x ⊓ f = ⊥,
-    by simpa only [cluster_pt, not_exists, not_not],
+    by simpa only [cluster_pt, not_exists, not_not, ne_bot],
   have ¬ ∃x∈s, ∀t∈f.sets, x ∈ closure t,
     from assume ⟨x, hxs, hx⟩,
     have ∅ ∈ 𝓝 x ⊓ f, by rw [empty_in_sets_eq_bot, hf x hxs],
@@ -368,8 +362,8 @@ class compact_space (α : Type*) [topological_space α] : Prop :=
 lemma compact_univ [h : compact_space α] : is_compact (univ : set α) := h.compact_univ
 
 lemma cluster_point_of_compact [compact_space α]
-  {f : filter α} (h : f ≠ ⊥) : ∃ x, cluster_pt x f :=
-by simpa using compact_univ f h (by simpa using f.univ_sets)
+  (f : filter α) [ne_bot f] : ∃ x, cluster_pt x f :=
+by simpa using compact_univ (by simpa using f.univ_sets)
 
 theorem compact_space_of_finite_subfamily_closed {α : Type u} [topological_space α]
   (h : Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →
@@ -392,12 +386,15 @@ lemma is_compact.image_of_continuous_on {s : set α} {f : α → β} (hs : is_co
   (hf : continuous_on f s) : is_compact (f '' s) :=
 begin
   intros l lne ls,
-  have ne_bot : l.comap f ⊓ 𝓟 s ≠ ⊥,
-    from comap_inf_principal_ne_bot_of_image_mem lne (le_principal_iff.1 ls),
-  rcases hs (l.comap f ⊓ 𝓟 s) ne_bot inf_le_right with ⟨a, has, ha⟩,
+  have : ne_bot (l.comap f ⊓ 𝓟 s) :=
+    comap_inf_principal_ne_bot_of_image_mem lne (le_principal_iff.1 ls),
+  obtain ⟨a, has, ha⟩ : ∃ a ∈ s, cluster_pt a (l.comap f ⊓ 𝓟 s) := @@hs this inf_le_right,
   use [f a, mem_image_of_mem f has],
-  apply ne_bot_of_le_ne_bot (@@map_ne_bot f ha),
-  convert (tendsto_comap.inf (hf a has) :  tendsto f (comap f l ⊓ (𝓝 a ⊓ 𝓟 s)) _) using 1 ; ac_refl
+  have : tendsto f (𝓝 a ⊓ (comap f l ⊓ 𝓟 s)) (𝓝 (f a) ⊓ l),
+  { convert (hf a has).inf (@tendsto_comap _ _ f l) using 1,
+    rw nhds_within,
+    ac_refl },
+  exact @@tendsto.ne_bot _ this ha,
 end
 
 lemma is_compact.image {s : set α} {f : α → β} (hs : is_compact s) (hf : continuous f) :
@@ -421,15 +418,16 @@ begin
   assume C (hC : is_closed C),
   rw is_closed_iff_cluster_pt at hC ⊢,
   assume y (y_closure : cluster_pt y $ 𝓟 (πY '' C)),
-  have : map πX (comap πY (𝓝 y) ⊓ 𝓟 C) ≠ ⊥,
-  { suffices : map πY (comap πY (𝓝 y) ⊓ 𝓟 C) ≠ ⊥,
-      from map_ne_bot (λ h, this $  by rw h ; exact map_bot ),
+  have : ne_bot (map πX (comap πY (𝓝 y) ⊓ 𝓟 C)),
+  { suffices : ne_bot (map πY (comap πY (𝓝 y) ⊓ 𝓟 C)),
+      by simpa only [map_ne_bot_iff],
     calc map πY (comap πY (𝓝 y) ⊓ 𝓟 C) =
        𝓝 y ⊓ map πY (𝓟 C) : filter.push_pull' _ _ _
       ... = 𝓝 y ⊓ 𝓟 (πY '' C) : by rw map_principal
       ... ≠ ⊥ : y_closure },
+  resetI,
   obtain ⟨x, hx⟩ : ∃ x, cluster_pt x (map πX (comap πY (𝓝 y) ⊓ 𝓟 C)),
-    from cluster_point_of_compact this,
+    from cluster_point_of_compact _,
   refine ⟨⟨x, y⟩, _, by simp [πY]⟩,
   apply hC,
   rw [cluster_pt, ← filter.map_ne_bot_iff πX],
@@ -466,7 +464,8 @@ by rw [compact_iff_compact_in_subtype, image_univ, subtype.range_coe]; refl
 lemma compact_iff_compact_space {s : set α} : is_compact s ↔ compact_space s :=
 compact_iff_compact_univ.trans ⟨λ h, ⟨h⟩, @compact_space.compact_univ _ _⟩
 
-lemma is_compact.prod {s : set α} {t : set β} (hs : is_compact s) (ht : is_compact t) : is_compact (set.prod s t) :=
+lemma is_compact.prod {s : set α} {t : set β} (hs : is_compact s) (ht : is_compact t) :
+  is_compact (set.prod s t) :=
 begin
   rw compact_iff_ultrafilter_le_nhds at hs ht ⊢,
   intros f hf hfs,
@@ -518,7 +517,6 @@ end
 /-- A version of Tychonoff's theorem that uses `set.pi`. -/
 lemma compact_univ_pi {s : Πi:ι, set (π i)} (h : ∀i, is_compact (s i)) : is_compact (set.pi set.univ s) :=
 by { convert compact_pi_infinite h, simp only [pi, forall_prop_of_true, mem_univ] }
-
 
 instance pi.compact [∀i:ι, compact_space (π i)] : compact_space (Πi, π i) :=
 ⟨begin

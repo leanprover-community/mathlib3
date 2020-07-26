@@ -19,7 +19,7 @@ universes u v w
 
 namespace polynomial
 
-instance {R : Type u} [comm_semiring R] (p : ℕ) [h : char_p R p] : char_p (polynomial R) p :=
+instance {R : Type u} [semiring R] (p : ℕ) [h : char_p R p] : char_p (polynomial R) p :=
 let ⟨h⟩ := h in ⟨λ n, by rw [← C.map_nat_cast, ← C_0, C_inj, h]⟩
 
 variables (R : Type u) [comm_ring R]
@@ -110,7 +110,7 @@ def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set
 @[simp] theorem restriction_one : restriction (1 : polynomial R) = 1 :=
 ext $ λ i, subtype.eq $ by rw [coeff_restriction', coeff_one, coeff_one]; split_ifs; refl
 
-variables {S : Type v} [comm_ring S] {f : R →+* S} {x : S}
+variables {S : Type v} [ring S] {f : R →+* S} {x : S}
 
 theorem eval₂_restriction {p : polynomial R} :
   eval₂ f x p = eval₂ (f.comp (is_subring.subtype _)) x p.restriction :=
@@ -149,6 +149,9 @@ omit hp
   (set.subset.trans (finset.coe_subset.2 finsupp.frange_single)
     (finset.singleton_subset_set_iff.2 is_submonoid.one_mem)) = 1 :=
 ext $ λ i, subtype.eq $ by rw [coeff_to_subring', coeff_one, coeff_one]; split_ifs; refl
+
+@[simp] theorem map_to_subring : (p.to_subring T hp).map (is_subring.subtype T) = p :=
+ext $ λ n, coeff_map _ _
 
 end to_subring
 
@@ -300,7 +303,7 @@ from hs ▸ λ x hx, submodule.span_induction hx (λ _ hx, ideal.subset_span hx)
     { intro H, rw [← polynomial.leading_coeff_eq_zero] at H,
       rw [hlqp, polynomial.leading_coeff_eq_zero] at H, exact hp0 H },
     have h1 : p.degree = (q * polynomial.X ^ (k - q.nat_degree)).degree,
-    { rw [polynomial.degree_mul_eq', polynomial.degree_X_pow],
+    { rw [polynomial.degree_mul', polynomial.degree_X_pow],
       rw [polynomial.degree_eq_nat_degree hp0, polynomial.degree_eq_nat_degree hq0],
       rw [← with_bot.coe_add, nat.add_sub_cancel', hn],
       { refine le_trans (polynomial.nat_degree_le_of_degree_le hdq) (le_of_lt h) },

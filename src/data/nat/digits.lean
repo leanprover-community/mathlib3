@@ -17,7 +17,6 @@ We also prove some divisibility tests based on digits, in particular completing
 Theorem #85 from https://www.cs.ru.nl/~freek/100/.
 -/
 
-
 /-- (Impl.) An auxiliary definition for `digits`, to help get the desired definitional unfolding. -/
 def digits_aux_0 : ℕ → list ℕ
 | 0 := []
@@ -69,8 +68,13 @@ begin
   { cases b; refl, },
 end
 
-@[simp] lemma digits_one_succ (n : ℕ) : digits 1 (n + 1) = 1 :: digits 1 n :=
-rfl
+@[simp] lemma digits_zero_zero : digits 0 0 = [] := rfl
+
+@[simp] lemma digits_zero_succ (n : ℕ) : digits 0 (n.succ) = [n+1] := rfl
+
+@[simp] lemma digits_one (n : ℕ) : digits 1 n = list.repeat 1 n := rfl
+
+@[simp] lemma digits_one_succ (n : ℕ) : digits 1 (n + 1) = 1 :: digits 1 n := rfl
 
 @[simp] lemma digits_add_two_add_one (b n : ℕ) :
   digits (b+2) (n+1) = (((n+1) % (b+2)) :: digits (b+2) ((n+1) / (b+2))) := rfl
@@ -91,27 +95,6 @@ begin
         rw nat.mod_eq_of_lt w₂, } } }
 end
 
-/-- The digits in the base b+2 expansion of n are all less than b+2 -/
-lemma digits_lt_base' {b m : ℕ} : ∀ {d}, d ∈ digits (b+2) m → d < b+2 :=
-begin
-  apply nat.strong_induction_on m,
-  intros n IH d hd,
-  unfold digits at hd IH,
-  cases n with n,
-  { cases hd }, -- base b+2 expansion of 0 has no digits
-  rw digits_aux_def (b+2) (by linarith) n.succ (nat.zero_lt_succ n) at hd,
-  cases hd,
-  { rw hd, exact n.succ.mod_lt (by linarith) },
-  { exact IH _ (nat.div_lt_self (nat.succ_pos _) (by linarith)) hd }
-end
-
-/-- The digits in the base b expansion of n are all less than b, if b ≥ 2 -/
-lemma digits_lt_base {b m d : ℕ} (hb : 2 ≤ b) (hd : d ∈ digits b m) : d < b :=
-begin
-  rcases b with _ | _ | b; try {linarith},
-  exact digits_lt_base' hd,
-end
-
 lemma digits_add (b : ℕ) (h : 2 ≤ b) (x y : ℕ) (w : x < b) (w' : 0 < x ∨ 0 < y) :
   digits b (x + b * y) = x :: digits b y :=
 begin
@@ -129,7 +112,7 @@ begin
         { simp [mul_comm (b+2), nat.add_mul_div_right, nat.div_eq_of_lt w], }
       },
       { apply nat.succ_pos, }, }, },
-end.
+end
 
 /--
 `of_digits b L` takes a list `L` of natural numbers, and interprets them
@@ -161,30 +144,6 @@ begin
   { simp [of_digits] },
   { rw [of_digits, list.cons_append, of_digits, IH, list.length_cons, nat.pow_succ],
     ring }
-end
-
-/-- an n-digit number in base b + 2 is less than (b + 2)^n -/
-lemma of_digits_lt_base_pow_length' {b : ℕ} {l : list ℕ} (hl : ∀ x ∈ l, x < b+2) :
-  of_digits (b+2) l < (b+2)^(l.length) :=
-begin
-  induction l with hd tl IH,
-  { simp [of_digits], },
-  { rw [of_digits, list.length_cons, nat.pow_succ, mul_comm],
-    have : (of_digits (b + 2) tl + 1) * (b+2) ≤ (b + 2) ^ tl.length * (b+2) :=
-      mul_le_mul (IH (λ x hx, hl _ (list.mem_cons_of_mem _ hx)))
-                 (by refl) dec_trivial (nat.zero_le _),
-    suffices : ↑hd < b + 2,
-    { linarith },
-    norm_cast,
-    exact hl hd (list.mem_cons_self _ _) }
-end
-
-/-- an n-digit number in base b is less than b^n if b ≥ 2 -/
-lemma of_digits_lt_base_pow_length {b : ℕ} {l : list ℕ} (hb : 2 ≤ b) (hl : ∀ x ∈ l, x < b) :
-  of_digits b l < b^l.length :=
-begin
-  rcases b with _ | _ | b; try { linarith },
-  exact of_digits_lt_base_pow_length' hl,
 end
 
 @[norm_cast] lemma coe_of_digits (α : Type*) [semiring α] (b : ℕ) (L : list ℕ) :
@@ -277,6 +236,56 @@ begin
   { simp [of_digits, list.sum_cons, ih], }
 end
 
+/-! ### Inequalities
+
+This section contains various lemmas with inequalities relating to `digits` and `of_digits`.
+ -/
+
+/-- The digits in the base b+2 expansion of n are all less than b+2 -/
+lemma digits_lt_base' {b m : ℕ} : ∀ {d}, d ∈ digits (b+2) m → d < b+2 :=
+begin
+  apply nat.strong_induction_on m,
+  intros n IH d hd,
+  unfold digits at hd IH,
+  cases n with n,
+  { cases hd }, -- base b+2 expansion of 0 has no digits
+  rw digits_aux_def (b+2) (by linarith) n.succ (nat.zero_lt_succ n) at hd,
+  cases hd,
+  { rw hd, exact n.succ.mod_lt (by linarith) },
+  { exact IH _ (nat.div_lt_self (nat.succ_pos _) (by linarith)) hd }
+end
+
+/-- The digits in the base b expansion of n are all less than b, if b ≥ 2 -/
+lemma digits_lt_base {b m d : ℕ} (hb : 2 ≤ b) (hd : d ∈ digits b m) : d < b :=
+begin
+  rcases b with _ | _ | b; try {linarith},
+  exact digits_lt_base' hd,
+end
+
+/-- an n-digit number in base b + 2 is less than (b + 2)^n -/
+lemma of_digits_lt_base_pow_length' {b : ℕ} {l : list ℕ} (hl : ∀ x ∈ l, x < b+2) :
+  of_digits (b+2) l < (b+2)^(l.length) :=
+begin
+  induction l with hd tl IH,
+  { simp [of_digits], },
+  { rw [of_digits, list.length_cons, nat.pow_succ, mul_comm],
+    have : (of_digits (b + 2) tl + 1) * (b+2) ≤ (b + 2) ^ tl.length * (b+2) :=
+      mul_le_mul (IH (λ x hx, hl _ (list.mem_cons_of_mem _ hx)))
+                 (by refl) dec_trivial (nat.zero_le _),
+    suffices : ↑hd < b + 2,
+    { linarith },
+    norm_cast,
+    exact hl hd (list.mem_cons_self _ _) }
+end
+
+/-- an n-digit number in base b is less than b^n if b ≥ 2 -/
+lemma of_digits_lt_base_pow_length {b : ℕ} {l : list ℕ} (hb : 2 ≤ b) (hl : ∀ x ∈ l, x < b) :
+  of_digits b l < b^l.length :=
+begin
+  rcases b with _ | _ | b; try { linarith },
+  exact of_digits_lt_base_pow_length' hl,
+end
+
 /-- Any number m is less than (b+2)^(number of digits in the base b + 2 representation of m) -/
 lemma lt_base_pow_length_digits' {b m : ℕ} : m < (b + 2) ^ (digits (b + 2) m).length :=
 begin
@@ -294,6 +303,67 @@ end
 lemma of_digits_digits_append_digits {b m n : ℕ} :
   of_digits b (digits b n ++ digits b m) = n + b ^ (digits b n).length * m:=
 by rw [of_digits_append, of_digits_digits, of_digits_digits]
+
+lemma digits_len_le_digits_len_succ (b n : ℕ) : (digits b n).length ≤ (digits b (n + 1)).length :=
+begin
+  cases b,
+  { -- base 0
+    cases n; simp },
+  { cases b,
+    { -- base 1
+      simp },
+    { -- base >= 2
+      apply nat.strong_induction_on n,
+      clear n,
+      intros n IH,
+      cases n,
+      { simp },
+      { rw [digits_add_two_add_one, digits_add_two_add_one],
+        by_cases hdvd : (b.succ.succ) ∣ (n.succ+1),
+        { rw [nat.succ_div_of_dvd hdvd, list.length_cons, list.length_cons, nat.succ_le_succ_iff],
+          apply IH,
+          exact nat.div_lt_self (by linarith) (by linarith) },
+        { rw nat.succ_div_of_not_dvd hdvd,
+          refl } } } }
+end
+
+lemma le_digits_len_le (b n m : ℕ) (h : n ≤ m) : (digits b n).length ≤ (digits b m).length :=
+monotone_of_monotone_nat (digits_len_le_digits_len_succ b) h
+
+-- future refactor to proof using lists (see lt_base_pow_length_digits)
+-- See review in #3498. List proof depends on : m ≠ 0 → (digits b m) ≠ 0
+lemma base_pow_length_digits_le' (b m : ℕ) : m ≠ 0 → (b + 2) ^ ((digits (b + 2) m).length) ≤ (b + 2) * m :=
+begin
+  apply nat.strong_induction_on m,
+  clear m,
+  intros n IH npos,
+  cases n,
+  { contradiction },
+  { unfold digits at IH ⊢,
+    rw [digits_aux_def (b+2) (by simp) n.succ nat.succ_pos', list.length_cons],
+    specialize IH ((n.succ) / (b+2)) (nat.div_lt_self' n b),
+    rw [nat.pow_add, nat.pow_one, nat.mul_comm],
+    cases nat.lt_or_ge n.succ (b+2),
+    { rw [nat.div_eq_of_lt h, digits_aux_zero, list.length, nat.pow_zero],
+      apply nat.mul_le_mul_left,
+      exact nat.succ_pos n },
+    { have geb : (n.succ / (b + 2)) ≥ 1 := nat.div_pos h (by linarith),
+      specialize IH (by linarith [geb]),
+      replace IH := nat.mul_le_mul_left (b + 2) IH,
+      have IH' : (b + 2) * ((b + 2) * (n.succ / (b + 2))) ≤ (b + 2) * n.succ,
+      { apply nat.mul_le_mul_left,
+        rw nat.mul_comm,
+        exact nat.div_mul_le_self n.succ (b + 2) },
+      exact le_trans IH IH' } }
+end
+
+lemma base_pow_length_digits_le (b m : ℕ) (hb : 2 ≤ b): m ≠ 0 → b ^ ((digits b m).length) ≤ b * m :=
+begin
+  rcases b with _ | _ | b; try { linarith },
+  exact base_pow_length_digits_le' b m,
+end
+
+/-! ### Modular Arithmetic -/
 
 -- This is really a theorem about polynomials.
 lemma dvd_of_digits_sub_of_digits {α : Type*} [comm_ring α]
@@ -357,20 +427,6 @@ modeq_digits_sum 3 10 (by norm_num) n
 lemma modeq_nine_digits_sum (n : ℕ) : n ≡ (digits 10 n).sum [MOD 9] :=
 modeq_digits_sum 9 10 (by norm_num) n
 
-lemma dvd_iff_dvd_digits_sum (b b' : ℕ) (h : b' % b = 1) (n : ℕ) :
-  b ∣ n ↔ b ∣ (digits b' n).sum :=
-begin
-  rw ←of_digits_one,
-  conv_lhs { rw ←(of_digits_digits b' n) },
-  rw [nat.dvd_iff_mod_eq_zero, nat.dvd_iff_mod_eq_zero, of_digits_mod, h],
-end
-
-lemma three_dvd_iff (n : ℕ) : 3 ∣ n ↔ 3 ∣ (digits 10 n).sum :=
-dvd_iff_dvd_digits_sum 3 10 (by norm_num) n
-
-lemma nine_dvd_iff (n : ℕ) : 9 ∣ n ↔ 9 ∣ (digits 10 n).sum :=
-dvd_iff_dvd_digits_sum 9 10 (by norm_num) n
-
 lemma zmodeq_of_digits_digits (b b' : ℕ) (c : ℤ) (h : b' ≡ c [ZMOD b]) (n : ℕ) :
   n ≡ of_digits c (digits b' n) [ZMOD b] :=
 begin
@@ -397,6 +453,23 @@ begin
   rw of_digits_neg_one at t,
   exact t,
 end
+
+/-! ## Divisibility  -/
+
+lemma dvd_iff_dvd_digits_sum (b b' : ℕ) (h : b' % b = 1) (n : ℕ) :
+  b ∣ n ↔ b ∣ (digits b' n).sum :=
+begin
+  rw ←of_digits_one,
+  conv_lhs { rw ←(of_digits_digits b' n) },
+  rw [nat.dvd_iff_mod_eq_zero, nat.dvd_iff_mod_eq_zero, of_digits_mod, h],
+end
+
+lemma three_dvd_iff (n : ℕ) : 3 ∣ n ↔ 3 ∣ (digits 10 n).sum :=
+dvd_iff_dvd_digits_sum 3 10 (by norm_num) n
+
+lemma nine_dvd_iff (n : ℕ) : 9 ∣ n ↔ 9 ∣ (digits 10 n).sum :=
+dvd_iff_dvd_digits_sum 9 10 (by norm_num) n
+
 
 lemma dvd_iff_dvd_of_digits (b b' : ℕ) (c : ℤ) (h : (b : ℤ) ∣ (b' : ℤ) - c) (n : ℕ) :
   b ∣ n ↔ (b : ℤ) ∣ of_digits c (digits b' n) :=

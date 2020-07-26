@@ -6,9 +6,7 @@ Authors: Scott Morrison
 import algebra.category.Group.preadditive
 import category_theory.limits.types
 import category_theory.limits.preserves
-import category_theory.limits.shapes.concrete_category
-import category_theory.over
-import algebra.pi_instances
+import algebra.group.pi
 
 /-!
 # The category of abelian groups has all limits

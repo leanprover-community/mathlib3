@@ -24,14 +24,14 @@ set_option default_priority 100 -- see Note [default priority]
 /-- A topological (additive) group is a group in which the addition and negation operations are
 continuous. -/
 class topological_add_group (α : Type u) [topological_space α] [add_group α]
-  extends topological_add_monoid α : Prop :=
+  extends has_continuous_add α : Prop :=
 (continuous_neg : continuous (λa:α, -a))
 
 /-- A topological group is a group in which the multiplication and inversion operations are
 continuous. -/
 @[to_additive topological_add_group]
 class topological_group (α : Type*) [topological_space α] [group α]
-  extends topological_monoid α : Prop :=
+  extends has_continuous_mul α : Prop :=
 (continuous_inv : continuous (λa:α, a⁻¹))
 end prio
 
@@ -41,15 +41,27 @@ variables [topological_space α] [group α]
 lemma continuous_inv [topological_group α] : continuous (λx:α, x⁻¹) :=
 topological_group.continuous_inv
 
-@[to_additive]
+@[to_additive, continuity]
 lemma continuous.inv [topological_group α] [topological_space β] {f : β → α}
   (hf : continuous f) : continuous (λx, (f x)⁻¹) :=
 continuous_inv.comp hf
+
+attribute [continuity] continuous.neg
+
+@[to_additive]
+lemma continuous_on_inv [topological_group α] {s : set α} : continuous_on (λx:α, x⁻¹) s :=
+continuous_inv.continuous_on
 
 @[to_additive]
 lemma continuous_on.inv [topological_group α] [topological_space β] {f : β → α} {s : set β}
   (hf : continuous_on f s) : continuous_on (λx, (f x)⁻¹) s :=
 continuous_inv.comp_continuous_on hf
+
+@[to_additive]
+lemma tendsto_inv {α : Type*} [group α]
+  [topological_space α] [topological_group α] (a : α) :
+  tendsto (λ x, x⁻¹) (nhds a) (nhds (a⁻¹)) :=
+continuous_inv.tendsto a
 
 /-- If a function converges to a value in a multiplicative topological group, then its inverse
 converges to the inverse of this value. For the version in normed fields assuming additionally
@@ -240,7 +252,7 @@ end quotient_topological_group
 section topological_add_group
 variables [topological_space α] [add_group α]
 
-lemma continuous.sub [topological_add_group α] [topological_space β] {f : β → α} {g : β → α}
+@[continuity] lemma continuous.sub [topological_add_group α] [topological_space β] {f : β → α} {g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λx, f x - g x) :=
 by simp [sub_eq_add_neg]; exact hf.add hg.neg
 
@@ -323,7 +335,7 @@ topological_space.nhds_mk_of_nhds _ _
 lemma nhds_zero_eq_Z : 𝓝 0 = Z α := by simp [nhds_eq]; exact filter.map_id
 
 @[priority 100] -- see Note [lower instance priority]
-instance : topological_add_monoid α :=
+instance : has_continuous_add α :=
 ⟨ continuous_iff_continuous_at.2 $ assume ⟨a, b⟩,
   begin
     rw [continuous_at, nhds_prod_eq, nhds_eq, nhds_eq, nhds_eq, filter.prod_map_map_eq,
@@ -332,7 +344,7 @@ instance : topological_add_monoid α :=
       (map (λx:α, (a + b) + x) (Z α)),
     { simpa [(∘), add_comm, add_left_comm] },
     exact tendsto_map.comp add_Z
-  end⟩
+  end ⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance : topological_add_group α :=

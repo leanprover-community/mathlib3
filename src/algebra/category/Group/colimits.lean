@@ -263,7 +263,6 @@ begin
 end
 
 /-- The group homomorphism from the colimit abelian group to the cone point of any other cocone. -/
-@[simps]
 def desc_morphism (s : cocone F) : colimit F ⟶ s.X :=
 { to_fun := desc_fun F s,
   map_zero' := rfl,

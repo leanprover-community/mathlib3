@@ -55,6 +55,11 @@ instance : category (Mon_ C) :=
   id := id,
   comp := λ M N O f g, comp f g, }
 
+/-- The forgetful functor from monoid objects to the ambient category. -/
+def forget : Mon_ C ⥤ C :=
+{ obj := λ A, A.X,
+  map := λ A B f, f.hom, }
+
 end Mon_
 
 -- TODO lax monoidal functors `C ⥤ D` induce functors `Mon_ C ⥤ Mon_ D`.

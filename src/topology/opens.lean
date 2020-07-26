@@ -35,7 +35,7 @@ instance : has_coe (opens α) (set α) := { coe := subtype.val }
 lemma val_eq_coe (U : opens α) : U.1 = ↑U := rfl
 
 /-- the coercion `opens α → set α` applied to a pair is the same as taking the first component -/
-lemma opens.coe_mk {α : Type*} [topological_space α] {U : set α} {hU : is_open U} :
+lemma coe_mk {α : Type*} [topological_space α] {U : set α} {hU : is_open U} :
   ↑(⟨U, hU⟩ : opens α) = U := rfl
 
 instance : has_subset (opens α) :=

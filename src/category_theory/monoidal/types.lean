@@ -46,8 +46,8 @@ lemma ρ_inv {X : Type u} (x : X) : ((ρ_ X).inv : X → X ⊗ (𝟙_ (Type u)))
 begin
   dsimp only [tmul],
   -- TODO
-  -- 1. there are too many simp lemmas about the monoidal structure for type!
-  -- 2. we need `λ_ (𝟙_ C) = ρ_ (𝟙_ C)`.
+  -- 1. there are too many simp lemmas about the monoidal structure for type! (or too few!?)
+  -- 2. we need `λ_ (𝟙_ C) = ρ_ (𝟙_ C)`?
   sorry
 end
 

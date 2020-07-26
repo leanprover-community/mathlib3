@@ -132,115 +132,25 @@ local attribute [instance]
   pre.has_one pre.has_scalar
 
 instance : semiring (tensor_algebra R M) :=
-{ add := λ a b, quot.lift_on a (λ x, quot.lift_on b (λ y, quot.mk (rel R M) (x + y))
-  begin
-    intros a b h,
-    dsimp only [],
-    apply quot.sound,
-    apply rel.add_compat_right h,
-  end)
-  begin
-    intros a b h,
-    dsimp only [],
-    congr,
-    ext,
-    apply quot.sound,
-    apply rel.add_compat_left h,
-  end,
-  add_assoc := λ a b c,
-  begin
-    rcases quot.exists_rep a with ⟨a,rfl⟩,
-    rcases quot.exists_rep b with ⟨b,rfl⟩,
-    rcases quot.exists_rep c with ⟨c,rfl⟩,
-    apply quot.sound,
-    apply rel.add_assoc,
-  end,
+{ add := quot.map₂ (+) (λ _ _ _, rel.add_compat_right) (λ _ _ _, rel.add_compat_left),
+  add_assoc := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact quot.sound rel.add_assoc },
   zero := quot.mk _ 0,
-  zero_add := λ a,
-  begin
-    rcases quot.exists_rep a with ⟨a,rfl⟩,
-    apply quot.sound,
-    apply rel.zero_add,
-  end,
-  add_zero := λ a,
-  begin
-    rcases quot.exists_rep a with ⟨a,rfl⟩,
+  zero_add := by { rintro ⟨⟩, exact quot.sound rel.zero_add },
+  add_zero := begin
+    rintros ⟨a⟩,
     change quot.mk _ _ = _,
-    rw quot.sound rel.add_comm,
-    apply quot.sound,
-    apply rel.zero_add,
+    rw [quot.sound rel.add_comm, quot.sound rel.zero_add],
   end,
-  add_comm := λ a b,
-  begin
-    rcases quot.exists_rep a with ⟨a,rfl⟩,
-    rcases quot.exists_rep b with ⟨b,rfl⟩,
-    apply quot.sound,
-    apply rel.add_comm,
-  end,
-  mul := λ a b, quot.lift_on a (λ x, quot.lift_on b (λ y, quot.mk _ (x * y))
-  begin
-    intros a b h,
-    dsimp only [],
-    apply quot.sound,
-    apply rel.mul_compat_right h,
-  end)
-  begin
-    intros a b h,
-    dsimp only [],
-    congr,
-    ext,
-    apply quot.sound,
-    apply rel.mul_compat_left h,
-  end,
-  mul_assoc := λ a b c,
-  begin
-    rcases quot.exists_rep a with ⟨a,rfl⟩,
-    rcases quot.exists_rep b with ⟨b,rfl⟩,
-    rcases quot.exists_rep c with ⟨c,rfl⟩,
-    apply quot.sound,
-    apply rel.mul_assoc,
-  end,
+  add_comm := by { rintros ⟨⟩ ⟨⟩, exact quot.sound rel.add_comm },
+  mul := quot.map₂ (*) (λ _ _ _, rel.mul_compat_right) (λ _ _ _, rel.mul_compat_left),
+  mul_assoc := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact quot.sound rel.mul_assoc },
   one := quot.mk _ 1,
-  one_mul := λ a,
-  begin
-    rcases quot.exists_rep a with ⟨a,rfl⟩,
-    apply quot.sound,
-    apply rel.one_mul,
-  end,
-  mul_one := λ a,
-  begin
-    rcases quot.exists_rep a with ⟨a,rfl⟩,
-    apply quot.sound,
-    apply rel.mul_one,
-  end,
-  left_distrib := λ a b c,
-  begin
-    rcases quot.exists_rep a with ⟨a,rfl⟩,
-    rcases quot.exists_rep b with ⟨b,rfl⟩,
-    rcases quot.exists_rep c with ⟨c,rfl⟩,
-    apply quot.sound,
-    apply rel.left_distrib,
-  end,
-  right_distrib := λ a b c,
-  begin
-    rcases quot.exists_rep a with ⟨a,rfl⟩,
-    rcases quot.exists_rep b with ⟨b,rfl⟩,
-    rcases quot.exists_rep c with ⟨c,rfl⟩,
-    apply quot.sound,
-    apply rel.right_distrib,
-  end,
-  zero_mul := λ a,
-  begin
-    rcases quot.exists_rep a with ⟨a,rfl⟩,
-    apply quot.sound,
-    apply rel.zero_mul,
-  end,
-  mul_zero := λ a,
-  begin
-    rcases quot.exists_rep a with ⟨a,rfl⟩,
-    apply quot.sound,
-    apply rel.mul_zero,
-  end }
+  one_mul := by { rintros ⟨⟩, exact quot.sound rel.one_mul },
+  mul_one := by { rintros ⟨⟩, exact quot.sound rel.mul_one },
+  left_distrib := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact quot.sound rel.left_distrib },
+  right_distrib := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact quot.sound rel.right_distrib },
+  zero_mul := by { rintros ⟨⟩, exact quot.sound rel.zero_mul },
+  mul_zero := by { rintros ⟨⟩, exact quot.sound rel.mul_zero } }
 
 instance : inhabited (tensor_algebra R M) := ⟨0⟩
 

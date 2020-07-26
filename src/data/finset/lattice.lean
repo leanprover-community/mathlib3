@@ -483,10 +483,7 @@ end
 
 lemma infi_insert_update {x : α} {t : finset α} (f : α → β) {s : β} (hx : x ∉ t) :
   (⨅ (i ∈ insert x t), update f x s i) = (s ⊓ ⨅ (i ∈ t), f i) :=
-begin
-  simp only [finset.infi_insert, update_same],
-  congr' 2, ext i, congr' 1, ext hi, apply update_noteq, rintro rfl, exact hx hi
-end
+@supr_insert_update α (order_dual β) _ _ _ _ f _ hx
 
 end lattice
 

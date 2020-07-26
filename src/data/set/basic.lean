@@ -1584,8 +1584,11 @@ by { intro s, use f ⁻¹' s, rw image_preimage_eq hf }
 lemma injective.image_injective (hf : injective f) : injective (image f) :=
 by { intros s t h, rw [←preimage_image_eq s hf, ←preimage_image_eq t hf, h] }
 
-lemma surjective.range_eq {f : ι → α} (hf : surjective f) : range f = univ :=
+lemma surjective.range_eq (hf : surjective f) : range f = univ :=
 range_iff_surjective.2 hf
+
+lemma preimage_subset_preimage_iff {s t : set β} (hf : surjective f) : f ⁻¹' s ⊆ f ⁻¹' t ↔ s ⊆ t :=
+by { apply preimage_subset_preimage_iff, rw [hf.range_eq], apply subset_univ }
 
 lemma surjective.range_comp {ι' : Sort*} {f : ι → ι'} (hf : surjective f) (g : ι' → α) :
   range (g ∘ f) = range g :=

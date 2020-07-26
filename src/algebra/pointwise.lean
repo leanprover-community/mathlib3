@@ -104,7 +104,7 @@ by rw [← image_mul_right', image_one, one_mul]
 lemma preimage_mul_left_one' [group α] : (λ b, a⁻¹ * b) ⁻¹' 1 = {a} := by simp
 
 @[to_additive]
-lemma preimage_mul_right_one' [group α] : (λ a, a * b) ⁻¹' 1 = {b⁻¹} := by simp
+lemma preimage_mul_right_one' [group α] : (λ a, a * b⁻¹) ⁻¹' 1 = {b} := by simp
 
 @[simp, to_additive]
 lemma mul_singleton [has_mul α] : s * {b} = (λ a, a * b) '' s := image2_singleton_right
@@ -226,8 +226,7 @@ protected lemma univ_inv [group α] : (univ : set α)⁻¹ = univ := preimage_un
 
 @[simp, to_additive]
 lemma inv_subset_inv [group α] {s t : set α} : s⁻¹ ⊆ t⁻¹ ↔ s ⊆ t :=
-by { apply preimage_subset_preimage_iff, rw surjective.range_eq, apply subset_univ,
-     exact (equiv.inv α).surjective }
+(equiv.inv α).surjective.preimage_subset_preimage_iff
 
 @[to_additive] lemma inv_subset [group α] {s t : set α} : s⁻¹ ⊆ t ↔ s ⊆ t⁻¹ :=
 by { rw [← inv_subset_inv, set.inv_inv] }
@@ -383,6 +382,9 @@ lemma mul_def [has_mul α] {s t : finset α} :
 lemma mem_mul [has_mul α] {s t : finset α} {x : α} :
   x ∈ s * t ↔ ∃ y z, y ∈ s ∧ z ∈ t ∧ y * z = x :=
 by { simp only [finset.mul_def, and.assoc, mem_image, exists_prop, prod.exists, mem_product] }
+
+lemma coe_mul [has_mul α] {s t : finset α} : (↑(s * t) : set α) = ↑s * ↑t :=
+by { ext, simp only [mem_mul, set.mem_mul, mem_coe] }
 
 lemma mul_mem_mul [has_mul α] {s t : finset α} {x y : α} (hx : x ∈ s) (hy : y ∈ t) :
   x * y ∈ s * t :=

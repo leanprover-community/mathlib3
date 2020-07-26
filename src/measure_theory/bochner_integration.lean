@@ -1064,7 +1064,7 @@ begin
   refine squeeze_zero (λ n, norm_nonneg _) _ lintegral_norm_tendsto_zero,
   -- Show `∥∫ a, F n a - ∫ f∥ ≤ ∫ a, ∥F n a - f a∥` for all `n`
   { assume n,
-    have h₁ : integrable (F n) μ := integrable_of_integrable_bound bound_integrable (h_bound _),
+    have h₁ : integrable (F n) μ := bound_integrable.mono' (h_bound _),
     have h₂ : integrable f μ := integrable_of_dominated_convergence bound_integrable h_bound h_lim,
     rw ← integral_sub (F_measurable _) h₁ f_measurable h₂,
     exact norm_integral_le_lintegral_norm _ }

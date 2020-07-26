@@ -29,6 +29,7 @@ degree_pos_induction_on p h
         (by rw abv_neg abv; exact (hr z hz)))
         (le_trans (le_abs_self _) (abs_abv_sub_le_abv_sub _ _ _))⟩)
 
+@[continuity]
 lemma polynomial.continuous_eval {α} [comm_semiring α] [topological_space α]
   [topological_semiring α] (p : polynomial α) : continuous (λ x, p.eval x) :=
 begin

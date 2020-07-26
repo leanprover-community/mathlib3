@@ -21,7 +21,7 @@ import data.list.basic
 variables {α : Type*} {β : Type*} {γ : Type*} {M : Type*} [monoid M] {N : Type*} [monoid N]
 
 /-- Free monoid over a given alphabet. -/
-@[to_additive free_add_monoid "Free nonabelian additive monoid over a given alphabet"]
+@[to_additive "Free nonabelian additive monoid over a given alphabet"]
 def free_monoid (α) := list α
 
 namespace free_monoid

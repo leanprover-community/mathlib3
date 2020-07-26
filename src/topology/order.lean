@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import topology.basic
+import topology.tactic
 
 /-!
 # Ordering on topologies and (co)induced topologies
@@ -505,10 +505,10 @@ lemma continuous_infi_rng {t₁ : tspace α} {t₂ : ι → tspace β}
   (h : ∀i, cont t₁ (t₂ i) f) : cont t₁ (infi t₂) f :=
 continuous_iff_coinduced_le.2 $ le_infi $ assume i, continuous_iff_coinduced_le.1 $ h i
 
-lemma continuous_bot {t : tspace β} : cont ⊥ t f :=
+@[continuity] lemma continuous_bot {t : tspace β} : cont ⊥ t f :=
 continuous_iff_le_induced.2 $ bot_le
 
-lemma continuous_top {t : tspace α} : cont t ⊤ f :=
+@[continuity] lemma continuous_top {t : tspace α} : cont t ⊤ f :=
 continuous_iff_coinduced_le.2 $ le_top
 
 /- 𝓝 in the induced topology -/

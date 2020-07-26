@@ -881,6 +881,9 @@ le_antisymm bot_le $ subalgebra.range_le _
 theorem mem_top {x : A} : x ∈ (⊤ : subalgebra R A) :=
 subsemiring.subset_closure $ or.inr trivial
 
+@[simp] theorem coe_top : ((⊤ : subalgebra R A) : submodule R A) = ⊤ :=
+submodule.ext $ λ x, iff_of_true mem_top trivial
+
 theorem eq_top_iff {S : subalgebra R A} :
   S = ⊤ ↔ ∀ x : A, x ∈ S :=
 ⟨λ h x, by rw h; exact mem_top, λ h, by ext x; exact ⟨λ _, mem_top, λ _, h x⟩⟩

@@ -253,12 +253,12 @@ lemma coe_one [has_one M] : ↑(1 : α → M) = (1 : germ l M) := rfl
 
 attribute [norm_cast] coe_one coe_zero
 
-@[to_additive add_semigroup]
+@[to_additive]
 instance [semigroup M] : semigroup (germ l M) :=
 { mul := (*), mul_assoc := by { rintros ⟨f⟩ ⟨g⟩ ⟨h⟩,
     simp only [mul_assoc, quot_mk_eq_coe, ← coe_mul] } }
 
-@[to_additive add_comm_semigroup]
+@[to_additive]
 instance [comm_semigroup M] : comm_semigroup (germ l M) :=
 { mul := (*),
   mul_comm := by { rintros ⟨f⟩ ⟨g⟩, simp only [mul_comm, quot_mk_eq_coe, ← coe_mul] },
@@ -278,7 +278,7 @@ instance [right_cancel_semigroup M] : right_cancel_semigroup (germ l M) :=
     coe_eq.2 $ (coe_eq.1 H).mono $ λ x, mul_right_cancel,
   .. germ.semigroup }
 
-@[to_additive add_monoid]
+@[to_additive]
 instance [monoid M] : monoid (germ l M) :=
 { mul := (*),
   one := 1,
@@ -296,7 +296,7 @@ add_decl_doc coe_add_hom
 @[simp, to_additive]
 lemma coe_coe_mul_hom [monoid M] : (coe_mul_hom l : (α → M) → germ l M) = coe := rfl
 
-@[to_additive add_comm_monoid]
+@[to_additive]
 instance [comm_monoid M] : comm_monoid (germ l M) :=
 { mul := (*),
   one := 1,
@@ -310,7 +310,7 @@ lemma coe_inv [has_inv G] (f : α → G) : ↑f⁻¹ = (f⁻¹ : germ l G) := rf
 
 attribute [norm_cast] coe_inv coe_neg
 
-@[to_additive add_group]
+@[to_additive]
 instance [group G] : group (germ l G) :=
 { mul := (*),
   one := 1,
@@ -321,7 +321,7 @@ instance [group G] : group (germ l G) :=
 @[simp, norm_cast]
 lemma coe_sub [add_group G] (f  g : α → G) : ↑(f - g) = (f - g : germ l G) := rfl
 
-@[to_additive add_comm_group]
+@[to_additive]
 instance [comm_group G] : comm_group (germ l G) :=
 { mul := (*),
   one := 1,
@@ -506,7 +506,7 @@ instance [lattice β] : lattice (germ l β) :=
 instance [bounded_lattice β] : bounded_lattice (germ l β) :=
 { .. germ.lattice, .. germ.order_bot, .. germ.order_top }
 
-@[to_additive ordered_cancel_add_comm_monoid]
+@[to_additive]
 instance [ordered_cancel_comm_monoid β] : ordered_cancel_comm_monoid (germ l β) :=
 { mul_le_mul_left := λ f g, induction_on₂ f g $ λ f g H h, induction_on h $ λ h,
     H.mono $ λ x H, mul_le_mul_left' H _,
@@ -515,7 +515,7 @@ instance [ordered_cancel_comm_monoid β] : ordered_cancel_comm_monoid (germ l β
   .. germ.partial_order, .. germ.comm_monoid, .. germ.left_cancel_semigroup,
   .. germ.right_cancel_semigroup }
 
-@[to_additive ordered_add_comm_group]
+@[to_additive]
 instance ordered_comm_group [ordered_comm_group β] : ordered_comm_group (germ l β) :=
 { mul_le_mul_left := λ f g, induction_on₂ f g $ λ f g H h, induction_on h $ λ h,
     H.mono $ λ x H, mul_le_mul_left' H _,

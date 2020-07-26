@@ -192,7 +192,7 @@ def partial_sum (p : formal_multilinear_series 𝕜 E F) (n : ℕ) (x : E) : F :
 /-- The partial sums of a formal multilinear series are continuous. -/
 lemma partial_sum_continuous (p : formal_multilinear_series 𝕜 E F) (n : ℕ) :
   continuous (p.partial_sum n) :=
-continuous_finset_sum (finset.range n) $ λ k hk, (p k).cont.comp (continuous_pi (λ i, continuous_id))
+by continuity
 
 end formal_multilinear_series
 

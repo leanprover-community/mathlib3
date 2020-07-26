@@ -139,7 +139,7 @@ lemma map_ne_one_iff {M N} [monoid M] [monoid N] (h : M ≃* N) {x : M} :
 Extract the forward direction of a multiplicative equivalence
 as a multiplication preserving function.
 -/
-@[to_additive to_add_monoid_hom]
+@[to_additive]
 def to_monoid_hom {M N} [monoid M] [monoid N] (h : M ≃* N) : (M →* N) :=
 { map_one' := h.map_one, .. h }
 
@@ -155,13 +155,13 @@ h.to_monoid_hom.map_inv x
 
 /-- A multiplicative bijection between two monoids is a monoid hom
   (deprecated -- use to_monoid_hom). -/
-@[to_additive is_add_monoid_hom]
+@[to_additive]
 instance is_monoid_hom {M N} [monoid M] [monoid N] (h : M ≃* N) : is_monoid_hom h :=
 ⟨h.map_one⟩
 
 /-- A multiplicative bijection between two groups is a group hom
   (deprecated -- use to_monoid_hom). -/
-@[to_additive is_add_group_hom]
+@[to_additive]
 instance is_group_hom {G H} [group G] [group H] (h : G ≃* H) :
   is_group_hom h := { map_mul := h.map_mul }
 

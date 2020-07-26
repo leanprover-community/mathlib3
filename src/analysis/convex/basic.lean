@@ -671,7 +671,7 @@ begin
 end
 
 /-- If a function is convex on s, it remains convex when prepended by an affine map -/
-lemma convex_on.affine_preimage {f : F → ℝ} {g : affine_map ℝ E E F F} {s : set F}
+lemma convex_on.comp_affine_map {f : F → ℝ} (g : affine_map ℝ E E F F) {s : set F}
   (hf : convex_on s f) : convex_on (g ⁻¹' s) (f ∘ g) :=
 begin
   refine ⟨convex.affine_preimage hf.1,_⟩,
@@ -689,7 +689,7 @@ lemma convex_on.linear_preimage {f : E →ₗ[ℝ] F} {g : F → ℝ} {s : set F
 begin
   let f' : affine_map ℝ E E F F := ⟨f, f, λ p v, map_add f v p⟩,
   change convex_on (f' ⁻¹' s) (g ∘ f'),
-  exact convex_on.affine_preimage hg
+  exact convex_on.comp_affine_map f' hg
 end
 
 /-- If a function is convex on s, it remains convex after a translation. -/
@@ -698,7 +698,7 @@ lemma convex_on.translate_right {f : E → ℝ} {s : set E} {a : E} (hf : convex
 begin
   let g : affine_map ℝ E E E E := ⟨λ z, a + z, id, by intros p v; dsimp; abel⟩,
   change convex_on (g ⁻¹' s) (f ∘ g),
-  exact convex_on.affine_preimage hf
+  exact convex_on.comp_affine_map g hf
 end
 
 /-- If a function is convex on s, it remains convex after a translation. -/

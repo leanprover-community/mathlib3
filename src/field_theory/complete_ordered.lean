@@ -568,7 +568,7 @@ begin
     rw induced_map at h,
     obtain ⟨y, hym, hyq⟩ := exists_lt_of_lt_cSup (cut_image_nonempty F K x) h,
     rw mem_cut_image_iff at hym,
-    rcases hym with ⟨q2, rfl, h⟩,
+    obtain ⟨q2, rfl, h⟩ := hym,
     apply le_of_lt,
     transitivity (q2 : F),
     assumption_mod_cast,

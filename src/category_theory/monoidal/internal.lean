@@ -134,9 +134,7 @@ variables (A)
 /-- A monoid object as a module over itself. -/
 def regular : Mod A :=
 { X := A.X,
-  act := A.mul,
-  one_act' := A.one_mul,
-  assoc' := A.mul_assoc, }
+  act := A.mul, }
 
 instance : inhabited (Mod A) := ⟨regular A⟩
 
@@ -153,8 +151,8 @@ def comap {A B : Mon_ C} (f : A ⟶ B) : Mod B ⥤ Mod A :=
     act := (f.hom ⊗ 𝟙 M.X) ≫ M.act,
     one_act' :=
     begin
-      slice_lhs 1 2 { rw [←comp_tensor_id], simp, },
-      simp,
+      slice_lhs 1 2 { rw [←comp_tensor_id], },
+      rw [f.one_hom, one_act],
     end,
     assoc' :=
     begin

@@ -544,6 +544,9 @@ variables [canonically_linear_ordered_add_monoid α]
 instance canonically_linear_ordered_add_monoid.semilattice_sup_bot : semilattice_sup_bot α :=
 { ..lattice_of_decidable_linear_order, ..canonically_ordered_add_monoid.to_order_bot α }
 
+instance canonically_linear_ordered_add_monoid.semilattice_inf_bot : semilattice_inf_bot α :=
+{ ..lattice_of_decidable_linear_order, ..canonically_ordered_add_monoid.to_order_bot α }
+
 end canonically_linear_ordered_add_monoid
 
 /-- An ordered cancellative additive commutative monoid

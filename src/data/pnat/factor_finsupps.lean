@@ -39,18 +39,18 @@ set_option old_structure_cmd true
 
 open_locale classical
 open_locale big_operators
-
+open finsupp
 
 noncomputable theory
 
 section basics
 
 instance finsupp.coe_primes_to_pnat : has_coe (nat.primes →₀ ℕ) (ℕ+ →₀ ℕ) :=
-⟨finsupp.map_domain coe⟩
+⟨map_domain coe⟩
 
 lemma prime_multiset.to_pnat_multiset_to_multiset (x : nat.primes →₀ ℕ) :
   prime_multiset.to_pnat_multiset x.to_multiset = (x : ℕ+ →₀ ℕ).to_multiset :=
-finsupp.to_multiset_map x coe
+x.to_multiset_map coe
 
 /-- Take the product of a function of prime powers with exponents given by a finsupp. -/
 def finsupp.primes_prod_apply_pow {α : Type} [comm_monoid α] (x : nat.primes →₀ ℕ) (f : ℕ+ → α) : α :=
@@ -92,26 +92,26 @@ section finsupp_lattice_iso_multiset
 
 @[simp]
 lemma finsupp.order_iso_multiset_factor_finsupp {n : ℕ+} :
-  finsupp.order_iso_multiset nat.primes (factor_finsupp n) = n.factor_multiset :=
-by { simp [finsupp.order_iso_multiset, finsupp.equiv_multiset] }
+  (factor_finsupp n).order_iso_multiset = n.factor_multiset :=
+by { simp [order_iso_multiset, equiv_multiset] }
 
 @[simp]
 lemma finsupp.order_iso_multiset_symm_factor_multiset {n : ℕ+} :
-  (finsupp.order_iso_multiset nat.primes).symm n.factor_multiset = factor_finsupp n :=
-by { apply (finsupp.order_iso_multiset nat.primes).to_order_embedding.injective, simp }
+  finsupp.order_iso_multiset.symm n.factor_multiset = factor_finsupp n :=
+by { apply order_iso_multiset.to_order_embedding.injective, simp }
 
 end finsupp_lattice_iso_multiset
 
 section prime_finsupp_lattice_iso_multiset
 /-- Factorization is a bijection from ℕ+ to finsupp.primes_ -/
 def pnat.prime_finsupp_equiv : ℕ+ ≃ (nat.primes →₀ ℕ) :=
-equiv.trans pnat.factor_multiset_equiv ((finsupp.order_iso_multiset nat.primes).to_equiv.symm)
+equiv.trans pnat.factor_multiset_equiv order_iso_multiset.to_equiv.symm
 
 @[simp]
 lemma pnat.prime_finsupp_equiv_eq_factor_finsupp :
   ⇑pnat.prime_finsupp_equiv = factor_finsupp :=
 begin
-  transitivity finsupp.of_multiset ∘ pnat.factor_multiset, refl,
+  transitivity of_multiset ∘ pnat.factor_multiset, refl,
   ext, unfold factor_finsupp, simp,
 end
 
@@ -119,7 +119,7 @@ end
 lemma pnat.prime_finsupp_equiv_symm_eq_prod_pow :
   ⇑pnat.prime_finsupp_equiv.symm = finsupp.primes_prod_pow :=
 begin
-  transitivity prime_multiset.prod ∘ finsupp.to_multiset, refl,
+  transitivity prime_multiset.prod ∘ to_multiset, refl,
   ext, rw finsupp.primes_prod_pow_eq_prod_to_multiset,
 end
 
@@ -130,17 +130,16 @@ section basic_number_theory_definitions
 lemma dvd_iff_le_factor_finsupps {m n : ℕ+} :
   m ∣ n ↔ factor_finsupp m ≤ factor_finsupp n :=
 begin
-  rw (finsupp.order_iso_multiset nat.primes).ord, simp [pnat.factor_multiset_le_iff],
+  rw order_iso_multiset.ord, simp [pnat.factor_multiset_le_iff],
 end
 
 @[simp]
 lemma factor_finsupp_mul {m n : ℕ+} :
   factor_finsupp (m * n) = factor_finsupp m + factor_finsupp n :=
 begin
-  apply finsupp.equiv_multiset.injective,
-  change finsupp.to_multiset (factor_finsupp (m * n)) =
-    finsupp.to_multiset (factor_finsupp m + factor_finsupp n),
-  simp [finsupp.to_multiset_add, factor_finsupp, pnat.factor_multiset_mul]
+  apply equiv_multiset.injective,
+  change (factor_finsupp (m * n)).to_multiset = (factor_finsupp m + factor_finsupp n).to_multiset,
+  simp [to_multiset_add, factor_finsupp, pnat.factor_multiset_mul]
 end
 
 lemma factor_finsupp_gcd_eq_inf_factor_finsupps {m n : ℕ+} :
@@ -153,11 +152,10 @@ end
 @[simp]
 lemma factor_finsupp_one : factor_finsupp 1 = 0 :=
 begin
-  apply finsupp.equiv_multiset.injective,
-  change finsupp.to_multiset (factor_finsupp 1) = finsupp.to_multiset 0,
-  rw [finsupp.to_multiset_zero, factor_finsupp_to_multiset_eq_factor_multiset,
-    pnat.factor_multiset_one]
- end
+  apply equiv_multiset.injective,
+  change (factor_finsupp 1).to_multiset = finsupp.to_multiset 0,
+  rw [to_multiset_zero, factor_finsupp_to_multiset_eq_factor_multiset, pnat.factor_multiset_one]
+end
 
 lemma coprime_iff_disjoint_factor_finsupps {m n : ℕ+} :
   m.coprime n ↔ disjoint (factor_finsupp m) (factor_finsupp n) :=

@@ -67,6 +67,7 @@ def unique_up_to_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) : s ≅ t 
   hom_inv_id' := P.uniq_cone_morphism,
   inv_hom_id' := Q.uniq_cone_morphism }
 
+/-- Any cone morphism between limit cones is an isomorphism. -/
 def hom_is_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) (f : s ⟶ t) : is_iso f :=
 { inv := P.lift_cone_morphism t,
   hom_inv_id' := P.uniq_cone_morphism,
@@ -409,12 +410,18 @@ def mk_cocone_morphism {t : cocone F}
     have cocone_morphism.mk m w = desc s, by apply uniq',
     congr_arg cocone_morphism.hom this }
 
-/-- Limit cones on `F` are unique up to isomorphism. -/
+/-- Colimit cocones on `F` are unique up to isomorphism. -/
 def unique_up_to_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) : s ≅ t :=
 { hom := P.desc_cocone_morphism t,
   inv := Q.desc_cocone_morphism s,
   hom_inv_id' := P.uniq_cocone_morphism,
   inv_hom_id' := Q.uniq_cocone_morphism }
+
+/-- Any cocone morphism between colimit cocones is an isomorphism. -/
+def hom_is_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) (f : s ⟶ t) : is_iso f :=
+{ inv := Q.desc_cocone_morphism s,
+  hom_inv_id' := P.uniq_cocone_morphism,
+  inv_hom_id' := Q.uniq_cocone_morphism, }
 
 /-- Colimits of `F` are unique up to isomorphism. -/
 -- We may later want to prove the coherence of these isomorphisms.
@@ -453,15 +460,49 @@ lemma hom_ext (h : is_colimit t) {W : C} {f f' : t.X ⟶ W}
 by rw [h.hom_desc f, h.hom_desc f']; congr; exact funext w
 
 /--
-Given two functors which have equivalent categories of cocones, we can transport a limiting cocone
-across the equivalence.
+Given a left adjoint functor between categories of cocones,
+the image of a colimit cocone is a colimit cocone.
 -/
-def of_cocone_equiv {D : Type u'} [category.{v} D] {G : K ⥤ D}
+def of_left_adjoint {D : Type u'} [category.{v} D] {G : K ⥤ D}
   (h : cocone G ⥤ cocone F) [is_left_adjoint h] {c : cocone G} (t : is_colimit c) :
   is_colimit (h.obj c) :=
 mk_cocone_morphism
   (λ s, ((adjunction.of_left_adjoint h).hom_equiv c s).symm (t.desc_cocone_morphism _))
   (λ s m, (adjunction.hom_equiv_apply_eq _ _ _).1 t.uniq_cocone_morphism)
+
+/--
+Given two functors which have equivalent categories of cocones,
+we can transport a colimiting cocone across the equivalence.
+-/
+def of_cocone_equiv {D : Type u'} [category.{v} D] {G : K ⥤ D}
+  (h : cocone G ≌ cocone F) {c : cocone G} :
+  is_colimit (h.functor.obj c) ≃ is_colimit c :=
+{ to_fun := λ P, of_iso_colimit (of_left_adjoint h.inverse P) (h.unit_iso.symm.app c),
+  inv_fun := of_left_adjoint h.functor,
+  left_inv := by tidy,
+  right_inv := by tidy, }
+
+/--
+A cocone precomposed with a natural isomorphism is a colimit cocone
+if and only if the original cocone is.
+-/
+def precompose_hom_equiv {F G : J ⥤ C} (α : F ≅ G) (c : cocone G) :
+  is_colimit ((cocones.precompose α.hom).obj c) ≃ is_colimit c :=
+begin
+  change is_colimit ((cocones.precompose_equivalence α).functor.obj c) ≃ _,
+  apply is_colimit.of_cocone_equiv,
+end
+
+/--
+A cone precomposed with the inverse of a natural isomorphism is a colimit cocone
+if and only if the original cocone is.
+-/
+def precompose_inv_equiv {F G : J ⥤ C} (α : F ≅ G) (c : cocone F) :
+  is_colimit ((cocones.precompose α.inv).obj c) ≃ is_colimit c :=
+begin
+  change is_colimit ((cocones.precompose_equivalence α.symm).functor.obj c) ≃ _,
+  apply is_colimit.of_cocone_equiv,
+end
 
 /--
 The cocone points of two colimit cocones for naturally isomorphic functors

@@ -898,6 +898,9 @@ instance [bounded_distrib_lattice α] [bounded_distrib_lattice β] :
 end prod
 
 section disjoint
+
+section semilattice_inf_bot
+
 variable [semilattice_inf_bot α]
 
 /-- Two elements of a lattice are disjoint if their inf is the bottom element.
@@ -933,6 +936,26 @@ by simp [disjoint]
 
 lemma disjoint.ne {a b : α} (ha : a ≠ ⊥) (hab : disjoint a b) : a ≠ b :=
 by { intro h, rw [←h, disjoint_self] at hab, exact ha hab }
+
+end semilattice_inf_bot
+
+section bounded_distrib_lattice
+
+variables [bounded_distrib_lattice α] {a b c : α}
+
+@[simp] lemma disjoint_sup_left : disjoint (a ⊔ b) c ↔ disjoint a c ∧ disjoint b c :=
+by simp only [disjoint_iff, inf_sup_right, sup_eq_bot_iff]
+
+@[simp] lemma disjoint_sup_right : disjoint a (b ⊔ c) ↔ disjoint a b ∧ disjoint a c :=
+by simp only [disjoint_iff, inf_sup_left, sup_eq_bot_iff]
+
+lemma disjoint.sup_left (ha : disjoint a c) (hb : disjoint b c) : disjoint (a ⊔ b) c :=
+disjoint_sup_left.2 ⟨ha, hb⟩
+
+lemma disjoint.sup_right (hb : disjoint a b) (hc : disjoint a c) : disjoint a (b ⊔ c) :=
+disjoint_sup_right.2 ⟨hb, hc⟩
+
+end bounded_distrib_lattice
 
 end disjoint
 

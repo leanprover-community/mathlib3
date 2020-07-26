@@ -296,9 +296,6 @@ iff.intro
     ⟨ge_of_eq rfl, λ _, le_of_eq (by { rw [zero_mul, hf], exact norm_zero })⟩)
     (op_norm_nonneg _))
 
-@[simp] lemma norm_zero : ∥(0 : E →L[𝕜] F)∥ = 0 :=
-by rw op_norm_zero_iff
-
 /-- The norm of the identity is at most `1`. It is in fact `1`, except when the space is trivial
 where it is `0`. It means that one can not do better than an inequality in general. -/
 lemma norm_id_le : ∥id 𝕜 E∥ ≤ 1 :=

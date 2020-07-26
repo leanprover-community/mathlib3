@@ -1022,7 +1022,7 @@ begin
   by_cases hf : measurable f ∧ integrable f μ,
   { rw [integral_eq f hf.1 hf.2, ← l1.norm_of_fun_eq_lintegral_norm f hf.1 hf.2],
     exact l1.norm_integral_le _ },
-  { rw [integral_undef hf, _root_.norm_zero],
+  { rw [integral_undef hf, norm_zero],
     exact to_real_nonneg }
 end
 
@@ -1197,7 +1197,7 @@ classical.by_cases
     ... = ∫ a, ∥f a∥ ∂μ : (integral_eq_lintegral_of_nonneg_ae le_ae $ measurable.norm h).symm )
 ( λh : ¬measurable f,
   begin
-    rw [integral_non_measurable h, _root_.norm_zero],
+    rw [integral_non_measurable h, norm_zero],
     exact integral_nonneg_of_ae le_ae
   end )
 

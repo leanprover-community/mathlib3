@@ -244,7 +244,7 @@ end
 This section contains various lemmas of properties relating to `digits` and `of_digits`.
 -/
 
-lemma digits_eq_nil_iff_eq_zero (b n : ℕ) : digits b n = [] ↔ n = 0 :=
+lemma digits_eq_nil_iff_eq_zero {b n : ℕ} : digits b n = [] ↔ n = 0 :=
 begin
   split,
   { intro h,
@@ -255,14 +255,10 @@ begin
     simp }
 end
 
-lemma digits_ne_nil_iff_ne_zero (b n : ℕ) : digits b n ≠ [] ↔ n ≠ 0 :=
-⟨λ h, h ∘ (digits_eq_nil_iff_eq_zero _ _).mpr,
- λ h, h ∘ (digits_eq_nil_iff_eq_zero _ _).mp⟩
+lemma digits_ne_nil_iff_ne_zero {b n : ℕ} : digits b n ≠ [] ↔ n ≠ 0 :=
+not_congr digits_eq_nil_iff_eq_zero
 
-private lemma digits_last_aux1 {α : Type*} {L M : list α} (h : L = M) (p q) : L.last p = M.last q :=
-by simp [h]
-
-private lemma digits_last_aux2 (b n : ℕ) (h : 2 ≤ b) (w : 0 < n) :
+private lemma digits_last_aux {b n : ℕ} (h : 2 ≤ b) (w : 0 < n) :
   digits b n = ((n % b) :: digits b (n / b)) :=
 begin
   rcases b with _|_|b,
@@ -273,15 +269,11 @@ begin
   simp,
 end
 
-lemma digits_last (b : ℕ) (h : 2 ≤ b) (m : ℕ) (hm : 0 < m) (p q) :
+lemma digits_last {b m : ℕ} (h : 2 ≤ b) (hm : 0 < m) (p q) :
   (digits b m).last p = (digits b (m/b)).last q :=
-begin
-  rw digits_last_aux1 (digits_last_aux2 b m h hm),
-  { rw list.last_cons, },
-  exact list.cons_ne_nil _ _,
-end
+by { simp only [digits_last_aux h hm], rw list.last_cons }
 
-lemma last_digit_ne_zero (b m : ℕ) (hm : m ≠ 0) (p):
+private lemma last_digit_ne_zero_aux (b : ℕ) {m : ℕ} (hm : m ≠ 0) (p) :
   (digits b m).last p ≠ 0 :=
 begin
   rcases b with _|_|b,
@@ -296,13 +288,17 @@ begin
   by_cases hnb : n < b + 2,
   { simp_rw [digits_of_lt b.succ.succ n hnpos hnb],
     exact nat.pos_iff_ne_zero.mp hnpos },
-  { rw digits_last b.succ.succ dec_trivial _ hnpos,
+  { rw digits_last (show 2 ≤ b + 2, from dec_trivial) hnpos,
     refine IH _ (nat.div_lt_self hnpos dec_trivial) _ _,
     { rw ←nat.pos_iff_ne_zero,
       exact nat.div_pos (le_of_not_lt hnb) dec_trivial },
     { rw [digits_ne_nil_iff_ne_zero, ←nat.pos_iff_ne_zero],
       exact nat.div_pos (le_of_not_lt hnb) dec_trivial } },
 end
+
+lemma last_digit_ne_zero (b : ℕ) {m : ℕ} (hm : m ≠ 0) :
+  (digits b m).last (digits_ne_nil_iff_ne_zero.mpr hm) ≠ 0 :=
+last_digit_ne_zero_aux b hm $ digits_ne_nil_iff_ne_zero.mpr hm
 
 /-- The digits in the base b+2 expansion of n are all less than b+2 -/
 lemma digits_lt_base' {b m : ℕ} : ∀ {d}, d ∈ digits (b+2) m → d < b+2 :=
@@ -412,8 +408,8 @@ Any non-zero natural number `m` is greater than
 lemma base_pow_length_digits_le' (b m : ℕ) (hm : m ≠ 0) :
   (b + 2) ^ ((digits (b + 2) m).length) ≤ (b + 2) * m :=
 begin
-  have : digits (b + 2) m ≠ [], from (digits_ne_nil_iff_ne_zero _ _).mpr hm,
-  convert pow_length_le_mul_of_digits this (last_digit_ne_zero _ _ _ this),
+  have : digits (b + 2) m ≠ [], from digits_ne_nil_iff_ne_zero.mpr hm,
+  convert pow_length_le_mul_of_digits this (last_digit_ne_zero _ hm),
   rwa of_digits_digits,
 end
 

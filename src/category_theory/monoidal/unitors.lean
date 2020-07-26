@@ -8,10 +8,13 @@ import category_theory.monoidal.category
 /-!
 # The two morphisms `λ_ (𝟙_ C)` and `ρ_ (𝟙_ C)` from `𝟙_ C ⊗ 𝟙_ C ⟶ 𝟙_ C` are equal.
 
-This is suprisingly difficult to prove from the usual axioms for a monoidal category!
+This is suprisingly difficult to prove directly from the usual axioms for a monoidal category!
 
 This proof follows the diagram given at
 https://people.math.osu.edu/penneys.2/QS2019/VicaryHandout.pdf
+
+It should be a consequence of the coherence theorem for monoidal categories
+(although quite possibly it is a necessary building block of any proof).
 -/
 
 universes v u

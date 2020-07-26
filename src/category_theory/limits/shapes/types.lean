@@ -23,9 +23,6 @@ The exception to this rule is that the monoidal category structure on `Type`
 uses these definitions.
 -/
 
--- TODO move!
-@[ext] lemma punit.ext {x y : punit} : x = y := by { cases x, cases y, refl, }
-
 universes u
 
 open category_theory

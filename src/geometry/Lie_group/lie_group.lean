@@ -228,3 +228,31 @@ protected lemma to_lie_group : @lie_group 𝕜 _ _ _ E _ _ I G _ _ c.to_topologi
 end lie_group_core
 
 end lie_group_core
+
+/-! ### Real numbers are a Lie group -/
+
+section real_numbers_lie_group
+
+instance normed_group_lie_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+{E : Type*} [normed_group E] [normed_space 𝕜 E] :
+lie_add_group (model_with_corners_self 𝕜 E) E :=
+{ smooth_add :=
+  begin
+    rw smooth_iff,
+    refine ⟨continuous_add, λ x y, _⟩,
+    simp only [prod.mk.eta] with mfld_simps,
+    rw times_cont_diff_on_univ,
+    exact times_cont_diff_add,
+  end,
+  smooth_neg :=
+  begin
+    rw smooth_iff,
+    refine ⟨continuous_neg, λ x y, _⟩,
+    simp only [prod.mk.eta] with mfld_simps,
+    rw times_cont_diff_on_univ,
+    exact times_cont_diff_neg,
+  end }
+
+instance reals_lie_group : lie_add_group (model_with_corners_self ℝ ℝ) ℝ := by apply_instance
+
+end real_numbers_lie_group

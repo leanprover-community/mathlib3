@@ -57,7 +57,7 @@ instance [has_mul α] : has_mul (with_one α) :=
 @[simp, to_additive]
 lemma mul_coe [has_mul α] (a b : α) : (a : with_one α) * b = (a * b : α) := rfl
 
-@[to_additive add_monoid]
+@[to_additive]
 instance [semigroup α] : monoid (with_one α) :=
 { mul_assoc := (option.lift_or_get_assoc _).1,
   one_mul   := (option.lift_or_get_is_left_id _).1,
@@ -65,7 +65,7 @@ instance [semigroup α] : monoid (with_one α) :=
   ..with_one.has_one,
   ..with_one.has_mul }
 
-@[to_additive add_comm_monoid]
+@[to_additive]
 instance [comm_semigroup α] : comm_monoid (with_one α) :=
 { mul_comm := (option.lift_or_get_comm _).1,
   ..with_one.monoid }

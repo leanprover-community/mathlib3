@@ -9,7 +9,7 @@ import data.complex.basic
 /-!
 # Exponential, trigonometric and hyperbolic trigonometric functions
 
-This file containss the definitions of the real and complex exponential, sine, cosine, tangent,
+This file contains the definitions of the real and complex exponential, sine, cosine, tangent,
 hyperbolic sine, hypebolic cosine, and hyperbolic tangent functions.
 
 -/
@@ -927,7 +927,7 @@ lemma exp_strict_mono : strict_mono exp :=
   exact (lt_mul_iff_one_lt_left (exp_pos _)).2
     (lt_of_lt_of_le (by linarith) (add_one_le_exp_of_nonneg (by linarith)))
 
-@[mono] lemma exp_monotone : ∀ {x y : ℝ}, x ≤ y → exp x ≤ exp y := exp_strict_mono.monotone 
+@[mono] lemma exp_monotone : ∀ {x y : ℝ}, x ≤ y → exp x ≤ exp y := exp_strict_mono.monotone
 
 lemma exp_lt_exp {x y : ℝ} : exp x < exp y ↔ x < y := exp_strict_mono.lt_iff_lt
 

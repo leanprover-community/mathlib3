@@ -111,7 +111,7 @@ begin
   by a power of a scalar `c` with norm `∥c∥ > 1`.-/
   by_cases h : ∃i, m i = 0,
   { rcases h with ⟨i, hi⟩,
-    rw [f.map_coord_zero i hi, _root_.norm_zero],
+    rw [f.map_coord_zero i hi, norm_zero],
     exact mul_nonneg (le_of_lt C_pos) (prod_nonneg (λi hi, norm_nonneg _)) },
   { push_neg at h,
     have : ∀i, ∃d:𝕜, d ≠ 0 ∧ ∥d • m i∥ ≤ δ ∧ (δ/∥c∥ ≤ ∥d • m i∥) ∧ (∥d∥⁻¹ ≤ δ⁻¹ * ∥c∥ * ∥m i∥) :=
@@ -373,9 +373,6 @@ begin
     rw h,
     simp }
 end
-
-@[simp] lemma norm_zero : ∥(0 : continuous_multilinear_map 𝕜 E₁ E₂)∥ = 0 :=
-by rw op_norm_zero_iff
 
 lemma op_norm_smul_le : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
 (Inf_le _ bounds_bdd_below

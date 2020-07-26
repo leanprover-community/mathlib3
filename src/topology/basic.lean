@@ -434,14 +434,15 @@ localized "notation `𝓝` := nhds" in topological_space
 
 lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s) := rfl
 
-/-- The open sets containing `a` are a basis for the neighborhood filter. -/
+/-- The open sets containing `a` are a basis for the neighborhood filter. See `nhds_basis_opens'`
+for a variant using open neighborhoods instead. -/
 lemma nhds_basis_opens (a : α) : (𝓝 a).has_basis (λ s : set α, a ∈ s ∧ is_open s) (λ x, x) :=
 has_basis_binfi_principal
   (λ s ⟨has, hs⟩ t ⟨hat, ht⟩, ⟨s ∩ t, ⟨⟨has, hat⟩, is_open_inter hs ht⟩,
     ⟨inter_subset_left _ _, inter_subset_right _ _⟩⟩)
   ⟨univ, ⟨mem_univ a, is_open_univ⟩⟩
 
-/-- A filter includes the neighborhoods of `a` iff it includes the open sets containing `a`. -/
+/-- A filter has the neighborhoods of `a` iff it has the open sets containing `a`. -/
 lemma le_nhds_iff {f a} : f ≤ 𝓝 a ↔ ∀ s : set α, a ∈ s → is_open s → s ∈ f :=
 by simp [nhds_def]
 
@@ -479,7 +480,8 @@ lemma mem_nhds_sets {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
   s ∈ 𝓝 a :=
 mem_nhds_sets_iff.2 ⟨s, subset.refl _, hs, ha⟩
 
-/-- The open neighborhoods of `a` are a basis for the neighborhood filter. -/
+/-- The open neighborhoods of `a` are a basis for the neighborhood filter. See `nhds_basis_opens`
+for a variant using open sets around `a` instead. -/
 lemma nhds_basis_opens' (a : α) : (𝓝 a).has_basis (λ s : set α, s ∈ 𝓝 a ∧ is_open s) (λ x, x) :=
 begin
   convert nhds_basis_opens a,

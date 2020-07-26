@@ -97,9 +97,11 @@ instance has_mem : has_mem V G.E := { mem := λ v e, v ∈ e.val }
 /-- Construct an edge from its endpoints. -/
 def edge_of_adj {v w : V} (h : G.adj v w) : G.E := ⟨⟦(v,w)⟧, h⟩
 
+@[simp]
 lemma mem_of_adj {v w : V} (h : G.adj v w) :
   v ∈ G.edge_of_adj h := sym2.mk_has_mem v w
 
+@[simp]
 lemma mem_of_adj_right {v w : V} (h : G.adj v w) :
   w ∈ G.edge_of_adj h := sym2.mk_has_mem_right v w
 
@@ -143,6 +145,32 @@ end⟩
 instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
   fintype G.E := subtype.fintype _
 
+def edge_to_finset [decidable_eq V] (e : G.E) : finset V :=
+  multiset.to_finset (sym2.equiv_multiset _ e.val)
+
+@[simp]
+lemma card_finset_of_edge_eq_two [decidable_eq V] (e : G.E) :
+  finset.card (G.edge_to_finset e) = 2 :=
+begin
+  have h := (sym2.equiv_multiset V e.val).property,
+  have h1 : (((sym2.equiv_multiset V) e.val)).val.nodup,
+  {
+    rw multiset.nodup_iff_count_le_one, intro a,
+    rw ← nat.pred_le_iff,
+    rw ← multiset.count_erase_self, apply le_of_eq,
+    sorry,
+  },
+  rw ← multiset.erase_dup_eq_self at h1, rw finset.card_def, convert h,
+
+end
+
+@[simp]
+lemma mem_edge_to_finset_iff [decidable_eq V] (e : G.E) (v : V) :
+  v ∈ G.edge_to_finset e ↔ v ∈ e :=
+begin
+  sorry
+end
+
 attribute [irreducible] E
 
 @[simp] lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
@@ -152,6 +180,8 @@ by split; apply G.sym
 
 @[simp] lemma mem_neighbor_set (v w : V) : w ∈ G.neighbor_set v ↔ G.adj v w :=
 by tauto
+
+def edge_graph : simple_graph G.E := { adj := λ e1 e2, (∃ v : V, v ∈ e1 ∧ v ∈ e2) ∧ e1 ≠ e2 }
 
 section finite_at
 
@@ -209,6 +239,14 @@ instance neighbor_set_fintype [decidable_rel G.adj] (v : V) : fintype (G.neighbo
 lemma neighbor_finset_eq_filter {v : V} [decidable_rel G.adj] :
   G.neighbor_finset v = finset.univ.filter (G.adj v) :=
 by { ext, simp }
+
+@[simp]
+lemma card_incident_edges_eq_degree
+  [decidable_eq V] (v : V) [decidable_rel G.adj] [decidable_pred (λ (e : G.E), v ∈ e)]:
+  (finset.univ.filter (λ e : G.E, v ∈ e)).card = G.degree v := sorry
+
+lemma edge_to_finset_eq_filter {e : G.E} [decidable_eq V] [decidable_rel G.adj] [decidable_pred (λ (v : V), v ∈ e)]:
+  G.edge_to_finset e = finset.univ.filter (λ v, v ∈ e) := by { ext, simp, }
 
 @[simp]
 lemma complete_graph_degree [decidable_eq V] (v : V) :

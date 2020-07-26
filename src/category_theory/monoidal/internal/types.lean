@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
+import algebra.category.Mon.basic
 import category_theory.monoidal.internal
 import category_theory.monoidal.types
 
@@ -8,7 +14,7 @@ open category_theory.monoidal
 
 variables (C : Type u) [category.{v} C] [monoidal_category.{v} C]
 
-namespace Mon_Type_equivalent_Mon
+namespace Mon_Type_equivalence_Mon
 
 /--
 Converting a monoid object in `Type` to a bundled monoid.
@@ -37,15 +43,15 @@ def inverse : Mon.{u} ⥤ Mon_ (Type u) :=
   map := λ A B f,
   { hom := f, }, }.
 
-end Mon_Type_equivalent_Mon
+end Mon_Type_equivalence_Mon
 
-open Mon_Type_equivalent_Mon
+open Mon_Type_equivalence_Mon
 
 /--
 The category of internal monoid objects in `Type`
 is equivalent to the category of "native" bundled monoids.
 -/
-def Mon_Type_equivalent_Mon : Mon_ (Type u) ≌ Mon.{u} :=
+def Mon_Type_equivalence_Mon : Mon_ (Type u) ≌ Mon.{u} :=
 { functor := functor,
   inverse := inverse,
   unit_iso := nat_iso.of_components
@@ -59,6 +65,9 @@ def Mon_Type_equivalent_Mon : Mon_ (Type u) ≌ Mon.{u} :=
 The equivalence `Mon_ (Type u) ≌ Mon.{u}`
 is naturally compatible with the forgetful functors to `Type u`.
 -/
-def Mon_Type_equivalent_Mon_forget :
-  Mon_Type_equivalent_Mon.functor ⋙ forget Mon ≅ Mon_.forget :=
+def Mon_Type_equivalence_Mon_forget :
+  Mon_Type_equivalence_Mon.functor ⋙ forget Mon ≅ Mon_.forget :=
 nat_iso.of_components (λ A, iso.refl _) (by tidy)
+
+instance Mon_Type_inhabited : inhabited (Mon_ (Type u)) :=
+Mon_Type_equivalence_Mon.functor.obj (Mon.of punit)

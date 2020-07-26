@@ -33,6 +33,7 @@ open category_theory.limits
 
 namespace category_theory.limits.types
 
+/-- The category of types has `punit` as a terminal object. -/
 def types_has_terminal : has_terminal (Type u) :=
 { has_limits_of_shape :=
   { has_limit := λ F,
@@ -45,6 +46,10 @@ open category_theory.limits.walking_pair
 
 local attribute [tidy] tactic.case_bash
 
+/--
+The category of types has `X × Y`, the usual cartesian product,
+as the binary product of `X` and `Y`.
+-/
 def types_has_binary_products : has_binary_products (Type u) :=
 { has_limits_of_shape :=
   { has_limit := λ F,
@@ -61,6 +66,9 @@ def types_has_binary_products : has_binary_products (Type u) :=
           exact congr_fun (w right) x,
         end }, } } }
 
+/--
+The category of types has `Π j, f j` as the product of a type family `f : J → Type`.
+-/
 def types_has_products : has_products (Type u) :=
 { has_limits_of_shape := λ J,
   { has_limit := λ F,
@@ -80,7 +88,7 @@ def types_has_products : has_products (Type u) :=
 local attribute [instance] types_has_terminal types_has_binary_products types_has_products
 
 @[simp] lemma terminal : (⊤_ (Type u)) = punit := rfl
-@[simp] lemma terminal_from {P : Type u} (f : P ⟶ ⊤_ (Type u)) (p : P) : f p = punit.star :=
+lemma terminal_from {P : Type u} (f : P ⟶ ⊤_ (Type u)) (p : P) : f p = punit.star :=
 by ext
 
 @[simp] lemma prod (X Y : Type u) : limits.prod X Y = prod X Y := rfl

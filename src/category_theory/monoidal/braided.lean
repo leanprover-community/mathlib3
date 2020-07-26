@@ -62,6 +62,9 @@ open braided_category
 
 notation `β_` := braiding
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
+
 /--
 A symmetric monoidal category is a braided monoidal category for which the braiding is symmetric.
 -/
@@ -70,12 +73,14 @@ class symmetric_category (C : Type u) [category.{v} C] [monoidal_category.{v} C]
 -- braiding symmetric:
 (symmetry' : ∀ X Y : C, (β_ X Y).hom ≫ (β_ Y X).hom = 𝟙 (X ⊗ Y) . obviously)
 
+end prio
+
 restate_axiom symmetric_category.symmetry'
 attribute [simp] symmetric_category.symmetry
 
-variables (C : Type u₁) [category.{v₁} C] [monoidal_category.{v₁} C] [braided_category.{v₁} C]
-variables (D : Type u₂) [category.{v₂} D] [monoidal_category.{v₂} D] [braided_category.{v₂} D]
-variables (E : Type u₃) [category.{v₃} E] [monoidal_category.{v₃} E] [braided_category.{v₃} E]
+variables (C : Type u₁) [category.{v₁} C] [monoidal_category C] [braided_category C]
+variables (D : Type u₂) [category.{v₂} D] [monoidal_category D] [braided_category D]
+variables (E : Type u₃) [category.{v₃} E] [monoidal_category E] [braided_category E]
 
 /--
 A braided functor between braided monoidal categories is a monoidal functor
@@ -92,9 +97,11 @@ attribute [simp] braided_functor.braided
 namespace braided_functor
 
 /-- The identity braided monoidal functor. -/
-@[simps] def id : braided_functor.{v₁ v₁} C C :=
+@[simps] def id : braided_functor C C :=
 { braided' := λ X Y, by { dsimp, simp, },
   .. monoidal_functor.id C }
+
+instance : inhabited (braided_functor C C) := ⟨id C⟩
 
 variables {C D E}
 

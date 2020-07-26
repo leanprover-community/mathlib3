@@ -28,7 +28,7 @@ structure Mon_ :=
 (mul_one' : (𝟙 X ⊗ one) ≫ mul = (ρ_ X).hom . obviously)
 -- Obviously there is some flexibility stating this axiom.
 -- This one has left- and right-hand sides matching the statement of `monoid.mul_assoc`,
--- and choosing to place the associator on the right-hand side.
+-- and chooses to place the associator on the right-hand side.
 -- The heuristic is that unitors and associators "don't have much weight".
 (mul_assoc' : (mul ⊗ 𝟙 X) ≫ mul = (α_ X X X).hom ≫ (𝟙 X ⊗ mul) ≫ mul . obviously)
 
@@ -40,6 +40,11 @@ attribute [simp, reassoc] Mon_.one_mul Mon_.mul_one Mon_.mul_assoc
 namespace Mon_
 
 variables {C}
+
+variables {M : Mon_ C}
+
+lemma assoc_flip : (𝟙 M.X ⊗ M.mul) ≫ M.mul = (α_ M.X M.X M.X).inv ≫ (M.mul ⊗ 𝟙 M.X) ≫ M.mul :=
+by simp
 
 /-- A morphism of monoid objects. -/
 @[ext]
@@ -76,7 +81,7 @@ def forget : Mon_ C ⥤ C :=
 
 end Mon_
 
--- TODO lax monoidal functors `C ⥤ D` induce functors `Mon_ C ⥤ Mon_ D`.
+-- PROJECT: lax monoidal functors `C ⥤ D` induce functors `Mon_ C ⥤ Mon_ D`.
 
 variables {C}
 

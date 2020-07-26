@@ -56,6 +56,66 @@ quot.lift (quot.mk s) (λ x y rxy, quot.sound (h x y rxy))
 lemma factor_mk_eq {α : Type*} (r s : α → α → Prop) (h : ∀ x y, r x y → s x y) :
   factor r s h ∘ quot.mk _ = quot.mk _ := rfl
 
+variables {γ : Sort*} {r : α → α → Prop} {s : β → β → Prop}
+
+/-- Descends a function `f : α → β → γ` to quotients of `α` and `β`. -/
+attribute [reducible, elab_as_eliminator]
+protected def lift₂
+   (f : α → β → γ)
+   (hr : ∀ a b₁ b₂, s b₁ b₂ → f a b₁ = f a b₂)
+   (hs : ∀ a₁ a₂ b, r a₁ a₂ → f a₁ b = f a₂ b)
+   (q₁ : quot r) (q₂ : quot s) : γ :=
+quot.lift (λ a, quot.lift (f a) (hr a))
+(λ a₁ a₂ ha, funext (λ q, quot.induction_on q (λ b, hs a₁ a₂ b ha)))
+q₁ q₂
+
+@[simp]
+lemma lift₂_mk  (a : α) (b : β) (f : α → β → γ)
+  (hr : ∀ a b₁ b₂, s b₁ b₂ → f a b₁ = f a b₂)
+  (hs : ∀ a₁ a₂ b, r a₁ a₂ → f a₁ b = f a₂ b) :
+  quot.lift₂ f hr hs (quot.mk r a) (quot.mk s b) = f a b := rfl
+
+/-- Descends a function `f : α → β → γ` to quotients of `α` and `β` and applies it. -/
+attribute [reducible, elab_as_eliminator]
+protected def lift_on₂ (p : quot r) (q : quot s) (f : α → β → γ)
+  (hr : ∀ a b₁ b₂, s b₁ b₂ → f a b₁ = f a b₂)
+  (hs : ∀ a₁ a₂ b, r a₁ a₂ → f a₁ b = f a₂ b) : γ := quot.lift₂ f hr hs p q
+
+@[simp]
+lemma lift_on₂_mk  (a : α) (b : β) (f : α → β → γ)
+  (hr : ∀ a b₁ b₂, s b₁ b₂ → f a b₁ = f a b₂)
+  (hs : ∀ a₁ a₂ b, r a₁ a₂ → f a₁ b = f a₂ b) :
+  quot.lift_on₂ (quot.mk r a) (quot.mk s b) f hr hs = f a b := rfl
+
+variables {t : γ → γ → Prop}
+
+/-- Descends a function `f : α → β → γ` to quotients of `α` and `β` wih values in a quotient of
+`γ`. -/
+protected def map₂ (f : α → β → γ)
+  (hr : ∀ a b₁ b₂, s b₁ b₂ → t (f a b₁) (f a b₂))
+  (hs : ∀ a₁ a₂ b, r a₁ a₂ → t (f a₁ b) (f a₂ b))
+  (q₁ : quot r) (q₂ : quot s) : quot t :=
+quot.lift₂ (λ a b, quot.mk t $ f a b) (λ a b₁ b₂ hb, quot.sound (hr a b₁ b₂ hb))
+(λ a₁ a₂ b ha, quot.sound (hs a₁ a₂ b ha)) q₁ q₂
+
+@[simp]
+lemma map₂_mk (f : α → β → γ)
+  (hr : ∀ a b₁ b₂, s b₁ b₂ → t (f a b₁) (f a b₂))
+  (hs : ∀ a₁ a₂ b, r a₁ a₂ → t (f a₁ b) (f a₂ b))
+  (a : α) (b : β) : quot.map₂ f hr hs (quot.mk r a) (quot.mk s b) = quot.mk t (f a b) := rfl
+
+attribute [elab_as_eliminator]
+protected lemma induction_on₂
+  {δ : quot r → quot s → Prop} (q₁ : quot r) (q₂ : quot s)
+  (h : ∀ a b, δ (quot.mk r a) (quot.mk s b)) : δ q₁ q₂ :=
+quot.ind (λ a₁, quot.ind (λ a₂, h a₁ a₂) q₂) q₁
+
+attribute [elab_as_eliminator]
+protected lemma induction_on₃
+  {δ : quot r → quot s → quot t → Prop} (q₁ : quot r) (q₂ : quot s) (q₃ : quot t)
+  (h : ∀ a b c, δ (quot.mk r a) (quot.mk s b) (quot.mk t c)) : δ q₁ q₂ q₃ :=
+quot.ind (λ a₁, quot.ind (λ a₂, quot.ind (λ a₃, h a₁ a₂ a₃) q₃) q₂) q₁
+
 end quot
 
 namespace quotient

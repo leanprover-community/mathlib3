@@ -1206,8 +1206,8 @@ apply_nolint add_con.to_setoid doc_blame
 apply_nolint con.to_setoid doc_blame
 
 -- group_theory/coset.lean
-apply_nolint is_add_subgroup.group_equiv_quotient_times_subgroup doc_blame
-apply_nolint is_add_subgroup.left_coset_equiv_subgroup doc_blame
+apply_nolint is_add_subgroup.add_group_equiv_quotient_times_add_subgroup doc_blame
+apply_nolint is_add_subgroup.left_coset_equiv_add_subgroup doc_blame
 apply_nolint is_subgroup.group_equiv_quotient_times_subgroup doc_blame
 apply_nolint is_subgroup.left_coset_equiv_subgroup doc_blame
 apply_nolint left_add_coset doc_blame

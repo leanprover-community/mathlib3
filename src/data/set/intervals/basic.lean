@@ -3,9 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov
 -/
-import tactic.tauto
 import algebra.order_functions
-import algebra.ordered_field
+import data.set.basic
 
 /-!
 # Intervals
@@ -170,6 +169,14 @@ Icc_subset_Icc h (le_refl _)
 lemma Icc_subset_Icc_right (h : b₁ ≤ b₂) : Icc a b₁ ⊆ Icc a b₂ :=
 Icc_subset_Icc (le_refl _) h
 
+lemma Icc_subset_Ioo (ha : a₂ < a₁) (hb : b₁ < b₂) :
+  Icc a₁ b₁ ⊆ Ioo a₂ b₂ :=
+λ x hx, ⟨lt_of_lt_of_le ha hx.1, lt_of_le_of_lt hx.2 hb⟩
+
+lemma Icc_subset_Ici_self : Icc a b ⊆ Ici a := λ x, and.left
+
+lemma Icc_subset_Iic_self : Icc a b ⊆ Iic b := λ x, and.right
+
 lemma Ioc_subset_Ioc (h₁ : a₂ ≤ a₁) (h₂ : b₁ ≤ b₂) :
   Ioc a₁ b₁ ⊆ Ioc a₂ b₂ :=
 λ x ⟨hx₁, hx₂⟩, ⟨lt_of_le_of_lt h₁ hx₁, le_trans hx₂ h₂⟩
@@ -182,6 +189,9 @@ Ioc_subset_Ioc (le_refl _) h
 
 lemma Ico_subset_Ioo_left (h₁ : a₁ < a₂) : Ico a₂ b ⊆ Ioo a₁ b :=
 λ x, and.imp_left $ lt_of_lt_of_le h₁
+
+lemma Ioc_subset_Ioo_right (h : b₁ < b₂) : Ioc a b₁ ⊆ Ioo a b₂ :=
+λ x, and.imp_right $ λ h', lt_of_le_of_lt h' h
 
 lemma Icc_subset_Ico_right (h₁ : b₁ < b₂) : Icc a b₁ ⊆ Ico a b₂ :=
 λ x, and.imp_right $ λ h₂, lt_of_le_of_lt h₂ h₁

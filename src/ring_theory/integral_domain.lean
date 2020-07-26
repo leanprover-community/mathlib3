@@ -5,7 +5,7 @@ Authors: Johan Commelin, Chris Hughes
 -/
 
 import data.fintype.card
-import data.polynomial
+import data.polynomial.ring_division
 import group_theory.order_of_element
 import algebra.geom_sum
 
@@ -142,6 +142,16 @@ begin
   split_ifs with h h,
   { simp [h, card_univ] },
   { exact sum_hom_units_eq_zero f h }
+end
+
+lemma left_dvd_or_dvd_right_of_dvd_prime_mul {a : R} :
+  ∀ {b p : R}, prime p → a ∣ p * b → p ∣ a ∨ a ∣ b :=
+begin
+  rintros b p hp ⟨c, hc⟩,
+  rcases hp.2.2 a c (hc ▸ dvd_mul_right _ _) with h | ⟨x, rfl⟩,
+  { exact or.inl h },
+  { rw [mul_left_comm, mul_right_inj' hp.ne_zero] at hc,
+    exact or.inr (hc.symm ▸ dvd_mul_right _ _) }
 end
 
 end

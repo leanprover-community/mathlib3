@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau.
 -/
 
-import ring_theory.polynomial
+import ring_theory.polynomial.basic
+import data.polynomial.field_division
 
 /-!
 

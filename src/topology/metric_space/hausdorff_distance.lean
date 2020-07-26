@@ -81,7 +81,7 @@ begin
   have : (λz, z + edist x y) (Inf (edist y '' s)) = Inf ((λz, z + edist x y) '' (edist y '' s)),
   { refine map_Inf_of_continuous_at_of_monotone _ _ (by simp),
     { exact continuous_at_id.add continuous_at_const },
-    { assume a b h, simp, apply add_le_add_right' h }},
+    { assume a b h, simp, apply add_le_add_right h _ }},
   simp only [inf_edist] at this,
   rw [inf_edist, inf_edist, this, ← image_comp],
   simpa only [and_imp, function.comp_app, le_Inf_iff, exists_imp_distrib, ball_image_iff]
@@ -281,11 +281,11 @@ begin
   show ∀x ∈ s, inf_edist x u ≤ Hausdorff_edist s t + Hausdorff_edist t u, from λx xs, calc
     inf_edist x u ≤ inf_edist x t + Hausdorff_edist t u : inf_edist_le_inf_edist_add_Hausdorff_edist
     ... ≤ Hausdorff_edist s t + Hausdorff_edist t u :
-      add_le_add_right' (inf_edist_le_Hausdorff_edist_of_mem  xs),
+      add_le_add_right (inf_edist_le_Hausdorff_edist_of_mem  xs) _,
   show ∀x ∈ u, inf_edist x s ≤ Hausdorff_edist s t + Hausdorff_edist t u, from λx xu, calc
     inf_edist x s ≤ inf_edist x t + Hausdorff_edist t s : inf_edist_le_inf_edist_add_Hausdorff_edist
     ... ≤ Hausdorff_edist u t + Hausdorff_edist t s :
-      add_le_add_right' (inf_edist_le_Hausdorff_edist_of_mem xu)
+      add_le_add_right (inf_edist_le_Hausdorff_edist_of_mem xu) _
     ... = Hausdorff_edist s t + Hausdorff_edist t u : by simp [Hausdorff_edist_comm, add_comm]
 end
 

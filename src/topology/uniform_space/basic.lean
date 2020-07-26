@@ -768,7 +768,7 @@ end⟩
 lemma closure_eq_inter_uniformity {t : set (α×α)} :
   closure t = (⋂ d ∈ 𝓤 α, d ○ (t ○ d)) :=
 set.ext $ assume ⟨a, b⟩,
-calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ 𝓟 t ≠ ⊥) : by simp [closure_eq_cluster_pts, cluster_pt]
+calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ 𝓟 t ≠ ⊥) : mem_closure_iff_cluster_pt
   ... ↔ (((@prod.swap α α) <$> 𝓤 α).lift'
       (λ (s : set (α × α)), set.prod {x : α | (x, a) ∈ s} {y : α | (b, y) ∈ s}) ⊓ 𝓟 t ≠ ⊥) :
     by rw [←uniformity_eq_symm, nhds_eq_uniformity_prod]
@@ -784,7 +784,7 @@ calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ 𝓟 t ≠ ⊥) : by simp [closur
   end
   ... ↔ (∀s ∈ 𝓤 α, (set.prod {y : α | (a, y) ∈ s} {x : α | (x, b) ∈ s} ∩ t).nonempty) :
   begin
-    rw [lift'_inf_principal_eq, lift'_ne_bot_iff],
+    rw [lift'_inf_principal_eq, ← ne_bot, lift'_ne_bot_iff],
     exact monotone_inter (monotone_prod monotone_preimage monotone_preimage) monotone_const
   end
   ... ↔ (∀ s ∈ 𝓤 α, (a, b) ∈ s ○ (t ○ s)) :
@@ -1026,9 +1026,9 @@ by { rw h, refl }
 lemma uniform_space_comap_id {α : Type*} : uniform_space.comap (id : α → α) = id :=
 by ext u ; dsimp [uniform_space.comap] ; rw [prod.id_prod, filter.comap_id]
 
-lemma uniform_space.comap_comap_comp {α β γ} [uγ : uniform_space γ] {f : α → β} {g : β → γ} :
+lemma uniform_space.comap_comap {α β γ} [uγ : uniform_space γ] {f : α → β} {g : β → γ} :
   uniform_space.comap (g ∘ f) uγ = uniform_space.comap f (uniform_space.comap g uγ) :=
-by ext ; dsimp [uniform_space.comap] ; rw filter.comap_comap_comp
+by ext ; dsimp [uniform_space.comap] ; rw filter.comap_comap
 
 lemma uniform_continuous_iff {α β} [uα : uniform_space α] [uβ : uniform_space β] {f : α → β} :
   uniform_continuous f ↔ uα ≤ uβ.comap f :=
@@ -1066,34 +1066,23 @@ top_unique $ assume s hs, s.eq_empty_or_nonempty.elim
 
 lemma to_topological_space_infi {ι : Sort*} {u : ι → uniform_space α} :
   (infi u).to_topological_space = ⨅i, (u i).to_topological_space :=
-classical.by_cases
-  (assume h : nonempty ι,
-    eq_of_nhds_eq_nhds $ assume a,
-    begin
-      rw [nhds_infi, nhds_eq_uniformity],
-      change (infi u).uniformity.lift' (preimage $ prod.mk a) = _,
-      begin
-        rw [infi_uniformity, lift'_infi],
-        exact (congr_arg _ $ funext $ assume i, (@nhds_eq_uniformity α (u i) a).symm),
-        exact h,
-        exact assume a b, rfl
-      end
-    end)
-  (assume : ¬ nonempty ι,
-    le_antisymm
-      (le_infi $ assume i, to_topological_space_mono $ infi_le _ _)
-      (have infi u = ⊤, from top_unique $ le_infi $ assume i, (this ⟨i⟩).elim,
-        have @uniform_space.to_topological_space _ (infi u) = ⊤,
-          from this.symm ▸ to_topological_space_top,
-        this.symm ▸ le_top))
+begin
+  by_cases h : nonempty ι,
+  { resetI,
+    refine (eq_of_nhds_eq_nhds $ assume a, _),
+    rw [nhds_infi, nhds_eq_uniformity],
+    change (infi u).uniformity.lift' (preimage $ prod.mk a) = _,
+    rw [infi_uniformity, lift'_infi],
+    { simp only [nhds_eq_uniformity], refl },
+    { exact assume a b, rfl } },
+  { rw [infi_of_empty h, infi_of_empty h, to_topological_space_top] }
+end
 
 lemma to_topological_space_Inf {s : set (uniform_space α)} :
   (Inf s).to_topological_space = (⨅i∈s, @uniform_space.to_topological_space α i) :=
 begin
-  rw [Inf_eq_infi, to_topological_space_infi],
-  apply congr rfl,
-  funext x,
-  exact to_topological_space_infi
+  rw [Inf_eq_infi],
+  simp only [← to_topological_space_infi],
 end
 
 lemma to_topological_space_inf {u v : uniform_space α} :
@@ -1165,7 +1154,7 @@ have map (λp:(α×α)×(β×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))) =
   comap (λp:(α×β)×(α×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))),
   from funext $ assume f, map_eq_comap_of_inverse
     (funext $ assume ⟨⟨_, _⟩, ⟨_, _⟩⟩, rfl) (funext $ assume ⟨⟨_, _⟩, ⟨_, _⟩⟩, rfl),
-by rw [this, uniformity_prod, filter.prod, comap_inf, comap_comap_comp, comap_comap_comp]
+by rw [this, uniformity_prod, filter.prod, comap_inf, comap_comap, comap_comap]
 
 lemma mem_map_sets_iff' {α : Type*} {β : Type*} {f : filter α} {m : α → β} {t : set β} :
   t ∈ (map m f).sets ↔ (∃s∈f, m '' s ⊆ t) :=
@@ -1349,8 +1338,10 @@ end constructions
 -- For a version of the Lebesgue number lemma assuming only a sequentially compact space,
 -- see topology/sequences.lean
 
+/-- Let `c : ι → set α` be an open cover of a compact set `s`. Then there exists an entourage
+`n` such that for each `x ∈ s` its `n`-neighborhood is contained in some `c i`. -/
 lemma lebesgue_number_lemma {α : Type u} [uniform_space α] {s : set α} {ι} {c : ι → set α}
-  (hs : compact s) (hc₁ : ∀ i, is_open (c i)) (hc₂ : s ⊆ ⋃ i, c i) :
+  (hs : is_compact s) (hc₁ : ∀ i, is_open (c i)) (hc₂ : s ⊆ ⋃ i, c i) :
   ∃ n ∈ 𝓤 α, ∀ x ∈ s, ∃ i, {y | (x, y) ∈ n} ⊆ c i :=
 begin
   let u := λ n, {x | ∃ i (m ∈ 𝓤 α), {y | (x, y) ∈ m ○ n} ⊆ c i},
@@ -1375,8 +1366,10 @@ begin
   exact prod_mk_mem_comp_rel (refl_mem_uniformity hm) (bInter_subset_of_mem bn hy)
 end
 
+/-- Let `c : set (set α)` be an open cover of a compact set `s`. Then there exists an entourage
+`n` such that for each `x ∈ s` its `n`-neighborhood is contained in some `t ∈ c`. -/
 lemma lebesgue_number_lemma_sUnion {α : Type u} [uniform_space α] {s : set α} {c : set (set α)}
-  (hs : compact s) (hc₁ : ∀ t ∈ c, is_open t) (hc₂ : s ⊆ ⋃₀ c) :
+  (hs : is_compact s) (hc₁ : ∀ t ∈ c, is_open t) (hc₂ : s ⊆ ⋃₀ c) :
   ∃ n ∈ 𝓤 α, ∀ x ∈ s, ∃ t ∈ c, ∀ y, (x, y) ∈ n → y ∈ t :=
 by rw sUnion_eq_Union at hc₂;
    simpa using lebesgue_number_lemma hs (by simpa) hc₂

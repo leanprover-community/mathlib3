@@ -489,27 +489,6 @@ theorem repeat_subset_singleton : ∀ (a : α) n, repeat a n ⊆ a::0 := repeat_
 theorem repeat_le_coe {a : α} {n} {l : list α} : repeat a n ≤ l ↔ list.repeat a n <+ l :=
 ⟨λ ⟨l', p, s⟩, (perm_repeat.1 p) ▸ s, sublist.subperm⟩
 
-/- range -/
-
-/-- `range n` is the multiset lifted from the list `range n`,
-  that is, the set `{0, 1, ..., n-1}`. -/
-def range (n : ℕ) : multiset ℕ := range n
-
-@[simp] theorem range_zero : range 0 = 0 := rfl
-
-@[simp] theorem range_succ (n : ℕ) : range (succ n) = n :: range n :=
-by rw [range, range_concat, ← coe_add, add_comm]; refl
-
-@[simp] theorem card_range (n : ℕ) : card (range n) = n := length_range _
-
-theorem range_subset {m n : ℕ} : range m ⊆ range n ↔ m ≤ n := range_subset
-
-@[simp] theorem mem_range {m n : ℕ} : m ∈ range n ↔ m < n := mem_range
-
-@[simp] theorem not_mem_range_self {n : ℕ} : n ∉ range n := not_mem_range_self
-
-theorem self_mem_range_succ (n : ℕ) : n ∈ range (n + 1) := list.self_mem_range_succ n
-
 /- erase -/
 section erase
 variables [decidable_eq α] {s t : multiset α} {a b : α}
@@ -819,7 +798,7 @@ lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_add_comm_monoid β]
   f s.sum ≤ (s.map f).sum :=
 multiset.induction_on s (le_of_eq h_zero) $
   assume a s ih, by rw [sum_cons, map_cons, sum_cons];
-    from le_trans (h_add a s.sum) (add_le_add_left' ih)
+    from le_trans (h_add a s.sum) (add_le_add_left ih _)
 
 lemma abs_sum_le_sum_abs [discrete_linear_ordered_field α] {s : multiset α} :
   abs s.sum ≤ (s.map abs).sum :=

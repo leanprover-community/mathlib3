@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 
-import ring_theory.prod
+import algebra.ring.prod
 import group_theory.submonoid
 import data.equiv.ring
 
@@ -94,7 +94,7 @@ protected theorem ext'_iff {s t : subsemiring R}  : s = t ↔ (s : set R) = t :=
 ⟨λ h, h ▸ rfl, λ h, ext' h⟩
 
 /-- Two subsemirings are equal if they have the same elements. -/
-theorem ext {S T : subsemiring R} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := ext' $ set.ext h
+@[ext] theorem ext {S T : subsemiring R} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := ext' $ set.ext h
 
 /-- A subsemiring contains the semiring's 1. -/
 theorem one_mem : (1 : R) ∈ s := s.one_mem'
@@ -338,6 +338,41 @@ lemma closure_induction {s : set R} {p : R → Prop} {x} (h : x ∈ closure s)
   (Hadd : ∀ x y, p x → p y → p (x + y)) (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
 (@closure_le _ _ _ ⟨p, H1, Hmul, H0, Hadd⟩).2 Hs h
 
+lemma mem_closure_iff {s : set R} {x} :
+  x ∈ closure s ↔ x ∈ add_submonoid.closure (submonoid.closure s : set R) :=
+⟨λ h, closure_induction h (λ x hx, add_submonoid.subset_closure $ submonoid.subset_closure hx)
+  (add_submonoid.zero_mem _)
+  (add_submonoid.subset_closure $ submonoid.one_mem $ submonoid.closure s)
+  (λ _ _, add_submonoid.add_mem _)
+  (λ x y ihx ihy, add_submonoid.closure_induction ihy
+    (λ q hq, add_submonoid.closure_induction ihx
+      (λ p hp, add_submonoid.subset_closure $ (submonoid.closure s).mul_mem hp hq)
+      ((zero_mul q).symm ▸ add_submonoid.zero_mem _)
+      (λ p₁ p₂ ihp₁ ihp₂, (add_mul p₁ p₂ q).symm ▸ add_submonoid.add_mem _ ihp₁ ihp₂))
+    ((mul_zero x).symm ▸ add_submonoid.zero_mem _)
+    (λ q₁ q₂ ihq₁ ihq₂, (mul_add x q₁ q₂).symm ▸ add_submonoid.add_mem _ ihq₁ ihq₂)),
+λ h, add_submonoid.closure_induction h
+  (λ x hx, submonoid.closure_induction hx subset_closure (one_mem _) (λ _ _, mul_mem _))
+  (zero_mem _)
+  (λ _ _, add_mem _)⟩
+
+lemma mem_closure_iff_exists_list {s : set R} {x} : x ∈ closure s ↔
+  ∃ L : list (list R), (∀ t ∈ L, ∀ y ∈ t, y ∈ s) ∧ (L.map list.prod).sum = x :=
+⟨λ hx, add_submonoid.closure_induction (mem_closure_iff.1 hx)
+  (λ x hx, suffices ∃ t : list R, (∀ y ∈ t, y ∈ s) ∧ t.prod = x,
+    from let ⟨t, ht1, ht2⟩ := this in ⟨[t], list.forall_mem_singleton.2 ht1,
+      by rw [list.map_singleton, list.sum_singleton, ht2]⟩,
+    submonoid.closure_induction hx
+      (λ x hx, ⟨[x], list.forall_mem_singleton.2 hx, one_mul x⟩)
+      ⟨[], list.forall_mem_nil _, rfl⟩
+      (λ x y ⟨t, ht1, ht2⟩ ⟨u, hu1, hu2⟩, ⟨t ++ u, list.forall_mem_append.2 ⟨ht1, hu1⟩,
+        by rw [list.prod_append, ht2, hu2]⟩))
+  ⟨[], list.forall_mem_nil _, rfl⟩
+  (λ x y ⟨L, HL1, HL2⟩ ⟨M, HM1, HM2⟩, ⟨L ++ M, list.forall_mem_append.2 ⟨HL1, HM1⟩,
+    by rw [list.map_append, list.sum_append, HL2, HM2]⟩),
+λ ⟨L, HL1, HL2⟩, HL2 ▸ list_sum_mem _ (λ r hr, let ⟨t, ht1, ht2⟩ := list.mem_map.1 hr in
+  ht2 ▸ list_prod_mem _ (λ y hy, subset_closure $ HL1 t ht1 y hy))⟩
+
 variable (R)
 
 /-- `closure` forms a Galois insertion with the coercion to set. -/
@@ -446,8 +481,7 @@ lemma mem_Sup_of_directed_on {S : set (subsemiring R)} (Sne : S.nonempty)
   x ∈ Sup S ↔ ∃ s ∈ S, x ∈ s :=
 begin
   haveI : nonempty S := Sne.to_subtype,
-  rw [Sup_eq_supr, supr_subtype', mem_supr_of_directed, subtype.exists],
-  exact (directed_on_iff_directed _).1 hS
+  simp only [Sup_eq_supr', mem_supr_of_directed hS.directed_coe, set_coe.exists, subtype.coe_mk]
 end
 
 lemma coe_Sup_of_directed_on {S : set (subsemiring R)} (Sne : S.nonempty) (hS : directed_on (≤) S) :

@@ -3,9 +3,12 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.category.Group.basic
+import algebra.category.Group.preadditive
+import group_theory.quotient_group
 import category_theory.limits.limits
 import category_theory.limits.concrete_category
+import category_theory.limits.shapes.kernels
+import category_theory.limits.shapes.concrete_category
 
 /-!
 # The category of additive commutative groups has all colimits.
@@ -260,7 +263,6 @@ begin
 end
 
 /-- The group homomorphism from the colimit abelian group to the cone point of any other cocone. -/
-@[simps]
 def desc_morphism (s : cocone F) : colimit F ⟶ s.X :=
 { to_fun := desc_fun F s,
   map_zero' := rfl,
@@ -290,3 +292,23 @@ instance has_colimits_AddCommGroup : has_colimits AddCommGroup :=
       is_colimit := colimit_is_colimit F } } }
 
 end AddCommGroup.colimits
+
+namespace AddCommGroup
+
+-- TODO why is this not always an instance?
+-- I guess it's deprecated in any case, so not long for this world.
+local attribute [instance] normal_add_subgroup_of_add_comm_group
+
+open quotient_add_group
+
+/--
+The categorical cokernel of a morphism in `AddCommGroup`
+agrees with the usual group-theoretical quotient.
+-/
+def cokernel_iso_quotient {G H : AddCommGroup} (f : G ⟶ H) :
+  cokernel f ≅ AddCommGroup.of (quotient (set.range f)) :=
+{ hom := cokernel.desc f (add_monoid_hom.of mk)
+    (by { ext, apply quotient.sound, fsplit, exact -x, simp, }),
+  inv := add_monoid_hom.of (quotient_add_group.lift (set.range f) (cokernel.π f) (by tidy)), }
+
+end AddCommGroup

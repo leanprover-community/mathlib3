@@ -77,6 +77,13 @@ lemma comp_sup_eq_sup_comp_of_is_total [is_total α (≤)] {γ : Type} [semilatt
   (g : α → γ) (mono_g : monotone g) (bot : g ⊥ = ⊥) : g (s.sup f) = s.sup (g ∘ f) :=
 comp_sup_eq_sup_comp g mono_g.map_sup bot
 
+/-- Computating `sup` in a subtype (closed under `sup`) is the same as computing it in `α`. -/
+lemma sup_coe {P : α → Prop}
+  {Pbot : P ⊥} {Psup : ∀{{x y}}, P x → P y → P (x ⊔ y)}
+  (t : finset β) (f : β → {x : α // P x}) :
+  (@sup _ _ (subtype.semilattice_sup_bot Pbot Psup) t f : α) = t.sup (λ x, f x) :=
+by { classical, rw [comp_sup_eq_sup_comp coe]; intros; refl }
+
 theorem subset_range_sup_succ (s : finset ℕ) : s ⊆ range (s.sup id).succ :=
 λ n hn, mem_range.2 $ nat.lt_succ_of_le $ le_sup hn
 
@@ -99,7 +106,7 @@ def inf (s : finset β) (f : β → α) : α := s.fold (⊓) ⊤ f
 
 variables {s s₁ s₂ : finset β} {f : β → α}
 
-lemma inf_val : s.inf f = (s.1.map f).inf := rfl
+lemma inf_def : s.inf f = (s.1.map f).inf := rfl
 
 @[simp] lemma inf_empty : (∅ : finset β).inf f = ⊤ :=
 fold_empty
@@ -142,6 +149,13 @@ lemma comp_inf_eq_inf_comp [semilattice_inf_top γ] {s : finset β}
 lemma comp_inf_eq_inf_comp_of_is_total [h : is_total α (≤)] {γ : Type} [semilattice_inf_top γ]
   (g : α → γ) (mono_g : monotone g) (top : g ⊤ = ⊤) : g (s.inf f) = s.inf (g ∘ f) :=
 comp_inf_eq_inf_comp g mono_g.map_inf top
+
+/-- Computating `inf` in a subtype (closed under `inf`) is the same as computing it in `α`. -/
+lemma inf_coe {P : α → Prop}
+  {Ptop : P ⊤} {Pinf : ∀{{x y}}, P x → P y → P (x ⊓ y)}
+  (t : finset β) (f : β → {x : α // P x}) :
+  (@inf _ _ (subtype.semilattice_inf_top Ptop Pinf) t f : α) = t.inf (λ x, f x) :=
+by { classical, rw [comp_inf_eq_inf_comp coe]; intros; refl }
 
 end inf
 
@@ -338,34 +352,75 @@ end multiset
 
 
 section lattice
-variables {ι : Sort*} [complete_lattice α]
+variables {ι : Type*} {ι' : Sort*} [complete_lattice α]
 
+/-- Supremum of `s i`, `i : ι`, is equal to the supremum over `t : finset ι` of suprema
+`⨆ i ∈ t, s i`. This version assumes `ι` is a `Type*`. See `supr_eq_supr_finset'` for a version
+that works for `ι : Sort*`. -/
 lemma supr_eq_supr_finset (s : ι → α) :
-  (⨆i, s i) = (⨆t:finset (plift ι), ⨆i∈t, s (plift.down i)) :=
+  (⨆i, s i) = (⨆t:finset ι, ⨆i∈t, s i) :=
 begin
   classical,
   exact le_antisymm
-    (supr_le $ assume b, le_supr_of_le {plift.up b} $ le_supr_of_le (plift.up b) $ le_supr_of_le
+    (supr_le $ assume b, le_supr_of_le {b} $ le_supr_of_le b $ le_supr_of_le
       (by simp) $ le_refl _)
     (supr_le $ assume t, supr_le $ assume b, supr_le $ assume hb, le_supr _ _)
 end
 
+/-- Supremum of `s i`, `i : ι`, is equal to the supremum over `t : finset ι` of suprema
+`⨆ i ∈ t, s i`. This version works for `ι : Sort*`. See `supr_eq_supr_finset` for a version
+that assumes `ι : Type*` but has no `plift`s. -/
+lemma supr_eq_supr_finset' (s : ι' → α) :
+  (⨆i, s i) = (⨆t:finset (plift ι'), ⨆i∈t, s (plift.down i)) :=
+by rw [← supr_eq_supr_finset, ← equiv.plift.surjective.supr_comp]; refl
+
+/-- Infimum of `s i`, `i : ι`, is equal to the infimum over `t : finset ι` of infima
+`⨆ i ∈ t, s i`. This version assumes `ι` is a `Type*`. See `infi_eq_infi_finset'` for a version
+that works for `ι : Sort*`. -/
 lemma infi_eq_infi_finset (s : ι → α) :
-  (⨅i, s i) = (⨅t:finset (plift ι), ⨅i∈t, s (plift.down i)) :=
+  (⨅i, s i) = (⨅t:finset ι, ⨅i∈t, s i) :=
 @supr_eq_supr_finset (order_dual α) _ _ _
+
+/-- Infimum of `s i`, `i : ι`, is equal to the infimum over `t : finset ι` of infima
+`⨆ i ∈ t, s i`. This version works for `ι : Sort*`. See `infi_eq_infi_finset` for a version
+that assumes `ι : Type*` but has no `plift`s. -/
+lemma infi_eq_infi_finset' (s : ι' → α) :
+  (⨅i, s i) = (⨅t:finset (plift ι'), ⨅i∈t, s (plift.down i)) :=
+@supr_eq_supr_finset' (order_dual α) _ _ _
 
 end lattice
 
 namespace set
-variables {ι : Sort*}
+variables {ι : Type*} {ι' : Sort*}
 
+/-- Union of an indexed family of sets `s : ι → set α` is equal to the union of the unions
+of finite subfamilies. This version assumes `ι : Type*`. See also `Union_eq_Union_finset'` for
+a version that works for `ι : Sort*`. -/
 lemma Union_eq_Union_finset (s : ι → set α) :
-  (⋃i, s i) = (⋃t:finset (plift ι), ⋃i∈t, s (plift.down i)) :=
+  (⋃i, s i) = (⋃t:finset ι, ⋃i∈t, s i) :=
 supr_eq_supr_finset s
 
+/-- Union of an indexed family of sets `s : ι → set α` is equal to the union of the unions
+of finite subfamilies. This version works for `ι : Sort*`. See also `Union_eq_Union_finset` for
+a version that assumes `ι : Type*` but avoids `plift`s in the right hand side. -/
+lemma Union_eq_Union_finset' (s : ι' → set α) :
+  (⋃i, s i) = (⋃t:finset (plift ι'), ⋃i∈t, s (plift.down i)) :=
+supr_eq_supr_finset' s
+
+/-- Intersection of an indexed family of sets `s : ι → set α` is equal to the intersection of the
+intersections of finite subfamilies. This version assumes `ι : Type*`. See also
+`Inter_eq_Inter_finset'` for a version that works for `ι : Sort*`. -/
 lemma Inter_eq_Inter_finset (s : ι → set α) :
-  (⋂i, s i) = (⋂t:finset (plift ι), ⋂i∈t, s (plift.down i)) :=
+  (⋂i, s i) = (⋂t:finset ι, ⋂i∈t, s i) :=
 infi_eq_infi_finset s
+
+/-- Intersection of an indexed family of sets `s : ι → set α` is equal to the intersection of the
+intersections of finite subfamilies. This version works for `ι : Sort*`. See also
+`Inter_eq_Inter_finset` for a version that assumes `ι : Type*` but avoids `plift`s in the right
+hand side. -/
+lemma Inter_eq_Inter_finset' (s : ι' → set α) :
+  (⋂i, s i) = (⋂t:finset (plift ι'), ⋂i∈t, s (plift.down i)) :=
+infi_eq_infi_finset' s
 
 end set
 
@@ -432,6 +487,10 @@ supr_singleton a s
 
 @[simp] theorem bInter_singleton (a : α) (s : α → set β) : (⋂ x ∈ ({a} : finset α), s x) = s a :=
 infi_singleton a s
+
+@[simp] lemma bUnion_preimage_singleton (f : α → β) (s : finset β) :
+  (⋃ y ∈ s, f ⁻¹' {y}) = f ⁻¹' ↑s :=
+set.bUnion_preimage_singleton f ↑s
 
 variables [decidable_eq α]
 

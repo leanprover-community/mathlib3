@@ -7,6 +7,7 @@ Coinductive formalization of unbounded computations.
 -/
 import data.stream
 import tactic.basic
+
 universes u v w
 
 /-

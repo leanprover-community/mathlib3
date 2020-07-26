@@ -187,7 +187,7 @@ begin
   refine is_linear_map.with_bound ⟨λ f₁ f₂, by { ext m, refl }, λ c f, by { ext m, refl }⟩
     (∥g∥ ^ (fintype.card ι)) (λ f, _),
   apply continuous_multilinear_map.op_norm_le_bound _ _ (λ m, _),
-  { apply_rules [mul_nonneg, pow_nonneg, norm_nonneg, norm_nonneg] },
+  { apply_rules [mul_nonneg, pow_nonneg, norm_nonneg] },
   calc ∥f (g ∘ m)∥ ≤
     ∥f∥ * ∏ i, ∥g (m i)∥ : f.le_op_norm _
     ... ≤ ∥f∥ * ∏ i, (∥g∥ * ∥m i∥) : begin
@@ -219,7 +219,7 @@ variable {f : E × F → G}
 protected lemma is_bounded_bilinear_map.is_O (h : is_bounded_bilinear_map 𝕜 f) :
   asymptotics.is_O f (λ p : E × F, ∥p.1∥ * ∥p.2∥) ⊤ :=
 let ⟨C, Cpos, hC⟩ := h.bound in asymptotics.is_O.of_bound _ $
-filter.eventually_of_forall ⊤ $ λ ⟨x, y⟩, by simpa [mul_assoc] using hC x y
+filter.eventually_of_forall $ λ ⟨x, y⟩, by simpa [mul_assoc] using hC x y
 
 lemma is_bounded_bilinear_map.is_O_comp {α : Type*} (H : is_bounded_bilinear_map 𝕜 f)
   {g : α → E} {h : α → F} {l : filter α} :
@@ -341,7 +341,7 @@ lemma is_bounded_bilinear_map_comp_multilinear {ι : Type*} {E : ι → Type*}
   smul_right := λ c g f, by { ext m, simp },
   bound      := ⟨1, zero_lt_one, λ g f, begin
     apply continuous_multilinear_map.op_norm_le_bound _ _ (λm, _),
-    { apply_rules [mul_nonneg, zero_le_one, norm_nonneg, norm_nonneg] },
+    { apply_rules [mul_nonneg, zero_le_one, norm_nonneg] },
     calc ∥g (f m)∥ ≤ ∥g∥ * ∥f m∥ : g.le_op_norm _
     ... ≤ ∥g∥ * (∥f∥ * ∏ i, ∥m i∥) :
       mul_le_mul_of_nonneg_left (f.le_op_norm _) (norm_nonneg _)
@@ -404,8 +404,7 @@ begin
     calc ∥f (p.1, q.2) + f (q.1, p.2)∥
       ≤ C * ∥p.1∥ * ∥q.2∥ + C * ∥q.1∥ * ∥p.2∥ : norm_add_le_of_le (hC _ _) (hC _ _)
     ... ≤ C * ∥p∥ * ∥q∥ + C * ∥q∥ * ∥p∥ : by apply_rules [add_le_add, mul_le_mul, norm_nonneg,
-      le_of_lt Cpos, le_refl, le_max_left, le_max_right, mul_nonneg, norm_nonneg, norm_nonneg,
-      norm_nonneg]
+      le_of_lt Cpos, le_refl, le_max_left, le_max_right, mul_nonneg]
     ... = (C + C) * ∥p∥ * ∥q∥ : by ring },
 end
 

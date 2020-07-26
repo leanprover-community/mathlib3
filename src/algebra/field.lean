@@ -3,7 +3,7 @@ Copyright (c) 2014 Robert Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
-import algebra.ring
+import algebra.ring.basic
 import algebra.group_with_zero
 open set
 
@@ -14,17 +14,13 @@ universe u
 variables {α : Type u}
 
 @[protect_proj, ancestor ring has_inv]
-class division_ring (α : Type u) extends ring α, has_inv α :=
+class division_ring (α : Type u) extends ring α, has_inv α, nontrivial α :=
 (mul_inv_cancel : ∀ {a : α}, a ≠ 0 → a * a⁻¹ = 1)
 (inv_mul_cancel : ∀ {a : α}, a ≠ 0 → a⁻¹ * a = 1)
 (inv_zero : (0 : α)⁻¹ = 0)
-(zero_ne_one : (0 : α) ≠ 1)
 
 section division_ring
 variables [division_ring α] {a b : α}
-
-instance division_ring.to_nonzero : nonzero α :=
-⟨division_ring.zero_ne_one⟩
 
 instance division_ring_has_div : has_div α :=
 ⟨λ a b, a * b⁻¹⟩
@@ -115,10 +111,9 @@ instance division_ring.to_domain : domain α :=
 end division_ring
 
 @[protect_proj, ancestor division_ring comm_ring]
-class field (α : Type u) extends comm_ring α, has_inv α :=
+class field (α : Type u) extends comm_ring α, has_inv α, nontrivial α :=
 (mul_inv_cancel : ∀ {a : α}, a ≠ 0 → a * a⁻¹ = 1)
 (inv_zero : (0 : α)⁻¹ = 0)
-(zero_ne_one : (0 : α) ≠ 1)
 
 section field
 
@@ -176,6 +171,16 @@ instance field.to_integral_domain : integral_domain α :=
 end field
 
 namespace ring_hom
+
+section
+
+variables {R K : Type*} [semiring R] [field K] (f : R →+* K)
+
+@[simp] lemma map_units_inv (u : units R) :
+  f ↑u⁻¹ = (f ↑u)⁻¹ :=
+monoid_hom.map_units_inv f.to_monoid_hom u
+
+end
 
 section
 

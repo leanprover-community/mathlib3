@@ -9,7 +9,7 @@ import data.complex.basic
 /-!
 # Exponential, trigonometric and hyperbolic trigonometric functions
 
-This file containss the definitions of the real and complex exponential, sine, cosine, tangent,
+This file contains the definitions of the real and complex exponential, sine, cosine, tangent,
 hyperbolic sine, hypebolic cosine, and hyperbolic tangent functions.
 
 -/
@@ -823,10 +823,10 @@ lemma sin_sq_add_cos_sq : sin x ^ 2 + cos x ^ 2 = 1 :=
 of_real_inj.1 $ by simpa using sin_sq_add_cos_sq x
 
 lemma sin_sq_le_one : sin x ^ 2 ≤ 1 :=
-by rw ← sin_sq_add_cos_sq x; exact le_add_of_nonneg_right' (pow_two_nonneg _)
+by rw ← sin_sq_add_cos_sq x; exact le_add_of_nonneg_right (pow_two_nonneg _)
 
 lemma cos_sq_le_one : cos x ^ 2 ≤ 1 :=
-by rw ← sin_sq_add_cos_sq x; exact le_add_of_nonneg_left' (pow_two_nonneg _)
+by rw ← sin_sq_add_cos_sq x; exact le_add_of_nonneg_left (pow_two_nonneg _)
 
 lemma abs_sin_le_one : abs' (sin x) ≤ 1 :=
 (mul_self_le_mul_self_iff (_root_.abs_nonneg (sin x)) (by exact zero_le_one)).2 $
@@ -926,6 +926,8 @@ lemma exp_strict_mono : strict_mono exp :=
 λ x y h, by rw [← sub_add_cancel y x, real.exp_add];
   exact (lt_mul_iff_one_lt_left (exp_pos _)).2
     (lt_of_lt_of_le (by linarith) (add_one_le_exp_of_nonneg (by linarith)))
+
+@[mono] lemma exp_monotone : ∀ {x y : ℝ}, x ≤ y → exp x ≤ exp y := exp_strict_mono.monotone
 
 lemma exp_lt_exp {x y : ℝ} : exp x < exp y ↔ x < y := exp_strict_mono.lt_iff_lt
 

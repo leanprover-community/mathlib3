@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard,
 Amelia Livingston, Yury Kudryashov
 -/
-import algebra.group.basic
 import data.set.lattice
 
 /-!
@@ -138,6 +137,8 @@ theorem one_mem : (1 : M) ∈ S := S.one_mem'
 /-- A submonoid is closed under multiplication. -/
 @[to_additive "An `add_submonoid` is closed under addition."]
 theorem mul_mem {x y : M} : x ∈ S → y ∈ S → x * y ∈ S := submonoid.mul_mem' S
+
+@[to_additive] lemma coe_injective : function.injective (coe : S → M) := subtype.val_injective
 
 @[simp, to_additive] lemma coe_eq_coe (x y : S) : (x : M) = y ↔ x = y := set_coe.ext_iff
 attribute [norm_cast] coe_eq_coe add_submonoid.coe_eq_coe

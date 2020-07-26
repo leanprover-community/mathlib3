@@ -513,7 +513,7 @@ end
 theorem has_sum_pow_div_log_of_abs_lt_1 {x : ℝ} (h : abs x < 1) :
   has_sum (λ (n : ℕ), x ^ (n + 1) / (n + 1)) (-log (1 - x)) :=
 begin
-  rw has_sum_iff_tendsto_nat_of_summable,
+  rw summable.has_sum_iff_tendsto_nat,
   show tendsto (λ (n : ℕ), ∑ (i : ℕ) in range n, x ^ (i + 1) / (i + 1)) at_top (𝓝 (-log (1 - x))),
   { rw [tendsto_iff_norm_tendsto_zero],
     simp only [norm_eq_abs, sub_neg_eq_add],
@@ -533,8 +533,8 @@ begin
       end
     ... ≤ abs x ^ (i+1) / (0 + 1) :
       begin
-        apply_rules [div_le_div_of_le_left, pow_nonneg, abs_nonneg,
-                     add_le_add_right (nat.cast_nonneg i)],
+        apply_rules [div_le_div_of_le_left, pow_nonneg, abs_nonneg, add_le_add_right,
+          i.cast_nonneg],
         norm_num,
       end
     ... ≤ abs x ^ i :

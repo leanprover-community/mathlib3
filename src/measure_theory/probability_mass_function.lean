@@ -24,7 +24,7 @@ lemma has_sum_coe_one (p : pmf α) : has_sum p 1 := p.2
 
 lemma summable_coe (p : pmf α) : summable p := (p.has_sum_coe_one).summable
 
-@[simp] lemma tsum_coe (p : pmf α) : (∑'a, p a) = 1 := tsum_eq_has_sum p.has_sum_coe_one
+@[simp] lemma tsum_coe (p : pmf α) : (∑'a, p a) = 1 := p.has_sum_coe_one.tsum_eq
 
 def support (p : pmf α) : set α := {a | p.1 a ≠ 0}
 

@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzza
 Amelia Livingston, Yury Kudryashov
 -/
 import group_theory.submonoid.operations
-import algebra.big_operators
+import algebra.big_operators.basic
 import algebra.free_monoid
 
 /-!
@@ -100,8 +100,7 @@ lemma mem_Sup_of_directed_on {S : set (submonoid M)} (Sne : S.nonempty)
   x ∈ Sup S ↔ ∃ s ∈ S, x ∈ s :=
 begin
   haveI : nonempty S := Sne.to_subtype,
-  rw [Sup_eq_supr, supr_subtype', mem_supr_of_directed, subtype.exists],
-  exact (directed_on_iff_directed _).1 hS
+  simp only [Sup_eq_supr', mem_supr_of_directed hS.directed_coe, set_coe.exists, subtype.coe_mk]
 end
 
 @[to_additive]

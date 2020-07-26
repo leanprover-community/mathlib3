@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner, Sébastien Gouëzel
 -/
 import analysis.calculus.fderiv
-import data.polynomial
+import data.polynomial.derivative
 
 /-!
 
@@ -368,14 +368,14 @@ by { unfold deriv_within, rw fderiv_within_inter ht hs }
 section congr
 /-! ### Congruence properties of derivatives -/
 
-theorem has_deriv_at_filter_congr_of_mem_sets
-  (hx : f₀ x = f₁ x) (h₀ : ∀ᶠ x in L, f₀ x = f₁ x) (h₁ : f₀' = f₁') :
+theorem filter.eventually_eq.has_deriv_at_filter_iff
+  (h₀ : f₀ =ᶠ[L] f₁) (hx : f₀ x = f₁ x) (h₁ : f₀' = f₁') :
   has_deriv_at_filter f₀ f₀' x L ↔ has_deriv_at_filter f₁ f₁' x L :=
-has_fderiv_at_filter_congr_of_mem_sets hx h₀ (by simp [h₁])
+h₀.has_fderiv_at_filter_iff hx (by simp [h₁])
 
-lemma has_deriv_at_filter.congr_of_mem_sets (h : has_deriv_at_filter f f' x L)
-  (hL : ∀ᶠ x in L, f₁ x = f x) (hx : f₁ x = f x) : has_deriv_at_filter f₁ f' x L :=
-by rwa has_deriv_at_filter_congr_of_mem_sets hx hL rfl
+lemma has_deriv_at_filter.congr_of_eventually_eq (h : has_deriv_at_filter f f' x L)
+  (hL : f₁ =ᶠ[L] f) (hx : f₁ x = f x) : has_deriv_at_filter f₁ f' x L :=
+by rwa hL.has_deriv_at_filter_iff hx rfl
 
 lemma has_deriv_within_at.congr_mono (h : has_deriv_within_at f f' s x) (ht : ∀x ∈ t, f₁ x = f x)
   (hx : f₁ x = f x) (h₁ : t ⊆ s) : has_deriv_within_at f₁ f' t x :=
@@ -385,26 +385,26 @@ lemma has_deriv_within_at.congr (h : has_deriv_within_at f f' s x) (hs : ∀x �
   (hx : f₁ x = f x) : has_deriv_within_at f₁ f' s x :=
 h.congr_mono hs hx (subset.refl _)
 
-lemma has_deriv_within_at.congr_of_mem_nhds_within (h : has_deriv_within_at f f' s x)
-  (h₁ : ∀ᶠ y in nhds_within x s, f₁ y = f y) (hx : f₁ x = f x) : has_deriv_within_at f₁ f' s x :=
-has_deriv_at_filter.congr_of_mem_sets h h₁ hx
+lemma has_deriv_within_at.congr_of_eventually_eq (h : has_deriv_within_at f f' s x)
+  (h₁ : f₁ =ᶠ[nhds_within x s] f) (hx : f₁ x = f x) : has_deriv_within_at f₁ f' s x :=
+has_deriv_at_filter.congr_of_eventually_eq h h₁ hx
 
-lemma has_deriv_at.congr_of_mem_nhds (h : has_deriv_at f f' x)
-  (h₁ : ∀ᶠ y in 𝓝 x, f₁ y = f y) : has_deriv_at f₁ f' x :=
-has_deriv_at_filter.congr_of_mem_sets h h₁ (mem_of_nhds h₁ : _)
+lemma has_deriv_at.congr_of_eventually_eq (h : has_deriv_at f f' x)
+  (h₁ : f₁ =ᶠ[𝓝 x] f) : has_deriv_at f₁ f' x :=
+has_deriv_at_filter.congr_of_eventually_eq h h₁ (mem_of_nhds h₁ : _)
 
-lemma deriv_within_congr_of_mem_nhds_within (hs : unique_diff_within_at 𝕜 s x)
-  (hL : ∀ᶠ y in nhds_within x s, f₁ y = f y) (hx : f₁ x = f x) :
+lemma filter.eventually_eq.deriv_within_eq (hs : unique_diff_within_at 𝕜 s x)
+  (hL : f₁ =ᶠ[nhds_within x s] f) (hx : f₁ x = f x) :
   deriv_within f₁ s x = deriv_within f s x :=
-by { unfold deriv_within, rw fderiv_within_congr_of_mem_nhds_within hs hL hx }
+by { unfold deriv_within, rw hL.fderiv_within_eq hs hx }
 
 lemma deriv_within_congr (hs : unique_diff_within_at 𝕜 s x)
   (hL : ∀y∈s, f₁ y = f y) (hx : f₁ x = f x) :
   deriv_within f₁ s x = deriv_within f s x :=
 by { unfold deriv_within, rw fderiv_within_congr hs hL hx }
 
-lemma deriv_congr_of_mem_nhds (hL : ∀ᶠ y in 𝓝 x, f₁ y = f y) : deriv f₁ x = deriv f x :=
-by { unfold deriv, rwa fderiv_congr_of_mem_nhds }
+lemma filter.eventually_eq.deriv_eq (hL : f₁ =ᶠ[𝓝 x] f) : deriv f₁ x = deriv f x :=
+by { unfold deriv, rwa filter.eventually_eq.fderiv_eq }
 
 end congr
 
@@ -733,21 +733,61 @@ theorem has_strict_deriv_at.neg (h : has_strict_deriv_at f f' x) :
   has_strict_deriv_at (λ x, -f x) (-f') x :=
 by simpa using h.neg.has_strict_deriv_at
 
-lemma deriv_within_neg (hxs : unique_diff_within_at 𝕜 s x)
+lemma deriv_within.neg (hxs : unique_diff_within_at 𝕜 s x)
   (h : differentiable_within_at 𝕜 f s x) :
   deriv_within (λy, -f y) s x = - deriv_within f s x :=
 h.has_deriv_within_at.neg.deriv_within hxs
 
-lemma deriv_neg : deriv (λy, -f y) x = - deriv f x :=
+lemma deriv.neg : deriv (λy, -f y) x = - deriv f x :=
 if h : differentiable_at 𝕜 f x then h.has_deriv_at.neg.deriv else
 have ¬differentiable_at 𝕜 (λ y, -f y) x, from λ h', by simpa only [neg_neg] using h'.neg,
 by simp only [deriv_zero_of_not_differentiable_at h,
   deriv_zero_of_not_differentiable_at this, neg_zero]
 
-@[simp] lemma deriv_neg' : deriv (λy, -f y) = (λ x, - deriv f x) :=
-funext $ λ x, deriv_neg
+@[simp] lemma deriv.neg' : deriv (λy, -f y) = (λ x, - deriv f x) :=
+funext $ λ x, deriv.neg
 
 end neg
+
+section neg2
+/-! ### Derivative of the negation function (i.e `has_neg.neg`) -/
+
+variables (s x L)
+
+theorem has_deriv_at_filter_neg : has_deriv_at_filter has_neg.neg (-1) x L :=
+has_deriv_at_filter.neg $ has_deriv_at_filter_id _ _
+
+theorem has_deriv_within_at_neg : has_deriv_within_at has_neg.neg (-1) s x :=
+has_deriv_at_filter_neg _ _
+
+theorem has_deriv_at_neg : has_deriv_at has_neg.neg (-1) x :=
+has_deriv_at_filter_neg _ _
+
+theorem has_deriv_at_neg' : has_deriv_at (λ x, -x) (-1) x :=
+has_deriv_at_filter_neg _ _
+
+theorem has_strict_deriv_at_neg : has_strict_deriv_at has_neg.neg (-1) x :=
+has_strict_deriv_at.neg $ has_strict_deriv_at_id _
+
+lemma deriv_neg : deriv has_neg.neg x = -1 :=
+has_deriv_at.deriv (has_deriv_at_neg x)
+
+@[simp] lemma deriv_neg' : deriv (has_neg.neg : 𝕜 → 𝕜) = λ _, -1 :=
+funext deriv_neg
+
+@[simp] lemma deriv_neg'' : deriv (λ x : 𝕜, -x) x = -1 :=
+deriv_neg x
+
+lemma deriv_within_neg (hxs : unique_diff_within_at 𝕜 s x) : deriv_within has_neg.neg s x = -1 :=
+(has_deriv_within_at_neg x s).deriv_within hxs
+
+lemma differentiable_neg : differentiable 𝕜 (has_neg.neg : 𝕜 → 𝕜) :=
+differentiable.neg differentiable_id
+
+lemma differentiable_on_neg : differentiable_on 𝕜 (has_neg.neg : 𝕜 → 𝕜) s :=
+differentiable_on.neg differentiable_on_id
+
+end neg2
 
 section sub
 /-! ### Derivative of the difference of two functions -/
@@ -1174,7 +1214,7 @@ theorem has_strict_deriv_at_inv (hx : x ≠ 0) : has_strict_deriv_at has_inv.inv
 begin
   suffices : is_o (λ p : 𝕜 × 𝕜, (p.1 - p.2) * ((x * x)⁻¹ - (p.1 * p.2)⁻¹))
     (λ (p : 𝕜 × 𝕜), (p.1 - p.2) * 1) (𝓝 (x, x)),
-  { refine this.congr' _ (eventually_of_forall _ $ λ _, mul_one _),
+  { refine this.congr' _ (eventually_of_forall $ λ _, mul_one _),
     refine eventually.mono (mem_nhds_sets (is_open_prod is_open_ne is_open_ne) ⟨hx, hx⟩) _,
     rintro ⟨y, z⟩ ⟨hy, hz⟩,
     simp only [mem_set_of_eq] at hy hz, -- hy : y ≠ 0, hz : z ≠ 0
@@ -1633,7 +1673,7 @@ begin
       sub_zero, int.cast_one] },
   { rw [function.iterate_succ', finset.prod_range_succ, int.cast_mul, mul_assoc, mul_left_comm,
       int.coe_nat_succ, ← sub_sub, ← ((has_deriv_at_fpow _ hx).const_mul _).deriv],
-    exact deriv_congr_of_mem_nhds (eventually.mono (mem_nhds_sets is_open_ne hx) @ihk) }
+    exact filter.eventually_eq.deriv_eq (eventually.mono (mem_nhds_sets is_open_ne hx) @ihk) }
 end
 
 end fpow
@@ -1656,7 +1696,7 @@ lemma has_deriv_within_at.limsup_slope_le' (hf : has_deriv_within_at f f' s x)
 lemma has_deriv_within_at.liminf_right_slope_le
   (hf : has_deriv_within_at f f' (Ioi x) x) (hr : f' < r) :
   ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (f z - f x) < r :=
-(hf.limsup_slope_le' (lt_irrefl x) hr).frequently (nhds_within_Ioi_self_ne_bot x)
+(hf.limsup_slope_le' (lt_irrefl x) hr).frequently
 
 end real
 
@@ -1713,7 +1753,7 @@ for a stronger version using limit superior and any set `s`. -/
 lemma has_deriv_within_at.liminf_right_norm_slope_le
   (hf : has_deriv_within_at f f' (Ioi x) x) (hr : ∥f'∥ < r) :
   ∃ᶠ z in nhds_within x (Ioi x), ∥z - x∥⁻¹ * ∥f z - f x∥ < r :=
-(hf.limsup_norm_slope_le hr).frequently (nhds_within_Ioi_self_ne_bot x)
+(hf.limsup_norm_slope_le hr).frequently
 
 /-- If `f` has derivative `f'` within `(x, +∞)` at `x`, then for any `r > ∥f'∥` the ratio
 `(∥f z∥ - ∥f x∥) / (z - x)` is frequently less than `r` as `z → x+0`.
@@ -1730,7 +1770,7 @@ lemma has_deriv_within_at.liminf_right_slope_norm_le
   (hf : has_deriv_within_at f f' (Ioi x) x) (hr : ∥f'∥ < r) :
   ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (∥f z∥ - ∥f x∥) < r :=
 begin
-  have := (hf.limsup_slope_norm_le hr).frequently (nhds_within_Ioi_self_ne_bot x),
+  have := (hf.limsup_slope_norm_le hr).frequently,
   refine this.mp (eventually.mono self_mem_nhds_within _),
   assume z hxz hz,
   rwa [real.norm_eq_abs, abs_of_pos (sub_pos_of_lt hxz)] at hz

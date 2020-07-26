@@ -111,7 +111,7 @@ begin
     { simp } },
   have D : liminf at_top (λ n : ℕ, (r : ennreal) / ((C + 1)^(1/(n : ℝ)) : nnreal)) ≤ p.radius :=
     liminf_le_liminf B,
-  rw liminf_eq_of_tendsto filter.at_top_ne_bot L at D,
+  rw L.liminf_eq at D,
   simpa using D
 end
 
@@ -192,7 +192,7 @@ def partial_sum (p : formal_multilinear_series 𝕜 E F) (n : ℕ) (x : E) : F :
 /-- The partial sums of a formal multilinear series are continuous. -/
 lemma partial_sum_continuous (p : formal_multilinear_series 𝕜 E F) (n : ℕ) :
   continuous (p.partial_sum n) :=
-continuous_finset_sum (finset.range n) $ λ k hk, (p k).cont.comp (continuous_pi (λ i, continuous_id))
+by continuity
 
 end formal_multilinear_series
 
@@ -304,7 +304,7 @@ begin
     have : 0 < i := bot_lt_iff_ne_bot.mpr hi,
     apply continuous_multilinear_map.map_coord_zero _ (⟨0, this⟩ : fin i),
     refl },
-  have A := has_sum_unique (hf.has_sum zero_mem) (has_sum_single _ this),
+  have A := (hf.has_sum zero_mem).unique (has_sum_single _ this),
   simpa [v_eq] using A.symm,
 end
 
@@ -404,10 +404,8 @@ end
 /-- If a function admits a power series expansion on a disk, then it is continuous there. -/
 lemma has_fpower_series_on_ball.continuous_on
   (hf : has_fpower_series_on_ball f p x r) : continuous_on f (emetric.ball x r) :=
-begin
-  apply hf.tendsto_locally_uniformly_on'.continuous_on _ at_top_ne_bot,
-  exact λ n, ((p.partial_sum_continuous n).comp (continuous_id.sub continuous_const)).continuous_on
-end
+hf.tendsto_locally_uniformly_on'.continuous_on $ λ n,
+  ((p.partial_sum_continuous n).comp (continuous_id.sub continuous_const)).continuous_on
 
 lemma has_fpower_series_at.continuous_at (hf : has_fpower_series_at f p x) : continuous_at f x :=
 let ⟨r, hr⟩ := hf in hr.continuous_on.continuous_at (emetric.ball_mem_nhds x (hr.r_pos))
@@ -441,7 +439,7 @@ lemma has_fpower_series_on_ball.sum [complete_space F] (h : has_fpower_series_on
 begin
   have A := h.has_sum hy,
   have B := (p.has_fpower_series_on_ball h.radius_pos).has_sum (lt_of_lt_of_le hy h.r_le),
-  simpa using has_sum_unique A B
+  simpa using A.unique B
 end
 
 /-- The sum of a converging power series is continuous in its disk of convergence. -/
@@ -589,7 +587,7 @@ begin
     ennreal.lt_iff_exists_add_pos_lt.mp h,
   have S : @summable ℝ _ _ _ ((λ ⟨n, s, hs⟩, ∥(p n).restr s hs x∥ * (r : ℝ) ^ k) :
     (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}) → ℝ),
-  { convert summable.summable_comp_of_injective (p.change_origin_summable_aux2 hr)
+  { convert (p.change_origin_summable_aux2 hr).comp_injective
       (change_origin_summable_aux_j_injective k),
     -- again, cleanup that could be done by `tidy`:
     ext ⟨_, ⟨_, _⟩⟩, refl },

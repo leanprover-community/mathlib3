@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Abhimanyu Pallavi Sudhir
 -/
 import order.filter.basic
-import algebra.pi_instances
+import algebra.module.pi
 
 /-!
 # Germ of a function at a filter
@@ -55,60 +55,16 @@ namespace filter
 
 variables {α β γ δ : Type*} {l : filter α} {f g h : α → β}
 
-lemma const_eventually_eq' (hl : l ≠ ⊥) {a b : β} : (∀ᶠ x in l, a = b) ↔ a = b :=
-eventually_const hl
+lemma const_eventually_eq' [ne_bot l] {a b : β} : (∀ᶠ x in l, a = b) ↔ a = b :=
+eventually_const
 
-lemma const_eventually_eq (hl : l ≠ ⊥) {a b : β} : ((λ _, a) =ᶠ[l] (λ _, b)) ↔ a = b :=
-@const_eventually_eq' _ _ _ hl a b
+lemma const_eventually_eq [ne_bot l] {a b : β} : ((λ _, a) =ᶠ[l] (λ _, b)) ↔ a = b :=
+@const_eventually_eq' _ _ _ _ a b
 
 lemma eventually_eq.comp_tendsto {f' : α → β} (H : f =ᶠ[l] f') {g : γ → α} {lc : filter γ}
   (hg : tendsto g lc l) :
   f ∘ g =ᶠ[lc] f' ∘ g :=
 hg.eventually H
-
-section has_le
-
-variables [has_le β]
-
-/-- A function `f` is eventually less than or equal to a function `g` at a filter `l`. -/
-def eventually_le (l : filter α) (f g : α → β) : Prop := ∀ᶠ x in l, f x ≤ g x
-
-notation f ` ≤ᶠ[`:50 l:50 `] `:0 g:50 := eventually_le l f g
-
-lemma eventually_le.congr {f f' g g' : α → β} (H : f ≤ᶠ[l] g) (hf : f =ᶠ[l] f') (hg : g =ᶠ[l] g') :
-  f' ≤ᶠ[l] g' :=
-H.mp $ hg.mp $ hf.mono $ λ x hf hg H, by rwa [hf, hg] at H
-
-lemma eventually_le_congr {f f' g g' : α → β} (hf : f =ᶠ[l] f') (hg : g =ᶠ[l] g') :
-  f ≤ᶠ[l] g ↔ f' ≤ᶠ[l] g' :=
-⟨λ H, H.congr hf hg, λ H, H.congr hf.symm hg.symm⟩
-
-end has_le
-
-section preorder
-
-variables [preorder β]
-
-lemma eventually_eq.le (h : f =ᶠ[l] g) : f ≤ᶠ[l] g := h.mono $ λ x, le_of_eq
-
-@[refl] lemma eventually_le.refl (l : filter α) (f : α → β) :
-  f ≤ᶠ[l] f :=
-(eventually_eq.refl l f).le
-
-@[trans] lemma eventually_le.trans (H₁ : f ≤ᶠ[l] g) (H₂ : g ≤ᶠ[l] h) : f ≤ᶠ[l] h :=
-H₂.mp $ H₁.mono $ λ x, le_trans
-
-@[trans] lemma eventually_eq.trans_le (H₁ : f =ᶠ[l] g) (H₂ : g ≤ᶠ[l] h) : f ≤ᶠ[l] h :=
-H₁.le.trans H₂
-
-@[trans] lemma eventually_le.trans_eq (H₁ : f ≤ᶠ[l] g) (H₂ : g =ᶠ[l] h) : f ≤ᶠ[l] h :=
-H₁.trans H₂.le
-
-end preorder
-
-lemma eventually_le.antisymm [partial_order β] (h₁ : f ≤ᶠ[l] g) (h₂ : g ≤ᶠ[l] f) :
-  f =ᶠ[l] g :=
-h₂.mp $ h₁.mono $ λ x, le_antisymm
 
 /-- Setoid used to define the space of germs. -/
 def germ_setoid (l : filter α) (β : Type*) : setoid (α → β) :=
@@ -181,6 +137,10 @@ def map₂ (op : β → γ → δ) : germ l β → germ l γ → germ l δ :=
 quotient.map₂' (λ f g x, op (f x) (g x)) $ λ f f' Hf g g' Hg,
 Hg.mp $ Hf.mono $ λ x Hf Hg, by simp only [Hf, Hg]
 
+@[simp] lemma map₂_coe (op : β → γ → δ) (f : α → β) (g : α → γ) :
+  map₂ op (f : germ l β) g = λ x, op (f x) (g x) :=
+rfl
+
 /-- A germ at `l` of maps from `α` to `β` tends to `lb : filter β` if it is represented by a map
 which tends to `lb` along `l`. -/
 protected def tendsto (f : germ l β) (lb : filter β) : Prop :=
@@ -216,8 +176,8 @@ rfl
   f.comp_tendsto' _ hg.germ_tendsto = f.comp_tendsto g hg :=
 rfl
 
-@[simp, norm_cast] lemma const_inj (hl : l ≠ ⊥) {a b : β} : (↑a : germ l β) = ↑b ↔ a = b :=
-coe_eq.trans $ const_eventually_eq hl
+@[simp, norm_cast] lemma const_inj [ne_bot l] {a b : β} : (↑a : germ l β) = ↑b ↔ a = b :=
+coe_eq.trans $ const_eventually_eq
 
 @[simp] lemma map_const (l : filter α) (a : β) (f : β → γ) :
   (↑a : germ l β).map f = ↑(f a) :=
@@ -248,11 +208,11 @@ iff.rfl
 
 lemma lift_pred_const {p : β → Prop} {x : β} (hx : p x) :
   lift_pred p (↑x : germ l β) :=
-eventually_of_forall _ $ λ y, hx
+eventually_of_forall $ λ y, hx
 
-@[simp] lemma lift_pred_const_iff (hl : l ≠ ⊥) {p : β → Prop} {x : β} :
+@[simp] lemma lift_pred_const_iff [ne_bot l] {p : β → Prop} {x : β} :
   lift_pred p (↑x : germ l β) ↔ p x :=
-@eventually_const _ _ hl (p x)
+@eventually_const _ _ _ (p x)
 
 /-- Lift a relation `r : β → γ → Prop` to `germ l β → germ l γ → Prop`. -/
 def lift_rel (r : β → γ → Prop) (f : germ l β) (g : germ l γ) : Prop :=
@@ -265,11 +225,11 @@ iff.rfl
 
 lemma lift_rel_const {r : β → γ → Prop} {x : β} {y : γ} (h : r x y) :
   lift_rel r (↑x : germ l β) ↑y :=
-eventually_of_forall _ $ λ _, h
+eventually_of_forall $ λ _, h
 
-@[simp] lemma lift_rel_const_iff (hl : l ≠ ⊥) {r : β → γ → Prop} {x : β} {y : γ} :
+@[simp] lemma lift_rel_const_iff [ne_bot l] {r : β → γ → Prop} {x : β} {y : γ} :
   lift_rel r (↑x : germ l β) ↑y ↔ r x y :=
-@eventually_const _ _ hl (r x y)
+@eventually_const _ _ _ (r x y)
 
 instance [inhabited β] : inhabited (germ l β) := ⟨↑(default β)⟩
 
@@ -374,11 +334,8 @@ section ring
 
 variables {R : Type*}
 
-/-- If `0 ≠ 1` in `β` and `l` is a non-trivial filter (`l ≠ ⊥`), then `0 ≠ 1` in `germ l β`.
-This cannot be an `instance` because it depends on `l ≠ ⊥`. -/
-protected lemma nonzero [has_zero R] [has_one R] [nonzero R] (hl : l ≠ ⊥) :
-  nonzero (germ l R) :=
-{ zero_ne_one := mt (const_inj hl).1 zero_ne_one }
+instance nontrivial [nontrivial R] [ne_bot l] : nontrivial (germ l R) :=
+let ⟨x, y, h⟩ := exists_pair_ne R in ⟨⟨↑x, ↑y, mt const_inj.1 h⟩⟩
 
 instance [mul_zero_class R] : mul_zero_class (germ l R) :=
 { zero := 0,
@@ -470,8 +427,8 @@ lemma const_le [has_le β] {x y : β} (h : x ≤ y) : (↑x : germ l β) ≤ ↑
 lift_rel_const h
 
 @[simp, norm_cast]
-lemma const_le_iff [has_le β] (hl : l ≠ ⊥) {x y : β} : (↑x : germ l β) ≤ ↑y ↔ x ≤ y :=
-lift_rel_const_iff hl
+lemma const_le_iff [has_le β] [ne_bot l] {x y : β} : (↑x : germ l β) ≤ ↑y ↔ x ≤ y :=
+lift_rel_const_iff
 
 instance [preorder β] : preorder (germ l β) :=
 { le := (≤),
@@ -490,7 +447,7 @@ instance [has_bot β] : has_bot (germ l β) := ⟨↑(⊥:β)⟩
 instance [order_bot β] : order_bot (germ l β) :=
 { bot := ⊥,
   le := (≤),
-  bot_le := λ f, induction_on f $ λ f, eventually_of_forall _ $ λ x, bot_le,
+  bot_le := λ f, induction_on f $ λ f, eventually_of_forall $ λ x, bot_le,
   .. germ.partial_order }
 
 instance [has_top β] : has_top (germ l β) := ⟨↑(⊤:β)⟩
@@ -500,7 +457,7 @@ instance [has_top β] : has_top (germ l β) := ⟨↑(⊤:β)⟩
 instance [order_top β] : order_top (germ l β) :=
 { top := ⊤,
   le := (≤),
-  le_top := λ f, induction_on f $ λ f, eventually_of_forall _ $ λ x, le_top,
+  le_top := λ f, induction_on f $ λ f, eventually_of_forall $ λ x, le_top,
   .. germ.partial_order }
 
 instance [has_sup β] : has_sup (germ l β) := ⟨map₂ (⊔)⟩
@@ -514,9 +471,9 @@ instance [has_inf β] : has_inf (germ l β) := ⟨map₂ (⊓)⟩
 instance [semilattice_sup β] : semilattice_sup (germ l β) :=
 { sup := (⊔),
   le_sup_left := λ f g, induction_on₂ f g $ λ f g,
-    eventually_of_forall _ $ λ x, le_sup_left,
+    eventually_of_forall $ λ x, le_sup_left,
   le_sup_right := λ f g, induction_on₂ f g $ λ f g,
-    eventually_of_forall _ $ λ x, le_sup_right,
+    eventually_of_forall $ λ x, le_sup_right,
   sup_le := λ f₁ f₂ g, induction_on₃ f₁ f₂ g $ λ f₁ f₂ g h₁ h₂,
     h₂.mp $ h₁.mono $ λ x, sup_le,
   .. germ.partial_order }
@@ -524,9 +481,9 @@ instance [semilattice_sup β] : semilattice_sup (germ l β) :=
 instance [semilattice_inf β] : semilattice_inf (germ l β) :=
 { inf := (⊓),
   inf_le_left := λ f g, induction_on₂ f g $ λ f g,
-    eventually_of_forall _ $ λ x, inf_le_left,
+    eventually_of_forall $ λ x, inf_le_left,
   inf_le_right := λ f g, induction_on₂ f g $ λ f g,
-    eventually_of_forall _ $ λ x, inf_le_right,
+    eventually_of_forall $ λ x, inf_le_right,
   le_inf := λ f₁ f₂ g, induction_on₃ f₁ f₂ g $ λ f₁ f₂ g h₁ h₂,
     h₂.mp $ h₁.mono $ λ x, le_inf,
   .. germ.partial_order }
@@ -552,7 +509,7 @@ instance [bounded_lattice β] : bounded_lattice (germ l β) :=
 @[to_additive ordered_cancel_add_comm_monoid]
 instance [ordered_cancel_comm_monoid β] : ordered_cancel_comm_monoid (germ l β) :=
 { mul_le_mul_left := λ f g, induction_on₂ f g $ λ f g H h, induction_on h $ λ h,
-    H.mono $ λ x H, mul_le_mul_left'' H _,
+    H.mono $ λ x H, mul_le_mul_left' H _,
   le_of_mul_le_mul_left := λ f g h, induction_on₃ f g h $ λ f g h H,
     H.mono $ λ x, le_of_mul_le_mul_left',
   .. germ.partial_order, .. germ.comm_monoid, .. germ.left_cancel_semigroup,
@@ -561,7 +518,7 @@ instance [ordered_cancel_comm_monoid β] : ordered_cancel_comm_monoid (germ l β
 @[to_additive ordered_add_comm_group]
 instance ordered_comm_group [ordered_comm_group β] : ordered_comm_group (germ l β) :=
 { mul_le_mul_left := λ f g, induction_on₂ f g $ λ f g H h, induction_on h $ λ h,
-    H.mono $ λ x H, mul_le_mul_left'' H _,
+    H.mono $ λ x H, mul_le_mul_left' H _,
   .. germ.partial_order, .. germ.comm_group }
 
 end germ

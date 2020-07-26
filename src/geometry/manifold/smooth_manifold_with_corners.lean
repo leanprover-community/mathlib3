@@ -33,7 +33,7 @@ specific type class for `C^∞` manifolds as these are the most commonly used.
 * `smooth_manifold_with_corners I M` :
   a type class saying that the charted space `M`, modelled on the space `H`, has `C^∞` changes of
   coordinates with respect to the model with corners `I` on `(𝕜, E, H)`. This type class is just
-  a shortcut for `has_groupoid M (times_cont_diff_groupoid ⊤ I)`.
+  a shortcut for `has_groupoid M (times_cont_diff_groupoid ∞ I)`.
 * `ext_chart_at I x`:
   in a smooth manifold with corners with the model `I` on `(E, H)`, the charts take values in `H`,
   but often we may want to use their `E`-valued version, obtained by composing the charts with `I`.
@@ -115,6 +115,8 @@ universes u v w u' v' w'
 
 open set
 
+localized "notation `∞` := (⊤ : with_top ℕ)" in manifold
+
 section model_with_corners
 /-! ### Models with corners. -/
 
@@ -128,8 +130,8 @@ structure model_with_corners (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   extends local_equiv H E :=
 (source_eq          : source = univ)
 (unique_diff'       : unique_diff_on 𝕜 (range to_fun))
-(continuous_to_fun  : continuous to_fun)
-(continuous_inv_fun : continuous inv_fun)
+(continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')
+(continuous_inv_fun : continuous inv_fun . tactic.interactive.continuity')
 
 attribute [simp, mfld_simps] model_with_corners.source_eq
 
@@ -235,6 +237,8 @@ I.unique_diff _ (mem_range_self _)
 
 end
 
+section model_with_corners_prod
+
 /-- Given two model_with_corners `I` on `(E, H)` and `I'` on `(E', H')`, we define the model with
 corners `I.prod I'` on `(E × E', H × H')`. This appears in particular for the manifold structure on
 the tangent bundle to a manifold modelled on `(E, H)`: it will be modelled on `(E × E, H × E)`. -/
@@ -243,9 +247,9 @@ def model_with_corners.prod
   {E : Type v} [normed_group E] [normed_space 𝕜 E] {H : Type w} [topological_space H]
   (I : model_with_corners 𝕜 E H)
   {E' : Type v'} [normed_group E'] [normed_space 𝕜 E'] {H' : Type w'} [topological_space H']
-  (I' : model_with_corners 𝕜 E' H') : model_with_corners 𝕜 (E × E') (H × H') :=
-{ to_fun       := λp, (I p.1, I' p.2),
-  inv_fun      := λp, (I.symm p.1, I'.symm p.2),
+  (I' : model_with_corners 𝕜 E' H') : model_with_corners 𝕜 (E × E') (model_prod H H') :=
+{ to_fun       := λ p, (I p.1, I' p.2),
+  inv_fun      := λ p, (I.symm p.1, I'.symm p.2),
   source       := (univ : set (H × H')),
   target       := set.prod (range I) (range I'),
   map_source'  := λ ⟨x, x'⟩ _, by simp [-mem_range, mem_range_self],
@@ -254,8 +258,8 @@ def model_with_corners.prod
   right_inv'   := λ ⟨x, x'⟩ ⟨hx, hx'⟩, by simp [hx, hx'],
   source_eq    := rfl,
   unique_diff' := begin
-    have : range (λ(p : H × H'), (I p.1, I' p.2)) = set.prod (range I) (range I'),
-      by { rw ← prod_range_range_eq },
+    have : range (λ(p : model_prod H H'), (I p.1, I' p.2)) = set.prod (range I) (range I'),
+      by { dsimp [model_prod], rw ← prod_range_range_eq },
     rw this,
     exact unique_diff_on.prod I.unique_diff I'.unique_diff,
   end,
@@ -269,8 +273,34 @@ as the model to tangent bundles. -/
 @[reducible] def model_with_corners.tangent
   {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
   {E : Type v} [normed_group E] [normed_space 𝕜 E] {H : Type w} [topological_space H]
-  (I : model_with_corners 𝕜 E H) : model_with_corners 𝕜 (E × E) (H × E) :=
+  (I : model_with_corners 𝕜 E H) : model_with_corners 𝕜 (E × E) (model_prod H E) :=
  I.prod (model_with_corners_self 𝕜 E)
+
+variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+{E : Type*} [normed_group E] [normed_space 𝕜 E] {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+{F : Type*} [normed_group F] [normed_space 𝕜 F] {F' : Type*} [normed_group F'] [normed_space 𝕜 F']
+{H : Type*} [topological_space H] {H' : Type*} [topological_space H']
+{G : Type*} [topological_space G] {G' : Type*} [topological_space G']
+{I : model_with_corners 𝕜 E H} {J : model_with_corners 𝕜 F G}
+
+@[simp, mfld_simps] lemma model_with_corners_prod_to_local_equiv :
+  (I.prod J).to_local_equiv = (I.to_local_equiv).prod (J.to_local_equiv) :=
+begin
+  ext1 x,
+  { refl, },
+  { intro x, refl, },
+  { simp only [set.univ_prod_univ, model_with_corners.source_eq, local_equiv.prod_source], }
+end
+
+@[simp, mfld_simps] lemma model_with_corners_prod_coe
+  (I : model_with_corners 𝕜 E H) (I' : model_with_corners 𝕜 E' H') :
+  (I.prod I' : _ × _ → _ × _) = prod.map I I' := rfl
+
+@[simp, mfld_simps] lemma model_with_corners_prod_coe_symm
+  (I : model_with_corners 𝕜 E H) (I' : model_with_corners 𝕜 E' H') :
+  ((I.prod I').symm : _ × _ → _ × _) = prod.map I.symm I'.symm := rfl
+
+end model_with_corners_prod
 
 section boundaryless
 
@@ -294,7 +324,7 @@ instance model_with_corners.range_eq_univ_prod {𝕜 : Type u} [nondiscrete_norm
   (I.prod I').boundaryless :=
 begin
   split,
-  dsimp [model_with_corners.prod],
+  dsimp [model_with_corners.prod, model_prod],
   rw [← prod_range_range_eq, model_with_corners.boundaryless.range_eq_univ,
       model_with_corners.boundaryless.range_eq_univ, univ_prod_univ]
 end
@@ -418,6 +448,42 @@ begin
     (of_set_mem_times_cont_diff_groupoid n I e.open_target) this
 end
 
+variables {E' : Type*} [normed_group E'] [normed_space 𝕜 E'] {H' : Type*} [topological_space H']
+
+/-- The product of two smooth local homeomorphisms is smooth. -/
+lemma times_cont_diff_groupoid_prod
+  {I : model_with_corners 𝕜 E H} {I' : model_with_corners 𝕜 E' H'}
+  {e : local_homeomorph H H} {e' : local_homeomorph H' H'}
+  (he : e ∈ times_cont_diff_groupoid ⊤ I) (he' : e' ∈ times_cont_diff_groupoid ⊤ I') :
+  e.prod e' ∈ times_cont_diff_groupoid ⊤ (I.prod I') :=
+begin
+  cases he with he he_symm,
+  cases he' with he' he'_symm,
+  simp only at he he_symm he' he'_symm,
+  split;
+  simp only [local_equiv.prod_source, local_homeomorph.prod_to_local_equiv],
+  { have h3 := times_cont_diff_on.map_prod he he',
+    rw [← model_with_corners.image I _, ← model_with_corners.image I' _,
+    set.prod_image_image_eq] at h3,
+    rw ← model_with_corners.image (I.prod I') _,
+    exact h3, },
+  { have h3 := times_cont_diff_on.map_prod he_symm he'_symm,
+    rw [← model_with_corners.image I _, ← model_with_corners.image I' _,
+    set.prod_image_image_eq] at h3,
+    rw ← model_with_corners.image (I.prod I') _,
+    exact h3, }
+end
+
+/-- The `C^n` groupoid is closed under restriction. -/
+instance : closed_under_restriction (times_cont_diff_groupoid n I) :=
+(closed_under_restriction_iff_id_le _).mpr
+begin
+  apply structure_groupoid.le_iff.mpr,
+  rintros e ⟨s, hs, hes⟩,
+  apply (times_cont_diff_groupoid n I).eq_on_source' _ _ _ hes,
+  exact of_set_mem_times_cont_diff_groupoid n I hs,
+end
+
 end times_cont_diff_groupoid
 
 end model_with_corners
@@ -430,7 +496,7 @@ class smooth_manifold_with_corners {𝕜 : Type*} [nondiscrete_normed_field 𝕜
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
   (M : Type*) [topological_space M] [charted_space H M] extends
-  has_groupoid M (times_cont_diff_groupoid ⊤ I) : Prop
+  has_groupoid M (times_cont_diff_groupoid ∞ I) : Prop
 
 /-- For any model with corners, the model space is a smooth manifold -/
 instance model_space_smooth {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
@@ -441,7 +507,7 @@ instance model_space_smooth {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 namespace smooth_manifold_with_corners
 /- We restate in the namespace `smooth_manifolds_with_corners` some lemmas that hold for general
 charted space with a structure groupoid, avoiding the need to specify the groupoid
-`times_cont_diff_groupoid ⊤ I` explicitly. -/
+`times_cont_diff_groupoid ∞ I` explicitly. -/
 
 variables  {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
@@ -449,14 +515,14 @@ variables  {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   (M : Type*) [topological_space M] [charted_space H M]
 
 /-- The maximal atlas of `M` for the smooth manifold with corners structure corresponding to the
-modle with corners `I`. -/
-def maximal_atlas := (times_cont_diff_groupoid ⊤ I).maximal_atlas M
+model with corners `I`. -/
+def maximal_atlas := (times_cont_diff_groupoid ∞ I).maximal_atlas M
 
 variable {M}
 
 lemma compatible [smooth_manifold_with_corners I M]
   {e e' : local_homeomorph M H} (he : e ∈ atlas H M) (he' : e' ∈ atlas H M) :
-  e.symm.trans e' ∈ times_cont_diff_groupoid ⊤ I :=
+  e.symm.trans e' ∈ times_cont_diff_groupoid ∞ I :=
 has_groupoid.compatible _ he he'
 
 lemma mem_maximal_atlas_of_mem_atlas [smooth_manifold_with_corners I M]
@@ -471,8 +537,26 @@ variable {I}
 
 lemma compatible_of_mem_maximal_atlas
   {e e' : local_homeomorph M H} (he : e ∈ maximal_atlas I M) (he' : e' ∈ maximal_atlas I M) :
-  e.symm.trans e' ∈ times_cont_diff_groupoid ⊤ I :=
+  e.symm.trans e' ∈ times_cont_diff_groupoid ∞ I :=
 structure_groupoid.compatible_of_mem_maximal_atlas he he'
+
+/-- The product of two smooth manifolds with corners is naturally a smooth manifold with corners. -/
+instance prod_smooth_manifold_with_corners {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+  {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
+  {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
+  (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+  (M' : Type*) [topological_space M'] [charted_space H' M'] [smooth_manifold_with_corners I' M'] :
+  smooth_manifold_with_corners (I.prod I') (M×M') :=
+{ compatible :=
+  begin
+    rintros f g ⟨f1, hf1, f2, hf2, hf⟩ ⟨g1, hg1, g2, hg2, hg⟩,
+    rw [hf, hg, local_homeomorph.prod_symm, local_homeomorph.prod_trans],
+    have h1 := has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) hf1 hg1,
+    have h2 := has_groupoid.compatible (times_cont_diff_groupoid ⊤ I') hf2 hg2,
+    exact times_cont_diff_groupoid_prod h1 h2,
+  end }
 
 end smooth_manifold_with_corners
 
@@ -610,14 +694,10 @@ end
 
 /-- Technical lemma to rewrite suitably the preimage of an intersection under an extended chart, to
 bring it into a convenient form to apply derivative lemmas. -/
-lemma ext_chart_preimage_inter_eq : ((ext_chart_at I x).symm ⁻¹' (s ∩ t) ∩ range I)
-  = ((ext_chart_at I x).symm ⁻¹' s ∩ range I)
-    ∩ ((ext_chart_at I x).symm ⁻¹' t) :=
-begin
-  rw [preimage_inter, inter_assoc, inter_assoc],
-  congr' 1,
-  rw inter_comm
-end
+lemma ext_chart_preimage_inter_eq :
+  ((ext_chart_at I x).symm ⁻¹' (s ∩ t) ∩ range I)
+  = ((ext_chart_at I x).symm ⁻¹' s ∩ range I) ∩ ((ext_chart_at I x).symm ⁻¹' t) :=
+by mfld_set_tac
 
 end extended_charts
 

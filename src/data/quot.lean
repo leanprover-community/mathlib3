@@ -48,6 +48,14 @@ protected def map_right {ra' : α → α → Prop} (h : ∀a₁ a₂, ra a₁ a�
   quot ra → quot ra' :=
 quot.map id h
 
+/-- weaken the relation of a quotient -/
+def factor {α : Type*} (r s : α → α → Prop) (h : ∀ x y, r x y → s x y) :
+  quot r → quot s :=
+quot.lift (quot.mk s) (λ x y rxy, quot.sound (h x y rxy))
+
+lemma factor_mk_eq {α : Type*} (r s : α → α → Prop) (h : ∀ x y, r x y → s x y) :
+  factor r s h ∘ quot.mk _ = quot.mk _ := rfl
+
 end quot
 
 namespace quotient
@@ -97,6 +105,10 @@ theorem forall_quotient_iff {α : Type*} [r : setoid α] {p : quotient r → Pro
 @[simp] lemma quotient.lift_on_beta [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b)
   (x : α) :
   quotient.lift_on (quotient.mk x) f h = f x := rfl
+
+@[simp] theorem quotient.lift_on_beta₂ {α : Type} {β : Type} [setoid α] (f : α → α → β)
+  (h : ∀ (a₁ a₂ b₁ b₂ : α), a₁ ≈ b₁ → a₂ ≈ b₂ → f a₁ a₂ = f b₁ b₂) (x y : α) :
+  quotient.lift_on₂ (quotient.mk x) (quotient.mk y) f h = f x y := rfl
 
 /-- Choose an element of the equivalence class using the axiom of choice.
   Sound but noncomputable. -/

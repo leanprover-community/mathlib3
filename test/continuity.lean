@@ -26,7 +26,17 @@ by show_term { continuity }
 -- prints
 --   `exact (continuous_exp.comp ((continuous_id.max continuous_id.neg).add continuous_sin)).pow 2`
 
--- Without `md := semireducible` in the call to `apply_rules` in `continuity`,
--- this example would have run off the rails.
 example : continuous (λ x : ℝ, exp ((max x (-x)) + sin (cos x))^2) :=
 by show_term { continuity }
+
+-- Without `md := semireducible` in the call to `apply_rules` in `continuity`,
+-- this last example would have run off the rails:
+-- ```
+-- example : continuous (λ x : ℝ, exp ((max x (-x)) + sin (cos x))^2) :=
+-- by show_term { continuity! }
+-- ```
+-- produces lots of subgoals, including many copies of
+-- ⊢ continuous complex.re
+-- ⊢ continuous complex.exp
+-- ⊢ continuous coe
+-- ⊢ continuous (λ (x : ℝ), ↑x)

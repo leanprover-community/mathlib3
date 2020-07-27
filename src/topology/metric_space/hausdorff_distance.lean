@@ -211,7 +211,7 @@ exists_edist_lt_of_inf_edist_lt $ calc
   ... ≤ Sup ((λx, inf_edist x t) '' s) ⊔ Sup ((λx, inf_edist x s) '' t) : le_sup_left
   ... < r : by rwa Hausdorff_edist_def at H
 
-/-- The distance from `x` to `s`or `t` is controlled in terms of the Hausdorff distance
+/-- The distance from `x` to `s` or `t` is controlled in terms of the Hausdorff distance
 between `s` and `t` -/
 lemma inf_edist_le_inf_edist_add_Hausdorff_edist :
   inf_edist x t ≤ inf_edist x s + Hausdorff_edist s t :=

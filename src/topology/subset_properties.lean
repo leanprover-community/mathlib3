@@ -391,7 +391,7 @@ lemma compact_univ [h : compact_space α] : is_compact (univ : set α) := h.comp
 
 lemma cluster_point_of_compact [compact_space α] (f : filter α) [ne_bot f] :
   ∃ x, cluster_pt x f :=
-by simpa using compact_univ (by simpa using f.univ_sets)
+by simpa using compact_univ (show f ≤ 𝓟 univ, by simp)
 
 theorem compact_space_of_finite_subfamily_closed {α : Type u} [topological_space α]
   (h : Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →

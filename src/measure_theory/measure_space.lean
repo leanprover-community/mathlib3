@@ -742,6 +742,9 @@ instance : complete_lattice (measure α) :=
 -/
   .. complete_lattice_of_Inf (measure α) (λ ms, ⟨λ _, Inf_le, λ _, le_Inf⟩) }
 
+@[simp] lemma measure_univ_eq_zero {μ : measure α} : μ univ = 0 ↔ μ = 0 :=
+⟨λ h, bot_unique $ λ s hs, trans_rel_left (≤) (measure_mono (subset_univ s)) h, λ h, h.symm ▸ rfl⟩
+
 -- TODO: add typeclasses for `∀ c, monotone ((*) c)` and `∀ c, monotone ((+) c)`
 
 protected lemma add_le_add_left {μ₁ μ₂ : measure α} (ν : measure α) (hμ : μ₁ ≤ μ₂) :
@@ -847,6 +850,9 @@ rfl
   μ.restrict s t = μ (t ∩ s) :=
 by simp [← restrictₗ_apply, restrictₗ, ht]
 
+lemma restrict_apply_univ (s : set α) : μ.restrict s univ = μ s :=
+by rw [restrict_apply is_measurable.univ, set.univ_inter]
+
 lemma le_restrict_apply (s t : set α) :
   μ (t ∩ s) ≤ μ.restrict s t :=
 by { rw [restrict, restrictₗ], convert le_lift_linear_apply _ t, simp }
@@ -877,6 +883,9 @@ begin
   exact measure_mono_null (inter_subset_left _ _) ht'0
 end
 
+@[simp] lemma restrict_eq_zero {s} : μ.restrict s = 0 ↔ μ s = 0 :=
+by rw [← measure_univ_eq_zero, restrict_apply_univ]
+
 @[simp] lemma restrict_empty : μ.restrict ∅ = 0 := ext $ λ s hs, by simp [hs]
 
 @[simp] lemma restrict_univ : μ.restrict univ = μ := ext $ λ s hs, by simp [hs]
@@ -893,6 +902,14 @@ lemma restrict_union {s t : set α} (h : disjoint s t) (hs : is_measurable s)
   (ht : is_measurable t) :
   μ.restrict (s ∪ t) = μ.restrict s + μ.restrict t :=
 ext $ λ t' ht', restrict_union_apply (h.mono inf_le_right inf_le_right) hs ht ht'
+
+@[simp] lemma restrict_add_restrict_compl {s : set α} (hs : is_measurable s) :
+  μ.restrict s + μ.restrict sᶜ = μ :=
+by rw [← restrict_union (disjoint_compl _) hs hs.compl, union_compl_self, restrict_univ]
+
+@[simp] lemma restrict_compl_add_restrict {s : set α} (hs : is_measurable s) :
+  μ.restrict sᶜ + μ.restrict s = μ :=
+by rw [add_comm, restrict_add_restrict_compl hs]
 
 lemma restrict_union_le (s s' : set α) : μ.restrict (s ∪ s') ≤ μ.restrict s + μ.restrict s' :=
 begin
@@ -919,8 +936,7 @@ by rw [restrictₗ_apply, restrict_apply ht, linear_map.comp_apply,
   comap_apply (coe : s → α) subtype.val_injective (λ _, hs.subtype_image) _
     (measurable_subtype_coe ht), subtype.image_preimage_coe]
 
-/-- Restriction of a measure to a subset is monotone
-both in set and in measure. -/
+/-- Restriction of a measure to a subset is monotone both in set and in measure. -/
 @[mono] lemma restrict_mono ⦃s s' : set α⦄ (hs : s ⊆ s') ⦃μ ν : measure α⦄ (hμν : μ ≤ ν) :
   μ.restrict s ≤ ν.restrict s' :=
 assume t ht,
@@ -928,6 +944,11 @@ calc μ.restrict s t = μ (t ∩ s) : restrict_apply ht
 ... ≤ μ (t ∩ s') : measure_mono $ inter_subset_inter_right _ hs
 ... ≤ ν (t ∩ s') : le_iff'.1 hμν (t ∩ s')
 ... = ν.restrict s' t : (restrict_apply ht).symm
+
+lemma restrict_le_self {s} : μ.restrict s ≤ μ :=
+assume t ht,
+calc μ.restrict s t = μ (t ∩ s) : restrict_apply ht
+... ≤ μ t : measure_mono $ inter_subset_left t s
 
 /-- The dirac measure. -/
 def dirac (a : α) : measure α :=
@@ -1039,6 +1060,9 @@ lemma ae_iff {p : α → Prop} : (∀ᵐ a ∂ μ, p a) ↔ μ { a | ¬ p a } = 
 lemma measure_zero_iff_ae_nmem {s : set α} : μ s = 0 ↔ ∀ᵐ a ∂ μ, a ∉ s :=
 by simp only [ae_iff, not_not, set_of_mem_eq]
 
+lemma ae_eq_bot : μ.ae = ⊥ ↔ μ = 0 :=
+by rw [← empty_in_sets_eq_bot, mem_ae_iff, compl_empty, measure.measure_univ_eq_zero]
+
 lemma ae_of_all {p : α → Prop} (μ : measure α) : (∀a, p a) → ∀ᵐ a ∂ μ, p a :=
 eventually_of_forall
 
@@ -1085,6 +1109,12 @@ begin
     not_imp, and_comm (_ ∈ s)],
   refl
 end
+
+@[simp] lemma ae_restrict_eq_bot {s} : (μ.restrict s).ae = ⊥ ↔ μ s = 0 :=
+ae_eq_bot.trans measure.restrict_eq_zero
+
+@[simp] lemma ae_restrict_ne_bot {s} : (μ.restrict s).ae.ne_bot ↔ 0 < μ s :=
+(not_congr ae_restrict_eq_bot).trans zero_lt_iff_ne_zero.symm
 
 lemma mem_dirac_ae_iff {a : α} {s : set α} (hs : is_measurable s) :
   s ∈ (measure.dirac a).ae ↔ a ∈ s :=

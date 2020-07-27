@@ -44,9 +44,9 @@ section lift
 
 variables {β : Type v} [comm_ring β] (f : α → β)
 
-/-- Lift a map `α → R` to a ring homomorphism `free_comm_ring α → R`.
+/-- Lift a map `α → R` to a additive group homomorphism `free_comm_ring α → R`.
 For a version producing a bundled homomorphism, see `lift_hom`. -/
-def lift : free_comm_ring α → β :=
+def lift : free_comm_ring α →+ β :=
 free_abelian_group.lift $ λ s, (s.map f).prod
 
 @[simp] lemma lift_zero : lift f 0 = 0 := rfl
@@ -86,19 +86,21 @@ end
 We don't use it as the canonical form because Lean fails to coerce it to a function. -/
 def lift_hom : free_comm_ring α →+* β := ⟨lift f, lift_one f, lift_mul f, lift_zero f, lift_add f⟩
 
-instance : is_ring_hom (lift f) := (lift_hom f).is_ring_hom
-
 @[simp] lemma coe_lift_hom : ⇑(lift_hom f : free_comm_ring α →+* β) = lift f := rfl
 
 @[simp] lemma lift_pow (x) (n : ℕ) : lift f (x ^ n) = lift f x ^ n :=
 (lift_hom f).map_pow _ _
 
-@[simp] lemma lift_comp_of (f : free_comm_ring α → β) [is_ring_hom f] : lift (f ∘ of) = f :=
-funext $ λ x, free_comm_ring.induction_on x
-  (by rw [lift_neg, lift_one, is_ring_hom.map_neg f, is_ring_hom.map_one f])
-  (lift_of _)
-  (λ x y ihx ihy, by rw [lift_add, is_ring_hom.map_add f, ihx, ihy])
-  (λ x y ihx ihy, by rw [lift_mul, is_ring_hom.map_mul f, ihx, ihy])
+@[simp] lemma lift_comp_of (f : free_comm_ring α →+* β) : lift_hom (f ∘ of) = f :=
+begin
+  ext x,
+  apply free_comm_ring.induction_on x,
+  { show (lift (⇑f ∘ of)) (-1) = _,
+    rw [lift_neg, lift_one, f.map_neg, f.map_one] },
+  { exact (lift_of _) },
+  { intros x y ihx ihy, rw [lift_add, is_ring_hom.map_add f, ihx, ihy] },
+  { exact (λ x y ihx ihy, by rw [lift_mul, is_ring_hom.map_mul f, ihx, ihy]) }
+end
 
 end lift
 

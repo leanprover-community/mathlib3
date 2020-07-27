@@ -5,6 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.induction
 import data.polynomial.degree.basic
+import deprecated.ring
 
 /-!
 # Theory of univariate polynomials

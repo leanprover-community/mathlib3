@@ -70,10 +70,7 @@ variables {P}
 
 /-- The `vector_span` of a single point is `⊥`. -/
 @[simp] lemma vector_span_singleton (p : P) : vector_span k V ({p} : set P) = ⊥ :=
-begin
-  rw vector_span_def,
-  simp
-end
+by simp [vector_span_def]
 
 /-- The `vsub_set` lies within the `vector_span`. -/
 lemma vsub_set_subset_vector_span (s : set P) : vsub_set V s ⊆ vector_span k V s :=

@@ -1186,6 +1186,14 @@ rfl
 @[simp] theorem to_finset_cons {a : α} {l : list α} : to_finset (a :: l) = insert a (to_finset l) :=
 finset.eq_of_veq $ by by_cases h : a ∈ l; simp [finset.insert_val', multiset.erase_dup_cons, h]
 
+theorem to_finset_surjective : function.surjective (to_finset : list α → finset α) :=
+begin
+  refine λ s, ⟨quotient.out' s.val, finset.ext $ λ x, _⟩,
+  obtain ⟨l, hl⟩ := quot.exists_rep s.val,
+  rw [list.mem_to_finset, finset.mem_def, ←hl],
+  exact list.perm.mem_iff (quotient.mk_out l)
+end
+
 end list
 
 namespace finset

@@ -27,6 +27,10 @@ namespace category_theory.monoidal_category_functor_category
 
 variables (F G F' G' : C ⥤ D)
 
+/--
+(An auxiliary definition for `functor_category_monoidal`.)
+Tensor product of functors `C ⥤ D`, when `D` is monoidal.
+ -/
 @[simps]
 def tensor_obj : C ⥤ D :=
 { obj := λ X, F.obj X ⊗ G.obj X,
@@ -37,6 +41,10 @@ def tensor_obj : C ⥤ D :=
 variables {F G F' G'}
 variables (α : F ⟶ G) (β : F' ⟶ G')
 
+/--
+(An auxiliary definition for `functor_category_monoidal`.)
+Tensor product of natural transformations into `D`, when `D` is monoidal.
+-/
 @[simps]
 def tensor_hom : tensor_obj F F' ⟶ tensor_obj G G' :=
 { app := λ X, α.app X ⊗ β.app X,
@@ -47,7 +55,12 @@ end category_theory.monoidal_category_functor_category
 
 open category_theory.monoidal_category_functor_category
 
-instance : monoidal_category (C ⥤ D) :=
+/--
+When `C` is any category, and `D` is a monoidal category,
+the functor category `C ⥤ D` has a natural pointwise monoidal structure,
+where `(F ⊗ G).obj X = F.obj X ⊗ G.obj X`.
+-/
+instance functor_category_monoidal : monoidal_category (C ⥤ D) :=
 { tensor_obj := λ F G, tensor_obj F G,
   tensor_hom := λ F G F' G' α β, tensor_hom α β,
   tensor_id' := λ F G, by { ext, dsimp, rw [tensor_id], },

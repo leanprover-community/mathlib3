@@ -1023,6 +1023,9 @@ variables {f : α → β} {g : β → γ}
 
 @[simp] theorem mem_preimage {s : set β} {a : α} : (a ∈ f ⁻¹' s) ↔ (f a ∈ s) := iff.rfl
 
+lemma preimage_congr {f g : α → β} {s : set β} (h : ∀ (x : α), f x = g x) : f ⁻¹' s = g ⁻¹' s :=
+by { congr, ext, apply_assumption }
+
 theorem preimage_mono {s t : set β} (h : s ⊆ t) : f ⁻¹' s ⊆ f ⁻¹' t :=
 assume x hx, h hx
 
@@ -1583,6 +1586,10 @@ by { intros s t h, rw [←preimage_image_eq s hf, ←preimage_image_eq t hf, h] 
 
 lemma surjective.range_eq {f : ι → α} (hf : surjective f) : range f = univ :=
 range_iff_surjective.2 hf
+
+lemma surjective.preimage_subset_preimage_iff {s t : set β} (hf : surjective f) :
+  f ⁻¹' s ⊆ f ⁻¹' t ↔ s ⊆ t :=
+by { apply preimage_subset_preimage_iff, rw [hf.range_eq], apply subset_univ }
 
 lemma surjective.range_comp {ι' : Sort*} {f : ι → ι'} (hf : surjective f) (g : ι' → α) :
   range (g ∘ f) = range g :=

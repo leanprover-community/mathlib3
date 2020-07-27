@@ -86,6 +86,14 @@ funext $ λ i, match i with
   end
 end
 
+@[simp] lemma graded_object_map_id : Π i, graded_object_map (𝟙 M) i = 𝟙 (M.graded_object i)
+| -[1+n]  := by ext
+| (n:ℕ)   := by { ext, refl }
+
+@[simp] lemma graded_object_map_comp {M₁ M₂ M₃ : simplicial_module R} (f : M₁ ⟶ M₂) (g : M₂ ⟶ M₃) :
+  Π i, graded_object_map (f ≫ g) i = (graded_object_map f i) ≫ (graded_object_map g i)
+| -[1+n]  := by ext
+| (n:ℕ)   := by { ext, refl }
 
 variables (R)
 
@@ -97,8 +105,6 @@ def simplicial_complex : simplicial_module R ⥤ chain_complex (Module R) :=
     d_squared' := funext $ M.graded_object_d_squared },
   map := λ M N f,
   { f := graded_object_map f,
-    comm' := graded_object_map_comm f },
-  map_id' := _,
-  map_comp' := _ }
+    comm' := graded_object_map_comm f }, }
 
 end simplicial_module

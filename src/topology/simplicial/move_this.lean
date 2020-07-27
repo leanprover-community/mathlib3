@@ -4,6 +4,7 @@ import category_theory.functor_category
 import category_theory.whiskering
 import algebra.category.Module.basic
 import linear_algebra.tensor_product
+import category_theory.graded_object
 
 namespace category_theory
 
@@ -84,3 +85,16 @@ lemma prod_mul_prod_compl (s : finset α) (f : α → M) :
 by { rw [← prod_sdiff (subset_univ s), mul_comm], refl, }
 
 end finset
+
+namespace category_theory
+namespace graded_object
+universe variables u v w
+variables {C : Type u} [category.{v} C] {β : Type w}
+variables {X Y : graded_object β C}
+
+lemma hom_congr (f : X ⟶ Y) {i j : β} (h : i = j) :
+  f i = eq_to_hom (by simp [h]) ≫ f j ≫ eq_to_hom (by simp [h.symm]) :=
+by { cases h, simp, }
+
+end graded_object
+end category_theory

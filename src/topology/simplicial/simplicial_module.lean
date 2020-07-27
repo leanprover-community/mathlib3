@@ -42,6 +42,7 @@ def boundary (n : ℕ) :
   (skeletal.obj M).obj (op n) :=
 ∑ i : fin (n+2), (-1:R)^(i:ℕ) • (M.δ i)
 
+@[reassoc]
 lemma boundary_boundary (n : ℕ) : boundary M (n+1) ≫ boundary M n = 0 :=
 begin
   let s : finset (fin (n+3) × fin (n+2)) := univ.filter (λ ij, (ij.1:ℕ) ≤ ij.2),

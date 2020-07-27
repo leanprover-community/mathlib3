@@ -95,7 +95,7 @@ begin
   rw ← nat.pred_eq_sub_one, apply nat.pred_lt, apply h,
 end
 
-theorem nat_degree_char_poly_eq_dim [nontrivial R] (M : matrix n n R) :
+theorem char_poly_nat_degree_eq_dim [nontrivial R] (M : matrix n n R) :
   (char_poly M).nat_degree = fintype.card n :=
 nat_degree_eq_of_degree_eq_some (degree_char_poly_eq_dim M)
 

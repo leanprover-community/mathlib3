@@ -467,10 +467,10 @@ by simp only [le_antisymm_iff, le_principal_iff, mem_principal_sets]; refl
 
 @[simp] lemma join_principal_eq_Sup {s : set (filter α)} : join (𝓟 s) = Sup s := rfl
 
-lemma principal_univ : 𝓟 (univ : set α) = ⊤ :=
+@[simp] lemma principal_univ : 𝓟 (univ : set α) = ⊤ :=
 top_unique $ by simp only [le_principal_iff, mem_top_sets, eq_self_iff_true]
 
-lemma principal_empty : 𝓟 (∅ : set α) = ⊥ :=
+@[simp] lemma principal_empty : 𝓟 (∅ : set α) = ⊥ :=
 bot_unique $ assume s _, empty_subset _
 
 /-! ### Lattice equations -/
@@ -1184,6 +1184,10 @@ lemma eventually_eq.sub [add_group β] {f f' g g' : α → β} {l : filter α} (
   (h' : f' =ᶠ[l] g') :
   ((λ x, f x - f' x) =ᶠ[l] (λ x, g x - g' x)) :=
 h.add h'.neg
+
+lemma eventually_eq_inf_principal_iff {F : filter α} {s : set α} {f g : α → β} :
+  (f =ᶠ[F ⊓ 𝓟 s] g) ↔ ∀ᶠ x in F, x ∈ s → f x = g x :=
+eventually_inf_principal
 
 section has_le
 
@@ -2059,6 +2063,14 @@ by simp only [tendsto, iff_self, le_infi_iff]
 lemma tendsto_infi' {f : α → β} {x : ι → filter α} {y : filter β} (i : ι) :
   tendsto f (x i) y → tendsto f (⨅i, x i) y :=
 tendsto_le_left (infi_le _ _)
+
+lemma tendsto_sup {f : α → β} {x₁ x₂ : filter α} {y : filter β} :
+  tendsto f (x₁ ⊔ x₂) y ↔ tendsto f x₁ y ∧ tendsto f x₂ y :=
+by simp only [tendsto, map_sup, sup_le_iff]
+
+lemma tendsto.sup {f : α → β} {x₁ x₂ : filter α} {y : filter β} :
+  tendsto f x₁ y → tendsto f x₂ y → tendsto f (x₁ ⊔ x₂) y :=
+λ h₁ h₂, tendsto_sup.mpr ⟨ h₁, h₂ ⟩
 
 lemma tendsto_principal {f : α → β} {l : filter α} {s : set β} :
   tendsto f l (𝓟 s) ↔ ∀ᶠ a in l, f a ∈ s :=

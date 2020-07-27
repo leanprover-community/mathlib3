@@ -23,6 +23,6 @@ namespace AddCommGroup
 instance : has_zero_object AddCommGroup :=
 { zero := 0,
   unique_to := λ X, ⟨⟨0⟩, λ f, begin ext, cases x, erw add_monoid_hom.map_zero, refl end⟩,
-  unique_from := λ X, ⟨⟨0⟩, λ f, begin ext, apply subsingleton.elim, end⟩, }
+  unique_from := λ X, ⟨⟨0⟩, λ f, by ext⟩, }
 
 end AddCommGroup

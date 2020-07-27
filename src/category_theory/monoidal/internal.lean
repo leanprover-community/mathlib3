@@ -195,6 +195,7 @@ end Mod
 Projects:
 * Check that `Mon_ Mon ≌ CommMon`, via the Eckmann-Hilton argument.
   (You'll have to hook up the cartesian monoidal structure on `Mon` first, available in #3463)
+* Check that `Mon_ Top ≌ [bundled topological monoids]`.
 * Check that `Mon_ AddCommGroup ≌ Ring`.
   (You'll have to hook up the monoidal structure on `AddCommGroup`.
   Currently we have the monoidal structure on `Module R`; perhaps one could specialize to `R = ℤ`

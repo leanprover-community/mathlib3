@@ -12,15 +12,18 @@ namespace plift
 
 variables {α β : Sort u}
 
+/-- Functorial action. -/
 @[simp] def map (f : α → β) : plift α → plift β
 | (up a) := up (f a)
 
-@[simp] def pure : α → plift α :=
-up
+/-- Embedding of pure values. -/
+@[simp] def pure : α → plift α := up
 
+/-- Applicative sequencing. -/
 @[simp] def seq : plift (α → β) → plift α → plift β
 | (up f) (up a) := up (f a)
 
+/-- Monadic bind. -/
 @[simp] def bind : plift α → (α → plift β) → plift β
 | (up a) f := f a
 
@@ -57,15 +60,18 @@ namespace ulift
 
 variables {α β : Type u}
 
+/-- Functorial action. -/
 @[simp] def map (f : α → β) : ulift α → ulift β
 | (up a) := up (f a)
 
-@[simp] def pure : α → ulift α :=
-up
+/-- Embedding of pure values. -/
+@[simp] def pure : α → ulift α := up
 
+/-- Applicative sequencing. -/
 @[simp] def seq : ulift (α → β) → ulift α → ulift β
 | (up f) (up a) := up (f a)
 
+/-- Monadic bind. -/
 @[simp] def bind : ulift α → (α → ulift β) → ulift β
 | (up a) f := f a
 
@@ -91,7 +97,7 @@ instance : is_lawful_monad ulift :=
   pure_bind := λ α β x f, rfl,
   bind_assoc := λ α β γ ⟨x⟩ f g, rfl }
 
-@[simp] lemma ulift.rec.constant {α : Type u} {β : Sort v} (b : β) :
+@[simp] lemma rec.constant {α : Type u} {β : Sort v} (b : β) :
   @ulift.rec α (λ _, β) (λ _, b) = λ _, b :=
 funext (λ x, ulift.cases_on x (λ a, eq.refl (ulift.rec (λ a', b) {down := a})))
 

@@ -1453,12 +1453,11 @@ end
 /-- If a `finset` of a subtype is converted to the main type with
 `embedding.subtype`, the result is a subset of the set giving the
 subtype. -/
-lemma map_subtype_subset {p : set α} (s : finset {x // p x}) :
-    ↑(s.map (function.embedding.subtype _)) ⊆ p :=
+lemma map_subtype_subset {t : set α} (s : finset t) :
+    ↑(s.map (function.embedding.subtype _)) ⊆ t :=
 begin
   intros a ha,
   rw mem_coe at ha,
-  change p a,
   exact property_of_mem_map_subtype s ha
 end
 

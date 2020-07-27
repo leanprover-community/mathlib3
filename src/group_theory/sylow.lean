@@ -194,42 +194,47 @@ def fixed_points_mul_left_cosets_equiv_quotient (H : subgroup G) [fintype (H : s
 @subtype_quotient_equiv_quotient_subtype G (normalizer H : set G) (id _) (id _) (fixed_points _ _)
   (λ a, (@mem_fixed_points_mul_left_cosets_iff_mem_normalizer _ _ _ _inst_2 _).symm) (by intros; refl)
 
-local attribute [instance] set_fintype
-
 lemma exists_subgroup_card_pow_prime [fintype G] (p : ℕ) : ∀ {n : ℕ} [hp : fact p.prime]
   (hdvd : p ^ n ∣ card G), ∃ H : subgroup G, fintype.card H = p ^ n
-| 0 := λ _ _, ⟨(⊥ : subgroup G), by rw card_trivial⟩
-| (n+1) := sorry
-#exit
+| 0 := λ _ _, ⟨(⊥ : subgroup G), by convert card_trivial⟩
 | (n+1) := λ hp hdvd,
-let ⟨H, ⟨hH1, hH2⟩⟩ := @exists_subgroup_card_pow_prime _ hp
+let ⟨H, hH2⟩ := @exists_subgroup_card_pow_prime _ hp
   (dvd.trans (nat.pow_dvd_pow _ (nat.le_succ _)) hdvd) in
 let ⟨s, hs⟩ := exists_eq_mul_left_of_dvd hdvd in
-by exactI
 have hcard : card (quotient H) = s * p :=
   (nat.mul_left_inj (show card H > 0, from fintype.card_pos_iff.2
-      ⟨⟨1, is_submonoid.one_mem⟩⟩)).1
+      ⟨⟨1, H.one_mem⟩⟩)).1
     (by rwa [← card_eq_card_quotient_mul_card_subgroup, hH2, hs,
       nat.pow_succ, mul_assoc, mul_comm p]),
-have hm : s * p % p = card (quotient (subtype.val ⁻¹' H : set (normalizer H))) % p :=
+have hm : s * p % p =
+  card (quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H)) % p :=
   card_congr (fixed_points_mul_left_cosets_equiv_quotient H) ▸ hcard ▸
-    card_modeq_card_fixed_points p hH2,
-have hm' : p ∣ card (quotient (subtype.val ⁻¹' H : set (normalizer H))) :=
+    @card_modeq_card_fixed_points _ _ _ _ _ _ _ p _ hp hH2,
+have hm' : p ∣ card (quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H)) :=
   nat.dvd_of_mod_eq_zero
     (by rwa [nat.mod_eq_zero_of_dvd (dvd_mul_left _ _), eq_comm] at hm),
 let ⟨x, hx⟩ := @exists_prime_order_of_dvd_card _ (quotient_group.group _) _ _ hp hm' in
 have hxcard : ∀ {f : fintype (gpowers x)}, card (gpowers x) = p,
   from λ f, by rw [← hx, order_eq_card_gpowers]; congr,
-have is_subgroup (mk ⁻¹' gpowers x),
-  from is_group_hom.preimage _ _,
-have fintype (mk ⁻¹' gpowers x), by apply_instance,
-have hequiv : H ≃ (subtype.val ⁻¹' H : set (normalizer H)) :=
-  ⟨λ a, ⟨⟨a.1, subset_normalizer _ a.2⟩, a.2⟩, λ a, ⟨a.1.1, a.2⟩,
+have fintype (subgroup.comap (quotient_group.mk' (comap H.normalizer.subtype H)) (gpowers x)),
+  by apply_instance,
+have hequiv : H ≃ (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H) :=
+  ⟨λ a, ⟨⟨a.1, le_normalizer a.2⟩, a.2⟩, λ a, ⟨a.1.1, a.2⟩,
     λ ⟨_, _⟩, rfl, λ ⟨⟨_, _⟩, _⟩, rfl⟩,
-⟨subtype.val '' (mk ⁻¹' gpowers x), by apply_instance,
-  by rw [set.card_image_of_injective (mk ⁻¹' gpowers x) subtype.val_injective,
+-- begin proof of ∃ H : subgroup G, fintype.card H = p ^ n
+⟨subgroup.map ((normalizer H).subtype) (subgroup.comap (quotient_group.mk' _) (gpowers x)),
+begin
+  show card ↥(map H.normalizer.subtype (comap (mk' (comap H.normalizer.subtype H)) (gpowers x))) =
+    p ^ (n + 1),
+  suffices : card ↥(subtype.val '' ((subgroup.comap (mk' (comap H.normalizer.subtype H))
+    (gpowers x)) : set (↥(H.normalizer)))) = p^(n+1),
+  { convert this },
+  rw [set.card_image_of_injective
+       (subgroup.comap (quotient_group.mk' _) (gpowers x) : set (H.normalizer)) subtype.val_injective,
       nat.pow_succ, ← hH2, fintype.card_congr hequiv, ← hx, order_eq_card_gpowers,
-      ← fintype.card_prod];
-    exact @fintype.card_congr _ _ (id _) (id _) (preimage_mk_equiv_subgroup_times_set _ _)⟩
+      ← fintype.card_prod],
+  exact @fintype.card_congr _ _ (id _) (id _) (preimage_mk_equiv_subgroup_times_set _ _)
+end
+⟩
 
 end sylow

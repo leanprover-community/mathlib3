@@ -130,8 +130,8 @@ structure model_with_corners (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   extends local_equiv H E :=
 (source_eq          : source = univ)
 (unique_diff'       : unique_diff_on 𝕜 (range to_fun))
-(continuous_to_fun  : continuous to_fun)
-(continuous_inv_fun : continuous inv_fun)
+(continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')
+(continuous_inv_fun : continuous inv_fun . tactic.interactive.continuity')
 
 attribute [simp, mfld_simps] model_with_corners.source_eq
 
@@ -462,12 +462,12 @@ begin
   simp only at he he_symm he' he'_symm,
   split;
   simp only [local_equiv.prod_source, local_homeomorph.prod_to_local_equiv],
-  { have h3 := times_cont_diff_on.map_prod he he',
+  { have h3 := times_cont_diff_on.prod_map he he',
     rw [← model_with_corners.image I _, ← model_with_corners.image I' _,
     set.prod_image_image_eq] at h3,
     rw ← model_with_corners.image (I.prod I') _,
     exact h3, },
-  { have h3 := times_cont_diff_on.map_prod he_symm he'_symm,
+  { have h3 := times_cont_diff_on.prod_map he_symm he'_symm,
     rw [← model_with_corners.image I _, ← model_with_corners.image I' _,
     set.prod_image_image_eq] at h3,
     rw ← model_with_corners.image (I.prod I') _,

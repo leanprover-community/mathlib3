@@ -367,7 +367,7 @@ begin
     simpa using (has_deriv_at_const x C).mul ((has_deriv_at_id x).sub (has_deriv_at_const x a)) },
   convert image_norm_le_of_norm_deriv_right_le_deriv_boundary hg hg' _ hB bound,
   { simp only [g, B] },
-  { simp only [g, B], rw [sub_self, _root_.norm_zero, sub_self, mul_zero] }
+  { simp only [g, B], rw [sub_self, norm_zero, sub_self, mul_zero] }
 end
 
 /-- A function on `[a, b]` with the norm of the derivative within `[a, b]`
@@ -509,7 +509,7 @@ theorem convex.is_const_of_fderiv_within_eq_zero {s : set E} (hs : convex s)
   {x y : E} (hx : x ∈ s) (hy : y ∈ s) :
   f x = f y :=
 have bound : ∀ x ∈ s, ∥fderiv_within ℝ f s x∥ ≤ 0,
-  from λ x hx, by simp only [hf' x hx, _root_.norm_zero],
+  from λ x hx, by simp only [hf' x hx, norm_zero],
 by simpa only [(dist_eq_norm _ _).symm, zero_mul, dist_le_zero, eq_comm]
   using hs.norm_image_sub_le_of_norm_fderiv_within_le hf bound hx hy
 

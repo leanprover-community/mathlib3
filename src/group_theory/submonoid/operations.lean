@@ -194,13 +194,13 @@ attribute [norm_cast] coe_mul coe_one
 attribute [norm_cast] add_submonoid.coe_add add_submonoid.coe_zero
 
 /-- A submonoid of a monoid inherits a monoid structure. -/
-@[to_additive to_add_monoid "An `add_submonoid` of an `add_monoid` inherits an `add_monoid`
+@[to_additive "An `add_submonoid` of an `add_monoid` inherits an `add_monoid`
 structure."]
 instance to_monoid {M : Type*} [monoid M] (S : submonoid M) : monoid S :=
 S.coe_injective.monoid coe rfl (λ _ _, rfl)
 
 /-- A submonoid of a `comm_monoid` is a `comm_monoid`. -/
-@[to_additive to_add_comm_monoid "An `add_submonoid` of an `add_comm_monoid` is
+@[to_additive "An `add_submonoid` of an `add_comm_monoid` is
 an `add_comm_monoid`."]
 instance to_comm_monoid {M} [comm_monoid M] (S : submonoid M) : comm_monoid S :=
 S.coe_injective.comm_monoid coe rfl (λ _ _, rfl)
@@ -396,7 +396,7 @@ variables {S} {T : submonoid M}
 
 /-- Makes the identity isomorphism from a proof that two submonoids of a multiplicative
     monoid are equal. -/
-@[to_additive add_submonoid_congr "Makes the identity additive isomorphism from a proof two
+@[to_additive "Makes the identity additive isomorphism from a proof two
 submonoids of an additive monoid are equal."]
 def submonoid_congr (h : S = T) : S ≃* T :=
 { map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ submonoid.ext'_iff.1 h }

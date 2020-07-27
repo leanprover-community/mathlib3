@@ -5,6 +5,7 @@ Author: Nicolò Cavalleri.
 -/
 
 import topology.subset_properties
+import topology.tactic
 
 /-!
 # Continuous bundled map
@@ -17,11 +18,13 @@ In this file we define the type `continuous_map` of continuous bundled maps.
 structure continuous_map (α : Type*) (β : Type*)
 [topological_space α] [topological_space β] :=
 (to_fun             : α → β)
-(continuous_to_fun  : continuous to_fun)
+(continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')
 
 notation `C(` α `, ` β `)` := continuous_map α β
 
 namespace continuous_map
+
+attribute [continuity] continuous_map.continuous_to_fun
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 variables [topological_space α] [topological_space β] [topological_space γ]
@@ -30,11 +33,13 @@ instance : has_coe_to_fun (C(α, β)) := ⟨_, continuous_map.to_fun⟩
 
 variables {α β} {f g : continuous_map α β}
 
+@[continuity] lemma coe_continuous : continuous (f : α → β) := f.continuous_to_fun
+
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; congr'; exact funext H
 
 instance [inhabited β] : inhabited C(α, β) :=
-⟨⟨λ _, default _, continuous_const⟩⟩
+⟨{ to_fun := λ _, default _, }⟩
 
 lemma coe_inj ⦃f g : C(α, β)⦄ (h : (f : α → β) = g) : f = g :=
 by cases f; cases g; cases h; refl

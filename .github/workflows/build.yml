@@ -86,10 +86,6 @@ jobs:
           # github using a different username.
           git config --unset http.https://github.com/.extraheader
 
-      - name: update lean-x.y.z branch
-        if: github.repository == 'leanprover-community/mathlib' && github.ref == 'refs/heads/master'
-        run: ./scripts/update_branch.sh
-
   lint:
     name: Lint mathlib
     runs-on: ubuntu-latest

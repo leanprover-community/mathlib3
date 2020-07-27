@@ -120,7 +120,7 @@ begin
   exact ⟨1⟩
 end,
 by simp only [indicator, (finset.univ.prod_hom (eval a)).symm, eval_sub,
-    is_ring_hom.map_one (eval a), is_semiring_hom.map_pow (eval a), eval_X, eval_C,
+    is_ring_hom.map_one (eval a), is_monoid_hom.map_pow (eval a), eval_X, eval_C,
     sub_self, zero_pow this, sub_zero, finset.prod_const_one]
 
 lemma eval_indicator_apply_eq_zero (a b : σ → α) (h : a ≠ b) :
@@ -129,7 +129,7 @@ have ∃i, a i ≠ b i, by rwa [(≠), function.funext_iff, not_forall] at h,
 begin
   rcases this with ⟨i, hi⟩,
   simp only [indicator, (finset.univ.prod_hom (eval a)).symm, eval_sub,
-    is_ring_hom.map_one (eval a), is_semiring_hom.map_pow (eval a), eval_X, eval_C,
+    is_ring_hom.map_one (eval a), is_monoid_hom.map_pow (eval a), eval_X, eval_C,
     sub_self, finset.prod_eq_zero_iff],
   refine ⟨i, finset.mem_univ _, _⟩,
   rw [finite_field.pow_card_sub_one_eq_one, sub_self],

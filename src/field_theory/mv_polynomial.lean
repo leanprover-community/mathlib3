@@ -57,15 +57,15 @@ end
 lemma map_range_eq_map {β : Type*}
   [comm_ring α] [comm_ring β] (p : mv_polynomial σ α)
   (f : α →+* β) :
-  finsupp.map_range f (is_semiring_hom.map_zero f) p = p.map f :=
+  finsupp.map_range f (f.map_zero) p = p.map f :=
 begin
   rw [← finsupp.sum_single p, finsupp.sum],
   -- It's not great that we need to use an `erw` here,
   -- but hopefully it will become smoother when we move entirely away from `is_semiring_hom`.
-  erw [finsupp.map_range_finset_sum (add_monoid_hom.of f)],
+  erw [finsupp.map_range_finset_sum (f : α →+ β)],
   rw [← p.support.sum_hom (map f)],
   { refine finset.sum_congr rfl (assume n _, _),
-    rw [finsupp.map_range_single, ← monomial, ← monomial, map_monomial, add_monoid_hom.coe_of], },
+    rw [finsupp.map_range_single, ← monomial, ← monomial, map_monomial], refl, },
   apply_instance
 end
 

@@ -174,12 +174,11 @@ begin
 end
 
 lemma combine_bounds {spos : s ≠ 0} {betapos : fintype.card β ≠ 0} :
-  falling_product s ((fintype.card β : ℝ)⁻¹  * r.edge_finset.card) ≤ (fintype.card β : ℝ)⁻¹ * ((fintype.card α).choose s) * (t - 1) :=
+  falling_product s ((fintype.card β : ℝ)⁻¹  * r.edge_finset.card) ≤ (fintype.card β : ℝ)⁻¹ * ((fintype.card α).choose s) * ↑(t - 1) :=
 begin
   transitivity, apply lower_bound_stars, iterate 3 {assumption},
-  rw mul_assoc, apply mul_le_mul, refl, sorry, -- apply upper_bound_stars,
-  sorry,
-  sorry,
+  rw mul_assoc, apply mul_le_mul, refl, norm_cast, apply upper_bound_stars _ noKst,
+  iterate 2 { repeat {rw inv_nonneg}, norm_cast, apply nat.zero_le, }
 end
 
 theorem kovari_sos_toth :

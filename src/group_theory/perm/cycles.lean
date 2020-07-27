@@ -146,7 +146,7 @@ cycle_factors_aux (univ.sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
 
 section fixed_points
 
-lemma one_lt_nonfixed_point_of_ne_refl [fintype α] {σ : perm α} (h : σ ≠ equiv.refl α) :
+lemma one_lt_nonfixed_point_card_of_ne_refl [fintype α] {σ : perm α} (h : σ ≠ equiv.refl α) :
 1 < (filter (λ x, ¬ σ x = x) univ).card :=
 begin
   rw one_lt_card_iff,

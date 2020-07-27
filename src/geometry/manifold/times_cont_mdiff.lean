@@ -53,14 +53,24 @@ open_locale topological_space manifold
 /-! ### Definition of smooth functions between manifolds -/
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+-- declare a smooth manifold `M` over the pair `(E, H)`.
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 {M : Type*} [topological_space M] [charted_space H M] [Is : smooth_manifold_with_corners I M]
+-- declare a smooth manifold `M'` over the pair `(E', H')`.
 {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E' H')
 {M' : Type*} [topological_space M'] [charted_space H' M'] [I's : smooth_manifold_with_corners I' M']
-{f f₁ : M → M'} {s s₁ t : set M} {x : M}
-{m n : with_top ℕ}
+-- declare a smooth manifold `N` over the pair `(F, G)`.
+{F : Type*} [normed_group F] [normed_space 𝕜 F]
+{G : Type*} [topological_space G] {J : model_with_corners 𝕜 F G}
+{N : Type*} [topological_space N] [charted_space G N] [Js : smooth_manifold_with_corners J N]
+-- declare a smooth manifold `N'` over the pair `(F', G')`.
+{F' : Type*} [normed_group F'] [normed_space 𝕜 F']
+{G' : Type*} [topological_space G'] {J' : model_with_corners 𝕜 F' G'}
+{N' : Type*} [topological_space N'] [charted_space G' N'] [J's : smooth_manifold_with_corners J' N']
+-- declare functions, sets, points and smoothness indices
+{f f₁ : M → M'} {s s₁ t : set M} {x : M} {m n : with_top ℕ}
 
 /-- Property in the model space of a model with corners of being `C^n` within at set at a point,
 when read in the model vector space. This property will be lifted to manifolds to define smooth
@@ -664,7 +674,7 @@ begin
 end
 
 /-- The composition of `C^n` functions within domains at points is `C^n`. -/
-lemma times_cont_mdiff_within_at.comp {t : set M'} {g : M' → M''}
+lemma times_cont_mdiff_within_at.comp {t : set M'} {g : M' → M''} (x : M)
   (hg : times_cont_mdiff_within_at I' I'' n g t (f x))
   (hf : times_cont_mdiff_within_at I I' n f s x)
   (st : s ⊆ f ⁻¹' t) : times_cont_mdiff_within_at I I'' n (g ∘ f) s x :=
@@ -684,17 +694,17 @@ begin
 end
 
 /-- The composition of `C^n` functions within domains at points is `C^n`. -/
-lemma times_cont_mdiff_within_at.comp' {t : set M'} {g : M' → M''}
+lemma times_cont_mdiff_within_at.comp' {t : set M'} {g : M' → M''} (x : M)
   (hg : times_cont_mdiff_within_at I' I'' n g t (f x))
   (hf : times_cont_mdiff_within_at I I' n f s x) :
   times_cont_mdiff_within_at I I'' n (g ∘ f) (s ∩ f⁻¹' t) x :=
-hg.comp (hf.mono (inter_subset_left _ _)) (inter_subset_right _ _)
+hg.comp x (hf.mono (inter_subset_left _ _)) (inter_subset_right _ _)
 
 /-- The composition of `C^n` functions at points is `C^n`. -/
-lemma times_cont_mdiff_at.comp {g : M' → M''}
+lemma times_cont_mdiff_at.comp {g : M' → M''} (x : M)
   (hg : times_cont_mdiff_at I' I'' n g (f x)) (hf : times_cont_mdiff_at I I' n f x) :
   times_cont_mdiff_at I I'' n (g ∘ f) x :=
-hg.comp hf subset_preimage_univ
+hg.comp x hf subset_preimage_univ
 
 lemma times_cont_mdiff.comp_times_cont_mdiff_on {f : M → M'} {g : M' → M''} {s : set M}
   (hg : times_cont_mdiff I' I'' n g) (hf : times_cont_mdiff_on I I' n f s) :
@@ -1270,260 +1280,135 @@ end tangent_bundle
 
 /-! ### Smoothness of standard maps associated to the product of manifolds -/
 
-variables {I I'} [smooth_manifold_with_corners I M] [smooth_manifold_with_corners I' M']
-{F : Type*} [normed_group F] [normed_space 𝕜 F]
-{F' : Type*} [normed_group F'] [normed_space 𝕜 F']
-{G : Type*} [topological_space G]
-{G' : Type*} [topological_space G']
-{J : model_with_corners 𝕜 F G} {J' : model_with_corners 𝕜 F' G'}
-{N : Type*} [topological_space N] [charted_space G N] [smooth_manifold_with_corners J N]
-{N' : Type*} [topological_space N'] [charted_space G' N'] [smooth_manifold_with_corners J' N']
-
 section prod_mk
 
-lemma times_cont_mdiff_on.prod_mk {f : M → M'} {g : M → N'} {n : with_top ℕ} {s : set M}
+lemma times_cont_mdiff_within_at.prod_mk {f : M → M'} {g : M → N'}
+  (hf : times_cont_mdiff_within_at I I' n f s x) (hg : times_cont_mdiff_within_at I J' n g s x) :
+  times_cont_mdiff_within_at I (I'.prod J') n (λ x, (f x, g x)) s x :=
+begin
+  rw times_cont_mdiff_within_at_iff at *,
+  refine ⟨hf.1.prod hg.1, (hf.2.mono _).prod (hg.2.mono _)⟩;
+  mfld_set_tac,
+end
+
+lemma times_cont_mdiff_at.prod_mk {f : M → M'} {g : M → N'}
+  (hf : times_cont_mdiff_at I I' n f x) (hg : times_cont_mdiff_at I J' n g x) :
+  times_cont_mdiff_at I (I'.prod J') n (λ x, (f x, g x)) x :=
+hf.prod_mk hg
+
+lemma times_cont_mdiff_on.prod_mk {f : M → M'} {g : M → N'}
   (hf : times_cont_mdiff_on I I' n f s) (hg : times_cont_mdiff_on I J' n g s) :
   times_cont_mdiff_on I (I'.prod J') n (λ x, (f x, g x)) s :=
-begin
-  rw times_cont_mdiff_on_iff at hf hg ⊢,
-  refine ⟨hf.1.prod hg.1, λ x y, _⟩,
+λ x hx, (hf x hx).prod_mk (hg x hx)
 
-  let s1 := ((ext_chart_at I x).target ∩ ((ext_chart_at I x).symm) ⁻¹'
-  (s ∩ f ⁻¹' (ext_chart_at I' y.fst).source)),
-  let t1 := ((ext_chart_at I x).target ∩ ((ext_chart_at I x).symm) ⁻¹'
-  (s ∩ g ⁻¹' (ext_chart_at J' y.snd).source)),
-  have h := times_cont_diff_on.prod (times_cont_diff_on.mono (hf.2 x y.fst)
-  (inter_subset_left s1 t1)) (times_cont_diff_on.mono (hg.2 x y.snd) (inter_subset_right s1 t1)),
-  convert h using 1,
-
-  ext1 z,
-  simp only with mfld_simps,
-  fsplit,
-  { rintro ⟨⟨⟨a, rfl⟩, h1⟩, h2, h3, h4⟩, exact ⟨⟨⟨⟨a, rfl⟩, h1⟩, ⟨h2, h3⟩⟩, ⟨⟨⟨a, rfl⟩, h1⟩, ⟨h2, h4⟩⟩⟩, },
-  { rintro ⟨⟨⟨⟨a, rfl⟩, h1⟩, h2, h3⟩, ⟨⟨b, hb⟩, h4⟩, h5, h6⟩, exact ⟨⟨⟨a, rfl⟩, h1⟩, ⟨h2, ⟨h3, h6⟩⟩⟩, }
-end
-
-lemma times_cont_mdiff_within_at.prod_mk_aux {f : M → M'} {g : M → N'} {s : set M} {x : M} {n : ℕ}
-  (hf : times_cont_mdiff_within_at I I' n f s x) (hg : times_cont_mdiff_within_at I J' n g s x) :
-  times_cont_mdiff_within_at I (I'.prod J') n (λ x, (f x, g x)) s x :=
-begin
-  rw times_cont_mdiff_within_at_iff_times_cont_mdiff_on_nhds at hf hg ⊢,
-  rcases hg with ⟨ug, hug1, hug2⟩, rcases hf with ⟨uf, huf1, huf2⟩,
-  exact ⟨ug ∩ uf, (nhds_within x (insert x s)).inter_sets hug1 huf1,
-  (times_cont_mdiff_on.mono huf2 (set.inter_subset_right ug uf)).prod_mk
-    (times_cont_mdiff_on.mono hug2 (set.inter_subset_left ug uf))⟩,
-end
-
-lemma times_cont_mdiff_within_at.prod_mk {f : M → M'} {g : M → N'} {s : set M} {x : M} {n : with_top ℕ}
-  (hf : times_cont_mdiff_within_at I I' n f s x) (hg : times_cont_mdiff_within_at I J' n g s x) :
-  times_cont_mdiff_within_at I (I'.prod J') n (λ x, (f x, g x)) s x :=
-begin
-  cases n,
-  { apply smooth_within_at.times_cont_mdiff_within_at,
-    have hf1 := hf.smooth_within_at, have hg1 := hg.smooth_within_at,
-    rw times_cont_mdiff_within_at_top at hf1 hg1 ⊢,
-    intro n, exact (hf1 n).prod_mk_aux (hg1 n), },
-  { exact hf.prod_mk_aux hg, }
-end
-
-lemma smooth_within_at.prod_mk {f : M → M'} {g : M → N'} {s : set M} {x : M}
-  (hf : smooth_within_at I I' f s x) (hg : smooth_within_at I J' g s x) :
-  smooth_within_at I (I'.prod J') (λ x, (f x, g x)) s x := hf.prod_mk hg
-
-lemma times_cont_mdiff.prod_mk {f : M → M'} {g : M → N'} {n : with_top ℕ}
+lemma times_cont_mdiff.prod_mk {f : M → M'} {g : M → N'}
   (hf : times_cont_mdiff I I' n f) (hg : times_cont_mdiff I J' n g) :
   times_cont_mdiff I (I'.prod J') n (λ x, (f x, g x)) :=
-begin
-  have h := hf.times_cont_mdiff_on.prod_mk hg.times_cont_mdiff_on,
-  rw times_cont_mdiff_on_univ at h,
-  exact h,
-end
+λ x, (hf x).prod_mk (hg x)
 
-lemma times_cont_mdiff_at.prod_mk_aux {f : M → M'} {g : M → N'} {n : ℕ} {x : M}
-  (hf : times_cont_mdiff_at I I' n f x) (hg : times_cont_mdiff_at I J' n g x) :
-  times_cont_mdiff_at I (I'.prod J') n (λ x, (f x, g x)) x :=
-begin
-  rw times_cont_mdiff_at_iff_times_cont_mdiff_on_nhds at hf hg ⊢,
-  rcases hg with ⟨ug, hug1, hug2⟩, rcases hf with ⟨uf, huf1, huf2⟩,
-  refine ⟨uf ∩ ug, (nhds x).inter_sets huf1 hug1,
-  (huf2.mono (inter_subset_left uf ug)).prod_mk (hug2.mono (inter_subset_right uf ug))⟩,
-end
+lemma smooth_within_at.prod_mk {f : M → M'} {g : M → N'}
+  (hf : smooth_within_at I I' f s x) (hg : smooth_within_at I J' g s x) :
+  smooth_within_at I (I'.prod J') (λ x, (f x, g x)) s x :=
+hf.prod_mk hg
 
-lemma times_cont_mdiff_at.prod_mk {f : M → M'} {g : M → N'} {n : with_top ℕ} {x : M}
-  (hf : times_cont_mdiff_at I I' n f x) (hg : times_cont_mdiff_at I J' n g x) :
-  times_cont_mdiff_at I (I'.prod J') n (λ x, (f x, g x)) x :=
-begin
-  cases n,
-  { apply smooth_at.times_cont_mdiff_at,
-    have hf1 := hf.smooth_at, have hg1 := hg.smooth_at,
-    rw times_cont_mdiff_at_top at hf1 hg1 ⊢,
-    intro n, exact (hf1 n).prod_mk (hg1 n), },
-  { exact hf.prod_mk_aux hg, }
-end
-
-lemma smooth_at.prod_mk {f : M → M'} {g : M → N'} {x : M}
+lemma smooth_at.prod_mk {f : M → M'} {g : M → N'}
   (hf : smooth_at I I' f x) (hg : smooth_at I J' g x) :
-  smooth_at I (I'.prod J') (λ x, (f x, g x)) x := hf.prod_mk hg
+  smooth_at I (I'.prod J') (λ x, (f x, g x)) x :=
+hf.prod_mk hg
+
+lemma smooth_on.prod_mk {f : M → M'} {g : M → N'}
+  (hf : smooth_on I I' f s) (hg : smooth_on I J' g s) :
+  smooth_on I (I'.prod J') (λ x, (f x, g x)) s :=
+hf.prod_mk hg
+
+lemma smooth.prod_mk {f : M → M'} {g : M → N'}
+  (hf : smooth I I' f) (hg : smooth I J' g) :
+  smooth I (I'.prod J') (λ x, (f x, g x)) :=
+hf.prod_mk hg
 
 end prod_mk
 
-section prod_map
-
-variables {g : N → N'} {r: set N} {y : N}
-
-lemma times_cont_mdiff_on.prod_map {n : with_top ℕ}
-  (hf : times_cont_mdiff_on I I' n f s) (hg : times_cont_mdiff_on J J' n g r) :
-  times_cont_mdiff_on (I.prod J) (I'.prod J') n (prod.map f g) (s.prod r) :=
-begin
-  rw times_cont_mdiff_on_iff at hf hg ⊢,
-  refine ⟨hf.1.prod_map hg.1, λ x y, _⟩,
-  convert (hf.2 x.1 y.1).prod_map (hg.2 x.2 y.2) using 1,
-  mfld_set_tac,
-end
-
-@[nolint unused_arguments] /- What is going on here? -/
-lemma times_cont_mdiff_within_at.prod_map_aux {n : ℕ}
-  (hf : times_cont_mdiff_within_at I I' n f s x) (hg : times_cont_mdiff_within_at J J' n g r y) :
-  times_cont_mdiff_within_at (I.prod J) (I'.prod J') n (prod.map f g) (s.prod r) (x, y) :=
-begin
-  rw times_cont_mdiff_within_at_iff at *,
-  refine ⟨hf.1.prod_map hg.1, _⟩,
-  convert hf.2.prod_map hg.2 using 1,
-  mfld_set_tac,
-end
-
-lemma times_cont_mdiff_within_at.prod_map {n : with_top ℕ}
-  (hf : times_cont_mdiff_within_at I I' n f s x) (hg : times_cont_mdiff_within_at J J' n g r y) :
-  times_cont_mdiff_within_at (I.prod J) (I'.prod J') n (prod.map f g) (s.prod r) (x, y) :=
-begin
-  cases n,
-  { apply smooth_within_at.times_cont_mdiff_within_at,
-    have hf1 := hf.smooth_within_at, have hg1 := hg.smooth_within_at,
-    rw times_cont_mdiff_within_at_top at hf1 hg1 ⊢,
-    intro n, exact (hf1 n).prod_map_aux (hg1 n) },
-  { exact hf.prod_map_aux hg, }
-end
-
-lemma smooth_within_at.prod_map
-  (hf : smooth_within_at I I' f s x) (hg : smooth_within_at J J' g r y) :
-  smooth_within_at (I.prod J) (I'.prod J') (prod.map f g) (s.prod r) (x, y) := hf.prod_map hg
-
-lemma times_cont_mdiff.prod_map {n : with_top ℕ}
-(hf : times_cont_mdiff I I' n f) (hg : times_cont_mdiff J J' n g) :
-  times_cont_mdiff (I.prod J) (I'.prod J') n (prod.map f g) :=
-begin
-  rw ←times_cont_mdiff_on_univ at hf hg ⊢,
-  have h := hf.prod_map hg, rw univ_prod_univ at h,
-  exact h,
-end
-
-lemma times_cont_mdiff_at.prod_map_aux {n : ℕ}
-  (hf : times_cont_mdiff_at I I' n f x) (hg : times_cont_mdiff_at J J' n g y) :
-  times_cont_mdiff_at (I.prod J) (I'.prod J') n (prod.map f g) (x, y) :=
-begin
-  rw times_cont_mdiff_at_iff_times_cont_mdiff_on_nhds at hf hg ⊢,
-  rcases hg with ⟨ug, hug1, hug2⟩, rcases hf with ⟨uf, huf1, huf2⟩,
-  exact ⟨uf.prod ug, prod_mem_nhds_sets huf1 hug1, huf2.prod_map hug2⟩,
-end
-
-lemma times_cont_mdiff_at.prod_map {n : with_top ℕ}
-  (hf : times_cont_mdiff_at I I' n f x) (hg : times_cont_mdiff_at J J' n g y) :
-  times_cont_mdiff_at (I.prod J) (I'.prod J') n (prod.map f g) (x, y) :=
-begin
-  cases n,
-  { apply smooth_at.times_cont_mdiff_at,
-    have hf1 := hf.smooth_at, have hg1 := hg.smooth_at,
-    rw times_cont_mdiff_at_top at hf1 hg1 ⊢,
-    intro n, exact (hf1 n).prod_map_aux (hg1 n) },
-  { exact hf.prod_map_aux hg, }
-end
-
-lemma smooth_at.prod_map
-  (hf : smooth_at I I' f x) (hg : smooth_at J J' g y) :
-  smooth_at (I.prod J) (I'.prod J') (prod.map f g) (x, y) := hf.prod_map hg
-
-end prod_map
-
 section projections
 
-lemma smooth_fst : smooth (I.prod J) I (@prod.fst M N) :=
+lemma times_cont_mdiff_within_at_fst {s : set (M × N)} {p : M × N} :
+  times_cont_mdiff_within_at (I.prod J) I n prod.fst s p :=
 begin
-  rw smooth_iff,
-  refine ⟨continuous_fst, λ x y, _⟩,
-
-  /- I am copying stuff fromt the goal because I do not want to bother spending time to find
-  shorter names, but I'd be happy to have tips on how to find shorter names. -/
-  have h1 := (has_groupoid.compatible (times_cont_diff_groupoid ⊤ (I.prod J))
-    (chart_mem_atlas (H×G) x) (chart_mem_atlas (H×G) (y, x.snd))).1,
-  let s := (prod.map (I.symm) (J.symm) ⁻¹'
-    ((chart_at (model_prod H G) x).to_local_equiv.symm.trans
-    (chart_at (model_prod H G) (y, x.snd)).to_local_equiv).source ∩ set.range (prod.map I J)),
-  have hs : (s ⊆ (λ (x_1 : E × F), (I ((chart_at (model_prod H G) (y, x.snd))
-    (((chart_at (model_prod H G) x).symm) ((I.symm) x_1.fst, (J.symm) x_1.snd))).fst,
-    J ((chart_at (model_prod H G) (y, x.snd)) (((chart_at (model_prod H G) x).symm)
-    ((I.symm) x_1.fst, (J.symm) x_1.snd))).snd)) ⁻¹' (set.univ)) :=
-  by simp only [set.subset_univ, set.preimage_univ],
-  have h2 := times_cont_diff_on.comp (times_cont_diff.times_cont_diff_on times_cont_diff_fst) h1 hs,
-  convert h2 using 1,
-  clear h1 hs h2,
-
-  ext1 z,
-  simp only [set.mem_range, prod_map] with mfld_simps,
-  fsplit,
-  { rintro ⟨⟨⟨⟨a, ha⟩, h1⟩, ⟨b, hb⟩, h2⟩, h3⟩, refine ⟨⟨⟨h1, h3⟩, ⟨h2, _⟩⟩, ⟨a, b⟩, _⟩,
-    { apply local_homeomorph.map_target, /- simp is not working here!!! Why? -/
-      exact h2, },
-    { ext, exacts [ha, hb], } },
-  { rintro ⟨⟨⟨h1, h2⟩, h3, h4⟩, ⟨a, b⟩, rfl⟩, refine ⟨⟨⟨⟨a, rfl⟩, h1⟩, ⟨⟨b, rfl⟩, h3⟩⟩, h2⟩, }
+  rw times_cont_mdiff_within_at_iff,
+  refine ⟨continuous_within_at_fst, _⟩,
+  refine times_cont_diff_within_at_fst.congr (λ y hy, _) _,
+  { simp only with mfld_simps at hy,
+    simp only [hy] with mfld_simps },
+  { simp only with mfld_simps }
 end
 
-lemma smooth_on_fst {s : set (M × N)} : smooth_on (I.prod J) I (@prod.fst M N) s :=
-smooth_fst.smooth_on
+lemma times_cont_mdiff_at_fst {p : M × N} :
+  times_cont_mdiff_at (I.prod J) I n prod.fst p :=
+times_cont_mdiff_within_at_fst
 
-lemma smooth_at_fst {x : M × N} : smooth_at (I.prod J) I (@prod.fst M N) x :=
-smooth_fst.smooth_at
+lemma times_cont_mdiff_on_fst {s : set (M × N)} :
+  times_cont_mdiff_on (I.prod J) I n prod.fst s :=
+λ x hx, times_cont_mdiff_within_at_fst
 
-lemma smooth_within_at_fst {s : set (M × N)} {x : M × N} :
-  smooth_within_at (I.prod J) I (@prod.fst M N) s x :=
-smooth_at_fst.smooth_within_at
+lemma times_cont_mdiff_fst :
+  times_cont_mdiff (I.prod J) I n (@prod.fst M N) :=
+λ x, times_cont_mdiff_at_fst
 
-lemma smooth_snd : smooth (I.prod J) J (@prod.snd M N) :=
+lemma smooth_within_at_fst {s : set (M × N)} {p : M × N} :
+  smooth_within_at (I.prod J) I prod.fst s p :=
+times_cont_mdiff_within_at_fst
+
+lemma smooth_at_fst {p : M × N} :
+  smooth_at (I.prod J) I prod.fst p :=
+times_cont_mdiff_at_fst
+
+lemma smooth_on_fst {s : set (M × N)} :
+  smooth_on (I.prod J) I prod.fst s :=
+times_cont_mdiff_on_fst
+
+lemma smooth_fst :
+  smooth (I.prod J) I (@prod.fst M N) :=
+times_cont_mdiff_fst
+
+lemma times_cont_mdiff_within_at_snd {s : set (M × N)} {p : M × N} :
+  times_cont_mdiff_within_at (I.prod J) J n prod.snd s p :=
 begin
-  rw smooth_iff,
-  refine ⟨continuous_snd, λ x y, _⟩,
-
-  have h1 := (has_groupoid.compatible (times_cont_diff_groupoid ⊤ (I.prod J))
-  (chart_mem_atlas (H×G) x) (chart_mem_atlas (H×G) (x.fst, y))).1,
-  let s := (prod.map (I.symm) (J.symm) ⁻¹'
-    ((chart_at (model_prod H G) x).to_local_equiv.symm.trans
-    (chart_at (model_prod H G) (x.fst, y)).to_local_equiv).source ∩  set.range (prod.map I J)),
-  have hs : (s ⊆ (λ (x_1 : E × F), (I ((chart_at (model_prod H G) (x.fst, y))
-  (((chart_at (model_prod H G) x).symm) ((I.symm) x_1.fst, (J.symm) x_1.snd))).fst,
-    J ((chart_at (model_prod H G) (x.fst, y)) (((chart_at (model_prod H G) x).symm)
-    ((I.symm) x_1.fst, (J.symm) x_1.snd))).snd)) ⁻¹' (set.univ)) :=
-  by simp only [set.subset_univ, set.preimage_univ],
-  have h2 := times_cont_diff_on.comp (times_cont_diff.times_cont_diff_on times_cont_diff_snd) h1 hs,
-  convert h2 using 1,
-  clear h1 hs h2,
-
-  ext1 z,
-  simp only [set.mem_range, prod_map] with mfld_simps,
-  fsplit,
-  { rintro ⟨⟨⟨⟨a, ha⟩, h1⟩, ⟨b, hb⟩, h2⟩, h3⟩, refine ⟨⟨⟨h1, _⟩, ⟨h2, h3⟩⟩, _⟩,
-    { apply local_homeomorph.map_target, exact h1, },
-    { use ⟨a, b⟩, ext, exacts [ha, hb], } },
-  { rintro ⟨⟨⟨h1, h2⟩, h3, h4⟩, ⟨a, b⟩, rfl⟩, exact ⟨⟨⟨⟨a, rfl⟩, h1⟩, ⟨⟨b, rfl⟩, h3⟩⟩, h4⟩, }
+  rw times_cont_mdiff_within_at_iff,
+  refine ⟨continuous_within_at_snd, _⟩,
+  refine times_cont_diff_within_at_snd.congr (λ y hy, _) _,
+  { simp only with mfld_simps at hy,
+    simp only [hy] with mfld_simps },
+  { simp only with mfld_simps }
 end
 
-lemma smooth_on_snd {s : set (M × N)} : smooth_on (I.prod J) J (@prod.snd M N) s :=
-smooth_snd.smooth_on
+lemma times_cont_mdiff_at_snd {p : M × N} :
+  times_cont_mdiff_at (I.prod J) J n prod.snd p :=
+times_cont_mdiff_within_at_snd
 
-lemma smooth_at_snd {x : M × N} : smooth_at (I.prod J) J (@prod.snd M N) x :=
-smooth_snd.smooth_at
+lemma times_cont_mdiff_on_snd {s : set (M × N)} :
+  times_cont_mdiff_on (I.prod J) J n prod.snd s :=
+λ x hx, times_cont_mdiff_within_at_snd
 
-lemma smooth_within_at_snd {s : set (M × N)} {x : M × N} :
-  smooth_within_at (I.prod J) J (@prod.snd M N) s x :=
-smooth_at_snd.smooth_within_at
+lemma times_cont_mdiff_snd :
+  times_cont_mdiff (I.prod J) J n (@prod.snd M N) :=
+λ x, times_cont_mdiff_at_snd
+
+lemma smooth_within_at_snd {s : set (M × N)} {p : M × N} :
+  smooth_within_at (I.prod J) J prod.snd s p :=
+times_cont_mdiff_within_at_snd
+
+lemma smooth_at_snd {p : M × N} :
+  smooth_at (I.prod J) J prod.snd p :=
+times_cont_mdiff_at_snd
+
+lemma smooth_on_snd {s : set (M × N)} :
+  smooth_on (I.prod J) J prod.snd s :=
+times_cont_mdiff_on_snd
+
+lemma smooth_snd :
+  smooth (I.prod J) J (@prod.snd M N) :=
+times_cont_mdiff_snd
+
+include Is I's J's
 
 lemma smooth_iff_proj_smooth {f : M → M' × N'} :
   (smooth I (I'.prod J') f) ↔ (smooth I I' (prod.fst ∘ f)) ∧ (smooth I J' (prod.snd ∘ f)) :=
@@ -1534,3 +1419,74 @@ begin
 end
 
 end projections
+
+section prod_map
+
+variables {g : N → N'} {r : set N} {y : N}
+include Is I's Js J's
+
+/-- The product map of two `C^n` functions within a set at a point is `C^n`
+within the product set at the product point. -/
+lemma times_cont_mdiff_within_at.prod_map' {p : M × N}
+  (hf : times_cont_mdiff_within_at I I' n f s p.1) (hg : times_cont_mdiff_within_at J J' n g r p.2) :
+  times_cont_mdiff_within_at (I.prod J) (I'.prod J') n (prod.map f g) (s.prod r) p :=
+(hf.comp p times_cont_mdiff_within_at_fst (prod_subset_preimage_fst _ _)).prod_mk $
+hg.comp p times_cont_mdiff_within_at_snd (prod_subset_preimage_snd _ _)
+
+lemma times_cont_mdiff_within_at.prod_map
+  (hf : times_cont_mdiff_within_at I I' n f s x) (hg : times_cont_mdiff_within_at J J' n g r y) :
+  times_cont_mdiff_within_at (I.prod J) (I'.prod J') n (prod.map f g) (s.prod r) (x, y) :=
+times_cont_mdiff_within_at.prod_map' hf hg
+
+lemma times_cont_mdiff_at.prod_map
+  (hf : times_cont_mdiff_at I I' n f x) (hg : times_cont_mdiff_at J J' n g y) :
+  times_cont_mdiff_at (I.prod J) (I'.prod J') n (prod.map f g) (x, y) :=
+begin
+  rw ← times_cont_mdiff_within_at_univ at *,
+  convert hf.prod_map hg,
+  exact univ_prod_univ.symm
+end
+
+lemma times_cont_mdiff_at.prod_map' {p : M × N}
+  (hf : times_cont_mdiff_at I I' n f p.1) (hg : times_cont_mdiff_at J J' n g p.2) :
+  times_cont_mdiff_at (I.prod J) (I'.prod J') n (prod.map f g) p :=
+begin
+  rcases p,
+  exact hf.prod_map hg
+end
+
+lemma times_cont_mdiff_on.prod_map
+  (hf : times_cont_mdiff_on I I' n f s) (hg : times_cont_mdiff_on J J' n g r) :
+  times_cont_mdiff_on (I.prod J) (I'.prod J') n (prod.map f g) (s.prod r) :=
+(hf.comp times_cont_mdiff_on_fst (prod_subset_preimage_fst _ _)).prod_mk $
+hg.comp (times_cont_mdiff_on_snd) (prod_subset_preimage_snd _ _)
+
+lemma times_cont_mdiff.prod_map
+  (hf : times_cont_mdiff I I' n f) (hg : times_cont_mdiff J J' n g) :
+  times_cont_mdiff (I.prod J) (I'.prod J') n (prod.map f g) :=
+begin
+  assume p,
+  exact (hf p.1).prod_map' (hg p.2)
+end
+
+lemma smooth_within_at.prod_map
+  (hf : smooth_within_at I I' f s x) (hg : smooth_within_at J J' g r y) :
+  smooth_within_at (I.prod J) (I'.prod J') (prod.map f g) (s.prod r) (x, y) :=
+hf.prod_map hg
+
+lemma smooth_at.prod_map
+  (hf : smooth_at I I' f x) (hg : smooth_at J J' g y) :
+  smooth_at (I.prod J) (I'.prod J') (prod.map f g) (x, y) :=
+hf.prod_map hg
+
+lemma smooth_on.prod_map
+  (hf : smooth_on I I' f s) (hg : smooth_on J J' g r) :
+  smooth_on (I.prod J) (I'.prod J') (prod.map f g) (s.prod r) :=
+hf.prod_map hg
+
+lemma smooth.prod_map
+  (hf : smooth I I' f) (hg : smooth J J' g) :
+  smooth (I.prod J) (I'.prod J') (prod.map f g) :=
+hf.prod_map hg
+
+end prod_map

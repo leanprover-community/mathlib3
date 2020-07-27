@@ -645,3 +645,17 @@ end
 lemma embedding.continuous_on_iff {f : α → β} {g : β → γ} (hg : embedding g) {s : set α} :
   continuous_on f s ↔ continuous_on (g ∘ f) s :=
 inducing.continuous_on_iff hg.1
+
+lemma continuous_on_fst {s : set (α × β)} : continuous_on prod.fst s :=
+continuous_fst.continuous_on
+
+lemma continuous_within_at_fst {s : set (α × β)} {p : α × β} :
+  continuous_within_at prod.fst s p :=
+continuous_fst.continuous_within_at
+
+lemma continuous_on_snd {s : set (α × β)} : continuous_on prod.snd s :=
+continuous_snd.continuous_on
+
+lemma continuous_within_at_snd {s : set (α × β)} {p : α × β} :
+  continuous_within_at prod.snd s p :=
+continuous_snd.continuous_within_at

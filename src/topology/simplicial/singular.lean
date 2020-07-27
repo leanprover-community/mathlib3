@@ -3,7 +3,8 @@ Copyleft 2020 Johan Commelin. No rights reserved.
 Authors: Johan Commelin
 -/
 
-import topology.simplicial.basic
+import topology.simplicial.simplicial_complex
+import algebra.homology.homology
 import topology.category.Top
 import topology.simplicial.pmf
 import topology.simplicial.move_this
@@ -24,6 +25,8 @@ is the one indexed by `fin (k+1)` and lives in `fin (k+1) → ℝ`, as it should
 
 noncomputable theory
 
+universe variables u
+
 open category_theory
 
 namespace Top
@@ -37,7 +40,7 @@ the singular standard simplex on that order.
 subspace of `ℝ^n` consisting of vectors that sum to `1`
 and all of whose entries are nonnegative. -/
 @[simps]
-def singular_standard_simplex : NonemptyFinLinOrd ⥤ Top :=
+def singular_standard_simplex : NonemptyFinLinOrd.{u} ⥤ Top.{u} :=
 { obj := λ n, Top.of (pmf n),
   map := λ m n α,
   { to_fun := pmf.map α,
@@ -48,6 +51,14 @@ def singular_standard_simplex : NonemptyFinLinOrd ⥤ Top :=
 /-- The singular simplicial type associated with a topological space `X`
 has as `n`-simplices all continuous maps from `singular_standard_simplex n` to `X`. -/
 def singular : Top ⥤ sType :=
-yoneda ⋙ singular_standard_simplex.{0 0}.op.comp_left
+yoneda ⋙ singular_standard_simplex.op.comp_left
+
+variables (R : Type u) [comm_ring R]
+
+def singular_chain_complex : Top ⥤ chain_complex (Module R) :=
+singular ⋙ sType.free_simplicial_module R ⋙ (simplicial_module.simplicial_complex R)
+
+def homology (i : ℤ) : Top ⥤ Module R :=
+singular_chain_complex R ⋙ homological_complex.homology _ i
 
 end Top

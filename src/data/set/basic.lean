@@ -170,7 +170,7 @@ theorem set_of_set {s : set α} : set_of s = s := rfl
 
 lemma set_of_app_iff {p : α → Prop} {x : α} : { x | p x } x ↔ p x := iff.rfl
 
-@[simp] theorem apply_iff_mem {a : α} {s : set α} : s a ↔ a ∈ s := iff.rfl
+theorem mem_def {a : α} {s : set α} : a ∈ s ↔ s a := iff.rfl
 
 instance decidable_mem (s : set α) [H : decidable_pred s] : ∀ a, decidable (a ∈ s) := H
 

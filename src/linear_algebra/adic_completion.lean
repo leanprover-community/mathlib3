@@ -86,10 +86,12 @@ namespace Hausdorffification
 /-- The canonical linear map to the Hausdorffification. -/
 def of : M →ₗ[R] Hausdorffification I M := mkq _
 
+variables {I M}
 @[elab_as_eliminator]
 lemma induction_on {C : Hausdorffification I M → Prop} (x : Hausdorffification I M)
   (ih : ∀ x, C (of I M x)) : C x :=
 quotient.induction_on' x ih
+variables (I M)
 
 instance : is_Hausdorff I (Hausdorffification I M) :=
 λ x, quotient.induction_on' x $ λ x hx, (quotient.mk_eq_zero _).2 $ (mem_infi _).2 $ λ n, begin
@@ -111,6 +113,11 @@ theorem lift_of (f : M →ₗ[R] N) (x : M) : lift I f (of I M x) = f x := rfl
 
 theorem lift_comp_of (f : M →ₗ[R] N) : (lift I f).comp (of I M) = f :=
 linear_map.ext $ λ _, rfl
+
+/-- Uniqueness of lift. -/
+theorem lift_eq (f : M →ₗ[R] N) (g : Hausdorffification I M →ₗ[R] N) (hg : g.comp (of I M) = f) :
+  g = lift I f :=
+linear_map.ext $ λ x, induction_on x $ λ x, by rw [lift_of, ← hg, linear_map.comp_apply]
 
 end Hausdorffification
 

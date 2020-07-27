@@ -2049,7 +2049,7 @@ end
 lemma times_cont_diff_neg {n : with_top ℕ} : times_cont_diff 𝕜 n (λp : F, -p) :=
 begin
   apply is_bounded_linear_map.times_cont_diff,
-    exact is_bounded_linear_map.neg is_bounded_linear_map.id
+  exact is_bounded_linear_map.neg is_bounded_linear_map.id
 end
 
 /-- The negative of a `C^n`function is `C^n`. -/
@@ -2149,7 +2149,7 @@ lemma times_cont_diff_within_at.prod_map
 times_cont_diff_within_at.prod_map' hf hg
 
 /-- The product map of two `C^n` functions on a set is `C^n` on the product set. -/
-lemma times_cont_diff_on.map_prod {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+lemma times_cont_diff_on.prod_map {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
   {F' : Type*} [normed_group F'] [normed_space 𝕜 F']
   {s : set E} {t : set E'} {n : with_top ℕ} {f : E → F} {g : E' → F'}
   (hf : times_cont_diff_on 𝕜 n f s) (hg : times_cont_diff_on 𝕜 n g t) :

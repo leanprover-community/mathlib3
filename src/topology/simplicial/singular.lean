@@ -58,7 +58,7 @@ variables (R : Type u) [comm_ring R]
 def singular_chain_complex : Top ⥤ chain_complex (Module R) :=
 singular ⋙ sType.free_simplicial_module R ⋙ (simplicial_module.simplicial_complex R)
 
-def homology (i : ℤ) : Top ⥤ Module R :=
-singular_chain_complex R ⋙ homological_complex.homology _ i
+-- def homology (i : ℤ) : Top ⥤ Module R :=
+-- singular_chain_complex R ⋙ homological_complex.homology _ i
 
 end Top

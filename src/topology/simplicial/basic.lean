@@ -63,13 +63,13 @@ def as_preorder_hom {n} {m} (α : (standard_simplex.obj n).obj m) :
 all `m`-simplices of `standard_simplex n` that are not surjective
 (when viewed as monotone function `m → n`). -/
 @[simps]
-def boundary (n : NonemptyFinLinOrd.{0}) : sType :=
+def boundary (n : NonemptyFinLinOrd.{u}) : sType :=
 { obj := λ m, {α : (standard_simplex.obj n).obj m // ¬ function.surjective (as_preorder_hom α)},
   map := λ m₁ m₂ f α, ⟨f.unop ≫ (α : (standard_simplex.obj n).obj m₁),
   by { intro h, apply α.property, exact function.surjective.of_comp h }⟩ }
 
 /-- The inclusion of the boundary of the `n`-th standard simplex into that standard simplex. -/
-def boundary_inclusion (n : NonemptyFinLinOrd.{0}) :
+def boundary_inclusion (n : NonemptyFinLinOrd.{u}) :
   boundary n ⟶ standard_simplex.obj n :=
 { app := λ m (α : {α : (standard_simplex.obj n).obj m // _}), α }
 
@@ -77,7 +77,7 @@ def boundary_inclusion (n : NonemptyFinLinOrd.{0}) :
 It consists of all `m`-simplices `α` of `standard_simplex n`
 for which the union of `{i}` and the range of `α` is not all of `n`
 (when viewing `α` as monotone function `m → n`). -/
-def horn (n : NonemptyFinLinOrd.{0}) (i : n) : sType :=
+def horn (n : NonemptyFinLinOrd.{u}) (i : n) : sType :=
 { obj := λ m, {α : (standard_simplex.obj n).obj m // set.range (as_preorder_hom α) ∪ {i} ≠ set.univ },
   map := λ m₁ m₂ f α, ⟨f.unop ≫ (α : (standard_simplex.obj n).obj m₁),
   begin
@@ -89,7 +89,7 @@ def horn (n : NonemptyFinLinOrd.{0}) (i : n) : sType :=
   end⟩ }
 
 /-- The inclusion of the `i`-th horn of the `n`-th standard simplex into that standard simplex. -/
-def horn_inclusion (n : NonemptyFinLinOrd.{0}) (i : n) :
+def horn_inclusion (n : NonemptyFinLinOrd.{u}) (i : n) :
   horn n i ⟶ standard_simplex.obj n :=
 { app := λ m (α : {α : (standard_simplex.obj n).obj m // _}), α }
 

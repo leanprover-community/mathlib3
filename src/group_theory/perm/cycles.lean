@@ -146,19 +146,19 @@ cycle_factors_aux (univ.sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
 
 section fixed_points
 
-lemma one_lt_nonfixed_point_card_of_ne_refl [fintype α] {σ : perm α} (h : σ ≠ equiv.refl α) :
-1 < (filter (λ x, ¬ σ x = x) univ).card :=
+lemma one_lt_nonfixed_point_card_of_ne_one [fintype α] {σ : perm α} (h : σ ≠ 1) :
+1 < (filter (λ x, σ x ≠ x) univ).card :=
 begin
   rw one_lt_card_iff,
   contrapose! h, ext, dsimp,
   have := h (σ x) x, contrapose! this, simpa,
 end
 
-lemma fixed_point_card_lt_of_ne_refl [fintype α] {σ : perm α} (h : σ ≠ equiv.refl α) :
+lemma fixed_point_card_lt_of_ne_one [fintype α] {σ : perm α} (h : σ ≠ 1) :
 (filter (λ x, σ x = x) univ).card < fintype.card α - 1 :=
 begin
   rw nat.lt_sub_left_iff_add_lt, apply nat.add_lt_of_lt_sub_right,
-  convert one_lt_nonfixed_point_card_of_ne_refl h,
+  convert one_lt_nonfixed_point_card_of_ne_one h,
   rw [nat.sub_eq_iff_eq_add, add_comm], swap, { apply card_le_of_subset, simp },
   rw ← card_disjoint_union, swap, { rw [disjoint_iff_inter_eq_empty, filter_inter_filter_neg_eq] },
   rw filter_union_filter_neg_eq, refl

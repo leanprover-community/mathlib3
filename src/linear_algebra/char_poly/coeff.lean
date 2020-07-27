@@ -64,7 +64,7 @@ begin
   intros c hc, rw [← C_eq_int_cast, C_mul'],
   apply submodule.smul_mem (degree_lt R (fintype.card n - 1)) ↑↑(equiv.perm.sign c),
   rw mem_degree_lt, apply lt_of_le_of_lt degree_le_nat_degree _, rw with_bot.coe_lt_coe,
-  apply lt_of_le_of_lt _ (equiv.perm.fixed_point_card_lt_of_ne_refl (ne_of_mem_erase hc)),
+  apply lt_of_le_of_lt _ (equiv.perm.fixed_point_card_lt_of_ne_one (ne_of_mem_erase hc)),
   apply le_trans (polynomial.nat_degree_prod_le univ (λ i : n, (char_matrix M (c i) i))) _,
   rw card_eq_sum_ones, rw sum_filter, apply sum_le_sum,
   intros, apply char_matrix_apply_nat_degree_le,

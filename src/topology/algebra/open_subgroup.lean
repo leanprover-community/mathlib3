@@ -19,7 +19,7 @@ structure open_add_subgroup  (G : Type*) [add_group G] [topological_space G]
 (is_open' : is_open carrier)
 
 /-- The type of open subgroups of a topological group. -/
-@[ancestor subgroup, to_additive open_add_subgroup]
+@[ancestor subgroup, to_additive]
 structure open_subgroup (G : Type*) [group G] [topological_space G] extends subgroup G :=
 (is_open' : is_open carrier)
 
@@ -52,7 +52,7 @@ instance has_coe_opens : has_coe_t (open_subgroup G) (opens G) := ⟨λ U, ⟨U,
 
 @[simp, to_additive] lemma mem_coe : g ∈ (U : set G) ↔ g ∈ U := iff.rfl
 @[simp, to_additive] lemma mem_coe_opens : g ∈ (U : opens G) ↔ g ∈ U := iff.rfl
-@[simp, to_additive mem_coe_add_subgroup]
+@[simp, to_additive]
 lemma mem_coe_subgroup : g ∈ (U : subgroup G) ↔ g ∈ U := iff.rfl
 
 attribute [norm_cast] mem_coe mem_coe_opens mem_coe_subgroup open_add_subgroup.mem_coe
@@ -137,7 +137,7 @@ instance : semilattice_inf_top (open_subgroup G) :=
 @[simp, to_additive] lemma coe_subgroup_le : (U : subgroup G) ≤ (V : subgroup G) ↔ U ≤ V := iff.rfl
 
 attribute [norm_cast] coe_inf coe_subset coe_subgroup_le open_add_subgroup.coe_inf
-  open_add_subgroup.coe_subset open_add_subgroup.coe_subgroup_le
+  open_add_subgroup.coe_subset open_add_subgroup.coe_add_subgroup_le
 
 end open_subgroup
 
@@ -160,7 +160,7 @@ begin
   exact this
 end
 
-@[to_additive is_open_of_open_add_subgroup]
+@[to_additive]
 lemma is_open_of_open_subgroup {U : open_subgroup G} (h : U.1 ≤ H) :
   is_open (H : set G) :=
 H.is_open_of_mem_nhds (filter.mem_sets_of_superset U.mem_nhds_one h)

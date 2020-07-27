@@ -8,7 +8,7 @@ import algebra.module.pi
 import algebra.module.prod
 import algebra.group.prod
 import ring_theory.subring
-import data.finsupp
+import data.finsupp.basic
 import algebra.pointwise
 
 /-!

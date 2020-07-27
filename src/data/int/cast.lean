@@ -188,7 +188,7 @@ namespace monoid_hom
 variables {M : Type*} [monoid M]
 open multiplicative
 
-theorem ext_int [monoid M] {f g : multiplicative ℤ →* M}
+theorem ext_int {f g : multiplicative ℤ →* M}
   (h1 : f (of_add 1) = g (of_add 1)) : f = g :=
 begin
   ext,

@@ -81,7 +81,7 @@ lemma det_of_card_zero (h : fintype.card n = 0) (M : matrix n n R) : M.det = 1 :
 by { rw fintype.card_eq_zero_iff at h, suffices : M = 1, { simp [this] }, ext, tauto }
 
 
-theorem degree_char_poly_eq_dim [nontrivial R] (M : matrix n n R) :
+theorem char_poly_degree_eq_dim [nontrivial R] (M : matrix n n R) :
 (char_poly M).degree = fintype.card n :=
 begin
   by_cases fintype.card n = 0, rw h, unfold char_poly, rw det_of_card_zero, simpa,

@@ -222,6 +222,31 @@ lemma is_closed.mem_of_nhds_within_ne_bot {s : set α} (hs : is_closed s)
   {x : α} (hx : ne_bot $ nhds_within x s) : x ∈ s :=
 by simpa only [hs.closure_eq] using mem_closure_iff_nhds_within_ne_bot.2 hx
 
+lemma eventually_eq_nhds_within_iff {f g : α → β} {s : set α} {a : α} :
+  (f =ᶠ[nhds_within a s] g) ↔ ∀ᶠ x in 𝓝 a, x ∈ s → f x = g x :=
+mem_inf_principal
+
+lemma eventually_eq_nhds_within_of_eq_on {f g : α → β} {s : set α} {a : α} (h : eq_on f g s) :
+  f =ᶠ[nhds_within a s] g :=
+mem_inf_sets_of_right h
+
+lemma set.eq_on.eventually_eq_nhds_within {f g : α → β} {s : set α} {a : α} (h : eq_on f g s) :
+  f =ᶠ[nhds_within a s] g :=
+eventually_eq_nhds_within_of_eq_on h
+
+lemma tendsto_nhds_within_congr {f g : α → β} {s : set α} {a : α} {l : filter β}
+  (hfg : ∀ x ∈ s, f x = g x) (hf : tendsto f (nhds_within a s) l) : tendsto g (nhds_within a s) l :=
+(tendsto_congr' $ eventually_eq_nhds_within_of_eq_on hfg).1 hf
+
+lemma eventually_nhds_with_of_forall {s : set α} {a : α} {p : α → Prop} (h : ∀ x ∈ s, p x) :
+  ∀ᶠ x in nhds_within a s, p x :=
+mem_inf_sets_of_right h
+
+lemma tendsto_nhds_within_of_tendsto_nhds_of_eventually_within {β : Type*} {a : α} {l : filter β}
+  {s : set α} (f : β → α) (h1 : tendsto f l (nhds a)) (h2 : ∀ᶠ x in l, f x ∈ s) :
+  tendsto f l (nhds_within a s) :=
+tendsto_inf.2 ⟨h1, tendsto_principal.2 h2⟩
+
 /-
 nhds_within and subtypes
 -/
@@ -609,3 +634,14 @@ hf.prod_mk_nhds hg
 lemma continuous_on.prod {f : α → β} {g : α → γ} {s : set α}
   (hf : continuous_on f s) (hg : continuous_on g s) : continuous_on (λx, (f x, g x)) s :=
 λx hx, continuous_within_at.prod (hf x hx) (hg x hx)
+
+lemma inducing.continuous_on_iff {f : α → β} {g : β → γ} (hg : inducing g) {s : set α} :
+  continuous_on f s ↔ continuous_on (g ∘ f) s :=
+begin
+  simp only [continuous_on_iff_continuous_restrict, restrict_eq],
+  conv_rhs { rw [function.comp.assoc, ← (inducing.continuous_iff hg)] },
+end
+
+lemma embedding.continuous_on_iff {f : α → β} {g : β → γ} (hg : embedding g) {s : set α} :
+  continuous_on f s ↔ continuous_on (g ∘ f) s :=
+inducing.continuous_on_iff hg.1

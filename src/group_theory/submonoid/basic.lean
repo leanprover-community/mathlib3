@@ -63,7 +63,7 @@ structure add_submonoid (M : Type*) [add_monoid M] :=
 (zero_mem' : (0 : M) ∈ carrier)
 (add_mem' {a b} : a ∈ carrier → b ∈ carrier → a + b ∈ carrier)
 
-attribute [to_additive add_submonoid] submonoid
+attribute [to_additive] submonoid
 
 namespace submonoid
 

@@ -507,7 +507,7 @@ begin
 end
 
 lemma countable_binfi_eq_infi_seq' [complete_lattice α] {B : set ι} (Bcbl : countable B) (f : ι → α)
-{i₀ : ι} (h : f i₀ = ⊤) :
+  {i₀ : ι} (h : f i₀ = ⊤) :
   ∃ (x : ℕ → ι), (⨅ t ∈ B, f t) = ⨅ i, f (x i) :=
 begin
   cases B.eq_empty_or_nonempty with hB Bnonempty,
@@ -554,7 +554,7 @@ lemma has_countable_basis {l : filter α} (h : is_countably_generated l) :
  countable_set_of_finite_subset h.countable_generating_set⟩
 
 lemma exists_countable_infi_principal {f : filter α} (h : f.is_countably_generated) :
-∃ s : set (set α), countable s ∧ f = ⨅ t ∈ s, 𝓟 t :=
+  ∃ s : set (set α), countable s ∧ f = ⨅ t ∈ s, 𝓟 t :=
 begin
   let B := h.countable_filter_basis,
   use [B.sets, B.countable],
@@ -564,7 +564,7 @@ begin
 end
 
 lemma exists_seq {f : filter α} (cblb : f.is_countably_generated) :
-    ∃ x : ℕ → set α, f = ⨅ i, 𝓟 (x i) :=
+  ∃ x : ℕ → set α, f = ⨅ i, 𝓟 (x i) :=
 begin
   rcases cblb.exists_countable_infi_principal with ⟨B, Bcbl, rfl⟩,
   exact countable_binfi_principal_eq_seq_infi Bcbl,

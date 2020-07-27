@@ -57,7 +57,7 @@ structure add_monoid_hom (M : Type*) (N : Type*) [add_monoid M] [add_monoid N] :
 infixr ` →+ `:25 := add_monoid_hom
 
 /-- Bundled monoid homomorphisms; use this for bundled group homomorphisms too. -/
-@[to_additive add_monoid_hom]
+@[to_additive]
 structure monoid_hom (M : Type*) (N : Type*) [monoid M] [monoid N] :=
 (to_fun : M → N)
 (map_one' : to_fun 1 = 1)
@@ -214,7 +214,7 @@ add_decl_doc add_monoid_hom.has_add
   (f * g) x = f x * g x := rfl
 
 /-- (M →* N) is a comm_monoid if N is commutative. -/
-@[to_additive add_comm_monoid]
+@[to_additive]
 instance {M N} [monoid M] [comm_monoid N] : comm_monoid (M →* N) :=
 { mul := (*),
   mul_assoc := by intros; ext; apply mul_assoc,
@@ -295,7 +295,7 @@ add_decl_doc add_monoid_hom.has_neg
   f⁻¹ x = (f x)⁻¹ := rfl
 
 /-- If `G` is a commutative group, then `M →* G` a commutative group too. -/
-@[to_additive add_comm_group]
+@[to_additive]
 instance {M G} [monoid M] [comm_group G] : comm_group (M →* G) :=
 { inv := has_inv.inv,
   mul_left_inv := by intros; ext; apply mul_left_inv,

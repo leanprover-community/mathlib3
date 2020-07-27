@@ -130,8 +130,8 @@ structure model_with_corners (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   extends local_equiv H E :=
 (source_eq          : source = univ)
 (unique_diff'       : unique_diff_on 𝕜 (range to_fun))
-(continuous_to_fun  : continuous to_fun)
-(continuous_inv_fun : continuous inv_fun)
+(continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')
+(continuous_inv_fun : continuous inv_fun . tactic.interactive.continuity')
 
 attribute [simp, mfld_simps] model_with_corners.source_eq
 

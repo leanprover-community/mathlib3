@@ -467,10 +467,10 @@ by simp only [le_antisymm_iff, le_principal_iff, mem_principal_sets]; refl
 
 @[simp] lemma join_principal_eq_Sup {s : set (filter α)} : join (𝓟 s) = Sup s := rfl
 
-lemma principal_univ : 𝓟 (univ : set α) = ⊤ :=
+@[simp] lemma principal_univ : 𝓟 (univ : set α) = ⊤ :=
 top_unique $ by simp only [le_principal_iff, mem_top_sets, eq_self_iff_true]
 
-lemma principal_empty : 𝓟 (∅ : set α) = ⊥ :=
+@[simp] lemma principal_empty : 𝓟 (∅ : set α) = ⊥ :=
 bot_unique $ assume s _, empty_subset _
 
 /-! ### Lattice equations -/

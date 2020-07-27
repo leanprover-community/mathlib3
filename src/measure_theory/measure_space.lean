@@ -1060,8 +1060,13 @@ lemma mem_ae_iff {s : set α} : s ∈ μ.ae ↔ μ sᶜ = 0 := iff.rfl
 
 lemma ae_iff {p : α → Prop} : (∀ᵐ a ∂ μ, p a) ↔ μ { a | ¬ p a } = 0 := iff.rfl
 
+lemma compl_mem_ae_iff {s : set α} : sᶜ ∈ μ.ae ↔ μ s = 0 := by simp only [mem_ae_iff, compl_compl]
+
 lemma measure_zero_iff_ae_nmem {s : set α} : μ s = 0 ↔ ∀ᵐ a ∂ μ, a ∉ s :=
-by simp only [ae_iff, not_not, set_of_mem_eq]
+compl_mem_ae_iff.symm
+
+lemma ae_eq_bot : μ.ae = ⊥ ↔ μ = 0 :=
+by rw [← empty_in_sets_eq_bot, mem_ae_iff, compl_empty, measure.measure_univ_eq_zero]
 
 lemma ae_eq_bot : μ.ae = ⊥ ↔ μ = 0 :=
 by rw [← empty_in_sets_eq_bot, mem_ae_iff, compl_empty, measure.measure_univ_eq_zero]
@@ -1351,3 +1356,19 @@ meta def volume_tac : tactic unit := `[exact measure_theory.measure_space.volume
 end measure_space
 
 end measure_theory
+
+namespace is_compact
+
+open measure_theory
+
+variables {α : Type*} [topological_space α] [measurable_space α] {μ : measure α} {s : set α}
+
+lemma finite_measure_of_nhds_within (hs : is_compact s) :
+  (∀ a ∈ s, ∃ t ∈ nhds_within a s, μ t < ⊤) → μ s < ⊤ :=
+by simpa only [← measure.compl_mem_cofinite] using hs.compl_mem_sets_of_nhds_within
+
+lemma measure_zero_of_nhds_within (hs : is_compact s) :
+  (∀ a ∈ s, ∃ t ∈ nhds_within a s, μ t = 0) → μ s = 0 :=
+by simpa only [← compl_mem_ae_iff] using hs.compl_mem_sets_of_nhds_within
+
+end is_compact

@@ -57,7 +57,7 @@ end
 lemma map_range_eq_map {β : Type*}
   [comm_ring α] [comm_ring β] (p : mv_polynomial σ α)
   (f : α →+* β) :
-  finsupp.map_range f (f.map_zero) p = p.map f :=
+  finsupp.map_range f f.map_zero p = p.map f :=
 begin
   rw [← finsupp.sum_single p, finsupp.sum],
   -- It's not great that we need to use an `erw` here,

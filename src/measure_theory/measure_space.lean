@@ -1022,13 +1022,16 @@ def cofinite (μ : measure α) : filter α :=
 
 lemma mem_cofinite {s : set α} : s ∈ μ.cofinite ↔ μ sᶜ < ⊤ := iff.rfl
 
+lemma compl_mem_cofinite {s : set α} : sᶜ ∈ μ.cofinite ↔ μ s < ⊤ :=
+by rw [mem_cofinite, compl_compl]
+
 lemma eventually_cofinite {p : α → Prop} : (∀ᶠ x in μ.cofinite, p x) ↔ μ {x | ¬p x} < ⊤ := iff.rfl
 
 end measure
 
 variables {α : Type*} {β : Type*} [measurable_space α] {μ : measure α}
 
-notation `∀ᵐ` binders `∂` μ `, ` r:(scoped P, filter.eventually P (measure.ae μ)) := r
+notation `∀ᵐ` binders ` ∂` μ `, ` r:(scoped P, filter.eventually P (measure.ae μ)) := r
 notation f ` =ᵐ[`:50 μ:50 `] `:0 g:50 := f =ᶠ[measure.ae μ] g
 notation f ` ≤ᵐ[`:50 μ:50 `] `:0 g:50 := f ≤ᶠ[measure.ae μ] g
 
@@ -1036,8 +1039,10 @@ lemma mem_ae_iff {s : set α} : s ∈ μ.ae ↔ μ sᶜ = 0 := iff.rfl
 
 lemma ae_iff {p : α → Prop} : (∀ᵐ a ∂ μ, p a) ↔ μ { a | ¬ p a } = 0 := iff.rfl
 
+lemma compl_mem_ae_iff {s : set α} : sᶜ ∈ μ.ae ↔ μ s = 0 := by simp only [mem_ae_iff, compl_compl]
+
 lemma measure_zero_iff_ae_nmem {s : set α} : μ s = 0 ↔ ∀ᵐ a ∂ μ, a ∉ s :=
-by simp only [ae_iff, not_not, set_of_mem_eq]
+compl_mem_ae_iff.symm
 
 lemma ae_of_all {p : α → Prop} (μ : measure α) : (∀a, p a) → ∀ᵐ a ∂ μ, p a :=
 eventually_of_forall
@@ -1312,3 +1317,19 @@ meta def volume_tac : tactic unit := `[exact measure_theory.measure_space.volume
 end measure_space
 
 end measure_theory
+
+namespace is_compact
+
+open measure_theory
+
+variables {α : Type*} [topological_space α] [measurable_space α] {μ : measure α} {s : set α}
+
+lemma finite_measure_of_nhds_within (hs : is_compact s) :
+  (∀ a ∈ s, ∃ t ∈ nhds_within a s, μ t < ⊤) → μ s < ⊤ :=
+by simpa only [← measure.compl_mem_cofinite] using hs.compl_mem_sets_of_nhds_within
+
+lemma measure_zero_of_nhds_within (hs : is_compact s) :
+  (∀ a ∈ s, ∃ t ∈ nhds_within a s, μ t = 0) → μ s = 0 :=
+by simpa only [← compl_mem_ae_iff] using hs.compl_mem_sets_of_nhds_within
+
+end is_compact

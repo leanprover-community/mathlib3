@@ -174,6 +174,7 @@ have f.comp (int.of_nat_hom : ℕ →+ ℤ) = g.comp (int.of_nat_hom : ℕ →+ 
 have ∀ n : ℕ, f n = g n := ext_iff.1 this,
 ext $ λ n, int.cases_on n this $ λ n, eq_on_neg (this $ n + 1)
 
+
 variables [add_group A] [has_one A]
 
 theorem eq_int_cast_hom (f : ℤ →+ A) (h1 : f 1 = 1) : f = int.cast_add_hom A :=
@@ -183,6 +184,20 @@ theorem eq_int_cast (f : ℤ →+ A) (h1 : f 1 = 1) : ∀ n : ℤ, f n = n :=
 ext_iff.1 (f.eq_int_cast_hom h1)
 
 end add_monoid_hom
+
+namespace monoid_hom
+variables {M : Type*} [monoid M]
+open multiplicative
+
+theorem ext_int [monoid M] {f g : multiplicative ℤ →* M}
+  (h1 : f (of_add 1) = g (of_add 1)) : f = g :=
+begin
+  ext,
+  exact add_monoid_hom.ext_iff.1
+    (@add_monoid_hom.ext_int _ _ f.to_additive g.to_additive h1) _,
+end
+
+end monoid_hom
 
 namespace ring_hom
 

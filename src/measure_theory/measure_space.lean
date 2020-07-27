@@ -1068,9 +1068,6 @@ compl_mem_ae_iff.symm
 lemma ae_eq_bot : μ.ae = ⊥ ↔ μ = 0 :=
 by rw [← empty_in_sets_eq_bot, mem_ae_iff, compl_empty, measure.measure_univ_eq_zero]
 
-lemma ae_eq_bot : μ.ae = ⊥ ↔ μ = 0 :=
-by rw [← empty_in_sets_eq_bot, mem_ae_iff, compl_empty, measure.measure_univ_eq_zero]
-
 lemma ae_of_all {p : α → Prop} (μ : measure α) : (∀a, p a) → ∀ᵐ a ∂ μ, p a :=
 eventually_of_forall
 

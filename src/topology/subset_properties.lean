@@ -53,15 +53,17 @@ begin
 end
 
 /-- The complement to a compact set belongs to a filter `f` if each `a ∈ s` has a neighborhood `t`
-such that `tᶜ ∪ sᶜ` belongs to `f`. -/
-lemma is_compact.compl_mem_sets' (hs : is_compact s) {f : filter α}
-  (hf : ∀ a ∈ s, ∃ t ∈ 𝓝 a, tᶜ ∪ sᶜ ∈ f) :
+within `s` such that `tᶜ` belongs to `f`. -/
+lemma is_compact.compl_mem_sets_of_nhds_within (hs : is_compact s) {f : filter α}
+  (hf : ∀ a ∈ s, ∃ t ∈ nhds_within a s, tᶜ ∈ f) :
   sᶜ ∈ f :=
 begin
   refine hs.compl_mem_sets (λ a ha, _),
   rcases hf a ha with ⟨t, ht, hst⟩,
+  replace ht := mem_inf_principal.1 ht,
   refine mem_inf_sets.2 ⟨_, ht, _, hst, _⟩,
-  simp [inter_union_distrib_left]
+  rintros x ⟨h₁, h₂⟩ hs,
+  exact h₂ (h₁ hs)
 end
 
 /-- The intersection of a compact set and a closed set is a compact set. -/

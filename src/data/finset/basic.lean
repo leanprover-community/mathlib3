@@ -1458,7 +1458,7 @@ lemma map_subtype_subset {t : set α} (s : finset t) :
 begin
   intros a ha,
   rw mem_coe at ha,
-  exact property_of_mem_map_subtype s ha
+  convert property_of_mem_map_subtype s ha
 end
 
 lemma subset_image_iff {f : α → β}

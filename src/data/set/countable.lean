@@ -83,15 +83,13 @@ lemma countable_encodable [encodable α] (s : set α) : countable s :=
 lemma countable.exists_surjective {s : set α} (hc : countable s) (hs : s.nonempty) :
   ∃f:ℕ → α, s = range f :=
 begin
-  rcases hs with ⟨x, hx⟩,
   letI : encodable s := countable.to_encodable hc,
-  letI : inhabited s := ⟨⟨x, hx⟩⟩,
+  letI : nonempty s := hs.to_subtype,
   have : countable (univ : set s) := countable_encodable _,
   rcases countable_iff_exists_surjective.1 this with ⟨g, hg⟩,
   have : range g = univ := univ_subset_iff.1 hg,
   use coe ∘ g,
-  rw [range_comp, this],
-  simp only [image_univ, subtype.range_coe, mem_def]
+  simp only [range_comp, this, image_univ, subtype.range_coe]
 end
 
 @[simp] lemma countable_empty : countable (∅ : set α) :=

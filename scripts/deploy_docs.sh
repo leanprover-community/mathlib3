@@ -34,7 +34,7 @@ elan override set "$lean_version"
 
 ./gen_docs -w -r "$3/" -t "mathlib_docs/docs/"
 
-if { [ "$github_repo" = "leanprover-community/mathlib" ] || [ "$github_repo" = "leanprover-community/doc-gen" ]; } && [ "$github_event" = "push" ] && [ "$github_ref" = "refs/heads/master" ]; then
+if { [ "$github_repo" = "leanprover-community/mathlib" ] || [ "$github_repo" = "leanprover-community/doc-gen" ]; } && [ "$github_ref" = "refs/heads/master" ]; then
   cd mathlib_docs/docs
   git config user.email "leanprover.community@gmail.com"
   git config user.name "leanprover-community-bot"

@@ -39,6 +39,10 @@ theorem tail_eq_of_cons_eq {h₁ h₂ : α} {t₁ t₂ : list α} :
       (h₁::t₁) = (h₂::t₂) → t₁ = t₂ :=
 assume Peq, list.no_confusion Peq (assume Pheq Pteq, Pteq)
 
+theorem cons_ne_self {α : Type u} : ∀ (a : α) (l : list α), a::l ≠ l
+| a nil := cons_ne_nil a nil
+| a (h :: t) := cons_ne_self h t ∘ tail_eq_of_cons_eq
+
 theorem cons_injective {a : α} : injective (cons a) :=
 assume l₁ l₂, assume Pe, tail_eq_of_cons_eq Pe
 

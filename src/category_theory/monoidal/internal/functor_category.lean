@@ -23,7 +23,9 @@ and we can model a module over a presheaf of rings as a module object in `preshe
 universes v₁ v₂ u₁ u₂
 
 open category_theory
-namespace category_theory.monoidal_category
+open category_theory.monoidal_category
+
+namespace category_theory.monoidal
 
 variables {C : Type u₁} [category.{v₁} C]
 variables {D : Type u₂} [category.{v₂} D] [monoidal_category.{v₂} D]
@@ -124,4 +126,4 @@ def Mon_functor_category_equivalence : Mon_ (C ⥤ D) ≌ C ⥤ Mon_ D :=
   unit_iso := unit_iso,
   counit_iso := counit_iso, }
 
-end category_theory.monoidal_category
+end category_theory.monoidal

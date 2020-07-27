@@ -162,7 +162,6 @@ instance to_ring : ring s :=
 
 #exit
 
-
 end subring
 
 def subring.comap {R : Type u} {S : Type v} [ring R] [ring S]

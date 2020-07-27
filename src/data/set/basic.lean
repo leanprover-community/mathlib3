@@ -1549,6 +1549,19 @@ end
 @[simp] lemma preimage_range (f : α → β) : f ⁻¹' (range f) = univ :=
 eq_univ_of_forall mem_range_self
 
+/-- The range of a function from a `unique` type contains just the
+function applied to its single value. -/
+lemma range_unique [h : unique ι] : range f = {f $ default ι} :=
+begin
+  ext x,
+  rw mem_range,
+  split,
+  { rintros ⟨i, hi⟩,
+    rw h.uniq i at hi,
+    exact hi ▸ mem_singleton _ },
+  { exact λ h, ⟨default ι, h.symm⟩ }
+end
+
 end range
 
 /-- The set `s` is pairwise `r` if `r x y` for all *distinct* `x y ∈ s`. -/

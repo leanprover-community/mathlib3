@@ -633,7 +633,7 @@ begin
     exact (@h (x, f x) (y, f y) ⟨hx, le_refl _⟩ ⟨hy, le_refl _⟩ a b ha hb hab).2 }
 end
 
-/-- If a function is convex on s, it remains convex when prepended by an affine map -/
+/-- If a function is convex on s, it remains convex when precomposed by an affine map -/
 lemma convex_on.comp_affine_map {f : F → ℝ} (g : affine_map ℝ E E F F) {s : set F}
   (hf : convex_on s f) : convex_on (g ⁻¹' s) (f ∘ g) :=
 begin

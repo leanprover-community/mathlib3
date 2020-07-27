@@ -19,9 +19,9 @@ We give methods for computing coefficients of the characteristic polynomial.
 
 - `char_poly_degree_eq_dim` proves that the degree of the characterist polynomial
   over a nonzero ring is the dimension of the matrix
-- `det_eq_char_poly` proves that the determinant is the constant term of the characteristic
+- `det_eq_sign_char_poly_coeff` proves that the determinant is the constant term of the characteristic
   polynomial, up to sign.
-- `trace_eq_char_poly` proves that the trace is the negative of the (d-1)th coefficient of the
+- `trace_eq_neg_char_poly_coeff` proves that the trace is the negative of the (d-1)th coefficient of the
   characteristic polynomial, where d is the dimension of the matrix.
   For a nonzero ring, this is the second-highest coefficient.
 
@@ -120,7 +120,7 @@ begin
   { rw nontrivial_iff at h, push_neg at h, apply h, }
 end
 
-theorem trace_eq_char_poly [nonempty n] (M : matrix n n R) :
+theorem trace_eq_neg_char_poly_coeff [nonempty n] (M : matrix n n R) :
   (matrix.trace n R R) M = -(char_poly M).coeff (fintype.card n - 1) :=
 begin
   by_cases nontrivial R; try { rw not_nontrivial_iff_subsingleton at h }; haveI := h, swap,
@@ -154,7 +154,7 @@ begin
   apply congr_arg det, ext, symmetry, convert mat_poly_equiv_eval _ _ _ _,
 end
 
-theorem det_eq_char_poly (M : matrix n n R) :
+theorem det_eq_sign_char_poly_coeff (M : matrix n n R) :
   M.det = (-1)^(fintype.card n) * (char_poly M).coeff 0:=
 begin
   rw [coeff_zero_eq_eval_zero, char_poly, eval_det, mat_poly_equiv_char_matrix, ← det_smul],

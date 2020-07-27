@@ -6,12 +6,24 @@ Authors: Johan Commelin, Scott Morrison
 import topology.sheaves.presheaf_of_functions
 import topology.sheaves.sheaf
 import category_theory.limits.types
+import topology.local_homeomorph
 
 open category_theory
 open category_theory.limits
 open topological_space
 
 universe u
+
+lemma open_embedding.continuous_at_iff {X Y Z : Type*} [topological_space X] [topological_space Y] [topological_space Z]
+  {f : X → Y} {g : Y → Z} (hf : open_embedding f) {x : X} :
+  continuous_at (g ∘ f) x ↔ continuous_at g (f x) :=
+begin
+  haveI : nonempty X := ⟨x⟩,
+  convert ((hf.to_local_homeomorph.continuous_at_iff_continuous_at_comp_right) _).symm,
+  { apply (local_homeomorph.left_inv _ _).symm,
+    simp, },
+  { simp, },
+end
 
 @[simp] lemma classical.indefinite_description_val {α : Sort u} (p : α → Prop) (h : ∃ x, p x) :
   (classical.indefinite_description p h).val = classical.some h := rfl
@@ -188,10 +200,33 @@ begin
     fsplit,
     -- First, we use the fact that not necessarily continuous functions form a sheaf,
     -- to provide the lift.
-    let s' := (cones.postcompose (forget_continuity.{u u} X T U)).obj s,
-    exact (to_Type X T U).lift s' f,
+    { let s' := (cones.postcompose (forget_continuity.{u u} X T U)).obj s,
+      exact (to_Type X T U).lift s' f, },
     -- Second, we need to do the actual work, proving this lift is continuous.
-    sorry,
+    { dsimp,
+      apply continuous_iff_continuous_at.2,
+      rintro ⟨x, mem⟩,
+      change x ∈ supr U at mem, -- FIXME needs some lemmas!
+      simp only [opens.mem_supr] at mem,
+      choose i hi using mem,
+
+      let s' := (cones.postcompose (forget_continuity.{u u} X T U)).obj s,
+      have := (to_Type X T U).fac s' walking_parallel_pair.zero,
+      have := this =≫ pi.π _ i,
+      simp only [sheaf_condition.res, limit.lift_π, cones.postcompose_obj_π, sheaf_condition.fork_π_app_walking_parallel_pair_zero,
+ fan.mk_π_app, nat_trans.comp_app, category.assoc] at this,
+      have := congr_fun this f,
+      simp only [forget_continuity, discrete.nat_trans_app, types_comp_apply, presheaf_to_Type_map, limit.map_π] at this,
+
+      have : continuous ((to_Type X ↥T U).lift s' f ∘ ((opens.le_supr U i).op)),
+      { rw this, continuity, },
+
+      rw continuous_iff_continuous_at at this,
+      specialize this ⟨x, hi⟩,
+
+      exact (opens.hom_open_embedding (opens.le_supr U i)).continuous_at_iff.1 this,
+
+     },
     },
   { -- Proving the factorisation condition is straightforward:
     -- we observe that checking equality of continuous functions reduces to

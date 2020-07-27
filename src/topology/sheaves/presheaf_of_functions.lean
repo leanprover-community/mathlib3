@@ -15,7 +15,7 @@ open opposite
 
 namespace Top
 
-variables (X Y : Top.{v})
+variables {X Y : Top.{v}}
 
 -- TODO move these instances
 
@@ -23,9 +23,23 @@ instance opens_hom_has_coe_to_fun {U V : opens X} : has_coe_to_fun (U ⟶ V) :=
 { F := λ f, U → V,
   coe := λ f x, ⟨x, f.down.down x.2⟩ }
 
+lemma opens.hom_open_embedding {U V : opens X} (i : U ⟶ V) : open_embedding i :=
+{ inj := set.inclusion_injective i.down.down,
+  induced := (@induced_compose _ _ _ _ i coe).symm,
+  open_range :=
+  begin
+    have := set.range_inclusion i.down.down,
+    erw this,
+    simp,
+    apply continuous_subtype_val,
+    exact U.property,
+  end, }
+
 instance opens_op_hom_has_coe_to_fun {U V : (opens X)ᵒᵖ} : has_coe_to_fun (U ⟶ V) :=
 { F := λ f, (unop V) → (unop U),
   coe := λ f x, ⟨x, f.unop.down.down x.2⟩ }
+
+variables (X Y)
 
 /--
 The presheaf of dependently typed functions on `X`, with fibres given by a type family `f`.
@@ -36,7 +50,14 @@ def presheaf_to_Types (f : X → Type v) : X.presheaf (Type v) :=
   map := λ U V i g, λ (x : unop V), g (i x) }
 
 def presheaf_to_Type (T : Type v) : X.presheaf (Type v) :=
-(opens.to_Top X ⋙ forget Top).op ⋙ (yoneda.obj T)
+-- (opens.to_Top X ⋙ forget Top).op ⋙ (yoneda.obj T)
+{ obj := λ U, (unop U) → T,
+  map := λ U V i g, λ (x : unop V), g (i x) }
+
+@[simp] lemma presheaf_to_Type_map
+  {T : Type v} {U V : (opens X)ᵒᵖ} {i : U ⟶ V} {f} :
+  (presheaf_to_Type X T).map i f = f ∘ i :=
+rfl
 
 @[simp] lemma presheaf_to_Type_map_apply
   {T : Type v} {U V : (opens X)ᵒᵖ} {i : U ⟶ V} {f} {x} {mem} :

@@ -17,7 +17,7 @@ We give methods for computing coefficients of the characteristic polynomial.
 
 ## Main definitions
 
-- `char_poly_degree_eq_dim` proves that the degree of the characterist polynomial
+- `char_poly_degree_eq_dim` proves that the degree of the characteristic polynomial
   over a nonzero ring is the dimension of the matrix
 - `det_eq_sign_char_poly_coeff` proves that the determinant is the constant term of the characteristic
   polynomial, up to sign.

@@ -83,7 +83,7 @@ instance : is_ring_hom (lift f) :=
 @[simp] lemma lift_pow (x) (n : ℕ) : lift f (x ^ n) = lift f x ^ n :=
 is_monoid_hom.map_pow _ x n
 
-@[simp] lemma lift_comp_of (f : free_ring α → β) [is_ring_hom f] : lift (f ∘ of) = f :=
+@[simp] lemma lift_comp_of (f : free_ring α →+* β) : lift (f ∘ of) = f :=
 funext $ λ x, free_ring.induction_on x
   (by rw [lift_neg, lift_one, is_ring_hom.map_neg f, is_ring_hom.map_one f])
   (lift_of _)

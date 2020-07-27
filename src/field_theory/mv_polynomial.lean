@@ -56,7 +56,7 @@ end
 
 lemma map_range_eq_map {β : Type*}
   [comm_ring α] [comm_ring β] (p : mv_polynomial σ α)
-  (f : α → β) [is_semiring_hom f]:
+  (f : α →+* β) :
   finsupp.map_range f (is_semiring_hom.map_zero f) p = p.map f :=
 begin
   rw [← finsupp.sum_single p, finsupp.sum],

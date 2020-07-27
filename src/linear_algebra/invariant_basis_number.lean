@@ -116,7 +116,7 @@ def ideal.pi : ideal (ι → R) :=
   add_mem' := λ a b ha hb i, submodule.add_mem _ (ha i) (hb i),
   smul_mem' := λ a b hb i, ideal.mul_mem_left _ (hb i) }
 
-lemma mem_all_in (x : ι → R) : x ∈ I.pi ι ↔ ∀ i, x i ∈ I := iff.rfl
+lemma ideal.mem_pi (x : ι → R) : x ∈ I.pi ι ↔ ∀ i, x i ∈ I := iff.rfl
 
 /-- `R^n/I^n` is a `R/I`-module. -/
 instance ideal.module_pi : module (I.quotient) (I.pi ι).quotient :=
@@ -127,14 +127,14 @@ begin
     change m₁ - m₂ ∈ (I.pi ι) at hm,
     apply ideal.quotient.eq.2,
     have : c₁ • (m₂ - m₁) ∈ I.pi ι,
-    { rw mem_all_in,
+    { rw ideal.mem_pi,
       intro i,
       simp only [algebra.id.smul_eq_mul, pi.smul_apply, pi.sub_apply],
       apply ideal.mul_mem_left,
       rw ←ideal.neg_mem_iff,
       simpa only [neg_sub] using hm i },
     rw [←ideal.add_mem_iff_left (I.pi ι) this, sub_eq_add_neg, add_comm, ←add_assoc, ←smul_add,
-      sub_add_cancel, ←sub_eq_add_neg, ←sub_smul, mem_all_in],
+      sub_add_cancel, ←sub_eq_add_neg, ←sub_smul, ideal.mem_pi],
     intro i,
     simp only [algebra.id.smul_eq_mul, pi.smul_apply],
     exact ideal.mul_mem_right _ hc },

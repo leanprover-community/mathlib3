@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.monoidal.category
+import category_theory.functor_category
 import category_theory.const
 
 /-!
@@ -20,10 +21,12 @@ universes v₁ v₂ u₁ u₂
 open category_theory
 open category_theory.monoidal_category
 
+namespace category_theory.monoidal
+
 variables {C : Type u₁} [category.{v₁} C]
 variables {D : Type u₂} [category.{v₂} D] [monoidal_category.{v₂} D]
 
-namespace category_theory.monoidal_category_functor_category
+namespace functor_category
 
 variables (F G F' G' : C ⥤ D)
 
@@ -51,9 +54,9 @@ def tensor_hom : tensor_obj F F' ⟶ tensor_obj G G' :=
   naturality' :=
   λ X Y f, by { dsimp, rw [←tensor_comp, α.naturality, β.naturality, tensor_comp], } }
 
-end category_theory.monoidal_category_functor_category
+end functor_category
 
-open category_theory.monoidal_category_functor_category
+open category_theory.monoidal.functor_category
 
 /--
 When `C` is any category, and `D` is a monoidal category,
@@ -94,3 +97,30 @@ lemma tensor_obj_map {F G : C ⥤ D} {X Y} {f : X ⟶ Y} : (F ⊗ G).map f = F.m
 @[simp]
 lemma tensor_hom_app {F G F' G' : C ⥤ D} {α : F ⟶ G} {β : F' ⟶ G'} {X} :
   (α ⊗ β).app X = α.app X ⊗ β.app X := rfl
+
+@[simp]
+lemma left_unitor_hom_app {F : C ⥤ D} {X} :
+  ((λ_ F).hom : (𝟙_ _) ⊗ F ⟶ F).app X = (λ_ (F.obj X)).hom := rfl
+
+@[simp]
+lemma left_unitor_inv_app {F : C ⥤ D} {X} :
+  ((λ_ F).inv : F ⟶ (𝟙_ _) ⊗ F).app X = (λ_ (F.obj X)).inv := rfl
+
+@[simp]
+lemma right_unitor_hom_app {F : C ⥤ D} {X} :
+  ((ρ_ F).hom : F ⊗ (𝟙_ _) ⟶ F).app X = (ρ_ (F.obj X)).hom := rfl
+
+@[simp]
+lemma right_unitor_inv_app {F : C ⥤ D} {X} :
+  ((ρ_ F).inv : F ⟶ F ⊗ (𝟙_ _)).app X = (ρ_ (F.obj X)).inv := rfl
+
+@[simp]
+lemma associator_hom_app {F G H : C ⥤ D} {X} :
+  ((α_ F G H).hom : (F ⊗ G) ⊗ H ⟶ F ⊗ (G ⊗ H)).app X = (α_ (F.obj X) (G.obj X) (H.obj X)).hom := rfl
+
+@[simp]
+lemma associator_inv_app {F G H : C ⥤ D} {X} :
+  ((α_ F G H).inv : F ⊗ (G ⊗ H) ⟶ (F ⊗ G) ⊗ H).app X = (α_ (F.obj X) (G.obj X) (H.obj X)).inv := rfl
+
+
+end category_theory.monoidal

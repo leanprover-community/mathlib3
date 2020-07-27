@@ -1439,6 +1439,29 @@ begin
   exact λ x, λ hxs hx, h (hx ▸ x.property)
 end
 
+/-- If a `finset` of a subtype is converted to the main type with
+`embedding.subtype`, all elements of the result have the property of
+the subtype. -/
+lemma property_of_mem_map_subtype {p : α → Prop} (s : finset {x // p x}) {a : α}
+    (h : a ∈ s.map (function.embedding.subtype _)) : p a :=
+begin
+  revert h,
+  contrapose,
+  exact not_mem_map_subtype_of_not_property s
+end
+
+/-- If a `finset` of a subtype is converted to the main type with
+`embedding.subtype`, the result is a subset of the set giving the
+subtype. -/
+lemma map_subtype_subset {p : set α} (s : finset {x // p x}) :
+    ↑(s.map (function.embedding.subtype _)) ⊆ p :=
+begin
+  intros a ha,
+  rw mem_coe at ha,
+  change p a,
+  exact property_of_mem_map_subtype s ha
+end
+
 lemma subset_image_iff {f : α → β}
   {s : finset β} {t : set α} : ↑s ⊆ f '' t ↔ ∃s' : finset α, ↑s' ⊆ t ∧ s'.image f = s :=
 begin

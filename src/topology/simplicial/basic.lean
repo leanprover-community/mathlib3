@@ -3,27 +3,51 @@ Copyleft 2020 Johan Commelin. No rights reserved.
 Authors: Johan Commelin
 -/
 
-import order.category.NonemptyFinLinOrd
+import topology.simplicial.simplex_category
+import topology.simplicial.move_this
 import category_theory.yoneda
 
 /-! # Simplicial objects and simplicial sets -/
 
 open category_theory
 
-universe variables v u
+universe variables u₀ v u
 variables (C : Type u) [category.{v} C]
 
 /-- The category of simplicial objects valued in a category `C`.
 This is the category of contravariant functors from
 `NonemptyFinLinOrd` to `C`. -/
 @[derive category]
-def Simplicial := NonemptyFinLinOrd.{v}ᵒᵖ ⥤ C
+def Simplicial := NonemptyFinLinOrd.{u₀}ᵒᵖ ⥤ C
+
+namespace Simplicial
+variable {C}
+
+/-- The functor that restricts a simplicial object to a contravariant functor
+on the skeletal subcategory `simplex_category`. -/
+def skeletal : Simplicial.{u₀} C ⥤ (simplex_categoryᵒᵖ ⥤ C) :=
+functor.comp_left (simplex_category.skeletal_functor.op)
+
+def δ (X : Simplicial.{u₀} C) {n} (i : fin (n+2)) :
+  (skeletal.obj X).obj _ ⟶ (skeletal.obj X).obj _ :=
+(skeletal.obj X).map (simplex_category.δ i).op
+
+def σ (X : Simplicial.{u₀} C) {n} (i : fin (n+1)) :
+  (skeletal.obj X).obj _ ⟶ (skeletal.obj X).obj _ :=
+(skeletal.obj X).map (simplex_category.σ i).op
+
+/-- The first simplicial identity -/
+lemma δ_comp_δ (X : Simplicial.{u₀} C) {n} {i j : fin (n+2)} (H : i ≤ j) :
+  X.δ j.succ ≫ X.δ i = X.δ i.cast_succ ≫ X.δ j :=
+by simp only [δ, ← functor.map_comp, ← op_comp, simplex_category.δ_comp_δ H]
+
+end Simplicial
 
 /-- The category of simplicial types.
 This is the category of contravariant functors from
 `NonemptyFinLinOrd` to `Type u`. -/
 @[derive small_category]
-def sType : Type (u+1) := Simplicial (Type u)
+def sType : Type (u+1) := Simplicial.{u} (Type u)
 
 namespace sType
 

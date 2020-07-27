@@ -39,7 +39,7 @@ class lie_add_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 /-- A Lie group is a group and a smooth manifold at the same time in which
 the multiplication and inverse operations are smooth. -/
-@[to_additive lie_add_group]
+@[to_additive]
 class lie_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {H : Type*} [topological_space H]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
@@ -125,7 +125,7 @@ end lie_group
 section prod_lie_group
 
 /- Instance of product group -/
-@[to_additive lie_add_group]
+@[to_additive]
 instance {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {H : Type*} [topological_space H]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]  {I : model_with_corners 𝕜 E H}
 {G : Type*} [topological_space G] [charted_space H G] [group G] [topological_group G]
@@ -154,7 +154,7 @@ structure lie_add_group_morphism (I : model_with_corners 𝕜 E E) (I' : model_w
   (smooth_to_fun : smooth I I' to_fun)
 
 /-- Morphism of Lie groups. -/
-@[to_additive lie_add_group_morphism]
+@[to_additive]
 structure lie_group_morphism (I : model_with_corners 𝕜 E E) (I' : model_with_corners 𝕜 E' E')
 (G : Type*) [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G] [group G]
 [topological_group G] [lie_group I G]
@@ -197,7 +197,7 @@ structure lie_add_group_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 /-- Sometimes one might want to define a Lie group `G` without having proved previously that `G` is
 a topological group. In such case it is possible to use `lie_group_core` that does not require such
 instance, and then get a Lie group by invoking `to_lie_group` defined below. -/
-@[to_additive lie_add_group_core]
+@[to_additive]
 structure lie_group_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E]
   [normed_space 𝕜 E] (I : model_with_corners 𝕜 E E)

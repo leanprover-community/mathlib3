@@ -17,7 +17,7 @@ variables {M : Type*} [add_comm_group M] [module R M] (U U₁ U₂ : submodule R
 variables {x x₁ x₂ y y₁ y₂ z z₁ z₂ : M}
 variables {N : Type*} [add_comm_group N] [module R N] (V V₁ V₂ : submodule R N)
 
-/-- A predicate saying two elements of a module is equivalent modulo a submodule. -/
+/-- A predicate saying two elements of a module are equivalent modulo a submodule. -/
 def smodeq (x y : M) : Prop :=
 (submodule.quotient.mk x : U.quotient) = submodule.quotient.mk y
 

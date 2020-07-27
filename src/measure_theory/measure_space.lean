@@ -1017,6 +1017,17 @@ calc count (↑s : set α) = ∑' i : (↑s : set α), (1 : α → ennreal) i : 
                     ... = ∑ i in s, 1 : s.tsum_subtype 1
                     ... = s.card : by simp
 
+/-- `count` measure evaluates to infinity at infinite sets. -/
+lemma count_apply_infinite [measurable_singleton_class α] {s : set α} (hs : s.infinite) :
+  count s = ⊤ :=
+begin
+  by_contra H,
+  rcases ennreal.exists_nat_gt H with ⟨n, hn⟩,
+  rcases hs.exists_subset_card_eq n with ⟨t, ht, rfl⟩,
+  have := lt_of_le_of_lt (measure_mono ht) hn,
+  simpa [lt_irrefl] using this
+end
+
 /-- A measure is complete if every null set is also measurable.
   A null set is a subset of a measurable set with measure `0`.
   Since every measure is defined as a special case of an outer measure, we can more simply state
@@ -1024,7 +1035,7 @@ calc count (↑s : set α) = ∑' i : (↑s : set α), (1 : α → ennreal) i : 
 @[class] def is_complete {α} {_:measurable_space α} (μ : measure α) : Prop :=
 ∀ s, μ s = 0 → is_measurable s
 
-/-- The "almost everywhere" filter of co-null sets. -/
+/-- The “almost everywhere” filter of co-null sets. -/
 def ae (μ : measure α) : filter α :=
 { sets := {s | μ sᶜ = 0},
   univ_sets := by simp,
@@ -1071,6 +1082,9 @@ by rw [← empty_in_sets_eq_bot, mem_ae_iff, compl_empty, measure.measure_univ_e
 lemma ae_of_all {p : α → Prop} (μ : measure α) : (∀a, p a) → ∀ᵐ a ∂ μ, p a :=
 eventually_of_forall
 
+@[mono] lemma ae_mono {μ ν : measure α} (h : μ ≤ ν) : μ.ae ≤ ν.ae :=
+λ s hs, bot_unique $ trans_rel_left (≤) (measure.le_iff'.1 h _) hs
+
 instance : countable_Inter_filter μ.ae :=
 ⟨begin
   intros S hSc hS,
@@ -1078,6 +1092,10 @@ instance : countable_Inter_filter μ.ae :=
   haveI := hSc.to_encodable,
   exact measure_Union_null (subtype.forall.2 hS)
 end⟩
+
+instance ae_is_measurably_generated : is_measurably_generated μ.ae :=
+⟨λ s hs, let ⟨t, hst, htm, htμ⟩ := exists_is_measurable_superset_of_measure_eq_zero hs in
+  ⟨tᶜ, compl_mem_ae_iff.2 htμ, htm.compl, compl_subset_comm.1 hst⟩⟩
 
 lemma ae_all_iff {ι : Type*} [encodable ι] {p : α → ι → Prop} :
   (∀ᵐ a ∂ μ, ∀i, p a i) ↔ (∀i, ∀ᵐ a ∂ μ, p a i) :=
@@ -1164,9 +1182,19 @@ calc μ s ≤ μ (s ∪ t)       : measure_mono $ subset_union_left s t
      ... = μ t             : by rw [measure_diff_of_ae_imp H, add_zero]
 
 /-- If two sets are equal modulo a set of measure zero, then `μ s = μ t`. -/
-lemma measure_congr {s t : set α} (H : ∀ᵐ x ∂μ, x ∈ s ↔ x ∈ t) : μ s = μ t :=
-le_antisymm (measure_le_of_ae_imp $ H.mono $ λ x, iff.mp)
-  (measure_le_of_ae_imp $ H.mono $ λ x, iff.mpr)
+lemma measure_congr {s t : set α} (H : s =ᵐ[μ] t) : μ s = μ t :=
+le_antisymm (measure_le_of_ae_imp $ H.mono $ λ x, eq.mp)
+  (measure_le_of_ae_imp $ H.mono $ λ x, eq.mpr)
+
+lemma restrict_mono_ae {s t : set α} (h : s ≤ᵐ[μ] t) : μ.restrict s ≤ μ.restrict t :=
+begin
+  intros u hu,
+  simp only [measure.restrict_apply hu],
+  exact measure_le_of_ae_imp (h.mono $ λ x hx, and.imp id hx)
+end
+
+lemma restrict_congr {s t : set α} (H : s =ᵐ[μ] t) : μ.restrict s = μ.restrict t :=
+le_antisymm (restrict_mono_ae H.le) (restrict_mono_ae H.symm.le)
 
 class probability_measure (μ : measure α) : Prop := (meas_univ : μ univ = 1)
 

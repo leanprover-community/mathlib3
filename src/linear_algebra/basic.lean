@@ -768,7 +768,7 @@ mem_sup.trans $ by simp only [submodule.exists, coe_mk]
 
 end
 
-lemma mem_span_singleton_self (x : M) : x ∈ span R ({x} : set M) := subset_span (mem_def.mpr rfl)
+lemma mem_span_singleton_self (x : M) : x ∈ span R ({x} : set M) := subset_span rfl
 
 lemma mem_span_singleton {y : M} : x ∈ span R ({y} : set M) ↔ ∃ a:R, a • y = x :=
 ⟨λ h, begin

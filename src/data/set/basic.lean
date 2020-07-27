@@ -170,7 +170,7 @@ theorem set_of_set {s : set α} : set_of s = s := rfl
 
 lemma set_of_app_iff {p : α → Prop} {x : α} : { x | p x } x ↔ p x := iff.rfl
 
-theorem mem_def {a : α} {s : set α} : a ∈ s ↔ s a := iff.rfl
+@[simp] theorem apply_iff_mem {a : α} {s : set α} : s a ↔ a ∈ s := iff.rfl
 
 instance decidable_mem (s : set α) [H : decidable_pred s] : ∀ a, decidable (a ∈ s) := H
 
@@ -1625,11 +1625,14 @@ range_coe
   range (coe : subtype p → α) = {x | p x} :=
 range_coe
 
+@[simp] lemma coe_preimage_self (s : set α) : (coe : s → α) ⁻¹' s = univ :=
+by rw [← preimage_range (coe : s → α), range_coe]
+
 lemma range_val_subtype {p : α → Prop} :
   range (subtype.val : subtype p → α) = {x | p x} :=
 range_coe
 
-theorem coe_image_subset (s : set α) (t : set s) : t.image coe ⊆ s :=
+theorem coe_image_subset (s : set α) (t : set s) : coe '' t ⊆ s :=
 λ x ⟨y, yt, yvaleq⟩, by rw ←yvaleq; exact y.property
 
 theorem coe_image_univ (s : set α) : (coe : s → α) '' set.univ = s :=

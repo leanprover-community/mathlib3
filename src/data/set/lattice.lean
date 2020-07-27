@@ -527,10 +527,10 @@ lemma sInter_eq_bInter {s : set (set α)} : (⋂₀ s) = (⋂ (i : set α) (h : 
 by rw [← sInter_image, image_id']
 
 lemma sUnion_eq_Union {s : set (set α)} : (⋃₀ s) = (⋃ (i : s), i) :=
-by simp only [←sUnion_range, subtype.range_coe, mem_def]
+by simp only [←sUnion_range, subtype.range_coe]
 
 lemma sInter_eq_Inter {s : set (set α)} : (⋂₀ s) = (⋂ (i : s), i) :=
-by simp only [←sInter_range, subtype.range_coe, mem_def]
+by simp only [←sInter_range, subtype.range_coe]
 
 lemma union_eq_Union {s₁ s₂ : set α} : s₁ ∪ s₂ = ⋃ b : bool, cond b s₁ s₂ :=
 set.ext $ λ x, by simp [bool.exists_bool, or_comm]

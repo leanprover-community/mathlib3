@@ -66,6 +66,19 @@ begin
   exact h₂ (h₁ hs)
 end
 
+@[elab_as_eliminator]
+lemma is_compact.induction_on {s : set α} (hs : is_compact s) {p : set α → Prop} (he : p ∅)
+  (hmono : ∀ ⦃s t⦄, s ⊆ t → p t → p s) (hunion : ∀ ⦃s t⦄, p s → p t → p (s ∪ t))
+  (hnhds : ∀ x ∈ s, ∃ t ∈ nhds_within x s, p t) :
+  p s :=
+let f : filter α :=
+  { sets := {t | p tᶜ},
+    univ_sets := by simpa,
+    sets_of_superset := λ t₁ t₂ ht₁ ht, hmono (compl_subset_compl.2 ht) ht₁,
+    inter_sets := λ t₁ t₂ ht₁ ht₂, by simp [compl_inter, hunion ht₁ ht₂] } in
+have sᶜ ∈ f, from hs.compl_mem_sets_of_nhds_within (by simpa using hnhds),
+by simpa
+
 /-- The intersection of a compact set and a closed set is a compact set. -/
 lemma is_compact.inter_right (hs : is_compact s) (ht : is_closed t) :
   is_compact (s ∩ t) :=
@@ -126,21 +139,11 @@ lemma compact_iff_ultrafilter_le_nhds :
 lemma is_compact.elim_finite_subcover {ι : Type v} (hs : is_compact s)
   (U : ι → set α) (hUo : ∀i, is_open (U i)) (hsU : s ⊆ ⋃ i, U i) :
   ∃ t : finset ι, s ⊆ ⋃ i ∈ t, U i :=
-begin
-  by_contra h, push_neg at h,
-  set f : filter α := ⨅ t : finset ι, 𝓟 (s \ ⋃ i ∈ t, U i),
-  haveI hf : ne_bot f := infi_ne_bot_of_directed'
-    (directed_of_sup $ λ t₁ t₂ ht, principal_mono.2 $ diff_subset_diff_right $
-      bUnion_subset_bUnion_left ht)
-    (λ t, principal_ne_bot_iff.2 $ nonempty_of_not_subset (h t)),
-  have : f ≤ 𝓟 s := infi_le_of_le ∅ (le_principal_iff.2 (diff_subset _ _)),
-  obtain ⟨a, ha, h⟩ : ∃ a ∈ s, cluster_pt a f := hs this,
-  obtain ⟨_, ⟨i, rfl⟩, ha⟩ := hsU ha,
-  suffices : a ∈ (U i)ᶜ, from this ha,
-  have hfi : f ≤ 𝓟 (U i)ᶜ := infi_le_of_le {i} (principal_mono.2 $ by simp [diff_subset_iff]),
-  have hic : is_closed (U i)ᶜ := is_closed_compl_iff.2 (hUo i),
-  exact hic.mem_of_nhds_within_ne_bot (h.mono hfi),
-end
+is_compact.induction_on hs ⟨∅, empty_subset _⟩ (λ s₁ s₂ hs ⟨t, hs₂⟩, ⟨t, subset.trans hs hs₂⟩)
+  (λ s₁ s₂ ⟨t₁, ht₁⟩ ⟨t₂, ht₂⟩,
+    ⟨t₁ ∪ t₂, by { rw [finset.bUnion_union], exact union_subset_union ht₁ ht₂ }⟩)
+  (λ x hx, let ⟨i, hi⟩ := mem_Union.1 (hsU hx) in
+    ⟨U i, mem_nhds_within.2 ⟨U i, hUo i, hi, inter_subset_left _ _⟩, {i}, by simp⟩)
 
 /-- For every family of closed sets whose intersection avoids a compact set,
 there exists a finite subfamily whose intersection avoids this compact set. -/

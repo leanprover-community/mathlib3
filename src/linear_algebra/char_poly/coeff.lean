@@ -17,12 +17,12 @@ We give methods for computing coefficients of the characteristic polynomial.
 
 ## Main definitions
 
-- `degree_char_poly_eq_dim` proves that the degree of the characterist polynomial
+- `char_poly_degree_eq_dim` proves that the degree of the characterist polynomial
   over a nonzero ring is the dimension of the matrix
 - `det_eq_char_poly` proves that the determinant is the constant term of the characteristic
   polynomial, up to sign.
 - `trace_eq_char_poly` proves that the trace is the negative of the (d-1)th coefficient of the
-  characteristic polynomial, where d is the dimension of the matrix. 
+  characteristic polynomial, where d is the dimension of the matrix.
   For a nonzero ring, this is the second-highest coefficient.
 
 -/
@@ -97,7 +97,7 @@ end
 
 theorem char_poly_nat_degree_eq_dim [nontrivial R] (M : matrix n n R) :
   (char_poly M).nat_degree = fintype.card n :=
-nat_degree_eq_of_degree_eq_some (degree_char_poly_eq_dim M)
+nat_degree_eq_of_degree_eq_some (char_poly_degree_eq_dim M)
 
 lemma char_poly_monic_of_nontrivial [nontrivial R] (M : matrix n n R) :
   monic (char_poly M) :=
@@ -107,7 +107,7 @@ begin
   { apply monic_prod_of_monic univ (λ i : n, (X - C (M i i))), simp [monic_X_sub_C], },
   rw ← sub_add_cancel (∏ (i : n), (X - C (M i i))) (char_poly M) at mon,
   rw monic at *, rw leading_coeff_add_of_degree_lt at mon, rw ← mon,
-  rw degree_char_poly_eq_dim, rw ← neg_sub, rw degree_neg,
+  rw char_poly_degree_eq_dim, rw ← neg_sub, rw degree_neg,
   apply lt_trans (char_poly_sub_diagonal_degree_lt M), rw with_bot.coe_lt_coe,
   rw ← nat.pred_eq_sub_one, apply nat.pred_lt, apply h,
 end

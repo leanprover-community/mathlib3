@@ -15,7 +15,7 @@ done
 # exit if there were no successful requests
 [ "$new_git_sha" != "" ] || exit 0
 
-curl "$archive_url$new_git_sha.tar.gz" | tar xz src
+curl "$archive_url$new_git_sha.tar.xz" | tar xJ src
 
 # Extracting the archive overwrites all .lean files, which is fine if we
 # downloaded an "equivalent" cache. However, since we might be using an older

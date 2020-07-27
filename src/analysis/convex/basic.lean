@@ -232,7 +232,7 @@ begin
   exact hs xs ys ha hb hab,
 end
 
-/-- Convexity is preserved by affine maps -/
+/-- The image of a convex set under an affine map is convex. -/
 lemma convex.affine_image (f : affine_map ℝ E E F F) {s : set E} (hs : convex s) :
   convex (f '' s) :=
 begin

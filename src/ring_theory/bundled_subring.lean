@@ -4,13 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors : Ashvni Narayanan
 -/
 
--- These are now the correct imports
 import group_theory.subgroup
 import ring_theory.subsemiring
 
--- this one shoudl not be imported, but it's helpful to import it occasionally
--- because it fixes errors
-import deprecated.subgroup
+/-!
+# Bundled subrings
+
+We define bundled subrings and some standard constructions: `complete_lattice` structure,
+`subtype` and `inclusion` ring homomorphisms, subring range of a `ring_hom` etc.
+-/
+
+open_locale big_operators
 
 universes u v
 
@@ -38,10 +42,126 @@ instance : has_coe_to_sort (subring R) := ⟨Type*, λ S, S.carrier⟩
 
 instance : has_mem R (subring R) := ⟨λ m S, m ∈ (S:set R)⟩
 
-instance {S : subring R} : ring S :=
-{ left_distrib := λ x y z, subtype.eq $ left_distrib x.1 y.1 z.1,
-  right_distrib := λ x y z, subtype.eq $ right_distrib x.1 y.1 z.1,
-  .. add_subgroup.to_add_comm_group S.to_add_subgroup, .. submonoid.to_monoid S.to_submonoid}
+/-- Construct a `subring R` from a set `s`, a submonoid `sm`, and an additive
+subgroup `sa` such that `x ∈ s ↔ x ∈ sm ↔ x ∈ sa`. -/
+protected def mk' (s : set R) (sm : submonoid R) (hm : ↑sm = s)
+  (sa : add_subgroup R) (ha : ↑sa = s) :
+  subring R :=
+{ carrier := s,
+  zero_mem' := ha ▸ sa.zero_mem,
+  one_mem' := hm ▸ sm.one_mem,
+  add_mem' := λ x y, by simpa only [← ha] using sa.add_mem,
+  mul_mem' := λ x y, by simpa only [← hm] using sm.mul_mem,
+  neg_mem' := λ x, by simpa only [← ha] using sa.neg_mem,
+  }
+
+@[simp] lemma coe_mk' {s : set R} {sm : submonoid R} (hm : ↑sm = s)
+  {sa : add_subgroup R} (ha : ↑sa = s) :
+  (subring.mk' s sm hm sa ha : set R) = s := rfl
+
+@[simp] lemma mem_mk' {s : set R} {sm : submonoid R} (hm : ↑sm = s)
+  {sa : add_subgroup R} (ha : ↑sa = s) {x : R} :
+  x ∈ subring.mk' s sm hm sa ha ↔ x ∈ s :=
+iff.rfl
+
+@[simp] lemma mk'_to_submonoid {s : set R} {sm : submonoid R} (hm : ↑sm = s)
+  {sa : add_subgroup R} (ha : ↑sa = s) :
+  (subring.mk' s sm hm sa ha).to_submonoid = sm :=
+submonoid.ext' hm.symm
+
+@[simp] lemma mk'_to_add_subgroup {s : set R} {sm : submonoid R} (hm : ↑sm = s)
+  {sa : add_subgroup R} (ha : ↑sa = s) :
+  (subring.mk' s sm hm sa ha).to_add_subgroup = sa :=
+add_subgroup.ext' ha.symm
+
+end subring
+
+protected lemma subring.exists {s : subring R} {p : s → Prop} :
+  (∃ x : s, p x) ↔ ∃ x ∈ s, p ⟨x, ‹x ∈ s›⟩ :=
+set_coe.exists
+
+protected lemma subring.forall {s : subring R} {p : s → Prop} :
+  (∀ x : s, p x) ↔ ∀ x ∈ s, p ⟨x, ‹x ∈ s›⟩ :=
+set_coe.forall
+
+namespace subring
+
+variables (s : subring R)
+
+/-- Two subrings are equal if the underlying subsets are equal. -/
+theorem ext' ⦃s t : subring R⦄ (h : (s : set R) = t) : s = t :=
+by cases s; cases t; congr'
+
+/-- Two subrings are equal if and only if the underlying subsets are equal. -/
+protected theorem ext'_iff {s t : subring R}  : s = t ↔ (s : set R) = t :=
+⟨λ h, h ▸ rfl, λ h, ext' h⟩
+
+/-- Two subrings are equal if they have the same elements. -/
+@[ext] theorem ext {S T : subring R} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := ext' $ set.ext h
+
+/-- A subsemiring contains the semiring's 1. -/
+theorem one_mem : (1 : R) ∈ s := s.one_mem'
+
+/-- A subring contains the semiring's 0. -/
+theorem zero_mem : (0 : R) ∈ s := s.zero_mem'
+
+/-- A subring is closed under multiplication. -/
+theorem mul_mem : ∀ {x y : R}, x ∈ s → y ∈ s → x * y ∈ s := s.mul_mem'
+
+/-- A subring is closed under addition. -/
+theorem add_mem : ∀ {x y : R}, x ∈ s → y ∈ s → x + y ∈ s := s.add_mem'
+
+/-- Product of a list of elements in a subring is in the subring. -/
+lemma list_prod_mem {l : list R} : (∀x ∈ l, x ∈ s) → l.prod ∈ s :=
+s.to_submonoid.list_prod_mem
+
+/-- Sum of a list of elements in an `subring` is in the `subring`. -/
+lemma list_sum_mem {l : list R} : (∀x ∈ l, x ∈ s) → l.sum ∈ s :=
+s.to_add_subgroup.list_sum_mem
+
+/-- Product of a multiset of elements in a subring of a `comm_ring` is in the subring. -/
+lemma multiset_prod_mem {R} [comm_ring R] (s : subring R) (m : multiset R) :
+  (∀a ∈ m, a ∈ s) → m.prod ∈ s :=
+s.to_submonoid.multiset_prod_mem m
+
+/-- Sum of a multiset of elements in an `subring` of a `ring` is
+in the `subring`. -/
+lemma multiset_sum_mem {R} [ring R] (s : subring R) (m : multiset R) :
+  (∀a ∈ m, a ∈ s) → m.sum ∈ s :=
+s.to_add_subgroup.multiset_sum_mem m
+
+/-- Product of elements of a subring of a `comm_ring` indexed by a `finset` is in the
+    subring. -/
+lemma prod_mem {R : Type*} [comm_ring R] (s : subring R)
+  {ι : Type*} {t : finset ι} {f : ι → R} (h : ∀c ∈ t, f c ∈ s) :
+  ∏ i in t, f i ∈ s :=
+s.to_submonoid.prod_mem h
+
+/-- Sum of elements in a `subring` of an `ring` indexed by a `finset`
+is in the `subring`. -/
+lemma sum_mem {R : Type*} [ring R] (s : subring R)
+  {ι : Type*} {t : finset ι} {f : ι → R} (h : ∀c ∈ t, f c ∈ s) :
+  ∑ i in t, f i ∈ s :=
+s.to_add_subgroup.sum_mem h
+
+lemma pow_mem {x : R} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := s.to_submonoid.pow_mem hx n
+
+lemma gsmul_mem {x : R} (hx : x ∈ s) (n : ℤ) :
+  n •ℤ x ∈ s := s.to_add_subgroup.gsmul_mem hx n
+
+lemma coe_nat_mem (n : ℤ) : (n : R) ∈ s :=
+by simp only [← gsmul_one, gsmul_mem, one_mem]
+
+/-- A subring of a ring inherits a ring structure -/
+instance to_ring : ring s :=
+{ right_distrib := λ x y z, subtype.eq $ right_distrib x y z,
+  left_distrib := λ x y z, subtype.eq $ left_distrib x y z,
+  .. s.to_submonoid.to_monoid, .. s.to_add_subgroup.to_add_comm_group }
+
+-- up to line 158 of subsemiring
+
+#exit
+
 
 end subring
 

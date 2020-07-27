@@ -74,6 +74,10 @@ instance : category (Mon_ C) :=
   id := id,
   comp := λ M N O f g, comp f g, }
 
+@[simp] lemma id_hom' (M : Mon_ C) : (𝟙 M : hom M M).hom = 𝟙 M.X := rfl
+@[simp] lemma comp_hom' {M N K : Mon_ C} (f : M ⟶ N) (g : N ⟶ K) :
+  (f ≫ g : hom M K).hom = f.hom ≫ g.hom := rfl
+
 /-- The forgetful functor from monoid objects to the ambient category. -/
 def forget : Mon_ C ⥤ C :=
 { obj := λ A, A.X,
@@ -129,9 +133,14 @@ instance : category (Mod A) :=
   id := id,
   comp := λ M N O f g, comp f g, }
 
+@[simp] lemma id_hom' (M : Mod A) : (𝟙 M : hom M M).hom = 𝟙 M.X := rfl
+@[simp] lemma comp_hom' {M N K : Mod A} (f : M ⟶ N) (g : N ⟶ K) :
+  (f ≫ g : hom M K).hom = f.hom ≫ g.hom := rfl
+
 variables (A)
 
 /-- A monoid object as a module over itself. -/
+@[simps]
 def regular : Mod A :=
 { X := A.X,
   act := A.mul, }

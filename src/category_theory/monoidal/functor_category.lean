@@ -78,3 +78,19 @@ instance functor_category_monoidal : monoidal_category (C ⥤ D) :=
   associator_naturality' := λ F G H F' G' H' α β γ, by { ext X, dsimp, rw associator_naturality, },
   triangle' := λ F G, begin ext X, dsimp, rw triangle, end,
   pentagon' := λ F G H K, begin ext X, dsimp, rw pentagon, end, }
+
+@[simp]
+lemma tensor_unit_obj {X} : (𝟙_ (C ⥤ D)).obj X = 𝟙_ D := rfl
+
+@[simp]
+lemma tensor_unit_map {X Y} {f : X ⟶ Y} : (𝟙_ (C ⥤ D)).map f = 𝟙 (𝟙_ D) := rfl
+
+@[simp]
+lemma tensor_obj_obj {F G : C ⥤ D} {X} : (F ⊗ G).obj X = F.obj X ⊗ G.obj X := rfl
+
+@[simp]
+lemma tensor_obj_map {F G : C ⥤ D} {X Y} {f : X ⟶ Y} : (F ⊗ G).map f = F.map f ⊗ G.map f := rfl
+
+@[simp]
+lemma tensor_hom_app {F G F' G' : C ⥤ D} {α : F ⟶ G} {β : F' ⟶ G'} {X} :
+  (α ⊗ β).app X = α.app X ⊗ β.app X := rfl

@@ -3,7 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import topology.algebra.module
+import geometry.manifold.algebra.monoid
 import geometry.manifold.smooth_map
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
@@ -13,19 +13,20 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {H' : Type*} [topological_space H']
 {I : model_with_corners 𝕜 E H} {I' : model_with_corners 𝕜 E' H'}
 {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
-{M' : Type*} [topological_space M'] [charted_space H' M'] [smooth_manifold_with_corners I' M']
 
-namespace continuous_map
-
-@[to_additive]
-instance has_mul [has_continuous_mul β] : has_mul C(α, β) :=
-⟨λ f g, ⟨f * g, continuous_mul.comp (f.continuous.prod_mk g.continuous)⟩⟩
+namespace smooth_map
 
 @[to_additive]
-instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [has_one β] : has_one C(α, β) := ⟨const (1 : β)⟩
+instance has_mul {G : Type*} [has_mul G] [topological_space G] [has_continuous_mul G]
+  [charted_space H' G] [has_smooth_mul I' G] : has_mul C∞(I, M; I', G) :=
+⟨λ f g, ⟨f * g, smooth_mul.comp (f.smooth.prod_mk g.smooth)⟩⟩
 
-end continuous_map
+@[to_additive]
+instance {G : Type*} [monoid G] [topological_space G] [has_continuous_mul G]
+  [charted_space H' G] [has_smooth_mul I' G] : has_one C∞(I, M; I', G) :=
+⟨const (1 : β)⟩
+
+end smooth_map
 
 section group_structure
 
@@ -36,43 +37,10 @@ In this section we show that continuous functions valued in a topological group 
 a structure of group.
 -/
 
-section subtype
+@[to_additive]
+instance smooth_map_semigroup
 
-@[to_additive continuous_add_submonoid]
-instance continuous_submonoid (α : Type u) (β : Type v) [topological_space α] [topological_space β]
-  [monoid β] [topological_monoid β] : is_submonoid { f : α → β | continuous f } :=
-{ one_mem := @continuous_const _ _ _ _ 1,
-  mul_mem := λ f g fc gc, continuous.comp
-  has_continuous_mul.continuous_mul (continuous.prod_mk fc gc) }.
-
-@[to_additive continuous_add_subgroup]
-instance continuous_subgroup (α : Type u) (β : Type v) [topological_space α] [topological_space β]
-  [group β] [topological_group β] : is_subgroup { f : α → β | continuous f } :=
-{ inv_mem := λ f fc, continuous.comp topological_group.continuous_inv fc,
-  ..continuous_submonoid α β, }.
-
-@[to_additive continuous_add_monoid]
-instance continuous_monoid {α : Type u} {β : Type v} [topological_space α] [topological_space β]
-  [monoid β] [topological_monoid β] : monoid { f : α → β | continuous f } :=
-subtype.monoid
-
-@[to_additive continuous_add_group]
-instance continuous_group {α : Type u} {β : Type v} [topological_space α] [topological_space β]
-  [group β] [topological_group β] : group { f : α → β | continuous f } :=
-subtype.group
-
-@[to_additive continuous_add_comm_group]
-instance continuous_comm_group {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [comm_group β] [topological_group β] : comm_group { f : α → β | continuous f } :=
-@subtype.comm_group _ _ _ (continuous_subgroup α β) -- infer_instance doesn't work?!
-
-end subtype
-
-section continuous_map
-
-@[to_additive continuous_map_add_semigroup]
-instance continuous_map_semigroup {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [semigroup β] [has_continuous_mul β] : semigroup C(α, β) :=
+ : semigroup C(α, β) :=
 { mul_assoc := λ a b c, by ext; exact mul_assoc _ _ _,
   ..continuous_map.has_mul}
 
@@ -105,8 +73,6 @@ instance continuous_map_comm_group {α : Type*} {β : Type*} [topological_space 
   [comm_group β] [topological_group β] : comm_group C(α, β) :=
 { ..continuous_map_group,
   ..continuous_map_comm_monoid }
-
-end continuous_map
 
 end group_structure
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Nicolò Cavalleri.
 -/
 
-import geometry.manifold.constructions
+import geometry.manifold.times_cont_mdiff
 import topology.continuous_map
 
 /-!
@@ -62,7 +62,7 @@ def comp (f : C∞(I', M'; I'', M'')) (g : C∞(I, M; I', M')) : C∞(I, M; I'',
 instance [inhabited M'] : inhabited C∞(I, M; I', M') :=
 ⟨⟨λ _, default _, smooth_const⟩⟩
 
-protected lemma smoooth (f : C∞(I, M; I', M')) : smooth I I' f := f.smooth_to_fun
+protected lemma smooth (f : C∞(I, M; I', M')) : smooth I I' f := f.smooth_to_fun
 
 def const (y : M') : C∞(I, M; I', M') := ⟨λ x, y, smooth_const⟩
 

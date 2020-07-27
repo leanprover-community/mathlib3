@@ -223,7 +223,7 @@ begin
   exact affine_map.affine_apply_line_map f x (y - x) b,
 end
 
-/-- Convexity is preserved by affine maps -/
+/-- The preimage of a convex set under an affine map is convex. -/
 lemma convex.affine_preimage (f : affine_map ℝ E E F F) {s : set F} (hs : convex s) :
   convex (f ⁻¹' s) :=
 begin

@@ -98,6 +98,7 @@ begin
   { show (lift (⇑f ∘ of)) (-1) = _,
     rw [lift_neg, lift_one, f.map_neg, f.map_one] },
   { exact (lift_of _) },
+  -- need to change lift_hom back to lift because rw lemmas are all about lift :-(
   { intros x y ihx ihy, rw [lift_add, is_ring_hom.map_add f, ihx, ihy] },
   { exact (λ x y ihx ihy, by rw [lift_mul, is_ring_hom.map_mul f, ihx, ihy]) }
 end

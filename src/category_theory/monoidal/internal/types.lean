@@ -1,13 +1,25 @@
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import algebra.category.Mon.basic
 import category_theory.monoidal.internal
 import category_theory.monoidal.types
+
+/-!
+# `Mon_ (Type u) ≌ Mon.{u}`
+
+The category of internal monoid objects in `Type`
+is equivalent to the category of "native" bundled monoids.
+
+Moreover, this equivalence is compatible with the forgetful functors to `Type`.
+-/
 
 universes v u
 
 open category_theory
 open category_theory.monoidal
-
-variables (C : Type u) [category.{v} C] [monoidal_category.{v} C]
 
 namespace Mon_Type_equivalence_Mon
 

@@ -112,7 +112,7 @@ jobs:
           lean --run scripts/lint_mathlib.lean
 
   tests:
-    name: Run tests and docs
+    name: Run tests
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -140,24 +140,3 @@ jobs:
         run: |
           lean --recursive --export=mathlib.txt src/
           leanchecker mathlib.txt
-
-      - name: install Python
-        uses: actions/setup-python@v1
-        with:
-          python-version: 3.8
-
-      - name: install Python dependencies
-        run: python -m pip install --upgrade pip requests markdown2 toml
-
-      - name: setup doc-gen
-        run: |
-          git clone https://github.com/leanprover-community/doc-gen.git
-
-      - name: generate docs
-        run:
-          ./scripts/deploy_docs.sh "." "doc-gen" ".."
-        env:
-          DEPLOY_GITHUB_TOKEN: ${{ secrets.DEPLOY_GITHUB_TOKEN }}
-          github_repo: ${{ github.repository }}
-          github_event: ${{ github.event_name }}
-          github_ref: ${{ github.ref }}

@@ -1109,6 +1109,10 @@ instance : countable_Inter_filter μ.ae :=
   exact measure_Union_null (subtype.forall.2 hS)
 end⟩
 
+instance ae_is_measurably_generated : is_measurably_generated μ.ae :=
+⟨λ s hs, let ⟨t, hst, htm, htμ⟩ := exists_is_measurable_superset_of_measure_eq_zero hs in
+  ⟨tᶜ, compl_mem_ae_iff.2 htμ, htm.compl, compl_subset_comm.1 hst⟩⟩
+
 lemma ae_all_iff {ι : Type*} [encodable ι] {p : α → ι → Prop} :
   (∀ᵐ a ∂ μ, ∀i, p a i) ↔ (∀i, ∀ᵐ a ∂ μ, p a i) :=
 eventually_countable_forall

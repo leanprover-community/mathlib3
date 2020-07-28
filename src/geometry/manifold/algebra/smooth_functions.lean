@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import geometry.manifold.algebra.monoid
+import geometry.algebra.lie_group
 import geometry.manifold.smooth_map
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
@@ -24,7 +25,7 @@ instance has_mul {G : Type*} [has_mul G] [topological_space G] [has_continuous_m
 @[to_additive]
 instance {G : Type*} [monoid G] [topological_space G] [has_continuous_mul G]
   [charted_space H' G] [has_smooth_mul I' G] : has_one C∞(I, M; I', G) :=
-⟨const (1 : β)⟩
+⟨const (1 : G)⟩
 
 end smooth_map
 
@@ -38,8 +39,8 @@ a structure of group.
 -/
 
 @[to_additive]
-instance smooth_map_semigroup
-
+instance smooth_map_semigroup {G : Type*} [has_mul G] [topological_space G] [has_continuous_mul G]
+  [charted_space H' G] [has_smooth_mul I' G]
  : semigroup C(α, β) :=
 { mul_assoc := λ a b c, by ext; exact mul_assoc _ _ _,
   ..continuous_map.has_mul}

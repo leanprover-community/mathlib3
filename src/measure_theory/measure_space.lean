@@ -1017,6 +1017,10 @@ calc count (↑s : set α) = ∑' i : (↑s : set α), (1 : α → ennreal) i : 
                     ... = ∑ i in s, 1 : s.tsum_subtype 1
                     ... = s.card : by simp
 
+lemma count_apply_finite [measurable_singleton_class α] (s : set α) (hs : finite s) :
+  count s = hs.to_finset.card :=
+by rw [← count_apply_finset, finite.coe_to_finset]
+
 /-- `count` measure evaluates to infinity at infinite sets. -/
 lemma count_apply_infinite [measurable_singleton_class α] {s : set α} (hs : s.infinite) :
   count s = ⊤ :=
@@ -1027,6 +1031,21 @@ begin
   have := lt_of_le_of_lt (measure_mono ht) hn,
   simpa [lt_irrefl] using this
 end
+
+@[simp] lemma count_apply_eq_top [measurable_singleton_class α] {s : set α} :
+  count s = ⊤ ↔ s.infinite :=
+begin
+  by_cases hs : s.finite,
+  { simp [set.infinite, hs, count_apply_finite] },
+  { change s.infinite at hs,
+    simp [hs, count_apply_infinite] }
+end
+
+@[simp] lemma count_apply_lt_top [measurable_singleton_class α] {s : set α} :
+  count s < ⊤ ↔ s.finite :=
+calc count s < ⊤ ↔ count s ≠ ⊤ : lt_top_iff_ne_top
+             ... ↔ ¬s.infinite : not_congr count_apply_eq_top
+             ... ↔ s.finite    : not_not
 
 /-- A measure is complete if every null set is also measurable.
   A null set is a subset of a measurable set with measure `0`.

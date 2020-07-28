@@ -30,12 +30,6 @@ open topological_space.opens
 
 universe u
 
-@[simp] lemma classical.indefinite_description_val {α : Sort u} (p : α → Prop) (h : ∃ x, p x) :
-  (classical.indefinite_description p h).val = classical.some h := rfl
-
-@[simp] lemma classical.indefinite_description_property {α : Sort u} (p : α → Prop) (h : ∃ x, p x) :
-  (classical.indefinite_description p h).property = classical.some_spec h := rfl
-
 noncomputable theory
 
 variables (X : Top.{u})
@@ -122,16 +116,12 @@ begin
     refine ⟨_, mem⟩,
     dsimp,
 
-    -- We now do a ridiculous ninja move.
     -- Notice that when we introduced `j`, we just introduced it as some metavariable.
     -- However at this point it's received a concrete value,
     -- because Lean's unification has worked out that this `j` must have been the index
     -- that we picked using choice back when constructing the lift.
     -- From this, we can extract the evidence that `x ∈ U j`:
-
-    -- FIXME this is surely unnecessarily cumbersome:
-    have := classical.spec_of_eq_some (rfl : j = j),
-    exact this, },
+    convert @classical.some_spec _ (λ i, x ∈ (U i : set X)) _, },
   { -- On the home stretch now,
     -- we just need to check that the lift we picked was the only possible one.
 

@@ -147,8 +147,7 @@ attribute [irreducible] E
 
 @[simp] lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
 
-@[symm] lemma edge_symm (u v : V) : G.adj u v ↔ G.adj v u :=
-by split; apply G.sym
+@[symm] lemma edge_symm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.sym x, λ x, G.sym x⟩
 
 @[simp] lemma mem_neighbor_set (v w : V) : w ∈ G.neighbor_set v ↔ G.adj v w :=
 by tauto

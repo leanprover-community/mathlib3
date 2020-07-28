@@ -846,6 +846,7 @@ decidable_of_iff (∀ k h, P ⟨k, h⟩) ⟨λ a ⟨k, h⟩, a k h, λ a k h, a 
 
 instance decidable_ball_le (n : ℕ) (P : Π k ≤ n, Prop)
   [H : ∀ n h, decidable (P n h)] : decidable (∀ n h, P n h) :=
+by exactI -- TODO(gabriel): this looks like a bug
 decidable_of_iff (∀ k (h : k < succ n), P k (le_of_lt_succ h))
 ⟨λ a k h, a k (lt_succ_of_le h), λ a k h, a k _⟩
 

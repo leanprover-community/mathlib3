@@ -6,6 +6,8 @@ Author: Joseph Myers.
 import algebra.add_torsor
 import data.indicator_function
 import linear_algebra.basis
+import analysis.normed_space.finite_dimension
+import topology.algebra.continuous_functions
 
 noncomputable theory
 open_locale big_operators
@@ -1089,7 +1091,7 @@ variables {k}
 /-- A `weighted_vsub` with sum of weights 0 is in the `vector_span` of
 an indexed family. -/
 lemma weighted_vsub_mem_vector_span {s : finset ι} {w : ι → k}
-    (h : ∑ i in s, w i = 0) (p : ι → P) : 
+    (h : ∑ i in s, w i = 0) (p : ι → P) :
     s.weighted_vsub V p w ∈ vector_span k V (set.range p) :=
 begin
   by_cases hn : nonempty ι,
@@ -1524,6 +1526,23 @@ lemma line_map_vadd_neg (p : P1) (v : V1) :
   line_map (v +ᵥ p) (-v) = (line_map p v).comp (line_map (1:k) (-1:k)) :=
 by { rw [affine_comp_line_map], simp [line_map_apply] }
 
+/-- Decomposition of an affine map in the special case when the point space and vector space
+   1 are the same -/
+lemma decomp (f : affine_map k V1 V1 V2 V2) : (f : V1 → V2) = f.linear + (λ z, f 0) :=
+begin
+  ext x,
+  have : x = x +ᵥ 0 := (add_zero x).symm,
+  calc
+    f x = f.to_fun x                              : rfl
+    ... = f.linear x + f.to_fun 0                 : by rw [this, f.map_vadd', ←this]; refl
+    ... = (f.linear.to_fun + λ (z : V1), f 0) x   : by simp,
+end
+
+/-- Decomposition of an affine map in the special case when the point space and vector space
+are the same -/
+lemma decomp' (f : affine_map k V1 V1 V2 V2) : (f.linear : V1 → V2) = f - (λ z, f 0) :=
+by rw [decomp]; simp only [linear_map.map_zero, pi.add_apply, add_sub_cancel, zero_add]
+
 end affine_map
 
 namespace affine_map
@@ -1588,6 +1607,43 @@ def homothety_affine (c : P1) :
 @[simp] lemma coe_homothety_affine (c : P1) :
   ⇑(homothety_affine V1 c : affine_map k k k _ _) = homothety V1 c :=
 rfl
+
+end affine_map
+
+namespace affine_map
+
+variables {E F : Type*} [add_comm_group E] [vector_space ℝ E] [topological_space E]
+  [add_comm_group F] [vector_space ℝ F] [topological_space F] [topological_add_group F]
+
+/-
+TODO: Deal with the case where the point spaces are different from the vector spaces.
+-/
+
+/-- An affine map is continuous iff its underlying linear map is continuous. -/
+lemma continuous_iff {f : affine_map ℝ E E F F} :
+  continuous f ↔ continuous f.linear :=
+begin
+  split,
+  { intro hc,
+    let f' : C(E, F) := ⟨f, hc⟩,
+    let fconst : C(E, F) := ⟨(λ z, f 0), continuous_const⟩,
+    let fdiff := f' - fconst,
+    convert fdiff.2,
+    rw [decomp' f],
+    refl },
+  { intro hc,
+    let flin' : C(E, F) := ⟨f.linear, hc⟩,
+    let fconst : C(E, F) := ⟨(λ z, f 0), continuous_const⟩,
+    let f' := flin' + fconst,
+    convert f'.2,
+    rw [decomp f],
+    refl }
+end
+
+/-- The line map is continuous. -/
+lemma line_map_continuous {G : Type*} [normed_group G] [normed_space ℝ G] {p v : G} :
+  continuous (@line_map ℝ G G _ _ _ _ p v) :=
+continuous_iff.mpr (linear_map.to_continuous_linear_map₁ (line_map p v).linear).2
 
 end affine_map
 

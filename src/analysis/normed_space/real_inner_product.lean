@@ -939,7 +939,7 @@ lemma orthogonal_projection_fn_mem {K : submodule ℝ α} (h : is_complete (K : 
 lemma is only intended for use in setting up the bundled version
 and should not be used once that is defined. -/
 lemma orthogonal_projection_fn_inner_eq_zero {K : submodule ℝ α} (h : is_complete (K : set α))
-    (v : α) : ∀ w ∈ K, inner (v - orthogonal_projection_fn h v) w = 0 :=
+  (v : α) : ∀ w ∈ K, inner (v - orthogonal_projection_fn h v) w = 0 :=
 begin
   rw ←norm_eq_infi_iff_inner_eq_zero K (orthogonal_projection_fn_mem h v),
   exact (exists_norm_eq_infi_of_complete_subspace K h v).some_spec.some_spec

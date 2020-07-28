@@ -41,7 +41,7 @@ attribute [derive [has_coe_to_sort, large_category, concrete_category]] Group Ad
 /-- Construct a bundled `AddGroup` from the underlying type and typeclass. -/
 add_decl_doc AddGroup.of
 
-@[to_additive add_group]
+@[to_additive]
 instance (G : Group) : group G := G.str
 
 @[to_additive]
@@ -92,7 +92,7 @@ attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommGrou
 /-- Construct a bundled `AddCommGroup` from the underlying type and typeclass. -/
 add_decl_doc AddCommGroup.of
 
-@[to_additive add_comm_group_instance]
+@[to_additive]
 instance comm_group_instance (G : CommGroup) : comm_group G := G.str
 
 @[to_additive] instance : has_one CommGroup := ⟨CommGroup.of punit⟩

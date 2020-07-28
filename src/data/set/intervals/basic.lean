@@ -370,10 +370,34 @@ end partial_order
 section linear_order
 variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ : α}
 
-lemma compl_Iic : (Iic a)ᶜ = Ioi a := ext $ λ _, not_le
-lemma compl_Ici : (Ici a)ᶜ = Iio a := ext $ λ _, not_le
-lemma compl_Iio : (Iio a)ᶜ = Ici a := ext $ λ _, not_lt
-lemma compl_Ioi : (Ioi a)ᶜ = Iic a := ext $ λ _, not_lt
+@[simp] lemma compl_Iic : (Iic a)ᶜ = Ioi a := ext $ λ _, not_le
+@[simp] lemma compl_Ici : (Ici a)ᶜ = Iio a := ext $ λ _, not_le
+@[simp] lemma compl_Iio : (Iio a)ᶜ = Ici a := ext $ λ _, not_lt
+@[simp] lemma compl_Ioi : (Ioi a)ᶜ = Iic a := ext $ λ _, not_lt
+
+@[simp] lemma Ici_diff_Ici : Ici a \ Ici b = Ico a b :=
+by rw [diff_eq, compl_Ici, Ici_inter_Iio]
+
+@[simp] lemma Ici_diff_Ioi : Ici a \ Ioi b = Icc a b :=
+by rw [diff_eq, compl_Ioi, Ici_inter_Iic]
+
+@[simp] lemma Ioi_diff_Ioi : Ioi a \ Ioi b = Ioc a b :=
+by rw [diff_eq, compl_Ioi, Ioi_inter_Iic]
+
+@[simp] lemma Ioi_diff_Ici : Ioi a \ Ici b = Ioo a b :=
+by rw [diff_eq, compl_Ici, Ioi_inter_Iio]
+
+@[simp] lemma Iic_diff_Iic : Iic b \ Iic a = Ioc a b :=
+by rw [diff_eq, compl_Iic, inter_comm, Ioi_inter_Iic]
+
+@[simp] lemma Iio_diff_Iic : Iio b \ Iic a = Ioo a b :=
+by rw [diff_eq, compl_Iic, inter_comm, Ioi_inter_Iio]
+
+@[simp] lemma Iic_diff_Iio : Iic b \ Iio a = Icc a b :=
+by rw [diff_eq, compl_Iio, inter_comm, Ici_inter_Iic]
+
+@[simp] lemma Iio_diff_Iio : Iio b \ Iio a = Ico a b :=
+by rw [diff_eq, compl_Iio, inter_comm, Ici_inter_Iio]
 
 lemma Ioo_eq_empty_iff [densely_ordered α] : Ioo a b = ∅ ↔ b ≤ a :=
 ⟨λ eq, le_of_not_lt $ λ h,
@@ -440,12 +464,7 @@ begin
 end
 
 @[simp] lemma Iio_subset_Iic_iff [densely_ordered α] : Iio a ⊆ Iic b ↔ a ≤ b :=
-begin
-  refine ⟨λh, _, λh, Iio_subset_Iic h⟩,
-  by_contradiction ba,
-  obtain ⟨c, bc, ca⟩ : ∃c, b < c ∧ c < a := dense (not_le.mp ba),
-  exact lt_irrefl _ (lt_of_lt_of_le bc (h ca))
-end
+by rw [← diff_eq_empty, Iio_diff_Iic, Ioo_eq_empty_iff]
 
 /-! ### Unions of adjacent intervals -/
 

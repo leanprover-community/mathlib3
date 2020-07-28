@@ -78,7 +78,10 @@ subtype.eq $ prod_X_sub_smul.monic G F x
 
 theorem fixed_points.minpoly.eval₂ :
   polynomial.eval₂ (is_subring.subtype $ fixed_points G F) x (fixed_points.minpoly G F x) = 0 :=
-prod_X_sub_smul.eval G F x
+begin
+  rw [← prod_X_sub_smul.eval G F x, polynomial.eval₂_eq_eval_map],
+  simp [fixed_points.minpoly],
+end
 
 theorem fixed_points.is_integral : is_integral (fixed_points G F) x :=
 ⟨fixed_points.minpoly G F x,

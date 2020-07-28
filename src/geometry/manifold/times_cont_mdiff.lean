@@ -93,7 +93,7 @@ lemma times_cont_diff_within_at_local_invariant_prop (n : with_top ℕ) :
     rw this at h,
     have : I (e x) ∈ (I.symm) ⁻¹' e.target ∩ range ⇑I, by simp only [hx] with mfld_simps,
     have := ((mem_groupoid_of_pregroupoid.2 he).2.times_cont_diff_within_at this).of_le le_top,
-    convert h.comp' this using 1,
+    convert h.comp' _ this using 1,
     { ext y, simp only with mfld_simps },
     { mfld_set_tac }
   end,
@@ -113,7 +113,7 @@ lemma times_cont_diff_within_at_local_invariant_prop (n : with_top ℕ) :
     have A : (I' ∘ f ∘ I.symm) (I x) ∈ (I'.symm ⁻¹' e'.source ∩ range I'),
       by simp only [hx] with mfld_simps,
     have := ((mem_groupoid_of_pregroupoid.2 he').1.times_cont_diff_within_at A).of_le le_top,
-    convert this.comp h _,
+    convert this.comp _ h _,
     { ext y, simp only with mfld_simps },
     { assume y hy, simp only with mfld_simps at hy, simpa only [hy] with mfld_simps using hs hy.2 }
   end }

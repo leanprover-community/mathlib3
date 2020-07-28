@@ -630,7 +630,6 @@ end
 
 end is_countably_generated
 
-
 end filter
 
 open filter finset

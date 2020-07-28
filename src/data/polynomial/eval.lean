@@ -5,6 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.induction
 import data.polynomial.degree.basic
+import deprecated.ring
 
 /-!
 # Theory of univariate polynomials
@@ -339,7 +340,7 @@ instance map.is_semiring_hom : is_semiring_hom (map f) :=
   map_add := λ _ _, eval₂_add _ _,
   map_mul := λ _ _, map_mul f, }
 
-@[simp] lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := is_semiring_hom.map_pow (map f) _ _
+@[simp] lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := is_monoid_hom.map_pow (map f) _ _
 
 lemma mem_map_range {p : polynomial S} :
   p ∈ set.range (map f) ↔ ∀ n, p.coeff n ∈ (set.range f) :=

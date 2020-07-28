@@ -124,7 +124,7 @@ begin
     rw ← p.support.sum_hom subtype.val,
     { refine finset.sum_congr rfl (λ n hn, _),
       change _ = _ * _,
-      rw is_semiring_hom.map_pow coe, refl,
+      rw is_monoid_hom.map_pow coe, refl,
       split; intros; refl },
     refine { map_add := _, map_zero := _ }; intros; refl },
   refine is_integral_of_noetherian' H ⟨x, hx⟩

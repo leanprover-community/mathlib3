@@ -7,7 +7,7 @@ import algebra.opposites
 import data.list.basic
 import data.int.cast
 import data.equiv.basic
-import deprecated.ring
+import deprecated.group
 
 /-!
 # Power operations on monoids and groups
@@ -458,10 +458,6 @@ variables [semiring R] [semiring S]
 f.to_monoid_hom.map_pow a
 
 end ring_hom
-
-lemma is_semiring_hom.map_pow [semiring R] [semiring S] (f : R → S) [is_semiring_hom f] (a) :
-  ∀ n : ℕ, f (a ^ n) = (f a) ^ n :=
-is_monoid_hom.map_pow f a
 
 theorem neg_one_pow_eq_or [ring R] : ∀ n : ℕ, (-1 : R)^n = 1 ∨ (-1 : R)^n = -1
 | 0     := or.inl rfl

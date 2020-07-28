@@ -357,6 +357,9 @@ def cofork.of_cocone
 @[simp] lemma cofork.of_cocone_ι {F : walking_parallel_pair ⥤ C} (t : cocone F) (j) :
   (cofork.of_cocone t).ι.app j = eq_to_hom (by tidy) ≫ t.ι.app j := rfl
 
+/--
+Helper function for constructing morphisms between equalizer forks.
+-/
 def fork.mk_hom {s t : fork f g} (k : s.X ⟶ t.X) (w : k ≫ t.ι = s.ι) : s ⟶ t :=
 { hom := k,
   w' :=
@@ -380,6 +383,9 @@ abbreviation equalizer : C := limit (parallel_pair f g)
 abbreviation equalizer.ι : equalizer f g ⟶ X :=
 limit.π (parallel_pair f g) zero
 
+/--
+The chosen equalizer cone for a parallel pair `f` and `g`.
+-/
 abbreviation equalizer.fork : fork f g := limit.cone (parallel_pair f g)
 
 @[simp] lemma equalizer.fork_ι :
@@ -481,6 +487,9 @@ rfl
   (equalizer.iso_source_of_self f).inv = equalizer.lift (𝟙 X) (by simp) :=
 rfl
 
+/--
+Helper function for constructing morphisms between coequalizer coforks.
+-/
 def cofork.mk_hom {s t : cofork f g} (k : s.X ⟶ t.X) (w : s.π ≫ k = t.π) : s ⟶ t :=
 { hom := k,
   w' :=
@@ -502,6 +511,9 @@ abbreviation coequalizer : C := colimit (parallel_pair f g)
 abbreviation coequalizer.π : Y ⟶ coequalizer f g :=
 colimit.ι (parallel_pair f g) one
 
+/--
+The chosen coequalizer cocone for a parallel pair `f` and `g`.
+-/
 abbreviation coequalizer.cofork : cofork f g := colimit.cocone (parallel_pair f g)
 
 @[simp] lemma coequalizer.cofork_π :
@@ -509,12 +521,6 @@ abbreviation coequalizer.cofork : cofork f g := colimit.cocone (parallel_pair f 
 
 @[simp] lemma coequalizer.cofork_ι_app_one :
   (coequalizer.cofork f g).ι.app one = coequalizer.π f g := rfl
-
-@[simp] lemma coequalizer.π.cofork :
-  cofork.π (colimit.cocone (parallel_pair f g)) = coequalizer.π f g := rfl
-
-@[simp] lemma coequalizer.π.eq_app_one :
-  (colimit.cocone (parallel_pair f g)).ι.app one = coequalizer.π f g := rfl
 
 @[reassoc] lemma coequalizer.condition : f ≫ coequalizer.π f g = g ≫ coequalizer.π f g :=
 cofork.condition $ colimit.cocone $ parallel_pair f g

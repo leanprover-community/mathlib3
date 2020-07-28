@@ -42,22 +42,26 @@ the morphisms `U ⟶ V` are not just proofs `U ≤ V`, but rather
 `ulift (plift (U ≤ V))`.
 -/
 
--- FIXME remove, since it's now by simp?
-lemma mem_supr {ι : Type*} (U : ι → opens X) {x} : x ∈ supr U ↔ ∃ i : ι, x ∈ U i :=
-by simp
-
 /-!
 We now construct as morphisms various inclusions of open sets.
 -/
 -- This is tedious, but necessary because we decided not to allow Prop as morphisms in a category...
--- TODO can we write a coercion??
 
+/--
+The inclusion `U ⊓ V ⟶ U` as a morphism in the category of open sets.
+-/
 def inf_le_left (U V : opens X) : U ⊓ V ⟶ U :=
 ulift.up (plift.up inf_le_left)
 
+/--
+The inclusion `U ⊓ V ⟶ V` as a morphism in the category of open sets.
+-/
 def inf_le_right (U V : opens X) : U ⊓ V ⟶ V :=
 ulift.up (plift.up inf_le_right)
 
+/--
+The inclusion `U i ⟶ supr U` as a morphism in the category of open sets.
+-/
 def le_supr {ι : Type*} (U : ι → opens X) (i : ι) : U i ⟶ supr U :=
 ulift.up (plift.up (le_supr U i))
 

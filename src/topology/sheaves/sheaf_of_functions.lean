@@ -8,13 +8,29 @@ import topology.sheaves.sheaf
 import category_theory.limits.types
 import topology.local_homeomorph
 
+/-!
+# Sheaf conditions for presheaves of (continuous) functions.
+
+We show that
+* `Top.sheaf_condition.to_Type`: not-necessarily-continuous functions into a type form a sheaf
+* `Top.sheaf_condition.to_Types`: in fact, these may be dependent functions into a type family
+* `Top.sheaf_condition.to_Top`: continuous functions into a topological space form a sheaf
+
+## Future work
+Obviously there's more to do:
+* sections of a fiber bundle
+* various classes of smooth and structure preserving functions
+* functions into spaces with algebraic structure, which the sections inherit
+-/
+
 open category_theory
 open category_theory.limits
 open topological_space
 
 universe u
 
-lemma open_embedding.continuous_at_iff {X Y Z : Type*} [topological_space X] [topological_space Y] [topological_space Z]
+lemma open_embedding.continuous_at_iff
+  {X Y Z : Type*} [topological_space X] [topological_space Y] [topological_space Z]
   {f : X → Y} {g : Y → Z} (hf : open_embedding f) {x : X} :
   continuous_at (g ∘ f) x ↔ continuous_at g (f x) :=
 begin
@@ -31,7 +47,7 @@ end
 @[simp] lemma classical.indefinite_description_property {α : Sort u} (p : α → Prop) (h : ∃ x, p x) :
   (classical.indefinite_description p h).property = classical.some_spec h := rfl
 
-noncomputable theory
+-- noncomputable theory
 
 
 variables (X : Top.{u})
@@ -50,7 +66,7 @@ so we do the more general case.
 -/
 def to_Types (T : X → Type u) : sheaf_condition (presheaf_to_Types X T) :=
 λ ι U,
--- U is a family of open sets, indexed by `i`.
+-- U is a family of open sets, indexed by `ι`.
 -- In the informal comments below, I'll just write `U` to represent the union.
 begin
   refine fork.is_limit.mk _ _ _ _,
@@ -158,13 +174,9 @@ end.
 def to_Type (T : Type u) : sheaf_condition (presheaf_to_Type X T) :=
 to_Types X (λ _, T)
 
-/-
-TODO: next we need to do this for continuous functions.
+/-!
+Next we to check the sheaf condition for continuous functions.
 
-In fact, I'd like to do it for any "functions satisfying a local condition",
-for which there's a sketch at https://github.com/leanprover-community/mathlib/issues/1462
-
-But it's probably worth doing this as a warm-up first.
 The idea, of course, is to first lift to the underlying function,
 using the fact that the presheaf of functions is a sheaf.
 Because continuous functions are determined by their underlying functions,
@@ -173,6 +185,9 @@ this takes care of our factorisation and uniqueness obligations in the sheaf con
 To show continuity, we already know that our lifted function restricted to any `U i` is the
 original continuous function we had here,
 and since continuity is a local condition we should be done!
+
+In fact, I'd like to do it for any "functions satisfying a local condition",
+for which there's a sketch at https://github.com/leanprover-community/mathlib/issues/1462
 -/
 
 /--
@@ -190,10 +205,8 @@ def forget_continuity (T : Top.{u}) {ι : Type u} (U : ι → opens X) :
   end,
   naturality' := by rintro ⟨_|_⟩ ⟨_|_⟩ f; cases f; refl, }
 
-example (T : Top.{u}) : sheaf_condition (presheaf_to_Top X T) :=
+def to_Top (T : Top.{u}) : sheaf_condition (presheaf_to_Top X T) :=
 λ ι U,
--- U is a family of open sets, indexed by `i`.
--- In the informal comments below, I'll just write `U` to represent the union.
 begin
   refine fork.is_limit.mk _ _ _ _,
   { intros s f,
@@ -204,30 +217,38 @@ begin
       exact (to_Type X T U).lift s' f, },
     -- Second, we need to do the actual work, proving this lift is continuous.
     { dsimp,
+
+      -- We prove continuity by proving continuity at each point,
       apply continuous_iff_continuous_at.2,
+      -- so that once we're at a particular point `x`, we can select some open set `x ∈ U i`.
       rintro ⟨x, mem⟩,
       change x ∈ supr U at mem, -- FIXME needs some lemmas!
       simp only [opens.mem_supr] at mem,
       choose i hi using mem,
 
+      -- Now our goal is to show that the previously chosen lift,
+      -- when restricted to that `U i`, is a continuous function.
+      -- This follows from the factorisation condition,
+      -- and the fact that underlying presheaf is a presheaf of continuous functions.
       let s' := (cones.postcompose (forget_continuity.{u u} X T U)).obj s,
-      have := (to_Type X T U).fac s' walking_parallel_pair.zero,
-      have := this =≫ pi.π _ i,
-      simp only [sheaf_condition.res, limit.lift_π, cones.postcompose_obj_π, sheaf_condition.fork_π_app_walking_parallel_pair_zero,
- fan.mk_π_app, nat_trans.comp_app, category.assoc] at this,
-      have := congr_fun this f,
-      simp only [forget_continuity, discrete.nat_trans_app, types_comp_apply, presheaf_to_Type_map, limit.map_π] at this,
+      have fac_i := ((to_Type X T U).fac s' walking_parallel_pair.zero) =≫ pi.π _ i,
+      simp only [sheaf_condition.res, limit.lift_π, cones.postcompose_obj_π,
+        sheaf_condition.fork_π_app_walking_parallel_pair_zero, fan.mk_π_app,
+        nat_trans.comp_app, category.assoc] at fac_i,
+      have fac_i_f := congr_fun fac_i f,
+      simp only [forget_continuity, discrete.nat_trans_app, types_comp_apply,
+        presheaf_to_Type_map, limit.map_π] at fac_i_f,
 
-      have : continuous ((to_Type X ↥T U).lift s' f ∘ ((opens.le_supr U i).op)),
-      { rw this, continuity, },
+      have cts : continuous ((to_Type X ↥T U).lift s' f ∘ ((opens.le_supr U i).op)),
+      { rw fac_i_f, continuity, },
 
-      rw continuous_iff_continuous_at at this,
-      specialize this ⟨x, hi⟩,
+      -- Next, we just remember that this restriction is continuous at `x`.
+      rw continuous_iff_continuous_at at cts,
+      specialize cts ⟨x, hi⟩,
 
-      exact (opens.hom_open_embedding (opens.le_supr U i)).continuous_at_iff.1 this,
-
-     },
-    },
+      -- Finally, since the inclusion `U i ≤ supr U` is an open embedding,
+      -- continuity at `x` of the restriction is the same as continuity at `x`.
+      exact (opens.hom_open_embedding (opens.le_supr U i)).continuous_at_iff.1 cts, }, },
   { -- Proving the factorisation condition is straightforward:
     -- we observe that checking equality of continuous functions reduces to
     -- checking equality of the underlying functions,
@@ -243,7 +264,7 @@ begin
     let s' := (cones.postcompose (forget_continuity.{u u} X T U)).obj s,
     refine congr_fun ((to_Type X T U).uniq s' _ _) f,
     -- We "just" need to fix up our `w` to match the missing `w` argument.
-    -- Unfortunately, it's really gross.
+    -- Unfortunately, it's still gross.
     intro j,
     specialize w j,
     dsimp [s'],

@@ -616,10 +616,8 @@ tendsto_of_tendsto_of_tendsto_of_le_of_le' hg hh
 
 lemma nhds_order_unbounded {a : α} (hu : ∃u, a < u) (hl : ∃l, l < a) :
   𝓝 a = (⨅l (h₂ : l < a) u (h₂ : a < u), 𝓟 (Ioo l u)) :=
-let ⟨u, hu⟩ := hu, ⟨l, hl⟩ := hl in
 calc 𝓝 a = (⨅b<a, 𝓟 {c | b < c}) ⊓ (⨅b>a, 𝓟 {c | c < b}) : nhds_eq_order a
-  ... = (⨅b<a, 𝓟 {c | b < c} ⊓ (⨅b>a, 𝓟 {c | c < b})) :
-    binfi_inf hl
+  ... = (⨅b<a, 𝓟 {c | b < c} ⊓ (⨅b>a, 𝓟 {c | c < b})) : binfi_inf hl
   ... = (⨅l<a, (⨅u>a, 𝓟 {c | c < u} ⊓ 𝓟 {c | l < c})) :
     begin
       congr, funext x,

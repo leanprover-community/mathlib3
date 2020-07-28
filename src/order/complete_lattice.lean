@@ -126,6 +126,21 @@ def complete_lattice_of_Sup (α : Type*) [H1 : partial_order α]
 class complete_linear_order (α : Type*) extends complete_lattice α, decidable_linear_order α
 end prio
 
+namespace order_dual
+variable (α)
+
+instance [complete_lattice α] : complete_lattice (order_dual α) :=
+{ le_Sup := @complete_lattice.Inf_le α _,
+  Sup_le := @complete_lattice.le_Inf α _,
+  Inf_le := @complete_lattice.le_Sup α _,
+  le_Inf := @complete_lattice.Sup_le α _,
+  .. order_dual.bounded_lattice α, ..order_dual.has_Sup α, ..order_dual.has_Inf α }
+
+instance [complete_linear_order α] : complete_linear_order (order_dual α) :=
+{ .. order_dual.complete_lattice α, .. order_dual.decidable_linear_order α }
+
+end order_dual
+
 section
 variables [complete_lattice α] {s t : set α} {a b : α}
 
@@ -546,6 +561,19 @@ le_antisymm
 
 attribute [ematch] le_refl
 
+theorem infi_subtype {p : ι → Prop} {f : subtype p → α} : (⨅ x, f x) = (⨅ i (h:p i), f ⟨i, h⟩) :=
+le_antisymm
+  (le_infi $ assume i, le_infi $ assume : p i, infi_le _ _)
+  (le_infi $ assume ⟨i, h⟩, infi_le_of_le i $ infi_le _ _)
+
+lemma infi_subtype' {p : ι → Prop} {f : ∀ i, p i → α} :
+  (⨅ i (h : p i), f i h) = (⨅ x : subtype p, f x x.property) :=
+(@infi_subtype _ _ _ p (λ x, f x.val x.property)).symm
+
+lemma infi_subtype'' {ι} (s : set ι) (f : ι → α) :
+  (⨅ i : s, f i) = ⨅ (t : ι) (H : t ∈ s), f t :=
+infi_subtype
+
 theorem infi_inf_eq {f g : ι → α} : (⨅ x, f x ⊓ g x) = (⨅ x, f x) ⊓ (⨅ x, g x) :=
 le_antisymm
   (le_inf
@@ -564,30 +592,21 @@ begin
 end
 -/
 
-lemma infi_inf {f : ι → α} {a : α} (i : ι) : (⨅x, f x) ⊓ a = (⨅ x, f x ⊓ a) :=
+lemma infi_inf [h : nonempty ι] {f : ι → α} {a : α} : (⨅x, f x) ⊓ a = (⨅ x, f x ⊓ a) :=
 le_antisymm
   (le_infi $ assume i, le_inf (inf_le_left_of_le $ infi_le _ _) inf_le_right)
-  (le_inf (infi_le_infi $ assume i, inf_le_left) (infi_le_of_le i inf_le_right))
+  (le_inf (infi_le_infi $ assume i, inf_le_left) (infi_le_of_le (classical.choice h) inf_le_right))
 
-lemma inf_infi {f : ι → α} {a : α} (i : ι) : a ⊓ (⨅x, f x) = (⨅ x, a ⊓ f x) :=
-by rw [inf_comm, infi_inf i]; simp [inf_comm]
+lemma inf_infi [nonempty ι] {f : ι → α} {a : α} : a ⊓ (⨅x, f x) = (⨅ x, a ⊓ f x) :=
+by rw [inf_comm, infi_inf]; simp [inf_comm]
 
-lemma binfi_inf {p : ι → Prop} {f : Π i (hi : p i), α} {a : α} {i : ι} (hi : p i) :
+lemma binfi_inf {p : ι → Prop} {f : Π i (hi : p i), α} {a : α} (h : ∃ i, p i) :
   (⨅i (h : p i), f i h) ⊓ a = (⨅ i (h : p i), f i h ⊓ a) :=
-le_antisymm
-  (le_infi $ assume i, le_infi $ assume hi,
-    le_inf (inf_le_left_of_le $ infi_le_of_le i $ infi_le _ _) inf_le_right)
-  (le_inf (infi_le_infi $ assume i, infi_le_infi $ assume hi, inf_le_left)
-     (infi_le_of_le i $ infi_le_of_le hi $ inf_le_right))
+by haveI : nonempty {i // p i} := (let ⟨i, hi⟩ := h in ⟨⟨i, hi⟩⟩);
+  rw [infi_subtype', infi_subtype', infi_inf]
 
 theorem supr_sup_eq {f g : β → α} : (⨆ x, f x ⊔ g x) = (⨆ x, f x) ⊔ (⨆ x, g x) :=
-le_antisymm
-  (supr_le $ assume i, sup_le
-    (le_sup_left_of_le $ le_supr _ _)
-    (le_sup_right_of_le $ le_supr _ _))
-  (sup_le
-    (supr_le $ assume i, le_supr_of_le i le_sup_left)
-    (supr_le $ assume i, le_supr_of_le i le_sup_right))
+@infi_inf_eq (order_dual α) β _ _ _
 
 /- supr and infi under Prop -/
 
@@ -799,19 +818,6 @@ le_antisymm
   (le_inf (infi_le _ _) (infi_le _ _))
   (le_infi $ assume b, match b with tt := inf_le_left | ff := inf_le_right end)
 
-theorem infi_subtype {p : ι → Prop} {f : subtype p → α} : (⨅ x, f x) = (⨅ i (h:p i), f ⟨i, h⟩) :=
-le_antisymm
-  (le_infi $ assume i, le_infi $ assume : p i, infi_le _ _)
-  (le_infi $ assume ⟨i, h⟩, infi_le_of_le i $ infi_le _ _)
-
-lemma infi_subtype' {p : ι → Prop} {f : ∀ i, p i → α} :
-  (⨅ i (h : p i), f i h) = (⨅ x : subtype p, f x x.property) :=
-(@infi_subtype _ _ _ p (λ x, f x.val x.property)).symm
-
-lemma infi_subtype'' {ι} (s : set ι) (f : ι → α) :
-  (⨅ i : s, f i) = ⨅ (t : ι) (H : t ∈ s), f t :=
-infi_subtype
-
 lemma is_glb_binfi {s : set β} {f : β → α} : is_glb (f '' s) (⨅ x ∈ s, f x) :=
 by simpa only [range_comp, subtype.range_coe, infi_subtype'] using @is_glb_infi α s _ (f ∘ coe)
 
@@ -952,21 +958,6 @@ theorem monotone_Inf_of_monotone {s : set (α → β)} (m_s : ∀f∈s, monotone
 assume x y h, le_infi $ λ f, infi_le_of_le f $ m_s f f.2 h
 
 end complete_lattice
-
-namespace order_dual
-variable (α)
-
-instance [complete_lattice α] : complete_lattice (order_dual α) :=
-{ le_Sup := @complete_lattice.Inf_le α _,
-  Sup_le := @complete_lattice.le_Inf α _,
-  Inf_le := @complete_lattice.le_Sup α _,
-  le_Inf := @complete_lattice.Sup_le α _,
-  .. order_dual.bounded_lattice α, ..order_dual.has_Sup α, ..order_dual.has_Inf α }
-
-instance [complete_linear_order α] : complete_linear_order (order_dual α) :=
-{ .. order_dual.complete_lattice α, .. order_dual.decidable_linear_order α }
-
-end order_dual
 
 namespace prod
 variables (α β)

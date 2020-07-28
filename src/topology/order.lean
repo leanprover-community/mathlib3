@@ -359,6 +359,8 @@ instance subsingleton.discrete_topology [t : topological_space α] [subsingleton
 
 instance : topological_space empty := ⊥
 instance : discrete_topology empty := ⟨rfl⟩
+instance : topological_space pempty := ⊥
+instance : discrete_topology pempty := ⟨rfl⟩
 instance : topological_space unit := ⊥
 instance : discrete_topology unit := ⟨rfl⟩
 instance : topological_space bool := ⊥

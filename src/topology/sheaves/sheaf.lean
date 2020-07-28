@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import topology.sheaves.presheaf
+import category_theory.limits.punit
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.equalizers
 import category_theory.full_subcategory
@@ -90,6 +91,9 @@ for the sheaf condition. The sheaf condition asserts this cone is a limit cone.
 def fork : fork.{v} (left_res F U) (right_res F U) := fork.of_ι _ (w F U)
 
 @[simp]
+lemma fork_X : (fork F U).X = F.obj (op (supr U)) := rfl
+
+@[simp]
 lemma fork_ι : (fork F U).ι = res F U := rfl
 @[simp]
 lemma fork_π_app_walking_parallel_pair_zero :
@@ -112,6 +116,11 @@ is the equalizer of the two morphisms
 @[derive subsingleton]
 def sheaf_condition (F : presheaf C X) : Type (max u (v+1)) :=
 Π ⦃ι : Type v⦄ (U : ι → opens X), is_limit (sheaf_condition.fork F U)
+
+def sheaf_condition_trivial (F : presheaf (category_theory.discrete punit) X) :
+  sheaf_condition F :=
+λ ι U,
+{ lift := λ s, begin dsimp, end}
 
 variables (C X)
 

@@ -276,9 +276,17 @@ begin
   refl
 end
 
+variables
+
+-- FIXME This was in `deprecated.ring`, but only used here.
+-- It would be good to inline it into the next construction.
+/-- Interpret an equivalence `f : R ≃ S` as a ring equivalence `R ≃+* S`. -/
+def of' {R S : Type*} [ring R] [ring S] (e : R ≃ S) [is_ring_hom e] : R ≃+* S :=
+{ .. e, .. monoid_hom.of e, .. add_monoid_hom.of e }
+
 def subsingleton_equiv_free_comm_ring [subsingleton α] :
   free_ring α ≃+* free_comm_ring α :=
-@ring_equiv.of' (free_ring α) (free_comm_ring α) _ _
+@of' (free_ring α) (free_comm_ring α) _ _
   (functor.map_equiv free_abelian_group (multiset.subsingleton_equiv α)) $
   begin
     delta functor.map_equiv,
@@ -289,11 +297,11 @@ def subsingleton_equiv_free_comm_ring [subsingleton α] :
 
 instance [subsingleton α] : comm_ring (free_ring α) :=
 { mul_comm := λ x y,
-  by rw [← (subsingleton_equiv_free_comm_ring α).left_inv (y * x),
-        is_ring_hom.map_mul ((subsingleton_equiv_free_comm_ring α)).to_fun,
+  by { rw [← (subsingleton_equiv_free_comm_ring α).symm_apply_apply (y * x),
+        ((subsingleton_equiv_free_comm_ring α)).map_mul,
         mul_comm,
-        ← is_ring_hom.map_mul ((subsingleton_equiv_free_comm_ring α)).to_fun,
-        (subsingleton_equiv_free_comm_ring α).left_inv],
+        ← ((subsingleton_equiv_free_comm_ring α)).map_mul,
+        (subsingleton_equiv_free_comm_ring α).symm_apply_apply], },
   .. free_ring.ring α }
 
 end free_ring

@@ -19,6 +19,7 @@ This file defines pointwise algebraic operations on sets.
 * For a type `β` with scalar multiplication by another type `α`, this
   file defines a scalar multiplication of `set β` by `set α` and a separate scalar
   multiplication of `set β` by `α`.
+* We also define pointwise multiplication on `finset`.
 
 Appropriate definitions and results are also transported to the additive theory via `to_additive`.
 
@@ -103,7 +104,7 @@ by rw [← image_mul_right', image_one, one_mul]
 lemma preimage_mul_left_one' [group α] : (λ b, a⁻¹ * b) ⁻¹' 1 = {a} := by simp
 
 @[to_additive]
-lemma preimage_mul_right_one' [group α] : (λ a, a * b) ⁻¹' 1 = {b⁻¹} := by simp
+lemma preimage_mul_right_one' [group α] : (λ a, a * b⁻¹) ⁻¹' 1 = {b} := by simp
 
 @[simp, to_additive]
 lemma mul_singleton [has_mul α] : s * {b} = (λ a, a * b) '' s := image2_singleton_right
@@ -222,6 +223,13 @@ by { simp only [← inv_preimage, preimage_preimage, inv_inv, preimage_id'] }
 
 @[simp, to_additive]
 protected lemma univ_inv [group α] : (univ : set α)⁻¹ = univ := preimage_univ
+
+@[simp, to_additive]
+lemma inv_subset_inv [group α] {s t : set α} : s⁻¹ ⊆ t⁻¹ ↔ s ⊆ t :=
+(equiv.inv α).surjective.preimage_subset_preimage_iff
+
+@[to_additive] lemma inv_subset [group α] {s t : set α} : s⁻¹ ⊆ t ↔ s ⊆ t⁻¹ :=
+by { rw [← inv_subset_inv, set.inv_inv] }
 
 /-! Properties about scalar multiplication -/
 
@@ -356,3 +364,33 @@ lemma mem_smul_set_iff_inv_smul_mem [field α] [mul_action α β] {a : α} (ha :
 by rw [← mem_inv_smul_set_iff $ inv_ne_zero ha, inv_inv']
 
 end
+
+namespace finset
+
+variables {α : Type*} [decidable_eq α]
+
+/-- The pointwise product of two finite sets `s` and `t`:
+  `st = s ⬝ t = s * t = { x * y | x ∈ s, y ∈ t }`. -/
+@[to_additive "The pointwise sum of two finite sets `s` and `t`:
+  `s + t = { x + y | x ∈ s, y ∈ t }`."]
+instance [has_mul α] : has_mul (finset α) :=
+⟨λ s t, (s.product t).image (λ p : α × α, p.1 * p.2)⟩
+
+lemma mul_def [has_mul α] {s t : finset α} :
+  s * t = (s.product t).image (λ p : α × α, p.1 * p.2) := rfl
+
+lemma mem_mul [has_mul α] {s t : finset α} {x : α} :
+  x ∈ s * t ↔ ∃ y z, y ∈ s ∧ z ∈ t ∧ y * z = x :=
+by { simp only [finset.mul_def, and.assoc, mem_image, exists_prop, prod.exists, mem_product] }
+
+lemma coe_mul [has_mul α] {s t : finset α} : (↑(s * t) : set α) = ↑s * ↑t :=
+by { ext, simp only [mem_mul, set.mem_mul, mem_coe] }
+
+lemma mul_mem_mul [has_mul α] {s t : finset α} {x y : α} (hx : x ∈ s) (hy : y ∈ t) :
+  x * y ∈ s * t :=
+by { simp only [finset.mem_mul], exact ⟨x, y, hx, hy, rfl⟩ }
+
+lemma mul_card_le [has_mul α] {s t : finset α} : (s * t).card ≤ s.card * t.card :=
+by { convert finset.card_image_le, rw [finset.card_product, mul_comm] }
+
+end finset

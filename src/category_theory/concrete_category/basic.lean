@@ -103,19 +103,13 @@ congr_fun ((forget C).map_iso f).hom_inv_id x
   f.hom (f.inv y) = y :=
 congr_fun ((forget C).map_iso f).inv_hom_id y
 
-local attribute [ext] concrete_category.hom_ext
-
-/--
-In any concrete category, injective morphisms are monomorphisms,
-by extensionality.
--/
+/-- In any concrete category, injective morphisms are monomorphisms. -/
 lemma concrete_category.mono_of_injective {X Y : C} (f : X ⟶ Y) (i : function.injective f) : mono f :=
-⟨λ Z g h w,
-  begin
-    ext z,
-    apply i,
-    convert congr_arg (λ k : Z ⟶ Y, (k : Z → Y) z) w; simp only [coe_comp],
-  end⟩
+faithful_reflects_mono (forget C) ((mono_iff_injective f).2 i)
+
+/-- In any concrete category, surjective morphisms are epimorphisms. -/
+lemma concrete_category.epi_of_surjective {X Y : C} (f : X ⟶ Y) (s : function.surjective f) : epi f :=
+faithful_reflects_epi (forget C) ((epi_iff_surjective f).2 s)
 
 end
 

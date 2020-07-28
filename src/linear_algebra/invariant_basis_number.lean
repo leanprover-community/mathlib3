@@ -30,7 +30,7 @@ ways to formulate that a module `M` is finitely generated and free, for example
 a finite type. There should be lemmas applying the invariant basis number property to each
 situation.
 
-The finite version of the invariant basis number property implies the inifite analogue, i.e., that
+The finite version of the invariant basis number property implies the infinite analogue, i.e., that
 `(ι →₀ R) ≃ₗ[R] (ι' →₀ R)` implies that `cardinal.mk ι = cardinal.mk ι'`. This fact (and its
 variants) should be formalized.
 
@@ -180,16 +180,9 @@ begin
   exact submodule.sum_mem _ (λ j hj, ideal.mul_mem_right _ (hi j))
 end
 
-end fintype
-
-section
-
-local attribute [instance] invariant_basis_number_field
-local attribute [instance, priority 1] ideal.quotient.field
-
-/-- An isomorphism of `R`-modules `R^n ≃ R^m` induces a function `R^n/I^n → R^m/I^n`. -/
-private def induced_map {R : Type u} [comm_ring R] (I : ideal R) (n m : ℕ)
-  (e : (fin n → R) →ₗ[R] (fin m → R)) : (I.pi (fin n)).quotient → (I.pi (fin m)).quotient :=
+/-- An `R`-linear map `R^n → R^m` induces a function `R^n/I^n → R^m/I^n`. -/
+private def induced_map (I : ideal R) (e : (ι → R) →ₗ[R] (ι' → R)) :
+  (I.pi ι).quotient → (I.pi ι').quotient :=
 λ x, quotient.lift_on' x (λ y, ideal.quotient.mk _ (e y))
 begin
   refine λ a b hab, ideal.quotient.eq.2 (λ h, _),
@@ -199,13 +192,12 @@ end
 
 /-- An isomorphism of `R`-modules `R^n ≃ R^m` induces an isomorphism `R/I`-modules
     `R^n/I^n ≃ R^m/I^m`. -/
-private def induced_equiv {R : Type u} [comm_ring R] (I : ideal R) {n m : ℕ}
-  (e : (fin n → R) ≃ₗ[R] (fin m → R)) :
-  (I.pi (fin n)).quotient ≃ₗ[I.quotient] (I.pi (fin m)).quotient :=
+private def induced_equiv [fintype ι'] (I : ideal R) (e : (ι → R) ≃ₗ[R] (ι' → R)) :
+  (I.pi ι).quotient ≃ₗ[I.quotient] (I.pi ι').quotient :=
 begin
-  refine { to_fun := induced_map I n m e, inv_fun := induced_map I m n e.symm, .. },
+  refine { to_fun := induced_map I e, inv_fun := induced_map I e.symm, .. },
   { rintro ⟨x⟩ ⟨y⟩,
-    change ideal.quotient.mk (I.pi (fin m)) (e (x + y)) =
+    change ideal.quotient.mk (I.pi ι') (e (x + y)) =
       ideal.quotient.mk _ (e x) + ideal.quotient.mk _ (e y),
     simp only [ring_hom.map_add, linear_equiv.map_add] },
   all_goals { rintro ⟨a⟩ ⟨b⟩ <|> rintro ⟨a⟩,
@@ -213,16 +205,18 @@ begin
     congr, simp }
 end
 
+end fintype
+
+section
+local attribute [instance] invariant_basis_number_field
+local attribute [instance, priority 1] ideal.quotient.field
+
 /-- Nontrivial commutative rings have the invariant basis number property. -/
 @[priority 100]
 instance invariant_basis_number_of_nontrivial_of_comm_ring {R : Type u} [comm_ring R]
   [nontrivial R] : invariant_basis_number R :=
-⟨begin
-  intros n m e,
-  obtain ⟨I, ⟨hI, hI'⟩⟩ := ideal.exists_le_maximal (⊥ : ideal R) submodule.bot_ne_top,
-  resetI,
-  exact eq_of_fin_equiv I.quotient
-    ((ideal.pi_quot_equiv _ _).symm.trans ((induced_equiv _ e).trans (ideal.pi_quot_equiv _ _)))
-end⟩
+⟨λ n m e, let ⟨I, ⟨hI, hI'⟩⟩ := ideal.exists_le_maximal (⊥ : ideal R) submodule.bot_ne_top in
+  by exactI eq_of_fin_equiv I.quotient
+    ((ideal.pi_quot_equiv _ _).symm.trans ((induced_equiv _ e).trans (ideal.pi_quot_equiv _ _)))⟩
 
 end

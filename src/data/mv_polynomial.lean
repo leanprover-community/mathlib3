@@ -553,23 +553,12 @@ lemma eval_eq' [fintype σ] (x : σ → α) (f : mv_polynomial σ α) :
   eval x f = ∑ d in f.support, f.coeff d * ∏ i, x i ^ d i :=
 eval₂_eq' (ring_hom.id α) x f
 
--- @[simp] lemma eval_one : eval f (1 : mv_polynomial σ α) = 1 := by simp
-
--- @[simp] lemma eval_add : eval f (p + q) = eval f p + eval f q := by simp
-
 lemma eval_monomial : eval f (monomial s a) = a * s.prod (λn e, f n ^ e) :=
 eval₂_monomial _ _
 
 @[simp] lemma eval_C : ∀ a, eval f (C a) = a := eval₂_C _ _
 
 @[simp] lemma eval_X : ∀ n, eval f (X n) = f n := eval₂_X _ _
-
--- @[simp] lemma eval_mul : eval f (p * q) = eval f p * eval f q := by simp
-
--- @[simp] lemma eval_pow (n : ℕ) : eval f (p ^ n) = (eval f p) ^ n := by simp
-
--- instance eval.is_semiring_hom : is_semiring_hom (eval f) :=
--- eval₂.is_semiring_hom _ _
 
 lemma eval_sum {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ α) (g : σ → α) :
   eval g (∑ i in s, f i) = ∑ i in s, eval g (f i) :=
@@ -599,31 +588,12 @@ variables (f : α →+* β)
 /-- `map f p` maps a polynomial `p` across a ring hom `f` -/
 def map : mv_polynomial σ α →+* mv_polynomial σ β := eval₂_hom (C.comp f) X
 
--- instance is_semiring_hom_C_f :
---   is_semiring_hom ((C : β → mv_polynomial σ β) ∘ f) :=
--- is_semiring_hom.comp _ _
-
 @[simp] theorem map_monomial (s : σ →₀ ℕ) (a : α) : map f (monomial s a) = monomial s (f a) :=
 (eval₂_monomial _ _).trans monomial_eq.symm
 
 @[simp] theorem map_C : ∀ (a : α), map f (C a : mv_polynomial σ α) = C (f a) := map_monomial _ _
 
 @[simp] theorem map_X : ∀ (n : σ), map f (X n : mv_polynomial σ α) = X n := eval₂_X _ _
-
--- @[simp] theorem map_one : map f (1 : mv_polynomial σ α) = 1 := eval₂_one _ _
-
--- @[simp] theorem map_add (p q : mv_polynomial σ α) :
---   map f (p + q) = map f p + map f q := eval₂_add _ _
-
--- @[simp] theorem map_mul (p q : mv_polynomial σ α) :
---   map f (p * q) = map f p * map f q := eval₂_mul _ _
-
--- @[simp] lemma map_pow (p : mv_polynomial σ α) (n : ℕ) :
---   map f (p^n) = (map f p)^n := eval₂_pow _ _
-
--- instance map.is_semiring_hom :
---   is_semiring_hom (map f : mv_polynomial σ α → mv_polynomial σ β) :=
--- eval₂.is_semiring_hom _ _
 
 theorem map_id : ∀ (p : mv_polynomial σ α), map (ring_hom.id α) p = p := eval₂_eta
 
@@ -1062,33 +1032,6 @@ def hom_equiv : (mv_polynomial σ ℤ →+* β) ≃ (σ → β) :=
 
 end eval₂
 
-section eval
-
-variables (f : σ → α)
-
--- @[simp] lemma eval_sub : eval f (p - q) = eval f p - eval f q := by simp
-
--- @[simp] lemma eval_neg : eval f (-p) = -(eval f p) := by simp
-
-end eval
-
--- section map
-
--- variables [comm_ring β]
--- variables (f : α →+* β)
-
--- instance is_ring_hom_C_f : is_ring_hom ((C : β → mv_polynomial σ β) ∘ f) :=
--- is_ring_hom.comp _ _
-
--- instance map.is_ring_hom : is_ring_hom (map f : mv_polynomial σ α → mv_polynomial σ β) :=
--- eval₂.is_ring_hom _ _
-
--- @[simp] lemma map_sub : map f (p - q) = map f p - map f q := by simp
-
--- @[simp] lemma map_neg : map f (-p) = -(map f p) := by simp
-
--- end map
-
 section total_degree
 
 @[simp] lemma total_degree_neg (a : mv_polynomial σ α) :
@@ -1247,12 +1190,6 @@ mv_polynomial.induction_on x
 (λ n, by simp only [eval₂_C, rename_C])
 (λ p q hp hq, by simp only [hp, hq, rename, eval₂_add, ring_hom.map_add])
 (λ p n hp, by simp only [hp, rename, eval₂_hom, ring_hom.coe_of, eval₂_X, eval₂_mul])
-
--- instance rename.is_ring_hom
---   {α} [comm_ring α] (f : β → γ) :
---   is_ring_hom (rename f : mv_polynomial β α → mv_polynomial γ α) :=
--- @is_ring_hom.of_semiring (mv_polynomial β α) (mv_polynomial γ α) _ _ (rename f)
---   (rename.is_semiring_hom f)
 
 section equiv
 

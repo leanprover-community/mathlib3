@@ -1770,7 +1770,7 @@ theorem prod_univ_range_eq {α β δ} {m₂ : β → δ} :
 ext $ by simp [range]
 
 @[simp] theorem prod_singleton_singleton {a : α} {b : β} :
-  set.prod {a} {b} = ({(a, b)} : set (α×β)) :=
+  set.prod {a} {b} = ({⟨a, b⟩} : set (α×β)) :=
 ext $ by simp [set.prod]
 
 theorem nonempty.prod : s.nonempty → t.nonempty → (s.prod t).nonempty

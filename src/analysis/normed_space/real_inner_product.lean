@@ -950,7 +950,7 @@ with the orthogonality property.  This lemma is only intended for use
 in setting up the bundled version and should not be used once that is
 defined. -/
 lemma eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero {K : submodule ℝ α}
-    (h : is_complete (K : set α)) {u v : α} (hvm : v ∈ K) (hvo : ∀ w ∈ K, inner (u - v) w = 0) :
+  (h : is_complete (K : set α)) {u v : α} (hvm : v ∈ K) (hvo : ∀ w ∈ K, inner (u - v) w = 0) :
   v = orthogonal_projection_fn h u :=
 begin
   rw [←sub_eq_zero, ←inner_self_eq_zero],

@@ -10,7 +10,6 @@ import meta.rb_map
 import data.bool
 import tactic.lean_core_docs
 import tactic.interactive_expr
-import tactic.fix_by_cases
 
 universe variable u
 

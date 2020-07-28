@@ -100,8 +100,11 @@ def linear_equiv.to_Module_iso
   hom_inv_id' := begin ext, exact e.left_inv x, end,
   inv_hom_id' := begin ext, exact e.right_inv x, end, }
 
-/-- Build an isomorphism in the category `Module R` from a `linear_equiv` between `module`s, but in
-    a slightly different way, which for some reason sometimes works when the other version doesn't? -/
+/--
+Build an isomorphism in the category `Module R` from a `linear_equiv` between `module`s.
+
+This version is better than `linear_equiv_to_Module_iso` when applicable, because Lean can't see `Module.of R M` is defeq to `M` when `M : Module R`.
+  -/
 @[simps]
 def linear_equiv.to_Module_iso' {M N : Module R} (i : M ≃ₗ[R] N) : M ≅ N :=
 { hom := i,

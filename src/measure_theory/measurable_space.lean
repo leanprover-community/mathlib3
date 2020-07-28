@@ -7,6 +7,7 @@ import data.set.disjointed
 import data.set.countable
 import data.indicator_function
 import data.equiv.encodable.lattice
+import order.filter.basic
 
 /-!
 # Measurable spaces and measurable functions
@@ -59,7 +60,7 @@ measurable space, measurable function, dynkin system
 
 local attribute [instance] classical.prop_decidable
 open set encodable
-open_locale classical
+open_locale classical filter
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x} {ι : Sort x}
@@ -1075,3 +1076,58 @@ this.rec_on h_basic h_empty
   (assume f hf ht, h_union f hf $ assume i, by rw [eq]; exact ht _)
 
 end measurable_space
+
+namespace filter
+
+variables [measurable_space α]
+
+/-- A filter `f` is measurably generates if each `s ∈ f` includes a measurable `t ∈ f`. -/
+class is_measurably_generated (f : filter α) : Prop :=
+(exists_measurable_subset : ∀ ⦃s⦄, s ∈ f → ∃ t ∈ f, is_measurable t ∧ t ⊆ s)
+
+lemma eventually.exists_measurable_mem {f : filter α} [is_measurably_generated f]
+  {p : α → Prop} (h : ∀ᶠ x in f, p x) :
+  ∃ s ∈ f, is_measurable s ∧ ∀ x ∈ s, p x :=
+is_measurably_generated.exists_measurable_subset h
+
+instance inf_is_measurably_generated (f g : filter α) [is_measurably_generated f]
+  [is_measurably_generated g] :
+  is_measurably_generated (f ⊓ g) :=
+begin
+  refine ⟨_⟩,
+  rintros t ⟨sf, hsf, sg, hsg, ht⟩,
+  rcases is_measurably_generated.exists_measurable_subset hsf with ⟨s'f, hs'f, hmf, hs'sf⟩,
+  rcases is_measurably_generated.exists_measurable_subset hsg with ⟨s'g, hs'g, hmg, hs'sg⟩,
+  refine ⟨s'f ∩ s'g, inter_mem_inf_sets hs'f hs'g, hmf.inter hmg, _⟩,
+  exact subset.trans (inter_subset_inter hs'sf hs'sg) ht
+end
+
+lemma principal_is_measurably_generated_iff {s : set α} :
+  is_measurably_generated (𝓟 s) ↔ is_measurable s :=
+begin
+  refine ⟨_, λ hs, ⟨λ t ht, ⟨s, mem_principal_self s, hs, ht⟩⟩⟩,
+  rintros ⟨hs⟩,
+  rcases hs (mem_principal_self s) with ⟨t, ht, htm, hts⟩,
+  have : t = s := subset.antisymm hts ht,
+  rwa ← this
+end
+
+alias principal_is_measurably_generated_iff ↔
+  _ is_measurable.principal_is_measurably_generated
+
+instance infi_is_measurably_generated {f : ι → filter α} [∀ i, is_measurably_generated (f i)] :
+  is_measurably_generated (⨅ i, f i) :=
+begin
+  refine ⟨λ s hs, _⟩,
+  rw [← equiv.plift.surjective.infi_comp, mem_infi_iff] at hs,
+  rcases hs with ⟨t, ht, ⟨V, hVf, hVs⟩⟩,
+  choose U hUf hU using λ i, is_measurably_generated.exists_measurable_subset (hVf i),
+  refine ⟨⋂ i : t, U i, _, _, _⟩,
+  { rw [← equiv.plift.surjective.infi_comp, mem_infi_iff],
+    refine ⟨t, ht, U, hUf, subset.refl _⟩ },
+  { haveI := ht.countable.to_encodable,
+    refine is_measurable.Inter (λ i, (hU i).1) },
+  { exact subset.trans (Inter_subset_Inter $ λ i, (hU i).2) hVs }
+end
+
+end filter

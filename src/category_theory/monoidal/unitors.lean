@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import category_theory.monoidal.category
 
 /-!
-# The two morphisms `λ_ (𝟙_ C)` and `ρ_ (𝟙_ C)` from `𝟙_ C ⊗ 𝟙_ C ⟶ 𝟙_ C` are equal.
+# The two morphisms `λ_ (𝟙_ C)` and `ρ_ (𝟙_ C)` from `𝟙_ C ⊗ 𝟙_ C` to `𝟙_ C` are equal.
 
 This is suprisingly difficult to prove directly from the usual axioms for a monoidal category!
 

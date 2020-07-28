@@ -1003,8 +1003,13 @@ begin
   rw [h, nat_embedding_aux]
 end
 
+/-- Embedding of `ℕ` into an infinite type. -/
 noncomputable def nat_embedding (α : Type*) [infinite α] : ℕ ↪ α :=
 ⟨_, nat_embedding_aux_injective α⟩
+
+lemma exists_subset_card_eq (α : Type*) [infinite α] (n : ℕ) :
+  ∃ s : finset α, s.card = n :=
+⟨(range n).map (nat_embedding α), by rw [card_map, card_range]⟩
 
 end infinite
 

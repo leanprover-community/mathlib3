@@ -1470,8 +1470,7 @@ by simp [frontier]
   frontier (Icc a b) = {a, b} :=
 by simp [frontier, le_of_lt h, Icc_diff_Ioo_same]
 
-@[simp] lemma frontier_Ioo [no_bot_order α] [no_top_order α] {a b : α} (h : a < b) :
-  frontier (Ioo a b) = {a, b} :=
+@[simp] lemma frontier_Ioo {a b : α} (h : a < b) : frontier (Ioo a b) = {a, b} :=
 by simp [frontier, h, le_of_lt h, Icc_diff_Ioo_same]
 
 @[simp] lemma frontier_Ico [no_bot_order α] {a b : α} (h : a < b) : frontier (Ico a b) = {a, b} :=

@@ -147,11 +147,11 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 /-- Morphism of additive Lie groups. -/
 structure lie_add_group_morphism (I : model_with_corners 𝕜 E E) (I' : model_with_corners 𝕜 E' E')
-(G : Type*) [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G]
-[add_group G] [topological_add_group G] [lie_add_group I G]
-(G' : Type*) [topological_space G'] [charted_space E' G'] [smooth_manifold_with_corners I' G']
-[add_group G'] [topological_add_group G'] [lie_add_group I' G'] extends add_monoid_hom G G' :=
-  (smooth_to_fun : smooth I I' to_fun)
+  (G : Type*) [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G]
+  [add_group G] [topological_add_group G] [lie_add_group I G]
+  (G' : Type*) [topological_space G'] [charted_space E' G'] [smooth_manifold_with_corners I' G']
+  [add_group G'] [topological_add_group G'] [lie_add_group I' G'] extends add_monoid_hom G G' :=
+(smooth_to_fun : smooth I I' to_fun)
 
 /-- Morphism of Lie groups. -/
 @[to_additive lie_add_group_morphism]

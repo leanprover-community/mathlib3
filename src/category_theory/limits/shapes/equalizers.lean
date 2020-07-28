@@ -598,11 +598,13 @@ attribute [instance] has_equalizers.has_limits_of_shape has_coequalizers.has_col
 /-- If `C` has all limits of diagrams `parallel_pair f g`, then it has all equalizers -/
 def has_equalizers_of_has_limit_parallel_pair
   [Π {X Y : C} {f g : X ⟶ Y}, has_limit (parallel_pair f g)] : has_equalizers C :=
+by exactI -- TODO(gabriel): this is definitely a bug
 { has_limits_of_shape := { has_limit := λ F, has_limit_of_iso (diagram_iso_parallel_pair F).symm } }
 
 /-- If `C` has all colimits of diagrams `parallel_pair f g`, then it has all coequalizers -/
 def has_coequalizers_of_has_colimit_parallel_pair
   [Π {X Y : C} {f g : X ⟶ Y}, has_colimit (parallel_pair f g)] : has_coequalizers C :=
+by exactI -- TODO(gabriel): this is definitely a bug
 { has_colimits_of_shape := { has_colimit := λ F, has_colimit_of_iso (diagram_iso_parallel_pair F) } }
 
 section

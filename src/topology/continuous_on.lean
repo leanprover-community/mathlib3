@@ -52,10 +52,10 @@ end
 
 theorem nhds_within_eq (a : α) (s : set α) :
   nhds_within a s = ⨅ t ∈ {t : set α | a ∈ t ∧ is_open t}, 𝓟 (t ∩ s) :=
-have set.univ ∈ {s : set α | a ∈ s ∧ is_open s}, from ⟨set.mem_univ _, is_open_univ⟩,
 begin
-  rw [nhds_within, nhds, binfi_inf]; try { exact this },
-  simp only [inf_principal]
+  rw [nhds_within, nhds, binfi_inf],
+  simp only [inf_principal],
+  exact ⟨univ, mem_univ _, is_open_univ⟩
 end
 
 theorem nhds_within_univ (a : α) : nhds_within a set.univ = 𝓝 a :=

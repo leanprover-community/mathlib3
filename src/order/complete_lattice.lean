@@ -593,9 +593,7 @@ end
 -/
 
 lemma infi_inf [h : nonempty ι] {f : ι → α} {a : α} : (⨅x, f x) ⊓ a = (⨅ x, f x ⊓ a) :=
-le_antisymm
-  (le_infi $ assume i, le_inf (inf_le_left_of_le $ infi_le _ _) inf_le_right)
-  (le_inf (infi_le_infi $ assume i, inf_le_left) (infi_le_of_le (classical.choice h) inf_le_right))
+by rw [infi_inf_eq, infi_const]
 
 lemma inf_infi [nonempty ι] {f : ι → α} {a : α} : a ⊓ (⨅x, f x) = (⨅ x, a ⊓ f x) :=
 by rw [inf_comm, infi_inf]; simp [inf_comm]

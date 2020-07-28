@@ -1,13 +1,13 @@
 import category_theory.limits.preserves
 import category_theory.limits.shapes.products
 
-universes v u
+universes v u₁ u₂
 
 open category_theory
 open category_theory.limits
 
-variables {C : Type u} [category.{v} C]
-variables {D : Type u} [category.{v} D]
+variables {C : Type u₁} [category.{v} C]
+variables {D : Type u₂} [category.{v} D]
 variables (G : C ⥤ D) [preserves_limits G]
 
 section

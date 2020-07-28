@@ -196,7 +196,7 @@ begin
     fsplit,
     -- First, we use the fact that not necessarily continuous functions form a sheaf,
     -- to provide the lift.
-    { let s' := (cones.postcompose (forget_continuity.{u u} X T U)).obj s,
+    { let s' := (cones.postcompose (forget_continuity X T U)).obj s,
       exact (to_Type X T U).lift s' f, },
     -- Second, we need to do the actual work, proving this lift is continuous.
     { dsimp,
@@ -212,7 +212,7 @@ begin
       -- when restricted to that `U i`, is a continuous function.
       -- This follows from the factorisation condition,
       -- and the fact that underlying presheaf is a presheaf of continuous functions.
-      let s' := (cones.postcompose (forget_continuity.{u u} X T U)).obj s,
+      let s' := (cones.postcompose (forget_continuity X T U)).obj s,
       have fac_i := ((to_Type X T U).fac s' walking_parallel_pair.zero) =≫ pi.π _ i,
       simp only [sheaf_condition.res, limit.lift_π, cones.postcompose_obj_π,
         sheaf_condition.fork_π_app_walking_parallel_pair_zero, fan.mk_π_app,
@@ -243,7 +243,7 @@ begin
     intros s m w,
     ext f : 1,
     apply continuous_map.coe_inj,
-    let s' := (cones.postcompose (forget_continuity.{u u} X T U)).obj s,
+    let s' := (cones.postcompose (forget_continuity X T U)).obj s,
     refine congr_fun ((to_Type X T U).uniq s' _ _) f,
     -- We "just" need to fix up our `w` to match the missing `w` argument.
     -- Unfortunately, it's still gross.

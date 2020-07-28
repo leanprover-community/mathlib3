@@ -80,14 +80,14 @@ end
 The equalizer diagram for the sheaf condition.
 -/
 @[reducible]
-def diagram : walking_parallel_pair ⥤ C :=
+def diagram : walking_parallel_pair.{v} ⥤ C :=
 parallel_pair (left_res F U) (right_res F U)
 
 /--
 The restriction map `F.obj U ⟶ Π F.obj (U i)` gives a cone over the equalizer diagram
 for the sheaf condition. The sheaf condition asserts this cone is a limit cone.
 -/
-def fork : fork (left_res F U) (right_res F U) := fork.of_ι _ (w F U)
+def fork : fork.{v} (left_res F U) (right_res F U) := fork.of_ι _ (w F U)
 
 @[simp]
 lemma fork_ι : (fork F U).ι = res F U := rfl

@@ -10,10 +10,16 @@ import category_theory.limits.types
 /-!
 # Checking the sheaf condition on the underlying presheaf of types.
 
-When `C` is a concrete category with a forgetful functor
-that preserves limits and reflects isomorphism,
-the sheaf condition for a `C`-valued presheaf is equivalent to
-the sheaf condition for the underlying `Type`-valued presheaf.
+If `G : C ⥤ D` is a functor which reflects isomorphisms and preserves limits
+(we assume all limits exist in both `C` and `D`),
+then checking the sheaf condition for a presheaf `F : presheaf C X`
+is equivalent to checking the sheaf condition for `F ⋙ G`.
+
+The important special case is when
+`C` is a concrete category with a forgetful functor
+that preserves limits and reflects isomorphisms.
+Then to check the sheaf condition it suffices
+to check it on the underlying sheaf of types.
 
 ## References
 * https://stacks.math.columbia.edu/tag/0073
@@ -29,10 +35,10 @@ namespace Top
 
 namespace sheaf_condition
 
-universes v u
+universes v u₁ u₂
 
-variables {C : Type u} [category.{v} C] [has_limits C]
-variables {D : Type u} [category.{v} D] [has_limits D]
+variables {C : Type u₁} [category.{v} C] [has_limits C]
+variables {D : Type u₂} [category.{v} D] [has_limits D]
 variables (G : C ⥤ D) [preserves_limits G]
 variables {X : Top.{v}} (F : presheaf C X)
 variables {ι : Type v} (U : ι → opens X)
@@ -94,39 +100,42 @@ end)
 
 end sheaf_condition
 
-universes v u
+universes v u₁ u₂
 
 open sheaf_condition
 
--- TODO Do we really need a concrete category, or will any faithful functor do?
--- This would then apply to `TopCommRing ⥤ Top`.
-variables {C : Type (u+1)} [large_category C] [concrete_category C]
-variables [reflects_isomorphisms (forget C)]
-variables [has_limits C] [preserves_limits (forget C)]
+variables {C : Type u₁} [category.{v} C] {D : Type u₂} [category.{v} D]
+variables (G : C ⥤ D)
+variables [reflects_isomorphisms G]
+variables [has_limits C] [has_limits D] [preserves_limits G]
 
-variables {X : Top.{u}} (F : presheaf C X)
-
--- This is often a good `simp` lemma, but it breaks this proof.
--- It would be nice to either remove it as a simp lemma, or make the proof below more robust.
-local attribute [-simp] forget_map_eq_coe
+variables {X : Top.{v}} (F : presheaf C X)
 
 /--
-If `C` is a concrete category with a forgetful functor
-that preserves limits and reflects isomorphisms,
-to check the sheaf condition it suffices to check it on the underlying sheaf of types.
+If `G : C ⥤ D` is a functor which reflects isomorphisms and preserves limits
+(we assume all limits exist in both `C` and `D`),
+then checking the sheaf condition for a presheaf `F : presheaf C X`
+is equivalent to checking the sheaf condition for `F ⋙ G`.
+
+The important special case is when
+`C` is a concrete category with a forgetful functor
+that preserves limits and reflects isomorphisms.
+Then to check the sheaf condition it suffices to check it on the underlying sheaf of types.
+
+Another useful example is the forgetful functor `TopCommRing ⥤ Top`.
 -/
-def sheaf_condition_equiv_sheaf_condition_forget :
-  sheaf_condition F ≃ sheaf_condition (F ⋙ (forget C)) :=
+def sheaf_condition_equiv_sheaf_condition_comp :
+  sheaf_condition F ≃ sheaf_condition (F ⋙ G) :=
 begin
   fsplit,
   { intros S ι U,
     -- We have that the sheaf condition fork for `F` is a limit fork,
     have t₁ := S U,
-    -- and since `forget C` preserves limits, the image under `G` of these fork is a limit fork to.
-    have t₂ := @preserves_limit.preserves _ _ _ _ _ _ _ (forget C) _ _ t₁,
+    -- and since `G` preserves limits, the image under `G` of this fork is a limit fork to.
+    have t₂ := @preserves_limit.preserves _ _ _ _ _ _ _ G _ _ t₁,
     -- As we established above, that image is just the sheaf condition fork
-    -- for `F ⋙ forget C` postcomposed with some natural isomorphism,
-    have t₃ := is_limit.of_iso_limit t₂ (map_cone_fork _ _ _),
+    -- for `F ⋙ G` postcomposed with some natural isomorphism,
+    have t₃ := is_limit.of_iso_limit t₂ (map_cone_fork G F U),
     -- and as postcomposing by a natural isomorphism preserves limit cones,
     have t₄ := is_limit.postcompose_inv_equiv _ _ t₃,
     -- we have our desired conclusion.
@@ -136,36 +145,36 @@ begin
     -- whatever it is. Our goal is to show that this is an isomorphism.
     let f := equalizer.lift _ (w F U),
     -- If we can do that,
-    suffices : is_iso ((forget C).map f),
+    suffices : is_iso (G.map f),
     { resetI,
-      -- we have that `f` itself is an isomorphism, since `forget C` reflects isomorphisms
-      haveI : is_iso f := is_iso_of_reflects_iso f (forget C),
+      -- we have that `f` itself is an isomorphism, since `G` reflects isomorphisms
+      haveI : is_iso f := is_iso_of_reflects_iso f G,
       -- TODO package this up as a result elsewhere:
       apply is_limit.of_iso_limit (limit.is_limit _),
       apply iso.symm,
       fapply cones.ext,
       exact (as_iso f),
       rintro ⟨_|_⟩; { dsimp [f], simp, }, },
-    { -- Returning to the task of shwoing that `(forget C).map f` is an isomorphism,
-      -- we note that `(forget C).map f` is almost but not quite (see below) a morphism
-      -- from the sheaf condition cone for `F ⋙ forget C` to the
-      -- image under `forget C` of the equalizer cone for the sheaf condition diagram.
-      let c := sheaf_condition.fork (F ⋙ forget C) U,
+    { -- Returning to the task of shwoing that `G.map f` is an isomorphism,
+      -- we note that `G.map f` is almost but not quite (see below) a morphism
+      -- from the sheaf condition cone for `F ⋙ G` to the
+      -- image under `G` of the equalizer cone for the sheaf condition diagram.
+      let c := sheaf_condition.fork (F ⋙ G) U,
       have hc : is_limit c := S U,
-      let d := (forget C).map_cone (equalizer.fork (left_res F U) (right_res F U)),
+      let d := G.map_cone (equalizer.fork (left_res F U) (right_res F U)),
       have hd : is_limit d := preserves_limit.preserves (limit.is_limit _),
       -- Since both of these are limit cones
-      -- (`c` by our hypothesis `S`, and `d` because `forget C` preserves limits),
+      -- (`c` by our hypothesis `S`, and `d` because `G` preserves limits),
       -- we hope to be able to conclude that `f` is a isomorphism.
       -- We say "not quite" above because `c` and `d` don't quite have the same shape:
       -- we need to postcompose by the natural isomorphism `diagram_comp_preserves_limits`
       -- introduced above.
-      let d' := (cones.postcompose (diagram_comp_preserves_limits _ F U).hom).obj d,
+      let d' := (cones.postcompose (diagram_comp_preserves_limits G F U).hom).obj d,
       have hd' : is_limit d' :=
-        (is_limit.postcompose_hom_equiv.{u} (diagram_comp_preserves_limits (forget C) F U) _).symm hd,
+        (is_limit.postcompose_hom_equiv (diagram_comp_preserves_limits G F U) d).symm hd,
       -- Now everything works: we verify that `f` really is a morphism between these cones:
       let f' : c ⟶ d' :=
-      fork.mk_hom ((forget C).map f)
+      fork.mk_hom (G.map f)
       begin
         dsimp only [c, d, d', f, diagram_comp_preserves_limits, res],
         dunfold fork.ι,

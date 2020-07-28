@@ -239,17 +239,17 @@ finsupp.induction p (suffices P (monomial 0 0), by rwa monomial_zero at this,
 
 
 lemma hom_eq_hom [semiring γ]
-  (f g : mv_polynomial σ α → γ) (hf : is_semiring_hom f) (hg : is_semiring_hom g)
+  (f g : mv_polynomial σ α →+* γ)
   (hC : ∀a:α, f (C a) = g (C a)) (hX : ∀n:σ, f (X n) = g (X n)) (p : mv_polynomial σ α) :
   f p = g p :=
 mv_polynomial.induction_on p hC
   begin assume p q hp hq, rw [is_semiring_hom.map_add f, is_semiring_hom.map_add g, hp, hq] end
   begin assume p n hp, rw [is_semiring_hom.map_mul f, is_semiring_hom.map_mul g, hp, hX] end
 
-lemma is_id (f : mv_polynomial σ α → mv_polynomial σ α) (hf : is_semiring_hom f)
+lemma is_id (f : mv_polynomial σ α →+* mv_polynomial σ α)
   (hC : ∀a:α, f (C a) = (C a)) (hX : ∀n:σ, f (X n) = (X n)) (p : mv_polynomial σ α) :
   f p = p :=
-hom_eq_hom f id hf is_semiring_hom.id hC hX p
+hom_eq_hom f (ring_hom.id _) hC hX p
 
 section coeff
 
@@ -593,12 +593,10 @@ end eval
 
 section map
 variables [comm_semiring β]
-variables (f : α → β)
+variables (f : α →+* β)
 
 /-- `map f p` maps a polynomial `p` across a ring hom `f` -/
 def map : mv_polynomial σ α → mv_polynomial σ β := eval₂ (C ∘ f) X
-
-variables [is_semiring_hom f]
 
 instance is_semiring_hom_C_f :
   is_semiring_hom ((C : β → mv_polynomial σ β) ∘ f) :=
@@ -626,12 +624,12 @@ instance map.is_semiring_hom :
   is_semiring_hom (map f : mv_polynomial σ α → mv_polynomial σ β) :=
 eval₂.is_semiring_hom _ _
 
-theorem map_id : ∀ (p : mv_polynomial σ α), map id p = p := eval₂_eta
+theorem map_id : ∀ (p : mv_polynomial σ α), map (ring_hom.id α) p = p := eval₂_eta
 
 theorem map_map [comm_semiring γ]
-  (g : β → γ) [is_semiring_hom g]
+  (g : β →+* γ)
   (p : mv_polynomial σ α) :
-  map g (map f p) = map (g ∘ f) p :=
+  map g (map f p) = map (g.comp f) p :=
 (eval₂_comp_left (map g) (C ∘ f) X p).trans $
 by congr; funext a; simp
 
@@ -644,8 +642,7 @@ begin
 end
 
 lemma eval₂_comp_right {γ} [comm_semiring γ]
-  (k : β → γ) [is_semiring_hom k]
-  (f : α → β) [is_semiring_hom f] (g : σ → β)
+  (k : β →+* γ) (f : α →+* β) (g : σ → β)
   (p) : k (eval₂ f g p) = eval₂ k (k ∘ g) (map f p) :=
 begin
   apply mv_polynomial.induction_on p,
@@ -655,7 +652,7 @@ begin
     rw [eval₂_mul, is_semiring_hom.map_mul k, map_mul, eval₂_mul, map_X, hp, eval₂_X, eval₂_X] }
 end
 
-lemma map_eval₂ (f : α → β) [is_semiring_hom f] (g : γ → mv_polynomial δ α) (p : mv_polynomial γ α) :
+lemma map_eval₂ (f : α →+* β) (g : γ → mv_polynomial δ α) (p : mv_polynomial γ α) :
   map f (eval₂ C g p) = eval₂ C (map f ∘ g) (map f p) :=
 begin
   apply mv_polynomial.induction_on p,
@@ -1074,7 +1071,7 @@ end eval
 section map
 
 variables [comm_ring β]
-variables (f : α → β) [is_ring_hom f]
+variables (f : α →+* β)
 
 instance is_ring_hom_C_f : is_ring_hom ((C : β → mv_polynomial σ β) ∘ f) :=
 is_ring_hom.comp _ _
@@ -1151,7 +1148,7 @@ eval₂_mul _ _
   rename f (p^n) = (rename f p)^n :=
 eval₂_pow _ _
 
-lemma map_rename [comm_semiring β] (f : α → β) [is_semiring_hom f]
+lemma map_rename [comm_semiring β] (f : α →+* β)
   (g : γ → δ) (p : mv_polynomial γ α) :
   map f (rename g p) = rename g (map f p) :=
 mv_polynomial.induction_on p
@@ -1289,7 +1286,8 @@ variables (α) [comm_semiring α]
 def pempty_ring_equiv : mv_polynomial pempty α ≃+* α :=
 { to_fun    := mv_polynomial.eval₂ id $ pempty.elim,
   inv_fun   := C,
-  left_inv  := is_id _ (by apply_instance) (assume a, by rw [eval₂_C]; refl) (assume a, a.elim),
+  left_inv  := is_id (C.comp (ring_hom.of (eval₂ id pempty.elim)))
+    (assume a : α, by { dsimp, rw [eval₂_C], refl }) (assume a, a.elim),
   right_inv := λ r, eval₂_C _ _ _,
   map_mul'  := λ _ _, eval₂_mul _ _,
   map_add'  := λ _ _, eval₂_add _ _ }
@@ -1303,10 +1301,11 @@ def punit_ring_equiv : mv_polynomial punit α ≃+* polynomial α :=
   inv_fun   := polynomial.eval₂ mv_polynomial.C (X punit.star),
   left_inv  :=
     begin
-      refine is_id _ _ _ _,
-      apply is_semiring_hom.comp (eval₂ polynomial.C (λu:punit, polynomial.X)) _; apply_instance,
-      { assume a, rw [eval₂_C, polynomial.eval₂_C] },
-      { rintros ⟨⟩, rw [eval₂_X, polynomial.eval₂_X] }
+      refine is_id
+        ((ring_hom.of (polynomial.eval₂ mv_polynomial.C (X punit.star))).comp
+          (ring_hom.of (eval₂ polynomial.C (λu:punit, polynomial.X)))) _ _,
+      { assume a, dsimp, rw [eval₂_C, polynomial.eval₂_C] },
+      { rintros ⟨⟩, dsimp, rw [eval₂_X, polynomial.eval₂_X] }
     end,
   right_inv := assume p, polynomial.induction_on p
     (assume a, by rw [polynomial.eval₂_C, mv_polynomial.eval₂_C])
@@ -1331,11 +1330,11 @@ def ring_equiv_congr [comm_semiring γ] (e : α ≃+* γ) : mv_polynomial β α 
 { to_fun    := map e,
   inv_fun   := map e.symm,
   left_inv  := assume p,
-    have (e.symm ∘ e) = id,
+    have (e.symm : γ →+* α).comp (e : α →+* γ) = ring_hom.id _,
     { ext a, exact e.symm_apply_apply a },
     by simp only [map_map, this, map_id],
   right_inv := assume p,
-    have (e ∘ e.symm) = id,
+    have (e : α →+* γ).comp (e.symm : γ →+* α) = ring_hom.id _,
     { ext a, exact e.apply_symm_apply a },
     by simp only [map_map, this, map_id],
   map_mul'  := map_mul _,
@@ -1351,12 +1350,8 @@ with coefficents in multivariable polynomials in the other type.
 
 See `sum_ring_equiv` for the ring isomorphism.
 -/
-def sum_to_iter : mv_polynomial (β ⊕ γ) α → mv_polynomial β (mv_polynomial γ α) :=
-eval₂ (C ∘ C) (λbc, sum.rec_on bc X (C ∘ X))
-
-instance is_semiring_hom_C_C :
-  is_semiring_hom (C ∘ C : α → mv_polynomial β (mv_polynomial γ α)) :=
-@is_semiring_hom.comp _ _ _ _ C _ _ _ C _
+def sum_to_iter : mv_polynomial (β ⊕ γ) α →+* mv_polynomial β (mv_polynomial γ α) :=
+eval₂_hom (C.comp C) (λbc, sum.rec_on bc X (C ∘ X))
 
 instance is_semiring_hom_sum_to_iter : is_semiring_hom (sum_to_iter α β γ) :=
 eval₂.is_semiring_hom _ _
@@ -1377,11 +1372,8 @@ to multivariable polynomials in the sum of the two types.
 
 See `sum_ring_equiv` for the ring isomorphism.
 -/
-def iter_to_sum : mv_polynomial β (mv_polynomial γ α) → mv_polynomial (β ⊕ γ) α :=
-eval₂ (eval₂ C (X ∘ sum.inr)) (X ∘ sum.inl)
-
-instance is_semiring_hom_iter_to_sum : is_semiring_hom (iter_to_sum α β γ) :=
-eval₂.is_semiring_hom _ _
+def iter_to_sum : mv_polynomial β (mv_polynomial γ α) →+* mv_polynomial (β ⊕ γ) α :=
+eval₂_hom (ring_hom.of (eval₂ C (X ∘ sum.inr))) (X ∘ sum.inl)
 
 lemma iter_to_sum_C_C (a : α) : iter_to_sum α β γ (C (C a)) = C a :=
 eq.trans (eval₂_C _ _ (C a)) (eval₂_C _ _ _)
@@ -1394,18 +1386,18 @@ eq.trans (eval₂_C _ _ (X c)) (eval₂_X _ _ _)
 
 /-- A helper function for `sum_ring_equiv`. -/
 def mv_polynomial_equiv_mv_polynomial [comm_semiring δ]
-  (f : mv_polynomial β α → mv_polynomial γ δ) (hf : is_semiring_hom f)
-  (g : mv_polynomial γ δ → mv_polynomial β α) (hg : is_semiring_hom g)
+  (f : mv_polynomial β α →+* mv_polynomial γ δ)
+  (g : mv_polynomial γ δ →+* mv_polynomial β α)
   (hfgC : ∀a, f (g (C a)) = C a)
   (hfgX : ∀n, f (g (X n)) = X n)
   (hgfC : ∀a, g (f (C a)) = C a)
   (hgfX : ∀n, g (f (X n)) = X n) :
   mv_polynomial β α ≃+* mv_polynomial γ δ :=
 { to_fun    := f, inv_fun := g,
-  left_inv  := is_id _ (is_semiring_hom.comp _ _) hgfC hgfX,
-  right_inv := is_id _ (is_semiring_hom.comp _ _) hfgC hfgX,
-  map_mul'  := hf.map_mul,
-  map_add'  := hf.map_add }
+  left_inv  := is_id (ring_hom.comp _ _) hgfC hgfX,
+  right_inv := is_id (ring_hom.comp _ _) hfgC hfgX,
+  map_mul'  := f.map_mul,
+  map_add'  := f.map_add }
 
 /--
 The ring isomorphism between multivariable polynomials in a sum of two types,
@@ -1415,27 +1407,16 @@ with coefficents in multivariable polynomials in the other type.
 def sum_ring_equiv : mv_polynomial (β ⊕ γ) α ≃+* mv_polynomial β (mv_polynomial γ α) :=
 begin
   apply @mv_polynomial_equiv_mv_polynomial α (β ⊕ γ) _ _ _ _
-    (sum_to_iter α β γ) _ (iter_to_sum α β γ) _,
+    (sum_to_iter α β γ) (iter_to_sum α β γ),
   { assume p,
-    apply hom_eq_hom _ _ _ _ _ _ p,
-    apply_instance,
-    { apply @is_semiring_hom.comp _ _ _ _ _ _ _ _ _ _,
-      apply_instance,
-      apply @is_semiring_hom.comp _ _ _ _ _ _ _ _ _ _,
-      apply_instance,
-      { apply_instance, },
-      { apply mv_polynomial.is_semiring_hom_iter_to_sum α β γ },
-      { apply mv_polynomial.is_semiring_hom_sum_to_iter α β γ } },
-    { apply_instance, },
-    { assume a, rw [iter_to_sum_C_C α β γ, sum_to_iter_C α β γ] },
-    { assume c, rw [iter_to_sum_C_X α β γ, sum_to_iter_Xr α β γ] } },
+    convert hom_eq_hom ((sum_to_iter α β γ).comp ((iter_to_sum α β γ).comp C)) C _ _ p,
+    { assume a, dsimp, rw [iter_to_sum_C_C α β γ, sum_to_iter_C α β γ] },
+    { assume c, dsimp, rw [iter_to_sum_C_X α β γ, sum_to_iter_Xr α β γ] } },
   { assume b, rw [iter_to_sum_X α β γ, sum_to_iter_Xl α β γ] },
   { assume a, rw [sum_to_iter_C α β γ, iter_to_sum_C_C α β γ] },
   { assume n, cases n with b c,
     { rw [sum_to_iter_Xl, iter_to_sum_X] },
     { rw [sum_to_iter_Xr, iter_to_sum_C_X] } },
-  { apply mv_polynomial.is_semiring_hom_sum_to_iter α β γ },
-  { apply mv_polynomial.is_semiring_hom_iter_to_sum α β γ }
 end
 
 /--

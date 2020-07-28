@@ -245,6 +245,35 @@ lemma inv {α β} [group α] [comm_group β] (f : α → β) [is_group_hom f] :
 
 end is_group_hom
 
+
+namespace ring_hom
+/-!
+These instances look redundant, because `deprecated.ring` provides `is_ring_hom` for a `→+*`.
+Nevertheless these are harmless, and helpful for stripping out dependencies on `deprecated.ring`.
+-/
+variables {R : Type*} {S : Type*}
+
+section
+variables [semiring R] [semiring S]
+
+instance (f : R →+* S) : is_monoid_hom f :=
+{ map_one := f.map_one,
+  map_mul := f.map_mul }
+
+instance (f : R →+* S) : is_add_monoid_hom f :=
+{ map_zero := f.map_zero,
+  map_add := f.map_add }
+end
+
+section
+variables [ring R] [ring S]
+
+instance (f : R →+* S) : is_add_group_hom f :=
+{ map_add := f.map_add }
+end
+
+end ring_hom
+
 /-- Inversion is a group homomorphism if the group is commutative. -/
 @[instance, to_additive]
 lemma inv.is_group_hom [comm_group α] : is_group_hom (has_inv.inv : α → α) :=

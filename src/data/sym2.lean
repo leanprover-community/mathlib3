@@ -169,7 +169,7 @@ end
 
 @[simp] lemma mem_iff {a b c : α} : a ∈ ⟦(b, c)⟧ ↔ a = b ∨ a = c :=
 { mp  := by { rintro ⟨_, h⟩, rw eq_iff at h, tidy },
-  mpr := by { rintro ⟨_⟩; subst a, { apply mk_has_mem }, rw eq_swap, apply mk_has_mem } }
+  mpr := by { rintro ⟨_⟩; subst a, { apply mk_has_mem }, apply mk_has_mem_right } }
 
 end membership
 

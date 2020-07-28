@@ -287,8 +287,7 @@ lift_lift_same_eq_lift
 
 lemma lift'_inf_principal_eq {h : set α → set β} {s : set β} :
   f.lift' h ⊓ 𝓟 s = f.lift' (λt, h t ∩ s) :=
-by have : ∃ s, s ∈ f := ⟨univ, univ_mem_sets⟩;
-  simp only [filter.lift', filter.lift, (∘), ← inf_principal, ← binfi_inf, this]
+by simp only [filter.lift', filter.lift, (∘), ← inf_principal, infi_subtype', ← infi_inf]
 
 lemma lift'_ne_bot_iff (hh : monotone h) : (ne_bot (f.lift' h)) ↔ (∀s∈f, (h s).nonempty) :=
 calc (ne_bot (f.lift' h)) ↔ (∀s∈f, ne_bot (𝓟 (h s))) :

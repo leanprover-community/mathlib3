@@ -127,12 +127,12 @@ section prod_lie_group
 /- Instance of product group -/
 @[to_additive]
 instance {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {H : Type*} [topological_space H]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]  {I : model_with_corners 𝕜 E H}
-{G : Type*} [topological_space G] [charted_space H G] [group G] [topological_group G]
-[h : lie_group I G] {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
-{H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
-{G' : Type*} [topological_space G'] [charted_space H' G']
-[group G'] [topological_group G'] [h' : lie_group I' G'] : lie_group (I.prod I') (G×G') :=
+  {E : Type*} [normed_group E] [normed_space 𝕜 E]  {I : model_with_corners 𝕜 E H}
+  {G : Type*} [topological_space G] [charted_space H G] [group G] [topological_group G]
+  [h : lie_group I G] {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+  {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
+  {G' : Type*} [topological_space G'] [charted_space H' G']
+  [group G'] [topological_group G'] [h' : lie_group I' G'] : lie_group (I.prod I') (G×G') :=
 { smooth_mul := ((smooth_fst.comp smooth_fst).smooth.mul (smooth_fst.comp smooth_snd)).prod_mk
     ((smooth_snd.comp smooth_fst).smooth.mul (smooth_snd.comp smooth_snd)),
   smooth_inv := smooth_fst.inv.prod_mk smooth_snd.inv, }
@@ -147,11 +147,11 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 /-- Morphism of additive Lie groups. -/
 structure lie_add_group_morphism (I : model_with_corners 𝕜 E E) (I' : model_with_corners 𝕜 E' E')
-(G : Type*) [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G]
-[add_group G] [topological_add_group G] [lie_add_group I G]
-(G' : Type*) [topological_space G'] [charted_space E' G'] [smooth_manifold_with_corners I' G']
-[add_group G'] [topological_add_group G'] [lie_add_group I' G'] extends add_monoid_hom G G' :=
-  (smooth_to_fun : smooth I I' to_fun)
+  (G : Type*) [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G]
+  [add_group G] [topological_add_group G] [lie_add_group I G]
+  (G' : Type*) [topological_space G'] [charted_space E' G'] [smooth_manifold_with_corners I' G']
+  [add_group G'] [topological_add_group G'] [lie_add_group I' G'] extends add_monoid_hom G G' :=
+(smooth_to_fun : smooth I I' to_fun)
 
 /-- Morphism of Lie groups. -/
 @[to_additive]

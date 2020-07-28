@@ -1,11 +1,9 @@
 import category_theory.category.Cat
-import topology.sheaves.presheaf
+import category_theory.eq_to_hom
 
 universe u
 
-open Top
 open category_theory
--- This is an attempt at modelling a presheaf of modules over a presheaf of rings.
 
 variables {C D : Type*} [category C] [category D]
 variables (F : C ⥤ Cat)

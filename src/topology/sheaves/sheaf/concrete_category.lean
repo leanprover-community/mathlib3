@@ -57,11 +57,11 @@ begin
   { ext, simp, dsimp, simp, }, -- non-terminal `simp`, but `squeeze_simp` fails
   { ext,
     simp only [limit.lift_π, functor.comp_map, parallel_pair_map_left, fan.mk_π_app,
-      lift_comp_preserves_products_iso_hom, functor.map_comp, category.assoc],
+      map_lift_comp_preserves_products_iso_hom, functor.map_comp, category.assoc],
     dsimp, simp, },
   { ext,
     simp only [limit.lift_π, functor.comp_map, parallel_pair_map_right, fan.mk_π_app,
-      lift_comp_preserves_products_iso_hom, functor.map_comp, category.assoc],
+      map_lift_comp_preserves_products_iso_hom, functor.map_comp, category.assoc],
     dsimp, simp, },
  { ext, simp, dsimp, simp, },
 end
@@ -98,6 +98,8 @@ universes v u
 
 open sheaf_condition
 
+-- TODO Do we really need a concrete category, or will any faithful functor do?
+-- This would then apply to `TopCommRing ⥤ Top`.
 variables {C : Type (u+1)} [large_category C] [concrete_category C]
 variables [reflects_isomorphisms (forget C)]
 variables [has_limits C] [preserves_limits (forget C)]
@@ -171,7 +173,7 @@ begin
         dsimp,
         simp only [category.assoc],
         simp only [←functor.map_comp_assoc],
-        simp only [equalizer.lift_ι, lift_comp_preserves_products_iso_hom_assoc],
+        simp only [equalizer.lift_ι, map_lift_comp_preserves_products_iso_hom_assoc],
         dsimp [res], simp,
       end,
       -- conclude that it is an isomorphism,

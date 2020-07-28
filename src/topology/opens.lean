@@ -40,6 +40,10 @@ instance : has_subset (opens α) :=
 instance : has_mem α (opens α) :=
 { mem := λ a U, a ∈ (U : set α) }
 
+@[simp] lemma subset_coe {U V : opens α} : (U ⊆ V) = ((U : set α) ⊆ (V : set α)) := rfl
+
+@[simp] lemma mem_coe {x : α} {U : opens α} : (x ∈ U) = (x ∈ (U : set α)) := rfl
+
 @[ext] lemma ext {U V : opens α} (h : (U : set α) = V) : U = V := subtype.ext_iff.mpr h
 
 @[ext] lemma ext_iff {U V : opens α} : (U : set α) = V ↔ U = V :=
@@ -104,6 +108,9 @@ end
 
 lemma supr_def {ι} (s : ι → opens α) : (⨆ i, s i) = ⟨⋃ i, s i, is_open_Union $ λ i, (s i).2⟩ :=
 by { ext, simp only [supr, opens.Sup_s, sUnion_image, bUnion_range], refl }
+
+@[simp] lemma supr_s {ι} (s : ι → opens α) : ((⨆ i, s i : opens α) : set α) = ⋃ i, s i :=
+by simp [supr_def]
 
 def is_basis (B : set (opens α)) : Prop := is_topological_basis ((coe : _ → set α) '' B)
 
@@ -195,9 +202,3 @@ instance open_nhds_of.inhabited {α : Type*} [topological_space α] (x : α) :
   inhabited (open_nhds_of x) := ⟨⟨set.univ, is_open_univ, set.mem_univ _⟩⟩
 
 end topological_space
-
-namespace continuous
-open topological_space
-
-
-end continuous

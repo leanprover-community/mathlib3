@@ -14,19 +14,9 @@ open Top
 namespace topological_space.opens
 variables {X : Top.{v}}
 
--- FIXME I can't even find the set level version of this...
+-- FIXME I can't even find the set level version of this... -- set.mem_Union
 lemma mem_supr {ι : Type*} (U : ι → opens X) {x} : x ∈ supr U ↔ ∃ i : ι, x ∈ U i :=
-begin
-  split,
-  { intro h,
-    choose Ui H using h,
-    simp only [set.mem_range, set.mem_image, exists_exists_eq_and] at H,
-    choose i hi using H.1,
-    exact ⟨i, by { subst hi, exact H.2, }⟩, },
-  { rintro ⟨i, mem⟩,
-    -- FIXME why is this lame?
-  }
-end
+by simp
 
 -- This is tedious, but necessary because we decided not to allow Prop as morphisms in a category...
 

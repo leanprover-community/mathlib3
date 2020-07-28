@@ -31,6 +31,9 @@ A measurable equivalence between measurable spaces is an equivalence
 which respects the σ-algebras, that is, for which both directions of
 the equivalence are measurable functions.
 
+We say that a filter `f` is measurably generated if every set `s ∈ f` includes a measurable
+set `t ∈ f`. This property is useful, e.g., to extract a measurably witness of `filter.eventually`.
+
 ## Main statements
 
 The main theorem of this file is Dynkin's π-λ theorem, which appears

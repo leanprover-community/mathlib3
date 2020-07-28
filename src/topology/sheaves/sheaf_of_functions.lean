@@ -62,7 +62,7 @@ begin
     rintros s f ⟨x, mem⟩,
     change x ∈ supr U at mem, -- FIXME there is a stray `has_coe_t_aux.coe` here
     -- Since `x ∈ supr U`, there must be some `i` so `x ∈ U i`:
-    simp at mem,
+    simp [opens.mem_Union] at mem,
     choose i hi using mem,
     -- We define out function to be the restriction of `f` to that `U i`, evaluated at `x`.
     exact ((s.ι ≫ pi.π _ i) f) ⟨x, hi⟩, },

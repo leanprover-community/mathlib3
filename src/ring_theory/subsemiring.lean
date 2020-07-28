@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 
-import ring_theory.prod
+import algebra.ring.prod
 import group_theory.submonoid
 import data.equiv.ring
 
@@ -12,7 +12,8 @@ import data.equiv.ring
 # Bundled subsemirings
 
 We define bundled subsemirings and some standard constructions: `complete_lattice` structure,
-`subtype` and `inclusion` ring homomorphisms, subsemiring kernel and range of a `ring_hom` etc.
+`subtype` and `inclusion` ring homomorphisms, subsemiring `map`, `comap` and range (`srange`) of
+a `ring_hom` etc.
 -/
 
 open_locale big_operators
@@ -23,7 +24,7 @@ variables {R : Type u} {S : Type v} {T : Type w} [semiring R] [semiring S] [semi
 
 set_option old_structure_cmd true
 
-/-- Subsemiring of a semiring `R` is a subset `s` that is both a multiplicative and an additive
+/-- A subsemiring of a semiring `R` is a subset `s` that is both a multiplicative and an additive
 submonoid. -/
 structure subsemiring (R : Type u) [semiring R] extends submonoid R, add_submonoid R
 
@@ -108,33 +109,34 @@ theorem mul_mem : ∀ {x y : R}, x ∈ s → y ∈ s → x * y ∈ s := s.mul_me
 /-- A subsemiring is closed under addition. -/
 theorem add_mem : ∀ {x y : R}, x ∈ s → y ∈ s → x + y ∈ s := s.add_mem'
 
-/-- Product of a list of elements in a subsemiring is in the subsemiring. -/
+/-- Product of a list of elements in a `subsemiring` is in the `subsemiring`. -/
 lemma list_prod_mem {l : list R} : (∀x ∈ l, x ∈ s) → l.prod ∈ s :=
 s.to_submonoid.list_prod_mem
 
-/-- Sum of a list of elements in an `add_subsemiring` is in the `add_subsemiring`. -/
+/-- Sum of a list of elements in a `subsemiring` is in the `subsemiring`. -/
 lemma list_sum_mem {l : list R} : (∀x ∈ l, x ∈ s) → l.sum ∈ s :=
 s.to_add_submonoid.list_sum_mem
 
-/-- Product of a multiset of elements in a subsemiring of a `comm_monoid` is in the subsemiring. -/
+/-- Product of a multiset of elements in a `subsemiring` of a `comm_semiring`
+    is in the `subsemiring`. -/
 lemma multiset_prod_mem {R} [comm_semiring R] (s : subsemiring R) (m : multiset R) :
   (∀a ∈ m, a ∈ s) → m.prod ∈ s :=
 s.to_submonoid.multiset_prod_mem m
 
-/-- Sum of a multiset of elements in an `add_subsemiring` of an `add_comm_monoid` is
+/-- Sum of a multiset of elements in a `subsemiring` of a `semiring` is
 in the `add_subsemiring`. -/
 lemma multiset_sum_mem {R} [semiring R] (s : subsemiring R) (m : multiset R) :
   (∀a ∈ m, a ∈ s) → m.sum ∈ s :=
 s.to_add_submonoid.multiset_sum_mem m
 
-/-- Product of elements of a subsemiring of a `comm_monoid` indexed by a `finset` is in the
+/-- Product of elements of a subsemiring of a `comm_semiring` indexed by a `finset` is in the
     subsemiring. -/
 lemma prod_mem {R : Type*} [comm_semiring R] (s : subsemiring R)
   {ι : Type*} {t : finset ι} {f : ι → R} (h : ∀c ∈ t, f c ∈ s) :
   ∏ i in t, f i ∈ s :=
 s.to_submonoid.prod_mem h
 
-/-- Sum of elements in an `add_subsemiring` of an `add_comm_monoid` indexed by a `finset`
+/-- Sum of elements in an `subsemiring` of an `semiring` indexed by a `finset`
 is in the `add_subsemiring`. -/
 lemma sum_mem {R : Type*} [semiring R] (s : subsemiring R)
   {ι : Type*} {t : finset ι} {f : ι → R} (h : ∀c ∈ t, f c ∈ s) :
@@ -164,7 +166,7 @@ instance to_semiring : semiring s :=
 instance to_comm_semiring {R} [comm_semiring R] (s : subsemiring R) : comm_semiring s :=
 { mul_comm := λ _ _, subtype.eq $ mul_comm _ _, ..s.to_semiring}
 
-/-- The natural ring hom from a subsemiring of monoid `R` to `R`. -/
+/-- The natural ring hom from a subsemiring of semiring `R` to `R`. -/
 def subtype : s →+* R :=
 { to_fun := coe, .. s.to_submonoid.subtype, .. s.to_add_submonoid.subtype }
 

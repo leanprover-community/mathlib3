@@ -80,25 +80,38 @@ optional doc string. -/
 @[derive has_reflect, derive inhabited]
 structure value_type : Type := (tgt : name) (doc : option string)
 
+/-- `add_comm_prefix x s` returns `"comm_" ++ s` if `x = tt` and `s` otherwise. -/
+meta def add_comm_prefix : bool → string → string
+| tt s := ("comm_" ++ s)
+| ff s := s
+
 /-- Dictionary used by `to_additive.guess_name` to autogenerate names. -/
-meta def tr : list string → list string
-| ("one" :: "le" :: s) := "nonneg" :: tr s
-| ("one" :: "lt" :: s) := "pos"    :: tr s
-| ("le" :: "one" :: s) := "nonpos" :: tr s
-| ("lt" :: "one" :: s) := "neg"    :: tr s
-| ("mul" :: s)         := "add"    :: tr s
-| ("inv" :: s)         := "neg"    :: tr s
-| ("div" :: s)         := "sub"    :: tr s
-| ("one" :: s)         := "zero"   :: tr s
-| ("prod" :: s)        := "sum"    :: tr s
-| (x :: s)             := (x :: tr s)
-| []                   := []
+meta def tr : bool → list string → list string
+| is_comm ("one" :: "le" :: s) := add_comm_prefix is_comm "nonneg" :: tr ff s
+| is_comm ("one" :: "lt" :: s) := add_comm_prefix is_comm "pos"    :: tr ff s
+| is_comm ("le" :: "one" :: s) := add_comm_prefix is_comm "nonpos" :: tr ff s
+| is_comm ("lt" :: "one" :: s) := add_comm_prefix is_comm "neg"    :: tr ff s
+| is_comm ("mul" :: s)         := add_comm_prefix is_comm "add"    :: tr ff s
+| is_comm ("inv" :: s)         := add_comm_prefix is_comm "neg"    :: tr ff s
+| is_comm ("div" :: s)         := add_comm_prefix is_comm "sub"    :: tr ff s
+| is_comm ("one" :: s)         := add_comm_prefix is_comm "zero"   :: tr ff s
+| is_comm ("prod" :: s)        := add_comm_prefix is_comm "sum"    :: tr ff s
+| is_comm ("monoid" :: s)      := ("add_" ++ add_comm_prefix is_comm "monoid")    :: tr ff s
+| is_comm ("submonoid" :: s)   := ("add_" ++ add_comm_prefix is_comm "submonoid") :: tr ff s
+| is_comm ("group" :: s)       := ("add_" ++ add_comm_prefix is_comm "group")     :: tr ff s
+| is_comm ("subgroup" :: s)    := ("add_" ++ add_comm_prefix is_comm "subgroup")  :: tr ff s
+| is_comm ("semigroup" :: s)   := ("add_" ++ add_comm_prefix is_comm "semigroup") :: tr ff s
+| is_comm ("magma" :: s)       := ("add_" ++ add_comm_prefix is_comm "magma") :: tr ff s
+| is_comm ("comm" :: s)        := tr tt s
+| is_comm (x :: s)             := (add_comm_prefix is_comm x :: tr ff s)
+| tt []                   := ["comm"]
+| ff []                   := []
 
 /-- Autogenerate target name for `to_additive`. -/
 meta def guess_name : string → string :=
 string.map_tokens ''' $
 λ s, string.intercalate (string.singleton '_') $
-tr (s.split_on '_')
+tr ff (s.split_on '_')
 
 /-- Return the provided target name or autogenerate one if one was not provided. -/
 meta def target_name (src tgt : name) (dict : name_map name) : tactic name :=

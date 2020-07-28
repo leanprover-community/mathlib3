@@ -418,7 +418,7 @@ begin
 end
 
 @[priority 100] -- see Note [lower instance priority]
-instance normed_top_monoid : topological_add_monoid α := by apply_instance -- short-circuit type class inference
+instance normed_top_monoid : has_continuous_add α := by apply_instance -- short-circuit type class inference
 @[priority 100] -- see Note [lower instance priority]
 instance normed_top_group : topological_add_group α := by apply_instance -- short-circuit type class inference
 
@@ -484,7 +484,7 @@ instance prod.normed_ring [normed_ring α] [normed_ring β] : normed_ring (α ×
 end normed_ring
 
 @[priority 100] -- see Note [lower instance priority]
-instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
+instance normed_ring_top_monoid [normed_ring α] : has_continuous_mul α :=
 ⟨ continuous_iff_continuous_at.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
     have ∀ e : α × α, e.fst * e.snd - x.fst * x.snd =
       e.fst * e.snd - e.fst * x.snd + (e.fst * x.snd - x.fst * x.snd), by intro; rw sub_add_sub_cancel,

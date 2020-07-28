@@ -3,8 +3,9 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import data.polynomial.degree.basic
 import data.polynomial.induction
+import data.polynomial.degree.basic
+import deprecated.ring
 
 /-!
 # Theory of univariate polynomials
@@ -25,7 +26,6 @@ variables {R : Type u} {S : Type v} {T : Type w} {ι : Type y} {a b : R} {m n : 
 section semiring
 variables [semiring R] {p q r : polynomial R}
 
-
 section
 variables [semiring S]
 variables (f : R →+* S) (x : S)
@@ -34,6 +34,8 @@ variables (f : R →+* S) (x : S)
   to the target and a value `x` for the variable in the target -/
 def eval₂ (p : polynomial R) : S :=
 p.sum (λ e a, f a * x ^ e)
+
+lemma eval₂_eq_sum {f : R →+* S} {x : S} : p.eval₂ f x = p.sum (λ e a, f a * x ^ e) := rfl
 
 @[simp] lemma eval₂_zero : (0 : polynomial R).eval₂ f x = 0 :=
 finsupp.sum_zero_index
@@ -115,7 +117,8 @@ variables (f : R →+* S) (x : S)
 @[simp] lemma eval₂_mul : (p * q).eval₂ f x = p.eval₂ f x * q.eval₂ f x :=
 begin
   dunfold eval₂,
-  rw [mul_def, finsupp.sum_mul _ p], simp only [finsupp.mul_sum _ q], rw [sum_sum_index],
+  rw [add_monoid_algebra.mul_def, finsupp.sum_mul _ p], simp only [finsupp.mul_sum _ q],
+  rw [sum_sum_index],
   { apply sum_congr rfl, assume i hi, dsimp only, rw [sum_sum_index],
     { apply sum_congr rfl, assume j hj, dsimp only,
       rw [sum_single_index, f.map_mul, pow_add],
@@ -141,10 +144,13 @@ lemma eval₂_pow (n : ℕ) : (p ^ n).eval₂ f x = p.eval₂ f x ^ n := (eval�
 end eval₂
 
 section eval
-variable {x : R}
+variables {x : R}
 
 /-- `eval x p` is the evaluation of the polynomial `p` at `x` -/
 def eval : R → polynomial R → R := eval₂ (ring_hom.id _)
+
+lemma eval_eq_sum : p.eval x = sum p (λ e a, a * x ^ e) :=
+rfl
 
 @[simp] lemma eval_C : (C a).eval x = a := eval₂_C _ _
 
@@ -183,9 +189,6 @@ instance [decidable_eq R] : decidable (is_root p a) := by unfold is_root; apply_
 
 @[simp] lemma is_root.def : is_root p a ↔ p.eval a = 0 := iff.rfl
 
-
-
-
 lemma coeff_zero_eq_eval_zero (p : polynomial R) :
   coeff p 0 = p.eval 0 :=
 calc coeff p 0 = coeff p 0 * 0 ^ 0 : by simp
@@ -198,11 +201,13 @@ by rwa coeff_zero_eq_eval_zero at hp
 
 end eval
 
-
 section comp
 
 /-- The composition of polynomials as a polynomial. -/
 def comp (p q : polynomial R) : polynomial R := p.eval₂ C q
+
+lemma comp_eq_sum_left : p.comp q = p.sum (λ e a, C a * q ^ e) :=
+rfl
 
 @[simp] lemma comp_X : p.comp X = p :=
 begin
@@ -296,6 +301,17 @@ end
 lemma map_injective (hf : function.injective f): function.injective (map f) :=
 λ p q h, ext $ λ m, hf $ by rw [← coeff_map f, ← coeff_map f, h]
 
+
+variables {f}
+
+lemma map_monic_eq_zero_iff (hp : p.monic) : p.map f = 0 ↔ ∀ x, f x = 0 :=
+⟨ λ hfp x, calc f x = f x * f p.leading_coeff : by simp [hp]
+                ... = f x * (p.map f).coeff p.nat_degree : by { congr, apply (coeff_map _ _).symm }
+                ... = 0 : by simp [hfp],
+  λ h, ext (λ n, trans (coeff_map f n) (h _)) ⟩
+
+variables (f)
+
 open is_semiring_hom
 
 -- If the rings were commutative, we could prove this just using `eval₂_mul`.
@@ -305,7 +321,8 @@ open is_semiring_hom
 begin
   dunfold map,
   dunfold eval₂,
-  rw [mul_def, finsupp.sum_mul _ p], simp only [finsupp.mul_sum _ q], rw [sum_sum_index],
+  rw [add_monoid_algebra.mul_def, finsupp.sum_mul _ p], simp only [finsupp.mul_sum _ q],
+  rw [sum_sum_index],
   { apply sum_congr rfl, assume i hi, dsimp only, rw [sum_sum_index],
     { apply sum_congr rfl, assume j hj, dsimp only,
       rw [sum_single_index, (C.comp f).map_mul, pow_add],
@@ -323,7 +340,7 @@ instance map.is_semiring_hom : is_semiring_hom (map f) :=
   map_add := λ _ _, eval₂_add _ _,
   map_mul := λ _ _, map_mul f, }
 
-@[simp] lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := is_semiring_hom.map_pow (map f) _ _
+@[simp] lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := is_monoid_hom.map_pow (map f) _ _
 
 lemma mem_map_range {p : polynomial S} :
   p ∈ set.range (map f) ↔ ∀ n, p.coeff n ∈ (set.range f) :=
@@ -355,6 +372,13 @@ eval₂_map f (ring_hom.id _) x
 
 end map
 
+/-!
+After having set up the basic theory of `eval₂`, `eval`, `comp`, and `map`,
+we make `eval₂` irreducible.
+
+Perhaps we can make the others irreducible too?
+-/
+attribute [irreducible] polynomial.eval₂
 
 section hom_eval₂
 -- TODO: Here we need commutativity in both `S` and `T`?
@@ -376,6 +400,37 @@ end hom_eval₂
 
 end semiring
 
+section comm_semiring
+
+section eval
+
+variables [comm_semiring R] {p q : polynomial R} {x : R}
+
+@[simp] lemma eval_mul : (p * q).eval x = p.eval x * q.eval x := eval₂_mul _ _
+
+instance eval.is_semiring_hom : is_semiring_hom (eval x) := eval₂.is_semiring_hom _ _
+
+@[simp] lemma eval_pow (n : ℕ) : (p ^ n).eval x = p.eval x ^ n := eval₂_pow _ _ _
+
+lemma eval₂_hom [comm_semiring S] (f : R →+* S) (x : R) :
+  p.eval₂ f (f x) = f (p.eval x) :=
+polynomial.induction_on p
+  (by simp)
+  (by simp [f.map_add] {contextual := tt})
+  (by simp [f.map_mul, eval_pow,
+    f.map_pow, pow_succ', (mul_assoc _ _ _).symm] {contextual := tt})
+
+lemma root_mul_left_of_is_root (p : polynomial R) {q : polynomial R} :
+  is_root q a → is_root (p * q) a :=
+λ H, by rw [is_root, eval_mul, is_root.def.1 H, mul_zero]
+
+lemma root_mul_right_of_is_root {p : polynomial R} (q : polynomial R) :
+  is_root p a → is_root (p * q) a :=
+λ H, by rw [is_root, eval_mul, is_root.def.1 H, zero_mul]
+
+end eval
+
+end comm_semiring
 
 section ring
 variables [ring R] {p q : polynomial R}

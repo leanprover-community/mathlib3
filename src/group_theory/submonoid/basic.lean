@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard,
 Amelia Livingston, Yury Kudryashov
 -/
-import algebra.group.basic
 import data.set.lattice
 
 /-!
@@ -64,7 +63,7 @@ structure add_submonoid (M : Type*) [add_monoid M] :=
 (zero_mem' : (0 : M) ∈ carrier)
 (add_mem' {a b} : a ∈ carrier → b ∈ carrier → a + b ∈ carrier)
 
-attribute [to_additive add_submonoid] submonoid
+attribute [to_additive] submonoid
 
 namespace submonoid
 

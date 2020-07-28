@@ -136,7 +136,7 @@ tangent_cone_congr (nhds_within_restrict' _ ht).symm
 
 /-- The tangent cone of a product contains the tangent cone of its left factor. -/
 lemma subset_tangent_cone_prod_left {t : set F} {y : F} (ht : y ∈ closure t) :
-  prod.inl '' (tangent_cone_at 𝕜 s x) ⊆ tangent_cone_at 𝕜 (set.prod s t) (x, y) :=
+  linear_map.inl 𝕜 E F '' (tangent_cone_at 𝕜 s x) ⊆ tangent_cone_at 𝕜 (set.prod s t) (x, y) :=
 begin
   rintros _ ⟨v, ⟨c, d, hd, hc, hy⟩, rfl⟩,
   have : ∀n, ∃d', y + d' ∈ t ∧ ∥c n • d'∥ ≤ ((1:ℝ)/2)^n,
@@ -176,7 +176,7 @@ end
 /-- The tangent cone of a product contains the tangent cone of its right factor. -/
 lemma subset_tangent_cone_prod_right {t : set F} {y : F}
   (hs : x ∈ closure s) :
-  prod.inr '' (tangent_cone_at 𝕜 t y) ⊆ tangent_cone_at 𝕜 (set.prod s t) (x, y) :=
+  linear_map.inr 𝕜 E F '' (tangent_cone_at 𝕜 t y) ⊆ tangent_cone_at 𝕜 (set.prod s t) (x, y) :=
 begin
   rintros _ ⟨w, ⟨c, d, hd, hc, hy⟩, rfl⟩,
   have : ∀n, ∃d', x + d' ∈ s ∧ ∥c n • d'∥ ≤ ((1:ℝ)/2)^n,
@@ -335,7 +335,7 @@ begin
   rcases hs with ⟨y, hy⟩,
   suffices : y - x ∈ interior (tangent_cone_at ℝ s x),
   { refine ⟨_, subset_closure xs⟩,
-    rw [submodule.eq_top_of_nonempty_interior _ ⟨y - x, interior_mono submodule.subset_span this⟩,
+    rw [submodule.eq_top_of_nonempty_interior' _ ⟨y - x, interior_mono submodule.subset_span this⟩,
       submodule.top_coe, closure_univ]; apply_instance },
   rw [mem_interior_iff_mem_nhds] at hy ⊢,
   apply mem_sets_of_superset ((is_open_map_add_right (-x)).image_mem_nhds hy),

@@ -19,7 +19,7 @@ universes u v w
 
 namespace polynomial
 
-instance {R : Type u} [comm_semiring R] (p : ℕ) [h : char_p R p] : char_p (polynomial R) p :=
+instance {R : Type u} [semiring R] (p : ℕ) [h : char_p R p] : char_p (polynomial R) p :=
 let ⟨h⟩ := h in ⟨λ n, by rw [← C.map_nat_cast, ← C_0, C_inj, h]⟩
 
 variables (R : Type u) [comm_ring R]
@@ -98,6 +98,9 @@ def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set
 
 @[simp] theorem coeff_restriction' {p : polynomial R} {n : ℕ} : (coeff (restriction p) n).1 = coeff p n := rfl
 
+@[simp] theorem map_restriction (p : polynomial R) : p.restriction.map (algebra_map _ _) = p :=
+ext $ λ n, by rw [coeff_map, algebra.subring_algebra_map_apply, coeff_restriction]
+
 @[simp] theorem degree_restriction {p : polynomial R} : (restriction p).degree = p.degree := rfl
 
 @[simp] theorem nat_degree_restriction {p : polynomial R} : (restriction p).nat_degree = p.nat_degree := rfl
@@ -110,11 +113,11 @@ def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set
 @[simp] theorem restriction_one : restriction (1 : polynomial R) = 1 :=
 ext $ λ i, subtype.eq $ by rw [coeff_restriction', coeff_one, coeff_one]; split_ifs; refl
 
-variables {S : Type v} [comm_ring S] {f : R →+* S} {x : S}
+variables {S : Type v} [ring S] {f : R →+* S} {x : S}
 
 theorem eval₂_restriction {p : polynomial R} :
   eval₂ f x p = eval₂ (f.comp (is_subring.subtype _)) x p.restriction :=
-rfl
+by { dsimp only [eval₂_eq_sum], refl, }
 
 section to_subring
 variables (p : polynomial R) (T : set R) [is_subring T]
@@ -149,6 +152,9 @@ omit hp
   (set.subset.trans (finset.coe_subset.2 finsupp.frange_single)
     (finset.singleton_subset_set_iff.2 is_submonoid.one_mem)) = 1 :=
 ext $ λ i, subtype.eq $ by rw [coeff_to_subring', coeff_one, coeff_one]; split_ifs; refl
+
+@[simp] theorem map_to_subring : (p.to_subring T hp).map (is_subring.subtype T) = p :=
+ext $ λ n, coeff_map _ _
 
 end to_subring
 

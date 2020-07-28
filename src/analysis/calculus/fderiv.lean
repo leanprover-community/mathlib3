@@ -730,12 +730,19 @@ differentiable_id.differentiable_on
 lemma fderiv_id : fderiv 𝕜 id x = id 𝕜 E :=
 has_fderiv_at.fderiv (has_fderiv_at_id x)
 
+lemma fderiv_id' : fderiv 𝕜 (λ (x : E), x) x = continuous_linear_map.id 𝕜 E :=
+fderiv_id
+
 lemma fderiv_within_id (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 id s x = id 𝕜 E :=
 begin
   rw differentiable_at.fderiv_within (differentiable_at_id) hxs,
   exact fderiv_id
 end
+
+lemma fderiv_within_id' (hxs : unique_diff_within_at 𝕜 s x) :
+  fderiv_within 𝕜 (λ (x : E), x) s x = continuous_linear_map.id 𝕜 E :=
+fderiv_within_id hxs
 
 end id
 

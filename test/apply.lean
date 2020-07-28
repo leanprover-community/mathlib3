@@ -38,5 +38,5 @@ begin
   apply' continuous.add,
   guard_target' continuous (λ (x : ℝ), x), apply @continuous_id ℝ _,
   guard_target' continuous (λ (x : ℝ), x), apply @continuous_id ℝ _,
-  -- guard_target' topological_add_monoid ℝ, admit,
+  -- guard_target' has_continuous_add ℝ, admit,
 end

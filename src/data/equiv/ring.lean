@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 import data.equiv.mul_add
 import algebra.field
 import algebra.opposites
-import deprecated.ring
 
 /-!
 # (Semi)ring equivs
@@ -162,17 +161,16 @@ variables [semiring R] [semiring S]
 def to_ring_hom (e : R ≃+* S) : R →+* S :=
 { .. e.to_mul_equiv.to_monoid_hom, .. e.to_add_equiv.to_add_monoid_hom }
 
+instance has_coe_to_ring_hom : has_coe (R ≃+* S) (R →+* S) := ⟨ring_equiv.to_ring_hom⟩
+
+@[norm_cast] lemma coe_ring_hom (f : R ≃+* S) (a : R) :
+  (f : R →+* S) a = f a := rfl
+
 /-- Reinterpret a ring equivalence as a monoid homomorphism. -/
 abbreviation to_monoid_hom (e : R ≃+* S) : R →* S := e.to_ring_hom.to_monoid_hom
 
 /-- Reinterpret a ring equivalence as an `add_monoid` homomorphism. -/
 abbreviation to_add_monoid_hom (e : R ≃+* S) : R →+ S := e.to_ring_hom.to_add_monoid_hom
-
-/-- Interpret an equivalence `f : R ≃ S` as a ring equivalence `R ≃+* S`. -/
-def of (e : R ≃ S) [is_semiring_hom e] : R ≃+* S :=
-{ .. e, .. monoid_hom.of e, .. add_monoid_hom.of e }
-
-instance (e : R ≃+* S) : is_semiring_hom e := e.to_ring_hom.is_semiring_hom
 
 @[simp]
 lemma to_ring_hom_refl : (ring_equiv.refl R).to_ring_hom = ring_hom.id R := rfl
@@ -207,18 +205,6 @@ def to_ring_equiv {R : Type*} {S : Type*} [has_add R] [has_add S] [has_mul R] [h
 end mul_equiv
 
 namespace ring_equiv
-
-section ring_hom
-
-variables [ring R] [ring S]
-
-/-- Interpret an equivalence `f : R ≃ S` as a ring equivalence `R ≃+* S`. -/
-def of' (e : R ≃ S) [is_ring_hom e] : R ≃+* S :=
-{ .. e, .. monoid_hom.of e, .. add_monoid_hom.of e }
-
-instance (e : R ≃+* S) : is_ring_hom e := e.to_ring_hom.is_ring_hom
-
-end ring_hom
 
 /-- Two ring isomorphisms agree if they are defined by the
     same underlying function. -/

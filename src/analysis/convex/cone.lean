@@ -299,7 +299,7 @@ begin
     rwa [f.map_sub, sub_nonneg] at this },
   have hy' : y ≠ 0, from λ hy₀, hy (hy₀.symm ▸ zero_mem _),
   refine ⟨f.sup (linear_pmap.mk_span_singleton y (-c) hy') _, _, _⟩,
-  { refine linear_pmap.sup_h_of_disjoint _ _ (disjoint_span_singleton.2 _),
+  { refine linear_pmap.sup_h_of_disjoint _ _ (submodule.disjoint_span_singleton.2 _),
     exact (λ h, (hy h).elim) },
   { refine lt_iff_le_not_le.2 ⟨f.left_le_sup _ _, λ H, _⟩,
     replace H := linear_pmap.domain_mono.monotone H,

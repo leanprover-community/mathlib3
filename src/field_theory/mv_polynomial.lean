@@ -56,16 +56,16 @@ end
 
 lemma map_range_eq_map {β : Type*}
   [comm_ring α] [comm_ring β] (p : mv_polynomial σ α)
-  (f : α → β) [is_semiring_hom f]:
-  finsupp.map_range f (is_semiring_hom.map_zero f) p = p.map f :=
+  (f : α →+* β) :
+  finsupp.map_range f f.map_zero p = p.map f :=
 begin
   rw [← finsupp.sum_single p, finsupp.sum],
   -- It's not great that we need to use an `erw` here,
   -- but hopefully it will become smoother when we move entirely away from `is_semiring_hom`.
-  erw [finsupp.map_range_finset_sum (add_monoid_hom.of f)],
+  erw [finsupp.map_range_finset_sum (f : α →+ β)],
   rw [← p.support.sum_hom (map f)],
   { refine finset.sum_congr rfl (assume n _, _),
-    rw [finsupp.map_range_single, ← monomial, ← monomial, map_monomial, add_monoid_hom.coe_of], },
+    rw [finsupp.map_range_single, ← monomial, ← monomial, map_monomial], refl, },
   apply_instance
 end
 
@@ -120,7 +120,7 @@ begin
   exact ⟨1⟩
 end,
 by simp only [indicator, (finset.univ.prod_hom (eval a)).symm, eval_sub,
-    is_ring_hom.map_one (eval a), is_semiring_hom.map_pow (eval a), eval_X, eval_C,
+    is_ring_hom.map_one (eval a), is_monoid_hom.map_pow (eval a), eval_X, eval_C,
     sub_self, zero_pow this, sub_zero, finset.prod_const_one]
 
 lemma eval_indicator_apply_eq_zero (a b : σ → α) (h : a ≠ b) :
@@ -129,7 +129,7 @@ have ∃i, a i ≠ b i, by rwa [(≠), function.funext_iff, not_forall] at h,
 begin
   rcases this with ⟨i, hi⟩,
   simp only [indicator, (finset.univ.prod_hom (eval a)).symm, eval_sub,
-    is_ring_hom.map_one (eval a), is_semiring_hom.map_pow (eval a), eval_X, eval_C,
+    is_ring_hom.map_one (eval a), is_monoid_hom.map_pow (eval a), eval_X, eval_C,
     sub_self, finset.prod_eq_zero_iff],
   refine ⟨i, finset.mem_univ _, _⟩,
   rw [finite_field.pow_card_sub_one_eq_one, sub_self],
@@ -185,7 +185,7 @@ begin
   refine ⟨∑ n : σ → α, e n • indicator n, _, _⟩,
   { exact sum_mem _ (assume c _, smul_mem _ _ (indicator_mem_restrict_degree _)) },
   { ext n,
-    simp only [linear_map.map_sum, @pi.finset_sum_apply (σ → α) (λ_, α) _ _ _ _ _,
+    simp only [linear_map.map_sum, @finset.sum_apply (σ → α) (λ_, α) _ _ _ _ _,
       pi.smul_apply, linear_map.map_smul],
     simp only [evalₗ_apply],
     transitivity,
@@ -258,5 +258,14 @@ begin
   rw [ker_evalₗ, mem_bot] at this,
   rw [this]
 end
+
+end mv_polynomial
+
+namespace mv_polynomial
+
+variables (σ : Type*) (R : Type*) [comm_ring R] (p : ℕ)
+
+instance [char_p R p] : char_p (mv_polynomial σ R) p :=
+{ cast_eq_zero_iff := λ n, by rw [← C_eq_coe_nat, ← C_0, C_inj, char_p.cast_eq_zero_iff R p] }
 
 end mv_polynomial

@@ -19,7 +19,7 @@ section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- A topological semiring is a semiring where addition and multiplication are continuous. -/
 class topological_semiring [semiring α]
-  extends topological_add_monoid α, topological_monoid α : Prop
+  extends has_continuous_add α, has_continuous_mul α : Prop
 end prio
 
 variables [ring α]
@@ -27,7 +27,7 @@ variables [ring α]
 section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- A topological ring is a ring where the ring operations are continuous. -/
-class topological_ring extends topological_add_monoid α, topological_monoid α : Prop :=
+class topological_ring extends has_continuous_add α, has_continuous_mul α : Prop :=
 (continuous_neg : continuous (λa:α, -a))
 end prio
 

@@ -301,7 +301,7 @@ instance [inhabited β] : inhabited (α →ₘ[μ] β) := ⟨const α (default �
 section monoid
 variables
   [topological_space γ] [second_countable_topology γ] [borel_space γ]
-  [monoid γ] [topological_monoid γ]
+  [monoid γ] [has_continuous_mul γ]
 
 @[to_additive]
 instance : has_mul (α →ₘ[μ] γ) := ⟨comp₂ (*) measurable_mul⟩
@@ -316,15 +316,15 @@ rfl
   (f * g).to_germ = f.to_germ * g.to_germ :=
 comp₂_to_germ _ _ _ _
 
-@[to_additive add_monoid]
+@[to_additive]
 instance : monoid (α →ₘ[μ] γ) :=
 to_germ_injective.monoid to_germ one_to_germ mul_to_germ
 
 end monoid
 
-@[to_additive add_comm_monoid]
+@[to_additive]
 instance comm_monoid [topological_space γ] [second_countable_topology γ] [borel_space γ]
-  [comm_monoid γ] [topological_monoid γ] : comm_monoid (α →ₘ[μ] γ) :=
+  [comm_monoid γ] [has_continuous_mul γ] : comm_monoid (α →ₘ[μ] γ) :=
 to_germ_injective.comm_monoid to_germ one_to_germ mul_to_germ
 
 section group
@@ -340,7 +340,7 @@ variables [topological_space γ] [borel_space γ] [group γ] [topological_group 
 @[to_additive] lemma inv_to_germ (f : α →ₘ[μ] γ) : (f⁻¹).to_germ = f.to_germ⁻¹ := comp_to_germ _ _ _
 
 variables [second_countable_topology γ]
-@[to_additive add_group]
+@[to_additive]
 instance : group (α →ₘ[μ] γ) := to_germ_injective.group _ one_to_germ mul_to_germ inv_to_germ
 
 end group
@@ -359,7 +359,7 @@ lemma coe_fn_sub (f g : α →ₘ[μ] γ) : ⇑(f - g) =ᵐ[μ] f - g :=
 
 end add_group
 
-@[to_additive add_comm_group]
+@[to_additive]
 instance [topological_space γ] [borel_space γ] [comm_group γ] [topological_group γ]
   [second_countable_topology γ] : comm_group (α →ₘ[μ] γ) :=
 { .. ae_eq_fun.group, .. ae_eq_fun.comm_monoid }
@@ -382,7 +382,7 @@ lemma coe_fn_smul (c : 𝕜) (f : α →ₘ[μ] γ) : ⇑(c • f) =ᵐ[μ] c �
 lemma smul_to_germ (c : 𝕜) (f : α →ₘ[μ] γ) : (c • f).to_germ = c • f.to_germ :=
 comp_to_germ _ _ _
 
-variables [second_countable_topology γ] [topological_add_monoid γ]
+variables [second_countable_topology γ] [has_continuous_add γ]
 
 instance : semimodule 𝕜 (α →ₘ[μ] γ) :=
 to_germ_injective.semimodule 𝕜 ⟨@to_germ α γ _ _ μ, zero_to_germ, add_to_germ⟩ smul_to_germ

@@ -92,8 +92,8 @@ begin
     { rw [sub_right_comm], exact I.sub_mem hr1 hci },
     { rw [sub_smul, ← hyz, add_sub_cancel'], exact hz } },
   rcases this with ⟨c, hc1, hci⟩, refine ⟨c * r, _, _, hs.2⟩,
-  { rw [← ideal.quotient.eq, ideal.quotient.mk_one] at hr1 hc1 ⊢,
-    rw [ideal.quotient.mk_mul, hc1, hr1, mul_one] },
+  { rw [← ideal.quotient.eq, ring_hom.map_one] at hr1 hc1 ⊢,
+    rw [ring_hom.map_mul, hc1, hr1, mul_one] },
   { intros n hn, specialize hrn hn, rw [mem_comap, mem_sup] at hrn,
     rcases hrn with ⟨y, hy, z, hz, hyz⟩, change y + z = r • n at hyz,
     rw mem_smul_span_singleton at hy, rcases hy with ⟨d, hdi, rfl⟩,
@@ -119,7 +119,7 @@ let ⟨t, ht⟩ := fg_def.1 hs in fg_def.2 ⟨f '' t, ht.1.image _, by rw [span_
 theorem fg_prod {sb : submodule R M} {sc : submodule R P}
   (hsb : sb.fg) (hsc : sc.fg) : (sb.prod sc).fg :=
 let ⟨tb, htb⟩ := fg_def.1 hsb, ⟨tc, htc⟩ := fg_def.1 hsc in
-fg_def.2 ⟨prod.inl '' tb ∪ prod.inr '' tc,
+fg_def.2 ⟨linear_map.inl R M P '' tb ∪ linear_map.inr R M P '' tc,
   (htb.1.image _).union (htc.1.image _),
   by rw [linear_map.span_inl_union_inr, htb.2, htc.2]⟩
 

@@ -30,18 +30,6 @@ open topological_space.opens
 
 universe u
 
-lemma open_embedding.continuous_at_iff
-  {X Y Z : Type*} [topological_space X] [topological_space Y] [topological_space Z]
-  {f : X → Y} {g : Y → Z} (hf : open_embedding f) {x : X} :
-  continuous_at (g ∘ f) x ↔ continuous_at g (f x) :=
-begin
-  haveI : nonempty X := ⟨x⟩,
-  convert ((hf.to_local_homeomorph.continuous_at_iff_continuous_at_comp_right) _).symm,
-  { apply (local_homeomorph.left_inv _ _).symm,
-    simp, },
-  { simp, },
-end
-
 @[simp] lemma classical.indefinite_description_val {α : Sort u} (p : α → Prop) (h : ∃ x, p x) :
   (classical.indefinite_description p h).val = classical.some h := rfl
 
@@ -49,7 +37,6 @@ end
   (classical.indefinite_description p h).property = classical.some_spec h := rfl
 
 noncomputable theory
-
 
 variables (X : Top.{u})
 

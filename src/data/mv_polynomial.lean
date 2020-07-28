@@ -520,8 +520,6 @@ begin
   rwa finsupp.mem_support_iff at hc
 end
 
-variables [is_semiring_hom f]
-
 @[simp] lemma eval₂_prod (s : finset γ) (p : γ → mv_polynomial σ α) :
   eval₂ f g (∏ x in s, p x) = ∏ x in s, eval₂ f g (p x) :=
 (s.prod_hom _).symm

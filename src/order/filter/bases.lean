@@ -290,6 +290,9 @@ lemma has_basis.inf (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
     use [s i, i, hi, subset.refl _, s' i', i', hi', subset.refl _, H] }
 end⟩
 
+lemma has_basis_principal {t : set α} : (𝓟 t).has_basis (λ i : unit, true) (λ i, t) :=
+⟨λ U, by simp⟩
+
 lemma has_basis.inf_principal (hl : l.has_basis p s) (s' : set α) :
   (l ⊓ 𝓟 s').has_basis p (λ i, s i ∩ s') :=
 ⟨λ t, by simp only [mem_inf_principal, hl.mem_iff, subset_def, mem_set_of_eq,

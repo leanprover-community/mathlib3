@@ -1061,6 +1061,7 @@ quotient.rec_on_subsingleton m (λl, decidable_of_iff (∀a∈l, p a) $ by simp)
 
 instance decidable_dforall_multiset {p : Πa∈m, Prop} [hp : ∀a (h : a ∈ m), decidable (p a h)] :
   decidable (∀a (h : a ∈ m), p a h) :=
+by exactI -- lean#411
 decidable_of_decidable_of_iff
   (@multiset.decidable_forall_multiset {a // a ∈ m} m.attach (λa, p a.1 a.2) _)
   (iff.intro (assume h a ha, h ⟨a, ha⟩ (mem_attach _ _)) (assume h ⟨a, ha⟩ _, h _ _))
@@ -1076,6 +1077,7 @@ quotient.rec_on_subsingleton m list.decidable_exists_mem
 
 instance decidable_dexists_multiset {p : Πa∈m, Prop} [hp : ∀a (h : a ∈ m), decidable (p a h)] :
   decidable (∃a (h : a ∈ m), p a h) :=
+by exactI -- lean#411
 decidable_of_decidable_of_iff
   (@multiset.decidable_exists_multiset {a // a ∈ m} m.attach (λa, p a.1 a.2) _)
   (iff.intro (λ ⟨⟨a, ha₁⟩, _, ha₂⟩, ⟨a, ha₁, ha₂⟩)

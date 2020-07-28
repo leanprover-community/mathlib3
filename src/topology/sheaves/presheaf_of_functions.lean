@@ -7,6 +7,22 @@ import topology.sheaves.presheaf
 import topology.category.TopCommRing
 import topology.algebra.continuous_functions
 
+/-!
+# Presheaves of functions
+
+We construct some simple examples of presheaves of functions on a topological space.
+* `presheaf_to_Type X f`, where `f : X → Type`,
+  is the presheaf of dependently-typed (not-necessarily continuous) functions
+* `presheaf_to_Type X T`, where `T : Type`,
+  is the presheaf of (not-necessarily-continuous) functions to a fixed target type `T`
+* `presheaf_to_Top X T`, where `T : Top`,
+  is the presheaf of continuous functions into a topological space `T`
+* `presheaf_To_TopCommRing X R`, where `R : TopCommRing`
+  is the presheaf valued in `CommRing` of functions functions into a topological ring `R`
+* as an example of the previous construction,
+  `presheaf_ℂ X` is the presheaf of rings of continuous complex-valued functions on `X`.
+-/
+
 universes v u
 
 open category_theory
@@ -15,7 +31,33 @@ open opposite
 
 namespace Top
 
-variables (X Y : Top.{v})
+variables (X : Top.{v})
+
+/--
+The presheaf of dependently typed functions on `X`, with fibres given by a type family `f`.
+There is no requirement that the functions are continuous, here.
+-/
+def presheaf_to_Types (f : X → Type v) : X.presheaf (Type v) :=
+{ obj := λ U, Π x : (unop U), f x,
+  map := λ U V i g, λ (x : unop V), g (i.unop x) }
+
+/--
+The presheaf of functions on `X` with values in a type `T`.
+There is no requirement that the functions are continuous, here.
+-/
+def presheaf_to_Type (T : Type v) : X.presheaf (Type v) :=
+{ obj := λ U, (unop U) → T,
+  map := λ U V i g, λ (x : unop V), g (i.unop x) }
+
+@[simp] lemma presheaf_to_Type_map
+  {T : Type v} {U V : (opens X)ᵒᵖ} {i : U ⟶ V} {f} :
+  (presheaf_to_Type X T).map i f = f ∘ i.unop :=
+rfl
+
+@[simp] lemma presheaf_to_Type_map_apply
+  {T : Type v} {U V : (opens X)ᵒᵖ} {i : U ⟶ V} {f} {x} {mem} :
+  (presheaf_to_Type X T).map i f ⟨x, mem⟩ = f ⟨x, i.unop.down.down mem⟩ :=
+rfl
 
 /-- The presheaf of continuous functions on `X` with values in fixed target topological space `T`. -/
 def presheaf_to_Top (T : Top.{v}) : X.presheaf (Type v) :=

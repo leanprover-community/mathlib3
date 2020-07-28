@@ -5,21 +5,33 @@ Authors: Scott Morrison, Mario Carneiro, Reid Barton
 -/
 import topology.category.Top.opens
 
+/-!
+# Presheaves on a topological space
+
+We define `presheaf C X` simply as `(opens X)ᵒᵖ ⥤ C`,
+and inherit the category structure with natural transformations as morphisms.
+
+We define
+* `pushforward {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) : Y.presheaf C`
+with notation `f_* ℱ`
+and for `ℱ : X.presheaf C` provide the natural isomorphisms
+* `pushforward.id : (𝟙 X) _* ℱ ≅ ℱ``
+* `pushforward.comp : (f ≫ g) _* ℱ ≅ g _* (f _* ℱ)`
+along with their `@[simp]` lemmas.
+-/
+
 universes v u
 
 open category_theory
 open topological_space
 open opposite
 
-variables (C : Type u) [𝒞 : category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C]
 
 namespace Top
 
+@[derive category]
 def presheaf (X : Top.{v}) := (opens X)ᵒᵖ ⥤ C
-
-instance category_presheaf (X : Top.{v}) : category (X.presheaf C) :=
-by dsimp [presheaf]; apply_instance
 
 namespace presheaf
 variables {C}

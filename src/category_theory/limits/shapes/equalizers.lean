@@ -522,12 +522,6 @@ abbreviation coequalizer.cofork : cofork f g := colimit.cocone (parallel_pair f 
 @[simp] lemma coequalizer.cofork_ι_app_one :
   (coequalizer.cofork f g).ι.app one = coequalizer.π f g := rfl
 
-@[simp] lemma coequalizer.π.cofork :
-  cofork.π (colimit.cocone (parallel_pair f g)) = coequalizer.π f g := rfl
-
-@[simp] lemma coequalizer.π.eq_app_one :
-  (colimit.cocone (parallel_pair f g)).ι.app one = coequalizer.π f g := rfl
-
 @[reassoc] lemma coequalizer.condition : f ≫ coequalizer.π f g = g ≫ coequalizer.π f g :=
 cofork.condition $ colimit.cocone $ parallel_pair f g
 

@@ -124,6 +124,7 @@ def sheaf_condition_punit (F : presheaf (category_theory.discrete punit) X) :
   sheaf_condition F :=
 λ ι U, punit_cone_is_limit
 
+-- Let's construct a trivial example, to keep the inhabited linter happy.
 instance sheaf_condition_inhabited (F : presheaf (category_theory.discrete punit) X) :
   inhabited (sheaf_condition F) := ⟨sheaf_condition_punit F⟩
 
@@ -142,6 +143,10 @@ begin
   change category (induced_category (presheaf C X) sheaf.presheaf),
   apply_instance,
 end
+
+-- Let's construct a trivial example, to keep the inhabited linter happy.
+instance sheaf_inhabited : inhabited (sheaf (category_theory.discrete punit) X) :=
+⟨{ presheaf := functor.star _, sheaf_condition := default _ }⟩
 
 namespace sheaf
 

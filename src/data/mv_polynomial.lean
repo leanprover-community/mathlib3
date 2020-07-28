@@ -489,6 +489,9 @@ def eval₂_hom (f : α →+* β) (g : σ → β) : mv_polynomial σ α →+* β
 
 @[simp] lemma coe_eval₂_hom (f : α →+* β) (g : σ → β) : ⇑(eval₂_hom f g) = eval₂ f g := rfl
 
+lemma eval₂_hom_congr  {f₁ f₂ : α →+* β} {g₁ g₂ : σ → β} {p₁ p₂ : mv_polynomial σ α} :
+  f₁ = f₂ → g₁ = g₂ → p₁ = p₂ →  eval₂_hom f₁ g₁ p₁ = eval₂_hom f₂ g₂ p₂ :=
+by rintros rfl rfl rfl; refl
 end
 
 section
@@ -531,7 +534,10 @@ attribute [to_additive] eval₂_prod
 
 lemma eval₂_assoc (q : γ → mv_polynomial σ α) (p : mv_polynomial γ α) :
   eval₂ f (λ t, eval₂ f g (q t)) p = eval₂ f g (eval₂ C q p) :=
-by { rw eval₂_comp_left (eval₂_hom f g), congr, funext, simp }
+begin
+  show _ = eval₂_hom f g (eval₂ C q p),
+  rw eval₂_comp_left (eval₂_hom f g), congr, ext a, simp,
+end
 
 end eval₂
 
@@ -628,7 +634,11 @@ theorem map_map [comm_semiring γ]
   (p : mv_polynomial σ α) :
   map g (map f p) = map (g.comp f) p :=
 (eval₂_comp_left (map g) (C.comp f) X p).trans $
-by { congr, ext a, simp, }
+begin
+  congr,
+  { ext1 a, simp only [map_C, comp_app, ring_hom.coe_comp], },
+  { ext1 n, simp only [map_X, comp_app], }
+end
 
 theorem eval₂_eq_eval_map (g : σ → β) (p : mv_polynomial σ α) :
   p.eval₂ f g = eval g (map f p) :=
@@ -637,7 +647,9 @@ begin
   have h := eval₂_comp_left (eval₂_hom _ g),
   dsimp at h,
   rw h,
-  congr, ext a, simp,
+  congr,
+  { ext1 a, simp only [coe_eval₂_hom, ring_hom.id_apply, comp_app, eval₂_C, ring_hom.coe_comp], },
+  { ext1 n, simp only [comp_app, eval₂_X], },
 end
 
 lemma eval₂_comp_right {γ} [comm_semiring γ]
@@ -1119,7 +1131,11 @@ mv_polynomial.induction_on p
 @[simp] lemma rename_rename (f : β → γ) (g : γ → δ) (p : mv_polynomial β α) :
   rename g (rename f p) = rename (g ∘ f) p :=
 show rename g (eval₂ C (X ∘ f) p) = _,
-  by simp only [eval₂_comp_left (rename g) C (X ∘ f) p, (∘), rename_C, rename_X]; refl
+begin
+  simp only [eval₂_comp_left (rename g) C (X ∘ f) p, (∘), rename_C, rename_X],
+  apply eval₂_hom_congr _ rfl rfl,
+  ext1, simp only [comp_app, ring_hom.coe_comp, rename_C]
+end
 
 @[simp] lemma rename_id (p : mv_polynomial β α) : rename id p = p :=
 eval₂_eta p
@@ -1203,13 +1219,14 @@ begin
   { intro r, exact ⟨∅, C r, by rw rename_C⟩ },
   { rintro p q ⟨s, p, rfl⟩ ⟨t, q, rfl⟩,
     refine ⟨s ∪ t, ⟨_, _⟩⟩,
-    { exact rename (subtype.map id (finset.subset_union_left s t)) p +
-            rename (subtype.map id (finset.subset_union_right s t)) q },
-    { rw [rename_add, rename_rename, rename_rename], refl } },
+    { refine rename (subtype.map id _) p + rename (subtype.map id _) q;
+      simp only [id.def, true_or, or_true, finset.mem_union, forall_true_iff] {contextual := tt}, },
+    { simp only [rename_rename, ring_hom.map_add], refl, }, },
   { rintro p n ⟨s, p, rfl⟩,
     refine ⟨insert n s, ⟨_, _⟩⟩,
-  { exact rename (subtype.map id (finset.subset_insert n s)) p * X ⟨n, s.mem_insert_self n⟩ },
-    { rw [rename_mul, rename_X, rename_rename], refl } }
+  { refine rename (subtype.map id _) p * X ⟨n, s.mem_insert_self n⟩,
+    simp only [id.def, or_true, finset.mem_insert, forall_true_iff] {contextual := tt}, },
+    { simp only [rename_rename, rename_X, subtype.coe_mk, ring_hom.map_mul], refl, }, },
 end
 
 /-- Every polynomial is a polynomial in finitely many variables. -/
@@ -1262,9 +1279,12 @@ def punit_ring_equiv : mv_polynomial punit α ≃+* polynomial α :=
   inv_fun   := polynomial.eval₂ mv_polynomial.C (X punit.star),
   left_inv  :=
     begin
-      refine is_id
-        ((ring_hom.of (polynomial.eval₂ mv_polynomial.C (X punit.star))).comp
-          (ring_hom.of (eval₂ polynomial.C (λu:punit, polynomial.X)))) _ _,
+      let f : polynomial α →+* mv_polynomial punit α :=
+      ring_hom.of (polynomial.eval₂ mv_polynomial.C (X punit.star)),
+      let g : mv_polynomial punit α →+* polynomial α :=
+      ring_hom.of (eval₂ polynomial.C (λu:punit, polynomial.X)),
+      show ∀ p, f.comp g p = p,
+      apply is_id,
       { assume a, dsimp, rw [eval₂_C, polynomial.eval₂_C] },
       { rintros ⟨⟩, dsimp, rw [eval₂_X, polynomial.eval₂_X] }
     end,

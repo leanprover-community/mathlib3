@@ -2270,7 +2270,7 @@ begin
   exact this hcf hfb
 end
 
-lemma continuous_extend_continuous_Ioo
+lemma continuous_extend_continuous_on_Ioo
   {α β : Type*} {a b : α} {la lb : β} [topological_space α] [linear_order α] [topological_space β]
   [order_closed_topology α] {f : α → β} (hab : a < b)
   (hcf : continuous_on f (Ioo a b)) (hfa : tendsto f (nhds_within a (Ioi a)) (nhds la))
@@ -2342,13 +2342,13 @@ begin
   exact hcf
 end
 
-lemma continuous_on_Icc_extend_continuous_Ioo
+lemma continuous_on_Icc_extend_continuous_on_Ioo
   {α β : Type*} {a b : α} {la lb : β} [topological_space α] [linear_order α] [topological_space β]
   [order_closed_topology α] {f : α → β} (hab : a < b)
   (hcf : continuous_on f (Ioo a b)) (hfa : tendsto f (nhds_within a (Ioi a)) (nhds la))
   (hfb : tendsto f (nhds_within b (Iio b)) (nhds lb)) :
   continuous_on (λ x, if x ≤ a then la else if b ≤ x then lb else f x) (Icc a b) :=
-(continuous_extend_continuous_Ioo hab hcf hfa hfb).continuous_on
+(continuous_extend_continuous_on_Ioo hab hcf hfa hfb).continuous_on
 
 lemma continuous_within_at_Ioi_iff_Ici
   {α β : Type*} [topological_space α] [linear_order α] [topological_space β] {a : α} {f : α → β} :

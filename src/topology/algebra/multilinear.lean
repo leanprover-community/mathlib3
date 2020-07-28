@@ -67,7 +67,7 @@ variables [semiring R]
 instance : has_coe_to_fun (continuous_multilinear_map R M₁ M₂) :=
 ⟨_, λ f, f.to_multilinear_map.to_fun⟩
 
-attribute [continuity] cont
+@[continuity] lemma coe_continuous : continuous (f : (Π i, M₁ i) → M₂) := f.cont
 
 @[simp] lemma coe_coe : (f.to_multilinear_map : (Π i, M₁ i) → M₂) = f := rfl
 

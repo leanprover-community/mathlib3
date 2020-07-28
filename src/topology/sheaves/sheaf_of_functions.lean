@@ -62,7 +62,7 @@ begin
     rintros s f ⟨x, mem⟩,
     change x ∈ supr U at mem, -- FIXME there is a stray `has_coe_t_aux.coe` here
     -- Since `x ∈ supr U`, there must be some `i` so `x ∈ U i`:
-    simp only [mem_supr] at mem,
+    simp at mem,
     choose i hi using mem,
     -- We define out function to be the restriction of `f` to that `U i`, evaluated at `x`.
     exact ((s.ι ≫ pi.π _ i) f) ⟨x, hi⟩, },
@@ -144,6 +144,10 @@ begin
 end.
 
 -- We verify that the non-dependent version is an immediate consequence:
+/--
+The presheaf of not-necessarily-continuous functions to
+a target type `T` satsifies the sheaf condition.
+-/
 def to_Type (T : Type u) : sheaf_condition (presheaf_to_Type X T) :=
 to_Types X (λ _, T)
 
@@ -178,6 +182,9 @@ def forget_continuity (T : Top.{u}) {ι : Type u} (U : ι → opens X) :
   end,
   naturality' := by rintro ⟨_|_⟩ ⟨_|_⟩ f; cases f; refl, }
 
+/--
+The presheaf of continuous functions to a target topological space `T` satsifies the sheaf condition.
+-/
 def to_Top (T : Top.{u}) : sheaf_condition (presheaf_to_Top X T) :=
 λ ι U,
 begin

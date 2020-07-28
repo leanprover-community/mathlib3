@@ -411,8 +411,8 @@ protected theorem eq_zero_or_eq_zero_of_mul_eq_zero {R : Type u} [integral_domai
 begin
   obtain ⟨s, p, rfl⟩ := exists_finset_rename p,
   obtain ⟨t, q, rfl⟩ := exists_finset_rename q,
-  have : p.rename (subtype.map id (finset.subset_union_left s t) : {x // x ∈ s} → {x // x ∈ s ∪ t}) *
-    q.rename (subtype.map id (finset.subset_union_right s t)) = 0,
+  have : rename (subtype.map id (finset.subset_union_left s t) : {x // x ∈ s} → {x // x ∈ s ∪ t}) p *
+    rename (subtype.map id (finset.subset_union_right s t)) q = 0,
   { apply rename_injective _ subtype.val_injective, simpa using h },
   letI := mv_polynomial.integral_domain_fintype R {x // x ∈ (s ∪ t)},
   rw mul_eq_zero at this,
@@ -426,8 +426,8 @@ instance {R : Type u} {σ : Type v} [integral_domain R] :
 { eq_zero_or_eq_zero_of_mul_eq_zero := mv_polynomial.eq_zero_or_eq_zero_of_mul_eq_zero,
   exists_pair_ne := ⟨0, 1, λ H,
   begin
-    have : eval₂ id (λ s, (0:R)) (0 : mv_polynomial σ R) =
-      eval₂ id (λ s, (0:R)) (1 : mv_polynomial σ R),
+    have : eval₂ (ring_hom.id _) (λ s, (0:R)) (0 : mv_polynomial σ R) =
+      eval₂ (ring_hom.id _) (λ s, (0:R)) (1 : mv_polynomial σ R),
     { congr, exact H },
     simpa,
   end⟩,

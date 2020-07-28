@@ -5,7 +5,7 @@ Author: Joseph Myers.
 -/
 import algebra.add_torsor
 import data.indicator_function
-import linear_algebra.basis
+import linear_algebra.finite_dimensional
 
 noncomputable theory
 open_locale big_operators
@@ -333,6 +333,72 @@ lemma affine_combination_indicator_subset (w : ι → k) (p : ι → P) {s₁ s�
 by rw [affine_combination_apply, affine_combination_apply,
        weighted_vsub_of_point_indicator_subset _ _ _ _ h]
 
+variables {V}
+
+/-- Suppose an indexed family of points is given, along with a subset
+of the index type.  A vector can be expressed as
+`weighted_vsub_of_point` using a `finset` lying within that subset and
+with a given sum of weights if and only if it can be expressed as
+`weighted_vsub_of_point` with that sum of weights for the
+corresponding indexed family whose index type is the subtype
+corresponding to that subset. -/
+lemma eq_weighted_vsub_of_point_subset_iff_eq_weighted_vsub_of_point_subtype (v : V) (x : k)
+    (s : set ι) (p : ι → P) (b : P) :
+  (∃ (fs : finset ι) (hfs : ↑fs ⊆ s) (w : ι → k) (hw : ∑ i in fs, w i = x),
+    v = fs.weighted_vsub_of_point V p b w) ↔
+  ∃ (fs : finset s) (w : s → k) (hw : ∑ i in fs, w i = x),
+    v = fs.weighted_vsub_of_point V (λ (i : s), p i) b w :=
+begin
+  simp_rw weighted_vsub_of_point_apply,
+  split,
+  { rintros ⟨fs, hfs, w, hw, hv⟩,
+    use [fs.subtype s, λ i, w i],
+    change ∀ i ∈ fs, i ∈ s at hfs,
+    change ∑ i in fs.subtype (λ x, x ∈ s), _ = _ ∧
+      _ = ∑ i in fs.subtype (λ x, x ∈ s), (λ j, w j • (p j -ᵥ b : V)) i,
+    rw [sum_subtype_of_mem _ hfs, sum_subtype_of_mem _ hfs],
+    use [hw, hv] },
+  { rintros ⟨fs, w, hw, hv⟩,
+    use [fs.map (function.embedding.subtype _), map_subtype_subset _,
+         λ i, if h : i ∈ s then w ⟨i, h⟩ else 0],
+    simp [sum_subtype_map_embedding, hw, hv] }
+end
+
+variables (k)
+
+/-- Suppose an indexed family of points is given, along with a subset
+of the index type.  A vector can be expressed as `weighted_vsub` using
+a `finset` lying within that subset and with sum of weights 0 if and
+only if it can be expressed as `weighted_vsub` with sum of weights 0
+for the corresponding indexed family whose index type is the subtype
+corresponding to that subset. -/
+lemma eq_weighted_vsub_subset_iff_eq_weighted_vsub_subtype (v : V) (s : set ι) (p : ι → P) :
+  (∃ (fs : finset ι) (hfs : ↑fs ⊆ s) (w : ι → k) (hw : ∑ i in fs, w i = 0),
+    v = fs.weighted_vsub V p w) ↔
+  ∃ (fs : finset s) (w : s → k) (hw : ∑ i in fs, w i = 0),
+    v = fs.weighted_vsub V (λ (i : s), p i) w :=
+eq_weighted_vsub_of_point_subset_iff_eq_weighted_vsub_of_point_subtype _ 0 _ _ _
+
+variables (V)
+
+/-- Suppose an indexed family of points is given, along with a subset
+of the index type.  A point can be expressed as an
+`affine_combination` using a `finset` lying within that subset and
+with sum of weights 1 if and only if it can be expressed an
+`affine_combination` with sum of weights 1 for the corresponding
+indexed family whose index type is the subtype corresponding to that
+subset. -/
+lemma eq_affine_combination_subset_iff_eq_affine_combination_subtype (p0 : P) (s : set ι)
+    (p : ι → P) :
+  (∃ (fs : finset ι) (hfs : ↑fs ⊆ s) (w : ι → k) (hw : ∑ i in fs, w i = 1),
+    p0 = fs.affine_combination V w p) ↔
+  ∃ (fs : finset s) (w : s → k) (hw : ∑ i in fs, w i = 1),
+    p0 = fs.affine_combination V w (λ (i : s), p i) :=
+begin
+  simp_rw [affine_combination_apply, eq_vadd_iff_vsub_eq],
+  exact eq_weighted_vsub_of_point_subset_iff_eq_weighted_vsub_of_point_subtype _ 1 _ _ _
+end
+
 end finset
 
 section affine_independent
@@ -400,6 +466,26 @@ begin
     have h2b : ∀ i ∈ s, i ≠ i1 → w i = 0 :=
       λ i his hi, h2 ⟨i, hi⟩ (finset.mem_erase_of_ne_of_mem hi his),
     exact finset.eq_zero_of_sum_eq_zero hw h2b i hi }
+end
+
+/-- If a family is affinely independent, so is any subfamily indexed
+by a subtype of the index type. -/
+lemma affine_independent_subtype_of_affine_independent {p : ι → P}
+    (ha : affine_independent k V p) (s : set ι) : affine_independent k V (λ i : s, p i) :=
+begin
+  intros fs w hw hs i0 hi0,
+  let fs' := fs.map (function.embedding.subtype _),
+  let w' := λ i, if h : i ∈ s then w ⟨i, h⟩ else 0,
+  have hw' : ∑ i in fs', w' i = 0,
+  { rw ←hw,
+    simp [finset.sum_subtype_map_embedding],
+    refl },
+  have hs' : fs'.weighted_vsub V p w' = 0,
+  { rw ←hs,
+    simp [finset.weighted_vsub_apply, w', fs', finset.sum_subtype_map_embedding],
+    refl },
+  rw ←ha fs' w' hw' hs' i0 ((finset.mem_map' _).2 hi0),
+  simp [w']
 end
 
 end affine_independent
@@ -746,6 +832,31 @@ mem_span_points k V p s hp
 
 end affine_span
 
+namespace affine_space
+
+variables (k : Type*) (V : Type*) {P : Type*} [field k] [add_comm_group V] [module k V]
+          [affine_space k V P]
+variables {ι : Type*}
+
+/-- The `vector_span` of a finite set is finite-dimensional. -/
+lemma finite_dimensional_vector_span_of_finite {s : set P} (h : set.finite s) :
+  finite_dimensional k (vector_span k V s) :=
+finite_dimensional.span_of_finite k $ vsub_set_finite_of_finite V h
+
+/-- The direction of the affine span of a finite set is
+finite-dimensional. -/
+lemma finite_dimensional_direction_affine_span_of_finite {s : set P} (h : set.finite s) :
+  finite_dimensional k (affine_span k V s).direction :=
+(direction_affine_span k V s).symm ▸ finite_dimensional_vector_span_of_finite k V h
+
+/-- The direction of the affine span of a family indexed by a
+`fintype` is finite-dimensional. -/
+instance finite_dimensional_direction_affine_span_of_fintype [fintype ι] (p : ι → P) :
+  finite_dimensional k (affine_span k V (set.range p)).direction :=
+finite_dimensional_direction_affine_span_of_finite k V (set.finite_range _)
+
+end affine_space
+
 namespace affine_subspace
 
 variables {k : Type*} {V : Type*} {P : Type*} [ring k] [add_comm_group V] [module k V]
@@ -855,6 +966,12 @@ begin
       direction_affine_span],
   simp
 end
+
+/-- A point is in the affine span of a single point if and only if
+they are equal. -/
+@[simp] lemma mem_affine_span_singleton (p1 p2 : P) :
+  p1 ∈ affine_span k V ({p2} : set P) ↔ p1 = p2 :=
+by simp [←mem_coe]
 
 /-- The span of a union of sets is the sup of their spans. -/
 lemma span_union (s t : set P) : affine_span k V (s ∪ t) = affine_span k V s ⊔ affine_span k V t :=
@@ -1016,6 +1133,15 @@ begin
       ⟨vsub_mem_direction hq1 hp.1, vsub_mem_direction hq2 hp.2⟩,
     rwa [hd.inf_eq_bot, submodule.mem_bot, vsub_eq_zero_iff_eq] at hqp },
   { exact λ h, h.symm ▸ hp }
+end
+
+/-- Coercing a subspace to a set then taking the affine span produces
+the original subspace. -/
+@[simp] lemma affine_span_coe (s : affine_subspace k V P) : affine_span k V (s : set P) = s :=
+begin
+  refine le_antisymm _ (subset_span_points _ _ _),
+  rintros p ⟨p1, hp1, v, hv, rfl⟩,
+  exact vadd_mem_of_mem_direction hv hp1
 end
 
 end affine_subspace
@@ -1230,6 +1356,74 @@ begin
 end
 
 end affine_space
+
+section affine_independent
+
+open affine_space
+
+variables {k : Type*} {V : Type*} {P : Type*} [ring k] [add_comm_group V] [module k V]
+variables [affine_space k V P] {ι : Type*}
+
+/-- If a family is affinely independent, the spans of points indexed
+by disjoint subsets of the index type are disjoint, if the underlying
+ring is nontrivial. -/
+lemma affine_span_disjoint_of_disjoint_of_affine_independent [nontrivial k] {p : ι → P}
+    (ha : affine_independent k V p) {s1 s2 : set ι} (hd : s1 ∩ s2 = ∅) :
+  (affine_span k V (p '' s1) : set P) ∩ affine_span k V (p '' s2) = ∅ :=
+begin
+  by_contradiction hne,
+  change (affine_span k V (p '' s1) : set P) ∩ affine_span k V (p '' s2) ≠ ∅ at hne,
+  rw set.ne_empty_iff_nonempty at hne,
+  rcases hne with ⟨p0, hp0s1, hp0s2⟩,
+  rw [set.image_eq_range, affine_subspace.mem_coe] at hp0s1 hp0s2,
+  rw [mem_affine_span_iff_eq_affine_combination,
+      ←finset.eq_affine_combination_subset_iff_eq_affine_combination_subtype] at hp0s1 hp0s2,
+  rcases hp0s1 with ⟨fs1, hfs1, w1, hw1, hp0s1⟩,
+  rcases hp0s2 with ⟨fs2, hfs2, w2, hw2, hp0s2⟩,
+  rw finset.affine_combination_indicator_subset _ _ _ (finset.subset_union_left fs1 fs2)
+    at hp0s1,
+  rw finset.affine_combination_indicator_subset _ _ _ (finset.subset_union_right fs1 fs2)
+    at hp0s2,
+  let w3 := set.indicator ↑fs1 w1 - set.indicator ↑fs2 w2,
+  have h0 : (fs1 ∪ fs2).weighted_vsub V p w3 = 0,
+  { simp [←finset.affine_combination_vsub, ←hp0s1, ←hp0s2] },
+  have hw3 : ∑ i in fs1 ∪ fs2, w3 i = 0,
+  { change ∑ i in fs1 ∪ fs2, (set.indicator ↑fs1 w1 i - set.indicator ↑fs2 w2 i) = 0,
+    rw [finset.sum_sub_distrib,
+        ←set.sum_indicator_subset _ (finset.subset_union_left fs1 fs2),
+        ←set.sum_indicator_subset _ (finset.subset_union_right fs1 fs2), hw1, hw2, sub_self] },
+  replace ha := ha (fs1 ∪ fs2) w3 hw3 h0,
+  have hnz : ∑ i in fs1, w1 i ≠ 0 := hw1.symm ▸ one_ne_zero,
+  rcases finset.exists_ne_zero_of_sum_ne_zero hnz with ⟨i, hifs1, hin0⟩,
+  change w1 i ≠ 0 at hin0,
+  replace ha := ha i (finset.mem_union_left _ hifs1),
+  change set.indicator ↑fs1 w1 i - set.indicator ↑fs2 w2 i = 0 at ha,
+  rw ←finset.mem_coe at hifs1,
+  rw set.indicator_of_mem hifs1 _ at ha,
+  rw ←set.disjoint_iff_inter_eq_empty at hd,
+  have hifs2 : i ∉ (↑fs2 : set ι) :=
+    λ h, set.not_disjoint_iff.2
+           ⟨i, hifs1, h⟩
+           (set.disjoint_of_subset_right hfs2 (set.disjoint_of_subset_left hfs1 hd)),
+  rw [set.indicator_of_not_mem hifs2 _, sub_zero] at ha,
+  exact hin0 ha
+end
+
+/-- If a family is affinely independent, a point in the family is not
+in the affine span of the other points, if the underlying ring is
+nontrivial. -/
+lemma not_mem_affine_span_diff_of_affine_independent [nontrivial k] {p : ι → P}
+    (ha : affine_independent k V p) (i : ι) :
+  p i ∉ affine_span k V (p '' (set.univ \ {i})) :=
+begin
+  rw [←affine_subspace.mem_coe, ←set.singleton_inter_eq_empty,
+      ←affine_subspace.coe_affine_span_singleton k V (p i), ←set.image_singleton,
+      affine_span_disjoint_of_disjoint_of_affine_independent ha],
+  rw [set.singleton_inter_eq_empty, set.mem_diff_singleton],
+  simp
+end
+
+end affine_independent
 
 namespace affine_subspace
 

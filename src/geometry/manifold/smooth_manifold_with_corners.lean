@@ -707,3 +707,80 @@ lemma ext_chart_model_space_eq_id (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (x : E) :
   ext_chart_at (model_with_corners_self 𝕜 E) x = local_equiv.refl E :=
 by simp only with mfld_simps
+
+def times_cont_diff_groupoid_test (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  (n : with_top ℕ)
+  (E : Type*) [normed_group E] [normed_space 𝕜 E] : structure_groupoid E :=
+pregroupoid.groupoid
+{ property := λf s, times_cont_diff_on 𝕜 n f s,
+  comp     := λf g u v hf hg hu hv huv, begin
+    apply times_cont_diff_on.comp hg _,
+    sorry,
+    sorry,
+  end,
+  id_mem   := begin
+    apply times_cont_diff_on.congr (times_cont_diff_id.times_cont_diff_on),
+    sorry,
+  end,
+  locality := λf u hu H, begin
+    apply times_cont_diff_on_of_locally_times_cont_diff_on,
+    sorry,
+  end,
+  congr    := λf g u hu fg hf, begin
+    apply hf.congr,
+    sorry,
+  end }
+
+class smooth_space (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  (E : Type*) [normed_group E] [normed_space 𝕜 E]
+  (M : Type*) [topological_space M] [charted_space E M]
+  extends has_groupoid M (times_cont_diff_groupoid_test 𝕜 ∞ E) : Prop
+
+variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  (E : Type*) [normed_group E] [normed_space 𝕜 E]
+  (M : Type*) [topological_space M] [charted_space E M]
+
+instance : has_coe (smooth_space 𝕜 E M) (smooth_manifold_with_corners (model_with_corners_self 𝕜 E) M) :=
+sorry
+
+instance model_prod.normed_group {E : Type*} [normed_group E] {E' : Type*} [normed_group E'] :
+  normed_group (model_prod E E') :=
+prod.normed_group
+
+instance model_prod.normed_space {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+{E : Type*} [normed_group E] [normed_space 𝕜 E] {E' : Type*} [normed_group E'] [normed_space 𝕜 E'] :
+  normed_space 𝕜 (model_prod E E') :=
+prod.normed_space
+
+lemma times_cont_diff_groupoid_test_prod
+  {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+  {e : local_homeomorph E E} {e' : local_homeomorph E' E'}
+  (he : e ∈ times_cont_diff_groupoid_test 𝕜 ∞ E) (he' : e' ∈ times_cont_diff_groupoid_test 𝕜 ∞ E') :
+  e.prod e' ∈ times_cont_diff_groupoid_test 𝕜 ∞ (model_prod E E') :=
+begin
+  cases he with he he_symm,
+  cases he' with he' he'_symm,
+  simp only at he he_symm he' he'_symm,
+  split;
+  simp only [local_equiv.prod_source, local_homeomorph.prod_to_local_equiv],
+  { exact times_cont_diff_on.map_prod he he', },
+  { exact times_cont_diff_on.map_prod he_symm he'_symm, }
+end
+
+instance prod_smooth_spaces {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+  {M : Type*} [topological_space M] [charted_space E M] [smooth_space 𝕜 E M]
+  {M' : Type*} [topological_space M'] [charted_space E' M'] [smooth_space 𝕜 E' M'] :
+  smooth_space 𝕜 (model_prod E E') (M×M') :=
+  { compatible :=
+  begin
+    rintros f g ⟨f1, hf1, f2, hf2, hf⟩ ⟨g1, hg1, g2, hg2, hg⟩,
+    rw [hf, hg, local_homeomorph.prod_symm, local_homeomorph.prod_trans],
+    have h1 := has_groupoid.compatible (times_cont_diff_groupoid_test 𝕜 ∞ E) hf1 hg1,
+    have h2 := has_groupoid.compatible (times_cont_diff_groupoid_test 𝕜 ∞ E') hf2 hg2,
+    exact times_cont_diff_groupoid_test_prod h1 h2,
+  end
+  }

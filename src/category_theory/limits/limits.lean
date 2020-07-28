@@ -494,7 +494,7 @@ begin
 end
 
 /--
-A cone precomposed with the inverse of a natural isomorphism is a colimit cocone
+A cocone precomposed with the inverse of a natural isomorphism is a colimit cocone
 if and only if the original cocone is.
 -/
 def precompose_inv_equiv {F G : J ⥤ C} (α : F ≅ G) (c : cocone F) :

@@ -460,6 +460,11 @@ calc  mk (list α)
 ... = max (omega) (mk α) : mul_eq_max (le_refl _) H1
 ... = mk α : max_eq_right H1
 
+theorem mk_finset_eq_mk {α : Type u} (h : omega ≤ mk α) : mk (finset α) = mk α :=
+eq.symm $ le_antisymm (mk_le_of_injective (λ x y, finset.singleton_inj.1)) $
+calc mk (finset α) ≤ mk (list α) : mk_le_of_surjective list.to_finset_surjective
+... = mk α : mk_list_eq_mk h
+
 lemma mk_bounded_set_le_of_omega_le (α : Type u) (c : cardinal) (hα : omega ≤ mk α) :
   mk {t : set α // mk t ≤ c} ≤ mk α ^ c :=
 begin

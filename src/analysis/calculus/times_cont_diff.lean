@@ -499,7 +499,7 @@ begin
     simp at hy,
     rcases hy.2.1 with rfl|hy',
     { exact hx },
-    { exact hv y hy' } }
+    { exact hv hy' } }
 end
 
 lemma times_cont_diff_within_at.congr_of_eventually_eq' {n : with_top ℕ}
@@ -508,7 +508,7 @@ lemma times_cont_diff_within_at.congr_of_eventually_eq' {n : with_top ℕ}
 begin
   apply h.congr_of_eventually_eq h₁,
   rcases h₁.exists_mem with ⟨t, ht, t_eq⟩,
-  exact t_eq _ (mem_of_mem_nhds_within hx ht)
+  exact t_eq (mem_of_mem_nhds_within hx ht)
 end
 
 lemma filter.eventually_eq.times_cont_diff_within_at_iff {n : with_top ℕ}

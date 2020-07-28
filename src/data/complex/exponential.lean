@@ -481,7 +481,7 @@ begin
   rw [← lim_conj],
   refine congr_arg lim (cau_seq.ext (λ _, _)),
   dsimp [exp', function.comp, cau_seq_conj],
-  rw ← sum_hom _ conj,
+  rw conj.map_sum,
   refine sum_congr rfl (λ n hn, _),
   rw [conj.map_div, conj.map_pow, ← of_real_nat_cast, conj_of_real]
 end

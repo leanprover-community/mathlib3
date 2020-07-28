@@ -1000,7 +1000,7 @@ orthogonal_projection_fn_inner_eq_zero h v
 /-- The orthogonal projection is the unique point in `K` with the
 orthogonality property. -/
 lemma eq_orthogonal_projection_of_mem_of_inner_eq_zero {K : submodule ℝ α}
-    (h : is_complete (K : set α)) {u v : α} (hvm : v ∈ K) (hvo : ∀ w ∈ K, inner (u - v) w = 0) :
+  (h : is_complete (K : set α)) {u v : α} (hvm : v ∈ K) (hvo : ∀ w ∈ K, inner (u - v) w = 0) :
   v = orthogonal_projection h u :=
 eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero h hvm hvo
 

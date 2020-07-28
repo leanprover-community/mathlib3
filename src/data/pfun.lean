@@ -317,10 +317,10 @@ variables {α : Type*} {β : Type*} {γ : Type*}
 instance : inhabited (α →. β) := ⟨λ a, roption.none⟩
 
 /-- The domain of a partial function -/
-def dom (f : α →. β) : set α := λ a, (f a).dom
+def dom (f : α →. β) : set α := {a | (f a).dom}
 
 theorem mem_dom (f : α →. β) (x : α) : x ∈ dom f ↔ ∃ y, y ∈ f x :=
-by simp [dom, set.mem_def, roption.dom_iff_mem]
+by simp [dom, roption.dom_iff_mem]
 
 theorem dom_eq (f : α →. β) : dom f = {x | ∃ y, y ∈ f x} :=
 set.ext (mem_dom f)
@@ -342,11 +342,13 @@ theorem ext {f g : α →. β} (H : ∀ a b, b ∈ f a ↔ b ∈ g a) : f = g :=
 funext $ λ a, roption.ext (H a)
 
 /-- Turn a partial function into a function out of a subtype -/
-def as_subtype (f : α →. β) (s : {x // f.dom x}) : β := f.fn s.1 s.2
+def as_subtype (f : α →. β) (s : f.dom) : β := f.fn s s.2
 
+/-- The set of partial functions `α →. β` is equivalent to
+the set of pairs `(p : α → Prop, f : subtype p → β)`. -/
 def equiv_subtype : (α →. β) ≃ (Σ p : α → Prop, subtype p → β) :=
-⟨λ f, ⟨f.dom, as_subtype f⟩,
- λ ⟨p, f⟩ x, ⟨p x, λ h, f ⟨x, h⟩⟩,
+⟨λ f, ⟨λ a, (f a).dom, as_subtype f⟩,
+ λ f x, ⟨f.1 x, λ h, f.2 ⟨x, h⟩⟩,
  λ f, funext $ λ a, roption.eta _,
  λ ⟨p, f⟩, by dsimp; congr; funext a; cases a; refl⟩
 

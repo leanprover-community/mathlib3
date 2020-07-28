@@ -1645,11 +1645,14 @@ range_coe
   range (coe : subtype p → α) = {x | p x} :=
 range_coe
 
+@[simp] lemma coe_preimage_self (s : set α) : (coe : s → α) ⁻¹' s = univ :=
+by rw [← preimage_range (coe : s → α), range_coe]
+
 lemma range_val_subtype {p : α → Prop} :
   range (subtype.val : subtype p → α) = {x | p x} :=
 range_coe
 
-theorem coe_image_subset (s : set α) (t : set s) : t.image coe ⊆ s :=
+theorem coe_image_subset (s : set α) (t : set s) : coe '' t ⊆ s :=
 λ x ⟨y, yt, yvaleq⟩, by rw ←yvaleq; exact y.property
 
 theorem coe_image_univ (s : set α) : (coe : s → α) '' set.univ = s :=

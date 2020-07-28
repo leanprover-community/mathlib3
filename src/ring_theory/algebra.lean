@@ -1029,6 +1029,33 @@ end span_int
 
 end int
 
+/-!
+The R-algebra structure on `Π i : I, A i` when each `A i` is an R-algebra.
+
+We couldn't set this up back in `algebra.pi_instances` because this file imports it.
+-/
+namespace pi
+
+variable {I : Type u}     -- The indexing type
+variable {f : I → Type v} -- The family of types already equipped with instances
+variables (x y : Π i, f i) (i : I)
+variables (I f)
+instance algebra (α) {r : comm_semiring α}
+  [s : ∀ i, semiring (f i)] [∀ i, algebra α (f i)] :
+  algebra α (Π i : I, f i) :=
+{ commutes' := λ a f, begin ext, simp [algebra.commutes], end,
+  smul_def' := λ a f, begin ext, simp [algebra.smul_def''], end,
+  ..pi.ring_hom (λ i, algebra_map α (f i)) }
+
+@[simp] lemma algebra_map_apply (α) {r : comm_semiring α}
+  [s : ∀ i, semiring (f i)] [∀ i, algebra α (f i)] (a : α) (i : I) :
+  algebra_map α (Π i, f i) a i = algebra_map α (f i) a := rfl
+
+-- One could also build a `Π i, R i`-algebra structure on `Π i, A i`,
+-- when each `A i` is an `R i`-algebra, although I'm not sure that it's useful.
+
+end pi
+
 section restrict_scalars
 /- In this section, we describe restriction of scalars: if `S` is an algebra over `R`, then
 `S`-modules are also `R`-modules. -/

@@ -299,7 +299,6 @@ lemma algebra.is_integral_trans (A_int : ∀ x : A, is_integral R x)(B_int : ∀
 
 end algebra
 
--- Why is this so slow?
 theorem integral_closure_idem {R : Type*} {A : Type*} [comm_ring R] [comm_ring A] [algebra R A] :
   integral_closure (integral_closure R A : set A) A = ⊥ :=
 eq_bot_iff.2 $ λ x hx, algebra.mem_bot.2

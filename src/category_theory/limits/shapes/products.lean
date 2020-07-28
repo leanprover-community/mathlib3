@@ -85,4 +85,11 @@ class has_coproducts :=
 
 attribute [instance] has_products.has_limits_of_shape has_coproducts.has_colimits_of_shape
 
+@[priority 100] -- see Note [lower instance priority]
+instance has_products_of_has_limits [has_limits C] : has_products C :=
+{ has_limits_of_shape := λ J, by { resetI, apply_instance } }
+@[priority 100] -- see Note [lower instance priority]
+instance has_coproducts_of_has_colimits [has_colimits C] : has_coproducts C :=
+{ has_colimits_of_shape := λ J, by { resetI, apply_instance } }
+
 end category_theory.limits

@@ -26,6 +26,7 @@ Obviously there's more to do:
 open category_theory
 open category_theory.limits
 open topological_space
+open topological_space.opens
 
 universe u
 
@@ -47,7 +48,7 @@ end
 @[simp] lemma classical.indefinite_description_property {α : Sort u} (p : α → Prop) (h : ∃ x, p x) :
   (classical.indefinite_description p h).property = classical.some_spec h := rfl
 
--- noncomputable theory
+noncomputable theory
 
 
 variables (X : Top.{u})
@@ -78,9 +79,9 @@ begin
     -- `f`, a term of `s.X`.
     -- We do this one point at a time, so we also pick some `x` and the evidence `mem : x ∈ supr U`.
     rintros s f ⟨x, mem⟩,
-    change x ∈ supr U at mem, -- FIXME needs some lemmas!
+    change x ∈ supr U at mem, -- FIXME there is a stray `has_coe_t_aux.coe` here
     -- Since `x ∈ supr U`, there must be some `i` so `x ∈ U i`:
-    simp [opens.mem_supr] at mem,
+    simp only [mem_supr] at mem,
     choose i hi using mem,
     -- We define out function to be the restriction of `f` to that `U i`, evaluated at `x`.
     exact ((s.ι ≫ pi.π _ i) f) ⟨x, hi⟩, },
@@ -117,8 +118,7 @@ begin
     -- Now, we assert that the two restrictions of `f` to `U i` and `U j` coincide on `U i ⊓ U j`,
     -- and in particular coincide there after evaluating at `x`.
     have s₀ := s.condition =≫ pi.π _ (j, i),
-    -- FIXME make proper simp lemmas
-    simp [sheaf_condition.left_res, sheaf_condition.right_res] at s₀,
+    simp only [sheaf_condition.left_res, sheaf_condition.right_res] at s₀,
     have s₁ := congr_fun s₀ f,
     have s₂ := congr_fun s₁ ⟨x, _⟩,
     -- Notice at this point we've spun after an additional goal:
@@ -127,15 +127,11 @@ begin
     -- In the meantime, we can just assert that `s₂` is the droid you are looking for.
     -- (We relying shamefacedly on Lean's unification understanding this,
     -- even though the type of the goal is still fairly messy. "It's obvious.")
-    simp [presheaf_to_Type] at s₂,
-    convert s₂,
-
-    -- At this point we've ended up with two copies of the "left over" goal `x ∈ U j ⊓ U i`.
-    -- We just throw one out; Lean is clever enough to sort this out later.
-    (do [g₁, g₂] ← tactic.get_goals, tactic.set_goals [g₁]),
+    simpa [presheaf_to_Type] using s₂,
     clear s₀ s₁,
 
-    -- We've got half of this: we knew `x ∈ U i` right from the start:
+    -- We still need to show `x ∈ U j ⊓ U i`.
+    -- We knew `x ∈ U i` right from the start:
     refine ⟨_, mem⟩,
     dsimp,
 
@@ -222,8 +218,7 @@ begin
       apply continuous_iff_continuous_at.2,
       -- so that once we're at a particular point `x`, we can select some open set `x ∈ U i`.
       rintro ⟨x, mem⟩,
-      change x ∈ supr U at mem, -- FIXME needs some lemmas!
-      simp only [opens.mem_supr] at mem,
+      simp at mem,
       choose i hi using mem,
 
       -- Now our goal is to show that the previously chosen lift,
@@ -239,7 +234,7 @@ begin
       simp only [forget_continuity, discrete.nat_trans_app, types_comp_apply,
         presheaf_to_Type_map, limit.map_π] at fac_i_f,
 
-      have cts : continuous ((to_Type X ↥T U).lift s' f ∘ ((opens.le_supr U i).op)),
+      have cts : continuous ((to_Type X ↥T U).lift s' f ∘ ((opens.le_supr U i).op.unop)),
       { rw fac_i_f, continuity, },
 
       -- Next, we just remember that this restriction is continuous at `x`.
@@ -248,7 +243,7 @@ begin
 
       -- Finally, since the inclusion `U i ≤ supr U` is an open embedding,
       -- continuity at `x` of the restriction is the same as continuity at `x`.
-      exact (opens.hom_open_embedding (opens.le_supr U i)).continuous_at_iff.1 cts, }, },
+      exact (open_embedding_of_le (le_supr U i)).continuous_at_iff.1 cts, }, },
   { -- Proving the factorisation condition is straightforward:
     -- we observe that checking equality of continuous functions reduces to
     -- checking equality of the underlying functions,

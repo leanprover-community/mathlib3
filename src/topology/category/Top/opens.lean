@@ -42,6 +42,29 @@ the morphisms `U ⟶ V` are not just proofs `U ≤ V`, but rather
 `ulift (plift (U ≤ V))`.
 -/
 
+-- FIXME remove, since it's now by simp?
+lemma mem_supr {ι : Type*} (U : ι → opens X) {x} : x ∈ supr U ↔ ∃ i : ι, x ∈ U i :=
+by simp
+
+/-!
+We now construct as morphisms various inclusions of open sets.
+-/
+-- This is tedious, but necessary because we decided not to allow Prop as morphisms in a category...
+-- TODO can we write a coercion??
+
+def inf_le_left (U V : opens X) : U ⊓ V ⟶ U :=
+ulift.up (plift.up inf_le_left)
+
+def inf_le_right (U V : opens X) : U ⊓ V ⟶ V :=
+ulift.up (plift.up inf_le_right)
+
+def le_supr {ι : Type*} (U : ι → opens X) (i : ι) : U i ⟶ supr U :=
+ulift.up (plift.up (le_supr U i))
+
+instance opens_hom_has_coe_to_fun {U V : opens X} : has_coe_to_fun (U ⟶ V) :=
+{ F := λ f, U → V,
+  coe := λ f x, ⟨x, f.down.down x.2⟩ }
+
 /--
 The functor from open sets in `X` to `Top`,
 realising each open set as a topological space itself.

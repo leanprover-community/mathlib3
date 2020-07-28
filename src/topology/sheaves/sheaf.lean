@@ -1,7 +1,26 @@
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import topology.sheaves.presheaf
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.equalizers
 import category_theory.full_subcategory
+
+/-!
+# Sheaves
+
+We define sheaves on a topological space, with values in an arbitrary category.
+
+The sheaf condition for a `F : presheaf C X` requires that the morphism
+`F.obj U ⟶ ∏ F.obj (U i)` (where `U` is some open set which is the union of the `U i`)
+is the equalizer of the two morphisms
+`∏ F.obj (U i) ⟶ ∏ F.obj (U i) ⊓ (U j)`.
+
+We provide the instance `category (sheaf C X)` as the full subcategory of presheaves,
+and the fully faithful functor `sheaf.forget : sheaf C X ⥤ presheaf C X`.
+-/
 
 universes v u
 
@@ -9,29 +28,6 @@ open category_theory
 open category_theory.limits
 open topological_space
 open opposite
-open Top
-
-namespace topological_space.opens
-variables {X : Top.{v}}
-
--- FIXME I can't even find the set level version of this... -- set.mem_Union
-lemma mem_supr {ι : Type*} (U : ι → opens X) {x} : x ∈ supr U ↔ ∃ i : ι, x ∈ U i :=
-by simp
-
--- This is tedious, but necessary because we decided not to allow Prop as morphisms in a category...
-
-def inf_le_left (U V : opens X) : U ⊓ V ⟶ U :=
-ulift.up (plift.up inf_le_left)
-
-def inf_le_right (U V : opens X) : U ⊓ V ⟶ V :=
-ulift.up (plift.up inf_le_right)
-
-def le_supr {ι : Type*} (U : ι → opens X) (i : ι) : U i ⟶ supr U :=
-ulift.up (plift.up (le_supr U i))
-
-
-end topological_space.opens
-
 open topological_space.opens
 
 namespace Top
@@ -105,13 +101,14 @@ lemma fork_π_app_walking_parallel_pair_one :
 end sheaf_condition
 
 /--
-The sheaf condition of a `F : presheaf C X` requires that the morphism
+The sheaf condition for a `F : presheaf C X` requires that the morphism
 `F.obj U ⟶ ∏ F.obj (U i)` (where `U` is some open set which is the union of the `U i`)
 is the equalizer of the two morphisms
 `∏ F.obj (U i) ⟶ ∏ F.obj (U i) ⊓ (U j)`.
 -/
 -- Perhaps we want to work with sets of opens, rather than indexed families,
 -- to avoid the `v+1` here in the universe levels?
+-- Presumably because it's a subsingleton the universe level doesn't matter.
 @[derive subsingleton]
 def sheaf_condition (F : presheaf C X) : Type (max u (v+1)) :=
 Π ⦃ι : Type v⦄ (U : ι → opens X), is_limit (sheaf_condition.fork F U)
@@ -131,5 +128,15 @@ begin
   change category (induced_category (presheaf C X) sheaf.presheaf),
   apply_instance,
 end
+
+namespace sheaf
+
+/--
+The forgetful functor from sheaves to presheaves.
+-/
+@[derive [full, faithful]]
+def forget : Top.sheaf C X ⥤ Top.presheaf C X := induced_functor sheaf.presheaf
+
+end sheaf
 
 end Top

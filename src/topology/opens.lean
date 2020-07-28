@@ -116,6 +116,16 @@ by { ext, simp only [supr, opens.Sup_s, sUnion_image, bUnion_range], refl }
 @[simp] lemma supr_s {ι} (s : ι → opens α) : ((⨆ i, s i : opens α) : set α) = ⋃ i, s i :=
 by simp [supr_def]
 
+lemma open_embedding_of_le {U V : opens α} (i : U ≤ V) :
+  open_embedding (set.inclusion i) :=
+{ inj := set.inclusion_injective i,
+  induced := (@induced_compose _ _ _ _ (set.inclusion i) coe).symm,
+  open_range :=
+  begin
+    rw set.range_inclusion i,
+    exact continuous_subtype_val U.val U.property
+  end, }
+
 def is_basis (B : set (opens α)) : Prop := is_topological_basis ((coe : _ → set α) '' B)
 
 lemma is_basis_iff_nbhd {B : set (opens α)} :

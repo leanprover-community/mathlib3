@@ -426,8 +426,9 @@ end
 ### Neighborhoods
 -/
 
-/-- The neighborhoods of a point `a` are the sets which include an open set containing `a`. These
-sets form a filter. -/
+/-- A set is called a neighborhood of `a` if it contains an open set around `a`. The set of all
+neighborhoods of `a` forms a filter, the neighorhood filter at `a`, which is here defined as the
+infimum over the principal filters of all open sets containing `a`. -/
 def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s)
 
 localized "notation `𝓝` := nhds" in topological_space
@@ -442,12 +443,12 @@ has_basis_binfi_principal
     ⟨inter_subset_left _ _, inter_subset_right _ _⟩⟩)
   ⟨univ, ⟨mem_univ a, is_open_univ⟩⟩
 
-/-- A filter has the neighborhoods of `a` iff it has the open sets containing `a`. -/
+/-- A filter lies below the neighborhood filter at `a` iff it contains every open set around `a`. -/
 lemma le_nhds_iff {f a} : f ≤ 𝓝 a ↔ ∀ s : set α, a ∈ s → is_open s → s ∈ f :=
 by simp [nhds_def]
 
-/-- A filter is included in the neighborhood filter if it is included in one of the principal
-filters that comprise it. -/
+/-- To show a filter is above the neighborhood filter at `a`, it suffices to show that it is above
+the principal filter of some open set `s` containing `a`. -/
 lemma nhds_le_of_le {f a} {s : set α} (h : a ∈ s) (o : is_open s) (sf : 𝓟 s ≤ f) : 𝓝 a ≤ f :=
 by rw nhds_def; exact infi_le_of_le s (infi_le_of_le ⟨h, o⟩ sf)
 

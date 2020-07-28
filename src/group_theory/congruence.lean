@@ -544,7 +544,7 @@ end
 variables {M} [monoid M] [monoid N] [monoid P] (c : con M)
 
 /-- The quotient of a monoid by a congruence relation is a monoid. -/
-@[to_additive add_monoid "The quotient of an `add_monoid` by an additive congruence relation is
+@[to_additive "The quotient of an `add_monoid` by an additive congruence relation is
 an `add_monoid`."]
 instance monoid : monoid c.quotient :=
 { one := ((1 : M) : c.quotient),
@@ -556,7 +556,7 @@ instance monoid : monoid c.quotient :=
 
 
 /-- The quotient of a `comm_monoid` by a congruence relation is a `comm_monoid`. -/
-@[to_additive add_comm_monoid "The quotient of an `add_comm_monoid` by an additive congruence
+@[to_additive "The quotient of an `add_comm_monoid` by an additive congruence
 relation is an `add_comm_monoid`."]
 instance comm_monoid {α : Type*} [comm_monoid α] (c : con α) :
   comm_monoid c.quotient :=
@@ -574,7 +574,7 @@ lemma coe_one : ((1 : M) : c.quotient) = 1 := rfl
 variables (M c)
 
 /-- The submonoid of `M × M` defined by a congruence relation on a monoid `M`. -/
-@[to_additive add_submonoid "The `add_submonoid` of `M × M` defined by an additive congruence
+@[to_additive "The `add_submonoid` of `M × M` defined by an additive congruence
 relation on an `add_monoid` `M`."]
 protected def submonoid : submonoid (M × M) :=
 { carrier := { x | c x.1 x.2 },
@@ -585,7 +585,7 @@ variables {M c}
 
 /-- The congruence relation on a monoid `M` from a submonoid of `M × M` for which membership
     is an equivalence relation. -/
-@[to_additive of_add_submonoid "The additive congruence relation on an `add_monoid` `M` from
+@[to_additive "The additive congruence relation on an `add_monoid` `M` from
 an `add_submonoid` of `M × M` for which membership is an equivalence relation."]
 def of_submonoid (N : submonoid (M × M)) (H : equivalence (λ x y, (x, y) ∈ N)) : con M :=
 { r := λ x y, (x, y) ∈ N,
@@ -594,7 +594,7 @@ def of_submonoid (N : submonoid (M × M)) (H : equivalence (λ x y, (x, y) ∈ N
 
 /-- Coercion from a congruence relation `c` on a monoid `M` to the submonoid of `M × M` whose
     elements are `(x, y)` such that `x` is related to `y` by `c`. -/
-@[to_additive to_add_submonoid "Coercion from a congruence relation `c` on an `add_monoid` `M`
+@[to_additive "Coercion from a congruence relation `c` on an `add_monoid` `M`
 to the `add_submonoid` of `M × M` whose elements are `(x, y)` such that `x`
 is related to `y` by `c`."]
 instance to_submonoid : has_coe (con M) (submonoid (M × M)) := ⟨λ c, c.submonoid M⟩
@@ -602,7 +602,7 @@ instance to_submonoid : has_coe (con M) (submonoid (M × M)) := ⟨λ c, c.submo
 @[to_additive] lemma mem_coe {c : con M} {x y} :
   (x, y) ∈ (↑c : submonoid (M × M)) ↔ (x, y) ∈ c := iff.rfl
 
-@[to_additive to_add_submonoid_inj]
+@[to_additive]
 theorem to_submonoid_inj (c d : con M) (H : (c : submonoid (M × M)) = d) : c = d :=
 ext $ λ x y, show (x, y) ∈ (c : submonoid (M × M)) ↔ (x, y) ∈ ↑d, by rw H
 

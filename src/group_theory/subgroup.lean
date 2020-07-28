@@ -92,7 +92,7 @@ under addition and additive inverse. -/
 structure add_subgroup (G : Type*) [add_group G] extends add_submonoid G:=
 (neg_mem' {x} : x ∈ carrier → -x ∈ carrier)
 
-attribute [to_additive add_subgroup] subgroup
+attribute [to_additive] subgroup
 attribute [to_additive add_subgroup.to_add_submonoid] subgroup.to_submonoid
 
 /-- Reinterpret a `subgroup` as a `submonoid`. -/
@@ -280,14 +280,14 @@ attribute [norm_cast] add_subgroup.coe_add add_subgroup.coe_zero
   add_subgroup.coe_neg add_subgroup.coe_mk
 
 /-- A subgroup of a group inherits a group structure. -/
-@[to_additive to_add_group "An `add_subgroup` of an `add_group` inherits an `add_group` structure."]
+@[to_additive "An `add_subgroup` of an `add_group` inherits an `add_group` structure."]
 instance to_group {G : Type*} [group G] (H : subgroup G) : group H :=
 { inv := has_inv.inv,
   mul_left_inv := λ x, subtype.eq $ mul_left_inv x,
   .. H.to_submonoid.to_monoid }
 
 /-- A subgroup of a `comm_group` is a `comm_group`. -/
-@[to_additive to_add_comm_group "An `add_subgroup` of an `add_comm_group` is an `add_comm_group`."]
+@[to_additive "An `add_subgroup` of an `add_comm_group` is an `add_comm_group`."]
 instance to_comm_group {G : Type*} [comm_group G] (H : subgroup G) : comm_group H :=
 { mul_comm := λ _ _, subtype.eq $ mul_comm _ _, .. H.to_group}
 
@@ -1019,7 +1019,7 @@ variables {H K : subgroup G}
 
 /-- Makes the identity isomorphism from a proof two subgroups of a multiplicative
     group are equal. -/
-@[to_additive add_subgroup_congr "Makes the identity additive isomorphism from a proof
+@[to_additive "Makes the identity additive isomorphism from a proof
 two subgroups of an additive group are equal."]
 def subgroup_congr (h : H = K) : H ≃* K :=
 { map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ subgroup.ext'_iff.1 h }

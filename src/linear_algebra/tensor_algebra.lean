@@ -185,28 +185,44 @@ def lift {A : Type u₃} [semiring A] [algebra R A] (f : M →ₗ[R] A) : tensor
 { to_fun := λ a, quot.lift_on a (lift_fun _ _ f) $ λ a b h,
   begin
     induction h,
-    { change f _ = f _ + f _, simp, },
-    { change f _ = (algebra_map _ _ _) * f _, rw linear_map.map_smul,
+    { change f _ = f _ + f _,
+      simp, },
+    { change f _ = (algebra_map _ _ _) * f _,
+      rw linear_map.map_smul,
       exact algebra.smul_def h_r (f h_a) },
     { exact (algebra_map R A).map_add h_r h_s, },
     { exact (algebra_map R A).map_mul h_r h_s },
     { apply algebra.commutes },
-    { change _ + _ + _ = _ + (_ + _), rw add_assoc },
-    { change _ + _ = _ + _, rw add_comm, },
-    { change (algebra_map _ _ _) + lift_fun R M f _ = lift_fun R M f _, simp, },
-    { change _ * _ * _ = _ * (_ * _), rw mul_assoc },
-    { change (algebra_map _ _ _) * lift_fun R M f _ = lift_fun R M f _, simp, },
-    { change lift_fun R M f _ * (algebra_map _ _ _)= lift_fun R M f _, simp, },
-    { change _ * (_ + _) = _ * _ + _ * _, rw left_distrib, },
-    { change (_ + _) * _ = _ * _ + _ * _, rw right_distrib, },
+    { change _ + _ + _ = _ + (_ + _),
+      rw add_assoc },
+    { change _ + _ = _ + _,
+      rw add_comm, },
+    { change (algebra_map _ _ _) + lift_fun R M f _ = lift_fun R M f _,
+      simp, },
+    { change _ * _ * _ = _ * (_ * _),
+      rw mul_assoc },
+    { change (algebra_map _ _ _) * lift_fun R M f _ = lift_fun R M f _,
+      simp, },
+    { change lift_fun R M f _ * (algebra_map _ _ _) = lift_fun R M f _,
+      simp, },
+    { change _ * (_ + _) = _ * _ + _ * _,
+      rw left_distrib, },
+    { change (_ + _) * _ = _ * _ + _ * _,
+      rw right_distrib, },
+    { change (algebra_map _ _ _) * _ = algebra_map _ _ _,
+      simp },
+    { change _ * (algebra_map _ _ _) = algebra_map _ _ _,
+      simp },
     repeat { set G := lift_fun R M f,
-      change G _ + G _ = G _ + G _ <|> change G _ * G _ = G _ * G _, rw h_ih, },
-    { change (algebra_map _ _ _) * _ = algebra_map _ _ _, simp },
-    { change _ * (algebra_map _ _ _) = algebra_map _ _ _, simp },
+      change G _ + G _ = G _ + G _,
+      rw h_ih, },
+    repeat { set G := lift_fun R M f,
+      change G _ * G _ = G _ * G _,
+      rw h_ih, },
   end,
-  map_one' := by change algebra_map _ _ _ = _; simp,
+  map_one' := by { change algebra_map _ _ _ = _, simp },
   map_mul' := by { rintros ⟨⟩ ⟨⟩, refl },
-  map_zero' := by change algebra_map _ _ _ = _; simp,
+  map_zero' := by { change algebra_map _ _ _ = _, simp },
   map_add' := by { rintros ⟨⟩ ⟨⟩, refl },
   commutes' := by tauto }
 
@@ -224,16 +240,29 @@ begin
   ext,
   rcases quot.exists_rep x with ⟨x,rfl⟩,
   induction x,
-  { change (g.to_linear_map.comp (ι R M)) _ = _, rw hyp, refl },
+  { change (g.to_linear_map.comp (ι R M)) _ = _,
+    rw hyp,
+    refl },
   { exact alg_hom.commutes g x },
-  repeat { change g (quot.mk _ _ + quot.mk _ _) = _ <|> change g (quot.mk _ _ * quot.mk _ _) = _,
-    rw alg_hom.map_add <|> rw alg_hom.map_mul,
-    rw [x_ih_a, x_ih_a_1], refl },
+  { change g (quot.mk _ _ + quot.mk _ _) = _,
+    rw [alg_hom.map_add, x_ih_a, x_ih_a_1],
+    refl },
+  { change g (quot.mk _ _ * quot.mk _ _) = _,
+    rw [alg_hom.map_mul, x_ih_a, x_ih_a_1],
+    refl },
 end
 
+@[simp]
+theorem lift_comp_ι {A : Type u₃} [semiring A] [algebra R A] (g : tensor_algebra R M →ₐ[R] A) :
+  lift R M (g.to_linear_map.comp (ι R M)) = g := by {symmetry, rw ←lift_unique}
+
 theorem hom_ext {A : Type u₃} [semiring A] [algebra R A] {f g : tensor_algebra R M →ₐ[R] A} :
-  f.to_linear_map.comp (ι R M) = g.to_linear_map.comp (ι R M) → f = g := λ hyp,
-  let h := g.to_linear_map.comp (ι R M) in
-  by rw [show g = lift R M h, by rw ←lift_unique, ←lift_unique, hyp]
+  f.to_linear_map.comp (ι R M) = g.to_linear_map.comp (ι R M) → f = g :=
+begin
+  intro hyp,
+  let h := g.to_linear_map.comp (ι R M),
+  have : g = lift R M h, by rw ←lift_unique,
+  rw [this, ←lift_unique, hyp],
+end
 
 end tensor_algebra

@@ -148,10 +148,7 @@ the original cone is.
 -/
 def postcompose_inv_equiv {F G : J ⥤ C} (α : F ≅ G) (c : cone G) :
   is_limit ((cones.postcompose α.inv).obj c) ≃ is_limit c :=
-begin
-  change is_limit ((cones.postcompose_equivalence α.symm).functor.obj c) ≃ _,
-  apply is_limit.of_cone_equiv,
-end
+postcompose_hom_equiv α.symm c
 
 /--
 The cone points of two limit cones for naturally isomorphic functors
@@ -499,10 +496,7 @@ if and only if the original cocone is.
 -/
 def precompose_inv_equiv {F G : J ⥤ C} (α : F ≅ G) (c : cocone F) :
   is_colimit ((cocones.precompose α.inv).obj c) ≃ is_colimit c :=
-begin
-  change is_colimit ((cocones.precompose_equivalence α.symm).functor.obj c) ≃ _,
-  apply is_colimit.of_cocone_equiv,
-end
+precompose_hom_equiv α.symm c
 
 /--
 The cocone points of two colimit cocones for naturally isomorphic functors

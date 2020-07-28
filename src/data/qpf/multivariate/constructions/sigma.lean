@@ -1,4 +1,3 @@
-
 /-
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
@@ -10,7 +9,6 @@ import data.qpf.multivariate.basic
 
 /-!
 # Dependent product and sum of QPFs are QPFs
-
 -/
 
 universes u
@@ -18,9 +16,8 @@ universes u
 namespace mvqpf
 open_locale mvfunctor
 
-variables {n : ℕ}
-  {A : Type.{u}}
-  (F : A → typevec.{u} n → Type.{u})
+variables {n : ℕ} {A : Type u}
+variables (F : A → typevec.{u} n → Type u)
 
 /-- Dependent sum of of an `n`-ary functor. The sum can range over
 data types like `ℕ` or over `Type.{u-1}` -/
@@ -79,7 +76,7 @@ instance : mvfunctor (pi F) :=
 
 variables [Π α, mvqpf $ F α]
 
-/-- polynomial functor representation of a dependent products -/
+/-- polynomial functor representation of a dependent product -/
 protected def P : mvpfunctor n :=
 ⟨ Π a, (P (F a)).A, λ x i, Σ a : A, (P (F a)).B (x a) i ⟩
 

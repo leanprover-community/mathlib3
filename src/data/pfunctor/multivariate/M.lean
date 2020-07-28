@@ -212,7 +212,6 @@ begin
   { exact IH _ _ (h'' _) }
 end
 
-
 theorem M.bisim₀ {α : typevec n} (R : P.M α → P.M α → Prop)
   (h₀ : equivalence R)
   (h : ∀ x y, R x y →
@@ -250,9 +249,9 @@ begin
     induction Hr,
     { rw ← quot.factor_mk_eq R (eqv_gen R) this,
       rwa [append_fun_comp_id,← mvfunctor.map_map,← mvfunctor.map_map,h] },
-    all_goals
-    { cc } }
+    all_goals { cc } }
 end
+
 theorem M.dest_map {α β : typevec n} (g : α ⟹ β) (x : P.M α) :
   M.dest P (g <$$> x) = append_fun g (λ x, g <$$> x) <$$> M.dest P x :=
 begin

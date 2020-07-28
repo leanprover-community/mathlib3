@@ -12,7 +12,6 @@ import data.qpf.multivariate.basic
 
 We define composition between one `n`-ary functor and `n` `m`-ary functors
 and show that it preserves the QPF structure
-
 -/
 
 universes u

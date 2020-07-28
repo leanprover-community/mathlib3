@@ -10,7 +10,6 @@ import data.qpf.multivariate.basic
 /-!
 Projection functors are QPFs. The `n`-ary projection functors on `i` is an `n`-ary
 functor `F` such that `F (α₀..αᵢ₋₁, αᵢ, αᵢ₊₁..αₙ₋₁) = αᵢ`
-
 -/
 
 universes u v

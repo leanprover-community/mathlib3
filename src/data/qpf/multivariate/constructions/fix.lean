@@ -8,7 +8,6 @@ import data.qpf.multivariate.basic
 universes u v
 
 /-!
-
 The initial algebra of a multivariate qpf is again a qpf.
 
 We define the corresponding polynomial functor by selecting:
@@ -18,7 +17,6 @@ We define the corresponding polynomial functor by selecting:
 
 As a result `P.obj α` is made of a dataless tree and a function from
 its valid paths to values of `α`
-
 -/
 
 namespace mvqpf
@@ -48,7 +46,7 @@ begin
     typevec.id_comp]
 end
 
-/-- Equivalence relation on W-type that represent the same `fix F`
+/-- Equivalence relation on W-types that represent the same `fix F`
 value -/
 inductive Wequiv {α : typevec n} : q.P.W α → q.P.W α → Prop
 | ind (a : q.P.A) (f' : q.P.drop.B a ⟹ α) (f₀ f₁ : q.P.last.B a → q.P.W α) :

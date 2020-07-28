@@ -8,12 +8,11 @@ import data.qpf.multivariate.basic
 import data.qpf.multivariate.constructions.fix
 
 /-!
-# The quotients of QPFs is itself a QPF
+# The quotient of QPF is itself a QPF
 
 The quotients are here defined using a surjective function and
 its right inverse. They are very similar to the `abs` and `repr`
 functions found in the definition of `mvqpf`
-
 -/
 
 universes u

@@ -15,7 +15,6 @@ is a useful device for constructing data types from more basic types
 that are not actually functorial. For instance `const n nat` makes
 `nat` into a functor that can be used in a functor-based data type
 specification.
-
 -/
 
 universes u

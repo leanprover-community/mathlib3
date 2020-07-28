@@ -23,7 +23,6 @@ its valid paths to values of `α`
 
 The difference with the polynomial functor of an initial algebra is
 that `A` is a possibly infinite tree
-
 -/
 
 universe u
@@ -70,7 +69,7 @@ instance {α : typevec n} [inhabited q.P.A] [Π (i : fin2 n), inhabited (α i)] 
 /-- maps every element of the W type to a canonical representative -/
 def Mrepr {α : typevec n} : q.P.M α → q.P.M α := corecF (abs ∘ M.dest q.P)
 
-/-- `cofix F` is itself a functor -/
+/-- the map function for the functor `cofix F` -/
 def cofix.map {α β : typevec n} (g : α ⟹ β) : cofix F α → cofix F β :=
 quot.lift (λ x : q.P.M α, quot.mk Mcongr (g <$$> x))
   begin
@@ -148,6 +147,21 @@ end
 def cofix.mk {α : typevec n} : F (α.append1 $ cofix F α) → cofix F α :=
 cofix.corec (λ x, append_fun id (λ i : cofix F α, cofix.dest.{u} i) <$$> x)
 
+/-!
+## Bisimulation principles for `cofix F`
+
+The following theorems are bisimulation principles. The general idea
+is to use a bisimulation relation to prove the equality between
+specific values of type `cofix F α`.
+
+A bisimulation relation `R` for values `x y : cofix F α`:
+
+ * holds for `x y`: `R x y`
+ * for any values `x y` that satisfy `R`, their root has the same shape
+   and their children can be paired in such a way that they satisfy `R`.
+
+-/
+
 private theorem cofix.bisim_aux {α : typevec n}
     (r : cofix F α → cofix F α → Prop)
     (h' : ∀ x, r x x)
@@ -180,6 +194,7 @@ begin
   refine ⟨r', this, rxy⟩
 end
 
+/-- Bisimulation principle using `map` and `quot.mk` to match and relate children of two trees. -/
 theorem cofix.bisim_rel {α : typevec n}
     (r : cofix F α → cofix F α → Prop)
     (h : ∀ x y, r x y →
@@ -201,6 +216,7 @@ begin
   right, exact rxy
 end
 
+/-- Bisimulation principle using `liftr` to match and relate children of two trees. -/
 theorem cofix.bisim {α : typevec n}
     (r : cofix F α → cofix F α → Prop)
     (h : ∀ x y, r x y → liftr (rel_last α r) (cofix.dest x) (cofix.dest y)) :
@@ -220,12 +236,16 @@ end
 
 open mvfunctor
 
+/-- Bisimulation principle using `liftr'` to match and relate children of two trees. -/
 theorem cofix.bisim₂ {α : typevec n}
     (r : cofix F α → cofix F α → Prop)
     (h : ∀ x y, r x y → liftr' (rel_last' α r) (cofix.dest x) (cofix.dest y)) :
   ∀ x y, r x y → x = y :=
 cofix.bisim _ $ by intros; rw ← liftr_last_rel_iff; apply h; assumption
 
+/-- Bisimulation principle the values `⟨a,f⟩` of the polynomial functor representing
+`cofix F α` as well as an invariant `Q : β → Prop` and a state `β` generating the
+left-hand side and right-hand side of the equality through functions `u v : β → cofix F α` -/
 theorem cofix.bisim' {α : typevec n} {β : Type*} (Q : β → Prop)
   (u v : β → cofix F α)
     (h : ∀ x, Q x → ∃ a f' f₀ f₁,
@@ -271,8 +291,15 @@ by rw [← cofix.mk_dest x,h,cofix.mk_dest]
 lemma cofix.ext_mk {α : typevec n} (x y : F (α ::: cofix F α)) (h : cofix.mk x = cofix.mk  y) : x = y :=
 by rw [← cofix.dest_mk x,h,cofix.dest_mk]
 
-section
+/-!
+`liftr_map`, `liftr_map_last` and `liftr_map_last'` are useful for reasoning about
+the induction step in bisimulation proofs.
+-/
+
+section liftr_map
+
 omit q
+
 theorem liftr_map {α β : typevec n} {F' : typevec n → Type u} [mvfunctor F']
   [is_lawful_mvfunctor F']
   (R : β ⊗ β ⟹ repeat n Prop) (x : F' α) (f g : α ⟹ β)
@@ -324,7 +351,7 @@ begin
   rwa [append_fun_id_id,mvfunctor.id_map] at this,
 end
 
-end
+end liftr_map
 
 lemma cofix.abs_repr {α} (x : cofix F α) :
   quot.mk _ (cofix.repr x) = x :=

@@ -1,5 +1,6 @@
 import data.rel
 import analysis.convex.basic
+import analysis.special_functions.pow
 
 noncomputable theory
 open_locale classical big_operators
@@ -45,6 +46,9 @@ begin
   unfold convex_on, split, exact convex_univ,
   sorry,
 end
+
+lemma falling_product_lower_asymptotic (x : ℝ) (h : (s : ℝ) < x + 1) :
+  sorry ≤ falling_product s x :=
 
 end falling_product
 
@@ -181,7 +185,15 @@ begin
   iterate 2 { repeat {rw inv_nonneg}, norm_cast, apply nat.zero_le, }
 end
 
-theorem kovari_sos_toth :
-  r.edge_finset.card ≤ 100 * (↑(fintype.card α) * (fintype.card β : ℝ) ^ ((↑s - 1) / ↑s) + ↑(fintype.card β)) := sorry
+theorem kovari_sos_toth {spos : s ≠ 0} {betapos : fintype.card β ≠ 0} :
+  ↑r.edge_finset.card ≤ (100 : ℝ) * ((fintype.card α) * (fintype.card β : ℝ) ^ ((↑s - 1) / ↑s) + ↑(fintype.card β)) :=
+begin
+  have hcomb := r.combine_bounds noKst, unfold falling_product at hcomb,
+  by_cases ↑s < (↑(fintype.card β): ℝ)⁻¹ * ↑(r.edge_finset.card) + 1,
+  { rw if_pos h at hcomb, sorry,},
+  {
+    sorry,
+  }
+end
 
 end rel

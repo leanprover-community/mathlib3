@@ -28,7 +28,7 @@ by rw [antidiagonal, mem_coe, list.nat.mem_antidiagonal]
 by rw [antidiagonal, coe_card, list.nat.length_antidiagonal]
 
 /-- The antidiagonal of `0` is the list `[(0,0)]` -/
-@[simp] lemma antidiagonal_zero : antidiagonal 0 = {(0, 0)} :=
+@[simp] lemma antidiagonal_zero : antidiagonal 0 = {⟨0, 0⟩} :=
 rfl
 
 /-- The antidiagonal of `n` does not contain duplicate entries. -/
